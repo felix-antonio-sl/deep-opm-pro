@@ -73,21 +73,6 @@ grep -l "getTriangleSVG" *.js
 | Rutas Angular | Decompilacion | 28 |
 | Config Firebase | Decompilacion | completa |
 
-## Marco legal
-
-El material en este repositorio es producto de **ingenieria inversa
-observacional** sobre assets publicamente accesibles desde CDN sin
-restriccion de acceso. Ver `PROCEDIMIENTO.md` para detalle legal.
-
-- Bundles originales (`_local/`) y decompilaciones completas (`decompiled/`)
-  NO se versionan: son propiedad de OPCloud Ltd. y se regeneran con
-  `setup.sh`.
-- Los SVGs, configuraciones numericas, geometrias y parametros extraidos
-  son hechos no creativos — uso libre.
-- Las citas de codigo en `JOYAS.md` son referencia academica (≤30 lineas).
-- Este repositorio es independiente, con su propia licencia, y no contiene
-  codigo copiado literalmente de OPCloud.
-
 ## Fuentes
 
 - OPCloud app: `https://opcloud.systems`
