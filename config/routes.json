@@ -1,0 +1,33 @@
+{
+  "source": "bundle decompilado: main.a8737ee2a8ed30eb.js",
+  "routes": [
+    {"path": "login", "guard": "none", "purpose": "autenticacion"},
+    {"path": "home", "guard": "canActivate", "purpose": "dashboard principal"},
+    {"path": "load", "guard": "canActivate", "purpose": "carga de modelos"},
+    {"path": "load/:id", "guard": "canActivate", "purpose": "carga por id de modelo"},
+    {"path": "load/:id/:opd", "guard": "canActivate", "purpose": "carga por id + opd especifico"},
+    {"path": "new-user", "guard": "none", "purpose": "registro de usuario"},
+    {"path": "new-org", "guard": "canActivate", "purpose": "crear organizacion"},
+    {"path": "org-admin", "guard": "canActivate", "purpose": "administracion de organizacion"},
+    {"path": "add-group", "guard": "canActivate", "purpose": "agregar grupo"},
+    {"path": "del-grp", "guard": "canActivate", "purpose": "eliminar grupo"},
+    {"path": "del-org", "guard": "canActivate", "purpose": "eliminar organizacion"},
+    {"path": "find-users-admin", "guard": "canActivate", "purpose": "busqueda de usuarios (admin)"},
+    {"path": "groups-member", "guard": "canActivate", "purpose": "miembros de grupo"},
+    {"path": "listOfThings", "guard": "canActivate", "purpose": "lista de cosas OPM"},
+    {"path": "dsm", "guard": "canActivate", "purpose": "Design Structure Matrix"},
+    {"path": "graph-insights", "guard": "canActivate", "purpose": "graph insights / analytics"},
+    {"path": "model-analysis", "guard": "canActivate", "purpose": "analisis de modelos"},
+    {"path": "model-analysis-tools", "guard": "canActivate", "purpose": "herramientas de analisis"},
+    {"path": "missing-knowledge-analysis", "guard": "canActivate", "purpose": "analisis de conocimiento faltante"},
+    {"path": "nlp-model-analysis", "guard": "canActivate", "purpose": "NLP model analysis"},
+    {"path": "logs-dashboard", "guard": "canActivate", "purpose": "dashboard de logs"},
+    {"path": "organization_analytics", "guard": "canActivate", "purpose": "analytics de organizacion"},
+    {"path": "opcloud-settings", "guard": "canActivate", "purpose": "configuracion de OPCloud"},
+    {"path": "opl-settings", "guard": "canActivate", "purpose": "configuracion OPL"},
+    {"path": "OPCloud-Organization-Settings_org", "guard": "canActivate", "purpose": "settings de organizacion"},
+    {"path": "opcloud-privacy-policy", "guard": "canActivate", "purpose": "politica de privacidad"},
+    {"path": "opcloud-quick-manual", "guard": "canActivate", "purpose": "manual rapido"},
+    {"path": "eula", "guard": "canActivate", "purpose": "terminos de uso"}
+  ]
+}

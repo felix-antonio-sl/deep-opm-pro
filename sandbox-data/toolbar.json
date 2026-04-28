@@ -1,0 +1,47 @@
+[
+  {
+    "text": "Back",
+    "aria": "",
+    "title": "",
+    "icon": "",
+    "x": 0,
+    "y": 0,
+    "cls": "mat-mdc-tooltip-trigger mdc-button mat-mdc-button "
+  },
+  {
+    "text": "SD",
+    "aria": "",
+    "title": "",
+    "icon": "",
+    "x": 20,
+    "y": 115,
+    "cls": "sdBtn seletcedOpdNode ng-star-inserted"
+  },
+  {
+    "text": "SD1: OPD Construct unfolded",
+    "aria": "",
+    "title": "",
+    "icon": "",
+    "x": 30,
+    "y": 147,
+    "cls": "sdBtn ng-star-inserted"
+  },
+  {
+    "text": "SD1.1: Element unfolded",
+    "aria": "",
+    "title": "",
+    "icon": "",
+    "x": 40,
+    "y": 182,
+    "cls": "sdBtn ng-star-inserted"
+  },
+  {
+    "text": "SD2: Thing unfolded",
+    "aria": "",
+    "title": "",
+    "icon": "",
+    "x": 30,
+    "y": 217,
+    "cls": "sdBtn ng-star-inserted"
+  }
+]

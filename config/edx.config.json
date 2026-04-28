@@ -1,0 +1,8 @@
+{
+    "TARGET": "https://edx.iem.technion.ac.il",
+    "SEMESTER": "winter22",
+    "VERSION": "v01",
+    "ENDPOINT": "user"
+}
+
+

@@ -1,0 +1,29 @@
+{
+  "cells": [],
+  "linkPaths": [],
+  "triangleAggs": [],
+  "defs": [
+    {
+      "id": "filter0_d",
+      "tag": "filter",
+      "outerHTML": "<filter _ngcontent-ng-c4130173904=\"\" id=\"filter0_d\" x=\"0\" y=\"0\" width=\"77\" height=\"51\" filterUnits=\"userSpaceOnUse\" color-interpolation-filters=\"sRGB\"><feFlood _ngcontent-ng-c4130173904=\"\" flood-opacity=\"0\" result=\"BackgroundImageFix\"></feFlood><feColorMatrix _ngcontent-ng-c4130173904=\"\" in=\"SourceAlpha\" type=\"matrix\" values=\"0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0\"></feColorMatrix><feOffset _ng"
+    },
+    {
+      "id": "filter1_d",
+      "tag": "filter",
+      "outerHTML": "<filter _ngcontent-ng-c4130173904=\"\" id=\"filter1_d\" x=\"17.4333\" y=\"10\" width=\"42.1334\" height=\"31\" filterUnits=\"userSpaceOnUse\" color-interpolation-filters=\"sRGB\"><feFlood _ngcontent-ng-c4130173904=\"\" flood-opacity=\"0\" result=\"BackgroundImageFix\"></feFlood><feColorMatrix _ngcontent-ng-c4130173904=\"\" in=\"SourceAlpha\" type=\"matrix\" values=\"0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0\"></feColorMatrix><"
+    },
+    {
+      "id": "filter0_d",
+      "tag": "filter",
+      "outerHTML": "<filter _ngcontent-ng-c4130173904=\"\" id=\"filter0_d\" x=\"0\" y=\"0\" width=\"77\" height=\"51\" filterUnits=\"userSpaceOnUse\" color-interpolation-filters=\"sRGB\"><feFlood _ngcontent-ng-c4130173904=\"\" flood-opacity=\"0\" result=\"BackgroundImageFix\"></feFlood><feColorMatrix _ngcontent-ng-c4130173904=\"\" in=\"SourceAlpha\" type=\"matrix\" values=\"0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0\"></feColorMatrix><feOffset _ng"
+    },
+    {
+      "id": "filter1_d",
+      "tag": "filter",
+      "outerHTML": "<filter _ngcontent-ng-c4130173904=\"\" id=\"filter1_d\" x=\"17.4333\" y=\"10\" width=\"42.1333\" height=\"31\" filterUnits=\"userSpaceOnUse\" color-interpolation-filters=\"sRGB\"><feFlood _ngcontent-ng-c4130173904=\"\" flood-opacity=\"0\" result=\"BackgroundImageFix\"></feFlood><feColorMatrix _ngcontent-ng-c4130173904=\"\" in=\"SourceAlpha\" type=\"matrix\" values=\"0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0\"></feColorMatrix><"
+    }
+  ],
+  "types": {},
+  "oplText": ""
+}

@@ -1,0 +1,12 @@
+# Bundles originales de OPCloud (42 MB main.js + complementos)
+# Propiedad de OPCloud Ltd. Se regeneran con: bash setup.sh
+_local/
+
+# Decompilacion de webcrack (809 modulos, 91 MB)
+# Se regenera con: bash setup.sh
+decompiled/
+
+# Archivos temporales
+*.tar.gz
+.DS_Store
+tmp/

@@ -1,0 +1,94 @@
+{
+  "title": "OPCloud",
+  "bodyText": "Example Models:\nEmpty Model\nOPM structure meta-model\nOnStar System\nSD and SD1 asynchronous process\nSD and SD1 synchronous process\nSystem Diagram (SD)\n*This is a demo version.\nTo read about OPCloud full version and contact info,\nplease see: https://www.opcloud.tech/\n\n\n\n\nModel (Not Saved)\nSD\nDraggable OPM Things\n\nOPD Navigator\n100%\n\nOPL\n\n \n10px\n12px\n14px\n16px\n18px\n24px\n32px\n36px\n48px\n ",
+  "allButtons": [
+    {
+      "text": "",
+      "aria": "",
+      "cl": ""
+    },
+    {
+      "text": "",
+      "aria": "",
+      "cl": ""
+    },
+    {
+      "text": "",
+      "aria": "",
+      "cl": ""
+    },
+    {
+      "text": "Back",
+      "aria": "",
+      "cl": "mat-mdc-tooltip-trigger mdc-button mat-m"
+    },
+    {
+      "text": "SD",
+      "aria": "",
+      "cl": "sdBtn seletcedOpdNode ng-star-inserted"
+    }
+  ],
+  "selectValue": "Empty Model",
+  "allOptions": [
+    {
+      "text": "Empty Model",
+      "value": "Empty Model"
+    },
+    {
+      "text": "OPM structure meta-model",
+      "value": "OPM structure meta-model"
+    },
+    {
+      "text": "OnStar System",
+      "value": "OnStar System"
+    },
+    {
+      "text": "SD and SD1 asynchronous process",
+      "value": "SD and SD1 asynchronous process"
+    },
+    {
+      "text": "SD and SD1 synchronous process",
+      "value": "SD and SD1 synchronous process"
+    },
+    {
+      "text": "System Diagram (SD)",
+      "value": "System Diagram (SD)"
+    },
+    {
+      "text": "10px",
+      "value": "10px"
+    },
+    {
+      "text": "12px",
+      "value": "12px"
+    },
+    {
+      "text": "14px",
+      "value": "14px"
+    },
+    {
+      "text": "16px",
+      "value": "16px"
+    },
+    {
+      "text": "18px",
+      "value": "18px"
+    },
+    {
+      "text": "24px",
+      "value": "24px"
+    },
+    {
+      "text": "32px",
+      "value": "32px"
+    },
+    {
+      "text": "36px",
+      "value": "36px"
+    },
+    {
+      "text": "48px",
+      "value": "48px"
+    }
+  ]
+}

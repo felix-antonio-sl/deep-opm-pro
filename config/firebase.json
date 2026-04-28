@@ -1,0 +1,19 @@
+{
+  "source": "https://opcloud.systems",
+  "bundle": "main.a8737ee2a8ed30eb.js",
+  "project": "opcloud-trial",
+  "apiKey": "AIzaSyA5okv4Zyd2ZKdPHPI1NejiMvoIKr0_TV8",
+  "authDomain": "opcloud-trial.firebaseapp.com",
+  "databaseURL": "https://opcloud-trial.firebaseio.com",
+  "projectId": "opcloud-trial",
+  "messagingSenderId": "168141925790",
+  "storageBucket": "",
+  "backend": {
+    "apiTarget": "https://opcloud-trial.uc.r.appspot.com",
+    "platform": "Google App Engine",
+    "framework": "Express",
+    "auth": "Firebase Auth (verifyIdToken)"
+  },
+  "gaTrackingId": "G-Z8Y7TVP1HK",
+  "ontology": "https://opcloud.tech/ontology/opm#"
+}
