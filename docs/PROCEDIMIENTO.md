@@ -16,8 +16,9 @@ y rutas.
 deep-opm-pro/
 ├── PROCEDIMIENTO.md           # este archivo
 ├── setup.sh                   # script para regenerar desde cero
-├── index.html                 # HTML raiz de la app (capturado)
-├── favicon.ico                # favicon de la app
+├── webroot/                   # capturas raiz de la app
+│   ├── index.html             # HTML raiz de la app (capturado)
+│   └── favicon.ico            # favicon de la app
 ├── decompiled/                # 808 modulos webpack decompilados (91 MB)
 │   ├── bundle.json            # manifiesto de modulos
 │   ├── deobfuscated.js        # bundle completo deobfuscado (46 MB)

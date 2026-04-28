@@ -162,10 +162,10 @@ echo "    PNGs: ${png_ok} ok, ${png_fail} fail"
 echo ""
 echo "==> Descargando config & root assets..."
 
-/usr/bin/mkdir -p "${SCRIPT_DIR}/config"
+/usr/bin/mkdir -p "${SCRIPT_DIR}/config" "${SCRIPT_DIR}/webroot"
 /usr/bin/curl -sL --max-time 10 -o "${SCRIPT_DIR}/config/edx.config.json" "${BASE_URL}/assets/config/edx.config.json" 2>/dev/null || true
-/usr/bin/curl -sL --max-time 10 -o "${SCRIPT_DIR}/index.html" "${BASE_URL}/" 2>/dev/null || true
-/usr/bin/curl -sL --max-time 10 -o "${SCRIPT_DIR}/favicon.ico" "${BASE_URL}/favicon_new.ico" 2>/dev/null || true
+/usr/bin/curl -sL --max-time 10 -o "${SCRIPT_DIR}/webroot/index.html" "${BASE_URL}/" 2>/dev/null || true
+/usr/bin/curl -sL --max-time 10 -o "${SCRIPT_DIR}/webroot/favicon.ico" "${BASE_URL}/favicon_new.ico" 2>/dev/null || true
 
 # ── Resumen ──────────────────────────────────────────────────────────
 echo ""

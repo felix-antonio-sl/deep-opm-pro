@@ -2,7 +2,7 @@
 
 Informe generado el 2026-04-28 a partir del cruce de:
 - `decompiled/` — 808 modulos webpack de `opcloud.systems` (produccion)
-- `sandbox-data/` — extraccion runtime de `opcloud-sandbox.web.app` (demo)
+- `fixtures/` — extraccion runtime de `opcloud-sandbox.web.app` (demo, organizada por modelo)
 - `assets/svg/` + `assets/png/` — 84 assets del CDN publico
 - `config/` — firebase.json, routes.json, edx.config.json
 
@@ -293,6 +293,6 @@ Triangulo isosceles: base 25.67px en Y=24.98, vertice en X=15.33, Y=0.76. Color:
 
 Fuentes:
 - `decompiled/` — 808 modulos de `opcloud.systems`
-- `sandbox-data/` — 6 modelos del sandbox con 10 OPDs
+- `fixtures/` — 6 modelos del sandbox con 10 OPDs
 - `assets/svg/` + `assets/png/` — 84 assets del CDN
 - `config/` — firebase.json, routes.json, edx.config.json
