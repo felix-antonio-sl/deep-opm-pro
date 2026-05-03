@@ -7,6 +7,13 @@
 
 ---
 
+## Politica de handoff unico
+
+`docs/HANDOFF.md` es la unica memoria de traspaso vigente del proyecto. No se
+mantienen handoffs paralelos, fechados ni duplicados. Cada vez que se genere un
+handoff nuevo, debe reemplazar y consolidar el contenido anterior en este mismo
+archivo.
+
 ## Handoff explicito del corte 2026-05-04
 
 ### Estado actual

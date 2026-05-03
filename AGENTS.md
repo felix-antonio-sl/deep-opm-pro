@@ -25,6 +25,7 @@
   - `cd app && bun run check` — typecheck + test
 - Stack: Bun 1.3+, TypeScript strict, JointJS 3.7 core (sin Rappid), Preact 10 + Signals, Zustand 5, Vite 6, Playwright para evaluacion browser.
 - Lee `docs/HANDOFF.md` primero para estado, bloqueantes y pendientes; `docs/JOYAS.md` para hallazgos tecnicos validados; `docs/PROCEDIMIENTO.md` solo cuando necesites regenerar material extraido.
+- **Handoff unico del proyecto**: `docs/HANDOFF.md` es la unica memoria de traspaso vigente. No crear handoffs paralelos, fechados ni duplicados. Cuando se genere un handoff nuevo, debe reemplazar y consolidar el contenido previo dentro de `docs/HANDOFF.md`.
 - `bash setup.sh` es el unico comando de regeneracion; requiere `bash`, `curl` y `npx`/npm, descarga bundles de produccion, ejecuta `webcrack` y repuebla `decompiled/`, `_local/bundles/`, assets publicos, `webroot/index.html`, `webroot/favicon.ico` y `config/edx.config.json`.
 - No versionar ni usar como codigo fuente directo `decompiled/` o `_local/`; son material grande, gitignored, de OPCloud y regenerable.
 - **`opm-extracted/` SI se versiona**: es el derivado curado y trazable (~8 MiB, 349 archivos OPM legibles + 84 assets + 3 indices). Reemplaza `decompiled/` como referencia de lectura. Regenerable idempotentemente con `node opm-extracted/tools/{extract,refactor,build-index}.mjs`. **No copiar bloques 1:1 a `app/`**: el stack diverge (Preact != Angular, Zustand != Firebase, JointJS core != Rappid); `opm-extracted/` se usa para entender semantica OPM, no para clonar.
