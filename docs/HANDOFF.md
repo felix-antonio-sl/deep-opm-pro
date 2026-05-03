@@ -1,13 +1,13 @@
 # HANDOFF — estado, decisiones, pendientes, riesgos
 
-**Fecha**: 2026-05-03
-**Sesion**: cierre de corte MVP-alpha inicial: HU v2 + `opm-extracted/` + app nueva OPM hasta antes de profundizar JointJS
+**Fecha**: 2026-05-04
+**Sesion**: cierre de corte MVP-alpha inicial: HU v2 + `opm-extracted/` + EPICA-20 minimo + auditoria visual SSOT/JointJS
 **Repositorio**: `deep-opm-pro`
 **Repositorio hermano**: `opm-model-app` (fuente historica de historias de usuario; inventario vivo local en `docs/historias-usuario-v2/`)
 
 ---
 
-## Handoff explicito del corte 2026-05-03
+## Handoff explicito del corte 2026-05-04
 
 ### Estado actual
 
@@ -15,8 +15,9 @@
 - `docs/historias-usuario-v2/` es el backlog vivo local: 48 epicas, 1,117 HU canonicas, 48 stubs, 0 violaciones de linter y 0 huerfanas v1->v2.
 - `opm-extracted/` esta versionado y es la fuente preferente para consultar la logica observable de OPCloud antes de tocar `decompiled/`.
 - `app/` contiene una app nueva Bun + Vite + Preact + Zustand + JointJS OSS, con kernel propio y sin copiar arquitectura Angular/Firebase/Rappid.
-- Se llego justo al punto pedido antes de necesitar mas profundidad de JointJS: canvas/proyeccion/link tools ya existen; el siguiente bloque natural es estructura OPD minima.
-- Dev server remoto probado en `http://138.201.53.205:5173/`; `5174` debe permanecer cerrado.
+- EPICA-20 minimo quedo implementado: panel/arbol OPD con raiz `SD`, `opdActivoId` en store, navegacion desde UI, canvas JointJS y OPL filtrados por OPD activo.
+- Auditoria visual SSOT/JointJS aplicada: firmas consumo/resultado/efecto corregidas, marcadores procedimentales basicos, agregacion con triangulo, routing manhattan basico, sin elipsis silenciosa en etiquetas, posicion inicial libre por OPD y toolbar compacta sin overflow.
+- Dev server remoto probado en `http://138.201.53.205:5173/` con Vite escuchando en `0.0.0.0:5173`; `5174` debe permanecer cerrado.
 
 ### Artefactos relevantes
 
@@ -34,26 +35,29 @@
 - JointJS OSS se usa como renderer/adaptador, no como modelo de dominio. El kernel OPM vive en `app/src/modelo/`.
 - Undo/redo y dirty state usan snapshots de `Modelo` con profundidad 100. Es una decision temporal aceptable para MVP-alpha; comandos inversos quedan para cuando el costo o la auditoria granular lo justifiquen.
 - `opm-extracted/` se consulta para semantica, valores visuales, routing, puertos, marcadores y OPL; no se copian bloques 1:1 a `app/`.
+- Los tipos de enlace se eligen desde un selector compacto en la toolbar para evitar overflow en viewports de smoke y mantener el canvas operativo.
 
 ### Verificacion del corte
 
 Ejecutado en `app/`:
 
-- `bun run check` -> 20 tests verdes.
-- `bun run browser:smoke` -> 4 tests Playwright verdes.
+- `bun run check` -> 26 tests verdes.
+- `bun run browser:smoke` -> 6 tests Playwright verdes.
 - `bun run build` -> build OK; warning esperado de chunk grande por JointJS.
 
 Capturas browser relevantes:
 
 - `app/test-results/opm-demo-jointjs.png`
+- `app/test-results/opm-opd-tree.png`
 - `app/test-results/opm-drag-jointjs.png`
 - `app/test-results/opm-dirty-undo-redo.png`
 - `app/test-results/opm-link-tools-jointjs.png`
+- `app/test-results/opm-agregacion-triangulo.png`
 
 ### Pendientes inmediatos
 
-1. Implementar EPICA-20 minimo: panel/arbol OPD con nodo raiz `SD`, `opdActivoId` en store y cambio de OPD desde UI.
-2. Ampliar smoke de undo/redo por operacion: eliminar, renombrar, mover, esencia, afiliacion, crear/eliminar enlace y vertices.
+1. Ampliar smoke de undo/redo por operacion: eliminar, renombrar, mover, esencia, afiliacion, crear/eliminar enlace y vertices.
+2. Implementar creacion real de OPDs hijos por descomposicion/unfold y poblar el arbol mas alla de imports/fixtures.
 3. Persistencia local real: IndexedDB o storage estructurado con lista de modelos.
 4. Dialogo Guardar / Descartar / Cancelar cuando exista navegacion real entre modelos.
 5. OPL bidireccional queda fuera hasta estabilizar parser y mas kernel.
@@ -63,25 +67,25 @@ Capturas browser relevantes:
 - Para MVP-alpha, snapshots de modelo son suficientemente pequenos y reversibles.
 - La app puede seguir sin backend ni auth mientras se valida modelado local.
 - OPCloud informa UX y comportamiento, pero SSOT OPM manda cuando haya tension semantica.
-- El siguiente avance puede mantenerse antes de una nueva profundizacion JointJS si se limita a OPD tree y estado activo.
+- El siguiente avance puede mantenerse antes de una nueva profundizacion JointJS si se limita a crear OPDs hijos por descomposicion/unfold desde el kernel.
 
 ### Riesgos
 
 - `opm-extracted/` es material derivado de ingenieria inversa: usarlo como evidencia, no como fuente copiada.
-- La app todavia no tiene multi-OPD real; sin EPICA-20 el modelador pierde estructura al crecer.
+- La app ya navega OPDs importados, pero todavia no crea OPDs hijos desde operaciones de descomposicion/unfold.
 - Dirty state no tiene confirmacion de salida hasta que exista navegacion/cierre de modelos.
 - El bundle de JointJS genera warning de tamano; no es bloqueante para MVP-alpha, pero puede exigir code splitting luego.
 
 ### Prompt breve de continuacion
 
 ```
-Retoma `docs/HANDOFF.md` en `deep-opm-pro`. Estado: HU v2 validada,
-`opm-extracted/` versionado, app nueva en `app/` con kernel OPM, OPL forward,
-JointJS OSS minimo, dirty state y undo/redo por snapshots. Ultimo loop verde:
+Retoma `docs/HANDOFF.md` en `deep-opm-pro`. Estado: EPICA-20 minimo
+implementado con arbol OPD, raiz SD, `opdActivoId`, canvas JointJS y OPL por
+OPD activo. Auditoria visual SSOT/JointJS aplicada. Ultimo loop verde:
 `bun run check`, `bun run browser:smoke`, `bun run build`.
 
-Continuar con EPICA-20 minimo: arbol OPD con nodo raiz SD, `opdActivoId`
-en store y cambio de OPD desde UI, manteniendo JointJS como adaptador.
+Continuar con OPDs hijos reales por descomposicion/unfold: operacion de kernel,
+alta de nodo bajo el OPD padre, cambio automatico al hijo y smoke minimo.
 ```
 
 ---
@@ -131,7 +135,8 @@ en store y cambio de OPD desde UI, manteniendo JointJS como adaptador.
 | UI Preact/Zustand | Implementado | `app/src/ui/` |
 | Adapter JointJS OSS | Implementado minimo | `app/src/render/jointjs/` |
 | Dirty state + undo/redo | Implementado minimo | `app/src/store.ts`, `app/src/store.test.ts`, `app/src/ui/Toolbar.tsx` |
-| Smoke navegador | Implementado, 4 casos | `app/e2e/opm-smoke.spec.ts` |
+| Arbol OPD + OPD activo | Implementado minimo | `app/src/ui/ArbolOpd.tsx`, `app/src/store.ts`, `app/e2e/opm-smoke.spec.ts` |
+| Smoke navegador | Implementado, 6 casos | `app/e2e/opm-smoke.spec.ts` |
 
 ### NO obtenido (sin cambios)
 
@@ -214,7 +219,7 @@ en store y cambio de OPD desde UI, manteniendo JointJS como adaptador.
 ### Alta prioridad
 
 1. **Obtener acceso autenticado a `opcloud.systems`** (sin cambios)
-2. **Continuar MVP-alpha con EPICA-20 minimo** usando `docs/roadmap/sprint-0.md`, `docs/roadmap/mvp-alpha.md`, `docs/roadmap/mvp-alpha-coverage.md`, las HU v2 M0 locales, los insumos de `deep-opm-pro/` como evidencia de producto, y `docs/archive/si-partiese-desde-0.md` como guia de lo que NO repetir.
+2. **Continuar MVP-alpha con OPDs hijos reales por descomposicion/unfold** usando `docs/roadmap/sprint-0.md`, `docs/roadmap/mvp-alpha.md`, `docs/roadmap/mvp-alpha-coverage.md`, las HU v2 M0 locales, los insumos de `deep-opm-pro/` como evidencia de producto, y `docs/archive/si-partiese-desde-0.md` como guia de lo que NO repetir.
 
 ### Media prioridad
 
@@ -231,11 +236,11 @@ en store y cambio de OPD desde UI, manteniendo JointJS como adaptador.
 ## Prompt de continuacion
 
 ```
-Retomar `docs/HANDOFF.md` en `deep-opm-pro`. Estado: HU v2 validada,
-`opm-extracted/` versionado, app nueva en `app/` con kernel OPM, OPL forward,
-JointJS OSS minimo, dirty state y undo/redo por snapshots. Ultimo loop verde:
+Retomar `docs/HANDOFF.md` en `deep-opm-pro`. Estado: EPICA-20 minimo
+implementado con arbol OPD, raiz SD, `opdActivoId`, canvas JointJS y OPL por
+OPD activo. Auditoria visual SSOT/JointJS aplicada. Ultimo loop verde:
 `bun run check`, `bun run browser:smoke`, `bun run build`.
 
-Continuar con EPICA-20 minimo: arbol OPD con nodo raiz SD, `opdActivoId`
-en store y cambio de OPD desde UI, manteniendo JointJS como adaptador.
+Continuar con OPDs hijos reales por descomposicion/unfold: operacion de kernel,
+alta de nodo bajo el OPD padre, cambio automatico al hijo y smoke minimo.
 ```

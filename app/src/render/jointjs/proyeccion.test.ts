@@ -25,9 +25,10 @@ describe("proyeccion JointJS", () => {
       entidadId: entidad.id,
       aparienciaId: apariencia.id,
     });
+    expect(((cells[0]?.attrs as Attrs | undefined)?.label as Attrs | undefined)?.textWrap).toEqual({ width: -12 });
   });
 
-  test("proyecta enlaces usando apariencia origen/destino y no ids logicos", () => {
+  test("proyecta habilitadores con piruleta en el proceso y corchete en origen", () => {
     const modelo = modeloConAgente();
     const enlace = Object.values(modelo.enlaces)[0];
     const aparienciaEnlace = Object.values(modelo.opds[modelo.opdRaizId]?.enlaces ?? {})[0];
@@ -47,6 +48,10 @@ describe("proyeccion JointJS", () => {
     expect(cellEnlace?.type).toBe("standard.Link");
     expect((cellEnlace?.source as { id?: string } | undefined)?.id).toBe(aparienciaPorEntidad.get(enlace.origenId));
     expect((cellEnlace?.target as { id?: string } | undefined)?.id).toBe(aparienciaPorEntidad.get(enlace.destinoId));
+    const line = ((cellEnlace?.attrs as Attrs | undefined)?.line as Attrs | undefined);
+    expect((line?.sourceMarker as Attrs | undefined)?.d).toContain("L 0 -8");
+    expect((line?.targetMarker as Attrs | undefined)?.type).toBe("circle");
+    expect((line?.targetMarker as Attrs | undefined)?.fill).toBe("#586D8C");
     expect(cellEnlace?.opm).toMatchObject({
       kind: "enlace",
       enlaceId: enlace.id,
@@ -54,7 +59,37 @@ describe("proyeccion JointJS", () => {
       tipo: "agente",
     });
   });
+
+  test("proyecta efecto como enlace bidireccional", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 30 }, "Objeto"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 220, y: 130 }, "Proceso"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidadPorNombre(modelo, "Objeto"), entidadPorNombre(modelo, "Proceso"), "efecto"));
+
+    const cellEnlace = proyectarModeloAJointCells(modelo, modelo.opdRaizId, null, null).find((cell) => cell.type === "standard.Link");
+    const line = ((cellEnlace?.attrs as Attrs | undefined)?.line as Attrs | undefined);
+
+    expect((line?.sourceMarker as Attrs | undefined)?.d).toBe("M 10 -5 0 0 10 5 z");
+    expect((line?.targetMarker as Attrs | undefined)?.d).toBe("M 10 -5 0 0 10 5 z");
+  });
+
+  test("proyecta agregacion con triangulo estructural separado", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 30 }, "Whole"));
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 220, y: 130 }, "Part"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidadPorNombre(modelo, "Whole"), entidadPorNombre(modelo, "Part"), "agregacion"));
+
+    const cells = proyectarModeloAJointCells(modelo, modelo.opdRaizId, null, Object.values(modelo.enlaces)[0]?.id ?? null);
+
+    expect(cells.filter((cell) => cell.type === "standard.Link")).toHaveLength(2);
+    const triangulo = cells.find((cell) => cell.type === "standard.Polygon");
+    expect(triangulo).toBeDefined();
+    expect(((triangulo?.attrs as Attrs | undefined)?.body as Attrs | undefined)?.refPoints).toBe("0,15 30,0 30,30");
+    expect(((triangulo?.attrs as Attrs | undefined)?.body as Attrs | undefined)?.strokeWidth).toBe(4);
+  });
 });
+
+type Attrs = Record<string, unknown>;
 
 function modeloConAgente(): Modelo {
   let modelo = crearModelo();

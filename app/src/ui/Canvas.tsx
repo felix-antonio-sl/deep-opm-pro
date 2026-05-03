@@ -17,7 +17,8 @@ export function Canvas() {
   const seleccionarEntidad = useOpmStore((s) => s.seleccionarEntidad);
   const moverEntidad = useOpmStore((s) => s.moverEntidad);
   const modoEnlace = useOpmStore((s) => s.modoEnlace);
-  const opd = modelo.opds[modelo.opdRaizId];
+  const opdActivoId = useOpmStore((s) => s.opdActivoId);
+  const opd = modelo.opds[opdActivoId];
   const apariencias = opd ? Object.values(opd.apariencias) : [];
   const enlaces = opd ? Object.values(opd.enlaces) : [];
   const aparienciaPorEntidad = new Map(apariencias.map((apariencia) => [apariencia.entidadId, apariencia]));

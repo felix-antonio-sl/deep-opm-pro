@@ -3,7 +3,8 @@ import { useOpmStore } from "../store";
 
 export function PanelOpl() {
   const modelo = useOpmStore((s) => s.modelo);
-  const lineas = generarOpl(modelo);
+  const opdActivoId = useOpmStore((s) => s.opdActivoId);
+  const lineas = generarOpl(modelo, opdActivoId);
 
   return (
     <aside style={style.panel}>

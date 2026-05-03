@@ -1,11 +1,16 @@
-import type { Enlace, Entidad, Modelo } from "../modelo/tipos";
+import type { Enlace, Entidad, Id, Modelo } from "../modelo/tipos";
 
-export function generarOpl(modelo: Modelo): string[] {
+export function generarOpl(modelo: Modelo, opdId: Id = modelo.opdRaizId): string[] {
+  const opd = modelo.opds[opdId];
+  if (!opd) return [];
   const lineas: string[] = [];
-  for (const entidad of Object.values(modelo.entidades)) {
-    lineas.push(oracionEntidad(entidad));
+  for (const apariencia of Object.values(opd.apariencias)) {
+    const entidad = modelo.entidades[apariencia.entidadId];
+    if (entidad) lineas.push(oracionEntidad(entidad));
   }
-  for (const enlace of Object.values(modelo.enlaces)) {
+  for (const aparienciaEnlace of Object.values(opd.enlaces)) {
+    const enlace = modelo.enlaces[aparienciaEnlace.enlaceId];
+    if (!enlace) continue;
     const linea = oracionEnlace(modelo, enlace);
     if (linea) lineas.push(linea);
   }
@@ -34,14 +39,20 @@ function oracionEnlace(modelo: Modelo, enlace: Enlace): string | null {
     case "instrumento":
       return `${destinoOpl} requiere ${origenOpl}.`;
     case "consumo":
-      return `${origenOpl} consume ${destinoOpl}.`;
+      return `${destinoOpl} consume ${origenOpl}.`;
     case "resultado":
       return `${origenOpl} genera ${destinoOpl}.`;
     case "efecto":
-      return `${origenOpl} afecta ${destinoOpl}.`;
+      return oracionEfecto(origen, destino);
     case "invocacion":
       return `${origenOpl} invoca ${destinoOpl}.`;
   }
+}
+
+function oracionEfecto(origen: Entidad, destino: Entidad): string | null {
+  const proceso = origen.tipo === "proceso" ? origen : destino.tipo === "proceso" ? destino : null;
+  const objeto = origen.tipo === "objeto" ? origen : destino.tipo === "objeto" ? destino : null;
+  return proceso && objeto ? `${nombreOpl(proceso)} afecta ${nombreOpl(objeto)}.` : null;
 }
 
 function nombreOpl(entidad: Entidad): string {

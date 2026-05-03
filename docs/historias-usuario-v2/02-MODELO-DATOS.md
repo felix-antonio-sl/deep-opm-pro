@@ -134,6 +134,7 @@ Diagrama de cosas y enlaces. Un modelo tiene un OPD raíz (SD) y opcionales OPDs
 export interface Opd {
   id: Id;
   nombre: string;
+  padreId: Id | null;
   apariencias: Record<Id, Apariencia>;
   enlaces: Record<Id, AparienciaEnlace>;
 }
@@ -143,6 +144,7 @@ export interface Opd {
 |---|---|---|---|
 | `opd.id` | `Id` | sí | Identificador único. |
 | `opd.nombre` | `string` | sí | Nombre del diagrama (ej. `SD`, `SD1`). |
+| `opd.padreId` | `Id \| null` | sí | OPD padre en el árbol; `null` solo para el SD raíz. |
 | `opd.apariencias` | `Record<Id, Apariencia>` | sí | Apariencias presentes en el OPD, indexadas por id. |
 | `opd.enlaces` | `Record<Id, AparienciaEnlace>` | sí | Apariencias de enlace presentes. |
 
@@ -253,6 +255,7 @@ Razón: EPICA-B3 define rangos y validación numérica como primitivas separadas
 - `enlace.origenId` y `enlace.destinoId` deben referir entidades existentes.
 - `aparienciaEnlace.enlaceId` debe referir un enlace existente.
 - `modelo.opdRaizId` debe referir un OPD existente.
+- `opd.padreId` debe ser `null` para el SD raíz o referir un OPD existente sin formar ciclos.
 - `modelo.nextSeq` se incrementa monotónicamente.
 - Las claves de `opd.apariencias`, `opd.enlaces`, `modelo.opds`, `modelo.entidades`, `modelo.enlaces` coinciden con `id` del valor (índice consistente).
 
@@ -263,4 +266,4 @@ Razón: EPICA-B3 define rangos y validación numérica como primitivas separadas
 | Crear entidad (proceso u objeto) | `esencia = "informacional"`, `afiliacion = "sistemica"`, `nombre = "Un Proceso" \| "Un Objeto"` (con sufijo serial si colisiona). [V-1] |
 | Crear apariencia | `width = 135`, `height = 60`. [JOYAS §2] |
 | Crear enlace | `etiqueta = ""`. |
-| Crear OPD raíz (SD) | `nombre = "SD"`. |
+| Crear OPD raíz (SD) | `nombre = "SD"`, `padreId = null`. |

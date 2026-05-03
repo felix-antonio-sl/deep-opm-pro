@@ -23,7 +23,7 @@ Estados:
 |---|---|---|---|
 | EPICA-10 creacion de cosas | Parcial | `app/src/modelo/operaciones.ts`, `app/src/ui/Toolbar.tsx`, `app/e2e/opm-smoke.spec.ts` | `opm-extracted/src/app/models/VisualPart/OpmVisualObject.ts`, `OpmVisualProcess.ts`, `docs/JOYAS.md` |
 | EPICA-11 modelado basico | Parcial | `app/src/render/jointjs/JointCanvas.tsx`, `app/src/render/jointjs/proyeccion.ts` | `opm-extracted/src/app/models/DrawnPart/Links/*.ts`, `opm-extracted/src/app/configuration/rappidEnviromentFunctionality/shared.ts` |
-| EPICA-20 arbol OPD | Pendiente | solo `modelo.opds` y `modelo.opdRaizId` | `opm-extracted/src/app/opd-hierarchy/`, `opm-extracted/src/app/models/LogicalPart/OpmLogicalThing.ts` |
+| EPICA-20 arbol OPD | Parcial | `app/src/ui/ArbolOpd.tsx`, `opdActivoId` en `app/src/store.ts`, smoke `opm-opd-tree.png` | `opm-extracted/src/app/opd-hierarchy/`, `opm-extracted/src/app/models/LogicalPart/OpmLogicalThing.ts` |
 | EPICA-30 persistencia | Parcial | `app/src/serializacion/json.ts`, `app/src/ui/PersistenciaJson.tsx`, localStorage | `opm-extracted/src/app/rappid-components/services/graph.service.ts`, `opm-extracted/src/app/models/json.model.ts` |
 | EPICA-50 OPL-ES | Parcial | `app/src/opl/generar.ts`, `app/src/ui/PanelOpl.tsx` | `opm-extracted/src/app/dialogs/opl-dialog/`, `opm-extracted/src/app/modules/app/export-opl.service.ts` |
 | HU-SHARED-002 undo/redo | Parcial | `app/src/store.ts`, `app/src/ui/Toolbar.tsx`, `app/src/store.test.ts`, `app/e2e/opm-smoke.spec.ts` | OPCloud usa `UndoRedoOperation`/acciones; MVP-alpha usa snapshots reemplazables |
@@ -41,14 +41,21 @@ Estados:
   - agregacion `objeto -> objeto`;
   - agente `objeto fisico -> proceso`;
   - instrumento `objeto -> proceso`;
-  - consumo/resultado/efecto `proceso -> objeto`;
+  - consumo `objeto -> proceso`;
+  - resultado `proceso -> objeto`;
+  - efecto `objeto <-> proceso`;
   - invocacion `proceso -> proceso`.
 - Seleccionar entidad y enlace.
 - Eliminar entidad con cascada.
 - Eliminar enlace sin borrar entidades.
 - Arrastrar entidad y persistir `Apariencia`.
+- Renderizar marcadores procedimentales basicos segun SSOT: corchete + piruleta para habilitadores, puntas cerradas transformadoras, invocacion zigzag y efecto bidireccional.
+- Renderizar agregacion basica con triangulo estructural separado del enlace.
+- Aplicar routing manhattan basico `padding: 5`, `step: 11` en enlaces procedimentales.
 - Mostrar JointJS link tools `Boundary`, `Vertices`, `Segments`.
 - Crear/mover vertices de enlace y persistir `AparienciaEnlace.vertices`.
+- Mantener handles JointJS de edicion en canal UI naranja, separado del azul canonico `#586D8C`.
+- Elegir tipo de enlace desde selector compacto para evitar overflow de toolbar.
 - Generar OPL-ES forward para cosas y enlaces basicos.
 - Exportar/importar JSON propio.
 - Guardar/cargar localStorage.
@@ -70,11 +77,10 @@ Estados:
    - Minimo operativo implementado contra `snapshotGuardado`.
    - Falta dialogo Guardar / Descartar / Cancelar al cerrar o navegar cuando exista navegacion real entre modelos.
 
-3. **EPICA-20 arbol OPD minimo**
-   - Panel con nodo raiz `SD`.
-   - `opdActivoId` en store.
-   - Clic en nodo cambia canvas.
-   - Sin descomposicion todavia, pero listo para hijos.
+3. **EPICA-20 arbol OPD restante**
+   - Minimo operativo implementado: panel con nodo raiz `SD`, `opdActivoId` en store, clic en nodo cambia canvas y OPL activo.
+   - Falta descomposicion/unfold para crear hijos desde UI.
+   - Falta gestion avanzada: renombrar, eliminar hojas, ordenar, expandir/colapsar y atajos.
 
 ### Siguiente prioridad
 
@@ -113,6 +119,8 @@ Ultimo loop verde en `app/`:
 Capturas esperadas:
 
 - `app/test-results/opm-demo-jointjs.png`
+- `app/test-results/opm-opd-tree.png`
 - `app/test-results/opm-drag-jointjs.png`
 - `app/test-results/opm-dirty-undo-redo.png`
 - `app/test-results/opm-link-tools-jointjs.png`
+- `app/test-results/opm-agregacion-triangulo.png`

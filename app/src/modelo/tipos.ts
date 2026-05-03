@@ -49,6 +49,7 @@ export interface AparienciaEnlace {
 export interface Opd {
   id: Id;
   nombre: string;
+  padreId: Id | null;
   apariencias: Record<Id, Apariencia>;
   enlaces: Record<Id, AparienciaEnlace>;
 }

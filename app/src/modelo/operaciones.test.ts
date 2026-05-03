@@ -25,6 +25,7 @@ describe("operaciones de modelo", () => {
     if (!creado.ok) return;
 
     expect(Object.values(creado.value.entidades)).toHaveLength(1);
+    expect(creado.value.opds[modelo.opdRaizId]?.padreId).toBeNull();
     expect(Object.values(creado.value.opds[modelo.opdRaizId]?.apariencias ?? {})).toHaveLength(1);
     expect(entidadesDelOpd(creado.value, modelo.opdRaizId)[0]?.nombre).toBe("Sistema");
   });
@@ -70,9 +71,9 @@ describe("operaciones de modelo", () => {
       ["agregacion", "Whole", "Part"],
       ["instrumento", "Instrumento", "Proceso"],
       ["agente", "Agente", "Proceso"],
-      ["consumo", "Proceso", "Part"],
+      ["consumo", "Part", "Proceso"],
       ["resultado", "Proceso", "Part"],
-      ["efecto", "Proceso", "Part"],
+      ["efecto", "Part", "Proceso"],
       ["invocacion", "Proceso", "Subproceso"],
     ];
 

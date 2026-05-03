@@ -1,0 +1,10 @@
+.joint-paper .joint-marker-vertex,
+.joint-paper .joint-marker-segment {
+  fill: #ff8a00;
+  stroke: #ffffff;
+  stroke-width: 2px;
+}
+
+.joint-paper .joint-tools .tool-options {
+  color: #1f2937;
+}

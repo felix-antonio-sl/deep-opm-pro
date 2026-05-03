@@ -1,5 +1,6 @@
 import { useEffect, useState } from "preact/hooks";
 import { createStore } from "zustand/vanilla";
+import { CANON } from "./modelo/constantes";
 import {
   actualizarVerticesEnlace as actualizarVerticesEnlaceOp,
   cambiarAfiliacion,
@@ -15,7 +16,7 @@ import {
   renombrarEntidad,
 } from "./modelo/operaciones";
 import { exportarModelo, hidratarModelo } from "./serializacion/json";
-import type { Afiliacion, Esencia, Id, Modelo, TipoEnlace } from "./modelo/tipos";
+import type { Afiliacion, Esencia, Id, Modelo, Posicion, TipoEnlace } from "./modelo/tipos";
 
 interface ModoEnlace {
   tipo: TipoEnlace;
@@ -24,6 +25,7 @@ interface ModoEnlace {
 
 interface OpmStore {
   modelo: Modelo;
+  opdActivoId: Id;
   seleccionId: Id | null;
   enlaceSeleccionId: Id | null;
   modoEnlace: ModoEnlace | null;
@@ -33,6 +35,7 @@ interface OpmStore {
   puedeRehacer: boolean;
   crearObjetoDemo: () => void;
   crearProcesoDemo: () => void;
+  cambiarOpdActivo: (id: Id) => void;
   seleccionarEntidad: (id: Id) => void;
   seleccionarEnlace: (id: Id) => void;
   deshacer: () => void;
@@ -62,6 +65,7 @@ let redoStack: Modelo[] = [];
 
 export const store = createStore<OpmStore>((set, get) => ({
   modelo: modeloInicial,
+  opdActivoId: modeloInicial.opdRaizId,
   seleccionId: null,
   enlaceSeleccionId: null,
   modoEnlace: null,
@@ -71,27 +75,38 @@ export const store = createStore<OpmStore>((set, get) => ({
   puedeRehacer: false,
 
   crearObjetoDemo() {
-    const { modelo } = get();
-    const count = Object.keys(modelo.entidades).length;
-    const resultado = crearObjeto(modelo, modelo.opdRaizId, { x: 80 + count * 24, y: 90 + count * 18 });
+    const { modelo, opdActivoId } = get();
+    const resultado = crearObjeto(modelo, opdActivoId, posicionLibre(modelo, opdActivoId, "objeto"));
     if (resultado.ok) commitModelo(set, modelo, resultado.value, { seleccionId: entidadNueva(modelo, resultado.value), enlaceSeleccionId: null, mensaje: null });
   },
 
   crearProcesoDemo() {
-    const { modelo } = get();
-    const count = Object.keys(modelo.entidades).length;
-    const resultado = crearProceso(modelo, modelo.opdRaizId, { x: 300 + count * 24, y: 120 + count * 18 });
+    const { modelo, opdActivoId } = get();
+    const resultado = crearProceso(modelo, opdActivoId, posicionLibre(modelo, opdActivoId, "proceso"));
     if (resultado.ok) commitModelo(set, modelo, resultado.value, { seleccionId: entidadNueva(modelo, resultado.value), enlaceSeleccionId: null, mensaje: null });
   },
 
+  cambiarOpdActivo(id) {
+    const { modelo, opdActivoId } = get();
+    if (!modelo.opds[id]) {
+      set({ mensaje: `OPD no existe: ${id}` });
+      return;
+    }
+    if (id === opdActivoId) {
+      set({ mensaje: null });
+      return;
+    }
+    set({ opdActivoId: id, seleccionId: null, enlaceSeleccionId: null, modoEnlace: null, mensaje: null });
+  },
+
   seleccionarEntidad(id) {
-    const { modelo, modoEnlace } = get();
+    const { modelo, modoEnlace, opdActivoId } = get();
     if (!modoEnlace) {
       set({ seleccionId: id, enlaceSeleccionId: null, mensaje: null });
       return;
     }
 
-    const resultado = crearEnlace(modelo, modelo.opdRaizId, modoEnlace.origenId, id, modoEnlace.tipo);
+    const resultado = crearEnlace(modelo, opdActivoId, modoEnlace.origenId, id, modoEnlace.tipo);
     if (!resultado.ok) {
       set({ seleccionId: id, enlaceSeleccionId: null, mensaje: resultado.error });
       return;
@@ -171,20 +186,20 @@ export const store = createStore<OpmStore>((set, get) => ({
   },
 
   moverEntidad(id, x, y) {
-    const { modelo } = get();
-    const resultado = moverAparienciaEntidad(modelo, modelo.opdRaizId, id, { x, y });
+    const { modelo, opdActivoId } = get();
+    const resultado = moverAparienciaEntidad(modelo, opdActivoId, id, { x, y });
     if (resultado.ok) commitModelo(set, modelo, resultado.value);
   },
 
   moverApariencia(aparienciaId, x, y) {
-    const { modelo } = get();
-    const resultado = moverAparienciaPorId(modelo, modelo.opdRaizId, aparienciaId, { x, y });
+    const { modelo, opdActivoId } = get();
+    const resultado = moverAparienciaPorId(modelo, opdActivoId, aparienciaId, { x, y });
     if (resultado.ok) commitModelo(set, modelo, resultado.value);
   },
 
   actualizarVerticesEnlace(aparienciaEnlaceId, vertices) {
-    const { modelo } = get();
-    const resultado = actualizarVerticesEnlaceOp(modelo, modelo.opdRaizId, aparienciaEnlaceId, vertices);
+    const { modelo, opdActivoId } = get();
+    const resultado = actualizarVerticesEnlaceOp(modelo, opdActivoId, aparienciaEnlaceId, vertices);
     if (resultado.ok) commitModelo(set, modelo, resultado.value);
   },
 
@@ -218,7 +233,13 @@ export const store = createStore<OpmStore>((set, get) => ({
       return;
     }
     resetHistorial(resultado.value);
-    set(estadoModelo(resultado.value, { seleccionId: null, enlaceSeleccionId: null, modoEnlace: null, mensaje: "Modelo importado" }));
+    set(estadoModelo(resultado.value, {
+      opdActivoId: resultado.value.opdRaizId,
+      seleccionId: null,
+      enlaceSeleccionId: null,
+      modoEnlace: null,
+      mensaje: "Modelo importado",
+    }));
   },
 
   guardarLocal() {
@@ -242,7 +263,13 @@ export const store = createStore<OpmStore>((set, get) => ({
   cargarDemo() {
     const modelo = crearDemo();
     resetHistorial(modelo);
-    set(estadoModelo(modelo, { seleccionId: null, enlaceSeleccionId: null, modoEnlace: null, mensaje: "Demo cargado" }));
+    set(estadoModelo(modelo, {
+      opdActivoId: modelo.opdRaizId,
+      seleccionId: null,
+      enlaceSeleccionId: null,
+      modoEnlace: null,
+      mensaje: "Demo cargado",
+    }));
   },
 }));
 
@@ -258,6 +285,35 @@ export function useOpmStore<T>(selector: (state: OpmStore) => T): T {
 function entidadNueva(previo: Modelo, siguiente: Modelo): Id | null {
   const previos = new Set(Object.keys(previo.entidades));
   return Object.keys(siguiente.entidades).find((id) => !previos.has(id)) ?? null;
+}
+
+function posicionLibre(modelo: Modelo, opdId: Id, tipo: "objeto" | "proceso"): Posicion {
+  const columnas = tipo === "proceso" ? [300, 80, 520, 740] : [80, 300, 520, 740];
+  const apariencias = Object.values(modelo.opds[opdId]?.apariencias ?? {});
+  for (let fila = 0; fila < 20; fila += 1) {
+    for (const x of columnas) {
+      const candidata = { x, y: 90 + fila * 110 };
+      if (!apariencias.some((apariencia) => solapa(candidata, apariencia))) return candidata;
+    }
+  }
+  return { x: columnas[0] ?? 80, y: 90 + apariencias.length * 110 };
+}
+
+function solapa(posicion: Posicion, apariencia: { x: number; y: number; width: number; height: number }): boolean {
+  const margen = 18;
+  const a = {
+    left: posicion.x - margen,
+    right: posicion.x + CANON.dims.cosaWidth + margen,
+    top: posicion.y - margen,
+    bottom: posicion.y + CANON.dims.cosaHeight + margen,
+  };
+  const b = {
+    left: apariencia.x - margen,
+    right: apariencia.x + apariencia.width + margen,
+    top: apariencia.y - margen,
+    bottom: apariencia.y + apariencia.height + margen,
+  };
+  return a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top;
 }
 
 function commitModelo(
@@ -306,7 +362,7 @@ function crearDemo(): Modelo {
   modelo = must(cambiarEsencia(modelo, sistema, "fisica"));
   modelo = must(cambiarEsencia(modelo, rescate, "fisica"));
   modelo = must(crearEnlace(modelo, modelo.opdRaizId, driver, rescate, "agente"));
-  modelo = must(crearEnlace(modelo, modelo.opdRaizId, rescate, sistema, "efecto"));
+  modelo = must(crearEnlace(modelo, modelo.opdRaizId, sistema, rescate, "efecto"));
   return modelo;
 }
 

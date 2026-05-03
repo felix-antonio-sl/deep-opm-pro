@@ -51,9 +51,13 @@ Implementado:
 - seleccion por click en elementos.
 - drag de elementos con commit al store via `moverAparienciaPorId`.
 - enlace visual `standard.Link` desde apariencias origen/destino.
+- routing manhattan basico en enlaces procedimentales (`padding: 5`, `step: 11`).
+- marcadores procedimentales basicos alineados con SSOT/JOYAS: habilitadores con corchete + piruleta, transformadores con punta cerrada, efecto bidireccional e invocacion zigzag.
+- agregacion basica como triangulo estructural `standard.Polygon` + dos segmentos de enlace.
 - seleccion de enlaces por click desde JointJS.
 - link tools visibles en enlace seleccionado (`Boundary`, `Vertices`, `Segments`).
 - vertices manuales editables y persistidos en `AparienciaEnlace.vertices`.
+- handles de edicion JointJS aislados visualmente en naranja para no confundirse con marcadores canonicos.
 - eliminacion de enlaces sin borrar entidades.
 - inspector minimo de enlace.
 - vertices de link preparados en modelo via `actualizarVerticesEnlace`.
@@ -63,8 +67,8 @@ No implementado todavia:
 
 - puertos canonicos por tipo de link;
 - reanclaje/reconexion validado por firmas OPM;
-- routing manhattan OPCloud-like;
-- bus de agregacion compartido;
+- routing manhattan OPCloud-like completo con obstaculos/puertos canonicos;
+- bus de agregacion compartido multi-refinador;
 - propiedades avanzadas de enlaces.
 
 ## Siguiente corte recomendado

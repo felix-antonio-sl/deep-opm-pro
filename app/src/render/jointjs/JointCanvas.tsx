@@ -16,6 +16,7 @@ export function JointCanvas() {
   const modoEnlace = useOpmStore((s) => s.modoEnlace);
   const modoEnlaceRef = useRef(modoEnlace);
   const modelo = useOpmStore((s) => s.modelo);
+  const opdActivoId = useOpmStore((s) => s.opdActivoId);
   const seleccionId = useOpmStore((s) => s.seleccionId);
   const enlaceSeleccionId = useOpmStore((s) => s.enlaceSeleccionId);
   const enlaceSeleccionIdRef = useRef(enlaceSeleccionId);
@@ -75,9 +76,10 @@ export function JointCanvas() {
             vertexRemove: seleccionada,
           };
         }
+        const meta = metadata(model);
         return {
           addLinkFromMagnet: false,
-          elementMove: !modoEnlaceRef.current,
+          elementMove: meta?.kind === "entidad" && !modoEnlaceRef.current,
         };
       },
     });
@@ -89,6 +91,7 @@ export function JointCanvas() {
       evt.stopPropagation();
       const meta = metadata(cellViewModel(elementView));
       if (meta?.kind === "entidad") seleccionarEntidadRef.current(meta.entidadId);
+      if (meta?.kind === "enlace") seleccionarEnlaceRef.current(meta.enlaceId);
     });
 
     paper.on("link:pointerclick", (linkView: dia.LinkView, evt: dia.Event) => {
@@ -128,10 +131,10 @@ export function JointCanvas() {
     const adapter = adapterRef.current;
     if (!adapter) return;
     sincronizandoRef.current = true;
-    adapter.graph.resetCells(proyectarModeloAJointCells(modelo, modelo.opdRaizId, seleccionId, enlaceSeleccionId) as dia.Cell.JSON[]);
+    adapter.graph.resetCells(proyectarModeloAJointCells(modelo, opdActivoId, seleccionId, enlaceSeleccionId) as dia.Cell.JSON[]);
     sincronizandoRef.current = false;
     instalarHerramientasEnlaceSeleccionado(adapter, enlaceSeleccionId);
-  }, [enlaceSeleccionId, modelo, seleccionId]);
+  }, [enlaceSeleccionId, modelo, opdActivoId, seleccionId]);
 
   return <div ref={hostRef} role="img" aria-label="OPD activo" style={style.host} />;
 }

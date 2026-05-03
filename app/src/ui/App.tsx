@@ -1,4 +1,5 @@
 import { JointCanvas } from "../render/jointjs/JointCanvas";
+import { ArbolOpd } from "./ArbolOpd";
 import { Inspector } from "./Inspector";
 import { PanelOpl } from "./PanelOpl";
 import { Toolbar } from "./Toolbar";
@@ -8,6 +9,7 @@ export function App() {
     <main style={layout.page}>
       <Toolbar />
       <section style={layout.workbench}>
+        <ArbolOpd />
         <JointCanvas />
         <Inspector />
       </section>
@@ -26,7 +28,7 @@ const layout = {
   },
   workbench: {
     display: "grid",
-    gridTemplateColumns: "minmax(0, 1fr) 300px",
+    gridTemplateColumns: "220px minmax(0, 1fr) 300px",
     minHeight: 0,
     overflow: "hidden",
     borderTop: "1px solid #d9e0ea",

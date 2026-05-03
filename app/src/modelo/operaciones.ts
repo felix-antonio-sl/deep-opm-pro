@@ -25,6 +25,7 @@ export function crearModelo(nombre = "Modelo OPM"): Modelo {
       [opdRaizId]: {
         id: opdRaizId,
         nombre: "SD",
+        padreId: null,
         apariencias: {},
         enlaces: {},
       },
@@ -297,10 +298,20 @@ function validarFirmaEnlace(tipo: TipoEnlace, origen: Entidad, destino: Entidad)
       ? ok(true)
       : fallo("Instrumento requiere Objeto -> Proceso");
   }
-  if (tipo === "consumo" || tipo === "resultado" || tipo === "efecto") {
+  if (tipo === "consumo") {
+    return origen.tipo === "objeto" && destino.tipo === "proceso"
+      ? ok(true)
+      : fallo("Consumo requiere Objeto -> Proceso");
+  }
+  if (tipo === "resultado") {
     return origen.tipo === "proceso" && destino.tipo === "objeto"
       ? ok(true)
-      : fallo(`${tipo} requiere Proceso -> Objeto`);
+      : fallo("Resultado requiere Proceso -> Objeto");
+  }
+  if (tipo === "efecto") {
+    return origen.tipo !== destino.tipo && (origen.tipo === "objeto" || destino.tipo === "objeto")
+      ? ok(true)
+      : fallo("Efecto requiere Objeto <-> Proceso");
   }
   if (tipo === "invocacion") {
     return origen.tipo === "proceso" && destino.tipo === "proceso"

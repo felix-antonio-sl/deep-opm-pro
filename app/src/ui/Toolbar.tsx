@@ -68,16 +68,24 @@ export function Toolbar() {
         <button style={style.button} type="button" onClick={guardarLocal}>Guardar</button>
         <button style={style.button} type="button" onClick={cargarLocal}>Cargar</button>
         <span style={style.divider} />
-        {TIPOS_ENLACE.map((item) => (
-          <button
-            key={item.tipo}
-            style={modoEnlace?.tipo === item.tipo ? style.activeButton : style.button}
-            type="button"
-            onClick={() => elegirTipoEnlace(item.tipo)}
+        <label style={style.linkPicker}>
+          <span style={style.linkPickerLabel}>Enlace</span>
+          <select
+            aria-label="Tipo de enlace"
+            style={modoEnlace ? style.activeSelect : style.select}
+            value={modoEnlace?.tipo ?? ""}
+            onChange={(event) => {
+              const tipo = (event.currentTarget as HTMLSelectElement).value;
+              if (tipo) elegirTipoEnlace(tipo as TipoEnlace);
+              else cancelarEnlace();
+            }}
           >
-            {item.label}
-          </button>
-        ))}
+            <option value="">Tipo...</option>
+            {TIPOS_ENLACE.map((item) => (
+              <option key={item.tipo} value={item.tipo}>{item.label}</option>
+            ))}
+          </select>
+        </label>
         {modoEnlace ? (
           <button style={style.secondaryButton} type="button" onClick={cancelarEnlace}>Cancelar</button>
         ) : null}
@@ -141,19 +149,6 @@ const style = {
     fontWeight: 700,
     whiteSpace: "nowrap",
   },
-  activeButton: {
-    height: "34px",
-    minWidth: "76px",
-    padding: "0 14px",
-    border: "1px solid #586D8C",
-    borderRadius: "4px",
-    background: "#e8eef5",
-    color: "#1f2937",
-    cursor: "pointer",
-    fontSize: "13px",
-    fontWeight: 700,
-    whiteSpace: "nowrap",
-  },
   secondaryButton: {
     height: "34px",
     padding: "0 12px",
@@ -164,6 +159,39 @@ const style = {
     cursor: "pointer",
     fontSize: "13px",
     whiteSpace: "nowrap",
+  },
+  linkPicker: {
+    display: "inline-flex",
+    alignItems: "center",
+    gap: "6px",
+    height: "34px",
+    flex: "0 0 auto",
+  },
+  linkPickerLabel: {
+    color: "#475467",
+    fontSize: "13px",
+    fontWeight: 700,
+    whiteSpace: "nowrap",
+  },
+  select: {
+    height: "34px",
+    width: "148px",
+    border: "1px solid #b9c5d4",
+    borderRadius: "4px",
+    background: "#f9fbfd",
+    color: "#1f2937",
+    fontSize: "13px",
+    fontWeight: 600,
+  },
+  activeSelect: {
+    height: "34px",
+    width: "148px",
+    border: "1px solid #586D8C",
+    borderRadius: "4px",
+    background: "#e8eef5",
+    color: "#1f2937",
+    fontSize: "13px",
+    fontWeight: 700,
   },
   divider: {
     width: "1px",

@@ -44,14 +44,40 @@ describe("generarOpl", () => {
 
     modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidad(modelo, "Whole"), entidad(modelo, "Part"), "agregacion"));
     modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidad(modelo, "Instrumento"), entidad(modelo, "Proceso"), "instrumento"));
-    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidad(modelo, "Proceso"), entidad(modelo, "Part"), "consumo"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidad(modelo, "Part"), entidad(modelo, "Proceso"), "consumo"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidad(modelo, "Part"), entidad(modelo, "Proceso"), "efecto"));
     modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidad(modelo, "Proceso"), entidad(modelo, "Subproceso"), "invocacion"));
 
     const lineas = generarOpl(modelo);
     expect(lineas).toContain("**Whole** consta de **Part**.");
     expect(lineas).toContain("*Proceso* requiere **Instrumento**.");
     expect(lineas).toContain("*Proceso* consume **Part**.");
+    expect(lineas).toContain("*Proceso* afecta **Part**.");
     expect(lineas).toContain("*Proceso* invoca *Subproceso*.");
+  });
+
+  test("limita OPL al OPD solicitado", () => {
+    let modelo = crearModelo();
+    modelo = {
+      ...modelo,
+      opds: {
+        ...modelo.opds,
+        "opd-2": {
+          id: "opd-2",
+          nombre: "SD1",
+          padreId: modelo.opdRaizId,
+          apariencias: {},
+          enlaces: {},
+        },
+      },
+    };
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 0, y: 0 }, "Raiz"));
+    modelo = must(crearProceso(modelo, "opd-2", { x: 0, y: 0 }, "Hijo"));
+
+    expect(generarOpl(modelo, modelo.opdRaizId)).toContain("**Raiz** es un objeto informacional y sistémico.");
+    expect(generarOpl(modelo, modelo.opdRaizId).join("\n")).not.toContain("Hijo");
+    expect(generarOpl(modelo, "opd-2")).toContain("*Hijo* es un proceso informacional y sistémico.");
+    expect(generarOpl(modelo, "opd-2").join("\n")).not.toContain("Raiz");
   });
 });
 

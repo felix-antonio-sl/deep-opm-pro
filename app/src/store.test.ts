@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, test } from "bun:test";
 import { crearModelo } from "./modelo/operaciones";
+import type { Modelo } from "./modelo/tipos";
 import { exportarModelo } from "./serializacion/json";
 import { store } from "./store";
 
@@ -67,6 +68,32 @@ describe("store undo/redo y dirty state", () => {
     expect(store.getState().puedeDeshacer).toBe(true);
   });
 
+  test("navegar OPDs no entra al historial ni activa dirty", () => {
+    const modelo = modeloConOpdHijo();
+    store.getState().importarJson(exportarModelo(modelo));
+    expect(store.getState().opdActivoId).toBe(modelo.opdRaizId);
+    expect(store.getState().dirty).toBe(false);
+    expect(store.getState().puedeDeshacer).toBe(false);
+
+    store.getState().cambiarOpdActivo("opd-2");
+    expect(store.getState().opdActivoId).toBe("opd-2");
+    expect(store.getState().dirty).toBe(false);
+    expect(store.getState().puedeDeshacer).toBe(false);
+  });
+
+  test("crear cosa usa el OPD activo", () => {
+    const modelo = modeloConOpdHijo();
+    store.getState().importarJson(exportarModelo(modelo));
+    store.getState().cambiarOpdActivo("opd-2");
+
+    store.getState().crearObjetoDemo();
+
+    expect(Object.values(store.getState().modelo.opds[modelo.opdRaizId]?.apariencias ?? {})).toHaveLength(0);
+    expect(Object.values(store.getState().modelo.opds["opd-2"]?.apariencias ?? {})).toHaveLength(1);
+    expect(store.getState().dirty).toBe(true);
+    expect(store.getState().opdActivoId).toBe("opd-2");
+  });
+
   test("limita undo a 100 snapshots", () => {
     for (let index = 0; index < 105; index += 1) {
       store.getState().crearObjetoDemo();
@@ -90,6 +117,23 @@ function primeraEntidadId(): string {
   const id = Object.keys(store.getState().modelo.entidades)[0];
   if (!id) throw new Error("La prueba esperaba al menos una entidad");
   return id;
+}
+
+function modeloConOpdHijo(): Modelo {
+  const modelo = crearModelo();
+  return {
+    ...modelo,
+    opds: {
+      ...modelo.opds,
+      "opd-2": {
+        id: "opd-2",
+        nombre: "SD1",
+        padreId: modelo.opdRaizId,
+        apariencias: {},
+        enlaces: {},
+      },
+    },
+  };
 }
 
 function instalarLocalStorage(): void {

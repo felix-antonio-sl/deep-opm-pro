@@ -23,7 +23,21 @@ export function hidratarModelo(json: string): Resultado<Modelo> {
   if (!esDocumentoModelo(parsed)) {
     return { ok: false, error: "Documento de modelo inválido" };
   }
-  return { ok: true, value: parsed.modelo };
+  return { ok: true, value: normalizarModelo(parsed.modelo) };
+}
+
+function normalizarModelo(modelo: Modelo): Modelo {
+  const opds = Object.fromEntries(
+    Object.entries(modelo.opds).map(([id, opd]) => {
+      const padreId = id === modelo.opdRaizId
+        ? null
+        : opd.padreId && opd.padreId !== id && modelo.opds[opd.padreId]
+          ? opd.padreId
+          : modelo.opdRaizId;
+      return [id, { ...opd, padreId }];
+    }),
+  );
+  return { ...modelo, opds };
 }
 
 function esDocumentoModelo(value: unknown): value is DocumentoModelo {

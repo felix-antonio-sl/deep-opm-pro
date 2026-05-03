@@ -16,4 +16,35 @@ describe("serializacion JSON", () => {
     expect(hidratado.value.nombre).toBe("Prueba");
     expect(Object.values(hidratado.value.entidades)[0]?.nombre).toBe("Sistema");
   });
+
+  test("normaliza padreId faltante en documentos anteriores", () => {
+    const modelo = crearModelo("Legacy");
+    const json = JSON.stringify({
+      formato: "deep-opm-pro.modelo.v0",
+      modelo: {
+        ...modelo,
+        opds: {
+          [modelo.opdRaizId]: {
+            id: modelo.opdRaizId,
+            nombre: "SD",
+            apariencias: {},
+            enlaces: {},
+          },
+          "opd-2": {
+            id: "opd-2",
+            nombre: "SD1",
+            apariencias: {},
+            enlaces: {},
+          },
+        },
+      },
+    });
+
+    const hidratado = hidratarModelo(json);
+
+    expect(hidratado.ok).toBe(true);
+    if (!hidratado.ok) return;
+    expect(hidratado.value.opds[modelo.opdRaizId]?.padreId).toBeNull();
+    expect(hidratado.value.opds["opd-2"]?.padreId).toBe(modelo.opdRaizId);
+  });
 });
