@@ -1,9 +1,88 @@
 # HANDOFF — estado, decisiones, pendientes, riesgos
 
-**Fecha**: 2026-04-28
-**Sesion**: consolidacion de ingenieria inversa + rebasamiento de 48 epicias HU contra SSOT OPM v3.0.0 + refactorizacion de estructura
+**Fecha**: 2026-05-03
+**Sesion**: cierre de corte MVP-alpha inicial: HU v2 + `opm-extracted/` + app nueva OPM hasta antes de profundizar JointJS
 **Repositorio**: `deep-opm-pro`
-**Repositorio hermano**: `opm-model-app` (historias de usuario en `docs/historias-usuario/`)
+**Repositorio hermano**: `opm-model-app` (fuente historica de historias de usuario; inventario vivo local en `docs/historias-usuario-v2/`)
+
+---
+
+## Handoff explicito del corte 2026-05-03
+
+### Estado actual
+
+- El repo ya no debe leerse como una app heredada: es un workspace de desarrollo nuevo basado en evidencia de OPCloud y SSOT OPM.
+- `docs/historias-usuario-v2/` es el backlog vivo local: 48 epicas, 1,117 HU canonicas, 48 stubs, 0 violaciones de linter y 0 huerfanas v1->v2.
+- `opm-extracted/` esta versionado y es la fuente preferente para consultar la logica observable de OPCloud antes de tocar `decompiled/`.
+- `app/` contiene una app nueva Bun + Vite + Preact + Zustand + JointJS OSS, con kernel propio y sin copiar arquitectura Angular/Firebase/Rappid.
+- Se llego justo al punto pedido antes de necesitar mas profundidad de JointJS: canvas/proyeccion/link tools ya existen; el siguiente bloque natural es estructura OPD minima.
+- Dev server remoto probado en `http://138.201.53.205:5173/`; `5174` debe permanecer cerrado.
+
+### Artefactos relevantes
+
+- Instrucciones activas para agentes: `AGENTS.md`.
+- Estado y memoria operativa: `docs/HANDOFF.md`.
+- Roadmap activo: `docs/roadmap/sprint-0.md`, `docs/roadmap/mvp-alpha.md`, `docs/roadmap/mvp-alpha-coverage.md`.
+- Historias de usuario vivas: `docs/historias-usuario-v2/`.
+- Evidencia OPCloud curada: `opm-extracted/INDEX.md`, `opm-extracted/MODULES.md`, `opm-extracted/assets/INDEX.md`.
+- App nueva: `app/src/modelo/`, `app/src/render/jointjs/`, `app/src/store.ts`, `app/src/ui/`.
+
+### Decisiones recientes
+
+- Partir `app/` desde cero fue correcto: el desarrollo previo queda como leccion en `docs/archive/si-partiese-desde-0.md`, no como base a arrastrar.
+- HU v2 reemplaza a HU v1 como backlog operativo; las v1 quedan archivadas para trazabilidad.
+- JointJS OSS se usa como renderer/adaptador, no como modelo de dominio. El kernel OPM vive en `app/src/modelo/`.
+- Undo/redo y dirty state usan snapshots de `Modelo` con profundidad 100. Es una decision temporal aceptable para MVP-alpha; comandos inversos quedan para cuando el costo o la auditoria granular lo justifiquen.
+- `opm-extracted/` se consulta para semantica, valores visuales, routing, puertos, marcadores y OPL; no se copian bloques 1:1 a `app/`.
+
+### Verificacion del corte
+
+Ejecutado en `app/`:
+
+- `bun run check` -> 20 tests verdes.
+- `bun run browser:smoke` -> 4 tests Playwright verdes.
+- `bun run build` -> build OK; warning esperado de chunk grande por JointJS.
+
+Capturas browser relevantes:
+
+- `app/test-results/opm-demo-jointjs.png`
+- `app/test-results/opm-drag-jointjs.png`
+- `app/test-results/opm-dirty-undo-redo.png`
+- `app/test-results/opm-link-tools-jointjs.png`
+
+### Pendientes inmediatos
+
+1. Implementar EPICA-20 minimo: panel/arbol OPD con nodo raiz `SD`, `opdActivoId` en store y cambio de OPD desde UI.
+2. Ampliar smoke de undo/redo por operacion: eliminar, renombrar, mover, esencia, afiliacion, crear/eliminar enlace y vertices.
+3. Persistencia local real: IndexedDB o storage estructurado con lista de modelos.
+4. Dialogo Guardar / Descartar / Cancelar cuando exista navegacion real entre modelos.
+5. OPL bidireccional queda fuera hasta estabilizar parser y mas kernel.
+
+### Supuestos
+
+- Para MVP-alpha, snapshots de modelo son suficientemente pequenos y reversibles.
+- La app puede seguir sin backend ni auth mientras se valida modelado local.
+- OPCloud informa UX y comportamiento, pero SSOT OPM manda cuando haya tension semantica.
+- El siguiente avance puede mantenerse antes de una nueva profundizacion JointJS si se limita a OPD tree y estado activo.
+
+### Riesgos
+
+- `opm-extracted/` es material derivado de ingenieria inversa: usarlo como evidencia, no como fuente copiada.
+- La app todavia no tiene multi-OPD real; sin EPICA-20 el modelador pierde estructura al crecer.
+- Dirty state no tiene confirmacion de salida hasta que exista navegacion/cierre de modelos.
+- El bundle de JointJS genera warning de tamano; no es bloqueante para MVP-alpha, pero puede exigir code splitting luego.
+
+### Prompt breve de continuacion
+
+```
+Retoma `docs/HANDOFF.md` en `deep-opm-pro`. Estado: HU v2 validada,
+`opm-extracted/` versionado, app nueva en `app/` con kernel OPM, OPL forward,
+JointJS OSS minimo, dirty state y undo/redo por snapshots. Ultimo loop verde:
+`bun run check`, `bun run browser:smoke`, `bun run build`.
+
+Continuar con EPICA-20 minimo: arbol OPD con nodo raiz SD, `opdActivoId`
+en store y cambio de OPD desde UI, manteniendo JointJS como adaptador.
+```
 
 ---
 
@@ -28,17 +107,31 @@
 | Procedimiento de extraccion | Documentado | `docs/PROCEDIMIENTO.md` |
 | Script de regeneracion | Listo | `setup.sh` |
 | Instrucciones para agentes | Creado | `AGENTS.md` |
+| Backlog HU local v2 | Validado | `docs/historias-usuario-v2/` |
+| Roadmap operativo | Creado | `docs/roadmap/` |
 
-### Desarrollo de software (opm-model-app)
+### Desarrollo de software (backlog HU local)
 
 | Artefacto | Estado | Ubicacion |
 |-----------|--------|-----------|
-| Metodologia HU revisada | Completa | `docs/historias-usuario/00-METODOLOGIA-HU.md` |
-| Diagnostico piloto (5 patrones) | Completo | `docs/historias-usuario/DIAGNOSTICO-PILOTO-EPICA-10.md` |
+| Metodologia HU v2 | Completa | `docs/historias-usuario-v2/00-METODOLOGIA.md` |
+| Auditoria categorial HU | Completa | `docs/historias-usuario-v2/07-AUDITORIA-CATEGORIAL.md` |
 | EPICA-10 (creacion-cosas) | revision-piloto | piloto manual completo |
 | EPICA-11 a EPICA-50 (10 epicas M0) | revision-piloto | rebasadas contra SSOT + evidencia OPCloud |
 | EPICA-14 a EPICA-D1 (37 epicas M1-W) | revision-piloto | rebasadas via agentes |
-| Total: 48/48 epicas, 1,164 HU | revision-piloto | todas con campos `Tipo:` y referencias SSOT |
+| Total v2: 48/48 epicas, 1,117 HU canonicas + 48 stubs | validado | 0 violaciones de linter, 0 huerfanas v1→v2 |
+
+### App nueva (`app/`)
+
+| Artefacto | Estado | Ubicacion |
+|-----------|--------|-----------|
+| Kernel OPM minimo | Implementado | `app/src/modelo/` |
+| OPL-ES forward | Implementado | `app/src/opl/` |
+| JSON export/import | Implementado | `app/src/serializacion/` |
+| UI Preact/Zustand | Implementado | `app/src/ui/` |
+| Adapter JointJS OSS | Implementado minimo | `app/src/render/jointjs/` |
+| Dirty state + undo/redo | Implementado minimo | `app/src/store.ts`, `app/src/store.test.ts`, `app/src/ui/Toolbar.tsx` |
+| Smoke navegador | Implementado, 4 casos | `app/e2e/opm-smoke.spec.ts` |
 
 ### NO obtenido (sin cambios)
 
@@ -75,6 +168,18 @@
 
 10. **No incluir el bundle de sandbox ni su decompilacion**: enfocar el repo exclusivamente en version comercial (`opcloud.systems`).
 
+11. **2026-05-03: cambio de politica — versionar `opm-extracted/`** (~8 MiB, 349 archivos OPM legibles + 84 assets + 3 indices). Es derivado curado del split de `decompiled/deobfuscated.js` (mina principal: 344 modulos OPM concatenados) + `decompiled/37084.js` (chunk Angular: 282 OPM + libs npm) + 14 chunks lazy-loaded pequenos. Pipeline en 3 pasos en `opm-extracted/tools/`:
+    - `extract.mjs`: splitter por marcador `// CONCATENATED MODULE: ./src/app/<path>`, descarta libs npm, des-indenta closure webpack.
+    - `refactor.mjs`: 6 pasadas — resolver `name /* RealName */.exportkey -> RealName`, limpiar `_X__WEBPACK_IMPORTED_MODULE_N__ -> X`, renombrar prefijos de concatenacion, eliminar self-assigns.
+    - `build-index.mjs`: emite `INDEX.md` (486 clases), `MODULES.md` (349 archivos), `assets/INDEX.md` (84 assets con cross-reference).
+    Fundamento: el riesgo legal de "fair use observacional" sobre material decompilado se documenta explicitamente; la finalidad de `opm-extracted/` es servir como spec ejecutable de OPM/ISO 19450 para construir `app/` con stack divergente (Preact != Angular). No se copia codigo 1:1 a `app/`.
+
+12. **2026-05-03: app nueva desde cero en `app/`**. Stack operativo: Bun + Vite + Preact + Zustand + JointJS OSS. El dominio vive en TypeScript propio (`app/src/modelo/`); JointJS es adaptador de render.
+
+13. **2026-05-03: HU v2 como backlog vivo**. `docs/historias-usuario-v2/` reemplaza `docs/historias-usuario/` para desarrollo activo. `docs/roadmap/` define el corte operativo para no arrastrar las 1,117 HU a cada cambio.
+
+14. **2026-05-03: undo/redo por snapshots para MVP-alpha**. Profundidad 100, redo se purga tras nueva operacion, save no purga undo, dirty se computa contra snapshot guardado.
+
 ---
 
 ## Supuestos
@@ -98,7 +203,7 @@
 | OPCloud cambia hash del bundle | Media | Bajo | `setup.sh` usa variable |
 | Sandbox desaparece o requiere auth | Baja | Medio | Datos ya extraidos en `fixtures/` |
 | Decompilacion pierde fidelidad | Baja | Medio | webcrack es robusto |
-| Cambio de licencia OPCloud | Baja | Alto | Material observacional es fair use |
+| Cambio de licencia OPCloud | Baja | Alto | Material observacional es fair use; `opm-extracted/` se etiqueta explicitamente como derivado curado para divergencia de stack (no clonacion) |
 | Backend/Firebase se migran | Baja | Bajo | Config extraida obsoleta |
 | Deriva entre HU revisadas y SSOT futura | Media | Medio | Referencias [V-xxx] permiten re-verificar puntualmente |
 
@@ -109,7 +214,7 @@
 ### Alta prioridad
 
 1. **Obtener acceso autenticado a `opcloud.systems`** (sin cambios)
-2. **Iniciar desarrollo del kernel OPM** usando las HU M0 (11 epicias, 275 HU) como backlog, los insumos de `deep-opm-pro/` como evidencia de producto, y `si-partiese-desde-0.md` como guia de lo que NO repetir.
+2. **Continuar MVP-alpha con EPICA-20 minimo** usando `docs/roadmap/sprint-0.md`, `docs/roadmap/mvp-alpha.md`, `docs/roadmap/mvp-alpha-coverage.md`, las HU v2 M0 locales, los insumos de `deep-opm-pro/` como evidencia de producto, y `docs/archive/si-partiese-desde-0.md` como guia de lo que NO repetir.
 
 ### Media prioridad
 
@@ -126,22 +231,11 @@
 ## Prompt de continuacion
 
 ```
-Retomar HANDOFF.md en deep-opm-pro/docs/. Estado: 808 modulos decompilados,
-376 clases catalogadas, 7 grupos de fixtures (44 archivos), 84 assets,
-Firebase config completa, AGENTS.md con principio rector de 8 niveles.
+Retomar `docs/HANDOFF.md` en `deep-opm-pro`. Estado: HU v2 validada,
+`opm-extracted/` versionado, app nueva en `app/` con kernel OPM, OPL forward,
+JointJS OSS minimo, dirty state y undo/redo por snapshots. Ultimo loop verde:
+`bun run check`, `bun run browser:smoke`, `bun run build`.
 
-Historias de usuario en opm-model-app/: 48/48 epicias rebasadas contra
-SSOT OPM v3.0.0 + evidencia OPCloud (1,164 HU preservadas, 59K lineas).
-Cada HU clasificada como opm-semantica/opcloud-ui/mixto con referencias
-SSOT inline [V-xxx]/[Glos 3.x]/[OPL-ES Txxx]/[JOYAS §x].
-
-Meta inmediata: iniciar desarrollo del kernel OPM usando las 275 HU M0
-como backlog, los insumos de deep-opm-pro/ como evidencia de producto,
-y si-partiese-desde-0.md como guia de lecciones aprendidas. Las HU
-opm-semantica definen que construir; las opcloud-ui informan como
-OPCloud lo resolvio (divergencia permitida si SSOT lo justifica).
-
-Pendiente critico: acceso autenticado a opcloud.systems (sin cambios).
-
-Continuar con: [describir siguiente paso]
+Continuar con EPICA-20 minimo: arbol OPD con nodo raiz SD, `opdActivoId`
+en store y cambio de OPD desde UI, manteniendo JointJS como adaptador.
 ```

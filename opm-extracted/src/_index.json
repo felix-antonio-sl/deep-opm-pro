@@ -1,0 +1,2603 @@
+{
+  "generated_at": "2026-05-03T08:32:42.095Z",
+  "tool": "opm-extracted/tools/extract.mjs",
+  "total_files": 349,
+  "total_bytes": 8103387,
+  "collisions_resolved_by_size": 121,
+  "files": [
+    {
+      "path": "app/ImportOPX/OPX.API.ts",
+      "source": "deobfuscated.js",
+      "bytes": 26128
+    },
+    {
+      "path": "app/ImportOPX/OPX.Elements_Instances.ts",
+      "source": "deobfuscated.js",
+      "bytes": 25371
+    },
+    {
+      "path": "app/ImportOPX/OPX.Elements_Loaders.ts",
+      "source": "deobfuscated.js",
+      "bytes": 22985
+    },
+    {
+      "path": "app/ImportOPX/OPX.Inzoomed_Tree.ts",
+      "source": "deobfuscated.js",
+      "bytes": 7872
+    },
+    {
+      "path": "app/ImportOPX/OPX.LastSong.ts",
+      "source": "deobfuscated.js",
+      "bytes": 2732
+    },
+    {
+      "path": "app/ImportOPX/OPX.LogFile.ts",
+      "source": "deobfuscated.js",
+      "bytes": 2333
+    },
+    {
+      "path": "app/ImportOPX/OPX.Unfolded_Tree.ts",
+      "source": "deobfuscated.js",
+      "bytes": 7829
+    },
+    {
+      "path": "app/configuration/elementsFunctionality/ExePreProcess.ts",
+      "source": "deobfuscated.js",
+      "bytes": 9647
+    },
+    {
+      "path": "app/configuration/elementsFunctionality/draw.view.ts",
+      "source": "deobfuscated.js",
+      "bytes": 800
+    },
+    {
+      "path": "app/configuration/elementsFunctionality/graphFunctionality.ts",
+      "source": "deobfuscated.js",
+      "bytes": 8492
+    },
+    {
+      "path": "app/configuration/elementsFunctionality/linkDrawing.ts",
+      "source": "deobfuscated.js",
+      "bytes": 23973
+    },
+    {
+      "path": "app/configuration/rappidEnviromentFunctionality/inspector/opmStyle.ts",
+      "source": "deobfuscated.js",
+      "bytes": 1931
+    },
+    {
+      "path": "app/configuration/rappidEnviromentFunctionality/keyboardShortcuts.ts",
+      "source": "deobfuscated.js",
+      "bytes": 25103
+    },
+    {
+      "path": "app/configuration/rappidEnviromentFunctionality/selectionConfiguration.ts",
+      "source": "deobfuscated.js",
+      "bytes": 2230
+    },
+    {
+      "path": "app/configuration/rappidEnviromentFunctionality/shared.ts",
+      "source": "deobfuscated.js",
+      "bytes": 313678
+    },
+    {
+      "path": "app/configuration/service/config.service.ts",
+      "source": "deobfuscated.js",
+      "bytes": 1233
+    },
+    {
+      "path": "app/configuration/ssoConfigurations/ssoConfigurations.ts",
+      "source": "deobfuscated.js",
+      "bytes": 1170
+    },
+    {
+      "path": "app/database/ServerDatabaseDrive.ts",
+      "source": "deobfuscated.js",
+      "bytes": 44330
+    },
+    {
+      "path": "app/database/authInterceptor.ts",
+      "source": "deobfuscated.js",
+      "bytes": 6430
+    },
+    {
+      "path": "app/database/database.service.ts",
+      "source": "deobfuscated.js",
+      "bytes": 634
+    },
+    {
+      "path": "app/database/dateFormat.ts",
+      "source": "deobfuscated.js",
+      "bytes": 399
+    },
+    {
+      "path": "app/database/firebaseAuthDriver.ts",
+      "source": "deobfuscated.js",
+      "bytes": 7182
+    },
+    {
+      "path": "app/database/msalAuth.ts",
+      "source": "deobfuscated.js",
+      "bytes": 2798
+    },
+    {
+      "path": "app/database/resolvers/opc.resolver.ts",
+      "source": "deobfuscated.js",
+      "bytes": 2272
+    },
+    {
+      "path": "app/database/serverAuthDriver.ts",
+      "source": "deobfuscated.js",
+      "bytes": 2319
+    },
+    {
+      "path": "app/dialogs/About/about.ts",
+      "source": "deobfuscated.js",
+      "bytes": 2849
+    },
+    {
+      "path": "app/dialogs/DownloadCSV/DownloadCSV.ts",
+      "source": "deobfuscated.js",
+      "bytes": 34410
+    },
+    {
+      "path": "app/dialogs/FileUploader/FileUploader.ts",
+      "source": "deobfuscated.js",
+      "bytes": 13737
+    },
+    {
+      "path": "app/dialogs/Simulation/Simulation.ts",
+      "source": "deobfuscated.js",
+      "bytes": 14594
+    },
+    {
+      "path": "app/dialogs/Spinner/Progress_Spinner.ts",
+      "source": "deobfuscated.js",
+      "bytes": 1883
+    },
+    {
+      "path": "app/dialogs/UserAgreement/user-agreement.component.ts",
+      "source": "deobfuscated.js",
+      "bytes": 18948
+    },
+    {
+      "path": "app/dialogs/activate-user-dialog/activate-user-dialog.component.ts",
+      "source": "deobfuscated.js",
+      "bytes": 5431
+    },
+    {
+      "path": "app/dialogs/add-users-excel/add-users.component.ts",
+      "source": "deobfuscated.js",
+      "bytes": 13080
+    },
+    {
+      "path": "app/dialogs/attributes-and-instances-dialog/attributes-and-instances-dialog.component.ts",
+      "source": "deobfuscated.js",
+      "bytes": 33488
+    },
+    {
+      "path": "app/dialogs/background-photo-dialog/background-photo-dialog.ts",
+      "source": "deobfuscated.js",
+      "bytes": 22359
+    },
+    {
+      "path": "app/dialogs/change-password-dialog/change-password-dialog.component.ts",
+      "source": "deobfuscated.js",
+      "bytes": 4222
+    },
+    {
+      "path": "app/dialogs/choose-exported-file-name/choose-exported-file-name.ts",
+      "source": "deobfuscated.js",
+      "bytes": 5477
+    },
+    {
+      "path": "app/dialogs/choose-link-dialog/Dialog.component.ts",
+      "source": "deobfuscated.js",
+      "bytes": 229499
+    },
+    {
+      "path": "app/dialogs/code-editor-dialog/code-editor-dialog.ts",
+      "source": "deobfuscated.js",
+      "bytes": 10616
+    },
+    {
+      "path": "app/dialogs/collaboration-dialog/collaboration-dialog.component.ts",
+      "source": "deobfuscated.js",
+      "bytes": 29643
+    },
+    {
+      "path": "app/dialogs/create-popup-message/create-popup-message.component.ts",
+      "source": "deobfuscated.js",
+      "bytes": 15845
+    },
+    {
+      "path": "app/dialogs/create-requirement-view-dialog/create-requirement-view-dialog.ts",
+      "source": "deobfuscated.js",
+      "bytes": 5808
+    },
+    {
+      "path": "app/dialogs/create-view-dialog/create-view-dialog.ts",
+      "source": "deobfuscated.js",
+      "bytes": 6777
+    },
+    {
+      "path": "app/dialogs/dcm-export-wizard/dcm-export-wizard.component.ts",
+      "source": "deobfuscated.js",
+      "bytes": 40875
+    },
+    {
+      "path": "app/dialogs/dcm-viewer/dcm-viewer.component.ts",
+      "source": "deobfuscated.js",
+      "bytes": 92008
+    },
+    {
+      "path": "app/dialogs/dmn-decision-viewer/dmn-decision-viewer.component.ts",
+      "source": "deobfuscated.js",
+      "bytes": 28570
+    },
+    {
+      "path": "app/dialogs/enter-email-verification-code-dialog/enter-email-verification-code-dialog.ts",
+      "source": "deobfuscated.js",
+      "bytes": 7585
+    },
+    {
+      "path": "app/dialogs/existing-name-dialog/existing-name-dialog.component.ts",
+      "source": "deobfuscated.js",
+      "bytes": 14214
+    },
+    {
+      "path": "app/dialogs/export-legend-dialog/export-legend-dialog.component.ts",
+      "source": "deobfuscated.js",
+      "bytes": 43438
+    },
+    {
+      "path": "app/dialogs/export-model-as-html-dialog/export-model-as-html.ts",
+      "source": "deobfuscated.js",
+      "bytes": 42164
+    },
+    {
+      "path": "app/dialogs/export-sysml-dialog/export-sysml-dialog.component.ts",
+      "source": "deobfuscated.js",
+      "bytes": 17153
+    },
+    {
+      "path": "app/dialogs/find-user-admin/find-user-admin.component.ts",
+      "source": "deobfuscated.js",
+      "bytes": 22875
+    },
+    {
+      "path": "app/dialogs/folder-permissions-dialog/folder-permissions-dialog/folder-permissions-dialog.component.ts",
+      "source": "deobfuscated.js",
+      "bytes": 31296
+    },
+    {
+      "path": "app/dialogs/genAI-computational-editor-dialog/genAI-computational-editor-dialog.ts",
+      "source": "deobfuscated.js",
+      "bytes": 11783
+    },
+    {
+      "path": "app/dialogs/grey-items-dialog/grey-items-dialog.component.ts",
+      "source": "deobfuscated.js",
+      "bytes": 26068
+    },
+    {
+      "path": "app/dialogs/headlessRunner-dialog/headlessRunner-dialog.component.ts",
+      "source": "deobfuscated.js",
+      "bytes": 11348
+    },
+    {
+      "path": "app/dialogs/images-pool-container/images-pool-container.ts",
+      "source": "deobfuscated.js",
+      "bytes": 4161
+    },
+    {
+      "path": "app/dialogs/images-pool-management/images-pool-management-component.ts",
+      "source": "deobfuscated.js",
+      "bytes": 27063
+    },
+    {
+      "path": "app/dialogs/input-name-dialog/input-name-dialog.ts",
+      "source": "deobfuscated.js",
+      "bytes": 4086
+    },
+    {
+      "path": "app/dialogs/load-model-dialog/load-model-dialog-interfaces.ts",
+      "source": "deobfuscated.js",
+      "bytes": 566
+    },
+    {
+      "path": "app/dialogs/load-model-dialog/load-model-dialog.component.ts",
+      "source": "37084.js",
+      "bytes": 196983
+    },
+    {
+      "path": "app/dialogs/load-model-dialog/name-validator.ts",
+      "source": "deobfuscated.js",
+      "bytes": 279
+    },
+    {
+      "path": "app/dialogs/load-model-dialog/sub-dialogs/removeModel/delete-model-dialog.component.ts",
+      "source": "deobfuscated.js",
+      "bytes": 4053
+    },
+    {
+      "path": "app/dialogs/load-model-dialog/sub-dialogs/rename/rename-dialog.component.ts",
+      "source": "deobfuscated.js",
+      "bytes": 4386
+    },
+    {
+      "path": "app/dialogs/log-sharing-dialog/log-sharing-dialog.component.ts",
+      "source": "deobfuscated.js",
+      "bytes": 2774
+    },
+    {
+      "path": "app/dialogs/logs-dashboard-dialog/logs-dashboard-dialog.component.ts",
+      "source": "deobfuscated.js",
+      "bytes": 5487
+    },
+    {
+      "path": "app/dialogs/logs-dashboard/logs-dashboard.component.ts",
+      "source": "deobfuscated.js",
+      "bytes": 17735
+    },
+    {
+      "path": "app/dialogs/methodological-checking-dialog/checkers/ing-checker.ts",
+      "source": "deobfuscated.js",
+      "bytes": 874
+    },
+    {
+      "path": "app/dialogs/methodological-checking-dialog/checkers/inzoomed-content-checker.ts",
+      "source": "deobfuscated.js",
+      "bytes": 808
+    },
+    {
+      "path": "app/dialogs/methodological-checking-dialog/checkers/object-name-as-singular-checker.ts",
+      "source": "deobfuscated.js",
+      "bytes": 993
+    },
+    {
+      "path": "app/dialogs/methodological-checking-dialog/checkers/part-unfold-content-checker.ts",
+      "source": "deobfuscated.js",
+      "bytes": 895
+    },
+    {
+      "path": "app/dialogs/methodological-checking-dialog/checkers/systemic-processes-main-function-checker.ts",
+      "source": "deobfuscated.js",
+      "bytes": 9235
+    },
+    {
+      "path": "app/dialogs/methodological-checking-dialog/checkers/transforming-process-checker.ts",
+      "source": "deobfuscated.js",
+      "bytes": 2333
+    },
+    {
+      "path": "app/dialogs/methodological-checking-dialog/methodological-checker.ts",
+      "source": "deobfuscated.js",
+      "bytes": 971
+    },
+    {
+      "path": "app/dialogs/methodological-checking-dialog/methodological-checking-dialog.ts",
+      "source": "deobfuscated.js",
+      "bytes": 13925
+    },
+    {
+      "path": "app/dialogs/multi-delete-progress/multi-delete-progress.component.ts",
+      "source": "deobfuscated.js",
+      "bytes": 7503
+    },
+    {
+      "path": "app/dialogs/multi-instances-dialog/multi-instances-dialog.ts",
+      "source": "deobfuscated.js",
+      "bytes": 33308
+    },
+    {
+      "path": "app/dialogs/multi-update-user-dialog/multi-update-user-dialog.component.ts",
+      "source": "deobfuscated.js",
+      "bytes": 24174
+    },
+    {
+      "path": "app/dialogs/new-model-by-wizard-component/new-model-by-wizard-component.component.ts",
+      "source": "deobfuscated.js",
+      "bytes": 79473
+    },
+    {
+      "path": "app/dialogs/new-model-dialog/new-model-dialog.ts",
+      "source": "deobfuscated.js",
+      "bytes": 2559
+    },
+    {
+      "path": "app/dialogs/opdtree-model-settings/opdtree-model-settings.component.ts",
+      "source": "deobfuscated.js",
+      "bytes": 6238
+    },
+    {
+      "path": "app/dialogs/opl-dialog/opl-dialog-SysAdmin.ts",
+      "source": "deobfuscated.js",
+      "bytes": 16839
+    },
+    {
+      "path": "app/dialogs/opl-dialog/opl-dialog.component.ts",
+      "source": "deobfuscated.js",
+      "bytes": 32145
+    },
+    {
+      "path": "app/dialogs/opl-generative-ai-dialog/generative-ai-impact-analysis-dialog/generative-ai-impact-analysis.ts",
+      "source": "deobfuscated.js",
+      "bytes": 8721
+    },
+    {
+      "path": "app/dialogs/opl-generative-ai-dialog/generative-ai-requirements-export-dialog/generative-ai-requirements-export.ts",
+      "source": "deobfuscated.js",
+      "bytes": 16613
+    },
+    {
+      "path": "app/dialogs/opl-generative-ai-dialog/generative-ai-update-key-dialog/generative-ai-update-key.ts",
+      "source": "deobfuscated.js",
+      "bytes": 5937
+    },
+    {
+      "path": "app/dialogs/opl-generative-ai-dialog/opl-generative-ai.ts",
+      "source": "deobfuscated.js",
+      "bytes": 8301
+    },
+    {
+      "path": "app/dialogs/opmQuery-dialog/opmQuery-dialog.ts",
+      "source": "deobfuscated.js",
+      "bytes": 19329
+    },
+    {
+      "path": "app/dialogs/pareto-frontier-dialog/pareto-frontier-dialog.ts",
+      "source": "deobfuscated.js",
+      "bytes": 17280
+    },
+    {
+      "path": "app/dialogs/popup-message-content/popup-message-content.component.ts",
+      "source": "deobfuscated.js",
+      "bytes": 9141
+    },
+    {
+      "path": "app/dialogs/popup-views-or-confirms/popup-views-or-confirms.component.ts",
+      "source": "deobfuscated.js",
+      "bytes": 8583
+    },
+    {
+      "path": "app/dialogs/python-code-editor-dialog/python-code-editor-dialog.ts",
+      "source": "deobfuscated.js",
+      "bytes": 11807
+    },
+    {
+      "path": "app/dialogs/remove-locator-links/remove-locator-links.ts",
+      "source": "deobfuscated.js",
+      "bytes": 14945
+    },
+    {
+      "path": "app/dialogs/remove-locator/remove-locator.ts",
+      "source": "deobfuscated.js",
+      "bytes": 10219
+    },
+    {
+      "path": "app/dialogs/remove-operation-selection/remove-operation.ts",
+      "source": "deobfuscated.js",
+      "bytes": 15138
+    },
+    {
+      "path": "app/dialogs/remove-user/remove-user.component.ts",
+      "source": "deobfuscated.js",
+      "bytes": 15314
+    },
+    {
+      "path": "app/dialogs/reset-initial-password/reset-initial-password.component.ts",
+      "source": "deobfuscated.js",
+      "bytes": 3668
+    },
+    {
+      "path": "app/dialogs/savePdf-dialog/savePdf.ts",
+      "source": "deobfuscated.js",
+      "bytes": 73759
+    },
+    {
+      "path": "app/dialogs/saveScreenshot-dialog/saveScreenshot.ts",
+      "source": "deobfuscated.js",
+      "bytes": 14141
+    },
+    {
+      "path": "app/dialogs/search-items-dialog/search-items-dialog.component.ts",
+      "source": "deobfuscated.js",
+      "bytes": 25878
+    },
+    {
+      "path": "app/dialogs/select-opds-tree-dialog/select-opds-tree-dialog.ts",
+      "source": "deobfuscated.js",
+      "bytes": 60543
+    },
+    {
+      "path": "app/dialogs/set-2-auth-factors/set-2-auth-factors-dialog.ts",
+      "source": "deobfuscated.js",
+      "bytes": 26919
+    },
+    {
+      "path": "app/dialogs/set-admin-user-list/set-admin-user-list.component.ts",
+      "source": "deobfuscated.js",
+      "bytes": 55129
+    },
+    {
+      "path": "app/dialogs/simulationElement/SimulationElement.ts",
+      "source": "deobfuscated.js",
+      "bytes": 33887
+    },
+    {
+      "path": "app/dialogs/stereotypes-dialog/StereotypesRelatedInterface.ts",
+      "source": "deobfuscated.js",
+      "bytes": 623
+    },
+    {
+      "path": "app/dialogs/stereotypes-dialog/stereotypes-dialog.component.ts",
+      "source": "deobfuscated.js",
+      "bytes": 40084
+    },
+    {
+      "path": "app/dialogs/styleCopyingDialog/styleCopyingDialog.component.ts",
+      "source": "deobfuscated.js",
+      "bytes": 6839
+    },
+    {
+      "path": "app/dialogs/submodel-name-dialog/submodel-name-dialog.ts",
+      "source": "deobfuscated.js",
+      "bytes": 6494
+    },
+    {
+      "path": "app/dialogs/templates-import/templates-import.ts",
+      "source": "deobfuscated.js",
+      "bytes": 5643
+    },
+    {
+      "path": "app/dialogs/treeParser.ts",
+      "source": "deobfuscated.js",
+      "bytes": 2395
+    },
+    {
+      "path": "app/dialogs/update-user-dialog/update-user-dialog.component.ts",
+      "source": "deobfuscated.js",
+      "bytes": 26261
+    },
+    {
+      "path": "app/dialogs/validation-settings/validation-settings.ts",
+      "source": "deobfuscated.js",
+      "bytes": 7802
+    },
+    {
+      "path": "app/error-handler/error-handler.service.ts",
+      "source": "deobfuscated.js",
+      "bytes": 4755
+    },
+    {
+      "path": "app/error-handler/global-error-handler.ts",
+      "source": "deobfuscated.js",
+      "bytes": 796
+    },
+    {
+      "path": "app/handwriting.js",
+      "source": "deobfuscated.js",
+      "bytes": 7557
+    },
+    {
+      "path": "app/models/Actions/BringConnectedEntitiesAction.ts",
+      "source": "deobfuscated.js",
+      "bytes": 9591
+    },
+    {
+      "path": "app/models/BasicOpmModel.ts",
+      "source": "deobfuscated.js",
+      "bytes": 25417
+    },
+    {
+      "path": "app/models/DSM/dsm.model.ts",
+      "source": "deobfuscated.js",
+      "bytes": 55912
+    },
+    {
+      "path": "app/models/DrawnPart/CMMNShapes.ts",
+      "source": "deobfuscated.js",
+      "bytes": 16099
+    },
+    {
+      "path": "app/models/DrawnPart/Links/AgentLink.ts",
+      "source": "deobfuscated.js",
+      "bytes": 1801
+    },
+    {
+      "path": "app/models/DrawnPart/Links/AggregationLink.ts",
+      "source": "deobfuscated.js",
+      "bytes": 2343
+    },
+    {
+      "path": "app/models/DrawnPart/Links/BlankLink.ts",
+      "source": "deobfuscated.js",
+      "bytes": 9273
+    },
+    {
+      "path": "app/models/DrawnPart/Links/ConsumptionLink.ts",
+      "source": "deobfuscated.js",
+      "bytes": 5130
+    },
+    {
+      "path": "app/models/DrawnPart/Links/EffectLink.ts",
+      "source": "deobfuscated.js",
+      "bytes": 6496
+    },
+    {
+      "path": "app/models/DrawnPart/Links/InstantiationLink.ts",
+      "source": "deobfuscated.js",
+      "bytes": 3757
+    },
+    {
+      "path": "app/models/DrawnPart/Links/InstrumentLink.ts",
+      "source": "deobfuscated.js",
+      "bytes": 1779
+    },
+    {
+      "path": "app/models/DrawnPart/Links/InvocationLink.ts",
+      "source": "deobfuscated.js",
+      "bytes": 7227
+    },
+    {
+      "path": "app/models/DrawnPart/Links/OvertimeExceptionLink.ts",
+      "source": "deobfuscated.js",
+      "bytes": 1258
+    },
+    {
+      "path": "app/models/DrawnPart/Links/OvertimeUndertimeExceptionLink.ts",
+      "source": "deobfuscated.js",
+      "bytes": 879
+    },
+    {
+      "path": "app/models/DrawnPart/Links/ResultLink.ts",
+      "source": "deobfuscated.js",
+      "bytes": 4988
+    },
+    {
+      "path": "app/models/DrawnPart/Links/SelfInvocationLink.ts",
+      "source": "deobfuscated.js",
+      "bytes": 9993
+    },
+    {
+      "path": "app/models/DrawnPart/Links/UndertimeExceptionLink.ts",
+      "source": "deobfuscated.js",
+      "bytes": 816
+    },
+    {
+      "path": "app/models/DrawnPart/Links/UnidirectionalTaggedLink.ts",
+      "source": "deobfuscated.js",
+      "bytes": 15832
+    },
+    {
+      "path": "app/models/DrawnPart/Note.ts",
+      "source": "deobfuscated.js",
+      "bytes": 13523
+    },
+    {
+      "path": "app/models/DrawnPart/OpmEntity.ts",
+      "source": "deobfuscated.js",
+      "bytes": 69366
+    },
+    {
+      "path": "app/models/DrawnPart/OpmEntityRappid.ts",
+      "source": "deobfuscated.js",
+      "bytes": 4693
+    },
+    {
+      "path": "app/models/DrawnPart/OpmObject.ts",
+      "source": "deobfuscated.js",
+      "bytes": 236301
+    },
+    {
+      "path": "app/models/DrawnPart/OpmProcess.ts",
+      "source": "deobfuscated.js",
+      "bytes": 115207
+    },
+    {
+      "path": "app/models/DrawnPart/TextBlock.ts",
+      "source": "deobfuscated.js",
+      "bytes": 1779
+    },
+    {
+      "path": "app/models/DrawnPart/TextBlockClass.ts",
+      "source": "deobfuscated.js",
+      "bytes": 472
+    },
+    {
+      "path": "app/models/DrawnPart/UrlsUtils.ts",
+      "source": "deobfuscated.js",
+      "bytes": 797
+    },
+    {
+      "path": "app/models/DrawnPart/UserInputPromptPopup.ts",
+      "source": "deobfuscated.js",
+      "bytes": 2246
+    },
+    {
+      "path": "app/models/DrawnPart/components/alias/alias.popup.ts",
+      "source": "deobfuscated.js",
+      "bytes": 3083
+    },
+    {
+      "path": "app/models/DrawnPart/components/halo/halo-config.ts",
+      "source": "deobfuscated.js",
+      "bytes": 1999
+    },
+    {
+      "path": "app/models/DrawnPart/components/range/range.ts",
+      "source": "deobfuscated.js",
+      "bytes": 870
+    },
+    {
+      "path": "app/models/DrawnPart/components/text/text.popup.ts",
+      "source": "81330.js",
+      "bytes": 18935
+    },
+    {
+      "path": "app/models/LogicalPart/LogicalTextModule.ts",
+      "source": "deobfuscated.js",
+      "bytes": 2389
+    },
+    {
+      "path": "app/models/LogicalPart/OpmLogicalEntity.ts",
+      "source": "deobfuscated.js",
+      "bytes": 9498
+    },
+    {
+      "path": "app/models/LogicalPart/OpmLogicalObject.ts",
+      "source": "deobfuscated.js",
+      "bytes": 29929
+    },
+    {
+      "path": "app/models/LogicalPart/OpmLogicalState.ts",
+      "source": "deobfuscated.js",
+      "bytes": 8234
+    },
+    {
+      "path": "app/models/LogicalPart/OpmLogicalThing.ts",
+      "source": "deobfuscated.js",
+      "bytes": 90619
+    },
+    {
+      "path": "app/models/LogicalPart/OpmTaggedRelation.ts",
+      "source": "deobfuscated.js",
+      "bytes": 1265
+    },
+    {
+      "path": "app/models/LogicalPart/components/SimulationModule.ts",
+      "source": "deobfuscated.js",
+      "bytes": 6886
+    },
+    {
+      "path": "app/models/LogicalPart/components/StereotypeModule.ts",
+      "source": "deobfuscated.js",
+      "bytes": 878
+    },
+    {
+      "path": "app/models/LogicalPart/components/aliasing-module.ts",
+      "source": "deobfuscated.js",
+      "bytes": 1243
+    },
+    {
+      "path": "app/models/LogicalPart/components/computation-module.ts",
+      "source": "deobfuscated.js",
+      "bytes": 1193
+    },
+    {
+      "path": "app/models/LogicalPart/components/configurationsTextModule.ts",
+      "source": "deobfuscated.js",
+      "bytes": 520
+    },
+    {
+      "path": "app/models/LogicalPart/components/units-text-module.ts",
+      "source": "deobfuscated.js",
+      "bytes": 1086
+    },
+    {
+      "path": "app/models/ModelFromWizardParamsCreator.ts",
+      "source": "deobfuscated.js",
+      "bytes": 12359
+    },
+    {
+      "path": "app/models/OpmImage.ts",
+      "source": "deobfuscated.js",
+      "bytes": 1923
+    },
+    {
+      "path": "app/models/OpmImageLink.ts",
+      "source": "deobfuscated.js",
+      "bytes": 1236
+    },
+    {
+      "path": "app/models/OpmModel.ts",
+      "source": "deobfuscated.js",
+      "bytes": 82959
+    },
+    {
+      "path": "app/models/OpmModelMetaData.ts",
+      "source": "deobfuscated.js",
+      "bytes": 5689
+    },
+    {
+      "path": "app/models/OpmOpd.ts",
+      "source": "deobfuscated.js",
+      "bytes": 15335
+    },
+    {
+      "path": "app/models/OpmStereotype.ts",
+      "source": "deobfuscated.js",
+      "bytes": 5432
+    },
+    {
+      "path": "app/models/SubModelCreator.ts",
+      "source": "deobfuscated.js",
+      "bytes": 10191
+    },
+    {
+      "path": "app/models/UndoRedoOperation.ts",
+      "source": "deobfuscated.js",
+      "bytes": 2458
+    },
+    {
+      "path": "app/models/VisualPart/OpmVisualEllipsis.ts",
+      "source": "deobfuscated.js",
+      "bytes": 2087
+    },
+    {
+      "path": "app/models/VisualPart/OpmVisualObject.ts",
+      "source": "deobfuscated.js",
+      "bytes": 30326
+    },
+    {
+      "path": "app/models/VisualPart/OpmVisualProcess.ts",
+      "source": "deobfuscated.js",
+      "bytes": 6955
+    },
+    {
+      "path": "app/models/VisualPart/OpmVisualState.ts",
+      "source": "deobfuscated.js",
+      "bytes": 7115
+    },
+    {
+      "path": "app/models/VisualPart/OpmVisualThing.ts",
+      "source": "deobfuscated.js",
+      "bytes": 75170
+    },
+    {
+      "path": "app/models/complexity.model.ts",
+      "source": "deobfuscated.js",
+      "bytes": 68603
+    },
+    {
+      "path": "app/models/components/ElementsMap.ts",
+      "source": "deobfuscated.js",
+      "bytes": 275
+    },
+    {
+      "path": "app/models/components/commands/add-states.ts",
+      "source": "deobfuscated.js",
+      "bytes": 1098
+    },
+    {
+      "path": "app/models/components/commands/destate.ts",
+      "source": "deobfuscated.js",
+      "bytes": 1209
+    },
+    {
+      "path": "app/models/components/commands/edit-alias.ts",
+      "source": "deobfuscated.js",
+      "bytes": 1081
+    },
+    {
+      "path": "app/models/components/commands/edit-units.ts",
+      "source": "deobfuscated.js",
+      "bytes": 862
+    },
+    {
+      "path": "app/models/components/commands/hide-type-object.ts",
+      "source": "deobfuscated.js",
+      "bytes": 844
+    },
+    {
+      "path": "app/models/components/commands/object-decider.ts",
+      "source": "deobfuscated.js",
+      "bytes": 4711
+    },
+    {
+      "path": "app/models/components/commands/process-decider.ts",
+      "source": "deobfuscated.js",
+      "bytes": 2995
+    },
+    {
+      "path": "app/models/components/commands/set-process-time-duration.ts",
+      "source": "deobfuscated.js",
+      "bytes": 1420
+    },
+    {
+      "path": "app/models/components/commands/set-state-time-duration.ts",
+      "source": "deobfuscated.js",
+      "bytes": 1253
+    },
+    {
+      "path": "app/models/components/commands/state-decider.ts",
+      "source": "deobfuscated.js",
+      "bytes": 1614
+    },
+    {
+      "path": "app/models/components/commands/suppress-state.ts",
+      "source": "deobfuscated.js",
+      "bytes": 1108
+    },
+    {
+      "path": "app/models/components/commands/suppress.ts",
+      "source": "deobfuscated.js",
+      "bytes": 1032
+    },
+    {
+      "path": "app/models/components/commands/supress-value-object-states.ts",
+      "source": "deobfuscated.js",
+      "bytes": 858
+    },
+    {
+      "path": "app/models/components/commands/updateComputationalProcess.ts",
+      "source": "deobfuscated.js",
+      "bytes": 979
+    },
+    {
+      "path": "app/models/components/commands/user-input-command.ts",
+      "source": "deobfuscated.js",
+      "bytes": 1596
+    },
+    {
+      "path": "app/models/consistency/behavioral.rules.ts",
+      "source": "deobfuscated.js",
+      "bytes": 45811
+    },
+    {
+      "path": "app/models/consistency/bringConnectedRules.ts",
+      "source": "deobfuscated.js",
+      "bytes": 7392
+    },
+    {
+      "path": "app/models/consistency/changeActions/CannotBePhysicalChangeAction.ts",
+      "source": "deobfuscated.js",
+      "bytes": 1527
+    },
+    {
+      "path": "app/models/consistency/changeActions/changeAction.interface.ts",
+      "source": "deobfuscated.js",
+      "bytes": 188
+    },
+    {
+      "path": "app/models/consistency/consistancy.model.ts",
+      "source": "deobfuscated.js",
+      "bytes": 80840
+    },
+    {
+      "path": "app/models/consistency/consistional.rules.ts",
+      "source": "deobfuscated.js",
+      "bytes": 4542
+    },
+    {
+      "path": "app/models/consistency/entities.set.ts",
+      "source": "deobfuscated.js",
+      "bytes": 257
+    },
+    {
+      "path": "app/models/consistency/rules.ts",
+      "source": "deobfuscated.js",
+      "bytes": 399
+    },
+    {
+      "path": "app/models/consistency/structural.rules.ts",
+      "source": "deobfuscated.js",
+      "bytes": 9400
+    },
+    {
+      "path": "app/models/dcm/export-mode.enum.ts",
+      "source": "deobfuscated.js",
+      "bytes": 544
+    },
+    {
+      "path": "app/models/exampleStereotype.ts",
+      "source": "deobfuscated.js",
+      "bytes": 51136
+    },
+    {
+      "path": "app/models/hiddenAttributes/hidden-attributes-module.ts",
+      "source": "deobfuscated.js",
+      "bytes": 322
+    },
+    {
+      "path": "app/models/hiddenAttributes/requirements-stereotype.ts",
+      "source": "deobfuscated.js",
+      "bytes": 237054
+    },
+    {
+      "path": "app/models/json.model.ts",
+      "source": "deobfuscated.js",
+      "bytes": 26645
+    },
+    {
+      "path": "app/models/logical.factory.ts",
+      "source": "deobfuscated.js",
+      "bytes": 1445
+    },
+    {
+      "path": "app/models/modules/attribute-validation/attribute-value.ts",
+      "source": "deobfuscated.js",
+      "bytes": 1895
+    },
+    {
+      "path": "app/models/modules/attribute-validation/boolean-range.ts",
+      "source": "deobfuscated.js",
+      "bytes": 476
+    },
+    {
+      "path": "app/models/modules/attribute-validation/char-range.ts",
+      "source": "deobfuscated.js",
+      "bytes": 402
+    },
+    {
+      "path": "app/models/modules/attribute-validation/numeric-range.ts",
+      "source": "deobfuscated.js",
+      "bytes": 5980
+    },
+    {
+      "path": "app/models/modules/attribute-validation/string-range.ts",
+      "source": "deobfuscated.js",
+      "bytes": 2262
+    },
+    {
+      "path": "app/models/modules/attribute-validation/validation-module.ts",
+      "source": "deobfuscated.js",
+      "bytes": 574170
+    },
+    {
+      "path": "app/models/node.model.ts",
+      "source": "deobfuscated.js",
+      "bytes": 1194
+    },
+    {
+      "path": "app/models/notes/note-cell.ts",
+      "source": "deobfuscated.js",
+      "bytes": 4149
+    },
+    {
+      "path": "app/models/notes/note-type.ts",
+      "source": "deobfuscated.js",
+      "bytes": 1021
+    },
+    {
+      "path": "app/models/notes/note.service.ts",
+      "source": "deobfuscated.js",
+      "bytes": 5249
+    },
+    {
+      "path": "app/models/notes/note.ts",
+      "source": "deobfuscated.js",
+      "bytes": 2187
+    },
+    {
+      "path": "app/models/notes/note/note.component.ts",
+      "source": "deobfuscated.js",
+      "bytes": 10926
+    },
+    {
+      "path": "app/models/stereotypeManager.ts",
+      "source": "deobfuscated.js",
+      "bytes": 703
+    },
+    {
+      "path": "app/models/uiArrangement.model.ts",
+      "source": "deobfuscated.js",
+      "bytes": 10087
+    },
+    {
+      "path": "app/modules/CanActivateViaAuthGuard.ts",
+      "source": "deobfuscated.js",
+      "bytes": 3017
+    },
+    {
+      "path": "app/modules/MainLogin.component.ts",
+      "source": "deobfuscated.js",
+      "bytes": 6614
+    },
+    {
+      "path": "app/modules/Settings/OPCloud-Organization-Settings/OPCloud-Organization-Settings.component_org.ts",
+      "source": "deobfuscated.js",
+      "bytes": 147518
+    },
+    {
+      "path": "app/modules/Settings/OPCloudManual/opcloud-manual.component.ts",
+      "source": "deobfuscated.js",
+      "bytes": 4930
+    },
+    {
+      "path": "app/modules/Settings/OPCloudPrivacyPolicy/opcloud-privacy-policy.component.ts",
+      "source": "deobfuscated.js",
+      "bytes": 24138
+    },
+    {
+      "path": "app/modules/Settings/OpCloudSettings/opcloud-settings.component.ts",
+      "source": "deobfuscated.js",
+      "bytes": 150740
+    },
+    {
+      "path": "app/modules/Settings/OplSettings/opl-settings.component.ts",
+      "source": "deobfuscated.js",
+      "bytes": 26573
+    },
+    {
+      "path": "app/modules/Settings/OrgOntology/Organization-Ontology.component.ts",
+      "source": "deobfuscated.js",
+      "bytes": 11352
+    },
+    {
+      "path": "app/modules/Settings/OrgOntology/ontologyApplier.ts",
+      "source": "deobfuscated.js",
+      "bytes": 2689
+    },
+    {
+      "path": "app/modules/Settings/PopupMessages/popup-messages.component.ts",
+      "source": "deobfuscated.js",
+      "bytes": 20886
+    },
+    {
+      "path": "app/modules/Settings/dsm-analysis/dsm-analysis.component.ts",
+      "source": "deobfuscated.js",
+      "bytes": 138322
+    },
+    {
+      "path": "app/modules/Settings/graph-insights/graph-insights-force-layout.ts",
+      "source": "deobfuscated.js",
+      "bytes": 3397
+    },
+    {
+      "path": "app/modules/Settings/graph-insights/graph-insights-instructions-dialog.component.ts",
+      "source": "deobfuscated.js",
+      "bytes": 32851
+    },
+    {
+      "path": "app/modules/Settings/graph-insights/graph-insights-layout-seed.ts",
+      "source": "deobfuscated.js",
+      "bytes": 3032
+    },
+    {
+      "path": "app/modules/Settings/graph-insights/graph-insights.component.ts",
+      "source": "37084.js",
+      "bytes": 72535
+    },
+    {
+      "path": "app/modules/Settings/graph-insights/graph-insights.service.ts",
+      "source": "deobfuscated.js",
+      "bytes": 14306
+    },
+    {
+      "path": "app/modules/Settings/graph-insights/opm-graph-normalizer.service.ts",
+      "source": "deobfuscated.js",
+      "bytes": 6087
+    },
+    {
+      "path": "app/modules/Settings/graph-insights/opm-graphology-builder.service.ts",
+      "source": "deobfuscated.js",
+      "bytes": 1627
+    },
+    {
+      "path": "app/modules/Settings/group-mgmt/add-group/add-group.component.ts",
+      "source": "deobfuscated.js",
+      "bytes": 20829
+    },
+    {
+      "path": "app/modules/Settings/group-mgmt/group-administration/group-administration.component.ts",
+      "source": "deobfuscated.js",
+      "bytes": 63617
+    },
+    {
+      "path": "app/modules/Settings/group-mgmt/update-user-grp/member-grp/member-grp.component.ts",
+      "source": "deobfuscated.js",
+      "bytes": 2210
+    },
+    {
+      "path": "app/modules/Settings/group-mgmt/update-user-grp/update-user-grp.component.ts",
+      "source": "deobfuscated.js",
+      "bytes": 3115
+    },
+    {
+      "path": "app/modules/Settings/list-things/list-things.component.ts",
+      "source": "deobfuscated.js",
+      "bytes": 2110
+    },
+    {
+      "path": "app/modules/Settings/menuGroups.ts",
+      "source": "deobfuscated.js",
+      "bytes": 4288
+    },
+    {
+      "path": "app/modules/Settings/missing-knowledge-analysis/missing-knowledge-analysis.component.ts",
+      "source": "deobfuscated.js",
+      "bytes": 152834
+    },
+    {
+      "path": "app/modules/Settings/model-analysis-tools/model-analysis-tools.component.ts",
+      "source": "deobfuscated.js",
+      "bytes": 13106
+    },
+    {
+      "path": "app/modules/Settings/model-analysis/model-analysis.component.ts",
+      "source": "deobfuscated.js",
+      "bytes": 4512
+    },
+    {
+      "path": "app/modules/Settings/nlp-model-analysis/nlp-model-analysis.component.ts",
+      "source": "deobfuscated.js",
+      "bytes": 16372
+    },
+    {
+      "path": "app/modules/Settings/organization-analytics/organization-analytics.component.ts",
+      "source": "deobfuscated.js",
+      "bytes": 46904
+    },
+    {
+      "path": "app/modules/Settings/organization-mgmt/delete-org/delete-org.component.ts",
+      "source": "deobfuscated.js",
+      "bytes": 3730
+    },
+    {
+      "path": "app/modules/Settings/organization-mgmt/new-org/new-org.component.ts",
+      "source": "deobfuscated.js",
+      "bytes": 5117
+    },
+    {
+      "path": "app/modules/Settings/organization-mgmt/org-admin/org-admin.component.ts",
+      "source": "deobfuscated.js",
+      "bytes": 20866
+    },
+    {
+      "path": "app/modules/Settings/organization-mgmt/send-email/send-email.component.ts",
+      "source": "deobfuscated.js",
+      "bytes": 19224
+    },
+    {
+      "path": "app/modules/Settings/organization-mgmt/sso/sso-settings.ts",
+      "source": "deobfuscated.js",
+      "bytes": 19745
+    },
+    {
+      "path": "app/modules/Settings/settings-home/settings-home.ts",
+      "source": "deobfuscated.js",
+      "bytes": 1246
+    },
+    {
+      "path": "app/modules/Settings/settings-opl-group.component.ts",
+      "source": "deobfuscated.js",
+      "bytes": 6007
+    },
+    {
+      "path": "app/modules/Settings/settings.component.ts",
+      "source": "deobfuscated.js",
+      "bytes": 15127
+    },
+    {
+      "path": "app/modules/Settings/settings.under_constractions.ts",
+      "source": "deobfuscated.js",
+      "bytes": 5997
+    },
+    {
+      "path": "app/modules/Settings/user-mgmt/new-user/new-user.component.ts",
+      "source": "deobfuscated.js",
+      "bytes": 24430
+    },
+    {
+      "path": "app/modules/Settings/user-mgmt/update-user-details/update-user-details.component.ts",
+      "source": "deobfuscated.js",
+      "bytes": 19687
+    },
+    {
+      "path": "app/modules/app-routing.module.ts",
+      "source": "deobfuscated.js",
+      "bytes": 5889
+    },
+    {
+      "path": "app/modules/app.module.ts",
+      "source": "deobfuscated.js",
+      "bytes": 2042
+    },
+    {
+      "path": "app/modules/app/app.component.ts",
+      "source": "deobfuscated.js",
+      "bytes": 673
+    },
+    {
+      "path": "app/modules/app/context.service.ts",
+      "source": "deobfuscated.js",
+      "bytes": 43853
+    },
+    {
+      "path": "app/modules/app/context.ts",
+      "source": "deobfuscated.js",
+      "bytes": 9265
+    },
+    {
+      "path": "app/modules/app/export-opl.service.ts",
+      "source": "deobfuscated.js",
+      "bytes": 8802
+    },
+    {
+      "path": "app/modules/app/model.service.ts",
+      "source": "deobfuscated.js",
+      "bytes": 7531
+    },
+    {
+      "path": "app/modules/app/opm-model-comparison.service.ts",
+      "source": "deobfuscated.js",
+      "bytes": 16384
+    },
+    {
+      "path": "app/modules/app/opm-rdf.service.ts",
+      "source": "deobfuscated.js",
+      "bytes": 16609
+    },
+    {
+      "path": "app/modules/app/tabsService.ts",
+      "source": "deobfuscated.js",
+      "bytes": 5986
+    },
+    {
+      "path": "app/modules/layout/element-tool-bar/directives/font-highlight.directive.ts",
+      "source": "deobfuscated.js",
+      "bytes": 1337
+    },
+    {
+      "path": "app/modules/layout/element-tool-bar/element-tool-bar.component.ts",
+      "source": "37084.js",
+      "bytes": 743511
+    },
+    {
+      "path": "app/modules/layout/element-tool-bar/supported-fonts.ts",
+      "source": "deobfuscated.js",
+      "bytes": 1518
+    },
+    {
+      "path": "app/modules/layout/header/header.component.ts",
+      "source": "deobfuscated.js",
+      "bytes": 39768
+    },
+    {
+      "path": "app/modules/layout/header/menu/menu.component.ts",
+      "source": "deobfuscated.js",
+      "bytes": 61690
+    },
+    {
+      "path": "app/modules/layout/header/sign-in/sign-in.component.ts",
+      "source": "deobfuscated.js",
+      "bytes": 15901
+    },
+    {
+      "path": "app/modules/layout/header/user-status/user-status.component.ts",
+      "source": "deobfuscated.js",
+      "bytes": 14308
+    },
+    {
+      "path": "app/modules/layout/layout.module.ts",
+      "source": "deobfuscated.js",
+      "bytes": 2172
+    },
+    {
+      "path": "app/modules/layout/main/list-logical/list-logical.component.ts",
+      "source": "deobfuscated.js",
+      "bytes": 48748
+    },
+    {
+      "path": "app/modules/layout/main/main.component.ts",
+      "source": "deobfuscated.js",
+      "bytes": 38906
+    },
+    {
+      "path": "app/modules/layout/opc.layout.module.ts",
+      "source": "deobfuscated.js",
+      "bytes": 1283
+    },
+    {
+      "path": "app/modules/layout/opcloud-chat-component-float/chat.component.float.ts",
+      "source": "deobfuscated.js",
+      "bytes": 11027
+    },
+    {
+      "path": "app/modules/layout/opcloud-chat-component-panel/chat.component.panel.ts",
+      "source": "deobfuscated.js",
+      "bytes": 30121
+    },
+    {
+      "path": "app/modules/layout/opcloud-navigator/navigator.component.ts",
+      "source": "deobfuscated.js",
+      "bytes": 12160
+    },
+    {
+      "path": "app/modules/layout/opl-container/opl-container.component.ts",
+      "source": "deobfuscated.js",
+      "bytes": 42553
+    },
+    {
+      "path": "app/modules/opc.module.ts",
+      "source": "deobfuscated.js",
+      "bytes": 6250
+    },
+    {
+      "path": "app/modules/rappid.module.ts",
+      "source": "deobfuscated.js",
+      "bytes": 860
+    },
+    {
+      "path": "app/modules/shared/avatar/avatar.component.ts",
+      "source": "deobfuscated.js",
+      "bytes": 2768
+    },
+    {
+      "path": "app/modules/shared/calander/calander.component.ts",
+      "source": "deobfuscated.js",
+      "bytes": 2855
+    },
+    {
+      "path": "app/modules/shared/material.module.ts",
+      "source": "deobfuscated.js",
+      "bytes": 2378
+    },
+    {
+      "path": "app/modules/shared/resize-bar/resize-bar.component.ts",
+      "source": "deobfuscated.js",
+      "bytes": 4322
+    },
+    {
+      "path": "app/modules/shared/resize-bar/resize-bar.directive.ts",
+      "source": "37084.js",
+      "bytes": 4981
+    },
+    {
+      "path": "app/modules/shared/shared.module.ts",
+      "source": "deobfuscated.js",
+      "bytes": 1828
+    },
+    {
+      "path": "app/opd-hierarchy/coll-menu.component.ts",
+      "source": "deobfuscated.js",
+      "bytes": 8742
+    },
+    {
+      "path": "app/opd-hierarchy/opd-hierarchy.component.ts",
+      "source": "deobfuscated.js",
+      "bytes": 60756
+    },
+    {
+      "path": "app/opd-hierarchy/opdsTreeActions.ts",
+      "source": "deobfuscated.js",
+      "bytes": 6862
+    },
+    {
+      "path": "app/pipes/tab-title-pipe.pipe.ts",
+      "source": "deobfuscated.js",
+      "bytes": 511
+    },
+    {
+      "path": "app/rappid-components/rappid-opl/rappid-opl.component.ts",
+      "source": "deobfuscated.js",
+      "bytes": 24330
+    },
+    {
+      "path": "app/rappid-components/rappid-paper/rappid-paper.component.ts",
+      "source": "deobfuscated.js",
+      "bytes": 1676
+    },
+    {
+      "path": "app/rappid-components/rappid-toolbar/rappid-toolbar.component.ts",
+      "source": "deobfuscated.js",
+      "bytes": 19017
+    },
+    {
+      "path": "app/rappid-components/rappid-toolbar/toolbar.component.ts",
+      "source": "deobfuscated.js",
+      "bytes": 388
+    },
+    {
+      "path": "app/rappid-components/services/GraphDB/graphDB.service.ts",
+      "source": "37084.js",
+      "bytes": 41714
+    },
+    {
+      "path": "app/rappid-components/services/authentication/authentication.service.ts",
+      "source": "deobfuscated.js",
+      "bytes": 12229
+    },
+    {
+      "path": "app/rappid-components/services/dialog.service.ts",
+      "source": "deobfuscated.js",
+      "bytes": 1161
+    },
+    {
+      "path": "app/rappid-components/services/graph.service.ts",
+      "source": "deobfuscated.js",
+      "bytes": 79960
+    },
+    {
+      "path": "app/rappid-components/services/groups.service.ts",
+      "source": "deobfuscated.js",
+      "bytes": 7584
+    },
+    {
+      "path": "app/rappid-components/services/init-rappid.service.ts",
+      "source": "deobfuscated.js",
+      "bytes": 55518
+    },
+    {
+      "path": "app/rappid-components/services/init/abstract.init.service.ts",
+      "source": "deobfuscated.js",
+      "bytes": 496
+    },
+    {
+      "path": "app/rappid-components/services/init/opc.init.service.ts",
+      "source": "deobfuscated.js",
+      "bytes": 1403
+    },
+    {
+      "path": "app/rappid-components/services/model-compression.service.ts",
+      "source": "deobfuscated.js",
+      "bytes": 55568
+    },
+    {
+      "path": "app/rappid-components/services/organization.service.ts",
+      "source": "deobfuscated.js",
+      "bytes": 9470
+    },
+    {
+      "path": "app/rappid-components/services/penManager.ts",
+      "source": "deobfuscated.js",
+      "bytes": 564
+    },
+    {
+      "path": "app/rappid-components/services/permissions/permissions.service.ts",
+      "source": "deobfuscated.js",
+      "bytes": 7319
+    },
+    {
+      "path": "app/rappid-components/services/server-flattening.service.ts",
+      "source": "deobfuscated.js",
+      "bytes": 2307
+    },
+    {
+      "path": "app/rappid-components/services/storage.service.ts",
+      "source": "deobfuscated.js",
+      "bytes": 15309
+    },
+    {
+      "path": "app/rappid-components/services/storage/chat/chat-storage.interface.ts",
+      "source": "deobfuscated.js",
+      "bytes": 248
+    },
+    {
+      "path": "app/rappid-components/services/storage/chat/chat-storage.service.ts",
+      "source": "deobfuscated.js",
+      "bytes": 2861
+    },
+    {
+      "path": "app/rappid-components/services/storage/model-object.class.ts",
+      "source": "deobfuscated.js",
+      "bytes": 803
+    },
+    {
+      "path": "app/rappid-components/services/storage/model-storage.interface.ts",
+      "source": "deobfuscated.js",
+      "bytes": 724
+    },
+    {
+      "path": "app/rappid-components/services/storage/model-storage.service.ts",
+      "source": "deobfuscated.js",
+      "bytes": 3224
+    },
+    {
+      "path": "app/rappid-components/services/tree-view.service.ts",
+      "source": "deobfuscated.js",
+      "bytes": 9324
+    },
+    {
+      "path": "app/rappid-components/services/user.service.ts",
+      "source": "deobfuscated.js",
+      "bytes": 17967
+    },
+    {
+      "path": "app/services/dcm/algorithms/case-entity-selection.algorithm.ts",
+      "source": "deobfuscated.js",
+      "bytes": 2109
+    },
+    {
+      "path": "app/services/dcm/algorithms/case-file-schema.algorithm.ts",
+      "source": "deobfuscated.js",
+      "bytes": 6074
+    },
+    {
+      "path": "app/services/dcm/algorithms/event-listener-generation.algorithm.ts",
+      "source": "deobfuscated.js",
+      "bytes": 6013
+    },
+    {
+      "path": "app/services/dcm/algorithms/graph-builder.algorithm.ts",
+      "source": "deobfuscated.js",
+      "bytes": 1590
+    },
+    {
+      "path": "app/services/dcm/algorithms/role-extraction.algorithm.ts",
+      "source": "deobfuscated.js",
+      "bytes": 4376
+    },
+    {
+      "path": "app/services/dcm/algorithms/scope-subgraph.algorithm.ts",
+      "source": "deobfuscated.js",
+      "bytes": 4229
+    },
+    {
+      "path": "app/services/dcm/algorithms/sentry-synthesis.algorithm.ts",
+      "source": "deobfuscated.js",
+      "bytes": 19138
+    },
+    {
+      "path": "app/services/dcm/algorithms/stage-task-determination.algorithm.ts",
+      "source": "deobfuscated.js",
+      "bytes": 14302
+    },
+    {
+      "path": "app/services/dcm/canonical-opm-export.service.ts",
+      "source": "deobfuscated.js",
+      "bytes": 15008
+    },
+    {
+      "path": "app/services/dcm/dcm-export-wizard.service.ts",
+      "source": "deobfuscated.js",
+      "bytes": 40850
+    },
+    {
+      "path": "app/services/dcm/exporters/cmmn-exporter.service.ts",
+      "source": "deobfuscated.js",
+      "bytes": 142740
+    },
+    {
+      "path": "app/services/dcm/exporters/cmmndi-exporter.service.ts",
+      "source": "deobfuscated.js",
+      "bytes": 40237
+    },
+    {
+      "path": "app/services/dcm/exporters/dcm-ir-exporter.service.ts",
+      "source": "deobfuscated.js",
+      "bytes": 608
+    },
+    {
+      "path": "app/services/dcm/exporters/dmn-exporter.service.ts",
+      "source": "deobfuscated.js",
+      "bytes": 6661
+    },
+    {
+      "path": "app/services/dcm/exporters/trace-exporter.service.ts",
+      "source": "deobfuscated.js",
+      "bytes": 3293
+    },
+    {
+      "path": "app/services/dcm/validation.service.ts",
+      "source": "deobfuscated.js",
+      "bytes": 27314
+    },
+    {
+      "path": "app/services/sysml-converters/activity-diagram.converter.ts",
+      "source": "deobfuscated.js",
+      "bytes": 16655
+    },
+    {
+      "path": "app/services/sysml-converters/base-diagram.converter.ts",
+      "source": "deobfuscated.js",
+      "bytes": 3942
+    },
+    {
+      "path": "app/services/sysml-converters/block-definition-diagram.converter.ts",
+      "source": "deobfuscated.js",
+      "bytes": 20373
+    },
+    {
+      "path": "app/services/sysml-converters/requirement-diagram.converter.ts",
+      "source": "deobfuscated.js",
+      "bytes": 9572
+    },
+    {
+      "path": "app/services/sysml-converters/sequence-diagram.converter.ts",
+      "source": "deobfuscated.js",
+      "bytes": 34332
+    },
+    {
+      "path": "app/services/sysml-converters/state-machine-diagram.converter.ts",
+      "source": "deobfuscated.js",
+      "bytes": 15842
+    },
+    {
+      "path": "app/services/sysml-converters/use-case-diagram.converter.ts",
+      "source": "37084.js",
+      "bytes": 15141
+    },
+    {
+      "path": "app/services/sysml-xmi-generator.service.ts",
+      "source": "deobfuscated.js",
+      "bytes": 60916
+    },
+    {
+      "path": "core.mjs",
+      "source": "deobfuscated.js",
+      "bytes": 309
+    },
+    {
+      "path": "environments/environment.ts",
+      "source": "deobfuscated.js",
+      "bytes": 857
+    },
+    {
+      "path": "environments/version/version.ts",
+      "source": "deobfuscated.js",
+      "bytes": 0
+    },
+    {
+      "path": "layout/index.mjs",
+      "source": "deobfuscated.js",
+      "bytes": 0
+    },
+    {
+      "path": "main.ts",
+      "source": "deobfuscated.js",
+      "bytes": 80066
+    }
+  ],
+  "collisions": [
+    {
+      "path": "app/modules/app/app.component.ts",
+      "kept_source": "deobfuscated.js",
+      "kept_size": 673,
+      "dropped_source": "37084.js",
+      "dropped_size": 627
+    },
+    {
+      "path": "environments/environment.ts",
+      "kept_source": "deobfuscated.js",
+      "kept_size": 857,
+      "dropped_source": "37084.js",
+      "dropped_size": 815
+    },
+    {
+      "path": "app/database/authInterceptor.ts",
+      "kept_source": "deobfuscated.js",
+      "kept_size": 6430,
+      "dropped_source": "37084.js",
+      "dropped_size": 6123
+    },
+    {
+      "path": "app/models/DrawnPart/Links/InvocationLink.ts",
+      "kept_source": "deobfuscated.js",
+      "kept_size": 7227,
+      "dropped_source": "37084.js",
+      "dropped_size": 7068
+    },
+    {
+      "path": "app/models/DrawnPart/UserInputPromptPopup.ts",
+      "kept_source": "deobfuscated.js",
+      "kept_size": 2246,
+      "dropped_source": "37084.js",
+      "dropped_size": 2191
+    },
+    {
+      "path": "app/models/DrawnPart/OpmProcess.ts",
+      "kept_source": "deobfuscated.js",
+      "kept_size": 115207,
+      "dropped_source": "37084.js",
+      "dropped_size": 105197
+    },
+    {
+      "path": "app/models/OpmOpd.ts",
+      "kept_source": "deobfuscated.js",
+      "kept_size": 15335,
+      "dropped_source": "37084.js",
+      "dropped_size": 14942
+    },
+    {
+      "path": "app/models/OpmModelMetaData.ts",
+      "kept_source": "deobfuscated.js",
+      "kept_size": 5689,
+      "dropped_source": "37084.js",
+      "dropped_size": 5540
+    },
+    {
+      "path": "app/models/LogicalPart/OpmTaggedRelation.ts",
+      "kept_source": "deobfuscated.js",
+      "kept_size": 1265,
+      "dropped_source": "37084.js",
+      "dropped_size": 1209
+    },
+    {
+      "path": "app/models/logical.factory.ts",
+      "kept_source": "deobfuscated.js",
+      "kept_size": 1445,
+      "dropped_source": "37084.js",
+      "dropped_size": 1351
+    },
+    {
+      "path": "app/models/stereotypeManager.ts",
+      "kept_source": "deobfuscated.js",
+      "kept_size": 703,
+      "dropped_source": "37084.js",
+      "dropped_size": 651
+    },
+    {
+      "path": "app/models/BasicOpmModel.ts",
+      "kept_source": "deobfuscated.js",
+      "kept_size": 25417,
+      "dropped_source": "37084.js",
+      "dropped_size": 25321
+    },
+    {
+      "path": "app/models/complexity.model.ts",
+      "kept_source": "deobfuscated.js",
+      "kept_size": 68603,
+      "dropped_source": "37084.js",
+      "dropped_size": 68551
+    },
+    {
+      "path": "app/models/OpmStereotype.ts",
+      "kept_source": "deobfuscated.js",
+      "kept_size": 5432,
+      "dropped_source": "37084.js",
+      "dropped_size": 5377
+    },
+    {
+      "path": "app/models/UndoRedoOperation.ts",
+      "kept_source": "deobfuscated.js",
+      "kept_size": 2458,
+      "dropped_source": "37084.js",
+      "dropped_size": 2404
+    },
+    {
+      "path": "app/ImportOPX/OPX.LastSong.ts",
+      "kept_source": "deobfuscated.js",
+      "kept_size": 2732,
+      "dropped_source": "37084.js",
+      "dropped_size": 2567
+    },
+    {
+      "path": "app/models/DrawnPart/Links/InstantiationLink.ts",
+      "kept_source": "deobfuscated.js",
+      "kept_size": 3757,
+      "dropped_source": "37084.js",
+      "dropped_size": 3689
+    },
+    {
+      "path": "app/models/DrawnPart/Links/AggregationLink.ts",
+      "kept_source": "deobfuscated.js",
+      "kept_size": 2343,
+      "dropped_source": "37084.js",
+      "dropped_size": 2312
+    },
+    {
+      "path": "app/models/DrawnPart/Links/OvertimeExceptionLink.ts",
+      "kept_source": "deobfuscated.js",
+      "kept_size": 1258,
+      "dropped_source": "37084.js",
+      "dropped_size": 1153
+    },
+    {
+      "path": "app/models/DrawnPart/Links/ResultLink.ts",
+      "kept_source": "deobfuscated.js",
+      "kept_size": 4988,
+      "dropped_source": "37084.js",
+      "dropped_size": 4939
+    },
+    {
+      "path": "app/models/DrawnPart/Links/SelfInvocationLink.ts",
+      "kept_source": "deobfuscated.js",
+      "kept_size": 9993,
+      "dropped_source": "37084.js",
+      "dropped_size": 9900
+    },
+    {
+      "path": "app/models/DrawnPart/Note.ts",
+      "kept_source": "deobfuscated.js",
+      "kept_size": 13523,
+      "dropped_source": "37084.js",
+      "dropped_size": 12059
+    },
+    {
+      "path": "app/models/notes/note-type.ts",
+      "kept_source": "deobfuscated.js",
+      "kept_size": 1021,
+      "dropped_source": "37084.js",
+      "dropped_size": 844
+    },
+    {
+      "path": "app/models/notes/note/note.component.ts",
+      "kept_source": "deobfuscated.js",
+      "kept_size": 10926,
+      "dropped_source": "37084.js",
+      "dropped_size": 10867
+    },
+    {
+      "path": "app/models/notes/note-cell.ts",
+      "kept_source": "deobfuscated.js",
+      "kept_size": 4149,
+      "dropped_source": "37084.js",
+      "dropped_size": 4144
+    },
+    {
+      "path": "app/models/notes/note.service.ts",
+      "kept_source": "deobfuscated.js",
+      "kept_size": 5249,
+      "dropped_source": "37084.js",
+      "dropped_size": 5204
+    },
+    {
+      "path": "app/models/node.model.ts",
+      "kept_source": "deobfuscated.js",
+      "kept_size": 1194,
+      "dropped_source": "37084.js",
+      "dropped_size": 1152
+    },
+    {
+      "path": "app/dialogs/search-items-dialog/search-items-dialog.component.ts",
+      "kept_source": "deobfuscated.js",
+      "kept_size": 25878,
+      "dropped_source": "37084.js",
+      "dropped_size": 24206
+    },
+    {
+      "path": "app/rappid-components/services/storage/model-object.class.ts",
+      "kept_source": "deobfuscated.js",
+      "kept_size": 803,
+      "dropped_source": "37084.js",
+      "dropped_size": 742
+    },
+    {
+      "path": "app/modules/app/model.service.ts",
+      "kept_source": "deobfuscated.js",
+      "kept_size": 7531,
+      "dropped_source": "37084.js",
+      "dropped_size": 7436
+    },
+    {
+      "path": "app/dialogs/remove-operation-selection/remove-operation.ts",
+      "kept_source": "deobfuscated.js",
+      "kept_size": 15138,
+      "dropped_source": "37084.js",
+      "dropped_size": 15089
+    },
+    {
+      "path": "app/configuration/elementsFunctionality/draw.view.ts",
+      "kept_source": "deobfuscated.js",
+      "kept_size": 800,
+      "dropped_source": "37084.js",
+      "dropped_size": 602
+    },
+    {
+      "path": "app/dialogs/code-editor-dialog/code-editor-dialog.ts",
+      "kept_source": "deobfuscated.js",
+      "kept_size": 10616,
+      "dropped_source": "37084.js",
+      "dropped_size": 10501
+    },
+    {
+      "path": "app/dialogs/existing-name-dialog/existing-name-dialog.component.ts",
+      "kept_source": "deobfuscated.js",
+      "kept_size": 14214,
+      "dropped_source": "37084.js",
+      "dropped_size": 14155
+    },
+    {
+      "path": "app/rappid-components/services/user.service.ts",
+      "kept_source": "deobfuscated.js",
+      "kept_size": 17967,
+      "dropped_source": "37084.js",
+      "dropped_size": 17917
+    },
+    {
+      "path": "app/rappid-components/services/init-rappid.service.ts",
+      "kept_source": "deobfuscated.js",
+      "kept_size": 55518,
+      "dropped_source": "37084.js",
+      "dropped_size": 55508
+    },
+    {
+      "path": "app/rappid-components/services/GraphDB/graphDB.service.ts",
+      "kept_source": "37084.js",
+      "kept_size": 41714,
+      "dropped_source": "deobfuscated.js",
+      "dropped_size": 41651
+    },
+    {
+      "path": "app/modules/shared/resize-bar/resize-bar.directive.ts",
+      "kept_source": "37084.js",
+      "kept_size": 4981,
+      "dropped_source": "deobfuscated.js",
+      "dropped_size": 4977
+    },
+    {
+      "path": "app/dialogs/background-photo-dialog/background-photo-dialog.ts",
+      "kept_source": "deobfuscated.js",
+      "kept_size": 22359,
+      "dropped_source": "37084.js",
+      "dropped_size": 22315
+    },
+    {
+      "path": "app/modules/app/context.ts",
+      "kept_source": "deobfuscated.js",
+      "kept_size": 9265,
+      "dropped_source": "37084.js",
+      "dropped_size": 9131
+    },
+    {
+      "path": "app/dialogs/methodological-checking-dialog/checkers/ing-checker.ts",
+      "kept_source": "deobfuscated.js",
+      "kept_size": 874,
+      "dropped_source": "37084.js",
+      "dropped_size": 852
+    },
+    {
+      "path": "app/dialogs/methodological-checking-dialog/checkers/object-name-as-singular-checker.ts",
+      "kept_source": "deobfuscated.js",
+      "kept_size": 993,
+      "dropped_source": "37084.js",
+      "dropped_size": 949
+    },
+    {
+      "path": "app/modules/shared/shared.module.ts",
+      "kept_source": "deobfuscated.js",
+      "kept_size": 1828,
+      "dropped_source": "37084.js",
+      "dropped_size": 1775
+    },
+    {
+      "path": "app/dialogs/choose-link-dialog/Dialog.component.ts",
+      "kept_source": "deobfuscated.js",
+      "kept_size": 229499,
+      "dropped_source": "37084.js",
+      "dropped_size": 229450
+    },
+    {
+      "path": "app/dialogs/choose-exported-file-name/choose-exported-file-name.ts",
+      "kept_source": "deobfuscated.js",
+      "kept_size": 5477,
+      "dropped_source": "37084.js",
+      "dropped_size": 5435
+    },
+    {
+      "path": "app/rappid-components/services/groups.service.ts",
+      "kept_source": "deobfuscated.js",
+      "kept_size": 7584,
+      "dropped_source": "37084.js",
+      "dropped_size": 7538
+    },
+    {
+      "path": "app/modules/app/opm-model-comparison.service.ts",
+      "kept_source": "deobfuscated.js",
+      "kept_size": 16384,
+      "dropped_source": "37084.js",
+      "dropped_size": 15388
+    },
+    {
+      "path": "app/dialogs/load-model-dialog/load-model-dialog.component.ts",
+      "kept_source": "37084.js",
+      "kept_size": 196983,
+      "dropped_source": "deobfuscated.js",
+      "dropped_size": 196963
+    },
+    {
+      "path": "app/rappid-components/services/storage/model-storage.service.ts",
+      "kept_source": "deobfuscated.js",
+      "kept_size": 3224,
+      "dropped_source": "37084.js",
+      "dropped_size": 3171
+    },
+    {
+      "path": "app/dialogs/validation-settings/validation-settings.ts",
+      "kept_source": "deobfuscated.js",
+      "kept_size": 7802,
+      "dropped_source": "37084.js",
+      "dropped_size": 7797
+    },
+    {
+      "path": "app/rappid-components/services/server-flattening.service.ts",
+      "kept_source": "deobfuscated.js",
+      "kept_size": 2307,
+      "dropped_source": "37084.js",
+      "dropped_size": 2256
+    },
+    {
+      "path": "app/dialogs/export-model-as-html-dialog/export-model-as-html.ts",
+      "kept_source": "deobfuscated.js",
+      "kept_size": 42164,
+      "dropped_source": "37084.js",
+      "dropped_size": 39820
+    },
+    {
+      "path": "app/services/sysml-converters/use-case-diagram.converter.ts",
+      "kept_source": "37084.js",
+      "kept_size": 15141,
+      "dropped_source": "deobfuscated.js",
+      "dropped_size": 15117
+    },
+    {
+      "path": "app/services/sysml-converters/block-definition-diagram.converter.ts",
+      "kept_source": "deobfuscated.js",
+      "kept_size": 20373,
+      "dropped_source": "37084.js",
+      "dropped_size": 19017
+    },
+    {
+      "path": "app/services/sysml-converters/activity-diagram.converter.ts",
+      "kept_source": "deobfuscated.js",
+      "kept_size": 16655,
+      "dropped_source": "37084.js",
+      "dropped_size": 15283
+    },
+    {
+      "path": "app/services/sysml-converters/state-machine-diagram.converter.ts",
+      "kept_source": "deobfuscated.js",
+      "kept_size": 15842,
+      "dropped_source": "37084.js",
+      "dropped_size": 14601
+    },
+    {
+      "path": "app/services/sysml-converters/sequence-diagram.converter.ts",
+      "kept_source": "deobfuscated.js",
+      "kept_size": 34332,
+      "dropped_source": "37084.js",
+      "dropped_size": 31752
+    },
+    {
+      "path": "app/services/sysml-converters/requirement-diagram.converter.ts",
+      "kept_source": "deobfuscated.js",
+      "kept_size": 9572,
+      "dropped_source": "37084.js",
+      "dropped_size": 9543
+    },
+    {
+      "path": "app/services/sysml-xmi-generator.service.ts",
+      "kept_source": "deobfuscated.js",
+      "kept_size": 60916,
+      "dropped_source": "37084.js",
+      "dropped_size": 57536
+    },
+    {
+      "path": "app/dialogs/export-legend-dialog/export-legend-dialog.component.ts",
+      "kept_source": "deobfuscated.js",
+      "kept_size": 43438,
+      "dropped_source": "37084.js",
+      "dropped_size": 40246
+    },
+    {
+      "path": "app/dialogs/opl-generative-ai-dialog/generative-ai-requirements-export-dialog/generative-ai-requirements-export.ts",
+      "kept_source": "deobfuscated.js",
+      "kept_size": 16613,
+      "dropped_source": "37084.js",
+      "dropped_size": 16137
+    },
+    {
+      "path": "app/services/dcm/exporters/cmmn-exporter.service.ts",
+      "kept_source": "deobfuscated.js",
+      "kept_size": 142740,
+      "dropped_source": "37084.js",
+      "dropped_size": 132476
+    },
+    {
+      "path": "app/services/dcm/exporters/cmmndi-exporter.service.ts",
+      "kept_source": "deobfuscated.js",
+      "kept_size": 40237,
+      "dropped_source": "37084.js",
+      "dropped_size": 37125
+    },
+    {
+      "path": "app/services/dcm/exporters/dmn-exporter.service.ts",
+      "kept_source": "deobfuscated.js",
+      "kept_size": 6661,
+      "dropped_source": "37084.js",
+      "dropped_size": 6225
+    },
+    {
+      "path": "app/services/dcm/dcm-export-wizard.service.ts",
+      "kept_source": "deobfuscated.js",
+      "kept_size": 40850,
+      "dropped_source": "37084.js",
+      "dropped_size": 38126
+    },
+    {
+      "path": "app/opd-hierarchy/opd-hierarchy.component.ts",
+      "kept_source": "deobfuscated.js",
+      "kept_size": 60756,
+      "dropped_source": "37084.js",
+      "dropped_size": 60694
+    },
+    {
+      "path": "app/dialogs/Simulation/Simulation.ts",
+      "kept_source": "deobfuscated.js",
+      "kept_size": 14594,
+      "dropped_source": "37084.js",
+      "dropped_size": 14551
+    },
+    {
+      "path": "app/models/exampleStereotype.ts",
+      "kept_source": "deobfuscated.js",
+      "kept_size": 51136,
+      "dropped_source": "37084.js",
+      "dropped_size": 51026
+    },
+    {
+      "path": "app/dialogs/multi-instances-dialog/multi-instances-dialog.ts",
+      "kept_source": "deobfuscated.js",
+      "kept_size": 33308,
+      "dropped_source": "37084.js",
+      "dropped_size": 33303
+    },
+    {
+      "path": "app/modules/layout/element-tool-bar/element-tool-bar.component.ts",
+      "kept_source": "37084.js",
+      "kept_size": 743511,
+      "dropped_source": "deobfuscated.js",
+      "dropped_size": 743043
+    },
+    {
+      "path": "app/dialogs/add-users-excel/add-users.component.ts",
+      "kept_source": "deobfuscated.js",
+      "kept_size": 13080,
+      "dropped_source": "37084.js",
+      "dropped_size": 13075
+    },
+    {
+      "path": "app/modules/Settings/group-mgmt/group-administration/group-administration.component.ts",
+      "kept_source": "deobfuscated.js",
+      "kept_size": 63617,
+      "dropped_source": "37084.js",
+      "dropped_size": 63563
+    },
+    {
+      "path": "app/modules/Settings/organization-mgmt/send-email/send-email.component.ts",
+      "kept_source": "deobfuscated.js",
+      "kept_size": 19224,
+      "dropped_source": "37084.js",
+      "dropped_size": 19177
+    },
+    {
+      "path": "app/dialogs/pareto-frontier-dialog/pareto-frontier-dialog.ts",
+      "kept_source": "deobfuscated.js",
+      "kept_size": 17280,
+      "dropped_source": "37084.js",
+      "dropped_size": 17275
+    },
+    {
+      "path": "app/modules/Settings/nlp-model-analysis/nlp-model-analysis.component.ts",
+      "kept_source": "deobfuscated.js",
+      "kept_size": 16372,
+      "dropped_source": "37084.js",
+      "dropped_size": 16332
+    },
+    {
+      "path": "app/modules/Settings/graph-insights/graph-insights-instructions-dialog.component.ts",
+      "kept_source": "deobfuscated.js",
+      "kept_size": 32851,
+      "dropped_source": "37084.js",
+      "dropped_size": 32833
+    },
+    {
+      "path": "app/modules/Settings/graph-insights/graph-insights.service.ts",
+      "kept_source": "deobfuscated.js",
+      "kept_size": 14306,
+      "dropped_source": "37084.js",
+      "dropped_size": 14302
+    },
+    {
+      "path": "app/modules/Settings/graph-insights/graph-insights.component.ts",
+      "kept_source": "37084.js",
+      "kept_size": 72535,
+      "dropped_source": "deobfuscated.js",
+      "dropped_size": 72511
+    },
+    {
+      "path": "app/database/ServerDatabaseDrive.ts",
+      "kept_source": "deobfuscated.js",
+      "kept_size": 44330,
+      "dropped_source": "37084.js",
+      "dropped_size": 44286
+    },
+    {
+      "path": "app/configuration/ssoConfigurations/ssoConfigurations.ts",
+      "kept_source": "deobfuscated.js",
+      "kept_size": 1170,
+      "dropped_source": "37084.js",
+      "dropped_size": 1123
+    },
+    {
+      "path": "app/modules/opc.module.ts",
+      "kept_source": "deobfuscated.js",
+      "kept_size": 6250,
+      "dropped_source": "37084.js",
+      "dropped_size": 6204
+    },
+    {
+      "path": "app/modules/layout/opcloud-navigator/navigator.component.ts",
+      "kept_source": "deobfuscated.js",
+      "kept_size": 12160,
+      "dropped_source": "37084.js",
+      "dropped_size": 12155
+    },
+    {
+      "path": "main.ts",
+      "kept_source": "deobfuscated.js",
+      "kept_size": 80066,
+      "dropped_source": "37084.js",
+      "dropped_size": 124
+    },
+    {
+      "path": "app/configuration/rappidEnviromentFunctionality/inspector/opmStyle.ts",
+      "kept_source": "deobfuscated.js",
+      "kept_size": 1931,
+      "dropped_source": "1185.js",
+      "dropped_size": 1926
+    },
+    {
+      "path": "app/configuration/rappidEnviromentFunctionality/shared.ts",
+      "kept_source": "deobfuscated.js",
+      "kept_size": 313678,
+      "dropped_source": "1185.js",
+      "dropped_size": 30903
+    },
+    {
+      "path": "app/models/components/commands/suppress-state.ts",
+      "kept_source": "deobfuscated.js",
+      "kept_size": 1108,
+      "dropped_source": "14898.js",
+      "dropped_size": 1103
+    },
+    {
+      "path": "app/models/VisualPart/OpmVisualState.ts",
+      "kept_source": "deobfuscated.js",
+      "kept_size": 7115,
+      "dropped_source": "14898.js",
+      "dropped_size": 5995
+    },
+    {
+      "path": "app/models/modules/attribute-validation/validation-module.ts",
+      "kept_source": "deobfuscated.js",
+      "kept_size": 574170,
+      "dropped_source": "26692.js",
+      "dropped_size": 1640
+    },
+    {
+      "path": "app/models/LogicalPart/components/StereotypeModule.ts",
+      "kept_source": "deobfuscated.js",
+      "kept_size": 878,
+      "dropped_source": "29007.js",
+      "dropped_size": 873
+    },
+    {
+      "path": "app/models/LogicalPart/components/SimulationModule.ts",
+      "kept_source": "deobfuscated.js",
+      "kept_size": 6886,
+      "dropped_source": "29007.js",
+      "dropped_size": 6881
+    },
+    {
+      "path": "app/models/LogicalPart/components/configurationsTextModule.ts",
+      "kept_source": "deobfuscated.js",
+      "kept_size": 520,
+      "dropped_source": "29007.js",
+      "dropped_size": 515
+    },
+    {
+      "path": "app/models/LogicalPart/OpmLogicalThing.ts",
+      "kept_source": "deobfuscated.js",
+      "kept_size": 90619,
+      "dropped_source": "29007.js",
+      "dropped_size": 7358
+    },
+    {
+      "path": "app/models/LogicalPart/components/computation-module.ts",
+      "kept_source": "deobfuscated.js",
+      "kept_size": 1193,
+      "dropped_source": "2839.js",
+      "dropped_size": 1188
+    },
+    {
+      "path": "app/models/LogicalPart/OpmLogicalObject.ts",
+      "kept_source": "deobfuscated.js",
+      "kept_size": 29929,
+      "dropped_source": "2839.js",
+      "dropped_size": 16477
+    },
+    {
+      "path": "app/models/components/commands/set-process-time-duration.ts",
+      "kept_source": "deobfuscated.js",
+      "kept_size": 1420,
+      "dropped_source": "3037.js",
+      "dropped_size": 1405
+    },
+    {
+      "path": "app/models/components/commands/process-decider.ts",
+      "kept_source": "deobfuscated.js",
+      "kept_size": 2995,
+      "dropped_source": "3037.js",
+      "dropped_size": 2990
+    },
+    {
+      "path": "app/models/VisualPart/OpmVisualProcess.ts",
+      "kept_source": "deobfuscated.js",
+      "kept_size": 6955,
+      "dropped_source": "3037.js",
+      "dropped_size": 6107
+    },
+    {
+      "path": "app/models/LogicalPart/LogicalTextModule.ts",
+      "kept_source": "deobfuscated.js",
+      "kept_size": 2389,
+      "dropped_source": "43894.js",
+      "dropped_size": 2374
+    },
+    {
+      "path": "app/models/LogicalPart/OpmLogicalEntity.ts",
+      "kept_source": "deobfuscated.js",
+      "kept_size": 9498,
+      "dropped_source": "43894.js",
+      "dropped_size": 8223
+    },
+    {
+      "path": "app/models/consistency/bringConnectedRules.ts",
+      "kept_source": "deobfuscated.js",
+      "kept_size": 7392,
+      "dropped_source": "54695.js",
+      "dropped_size": 7387
+    },
+    {
+      "path": "app/models/VisualPart/OpmVisualThing.ts",
+      "kept_source": "deobfuscated.js",
+      "kept_size": 75170,
+      "dropped_source": "54695.js",
+      "dropped_size": 44912
+    },
+    {
+      "path": "app/models/DrawnPart/components/alias/alias.popup.ts",
+      "kept_source": "deobfuscated.js",
+      "kept_size": 3083,
+      "dropped_source": "68506.js",
+      "dropped_size": 3073
+    },
+    {
+      "path": "app/models/DrawnPart/components/range/range.ts",
+      "kept_source": "deobfuscated.js",
+      "kept_size": 870,
+      "dropped_source": "68506.js",
+      "dropped_size": 860
+    },
+    {
+      "path": "app/models/DrawnPart/OpmObject.ts",
+      "kept_source": "deobfuscated.js",
+      "kept_size": 236301,
+      "dropped_source": "68506.js",
+      "dropped_size": 94097
+    },
+    {
+      "path": "app/models/VisualPart/OpmVisualEllipsis.ts",
+      "kept_source": "deobfuscated.js",
+      "kept_size": 2087,
+      "dropped_source": "71252.js",
+      "dropped_size": 2062
+    },
+    {
+      "path": "app/models/LogicalPart/OpmLogicalState.ts",
+      "kept_source": "deobfuscated.js",
+      "kept_size": 8234,
+      "dropped_source": "71252.js",
+      "dropped_size": 7452
+    },
+    {
+      "path": "app/models/DrawnPart/TextBlock.ts",
+      "kept_source": "deobfuscated.js",
+      "kept_size": 1779,
+      "dropped_source": "81330.js",
+      "dropped_size": 1769
+    },
+    {
+      "path": "app/handwriting.js",
+      "kept_source": "deobfuscated.js",
+      "kept_size": 7557,
+      "dropped_source": "81330.js",
+      "dropped_size": 7547
+    },
+    {
+      "path": "app/models/DrawnPart/components/text/text.popup.ts",
+      "kept_source": "81330.js",
+      "kept_size": 18935,
+      "dropped_source": "deobfuscated.js",
+      "dropped_size": 18765
+    },
+    {
+      "path": "app/models/DrawnPart/UrlsUtils.ts",
+      "kept_source": "deobfuscated.js",
+      "kept_size": 797,
+      "dropped_source": "81330.js",
+      "dropped_size": 787
+    },
+    {
+      "path": "app/models/DrawnPart/OpmEntity.ts",
+      "kept_source": "deobfuscated.js",
+      "kept_size": 69366,
+      "dropped_source": "81330.js",
+      "dropped_size": 65684
+    },
+    {
+      "path": "app/models/consistency/rules.ts",
+      "kept_source": "deobfuscated.js",
+      "kept_size": 399,
+      "dropped_source": "84072.js",
+      "dropped_size": 384
+    },
+    {
+      "path": "app/models/consistency/entities.set.ts",
+      "kept_source": "deobfuscated.js",
+      "kept_size": 257,
+      "dropped_source": "84072.js",
+      "dropped_size": 247
+    },
+    {
+      "path": "app/models/consistency/structural.rules.ts",
+      "kept_source": "deobfuscated.js",
+      "kept_size": 9400,
+      "dropped_source": "84072.js",
+      "dropped_size": 9385
+    },
+    {
+      "path": "app/models/consistency/changeActions/changeAction.interface.ts",
+      "kept_source": "deobfuscated.js",
+      "kept_size": 188,
+      "dropped_source": "84072.js",
+      "dropped_size": 183
+    },
+    {
+      "path": "app/models/consistency/consistancy.model.ts",
+      "kept_source": "deobfuscated.js",
+      "kept_size": 80840,
+      "dropped_source": "84072.js",
+      "dropped_size": 4771
+    },
+    {
+      "path": "app/models/components/commands/add-states.ts",
+      "kept_source": "deobfuscated.js",
+      "kept_size": 1098,
+      "dropped_source": "86922.js",
+      "dropped_size": 1088
+    },
+    {
+      "path": "app/models/components/commands/edit-alias.ts",
+      "kept_source": "deobfuscated.js",
+      "kept_size": 1081,
+      "dropped_source": "86922.js",
+      "dropped_size": 1056
+    },
+    {
+      "path": "app/models/components/commands/destate.ts",
+      "kept_source": "deobfuscated.js",
+      "kept_size": 1209,
+      "dropped_source": "86922.js",
+      "dropped_size": 1194
+    },
+    {
+      "path": "app/models/VisualPart/OpmVisualObject.ts",
+      "kept_source": "deobfuscated.js",
+      "kept_size": 30326,
+      "dropped_source": "86922.js",
+      "dropped_size": 28037
+    },
+    {
+      "path": "app/models/DrawnPart/OpmEntityRappid.ts",
+      "kept_source": "deobfuscated.js",
+      "kept_size": 4693,
+      "dropped_source": "91886.js",
+      "dropped_size": 3660
+    }
+  ]
+}

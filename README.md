@@ -17,10 +17,18 @@ deep-opm-pro/
 ├── AGENTS.md                  # instrucciones para sesiones de desarrollo
 ├── setup.sh                   # regenera bundles + decompilacion + assets
 ├── .gitignore
-├── docs/                      # documentacion de ingenieria inversa
+├── docs/                      # documentacion, backlog y roadmap
 │   ├── HANDOFF.md             # estado, decisiones, pendientes, riesgos
 │   ├── JOYAS.md               # hallazgos y descubrimientos detallados
-│   └── PROCEDIMIENTO.md       # procedimiento de extraccion paso a paso
+│   ├── PROCEDIMIENTO.md       # procedimiento de extraccion paso a paso
+│   ├── historias-usuario-v2/  # backlog local vivo del modelador OPM
+│   ├── roadmap/               # cortes operativos activos
+│   └── archive/               # lecciones del desarrollo previo
+├── app/                       # modelador OPM nuevo (Bun/Vite/Preact/JointJS)
+│   ├── src/modelo/            # kernel OPM minimo
+│   ├── src/render/jointjs/    # adapter JointJS OSS
+│   ├── src/ui/                # interfaz Preact/Zustand
+│   └── e2e/                   # smoke browser Playwright
 ├── assets/
 │   ├── svg/                   # 73 SVGs canonicos del CDN publico
 │   └── png/                   # 11 PNGs (icons + modelWizard)
@@ -61,6 +69,13 @@ bash setup.sh
 cat docs/JOYAS.md
 cat docs/HANDOFF.md
 
+# Desarrollar la app
+cd app
+bun run dev
+bun run check
+bun run browser:smoke
+bun run build
+
 # Buscar en el codigo decompilado (requiere setup.sh primero)
 cd decompiled
 grep -l "class AggregationLink" *.js
@@ -77,6 +92,7 @@ grep -l "getTriangleSVG" *.js
 | PNGs | CDN publico | 11 |
 | Modelos de ejemplo | Sandbox demo | 7 modelos / 12 OPDs |
 | OPL texts | Sandbox demo | 11 |
+| Historias de usuario v2 | `opm-model-app` historico rebasado | 48 epicas / 1.117 HU canonicas + 48 stubs |
 | Rutas Angular | Decompilacion | 28 |
 | Config Firebase | Decompilacion | completa |
 
