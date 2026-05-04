@@ -1,6 +1,7 @@
 import { useEffect } from "preact/hooks";
 import { useOpmStore } from "../store";
 import type { TipoEnlace } from "../modelo/tipos";
+import { useConfirmarSiDirty } from "./DialogoConfirmacion";
 
 const TIPOS_ENLACE: Array<{ tipo: TipoEnlace; label: string }> = [
   { tipo: "agregacion", label: "Agregación" },
@@ -31,6 +32,7 @@ export function Toolbar() {
   const puedeDeshacer = useOpmStore((s) => s.puedeDeshacer);
   const puedeRehacer = useOpmStore((s) => s.puedeRehacer);
   const modelo = useOpmStore((s) => s.modelo);
+  const { confirmarSiDirty, dialogoConfirmacion } = useConfirmarSiDirty();
 
   useEffect(() => {
     const manejarAtajo = (event: KeyboardEvent) => {
@@ -80,10 +82,10 @@ export function Toolbar() {
         <button style={puedeDeshacer ? style.button : style.disabledButton} type="button" onClick={deshacer} disabled={!puedeDeshacer}>Deshacer</button>
         <button style={puedeRehacer ? style.button : style.disabledButton} type="button" onClick={rehacer} disabled={!puedeRehacer}>Rehacer</button>
         <span style={style.divider} />
-        <button style={style.button} type="button" onClick={nuevoModelo}>Nuevo</button>
-        <button style={style.button} type="button" onClick={cargarDemo}>Demo</button>
+        <button style={style.button} type="button" onClick={() => confirmarSiDirty(nuevoModelo)}>Nuevo</button>
+        <button style={style.button} type="button" onClick={() => confirmarSiDirty(cargarDemo)}>Demo</button>
         <button style={style.button} type="button" onClick={guardarLocal} title="Guardar (Ctrl+S)">Guardar</button>
-        <button style={style.button} type="button" onClick={() => cargarLocal()}>Cargar</button>
+        <button style={style.button} type="button" onClick={() => confirmarSiDirty(() => cargarLocal())}>Cargar</button>
         <span style={style.divider} />
         <label style={style.linkPicker}>
           <span style={style.linkPickerLabel}>Enlace</span>
@@ -110,6 +112,7 @@ export function Toolbar() {
         ) : null}
         {mensaje ? <span style={style.status}>{mensaje}</span> : null}
       </div>
+      {dialogoConfirmacion}
     </div>
   );
 }
