@@ -65,15 +65,15 @@ export function JointCanvas() {
         const model = cellViewModel(cellView);
         if (model.isLink()) {
           const meta = metadata(model);
-          const seleccionada = meta?.kind === "enlace" && meta.enlaceId === enlaceSeleccionIdRef.current;
+          const editable = meta?.kind === "enlace" && meta.enlaceId === enlaceSeleccionIdRef.current && meta.tipo !== "agregacion";
           return {
             arrowheadMove: false,
             labelMove: false,
             linkMove: false,
-            useLinkTools: seleccionada,
-            vertexAdd: seleccionada,
-            vertexMove: seleccionada,
-            vertexRemove: seleccionada,
+            useLinkTools: editable,
+            vertexAdd: editable,
+            vertexMove: editable,
+            vertexRemove: editable,
           };
         }
         const meta = metadata(model);
@@ -152,6 +152,8 @@ function instalarHerramientasEnlaceSeleccionado(adapter: JointAdapter, enlaceSel
     return meta?.kind === "enlace" && meta.enlaceId === enlaceSeleccionId;
   });
   if (!link) return;
+  const meta = metadata(link);
+  if (meta?.kind === "enlace" && meta.tipo === "agregacion") return;
   const linkView = adapter.paper.findViewByModel<dia.LinkView>(link);
   linkView.removeTools();
   linkView.addTools(

@@ -1,105 +1,121 @@
 # deep-opm-pro
 
-Repositorio de **ingenieria inversa** sobre la version comercial de OPCloud
-(`https://opcloud.systems`). Reune todo el material extraible de la app web
-publica — codigo decompilado, assets, configuraciones, datos runtime del
-sandbox demo, catalogos de clases, y hallazgos documentados.
+Workspace de desarrollo del modelador OPM nuevo en `app/`, construido desde la
+SSOT OPM/ISO 19450 y evidencia observacional de OPCloud. El repositorio ya no
+debe leerse como una app heredada ni como un fork de OPCloud: los materiales
+extraidos informan decisiones de producto, semantica visual, OPL y fixtures,
+mientras que el codigo de aplicacion vive separado y con arquitectura propia.
 
-**Proposito**: servir como base de conocimiento para el desarrollo de software
-basado en el estandar ISO 19450 (OPM), usando los insumos de ingenieria inversa
-de OPCloud como evidencia de producto verificada.
+## Estado Actual
+
+- App principal: `app/` con Bun + Vite + Preact + Zustand + JointJS OSS.
+- Kernel de dominio: `app/src/modelo/`, independiente del renderer.
+- Renderer: `app/src/render/jointjs/` como adaptador, no como fuente de verdad.
+- Backlog vivo: `docs/historias-usuario-v2/`.
+- Roadmap operativo: `docs/roadmap/`.
+- Memoria unica de traspaso: `docs/HANDOFF.md`.
+- Evidencia curada preferente: `opm-extracted/`.
 
 ## Estructura
 
-```
+```text
 deep-opm-pro/
-├── README.md                  # este archivo
-├── AGENTS.md                  # instrucciones para sesiones de desarrollo
-├── setup.sh                   # regenera bundles + decompilacion + assets
-├── .gitignore
-├── docs/                      # documentacion, backlog y roadmap
-│   ├── HANDOFF.md             # estado, decisiones, pendientes, riesgos
-│   ├── JOYAS.md               # hallazgos y descubrimientos detallados
-│   ├── PROCEDIMIENTO.md       # procedimiento de extraccion paso a paso
-│   ├── historias-usuario-v2/  # backlog local vivo del modelador OPM
-│   ├── roadmap/               # cortes operativos activos
-│   └── archive/               # lecciones del desarrollo previo
-├── app/                       # modelador OPM nuevo (Bun/Vite/Preact/JointJS)
-│   ├── src/modelo/            # kernel OPM minimo
-│   ├── src/render/jointjs/    # adapter JointJS OSS
-│   ├── src/ui/                # interfaz Preact/Zustand
-│   └── e2e/                   # smoke browser Playwright
-├── assets/
-│   ├── svg/                   # 73 SVGs canonicos del CDN publico
-│   └── png/                   # 11 PNGs (icons + modelWizard)
-├── config/                    # configuraciones extraidas del bundle
-│   ├── firebase.json          # apiKey, projectId, backend URL
-│   ├── routes.json            # 28 rutas Angular con guards
-│   ├── assets.json            # inventario de assets referenciados
-│   └── edx.config.json        # integracion academica Technion edX
-├── catalog/                   # catalogos generados
-│   ├── classes.txt            # 376 clases OPM identificadas
-│   └── modules.md             # modulos clave con mapeo clase→archivo
-├── fixtures/                  # modelos del sandbox organizados por nombre
-│   ├── empty-model/           # modelo vacio (1 OPD)
-│   ├── onstar-system/         # OnStar System (2 OPDs)
-│   ├── opm-meta-model/        # OPM structure meta-model (4 OPDs)
-│   ├── sd-async/              # SD async process (2 OPDs)
-│   ├── sd-sync/               # SD sync process (2 OPDs)
-│   ├── system-diagram/        # System Diagram suelto (1 OPD)
-│   └── meta/                  # metadata de UI (DOM, palette, toolbar)
-├── webroot/                   # capturas raiz de opcloud.systems
-│   ├── index.html             # HTML raiz de la app capturado
-│   └── favicon.ico
-├── decompiled/                # [gitignored] 808 modulos webpack (91 MB)
-│   └── regenerar con: bash setup.sh
-└── _local/                    # [gitignored] bundles originales (49 MB)
+|-- AGENTS.md                  # reglas activas para sesiones de desarrollo
+|-- README.md                  # mapa operativo del repo
+|-- NOTICE.md                  # limites de uso, autoria y material derivado
+|-- setup.sh                   # regeneracion de material OPCloud grande
+|-- app/                       # modelador OPM nuevo
+|   |-- src/modelo/            # kernel OPM minimo
+|   |-- src/opl/               # OPL forward
+|   |-- src/render/jointjs/    # adaptador JointJS OSS
+|   |-- src/ui/                # UI Preact/Zustand
+|   `-- e2e/                  # smoke Playwright
+|-- docs/
+|   |-- HANDOFF.md             # estado vigente, decisiones, pendientes
+|   |-- JOYAS.md               # hallazgos tecnicos validados
+|   |-- historias-usuario-v2/  # backlog local vivo
+|   `-- roadmap/              # cortes activos
+|-- opm-extracted/             # derivado curado, versionado y trazable
+|-- assets/                    # SVG/PNG canonicos observados
+|-- fixtures/                  # modelos reales observados del sandbox
+|-- config/                    # configuraciones extraidas
+|-- catalog/                   # indices historicos
+|-- webroot/                   # HTML/favicon capturados
+|-- decompiled/                # gitignored, regenerable
+`-- _local/                    # gitignored, regenerable
 ```
 
-## Uso
+## Desarrollo
 
 ```bash
-# Clonar
-git clone <repo-url> deep-opm-pro && cd deep-opm-pro
-
-# Regenerar material grande (bundles + decompilacion)
-bash setup.sh
-
-# Navegar los hallazgos
-cat docs/JOYAS.md
-cat docs/HANDOFF.md
-
-# Desarrollar la app
 cd app
-bun run dev
-bun run check
-bun run browser:smoke
-bun run build
-
-# Buscar en el codigo decompilado (requiere setup.sh primero)
-cd decompiled
-grep -l "class AggregationLink" *.js
-grep -l "getTriangleSVG" *.js
+bun run dev              # servidor Vite local
+bun run check            # typecheck + unit tests
+bun run browser:smoke    # Playwright/Chromium
+bun run build            # build produccion
+bun run security:scan    # Bun Security Scanner API sobre bun.lock
+bun run visual:audit     # auditoria visual in-vivo contra Vite remoto/local
 ```
 
-## Lo que contiene
+`app/bunfig.toml` configura proteccion de supply-chain para instalaciones
+futuras: scanner de Socket para Bun y edad minima de publicacion de 7 dias para
+nuevas resoluciones. La instalacion reproducible sigue anclada en `app/bun.lock`.
 
-| Artefacto | Fuente | Cantidad |
-|-----------|--------|----------|
-| Modulos JS decompilados | `opcloud.systems` (webpack bundle) | 808 |
-| Clases OPM catalogadas | Decompilacion | 376 |
-| SVGs canonicos | CDN publico | 73 |
-| PNGs | CDN publico | 11 |
-| Modelos de ejemplo | Sandbox demo | 7 modelos / 12 OPDs |
-| OPL texts | Sandbox demo | 11 |
-| Historias de usuario v2 | `opm-model-app` historico rebasado | 48 epicas / 1.117 HU canonicas + 48 stubs |
-| Rutas Angular | Decompilacion | 28 |
-| Config Firebase | Decompilacion | completa |
+## Regla De Autoridad
 
-## Fuentes
+La semantica OPM se resuelve contra la SSOT canonica:
 
-- OPCloud app: `https://opcloud.systems`
-- OPCloud sandbox: `https://opcloud-sandbox.web.app` (demo sin auth)
-- Firebase project: `opcloud-trial`
-- Backend: `https://opcloud-trial.uc.r.appspot.com`
-- Dori, D. et al. (2021). *Designing and Developing OPCloud*
+1. `/home/felix/kora/artifacts/knowledge/fxsl/opm/opm-ssot-es/opm-iso-19450-es.md`
+2. `/home/felix/kora/artifacts/knowledge/fxsl/opm/opm-ssot-es/opm-visual-es.md`
+3. `/home/felix/kora/artifacts/knowledge/fxsl/opm/opm-ssot-es/opm-opl-es.md`
+4. `/home/felix/kora/artifacts/knowledge/fxsl/opm/opm-ssot-es/metodologia-opm-es.md`
+
+OPCloud operacionaliza OPM, pero no redefine la semantica. Ante tension entre
+evidencia OPCloud y SSOT OPM, manda la SSOT.
+
+## Insumos OPCloud
+
+Antes de crear soluciones visuales o semanticas desde cero, consulta los
+insumos en este orden:
+
+1. `assets/svg/` y `opm-extracted/assets/svg/`
+2. `assets/png/` y `opm-extracted/assets/png/`
+3. `docs/JOYAS.md`
+4. `opm-extracted/INDEX.md`, `MODULES.md`, `assets/INDEX.md`
+5. `decompiled/` solo si `opm-extracted/` no alcanza
+6. `fixtures/`
+7. `catalog/`
+8. `config/`
+
+No copies bloques 1:1 de `opm-extracted/` o `decompiled/` dentro de `app/`.
+Usalos como evidencia para implementar una arquitectura propia.
+
+## Regeneracion
+
+```bash
+bash setup.sh
+```
+
+Ese comando repuebla bundles, decompilacion, assets publicos, `webroot/` y
+configuracion extraida. `decompiled/` y `_local/` son grandes, gitignored y
+regenerables; no son codigo fuente de la app.
+
+## Verificacion Vigente
+
+El corte documentado en `docs/HANDOFF.md` mantiene verde:
+
+- `cd app && bun run check`
+- `cd app && bun run browser:smoke`
+- `cd app && bun run build`
+- `cd app && bun run security:scan`
+
+Lee `docs/HANDOFF.md` antes de continuar trabajo de producto. Es el unico
+handoff vigente del proyecto y debe reemplazarse, no duplicarse, cuando cambie
+el estado operativo.
+
+## Fuentes Externas
+
+- OPCloud app publica: `https://opcloud.systems`
+- OPCloud sandbox observado: `https://opcloud-sandbox.web.app`
+- Bun Security Scanner API: `https://bun.com/docs/pm/security-scanner-api`
+- Socket Bun scanner: `https://socket.dev/blog/socket-integrates-with-bun-1-3-security-scanner-api`

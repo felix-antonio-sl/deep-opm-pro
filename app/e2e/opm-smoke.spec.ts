@@ -144,13 +144,16 @@ test("crea enlace, edita vertices y elimina desde celdas JointJS", async ({ page
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
+  const tipoEnlace = page.getByLabel("Tipo de enlace");
+  await expect(tipoEnlace).toBeDisabled();
   await page.getByRole("button", { name: "Objeto" }).click();
   await page.getByRole("button", { name: "Proceso" }).click();
 
   await expect(page.locator(".joint-element")).toHaveCount(2);
 
   await elementoPorTexto(page, "Un Objeto").click();
-  await page.getByLabel("Tipo de enlace").selectOption("instrumento");
+  await expect(tipoEnlace).toBeEnabled();
+  await tipoEnlace.selectOption("instrumento");
   await elementoPorTexto(page, "Un Proceso").click();
 
   await expect(page.locator(".joint-link")).toHaveCount(1);
@@ -199,6 +202,10 @@ test("renderiza agregacion como triangulo estructural", async ({ page }) => {
 
   await expect(page.locator(".joint-link")).toHaveCount(2);
   await expect(page.locator(".joint-element polygon")).toHaveCount(1);
+  await page.locator(".joint-element polygon").click();
+  await expect(page.getByText("Enlace Agregacion")).toBeVisible();
+  await expect(page.locator('[data-tool-name="vertices"]')).toHaveCount(0);
+  await expect(page.locator('[data-tool-name="segments"]')).toHaveCount(0);
   await page.screenshot({ path: "test-results/opm-agregacion-triangulo.png", fullPage: true });
 
   expect(pageErrors).toEqual([]);

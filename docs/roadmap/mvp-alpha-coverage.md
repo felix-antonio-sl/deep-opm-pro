@@ -56,8 +56,10 @@ Estados:
 - Crear/mover vertices de enlace y persistir `AparienciaEnlace.vertices`.
 - Mantener handles JointJS de edicion en canal UI naranja, separado del azul canonico `#586D8C`.
 - Elegir tipo de enlace desde selector compacto para evitar overflow de toolbar.
+- Mantener selector de enlace inactivo hasta que exista una entidad origen seleccionada.
 - Generar OPL-ES forward para cosas y enlaces basicos.
 - Exportar/importar JSON propio.
+- Importar JSON solo si pasa validacion estructural, referencial, firmas OPM, endpoints visibles por OPD y sin enlaces invisibles.
 - Guardar/cargar localStorage.
 - Dirty state computado contra snapshot guardado.
 - Deshacer/rehacer por botones y `Ctrl+Z`/`Ctrl+Y`/`Ctrl+Shift+Z`.
@@ -113,8 +115,10 @@ Estados:
 Ultimo loop verde en `app/`:
 
 - `bun run check`
+- `bun run security:scan`
 - `bun run browser:smoke`
 - `bun run build`
+- `bun run visual:audit -- http://138.201.53.205:5173/`
 
 Capturas esperadas:
 
@@ -124,3 +128,4 @@ Capturas esperadas:
 - `app/test-results/opm-dirty-undo-redo.png`
 - `app/test-results/opm-link-tools-jointjs.png`
 - `app/test-results/opm-agregacion-triangulo.png`
+- `app/test-results/in-vivo/*.png`

@@ -24,16 +24,24 @@ archivo.
 - `app/` contiene una app nueva Bun + Vite + Preact + Zustand + JointJS OSS, con kernel propio y sin copiar arquitectura Angular/Firebase/Rappid.
 - EPICA-20 minimo quedo implementado: panel/arbol OPD con raiz `SD`, `opdActivoId` en store, navegacion desde UI, canvas JointJS y OPL filtrados por OPD activo.
 - Auditoria visual SSOT/JointJS aplicada: firmas consumo/resultado/efecto corregidas, marcadores procedimentales basicos, agregacion con triangulo, routing manhattan basico, sin elipsis silenciosa en etiquetas, posicion inicial libre por OPD y toolbar compacta sin overflow.
+- Integridad de import JSON endurecida: validacion estructural, referencial, firmas OPM, endpoints visibles por OPD y rechazo de enlaces invisibles antes de hidratar `Modelo`.
+- Auditor in-vivo estabilizado: `app/scripts/in-vivo-test.mjs` genera `docs/REPORTE-EJECUTIVO.md`, `_resumen.json` y screenshots desde una sola ejecucion; sale con codigo distinto de cero ante criterios FAIL.
+- Repo shaping aplicado: `README.md` reorientado a workspace de desarrollo, `NOTICE.md` agregado para separar codigo propio de material observacional/derivado y `app/bunfig.toml` configurado con Bun Security Scanner API.
 - Dev server remoto probado en `http://138.201.53.205:5173/` con Vite escuchando en `0.0.0.0:5173`; `5174` debe permanecer cerrado.
 
 ### Artefactos relevantes
 
 - Instrucciones activas para agentes: `AGENTS.md`.
+- Mapa operativo del repo: `README.md`.
+- Aviso de limites, autoria y material derivado: `NOTICE.md`.
 - Estado y memoria operativa: `docs/HANDOFF.md`.
 - Roadmap activo: `docs/roadmap/sprint-0.md`, `docs/roadmap/mvp-alpha.md`, `docs/roadmap/mvp-alpha-coverage.md`.
 - Historias de usuario vivas: `docs/historias-usuario-v2/`.
 - Evidencia OPCloud curada: `opm-extracted/INDEX.md`, `opm-extracted/MODULES.md`, `opm-extracted/assets/INDEX.md`.
 - App nueva: `app/src/modelo/`, `app/src/render/jointjs/`, `app/src/store.ts`, `app/src/ui/`.
+- Supply-chain app: `app/bunfig.toml`, `app/bun.lock`, `app/package.json`.
+- Auditoria visual in-vivo: `app/scripts/in-vivo-test.mjs`.
+- Reporte ejecutivo in-vivo vigente: `docs/REPORTE-EJECUTIVO.md`.
 
 ### Decisiones recientes
 
@@ -43,14 +51,20 @@ archivo.
 - Undo/redo y dirty state usan snapshots de `Modelo` con profundidad 100. Es una decision temporal aceptable para MVP-alpha; comandos inversos quedan para cuando el costo o la auditoria granular lo justifiquen.
 - `opm-extracted/` se consulta para semantica, valores visuales, routing, puertos, marcadores y OPL; no se copian bloques 1:1 a `app/`.
 - Los tipos de enlace se eligen desde un selector compacto en la toolbar para evitar overflow en viewports de smoke y mantener el canvas operativo.
+- El selector de tipo de enlace permanece inactivo hasta que haya una entidad origen seleccionada; evita falsa progresion de UX.
+- `hidratarModelo` no debe emitir un `Modelo` si el JSON falla estructura, referencias, firmas OPM, visibilidad de endpoints en el OPD o deja enlaces sin apariencia.
+- No se declara licencia open-source repo-wide en este corte por convivencia de codigo propio y evidencia OPCloud derivada; hasta definir politica explicita, `NOTICE.md` es el punto de verdad operativo.
+- Bun Security Scanner API queda activo con `@socketsecurity/bun-security-scanner` en modo publico si no hay `SOCKET_API_KEY`; nuevas resoluciones usan edad minima de publicacion de 7 dias salvo `@types/bun`.
 
 ### Verificacion del corte
 
 Ejecutado en `app/`:
 
-- `bun run check` -> 26 tests verdes.
+- `bun run check` -> 32 tests verdes.
+- `bun run security:scan` -> Socket free mode, 153 paquetes escaneados, 0 advisories.
 - `bun run browser:smoke` -> 6 tests Playwright verdes.
 - `bun run build` -> build OK; warning esperado de chunk grande por JointJS.
+- `bun run visual:audit -- http://138.201.53.205:5173/` -> 48 OK, 0 FAIL, 0 WARN, 3 INFO; genera `docs/REPORTE-EJECUTIVO.md`, `app/test-results/in-vivo/_resumen.json` y 20 screenshots.
 
 Capturas browser relevantes:
 
@@ -67,7 +81,8 @@ Capturas browser relevantes:
 2. Implementar creacion real de OPDs hijos por descomposicion/unfold y poblar el arbol mas alla de imports/fixtures.
 3. Persistencia local real: IndexedDB o storage estructurado con lista de modelos.
 4. Dialogo Guardar / Descartar / Cancelar cuando exista navegacion real entre modelos.
-5. OPL bidireccional queda fuera hasta estabilizar parser y mas kernel.
+5. Definir politica de licencia explicita para codigo propio vs. material observacional antes de redistribucion publica.
+6. OPL bidireccional queda fuera hasta estabilizar parser y mas kernel.
 
 ### Supuestos
 
@@ -79,6 +94,8 @@ Capturas browser relevantes:
 ### Riesgos
 
 - `opm-extracted/` es material derivado de ingenieria inversa: usarlo como evidencia, no como fuente copiada.
+- No hay licencia repo-wide declarada; tratar redistribucion publica como bloqueada hasta decision explicita.
+- El scanner de Socket corre en modo publico si no hay `SOCKET_API_KEY`; CI/org policy requiere configurar credencial.
 - La app ya navega OPDs importados, pero todavia no crea OPDs hijos desde operaciones de descomposicion/unfold.
 - Dirty state no tiene confirmacion de salida hasta que exista navegacion/cierre de modelos.
 - El bundle de JointJS genera warning de tamano; no es bloqueante para MVP-alpha, pero puede exigir code splitting luego.
@@ -88,8 +105,10 @@ Capturas browser relevantes:
 ```
 Retoma `docs/HANDOFF.md` en `deep-opm-pro`. Estado: EPICA-20 minimo
 implementado con arbol OPD, raiz SD, `opdActivoId`, canvas JointJS y OPL por
-OPD activo. Auditoria visual SSOT/JointJS aplicada. Ultimo loop verde:
-`bun run check`, `bun run browser:smoke`, `bun run build`.
+OPD activo. Auditoria visual SSOT/JointJS aplicada, import JSON endurecido y
+supply-chain scanner configurado. Ultimo loop verde: `bun run check`,
+`bun run security:scan`, `bun run browser:smoke`, `bun run build`,
+`bun run visual:audit -- http://138.201.53.205:5173/` (48 OK, 0 FAIL).
 
 Continuar con OPDs hijos reales por descomposicion/unfold: operacion de kernel,
 alta de nodo bajo el OPD padre, cambio automatico al hijo y smoke minimo.

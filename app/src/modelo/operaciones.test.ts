@@ -224,6 +224,43 @@ describe("operaciones de modelo", () => {
     expect(Object.values(eliminado.value.entidades)).toHaveLength(Object.values(modelo.entidades).length);
     expect(Object.values(eliminado.value.opds[modelo.opdRaizId]?.enlaces ?? {})).toHaveLength(0);
   });
+
+  test("rechaza enlaces cuando un extremo no tiene apariencia en el OPD", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 0, y: 0 }, "Objeto"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 200, y: 0 }, "Proceso"));
+    const objeto = entidadPorNombre(modelo, "Objeto");
+    const proceso = entidadPorNombre(modelo, "Proceso");
+    modelo = {
+      ...modelo,
+      opds: {
+        ...modelo.opds,
+        "opd-2": {
+          id: "opd-2",
+          nombre: "SD1",
+          padreId: modelo.opdRaizId,
+          apariencias: {
+            "a-local": {
+              id: "a-local",
+              entidadId: objeto.id,
+              opdId: "opd-2",
+              x: 0,
+              y: 0,
+              width: 135,
+              height: 60,
+            },
+          },
+          enlaces: {},
+        },
+      },
+    };
+
+    const enlace = crearEnlace(modelo, "opd-2", objeto.id, proceso.id, "instrumento");
+
+    expect(enlace.ok).toBe(false);
+    if (enlace.ok) return;
+    expect(enlace.error).toContain("apariencia en el OPD");
+  });
 });
 
 function modeloConEntidades(): Modelo {

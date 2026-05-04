@@ -33,6 +33,7 @@ interface OpmStore {
   dirty: boolean;
   puedeDeshacer: boolean;
   puedeRehacer: boolean;
+  limpiarMensaje: () => void;
   crearObjetoDemo: () => void;
   crearProcesoDemo: () => void;
   cambiarOpdActivo: (id: Id) => void;
@@ -73,6 +74,10 @@ export const store = createStore<OpmStore>((set, get) => ({
   dirty: false,
   puedeDeshacer: false,
   puedeRehacer: false,
+
+  limpiarMensaje() {
+    set({ mensaje: null });
+  },
 
   crearObjetoDemo() {
     const { modelo, opdActivoId } = get();
@@ -130,12 +135,13 @@ export const store = createStore<OpmStore>((set, get) => ({
   },
 
   elegirTipoEnlace(tipo) {
-    const { modelo, seleccionId } = get();
-    if (!seleccionId || !modelo.entidades[seleccionId]) {
+    const { modelo, seleccionId, modoEnlace } = get();
+    const origenId = modoEnlace?.origenId ?? seleccionId;
+    if (!origenId || !modelo.entidades[origenId]) {
       set({ mensaje: "Selecciona primero la entidad origen del enlace" });
       return;
     }
-    set({ modoEnlace: { tipo, origenId: seleccionId }, mensaje: "Selecciona la entidad destino" });
+    set({ modoEnlace: { tipo, origenId }, mensaje: "Selecciona la entidad destino" });
   },
 
   cancelarEnlace() {

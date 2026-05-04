@@ -22,8 +22,10 @@ export function Toolbar() {
   const rehacer = useOpmStore((s) => s.rehacer);
   const elegirTipoEnlace = useOpmStore((s) => s.elegirTipoEnlace);
   const cancelarEnlace = useOpmStore((s) => s.cancelarEnlace);
+  const limpiarMensaje = useOpmStore((s) => s.limpiarMensaje);
   const modoEnlace = useOpmStore((s) => s.modoEnlace);
   const mensaje = useOpmStore((s) => s.mensaje);
+  const seleccionId = useOpmStore((s) => s.seleccionId);
   const dirty = useOpmStore((s) => s.dirty);
   const puedeDeshacer = useOpmStore((s) => s.puedeDeshacer);
   const puedeRehacer = useOpmStore((s) => s.puedeRehacer);
@@ -53,6 +55,14 @@ export function Toolbar() {
     return () => window.removeEventListener("keydown", manejarAtajo);
   }, [deshacer, rehacer]);
 
+  useEffect(() => {
+    if (!mensaje || modoEnlace) return undefined;
+    const timeout = window.setTimeout(limpiarMensaje, 4_500);
+    return () => window.clearTimeout(timeout);
+  }, [limpiarMensaje, mensaje, modoEnlace]);
+
+  const selectorEnlaceDeshabilitado = !seleccionId && !modoEnlace;
+
   return (
     <div style={style.bar}>
       <span style={style.title}>{modelo.nombre}{dirty ? " (No guardado)" : ""}</span>
@@ -72,7 +82,9 @@ export function Toolbar() {
           <span style={style.linkPickerLabel}>Enlace</span>
           <select
             aria-label="Tipo de enlace"
-            style={modoEnlace ? style.activeSelect : style.select}
+            title={selectorEnlaceDeshabilitado ? "Selecciona una entidad origen" : undefined}
+            disabled={selectorEnlaceDeshabilitado}
+            style={selectorEnlaceDeshabilitado ? style.disabledSelect : modoEnlace ? style.activeSelect : style.select}
             value={modoEnlace?.tipo ?? ""}
             onChange={(event) => {
               const tipo = (event.currentTarget as HTMLSelectElement).value;
@@ -192,6 +204,17 @@ const style = {
     color: "#1f2937",
     fontSize: "13px",
     fontWeight: 700,
+  },
+  disabledSelect: {
+    height: "34px",
+    width: "148px",
+    border: "1px solid #d9e0ea",
+    borderRadius: "4px",
+    background: "#f2f4f7",
+    color: "#98a2b3",
+    fontSize: "13px",
+    fontWeight: 600,
+    cursor: "not-allowed",
   },
   divider: {
     width: "1px",

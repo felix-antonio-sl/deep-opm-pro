@@ -212,6 +212,9 @@ export function crearEnlace(
 
   const legal = validarFirmaEnlace(tipo, origen, destino);
   if (!legal.ok) return legal;
+  if (!entidadVisibleEnOpd(opd, origenId) || !entidadVisibleEnOpd(opd, destinoId)) {
+    return fallo("El enlace requiere que origen y destino tengan apariencia en el OPD");
+  }
 
   const enlaceId = siguienteId(modelo, "e");
   const aparienciaId = siguienteId({ ...modelo, nextSeq: modelo.nextSeq + 1 }, "ae");
@@ -282,7 +285,7 @@ function crearEntidad(
   });
 }
 
-function validarFirmaEnlace(tipo: TipoEnlace, origen: Entidad, destino: Entidad): Resultado<true> {
+export function validarFirmaEnlace(tipo: TipoEnlace, origen: Entidad, destino: Entidad): Resultado<true> {
   if (tipo === "agregacion") {
     return origen.tipo === "objeto" && destino.tipo === "objeto"
       ? ok(true)
@@ -319,6 +322,10 @@ function validarFirmaEnlace(tipo: TipoEnlace, origen: Entidad, destino: Entidad)
       : fallo("Invocación requiere Proceso -> Proceso");
   }
   return fallo(`Tipo de enlace no soportado: ${tipo satisfies never}`);
+}
+
+function entidadVisibleEnOpd(opd: Opd, entidadId: Id): boolean {
+  return Object.values(opd.apariencias).some((apariencia) => apariencia.entidadId === entidadId);
 }
 
 function mismosVertices(a: Posicion[], b: Posicion[]): boolean {
