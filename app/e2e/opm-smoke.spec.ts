@@ -57,6 +57,36 @@ test("navega OPDs desde el arbol lateral", async ({ page }) => {
   expect(pageErrors).toEqual([]);
 });
 
+test("descompone proceso y navega al OPD hijo", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await page.getByRole("button", { name: "Proceso" }).click();
+  await expect(page.getByRole("button", { name: "Descomponer" })).toBeVisible();
+
+  await page.getByRole("button", { name: "Descomponer" }).click();
+
+  const nodoHijo = page.locator('[role="treeitem"]').filter({ hasText: "SD1: Un Proceso descompuesto" });
+  await expect(nodoHijo).toHaveAttribute("aria-current", "page");
+  await expect(page.locator(".joint-element")).toHaveCount(1);
+  await expect(page.getByText("Un Proceso se descompone en SD1.")).toBeVisible();
+
+  await page.getByRole("button", { name: "Exportar" }).click();
+  const json = await page.locator("textarea").inputValue();
+  const exportado = JSON.parse(json) as ExportadoModelo;
+  const proceso = Object.values(exportado.modelo.entidades).find((entidad) => entidad.nombre === "Un Proceso");
+  expect(proceso?.refinamiento?.tipo).toBe("descomposicion");
+  const opdHijoId = proceso?.refinamiento?.opdId;
+  expect(opdHijoId).toBeTruthy();
+  if (!opdHijoId) throw new Error("La descomposicion no exporto opdId");
+  expect(exportado.modelo.opds[opdHijoId]?.padreId).toBe(exportado.modelo.opdRaizId);
+  expect(Object.values(exportado.modelo.opds[opdHijoId]?.apariencias ?? {}).some((apariencia) => apariencia.entidadId === proceso?.id)).toBe(true);
+
+  await page.screenshot({ path: "test-results/opm-descomposicion-opd-hijo.png", fullPage: true });
+  expect(pageErrors).toEqual([]);
+});
+
 test("arrastra una cosa JointJS y persiste su apariencia", async ({ page }) => {
   const pageErrors: string[] = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));
@@ -317,10 +347,11 @@ function modeloDosOpds() {
 interface ExportadoModelo {
   modelo: {
     opdRaizId: string;
-    entidades: Record<string, { id: string; nombre: string }>;
+    entidades: Record<string, { id: string; nombre: string; refinamiento?: { tipo: string; opdId: string } }>;
     opds: Record<
       string,
       {
+        padreId: string | null;
         apariencias: Record<string, { entidadId: string; x: number; y: number; width: number; height: number }>;
         enlaces: Record<string, { vertices: Array<{ x: number; y: number }> }>;
       }

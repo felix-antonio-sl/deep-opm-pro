@@ -9,6 +9,7 @@ import type {
   Id,
   Modelo,
   Opd,
+  RefinamientoEntidad,
   Resultado,
   TipoEnlace,
   TipoEntidad,
@@ -101,15 +102,27 @@ function validarEntidades(value: Record<string, unknown>): Resultado<Record<Id, 
     if (typeof raw.nombre !== "string") return fallo(`Entidad inválida: ${id}.nombre`);
     if (!esEsencia(raw.esencia)) return fallo(`Entidad inválida: ${id}.esencia`);
     if (!esAfiliacion(raw.afiliacion)) return fallo(`Entidad inválida: ${id}.afiliacion`);
+    const refinamiento = validarRefinamiento(id, raw.refinamiento);
+    if (!refinamiento.ok) return refinamiento;
+    if (refinamiento.value && raw.tipo !== "proceso") return fallo(`Refinamiento inválido: ${id}.tipo`);
     entidades[id] = {
       id,
       tipo: raw.tipo,
       nombre: raw.nombre,
       esencia: raw.esencia,
       afiliacion: raw.afiliacion,
+      ...(refinamiento.value ? { refinamiento: refinamiento.value } : {}),
     };
   }
   return ok(entidades);
+}
+
+function validarRefinamiento(entidadId: Id, value: unknown): Resultado<RefinamientoEntidad | undefined> {
+  if (value === undefined) return ok(undefined);
+  if (!esRecord(value)) return fallo(`Refinamiento inválido: ${entidadId}`);
+  if (value.tipo !== "descomposicion") return fallo(`Refinamiento inválido: ${entidadId}.tipo`);
+  if (typeof value.opdId !== "string") return fallo(`Refinamiento inválido: ${entidadId}.opdId`);
+  return ok({ tipo: "descomposicion", opdId: value.opdId });
 }
 
 function validarOpds(value: Record<string, unknown>, entidades: Record<Id, Entidad>): Resultado<Record<Id, Opd>> {
@@ -227,6 +240,14 @@ function validarEnlaces(value: Record<string, unknown>, entidades: Record<Id, En
 
 function validarReferenciasOpd(modelo: Modelo): Resultado<true> {
   const enlacesConApariencia = new Set<Id>();
+  for (const entidad of Object.values(modelo.entidades)) {
+    if (!entidad.refinamiento) continue;
+    const opdRefinado = modelo.opds[entidad.refinamiento.opdId];
+    if (!opdRefinado) return fallo(`Refinamiento inválido: ${entidad.id}.opdId`);
+    if (!Object.values(opdRefinado.apariencias).some((apariencia) => apariencia.entidadId === entidad.id)) {
+      return fallo(`Refinamiento inválido: ${entidad.id}.apariencia`);
+    }
+  }
   for (const [opdId, opd] of Object.entries(modelo.opds)) {
     const visibles = new Set(Object.values(opd.apariencias).map((apariencia) => apariencia.entidadId));
     for (const [aparienciaId, apariencia] of Object.entries(opd.enlaces)) {

@@ -1,7 +1,7 @@
 # HANDOFF — estado, decisiones, pendientes, riesgos
 
 **Fecha**: 2026-05-04
-**Sesion**: cierre de corte MVP-alpha inicial: HU v2 + `opm-extracted/` + EPICA-20 minimo + auditoria visual SSOT/JointJS
+**Sesion**: MVP-alpha inicial + EPICA-20 minimo + primer slice EPICA-12 descomposicion real a OPD hijo
 **Repositorio**: `deep-opm-pro`
 **Repositorio hermano**: `opm-model-app` (fuente historica de historias de usuario; inventario vivo local en `docs/historias-usuario-v2/`)
 
@@ -23,6 +23,7 @@ archivo.
 - `opm-extracted/` esta versionado y es la fuente preferente para consultar la logica observable de OPCloud antes de tocar `decompiled/`.
 - `app/` contiene una app nueva Bun + Vite + Preact + Zustand + JointJS OSS, con kernel propio y sin copiar arquitectura Angular/Firebase/Rappid.
 - EPICA-20 minimo quedo implementado: panel/arbol OPD con raiz `SD`, `opdActivoId` en store, navegacion desde UI, canvas JointJS y OPL filtrados por OPD activo.
+- EPICA-12 minimo quedo implementado para procesos: accion "Descomponer" desde inspector, operacion de kernel idempotente, `entidad.refinamiento`, OPD hijo `SDn`/`SDn.m`, nodo derivado `SDn: <Proceso> descompuesto`, navegacion automatica al hijo, apariencia del mismo proceso en OPD padre e hijo, OPL "se descompone en" y JSON round-trip validado.
 - Auditoria visual SSOT/JointJS aplicada: firmas consumo/resultado/efecto corregidas, marcadores procedimentales basicos, agregacion con triangulo, routing manhattan basico, sin elipsis silenciosa en etiquetas, posicion inicial libre por OPD y toolbar compacta sin overflow.
 - Integridad de import JSON endurecida: validacion estructural, referencial, firmas OPM, endpoints visibles por OPD y rechazo de enlaces invisibles antes de hidratar `Modelo`.
 - Auditor in-vivo estabilizado: `app/scripts/in-vivo-test.mjs` genera `docs/REPORTE-EJECUTIVO.md`, `_resumen.json` y screenshots desde una sola ejecucion; sale con codigo distinto de cero ante criterios FAIL.
@@ -60,9 +61,9 @@ archivo.
 
 Ejecutado en `app/`:
 
-- `bun run check` -> 32 tests verdes.
+- `bun run check` -> 39 tests verdes.
 - `bun run security:scan` -> Socket free mode, 153 paquetes escaneados, 0 advisories.
-- `bun run browser:smoke` -> 6 tests Playwright verdes.
+- `bun run browser:smoke` -> 7 tests Playwright verdes.
 - `bun run build` -> build OK; warning esperado de chunk grande por JointJS.
 - `bun run visual:audit -- http://138.201.53.205:5173/` -> 48 OK, 0 FAIL, 0 WARN, 3 INFO; genera `docs/REPORTE-EJECUTIVO.md`, `app/test-results/in-vivo/_resumen.json` y 20 screenshots.
 
@@ -74,11 +75,12 @@ Capturas browser relevantes:
 - `app/test-results/opm-dirty-undo-redo.png`
 - `app/test-results/opm-link-tools-jointjs.png`
 - `app/test-results/opm-agregacion-triangulo.png`
+- `app/test-results/opm-descomposicion-opd-hijo.png`
 
 ### Pendientes inmediatos
 
 1. Ampliar smoke de undo/redo por operacion: eliminar, renombrar, mover, esencia, afiliacion, crear/eliminar enlace y vertices.
-2. Implementar creacion real de OPDs hijos por descomposicion/unfold y poblar el arbol mas alla de imports/fixtures.
+2. Profundizar OPDs hijos por descomposicion: creacion/edicion de contenido interno dentro del contenedor, redistribucion de enlaces externos y eliminacion de descomposicion.
 3. Persistencia local real: IndexedDB o storage estructurado con lista de modelos.
 4. Dialogo Guardar / Descartar / Cancelar cuando exista navegacion real entre modelos.
 5. Definir politica de licencia explicita para codigo propio vs. material observacional antes de redistribucion publica.
@@ -89,14 +91,14 @@ Capturas browser relevantes:
 - Para MVP-alpha, snapshots de modelo son suficientemente pequenos y reversibles.
 - La app puede seguir sin backend ni auth mientras se valida modelado local.
 - OPCloud informa UX y comportamiento, pero SSOT OPM manda cuando haya tension semantica.
-- El siguiente avance puede mantenerse antes de una nueva profundizacion JointJS si se limita a crear OPDs hijos por descomposicion/unfold desde el kernel.
+- El siguiente avance puede mantenerse antes de una nueva profundizacion JointJS si se limita a contenido interno de descomposicion, eliminacion de refinamiento o unfold/despliegue desde el kernel.
 
 ### Riesgos
 
 - `opm-extracted/` es material derivado de ingenieria inversa: usarlo como evidencia, no como fuente copiada.
 - No hay licencia repo-wide declarada; tratar redistribucion publica como bloqueada hasta decision explicita.
 - El scanner de Socket corre en modo publico si no hay `SOCKET_API_KEY`; CI/org policy requiere configurar credencial.
-- La app ya navega OPDs importados, pero todavia no crea OPDs hijos desde operaciones de descomposicion/unfold.
+- La app ya crea OPDs hijos por descomposicion de procesos; unfold/despliegue de objetos y eliminacion de refinamiento siguen pendientes.
 - Dirty state no tiene confirmacion de salida hasta que exista navegacion/cierre de modelos.
 - El bundle de JointJS genera warning de tamano; no es bloqueante para MVP-alpha, pero puede exigir code splitting luego.
 
@@ -105,13 +107,17 @@ Capturas browser relevantes:
 ```
 Retoma `docs/HANDOFF.md` en `deep-opm-pro`. Estado: EPICA-20 minimo
 implementado con arbol OPD, raiz SD, `opdActivoId`, canvas JointJS y OPL por
-OPD activo. Auditoria visual SSOT/JointJS aplicada, import JSON endurecido y
-supply-chain scanner configurado. Ultimo loop verde: `bun run check`,
-`bun run security:scan`, `bun run browser:smoke`, `bun run build`,
-`bun run visual:audit -- http://138.201.53.205:5173/` (48 OK, 0 FAIL).
+OPD activo. EPICA-12 minimo implementado para descomponer procesos: kernel
+idempotente, OPD hijo `SDn`/`SDn.m`, nodo `SDn: <Proceso> descompuesto`,
+navegacion automatica, OPL "se descompone en", JSON round-trip y smoke browser.
+Auditoria visual SSOT/JointJS aplicada, import JSON endurecido y supply-chain
+scanner configurado. Ultimo loop verde: `bun run check`, `bun run
+security:scan`, `bun run browser:smoke`, `bun run build`; visual audit anterior
+verde: `bun run visual:audit -- http://138.201.53.205:5173/` (48 OK, 0 FAIL).
 
-Continuar con OPDs hijos reales por descomposicion/unfold: operacion de kernel,
-alta de nodo bajo el OPD padre, cambio automatico al hijo y smoke minimo.
+Continuar profundizando descomposicion: contenido interno real del OPD hijo,
+redistribucion de enlaces externos, eliminacion de descomposicion, y luego
+unfold/despliegue de objetos.
 ```
 
 ---
@@ -162,7 +168,8 @@ alta de nodo bajo el OPD padre, cambio automatico al hijo y smoke minimo.
 | Adapter JointJS OSS | Implementado minimo | `app/src/render/jointjs/` |
 | Dirty state + undo/redo | Implementado minimo | `app/src/store.ts`, `app/src/store.test.ts`, `app/src/ui/Toolbar.tsx` |
 | Arbol OPD + OPD activo | Implementado minimo | `app/src/ui/ArbolOpd.tsx`, `app/src/store.ts`, `app/e2e/opm-smoke.spec.ts` |
-| Smoke navegador | Implementado, 6 casos | `app/e2e/opm-smoke.spec.ts` |
+| Descomposicion de proceso a OPD hijo | Implementado minimo | `app/src/modelo/operaciones.ts`, `app/src/ui/Inspector.tsx`, `app/e2e/opm-smoke.spec.ts` |
+| Smoke navegador | Implementado, 7 casos | `app/e2e/opm-smoke.spec.ts` |
 
 ### NO obtenido (sin cambios)
 
@@ -245,7 +252,7 @@ alta de nodo bajo el OPD padre, cambio automatico al hijo y smoke minimo.
 ### Alta prioridad
 
 1. **Obtener acceso autenticado a `opcloud.systems`** (sin cambios)
-2. **Continuar MVP-alpha con OPDs hijos reales por descomposicion/unfold** usando `docs/roadmap/sprint-0.md`, `docs/roadmap/mvp-alpha.md`, `docs/roadmap/mvp-alpha-coverage.md`, las HU v2 M0 locales, los insumos de `deep-opm-pro/` como evidencia de producto, y `docs/archive/si-partiese-desde-0.md` como guia de lo que NO repetir.
+2. **Continuar MVP-alpha profundizando descomposicion y luego unfold** usando `docs/roadmap/sprint-0.md`, `docs/roadmap/mvp-alpha.md`, `docs/roadmap/mvp-alpha-coverage.md`, las HU v2 M0 locales, los insumos de `deep-opm-pro/` como evidencia de producto, y `docs/archive/si-partiese-desde-0.md` como guia de lo que NO repetir.
 
 ### Media prioridad
 
@@ -264,9 +271,12 @@ alta de nodo bajo el OPD padre, cambio automatico al hijo y smoke minimo.
 ```
 Retomar `docs/HANDOFF.md` en `deep-opm-pro`. Estado: EPICA-20 minimo
 implementado con arbol OPD, raiz SD, `opdActivoId`, canvas JointJS y OPL por
-OPD activo. Auditoria visual SSOT/JointJS aplicada. Ultimo loop verde:
-`bun run check`, `bun run browser:smoke`, `bun run build`.
+OPD activo. EPICA-12 minimo implementado para descomponer procesos en OPD hijo
+con kernel idempotente, nodo `SDn: <Proceso> descompuesto`, navegacion
+automatica, JSON round-trip y smoke browser. Auditoria visual SSOT/JointJS
+aplicada. Ultimo loop verde: `bun run check`, `bun run security:scan`,
+`bun run browser:smoke`, `bun run build`.
 
-Continuar con OPDs hijos reales por descomposicion/unfold: operacion de kernel,
-alta de nodo bajo el OPD padre, cambio automatico al hijo y smoke minimo.
+Continuar con contenido interno real del OPD hijo, redistribucion de enlaces
+externos, eliminacion de descomposicion y luego unfold/despliegue de objetos.
 ```

@@ -15,6 +15,12 @@ import type {
   TipoEntidad,
 } from "./tipos";
 
+export interface DescomposicionProceso {
+  modelo: Modelo;
+  opdId: Id;
+  creado: boolean;
+}
+
 export function crearModelo(nombre = "Modelo OPM"): Modelo {
   const opdRaizId = "opd-1";
   return {
@@ -42,6 +48,64 @@ export function crearObjeto(modelo: Modelo, opdId: Id, posicion: Posicion, nombr
 
 export function crearProceso(modelo: Modelo, opdId: Id, posicion: Posicion, nombre = "Un Proceso"): Resultado<Modelo> {
   return crearEntidad(modelo, opdId, "proceso", posicion, nombre);
+}
+
+export function descomponerProceso(modelo: Modelo, opdPadreId: Id, procesoId: Id): Resultado<DescomposicionProceso> {
+  const opdPadre = modelo.opds[opdPadreId];
+  if (!opdPadre) return fallo(`OPD no existe: ${opdPadreId}`);
+  const proceso = modelo.entidades[procesoId];
+  if (!proceso) return fallo(`Entidad no existe: ${procesoId}`);
+  if (proceso.tipo !== "proceso") return fallo("La descomposición requiere un proceso");
+  if (!entidadVisibleEnOpd(opdPadre, procesoId)) {
+    return fallo("La descomposición requiere que el proceso tenga apariencia en el OPD activo");
+  }
+
+  if (proceso.refinamiento?.tipo === "descomposicion") {
+    const opdExistente = modelo.opds[proceso.refinamiento.opdId];
+    if (!opdExistente) return fallo(`OPD de descomposición no existe: ${proceso.refinamiento.opdId}`);
+    return ok({ modelo, opdId: opdExistente.id, creado: false });
+  }
+
+  const opdHijoId = siguienteId(modelo, "opd");
+  const aparienciaHijoId = siguienteId({ ...modelo, nextSeq: modelo.nextSeq + 1 }, "a");
+  const aparienciaHijo: Apariencia = {
+    id: aparienciaHijoId,
+    entidadId: procesoId,
+    opdId: opdHijoId,
+    x: 150,
+    y: 90,
+    width: 420,
+    height: 260,
+  };
+  const opdHijo: Opd = {
+    id: opdHijoId,
+    nombre: siguienteNombreOpdHijo(modelo, opdPadreId),
+    padreId: opdPadreId,
+    apariencias: {
+      [aparienciaHijoId]: aparienciaHijo,
+    },
+    enlaces: {},
+  };
+  const siguiente: Modelo = {
+    ...modelo,
+    nextSeq: modelo.nextSeq + 2,
+    entidades: {
+      ...modelo.entidades,
+      [procesoId]: {
+        ...proceso,
+        refinamiento: {
+          tipo: "descomposicion",
+          opdId: opdHijoId,
+        },
+      },
+    },
+    opds: {
+      ...modelo.opds,
+      [opdHijoId]: opdHijo,
+    },
+  };
+
+  return ok({ modelo: siguiente, opdId: opdHijoId, creado: true });
 }
 
 export function renombrarEntidad(modelo: Modelo, entidadId: Id, nombre: string): Resultado<Modelo> {
@@ -326,6 +390,26 @@ export function validarFirmaEnlace(tipo: TipoEnlace, origen: Entidad, destino: E
 
 function entidadVisibleEnOpd(opd: Opd, entidadId: Id): boolean {
   return Object.values(opd.apariencias).some((apariencia) => apariencia.entidadId === entidadId);
+}
+
+function siguienteNombreOpdHijo(modelo: Modelo, opdPadreId: Id): string {
+  const opdPadre = modelo.opds[opdPadreId];
+  const codigoPadre = codigoOpd(opdPadre?.nombre ?? "SD");
+  const usados = new Set(
+    Object.values(modelo.opds)
+      .filter((opd) => opd.padreId === opdPadreId)
+      .map((opd) => codigoOpd(opd.nombre)),
+  );
+
+  for (let index = 1; index < Number.MAX_SAFE_INTEGER; index += 1) {
+    const candidato = codigoPadre === "SD" ? `SD${index}` : `${codigoPadre}.${index}`;
+    if (!usados.has(candidato)) return candidato;
+  }
+  return codigoPadre === "SD" ? "SD1" : `${codigoPadre}.1`;
+}
+
+function codigoOpd(nombre: string): string {
+  return /^SD(?:\d+(?:\.\d+)*)?/.exec(nombre.trim())?.[0] ?? nombre;
 }
 
 function mismosVertices(a: Posicion[], b: Posicion[]): boolean {

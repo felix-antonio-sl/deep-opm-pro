@@ -23,6 +23,7 @@ export function ArbolOpd() {
           nodos.map((nodo) => {
             const activo = nodo.opd.id === opdActivoId;
             const totalApariencias = Object.keys(nodo.opd.apariencias).length;
+            const nombre = nombreNodo(modelo, nodo.opd);
             return (
               <button
                 key={nodo.opd.id}
@@ -35,7 +36,7 @@ export function ArbolOpd() {
                 style={estiloNodo(nodo.nivel, activo)}
                 onClick={() => cambiarOpdActivo(nodo.opd.id)}
               >
-                <span style={style.nodeName}>{nodo.opd.nombre}</span>
+                <span style={style.nodeName}>{nombre}</span>
                 <span style={activo ? style.countActive : style.count}>{totalApariencias}</span>
               </button>
             );
@@ -83,6 +84,18 @@ function padreValido(modelo: Modelo, opd: Opd, raizId: Id): Id {
 
 function aLista(nodos: NodoOpd[]): NodoOpd[] {
   return nodos.flatMap((nodo) => [nodo, ...aLista(nodo.hijos)]);
+}
+
+function nombreNodo(modelo: Modelo, opd: Opd): string {
+  const refinador = Object.values(modelo.entidades).find(
+    (entidad) => entidad.refinamiento?.tipo === "descomposicion" && entidad.refinamiento.opdId === opd.id,
+  );
+  if (!refinador) return opd.nombre;
+  return `${codigoOpd(opd.nombre)}: ${refinador.nombre} descompuesto`;
+}
+
+function codigoOpd(nombre: string): string {
+  return /^SD(?:\d+(?:\.\d+)*)?/.exec(nombre.trim())?.[0] ?? nombre;
 }
 
 function estiloNodo(nivel: number, activo: boolean): preact.JSX.CSSProperties {

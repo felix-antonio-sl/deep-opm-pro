@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { cambiarEsencia, crearEnlace, crearModelo, crearObjeto, crearProceso } from "../../modelo/operaciones";
+import { cambiarEsencia, crearEnlace, crearModelo, crearObjeto, crearProceso, descomponerProceso } from "../../modelo/operaciones";
 import type { Modelo, Resultado } from "../../modelo/tipos";
 import { proyectarModeloAJointCells } from "./proyeccion";
 
@@ -86,6 +86,16 @@ describe("proyeccion JointJS", () => {
     expect(triangulo).toBeDefined();
     expect(((triangulo?.attrs as Attrs | undefined)?.body as Attrs | undefined)?.refPoints).toBe("0,15 30,0 30,30");
     expect(((triangulo?.attrs as Attrs | undefined)?.body as Attrs | undefined)?.strokeWidth).toBe(4);
+  });
+
+  test("proyecta proceso descompuesto con contorno grueso", () => {
+    let modelo = crearModelo();
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 220, y: 130 }, "Proceso"));
+    const procesoId = entidadPorNombre(modelo, "Proceso");
+    modelo = must(descomponerProceso(modelo, modelo.opdRaizId, procesoId)).modelo;
+
+    const cell = proyectarModeloAJointCells(modelo, modelo.opdRaizId, null, null).find((item) => item.opm.kind === "entidad");
+    expect(((cell?.attrs as Attrs | undefined)?.body as Attrs | undefined)?.strokeWidth).toBe(4);
   });
 });
 

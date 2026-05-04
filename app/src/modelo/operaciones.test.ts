@@ -7,6 +7,7 @@ import {
   crearModelo,
   crearObjeto,
   crearProceso,
+  descomponerProceso,
   eliminarEntidad,
   eliminarEnlace,
   entidadesDelOpd,
@@ -260,6 +261,53 @@ describe("operaciones de modelo", () => {
     expect(enlace.ok).toBe(false);
     if (enlace.ok) return;
     expect(enlace.error).toContain("apariencia en el OPD");
+  });
+
+  test("descompone proceso en OPD hijo, conserva identidad e idempotencia", () => {
+    let modelo = crearModelo();
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 200, y: 120 }, "Atender Paciente"));
+    const proceso = entidadPorNombre(modelo, "Atender Paciente");
+
+    const descompuesto = descomponerProceso(modelo, modelo.opdRaizId, proceso.id);
+
+    expect(descompuesto.ok).toBe(true);
+    if (!descompuesto.ok) return;
+    modelo = descompuesto.value.modelo;
+    const opdHijo = modelo.opds[descompuesto.value.opdId];
+    expect(descompuesto.value.creado).toBe(true);
+    expect(opdHijo?.nombre).toBe("SD1");
+    expect(opdHijo?.padreId).toBe(modelo.opdRaizId);
+    expect(modelo.entidades[proceso.id]?.refinamiento).toEqual({
+      tipo: "descomposicion",
+      opdId: descompuesto.value.opdId,
+    });
+    expect(Object.values(modelo.entidades)).toHaveLength(1);
+    expect(Object.values(modelo.opds[modelo.opdRaizId]?.apariencias ?? {}).filter((apariencia) => apariencia.entidadId === proceso.id)).toHaveLength(1);
+    expect(Object.values(opdHijo?.apariencias ?? {}).filter((apariencia) => apariencia.entidadId === proceso.id)).toHaveLength(1);
+
+    const repetido = descomponerProceso(modelo, modelo.opdRaizId, proceso.id);
+    expect(repetido.ok).toBe(true);
+    if (!repetido.ok) return;
+    expect(repetido.value.creado).toBe(false);
+    expect(repetido.value.opdId).toBe(descompuesto.value.opdId);
+    expect(Object.values(repetido.value.modelo.opds).filter((opd) => opd.padreId === modelo.opdRaizId)).toHaveLength(1);
+  });
+
+  test("numera recursivamente OPDs hijos de procesos internos", () => {
+    let modelo = crearModelo();
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 200, y: 120 }, "Atender Paciente"));
+    modelo = must(descomponerProceso(modelo, modelo.opdRaizId, entidadPorNombre(modelo, "Atender Paciente").id)).modelo;
+    const opdHijoId = modelo.entidades[entidadPorNombre(modelo, "Atender Paciente").id]?.refinamiento?.opdId;
+    expect(opdHijoId).toBeDefined();
+    if (!opdHijoId) return;
+    modelo = must(crearProceso(modelo, opdHijoId, { x: 200, y: 180 }, "Examinar"));
+
+    const nieto = descomponerProceso(modelo, opdHijoId, entidadPorNombre(modelo, "Examinar").id);
+
+    expect(nieto.ok).toBe(true);
+    if (!nieto.ok) return;
+    expect(nieto.value.modelo.opds[nieto.value.opdId]?.nombre).toBe("SD1.1");
+    expect(nieto.value.modelo.opds[nieto.value.opdId]?.padreId).toBe(opdHijoId);
   });
 });
 

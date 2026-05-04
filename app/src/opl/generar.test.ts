@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { cambiarEsencia, crearEnlace, crearModelo, crearObjeto, crearProceso } from "../modelo/operaciones";
+import { cambiarEsencia, crearEnlace, crearModelo, crearObjeto, crearProceso, descomponerProceso } from "../modelo/operaciones";
 import type { Modelo, Resultado } from "../modelo/tipos";
 import { generarOpl } from "./generar";
 
@@ -78,6 +78,20 @@ describe("generarOpl", () => {
     expect(generarOpl(modelo, modelo.opdRaizId).join("\n")).not.toContain("Hijo");
     expect(generarOpl(modelo, "opd-2")).toContain("*Hijo* es un proceso informacional y sistémico.");
     expect(generarOpl(modelo, "opd-2").join("\n")).not.toContain("Raiz");
+  });
+
+  test("emite OPL de descomposicion para proceso refinado", () => {
+    let modelo = crearModelo();
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 200, y: 120 }, "Atender Paciente"));
+    const procesoId = entidad(modelo, "Atender Paciente");
+    const descompuesto = must(descomponerProceso(modelo, modelo.opdRaizId, procesoId));
+    modelo = descompuesto.modelo;
+
+    expect(generarOpl(modelo, modelo.opdRaizId)).toContain("*Atender Paciente* se descompone en SD1.");
+    expect(generarOpl(modelo, descompuesto.opdId)).toContain("*Atender Paciente* se descompone en SD1.");
+
+    modelo = must(crearProceso(modelo, descompuesto.opdId, { x: 200, y: 180 }, "Examinar"));
+    expect(generarOpl(modelo, modelo.opdRaizId)).toContain("*Atender Paciente* se descompone en *Examinar*.");
   });
 });
 

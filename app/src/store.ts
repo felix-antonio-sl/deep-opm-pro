@@ -9,6 +9,7 @@ import {
   crearModelo,
   crearObjeto,
   crearProceso,
+  descomponerProceso,
   eliminarEntidad,
   eliminarEnlace,
   moverApariencia as moverAparienciaEntidad,
@@ -36,6 +37,7 @@ interface OpmStore {
   limpiarMensaje: () => void;
   crearObjetoDemo: () => void;
   crearProcesoDemo: () => void;
+  descomponerSeleccionada: () => void;
   cambiarOpdActivo: (id: Id) => void;
   seleccionarEntidad: (id: Id) => void;
   seleccionarEnlace: (id: Id) => void;
@@ -89,6 +91,32 @@ export const store = createStore<OpmStore>((set, get) => ({
     const { modelo, opdActivoId } = get();
     const resultado = crearProceso(modelo, opdActivoId, posicionLibre(modelo, opdActivoId, "proceso"));
     if (resultado.ok) commitModelo(set, modelo, resultado.value, { seleccionId: entidadNueva(modelo, resultado.value), enlaceSeleccionId: null, mensaje: null });
+  },
+
+  descomponerSeleccionada() {
+    const { modelo, opdActivoId, seleccionId } = get();
+    if (!seleccionId) {
+      set({ mensaje: "Selecciona un proceso para descomponer" });
+      return;
+    }
+    const entidad = modelo.entidades[seleccionId];
+    if (!entidad || entidad.tipo !== "proceso") {
+      set({ mensaje: "Selecciona un proceso para descomponer" });
+      return;
+    }
+
+    const resultado = descomponerProceso(modelo, opdActivoId, seleccionId);
+    if (!resultado.ok) {
+      set({ mensaje: resultado.error });
+      return;
+    }
+    commitModelo(set, modelo, resultado.value.modelo, {
+      opdActivoId: resultado.value.opdId,
+      seleccionId,
+      enlaceSeleccionId: null,
+      modoEnlace: null,
+      mensaje: resultado.value.creado ? "OPD hijo creado" : null,
+    });
   },
 
   cambiarOpdActivo(id) {
@@ -149,25 +177,37 @@ export const store = createStore<OpmStore>((set, get) => ({
   },
 
   deshacer() {
-    const { modelo } = get();
+    const { modelo, opdActivoId } = get();
     const previo = undoStack.pop();
     if (!previo) {
       set({ mensaje: "No hay cambios para deshacer", puedeDeshacer: false });
       return;
     }
     redoStack = [modelo, ...redoStack].slice(0, UNDO_LIMIT);
-    set(estadoModelo(previo, { seleccionId: null, enlaceSeleccionId: null, modoEnlace: null, mensaje: "Cambio deshecho" }));
+    set(estadoModelo(previo, {
+      opdActivoId: opdActivoSeguro(previo, opdActivoId),
+      seleccionId: null,
+      enlaceSeleccionId: null,
+      modoEnlace: null,
+      mensaje: "Cambio deshecho",
+    }));
   },
 
   rehacer() {
-    const { modelo } = get();
+    const { modelo, opdActivoId } = get();
     const siguiente = redoStack.shift();
     if (!siguiente) {
       set({ mensaje: "No hay cambios para rehacer", puedeRehacer: false });
       return;
     }
     undoStack = [...undoStack, modelo].slice(-UNDO_LIMIT);
-    set(estadoModelo(siguiente, { seleccionId: null, enlaceSeleccionId: null, modoEnlace: null, mensaje: "Cambio rehecho" }));
+    set(estadoModelo(siguiente, {
+      opdActivoId: opdActivoSeguro(siguiente, opdActivoId),
+      seleccionId: null,
+      enlaceSeleccionId: null,
+      modoEnlace: null,
+      mensaje: "Cambio rehecho",
+    }));
   },
 
   renombrarSeleccionada(nombre) {
@@ -351,6 +391,10 @@ function estadoModelo(modelo: Modelo, extra: Partial<OpmStore> = {}): Partial<Op
     puedeRehacer: redoStack.length > 0,
     ...extra,
   };
+}
+
+function opdActivoSeguro(modelo: Modelo, opdActivoId: Id): Id {
+  return modelo.opds[opdActivoId] ? opdActivoId : modelo.opdRaizId;
 }
 
 function crearDemo(): Modelo {

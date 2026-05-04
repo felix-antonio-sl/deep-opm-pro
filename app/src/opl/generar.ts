@@ -6,7 +6,10 @@ export function generarOpl(modelo: Modelo, opdId: Id = modelo.opdRaizId): string
   const lineas: string[] = [];
   for (const apariencia of Object.values(opd.apariencias)) {
     const entidad = modelo.entidades[apariencia.entidadId];
-    if (entidad) lineas.push(oracionEntidad(entidad));
+    if (!entidad) continue;
+    lineas.push(oracionEntidad(entidad));
+    const descomposicion = oracionDescomposicion(modelo, entidad);
+    if (descomposicion) lineas.push(descomposicion);
   }
   for (const aparienciaEnlace of Object.values(opd.enlaces)) {
     const enlace = modelo.enlaces[aparienciaEnlace.enlaceId];
@@ -15,6 +18,21 @@ export function generarOpl(modelo: Modelo, opdId: Id = modelo.opdRaizId): string
     if (linea) lineas.push(linea);
   }
   return lineas;
+}
+
+function oracionDescomposicion(modelo: Modelo, entidad: Entidad): string | null {
+  if (entidad.refinamiento?.tipo !== "descomposicion") return null;
+  const opdHijo = modelo.opds[entidad.refinamiento.opdId];
+  if (!opdHijo) return null;
+  const internos = Object.values(opdHijo.apariencias)
+    .filter((apariencia) => apariencia.entidadId !== entidad.id)
+    .sort((a, b) => a.y - b.y || a.x - b.x)
+    .flatMap((apariencia) => {
+      const interna = modelo.entidades[apariencia.entidadId];
+      return interna ? [nombreOpl(interna)] : [];
+    });
+  const destino = internos.length > 0 ? listarOpl(internos) : codigoOpd(opdHijo.nombre);
+  return `${nombreOpl(entidad)} se descompone en ${destino}.`;
 }
 
 function oracionEntidad(entidad: Entidad): string {
@@ -57,6 +75,16 @@ function oracionEfecto(origen: Entidad, destino: Entidad): string | null {
 
 function nombreOpl(entidad: Entidad): string {
   return entidad.tipo === "objeto" ? `**${entidad.nombre}**` : `*${entidad.nombre}*`;
+}
+
+function listarOpl(items: string[]): string {
+  if (items.length === 1) return items[0] ?? "";
+  if (items.length === 2) return `${items[0]} y ${items[1]}`;
+  return `${items.slice(0, -1).join(", ")} y ${items[items.length - 1]}`;
+}
+
+function codigoOpd(nombre: string): string {
+  return /^SD(?:\d+(?:\.\d+)*)?/.exec(nombre.trim())?.[0] ?? nombre;
 }
 
 function textoEsencia(entidad: Entidad): string {

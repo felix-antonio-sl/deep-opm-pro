@@ -55,7 +55,9 @@ export function proyectarModeloAJointCells(
 
 function proyectarEntidad(opdId: Id, apariencia: Apariencia, entidad: Entidad, seleccionada: boolean): JointCellJson {
   const stroke = entidad.tipo === "objeto" ? CANON.colores.objeto : CANON.colores.proceso;
-  const strokeWidth = seleccionada ? CANON.dims.enlaceVisible + 2 : CANON.dims.enlaceVisible;
+  const refinada = entidad.tipo === "proceso" && entidad.refinamiento?.tipo === "descomposicion";
+  const strokeBase = refinada ? 4 : CANON.dims.enlaceVisible;
+  const strokeWidth = seleccionada ? strokeBase + 2 : strokeBase;
   const body = {
     fill: CANON.colores.relleno,
     stroke,

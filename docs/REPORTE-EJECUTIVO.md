@@ -1,7 +1,7 @@
 # Reporte ejecutivo in-vivo - modelador OPM
 
-**Fecha:** 2026-05-04T00:33:17.298Z
-**URL probada:** http://138.201.53.205:5173/
+**Fecha:** 2026-05-04T02:25:48.126Z
+**URL probada:** http://127.0.0.1:5173/
 **Driver:** Playwright/Chromium headless
 **Script:** `app/scripts/in-vivo-test.mjs`
 **Artefactos:** `app/test-results/in-vivo/`
@@ -48,7 +48,7 @@ La app esta operativa en el corte auditado. No se detectaron fallos funcionales 
 
 | Seccion | Criterio | Estado | Detalle |
 |---|---|---|---|
-| 1. Carga inicial | Carga sin error fatal | OK | 583 ms hasta networkidle |
+| 1. Carga inicial | Carga sin error fatal | OK | 584 ms hasta networkidle |
 | 1. Carga inicial | Título de la página | INFO | Modelador OPM |
 | 1. Carga inicial | Canvas JointJS visible | OK |  |
 | 1. Carga inicial | Árbol OPD visible | OK |  |

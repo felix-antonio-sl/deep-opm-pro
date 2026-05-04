@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { crearEnlace, crearModelo, crearObjeto, crearProceso } from "../modelo/operaciones";
+import { crearEnlace, crearModelo, crearObjeto, crearProceso, descomponerProceso } from "../modelo/operaciones";
 import type { Modelo } from "../modelo/tipos";
 import { exportarModelo, hidratarModelo } from "./json";
 
@@ -213,6 +213,48 @@ describe("serializacion JSON", () => {
     expect(hidratado.ok).toBe(false);
     if (hidratado.ok) return;
     expect(hidratado.error).toContain("apariencia");
+  });
+
+  test("preserva refinamiento por descomposicion en round-trip", () => {
+    let modelo = crearModelo("Descomposicion");
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 200, y: 120 }, "Atender Paciente"));
+    const procesoId = entidadPorNombre(modelo, "Atender Paciente");
+    modelo = must(descomponerProceso(modelo, modelo.opdRaizId, procesoId)).modelo;
+
+    const hidratado = hidratarModelo(exportarModelo(modelo));
+
+    expect(hidratado.ok).toBe(true);
+    if (!hidratado.ok) return;
+    expect(hidratado.value.entidades[procesoId]?.refinamiento?.tipo).toBe("descomposicion");
+    const opdHijoId = hidratado.value.entidades[procesoId]?.refinamiento?.opdId;
+    expect(opdHijoId).toBeDefined();
+    if (!opdHijoId) return;
+    expect(hidratado.value.opds[opdHijoId]?.padreId).toBe(modelo.opdRaizId);
+  });
+
+  test("rechaza refinamiento que apunta a OPD inexistente", () => {
+    let modelo = crearModelo("Refinamiento roto");
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 200, y: 120 }, "Proceso"));
+    const procesoId = entidadPorNombre(modelo, "Proceso");
+    const corrupto: Modelo = {
+      ...modelo,
+      entidades: {
+        ...modelo.entidades,
+        [procesoId]: {
+          ...modelo.entidades[procesoId]!,
+          refinamiento: {
+            tipo: "descomposicion",
+            opdId: "opd-inexistente",
+          },
+        },
+      },
+    };
+
+    const hidratado = hidratarModelo(exportarModelo(corrupto));
+
+    expect(hidratado.ok).toBe(false);
+    if (hidratado.ok) return;
+    expect(hidratado.error).toContain("Refinamiento inválido");
   });
 });
 
