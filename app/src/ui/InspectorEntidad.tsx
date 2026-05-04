@@ -135,19 +135,19 @@ function Segment(props: { label: string; active: boolean; onClick: () => void })
   );
 }
 
-function DesplegarComo(props: { onSelect: (modo: ModoDespliegueObjeto) => void }) {
-  const opciones: Array<{ modo: ModoDespliegueObjeto; label: string }> = [
-    { modo: "agregacion", label: "Como partes (agregación)" },
-    { modo: "exhibicion", label: "Como atributos (exhibición)" },
-    { modo: "generalizacion", label: "Como especializaciones" },
-    { modo: "clasificacion", label: "Como instancias" },
-  ];
+export const OPCIONES_DESPLIEGUE_OBJETO: Array<{ modo: ModoDespliegueObjeto; label: string }> = [
+  { modo: "agregacion", label: "Como partes (agregación)" },
+  { modo: "exhibicion", label: "Como atributos (exhibición)" },
+  { modo: "generalizacion", label: "Como especializaciones" },
+  { modo: "clasificacion", label: "Como instancias" },
+];
 
+function DesplegarComo(props: { onSelect: (modo: ModoDespliegueObjeto) => void }) {
   return (
     <details style={style.menu}>
       <summary style={style.menuSummary}>Desplegar como...</summary>
       <div style={style.menuItems}>
-        {opciones.map((opcion) => (
+        {OPCIONES_DESPLIEGUE_OBJETO.map((opcion) => (
           <button
             key={opcion.modo}
             type="button"

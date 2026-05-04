@@ -3,7 +3,7 @@ import { useOpmStore } from "../store";
 import type { TipoEnlace } from "../modelo/tipos";
 import { useConfirmarSiDirty } from "./ConfirmacionContext";
 
-const TIPOS_ENLACE: Array<{ tipo: TipoEnlace; label: string }> = [
+export const TIPOS_ENLACE: Array<{ tipo: TipoEnlace; label: string }> = [
   { tipo: "agregacion", label: "Agregación" },
   { tipo: "exhibicion", label: "Exhibición" },
   { tipo: "generalizacion", label: "Generalización" },
