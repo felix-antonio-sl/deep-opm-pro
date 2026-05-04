@@ -87,6 +87,36 @@ describe("OPL-ES — refinamiento", () => {
 
     expect(generarOpl(modelo, modelo.opdRaizId)).toContain("**Vehiculo** se despliega en **Vehiculo parte 1**, **Vehiculo parte 2** y **Vehiculo parte 3**.");
   });
+
+  test("despliegue exhibicion emite exhibe", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 200, y: 120 }, "Vehiculo"));
+    const desplegado = must(desplegarObjeto(modelo, modelo.opdRaizId, entidad(modelo, "Vehiculo"), "exhibicion"));
+    modelo = desplegado.modelo;
+
+    expect(generarOpl(modelo, modelo.opdRaizId)).toContain("**Vehiculo** exhibe **Atributo 1**, **Atributo 2** y **Atributo 3**.");
+    expect(generarOpl(modelo, desplegado.opdId)).toContain("**Vehiculo** exhibe **Atributo 1**.");
+  });
+
+  test("despliegue generalizacion emite es un", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 200, y: 120 }, "Vehiculo"));
+    const desplegado = must(desplegarObjeto(modelo, modelo.opdRaizId, entidad(modelo, "Vehiculo"), "generalizacion"));
+    modelo = desplegado.modelo;
+
+    expect(generarOpl(modelo, modelo.opdRaizId)).toContain("**Especialización 1**, **Especialización 2** y **Especialización 3** son **Vehiculo**.");
+    expect(generarOpl(modelo, desplegado.opdId)).toContain("**Especialización 1** es un **Vehiculo**.");
+  });
+
+  test("despliegue clasificacion emite es una instancia de", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 200, y: 120 }, "Vehiculo"));
+    const desplegado = must(desplegarObjeto(modelo, modelo.opdRaizId, entidad(modelo, "Vehiculo"), "clasificacion"));
+    modelo = desplegado.modelo;
+
+    expect(generarOpl(modelo, modelo.opdRaizId)).toContain("**Instancia 1**, **Instancia 2** y **Instancia 3** son instancias de **Vehiculo**.");
+    expect(generarOpl(modelo, desplegado.opdId)).toContain("**Instancia 1** es una instancia de **Vehiculo**.");
+  });
 });
 
 describe("OPL-ES — bordes", () => {

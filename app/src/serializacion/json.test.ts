@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { crearEnlace, crearModelo, crearObjeto, crearProceso, descomponerProceso, desplegarObjeto } from "../modelo/operaciones";
-import type { Modelo } from "../modelo/tipos";
+import { cambiarModoPlegado } from "../modelo/plegado";
+import type { Apariencia, Modelo, ModoDespliegueObjeto, RefinamientoEntidad, TipoEnlace } from "../modelo/tipos";
 import { exportarModelo, hidratarModelo } from "./json";
 
 describe("serializacion JSON", () => {
@@ -277,6 +278,100 @@ describe("serializacion JSON", () => {
     expect(agregaciones).toHaveLength(3);
   });
 
+  test("preserva despliegues exhibicion/generalizacion/clasificacion en round-trip", () => {
+    const casos: Array<{ modo: ModoDespliegueObjeto; tipo: TipoEnlace }> = [
+      { modo: "exhibicion", tipo: "exhibicion" },
+      { modo: "generalizacion", tipo: "generalizacion" },
+      { modo: "clasificacion", tipo: "clasificacion" },
+    ];
+
+    for (const caso of casos) {
+      let modelo = crearModelo(`Despliegue ${caso.modo}`);
+      modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 200, y: 120 }, "Vehiculo"));
+      const objetoId = entidadPorNombre(modelo, "Vehiculo");
+      modelo = must(desplegarObjeto(modelo, modelo.opdRaizId, objetoId, caso.modo)).modelo;
+
+      const hidratado = hidratarModelo(exportarModelo(modelo));
+
+      expect(hidratado.ok).toBe(true);
+      if (!hidratado.ok) return;
+      expect(hidratado.value.entidades[objetoId]?.refinamiento?.modo).toBe(caso.modo);
+      const enlaces = Object.values(hidratado.value.enlaces).filter((enlace) => enlace.tipo === caso.tipo && enlace.origenId === objetoId);
+      expect(enlaces).toHaveLength(3);
+    }
+  });
+
+  test("hidratar despliegue legacy sin modo asume agregacion", () => {
+    let modelo = crearModelo("Legacy despliegue");
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 200, y: 120 }, "Vehiculo"));
+    const objetoId = entidadPorNombre(modelo, "Vehiculo");
+    modelo = must(desplegarObjeto(modelo, modelo.opdRaizId, objetoId)).modelo;
+    const entidad = modelo.entidades[objetoId];
+    expect(entidad?.refinamiento).toBeDefined();
+    if (!entidad?.refinamiento) return;
+    const json = JSON.stringify({
+      formato: "deep-opm-pro.modelo.v0",
+      modelo: {
+        ...modelo,
+        entidades: {
+          ...modelo.entidades,
+          [objetoId]: {
+            ...entidad,
+            refinamiento: sinModoDespliegue(entidad.refinamiento),
+          },
+        },
+      },
+    });
+
+    const hidratado = hidratarModelo(json);
+
+    expect(hidratado.ok).toBe(true);
+    if (!hidratado.ok) return;
+    expect(hidratado.value.entidades[objetoId]?.refinamiento?.modo).toBe("agregacion");
+  });
+
+  test("round-trip preserva apariencia.modoPlegado parcial", () => {
+    let modelo = crearModelo("Plegado parcial");
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 200, y: 120 }, "Vehiculo"));
+    const objetoId = entidadPorNombre(modelo, "Vehiculo");
+    modelo = must(desplegarObjeto(modelo, modelo.opdRaizId, objetoId)).modelo;
+    const apariencia = aparienciaDeEntidad(modelo, modelo.opdRaizId, objetoId);
+    modelo = must(cambiarModoPlegado(modelo, modelo.opdRaizId, apariencia.id, "parcial"));
+
+    const hidratado = hidratarModelo(exportarModelo(modelo));
+
+    expect(hidratado.ok).toBe(true);
+    if (!hidratado.ok) return;
+    expect(hidratado.value.opds[modelo.opdRaizId]?.apariencias[apariencia.id]?.modoPlegado).toBe("parcial");
+  });
+
+  test("hidratar modelo sin modoPlegado asume completo", () => {
+    let modelo = crearModelo("Legacy plegado");
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 200, y: 120 }, "Vehiculo"));
+    const objetoId = entidadPorNombre(modelo, "Vehiculo");
+    const apariencia = aparienciaDeEntidad(modelo, modelo.opdRaizId, objetoId);
+    const json = JSON.stringify({
+      formato: "deep-opm-pro.modelo.v0",
+      modelo: {
+        ...modelo,
+        opds: {
+          [modelo.opdRaizId]: {
+            ...modelo.opds[modelo.opdRaizId],
+            apariencias: {
+              [apariencia.id]: sinModoPlegado(apariencia),
+            },
+          },
+        },
+      },
+    });
+
+    const hidratado = hidratarModelo(json);
+
+    expect(hidratado.ok).toBe(true);
+    if (!hidratado.ok) return;
+    expect(hidratado.value.opds[modelo.opdRaizId]?.apariencias[apariencia.id]?.modoPlegado).toBe("completo");
+  });
+
   test("rechaza refinamiento que apunta a OPD inexistente", () => {
     let modelo = crearModelo("Refinamiento roto");
     modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 200, y: 120 }, "Proceso"));
@@ -308,6 +403,24 @@ function entidadPorNombre(modelo: Modelo, nombre: string): string {
   expect(entidad).toBeDefined();
   if (!entidad) throw new Error(`Entidad no encontrada: ${nombre}`);
   return entidad.id;
+}
+
+function aparienciaDeEntidad(modelo: Modelo, opdId: string, entidadId: string): Apariencia {
+  const apariencia = Object.values(modelo.opds[opdId]?.apariencias ?? {})
+    .find((item) => item.entidadId === entidadId);
+  expect(apariencia).toBeDefined();
+  if (!apariencia) throw new Error(`Apariencia no encontrada: ${entidadId}`);
+  return apariencia;
+}
+
+function sinModoPlegado(apariencia: Apariencia): Omit<Apariencia, "modoPlegado"> {
+  const { modoPlegado: _modoPlegado, ...sinModo } = apariencia;
+  return sinModo;
+}
+
+function sinModoDespliegue(refinamiento: RefinamientoEntidad): Omit<RefinamientoEntidad, "modo"> {
+  const { modo: _modo, ...sinModo } = refinamiento;
+  return sinModo;
 }
 
 function must<T>(resultado: { ok: true; value: T } | { ok: false; error: string }): T {

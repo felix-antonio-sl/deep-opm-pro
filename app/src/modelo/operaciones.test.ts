@@ -17,8 +17,9 @@ import {
   quitarDescomposicionProceso,
   quitarDespliegueObjeto,
   renombrarEntidad,
+  validarFirmaEnlace,
 } from "./operaciones";
-import type { Modelo, Resultado, TipoEnlace } from "./tipos";
+import type { Modelo, ModoDespliegueObjeto, Resultado, TipoEnlace } from "./tipos";
 
 describe("operaciones de modelo", () => {
   test("crea entidad logica y apariencia separadas", () => {
@@ -340,6 +341,7 @@ describe("operaciones de modelo", () => {
     expect(modelo.entidades[objeto.id]?.refinamiento).toEqual({
       tipo: "despliegue",
       opdId: desplegado.value.opdId,
+      modo: "agregacion",
     });
     expect(Object.values(modelo.entidades)).toHaveLength(4);
     expect(Object.values(modelo.opds[modelo.opdRaizId]?.apariencias ?? {}).filter((apariencia) => apariencia.entidadId === objeto.id)).toHaveLength(1);
@@ -362,6 +364,69 @@ describe("operaciones de modelo", () => {
     expect(repetido.value.creado).toBe(false);
     expect(repetido.value.opdId).toBe(desplegado.value.opdId);
     expect(Object.values(repetido.value.modelo.opds).filter((opd) => opd.padreId === modelo.opdRaizId)).toHaveLength(1);
+  });
+
+  test("desplegarObjeto - modo agregacion mantiene comportamiento previo", () => {
+    const modelo = modeloConObjetoDesplegable();
+    const objeto = entidadPorNombre(modelo, "Vehiculo");
+
+    const desplegado = desplegarObjeto(modelo, modelo.opdRaizId, objeto.id, "agregacion");
+
+    expect(desplegado.ok).toBe(true);
+    if (!desplegado.ok) return;
+    expect(desplegado.value.modo).toBe("agregacion");
+    expect(nombresInternosDespliegue(desplegado.value.modelo, desplegado.value.opdId, objeto.id)).toEqual([
+      "Vehiculo parte 1",
+      "Vehiculo parte 2",
+      "Vehiculo parte 3",
+    ]);
+    expect(tiposEnlacesOpd(desplegado.value.modelo, desplegado.value.opdId)).toEqual(["agregacion", "agregacion", "agregacion"]);
+  });
+
+  test("desplegarObjeto - modo exhibicion crea atributos iniciales", () => {
+    assertDespliegueModo("exhibicion", ["Atributo 1", "Atributo 2", "Atributo 3"]);
+  });
+
+  test("desplegarObjeto - modo generalizacion crea especializaciones iniciales", () => {
+    assertDespliegueModo("generalizacion", ["Especialización 1", "Especialización 2", "Especialización 3"]);
+  });
+
+  test("desplegarObjeto - modo clasificacion crea instancias iniciales", () => {
+    assertDespliegueModo("clasificacion", ["Instancia 1", "Instancia 2", "Instancia 3"]);
+  });
+
+  test("quitarDespliegueObjeto revierte los modos estructurales nuevos", () => {
+    const modos = ["exhibicion", "generalizacion", "clasificacion"] satisfies ModoDespliegueObjeto[];
+    for (const modo of modos) {
+      let modelo = modeloConObjetoDesplegable();
+      const objeto = entidadPorNombre(modelo, "Vehiculo");
+      modelo = must(desplegarObjeto(modelo, modelo.opdRaizId, objeto.id, modo)).modelo;
+
+      const sinDespliegue = quitarDespliegueObjeto(modelo, objeto.id);
+
+      expect(sinDespliegue.ok).toBe(true);
+      if (!sinDespliegue.ok) return;
+      expect(Object.values(sinDespliegue.value.opds)).toHaveLength(1);
+      expect(sinDespliegue.value.entidades[objeto.id]?.refinamiento).toBeUndefined();
+      expect(Object.values(sinDespliegue.value.enlaces)).toHaveLength(0);
+      expect(Object.values(sinDespliegue.value.entidades)).toHaveLength(1);
+    }
+  });
+
+  test("validarFirmaEnlace acepta y rechaza exhibicion/generalizacion/clasificacion", () => {
+    const modelo = modeloConEntidades();
+    const whole = entidadPorNombre(modelo, "Whole");
+    const part = entidadPorNombre(modelo, "Part");
+    const proceso = entidadPorNombre(modelo, "Proceso");
+    const subproceso = entidadPorNombre(modelo, "Subproceso");
+
+    expect(validarFirmaEnlace("exhibicion", whole, proceso).ok).toBe(true);
+    expect(validarFirmaEnlace("generalizacion", whole, part).ok).toBe(true);
+    expect(validarFirmaEnlace("generalizacion", proceso, subproceso).ok).toBe(true);
+    expect(validarFirmaEnlace("generalizacion", whole, proceso).ok).toBe(false);
+    expect(validarFirmaEnlace("clasificacion", whole, part).ok).toBe(true);
+    expect(validarFirmaEnlace("clasificacion", proceso, subproceso).ok).toBe(true);
+    expect(validarFirmaEnlace("clasificacion", proceso, whole).ok).toBe(false);
   });
 
   test("quita despliegue y elimina partes/agregaciones locales", () => {
@@ -617,6 +682,52 @@ function modeloConEntidades(): Modelo {
   modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 240, y: 120 }, "Proceso"));
   modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 420, y: 120 }, "Subproceso"));
   return modelo;
+}
+
+function modeloConObjetoDesplegable(): Modelo {
+  let modelo = crearModelo();
+  modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 160, y: 100 }, "Vehiculo"));
+  return modelo;
+}
+
+function assertDespliegueModo(modo: ModoDespliegueObjeto, nombres: string[]): void {
+  const modelo = modeloConObjetoDesplegable();
+  const objeto = entidadPorNombre(modelo, "Vehiculo");
+
+  const desplegado = desplegarObjeto(modelo, modelo.opdRaizId, objeto.id, modo);
+
+  expect(desplegado.ok).toBe(true);
+  if (!desplegado.ok) return;
+  expect(desplegado.value.modo).toBe(modo);
+  expect(desplegado.value.modelo.entidades[objeto.id]?.refinamiento).toEqual({
+    tipo: "despliegue",
+    opdId: desplegado.value.opdId,
+    modo,
+  });
+  expect(nombresInternosDespliegue(desplegado.value.modelo, desplegado.value.opdId, objeto.id)).toEqual(nombres);
+  expect(tiposEnlacesOpd(desplegado.value.modelo, desplegado.value.opdId)).toEqual([modo, modo, modo].map(tipoEnlaceEsperado));
+}
+
+function nombresInternosDespliegue(modelo: Modelo, opdId: string, objetoId: string): string[] {
+  return Object.values(modelo.opds[opdId]?.apariencias ?? {})
+    .filter((apariencia) => apariencia.entidadId !== objetoId)
+    .map((apariencia) => modelo.entidades[apariencia.entidadId]?.nombre)
+    .filter((nombre): nombre is string => nombre !== undefined)
+    .sort((a, b) => a.localeCompare(b, "es"));
+}
+
+function tiposEnlacesOpd(modelo: Modelo, opdId: string): TipoEnlace[] {
+  return Object.values(modelo.opds[opdId]?.enlaces ?? {})
+    .map((apariencia) => modelo.enlaces[apariencia.enlaceId]?.tipo)
+    .filter((tipo): tipo is TipoEnlace => tipo !== undefined)
+    .sort((a, b) => a.localeCompare(b, "es"));
+}
+
+function tipoEnlaceEsperado(modo: ModoDespliegueObjeto): TipoEnlace {
+  if (modo === "agregacion") return "agregacion";
+  if (modo === "exhibicion") return "exhibicion";
+  if (modo === "generalizacion") return "generalizacion";
+  return "clasificacion";
 }
 
 function entidadPorNombre(modelo: Modelo, nombre: string) {

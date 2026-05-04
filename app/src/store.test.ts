@@ -195,6 +195,7 @@ describe("store undo/redo y dirty state", () => {
     expect(estado.modelo.entidades[objetoId]?.refinamiento).toEqual({
       tipo: "despliegue",
       opdId: opdHijo.id,
+      modo: "agregacion",
     });
     expect(estado.dirty).toBe(true);
     expect(estado.puedeDeshacer).toBe(true);
@@ -202,6 +203,52 @@ describe("store undo/redo y dirty state", () => {
     store.getState().deshacer();
     expect(Object.values(store.getState().modelo.opds)).toHaveLength(1);
     expect(store.getState().opdActivoId).toBe(store.getState().modelo.opdRaizId);
+  });
+
+  test("desplegar seleccionada respeta modo estructural elegido", () => {
+    store.getState().crearObjetoDemo();
+    const objetoId = primeraEntidadId();
+    store.getState().seleccionarEntidad(objetoId);
+
+    store.getState().desplegarSeleccionada("exhibicion");
+
+    const estado = store.getState();
+    const opdHijo = Object.values(estado.modelo.opds).find((opd) => opd.padreId === estado.modelo.opdRaizId);
+    expect(opdHijo).toBeDefined();
+    if (!opdHijo) return;
+    expect(estado.modelo.entidades[objetoId]?.refinamiento?.modo).toBe("exhibicion");
+    const enlaces = Object.values(opdHijo.enlaces)
+      .map((apariencia) => estado.modelo.enlaces[apariencia.enlaceId])
+      .filter((enlace): enlace is NonNullable<typeof enlace> => enlace !== undefined);
+    expect(enlaces).toHaveLength(3);
+    expect(enlaces.every((enlace) => enlace.tipo === "exhibicion")).toBe(true);
+  });
+
+  test("cambiar plegado parcial entra al historial sin abrir otro OPD", () => {
+    store.getState().crearObjetoDemo();
+    const objetoId = primeraEntidadId();
+    store.getState().seleccionarEntidad(objetoId);
+    store.getState().desplegarSeleccionada();
+    const opdHijoId = store.getState().opdActivoId;
+    store.getState().cambiarOpdActivo(store.getState().modelo.opdRaizId);
+    store.getState().seleccionarEntidad(objetoId);
+
+    store.getState().cambiarModoPlegadoSeleccionado("parcial");
+
+    const estado = store.getState();
+    const apariencia = Object.values(estado.modelo.opds[estado.modelo.opdRaizId]?.apariencias ?? {})
+      .find((item) => item.entidadId === objetoId);
+    expect(apariencia?.modoPlegado).toBe("parcial");
+    expect(estado.modelo.entidades[objetoId]?.refinamiento?.opdId).toBe(opdHijoId);
+    expect(Object.values(estado.modelo.opds)).toHaveLength(2);
+    expect(estado.dirty).toBe(true);
+    expect(estado.puedeDeshacer).toBe(true);
+
+    store.getState().deshacer();
+    const revertida = Object.values(store.getState().modelo.opds[store.getState().modelo.opdRaizId]?.apariencias ?? {})
+      .find((item) => item.entidadId === objetoId);
+    expect(revertida?.modoPlegado).toBeUndefined();
+    expect(Object.values(store.getState().modelo.opds)).toHaveLength(2);
   });
 
   test("quitar despliegue seleccionado elimina OPD hijo y conserva undo", () => {
