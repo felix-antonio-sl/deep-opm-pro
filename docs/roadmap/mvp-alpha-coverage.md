@@ -148,7 +148,8 @@ Ultimo loop verde en `app/`:
 - `bun run visual:audit -- http://127.0.0.1:5173/`
 - `bun run visual:deep -- http://127.0.0.1:5173/`
 
-Capturas esperadas:
+Capturas esperadas al regenerar las sondas. Son salidas ignoradas por git, no
+artefactos versionados:
 
 - `app/test-results/opm-demo-jointjs.png`
 - `app/test-results/opm-opd-tree.png`

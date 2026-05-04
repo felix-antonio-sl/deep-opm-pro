@@ -27,7 +27,7 @@ SSOT OPM v3.0.0  >  app/src/modelo/tipos.ts  >  evidencia OPCloud  >  opcloud-re
    - `opm-opl-es.md` — plantillas OPL-ES (T1–T3, D1–D13, TS1–TS5).
    - `metodologia-opm-es.md` — procedimiento de construcción del SD.
 2. **`app/src/modelo/tipos.ts`** — SSOT viva del modelo de datos. Define `Entidad`, `Apariencia`, `Enlace`, `AparienciaEnlace`, `Opd`, `Modelo`. Toda HU cita campos por nombre exacto en TypeScript.
-3. **Evidencia OPCloud** — `JOYAS.md`, `assets/`, `decompiled/`, `fixtures/`, `catalog/`, `config/`. Referencia de implementación de producto verificada por ingeniería inversa.
+3. **Evidencia OPCloud** — `JOYAS.md`, `assets/`, `opm-extracted/`, `fixtures/`, `catalog/`, `config/`. `decompiled/` es respaldo regenerable bajo demanda con `bash setup.sh` cuando `opm-extracted/` no alcanza.
 4. **`opcloud-reverse/`** — corpus original de transcripciones; trazabilidad histórica únicamente.
 
 Conflictos: la SSOT manda. Si OPCloud diverge de la SSOT, la HU describe el comportamiento SSOT y registra la divergencia OPCloud como nota.
@@ -239,7 +239,7 @@ Una HU se considera `validada` cuando pasa el linter completo y un humano confir
 ## 17. Lo que este inventario NO hace
 
 - No inventa funcionalidad ausente en la SSOT y en OPCloud.
-- No genera soluciones de novo sin verificar la pila de evidencia (assets → JOYAS → decompiled → fixtures → catalog → config).
+- No genera soluciones de novo sin verificar la pila de evidencia (assets → JOYAS → opm-extracted → fixtures → catalog → config; `decompiled/` solo bajo demanda).
 - No reproduce literalmente OPCloud — el objetivo es informar el modelador OPM.
 - No copia la arquitectura de OPCloud (Firebase, Angular). SVGs, dimensiones, colores, tipografía y plantillas OPL se reutilizan; la arquitectura es propia (Bun + Vite + Preact + JointJS + Zustand).
 - No prioriza de forma definitiva — la prioridad es orientativa y se refina en `05-ROADMAP.md`.
@@ -248,7 +248,7 @@ Una HU se considera `validada` cuando pasa el linter completo y un humano confir
 
 - SSOT OPM v3.0.0: `/home/felix/kora/artifacts/knowledge/fxsl/opm/opm-ssot-es/`
 - Modelo vivo: `app/src/modelo/tipos.ts`
-- Evidencia OPCloud: `JOYAS.md`, `assets/`, `decompiled/`, `fixtures/`, `catalog/`, `config/`
+- Evidencia OPCloud: `JOYAS.md`, `assets/`, `opm-extracted/`, `fixtures/`, `catalog/`, `config/`; `decompiled/` solo bajo demanda
 - Inventario v1 (histórico): `docs/archive/historias-usuario-v1/` (post cierre)
 - Diagnóstico de gaps v1: `docs/archive/historias-usuario-v1/DIAGNOSTICO-PILOTO-EPICA-10.md`
 - Anti-patrón documentado: `docs/archive/si-partiese-desde-0.md`

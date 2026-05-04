@@ -6,6 +6,10 @@ Informe generado el 2026-04-28 a partir del cruce de:
 - `assets/svg/` + `assets/png/` — 84 assets del CDN publico
 - `config/` — firebase.json, routes.json, edx.config.json
 
+Nota operativa: `decompiled/` fue insumo de este informe, pero no se conserva
+por defecto en el workspace liviano; se regenera con `bash setup.sh` si hace
+falta volver a inspeccionarlo.
+
 ---
 
 ## 1. Sistema de colores canonico

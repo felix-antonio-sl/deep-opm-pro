@@ -21,6 +21,9 @@ app/*.tsbuildinfo
 app/test-results/
 app/playwright-report/
 
+# Reportes de auditoria generados; la memoria versionada vive en docs/HANDOFF.md
+docs/REPORTE-EJECUTIVO.md
+
 # Archivos temporales
 .claude/
 *.tar.gz

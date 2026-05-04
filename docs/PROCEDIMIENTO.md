@@ -10,6 +10,10 @@ y rutas.
 **Fuente**: `https://opcloud.systems` — version oficial/comercial.
 **Exclusivamente version comercial.**
 
+Nota operativa: en el workspace liviano, `decompiled/` y `_local/` no se
+conservan por defecto. Este procedimiento describe el estado materializado
+despues de ejecutar `bash setup.sh`.
+
 ## Estructura
 
 ```

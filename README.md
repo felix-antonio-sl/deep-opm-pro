@@ -40,10 +40,14 @@ deep-opm-pro/
 |-- fixtures/                  # modelos reales observados del sandbox
 |-- config/                    # configuraciones extraidas
 |-- catalog/                   # indices historicos
-|-- webroot/                   # HTML/favicon capturados
-|-- decompiled/                # gitignored, regenerable
-`-- _local/                    # gitignored, regenerable
+`-- webroot/                   # HTML/favicon capturados
 ```
+
+El workspace no conserva por defecto artefactos pesados o efimeros. `_local/`,
+`decompiled/`, `app/dist/`, `app/test-results/` y `.claude/` son salidas
+ignoradas por git y se regeneran solo cuando hacen falta. `app/node_modules/`
+tambien esta ignorado, pero suele mantenerse localmente para no frenar el ciclo
+de desarrollo.
 
 ## Desarrollo
 
@@ -54,8 +58,8 @@ bun run check            # typecheck + unit tests
 bun run browser:smoke    # Playwright/Chromium
 bun run build            # build produccion
 bun run security:scan    # Bun Security Scanner API sobre bun.lock
-bun run visual:audit     # auditoria visual in-vivo contra Vite remoto/local
-bun run visual:deep      # auditoria visual profunda de in-zooming/markers
+bun run visual:audit     # auditoria visual in-vivo; escribe app/test-results/
+bun run visual:deep      # auditoria visual profunda; escribe app/test-results/
 ```
 
 `app/bunfig.toml` configura proteccion de supply-chain para instalaciones
@@ -83,7 +87,8 @@ insumos en este orden:
 2. `assets/png/` y `opm-extracted/assets/png/`
 3. `docs/JOYAS.md`
 4. `opm-extracted/INDEX.md`, `MODULES.md`, `assets/INDEX.md`
-5. `decompiled/` solo si `opm-extracted/` no alcanza
+5. `decompiled/` solo si `opm-extracted/` no alcanza; regeneralo con
+   `bash setup.sh` antes de consultarlo
 6. `fixtures/`
 7. `catalog/`
 8. `config/`
@@ -99,7 +104,8 @@ bash setup.sh
 
 Ese comando repuebla bundles, decompilacion, assets publicos, `webroot/` y
 configuracion extraida. `decompiled/` y `_local/` son grandes, gitignored y
-regenerables; no son codigo fuente de la app.
+regenerables; no son codigo fuente de la app ni se mantienen en el workspace
+liviano.
 
 ## Verificacion Vigente
 
@@ -111,6 +117,10 @@ El corte documentado en `docs/HANDOFF.md` mantiene verde:
 - `cd app && bun run security:scan`
 - `cd app && bun run visual:audit -- http://127.0.0.1:5173/`
 - `cd app && bun run visual:deep -- http://127.0.0.1:5173/`
+
+Las capturas, JSON y reportes de auditoria visual se generan en
+`app/test-results/` y no se versionan. La memoria operativa versionada es
+`docs/HANDOFF.md`.
 
 Lee `docs/HANDOFF.md` antes de continuar trabajo de producto. Es el unico
 handoff vigente del proyecto y debe reemplazarse, no duplicarse, cuando cambie

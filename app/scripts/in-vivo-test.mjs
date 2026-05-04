@@ -9,10 +9,9 @@ import { resolve } from "node:path";
 const URL_OBJETIVO = process.argv[2] ?? "http://138.201.53.205:5173/";
 const RAIZ_REPO = resolve(import.meta.dirname, "..", "..");
 const DIR_SHOTS = resolve(RAIZ_REPO, "app/test-results/in-vivo");
-const DIR_REPORT = resolve(RAIZ_REPO, "docs");
+const RUTA_REPORT = resolve(DIR_SHOTS, "REPORTE-EJECUTIVO.md");
 
 mkdirSync(DIR_SHOTS, { recursive: true });
-mkdirSync(DIR_REPORT, { recursive: true });
 
 const FECHA = new Date().toISOString();
 const findings = [];
@@ -470,12 +469,12 @@ const capturas = readdirSync(DIR_SHOTS)
   .sort();
 
 writeFileSync(resolve(DIR_SHOTS, "_resumen.json"), JSON.stringify(resumen, null, 2));
-writeFileSync(resolve(DIR_REPORT, "REPORTE-EJECUTIVO.md"), generarReporte(resumen, capturas));
+writeFileSync(RUTA_REPORT, generarReporte(resumen, capturas));
 console.log("\n=== RESUMEN ===");
 console.log(`OK ${resumen.ok} / FAIL ${resumen.fail} / WARN ${resumen.warn} / INFO ${resumen.info}`);
 console.log(`pageerrors: ${pageErrors.length}, console errors/warnings: ${consoleMessages.length}, request failures: ${requestFailures.length}`);
 console.log(`screenshots y resumen JSON en ${DIR_SHOTS}`);
-console.log(`reporte ejecutivo en ${resolve(DIR_REPORT, "REPORTE-EJECUTIVO.md")}`);
+console.log(`reporte ejecutivo en ${RUTA_REPORT}`);
 
 if (resumen.fail > 0) process.exitCode = 1;
 
@@ -507,7 +506,7 @@ function generarReporte(resumen, capturas) {
 **Driver:** Playwright/Chromium headless
 **Script:** \`app/scripts/in-vivo-test.mjs\`
 **Artefactos:** \`app/test-results/in-vivo/\`
-**Politica:** este archivo reemplaza al reporte ejecutivo anterior.
+**Politica:** reporte, JSON y capturas son salidas regenerables ignoradas por git.
 
 ---
 
@@ -550,7 +549,7 @@ ${listaCapturas}
 
 - El selector de tipo de enlace queda inactivo hasta que exista una entidad origen seleccionada.
 - La validacion de firma OPM ilegal se trata como criterio bloqueante: si crea un enlace, el script sale con codigo distinto de cero.
-- El reporte se genera automaticamente desde el mismo resumen JSON que alimenta las capturas, evitando divergencia entre \`docs/REPORTE-EJECUTIVO.md\` y \`app/test-results/in-vivo/_resumen.json\`.
+- El reporte se genera automaticamente desde el mismo resumen JSON que alimenta las capturas, evitando divergencia entre \`app/test-results/in-vivo/REPORTE-EJECUTIVO.md\` y \`app/test-results/in-vivo/_resumen.json\`.
 - Los PNG y \`_resumen.json\` quedan en \`app/test-results/in-vivo/\`, directorio ignorado por git como salida de prueba.
 
 ## 7. Reproduccion

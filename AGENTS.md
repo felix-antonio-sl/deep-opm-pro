@@ -8,7 +8,7 @@
   2. `assets/png/` (11 PNGs de UI) — copia trazable en `opm-extracted/assets/png/`
   3. `docs/JOYAS.md` (colores #70E483/#3BC3FF/#586D8C, dimensiones 135x60, tipografia Arial 14px semibold, patron wrapper+line 15px/2px, markers, routing, puertos, OPL)
   4. **`opm-extracted/`** (349 archivos OPM legibles + INDEX.md de 486 clases + MODULES.md + assets/INDEX.md). **Es la forma preferente de consultar la logica OPCloud**: ya esta refactorizado, indexado y trazable. Versionado.
-  5. `decompiled/` (810 modulos webpack, 91 MB, gitignored, regenerable) — usar solo si `opm-extracted/` no cubre algo. `rg "class Foo" decompiled` para implementacion exacta.
+  5. `decompiled/` (810 modulos webpack, 91 MB, gitignored, regenerable y no conservado por defecto) — usar solo si `opm-extracted/` no cubre algo; regenerar con `bash setup.sh` antes de consultarlo.
   6. `fixtures/` (7 grupos con modelos reales — cells JSON + OPL + screenshots como fixtures y validacion)
   7. `catalog/` (376 clases + mapeo modulo→clase) — superado por `opm-extracted/INDEX.md`, mantener como referencia historica.
   8. `config/` (rutas, Firebase, assets — como referencia de superficie funcional, no a copiar arquitectura)
@@ -26,6 +26,7 @@
 - Stack: Bun 1.3+, TypeScript strict, JointJS 3.7 core (sin Rappid), Preact 10 + Signals, Zustand 5, Vite 6, Playwright para evaluacion browser.
 - Lee `docs/HANDOFF.md` primero para estado, bloqueantes y pendientes; `docs/JOYAS.md` para hallazgos tecnicos validados; `docs/PROCEDIMIENTO.md` solo cuando necesites regenerar material extraido.
 - **Handoff unico del proyecto**: `docs/HANDOFF.md` es la unica memoria de traspaso vigente. No crear handoffs paralelos, fechados ni duplicados. Cuando se genere un handoff nuevo, debe reemplazar y consolidar el contenido previo dentro de `docs/HANDOFF.md`.
+- **Repo liviano por defecto**: no conservar en el workspace artefactos regenerables o efimeros (`_local/`, `decompiled/`, `app/dist/`, `app/test-results/`, `.claude/`). Las salidas visuales se regeneran bajo demanda y quedan ignoradas; no versionar reportes/capturas de prueba.
 - `bash setup.sh` es el unico comando de regeneracion; requiere `bash`, `curl` y `npx`/npm, descarga bundles de produccion, ejecuta `webcrack` y repuebla `decompiled/`, `_local/bundles/`, assets publicos, `webroot/index.html`, `webroot/favicon.ico` y `config/edx.config.json`.
 - No versionar ni usar como codigo fuente directo `decompiled/` o `_local/`; son material grande, gitignored, de OPCloud y regenerable.
 - **`opm-extracted/` SI se versiona**: es el derivado curado y trazable (~8 MiB, 349 archivos OPM legibles + 84 assets + 3 indices). Reemplaza `decompiled/` como referencia de lectura. Regenerable idempotentemente con `node opm-extracted/tools/{extract,refactor,build-index}.mjs`. **No copiar bloques 1:1 a `app/`**: el stack diverge (Preact != Angular, Zustand != Firebase, JointJS core != Rappid); `opm-extracted/` se usa para entender semantica OPM, no para clonar.
@@ -33,5 +34,5 @@
 - `config/firebase.json`, `config/routes.json` y `config/assets.json` son hechos curados extraidos; no asumas que `setup.sh` los refresca completos.
 - `fixtures/` es data observacional versionada del sandbox demo organizada por modelo; usala para inferir modelos, UI y OPL, no como fuente productiva completa.
 - Produccion sigue bloqueada por auth: no hay cuenta, HAR autenticado, schema Firestore, formato export ni backend code.
-- Para rastrear clases o comportamientos OPCloud, primero busca en `opm-extracted/INDEX.md` (486 clases mapeadas a archivo), o `rg "class AggregationLink" opm-extracted/src/`. Si la clase no aparece (caso muy raro), regenera `decompiled/` con `setup.sh` y busca alli con `rg`.
+- Para rastrear clases o comportamientos OPCloud, primero busca en `opm-extracted/INDEX.md` (486 clases mapeadas a archivo), o `rg "class AggregationLink" opm-extracted/src/`. Si la clase no aparece (caso muy raro), regenera `decompiled/` con `bash setup.sh` y busca alli con `rg`.
 - Cuando agregues software nuevo, mantenlo separado del material extraido/generado y actualiza este archivo con comandos reales de build, test y ejecucion apenas existan.
