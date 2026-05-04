@@ -67,11 +67,11 @@ export function crearModelo(nombre = "Modelo OPM"): Modelo {
   };
 }
 
-export function crearObjeto(modelo: Modelo, opdId: Id, posicion: Posicion, nombre = "Un Objeto"): Resultado<Modelo> {
+export function crearObjeto(modelo: Modelo, opdId: Id, posicion: Posicion, nombre = "Objeto"): Resultado<Modelo> {
   return crearEntidad(modelo, opdId, "objeto", posicion, nombre);
 }
 
-export function crearProceso(modelo: Modelo, opdId: Id, posicion: Posicion, nombre = "Un Proceso"): Resultado<Modelo> {
+export function crearProceso(modelo: Modelo, opdId: Id, posicion: Posicion, nombre = "Proceso"): Resultado<Modelo> {
   return crearEntidad(modelo, opdId, "proceso", posicion, nombre);
 }
 
@@ -473,7 +473,7 @@ function crearEntidad(
   const entidad: Entidad = {
     id: entidadId,
     tipo,
-    nombre: nombre.trim() || (tipo === "objeto" ? "Un Objeto" : "Un Proceso"),
+    nombre: nombre.trim() || (tipo === "objeto" ? "Objeto" : "Proceso"),
     esencia: "informacional",
     afiliacion: "sistemica",
   };
