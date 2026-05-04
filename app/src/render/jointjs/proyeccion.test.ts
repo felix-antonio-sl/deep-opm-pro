@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
-import { cambiarEsencia, crearEnlace, crearModelo, crearObjeto, crearProceso, descomponerProceso } from "../../modelo/operaciones";
-import type { Modelo, Resultado, TipoEnlace } from "../../modelo/tipos";
+import { cambiarEsencia, crearEnlace, crearModelo, crearObjeto, crearProceso, descomponerProceso, desplegarObjeto } from "../../modelo/operaciones";
+import { cambiarModoPlegado } from "../../modelo/plegado";
+import type { Apariencia, Modelo, Resultado, TipoEnlace } from "../../modelo/tipos";
 import { LINK_ASSETS } from "./linkAssets";
 import { proyectarModeloAJointCells } from "./proyeccion";
 
@@ -157,6 +158,40 @@ describe("proyeccion JointJS", () => {
     expect(contorno?.z).toBe(0);
     expect(contenido?.z).toBe(10);
   });
+
+  test("proyecta badge de partes en plegado completo", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 80, y: 90 }, "Vehiculo"));
+    const objetoId = entidadPorNombre(modelo, "Vehiculo");
+    modelo = must(desplegarObjeto(modelo, modelo.opdRaizId, objetoId)).modelo;
+
+    const cell = proyectarModeloAJointCells(modelo, modelo.opdRaizId, null, null)
+      .find((item) => item.opm.kind === "entidad" && item.opm.entidadId === objetoId);
+    const attrs = cell?.attrs as Attrs | undefined;
+
+    expect((attrs?.foldBadge as Attrs | undefined)?.text).toBe("▾");
+    expect((cell?.markup as Array<Attrs> | undefined)?.some((item) => item.selector === "foldBadge")).toBe(true);
+  });
+
+  test("proyecta plegado parcial como filas internas sin agregar celdas de partes al OPD padre", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 80, y: 90 }, "Vehiculo"));
+    const objetoId = entidadPorNombre(modelo, "Vehiculo");
+    modelo = must(desplegarObjeto(modelo, modelo.opdRaizId, objetoId)).modelo;
+    const apariencia = aparienciaDeEntidad(modelo, modelo.opdRaizId, objetoId);
+    modelo = must(cambiarModoPlegado(modelo, modelo.opdRaizId, apariencia.id, "parcial"));
+
+    const cells = proyectarModeloAJointCells(modelo, modelo.opdRaizId, null, null);
+    const cell = cells.find((item) => item.opm.kind === "entidad" && item.opm.entidadId === objetoId);
+    const attrs = cell?.attrs as Attrs | undefined;
+
+    expect(cells.filter((item) => item.opm.kind === "entidad")).toHaveLength(1);
+    expect((cell?.size as { height?: number } | undefined)?.height).toBeGreaterThan(60);
+    expect((attrs?.partLabel0 as Attrs | undefined)?.text).toBe("Vehiculo parte 1");
+    expect((attrs?.partLabel1 as Attrs | undefined)?.text).toBe("Vehiculo parte 2");
+    expect((attrs?.partLabel2 as Attrs | undefined)?.text).toBe("Vehiculo parte 3");
+    expect((cell?.markup as Array<Attrs> | undefined)?.some((item) => item.selector === "foldBadge")).toBe(false);
+  });
 });
 
 type Attrs = Record<string, unknown>;
@@ -193,6 +228,13 @@ function entidadPorNombre(modelo: Modelo, nombre: string): string {
   expect(entidad).toBeDefined();
   if (!entidad) throw new Error(`Entidad no encontrada: ${nombre}`);
   return entidad.id;
+}
+
+function aparienciaDeEntidad(modelo: Modelo, opdId: string, entidadId: string): Apariencia {
+  const apariencia = Object.values(modelo.opds[opdId]?.apariencias ?? {}).find((item) => item.entidadId === entidadId);
+  expect(apariencia).toBeDefined();
+  if (!apariencia) throw new Error(`Apariencia no encontrada: ${entidadId}`);
+  return apariencia;
 }
 
 function must<T>(resultado: Resultado<T>): T {

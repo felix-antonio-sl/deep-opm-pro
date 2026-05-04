@@ -134,9 +134,9 @@ test("despliega objeto y navega al OPD hijo", async ({ page }) => {
 
   await page.goto("/");
   await page.getByRole("button", { name: "Objeto" }).click();
-  await expect(page.getByRole("button", { name: "Desplegar" })).toBeVisible();
+  await expect(page.getByText("Desplegar como...")).toBeVisible();
 
-  await page.getByRole("button", { name: "Desplegar" }).click();
+  await desplegarComoAgregacion(page);
 
   const nodoHijo = page.locator('[role="treeitem"]').filter({ hasText: "SD1: Un Objeto desplegado" });
   await expect(nodoHijo).toHaveAttribute("aria-current", "page");
@@ -167,6 +167,48 @@ test("despliega objeto y navega al OPD hijo", async ({ page }) => {
   expect(Object.values(exportadoSinDespliegue.modelo.enlaces)).toHaveLength(0);
 
   await page.screenshot({ path: "test-results/opm-despliegue-opd-hijo.png", fullPage: true });
+  expect(pageErrors).toEqual([]);
+});
+
+test("activa plegado parcial desde Inspector y persiste la vista compacta", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await page.getByRole("button", { name: "Objeto" }).click();
+  await desplegarComoAgregacion(page);
+  await page.locator('[role="treeitem"][data-opd-id="opd-1"]').click();
+  await expect(page.locator(".joint-element")).toHaveCount(1);
+  await elementoPorTexto(page, "Un Objeto").click();
+
+  await expect(page.getByRole("button", { name: "Plegado parcial" })).toBeVisible();
+  await page.getByRole("button", { name: "Plegado parcial" }).click();
+
+  await expect(page.locator(".joint-element")).toHaveCount(1);
+  await expect(elementoPorTexto(page, "Un Objeto parte 1")).toHaveCount(1);
+  await expect(elementoPorTexto(page, "Un Objeto parte 2")).toHaveCount(1);
+  await expect(elementoPorTexto(page, "Un Objeto parte 3")).toHaveCount(1);
+  await expect(page.getByRole("button", { name: "Plegado completo" })).toBeVisible();
+
+  await page.getByRole("button", { name: "Exportar" }).click();
+  const json = await page.locator("textarea").inputValue();
+  const exportado = JSON.parse(json) as ExportadoModelo;
+  const objeto = Object.values(exportado.modelo.entidades).find((entidad) => entidad.nombre === "Un Objeto");
+  if (!objeto?.refinamiento) throw new Error("No se exporto despliegue del objeto");
+  const aparienciaPadre = Object.values(exportado.modelo.opds[exportado.modelo.opdRaizId]?.apariencias ?? {})
+    .find((apariencia) => apariencia.entidadId === objeto.id);
+  expect(aparienciaPadre?.modoPlegado).toBe("parcial");
+  expect(Object.values(exportado.modelo.opds[objeto.refinamiento.opdId]?.apariencias ?? {})).toHaveLength(4);
+
+  await page.keyboard.press("Control+S");
+  await expect(page.getByText("Modelo guardado exitosamente")).toBeVisible();
+  await page.getByRole("button", { name: "Nuevo" }).click();
+  await page.getByRole("button", { name: "Cargar" }).first().click();
+  await expect(elementoPorTexto(page, "Un Objeto parte 1")).toHaveCount(1);
+  await elementoPorTexto(page, "Un Objeto").click();
+  await expect(page.getByRole("button", { name: "Plegado completo" })).toBeVisible();
+
+  await page.screenshot({ path: "test-results/opm-plegado-parcial.png", fullPage: true });
   expect(pageErrors).toEqual([]);
 });
 
@@ -439,6 +481,11 @@ async function clickCentroLink(page: import("@playwright/test").Page): Promise<v
   await page.mouse.click(punto.x, punto.y);
 }
 
+async function desplegarComoAgregacion(page: import("@playwright/test").Page): Promise<void> {
+  await page.getByText("Desplegar como...").click();
+  await page.getByRole("button", { name: "Como partes (agregación)" }).click();
+}
+
 async function assertWorkbenchLayout(page: import("@playwright/test").Page): Promise<void> {
   const tree = await rectDeLocator(page.getByTestId("tree-pane"));
   const canvas = await rectDeLocator(page.getByTestId("canvas-pane"));
@@ -645,7 +692,7 @@ interface ExportadoModelo {
       string,
       {
         padreId: string | null;
-        apariencias: Record<string, { entidadId: string; x: number; y: number; width: number; height: number }>;
+        apariencias: Record<string, { entidadId: string; x: number; y: number; width: number; height: number; modoPlegado?: string }>;
         enlaces: Record<string, { enlaceId: string; vertices: Array<{ x: number; y: number }> }>;
       }
     >;
