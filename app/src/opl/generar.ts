@@ -106,41 +106,71 @@ function oracionEnlace(modelo: Modelo, enlace: Enlace): string | null {
   const destino = modelo.entidades[enlace.destinoId];
   if (!origen || !destino) return null;
 
-  const origenOpl = nombreOpl(origen);
-  const destinoOpl = nombreOpl(destino);
+  const origenOpl = nombreOplConMultiplicidad(origen, enlace.multiplicidadOrigen);
+  const destinoOpl = nombreOplConMultiplicidad(destino, enlace.multiplicidadDestino);
+  const origenPlural = multiplicidadPlural(enlace.multiplicidadOrigen);
+  const destinoPlural = multiplicidadPlural(enlace.multiplicidadDestino);
 
   switch (enlace.tipo) {
     case "agregacion":
-      return `${origenOpl} consta de ${destinoOpl}.`;
+      return `${origenOpl} ${verbo("consta", "constan", origenPlural)} de ${destinoOpl}.`;
     case "exhibicion":
-      return `${origenOpl} exhibe ${destinoOpl}.`;
+      return `${origenOpl} ${verbo("exhibe", "exhiben", origenPlural)} ${destinoOpl}.`;
     case "generalizacion":
-      return `${destinoOpl} es un ${origenOpl}.`;
+      return destinoPlural ? `${destinoOpl} son ${origenOpl}.` : `${destinoOpl} es un ${origenOpl}.`;
     case "clasificacion":
-      return `${destinoOpl} es una instancia de ${origenOpl}.`;
+      return destinoPlural ? `${destinoOpl} son instancias de ${origenOpl}.` : `${destinoOpl} es una instancia de ${origenOpl}.`;
     case "agente":
-      return `${origenOpl} maneja ${destinoOpl}.`;
+      return `${origenOpl} ${verbo("maneja", "manejan", origenPlural)} ${destinoOpl}.`;
     case "instrumento":
-      return `${destinoOpl} requiere ${origenOpl}.`;
+      return `${destinoOpl} ${verbo("requiere", "requieren", destinoPlural)} ${origenOpl}.`;
     case "consumo":
-      return `${destinoOpl} consume ${origenOpl}.`;
+      return `${destinoOpl} ${verbo("consume", "consumen", destinoPlural)} ${origenOpl}.`;
     case "resultado":
-      return `${origenOpl} genera ${destinoOpl}.`;
+      return `${origenOpl} ${verbo("genera", "generan", origenPlural)} ${destinoOpl}.`;
     case "efecto":
-      return oracionEfecto(origen, destino);
+      return oracionEfecto(enlace, origen, destino);
     case "invocacion":
-      return `${origenOpl} invoca ${destinoOpl}.`;
+      return `${origenOpl} ${verbo("invoca", "invocan", origenPlural)} ${destinoOpl}.`;
   }
 }
 
-function oracionEfecto(origen: Entidad, destino: Entidad): string | null {
+function oracionEfecto(enlace: Enlace, origen: Entidad, destino: Entidad): string | null {
   const proceso = origen.tipo === "proceso" ? origen : destino.tipo === "proceso" ? destino : null;
   const objeto = origen.tipo === "objeto" ? origen : destino.tipo === "objeto" ? destino : null;
-  return proceso && objeto ? `${nombreOpl(proceso)} afecta ${nombreOpl(objeto)}.` : null;
+  if (!proceso || !objeto) return null;
+  const multiplicidadProceso = proceso.id === enlace.origenId ? enlace.multiplicidadOrigen : enlace.multiplicidadDestino;
+  const multiplicidadObjeto = objeto.id === enlace.origenId ? enlace.multiplicidadOrigen : enlace.multiplicidadDestino;
+  return `${nombreOplConMultiplicidad(proceso, multiplicidadProceso)} ${verbo("afecta", "afectan", multiplicidadPlural(multiplicidadProceso))} ${nombreOplConMultiplicidad(objeto, multiplicidadObjeto)}.`;
 }
 
 function nombreOpl(entidad: Entidad): string {
   return entidad.tipo === "objeto" ? `**${entidad.nombre}**` : `*${entidad.nombre}*`;
+}
+
+function nombreOplConMultiplicidad(entidad: Entidad, multiplicidad: string | undefined): string {
+  const nombre = multiplicidadPlural(multiplicidad) ? pluralizarCanonico(entidad.nombre) : entidad.nombre;
+  const token = entidad.tipo === "objeto" ? `**${nombre}**` : `*${nombre}*`;
+  return multiplicidad ? `${multiplicidad} ${token}` : token;
+}
+
+function pluralizarCanonico(texto: string): string {
+  if (/z$/i.test(texto)) return `${texto.slice(0, -1)}ces`;
+  if (/[aeiou]$/i.test(texto)) return `${texto}s`;
+  return `${texto}es`;
+}
+
+function multiplicidadPlural(multiplicidad: string | undefined): boolean {
+  if (!multiplicidad) return false;
+  if (multiplicidad === "*") return true;
+  if (/^\d+$/.test(multiplicidad)) return Number(multiplicidad) !== 1;
+  if (multiplicidad.endsWith("..N")) return true;
+  const [, max] = multiplicidad.split("..");
+  return Number(max) !== 1;
+}
+
+function verbo(singular: string, plural: string, usarPlural: boolean): string {
+  return usarPlural ? plural : singular;
 }
 
 function listarOpl(items: string[]): string {
