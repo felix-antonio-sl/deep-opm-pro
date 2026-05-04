@@ -1,8 +1,10 @@
+import { modoPlegadoApariencia, partesDePlegado } from "../modelo/plegado";
 import { useOpmStore } from "../store";
 import { PersistenciaJson } from "./PersistenciaJson";
 
 export function Inspector() {
   const modelo = useOpmStore((s) => s.modelo);
+  const opdActivoId = useOpmStore((s) => s.opdActivoId);
   const seleccionId = useOpmStore((s) => s.seleccionId);
   const enlaceSeleccionId = useOpmStore((s) => s.enlaceSeleccionId);
   const renombrar = useOpmStore((s) => s.renombrarSeleccionada);
@@ -12,9 +14,15 @@ export function Inspector() {
   const desplegar = useOpmStore((s) => s.desplegarSeleccionada);
   const quitarDescomposicion = useOpmStore((s) => s.quitarDescomposicionSeleccionada);
   const quitarDespliegue = useOpmStore((s) => s.quitarDespliegueSeleccionado);
+  const cambiarModoPlegado = useOpmStore((s) => s.cambiarModoPlegadoSeleccionado);
   const eliminar = useOpmStore((s) => s.eliminarSeleccion);
   const entidad = seleccionId ? modelo.entidades[seleccionId] : undefined;
   const enlace = enlaceSeleccionId ? modelo.enlaces[enlaceSeleccionId] : undefined;
+  const aparienciaActiva = entidad
+    ? Object.values(modelo.opds[opdActivoId]?.apariencias ?? {}).find((apariencia) => apariencia.entidadId === entidad.id)
+    : undefined;
+  const partesPlegables = entidad ? partesDePlegado(modelo, entidad.id) : [];
+  const modoPlegado = aparienciaActiva ? modoPlegadoApariencia(aparienciaActiva) : "completo";
 
   if (!entidad) {
     if (enlace) {
@@ -123,6 +131,17 @@ export function Inspector() {
             </button>
           ) : null}
         </>
+      ) : null}
+
+      {partesPlegables.length > 0 && aparienciaActiva ? (
+        <button
+          type="button"
+          style={style.secondaryButton}
+          onClick={() => cambiarModoPlegado(modoPlegado === "parcial" ? "completo" : "parcial")}
+          title="Alternar vista compacta intra-rectángulo sin abrir ni destruir el OPD hijo"
+        >
+          {modoPlegado === "parcial" ? "Plegado completo" : "Plegado parcial"}
+        </button>
       ) : null}
 
       <button type="button" style={style.dangerButton} onClick={eliminar}>Eliminar entidad</button>

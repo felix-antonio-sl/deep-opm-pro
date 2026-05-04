@@ -19,6 +19,7 @@ import {
   quitarDespliegueObjeto,
   renombrarEntidad,
 } from "./modelo/operaciones";
+import { cambiarModoPlegado as cambiarModoPlegadoOp } from "./modelo/plegado";
 import {
   borrarModeloLocal,
   cargarModeloLocal,
@@ -27,7 +28,7 @@ import {
   type ResumenModeloPersistido,
 } from "./persistencia/local";
 import { exportarModelo, hidratarModelo } from "./serializacion/json";
-import type { Afiliacion, Apariencia, Esencia, Id, Modelo, Posicion, TipoEnlace } from "./modelo/tipos";
+import type { Afiliacion, Apariencia, Esencia, Id, Modelo, ModoPlegado, Posicion, TipoEnlace } from "./modelo/tipos";
 
 interface ModoEnlace {
   tipo: TipoEnlace;
@@ -64,6 +65,8 @@ interface OpmStore {
   renombrarSeleccionada: (nombre: string) => void;
   fijarEsenciaSeleccionada: (esencia: Esencia) => void;
   fijarAfiliacionSeleccionada: (afiliacion: Afiliacion) => void;
+  cambiarModoPlegadoSeleccionado: (modo: ModoPlegado) => void;
+  cambiarModoPlegadoApariencia: (aparienciaId: Id, modo: ModoPlegado) => void;
   moverEntidad: (id: Id, x: number, y: number) => void;
   moverApariencia: (aparienciaId: Id, x: number, y: number) => void;
   reordenarSubprocesoEnTimeline: (opdId: Id, aparienciaId: Id, nuevaY: number) => void;
@@ -340,6 +343,39 @@ export const store = createStore<OpmStore>((set, get) => ({
     if (!seleccionId) return;
     const resultado = cambiarAfiliacion(modelo, seleccionId, afiliacion);
     if (resultado.ok) commitModelo(set, modelo, resultado.value, { mensaje: null });
+  },
+
+  cambiarModoPlegadoSeleccionado(modo) {
+    const { modelo, opdActivoId, seleccionId } = get();
+    if (!seleccionId) return;
+    const apariencia = Object.values(modelo.opds[opdActivoId]?.apariencias ?? {})
+      .find((item) => item.entidadId === seleccionId);
+    if (!apariencia) {
+      set({ mensaje: "La entidad seleccionada no tiene apariencia en el OPD activo" });
+      return;
+    }
+    const resultado = cambiarModoPlegadoOp(modelo, opdActivoId, apariencia.id, modo);
+    if (!resultado.ok) {
+      set({ mensaje: resultado.error });
+      return;
+    }
+    commitModelo(set, modelo, resultado.value, { seleccionId, enlaceSeleccionId: null, modoEnlace: null, mensaje: null });
+  },
+
+  cambiarModoPlegadoApariencia(aparienciaId, modo) {
+    const { modelo, opdActivoId } = get();
+    const resultado = cambiarModoPlegadoOp(modelo, opdActivoId, aparienciaId, modo);
+    if (!resultado.ok) {
+      set({ mensaje: resultado.error });
+      return;
+    }
+    const apariencia = modelo.opds[opdActivoId]?.apariencias[aparienciaId];
+    commitModelo(set, modelo, resultado.value, {
+      seleccionId: apariencia?.entidadId ?? null,
+      enlaceSeleccionId: null,
+      modoEnlace: null,
+      mensaje: null,
+    });
   },
 
   moverEntidad(id, x, y) {
