@@ -3,6 +3,126 @@ import { cambiarEsencia, crearEnlace, crearModelo, crearObjeto, crearProceso, de
 import type { Modelo, Resultado } from "../modelo/tipos";
 import { generarOpl } from "./generar";
 
+describe("OPL-ES — tipos de enlace canonicos", () => {
+  test("agregacion emite consta de", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 0, y: 0 }, "Todo"));
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 180, y: 0 }, "Parte"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidad(modelo, "Todo"), entidad(modelo, "Parte"), "agregacion"));
+
+    expect(generarOpl(modelo)).toContain("**Todo** consta de **Parte**.");
+  });
+
+  test("agente emite maneja", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 0, y: 0 }, "Operador"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 200, y: 0 }, "Rescatar"));
+    modelo = must(cambiarEsencia(modelo, entidad(modelo, "Operador"), "fisica"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidad(modelo, "Operador"), entidad(modelo, "Rescatar"), "agente"));
+
+    expect(generarOpl(modelo)).toContain("**Operador** maneja *Rescatar*.");
+  });
+
+  test("instrumento emite requiere", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 0, y: 0 }, "Volante"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 200, y: 0 }, "Conducir"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidad(modelo, "Volante"), entidad(modelo, "Conducir"), "instrumento"));
+
+    expect(generarOpl(modelo)).toContain("*Conducir* requiere **Volante**.");
+  });
+
+  test("consumo emite consume", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 0, y: 0 }, "Ingrediente"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 200, y: 0 }, "Cocinar"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidad(modelo, "Ingrediente"), entidad(modelo, "Cocinar"), "consumo"));
+
+    expect(generarOpl(modelo)).toContain("*Cocinar* consume **Ingrediente**.");
+  });
+
+  test("resultado emite genera", () => {
+    let modelo = crearModelo();
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 0, y: 0 }, "Cocinar"));
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 200, y: 0 }, "Plato"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidad(modelo, "Cocinar"), entidad(modelo, "Plato"), "resultado"));
+
+    expect(generarOpl(modelo)).toContain("*Cocinar* genera **Plato**.");
+  });
+
+  test("efecto emite afecta", () => {
+    let modelo = crearModelo();
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 0, y: 0 }, "Calentar"));
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 200, y: 0 }, "Agua"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidad(modelo, "Calentar"), entidad(modelo, "Agua"), "efecto"));
+
+    expect(generarOpl(modelo)).toContain("*Calentar* afecta **Agua**.");
+  });
+
+  test("invocacion emite invoca", () => {
+    let modelo = crearModelo();
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 0, y: 0 }, "Preparar"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 200, y: 0 }, "Servir"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidad(modelo, "Preparar"), entidad(modelo, "Servir"), "invocacion"));
+
+    expect(generarOpl(modelo)).toContain("*Preparar* invoca *Servir*.");
+  });
+});
+
+describe("OPL-ES — refinamiento", () => {
+  test("descomposicion de proceso emite secuencia ordenada por y", () => {
+    let modelo = crearModelo();
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 200, y: 120 }, "Atender Paciente"));
+    const descompuesto = must(descomponerProceso(modelo, modelo.opdRaizId, entidad(modelo, "Atender Paciente")));
+    modelo = descompuesto.modelo;
+
+    expect(generarOpl(modelo, modelo.opdRaizId)).toContain("*Atender Paciente* se descompone en *Atender Paciente 1*, *Atender Paciente 2* y *Atender Paciente 3*, en esa secuencia.");
+  });
+
+  test("despliegue de objeto emite se despliega en partes", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 200, y: 120 }, "Vehiculo"));
+    const desplegado = must(desplegarObjeto(modelo, modelo.opdRaizId, entidad(modelo, "Vehiculo")));
+    modelo = desplegado.modelo;
+
+    expect(generarOpl(modelo, modelo.opdRaizId)).toContain("**Vehiculo** se despliega en **Vehiculo parte 1**, **Vehiculo parte 2** y **Vehiculo parte 3**.");
+  });
+});
+
+describe("OPL-ES — bordes", () => {
+  test("modelo vacio produce OPL vacio", () => {
+    expect(generarOpl(crearModelo())).toEqual([]);
+  });
+
+  test("OPD activo distinto al raiz filtra oraciones por OPD", () => {
+    let modelo = crearModelo();
+    modelo = {
+      ...modelo,
+      opds: {
+        ...modelo.opds,
+        "opd-2": {
+          id: "opd-2",
+          nombre: "SD1",
+          padreId: modelo.opdRaizId,
+          apariencias: {},
+          enlaces: {},
+        },
+      },
+    };
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 0, y: 0 }, "Raiz"));
+    modelo = must(crearProceso(modelo, "opd-2", { x: 0, y: 0 }, "Hijo"));
+
+    expect(generarOpl(modelo, "opd-2")).toEqual(["*Hijo* es un proceso informacional y sistémico."]);
+  });
+
+  test("entidad sin enlaces conserva su declaracion", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 0, y: 0 }, "Nodo"));
+
+    expect(generarOpl(modelo)).toEqual(["**Nodo** es un objeto informacional y sistémico."]);
+  });
+});
+
 describe("generarOpl", () => {
   test("genera OPL para cosas y agente", () => {
     let modelo = crearModelo();
