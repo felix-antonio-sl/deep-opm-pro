@@ -1,4 +1,5 @@
 import { CANON } from "../../modelo/constantes";
+import { modoPlegadoApariencia, partesDePlegado, type PartePlegada } from "../../modelo/plegado";
 import type { Apariencia, Enlace, Entidad, Id, Modelo, Posicion, TipoEnlace } from "../../modelo/tipos";
 import { LINK_ASSETS } from "./linkAssets";
 
@@ -38,7 +39,7 @@ export function proyectarModeloAJointCells(
   const aparienciaPorEntidad = new Map(apariencias.map((apariencia) => [apariencia.entidadId, apariencia]));
   const elementos = apariencias.flatMap((apariencia) => {
     const entidad = modelo.entidades[apariencia.entidadId];
-    return entidad ? [proyectarEntidad(opdId, apariencia, entidad, entidad.id === seleccionEntidadId)] : [];
+    return entidad ? [proyectarEntidad(modelo, opdId, apariencia, entidad, entidad.id === seleccionEntidadId)] : [];
   });
   const enlaces = Object.values(opd.enlaces).flatMap((aparienciaEnlace) => {
     const enlace = modelo.enlaces[aparienciaEnlace.enlaceId];
@@ -54,12 +55,17 @@ export function proyectarModeloAJointCells(
   return [...enlaces, ...elementos];
 }
 
-function proyectarEntidad(opdId: Id, apariencia: Apariencia, entidad: Entidad, seleccionada: boolean): JointCellJson {
+function proyectarEntidad(modelo: Modelo, opdId: Id, apariencia: Apariencia, entidad: Entidad, seleccionada: boolean): JointCellJson {
   const stroke = entidad.tipo === "objeto" ? CANON.colores.objeto : CANON.colores.proceso;
+  const partes = partesDePlegado(modelo, entidad.id);
+  const tienePartes = partes.length > 0;
+  const modoParcial = modoPlegadoApariencia(apariencia) === "parcial" && tienePartes;
   const refinada = !!entidad.refinamiento;
   const contornoRefinamiento = refinada && entidad.refinamiento?.opdId === opdId;
+  const size = modoParcial ? dimensionesPlegadoParcial(apariencia, entidad.nombre, partes) : { width: apariencia.width, height: apariencia.height };
   const strokeBase = refinada ? 4 : CANON.dims.enlaceVisible;
   const strokeWidth = seleccionada ? strokeBase + 2 : strokeBase;
+  const bodyTag = entidad.tipo === "objeto" ? "rect" : "ellipse";
   const body = {
     fill: CANON.colores.relleno,
     stroke,
@@ -68,27 +74,32 @@ function proyectarEntidad(opdId: Id, apariencia: Apariencia, entidad: Entidad, s
     filter: entidad.esencia === "fisica" ? "drop-shadow(1px 2px 2px rgb(0 0 0 / 0.25))" : undefined,
     cursor: "pointer",
   };
+  const attrsBase = {
+    body: entidad.tipo === "objeto"
+      ? { ...body, width: size.width, height: size.height, rx: 4, ry: 4 }
+      : { ...body, cx: size.width / 2, cy: size.height / 2, rx: size.width / 2, ry: size.height / 2 },
+    label: {
+      text: entidad.nombre,
+      fill: CANON.colores.texto,
+      fontFamily: CANON.dims.fontFamily,
+      fontSize: CANON.dims.fontSize,
+      fontWeight: CANON.dims.fontWeight,
+      textWrap: { width: -12 },
+      refY: contornoRefinamiento || modoParcial ? "8%" : "50%",
+      textVerticalAnchor: contornoRefinamiento || modoParcial ? "top" : "middle",
+      textAnchor: "middle",
+      pointerEvents: "none",
+    },
+  };
 
   return {
     id: apariencia.id,
     type: entidad.tipo === "objeto" ? "standard.Rectangle" : "standard.Ellipse",
     position: { x: apariencia.x, y: apariencia.y },
-    size: { width: apariencia.width, height: apariencia.height },
-    attrs: {
-      body: entidad.tipo === "objeto" ? { ...body, rx: 4, ry: 4 } : body,
-      label: {
-        text: entidad.nombre,
-        fill: CANON.colores.texto,
-        fontFamily: CANON.dims.fontFamily,
-        fontSize: CANON.dims.fontSize,
-        fontWeight: CANON.dims.fontWeight,
-        textWrap: { width: -12 },
-        refY: contornoRefinamiento ? "8%" : "50%",
-        textVerticalAnchor: contornoRefinamiento ? "top" : "middle",
-        textAnchor: "middle",
-        pointerEvents: "none",
-      },
-    },
+    size,
+    ...(modoParcial ? { markup: markupPlegadoParcial(bodyTag, partes), attrs: attrsPlegadoParcial(attrsBase, size, partes) } : {
+      ...(tienePartes ? { markup: markupConBadge(bodyTag), attrs: attrsConBadge(attrsBase, size) } : { attrs: attrsBase }),
+    }),
     opm: {
       kind: "entidad",
       opdId,
@@ -97,6 +108,96 @@ function proyectarEntidad(opdId: Id, apariencia: Apariencia, entidad: Entidad, s
     },
     z: contornoRefinamiento ? 0 : 10,
   };
+}
+
+function dimensionesPlegadoParcial(apariencia: Apariencia, nombrePadre: string, partes: PartePlegada[]): { width: number; height: number } {
+  const textoMasLargo = [nombrePadre, ...partes.map((parte) => parte.nombre)]
+    .reduce((max, texto) => Math.max(max, texto.length), 0);
+  const width = Math.max(apariencia.width, CANON.dims.cosaWidth, textoMasLargo * 7 + 36);
+  const height = Math.max(apariencia.height, PLEGADO.headerHeight + partes.length * PLEGADO.rowHeight + PLEGADO.paddingBottom);
+  return { width, height };
+}
+
+function markupConBadge(bodyTag: "rect" | "ellipse"): Array<Record<string, unknown>> {
+  return [
+    { tagName: bodyTag, selector: "body" },
+    { tagName: "text", selector: "label" },
+    { tagName: "text", selector: "foldBadge" },
+  ];
+}
+
+function markupPlegadoParcial(bodyTag: "rect" | "ellipse", partes: PartePlegada[]): Array<Record<string, unknown>> {
+  const rows = partes.flatMap((_, index) => [
+    { tagName: "line", selector: `partSeparator${index}` },
+    { tagName: "text", selector: `partLabel${index}` },
+  ]);
+  return [
+    { tagName: bodyTag, selector: "body" },
+    { tagName: "text", selector: "label" },
+    ...rows,
+  ];
+}
+
+function attrsConBadge(
+  attrsBase: Record<string, unknown>,
+  size: { width: number; height: number },
+): Record<string, unknown> {
+  return {
+    ...attrsBase,
+    foldBadge: {
+      text: "▾",
+      x: size.width - 14,
+      y: 17,
+      fill: CANON.colores.enlace,
+      fontFamily: CANON.dims.fontFamily,
+      fontSize: 16,
+      fontWeight: 700,
+      textAnchor: "middle",
+      textVerticalAnchor: "middle",
+      cursor: "pointer",
+      title: "Plegado parcial",
+    },
+  };
+}
+
+function attrsPlegadoParcial(
+  attrsBase: Record<string, unknown>,
+  size: { width: number; height: number },
+  partes: PartePlegada[],
+): Record<string, unknown> {
+  const attrs: Record<string, unknown> = {
+    ...attrsBase,
+    label: {
+      ...(attrsBase.label as Record<string, unknown>),
+      textWrap: { width: size.width - 24 },
+    },
+  };
+  for (const [index, parte] of partes.entries()) {
+    const y = PLEGADO.headerHeight + index * PLEGADO.rowHeight;
+    attrs[`partSeparator${index}`] = {
+      x1: 12,
+      x2: size.width - 12,
+      y1: y,
+      y2: y,
+      stroke: "#d9e0ea",
+      strokeWidth: 1,
+      pointerEvents: "none",
+    };
+    attrs[`partLabel${index}`] = {
+      text: parte.nombre,
+      x: size.width / 2,
+      y: y + PLEGADO.rowHeight / 2,
+      fill: CANON.colores.texto,
+      fontFamily: CANON.dims.fontFamily,
+      fontSize: 12,
+      fontWeight: CANON.dims.fontWeight,
+      textAnchor: "middle",
+      textVerticalAnchor: "middle",
+      textWrap: { width: size.width - 24, height: PLEGADO.rowHeight - 4 },
+      pointerEvents: "none",
+    };
+  }
+  return attrs;
 }
 
 function proyectarEnlace(
@@ -323,3 +424,9 @@ function puntoZigzag(source: Posicion, dx: number, dy: number, px: number, py: n
 function markerAttrs(marker: Record<string, unknown>): Record<string, unknown> {
   return { ...marker };
 }
+
+const PLEGADO = {
+  headerHeight: 38,
+  rowHeight: 25,
+  paddingBottom: 10,
+} as const;

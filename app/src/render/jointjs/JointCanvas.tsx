@@ -26,6 +26,8 @@ export function JointCanvas() {
   const seleccionarEnlaceRef = useRef(seleccionarEnlace);
   const moverApariencia = useOpmStore((s) => s.moverApariencia);
   const moverAparienciaRef = useRef(moverApariencia);
+  const cambiarModoPlegadoApariencia = useOpmStore((s) => s.cambiarModoPlegadoApariencia);
+  const cambiarModoPlegadoAparienciaRef = useRef(cambiarModoPlegadoApariencia);
   const actualizarVerticesEnlace = useOpmStore((s) => s.actualizarVerticesEnlace);
   const actualizarVerticesEnlaceRef = useRef(actualizarVerticesEnlace);
 
@@ -41,8 +43,9 @@ export function JointCanvas() {
     seleccionarEntidadRef.current = seleccionarEntidad;
     seleccionarEnlaceRef.current = seleccionarEnlace;
     moverAparienciaRef.current = moverApariencia;
+    cambiarModoPlegadoAparienciaRef.current = cambiarModoPlegadoApariencia;
     actualizarVerticesEnlaceRef.current = actualizarVerticesEnlace;
-  }, [actualizarVerticesEnlace, moverApariencia, seleccionarEnlace, seleccionarEntidad]);
+  }, [actualizarVerticesEnlace, cambiarModoPlegadoApariencia, moverApariencia, seleccionarEnlace, seleccionarEntidad]);
 
   useEffect(() => {
     if (!paperHostRef.current) return;
@@ -89,7 +92,13 @@ export function JointCanvas() {
     paper.on("element:pointerclick", (elementView: dia.ElementView, evt: dia.Event) => {
       evt.stopPropagation();
       const meta = metadata(cellViewModel(elementView));
-      if (meta?.kind === "entidad") seleccionarEntidadRef.current(meta.entidadId);
+      if (meta?.kind === "entidad") {
+        if (jointSelector(evt.target) === "foldBadge") {
+          cambiarModoPlegadoAparienciaRef.current(meta.aparienciaId, "parcial");
+          return;
+        }
+        seleccionarEntidadRef.current(meta.entidadId);
+      }
       if (meta?.kind === "enlace") seleccionarEnlaceRef.current(meta.enlaceId);
     });
 
@@ -188,6 +197,10 @@ function cellViewModel(cellView: dia.CellView): dia.Cell {
 
 function graphEvents(graph: dia.Graph): { on(eventName: string, callback: (cell: dia.Cell) => void): void } {
   return graph as unknown as { on(eventName: string, callback: (cell: dia.Cell) => void): void };
+}
+
+function jointSelector(target: EventTarget | null): string | null {
+  return target instanceof Element ? target.getAttribute("joint-selector") : null;
 }
 
 function paperView(paper: dia.Paper): { remove(): void } {
