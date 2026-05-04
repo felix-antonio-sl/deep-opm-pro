@@ -29,6 +29,10 @@ export interface DespliegueObjeto {
   modo: ModoDespliegueObjeto;
 }
 
+export type LadoMultiplicidadEnlace = "origen" | "destino";
+
+const MULTIPLICIDAD_CANONICA_RE = /^\d+$|^\*$|^\d+\.\.\d+$|^\d+\.\.N$/;
+
 const INZOOM = {
   subprocesosIniciales: 3,
   paddingSuperior: 100,
@@ -341,6 +345,41 @@ export function actualizarVerticesEnlace(
           [aparienciaEnlaceId]: { ...apariencia, vertices: normalizados },
         },
       },
+    },
+  });
+}
+
+export function validarMultiplicidad(texto: string): boolean {
+  return MULTIPLICIDAD_CANONICA_RE.test(texto);
+}
+
+export function ajustarMultiplicidad(
+  modelo: Modelo,
+  enlaceId: Id,
+  lado: LadoMultiplicidadEnlace,
+  texto: string,
+): Resultado<Modelo> {
+  const enlace = modelo.enlaces[enlaceId];
+  if (!enlace) return fallo(`Enlace no existe: ${enlaceId}`);
+  if (texto !== "" && !validarMultiplicidad(texto)) {
+    return fallo("Multiplicidad inválida: usa 1, *, 2..N o 1..5");
+  }
+
+  const campo = lado === "origen" ? "multiplicidadOrigen" : "multiplicidadDestino";
+  if (enlace[campo] === texto || (texto === "" && enlace[campo] === undefined)) return ok(modelo);
+
+  const actualizado: Enlace = { ...enlace };
+  if (texto === "") {
+    delete actualizado[campo];
+  } else {
+    actualizado[campo] = texto;
+  }
+
+  return ok({
+    ...modelo,
+    enlaces: {
+      ...modelo.enlaces,
+      [enlaceId]: actualizado,
     },
   });
 }

@@ -57,6 +57,8 @@ export interface Enlace {
   origenId: Id;
   destinoId: Id;
   etiqueta: string;
+  multiplicidadOrigen?: string;
+  multiplicidadDestino?: string;
   derivado?: DerivacionEnlace;
 }
 

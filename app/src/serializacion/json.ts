@@ -1,4 +1,4 @@
-import { validarFirmaEnlace } from "../modelo/operaciones";
+import { validarFirmaEnlace, validarMultiplicidad } from "../modelo/operaciones";
 import type {
   Afiliacion,
   Apariencia,
@@ -254,16 +254,32 @@ function validarEnlaces(value: Record<string, unknown>, entidades: Record<Id, En
     if (!firma.ok) return fallo(`Enlace inválido: ${id}.firma`);
     const derivado = validarDerivacionEnlace(id, raw.derivado);
     if (!derivado.ok) return derivado;
+    const multiplicidadOrigen = validarMultiplicidadOpcional(id, "multiplicidadOrigen", raw.multiplicidadOrigen);
+    if (!multiplicidadOrigen.ok) return multiplicidadOrigen;
+    const multiplicidadDestino = validarMultiplicidadOpcional(id, "multiplicidadDestino", raw.multiplicidadDestino);
+    if (!multiplicidadDestino.ok) return multiplicidadDestino;
     enlaces[id] = {
       id,
       tipo: raw.tipo,
       origenId,
       destinoId,
       etiqueta: raw.etiqueta,
+      ...(multiplicidadOrigen.value ? { multiplicidadOrigen: multiplicidadOrigen.value } : {}),
+      ...(multiplicidadDestino.value ? { multiplicidadDestino: multiplicidadDestino.value } : {}),
       ...(derivado.value ? { derivado: derivado.value } : {}),
     };
   }
   return ok(enlaces);
+}
+
+function validarMultiplicidadOpcional(
+  enlaceId: Id,
+  campo: "multiplicidadOrigen" | "multiplicidadDestino",
+  value: unknown,
+): Resultado<string | undefined> {
+  if (value === undefined) return ok(undefined);
+  if (typeof value !== "string" || !validarMultiplicidad(value)) return fallo(`Enlace inválido: ${enlaceId}.${campo}`);
+  return ok(value);
 }
 
 function validarDerivacionEnlace(enlaceId: Id, value: unknown): Resultado<DerivacionEnlace | undefined> {

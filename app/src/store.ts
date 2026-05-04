@@ -7,6 +7,7 @@ import {
 } from "./modelo/layout";
 import {
   actualizarVerticesEnlace as actualizarVerticesEnlaceOp,
+  ajustarMultiplicidad,
   cambiarAfiliacion,
   cambiarEsencia,
   crearEnlace,
@@ -75,6 +76,7 @@ interface OpmStore {
   moverApariencia: (aparienciaId: Id, x: number, y: number) => void;
   reordenarSubprocesoEnTimeline: (opdId: Id, aparienciaId: Id, nuevaY: number) => void;
   actualizarVerticesEnlace: (aparienciaEnlaceId: Id, vertices: Array<{ x: number; y: number }>) => void;
+  ajustarMultiplicidadSeleccionada: (lado: "origen" | "destino", texto: string) => void;
   eliminarSeleccion: () => void;
   exportarJson: () => string;
   importarJson: (json: string) => void;
@@ -424,6 +426,22 @@ export const store = createStore<OpmStore>((set, get) => ({
     const { modelo, opdActivoId } = get();
     const resultado = actualizarVerticesEnlaceOp(modelo, opdActivoId, aparienciaEnlaceId, vertices);
     if (resultado.ok) commitModelo(set, modelo, resultado.value);
+  },
+
+  ajustarMultiplicidadSeleccionada(lado, texto) {
+    const { modelo, enlaceSeleccionId } = get();
+    if (!enlaceSeleccionId) return;
+    const resultado = ajustarMultiplicidad(modelo, enlaceSeleccionId, lado, texto);
+    if (!resultado.ok) {
+      set({ mensaje: resultado.error });
+      return;
+    }
+    commitModelo(set, modelo, resultado.value, {
+      seleccionId: null,
+      enlaceSeleccionId,
+      modoEnlace: null,
+      mensaje: null,
+    });
   },
 
   eliminarSeleccion() {
