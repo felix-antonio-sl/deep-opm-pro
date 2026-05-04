@@ -2,7 +2,7 @@
 
 **Fecha**: 2026-05-04
 **Repositorio**: `deep-opm-pro`
-**Corte**: MVP-alpha + ciclo de 5 líneas paralelas integradas (despliegues estructurales, UX seguridad de datos, cobertura OPL, timeline + paralelismo, plegado parcial)
+**Corte**: MVP-alpha + ciclo de 5 líneas paralelas + ronda de refactor estructural (markers SVG canonicos, layout puro, Inspector sub-componentes, ConfirmacionProvider global)
 
 ---
 
@@ -107,10 +107,14 @@ reemplazar y consolidar el contenido anterior en este mismo archivo.
 
 ### Auditoria visual
 
-- SSOT/JointJS: firmas consumo/resultado/efecto/agente/instrumento/invocacion;
-  triangulo estructural reusado para agregacion/exhibicion/generalizacion/
-  clasificacion hasta tener SVGs dedicados; routing manhattan basico; etiquetas
-  sin elipsis silenciosa; posicion inicial libre por OPD; toolbar compacta.
+- SSOT/JointJS: firmas consumo/resultado/efecto/agente/instrumento/invocacion
+  con marcadores canonicos desde `assets/svg/links/procedural/`. Refinamientos
+  estructurales con markers diferenciados por tipo (`assets/svg/links/structural/`):
+  triangulo solido (agregacion), triangulo vacio (generalizacion), triangulo
+  vacio + dot interno (clasificacion), triangulo con sub-triangulos via
+  `standard.Path` con `fill-rule: evenodd` (exhibicion). Routing manhattan
+  basico; etiquetas sin elipsis silenciosa; posicion inicial libre por OPD;
+  toolbar compacta.
 - `app/scripts/in-vivo-test.mjs` y `app/scripts/in-vivo-deep-checks.mjs`
   generan JSON, capturas y reporte dentro de `app/test-results/in-vivo/`,
   directorio ignorado por git.
@@ -127,9 +131,12 @@ reemplazar y consolidar el contenido anterior en este mismo archivo.
 - Historias de usuario vivas: `docs/historias-usuario-v2/`.
 - Evidencia OPCloud curada: `opm-extracted/INDEX.md`,
   `opm-extracted/MODULES.md`, `opm-extracted/assets/INDEX.md`.
-- App: `app/src/modelo/` (incluye `plegado.ts` puro), `app/src/render/jointjs/`,
-  `app/src/store.ts`, `app/src/ui/` (incluye `Dialogo.tsx`,
-  `DialogoConfirmacion.tsx`, `Timeline.tsx`), `app/src/persistencia/`.
+- App: `app/src/modelo/` (incluye `plegado.ts` y `layout.ts` puros),
+  `app/src/render/jointjs/`, `app/src/store.ts`, `app/src/ui/` (incluye
+  `Dialogo.tsx`, `DialogoConfirmacion.tsx` puro de presentacion,
+  `ConfirmacionContext.tsx` con Provider global, `Inspector.tsx` /
+  `InspectorEntidad.tsx` / `InspectorEnlace.tsx` con `inspectorStyles.ts`,
+  `Timeline.tsx`), `app/src/persistencia/`.
 - Supply-chain app: `app/bunfig.toml`, `app/bun.lock`, `app/package.json`.
 - Auditorias visuales regenerables: `app/scripts/in-vivo-test.mjs`,
   `app/scripts/in-vivo-deep-checks.mjs`; salidas ignoradas en
@@ -157,8 +164,10 @@ reemplazar y consolidar el contenido anterior en este mismo archivo.
   estrictamente igual, no epsilon (el snap se encarga). Cada reorden entra al
   stack undo como una operacion atomica.
 - **Confirmacion de cambios sin guardar** se intercepta en la UI, no en el
-  store. Patron: hook `useConfirmarSiDirty(action)` en cada handler
-  destructivo. ESC = Cancelar. Click fuera del modal NO cierra (forza
+  store. Una sola instancia de `<DialogoConfirmacion>` montada por
+  `<ConfirmacionProvider>` en `App.tsx`; los consumidores (Toolbar,
+  PersistenciaJson) leen `confirmarSiDirty` via `useConfirmarSiDirty()`
+  contra el contexto. ESC = Cancelar. Click fuera del modal NO cierra (forza
   eleccion consciente).
 - **`beforeunload`** activo SOLO cuando `dirty === true`. Sin texto custom
   (los browsers modernos lo ignoran).
@@ -189,14 +198,14 @@ reemplazar y consolidar el contenido anterior en este mismo archivo.
 
 Loop verde de convergencia ejecutado en `app/`:
 
-- `bun run check` -> **98 tests verdes, 604 `expect()` calls** (vs. 65/455 del
-  corte previo). 7 archivos de test.
-- `bun run browser:smoke` -> **16/16 tests Playwright Chromium verdes** (vs.
-  11 del corte previo). Cobertura nueva: plegado parcial con persistencia,
-  confirmacion antes de Nuevo, beforeunload sólo en dirty, importacion
-  asistida con preview y errores legibles.
+- `bun run check` -> **106 tests verdes, 641 `expect()` calls** (vs. 98/604
+  pre-refactor). 8 archivos de test (incluye `modelo/layout.test.ts` nuevo).
+- `bun run browser:smoke` -> **16/16 tests Playwright Chromium verdes**.
+  Cobertura: plegado parcial con persistencia, confirmacion antes de Nuevo,
+  beforeunload sólo en dirty, importacion asistida con preview y errores
+  legibles.
 - `bun run build` -> build OK; warning esperado de chunk grande JointJS
-  (704 KB minificado, 205 KB gzip).
+  (706 KB minificado, 206 KB gzip).
 
 Las capturas y reportes browser no se conservan en el repo liviano. Se
 regeneran con:
@@ -217,21 +226,18 @@ bun run visual:deep -- http://127.0.0.1:5173/
    ancla manual en `refrescarEnlacesExternosDerivados`.
 2. **Split de `effect`** en consumo + resultado intermedio (HU-12.011),
    y enlaces estado-especificos.
-3. **SVG dedicados** para markers de exhibicion, generalizacion y
-   clasificacion (hoy reusan triangulo de agregacion). Ver
-   `assets/svg/links/structural/` antes de redibujar.
-4. **Plegado parcial avanzado**: extraccion de partes al canvas con doble
+3. **Plegado parcial avanzado**: extraccion de partes al canvas con doble
    clic (HU-18.004), reanclaje de enlaces al proxy al reinsertar (HU-18.009),
    contador "y N partes mas" con truncado pedagogico (HU-18.005), anidamiento.
-5. **Refactor de `app/src/modelo/operaciones.ts`** (~1.000 LOC) en submodulos
+4. **Refactor de `app/src/modelo/operaciones.ts`** (~1.050 LOC) en submodulos
    por dominio cuando el archivo se acerque a 1.300 LOC. Hoy todavia legible.
-6. **OPL bidireccional plena**: edicion inversa de propiedades estructurales
+5. **OPL bidireccional plena**: edicion inversa de propiedades estructurales
    (no solo nombres) en panel OPL-ES.
-7. **Definir politica de licencia explicita** para codigo propio vs material
+6. **Definir politica de licencia explicita** para codigo propio vs material
    observacional antes de redistribucion publica.
-8. **Code splitting de JointJS** cuando el bundle exija reducir el chunk
-   inicial (704 KB minificado).
-9. **Evaluar IndexedDB** solo cuando los modelos reales superen limites
+7. **Code splitting de JointJS** cuando el bundle exija reducir el chunk
+   inicial (706 KB minificado).
+8. **Evaluar IndexedDB** solo cuando los modelos reales superen limites
    practicos de `localStorage`.
 
 ## Supuestos
@@ -257,10 +263,12 @@ bun run visual:deep -- http://127.0.0.1:5173/
 - El scanner de Socket corre en modo publico si no hay `SOCKET_API_KEY`; CI/org
   policy requiere configurar credencial.
 - El despliegue cubre los cuatro modos canonicos en kernel + OPL + persistencia,
-  pero los markers SVG dedicados para los tres estructurales nuevos siguen
-  pendientes (hoy reusan triangulo de agregacion); no bloquea funcionalidad
-  pero impide distinguir tipos visualmente.
-- El bundle de JointJS genera warning de tamano (704 KB minificado); no bloquea
+  con markers SVG dedicados por tipo desde `assets/svg/links/structural/`. El
+  marker de exhibicion usa `standard.Path` con `fill-rule: evenodd` para los
+  sub-triangulos; los demas usan `standard.Polygon` con `refPoints`. Para
+  validar visualmente la rotacion del path, abrir un OPD con los cuatro tipos
+  desplegados.
+- El bundle de JointJS genera warning de tamano (706 KB minificado); no bloquea
   MVP-alpha, pero exigira code splitting al crecer.
 - `setup.sh` hardcodea hashes de bundles OPCloud; si OPCloud cambia deploy,
   hay que actualizar hashes antes de regenerar `_local/`/`decompiled/`.
@@ -269,23 +277,28 @@ bun run visual:deep -- http://127.0.0.1:5173/
 
 ```
 Retoma `docs/HANDOFF.md` en `deep-opm-pro`. Estado: MVP-alpha + ciclo de 5
-lineas integrado en `main`.
+lineas + ronda de refactor estructural integrados en `main`.
 
 Operativo: kernel OPM con descomposicion de procesos, despliegue de objetos
-en cuatro modos (agregacion / exhibicion / generalizacion / clasificacion),
-plegado parcial como estado de Apariencia, timeline lateral para reorden de
-subprocesos con paralelismo, OPL diferenciada por modo, importacion asistida,
-dialogo Guardar/Descartar/Cancelar y beforeunload defensivo. Cobertura: 98
-unit tests, 16 smoke browser, build verde.
+en cuatro modos (agregacion / exhibicion / generalizacion / clasificacion)
+con markers SVG canonicos diferenciados, plegado parcial como estado de
+Apariencia, timeline lateral para reorden de subprocesos con paralelismo,
+OPL diferenciada por modo, importacion asistida, dialogo
+Guardar/Descartar/Cancelar global via ConfirmacionProvider y beforeunload
+defensivo. Heuristicas geometricas en `modelo/layout.ts`; Inspector partido
+en sub-componentes (Entidad, Enlace) con `inspectorStyles.ts`. Cobertura:
+106 unit tests, 16 smoke browser, build verde.
 
 Pendientes priorizados: (1) reasignacion manual de enlaces externos derivados;
-(2) split de `effect` y enlaces estado-especificos; (3) SVG dedicados para
-markers estructurales nuevos; (4) plegado parcial avanzado (extraccion,
-reanclaje, anidamiento); (5) refactor de operaciones.ts cuando llegue a
-1.300 LOC; (6) OPL bidireccional plena.
+(2) split de `effect` y enlaces estado-especificos; (3) plegado parcial
+avanzado (extraccion, reanclaje, anidamiento); (4) refactor de
+operaciones.ts cuando llegue a 1.300 LOC; (5) OPL bidireccional plena.
 
 Reglas vigentes: TipoEnlace flat, plegado parcial es vista no refinamiento,
-confirmacion en UI no en store, beforeunload solo si dirty. Backlog vivo en
+confirmacion en UI no en store con un unico DialogoConfirmacion via
+ConfirmacionProvider, beforeunload solo si dirty, layout puro en
+`modelo/layout.ts`, markers estructurales canonicos desde
+`assets/svg/links/structural/`. Backlog vivo en
 `docs/historias-usuario-v2/`. Briefs del ciclo previo en
 `docs/instrucciones-lineas-dev/` (referencia de patron de delegacion).
 ```
