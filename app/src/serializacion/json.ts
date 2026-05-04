@@ -3,6 +3,7 @@ import type {
   Afiliacion,
   Apariencia,
   AparienciaEnlace,
+  DerivacionEnlace,
   Enlace,
   Entidad,
   Esencia,
@@ -104,7 +105,8 @@ function validarEntidades(value: Record<string, unknown>): Resultado<Record<Id, 
     if (!esAfiliacion(raw.afiliacion)) return fallo(`Entidad inválida: ${id}.afiliacion`);
     const refinamiento = validarRefinamiento(id, raw.refinamiento);
     if (!refinamiento.ok) return refinamiento;
-    if (refinamiento.value && raw.tipo !== "proceso") return fallo(`Refinamiento inválido: ${id}.tipo`);
+    if (refinamiento.value?.tipo === "descomposicion" && raw.tipo !== "proceso") return fallo(`Refinamiento inválido: ${id}.tipo`);
+    if (refinamiento.value?.tipo === "despliegue" && raw.tipo !== "objeto") return fallo(`Refinamiento inválido: ${id}.tipo`);
     entidades[id] = {
       id,
       tipo: raw.tipo,
@@ -120,9 +122,9 @@ function validarEntidades(value: Record<string, unknown>): Resultado<Record<Id, 
 function validarRefinamiento(entidadId: Id, value: unknown): Resultado<RefinamientoEntidad | undefined> {
   if (value === undefined) return ok(undefined);
   if (!esRecord(value)) return fallo(`Refinamiento inválido: ${entidadId}`);
-  if (value.tipo !== "descomposicion") return fallo(`Refinamiento inválido: ${entidadId}.tipo`);
+  if (value.tipo !== "descomposicion" && value.tipo !== "despliegue") return fallo(`Refinamiento inválido: ${entidadId}.tipo`);
   if (typeof value.opdId !== "string") return fallo(`Refinamiento inválido: ${entidadId}.opdId`);
-  return ok({ tipo: "descomposicion", opdId: value.opdId });
+  return ok({ tipo: value.tipo, opdId: value.opdId });
 }
 
 function validarOpds(value: Record<string, unknown>, entidades: Record<Id, Entidad>): Resultado<Record<Id, Opd>> {
@@ -227,15 +229,31 @@ function validarEnlaces(value: Record<string, unknown>, entidades: Record<Id, En
     if (typeof raw.etiqueta !== "string") return fallo(`Enlace inválido: ${id}.etiqueta`);
     const firma = validarFirmaEnlace(raw.tipo, origen, destino);
     if (!firma.ok) return fallo(`Enlace inválido: ${id}.firma`);
+    const derivado = validarDerivacionEnlace(id, raw.derivado);
+    if (!derivado.ok) return derivado;
     enlaces[id] = {
       id,
       tipo: raw.tipo,
       origenId,
       destinoId,
       etiqueta: raw.etiqueta,
+      ...(derivado.value ? { derivado: derivado.value } : {}),
     };
   }
   return ok(enlaces);
+}
+
+function validarDerivacionEnlace(enlaceId: Id, value: unknown): Resultado<DerivacionEnlace | undefined> {
+  if (value === undefined) return ok(undefined);
+  if (!esRecord(value)) return fallo(`Enlace inválido: ${enlaceId}.derivado`);
+  if (value.tipo !== "enlace-externo-refinamiento") return fallo(`Enlace inválido: ${enlaceId}.derivado.tipo`);
+  if (typeof value.refinamientoId !== "string") return fallo(`Enlace inválido: ${enlaceId}.derivado.refinamientoId`);
+  if (typeof value.enlacePadreId !== "string") return fallo(`Enlace inválido: ${enlaceId}.derivado.enlacePadreId`);
+  return ok({
+    tipo: "enlace-externo-refinamiento",
+    refinamientoId: value.refinamientoId,
+    enlacePadreId: value.enlacePadreId,
+  });
 }
 
 function validarReferenciasOpd(modelo: Modelo): Resultado<true> {
@@ -246,6 +264,15 @@ function validarReferenciasOpd(modelo: Modelo): Resultado<true> {
     if (!opdRefinado) return fallo(`Refinamiento inválido: ${entidad.id}.opdId`);
     if (!Object.values(opdRefinado.apariencias).some((apariencia) => apariencia.entidadId === entidad.id)) {
       return fallo(`Refinamiento inválido: ${entidad.id}.apariencia`);
+    }
+  }
+  for (const enlace of Object.values(modelo.enlaces)) {
+    if (!enlace.derivado) continue;
+    if (!modelo.entidades[enlace.derivado.refinamientoId]?.refinamiento) {
+      return fallo(`Enlace inválido: ${enlace.id}.derivado.refinamientoId`);
+    }
+    if (!modelo.enlaces[enlace.derivado.enlacePadreId]) {
+      return fallo(`Enlace inválido: ${enlace.id}.derivado.enlacePadreId`);
     }
   }
   for (const [opdId, opd] of Object.entries(modelo.opds)) {

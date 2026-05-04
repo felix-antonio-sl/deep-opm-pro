@@ -21,12 +21,27 @@ export interface DescomposicionProceso {
   creado: boolean;
 }
 
+export interface DespliegueObjeto {
+  modelo: Modelo;
+  opdId: Id;
+  creado: boolean;
+}
+
 const INZOOM = {
   subprocesosIniciales: 3,
   paddingSuperior: 100,
   separacionVertical: 30,
+  toleranciaParaleloY: 4,
   contornoWidth: CANON.dims.cosaWidth * 3,
   contornoHeight: (CANON.dims.cosaHeight + 30) * 3 + 100 + 65,
+} as const;
+
+const UNFOLD = {
+  partesIniciales: 3,
+  paddingSuperior: 132,
+  separacionHorizontal: 30,
+  contornoWidth: CANON.dims.cosaWidth * 3 + 120,
+  contornoHeight: CANON.dims.cosaHeight + 132 + 80,
 } as const;
 
 export function crearModelo(nombre = "Modelo OPM"): Modelo {
@@ -130,49 +145,96 @@ export function descomponerProceso(modelo: Modelo, opdPadreId: Id, procesoId: Id
   return ok({ modelo: siguiente.value, opdId: opdHijoId, creado: true });
 }
 
+export function desplegarObjeto(modelo: Modelo, opdPadreId: Id, objetoId: Id): Resultado<DespliegueObjeto> {
+  const opdPadre = modelo.opds[opdPadreId];
+  if (!opdPadre) return fallo(`OPD no existe: ${opdPadreId}`);
+  const objeto = modelo.entidades[objetoId];
+  if (!objeto) return fallo(`Entidad no existe: ${objetoId}`);
+  if (objeto.tipo !== "objeto") return fallo("El despliegue requiere un objeto");
+  if (!entidadVisibleEnOpd(opdPadre, objetoId)) {
+    return fallo("El despliegue requiere que el objeto tenga apariencia en el OPD activo");
+  }
+
+  if (objeto.refinamiento?.tipo === "despliegue") {
+    const opdExistente = modelo.opds[objeto.refinamiento.opdId];
+    if (!opdExistente) return fallo(`OPD de despliegue no existe: ${objeto.refinamiento.opdId}`);
+    return ok({ modelo, opdId: opdExistente.id, creado: false });
+  }
+  if (objeto.refinamiento) return fallo("El objeto ya tiene otro refinamiento");
+
+  const opdHijoId = siguienteId(modelo, "opd");
+  let nextSeq = modelo.nextSeq + 1;
+  const aparienciaHijoId = siguienteId({ ...modelo, nextSeq }, "a");
+  nextSeq += 1;
+  const aparienciaHijo: Apariencia = {
+    id: aparienciaHijoId,
+    entidadId: objetoId,
+    opdId: opdHijoId,
+    x: 150,
+    y: 90,
+    width: UNFOLD.contornoWidth,
+    height: UNFOLD.contornoHeight,
+  };
+  const partes = partesInicialesDespliegue(modelo, objeto, aparienciaHijo, opdHijoId, nextSeq);
+  nextSeq = partes.nextSeq;
+  const agregaciones = enlacesAgregacionPartes(modelo, objetoId, partes.parteIds, opdHijoId, nextSeq);
+  nextSeq = agregaciones.nextSeq;
+  const opdHijo: Opd = {
+    id: opdHijoId,
+    nombre: siguienteNombreOpdHijo(modelo, opdPadreId),
+    padreId: opdPadreId,
+    apariencias: {
+      [aparienciaHijoId]: aparienciaHijo,
+      ...partes.apariencias,
+    },
+    enlaces: agregaciones.aparienciasEnlace,
+  };
+
+  return ok({
+    modelo: {
+      ...modelo,
+      nextSeq,
+      entidades: {
+        ...modelo.entidades,
+        [objetoId]: {
+          ...objeto,
+          refinamiento: {
+            tipo: "despliegue",
+            opdId: opdHijoId,
+          },
+        },
+        ...partes.entidades,
+      },
+      enlaces: {
+        ...modelo.enlaces,
+        ...agregaciones.enlaces,
+      },
+      opds: {
+        ...modelo.opds,
+        [opdHijoId]: opdHijo,
+      },
+    },
+    opdId: opdHijoId,
+    creado: true,
+  });
+}
+
 export function quitarDescomposicionProceso(modelo: Modelo, procesoId: Id): Resultado<Modelo> {
   const proceso = modelo.entidades[procesoId];
   if (!proceso) return fallo(`Entidad no existe: ${procesoId}`);
   if (proceso.tipo !== "proceso") return fallo("La descomposición requiere un proceso");
   if (proceso.refinamiento?.tipo !== "descomposicion") return fallo("El proceso no tiene descomposición");
 
-  const removidos = idsSubarbolOpd(modelo, proceso.refinamiento.opdId);
-  if (!removidos.has(proceso.refinamiento.opdId)) {
-    return fallo(`OPD de descomposición no existe: ${proceso.refinamiento.opdId}`);
-  }
+  return quitarRefinamientoEntidad(modelo, procesoId);
+}
 
-  const opds = Object.fromEntries(
-    Object.entries(modelo.opds).filter(([opdId]) => !removidos.has(opdId)),
-  );
-  const entidadesVisibles = new Set(
-    Object.values(opds).flatMap((opd) => Object.values(opd.apariencias).map((apariencia) => apariencia.entidadId)),
-  );
-  const entidades = Object.fromEntries(
-    Object.entries(modelo.entidades)
-      .filter(([entidadId]) => entidadesVisibles.has(entidadId))
-      .map(([entidadId, entidad]) => [entidadId, sinRefinamientoRemovido(entidad, removidos)]),
-  ) as Record<Id, Entidad>;
-  const enlacesVisibles = new Set(
-    Object.values(opds).flatMap((opd) => Object.values(opd.enlaces).map((apariencia) => apariencia.enlaceId)),
-  );
-  const enlaces = Object.fromEntries(
-    Object.entries(modelo.enlaces).filter(([enlaceId, enlace]) => (
-      enlacesVisibles.has(enlaceId) && entidades[enlace.origenId] && entidades[enlace.destinoId]
-    )),
-  );
-  const opdsSinEnlacesHuerfanos = Object.fromEntries(
-    Object.entries(opds).map(([opdId, opd]) => [
-      opdId,
-      {
-        ...opd,
-        enlaces: Object.fromEntries(
-          Object.entries(opd.enlaces).filter(([, apariencia]) => enlaces[apariencia.enlaceId]),
-        ),
-      },
-    ]),
-  );
+export function quitarDespliegueObjeto(modelo: Modelo, objetoId: Id): Resultado<Modelo> {
+  const objeto = modelo.entidades[objetoId];
+  if (!objeto) return fallo(`Entidad no existe: ${objetoId}`);
+  if (objeto.tipo !== "objeto") return fallo("El despliegue requiere un objeto");
+  if (objeto.refinamiento?.tipo !== "despliegue") return fallo("El objeto no tiene despliegue");
 
-  return ok({ ...modelo, entidades, enlaces, opds: opdsSinEnlacesHuerfanos });
+  return quitarRefinamientoEntidad(modelo, objetoId);
 }
 
 export function renombrarEntidad(modelo: Modelo, entidadId: Id, nombre: string): Resultado<Modelo> {
@@ -229,7 +291,7 @@ export function moverAparienciaPorId(modelo: Modelo, opdId: Id, aparienciaId: Id
   if (!apariencia) return fallo(`Apariencia no existe: ${aparienciaId}`);
   if (apariencia.x === posicion.x && apariencia.y === posicion.y) return ok(modelo);
 
-  return ok({
+  const movido: Modelo = {
     ...modelo,
     opds: {
       ...modelo.opds,
@@ -241,7 +303,9 @@ export function moverAparienciaPorId(modelo: Modelo, opdId: Id, aparienciaId: Id
         },
       },
     },
-  });
+  };
+
+  return refrescarEnlacesExternosDerivados(movido, opdId);
 }
 
 export function actualizarVerticesEnlace(
@@ -273,7 +337,13 @@ export function actualizarVerticesEnlace(
 }
 
 export function eliminarEntidad(modelo: Modelo, entidadId: Id): Resultado<Modelo> {
-  if (!modelo.entidades[entidadId]) return fallo(`Entidad no existe: ${entidadId}`);
+  const entidad = modelo.entidades[entidadId];
+  if (!entidad) return fallo(`Entidad no existe: ${entidadId}`);
+  if (entidad.refinamiento) {
+    const sinRefinamiento = quitarRefinamientoEntidad(modelo, entidadId);
+    if (!sinRefinamiento.ok) return sinRefinamiento;
+    return eliminarEntidad(sinRefinamiento.value, entidadId);
+  }
 
   const entidades = { ...modelo.entidades };
   delete entidades[entidadId];
@@ -307,8 +377,13 @@ export function eliminarEntidad(modelo: Modelo, entidadId: Id): Resultado<Modelo
 
 export function eliminarEnlace(modelo: Modelo, enlaceId: Id): Resultado<Modelo> {
   if (!modelo.enlaces[enlaceId]) return fallo(`Enlace no existe: ${enlaceId}`);
+  const enlacesEliminados = new Set(
+    Object.values(modelo.enlaces)
+      .filter((enlace) => enlace.id === enlaceId || enlace.derivado?.enlacePadreId === enlaceId)
+      .map((enlace) => enlace.id),
+  );
   const enlaces = { ...modelo.enlaces };
-  delete enlaces[enlaceId];
+  for (const id of enlacesEliminados) delete enlaces[id];
 
   const opds = Object.fromEntries(
     Object.entries(modelo.opds).map(([opdId, opd]) => [
@@ -316,7 +391,7 @@ export function eliminarEnlace(modelo: Modelo, enlaceId: Id): Resultado<Modelo> 
       {
         ...opd,
         enlaces: Object.fromEntries(
-          Object.entries(opd.enlaces).filter(([, apariencia]) => apariencia.enlaceId !== enlaceId),
+          Object.entries(opd.enlaces).filter(([, apariencia]) => !enlacesEliminados.has(apariencia.enlaceId)),
         ),
       },
     ]),
@@ -457,6 +532,48 @@ export function validarFirmaEnlace(tipo: TipoEnlace, origen: Entidad, destino: E
   return fallo(`Tipo de enlace no soportado: ${tipo satisfies never}`);
 }
 
+function quitarRefinamientoEntidad(modelo: Modelo, entidadId: Id): Resultado<Modelo> {
+  const entidad = modelo.entidades[entidadId];
+  if (!entidad?.refinamiento) return fallo("La entidad no tiene refinamiento");
+  const removidos = idsSubarbolOpd(modelo, entidad.refinamiento.opdId);
+  if (!removidos.has(entidad.refinamiento.opdId)) {
+    return fallo(`OPD de refinamiento no existe: ${entidad.refinamiento.opdId}`);
+  }
+
+  const opds = Object.fromEntries(
+    Object.entries(modelo.opds).filter(([opdId]) => !removidos.has(opdId)),
+  );
+  const entidadesVisibles = new Set(
+    Object.values(opds).flatMap((opd) => Object.values(opd.apariencias).map((apariencia) => apariencia.entidadId)),
+  );
+  const entidades = Object.fromEntries(
+    Object.entries(modelo.entidades)
+      .filter(([id]) => entidadesVisibles.has(id))
+      .map(([id, item]) => [id, sinRefinamientoRemovido(item, removidos)]),
+  ) as Record<Id, Entidad>;
+  const enlacesVisibles = new Set(
+    Object.values(opds).flatMap((opd) => Object.values(opd.enlaces).map((apariencia) => apariencia.enlaceId)),
+  );
+  const enlaces = Object.fromEntries(
+    Object.entries(modelo.enlaces).filter(([enlaceId, enlace]) => (
+      enlacesVisibles.has(enlaceId) && entidades[enlace.origenId] && entidades[enlace.destinoId]
+    )),
+  );
+  const opdsSinEnlacesHuerfanos = Object.fromEntries(
+    Object.entries(opds).map(([opdId, opd]) => [
+      opdId,
+      {
+        ...opd,
+        enlaces: Object.fromEntries(
+          Object.entries(opd.enlaces).filter(([, apariencia]) => enlaces[apariencia.enlaceId]),
+        ),
+      },
+    ]),
+  );
+
+  return ok({ ...modelo, entidades, enlaces, opds: opdsSinEnlacesHuerfanos });
+}
+
 function entidadVisibleEnOpd(opd: Opd, entidadId: Id): boolean {
   return Object.values(opd.apariencias).some((apariencia) => apariencia.entidadId === entidadId);
 }
@@ -540,20 +657,106 @@ function subprocesosInicialesInzoom(
   return { entidades, apariencias, primeroId, ultimoId, nextSeq };
 }
 
+function partesInicialesDespliegue(
+  modelo: Modelo,
+  objeto: Entidad,
+  contorno: Apariencia,
+  opdHijoId: Id,
+  nextSeqInicial: number,
+): { entidades: Record<Id, Entidad>; apariencias: Record<Id, Apariencia>; parteIds: Id[]; nextSeq: number } {
+  const entidades: Record<Id, Entidad> = {};
+  const apariencias: Record<Id, Apariencia> = {};
+  const parteIds: Id[] = [];
+  let nextSeq = nextSeqInicial;
+  const totalWidth = CANON.dims.cosaWidth * UNFOLD.partesIniciales + UNFOLD.separacionHorizontal * (UNFOLD.partesIniciales - 1);
+  let x = contorno.x + (contorno.width - totalWidth) / 2;
+  const y = contorno.y + UNFOLD.paddingSuperior;
+
+  for (let index = 1; index <= UNFOLD.partesIniciales; index += 1) {
+    const entidadId = siguienteId({ ...modelo, nextSeq }, "o");
+    nextSeq += 1;
+    const aparienciaId = siguienteId({ ...modelo, nextSeq }, "a");
+    nextSeq += 1;
+    entidades[entidadId] = {
+      id: entidadId,
+      tipo: "objeto",
+      nombre: `${objeto.nombre} parte ${index}`,
+      esencia: objeto.esencia,
+      afiliacion: objeto.afiliacion,
+    };
+    parteIds.push(entidadId);
+    apariencias[aparienciaId] = {
+      id: aparienciaId,
+      entidadId,
+      opdId: opdHijoId,
+      x,
+      y,
+      width: CANON.dims.cosaWidth,
+      height: CANON.dims.cosaHeight,
+    };
+    x += CANON.dims.cosaWidth + UNFOLD.separacionHorizontal;
+  }
+
+  return { entidades, apariencias, parteIds, nextSeq };
+}
+
+function enlacesAgregacionPartes(
+  modelo: Modelo,
+  objetoId: Id,
+  parteIds: Id[],
+  opdId: Id,
+  nextSeqInicial: number,
+): { enlaces: Record<Id, Enlace>; aparienciasEnlace: Record<Id, AparienciaEnlace>; nextSeq: number } {
+  const enlaces: Record<Id, Enlace> = {};
+  const aparienciasEnlace: Record<Id, AparienciaEnlace> = {};
+  let nextSeq = nextSeqInicial;
+
+  for (const parteId of parteIds) {
+    const enlaceId = siguienteId({ ...modelo, nextSeq }, "e");
+    nextSeq += 1;
+    const aparienciaId = siguienteId({ ...modelo, nextSeq }, "ae");
+    nextSeq += 1;
+    enlaces[enlaceId] = {
+      id: enlaceId,
+      tipo: "agregacion",
+      origenId: objetoId,
+      destinoId: parteId,
+      etiqueta: "",
+    };
+    aparienciasEnlace[aparienciaId] = { id: aparienciaId, enlaceId, opdId, vertices: [] };
+  }
+
+  return { enlaces, aparienciasEnlace, nextSeq };
+}
+
 function redistribuirEnlacesExternosSiPrimerSubproceso(modelo: Modelo, opdId: Id, subprocesoId: Id): Resultado<Modelo> {
   const opd = modelo.opds[opdId];
   if (!opd?.padreId) return ok(modelo);
   const contorno = procesoDescompuestoEnOpd(modelo, opd);
   if (!contorno) return ok(modelo);
-  const procesosInternos = Object.values(opd.apariencias).filter((apariencia) => {
-    if (apariencia.entidadId === contorno.entidad.id) return false;
-    return modelo.entidades[apariencia.entidadId]?.tipo === "proceso";
-  });
+  const procesosInternos = subprocesosOrdenadosDeRefinamiento(modelo, opd, contorno.entidad.id);
   if (procesosInternos.length !== 1 || procesosInternos[0]?.entidadId !== subprocesoId) return ok(modelo);
 
   return proyectarEnlacesExternosEnRefinamiento(modelo, opdId, {
     primeroId: subprocesoId,
     ultimoId: subprocesoId,
+  });
+}
+
+function refrescarEnlacesExternosDerivados(modelo: Modelo, opdId: Id): Resultado<Modelo> {
+  const opd = modelo.opds[opdId];
+  if (!opd?.padreId) return ok(modelo);
+  const contorno = procesoDescompuestoEnOpd(modelo, opd);
+  if (!contorno) return ok(modelo);
+  const subprocesos = subprocesosOrdenadosDeRefinamiento(modelo, opd, contorno.entidad.id);
+  const primero = subprocesos[0];
+  const ultimo = subprocesos[subprocesos.length - 1];
+  if (!primero || !ultimo) return ok(modelo);
+
+  const limpio = limpiarEnlacesDerivadosAutomaticos(modelo, opdId, contorno.entidad.id);
+  return proyectarEnlacesExternosEnRefinamiento(limpio, opdId, {
+    primeroId: primero.entidadId,
+    ultimoId: ultimo.entidadId,
   });
 }
 
@@ -602,6 +805,11 @@ function proyectarEnlacesExternosEnRefinamiento(
         origenId: proyeccion.origenId,
         destinoId: proyeccion.destinoId,
         etiqueta: enlace.etiqueta,
+        derivado: {
+          tipo: "enlace-externo-refinamiento",
+          refinamientoId: contorno.entidad.id,
+          enlacePadreId: enlace.id,
+        },
       };
       aparienciasEnlace[aparienciaId] = {
         id: aparienciaId,
@@ -658,6 +866,65 @@ function enlaceDerivadoExiste(
     existente.destinoId === destinoId &&
     aparienciaEnlaceExiste(apariencias, existente.id)
   ));
+}
+
+function limpiarEnlacesDerivadosAutomaticos(modelo: Modelo, opdId: Id, procesoRefinadoId: Id): Modelo {
+  const opd = modelo.opds[opdId];
+  if (!opd?.padreId) return modelo;
+  const candidatos = new Set(
+    Object.values(modelo.enlaces)
+      .filter((enlace) => enlace.derivado?.tipo === "enlace-externo-refinamiento")
+      .filter((enlace) => enlace.derivado?.refinamientoId === procesoRefinadoId)
+      .map((enlace) => enlace.id),
+  );
+  if (candidatos.size === 0) return modelo;
+
+  const enlacesOpd = Object.fromEntries(
+    Object.entries(opd.enlaces).filter(([, apariencia]) => !candidatos.has(apariencia.enlaceId)),
+  );
+  const idsAunVisibles = new Set(
+    Object.values(modelo.opds)
+      .flatMap((item) => Object.values(item.id === opdId ? enlacesOpd : item.enlaces))
+      .map((apariencia) => apariencia.enlaceId),
+  );
+  const enlaces = Object.fromEntries(
+    Object.entries(modelo.enlaces).filter(([enlaceId]) => !candidatos.has(enlaceId) || idsAunVisibles.has(enlaceId)),
+  );
+
+  return {
+    ...modelo,
+    enlaces,
+    opds: {
+      ...modelo.opds,
+      [opdId]: {
+        ...opd,
+        enlaces: enlacesOpd,
+      },
+    },
+  };
+}
+
+function subprocesosOrdenadosDeRefinamiento(modelo: Modelo, opd: Opd, procesoRefinadoId: Id): Apariencia[] {
+  const contorno = Object.values(opd.apariencias).find((apariencia) => apariencia.entidadId === procesoRefinadoId);
+  if (!contorno) return [];
+  return Object.values(opd.apariencias)
+    .filter((apariencia) => apariencia.entidadId !== procesoRefinadoId)
+    .filter((apariencia) => modelo.entidades[apariencia.entidadId]?.tipo === "proceso")
+    .filter((apariencia) => dentroDe(apariencia, contorno))
+    .sort((a, b) => compararOrdenTemporal(a, b));
+}
+
+function dentroDe(apariencia: Apariencia, contorno: Apariencia): boolean {
+  return (
+    apariencia.x >= contorno.x &&
+    apariencia.y >= contorno.y &&
+    apariencia.x + apariencia.width <= contorno.x + contorno.width &&
+    apariencia.y + apariencia.height <= contorno.y + contorno.height
+  );
+}
+
+function compararOrdenTemporal(a: Apariencia, b: Apariencia): number {
+  return a.y - b.y || a.x - b.x || a.id.localeCompare(b.id);
 }
 
 function procesoDescompuestoEnOpd(modelo: Modelo, opd: Opd): { entidad: Entidad; apariencia: Apariencia } | null {
@@ -724,7 +991,7 @@ function idsSubarbolOpd(modelo: Modelo, raizId: Id): Set<Id> {
 }
 
 function sinRefinamientoRemovido(entidad: Entidad, removidos: Set<Id>): Entidad {
-  if (entidad.refinamiento?.tipo !== "descomposicion" || !removidos.has(entidad.refinamiento.opdId)) return entidad;
+  if (!entidad.refinamiento || !removidos.has(entidad.refinamiento.opdId)) return entidad;
   const { refinamiento: _refinamiento, ...sinRefinamiento } = entidad;
   return sinRefinamiento;
 }

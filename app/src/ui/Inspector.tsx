@@ -9,7 +9,9 @@ export function Inspector() {
   const fijarEsencia = useOpmStore((s) => s.fijarEsenciaSeleccionada);
   const fijarAfiliacion = useOpmStore((s) => s.fijarAfiliacionSeleccionada);
   const descomponer = useOpmStore((s) => s.descomponerSeleccionada);
+  const desplegar = useOpmStore((s) => s.desplegarSeleccionada);
   const quitarDescomposicion = useOpmStore((s) => s.quitarDescomposicionSeleccionada);
+  const quitarDespliegue = useOpmStore((s) => s.quitarDespliegueSeleccionado);
   const eliminar = useOpmStore((s) => s.eliminarSeleccion);
   const entidad = seleccionId ? modelo.entidades[seleccionId] : undefined;
   const enlace = enlaceSeleccionId ? modelo.enlaces[enlaceSeleccionId] : undefined;
@@ -95,6 +97,29 @@ export function Inspector() {
               title="Eliminar el OPD hijo de descomposición"
             >
               Quitar descomposición
+            </button>
+          ) : null}
+        </>
+      ) : null}
+
+      {entidad.tipo === "objeto" ? (
+        <>
+          <button
+            type="button"
+            style={style.primaryButton}
+            onClick={desplegar}
+            title="Crear o abrir el OPD hijo de despliegue"
+          >
+            {entidad.refinamiento?.tipo === "despliegue" ? "Mostrar despliegue" : "Desplegar"}
+          </button>
+          {entidad.refinamiento?.tipo === "despliegue" ? (
+            <button
+              type="button"
+              style={style.secondaryButton}
+              onClick={quitarDespliegue}
+              title="Eliminar el OPD hijo de despliegue y sus refinadores locales"
+            >
+              Quitar despliegue
             </button>
           ) : null}
         </>

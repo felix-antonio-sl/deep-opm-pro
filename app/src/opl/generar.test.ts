@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { cambiarEsencia, crearEnlace, crearModelo, crearObjeto, crearProceso, descomponerProceso } from "../modelo/operaciones";
+import { cambiarEsencia, crearEnlace, crearModelo, crearObjeto, crearProceso, descomponerProceso, desplegarObjeto, moverApariencia } from "../modelo/operaciones";
 import type { Modelo, Resultado } from "../modelo/tipos";
 import { generarOpl } from "./generar";
 
@@ -92,6 +92,32 @@ describe("generarOpl", () => {
 
     modelo = must(crearProceso(modelo, descompuesto.opdId, { x: 200, y: 180 }, "Examinar"));
     expect(generarOpl(modelo, modelo.opdRaizId)).toContain("*Atender Paciente* se descompone en *Examinar*, *Atender Paciente 1*, *Atender Paciente 2* y *Atender Paciente 3* en esa secuencia.");
+  });
+
+  test("reordena OPL de descomposicion por Y y agrupa paralelos con tolerancia", () => {
+    let modelo = crearModelo();
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 200, y: 120 }, "Atender Paciente"));
+    const procesoId = entidad(modelo, "Atender Paciente");
+    const descompuesto = must(descomponerProceso(modelo, modelo.opdRaizId, procesoId));
+    modelo = descompuesto.modelo;
+    modelo = must(moverApariencia(modelo, descompuesto.opdId, entidad(modelo, "Atender Paciente 3"), { x: 285, y: 282 }));
+
+    expect(generarOpl(modelo, modelo.opdRaizId)).toContain("*Atender Paciente* se descompone en *Atender Paciente 1*, *Atender Paciente 2* y *Atender Paciente 3* en paralelo.");
+
+    modelo = must(moverApariencia(modelo, descompuesto.opdId, entidad(modelo, "Atender Paciente 1"), { x: 285, y: 420 }));
+    expect(generarOpl(modelo, modelo.opdRaizId)).toContain("*Atender Paciente* se descompone en *Atender Paciente 2* y *Atender Paciente 3* en paralelo, *Atender Paciente 1*.");
+  });
+
+  test("emite OPL de despliegue para objeto refinado", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 200, y: 120 }, "Vehiculo"));
+    const objetoId = entidad(modelo, "Vehiculo");
+    const desplegado = must(desplegarObjeto(modelo, modelo.opdRaizId, objetoId));
+    modelo = desplegado.modelo;
+
+    expect(generarOpl(modelo, modelo.opdRaizId)).toContain("**Vehiculo** se despliega en **Vehiculo parte 1**, **Vehiculo parte 2** y **Vehiculo parte 3**.");
+    expect(generarOpl(modelo, desplegado.opdId)).toContain("**Vehiculo** se despliega en **Vehiculo parte 1**, **Vehiculo parte 2** y **Vehiculo parte 3**.");
+    expect(generarOpl(modelo, desplegado.opdId)).toContain("**Vehiculo** consta de **Vehiculo parte 1**.");
   });
 });
 

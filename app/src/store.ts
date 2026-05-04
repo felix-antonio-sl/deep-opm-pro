@@ -10,13 +10,22 @@ import {
   crearObjeto,
   crearProceso,
   descomponerProceso,
+  desplegarObjeto,
   eliminarEntidad,
   eliminarEnlace,
   moverApariencia as moverAparienciaEntidad,
   moverAparienciaPorId,
   quitarDescomposicionProceso,
+  quitarDespliegueObjeto,
   renombrarEntidad,
 } from "./modelo/operaciones";
+import {
+  borrarModeloLocal,
+  cargarModeloLocal,
+  guardarModeloLocal,
+  listarModelosLocales,
+  type ResumenModeloPersistido,
+} from "./persistencia/local";
 import { exportarModelo, hidratarModelo } from "./serializacion/json";
 import type { Afiliacion, Esencia, Id, Modelo, Posicion, TipoEnlace } from "./modelo/tipos";
 
@@ -35,11 +44,16 @@ interface OpmStore {
   dirty: boolean;
   puedeDeshacer: boolean;
   puedeRehacer: boolean;
+  modelosGuardados: ResumenModeloPersistido[];
+  modeloPersistidoId: Id | null;
   limpiarMensaje: () => void;
+  nuevoModelo: () => void;
   crearObjetoDemo: () => void;
   crearProcesoDemo: () => void;
   descomponerSeleccionada: () => void;
+  desplegarSeleccionada: () => void;
   quitarDescomposicionSeleccionada: () => void;
+  quitarDespliegueSeleccionado: () => void;
   cambiarOpdActivo: (id: Id) => void;
   seleccionarEntidad: (id: Id) => void;
   seleccionarEnlace: (id: Id) => void;
@@ -56,13 +70,14 @@ interface OpmStore {
   eliminarSeleccion: () => void;
   exportarJson: () => string;
   importarJson: (json: string) => void;
+  listarModelosGuardados: () => void;
   guardarLocal: () => void;
-  cargarLocal: () => void;
+  cargarLocal: (id?: Id) => void;
+  borrarLocal: (id: Id) => void;
   cargarDemo: () => void;
 }
 
 const modeloInicial = crearModelo();
-const STORAGE_KEY = "deep-opm-pro:modelo";
 const UNDO_LIMIT = 100;
 let snapshotGuardado = exportarModelo(modeloInicial);
 let undoStack: Modelo[] = [];
@@ -78,9 +93,24 @@ export const store = createStore<OpmStore>((set, get) => ({
   dirty: false,
   puedeDeshacer: false,
   puedeRehacer: false,
+  modelosGuardados: [],
+  modeloPersistidoId: null,
 
   limpiarMensaje() {
     set({ mensaje: null });
+  },
+
+  nuevoModelo() {
+    const modelo = crearModelo();
+    resetHistorial(modelo);
+    set(estadoModelo(modelo, {
+      opdActivoId: modelo.opdRaizId,
+      seleccionId: null,
+      enlaceSeleccionId: null,
+      modoEnlace: null,
+      modeloPersistidoId: null,
+      mensaje: "Nuevo modelo",
+    }));
   },
 
   crearObjetoDemo() {
@@ -121,6 +151,32 @@ export const store = createStore<OpmStore>((set, get) => ({
     });
   },
 
+  desplegarSeleccionada() {
+    const { modelo, opdActivoId, seleccionId } = get();
+    if (!seleccionId) {
+      set({ mensaje: "Selecciona un objeto para desplegar" });
+      return;
+    }
+    const entidad = modelo.entidades[seleccionId];
+    if (!entidad || entidad.tipo !== "objeto") {
+      set({ mensaje: "Selecciona un objeto para desplegar" });
+      return;
+    }
+
+    const resultado = desplegarObjeto(modelo, opdActivoId, seleccionId);
+    if (!resultado.ok) {
+      set({ mensaje: resultado.error });
+      return;
+    }
+    commitModelo(set, modelo, resultado.value.modelo, {
+      opdActivoId: resultado.value.opdId,
+      seleccionId,
+      enlaceSeleccionId: null,
+      modoEnlace: null,
+      mensaje: resultado.value.creado ? "OPD de despliegue creado" : null,
+    });
+  },
+
   quitarDescomposicionSeleccionada() {
     const { modelo, opdActivoId, seleccionId } = get();
     if (!seleccionId) {
@@ -144,6 +200,32 @@ export const store = createStore<OpmStore>((set, get) => ({
       enlaceSeleccionId: null,
       modoEnlace: null,
       mensaje: "Descomposición eliminada",
+    });
+  },
+
+  quitarDespliegueSeleccionado() {
+    const { modelo, opdActivoId, seleccionId } = get();
+    if (!seleccionId) {
+      set({ mensaje: "Selecciona un objeto desplegado" });
+      return;
+    }
+    const entidad = modelo.entidades[seleccionId];
+    if (!entidad || entidad.tipo !== "objeto" || entidad.refinamiento?.tipo !== "despliegue") {
+      set({ mensaje: "Selecciona un objeto desplegado" });
+      return;
+    }
+
+    const resultado = quitarDespliegueObjeto(modelo, seleccionId);
+    if (!resultado.ok) {
+      set({ mensaje: resultado.error });
+      return;
+    }
+    commitModelo(set, modelo, resultado.value, {
+      opdActivoId: opdActivoSeguro(resultado.value, opdActivoId),
+      seleccionId,
+      enlaceSeleccionId: null,
+      modoEnlace: null,
+      mensaje: "Despliegue eliminado",
     });
   },
 
@@ -312,26 +394,85 @@ export const store = createStore<OpmStore>((set, get) => ({
       seleccionId: null,
       enlaceSeleccionId: null,
       modoEnlace: null,
+      modeloPersistidoId: null,
       mensaje: "Modelo importado",
     }));
   },
 
-  guardarLocal() {
-    if (typeof localStorage === "undefined") return;
-    const { modelo } = get();
-    localStorage.setItem(STORAGE_KEY, exportarModelo(modelo));
-    snapshotGuardado = exportarModelo(modelo);
-    set({ mensaje: "Modelo guardado localmente", dirty: false });
-  },
-
-  cargarLocal() {
-    if (typeof localStorage === "undefined") return;
-    const json = localStorage.getItem(STORAGE_KEY);
-    if (!json) {
-      set({ mensaje: "No hay modelo guardado" });
+  listarModelosGuardados() {
+    const listado = listarModelosLocales();
+    if (!listado.ok) {
+      set({ modelosGuardados: [], mensaje: listado.error });
       return;
     }
-    get().importarJson(json);
+    set({ modelosGuardados: listado.value });
+  },
+
+  guardarLocal() {
+    const { modelo, modeloPersistidoId } = get();
+    const json = exportarModelo(modelo);
+    const guardado = guardarModeloLocal({
+      id: modeloPersistidoId,
+      nombre: modelo.nombre,
+      json,
+    });
+    if (!guardado.ok) {
+      set({ mensaje: guardado.error });
+      return;
+    }
+    snapshotGuardado = json;
+    set({
+      mensaje: "Modelo guardado exitosamente",
+      dirty: false,
+      modeloPersistidoId: guardado.value.id,
+      modelosGuardados: listarModelosGuardadosSeguro(),
+    });
+  },
+
+  cargarLocal(id) {
+    const modeloId = id ?? get().modelosGuardados[0]?.id ?? listarModelosGuardadosSeguro()[0]?.id;
+    if (!modeloId) {
+      set({ mensaje: "No hay modelos guardados" });
+      return;
+    }
+    const cargado = cargarModeloLocal(modeloId);
+    if (!cargado.ok) {
+      set({ mensaje: cargado.error, modelosGuardados: listarModelosGuardadosSeguro() });
+      return;
+    }
+    const resultado = hidratarModelo(cargado.value.json);
+    if (!resultado.ok) {
+      set({ mensaje: resultado.error });
+      return;
+    }
+    resetHistorial(resultado.value);
+    set(estadoModelo(resultado.value, {
+      opdActivoId: resultado.value.opdRaizId,
+      seleccionId: null,
+      enlaceSeleccionId: null,
+      modoEnlace: null,
+      modeloPersistidoId: cargado.value.id,
+      modelosGuardados: listarModelosGuardadosSeguro(),
+      mensaje: `Modelo cargado: ${cargado.value.nombre}`,
+    }));
+  },
+
+  borrarLocal(id) {
+    const borrado = borrarModeloLocal(id);
+    if (!borrado.ok) {
+      set({ mensaje: borrado.error });
+      return;
+    }
+    const extra: Partial<OpmStore> = {
+      modelosGuardados: listarModelosGuardadosSeguro(),
+      mensaje: "Modelo local borrado",
+    };
+    if (get().modeloPersistidoId === id) {
+      snapshotGuardado = "";
+      extra.modeloPersistidoId = null;
+      extra.dirty = true;
+    }
+    set(extra);
   },
 
   cargarDemo() {
@@ -342,6 +483,7 @@ export const store = createStore<OpmStore>((set, get) => ({
       seleccionId: null,
       enlaceSeleccionId: null,
       modoEnlace: null,
+      modeloPersistidoId: null,
       mensaje: "Demo cargado",
     }));
   },
@@ -362,7 +504,7 @@ function entidadNueva(previo: Modelo, siguiente: Modelo): Id | null {
 }
 
 function posicionLibre(modelo: Modelo, opdId: Id, tipo: "objeto" | "proceso"): Posicion {
-  const contenedor = contenedorDescomposicion(modelo, opdId);
+  const contenedor = contenedorRefinamiento(modelo, opdId);
   const columnas = contenedor
     ? columnasDentroDe(contenedor, tipo)
     : tipo === "proceso" ? [300, 80, 520, 740] : [80, 300, 520, 740];
@@ -380,7 +522,7 @@ function posicionLibre(modelo: Modelo, opdId: Id, tipo: "objeto" | "proceso"): P
 }
 
 function solapa(posicion: Posicion, apariencia: { x: number; y: number; width: number; height: number }): boolean {
-  if (esContornoDescomposicion(apariencia)) return false;
+  if (esContornoRefinamiento(apariencia)) return false;
   const margen = 18;
   const a = {
     left: posicion.x - margen,
@@ -397,12 +539,12 @@ function solapa(posicion: Posicion, apariencia: { x: number; y: number; width: n
   return a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top;
 }
 
-function contenedorDescomposicion(modelo: Modelo, opdId: Id): { x: number; y: number; width: number; height: number } | null {
+function contenedorRefinamiento(modelo: Modelo, opdId: Id): { x: number; y: number; width: number; height: number } | null {
   const opd = modelo.opds[opdId];
   if (!opd?.padreId) return null;
   return Object.values(opd.apariencias).find((apariencia) => {
     const entidad = modelo.entidades[apariencia.entidadId];
-    return entidad?.tipo === "proceso" && entidad.refinamiento?.tipo === "descomposicion" && entidad.refinamiento.opdId === opdId;
+    return entidad?.refinamiento?.opdId === opdId;
   }) ?? null;
 }
 
@@ -416,7 +558,7 @@ function columnasDentroDe(
   return tipo === "proceso" ? [center, left, right] : [left, center, right];
 }
 
-function esContornoDescomposicion(apariencia: { width: number; height: number }): boolean {
+function esContornoRefinamiento(apariencia: { width: number; height: number }): boolean {
   return apariencia.width > CANON.dims.cosaWidth || apariencia.height > CANON.dims.cosaHeight;
 }
 
@@ -439,6 +581,11 @@ function resetHistorial(modelo: Modelo): void {
   undoStack = [];
   redoStack = [];
   snapshotGuardado = exportarModelo(modelo);
+}
+
+function listarModelosGuardadosSeguro(): ResumenModeloPersistido[] {
+  const listado = listarModelosLocales();
+  return listado.ok ? listado.value : [];
 }
 
 function estadoModelo(modelo: Modelo, extra: Partial<OpmStore> = {}): Partial<OpmStore> {

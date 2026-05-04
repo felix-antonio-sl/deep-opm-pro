@@ -33,6 +33,7 @@ export function ArbolOpd() {
                 aria-selected={activo}
                 aria-current={activo ? "page" : undefined}
                 data-opd-id={nodo.opd.id}
+                title={nombre}
                 style={estiloNodo(nodo.nivel, activo)}
                 onClick={() => cambiarOpdActivo(nodo.opd.id)}
               >
@@ -88,10 +89,11 @@ function aLista(nodos: NodoOpd[]): NodoOpd[] {
 
 function nombreNodo(modelo: Modelo, opd: Opd): string {
   const refinador = Object.values(modelo.entidades).find(
-    (entidad) => entidad.refinamiento?.tipo === "descomposicion" && entidad.refinamiento.opdId === opd.id,
+    (entidad) => entidad.refinamiento?.opdId === opd.id,
   );
   if (!refinador) return opd.nombre;
-  return `${codigoOpd(opd.nombre)}: ${refinador.nombre} descompuesto`;
+  const sufijo = refinador.refinamiento?.tipo === "despliegue" ? "desplegado" : "descompuesto";
+  return `${codigoOpd(opd.nombre)}: ${refinador.nombre} ${sufijo}`;
 }
 
 function codigoOpd(nombre: string): string {
@@ -135,11 +137,13 @@ const style = {
   },
   node: {
     width: "100%",
-    minHeight: "30px",
+    minHeight: "34px",
     display: "grid",
     gridTemplateColumns: "minmax(0, 1fr) auto",
     alignItems: "center",
     gap: "8px",
+    paddingTop: "4px",
+    paddingBottom: "4px",
     border: "1px solid transparent",
     borderRadius: "4px",
     background: "transparent",
@@ -156,9 +160,10 @@ const style = {
     fontWeight: 700,
   },
   nodeName: {
-    overflow: "hidden",
-    textOverflow: "ellipsis",
-    whiteSpace: "nowrap",
+    overflow: "visible",
+    lineHeight: 1.2,
+    overflowWrap: "anywhere",
+    whiteSpace: "normal",
   },
   count: {
     minWidth: "22px",

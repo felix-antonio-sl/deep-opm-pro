@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { crearEnlace, crearModelo, crearObjeto, crearProceso, descomponerProceso } from "../modelo/operaciones";
+import { crearEnlace, crearModelo, crearObjeto, crearProceso, descomponerProceso, desplegarObjeto } from "../modelo/operaciones";
 import type { Modelo } from "../modelo/tipos";
 import { exportarModelo, hidratarModelo } from "./json";
 
@@ -230,6 +230,51 @@ describe("serializacion JSON", () => {
     expect(opdHijoId).toBeDefined();
     if (!opdHijoId) return;
     expect(hidratado.value.opds[opdHijoId]?.padreId).toBe(modelo.opdRaizId);
+  });
+
+  test("preserva metadatos de enlaces derivados en round-trip", () => {
+    let modelo = crearModelo("Derivados");
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 100 }, "Entrada"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 260, y: 120 }, "Procesar"));
+    const entradaId = entidadPorNombre(modelo, "Entrada");
+    const procesarId = entidadPorNombre(modelo, "Procesar");
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entradaId, procesarId, "consumo"));
+    const enlacePadreId = Object.values(modelo.enlaces)[0]?.id;
+    expect(enlacePadreId).toBeDefined();
+    if (!enlacePadreId) return;
+    modelo = must(descomponerProceso(modelo, modelo.opdRaizId, procesarId)).modelo;
+
+    const hidratado = hidratarModelo(exportarModelo(modelo));
+
+    expect(hidratado.ok).toBe(true);
+    if (!hidratado.ok) return;
+    expect(Object.values(hidratado.value.enlaces)).toContainEqual(expect.objectContaining({
+      tipo: "consumo",
+      derivado: {
+        tipo: "enlace-externo-refinamiento",
+        refinamientoId: procesarId,
+        enlacePadreId,
+      },
+    }));
+  });
+
+  test("preserva refinamiento por despliegue en round-trip", () => {
+    let modelo = crearModelo("Despliegue");
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 200, y: 120 }, "Vehiculo"));
+    const objetoId = entidadPorNombre(modelo, "Vehiculo");
+    modelo = must(desplegarObjeto(modelo, modelo.opdRaizId, objetoId)).modelo;
+
+    const hidratado = hidratarModelo(exportarModelo(modelo));
+
+    expect(hidratado.ok).toBe(true);
+    if (!hidratado.ok) return;
+    expect(hidratado.value.entidades[objetoId]?.refinamiento?.tipo).toBe("despliegue");
+    const opdHijoId = hidratado.value.entidades[objetoId]?.refinamiento?.opdId;
+    expect(opdHijoId).toBeDefined();
+    if (!opdHijoId) return;
+    expect(hidratado.value.opds[opdHijoId]?.padreId).toBe(modelo.opdRaizId);
+    const agregaciones = Object.values(hidratado.value.enlaces).filter((enlace) => enlace.tipo === "agregacion" && enlace.origenId === objetoId);
+    expect(agregaciones).toHaveLength(3);
   });
 
   test("rechaza refinamiento que apunta a OPD inexistente", () => {

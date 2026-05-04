@@ -8,6 +8,7 @@ describe("store undo/redo y dirty state", () => {
   beforeEach(() => {
     instalarLocalStorage();
     store.getState().importarJson(exportarModelo(crearModelo()));
+    store.getState().listarModelosGuardados();
   });
 
   test("marca dirty con operaciones reversibles y deshacer hasta snapshot guardado lo limpia", () => {
@@ -43,6 +44,60 @@ describe("store undo/redo y dirty state", () => {
     store.getState().rehacer();
     expect(cantidadEntidades()).toBe(1);
     expect(store.getState().dirty).toBe(false);
+  });
+
+  test("guardar local usa indice estructurado y cargar reinicia dirty e historial", () => {
+    store.getState().crearObjetoDemo();
+    store.getState().guardarLocal();
+    const primerId = store.getState().modeloPersistidoId;
+    expect(primerId).toBeTruthy();
+    expect(store.getState().modelosGuardados).toHaveLength(1);
+    expect(store.getState().dirty).toBe(false);
+
+    store.getState().crearProcesoDemo();
+    expect(store.getState().dirty).toBe(true);
+    store.getState().guardarLocal();
+    expect(store.getState().modeloPersistidoId).toBe(primerId);
+    expect(store.getState().modelosGuardados).toHaveLength(1);
+
+    store.getState().crearObjetoDemo();
+    expect(cantidadEntidades()).toBe(3);
+    store.getState().cargarLocal(primerId ?? undefined);
+
+    expect(cantidadEntidades()).toBe(2);
+    expect(store.getState().dirty).toBe(false);
+    expect(store.getState().puedeDeshacer).toBe(false);
+    expect(store.getState().puedeRehacer).toBe(false);
+  });
+
+  test("nuevo modelo descarta historial local activo sin borrar registros guardados", () => {
+    store.getState().crearObjetoDemo();
+    store.getState().guardarLocal();
+    const primerId = store.getState().modeloPersistidoId;
+    if (!primerId) throw new Error("La prueba esperaba id persistido");
+    store.getState().crearProcesoDemo();
+
+    store.getState().nuevoModelo();
+
+    expect(cantidadEntidades()).toBe(0);
+    expect(store.getState().modeloPersistidoId).toBeNull();
+    expect(store.getState().dirty).toBe(false);
+    expect(store.getState().puedeDeshacer).toBe(false);
+    expect(store.getState().modelosGuardados.map((modelo) => modelo.id)).toContain(primerId);
+  });
+
+  test("borrar modelo local actual lo deja sin respaldo persistido", () => {
+    store.getState().crearObjetoDemo();
+    store.getState().guardarLocal();
+    const primerId = store.getState().modeloPersistidoId;
+    if (!primerId) throw new Error("La prueba esperaba id persistido");
+
+    store.getState().borrarLocal(primerId);
+
+    expect(store.getState().modelosGuardados).toHaveLength(0);
+    expect(store.getState().modeloPersistidoId).toBeNull();
+    expect(store.getState().dirty).toBe(true);
+    expect(cantidadEntidades()).toBe(1);
   });
 
   test("nueva operacion despues de undo purga redo", () => {
@@ -122,6 +177,53 @@ describe("store undo/redo y dirty state", () => {
     store.getState().rehacer();
     expect(Object.values(store.getState().modelo.opds)).toHaveLength(2);
     expect(store.getState().opdActivoId).toBe(store.getState().modelo.opdRaizId);
+  });
+
+  test("desplegar seleccionada crea OPD hijo de objeto, navega y conserva undo", () => {
+    store.getState().crearObjetoDemo();
+    const objetoId = primeraEntidadId();
+    store.getState().seleccionarEntidad(objetoId);
+
+    store.getState().desplegarSeleccionada();
+
+    const estado = store.getState();
+    const opdHijo = Object.values(estado.modelo.opds).find((opd) => opd.padreId === estado.modelo.opdRaizId);
+    expect(opdHijo).toBeDefined();
+    if (!opdHijo) return;
+    expect(opdHijo.nombre).toBe("SD1");
+    expect(estado.opdActivoId).toBe(opdHijo.id);
+    expect(estado.modelo.entidades[objetoId]?.refinamiento).toEqual({
+      tipo: "despliegue",
+      opdId: opdHijo.id,
+    });
+    expect(estado.dirty).toBe(true);
+    expect(estado.puedeDeshacer).toBe(true);
+
+    store.getState().deshacer();
+    expect(Object.values(store.getState().modelo.opds)).toHaveLength(1);
+    expect(store.getState().opdActivoId).toBe(store.getState().modelo.opdRaizId);
+  });
+
+  test("quitar despliegue seleccionado elimina OPD hijo y conserva undo", () => {
+    store.getState().crearObjetoDemo();
+    const objetoId = primeraEntidadId();
+    store.getState().seleccionarEntidad(objetoId);
+    store.getState().desplegarSeleccionada();
+    expect(Object.values(store.getState().modelo.opds)).toHaveLength(2);
+    expect(Object.values(store.getState().modelo.enlaces)).toHaveLength(3);
+
+    store.getState().quitarDespliegueSeleccionado();
+
+    expect(Object.values(store.getState().modelo.opds)).toHaveLength(1);
+    expect(store.getState().modelo.entidades[objetoId]?.refinamiento).toBeUndefined();
+    expect(Object.values(store.getState().modelo.enlaces)).toHaveLength(0);
+    expect(store.getState().opdActivoId).toBe(store.getState().modelo.opdRaizId);
+    expect(store.getState().dirty).toBe(true);
+    expect(store.getState().puedeDeshacer).toBe(true);
+
+    store.getState().deshacer();
+    expect(Object.values(store.getState().modelo.opds)).toHaveLength(2);
+    expect(store.getState().modelo.entidades[objetoId]?.refinamiento?.tipo).toBe("despliegue");
   });
 
   test("quitar descomposicion seleccionada elimina OPD hijo y conserva undo", () => {

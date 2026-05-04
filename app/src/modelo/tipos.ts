@@ -3,7 +3,7 @@ export type Id = string;
 export type TipoEntidad = "objeto" | "proceso";
 export type Esencia = "informacional" | "fisica";
 export type Afiliacion = "sistemica" | "ambiental";
-export type TipoRefinamiento = "descomposicion";
+export type TipoRefinamiento = "descomposicion" | "despliegue";
 
 export type TipoEnlace =
   | "agregacion"
@@ -17,6 +17,12 @@ export type TipoEnlace =
 export interface RefinamientoEntidad {
   tipo: TipoRefinamiento;
   opdId: Id;
+}
+
+export interface DerivacionEnlace {
+  tipo: "enlace-externo-refinamiento";
+  refinamientoId: Id;
+  enlacePadreId: Id;
 }
 
 export interface Entidad {
@@ -44,6 +50,7 @@ export interface Enlace {
   origenId: Id;
   destinoId: Id;
   etiqueta: string;
+  derivado?: DerivacionEnlace;
 }
 
 export interface AparienciaEnlace {

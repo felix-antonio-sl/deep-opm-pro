@@ -128,6 +128,48 @@ test("descompone proceso y navega al OPD hijo", async ({ page }) => {
   expect(pageErrors).toEqual([]);
 });
 
+test("despliega objeto y navega al OPD hijo", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await page.getByRole("button", { name: "Objeto" }).click();
+  await expect(page.getByRole("button", { name: "Desplegar" })).toBeVisible();
+
+  await page.getByRole("button", { name: "Desplegar" }).click();
+
+  const nodoHijo = page.locator('[role="treeitem"]').filter({ hasText: "SD1: Un Objeto desplegado" });
+  await expect(nodoHijo).toHaveAttribute("aria-current", "page");
+  await expect(page.locator(".joint-element")).toHaveCount(7);
+  await expect(page.getByText("Un Objeto se despliega en Un Objeto parte 1, Un Objeto parte 2 y Un Objeto parte 3.")).toBeVisible();
+
+  await page.getByRole("button", { name: "Exportar" }).click();
+  const json = await page.locator("textarea").inputValue();
+  const exportado = JSON.parse(json) as ExportadoModelo;
+  const objeto = Object.values(exportado.modelo.entidades).find((entidad) => entidad.nombre === "Un Objeto");
+  const partes = Object.values(exportado.modelo.entidades).filter((entidad) => /^Un Objeto parte [1-3]$/.test(entidad.nombre));
+  expect(objeto?.refinamiento?.tipo).toBe("despliegue");
+  expect(partes).toHaveLength(3);
+  const opdHijoId = objeto?.refinamiento?.opdId;
+  expect(opdHijoId).toBeTruthy();
+  if (!opdHijoId || !objeto) throw new Error("El despliegue no exporto opdId");
+  expect(exportado.modelo.opds[opdHijoId]?.padreId).toBe(exportado.modelo.opdRaizId);
+  expect(Object.values(exportado.modelo.enlaces).filter((enlace) => enlace.tipo === "agregacion" && enlace.origenId === objeto.id)).toHaveLength(3);
+
+  await page.getByRole("button", { name: "Quitar despliegue" }).click();
+  await expect(page.locator('[role="treeitem"]').filter({ hasText: "SD1: Un Objeto desplegado" })).toHaveCount(0);
+  await page.getByRole("button", { name: "Exportar" }).click();
+  const jsonSinDespliegue = await page.locator("textarea").inputValue();
+  const exportadoSinDespliegue = JSON.parse(jsonSinDespliegue) as ExportadoModelo;
+  const objetoSinDespliegue = Object.values(exportadoSinDespliegue.modelo.entidades).find((entidad) => entidad.nombre === "Un Objeto");
+  expect(objetoSinDespliegue?.refinamiento).toBeUndefined();
+  expect(Object.values(exportadoSinDespliegue.modelo.opds)).toHaveLength(1);
+  expect(Object.values(exportadoSinDespliegue.modelo.enlaces)).toHaveLength(0);
+
+  await page.screenshot({ path: "test-results/opm-despliegue-opd-hijo.png", fullPage: true });
+  expect(pageErrors).toEqual([]);
+});
+
 test("mantiene canvas e inspector en columnas separadas tras recalculos", async ({ page }) => {
   const pageErrors: string[] = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));
@@ -273,10 +315,33 @@ test("marca dirty state y navega cambios con deshacer y rehacer", async ({ page 
   await expect(deshacer).toBeEnabled();
   await expect(rehacer).toBeDisabled();
 
+  await elementoPorTexto(page, "Un Objeto").click();
+  await page.getByLabel("Nombre").fill("Renombrado");
+  await expect(elementoPorTexto(page, "Renombrado")).toHaveCount(1);
+  await deshacer.click();
+  await expect(elementoPorTexto(page, "Un Objeto")).toHaveCount(1);
+  await rehacer.click();
+  await expect(elementoPorTexto(page, "Renombrado")).toHaveCount(1);
+
+  await elementoPorTexto(page, "Renombrado").click();
+  await page.getByRole("button", { name: "Eliminar entidad" }).click();
+  await expect(page.locator(".joint-element")).toHaveCount(0);
+  await deshacer.click();
+  await expect(elementoPorTexto(page, "Renombrado")).toHaveCount(1);
+
   await page.screenshot({ path: "test-results/opm-dirty-undo-redo.png", fullPage: true });
-  await page.getByRole("button", { name: "Guardar" }).click();
+  await page.keyboard.press("Control+S");
+  await expect(page.getByText("Modelo guardado exitosamente")).toBeVisible();
   await expect(page.getByText("Modelo OPM (No guardado)")).toHaveCount(0);
   await expect(deshacer).toBeEnabled();
+
+  await page.getByRole("button", { name: "Nuevo" }).click();
+  await expect(page.locator(".joint-element")).toHaveCount(0);
+  await expect(deshacer).toBeDisabled();
+  await page.getByRole("button", { name: "Cargar" }).first().click();
+  await expect(elementoPorTexto(page, "Renombrado")).toHaveCount(1);
+  await expect(page.getByText("Modelo OPM (No guardado)")).toHaveCount(0);
+  await expect(deshacer).toBeDisabled();
 
   expect(pageErrors).toEqual([]);
 });
@@ -354,7 +419,12 @@ test("renderiza agregacion como triangulo estructural", async ({ page }) => {
 });
 
 function elementoPorTexto(page: import("@playwright/test").Page, texto: string): import("@playwright/test").Locator {
-  return page.locator(".joint-element").filter({ hasText: texto });
+  const flexibleSvgText = new RegExp(texto.trim().split(/\s+/).map(escapeRegExp).join("\\s*"));
+  return page.locator(".joint-element").filter({ hasText: flexibleSvgText });
+}
+
+function escapeRegExp(texto: string): string {
+  return texto.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
 async function rectDeLocator(locator: import("@playwright/test").Locator): Promise<{ x: number; y: number; width: number; height: number }> {

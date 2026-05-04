@@ -13,6 +13,7 @@ const TIPOS_ENLACE: Array<{ tipo: TipoEnlace; label: string }> = [
 ];
 
 export function Toolbar() {
+  const nuevoModelo = useOpmStore((s) => s.nuevoModelo);
   const crearObjeto = useOpmStore((s) => s.crearObjetoDemo);
   const crearProceso = useOpmStore((s) => s.crearProcesoDemo);
   const cargarDemo = useOpmStore((s) => s.cargarDemo);
@@ -34,8 +35,13 @@ export function Toolbar() {
   useEffect(() => {
     const manejarAtajo = (event: KeyboardEvent) => {
       if (!event.ctrlKey && !event.metaKey) return;
-      if (esCampoEditable(event.target)) return;
       const key = event.key.toLowerCase();
+      if (key === "s") {
+        event.preventDefault();
+        guardarLocal();
+        return;
+      }
+      if (esCampoEditable(event.target)) return;
       if (key === "z" && event.shiftKey) {
         event.preventDefault();
         rehacer();
@@ -53,7 +59,7 @@ export function Toolbar() {
     };
     window.addEventListener("keydown", manejarAtajo);
     return () => window.removeEventListener("keydown", manejarAtajo);
-  }, [deshacer, rehacer]);
+  }, [deshacer, guardarLocal, rehacer]);
 
   useEffect(() => {
     if (!mensaje || modoEnlace) return undefined;
@@ -74,9 +80,10 @@ export function Toolbar() {
         <button style={puedeDeshacer ? style.button : style.disabledButton} type="button" onClick={deshacer} disabled={!puedeDeshacer}>Deshacer</button>
         <button style={puedeRehacer ? style.button : style.disabledButton} type="button" onClick={rehacer} disabled={!puedeRehacer}>Rehacer</button>
         <span style={style.divider} />
+        <button style={style.button} type="button" onClick={nuevoModelo}>Nuevo</button>
         <button style={style.button} type="button" onClick={cargarDemo}>Demo</button>
-        <button style={style.button} type="button" onClick={guardarLocal}>Guardar</button>
-        <button style={style.button} type="button" onClick={cargarLocal}>Cargar</button>
+        <button style={style.button} type="button" onClick={guardarLocal} title="Guardar (Ctrl+S)">Guardar</button>
+        <button style={style.button} type="button" onClick={() => cargarLocal()}>Cargar</button>
         <span style={style.divider} />
         <label style={style.linkPicker}>
           <span style={style.linkPickerLabel}>Enlace</span>
