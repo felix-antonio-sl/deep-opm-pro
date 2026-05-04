@@ -2,6 +2,7 @@ import { JointCanvas } from "../render/jointjs/JointCanvas";
 import { ArbolOpd } from "./ArbolOpd";
 import { ConfirmacionProvider } from "./ConfirmacionContext";
 import { Inspector } from "./Inspector";
+import { PanelAvisos } from "./PanelAvisos";
 import { PanelOpl } from "./PanelOpl";
 import { Timeline } from "./Timeline";
 import { Toolbar } from "./Toolbar";
@@ -23,6 +24,7 @@ export function App() {
               <Inspector />
             </div>
             <Timeline />
+            <PanelAvisos />
           </div>
         </section>
         <PanelOpl />
@@ -70,11 +72,11 @@ const layout = {
     position: "relative",
     zIndex: 1,
     display: "grid",
-    gridTemplateRows: "minmax(0, 1fr) auto",
+    gridTemplateRows: "minmax(0, 1fr) auto auto",
   },
   inspectorContent: {
     minWidth: 0,
     minHeight: 0,
-    overflow: "hidden",
+    overflow: "auto",
   },
 } satisfies Record<string, preact.JSX.CSSProperties>;
