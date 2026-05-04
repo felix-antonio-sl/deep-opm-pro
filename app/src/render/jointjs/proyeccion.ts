@@ -332,15 +332,60 @@ function marcadoresEstructurales(
   const stroke = CANON.colores.enlace;
 
   if (tipo === "exhibicion") {
+    // Exhibicion = triangulo lleno con sub-triangulos anidados visibles. En
+    // OPCloud se dibuja con un solo path SVG y fill-rule="evenodd"; en
+    // JointJS la traduccion camelCase->kebab-case de fillRule es fragil y
+    // ademas el bbox de standard.Path se computa distinto al de Polygon, lo
+    // que rompe rotacion y routing. Lo replicamos con tres polygons anidados
+    // (igual rotacion y bbox que los demas estructurales): grande relleno,
+    // medio vacio (hueco visual), pequeno relleno.
+    const innerStrokeWidth = Math.max(1, strokeWidth - 1);
     return [
-      polyShapeCell(triangleId, "standard.Path", position, size, angle, {
-        refD: LINK_ASSETS.structural.exhibicion.markerPath,
+      polyShapeCell(triangleId, "standard.Polygon", position, size, angle, {
+        refPoints: "0,15 30,0 30,30",
         fill: stroke,
-        fillRule: "evenodd",
         stroke,
         strokeWidth,
         cursor: "pointer",
       }, meta),
+      {
+        id: `${triangleId}-medio`,
+        type: "standard.Polygon",
+        position,
+        size: { width: size, height: size },
+        angle,
+        attrs: {
+          body: {
+            refPoints: "5,15 25,5 25,25",
+            fill: "white",
+            stroke,
+            strokeWidth: innerStrokeWidth,
+            cursor: "pointer",
+          },
+          label: { text: "", display: "none" },
+        },
+        opm: meta,
+        z: 3,
+      },
+      {
+        id: `${triangleId}-pequeno`,
+        type: "standard.Polygon",
+        position,
+        size: { width: size, height: size },
+        angle,
+        attrs: {
+          body: {
+            refPoints: "10,15 22,9 22,21",
+            fill: stroke,
+            stroke,
+            strokeWidth: innerStrokeWidth,
+            cursor: "pointer",
+          },
+          label: { text: "", display: "none" },
+        },
+        opm: meta,
+        z: 4,
+      },
     ];
   }
 

@@ -118,7 +118,7 @@ describe("proyeccion JointJS", () => {
     expect(line?.targetMarker).toBeNull();
   });
 
-  test("proyecta exhibicion como standard.Path con markerPath canonico", () => {
+  test("proyecta exhibicion como triangulos anidados (grande lleno + medio vacio + pequeno lleno)", () => {
     let modelo = crearModelo();
     modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 30 }, "Vehiculo"));
     modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 220, y: 130 }, "Color"));
@@ -127,12 +127,22 @@ describe("proyeccion JointJS", () => {
     const cells = proyectarModeloAJointCells(modelo, modelo.opdRaizId, null, null);
 
     expect(cells.filter((cell) => cell.type === "standard.Link")).toHaveLength(2);
-    const marker = cells.find((cell) => cell.type === "standard.Path");
-    expect(marker).toBeDefined();
-    const body = (marker?.attrs as Attrs | undefined)?.body as Attrs | undefined;
-    expect(body?.refD).toBe(LINK_ASSETS.structural.exhibicion.markerPath);
-    expect(body?.fillRule).toBe("evenodd");
-    expect(body?.fill).toBe("#586D8C");
+    const polygons = cells.filter((cell) => cell.type === "standard.Polygon");
+    expect(polygons).toHaveLength(3);
+
+    const grande = polygons.find((cell) => !String(cell.id).endsWith("-medio") && !String(cell.id).endsWith("-pequeno"));
+    const medio = polygons.find((cell) => String(cell.id).endsWith("-medio"));
+    const pequeno = polygons.find((cell) => String(cell.id).endsWith("-pequeno"));
+    expect(grande).toBeDefined();
+    expect(medio).toBeDefined();
+    expect(pequeno).toBeDefined();
+
+    expect(((grande?.attrs as Attrs)?.body as Attrs).fill).toBe("#586D8C");
+    expect(((medio?.attrs as Attrs)?.body as Attrs).fill).toBe("white");
+    expect(((pequeno?.attrs as Attrs)?.body as Attrs).fill).toBe("#586D8C");
+    // Stack: grande detras, pequeno adelante.
+    expect(grande?.z).toBeLessThan(medio?.z ?? 0);
+    expect((medio?.z ?? 0)).toBeLessThan(pequeno?.z ?? 0);
   });
 
   test("proyecta generalizacion como triangulo vacio (fill blanco con stroke enlace)", () => {
