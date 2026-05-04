@@ -43,7 +43,7 @@ function oracionRefinamiento(modelo: Modelo, entidad: Entidad): string | null {
   const temporal = todosProcesos ? describirProcesosTemporales(modelo, aparienciasInternas) : null;
   const destinoProcesos = temporal?.texto ?? destino;
   const secuencia = todosProcesos && !temporal?.tieneParalelos
-    ? " en esa secuencia"
+    ? ", en esa secuencia"
     : "";
   return `${nombreOpl(entidad)} se descompone en ${destinoProcesos}${secuencia}.`;
 }
