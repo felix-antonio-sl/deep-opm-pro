@@ -27,7 +27,7 @@ import {
   type ResumenModeloPersistido,
 } from "./persistencia/local";
 import { exportarModelo, hidratarModelo } from "./serializacion/json";
-import type { Afiliacion, Esencia, Id, Modelo, Posicion, TipoEnlace } from "./modelo/tipos";
+import type { Afiliacion, Apariencia, Esencia, Id, Modelo, Posicion, TipoEnlace } from "./modelo/tipos";
 
 interface ModoEnlace {
   tipo: TipoEnlace;
@@ -66,6 +66,7 @@ interface OpmStore {
   fijarAfiliacionSeleccionada: (afiliacion: Afiliacion) => void;
   moverEntidad: (id: Id, x: number, y: number) => void;
   moverApariencia: (aparienciaId: Id, x: number, y: number) => void;
+  reordenarSubprocesoEnTimeline: (opdId: Id, aparienciaId: Id, nuevaY: number) => void;
   actualizarVerticesEnlace: (aparienciaEnlaceId: Id, vertices: Array<{ x: number; y: number }>) => void;
   eliminarSeleccion: () => void;
   exportarJson: () => string;
@@ -353,6 +354,32 @@ export const store = createStore<OpmStore>((set, get) => ({
     if (resultado.ok) commitModelo(set, modelo, resultado.value);
   },
 
+  reordenarSubprocesoEnTimeline(opdId, aparienciaId, nuevaY) {
+    const { modelo } = get();
+    const validado = validarSubprocesoTimeline(modelo, opdId, aparienciaId);
+    if (!validado.ok) {
+      set({ mensaje: validado.error });
+      return;
+    }
+    if (!Number.isFinite(nuevaY)) {
+      set({ mensaje: "Y de timeline inválida" });
+      return;
+    }
+    const { apariencia, contorno } = validado;
+    const y = limitar(nuevaY, contorno.y, contorno.y + contorno.height - apariencia.height);
+    const resultado = moverAparienciaPorId(modelo, opdId, aparienciaId, { x: apariencia.x, y });
+    if (!resultado.ok) {
+      set({ mensaje: resultado.error });
+      return;
+    }
+    commitModelo(set, modelo, resultado.value, {
+      seleccionId: apariencia.entidadId,
+      enlaceSeleccionId: null,
+      modoEnlace: null,
+      mensaje: null,
+    });
+  },
+
   actualizarVerticesEnlace(aparienciaEnlaceId, vertices) {
     const { modelo, opdActivoId } = get();
     const resultado = actualizarVerticesEnlaceOp(modelo, opdActivoId, aparienciaEnlaceId, vertices);
@@ -546,6 +573,46 @@ function contenedorRefinamiento(modelo: Modelo, opdId: Id): { x: number; y: numb
     const entidad = modelo.entidades[apariencia.entidadId];
     return entidad?.refinamiento?.opdId === opdId;
   }) ?? null;
+}
+
+function validarSubprocesoTimeline(
+  modelo: Modelo,
+  opdId: Id,
+  aparienciaId: Id,
+): { ok: true; apariencia: Apariencia; contorno: Apariencia } | { ok: false; error: string } {
+  const opd = modelo.opds[opdId];
+  if (!opd) return { ok: false, error: `OPD no existe: ${opdId}` };
+  if (!opd.padreId || !modelo.opds[opd.padreId]) {
+    return { ok: false, error: "Timeline disponible sólo en OPDs hijos" };
+  }
+  const contorno = Object.values(opd.apariencias).find((apariencia) => {
+    const entidad = modelo.entidades[apariencia.entidadId];
+    return entidad?.tipo === "proceso" && entidad.refinamiento?.tipo === "descomposicion" && entidad.refinamiento.opdId === opdId;
+  });
+  if (!contorno) return { ok: false, error: "Timeline requiere una descomposición de proceso activa" };
+  const apariencia = opd.apariencias[aparienciaId];
+  if (!apariencia) return { ok: false, error: `Apariencia no existe: ${aparienciaId}` };
+  const entidad = modelo.entidades[apariencia.entidadId];
+  if (!entidad || entidad.tipo !== "proceso" || apariencia.entidadId === contorno.entidadId) {
+    return { ok: false, error: "Timeline sólo reordena subprocesos internos" };
+  }
+  if (!dentroDeApariencia(apariencia, contorno)) {
+    return { ok: false, error: "El subproceso no pertenece al contorno de descomposición" };
+  }
+  return { ok: true, apariencia, contorno };
+}
+
+function dentroDeApariencia(apariencia: Apariencia, contorno: Apariencia): boolean {
+  return (
+    apariencia.x >= contorno.x &&
+    apariencia.y >= contorno.y &&
+    apariencia.x + apariencia.width <= contorno.x + contorno.width &&
+    apariencia.y + apariencia.height <= contorno.y + contorno.height
+  );
+}
+
+function limitar(valor: number, minimo: number, maximo: number): number {
+  return Math.max(minimo, Math.min(maximo, valor));
 }
 
 function columnasDentroDe(
