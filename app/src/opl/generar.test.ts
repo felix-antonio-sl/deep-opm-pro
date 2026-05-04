@@ -76,7 +76,7 @@ describe("OPL-ES — refinamiento", () => {
     const descompuesto = must(descomponerProceso(modelo, modelo.opdRaizId, entidad(modelo, "Atender Paciente")));
     modelo = descompuesto.modelo;
 
-    expect(generarOpl(modelo, modelo.opdRaizId)).toContain("*Atender Paciente* se descompone en *Atender Paciente 1*, *Atender Paciente 2* y *Atender Paciente 3*, en esa secuencia.");
+    expect(generarOpl(modelo, modelo.opdRaizId)).toContain("*Atender Paciente* se descompone en *Atender Paciente 1*, *Atender Paciente 2* y *Atender Paciente 3* en esa secuencia.");
   });
 
   test("despliegue de objeto emite se despliega en partes", () => {
@@ -207,14 +207,28 @@ describe("generarOpl", () => {
     const descompuesto = must(descomponerProceso(modelo, modelo.opdRaizId, procesoId));
     modelo = descompuesto.modelo;
 
-    expect(generarOpl(modelo, modelo.opdRaizId)).toContain("*Atender Paciente* se descompone en *Atender Paciente 1*, *Atender Paciente 2* y *Atender Paciente 3*, en esa secuencia.");
-    expect(generarOpl(modelo, descompuesto.opdId)).toContain("*Atender Paciente* se descompone en *Atender Paciente 1*, *Atender Paciente 2* y *Atender Paciente 3*, en esa secuencia.");
+    expect(generarOpl(modelo, modelo.opdRaizId)).toContain("*Atender Paciente* se descompone en *Atender Paciente 1*, *Atender Paciente 2* y *Atender Paciente 3* en esa secuencia.");
+    expect(generarOpl(modelo, descompuesto.opdId)).toContain("*Atender Paciente* se descompone en *Atender Paciente 1*, *Atender Paciente 2* y *Atender Paciente 3* en esa secuencia.");
 
     modelo = must(crearProceso(modelo, descompuesto.opdId, { x: 200, y: 180 }, "Examinar"));
-    expect(generarOpl(modelo, modelo.opdRaizId)).toContain("*Atender Paciente* se descompone en *Examinar*, *Atender Paciente 1*, *Atender Paciente 2* y *Atender Paciente 3*, en esa secuencia.");
+    expect(generarOpl(modelo, modelo.opdRaizId)).toContain("*Atender Paciente* se descompone en *Examinar*, *Atender Paciente 1*, *Atender Paciente 2* y *Atender Paciente 3* en esa secuencia.");
   });
 
-  test("reordena OPL de descomposicion por Y y agrupa paralelos con tolerancia", () => {
+  test("reordena OPL de descomposicion por Y y agrupa paralelos con misma Y estricta", () => {
+    let modelo = crearModelo();
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 200, y: 120 }, "Atender Paciente"));
+    const procesoId = entidad(modelo, "Atender Paciente");
+    const descompuesto = must(descomponerProceso(modelo, modelo.opdRaizId, procesoId));
+    modelo = descompuesto.modelo;
+    modelo = must(moverApariencia(modelo, descompuesto.opdId, entidad(modelo, "Atender Paciente 3"), { x: 420, y: 280 }));
+
+    expect(generarOpl(modelo, modelo.opdRaizId)).toContain("*Atender Paciente* se descompone en *Atender Paciente 1*, *Atender Paciente 2* y *Atender Paciente 3* en paralelo, en esa secuencia.");
+
+    modelo = must(moverApariencia(modelo, descompuesto.opdId, entidad(modelo, "Atender Paciente 1"), { x: 285, y: 420 }));
+    expect(generarOpl(modelo, modelo.opdRaizId)).toContain("*Atender Paciente* se descompone en *Atender Paciente 2* y *Atender Paciente 3* en paralelo, *Atender Paciente 1*, en esa secuencia.");
+  });
+
+  test("no agrupa paralelos cuando las coordenadas Y son cercanas pero distintas", () => {
     let modelo = crearModelo();
     modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 200, y: 120 }, "Atender Paciente"));
     const procesoId = entidad(modelo, "Atender Paciente");
@@ -222,10 +236,7 @@ describe("generarOpl", () => {
     modelo = descompuesto.modelo;
     modelo = must(moverApariencia(modelo, descompuesto.opdId, entidad(modelo, "Atender Paciente 3"), { x: 285, y: 282 }));
 
-    expect(generarOpl(modelo, modelo.opdRaizId)).toContain("*Atender Paciente* se descompone en *Atender Paciente 1*, *Atender Paciente 2* y *Atender Paciente 3* en paralelo.");
-
-    modelo = must(moverApariencia(modelo, descompuesto.opdId, entidad(modelo, "Atender Paciente 1"), { x: 285, y: 420 }));
-    expect(generarOpl(modelo, modelo.opdRaizId)).toContain("*Atender Paciente* se descompone en *Atender Paciente 2* y *Atender Paciente 3* en paralelo, *Atender Paciente 1*.");
+    expect(generarOpl(modelo, modelo.opdRaizId)).toContain("*Atender Paciente* se descompone en *Atender Paciente 1*, *Atender Paciente 2* y *Atender Paciente 3* en esa secuencia.");
   });
 
   test("emite OPL de despliegue para objeto refinado", () => {
