@@ -56,6 +56,7 @@ export function proyectarModeloAJointCells(
 function proyectarEntidad(opdId: Id, apariencia: Apariencia, entidad: Entidad, seleccionada: boolean): JointCellJson {
   const stroke = entidad.tipo === "objeto" ? CANON.colores.objeto : CANON.colores.proceso;
   const refinada = entidad.tipo === "proceso" && entidad.refinamiento?.tipo === "descomposicion";
+  const contornoDescomposicion = refinada && entidad.refinamiento?.opdId === opdId;
   const strokeBase = refinada ? 4 : CANON.dims.enlaceVisible;
   const strokeWidth = seleccionada ? strokeBase + 2 : strokeBase;
   const body = {
@@ -92,7 +93,7 @@ function proyectarEntidad(opdId: Id, apariencia: Apariencia, entidad: Entidad, s
       entidadId: entidad.id,
       aparienciaId: apariencia.id,
     },
-    z: 10,
+    z: contornoDescomposicion ? 0 : 10,
   };
 }
 

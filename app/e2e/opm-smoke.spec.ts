@@ -69,26 +69,39 @@ test("descompone proceso y navega al OPD hijo", async ({ page }) => {
 
   const nodoHijo = page.locator('[role="treeitem"]').filter({ hasText: "SD1: Un Proceso descompuesto" });
   await expect(nodoHijo).toHaveAttribute("aria-current", "page");
-  await expect(page.locator(".joint-element")).toHaveCount(1);
-  await expect(page.getByText("Un Proceso se descompone en SD1.")).toBeVisible();
+  await expect(page.locator(".joint-element")).toHaveCount(4);
+  await expect(page.getByText("Un Proceso se descompone en Un Proceso 1, Un Proceso 2 y Un Proceso 3 en esa secuencia.")).toBeVisible();
 
   await page.getByRole("button", { name: "Exportar" }).click();
   const json = await page.locator("textarea").inputValue();
   const exportado = JSON.parse(json) as ExportadoModelo;
   const proceso = Object.values(exportado.modelo.entidades).find((entidad) => entidad.nombre === "Un Proceso");
+  const subprocesos = Object.values(exportado.modelo.entidades).filter((entidad) => /^Un Proceso [1-3]$/.test(entidad.nombre));
   expect(proceso?.refinamiento?.tipo).toBe("descomposicion");
+  expect(subprocesos).toHaveLength(3);
   const opdHijoId = proceso?.refinamiento?.opdId;
   expect(opdHijoId).toBeTruthy();
   if (!opdHijoId) throw new Error("La descomposicion no exporto opdId");
   expect(exportado.modelo.opds[opdHijoId]?.padreId).toBe(exportado.modelo.opdRaizId);
   expect(Object.values(exportado.modelo.opds[opdHijoId]?.apariencias ?? {}).some((apariencia) => apariencia.entidadId === proceso?.id)).toBe(true);
+  const aparienciasHijo = Object.values(exportado.modelo.opds[opdHijoId]?.apariencias ?? {});
+  const contorno = aparienciasHijo.find((apariencia) => apariencia.entidadId === proceso.id);
+  if (!contorno) throw new Error("No se exporto contorno de descomposicion");
+  for (const subproceso of subprocesos) {
+    const apariencia = aparienciasHijo.find((item) => item.entidadId === subproceso.id);
+    if (!apariencia) throw new Error(`No se exporto apariencia de ${subproceso.nombre}`);
+    expect(apariencia.x).toBeGreaterThan(contorno.x);
+    expect(apariencia.y).toBeGreaterThan(contorno.y);
+    expect(apariencia.x + apariencia.width).toBeLessThan(contorno.x + contorno.width);
+    expect(apariencia.y + apariencia.height).toBeLessThan(contorno.y + contorno.height);
+  }
 
   await page.screenshot({ path: "test-results/opm-descomposicion-opd-hijo.png", fullPage: true });
 
   await page.getByRole("button", { name: "Quitar descomposición" }).click();
   await expect(page.locator('[role="treeitem"]').filter({ hasText: "SD1: Un Proceso descompuesto" })).toHaveCount(0);
   await expect(page.locator('[role="treeitem"][data-opd-id="opd-1"]')).toHaveAttribute("aria-current", "page");
-  await expect(page.getByText("Un Proceso se descompone en SD1.")).toHaveCount(0);
+  await expect(page.getByText("Un Proceso se descompone en Un Proceso 1, Un Proceso 2 y Un Proceso 3 en esa secuencia.")).toHaveCount(0);
   await page.getByRole("button", { name: "Exportar" }).click();
   const jsonSinDescomposicion = await page.locator("textarea").inputValue();
   const exportadoSinDescomposicion = JSON.parse(jsonSinDescomposicion) as ExportadoModelo;
@@ -96,6 +109,56 @@ test("descompone proceso y navega al OPD hijo", async ({ page }) => {
   expect(procesoSinDescomposicion?.refinamiento).toBeUndefined();
   expect(Object.values(exportadoSinDescomposicion.modelo.opds)).toHaveLength(1);
 
+  expect(pageErrors).toEqual([]);
+});
+
+test("redistribuye enlaces externos al primer subproceso interno", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await page.getByRole("button", { name: "Objeto" }).click();
+  await page.getByLabel("Nombre").fill("Entrada");
+  await page.getByRole("button", { name: "Proceso" }).click();
+  await page.getByLabel("Nombre").fill("Procesar");
+  await page.getByRole("button", { name: "Objeto" }).click();
+  await page.getByLabel("Nombre").fill("Salida");
+
+  await elementoPorTexto(page, "Entrada").click();
+  await page.getByLabel("Tipo de enlace").selectOption("consumo");
+  await elementoPorTexto(page, "Procesar").click();
+  await elementoPorTexto(page, "Procesar").click();
+  await page.getByLabel("Tipo de enlace").selectOption("resultado");
+  await elementoPorTexto(page, "Salida").click();
+  await expect(page.locator(".joint-link")).toHaveCount(2);
+
+  await elementoPorTexto(page, "Procesar").click();
+  await page.getByRole("button", { name: "Descomponer" }).click();
+  await expect(page.locator('[role="treeitem"]').filter({ hasText: "SD1: Procesar descompuesto" })).toHaveAttribute("aria-current", "page");
+  await expect(page.locator(".joint-element")).toHaveCount(6);
+  await expect(page.locator(".joint-link")).toHaveCount(2);
+  await expect(elementoPorTexto(page, "Entrada")).toHaveCount(1);
+  await expect(elementoPorTexto(page, "Salida")).toHaveCount(1);
+  await expect(page.getByText("Procesar 1 consume Entrada.")).toBeVisible();
+  await expect(page.getByText("Procesar 1 genera Salida.")).toBeVisible();
+
+  await page.getByRole("button", { name: "Exportar" }).click();
+  const json = await page.locator("textarea").inputValue();
+  const exportado = JSON.parse(json) as ExportadoModelo;
+  const procesar = Object.values(exportado.modelo.entidades).find((entidad) => entidad.nombre === "Procesar");
+  const entrada = Object.values(exportado.modelo.entidades).find((entidad) => entidad.nombre === "Entrada");
+  const salida = Object.values(exportado.modelo.entidades).find((entidad) => entidad.nombre === "Salida");
+  const interno = Object.values(exportado.modelo.entidades).find((entidad) => entidad.nombre === "Procesar 1");
+  const opdHijoId = procesar?.refinamiento?.opdId;
+  if (!opdHijoId || !entrada || !salida || !interno) throw new Error("No se exporto la redistribucion esperada");
+  const enlacesHijo = Object.values(exportado.modelo.opds[opdHijoId]?.enlaces ?? {})
+    .map((apariencia) => exportado.modelo.enlaces[apariencia.enlaceId]);
+  expect(enlacesHijo).toEqual(expect.arrayContaining([
+    expect.objectContaining({ tipo: "consumo", origenId: entrada.id, destinoId: interno.id }),
+    expect.objectContaining({ tipo: "resultado", origenId: interno.id, destinoId: salida.id }),
+  ]));
+
+  await page.screenshot({ path: "test-results/opm-descomposicion-enlaces-externos.png", fullPage: true });
   expect(pageErrors).toEqual([]);
 });
 
@@ -360,12 +423,13 @@ interface ExportadoModelo {
   modelo: {
     opdRaizId: string;
     entidades: Record<string, { id: string; nombre: string; refinamiento?: { tipo: string; opdId: string } }>;
+    enlaces: Record<string, { id: string; tipo: string; origenId: string; destinoId: string }>;
     opds: Record<
       string,
       {
         padreId: string | null;
         apariencias: Record<string, { entidadId: string; x: number; y: number; width: number; height: number }>;
-        enlaces: Record<string, { vertices: Array<{ x: number; y: number }> }>;
+        enlaces: Record<string, { enlaceId: string; vertices: Array<{ x: number; y: number }> }>;
       }
     >;
   };

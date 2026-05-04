@@ -282,9 +282,15 @@ describe("operaciones de modelo", () => {
       tipo: "descomposicion",
       opdId: descompuesto.value.opdId,
     });
-    expect(Object.values(modelo.entidades)).toHaveLength(1);
+    expect(Object.values(modelo.entidades)).toHaveLength(4);
     expect(Object.values(modelo.opds[modelo.opdRaizId]?.apariencias ?? {}).filter((apariencia) => apariencia.entidadId === proceso.id)).toHaveLength(1);
     expect(Object.values(opdHijo?.apariencias ?? {}).filter((apariencia) => apariencia.entidadId === proceso.id)).toHaveLength(1);
+    expect(Object.values(opdHijo?.apariencias ?? {}).filter((apariencia) => modelo.entidades[apariencia.entidadId]?.tipo === "proceso")).toHaveLength(4);
+    expect(Object.values(modelo.entidades).map((entidad) => entidad.nombre)).toEqual(expect.arrayContaining([
+      "Atender Paciente 1",
+      "Atender Paciente 2",
+      "Atender Paciente 3",
+    ]));
 
     const repetido = descomponerProceso(modelo, modelo.opdRaizId, proceso.id);
     expect(repetido.ok).toBe(true);
@@ -292,6 +298,38 @@ describe("operaciones de modelo", () => {
     expect(repetido.value.creado).toBe(false);
     expect(repetido.value.opdId).toBe(descompuesto.value.opdId);
     expect(Object.values(repetido.value.modelo.opds).filter((opd) => opd.padreId === modelo.opdRaizId)).toHaveLength(1);
+  });
+
+  test("redistribuye enlaces externos al primer subproceso interno", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 100 }, "Entrada"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 260, y: 120 }, "Procesar"));
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 520, y: 100 }, "Salida"));
+    const entrada = entidadPorNombre(modelo, "Entrada");
+    const procesar = entidadPorNombre(modelo, "Procesar");
+    const salida = entidadPorNombre(modelo, "Salida");
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entrada.id, procesar.id, "consumo"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, procesar.id, salida.id, "resultado"));
+
+    const descompuesto = must(descomponerProceso(modelo, modelo.opdRaizId, procesar.id));
+    modelo = descompuesto.modelo;
+    const opdHijo = modelo.opds[descompuesto.opdId];
+    expect(opdHijo).toBeDefined();
+    if (!opdHijo) return;
+    expect(Object.values(opdHijo.apariencias).some((apariencia) => apariencia.entidadId === entrada.id)).toBe(true);
+    expect(Object.values(opdHijo.apariencias).some((apariencia) => apariencia.entidadId === salida.id)).toBe(true);
+    expect(Object.values(opdHijo.enlaces)).toHaveLength(2);
+    const interno = entidadPorNombre(modelo, "Procesar 1");
+    const enlacesHijo = Object.values(modelo.opds[descompuesto.opdId]?.enlaces ?? {})
+      .map((apariencia) => modelo.enlaces[apariencia.enlaceId])
+      .filter((enlace): enlace is NonNullable<typeof enlace> => enlace !== undefined);
+
+    expect(enlacesHijo).toHaveLength(2);
+    expect(enlacesHijo).toEqual(expect.arrayContaining([
+      expect.objectContaining({ tipo: "consumo", origenId: entrada.id, destinoId: interno.id }),
+      expect.objectContaining({ tipo: "resultado", origenId: interno.id, destinoId: salida.id }),
+    ]));
+    expect(Object.values(modelo.opds[modelo.opdRaizId]?.enlaces ?? {})).toHaveLength(2);
   });
 
   test("numera recursivamente OPDs hijos de procesos internos", () => {

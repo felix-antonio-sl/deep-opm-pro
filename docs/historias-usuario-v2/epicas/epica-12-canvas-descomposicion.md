@@ -315,6 +315,11 @@ Cubre el mecanismo de **descomposición** (in-zooming, en jerga OPCloud) de proc
 
 **Prioridad:** S. **Tamaño:** M. **Etiquetas:** [render, descomposicion, externos].
 
+**Estado implementación MVP-alpha (2026-05-04):** parcial cubierto. Al crear el
+OPD hijo se materializan apariencias de los extremos externos conectados al
+proceso padre, ubicadas fuera del contorno. No se dibujan enlaces al contorno
+para consumo/resultado.
+
 ---
 
 ### HU-12.011 — Completar fase 2 "Refinar enlaces" con externos restantes
@@ -342,6 +347,13 @@ Cubre el mecanismo de **descomposición** (in-zooming, en jerga OPCloud) de proc
 **Notas de evidencia:** [V-62]. Clase: confirmado por SSOT.
 
 **Prioridad:** S. **Tamaño:** L. **Etiquetas:** [kernel, descomposicion, externos, fase2].
+
+**Estado implementación MVP-alpha (2026-05-04):** parcial cubierto. Al
+descomponer, el kernel crea tres subprocesos iniciales y enlaces locales
+equivalentes desde/hacia el primer subproceso por orden `y` para los externos
+visibles; cubierto para `consumo` y `resultado` por unit test y smoke browser.
+Sigue pendiente la reasignación manual entre subprocesos, advertencias de
+externos no refinados y split de `effect`/estado-específicos.
 
 ---
 
@@ -396,6 +408,11 @@ Cubre el mecanismo de **descomposición** (in-zooming, en jerga OPCloud) de proc
 **Notas de evidencia:** [OPL-ES CX1], [V-35]. Clase: confirmado por SSOT.
 
 **Prioridad:** M0. **Tamaño:** S. **Etiquetas:** [opl, secuencia, temporalidad].
+
+**Estado implementación MVP-alpha (2026-05-04):** cubierto minimo para procesos
+de descomposicion con subprocesos internos ordenados por `y`; la OPL-ES emite
+"en esa secuencia" cuando hay mas de un subproceso. Falta semantica de
+paralelismo para subprocesos con la misma `y`.
 
 ---
 
@@ -476,6 +493,10 @@ Cubre el mecanismo de **descomposición** (in-zooming, en jerga OPCloud) de proc
 **Dependencias:** Bloqueada por HU-12.015.
 
 **Notas de evidencia:** [V-35], [V-77]. Clase: confirmado por SSOT.
+
+**Estado implementación MVP-alpha (2026-05-04):** cubierto minimo como lente
+derivada de `apariencia.y`: la OPL de descomposicion se ordena por `y` y luego
+por `x`. Falta validar reordenamiento completo tras drag dentro del contorno.
 
 **Prioridad:** M0. **Tamaño:** M. **Etiquetas:** [kernel, temporalidad, orden].
 

@@ -1,4 +1,4 @@
-import type { Enlace, Entidad, Id, Modelo } from "../modelo/tipos";
+import type { Apariencia, Enlace, Entidad, Id, Modelo, Opd } from "../modelo/tipos";
 
 export function generarOpl(modelo: Modelo, opdId: Id = modelo.opdRaizId): string[] {
   const opd = modelo.opds[opdId];
@@ -24,15 +24,35 @@ function oracionDescomposicion(modelo: Modelo, entidad: Entidad): string | null 
   if (entidad.refinamiento?.tipo !== "descomposicion") return null;
   const opdHijo = modelo.opds[entidad.refinamiento.opdId];
   if (!opdHijo) return null;
-  const internos = Object.values(opdHijo.apariencias)
-    .filter((apariencia) => apariencia.entidadId !== entidad.id)
-    .sort((a, b) => a.y - b.y || a.x - b.x)
+  const aparienciasInternas = aparienciasInternasDeDescomposicion(modelo, opdHijo, entidad)
+    .sort((a, b) => a.y - b.y || a.x - b.x);
+  const internos = aparienciasInternas
     .flatMap((apariencia) => {
       const interna = modelo.entidades[apariencia.entidadId];
       return interna ? [nombreOpl(interna)] : [];
     });
   const destino = internos.length > 0 ? listarOpl(internos) : codigoOpd(opdHijo.nombre);
-  return `${nombreOpl(entidad)} se descompone en ${destino}.`;
+  const secuencia = aparienciasInternas.length > 1 && aparienciasInternas.every((apariencia) => modelo.entidades[apariencia.entidadId]?.tipo === "proceso")
+    ? " en esa secuencia"
+    : "";
+  return `${nombreOpl(entidad)} se descompone en ${destino}${secuencia}.`;
+}
+
+function aparienciasInternasDeDescomposicion(modelo: Modelo, opdHijo: Opd, entidad: Entidad): Apariencia[] {
+  const contorno = Object.values(opdHijo.apariencias).find((apariencia) => apariencia.entidadId === entidad.id);
+  if (!contorno) return [];
+  return Object.values(opdHijo.apariencias)
+    .filter((apariencia) => apariencia.entidadId !== entidad.id)
+    .filter((apariencia) => dentroDe(apariencia, contorno));
+}
+
+function dentroDe(apariencia: Apariencia, contorno: Apariencia): boolean {
+  return (
+    apariencia.x >= contorno.x &&
+    apariencia.y >= contorno.y &&
+    apariencia.x + apariencia.width <= contorno.x + contorno.width &&
+    apariencia.y + apariencia.height <= contorno.y + contorno.height
+  );
 }
 
 function oracionEntidad(entidad: Entidad): string {

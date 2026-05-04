@@ -97,6 +97,21 @@ describe("proyeccion JointJS", () => {
     const cell = proyectarModeloAJointCells(modelo, modelo.opdRaizId, null, null).find((item) => item.opm.kind === "entidad");
     expect(((cell?.attrs as Attrs | undefined)?.body as Attrs | undefined)?.strokeWidth).toBe(4);
   });
+
+  test("proyecta contorno de descomposicion detras del contenido interno", () => {
+    let modelo = crearModelo();
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 220, y: 130 }, "Proceso"));
+    const procesoId = entidadPorNombre(modelo, "Proceso");
+    const descompuesto = must(descomponerProceso(modelo, modelo.opdRaizId, procesoId));
+    modelo = must(crearObjeto(descompuesto.modelo, descompuesto.opdId, { x: 190, y: 170 }, "Entrada"));
+
+    const cells = proyectarModeloAJointCells(modelo, descompuesto.opdId, null, null);
+    const contorno = cells.find((item) => item.opm.kind === "entidad" && item.opm.entidadId === procesoId);
+    const contenido = cells.find((item) => item.opm.kind === "entidad" && item.opm.entidadId !== procesoId);
+
+    expect(contorno?.z).toBe(0);
+    expect(contenido?.z).toBe(10);
+  });
 });
 
 type Attrs = Record<string, unknown>;

@@ -21,6 +21,14 @@ export interface DescomposicionProceso {
   creado: boolean;
 }
 
+const INZOOM = {
+  subprocesosIniciales: 3,
+  paddingSuperior: 100,
+  separacionVertical: 30,
+  contornoWidth: CANON.dims.cosaWidth * 3,
+  contornoHeight: (CANON.dims.cosaHeight + 30) * 3 + 100 + 65,
+} as const;
+
 export function crearModelo(nombre = "Modelo OPM"): Modelo {
   const opdRaizId = "opd-1";
   return {
@@ -67,28 +75,36 @@ export function descomponerProceso(modelo: Modelo, opdPadreId: Id, procesoId: Id
   }
 
   const opdHijoId = siguienteId(modelo, "opd");
-  const aparienciaHijoId = siguienteId({ ...modelo, nextSeq: modelo.nextSeq + 1 }, "a");
+  let nextSeq = modelo.nextSeq + 1;
+  const aparienciaHijoId = siguienteId({ ...modelo, nextSeq }, "a");
+  nextSeq += 1;
   const aparienciaHijo: Apariencia = {
     id: aparienciaHijoId,
     entidadId: procesoId,
     opdId: opdHijoId,
     x: 150,
     y: 90,
-    width: 420,
-    height: 260,
+    width: INZOOM.contornoWidth,
+    height: INZOOM.contornoHeight,
   };
+  const aparienciasExternas = aparienciasExtremosExternos(modelo, opdPadre, procesoId, opdHijoId, nextSeq);
+  nextSeq = aparienciasExternas.nextSeq;
+  const subprocesos = subprocesosInicialesInzoom(modelo, proceso, aparienciaHijo, opdHijoId, nextSeq);
+  nextSeq = subprocesos.nextSeq;
   const opdHijo: Opd = {
     id: opdHijoId,
     nombre: siguienteNombreOpdHijo(modelo, opdPadreId),
     padreId: opdPadreId,
     apariencias: {
       [aparienciaHijoId]: aparienciaHijo,
+      ...aparienciasExternas.apariencias,
+      ...subprocesos.apariencias,
     },
     enlaces: {},
   };
-  const siguiente: Modelo = {
+  const base: Modelo = {
     ...modelo,
-    nextSeq: modelo.nextSeq + 2,
+    nextSeq,
     entidades: {
       ...modelo.entidades,
       [procesoId]: {
@@ -98,14 +114,17 @@ export function descomponerProceso(modelo: Modelo, opdPadreId: Id, procesoId: Id
           opdId: opdHijoId,
         },
       },
+      ...subprocesos.entidades,
     },
     opds: {
       ...modelo.opds,
       [opdHijoId]: opdHijo,
     },
   };
+  const siguiente = redistribuirEnlacesExternosAlSubproceso(base, opdHijoId, subprocesos.primeroId);
+  if (!siguiente.ok) return fallo(siguiente.error);
 
-  return ok({ modelo: siguiente, opdId: opdHijoId, creado: true });
+  return ok({ modelo: siguiente.value, opdId: opdHijoId, creado: true });
 }
 
 export function quitarDescomposicionProceso(modelo: Modelo, procesoId: Id): Resultado<Modelo> {
@@ -386,12 +405,14 @@ function crearEntidad(
     apariencias: { ...opd.apariencias, [aparienciaId]: apariencia },
   };
 
-  return ok({
+  const base: Modelo = {
     ...modelo,
     nextSeq: modelo.nextSeq + 2,
     entidades: { ...modelo.entidades, [entidadId]: entidad },
     opds: { ...modelo.opds, [opdId]: nextOpd },
-  });
+  };
+
+  return tipo === "proceso" ? redistribuirEnlacesExternosSiPrimerSubproceso(base, opdId, entidadId) : ok(base);
 }
 
 export function validarFirmaEnlace(tipo: TipoEnlace, origen: Entidad, destino: Entidad): Resultado<true> {
@@ -435,6 +456,190 @@ export function validarFirmaEnlace(tipo: TipoEnlace, origen: Entidad, destino: E
 
 function entidadVisibleEnOpd(opd: Opd, entidadId: Id): boolean {
   return Object.values(opd.apariencias).some((apariencia) => apariencia.entidadId === entidadId);
+}
+
+function aparienciasExtremosExternos(
+  modelo: Modelo,
+  opdPadre: Opd,
+  procesoId: Id,
+  opdHijoId: Id,
+  nextSeqInicial: number,
+): { apariencias: Record<Id, Apariencia>; nextSeq: number } {
+  const externos = enlacesExternosDelProceso(modelo, opdPadre, procesoId);
+  const existentes = new Set<Id>([procesoId]);
+  const apariencias: Record<Id, Apariencia> = {};
+  let nextSeq = nextSeqInicial;
+  let entradas = 0;
+  let salidas = 0;
+
+  for (const { enlace, externoId, aparienciaPadre } of externos) {
+    if (existentes.has(externoId)) continue;
+    existentes.add(externoId);
+    const id = siguienteId({ ...modelo, nextSeq }, "a");
+    nextSeq += 1;
+    const entrada = enlace.destinoId === procesoId;
+    const fila = entrada ? entradas : salidas;
+    if (entrada) entradas += 1;
+    else salidas += 1;
+    apariencias[id] = {
+      ...aparienciaPadre,
+      id,
+      opdId: opdHijoId,
+      x: entrada ? 24 : 610,
+      y: 112 + fila * 92,
+    };
+  }
+
+  return { apariencias, nextSeq };
+}
+
+function subprocesosInicialesInzoom(
+  modelo: Modelo,
+  proceso: Entidad,
+  contorno: Apariencia,
+  opdHijoId: Id,
+  nextSeqInicial: number,
+): { entidades: Record<Id, Entidad>; apariencias: Record<Id, Apariencia>; primeroId: Id; nextSeq: number } {
+  const entidades: Record<Id, Entidad> = {};
+  const apariencias: Record<Id, Apariencia> = {};
+  let nextSeq = nextSeqInicial;
+  let primeroId = "";
+  const x = contorno.x + (contorno.width - CANON.dims.cosaWidth) / 2;
+  let y = contorno.y + INZOOM.paddingSuperior;
+
+  for (let index = 1; index <= INZOOM.subprocesosIniciales; index += 1) {
+    const entidadId = siguienteId({ ...modelo, nextSeq }, "p");
+    nextSeq += 1;
+    const aparienciaId = siguienteId({ ...modelo, nextSeq }, "a");
+    nextSeq += 1;
+    if (!primeroId) primeroId = entidadId;
+    entidades[entidadId] = {
+      id: entidadId,
+      tipo: "proceso",
+      nombre: `${proceso.nombre} ${index}`,
+      esencia: proceso.esencia,
+      afiliacion: proceso.afiliacion,
+    };
+    apariencias[aparienciaId] = {
+      id: aparienciaId,
+      entidadId,
+      opdId: opdHijoId,
+      x,
+      y,
+      width: CANON.dims.cosaWidth,
+      height: CANON.dims.cosaHeight,
+    };
+    y += CANON.dims.cosaHeight + INZOOM.separacionVertical;
+  }
+
+  return { entidades, apariencias, primeroId, nextSeq };
+}
+
+function redistribuirEnlacesExternosSiPrimerSubproceso(modelo: Modelo, opdId: Id, subprocesoId: Id): Resultado<Modelo> {
+  const opd = modelo.opds[opdId];
+  if (!opd?.padreId) return ok(modelo);
+  const contorno = procesoDescompuestoEnOpd(modelo, opd);
+  if (!contorno) return ok(modelo);
+  const procesosInternos = Object.values(opd.apariencias).filter((apariencia) => {
+    if (apariencia.entidadId === contorno.entidad.id) return false;
+    return modelo.entidades[apariencia.entidadId]?.tipo === "proceso";
+  });
+  if (procesosInternos.length !== 1 || procesosInternos[0]?.entidadId !== subprocesoId) return ok(modelo);
+
+  return redistribuirEnlacesExternosAlSubproceso(modelo, opdId, subprocesoId);
+}
+
+function redistribuirEnlacesExternosAlSubproceso(modelo: Modelo, opdId: Id, subprocesoId: Id): Resultado<Modelo> {
+  const opd = modelo.opds[opdId];
+  if (!opd?.padreId) return ok(modelo);
+  const contorno = procesoDescompuestoEnOpd(modelo, opd);
+  if (!contorno) return ok(modelo);
+  const padre = modelo.opds[opd.padreId];
+  if (!padre) return ok(modelo);
+  const externos = enlacesExternosDelProceso(modelo, padre, contorno.entidad.id)
+    .filter(({ externoId }) => entidadVisibleEnOpd(opd, externoId));
+  if (externos.length === 0) return ok(modelo);
+  let nextSeq = modelo.nextSeq;
+  const enlaces = { ...modelo.enlaces };
+  const aparienciasEnlace: Record<Id, AparienciaEnlace> = { ...opd.enlaces };
+
+  for (const { enlace } of externos) {
+    const origenId = enlace.origenId === contorno.entidad.id ? subprocesoId : enlace.origenId;
+    const destinoId = enlace.destinoId === contorno.entidad.id ? subprocesoId : enlace.destinoId;
+    if (Object.values(enlaces).some((existente) => (
+      existente.tipo === enlace.tipo &&
+      existente.origenId === origenId &&
+      existente.destinoId === destinoId &&
+      Object.values(aparienciasEnlace).some((apariencia) => apariencia.enlaceId === existente.id)
+    ))) {
+      continue;
+    }
+    const origen = modelo.entidades[origenId];
+    const destino = modelo.entidades[destinoId];
+    if (!origen || !destino) continue;
+    const firma = validarFirmaEnlace(enlace.tipo, origen, destino);
+    if (!firma.ok) continue;
+    const enlaceId = siguienteId({ ...modelo, nextSeq }, "e");
+    nextSeq += 1;
+    const aparienciaId = siguienteId({ ...modelo, nextSeq }, "ae");
+    nextSeq += 1;
+    enlaces[enlaceId] = {
+      id: enlaceId,
+      tipo: enlace.tipo,
+      origenId,
+      destinoId,
+      etiqueta: enlace.etiqueta,
+    };
+    aparienciasEnlace[aparienciaId] = {
+      id: aparienciaId,
+      enlaceId,
+      opdId,
+      vertices: [],
+    };
+  }
+
+  if (nextSeq === modelo.nextSeq) return ok(modelo);
+  return ok({
+    ...modelo,
+    nextSeq,
+    enlaces,
+    opds: {
+      ...modelo.opds,
+      [opdId]: {
+        ...opd,
+        enlaces: aparienciasEnlace,
+      },
+    },
+  });
+}
+
+function procesoDescompuestoEnOpd(modelo: Modelo, opd: Opd): { entidad: Entidad; apariencia: Apariencia } | null {
+  for (const apariencia of Object.values(opd.apariencias)) {
+    const entidad = modelo.entidades[apariencia.entidadId];
+    if (entidad?.tipo === "proceso" && entidad.refinamiento?.tipo === "descomposicion" && entidad.refinamiento.opdId === opd.id) {
+      return { entidad, apariencia };
+    }
+  }
+  return null;
+}
+
+function enlacesExternosDelProceso(
+  modelo: Modelo,
+  opdPadre: Opd,
+  procesoId: Id,
+): Array<{ enlace: Enlace; externoId: Id; aparienciaPadre: Apariencia }> {
+  const aparienciasPadre = new Map(Object.values(opdPadre.apariencias).map((apariencia) => [apariencia.entidadId, apariencia]));
+  const externos: Array<{ enlace: Enlace; externoId: Id; aparienciaPadre: Apariencia }> = [];
+  for (const aparienciaEnlace of Object.values(opdPadre.enlaces)) {
+    const enlace = modelo.enlaces[aparienciaEnlace.enlaceId];
+    if (!enlace) continue;
+    const externoId = enlace.origenId === procesoId ? enlace.destinoId : enlace.destinoId === procesoId ? enlace.origenId : null;
+    if (!externoId) continue;
+    const aparienciaPadre = aparienciasPadre.get(externoId);
+    if (!aparienciaPadre) continue;
+    externos.push({ enlace, externoId, aparienciaPadre });
+  }
+  return externos;
 }
 
 function siguienteNombreOpdHijo(modelo: Modelo, opdPadreId: Id): string {

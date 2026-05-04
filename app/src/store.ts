@@ -362,18 +362,25 @@ function entidadNueva(previo: Modelo, siguiente: Modelo): Id | null {
 }
 
 function posicionLibre(modelo: Modelo, opdId: Id, tipo: "objeto" | "proceso"): Posicion {
-  const columnas = tipo === "proceso" ? [300, 80, 520, 740] : [80, 300, 520, 740];
+  const contenedor = contenedorDescomposicion(modelo, opdId);
+  const columnas = contenedor
+    ? columnasDentroDe(contenedor, tipo)
+    : tipo === "proceso" ? [300, 80, 520, 740] : [80, 300, 520, 740];
+  const yInicial = contenedor ? contenedor.y + 68 : 90;
+  const yMax = contenedor ? contenedor.y + contenedor.height - CANON.dims.cosaHeight - 24 : Number.POSITIVE_INFINITY;
   const apariencias = Object.values(modelo.opds[opdId]?.apariencias ?? {});
   for (let fila = 0; fila < 20; fila += 1) {
     for (const x of columnas) {
-      const candidata = { x, y: 90 + fila * 110 };
+      const candidata = { x, y: yInicial + fila * 88 };
+      if (candidata.y > yMax) continue;
       if (!apariencias.some((apariencia) => solapa(candidata, apariencia))) return candidata;
     }
   }
-  return { x: columnas[0] ?? 80, y: 90 + apariencias.length * 110 };
+  return { x: columnas[0] ?? 80, y: Math.min(yInicial + apariencias.length * 88, yMax) };
 }
 
 function solapa(posicion: Posicion, apariencia: { x: number; y: number; width: number; height: number }): boolean {
+  if (esContornoDescomposicion(apariencia)) return false;
   const margen = 18;
   const a = {
     left: posicion.x - margen,
@@ -388,6 +395,29 @@ function solapa(posicion: Posicion, apariencia: { x: number; y: number; width: n
     bottom: apariencia.y + apariencia.height + margen,
   };
   return a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top;
+}
+
+function contenedorDescomposicion(modelo: Modelo, opdId: Id): { x: number; y: number; width: number; height: number } | null {
+  const opd = modelo.opds[opdId];
+  if (!opd?.padreId) return null;
+  return Object.values(opd.apariencias).find((apariencia) => {
+    const entidad = modelo.entidades[apariencia.entidadId];
+    return entidad?.tipo === "proceso" && entidad.refinamiento?.tipo === "descomposicion" && entidad.refinamiento.opdId === opdId;
+  }) ?? null;
+}
+
+function columnasDentroDe(
+  contenedor: { x: number; width: number },
+  tipo: "objeto" | "proceso",
+): number[] {
+  const left = contenedor.x + 36;
+  const center = contenedor.x + Math.max(36, (contenedor.width - CANON.dims.cosaWidth) / 2);
+  const right = contenedor.x + contenedor.width - CANON.dims.cosaWidth - 36;
+  return tipo === "proceso" ? [center, left, right] : [left, center, right];
+}
+
+function esContornoDescomposicion(apariencia: { width: number; height: number }): boolean {
+  return apariencia.width > CANON.dims.cosaWidth || apariencia.height > CANON.dims.cosaHeight;
 }
 
 function commitModelo(
