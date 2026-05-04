@@ -5,8 +5,11 @@ import { useConfirmarSiDirty } from "./ConfirmacionContext";
 
 const TIPOS_ENLACE: Array<{ tipo: TipoEnlace; label: string }> = [
   { tipo: "agregacion", label: "Agregación" },
-  { tipo: "instrumento", label: "Instrumento" },
+  { tipo: "exhibicion", label: "Exhibición" },
+  { tipo: "generalizacion", label: "Generalización" },
+  { tipo: "clasificacion", label: "Clasificación" },
   { tipo: "agente", label: "Agente" },
+  { tipo: "instrumento", label: "Instrumento" },
   { tipo: "consumo", label: "Consumo" },
   { tipo: "resultado", label: "Resultado" },
   { tipo: "efecto", label: "Efecto" },
