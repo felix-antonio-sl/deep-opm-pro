@@ -388,6 +388,108 @@ test("marca dirty state y navega cambios con deshacer y rehacer", async ({ page 
   expect(pageErrors).toEqual([]);
 });
 
+test("confirma cambios sin guardar antes de crear un modelo nuevo", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await page.getByRole("button", { name: "Objeto" }).click();
+  await expect(elementoPorTexto(page, "Un Objeto")).toHaveCount(1);
+
+  const dialogo = page.getByRole("dialog", { name: "Hay cambios sin guardar" });
+  await page.getByRole("button", { name: "Nuevo" }).click();
+  await expect(dialogo).toBeVisible();
+  await expect(dialogo.getByRole("button", { name: "Guardar" })).toBeFocused();
+
+  await dialogo.getByRole("button", { name: "Cancelar" }).click();
+  await expect(dialogo).toHaveCount(0);
+  await expect(elementoPorTexto(page, "Un Objeto")).toHaveCount(1);
+
+  await page.getByRole("button", { name: "Nuevo" }).click();
+  await expect(dialogo).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(dialogo).toHaveCount(0);
+  await expect(elementoPorTexto(page, "Un Objeto")).toHaveCount(1);
+
+  await page.getByRole("button", { name: "Nuevo" }).click();
+  await expect(dialogo).toBeVisible();
+  await dialogo.getByRole("button", { name: "Descartar" }).click();
+  await expect(dialogo).toHaveCount(0);
+  await expect(page.locator(".joint-element")).toHaveCount(0);
+  await expect(page.getByText("Modelo OPM (No guardado)")).toHaveCount(0);
+
+  expect(pageErrors).toEqual([]);
+});
+
+test("no abre confirmacion cuando Nuevo se ejecuta tras guardar", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await page.getByRole("button", { name: "Objeto" }).click();
+  await page.keyboard.press("Control+S");
+  await expect(page.getByText("Modelo guardado exitosamente")).toBeVisible();
+  await expect(page.getByText("Modelo OPM (No guardado)")).toHaveCount(0);
+
+  await page.getByRole("button", { name: "Nuevo" }).click();
+  await expect(page.getByRole("dialog", { name: "Hay cambios sin guardar" })).toHaveCount(0);
+  await expect(page.locator(".joint-element")).toHaveCount(0);
+
+  expect(pageErrors).toEqual([]);
+});
+
+test("activa beforeunload solo cuando el modelo esta dirty", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await expect(await estadoBeforeUnload(page)).toEqual({ canceled: false, defaultPrevented: false });
+
+  await page.getByRole("button", { name: "Objeto" }).click();
+  await expect(await estadoBeforeUnload(page)).toEqual({ canceled: true, defaultPrevented: true });
+
+  await page.keyboard.press("Control+S");
+  await expect(page.getByText("Modelo guardado exitosamente")).toBeVisible();
+  await expect(await estadoBeforeUnload(page)).toEqual({ canceled: false, defaultPrevented: false });
+
+  expect(pageErrors).toEqual([]);
+});
+
+test("asiste importacion JSON con archivo, preview, confirmacion y error legible", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await page.getByRole("button", { name: "Objeto" }).click();
+  await expect(elementoPorTexto(page, "Un Objeto")).toHaveCount(1);
+
+  await page.getByLabel("Archivo JSON").setInputFiles({
+    name: "multi-opd.json",
+    mimeType: "application/json",
+    buffer: Buffer.from(JSON.stringify(modeloDosOpds(), null, 2)),
+  });
+  await expect(page.getByTestId("import-preview")).toHaveText('Modelo "Modelo multi OPD" — 2 entidades, 2 OPDs, 0 enlaces');
+
+  const dialogo = page.getByRole("dialog", { name: "Hay cambios sin guardar" });
+  await page.getByRole("button", { name: "Importar" }).click();
+  await expect(dialogo).toBeVisible();
+  await dialogo.getByRole("button", { name: "Cancelar" }).click();
+  await expect(dialogo).toHaveCount(0);
+  await expect(elementoPorTexto(page, "Un Objeto")).toHaveCount(1);
+  await expect(elementoPorTexto(page, "Objeto Raiz")).toHaveCount(0);
+
+  await page.getByRole("button", { name: "Importar" }).click();
+  await expect(dialogo).toBeVisible();
+  await dialogo.getByRole("button", { name: "Descartar" }).click();
+  await expect(elementoPorTexto(page, "Objeto Raiz")).toHaveCount(1);
+  await expect(page.getByText("Modelo multi OPD (No guardado)")).toHaveCount(0);
+
+  await page.locator("textarea").fill("{");
+  await expect(page.getByRole("alert")).toHaveText("JSON inválido");
+
+  expect(pageErrors).toEqual([]);
+});
+
 test("crea enlace, edita vertices y elimina desde celdas JointJS", async ({ page }) => {
   const pageErrors: string[] = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));
@@ -519,6 +621,17 @@ async function assertCanvasScrollable(page: import("@playwright/test").Page): Pr
   expect(scroll.scrollHeight).toBeGreaterThan(scroll.clientHeight);
   expect(scroll.scrollLeft).toBeGreaterThan(0);
   expect(scroll.scrollTop).toBeGreaterThan(0);
+}
+
+async function estadoBeforeUnload(page: import("@playwright/test").Page): Promise<{ canceled: boolean; defaultPrevented: boolean }> {
+  return page.evaluate(() => {
+    const event = new Event("beforeunload", { cancelable: true }) as BeforeUnloadEvent;
+    const dispatchResult = window.dispatchEvent(event);
+    return {
+      canceled: !dispatchResult,
+      defaultPrevented: event.defaultPrevented,
+    };
+  });
 }
 
 async function puntoMedioPath(locator: import("@playwright/test").Locator): Promise<{ x: number; y: number }> {
