@@ -1,6 +1,10 @@
 import { useEffect, useState } from "preact/hooks";
 import { createStore } from "zustand/vanilla";
-import { CANON } from "./modelo/constantes";
+import {
+  contenedorRefinamiento,
+  dentroDeApariencia,
+  posicionLibre,
+} from "./modelo/layout";
 import {
   actualizarVerticesEnlace as actualizarVerticesEnlaceOp,
   cambiarAfiliacion,
@@ -566,51 +570,6 @@ function entidadNueva(previo: Modelo, siguiente: Modelo): Id | null {
   return Object.keys(siguiente.entidades).find((id) => !previos.has(id)) ?? null;
 }
 
-function posicionLibre(modelo: Modelo, opdId: Id, tipo: "objeto" | "proceso"): Posicion {
-  const contenedor = contenedorRefinamiento(modelo, opdId);
-  const columnas = contenedor
-    ? columnasDentroDe(contenedor, tipo)
-    : tipo === "proceso" ? [300, 80, 520, 740] : [80, 300, 520, 740];
-  const yInicial = contenedor ? contenedor.y + 68 : 90;
-  const yMax = contenedor ? contenedor.y + contenedor.height - CANON.dims.cosaHeight - 24 : Number.POSITIVE_INFINITY;
-  const apariencias = Object.values(modelo.opds[opdId]?.apariencias ?? {});
-  for (let fila = 0; fila < 20; fila += 1) {
-    for (const x of columnas) {
-      const candidata = { x, y: yInicial + fila * 88 };
-      if (candidata.y > yMax) continue;
-      if (!apariencias.some((apariencia) => solapa(candidata, apariencia))) return candidata;
-    }
-  }
-  return { x: columnas[0] ?? 80, y: Math.min(yInicial + apariencias.length * 88, yMax) };
-}
-
-function solapa(posicion: Posicion, apariencia: { x: number; y: number; width: number; height: number }): boolean {
-  if (esContornoRefinamiento(apariencia)) return false;
-  const margen = 18;
-  const a = {
-    left: posicion.x - margen,
-    right: posicion.x + CANON.dims.cosaWidth + margen,
-    top: posicion.y - margen,
-    bottom: posicion.y + CANON.dims.cosaHeight + margen,
-  };
-  const b = {
-    left: apariencia.x - margen,
-    right: apariencia.x + apariencia.width + margen,
-    top: apariencia.y - margen,
-    bottom: apariencia.y + apariencia.height + margen,
-  };
-  return a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top;
-}
-
-function contenedorRefinamiento(modelo: Modelo, opdId: Id): { x: number; y: number; width: number; height: number } | null {
-  const opd = modelo.opds[opdId];
-  if (!opd?.padreId) return null;
-  return Object.values(opd.apariencias).find((apariencia) => {
-    const entidad = modelo.entidades[apariencia.entidadId];
-    return entidad?.refinamiento?.opdId === opdId;
-  }) ?? null;
-}
-
 function validarSubprocesoTimeline(
   modelo: Modelo,
   opdId: Id,
@@ -638,31 +597,8 @@ function validarSubprocesoTimeline(
   return { ok: true, apariencia, contorno };
 }
 
-function dentroDeApariencia(apariencia: Apariencia, contorno: Apariencia): boolean {
-  return (
-    apariencia.x >= contorno.x &&
-    apariencia.y >= contorno.y &&
-    apariencia.x + apariencia.width <= contorno.x + contorno.width &&
-    apariencia.y + apariencia.height <= contorno.y + contorno.height
-  );
-}
-
 function limitar(valor: number, minimo: number, maximo: number): number {
   return Math.max(minimo, Math.min(maximo, valor));
-}
-
-function columnasDentroDe(
-  contenedor: { x: number; width: number },
-  tipo: "objeto" | "proceso",
-): number[] {
-  const left = contenedor.x + 36;
-  const center = contenedor.x + Math.max(36, (contenedor.width - CANON.dims.cosaWidth) / 2);
-  const right = contenedor.x + contenedor.width - CANON.dims.cosaWidth - 36;
-  return tipo === "proceso" ? [center, left, right] : [left, center, right];
-}
-
-function esContornoRefinamiento(apariencia: { width: number; height: number }): boolean {
-  return apariencia.width > CANON.dims.cosaWidth || apariencia.height > CANON.dims.cosaHeight;
 }
 
 function commitModelo(
