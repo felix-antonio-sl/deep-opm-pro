@@ -20,11 +20,24 @@ export type OpmJointMetadata =
 
 export interface JointCellJson {
   id: Id;
-  type: "standard.Rectangle" | "standard.Ellipse" | "standard.Link" | "standard.Polygon";
+  type:
+    | "standard.Rectangle"
+    | "standard.Ellipse"
+    | "standard.Link"
+    | "standard.Polygon"
+    | "standard.Path"
+    | "standard.Circle";
   opm: OpmJointMetadata;
   z: number;
   [key: string]: unknown;
 }
+
+const TIPOS_REFINAMIENTO_ESTRUCTURAL: readonly TipoEnlace[] = [
+  "agregacion",
+  "exhibicion",
+  "generalizacion",
+  "clasificacion",
+] as const;
 
 export function proyectarModeloAJointCells(
   modelo: Modelo,
@@ -47,8 +60,8 @@ export function proyectarModeloAJointCells(
     const origen = aparienciaPorEntidad.get(enlace.origenId);
     const destino = aparienciaPorEntidad.get(enlace.destinoId);
     if (!origen || !destino) return [];
-    return enlace.tipo === "agregacion"
-      ? proyectarAgregacion(opdId, enlace, aparienciaEnlace.id, origen, destino, enlace.id === seleccionEnlaceId)
+    return TIPOS_REFINAMIENTO_ESTRUCTURAL.includes(enlace.tipo)
+      ? proyectarRefinamientoEstructural(opdId, enlace, aparienciaEnlace.id, origen, destino, enlace.id === seleccionEnlaceId)
       : [proyectarEnlace(opdId, enlace, aparienciaEnlace.id, origen, destino, aparienciaEnlace.vertices, enlace.id === seleccionEnlaceId)];
   });
 
@@ -250,7 +263,10 @@ function proyectarEnlace(
   };
 }
 
-function proyectarAgregacion(
+// Refinamiento estructural: agregacion (lleno), exhibicion (sub-triangulos),
+// generalizacion (vacio), clasificacion (vacio + dot). Los markers canonicos
+// viven en assets/svg/links/structural/ y se exponen via LINK_ASSETS.structural.
+function proyectarRefinamientoEstructural(
   opdId: Id,
   enlace: Enlace,
   aparienciaEnlaceId: Id,
@@ -297,29 +313,108 @@ function proyectarAgregacion(
       opm: meta,
       z: 1,
     },
-    {
-      id: triangleId,
-      type: "standard.Polygon",
-      position: { x: center.x - triangleSize / 2, y: center.y - triangleSize / 2 },
-      size: { width: triangleSize, height: triangleSize },
-      angle: anguloTriangulo(source, center),
-      attrs: {
-        body: {
-          refPoints: LINK_ASSETS.structural.agregacion.markerPoints,
-          fill: CANON.colores.enlace,
-          stroke: CANON.colores.enlace,
-          strokeWidth: seleccionada ? CANON.dims.enlaceVisible + 2 : CANON.dims.enlaceVisible,
-          cursor: "pointer",
-        },
-        label: {
-          text: "",
-          display: "none",
-        },
-      },
-      opm: meta,
-      z: 2,
-    },
+    ...marcadoresEstructurales(enlace.tipo, triangleId, center, triangleSize, source, seleccionada, meta),
   ];
+}
+
+function marcadoresEstructurales(
+  tipo: TipoEnlace,
+  triangleId: Id,
+  center: Posicion,
+  size: number,
+  source: Posicion,
+  seleccionada: boolean,
+  meta: OpmJointMetadata,
+): JointCellJson[] {
+  const angle = anguloTriangulo(source, center);
+  const position = { x: center.x - size / 2, y: center.y - size / 2 };
+  const strokeWidth = seleccionada ? CANON.dims.enlaceVisible + 2 : CANON.dims.enlaceVisible;
+  const stroke = CANON.colores.enlace;
+
+  if (tipo === "exhibicion") {
+    return [
+      polyShapeCell(triangleId, "standard.Path", position, size, angle, {
+        refD: LINK_ASSETS.structural.exhibicion.markerPath,
+        fill: stroke,
+        fillRule: "evenodd",
+        stroke,
+        strokeWidth,
+        cursor: "pointer",
+      }, meta),
+    ];
+  }
+
+  if (tipo === "generalizacion") {
+    return [
+      polyShapeCell(triangleId, "standard.Polygon", position, size, angle, {
+        refPoints: LINK_ASSETS.structural.generalizacion.markerPoints,
+        fill: LINK_ASSETS.structural.generalizacion.markerFill,
+        stroke,
+        strokeWidth,
+        cursor: "pointer",
+      }, meta),
+    ];
+  }
+
+  if (tipo === "clasificacion") {
+    const dot = LINK_ASSETS.structural.clasificacion.markerDot;
+    return [
+      polyShapeCell(triangleId, "standard.Polygon", position, size, angle, {
+        refPoints: LINK_ASSETS.structural.clasificacion.markerPoints,
+        fill: LINK_ASSETS.structural.clasificacion.markerFill,
+        stroke,
+        strokeWidth,
+        cursor: "pointer",
+      }, meta),
+      {
+        id: `${triangleId}-dot`,
+        type: "standard.Circle",
+        position: { x: center.x - dot.r, y: center.y - dot.r },
+        size: { width: dot.r * 2, height: dot.r * 2 },
+        attrs: {
+          body: { fill: stroke, stroke, cursor: "pointer" },
+          label: { text: "", display: "none" },
+        },
+        opm: meta,
+        z: 3,
+      },
+    ];
+  }
+
+  // agregacion (default): triangulo solido con fill = color de enlace.
+  return [
+    polyShapeCell(triangleId, "standard.Polygon", position, size, angle, {
+      refPoints: LINK_ASSETS.structural.agregacion.markerPoints,
+      fill: stroke,
+      stroke,
+      strokeWidth,
+      cursor: "pointer",
+    }, meta),
+  ];
+}
+
+function polyShapeCell(
+  id: Id,
+  type: "standard.Polygon" | "standard.Path",
+  position: Posicion,
+  size: number,
+  angle: number,
+  bodyAttrs: Record<string, unknown>,
+  meta: OpmJointMetadata,
+): JointCellJson {
+  return {
+    id,
+    type,
+    position,
+    size: { width: size, height: size },
+    angle,
+    attrs: {
+      body: bodyAttrs,
+      label: { text: "", display: "none" },
+    },
+    opm: meta,
+    z: 2,
+  };
 }
 
 function marcadorFuente(tipo: TipoEnlace): Record<string, unknown> | null {

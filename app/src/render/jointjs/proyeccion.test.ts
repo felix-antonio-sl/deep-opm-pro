@@ -118,6 +118,60 @@ describe("proyeccion JointJS", () => {
     expect(line?.targetMarker).toBeNull();
   });
 
+  test("proyecta exhibicion como standard.Path con markerPath canonico", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 30 }, "Vehiculo"));
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 220, y: 130 }, "Color"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidadPorNombre(modelo, "Vehiculo"), entidadPorNombre(modelo, "Color"), "exhibicion"));
+
+    const cells = proyectarModeloAJointCells(modelo, modelo.opdRaizId, null, null);
+
+    expect(cells.filter((cell) => cell.type === "standard.Link")).toHaveLength(2);
+    const marker = cells.find((cell) => cell.type === "standard.Path");
+    expect(marker).toBeDefined();
+    const body = (marker?.attrs as Attrs | undefined)?.body as Attrs | undefined;
+    expect(body?.refD).toBe(LINK_ASSETS.structural.exhibicion.markerPath);
+    expect(body?.fillRule).toBe("evenodd");
+    expect(body?.fill).toBe("#586D8C");
+  });
+
+  test("proyecta generalizacion como triangulo vacio (fill blanco con stroke enlace)", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 30 }, "Animal"));
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 220, y: 130 }, "Perro"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidadPorNombre(modelo, "Animal"), entidadPorNombre(modelo, "Perro"), "generalizacion"));
+
+    const cells = proyectarModeloAJointCells(modelo, modelo.opdRaizId, null, null);
+
+    expect(cells.filter((cell) => cell.type === "standard.Link")).toHaveLength(2);
+    const marker = cells.find((cell) => cell.type === "standard.Polygon");
+    expect(marker).toBeDefined();
+    const body = (marker?.attrs as Attrs | undefined)?.body as Attrs | undefined;
+    expect(body?.refPoints).toBe(LINK_ASSETS.structural.generalizacion.markerPoints);
+    expect(body?.fill).toBe(LINK_ASSETS.structural.generalizacion.markerFill);
+    expect(body?.stroke).toBe("#586D8C");
+  });
+
+  test("proyecta clasificacion como triangulo vacio mas dot interno", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 30 }, "Persona"));
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 220, y: 130 }, "Juan"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidadPorNombre(modelo, "Persona"), entidadPorNombre(modelo, "Juan"), "clasificacion"));
+
+    const cells = proyectarModeloAJointCells(modelo, modelo.opdRaizId, null, null);
+
+    expect(cells.filter((cell) => cell.type === "standard.Link")).toHaveLength(2);
+    const triangulo = cells.find((cell) => cell.type === "standard.Polygon");
+    const dot = cells.find((cell) => cell.type === "standard.Circle");
+    expect(triangulo).toBeDefined();
+    expect(dot).toBeDefined();
+    const triBody = (triangulo?.attrs as Attrs | undefined)?.body as Attrs | undefined;
+    expect(triBody?.refPoints).toBe(LINK_ASSETS.structural.clasificacion.markerPoints);
+    expect(triBody?.fill).toBe(LINK_ASSETS.structural.clasificacion.markerFill);
+    const dotSize = dot?.size as { width?: number; height?: number } | undefined;
+    expect(dotSize?.width).toBe(LINK_ASSETS.structural.clasificacion.markerDot.r * 2);
+  });
+
   test("proyecta agregacion con triangulo estructural separado", () => {
     let modelo = crearModelo();
     modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 30 }, "Whole"));
