@@ -1,5 +1,6 @@
 import { CANON } from "../../modelo/constantes";
 import type { Apariencia, Enlace, Entidad, Id, Modelo, Posicion, TipoEnlace } from "../../modelo/tipos";
+import { LINK_ASSETS } from "./linkAssets";
 
 export type OpmJointMetadata =
   | {
@@ -47,7 +48,7 @@ export function proyectarModeloAJointCells(
     if (!origen || !destino) return [];
     return enlace.tipo === "agregacion"
       ? proyectarAgregacion(opdId, enlace, aparienciaEnlace.id, origen, destino, enlace.id === seleccionEnlaceId)
-      : [proyectarEnlace(opdId, enlace, aparienciaEnlace.id, origen.id, destino.id, aparienciaEnlace.vertices, enlace.id === seleccionEnlaceId)];
+      : [proyectarEnlace(opdId, enlace, aparienciaEnlace.id, origen, destino, aparienciaEnlace.vertices, enlace.id === seleccionEnlaceId)];
   });
 
   return [...enlaces, ...elementos];
@@ -101,26 +102,27 @@ function proyectarEnlace(
   opdId: Id,
   enlace: Enlace,
   aparienciaEnlaceId: Id,
-  sourceAppearanceId: Id,
-  targetAppearanceId: Id,
+  origen: Apariencia,
+  destino: Apariencia,
   vertices: Posicion[],
   seleccionada: boolean,
 ): JointCellJson {
+  const verticesRender = verticesEnlace(enlace.tipo, origen, destino, vertices);
   return {
     id: aparienciaEnlaceId,
     type: "standard.Link",
     source: {
-      id: sourceAppearanceId,
+      id: origen.id,
       anchor: { name: "midSide", args: { rotate: true } },
       connectionPoint: { name: "boundary", args: { offset: 1 } },
     },
     target: {
-      id: targetAppearanceId,
+      id: destino.id,
       anchor: { name: "midSide", args: { rotate: true } },
       connectionPoint: { name: "boundary", args: { offset: 1 } },
     },
-    vertices,
-    router: routerManhattan(),
+    vertices: verticesRender,
+    router: enlace.tipo === "invocacion" ? undefined : routerManhattan(),
     connector: { name: "straight" },
     attrs: {
       wrapper: {
@@ -201,8 +203,8 @@ function proyectarAgregacion(
       angle: anguloTriangulo(source, center),
       attrs: {
         body: {
-          refPoints: "0,15 30,0 30,30",
-          fill: CANON.colores.relleno,
+          refPoints: LINK_ASSETS.structural.agregacion.markerPoints,
+          fill: CANON.colores.enlace,
           stroke: CANON.colores.enlace,
           strokeWidth: seleccionada ? CANON.dims.enlaceVisible + 2 : CANON.dims.enlaceVisible,
           cursor: "pointer",
@@ -219,27 +221,30 @@ function proyectarAgregacion(
 }
 
 function marcadorFuente(tipo: TipoEnlace): Record<string, unknown> | null {
-  if (tipo === "agente" || tipo === "instrumento") {
-    return marcadorCorcheteAbierto();
-  }
   if (tipo === "efecto") {
-    return marcadorPuntaCerrada();
+    return markerAttrs(LINK_ASSETS.procedural.efecto.marker);
+  }
+  if (tipo === "invocacion") {
+    return markerAttrs(LINK_ASSETS.procedural.invocacion.marker);
   }
   return null;
 }
 
 function marcadorDestino(tipo: TipoEnlace): Record<string, unknown> | null {
   if (tipo === "agente") {
-    return marcadorPiruleta(true);
+    return markerAttrs(LINK_ASSETS.procedural.agente.marker);
   }
   if (tipo === "instrumento") {
-    return marcadorPiruleta(false);
+    return markerAttrs(LINK_ASSETS.procedural.instrumento.marker);
   }
-  if (tipo === "consumo" || tipo === "resultado" || tipo === "efecto") {
-    return marcadorPuntaCerrada();
+  if (tipo === "consumo") {
+    return markerAttrs(LINK_ASSETS.procedural.consumo.marker);
   }
-  if (tipo === "invocacion") {
-    return marcadorInvocacion();
+  if (tipo === "resultado") {
+    return markerAttrs(LINK_ASSETS.procedural.resultado.marker);
+  }
+  if (tipo === "efecto") {
+    return markerAttrs(LINK_ASSETS.procedural.efecto.marker);
   }
   return null;
 }
@@ -283,41 +288,37 @@ function routerManhattan(): Record<string, unknown> {
   return { name: "manhattan", args: { padding: 5, step: 11 } };
 }
 
-function marcadorPuntaCerrada(): Record<string, unknown> {
+function verticesEnlace(tipo: TipoEnlace, origen: Apariencia, destino: Apariencia, vertices: Posicion[]): Posicion[] {
+  if (tipo !== "invocacion" || vertices.length > 0) return vertices;
+  return verticesInvocacion(origen, destino);
+}
+
+function verticesInvocacion(origen: Apariencia, destino: Apariencia): Posicion[] {
+  const source = centro(origen);
+  const target = centro(destino);
+  const dx = target.x - source.x;
+  const dy = target.y - source.y;
+  const length = Math.hypot(dx, dy) || 1;
+  const ux = dx / length;
+  const uy = dy / length;
+  const px = -uy;
+  const py = ux;
+  const offset = Math.min(22, Math.max(12, length * 0.08));
+
+  return [
+    puntoZigzag(source, dx, dy, px, py, 0.62, 0),
+    puntoZigzag(source, dx, dy, px, py, 0.48, offset),
+    puntoZigzag(source, dx, dy, px, py, 0.86, offset),
+  ];
+}
+
+function puntoZigzag(source: Posicion, dx: number, dy: number, px: number, py: number, t: number, offset: number): Posicion {
   return {
-    type: "path",
-    d: "M 10 -5 0 0 10 5 z",
-    fill: CANON.colores.enlace,
-    stroke: CANON.colores.enlace,
+    x: Math.round(source.x + dx * t + px * offset),
+    y: Math.round(source.y + dy * t + py * offset),
   };
 }
 
-function marcadorPiruleta(rellena: boolean): Record<string, unknown> {
-  return {
-    type: "circle",
-    r: 5,
-    fill: rellena ? CANON.colores.enlace : CANON.colores.relleno,
-    stroke: CANON.colores.enlace,
-    strokeWidth: rellena ? 1 : 2,
-  };
-}
-
-function marcadorCorcheteAbierto(): Record<string, unknown> {
-  return {
-    type: "path",
-    d: "M 8 -8 L 0 -8 L 0 8 L 8 8",
-    fill: "none",
-    stroke: CANON.colores.enlace,
-    strokeWidth: 2,
-  };
-}
-
-function marcadorInvocacion(): Record<string, unknown> {
-  return {
-    type: "path",
-    d: "M 12 -7 L 4 -1 L 9 1 L 0 8 L 5 1 L 0 -1 z",
-    fill: CANON.colores.relleno,
-    stroke: CANON.colores.enlace,
-    strokeWidth: 2,
-  };
+function markerAttrs(marker: Record<string, unknown>): Record<string, unknown> {
+  return { ...marker };
 }

@@ -4,7 +4,7 @@
 - La meta inmediata es desarrollar el modelador OPM en `app/` basado en `docs/historias-usuario-v2/`, inspirado en OPCloud pero con arquitectura propia.
 - Autoridad normativa: `/home/felix/kora/artifacts/knowledge/fxsl/opm/opm-ssot-es` (`opm-iso-19450-es.md`, `opm-visual-es.md`, `opm-opl-es.md`, `metodologia-opm-es.md`); OPCloud operacionaliza OPM pero no redefine la semantica.
 - **Principio rector de desarrollo:** antes de generar cualquier solucion de novo, verifica primero que existe en los insumos de ingenieria inversa, en este orden:
-  1. `assets/svg/` (73 SVGs canonicos — no redibujar marcadores, iconos ni shapes) — copia trazable en `opm-extracted/assets/svg/`
+  1. `assets/svg/` (73 SVGs canonicos — no redibujar marcadores, iconos ni shapes). Para enlaces, usar siempre `assets/svg/links/procedural/` y `assets/svg/links/structural/` como fuente canonica de markers — copia trazable en `opm-extracted/assets/svg/`
   2. `assets/png/` (11 PNGs de UI) — copia trazable en `opm-extracted/assets/png/`
   3. `docs/JOYAS.md` (colores #70E483/#3BC3FF/#586D8C, dimensiones 135x60, tipografia Arial 14px semibold, patron wrapper+line 15px/2px, markers, routing, puertos, OPL)
   4. **`opm-extracted/`** (349 archivos OPM legibles + INDEX.md de 486 clases + MODULES.md + assets/INDEX.md). **Es la forma preferente de consultar la logica OPCloud**: ya esta refactorizado, indexado y trazable. Versionado.

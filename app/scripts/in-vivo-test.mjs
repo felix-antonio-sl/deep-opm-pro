@@ -557,7 +557,7 @@ ${listaCapturas}
 
 \`\`\`bash
 cd app
-bun run visual:audit -- http://138.201.53.205:5173/
+bun run visual:audit -- ${resumen.url}
 \`\`\`
 `;
 }

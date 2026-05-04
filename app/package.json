@@ -11,7 +11,8 @@
     "browser:smoke": "playwright test",
     "check": "bun run typecheck && bun run test",
     "security:scan": "bun pm scan",
-    "visual:audit": "node scripts/in-vivo-test.mjs"
+    "visual:audit": "node scripts/in-vivo-test.mjs",
+    "visual:deep": "node scripts/in-vivo-deep-checks.mjs"
   },
   "dependencies": {
     "jointjs": "^3.7.7",

@@ -300,7 +300,7 @@ describe("operaciones de modelo", () => {
     expect(Object.values(repetido.value.modelo.opds).filter((opd) => opd.padreId === modelo.opdRaizId)).toHaveLength(1);
   });
 
-  test("redistribuye enlaces externos al primer subproceso interno", () => {
+  test("redistribuye consumo al primer subproceso y resultado al ultimo", () => {
     let modelo = crearModelo();
     modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 100 }, "Entrada"));
     modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 260, y: 120 }, "Procesar"));
@@ -319,17 +319,64 @@ describe("operaciones de modelo", () => {
     expect(Object.values(opdHijo.apariencias).some((apariencia) => apariencia.entidadId === entrada.id)).toBe(true);
     expect(Object.values(opdHijo.apariencias).some((apariencia) => apariencia.entidadId === salida.id)).toBe(true);
     expect(Object.values(opdHijo.enlaces)).toHaveLength(2);
-    const interno = entidadPorNombre(modelo, "Procesar 1");
+    const primero = entidadPorNombre(modelo, "Procesar 1");
+    const ultimo = entidadPorNombre(modelo, "Procesar 3");
     const enlacesHijo = Object.values(modelo.opds[descompuesto.opdId]?.enlaces ?? {})
       .map((apariencia) => modelo.enlaces[apariencia.enlaceId])
       .filter((enlace): enlace is NonNullable<typeof enlace> => enlace !== undefined);
 
     expect(enlacesHijo).toHaveLength(2);
     expect(enlacesHijo).toEqual(expect.arrayContaining([
-      expect.objectContaining({ tipo: "consumo", origenId: entrada.id, destinoId: interno.id }),
-      expect.objectContaining({ tipo: "resultado", origenId: interno.id, destinoId: salida.id }),
+      expect.objectContaining({ tipo: "consumo", origenId: entrada.id, destinoId: primero.id }),
+      expect.objectContaining({ tipo: "resultado", origenId: ultimo.id, destinoId: salida.id }),
     ]));
     expect(Object.values(modelo.opds[modelo.opdRaizId]?.enlaces ?? {})).toHaveLength(2);
+  });
+
+  test("mantiene agente e instrumento externos sobre el contorno del refinamiento", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 40 }, "Driver"));
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 150 }, "OnStar System"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 260, y: 100 }, "Driver Rescuing"));
+    const driver = entidadPorNombre(modelo, "Driver");
+    const sistema = entidadPorNombre(modelo, "OnStar System");
+    const rescate = entidadPorNombre(modelo, "Driver Rescuing");
+    modelo = must(cambiarEsencia(modelo, driver.id, "fisica"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, driver.id, rescate.id, "agente"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, sistema.id, rescate.id, "instrumento"));
+
+    const descompuesto = must(descomponerProceso(modelo, modelo.opdRaizId, rescate.id));
+    modelo = descompuesto.modelo;
+    const opdHijo = modelo.opds[descompuesto.opdId];
+    expect(opdHijo).toBeDefined();
+    if (!opdHijo) return;
+
+    const enlacesHijo = Object.values(opdHijo.enlaces)
+      .map((apariencia) => modelo.enlaces[apariencia.enlaceId])
+      .filter((enlace): enlace is NonNullable<typeof enlace> => enlace !== undefined);
+    expect(enlacesHijo).toEqual(expect.arrayContaining([
+      expect.objectContaining({ tipo: "agente", origenId: driver.id, destinoId: rescate.id }),
+      expect.objectContaining({ tipo: "instrumento", origenId: sistema.id, destinoId: rescate.id }),
+    ]));
+    expect(enlacesHijo.some((enlace) => enlace.destinoId === entidadPorNombre(modelo, "Driver Rescuing 1").id)).toBe(false);
+  });
+
+  test("mantiene efecto externo no refinado en el contorno", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 100 }, "OnStar System"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 260, y: 120 }, "Driver Rescuing"));
+    const sistema = entidadPorNombre(modelo, "OnStar System");
+    const rescate = entidadPorNombre(modelo, "Driver Rescuing");
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, sistema.id, rescate.id, "efecto"));
+
+    const descompuesto = must(descomponerProceso(modelo, modelo.opdRaizId, rescate.id));
+    modelo = descompuesto.modelo;
+    const enlacesHijo = Object.values(modelo.opds[descompuesto.opdId]?.enlaces ?? {})
+      .map((apariencia) => modelo.enlaces[apariencia.enlaceId])
+      .filter((enlace): enlace is NonNullable<typeof enlace> => enlace !== undefined);
+
+    expect(enlacesHijo).toHaveLength(1);
+    expect(enlacesHijo[0]).toMatchObject({ tipo: "efecto", origenId: sistema.id, destinoId: rescate.id });
   });
 
   test("numera recursivamente OPDs hijos de procesos internos", () => {

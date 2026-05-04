@@ -57,6 +57,21 @@ test("navega OPDs desde el arbol lateral", async ({ page }) => {
   expect(pageErrors).toEqual([]);
 });
 
+test("renderiza todos los markers canonicos de enlaces", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await page.locator("textarea").fill(JSON.stringify(modeloMarkersCanonicos(), null, 2));
+  await page.getByRole("button", { name: "Importar" }).click();
+
+  await expect(page.locator(".joint-link")).toHaveCount(8);
+  await expect(page.locator(".joint-element")).toHaveCount(15);
+  await page.screenshot({ path: "test-results/opm-markers-canonicos.png", fullPage: true });
+
+  expect(pageErrors).toEqual([]);
+});
+
 test("descompone proceso y navega al OPD hijo", async ({ page }) => {
   const pageErrors: string[] = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));
@@ -97,6 +112,7 @@ test("descompone proceso y navega al OPD hijo", async ({ page }) => {
   }
 
   await page.screenshot({ path: "test-results/opm-descomposicion-opd-hijo.png", fullPage: true });
+  await assertWorkbenchLayout(page);
 
   await page.getByRole("button", { name: "Quitar descomposición" }).click();
   await expect(page.locator('[role="treeitem"]').filter({ hasText: "SD1: Un Proceso descompuesto" })).toHaveCount(0);
@@ -112,7 +128,27 @@ test("descompone proceso y navega al OPD hijo", async ({ page }) => {
   expect(pageErrors).toEqual([]);
 });
 
-test("redistribuye enlaces externos al primer subproceso interno", async ({ page }) => {
+test("mantiene canvas e inspector en columnas separadas tras recalculos", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await page.getByRole("button", { name: "Proceso" }).click();
+  await page.getByRole("button", { name: "Descomponer" }).click();
+  await elementoPorTexto(page, "Un Proceso 1").click();
+  await page.getByRole("button", { name: "Descomponer" }).click();
+  await expect(page.locator('[role="treeitem"]').filter({ hasText: "SD1.1:" })).toHaveAttribute("aria-current", "page");
+
+  await page.waitForTimeout(4000);
+  await assertWorkbenchLayout(page);
+  await assertCanvasScrollable(page);
+  await page.getByRole("img", { name: "OPD activo" }).evaluate((element) => (element as HTMLElement).scrollTo({ left: 0, top: 0 }));
+  await page.screenshot({ path: "test-results/opm-layout-columns.png", fullPage: true });
+
+  expect(pageErrors).toEqual([]);
+});
+
+test("redistribuye consumo al primer subproceso y resultado al ultimo", async ({ page }) => {
   const pageErrors: string[] = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
@@ -139,8 +175,8 @@ test("redistribuye enlaces externos al primer subproceso interno", async ({ page
   await expect(page.locator(".joint-link")).toHaveCount(2);
   await expect(elementoPorTexto(page, "Entrada")).toHaveCount(1);
   await expect(elementoPorTexto(page, "Salida")).toHaveCount(1);
-  await expect(page.getByText("Procesar 1 consume Entrada.")).toBeVisible();
-  await expect(page.getByText("Procesar 1 genera Salida.")).toBeVisible();
+  await expect(page.getByText(/Procesar 1\s+consume\s+Entrada/)).toBeVisible();
+  await expect(page.getByText(/Procesar 3\s+genera\s+Salida/)).toBeVisible();
 
   await page.getByRole("button", { name: "Exportar" }).click();
   const json = await page.locator("textarea").inputValue();
@@ -148,14 +184,15 @@ test("redistribuye enlaces externos al primer subproceso interno", async ({ page
   const procesar = Object.values(exportado.modelo.entidades).find((entidad) => entidad.nombre === "Procesar");
   const entrada = Object.values(exportado.modelo.entidades).find((entidad) => entidad.nombre === "Entrada");
   const salida = Object.values(exportado.modelo.entidades).find((entidad) => entidad.nombre === "Salida");
-  const interno = Object.values(exportado.modelo.entidades).find((entidad) => entidad.nombre === "Procesar 1");
+  const primero = Object.values(exportado.modelo.entidades).find((entidad) => entidad.nombre === "Procesar 1");
+  const ultimo = Object.values(exportado.modelo.entidades).find((entidad) => entidad.nombre === "Procesar 3");
   const opdHijoId = procesar?.refinamiento?.opdId;
-  if (!opdHijoId || !entrada || !salida || !interno) throw new Error("No se exporto la redistribucion esperada");
+  if (!opdHijoId || !entrada || !salida || !primero || !ultimo) throw new Error("No se exporto la redistribucion esperada");
   const enlacesHijo = Object.values(exportado.modelo.opds[opdHijoId]?.enlaces ?? {})
     .map((apariencia) => exportado.modelo.enlaces[apariencia.enlaceId]);
   expect(enlacesHijo).toEqual(expect.arrayContaining([
-    expect.objectContaining({ tipo: "consumo", origenId: entrada.id, destinoId: interno.id }),
-    expect.objectContaining({ tipo: "resultado", origenId: interno.id, destinoId: salida.id }),
+    expect.objectContaining({ tipo: "consumo", origenId: entrada.id, destinoId: primero.id }),
+    expect.objectContaining({ tipo: "resultado", origenId: ultimo.id, destinoId: salida.id }),
   ]));
 
   await page.screenshot({ path: "test-results/opm-descomposicion-enlaces-externos.png", fullPage: true });
@@ -332,6 +369,41 @@ async function clickCentroLink(page: import("@playwright/test").Page): Promise<v
   await page.mouse.click(punto.x, punto.y);
 }
 
+async function assertWorkbenchLayout(page: import("@playwright/test").Page): Promise<void> {
+  const tree = await rectDeLocator(page.getByTestId("tree-pane"));
+  const canvas = await rectDeLocator(page.getByTestId("canvas-pane"));
+  const inspector = await rectDeLocator(page.getByTestId("inspector-pane"));
+
+  expect(tree.x).toBeLessThan(canvas.x);
+  expect(canvas.x).toBeLessThan(inspector.x);
+  expect(tree.x + tree.width).toBeLessThanOrEqual(canvas.x + 1);
+  expect(canvas.x + canvas.width).toBeLessThanOrEqual(inspector.x + 1);
+  expect(canvas.width).toBeGreaterThan(400);
+  expect(inspector.width).toBeGreaterThan(250);
+  expect(inspector.width).toBeLessThan(340);
+}
+
+async function assertCanvasScrollable(page: import("@playwright/test").Page): Promise<void> {
+  const canvas = page.getByRole("img", { name: "OPD activo" });
+  const scroll = await canvas.evaluate((element) => {
+    const target = element as HTMLElement;
+    target.scrollTo({ left: 160, top: 120 });
+    return {
+      clientWidth: target.clientWidth,
+      clientHeight: target.clientHeight,
+      scrollWidth: target.scrollWidth,
+      scrollHeight: target.scrollHeight,
+      scrollLeft: target.scrollLeft,
+      scrollTop: target.scrollTop,
+    };
+  });
+
+  expect(scroll.scrollWidth).toBeGreaterThan(scroll.clientWidth);
+  expect(scroll.scrollHeight).toBeGreaterThan(scroll.clientHeight);
+  expect(scroll.scrollLeft).toBeGreaterThan(0);
+  expect(scroll.scrollTop).toBeGreaterThan(0);
+}
+
 async function puntoMedioPath(locator: import("@playwright/test").Locator): Promise<{ x: number; y: number }> {
   return locator.evaluate((element) => {
     const path = element as SVGPathElement;
@@ -416,6 +488,81 @@ function modeloDosOpds() {
         },
       },
     },
+  };
+}
+
+function modeloMarkersCanonicos() {
+  const entidades = {
+    "o-agent": objeto("o-agent", "Agente", "fisica"),
+    "p-agent": proceso("p-agent", "Proceso agente"),
+    "o-instrument": objeto("o-instrument", "Instrumento"),
+    "p-instrument": proceso("p-instrument", "Proceso instrumento"),
+    "o-consumption": objeto("o-consumption", "Consumible"),
+    "p-consumption": proceso("p-consumption", "Proceso consumo"),
+    "p-result": proceso("p-result", "Proceso resultado"),
+    "o-result": objeto("o-result", "Resultado"),
+    "o-effect": objeto("o-effect", "Afectado"),
+    "p-effect": proceso("p-effect", "Proceso efecto"),
+    "p-invocation-a": proceso("p-invocation-a", "Invocador"),
+    "p-invocation-b": proceso("p-invocation-b", "Invocado"),
+    "o-whole": objeto("o-whole", "Todo"),
+    "o-part": objeto("o-part", "Parte"),
+  };
+  const enlaces = {
+    "e-agent": enlace("e-agent", "agente", "o-agent", "p-agent"),
+    "e-instrument": enlace("e-instrument", "instrumento", "o-instrument", "p-instrument"),
+    "e-consumption": enlace("e-consumption", "consumo", "o-consumption", "p-consumption"),
+    "e-result": enlace("e-result", "resultado", "p-result", "o-result"),
+    "e-effect": enlace("e-effect", "efecto", "o-effect", "p-effect"),
+    "e-invocation": enlace("e-invocation", "invocacion", "p-invocation-a", "p-invocation-b"),
+    "e-aggregation": enlace("e-aggregation", "agregacion", "o-whole", "o-part"),
+  };
+  return {
+    formato: "deep-opm-pro.modelo.v0",
+    modelo: {
+      id: "modelo-markers",
+      nombre: "Markers canonicos",
+      opdRaizId: "opd-1",
+      nextSeq: 50,
+      entidades,
+      enlaces,
+      opds: {
+        "opd-1": {
+          id: "opd-1",
+          nombre: "SD",
+          padreId: null,
+          apariencias: {
+            ...aparienciaPar("o-agent", "p-agent", 70, 40),
+            ...aparienciaPar("o-instrument", "p-instrument", 70, 100),
+            ...aparienciaPar("o-consumption", "p-consumption", 70, 160),
+            ...aparienciaPar("p-result", "o-result", 70, 220),
+            ...aparienciaPar("o-effect", "p-effect", 70, 280),
+            ...aparienciaPar("p-invocation-a", "p-invocation-b", 70, 340),
+            ...aparienciaPar("o-whole", "o-part", 70, 400),
+          },
+          enlaces: Object.fromEntries(Object.keys(enlaces).map((id) => [`a-${id}`, { id: `a-${id}`, enlaceId: id, opdId: "opd-1", vertices: [] }])),
+        },
+      },
+    },
+  };
+}
+
+function objeto(id: string, nombre: string, esencia = "informacional") {
+  return { id, tipo: "objeto", nombre, esencia, afiliacion: "sistemica" };
+}
+
+function proceso(id: string, nombre: string) {
+  return { id, tipo: "proceso", nombre, esencia: "informacional", afiliacion: "sistemica" };
+}
+
+function enlace(id: string, tipo: string, origenId: string, destinoId: string) {
+  return { id, tipo, origenId, destinoId, etiqueta: "" };
+}
+
+function aparienciaPar(origenId: string, destinoId: string, x: number, y: number, dx = 290) {
+  return {
+    [`a-${origenId}`]: { id: `a-${origenId}`, entidadId: origenId, opdId: "opd-1", x, y, width: 135, height: 60 },
+    [`a-${destinoId}`]: { id: `a-${destinoId}`, entidadId: destinoId, opdId: "opd-1", x: x + dx, y, width: 135, height: 60 },
   };
 }
 

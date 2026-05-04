@@ -10,7 +10,7 @@ interface JointAdapter {
 }
 
 export function JointCanvas() {
-  const hostRef = useRef<HTMLDivElement>(null);
+  const paperHostRef = useRef<HTMLDivElement>(null);
   const adapterRef = useRef<JointAdapter | null>(null);
   const sincronizandoRef = useRef(false);
   const modoEnlace = useOpmStore((s) => s.modoEnlace);
@@ -45,15 +45,15 @@ export function JointCanvas() {
   }, [actualizarVerticesEnlace, moverApariencia, seleccionarEnlace, seleccionarEntidad]);
 
   useEffect(() => {
-    if (!hostRef.current) return;
+    if (!paperHostRef.current) return;
 
     const cellNamespace = shapes;
     const graph = new dia.Graph({}, { cellNamespace });
     const paper = new dia.Paper({
-      el: hostRef.current,
+      el: paperHostRef.current,
       model: graph,
-      width: "100%",
-      height: "100%",
+      width: CANVAS_BASE.width,
+      height: CANVAS_BASE.height,
       cellViewNamespace: cellNamespace,
       async: false,
       frozen: false,
@@ -84,8 +84,7 @@ export function JointCanvas() {
       },
     });
 
-    paperElement(paper).style.width = "100%";
-    paperElement(paper).style.height = "100%";
+    setPaperDimensions(paper, CANVAS_BASE);
 
     paper.on("element:pointerclick", (elementView: dia.ElementView, evt: dia.Event) => {
       evt.stopPropagation();
@@ -130,13 +129,19 @@ export function JointCanvas() {
   useEffect(() => {
     const adapter = adapterRef.current;
     if (!adapter) return;
+    const cells = proyectarModeloAJointCells(modelo, opdActivoId, seleccionId, enlaceSeleccionId);
     sincronizandoRef.current = true;
-    adapter.graph.resetCells(proyectarModeloAJointCells(modelo, opdActivoId, seleccionId, enlaceSeleccionId) as dia.Cell.JSON[]);
+    adapter.graph.resetCells(cells as dia.Cell.JSON[]);
+    setPaperDimensions(adapter.paper, dimensionesPaper(cells));
     sincronizandoRef.current = false;
     instalarHerramientasEnlaceSeleccionado(adapter, enlaceSeleccionId);
   }, [enlaceSeleccionId, modelo, opdActivoId, seleccionId]);
 
-  return <div ref={hostRef} role="img" aria-label="OPD activo" style={style.host} />;
+  return (
+    <div role="img" aria-label="OPD activo" style={style.viewport}>
+      <div ref={paperHostRef} style={style.paperHost} />
+    </div>
+  );
 }
 
 function metadata(cell: dia.Cell): OpmJointMetadata | null {
@@ -185,21 +190,48 @@ function graphEvents(graph: dia.Graph): { on(eventName: string, callback: (cell:
   return graph as unknown as { on(eventName: string, callback: (cell: dia.Cell) => void): void };
 }
 
-function paperElement(paper: dia.Paper): HTMLElement {
-  return (paper as unknown as { el: HTMLElement }).el;
-}
-
 function paperView(paper: dia.Paper): { remove(): void } {
   return paper as unknown as { remove(): void };
 }
 
+function setPaperDimensions(paper: dia.Paper, dimensiones: { width: number; height: number }): void {
+  (paper as unknown as { setDimensions(width: number, height: number): void }).setDimensions(dimensiones.width, dimensiones.height);
+  const element = (paper as unknown as { el: HTMLElement }).el;
+  element.style.width = `${dimensiones.width}px`;
+  element.style.height = `${dimensiones.height}px`;
+}
+
+function dimensionesPaper(cells: dia.Cell.JSON[]): { width: number; height: number } {
+  let maxX: number = CANVAS_BASE.width;
+  let maxY: number = CANVAS_BASE.height;
+  for (const cell of cells) {
+    const position = cell.position as { x?: number; y?: number } | undefined;
+    const size = cell.size as { width?: number; height?: number } | undefined;
+    if (!position) continue;
+    maxX = Math.max(maxX, (position.x ?? 0) + (size?.width ?? 0) + CANVAS_PADDING);
+    maxY = Math.max(maxY, (position.y ?? 0) + (size?.height ?? 0) + CANVAS_PADDING);
+  }
+  return { width: Math.ceil(maxX), height: Math.ceil(maxY) };
+}
+
+const CANVAS_BASE = { width: 1800, height: 1200 } as const;
+const CANVAS_PADDING = 240;
+
 const style = {
-  host: {
+  viewport: {
     width: "100%",
     height: "100%",
     minWidth: 0,
     minHeight: 0,
     background: "#eef3f8",
+    overflow: "auto",
+    overscrollBehavior: "contain",
+  },
+  paperHost: {
+    width: `${CANVAS_BASE.width}px`,
+    height: `${CANVAS_BASE.height}px`,
+    minWidth: `${CANVAS_BASE.width}px`,
+    minHeight: `${CANVAS_BASE.height}px`,
     overflow: "hidden",
   },
 } satisfies Record<string, preact.JSX.CSSProperties>;

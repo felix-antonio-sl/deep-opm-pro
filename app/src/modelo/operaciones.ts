@@ -121,7 +121,10 @@ export function descomponerProceso(modelo: Modelo, opdPadreId: Id, procesoId: Id
       [opdHijoId]: opdHijo,
     },
   };
-  const siguiente = redistribuirEnlacesExternosAlSubproceso(base, opdHijoId, subprocesos.primeroId);
+  const siguiente = proyectarEnlacesExternosEnRefinamiento(base, opdHijoId, {
+    primeroId: subprocesos.primeroId,
+    ultimoId: subprocesos.ultimoId,
+  });
   if (!siguiente.ok) return fallo(siguiente.error);
 
   return ok({ modelo: siguiente.value, opdId: opdHijoId, creado: true });
@@ -499,11 +502,12 @@ function subprocesosInicialesInzoom(
   contorno: Apariencia,
   opdHijoId: Id,
   nextSeqInicial: number,
-): { entidades: Record<Id, Entidad>; apariencias: Record<Id, Apariencia>; primeroId: Id; nextSeq: number } {
+): { entidades: Record<Id, Entidad>; apariencias: Record<Id, Apariencia>; primeroId: Id; ultimoId: Id; nextSeq: number } {
   const entidades: Record<Id, Entidad> = {};
   const apariencias: Record<Id, Apariencia> = {};
   let nextSeq = nextSeqInicial;
   let primeroId = "";
+  let ultimoId = "";
   const x = contorno.x + (contorno.width - CANON.dims.cosaWidth) / 2;
   let y = contorno.y + INZOOM.paddingSuperior;
 
@@ -513,6 +517,7 @@ function subprocesosInicialesInzoom(
     const aparienciaId = siguienteId({ ...modelo, nextSeq }, "a");
     nextSeq += 1;
     if (!primeroId) primeroId = entidadId;
+    ultimoId = entidadId;
     entidades[entidadId] = {
       id: entidadId,
       tipo: "proceso",
@@ -532,7 +537,7 @@ function subprocesosInicialesInzoom(
     y += CANON.dims.cosaHeight + INZOOM.separacionVertical;
   }
 
-  return { entidades, apariencias, primeroId, nextSeq };
+  return { entidades, apariencias, primeroId, ultimoId, nextSeq };
 }
 
 function redistribuirEnlacesExternosSiPrimerSubproceso(modelo: Modelo, opdId: Id, subprocesoId: Id): Resultado<Modelo> {
@@ -546,10 +551,17 @@ function redistribuirEnlacesExternosSiPrimerSubproceso(modelo: Modelo, opdId: Id
   });
   if (procesosInternos.length !== 1 || procesosInternos[0]?.entidadId !== subprocesoId) return ok(modelo);
 
-  return redistribuirEnlacesExternosAlSubproceso(modelo, opdId, subprocesoId);
+  return proyectarEnlacesExternosEnRefinamiento(modelo, opdId, {
+    primeroId: subprocesoId,
+    ultimoId: subprocesoId,
+  });
 }
 
-function redistribuirEnlacesExternosAlSubproceso(modelo: Modelo, opdId: Id, subprocesoId: Id): Resultado<Modelo> {
+function proyectarEnlacesExternosEnRefinamiento(
+  modelo: Modelo,
+  opdId: Id,
+  subprocesos: { primeroId: Id; ultimoId: Id },
+): Resultado<Modelo> {
   const opd = modelo.opds[opdId];
   if (!opd?.padreId) return ok(modelo);
   const contorno = procesoDescompuestoEnOpd(modelo, opd);
@@ -564,38 +576,40 @@ function redistribuirEnlacesExternosAlSubproceso(modelo: Modelo, opdId: Id, subp
   const aparienciasEnlace: Record<Id, AparienciaEnlace> = { ...opd.enlaces };
 
   for (const { enlace } of externos) {
-    const origenId = enlace.origenId === contorno.entidad.id ? subprocesoId : enlace.origenId;
-    const destinoId = enlace.destinoId === contorno.entidad.id ? subprocesoId : enlace.destinoId;
-    if (Object.values(enlaces).some((existente) => (
-      existente.tipo === enlace.tipo &&
-      existente.origenId === origenId &&
-      existente.destinoId === destinoId &&
-      Object.values(aparienciasEnlace).some((apariencia) => apariencia.enlaceId === existente.id)
-    ))) {
-      continue;
+    const proyeccion = proyeccionEnlaceExterno(enlace, contorno.entidad.id, subprocesos);
+    if (proyeccion.tipo === "contorno") {
+      if (!aparienciaEnlaceExiste(aparienciasEnlace, enlace.id)) {
+        const aparienciaId = siguienteId({ ...modelo, nextSeq }, "ae");
+        nextSeq += 1;
+        aparienciasEnlace[aparienciaId] = { id: aparienciaId, enlaceId: enlace.id, opdId, vertices: [] };
+      }
+    } else {
+      const origen = modelo.entidades[proyeccion.origenId];
+      const destino = modelo.entidades[proyeccion.destinoId];
+      if (!origen || !destino) continue;
+      const firma = validarFirmaEnlace(enlace.tipo, origen, destino);
+      if (!firma.ok) continue;
+      if (enlaceDerivadoExiste(enlaces, aparienciasEnlace, enlace.tipo, proyeccion.origenId, proyeccion.destinoId)) {
+        continue;
+      }
+      const enlaceId = siguienteId({ ...modelo, nextSeq }, "e");
+      nextSeq += 1;
+      const aparienciaId = siguienteId({ ...modelo, nextSeq }, "ae");
+      nextSeq += 1;
+      enlaces[enlaceId] = {
+        id: enlaceId,
+        tipo: enlace.tipo,
+        origenId: proyeccion.origenId,
+        destinoId: proyeccion.destinoId,
+        etiqueta: enlace.etiqueta,
+      };
+      aparienciasEnlace[aparienciaId] = {
+        id: aparienciaId,
+        enlaceId,
+        opdId,
+        vertices: [],
+      };
     }
-    const origen = modelo.entidades[origenId];
-    const destino = modelo.entidades[destinoId];
-    if (!origen || !destino) continue;
-    const firma = validarFirmaEnlace(enlace.tipo, origen, destino);
-    if (!firma.ok) continue;
-    const enlaceId = siguienteId({ ...modelo, nextSeq }, "e");
-    nextSeq += 1;
-    const aparienciaId = siguienteId({ ...modelo, nextSeq }, "ae");
-    nextSeq += 1;
-    enlaces[enlaceId] = {
-      id: enlaceId,
-      tipo: enlace.tipo,
-      origenId,
-      destinoId,
-      etiqueta: enlace.etiqueta,
-    };
-    aparienciasEnlace[aparienciaId] = {
-      id: aparienciaId,
-      enlaceId,
-      opdId,
-      vertices: [],
-    };
   }
 
   if (nextSeq === modelo.nextSeq) return ok(modelo);
@@ -611,6 +625,39 @@ function redistribuirEnlacesExternosAlSubproceso(modelo: Modelo, opdId: Id, subp
       },
     },
   });
+}
+
+function proyeccionEnlaceExterno(
+  enlace: Enlace,
+  procesoRefinadoId: Id,
+  subprocesos: { primeroId: Id; ultimoId: Id },
+): { tipo: "derivado"; origenId: Id; destinoId: Id } | { tipo: "contorno" } {
+  if (enlace.tipo === "consumo" && enlace.destinoId === procesoRefinadoId) {
+    return { tipo: "derivado", origenId: enlace.origenId, destinoId: subprocesos.primeroId };
+  }
+  if ((enlace.tipo === "resultado" || enlace.tipo === "invocacion") && enlace.origenId === procesoRefinadoId) {
+    return { tipo: "derivado", origenId: subprocesos.ultimoId, destinoId: enlace.destinoId };
+  }
+  return { tipo: "contorno" };
+}
+
+function aparienciaEnlaceExiste(apariencias: Record<Id, AparienciaEnlace>, enlaceId: Id): boolean {
+  return Object.values(apariencias).some((apariencia) => apariencia.enlaceId === enlaceId);
+}
+
+function enlaceDerivadoExiste(
+  enlaces: Record<Id, Enlace>,
+  apariencias: Record<Id, AparienciaEnlace>,
+  tipo: TipoEnlace,
+  origenId: Id,
+  destinoId: Id,
+): boolean {
+  return Object.values(enlaces).some((existente) => (
+    existente.tipo === tipo &&
+    existente.origenId === origenId &&
+    existente.destinoId === destinoId &&
+    aparienciaEnlaceExiste(apariencias, existente.id)
+  ));
 }
 
 function procesoDescompuestoEnOpd(modelo: Modelo, opd: Opd): { entidad: Entidad; apariencia: Apariencia } | null {

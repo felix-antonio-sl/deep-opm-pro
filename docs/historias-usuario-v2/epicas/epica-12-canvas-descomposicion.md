@@ -349,11 +349,14 @@ para consumo/resultado.
 **Prioridad:** S. **Tamaño:** L. **Etiquetas:** [kernel, descomposicion, externos, fase2].
 
 **Estado implementación MVP-alpha (2026-05-04):** parcial cubierto. Al
-descomponer, el kernel crea tres subprocesos iniciales y enlaces locales
-equivalentes desde/hacia el primer subproceso por orden `y` para los externos
-visibles; cubierto para `consumo` y `resultado` por unit test y smoke browser.
-Sigue pendiente la reasignación manual entre subprocesos, advertencias de
-externos no refinados y split de `effect`/estado-específicos.
+descomponer, el kernel crea tres subprocesos iniciales y proyecta externos por
+tipo: `consumo` deriva al primer subproceso por orden `y`, `resultado` deriva
+desde el último subproceso por orden `y`, y `agente`/`instrumento`/`efecto`
+quedan como enlaces del contorno/refinable hasta refinamiento explícito;
+cubierto por unit test y smoke browser para consumo/resultado y por unit test
+para habilitadores/efecto. Sigue pendiente la reasignación manual entre
+subprocesos, advertencias de externos no refinados y split de
+`effect`/estado-específicos.
 
 ---
 

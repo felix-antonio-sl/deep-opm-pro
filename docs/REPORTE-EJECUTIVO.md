@@ -1,6 +1,6 @@
 # Reporte ejecutivo in-vivo - modelador OPM
 
-**Fecha:** 2026-05-04T02:51:07.312Z
+**Fecha:** 2026-05-04T16:19:33.298Z
 **URL probada:** http://127.0.0.1:5173/
 **Driver:** Playwright/Chromium headless
 **Script:** `app/scripts/in-vivo-test.mjs`
@@ -48,7 +48,7 @@ La app esta operativa en el corte auditado. No se detectaron fallos funcionales 
 
 | Seccion | Criterio | Estado | Detalle |
 |---|---|---|---|
-| 1. Carga inicial | Carga sin error fatal | OK | 585 ms hasta networkidle |
+| 1. Carga inicial | Carga sin error fatal | OK | 1019 ms hasta networkidle |
 | 1. Carga inicial | Título de la página | INFO | Modelador OPM |
 | 1. Carga inicial | Canvas JointJS visible | OK |  |
 | 1. Carga inicial | Árbol OPD visible | OK |  |
@@ -132,6 +132,14 @@ La app esta operativa en el corte auditado. No se detectaron fallos funcionales 
 - `app/test-results/in-vivo/14-viewport-1024x700.png`
 - `app/test-results/in-vivo/14b-viewport-1920x1080.png`
 - `app/test-results/in-vivo/15-cascada-borrado.png`
+- `app/test-results/in-vivo/deep-A-descomposicion.png`
+- `app/test-results/in-vivo/deep-B-objeto-en-hijo.png`
+- `app/test-results/in-vivo/deep-C1-padre-con-enlaces.png`
+- `app/test-results/in-vivo/deep-C2-hijo-con-redistribucion.png`
+- `app/test-results/in-vivo/deep-D-marcadores-routing.png`
+- `app/test-results/in-vivo/deep-E-link-tools.png`
+- `app/test-results/in-vivo/deep-G-self-link.png`
+- `app/test-results/in-vivo/deep-H-posicion-libre.png`
 
 ## 6. Lectura Del Corte
 
@@ -144,5 +152,5 @@ La app esta operativa en el corte auditado. No se detectaron fallos funcionales 
 
 ```bash
 cd app
-bun run visual:audit -- http://138.201.53.205:5173/
+bun run visual:audit -- http://127.0.0.1:5173/
 ```

@@ -50,7 +50,8 @@ Estados:
 - Eliminar entidad con cascada.
 - Eliminar enlace sin borrar entidades.
 - Arrastrar entidad y persistir `Apariencia`.
-- Renderizar marcadores procedimentales basicos segun SSOT: corchete + piruleta para habilitadores, puntas cerradas transformadoras, invocacion zigzag y efecto bidireccional.
+- Renderizar marcadores procedimentales basicos segun assets canonicos: agente, instrumento, consumo, resultado, efecto e invocacion.
+- Trazar markers de enlace desde los assets SVG canonicos en `assets/svg/links/procedural/` y `assets/svg/links/structural/` via `app/src/render/jointjs/linkAssets.ts`.
 - Renderizar agregacion basica con triangulo estructural separado del enlace.
 - Aplicar routing manhattan basico `padding: 5`, `step: 11` en enlaces procedimentales.
 - Mostrar JointJS link tools `Boundary`, `Vertices`, `Segments`.
@@ -71,8 +72,9 @@ Estados:
   - eliminacion reversible de descomposicion con limpieza del subarbol OPD.
 - Redistribucion MVP de enlaces externos en descomposicion:
   - al crear el OPD hijo, copia apariencias de extremos externos conectados al proceso padre;
-  - consumo/resultado no quedan conectados al contorno;
-  - crea enlaces locales equivalentes hacia el primer subproceso interno por orden `y`;
+  - consumo no queda conectado al contorno y deriva al primer subproceso por orden `y`;
+  - resultado no queda conectado al contorno y deriva desde el ultimo subproceso por orden `y`;
+  - agente/instrumento/efecto se proyectan como enlaces del contorno/refinable hasta refinamiento explicito;
   - conserva los enlaces del OPD padre.
 - Exportar/importar JSON propio.
 - Importar JSON solo si pasa validacion estructural, referencial, firmas OPM, endpoints visibles por OPD y sin enlaces invisibles.
@@ -96,7 +98,7 @@ Estados:
    - Falta dialogo Guardar / Descartar / Cancelar al cerrar o navegar cuando exista navegacion real entre modelos.
 
 3. **EPICA-12 descomposicion/in-zooming restante**
-   - Cubierto MVP: OPD hijo, contorno, tres subprocesos iniciales, OPL de descomposicion en secuencia, eliminacion reversible y redistribucion automatica al primer subproceso interno por `y`.
+   - Cubierto MVP: OPD hijo, contorno, tres subprocesos iniciales, OPL de descomposicion en secuencia, eliminacion reversible y proyeccion automatica de externos por tipo: consumo al primer subproceso, resultado desde el ultimo, habilitadores/efecto al contorno.
    - Falta edicion avanzada del timeline: reordenar subprocesos y mantener consistencia visual/OPL tras drag.
    - Falta reasignacion manual de enlaces externos entre subprocesos concretos.
    - Falta split de `effect` y enlaces estado-especificos para evitar underspecification.
@@ -131,7 +133,8 @@ Estados:
   - color `#70E483`, `#3BC3FF`, `#586D8C`;
   - dimensiones `135x60`;
   - wrapper `15px`, line `2px`;
-  - routing/ports/markers como evidencia.
+  - routing/ports/markers como evidencia;
+  - markers de enlace desde `assets/svg/links/procedural/` y `assets/svg/links/structural/`, no geometria manual.
 - Si `opm-extracted/` tensiona con SSOT OPM, manda SSOT.
 
 ## Verificacion actual
@@ -139,13 +142,11 @@ Estados:
 Ultimo loop verde en `app/`:
 
 - `bun run check`
+- `bun run security:scan`
 - `bun run browser:smoke`
 - `bun run build`
-
-Tambien verde en el corte anterior, no re-ejecutado en este ultimo slice:
-
-- `bun run security:scan`
-- `bun run visual:audit -- http://138.201.53.205:5173/`
+- `bun run visual:audit -- http://127.0.0.1:5173/`
+- `bun run visual:deep -- http://127.0.0.1:5173/`
 
 Capturas esperadas:
 

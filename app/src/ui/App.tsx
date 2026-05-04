@@ -9,9 +9,15 @@ export function App() {
     <main style={layout.page}>
       <Toolbar />
       <section style={layout.workbench}>
-        <ArbolOpd />
-        <JointCanvas />
-        <Inspector />
+        <div data-testid="tree-pane" style={layout.treePane}>
+          <ArbolOpd />
+        </div>
+        <div data-testid="canvas-pane" style={layout.canvasPane}>
+          <JointCanvas />
+        </div>
+        <div data-testid="inspector-pane" style={layout.inspectorPane}>
+          <Inspector />
+        </div>
       </section>
       <PanelOpl />
     </main>
@@ -29,9 +35,32 @@ const layout = {
   workbench: {
     display: "grid",
     gridTemplateColumns: "220px minmax(0, 1fr) 300px",
+    gridTemplateAreas: `"tree canvas inspector"`,
     minHeight: 0,
+    minWidth: 0,
     overflow: "hidden",
     borderTop: "1px solid #d9e0ea",
     borderBottom: "1px solid #d9e0ea",
+  },
+  treePane: {
+    gridArea: "tree",
+    minWidth: 0,
+    minHeight: 0,
+    overflow: "hidden",
+  },
+  canvasPane: {
+    gridArea: "canvas",
+    minWidth: 0,
+    minHeight: 0,
+    overflow: "hidden",
+    position: "relative",
+  },
+  inspectorPane: {
+    gridArea: "inspector",
+    minWidth: 0,
+    minHeight: 0,
+    overflow: "hidden",
+    position: "relative",
+    zIndex: 1,
   },
 } satisfies Record<string, preact.JSX.CSSProperties>;

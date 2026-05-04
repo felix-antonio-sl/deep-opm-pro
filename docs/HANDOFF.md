@@ -25,7 +25,7 @@ archivo.
 - EPICA-20 minimo quedo implementado: panel/arbol OPD con raiz `SD`, `opdActivoId` en store, navegacion desde UI, canvas JointJS y OPL filtrados por OPD activo.
 - EPICA-12 in-zooming MVP quedo implementado para procesos: accion "Descomponer" desde inspector, operacion de kernel idempotente, `entidad.refinamiento`, OPD hijo `SDn`/`SDn.m`, nodo derivado `SDn: <Proceso> descompuesto`, navegacion automatica al hijo, apariencia del mismo proceso en OPD padre e hijo, tres subprocesos iniciales automaticos, OPL "se descompone en ... en esa secuencia" ordenado por `y` y JSON round-trip validado.
 - La descomposicion ahora tiene contenido interno real: el OPD hijo renderiza el proceso refinado como contorno ampliado detras de objetos/procesos internos; los tres subprocesos iniciales quedan centrados y apilados dentro del contorno, y las nuevas cosas se colocan dentro del contorno.
-- La redistribucion MVP de enlaces externos esta implementada: al descomponer se copian apariencias de extremos externos conectados al proceso padre; consumo/resultado no quedan en el contorno; se crean enlaces locales equivalentes hacia el primer subproceso interno por orden `y` y se conservan los enlaces del padre.
+- La proyeccion MVP de enlaces externos esta implementada: al descomponer se copian apariencias de extremos externos conectados al proceso padre; consumo deriva al primer subproceso por orden `y`, resultado deriva desde el ultimo subproceso por orden `y`, y agente/instrumento/efecto quedan como enlaces del contorno/refinable hasta refinamiento explicito; se conservan los enlaces del padre.
 - La descomposicion es reversible desde UI: "Quitar descomposición" elimina el OPD hijo y su subarbol, limpia entidades/enlaces huerfanos, remueve el OPL de refinamiento y vuelve a un OPD activo valido.
 - Auditoria visual SSOT/JointJS aplicada: firmas consumo/resultado/efecto corregidas, marcadores procedimentales basicos, agregacion con triangulo, routing manhattan basico, sin elipsis silenciosa en etiquetas, posicion inicial libre por OPD y toolbar compacta sin overflow.
 - Integridad de import JSON endurecida: validacion estructural, referencial, firmas OPM, endpoints visibles por OPD y rechazo de enlaces invisibles antes de hidratar `Modelo`.
@@ -45,6 +45,7 @@ archivo.
 - App nueva: `app/src/modelo/`, `app/src/render/jointjs/`, `app/src/store.ts`, `app/src/ui/`.
 - Supply-chain app: `app/bunfig.toml`, `app/bun.lock`, `app/package.json`.
 - Auditoria visual in-vivo: `app/scripts/in-vivo-test.mjs`.
+- Auditoria visual profunda: `app/scripts/in-vivo-deep-checks.mjs`.
 - Reporte ejecutivo in-vivo vigente: `docs/REPORTE-EJECUTIVO.md`.
 
 ### Decisiones recientes
@@ -52,6 +53,7 @@ archivo.
 - Partir `app/` desde cero fue correcto: el desarrollo previo queda como leccion en `docs/archive/si-partiese-desde-0.md`, no como base a arrastrar.
 - HU v2 reemplaza a HU v1 como backlog operativo; las v1 quedan archivadas para trazabilidad.
 - JointJS OSS se usa como renderer/adaptador, no como modelo de dominio. El kernel OPM vive en `app/src/modelo/`.
+- Los markers de enlaces deben salir de los assets SVG canonicos en `assets/svg/links/procedural/` y `assets/svg/links/structural/`; no redibujar geometria manual en el renderer. La tabla operativa vive en `app/src/render/jointjs/linkAssets.ts`.
 - Undo/redo y dirty state usan snapshots de `Modelo` con profundidad 100. Es una decision temporal aceptable para MVP-alpha; comandos inversos quedan para cuando el costo o la auditoria granular lo justifiquen.
 - `opm-extracted/` se consulta para semantica, valores visuales, routing, puertos, marcadores y OPL; no se copian bloques 1:1 a `app/`.
 - Los tipos de enlace se eligen desde un selector compacto en la toolbar para evitar overflow en viewports de smoke y mantener el canvas operativo.
@@ -64,11 +66,12 @@ archivo.
 
 Ejecutado en `app/`:
 
-- `bun run check` -> 43 tests verdes.
+- `bun run check` -> 47 tests verdes.
 - `bun run security:scan` -> Socket free mode, 153 paquetes escaneados, 0 advisories.
-- `bun run browser:smoke` -> 8 tests Playwright verdes.
+- `bun run browser:smoke` -> 10 tests Playwright verdes.
 - `bun run build` -> build OK; warning esperado de chunk grande por JointJS.
 - `bun run visual:audit -- http://127.0.0.1:5173/` -> 51 OK, 0 FAIL, 0 WARN, 3 INFO; genera `docs/REPORTE-EJECUTIVO.md`, `app/test-results/in-vivo/_resumen.json` y 21 screenshots.
+- `bun run visual:deep -- http://127.0.0.1:5173/` -> 27 OK, 0 FAIL, 0 WARN, 2 INFO; genera `app/test-results/in-vivo/_deep_resumen.json` y capturas `deep-*.png`.
 
 Capturas browser relevantes:
 
@@ -104,7 +107,7 @@ Capturas browser relevantes:
 - `opm-extracted/` es material derivado de ingenieria inversa: usarlo como evidencia, no como fuente copiada.
 - No hay licencia repo-wide declarada; tratar redistribucion publica como bloqueada hasta decision explicita.
 - El scanner de Socket corre en modo publico si no hay `SOCKET_API_KEY`; CI/org policy requiere configurar credencial.
-- La app ya crea y elimina OPDs hijos por in-zooming de procesos, crea tres subprocesos iniciales, permite contenido interno, emite OPL en secuencia y redistribuye enlaces externos al primer subproceso por `y`; unfold/despliegue de objetos, reordenamiento avanzado del timeline y split de efectos siguen pendientes.
+- La app ya crea y elimina OPDs hijos por in-zooming de procesos, crea tres subprocesos iniciales, permite contenido interno, emite OPL en secuencia y proyecta externos por tipo: consumo al primer subproceso, resultado desde el ultimo y habilitadores/efecto al contorno; unfold/despliegue de objetos, reordenamiento avanzado del timeline y split de efectos siguen pendientes.
 - Dirty state no tiene confirmacion de salida hasta que exista navegacion/cierre de modelos.
 - El bundle de JointJS genera warning de tamano; no es bloqueante para MVP-alpha, pero puede exigir code splitting luego.
 
@@ -118,13 +121,15 @@ kernel idempotente, OPD hijo `SDn`/`SDn.m`, nodo `SDn: <Proceso>
 descompuesto`, navegacion automatica, OPL "se descompone en", JSON round-trip,
 contenido interno dentro del contorno, tres subprocesos iniciales automaticos,
 OPL en secuencia por `y`, redistribucion de enlaces externos al primer
-subproceso interno por `y` y smoke browser. La descomposicion ya puede quitarse
+subproceso interno por `y`, resultado desde el ultimo subproceso y smoke
+browser. La descomposicion ya puede quitarse
 desde UI con limpieza de subarbol OPD, entidades/enlaces huerfanos y fallback
 de OPD activo.
 Auditoria visual SSOT/JointJS aplicada, import JSON endurecido y supply-chain
-scanner configurado. Ultimo loop verde del slice actual: `bun run check` (43
-tests), `bun run browser:smoke` (8 tests), `bun run build`; `security:scan` y
-visual audit quedaron verdes en el corte anterior.
+scanner configurado. Ultimo loop verde del slice actual: `bun run check` (47
+tests), `bun run security:scan`, `bun run browser:smoke` (10 tests),
+`bun run build`, `bun run visual:audit -- http://127.0.0.1:5173/` y
+`bun run visual:deep -- http://127.0.0.1:5173/`.
 
 Continuar profundizando in-zooming: edicion/reordenamiento del timeline
 top-to-bottom, reasignacion manual de enlaces externos, split de `effect`; luego
@@ -286,7 +291,7 @@ OPD activo. EPICA-12 in-zooming MVP implementado para descomponer procesos en
 OPD hijo con kernel idempotente, nodo `SDn: <Proceso> descompuesto`, navegacion
 automatica, JSON round-trip, contenido interno dentro del contorno, tres
 subprocesos iniciales automaticos, OPL en secuencia por `y`, redistribucion de
-enlaces externos al primer subproceso interno por `y`, eliminacion de
+enlaces externos por tipo de refinamiento, eliminacion de
 descomposicion y smoke browser. Auditoria visual SSOT/JointJS aplicada. Ultimo
 loop verde del slice actual: `bun run check`, `bun run browser:smoke`, `bun run
 build`.

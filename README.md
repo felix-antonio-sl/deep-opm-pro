@@ -55,6 +55,7 @@ bun run browser:smoke    # Playwright/Chromium
 bun run build            # build produccion
 bun run security:scan    # Bun Security Scanner API sobre bun.lock
 bun run visual:audit     # auditoria visual in-vivo contra Vite remoto/local
+bun run visual:deep      # auditoria visual profunda de in-zooming/markers
 ```
 
 `app/bunfig.toml` configura proteccion de supply-chain para instalaciones
@@ -108,6 +109,8 @@ El corte documentado en `docs/HANDOFF.md` mantiene verde:
 - `cd app && bun run browser:smoke`
 - `cd app && bun run build`
 - `cd app && bun run security:scan`
+- `cd app && bun run visual:audit -- http://127.0.0.1:5173/`
+- `cd app && bun run visual:deep -- http://127.0.0.1:5173/`
 
 Lee `docs/HANDOFF.md` antes de continuar trabajo de producto. Es el unico
 handoff vigente del proyecto y debe reemplazarse, no duplicarse, cuando cambie
