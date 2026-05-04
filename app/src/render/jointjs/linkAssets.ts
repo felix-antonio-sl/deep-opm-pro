@@ -40,5 +40,23 @@ export const LINK_ASSETS = {
       points: "55.1769,38 39.5885,11 24,38",
       markerPoints: "0,15 30,0 30,30",
     },
+    exhibicion: {
+      source: "assets/svg/links/structural/exhibition.svg",
+      path: "M55.1769 39L39.5885 12L24 39H55.1769ZM29.1962 36L39.5885 18L49.9807 36H29.1962ZM46.5166 34L39.5884 22L32.6602 34H46.5166Z",
+      markerPath: "M30 30L15 0L0 30H30ZM6 26L15 8L24 26H6ZM21 24L15 12L9 24H21Z",
+    },
+    generalizacion: {
+      source: "assets/svg/links/structural/generalization.svg",
+      path: "M39.5885 11L55.1769 38H24L39.5885 11ZM39.5885 17L29.1962 35H49.9808L39.5885 17Z",
+      markerPoints: "0,15 30,0 30,30",
+      markerFill: "white",
+    },
+    clasificacion: {
+      source: "assets/svg/links/structural/classification.svg",
+      path: "M39.5885 11L55.1769 38H24L39.5885 11ZM39.5885 17L29.1962 35H49.9808L39.5885 17Z",
+      markerPoints: "0,15 30,0 30,30",
+      markerFill: "white",
+      markerDot: { cx: 15, cy: 20, r: 4 },
+    },
   },
 } as const;

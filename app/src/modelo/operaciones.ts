@@ -7,6 +7,7 @@ import type {
   Entidad,
   Esencia,
   Id,
+  ModoDespliegueObjeto,
   Modelo,
   Opd,
   Posicion,
@@ -25,6 +26,7 @@ export interface DespliegueObjeto {
   modelo: Modelo;
   opdId: Id;
   creado: boolean;
+  modo: ModoDespliegueObjeto;
 }
 
 const INZOOM = {
@@ -145,7 +147,12 @@ export function descomponerProceso(modelo: Modelo, opdPadreId: Id, procesoId: Id
   return ok({ modelo: siguiente.value, opdId: opdHijoId, creado: true });
 }
 
-export function desplegarObjeto(modelo: Modelo, opdPadreId: Id, objetoId: Id): Resultado<DespliegueObjeto> {
+export function desplegarObjeto(
+  modelo: Modelo,
+  opdPadreId: Id,
+  objetoId: Id,
+  modo: ModoDespliegueObjeto = "agregacion",
+): Resultado<DespliegueObjeto> {
   const opdPadre = modelo.opds[opdPadreId];
   if (!opdPadre) return fallo(`OPD no existe: ${opdPadreId}`);
   const objeto = modelo.entidades[objetoId];
@@ -158,7 +165,7 @@ export function desplegarObjeto(modelo: Modelo, opdPadreId: Id, objetoId: Id): R
   if (objeto.refinamiento?.tipo === "despliegue") {
     const opdExistente = modelo.opds[objeto.refinamiento.opdId];
     if (!opdExistente) return fallo(`OPD de despliegue no existe: ${objeto.refinamiento.opdId}`);
-    return ok({ modelo, opdId: opdExistente.id, creado: false });
+    return ok({ modelo, opdId: opdExistente.id, creado: false, modo: objeto.refinamiento.modo ?? "agregacion" });
   }
   if (objeto.refinamiento) return fallo("El objeto ya tiene otro refinamiento");
 
@@ -175,10 +182,10 @@ export function desplegarObjeto(modelo: Modelo, opdPadreId: Id, objetoId: Id): R
     width: UNFOLD.contornoWidth,
     height: UNFOLD.contornoHeight,
   };
-  const partes = partesInicialesDespliegue(modelo, objeto, aparienciaHijo, opdHijoId, nextSeq);
+  const partes = partesInicialesDespliegue(modelo, objeto, aparienciaHijo, opdHijoId, nextSeq, modo);
   nextSeq = partes.nextSeq;
-  const agregaciones = enlacesAgregacionPartes(modelo, objetoId, partes.parteIds, opdHijoId, nextSeq);
-  nextSeq = agregaciones.nextSeq;
+  const enlacesDespliegue = enlacesEstructuralesDespliegue(modelo, objetoId, partes.parteIds, opdHijoId, nextSeq, modo);
+  nextSeq = enlacesDespliegue.nextSeq;
   const opdHijo: Opd = {
     id: opdHijoId,
     nombre: siguienteNombreOpdHijo(modelo, opdPadreId),
@@ -187,7 +194,7 @@ export function desplegarObjeto(modelo: Modelo, opdPadreId: Id, objetoId: Id): R
       [aparienciaHijoId]: aparienciaHijo,
       ...partes.apariencias,
     },
-    enlaces: agregaciones.aparienciasEnlace,
+    enlaces: enlacesDespliegue.aparienciasEnlace,
   };
 
   return ok({
@@ -201,13 +208,14 @@ export function desplegarObjeto(modelo: Modelo, opdPadreId: Id, objetoId: Id): R
           refinamiento: {
             tipo: "despliegue",
             opdId: opdHijoId,
+            modo,
           },
         },
         ...partes.entidades,
       },
       enlaces: {
         ...modelo.enlaces,
-        ...agregaciones.enlaces,
+        ...enlacesDespliegue.enlaces,
       },
       opds: {
         ...modelo.opds,
@@ -216,6 +224,7 @@ export function desplegarObjeto(modelo: Modelo, opdPadreId: Id, objetoId: Id): R
     },
     opdId: opdHijoId,
     creado: true,
+    modo,
   });
 }
 
@@ -499,6 +508,19 @@ export function validarFirmaEnlace(tipo: TipoEnlace, origen: Entidad, destino: E
       ? ok(true)
       : fallo("Agregación requiere Objeto -> Objeto en Sprint 0");
   }
+  if (tipo === "exhibicion") {
+    return ok(true);
+  }
+  if (tipo === "generalizacion") {
+    return origen.tipo === destino.tipo
+      ? ok(true)
+      : fallo("Generalización requiere entidades de la misma clase OPM");
+  }
+  if (tipo === "clasificacion") {
+    return origen.tipo === destino.tipo
+      ? ok(true)
+      : fallo("Clasificación requiere entidades de la misma clase OPM");
+  }
   if (tipo === "agente") {
     return origen.tipo === "objeto" && destino.tipo === "proceso" && origen.esencia === "fisica"
       ? ok(true)
@@ -663,6 +685,7 @@ function partesInicialesDespliegue(
   contorno: Apariencia,
   opdHijoId: Id,
   nextSeqInicial: number,
+  modo: ModoDespliegueObjeto,
 ): { entidades: Record<Id, Entidad>; apariencias: Record<Id, Apariencia>; parteIds: Id[]; nextSeq: number } {
   const entidades: Record<Id, Entidad> = {};
   const apariencias: Record<Id, Apariencia> = {};
@@ -680,7 +703,7 @@ function partesInicialesDespliegue(
     entidades[entidadId] = {
       id: entidadId,
       tipo: "objeto",
-      nombre: `${objeto.nombre} parte ${index}`,
+      nombre: nombreInicialDespliegue(objeto, modo, index),
       esencia: objeto.esencia,
       afiliacion: objeto.afiliacion,
     };
@@ -700,16 +723,32 @@ function partesInicialesDespliegue(
   return { entidades, apariencias, parteIds, nextSeq };
 }
 
-function enlacesAgregacionPartes(
+function nombreInicialDespliegue(objeto: Entidad, modo: ModoDespliegueObjeto, index: number): string {
+  if (modo === "agregacion") return `${objeto.nombre} parte ${index}`;
+  if (modo === "exhibicion") return `Atributo ${index}`;
+  if (modo === "generalizacion") return `Especialización ${index}`;
+  return `Instancia ${index}`;
+}
+
+function tipoEnlaceDespliegue(modo: ModoDespliegueObjeto): TipoEnlace {
+  if (modo === "agregacion") return "agregacion";
+  if (modo === "exhibicion") return "exhibicion";
+  if (modo === "generalizacion") return "generalizacion";
+  return "clasificacion";
+}
+
+function enlacesEstructuralesDespliegue(
   modelo: Modelo,
   objetoId: Id,
   parteIds: Id[],
   opdId: Id,
   nextSeqInicial: number,
+  modo: ModoDespliegueObjeto,
 ): { enlaces: Record<Id, Enlace>; aparienciasEnlace: Record<Id, AparienciaEnlace>; nextSeq: number } {
   const enlaces: Record<Id, Enlace> = {};
   const aparienciasEnlace: Record<Id, AparienciaEnlace> = {};
   let nextSeq = nextSeqInicial;
+  const tipo = tipoEnlaceDespliegue(modo);
 
   for (const parteId of parteIds) {
     const enlaceId = siguienteId({ ...modelo, nextSeq }, "e");
@@ -718,7 +757,7 @@ function enlacesAgregacionPartes(
     nextSeq += 1;
     enlaces[enlaceId] = {
       id: enlaceId,
-      tipo: "agregacion",
+      tipo,
       origenId: objetoId,
       destinoId: parteId,
       etiqueta: "",

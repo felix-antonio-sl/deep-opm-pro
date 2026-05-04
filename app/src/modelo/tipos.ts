@@ -5,9 +5,13 @@ export type Esencia = "informacional" | "fisica";
 export type Afiliacion = "sistemica" | "ambiental";
 export type TipoRefinamiento = "descomposicion" | "despliegue";
 export type ModoPlegado = "completo" | "parcial";
+export type ModoDespliegueObjeto = "agregacion" | "exhibicion" | "generalizacion" | "clasificacion";
 
 export type TipoEnlace =
   | "agregacion"
+  | "exhibicion"
+  | "generalizacion"
+  | "clasificacion"
   | "agente"
   | "instrumento"
   | "consumo"
@@ -18,6 +22,7 @@ export type TipoEnlace =
 export interface RefinamientoEntidad {
   tipo: TipoRefinamiento;
   opdId: Id;
+  modo?: ModoDespliegueObjeto;
 }
 
 export interface DerivacionEnlace {

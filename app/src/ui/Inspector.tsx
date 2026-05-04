@@ -1,5 +1,6 @@
 import { modoPlegadoApariencia, partesDePlegado } from "../modelo/plegado";
 import { useOpmStore } from "../store";
+import type { ModoDespliegueObjeto } from "../modelo/tipos";
 import { PersistenciaJson } from "./PersistenciaJson";
 
 export function Inspector() {
@@ -112,14 +113,18 @@ export function Inspector() {
 
       {entidad.tipo === "objeto" ? (
         <>
-          <button
-            type="button"
-            style={style.primaryButton}
-            onClick={desplegar}
-            title="Crear o abrir el OPD hijo de despliegue"
-          >
-            {entidad.refinamiento?.tipo === "despliegue" ? "Mostrar despliegue" : "Desplegar"}
-          </button>
+          {entidad.refinamiento?.tipo === "despliegue" ? (
+            <button
+              type="button"
+              style={style.primaryButton}
+              onClick={() => desplegar()}
+              title="Abrir el OPD hijo de despliegue"
+            >
+              Mostrar despliegue
+            </button>
+          ) : (
+            <DesplegarComo onSelect={desplegar} />
+          )}
           {entidad.refinamiento?.tipo === "despliegue" ? (
             <button
               type="button"
@@ -159,6 +164,33 @@ function Segment(props: { label: string; active: boolean; onClick: () => void })
     >
       {props.label}
     </button>
+  );
+}
+
+function DesplegarComo(props: { onSelect: (modo: ModoDespliegueObjeto) => void }) {
+  const opciones: Array<{ modo: ModoDespliegueObjeto; label: string }> = [
+    { modo: "agregacion", label: "Como partes (agregación)" },
+    { modo: "exhibicion", label: "Como atributos (exhibición)" },
+    { modo: "generalizacion", label: "Como especializaciones" },
+    { modo: "clasificacion", label: "Como instancias" },
+  ];
+
+  return (
+    <details style={style.menu}>
+      <summary style={style.menuSummary}>Desplegar como...</summary>
+      <div style={style.menuItems}>
+        {opciones.map((opcion) => (
+          <button
+            key={opcion.modo}
+            type="button"
+            style={style.menuButton}
+            onClick={() => props.onSelect(opcion.modo)}
+          >
+            {opcion.label}
+          </button>
+        ))}
+      </div>
+    </details>
   );
 }
 
@@ -255,6 +287,40 @@ const style = {
     cursor: "pointer",
     fontSize: "12px",
     fontWeight: 700,
+  },
+  menu: {
+    marginBottom: "10px",
+  },
+  menuSummary: {
+    width: "100%",
+    minHeight: "32px",
+    padding: "8px 10px",
+    border: "1px solid #147aa5",
+    borderRadius: "4px",
+    background: "#e8f7ff",
+    color: "#0f5f82",
+    cursor: "pointer",
+    fontSize: "12px",
+    fontWeight: 700,
+    listStylePosition: "inside",
+  },
+  menuItems: {
+    display: "grid",
+    gap: "6px",
+    paddingTop: "8px",
+  },
+  menuButton: {
+    width: "100%",
+    minHeight: "32px",
+    padding: "0 10px",
+    border: "1px solid #c8d2df",
+    borderRadius: "4px",
+    background: "#f9fbfd",
+    color: "#1f2937",
+    cursor: "pointer",
+    fontSize: "12px",
+    fontWeight: 700,
+    textAlign: "left",
   },
   primaryButton: {
     width: "100%",

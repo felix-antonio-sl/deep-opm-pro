@@ -1,3 +1,5 @@
+import type { TipoEnlace } from "./tipos";
+
 export const CANON = {
   colores: {
     objeto: "#70E483",
@@ -16,3 +18,14 @@ export const CANON = {
     fontFamily: "Arial",
   },
 } as const;
+
+export type NaturalezaEnlace = "estructural" | "procedural";
+
+export function naturalezaDeEnlace(tipo: TipoEnlace): NaturalezaEnlace {
+  return tipo === "agregacion" ||
+    tipo === "exhibicion" ||
+    tipo === "generalizacion" ||
+    tipo === "clasificacion"
+    ? "estructural"
+    : "procedural";
+}

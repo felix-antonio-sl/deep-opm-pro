@@ -28,7 +28,7 @@ import {
   type ResumenModeloPersistido,
 } from "./persistencia/local";
 import { exportarModelo, hidratarModelo } from "./serializacion/json";
-import type { Afiliacion, Apariencia, Esencia, Id, Modelo, ModoPlegado, Posicion, TipoEnlace } from "./modelo/tipos";
+import type { Afiliacion, Apariencia, Esencia, Id, Modelo, ModoDespliegueObjeto, ModoPlegado, Posicion, TipoEnlace } from "./modelo/tipos";
 
 interface ModoEnlace {
   tipo: TipoEnlace;
@@ -52,7 +52,7 @@ interface OpmStore {
   crearObjetoDemo: () => void;
   crearProcesoDemo: () => void;
   descomponerSeleccionada: () => void;
-  desplegarSeleccionada: () => void;
+  desplegarSeleccionada: (modo?: ModoDespliegueObjeto) => void;
   quitarDescomposicionSeleccionada: () => void;
   quitarDespliegueSeleccionado: () => void;
   cambiarOpdActivo: (id: Id) => void;
@@ -155,7 +155,7 @@ export const store = createStore<OpmStore>((set, get) => ({
     });
   },
 
-  desplegarSeleccionada() {
+  desplegarSeleccionada(modo = "agregacion") {
     const { modelo, opdActivoId, seleccionId } = get();
     if (!seleccionId) {
       set({ mensaje: "Selecciona un objeto para desplegar" });
@@ -167,7 +167,7 @@ export const store = createStore<OpmStore>((set, get) => ({
       return;
     }
 
-    const resultado = desplegarObjeto(modelo, opdActivoId, seleccionId);
+    const resultado = desplegarObjeto(modelo, opdActivoId, seleccionId, modo);
     if (!resultado.ok) {
       set({ mensaje: resultado.error });
       return;

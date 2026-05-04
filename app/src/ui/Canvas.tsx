@@ -239,6 +239,9 @@ function puntoBorde(apariencia: Apariencia, entidad: Entidad, hacia: { x: number
 function markersPorTipo(tipo: TipoEnlace): { start?: string; end?: string } {
   switch (tipo) {
     case "agregacion":
+    case "exhibicion":
+    case "generalizacion":
+    case "clasificacion":
       return { start: "url(#marker-triangle-start)" };
     case "agente":
       return { start: "url(#marker-agent-start)" };

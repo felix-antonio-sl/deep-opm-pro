@@ -9,6 +9,7 @@ import type {
   Esencia,
   Id,
   Modelo,
+  ModoDespliegueObjeto,
   ModoPlegado,
   Opd,
   RefinamientoEntidad,
@@ -125,7 +126,19 @@ function validarRefinamiento(entidadId: Id, value: unknown): Resultado<Refinamie
   if (!esRecord(value)) return fallo(`Refinamiento inválido: ${entidadId}`);
   if (value.tipo !== "descomposicion" && value.tipo !== "despliegue") return fallo(`Refinamiento inválido: ${entidadId}.tipo`);
   if (typeof value.opdId !== "string") return fallo(`Refinamiento inválido: ${entidadId}.opdId`);
-  return ok({ tipo: value.tipo, opdId: value.opdId });
+  if (value.tipo === "descomposicion") {
+    if (value.modo !== undefined) return fallo(`Refinamiento inválido: ${entidadId}.modo`);
+    return ok({ tipo: value.tipo, opdId: value.opdId });
+  }
+  const modo = validarModoDespliegue(entidadId, value.modo);
+  if (!modo.ok) return modo;
+  return ok({ tipo: value.tipo, opdId: value.opdId, modo: modo.value });
+}
+
+function validarModoDespliegue(entidadId: Id, value: unknown): Resultado<ModoDespliegueObjeto> {
+  if (value === undefined) return ok("agregacion");
+  if (esModoDespliegue(value)) return ok(value);
+  return fallo(`Refinamiento inválido: ${entidadId}.modo`);
 }
 
 function validarOpds(value: Record<string, unknown>, entidades: Record<Id, Entidad>): Resultado<Record<Id, Opd>> {
@@ -322,6 +335,9 @@ function esAfiliacion(value: unknown): value is Afiliacion {
 function esTipoEnlace(value: unknown): value is TipoEnlace {
   return (
     value === "agregacion" ||
+    value === "exhibicion" ||
+    value === "generalizacion" ||
+    value === "clasificacion" ||
     value === "agente" ||
     value === "instrumento" ||
     value === "consumo" ||
@@ -329,6 +345,10 @@ function esTipoEnlace(value: unknown): value is TipoEnlace {
     value === "efecto" ||
     value === "invocacion"
   );
+}
+
+function esModoDespliegue(value: unknown): value is ModoDespliegueObjeto {
+  return value === "agregacion" || value === "exhibicion" || value === "generalizacion" || value === "clasificacion";
 }
 
 function esNumeroFinito(value: unknown): value is number {

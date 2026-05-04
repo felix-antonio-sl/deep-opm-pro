@@ -1,4 +1,4 @@
-import type { Apariencia, Enlace, Entidad, Id, Modelo, Opd } from "../modelo/tipos";
+import type { Apariencia, Enlace, Entidad, Id, Modelo, ModoDespliegueObjeto, Opd, TipoEnlace } from "../modelo/tipos";
 
 export function generarOpl(modelo: Modelo, opdId: Id = modelo.opdRaizId): string[] {
   const opd = modelo.opds[opdId];
@@ -32,8 +32,7 @@ function oracionRefinamiento(modelo: Modelo, entidad: Entidad): string | null {
       return interna ? [nombreOpl(interna)] : [];
     });
   if (entidad.refinamiento.tipo === "despliegue") {
-    const destino = internos.length > 0 ? listarOpl(internos) : codigoOpd(opdHijo.nombre);
-    return `${nombreOpl(entidad)} se despliega en ${destino}.`;
+    return oracionDespliegue(modelo, entidad, opdHijo, internos);
   }
 
   const destino = internos.length > 0 ? listarOpl(internos) : codigoOpd(opdHijo.nombre);
@@ -44,6 +43,35 @@ function oracionRefinamiento(modelo: Modelo, entidad: Entidad): string | null {
     ? temporal.tieneParalelos ? ", en esa secuencia" : " en esa secuencia"
     : "";
   return `${nombreOpl(entidad)} se descompone en ${destinoProcesos}${secuencia}.`;
+}
+
+function oracionDespliegue(modelo: Modelo, entidad: Entidad, opdHijo: Opd, internos: string[]): string {
+  const modo = modoDespliegue(modelo, entidad, opdHijo);
+  const destino = internos.length > 0 ? listarOpl(internos) : codigoOpd(opdHijo.nombre);
+
+  if (modo === "agregacion") return `${nombreOpl(entidad)} se despliega en ${destino}.`;
+  if (modo === "exhibicion") return `${nombreOpl(entidad)} exhibe ${destino}.`;
+  if (modo === "generalizacion") return `${destino} ${internos.length === 1 ? "es un" : "son"} ${nombreOpl(entidad)}.`;
+  return `${destino} ${internos.length === 1 ? "es una instancia" : "son instancias"} de ${nombreOpl(entidad)}.`;
+}
+
+function modoDespliegue(modelo: Modelo, entidad: Entidad, opdHijo: Opd): ModoDespliegueObjeto {
+  const modoPersistido = entidad.refinamiento?.tipo === "despliegue" ? entidad.refinamiento.modo : undefined;
+  if (modoPersistido) return modoPersistido;
+  const tipos = Object.values(opdHijo.enlaces)
+    .flatMap((aparienciaEnlace) => {
+      const enlace = modelo.enlaces[aparienciaEnlace.enlaceId];
+      return enlace?.origenId === entidad.id ? [enlace.tipo] : [];
+    });
+  return tipos.map(modoPorTipoEnlace).find((modo): modo is ModoDespliegueObjeto => modo !== null) ?? "agregacion";
+}
+
+function modoPorTipoEnlace(tipo: TipoEnlace): ModoDespliegueObjeto | null {
+  if (tipo === "agregacion") return "agregacion";
+  if (tipo === "exhibicion") return "exhibicion";
+  if (tipo === "generalizacion") return "generalizacion";
+  if (tipo === "clasificacion") return "clasificacion";
+  return null;
 }
 
 function aparienciasInternasDeRefinamiento(modelo: Modelo, opdHijo: Opd, entidad: Entidad): Apariencia[] {
@@ -84,6 +112,12 @@ function oracionEnlace(modelo: Modelo, enlace: Enlace): string | null {
   switch (enlace.tipo) {
     case "agregacion":
       return `${origenOpl} consta de ${destinoOpl}.`;
+    case "exhibicion":
+      return `${origenOpl} exhibe ${destinoOpl}.`;
+    case "generalizacion":
+      return `${destinoOpl} es un ${origenOpl}.`;
+    case "clasificacion":
+      return `${destinoOpl} es una instancia de ${origenOpl}.`;
     case "agente":
       return `${origenOpl} maneja ${destinoOpl}.`;
     case "instrumento":
