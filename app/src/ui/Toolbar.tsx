@@ -1,7 +1,7 @@
 import { useEffect } from "preact/hooks";
 import { useOpmStore } from "../store";
 import type { TipoEnlace } from "../modelo/tipos";
-import { useConfirmarSiDirty } from "./DialogoConfirmacion";
+import { useConfirmarSiDirty } from "./ConfirmacionContext";
 
 const TIPOS_ENLACE: Array<{ tipo: TipoEnlace; label: string }> = [
   { tipo: "agregacion", label: "Agregación" },
@@ -32,7 +32,7 @@ export function Toolbar() {
   const puedeDeshacer = useOpmStore((s) => s.puedeDeshacer);
   const puedeRehacer = useOpmStore((s) => s.puedeRehacer);
   const modelo = useOpmStore((s) => s.modelo);
-  const { confirmarSiDirty, dialogoConfirmacion } = useConfirmarSiDirty();
+  const confirmarSiDirty = useConfirmarSiDirty();
 
   useEffect(() => {
     const manejarAtajo = (event: KeyboardEvent) => {
@@ -112,7 +112,6 @@ export function Toolbar() {
         ) : null}
         {mensaje ? <span style={style.status}>{mensaje}</span> : null}
       </div>
-      {dialogoConfirmacion}
     </div>
   );
 }

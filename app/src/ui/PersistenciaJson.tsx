@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "preact/hooks";
 import { useOpmStore } from "../store";
 import { hidratarModelo } from "../serializacion/json";
 import type { Modelo } from "../modelo/tipos";
-import { useConfirmarSiDirty } from "./DialogoConfirmacion";
+import { useConfirmarSiDirty } from "./ConfirmacionContext";
 
 type VistaPreviaImportacion = { ok: true; texto: string } | { ok: false; error: string };
 
@@ -21,7 +21,7 @@ export function PersistenciaJson() {
   const modeloSeleccionado = modeloSeleccionadoId || modelosGuardados[0]?.id || "";
   const vistaPrevia = useMemo(() => (texto.trim() ? obtenerVistaPreviaImportacion(texto) : null), [texto]);
   const mensajeError = errorImportacion ?? (vistaPrevia?.ok === false ? vistaPrevia.error : null);
-  const { confirmarSiDirty, dialogoConfirmacion } = useConfirmarSiDirty();
+  const confirmarSiDirty = useConfirmarSiDirty();
 
   useEffect(() => {
     listarModelosGuardados();
@@ -144,7 +144,6 @@ export function PersistenciaJson() {
           setErrorImportacion(null);
         }}
       />
-      {dialogoConfirmacion}
     </div>
   );
 }

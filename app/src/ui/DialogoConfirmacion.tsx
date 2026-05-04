@@ -1,52 +1,5 @@
-import { useRef, useState } from "preact/hooks";
-import { store, useOpmStore } from "../store";
+import { useRef } from "preact/hooks";
 import { Dialogo } from "./Dialogo";
-
-interface ConfirmacionPendiente {
-  accion: () => void;
-}
-
-export function useConfirmarSiDirty() {
-  const dirty = useOpmStore((s) => s.dirty);
-  const guardarLocal = useOpmStore((s) => s.guardarLocal);
-  const [pendiente, setPendiente] = useState<ConfirmacionPendiente | null>(null);
-
-  const confirmarSiDirty = (accion: () => void) => {
-    if (!dirty) {
-      accion();
-      return;
-    }
-    setPendiente({ accion });
-  };
-
-  const cancelar = () => setPendiente(null);
-  const descartar = () => {
-    const accion = pendiente?.accion;
-    setPendiente(null);
-    accion?.();
-  };
-  const guardarYContinuar = () => {
-    if (!pendiente) return;
-    guardarLocal();
-    if (!store.getState().dirty) {
-      const accion = pendiente.accion;
-      setPendiente(null);
-      accion();
-    }
-  };
-
-  return {
-    confirmarSiDirty,
-    dialogoConfirmacion: (
-      <DialogoConfirmacion
-        open={pendiente !== null}
-        onGuardar={guardarYContinuar}
-        onDescartar={descartar}
-        onCancelar={cancelar}
-      />
-    ),
-  };
-}
 
 interface DialogoConfirmacionProps {
   open: boolean;
