@@ -239,6 +239,7 @@ function proyectarEnlace(
     vertices: verticesRender,
     router: enlace.tipo === "invocacion" ? undefined : routerManhattan(),
     connector: { name: "straight" },
+    labels: etiquetasMultiplicidad(enlace),
     attrs: {
       wrapper: {
         stroke: "transparent",
@@ -260,6 +261,44 @@ function proyectarEnlace(
       tipo: enlace.tipo,
     },
     z: 1,
+  };
+}
+
+function etiquetasMultiplicidad(enlace: Enlace): Array<Record<string, unknown>> {
+  const labels: Array<Record<string, unknown>> = [];
+  if (enlace.multiplicidadOrigen) {
+    labels.push(etiquetaMultiplicidad(enlace.multiplicidadOrigen, 18));
+  }
+  if (enlace.multiplicidadDestino) {
+    labels.push(etiquetaMultiplicidad(enlace.multiplicidadDestino, -18));
+  }
+  return labels;
+}
+
+function etiquetaMultiplicidad(text: string, distance: number): Record<string, unknown> {
+  return {
+    markup: [{ tagName: "text", selector: "label" }],
+    attrs: {
+      label: {
+        text,
+        fill: "#1f2937",
+        fontFamily: "Arial",
+        fontSize: 12,
+        fontWeight: 600,
+        textAnchor: "middle",
+        textVerticalAnchor: "middle",
+        pointerEvents: "none",
+      },
+    },
+    position: {
+      distance,
+      offset: -12,
+      angle: 0,
+      args: {
+        keepGradient: false,
+        ensureLegibility: true,
+      },
+    },
   };
 }
 
