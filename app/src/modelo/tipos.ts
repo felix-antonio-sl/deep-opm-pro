@@ -4,6 +4,7 @@ export type TipoEntidad = "objeto" | "proceso";
 export type Esencia = "informacional" | "fisica";
 export type Afiliacion = "sistemica" | "ambiental";
 export type TipoRefinamiento = "descomposicion" | "despliegue";
+export type ModoPlegado = "completo" | "parcial";
 
 export type TipoEnlace =
   | "agregacion"
@@ -42,6 +43,7 @@ export interface Apariencia {
   y: number;
   width: number;
   height: number;
+  modoPlegado?: ModoPlegado;
 }
 
 export interface Enlace {

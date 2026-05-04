@@ -9,6 +9,7 @@ import type {
   Esencia,
   Id,
   Modelo,
+  ModoPlegado,
   Opd,
   RefinamientoEntidad,
   Resultado,
@@ -171,6 +172,8 @@ function validarApariencias(
     if (!esNumeroFinito(raw.y)) return fallo(`Apariencia inválida: ${id}.y`);
     if (!esNumeroPositivo(raw.width)) return fallo(`Apariencia inválida: ${id}.width`);
     if (!esNumeroPositivo(raw.height)) return fallo(`Apariencia inválida: ${id}.height`);
+    const modoPlegado = validarModoPlegado(id, raw.modoPlegado);
+    if (!modoPlegado.ok) return modoPlegado;
     apariencias[id] = {
       id,
       entidadId: raw.entidadId,
@@ -179,9 +182,16 @@ function validarApariencias(
       y: raw.y,
       width: raw.width,
       height: raw.height,
+      modoPlegado: modoPlegado.value,
     };
   }
   return ok(apariencias);
+}
+
+function validarModoPlegado(aparienciaId: Id, value: unknown): Resultado<ModoPlegado> {
+  if (value === undefined) return ok("completo");
+  if (value === "completo" || value === "parcial") return ok(value);
+  return fallo(`Apariencia inválida: ${aparienciaId}.modoPlegado`);
 }
 
 function validarAparienciasEnlace(opdId: Id, value: Record<string, unknown>): Resultado<Record<Id, AparienciaEnlace>> {
