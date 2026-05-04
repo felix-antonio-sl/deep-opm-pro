@@ -84,6 +84,18 @@ test("descompone proceso y navega al OPD hijo", async ({ page }) => {
   expect(Object.values(exportado.modelo.opds[opdHijoId]?.apariencias ?? {}).some((apariencia) => apariencia.entidadId === proceso?.id)).toBe(true);
 
   await page.screenshot({ path: "test-results/opm-descomposicion-opd-hijo.png", fullPage: true });
+
+  await page.getByRole("button", { name: "Quitar descomposición" }).click();
+  await expect(page.locator('[role="treeitem"]').filter({ hasText: "SD1: Un Proceso descompuesto" })).toHaveCount(0);
+  await expect(page.locator('[role="treeitem"][data-opd-id="opd-1"]')).toHaveAttribute("aria-current", "page");
+  await expect(page.getByText("Un Proceso se descompone en SD1.")).toHaveCount(0);
+  await page.getByRole("button", { name: "Exportar" }).click();
+  const jsonSinDescomposicion = await page.locator("textarea").inputValue();
+  const exportadoSinDescomposicion = JSON.parse(jsonSinDescomposicion) as ExportadoModelo;
+  const procesoSinDescomposicion = Object.values(exportadoSinDescomposicion.modelo.entidades).find((entidad) => entidad.nombre === "Un Proceso");
+  expect(procesoSinDescomposicion?.refinamiento).toBeUndefined();
+  expect(Object.values(exportadoSinDescomposicion.modelo.opds)).toHaveLength(1);
+
   expect(pageErrors).toEqual([]);
 });
 

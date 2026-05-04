@@ -9,6 +9,7 @@ export function Inspector() {
   const fijarEsencia = useOpmStore((s) => s.fijarEsenciaSeleccionada);
   const fijarAfiliacion = useOpmStore((s) => s.fijarAfiliacionSeleccionada);
   const descomponer = useOpmStore((s) => s.descomponerSeleccionada);
+  const quitarDescomposicion = useOpmStore((s) => s.quitarDescomposicionSeleccionada);
   const eliminar = useOpmStore((s) => s.eliminarSeleccion);
   const entidad = seleccionId ? modelo.entidades[seleccionId] : undefined;
   const enlace = enlaceSeleccionId ? modelo.enlaces[enlaceSeleccionId] : undefined;
@@ -77,14 +78,26 @@ export function Inspector() {
       </div>
 
       {entidad.tipo === "proceso" ? (
-        <button
-          type="button"
-          style={style.primaryButton}
-          onClick={descomponer}
-          title="Crear o abrir el OPD hijo de descomposición"
-        >
-          {entidad.refinamiento?.tipo === "descomposicion" ? "Abrir descomposición" : "Descomponer"}
-        </button>
+        <>
+          <button
+            type="button"
+            style={style.primaryButton}
+            onClick={descomponer}
+            title="Crear o abrir el OPD hijo de descomposición"
+          >
+            {entidad.refinamiento?.tipo === "descomposicion" ? "Abrir descomposición" : "Descomponer"}
+          </button>
+          {entidad.refinamiento?.tipo === "descomposicion" ? (
+            <button
+              type="button"
+              style={style.secondaryButton}
+              onClick={quitarDescomposicion}
+              title="Eliminar el OPD hijo de descomposición"
+            >
+              Quitar descomposición
+            </button>
+          ) : null}
+        </>
       ) : null}
 
       <button type="button" style={style.dangerButton} onClick={eliminar}>Eliminar entidad</button>
@@ -207,6 +220,18 @@ const style = {
     borderRadius: "4px",
     background: "#e8f7ff",
     color: "#0f5f82",
+    cursor: "pointer",
+    fontSize: "12px",
+    fontWeight: 700,
+  },
+  secondaryButton: {
+    width: "100%",
+    height: "32px",
+    marginBottom: "10px",
+    border: "1px solid #c8d2df",
+    borderRadius: "4px",
+    background: "#f9fbfd",
+    color: "#475467",
     cursor: "pointer",
     fontSize: "12px",
     fontWeight: 700,

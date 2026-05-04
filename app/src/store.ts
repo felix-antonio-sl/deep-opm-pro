@@ -14,6 +14,7 @@ import {
   eliminarEnlace,
   moverApariencia as moverAparienciaEntidad,
   moverAparienciaPorId,
+  quitarDescomposicionProceso,
   renombrarEntidad,
 } from "./modelo/operaciones";
 import { exportarModelo, hidratarModelo } from "./serializacion/json";
@@ -38,6 +39,7 @@ interface OpmStore {
   crearObjetoDemo: () => void;
   crearProcesoDemo: () => void;
   descomponerSeleccionada: () => void;
+  quitarDescomposicionSeleccionada: () => void;
   cambiarOpdActivo: (id: Id) => void;
   seleccionarEntidad: (id: Id) => void;
   seleccionarEnlace: (id: Id) => void;
@@ -116,6 +118,32 @@ export const store = createStore<OpmStore>((set, get) => ({
       enlaceSeleccionId: null,
       modoEnlace: null,
       mensaje: resultado.value.creado ? "OPD hijo creado" : null,
+    });
+  },
+
+  quitarDescomposicionSeleccionada() {
+    const { modelo, opdActivoId, seleccionId } = get();
+    if (!seleccionId) {
+      set({ mensaje: "Selecciona un proceso descompuesto" });
+      return;
+    }
+    const entidad = modelo.entidades[seleccionId];
+    if (!entidad || entidad.tipo !== "proceso" || entidad.refinamiento?.tipo !== "descomposicion") {
+      set({ mensaje: "Selecciona un proceso descompuesto" });
+      return;
+    }
+
+    const resultado = quitarDescomposicionProceso(modelo, seleccionId);
+    if (!resultado.ok) {
+      set({ mensaje: resultado.error });
+      return;
+    }
+    commitModelo(set, modelo, resultado.value, {
+      opdActivoId: opdActivoSeguro(resultado.value, opdActivoId),
+      seleccionId,
+      enlaceSeleccionId: null,
+      modoEnlace: null,
+      mensaje: "Descomposición eliminada",
     });
   },
 

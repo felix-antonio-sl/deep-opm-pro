@@ -1,6 +1,6 @@
 # Reporte ejecutivo in-vivo - modelador OPM
 
-**Fecha:** 2026-05-04T02:25:48.126Z
+**Fecha:** 2026-05-04T02:51:07.312Z
 **URL probada:** http://127.0.0.1:5173/
 **Driver:** Playwright/Chromium headless
 **Script:** `app/scripts/in-vivo-test.mjs`
@@ -15,8 +15,8 @@ La app esta operativa en el corte auditado. No se detectaron fallos funcionales 
 
 | Metrica | Valor |
 |---|---:|
-| Criterios verificados | 51 |
-| OK | 48 |
+| Criterios verificados | 54 |
+| OK | 51 |
 | FAIL | 0 |
 | WARN | 0 |
 | INFO | 3 |
@@ -38,7 +38,7 @@ La app esta operativa en el corte auditado. No se detectaron fallos funcionales 
 | 8. Validación firma | 1 | 1 | 0 | 0 | 0 |
 | 9. JSON | 2 | 2 | 0 | 0 | 0 |
 | 10. Persistencia local | 3 | 3 | 0 | 0 | 0 |
-| 11. Árbol OPD | 2 | 2 | 0 | 0 | 0 |
+| 11. Árbol OPD | 5 | 5 | 0 | 0 | 0 |
 | 12. Agregación | 2 | 2 | 0 | 0 | 0 |
 | 13. Drag | 1 | 1 | 0 | 0 | 0 |
 | 14. Responsive 1024px | 1 | 0 | 0 | 0 | 1 |
@@ -48,7 +48,7 @@ La app esta operativa en el corte auditado. No se detectaron fallos funcionales 
 
 | Seccion | Criterio | Estado | Detalle |
 |---|---|---|---|
-| 1. Carga inicial | Carga sin error fatal | OK | 584 ms hasta networkidle |
+| 1. Carga inicial | Carga sin error fatal | OK | 585 ms hasta networkidle |
 | 1. Carga inicial | Título de la página | INFO | Modelador OPM |
 | 1. Carga inicial | Canvas JointJS visible | OK |  |
 | 1. Carga inicial | Árbol OPD visible | OK |  |
@@ -93,6 +93,9 @@ La app esta operativa en el corte auditado. No se detectaron fallos funcionales 
 | 10. Persistencia local | Tras Cargar regresa al estado guardado | OK |  |
 | 11. Árbol OPD | Árbol muestra 2 nodos (esperados ≥2) | OK |  |
 | 11. Árbol OPD | Click en hijo cambia OPD activo (visible Proceso Hijo) | OK |  |
+| 11. Árbol OPD | Descomponer crea nodo derivado SD1 | OK |  |
+| 11. Árbol OPD | Quitar descomposición elimina OPD hijo | OK |  |
+| 11. Árbol OPD | Quitar descomposición remueve OPL de refinamiento | OK |  |
 | 12. Agregación | Triángulo estructural presente (polygons: 1) | OK |  |
 | 12. Agregación | Triángulo no expone tool de vértices | OK |  |
 | 13. Drag | Entidad arrastrada (Δx=130, Δy=120) | OK |  |
@@ -123,6 +126,7 @@ La app esta operativa en el corte auditado. No se detectaron fallos funcionales 
 - `app/test-results/in-vivo/10-persistencia-local.png`
 - `app/test-results/in-vivo/11-arbol-opd.png`
 - `app/test-results/in-vivo/11b-opd-hijo.png`
+- `app/test-results/in-vivo/11c-quitar-descomposicion.png`
 - `app/test-results/in-vivo/12-agregacion.png`
 - `app/test-results/in-vivo/13-drag-entidad.png`
 - `app/test-results/in-vivo/14-viewport-1024x700.png`

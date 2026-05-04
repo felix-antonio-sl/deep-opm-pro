@@ -1,7 +1,7 @@
 # HANDOFF — estado, decisiones, pendientes, riesgos
 
 **Fecha**: 2026-05-04
-**Sesion**: MVP-alpha inicial + EPICA-20 minimo + primer slice EPICA-12 descomposicion real a OPD hijo
+**Sesion**: MVP-alpha inicial + EPICA-20 minimo + EPICA-12 descomposicion reversible
 **Repositorio**: `deep-opm-pro`
 **Repositorio hermano**: `opm-model-app` (fuente historica de historias de usuario; inventario vivo local en `docs/historias-usuario-v2/`)
 
@@ -24,6 +24,7 @@ archivo.
 - `app/` contiene una app nueva Bun + Vite + Preact + Zustand + JointJS OSS, con kernel propio y sin copiar arquitectura Angular/Firebase/Rappid.
 - EPICA-20 minimo quedo implementado: panel/arbol OPD con raiz `SD`, `opdActivoId` en store, navegacion desde UI, canvas JointJS y OPL filtrados por OPD activo.
 - EPICA-12 minimo quedo implementado para procesos: accion "Descomponer" desde inspector, operacion de kernel idempotente, `entidad.refinamiento`, OPD hijo `SDn`/`SDn.m`, nodo derivado `SDn: <Proceso> descompuesto`, navegacion automatica al hijo, apariencia del mismo proceso en OPD padre e hijo, OPL "se descompone en" y JSON round-trip validado.
+- La descomposicion ahora es reversible desde UI: "Quitar descomposición" elimina el OPD hijo y su subarbol, limpia entidades/enlaces huerfanos, remueve el OPL de refinamiento y vuelve a un OPD activo valido.
 - Auditoria visual SSOT/JointJS aplicada: firmas consumo/resultado/efecto corregidas, marcadores procedimentales basicos, agregacion con triangulo, routing manhattan basico, sin elipsis silenciosa en etiquetas, posicion inicial libre por OPD y toolbar compacta sin overflow.
 - Integridad de import JSON endurecida: validacion estructural, referencial, firmas OPM, endpoints visibles por OPD y rechazo de enlaces invisibles antes de hidratar `Modelo`.
 - Auditor in-vivo estabilizado: `app/scripts/in-vivo-test.mjs` genera `docs/REPORTE-EJECUTIVO.md`, `_resumen.json` y screenshots desde una sola ejecucion; sale con codigo distinto de cero ante criterios FAIL.
@@ -61,11 +62,11 @@ archivo.
 
 Ejecutado en `app/`:
 
-- `bun run check` -> 39 tests verdes.
+- `bun run check` -> 41 tests verdes.
 - `bun run security:scan` -> Socket free mode, 153 paquetes escaneados, 0 advisories.
 - `bun run browser:smoke` -> 7 tests Playwright verdes.
 - `bun run build` -> build OK; warning esperado de chunk grande por JointJS.
-- `bun run visual:audit -- http://138.201.53.205:5173/` -> 48 OK, 0 FAIL, 0 WARN, 3 INFO; genera `docs/REPORTE-EJECUTIVO.md`, `app/test-results/in-vivo/_resumen.json` y 20 screenshots.
+- `bun run visual:audit -- http://127.0.0.1:5173/` -> 51 OK, 0 FAIL, 0 WARN, 3 INFO; genera `docs/REPORTE-EJECUTIVO.md`, `app/test-results/in-vivo/_resumen.json` y 21 screenshots.
 
 Capturas browser relevantes:
 
@@ -76,11 +77,12 @@ Capturas browser relevantes:
 - `app/test-results/opm-link-tools-jointjs.png`
 - `app/test-results/opm-agregacion-triangulo.png`
 - `app/test-results/opm-descomposicion-opd-hijo.png`
+- `app/test-results/in-vivo/11c-quitar-descomposicion.png`
 
 ### Pendientes inmediatos
 
 1. Ampliar smoke de undo/redo por operacion: eliminar, renombrar, mover, esencia, afiliacion, crear/eliminar enlace y vertices.
-2. Profundizar OPDs hijos por descomposicion: creacion/edicion de contenido interno dentro del contenedor, redistribucion de enlaces externos y eliminacion de descomposicion.
+2. Profundizar OPDs hijos por descomposicion: creacion/edicion de contenido interno dentro del contenedor y redistribucion de enlaces externos.
 3. Persistencia local real: IndexedDB o storage estructurado con lista de modelos.
 4. Dialogo Guardar / Descartar / Cancelar cuando exista navegacion real entre modelos.
 5. Definir politica de licencia explicita para codigo propio vs. material observacional antes de redistribucion publica.
@@ -91,14 +93,14 @@ Capturas browser relevantes:
 - Para MVP-alpha, snapshots de modelo son suficientemente pequenos y reversibles.
 - La app puede seguir sin backend ni auth mientras se valida modelado local.
 - OPCloud informa UX y comportamiento, pero SSOT OPM manda cuando haya tension semantica.
-- El siguiente avance puede mantenerse antes de una nueva profundizacion JointJS si se limita a contenido interno de descomposicion, eliminacion de refinamiento o unfold/despliegue desde el kernel.
+- El siguiente avance puede mantenerse antes de una nueva profundizacion JointJS si se limita a contenido interno de descomposicion, redistribucion de enlaces externos o unfold/despliegue desde el kernel.
 
 ### Riesgos
 
 - `opm-extracted/` es material derivado de ingenieria inversa: usarlo como evidencia, no como fuente copiada.
 - No hay licencia repo-wide declarada; tratar redistribucion publica como bloqueada hasta decision explicita.
 - El scanner de Socket corre en modo publico si no hay `SOCKET_API_KEY`; CI/org policy requiere configurar credencial.
-- La app ya crea OPDs hijos por descomposicion de procesos; unfold/despliegue de objetos y eliminacion de refinamiento siguen pendientes.
+- La app ya crea y elimina OPDs hijos por descomposicion de procesos; unfold/despliegue de objetos y redistribucion de enlaces externos siguen pendientes.
 - Dirty state no tiene confirmacion de salida hasta que exista navegacion/cierre de modelos.
 - El bundle de JointJS genera warning de tamano; no es bloqueante para MVP-alpha, pero puede exigir code splitting luego.
 
@@ -110,14 +112,15 @@ implementado con arbol OPD, raiz SD, `opdActivoId`, canvas JointJS y OPL por
 OPD activo. EPICA-12 minimo implementado para descomponer procesos: kernel
 idempotente, OPD hijo `SDn`/`SDn.m`, nodo `SDn: <Proceso> descompuesto`,
 navegacion automatica, OPL "se descompone en", JSON round-trip y smoke browser.
+La descomposicion ya puede quitarse desde UI con limpieza de subarbol OPD,
+entidades/enlaces huerfanos y fallback de OPD activo.
 Auditoria visual SSOT/JointJS aplicada, import JSON endurecido y supply-chain
 scanner configurado. Ultimo loop verde: `bun run check`, `bun run
-security:scan`, `bun run browser:smoke`, `bun run build`; visual audit anterior
-verde: `bun run visual:audit -- http://138.201.53.205:5173/` (48 OK, 0 FAIL).
+security:scan`, `bun run browser:smoke`, `bun run build`; visual audit local
+verde: `bun run visual:audit -- http://127.0.0.1:5173/` (51 OK, 0 FAIL).
 
 Continuar profundizando descomposicion: contenido interno real del OPD hijo,
-redistribucion de enlaces externos, eliminacion de descomposicion, y luego
-unfold/despliegue de objetos.
+redistribucion de enlaces externos y luego unfold/despliegue de objetos.
 ```
 
 ---
@@ -168,7 +171,7 @@ unfold/despliegue de objetos.
 | Adapter JointJS OSS | Implementado minimo | `app/src/render/jointjs/` |
 | Dirty state + undo/redo | Implementado minimo | `app/src/store.ts`, `app/src/store.test.ts`, `app/src/ui/Toolbar.tsx` |
 | Arbol OPD + OPD activo | Implementado minimo | `app/src/ui/ArbolOpd.tsx`, `app/src/store.ts`, `app/e2e/opm-smoke.spec.ts` |
-| Descomposicion de proceso a OPD hijo | Implementado minimo | `app/src/modelo/operaciones.ts`, `app/src/ui/Inspector.tsx`, `app/e2e/opm-smoke.spec.ts` |
+| Descomposicion reversible de proceso a OPD hijo | Implementado minimo | `app/src/modelo/operaciones.ts`, `app/src/ui/Inspector.tsx`, `app/e2e/opm-smoke.spec.ts` |
 | Smoke navegador | Implementado, 7 casos | `app/e2e/opm-smoke.spec.ts` |
 
 ### NO obtenido (sin cambios)
@@ -273,10 +276,10 @@ Retomar `docs/HANDOFF.md` en `deep-opm-pro`. Estado: EPICA-20 minimo
 implementado con arbol OPD, raiz SD, `opdActivoId`, canvas JointJS y OPL por
 OPD activo. EPICA-12 minimo implementado para descomponer procesos en OPD hijo
 con kernel idempotente, nodo `SDn: <Proceso> descompuesto`, navegacion
-automatica, JSON round-trip y smoke browser. Auditoria visual SSOT/JointJS
-aplicada. Ultimo loop verde: `bun run check`, `bun run security:scan`,
-`bun run browser:smoke`, `bun run build`.
+automatica, JSON round-trip, eliminacion de descomposicion y smoke browser.
+Auditoria visual SSOT/JointJS aplicada. Ultimo loop verde: `bun run check`,
+`bun run security:scan`, `bun run browser:smoke`, `bun run build`.
 
 Continuar con contenido interno real del OPD hijo, redistribucion de enlaces
-externos, eliminacion de descomposicion y luego unfold/despliegue de objetos.
+externos y luego unfold/despliegue de objetos.
 ```

@@ -340,6 +340,22 @@ try {
   record("11. Árbol OPD", "Click en hijo cambia OPD activo (visible Proceso Hijo)", procesoHijoVisible ? "OK" : "FAIL");
   await shot(page, "11b-opd-hijo.png");
 
+  await page.evaluate(() => localStorage.clear());
+  await page.reload({ waitUntil: "networkidle" });
+  await page.getByRole("button", { name: "Proceso" }).click();
+  await page.waitForTimeout(150);
+  await page.getByRole("button", { name: "Descomponer" }).click();
+  await page.waitForTimeout(200);
+  const nodoDescompuesto = await page.locator('[role="treeitem"]').filter({ hasText: "SD1: Un Proceso descompuesto" }).count();
+  record("11. Árbol OPD", "Descomponer crea nodo derivado SD1", nodoDescompuesto === 1 ? "OK" : "FAIL");
+  await page.getByRole("button", { name: "Quitar descomposición" }).click();
+  await page.waitForTimeout(200);
+  const nodosTrasQuitar = await page.locator('[role="treeitem"]').count();
+  const oplDescompuesto = await page.getByText("Un Proceso se descompone en SD1.").count();
+  record("11. Árbol OPD", "Quitar descomposición elimina OPD hijo", nodosTrasQuitar === 1 ? "OK" : "FAIL");
+  record("11. Árbol OPD", "Quitar descomposición remueve OPL de refinamiento", oplDescompuesto === 0 ? "OK" : "FAIL");
+  await shot(page, "11c-quitar-descomposicion.png");
+
   // ============================================================
   // 12. AGREGACIÓN: triángulo, no editable
   // ============================================================

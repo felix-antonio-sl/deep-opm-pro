@@ -124,6 +124,26 @@ describe("store undo/redo y dirty state", () => {
     expect(store.getState().opdActivoId).toBe(store.getState().modelo.opdRaizId);
   });
 
+  test("quitar descomposicion seleccionada elimina OPD hijo y conserva undo", () => {
+    store.getState().crearProcesoDemo();
+    const procesoId = primeraEntidadId();
+    store.getState().seleccionarEntidad(procesoId);
+    store.getState().descomponerSeleccionada();
+    expect(Object.values(store.getState().modelo.opds)).toHaveLength(2);
+
+    store.getState().quitarDescomposicionSeleccionada();
+
+    expect(Object.values(store.getState().modelo.opds)).toHaveLength(1);
+    expect(store.getState().modelo.entidades[procesoId]?.refinamiento).toBeUndefined();
+    expect(store.getState().opdActivoId).toBe(store.getState().modelo.opdRaizId);
+    expect(store.getState().dirty).toBe(true);
+    expect(store.getState().puedeDeshacer).toBe(true);
+
+    store.getState().deshacer();
+    expect(Object.values(store.getState().modelo.opds)).toHaveLength(2);
+    expect(store.getState().modelo.entidades[procesoId]?.refinamiento?.tipo).toBe("descomposicion");
+  });
+
   test("limita undo a 100 snapshots", () => {
     for (let index = 0; index < 105; index += 1) {
       store.getState().crearObjetoDemo();

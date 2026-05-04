@@ -13,6 +13,7 @@ import {
   entidadesDelOpd,
   moverApariencia,
   moverAparienciaPorId,
+  quitarDescomposicionProceso,
   renombrarEntidad,
 } from "./operaciones";
 import type { Modelo, Resultado, TipoEnlace } from "./tipos";
@@ -308,6 +309,34 @@ describe("operaciones de modelo", () => {
     if (!nieto.ok) return;
     expect(nieto.value.modelo.opds[nieto.value.opdId]?.nombre).toBe("SD1.1");
     expect(nieto.value.modelo.opds[nieto.value.opdId]?.padreId).toBe(opdHijoId);
+  });
+
+  test("quita descomposicion y elimina subarbol OPD e internos huerfanos", () => {
+    let modelo = crearModelo();
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 200, y: 120 }, "Atender Paciente"));
+    const proceso = entidadPorNombre(modelo, "Atender Paciente");
+    modelo = must(descomponerProceso(modelo, modelo.opdRaizId, proceso.id)).modelo;
+    const opdHijoId = modelo.entidades[proceso.id]?.refinamiento?.opdId;
+    expect(opdHijoId).toBeDefined();
+    if (!opdHijoId) return;
+    modelo = must(crearObjeto(modelo, opdHijoId, { x: 40, y: 70 }, "Orden"));
+    modelo = must(crearProceso(modelo, opdHijoId, { x: 220, y: 70 }, "Examinar"));
+    const orden = entidadPorNombre(modelo, "Orden");
+    const examinar = entidadPorNombre(modelo, "Examinar");
+    modelo = must(crearEnlace(modelo, opdHijoId, orden.id, examinar.id, "consumo"));
+    modelo = must(descomponerProceso(modelo, opdHijoId, examinar.id)).modelo;
+
+    const sinDescomposicion = quitarDescomposicionProceso(modelo, proceso.id);
+
+    expect(sinDescomposicion.ok).toBe(true);
+    if (!sinDescomposicion.ok) return;
+    expect(Object.values(sinDescomposicion.value.opds)).toHaveLength(1);
+    expect(sinDescomposicion.value.opds[modelo.opdRaizId]).toBeDefined();
+    expect(sinDescomposicion.value.entidades[proceso.id]?.refinamiento).toBeUndefined();
+    expect(sinDescomposicion.value.entidades[orden.id]).toBeUndefined();
+    expect(sinDescomposicion.value.entidades[examinar.id]).toBeUndefined();
+    expect(Object.values(sinDescomposicion.value.enlaces)).toHaveLength(0);
+    expect(Object.values(sinDescomposicion.value.opds[modelo.opdRaizId]?.apariencias ?? {})).toHaveLength(1);
   });
 });
 
