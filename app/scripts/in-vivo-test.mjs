@@ -31,6 +31,21 @@ async function shot(page, nombre) {
   return `app/test-results/in-vivo/${nombre}`;
 }
 
+// Acciones destructivas (Nuevo/Demo/Cargar/Importar/cargarLocal) abren un
+// modal de confirmacion cuando dirty=true. La sonda lo descarta para que el
+// flujo de prueba siga ejerciendo el comportamiento subyacente (importar,
+// cargar, etc.); el dialogo en si esta cubierto por el smoke checked-in.
+async function descartarSiHayDialogo(page) {
+  const dialog = page.getByRole("dialog");
+  try {
+    await dialog.waitFor({ state: "visible", timeout: 300 });
+    await dialog.getByRole("button", { name: "Descartar" }).click();
+    await page.waitForTimeout(150);
+  } catch {
+    /* no hay dialogo abierto, nada que hacer */
+  }
+}
+
 const browser = await chromium.launch({ headless: true });
 const context = await browser.newContext({
   viewport: { width: 1440, height: 900 },
@@ -78,8 +93,11 @@ try {
   // 2. TOOLBAR Y BOTONES
   // ============================================================
   const botones = ["Objeto", "Proceso", "Deshacer", "Rehacer", "Demo", "Guardar", "Cargar"];
+  // .first() porque "Cargar" colisiona con el botón homónimo de PersistenciaJson
+  // (que está deshabilitado sin modelo seleccionado pero igual matchea el role).
+  // El Toolbar siempre se renderiza primero en el DOM.
   for (const nombre of botones) {
-    const ok = await page.getByRole("button", { name: nombre }).isVisible();
+    const ok = await page.getByRole("button", { name: nombre }).first().isVisible();
     record("2. Toolbar", `Botón "${nombre}" visible`, ok ? "OK" : "FAIL");
   }
   const selectorEnlace = await page.getByLabel("Tipo de enlace").isVisible();
@@ -278,6 +296,7 @@ try {
   // Probar import corrupto
   await page.locator("textarea").fill('{"formato":"deep-opm-pro.modelo.v0","modelo":{"id":"x","nombre":"x","opdRaizId":"opd-1","nextSeq":1,"opds":{"opd-1":null},"entidades":{},"enlaces":{}}}');
   await page.getByRole("button", { name: "Importar" }).click();
+  await descartarSiHayDialogo(page);
   await page.waitForTimeout(200);
   const mensajeImportError = await page.locator("text=/inválido|OPD|Documento/i").count();
   record("9. JSON", "Import de JSON corrupto muestra mensaje de error", mensajeImportError > 0 ? "OK" : "WARN");
@@ -288,6 +307,7 @@ try {
   // ============================================================
   await page.locator("textarea").fill(jsonExport);
   await page.getByRole("button", { name: "Importar" }).click();
+  await descartarSiHayDialogo(page);
   await page.waitForTimeout(200);
   await page.getByRole("button", { name: "Guardar" }).click();
   await page.waitForTimeout(120);
@@ -299,7 +319,10 @@ try {
   const tituloDirty = await page.locator("span").filter({ hasText: /(No guardado)/ }).count();
   record("10. Persistencia local", "Tras crear nueva entidad, aparece '(No guardado)'", tituloDirty > 0 ? "OK" : "WARN");
 
-  await page.getByRole("button", { name: "Cargar" }).click();
+  // .first() para apuntar al "Cargar" del Toolbar y evitar colisión con
+  // el botón homónimo de PersistenciaJson (deshabilitado sin selección).
+  await page.getByRole("button", { name: "Cargar" }).first().click();
+  await descartarSiHayDialogo(page);
   await page.waitForTimeout(150);
   const tituloTrasCargar = await page.locator("span").filter({ hasText: /(No guardado)/ }).count();
   record("10. Persistencia local", "Tras Cargar regresa al estado guardado", tituloTrasCargar === 0 ? "OK" : "WARN");
