@@ -2,7 +2,8 @@
 
 **Fecha**: 2026-05-05
 **Repositorio**: `deep-opm-pro`
-**Corte**: MVP-α + ronda 1 (5 líneas + refactor) + ronda 2 (5 líneas + fixes drag/markers)
+**Corte**: MVP-α + ronda 1 (5 líneas + refactor) + ronda 2 (5 líneas + fixes drag/markers + smoke L2 + auditoria de cascadas)
+**Commit**: `main` @ `03bea55`
 
 ---
 
@@ -213,9 +214,10 @@ Loop verde de convergencia ejecutado en `app/`:
 
 - `bun run check` -> **163 tests verdes, 990 expects** (vs. 106/641 del
   corte previo). 10 archivos de test.
-- `bun run browser:smoke` -> **19/19 verde** (vs. 16 previo). Cobertura
+- `bun run browser:smoke` -> **20/20 verde** (vs. 16 previo). Cobertura
   nueva: reanclaje manual persistente, multiplicidad sincronizada,
-  estados M0 con capsulas y OPL.
+  estados M0 con capsulas y OPL, **split de efecto end-to-end** (commit
+  `03bea55`).
 - `bun run build` -> OK; warning esperado de chunk grande JointJS
   (738 KB minificado, 214 KB gzip — +32 KB vs corte previo por L1-L5
   de ronda 2).
@@ -294,7 +296,9 @@ multiplicidad numerica con pluralizacion espanola, panel de avisos
 metodologicos pasivos con cinco reglas SSOT, importacion asistida,
 ConfirmacionProvider global y beforeunload defensivo. Drag con embed
 JointJS para mover contorno + internos juntos; externos quedan ancla
-visual. Cobertura: 163 unit, 19 smoke, build verde (738 KB).
+visual. Cobertura: 163 unit, 20 smoke, build verde (738 KB). Auditoria
+de cascadas cerrada: cada feature integrada en kernel/serializacion/
+store, render/OPL y UX, validada cross-capa por completitud.test.ts.
 
 Pendientes priorizados: (1) L4-bis enlaces a estado especifico
 (HU-13.014); (2) plegado parcial avanzado (extraccion, reanclaje al
