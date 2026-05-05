@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { cambiarEsencia, crearEnlace, crearModelo, crearObjeto, crearProceso, descomponerProceso, desplegarObjeto } from "../../modelo/operaciones";
+import { ajustarMultiplicidad, cambiarEsencia, crearEnlace, crearModelo, crearObjeto, crearProceso, descomponerProceso, desplegarObjeto } from "../../modelo/operaciones";
 import { cambiarModoPlegado } from "../../modelo/plegado";
 import type { Apariencia, Modelo, Resultado, TipoEnlace } from "../../modelo/tipos";
 import { LINK_ASSETS } from "./linkAssets";
@@ -101,6 +101,26 @@ describe("proyeccion JointJS", () => {
       expect(targetMarker?.fill).toBe(caso.marker.fill);
       expect(targetMarker?.stroke).toBe(caso.marker.stroke);
     }
+  });
+
+  test("proyecta etiquetas de multiplicidad cerca de origen y destino", () => {
+    let modelo = modeloConEnlace("consumo");
+    const enlaceId = Object.values(modelo.enlaces)[0]?.id;
+    expect(enlaceId).toBeDefined();
+    if (!enlaceId) return;
+    modelo = must(ajustarMultiplicidad(modelo, enlaceId, "origen", "2"));
+    modelo = must(ajustarMultiplicidad(modelo, enlaceId, "destino", "1..N"));
+
+    const cellEnlace = proyectarModeloAJointCells(modelo, modelo.opdRaizId, null, null).find((cell) => cell.type === "standard.Link");
+    const labels = cellEnlace?.labels as Array<{ attrs?: Attrs; position?: { distance?: number; offset?: number; args?: { keepGradient?: boolean } } }> | undefined;
+
+    expect(labels).toHaveLength(2);
+    expect(labels?.[0]?.attrs?.label).toMatchObject({ text: "2", fontFamily: "Arial", fontSize: 12, fill: "#1f2937" });
+    expect(labels?.[0]?.position).toMatchObject({ distance: 18, offset: -12 });
+    expect(labels?.[0]?.position?.args?.keepGradient).toBe(false);
+    expect(labels?.[1]?.attrs?.label).toMatchObject({ text: "1..N", fontFamily: "Arial", fontSize: 12, fill: "#1f2937" });
+    expect(labels?.[1]?.position).toMatchObject({ distance: -18, offset: -12 });
+    expect(labels?.[1]?.position?.args?.keepGradient).toBe(false);
   });
 
   test("proyecta invocacion como rayo zigzag por defecto", () => {
