@@ -3,7 +3,8 @@ name: lineas-paralelas
 description: 'Skill local para deep-opm-pro: estructura el trabajo pendiente del repo
   en N lineas de desarrollo paralelas, generando README maestro, un brief por linea
   y prompt generico de asignacion en docs/instrucciones-lineas-dev/<ronda>/, con minimo
-  overlap por archivo y reuso obligatorio del corpus interno.'
+  overlap por archivo y revision profunda obligatoria de opm-extracted antes de crear
+  soluciones nuevas.'
 ---
 
 # Lineas-Paralelas
@@ -75,8 +76,13 @@ Identificar:
 
 Antes de inventar, verificar fuentes ya disponibles:
 
-- Recursos internos del repo a reusar (en `deep-opm-pro`: `opm-extracted/`
-  con INDEX.md, MODULES.md, src/app/models/).
+- Fuente primaria de codigo, patrones y assets:
+  `/home/felix/projects/deep-opm-pro/opm-extracted/`. Tratarla como app
+  estado del arte ya extraida, curada e indexada. Revisar en profundidad
+  `INDEX.md`, `MODULES.md`, `README.md`, `REFACTOR-NOTES.md`, `assets/` y los
+  modulos `src/` relevantes antes de proponer trabajo nuevo. La revision no
+  puede quedarse en una busqueda superficial; cada linea debe reciclar todo lo
+  razonablemente reutilizable y declarar que evidencia concreta encontro.
 - SSOT canonica externa (en `deep-opm-pro`: `/home/felix/kora/artifacts/
   knowledge/fxsl/opm/opm-ssot-es/`).
 - Briefs de rondas previas que se pueden citar como precedente.
@@ -159,8 +165,10 @@ Cada `linea-<i>-<slug>.md` con secciones obligatorias en orden:
 
 - Cada linea ancla HU especificas del backlog vivo. No inventar.
 - Cambios solo aditivos como filosofia operativa de la ronda.
-- Reuso obligatorio del corpus interno (`opm-extracted/` y similares) y SSOT.
-  No reinventar la rueda.
+- Reuso obligatorio del corpus interno, especialmente
+  `/home/felix/projects/deep-opm-pro/opm-extracted/`, y SSOT. Buscar ahi en
+  profundidad antes de crear soluciones nuevas; reciclar codigo, patrones y
+  assets siempre que el stack actual lo permita.
 - Tabla de colisiones explicita en README, sin celdas ambiguas.
 - Cada decision semantica cita SSOT o documento canonico interno con id de
   seccion.
