@@ -2,8 +2,8 @@
 
 **Fecha**: 2026-05-05
 **Repositorio**: `deep-opm-pro`
-**Corte**: MVP-α + ronda 1 (5 líneas + refactor) + ronda 2 (5 líneas + fixes drag/markers + smoke L2 + auditoria de cascadas)
-**Commit**: `main` @ `03bea55`
+**Corte**: MVP-α + ronda 1 + ronda 2 + ronda 3 (consolidación orgánica de L1+L2+L4+L5 sobre `main`)
+**Commit**: `main` @ `dfef5e8`
 
 ---
 
@@ -44,6 +44,22 @@ reemplazar y consolidar el contenido anterior en este mismo archivo.
 - **Plegado parcial** como `apariencia.modoPlegado: "completo" |
   "parcial"`, persistido y togglable desde Inspector.
 
+### Plegado parcial avanzado (L5 ronda 3, EPICA-18)
+
+- `Apariencia.parteExtraidaDe?: { padreAparienciaId, parteEntidadId }`
+  identifica apariencias creadas por extraccion al canvas.
+- `plegado.ts` con operaciones puras `extraerParteDePlegado`,
+  `reinsertarParteEnPlegado`, `contarPartesOcultas`, `partesExtraidasEn`,
+  `filasPlegadoParcial` (HU-18.004-006, HU-18.009, HU-18.010).
+- Render: lista compacta interna del padre con marca visual
+  (cursiva, tachado, color desaturado, opacidad) en filas extraidas;
+  contador "y N partes mas" cuando N > umbral 3; proxy visual como
+  linea gris punteada entre apariencia extraida y rectangulo padre.
+- OPL: plantilla de agregacion enumera hasta 3 partes con truncado
+  pedagogico "y N partes mas".
+- UX: doble clic sobre fila + boton explicito "Extraer al canvas" en
+  Inspector; "Reinsertar al padre" para apariencias extraidas.
+
 ### Estados de objeto (EPICA-13 M0)
 
 - `Modelo.estados: Record<Id, Estado>` top-level con `id`, `entidadId`,
@@ -57,9 +73,51 @@ reemplazar y consolidar el contenido anterior en este mismo archivo.
   D6/D8]).
 - Inspector con seccion Estados (renombrar inline, eliminar, designar
   Inicial/Final, agregar adicional, quitar todos).
-- HU-13.014 (enlaces dirigidos a estado especifico) queda fuera del
-  slice; obliga a extender `Enlace.origenId/destinoId` y vive como
-  L4-bis en pendientes.
+- **HU-13.014, HU-13.015 y HU-13.018 cerradas en ronda 3** con firma
+  `ExtremoEnlace` (ver siguiente seccion).
+
+### Firma ExtremoEnlace para enlaces a estado especifico (L1 ronda 3)
+
+- `ExtremoEnlace = { kind: "entidad" | "estado"; id }` reemplaza Id plano
+  en `Enlace.origenId/destinoId`. Helpers en `app/src/modelo/extremos.ts`:
+  `entidadIdDeExtremo`, `entidadDeExtremo`, `estadoDeExtremo`,
+  `extremoEntidad`, `extremoVisibleEnOpd`, `normalizarExtremo`,
+  `extremoApuntaAEntidad`.
+- `validarFirmaEnlace` rechaza extremos `kind=estado` en enlaces
+  estructurales con cita `[V-237]` `[V-239]`. Regla pasiva
+  `estructural-no-acepta-extremo-estado` complementa el bloqueo
+  creacional.
+- Render JointJS: `resolverEndpointVisual` recibe `ExtremoEnlace` y
+  devuelve `EndpointVisual` con campo `punto` cuando `kind=estado`,
+  anclando el extremo al centro horizontal de la capsula correspondiente
+  (helper `puntoCapsulaEstado`); mantiene `proxy` para apariencias
+  plegadas. `endpointJoint` produce coordenadas absolutas para JointJS
+  source/target.
+- Inspector: selector "Apuntar a estado" en `InspectorEnlace` para
+  enlaces con entidad endpoint con >=2 estados.
+- OPL: plantillas `[OPL-ES TS3]` "P cambia O de e1 a e2" cuando consumo
+  + resultado comparten objeto+proceso con `kind=estado`; `TS4` (solo
+  consumo a estado) y `TS5` (solo resultado a estado) cubren los demas
+  casos.
+- Hidratacion lossless legacy: deserializacion acepta string id y aplica
+  `normalizarExtremo` a `kind=entidad`. `completitud.test.ts` extendido
+  con `Record<ExtremoKind, true>` para forzar exhaustividad cross-capa.
+
+### Abanicos logicos O/XOR scaffolding (L2 ronda 3)
+
+- Tipos `Abanico = { id, opdId, puertoEntidadId, operador: "O"|"XOR",
+  enlaceIds[] }` y `Modelo.abanicos: Record<Id, Abanico>` definidos en
+  `tipos.ts` (commit L1 incluyo tipos como aditivos).
+- `abanicos.ts` con operaciones puras: `formarAbanico`,
+  `agregarRamaAAbanico`, `quitarRamaDeAbanico`,
+  `alternarOperadorAbanico`, `disolverAbanico`,
+  `detectarPuertoCompartido`. Invariantes: `enlaceIds.length >= 2` con
+  auto-disolucion; mismo origen kind+id; tipos homogeneos en cluster.
+- Markers SVG canonicos en `assets/svg/links/logical/{xor,or}.svg` (HU-15.010,
+  HU-15.011) - **integracion render/UI/OPL pendiente** (ver
+  pendientes inmediatos).
+- Cita SSOT: `[V-239]` axiomas operadores logicos; `[Glos 3.60]`
+  enlaces.
 
 ### Multiplicidad numerica de enlace (EPICA-15 parcial)
 
@@ -70,41 +128,52 @@ reemplazar y consolidar el contenido anterior en este mismo archivo.
   z->ces; casos especiales como TODO).
 - Inspector: dos inputs validados inline.
 
-### Validaciones metodologicas pasivas (EPICA-1C parcial)
+### Validaciones metodologicas pasivas (EPICA-1C, ronda 3 L4)
 
 - Modulo `app/src/modelo/validaciones.ts` con funcion pura
-  `validarModelo(modelo, opdActivoId): Aviso[]` y cinco reglas canonicas
-  cada una con cita SSOT:
+  `validarModelo(modelo, opdActivoId): Aviso[]` y **diez reglas
+  canonicas** cada una con cita SSOT obligatoria en `Aviso.citaSSOT`:
   1. `agregacion-misma-esencia` (advertencia) — info <-> fisico mixto
      en agregacion ([V-237]).
-  2. `generalizacion-mismo-tipo` (error) — generalizacion entre objeto y
-     proceso ([V-239]).
+  2. `generalizacion-mismo-tipo` (error) — generalizacion entre objeto
+     y proceso ([V-239]).
   3. `procedural-no-objeto-objeto` (error) — enlaces procedurales
      objeto<->objeto ([V-239]).
   4. `estructural-sin-duplicar` (advertencia) — pares estructurales
      duplicados.
   5. `subproceso-no-conecta-al-padre` (error) — auto-conexion al
      refinable.
-- Componente `ui/PanelAvisos.tsx` montado como tercera fila del
-  inspector-pane (debajo de Timeline). Severidad por color (rojo/ambar/
-  azul) + click navega al elemento via acciones existentes del store.
-- Lente derivada (no caching). Coexiste con `validarFirmaEnlace` que
-  sigue siendo bloqueante en creacion.
+  6. `agente-requiere-objeto-fisico` (error) — `[Glos 3.3]` `[Glos 3.39]`
+     (L4 ronda 3).
+  7. `proceso-sin-entrada-ni-salida` (advertencia) — `[Glos 3.58]`
+     `[V-115]` `[V-239]` (L4 ronda 3).
+  8. `instrumento-y-agente-simultaneos` (advertencia) — `[Glos 3.3]`
+     `[Glos 3.30]` `[V-239]` (L4 ronda 3).
+  9. `solo-un-nivel-de-instanciacion` (advertencia) — `[Glos 3.28]`
+     `[V-239]` (L4 ronda 3).
+  10. `consumo-doble-mismo-objeto` (advertencia) — `[V-43]` `[V-239]`
+     (L4 ronda 3).
+  11. `estructural-no-acepta-extremo-estado` (error) — `[V-237]`
+     `[V-239]` (L1 ronda 3).
+- Componente `ui/PanelAvisos.tsx` con cita SSOT como chip clickeable
+  (despliega detalle), boton "Revalidar" para rerun manual liviano,
+  filtros por severidad, navegacion al elemento invalido (HU-1C.013-019).
+- Lente derivada reactiva sin caching. Coexiste con
+  `validarFirmaEnlace` que sigue siendo bloqueante en creacion.
 
 ### OPL bimodal y completitud cross-capa
 
 - Eco OPL con plantillas canonicas SSOT por tipo de enlace; descomposicion
   con cláusulas "en esa secuencia" y "en paralelo"; despliegue diferenciado
-  por modo; estados con `puede ser`.
+  por modo; estados con `puede ser`; transicion `[OPL-ES TS3]`.
 - Cobertura tests: `app/src/opl/generar.test.ts` cubre cada
-  `TipoEnlace` y `ModoDespliegueObjeto`; bug previo de coma en clausula
-  de secuencia corregido.
+  `TipoEnlace`, `ModoDespliegueObjeto`, transicion con `kind=estado`.
 - **Tests de exhaustividad cross-capa** en `app/src/completitud.test.ts`:
-  `Record<TipoEnlace, true>` y `Record<ModoDespliegueObjeto, true>` y
-  `Record<DesignacionEstado, true>` que TS exige completos —
-  cualquier extension del union obliga al desarrollador a cubrirla en
-  Toolbar dropdown, Inspector menu, LINK_ASSETS, validarFirmaEnlace,
-  generarOpl, render, kernel y completitud.
+  `Record<TipoEnlace, true>`, `Record<ModoDespliegueObjeto, true>`,
+  `Record<DesignacionEstado, true>`, `Record<ExtremoKind, true>` que TS
+  exige completos — cualquier extension del union obliga al desarrollador
+  a cubrirla en Toolbar dropdown, Inspector menu, LINK_ASSETS,
+  validarFirmaEnlace, generarOpl, render, kernel y completitud.
 
 ### Drag y embed JointJS
 
@@ -118,7 +187,12 @@ reemplazar y consolidar el contenido anterior en este mismo archivo.
   libres: no siguen al contorno y no se confinan al bbox.
 - `paper.options.restrictTranslate` confina el drag visual de cells
   embedded al bbox del padre (4px lados, 28 top, 8 bottom; coherente
-  con padding del clamping kernel).
+  con padding del clamping kernel). El callback **no descuenta**
+  `cellBBox.width/height` porque JointJS aplica ese descuento
+  internamente (`Element.mjs:130-131`); el doble descuento previo
+  bloqueaba drag horizontal/vertical de subprocesos embebidos
+  (regresion arreglada en commit `86df1f3`, smoke de regresion en
+  `opm-smoke.spec.ts`).
 - Kernel `moverAparienciaPorId` simetrico: cuando se mueve el contorno,
   aplica delta solo a apariencias no-proxy; cuando se mueve una interna,
   clampea al bbox; cuando se mueve una externa, sin restriccion.
@@ -144,8 +218,36 @@ reemplazar y consolidar el contenido anterior en este mismo archivo.
 - `localStorage` estructurado con indice de modelos, guardar/cargar/
   borrar, Ctrl/Cmd+S, reinicio de historial al cargar.
 - `hidratarModelo` valida estructura, referencias, firmas OPM,
-  visibilidad de endpoints, estados, multiplicidades. Modelos legacy
-  cargan sin perdida via campos opcionales con default.
+  visibilidad de endpoints, estados, multiplicidades, abanicos,
+  apariencias extraidas, kind de extremos. Modelos legacy (string id en
+  endpoints) cargan via `normalizarExtremo` con default
+  `kind="entidad"`.
+
+### Auditoria de avance HU (commit `09ed4fc`)
+
+- Dashboard automatico en `docs/roadmap/hu-progress.{html,json,md}` con
+  ledger en `docs/roadmap/hu-progress-evidence.json`.
+- Generador en `docs/historias-usuario-v2/tools/progress-dashboard.mjs`
+  escanea fuentes y matchea reglas automaticas de avance HU.
+- Comando: `node docs/historias-usuario-v2/tools/progress-dashboard.mjs --sync-real`
+  reescribe el ledger con avance real; sin flag solo regenera reportes.
+
+### Skill local lineas-paralelas
+
+- SSOT en `~/kora/artifacts/skills/dev/lineas-paralelas/SKILL.md`
+  (URN `urn:dev:artefacto:lineas-paralelas`). Vector PMI x LFS:
+  pi=2, mu=0, xi=1, lambda=0, phi=1, sigma=[1,1,1,1,0]. Forma
+  material `habilidad`.
+- Despliegue exclusivo en este repo: `.codex/skills/lineas-paralelas/`,
+  `.opencode/skills/lineas-paralelas/` (versionados) y
+  `.claude/skills/lineas-paralelas/` (en disco; `.claude/` ignorado por
+  `.gitignore`).
+- Genera `docs/instrucciones-lineas-dev/<ronda>/` con README maestro,
+  N briefs por linea y prompt generico de asignacion. Replica el patron
+  observable en ronda 3.
+- Regenerar tras cambios al SKILL.md fuente: `kora transmute --target
+  {claude-code,codex,opencode} --agent dev/lineas-paralelas` + copia
+  manual al repo.
 
 ## Artefactos Relevantes
 
@@ -153,26 +255,23 @@ reemplazar y consolidar el contenido anterior en este mismo archivo.
 - Mapa operativo: `README.md`.
 - Aviso de limites y autoria: `NOTICE.md`.
 - Estado y memoria operativa: `docs/HANDOFF.md`.
-- Briefs de delegacion historicos: `docs/instrucciones-lineas-dev/` (ronda
-  1 commiteada; ronda 2 perdida del filesystem en pop de stash, no
-  bloqueante).
+- Briefs de delegacion historicos: `docs/instrucciones-lineas-dev/`
+  (ronda 1 commiteada, ronda 2 perdida, ronda 3 commiteada en
+  `dfef5e8`).
 - Roadmap activo: `docs/roadmap/sprint-0.md`,
   `docs/roadmap/mvp-alpha.md`, `docs/roadmap/mvp-alpha-coverage.md`.
-- Auditoria de avance HU v2: `docs/roadmap/hu-progress.html`,
-  `docs/roadmap/hu-progress.md`, `docs/roadmap/hu-progress.json` y ledger
-  `docs/roadmap/hu-progress-evidence.json`; auditar avance real y actualizar
-  `autoEntries` con
-  `node docs/historias-usuario-v2/tools/progress-dashboard.mjs --sync-real`
-  (sin flag solo regenera reportes desde el ledger vigente).
+- Auditoria de avance HU v2: `docs/roadmap/hu-progress.{html,md,json}`,
+  ledger `docs/roadmap/hu-progress-evidence.json`.
 - Backlog vivo: `docs/historias-usuario-v2/`.
 - Evidencia OPCloud: `opm-extracted/INDEX.md`, `MODULES.md`,
   `assets/INDEX.md`. Especialmente `opm-extracted/src/app/models/
   consistency/behavioral.rules.ts` para reglas de validacion.
-- App: `app/src/modelo/` (incluye `plegado.ts`, `layout.ts`,
-  `validaciones.ts`), `app/src/render/jointjs/`, `app/src/store.ts`,
-  `app/src/ui/` (Inspector partido en Entidad/Enlace/styles compartidos;
-  Dialogo + DialogoConfirmacion + ConfirmacionContext; Timeline;
-  PanelAvisos; PersistenciaJson asistido).
+- App: `app/src/modelo/` (incluye `extremos.ts`, `abanicos.ts`,
+  `plegado.ts`, `layout.ts`, `validaciones.ts`),
+  `app/src/render/jointjs/`, `app/src/store.ts`, `app/src/ui/`
+  (Inspector partido en Entidad/Enlace/styles compartidos; Dialogo +
+  DialogoConfirmacion + ConfirmacionContext; Timeline; PanelAvisos;
+  PersistenciaJson asistido).
 - Auditorias visuales regenerables: `app/scripts/in-vivo-test.mjs`,
   `app/scripts/in-vivo-deep-checks.mjs`.
 
@@ -180,29 +279,41 @@ reemplazar y consolidar el contenido anterior en este mismo archivo.
 
 - JointJS OSS como renderer/adaptador; el modelo de dominio vive en
   `app/src/modelo/`.
-- Markers de enlaces salen de `assets/svg/links/{procedural,structural}/`
-  via `app/src/render/jointjs/linkAssets.ts`. Exhibicion como tres
-  polygons anidados (no Path con fill-rule).
+- Markers de enlaces salen de `assets/svg/links/{procedural,structural,
+  logical}/` via `app/src/render/jointjs/linkAssets.ts`. Exhibicion
+  como tres polygons anidados (no Path con fill-rule).
 - **`TipoEnlace` flat** (sin dimension `naturaleza`); inferencia
   procedural/estructural via funcion pura sobre el tipo.
 - **`Modelo.estados` top-level** (no anidado en Entidad), consistente con
   `entidades`/`enlaces`/`opds` y filtrable via lente derivada.
+- **`Modelo.abanicos` top-level** consistente con `Modelo.estados`;
+  `abanicos.ts` es la unica fuente de mutacion.
 - **`apariencia.modoPlegado` es estado de visualizacion**, no nuevo tipo
   de refinamiento. Default `"completo"` para retro-compatibilidad.
+- **`apariencia.parteExtraidaDe` para apariencias extraidas** del
+  plegado parcial; modelo no cambia al reinsertar (los enlaces
+  refieren por entidad, no por apariencia).
 - **Roles de apariencia** se calculan al proyectar y se persisten en
   metadata del cell JointJS — el render y el kernel los consumen para
   decisiones de embed/delta. Distincion basada en el modelo (apariencia
   en otro OPD == proxy externo), no heuristica geometrica.
+- **`ExtremoEnlace` etiquetado** (no string fundido); solo enlaces
+  procedurales aceptan `kind=estado`. Estructurales rechazan via
+  `validarFirmaEnlace` y regla pasiva `estructural-no-acepta-extremo-
+  estado`. Hidratacion lossless de modelos legacy.
 - **`DerivacionEnlace.origen`** distingue `"automatico"` vs `"manual"`;
-  `refrescarEnlacesExternosDerivados` respeta el ancla manual.
+  `refrescarEnlacesExternosDerivados` respeta el ancla manual y
+  preserva `kind` en proyeccion al OPD hijo.
 - **Multiplicidad como string** con regex canonica fija.
-- **Validaciones pasivas** son lente derivada sin caching, complementarias
-  a `validarFirmaEnlace` (bloqueante en creacion). Reglas citan SSOT.
+- **Validaciones pasivas** son lente derivada reactiva sin caching,
+  complementarias a `validarFirmaEnlace` (bloqueante en creacion).
+  Reglas citan SSOT obligatoria en `Aviso.citaSSOT`.
 - **`<ConfirmacionProvider>` global** monta un unico `DialogoConfirmacion`;
   los consumidores leen `confirmarSiDirty` via context.
 - **Drag con embed**: `parent.embed(child)` para internos; JointJS arrastra
-  automaticamente. `restrictTranslate` confina al bbox. Kernel persiste
-  el delta a no-proxies.
+  automaticamente. `restrictTranslate` confina al bbox interior del
+  padre con padding, sin descontar `cellBBox` (JointJS lo descuenta
+  internamente). Kernel persiste el delta a no-proxies.
 - Undo/redo y dirty state usan snapshots de `Modelo` con profundidad 100.
 - `opm-extracted/` se consulta para semantica/clases observables; no se
   copian bloques 1:1.
@@ -210,48 +321,27 @@ reemplazar y consolidar el contenido anterior en este mismo archivo.
   `bash setup.sh`.
 - `hidratarModelo` no debe emitir un Modelo si el JSON falla estructura,
   referencias, firmas OPM, visibilidad de endpoints, sintaxis de
-  multiplicidad o axiomas de estados.
+  multiplicidad, axiomas de estados, abanicos, apariencias extraidas
+  o kind de extremos.
 - No hay licencia open-source repo-wide; `NOTICE.md` es punto operativo
   hasta decision explicita.
 
 ## Verificacion Del Corte
 
-Loop verde de convergencia ejecutado en `app/`:
+Loop verde local de convergencia ejecutado en `app/`:
 
-- `bun run check` -> **163 tests verdes, 990 expects** (vs. 106/641 del
-  corte previo). 10 archivos de test.
-- `bun run browser:smoke` -> **20/20 verde** (vs. 16 previo). Cobertura
-  nueva: reanclaje manual persistente, multiplicidad sincronizada,
-  estados M0 con capsulas y OPL, **split de efecto end-to-end** (commit
-  `03bea55`).
+- `bun run check` -> **209 tests verdes, 1.160 expects** (vs. 163/990 del
+  corte previo), 11 archivos de test (incluye `abanicos.test.ts`
+  nuevo).
 - `bun run build` -> OK; warning esperado de chunk grande JointJS
-  (738 KB minificado, 214 KB gzip — +32 KB vs corte previo por L1-L5
-  de ronda 2).
-- `node docs/historias-usuario-v2/tools/progress-dashboard.mjs --sync-real`
-  -> OK; escanea el codigo real local, actualiza `autoEntries`, regenera
-  `hu-progress.{html,md,json}` y registra 1 diagnostico de backlog
-  (`HU-13.005` duplicada entre epica y stub shared; se conserva la HU viva).
-
-### Handoff Auditoria HU V2
-
-- Estado actual: el repositorio tiene un instrumento versionado para comparar
-  el backlog vivo `docs/historias-usuario-v2/` contra evidencia local real en
-  `app/src`, `app/e2e`, `app/scripts` y `assets/svg/links`.
-- Decision vigente: `entries` manuales quedan como respaldo para HU sin regla
-  automatica; cuando una HU tiene regla automatica, `autoEntries` gana y puede
-  bajarla a `pendiente` si la evidencia desaparece.
-- Artefactos relevantes: script
-  `docs/historias-usuario-v2/tools/progress-dashboard.mjs`, ledger
-  `docs/roadmap/hu-progress-evidence.json`, dashboard HTML, resumen MD y
-  dataset JSON bajo `docs/roadmap/hu-progress.*`.
-- Pendientes: ampliar reglas automaticas para nuevas verticales; resolver el
-  duplicado `HU-13.005`; mantener las reglas conservadoras y trazables a
-  archivos concretos.
-- Supuestos: la auditoria automatica prueba presencia estructural de codigo,
-  tests, render o assets; no sustituye los checks funcionales de `app/`.
-- Riesgos: patrones demasiado literales pueden requerir ajuste tras refactors;
-  reportes generados deben regenerarse con `--sync-real` antes de cerrar un
-  corte.
+  (>500 KB minificado, ~218 KB gzip).
+- `bun run browser:smoke` -> 17/21 verde local; **4 tests rotos como
+  regresion preexistente de L4** (`8c82dcb`): `descompone proceso y
+  navega al OPD hijo`, `mantiene canvas e inspector en columnas
+  separadas tras recalculos`, `redistribuye consumo al primer
+  subproceso y resultado al ultimo`, `reancla consumo derivado y
+  conserva el ancla manual al reordenar`. Smoke pre-L4 (`bb16b24`):
+  20/20 verde. Diagnostico pendiente.
 
 Las capturas y reportes browser no se conservan en el repo liviano. Se
 regeneran con:
@@ -265,30 +355,41 @@ bun run visual:deep -- http://127.0.0.1:5173/
 
 ## Pendientes Inmediatos
 
-1. **HU-13.014 (L4-bis enlaces a estado especifico)**: extender
-   `Enlace.origenId/destinoId` para aceptar `estado.id` ademas de
-   `entidad.id`; render del extremo apuntando a la capsula de estado;
-   OPL con cláusula de transicion por par entrada-salida ([OPL-ES TS3]).
-2. **Plegado parcial avanzado**: extraccion de partes al canvas
-   (HU-18.004), reanclaje de enlaces al proxy al reinsertar (HU-18.009),
-   contador "y N partes mas" (HU-18.005), anidamiento.
-3. **EPICA-15 enlaces avanzados restantes**: abanicos XOR/O
-   (HU-15.008-012), modificadores Evento/NO (HU-15.015-016), invocacion
-   con demora (HU-15.020).
-4. **EPICA-1C validaciones extendidas**: reglas adicionales de
-   `BehaviouralRule` (`InstrumentWithAgentConsistency`,
-   `OnlyOneLevelOfInstantiation`, `LegalConsumptionWarning`, etc.) y
-   navegacion fina al elemento inválido.
-5. **Refactor de `app/src/modelo/operaciones.ts`** (~1.470 LOC) cuando
-   se acerque a 1.700 LOC. Separar por dominios: refinamiento,
-   estados, derivados, split, validacion de firma.
-6. **OPL bidireccional plena**: edicion inversa de propiedades
+1. **L3 ronda 3 (modificadores e invocacion)**: HU-15.015 evento,
+   HU-15.016 NO, HU-15.018 probabilidad, HU-15.019 invocacion entre
+   procesos, HU-11.027 base de `Modificador = "condicion" | "evento" |
+   "no"`. **Requiere base post-L1 limpia (ya disponible en
+   `dfef5e8`)**. Ningun trabajo previo en disco; abrir desde cero
+   sobre `main`.
+2. **L2 ronda 3 integracion funcional**: tipos `Abanico` y validacion
+   ya estan; faltan la **integracion render/UI/OPL**: conector visual
+   XOR/O cerca del puerto, deteccion automatica al conectar segunda
+   rama, OPL distinguida "exactamente uno de" / "al menos uno de",
+   inspector con seccion Abanico y operador toggle. Brief vigente:
+   `docs/instrucciones-lineas-dev/ronda3/linea-2-abanicos-logicos.md`.
+3. **Smoke regresion L4**: diagnosticar por que 4 smoke tests cayeron
+   con commit `8c82dcb` (validaciones extendidas + cambios `store.ts`
+   + `PanelAvisos.tsx`). Probable culpa: el cambio de layout de
+   inspector-pane afecta la deteccion de elementos por Playwright. Una
+   vez diagnosticado, decidir si arreglar test o ajustar implementacion.
+4. **HU-15.013 (L4-bis)**: ramas de abanico a estados distintos.
+   Consume L1 (firma `ExtremoEnlace`) + L2 (operaciones de abanico) y
+   por eso queda como continuacion natural de L2.
+5. **HU-15.005 / HU-15.007**: etiqueta de ruta de texto libre sobre
+   rama a estado. Depende de HU-13.014 (cerrada) y HU-15.013.
+6. **EPICA-18 nesting**: anidamiento de plegado parcial (Q18.1) fuera
+   del slice L5; queda para ronda 4.
+7. **Refactor de `app/src/modelo/operaciones.ts`** cuando se acerque a
+   1.700 LOC. Modularidad por dominio ya iniciada con `extremos.ts`,
+   `abanicos.ts`, `plegado.ts`. Continuar separando por
+   refinamiento, estados, derivados, split.
+8. **OPL bidireccional plena**: edicion inversa de propiedades
    estructurales, no solo nombres.
-7. **Code splitting JointJS** cuando el bundle exija reducir el chunk
-   inicial (738 KB minificado).
-8. **Politica de licencia explicita** antes de redistribucion publica.
-9. **Evaluar IndexedDB** solo cuando los modelos reales superen limites
-   practicos de localStorage.
+9. **Code splitting JointJS** cuando el bundle exija reducir el chunk
+   inicial (>500 KB minificado).
+10. **Politica de licencia explicita** antes de redistribucion publica.
+11. **Evaluar IndexedDB** solo cuando los modelos reales superen limites
+    practicos de localStorage.
 
 ## Supuestos
 
@@ -305,8 +406,11 @@ bun run visual:deep -- http://127.0.0.1:5173/
 - `opm-extracted/` es material derivado de ingenieria inversa: usar como
   evidencia, no como fuente copiada.
 - Sin licencia repo-wide declarada; redistribucion publica bloqueada.
-- Bundle JointJS warning de tamano (738 KB); no bloquea MVP-α pero
+- Bundle JointJS warning de tamano (>500 KB); no bloquea MVP-α pero
   exigira code splitting al crecer.
+- 4 smoke tests rotos como deuda visible de L4. Compromete validacion
+  end-to-end de descomposicion, layout inspector, redistribucion de
+  consumo y reanclaje derivado.
 - `setup.sh` hardcodea hashes de bundles OPCloud; actualizar antes de
   regenerar `_local/`/`decompiled/`.
 - Pluralizacion espanola simple en multiplicidad: casos irregulares
@@ -315,35 +419,39 @@ bun run visual:deep -- http://127.0.0.1:5173/
 ## Prompt Breve De Continuacion
 
 ```
-Retoma `docs/HANDOFF.md` en `deep-opm-pro`. Estado: MVP-α + ronda 1
-(5 lineas + refactor) + ronda 2 (5 lineas + fixes drag/markers).
+Retoma `docs/HANDOFF.md` en `deep-opm-pro`. Estado: MVP-α + ronda 1 +
+ronda 2 + ronda 3 (consolidacion organica L1+L2(parcial)+L4+L5 +
+hotfix doble descuento de drag).
 
 Operativo: kernel OPM con descomposicion + reasignacion manual de
-externos derivados + split de efecto en consumo+resultado intermedio,
-despliegue de objetos en cuatro modos con markers SVG canonicos
-diferenciados, plegado parcial, timeline lateral con paralelismo,
-estados M0 con designaciones Inicial/Final y OPL "puede ser X o Y",
-multiplicidad numerica con pluralizacion espanola, panel de avisos
-metodologicos pasivos con cinco reglas SSOT, importacion asistida,
-ConfirmacionProvider global y beforeunload defensivo. Drag con embed
-JointJS para mover contorno + internos juntos; externos quedan ancla
-visual. Cobertura: 163 unit, 20 smoke, build verde (738 KB). Auditoria
-de cascadas cerrada: cada feature integrada en kernel/serializacion/
-store, render/OPL y UX, validada cross-capa por completitud.test.ts.
+externos derivados + split de efecto + plegado parcial avanzado
+(extraccion al canvas, reanclaje al proxy, contador "y N partes mas")
++ firma ExtremoEnlace para enlaces a estado especifico (HU-13.014/015/018
+cerrados con plantillas OPL TS3-TS5) + scaffolding de abanicos logicos
+(tipos definidos, operaciones puras en abanicos.ts, falta integracion
+render/UI/OPL) + 11 reglas de validacion BehaviouralRule pasiva con
+citas SSOT obligatorias + dashboard de avance HU automatico.
 
-Pendientes priorizados: (1) L4-bis enlaces a estado especifico
-(HU-13.014); (2) plegado parcial avanzado (extraccion, reanclaje al
-proxy, contador, anidamiento); (3) EPICA-15 restantes (XOR/O,
-Evento/NO, invocacion con demora); (4) reglas adicionales de
-BehaviouralRule en validaciones; (5) refactor de operaciones.ts
-cuando llegue a 1.700 LOC; (6) OPL bidireccional plena.
+Cobertura: 209 unit, 1.160 expects, 11 files de test; smoke 17/21
+(4 rotos como deuda L4 a diagnosticar); build verde.
 
-Reglas vigentes: TipoEnlace flat, Modelo.estados top-level,
-modoPlegado como vista, roles de apariencia (contorno/interno/externo)
-persistidos en metadata, DerivacionEnlace.origen automatico/manual,
-multiplicidad como string canonico, validaciones pasivas sin caching,
-ConfirmacionProvider global, beforeunload solo si dirty, layout puro
-en modelo/layout.ts, markers estructurales canonicos. Backlog vivo en
-`docs/historias-usuario-v2/`. Briefs ronda 1 en
-`docs/instrucciones-lineas-dev/` como referencia metodologica.
+Pendientes priorizados: (1) L3 modificadores e invocacion sobre base
+post-L1 limpia; (2) L2 integracion funcional render/UI/OPL de
+abanicos; (3) diagnostico de smoke regresion L4; (4) HU-15.013 ramas
+a estados como continuacion L2; (5) refactor modular continuado en
+operaciones.ts; (6) OPL bidireccional plena.
+
+Reglas vigentes: TipoEnlace flat, Modelo.estados/abanicos top-level,
+modoPlegado y parteExtraidaDe como vista de Apariencia, ExtremoEnlace
+etiquetado solo procedural acepta kind=estado, roles de apariencia
+(contorno/interno/externo) persistidos en metadata,
+DerivacionEnlace.origen automatico/manual preservando kind,
+multiplicidad como string canonico, validaciones pasivas reactivas sin
+caching con citaSSOT obligatoria, ConfirmacionProvider global,
+beforeunload solo si dirty, drag con embed JointJS sin doble descuento
+de cellBBox, layout puro en modelo/layout.ts, markers estructurales y
+logicos canonicos. Backlog vivo en `docs/historias-usuario-v2/`. Briefs
+ronda 3 en `docs/instrucciones-lineas-dev/ronda3/` para reanudar L2/L3.
+Skill local urn:dev:artefacto:lineas-paralelas desplegada en
+.{codex,opencode}/skills/ y SSOT en ~/kora/artifacts/skills/dev/.
 ```
