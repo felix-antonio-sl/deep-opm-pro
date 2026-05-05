@@ -1,4 +1,5 @@
-import type { Apariencia, Enlace, Entidad, Id, Modelo, ModoDespliegueObjeto, Opd, TipoEnlace } from "../modelo/tipos";
+import { estadosDeEntidad } from "../modelo/operaciones";
+import type { Apariencia, Enlace, Entidad, Estado, Id, Modelo, ModoDespliegueObjeto, Opd, TipoEnlace } from "../modelo/tipos";
 
 export function generarOpl(modelo: Modelo, opdId: Id = modelo.opdRaizId): string[] {
   const opd = modelo.opds[opdId];
@@ -8,6 +9,8 @@ export function generarOpl(modelo: Modelo, opdId: Id = modelo.opdRaizId): string
     const entidad = modelo.entidades[apariencia.entidadId];
     if (!entidad) continue;
     lineas.push(oracionEntidad(entidad));
+    const estados = entidad.tipo === "objeto" ? estadosDeEntidad(modelo, entidad.id) : [];
+    if (estados.length > 0) lineas.push(oracionEstados(entidad, estados));
     const refinamiento = oracionRefinamiento(modelo, entidad);
     if (refinamiento) lineas.push(refinamiento);
   }
@@ -101,6 +104,18 @@ function oracionEntidad(entidad: Entidad): string {
   return `${nombre} es un ${tipo} ${textoEsencia(entidad)} y ${textoAfiliacion(entidad)}.`;
 }
 
+function oracionEstados(entidad: Entidad, estados: Estado[]): string {
+  return `${nombreOpl(entidad)} puede ser ${listarEstadosOpl(estados.map(nombreEstadoOpl))}.`;
+}
+
+function nombreEstadoOpl(estado: Estado): string {
+  const designaciones = [
+    ...(estado.esInicial ? ["inicial"] : []),
+    ...(estado.esFinal ? ["final"] : []),
+  ];
+  return `\`${estado.nombre}\`${designaciones.length > 0 ? ` (${listarDesignaciones(designaciones)})` : ""}`;
+}
+
 function oracionEnlace(modelo: Modelo, enlace: Enlace): string | null {
   const origen = modelo.entidades[enlace.origenId];
   const destino = modelo.entidades[enlace.destinoId];
@@ -176,6 +191,17 @@ function verbo(singular: string, plural: string, usarPlural: boolean): string {
 function listarOpl(items: string[]): string {
   if (items.length === 1) return items[0] ?? "";
   if (items.length === 2) return `${items[0]} y ${items[1]}`;
+  return `${items.slice(0, -1).join(", ")} y ${items[items.length - 1]}`;
+}
+
+function listarEstadosOpl(items: string[]): string {
+  if (items.length === 1) return items[0] ?? "";
+  if (items.length === 2) return `${items[0]} o ${items[1]}`;
+  return `${items.slice(0, -1).join(", ")} o ${items[items.length - 1]}`;
+}
+
+function listarDesignaciones(items: string[]): string {
+  if (items.length === 1) return items[0] ?? "";
   return `${items.slice(0, -1).join(", ")} y ${items[items.length - 1]}`;
 }
 
