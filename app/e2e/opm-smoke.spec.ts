@@ -202,6 +202,38 @@ test("descompone proceso y navega al OPD hijo", async ({ page }) => {
   expect(pageErrors).toEqual([]);
 });
 
+test("elimina desde arbol solo OPDs hoja y deshacer restaura", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await page.getByRole("button", { name: "Proceso", exact: true }).click();
+  await page.getByRole("button", { name: "Descomponer" }).click();
+  const nodoPadre = page.locator('[role="treeitem"]').filter({ hasText: "SD1: Proceso descompuesto" });
+  await expect(nodoPadre).toHaveAttribute("aria-current", "page");
+
+  await elementoPorTexto(page, "Proceso 1").click();
+  await page.getByRole("button", { name: "Descomponer" }).click();
+  const nodoHoja = page.locator('[role="treeitem"]').filter({ hasText: "SD1.1: Proceso 1 descompuesto" });
+  await expect(nodoHoja).toHaveAttribute("aria-current", "page");
+
+  await nodoPadre.getByRole("button", { name: /Eliminar OPD/ }).click();
+  await expect(page.getByText(/Eliminar descendientes primero/)).toBeVisible();
+  await expect(nodoPadre).toHaveCount(1);
+  await expect(nodoHoja).toHaveCount(1);
+
+  page.once("dialog", (dialog) => dialog.accept());
+  await nodoHoja.getByRole("button", { name: /Eliminar OPD/ }).click();
+  await expect(nodoHoja).toHaveCount(0);
+  await expect(nodoPadre).toHaveAttribute("aria-current", "page");
+
+  await page.getByRole("button", { name: "Deshacer" }).click();
+  await expect(page.locator('[role="treeitem"]').filter({ hasText: "SD1.1: Proceso 1 descompuesto" })).toHaveCount(1);
+
+  await page.screenshot({ path: "test-results/opm-eliminar-opd-hoja.png", fullPage: true });
+  expect(pageErrors).toEqual([]);
+});
+
 test("despliega objeto y navega al OPD hijo", async ({ page }) => {
   const pageErrors: string[] = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));

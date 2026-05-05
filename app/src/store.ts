@@ -52,6 +52,7 @@ import {
   sincronizarAbanicos,
 } from "./modelo/abanicos";
 import { crearAutoInvocacion } from "./modelo/autoinvocacion";
+import { eliminarOpdHoja } from "./modelo/opdEliminacion";
 import {
   aplicarModificador,
   definirDemora,
@@ -95,6 +96,7 @@ interface OpmStore {
   desplegarSeleccionada: (modo?: ModoDespliegueObjeto) => void;
   quitarDescomposicionSeleccionada: () => void;
   quitarDespliegueSeleccionado: () => void;
+  eliminarOpdDesdeArbol: (opdId: Id) => void;
   cambiarOpdActivo: (id: Id) => void;
   seleccionarEntidad: (id: Id) => void;
   seleccionarEstadoComoExtremo: (estadoId: Id) => void;
@@ -297,6 +299,24 @@ export const store = createStore<OpmStore>((set, get) => ({
       enlaceSeleccionId: null,
       modoEnlace: null,
       mensaje: "Despliegue eliminado",
+    });
+  },
+
+  eliminarOpdDesdeArbol(opdId) {
+    const { modelo, opdActivoId } = get();
+    const resultado = eliminarOpdHoja(modelo, opdId);
+    if (!resultado.ok) {
+      set({ mensaje: resultado.error });
+      return;
+    }
+    const opd = modelo.opds[opdId];
+    if (!confirmarEliminacionOpd(opd?.nombre ?? opdId)) return;
+    commitModelo(set, modelo, resultado.value.modelo, {
+      opdActivoId: opdActivoId === opdId ? resultado.value.opdActivoSugerido : opdActivoSeguro(resultado.value.modelo, opdActivoId),
+      seleccionId: null,
+      enlaceSeleccionId: null,
+      modoEnlace: null,
+      mensaje: "OPD eliminado",
     });
   },
 
@@ -1234,6 +1254,11 @@ function estadoModelo(modelo: Modelo, extra: Partial<OpmStore> = {}): Partial<Op
 
 function opdActivoSeguro(modelo: Modelo, opdActivoId: Id): Id {
   return modelo.opds[opdActivoId] ? opdActivoId : modelo.opdRaizId;
+}
+
+function confirmarEliminacionOpd(nombre: string): boolean {
+  if (typeof globalThis.confirm !== "function") return true;
+  return globalThis.confirm(`Eliminar OPD "${nombre}"? Esta acción se puede deshacer.`);
 }
 
 function opdDestinoDeAviso(modelo: Modelo, aviso: Aviso, opdActivoId: Id): Id | null {

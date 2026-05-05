@@ -8,6 +8,7 @@ import { store } from "./store";
 describe("store undo/redo y dirty state", () => {
   beforeEach(() => {
     instalarLocalStorage();
+    instalarConfirmacion();
     store.getState().importarJson(exportarModelo(crearModelo()));
     store.getState().listarModelosGuardados();
   });
@@ -533,6 +534,48 @@ describe("store undo/redo y dirty state", () => {
     expect(store.getState().modelo.entidades[procesoId]?.refinamiento?.tipo).toBe("descomposicion");
   });
 
+
+  test("eliminar OPD activo hoja desde arbol navega al padre y conserva undo", () => {
+    store.getState().crearProcesoDemo();
+    const procesoId = primeraEntidadId();
+    store.getState().seleccionarEntidad(procesoId);
+    store.getState().descomponerSeleccionada();
+    const opdHijoId = store.getState().opdActivoId;
+
+    store.getState().eliminarOpdDesdeArbol(opdHijoId);
+
+    expect(Object.values(store.getState().modelo.opds)).toHaveLength(1);
+    expect(store.getState().modelo.entidades[procesoId]?.refinamiento).toBeUndefined();
+    expect(store.getState().opdActivoId).toBe(store.getState().modelo.opdRaizId);
+    expect(store.getState().mensaje).toBe("OPD eliminado");
+    expect(store.getState().dirty).toBe(true);
+    expect(store.getState().puedeDeshacer).toBe(true);
+
+    store.getState().deshacer();
+    expect(Object.values(store.getState().modelo.opds)).toHaveLength(2);
+    expect(store.getState().modelo.entidades[procesoId]?.refinamiento?.opdId).toBe(opdHijoId);
+  });
+
+  test("intento de eliminar OPD interno deja modelo intacto y muestra mensaje claro", () => {
+    store.getState().crearProcesoDemo();
+    const procesoId = primeraEntidadId();
+    store.getState().seleccionarEntidad(procesoId);
+    store.getState().descomponerSeleccionada();
+    const opdHijoId = store.getState().opdActivoId;
+    const subprocesoId = Object.values(store.getState().modelo.opds[opdHijoId]?.apariencias ?? {})
+      .map((apariencia) => store.getState().modelo.entidades[apariencia.entidadId])
+      .find((entidad) => entidad?.nombre === "Proceso 1")?.id;
+    if (!subprocesoId) throw new Error("La prueba esperaba subproceso");
+    store.getState().seleccionarEntidad(subprocesoId);
+    store.getState().descomponerSeleccionada();
+    const antes = exportarModelo(store.getState().modelo);
+
+    store.getState().eliminarOpdDesdeArbol(opdHijoId);
+
+    expect(exportarModelo(store.getState().modelo)).toBe(antes);
+    expect(store.getState().mensaje).toContain("Eliminar descendientes primero");
+    expect(store.getState().mensaje).toContain(store.getState().opdActivoId);
+  });
   test("forma abanico automatico al conectar segunda rama y alterna operador desde inspector", () => {
     let modelo = crearModelo("Store abanicos");
     modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 200, y: 200 }, "Procesar"));
@@ -659,5 +702,12 @@ function instalarLocalStorage(): void {
       removeItem: (key: string) => datos.delete(key),
       clear: () => datos.clear(),
     },
+  });
+}
+
+function instalarConfirmacion(): void {
+  Object.defineProperty(globalThis, "confirm", {
+    configurable: true,
+    value: () => true,
   });
 }

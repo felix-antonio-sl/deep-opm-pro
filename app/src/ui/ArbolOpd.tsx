@@ -1,6 +1,8 @@
 import { useOpmStore } from "../store";
 import type { Id, Modelo, Opd } from "../modelo/tipos";
 
+const deleteIconUrl = new URL("../../../assets/svg/delete.svg", import.meta.url).href;
+
 interface NodoOpd {
   opd: Opd;
   nivel: number;
@@ -11,6 +13,7 @@ export function ArbolOpd() {
   const modelo = useOpmStore((s) => s.modelo);
   const opdActivoId = useOpmStore((s) => s.opdActivoId);
   const cambiarOpdActivo = useOpmStore((s) => s.cambiarOpdActivo);
+  const eliminarOpdDesdeArbol = useOpmStore((s) => s.eliminarOpdDesdeArbol);
   const nodos = aLista(construirArbol(modelo));
 
   return (
@@ -24,11 +27,18 @@ export function ArbolOpd() {
             const activo = nodo.opd.id === opdActivoId;
             const totalApariencias = Object.keys(nodo.opd.apariencias).length;
             const nombre = nombreNodo(modelo, nodo.opd);
+            const esRaiz = nodo.opd.id === modelo.opdRaizId;
+            const tieneHijos = nodo.hijos.length > 0;
+            const tituloEliminar = esRaiz
+              ? "SD no se puede eliminar"
+              : tieneHijos
+                ? "Eliminar descendientes primero"
+                : "Eliminar OPD";
             return (
-              <button
+              <div
                 key={nodo.opd.id}
-                type="button"
                 role="treeitem"
+                tabIndex={0}
                 aria-level={nodo.nivel + 1}
                 aria-selected={activo}
                 aria-current={activo ? "page" : undefined}
@@ -36,10 +46,28 @@ export function ArbolOpd() {
                 title={nombre}
                 style={estiloNodo(nodo.nivel, activo)}
                 onClick={() => cambiarOpdActivo(nodo.opd.id)}
+                onKeyDown={(event) => {
+                  if (event.key !== "Enter" && event.key !== " ") return;
+                  event.preventDefault();
+                  cambiarOpdActivo(nodo.opd.id);
+                }}
               >
                 <span style={style.nodeName}>{nombre}</span>
                 <span style={activo ? style.countActive : style.count}>{totalApariencias}</span>
-              </button>
+                <button
+                  type="button"
+                  aria-label={`Eliminar OPD ${nombre}`}
+                  title={tituloEliminar}
+                  disabled={esRaiz}
+                  style={esRaiz ? style.deleteButtonDisabled : style.deleteButton}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    eliminarOpdDesdeArbol(nodo.opd.id);
+                  }}
+                >
+                  <img src={deleteIconUrl} alt="" aria-hidden="true" style={style.deleteIcon} />
+                </button>
+              </div>
             );
           })
         )}
@@ -139,7 +167,7 @@ const style = {
     width: "100%",
     minHeight: "34px",
     display: "grid",
-    gridTemplateColumns: "minmax(0, 1fr) auto",
+    gridTemplateColumns: "minmax(0, 1fr) auto auto",
     alignItems: "center",
     gap: "8px",
     paddingTop: "4px",
@@ -188,5 +216,35 @@ const style = {
     justifyContent: "center",
     fontSize: "11px",
     fontWeight: 700,
+  },
+  deleteButton: {
+    width: "26px",
+    height: "26px",
+    borderRadius: "4px",
+    border: "1px solid transparent",
+    background: "transparent",
+    cursor: "pointer",
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 0,
+  },
+  deleteButtonDisabled: {
+    width: "26px",
+    height: "26px",
+    borderRadius: "4px",
+    border: "1px solid transparent",
+    background: "transparent",
+    cursor: "not-allowed",
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 0,
+    opacity: 0.35,
+  },
+  deleteIcon: {
+    width: "18px",
+    height: "18px",
+    display: "block",
   },
 } satisfies Record<string, preact.JSX.CSSProperties>;
