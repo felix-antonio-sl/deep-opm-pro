@@ -28,6 +28,8 @@ export function JointCanvas() {
   const moverAparienciaRef = useRef(moverApariencia);
   const cambiarModoPlegadoApariencia = useOpmStore((s) => s.cambiarModoPlegadoApariencia);
   const cambiarModoPlegadoAparienciaRef = useRef(cambiarModoPlegadoApariencia);
+  const extraerParteDePlegado = useOpmStore((s) => s.extraerParteDePlegado);
+  const extraerParteDePlegadoRef = useRef(extraerParteDePlegado);
   const actualizarVerticesEnlace = useOpmStore((s) => s.actualizarVerticesEnlace);
   const actualizarVerticesEnlaceRef = useRef(actualizarVerticesEnlace);
 
@@ -44,8 +46,9 @@ export function JointCanvas() {
     seleccionarEnlaceRef.current = seleccionarEnlace;
     moverAparienciaRef.current = moverApariencia;
     cambiarModoPlegadoAparienciaRef.current = cambiarModoPlegadoApariencia;
+    extraerParteDePlegadoRef.current = extraerParteDePlegado;
     actualizarVerticesEnlaceRef.current = actualizarVerticesEnlace;
-  }, [actualizarVerticesEnlace, cambiarModoPlegadoApariencia, moverApariencia, seleccionarEnlace, seleccionarEntidad]);
+  }, [actualizarVerticesEnlace, cambiarModoPlegadoApariencia, extraerParteDePlegado, moverApariencia, seleccionarEnlace, seleccionarEntidad]);
 
   useEffect(() => {
     if (!paperHostRef.current) return;
@@ -126,6 +129,15 @@ export function JointCanvas() {
       if (meta?.kind === "enlace") seleccionarEnlaceRef.current(meta.enlaceId);
     });
 
+    paper.on("element:pointerdblclick", (elementView: dia.ElementView, evt: dia.Event) => {
+      evt.stopPropagation();
+      const meta = metadata(cellViewModel(elementView));
+      if (meta?.kind !== "entidad") return;
+      const parteEntidadId = parteEntidadDesdeSelector(meta, jointSelector(evt.target));
+      if (!parteEntidadId) return;
+      extraerParteDePlegadoRef.current(meta.aparienciaId, parteEntidadId);
+    });
+
     paper.on("link:pointerclick", (linkView: dia.LinkView, evt: dia.Event) => {
       evt.stopPropagation();
       const meta = metadata(cellViewModel(linkView));
@@ -182,6 +194,11 @@ function metadata(cell: dia.Cell): OpmJointMetadata | null {
   const value = cell.prop("opm") as OpmJointMetadata | undefined;
   if (value?.kind === "entidad" || value?.kind === "enlace") return value;
   return null;
+}
+
+function parteEntidadDesdeSelector(meta: OpmJointMetadata, selector: string | null): string | null {
+  if (meta.kind !== "entidad" || !selector) return null;
+  return meta.partesPlegadas?.find((parte) => parte.selector === selector)?.entidadId ?? null;
 }
 
 function instalarHerramientasEnlaceSeleccionado(adapter: JointAdapter, enlaceSeleccionId: string | null): void {

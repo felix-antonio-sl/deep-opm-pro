@@ -1,4 +1,5 @@
 import { estadosDeEntidad } from "../modelo/operaciones";
+import { modoPlegadoApariencia, partesDePlegado, UMBRAL_PARTES_MAS } from "../modelo/plegado";
 import type { Apariencia, Enlace, Entidad, Estado, Id, Modelo, ModoDespliegueObjeto, Opd, TipoEnlace } from "../modelo/tipos";
 
 export function generarOpl(modelo: Modelo, opdId: Id = modelo.opdRaizId): string[] {
@@ -11,7 +12,7 @@ export function generarOpl(modelo: Modelo, opdId: Id = modelo.opdRaizId): string
     lineas.push(oracionEntidad(entidad));
     const estados = entidad.tipo === "objeto" ? estadosDeEntidad(modelo, entidad.id) : [];
     if (estados.length > 0) lineas.push(oracionEstados(entidad, estados));
-    const refinamiento = oracionRefinamiento(modelo, entidad);
+    const refinamiento = oracionRefinamiento(modelo, apariencia, entidad);
     if (refinamiento) lineas.push(refinamiento);
   }
   for (const aparienciaEnlace of Object.values(opd.enlaces)) {
@@ -23,8 +24,10 @@ export function generarOpl(modelo: Modelo, opdId: Id = modelo.opdRaizId): string
   return lineas;
 }
 
-function oracionRefinamiento(modelo: Modelo, entidad: Entidad): string | null {
+function oracionRefinamiento(modelo: Modelo, apariencia: Apariencia, entidad: Entidad): string | null {
   if (!entidad.refinamiento) return null;
+  const parcial = oracionPlegadoParcial(modelo, apariencia, entidad);
+  if (parcial) return parcial;
   const opdHijo = modelo.opds[entidad.refinamiento.opdId];
   if (!opdHijo) return null;
   const aparienciasInternas = aparienciasInternasDeRefinamiento(modelo, opdHijo, entidad)
@@ -46,6 +49,21 @@ function oracionRefinamiento(modelo: Modelo, entidad: Entidad): string | null {
     ? temporal.tieneParalelos ? ", en esa secuencia" : " en esa secuencia"
     : "";
   return `${nombreOpl(entidad)} se descompone en ${destinoProcesos}${secuencia}.`;
+}
+
+function oracionPlegadoParcial(modelo: Modelo, apariencia: Apariencia, entidad: Entidad): string | null {
+  if (modoPlegadoApariencia(apariencia) !== "parcial") return null;
+  const partes = partesDePlegado(modelo, entidad.id);
+  if (partes.length === 0) return null;
+  const visibles = partes.slice(0, UMBRAL_PARTES_MAS).map((parte) => {
+    const interna = modelo.entidades[parte.entidadId];
+    return interna ? nombreOpl(interna) : `**${parte.nombre}**`;
+  });
+  const restantes = partes.length - visibles.length;
+  const destino = restantes > 0
+    ? `${listarOpl(visibles)} y ${restantes} ${restantes === 1 ? "parte más" : "partes más"}`
+    : listarOpl(visibles);
+  return `${nombreOpl(entidad)} consiste en ${destino}.`;
 }
 
 function oracionDespliegue(modelo: Modelo, entidad: Entidad, opdHijo: Opd, internos: string[]): string {

@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { ajustarMultiplicidad, cambiarEsencia, crearEnlace, crearEstadosIniciales, crearModelo, crearObjeto, crearProceso, designarEstadoFinal, designarEstadoInicial, descomponerProceso, agregarEstado, desplegarObjeto, estadosDeEntidad, moverApariencia, renombrarEstado } from "../modelo/operaciones";
-import type { Modelo, Resultado } from "../modelo/tipos";
+import { cambiarModoPlegado } from "../modelo/plegado";
+import type { Apariencia, Modelo, Resultado } from "../modelo/tipos";
 import { generarOpl } from "./generar";
 
 describe("OPL-ES — tipos de enlace canonicos", () => {
@@ -213,6 +214,25 @@ describe("OPL-ES — refinamiento", () => {
     expect(generarOpl(modelo, modelo.opdRaizId)).toContain("**Instancia 1**, **Instancia 2** y **Instancia 3** son instancias de **Vehiculo**.");
     expect(generarOpl(modelo, desplegado.opdId)).toContain("**Instancia 1** es una instancia de **Vehiculo**.");
   });
+
+  test("plegado parcial con mas de tres partes emite contador partes mas", () => {
+    let modelo = modeloConVehiculoDesplegado();
+    modelo = agregarPartes(modelo, 2);
+    const objetoId = entidad(modelo, "Vehiculo");
+    const apariencia = aparienciaDeEntidad(modelo, modelo.opdRaizId, objetoId);
+    modelo = must(cambiarModoPlegado(modelo, modelo.opdRaizId, apariencia.id, "parcial"));
+
+    expect(generarOpl(modelo, modelo.opdRaizId)).toContain("**Vehiculo** consiste en **Vehiculo parte 1**, **Vehiculo parte 2** y **Vehiculo parte 3** y 2 partes más.");
+  });
+
+  test("plegado parcial con tres partes enumera todo sin contador", () => {
+    let modelo = modeloConVehiculoDesplegado();
+    const objetoId = entidad(modelo, "Vehiculo");
+    const apariencia = aparienciaDeEntidad(modelo, modelo.opdRaizId, objetoId);
+    modelo = must(cambiarModoPlegado(modelo, modelo.opdRaizId, apariencia.id, "parcial"));
+
+    expect(generarOpl(modelo, modelo.opdRaizId)).toContain("**Vehiculo** consiste en **Vehiculo parte 1**, **Vehiculo parte 2** y **Vehiculo parte 3**.");
+  });
 });
 
 describe("OPL-ES — bordes", () => {
@@ -383,6 +403,36 @@ function entidad(modelo: Modelo, nombre: string): string {
   expect(encontrado).toBeDefined();
   if (!encontrado) throw new Error(`Entidad no encontrada: ${nombre}`);
   return encontrado.id;
+}
+
+function modeloConVehiculoDesplegado(): Modelo {
+  let modelo = crearModelo();
+  modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 200, y: 120 }, "Vehiculo"));
+  return must(desplegarObjeto(modelo, modelo.opdRaizId, entidad(modelo, "Vehiculo"))).modelo;
+}
+
+function agregarPartes(modeloInicial: Modelo, cantidad: number): Modelo {
+  let modelo = modeloInicial;
+  const objetoId = entidad(modelo, "Vehiculo");
+  const opdDespliegueId = modelo.entidades[objetoId]?.refinamiento?.opdId;
+  expect(opdDespliegueId).toBeDefined();
+  if (!opdDespliegueId) throw new Error("Despliegue no encontrado");
+
+  for (let index = 0; index < cantidad; index += 1) {
+    const nombre = `Vehiculo parte ${index + 4}`;
+    modelo = must(crearObjeto(modelo, opdDespliegueId, { x: 90 + index * 130, y: 230 }, nombre));
+    modelo = must(crearEnlace(modelo, opdDespliegueId, objetoId, entidad(modelo, nombre), "agregacion"));
+  }
+
+  return modelo;
+}
+
+function aparienciaDeEntidad(modelo: Modelo, opdId: string, entidadId: string): Apariencia {
+  const apariencia = Object.values(modelo.opds[opdId]?.apariencias ?? {})
+    .find((item) => item.entidadId === entidadId);
+  expect(apariencia).toBeDefined();
+  if (!apariencia) throw new Error(`Apariencia no encontrada: ${entidadId}`);
+  return apariencia;
 }
 
 function must<T>(resultado: Resultado<T>): T {

@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { ajustarMultiplicidad, cambiarEsencia, crearEnlace, crearEstadosIniciales, crearModelo, crearObjeto, crearProceso, designarEstadoFinal, designarEstadoInicial, descomponerProceso, desplegarObjeto, estadosDeEntidad, renombrarEstado } from "../../modelo/operaciones";
-import { cambiarModoPlegado } from "../../modelo/plegado";
+import { cambiarModoPlegado, extraerParteDePlegado, reinsertarParteEnPlegado } from "../../modelo/plegado";
 import type { Apariencia, Modelo, Resultado, TipoEnlace } from "../../modelo/tipos";
 import { LINK_ASSETS } from "./linkAssets";
 import { proyectarModeloAJointCells } from "./proyeccion";
@@ -320,6 +320,49 @@ describe("proyeccion JointJS", () => {
     expect(markup?.some((item) => String(item.selector).startsWith("stateCapsule"))).toBe(false);
     expect((attrs?.partLabel0 as Attrs | undefined)?.text).toBe("Vehiculo parte 1");
   });
+
+  test("proyecta parte extraida con proxy punteado, marca visual y contador", () => {
+    let modelo = modeloConVehiculoDesplegado();
+    modelo = agregarPartes(modelo, 2);
+    const objetoId = entidadPorNombre(modelo, "Vehiculo");
+    const padre = aparienciaDeEntidad(modelo, modelo.opdRaizId, objetoId);
+    modelo = must(cambiarModoPlegado(modelo, modelo.opdRaizId, padre.id, "parcial"));
+    modelo = must(extraerParteDePlegado(modelo, modelo.opdRaizId, padre.id, entidadPorNombre(modelo, "Vehiculo parte 1")));
+
+    const cells = proyectarModeloAJointCells(modelo, modelo.opdRaizId, null, null);
+    const padreCell = cells.find((item) => item.opm.kind === "entidad" && item.opm.aparienciaId === padre.id);
+    const attrs = padreCell?.attrs as Attrs | undefined;
+    const proxy = cells.find((item) => item.opm.kind === "proxy-plegado");
+
+    expect(cells.filter((item) => item.opm.kind === "entidad")).toHaveLength(2);
+    expect((attrs?.partLabel0 as Attrs | undefined)?.text).toBe("Vehiculo parte 1");
+    expect((attrs?.partLabel0 as Attrs | undefined)?.textDecoration).toBe("line-through");
+    expect((attrs?.partCounter1 as Attrs | undefined)?.text).toBe("y 4 partes más");
+    expect(proxy?.type).toBe("standard.Link");
+    expect(((proxy?.attrs as Attrs | undefined)?.line as Attrs | undefined)?.strokeDasharray).toBe("5 4");
+  });
+
+  test("reancla enlaces a parte reinsertada en el rectangulo padre con etiqueta", () => {
+    let modelo = modeloConVehiculoDesplegado();
+    const objetoId = entidadPorNombre(modelo, "Vehiculo");
+    const padre = aparienciaDeEntidad(modelo, modelo.opdRaizId, objetoId);
+    const parteId = entidadPorNombre(modelo, "Vehiculo parte 1");
+    modelo = must(cambiarModoPlegado(modelo, modelo.opdRaizId, padre.id, "parcial"));
+    modelo = must(extraerParteDePlegado(modelo, modelo.opdRaizId, padre.id, parteId));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 360, y: 110 }, "Mover"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, parteId, entidadPorNombre(modelo, "Mover"), "instrumento"));
+    const extraida = Object.values(modelo.opds[modelo.opdRaizId]?.apariencias ?? {}).find((apariencia) => apariencia.entidadId === parteId && apariencia.parteExtraidaDe);
+    expect(extraida).toBeDefined();
+    if (!extraida) return;
+    modelo = must(reinsertarParteEnPlegado(modelo, extraida.id));
+
+    const link = proyectarModeloAJointCells(modelo, modelo.opdRaizId, null, null)
+      .find((item) => item.opm.kind === "enlace" && item.type === "standard.Link");
+    const labels = link?.labels as Array<{ attrs?: { label?: { text?: string } } }> | undefined;
+
+    expect((link?.source as { id?: string } | undefined)?.id).toBe(padre.id);
+    expect(labels?.some((label) => label.attrs?.label?.text === "Vehiculo parte 1")).toBe(true);
+  });
 });
 
 type Attrs = Record<string, unknown>;
@@ -349,6 +392,29 @@ function modeloConEnlace(tipo: TipoEnlace): Modelo {
     return must(crearEnlace(modelo, modelo.opdRaizId, proceso, entidadPorNombre(modelo, "Proceso 2"), tipo));
   }
   return must(crearEnlace(modelo, modelo.opdRaizId, objeto, proceso, tipo));
+}
+
+function modeloConVehiculoDesplegado(): Modelo {
+  let modelo = crearModelo();
+  modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 80, y: 90 }, "Vehiculo"));
+  const objetoId = entidadPorNombre(modelo, "Vehiculo");
+  return must(desplegarObjeto(modelo, modelo.opdRaizId, objetoId)).modelo;
+}
+
+function agregarPartes(modeloInicial: Modelo, cantidad: number): Modelo {
+  let modelo = modeloInicial;
+  const objetoId = entidadPorNombre(modelo, "Vehiculo");
+  const opdDespliegueId = modelo.entidades[objetoId]?.refinamiento?.opdId;
+  expect(opdDespliegueId).toBeDefined();
+  if (!opdDespliegueId) throw new Error("Despliegue no encontrado");
+
+  for (let indice = 0; indice < cantidad; indice += 1) {
+    const nombre = `Vehiculo parte ${indice + 4}`;
+    modelo = must(crearObjeto(modelo, opdDespliegueId, { x: 90 + indice * 130, y: 230 }, nombre));
+    modelo = must(crearEnlace(modelo, opdDespliegueId, objetoId, entidadPorNombre(modelo, nombre), "agregacion"));
+  }
+
+  return modelo;
 }
 
 function entidadPorNombre(modelo: Modelo, nombre: string): string {

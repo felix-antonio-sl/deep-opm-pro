@@ -34,7 +34,11 @@ import {
   splitEffectEnPar,
   volverEnlaceExternoDerivadoAAutomatico as volverEnlaceExternoDerivadoAAutomaticoOp,
 } from "./modelo/operaciones";
-import { cambiarModoPlegado as cambiarModoPlegadoOp } from "./modelo/plegado";
+import {
+  cambiarModoPlegado as cambiarModoPlegadoOp,
+  extraerParteDePlegado as extraerParteDePlegadoOp,
+  reinsertarParteEnPlegado as reinsertarParteEnPlegadoOp,
+} from "./modelo/plegado";
 import {
   borrarModeloLocal,
   cargarModeloLocal,
@@ -84,6 +88,8 @@ interface OpmStore {
   fijarAfiliacionSeleccionada: (afiliacion: Afiliacion) => void;
   cambiarModoPlegadoSeleccionado: (modo: ModoPlegado) => void;
   cambiarModoPlegadoApariencia: (aparienciaId: Id, modo: ModoPlegado) => void;
+  extraerParteDePlegado: (padreAparienciaId: Id, parteEntidadId: Id) => void;
+  reinsertarParteExtraidaSeleccionada: () => void;
   agregarEstadosObjeto: () => void;
   agregarEstadoObjeto: () => void;
   eliminarEstado: (estadoId: Id) => void;
@@ -443,6 +449,44 @@ export const store = createStore<OpmStore>((set, get) => ({
     const apariencia = modelo.opds[opdActivoId]?.apariencias[aparienciaId];
     commitModelo(set, modelo, resultado.value, {
       seleccionId: apariencia?.entidadId ?? null,
+      enlaceSeleccionId: null,
+      modoEnlace: null,
+      mensaje: null,
+    });
+  },
+
+  extraerParteDePlegado(padreAparienciaId, parteEntidadId) {
+    const { modelo, opdActivoId } = get();
+    const resultado = extraerParteDePlegadoOp(modelo, opdActivoId, padreAparienciaId, parteEntidadId);
+    if (!resultado.ok) {
+      set({ mensaje: resultado.error });
+      return;
+    }
+    commitModelo(set, modelo, resultado.value, {
+      seleccionId: parteEntidadId,
+      enlaceSeleccionId: null,
+      modoEnlace: null,
+      mensaje: null,
+    });
+  },
+
+  reinsertarParteExtraidaSeleccionada() {
+    const { modelo, opdActivoId, seleccionId } = get();
+    if (!seleccionId) return;
+    const apariencia = Object.values(modelo.opds[opdActivoId]?.apariencias ?? {})
+      .find((item) => item.entidadId === seleccionId && item.parteExtraidaDe);
+    if (!apariencia?.parteExtraidaDe) {
+      set({ mensaje: "Selecciona una parte extraída" });
+      return;
+    }
+    const padre = modelo.opds[opdActivoId]?.apariencias[apariencia.parteExtraidaDe.padreAparienciaId];
+    const resultado = reinsertarParteEnPlegadoOp(modelo, apariencia.id);
+    if (!resultado.ok) {
+      set({ mensaje: resultado.error });
+      return;
+    }
+    commitModelo(set, modelo, resultado.value, {
+      seleccionId: padre?.entidadId ?? null,
       enlaceSeleccionId: null,
       modoEnlace: null,
       mensaje: null,

@@ -1,4 +1,5 @@
 import { validarFirmaEnlace, validarMultiplicidad } from "../modelo/operaciones";
+import { modoPlegadoApariencia, partesDePlegado } from "../modelo/plegado";
 import type {
   Afiliacion,
   Apariencia,
@@ -235,6 +236,8 @@ function validarApariencias(
     if (!esNumeroPositivo(raw.height)) return fallo(`Apariencia inválida: ${id}.height`);
     const modoPlegado = validarModoPlegado(id, raw.modoPlegado);
     if (!modoPlegado.ok) return modoPlegado;
+    const parteExtraidaDe = validarParteExtraidaDe(id, raw.parteExtraidaDe);
+    if (!parteExtraidaDe.ok) return parteExtraidaDe;
     apariencias[id] = {
       id,
       entidadId: raw.entidadId,
@@ -244,9 +247,24 @@ function validarApariencias(
       width: raw.width,
       height: raw.height,
       modoPlegado: modoPlegado.value,
+      ...(parteExtraidaDe.value ? { parteExtraidaDe: parteExtraidaDe.value } : {}),
     };
   }
   return ok(apariencias);
+}
+
+function validarParteExtraidaDe(
+  aparienciaId: Id,
+  value: unknown,
+): Resultado<Apariencia["parteExtraidaDe"] | undefined> {
+  if (value === undefined) return ok(undefined);
+  if (!esRecord(value)) return fallo(`Apariencia inválida: ${aparienciaId}.parteExtraidaDe`);
+  if (typeof value.padreAparienciaId !== "string") return fallo(`Apariencia inválida: ${aparienciaId}.parteExtraidaDe.padreAparienciaId`);
+  if (typeof value.parteEntidadId !== "string") return fallo(`Apariencia inválida: ${aparienciaId}.parteExtraidaDe.parteEntidadId`);
+  return ok({
+    padreAparienciaId: value.padreAparienciaId,
+    parteEntidadId: value.parteEntidadId,
+  });
 }
 
 function validarModoPlegado(aparienciaId: Id, value: unknown): Resultado<ModoPlegado> {
@@ -368,11 +386,13 @@ function validarReferenciasOpd(modelo: Modelo): Resultado<true> {
   }
   for (const [opdId, opd] of Object.entries(modelo.opds)) {
     const visibles = new Set(Object.values(opd.apariencias).map((apariencia) => apariencia.entidadId));
+    const extraidas = validarAparienciasExtraidas(modelo, opd);
+    if (!extraidas.ok) return extraidas;
     for (const [aparienciaId, apariencia] of Object.entries(opd.enlaces)) {
       const enlace = modelo.enlaces[apariencia.enlaceId];
       if (!enlace) return fallo(`Apariencia de enlace inválida: ${aparienciaId}.enlaceId`);
       enlacesConApariencia.add(enlace.id);
-      if (!visibles.has(enlace.origenId) || !visibles.has(enlace.destinoId)) {
+      if (!endpointVisibleEnOpd(modelo, opd, visibles, enlace.origenId) || !endpointVisibleEnOpd(modelo, opd, visibles, enlace.destinoId)) {
         return fallo(`Apariencia de enlace inválida: ${aparienciaId}.endpoints`);
       }
       if (apariencia.opdId !== opdId) return fallo(`Apariencia de enlace inválida: ${aparienciaId}.opdId`);
@@ -380,6 +400,29 @@ function validarReferenciasOpd(modelo: Modelo): Resultado<true> {
   }
   for (const enlaceId of Object.keys(modelo.enlaces)) {
     if (!enlacesConApariencia.has(enlaceId)) return fallo(`Enlace inválido: ${enlaceId}.apariencia`);
+  }
+  return ok(true);
+}
+
+function endpointVisibleEnOpd(modelo: Modelo, opd: Opd, visibles: Set<Id>, entidadId: Id): boolean {
+  if (visibles.has(entidadId)) return true;
+  return Object.values(opd.apariencias).some((apariencia) => {
+    if (modoPlegadoApariencia(apariencia) !== "parcial") return false;
+    return partesDePlegado(modelo, apariencia.entidadId).some((parte) => parte.entidadId === entidadId);
+  });
+}
+
+function validarAparienciasExtraidas(modelo: Modelo, opd: Opd): Resultado<true> {
+  for (const [aparienciaId, apariencia] of Object.entries(opd.apariencias)) {
+    const extraida = apariencia.parteExtraidaDe;
+    if (!extraida) continue;
+    const padre = opd.apariencias[extraida.padreAparienciaId];
+    if (!padre) return fallo(`Apariencia inválida: ${aparienciaId}.parteExtraidaDe.padreAparienciaId`);
+    if (modoPlegadoApariencia(padre) !== "parcial") return fallo(`Apariencia inválida: ${aparienciaId}.parteExtraidaDe.padreAparienciaId`);
+    if (extraida.parteEntidadId !== apariencia.entidadId) return fallo(`Apariencia inválida: ${aparienciaId}.parteExtraidaDe.parteEntidadId`);
+    if (!partesDePlegado(modelo, padre.entidadId).some((parte) => parte.entidadId === extraida.parteEntidadId)) {
+      return fallo(`Apariencia inválida: ${aparienciaId}.parteExtraidaDe.parteEntidadId`);
+    }
   }
   return ok(true);
 }

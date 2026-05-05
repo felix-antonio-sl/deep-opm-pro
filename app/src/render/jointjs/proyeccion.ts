@@ -1,6 +1,6 @@
 import { CANON } from "../../modelo/constantes";
 import { estadosDeEntidad } from "../../modelo/operaciones";
-import { modoPlegadoApariencia, partesDePlegado, type PartePlegada } from "../../modelo/plegado";
+import { filasPlegadoParcial, modoPlegadoApariencia, partesDePlegado, type FilaPlegadoParcial } from "../../modelo/plegado";
 import type { Apariencia, Enlace, Entidad, Estado, Id, Modelo, Posicion, TipoEnlace } from "../../modelo/tipos";
 import { LINK_ASSETS } from "./linkAssets";
 
@@ -13,6 +13,7 @@ export type OpmJointMetadata =
       entidadId: Id;
       aparienciaId: Id;
       rol: RolApariencia;
+      partesPlegadas?: Array<{ selector: string; entidadId: Id }>;
     }
   | {
       kind: "enlace";
@@ -20,6 +21,13 @@ export type OpmJointMetadata =
       enlaceId: Id;
       aparienciaEnlaceId: Id;
       tipo: TipoEnlace;
+    }
+  | {
+      kind: "proxy-plegado";
+      opdId: Id;
+      padreAparienciaId: Id;
+      parteAparienciaId: Id;
+      parteEntidadId: Id;
     };
 
 export interface JointCellJson {
@@ -58,18 +66,20 @@ export function proyectarModeloAJointCells(
     const entidad = modelo.entidades[apariencia.entidadId];
     return entidad ? [proyectarEntidad(modelo, opdId, apariencia, entidad, entidad.id === seleccionEntidadId)] : [];
   });
+  const proxies = apariencias.flatMap((apariencia) => proyectarProxyExtraccion(opdId, opd, apariencia));
   const enlaces = Object.values(opd.enlaces).flatMap((aparienciaEnlace) => {
     const enlace = modelo.enlaces[aparienciaEnlace.enlaceId];
     if (!enlace) return [];
-    const origen = aparienciaPorEntidad.get(enlace.origenId);
-    const destino = aparienciaPorEntidad.get(enlace.destinoId);
+    const origen = resolverEndpointVisual(modelo, opd, aparienciaPorEntidad, enlace.origenId);
+    const destino = resolverEndpointVisual(modelo, opd, aparienciaPorEntidad, enlace.destinoId);
     if (!origen || !destino) return [];
-    return TIPOS_REFINAMIENTO_ESTRUCTURAL.includes(enlace.tipo)
-      ? proyectarRefinamientoEstructural(opdId, enlace, aparienciaEnlace.id, origen, destino, enlace.id === seleccionEnlaceId)
+    if (origen.apariencia.id === destino.apariencia.id) return [];
+    return TIPOS_REFINAMIENTO_ESTRUCTURAL.includes(enlace.tipo) && !origen.proxy && !destino.proxy
+      ? proyectarRefinamientoEstructural(opdId, enlace, aparienciaEnlace.id, origen.apariencia, destino.apariencia, enlace.id === seleccionEnlaceId)
       : [proyectarEnlace(opdId, enlace, aparienciaEnlace.id, origen, destino, aparienciaEnlace.vertices, enlace.id === seleccionEnlaceId)];
   });
 
-  return [...enlaces, ...elementos];
+  return [...enlaces, ...proxies, ...elementos];
 }
 
 function proyectarEntidad(modelo: Modelo, opdId: Id, apariencia: Apariencia, entidad: Entidad, seleccionada: boolean): JointCellJson {
@@ -77,11 +87,12 @@ function proyectarEntidad(modelo: Modelo, opdId: Id, apariencia: Apariencia, ent
   const partes = partesDePlegado(modelo, entidad.id);
   const tienePartes = partes.length > 0;
   const modoParcial = modoPlegadoApariencia(apariencia) === "parcial" && tienePartes;
+  const filasParciales = modoParcial ? filasPlegadoParcial(modelo, opdId, apariencia.id) : [];
   const estadosVisibles = entidad.tipo === "objeto" && !modoParcial ? estadosDeEntidad(modelo, entidad.id) : [];
   const refinada = !!entidad.refinamiento;
   const contornoRefinamiento = refinada && entidad.refinamiento?.opdId === opdId;
   const size = modoParcial
-    ? dimensionesPlegadoParcial(apariencia, entidad.nombre, partes)
+    ? dimensionesPlegadoParcial(apariencia, entidad.nombre, filasParciales)
     : estadosVisibles.length > 0
       ? dimensionesConEstados(apariencia, entidad.nombre, estadosVisibles)
       : { width: apariencia.width, height: apariencia.height };
@@ -120,7 +131,7 @@ function proyectarEntidad(modelo: Modelo, opdId: Id, apariencia: Apariencia, ent
     position: { x: apariencia.x, y: apariencia.y },
     size,
     ...(modoParcial
-      ? { markup: markupPlegadoParcial(bodyTag, partes), attrs: attrsPlegadoParcial(attrsBase, size, partes) }
+      ? { markup: markupPlegadoParcial(bodyTag, filasParciales), attrs: attrsPlegadoParcial(attrsBase, size, filasParciales) }
       : estadosVisibles.length > 0
         ? { markup: markupConEstados(bodyTag, estadosVisibles, tienePartes), attrs: attrsConEstados(attrsBase, size, estadosVisibles, tienePartes) }
         : tienePartes
@@ -132,6 +143,7 @@ function proyectarEntidad(modelo: Modelo, opdId: Id, apariencia: Apariencia, ent
       entidadId: entidad.id,
       aparienciaId: apariencia.id,
       rol: rolApariencia(modelo, opdId, entidad, contornoRefinamiento),
+      ...(modoParcial ? { partesPlegadas: selectoresPartesPlegadas(filasParciales) } : {}),
     },
     z: contornoRefinamiento ? 0 : 10,
   };
@@ -160,11 +172,11 @@ function rolApariencia(modelo: Modelo, opdId: Id, entidad: Entidad, esContorno: 
   return "interno";
 }
 
-function dimensionesPlegadoParcial(apariencia: Apariencia, nombrePadre: string, partes: PartePlegada[]): { width: number; height: number } {
-  const textoMasLargo = [nombrePadre, ...partes.map((parte) => parte.nombre)]
+function dimensionesPlegadoParcial(apariencia: Apariencia, nombrePadre: string, filas: FilaPlegadoParcial[]): { width: number; height: number } {
+  const textoMasLargo = [nombrePadre, ...filas.map(textoFilaPlegado)]
     .reduce((max, texto) => Math.max(max, texto.length), 0);
   const width = Math.max(apariencia.width, CANON.dims.cosaWidth, textoMasLargo * 7 + 36);
-  const height = Math.max(apariencia.height, PLEGADO.headerHeight + partes.length * PLEGADO.rowHeight + PLEGADO.paddingBottom);
+  const height = Math.max(apariencia.height, PLEGADO.headerHeight + filas.length * PLEGADO.rowHeight + PLEGADO.paddingBottom);
   return { width, height };
 }
 
@@ -207,10 +219,11 @@ function markupConEstados(
   ];
 }
 
-function markupPlegadoParcial(bodyTag: "rect" | "ellipse", partes: PartePlegada[]): Array<Record<string, unknown>> {
-  const rows = partes.flatMap((_, index) => [
+function markupPlegadoParcial(bodyTag: "rect" | "ellipse", filas: FilaPlegadoParcial[]): Array<Record<string, unknown>> {
+  const rows = filas.flatMap((fila, index) => [
     { tagName: "line", selector: `partSeparator${index}` },
-    { tagName: "text", selector: `partLabel${index}` },
+    ...(fila.tipo === "parte" ? [{ tagName: "rect", selector: `partHit${index}` }] : []),
+    { tagName: "text", selector: fila.tipo === "parte" ? `partLabel${index}` : `partCounter${index}` },
   ]);
   return [
     { tagName: bodyTag, selector: "body" },
@@ -295,7 +308,7 @@ function attrsConEstados(
 function attrsPlegadoParcial(
   attrsBase: Record<string, unknown>,
   size: { width: number; height: number },
-  partes: PartePlegada[],
+  filas: FilaPlegadoParcial[],
 ): Record<string, unknown> {
   const attrs: Record<string, unknown> = {
     ...attrsBase,
@@ -304,7 +317,7 @@ function attrsPlegadoParcial(
       textWrap: { width: size.width - 24 },
     },
   };
-  for (const [index, parte] of partes.entries()) {
+  for (const [index, fila] of filas.entries()) {
     const y = PLEGADO.headerHeight + index * PLEGADO.rowHeight;
     attrs[`partSeparator${index}`] = {
       x1: 12,
@@ -315,54 +328,133 @@ function attrsPlegadoParcial(
       strokeWidth: 1,
       pointerEvents: "none",
     };
-    attrs[`partLabel${index}`] = {
-      text: parte.nombre,
+    if (fila.tipo === "parte") {
+      attrs[`partHit${index}`] = {
+        x: 12,
+        y,
+        width: size.width - 24,
+        height: PLEGADO.rowHeight,
+        fill: "transparent",
+        stroke: "transparent",
+        cursor: "pointer",
+      };
+    }
+    const selector = fila.tipo === "parte" ? `partLabel${index}` : `partCounter${index}`;
+    attrs[selector] = {
+      text: textoFilaPlegado(fila),
       x: size.width / 2,
       y: y + PLEGADO.rowHeight / 2,
-      fill: CANON.colores.texto,
+      fill: fila.tipo === "parte" && !fila.extraida ? CANON.colores.texto : "#667085",
       fontFamily: CANON.dims.fontFamily,
       fontSize: 12,
       fontWeight: CANON.dims.fontWeight,
+      fontStyle: fila.tipo === "contador" || fila.extraida ? "italic" : undefined,
+      textDecoration: fila.tipo === "parte" && fila.extraida ? "line-through" : undefined,
+      opacity: fila.tipo === "parte" && fila.extraida ? 0.64 : 1,
       textAnchor: "middle",
       textVerticalAnchor: "middle",
       textWrap: { width: size.width - 24, height: PLEGADO.rowHeight - 4 },
-      pointerEvents: "none",
+      pointerEvents: fila.tipo === "parte" ? "auto" : "none",
+      cursor: fila.tipo === "parte" ? "pointer" : undefined,
     };
   }
   return attrs;
+}
+
+function selectoresPartesPlegadas(filas: FilaPlegadoParcial[]): Array<{ selector: string; entidadId: Id }> {
+  return filas.flatMap((fila, index) => fila.tipo === "parte"
+    ? [
+        { selector: `partLabel${index}`, entidadId: fila.entidadId },
+        { selector: `partHit${index}`, entidadId: fila.entidadId },
+      ]
+    : []);
+}
+
+function textoFilaPlegado(fila: FilaPlegadoParcial): string {
+  return fila.tipo === "parte" ? fila.nombre : fila.texto;
 }
 
 function anchoCapsulaEstado(nombre: string): number {
   return Math.max(ESTADOS.minWidth, nombre.length * 7 + ESTADOS.paddingHorizontal * 2);
 }
 
+interface EndpointVisual {
+  apariencia: Apariencia;
+  proxy?: { entidadId: Id; nombre: string };
+}
+
+function resolverEndpointVisual(
+  modelo: Modelo,
+  opd: { apariencias: Record<Id, Apariencia> },
+  aparienciaPorEntidad: Map<Id, Apariencia>,
+  entidadId: Id,
+): EndpointVisual | null {
+  const directa = aparienciaPorEntidad.get(entidadId);
+  if (directa) return { apariencia: directa };
+  for (const apariencia of Object.values(opd.apariencias)) {
+    if (modoPlegadoApariencia(apariencia) !== "parcial") continue;
+    const parte = partesDePlegado(modelo, apariencia.entidadId).find((item) => item.entidadId === entidadId);
+    if (parte) return { apariencia, proxy: { entidadId, nombre: parte.nombre } };
+  }
+  return null;
+}
+
+function proyectarProxyExtraccion(opdId: Id, opd: { apariencias: Record<Id, Apariencia> }, apariencia: Apariencia): JointCellJson[] {
+  const extraida = apariencia.parteExtraidaDe;
+  if (!extraida) return [];
+  const padre = opd.apariencias[extraida.padreAparienciaId];
+  if (!padre) return [];
+  return [{
+    id: `proxy-${apariencia.id}`,
+    type: "standard.Link",
+    source: extremo(padre.id),
+    target: extremo(apariencia.id),
+    router: routerManhattan(),
+    connector: { name: "straight" },
+    attrs: {
+      wrapper: {
+        stroke: "transparent",
+        strokeWidth: CANON.dims.enlaceHitArea,
+        cursor: "default",
+      },
+      line: {
+        stroke: "#98a2b3",
+        strokeWidth: 1.5,
+        strokeDasharray: "5 4",
+        sourceMarker: null,
+        targetMarker: null,
+      },
+    },
+    opm: {
+      kind: "proxy-plegado",
+      opdId,
+      padreAparienciaId: padre.id,
+      parteAparienciaId: apariencia.id,
+      parteEntidadId: extraida.parteEntidadId,
+    },
+    z: 0,
+  }];
+}
+
 function proyectarEnlace(
   opdId: Id,
   enlace: Enlace,
   aparienciaEnlaceId: Id,
-  origen: Apariencia,
-  destino: Apariencia,
+  origen: EndpointVisual,
+  destino: EndpointVisual,
   vertices: Posicion[],
   seleccionada: boolean,
 ): JointCellJson {
-  const verticesRender = verticesEnlace(enlace.tipo, origen, destino, vertices);
+  const verticesRender = verticesEnlace(enlace.tipo, origen.apariencia, destino.apariencia, vertices);
   return {
     id: aparienciaEnlaceId,
     type: "standard.Link",
-    source: {
-      id: origen.id,
-      anchor: { name: "midSide", args: { rotate: true } },
-      connectionPoint: { name: "boundary", args: { offset: 1 } },
-    },
-    target: {
-      id: destino.id,
-      anchor: { name: "midSide", args: { rotate: true } },
-      connectionPoint: { name: "boundary", args: { offset: 1 } },
-    },
+    source: extremo(origen.apariencia.id),
+    target: extremo(destino.apariencia.id),
     vertices: verticesRender,
     router: enlace.tipo === "invocacion" ? undefined : routerManhattan(),
     connector: { name: "straight" },
-    labels: etiquetasMultiplicidad(enlace),
+    labels: [...etiquetasMultiplicidad(enlace), ...etiquetasProxyParte(origen, destino)],
     attrs: {
       wrapper: {
         stroke: "transparent",
@@ -384,6 +476,40 @@ function proyectarEnlace(
       tipo: enlace.tipo,
     },
     z: 1,
+  };
+}
+
+function etiquetasProxyParte(origen: EndpointVisual, destino: EndpointVisual): Array<Record<string, unknown>> {
+  const labels: Array<Record<string, unknown>> = [];
+  if (origen.proxy) labels.push(etiquetaProxyParte(origen.proxy.nombre, 28));
+  if (destino.proxy) labels.push(etiquetaProxyParte(destino.proxy.nombre, -28));
+  return labels;
+}
+
+function etiquetaProxyParte(text: string, distance: number): Record<string, unknown> {
+  return {
+    markup: [{ tagName: "text", selector: "label" }],
+    attrs: {
+      label: {
+        text,
+        fill: "#475467",
+        fontFamily: CANON.dims.fontFamily,
+        fontSize: 12,
+        fontWeight: 700,
+        textAnchor: "middle",
+        textVerticalAnchor: "middle",
+        pointerEvents: "none",
+      },
+    },
+    position: {
+      distance,
+      offset: 14,
+      angle: 0,
+      args: {
+        keepGradient: false,
+        ensureLegibility: true,
+      },
+    },
   };
 }
 

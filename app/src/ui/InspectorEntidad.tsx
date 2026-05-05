@@ -1,5 +1,5 @@
 import { estadosDeEntidad } from "../modelo/operaciones";
-import { modoPlegadoApariencia, partesDePlegado } from "../modelo/plegado";
+import { filasPlegadoParcial, modoPlegadoApariencia, partesDePlegado, type FilaPlegadoParcial } from "../modelo/plegado";
 import type { Entidad, Estado, ModoDespliegueObjeto } from "../modelo/tipos";
 import { useOpmStore } from "../store";
 import { inspectorStyles as style } from "./inspectorStyles";
@@ -19,6 +19,8 @@ export function InspectorEntidad({ entidad }: Props) {
   const quitarDescomposicion = useOpmStore((s) => s.quitarDescomposicionSeleccionada);
   const quitarDespliegue = useOpmStore((s) => s.quitarDespliegueSeleccionado);
   const cambiarModoPlegado = useOpmStore((s) => s.cambiarModoPlegadoSeleccionado);
+  const extraerParte = useOpmStore((s) => s.extraerParteDePlegado);
+  const reinsertarParte = useOpmStore((s) => s.reinsertarParteExtraidaSeleccionada);
   const agregarEstados = useOpmStore((s) => s.agregarEstadosObjeto);
   const agregarEstado = useOpmStore((s) => s.agregarEstadoObjeto);
   const eliminarEstado = useOpmStore((s) => s.eliminarEstado);
@@ -32,6 +34,9 @@ export function InspectorEntidad({ entidad }: Props) {
     .find((apariencia) => apariencia.entidadId === entidad.id);
   const partesPlegables = partesDePlegado(modelo, entidad.id);
   const modoPlegado = aparienciaActiva ? modoPlegadoApariencia(aparienciaActiva) : "completo";
+  const filasParciales = aparienciaActiva && modoPlegado === "parcial"
+    ? filasPlegadoParcial(modelo, opdActivoId, aparienciaActiva.id)
+    : [];
   const estados = entidad.tipo === "objeto" ? estadosDeEntidad(modelo, entidad.id) : [];
 
   return (
@@ -125,6 +130,25 @@ export function InspectorEntidad({ entidad }: Props) {
         >
           {modoPlegado === "parcial" ? "Plegado completo" : "Plegado parcial"}
         </button>
+      ) : null}
+
+      {aparienciaActiva?.parteExtraidaDe ? (
+        <button
+          type="button"
+          style={style.secondaryButton}
+          onClick={reinsertarParte}
+          title="Reinsertar esta parte en la lista compacta del padre"
+        >
+          Reinsertar al padre
+        </button>
+      ) : null}
+
+      {aparienciaActiva && filasParciales.length > 0 ? (
+        <PartesCompactas
+          filas={filasParciales}
+          padreAparienciaId={aparienciaActiva.id}
+          onExtraer={extraerParte}
+        />
       ) : null}
 
       {entidad.tipo === "objeto" ? (
@@ -231,6 +255,35 @@ function EstadosObjeto(props: {
           </button>
         </div>
       )}
+    </section>
+  );
+}
+
+function PartesCompactas(props: {
+  filas: FilaPlegadoParcial[];
+  padreAparienciaId: string;
+  onExtraer: (padreAparienciaId: string, parteEntidadId: string) => void;
+}) {
+  return (
+    <section style={partialStyles.section} aria-label="Partes plegadas">
+      <span style={style.label}>Partes</span>
+      <div style={partialStyles.list}>
+        {props.filas.map((fila, index) => fila.tipo === "contador" ? (
+          <div key={`contador-${index}`} style={partialStyles.counter}>{fila.texto}</div>
+        ) : (
+          <div key={fila.entidadId} style={partialStyles.row}>
+            <span style={fila.extraida ? partialStyles.nameExtracted : partialStyles.name}>{fila.nombre}</span>
+            <button
+              type="button"
+              style={fila.extraida ? partialStyles.buttonDisabled : partialStyles.button}
+              disabled={fila.extraida}
+              onClick={() => props.onExtraer(props.padreAparienciaId, fila.entidadId)}
+            >
+              {fila.extraida ? "Extraída" : "Extraer"}
+            </button>
+          </div>
+        ))}
+      </div>
     </section>
   );
 }
@@ -350,6 +403,77 @@ const stateStyles = {
     color: "#98a2b3",
     cursor: "not-allowed",
     fontSize: "11px",
+    fontWeight: 700,
+  },
+} satisfies Record<string, preact.JSX.CSSProperties>;
+
+const partialStyles = {
+  section: {
+    display: "grid",
+    gap: "8px",
+    marginBottom: "14px",
+    paddingTop: "2px",
+  },
+  list: {
+    display: "grid",
+    gap: "6px",
+  },
+  row: {
+    display: "grid",
+    gridTemplateColumns: "minmax(0, 1fr) auto",
+    alignItems: "center",
+    gap: "8px",
+    padding: "8px",
+    border: "1px solid #d9e0ea",
+    borderRadius: "4px",
+    background: "#ffffff",
+  },
+  name: {
+    minWidth: 0,
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+    whiteSpace: "nowrap",
+    color: "#1f2937",
+    fontSize: "12px",
+    fontWeight: 700,
+  },
+  nameExtracted: {
+    minWidth: 0,
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+    whiteSpace: "nowrap",
+    color: "#667085",
+    fontSize: "12px",
+    fontWeight: 700,
+    fontStyle: "italic",
+    textDecoration: "line-through",
+  },
+  counter: {
+    padding: "8px",
+    color: "#667085",
+    fontSize: "12px",
+    fontStyle: "italic",
+  },
+  button: {
+    minHeight: "28px",
+    padding: "0 8px",
+    border: "1px solid #c8d2df",
+    borderRadius: "4px",
+    background: "#f9fbfd",
+    color: "#475467",
+    cursor: "pointer",
+    fontSize: "12px",
+    fontWeight: 700,
+  },
+  buttonDisabled: {
+    minHeight: "28px",
+    padding: "0 8px",
+    border: "1px solid #d9e0ea",
+    borderRadius: "4px",
+    background: "#f3f4f6",
+    color: "#98a2b3",
+    cursor: "not-allowed",
+    fontSize: "12px",
     fontWeight: 700,
   },
 } satisfies Record<string, preact.JSX.CSSProperties>;

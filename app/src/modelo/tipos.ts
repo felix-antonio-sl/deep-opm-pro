@@ -60,6 +60,7 @@ export interface Apariencia {
   width: number;
   height: number;
   modoPlegado?: ModoPlegado;
+  parteExtraidaDe?: { padreAparienciaId: Id; parteEntidadId: Id };
 }
 
 export interface Enlace {

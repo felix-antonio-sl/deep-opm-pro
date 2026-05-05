@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { ajustarMultiplicidad, crearEnlace, crearEstadosIniciales, crearModelo, crearObjeto, crearProceso, designarEstadoFinal, designarEstadoInicial, descomponerProceso, desplegarObjeto, reanclarEnlaceExternoDerivado } from "../modelo/operaciones";
-import { cambiarModoPlegado } from "../modelo/plegado";
+import { cambiarModoPlegado, extraerParteDePlegado, partesExtraidasEn } from "../modelo/plegado";
 import type { Apariencia, Modelo, ModoDespliegueObjeto, RefinamientoEntidad, TipoEnlace } from "../modelo/tipos";
 import { exportarModelo, hidratarModelo } from "./json";
 
@@ -542,6 +542,29 @@ describe("serializacion JSON", () => {
     expect(hidratado.ok).toBe(true);
     if (!hidratado.ok) return;
     expect(hidratado.value.opds[modelo.opdRaizId]?.apariencias[apariencia.id]?.modoPlegado).toBe("parcial");
+  });
+
+  test("round-trip preserva metadata de parte extraida", () => {
+    let modelo = crearModelo("Plegado parcial avanzado");
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 200, y: 120 }, "Vehiculo"));
+    const objetoId = entidadPorNombre(modelo, "Vehiculo");
+    modelo = must(desplegarObjeto(modelo, modelo.opdRaizId, objetoId)).modelo;
+    const padre = aparienciaDeEntidad(modelo, modelo.opdRaizId, objetoId);
+    modelo = must(cambiarModoPlegado(modelo, modelo.opdRaizId, padre.id, "parcial"));
+    const parteId = entidadPorNombre(modelo, "Vehiculo parte 1");
+    modelo = must(extraerParteDePlegado(modelo, modelo.opdRaizId, padre.id, parteId));
+    const extraida = partesExtraidasEn(modelo, modelo.opdRaizId, padre.id)[0];
+    expect(extraida).toBeDefined();
+    if (!extraida) return;
+
+    const hidratado = hidratarModelo(exportarModelo(modelo));
+
+    expect(hidratado.ok).toBe(true);
+    if (!hidratado.ok) return;
+    expect(hidratado.value.opds[modelo.opdRaizId]?.apariencias[extraida.id]?.parteExtraidaDe).toEqual({
+      padreAparienciaId: padre.id,
+      parteEntidadId: parteId,
+    });
   });
 
   test("hidratar modelo sin modoPlegado asume completo", () => {
