@@ -26,6 +26,9 @@ export interface OplTokenHint {
   ref: OplReferencia;
   rol: Exclude<OplToken["rol"], "texto">;
   markdown?: OplToken["markdown"];
+  /** Texto alternativo para match cuando difiere del `texto` canónico
+   *  (ej. estados con tildes donde el hint usa backticks). Opcional. */
+  alias?: string;
 }
 
 export function crearLineaOplInteractiva(
@@ -89,11 +92,18 @@ function tokenizarConHints(lineId: string, texto: string, hints: OplTokenHint[])
 
 function ubicarHint(texto: string, hint: OplTokenHint, hintIndex: number): Array<OplTokenHint & { start: number; end: number; hintIndex: number }> {
   if (hint.texto.length === 0) return [];
+  const textosBusqueda = [hint.texto];
+  if (hint.alias && hint.alias.length > 0 && hint.alias !== hint.texto) {
+    textosBusqueda.push(hint.alias);
+  }
   const ubicaciones: Array<OplTokenHint & { start: number; end: number; hintIndex: number }> = [];
-  let start = texto.indexOf(hint.texto);
-  while (start >= 0) {
-    ubicaciones.push({ ...hint, start, end: start + hint.texto.length, hintIndex });
-    start = texto.indexOf(hint.texto, start + hint.texto.length);
+  for (const textoBuscar of textosBusqueda) {
+    let start = texto.indexOf(textoBuscar);
+    while (start >= 0) {
+      // Usamos el texto real del hint (no el alias) para delimitar el token
+      ubicaciones.push({ ...hint, start, end: start + textoBuscar.length, hintIndex });
+      start = texto.indexOf(textoBuscar, start + textoBuscar.length);
+    }
   }
   return ubicaciones;
 }

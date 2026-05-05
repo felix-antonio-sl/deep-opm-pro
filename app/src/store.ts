@@ -59,6 +59,13 @@ import {
 import { crearAutoInvocacion } from "./modelo/autoinvocacion";
 import { eliminarOpdHoja } from "./modelo/opdEliminacion";
 import {
+  listarHermanos,
+  moverNodo,
+  ordenSegunCanvasPadre,
+  reordenarHermanos,
+  validarMovimientoSinCiclo,
+} from "./modelo/opdReorden";
+import {
   aplicarModificador,
   definirDemora,
   definirProbabilidad,
@@ -66,6 +73,22 @@ import {
 } from "./modelo/modificadores";
 import { renombrarEtiquetaEnlace } from "./modelo/etiquetasEnlace";
 import { definirRutaEtiqueta } from "./modelo/rutas";
+import {
+  aplicarEstiloEnlace,
+  copiarEstiloEnlace,
+  pegarEstiloEnlace,
+  resetEstiloEnlace,
+} from "./modelo/enlaceEstilo";
+import {
+  fijarMultiplicidadOrigen,
+  fijarMultiplicidadDestino,
+  quitarMultiplicidad,
+} from "./modelo/enlaceMultiplicidad";
+import {
+  insertarVerticeApariencia,
+  reposicionarVerticeApariencia,
+  reanclarExtremoEnlace as reanclarExtremoEnlaceOp,
+} from "./modelo/enlaceVertices";
 import {
   borrarModeloLocal,
   cargarModeloLocal,
@@ -77,11 +100,28 @@ import {
   validarNombreModeloLocal,
   workspaceDesdeModelo,
   type WorkspaceModeloLocal,
+  type CarpetaIndice,
+  type WorkspaceIndice,
+  indiceVacio,
+  crearCarpeta as crearCarpetaEnIndice,
+  renombrarCarpeta as renombrarCarpetaEnIndiceOp,
+  eliminarCarpeta as eliminarCarpetaEnIndiceOp,
+  moverModeloACarpeta as moverModeloACarpetaEnIndiceOp,
+  listarHijosDeCarpeta,
+  rutaDeCarpeta,
 } from "./persistencia/workspace";
+import {
+  crearAutosalvado,
+  type AutosalvadoEstado,
+  type AutosalvadoControl,
+} from "./persistencia/autosalvado";
 import { exportarModelo, hidratarModelo } from "./serializacion/json";
 import type { Aviso } from "./modelo/validaciones";
-import type { Afiliacion, Apariencia, Esencia, EstiloApariencia, ExtremoEnlace, Id, Modelo, Modificador, ModoDespliegueObjeto, ModoPlegado, OperadorAbanico, OrdenPartesPlegado, Posicion, TipoEnlace, TipoEntidad } from "./modelo/tipos";
+import type { Afiliacion, Apariencia, EnlaceEstilo, Esencia, EstiloApariencia, ExtremoEnlace, Id, Modelo, Modificador, ModoDespliegueObjeto, ModoPlegado, OperadorAbanico, OrdenPartesPlegado, Posicion, TipoEnlace, TipoEntidad } from "./modelo/tipos";
 import { mismaReferencia, type OplReferencia } from "./opl/interaccion";
+import { datosAsistenteVacio, sembrarModeloDesdeAsistente, validarDatosAsistente, type DatosAsistente, type EtapaAsistente } from "./modelo/creacionWizard";
+import { generarOpl } from "./opl/generar";
+import { construirDescriptorMapa, type DescriptorMapa } from "./render/jointjs/mapaSistema";
 
 interface ModoEnlace {
   tipo: TipoEnlace;
@@ -97,6 +137,7 @@ interface OpmStore {
   modoCreacion: TipoEntidad | null;
   filtroOplPorSeleccion: boolean;
   hoverOplRef: OplReferencia | null;
+  busquedaOpl: string;
   mensaje: string | null;
   dirty: boolean;
   puedeDeshacer: boolean;
@@ -108,6 +149,27 @@ interface OpmStore {
   dialogoGuardarComoAbierto: boolean;
   dialogoCargarModeloAbierto: boolean;
   workspaceLocal: WorkspaceModeloLocal;
+  tablaEnlacesAbierta: boolean;
+  tablaEnlacesFiltroTipo: TipoEnlace | "todos";
+  tablaEnlacesOrdenColumna: string | null;
+  tablaEnlacesOrdenDireccion: "asc" | "desc";
+  enlaceEstiloPortapapeles: EnlaceEstilo | null;
+  // ── Carpetas (L4) ──
+  indice: WorkspaceIndice;
+  carpetaActualId: Id | null;
+  modelosRecientes: ResumenModeloPersistido[];
+  // ── Búsqueda intra-modelo (L4) ──
+  busquedaCosasAbierta: boolean;
+  busquedaCosasQuery: string;
+  busquedaCosasFiltro: "todos" | "procesos" | "objetos";
+  // ── Autosalvado (L4) ──
+  autosalvado: AutosalvadoEstado;
+  // ── Asistente nuevo modelo (L3) ──
+  asistente: null | {
+    etapaActual: EtapaAsistente;
+    datos: Partial<DatosAsistente>;
+    cancelado: boolean;
+  };
   limpiarMensaje: () => void;
   abrirMenuPrincipal: () => void;
   cerrarMenuPrincipal: () => void;
@@ -135,6 +197,12 @@ interface OpmStore {
   renombrarEntidadDesdeOpl: (entidadId: Id, nombre: string) => void;
   fijarFiltroOplPorSeleccion: (activo: boolean) => void;
   fijarHoverOpl: (ref: OplReferencia | null) => void;
+  fijarBusquedaOpl: (texto: string) => void;
+  editarEtiquetaEnlaceDesdeOpl: (enlaceId: Id, etiqueta: string) => void;
+  renombrarEstadoDesdeOpl: (estadoId: Id, nombre: string) => void;
+  abrirInspectorEnlaceDesdeOpl: (enlaceId: Id) => void;
+  copiarOplActualAlPortapapeles: () => Promise<void>;
+  exportarOplActualHtml: () => Promise<void>;
   navegarAviso: (aviso: Aviso) => void;
   deshacer: () => void;
   rehacer: () => void;
@@ -185,6 +253,65 @@ interface OpmStore {
   cargarLocal: (id?: Id) => void;
   borrarLocal: (id: Id) => void;
   cargarDemo: () => void;
+  // ── Carpetas (L4) ──
+  crearCarpetaEnActual: (nombre: string) => void;
+  renombrarCarpetaEnIndice: (carpetaId: Id, nombre: string) => void;
+  eliminarCarpetaEnIndice: (carpetaId: Id, opciones: { cascada: boolean }) => Promise<void>;
+  abrirCarpeta: (carpetaId: Id | null) => void;
+  moverModeloACarpetaEnIndice: (modeloId: Id, carpetaId: Id | null) => void;
+  // ── Búsqueda (L4) ──
+  abrirBusquedaCosas: () => void;
+  cerrarBusquedaCosas: () => void;
+  fijarBusquedaCosasQuery: (q: string) => void;
+  fijarBusquedaCosasFiltro: (filtro: "todos" | "procesos" | "objetos") => void;
+  saltarAResultadoBusqueda: (entidadId: Id, opdId: Id) => void;
+  // ── Autosalvado (L4) ──
+  iniciarAutosalvado: () => void;
+  detenerAutosalvado: () => void;
+  // ── L6: enlaces, estilo, tabla ──
+  fijarMultiplicidadEnlace: (enlaceId: Id, lado: "origen" | "destino", valor: string) => void;
+  quitarMultiplicidadEnlace: (enlaceId: Id, lado: "origen" | "destino") => void;
+  aplicarEstiloEnlaceAccion: (enlaceId: Id, estilo: Partial<EnlaceEstilo>) => void;
+  resetEstiloEnlaceAccion: (enlaceId: Id) => void;
+  copiarEstiloEnlaceAlPortapapeles: (enlaceId: Id) => void;
+  pegarEstiloEnlaceDesdePortapapeles: (enlaceId: Id) => void;
+  aplicarEstiloTextoAccion: (aparienciaId: Id, estilo: Partial<EstiloApariencia>) => void;
+  resetEstiloTextoAccion: (aparienciaId: Id) => void;
+  insertarVerticeAccion: (aparienciaEnlaceId: Id, posicion: Posicion) => void;
+  reposicionarVerticeAccion: (aparienciaEnlaceId: Id, indice: number, posicion: Posicion) => void;
+  reanclarExtremoAccion: (enlaceId: Id, lado: "origen" | "destino", nuevoExtremo: ExtremoEnlace) => void;
+  borrarEnlacesEnLote: (enlaceIds: Id[]) => void;
+  abrirTablaEnlaces: () => void;
+  cerrarTablaEnlaces: () => void;
+  fijarFiltroTablaEnlaces: (tipo: TipoEnlace | "todos") => void;
+  fijarOrdenTablaEnlaces: (columna: string) => void;
+  navegarAEnlaceDesdeTabla: (enlaceId: Id) => void;
+  // ── L5: Mapa del sistema ─────────────────────────────────────────
+  vistaMapaActiva: boolean;
+  descriptorMapaCache: import("./render/jointjs/mapaSistema").DescriptorMapa | null;
+  abrirVistaMapa: () => void;
+  cerrarVistaMapa: () => void;
+  saltarAOpdDesdeMapa: (opdId: Id) => void;
+  // ── L5: Reordenamiento del árbol ─────────────────────────────────
+  modoOrdenArbol: "manual" | "automatico";
+  fijarModoOrdenArbol: (modo: "manual" | "automatico") => void;
+  moverHermano: (padreId: Id | null, opdId: Id, posicion: number) => void;
+  moverOpdEnGestion: (opdId: Id, nuevoPadreId: Id | null, posicion: number) => void;
+  // ── L5: Gestión árbol ────────────────────────────────────────────
+  gestionArbolAbierta: boolean;
+  abrirGestionArbol: () => void;
+  cerrarGestionArbol: () => void;
+  busquedaOpdGestion: string;
+  fijarBusquedaOpdGestion: (q: string) => void;
+  // ── L5: Renombrado OPD desde árbol ───────────────────────────────
+  renombrarOpdDesdeArbol: (opdId: Id, nombre: string) => void;
+  // ── /L5 ──────────────────────────────────────────────────────────
+  // ── L3: Asistente nuevo modelo ───────────────────────────────────
+  iniciarAsistente: () => void;
+  siguienteEtapa: (parcial: Partial<DatosAsistente>) => void;
+  etapaAnterior: () => void;
+  cancelarAsistente: () => void;
+  confirmarAsistente: () => void;
 }
 
 const modeloInicial = crearModelo("Modelo");
@@ -192,6 +319,9 @@ const UNDO_LIMIT = 100;
 let snapshotGuardado = exportarModelo(modeloInicial);
 let undoStack: Modelo[] = [];
 let redoStack: Modelo[] = [];
+let autosalvadoControl: AutosalvadoControl | null = null;
+
+const WS_KEY = "deep-opm-pro:persistencia:workspace";
 
 export const store = createStore<OpmStore>((set, get) => ({
   modelo: modeloInicial,
@@ -202,6 +332,7 @@ export const store = createStore<OpmStore>((set, get) => ({
   modoCreacion: null,
   filtroOplPorSeleccion: false,
   hoverOplRef: null,
+  busquedaOpl: "",
   mensaje: null,
   dirty: false,
   puedeDeshacer: false,
@@ -213,6 +344,33 @@ export const store = createStore<OpmStore>((set, get) => ({
   dialogoGuardarComoAbierto: false,
   dialogoCargarModeloAbierto: false,
   workspaceLocal: workspaceDesdeModelo(modeloInicial, null),
+  // ── L6 ──
+  tablaEnlacesAbierta: false,
+  tablaEnlacesFiltroTipo: "todos",
+  tablaEnlacesOrdenColumna: null,
+  tablaEnlacesOrdenDireccion: "asc",
+  enlaceEstiloPortapapeles: null,
+
+  // ── Carpetas (L4) ──
+  indice: indiceVacio(),
+  carpetaActualId: null,
+  modelosRecientes: [],
+  // ── Búsqueda (L4) ──
+  busquedaCosasAbierta: false,
+  busquedaCosasQuery: "",
+  busquedaCosasFiltro: "todos",
+  // ── Autosalvado (L4) ──
+  autosalvado: { activo: false, ultimo: null, salvando: false },
+  // ── L5: Mapa del sistema ──
+  vistaMapaActiva: false,
+  descriptorMapaCache: null,
+  // ── L5: Reordenamiento ──
+  modoOrdenArbol: "automatico",
+  // ── L5: Gestión árbol ──
+  gestionArbolAbierta: false,
+  busquedaOpdGestion: "",
+  // ── L3: Asistente ──
+  asistente: null,
 
   limpiarMensaje() {
     set({ mensaje: null });
@@ -231,12 +389,19 @@ export const store = createStore<OpmStore>((set, get) => ({
   },
 
   abrirGuardarComo() {
-    const { modelo, modeloPersistidoId, descripcionModeloLocal } = get();
+    const { modelo, modeloPersistidoId, descripcionModeloLocal, indice } = get();
+    const modelosGuardados = listarModelosGuardadosSeguro();
+    const indiceSinc = sincronizarIndiceConModelosGuardados(modelosGuardados, indice);
+    const carpetaId = modeloPersistidoId
+      ? indiceSinc.modelos.find((m) => m.id === modeloPersistidoId)?.carpetaId ?? null
+      : get().carpetaActualId;
     set({
       menuPrincipalAbierto: false,
       dialogoGuardarComoAbierto: true,
-      workspaceLocal: workspaceDesdeModelo(modelo, modeloPersistidoId, descripcionModeloLocal),
-      modelosGuardados: listarModelosGuardadosSeguro(),
+      workspaceLocal: workspaceDesdeModelo(modelo, modeloPersistidoId, descripcionModeloLocal, carpetaId),
+      modelosGuardados,
+      indice: indiceSinc,
+      carpetaActualId: carpetaId,
       mensaje: null,
     });
   },
@@ -246,7 +411,7 @@ export const store = createStore<OpmStore>((set, get) => ({
   },
 
   guardarComoLocal(input) {
-    const { modelo, modelosGuardados, opdActivoId } = get();
+    const { modelo, modelosGuardados, opdActivoId, carpetaActualId, indice } = get();
     const validacion = validarNombreModeloLocal(input.nombre, modelosGuardados);
     if (!validacion.ok) {
       set({ mensaje: validacion.error ?? "Nombre de modelo inválido" });
@@ -254,18 +419,27 @@ export const store = createStore<OpmStore>((set, get) => ({
     }
     const descripcion = input.descripcion?.trim() ?? "";
     const modeloNombrado: Modelo = { ...modelo, nombre: validacion.nombre };
-    const json = exportarModelo(modeloNombrado);
+    const carpetaParaGuardar = carpetaActualId;
+    const json = exportarModelo(modeloNombrado, carpetaParaGuardar);
     const guardado = guardarModeloLocal({
       id: null,
       nombre: validacion.nombre,
       descripcion,
       json,
+      ...(carpetaParaGuardar !== undefined ? { carpetaId: carpetaParaGuardar } : {}),
     });
     if (!guardado.ok) {
       set({ mensaje: guardado.error });
       return;
     }
-    snapshotGuardado = json;
+    // Snapshot para dirty tracking sin carpetaId (normalizado)
+    snapshotGuardado = exportarModelo(modeloNombrado);
+    const nuevoIndice: WorkspaceIndice = {
+      ...indice,
+      modelos: [...indice.modelos.filter((m) => m.id !== guardado.value.id), { id: guardado.value.id, carpetaId: carpetaParaGuardar ?? null }],
+      recientes: [guardado.value.id, ...indice.recientes.filter((r) => r !== guardado.value.id)].slice(0, 10),
+    };
+    escribirIndiceWorkspace(nuevoIndice);
     set(estadoModelo(modeloNombrado, {
       opdActivoId: opdActivoSeguro(modeloNombrado, opdActivoId),
       seleccionId: null,
@@ -277,15 +451,21 @@ export const store = createStore<OpmStore>((set, get) => ({
       descripcionModeloLocal: guardado.value.descripcion,
       modelosGuardados: listarModelosGuardadosSeguro(),
       dialogoGuardarComoAbierto: false,
-      workspaceLocal: workspaceDesdeModelo(modeloNombrado, guardado.value.id, guardado.value.descripcion),
+      indice: nuevoIndice,
+      workspaceLocal: workspaceDesdeModelo(modeloNombrado, guardado.value.id, guardado.value.descripcion, carpetaParaGuardar ?? null),
     }));
   },
 
   abrirCargarModelo() {
+    const modelosGuardados = listarModelosGuardadosSeguro();
+    const indiceSinc = sincronizarIndiceConModelosGuardados(modelosGuardados, leerIndiceWorkspace());
     set({
       menuPrincipalAbierto: false,
       dialogoCargarModeloAbierto: true,
-      modelosGuardados: listarModelosGuardadosSeguro(),
+      modelosGuardados,
+      indice: indiceSinc,
+      carpetaActualId: null,
+      modelosRecientes: modelosRecientesDeIndice(indiceSinc, modelosGuardados),
       mensaje: null,
     });
   },
@@ -608,6 +788,83 @@ export const store = createStore<OpmStore>((set, get) => ({
     const actual = get().hoverOplRef;
     if ((actual === null && ref === null) || (actual && ref && mismaReferencia(actual, ref))) return;
     set({ hoverOplRef: ref });
+  },
+
+  fijarBusquedaOpl(texto) {
+    set({ busquedaOpl: texto });
+  },
+
+  editarEtiquetaEnlaceDesdeOpl(enlaceId, etiqueta) {
+    const { modelo } = get();
+    const resultado = renombrarEtiquetaEnlace(modelo, enlaceId, etiqueta);
+    if (!resultado.ok) {
+      set({ mensaje: resultado.error });
+      return;
+    }
+    commitModelo(set, modelo, resultado.value, {
+      seleccionId: null,
+      enlaceSeleccionId: enlaceId,
+      modoEnlace: null,
+      mensaje: null,
+    });
+  },
+
+  renombrarEstadoDesdeOpl(estadoId, nombre) {
+    const { modelo } = get();
+    const resultado = renombrarEstado(modelo, estadoId, nombre);
+    if (!resultado.ok) {
+      set({ mensaje: resultado.error });
+      return;
+    }
+    const estadoResultado = resultado.value.estados[estadoId];
+    commitModelo(set, modelo, resultado.value, {
+      seleccionId: estadoResultado?.entidadId ?? null,
+      enlaceSeleccionId: null,
+      modoEnlace: null,
+      mensaje: null,
+    });
+  },
+
+  abrirInspectorEnlaceDesdeOpl(enlaceId) {
+    const { modelo } = get();
+    if (!modelo.enlaces[enlaceId]) {
+      set({ mensaje: `Enlace no existe: ${enlaceId}` });
+      return;
+    }
+    set({ seleccionId: null, enlaceSeleccionId: enlaceId, modoEnlace: null, mensaje: null });
+  },
+
+  async copiarOplActualAlPortapapeles() {
+    const { modelo, opdActivoId } = get();
+    const lineas = generarOpl(modelo, opdActivoId);
+    const texto = lineas.join("\n");
+    try {
+      await navigator.clipboard.writeText(texto);
+      set({ mensaje: "OPL copiado al portapapeles" });
+    } catch {
+      set({ mensaje: "No se pudo copiar al portapapeles" });
+    }
+  },
+
+  async exportarOplActualHtml() {
+    const { modelo, opdActivoId } = get();
+    const lineas = generarOpl(modelo, opdActivoId);
+    if (lineas.length === 0) {
+      set({ mensaje: "Sin OPL para exportar" });
+      return;
+    }
+    // Generar HTML usando los tokens con estilos canónicos (JOYAS §1)
+    const html = generarHtmlOpl(lineas, modelo.nombre);
+    const blob = new Blob([html], { type: "text/html" });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = `${modelo.nombre.replace(/[^a-zA-Z0-9\u00C0-\u024F_-]/g, "_")}-opl.html`;
+    document.body.appendChild(anchor);
+    anchor.click();
+    document.body.removeChild(anchor);
+    URL.revokeObjectURL(url);
+    set({ mensaje: null });
   },
 
   navegarAviso(aviso) {
@@ -1356,30 +1613,33 @@ export const store = createStore<OpmStore>((set, get) => ({
   },
 
   guardarLocal() {
-    const { modelo, modeloPersistidoId, descripcionModeloLocal } = get();
+    const { modelo, modeloPersistidoId, descripcionModeloLocal, indice } = get();
     if (!modeloPersistidoId) {
       get().abrirGuardarComo();
       return;
     }
-    const json = exportarModelo(modelo);
+    const carpetaId = indice.modelos.find((m) => m.id === modeloPersistidoId)?.carpetaId ?? null;
+    const json = exportarModelo(modelo, carpetaId);
     const guardado = guardarModeloLocal({
       id: modeloPersistidoId,
       nombre: modelo.nombre,
       descripcion: descripcionModeloLocal,
       json,
+      ...(carpetaId !== undefined ? { carpetaId } : {}),
     });
     if (!guardado.ok) {
       set({ mensaje: guardado.error });
       return;
     }
-    snapshotGuardado = json;
+    // Snapshot para dirty tracking sin carpetaId (normalizado)
+    snapshotGuardado = exportarModelo(modelo);
     set({
       mensaje: "Modelo guardado exitosamente",
       dirty: false,
       modeloPersistidoId: guardado.value.id,
       descripcionModeloLocal: guardado.value.descripcion,
       modelosGuardados: listarModelosGuardadosSeguro(),
-      workspaceLocal: workspaceDesdeModelo(modelo, guardado.value.id, guardado.value.descripcion),
+      workspaceLocal: workspaceDesdeModelo(modelo, guardado.value.id, guardado.value.descripcion, carpetaId),
     });
   },
 
@@ -1399,7 +1659,26 @@ export const store = createStore<OpmStore>((set, get) => ({
       set({ mensaje: resultado.error });
       return;
     }
+    // Actualizar última apertura en el modelo
+    guardarModeloLocal({
+      id: cargado.value.id,
+      nombre: cargado.value.nombre,
+      descripcion: cargado.value.descripcion,
+      json: cargado.value.json,
+      ultimaApertura: new Date().toISOString(),
+      ...(cargado.value.carpetaId !== undefined ? { carpetaId: cargado.value.carpetaId } : {}),
+    });
+    // Actualizar índice de workspace
+    const indice = leerIndiceWorkspace();
+    const carpetaId = cargado.value.carpetaId ?? null;
+    const nuevoIndice: WorkspaceIndice = {
+      ...indice,
+      modelos: [...indice.modelos.filter((m) => m.id !== modeloId), { id: modeloId, carpetaId }],
+      recientes: [modeloId, ...indice.recientes.filter((r) => r !== modeloId)].slice(0, 10),
+    };
+    escribirIndiceWorkspace(nuevoIndice);
     resetHistorial(resultado.value);
+    const updatedGuardados = listarModelosGuardadosSeguro();
     set(estadoModelo(resultado.value, {
       opdActivoId: resultado.value.opdRaizId,
       seleccionId: null,
@@ -1407,9 +1686,12 @@ export const store = createStore<OpmStore>((set, get) => ({
       modoEnlace: null,
       modeloPersistidoId: cargado.value.id,
       descripcionModeloLocal: cargado.value.descripcion,
-      modelosGuardados: listarModelosGuardadosSeguro(),
+      modelosGuardados: updatedGuardados,
+      modelosRecientes: modelosRecientesDeIndice(nuevoIndice, updatedGuardados),
+      indice: nuevoIndice,
       dialogoCargarModeloAbierto: false,
-      workspaceLocal: workspaceDesdeModelo(resultado.value, cargado.value.id, cargado.value.descripcion),
+      carpetaActualId: null,
+      workspaceLocal: workspaceDesdeModelo(resultado.value, cargado.value.id, cargado.value.descripcion, carpetaId),
       mensaje: `Modelo cargado: ${cargado.value.nombre}`,
     }));
   },
@@ -1444,8 +1726,569 @@ export const store = createStore<OpmStore>((set, get) => ({
       modoEnlace: null,
       modeloPersistidoId: null,
       descripcionModeloLocal: "",
+      carpetaActualId: null,
       workspaceLocal: workspaceDesdeModelo(modelo, null),
       mensaje: "Demo cargado",
+    }));
+  },
+
+  // ── L6: enlaces, estilo, tabla ─────────────────────────────────
+
+  fijarMultiplicidadEnlace(enlaceId, lado, valor) {
+    const { modelo } = get();
+    const resultado = lado === "origen"
+      ? fijarMultiplicidadOrigen(modelo, enlaceId, valor)
+      : fijarMultiplicidadDestino(modelo, enlaceId, valor);
+    if (!resultado.ok) {
+      set({ mensaje: resultado.error });
+      return;
+    }
+    commitModelo(set, modelo, resultado.value, { seleccionId: null, enlaceSeleccionId: enlaceId, modoEnlace: null, mensaje: null });
+  },
+
+  quitarMultiplicidadEnlace(enlaceId, lado) {
+    const { modelo } = get();
+    const resultado = quitarMultiplicidad(modelo, enlaceId, lado);
+    if (!resultado.ok) {
+      set({ mensaje: resultado.error });
+      return;
+    }
+    commitModelo(set, modelo, resultado.value, { seleccionId: null, enlaceSeleccionId: enlaceId, modoEnlace: null, mensaje: null });
+  },
+
+  aplicarEstiloEnlaceAccion(enlaceId, estilo) {
+    const { modelo } = get();
+    const resultado = aplicarEstiloEnlace(modelo, enlaceId, estilo);
+    if (!resultado.ok) {
+      set({ mensaje: resultado.error });
+      return;
+    }
+    commitModelo(set, modelo, resultado.value, { seleccionId: null, enlaceSeleccionId: enlaceId, modoEnlace: null, mensaje: null });
+  },
+
+  resetEstiloEnlaceAccion(enlaceId) {
+    const { modelo } = get();
+    const resultado = resetEstiloEnlace(modelo, enlaceId);
+    if (!resultado.ok) {
+      set({ mensaje: resultado.error });
+      return;
+    }
+    commitModelo(set, modelo, resultado.value, { seleccionId: null, enlaceSeleccionId: enlaceId, modoEnlace: null, mensaje: null });
+  },
+
+  copiarEstiloEnlaceAlPortapapeles(enlaceId) {
+    const { modelo } = get();
+    const copiado = copiarEstiloEnlace(modelo, enlaceId);
+    set({ enlaceEstiloPortapapeles: copiado, mensaje: copiado ? "Estilo copiado" : "Sin estilo que copiar" });
+  },
+
+  pegarEstiloEnlaceDesdePortapapeles(enlaceId) {
+    const { modelo, enlaceEstiloPortapapeles } = get();
+    if (!enlaceEstiloPortapapeles) {
+      set({ mensaje: "No hay estilo de enlace en el portapapeles" });
+      return;
+    }
+    const resultado = pegarEstiloEnlace(modelo, enlaceId, enlaceEstiloPortapapeles);
+    if (!resultado.ok) {
+      set({ mensaje: resultado.error });
+      return;
+    }
+    commitModelo(set, modelo, resultado.value, { seleccionId: null, enlaceSeleccionId: enlaceId, modoEnlace: null, mensaje: "Estilo pegado" });
+  },
+
+  aplicarEstiloTextoAccion(aparienciaId, estilo) {
+    const { modelo, opdActivoId } = get();
+    const opd = modelo.opds[opdActivoId];
+    if (!opd?.apariencias[aparienciaId]) {
+      set({ mensaje: "Apariencia no existe" });
+      return;
+    }
+    const resultado = aplicarEstiloApariencia(modelo, opdActivoId, aparienciaId, estilo);
+    if (!resultado.ok) {
+      set({ mensaje: resultado.error });
+      return;
+    }
+    const entidadId = opd.apariencias[aparienciaId]?.entidadId ?? null;
+    commitModelo(set, modelo, resultado.value, { seleccionId: entidadId, enlaceSeleccionId: null, modoEnlace: null, mensaje: null });
+  },
+
+  resetEstiloTextoAccion(aparienciaId) {
+    const { modelo, opdActivoId } = get();
+    const opd = modelo.opds[opdActivoId];
+    if (!opd?.apariencias[aparienciaId]) {
+      set({ mensaje: "Apariencia no existe" });
+      return;
+    }
+    // Solo resetea campos de texto, preserva fill/border
+    const resultado = aplicarEstiloApariencia(modelo, opdActivoId, aparienciaId, { fontFamily: undefined, fontSize: undefined, fontWeight: undefined, fontStyle: undefined, textColor: undefined, textAnchor: undefined } as Record<string, undefined> as unknown as EstiloApariencia);
+    if (!resultado.ok) {
+      set({ mensaje: resultado.error });
+      return;
+    }
+    const entidadId = opd.apariencias[aparienciaId]?.entidadId ?? null;
+    commitModelo(set, modelo, resultado.value, { seleccionId: entidadId, enlaceSeleccionId: null, modoEnlace: null, mensaje: null });
+  },
+
+  insertarVerticeAccion(aparienciaEnlaceId, posicion) {
+    const { modelo } = get();
+    const resultado = insertarVerticeApariencia(modelo, aparienciaEnlaceId, posicion);
+    if (!resultado.ok) {
+      set({ mensaje: resultado.error });
+      return;
+    }
+    commitModelo(set, modelo, resultado.value, { mensaje: null });
+  },
+
+  reposicionarVerticeAccion(aparienciaEnlaceId, indice, posicion) {
+    const { modelo } = get();
+    const resultado = reposicionarVerticeApariencia(modelo, aparienciaEnlaceId, indice, posicion);
+    if (!resultado.ok) {
+      set({ mensaje: resultado.error });
+      return;
+    }
+    commitModelo(set, modelo, resultado.value, { mensaje: null });
+  },
+
+  reanclarExtremoAccion(enlaceId, lado, nuevoExtremo) {
+    const { modelo } = get();
+    const resultado = reanclarExtremoEnlaceOp(modelo, enlaceId, lado, nuevoExtremo);
+    if (!resultado.ok) {
+      set({ mensaje: resultado.error });
+      return;
+    }
+    commitModelo(set, modelo, resultado.value.modelo, { seleccionId: null, enlaceSeleccionId: enlaceId, modoEnlace: null, mensaje: resultado.value.advertencia ?? null });
+  },
+
+  borrarEnlacesEnLote(enlaceIds) {
+    const { modelo } = get();
+    if (enlaceIds.length === 0) return;
+    let actual = modelo;
+    for (const enlaceId of enlaceIds) {
+      const res = eliminarEnlace(actual, enlaceId);
+      if (!res.ok) {
+        set({ mensaje: res.error });
+        return;
+      }
+      actual = res.value;
+    }
+    commitModelo(set, modelo, actual, { seleccionId: null, enlaceSeleccionId: null, modoEnlace: null, mensaje: `${enlaceIds.length} enlaces eliminados` });
+  },
+
+  abrirTablaEnlaces() {
+    set({ tablaEnlacesAbierta: true, menuPrincipalAbierto: false });
+  },
+
+  cerrarTablaEnlaces() {
+    set({ tablaEnlacesAbierta: false });
+  },
+
+  fijarFiltroTablaEnlaces(tipo) {
+    set({ tablaEnlacesFiltroTipo: tipo });
+  },
+
+  fijarOrdenTablaEnlaces(columna) {
+    const { tablaEnlacesOrdenColumna, tablaEnlacesOrdenDireccion } = get();
+    if (tablaEnlacesOrdenColumna === columna) {
+      set({
+        tablaEnlacesOrdenDireccion: tablaEnlacesOrdenDireccion === "asc" ? "desc" : "asc",
+      });
+    } else {
+      set({ tablaEnlacesOrdenColumna: columna, tablaEnlacesOrdenDireccion: "asc" });
+    }
+  },
+
+  navegarAEnlaceDesdeTabla(enlaceId) {
+    const { modelo } = get();
+    const enlace = modelo.enlaces[enlaceId];
+    if (!enlace) {
+      set({ mensaje: `Enlace no existe: ${enlaceId}` });
+      return;
+    }
+    // Encontrar el primer OPD donde el enlace tiene apariencia
+    for (const opdId of Object.keys(modelo.opds)) {
+      const opd = modelo.opds[opdId];
+      if (!opd) continue;
+      for (const ae of Object.values(opd.enlaces)) {
+        if (ae.enlaceId === enlaceId) {
+          set({
+            opdActivoId: opdId,
+            seleccionId: null,
+            enlaceSeleccionId: enlaceId,
+            modoEnlace: null,
+            tablaEnlacesAbierta: false,
+            mensaje: null,
+          });
+          return;
+        }
+      }
+    }
+    set({ mensaje: "Enlace sin apariencia en ningún OPD" });
+  },
+
+  // ── Carpetas (L4) ─────────────────────────────────────────────
+
+  crearCarpetaEnActual(nombre) {
+    const { indice, carpetaActualId } = get();
+    const resultado = crearCarpetaEnIndice(indice, nombre, carpetaActualId);
+    if (!resultado.ok) {
+      set({ mensaje: resultado.error ?? "No se pudo crear la carpeta" });
+      return;
+    }
+    const nuevoIndice = resultado.value.indice;
+    escribirIndiceWorkspace(nuevoIndice);
+    set({ indice: nuevoIndice, mensaje: null });
+  },
+
+  renombrarCarpetaEnIndice(carpetaId, nombre) {
+    const { indice } = get();
+    const resultado = renombrarCarpetaEnIndiceOp(indice, carpetaId, nombre);
+    if (!resultado.ok) {
+      set({ mensaje: resultado.error ?? "No se pudo renombrar la carpeta" });
+      return;
+    }
+    escribirIndiceWorkspace(resultado.value);
+    set({ indice: resultado.value, mensaje: null });
+  },
+
+  async eliminarCarpetaEnIndice(carpetaId, opciones) {
+    const { indice, carpetaActualId } = get();
+    const carpeta = indice.carpetas.find((c) => c.id === carpetaId);
+    const nombre = carpeta?.nombre ?? carpetaId;
+    if (!opciones.cascada) {
+      const hijos = listarHijosDeCarpeta(indice, carpetaId);
+      const total = hijos.carpetas.length + hijos.modelos.length;
+      if (total > 0) {
+        if (typeof globalThis.confirm === "function") {
+          const confirmado = globalThis.confirm(
+            `La carpeta "${nombre}" contiene ${total} elemento${total !== 1 ? "s" : ""}.\n\n` +
+            `Aceptar para eliminar todo en cascada (modelos pasarán a raíz).\nCancelar para mover primero el contenido.`,
+          );
+          if (!confirmado) {
+            set({ mensaje: "Eliminación cancelada" });
+            return;
+          }
+        }
+        opciones = { cascada: true };
+      }
+    }
+    const resultado = eliminarCarpetaEnIndiceOp(indice, carpetaId, opciones);
+    if (!resultado.ok) {
+      set({ mensaje: resultado.error ?? "No se pudo eliminar la carpeta" });
+      return;
+    }
+    escribirIndiceWorkspace(resultado.value);
+    set({
+      indice: resultado.value,
+      carpetaActualId: resultado.value.carpetas.some((c) => c.id === carpetaActualId) ? carpetaActualId : null,
+      mensaje: `Carpeta "${nombre}" eliminada`,
+    });
+  },
+
+  abrirCarpeta(carpetaId) {
+    set({ carpetaActualId: carpetaId });
+  },
+
+  moverModeloACarpetaEnIndice(modeloId, carpetaId) {
+    const { indice } = get();
+    const resultado = moverModeloACarpetaEnIndiceOp(indice, modeloId, carpetaId);
+    if (!resultado.ok) {
+      set({ mensaje: resultado.error ?? "No se pudo mover el modelo" });
+      return;
+    }
+    escribirIndiceWorkspace(resultado.value);
+    set({ indice: resultado.value, mensaje: null });
+  },
+
+  // ── Búsqueda (L4) ─────────────────────────────────────────────
+
+  abrirBusquedaCosas() {
+    set({ busquedaCosasAbierta: true, busquedaCosasQuery: "", busquedaCosasFiltro: "todos" });
+  },
+
+  cerrarBusquedaCosas() {
+    set({ busquedaCosasAbierta: false });
+  },
+
+  fijarBusquedaCosasQuery(q) {
+    set({ busquedaCosasQuery: q });
+  },
+
+  fijarBusquedaCosasFiltro(filtro) {
+    set({ busquedaCosasFiltro: filtro });
+  },
+
+  saltarAResultadoBusqueda(entidadId, opdId) {
+    const { modelo, opdActivoId } = get();
+    if (!modelo.opds[opdId]) {
+      set({ mensaje: `OPD destino no existe: ${opdId}` });
+      return;
+    }
+    set({
+      opdActivoId: opdId,
+      seleccionId: entidadId,
+      enlaceSeleccionId: null,
+      modoEnlace: null,
+      busquedaCosasAbierta: false,
+      mensaje: null,
+    });
+  },
+
+  // ── Autosalvado (L4) ───────────────────────────────────────────
+
+  iniciarAutosalvado() {
+    if (autosalvadoControl) return;
+    autosalvadoControl = crearAutosalvado({
+      esDirty: () => store.getState().dirty && store.getState().modeloPersistidoId !== null,
+      ejecutarSalvado: async () => {
+        const state = store.getState();
+        if (!state.modeloPersistidoId) return;
+        const carpetaId = state.indice.modelos.find((m) => m.id === state.modeloPersistidoId)?.carpetaId;
+        const json = exportarModelo(state.modelo, carpetaId);
+        const guardado = guardarModeloLocal({
+          id: state.modeloPersistidoId,
+          nombre: state.modelo.nombre,
+          descripcion: state.descripcionModeloLocal,
+          json,
+          autosalvado: true,
+          ...(carpetaId !== undefined ? { carpetaId } : {}),
+        });
+        if (guardado.ok) {
+          snapshotGuardado = exportarModelo(state.modelo);
+          store.setState({ dirty: false, autosalvado: autosalvadoControl?.estado() ?? { activo: false, ultimo: null, salvando: false } });
+        }
+      },
+    });
+    autosalvadoControl.onEstado((estado) => store.setState({ autosalvado: estado }));
+    autosalvadoControl.iniciar();
+  },
+
+  detenerAutosalvado() {
+    autosalvadoControl?.detener();
+    autosalvadoControl = null;
+    set({ autosalvado: { activo: false, ultimo: null, salvando: false } });
+  },
+
+  // ── L5: Mapa del sistema ─────────────────────────────────────────
+
+  abrirVistaMapa() {
+    const { modelo } = get();
+    const descriptor = construirDescriptorMapa(modelo);
+    set({
+      vistaMapaActiva: true,
+      descriptorMapaCache: descriptor,
+      mensaje: null,
+    });
+  },
+
+  cerrarVistaMapa() {
+    set({ vistaMapaActiva: false, descriptorMapaCache: null, mensaje: null });
+  },
+
+  saltarAOpdDesdeMapa(opdId) {
+    const { modelo } = get();
+    if (!modelo.opds[opdId]) {
+      set({ mensaje: `OPD no existe: ${opdId}` });
+      return;
+    }
+    set({
+      vistaMapaActiva: false,
+      descriptorMapaCache: null,
+      opdActivoId: opdId,
+      seleccionId: null,
+      enlaceSeleccionId: null,
+      modoEnlace: null,
+      mensaje: null,
+    });
+  },
+
+  // ── L5: Reordenamiento del árbol ─────────────────────────────────
+
+  fijarModoOrdenArbol(modo) {
+    const { modelo } = get();
+    if (modo === "automatico") {
+      // Recomputar orden desde canvas
+      const todosPadres = new Set<Id | null>();
+      for (const opd of Object.values(modelo.opds)) {
+        todosPadres.add(opd.padreId);
+      }
+      let siguiente = modelo;
+      for (const padreId of todosPadres) {
+        if (padreId === null) continue;
+        const res = ordenSegunCanvasPadre(modelo, padreId);
+        if (res.ok) {
+          const reord = reordenarHermanos(siguiente, padreId, res.value);
+          if (reord.ok) siguiente = reord.value;
+        }
+      }
+      if (siguiente !== modelo) {
+        commitModelo(set, modelo, siguiente, {
+          modoOrdenArbol: "automatico",
+          mensaje: "Orden automático aplicado",
+        });
+      } else {
+        set({ modoOrdenArbol: "automatico" });
+      }
+    } else {
+      set({ modoOrdenArbol: "manual" });
+    }
+  },
+
+  moverHermano(padreId, opdId, posicion) {
+    const { modelo, modoOrdenArbol } = get();
+    if (modoOrdenArbol !== "manual") {
+      set({ mensaje: "El orden está en modo automático; cámbialo para reordenar manualmente" });
+      return;
+    }
+    const resultado = moverNodo(modelo, opdId, padreId, posicion);
+    if (!resultado.ok) {
+      set({ mensaje: resultado.error });
+      return;
+    }
+    commitModelo(set, modelo, resultado.value, { mensaje: "Hermano reordenado" });
+  },
+
+  moverOpdEnGestion(opdId, nuevoPadreId, posicion) {
+    const { modelo } = get();
+    const resultado = moverNodo(modelo, opdId, nuevoPadreId, posicion);
+    if (!resultado.ok) {
+      set({ mensaje: resultado.error });
+      return;
+    }
+    commitModelo(set, modelo, resultado.value, { mensaje: "OPD movido en gestión" });
+  },
+
+  // ── L5: Gestión árbol ────────────────────────────────────────────
+
+  abrirGestionArbol() {
+    set({ gestionArbolAbierta: true, busquedaOpdGestion: "", mensaje: null });
+  },
+
+  cerrarGestionArbol() {
+    set({ gestionArbolAbierta: false, busquedaOpdGestion: "" });
+  },
+
+  fijarBusquedaOpdGestion(q) {
+    set({ busquedaOpdGestion: q });
+  },
+
+  // ── L5: Renombrado OPD desde árbol ───────────────────────────────
+
+  renombrarOpdDesdeArbol(opdId, nombre) {
+    const { modelo } = get();
+    const opd = modelo.opds[opdId];
+    if (!opd) {
+      set({ mensaje: `OPD no existe: ${opdId}` });
+      return;
+    }
+    const nombreTrim = nombre.trim();
+    if (!nombreTrim) {
+      set({ mensaje: "El nombre del OPD no puede estar vacío" });
+      return;
+    }
+    // Validar unicidad de nombre dentro del mismo padre
+    const hermanoConflicto = Object.values(modelo.opds).find(
+      (otro) =>
+        otro.id !== opdId &&
+        otro.padreId === opd.padreId &&
+        otro.nombre === nombreTrim,
+    );
+    if (hermanoConflicto) {
+      set({ mensaje: `Ya existe un OPD con nombre "${nombreTrim}" en este nivel` });
+      return;
+    }
+    const siguiente: Modelo = {
+      ...modelo,
+      opds: {
+        ...modelo.opds,
+        [opdId]: { ...opd, nombre: nombreTrim },
+      },
+    };
+    commitModelo(set, modelo, siguiente, { mensaje: "OPD renombrado" });
+  },
+
+  // ── L3: Asistente nuevo modelo ─────────────────────────────────
+
+  iniciarAsistente() {
+    set({
+      asistente: {
+        etapaActual: 0,
+        datos: datosAsistenteVacio(),
+        cancelado: false,
+      },
+      mensaje: null,
+    });
+  },
+
+  siguienteEtapa(parcial) {
+    const actual = get().asistente;
+    if (!actual) return;
+    const datos = { ...actual.datos, ...parcial };
+    const validacion = validarDatosAsistente(datos, actual.etapaActual);
+    if (!validacion.ok) {
+      set({ mensaje: validacion.error });
+      return;
+    }
+    const siguienteEtapa = Math.min(actual.etapaActual + 1, 11) as EtapaAsistente;
+    set({
+      asistente: { ...actual, etapaActual: siguienteEtapa, datos },
+      mensaje: null,
+    });
+  },
+
+  etapaAnterior() {
+    const actual = get().asistente;
+    if (!actual || actual.etapaActual <= 0) return;
+    set({
+      asistente: { ...actual, etapaActual: (actual.etapaActual - 1) as EtapaAsistente },
+      mensaje: null,
+    });
+  },
+
+  cancelarAsistente() {
+    const actual = get().asistente;
+    if (!actual) return;
+    // Si no hay datos ingresados, cerrar directo.
+    const datos = actual.datos;
+    const tieneDatos = datos.funcionPrincipal?.trim()
+      || datos.beneficiario?.trim()
+      || datos.nombreSistema?.trim()
+      || (datos.atributo?.nombre?.trim())
+      || datos.agentesAdicionales?.some((a) => a.trim())
+      || datos.herramientas?.some((h) => h.trim())
+      || datos.entradas?.some((e) => e.trim())
+      || datos.salidas?.some((s) => s.nombre.trim());
+    if (!tieneDatos) {
+      set({ asistente: null, mensaje: null });
+      return;
+    }
+    // Marcar como cancelado; el UI muestra confirmacion.
+    set({ asistente: { ...actual, cancelado: true } });
+  },
+
+  confirmarAsistente() {
+    const actual = get().asistente;
+    if (!actual) return;
+    // Validar y sembrar.
+    const datosCompletos = actual.datos as DatosAsistente;
+    const resultado = sembrarModeloDesdeAsistente(datosCompletos);
+    if (!resultado.ok) {
+      set({ mensaje: resultado.error });
+      return;
+    }
+    const modelo = resultado.value;
+    resetHistorial(modelo);
+    set(estadoModelo(modelo, {
+      opdActivoId: modelo.opdRaizId,
+      seleccionId: null,
+      enlaceSeleccionId: null,
+      modoEnlace: null,
+      modoCreacion: null,
+      hoverOplRef: null,
+      modeloPersistidoId: null,
+      descripcionModeloLocal: "",
+      asistente: null,
+      menuPrincipalAbierto: false,
+      mensaje: "Modelo creado desde asistente",
     }));
   },
 }));
@@ -1613,4 +2456,99 @@ function entidadPorNombre(modelo: Modelo, nombre: string): Id {
 function must<T>(resultado: { ok: true; value: T } | { ok: false; error: string }): T {
   if (!resultado.ok) throw new Error(resultado.error);
   return resultado.value;
+}
+
+// ── Persistencia del WorkspaceIndice ────────────────────────────
+
+function escribirIndiceWorkspace(indice: WorkspaceIndice): void {
+  try {
+    if (typeof globalThis.localStorage === "undefined") return;
+    globalThis.localStorage.setItem(WS_KEY, JSON.stringify(indice));
+  } catch { /* storage no disponible */ }
+}
+
+function leerIndiceWorkspace(): WorkspaceIndice {
+  try {
+    if (typeof globalThis.localStorage === "undefined") return indiceVacio();
+    const raw = globalThis.localStorage.getItem(WS_KEY);
+    if (!raw) return indiceVacio();
+    const parsed = JSON.parse(raw);
+    if (!esRecord(parsed)) return indiceVacio();
+    return {
+      modelos: Array.isArray(parsed.modelos) ? parsed.modelos.filter((m: unknown) => esRecord(m) && typeof m.id === "string") : [],
+      carpetas: Array.isArray(parsed.carpetas) ? parsed.carpetas.filter((c: unknown) => esRecord(c) && typeof c.id === "string") : [],
+      recientes: Array.isArray(parsed.recientes) ? parsed.recientes.filter((r: unknown) => typeof r === "string") : [],
+    };
+  } catch {
+    return indiceVacio();
+  }
+}
+
+function sincronizarIndiceConModelosGuardados(modelosGuardados: ResumenModeloPersistido[], indice: WorkspaceIndice): WorkspaceIndice {
+  const idsGuardados = new Set(modelosGuardados.map((m) => m.id));
+  const modelos = modelosGuardados.map((m) => ({
+    id: m.id,
+    carpetaId: m.carpetaId ?? null,
+  }));
+  // Conservar modelos del índice que no están en modelosGuardados
+  for (const m of indice.modelos) {
+    if (!idsGuardados.has(m.id)) modelos.push(m);
+  }
+  return { ...indice, modelos, recientes: indice.recientes.filter((r) => idsGuardados.has(r)) };
+}
+
+function esRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function modelosRecientesDeIndice(indice: WorkspaceIndice, guardados: ResumenModeloPersistido[]): ResumenModeloPersistido[] {
+  return indice.recientes
+    .map((id) => guardados.find((m) => m.id === id))
+    .filter((m): m is ResumenModeloPersistido => m !== undefined);
+}
+
+/**
+ * HU-50.024: Genera HTML autocontenido con estilos canónicos OPL-ES (JOYAS §1).
+ * Colores: objeto #70E483, proceso #3BC3FF, estado #586D8C.
+ */
+function generarHtmlOpl(lineas: string[], titulo: string): string {
+  const escapeHtml = (texto: string) =>
+    texto
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+
+  const filas = lineas
+    .map((linea, i) => {
+      // Colorear tokens markdown: **objeto** y *proceso*
+      const coloreada = linea
+        .replace(/\*\*([^*]+)\*\*/g, '<span class="obj">$1</span>')
+        .replace(/\*([^*\s][^*]*?)\*/g, '<span class="proc">$1</span>')
+        .replace(/`([^`]+)`/g, '<span class="est">$1</span>');
+      return `<tr><td class="num">${i + 1}.</td><td>${coloreada}</td></tr>`;
+    })
+    .join("\n");
+
+  return `<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>OPL-ES — ${escapeHtml(titulo)}</title>
+<style>
+  body { font-family: Arial, sans-serif; font-size: 13px; line-height: 1.65; color: #1f2937; max-width: 960px; margin: 40px auto; padding: 0 20px; }
+  h1 { font-size: 18px; color: #334155; margin-bottom: 24px; }
+  table { border-collapse: collapse; width: 100%; }
+  td { vertical-align: top; padding: 2px 6px; }
+  td.num { color: #667085; text-align: right; width: 32px; font-variant-numeric: tabular-nums; }
+  .obj { color: #1f7a3c; font-weight: 700; }
+  .proc { color: #147aa5; font-style: italic; font-weight: 700; }
+  .est { color: #475467; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12px; }
+</style>
+</head>
+<body>
+<h1>OPL-ES &mdash; ${escapeHtml(titulo)}</h1>
+<table>${filas}</table>
+</body>
+</html>`;
 }
