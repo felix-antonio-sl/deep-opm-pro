@@ -1045,6 +1045,70 @@ describe("asistente nuevo modelo", () => {
   });
 });
 
+// ── L5: Mapa del sistema y reordenamiento ──────────────────────────
+
+describe("mapa del sistema", () => {
+  beforeEach(() => {
+    instalarLocalStorage();
+    instalarConfirmacion();
+    store.getState().importarJson(exportarModelo(crearModelo()));
+    store.getState().listarModelosGuardados();
+  });
+
+  test("abrirVistaMapa activa flag y cierra con cerrarVistaMapa", () => {
+    expect(store.getState().vistaMapaActiva).toBe(false);
+    store.getState().abrirVistaMapa();
+    expect(store.getState().vistaMapaActiva).toBe(true);
+    expect(store.getState().descriptorMapaCache).not.toBeNull();
+    store.getState().cerrarVistaMapa();
+    expect(store.getState().vistaMapaActiva).toBe(false);
+  });
+
+  test("saltarAOpdDesdeMapa cambia opdActivoId y cierra mapa", () => {
+    store.getState().abrirVistaMapa();
+    const raizId = store.getState().modelo.opdRaizId;
+    store.getState().saltarAOpdDesdeMapa(raizId);
+    expect(store.getState().vistaMapaActiva).toBe(false);
+    expect(store.getState().opdActivoId).toBe(raizId);
+  });
+
+  test("modoOrdenArbol default es automatico", () => {
+    expect(store.getState().modoOrdenArbol).toBe("automatico");
+  });
+
+  test("fijarModoOrdenArbol cambia a manual", () => {
+    store.getState().fijarModoOrdenArbol("manual");
+    expect(store.getState().modoOrdenArbol).toBe("manual");
+  });
+
+  test("gestionArbol abre y cierra", () => {
+    expect(store.getState().gestionArbolAbierta).toBe(false);
+    store.getState().abrirGestionArbol();
+    expect(store.getState().gestionArbolAbierta).toBe(true);
+    store.getState().cerrarGestionArbol();
+    expect(store.getState().gestionArbolAbierta).toBe(false);
+  });
+
+  test("abrirGestionArbol limpia busqueda previa", () => {
+    store.getState().fijarBusquedaOpdGestion("test");
+    store.getState().abrirGestionArbol();
+    expect(store.getState().busquedaOpdGestion).toBe("");
+  });
+
+  test("renombrarOpdDesdeArbol cambia nombre con validacion", () => {
+    const raizId = store.getState().modelo.opdRaizId;
+    const nombreOriginal = store.getState().modelo.opds[raizId]!.nombre;
+    store.getState().renombrarOpdDesdeArbol(raizId, "NuevoNombre");
+    expect(store.getState().modelo.opds[raizId]!.nombre).toBe("NuevoNombre");
+    expect(store.getState().puedeDeshacer).toBe(true);
+  });
+
+  test("renombrarOpdDesdeArbol rechaza nombre vacio", () => {
+    store.getState().renombrarOpdDesdeArbol(store.getState().modelo.opdRaizId, "  ");
+    expect(store.getState().mensaje).toContain("vacío");
+  });
+});
+
 function instalarLocalStorage(): void {
   const datos = new Map<string, string>();
   Object.defineProperty(globalThis, "localStorage", {

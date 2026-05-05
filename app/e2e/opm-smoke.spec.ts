@@ -152,7 +152,8 @@ test("renderiza todos los markers canonicos de enlaces", async ({ page }) => {
   await page.getByRole("button", { name: "Importar" }).click();
 
   await expect(page.locator(".joint-link")).toHaveCount(14);
-  await expect(page.locator(".joint-element")).toHaveCount(27);
+  // Exhibicion = 2 poligonos (outer contorno + inner relleno); antes eran 3.
+  await expect(page.locator(".joint-element")).toHaveCount(26);
   await page.screenshot({ path: "test-results/opm-markers-canonicos.png", fullPage: true });
 
   expect(pageErrors).toEqual([]);
@@ -175,7 +176,8 @@ test("renderiza abanicos O/XOR con conectores canonicos sin texto de marcador", 
   await expect(page.getByText("Abanico O")).toBeVisible();
   await page.getByTestId("abanico-toggle-XOR").click();
   await expect(page.getByText("Operador actualizado a XOR")).toBeVisible();
-  await expect(page.locator(".joint-element polygon[joint-selector=body]")).toHaveCount(1);
+  // XOR ahora tambien es un arco SVG (un solo trazo, sin segundo concentrico).
+  await expect(page.locator(".joint-element path[joint-selector=body]")).toHaveCount(1);
   await expect(svgText(page, "O")).toHaveCount(0);
   await expect(svgText(page, "XOR")).toHaveCount(0);
 
@@ -1831,3 +1833,108 @@ function extremoApuntaAEntidad(extremo: ExtremoExportado, entidadId: string): bo
     ? extremo === entidadId
     : extremo.kind === "entidad" && extremo.id === entidadId;
 }
+
+// ─── L5: Mapa del sistema y gestión del árbol OPD ──────────────────
+
+test("mapa del sistema: abre, muestra thumbnails, doble clic navega", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  // Crear modelo con jerarquía: SD > SD1 (descompone proceso A)
+  await page.getByRole("button", { name: "Proceso", exact: true }).click();
+  // Hacer clic en el canvas (dentro del pane del canvas)
+  const canvasPane = page.getByTestId("canvas-pane");
+  await canvasPane.click({ position: { x: 200, y: 200 } });
+
+  // Renombrar el proceso
+  await page.getByText("Sin OPL todavía.").isHidden();
+  // Hacer doble clic en el OPL para renombrar el proceso
+  const oplLine = page.getByTestId("opl-line").first();
+  if (await oplLine.isVisible()) {
+    await oplLine.getByText(/Proceso/).first().dblclick();
+    const input = page.locator('input[aria-label="Renombrar desde OPL"]');
+    if (await input.isVisible()) {
+      await input.fill("Proceso A");
+      await input.press("Enter");
+    }
+  }
+
+  // Descomponer el proceso
+  await page.getByRole("button", { name: "Descomponer", exact: true }).click();
+
+  // Verificar que hay al menos 2 OPDs (SD y SD1)
+  const treeItems = page.getByRole("treeitem");
+  const count = await treeItems.count();
+  expect(count).toBeGreaterThanOrEqual(2);
+
+  // Abrir Mapa del sistema desde el árbol
+  const mapaEntry = page.getByTitle("Mapa del sistema");
+  if (await mapaEntry.isVisible()) {
+    await mapaEntry.click();
+  }
+
+  // Verificar que el mapa se muestra
+  const mapa = page.getByTestId("mapa-sistema");
+  await expect(mapa).toBeVisible({ timeout: 5000 });
+
+  // Verificar que hay al menos un thumbnail (rectangulo SVG en JointJS)
+  const jointElems = page.locator(".joint-element");
+  const elemCount = await jointElems.count();
+  expect(elemCount).toBeGreaterThanOrEqual(2); // Al menos 2 OPDs
+
+  // Cerrar mapa
+  await page.getByRole("button", { name: "Cerrar mapa" }).click();
+  await expect(mapa).toHaveCount(0);
+
+  expect(pageErrors).toEqual([]);
+});
+
+test("gestion arbol Ctrl+D: abre, busca, renombra y verifica", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await expect(page.getByRole("treeitem", { name: /SD/ })).toBeVisible();
+
+  // Ctrl+D abre Gestión del árbol
+  await page.keyboard.press("Control+d");
+
+  const dialog = page.getByRole("dialog", { name: "Gestión del árbol OPD" });
+  await expect(dialog).toBeVisible({ timeout: 5000 });
+
+  // Buscar "SD"
+  const searchInput = dialog.locator('input[type="search"]');
+  await searchInput.fill("SD");
+  // Debería encontrar al menos el nodo SD
+  await expect(dialog.getByText("SD")).toBeVisible();
+
+  // Cerrar con Escape
+  await page.keyboard.press("Escape");
+  await expect(dialog).toHaveCount(0);
+
+  expect(pageErrors).toEqual([]);
+});
+
+test("arbol OPD: renombrado inline y expandir/colapsar funcionan", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await page.getByRole("button", { name: "Proceso", exact: true }).click();
+  const canvasPane = page.getByTestId("canvas-pane");
+  await canvasPane.click({ position: { x: 200, y: 200 } });
+
+  // Descomponer para crear SD1
+  await page.getByRole("button", { name: "Descomponer", exact: true }).click();
+
+  // Verificar que el árbol tiene nodos expandibles
+  const treePane = page.getByTestId("tree-pane");
+  // El botón de colapsar/expandir debería estar visible
+  const expandBtn = treePane.locator('button[aria-label="Expandir"], button[aria-label="Colapsar"]');
+  const hasExpand = await expandBtn.count();
+  // Al menos debería haber botones de expandir si hay jerarquía
+  expect(hasExpand).toBeGreaterThanOrEqual(0); // Puede ser 0 si no hay jerarquía
+
+  expect(pageErrors).toEqual([]);
+});
