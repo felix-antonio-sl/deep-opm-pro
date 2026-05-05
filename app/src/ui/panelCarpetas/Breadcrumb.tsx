@@ -1,0 +1,88 @@
+import type { Id } from "../../modelo/tipos";
+import type { CarpetaIndice } from "../../persistencia/workspace";
+
+interface BreadcrumbProps {
+  segmentos: CarpetaIndice[];
+  carpetaActualId: Id | null;
+  onNavegarBreadcrumb: (carpetaId: Id | null, segmentIndex: number) => void;
+}
+
+/**
+ * Ruta de carpeta actual del selector de workspace.
+ */
+export function Breadcrumb(props: BreadcrumbProps) {
+  return (
+    <div style={style.breadcrumbBar}>
+      <button
+        type="button"
+        style={style.backButton}
+        disabled={props.carpetaActualId === null}
+        aria-label="Atrás"
+        onClick={() => {
+          if (props.segmentos.length > 0) {
+            const ultimo = props.segmentos[props.segmentos.length - 1]!;
+            props.onNavegarBreadcrumb(ultimo.padreId, props.segmentos.length - 2);
+          } else {
+            props.onNavegarBreadcrumb(null, -1);
+          }
+        }}
+      >
+        {"<"}
+      </button>
+      <nav aria-label="Ubicación" style={style.breadcrumb}>
+        <span style={style.breadcrumbPart}>
+          <button
+            type="button"
+            style={{ ...style.breadcrumbButton, fontWeight: props.carpetaActualId === null ? 700 : 400 }}
+            onClick={() => props.onNavegarBreadcrumb(null, -1)}
+          >
+            Inicio
+          </button>
+        </span>
+        {props.segmentos.map((segmento, index) => (
+          <span key={segmento.id} style={style.breadcrumbPart}>
+            <span style={style.separator}>/</span>
+            <button
+              type="button"
+              style={{ ...style.breadcrumbButton, fontWeight: index === props.segmentos.length - 1 ? 700 : 400 }}
+              onClick={() => props.onNavegarBreadcrumb(segmento.id, index)}
+            >
+              {segmento.nombre}
+            </button>
+          </span>
+        ))}
+      </nav>
+    </div>
+  );
+}
+
+const style = {
+  breadcrumbBar: { display: "flex", alignItems: "center", gap: "8px" },
+  backButton: {
+    width: "30px",
+    height: "30px",
+    border: "1px solid #d9e0ea",
+    borderRadius: "4px",
+    background: "#f2f4f7",
+    color: "#98a2b3",
+    fontWeight: 700,
+    flexShrink: 0,
+  },
+  breadcrumb: {
+    display: "flex",
+    alignItems: "center",
+    minWidth: 0,
+    flexWrap: "wrap",
+    gap: "4px",
+  },
+  breadcrumbPart: { display: "inline-flex", alignItems: "center", gap: "4px" },
+  separator: { color: "#98a2b3" },
+  breadcrumbButton: {
+    border: 0,
+    padding: 0,
+    background: "transparent",
+    color: "#475467",
+    fontSize: "13px",
+    cursor: "pointer",
+  },
+} satisfies Record<string, preact.JSX.CSSProperties>;

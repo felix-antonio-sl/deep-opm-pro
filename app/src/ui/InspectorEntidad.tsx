@@ -1,17 +1,28 @@
 import { useState } from "preact/hooks";
 import { autoInvocacionDeProceso } from "../modelo/autoinvocacion";
-import { designacionesEstado, estadoTieneEnlaces } from "../modelo/estadosDesignaciones";
 import { estadosDeEntidad } from "../modelo/operaciones";
-import { filasPlegadoParcial, modoPlegadoApariencia, partesDePlegado, type FilaPlegadoParcial } from "../modelo/plegado";
-import type { DesignacionEstado, Entidad, Estado, LayoutEstados, Modelo, ModoDespliegueObjeto, OrdenPartesPlegado } from "../modelo/tipos";
+import { filasPlegadoParcial, modoPlegadoApariencia, partesDePlegado } from "../modelo/plegado";
+import type { Entidad, OrdenPartesPlegado } from "../modelo/tipos";
 import { useOpmStore } from "../store";
 import { inspectorStyles as style } from "./inspectorStyles";
+import { SeccionAlias } from "./inspector/SeccionAlias";
+import { SeccionDescripcion } from "./inspector/SeccionDescripcion";
+import { SeccionEsenciaAfiliacion } from "./inspector/SeccionEsenciaAfiliacion";
+import { SeccionLayoutEstados } from "./inspector/SeccionLayoutEstados";
+import { SeccionRefinamiento, OPCIONES_DESPLIEGUE_OBJETO } from "./inspector/SeccionRefinamiento";
+import { SeccionUrls } from "./inspector/SeccionUrls";
 import { StyleControls } from "./StyleControls";
+
+export { OPCIONES_DESPLIEGUE_OBJETO };
 
 interface Props {
   entidad: Entidad;
 }
 
+/**
+ * Barrel publico del inspector de entidad. Conserva lecturas amplias del store
+ * y delega secciones OPM atomicas respaldadas por SSOT 3.7, 3.68, 3.71a y V-1.
+ */
 export function InspectorEntidad({ entidad }: Props) {
   const modelo = useOpmStore((s) => s.modelo);
   const opdActivoId = useOpmStore((s) => s.opdActivoId);
@@ -36,8 +47,6 @@ export function InspectorEntidad({ entidad }: Props) {
   const eliminarEstado = useOpmStore((s) => s.eliminarEstado);
   const quitarEstados = useOpmStore((s) => s.quitarEstadosObjetoSeleccionado);
   const renombrarEstado = useOpmStore((s) => s.renombrarEstadoSeleccionado);
-  const designarInicial = useOpmStore((s) => s.designarEstadoInicial);
-  const designarFinal = useOpmStore((s) => s.designarEstadoFinal);
   const designarEstadoComo = useOpmStore((s) => s.designarEstadoComo);
   const quitarDesignacion = useOpmStore((s) => s.quitarDesignacionEstado);
   const suprimirEstadoPorId = useOpmStore((s) => s.suprimirEstadoPorId);
@@ -52,14 +61,10 @@ export function InspectorEntidad({ entidad }: Props) {
   const seleccionados = useOpmStore((s) => s.seleccionados);
   const aplicarEstiloASeleccion = useOpmStore((s) => s.aplicarEstiloASeleccion);
   const [aplicarABatch, setAplicarABatch] = useState(false);
-
-  const aparienciaActiva = Object.values(modelo.opds[opdActivoId]?.apariencias ?? {})
-    .find((apariencia) => apariencia.entidadId === entidad.id);
+  const aparienciaActiva = Object.values(modelo.opds[opdActivoId]?.apariencias ?? {}).find((apariencia) => apariencia.entidadId === entidad.id);
   const partesPlegables = partesDePlegado(modelo, entidad.id);
   const modoPlegado = aparienciaActiva ? modoPlegadoApariencia(aparienciaActiva) : "completo";
-  const filasParciales = aparienciaActiva && modoPlegado === "parcial"
-    ? filasPlegadoParcial(modelo, opdActivoId, aparienciaActiva.id)
-    : [];
+  const filasParciales = aparienciaActiva && modoPlegado === "parcial" ? filasPlegadoParcial(modelo, opdActivoId, aparienciaActiva.id) : [];
   const estados = entidad.tipo === "objeto" ? estadosDeEntidad(modelo, entidad.id) : [];
   const autoInvocacion = entidad.tipo === "proceso" ? autoInvocacionDeProceso(modelo, opdActivoId, entidad.id) : undefined;
 
@@ -69,175 +74,39 @@ export function InspectorEntidad({ entidad }: Props) {
         <span style={style.kind}>{entidad.tipo === "objeto" ? "Objeto" : "Proceso"}</span>
         <code style={style.id}>{entidad.id}</code>
       </div>
-
       <label style={style.field}>
         <span style={style.label}>Nombre</span>
-        <input
-          style={style.input}
-          value={entidad.nombre}
-          onInput={(event) => renombrar(event.currentTarget.value)}
-        />
+        <input style={style.input} value={entidad.nombre} onInput={(event) => renombrar(event.currentTarget.value)} />
       </label>
-
       {entidad.tipo === "objeto" ? (
         <section style={advancedStyles.section} aria-label="Metadatos avanzados">
-          <div style={advancedStyles.grid2}>
-            <label style={style.field}>
-              <span style={style.label}>Alias</span>
-              <input
-                style={style.input}
-                value={entidad.alias ?? ""}
-                onInput={(event) => editarAliasEntidad(entidad.id, event.currentTarget.value)}
-                placeholder="{alias}"
-              />
-            </label>
-            <label style={style.field}>
-              <span style={style.label}>Unidad</span>
-              <input
-                style={style.input}
-                value={entidad.unidad ?? ""}
-                onInput={(event) => editarUnidadEntidad(entidad.id, event.currentTarget.value)}
-                placeholder="[unidad]"
-              />
-            </label>
-          </div>
-          <label style={style.field}>
-            <span style={style.label}>Descripción</span>
-            <textarea
-              style={advancedStyles.textarea}
-              value={entidad.descripcion ?? ""}
-              onInput={(event) => editarDescripcionEntidad(entidad.id, event.currentTarget.value)}
-            />
-          </label>
-          <div data-testid="inspector-entidad-acciones" style={advancedStyles.actions}>
-            <button type="button" style={style.secondaryButton} onClick={() => abrirModalUrls(entidad.id)}>
-              URLs ({entidad.urls?.length ?? 0})
-            </button>
-          </div>
+          <SeccionAlias alias={entidad.alias} unidad={entidad.unidad} onAlias={(value) => editarAliasEntidad(entidad.id, value)} onUnidad={(value) => editarUnidadEntidad(entidad.id, value)} />
+          <SeccionDescripcion descripcion={entidad.descripcion} onDescripcion={(value) => editarDescripcionEntidad(entidad.id, value)} />
+          <SeccionUrls entidadId={entidad.id} urls={entidad.urls} onAbrirUrls={abrirModalUrls} />
         </section>
       ) : null}
-
-      <div style={style.field}>
-        <span style={style.label}>Esencia</span>
-        <div style={style.segmented}>
-          <Segment label="Informacional" active={entidad.esencia === "informacional"} onClick={() => fijarEsencia("informacional")} />
-          <Segment label="Física" active={entidad.esencia === "fisica"} onClick={() => fijarEsencia("fisica")} />
-        </div>
-      </div>
-
-      <div style={style.field}>
-        <span style={style.label}>Afiliación</span>
-        <div style={style.segmented}>
-          <Segment label="Sistémica" active={entidad.afiliacion === "sistemica"} onClick={() => fijarAfiliacion("sistemica")} />
-          <Segment label="Ambiental" active={entidad.afiliacion === "ambiental"} onClick={() => fijarAfiliacion("ambiental")} />
-        </div>
-      </div>
-
-      {entidad.tipo === "proceso" ? (
-        <>
-          <button
-            type="button"
-            style={style.primaryButton}
-            onClick={descomponer}
-            title="Crear o abrir el OPD hijo de descomposición"
-          >
-            {entidad.refinamiento?.tipo === "descomposicion" ? "Abrir descomposición" : "Descomponer"}
-          </button>
-          {entidad.refinamiento?.tipo === "descomposicion" ? (
-            <button
-              type="button"
-              style={style.secondaryButton}
-              onClick={quitarDescomposicion}
-              title="Eliminar el OPD hijo de descomposición"
-            >
-              Quitar descomposición
-            </button>
-          ) : null}
-          <button
-            type="button"
-            style={autoInvocacion ? style.secondaryButton : style.primaryButton}
-            onClick={crearAutoInvocacion}
-            disabled={!!autoInvocacion}
-            title={autoInvocacion ? "El proceso ya tiene auto-invocación en este OPD" : "Crear auto-invocación con demora de 1s"}
-          >
-            {autoInvocacion ? "Auto-invocación existente" : "Auto-invocación"}
-          </button>
-        </>
-      ) : null}
-
+      <SeccionEsenciaAfiliacion esencia={entidad.esencia} afiliacion={entidad.afiliacion} onEsencia={fijarEsencia} onAfiliacion={fijarAfiliacion} />
+      <SeccionRefinamiento
+        entidad={entidad}
+        autoInvocacion={autoInvocacion}
+        tienePartesPlegables={partesPlegables.length > 0 && !!aparienciaActiva}
+        modoPlegado={modoPlegado}
+        ordenPartes={aparienciaActiva?.ordenPartes}
+        filasParciales={filasParciales}
+        padreAparienciaId={aparienciaActiva?.id}
+        parteExtraidaDe={aparienciaActiva?.parteExtraidaDe}
+        onDescomponer={descomponer}
+        onDesplegar={desplegar}
+        onQuitarDescomposicion={quitarDescomposicion}
+        onQuitarDespliegue={quitarDespliegue}
+        onCrearAutoInvocacion={crearAutoInvocacion}
+        onCambiarModoPlegado={() => cambiarModoPlegado(modoPlegado === "parcial" ? "completo" : "parcial")}
+        onCambiarOrdenPartes={(orden: OrdenPartesPlegado) => cambiarOrdenPartes(orden)}
+        onExtraer={extraerParte}
+        onReinsertarParte={reinsertarParte}
+      />
       {entidad.tipo === "objeto" ? (
-        <>
-          {entidad.refinamiento?.tipo === "despliegue" ? (
-            <button
-              type="button"
-              style={style.primaryButton}
-              onClick={() => desplegar()}
-              title="Abrir el OPD hijo de despliegue"
-            >
-              Mostrar despliegue
-            </button>
-          ) : (
-            <DesplegarComo onSelect={desplegar} />
-          )}
-          {entidad.refinamiento?.tipo === "despliegue" ? (
-            <button
-              type="button"
-              style={style.secondaryButton}
-              onClick={quitarDespliegue}
-              title="Eliminar el OPD hijo de despliegue y sus refinadores locales"
-            >
-              Quitar despliegue
-            </button>
-          ) : null}
-        </>
-      ) : null}
-
-      {partesPlegables.length > 0 && aparienciaActiva ? (
-        <>
-          <button
-            type="button"
-            style={style.secondaryButton}
-            onClick={() => cambiarModoPlegado(modoPlegado === "parcial" ? "completo" : "parcial")}
-            title="Alternar vista compacta intra-rectángulo sin abrir ni destruir el OPD hijo"
-          >
-            {modoPlegado === "parcial" ? "Plegado completo" : "Plegado parcial"}
-          </button>
-          <label style={style.field}>
-            <span style={style.label}>Orden de partes</span>
-            <select
-              aria-label="Orden de partes"
-              style={style.input}
-              value={aparienciaActiva.ordenPartes ?? "alfabetico"}
-              onChange={(event) => cambiarOrdenPartes(event.currentTarget.value as OrdenPartesPlegado)}
-            >
-              <option value="alfabetico">Alfabético</option>
-              <option value="creacion">Creación</option>
-            </select>
-          </label>
-        </>
-      ) : null}
-
-      {aparienciaActiva?.parteExtraidaDe ? (
-        <button
-          type="button"
-          style={style.secondaryButton}
-          onClick={reinsertarParte}
-          title="Reinsertar esta parte en la lista compacta del padre"
-        >
-          Reinsertar al padre
-        </button>
-      ) : null}
-
-      {aparienciaActiva && filasParciales.length > 0 ? (
-        <PartesCompactas
-          filas={filasParciales}
-          padreAparienciaId={aparienciaActiva.id}
-          onExtraer={extraerParte}
-        />
-      ) : null}
-
-      {entidad.tipo === "objeto" ? (
-        <EstadosObjeto
+        <SeccionLayoutEstados
           modelo={modelo}
           entidadId={entidad.id}
           estados={estados}
@@ -247,8 +116,6 @@ export function InspectorEntidad({ entidad }: Props) {
           onEliminar={eliminarEstado}
           onQuitarEstados={quitarEstados}
           onRenombrar={renombrarEstado}
-          onDesignarInicial={designarInicial}
-          onDesignarFinal={designarFinal}
           onDesignar={designarEstadoComo}
           onQuitarDesignacion={quitarDesignacion}
           onSuprimir={suprimirEstadoPorId}
@@ -257,7 +124,6 @@ export function InspectorEntidad({ entidad }: Props) {
           onLayout={(layout) => fijarLayoutEstadosEntidad(entidad.id, layout)}
         />
       ) : null}
-
       {aparienciaActiva ? (
         <StyleControls
           estilo={aparienciaActiva.estilo}
@@ -271,395 +137,12 @@ export function InspectorEntidad({ entidad }: Props) {
           onCambiarAplicarASeleccion={setAplicarABatch}
         />
       ) : null}
-
       {entidad.tipo !== "objeto" ? <div data-testid="inspector-entidad-acciones" /> : null}
       <button type="button" style={style.dangerButton} onClick={eliminar}>Eliminar entidad</button>
     </>
   );
 }
 
-function Segment(props: { label: string; active: boolean; onClick: () => void }) {
-  return (
-    <button
-      type="button"
-      style={props.active ? style.segmentActive : style.segment}
-      onClick={props.onClick}
-    >
-      {props.label}
-    </button>
-  );
-}
-
-function EstadosObjeto(props: {
-  modelo: Modelo;
-  entidadId: string;
-  estados: Estado[];
-  layout: LayoutEstados;
-  onAgregarEstados: () => void;
-  onAgregarEstado: () => void;
-  onEliminar: (estadoId: string) => void;
-  onQuitarEstados: () => void;
-  onRenombrar: (estadoId: string, nombre: string) => void;
-  onDesignarInicial: (estadoId: string) => void;
-  onDesignarFinal: (estadoId: string) => void;
-  onDesignar: (estadoId: string, designacion: DesignacionEstado) => void;
-  onQuitarDesignacion: (estadoId: string, designacion: DesignacionEstado) => void;
-  onSuprimir: (estadoId: string) => void;
-  onRestaurar: (estadoId: string) => void;
-  onAbrirDuracion: (estadoId: string) => void;
-  onLayout: (layout: LayoutEstados) => void;
-}) {
-  const visibles = props.estados.filter((estado) => !estado.suprimido);
-  return (
-    <section style={stateStyles.section} aria-label="Estados">
-      <div style={stateStyles.header}>
-        <span style={style.label}>Estados</span>
-        {props.estados.length > 0 ? (
-          <button type="button" style={stateStyles.smallButton} onClick={props.onAgregarEstado}>
-            Agregar estado
-          </button>
-        ) : null}
-      </div>
-      {props.estados.length > 1 ? (
-        <label style={style.field}>
-          <span style={style.label}>Layout</span>
-          <select
-            style={style.input}
-            value={props.layout}
-            onChange={(event) => props.onLayout(event.currentTarget.value as LayoutEstados)}
-          >
-            <option value="horizontal">Horizontal</option>
-            <option value="vertical">Vertical</option>
-          </select>
-        </label>
-      ) : null}
-
-      {props.estados.length === 0 ? (
-        <button
-          type="button"
-          style={style.primaryButton}
-          onClick={props.onAgregarEstados}
-          title="Crea simultáneamente estado1 y estado2"
-        >
-          Agregar estados
-        </button>
-      ) : (
-        <div style={stateStyles.list}>
-          {props.estados.map((estado) => (
-            <div key={estado.id} style={stateStyles.row}>
-              <input
-                aria-label={`Nombre estado ${estado.nombre}`}
-                style={stateStyles.input}
-                value={estado.nombre}
-                onInput={(event) => props.onRenombrar(estado.id, event.currentTarget.value)}
-              />
-              <div style={stateStyles.actions}>
-                {(["inicial", "final", "default", "current"] as const).map((designacion) => {
-                  const activa = designacionesEstado(estado).includes(designacion);
-                  const excluida = designacion === "default"
-                    ? designacionesEstado(estado).includes("current")
-                    : designacion === "current" && designacionesEstado(estado).includes("default");
-                  return (
-                    <button
-                      key={designacion}
-                      type="button"
-                      style={activa ? stateStyles.tagActive : stateStyles.tag}
-                      disabled={excluida}
-                      onClick={() => activa ? props.onQuitarDesignacion(estado.id, designacion) : props.onDesignar(estado.id, designacion)}
-                      title={activa ? "Quitar designación" : `Designar ${designacion}`}
-                    >
-                      {etiquetaDesignacion(designacion)}
-                    </button>
-                  );
-                })}
-                <button
-                  type="button"
-                  style={stateStyles.tag}
-                  onClick={() => props.onAbrirDuracion(estado.id)}
-                  title="Duración temporal"
-                >
-                  {estado.duracion ? "Duración*" : "Duración"}
-                </button>
-                <button
-                  type="button"
-                  style={estado.suprimido ? stateStyles.tagActive : stateStyles.tag}
-                  disabled={!estado.suprimido && estadoTieneEnlaces(props.modelo, estado.id)}
-                  onClick={() => estado.suprimido ? props.onRestaurar(estado.id) : props.onSuprimir(estado.id)}
-                  title={estadoTieneEnlaces(props.modelo, estado.id) ? "No se puede suprimir si tiene enlaces" : "Suprimir estado visualmente"}
-                >
-                  {estado.suprimido ? "Restaurar" : "Suprimir"}
-                </button>
-                <button
-                  type="button"
-                  style={visibles.length <= 2 ? stateStyles.deleteDisabled : stateStyles.delete}
-                  disabled={visibles.length <= 2}
-                  onClick={() => props.onEliminar(estado.id)}
-                  title={visibles.length <= 2 ? "El axioma exige al menos dos estados visibles" : "Eliminar estado"}
-                >
-                  Eliminar
-                </button>
-              </div>
-            </div>
-          ))}
-          <button type="button" style={style.secondaryButton} onClick={props.onQuitarEstados}>
-            Quitar estados
-          </button>
-        </div>
-      )}
-    </section>
-  );
-}
-
-function etiquetaDesignacion(designacion: DesignacionEstado): string {
-  if (designacion === "default") return "Default";
-  if (designacion === "current") return "Current";
-  return designacion === "inicial" ? "Inicial" : "Final";
-}
-
-function PartesCompactas(props: {
-  filas: FilaPlegadoParcial[];
-  padreAparienciaId: string;
-  onExtraer: (padreAparienciaId: string, parteEntidadId: string) => void;
-}) {
-  return (
-    <section style={partialStyles.section} aria-label="Partes plegadas">
-      <span style={style.label}>Partes</span>
-      <div style={partialStyles.list}>
-        {props.filas.map((fila, index) => fila.tipo === "contador" ? (
-          <div key={`contador-${index}`} style={partialStyles.counter}>{fila.texto}</div>
-        ) : (
-          <div key={fila.entidadId} style={partialStyles.row}>
-            <span style={fila.extraida ? partialStyles.nameExtracted : partialStyles.name}>{fila.nombre}</span>
-            <button
-              type="button"
-              style={fila.extraida ? partialStyles.buttonDisabled : partialStyles.button}
-              disabled={fila.extraida}
-              onClick={() => props.onExtraer(props.padreAparienciaId, fila.entidadId)}
-            >
-              {fila.extraida ? "Extraída" : "Extraer"}
-            </button>
-          </div>
-        ))}
-      </div>
-    </section>
-  );
-}
-
-export const OPCIONES_DESPLIEGUE_OBJETO: Array<{ modo: ModoDespliegueObjeto; label: string }> = [
-  { modo: "agregacion", label: "Como partes (agregación)" },
-  { modo: "exhibicion", label: "Como atributos (exhibición)" },
-  { modo: "generalizacion", label: "Como especializaciones" },
-  { modo: "clasificacion", label: "Como instancias" },
-];
-
-function DesplegarComo(props: { onSelect: (modo: ModoDespliegueObjeto) => void }) {
-  return (
-    <details style={style.menu}>
-      <summary style={style.menuSummary}>Desplegar como...</summary>
-      <div style={style.menuItems}>
-        {OPCIONES_DESPLIEGUE_OBJETO.map((opcion) => (
-          <button
-            key={opcion.modo}
-            type="button"
-            style={style.menuButton}
-            onClick={() => props.onSelect(opcion.modo)}
-          >
-            {opcion.label}
-          </button>
-        ))}
-      </div>
-    </details>
-  );
-}
-
-const stateStyles = {
-  section: {
-    display: "grid",
-    gap: "8px",
-    marginBottom: "14px",
-    paddingTop: "2px",
-  },
-  header: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: "8px",
-  },
-  list: {
-    display: "grid",
-    gap: "8px",
-  },
-  row: {
-    display: "grid",
-    gap: "6px",
-    padding: "8px",
-    border: "1px solid #d9e0ea",
-    borderRadius: "4px",
-    background: "#ffffff",
-  },
-  input: {
-    width: "100%",
-    height: "30px",
-    padding: "0 8px",
-    border: "1px solid #c8d2df",
-    borderRadius: "4px",
-    outlineColor: "#586D8C",
-    fontSize: "12px",
-  },
-  actions: {
-    display: "grid",
-    gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
-    gap: "6px",
-  },
-  smallButton: {
-    minHeight: "28px",
-    padding: "0 8px",
-    border: "1px solid #c8d2df",
-    borderRadius: "4px",
-    background: "#f9fbfd",
-    color: "#475467",
-    cursor: "pointer",
-    fontSize: "12px",
-    fontWeight: 700,
-  },
-  tag: {
-    height: "28px",
-    border: "1px solid #c8d2df",
-    borderRadius: "4px",
-    background: "#f9fbfd",
-    color: "#475467",
-    cursor: "pointer",
-    fontSize: "11px",
-    fontWeight: 700,
-  },
-  tagActive: {
-    height: "28px",
-    border: "1px solid #586D8C",
-    borderRadius: "4px",
-    background: "#e8eef5",
-    color: "#1f2937",
-    cursor: "pointer",
-    fontSize: "11px",
-    fontWeight: 700,
-  },
-  delete: {
-    height: "28px",
-    border: "1px solid #d92d20",
-    borderRadius: "4px",
-    background: "#fff5f5",
-    color: "#b42318",
-    cursor: "pointer",
-    fontSize: "11px",
-    fontWeight: 700,
-  },
-  deleteDisabled: {
-    height: "28px",
-    border: "1px solid #d9e0ea",
-    borderRadius: "4px",
-    background: "#f3f4f6",
-    color: "#98a2b3",
-    cursor: "not-allowed",
-    fontSize: "11px",
-    fontWeight: 700,
-  },
-} satisfies Record<string, preact.JSX.CSSProperties>;
-
 const advancedStyles = {
-  section: {
-    display: "grid",
-    gap: "8px",
-    marginBottom: "14px",
-  },
-  grid2: {
-    display: "grid",
-    gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1fr)",
-    gap: "8px",
-  },
-  textarea: {
-    width: "100%",
-    minHeight: "72px",
-    padding: "8px",
-    border: "1px solid #c8d2df",
-    borderRadius: "4px",
-    outlineColor: "#586D8C",
-    resize: "vertical",
-    fontFamily: "Arial, sans-serif",
-    fontSize: "12px",
-  },
-  actions: {
-    display: "flex",
-    gap: "8px",
-    flexWrap: "wrap",
-  },
-} satisfies Record<string, preact.JSX.CSSProperties>;
-
-const partialStyles = {
-  section: {
-    display: "grid",
-    gap: "8px",
-    marginBottom: "14px",
-    paddingTop: "2px",
-  },
-  list: {
-    display: "grid",
-    gap: "6px",
-  },
-  row: {
-    display: "grid",
-    gridTemplateColumns: "minmax(0, 1fr) auto",
-    alignItems: "center",
-    gap: "8px",
-    padding: "8px",
-    border: "1px solid #d9e0ea",
-    borderRadius: "4px",
-    background: "#ffffff",
-  },
-  name: {
-    minWidth: 0,
-    overflow: "hidden",
-    textOverflow: "ellipsis",
-    whiteSpace: "nowrap",
-    color: "#1f2937",
-    fontSize: "12px",
-    fontWeight: 700,
-  },
-  nameExtracted: {
-    minWidth: 0,
-    overflow: "hidden",
-    textOverflow: "ellipsis",
-    whiteSpace: "nowrap",
-    color: "#667085",
-    fontSize: "12px",
-    fontWeight: 700,
-    fontStyle: "italic",
-    textDecoration: "line-through",
-  },
-  counter: {
-    padding: "8px",
-    color: "#667085",
-    fontSize: "12px",
-    fontStyle: "italic",
-  },
-  button: {
-    minHeight: "28px",
-    padding: "0 8px",
-    border: "1px solid #c8d2df",
-    borderRadius: "4px",
-    background: "#f9fbfd",
-    color: "#475467",
-    cursor: "pointer",
-    fontSize: "12px",
-    fontWeight: 700,
-  },
-  buttonDisabled: {
-    minHeight: "28px",
-    padding: "0 8px",
-    border: "1px solid #d9e0ea",
-    borderRadius: "4px",
-    background: "#f3f4f6",
-    color: "#98a2b3",
-    cursor: "not-allowed",
-    fontSize: "12px",
-    fontWeight: 700,
-  },
+  section: { display: "grid", gap: "8px", marginBottom: "14px" },
 } satisfies Record<string, preact.JSX.CSSProperties>;

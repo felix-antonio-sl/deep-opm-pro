@@ -1,0 +1,33 @@
+import { inspectorStyles as style } from "../inspectorStyles";
+
+interface Props {
+  descripcion?: string | undefined;
+  onDescripcion: (value: string) => void;
+}
+
+export function SeccionDescripcion(props: Props) {
+  return (
+    <label style={style.field} data-testid="inspector-seccion-descripcion">
+      <span style={style.label}>Descripción</span>
+      <textarea
+        style={advancedStyles.textarea}
+        value={props.descripcion ?? ""}
+        onInput={(event) => props.onDescripcion(event.currentTarget.value)}
+      />
+    </label>
+  );
+}
+
+const advancedStyles = {
+  textarea: {
+    width: "100%",
+    minHeight: "72px",
+    padding: "8px",
+    border: "1px solid #c8d2df",
+    borderRadius: "4px",
+    outlineColor: "#586D8C",
+    resize: "vertical",
+    fontFamily: "Arial, sans-serif",
+    fontSize: "12px",
+  },
+} satisfies Record<string, preact.JSX.CSSProperties>;

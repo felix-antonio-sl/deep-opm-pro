@@ -1,19 +1,15 @@
 import { useMemo, useState } from "preact/hooks";
+import { agruparOracionesPorOpd, ordenarOpdsParaOpl } from "../opl/bloquesJerarquicos";
 import { generarOplInteractivo } from "../opl/generar";
-import {
-  agruparOracionesPorOpd,
-  ordenarOpdsParaOpl,
-  togglearColapsoBloque,
-} from "../opl/bloquesJerarquicos";
-import {
-  filtrarLineasPorReferencia,
-  lineaTocaReferencia,
-  mismaReferencia,
-  type OplReferencia,
-  type OplToken,
-} from "../opl/interaccion";
+import { filtrarLineasPorReferencia, type OplReferencia } from "../opl/interaccion";
 import { useOpmStore } from "../store";
+import { Bloques } from "./panelOpl/Bloques";
+import type { EdicionOpl } from "./panelOpl/RenderToken";
 
+/**
+ * Barrel publico del panel OPL-ES. Conserva lecturas amplias del store y baja
+ * props a leaves de render, alineado con OPL como lente derivada del modelo.
+ */
 export function PanelOpl() {
   const modelo = useOpmStore((s) => s.modelo);
   const opdActivoId = useOpmStore((s) => s.opdActivoId);
@@ -32,28 +28,19 @@ export function PanelOpl() {
   const fijarBusquedaOpl = useOpmStore((s) => s.fijarBusquedaOpl);
   const copiarOplActualAlPortapapeles = useOpmStore((s) => s.copiarOplActualAlPortapapeles);
   const exportarOplActualHtml = useOpmStore((s) => s.exportarOplActualHtml);
-
-  const [edicion, setEdicion] = useState<{
-    tipo: "entidad" | "estado";
-    id: string;
-    tokenId: string;
-    valor: string;
-  } | null>(null);
+  const [edicion, setEdicion] = useState<EdicionOpl | null>(null);
   const [bloquesColapsados, setBloquesColapsados] = useState<Set<string>>(() => new Set());
 
-  const seleccionRef = enlaceSeleccionId
-    ? ({ tipo: "enlace", id: enlaceSeleccionId } as const)
+  const seleccionRef: OplReferencia | null = enlaceSeleccionId
+    ? { tipo: "enlace", id: enlaceSeleccionId }
     : seleccionId
-      ? ({ tipo: "entidad", id: seleccionId } as const)
+      ? { tipo: "entidad", id: seleccionId }
       : null;
-
   const lineas = useMemo(
     () => ordenarOpdsParaOpl(modelo).flatMap((id) => generarOplInteractivo(modelo, id)),
     [modelo],
   );
   const bloques = useMemo(() => agruparOracionesPorOpd(lineas, modelo), [lineas, modelo]);
-
-  // Combinar filtros: selección + búsqueda (AND)
   const filtradasPorSeleccion = filtroActivo ? filtrarLineasPorReferencia(lineas, seleccionRef) : lineas;
   const query = busquedaOpl.toLowerCase().trim();
   const visibles = query
@@ -61,7 +48,6 @@ export function PanelOpl() {
     : filtradasPorSeleccion;
   const visiblesPorId = new Set(visibles.map((linea) => linea.id));
 
-  // HU-21.006: OPL no disponible durante vista mapa
   if (vistaMapaActiva) {
     return (
       <aside style={style.panel} aria-label="Panel OPL-ES">
@@ -73,7 +59,6 @@ export function PanelOpl() {
 
   return (
     <aside style={style.panel} aria-label="Panel OPL-ES">
-      {/* ── Barra superior: búsqueda + botones ── */}
       <div style={style.toolbar}>
         <input
           type="text"
@@ -81,292 +66,57 @@ export function PanelOpl() {
           value={busquedaOpl}
           aria-label="Buscar texto en OPL"
           style={style.searchInput}
-          onInput={(event) =>
-            fijarBusquedaOpl((event.currentTarget as HTMLInputElement).value)
-          }
+          onInput={(event) => fijarBusquedaOpl((event.currentTarget as HTMLInputElement).value)}
         />
-        <button
-          style={{ ...style.toolbarBtn, ...(lineas.length === 0 ? style.btnDisabled : {}) }}
-          disabled={lineas.length === 0}
-          title="Copiar todo el OPL al portapapeles"
-          onClick={() => copiarOplActualAlPortapapeles()}
-        >
+        <button style={botonToolbar(lineas.length === 0)} disabled={lineas.length === 0} title="Copiar todo el OPL al portapapeles" onClick={() => copiarOplActualAlPortapapeles()}>
           Copiar OPL
         </button>
-        <button
-          style={{ ...style.toolbarBtn, ...(lineas.length === 0 ? style.btnDisabled : {}) }}
-          disabled={lineas.length === 0}
-          title="Exportar OPL como archivo HTML"
-          onClick={() => exportarOplActualHtml()}
-        >
+        <button style={botonToolbar(lineas.length === 0)} disabled={lineas.length === 0} title="Exportar OPL como archivo HTML" onClick={() => exportarOplActualHtml()}>
           Exportar HTML
         </button>
-        <button
-          style={{ ...style.toolbarBtn, ...(bloques.length === 0 ? style.btnDisabled : {}) }}
-          disabled={bloques.length === 0}
-          title="Expandir todos los bloques OPD"
-          onClick={() => setBloquesColapsados(new Set())}
-        >
+        <button style={botonToolbar(bloques.length === 0)} disabled={bloques.length === 0} title="Expandir todos los bloques OPD" onClick={() => setBloquesColapsados(new Set())}>
           Expandir todo
         </button>
-        <button
-          style={{ ...style.toolbarBtn, ...(bloques.length === 0 ? style.btnDisabled : {}) }}
-          disabled={bloques.length === 0}
-          title="Colapsar todos los bloques OPD"
-          onClick={() => setBloquesColapsados(new Set(bloques.map((bloque) => bloque.opdId)))}
-        >
+        <button style={botonToolbar(bloques.length === 0)} disabled={bloques.length === 0} title="Colapsar todos los bloques OPD" onClick={() => setBloquesColapsados(new Set(bloques.map((bloque) => bloque.opdId)))}>
           Colapsar todo
         </button>
         <label style={style.toggle}>
           <input
             type="checkbox"
             checked={filtroActivo}
-            onInput={(event) =>
-              fijarFiltroOplPorSeleccion((event.currentTarget as HTMLInputElement).checked)
-            }
+            onInput={(event) => fijarFiltroOplPorSeleccion((event.currentTarget as HTMLInputElement).checked)}
           />
           Filtrar por selección
         </label>
       </div>
 
-      {/* ── Área de oraciones ── */}
-      <div>
-        {visibles.length === 0 ? (
-          <span style={style.empty}>
-            {lineas.length === 0
-              ? "Sin OPL todavía."
-              : "Sin oraciones para la selección."}
-          </span>
-        ) : (
-          bloques.map((bloque) => {
-            const oracionesVisibles = bloque.oraciones.filter((linea) => visiblesPorId.has(linea.id));
-            if (oracionesVisibles.length === 0) return null;
-            const colapsado = bloquesColapsados.has(bloque.opdId);
-            return (
-              <section
-                key={bloque.opdId}
-                data-testid={`bloque-opl-${bloque.opdId}`}
-                style={{ ...style.bloque, marginLeft: `${bloque.profundidad * 18}px` }}
-              >
-                <button
-                  type="button"
-                  data-testid={`cabecera-bloque-opl-${bloque.opdId}`}
-                  style={style.bloqueHeader}
-                  onClick={() => setBloquesColapsados((actual) => togglearColapsoBloque(actual, bloque.opdId))}
-                  aria-expanded={!colapsado}
-                >
-                  <span style={style.chevron}>{colapsado ? "▸" : "▾"}</span>
-                  <span>{bloque.opdNombre}</span>
-                  <span style={style.bloqueConteo}>({bloque.oraciones.length} oraciones)</span>
-                </button>
-                {colapsado ? null : oracionesVisibles.map((linea) => (
-                  <div
-                    key={linea.id}
-                    data-testid="opl-line"
-                    data-opl-ordinal={linea.ordinal}
-                    data-opd-id={bloque.opdId}
-                    style={{
-                      ...style.linea,
-                      ...(linea.opdId === opdActivoId ? style.lineaOpdActiva : {}),
-                      ...(lineaTocaReferencia(linea, hoverOplRef) ? style.lineaHover : {}),
-                      ...(lineaTocaReferencia(linea, seleccionRef)
-                        ? style.lineaSeleccionada
-                        : {}),
-                    }}
-                  >
-                    <span style={style.ordinal}>{linea.ordinal}.</span>
-                    <span style={style.texto}>
-                      {linea.tokens.map((token) =>
-                        renderToken({
-                          token,
-                          hoverOplRef,
-                          edicion,
-                          setEdicion,
-                          seleccionarDesdeOpl,
-                          renombrarEntidadDesdeOpl,
-                          renombrarEstadoDesdeOpl,
-                          abrirInspectorEnlaceDesdeOpl,
-                          fijarHoverOpl,
-                        }),
-                      )}
-                    </span>
-                  </div>
-                ))}
-              </section>
-            );
-          })
-        )}
-      </div>
+      {visibles.length === 0 ? (
+        <span style={style.empty}>{lineas.length === 0 ? "Sin OPL todavía." : "Sin oraciones para la selección."}</span>
+      ) : (
+        <Bloques
+          bloques={bloques}
+          visiblesPorId={visiblesPorId}
+          opdActivoId={opdActivoId}
+          hoverOplRef={hoverOplRef}
+          seleccionRef={seleccionRef}
+          bloquesColapsados={bloquesColapsados}
+          setBloquesColapsados={setBloquesColapsados}
+          edicion={edicion}
+          setEdicion={setEdicion}
+          seleccionarDesdeOpl={seleccionarDesdeOpl}
+          renombrarEntidadDesdeOpl={renombrarEntidadDesdeOpl}
+          renombrarEstadoDesdeOpl={renombrarEstadoDesdeOpl}
+          abrirInspectorEnlaceDesdeOpl={abrirInspectorEnlaceDesdeOpl}
+          fijarHoverOpl={fijarHoverOpl}
+        />
+      )}
     </aside>
   );
 }
 
-// ── Render de token individual ──
-
-function renderToken(props: {
-  token: OplToken;
-  hoverOplRef: OplReferencia | null;
-  edicion: { tipo: "entidad" | "estado"; id: string; tokenId: string; valor: string } | null;
-  setEdicion: (value: { tipo: "entidad" | "estado"; id: string; tokenId: string; valor: string } | null) => void;
-  seleccionarDesdeOpl: (ref: OplReferencia) => void;
-  renombrarEntidadDesdeOpl: (entidadId: string, nombre: string) => void;
-  renombrarEstadoDesdeOpl: (estadoId: string, nombre: string) => void;
-  abrirInspectorEnlaceDesdeOpl: (enlaceId: string) => void;
-  fijarHoverOpl: (ref: OplReferencia | null) => void;
-}) {
-  const {
-    token, hoverOplRef, edicion, setEdicion,
-    seleccionarDesdeOpl, renombrarEntidadDesdeOpl,
-    renombrarEstadoDesdeOpl, abrirInspectorEnlaceDesdeOpl,
-    fijarHoverOpl,
-  } = props;
-
-  const editando = edicion && edicion.tokenId === token.id;
-
-  // ── Edición inline para entidad ──
-  if (token.ref?.tipo === "entidad" && editando && edicion?.tipo === "entidad") {
-    return (
-      <input
-        key={token.id}
-        aria-label="Renombrar desde OPL"
-        value={edicion.valor}
-        autoFocus
-        style={style.inputInline}
-        onInput={(event) =>
-          setEdicion({
-            ...edicion,
-            valor: (event.currentTarget as HTMLInputElement).value,
-          })
-        }
-        onKeyDown={(event) => {
-          if (event.key === "Enter") {
-            renombrarEntidadDesdeOpl(edicion.id, edicion.valor);
-            setEdicion(null);
-          }
-          if (event.key === "Escape") setEdicion(null);
-        }}
-        onBlur={() => setEdicion(null)}
-      />
-    );
-  }
-
-  // ── Edición inline para estado ──
-  if (token.ref?.tipo === "estado" && editando && edicion?.tipo === "estado") {
-    return (
-      <input
-        key={token.id}
-        aria-label="Renombrar estado desde OPL"
-        value={edicion.valor}
-        autoFocus
-        style={style.inputInline}
-        onInput={(event) =>
-          setEdicion({
-            ...edicion,
-            valor: (event.currentTarget as HTMLInputElement).value,
-          })
-        }
-        onKeyDown={(event) => {
-          if (event.key === "Enter") {
-            renombrarEstadoDesdeOpl(edicion.id, edicion.valor);
-            setEdicion(null);
-          }
-          if (event.key === "Escape") setEdicion(null);
-        }}
-        onBlur={() => setEdicion(null)}
-      />
-    );
-  }
-
-  const interactivo = !!token.ref;
-  const seleccionado =
-    token.ref && hoverOplRef ? mismaReferencia(token.ref, hoverOplRef) : false;
-  const contenido = textoVisibleToken(token);
-
-  const isEnlaceDestino = token.rol === "nombre" && token.ref?.tipo === "enlace";
-  const enlaceRef = token.ref?.tipo === "enlace" ? token.ref : null;
-
-  const common = {
-    key: token.id,
-    "data-opl-token": token.ref
-      ? `${token.ref.tipo}:${token.ref.id}`
-      : undefined,
-    "data-opl-rol": token.rol,
-    style: {
-      ...style.token,
-      ...(interactivo ? style.tokenInteractivo : {}),
-      ...(seleccionado ? style.tokenHover : {}),
-      ...styleTokenMarkdown(token),
-      // Señal visual para tokens multi-enlace (HU-50.021): subrayado punteado
-      ...(isEnlaceDestino ? style.tokenMultiEnlace : {}),
-    },
-    onMouseEnter: () => token.ref && fijarHoverOpl(token.ref),
-    onMouseLeave: () => token.ref && fijarHoverOpl(null),
-    onClick: () => {
-      if (token.ref) {
-        seleccionarDesdeOpl(token.ref);
-      }
-    },
-    onDblClick: () => {
-      if (token.ref?.tipo === "entidad") {
-        setEdicion({
-          tipo: "entidad",
-          id: token.ref.id,
-          tokenId: token.id,
-          valor: contenido,
-        });
-        return;
-      }
-      if (token.ref?.tipo === "estado") {
-        setEdicion({
-          tipo: "estado",
-          id: token.ref.id,
-          tokenId: token.id,
-          valor: token.texto.replace(/`/g, ""),
-        });
-        return;
-      }
-      // Doble clic en verbo → seleccionar y abrir inspector (HU-50.022)
-      if (token.rol === "verbo" && enlaceRef) {
-        abrirInspectorEnlaceDesdeOpl(enlaceRef.id);
-        return;
-      }
-      if (token.ref?.tipo === "enlace") {
-        abrirInspectorEnlaceDesdeOpl(token.ref.id);
-      }
-    },
-  };
-
-  if (token.markdown === "objeto")
-    return <strong {...common}>{contenido}</strong>;
-  if (token.markdown === "proceso")
-    return <em {...common}>{contenido}</em>;
-  if (token.markdown === "estado")
-    return <code {...common}>{token.texto}</code>;
-  return <span {...common}>{token.texto}</span>;
+function botonToolbar(disabled: boolean): preact.JSX.CSSProperties {
+  return { ...style.toolbarBtn, ...(disabled ? style.btnDisabled : {}) };
 }
-
-// ── Helpers ──
-
-function textoVisibleToken(token: OplToken): string {
-  if (token.markdown === "objeto") {
-    return token.texto.replace(/\*\*([^*]+)\*\*/g, "$1");
-  }
-  if (token.markdown === "proceso") {
-    return token.texto.replace(/\*([^*\s][^*]*?)\*/g, "$1");
-  }
-  // Quitar backticks para estados
-  return token.texto.replace(/`/g, "");
-}
-
-function styleTokenMarkdown(token: OplToken): preact.JSX.CSSProperties {
-  if (token.markdown === "objeto") return style.objeto;
-  if (token.markdown === "proceso") return style.proceso;
-  if (token.markdown === "estado") return style.estado;
-  if (token.rol === "verbo") return style.verbo;
-  return {};
-}
-
-// ── Estilos ──
 
 const style = {
   panel: {
@@ -404,10 +154,7 @@ const style = {
     cursor: "pointer",
     whiteSpace: "nowrap",
   },
-  btnDisabled: {
-    opacity: 0.4,
-    cursor: "not-allowed",
-  },
+  btnDisabled: { opacity: 0.4, cursor: "not-allowed" },
   toggle: {
     display: "inline-flex",
     alignItems: "center",
@@ -417,99 +164,5 @@ const style = {
     userSelect: "none",
     whiteSpace: "nowrap",
   },
-  empty: {
-    color: "#667085",
-  },
-  linea: {
-    display: "grid",
-    gridTemplateColumns: "32px minmax(0, 1fr)",
-    columnGap: 6,
-    borderRadius: 4,
-    padding: "2px 4px",
-  },
-  bloque: {
-    marginBottom: 8,
-  },
-  bloqueHeader: {
-    width: "100%",
-    minHeight: 28,
-    display: "inline-flex",
-    alignItems: "center",
-    gap: 6,
-    border: "1px solid #e4eaf1",
-    borderRadius: 4,
-    background: "#f8fafc",
-    color: "#334155",
-    fontSize: "12px",
-    fontWeight: 700,
-    cursor: "pointer",
-    textAlign: "left",
-    padding: "3px 8px",
-  },
-  chevron: {
-    width: 14,
-    color: "#586D8C",
-    fontWeight: 700,
-  },
-  bloqueConteo: {
-    color: "#667085",
-    fontSize: "11px",
-    fontWeight: 600,
-  },
-  lineaOpdActiva: {
-    background: "#fbfdff",
-  },
-  lineaHover: {
-    background: "#edf2f7",
-  },
-  lineaSeleccionada: {
-    boxShadow: "inset 3px 0 0 #586D8C",
-  },
-  ordinal: {
-    color: "#667085",
-    fontVariantNumeric: "tabular-nums",
-    textAlign: "right",
-  },
-  texto: {
-    minWidth: 0,
-  },
-  token: {
-    borderRadius: 3,
-  },
-  tokenInteractivo: {
-    cursor: "pointer",
-  },
-  tokenHover: {
-    background: "#E1E6EB",
-  },
-  tokenMultiEnlace: {
-    borderBottom: "1px dotted #93a3b8",
-  },
-  objeto: {
-    color: "#1f7a3c",
-    fontWeight: 700,
-  },
-  proceso: {
-    color: "#147aa5",
-    fontStyle: "italic",
-    fontWeight: 700,
-  },
-  estado: {
-    color: "#475467",
-    fontFamily: "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace",
-    fontSize: "12px",
-  },
-  verbo: {
-    color: "#334155",
-    fontWeight: 700,
-  },
-  inputInline: {
-    width: "14ch",
-    minWidth: 80,
-    maxWidth: 220,
-    border: "1px solid #586D8C",
-    borderRadius: 4,
-    padding: "1px 4px",
-    font: "inherit",
-  },
+  empty: { color: "#667085" },
 } satisfies Record<string, preact.JSX.CSSProperties>;
