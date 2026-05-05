@@ -1,0 +1,531 @@
+import { crearCosaEnPosicion } from "../modelo/creacionInterna";
+import { extremoEstado } from "../modelo/extremos";
+import {
+  designarCurrent,
+  designarDefault,
+  designarFinal,
+  designarInicial,
+  quitarDesignacion,
+  restaurarEstado,
+  suprimirEstado,
+} from "../modelo/estadosDesignaciones";
+import {
+  aplicarEstiloApariencia,
+  resetearEstiloApariencia,
+} from "../modelo/estilos";
+import {
+  contenedorRefinamiento,
+  dentroDeApariencia,
+  posicionLibre,
+} from "../modelo/layout";
+import {
+  actualizarVerticesEnlace as actualizarVerticesEnlaceOp,
+  ajustarMultiplicidad,
+  apuntarExtremoEnlace,
+  cambiarAfiliacion,
+  cambiarEsencia,
+  agregarEstado,
+  crearEnlace,
+  crearEstadosIniciales,
+  crearModelo,
+  crearObjeto,
+  crearProceso,
+  designarEstadoFinal as designarEstadoFinalOp,
+  designarEstadoInicial as designarEstadoInicialOp,
+  descomponerProceso,
+  desplegarObjeto,
+  eliminarEnlace,
+  eliminarEstado as eliminarEstadoOp,
+  moverApariencia as moverAparienciaEntidad,
+  moverAparienciaPorId,
+  quitarDescomposicionProceso,
+  quitarDespliegueObjeto,
+  quitarEstadosObjeto,
+  reanclarEnlaceExternoDerivado as reanclarEnlaceExternoDerivadoOp,
+  renombrarEntidad,
+  renombrarEstado,
+  splitEffectEnPar,
+  volverEnlaceExternoDerivadoAAutomatico as volverEnlaceExternoDerivadoAAutomaticoOp,
+} from "../modelo/operaciones";
+import {
+  agregarUrl,
+  editarAlias,
+  editarDescripcion,
+  editarUnidad,
+  eliminarUrl,
+  reordenarUrls,
+} from "../modelo/objetoMetadata";
+import { fijarDuracion, quitarDuracion } from "../modelo/objetoDuracion";
+import {
+  cambiarOrdenPartes as cambiarOrdenPartesOp,
+  cambiarModoPlegado as cambiarModoPlegadoOp,
+  crearEnlaceConExtremoPlegado,
+  extraerParteDePlegado as extraerParteDePlegadoOp,
+  reinsertarParteEnPlegado as reinsertarParteEnPlegadoOp,
+} from "../modelo/plegado";
+import {
+  abanicoDeEnlace,
+  alternarOperadorAbanico as alternarOperadorAbanicoOp,
+  disolverAbanico as disolverAbanicoOp,
+  formarAbanicoAutomatico,
+  quitarRamaDeAbanico as quitarRamaDeAbanicoOp,
+  sincronizarAbanicos,
+} from "../modelo/abanicos";
+import { crearAutoInvocacion } from "../modelo/autoinvocacion";
+import { eliminarOpdHoja } from "../modelo/opdEliminacion";
+import {
+  listarHermanos,
+  moverNodo,
+  ordenSegunCanvasPadre,
+  reordenarHermanos,
+  validarMovimientoSinCiclo,
+} from "../modelo/opdReorden";
+import {
+  aplicarModificador,
+  definirDemora,
+  definirProbabilidad,
+  quitarModificador,
+} from "../modelo/modificadores";
+import { renombrarEtiquetaEnlace } from "../modelo/etiquetasEnlace";
+import { definirRutaEtiqueta } from "../modelo/rutas";
+import {
+  aplicarEstiloEnlace,
+  copiarEstiloEnlace,
+  pegarEstiloEnlace,
+  resetEstiloEnlace,
+} from "../modelo/enlaceEstilo";
+import {
+  fijarMultiplicidadOrigen,
+  fijarMultiplicidadDestino,
+  quitarMultiplicidad,
+} from "../modelo/enlaceMultiplicidad";
+import {
+  insertarVerticeApariencia,
+  reposicionarVerticeApariencia,
+  reanclarExtremoEnlace as reanclarExtremoEnlaceOp,
+} from "../modelo/enlaceVertices";
+import {
+  borrarModeloLocal,
+  cargarModeloLocal,
+  guardarModeloLocal,
+  listarModelosLocales,
+  actualizarMetadataModeloLocal,
+  type ResumenModeloPersistido,
+} from "../persistencia/local";
+import {
+  archivarCarpeta as archivarCarpetaEnIndiceOp,
+  archivarModelo as archivarModeloEnIndiceOp,
+  buscarGlobal,
+  validarNombreModeloLocal,
+  workspaceDesdeModelo,
+  type WorkspaceModeloLocal,
+  type CarpetaIndice,
+  type BusquedaGlobalEstado,
+  type PortapapelesWorkspace,
+  type ResultadoBusquedaGlobal,
+  type WorkspaceIndice,
+  type MapaWorkspace,
+  indiceVacio,
+  crearCarpeta as crearCarpetaEnIndice,
+  renombrarCarpeta as renombrarCarpetaEnIndiceOp,
+  eliminarCarpeta as eliminarCarpetaEnIndiceOp,
+  moverModeloACarpeta as moverModeloACarpetaEnIndiceOp,
+  listarHijosDeCarpeta,
+  restaurarCarpeta as restaurarCarpetaEnIndiceOp,
+  restaurarModelo as restaurarModeloEnIndiceOp,
+  rutaDeCarpeta,
+} from "../persistencia/workspace";
+import {
+  cortarCarpeta as cortarCarpetaWorkspace,
+  cortarModelo as cortarModeloWorkspace,
+  moverCarpeta,
+  moverModelo,
+  pegarCarpeta,
+  pegarModelo,
+} from "../persistencia/movimientoModelos";
+import {
+  crearVersion,
+  eliminarVersion,
+  restaurarVersion,
+} from "../persistencia/versiones";
+import {
+  crearAutosalvado,
+  type AutosalvadoEstado,
+  type AutosalvadoControl,
+} from "../persistencia/autosalvado";
+import { exportarModelo, hidratarModelo } from "../serializacion/json";
+import type { Aviso } from "../modelo/validaciones";
+import type { Afiliacion, Apariencia, DesignacionEstado, DuracionTemporal, EnlaceEstilo, Esencia, EstiloApariencia, ExtremoEnlace, Id, LayoutEstados, Modelo, Modificador, ModoDespliegueObjeto, ModoPlegado, Opd, OperadorAbanico, OrdenPartesPlegado, Pestana, PestanaId, Posicion, TipoEnlace, TipoEntidad, UrlObjetoTipada, UiPortapapelesVisual, VersionResumen } from "../modelo/tipos";
+import { mismaReferencia, type OplReferencia } from "../opl/interaccion";
+import { datosAsistenteVacio, sembrarModeloDesdeAsistente, validarDatosAsistente, type DatosAsistente, type EtapaAsistente } from "../modelo/creacionWizard";
+import { generarOpl } from "../opl/generar";
+import {
+  aplicarMarcadores,
+  calcularEstadisticas,
+  construirDescriptorMapa,
+  filtrarPorProfundidad,
+  filtrarPorSubarbol,
+  resaltarPorTipo,
+  type CriterioResaltado,
+  type DescriptorMapa,
+  type EstadisticasModelo,
+} from "../render/jointjs/mapaSistema";
+import { fijarOpcionesProyeccionGlobal } from "../render/jointjs/proyeccion";
+import {
+  abrirPestana as abrirPestanaEstado,
+  cambiarActiva as cambiarPestanaActivaEstado,
+  cerrarPestana as cerrarPestanaEstado,
+  clonarModelo,
+  crearPestanaDesdeModelo,
+  crearPestanaNueva,
+  duplicarPestana as duplicarPestanaEstado,
+  reordenarPestanas as reordenarPestanasEstado,
+} from "./pestanas";
+import {
+  agregar as seleccionAgregar,
+  quitar as seleccionQuitar,
+  setSeleccion as seleccionSet,
+  todasDelOpd,
+  toggle as seleccionToggle,
+  vacia as seleccionVacia,
+  type ModoSeleccion,
+} from "../canvas/seleccionMultiple";
+import {
+  alinearEnlacesAbajo,
+  alinearEnlacesArriba,
+  alinearEnlacesDerecha,
+  alinearEnlacesIzquierda,
+  aplicarEstiloApariencias,
+  aplicarEstiloEnlaces,
+  conectarMultiAlTodo,
+  copiarSeleccion,
+  eliminarBatch,
+  nudgeApariencias,
+  nudgeEnlaces,
+  pegarSeleccion,
+} from "../canvas/operacionesBatch";
+
+export interface ModoEnlace {
+  tipo: TipoEnlace;
+  origenId: Id;
+}
+
+export interface OpmStore {
+  modelo: Modelo;
+  opdActivoId: Id;
+  pestanasAbiertas: Pestana[];
+  pestanaActivaId: PestanaId;
+  seleccionId: Id | null;
+  seleccionados: Id[];
+  modoSeleccion: ModoSeleccion;
+  portapapelesVisual: UiPortapapelesVisual | null;
+  enlaceSeleccionId: Id | null;
+  modoEnlace: ModoEnlace | null;
+  modoCreacion: TipoEntidad | null;
+  filtroOplPorSeleccion: boolean;
+  hoverOplRef: OplReferencia | null;
+  busquedaOpl: string;
+  mensaje: string | null;
+  dirty: boolean;
+  puedeDeshacer: boolean;
+  puedeRehacer: boolean;
+  modelosGuardados: ResumenModeloPersistido[];
+  modeloPersistidoId: Id | null;
+  descripcionModeloLocal: string;
+  menuPrincipalAbierto: boolean;
+  dialogoGuardarComoAbierto: boolean;
+  dialogoCargarModeloAbierto: boolean;
+  workspaceLocal: WorkspaceModeloLocal;
+  tablaEnlacesAbierta: boolean;
+  tablaEnlacesFiltroTipo: TipoEnlace | "todos";
+  tablaEnlacesOrdenColumna: string | null;
+  tablaEnlacesOrdenDireccion: "asc" | "desc";
+  enlaceEstiloPortapapeles: EnlaceEstilo | null;
+  uiAliasVisibles: boolean;
+  uiDescripcionesVisibles: boolean;
+  modalUrlsAbierto: Id | null;
+  modalDuracionAbierto: Id | null;
+  // ── Carpetas (L4) ──
+  indice: WorkspaceIndice;
+  carpetaActualId: Id | null;
+  modelosRecientes: ResumenModeloPersistido[];
+  // ── Búsqueda intra-modelo (L4) ──
+  busquedaCosasAbierta: boolean;
+  busquedaCosasQuery: string;
+  busquedaCosasFiltro: "todos" | "procesos" | "objetos";
+  // ── Autosalvado (L4) ──
+  autosalvado: AutosalvadoEstado;
+  // ── Asistente nuevo modelo (L3) ──
+  asistente: null | {
+    etapaActual: EtapaAsistente;
+    datos: Partial<DatosAsistente>;
+    cancelado: boolean;
+  };
+  limpiarMensaje: () => void;
+  abrirMenuPrincipal: () => void;
+  cerrarMenuPrincipal: () => void;
+  abrirGuardarComo: () => void;
+  cerrarGuardarComo: () => void;
+  guardarComoLocal: (input: { nombre: string; descripcion?: string; crearVersionAlGuardar?: boolean }) => void;
+  abrirCargarModelo: () => void;
+  cerrarCargarModelo: () => void;
+  cargarLocalDesdeDialogo: (id: Id) => void;
+  nuevoModelo: () => void;
+  crearObjetoDemo: () => void;
+  crearProcesoDemo: () => void;
+  crearEntidadEnCanvas: (tipo: TipoEntidad, posicion: Posicion) => void;
+  fijarModoCreacion: (tipo: TipoEntidad | null) => void;
+  descomponerSeleccionada: () => void;
+  desplegarSeleccionada: (modo?: ModoDespliegueObjeto) => void;
+  quitarDescomposicionSeleccionada: () => void;
+  quitarDespliegueSeleccionado: () => void;
+  eliminarOpdDesdeArbol: (opdId: Id) => void;
+  cambiarOpdActivo: (id: Id) => void;
+  seleccionarEntidad: (id: Id) => void;
+  seleccionarEstadoComoExtremo: (estadoId: Id) => void;
+  seleccionarEnlace: (id: Id) => void;
+  seleccionarDesdeOpl: (ref: OplReferencia) => void;
+  renombrarEntidadDesdeOpl: (entidadId: Id, nombre: string) => void;
+  fijarFiltroOplPorSeleccion: (activo: boolean) => void;
+  fijarHoverOpl: (ref: OplReferencia | null) => void;
+  fijarBusquedaOpl: (texto: string) => void;
+  editarEtiquetaEnlaceDesdeOpl: (enlaceId: Id, etiqueta: string) => void;
+  renombrarEstadoDesdeOpl: (estadoId: Id, nombre: string) => void;
+  abrirInspectorEnlaceDesdeOpl: (enlaceId: Id) => void;
+  copiarOplActualAlPortapapeles: () => Promise<void>;
+  exportarOplActualHtml: () => Promise<void>;
+  navegarAviso: (aviso: Aviso) => void;
+  deshacer: () => void;
+  rehacer: () => void;
+  elegirTipoEnlace: (tipo: TipoEnlace) => void;
+  cancelarEnlace: () => void;
+  renombrarSeleccionada: (nombre: string) => void;
+  fijarEsenciaSeleccionada: (esencia: Esencia) => void;
+  fijarAfiliacionSeleccionada: (afiliacion: Afiliacion) => void;
+  cambiarModoPlegadoSeleccionado: (modo: ModoPlegado) => void;
+  cambiarModoPlegadoApariencia: (aparienciaId: Id, modo: ModoPlegado) => void;
+  fijarModoPlegadoApariencia: (aparienciaId: Id, modo: ModoPlegado) => void;
+  cambiarOrdenPartesSeleccionado: (orden: OrdenPartesPlegado) => void;
+  fijarOrdenPartesApariencia: (aparienciaId: Id, orden: OrdenPartesPlegado) => void;
+  aplicarEstiloSeleccionado: (patch: EstiloApariencia) => void;
+  resetearEstiloSeleccionado: () => void;
+  seleccionarPartePlegada: (padreAparienciaId: Id, parteEntidadId: Id) => void;
+  extraerParteDePlegado: (padreAparienciaId: Id, parteEntidadId: Id) => void;
+  reinsertarParteExtraidaSeleccionada: () => void;
+  agregarEstadosObjeto: () => void;
+  agregarEstadoObjeto: () => void;
+  eliminarEstado: (estadoId: Id) => void;
+  quitarEstadosObjetoSeleccionado: () => void;
+  renombrarEstadoSeleccionado: (estadoId: Id, nombre: string) => void;
+  designarEstadoInicial: (estadoId: Id) => void;
+  designarEstadoFinal: (estadoId: Id) => void;
+  editarAliasEntidad: (entidadId: Id, alias: string) => void;
+  editarUnidadEntidad: (entidadId: Id, unidad: string) => void;
+  editarDescripcionEntidad: (entidadId: Id, descripcion: string) => void;
+  abrirModalUrls: (entidadId: Id) => void;
+  cerrarModalUrls: () => void;
+  agregarUrlAEntidad: (entidadId: Id, url: Omit<UrlObjetoTipada, "id">) => void;
+  eliminarUrlDeEntidad: (entidadId: Id, urlId: Id) => void;
+  reordenarUrlsEntidad: (entidadId: Id, urlIds: Id[]) => void;
+  designarEstadoComo: (estadoId: Id, designacion: DesignacionEstado) => void;
+  quitarDesignacionEstado: (estadoId: Id, designacion: DesignacionEstado) => void;
+  suprimirEstadoPorId: (estadoId: Id) => void;
+  restaurarEstadoPorId: (estadoId: Id) => void;
+  abrirModalDuracion: (estadoId: Id) => void;
+  cerrarModalDuracion: () => void;
+  fijarDuracionEstado: (estadoId: Id, duracion: DuracionTemporal) => void;
+  quitarDuracionEstado: (estadoId: Id) => void;
+  fijarLayoutEstadosEntidad: (entidadId: Id, layout: LayoutEstados) => void;
+  toggleAliasVisibles: () => void;
+  toggleDescripcionesVisibles: () => void;
+  moverEntidad: (id: Id, x: number, y: number) => void;
+  moverApariencia: (aparienciaId: Id, x: number, y: number) => void;
+  reordenarSubprocesoEnTimeline: (opdId: Id, aparienciaId: Id, nuevaY: number) => void;
+  actualizarVerticesEnlace: (aparienciaEnlaceId: Id, vertices: Array<{ x: number; y: number }>) => void;
+  ajustarMultiplicidadSeleccionada: (lado: "origen" | "destino", texto: string) => void;
+  apuntarExtremoEnlaceSeleccionado: (lado: "origen" | "destino", extremo: ExtremoEnlace) => void;
+  reanclarEnlaceExternoDerivado: (aparienciaEnlaceId: Id, nuevoEndpointEntidadId: Id) => void;
+  splitEffectSeleccionado: () => void;
+  volverEnlaceExternoDerivadoAAutomatico: (aparienciaEnlaceId: Id) => void;
+  alternarOperadorAbanicoSeleccionado: (operador: OperadorAbanico) => void;
+  quitarRamaDeAbanicoSeleccionado: () => void;
+  disolverAbanicoSeleccionado: () => void;
+  crearAutoInvocacionSeleccionada: () => void;
+  aplicarModificadorEnlaceSeleccionado: (modificador: Modificador) => void;
+  quitarModificadorEnlaceSeleccionado: () => void;
+  definirProbabilidadEventoSeleccionada: (probabilidad: number | undefined) => void;
+  definirDemoraInvocacionSeleccionada: (demora: string | undefined) => void;
+  renombrarEtiquetaEnlaceSeleccionado: (etiqueta: string) => void;
+  definirRutaEtiquetaSeleccionada: (etiqueta: string | undefined) => void;
+  eliminarSeleccion: () => void;
+  setSeleccion: (ids: Id[]) => void;
+  agregarASeleccion: (id: Id) => void;
+  quitarDeSeleccion: (id: Id) => void;
+  toggleSeleccion: (id: Id) => void;
+  vaciarSeleccion: () => void;
+  seleccionarTodoEnOpd: () => void;
+  nudgeSeleccion: (dx: number, dy: number) => void;
+  alinearSeleccionEnlaces: (direccion: "izquierda" | "derecha" | "arriba" | "abajo") => void;
+  conectarSeleccionAlTodo: (todoApariencia: Id, tipo: TipoEnlace) => void;
+  aplicarEstiloASeleccion: (estilo: Partial<EstiloApariencia | EnlaceEstilo>) => void;
+  copiarSeleccionAlBuffer: () => void;
+  pegarBufferEnOpdActivo: () => void;
+  exportarJson: () => string;
+  importarJson: (json: string) => void;
+  abrirPestanaNueva: () => void;
+  abrirPestanaConAsistente: () => void;
+  abrirPestanaImportandoJson: (json: string) => void;
+  abrirPestanaConModelo: (modeloId: Id) => void;
+  duplicarPestana: (id: PestanaId) => void;
+  cerrarPestana: (id: PestanaId, opts?: { forzar?: boolean }) => void;
+  cambiarPestanaActiva: (id: PestanaId) => void;
+  reordenarPestanas: (idsOrdenados: PestanaId[]) => void;
+  renombrarPestana: (id: PestanaId, etiqueta: string) => void;
+  listarModelosGuardados: () => void;
+  guardarLocal: () => void;
+  cargarLocal: (id?: Id) => void;
+  borrarLocal: (id: Id) => void;
+  cargarDemo: () => void;
+  // ── Carpetas (L4) ──
+  crearCarpetaEnActual: (nombre: string) => void;
+  renombrarCarpetaEnIndice: (carpetaId: Id, nombre: string) => void;
+  eliminarCarpetaEnIndice: (carpetaId: Id, opciones: { cascada: boolean }) => Promise<void>;
+  abrirCarpeta: (carpetaId: Id | null) => void;
+  moverModeloACarpetaEnIndice: (modeloId: Id, carpetaId: Id | null) => void;
+  portapapelesWorkspace: PortapapelesWorkspace | null;
+  mostrarArchivados: boolean;
+  mostrarVersiones: boolean;
+  dialogoVersionesAbierto: { modeloId: Id } | null;
+  dialogoArchivadosAbierto: boolean;
+  dialogoBuscarGlobalAbierto: boolean;
+  busquedaGlobal: BusquedaGlobalEstado;
+  cortarModelo: (modeloId: Id) => void;
+  cortarCarpeta: (carpetaId: Id) => void;
+  cancelarPortapapelesWorkspace: () => void;
+  pegarEn: (carpetaDestinoId: Id | null) => void;
+  moverModeloDirecto: (modeloId: Id, destino: Id | null) => void;
+  moverCarpetaDirecto: (carpetaId: Id, destino: Id | null) => void;
+  archivarModeloActual: () => void;
+  archivarModeloPorId: (modeloId: Id) => void;
+  restaurarModeloPorId: (modeloId: Id) => void;
+  archivarCarpetaPorId: (carpetaId: Id) => void;
+  restaurarCarpetaPorId: (carpetaId: Id) => void;
+  guardarConVersion: () => Promise<void>;
+  crearVersionAhora: (opts?: { nombre?: string; descripcion?: string }) => Promise<void>;
+  abrirDialogoVersiones: (modeloId: Id) => void;
+  cerrarDialogoVersiones: () => void;
+  restaurarVersionComoCopia: (modeloId: Id, versionId: Id) => Promise<void>;
+  eliminarVersionPorId: (modeloId: Id, versionId: Id) => void;
+  abrirDialogoArchivados: () => void;
+  cerrarDialogoArchivados: () => void;
+  abrirDialogoBuscarGlobal: () => void;
+  cerrarDialogoBuscarGlobal: () => void;
+  fijarBusquedaGlobalQuery: (q: string) => void;
+  ejecutarBusquedaGlobal: () => void;
+  abrirResultadoBusquedaGlobal: (modeloId: Id) => void;
+  toggleMostrarArchivados: () => void;
+  toggleMostrarVersiones: () => void;
+  // ── Búsqueda (L4) ──
+  abrirBusquedaCosas: () => void;
+  cerrarBusquedaCosas: () => void;
+  fijarBusquedaCosasQuery: (q: string) => void;
+  fijarBusquedaCosasFiltro: (filtro: "todos" | "procesos" | "objetos") => void;
+  saltarAResultadoBusqueda: (entidadId: Id, opdId: Id) => void;
+  // ── Autosalvado (L4) ──
+  iniciarAutosalvado: () => void;
+  detenerAutosalvado: () => void;
+  // ── L6: enlaces, estilo, tabla ──
+  fijarMultiplicidadEnlace: (enlaceId: Id, lado: "origen" | "destino", valor: string) => void;
+  quitarMultiplicidadEnlace: (enlaceId: Id, lado: "origen" | "destino") => void;
+  aplicarEstiloEnlaceAccion: (enlaceId: Id, estilo: Partial<EnlaceEstilo>) => void;
+  resetEstiloEnlaceAccion: (enlaceId: Id) => void;
+  copiarEstiloEnlaceAlPortapapeles: (enlaceId: Id) => void;
+  pegarEstiloEnlaceDesdePortapapeles: (enlaceId: Id) => void;
+  aplicarEstiloTextoAccion: (aparienciaId: Id, estilo: Partial<EstiloApariencia>) => void;
+  resetEstiloTextoAccion: (aparienciaId: Id) => void;
+  insertarVerticeAccion: (aparienciaEnlaceId: Id, posicion: Posicion) => void;
+  reposicionarVerticeAccion: (aparienciaEnlaceId: Id, indice: number, posicion: Posicion) => void;
+  reanclarExtremoAccion: (enlaceId: Id, lado: "origen" | "destino", nuevoExtremo: ExtremoEnlace) => void;
+  borrarEnlacesEnLote: (enlaceIds: Id[]) => void;
+  abrirTablaEnlaces: () => void;
+  cerrarTablaEnlaces: () => void;
+  fijarFiltroTablaEnlaces: (tipo: TipoEnlace | "todos") => void;
+  fijarOrdenTablaEnlaces: (columna: string) => void;
+  navegarAEnlaceDesdeTabla: (enlaceId: Id) => void;
+  // ── L5: Mapa del sistema ─────────────────────────────────────────
+  vistaMapaActiva: boolean;
+  descriptorMapaCache: import("../render/jointjs/mapaSistema").DescriptorMapa | null;
+  mapaProfundidadMaxima: number | null;
+  mapaSubarbolRaizId: Id | null;
+  mapaCriterioResaltado: CriterioResaltado;
+  mapaZoom: number;
+  mapaPanX: number;
+  mapaPanY: number;
+  mapaAutoRefresh: boolean;
+  mapaUltimoVisitadoOpdId: Id | null;
+  mapaTooltipActivoId: Id | null;
+  mapaPanelFiltrosAbierto: boolean;
+  mapaPanelEstadisticasAbierto: boolean;
+  abrirVistaMapa: () => void;
+  cerrarVistaMapa: () => void;
+  refrescarVistaMapa: () => void;
+  saltarAOpdDesdeMapa: (opdId: Id) => void;
+  fijarMapaProfundidad: (max: number | null) => void;
+  fijarMapaSubarbol: (raizId: Id | null) => void;
+  fijarMapaCriterioResaltado: (criterio: CriterioResaltado) => void;
+  fijarMapaZoom: (zoom: number) => void;
+  fijarMapaPan: (x: number, y: number) => void;
+  toggleMapaAutoRefresh: () => void;
+  fijarMapaTooltip: (opdId: Id | null) => void;
+  toggleMapaPanelFiltros: () => void;
+  toggleMapaPanelEstadisticas: () => void;
+  limpiarFiltrosMapa: () => void;
+  descriptorMapaFiltrado: () => DescriptorMapa;
+  estadisticasModelo: () => EstadisticasModelo;
+  // ── L5: Reordenamiento del árbol ─────────────────────────────────
+  modoOrdenArbol: "manual" | "automatico";
+  fijarModoOrdenArbol: (modo: "manual" | "automatico") => void;
+  moverHermano: (padreId: Id | null, opdId: Id, posicion: number) => void;
+  moverOpdEnGestion: (opdId: Id, nuevoPadreId: Id | null, posicion: number) => void;
+  // ── L5: Gestión árbol ────────────────────────────────────────────
+  gestionArbolAbierta: boolean;
+  abrirGestionArbol: () => void;
+  cerrarGestionArbol: () => void;
+  busquedaOpdGestion: string;
+  fijarBusquedaOpdGestion: (q: string) => void;
+  // ── L5: Renombrado OPD desde árbol ───────────────────────────────
+  renombrarOpdDesdeArbol: (opdId: Id, nombre: string) => void;
+  // ── L5: Atajos / árbol ───────────────────────────────────────────
+  anchoPanelArbol: number;
+  nombresArbolVisibles: boolean;
+  cheatsheetAtajosAbierto: boolean;
+  fijarAnchoPanelArbol: (px: number) => void;
+  toggleNombresArbolVisibles: () => void;
+  abrirCheatsheetAtajos: () => void;
+  cerrarCheatsheetAtajos: () => void;
+  navegarOpdArriba: () => void;
+  navegarOpdAbajo: () => void;
+  navegarOpdIzquierda: () => void;
+  navegarOpdDerecha: () => void;
+  // ── /L5 ──────────────────────────────────────────────────────────
+  // ── L3: Asistente nuevo modelo ───────────────────────────────────
+  iniciarAsistente: () => void;
+  siguienteEtapa: (parcial: Partial<DatosAsistente>) => void;
+  etapaAnterior: () => void;
+  cancelarAsistente: () => void;
+  confirmarAsistente: () => void;
+}
+
+
+
+export type CrearSlice<T> = (set: (partial: Partial<OpmStore> | ((state: OpmStore) => Partial<OpmStore>)) => void, get: () => OpmStore) => T;
+
+export type ModeloSlice = Partial<OpmStore>;
+export type SeleccionSlice = Partial<OpmStore>;
+export type EnlacesSlice = Partial<OpmStore>;
+export type WorkspaceModSlice = Partial<OpmStore>;
+export type CarpetasSlice = Partial<OpmStore>;
+export type UiPanelSlice = Partial<OpmStore>;
+export type MapaSlice = Partial<OpmStore>;
+export type PersistenciaSlice = Partial<OpmStore>;
+export type PestanasSlice = Partial<OpmStore>;

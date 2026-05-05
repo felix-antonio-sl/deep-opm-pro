@@ -134,3 +134,116 @@ function ok<T>(value: T): Resultado<T> {
 function fallo<T = never>(error: string): Resultado<T> {
   return { ok: false, error };
 }
+
+
+import type { CrearSlice, PestanasSlice } from "./tipos";
+import { activarEstadoPestanas, activarPestanaNueva, estadoModelo, listarModelosGuardadosSeguro, resetHistorial } from "./runtime";
+import { cargarModeloLocal } from "../persistencia/local";
+import { workspaceDesdeModelo } from "../persistencia/workspace";
+import { hidratarModelo } from "../serializacion/json";
+import { datosAsistenteVacio } from "../modelo/creacionWizard";
+
+const pestanaInicial = crearPestanaNueva();
+const cerrarPestanaEstado = cerrarPestana;
+const cambiarPestanaActivaEstado = cambiarActiva;
+const reordenarPestanasEstado = reordenarPestanas;
+const duplicarPestanaEstado = duplicarPestana;
+
+export const createPestanasSlice: CrearSlice<PestanasSlice> = (set, get) => ({
+  pestanasAbiertas: [pestanaInicial],
+  pestanaActivaId: pestanaInicial.id,
+
+  abrirPestanaNueva() {
+    const pestana = crearPestanaNueva();
+    activarPestanaNueva(set, get, pestana, "Nueva pestana");
+  },
+
+  abrirPestanaConAsistente() {
+    set({
+      asistente: {
+        etapaActual: 0,
+        datos: datosAsistenteVacio(),
+        cancelado: false,
+      },
+      menuPrincipalAbierto: false,
+      mensaje: null,
+    });
+  },
+
+  abrirPestanaImportandoJson(json) {
+    const resultado = hidratarModelo(json);
+    if (!resultado.ok) {
+      set({ mensaje: resultado.error });
+      return;
+    }
+    const pestana = crearPestanaDesdeModelo(resultado.value, {
+      modeloId: null,
+      nombre: "Modelo (No guardado)",
+      cargadoDesde: "importado",
+      dirty: false,
+    });
+    activarPestanaNueva(set, get, pestana, "Modelo importado en pestana");
+  },
+
+  abrirPestanaConModelo(modeloId) {
+    const cargado = cargarModeloLocal(modeloId);
+    if (!cargado.ok) {
+      set({ mensaje: cargado.error, modelosGuardados: listarModelosGuardadosSeguro() });
+      return;
+    }
+    const resultado = hidratarModelo(cargado.value.json);
+    if (!resultado.ok) {
+      set({ mensaje: resultado.error });
+      return;
+    }
+    const pestana = crearPestanaDesdeModelo(resultado.value, {
+      modeloId: cargado.value.id,
+      nombre: cargado.value.nombre,
+      cargadoDesde: "persistido",
+      dirty: false,
+      descripcion: cargado.value.descripcion,
+    });
+    activarPestanaNueva(set, get, pestana, `Modelo abierto en pestana: ${cargado.value.nombre}`);
+  },
+
+  duplicarPestana(id) {
+    const resultado = duplicarPestanaEstado({ pestanas: get().pestanasAbiertas, activa: get().pestanaActivaId }, id);
+    if (!resultado.ok) {
+      set({ mensaje: resultado.error });
+      return;
+    }
+    activarEstadoPestanas(set, resultado.value, "Pestana duplicada");
+  },
+
+  cerrarPestana(id, opts) {
+    const resultado = cerrarPestanaEstado({ pestanas: get().pestanasAbiertas, activa: get().pestanaActivaId }, id, opts);
+    if (!resultado.ok) {
+      set({ mensaje: resultado.error });
+      return;
+    }
+    activarEstadoPestanas(set, resultado.value, "Pestana cerrada");
+  },
+
+  cambiarPestanaActiva(id) {
+    const actual = cambiarPestanaActivaEstado({ pestanas: get().pestanasAbiertas, activa: get().pestanaActivaId }, id);
+    activarEstadoPestanas(set, actual, null);
+  },
+
+  reordenarPestanas(idsOrdenados) {
+    const resultado = reordenarPestanasEstado({ pestanas: get().pestanasAbiertas, activa: get().pestanaActivaId }, idsOrdenados);
+    if (!resultado.ok) {
+      set({ mensaje: resultado.error });
+      return;
+    }
+    set({ pestanasAbiertas: resultado.value.pestanas, mensaje: null });
+  },
+
+  renombrarPestana(id, etiqueta) {
+    set({
+      pestanasAbiertas: get().pestanasAbiertas.map((pestana) => (
+        pestana.id === id ? { ...pestana, etiqueta: etiqueta.trim() || "Modelo (No guardado)" } : pestana
+      )),
+      mensaje: null,
+    });
+  }
+});
