@@ -17,6 +17,9 @@ export interface OplLineaInteractiva {
   id: string;
   texto: string;
   ordinal: number;
+  opdId?: Id;
+  opdNombre?: string;
+  opdProfundidad?: number;
   refs: OplReferencia[];
   tokens: OplToken[];
 }
@@ -37,12 +40,14 @@ export function crearLineaOplInteractiva(
   ordinal: number,
   refs: OplReferencia[],
   hints: OplTokenHint[] = [],
+  meta: { opdId?: Id; opdNombre?: string; opdProfundidad?: number } = {},
 ): OplLineaInteractiva {
   const refsUnicas = refsUnicasPorTipoId(refs);
   return {
     id,
     texto,
     ordinal,
+    ...meta,
     refs: refsUnicas,
     tokens: tokenizarConHints(id, texto, hints),
   };

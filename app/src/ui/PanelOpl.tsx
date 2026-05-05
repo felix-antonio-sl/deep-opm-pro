@@ -1,6 +1,11 @@
 import { useMemo, useState } from "preact/hooks";
 import { generarOplInteractivo } from "../opl/generar";
 import {
+  agruparOracionesPorOpd,
+  ordenarOpdsParaOpl,
+  togglearColapsoBloque,
+} from "../opl/bloquesJerarquicos";
+import {
   filtrarLineasPorReferencia,
   lineaTocaReferencia,
   mismaReferencia,
@@ -34,6 +39,7 @@ export function PanelOpl() {
     tokenId: string;
     valor: string;
   } | null>(null);
+  const [bloquesColapsados, setBloquesColapsados] = useState<Set<string>>(() => new Set());
 
   const seleccionRef = enlaceSeleccionId
     ? ({ tipo: "enlace", id: enlaceSeleccionId } as const)
@@ -41,7 +47,11 @@ export function PanelOpl() {
       ? ({ tipo: "entidad", id: seleccionId } as const)
       : null;
 
-  const lineas = useMemo(() => generarOplInteractivo(modelo, opdActivoId), [modelo, opdActivoId]);
+  const lineas = useMemo(
+    () => ordenarOpdsParaOpl(modelo).flatMap((id) => generarOplInteractivo(modelo, id)),
+    [modelo],
+  );
+  const bloques = useMemo(() => agruparOracionesPorOpd(lineas, modelo), [lineas, modelo]);
 
   // Combinar filtros: selección + búsqueda (AND)
   const filtradasPorSeleccion = filtroActivo ? filtrarLineasPorReferencia(lineas, seleccionRef) : lineas;
@@ -49,11 +59,7 @@ export function PanelOpl() {
   const visibles = query
     ? filtradasPorSeleccion.filter((linea) => linea.texto.toLowerCase().includes(query))
     : filtradasPorSeleccion;
-
-  // Profundidad del OPD activo (HU-50.026). Cableado a 0 para OPD único,
-  // preparado para HU-50.027 cuando haya múltiples OPDs visibles.
-  const profundidad = 0;
-  const indentacion = profundidad * 20;
+  const visiblesPorId = new Set(visibles.map((linea) => linea.id));
 
   // HU-21.006: OPL no disponible durante vista mapa
   if (vistaMapaActiva) {
@@ -95,6 +101,22 @@ export function PanelOpl() {
         >
           Exportar HTML
         </button>
+        <button
+          style={{ ...style.toolbarBtn, ...(bloques.length === 0 ? style.btnDisabled : {}) }}
+          disabled={bloques.length === 0}
+          title="Expandir todos los bloques OPD"
+          onClick={() => setBloquesColapsados(new Set())}
+        >
+          Expandir todo
+        </button>
+        <button
+          style={{ ...style.toolbarBtn, ...(bloques.length === 0 ? style.btnDisabled : {}) }}
+          disabled={bloques.length === 0}
+          title="Colapsar todos los bloques OPD"
+          onClick={() => setBloquesColapsados(new Set(bloques.map((bloque) => bloque.opdId)))}
+        >
+          Colapsar todo
+        </button>
         <label style={style.toggle}>
           <input
             type="checkbox"
@@ -108,7 +130,7 @@ export function PanelOpl() {
       </div>
 
       {/* ── Área de oraciones ── */}
-      <div style={{ paddingLeft: `${indentacion}px` }}>
+      <div>
         {visibles.length === 0 ? (
           <span style={style.empty}>
             {lineas.length === 0
@@ -116,37 +138,63 @@ export function PanelOpl() {
               : "Sin oraciones para la selección."}
           </span>
         ) : (
-          visibles.map((linea) => (
-            <div
-              key={linea.id}
-              data-testid="opl-line"
-              data-opl-ordinal={linea.ordinal}
-              style={{
-                ...style.linea,
-                ...(lineaTocaReferencia(linea, hoverOplRef) ? style.lineaHover : {}),
-                ...(lineaTocaReferencia(linea, seleccionRef)
-                  ? style.lineaSeleccionada
-                  : {}),
-              }}
-            >
-              <span style={style.ordinal}>{linea.ordinal}.</span>
-              <span style={style.texto}>
-                {linea.tokens.map((token) =>
-                  renderToken({
-                    token,
-                    hoverOplRef,
-                    edicion,
-                    setEdicion,
-                    seleccionarDesdeOpl,
-                    renombrarEntidadDesdeOpl,
-                    renombrarEstadoDesdeOpl,
-                    abrirInspectorEnlaceDesdeOpl,
-                    fijarHoverOpl,
-                  }),
-                )}
-              </span>
-            </div>
-          ))
+          bloques.map((bloque) => {
+            const oracionesVisibles = bloque.oraciones.filter((linea) => visiblesPorId.has(linea.id));
+            if (oracionesVisibles.length === 0) return null;
+            const colapsado = bloquesColapsados.has(bloque.opdId);
+            return (
+              <section
+                key={bloque.opdId}
+                data-testid={`bloque-opl-${bloque.opdId}`}
+                style={{ ...style.bloque, marginLeft: `${bloque.profundidad * 18}px` }}
+              >
+                <button
+                  type="button"
+                  data-testid={`cabecera-bloque-opl-${bloque.opdId}`}
+                  style={style.bloqueHeader}
+                  onClick={() => setBloquesColapsados((actual) => togglearColapsoBloque(actual, bloque.opdId))}
+                  aria-expanded={!colapsado}
+                >
+                  <span style={style.chevron}>{colapsado ? "▸" : "▾"}</span>
+                  <span>{bloque.opdNombre}</span>
+                  <span style={style.bloqueConteo}>({bloque.oraciones.length} oraciones)</span>
+                </button>
+                {colapsado ? null : oracionesVisibles.map((linea) => (
+                  <div
+                    key={linea.id}
+                    data-testid="opl-line"
+                    data-opl-ordinal={linea.ordinal}
+                    data-opd-id={bloque.opdId}
+                    style={{
+                      ...style.linea,
+                      ...(linea.opdId === opdActivoId ? style.lineaOpdActiva : {}),
+                      ...(lineaTocaReferencia(linea, hoverOplRef) ? style.lineaHover : {}),
+                      ...(lineaTocaReferencia(linea, seleccionRef)
+                        ? style.lineaSeleccionada
+                        : {}),
+                    }}
+                  >
+                    <span style={style.ordinal}>{linea.ordinal}.</span>
+                    <span style={style.texto}>
+                      {linea.tokens.map((token) =>
+                        renderToken({
+                          token,
+                          hoverOplRef,
+                          edicion,
+                          setEdicion,
+                          seleccionarDesdeOpl,
+                          renombrarEntidadDesdeOpl,
+                          renombrarEstadoDesdeOpl,
+                          abrirInspectorEnlaceDesdeOpl,
+                          fijarHoverOpl,
+                        }),
+                      )}
+                    </span>
+                  </div>
+                ))}
+              </section>
+            );
+          })
         )}
       </div>
     </aside>
@@ -378,6 +426,38 @@ const style = {
     columnGap: 6,
     borderRadius: 4,
     padding: "2px 4px",
+  },
+  bloque: {
+    marginBottom: 8,
+  },
+  bloqueHeader: {
+    width: "100%",
+    minHeight: 28,
+    display: "inline-flex",
+    alignItems: "center",
+    gap: 6,
+    border: "1px solid #e4eaf1",
+    borderRadius: 4,
+    background: "#f8fafc",
+    color: "#334155",
+    fontSize: "12px",
+    fontWeight: 700,
+    cursor: "pointer",
+    textAlign: "left",
+    padding: "3px 8px",
+  },
+  chevron: {
+    width: 14,
+    color: "#586D8C",
+    fontWeight: 700,
+  },
+  bloqueConteo: {
+    color: "#667085",
+    fontSize: "11px",
+    fontWeight: 600,
+  },
+  lineaOpdActiva: {
+    background: "#fbfdff",
   },
   lineaHover: {
     background: "#edf2f7",
