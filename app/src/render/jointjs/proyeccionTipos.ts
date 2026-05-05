@@ -1,0 +1,61 @@
+import type { Id, TipoEnlace } from "../../modelo/tipos";
+import type { EstadoTarget } from "./estadoTargets";
+
+export type RolApariencia = "contorno" | "interno" | "externo";
+
+export type OpmJointMetadata =
+  | {
+      kind: "entidad";
+      opdId: Id;
+      entidadId: Id;
+      aparienciaId: Id;
+      rol: RolApariencia;
+      estadosInteractivos?: EstadoTarget[];
+      partesPlegadas?: Array<{ selector: string; entidadId: Id }>;
+    }
+  | {
+      kind: "enlace";
+      opdId: Id;
+      enlaceId: Id;
+      aparienciaEnlaceId: Id;
+      tipo: TipoEnlace;
+    }
+  | {
+      kind: "proxy-plegado";
+      opdId: Id;
+      padreAparienciaId: Id;
+      parteAparienciaId: Id;
+      parteEntidadId: Id;
+    }
+  | {
+      kind: "overlay-abanico";
+      opdId: Id;
+      abanicoId: Id;
+      operador: "O" | "XOR";
+    }
+  | {
+      kind: "selection-halo";
+      opdId: Id;
+      targetId: Id;
+    };
+
+export interface JointCellJson {
+  id: Id;
+  type:
+    | "standard.Rectangle"
+    | "standard.Ellipse"
+    | "standard.Link"
+    | "standard.Polygon"
+    | "standard.Path"
+    | "standard.Circle"
+    | "opm.AbanicoArc";
+  opm: OpmJointMetadata;
+  z: number;
+  [key: string]: unknown;
+}
+
+export interface OpcionesProyeccion {
+  aliasVisibles?: boolean;
+  descripcionesVisibles?: boolean;
+}
+

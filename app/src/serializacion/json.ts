@@ -13,6 +13,12 @@ const FORMATO = "deep-opm-pro.modelo.v0";
 const CLAVES_DETECTOR_SERIALIZACION_JSON = [
   "esInicial",
   "esFinal",
+  "validarDesignacionesEstado",
+  "validarExtremoEnlace",
+  "validarRutaEtiquetaOpcional",
+  "validarOrdenPartes",
+  "validarEstiloApariencia",
+  "validarDuracionEstado",
   `kind === "estado"`,
   "vertices",
   "modoPlegado",
@@ -72,14 +78,14 @@ export function carpetaIdDeJson(json: string): Id | null {
   return null;
 }
 
-export function validarDocumento(value: unknown): Resultado<DocumentoModelo> {
+function validarDocumento(value: unknown): Resultado<DocumentoModelo> {
   if (!esRecord(value) || value.formato !== FORMATO) return fallo("Documento de modelo inválido");
   const modelo = validarModelo(value.modelo);
   if (!modelo.ok) return modelo;
   return ok({ formato: FORMATO, modelo: modelo.value });
 }
 
-export function validarModelo(value: unknown): Resultado<Modelo> {
+function validarModelo(value: unknown): Resultado<Modelo> {
   if (!esRecord(value)) return fallo("Modelo inválido");
   const { id, nombre, opdRaizId, nextSeq, opds, entidades, estados, enlaces, abanicos } = value;
   if (typeof id !== "string") return fallo("Modelo inválido: id");
@@ -126,34 +132,3 @@ export function validarModelo(value: unknown): Resultado<Modelo> {
   const referencias = validarReferenciasOpd(modelo);
   return referencias.ok ? ok(modelo) : referencias;
 }
-
-export {
-  validarApariencias,
-  validarAparienciasEnlace,
-  validarAbanicos,
-  validarEnlaces,
-  validarEntidades,
-  validarEstados,
-  validarOpds,
-};
-export * from "./validarGuards";
-export * from "./validarHelpers";
-export * from "./validarIntegridad";
-export * from "./validarNormalizacion";
-export {
-  validarEstiloApariencia,
-  validarParteExtraidaDe,
-  validarModoPlegado,
-  validarOrdenPartes,
-  validarVertices,
-} from "./validarApariencias";
-export {
-  validarRutaEtiquetaOpcional,
-  validarEstiloEnlaceOpcional,
-  validarExtremoEnlace,
-  validarMultiplicidadOpcional,
-  validarDerivacionEnlace,
-} from "./validarEnlaces";
-export { camposEntidadAvanzada } from "./validarEntidades";
-export { validarDesignacionesEstado, validarDuracionEstado } from "./validarEstados";
-export { validarRefinamiento, validarModoDespliegue } from "./validarOpds";

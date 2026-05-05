@@ -1,0 +1,78 @@
+import { CANON } from "../../../modelo/constantes";
+import { formatearNombreCompuesto } from "../../../modelo/objetoMetadata";
+import { estadosDeEntidad } from "../../../modelo/operaciones";
+import { modoPlegadoApariencia } from "../../../modelo/plegado";
+import type { Apariencia, Entidad, Estado, Id, Modelo, Posicion } from "../../../modelo/tipos";
+
+/**
+ * Composer de estados embebidos: dimensiones, capsulas y puntos de anclaje
+ * para estados OPM contenidos por objetos. Consumidores: entidad y enlace.
+ */
+export function dimensionesConEstados(apariencia: Apariencia, nombre: string, estados: Estado[], layout: Entidad["layoutEstados"]): { width: number; height: number } {
+  const capsulas = estados.map((estado) => anchoCapsulaEstado(estado.nombre));
+  const vertical = layout === "vertical";
+  const anchoEstados = vertical
+    ? Math.max(...capsulas, ESTADOS.minWidth)
+    : capsulas.reduce((total, ancho) => total + ancho, 0) + Math.max(0, capsulas.length - 1) * ESTADOS.gap;
+  const altoEstados = vertical
+    ? estados.length * ESTADOS.capsuleHeight + Math.max(0, estados.length - 1) * ESTADOS.gap
+    : ESTADOS.regionHeight;
+  const width = Math.max(apariencia.width, CANON.dims.cosaWidth, nombre.length * 7 + 24, anchoEstados + ESTADOS.paddingX * 2);
+  const height = Math.max(apariencia.height, CANON.dims.cosaHeight + altoEstados + ESTADOS.paddingBottom);
+  return { width, height };
+}
+
+export function anchoCapsulaEstado(nombre: string): number {
+  return Math.max(ESTADOS.minWidth, nombre.length * 7 + ESTADOS.paddingHorizontal * 2);
+}
+
+interface EndpointVisual {
+  apariencia: Apariencia;
+  proxy?: { entidadId: Id; nombre: string };
+  punto?: Posicion;
+}
+
+export function puntoCapsulaEstado(modelo: Modelo, apariencia: Apariencia, estadoId: Id): Posicion | null {
+  const estado = modelo.estados[estadoId];
+  const entidad = estado ? modelo.entidades[estado.entidadId] : undefined;
+  if (!estado || !entidad) return null;
+  if (modoPlegadoApariencia(apariencia) === "parcial") return null;
+  const estados = estadosDeEntidad(modelo, entidad.id).filter((item) => !item.suprimido);
+  const index = estados.findIndex((item) => item.id === estadoId);
+  if (index < 0) return null;
+  const size = dimensionesConEstados(apariencia, formatearNombreCompuesto(entidad), estados, entidad.layoutEstados);
+  const anchos = estados.map((item) => anchoCapsulaEstado(item.nombre));
+  const vertical = entidad.layoutEstados === "vertical";
+  const anchoActual = anchos[index] ?? ESTADOS.minWidth;
+  const anchoTotal = vertical
+    ? anchoActual
+    : anchos.reduce((total, ancho) => total + ancho, 0) + Math.max(0, anchos.length - 1) * ESTADOS.gap;
+  const xInicial = (size.width - anchoTotal) / 2;
+  const x = vertical
+    ? xInicial + anchoActual / 2
+    : xInicial + anchos.slice(0, index).reduce((total, ancho) => total + ancho + ESTADOS.gap, 0) + anchoActual / 2;
+  const altoTotal = vertical
+    ? estados.length * ESTADOS.capsuleHeight + Math.max(0, estados.length - 1) * ESTADOS.gap
+    : ESTADOS.capsuleHeight;
+  const yBase = size.height - ESTADOS.paddingBottom - altoTotal + ESTADOS.capsuleHeight / 2;
+  const y = vertical
+    ? yBase + index * (ESTADOS.capsuleHeight + ESTADOS.gap)
+    : yBase;
+  return {
+    x: apariencia.x + x,
+    y: apariencia.y + y,
+  };
+}
+
+export const ESTADOS = {
+  capsuleHeight: 24,
+  minWidth: 52,
+  paddingHorizontal: 6,
+  paddingX: 8,
+  paddingBottom: 6,
+  gap: 4,
+  radius: 8,
+  fontSize: 12,
+  regionHeight: 34,
+} as const;
+
