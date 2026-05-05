@@ -336,10 +336,14 @@ function validarDerivacionEnlace(enlaceId: Id, value: unknown): Resultado<Deriva
   if (value.tipo !== "enlace-externo-refinamiento") return fallo(`Enlace inválido: ${enlaceId}.derivado.tipo`);
   if (typeof value.refinamientoId !== "string") return fallo(`Enlace inválido: ${enlaceId}.derivado.refinamientoId`);
   if (typeof value.enlacePadreId !== "string") return fallo(`Enlace inválido: ${enlaceId}.derivado.enlacePadreId`);
+  if (value.origen !== undefined && value.origen !== "automatico" && value.origen !== "manual") {
+    return fallo(`Enlace inválido: ${enlaceId}.derivado.origen`);
+  }
   return ok({
     tipo: "enlace-externo-refinamiento",
     refinamientoId: value.refinamientoId,
     enlacePadreId: value.enlacePadreId,
+    origen: value.origen ?? "automatico",
   });
 }
 

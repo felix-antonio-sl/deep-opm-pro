@@ -28,8 +28,10 @@ import {
   quitarDescomposicionProceso,
   quitarDespliegueObjeto,
   quitarEstadosObjeto,
+  reanclarEnlaceExternoDerivado as reanclarEnlaceExternoDerivadoOp,
   renombrarEntidad,
   renombrarEstado,
+  volverEnlaceExternoDerivadoAAutomatico as volverEnlaceExternoDerivadoAAutomaticoOp,
 } from "./modelo/operaciones";
 import { cambiarModoPlegado as cambiarModoPlegadoOp } from "./modelo/plegado";
 import {
@@ -91,6 +93,8 @@ interface OpmStore {
   reordenarSubprocesoEnTimeline: (opdId: Id, aparienciaId: Id, nuevaY: number) => void;
   actualizarVerticesEnlace: (aparienciaEnlaceId: Id, vertices: Array<{ x: number; y: number }>) => void;
   ajustarMultiplicidadSeleccionada: (lado: "origen" | "destino", texto: string) => void;
+  reanclarEnlaceExternoDerivado: (aparienciaEnlaceId: Id, nuevoEndpointEntidadId: Id) => void;
+  volverEnlaceExternoDerivadoAAutomatico: (aparienciaEnlaceId: Id) => void;
   eliminarSeleccion: () => void;
   exportarJson: () => string;
   importarJson: (json: string) => void;
@@ -572,6 +576,37 @@ export const store = createStore<OpmStore>((set, get) => ({
       enlaceSeleccionId,
       modoEnlace: null,
       mensaje: null,
+    });
+  },
+
+  reanclarEnlaceExternoDerivado(aparienciaEnlaceId, nuevoEndpointEntidadId) {
+    const { modelo, opdActivoId, enlaceSeleccionId } = get();
+    const resultado = reanclarEnlaceExternoDerivadoOp(modelo, opdActivoId, aparienciaEnlaceId, nuevoEndpointEntidadId);
+    if (!resultado.ok) {
+      set({ mensaje: resultado.error });
+      return;
+    }
+    commitModelo(set, modelo, resultado.value, {
+      seleccionId: null,
+      enlaceSeleccionId,
+      modoEnlace: null,
+      mensaje: "Enlace derivado reanclado",
+    });
+  },
+
+  volverEnlaceExternoDerivadoAAutomatico(aparienciaEnlaceId) {
+    const { modelo, opdActivoId, enlaceSeleccionId } = get();
+    const resultado = volverEnlaceExternoDerivadoAAutomaticoOp(modelo, opdActivoId, aparienciaEnlaceId);
+    if (!resultado.ok) {
+      set({ mensaje: resultado.error });
+      return;
+    }
+    const enlaceActual = enlaceSeleccionId ? resultado.value.enlaces[enlaceSeleccionId] : undefined;
+    commitModelo(set, modelo, resultado.value, {
+      seleccionId: null,
+      enlaceSeleccionId: enlaceActual ? enlaceSeleccionId : null,
+      modoEnlace: null,
+      mensaje: "Enlace derivado automatico",
     });
   },
 

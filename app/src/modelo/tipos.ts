@@ -7,6 +7,7 @@ export type TipoRefinamiento = "descomposicion" | "despliegue";
 export type ModoPlegado = "completo" | "parcial";
 export type ModoDespliegueObjeto = "agregacion" | "exhibicion" | "generalizacion" | "clasificacion";
 export type DesignacionEstado = "inicial" | "final";
+export type DerivacionOrigen = "automatico" | "manual";
 
 export type TipoEnlace =
   | "agregacion"
@@ -30,6 +31,7 @@ export interface DerivacionEnlace {
   tipo: "enlace-externo-refinamiento";
   refinamientoId: Id;
   enlacePadreId: Id;
+  origen?: DerivacionOrigen;
 }
 
 export interface Entidad {

@@ -662,6 +662,114 @@ export function entidadesDelOpd(modelo: Modelo, opdId: Id): Entidad[] {
     .filter((entidad): entidad is Entidad => entidad !== undefined);
 }
 
+export function reanclarEnlaceExternoDerivado(
+  modelo: Modelo,
+  opdId: Id,
+  aparienciaEnlaceId: Id,
+  nuevoEndpointEntidadId: Id,
+): Resultado<Modelo> {
+  const validado = validarReanclajeEnlaceExterno(modelo, opdId, aparienciaEnlaceId, nuevoEndpointEntidadId);
+  if (!validado.ok) return validado;
+  const { enlace, lado } = validado.value;
+  const actualizado: Enlace = {
+    ...enlace,
+    [lado === "origen" ? "origenId" : "destinoId"]: nuevoEndpointEntidadId,
+    derivado: {
+      ...enlace.derivado!,
+      origen: "manual",
+    },
+  };
+  const origen = modelo.entidades[actualizado.origenId];
+  const destino = modelo.entidades[actualizado.destinoId];
+  if (!origen || !destino) return fallo("Endpoint de reanclaje inválido");
+  const firma = validarFirmaEnlace(actualizado.tipo, origen, destino);
+  if (!firma.ok) return fallo("El subproceso elegido no admite la firma del enlace derivado");
+  if (
+    enlace.origenId === actualizado.origenId &&
+    enlace.destinoId === actualizado.destinoId &&
+    enlace.derivado?.origen === "manual"
+  ) {
+    return ok(modelo);
+  }
+  return ok({
+    ...modelo,
+    enlaces: {
+      ...modelo.enlaces,
+      [enlace.id]: actualizado,
+    },
+  });
+}
+
+export function volverEnlaceExternoDerivadoAAutomatico(
+  modelo: Modelo,
+  opdId: Id,
+  aparienciaEnlaceId: Id,
+): Resultado<Modelo> {
+  const opd = modelo.opds[opdId];
+  if (!opd) return fallo(`OPD no existe: ${opdId}`);
+  const apariencia = opd.enlaces[aparienciaEnlaceId];
+  if (!apariencia) return fallo(`Apariencia de enlace no existe: ${aparienciaEnlaceId}`);
+  const enlace = modelo.enlaces[apariencia.enlaceId];
+  if (!enlace) return fallo(`Enlace no existe: ${apariencia.enlaceId}`);
+  if (!enlace.derivado) return fallo("El enlace no es derivado");
+  const automatico: Modelo = {
+    ...modelo,
+    enlaces: {
+      ...modelo.enlaces,
+      [enlace.id]: {
+        ...enlace,
+        derivado: {
+          ...enlace.derivado,
+          origen: "automatico",
+        },
+      },
+    },
+  };
+  return refrescarEnlacesExternosDerivados(automatico, opdId);
+}
+
+type LadoEndpointDerivado = "origen" | "destino";
+
+function validarReanclajeEnlaceExterno(
+  modelo: Modelo,
+  opdId: Id,
+  aparienciaEnlaceId: Id,
+  nuevoEndpointEntidadId: Id,
+): Resultado<{ enlace: Enlace; lado: LadoEndpointDerivado }> {
+  const opd = modelo.opds[opdId];
+  if (!opd) return fallo(`OPD no existe: ${opdId}`);
+  const aparienciaEnlace = opd.enlaces[aparienciaEnlaceId];
+  if (!aparienciaEnlace) return fallo(`Apariencia de enlace no existe: ${aparienciaEnlaceId}`);
+  const enlace = modelo.enlaces[aparienciaEnlace.enlaceId];
+  if (!enlace) return fallo(`Enlace no existe: ${aparienciaEnlace.enlaceId}`);
+  if (!enlace.derivado) return fallo("El enlace no es derivado");
+  if (enlace.derivado.tipo !== "enlace-externo-refinamiento") return fallo("El enlace derivado no es de refinamiento externo");
+
+  const contorno = procesoDescompuestoEnOpd(modelo, opd);
+  if (!contorno || contorno.entidad.id !== enlace.derivado.refinamientoId) {
+    return fallo("El enlace derivado no pertenece al OPD activo");
+  }
+  const endpoint = modelo.entidades[nuevoEndpointEntidadId];
+  if (!endpoint) return fallo(`Entidad no existe: ${nuevoEndpointEntidadId}`);
+  if (endpoint.tipo !== "proceso") return fallo("El endpoint debe ser un subproceso");
+  const subproceso = subprocesosOrdenadosDeRefinamiento(modelo, opd, contorno.entidad.id)
+    .find((apariencia) => apariencia.entidadId === nuevoEndpointEntidadId);
+  if (!subproceso) return fallo("El endpoint debe ser un subproceso visible del refinamiento activo");
+
+  const enlacePadre = modelo.enlaces[enlace.derivado.enlacePadreId];
+  if (!enlacePadre) return fallo(`Enlace padre no existe: ${enlace.derivado.enlacePadreId}`);
+  const lado = ladoReanclableDerivado(enlace, enlacePadre, contorno.entidad.id);
+  if (!lado) return fallo("No se pudo determinar el endpoint reanclable del enlace derivado");
+  return ok({ enlace, lado });
+}
+
+function ladoReanclableDerivado(enlace: Enlace, enlacePadre: Enlace, refinamientoId: Id): LadoEndpointDerivado | null {
+  if (enlace.tipo !== enlacePadre.tipo) return null;
+  if (enlacePadre.destinoId === refinamientoId && enlace.origenId === enlacePadre.origenId) return "destino";
+  if (enlacePadre.origenId === refinamientoId && enlace.destinoId === enlacePadre.destinoId) return "origen";
+  return null;
+}
+
 function designarEstado(modelo: Modelo, estadoId: Id, campo: "esInicial" | "esFinal"): Resultado<Modelo> {
   const estado = modelo.estados?.[estadoId];
   if (!estado) return fallo(`Estado no existe: ${estadoId}`);
@@ -1073,6 +1181,9 @@ function proyectarEnlacesExternosEnRefinamiento(
   const aparienciasEnlace: Record<Id, AparienciaEnlace> = { ...opd.enlaces };
 
   for (const { enlace } of externos) {
+    if (enlaceDerivadoManualExisteParaPadre(enlaces, aparienciasEnlace, enlace.id, contorno.entidad.id)) {
+      continue;
+    }
     const proyeccion = proyeccionEnlaceExterno(enlace, contorno.entidad.id, subprocesos);
     if (proyeccion.tipo === "contorno") {
       if (!aparienciaEnlaceExiste(aparienciasEnlace, enlace.id)) {
@@ -1103,6 +1214,7 @@ function proyectarEnlacesExternosEnRefinamiento(
           tipo: "enlace-externo-refinamiento",
           refinamientoId: contorno.entidad.id,
           enlacePadreId: enlace.id,
+          origen: "automatico",
         },
       };
       aparienciasEnlace[aparienciaId] = {
@@ -1162,6 +1274,21 @@ function enlaceDerivadoExiste(
   ));
 }
 
+function enlaceDerivadoManualExisteParaPadre(
+  enlaces: Record<Id, Enlace>,
+  apariencias: Record<Id, AparienciaEnlace>,
+  enlacePadreId: Id,
+  refinamientoId: Id,
+): boolean {
+  return Object.values(enlaces).some((existente) => (
+    existente.derivado?.tipo === "enlace-externo-refinamiento" &&
+    existente.derivado.refinamientoId === refinamientoId &&
+    existente.derivado.enlacePadreId === enlacePadreId &&
+    existente.derivado.origen === "manual" &&
+    aparienciaEnlaceExiste(apariencias, existente.id)
+  ));
+}
+
 function limpiarEnlacesDerivadosAutomaticos(modelo: Modelo, opdId: Id, procesoRefinadoId: Id): Modelo {
   const opd = modelo.opds[opdId];
   if (!opd?.padreId) return modelo;
@@ -1169,6 +1296,7 @@ function limpiarEnlacesDerivadosAutomaticos(modelo: Modelo, opdId: Id, procesoRe
     Object.values(modelo.enlaces)
       .filter((enlace) => enlace.derivado?.tipo === "enlace-externo-refinamiento")
       .filter((enlace) => enlace.derivado?.refinamientoId === procesoRefinadoId)
+      .filter((enlace) => enlace.derivado?.origen !== "manual")
       .map((enlace) => enlace.id),
   );
   if (candidatos.size === 0) return modelo;
