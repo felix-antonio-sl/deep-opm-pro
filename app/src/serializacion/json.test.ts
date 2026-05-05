@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { ajustarMultiplicidad, crearEnlace, crearModelo, crearObjeto, crearProceso, descomponerProceso, desplegarObjeto } from "../modelo/operaciones";
+import { ajustarMultiplicidad, crearEnlace, crearEstadosIniciales, crearModelo, crearObjeto, crearProceso, designarEstadoFinal, designarEstadoInicial, descomponerProceso, desplegarObjeto } from "../modelo/operaciones";
 import { cambiarModoPlegado } from "../modelo/plegado";
 import type { Apariencia, Modelo, ModoDespliegueObjeto, RefinamientoEntidad, TipoEnlace } from "../modelo/tipos";
 import { exportarModelo, hidratarModelo } from "./json";
@@ -17,6 +17,77 @@ describe("serializacion JSON", () => {
     if (!hidratado.ok) return;
     expect(hidratado.value.nombre).toBe("Prueba");
     expect(Object.values(hidratado.value.entidades)[0]?.nombre).toBe("Sistema");
+  });
+
+  test("preserva estados y designaciones en round-trip", () => {
+    let modelo = crearModelo("Estados");
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 10, y: 20 }, "Semaforo"));
+    const objetoId = entidadPorNombre(modelo, "Semaforo");
+    modelo = must(crearEstadosIniciales(modelo, objetoId)).modelo;
+    const estados = Object.values(modelo.estados).filter((estado) => estado.entidadId === objetoId);
+    const primero = estados[0];
+    const segundo = estados[1];
+    expect(primero).toBeDefined();
+    expect(segundo).toBeDefined();
+    if (!primero || !segundo) return;
+    modelo = must(designarEstadoInicial(modelo, primero.id));
+    modelo = must(designarEstadoFinal(modelo, segundo.id));
+
+    const hidratado = hidratarModelo(exportarModelo(modelo));
+
+    expect(hidratado.ok).toBe(true);
+    if (!hidratado.ok) return;
+    expect(hidratado.value.estados[primero.id]).toMatchObject({ nombre: "estado1", esInicial: true });
+    expect(hidratado.value.estados[segundo.id]).toMatchObject({ nombre: "estado2", esFinal: true });
+  });
+
+  test("hidratar modelo legacy sin estados asume conjunto vacio", () => {
+    const modelo = crearModelo("Legacy estados");
+    const { estados: _estados, ...sinEstados } = modelo;
+    const json = JSON.stringify({
+      formato: "deep-opm-pro.modelo.v0",
+      modelo: sinEstados,
+    });
+
+    const hidratado = hidratarModelo(json);
+
+    expect(hidratado.ok).toBe(true);
+    if (!hidratado.ok) return;
+    expect(hidratado.value.estados).toEqual({});
+  });
+
+  test("rechaza estados huerfanos, duplicados o que violan axioma >= 2", () => {
+    let modelo = crearModelo("Estados invalidos");
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 10, y: 20 }, "Objeto"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 200, y: 20 }, "Proceso"));
+    const objetoId = entidadPorNombre(modelo, "Objeto");
+    const procesoId = entidadPorNombre(modelo, "Proceso");
+
+    const unEstado = hidratarModelo(exportarModelo({
+      ...modelo,
+      estados: {
+        "s-1": { id: "s-1", entidadId: objetoId, nombre: "solo" },
+      },
+    }));
+    expect(unEstado.ok).toBe(false);
+
+    const enProceso = hidratarModelo(exportarModelo({
+      ...modelo,
+      estados: {
+        "s-1": { id: "s-1", entidadId: procesoId, nombre: "a" },
+        "s-2": { id: "s-2", entidadId: procesoId, nombre: "b" },
+      },
+    }));
+    expect(enProceso.ok).toBe(false);
+
+    const duplicado = hidratarModelo(exportarModelo({
+      ...modelo,
+      estados: {
+        "s-1": { id: "s-1", entidadId: objetoId, nombre: "abierto" },
+        "s-2": { id: "s-2", entidadId: objetoId, nombre: " Abierto " },
+      },
+    }));
+    expect(duplicado.ok).toBe(false);
   });
 
   test("normaliza padreId faltante en documentos anteriores", () => {

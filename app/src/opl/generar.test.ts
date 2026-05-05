@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { ajustarMultiplicidad, cambiarEsencia, crearEnlace, crearModelo, crearObjeto, crearProceso, descomponerProceso, desplegarObjeto, moverApariencia } from "../modelo/operaciones";
+import { ajustarMultiplicidad, cambiarEsencia, crearEnlace, crearEstadosIniciales, crearModelo, crearObjeto, crearProceso, designarEstadoFinal, designarEstadoInicial, descomponerProceso, agregarEstado, desplegarObjeto, estadosDeEntidad, moverApariencia, renombrarEstado } from "../modelo/operaciones";
 import type { Modelo, Resultado } from "../modelo/tipos";
 import { generarOpl } from "./generar";
 
@@ -119,6 +119,49 @@ describe("OPL-ES — tipos de enlace canonicos", () => {
     modelo = must(ajustarMultiplicidad(modelo, enlaceId, "origen", "1"));
 
     expect(generarOpl(modelo)).toContain("*Procesar* consume 1 **Recurso**.");
+  });
+
+  test("estado de objeto emite puede ser con disyuncion y designaciones", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 0, y: 0 }, "Pedido"));
+    const objetoId = entidad(modelo, "Pedido");
+    modelo = must(crearEstadosIniciales(modelo, objetoId)).modelo;
+    const [primero, segundo] = estadosDeEntidad(modelo, objetoId);
+    if (!primero || !segundo) throw new Error("La prueba esperaba dos estados");
+    modelo = must(renombrarEstado(modelo, primero.id, "pendiente"));
+    modelo = must(renombrarEstado(modelo, segundo.id, "cerrado"));
+    modelo = must(designarEstadoInicial(modelo, primero.id));
+    modelo = must(designarEstadoFinal(modelo, segundo.id));
+
+    expect(generarOpl(modelo)).toContain("**Pedido** puede ser `pendiente` (inicial) o `cerrado` (final).");
+  });
+
+  test("estado inicial y final en la misma capsula verbaliza ambas designaciones", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 0, y: 0 }, "Orden"));
+    const objetoId = entidad(modelo, "Orden");
+    modelo = must(crearEstadosIniciales(modelo, objetoId)).modelo;
+    const [primero] = estadosDeEntidad(modelo, objetoId);
+    if (!primero) throw new Error("La prueba esperaba un estado");
+    modelo = must(renombrarEstado(modelo, primero.id, "abierta"));
+    modelo = must(designarEstadoInicial(modelo, primero.id));
+    modelo = must(designarEstadoFinal(modelo, primero.id));
+
+    expect(generarOpl(modelo)).toContain("**Orden** puede ser `abierta` (inicial y final) o `estado2`.");
+  });
+
+  test("tres estados usan coma y o final", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 0, y: 0 }, "Ticket"));
+    const objetoId = entidad(modelo, "Ticket");
+    modelo = must(crearEstadosIniciales(modelo, objetoId)).modelo;
+    modelo = must(agregarEstado(modelo, objetoId, "resuelto")).modelo;
+    const [primero, segundo] = estadosDeEntidad(modelo, objetoId);
+    if (!primero || !segundo) throw new Error("La prueba esperaba dos estados");
+    modelo = must(renombrarEstado(modelo, primero.id, "nuevo"));
+    modelo = must(renombrarEstado(modelo, segundo.id, "en curso"));
+
+    expect(generarOpl(modelo)).toContain("**Ticket** puede ser `nuevo`, `en curso` o `resuelto`.");
   });
 });
 

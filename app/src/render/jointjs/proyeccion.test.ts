@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { ajustarMultiplicidad, cambiarEsencia, crearEnlace, crearModelo, crearObjeto, crearProceso, descomponerProceso, desplegarObjeto } from "../../modelo/operaciones";
+import { ajustarMultiplicidad, cambiarEsencia, crearEnlace, crearEstadosIniciales, crearModelo, crearObjeto, crearProceso, designarEstadoFinal, designarEstadoInicial, descomponerProceso, desplegarObjeto, estadosDeEntidad, renombrarEstado } from "../../modelo/operaciones";
 import { cambiarModoPlegado } from "../../modelo/plegado";
 import type { Apariencia, Modelo, Resultado, TipoEnlace } from "../../modelo/tipos";
 import { LINK_ASSETS } from "./linkAssets";
@@ -275,6 +275,49 @@ describe("proyeccion JointJS", () => {
     expect((attrs?.partLabel1 as Attrs | undefined)?.text).toBe("Vehiculo parte 2");
     expect((attrs?.partLabel2 as Attrs | undefined)?.text).toBe("Vehiculo parte 3");
     expect((cell?.markup as Array<Attrs> | undefined)?.some((item) => item.selector === "foldBadge")).toBe(false);
+  });
+
+  test("proyecta estados de objeto como capsulas internas inferiores", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 80, y: 90 }, "Pedido"));
+    const objetoId = entidadPorNombre(modelo, "Pedido");
+    modelo = must(crearEstadosIniciales(modelo, objetoId)).modelo;
+    const [primero, segundo] = estadosDeEntidad(modelo, objetoId);
+    if (!primero || !segundo) throw new Error("La prueba esperaba dos estados");
+    modelo = must(renombrarEstado(modelo, primero.id, "pendiente"));
+    modelo = must(renombrarEstado(modelo, segundo.id, "cerrado"));
+    modelo = must(designarEstadoInicial(modelo, primero.id));
+    modelo = must(designarEstadoFinal(modelo, segundo.id));
+
+    const cell = proyectarModeloAJointCells(modelo, modelo.opdRaizId, null, null)
+      .find((item) => item.opm.kind === "entidad" && item.opm.entidadId === objetoId);
+    const attrs = cell?.attrs as Attrs | undefined;
+
+    expect((cell?.size as { height?: number } | undefined)?.height).toBe(94);
+    expect((cell?.markup as Array<Attrs> | undefined)?.filter((item) => String(item.selector).startsWith("stateCapsule"))).toHaveLength(2);
+    expect(attrs?.stateCapsule0).toMatchObject({ height: 24, rx: 8, fill: "#fdffff", stroke: "#586D8C", strokeWidth: 3 });
+    expect(attrs?.stateCapsule1).toMatchObject({ height: 24, rx: 8, fill: "#eef8ff", stroke: "#586D8C", strokeWidth: 1 });
+    expect((attrs?.stateCapsule0 as Attrs | undefined)?.y).toBe(64);
+    expect((attrs?.stateLabel0 as Attrs | undefined)?.text).toBe("pendiente");
+    expect((attrs?.stateLabel1 as Attrs | undefined)?.text).toBe("cerrado");
+  });
+
+  test("plegado parcial oculta capsulas de estado y conserva filas de partes", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 80, y: 90 }, "Vehiculo"));
+    const objetoId = entidadPorNombre(modelo, "Vehiculo");
+    modelo = must(crearEstadosIniciales(modelo, objetoId)).modelo;
+    modelo = must(desplegarObjeto(modelo, modelo.opdRaizId, objetoId)).modelo;
+    const apariencia = aparienciaDeEntidad(modelo, modelo.opdRaizId, objetoId);
+    modelo = must(cambiarModoPlegado(modelo, modelo.opdRaizId, apariencia.id, "parcial"));
+
+    const cell = proyectarModeloAJointCells(modelo, modelo.opdRaizId, null, null)
+      .find((item) => item.opm.kind === "entidad" && item.opm.entidadId === objetoId);
+    const markup = cell?.markup as Array<Attrs> | undefined;
+    const attrs = cell?.attrs as Attrs | undefined;
+
+    expect(markup?.some((item) => String(item.selector).startsWith("stateCapsule"))).toBe(false);
+    expect((attrs?.partLabel0 as Attrs | undefined)?.text).toBe("Vehiculo parte 1");
   });
 });
 

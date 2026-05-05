@@ -180,6 +180,42 @@ describe("store undo/redo y dirty state", () => {
     expect(store.getState().modelo.enlaces[enlaceId]?.multiplicidadOrigen).toBeUndefined();
   });
 
+  test("gestiona estados de objeto con historial y designaciones coexistentes", () => {
+    store.getState().crearObjetoDemo();
+    const objetoId = primeraEntidadId();
+    store.getState().seleccionarEntidad(objetoId);
+
+    store.getState().agregarEstadosObjeto();
+
+    let estados = estadosObjeto(objetoId);
+    expect(estados.map((estado) => estado.nombre)).toEqual(["estado1", "estado2"]);
+    expect(store.getState().dirty).toBe(true);
+    expect(store.getState().puedeDeshacer).toBe(true);
+
+    store.getState().renombrarEstadoSeleccionado(estados[0]?.id ?? "", "pendiente");
+    store.getState().designarEstadoInicial(estados[0]?.id ?? "");
+    store.getState().designarEstadoFinal(estados[0]?.id ?? "");
+
+    estados = estadosObjeto(objetoId);
+    expect(estados[0]).toMatchObject({ nombre: "pendiente", esInicial: true, esFinal: true });
+
+    store.getState().eliminarEstado(estados[1]?.id ?? "");
+    expect(store.getState().mensaje).toContain("al menos dos estados");
+    expect(estadosObjeto(objetoId)).toHaveLength(2);
+
+    store.getState().agregarEstadoObjeto();
+    estados = estadosObjeto(objetoId);
+    expect(estados).toHaveLength(3);
+    store.getState().eliminarEstado(estados[2]?.id ?? "");
+    expect(estadosObjeto(objetoId)).toHaveLength(2);
+
+    store.getState().quitarEstadosObjetoSeleccionado();
+    expect(estadosObjeto(objetoId)).toHaveLength(0);
+
+    store.getState().deshacer();
+    expect(estadosObjeto(objetoId)).toHaveLength(2);
+  });
+
   test("descomponer seleccionada crea OPD hijo, navega y conserva undo", () => {
     store.getState().crearProcesoDemo();
     const procesoId = primeraEntidadId();
@@ -347,6 +383,12 @@ function primeraEntidadId(): string {
   const id = Object.keys(store.getState().modelo.entidades)[0];
   if (!id) throw new Error("La prueba esperaba al menos una entidad");
   return id;
+}
+
+function estadosObjeto(entidadId: string) {
+  return Object.values(store.getState().modelo.estados)
+    .filter((estado) => estado.entidadId === entidadId)
+    .sort((a, b) => a.id.localeCompare(b.id));
 }
 
 function modeloConOpdHijo(): Modelo {

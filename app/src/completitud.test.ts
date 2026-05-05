@@ -14,14 +14,19 @@
 
 import { describe, expect, test } from "bun:test";
 import {
+  crearEstadosIniciales,
   crearEnlace,
   crearModelo,
   crearObjeto,
   crearProceso,
+  designarEstadoFinal,
+  designarEstadoInicial,
   desplegarObjeto,
+  estadosDeEntidad,
   validarFirmaEnlace,
 } from "./modelo/operaciones";
 import type {
+  DesignacionEstado,
   Entidad,
   Esencia,
   Id,
@@ -60,8 +65,14 @@ const TODOS_LOS_MODOS_DESPLIEGUE: Record<ModoDespliegueObjeto, true> = {
   clasificacion: true,
 };
 
+const TODAS_LAS_DESIGNACIONES_ESTADO: Record<DesignacionEstado, true> = {
+  inicial: true,
+  final: true,
+};
+
 const TIPOS_ENLACE_LISTA = Object.keys(TODOS_LOS_TIPOS_ENLACE) as TipoEnlace[];
 const MODOS_DESPLIEGUE_LISTA = Object.keys(TODOS_LOS_MODOS_DESPLIEGUE) as ModoDespliegueObjeto[];
+const DESIGNACIONES_ESTADO_LISTA = Object.keys(TODAS_LAS_DESIGNACIONES_ESTADO) as DesignacionEstado[];
 
 describe("completitud / Toolbar dropdown de TipoEnlace", () => {
   test("TIPOS_ENLACE expone todos los TipoEnlace canonicos", () => {
@@ -157,6 +168,30 @@ describe("completitud / render por tipo de enlace", () => {
       const links = cells.filter((cell) => cell.type === "standard.Link");
       expect(links.length).toBeGreaterThan(0);
     }
+  });
+});
+
+describe("completitud / estados de objeto", () => {
+  test("cada designacion de estado atraviesa kernel, OPL y render", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 80, y: 90 }, "Orden"));
+    const objetoId = entidadConNombre(modelo, "Orden");
+    modelo = must(crearEstadosIniciales(modelo, objetoId)).modelo;
+    const [estado] = estadosDeEntidad(modelo, objetoId);
+    if (!estado) throw new Error("La prueba esperaba un estado");
+
+    for (const designacion of DESIGNACIONES_ESTADO_LISTA) {
+      modelo = must(designacion === "inicial"
+        ? designarEstadoInicial(modelo, estado.id)
+        : designarEstadoFinal(modelo, estado.id));
+    }
+
+    expect(generarOpl(modelo)).toContain("**Orden** puede ser `estado1` (inicial y final) o `estado2`.");
+    const cell = proyectarModeloAJointCells(modelo, modelo.opdRaizId, null, null)
+      .find((item) => item.opm.kind === "entidad" && item.opm.entidadId === objetoId);
+    const attrs = cell?.attrs as Record<string, Record<string, unknown>> | undefined;
+    expect(attrs?.stateCapsule0?.strokeWidth).toBe(3);
+    expect(attrs?.stateCapsule0?.fill).toBe("#eef8ff");
   });
 });
 

@@ -569,6 +569,46 @@ test("asigna multiplicidad de enlace y sincroniza canvas, OPL y JSON", async ({ 
   expect(pageErrors).toEqual([]);
 });
 
+test("gestiona estados M0 de objeto con capsulas internas y OPL", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await page.getByRole("button", { name: "Objeto" }).click();
+  await page.getByLabel("Nombre").fill("Pedido");
+
+  const seccionEstados = page.locator('section[aria-label="Estados"]');
+  await expect(seccionEstados).toBeVisible();
+  await page.getByRole("button", { name: "Agregar estados" }).click();
+
+  await expect(seccionEstados.getByLabel("Nombre estado estado1")).toBeVisible();
+  await seccionEstados.getByLabel("Nombre estado estado1").fill("pendiente");
+  await seccionEstados.getByLabel("Nombre estado estado2").fill("cerrado");
+  await seccionEstados.getByRole("button", { name: "Inicial" }).nth(0).click();
+  await seccionEstados.getByRole("button", { name: "Final" }).nth(1).click();
+
+  await expect(page.locator('[joint-selector^="stateCapsule"]')).toHaveCount(2);
+  await expect(elementoPorTexto(page, "pendiente")).toHaveCount(1);
+  await expect(elementoPorTexto(page, "cerrado")).toHaveCount(1);
+  await expect(page.getByText(/Pedido puede ser .*pendiente.*cerrado/)).toBeVisible();
+
+  await page.getByRole("button", { name: "Exportar" }).click();
+  const json = await page.locator("textarea").inputValue();
+  const exportado = JSON.parse(json) as ExportadoModelo;
+  const pedido = Object.values(exportado.modelo.entidades).find((entidad) => entidad.nombre === "Pedido");
+  expect(pedido).toBeDefined();
+  if (!pedido) throw new Error("No se exporto Pedido");
+  const estados = Object.values(exportado.modelo.estados).filter((estado) => estado.entidadId === pedido.id);
+  expect(estados).toHaveLength(2);
+  expect(estados).toEqual(expect.arrayContaining([
+    expect.objectContaining({ nombre: "pendiente", esInicial: true }),
+    expect.objectContaining({ nombre: "cerrado", esFinal: true }),
+  ]));
+
+  await page.screenshot({ path: "test-results/opm-estados-objeto.png", fullPage: true });
+  expect(pageErrors).toEqual([]);
+});
+
 test("renderiza agregacion como triangulo estructural", async ({ page }) => {
   const pageErrors: string[] = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));
@@ -832,6 +872,7 @@ interface ExportadoModelo {
   modelo: {
     opdRaizId: string;
     entidades: Record<string, { id: string; nombre: string; refinamiento?: { tipo: string; opdId: string } }>;
+    estados: Record<string, { id: string; entidadId: string; nombre: string; esInicial?: boolean; esFinal?: boolean }>;
     enlaces: Record<string, { id: string; tipo: string; origenId: string; destinoId: string; multiplicidadOrigen?: string; multiplicidadDestino?: string }>;
     opds: Record<
       string,

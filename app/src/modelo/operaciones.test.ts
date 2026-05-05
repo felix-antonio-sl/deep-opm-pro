@@ -4,20 +4,28 @@ import {
   ajustarMultiplicidad,
   cambiarAfiliacion,
   cambiarEsencia,
+  agregarEstado,
   crearEnlace,
+  crearEstadosIniciales,
   crearModelo,
   crearObjeto,
   crearProceso,
+  designarEstadoFinal,
+  designarEstadoInicial,
   descomponerProceso,
   desplegarObjeto,
   eliminarEntidad,
   eliminarEnlace,
+  eliminarEstado,
+  estadosDeEntidad,
   entidadesDelOpd,
   moverApariencia,
   moverAparienciaPorId,
   quitarDescomposicionProceso,
   quitarDespliegueObjeto,
+  quitarEstadosObjeto,
   renombrarEntidad,
+  renombrarEstado,
   validarFirmaEnlace,
   validarMultiplicidad,
 } from "./operaciones";
@@ -129,6 +137,119 @@ describe("operaciones de modelo", () => {
 
     expect(ambiental.value.entidades[entidad.id]?.esencia).toBe("fisica");
     expect(ambiental.value.entidades[entidad.id]?.afiliacion).toBe("ambiental");
+  });
+
+  test("crea par inicial de estados solo para objetos y respeta idempotencia", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 0, y: 0 }, "Semaforo"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 180, y: 0 }, "Cambiar"));
+    const objeto = entidadPorNombre(modelo, "Semaforo");
+    const proceso = entidadPorNombre(modelo, "Cambiar");
+
+    const creado = crearEstadosIniciales(modelo, objeto.id);
+    expect(creado.ok).toBe(true);
+    if (!creado.ok) return;
+    expect(creado.value.creado).toBe(true);
+    expect(estadosDeEntidad(creado.value.modelo, objeto.id).map((estado) => estado.nombre)).toEqual(["estado1", "estado2"]);
+
+    const repetido = crearEstadosIniciales(creado.value.modelo, objeto.id);
+    expect(repetido.ok).toBe(true);
+    if (!repetido.ok) return;
+    expect(repetido.value.creado).toBe(false);
+    expect(estadosDeEntidad(repetido.value.modelo, objeto.id)).toHaveLength(2);
+    expect(crearEstadosIniciales(modelo, proceso.id).ok).toBe(false);
+  });
+
+  test("agrega, renombra y valida unicidad local de estados", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 0, y: 0 }, "Orden"));
+    const objeto = entidadPorNombre(modelo, "Orden");
+    modelo = must(crearEstadosIniciales(modelo, objeto.id)).modelo;
+
+    const agregado = agregarEstado(modelo, objeto.id);
+    expect(agregado.ok).toBe(true);
+    if (!agregado.ok) return;
+    modelo = agregado.value.modelo;
+    expect(modelo.estados[agregado.value.estadoId]?.nombre).toBe("estado3");
+
+    const renombrado = renombrarEstado(modelo, agregado.value.estadoId, "  aprobado  ");
+    expect(renombrado.ok).toBe(true);
+    if (!renombrado.ok) return;
+    modelo = renombrado.value;
+    expect(modelo.estados[agregado.value.estadoId]?.nombre).toBe("aprobado");
+
+    const duplicado = renombrarEstado(modelo, agregado.value.estadoId, "estado1");
+    expect(duplicado.ok).toBe(false);
+    const vacio = renombrarEstado(modelo, agregado.value.estadoId, "  ");
+    expect(vacio.ok).toBe(false);
+  });
+
+  test("eliminarEstado bloquea dejar un unico estado y quitarEstadosObjeto elimina el conjunto", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 0, y: 0 }, "Documento"));
+    const objeto = entidadPorNombre(modelo, "Documento");
+    modelo = must(crearEstadosIniciales(modelo, objeto.id)).modelo;
+    modelo = must(agregarEstado(modelo, objeto.id)).modelo;
+    const estados = estadosDeEntidad(modelo, objeto.id);
+
+    const eliminado = eliminarEstado(modelo, estados[2]?.id ?? "");
+    expect(eliminado.ok).toBe(true);
+    if (!eliminado.ok) return;
+    modelo = eliminado.value;
+    expect(estadosDeEntidad(modelo, objeto.id)).toHaveLength(2);
+
+    const bloqueado = eliminarEstado(modelo, estadosDeEntidad(modelo, objeto.id)[0]?.id ?? "");
+    expect(bloqueado.ok).toBe(false);
+    expect(estadosDeEntidad(modelo, objeto.id)).toHaveLength(2);
+
+    const sinEstados = quitarEstadosObjeto(modelo, objeto.id);
+    expect(sinEstados.ok).toBe(true);
+    if (!sinEstados.ok) return;
+    expect(estadosDeEntidad(sinEstados.value, objeto.id)).toEqual([]);
+  });
+
+  test("designa inicial y final sin mutex entre ambas designaciones", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 0, y: 0 }, "Pedido"));
+    const objeto = entidadPorNombre(modelo, "Pedido");
+    modelo = must(crearEstadosIniciales(modelo, objeto.id)).modelo;
+    const [primero, segundo] = estadosDeEntidad(modelo, objeto.id);
+    if (!primero || !segundo) throw new Error("La prueba esperaba dos estados");
+
+    modelo = must(designarEstadoInicial(modelo, primero.id));
+    modelo = must(designarEstadoInicial(modelo, segundo.id));
+    expect(modelo.estados[primero.id]?.esInicial).toBeUndefined();
+    expect(modelo.estados[segundo.id]?.esInicial).toBe(true);
+
+    modelo = must(designarEstadoFinal(modelo, segundo.id));
+    expect(modelo.estados[segundo.id]?.esInicial).toBe(true);
+    expect(modelo.estados[segundo.id]?.esFinal).toBe(true);
+  });
+
+  test("eliminar entidad y quitar refinamiento remueven estados asociados", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 0, y: 0 }, "Vehiculo"));
+    const objeto = entidadPorNombre(modelo, "Vehiculo");
+    modelo = must(crearEstadosIniciales(modelo, objeto.id)).modelo;
+
+    const eliminado = eliminarEntidad(modelo, objeto.id);
+    expect(eliminado.ok).toBe(true);
+    if (!eliminado.ok) return;
+    expect(Object.values(eliminado.value.estados)).toHaveLength(0);
+
+    modelo = must(crearObjeto(crearModelo(), "opd-1", { x: 160, y: 100 }, "Padre"));
+    const padre = entidadPorNombre(modelo, "Padre");
+    modelo = must(desplegarObjeto(modelo, modelo.opdRaizId, padre.id)).modelo;
+    const parte = Object.values(modelo.entidades).find((entidad) => entidad.nombre === "Padre parte 1");
+    expect(parte).toBeDefined();
+    if (!parte) return;
+    modelo = must(crearEstadosIniciales(modelo, parte.id)).modelo;
+    expect(estadosDeEntidad(modelo, parte.id)).toHaveLength(2);
+
+    const sinDespliegue = quitarDespliegueObjeto(modelo, padre.id);
+    expect(sinDespliegue.ok).toBe(true);
+    if (!sinDespliegue.ok) return;
+    expect(Object.values(sinDespliegue.value.estados).some((estado) => estado.entidadId === parte.id)).toBe(false);
   });
 
   test("mueve apariencia sin cambiar identidad logica", () => {
