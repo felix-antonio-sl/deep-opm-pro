@@ -5,6 +5,7 @@ export type Esencia = "informacional" | "fisica";
 export type Afiliacion = "sistemica" | "ambiental";
 export type TipoRefinamiento = "descomposicion" | "despliegue";
 export type ModoPlegado = "completo" | "parcial";
+export type OrdenPartesPlegado = "alfabetico" | "creacion";
 export type ModoDespliegueObjeto = "agregacion" | "exhibicion" | "generalizacion" | "clasificacion";
 export type DesignacionEstado = "inicial" | "final";
 export type DerivacionOrigen = "automatico" | "manual";
@@ -78,6 +79,7 @@ export interface Apariencia {
   width: number;
   height: number;
   modoPlegado?: ModoPlegado;
+  ordenPartes?: OrdenPartesPlegado;
   parteExtraidaDe?: { padreAparienciaId: Id; parteEntidadId: Id };
 }
 

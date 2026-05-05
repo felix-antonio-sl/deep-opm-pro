@@ -1,6 +1,18 @@
 import { describe, expect, test } from "bun:test";
 import { crearModelo, crearObjeto, crearProceso, descomponerProceso, desplegarObjeto, renombrarEntidad } from "./operaciones";
-import { cambiarModoPlegado, contarPartesOcultas, extraerParteDePlegado, filasPlegadoParcial, partesDePlegado, partesExtraidasEn, reinsertarParteEnPlegado } from "./plegado";
+import {
+  cambiarModoPlegado,
+  cambiarOrdenPartes,
+  contarPartesOcultas,
+  crearEnlaceConExtremoPlegado,
+  extraerParteDePlegado,
+  filasPlegadoParcial,
+  partePlegadaTienePartes,
+  partesDePlegado,
+  partesDePlegadoOrdenadas,
+  partesExtraidasEn,
+  reinsertarParteEnPlegado,
+} from "./plegado";
 import type { Apariencia, Modelo, Resultado } from "./tipos";
 
 describe("plegado parcial", () => {
@@ -43,6 +55,37 @@ describe("plegado parcial", () => {
     modelo = renombrarPartes(modelo, ["Rueda", "Chasis", "Motor"]);
 
     expect(partesDePlegado(modelo, objetoId).map((parte) => parte.nombre)).toEqual(["Chasis", "Motor", "Rueda"]);
+  });
+
+  test("preserva orden de creación cuando la apariencia lo configura", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 80, y: 90 }, "Vehiculo"));
+    const objetoId = entidadPorNombre(modelo, "Vehiculo");
+    modelo = must(desplegarObjeto(modelo, modelo.opdRaizId, objetoId)).modelo;
+    modelo = renombrarPartes(modelo, ["Rueda", "Chasis", "Motor"]);
+    const apariencia = aparienciaDeEntidad(modelo, modelo.opdRaizId, objetoId);
+
+    modelo = must(cambiarOrdenPartes(modelo, modelo.opdRaizId, apariencia.id, "creacion"));
+
+    const aparienciaActualizada = aparienciaDeEntidad(modelo, modelo.opdRaizId, objetoId);
+    expect(partesDePlegadoOrdenadas(modelo, aparienciaActualizada).map((parte) => parte.nombre)).toEqual(["Rueda", "Chasis", "Motor"]);
+    expect(filasPlegadoParcial(modelo, modelo.opdRaizId, apariencia.id).map((fila) => fila.tipo === "parte" ? fila.nombre : fila.texto))
+      .toEqual(["Rueda", "Chasis", "Motor"]);
+  });
+
+  test("marca una parte plegada con refinamiento propio como anidable sin expandirla", () => {
+    let modelo = modeloConObjetoDesplegadoParcial();
+    const parteId = entidadPorNombre(modelo, "Vehiculo parte 1");
+    const opdParteId = modelo.entidades[parteId]?.refinamiento?.opdId;
+    expect(opdParteId).toBeUndefined();
+    const opdDesplieguePadreId = modelo.entidades[entidadPorNombre(modelo, "Vehiculo")]?.refinamiento?.opdId;
+    if (!opdDesplieguePadreId) throw new Error("Despliegue padre no encontrado");
+
+    modelo = must(desplegarObjeto(modelo, opdDesplieguePadreId, parteId)).modelo;
+
+    expect(partePlegadaTienePartes(modelo, parteId)).toBe(true);
+    const padre = aparienciaDeEntidad(modelo, modelo.opdRaizId, entidadPorNombre(modelo, "Vehiculo"));
+    expect(filasPlegadoParcial(modelo, modelo.opdRaizId, padre.id)).toHaveLength(3);
   });
 
   test("extrae una parte desde el plegado parcial como apariencia independiente", () => {
@@ -120,6 +163,25 @@ describe("plegado parcial", () => {
     expect(modelo.entidades).toEqual(base.entidades);
     expect(modelo.enlaces).toEqual(base.enlaces);
     expect(modelo.nextSeq).toBe(base.nextSeq + 1);
+  });
+
+  test("crea enlace desde fila plegada sin extraer la parte", () => {
+    let modelo = modeloConObjetoDesplegadoParcial();
+    const parteId = entidadPorNombre(modelo, "Vehiculo parte 1");
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 360, y: 110 }, "Mover"));
+    const procesoId = entidadPorNombre(modelo, "Mover");
+
+    const resultado = crearEnlaceConExtremoPlegado(modelo, modelo.opdRaizId, parteId, procesoId, "instrumento");
+
+    expect(resultado.ok).toBe(true);
+    if (!resultado.ok) return;
+    const enlace = Object.values(resultado.value.enlaces).find((item) => item.tipo === "instrumento");
+    expect(enlace).toMatchObject({
+      origenId: { kind: "entidad", id: parteId },
+      destinoId: { kind: "entidad", id: procesoId },
+    });
+    expect(partesExtraidasEn(resultado.value, modelo.opdRaizId, aparienciaDeEntidad(modelo, modelo.opdRaizId, entidadPorNombre(modelo, "Vehiculo")).id))
+      .toHaveLength(0);
   });
 });
 

@@ -20,6 +20,7 @@ import type {
   ModoDespliegueObjeto,
   ModoPlegado,
   OperadorAbanico,
+  OrdenPartesPlegado,
   Opd,
   RefinamientoEntidad,
   Resultado,
@@ -323,6 +324,8 @@ function validarApariencias(
     if (!esNumeroPositivo(raw.height)) return fallo(`Apariencia inválida: ${id}.height`);
     const modoPlegado = validarModoPlegado(id, raw.modoPlegado);
     if (!modoPlegado.ok) return modoPlegado;
+    const ordenPartes = validarOrdenPartes(id, raw.ordenPartes);
+    if (!ordenPartes.ok) return ordenPartes;
     const parteExtraidaDe = validarParteExtraidaDe(id, raw.parteExtraidaDe);
     if (!parteExtraidaDe.ok) return parteExtraidaDe;
     apariencias[id] = {
@@ -334,6 +337,7 @@ function validarApariencias(
       width: raw.width,
       height: raw.height,
       modoPlegado: modoPlegado.value,
+      ...(ordenPartes.value ? { ordenPartes: ordenPartes.value } : {}),
       ...(parteExtraidaDe.value ? { parteExtraidaDe: parteExtraidaDe.value } : {}),
     };
   }
@@ -358,6 +362,12 @@ function validarModoPlegado(aparienciaId: Id, value: unknown): Resultado<ModoPle
   if (value === undefined) return ok("completo");
   if (value === "completo" || value === "parcial") return ok(value);
   return fallo(`Apariencia inválida: ${aparienciaId}.modoPlegado`);
+}
+
+function validarOrdenPartes(aparienciaId: Id, value: unknown): Resultado<OrdenPartesPlegado | undefined> {
+  if (value === undefined) return ok(undefined);
+  if (value === "alfabetico" || value === "creacion") return ok(value);
+  return fallo(`Apariencia inválida: ${aparienciaId}.ordenPartes`);
 }
 
 function validarAparienciasEnlace(opdId: Id, value: Record<string, unknown>): Resultado<Record<Id, AparienciaEnlace>> {

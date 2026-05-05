@@ -37,6 +37,7 @@ import type {
   Modificador,
   ModoDespliegueObjeto,
   Modelo,
+  OrdenPartesPlegado,
   Posicion,
   Resultado,
   TipoEnlace,
@@ -93,12 +94,18 @@ const TODOS_LOS_MODIFICADORES: Record<Modificador, true> = {
   no: true,
 };
 
+const TODOS_LOS_ORDENES_PARTES: Record<OrdenPartesPlegado, true> = {
+  alfabetico: true,
+  creacion: true,
+};
+
 const TIPOS_ENLACE_LISTA = Object.keys(TODOS_LOS_TIPOS_ENLACE) as TipoEnlace[];
 const MODOS_DESPLIEGUE_LISTA = Object.keys(TODOS_LOS_MODOS_DESPLIEGUE) as ModoDespliegueObjeto[];
 const DESIGNACIONES_ESTADO_LISTA = Object.keys(TODAS_LAS_DESIGNACIONES_ESTADO) as DesignacionEstado[];
 const ORIGENES_DERIVACION_LISTA = Object.keys(TODOS_LOS_ORIGENES_DERIVACION) as DerivacionOrigen[];
 const EXTREMOS_ENLACE_LISTA = Object.keys(TODOS_LOS_EXTREMOS_ENLACE) as ExtremoKind[];
 const MODIFICADORES_LISTA = Object.keys(TODOS_LOS_MODIFICADORES) as Modificador[];
+const ORDENES_PARTES_LISTA = Object.keys(TODOS_LOS_ORDENES_PARTES) as OrdenPartesPlegado[];
 
 describe("completitud / Toolbar dropdown de TipoEnlace", () => {
   test("TIPOS_ENLACE expone todos los TipoEnlace canonicos", () => {
@@ -156,6 +163,12 @@ describe("completitud / ExtremoKind de enlace", () => {
 describe("completitud / Modificador de enlace", () => {
   test("la union Modificador cubre condicion, evento y NO", () => {
     expect(MODIFICADORES_LISTA).toEqual(["condicion", "evento", "no"]);
+  });
+});
+
+describe("completitud / orden de partes plegadas", () => {
+  test("la union OrdenPartesPlegado cubre alfabético y creación", () => {
+    expect(ORDENES_PARTES_LISTA).toEqual(["alfabetico", "creacion"]);
   });
 });
 

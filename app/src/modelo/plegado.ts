@@ -1,6 +1,27 @@
 import { CANON } from "./constantes";
-import { entidadIdDeExtremo, extremoApuntaAEntidad } from "./extremos";
-import type { Apariencia, Entidad, Id, Modelo, ModoPlegado, Opd, Resultado } from "./tipos";
+import {
+  entidadDeExtremo,
+  entidadIdDeExtremo,
+  extremoApuntaAEntidad,
+  extremoVisibleEnOpd,
+  mismoExtremo,
+  normalizarExtremo,
+  type ExtremoEntrada,
+} from "./extremos";
+import { validarFirmaEnlace } from "./operaciones";
+import type {
+  Apariencia,
+  AparienciaEnlace,
+  Enlace,
+  Entidad,
+  Id,
+  Modelo,
+  ModoPlegado,
+  Opd,
+  OrdenPartesPlegado,
+  Resultado,
+  TipoEnlace,
+} from "./tipos";
 
 export interface PartePlegada {
   entidadId: Id;
@@ -56,6 +77,97 @@ export function cambiarModoPlegado(
 
 export function tienePartesPlegables(modelo: Modelo, entidadId: Id): boolean {
   return partesDePlegado(modelo, entidadId).length > 0;
+}
+
+export function partesDePlegadoOrdenadas(modelo: Modelo, apariencia: Apariencia): PartePlegada[] {
+  const partes = partesDePlegadoEnOrdenMaterial(modelo, apariencia.entidadId);
+  return ordenarPartesPlegadas(partes, apariencia.ordenPartes);
+}
+
+export function partePlegadaTienePartes(modelo: Modelo, parteEntidadId: Id): boolean {
+  return partesDePlegado(modelo, parteEntidadId).length > 0;
+}
+
+export function cambiarOrdenPartes(
+  modelo: Modelo,
+  opdId: Id,
+  aparienciaId: Id,
+  orden: OrdenPartesPlegado,
+): Resultado<Modelo> {
+  const opd = modelo.opds[opdId];
+  if (!opd) return fallo(`OPD no existe: ${opdId}`);
+  const apariencia = opd.apariencias[aparienciaId];
+  if (!apariencia) return fallo(`Apariencia no existe: ${aparienciaId}`);
+  if (!ORDENES_PARTES[orden]) return fallo(`Orden de partes inválido: ${orden}`);
+  if (apariencia.ordenPartes === orden) return ok(modelo);
+  return ok({
+    ...modelo,
+    opds: {
+      ...modelo.opds,
+      [opdId]: {
+        ...opd,
+        apariencias: {
+          ...opd.apariencias,
+          [aparienciaId]: {
+            ...apariencia,
+            ordenPartes: orden,
+          },
+        },
+      },
+    },
+  });
+}
+
+export function crearEnlaceConExtremoPlegado(
+  modelo: Modelo,
+  opdId: Id,
+  origenId: ExtremoEntrada,
+  destinoId: ExtremoEntrada,
+  tipo: TipoEnlace,
+  etiqueta = "",
+): Resultado<Modelo> {
+  const opd = modelo.opds[opdId];
+  if (!opd) return fallo(`OPD no existe: ${opdId}`);
+  const origenExtremo = normalizarExtremo(origenId);
+  const destinoExtremo = normalizarExtremo(destinoId);
+  const origen = entidadDeExtremo(modelo, origenExtremo);
+  const destino = entidadDeExtremo(modelo, destinoExtremo);
+  if (!origen) return fallo(`Origen no existe: ${origenExtremo.id}`);
+  if (!destino) return fallo(`Destino no existe: ${destinoExtremo.id}`);
+  if (mismoExtremo(origenExtremo, destinoExtremo)) return fallo("El enlace requiere dos extremos distintos en Sprint 0");
+
+  const legal = validarFirmaEnlace(tipo, origen, destino, { origen: origenExtremo, destino: destinoExtremo });
+  if (!legal.ok) return legal;
+
+  const origenFila = extremoEsFilaPlegadaVisible(modelo, opd, origenExtremo);
+  const destinoFila = extremoEsFilaPlegadaVisible(modelo, opd, destinoExtremo);
+  if (origenFila && destinoFila) {
+    return fallo("No se permite conectar dos partes plegadas entre sí");
+  }
+  if (!extremoVisibleEnOpd(modelo, opd, origenExtremo) && !origenFila) {
+    return fallo("El enlace requiere que el origen tenga apariencia o fila plegada en el OPD");
+  }
+  if (!extremoVisibleEnOpd(modelo, opd, destinoExtremo) && !destinoFila) {
+    return fallo("El enlace requiere que el destino tenga apariencia o fila plegada en el OPD");
+  }
+
+  const enlaceId = siguienteId(modelo, "e");
+  const aparienciaId = siguienteId({ ...modelo, nextSeq: modelo.nextSeq + 1 }, "ae");
+  const enlace: Enlace = { id: enlaceId, tipo, origenId: origenExtremo, destinoId: destinoExtremo, etiqueta };
+  const apariencia: AparienciaEnlace = { id: aparienciaId, enlaceId, opdId, vertices: [] };
+
+  return ok({
+    ...modelo,
+    nextSeq: modelo.nextSeq + 2,
+    enlaces: { ...modelo.enlaces, [enlaceId]: enlace },
+    opds: {
+      ...modelo.opds,
+      [opdId]: {
+        ...opd,
+        enlaces: { ...opd.enlaces, [aparienciaId]: apariencia },
+      },
+    },
+  });
 }
 
 export function extraerParteDePlegado(
@@ -150,7 +262,7 @@ export function partesExtraidasEn(modelo: Modelo, opdId: Id, padreAparienciaId: 
 export function filasPlegadoParcial(modelo: Modelo, opdId: Id, padreAparienciaId: Id): FilaPlegadoParcial[] {
   const padre = modelo.opds[opdId]?.apariencias[padreAparienciaId];
   if (!padre) return [];
-  const partes = partesDePlegado(modelo, padre.entidadId);
+  const partes = partesDePlegadoOrdenadas(modelo, padre);
   const extraidas = new Set(partesExtraidasEn(modelo, opdId, padreAparienciaId).map((apariencia) => apariencia.entidadId));
   const filasExtraidas = partes
     .filter((parte) => extraidas.has(parte.entidadId))
@@ -170,15 +282,17 @@ export function filasPlegadoParcial(modelo: Modelo, opdId: Id, padreAparienciaId
 }
 
 export function partesDePlegado(modelo: Modelo, entidadId: Id): PartePlegada[] {
+  return ordenarPartesPlegadas(partesDePlegadoEnOrdenMaterial(modelo, entidadId), "alfabetico");
+}
+
+function partesDePlegadoEnOrdenMaterial(modelo: Modelo, entidadId: Id): PartePlegada[] {
   const entidad = modelo.entidades[entidadId];
   if (!entidad?.refinamiento) return [];
   const opd = modelo.opds[entidad.refinamiento.opdId];
   if (!opd) return [];
-  const partes = entidad.refinamiento.tipo === "descomposicion"
+  return entidad.refinamiento.tipo === "descomposicion"
     ? subprocesosDeDescomposicion(modelo, entidad, opd)
     : partesDeDespliegue(modelo, entidad, opd);
-
-  return partes.sort((a, b) => a.nombre.localeCompare(b.nombre, "es") || a.entidadId.localeCompare(b.entidadId));
 }
 
 function subprocesosDeDescomposicion(modelo: Modelo, entidad: Entidad, opd: Opd): PartePlegada[] {
@@ -236,6 +350,20 @@ function filaContador(cantidad: number): FilaPlegadoParcial {
   };
 }
 
+function ordenarPartesPlegadas(partes: PartePlegada[], orden: OrdenPartesPlegado | undefined): PartePlegada[] {
+  if ((orden ?? "alfabetico") === "creacion") return [...partes];
+  return [...partes].sort((a, b) => a.nombre.localeCompare(b.nombre, "es") || a.entidadId.localeCompare(b.entidadId));
+}
+
+function extremoEsFilaPlegadaVisible(modelo: Modelo, opd: Opd, extremo: ReturnType<typeof normalizarExtremo>): boolean {
+  if (extremo.kind !== "entidad") return false;
+  if (extremoVisibleEnOpd(modelo, opd, extremo)) return false;
+  return Object.values(opd.apariencias).some((apariencia) => {
+    if (modoPlegadoApariencia(apariencia) !== "parcial") return false;
+    return partesDePlegado(modelo, apariencia.entidadId).some((parte) => parte.entidadId === extremo.id);
+  });
+}
+
 function siguienteId(modelo: Modelo, prefijo: string): Id {
   return `${prefijo}-${modelo.nextSeq}`;
 }
@@ -256,3 +384,8 @@ function ok<T>(value: T): Resultado<T> {
 function fallo(error: string): Resultado<never> {
   return { ok: false, error };
 }
+
+const ORDENES_PARTES: Record<OrdenPartesPlegado, true> = {
+  alfabetico: true,
+  creacion: true,
+};

@@ -64,6 +64,46 @@ describe("serializacion JSON", () => {
     expect(hidratado.value.enlaces[enlaceId]?.origenId).toEqual(extremoEstado(pendiente.id));
   });
 
+  test("preserva ordenPartes opcional en apariencia y acepta legacy sin campo", () => {
+    let modelo = crearModelo("Orden partes");
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 10, y: 20 }, "Vehiculo"));
+    const objetoId = entidadPorNombre(modelo, "Vehiculo");
+    modelo = must(desplegarObjeto(modelo, modelo.opdRaizId, objetoId)).modelo;
+    const apariencia = Object.values(modelo.opds[modelo.opdRaizId]?.apariencias ?? {})
+      .find((item) => item.entidadId === objetoId);
+    if (!apariencia) throw new Error("La prueba esperaba apariencia");
+    modelo = {
+      ...modelo,
+      opds: {
+        ...modelo.opds,
+        [modelo.opdRaizId]: {
+          ...modelo.opds[modelo.opdRaizId]!,
+          apariencias: {
+            ...modelo.opds[modelo.opdRaizId]!.apariencias,
+            [apariencia.id]: { ...apariencia, modoPlegado: "parcial", ordenPartes: "creacion" },
+          },
+        },
+      },
+    };
+
+    const hidratado = hidratarModelo(exportarModelo(modelo));
+
+    expect(hidratado.ok).toBe(true);
+    if (!hidratado.ok) return;
+    const aparienciaHidratada = Object.values(hidratado.value.opds[hidratado.value.opdRaizId]?.apariencias ?? {})
+      .find((item) => item.entidadId === objetoId);
+    expect(aparienciaHidratada?.ordenPartes).toBe("creacion");
+
+    const documentoLegacy = JSON.parse(exportarModelo(modelo));
+    delete documentoLegacy.modelo.opds[modelo.opdRaizId].apariencias[apariencia.id].ordenPartes;
+    const legacy = hidratarModelo(JSON.stringify(documentoLegacy));
+    expect(legacy.ok).toBe(true);
+    if (!legacy.ok) return;
+    const aparienciaLegacy = Object.values(legacy.value.opds[legacy.value.opdRaizId]?.apariencias ?? {})
+      .find((item) => item.entidadId === objetoId);
+    expect(aparienciaLegacy?.ordenPartes).toBeUndefined();
+  });
+
   test("hidrata endpoints legacy string como extremos de entidad", () => {
     let modelo = crearModelo("Legacy endpoints");
     modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 10, y: 20 }, "Entrada"));

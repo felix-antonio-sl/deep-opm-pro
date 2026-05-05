@@ -25,6 +25,8 @@ export function JointCanvas() {
   const enlaceSeleccionIdRef = useRef(enlaceSeleccionId);
   const seleccionarEntidad = useOpmStore((s) => s.seleccionarEntidad);
   const seleccionarEntidadRef = useRef(seleccionarEntidad);
+  const seleccionarPartePlegada = useOpmStore((s) => s.seleccionarPartePlegada);
+  const seleccionarPartePlegadaRef = useRef(seleccionarPartePlegada);
   const seleccionarEstadoComoExtremo = useOpmStore((s) => s.seleccionarEstadoComoExtremo);
   const seleccionarEstadoComoExtremoRef = useRef(seleccionarEstadoComoExtremo);
   const seleccionarEnlace = useOpmStore((s) => s.seleccionarEnlace);
@@ -48,13 +50,14 @@ export function JointCanvas() {
 
   useEffect(() => {
     seleccionarEntidadRef.current = seleccionarEntidad;
+    seleccionarPartePlegadaRef.current = seleccionarPartePlegada;
     seleccionarEstadoComoExtremoRef.current = seleccionarEstadoComoExtremo;
     seleccionarEnlaceRef.current = seleccionarEnlace;
     moverAparienciaRef.current = moverApariencia;
     cambiarModoPlegadoAparienciaRef.current = cambiarModoPlegadoApariencia;
     extraerParteDePlegadoRef.current = extraerParteDePlegado;
     actualizarVerticesEnlaceRef.current = actualizarVerticesEnlace;
-  }, [actualizarVerticesEnlace, cambiarModoPlegadoApariencia, extraerParteDePlegado, moverApariencia, seleccionarEnlace, seleccionarEntidad, seleccionarEstadoComoExtremo]);
+  }, [actualizarVerticesEnlace, cambiarModoPlegadoApariencia, extraerParteDePlegado, moverApariencia, seleccionarEnlace, seleccionarEntidad, seleccionarEstadoComoExtremo, seleccionarPartePlegada]);
 
   useEffect(() => {
     if (!paperHostRef.current) return;
@@ -129,6 +132,11 @@ export function JointCanvas() {
         const selector = jointSelector(evt.target);
         if (selector === "foldBadge") {
           cambiarModoPlegadoAparienciaRef.current(meta.aparienciaId, "parcial");
+          return;
+        }
+        const parteEntidadId = parteEntidadDesdeSelector(meta, selector);
+        if (parteEntidadId) {
+          seleccionarPartePlegadaRef.current(meta.aparienciaId, parteEntidadId);
           return;
         }
         const estadoId = estadoDesdeSelector(meta, selector);

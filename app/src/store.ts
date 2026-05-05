@@ -37,7 +37,9 @@ import {
   volverEnlaceExternoDerivadoAAutomatico as volverEnlaceExternoDerivadoAAutomaticoOp,
 } from "./modelo/operaciones";
 import {
+  cambiarOrdenPartes as cambiarOrdenPartesOp,
   cambiarModoPlegado as cambiarModoPlegadoOp,
+  crearEnlaceConExtremoPlegado,
   extraerParteDePlegado as extraerParteDePlegadoOp,
   reinsertarParteEnPlegado as reinsertarParteEnPlegadoOp,
 } from "./modelo/plegado";
@@ -66,7 +68,7 @@ import {
 } from "./persistencia/local";
 import { exportarModelo, hidratarModelo } from "./serializacion/json";
 import type { Aviso } from "./modelo/validaciones";
-import type { Afiliacion, Apariencia, Esencia, ExtremoEnlace, Id, Modelo, Modificador, ModoDespliegueObjeto, ModoPlegado, OperadorAbanico, Posicion, TipoEnlace } from "./modelo/tipos";
+import type { Afiliacion, Apariencia, Esencia, ExtremoEnlace, Id, Modelo, Modificador, ModoDespliegueObjeto, ModoPlegado, OperadorAbanico, OrdenPartesPlegado, Posicion, TipoEnlace } from "./modelo/tipos";
 
 interface ModoEnlace {
   tipo: TipoEnlace;
@@ -107,6 +109,8 @@ interface OpmStore {
   fijarAfiliacionSeleccionada: (afiliacion: Afiliacion) => void;
   cambiarModoPlegadoSeleccionado: (modo: ModoPlegado) => void;
   cambiarModoPlegadoApariencia: (aparienciaId: Id, modo: ModoPlegado) => void;
+  cambiarOrdenPartesSeleccionado: (orden: OrdenPartesPlegado) => void;
+  seleccionarPartePlegada: (padreAparienciaId: Id, parteEntidadId: Id) => void;
   extraerParteDePlegado: (padreAparienciaId: Id, parteEntidadId: Id) => void;
   reinsertarParteExtraidaSeleccionada: () => void;
   agregarEstadosObjeto: () => void;
@@ -316,7 +320,7 @@ export const store = createStore<OpmStore>((set, get) => ({
       return;
     }
 
-    const resultado = crearEnlace(modelo, opdActivoId, modoEnlace.origenId, id, modoEnlace.tipo);
+    const resultado = crearEnlaceConExtremoPlegado(modelo, opdActivoId, modoEnlace.origenId, id, modoEnlace.tipo);
     if (!resultado.ok) {
       set({ seleccionId: id, enlaceSeleccionId: null, mensaje: resultado.error });
       return;
@@ -347,7 +351,7 @@ export const store = createStore<OpmStore>((set, get) => ({
       return;
     }
 
-    const resultado = crearEnlace(modelo, opdActivoId, modoEnlace.origenId, extremoEstado(estadoId), modoEnlace.tipo);
+    const resultado = crearEnlaceConExtremoPlegado(modelo, opdActivoId, modoEnlace.origenId, extremoEstado(estadoId), modoEnlace.tipo);
     if (!resultado.ok) {
       set({ seleccionId: estado.entidadId, enlaceSeleccionId: null, mensaje: resultado.error });
       return;
@@ -515,6 +519,49 @@ export const store = createStore<OpmStore>((set, get) => ({
     const apariencia = modelo.opds[opdActivoId]?.apariencias[aparienciaId];
     commitModelo(set, modelo, resultado.value, {
       seleccionId: apariencia?.entidadId ?? null,
+      enlaceSeleccionId: null,
+      modoEnlace: null,
+      mensaje: null,
+    });
+  },
+
+  cambiarOrdenPartesSeleccionado(orden) {
+    const { modelo, opdActivoId, seleccionId } = get();
+    if (!seleccionId) return;
+    const apariencia = Object.values(modelo.opds[opdActivoId]?.apariencias ?? {})
+      .find((item) => item.entidadId === seleccionId);
+    if (!apariencia) {
+      set({ mensaje: "La entidad seleccionada no tiene apariencia en el OPD activo" });
+      return;
+    }
+    const resultado = cambiarOrdenPartesOp(modelo, opdActivoId, apariencia.id, orden);
+    if (!resultado.ok) {
+      set({ mensaje: resultado.error });
+      return;
+    }
+    commitModelo(set, modelo, resultado.value, { seleccionId, enlaceSeleccionId: null, modoEnlace: null, mensaje: null });
+  },
+
+  seleccionarPartePlegada(_padreAparienciaId, parteEntidadId) {
+    const { modelo, modoEnlace, opdActivoId } = get();
+    if (!modoEnlace) {
+      set({ seleccionId: parteEntidadId, enlaceSeleccionId: null, mensaje: null });
+      return;
+    }
+
+    const resultado = crearEnlaceConExtremoPlegado(modelo, opdActivoId, modoEnlace.origenId, parteEntidadId, modoEnlace.tipo);
+    if (!resultado.ok) {
+      set({ seleccionId: parteEntidadId, enlaceSeleccionId: null, mensaje: resultado.error });
+      return;
+    }
+    let modeloFinal = resultado.value;
+    const enlaceCreadoId = enlaceNuevo(modelo, modeloFinal);
+    if (enlaceCreadoId) {
+      const auto = formarAbanicoAutomatico(modeloFinal, opdActivoId, enlaceCreadoId);
+      if (auto.ok) modeloFinal = auto.value;
+    }
+    commitModelo(set, modelo, modeloFinal, {
+      seleccionId: parteEntidadId,
       enlaceSeleccionId: null,
       modoEnlace: null,
       mensaje: null,

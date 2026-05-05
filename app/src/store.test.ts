@@ -455,6 +455,42 @@ describe("store undo/redo y dirty state", () => {
     expect(Object.values(store.getState().modelo.opds)).toHaveLength(2);
   });
 
+  test("crea enlace desde fila plegada sin extraer la parte", () => {
+    store.getState().crearObjetoDemo();
+    const objetoId = primeraEntidadId();
+    store.getState().seleccionarEntidad(objetoId);
+    store.getState().desplegarSeleccionada();
+    const modeloTrasDespliegue = store.getState().modelo;
+    const opdHijoId = modeloTrasDespliegue.entidades[objetoId]?.refinamiento?.opdId;
+    if (!opdHijoId) throw new Error("La prueba esperaba despliegue");
+    const parteId = Object.values(modeloTrasDespliegue.opds[opdHijoId]?.apariencias ?? {})
+      .map((apariencia) => modeloTrasDespliegue.entidades[apariencia.entidadId])
+      .find((entidad) => entidad?.nombre === "Objeto parte 1")?.id;
+    if (!parteId) throw new Error("La prueba esperaba parte plegada");
+    store.getState().cambiarOpdActivo(store.getState().modelo.opdRaizId);
+    store.getState().seleccionarEntidad(objetoId);
+    store.getState().cambiarModoPlegadoSeleccionado("parcial");
+    store.getState().crearProcesoDemo();
+    const procesoId = Object.values(store.getState().modelo.entidades).find((entidad) => entidad.nombre === "Proceso")?.id;
+    if (!procesoId) throw new Error("La prueba esperaba proceso destino");
+    const padre = Object.values(store.getState().modelo.opds[store.getState().modelo.opdRaizId]?.apariencias ?? {})
+      .find((apariencia) => apariencia.entidadId === objetoId);
+    if (!padre) throw new Error("La prueba esperaba apariencia padre");
+
+    store.getState().seleccionarPartePlegada(padre.id, parteId);
+    store.getState().elegirTipoEnlace("instrumento");
+    store.getState().seleccionarEntidad(procesoId);
+
+    const enlace = Object.values(store.getState().modelo.enlaces).find((item) => item.tipo === "instrumento");
+    expect(enlace).toMatchObject({
+      origenId: extremoEntidad(parteId),
+      destinoId: extremoEntidad(procesoId),
+    });
+    const parteExtraida = Object.values(store.getState().modelo.opds[store.getState().modelo.opdRaizId]?.apariencias ?? {})
+      .some((apariencia) => apariencia.entidadId === parteId);
+    expect(parteExtraida).toBe(false);
+  });
+
   test("quitar despliegue seleccionado elimina OPD hijo y conserva undo", () => {
     store.getState().crearObjetoDemo();
     const objetoId = primeraEntidadId();

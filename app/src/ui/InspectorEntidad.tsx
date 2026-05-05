@@ -1,7 +1,7 @@
 import { autoInvocacionDeProceso } from "../modelo/autoinvocacion";
 import { estadosDeEntidad } from "../modelo/operaciones";
 import { filasPlegadoParcial, modoPlegadoApariencia, partesDePlegado, type FilaPlegadoParcial } from "../modelo/plegado";
-import type { Entidad, Estado, ModoDespliegueObjeto } from "../modelo/tipos";
+import type { Entidad, Estado, ModoDespliegueObjeto, OrdenPartesPlegado } from "../modelo/tipos";
 import { useOpmStore } from "../store";
 import { inspectorStyles as style } from "./inspectorStyles";
 
@@ -21,6 +21,7 @@ export function InspectorEntidad({ entidad }: Props) {
   const quitarDespliegue = useOpmStore((s) => s.quitarDespliegueSeleccionado);
   const crearAutoInvocacion = useOpmStore((s) => s.crearAutoInvocacionSeleccionada);
   const cambiarModoPlegado = useOpmStore((s) => s.cambiarModoPlegadoSeleccionado);
+  const cambiarOrdenPartes = useOpmStore((s) => s.cambiarOrdenPartesSeleccionado);
   const extraerParte = useOpmStore((s) => s.extraerParteDePlegado);
   const reinsertarParte = useOpmStore((s) => s.reinsertarParteExtraidaSeleccionada);
   const agregarEstados = useOpmStore((s) => s.agregarEstadosObjeto);
@@ -134,14 +135,28 @@ export function InspectorEntidad({ entidad }: Props) {
       ) : null}
 
       {partesPlegables.length > 0 && aparienciaActiva ? (
-        <button
-          type="button"
-          style={style.secondaryButton}
-          onClick={() => cambiarModoPlegado(modoPlegado === "parcial" ? "completo" : "parcial")}
-          title="Alternar vista compacta intra-rectángulo sin abrir ni destruir el OPD hijo"
-        >
-          {modoPlegado === "parcial" ? "Plegado completo" : "Plegado parcial"}
-        </button>
+        <>
+          <button
+            type="button"
+            style={style.secondaryButton}
+            onClick={() => cambiarModoPlegado(modoPlegado === "parcial" ? "completo" : "parcial")}
+            title="Alternar vista compacta intra-rectángulo sin abrir ni destruir el OPD hijo"
+          >
+            {modoPlegado === "parcial" ? "Plegado completo" : "Plegado parcial"}
+          </button>
+          <label style={style.field}>
+            <span style={style.label}>Orden de partes</span>
+            <select
+              aria-label="Orden de partes"
+              style={style.input}
+              value={aparienciaActiva.ordenPartes ?? "alfabetico"}
+              onChange={(event) => cambiarOrdenPartes(event.currentTarget.value as OrdenPartesPlegado)}
+            >
+              <option value="alfabetico">Alfabético</option>
+              <option value="creacion">Creación</option>
+            </select>
+          </label>
+        </>
       ) : null}
 
       {aparienciaActiva?.parteExtraidaDe ? (

@@ -2,12 +2,13 @@ import { esAutoInvocacion } from "../../modelo/autoinvocacion";
 import { CANON } from "../../modelo/constantes";
 import { entidadIdDeExtremo } from "../../modelo/extremos";
 import { estadosDeEntidad } from "../../modelo/operaciones";
-import { filasPlegadoParcial, modoPlegadoApariencia, partesDePlegado, type FilaPlegadoParcial } from "../../modelo/plegado";
+import { modoPlegadoApariencia, partesDePlegado } from "../../modelo/plegado";
 import type { Apariencia, Enlace, Entidad, Estado, ExtremoEnlace, Id, Modelo, Posicion, TipoEnlace } from "../../modelo/tipos";
 import { proyectarOverlayAbanicoCanonico } from "./abanicoOverlay";
 import { proyectarAutoInvocacion } from "./autoinvocacionLoop";
 import { targetsEstado, type EstadoTarget } from "./estadoTargets";
 import { LINK_ASSETS } from "./linkAssets";
+import { filasPlegadoConNesting, type FilaPlegadoParcialExtendida } from "./plegadoNesting";
 import { etiquetasRuta } from "./rutaLabels";
 
 export type RolApariencia = "contorno" | "interno" | "externo";
@@ -121,7 +122,7 @@ function proyectarEntidad(modelo: Modelo, opdId: Id, apariencia: Apariencia, ent
   const partes = partesDePlegado(modelo, entidad.id);
   const tienePartes = partes.length > 0;
   const modoParcial = modoPlegadoApariencia(apariencia) === "parcial" && tienePartes;
-  const filasParciales = modoParcial ? filasPlegadoParcial(modelo, opdId, apariencia.id) : [];
+  const filasParciales = modoParcial ? filasPlegadoConNesting({ modelo, opdId, padreAparienciaId: apariencia.id }) : [];
   const estadosVisibles = entidad.tipo === "objeto" && !modoParcial ? estadosDeEntidad(modelo, entidad.id) : [];
   const refinada = !!entidad.refinamiento;
   const contornoRefinamiento = refinada && entidad.refinamiento?.opdId === opdId;
@@ -207,7 +208,7 @@ function rolApariencia(modelo: Modelo, opdId: Id, entidad: Entidad, esContorno: 
   return "interno";
 }
 
-function dimensionesPlegadoParcial(apariencia: Apariencia, nombrePadre: string, filas: FilaPlegadoParcial[]): { width: number; height: number } {
+function dimensionesPlegadoParcial(apariencia: Apariencia, nombrePadre: string, filas: FilaPlegadoParcialExtendida[]): { width: number; height: number } {
   const textoMasLargo = [nombrePadre, ...filas.map(textoFilaPlegado)]
     .reduce((max, texto) => Math.max(max, texto.length), 0);
   const width = Math.max(apariencia.width, CANON.dims.cosaWidth, textoMasLargo * 7 + 36);
@@ -254,7 +255,7 @@ function markupConEstados(
   ];
 }
 
-function markupPlegadoParcial(bodyTag: "rect" | "ellipse", filas: FilaPlegadoParcial[]): Array<Record<string, unknown>> {
+function markupPlegadoParcial(bodyTag: "rect" | "ellipse", filas: FilaPlegadoParcialExtendida[]): Array<Record<string, unknown>> {
   const rows = filas.flatMap((fila, index) => [
     { tagName: "line", selector: `partSeparator${index}` },
     ...(fila.tipo === "parte" ? [{ tagName: "rect", selector: `partHit${index}` }] : []),
@@ -345,7 +346,7 @@ function attrsConEstados(
 function attrsPlegadoParcial(
   attrsBase: Record<string, unknown>,
   size: { width: number; height: number },
-  filas: FilaPlegadoParcial[],
+  filas: FilaPlegadoParcialExtendida[],
 ): Record<string, unknown> {
   const attrs: Record<string, unknown> = {
     ...attrsBase,
@@ -398,7 +399,7 @@ function attrsPlegadoParcial(
   return attrs;
 }
 
-function selectoresPartesPlegadas(filas: FilaPlegadoParcial[]): Array<{ selector: string; entidadId: Id }> {
+function selectoresPartesPlegadas(filas: FilaPlegadoParcialExtendida[]): Array<{ selector: string; entidadId: Id }> {
   return filas.flatMap((fila, index) => fila.tipo === "parte"
     ? [
         { selector: `partLabel${index}`, entidadId: fila.entidadId },
@@ -407,8 +408,9 @@ function selectoresPartesPlegadas(filas: FilaPlegadoParcial[]): Array<{ selector
     : []);
 }
 
-function textoFilaPlegado(fila: FilaPlegadoParcial): string {
-  return fila.tipo === "parte" ? fila.nombre : fila.texto;
+function textoFilaPlegado(fila: FilaPlegadoParcialExtendida): string {
+  if (fila.tipo === "contador") return fila.texto;
+  return fila.indicadorNesting ? `${fila.indicadorNesting} ${fila.nombre}` : fila.nombre;
 }
 
 function anchoCapsulaEstado(nombre: string): number {

@@ -279,10 +279,51 @@ test("activa plegado parcial desde Inspector y persiste la vista compacta", asyn
   await page.getByRole("button", { name: "Nuevo" }).click();
   await page.getByRole("button", { name: "Cargar" }).first().click();
   await expect(elementoPorTexto(page, "Objeto parte 1")).toHaveCount(1);
-  await elementoPorTexto(page, "Objeto").click();
+  await clickCabeceraElemento(page, "Objeto");
   await expect(page.getByRole("button", { name: "Plegado completo" })).toBeVisible();
 
   await page.screenshot({ path: "test-results/opm-plegado-parcial.png", fullPage: true });
+  expect(pageErrors).toEqual([]);
+});
+
+test("crea enlace desde fila plegada sin extraer la parte", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await page.getByRole("button", { name: "Objeto" }).click();
+  await page.getByRole("button", { name: "Proceso" }).click();
+  await page.getByLabel("Nombre").fill("Mover");
+  await elementoPorTexto(page, "Objeto").click();
+  await desplegarComoAgregacion(page);
+  await page.locator('[role="treeitem"][data-opd-id="opd-1"]').click();
+  await expect(page.locator(".joint-element")).toHaveCount(2);
+  await clickCabeceraElemento(page, "Objeto");
+  await page.getByRole("button", { name: "Plegado parcial" }).click();
+  await expect(elementoPorTexto(page, "Objeto parte 1")).toHaveCount(1);
+
+  await elementoPorTexto(page, "Objeto parte 1").click();
+  await page.getByLabel("Tipo de enlace").selectOption("instrumento");
+  await elementoPorTexto(page, "Mover").click();
+
+  await expect(page.locator(".joint-link")).toHaveCount(1);
+  await expect(page.getByText(/Mover\s+requiere\s+Objeto parte 1\./)).toBeVisible();
+  await page.getByRole("button", { name: "Exportar" }).click();
+  const exportado = JSON.parse(await page.locator("textarea").inputValue()) as ExportadoModelo;
+  const objeto = Object.values(exportado.modelo.entidades).find((entidad) => entidad.nombre === "Objeto");
+  const parte = Object.values(exportado.modelo.entidades).find((entidad) => entidad.nombre === "Objeto parte 1");
+  const mover = Object.values(exportado.modelo.entidades).find((entidad) => entidad.nombre === "Mover");
+  if (!objeto || !parte || !mover) throw new Error("No se exportaron entidades esperadas");
+  const enlace = Object.values(exportado.modelo.enlaces).find((item) => item.tipo === "instrumento");
+  expect(enlace).toMatchObject({
+    origenId: extremoEntidad(parte.id),
+    destinoId: extremoEntidad(mover.id),
+  });
+  const aparienciasRaiz = Object.values(exportado.modelo.opds[exportado.modelo.opdRaizId]?.apariencias ?? {});
+  expect(aparienciasRaiz.some((apariencia) => apariencia.entidadId === parte.id)).toBe(false);
+  expect(aparienciasRaiz.some((apariencia) => apariencia.entidadId === objeto.id && apariencia.modoPlegado === "parcial")).toBe(true);
+
+  await page.screenshot({ path: "test-results/opm-fila-plegada-enlace.png", fullPage: true });
   expect(pageErrors).toEqual([]);
 });
 
@@ -800,7 +841,7 @@ test("edita rutas en ramas de abanico hacia estados y sincroniza OPL y JSON", as
 
   await expect(page.getByText(/Por ruta exitoso/)).toBeVisible();
   await expect(page.getByText(/Por ruta fallido/)).toBeVisible();
-  await expect(page.getByText(/genera\s+Pedido\s+en .(aprobado|rechazado).\./).first()).toBeVisible();
+  await expect(page.getByText(/genera\s+Pedido\s+en `(aprobado|rechazado)`\./).first()).toBeVisible();
 
   await page.getByRole("button", { name: "Exportar" }).click();
   const exportado = JSON.parse(await page.locator("textarea").inputValue()) as ExportadoModelo;
@@ -942,8 +983,10 @@ test("renderiza agregacion como triangulo estructural", async ({ page }) => {
 });
 
 function elementoPorTexto(page: import("@playwright/test").Page, texto: string): import("@playwright/test").Locator {
-  const flexibleSvgText = new RegExp(texto.trim().split(/\s+/).map(escapeRegExp).join("\\s*"));
-  return page.locator(".joint-element").filter({ hasText: flexibleSvgText });
+  const flexibleSvgText = new RegExp(`^\\s*${texto.trim().split(/\s+/).map(escapeRegExp).join("\\s*")}\\s*$`);
+  return page.locator(".joint-element").filter({
+    has: page.locator("text").filter({ hasText: flexibleSvgText }),
+  });
 }
 
 function escapeRegExp(texto: string): string {
@@ -955,6 +998,11 @@ async function rectDeLocator(locator: import("@playwright/test").Locator): Promi
     const rect = element.getBoundingClientRect();
     return { x: rect.x, y: rect.y, width: rect.width, height: rect.height };
   });
+}
+
+async function clickCabeceraElemento(page: import("@playwright/test").Page, texto: string): Promise<void> {
+  const rect = await rectDeLocator(elementoPorTexto(page, texto));
+  await page.mouse.click(rect.x + rect.width / 2, rect.y + Math.min(14, rect.height / 3));
 }
 
 async function clickCentroLink(page: import("@playwright/test").Page): Promise<void> {
@@ -1052,7 +1100,8 @@ function todasSeparadas(apariencias: Array<{ x: number; y: number; width: number
 }
 
 function svgText(page: Page, text: string) {
-  return page.locator(".joint-paper svg text").filter({ hasText: new RegExp(`^${escapeRegExp(text)}$`) }).first();
+  const flexibleSvgText = new RegExp(`^\\s*${text.trim().split(/\s+/).map(escapeRegExp).join("\\s+")}\\s*$`);
+  return page.locator(".joint-paper svg text").filter({ hasText: flexibleSvgText }).first();
 }
 
 function modeloDosOpds() {

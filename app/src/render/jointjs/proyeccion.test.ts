@@ -4,7 +4,7 @@ import { crearAutoInvocacion } from "../../modelo/autoinvocacion";
 import { entidadIdDeExtremo, extremoEstado } from "../../modelo/extremos";
 import { aplicarModificador, definirDemora, definirProbabilidad } from "../../modelo/modificadores";
 import { ajustarMultiplicidad, cambiarEsencia, crearEnlace, crearEstadosIniciales, crearModelo, crearObjeto, crearProceso, designarEstadoFinal, designarEstadoInicial, descomponerProceso, desplegarObjeto, estadosDeEntidad, renombrarEstado } from "../../modelo/operaciones";
-import { cambiarModoPlegado, extraerParteDePlegado, reinsertarParteEnPlegado } from "../../modelo/plegado";
+import { cambiarModoPlegado, crearEnlaceConExtremoPlegado, extraerParteDePlegado, reinsertarParteEnPlegado } from "../../modelo/plegado";
 import { definirRutaEtiqueta } from "../../modelo/rutas";
 import type { Apariencia, Modelo, Resultado, TipoEnlace } from "../../modelo/tipos";
 import { LINK_ASSETS } from "./linkAssets";
@@ -438,6 +438,31 @@ describe("proyeccion JointJS", () => {
     expect((cell?.markup as Array<Attrs> | undefined)?.some((item) => item.selector === "foldBadge")).toBe(false);
   });
 
+  test("fila plegada con partes propias expone indicador y target estable", () => {
+    let modelo = modeloConVehiculoDesplegado();
+    const objetoId = entidadPorNombre(modelo, "Vehiculo");
+    const parteId = entidadPorNombre(modelo, "Vehiculo parte 1");
+    const opdDespliegueId = modelo.entidades[objetoId]?.refinamiento?.opdId;
+    if (!opdDespliegueId) throw new Error("Despliegue no encontrado");
+    modelo = must(desplegarObjeto(modelo, opdDespliegueId, parteId)).modelo;
+    const padre = aparienciaDeEntidad(modelo, modelo.opdRaizId, objetoId);
+    modelo = must(cambiarModoPlegado(modelo, modelo.opdRaizId, padre.id, "parcial"));
+
+    const cell = proyectarModeloAJointCells(modelo, modelo.opdRaizId, null, null)
+      .find((item) => item.opm.kind === "entidad" && item.opm.entidadId === objetoId);
+    const attrs = cell?.attrs as Attrs | undefined;
+
+    expect((attrs?.partLabel0 as Attrs | undefined)?.text).toBe("▸ Vehiculo parte 1");
+    expect(cell?.opm).toMatchObject({
+      kind: "entidad",
+      partesPlegadas: expect.arrayContaining([
+        { selector: "partLabel0", entidadId: parteId },
+        { selector: "partHit0", entidadId: parteId },
+      ]),
+    });
+    expect((cell?.size as { height?: number } | undefined)?.height).toBeLessThan(140);
+  });
+
   test("proyecta estados de objeto como capsulas internas inferiores", () => {
     let modelo = crearModelo();
     modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 80, y: 90 }, "Pedido"));
@@ -562,6 +587,24 @@ describe("proyeccion JointJS", () => {
 
     expect((link?.source as { id?: string } | undefined)?.id).toBe(padre.id);
     expect(labels?.some((label) => label.attrs?.label?.text === "Vehiculo parte 1")).toBe(true);
+  });
+
+  test("proyecta enlace creado desde fila plegada al padre con etiqueta de parte", () => {
+    let modelo = modeloConVehiculoDesplegado();
+    const objetoId = entidadPorNombre(modelo, "Vehiculo");
+    const padre = aparienciaDeEntidad(modelo, modelo.opdRaizId, objetoId);
+    const parteId = entidadPorNombre(modelo, "Vehiculo parte 1");
+    modelo = must(cambiarModoPlegado(modelo, modelo.opdRaizId, padre.id, "parcial"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 360, y: 110 }, "Mover"));
+    modelo = must(crearEnlaceConExtremoPlegado(modelo, modelo.opdRaizId, parteId, entidadPorNombre(modelo, "Mover"), "instrumento"));
+
+    const link = proyectarModeloAJointCells(modelo, modelo.opdRaizId, null, null)
+      .find((item) => item.opm.kind === "enlace" && item.type === "standard.Link");
+    const labels = link?.labels as Array<{ attrs?: { label?: { text?: string } } }> | undefined;
+
+    expect((link?.source as { id?: string } | undefined)?.id).toBe(padre.id);
+    expect(labels?.some((label) => label.attrs?.label?.text === "Vehiculo parte 1")).toBe(true);
+    expect(Object.values(modelo.opds[modelo.opdRaizId]?.apariencias ?? {}).some((apariencia) => apariencia.entidadId === parteId)).toBe(false);
   });
 });
 
