@@ -1,5 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { entidadIdDeExtremo, extremoEstado } from "../../modelo/extremos";
+import { aplicarModificador, definirDemora, definirProbabilidad } from "../../modelo/modificadores";
 import { ajustarMultiplicidad, cambiarEsencia, crearEnlace, crearEstadosIniciales, crearModelo, crearObjeto, crearProceso, designarEstadoFinal, designarEstadoInicial, descomponerProceso, desplegarObjeto, estadosDeEntidad, renombrarEstado } from "../../modelo/operaciones";
 import { cambiarModoPlegado, extraerParteDePlegado, reinsertarParteEnPlegado } from "../../modelo/plegado";
 import type { Apariencia, Modelo, Resultado, TipoEnlace } from "../../modelo/tipos";
@@ -123,6 +124,33 @@ describe("proyeccion JointJS", () => {
     expect(labels?.[1]?.attrs?.label).toMatchObject({ text: "1..N", fontFamily: "Arial", fontSize: 12, fill: "#1f2937" });
     expect(labels?.[1]?.position).toMatchObject({ distance: -18, offset: -12 });
     expect(labels?.[1]?.position?.args?.keepGradient).toBe(false);
+  });
+
+  test("proyecta badges de modificador, probabilidad y demora", () => {
+    let modelo = modeloConEnlace("consumo");
+    const consumoId = Object.values(modelo.enlaces)[0]?.id;
+    expect(consumoId).toBeDefined();
+    if (!consumoId) return;
+    modelo = must(aplicarModificador(modelo, consumoId, "evento"));
+    modelo = must(definirProbabilidad(modelo, consumoId, 0.7));
+
+    let cellEnlace = proyectarModeloAJointCells(modelo, modelo.opdRaizId, null, null)
+      .find((cell) => cell.type === "standard.Link");
+    let labels = cellEnlace?.labels as Array<{ attrs?: { label?: { text?: unknown } } }> | undefined;
+    expect(labels?.some((label) => label.attrs?.label?.text === "E")).toBe(true);
+    expect(labels?.some((label) => label.attrs?.label?.text === "70%")).toBe(true);
+
+    modelo = modeloConEnlace("invocacion");
+    const invocacionId = Object.values(modelo.enlaces)[0]?.id;
+    expect(invocacionId).toBeDefined();
+    if (!invocacionId) return;
+    modelo = must(aplicarModificador(modelo, invocacionId, "condicion"));
+    modelo = must(definirDemora(modelo, invocacionId, "1s"));
+    cellEnlace = proyectarModeloAJointCells(modelo, modelo.opdRaizId, null, null)
+      .find((cell) => cell.type === "standard.Link");
+    labels = cellEnlace?.labels as Array<{ attrs?: { label?: { text?: unknown } } }> | undefined;
+    expect(labels?.some((label) => label.attrs?.label?.text === "c")).toBe(true);
+    expect(labels?.some((label) => label.attrs?.label?.text === "1s")).toBe(true);
   });
 
   test("proyecta invocacion como rayo zigzag por defecto", () => {

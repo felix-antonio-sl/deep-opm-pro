@@ -34,6 +34,7 @@ import type {
   Esencia,
   ExtremoKind,
   Id,
+  Modificador,
   ModoDespliegueObjeto,
   Modelo,
   Posicion,
@@ -86,11 +87,18 @@ const TODOS_LOS_EXTREMOS_ENLACE: Record<ExtremoKind, true> = {
   estado: true,
 };
 
+const TODOS_LOS_MODIFICADORES: Record<Modificador, true> = {
+  condicion: true,
+  evento: true,
+  no: true,
+};
+
 const TIPOS_ENLACE_LISTA = Object.keys(TODOS_LOS_TIPOS_ENLACE) as TipoEnlace[];
 const MODOS_DESPLIEGUE_LISTA = Object.keys(TODOS_LOS_MODOS_DESPLIEGUE) as ModoDespliegueObjeto[];
 const DESIGNACIONES_ESTADO_LISTA = Object.keys(TODAS_LAS_DESIGNACIONES_ESTADO) as DesignacionEstado[];
 const ORIGENES_DERIVACION_LISTA = Object.keys(TODOS_LOS_ORIGENES_DERIVACION) as DerivacionOrigen[];
 const EXTREMOS_ENLACE_LISTA = Object.keys(TODOS_LOS_EXTREMOS_ENLACE) as ExtremoKind[];
+const MODIFICADORES_LISTA = Object.keys(TODOS_LOS_MODIFICADORES) as Modificador[];
 
 describe("completitud / Toolbar dropdown de TipoEnlace", () => {
   test("TIPOS_ENLACE expone todos los TipoEnlace canonicos", () => {
@@ -142,6 +150,12 @@ describe("completitud / LINK_ASSETS por tipo de enlace", () => {
 describe("completitud / ExtremoKind de enlace", () => {
   test("la firma de enlace cubre entidades completas y estados", () => {
     expect(EXTREMOS_ENLACE_LISTA).toEqual(["entidad", "estado"]);
+  });
+});
+
+describe("completitud / Modificador de enlace", () => {
+  test("la union Modificador cubre condicion, evento y NO", () => {
+    expect(MODIFICADORES_LISTA).toEqual(["condicion", "evento", "no"]);
   });
 });
 

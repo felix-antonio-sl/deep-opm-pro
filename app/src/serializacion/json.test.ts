@@ -1,5 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { extremoApuntaAEntidad, extremoEntidad, extremoEstado } from "../modelo/extremos";
+import { aplicarModificador, definirDemora, definirProbabilidad } from "../modelo/modificadores";
 import { ajustarMultiplicidad, crearEnlace, crearEstadosIniciales, crearModelo, crearObjeto, crearProceso, designarEstadoFinal, designarEstadoInicial, descomponerProceso, desplegarObjeto, reanclarEnlaceExternoDerivado } from "../modelo/operaciones";
 import { cambiarModoPlegado, extraerParteDePlegado, partesExtraidasEn } from "../modelo/plegado";
 import type { Apariencia, Modelo, ModoDespliegueObjeto, RefinamientoEntidad, TipoEnlace } from "../modelo/tipos";
@@ -336,6 +337,46 @@ describe("serializacion JSON", () => {
     expect(hidratado.ok).toBe(false);
     if (hidratado.ok) return;
     expect(hidratado.error).toContain("multiplicidadOrigen");
+  });
+
+  test("preserva modificador evento, probabilidad y demora en round-trip", () => {
+    let modelo = crearModelo("Modificadores JSON");
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 80 }, "Entrada"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 220, y: 80 }, "Procesar"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 420, y: 80 }, "Validar"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidadPorNombre(modelo, "Entrada"), entidadPorNombre(modelo, "Procesar"), "consumo"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidadPorNombre(modelo, "Procesar"), entidadPorNombre(modelo, "Validar"), "invocacion"));
+    const consumoId = Object.values(modelo.enlaces).find((enlace) => enlace.tipo === "consumo")?.id;
+    const invocacionId = Object.values(modelo.enlaces).find((enlace) => enlace.tipo === "invocacion")?.id;
+    if (!consumoId || !invocacionId) throw new Error("La prueba esperaba enlaces");
+    modelo = must(aplicarModificador(modelo, consumoId, "evento"));
+    modelo = must(definirProbabilidad(modelo, consumoId, 0.7));
+    modelo = must(definirDemora(modelo, invocacionId, "1s"));
+
+    const hidratado = hidratarModelo(exportarModelo(modelo));
+
+    expect(hidratado.ok).toBe(true);
+    if (!hidratado.ok) return;
+    expect(hidratado.value.enlaces[consumoId]?.modificador).toBe("evento");
+    expect(hidratado.value.enlaces[consumoId]?.probabilidad).toBe(0.7);
+    expect(hidratado.value.enlaces[invocacionId]?.demora).toBe("1s");
+  });
+
+  test("rechaza metadatos invalidos de modificador", () => {
+    let modelo = crearModelo("Modificadores invalidos");
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 80 }, "Entrada"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 220, y: 80 }, "Procesar"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidadPorNombre(modelo, "Entrada"), entidadPorNombre(modelo, "Procesar"), "consumo"));
+    const documento = JSON.parse(exportarModelo(modelo));
+    const enlace = Object.values(documento.modelo.enlaces)[0] as Record<string, unknown>;
+
+    enlace.modificador = "evento";
+    enlace.probabilidad = 2;
+    expect(hidratarModelo(JSON.stringify(documento)).ok).toBe(false);
+
+    enlace.probabilidad = 0.5;
+    enlace.modificador = undefined;
+    expect(hidratarModelo(JSON.stringify(documento)).ok).toBe(false);
   });
 
   test("rechaza apariencias de enlace cuyos extremos no son visibles en el OPD", () => {

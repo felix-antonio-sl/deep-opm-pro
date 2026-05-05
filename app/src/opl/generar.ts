@@ -251,6 +251,16 @@ function oracionEnlace(modelo: Modelo, enlace: Enlace): string | null {
   const origenPlural = multiplicidadPlural(enlace.multiplicidadOrigen);
   const destinoPlural = multiplicidadPlural(enlace.multiplicidadDestino);
 
+  if (enlace.modificador === "evento") {
+    return oracionEvento(modelo, enlace, origen, destino, origenOpl, destinoOpl);
+  }
+  if (enlace.modificador === "condicion") {
+    return oracionCondicion(modelo, enlace, origen, destino, origenOpl, destinoOpl);
+  }
+  if (enlace.modificador === "no") {
+    return oracionNegada(modelo, enlace, origen, destino, origenOpl, destinoOpl, origenPlural, destinoPlural);
+  }
+
   switch (enlace.tipo) {
     case "agregacion":
       return `${origenOpl} ${verbo("consta", "constan", origenPlural)} de ${destinoOpl}.`;
@@ -279,8 +289,101 @@ function oracionEnlace(modelo: Modelo, enlace: Enlace): string | null {
     case "efecto":
       return oracionEfecto(modelo, enlace, origen, destino);
     case "invocacion":
-      return `${origenOpl} ${verbo("invoca", "invocan", origenPlural)} ${destinoOpl}.`;
+      return `${origenOpl} ${verbo("invoca", "invocan", origenPlural)} ${destinoOpl}${enlace.demora ? ` despues de ${enlace.demora}` : ""}.`;
   }
+}
+
+function oracionEvento(
+  modelo: Modelo,
+  enlace: Enlace,
+  origen: Entidad,
+  destino: Entidad,
+  origenOpl: string,
+  destinoOpl: string,
+): string | null {
+  const sufijo = sufijoProbabilidad(enlace);
+  switch (enlace.tipo) {
+    case "agente":
+      return `${origenOpl} inicia y maneja ${destinoOpl}${sufijo}.`;
+    case "instrumento":
+      return `${origenOpl} inicia ${destinoOpl}, que requiere ${origenOpl}${sufijo}.`;
+    case "consumo":
+      return `${origenOpl} inicia ${destinoOpl}, que consume ${origenOpl}${sufijo}.`;
+    case "resultado":
+      return `${destinoOpl} inicia ${origenOpl}, que genera ${destinoOpl}${sufijo}.`;
+    case "efecto": {
+      const proceso = origen.tipo === "proceso" ? origenOpl : destino.tipo === "proceso" ? destinoOpl : null;
+      const objeto = origen.tipo === "objeto" ? origenOpl : destino.tipo === "objeto" ? destinoOpl : null;
+      return proceso && objeto ? `${objeto} inicia ${proceso}, que afecta ${objeto}${sufijo}.` : null;
+    }
+    case "invocacion":
+      return `${origenOpl} inicia e invoca ${destinoOpl}${sufijo}.`;
+    default:
+      return oracionEnlaceSinModificador(modelo, enlace);
+  }
+}
+
+function oracionCondicion(
+  modelo: Modelo,
+  enlace: Enlace,
+  origen: Entidad,
+  destino: Entidad,
+  origenOpl: string,
+  destinoOpl: string,
+): string | null {
+  switch (enlace.tipo) {
+    case "agente":
+      return `${origenOpl} maneja ${destinoOpl} si ${origenOpl} existe, de lo contrario ${destinoOpl} se omite.`;
+    case "instrumento":
+      return `${destinoOpl} ocurre si ${origenOpl} existe, de lo contrario ${destinoOpl} se omite.`;
+    case "consumo":
+      return `${destinoOpl} ocurre si ${origenOpl} existe, en cuyo caso ${destinoOpl} consume ${origenOpl}, de lo contrario ${destinoOpl} se omite.`;
+    case "resultado":
+      return `${origenOpl} ocurre si ${destinoOpl} puede generarse, en cuyo caso ${origenOpl} genera ${destinoOpl}, de lo contrario ${origenOpl} se omite.`;
+    case "efecto": {
+      const proceso = origen.tipo === "proceso" ? origenOpl : destino.tipo === "proceso" ? destinoOpl : null;
+      const objeto = origen.tipo === "objeto" ? origenOpl : destino.tipo === "objeto" ? destinoOpl : null;
+      return proceso && objeto ? `${proceso} ocurre si ${objeto} existe, en cuyo caso ${proceso} afecta ${objeto}, de lo contrario ${proceso} se omite.` : null;
+    }
+    case "invocacion":
+      return `${origenOpl} invoca ${destinoOpl} si ${origenOpl} ocurre.`;
+    default:
+      return oracionEnlaceSinModificador(modelo, enlace);
+  }
+}
+
+function oracionNegada(
+  modelo: Modelo,
+  enlace: Enlace,
+  origen: Entidad,
+  destino: Entidad,
+  origenOpl: string,
+  destinoOpl: string,
+  origenPlural: boolean,
+  destinoPlural: boolean,
+): string | null {
+  switch (enlace.tipo) {
+    case "agente":
+      return `${origenOpl} no ${verbo("maneja", "manejan", origenPlural)} ${destinoOpl}.`;
+    case "instrumento":
+      return `${destinoOpl} no ${verbo("requiere", "requieren", destinoPlural)} ${origenOpl}.`;
+    case "consumo":
+      return `${destinoOpl} no ${verbo("consume", "consumen", destinoPlural)} ${origenOpl}.`;
+    case "resultado":
+      return `${origenOpl} no ${verbo("genera", "generan", origenPlural)} ${destinoOpl}.`;
+    case "efecto": {
+      const proceso = origen.tipo === "proceso" ? origenOpl : destino.tipo === "proceso" ? destinoOpl : null;
+      const objeto = origen.tipo === "objeto" ? origenOpl : destino.tipo === "objeto" ? destinoOpl : null;
+      return proceso && objeto ? `${proceso} no afecta ${objeto}.` : null;
+    }
+    default:
+      return oracionEnlaceSinModificador(modelo, enlace);
+  }
+}
+
+function oracionEnlaceSinModificador(modelo: Modelo, enlace: Enlace): string | null {
+  const { modificador: _modificador, probabilidad: _probabilidad, ...sinModificador } = enlace;
+  return oracionEnlace(modelo, sinModificador);
 }
 
 function oracionEfecto(modelo: Modelo, enlace: Enlace, origen: Entidad, destino: Entidad): string | null {
@@ -293,6 +396,14 @@ function oracionEfecto(modelo: Modelo, enlace: Enlace, origen: Entidad, destino:
   const multiplicidadObjeto = objetoEsOrigen ? enlace.multiplicidadOrigen : enlace.multiplicidadDestino;
   const extremoObjeto = objetoEsOrigen ? enlace.origenId : enlace.destinoId;
   return `${nombreOplConMultiplicidad(proceso, multiplicidadProceso)} ${verbo("afecta", "afectan", multiplicidadPlural(multiplicidadProceso))} ${nombreOplExtremo(modelo, extremoObjeto, multiplicidadObjeto)}.`;
+}
+
+function sufijoProbabilidad(enlace: Enlace): string {
+  return enlace.probabilidad === undefined ? "" : ` (probabilidad ${formatearProbabilidad(enlace.probabilidad)})`;
+}
+
+function formatearProbabilidad(value: number): string {
+  return Number.isInteger(value) ? String(value) : String(Number(value.toFixed(3)));
 }
 
 function nombreOpl(entidad: Entidad): string {

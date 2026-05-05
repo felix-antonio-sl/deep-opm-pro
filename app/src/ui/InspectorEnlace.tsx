@@ -3,7 +3,7 @@ import { abanicoDeEnlace } from "../modelo/abanicos";
 import { entidadDeExtremo, entidadIdDeExtremo, extremoEntidad, extremoEstado, nombreExtremo } from "../modelo/extremos";
 import { estadosDeEntidad, validarMultiplicidad } from "../modelo/operaciones";
 import { useOpmStore } from "../store";
-import type { Abanico, Apariencia, Enlace, ExtremoEnlace, Id, Modelo, OperadorAbanico } from "../modelo/tipos";
+import type { Abanico, Apariencia, Enlace, ExtremoEnlace, Id, Modelo, Modificador, OperadorAbanico } from "../modelo/tipos";
 import { inspectorStyles as style } from "./inspectorStyles";
 
 interface Props {
@@ -21,6 +21,10 @@ export function InspectorEnlace({ enlace }: Props) {
   const alternarOperadorAbanico = useOpmStore((s) => s.alternarOperadorAbanicoSeleccionado);
   const quitarRamaDeAbanico = useOpmStore((s) => s.quitarRamaDeAbanicoSeleccionado);
   const disolverAbanico = useOpmStore((s) => s.disolverAbanicoSeleccionado);
+  const aplicarModificador = useOpmStore((s) => s.aplicarModificadorEnlaceSeleccionado);
+  const quitarModificador = useOpmStore((s) => s.quitarModificadorEnlaceSeleccionado);
+  const definirProbabilidadEvento = useOpmStore((s) => s.definirProbabilidadEventoSeleccionada);
+  const definirDemoraInvocacion = useOpmStore((s) => s.definirDemoraInvocacionSeleccionada);
   const eliminar = useOpmStore((s) => s.eliminarSeleccion);
   const abanico = abanicoDeEnlace(modelo, enlace.id);
   const origen = entidadDeExtremo(modelo, enlace.origenId);
@@ -30,14 +34,22 @@ export function InspectorEnlace({ enlace }: Props) {
   const endpointActual = reanclaje?.endpointActualId ?? "";
   const [multiplicidadOrigen, setMultiplicidadOrigen] = useState(enlace.multiplicidadOrigen ?? "");
   const [multiplicidadDestino, setMultiplicidadDestino] = useState(enlace.multiplicidadDestino ?? "");
+  const [probabilidad, setProbabilidad] = useState(enlace.probabilidad === undefined ? "" : String(enlace.probabilidad));
+  const [demora, setDemora] = useState(enlace.demora ?? "");
   const [endpointSeleccionado, setEndpointSeleccionado] = useState(endpointActual);
   const errorOrigen = multiplicidadOrigen !== "" && !validarMultiplicidad(multiplicidadOrigen);
   const errorDestino = multiplicidadDestino !== "" && !validarMultiplicidad(multiplicidadDestino);
+  const errorProbabilidad = probabilidad !== "" && !probabilidadValida(probabilidad);
 
   useEffect(() => {
     setMultiplicidadOrigen(enlace.multiplicidadOrigen ?? "");
     setMultiplicidadDestino(enlace.multiplicidadDestino ?? "");
   }, [enlace.id, enlace.multiplicidadDestino, enlace.multiplicidadOrigen]);
+
+  useEffect(() => {
+    setProbabilidad(enlace.probabilidad === undefined ? "" : String(enlace.probabilidad));
+    setDemora(enlace.demora ?? "");
+  }, [enlace.id, enlace.probabilidad, enlace.demora]);
 
   useEffect(() => {
     setEndpointSeleccionado(endpointActual);
@@ -47,6 +59,28 @@ export function InspectorEnlace({ enlace }: Props) {
     if (lado === "origen") setMultiplicidadOrigen(valor);
     if (lado === "destino") setMultiplicidadDestino(valor);
     if (valor === "" || validarMultiplicidad(valor)) ajustarMultiplicidad(lado, valor);
+  };
+
+  const cambiarModificador = (valor: string) => {
+    if (valor === "") {
+      quitarModificador();
+      return;
+    }
+    aplicarModificador(valor as Modificador);
+  };
+
+  const cambiarProbabilidad = (valor: string) => {
+    setProbabilidad(valor);
+    if (valor === "") {
+      definirProbabilidadEvento(undefined);
+      return;
+    }
+    if (probabilidadValida(valor)) definirProbabilidadEvento(Number(valor));
+  };
+
+  const cambiarDemora = (valor: string) => {
+    setDemora(valor);
+    definirDemoraInvocacion(valor.trim() === "" ? undefined : valor);
   };
 
   const aplicarReanclaje = () => {
@@ -97,6 +131,52 @@ export function InspectorEnlace({ enlace }: Props) {
           {errorDestino ? <span role="alert" style={errorStyle}>Sintaxis inválida: 1, *, 2..N o 1..5</span> : null}
         </label>
       </section>
+
+      {enlaceProcedural(enlace.tipo) ? (
+        <section style={modificadorSectionStyle}>
+          <h3 style={multiplicidadTitleStyle}>Modificador</h3>
+          <label style={style.field}>
+            <span style={style.label}>Tipo</span>
+            <select
+              data-testid="modificador-enlace-select"
+              style={style.input}
+              value={enlace.modificador ?? ""}
+              onChange={(event) => cambiarModificador(event.currentTarget.value)}
+            >
+              <option value="">Ninguno</option>
+              <option value="condicion">Condición</option>
+              <option value="evento">Evento</option>
+              {enlace.tipo !== "invocacion" ? <option value="no">NO</option> : null}
+            </select>
+          </label>
+          {enlace.modificador === "evento" ? (
+            <label style={style.field}>
+              <span style={style.label}>Probabilidad</span>
+              <input
+                data-testid="probabilidad-evento-input"
+                aria-invalid={errorProbabilidad}
+                placeholder="0.7"
+                style={errorProbabilidad ? inputErrorStyle : style.input}
+                value={probabilidad}
+                onInput={(event) => cambiarProbabilidad(event.currentTarget.value)}
+              />
+              {errorProbabilidad ? <span role="alert" style={errorStyle}>Usa un número entre 0 y 1</span> : null}
+            </label>
+          ) : null}
+          {enlace.tipo === "invocacion" ? (
+            <label style={style.field}>
+              <span style={style.label}>Demora</span>
+              <input
+                data-testid="demora-invocacion-input"
+                placeholder="1s, 5 min"
+                style={style.input}
+                value={demora}
+                onInput={(event) => cambiarDemora(event.currentTarget.value)}
+              />
+            </label>
+          ) : null}
+        </section>
+      ) : null}
 
       {selectoresExtremo.length > 0 ? (
         <section style={extremosSectionStyle}>
@@ -243,6 +323,12 @@ function enlaceProcedural(tipo: Enlace["tipo"]): boolean {
   return tipo === "agente" || tipo === "instrumento" || tipo === "consumo" || tipo === "resultado" || tipo === "efecto" || tipo === "invocacion";
 }
 
+function probabilidadValida(value: string): boolean {
+  if (!/^(?:0(?:\.\d+)?|1(?:\.0+)?)$/.test(value)) return false;
+  const numero = Number(value);
+  return Number.isFinite(numero) && numero >= 0 && numero <= 1;
+}
+
 interface ContextoReanclaje {
   aparienciaEnlaceId: Id;
   endpointActualId: Id;
@@ -294,6 +380,16 @@ const multiplicidadSectionStyle = {
   display: "grid",
   gap: "2px",
   marginBottom: "14px",
+} satisfies preact.JSX.CSSProperties;
+
+const modificadorSectionStyle = {
+  display: "grid",
+  gap: "8px",
+  marginBottom: "14px",
+  padding: "8px",
+  background: "#ffffff",
+  border: "1px solid #e5e7eb",
+  borderRadius: "6px",
 } satisfies preact.JSX.CSSProperties;
 
 const extremosSectionStyle = {

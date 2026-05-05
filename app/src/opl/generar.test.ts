@@ -1,5 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { extremoEstado } from "../modelo/extremos";
+import { aplicarModificador, definirDemora, definirProbabilidad } from "../modelo/modificadores";
 import { ajustarMultiplicidad, cambiarEsencia, crearEnlace, crearEstadosIniciales, crearModelo, crearObjeto, crearProceso, designarEstadoFinal, designarEstadoInicial, descomponerProceso, agregarEstado, desplegarObjeto, estadosDeEntidad, moverApariencia, renombrarEstado } from "../modelo/operaciones";
 import { cambiarModoPlegado } from "../modelo/plegado";
 import type { Apariencia, Modelo, Resultado } from "../modelo/tipos";
@@ -68,6 +69,55 @@ describe("OPL-ES — tipos de enlace canonicos", () => {
     modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidad(modelo, "Preparar"), entidad(modelo, "Servir"), "invocacion"));
 
     expect(generarOpl(modelo)).toContain("*Preparar* invoca *Servir*.");
+  });
+
+  test("modificador evento emite inicia y probabilidad", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 0, y: 0 }, "Orden"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 200, y: 0 }, "Aprobar"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidad(modelo, "Orden"), entidad(modelo, "Aprobar"), "consumo"));
+    const enlaceId = Object.values(modelo.enlaces)[0]?.id;
+    if (!enlaceId) throw new Error("La prueba esperaba enlace");
+    modelo = must(aplicarModificador(modelo, enlaceId, "evento"));
+    modelo = must(definirProbabilidad(modelo, enlaceId, 0.7));
+
+    expect(generarOpl(modelo)).toContain("**Orden** inicia *Aprobar*, que consume **Orden** (probabilidad 0.7).");
+  });
+
+  test("modificador NO emite negacion", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 0, y: 0 }, "Orden"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 200, y: 0 }, "Aprobar"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidad(modelo, "Orden"), entidad(modelo, "Aprobar"), "consumo"));
+    const enlaceId = Object.values(modelo.enlaces)[0]?.id;
+    if (!enlaceId) throw new Error("La prueba esperaba enlace");
+    modelo = must(aplicarModificador(modelo, enlaceId, "no"));
+
+    expect(generarOpl(modelo)).toContain("*Aprobar* no consume **Orden**.");
+  });
+
+  test("modificador condicion emite omision condicional", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 0, y: 0 }, "Orden"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 200, y: 0 }, "Aprobar"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidad(modelo, "Orden"), entidad(modelo, "Aprobar"), "consumo"));
+    const enlaceId = Object.values(modelo.enlaces)[0]?.id;
+    if (!enlaceId) throw new Error("La prueba esperaba enlace");
+    modelo = must(aplicarModificador(modelo, enlaceId, "condicion"));
+
+    expect(generarOpl(modelo)).toContain("*Aprobar* ocurre si **Orden** existe, en cuyo caso *Aprobar* consume **Orden**, de lo contrario *Aprobar* se omite.");
+  });
+
+  test("invocacion con demora anexa etiqueta temporal", () => {
+    let modelo = crearModelo();
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 0, y: 0 }, "Preparar"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 200, y: 0 }, "Servir"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidad(modelo, "Preparar"), entidad(modelo, "Servir"), "invocacion"));
+    const enlaceId = Object.values(modelo.enlaces)[0]?.id;
+    if (!enlaceId) throw new Error("La prueba esperaba enlace");
+    modelo = must(definirDemora(modelo, enlaceId, "1s"));
+
+    expect(generarOpl(modelo)).toContain("*Preparar* invoca *Servir* despues de 1s.");
   });
 
   test("multiplicidad de agente pluraliza sujeto y verbo", () => {

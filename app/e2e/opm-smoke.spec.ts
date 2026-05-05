@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 
 test("carga demo OPM en canvas JointJS y mantiene OPL visible", async ({ page }) => {
   const pageErrors: string[] = [];
@@ -69,6 +69,26 @@ test("renderiza todos los markers canonicos de enlaces", async ({ page }) => {
   await expect(page.locator(".joint-element")).toHaveCount(15);
   await page.screenshot({ path: "test-results/opm-markers-canonicos.png", fullPage: true });
 
+  expect(pageErrors).toEqual([]);
+});
+
+test("renderiza modificadores evento/condicion y demora de invocacion", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await page.locator("textarea").fill(JSON.stringify(modeloModificadoresEnlace(), null, 2));
+  await page.getByRole("button", { name: "Importar" }).click();
+
+  await expect(page.locator(".joint-link")).toHaveCount(3);
+  await expect(svgText(page, "E")).toBeVisible();
+  await expect(svgText(page, "70%")).toBeVisible();
+  await expect(svgText(page, "c")).toBeVisible();
+  await expect(svgText(page, "1s")).toBeVisible();
+  await expect(page.getByText("Orden inicia Aprobar, que consume Orden (probabilidad 0.7).")).toBeVisible();
+  await expect(page.getByText("Aprobar invoca Validar despues de 1s.")).toBeVisible();
+
+  await page.screenshot({ path: "test-results/opm-modificadores-enlace.png", fullPage: true });
   expect(pageErrors).toEqual([]);
 });
 
@@ -762,19 +782,28 @@ test("arrastra subproceso embebido dentro del macroproceso contenedor", async ({
     els.map((el) => {
       const r = el.getBoundingClientRect();
       const tieneEllipse = !!el.querySelector("ellipse");
-      return { tieneEllipse, x: r.x, y: r.y, width: r.width };
+      const modelId = el.getAttribute("model-id") ?? "";
+      return { modelId, tieneEllipse, x: r.x, y: r.y, width: r.width };
     }),
   );
   const conEllipseFin = ellipsesFin.filter((e) => e.tieneEllipse).sort((a, b) => b.width - a.width);
   const contornoFin = conEllipseFin[0];
   const subsFin = conEllipseFin.slice(1, 4).sort((a, b) => a.y - b.y);
+  const subsFinPorId = new Map(subsFin.map((subproceso) => [subproceso.modelId, subproceso]));
+  const targetFin = subsFinPorId.get(target.modelId);
+  const hermanoSuperiorFin = subsFinPorId.get(subsIni[0]?.modelId ?? "");
+  const hermanoInferiorFin = subsFinPorId.get(subsIni[2]?.modelId ?? "");
+  expect(targetFin).toBeDefined();
+  expect(hermanoSuperiorFin).toBeDefined();
+  expect(hermanoInferiorFin).toBeDefined();
+  if (!targetFin || !hermanoSuperiorFin || !hermanoInferiorFin) return;
 
   // El subproceso target se desplaza hacia la derecha (clamp por padding interior).
-  expect(subsFin[1].x - subsIni[1].x).toBeGreaterThan(100);
+  expect(targetFin.x - target.x).toBeGreaterThan(100);
   // Contorno y hermanos quedan estaticos.
   expect(Math.abs(contornoFin.x - contornoIni.x)).toBeLessThan(10);
-  expect(Math.abs(subsFin[0].x - subsIni[0].x)).toBeLessThan(10);
-  expect(Math.abs(subsFin[2].x - subsIni[2].x)).toBeLessThan(10);
+  expect(Math.abs(hermanoSuperiorFin.x - subsIni[0].x)).toBeLessThan(10);
+  expect(Math.abs(hermanoInferiorFin.x - subsIni[2].x)).toBeLessThan(10);
 
   expect(pageErrors).toEqual([]);
 });
@@ -909,6 +938,10 @@ function todasSeparadas(apariencias: Array<{ x: number; y: number; width: number
   )));
 }
 
+function svgText(page: Page, text: string) {
+  return page.locator(".joint-paper svg text").filter({ hasText: new RegExp(`^${escapeRegExp(text)}$`) }).first();
+}
+
 function modeloDosOpds() {
   return {
     formato: "deep-opm-pro.modelo.v0",
@@ -1022,6 +1055,54 @@ function modeloMarkersCanonicos() {
             ...aparienciaPar("o-effect", "p-effect", 70, 280),
             ...aparienciaPar("p-invocation-a", "p-invocation-b", 70, 340),
             ...aparienciaPar("o-whole", "o-part", 70, 400),
+          },
+          enlaces: Object.fromEntries(Object.keys(enlaces).map((id) => [`a-${id}`, { id: `a-${id}`, enlaceId: id, opdId: "opd-1", vertices: [] }])),
+        },
+      },
+    },
+  };
+}
+
+function modeloModificadoresEnlace() {
+  const entidades = {
+    "o-orden": objeto("o-orden", "Orden"),
+    "p-aprobar": proceso("p-aprobar", "Aprobar"),
+    "o-regla": objeto("o-regla", "Regla"),
+    "p-validar": proceso("p-validar", "Validar"),
+  };
+  const enlaces = {
+    "e-evento": {
+      ...enlace("e-evento", "consumo", "o-orden", "p-aprobar"),
+      modificador: "evento",
+      probabilidad: 0.7,
+    },
+    "e-condicion": {
+      ...enlace("e-condicion", "instrumento", "o-regla", "p-aprobar"),
+      modificador: "condicion",
+    },
+    "e-invoca": {
+      ...enlace("e-invoca", "invocacion", "p-aprobar", "p-validar"),
+      demora: "1s",
+    },
+  };
+  return {
+    formato: "deep-opm-pro.modelo.v0",
+    modelo: {
+      id: "modelo-modificadores",
+      nombre: "Modificadores",
+      opdRaizId: "opd-1",
+      nextSeq: 20,
+      entidades,
+      enlaces,
+      opds: {
+        "opd-1": {
+          id: "opd-1",
+          nombre: "SD",
+          padreId: null,
+          apariencias: {
+            ...aparienciaPar("o-orden", "p-aprobar", 70, 80),
+            "a-o-regla": { id: "a-o-regla", entidadId: "o-regla", opdId: "opd-1", x: 70, y: 190, width: 135, height: 60 },
+            "a-p-validar": { id: "a-p-validar", entidadId: "p-validar", opdId: "opd-1", x: 650, y: 80, width: 135, height: 60 },
           },
           enlaces: Object.fromEntries(Object.keys(enlaces).map((id) => [`a-${id}`, { id: `a-${id}`, enlaceId: id, opdId: "opd-1", vertices: [] }])),
         },

@@ -534,7 +534,7 @@ function proyectarEnlace(
     vertices: verticesRender,
     router: enlace.tipo === "invocacion" ? undefined : routerManhattan(),
     connector: { name: "straight" },
-    labels: [...etiquetasMultiplicidad(enlace), ...etiquetasProxyParte(origen, destino)],
+    labels: [...etiquetasMultiplicidad(enlace), ...etiquetasModificador(enlace), ...etiquetasProxyParte(origen, destino)],
     attrs: {
       wrapper: {
         stroke: "transparent",
@@ -607,6 +607,95 @@ function etiquetasMultiplicidad(enlace: Enlace): Array<Record<string, unknown>> 
     labels.push(etiquetaMultiplicidad(enlace.multiplicidadDestino, -18));
   }
   return labels;
+}
+
+function etiquetasModificador(enlace: Enlace): Array<Record<string, unknown>> {
+  const labels: Array<Record<string, unknown>> = [];
+  if (enlace.modificador) {
+    labels.push(etiquetaBadgeModificador(textoModificador(enlace.modificador), 0));
+  }
+  if (enlace.modificador === "evento" && enlace.probabilidad !== undefined) {
+    labels.push(etiquetaTextoModificador(`${Math.round(enlace.probabilidad * 100)}%`, 0, 22));
+  }
+  if (enlace.tipo === "invocacion" && enlace.demora) {
+    labels.push(etiquetaTextoModificador(enlace.demora, 0, -28));
+  }
+  return labels;
+}
+
+function textoModificador(modificador: NonNullable<Enlace["modificador"]>): string {
+  if (modificador === "condicion") return "c";
+  if (modificador === "evento") return "E";
+  return "¬";
+}
+
+function etiquetaBadgeModificador(text: string, distance: number): Record<string, unknown> {
+  return {
+    markup: [
+      { tagName: "rect", selector: "badge" },
+      { tagName: "text", selector: "label" },
+    ],
+    attrs: {
+      badge: {
+        width: 18,
+        height: 18,
+        x: -9,
+        y: -9,
+        rx: 9,
+        ry: 9,
+        fill: "#ffffff",
+        stroke: CANON.colores.enlace,
+        strokeWidth: 1.5,
+        pointerEvents: "none",
+      },
+      label: {
+        text,
+        fill: "#1f2937",
+        fontFamily: CANON.dims.fontFamily,
+        fontSize: 12,
+        fontWeight: 700,
+        textAnchor: "middle",
+        textVerticalAnchor: "middle",
+        pointerEvents: "none",
+      },
+    },
+    position: {
+      distance,
+      offset: -20,
+      angle: 0,
+      args: {
+        keepGradient: false,
+        ensureLegibility: true,
+      },
+    },
+  };
+}
+
+function etiquetaTextoModificador(text: string, distance: number, offset: number): Record<string, unknown> {
+  return {
+    markup: [{ tagName: "text", selector: "label" }],
+    attrs: {
+      label: {
+        text,
+        fill: "#475467",
+        fontFamily: CANON.dims.fontFamily,
+        fontSize: 11,
+        fontWeight: 700,
+        textAnchor: "middle",
+        textVerticalAnchor: "middle",
+        pointerEvents: "none",
+      },
+    },
+    position: {
+      distance,
+      offset,
+      angle: 0,
+      args: {
+        keepGradient: false,
+        ensureLegibility: true,
+      },
+    },
+  };
 }
 
 function etiquetaMultiplicidad(text: string, distance: number): Record<string, unknown> {

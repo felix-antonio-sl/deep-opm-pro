@@ -59,6 +59,8 @@ export interface ExtremoEnlace {
 
 export type OperadorAbanico = "O" | "XOR";
 
+export type Modificador = "condicion" | "evento" | "no";
+
 export interface Abanico {
   id: Id;
   opdId: Id;
@@ -87,6 +89,9 @@ export interface Enlace {
   etiqueta: string;
   multiplicidadOrigen?: string;
   multiplicidadDestino?: string;
+  modificador?: Modificador;
+  probabilidad?: number;
+  demora?: string;
   derivado?: DerivacionEnlace;
 }
 

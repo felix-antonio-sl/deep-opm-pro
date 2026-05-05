@@ -49,6 +49,12 @@ import {
   sincronizarAbanicos,
 } from "./modelo/abanicos";
 import {
+  aplicarModificador,
+  definirDemora,
+  definirProbabilidad,
+  quitarModificador,
+} from "./modelo/modificadores";
+import {
   borrarModeloLocal,
   cargarModeloLocal,
   guardarModeloLocal,
@@ -57,7 +63,7 @@ import {
 } from "./persistencia/local";
 import { exportarModelo, hidratarModelo } from "./serializacion/json";
 import type { Aviso } from "./modelo/validaciones";
-import type { Afiliacion, Apariencia, Esencia, ExtremoEnlace, Id, Modelo, ModoDespliegueObjeto, ModoPlegado, OperadorAbanico, Posicion, TipoEnlace } from "./modelo/tipos";
+import type { Afiliacion, Apariencia, Esencia, ExtremoEnlace, Id, Modelo, Modificador, ModoDespliegueObjeto, ModoPlegado, OperadorAbanico, Posicion, TipoEnlace } from "./modelo/tipos";
 
 interface ModoEnlace {
   tipo: TipoEnlace;
@@ -118,6 +124,10 @@ interface OpmStore {
   alternarOperadorAbanicoSeleccionado: (operador: OperadorAbanico) => void;
   quitarRamaDeAbanicoSeleccionado: () => void;
   disolverAbanicoSeleccionado: () => void;
+  aplicarModificadorEnlaceSeleccionado: (modificador: Modificador) => void;
+  quitarModificadorEnlaceSeleccionado: () => void;
+  definirProbabilidadEventoSeleccionada: (probabilidad: number | undefined) => void;
+  definirDemoraInvocacionSeleccionada: (demora: string | undefined) => void;
   eliminarSeleccion: () => void;
   exportarJson: () => string;
   importarJson: (json: string) => void;
@@ -811,6 +821,73 @@ export const store = createStore<OpmStore>((set, get) => ({
       return;
     }
     commitModelo(set, modelo, resultado.value, { mensaje: "Abanico disuelto" });
+  },
+
+  aplicarModificadorEnlaceSeleccionado(modificador) {
+    const { modelo, enlaceSeleccionId } = get();
+    if (!enlaceSeleccionId) {
+      set({ mensaje: "Selecciona un enlace para aplicar modificador" });
+      return;
+    }
+    const resultado = aplicarModificador(modelo, enlaceSeleccionId, modificador);
+    if (!resultado.ok) {
+      set({ mensaje: resultado.error });
+      return;
+    }
+    commitModelo(set, modelo, resultado.value, {
+      seleccionId: null,
+      enlaceSeleccionId,
+      modoEnlace: null,
+      mensaje: null,
+    });
+  },
+
+  quitarModificadorEnlaceSeleccionado() {
+    const { modelo, enlaceSeleccionId } = get();
+    if (!enlaceSeleccionId) return;
+    const resultado = quitarModificador(modelo, enlaceSeleccionId);
+    if (!resultado.ok) {
+      set({ mensaje: resultado.error });
+      return;
+    }
+    commitModelo(set, modelo, resultado.value, {
+      seleccionId: null,
+      enlaceSeleccionId,
+      modoEnlace: null,
+      mensaje: null,
+    });
+  },
+
+  definirProbabilidadEventoSeleccionada(probabilidad) {
+    const { modelo, enlaceSeleccionId } = get();
+    if (!enlaceSeleccionId) return;
+    const resultado = definirProbabilidad(modelo, enlaceSeleccionId, probabilidad);
+    if (!resultado.ok) {
+      set({ mensaje: resultado.error });
+      return;
+    }
+    commitModelo(set, modelo, resultado.value, {
+      seleccionId: null,
+      enlaceSeleccionId,
+      modoEnlace: null,
+      mensaje: null,
+    });
+  },
+
+  definirDemoraInvocacionSeleccionada(demora) {
+    const { modelo, enlaceSeleccionId } = get();
+    if (!enlaceSeleccionId) return;
+    const resultado = definirDemora(modelo, enlaceSeleccionId, demora);
+    if (!resultado.ok) {
+      set({ mensaje: resultado.error });
+      return;
+    }
+    commitModelo(set, modelo, resultado.value, {
+      seleccionId: null,
+      enlaceSeleccionId,
+      modoEnlace: null,
+      mensaje: null,
+    });
   },
 
   eliminarSeleccion() {

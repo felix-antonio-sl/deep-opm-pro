@@ -1,4 +1,5 @@
 import { entidadDeExtremo, entidadIdDeExtremo, extremoEntidad, extremoVisibleEnOpd, normalizarExtremo } from "../modelo/extremos";
+import { esModificador, validarMetadatosEnlace } from "../modelo/modificadores";
 import { validarFirmaEnlace, validarMultiplicidad } from "../modelo/operaciones";
 import { modoPlegadoApariencia, partesDePlegado } from "../modelo/plegado";
 import type {
@@ -413,7 +414,16 @@ function validarEnlaces(
     if (!multiplicidadOrigen.ok) return multiplicidadOrigen;
     const multiplicidadDestino = validarMultiplicidadOpcional(id, "multiplicidadDestino", raw.multiplicidadDestino);
     if (!multiplicidadDestino.ok) return multiplicidadDestino;
-    enlaces[id] = {
+    if (raw.modificador !== undefined && !esModificador(raw.modificador)) {
+      return fallo(`Enlace inválido: ${id}.modificador`);
+    }
+    if (raw.probabilidad !== undefined && !esNumeroFinito(raw.probabilidad)) {
+      return fallo(`Enlace inválido: ${id}.probabilidad`);
+    }
+    if (raw.demora !== undefined && typeof raw.demora !== "string") {
+      return fallo(`Enlace inválido: ${id}.demora`);
+    }
+    const enlace: Enlace = {
       id,
       tipo: raw.tipo,
       origenId: origenExtremo.value,
@@ -421,8 +431,14 @@ function validarEnlaces(
       etiqueta: raw.etiqueta,
       ...(multiplicidadOrigen.value ? { multiplicidadOrigen: multiplicidadOrigen.value } : {}),
       ...(multiplicidadDestino.value ? { multiplicidadDestino: multiplicidadDestino.value } : {}),
+      ...(raw.modificador ? { modificador: raw.modificador } : {}),
+      ...(raw.probabilidad !== undefined ? { probabilidad: raw.probabilidad } : {}),
+      ...(raw.demora ? { demora: raw.demora } : {}),
       ...(derivado.value ? { derivado: derivado.value } : {}),
     };
+    const metadatos = validarMetadatosEnlace(enlace);
+    if (!metadatos.ok) return fallo(`Enlace inválido: ${id}.metadatos`);
+    enlaces[id] = enlace;
   }
   return ok(enlaces);
 }

@@ -181,6 +181,37 @@ describe("store undo/redo y dirty state", () => {
     expect(store.getState().modelo.enlaces[enlaceId]?.multiplicidadOrigen).toBeUndefined();
   });
 
+  test("modificador, probabilidad y demora de enlace entran al historial", () => {
+    let modelo = crearModelo("Store modificadores");
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 80 }, "Entrada"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 220, y: 80 }, "Procesar"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 420, y: 80 }, "Validar"));
+    const entradaId = entidadPorNombre(modelo, "Entrada");
+    const procesarId = entidadPorNombre(modelo, "Procesar");
+    const validarId = entidadPorNombre(modelo, "Validar");
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entradaId, procesarId, "consumo"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, procesarId, validarId, "invocacion"));
+    store.getState().importarJson(exportarModelo(modelo));
+    const consumoId = Object.values(modelo.enlaces).find((enlace) => enlace.tipo === "consumo")?.id;
+    const invocacionId = Object.values(modelo.enlaces).find((enlace) => enlace.tipo === "invocacion")?.id;
+    if (!consumoId || !invocacionId) throw new Error("La prueba esperaba enlaces");
+
+    store.getState().seleccionarEnlace(consumoId);
+    store.getState().aplicarModificadorEnlaceSeleccionado("evento");
+    store.getState().definirProbabilidadEventoSeleccionada(0.7);
+    expect(store.getState().modelo.enlaces[consumoId]).toMatchObject({ modificador: "evento", probabilidad: 0.7 });
+
+    store.getState().seleccionarEnlace(invocacionId);
+    store.getState().definirDemoraInvocacionSeleccionada("1s");
+    expect(store.getState().modelo.enlaces[invocacionId]?.demora).toBe("1s");
+
+    store.getState().seleccionarEnlace(consumoId);
+    store.getState().quitarModificadorEnlaceSeleccionado();
+    expect(store.getState().modelo.enlaces[consumoId]?.modificador).toBeUndefined();
+    expect(store.getState().modelo.enlaces[consumoId]?.probabilidad).toBeUndefined();
+    expect(store.getState().puedeDeshacer).toBe(true);
+  });
+
   test("reanclar enlace derivado entra al historial undo y rehacer", () => {
     const { modelo, opdId, enlaceId, aparienciaEnlaceId, segundoId } = modeloConEnlaceDerivado();
     store.getState().importarJson(exportarModelo(modelo));
