@@ -881,7 +881,44 @@ function modeloConRutaManual(rutaEtiqueta: string): { modelo: Modelo; enlaceId: 
   };
 }
 
-function must<T>(resultado: { ok: true; value: T } | { ok: false; error: string }): T {
+  test("opd.ordenLocal opcional roundtrip lossless; legacy sin orden hidrata como undefined", () => {
+    let modelo = crearModelo("Orden");
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 100, y: 100 }, "A"));
+    const a = Object.values(modelo.entidades).find((e) => e.nombre === "A")!;
+    modelo = must(descomponerProceso(modelo, modelo.opdRaizId, a.id)).modelo;
+
+    const sdId = modelo.opdRaizId;
+    const hijos = Object.values(modelo.opds).filter((o) => o.padreId === sdId);
+
+    // Asignar ordenLocal explícito
+    if (hijos.length > 0) {
+      modelo = {
+        ...modelo,
+        opds: {
+          ...modelo.opds,
+          [hijos[0]!.id]: { ...hijos[0]!, ordenLocal: 7 },
+        },
+      };
+    }
+
+    const json = exportarModelo(modelo);
+    const hidratado = hidratarModelo(json);
+    expect(hidratado.ok).toBe(true);
+    if (!hidratado.ok) return;
+
+    const hijoHidratado = Object.values(hidratado.value.opds).find(
+      (opd) => opd.ordenLocal !== undefined,
+    );
+    expect(hijoHidratado).toBeDefined();
+    expect(hijoHidratado!.ordenLocal).toBe(7);
+
+    // Legacy sin ordenLocal: debería ser undefined
+    const sd = hidratado.value.opds[hidratado.value.opdRaizId];
+    expect(sd).toBeDefined();
+    expect(sd!.ordenLocal).toBeUndefined();
+  });
+
+  function must<T>(resultado: { ok: true; value: T } | { ok: false; error: string }): T {
   if (!resultado.ok) throw new Error(resultado.error);
   return resultado.value;
 }
