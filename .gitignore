@@ -26,6 +26,9 @@ docs/REPORTE-EJECUTIVO.md
 
 # Archivos temporales
 .claude/
+.codex/
+.opencode/
+.config/
 *.tar.gz
 .DS_Store
 tmp/
