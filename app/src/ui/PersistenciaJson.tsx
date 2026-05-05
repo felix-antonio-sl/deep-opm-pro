@@ -135,6 +135,7 @@ export function PersistenciaJson() {
       {vistaPrevia?.ok ? <div data-testid="import-preview" style={style.preview}>{vistaPrevia.texto}</div> : null}
       {mensajeError ? <div role="alert" style={style.error}>{mensajeError}</div> : null}
       <textarea
+        data-testid="textarea-json"
         style={style.textarea}
         value={texto}
         spellcheck={false}

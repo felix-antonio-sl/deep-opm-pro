@@ -283,7 +283,7 @@ try {
   // exact:true para no colisionar con "Exportar HTML" del PanelOpl.
   await page.getByRole("button", { name: "Exportar", exact: true }).click();
   await page.waitForTimeout(150);
-  const jsonExport = await page.locator("textarea").inputValue();
+  const jsonExport = await page.getByTestId("textarea-json").inputValue();
   let parsed;
   try {
     parsed = JSON.parse(jsonExport);
@@ -295,7 +295,7 @@ try {
   await shot(page, "09-export-json.png");
 
   // Probar import corrupto
-  await page.locator("textarea").fill('{"formato":"deep-opm-pro.modelo.v0","modelo":{"id":"x","nombre":"x","opdRaizId":"opd-1","nextSeq":1,"opds":{"opd-1":null},"entidades":{},"enlaces":{}}}');
+  await page.getByTestId("textarea-json").fill('{"formato":"deep-opm-pro.modelo.v0","modelo":{"id":"x","nombre":"x","opdRaizId":"opd-1","nextSeq":1,"opds":{"opd-1":null},"entidades":{},"enlaces":{}}}');
   await page.getByRole("button", { name: "Importar" }).click();
   await descartarSiHayDialogo(page);
   await page.waitForTimeout(200);
@@ -359,7 +359,9 @@ try {
   const dialogoCargarVisible = await dialogoCargar.isVisible().catch(() => false);
   record("10. Persistencia local", "Cargar abre diálogo 'Cargar modelo'", dialogoCargarVisible ? "OK" : "FAIL");
   if (dialogoCargarVisible) {
-    const opcionWorkspace = await dialogoCargar.getByRole("option", { name: /Sonda in-vivo/ }).count();
+    // Post-L4 ronda 7: PanelCarpetas renderiza modelos como <button> con el
+    // nombre como accessible name (via title + span tile-name), no como option.
+    const opcionWorkspace = await dialogoCargar.getByRole("button", { name: /Sonda in-vivo/ }).count();
     record("10. Persistencia local", "Diálogo 'Cargar modelo' lista el modelo guardado", opcionWorkspace >= 1 ? "OK" : "FAIL");
     // Cerrar el diálogo sin cargar para no afectar el siguiente bloque
     await page.keyboard.press("Escape");
@@ -388,7 +390,7 @@ try {
       enlaces: {},
     },
   };
-  await page.locator("textarea").fill(JSON.stringify(dosOpds));
+  await page.getByTestId("textarea-json").fill(JSON.stringify(dosOpds));
   await page.getByRole("button", { name: "Importar" }).click();
   await page.waitForTimeout(200);
   const treeitems = await page.locator('[role="treeitem"]').count();
@@ -415,7 +417,10 @@ try {
   await page.waitForTimeout(200);
   const nodosTrasQuitar = await page.locator('[role="treeitem"]').count();
   const oplDescompuesto = await page.getByText("Proceso se descompone en SD1.").count();
-  record("11. Árbol OPD", "Quitar descomposición elimina OPD hijo", nodosTrasQuitar === 1 ? "OK" : "FAIL");
+  // Post-ronda 6 L5: el árbol mantiene un nodo permanente "🗺 Mapa del sistema"
+  // (HU-21.002), por lo que tras quitar descomposición quedan exactamente 2
+  // treeitems (raíz SD + entrada Mapa), no 1.
+  record("11. Árbol OPD", "Quitar descomposición elimina OPD hijo", nodosTrasQuitar === 2 ? "OK" : "FAIL");
   record("11. Árbol OPD", "Quitar descomposición remueve OPL de refinamiento", oplDescompuesto === 0 ? "OK" : "FAIL");
   await shot(page, "11c-quitar-descomposicion.png");
 

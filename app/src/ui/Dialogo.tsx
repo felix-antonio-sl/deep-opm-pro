@@ -45,7 +45,12 @@ export function Dialogo(props: DialogoProps) {
 
     window.addEventListener("keydown", manejarTecla, true);
     return () => window.removeEventListener("keydown", manejarTecla, true);
-  }, [props]);
+    // Dep restringida: el listener solo necesita re-registrarse cuando cambia
+    // el flag `open` o el callback `onCancel`. Antes la dep `[props]` causaba
+    // re-registros en cada render del provider (objeto literal nuevo cada vez),
+    // dejando una ventana intermitente sin listener — flaky para Escape.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [props.open, props.onCancel]);
 
   if (!props.open) return null;
 
