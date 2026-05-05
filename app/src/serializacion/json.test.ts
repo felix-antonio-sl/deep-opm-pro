@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { crearEnlace, crearModelo, crearObjeto, crearProceso, descomponerProceso, desplegarObjeto } from "../modelo/operaciones";
+import { ajustarMultiplicidad, crearEnlace, crearModelo, crearObjeto, crearProceso, descomponerProceso, desplegarObjeto } from "../modelo/operaciones";
 import { cambiarModoPlegado } from "../modelo/plegado";
 import type { Apariencia, Modelo, ModoDespliegueObjeto, RefinamientoEntidad, TipoEnlace } from "../modelo/tipos";
 import { exportarModelo, hidratarModelo } from "./json";
@@ -145,6 +145,86 @@ describe("serializacion JSON", () => {
     expect(hidratado.ok).toBe(false);
     if (hidratado.ok) return;
     expect(hidratado.error).toContain("firma");
+  });
+
+  test("preserva multiplicidad de enlace en round-trip", () => {
+    let modelo = crearModelo("Multiplicidad");
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 0, y: 0 }, "Recurso"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 200, y: 0 }, "Procesar"));
+    modelo = must(crearEnlace(
+      modelo,
+      modelo.opdRaizId,
+      entidadPorNombre(modelo, "Recurso"),
+      entidadPorNombre(modelo, "Procesar"),
+      "consumo",
+    ));
+    const enlaceId = Object.values(modelo.enlaces)[0]?.id;
+    expect(enlaceId).toBeDefined();
+    if (!enlaceId) return;
+    modelo = must(ajustarMultiplicidad(modelo, enlaceId, "origen", "2..N"));
+    modelo = must(ajustarMultiplicidad(modelo, enlaceId, "destino", "*"));
+
+    const hidratado = hidratarModelo(exportarModelo(modelo));
+
+    expect(hidratado.ok).toBe(true);
+    if (!hidratado.ok) return;
+    expect(hidratado.value.enlaces[enlaceId]?.multiplicidadOrigen).toBe("2..N");
+    expect(hidratado.value.enlaces[enlaceId]?.multiplicidadDestino).toBe("*");
+  });
+
+  test("hidratar enlace legacy sin multiplicidad deja campos indefinidos", () => {
+    let modelo = crearModelo("Legacy multiplicidad");
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 0, y: 0 }, "Recurso"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 200, y: 0 }, "Procesar"));
+    modelo = must(crearEnlace(
+      modelo,
+      modelo.opdRaizId,
+      entidadPorNombre(modelo, "Recurso"),
+      entidadPorNombre(modelo, "Procesar"),
+      "consumo",
+    ));
+    const enlaceId = Object.values(modelo.enlaces)[0]?.id;
+    expect(enlaceId).toBeDefined();
+    if (!enlaceId) return;
+
+    const hidratado = hidratarModelo(exportarModelo(modelo));
+
+    expect(hidratado.ok).toBe(true);
+    if (!hidratado.ok) return;
+    expect(hidratado.value.enlaces[enlaceId]?.multiplicidadOrigen).toBeUndefined();
+    expect(hidratado.value.enlaces[enlaceId]?.multiplicidadDestino).toBeUndefined();
+  });
+
+  test("rechaza multiplicidad de enlace no canonica", () => {
+    let modelo = crearModelo("Multiplicidad invalida");
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 0, y: 0 }, "Recurso"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 200, y: 0 }, "Procesar"));
+    modelo = must(crearEnlace(
+      modelo,
+      modelo.opdRaizId,
+      entidadPorNombre(modelo, "Recurso"),
+      entidadPorNombre(modelo, "Procesar"),
+      "consumo",
+    ));
+    const enlaceId = Object.values(modelo.enlaces)[0]?.id;
+    expect(enlaceId).toBeDefined();
+    if (!enlaceId) return;
+    const corrupto: Modelo = {
+      ...modelo,
+      enlaces: {
+        ...modelo.enlaces,
+        [enlaceId]: {
+          ...modelo.enlaces[enlaceId]!,
+          multiplicidadOrigen: "1..n",
+        },
+      },
+    };
+
+    const hidratado = hidratarModelo(exportarModelo(corrupto));
+
+    expect(hidratado.ok).toBe(false);
+    if (hidratado.ok) return;
+    expect(hidratado.error).toContain("multiplicidadOrigen");
   });
 
   test("rechaza apariencias de enlace cuyos extremos no son visibles en el OPD", () => {
