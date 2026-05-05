@@ -1,9 +1,11 @@
+import { esAutoInvocacion } from "../../modelo/autoinvocacion";
 import { CANON } from "../../modelo/constantes";
 import { entidadIdDeExtremo } from "../../modelo/extremos";
 import { estadosDeEntidad } from "../../modelo/operaciones";
 import { filasPlegadoParcial, modoPlegadoApariencia, partesDePlegado, type FilaPlegadoParcial } from "../../modelo/plegado";
 import type { Apariencia, Enlace, Entidad, Estado, ExtremoEnlace, Id, Modelo, Posicion, TipoEnlace } from "../../modelo/tipos";
 import { proyectarOverlayAbanicoCanonico } from "./abanicoOverlay";
+import { proyectarAutoInvocacion } from "./autoinvocacionLoop";
 import { LINK_ASSETS } from "./linkAssets";
 
 export type RolApariencia = "contorno" | "interno" | "externo";
@@ -93,6 +95,15 @@ export function proyectarModeloAJointCells(
     const origen = resolverEndpointVisual(modelo, opd, aparienciaPorEntidad, enlace.origenId);
     const destino = resolverEndpointVisual(modelo, opd, aparienciaPorEntidad, enlace.destinoId);
     if (!origen || !destino) return [];
+    if (esAutoInvocacion(enlace) && origen.apariencia.id === destino.apariencia.id) {
+      return proyectarAutoInvocacion({
+        opdId,
+        enlace,
+        aparienciaEnlaceId: aparienciaEnlace.id,
+        proceso: origen.apariencia,
+        seleccionada: enlace.id === seleccionEnlaceId,
+      });
+    }
     if (origen.apariencia.id === destino.apariencia.id) return [];
     return TIPOS_REFINAMIENTO_ESTRUCTURAL.includes(enlace.tipo) && !origen.proxy && !destino.proxy
       ? proyectarRefinamientoEstructural(opdId, enlace, aparienciaEnlace.id, origen.apariencia, destino.apariencia, enlace.id === seleccionEnlaceId)

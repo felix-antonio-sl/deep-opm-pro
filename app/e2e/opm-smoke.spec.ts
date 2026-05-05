@@ -117,6 +117,35 @@ test("renderiza modificadores evento/condicion y demora de invocacion", async ({
   expect(pageErrors).toEqual([]);
 });
 
+test("crea auto-invocacion desde Inspector con demora default", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await page.getByRole("button", { name: "Proceso" }).click();
+  await expect(page.getByRole("button", { name: "Auto-invocación" })).toBeVisible();
+
+  await page.getByRole("button", { name: "Auto-invocación" }).click();
+
+  await expect(page.locator(".joint-link")).toHaveCount(2);
+  await expect(svgText(page, "1s")).toBeVisible();
+  await expect(page.getByText("Proceso se invoca a sí mismo despues de 1s.")).toBeVisible();
+
+  await page.getByRole("button", { name: "Exportar" }).click();
+  const json = await page.locator("textarea").inputValue();
+  const exportado = JSON.parse(json) as ExportadoModelo;
+  const proceso = Object.values(exportado.modelo.entidades).find((entidad) => entidad.nombre === "Proceso");
+  const enlace = Object.values(exportado.modelo.enlaces)[0];
+  if (!proceso || !enlace) throw new Error("La auto-invocacion no se exporto");
+  expect(enlace.tipo).toBe("invocacion");
+  expect(enlace.origenId).toEqual({ kind: "entidad", id: proceso.id });
+  expect(enlace.destinoId).toEqual({ kind: "entidad", id: proceso.id });
+  expect(enlace.demora).toBe("1s");
+
+  await page.screenshot({ path: "test-results/opm-auto-invocacion.png", fullPage: true });
+  expect(pageErrors).toEqual([]);
+});
+
 test("descompone proceso y navega al OPD hijo", async ({ page }) => {
   const pageErrors: string[] = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));

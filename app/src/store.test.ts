@@ -212,6 +212,30 @@ describe("store undo/redo y dirty state", () => {
     expect(store.getState().puedeDeshacer).toBe(true);
   });
 
+  test("accion de store crea auto-invocacion y selecciona el enlace", () => {
+    store.getState().crearProcesoDemo();
+    const procesoId = primeraEntidadId();
+
+    store.getState().crearAutoInvocacionSeleccionada();
+
+    const enlaces = Object.values(store.getState().modelo.enlaces);
+    expect(enlaces).toHaveLength(1);
+    const auto = enlaces[0];
+    if (!auto) throw new Error("La prueba esperaba auto-invocacion");
+    expect(auto).toMatchObject({
+      tipo: "invocacion",
+      origenId: extremoEntidad(procesoId),
+      destinoId: extremoEntidad(procesoId),
+      demora: "1s",
+    });
+    expect(store.getState().seleccionId).toBeNull();
+    expect(store.getState().enlaceSeleccionId).toBe(auto.id);
+    expect(store.getState().puedeDeshacer).toBe(true);
+
+    store.getState().deshacer();
+    expect(Object.values(store.getState().modelo.enlaces)).toHaveLength(0);
+  });
+
   test("reanclar enlace derivado entra al historial undo y rehacer", () => {
     const { modelo, opdId, enlaceId, aparienciaEnlaceId, segundoId } = modeloConEnlaceDerivado();
     store.getState().importarJson(exportarModelo(modelo));

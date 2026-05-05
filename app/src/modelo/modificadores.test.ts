@@ -1,5 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { crearEnlace, crearModelo, crearObjeto, crearProceso, desplegarObjeto } from "./operaciones";
+import { autoInvocacionDeProceso, crearAutoInvocacion, esAutoInvocacion } from "./autoinvocacion";
 import {
   aplicarModificador,
   crearInvocacion,
@@ -76,6 +77,34 @@ describe("modificadores de enlace", () => {
 
     modelo = must(definirDemora(modelo, invocacionId, ""));
     expect(modelo.enlaces[invocacionId]?.demora).toBeUndefined();
+  });
+
+  test("crearAutoInvocacion crea invocacion al mismo proceso con demora default", () => {
+    let modelo = modeloBase();
+    const procesoId = entidad(modelo, "Procesar");
+
+    modelo = must(crearAutoInvocacion(modelo, modelo.opdRaizId, procesoId));
+    const auto = autoInvocacionDeProceso(modelo, modelo.opdRaizId, procesoId);
+
+    expect(auto).toBeDefined();
+    expect(auto?.tipo).toBe("invocacion");
+    expect(auto?.origenId).toEqual(auto?.destinoId);
+    expect(auto?.demora).toBe("1s");
+    expect(auto ? esAutoInvocacion(auto) : false).toBe(true);
+  });
+
+  test("crearAutoInvocacion rechaza proceso inexistente, objeto y duplicado", () => {
+    let modelo = modeloBase();
+    const procesoId = entidad(modelo, "Procesar");
+    const objetoId = entidad(modelo, "Entrada");
+
+    expect(crearAutoInvocacion(modelo, modelo.opdRaizId, "p-inexistente").ok).toBe(false);
+    expect(crearAutoInvocacion(modelo, modelo.opdRaizId, objetoId).ok).toBe(false);
+
+    modelo = must(crearAutoInvocacion(modelo, modelo.opdRaizId, procesoId));
+    const duplicado = crearAutoInvocacion(modelo, modelo.opdRaizId, procesoId);
+    expect(duplicado.ok).toBe(false);
+    if (!duplicado.ok) expect(duplicado.error).toContain("ya existe");
   });
 
   test("validarMetadatosEnlace protege combinaciones invalidas", () => {

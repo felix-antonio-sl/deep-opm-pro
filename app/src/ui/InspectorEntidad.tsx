@@ -1,3 +1,4 @@
+import { autoInvocacionDeProceso } from "../modelo/autoinvocacion";
 import { estadosDeEntidad } from "../modelo/operaciones";
 import { filasPlegadoParcial, modoPlegadoApariencia, partesDePlegado, type FilaPlegadoParcial } from "../modelo/plegado";
 import type { Entidad, Estado, ModoDespliegueObjeto } from "../modelo/tipos";
@@ -18,6 +19,7 @@ export function InspectorEntidad({ entidad }: Props) {
   const desplegar = useOpmStore((s) => s.desplegarSeleccionada);
   const quitarDescomposicion = useOpmStore((s) => s.quitarDescomposicionSeleccionada);
   const quitarDespliegue = useOpmStore((s) => s.quitarDespliegueSeleccionado);
+  const crearAutoInvocacion = useOpmStore((s) => s.crearAutoInvocacionSeleccionada);
   const cambiarModoPlegado = useOpmStore((s) => s.cambiarModoPlegadoSeleccionado);
   const extraerParte = useOpmStore((s) => s.extraerParteDePlegado);
   const reinsertarParte = useOpmStore((s) => s.reinsertarParteExtraidaSeleccionada);
@@ -38,6 +40,7 @@ export function InspectorEntidad({ entidad }: Props) {
     ? filasPlegadoParcial(modelo, opdActivoId, aparienciaActiva.id)
     : [];
   const estados = entidad.tipo === "objeto" ? estadosDeEntidad(modelo, entidad.id) : [];
+  const autoInvocacion = entidad.tipo === "proceso" ? autoInvocacionDeProceso(modelo, opdActivoId, entidad.id) : undefined;
 
   return (
     <>
@@ -91,6 +94,15 @@ export function InspectorEntidad({ entidad }: Props) {
               Quitar descomposición
             </button>
           ) : null}
+          <button
+            type="button"
+            style={autoInvocacion ? style.secondaryButton : style.primaryButton}
+            onClick={crearAutoInvocacion}
+            disabled={!!autoInvocacion}
+            title={autoInvocacion ? "El proceso ya tiene auto-invocación en este OPD" : "Crear auto-invocación con demora de 1s"}
+          >
+            {autoInvocacion ? "Auto-invocación existente" : "Auto-invocación"}
+          </button>
         </>
       ) : null}
 

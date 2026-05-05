@@ -1,5 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { extremoEstado } from "../modelo/extremos";
+import { crearAutoInvocacion } from "../modelo/autoinvocacion";
 import { aplicarModificador, definirDemora, definirProbabilidad } from "../modelo/modificadores";
 import { ajustarMultiplicidad, cambiarEsencia, crearEnlace, crearEstadosIniciales, crearModelo, crearObjeto, crearProceso, designarEstadoFinal, designarEstadoInicial, descomponerProceso, agregarEstado, desplegarObjeto, estadosDeEntidad, moverApariencia, renombrarEstado } from "../modelo/operaciones";
 import { cambiarModoPlegado } from "../modelo/plegado";
@@ -118,6 +119,14 @@ describe("OPL-ES — tipos de enlace canonicos", () => {
     modelo = must(definirDemora(modelo, enlaceId, "1s"));
 
     expect(generarOpl(modelo)).toContain("*Preparar* invoca *Servir* despues de 1s.");
+  });
+
+  test("auto-invocacion emite IV2 con demora default", () => {
+    let modelo = crearModelo();
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 0, y: 0 }, "Validar"));
+    modelo = must(crearAutoInvocacion(modelo, modelo.opdRaizId, entidad(modelo, "Validar")));
+
+    expect(generarOpl(modelo)).toContain("*Validar* se invoca a sí mismo despues de 1s.");
   });
 
   test("multiplicidad de agente pluraliza sujeto y verbo", () => {

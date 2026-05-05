@@ -1,5 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { formarAbanico } from "../../modelo/abanicos";
+import { crearAutoInvocacion } from "../../modelo/autoinvocacion";
 import { entidadIdDeExtremo, extremoEstado } from "../../modelo/extremos";
 import { aplicarModificador, definirDemora, definirProbabilidad } from "../../modelo/modificadores";
 import { ajustarMultiplicidad, cambiarEsencia, crearEnlace, crearEstadosIniciales, crearModelo, crearObjeto, crearProceso, designarEstadoFinal, designarEstadoInicial, descomponerProceso, desplegarObjeto, estadosDeEntidad, renombrarEstado } from "../../modelo/operaciones";
@@ -167,6 +168,29 @@ describe("proyeccion JointJS", () => {
     const line = ((cellEnlace?.attrs as Attrs | undefined)?.line as Attrs | undefined);
     expect((line?.sourceMarker as Attrs | undefined)?.points).toBe(LINK_ASSETS.procedural.invocacion.marker.points);
     expect(line?.targetMarker).toBeNull();
+  });
+
+  test("proyecta auto-invocacion como loop visible con demora", () => {
+    let modelo = crearModelo();
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 120, y: 80 }, "Reintentar"));
+    modelo = must(crearAutoInvocacion(modelo, modelo.opdRaizId, entidadPorNombre(modelo, "Reintentar")));
+    const enlace = Object.values(modelo.enlaces)[0];
+    const aparienciaEnlace = Object.values(modelo.opds[modelo.opdRaizId]?.enlaces ?? {})[0];
+    expect(enlace).toBeDefined();
+    expect(aparienciaEnlace).toBeDefined();
+    if (!enlace || !aparienciaEnlace) return;
+
+    const cells = proyectarModeloAJointCells(modelo, modelo.opdRaizId, null, enlace.id);
+    const tramos = cells.filter((cell) => String(cell.id).startsWith(aparienciaEnlace.id));
+
+    expect(tramos).toHaveLength(2);
+    expect(tramos.every((cell) => cell.type === "standard.Link")).toBe(true);
+    expect(tramos.every((cell) => cell.opm.kind === "enlace" && cell.opm.enlaceId === enlace.id)).toBe(true);
+    const retorno = tramos.find((cell) => String(cell.id).endsWith("-auto-retorno"));
+    const labels = retorno?.labels as Array<{ attrs?: { label?: { text?: unknown } } }> | undefined;
+    expect(labels?.some((label) => label.attrs?.label?.text === "1s")).toBe(true);
+    const line = ((retorno?.attrs as Attrs | undefined)?.line as Attrs | undefined);
+    expect((line?.targetMarker as Attrs | undefined)?.points).toBe(LINK_ASSETS.procedural.invocacion.marker.points);
   });
 
   test("proyecta O como arco canonico sin overlay textual", () => {

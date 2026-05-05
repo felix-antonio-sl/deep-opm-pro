@@ -48,6 +48,7 @@ import {
   quitarRamaDeAbanico as quitarRamaDeAbanicoOp,
   sincronizarAbanicos,
 } from "./modelo/abanicos";
+import { crearAutoInvocacion } from "./modelo/autoinvocacion";
 import {
   aplicarModificador,
   definirDemora,
@@ -124,6 +125,7 @@ interface OpmStore {
   alternarOperadorAbanicoSeleccionado: (operador: OperadorAbanico) => void;
   quitarRamaDeAbanicoSeleccionado: () => void;
   disolverAbanicoSeleccionado: () => void;
+  crearAutoInvocacionSeleccionada: () => void;
   aplicarModificadorEnlaceSeleccionado: (modificador: Modificador) => void;
   quitarModificadorEnlaceSeleccionado: () => void;
   definirProbabilidadEventoSeleccionada: (probabilidad: number | undefined) => void;
@@ -821,6 +823,31 @@ export const store = createStore<OpmStore>((set, get) => ({
       return;
     }
     commitModelo(set, modelo, resultado.value, { mensaje: "Abanico disuelto" });
+  },
+
+  crearAutoInvocacionSeleccionada() {
+    const { modelo, opdActivoId, seleccionId } = get();
+    if (!seleccionId) {
+      set({ mensaje: "Selecciona un proceso para crear auto-invocacion" });
+      return;
+    }
+    const entidad = modelo.entidades[seleccionId];
+    if (!entidad || entidad.tipo !== "proceso") {
+      set({ mensaje: "Selecciona un proceso para crear auto-invocacion" });
+      return;
+    }
+    const resultado = crearAutoInvocacion(modelo, opdActivoId, seleccionId);
+    if (!resultado.ok) {
+      set({ mensaje: resultado.error });
+      return;
+    }
+    const enlaceId = enlaceNuevo(modelo, resultado.value);
+    commitModelo(set, modelo, resultado.value, {
+      seleccionId: null,
+      enlaceSeleccionId: enlaceId,
+      modoEnlace: null,
+      mensaje: "Auto-invocacion creada",
+    });
   },
 
   aplicarModificadorEnlaceSeleccionado(modificador) {

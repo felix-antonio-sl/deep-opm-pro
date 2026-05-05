@@ -1,3 +1,4 @@
+import { esAutoInvocacion } from "../modelo/autoinvocacion";
 import {
   entidadDeExtremo,
   entidadIdDeExtremo,
@@ -259,6 +260,9 @@ function oracionEnlace(modelo: Modelo, enlace: Enlace): string | null {
   }
   if (enlace.modificador === "no") {
     return oracionNegada(modelo, enlace, origen, destino, origenOpl, destinoOpl, origenPlural, destinoPlural);
+  }
+  if (esAutoInvocacion(enlace)) {
+    return `${origenOpl} se invoca a sí mismo${enlace.demora ? ` despues de ${enlace.demora}` : ""}.`;
   }
 
   switch (enlace.tipo) {
