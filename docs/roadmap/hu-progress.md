@@ -1,9 +1,9 @@
 # Auditoria de avance HU v2
 
-**Generado:** 2026-05-05T02:32:28.622Z
+**Generado:** 2026-05-05T03:59:37.927Z
 **Backlog:** `docs/historias-usuario-v2`
 **Ledger de evidencia:** `docs/roadmap/hu-progress-evidence.json`
-**Auditoria automatica:** 29/33 reglas matcheadas sobre 73 archivos fuente.
+**Auditoria automatica:** 39/39 reglas matcheadas sobre 80 archivos fuente.
 
 
 Regenerar desde la raiz del repo:
@@ -20,18 +20,18 @@ node docs/historias-usuario-v2/tools/progress-dashboard.mjs
 
 | Segmento | HU vivas | Cubiertas | Parciales | Pendientes | Diferidas | Avance ponderado |
 |---|---:|---:|---:|---:|---:|---:|
-| Total backlog | 1126 | 59 | 52 | 637 | 378 | 8.0% |
-| M0 | 130 | 45 | 30 | 55 | 0 | 47.4% |
-| MVP-alpha | 121 | 27 | 24 | 70 | 0 | 28.5% |
-| MVP-beta | 193 | 31 | 23 | 139 | 0 | 25.6% |
+| Total backlog | 1126 | 77 | 55 | 616 | 378 | 9.8% |
+| M0 | 130 | 49 | 33 | 48 | 0 | 51.7% |
+| MVP-alpha | 121 | 28 | 24 | 69 | 0 | 29.8% |
+| MVP-beta | 193 | 38 | 26 | 129 | 0 | 29.3% |
 
 ## Por corte
 
 | Corte | HU vivas | Cubiertas | Parciales | Pendientes | Diferidas | Avance ponderado |
 |---|---:|---:|---:|---:|---:|---:|
-| MVP-alpha | 121 | 27 | 24 | 70 | 0 | 28.5% |
-| MVP-beta | 193 | 31 | 23 | 139 | 0 | 25.6% |
-| MVP-gamma | 434 | 1 | 5 | 428 | 0 | 0.8% |
+| MVP-alpha | 121 | 28 | 24 | 69 | 0 | 29.8% |
+| MVP-beta | 193 | 38 | 26 | 129 | 0 | 29.3% |
+| MVP-gamma | 434 | 11 | 5 | 418 | 0 | 3.4% |
 | MVP-delta | 378 | 0 | 0 | 0 | 378 | 0.0% |
 | Sin corte | 0 | 0 | 0 | 0 | 0 | 0.0% |
 
@@ -39,9 +39,9 @@ node docs/historias-usuario-v2/tools/progress-dashboard.mjs
 
 | Prioridad | HU vivas | Cubiertas | Parciales | Pendientes | Diferidas | Avance ponderado |
 |---|---:|---:|---:|---:|---:|---:|
-| M0 | 130 | 45 | 30 | 55 | 0 | 47.4% |
-| M1 | 161 | 12 | 13 | 130 | 6 | 13.3% |
-| S | 471 | 2 | 8 | 299 | 162 | 2.4% |
+| M0 | 130 | 49 | 33 | 48 | 0 | 51.7% |
+| M1 | 161 | 15 | 13 | 127 | 6 | 15.3% |
+| S | 471 | 13 | 8 | 288 | 162 | 4.9% |
 | C | 247 | 0 | 1 | 145 | 101 | 0.3% |
 | W | 117 | 0 | 0 | 8 | 109 | 0.0% |
 | sin-prioridad | 0 | 0 | 0 | 0 | 0 | 0.0% |
@@ -51,14 +51,14 @@ node docs/historias-usuario-v2/tools/progress-dashboard.mjs
 | Epica | Titulo | HU vivas | Cubiertas | Parciales | Pendientes | Diferidas | Avance ponderado |
 |---|---|---:|---:|---:|---:|---:|---:|
 | 10 | Canvas — creación de cosas (proceso, objeto, enlace inicial, afiliación, esencia) | 17 | 5 | 9 | 3 | 0 | 52.6% |
-| 11 | Canvas — modelado básico (agregación, multi-selección, enlaces procedurales, propiedades, alineación, borrado) | 22 | 8 | 4 | 10 | 0 | 39.3% |
+| 11 | Canvas — modelado básico (agregación, multi-selección, enlaces procedurales, propiedades, alineación, borrado) | 22 | 9 | 4 | 9 | 0 | 46.4% |
 | 12 | Canvas — descomposición de procesos | 31 | 18 | 10 | 3 | 0 | 73.1% |
-| 13 | Canvas — estados (designaciones, par entrada-salida, supresión, layout interno) | 18 | 5 | 6 | 7 | 0 | 41.7% |
+| 13 | Canvas — estados (designaciones, par entrada-salida, supresión, layout interno) | 18 | 6 | 7 | 5 | 0 | 50.0% |
 | 14 | Canvas — estilado visual de cosas, texto y enlaces | 15 | 0 | 0 | 15 | 0 | 0.0% |
-| 15 | Canvas — enlaces avanzados (multiplicidad, rutas, XOR/O, condición/evento/NO, invocación) | 23 | 5 | 1 | 17 | 0 | 23.5% |
+| 15 | Canvas — enlaces avanzados (multiplicidad, rutas, XOR/O, condición/evento/NO, invocación) | 23 | 11 | 3 | 9 | 0 | 54.9% |
 | 16 | Canvas — enlaces: propiedades, Tabla de Enlaces y estilo | 17 | 0 | 0 | 17 | 0 | 0.0% |
 | 17 | Canvas — objetos avanzados (alias, unidad, descripción, URL, plegado parcial, designaciones de estado, duración) | 28 | 1 | 3 | 24 | 0 | 11.1% |
-| 18 | Canvas — plegado parcial (vista compacta de refinadores intra-rectángulo) | 15 | 0 | 2 | 13 | 0 | 7.0% |
+| 18 | Canvas — plegado parcial (vista compacta de refinadores intra-rectángulo) | 15 | 10 | 2 | 3 | 0 | 74.4% |
 | 19 | Canvas — imágenes incrustadas en cosas (URL, pool, alternar imagen/texto, exportación) | 16 | 0 | 0 | 16 | 0 | 0.0% |
 | 20 | Estructura — árbol OPD (navegación, orden, gestión, vistas derivadas) | 21 | 7 | 0 | 14 | 0 | 27.8% |
 | 21 | Estructura — mapa del sistema (meta-vista gráfica del árbol de OPDs) | 18 | 0 | 0 | 18 | 0 | 0.0% |
@@ -106,15 +106,8 @@ node docs/historias-usuario-v2/tools/progress-dashboard.mjs
 - [HU-11.001](../historias-usuario-v2/epicas/epica-11-canvas-modelado-basico.md) — Crear cosa y sus partes en secuencia sobre el mismo OPD (M0, pendiente)
 - [HU-11.004](../historias-usuario-v2/epicas/epica-11-canvas-modelado-basico.md) — Fusionar múltiples enlaces de agregación en bus vertical único (M0, pendiente)
 - [HU-11.014](../historias-usuario-v2/epicas/epica-11-canvas-modelado-basico.md) — Renombrar etiqueta del enlace [especializa HU-SHARED-004] (M0, pendiente)
-- [HU-13.014](../historias-usuario-v2/epicas/epica-13-canvas-estados.md) — Crear enlace entrante/saliente dirigido a estado específico (M0, pendiente)
-- [HU-13.018](../historias-usuario-v2/epicas/epica-13-canvas-estados.md) — Eco OPL-ES de transición entre estados con par entrada-salida (M0, pendiente)
 - [HU-15.005](../historias-usuario-v2/epicas/epica-15-canvas-enlaces-avanzados.md) — Definir etiqueta de ruta de texto libre sobre una rama a estado (M0, pendiente)
 - [HU-15.007](../historias-usuario-v2/epicas/epica-15-canvas-enlaces-avanzados.md) — Verbalizar etiqueta de ruta en OPL-ES (`por ruta X...`) (M0, pendiente)
-- [HU-15.008](../historias-usuario-v2/epicas/epica-15-canvas-enlaces-avanzados.md) — Crear segunda rama sobre el mismo puerto para formar abanico (M0, pendiente)
-- [HU-15.009](../historias-usuario-v2/epicas/epica-15-canvas-enlaces-avanzados.md) — Alternar operador lógico del abanico entre O y XOR (M0, pendiente)
-- [HU-15.010](../historias-usuario-v2/epicas/epica-15-canvas-enlaces-avanzados.md) — Renderizar conector XOR sobre el abanico (M0, pendiente)
-- [HU-15.011](../historias-usuario-v2/epicas/epica-15-canvas-enlaces-avanzados.md) — Renderizar conector curvo de O sobre el abanico (M0, pendiente)
-- [HU-15.012](../historias-usuario-v2/epicas/epica-15-canvas-enlaces-avanzados.md) — Distinguir OPL-ES entre XOR y O (M0, pendiente)
 - [HU-20.015](../historias-usuario-v2/epicas/epica-20-estructura-arbol-opd.md) — Eliminar solo nodos hoja del árbol (M0, pendiente)
 - [HU-20.016](../historias-usuario-v2/epicas/epica-20-estructura-arbol-opd.md) — Impedir eliminación de nodos internos con mensaje claro (M0, pendiente)
 - [HU-30.001](../historias-usuario-v2/epicas/epica-30-persistencia-save-load.md) — Abrir menú principal hamburguesa desde barra de herramientas (M0, pendiente)
@@ -140,10 +133,9 @@ node docs/historias-usuario-v2/tools/progress-dashboard.mjs
 
 ## Brechas registradas
 
-- HU-13.014 — Enlaces dirigidos a estado especifico siguen pendientes; requiere extender Enlace.origenId/destinoId para aceptar estado.id.
-- HU-15.008, HU-15.009, HU-15.010, HU-15.011, HU-15.012 — Abanicos XOR/O pendientes.
-- HU-15.015, HU-15.016, HU-15.020 — Evento, NO e invocacion con demora pendientes.
-- HU-18.004, HU-18.005, HU-18.009 — Extraccion/reinsercion avanzada de plegado parcial pendiente.
+- HU-13.014 — Extremos Estado estan modelados, serializados y renderizados; falta gesto directo de creacion arrastrando al estado para cerrar la HU como cubierta.
+- HU-15.010, HU-15.011 — Abanicos O/XOR tienen kernel, store, inspector y OPL; falta reemplazar el overlay textual por triangulo XOR y abrazadera O canonicos.
+- HU-15.020 — Auto-invocacion con demora por defecto sigue pendiente; la ronda 3 cubre invocacion normal con demora opcional.
 
 ## Artefactos
 

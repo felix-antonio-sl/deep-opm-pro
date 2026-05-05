@@ -731,43 +731,30 @@
       "ids": [
         "HU-13.014"
       ],
-      "nota": "Enlaces dirigidos a estado especifico siguen pendientes; requiere extender Enlace.origenId/destinoId para aceptar estado.id."
+      "nota": "Extremos Estado estan modelados, serializados y renderizados; falta gesto directo de creacion arrastrando al estado para cerrar la HU como cubierta."
     },
     {
       "ids": [
-        "HU-15.008",
-        "HU-15.009",
         "HU-15.010",
-        "HU-15.011",
-        "HU-15.012"
+        "HU-15.011"
       ],
-      "nota": "Abanicos XOR/O pendientes."
+      "nota": "Abanicos O/XOR tienen kernel, store, inspector y OPL; falta reemplazar el overlay textual por triangulo XOR y abrazadera O canonicos."
     },
     {
       "ids": [
-        "HU-15.015",
-        "HU-15.016",
         "HU-15.020"
       ],
-      "nota": "Evento, NO e invocacion con demora pendientes."
-    },
-    {
-      "ids": [
-        "HU-18.004",
-        "HU-18.005",
-        "HU-18.009"
-      ],
-      "nota": "Extraccion/reinsercion avanzada de plegado parcial pendiente."
+      "nota": "Auto-invocacion con demora por defecto sigue pendiente; la ronda 3 cubre invocacion normal con demora opcional."
     }
   ],
   "autoAudit": {
-    "generatedAt": "2026-05-05T02:32:28.622Z",
+    "generatedAt": "2026-05-05T03:59:37.927Z",
     "mode": "sync-real",
-    "rulesEvaluated": 33,
-    "rulesMatched": 29,
-    "rulesUnmatched": 4,
+    "rulesEvaluated": 39,
+    "rulesMatched": 39,
+    "rulesUnmatched": 0,
     "sourceFiles": {
-      "count": 73,
+      "count": 80,
       "roots": [
         "app/src",
         "app/e2e",
@@ -1191,29 +1178,35 @@
     },
     {
       "ids": [
-        "HU-13.014",
-        "HU-13.018"
+        "HU-13.014"
       ],
-      "estado": "pendiente",
+      "estado": "parcial",
       "confianza": "alta-auto",
       "fuente": "auto",
-      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
+      "nota": "Auto: extremos de enlace pueden apuntar a estados, se serializan y se proyectan a capsula; falta gesto e2e de crear enlace arrastrando directamente al estado.",
       "evidencia": [
+        "app/src/modelo/extremos.ts",
         "app/src/ui/InspectorEnlace.tsx",
-        "app/src/opl/generar.ts",
+        "app/src/render/jointjs/proyeccion.ts",
         "app/src/serializacion/json.ts",
-        "app/src/opl/generar.test.ts",
+        "app/src/modelo/operaciones.test.ts",
+        "app/src/render/jointjs/proyeccion.test.ts",
         "app/src/serializacion/json.test.ts"
+      ]
+    },
+    {
+      "ids": [
+        "HU-13.018"
       ],
-      "brechas": [
-        "app/src/modelo/extremos.ts: archivo no encontrado",
-        "app/src/ui/InspectorEnlace.tsx: falta Extremos de estado",
-        "app/src/ui/InspectorEnlace.tsx: falta extremoEstado",
-        "app/src/opl/generar.ts: falta estadoEntrada",
-        "app/src/opl/generar.ts: falta estadoSalida",
-        "app/src/opl/generar.ts: falta cambia",
-        "app/src/serializacion/json.ts: falta validarExtremoEnlace",
-        "app/src/serializacion/json.ts: falta kind === \"estado\""
+      "estado": "cubierto",
+      "confianza": "alta-auto",
+      "fuente": "auto",
+      "nota": "Auto: OPL-ES TS3 para par consumo-resultado sobre estados emite una transicion unica de estado.",
+      "evidencia": [
+        "app/src/opl/generar.ts",
+        "app/src/opl/generar.test.ts",
+        "app/src/modelo/extremos.ts",
+        "app/src/serializacion/json.test.ts"
       ]
     },
     {
@@ -1284,22 +1277,15 @@
         "HU-18.011",
         "HU-18.014"
       ],
-      "estado": "pendiente",
+      "estado": "cubierto",
       "confianza": "alta-auto",
       "fuente": "auto",
-      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
+      "nota": "Auto: plegado parcial se proyecta, serializa y prueba con conteo resumido de partes.",
       "evidencia": [
         "app/src/modelo/plegado.ts",
         "app/src/render/jointjs/proyeccion.ts",
         "app/src/serializacion/json.ts",
         "app/src/modelo/plegado.test.ts"
-      ],
-      "brechas": [
-        "app/src/modelo/plegado.ts: falta UMBRAL_PARTES_MAS",
-        "app/src/modelo/plegado.ts: falta filasPlegadoParcial",
-        "app/src/render/jointjs/proyeccion.ts: falta filasPlegadoParcial",
-        "app/src/modelo/plegado.test.ts: falta filasPlegadoParcial",
-        "app/src/modelo/plegado.test.ts: falta contarPartesOcultas"
       ]
     },
     {
@@ -1307,25 +1293,23 @@
         "HU-18.004",
         "HU-18.005",
         "HU-18.006",
+        "HU-18.009",
         "HU-18.010"
       ],
-      "estado": "pendiente",
+      "estado": "cubierto",
       "confianza": "alta-auto",
       "fuente": "auto",
-      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
+      "nota": "Auto: extraccion/reinsercion de partes plegadas, proxy visual, reanclaje al padre, contador y OPL resumida estan implementados y probados.",
       "evidencia": [
         "app/src/modelo/plegado.ts",
         "app/src/store.ts",
-        "app/src/render/jointjs/proyeccion.test.ts"
-      ],
-      "brechas": [
-        "app/src/modelo/plegado.ts: falta extraerParteDePlegado",
-        "app/src/modelo/plegado.ts: falta reinsertarParteEnPlegado",
-        "app/src/modelo/plegado.ts: falta contarPartesOcultas",
-        "app/src/store.ts: falta extraerParteDePlegado",
-        "app/src/store.ts: falta reinsertarParteEnPlegado",
-        "app/src/render/jointjs/proyeccion.test.ts: falta extraerParteDePlegado",
-        "app/src/render/jointjs/proyeccion.test.ts: falta reinsertarParteEnPlegado"
+        "app/src/render/jointjs/JointCanvas.tsx",
+        "app/src/render/jointjs/proyeccion.ts",
+        "app/src/opl/generar.ts",
+        "app/src/modelo/plegado.test.ts",
+        "app/src/render/jointjs/proyeccion.test.ts",
+        "app/src/opl/generar.test.ts",
+        "app/src/serializacion/json.test.ts"
       ]
     },
     {
@@ -1345,32 +1329,105 @@
     },
     {
       "ids": [
-        "HU-15.008",
-        "HU-15.009",
-        "HU-15.010",
-        "HU-15.011",
-        "HU-15.012"
+        "HU-15.008"
       ],
-      "estado": "pendiente",
+      "estado": "cubierto",
       "confianza": "alta-auto",
       "fuente": "auto",
-      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
+      "nota": "Auto: la segunda rama compatible forma un abanico automaticamente en el store y se cubre con tests de kernel/store.",
       "evidencia": [
+        "app/src/modelo/abanicos.ts",
+        "app/src/store.ts",
+        "app/src/modelo/abanicos.test.ts",
+        "app/src/store.test.ts"
+      ]
+    },
+    {
+      "ids": [
+        "HU-15.009"
+      ],
+      "estado": "cubierto",
+      "confianza": "alta-auto",
+      "fuente": "auto",
+      "nota": "Auto: el operador del abanico alterna entre O y XOR desde modelo, store e inspector.",
+      "evidencia": [
+        "app/src/modelo/abanicos.ts",
+        "app/src/ui/InspectorEnlace.tsx",
+        "app/src/store.test.ts",
+        "app/src/modelo/abanicos.test.ts"
+      ]
+    },
+    {
+      "ids": [
+        "HU-15.010",
+        "HU-15.011"
+      ],
+      "estado": "parcial",
+      "confianza": "alta-auto",
+      "fuente": "auto",
+      "nota": "Auto: existe overlay visual de operador junto al puerto, pero falta render canonico especifico: triangulo XOR y abrazadera curva O con assets/logica visual dedicada.",
+      "evidencia": [
+        "app/src/render/jointjs/proyeccion.ts",
+        "assets/svg/links/logical/xor.svg",
+        "assets/svg/links/logical/or.svg",
+        "app/src/modelo/abanicos.ts",
+        "app/src/ui/InspectorEnlace.tsx"
+      ],
+      "brechas": [
+        "Render usa overlay textual eliptico; falta triangulo XOR canonico.",
+        "Render usa overlay textual eliptico; falta abrazadera curva O canonica."
+      ]
+    },
+    {
+      "ids": [
+        "HU-15.012"
+      ],
+      "estado": "cubierto",
+      "confianza": "alta-auto",
+      "fuente": "auto",
+      "nota": "Auto: OPL-ES distingue abanico XOR como exactamente uno de y O como al menos uno de.",
+      "evidencia": [
+        "app/src/opl/generar.ts",
+        "app/src/opl/generar.test.ts",
+        "app/src/modelo/abanicos.ts"
+      ]
+    },
+    {
+      "ids": [
+        "HU-11.027",
+        "HU-15.015",
+        "HU-15.016"
+      ],
+      "estado": "cubierto",
+      "confianza": "alta-auto",
+      "fuente": "auto",
+      "nota": "Auto: condicion/evento/NO viven como Modificador sobre Enlace, se editan desde Inspector, se serializan, se proyectan como badges y generan OPL distintiva.",
+      "evidencia": [
+        "app/src/modelo/tipos.ts",
+        "app/src/modelo/modificadores.ts",
         "app/src/ui/InspectorEnlace.tsx",
         "app/src/render/jointjs/proyeccion.ts",
         "app/src/opl/generar.ts",
-        "app/src/render/jointjs/proyeccion.test.ts",
-        "app/src/opl/generar.test.ts"
+        "app/src/modelo/modificadores.test.ts",
+        "app/src/opl/generar.test.ts",
+        "app/e2e/opm-smoke.spec.ts"
+      ]
+    },
+    {
+      "ids": [
+        "HU-15.018"
       ],
-      "brechas": [
-        "app/src/modelo/abanicos.ts: archivo no encontrado",
-        "app/src/ui/InspectorEnlace.tsx: falta Abanico",
-        "app/src/ui/InspectorEnlace.tsx: falta alternarOperadorAbanico",
-        "app/src/render/jointjs/proyeccion.ts: falta proyectarConectorAbanico",
-        "app/src/render/jointjs/proyeccion.ts: falta LINK_ASSETS.logical",
-        "app/src/opl/generar.ts: falta exactamente uno de",
-        "app/src/opl/generar.ts: falta al menos uno de",
-        "assets/svg/links/logical/xor.svg: archivo no encontrado"
+      "estado": "cubierto",
+      "confianza": "alta-auto",
+      "fuente": "auto",
+      "nota": "Auto: probabilidad numerica de evento se valida, serializa, verbaliza y renderiza como porcentaje junto al badge E.",
+      "evidencia": [
+        "app/src/modelo/modificadores.ts",
+        "app/src/serializacion/json.ts",
+        "app/src/render/jointjs/proyeccion.ts",
+        "app/e2e/opm-smoke.spec.ts",
+        "app/src/store.test.ts",
+        "app/src/serializacion/json.test.ts"
       ]
     },
     {

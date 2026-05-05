@@ -1,17 +1,17 @@
 {
   "schema": "deep-opm-pro.hu-progress-report.v1",
-  "generatedAt": "2026-05-05T02:32:28.622Z",
-  "repoRoot": "/tmp/deep-opm-pro-audit-main-20260505",
+  "generatedAt": "2026-05-05T03:59:37.927Z",
+  "repoRoot": "/home/felix/projects/deep-opm-pro",
   "backlogRoot": "docs/historias-usuario-v2",
   "evidenceLedger": "docs/roadmap/hu-progress-evidence.json",
   "autoAudit": {
-    "generatedAt": "2026-05-05T02:32:28.622Z",
+    "generatedAt": "2026-05-05T03:59:37.927Z",
     "mode": "sync-real",
-    "rulesEvaluated": 33,
-    "rulesMatched": 29,
-    "rulesUnmatched": 4,
+    "rulesEvaluated": 39,
+    "rulesMatched": 39,
+    "rulesUnmatched": 0,
     "sourceFiles": {
-      "count": 73,
+      "count": 80,
       "roots": [
         "app/src",
         "app/e2e",
@@ -43,14 +43,14 @@
   "summaries": {
     "total": {
       "total": 1126,
-      "cubierto": 59,
-      "parcial": 52,
-      "pendiente": 637,
+      "cubierto": 77,
+      "parcial": 55,
+      "pendiente": 616,
       "diferido": 378,
       "bloqueado": 0,
       "pesoTotal": 3004,
-      "pesoCubierto": 241.5,
-      "avance": 0.08039280958721705
+      "pesoCubierto": 294.5,
+      "avance": 0.09803595206391479
     },
     "inventario": {
       "totalParseadas": 1173,
@@ -60,70 +60,70 @@
     },
     "m0": {
       "total": 130,
-      "cubierto": 45,
-      "parcial": 30,
-      "pendiente": 55,
+      "cubierto": 49,
+      "parcial": 33,
+      "pendiente": 48,
       "diferido": 0,
       "bloqueado": 0,
       "pesoTotal": 333,
-      "pesoCubierto": 158,
-      "avance": 0.4744744744744745
+      "pesoCubierto": 172,
+      "avance": 0.5165165165165165
     },
     "alpha": {
       "total": 121,
-      "cubierto": 27,
+      "cubierto": 28,
       "parcial": 24,
-      "pendiente": 70,
+      "pendiente": 69,
       "diferido": 0,
       "bloqueado": 0,
       "pesoTotal": 326,
-      "pesoCubierto": 93,
-      "avance": 0.2852760736196319
+      "pesoCubierto": 97,
+      "avance": 0.29754601226993865
     },
     "beta": {
       "total": 193,
-      "cubierto": 31,
-      "parcial": 23,
-      "pendiente": 139,
+      "cubierto": 38,
+      "parcial": 26,
+      "pendiente": 129,
       "diferido": 0,
       "bloqueado": 0,
       "pesoTotal": 545,
-      "pesoCubierto": 139.5,
-      "avance": 0.25596330275229356
+      "pesoCubierto": 159.5,
+      "avance": 0.2926605504587156
     },
     "byCut": {
       "alpha": {
         "total": 121,
-        "cubierto": 27,
+        "cubierto": 28,
         "parcial": 24,
-        "pendiente": 70,
+        "pendiente": 69,
         "diferido": 0,
         "bloqueado": 0,
         "pesoTotal": 326,
-        "pesoCubierto": 93,
-        "avance": 0.2852760736196319
+        "pesoCubierto": 97,
+        "avance": 0.29754601226993865
       },
       "beta": {
         "total": 193,
-        "cubierto": 31,
-        "parcial": 23,
-        "pendiente": 139,
+        "cubierto": 38,
+        "parcial": 26,
+        "pendiente": 129,
         "diferido": 0,
         "bloqueado": 0,
         "pesoTotal": 545,
-        "pesoCubierto": 139.5,
-        "avance": 0.25596330275229356
+        "pesoCubierto": 159.5,
+        "avance": 0.2926605504587156
       },
       "gamma": {
         "total": 434,
-        "cubierto": 1,
+        "cubierto": 11,
         "parcial": 5,
-        "pendiente": 428,
+        "pendiente": 418,
         "diferido": 0,
         "bloqueado": 0,
         "pesoTotal": 1126,
-        "pesoCubierto": 9,
-        "avance": 0.007992895204262877
+        "pesoCubierto": 38,
+        "avance": 0.03374777975133215
       },
       "delta": {
         "total": 378,
@@ -151,36 +151,36 @@
     "byPriority": {
       "M0": {
         "total": 130,
-        "cubierto": 45,
-        "parcial": 30,
-        "pendiente": 55,
+        "cubierto": 49,
+        "parcial": 33,
+        "pendiente": 48,
         "diferido": 0,
         "bloqueado": 0,
         "pesoTotal": 333,
-        "pesoCubierto": 158,
-        "avance": 0.4744744744744745
+        "pesoCubierto": 172,
+        "avance": 0.5165165165165165
       },
       "M1": {
         "total": 161,
-        "cubierto": 12,
+        "cubierto": 15,
         "parcial": 13,
-        "pendiente": 130,
+        "pendiente": 127,
         "diferido": 6,
         "bloqueado": 0,
         "pesoTotal": 388,
-        "pesoCubierto": 51.5,
-        "avance": 0.1327319587628866
+        "pesoCubierto": 59.5,
+        "avance": 0.15335051546391754
       },
       "S": {
         "total": 471,
-        "cubierto": 2,
+        "cubierto": 13,
         "parcial": 8,
-        "pendiente": 299,
+        "pendiente": 288,
         "diferido": 162,
         "bloqueado": 0,
         "pesoTotal": 1247,
-        "pesoCubierto": 30,
-        "avance": 0.024057738572574178
+        "pesoCubierto": 61,
+        "avance": 0.04891740176423416
       },
       "C": {
         "total": 247,
@@ -232,14 +232,14 @@
       "11": {
         "titulo": "Canvas — modelado básico (agregación, multi-selección, enlaces procedurales, propiedades, alineación, borrado)",
         "total": 22,
-        "cubierto": 8,
+        "cubierto": 9,
         "parcial": 4,
-        "pendiente": 10,
+        "pendiente": 9,
         "diferido": 0,
         "bloqueado": 0,
         "pesoTotal": 56,
-        "pesoCubierto": 22,
-        "avance": 0.39285714285714285
+        "pesoCubierto": 26,
+        "avance": 0.4642857142857143
       },
       "12": {
         "titulo": "Canvas — descomposición de procesos",
@@ -256,14 +256,14 @@
       "13": {
         "titulo": "Canvas — estados (designaciones, par entrada-salida, supresión, layout interno)",
         "total": 18,
-        "cubierto": 5,
-        "parcial": 6,
-        "pendiente": 7,
+        "cubierto": 6,
+        "parcial": 7,
+        "pendiente": 5,
         "diferido": 0,
         "bloqueado": 0,
         "pesoTotal": 48,
-        "pesoCubierto": 20,
-        "avance": 0.4166666666666667
+        "pesoCubierto": 24,
+        "avance": 0.5
       },
       "14": {
         "titulo": "Canvas — estilado visual de cosas, texto y enlaces",
@@ -280,14 +280,14 @@
       "15": {
         "titulo": "Canvas — enlaces avanzados (multiplicidad, rutas, XOR/O, condición/evento/NO, invocación)",
         "total": 23,
-        "cubierto": 5,
-        "parcial": 1,
-        "pendiente": 17,
+        "cubierto": 11,
+        "parcial": 3,
+        "pendiente": 9,
         "diferido": 0,
         "bloqueado": 0,
         "pesoTotal": 51,
-        "pesoCubierto": 12,
-        "avance": 0.23529411764705882
+        "pesoCubierto": 28,
+        "avance": 0.5490196078431373
       },
       "16": {
         "titulo": "Canvas — enlaces: propiedades, Tabla de Enlaces y estilo",
@@ -316,14 +316,14 @@
       "18": {
         "titulo": "Canvas — plegado parcial (vista compacta de refinadores intra-rectángulo)",
         "total": 15,
-        "cubierto": 0,
+        "cubierto": 10,
         "parcial": 2,
-        "pendiente": 13,
+        "pendiente": 3,
         "diferido": 0,
         "bloqueado": 0,
         "pesoTotal": 43,
-        "pesoCubierto": 3,
-        "avance": 0.06976744186046512
+        "pesoCubierto": 32,
+        "avance": 0.7441860465116279
       },
       "19": {
         "titulo": "Canvas — imágenes incrustadas en cosas (URL, pool, alternar imagen/texto, exportación)",
@@ -17988,15 +17988,48 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-11-canvas-modelado-basico.md",
       "lineaInicio": 750,
       "corte": "alpha",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto: condicion/evento/NO viven como Modificador sobre Enlace, se editan desde Inspector, se serializan, se proyectan como badges y generan OPL distintiva.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/modelo/tipos.ts",
+          "hrefDashboard": "../../app/src/modelo/tipos.ts"
+        },
+        {
+          "path": "app/src/modelo/modificadores.ts",
+          "hrefDashboard": "../../app/src/modelo/modificadores.ts"
+        },
+        {
+          "path": "app/src/ui/InspectorEnlace.tsx",
+          "hrefDashboard": "../../app/src/ui/InspectorEnlace.tsx"
+        },
+        {
+          "path": "app/src/render/jointjs/proyeccion.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/proyeccion.ts"
+        },
+        {
+          "path": "app/src/opl/generar.ts",
+          "hrefDashboard": "../../app/src/opl/generar.ts"
+        },
+        {
+          "path": "app/src/modelo/modificadores.test.ts",
+          "hrefDashboard": "../../app/src/modelo/modificadores.test.ts"
+        },
+        {
+          "path": "app/src/opl/generar.test.ts",
+          "hrefDashboard": "../../app/src/opl/generar.test.ts"
+        },
+        {
+          "path": "app/e2e/opm-smoke.spec.ts",
+          "hrefDashboard": "../../app/e2e/opm-smoke.spec.ts"
+        }
+      ],
       "peso": 4,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 4,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-11-canvas-modelado-basico.md"
     },
     {
@@ -20457,37 +20490,37 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-13-canvas-estados.md",
       "lineaInicio": 276,
       "corte": "beta",
-      "estadoAvance": "pendiente",
+      "estadoAvance": "parcial",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
+      "nota": "Auto: extremos de enlace pueden apuntar a estados, se serializan y se proyectan a capsula; falta gesto e2e de crear enlace arrastrando directamente al estado.",
       "brechas": [
-        "app/src/modelo/extremos.ts: archivo no encontrado",
-        "app/src/ui/InspectorEnlace.tsx: falta Extremos de estado",
-        "app/src/ui/InspectorEnlace.tsx: falta extremoEstado",
-        "app/src/opl/generar.ts: falta estadoEntrada",
-        "app/src/opl/generar.ts: falta estadoSalida",
-        "app/src/opl/generar.ts: falta cambia",
-        "app/src/serializacion/json.ts: falta validarExtremoEnlace",
-        "app/src/serializacion/json.ts: falta kind === \"estado\"",
-        "Enlaces dirigidos a estado especifico siguen pendientes; requiere extender Enlace.origenId/destinoId para aceptar estado.id."
+        "Extremos Estado estan modelados, serializados y renderizados; falta gesto directo de creacion arrastrando al estado para cerrar la HU como cubierta."
       ],
       "evidencia": [
+        {
+          "path": "app/src/modelo/extremos.ts",
+          "hrefDashboard": "../../app/src/modelo/extremos.ts"
+        },
         {
           "path": "app/src/ui/InspectorEnlace.tsx",
           "hrefDashboard": "../../app/src/ui/InspectorEnlace.tsx"
         },
         {
-          "path": "app/src/opl/generar.ts",
-          "hrefDashboard": "../../app/src/opl/generar.ts"
+          "path": "app/src/render/jointjs/proyeccion.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/proyeccion.ts"
         },
         {
           "path": "app/src/serializacion/json.ts",
           "hrefDashboard": "../../app/src/serializacion/json.ts"
         },
         {
-          "path": "app/src/opl/generar.test.ts",
-          "hrefDashboard": "../../app/src/opl/generar.test.ts"
+          "path": "app/src/modelo/operaciones.test.ts",
+          "hrefDashboard": "../../app/src/modelo/operaciones.test.ts"
+        },
+        {
+          "path": "app/src/render/jointjs/proyeccion.test.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/proyeccion.test.ts"
         },
         {
           "path": "app/src/serializacion/json.test.ts",
@@ -20495,8 +20528,8 @@
         }
       ],
       "peso": 4,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 0.5,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-13-canvas-estados.md"
     },
     {
@@ -20664,36 +20697,23 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-13-canvas-estados.md",
       "lineaInicio": 332,
       "corte": "beta",
-      "estadoAvance": "pendiente",
+      "estadoAvance": "cubierto",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
-      "brechas": [
-        "app/src/modelo/extremos.ts: archivo no encontrado",
-        "app/src/ui/InspectorEnlace.tsx: falta Extremos de estado",
-        "app/src/ui/InspectorEnlace.tsx: falta extremoEstado",
-        "app/src/opl/generar.ts: falta estadoEntrada",
-        "app/src/opl/generar.ts: falta estadoSalida",
-        "app/src/opl/generar.ts: falta cambia",
-        "app/src/serializacion/json.ts: falta validarExtremoEnlace",
-        "app/src/serializacion/json.ts: falta kind === \"estado\""
-      ],
+      "nota": "Auto: OPL-ES TS3 para par consumo-resultado sobre estados emite una transicion unica de estado.",
+      "brechas": [],
       "evidencia": [
-        {
-          "path": "app/src/ui/InspectorEnlace.tsx",
-          "hrefDashboard": "../../app/src/ui/InspectorEnlace.tsx"
-        },
         {
           "path": "app/src/opl/generar.ts",
           "hrefDashboard": "../../app/src/opl/generar.ts"
         },
         {
-          "path": "app/src/serializacion/json.ts",
-          "hrefDashboard": "../../app/src/serializacion/json.ts"
-        },
-        {
           "path": "app/src/opl/generar.test.ts",
           "hrefDashboard": "../../app/src/opl/generar.test.ts"
+        },
+        {
+          "path": "app/src/modelo/extremos.ts",
+          "hrefDashboard": "../../app/src/modelo/extremos.ts"
         },
         {
           "path": "app/src/serializacion/json.test.ts",
@@ -20701,8 +20721,8 @@
         }
       ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-13-canvas-estados.md"
     },
     {
@@ -21778,46 +21798,32 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-15-canvas-enlaces-avanzados.md",
       "lineaInicio": 133,
       "corte": "beta",
-      "estadoAvance": "pendiente",
+      "estadoAvance": "cubierto",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
-      "brechas": [
-        "app/src/modelo/abanicos.ts: archivo no encontrado",
-        "app/src/ui/InspectorEnlace.tsx: falta Abanico",
-        "app/src/ui/InspectorEnlace.tsx: falta alternarOperadorAbanico",
-        "app/src/render/jointjs/proyeccion.ts: falta proyectarConectorAbanico",
-        "app/src/render/jointjs/proyeccion.ts: falta LINK_ASSETS.logical",
-        "app/src/opl/generar.ts: falta exactamente uno de",
-        "app/src/opl/generar.ts: falta al menos uno de",
-        "assets/svg/links/logical/xor.svg: archivo no encontrado",
-        "Abanicos XOR/O pendientes."
-      ],
+      "nota": "Auto: la segunda rama compatible forma un abanico automaticamente en el store y se cubre con tests de kernel/store.",
+      "brechas": [],
       "evidencia": [
         {
-          "path": "app/src/ui/InspectorEnlace.tsx",
-          "hrefDashboard": "../../app/src/ui/InspectorEnlace.tsx"
+          "path": "app/src/modelo/abanicos.ts",
+          "hrefDashboard": "../../app/src/modelo/abanicos.ts"
         },
         {
-          "path": "app/src/render/jointjs/proyeccion.ts",
-          "hrefDashboard": "../../app/src/render/jointjs/proyeccion.ts"
+          "path": "app/src/store.ts",
+          "hrefDashboard": "../../app/src/store.ts"
         },
         {
-          "path": "app/src/opl/generar.ts",
-          "hrefDashboard": "../../app/src/opl/generar.ts"
+          "path": "app/src/modelo/abanicos.test.ts",
+          "hrefDashboard": "../../app/src/modelo/abanicos.test.ts"
         },
         {
-          "path": "app/src/render/jointjs/proyeccion.test.ts",
-          "hrefDashboard": "../../app/src/render/jointjs/proyeccion.test.ts"
-        },
-        {
-          "path": "app/src/opl/generar.test.ts",
-          "hrefDashboard": "../../app/src/opl/generar.test.ts"
+          "path": "app/src/store.test.ts",
+          "hrefDashboard": "../../app/src/store.test.ts"
         }
       ],
       "peso": 4,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 4,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-15-canvas-enlaces-avanzados.md"
     },
     {
@@ -21848,46 +21854,32 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-15-canvas-enlaces-avanzados.md",
       "lineaInicio": 146,
       "corte": "beta",
-      "estadoAvance": "pendiente",
+      "estadoAvance": "cubierto",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
-      "brechas": [
-        "app/src/modelo/abanicos.ts: archivo no encontrado",
-        "app/src/ui/InspectorEnlace.tsx: falta Abanico",
-        "app/src/ui/InspectorEnlace.tsx: falta alternarOperadorAbanico",
-        "app/src/render/jointjs/proyeccion.ts: falta proyectarConectorAbanico",
-        "app/src/render/jointjs/proyeccion.ts: falta LINK_ASSETS.logical",
-        "app/src/opl/generar.ts: falta exactamente uno de",
-        "app/src/opl/generar.ts: falta al menos uno de",
-        "assets/svg/links/logical/xor.svg: archivo no encontrado",
-        "Abanicos XOR/O pendientes."
-      ],
+      "nota": "Auto: el operador del abanico alterna entre O y XOR desde modelo, store e inspector.",
+      "brechas": [],
       "evidencia": [
+        {
+          "path": "app/src/modelo/abanicos.ts",
+          "hrefDashboard": "../../app/src/modelo/abanicos.ts"
+        },
         {
           "path": "app/src/ui/InspectorEnlace.tsx",
           "hrefDashboard": "../../app/src/ui/InspectorEnlace.tsx"
         },
         {
-          "path": "app/src/render/jointjs/proyeccion.ts",
-          "hrefDashboard": "../../app/src/render/jointjs/proyeccion.ts"
+          "path": "app/src/store.test.ts",
+          "hrefDashboard": "../../app/src/store.test.ts"
         },
         {
-          "path": "app/src/opl/generar.ts",
-          "hrefDashboard": "../../app/src/opl/generar.ts"
-        },
-        {
-          "path": "app/src/render/jointjs/proyeccion.test.ts",
-          "hrefDashboard": "../../app/src/render/jointjs/proyeccion.test.ts"
-        },
-        {
-          "path": "app/src/opl/generar.test.ts",
-          "hrefDashboard": "../../app/src/opl/generar.test.ts"
+          "path": "app/src/modelo/abanicos.test.ts",
+          "hrefDashboard": "../../app/src/modelo/abanicos.test.ts"
         }
       ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-15-canvas-enlaces-avanzados.md"
     },
     {
@@ -21916,46 +21908,40 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-15-canvas-enlaces-avanzados.md",
       "lineaInicio": 158,
       "corte": "beta",
-      "estadoAvance": "pendiente",
+      "estadoAvance": "parcial",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
+      "nota": "Auto: existe overlay visual de operador junto al puerto, pero falta render canonico especifico: triangulo XOR y abrazadera curva O con assets/logica visual dedicada.",
       "brechas": [
-        "app/src/modelo/abanicos.ts: archivo no encontrado",
-        "app/src/ui/InspectorEnlace.tsx: falta Abanico",
-        "app/src/ui/InspectorEnlace.tsx: falta alternarOperadorAbanico",
-        "app/src/render/jointjs/proyeccion.ts: falta proyectarConectorAbanico",
-        "app/src/render/jointjs/proyeccion.ts: falta LINK_ASSETS.logical",
-        "app/src/opl/generar.ts: falta exactamente uno de",
-        "app/src/opl/generar.ts: falta al menos uno de",
-        "assets/svg/links/logical/xor.svg: archivo no encontrado",
-        "Abanicos XOR/O pendientes."
+        "Render usa overlay textual eliptico; falta triangulo XOR canonico.",
+        "Render usa overlay textual eliptico; falta abrazadera curva O canonica.",
+        "Abanicos O/XOR tienen kernel, store, inspector y OPL; falta reemplazar el overlay textual por triangulo XOR y abrazadera O canonicos."
       ],
       "evidencia": [
-        {
-          "path": "app/src/ui/InspectorEnlace.tsx",
-          "hrefDashboard": "../../app/src/ui/InspectorEnlace.tsx"
-        },
         {
           "path": "app/src/render/jointjs/proyeccion.ts",
           "hrefDashboard": "../../app/src/render/jointjs/proyeccion.ts"
         },
         {
-          "path": "app/src/opl/generar.ts",
-          "hrefDashboard": "../../app/src/opl/generar.ts"
+          "path": "assets/svg/links/logical/xor.svg",
+          "hrefDashboard": "../../assets/svg/links/logical/xor.svg"
         },
         {
-          "path": "app/src/render/jointjs/proyeccion.test.ts",
-          "hrefDashboard": "../../app/src/render/jointjs/proyeccion.test.ts"
+          "path": "assets/svg/links/logical/or.svg",
+          "hrefDashboard": "../../assets/svg/links/logical/or.svg"
         },
         {
-          "path": "app/src/opl/generar.test.ts",
-          "hrefDashboard": "../../app/src/opl/generar.test.ts"
+          "path": "app/src/modelo/abanicos.ts",
+          "hrefDashboard": "../../app/src/modelo/abanicos.ts"
+        },
+        {
+          "path": "app/src/ui/InspectorEnlace.tsx",
+          "hrefDashboard": "../../app/src/ui/InspectorEnlace.tsx"
         }
       ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 0.5,
+      "avancePonderado": 1,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-15-canvas-enlaces-avanzados.md"
     },
     {
@@ -21984,46 +21970,40 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-15-canvas-enlaces-avanzados.md",
       "lineaInicio": 169,
       "corte": "beta",
-      "estadoAvance": "pendiente",
+      "estadoAvance": "parcial",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
+      "nota": "Auto: existe overlay visual de operador junto al puerto, pero falta render canonico especifico: triangulo XOR y abrazadera curva O con assets/logica visual dedicada.",
       "brechas": [
-        "app/src/modelo/abanicos.ts: archivo no encontrado",
-        "app/src/ui/InspectorEnlace.tsx: falta Abanico",
-        "app/src/ui/InspectorEnlace.tsx: falta alternarOperadorAbanico",
-        "app/src/render/jointjs/proyeccion.ts: falta proyectarConectorAbanico",
-        "app/src/render/jointjs/proyeccion.ts: falta LINK_ASSETS.logical",
-        "app/src/opl/generar.ts: falta exactamente uno de",
-        "app/src/opl/generar.ts: falta al menos uno de",
-        "assets/svg/links/logical/xor.svg: archivo no encontrado",
-        "Abanicos XOR/O pendientes."
+        "Render usa overlay textual eliptico; falta triangulo XOR canonico.",
+        "Render usa overlay textual eliptico; falta abrazadera curva O canonica.",
+        "Abanicos O/XOR tienen kernel, store, inspector y OPL; falta reemplazar el overlay textual por triangulo XOR y abrazadera O canonicos."
       ],
       "evidencia": [
-        {
-          "path": "app/src/ui/InspectorEnlace.tsx",
-          "hrefDashboard": "../../app/src/ui/InspectorEnlace.tsx"
-        },
         {
           "path": "app/src/render/jointjs/proyeccion.ts",
           "hrefDashboard": "../../app/src/render/jointjs/proyeccion.ts"
         },
         {
-          "path": "app/src/opl/generar.ts",
-          "hrefDashboard": "../../app/src/opl/generar.ts"
+          "path": "assets/svg/links/logical/xor.svg",
+          "hrefDashboard": "../../assets/svg/links/logical/xor.svg"
         },
         {
-          "path": "app/src/render/jointjs/proyeccion.test.ts",
-          "hrefDashboard": "../../app/src/render/jointjs/proyeccion.test.ts"
+          "path": "assets/svg/links/logical/or.svg",
+          "hrefDashboard": "../../assets/svg/links/logical/or.svg"
         },
         {
-          "path": "app/src/opl/generar.test.ts",
-          "hrefDashboard": "../../app/src/opl/generar.test.ts"
+          "path": "app/src/modelo/abanicos.ts",
+          "hrefDashboard": "../../app/src/modelo/abanicos.ts"
+        },
+        {
+          "path": "app/src/ui/InspectorEnlace.tsx",
+          "hrefDashboard": "../../app/src/ui/InspectorEnlace.tsx"
         }
       ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 0.5,
+      "avancePonderado": 1,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-15-canvas-enlaces-avanzados.md"
     },
     {
@@ -22050,46 +22030,28 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-15-canvas-enlaces-avanzados.md",
       "lineaInicio": 180,
       "corte": "beta",
-      "estadoAvance": "pendiente",
+      "estadoAvance": "cubierto",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
-      "brechas": [
-        "app/src/modelo/abanicos.ts: archivo no encontrado",
-        "app/src/ui/InspectorEnlace.tsx: falta Abanico",
-        "app/src/ui/InspectorEnlace.tsx: falta alternarOperadorAbanico",
-        "app/src/render/jointjs/proyeccion.ts: falta proyectarConectorAbanico",
-        "app/src/render/jointjs/proyeccion.ts: falta LINK_ASSETS.logical",
-        "app/src/opl/generar.ts: falta exactamente uno de",
-        "app/src/opl/generar.ts: falta al menos uno de",
-        "assets/svg/links/logical/xor.svg: archivo no encontrado",
-        "Abanicos XOR/O pendientes."
-      ],
+      "nota": "Auto: OPL-ES distingue abanico XOR como exactamente uno de y O como al menos uno de.",
+      "brechas": [],
       "evidencia": [
-        {
-          "path": "app/src/ui/InspectorEnlace.tsx",
-          "hrefDashboard": "../../app/src/ui/InspectorEnlace.tsx"
-        },
-        {
-          "path": "app/src/render/jointjs/proyeccion.ts",
-          "hrefDashboard": "../../app/src/render/jointjs/proyeccion.ts"
-        },
         {
           "path": "app/src/opl/generar.ts",
           "hrefDashboard": "../../app/src/opl/generar.ts"
         },
         {
-          "path": "app/src/render/jointjs/proyeccion.test.ts",
-          "hrefDashboard": "../../app/src/render/jointjs/proyeccion.test.ts"
-        },
-        {
           "path": "app/src/opl/generar.test.ts",
           "hrefDashboard": "../../app/src/opl/generar.test.ts"
+        },
+        {
+          "path": "app/src/modelo/abanicos.ts",
+          "hrefDashboard": "../../app/src/modelo/abanicos.ts"
         }
       ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-15-canvas-enlaces-avanzados.md"
     },
     {
@@ -22188,17 +22150,48 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-15-canvas-enlaces-avanzados.md",
       "lineaInicio": 208,
       "corte": "beta",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
-      "brechas": [
-        "Evento, NO e invocacion con demora pendientes."
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto: condicion/evento/NO viven como Modificador sobre Enlace, se editan desde Inspector, se serializan, se proyectan como badges y generan OPL distintiva.",
+      "brechas": [],
+      "evidencia": [
+        {
+          "path": "app/src/modelo/tipos.ts",
+          "hrefDashboard": "../../app/src/modelo/tipos.ts"
+        },
+        {
+          "path": "app/src/modelo/modificadores.ts",
+          "hrefDashboard": "../../app/src/modelo/modificadores.ts"
+        },
+        {
+          "path": "app/src/ui/InspectorEnlace.tsx",
+          "hrefDashboard": "../../app/src/ui/InspectorEnlace.tsx"
+        },
+        {
+          "path": "app/src/render/jointjs/proyeccion.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/proyeccion.ts"
+        },
+        {
+          "path": "app/src/opl/generar.ts",
+          "hrefDashboard": "../../app/src/opl/generar.ts"
+        },
+        {
+          "path": "app/src/modelo/modificadores.test.ts",
+          "hrefDashboard": "../../app/src/modelo/modificadores.test.ts"
+        },
+        {
+          "path": "app/src/opl/generar.test.ts",
+          "hrefDashboard": "../../app/src/opl/generar.test.ts"
+        },
+        {
+          "path": "app/e2e/opm-smoke.spec.ts",
+          "hrefDashboard": "../../app/e2e/opm-smoke.spec.ts"
+        }
       ],
-      "evidencia": [],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-15-canvas-enlaces-avanzados.md"
     },
     {
@@ -22225,17 +22218,48 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-15-canvas-enlaces-avanzados.md",
       "lineaInicio": 219,
       "corte": "beta",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
-      "brechas": [
-        "Evento, NO e invocacion con demora pendientes."
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto: condicion/evento/NO viven como Modificador sobre Enlace, se editan desde Inspector, se serializan, se proyectan como badges y generan OPL distintiva.",
+      "brechas": [],
+      "evidencia": [
+        {
+          "path": "app/src/modelo/tipos.ts",
+          "hrefDashboard": "../../app/src/modelo/tipos.ts"
+        },
+        {
+          "path": "app/src/modelo/modificadores.ts",
+          "hrefDashboard": "../../app/src/modelo/modificadores.ts"
+        },
+        {
+          "path": "app/src/ui/InspectorEnlace.tsx",
+          "hrefDashboard": "../../app/src/ui/InspectorEnlace.tsx"
+        },
+        {
+          "path": "app/src/render/jointjs/proyeccion.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/proyeccion.ts"
+        },
+        {
+          "path": "app/src/opl/generar.ts",
+          "hrefDashboard": "../../app/src/opl/generar.ts"
+        },
+        {
+          "path": "app/src/modelo/modificadores.test.ts",
+          "hrefDashboard": "../../app/src/modelo/modificadores.test.ts"
+        },
+        {
+          "path": "app/src/opl/generar.test.ts",
+          "hrefDashboard": "../../app/src/opl/generar.test.ts"
+        },
+        {
+          "path": "app/e2e/opm-smoke.spec.ts",
+          "hrefDashboard": "../../app/e2e/opm-smoke.spec.ts"
+        }
       ],
-      "evidencia": [],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-15-canvas-enlaces-avanzados.md"
     },
     {
@@ -22300,15 +22324,40 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-15-canvas-enlaces-avanzados.md",
       "lineaInicio": 240,
       "corte": "beta",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto: probabilidad numerica de evento se valida, serializa, verbaliza y renderiza como porcentaje junto al badge E.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/modelo/modificadores.ts",
+          "hrefDashboard": "../../app/src/modelo/modificadores.ts"
+        },
+        {
+          "path": "app/src/serializacion/json.ts",
+          "hrefDashboard": "../../app/src/serializacion/json.ts"
+        },
+        {
+          "path": "app/src/render/jointjs/proyeccion.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/proyeccion.ts"
+        },
+        {
+          "path": "app/e2e/opm-smoke.spec.ts",
+          "hrefDashboard": "../../app/e2e/opm-smoke.spec.ts"
+        },
+        {
+          "path": "app/src/store.test.ts",
+          "hrefDashboard": "../../app/src/store.test.ts"
+        },
+        {
+          "path": "app/src/serializacion/json.test.ts",
+          "hrefDashboard": "../../app/src/serializacion/json.test.ts"
+        }
+      ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-15-canvas-enlaces-avanzados.md"
     },
     {
@@ -22408,7 +22457,7 @@
       "fuenteEvidencia": null,
       "nota": "",
       "brechas": [
-        "Evento, NO e invocacion con demora pendientes."
+        "Auto-invocacion con demora por defecto sigue pendiente; la ronda 3 cubre invocacion normal con demora opcional."
       ],
       "evidencia": [],
       "peso": 4,
@@ -24762,17 +24811,11 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-18-canvas-plegado-parcial.md",
       "lineaInicio": 58,
       "corte": "gamma",
-      "estadoAvance": "pendiente",
+      "estadoAvance": "cubierto",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
-      "brechas": [
-        "app/src/modelo/plegado.ts: falta UMBRAL_PARTES_MAS",
-        "app/src/modelo/plegado.ts: falta filasPlegadoParcial",
-        "app/src/render/jointjs/proyeccion.ts: falta filasPlegadoParcial",
-        "app/src/modelo/plegado.test.ts: falta filasPlegadoParcial",
-        "app/src/modelo/plegado.test.ts: falta contarPartesOcultas"
-      ],
+      "nota": "Auto: plegado parcial se proyecta, serializa y prueba con conteo resumido de partes.",
+      "brechas": [],
       "evidencia": [
         {
           "path": "app/src/modelo/plegado.ts",
@@ -24792,8 +24835,8 @@
         }
       ],
       "peso": 4,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 4,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-18-canvas-plegado-parcial.md"
     },
     {
@@ -24819,17 +24862,11 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-18-canvas-plegado-parcial.md",
       "lineaInicio": 70,
       "corte": "gamma",
-      "estadoAvance": "pendiente",
+      "estadoAvance": "cubierto",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
-      "brechas": [
-        "app/src/modelo/plegado.ts: falta UMBRAL_PARTES_MAS",
-        "app/src/modelo/plegado.ts: falta filasPlegadoParcial",
-        "app/src/render/jointjs/proyeccion.ts: falta filasPlegadoParcial",
-        "app/src/modelo/plegado.test.ts: falta filasPlegadoParcial",
-        "app/src/modelo/plegado.test.ts: falta contarPartesOcultas"
-      ],
+      "nota": "Auto: plegado parcial se proyecta, serializa y prueba con conteo resumido de partes.",
+      "brechas": [],
       "evidencia": [
         {
           "path": "app/src/modelo/plegado.ts",
@@ -24849,8 +24886,8 @@
         }
       ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-18-canvas-plegado-parcial.md"
     },
     {
@@ -24880,20 +24917,11 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-18-canvas-plegado-parcial.md",
       "lineaInicio": 80,
       "corte": "gamma",
-      "estadoAvance": "pendiente",
+      "estadoAvance": "cubierto",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
-      "brechas": [
-        "app/src/modelo/plegado.ts: falta extraerParteDePlegado",
-        "app/src/modelo/plegado.ts: falta reinsertarParteEnPlegado",
-        "app/src/modelo/plegado.ts: falta contarPartesOcultas",
-        "app/src/store.ts: falta extraerParteDePlegado",
-        "app/src/store.ts: falta reinsertarParteEnPlegado",
-        "app/src/render/jointjs/proyeccion.test.ts: falta extraerParteDePlegado",
-        "app/src/render/jointjs/proyeccion.test.ts: falta reinsertarParteEnPlegado",
-        "Extraccion/reinsercion avanzada de plegado parcial pendiente."
-      ],
+      "nota": "Auto: extraccion/reinsercion de partes plegadas, proxy visual, reanclaje al padre, contador y OPL resumida estan implementados y probados.",
+      "brechas": [],
       "evidencia": [
         {
           "path": "app/src/modelo/plegado.ts",
@@ -24904,13 +24932,37 @@
           "hrefDashboard": "../../app/src/store.ts"
         },
         {
+          "path": "app/src/render/jointjs/JointCanvas.tsx",
+          "hrefDashboard": "../../app/src/render/jointjs/JointCanvas.tsx"
+        },
+        {
+          "path": "app/src/render/jointjs/proyeccion.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/proyeccion.ts"
+        },
+        {
+          "path": "app/src/opl/generar.ts",
+          "hrefDashboard": "../../app/src/opl/generar.ts"
+        },
+        {
+          "path": "app/src/modelo/plegado.test.ts",
+          "hrefDashboard": "../../app/src/modelo/plegado.test.ts"
+        },
+        {
           "path": "app/src/render/jointjs/proyeccion.test.ts",
           "hrefDashboard": "../../app/src/render/jointjs/proyeccion.test.ts"
+        },
+        {
+          "path": "app/src/opl/generar.test.ts",
+          "hrefDashboard": "../../app/src/opl/generar.test.ts"
+        },
+        {
+          "path": "app/src/serializacion/json.test.ts",
+          "hrefDashboard": "../../app/src/serializacion/json.test.ts"
         }
       ],
       "peso": 4,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 4,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-18-canvas-plegado-parcial.md"
     },
     {
@@ -24936,20 +24988,11 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-18-canvas-plegado-parcial.md",
       "lineaInicio": 93,
       "corte": "gamma",
-      "estadoAvance": "pendiente",
+      "estadoAvance": "cubierto",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
-      "brechas": [
-        "app/src/modelo/plegado.ts: falta extraerParteDePlegado",
-        "app/src/modelo/plegado.ts: falta reinsertarParteEnPlegado",
-        "app/src/modelo/plegado.ts: falta contarPartesOcultas",
-        "app/src/store.ts: falta extraerParteDePlegado",
-        "app/src/store.ts: falta reinsertarParteEnPlegado",
-        "app/src/render/jointjs/proyeccion.test.ts: falta extraerParteDePlegado",
-        "app/src/render/jointjs/proyeccion.test.ts: falta reinsertarParteEnPlegado",
-        "Extraccion/reinsercion avanzada de plegado parcial pendiente."
-      ],
+      "nota": "Auto: extraccion/reinsercion de partes plegadas, proxy visual, reanclaje al padre, contador y OPL resumida estan implementados y probados.",
+      "brechas": [],
       "evidencia": [
         {
           "path": "app/src/modelo/plegado.ts",
@@ -24960,13 +25003,37 @@
           "hrefDashboard": "../../app/src/store.ts"
         },
         {
+          "path": "app/src/render/jointjs/JointCanvas.tsx",
+          "hrefDashboard": "../../app/src/render/jointjs/JointCanvas.tsx"
+        },
+        {
+          "path": "app/src/render/jointjs/proyeccion.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/proyeccion.ts"
+        },
+        {
+          "path": "app/src/opl/generar.ts",
+          "hrefDashboard": "../../app/src/opl/generar.ts"
+        },
+        {
+          "path": "app/src/modelo/plegado.test.ts",
+          "hrefDashboard": "../../app/src/modelo/plegado.test.ts"
+        },
+        {
           "path": "app/src/render/jointjs/proyeccion.test.ts",
           "hrefDashboard": "../../app/src/render/jointjs/proyeccion.test.ts"
+        },
+        {
+          "path": "app/src/opl/generar.test.ts",
+          "hrefDashboard": "../../app/src/opl/generar.test.ts"
+        },
+        {
+          "path": "app/src/serializacion/json.test.ts",
+          "hrefDashboard": "../../app/src/serializacion/json.test.ts"
         }
       ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-18-canvas-plegado-parcial.md"
     },
     {
@@ -24994,19 +25061,11 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-18-canvas-plegado-parcial.md",
       "lineaInicio": 103,
       "corte": "gamma",
-      "estadoAvance": "pendiente",
+      "estadoAvance": "cubierto",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
-      "brechas": [
-        "app/src/modelo/plegado.ts: falta extraerParteDePlegado",
-        "app/src/modelo/plegado.ts: falta reinsertarParteEnPlegado",
-        "app/src/modelo/plegado.ts: falta contarPartesOcultas",
-        "app/src/store.ts: falta extraerParteDePlegado",
-        "app/src/store.ts: falta reinsertarParteEnPlegado",
-        "app/src/render/jointjs/proyeccion.test.ts: falta extraerParteDePlegado",
-        "app/src/render/jointjs/proyeccion.test.ts: falta reinsertarParteEnPlegado"
-      ],
+      "nota": "Auto: extraccion/reinsercion de partes plegadas, proxy visual, reanclaje al padre, contador y OPL resumida estan implementados y probados.",
+      "brechas": [],
       "evidencia": [
         {
           "path": "app/src/modelo/plegado.ts",
@@ -25017,13 +25076,37 @@
           "hrefDashboard": "../../app/src/store.ts"
         },
         {
+          "path": "app/src/render/jointjs/JointCanvas.tsx",
+          "hrefDashboard": "../../app/src/render/jointjs/JointCanvas.tsx"
+        },
+        {
+          "path": "app/src/render/jointjs/proyeccion.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/proyeccion.ts"
+        },
+        {
+          "path": "app/src/opl/generar.ts",
+          "hrefDashboard": "../../app/src/opl/generar.ts"
+        },
+        {
+          "path": "app/src/modelo/plegado.test.ts",
+          "hrefDashboard": "../../app/src/modelo/plegado.test.ts"
+        },
+        {
           "path": "app/src/render/jointjs/proyeccion.test.ts",
           "hrefDashboard": "../../app/src/render/jointjs/proyeccion.test.ts"
+        },
+        {
+          "path": "app/src/opl/generar.test.ts",
+          "hrefDashboard": "../../app/src/opl/generar.test.ts"
+        },
+        {
+          "path": "app/src/serializacion/json.test.ts",
+          "hrefDashboard": "../../app/src/serializacion/json.test.ts"
         }
       ],
       "peso": 4,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 4,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-18-canvas-plegado-parcial.md"
     },
     {
@@ -25050,17 +25133,11 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-18-canvas-plegado-parcial.md",
       "lineaInicio": 114,
       "corte": "gamma",
-      "estadoAvance": "pendiente",
+      "estadoAvance": "cubierto",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
-      "brechas": [
-        "app/src/modelo/plegado.ts: falta UMBRAL_PARTES_MAS",
-        "app/src/modelo/plegado.ts: falta filasPlegadoParcial",
-        "app/src/render/jointjs/proyeccion.ts: falta filasPlegadoParcial",
-        "app/src/modelo/plegado.test.ts: falta filasPlegadoParcial",
-        "app/src/modelo/plegado.test.ts: falta contarPartesOcultas"
-      ],
+      "nota": "Auto: plegado parcial se proyecta, serializa y prueba con conteo resumido de partes.",
+      "brechas": [],
       "evidencia": [
         {
           "path": "app/src/modelo/plegado.ts",
@@ -25080,8 +25157,8 @@
         }
       ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-18-canvas-plegado-parcial.md"
     },
     {
@@ -25146,17 +25223,52 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-18-canvas-plegado-parcial.md",
       "lineaInicio": 137,
       "corte": "gamma",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
-      "brechas": [
-        "Extraccion/reinsercion avanzada de plegado parcial pendiente."
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto: extraccion/reinsercion de partes plegadas, proxy visual, reanclaje al padre, contador y OPL resumida estan implementados y probados.",
+      "brechas": [],
+      "evidencia": [
+        {
+          "path": "app/src/modelo/plegado.ts",
+          "hrefDashboard": "../../app/src/modelo/plegado.ts"
+        },
+        {
+          "path": "app/src/store.ts",
+          "hrefDashboard": "../../app/src/store.ts"
+        },
+        {
+          "path": "app/src/render/jointjs/JointCanvas.tsx",
+          "hrefDashboard": "../../app/src/render/jointjs/JointCanvas.tsx"
+        },
+        {
+          "path": "app/src/render/jointjs/proyeccion.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/proyeccion.ts"
+        },
+        {
+          "path": "app/src/opl/generar.ts",
+          "hrefDashboard": "../../app/src/opl/generar.ts"
+        },
+        {
+          "path": "app/src/modelo/plegado.test.ts",
+          "hrefDashboard": "../../app/src/modelo/plegado.test.ts"
+        },
+        {
+          "path": "app/src/render/jointjs/proyeccion.test.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/proyeccion.test.ts"
+        },
+        {
+          "path": "app/src/opl/generar.test.ts",
+          "hrefDashboard": "../../app/src/opl/generar.test.ts"
+        },
+        {
+          "path": "app/src/serializacion/json.test.ts",
+          "hrefDashboard": "../../app/src/serializacion/json.test.ts"
+        }
       ],
-      "evidencia": [],
       "peso": 4,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 4,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-18-canvas-plegado-parcial.md"
     },
     {
@@ -25183,19 +25295,11 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-18-canvas-plegado-parcial.md",
       "lineaInicio": 149,
       "corte": "gamma",
-      "estadoAvance": "pendiente",
+      "estadoAvance": "cubierto",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
-      "brechas": [
-        "app/src/modelo/plegado.ts: falta extraerParteDePlegado",
-        "app/src/modelo/plegado.ts: falta reinsertarParteEnPlegado",
-        "app/src/modelo/plegado.ts: falta contarPartesOcultas",
-        "app/src/store.ts: falta extraerParteDePlegado",
-        "app/src/store.ts: falta reinsertarParteEnPlegado",
-        "app/src/render/jointjs/proyeccion.test.ts: falta extraerParteDePlegado",
-        "app/src/render/jointjs/proyeccion.test.ts: falta reinsertarParteEnPlegado"
-      ],
+      "nota": "Auto: extraccion/reinsercion de partes plegadas, proxy visual, reanclaje al padre, contador y OPL resumida estan implementados y probados.",
+      "brechas": [],
       "evidencia": [
         {
           "path": "app/src/modelo/plegado.ts",
@@ -25206,13 +25310,37 @@
           "hrefDashboard": "../../app/src/store.ts"
         },
         {
+          "path": "app/src/render/jointjs/JointCanvas.tsx",
+          "hrefDashboard": "../../app/src/render/jointjs/JointCanvas.tsx"
+        },
+        {
+          "path": "app/src/render/jointjs/proyeccion.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/proyeccion.ts"
+        },
+        {
+          "path": "app/src/opl/generar.ts",
+          "hrefDashboard": "../../app/src/opl/generar.ts"
+        },
+        {
+          "path": "app/src/modelo/plegado.test.ts",
+          "hrefDashboard": "../../app/src/modelo/plegado.test.ts"
+        },
+        {
           "path": "app/src/render/jointjs/proyeccion.test.ts",
           "hrefDashboard": "../../app/src/render/jointjs/proyeccion.test.ts"
+        },
+        {
+          "path": "app/src/opl/generar.test.ts",
+          "hrefDashboard": "../../app/src/opl/generar.test.ts"
+        },
+        {
+          "path": "app/src/serializacion/json.test.ts",
+          "hrefDashboard": "../../app/src/serializacion/json.test.ts"
         }
       ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-18-canvas-plegado-parcial.md"
     },
     {
@@ -25239,17 +25367,11 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-18-canvas-plegado-parcial.md",
       "lineaInicio": 160,
       "corte": "gamma",
-      "estadoAvance": "pendiente",
+      "estadoAvance": "cubierto",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
-      "brechas": [
-        "app/src/modelo/plegado.ts: falta UMBRAL_PARTES_MAS",
-        "app/src/modelo/plegado.ts: falta filasPlegadoParcial",
-        "app/src/render/jointjs/proyeccion.ts: falta filasPlegadoParcial",
-        "app/src/modelo/plegado.test.ts: falta filasPlegadoParcial",
-        "app/src/modelo/plegado.test.ts: falta contarPartesOcultas"
-      ],
+      "nota": "Auto: plegado parcial se proyecta, serializa y prueba con conteo resumido de partes.",
+      "brechas": [],
       "evidencia": [
         {
           "path": "app/src/modelo/plegado.ts",
@@ -25269,8 +25391,8 @@
         }
       ],
       "peso": 4,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 4,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-18-canvas-plegado-parcial.md"
     },
     {
@@ -25384,17 +25506,11 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-18-canvas-plegado-parcial.md",
       "lineaInicio": 192,
       "corte": "gamma",
-      "estadoAvance": "pendiente",
+      "estadoAvance": "cubierto",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
-      "brechas": [
-        "app/src/modelo/plegado.ts: falta UMBRAL_PARTES_MAS",
-        "app/src/modelo/plegado.ts: falta filasPlegadoParcial",
-        "app/src/render/jointjs/proyeccion.ts: falta filasPlegadoParcial",
-        "app/src/modelo/plegado.test.ts: falta filasPlegadoParcial",
-        "app/src/modelo/plegado.test.ts: falta contarPartesOcultas"
-      ],
+      "nota": "Auto: plegado parcial se proyecta, serializa y prueba con conteo resumido de partes.",
+      "brechas": [],
       "evidencia": [
         {
           "path": "app/src/modelo/plegado.ts",
@@ -25414,8 +25530,8 @@
         }
       ],
       "peso": 1,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 1,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-18-canvas-plegado-parcial.md"
     },
     {
