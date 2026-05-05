@@ -612,6 +612,43 @@ try {
     fanRectos ? "OK" : "WARN",
     JSON.stringify(segmentosPorLink.map((s) => ({ id: s.id, n: s.n }))),
   );
+
+  // Sync en vivo: el overlay debe seguir al puerto durante el drag, no solo
+  // tras el pointerup. Capturamos el path antes / mid-drag / tras-soltar.
+  const dInicial = arcoFan.d ?? "";
+  const procesoBox = await procesoFan.first().boundingBox();
+  let dMidDrag = null;
+  let dPostDrag = null;
+  if (procesoBox) {
+    await page.mouse.move(procesoBox.x + procesoBox.width / 2, procesoBox.y + procesoBox.height / 2);
+    await page.mouse.down();
+    // Pasos progresivos para capturar mid-drag.
+    await page.mouse.move(procesoBox.x + procesoBox.width / 2 + 80, procesoBox.y + procesoBox.height / 2 + 60, { steps: 6 });
+    await page.waitForTimeout(50);
+    dMidDrag = await page.evaluate(() => {
+      const root = document.querySelector("g.type-opm-abanicoarc, g[model-id^='overlay-abanico-']");
+      return root?.querySelector("path")?.getAttribute("d") ?? null;
+    });
+    await page.mouse.up();
+    await page.waitForTimeout(120);
+    dPostDrag = await page.evaluate(() => {
+      const root = document.querySelector("g.type-opm-abanicoarc, g[model-id^='overlay-abanico-']");
+      return root?.querySelector("path")?.getAttribute("d") ?? null;
+    });
+    await shot(page, "16b-abanico-drag-end.png");
+  }
+  record(
+    "16. Abanico",
+    "Overlay re-dibujado durante drag (no solo en pointerup)",
+    dMidDrag && dMidDrag !== dInicial ? "OK" : "FAIL",
+    `inicial=${(dInicial || "").slice(0, 60)}... mid=${(dMidDrag || "").slice(0, 60)}...`,
+  );
+  record(
+    "16. Abanico",
+    "Overlay tras soltar coincide con el path mid-drag (no salta)",
+    dPostDrag && dMidDrag && dPostDrag === dMidDrag ? "OK" : "WARN",
+    `mid=${(dMidDrag || "").slice(0, 50)} post=${(dPostDrag || "").slice(0, 50)}`,
+  );
 } catch (errFatal) {
   record("FATAL", "Excepción no controlada", "FAIL", errFatal instanceof Error ? errFatal.message : String(errFatal));
   await shot(page, "99-fatal.png").catch(() => {});

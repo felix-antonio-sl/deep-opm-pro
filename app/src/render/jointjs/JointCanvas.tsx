@@ -4,6 +4,7 @@ import { CANON } from "../../modelo/constantes";
 import type { Modelo } from "../../modelo/tipos";
 import { useOpmStore } from "../../store";
 import type { OplReferencia } from "../../opl/interaccion";
+import { abanicosAfectadosPorEntidad, sincronizarOverlayAbanicoEnDrag } from "./abanicoDragSync";
 import { opmShapes } from "./customShapes";
 import type { OpmJointMetadata } from "./proyeccion";
 import { proyectarModeloAJointCells } from "./proyeccion";
@@ -25,7 +26,9 @@ export function JointCanvas() {
   const modoCreacion = useOpmStore((s) => s.modoCreacion);
   const modoCreacionRef = useRef(modoCreacion);
   const modelo = useOpmStore((s) => s.modelo);
+  const modeloRef = useRef(modelo);
   const opdActivoId = useOpmStore((s) => s.opdActivoId);
+  const opdActivoIdRef = useRef(opdActivoId);
   const seleccionId = useOpmStore((s) => s.seleccionId);
   const enlaceSeleccionId = useOpmStore((s) => s.enlaceSeleccionId);
   const enlaceSeleccionIdRef = useRef(enlaceSeleccionId);
@@ -62,6 +65,11 @@ export function JointCanvas() {
   useEffect(() => {
     enlaceSeleccionIdRef.current = enlaceSeleccionId;
   }, [enlaceSeleccionId]);
+
+  useEffect(() => {
+    modeloRef.current = modelo;
+    opdActivoIdRef.current = opdActivoId;
+  }, [modelo, opdActivoId]);
 
   useEffect(() => {
     seleccionarEntidadRef.current = seleccionarEntidad;
@@ -238,6 +246,22 @@ export function JointCanvas() {
         meta.aparienciaEnlaceId,
         cell.vertices().map((vertice) => ({ x: vertice.x, y: vertice.y })),
       );
+    });
+
+    // Reposiciona los overlays de abanico EN VIVO mientras el usuario arrastra
+    // una entidad puerto o cualquier rama del fan. Sin esto el arco se queda
+    // en la posicion previa hasta que `pointerup` reproyecta el modelo, lo que
+    // produce un "salto" visual disonante con el cursor.
+    graphEvents(graph).on("change:position", (cell: dia.Cell) => {
+      if (sincronizandoRef.current || cell.isLink()) return;
+      const meta = metadata(cell);
+      if (meta?.kind !== "entidad") return;
+      const modeloActual = modeloRef.current;
+      const opdActual = opdActivoIdRef.current;
+      const afectados = abanicosAfectadosPorEntidad(modeloActual, opdActual, meta.entidadId);
+      for (const abanico of afectados) {
+        sincronizarOverlayAbanicoEnDrag(graph, modeloActual, abanico);
+      }
     });
 
     adapterRef.current = { graph, paper };

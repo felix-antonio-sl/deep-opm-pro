@@ -1,6 +1,6 @@
 import { CANON } from "../../modelo/constantes";
 import { entidadIdDeExtremo } from "../../modelo/extremos";
-import type { Abanico, Apariencia, Id, Modelo, Opd, Posicion } from "../../modelo/tipos";
+import type { Abanico, Apariencia, Id, Modelo, Opd, Posicion, TipoEntidad } from "../../modelo/tipos";
 import type { JointCellJson } from "./proyeccion";
 
 // Radios canonicos del arco logico (ver opm-extracted shared.ts:5908-5912):
@@ -10,6 +10,42 @@ const RADIO_EXTERNO = 35;
 const PADDING_CELL = 8;
 const STROKE_DASHARRAY = "4 1";
 
+export interface GeometriaAbanico {
+  d: string;
+  position: Posicion;
+  size: { width: number; height: number };
+}
+
+export function calcularGeometriaAbanico(args: {
+  aparienciaPuerto: Apariencia;
+  tipoEntidadPuerto: TipoEntidad;
+  centrosOtros: Posicion[];
+  operador: "O" | "XOR";
+}): GeometriaAbanico | null {
+  if (args.centrosOtros.length < 2) return null;
+
+  const dock = puntoDockEnPuerto(args.aparienciaPuerto, args.tipoEntidadPuerto, args.centrosOtros);
+  const angulos = args.centrosOtros.map((centro) => anguloDesdeDock(dock, centro));
+  const { startAngle, endAngle } = angulosExtremos(angulos);
+
+  const radioMax = args.operador === "O" ? RADIO_EXTERNO : RADIO_INTERNO;
+  const padding = radioMax + PADDING_CELL;
+  const cellOrigen: Posicion = { x: dock.x - padding, y: dock.y - padding };
+  const tamano = padding * 2;
+  const centroLocal: Posicion = { x: padding, y: padding };
+
+  const arcoInterno = describeArc(centroLocal, RADIO_INTERNO, startAngle, endAngle);
+  const d = args.operador === "O"
+    ? `${arcoInterno} ${describeArc(centroLocal, RADIO_EXTERNO, startAngle, endAngle)}`
+    : arcoInterno;
+
+  return {
+    d,
+    position: cellOrigen,
+    size: { width: tamano, height: tamano },
+  };
+}
+
 export function proyectarOverlayAbanicoCanonico(args: {
   modelo: Modelo;
   opd: Opd;
@@ -17,32 +53,25 @@ export function proyectarOverlayAbanicoCanonico(args: {
   aparienciaPuerto: Apariencia;
   aparienciaPorEntidad: Map<Id, Apariencia>;
 }): JointCellJson[] {
-  const otrosCentros = centrosOtrosExtremos(args);
-  if (otrosCentros.length < 2) return [];
-
-  const dock = puntoDockEnPuerto(args.aparienciaPuerto, otrosCentros);
-  const angulos = otrosCentros.map((centro) => anguloDesdeDock(dock, centro));
-  const { startAngle, endAngle } = angulosExtremos(angulos);
-
-  const radioMax = args.abanico.operador === "O" ? RADIO_EXTERNO : RADIO_INTERNO;
-  const padding = radioMax + PADDING_CELL;
-  const cellOrigen: Posicion = { x: dock.x - padding, y: dock.y - padding };
-  const tamano = padding * 2;
-  const centroLocal: Posicion = { x: padding, y: padding };
-
-  const arcoInterno = describeArc(centroLocal, RADIO_INTERNO, startAngle, endAngle);
-  const path = args.abanico.operador === "O"
-    ? `${arcoInterno} ${describeArc(centroLocal, RADIO_EXTERNO, startAngle, endAngle)}`
-    : arcoInterno;
+  const tipoPuerto = args.modelo.entidades[args.abanico.puertoEntidadId]?.tipo;
+  if (!tipoPuerto) return [];
+  const centrosOtros = centrosOtrosExtremos(args);
+  const geometria = calcularGeometriaAbanico({
+    aparienciaPuerto: args.aparienciaPuerto,
+    tipoEntidadPuerto: tipoPuerto,
+    centrosOtros,
+    operador: args.abanico.operador,
+  });
+  if (!geometria) return [];
 
   return [{
     id: `overlay-abanico-${args.abanico.id}`,
     type: "opm.AbanicoArc",
-    position: cellOrigen,
-    size: { width: tamano, height: tamano },
+    position: geometria.position,
+    size: geometria.size,
     attrs: {
       body: {
-        d: path,
+        d: geometria.d,
         fill: "none",
         stroke: CANON.colores.enlace,
         strokeWidth: 1.5,
@@ -85,10 +114,12 @@ function centrosOtrosExtremos(args: {
 }
 
 // Punto de convergencia: interseccion del borde de la entidad puerto con la
-// recta que une su centro al centroide de los otros extremos. Equivalente al
-// dockPoint de OpCloud (shared.ts:5023-5031), pero calculado geometricamente
-// en vez de leerlo del LinkView (proyeccion es pura, sin paper).
-function puntoDockEnPuerto(puerto: Apariencia, otros: Posicion[]): Posicion {
+// recta que une su centro al centroide de los otros extremos. Para puertos
+// elipticos (procesos) se usa la formula de interseccion recta-elipse; para
+// puertos rectangulares (objetos) la del bbox. Sin esto los procesos quedaban
+// con dock fuera del borde real (capturas: arco flotando en el lado equivocado).
+// Equivalente al dockPoint de OpCloud (shared.ts:5023-5031), pero geometrico.
+function puntoDockEnPuerto(puerto: Apariencia, tipo: TipoEntidad, otros: Posicion[]): Posicion {
   const centroPuerto: Posicion = {
     x: puerto.x + puerto.width / 2,
     y: puerto.y + puerto.height / 2,
@@ -100,8 +131,18 @@ function puntoDockEnPuerto(puerto: Apariencia, otros: Posicion[]): Posicion {
   const dx = centroide.x - centroPuerto.x;
   const dy = centroide.y - centroPuerto.y;
   if (dx === 0 && dy === 0) return centroPuerto;
-  const tx = dx === 0 ? Number.POSITIVE_INFINITY : (puerto.width / 2) / Math.abs(dx);
-  const ty = dy === 0 ? Number.POSITIVE_INFINITY : (puerto.height / 2) / Math.abs(dy);
+  const halfW = puerto.width / 2;
+  const halfH = puerto.height / 2;
+  if (tipo === "proceso") {
+    // Interseccion recta-elipse: (t*dx)^2/a^2 + (t*dy)^2/b^2 = 1
+    const len2 = (dx / halfW) ** 2 + (dy / halfH) ** 2;
+    if (len2 === 0) return centroPuerto;
+    const t = 1 / Math.sqrt(len2);
+    return { x: centroPuerto.x + dx * t, y: centroPuerto.y + dy * t };
+  }
+  // Rectangulo: el borde mas cercano por el lado dominante de la direccion.
+  const tx = dx === 0 ? Number.POSITIVE_INFINITY : halfW / Math.abs(dx);
+  const ty = dy === 0 ? Number.POSITIVE_INFINITY : halfH / Math.abs(dy);
   const t = Math.min(tx, ty);
   return {
     x: centroPuerto.x + dx * t,
