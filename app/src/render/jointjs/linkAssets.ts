@@ -59,17 +59,11 @@ export const LINK_ASSETS = {
       markerDot: { cx: 15, cy: 20, r: 4 },
     },
   },
+  // Los abanicos logicos no tienen un asset estatico: el arco se construye
+  // dinamicamente en abanicoOverlay.ts a partir de los enlaces y el dock real.
+  // Ver opm-extracted shared.ts:5908-5914 (XOR=1 arco r=30, O=2 arcos r=30/35).
   logical: {
-    or: {
-      source: "assets/svg/links/logical/or.svg",
-      path: "M2 16C8 4 24 4 30 16",
-      size: { width: 32, height: 20 },
-      strokeDasharray: "3 2",
-    },
-    xor: {
-      source: "assets/svg/links/logical/xor.svg",
-      points: "6,5 18,12 6,19",
-      size: { width: 24, height: 24 },
-    },
+    or: { source: "assets/svg/links/logical/or.svg" },
+    xor: { source: "assets/svg/links/logical/xor.svg" },
   },
 } as const;

@@ -282,7 +282,7 @@ describe("proyeccion JointJS", () => {
     expect((line?.targetMarker as Attrs | undefined)?.points).toBe(LINK_ASSETS.procedural.invocacion.marker.points);
   });
 
-  test("proyecta O como arco canonico sin overlay textual", () => {
+  test("proyecta O como doble arco concentrico sin overlay textual", () => {
     const modelo = modeloConAbanico("O");
     const abanico = Object.values(modelo.abanicos ?? {})[0];
     expect(abanico).toBeDefined();
@@ -295,10 +295,15 @@ describe("proyeccion JointJS", () => {
     const label = attrs?.label as Attrs | undefined;
 
     expect(overlay?.type).toBe("standard.Path");
-    expect(body?.refD).toBe(LINK_ASSETS.logical.or.path);
+    const d = body?.d;
+    expect(typeof d).toBe("string");
+    // O = dos arcos concentricos r=30 y r=35, asi que el path tiene 2 'A '.
+    expect((d as string).match(/A 30 30/g)?.length).toBe(1);
+    expect((d as string).match(/A 35 35/g)?.length).toBe(1);
+    expect(body?.fill).toBe("none");
     expect(body?.stroke).toBe("#586D8C");
     expect(body?.strokeWidth).toBe(1.5);
-    expect(body?.strokeDasharray).toBe(LINK_ASSETS.logical.or.strokeDasharray);
+    expect(body?.strokeDasharray).toBe("4 1");
     expect(label?.text).toBe("");
     expect(label?.display).toBe("none");
     expect(overlay?.opm).toEqual({
@@ -309,7 +314,7 @@ describe("proyeccion JointJS", () => {
     });
   });
 
-  test("proyecta XOR como triangulo canonico y conserva metadata de abanico", () => {
+  test("proyecta XOR como un solo arco canonico y conserva metadata de abanico", () => {
     const modelo = modeloConAbanico("XOR");
     const abanico = Object.values(modelo.abanicos ?? {})[0];
     expect(abanico).toBeDefined();
@@ -321,10 +326,16 @@ describe("proyeccion JointJS", () => {
     const body = attrs?.body as Attrs | undefined;
     const label = attrs?.label as Attrs | undefined;
 
-    expect(overlay?.type).toBe("standard.Polygon");
-    expect(body?.refPoints).toBe(LINK_ASSETS.logical.xor.points);
-    expect(body?.fill).toBe("#586D8C");
+    expect(overlay?.type).toBe("standard.Path");
+    const d = body?.d;
+    expect(typeof d).toBe("string");
+    // XOR = un solo arco r=30, sin segundo arco r=35.
+    expect((d as string).match(/A 30 30/g)?.length).toBe(1);
+    expect((d as string).includes("A 35 35")).toBe(false);
+    expect(body?.fill).toBe("none");
     expect(body?.stroke).toBe("#586D8C");
+    expect(body?.strokeWidth).toBe(1.5);
+    expect(body?.strokeDasharray).toBe("4 1");
     expect(label?.text).toBe("");
     expect(label?.display).toBe("none");
     expect(overlay?.opm).toEqual({
@@ -333,10 +344,9 @@ describe("proyeccion JointJS", () => {
       abanicoId: abanico.id,
       operador: "XOR",
     });
-    expect(overlay?.type).not.toBe("standard.Ellipse");
   });
 
-  test("proyecta exhibicion como triangulos canonicos verticales anidados", () => {
+  test("proyecta exhibicion como triangulo contorno + triangulo interno relleno", () => {
     let modelo = crearModelo();
     modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 30 }, "Vehiculo"));
     modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 220, y: 130 }, "Color"));
@@ -347,13 +357,11 @@ describe("proyeccion JointJS", () => {
     const links = cells.filter((cell) => cell.type === "standard.Link");
     expect(links).toHaveLength(2);
     const polygons = cells.filter((cell) => cell.type === "standard.Polygon");
-    expect(polygons).toHaveLength(3);
+    expect(polygons).toHaveLength(2);
 
-    const grande = polygons.find((cell) => !String(cell.id).endsWith("-medio") && !String(cell.id).endsWith("-pequeno"));
-    const medio = polygons.find((cell) => String(cell.id).endsWith("-medio"));
+    const grande = polygons.find((cell) => !String(cell.id).endsWith("-pequeno"));
     const pequeno = polygons.find((cell) => String(cell.id).endsWith("-pequeno"));
     expect(grande).toBeDefined();
-    expect(medio).toBeDefined();
     expect(pequeno).toBeDefined();
 
     const markerPosition = grande?.position as { x?: number; y?: number } | undefined;
@@ -361,21 +369,17 @@ describe("proyeccion JointJS", () => {
     expect(links[1]?.source).toEqual({ x: (markerPosition?.x ?? 0) + 15, y: (markerPosition?.y ?? 0) + 30 });
 
     const bodyGrande = (grande?.attrs as Attrs | undefined)?.body as Attrs | undefined;
-    const bodyMedio = (medio?.attrs as Attrs | undefined)?.body as Attrs | undefined;
     const bodyPequeno = (pequeno?.attrs as Attrs | undefined)?.body as Attrs | undefined;
     expect(grande?.angle).toBe(0);
     expect(bodyGrande?.refPoints).toBe(LINK_ASSETS.structural.agregacion.markerPoints);
-    expect(bodyGrande?.fill).toBe("#586D8C");
-    expect(medio?.position).toEqual({ x: (markerPosition?.x ?? 0) + 6, y: (markerPosition?.y ?? 0) + 8 });
-    expect(medio?.size).toEqual({ width: 18, height: 18 });
-    expect(bodyMedio?.refPoints).toBe(LINK_ASSETS.structural.agregacion.markerPoints);
-    expect(bodyMedio?.fill).toBe("white");
+    // Outer = solo contorno (fill blanco para que se vea el stroke).
+    expect(bodyGrande?.fill).toBe("white");
+    expect(bodyGrande?.stroke).toBe("#586D8C");
     expect(pequeno?.position).toEqual({ x: (markerPosition?.x ?? 0) + 9, y: (markerPosition?.y ?? 0) + 12 });
     expect(pequeno?.size).toEqual({ width: 12, height: 12 });
     expect(bodyPequeno?.refPoints).toBe(LINK_ASSETS.structural.agregacion.markerPoints);
     expect(bodyPequeno?.fill).toBe("#586D8C");
-    expect(grande?.z).toBeLessThan(medio?.z ?? 0);
-    expect((medio?.z ?? 0)).toBeLessThan(pequeno?.z ?? 0);
+    expect(grande?.z).toBeLessThan(pequeno?.z ?? 0);
   });
 
   test("proyecta generalizacion como triangulo vacio (fill blanco con stroke enlace)", () => {
