@@ -1,4 +1,4 @@
-import { dia } from "jointjs";
+import { dia, shapes } from "jointjs";
 import { useEffect, useRef } from "preact/hooks";
 import { proyectarMapaSistemaAJointCells } from "../render/jointjs/mapaSistema";
 import { useOpmStore } from "../store";
@@ -11,17 +11,19 @@ export function MapaSistema() {
   const saltarAOpdDesdeMapa = useOpmStore((s) => s.saltarAOpdDesdeMapa);
   const cerrarVistaMapa = useOpmStore((s) => s.cerrarVistaMapa);
 
-  // Inicializar JointJS paper una sola vez
+  // Inicializar JointJS paper una sola vez. Necesitamos pasar el namespace de
+  // shapes estandar para que el graph pueda resolver `standard.Rectangle` y
+  // `standard.Link` al renderizar las celdas del descriptor.
   useEffect(() => {
     if (!hostRef.current) return;
 
-    const graph = new dia.Graph({}, { cellNamespace: {} });
+    const graph = new dia.Graph({}, { cellNamespace: shapes });
     const paper = new dia.Paper({
       el: hostRef.current,
       model: graph,
       width: 1600,
       height: 1200,
-      cellViewNamespace: {} as never,
+      cellViewNamespace: shapes,
       async: false,
       frozen: false,
       gridSize: 10,
