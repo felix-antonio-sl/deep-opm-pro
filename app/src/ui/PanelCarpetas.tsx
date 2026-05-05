@@ -2,9 +2,10 @@ import { useCallback, useState } from "preact/hooks";
 import folderIcon from "../../../assets/svg/folder.svg";
 import regFileIcon from "../../../assets/svg/regFile.svg";
 import autosaveIcon from "../../../assets/svg/autosave.svg";
+import verFileIcon from "../../../assets/svg/verFile.svg";
 import type { Id } from "../modelo/tipos";
 import type { ResumenModeloPersistido } from "../persistencia/local";
-import type { CarpetaIndice } from "../persistencia/workspace";
+import type { CarpetaIndice, PortapapelesWorkspace } from "../persistencia/workspace";
 
 export type VistaModo = "tiles" | "lista";
 
@@ -27,23 +28,40 @@ interface PanelCarpetasProps {
   onRenombrarCarpeta: (carpetaId: Id, nombre: string) => void;
   onEliminarCarpeta: (carpetaId: Id) => void;
   onAbrirModelo: (modeloId: Id) => void;
+  onAbrirModeloEnPestana?: (modeloId: Id) => void;
+  onCortarModelo?: (modeloId: Id) => void;
+  onCortarCarpeta?: (carpetaId: Id) => void;
+  onPegarEn?: (carpetaId: Id | null) => void;
+  onMoverModelo?: (modeloId: Id, carpetaDestinoId: Id | null) => void;
+  onMoverCarpeta?: (carpetaId: Id, carpetaDestinoId: Id | null) => void;
+  onArchivarModelo?: (modeloId: Id) => void;
+  onRestaurarModelo?: (modeloId: Id) => void;
+  onArchivarCarpeta?: (carpetaId: Id) => void;
+  onRestaurarCarpeta?: (carpetaId: Id) => void;
+  onAbrirVersiones?: (modeloId: Id) => void;
+  portapapeles?: PortapapelesWorkspace | null;
+  onCancelarPortapapeles?: () => void;
+  mostrarVersiones?: boolean;
   recientes: ResumenModeloPersistido[];
   modoOperacion: "carga" | "selector"; // carga = doble clic abre modelo, selector = seleccionar carpeta destino
 }
 
 interface MenuContextualState {
   abierto: boolean;
-  carpetaId: Id | null;
+  tipo: "carpeta" | "modelo" | "panel" | null;
+  itemId: Id | null;
   x: number;
   y: number;
 }
 
 export function PanelCarpetas(props: PanelCarpetasProps) {
-  const [menuCtx, setMenuCtx] = useState<MenuContextualState>({ abierto: false, carpetaId: null, x: 0, y: 0 });
+  const cerrarMenu = () => setMenuCtx({ abierto: false, tipo: null, itemId: null, x: 0, y: 0 });
+  const [menuCtx, setMenuCtx] = useState<MenuContextualState>({ abierto: false, tipo: null, itemId: null, x: 0, y: 0 });
   const [renombrandoId, setRenombrandoId] = useState<Id | null>(null);
   const [nombreRenombrar, setNombreRenombrar] = useState("");
   const [creando, setCreando] = useState(false);
   const [nombreNuevo, setNombreNuevo] = useState("");
+  const [dropDestino, setDropDestino] = useState<Id | null | "__root">(null);
 
   const filtrar = useCallback((nombre: string) => {
     if (!props.query) return true;
@@ -58,7 +76,7 @@ export function PanelCarpetas(props: PanelCarpetasProps) {
     if (!carpeta) return;
     setRenombrandoId(carpetaId);
     setNombreRenombrar(carpeta.nombre);
-    setMenuCtx({ abierto: false, carpetaId: null, x: 0, y: 0 });
+    cerrarMenu();
   };
 
   const confirmarRenombrar = () => {
@@ -79,8 +97,57 @@ export function PanelCarpetas(props: PanelCarpetasProps) {
   // Breadcrumb
   const segmentos = props.breadcrumb;
 
+  const abrirMenu = (event: MouseEvent, tipo: MenuContextualState["tipo"], itemId: Id | null) => {
+    event.preventDefault();
+    setMenuCtx({ abierto: true, tipo, itemId, x: event.clientX, y: event.clientY });
+  };
+
+  const iniciarDrag = (event: DragEvent, tipo: "modelo" | "carpeta", itemId: Id) => {
+    event.dataTransfer?.setData("application/x-deep-opm-workspace", JSON.stringify({ tipo, itemId }));
+    if (event.dataTransfer) event.dataTransfer.effectAllowed = "move";
+  };
+
+  const leerDrag = (event: DragEvent): { tipo: "modelo" | "carpeta"; itemId: Id } | null => {
+    const raw = event.dataTransfer?.getData("application/x-deep-opm-workspace");
+    if (!raw) return null;
+    try {
+      const parsed = JSON.parse(raw) as { tipo?: string; itemId?: string };
+      if ((parsed.tipo === "modelo" || parsed.tipo === "carpeta") && typeof parsed.itemId === "string") {
+        return { tipo: parsed.tipo, itemId: parsed.itemId };
+      }
+    } catch {
+      return null;
+    }
+    return null;
+  };
+
+  const soltarEn = (event: DragEvent, carpetaDestinoId: Id | null) => {
+    event.preventDefault();
+    setDropDestino(null);
+    const payload = leerDrag(event);
+    if (!payload) return;
+    if (payload.tipo === "modelo") props.onMoverModelo?.(payload.itemId, carpetaDestinoId);
+    if (payload.tipo === "carpeta") props.onMoverCarpeta?.(payload.itemId, carpetaDestinoId);
+  };
+
+  const puedePegar = Boolean(props.portapapeles && props.onPegarEn);
+  const versionsCount = (modelo: ResumenModeloPersistido) => modelo.versiones?.length ?? 0;
+
   return (
-    <div style={style.panel}>
+    <div
+      style={style.panel}
+      onContextMenu={(e) => {
+        if (e.currentTarget !== e.target) return;
+        abrirMenu(e, "panel", null);
+      }}
+      onDragOver={(e) => {
+        if (!props.onMoverModelo && !props.onMoverCarpeta) return;
+        e.preventDefault();
+        setDropDestino("__root");
+      }}
+      onDragLeave={() => setDropDestino(null)}
+      onDrop={(e) => soltarEn(e, props.carpetaActualId)}
+    >
       {/* Barra de herramientas */}
       <div style={style.toolbar}>
         <div style={style.breadcrumbBar}>
@@ -137,6 +204,26 @@ export function PanelCarpetas(props: PanelCarpetasProps) {
               onInput={(e) => props.onQueryChange(e.currentTarget.value)}
             />
           </label>
+          {puedePegar ? (
+            <>
+              <button
+                type="button"
+                style={style.pendingButton}
+                onClick={() => props.onPegarEn?.(props.carpetaActualId)}
+                title="Pegar en esta carpeta"
+              >
+                Pegar aqui
+              </button>
+              <button
+                type="button"
+                style={style.toggle}
+                onClick={props.onCancelarPortapapeles}
+                title="Cancelar cortar"
+              >
+                x
+              </button>
+            </>
+          ) : null}
           <button
             type="button"
             style={props.vista === "tiles" ? style.activeToggle : style.toggle}
@@ -180,7 +267,10 @@ export function PanelCarpetas(props: PanelCarpetasProps) {
       )}
 
       {/* Contenido principal */}
-      <div style={props.modoOperacion === "carga" ? style.contenidoConRecientes : style.contenido}>
+      <div style={{
+        ...(props.modoOperacion === "carga" ? style.contenidoConRecientes : style.contenido),
+        ...(dropDestino === "__root"  ? style.dropActivo : {}),
+      }}>
         {props.vista === "lista" ? (
           <table style={style.tabla}>
             <thead>
@@ -194,12 +284,17 @@ export function PanelCarpetas(props: PanelCarpetasProps) {
               {carpetasFiltradas.map((carpeta) => (
                 <tr
                   key={carpeta.id}
-                  style={style.fila}
-                  onDblClick={() => props.onAbrirCarpeta(carpeta.id)}
-                  onContextMenu={(e) => {
+                  style={{ ...style.fila, ...(carpeta.archivada  ? style.filaArchivada : {}), ...(dropDestino === carpeta.id  ? style.dropActivo : {}) }}
+                  draggable
+                  onDragStart={(e) => iniciarDrag(e, "carpeta", carpeta.id)}
+                  onDragOver={(e) => {
                     e.preventDefault();
-                    setMenuCtx({ abierto: true, carpetaId: carpeta.id, x: e.clientX, y: e.clientY });
+                    setDropDestino(carpeta.id);
                   }}
+                  onDragLeave={() => setDropDestino(null)}
+                  onDrop={(e) => soltarEn(e, carpeta.id)}
+                  onDblClick={() => props.onAbrirCarpeta(carpeta.id)}
+                  onContextMenu={(e) => abrirMenu(e, "carpeta", carpeta.id)}
                 >
                   <td style={style.td}>
                     <img src={folderIcon} alt="" style={style.tableIcon} />
@@ -216,6 +311,7 @@ export function PanelCarpetas(props: PanelCarpetasProps) {
                     ) : (
                       <span style={style.tdName}>{carpeta.nombre}</span>
                     )}
+                    {carpeta.archivada ? <span style={style.archiveBadge}>ARCH</span> : null}
                   </td>
                   <td style={style.td}>Carpeta</td>
                   <td style={style.td}>—</td>
@@ -224,16 +320,23 @@ export function PanelCarpetas(props: PanelCarpetasProps) {
               {modelosFiltrados.map((modelo) => (
                 <tr
                   key={modelo.id}
-                  style={style.fila}
+                  style={{ ...style.fila, ...(modelo.archivado  ? style.filaArchivada : {}) }}
+                  draggable
+                  onDragStart={(e) => iniciarDrag(e, "modelo", modelo.id)}
                   onDblClick={() => props.onAbrirModelo(modelo.id)}
                   onClick={() => {
                     if (props.modoOperacion === "carga") props.onAbrirModelo(modelo.id);
                   }}
+                  onContextMenu={(e) => abrirMenu(e, "modelo", modelo.id)}
                 >
                   <td style={style.td}>
                     <img src={regFileIcon} alt="" style={style.tableIcon} />
                     <span style={style.tdName}>{modelo.nombre}</span>
                     {modelo.autosalvado ? <img src={autosaveIcon} alt="autosalvado" style={style.glyphIcon} /> : null}
+                    {modelo.archivado ? <span style={style.archiveBadge}>ARCH</span> : null}
+                    {props.mostrarVersiones && versionsCount(modelo) > 0 ? (
+                      <img src={verFileIcon} alt={`${versionsCount(modelo)} versiones`} style={style.glyphIcon} title={`${versionsCount(modelo)} versiones`} />
+                    ) : null}
                   </td>
                   <td style={style.td}>Modelo</td>
                   <td style={style.td}>{new Date(modelo.actualizadoEn).toLocaleString("es-CL")}</td>
@@ -248,12 +351,17 @@ export function PanelCarpetas(props: PanelCarpetasProps) {
               <button
                 key={carpeta.id}
                 type="button"
-                style={style.tile}
-                onDblClick={() => props.onAbrirCarpeta(carpeta.id)}
-                onContextMenu={(e) => {
+                style={{ ...style.tile, ...(carpeta.archivada  ? style.tileArchivado : {}), ...(dropDestino === carpeta.id  ? style.tileDrop : {}) }}
+                draggable
+                onDragStart={(e) => iniciarDrag(e, "carpeta", carpeta.id)}
+                onDragOver={(e) => {
                   e.preventDefault();
-                  setMenuCtx({ abierto: true, carpetaId: carpeta.id, x: e.clientX, y: e.clientY });
+                  setDropDestino(carpeta.id);
                 }}
+                onDragLeave={() => setDropDestino(null)}
+                onDrop={(e) => soltarEn(e, carpeta.id)}
+                onDblClick={() => props.onAbrirCarpeta(carpeta.id)}
+                onContextMenu={(e) => abrirMenu(e, "carpeta", carpeta.id)}
                 title={carpeta.nombre}
               >
                 <img src={folderIcon} alt="" style={style.tileIcon} />
@@ -271,18 +379,21 @@ export function PanelCarpetas(props: PanelCarpetasProps) {
                 ) : (
                   <span style={style.tileName}>{carpeta.nombre}</span>
                 )}
-                <span style={style.tileType}>Carpeta</span>
+                <span style={style.tileType}>Carpeta {carpeta.archivada ? <span style={style.archiveBadge}>ARCH</span> : null}</span>
               </button>
             ))}
             {modelosFiltrados.map((modelo) => (
               <button
                 key={modelo.id}
                 type="button"
-                style={style.tile}
+                style={{ ...style.tile, ...(modelo.archivado  ? style.tileArchivado : {}) }}
+                draggable
+                onDragStart={(e) => iniciarDrag(e, "modelo", modelo.id)}
                 onClick={() => {
                   if (props.modoOperacion === "carga") props.onAbrirModelo(modelo.id);
                 }}
                 onDblClick={() => props.onAbrirModelo(modelo.id)}
+                onContextMenu={(e) => abrirMenu(e, "modelo", modelo.id)}
                 title={modelo.nombre}
               >
                 <img src={regFileIcon} alt="" style={style.tileIcon} />
@@ -291,6 +402,10 @@ export function PanelCarpetas(props: PanelCarpetasProps) {
                 <span style={style.tileDate}>{new Date(modelo.actualizadoEn).toLocaleString("es-CL")}</span>
                 {modelo.autosalvado ? (
                   <img src={autosaveIcon} alt="autosalvado" style={style.glyphIcon} title="Autosalvado" />
+                ) : null}
+                {modelo.archivado ? <span style={style.archiveBadge}>ARCH</span> : null}
+                {props.mostrarVersiones && versionsCount(modelo) > 0 ? (
+                  <img src={verFileIcon} alt={`${versionsCount(modelo)} versiones`} style={style.glyphIcon} title={`${versionsCount(modelo)} versiones`} />
                 ) : null}
               </button>
             ))}
@@ -325,17 +440,80 @@ export function PanelCarpetas(props: PanelCarpetasProps) {
       </div>
 
       {/* Menú contextual */}
-      {menuCtx.abierto && menuCtx.carpetaId ? (
+      {menuCtx.abierto ? (
         <div
           style={{ ...style.contextMenu, left: menuCtx.x, top: menuCtx.y }}
-          onMouseLeave={() => setMenuCtx({ abierto: false, carpetaId: null, x: 0, y: 0 })}
+          onMouseLeave={cerrarMenu}
         >
-          <button type="button" style={style.contextItem} onClick={() => iniciarRenombrar(menuCtx.carpetaId!)}>
-            Renombrar
-          </button>
-          <button type="button" style={style.contextItem} onClick={() => { props.onEliminarCarpeta(menuCtx.carpetaId!); setMenuCtx({ abierto: false, carpetaId: null, x: 0, y: 0 }); }}>
-            Eliminar
-          </button>
+          {menuCtx.tipo === "panel" && puedePegar ? (
+            <button type="button" style={style.contextItem} onClick={() => { props.onPegarEn?.(props.carpetaActualId); cerrarMenu(); }}>
+              Pegar aqui
+            </button>
+          ) : null}
+          {menuCtx.tipo === "carpeta" && menuCtx.itemId ? (
+            <>
+              <button type="button" style={style.contextItem} onClick={() => iniciarRenombrar(menuCtx.itemId!)}>
+                Renombrar
+              </button>
+              {props.onCortarCarpeta ? (
+                <button type="button" style={style.contextItem} onClick={() => { props.onCortarCarpeta?.(menuCtx.itemId!); cerrarMenu(); }}>
+                  Cortar
+                </button>
+              ) : null}
+              {puedePegar ? (
+                <button type="button" style={style.contextItem} onClick={() => { props.onPegarEn?.(menuCtx.itemId!); cerrarMenu(); }}>
+                  Pegar dentro
+                </button>
+              ) : null}
+              {props.hijos.carpetas.find((c) => c.id === menuCtx.itemId)?.archivada ? (
+                <button type="button" style={style.contextItem} onClick={() => { props.onRestaurarCarpeta?.(menuCtx.itemId!); cerrarMenu(); }}>
+                  Restaurar
+                </button>
+              ) : (
+                <button type="button" style={style.contextItem} onClick={() => { props.onArchivarCarpeta?.(menuCtx.itemId!); cerrarMenu(); }}>
+                  Archivar carpeta
+                </button>
+              )}
+              <button type="button" style={style.contextItem} onClick={() => { props.onEliminarCarpeta(menuCtx.itemId!); cerrarMenu(); }}>
+                Eliminar
+              </button>
+            </>
+          ) : null}
+          {menuCtx.tipo === "modelo" && menuCtx.itemId ? (
+            <>
+              {props.onAbrirModeloEnPestana ? (
+                <button
+                  type="button"
+                  style={style.contextItem}
+                  onClick={() => {
+                    props.onAbrirModeloEnPestana?.(menuCtx.itemId!);
+                    cerrarMenu();
+                  }}
+                >
+                  Abrir en pestana nueva
+                </button>
+              ) : null}
+              {props.onCortarModelo ? (
+                <button type="button" style={style.contextItem} onClick={() => { props.onCortarModelo?.(menuCtx.itemId!); cerrarMenu(); }}>
+                  Cortar
+                </button>
+              ) : null}
+              {props.onAbrirVersiones ? (
+                <button type="button" style={style.contextItem} onClick={() => { props.onAbrirVersiones?.(menuCtx.itemId!); cerrarMenu(); }}>
+                  Versiones
+                </button>
+              ) : null}
+              {props.hijos.modelos.find((m) => m.id === menuCtx.itemId)?.archivado ? (
+                <button type="button" style={style.contextItem} onClick={() => { props.onRestaurarModelo?.(menuCtx.itemId!); cerrarMenu(); }}>
+                  Restaurar
+                </button>
+              ) : (
+                <button type="button" style={style.contextItem} onClick={() => { props.onArchivarModelo?.(menuCtx.itemId!); cerrarMenu(); }}>
+                  Archivar modelo
+                </button>
+              )}
+            </>
+          ) : null}
         </div>
       ) : null}
     </div>
@@ -430,6 +608,18 @@ const style = {
     padding: 0,
     fontWeight: 700,
   },
+  pendingButton: {
+    height: "30px",
+    padding: "0 10px",
+    border: "1px solid #586D8C",
+    borderRadius: "4px",
+    background: "#e8eef5",
+    color: "#1f2937",
+    cursor: "pointer",
+    fontSize: "12px",
+    fontWeight: 700,
+    whiteSpace: "nowrap",
+  },
   recientesPanel: {
     width: "160px",
     flexShrink: 0,
@@ -499,6 +689,15 @@ const style = {
     cursor: "pointer",
     textAlign: "left",
   },
+  tileArchivado: {
+    borderColor: "#c8d2df",
+    background: "#f5f7fa",
+    color: "#667085",
+  },
+  tileDrop: {
+    borderColor: "#3BC3FF",
+    boxShadow: "0 0 0 2px rgba(59, 195, 255, 0.18)",
+  },
   tileIcon: { width: "24px", height: "24px" },
   tileName: {
     minWidth: 0,
@@ -543,6 +742,14 @@ const style = {
     borderBottom: "1px solid #f2f4f7",
     cursor: "pointer",
   },
+  filaArchivada: {
+    background: "#f5f7fa",
+    color: "#667085",
+  },
+  dropActivo: {
+    outline: "2px solid #3BC3FF",
+    outlineOffset: "-2px",
+  },
   td: {
     padding: "8px",
     display: "flex",
@@ -551,6 +758,19 @@ const style = {
   },
   tableIcon: { width: "18px", height: "18px", flexShrink: 0 },
   tdName: { fontWeight: 600, color: "#1f2937" },
+  archiveBadge: {
+    display: "inline-flex",
+    alignItems: "center",
+    height: "16px",
+    padding: "0 5px",
+    border: "1px solid #c8d2df",
+    borderRadius: "4px",
+    color: "#586D8C",
+    background: "#ffffff",
+    fontSize: "10px",
+    fontWeight: 800,
+    lineHeight: 1,
+  },
   empty: {
     padding: "18px",
     border: "1px dashed #c8d2df",

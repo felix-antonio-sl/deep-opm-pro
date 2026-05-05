@@ -19,9 +19,11 @@ export function DialogoGuardarComo() {
   const crearCarpeta = useOpmStore((s) => s.crearCarpetaEnActual);
   const renombrarCarpeta = useOpmStore((s) => s.renombrarCarpetaEnIndice);
   const eliminarCarpeta = useOpmStore((s) => s.eliminarCarpetaEnIndice);
+  const mostrarVersiones = useOpmStore((s) => s.mostrarVersiones);
   const inputRef = useRef<HTMLInputElement>(null);
   const [nombre, setNombre] = useState(workspace.nombre);
   const [descripcion, setDescripcion] = useState(workspace.descripcion);
+  const [crearVersionAlGuardar, setCrearVersionAlGuardar] = useState(false);
   const [modo, setModo] = useState<VistaModo>("lista");
   const [query, setQuery] = useState("");
 
@@ -29,6 +31,7 @@ export function DialogoGuardarComo() {
     if (!open) return;
     setNombre(workspace.nombre);
     setDescripcion(workspace.descripcion);
+    setCrearVersionAlGuardar(false);
     setQuery("");
   }, [open, workspace.descripcion, workspace.nombre]);
 
@@ -70,7 +73,7 @@ export function DialogoGuardarComo() {
             type="button"
             style={validacion.ok ? style.primaryButton : style.disabledButton}
             disabled={!validacion.ok}
-            onClick={() => guardarComoLocal({ nombre, descripcion })}
+            onClick={() => guardarComoLocal({ nombre, descripcion, crearVersionAlGuardar })}
           >
             Guardar
           </button>
@@ -106,6 +109,7 @@ export function DialogoGuardarComo() {
               onRenombrarCarpeta={renombrarCarpeta}
               onEliminarCarpeta={(cId) => { void eliminarCarpeta(cId, { cascada: false }); }}
               onAbrirModelo={() => {}} // En modo selector, no se abren modelos
+              mostrarVersiones={mostrarVersiones}
               recientes={[]}
               modoOperacion="selector"
             />
@@ -130,6 +134,14 @@ export function DialogoGuardarComo() {
             value={descripcion}
             onInput={(event) => setDescripcion(event.currentTarget.value)}
           />
+        </label>
+        <label style={style.checkLine}>
+          <input
+            type="checkbox"
+            checked={crearVersionAlGuardar}
+            onChange={(event) => setCrearVersionAlGuardar(event.currentTarget.checked)}
+          />
+          Crear versiones en guardados manuales
         </label>
         {!validacion.ok ? <div role="alert" style={style.error}>{validacion.error}</div> : null}
       </div>
@@ -201,6 +213,14 @@ const style = {
   error: {
     color: "#b42318",
     fontSize: "12px",
+    fontWeight: 700,
+  },
+  checkLine: {
+    display: "inline-flex",
+    alignItems: "center",
+    gap: "7px",
+    color: "#475467",
+    fontSize: "13px",
     fontWeight: 700,
   },
   primaryButton: {

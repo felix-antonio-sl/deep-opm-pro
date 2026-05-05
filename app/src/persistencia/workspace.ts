@@ -1,4 +1,5 @@
-import type { Id, Modelo, Resultado } from "../modelo/tipos";
+import type { Id, Modelo, PreferenciasUiUsuario, Resultado, VersionResumen } from "../modelo/tipos";
+import type { CriterioResaltado } from "../render/jointjs/mapaSistema";
 import type { ResumenModeloPersistido } from "./local";
 
 // ── Tipos de jerarquía ──────────────────────────────────────────────
@@ -8,17 +9,57 @@ export interface CarpetaIndice {
   nombre: string;
   padreId: Id | null;     // null = raíz
   creadoEn: number;
+  archivada?: boolean;
+  archivadaEn?: string;
 }
 
 export interface ModeloIndice {
   id: Id;
   carpetaId: Id | null;   // null = raíz
+  archivado?: boolean;
+  archivadoEn?: string;
+  versiones?: VersionResumen[];
+  mapa?: MapaWorkspace;
+}
+
+export interface MapaWorkspace {
+  zoom?: number;
+  panX?: number;
+  panY?: number;
+  profundidadMaxima?: number | null;
+  subarbolRaizId?: Id | null;
+  criterioResaltado?: CriterioResaltado;
+  autoRefresh?: boolean;
 }
 
 export interface WorkspaceIndice {
   modelos: ModeloIndice[];
   carpetas: CarpetaIndice[];
   recientes: Id[];        // ids de modelos en orden de apertura, max 10
+  busquedaGlobalUltima?: string;
+  preferenciasUi?: PreferenciasUiUsuario;
+}
+
+export interface PortapapelesWorkspace {
+  tipo: "modelo" | "carpeta";
+  itemId: Id;
+  origenCarpetaId: Id | null;
+  cortadoEn: string;
+}
+
+export interface ResultadoBusquedaGlobal {
+  modeloId: Id;
+  nombre: string;
+  descripcion?: string;
+  carpetaId: Id | null;
+  rutaCarpetas: string;
+  match: { campo: "nombre" | "descripcion"; resaltado: string };
+}
+
+export interface BusquedaGlobalEstado {
+  query: string;
+  resultados: ResultadoBusquedaGlobal[];
+  enProgreso: boolean;
 }
 
 // ── Compatibilidad con ronda 5 ──────────────────────────────────────
@@ -213,14 +254,33 @@ export function moverModeloACarpeta(
 export function listarHijosDeCarpeta(
   indice: WorkspaceIndice,
   carpetaId: Id | null,
+  opciones: { incluirArchivados?: boolean } = {},
 ): { carpetas: CarpetaIndice[]; modelos: ModeloIndice[] } {
   const carpetas = indice.carpetas
-    .filter((c) => c.padreId === carpetaId)
+    .filter((c) => c.padreId === carpetaId && (opciones.incluirArchivados || !c.archivada))
     .sort((a, b) => a.nombre.localeCompare(b.nombre, "es-CL"));
   const modelos = indice.modelos
-    .filter((m) => m.carpetaId === carpetaId)
+    .filter((m) => m.carpetaId === carpetaId && (opciones.incluirArchivados || !m.archivado))
     .sort((a, b) => a.id.localeCompare(b.id));
   return { carpetas, modelos };
+}
+
+export function listarModelosPorCarpeta(
+  indice: WorkspaceIndice,
+  carpetaId: Id | null,
+  opciones: { incluirArchivados?: boolean } = {},
+): ModeloIndice[] {
+  return listarHijosDeCarpeta(indice, carpetaId, opciones).modelos;
+}
+
+export function listarCarpetasPorPadre(
+  indice: WorkspaceIndice,
+  padreId: Id | null,
+  opciones: { incluirArchivadas?: boolean } = {},
+): CarpetaIndice[] {
+  return indice.carpetas
+    .filter((c) => c.padreId === padreId && (opciones.incluirArchivadas || !c.archivada))
+    .sort((a, b) => a.nombre.localeCompare(b.nombre, "es-CL"));
 }
 
 export function rutaDeCarpeta(
@@ -251,4 +311,114 @@ export function carpetaTieneAncestro(
     actual = carpeta?.padreId ?? null;
   }
   return false;
+}
+
+export function buscarGlobal(
+  indice: WorkspaceIndice,
+  query: string,
+  modelosGuardados: ResumenModeloPersistido[] = [],
+): ResultadoBusquedaGlobal[] {
+  const q = query.trim().toLocaleLowerCase("es-CL");
+  if (q.length < 3) return [];
+  const resumenes = new Map(modelosGuardados.map((modelo) => [modelo.id, modelo]));
+  return indice.modelos
+    .filter((modelo) => !modelo.archivado)
+    .reduce<ResultadoBusquedaGlobal[]>((resultados, modelo) => {
+      const resumen = resumenes.get(modelo.id);
+      const nombre = resumen?.nombre ?? modelo.id;
+      const descripcion = resumen?.descripcion ?? "";
+      const nombreLower = nombre.toLocaleLowerCase("es-CL");
+      const descripcionLower = descripcion.toLocaleLowerCase("es-CL");
+      const campo = nombreLower.includes(q)
+        ? "nombre"
+        : descripcionLower.includes(q)
+          ? "descripcion"
+          : null;
+      if (!campo) return resultados;
+      const texto = campo === "nombre" ? nombre : descripcion;
+      resultados.push({
+        modeloId: modelo.id,
+        nombre,
+        descripcion,
+        carpetaId: modelo.carpetaId,
+        rutaCarpetas: rutaTexto(indice, modelo.carpetaId),
+        match: { campo, resaltado: texto },
+      });
+      return resultados;
+    }, [])
+    .sort((a, b) => a.nombre.localeCompare(b.nombre, "es-CL"));
+}
+
+export function archivarModelo(indice: WorkspaceIndice, modeloId: Id, ahora = new Date().toISOString()): WorkspaceIndice {
+  return {
+    ...indice,
+    modelos: indice.modelos.map((modelo) =>
+      modelo.id === modeloId ? { ...modelo, archivado: true, archivadoEn: ahora } : modelo,
+    ),
+  };
+}
+
+export function restaurarModelo(indice: WorkspaceIndice, modeloId: Id): WorkspaceIndice {
+  return {
+    ...indice,
+    modelos: indice.modelos.map((modelo) =>
+      modelo.id === modeloId ? sinArchivado(modelo) : modelo,
+    ),
+  };
+}
+
+export function archivarCarpeta(indice: WorkspaceIndice, carpetaId: Id, ahora = new Date().toISOString()): WorkspaceIndice {
+  const ids = idsCarpetasDescendientes(indice, carpetaId);
+  ids.add(carpetaId);
+  return {
+    ...indice,
+    carpetas: indice.carpetas.map((carpeta) =>
+      ids.has(carpeta.id) ? { ...carpeta, archivada: true, archivadaEn: ahora } : carpeta,
+    ),
+    modelos: indice.modelos.map((modelo) =>
+      modelo.carpetaId && ids.has(modelo.carpetaId)
+        ? { ...modelo, archivado: true, archivadoEn: ahora }
+        : modelo,
+    ),
+  };
+}
+
+export function restaurarCarpeta(indice: WorkspaceIndice, carpetaId: Id): WorkspaceIndice {
+  const ids = idsCarpetasDescendientes(indice, carpetaId);
+  ids.add(carpetaId);
+  return {
+    ...indice,
+    carpetas: indice.carpetas.map((carpeta) => ids.has(carpeta.id) ? sinArchivadoCarpeta(carpeta) : carpeta),
+    modelos: indice.modelos.map((modelo) =>
+      modelo.carpetaId && ids.has(modelo.carpetaId) ? sinArchivado(modelo) : modelo,
+    ),
+  };
+}
+
+export function rutaTexto(indice: WorkspaceIndice, carpetaId: Id | null): string {
+  const partes = [...BREADCRUMB_RAIZ, ...rutaDeCarpeta(indice, carpetaId).map((c) => c.nombre)];
+  return partes.join(" / ");
+}
+
+function idsCarpetasDescendientes(indice: WorkspaceIndice, carpetaId: Id): Set<Id> {
+  const ids = new Set<Id>();
+  const visitar = (padreId: Id) => {
+    for (const carpeta of indice.carpetas) {
+      if (carpeta.padreId !== padreId || ids.has(carpeta.id)) continue;
+      ids.add(carpeta.id);
+      visitar(carpeta.id);
+    }
+  };
+  visitar(carpetaId);
+  return ids;
+}
+
+function sinArchivado<T extends { archivado?: boolean; archivadoEn?: string }>(value: T): T {
+  const { archivado: _archivado, archivadoEn: _archivadoEn, ...resto } = value;
+  return resto as T;
+}
+
+function sinArchivadoCarpeta(carpeta: CarpetaIndice): CarpetaIndice {
+  const { archivada: _archivada, archivadaEn: _archivadaEn, ...resto } = carpeta;
+  return resto;
 }
