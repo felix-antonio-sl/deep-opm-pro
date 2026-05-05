@@ -31,7 +31,11 @@ export function Dialogo(props: DialogoProps) {
 
     const manejarTecla = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
+        // Captura: corta antes de que el registry global de atajos consuma
+        // Escape via stopImmediatePropagation. El diálogo abierto siempre
+        // tiene prioridad sobre los atajos globales.
         event.preventDefault();
+        event.stopImmediatePropagation();
         props.onCancel();
         return;
       }
@@ -39,8 +43,8 @@ export function Dialogo(props: DialogoProps) {
       mantenerFocoEnDialogo(event, dialog);
     };
 
-    window.addEventListener("keydown", manejarTecla);
-    return () => window.removeEventListener("keydown", manejarTecla);
+    window.addEventListener("keydown", manejarTecla, true);
+    return () => window.removeEventListener("keydown", manejarTecla, true);
   }, [props]);
 
   if (!props.open) return null;

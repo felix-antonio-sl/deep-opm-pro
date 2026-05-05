@@ -2029,6 +2029,12 @@ test("arbol OPD: renombrado inline y expandir/colapsar funcionan", async ({ page
   const canvasPane = page.getByTestId("canvas-pane");
   await canvasPane.click({ position: { x: 200, y: 200 } });
 
+  // L1 ronda 7: la barra creativa permanece sticky tras crear (HU-11.001).
+  // Liberar el modo y seleccionar el proceso recién creado para que el
+  // Inspector exponga "Descomponer".
+  await page.keyboard.press("Escape");
+  await canvasPane.locator(".joint-element").first().click();
+
   // Descomponer para crear SD1
   await page.getByRole("button", { name: "Descomponer", exact: true }).click();
 

@@ -89,6 +89,11 @@ export function formatearCombo(combo: Combo): string {
 }
 
 function manejarKeydown(e: KeyboardEvent): void {
+  // Cualquier diálogo modal abierto consume sus propios atajos (Escape,
+  // Enter, Tab focus trap). El registry global se hace a un lado para no
+  // robar el evento via stopImmediatePropagation.
+  if (e.target instanceof Element && e.target.closest('[role="dialog"][aria-modal="true"]')) return;
+
   const combo = comboDesdeEvento(e);
   const ctx = contextoDesdeEvento(e);
   const candidato = registroAplicable(combo, ctx, e);
