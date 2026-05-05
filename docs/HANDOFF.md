@@ -1,9 +1,9 @@
 # HANDOFF - estado integrado y próximos pasos
 
-**Fecha**: 2026-05-05
+**Fecha**: 2026-05-06
 **Repositorio**: `deep-opm-pro`
-**Corte**: MVP-alpha + rondas 1, 2, 3, 4, 5, 6 y 7 consolidadas sobre `main`
-**Código verificado**: `main` @ `ee10c9c` (`chore(ledger): regenera evidencia hu-progress post-ronda 7`)
+**Corte**: MVP-alpha + rondas 1, 2, 3, 4, 5, 6, 7 y 8 consolidadas sobre `main`
+**Código verificado**: `main` @ `ff1a74f` (`refactor(ui): extrae subcomponentes de paneles e inspectores`) más cascadas de consolidación pendientes de commit (fix de mutación legacy en `store.test.ts` y recalibración del detector — incluidas en este handoff y comiteables como `chore(ledger)` + `fix(test)`).
 **Documentación vigente**: este archivo reemplaza por completo el handoff anterior.
 
 ## Política De Handoff Único
@@ -20,363 +20,184 @@ ancla en la SSOT OPM/ISO 19450 en
 `/home/felix/kora/artifacts/knowledge/fxsl/opm/opm-ssot-es/` y la evidencia
 operacional reusable se consulta en `opm-extracted/` sin copiar bloques 1:1.
 
-La ronda 7 cerró seis líneas paralelas más una capa de cascadas resueltas en
-consolidación final, todas integradas sobre `main`:
+La ronda 8 cerró seis líneas paralelas de **refactor estructural** sobre los
+monolitos acumulados en rondas 1-7, sin cambiar APIs públicas ni comportamiento
+observable. Cada barrel top-level se reduce a re-exports y la lógica vive en
+slices/composers/generadores/sub-componentes por dominio:
 
 | Línea | Commit | Resultado integrado |
 |---|---|---|
-| L2 | `f32aba2` | Mapa del sistema cierre + fix `scaleContentToFit`. `mapaSistema.ts` extendido con `calcularEstadisticas`, `filtrarPorProfundidad`, `filtrarPorSubarbol`, `resaltarPorTipo` (predominancia proceso/objeto/estados/raíz), `aplicarMarcadores` (activo/visitado), proyección completa con `cellNamespace` + `queueMicrotask` para que `scaleContentToFit` vea todas las cells. `mapaExport.ts` nuevo con export PNG/SVG cliente-side via `paper.toSVG()` + `canvas.toBlob` (PDF diferido por EPICA-60). `MapaSistema.tsx` con paneles de filtros y estadísticas, tooltip por hover, Ctrl+rueda zoom, pan persistente, marcadores rojo/verde, botón Refrescar. `MapaFiltros.tsx` y `MapaPanelEstadisticas.tsx` nuevos. Persistencia `ui.mapa.{zoom,pan,filtros}` por modelo en `WorkspaceIndice`. |
-| L5 | `d3a798d` | Atajos centrales + cierre árbol OPD. `ui/atajosTeclado.ts` registry central con contexto (global/canvas/panel-arbol/panel-opl/modal-input/vista-mapa), `escucharGlobal` con un solo `keydown` listener en `window` con captura, `formatearCombo` cross-platform. `divisorPanel.tsx` con clamp [160, 600] y doble clic reset a 240. `MenuContextualArbol.tsx` con Renombrar/Eliminar/Cortar/Pegar/Reordenar/Mostrar-Ocultar nombres/Expandir-Colapsar todo. `CheatsheetAtajos.tsx`. `ArbolOpd.tsx` con Ctrl+arrows, toggle ocultar nombres a códigos `SDn`. |
-| L4 | `6528aa9` | Workspace cierre. `persistencia/movimientoModelos.ts` (mover modelos y carpetas con validación de ciclo), `versiones.ts` (snapshots manuales sin log-scale, `restaurarVersion` como copia con sufijo "(restaurado AAAA-MM-DD)"), `workspace.ts` con `archivarModelo`/`archivarCarpeta` con cascada, `buscarGlobal` con guard ≥3 caracteres. `DialogoBuscarGlobal.tsx`, `DialogoVersiones.tsx`, `DialogoArchivados.tsx` nuevos. `PanelCarpetas.tsx` con drag-drop, cut/paste con caducidad 5min, glifos archivado y versión, menú contextual completo. |
-| L1 | `2bcd533` | Multi-selección y operaciones batch. `canvas/seleccionMultiple.ts` con modos `simple/multi/rectangulo`. `canvas/operacionesBatch.ts` con `eliminarBatch`, `nudgeApariencias/Enlaces`, `alinearEnlaces` (4 direcciones), `conectarMultiAlTodo` idempotente, `aplicarEstiloA{Apariencias,Enlaces}`, `copiarSeleccion`+`pegarSeleccion` via buffer en memoria. `JointCanvas.tsx` con handlers Ctrl/Cmd+clic, Shift+drag rubber band SVG. `StyleControls.tsx` y `InspectorEnlace.tsx` con boton "Aplicar a selección". Halo `#3DA8FF` 2px aplicado solo en multi-selección para no romper conteos históricos. |
-| L6 | `1b3941a` | Objetos avanzados + cierre estados/plegado. `modelo/objetoMetadata.ts` (alias, unidad, descripción, URLs, parser/formatter `Nombre [Unidad] {alias}`). `modelo/estadosDesignaciones.ts` (Inicial/Final/Default/Current con exclusiones SSOT: Default↔Current excluyentes; Inicial+Final coexisten HU-17.033). `modelo/objetoDuracion.ts` con validación min≤nominal≤max. `ModalUrlsObjeto.tsx`, `ModalDuracionEstado.tsx`. `InspectorEntidad.tsx` con secciones Descripción, Alias, Unidad, URLs, Layout estados, Designaciones (cuando entidad es estado), Duración, Suprimir. `opl/generar.ts` emite alias `, también iP`, unidad `[°C]`, designaciones D5/D6/D7, duración canónica JOYAS §9, plegado parcial "lista A y B como rasgos". `proyeccion.ts` con render compuesto, badges 📄 y 🔗, marcadores V-4/V-5/V-6 sobre cápsulas; estado suprimido omitido del render. |
-| L3 | `f6433ba` | Multi-pestaña sesión-only + bloques OPL jerárquicos. `store/pestanas.ts` con `crearPestanaNueva`, `abrirPestana`, `cerrarPestana` (rechaza si N=1 o dirty sin forzar), `cambiarActiva`, `reordenarPestanas`. Cada pestaña tiene modelo independiente; `state.modelo` es espejo del activo. `opl/bloquesJerarquicos.ts` con `agruparPorOpd` y `aplanar` (omite oraciones colapsadas). `BarraPestanas.tsx` con tab list, botón "+", botón X (oculto si N=1), drag-reorder HTML5, asterisco dirty. `PanelOpl.tsx` con chevrons por bloque OPD y Expandir/Colapsar todo. Stack undo per-pestaña queda como deuda explícita; cada pestaña sí posee modelo independiente. |
+| L6a | `905528f` | Code-splitting Vite + scaffolding del detector. `manualChunks` en `vite.config.ts` separa JointJS (`vendor-jointjs`), Preact (`vendor-preact`), Zustand (`vendor-zustand`), vendor general, y por feature: `feature-mapa`, `feature-asistente`, `feature-dialogos-pesados`, `feature-modales`. `App.tsx` carga lazy `MapaSistema`, `AsistenteNuevoModelo` y modales pesados con `<Suspense fallback={null}>`. Detector con scaffolding declarativo (55 reglas tolerantes a paths nuevos). |
+| L3 | `c3f03ff` | Validadores de serialización por dominio. `serializacion/json.ts` baja de 877→134 LOC como barrel agregador; `validarEntidades.ts` (4.1k), `validarEstados.ts` (5k), `validarOpds.ts` (3.2k), `validarApariencias.ts` (5.9k), `validarEnlaces.ts` (11k), `validarHelpers.ts`, `validarGuards.ts`, `validarNormalizacion.ts`, `validarIntegridad.ts`. Roundtrip JSON lossless preservado; `json.test.ts` intacto. |
+| L2 | `0c20047` | Composers de render por familia. `render/jointjs/proyeccion.ts` baja de 1382→146 LOC; `proyeccionTipos.ts` aloja `JointCellJson`, `OpcionesProyeccion`, `OpmJointMetadata`, `RolApariencia`. Composers nuevos: `entidad.ts` (14k), `enlace.ts` (14k), `markers.ts` (4.8k), `plegado.ts` (4k), `estados.ts` (3.5k), `halos.ts` (1.9k), `colores.ts` (1.1k). `proyectarModeloAJointCells`, `fijarOpcionesProyeccionGlobal`, `proyectarProxyExtraccion` quedan en el barrel. |
+| L4 | `e145193` | Generadores OPL por familia. `opl/generar.ts` baja de 1031→135 LOC como orquestador; generadores nuevos: `procedural.ts` (13k), `refinamiento.ts` (12k), `refsHints.ts` (8.5k), `abanico.ts` (3.9k), `duracionMetadata.ts` (2.7k), `estructural.ts` (2.3k), `plegado.ts` (1.2k), `designaciones.ts`. Exports públicos preservados: `generarOpl`, `generarOplInteractivo`, `emitirDespliegueOcurren`, `emitirEspecializacion`. Procedural y refinamiento exceden objetivo blando de LOC pero respetan scope; declarado como deuda menor. |
+| L5 | `ff1a74f` | UI grandes a sub-componentes. `PanelCarpetas.tsx` 829→257 LOC, `ArbolOpd.tsx` 698→296 LOC, `InspectorEntidad.tsx` 665→148 LOC, `InspectorEnlace.tsx` 715→164 LOC, `PanelOpl.tsx` 515→168 LOC. Sub-componentes nuevos en `ui/inspector/`, `ui/inspectorEnlace/`, `ui/arbol/`, `ui/panelCarpetas/`, `ui/panelOpl/`. Containers leen amplio del store; leaves reciben props/callbacks. `data-testid`, foco y propagación de eventos preservados. |
+| L1 | `b188230` | Slices del store por dominio. `store.ts` baja de 4006→41 LOC como barrel; `tipos.ts` aloja `OpmStore`, `runtime.ts` aloja singletons `undoStack/redoStack/snapshotGuardado/UNDO_LIMIT/autosalvado`. Slices: `modelo.ts` (54k LOC fuentes, slice más grande), `seleccion.ts` (14k), `enlaces.ts` (15k), `workspaceMod.ts` (17k), `carpetas.ts` (13k), `uiPanel.ts` (17k), `mapa.ts` (12k), `persistencia.ts` (15k), `pestanas.ts` (8.8k, preexistente). Exports públicos preservados: `store`, `useOpmStore`, `OpmStore`. `modelo/operaciones.ts` (1743 LOC) explícitamente fuera de scope (congelado). |
+| L6b | (consolidación) | Medición final del detector tras L1-L5. **55/55 reglas matched** sobre 249 archivos fuente (vs 45/49 sobre 159 archivos pre-ronda 8). Patrón nuevo: cada regla apunta directamente al slice/composer/generador/sub-componente donde reside el string evidenciado, sin pasar por el barrel reducido. |
 
-Cascadas resueltas en consolidación (commits aditivos sobre las 6 líneas):
+Cascadas resueltas en consolidación (pendientes de commit):
 
-| Commit | Cascada |
+| Cascada | Resolución |
 |---|---|
-| `b7ea297` | `docs(ronda7)`: 8 briefs maestros + plantilla `prompt-asignacion.md` bajo `docs/instrucciones-lineas-dev/ronda7/`. Insumo de auditoría del ciclo. |
-| `ebbabbe` | `docs(hu)`: EPICA-70 (Importación OPCAT 4.2) y EPICA-91 (Modo tutorial) marcadas como descartadas del proyecto en frontmatter, con bloque de aviso al inicio de cada archivo. `04-MAPA.md` y `05-ROADMAP.md` actualizados; sección 7 nueva "Épicas descartadas del proyecto" en roadmap. Decisión irreversible salvo nueva instrucción explícita. |
-| `9acbf50` | `chore(docs)`: elimina `docs/archive/historias-usuario-v1/` (41 archivos). La SSOT operativa pasa a ser `docs/historias-usuario-v2/` exclusivamente. |
-| `8063b1e` | `feat(ronda7)`: integra slices y campos compartidos de las 6 líneas en archivos super-compartidos: `tipos.ts` (campos opcionales por dominio), `store.ts/test` (slices al final agrupados), `App.tsx` (montaje de paneles, modales y registry de atajos), `MenuPrincipal.tsx`, `Toolbar.tsx`, `serializacion/json.ts/test` (roundtrip lossless), `persistencia/local.ts/test`, `e2e/opm-smoke.spec.ts` (smokes nuevos por dominio), `completitud.test.ts` (cubre `default` y `current` en `DesignacionEstado`). |
-| `7889191` | `fix(render)`: continuación de los commits `47c286b` y `55f48ec` post-ronda 6 sobre el abanico OR/XOR. `abanicoOverlay.ts` con nueva firma `calcularGeometriaAbanicoDesdePuntos` basada en puntos sample a `RADIO_PROBE=30` (igual al radio interno). `abanicoDragSync.ts` recompute mid-drag limitado al subset afectado sin pasar por el store. `in-vivo-test.mjs` con caso "proceso desplazado a la derecha de objetos casi colineales". |
-| `60495e9` | `fix(ui)`: cascadas resueltas en `Dialogo.tsx` (listener Escape/Tab en captura con `stopImmediatePropagation`) y `atajosTeclado.ts` (registry global ignora eventos cuyo target esté dentro de `[role="dialog"][aria-modal="true"]`). Doble seguridad: cualquier modal abierto consume sus propios atajos sin ser robado. `opm-smoke.spec.ts` actualizado para liberar el modo barra creación sticky de L1 (HU-11.001) antes de invocar "Descomponer" en el smoke del árbol OPD. Cascada incluida en commits L2 y L6 directamente: `mapaExport.ts` con `parentNode.removeChild` por compatibilidad happy-dom; `proyeccion.test.ts` altura cápsulas estado 94→100 e `y` 64→70 por padding de marcadores de designaciones. |
-| `ee10c9c` | `chore(ledger)`: regeneración de `docs/roadmap/hu-progress.{json,md,html}` y `hu-progress-evidence.json` post-consolidación. Detector cae a 45/49 reglas (vs 47/49 pre-ronda 7); deuda explícita de calibración documentada abajo. |
+| `app/src/store.test.ts:957` mutaba `store.getState().cargarDemo = () => {}` y nunca restauraba la función original. Pre-ronda 8 nunca afloraba porque solo `store.test.ts` consumía `cargarDemo`; L1 introdujo `enlaces.test.ts`, `mapa.test.ts`, `seleccion.test.ts` que también la consumen. Como Bun ejecuta `store.test.ts` (con punto, ASCII `.` = 0x2E) antes de `store/*.test.ts` (con `/` = 0x2F), el primer slice que consume `cargarDemo` veía la función no-op heredada del test legacy. | Reescrito el test legacy con `try/finally` que restaura `cargarDemoOriginal` al terminar. Solución mínima invasiva que preserva la intención del test (mockear `cargarDemo` como no-op) sin filtrar al resto de la suite. |
+| Detector `progress-dashboard.mjs`: 31 reglas pendientes tras L1-L5 porque seguían apuntando a `app/src/store.ts`, `app/src/render/jointjs/proyeccion.ts`, `app/src/serializacion/json.ts`, `app/src/opl/generar.ts`, `app/src/ui/Inspector{Entidad,Enlace}.tsx`, `app/src/ui/PanelOpl.tsx` con strings que ya viven en slices/composers/generadores/sub-componentes. | Recalibradas 19 reglas a sus paths reales (`store/runtime.ts`, `store/modelo.ts`, `store/persistencia.ts`, `store/seleccion.ts`, `store/pestanas.ts`, `serializacion/validar*.ts`, `opl/generadores/*.ts`, `render/jointjs/composers/*.ts`, `ui/inspector/*.tsx`, `ui/inspectorEnlace/*.tsx`, `ui/arbol/*.tsx`, `ui/panelCarpetas/*.tsx`, `ui/panelOpl/*.tsx`). Barrels viejos quedan en `evidenciaExtra` para trazabilidad. Patrón: nada de comentarios señuelo en barrels — cada regla apunta a evidencia real. |
 
 ## Cómo Se Decidió La Partición
 
-La partición original (README ronda 7) preveía orden `L2 → L5 → L4 → L1 → L6 →
-L3` para que (a) el cierre del Mapa con bajo riesgo aterrizara primero, (b) el
-registry central de atajos de L5 estuviera disponible para L1 y L3, (c) el
-workspace cerrara antes que L1 escribiera smokes sobre diálogos, (d) la
-multi-selección de L1 pudiera ser consumida por el batch styling de L6, y (e)
-las pestañas de L3 reescribieran el flujo del store al final aprovechando la
-consolidación para resolver cascadas.
+La partición se diseñó sobre evidencia OPCloud destilada en `opm-extracted/`:
 
-La integración real respetó ese orden pero los implementadores trabajaron sobre
-`main` sin worktrees, lo cual obligó a la consolidación a hacer un **mapeo
-post-hoc** del working tree (16 archivos compartidos modificados por varias
-líneas) antes de poder commitear por dominio. Se hicieron 11 commits semánticos
-agrupando archivos exclusivos de cada línea + commit "infra" para los
-super-compartidos (`tipos.ts`, `store.ts`, `App.tsx`, `MenuPrincipal.tsx`,
-`Toolbar.tsx`, `json.ts/test`, `local.ts/test`, `opm-smoke.spec.ts`,
-`completitud.test.ts`).
+1. **Slices Zustand por dominio (L1)**: inspirados en `model.service.ts` (190 LOC), `context.service.ts` (1037), `tabsService.ts` (130), `selectionConfiguration.ts` (65), `init-rappid.service.ts` (80) y `REFACTOR-NOTES.md:13-25`. Servicios Angular DI traducidos como `createStore<UnionDeSlices>` con composición explícita de funciones `(set, get) => ({...})`.
+2. **Composers de render por familia (L2)**: inspirados en `models/DrawnPart/` con `OpmObject.ts:5-15`, `OpmEntity.ts:6-16`, `Links/AggregationLink.ts:33`, `Links/EffectLink.ts:117`, `Links/InvocationLink.ts:211`. Cada familia procedural/estructural tiene su archivo en OPCloud; nuestros composers replican el patrón.
+3. **JsonModel concentra serialización (L3)**: `models/json.model.ts:6-611`. Aunque OPCloud lo tiene como clase única, internamente separa por tipo. Lo destilamos partiendo `serializacion/json.ts` en validadores por dominio.
+4. **Módulos OPL por familia (L4)**: inspirados en `aliasing-module.ts:5-32`, `units-text-module.ts:5-32`. Cada módulo lógico aporta `getText()`. En nuestro stack, generadores por familia: estructural / procedural / designaciones / refinamiento / duración / abanico / plegado / metadata.
+5. **Sub-componentes UI por sección (L5)**: inspirados en `models/components/commands/object-decider.ts:5-88` y deciders por tipo. Cada sub-componente del Inspector (Alias, URLs, Layout, Designaciones, Duración, Esencia, Refinamiento) y del InspectorEnlace (Multiplicidad, Estilo, Extremos, Ruta, Abanico, Reanclaje) es prop-driven y testable en aislamiento.
+6. **Code splitting Vite (L6)**: inspirado en `REFACTOR-NOTES.md:21` y `README.md:56` — OPCloud tiene 16 chunks decompilados. JointJS aislado en chunk separado, modales/asistente/mapa lazy.
 
-EPICA-70 y EPICA-91 fueron declaradas fuera del alcance del proyecto durante
-la planificación de la ronda; su descarte se documentó en frontmatter, índices
-y roadmap.
+EPICA-70 (Importación OPCAT) y EPICA-91 (Modo tutorial) descartadas del proyecto desde 2026-05-05 — no se reabren.
 
 ## Decisiones Vigentes
 
-Decisiones nuevas de ronda 7:
+Decisiones nuevas de ronda 8:
 
-- **Multi-selección canónica**: `ui.seleccionados: Id[]` transitorio (no
-  serializa). Halo `#3DA8FF` 2px aplicado solo cuando `seleccionados.length>=2`
-  para no romper smokes históricos de selección simple. Vista mapa suspende
-  multi-selección. Selección se vacía al cambiar de OPD o de pestaña.
-- **Operaciones batch**: atómicas con un solo entry en undo (HU-SHARED-002).
-  `conectarMultiAlTodo` idempotente. `copiarSeleccion`/`pegarSeleccion` via
-  buffer en memoria; reusa entidades por id, crea apariencias nuevas con
-  offset incremental.
-- **Modo barra creación sticky** (HU-11.001): la barra de creación no se
-  cierra al crear; el modo se mantiene activo hasta Esc o cambio de
-  herramienta. Cada creación entra como entry separado en undo (no batch).
-  Smokes deben liberar el modo con Esc antes de invocar acciones del
-  Inspector sobre la apariencia recién creada.
-- **Mapa del sistema = vista derivada extendida** (extiende ronda 6): zoom
-  `paper.scale` directo, persistencia `ui.mapa.{zoom,panX,panY,profundidad,
-  subarbolRaiz,criterioResaltado,autoRefresh}` por modelo en
-  `WorkspaceIndice.modelos[i].mapa`. Auto-refresh subscribe a `modelo.opds`
-  con debounce 300ms; togglable. Filtros y resaltado son lente sobre el
-  descriptor; export PNG/SVG cliente-side WYSIWYG con marcadores incluidos.
-  PDF diferido por EPICA-60.
-- **Multi-pestaña sesión-only**: pestañas no se persisten (ni en JSON OPM ni
-  en workspace). Refresh de página arranca con pestaña inicial vacía.
-  `state.modelo` es espejo del modelo de la pestaña activa. `commitModelo`
-  empuja al stack global compartido entre pestañas — undo per-pestaña queda
-  como deuda explícita de bajo blast radius. `Ctrl+T/W/Tab` registrados en el
-  registry de atajos.
-- **Bloques OPL jerárquicos**: `OracionOpl` propaga `opdId/opdNombre/
-  profundidad`. Panel agrupa por OPD con chevrons (▾/▸); estado de colapso
-  es local del panel (no se persiste). Botón "Expandir/Colapsar todo" en
-  toolbar del panel.
-- **Workspace single-user MVP**: sin permisos O/W/R, sin matriz, sin
-  propagación de lectura. `WorkspaceIndice.recientes: Id[]` obligatorio
-  (max 10). Versiones son **opt-in por save manual**, sin log-scale, sin
-  retention automática, sin auto-archivado por 90 días. Movimiento de modelo
-  preserva `versiones` (HU-35.005). Cut/paste caduca a los 5 minutos.
-  Búsqueda global ≥3 caracteres, filtra `nombre` y `descripcion`.
-  Drag-drop usa API HTML5 nativa (sin libreria nueva).
-- **Designaciones de estado**: Default y Current **mutuamente excluyentes**
-  (HU-13.013 Q13.2 → bloqueante). Inicial y Final **coexisten** (HU-17.033).
-  Default y Current son **únicos por entidad** (uno solo por estado padre).
-  `suprimirEstado` requiere ausencia de enlaces incidentes; OPL D8 sigue
-  listando el estado (la supresión es de render). Marcadores SSOT V-4/V-5/V-6
-  sobre cápsulas; Current renderiza como anillo verde (propuesta
-  documentada, no en SSOT canónico).
-- **Alias, unidad, descripción, URLs**: campos opcionales en `entidad.*`.
-  Alias va siempre en OPL tras primera mención (HU-17.009); `uiAliasVisibles`
-  controla solo el render canvas, no el OPL. Unidad textual libre (max 20
-  chars). URLs tipadas {imagen, video, articulo, texto, oslc} con validación
-  laxa (no vacía + tiene `:` y `/`). Descripción multi-línea hasta 5000 chars.
-  Badges 📄 y 🔗 en esquinas controladas por `uiDescripcionesVisibles`.
-- **Duración canónica del estado**: `{unidad, min, nominal, max}` con
-  validación `min ≤ nominal ≤ max` y unidad en `{ms, s, min, h, dia, sem,
-  mes, año}`. OPL emite formato JOYAS §9 textual.
-- **Plegado parcial persistido**: `apariencia.modoPlegado` opcional
-  (`plegado/parcial/desplegado`). Persiste por apariencia (HU-18.011). OPL
-  trunca a 3 partes inline + "y N partes más" para plegado parcial extenso
-  (HU-18.010 parcial).
-- **Atajos centralizados**: registry único en `ui/atajosTeclado.ts` con
-  `escucharGlobal()` capturando `keydown` en `window`. Resolución de
-  contexto via `data-atajos-contexto` (panel-arbol, panel-opl, canvas) y
-  `vistaMapaActiva`. Cualquier modal abierto (`[role="dialog"][aria-modal=
-  "true"]`) consume sus propios atajos; el registry se hace a un lado.
-  `modal-input` solo procesa Escape y Enter. Atajos cross-platform via
-  `e.ctrlKey || e.metaKey`.
-- **Divisor árbol/canvas**: ancho persistido en `WorkspaceIndice.
-  preferenciasUi.anchoPanelArbol`, clamp [160, 600] px, doble clic reset.
-- **Toggle ocultar nombres del árbol**: nodos muestran solo `SDn`/`SDn.m`
-  cuando `ui.nombresArbolVisibles === false`, persistido en `preferenciasUi`.
-- **Diálogos custom con captura**: `Dialogo.tsx` registra Escape/Tab en
-  captura con `stopImmediatePropagation`. Tab focus trap nativo. Cualquier
-  diálogo abierto tiene prioridad sobre los atajos globales.
+- **Barrel re-export como contrato público**: `store.ts`, `render/jointjs/proyeccion.ts`, `serializacion/json.ts`, `opl/generar.ts`, `ui/{PanelCarpetas,ArbolOpd,InspectorEntidad,InspectorEnlace,PanelOpl}.tsx` permanecen como ARCHIVOS PÚBLICOS TOP-LEVEL. Su contenido es importar de slices/composers/generadores/sub-componentes y re-exportar firmas públicas previas. Las APIs públicas no cambian. Los tests existentes pasan sin reescritura. Inspirado en el patrón OPCloud `class OpmModel extends BasicOpmModel` (`opm-extracted/src/app/models/OpmModel.ts:6-7`).
+- **Slices Zustand con runtime singleton**: cada slice exporta una función `createXxxSlice(set, get)` que retorna `{...estado, ...acciones}`. El barrel `store.ts` compone los 9 slices en un único `createStore<OpmStore>`. `store/runtime.ts` aloja singletons compartidos (`undoStack`, `redoStack`, `snapshotGuardado`, `UNDO_LIMIT`, control de autosalvado) accesibles vía `obtenerEstadoStore()`/`setEstadoStore()`/`conectarRuntimeStore(api)`. Cada slice tiene su `.test.ts` aditivo.
+- **Detector apunta a evidencia real, no a comentarios señuelo**: las reglas del progress-dashboard ahora apuntan al slice/composer/generador/sub-componente donde efectivamente vive cada string evidenciado. Nada de comentarios "Compat detector" en barrels reducidos. Los barrels viejos quedan en `evidenciaExtra` por trazabilidad. Patrón a sostener en rondas futuras.
+- **Code splitting Vite con `manualChunks`**: vendor JointJS (468.96 KB / 129.38 KB gzip) en chunk separado; chunk principal 138.50 KB / 37.67 KB gzip (vs 1045 KB pre-ronda 8). Lazy chunks: `feature-asistente` (248 KB / 64 KB gzip), `feature-dialogos-pesados` (45.87 KB / 13.67 KB gzip), `feature-mapa` (13.82 KB / 4.67 KB gzip), `feature-modales` (10.88 KB / 3.81 KB gzip). `App.tsx` envuelve cargas lazy con `<Suspense fallback={null}>`. `mapaSistema.ts` queda en chunk principal porque el store lo consume síncrono (separarlo producía ciclo Rollup); la UI/export del mapa sí queda lazy.
+- **Tests legacy se preservan, solo se corrige lo que afloró**: `store.test.ts:957` mutaba `cargarDemo` sin restaurar. Antes no fallaba porque solo `store.test.ts` lo consumía. L1 expuso el bug. La corrección es mínima: `try/finally` que restaura. No reescribir el test, no cambiar su intención.
 
-Decisiones de rondas 1-6 que siguen vigentes (no se reabren):
+Decisiones de rondas 1-7 que siguen vigentes (no se reabren):
 
-- **OPL-ES como lente derivada**: el panel OPL no es fuente de verdad; los
-  IDs emitidos por `generarOplInteractivo` permiten edición inversa sin
-  parser libre, alineado con `opm-iso-19450-es.md` y `opm-opl-es.md`.
+- **OPL-ES como lente derivada**: el panel OPL no es fuente de verdad; los IDs emitidos por `generarOplInteractivo` permiten edición inversa sin parser libre.
 - **Hover OPL↔canvas es estado UI**: no se serializa, no se persiste.
-- **Eliminación de OPDs**: la raíz es `disabled`, los internos ejecutan
-  acción con mensaje accionable, las hojas eliminan refinamiento,
-  apariencias y enlaces huérfanos. Apariencias compartidas se preservan.
+- **Eliminación de OPDs**: la raíz es `disabled`, los internos ejecutan acción con mensaje accionable, las hojas eliminan refinamiento, apariencias y enlaces huérfanos. Apariencias compartidas se preservan.
 - **Bus de agregación**: vista derivada en render, no cambio del JSON.
-- **Importación JSON no auto-persiste**: queda en estado "(No guardado)"
-  hasta que el usuario invoque `Guardar como` o sobreescriba.
-- **Creación interna por posición**: cuando el usuario hace click dentro
-  del bbox de un contenedor refinado, la cosa creada nace como hija.
-- **Apariencia.estilo invariante a OPL**: el estilo (incluido texto del
-  rótulo) no altera OPL.
-- **`Modelo.estados` y `Modelo.abanicos` siguen top-level** (legado de
-  ronda 4).
+- **Importación JSON no auto-persiste**: queda en estado "(No guardado)" hasta que el usuario invoque `Guardar como` o sobreescriba.
+- **Creación interna por posición**: cuando el usuario hace click dentro del bbox de un contenedor refinado, la cosa creada nace como hija.
+- **Apariencia.estilo invariante a OPL**: el estilo (incluido texto del rótulo) no altera OPL.
+- **`Modelo.estados` y `Modelo.abanicos` siguen top-level** (legado de ronda 4).
 - **Extremos `ExtremoEnlace = { kind, id }`** para entidad o estado.
-- **Multiplicidad canónica + custom validada** (ronda 6): `["1", "0..1",
-  "N", "0..N", "*"]` + custom regex.
-- **Estilo de enlace** (ronda 6): `enlace.estilo` con color, strokeWidth,
-  dashArray; wrapper transparente 15px preservado.
-- **Vértices manuales y reanclaje** (ronda 6): `aparienciaEnlace.vertices`
-  opcional; `reanclarExtremoEnlace` aplica filtros de firma.
-- **Tabla de enlaces global** (ronda 6): vista derivada con filtros y
-  ordenamiento.
+- **Multiplicidad canónica + custom validada** (ronda 6).
+- **Estilo de enlace** (ronda 6): `enlace.estilo` con color, strokeWidth, dashArray; wrapper transparente 15px preservado.
+- **Vértices manuales y reanclaje** (ronda 6): `aparienciaEnlace.vertices` opcional; `reanclarExtremoEnlace` aplica filtros de firma.
+- **Tabla de enlaces global** (ronda 6): vista derivada con filtros y ordenamiento.
 - **Modelo post-asistente queda dirty** (ronda 6).
-- **Workspace con jerarquía de carpetas** (ronda 6): extendida en ronda 7
-  con archivado, versiones y movimiento.
-- **Árbol OPD expandido por default** (ronda 6): set almacena ids
-  *colapsados*.
-- **Mapa del sistema = vista neutra** (ronda 6): flechas grises dasharray
-  "6 3", marker triangular pequeño; distinto de OPM.
-- **Abanicos OR/XOR canónicos** (ronda 6): XOR = arco r=30; O = arcos
-  concéntricos r=30/r=35 dasharray "4 1". Refactor de ronda 7
-  (`calcularGeometriaAbanicoDesdePuntos`) preserva la geometría canónica.
-- **Política de handoff único**: este archivo reemplaza completamente al
-  anterior; sin handoffs paralelos.
+- **Workspace con jerarquía de carpetas** (ronda 6): extendida en ronda 7 con archivado, versiones y movimiento.
+- **Árbol OPD expandido por default** (ronda 6): set almacena ids *colapsados*.
+- **Mapa del sistema = vista neutra** (ronda 6): flechas grises dasharray "6 3", marker triangular pequeño; distinto de OPM.
+- **Abanicos OR/XOR canónicos** (ronda 6 + refactor ronda 7): XOR = arco r=30; O = arcos concéntricos r=30/r=35 dasharray "4 1".
+- **Multi-selección canónica** (ronda 7): `ui.seleccionados: Id[]` transitorio. Halo `#3DA8FF` 2px solo cuando `seleccionados.length>=2`. Vista mapa suspende multi-selección. Selección se vacía al cambiar de OPD o de pestaña.
+- **Operaciones batch atómicas en undo** (ronda 7, HU-SHARED-002).
+- **Modo barra creación sticky** (ronda 7, HU-11.001): la barra de creación no se cierra al crear; el modo se mantiene activo hasta Esc o cambio de herramienta. Cada creación entra como entry separado en undo.
+- **Mapa del sistema = vista derivada extendida** (ronda 7): zoom `paper.scale` directo, persistencia `ui.mapa.{zoom,panX,panY,profundidad,subarbolRaiz,criterioResaltado,autoRefresh}` por modelo en `WorkspaceIndice.modelos[i].mapa`. Auto-refresh subscribe a `modelo.opds` con debounce 300ms; togglable.
+- **Multi-pestaña sesión-only** (ronda 7): pestañas no se persisten. Refresh arranca con pestaña inicial vacía. `state.modelo` es espejo de la pestaña activa. `commitModelo` empuja al stack global compartido entre pestañas — undo per-pestaña queda como deuda explícita.
+- **Bloques OPL jerárquicos** (ronda 7): `OracionOpl` propaga `opdId/opdNombre/profundidad`. Panel agrupa por OPD con chevrons. Estado de colapso es local del panel.
+- **Workspace single-user MVP** (ronda 7): sin permisos O/W/R, sin matriz, sin propagación de lectura. `WorkspaceIndice.recientes: Id[]` obligatorio (max 10). Versiones opt-in por save manual. Movimiento preserva `versiones` (HU-35.005). Cut/paste caduca a 5 minutos. Búsqueda global ≥3 caracteres. Drag-drop usa API HTML5 nativa.
+- **Designaciones de estado** (ronda 7): Default y Current **mutuamente excluyentes** (HU-13.013 Q13.2). Inicial y Final **coexisten** (HU-17.033). Default y Current son **únicos por entidad**. `suprimirEstado` requiere ausencia de enlaces incidentes.
+- **Alias, unidad, descripción, URLs** (ronda 7): campos opcionales en `entidad.*`. Alias va siempre en OPL tras primera mención. URLs tipadas {imagen, video, articulo, texto, oslc} con validación laxa.
+- **Duración canónica del estado** (ronda 7): `{unidad, min, nominal, max}` con validación `min ≤ nominal ≤ max`.
+- **Plegado parcial persistido** (ronda 7): `apariencia.modoPlegado` opcional. OPL trunca a 3 partes inline + "y N partes más".
+- **Atajos centralizados** (ronda 7): registry único en `ui/atajosTeclado.ts` con `escucharGlobal()`. Modal abierto consume sus propios atajos antes que el registry.
+- **Divisor árbol/canvas** (ronda 7): ancho persistido en `WorkspaceIndice.preferenciasUi.anchoPanelArbol`, clamp [160, 600] px.
+- **Toggle ocultar nombres del árbol** (ronda 7): nodos muestran solo `SDn`/`SDn.m` cuando `ui.nombresArbolVisibles === false`.
+- **Diálogos custom con captura** (ronda 7): `Dialogo.tsx` registra Escape/Tab en captura con `stopImmediatePropagation`. Tab focus trap nativo.
+- **Política de handoff único**: este archivo reemplaza completamente al anterior; sin handoffs paralelos.
 
 ## Cascadas Gestionadas
 
-- **`tipos.ts`**: 5 líneas agregaron campos opcionales agrupados por
-  dominio. Roundtrip lossless verificado en `serializacion/json.test.ts`.
-- **`store.ts`** (~3700 LOC tras ronda 7): cada slice se agrupó en bloque
-  consecutivo al final del archivo, sin reordenar bloques previos. L3
-  extrajo a `store/pestanas.ts` para no inflar más.
-- **`App.tsx`**: monta `BarraPestanas`, `MapaSistema` con paneles,
-  `MapaFiltros`, `MapaPanelEstadisticas`, `DialogoBuscarGlobal`,
-  `DialogoVersiones`, `DialogoArchivados`, `ModalUrlsObjeto`,
-  `ModalDuracionEstado`, `CheatsheetAtajos`, `MenuContextualArbol`,
-  `divisorPanel` entre árbol y canvas. Registra todos los atajos via
-  `escucharGlobal` del registry.
-- **`MenuPrincipal.tsx`**: 5 líneas agregaron entradas en orden de merge,
-  preservando entradas previas.
-- **`Toolbar.tsx`**: toggles "Mostrar alias", "Mostrar descripciones",
-  "Mostrar archivados", "Mostrar versiones", indicador modo orden árbol,
-  refrescar mapa, autosalvado.
-- **`proyeccion.ts`**: L1 (halo de selección múltiple), L2 (resaltado por
-  tipo en mapa) y L6 (badges + render compuesto + marcadores de
-  designación). Cada línea extrajo helpers nuevos cuando creció el blast.
-- **`JointCanvas.tsx`**: L1 (rubber band Shift+drag, Ctrl/Cmd+clic), L2
-  (zoom Ctrl+rueda en branch `vistaMapaActiva`), L5 (Ctrl+0 fit, Ctrl+rueda
-  canvas normal). Coordinación via flag del store.
-- **`InspectorEntidad.tsx`**: L6 territorio (522→780+ LOC tras secciones
-  Descripción/Alias/Unidad/URLs/Layout/Designaciones/Duración/Suprimir);
-  L1 dejó el slot estable `data-testid="inspector-entidad-acciones"` que
-  L6 pobló.
-- **`PanelOpl.tsx`**: L3 chevrons por bloque OPD; L1 mantiene el filtro
-  por selección de ronda 6.
-- **`PanelCarpetas.tsx`**: L4 reescribió handlers de tile (drag-drop,
-  cut/paste, glifos, menú contextual completo). L3 podría agregar "Abrir
-  en pestaña" como cascada futura.
-- **`Dialogo.tsx` y `atajosTeclado.ts`**: doble seguridad para que
-  diálogos modales consuman Escape antes que el registry global. Listener
-  del Dialogo en captura con `stopImmediatePropagation`; registry hace
-  early return si `event.target` está dentro de
-  `[role="dialog"][aria-modal="true"]`.
-- **JSON estricto**: `entidad.alias?/unidad?/descripcion?/urls?/
-  layoutEstados?`, `estado.designaciones?/duracion?/suprimido?`,
-  `apariencia.modoPlegado?/ordenPartes?`, `modelo.archivado?/archivadoEn?/
-  versiones?`, `carpeta.archivada?/archivadaEn?` se hidratan con defaults
-  seguros y validan tipo. `modelo.carpetaId` y `WorkspaceIndice.modelos[i].
-  mapa` siguen en el índice de workspace, NO en el JSON OPM (decisión
-  ronda 6 conservada).
-- **OPL**: nuevas oraciones para alias (`, también iP`), unidad
-  (`[°C]`), designaciones D5/D6/D7 (HU-13.010-012), Current como
-  propuesta, duración canónica JOYAS §9, plegado parcial "lista A y B
-  como rasgos" + truncado a 3 partes con "y N partes más".
-- **Cascada test↔smoke**: 481 unit tests verdes (vs 412 base ronda 6),
-  40/40 smoke verde (vs 37 base). `proyeccion.test.ts` actualizado a
-  altura 100 / `y` 70 por padding de marcadores de designaciones (cambio
-  de render legítimo de L6). `mapaExport.test.ts` usa
-  `parentNode.removeChild` por compatibilidad con happy-dom.
-- **Refactor abanico** (continuación post-ronda 6): `abanicoOverlay.ts`
-  con `calcularGeometriaAbanicoDesdePuntos` basada en puntos sample a
-  `RADIO_PROBE=30`; `abanicoDragSync.ts` recompute mid-drag focalizado.
-  Sin impacto semántico ni en JSON OPM.
+- **Mutación legacy de `cargarDemo` en `store.test.ts`** (introducida pre-ronda 8): contenida con `try/finally`. No se cambia la intención del test, solo se restaura el state al terminar.
+- **Detector descalibrado por barrel reducido**: 19 reglas redirigidas a slices/composers/generadores/sub-componentes apropiados. 55/55 reglas matchean ahora. Patrón documentado: el detector apunta a evidencia real, los barrels viejos quedan como `evidenciaExtra`.
+- **`tipos.ts` global** sigue sin tocarse en ronda 8 (decisión: no romper firmas cross-modulo). El nuevo `app/src/store/tipos.ts` aloja solo `OpmStore` y tipos store-locales.
+- **`JointCanvas.tsx`** (697 LOC) sigue sin partir; se difiere a ronda 9. Composers/slices estabilizados en ronda 8 le dan piso para una L1 segura.
+- **`AsistenteNuevoModelo.tsx`** sigue sin partir; difiere.
+- **`modelo/operaciones.ts`** (1743 LOC) sigue congelado por doctrina; cualquier ronda que lo aborde necesita worktree dedicado.
 
 ## Verificación
 
-Último loop verde de consolidación sobre `ee10c9c`:
+Loop verde de consolidación de ronda 8 sobre `main` @ `ff1a74f` + cascadas:
 
 ```bash
 cd app
-bun run check          # typecheck OK; 481 unit tests pass / 2206 expects
-bun run browser:smoke  # 40/40 Playwright smoke pass (44.3 s)
-bun run build          # OK; bundle 1045 KB minificado, 295 KB gzip
+bun run check          # typecheck OK; 558 unit tests pass / 2357 expects (vs 481/2206 base ronda 7)
+bun run browser:smoke  # 40/40 Playwright smoke pass (46.5 s)
+bun run build          # OK
+cd ..
+node docs/historias-usuario-v2/tools/progress-dashboard.mjs --sync-real
 ```
 
-Estado HU tras `node docs/historias-usuario-v2/tools/progress-dashboard.mjs --sync-real`:
+Bundle generado:
+
+| Chunk | KB minificado | KB gzip |
+|---|---:|---:|
+| `index-*.js` (chunk principal) | 138.50 | 37.67 |
+| `vendor-jointjs-*.js` (lazy) | 468.96 | 129.38 |
+| `feature-asistente-*.js` (lazy) | 248.09 | 64.49 |
+| `vendor-*.js` | 134.37 | 47.14 |
+| `feature-dialogos-pesados-*.js` (lazy) | 45.87 | 13.67 |
+| `vendor-preact-*.js` | 19.86 | 7.91 |
+| `feature-mapa-*.js` (lazy) | 13.82 | 4.67 |
+| `feature-modales-*.js` (lazy) | 10.88 | 3.81 |
+| `vendor-zustand-*.js` | 0.34 | 0.25 |
+| `vendor-jointjs-*.css` | 46.28 | 32.49 |
+
+Chunk principal pasa de 1045 KB minificado / 295 KB gzip (pre-ronda 8) a **138.50 KB / 37.67 KB gzip** (objetivo: <600 KB / <240 KB; superado por mucho). Total razonable.
+
+LOC barrels finales (objetivos cumplidos):
+
+| Barrel | LOC | Objetivo | Tope | Estado |
+|---|---:|---:|---:|---|
+| `app/src/store.ts` | 41 | <500 | <1500 | ✓ |
+| `app/src/render/jointjs/proyeccion.ts` | 146 | <200 | <600 | ✓ |
+| `app/src/serializacion/json.ts` | 134 | <200 | <400 | ✓ |
+| `app/src/opl/generar.ts` | 135 | <200 | <500 | ✓ |
+| `app/src/ui/PanelCarpetas.tsx` | 257 | <150 | <350 | dentro de tope |
+| `app/src/ui/ArbolOpd.tsx` | 296 | <150 | <300 | dentro de tope |
+| `app/src/ui/InspectorEntidad.tsx` | 148 | <150 | <300 | ✓ |
+| `app/src/ui/InspectorEnlace.tsx` | 164 | <150 | <300 | dentro de tope |
+| `app/src/ui/PanelOpl.tsx` | 168 | <150 | <200 | dentro de tope |
+
+Estado HU tras `--sync-real` final:
 
 | Segmento | HU vivas | Cubiertas | Parciales | Pendientes | Diferidas | Avance |
 |---|---:|---:|---:|---:|---:|---:|
-| Total backlog | 1126 | 109 | 50 | 589 | 378 | 12.2% |
-| M0 | 130 | 72 | 29 | 29 | 0 | 65.5% |
-| MVP-alpha | 121 | 46 | 22 | 53 | 0 | 42.9% |
-| MVP-beta | 193 | 46 | 23 | 124 | 0 | 31.3% |
+| Total backlog | 1126 | 168 | 51 | 529 | 378 | 16.6% |
+| MVP-alpha | 121 | 48 | 23 | 50 | 0 | 46.3% |
+| MVP-beta | 193 | 47 | 23 | 123 | 0 | 32.6% |
+| M0 | 130 | 73 | 29 | 28 | 0 | 65.8% |
 
-Detector: 45/49 reglas matcheadas sobre 159 archivos fuente (vs 47/49 sobre
-125 archivos pre-ronda 7). **Caída del detector documentada como deuda
-inmediata abajo**: el código de L6 introdujo evidencia en
-`modelo/objetoMetadata.ts`, `estadosDesignaciones.ts`, `objetoDuracion.ts`
-que las reglas regex no reconocen, y código de L5 (`atajosTeclado.ts`)
-tampoco está cableado. Las cifras del detector son **inferiores a la
-cobertura real del código**.
+Detector: **55/55 reglas matched** (vs 45/49 pre-ronda 8) sobre 249 archivos fuente (vs 159). Las reglas reflejan ahora la estructura real del código tras L1-L5: barrels reducidos no son evidencia, los slices/composers/generadores/sub-componentes sí lo son.
 
-Diagnóstico vigente: 1 advertencia de inventario por ID duplicado
-`HU-13.005` entre `epica-13-canvas-estados.md` y
-`HU-SHARED-001-menu-contextual.md` (legado de rondas previas, no es fallo
-de app).
+Diagnóstico vigente: 1 advertencia de inventario por ID duplicado `HU-13.005` (legado de rondas previas, no es fallo de app).
 
 ## Estado Por Dominio
 
-- **Modelo/kernel**: creación básica, firmas de enlace, estados con
-  designaciones canónicas (Inicial/Final/Default/Current con exclusiones),
-  abanicos, multiplicidad canónica + custom, modificadores, invocación,
-  rutas, auto-invocación, descomposición, despliegue, plegado parcial
-  persistido, eliminación segura de OPDs hoja, creación interna por
-  posición, alias/unidad/descripción/URLs en entidad, duración temporal
-  en estados, supresión de estados sin enlaces, layout horizontal/vertical
-  de estados, estilo visual editable de cosas y enlaces (incluyendo texto
-  del rótulo), vértices manuales y reanclaje. Helpers de dominio
-  modulares en `modelo/objetoMetadata.ts`, `estadosDesignaciones.ts`,
-  `objetoDuracion.ts`, `enlaceMultiplicidad.ts`, `enlaceEstilo.ts`,
-  `enlaceVertices.ts`, `opdReorden.ts`, `opdEliminacion.ts`,
-  `creacionWizard.ts` (asistente 12 etapas).
-- **Render**: assets canónicos de enlaces. Bus de agregación derivado en
-  render. Abanicos OR/XOR como arcos canónicos r=30/r=35. Override de
-  `enlace.estilo` se compone después de la firma sin romper dasharray
-  ambiental. Mapa del sistema completo: meta-grafo neutro, filtros,
-  resaltado por tipo, marcadores activo/visitado, tooltip, zoom Ctrl+rueda,
-  pan persistente, export PNG/SVG cliente-side. Render compuesto
-  `Nombre [Unidad] {alias}`, badges 📄/🔗, marcadores V-4/V-5/V-6 sobre
-  cápsulas. Halo de selección múltiple `#3DA8FF`.
-- **UI/store**: Inspector con secciones nuevas (Descripción/Alias/Unidad/
-  URLs/Layout/Designaciones/Duración/Suprimir) en `InspectorEntidad`.
-  Diálogos: archivar, versiones, búsqueda global, gestión árbol (Ctrl+D),
-  buscar cosas (Ctrl+F), nuevo modelo asistente, mapa del sistema, mapa
-  paneles. Modales: ModalUrlsObjeto, ModalDuracionEstado, Cheatsheet de
-  atajos. `BarraPestanas` con N pestañas independientes session-only.
-  `PanelCarpetas` con drag-drop, cut/paste, glifos archivado/versión.
-  `MenuContextualArbol` con acciones completas. `DivisorPanel` entre árbol
-  y canvas. Registry central de atajos `ui/atajosTeclado.ts` con contexto.
-  Toggles `Mostrar alias`/`Mostrar descripciones`/`Mostrar archivados`/
-  `Mostrar versiones` en Toolbar. Ctrl+arrows navegan árbol; Ctrl+0
-  fit-to-screen; Ctrl+rueda zoom; Esc/Delete/Ctrl+A/C/V con guards de
-  modal-input. Multi-selección con Ctrl/Cmd+clic y rubber band Shift;
-  operaciones batch atómicas en undo.
-- **Persistencia**: JSON conserva todos los campos OPM nuevos
-  (`entidad.alias/unidad/descripcion/urls/layoutEstados`,
-  `estado.designaciones/duracion/suprimido`, `apariencia.modoPlegado/
-  ordenPartes`, `modelo.archivado/archivadoEn/versiones`). Workspace
-  local con jerarquía de carpetas, sin permisos, índice tolerante con
-  `recientes: Id[]` obligatorio (max 10), `mapa` por modelo,
-  `preferenciasUi` global (anchoPanelArbol, nombresArbolVisibles),
-  `carpeta.archivada/archivadaEn`. Versiones por save manual (sin
-  log-scale). Movimiento de modelos y carpetas con cut/paste y drag-drop;
-  caducidad 5 minutos del portapapeles. Búsqueda global ≥3 caracteres.
-  Autosalvado 5 min con guard `esDirty()`.
-- **Auditoría**: `docs/roadmap/hu-progress.{md,html,json}` y
-  `hu-progress-evidence.json` regenerados sobre HEAD. Detector descalibrado
-  (45/49 reglas) — recalibración explícita en pendientes inmediatos.
+- **Modelo/kernel**: creación básica, firmas de enlace, estados con designaciones canónicas (Inicial/Final/Default/Current con exclusiones), abanicos, multiplicidad canónica + custom, modificadores, invocación, rutas, auto-invocación, descomposición, despliegue, plegado parcial persistido, eliminación segura de OPDs hoja, creación interna por posición, alias/unidad/descripción/URLs en entidad, duración temporal en estados, supresión de estados sin enlaces, layout horizontal/vertical de estados, estilo visual editable de cosas y enlaces, vértices manuales y reanclaje. Helpers de dominio modulares en `modelo/objetoMetadata.ts`, `estadosDesignaciones.ts`, `objetoDuracion.ts`, `enlaceMultiplicidad.ts`, `enlaceEstilo.ts`, `enlaceVertices.ts`, `opdReorden.ts`, `opdEliminacion.ts`, `creacionWizard.ts` (asistente 12 etapas).
+- **Render**: assets canónicos de enlaces. Bus de agregación derivado en render. Abanicos OR/XOR como arcos canónicos r=30/r=35. Override de `enlace.estilo` se compone después de la firma sin romper dasharray ambiental. Mapa del sistema completo: meta-grafo neutro, filtros, resaltado por tipo, marcadores activo/visitado, tooltip, zoom Ctrl+rueda, pan persistente, export PNG/SVG cliente-side. Render compuesto `Nombre [Unidad] {alias}`, badges 📄/🔗, marcadores V-4/V-5/V-6 sobre cápsulas. Halo de selección múltiple `#3DA8FF`. **Composers ronda 8**: `entidad`, `enlace`, `markers`, `plegado`, `estados`, `halos`, `colores` separados; `proyeccion.ts` queda como barrel.
+- **OPL**: lente derivada con generación bimodal (texto + interactiva con IDs). Cada familia OPL en su archivo de generador (procedural, refinamiento, estructural, designaciones, duración/metadata, abanico, plegado). `refsHints.ts` aloja referencias y hints compartidos. Truncado plegado parcial "y N partes más" desde `UMBRAL_PARTES_MAS`. **Generadores ronda 8**: separados; `generar.ts` queda como orquestador.
+- **UI/store**: Inspector con secciones nuevas (Descripción/Alias/Unidad/URLs/Layout/Designaciones/Duración/Suprimir) en sub-componentes `ui/inspector/*.tsx`. InspectorEnlace con secciones (Multiplicidad/Estilo/Extremos/Ruta/Abanico/Reanclaje) en `ui/inspectorEnlace/*.tsx`. ArbolOpd con NodoOpd + handlersTeclado + togglesArbol en `ui/arbol/`. PanelCarpetas con Tile + MenuContextual + Breadcrumb + handlersDragDrop en `ui/panelCarpetas/`. PanelOpl con RenderToken + Bloques en `ui/panelOpl/`. Modal: ModalUrlsObjeto, ModalDuracionEstado, Cheatsheet de atajos. BarraPestanas con N pestañas independientes session-only. DivisorPanel entre árbol y canvas. Registry central de atajos `ui/atajosTeclado.ts`. **Slices store ronda 8**: `modelo`, `seleccion`, `enlaces`, `workspaceMod`, `carpetas`, `uiPanel`, `mapa`, `persistencia`, `pestanas`. Runtime singleton en `store/runtime.ts`. Tipos públicos en `store/tipos.ts`.
+- **Persistencia**: JSON conserva todos los campos OPM (`entidad.alias/unidad/descripcion/urls/layoutEstados`, `estado.designaciones/duracion/suprimido`, `apariencia.modoPlegado/ordenPartes`, `modelo.archivado/archivadoEn/versiones`). Workspace local con jerarquía de carpetas, sin permisos, índice tolerante con `recientes: Id[]` obligatorio (max 10), `mapa` por modelo, `preferenciasUi` global. Versiones por save manual. Movimiento de modelos y carpetas con cut/paste y drag-drop; caducidad 5 minutos. Búsqueda global ≥3 caracteres. Autosalvado 5 min con guard `esDirty()`. **Validadores ronda 8**: separados por dominio en `serializacion/validar*.ts`; `json.ts` queda como barrel.
+- **Auditoría**: `docs/roadmap/hu-progress.{md,html,json}` y `hu-progress-evidence.json` regenerados sobre `main` + cascadas. **Detector calibrado a estructura real**: 55/55 reglas matchean.
 
 ## Pendientes Inmediatos
 
-- **Recalibrar el detector `progress-dashboard.mjs`** (deuda inmediata para
-  ronda 8): EPICA-13 cayó de 7 cubiertas a 2 (las HU de designaciones de
-  estado ahora viven en `modelo/estadosDesignaciones.ts`, fuera del regex
-  actual). EPICA-17 quedó en 0 cubiertas pese a alias/unidad/descripción/
-  URLs/duración entregados (código en `modelo/objetoMetadata.ts` y
-  `objetoDuracion.ts`). EPICA-90 sigue en 0% pese al registry central de
-  atajos (código en `ui/atajosTeclado.ts`). EPICA-30 mantiene 34.8% sin
-  reflejar versiones/archivado/búsqueda global. Patrón a seguir: L1 ronda 6
-  (commit `ee633eb`).
-- **Multi-pestaña — undo per-pestaña**: actualmente el stack undo es
-  global compartido entre pestañas; cada pestaña sí posee modelo
-  independiente. Migrar a undo per-pestaña requiere envolver `commitModelo`
-  para empujar al `historialUndo` de la pestaña activa (~50 acciones).
-- **Mapa render — export PDF**: HU-21.017 PDF queda diferida por regla
-  "no introducir dependencias nuevas". Reabrir si se aprueba `jspdf` o
-  `pdf-lib`.
-- **EPICA-17 slot de valor numérico**: HU-17.014/.015-017 (`valueSlot.*`)
-  fuera de ronda 7 — requiere kernel separado para "atributo numérico".
-- **EPICA-11 tabla de tipos extendida + Condición/Evento/NOT**:
-  HU-11.026/.027 fuera de ronda 7 — requiere kernel `enlace.subtipo` y
-  `enlace.modificadorNot`.
-- **EPICA-15 multiplicidad avanzada**: HU-15.* más allá de origen/destino
-  simples sigue pendiente.
-- **EPICA-19 imágenes incrustadas**: 16 HU pendientes; podría lanzarse
-  como línea independiente disjunta de las 6 actuales.
-- **EPICA-1A grid + snap + alineación**, **EPICA-1B traer conectados**:
-  pendientes de MVP-β.
+- **Comitear cascadas de consolidación ronda 8**: cambios pendientes en `app/src/store.test.ts` (fix `cargarDemo` legacy), `docs/historias-usuario-v2/tools/progress-dashboard.mjs` (recalibración de 19 reglas), `docs/roadmap/hu-progress.{json,html,md}`, `docs/roadmap/hu-progress-evidence.json`. Comiteables como `fix(test)` + `chore(detector)` + `chore(ledger)`. Este HANDOFF también queda commiteable.
+- **`render/jointjs/JointCanvas.tsx`** (697 LOC): partir en handlers (selección, zoom, pan, rubber band, Esc/Delete/flechas, drag halos). Riesgo medio: handlers JointJS son frágiles. Composers L2 estabilizados en ronda 8 dan piso. Candidato L1 ronda 9.
+- **`ui/AsistenteNuevoModelo.tsx`** (~785 LOC): asistente 12 etapas. Refactor cabe pero alto blast (formularios, validaciones por etapa, transiciones). Diferido pero no bloqueante.
+- **`modelo/operaciones.ts`** (1743 LOC): congelado. Cualquier ronda 9 que lo aborde necesita worktree dedicado y tests verde antes y después.
+- **`store/modelo.ts`** (~1622 LOC): slice más grande tras ronda 8. Acumula la mayoría de operaciones del modelo + acciones cabeceras. Si crece más, candidato a partir en sub-slices (acciones-modelo / acciones-OPD / acciones-render-asistido / hooks-OPL). Bajo blast porque las acciones son funciones puras que llaman a `modelo/operaciones.ts`.
+- **Multi-pestaña — undo per-pestaña** (deuda ronda 7): el stack undo es global compartido entre pestañas; cada pestaña sí posee modelo independiente. Migrar a undo per-pestaña requiere envolver `commitModelo` para empujar al `historialUndo` de la pestaña activa (~50 acciones).
+- **Mapa render — export PDF**: HU-21.017 PDF queda diferida por regla "no introducir dependencias nuevas". Reabrir si se aprueba `jspdf` o `pdf-lib`.
+- **EPICA-17 slot de valor numérico**: HU-17.014/.015-017 (`valueSlot.*`) requiere kernel separado para "atributo numérico".
+- **EPICA-11 tabla de tipos extendida + Condición/Evento/NOT**: HU-11.026/.027 requiere kernel `enlace.subtipo` y `enlace.modificadorNot`.
+- **EPICA-15 multiplicidad avanzada**: HU-15.* más allá de origen/destino simples sigue pendiente.
+- **EPICA-19 imágenes incrustadas**: 16 HU pendientes; podría lanzarse como línea independiente.
+- **EPICA-1A grid + snap + alineación**, **EPICA-1B traer conectados**: pendientes de MVP-β.
 - **EPICA-32 sub-modelos**, **EPICA-33 plantillas**: pendientes MVP-γ.
-- **EPICA-60 export PDF**, **EPICA-61 export SVG papel**: pendientes,
-  requieren librerías o cliente-side avanzado.
-- **EPICA-71 CSV import**: pendiente; coordina con campos de `entidad`
-  introducidos en ronda 7.
-- **EPICA-80-82** (config usuarios/defaults estilo/ontología organizacional):
-  diferidas a MVP-γ/δ.
+- **EPICA-60 export PDF**, **EPICA-61 export SVG papel**: requieren librerías o cliente-side avanzado.
+- **EPICA-71 CSV import**: pendiente; coordina con campos de `entidad`.
+- **EPICA-80-82** (config usuarios/defaults estilo/ontología organizacional): diferidas a MVP-γ/δ.
 - **EPICA-A0-A2** (estereotipos / requisitos / IA): diferidas.
-- **EPICA-B0-B5** (simulación), **EPICA-C0-C2** (runtime), **EPICA-D0-D1**
-  (análisis): diferidas a MVP-δ.
-- **EPICA-40, 41, 42** (colaboración multi-usuario, chat, notas): diferidas
-  por single-user MVP.
-- **HU-SHARED-008** ya cubierta en ronda 7; sigue siendo precondición de
-  HU-11.007/.008/.023, HU-14.016, etc.
-- **Deuda técnica**: `app/src/store.ts` ~3700 LOC tras ronda 7,
-  `app/src/modelo/operaciones.ts` 1743 LOC (congelado), `app/src/render/
-  jointjs/proyeccion.ts` 1116 LOC. Cualquier capacidad nueva debe preferir
-  módulos de dominio y wrappers mínimos.
-- **Deuda de build**: bundle 1045 KB minificado / 295 KB gzip; Vite advierte
-  por chunk grande. Code splitting diferido hasta que el corte funcional
-  lo justifique.
+- **EPICA-B0-B5** (simulación), **EPICA-C0-C2** (runtime), **EPICA-D0-D1** (análisis): diferidas a MVP-δ.
+- **EPICA-40, 41, 42** (colaboración multi-usuario, chat, notas): diferidas por single-user MVP.
 
 ## Épicas Descartadas Del Proyecto
 
@@ -395,25 +216,10 @@ salvo nueva instrucción explícita del operador.
 
 1. Leer este `docs/HANDOFF.md` y `docs/roadmap/hu-progress.md`.
 2. Si abrirás una nueva ronda paralela:
-   - Heredar el formato de `docs/instrucciones-lineas-dev/ronda7/`.
-   - Asumir cadenas de efecto kernel→render→OPL→UI: cada brief debe
-     declarar qué archivos toca y cómo evita colisiones cross-line.
-   - Reservar el **último** commit del ciclo para una capa explícita de
-     cascadas resueltas (ronda 7 demostró que esa capa es ineludible: fix
-     scaleContentToFit, halo selección selectiva, padding marcadores
-     designaciones, captura de Escape en diálogos, sticky barra creación,
-     happy-dom link.remove, registry vs modal precedence).
-   - Considerar **L7 calibración del detector** como primera línea de la
-     próxima ronda (similar a L1 ronda 6).
-3. Antes de diseñar, consultar `opm-extracted/`, `assets/svg/`,
-   `docs/JOYAS.md` y la SSOT OPM. Las decisiones de ronda 7 citan paths
-   concretos de `opm-extracted` (ej. `selectionConfiguration.ts:38-45`,
-   `BringConnectedEntitiesAction.ts:6-26`, `tabsService.ts:5-50`,
-   `keyboardShortcuts.ts:6-50`, `aliasing-module.ts:5-33`).
-4. Cerrar cada cambio con `bun run check`; si toca UI/render, sumar
-   `bun run browser:smoke`; si toca proyección o bundle, sumar
-   `bun run build`.
-5. Regenerar auditoría con
-   `node docs/historias-usuario-v2/tools/progress-dashboard.mjs --sync-real`
-   antes de publicar un cierre de ronda. **Tras la ronda 8 esperar
-   detector >= 50/52 reglas** sobre ~170 archivos fuente.
+   - Heredar el formato de `docs/instrucciones-lineas-dev/ronda8/`.
+   - Asumir cadenas de efecto kernel→render→OPL→UI.
+   - Reservar el **último** commit del ciclo para una capa explícita de cascadas resueltas. Rondas 6, 7 y 8 demostraron que esa capa es ineludible (mutaciones legacy en tests, recalibración del detector, ajustes de imports cuando los barrels se reducen).
+   - Si hay refactor estructural, recalibrar el detector ANTES de cerrar la ronda, no después. Cada barrel reducido con strings en archivos hijos requiere actualizar reglas; el patrón ronda 8 es: nada de comentarios señuelo, solo paths reales.
+3. Antes de diseñar, consultar `opm-extracted/`, `assets/svg/`, `docs/JOYAS.md` y la SSOT OPM. Las decisiones de ronda 8 citan paths concretos en briefs `docs/instrucciones-lineas-dev/ronda8/`.
+4. Cerrar cada cambio con `bun run check`; si toca UI/render, sumar `bun run browser:smoke`; si toca proyección o bundle, sumar `bun run build`.
+5. Regenerar auditoría con `node docs/historias-usuario-v2/tools/progress-dashboard.mjs --sync-real` antes de publicar un cierre de ronda. **Ronda 8 cerró 55/55 reglas; tras ronda 9 mantener ≥55/N reglas (N puede crecer si la ronda agrega reglas nuevas).**
