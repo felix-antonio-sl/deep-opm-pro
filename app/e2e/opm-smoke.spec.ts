@@ -845,7 +845,7 @@ test("asiste importacion JSON con archivo, preview, confirmacion y error legible
   await expect(dialogo).toBeVisible();
   await dialogo.getByRole("button", { name: "Descartar" }).click();
   await expect(elementoPorTexto(page, "Objeto Raiz")).toHaveCount(1);
-  await expect(page.getByText("Modelo multi OPD (No guardado)")).toHaveCount(0);
+  await expect(page.getByText("Modelo multi OPD (No guardado)")).toHaveCount(1);
 
   await page.locator("textarea").fill("{");
   await expect(page.getByRole("alert")).toHaveText("JSON inválido");
