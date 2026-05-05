@@ -809,6 +809,50 @@ describe("operaciones de modelo", () => {
     ]));
   });
 
+  test("mover contorno arrastra apariencias internas pero conserva externos proxy en su posicion", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 40, y: 60 }, "Externo"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 320, y: 220 }, "PadreRefinable"));
+    const externoId = entidadPorNombre(modelo, "Externo").id;
+    const padreId = entidadPorNombre(modelo, "PadreRefinable").id;
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, externoId, padreId, "consumo"));
+    const descomposicion = must(descomponerProceso(modelo, modelo.opdRaizId, padreId));
+    modelo = descomposicion.modelo;
+    const opdHijoId = descomposicion.opdId;
+
+    const opdHijo = modelo.opds[opdHijoId];
+    expect(opdHijo).toBeDefined();
+    if (!opdHijo) return;
+    const apariencias = Object.values(opdHijo.apariencias);
+    const contorno = apariencias.find((apariencia) => apariencia.entidadId === padreId);
+    const externoProxy = apariencias.find((apariencia) => apariencia.entidadId === externoId);
+    const internos = apariencias.filter((apariencia) =>
+      apariencia.entidadId !== padreId && apariencia.entidadId !== externoId,
+    );
+    expect(contorno).toBeDefined();
+    expect(externoProxy).toBeDefined();
+    expect(internos.length).toBeGreaterThan(0);
+    if (!contorno || !externoProxy) return;
+
+    const movido = must(moverAparienciaPorId(modelo, opdHijoId, contorno.id, {
+      x: contorno.x + 250,
+      y: contorno.y + 90,
+    }));
+    const apariencasMovidas = movido.opds[opdHijoId]?.apariencias;
+    expect(apariencasMovidas).toBeDefined();
+    if (!apariencasMovidas) return;
+
+    expect(apariencasMovidas[contorno.id]?.x).toBe(contorno.x + 250);
+    expect(apariencasMovidas[contorno.id]?.y).toBe(contorno.y + 90);
+    for (const interno of internos) {
+      expect(apariencasMovidas[interno.id]?.x).toBe(interno.x + 250);
+      expect(apariencasMovidas[interno.id]?.y).toBe(interno.y + 90);
+    }
+    // El externo proxy se mantiene en su posicion absoluta.
+    expect(apariencasMovidas[externoProxy.id]?.x).toBe(externoProxy.x);
+    expect(apariencasMovidas[externoProxy.id]?.y).toBe(externoProxy.y);
+  });
+
   test("mantiene agente e instrumento externos sobre el contorno del refinamiento", () => {
     let modelo = crearModelo();
     modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 40 }, "Driver"));

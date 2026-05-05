@@ -438,14 +438,30 @@ export function moverAparienciaPorId(modelo: Modelo, opdId: Id, aparienciaId: Id
 
   let nuevasApariencias: Record<Id, Apariencia>;
   if (esContorno) {
-    // Mover contorno arrastra a todas las apariencias del OPD hijo por el
-    // mismo delta para preservar layout interno de subprocesos / partes
-    // refinadoras (HU-12.008 contenedor envolvente).
+    // Mover contorno arrastra a las apariencias internas (centro dentro del
+    // bbox del contorno: subprocesos, partes refinadoras, objetos internos).
+    // Las apariencias proxy de externos (objetos del padre que aparecen en
+    // el OPD hijo conectados por enlaces derivados) viven FUERA del bbox
+    // del contorno por diseno y deben mantener su posicion absoluta — son
+    // anclas visuales del contexto del padre, no contenido del refinamiento
+    // (HU-12.008 contenedor envolvente; HU-12.010 externos parciales).
     const dx = posicion.x - apariencia.x;
     const dy = posicion.y - apariencia.y;
     nuevasApariencias = {};
     for (const [id, ap] of Object.entries(opd.apariencias)) {
-      nuevasApariencias[id] = { ...ap, x: ap.x + dx, y: ap.y + dy };
+      if (id === aparienciaId) {
+        nuevasApariencias[id] = { ...ap, x: posicion.x, y: posicion.y };
+        continue;
+      }
+      const centerX = ap.x + ap.width / 2;
+      const centerY = ap.y + ap.height / 2;
+      const dentroDelContorno = centerX >= apariencia.x
+        && centerX <= apariencia.x + apariencia.width
+        && centerY >= apariencia.y
+        && centerY <= apariencia.y + apariencia.height;
+      nuevasApariencias[id] = dentroDelContorno
+        ? { ...ap, x: ap.x + dx, y: ap.y + dy }
+        : ap;
     }
   } else if (contorno) {
     // Apariencia interna: clamp al bbox del contorno (HU-12.020 restriccion
