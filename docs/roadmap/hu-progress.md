@@ -1,9 +1,9 @@
 # Auditoria de avance HU v2
 
-**Generado:** 2026-05-05T05:27:21.151Z
+**Generado:** 2026-05-05T06:23:41.359Z
 **Backlog:** `docs/historias-usuario-v2`
 **Ledger de evidencia:** `docs/roadmap/hu-progress-evidence.json`
-**Auditoria automatica:** 42/42 reglas matcheadas sobre 88 archivos fuente.
+**Auditoria automatica:** 40/42 reglas matcheadas sobre 103 archivos fuente.
 
 
 Regenerar desde la raiz del repo:
@@ -20,16 +20,16 @@ node docs/historias-usuario-v2/tools/progress-dashboard.mjs
 
 | Segmento | HU vivas | Cubiertas | Parciales | Pendientes | Diferidas | Avance ponderado |
 |---|---:|---:|---:|---:|---:|---:|
-| Total backlog | 1126 | 87 | 52 | 609 | 378 | 10.6% |
-| M0 | 130 | 54 | 30 | 46 | 0 | 54.1% |
-| MVP-alpha | 121 | 28 | 24 | 69 | 0 | 29.8% |
+| Total backlog | 1126 | 84 | 51 | 613 | 378 | 10.2% |
+| M0 | 130 | 51 | 29 | 50 | 0 | 50.5% |
+| MVP-alpha | 121 | 25 | 23 | 73 | 0 | 26.1% |
 | MVP-beta | 193 | 46 | 23 | 124 | 0 | 32.4% |
 
 ## Por corte
 
 | Corte | HU vivas | Cubiertas | Parciales | Pendientes | Diferidas | Avance ponderado |
 |---|---:|---:|---:|---:|---:|---:|
-| MVP-alpha | 121 | 28 | 24 | 69 | 0 | 29.8% |
+| MVP-alpha | 121 | 25 | 23 | 73 | 0 | 26.1% |
 | MVP-beta | 193 | 46 | 23 | 124 | 0 | 32.4% |
 | MVP-gamma | 434 | 13 | 5 | 416 | 0 | 3.9% |
 | MVP-delta | 378 | 0 | 0 | 0 | 378 | 0.0% |
@@ -39,7 +39,7 @@ node docs/historias-usuario-v2/tools/progress-dashboard.mjs
 
 | Prioridad | HU vivas | Cubiertas | Parciales | Pendientes | Diferidas | Avance ponderado |
 |---|---:|---:|---:|---:|---:|---:|
-| M0 | 130 | 54 | 30 | 46 | 0 | 54.1% |
+| M0 | 130 | 51 | 29 | 50 | 0 | 50.5% |
 | M1 | 161 | 18 | 13 | 124 | 6 | 17.7% |
 | S | 471 | 14 | 8 | 287 | 162 | 5.2% |
 | C | 247 | 1 | 1 | 144 | 101 | 0.6% |
@@ -71,7 +71,7 @@ node docs/historias-usuario-v2/tools/progress-dashboard.mjs
 | 40 | Colaboración — permisos de modelo, token de edición y auto-lectura desde carpeta | 25 | 0 | 0 | 0 | 25 | 0.0% |
 | 41 | Colaboración — chat del modelo | 17 | 0 | 0 | 0 | 17 | 0.0% |
 | 42 | Colaboración — notas adhesivas (anclaje, toggle, integración) | 22 | 0 | 0 | 22 | 0 | 0.0% |
-| 50 | Panel OPL-ES — lente bimodal, edición inversa y sincronización con el canvas | 21 | 3 | 1 | 17 | 0 | 18.2% |
+| 50 | Panel OPL-ES — lente bimodal, edición inversa y sincronización con el canvas | 21 | 0 | 1 | 20 | 0 | 3.6% |
 | 60 | Exportar a PDF — pipeline papel, opciones, selección de OPDs, integración Compartir | 35 | 0 | 0 | 35 | 0 | 0.0% |
 | 61 | Exportar SVG — exportar diagramas OPD como imágenes vectoriales | 26 | 0 | 0 | 26 | 0 | 0.0% |
 | 70 | Interoperabilidad — importación de modelos OPCAT 4.2 (.opx) | 25 | 0 | 0 | 25 | 0 | 0.0% |
@@ -98,10 +98,11 @@ node docs/historias-usuario-v2/tools/progress-dashboard.mjs
 | C2 | Runtime ROS — integración con Robot Operating System | 28 | 0 | 0 | 0 | 28 | 0.0% |
 | D0 | Análisis — detección de conocimiento faltante (predicción de enlaces sobre el grafo del modelo) | 22 | 0 | 0 | 0 | 22 | 0.0% |
 | D1 | Análisis — calificación de informatividad del modelo (MFSP, INF, WINF, TWINF) | 16 | 0 | 0 | 0 | 16 | 0.0% |
-| SHARED | Patrones transversales | 9 | 0 | 7 | 2 | 0 | 37.5% |
+| SHARED | Patrones transversales | 9 | 0 | 6 | 3 | 0 | 29.2% |
 
 ## Pendientes M0 inmediatos
 
+- [HU-SHARED-007](../historias-usuario-v2/shared/HU-SHARED-007-eco-opl.md) — Eco OPL-ES sincronizado (M0, pendiente)
 - [HU-1C.004](../historias-usuario-v2/epicas/epica-1c-canvas-validaciones.md) — Crear cosa interna correcta directamente dentro del contenedor (M0, pendiente)
 - [HU-11.001](../historias-usuario-v2/epicas/epica-11-canvas-modelado-basico.md) — Crear cosa y sus partes en secuencia sobre el mismo OPD (M0, pendiente)
 - [HU-11.004](../historias-usuario-v2/epicas/epica-11-canvas-modelado-basico.md) — Fusionar múltiples enlaces de agregación en bus vertical único (M0, pendiente)
@@ -122,7 +123,10 @@ node docs/historias-usuario-v2/tools/progress-dashboard.mjs
 - [HU-34.006](../historias-usuario-v2/epicas/epica-34-persistencia-nuevo-modelo.md) — Ver lienzo OPD vacío tras "Nuevo Modelo" (M0, pendiente)
 - [HU-34.007](../historias-usuario-v2/epicas/epica-34-persistencia-nuevo-modelo.md) — Ver panel OPL-ES vacío tras "Nuevo Modelo" (M0, pendiente)
 - [HU-34.008](../historias-usuario-v2/epicas/epica-34-persistencia-nuevo-modelo.md) — Ver biblioteca "Cosas arrastrables" vacía (M0, pendiente)
+- [HU-50.001](../historias-usuario-v2/epicas/epica-50-opl-pane.md) — Renderizar panel OPL-ES persistente en franja inferior (M0, pendiente)
 - [HU-50.002](../historias-usuario-v2/epicas/epica-50-opl-pane.md) — Numerar oraciones OPL-ES con prefijo ordinal (M0, pendiente)
+- [HU-50.015](../historias-usuario-v2/epicas/epica-50-opl-pane.md) — Verbalizar especialización (es un/una) (M0, pendiente)
+- [HU-50.016](../historias-usuario-v2/epicas/epica-50-opl-pane.md) — Colorear tokens OPL-ES por clase de cosa (M0, pendiente)
 - [HU-50.017](../historias-usuario-v2/epicas/epica-50-opl-pane.md) — Resaltar cruzado OPL-ES↔OPD al pasar el cursor (M0, pendiente)
 - [HU-50.018](../historias-usuario-v2/epicas/epica-50-opl-pane.md) — Filtrar OPL-ES por selección activa en canvas (M0, pendiente)
 - [HU-50.019](../historias-usuario-v2/epicas/epica-50-opl-pane.md) — Editar nombre de cosa por doble clic en OPL-ES (M0, pendiente)

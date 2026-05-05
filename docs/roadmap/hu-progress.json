@@ -1,17 +1,17 @@
 {
   "schema": "deep-opm-pro.hu-progress-report.v1",
-  "generatedAt": "2026-05-05T05:27:21.151Z",
+  "generatedAt": "2026-05-05T06:23:41.359Z",
   "repoRoot": "/home/felix/projects/deep-opm-pro",
   "backlogRoot": "docs/historias-usuario-v2",
   "evidenceLedger": "docs/roadmap/hu-progress-evidence.json",
   "autoAudit": {
-    "generatedAt": "2026-05-05T05:27:21.151Z",
+    "generatedAt": "2026-05-05T06:23:41.359Z",
     "mode": "sync-real",
     "rulesEvaluated": 42,
-    "rulesMatched": 42,
-    "rulesUnmatched": 0,
+    "rulesMatched": 40,
+    "rulesUnmatched": 2,
     "sourceFiles": {
-      "count": 88,
+      "count": 103,
       "roots": [
         "app/src",
         "app/e2e",
@@ -43,14 +43,14 @@
   "summaries": {
     "total": {
       "total": 1126,
-      "cubierto": 87,
-      "parcial": 52,
-      "pendiente": 609,
+      "cubierto": 84,
+      "parcial": 51,
+      "pendiente": 613,
       "diferido": 378,
       "bloqueado": 0,
       "pesoTotal": 3004,
-      "pesoCubierto": 317.5,
-      "avance": 0.10569241011984021
+      "pesoCubierto": 305.5,
+      "avance": 0.10169773635153129
     },
     "inventario": {
       "totalParseadas": 1173,
@@ -60,25 +60,25 @@
     },
     "m0": {
       "total": 130,
-      "cubierto": 54,
-      "parcial": 30,
-      "pendiente": 46,
+      "cubierto": 51,
+      "parcial": 29,
+      "pendiente": 50,
       "diferido": 0,
       "bloqueado": 0,
       "pesoTotal": 333,
-      "pesoCubierto": 180,
-      "avance": 0.5405405405405406
+      "pesoCubierto": 168,
+      "avance": 0.5045045045045045
     },
     "alpha": {
       "total": 121,
-      "cubierto": 28,
-      "parcial": 24,
-      "pendiente": 69,
+      "cubierto": 25,
+      "parcial": 23,
+      "pendiente": 73,
       "diferido": 0,
       "bloqueado": 0,
       "pesoTotal": 326,
-      "pesoCubierto": 97,
-      "avance": 0.29754601226993865
+      "pesoCubierto": 85,
+      "avance": 0.2607361963190184
     },
     "beta": {
       "total": 193,
@@ -94,14 +94,14 @@
     "byCut": {
       "alpha": {
         "total": 121,
-        "cubierto": 28,
-        "parcial": 24,
-        "pendiente": 69,
+        "cubierto": 25,
+        "parcial": 23,
+        "pendiente": 73,
         "diferido": 0,
         "bloqueado": 0,
         "pesoTotal": 326,
-        "pesoCubierto": 97,
-        "avance": 0.29754601226993865
+        "pesoCubierto": 85,
+        "avance": 0.2607361963190184
       },
       "beta": {
         "total": 193,
@@ -151,14 +151,14 @@
     "byPriority": {
       "M0": {
         "total": 130,
-        "cubierto": 54,
-        "parcial": 30,
-        "pendiente": 46,
+        "cubierto": 51,
+        "parcial": 29,
+        "pendiente": 50,
         "diferido": 0,
         "bloqueado": 0,
         "pesoTotal": 333,
-        "pesoCubierto": 180,
-        "avance": 0.5405405405405406
+        "pesoCubierto": 168,
+        "avance": 0.5045045045045045
       },
       "M1": {
         "total": 161,
@@ -472,14 +472,14 @@
       "50": {
         "titulo": "Panel OPL-ES — lente bimodal, edición inversa y sincronización con el canvas",
         "total": 21,
-        "cubierto": 3,
+        "cubierto": 0,
         "parcial": 1,
-        "pendiente": 17,
+        "pendiente": 20,
         "diferido": 0,
         "bloqueado": 0,
         "pesoTotal": 55,
-        "pesoCubierto": 10,
-        "avance": 0.18181818181818182
+        "pesoCubierto": 2,
+        "avance": 0.03636363636363636
       },
       "60": {
         "titulo": "Exportar a PDF — pipeline papel, opciones, selección de OPDs, integración Compartir",
@@ -797,13 +797,13 @@
         "titulo": "Patrones transversales",
         "total": 9,
         "cubierto": 0,
-        "parcial": 7,
-        "pendiente": 2,
+        "parcial": 6,
+        "pendiente": 3,
         "diferido": 0,
         "bloqueado": 0,
         "pesoTotal": 48,
-        "pesoCubierto": 18,
-        "avance": 0.375
+        "pesoCubierto": 14,
+        "avance": 0.2916666666666667
       }
     }
   },
@@ -1175,11 +1175,14 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/shared/HU-SHARED-007-eco-opl.md",
       "lineaInicio": 16,
       "corte": "alpha",
-      "estadoAvance": "parcial",
+      "estadoAvance": "pendiente",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto: generacion OPL-ES forward cubre entidades, enlaces, estados, despliegues y OPD activo; no existe edicion inversa OPL -> canvas.",
-      "brechas": [],
+      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
+      "brechas": [
+        "app/src/ui/PanelOpl.tsx: falta generarOpl(modelo, opdActivoId)",
+        "app/src/ui/PanelOpl.tsx: falta renderOpl"
+      ],
       "evidencia": [
         {
           "path": "app/src/opl/generar.ts",
@@ -1199,8 +1202,8 @@
         }
       ],
       "peso": 8,
-      "score": 0.5,
-      "avancePonderado": 4,
+      "score": 0,
+      "avancePonderado": 0,
       "enlaceFuente": "../historias-usuario-v2/shared/HU-SHARED-007-eco-opl.md"
     },
     {
@@ -35993,11 +35996,14 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-50-opl-pane.md",
       "lineaInicio": 45,
       "corte": "alpha",
-      "estadoAvance": "cubierto",
+      "estadoAvance": "pendiente",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto: panel OPL persistente renderiza objetos/procesos con marcas semanticas y colores diferenciados.",
-      "brechas": [],
+      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
+      "brechas": [
+        "app/src/ui/PanelOpl.tsx: falta generarOpl(modelo, opdActivoId)",
+        "app/src/ui/PanelOpl.tsx: falta renderOpl"
+      ],
       "evidencia": [
         {
           "path": "app/src/ui/PanelOpl.tsx",
@@ -36013,8 +36019,8 @@
         }
       ],
       "peso": 4,
-      "score": 1,
-      "avancePonderado": 4,
+      "score": 0,
+      "avancePonderado": 0,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-50-opl-pane.md"
     },
     {
@@ -36483,11 +36489,14 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-50-opl-pane.md",
       "lineaInicio": 87,
       "corte": "alpha",
-      "estadoAvance": "cubierto",
+      "estadoAvance": "pendiente",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto: panel OPL persistente renderiza objetos/procesos con marcas semanticas y colores diferenciados.",
-      "brechas": [],
+      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
+      "brechas": [
+        "app/src/ui/PanelOpl.tsx: falta generarOpl(modelo, opdActivoId)",
+        "app/src/ui/PanelOpl.tsx: falta renderOpl"
+      ],
       "evidencia": [
         {
           "path": "app/src/ui/PanelOpl.tsx",
@@ -36503,8 +36512,8 @@
         }
       ],
       "peso": 2,
-      "score": 1,
-      "avancePonderado": 2,
+      "score": 0,
+      "avancePonderado": 0,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-50-opl-pane.md"
     },
     {
@@ -36532,11 +36541,14 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-50-opl-pane.md",
       "lineaInicio": 90,
       "corte": "alpha",
-      "estadoAvance": "cubierto",
+      "estadoAvance": "pendiente",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto: panel OPL persistente renderiza objetos/procesos con marcas semanticas y colores diferenciados.",
-      "brechas": [],
+      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
+      "brechas": [
+        "app/src/ui/PanelOpl.tsx: falta generarOpl(modelo, opdActivoId)",
+        "app/src/ui/PanelOpl.tsx: falta renderOpl"
+      ],
       "evidencia": [
         {
           "path": "app/src/ui/PanelOpl.tsx",
@@ -36552,8 +36564,8 @@
         }
       ],
       "peso": 2,
-      "score": 1,
-      "avancePonderado": 2,
+      "score": 0,
+      "avancePonderado": 0,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-50-opl-pane.md"
     },
     {

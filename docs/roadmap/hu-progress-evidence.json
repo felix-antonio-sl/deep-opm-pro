@@ -728,13 +728,13 @@
   ],
   "knownGaps": [],
   "autoAudit": {
-    "generatedAt": "2026-05-05T05:27:21.151Z",
+    "generatedAt": "2026-05-05T06:23:41.359Z",
     "mode": "sync-real",
     "rulesEvaluated": 42,
-    "rulesMatched": 42,
-    "rulesUnmatched": 0,
+    "rulesMatched": 40,
+    "rulesUnmatched": 2,
     "sourceFiles": {
-      "count": 88,
+      "count": 103,
       "roots": [
         "app/src",
         "app/e2e",
@@ -778,15 +778,19 @@
       "ids": [
         "HU-SHARED-007"
       ],
-      "estado": "parcial",
+      "estado": "pendiente",
       "confianza": "alta-auto",
       "fuente": "auto",
-      "nota": "Auto: generacion OPL-ES forward cubre entidades, enlaces, estados, despliegues y OPD activo; no existe edicion inversa OPL -> canvas.",
+      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
       "evidencia": [
         "app/src/opl/generar.ts",
         "app/src/ui/PanelOpl.tsx",
         "app/src/opl/generar.test.ts",
         "app/src/completitud.test.ts"
+      ],
+      "brechas": [
+        "app/src/ui/PanelOpl.tsx: falta generarOpl(modelo, opdActivoId)",
+        "app/src/ui/PanelOpl.tsx: falta renderOpl"
       ]
     },
     {
@@ -1018,14 +1022,18 @@
         "HU-50.015",
         "HU-50.016"
       ],
-      "estado": "cubierto",
+      "estado": "pendiente",
       "confianza": "alta-auto",
       "fuente": "auto",
-      "nota": "Auto: panel OPL persistente renderiza objetos/procesos con marcas semanticas y colores diferenciados.",
+      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
       "evidencia": [
         "app/src/ui/PanelOpl.tsx",
         "app/src/opl/generar.ts",
         "app/src/completitud.test.ts"
+      ],
+      "brechas": [
+        "app/src/ui/PanelOpl.tsx: falta generarOpl(modelo, opdActivoId)",
+        "app/src/ui/PanelOpl.tsx: falta renderOpl"
       ]
     },
     {
