@@ -10,6 +10,7 @@ import { estadosDeEntidad } from "../modelo/operaciones";
 import { modoPlegadoApariencia, partesDePlegado, UMBRAL_PARTES_MAS } from "../modelo/plegado";
 import { rutaEtiquetaNormalizada } from "../modelo/rutas";
 import type { Abanico, Apariencia, Enlace, Entidad, Estado, Id, Modelo, ModoDespliegueObjeto, Opd, TipoEnlace } from "../modelo/tipos";
+import { crearLineaOplInteractiva, type OplLineaInteractiva, type OplReferencia, type OplTokenHint } from "./interaccion";
 
 export function generarOpl(modelo: Modelo, opdId: Id = modelo.opdRaizId): string[] {
   const opd = modelo.opds[opdId];
@@ -46,6 +47,86 @@ export function generarOpl(modelo: Modelo, opdId: Id = modelo.opdRaizId): string
     if (linea) lineas.push(linea);
   }
   return lineas;
+}
+
+export function generarOplInteractivo(modelo: Modelo, opdId: Id = modelo.opdRaizId): OplLineaInteractiva[] {
+  const opd = modelo.opds[opdId];
+  if (!opd) return [];
+  const lineas: Array<{ texto: string; refs: OplReferencia[]; hints: OplTokenHint[] }> = [];
+
+  for (const apariencia of Object.values(opd.apariencias)) {
+    const entidad = modelo.entidades[apariencia.entidadId];
+    if (!entidad) continue;
+    agregarLinea(lineas, oracionEntidad(entidad), refsEntidad(entidad.id), [hintEntidad(entidad)]);
+    const estados = entidad.tipo === "objeto" ? estadosDeEntidad(modelo, entidad.id) : [];
+    if (estados.length > 0) {
+      agregarLinea(
+        lineas,
+        oracionEstados(entidad, estados),
+        [refEntidad(entidad.id), ...estados.map((estado) => refEstado(estado.id))],
+        [hintEntidad(entidad), ...estados.map(hintEstado)],
+      );
+    }
+    const refinamiento = oracionRefinamiento(modelo, apariencia, entidad);
+    if (refinamiento) {
+      agregarLinea(lineas, refinamiento, refsRefinamiento(modelo, apariencia, entidad), hintsRefinamiento(modelo, apariencia, entidad));
+    }
+  }
+
+  const transiciones = transicionesEstadoInteractivo(modelo, opd);
+  const abanicosOpd = Object.values(modelo.abanicos ?? {}).filter((abanico) => abanico.opdId === opd.id);
+  const enlacesEnAbanico = new Set<Id>();
+  for (const abanico of abanicosOpd) {
+    for (const linea of oracionesAbanicoInteractivo(modelo, abanico)) {
+      lineas.push(linea);
+    }
+    for (const id of abanico.enlaceIds) enlacesEnAbanico.add(id);
+  }
+
+  for (const aparienciaEnlace of Object.values(opd.enlaces)) {
+    const enlace = modelo.enlaces[aparienciaEnlace.enlaceId];
+    if (!enlace) continue;
+    if (enlacesEnAbanico.has(enlace.id)) continue;
+    const transicion = transiciones.lineaPorEnlaceConsumo.get(enlace.id);
+    if (transicion) {
+      lineas.push(transicion);
+      continue;
+    }
+    if (transiciones.enlacesCubiertos.has(enlace.id)) continue;
+    const texto = oracionEnlaceConRuta(modelo, enlace);
+    if (texto) agregarLinea(lineas, texto, refsEnlace(modelo, enlace), hintsEnlace(modelo, enlace, texto));
+  }
+
+  return lineas.map((linea, index) => crearLineaOplInteractiva(`opl-${opdId}-${index + 1}`, linea.texto, index + 1, linea.refs, linea.hints));
+}
+
+function agregarLinea(
+  lineas: Array<{ texto: string; refs: OplReferencia[]; hints: OplTokenHint[] }>,
+  texto: string | null,
+  refs: OplReferencia[],
+  hints: OplTokenHint[],
+): void {
+  if (!texto) return;
+  lineas.push({ texto, refs, hints });
+}
+
+function oracionesAbanicoInteractivo(modelo: Modelo, abanico: Abanico): Array<{ texto: string; refs: OplReferencia[]; hints: OplTokenHint[] }> {
+  const enlaces = abanico.enlaceIds
+    .map((id) => modelo.enlaces[id])
+    .filter((enlace): enlace is Enlace => enlace !== undefined);
+  if (enlaces.some((enlace) => rutaEtiquetaNormalizada(enlace.rutaEtiqueta))) {
+    return enlaces.flatMap((enlace) => {
+      const texto = oracionEnlaceConRuta(modelo, enlace);
+      return texto ? [{ texto, refs: refsEnlace(modelo, enlace), hints: hintsEnlace(modelo, enlace, texto) }] : [];
+    });
+  }
+  const texto = oracionAbanico(modelo, abanico);
+  if (!texto) return [];
+  return [{
+    texto,
+    refs: refsAbanico(modelo, abanico),
+    hints: hintsAbanico(modelo, abanico, texto),
+  }];
 }
 
 function oracionesAbanico(modelo: Modelo, abanico: Abanico): string[] {
@@ -280,6 +361,216 @@ function transicionesEstado(modelo: Modelo, opd: Opd): { lineaPorEnlaceConsumo: 
   return { lineaPorEnlaceConsumo, enlacesCubiertos };
 }
 
+function transicionesEstadoInteractivo(
+  modelo: Modelo,
+  opd: Opd,
+): { lineaPorEnlaceConsumo: Map<Id, { texto: string; refs: OplReferencia[]; hints: OplTokenHint[] }>; enlacesCubiertos: Set<Id> } {
+  const consumos = Object.values(opd.enlaces)
+    .map((apariencia) => modelo.enlaces[apariencia.enlaceId])
+    .filter((enlace): enlace is Enlace => !!enlace && enlace.tipo === "consumo" && enlace.origenId.kind === "estado");
+  const resultados = Object.values(opd.enlaces)
+    .map((apariencia) => modelo.enlaces[apariencia.enlaceId])
+    .filter((enlace): enlace is Enlace => !!enlace && enlace.tipo === "resultado" && enlace.destinoId.kind === "estado");
+  const lineaPorEnlaceConsumo = new Map<Id, { texto: string; refs: OplReferencia[]; hints: OplTokenHint[] }>();
+  const enlacesCubiertos = new Set<Id>();
+
+  for (const consumo of consumos) {
+    const objetoEntradaId = entidadIdDeExtremo(modelo, consumo.origenId);
+    const procesoId = entidadIdDeExtremo(modelo, consumo.destinoId);
+    if (!objetoEntradaId || !procesoId) continue;
+    const resultado = resultados.find((candidato) => (
+      entidadIdDeExtremo(modelo, candidato.origenId) === procesoId &&
+      entidadIdDeExtremo(modelo, candidato.destinoId) === objetoEntradaId
+    ));
+    if (!resultado) continue;
+    const proceso = modelo.entidades[procesoId];
+    const objeto = modelo.entidades[objetoEntradaId];
+    const estadoEntrada = estadoDeExtremo(modelo, consumo.origenId);
+    const estadoSalida = estadoDeExtremo(modelo, resultado.destinoId);
+    if (!proceso || !objeto || !estadoEntrada || !estadoSalida) continue;
+    const texto = `${nombreOpl(proceso)} cambia ${nombreOpl(objeto)} de \`${estadoEntrada.nombre}\` a \`${estadoSalida.nombre}\`.`;
+    lineaPorEnlaceConsumo.set(consumo.id, {
+      texto,
+      refs: [
+        refEntidad(proceso.id),
+        refEntidad(objeto.id),
+        refEstado(estadoEntrada.id),
+        refEstado(estadoSalida.id),
+        refEnlace(consumo.id),
+        refEnlace(resultado.id),
+      ],
+      hints: [
+        hintEntidad(proceso),
+        hintEnlace(consumo, "cambia"),
+        hintEntidad(objeto),
+        hintEstado(estadoEntrada),
+        hintEstado(estadoSalida),
+      ],
+    });
+    enlacesCubiertos.add(consumo.id);
+    enlacesCubiertos.add(resultado.id);
+  }
+
+  return { lineaPorEnlaceConsumo, enlacesCubiertos };
+}
+
+function refsEnlace(modelo: Modelo, enlace: Enlace): OplReferencia[] {
+  const refs: OplReferencia[] = [refEnlace(enlace.id)];
+  const origen = entidadIdDeExtremo(modelo, enlace.origenId);
+  const destino = entidadIdDeExtremo(modelo, enlace.destinoId);
+  if (origen) refs.push(refEntidad(origen));
+  if (destino) refs.push(refEntidad(destino));
+  if (enlace.origenId.kind === "estado") refs.push(refEstado(enlace.origenId.id));
+  if (enlace.destinoId.kind === "estado") refs.push(refEstado(enlace.destinoId.id));
+  return refs;
+}
+
+function hintsEnlace(modelo: Modelo, enlace: Enlace, texto: string): OplTokenHint[] {
+  const hints: OplTokenHint[] = [];
+  const origen = entidadDeExtremo(modelo, enlace.origenId);
+  const destino = entidadDeExtremo(modelo, enlace.destinoId);
+  if (origen) hints.push(hintEntidad(origen, nombreOplExtremo(modelo, enlace.origenId, enlace.multiplicidadOrigen)));
+  const verbo = verboInteractivo(enlace, texto);
+  if (verbo) hints.push(hintEnlace(enlace, verbo));
+  if (destino) hints.push(hintEntidad(destino, nombreOplExtremo(modelo, enlace.destinoId, enlace.multiplicidadDestino)));
+  const estadoOrigen = estadoDeExtremo(modelo, enlace.origenId);
+  const estadoDestino = estadoDeExtremo(modelo, enlace.destinoId);
+  if (estadoOrigen) hints.push(hintEstado(estadoOrigen));
+  if (estadoDestino) hints.push(hintEstado(estadoDestino));
+  return hints;
+}
+
+function refsAbanico(modelo: Modelo, abanico: Abanico): OplReferencia[] {
+  const refs: OplReferencia[] = [refEntidad(abanico.puertoEntidadId)];
+  for (const id of abanico.enlaceIds) {
+    const enlace = modelo.enlaces[id];
+    if (enlace) refs.push(...refsEnlace(modelo, enlace));
+  }
+  return refs;
+}
+
+function hintsAbanico(modelo: Modelo, abanico: Abanico, texto: string): OplTokenHint[] {
+  const enlaces = abanico.enlaceIds
+    .map((id) => modelo.enlaces[id])
+    .filter((enlace): enlace is Enlace => enlace !== undefined);
+  const puerto = modelo.entidades[abanico.puertoEntidadId];
+  const hints: OplTokenHint[] = puerto ? [hintEntidad(puerto)] : [];
+  const primer = enlaces[0];
+  const verbo = primer ? verboInteractivo(primer, texto) : null;
+  if (primer && verbo) hints.push(hintEnlace(primer, verbo));
+  for (const enlace of enlaces) {
+    const origenEntId = entidadIdDeExtremo(modelo, enlace.origenId);
+    const otroExtremo = origenEntId === abanico.puertoEntidadId ? enlace.destinoId : enlace.origenId;
+    const entidad = entidadDeExtremo(modelo, otroExtremo);
+    if (entidad) hints.push(hintEntidad(entidad));
+  }
+  return hints;
+}
+
+function refsRefinamiento(modelo: Modelo, apariencia: Apariencia, entidad: Entidad): OplReferencia[] {
+  const refs = refsEntidad(entidad.id);
+  if (!entidad.refinamiento) return refs;
+  const opdHijo = modelo.opds[entidad.refinamiento.opdId];
+  if (!opdHijo) return refs;
+  for (const interna of aparienciasInternasDeRefinamiento(modelo, opdHijo, entidad)) {
+    refs.push(refEntidad(interna.entidadId));
+  }
+  for (const enlace of Object.values(modelo.enlaces)) {
+    const origen = entidadIdDeExtremo(modelo, enlace.origenId);
+    const destino = entidadIdDeExtremo(modelo, enlace.destinoId);
+    if (origen === entidad.id || destino === entidad.id) refs.push(refEnlace(enlace.id));
+  }
+  if (modoPlegadoApariencia(apariencia) === "parcial") {
+    for (const parte of partesDePlegado(modelo, entidad.id)) refs.push(refEntidad(parte.entidadId));
+  }
+  return refs;
+}
+
+function hintsRefinamiento(modelo: Modelo, apariencia: Apariencia, entidad: Entidad): OplTokenHint[] {
+  const hints: OplTokenHint[] = [hintEntidad(entidad)];
+  if (modoPlegadoApariencia(apariencia) === "parcial") {
+    for (const parte of partesDePlegado(modelo, entidad.id)) {
+      const interna = modelo.entidades[parte.entidadId];
+      if (interna) hints.push(hintEntidad(interna));
+    }
+    return hints;
+  }
+  if (!entidad.refinamiento) return hints;
+  const opdHijo = modelo.opds[entidad.refinamiento.opdId];
+  if (!opdHijo) return hints;
+  for (const interna of aparienciasInternasDeRefinamiento(modelo, opdHijo, entidad)) {
+    const entidadInterna = modelo.entidades[interna.entidadId];
+    if (entidadInterna) hints.push(hintEntidad(entidadInterna));
+  }
+  return hints;
+}
+
+function refsEntidad(id: Id): OplReferencia[] {
+  return [refEntidad(id)];
+}
+
+function refEntidad(id: Id): OplReferencia {
+  return { tipo: "entidad", id };
+}
+
+function refEnlace(id: Id): OplReferencia {
+  return { tipo: "enlace", id };
+}
+
+function refEstado(id: Id): OplReferencia {
+  return { tipo: "estado", id };
+}
+
+function hintEntidad(entidad: Entidad, texto = nombreOpl(entidad)): OplTokenHint {
+  return {
+    texto,
+    ref: refEntidad(entidad.id),
+    rol: "nombre",
+    markdown: entidad.tipo === "objeto" ? "objeto" : "proceso",
+  };
+}
+
+function hintEstado(estado: Estado): OplTokenHint {
+  return {
+    texto: `\`${estado.nombre}\``,
+    ref: refEstado(estado.id),
+    rol: "estado",
+    markdown: "estado",
+  };
+}
+
+function hintEnlace(enlace: Enlace, texto: string): OplTokenHint {
+  return {
+    texto,
+    ref: refEnlace(enlace.id),
+    rol: "verbo",
+  };
+}
+
+function verboInteractivo(enlace: Enlace, texto: string): string | null {
+  const candidatos = [
+    ...(esAutoInvocacion(enlace) ? ["se invoca"] : []),
+    ...(enlace.modificador === "evento" ? ["inicia y maneja", "inicia e invoca", "inicia"] : []),
+    ...(enlace.modificador === "condicion" ? ["ocurre si", "maneja", "invoca"] : []),
+    ...(enlace.modificador === "no" ? ["no maneja", "no requiere", "no consume", "no genera", "no afecta"] : []),
+    ...verbosPorTipo[enlace.tipo],
+  ];
+  return candidatos.find((candidato) => texto.includes(candidato)) ?? null;
+}
+
+const verbosPorTipo: Record<TipoEnlace, string[]> = {
+  agregacion: ["consta", "constan"],
+  exhibicion: ["exhibe", "exhiben"],
+  generalizacion: ["es un", "son"],
+  clasificacion: ["es una instancia", "son instancias"],
+  agente: ["maneja", "manejan", "es manejado"],
+  instrumento: ["requiere", "requieren", "es requerido"],
+  consumo: ["consume", "consumen", "cambia"],
+  resultado: ["genera", "generan", "cambia"],
+  efecto: ["afecta", "afectan"],
+  invocacion: ["invoca", "invocan", "se invoca"],
+};
+
 function oracionEnlace(modelo: Modelo, enlace: Enlace): string | null {
   return conEtiquetaEnlace(enlace, oracionEnlaceSinEtiqueta(modelo, enlace));
 }
@@ -337,6 +628,12 @@ function oracionEnlaceSinEtiqueta(modelo: Modelo, enlace: Enlace): string | null
     case "invocacion":
       return `${origenOpl} ${verbo("invoca", "invocan", origenPlural)} ${destinoOpl}${enlace.demora ? ` despues de ${enlace.demora}` : ""}.`;
   }
+}
+
+function conEtiquetaEnlace(enlace: Enlace, linea: string | null): string | null {
+  if (!linea) return null;
+  const etiqueta = etiquetaEnlaceNormalizada(enlace.etiqueta);
+  return etiqueta ? `${linea} [etiqueta: ${etiqueta}]` : linea;
 }
 
 function oracionEvento(
@@ -430,12 +727,6 @@ function oracionNegada(
 function oracionEnlaceSinModificador(modelo: Modelo, enlace: Enlace): string | null {
   const { modificador: _modificador, probabilidad: _probabilidad, ...sinModificador } = enlace;
   return oracionEnlaceSinEtiqueta(modelo, sinModificador);
-}
-
-function conEtiquetaEnlace(enlace: Enlace, linea: string | null): string | null {
-  if (!linea) return null;
-  const etiqueta = etiquetaEnlaceNormalizada(enlace.etiqueta);
-  return etiqueta ? `${linea} [etiqueta: ${etiqueta}]` : linea;
 }
 
 function oracionEfecto(modelo: Modelo, enlace: Enlace, origen: Entidad, destino: Entidad): string | null {

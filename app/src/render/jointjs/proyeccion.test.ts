@@ -3,8 +3,9 @@ import { formarAbanico } from "../../modelo/abanicos";
 import { crearAutoInvocacion } from "../../modelo/autoinvocacion";
 import { renombrarEtiquetaEnlace } from "../../modelo/etiquetasEnlace";
 import { entidadIdDeExtremo, extremoEstado } from "../../modelo/extremos";
+import { aplicarEstiloApariencia } from "../../modelo/estilos";
 import { aplicarModificador, definirDemora, definirProbabilidad } from "../../modelo/modificadores";
-import { ajustarMultiplicidad, cambiarEsencia, crearEnlace, crearEstadosIniciales, crearModelo, crearObjeto, crearProceso, designarEstadoFinal, designarEstadoInicial, descomponerProceso, desplegarObjeto, estadosDeEntidad, renombrarEstado } from "../../modelo/operaciones";
+import { ajustarMultiplicidad, cambiarAfiliacion, cambiarEsencia, crearEnlace, crearEstadosIniciales, crearModelo, crearObjeto, crearProceso, designarEstadoFinal, designarEstadoInicial, descomponerProceso, desplegarObjeto, estadosDeEntidad, renombrarEstado } from "../../modelo/operaciones";
 import { cambiarModoPlegado, crearEnlaceConExtremoPlegado, extraerParteDePlegado, reinsertarParteEnPlegado } from "../../modelo/plegado";
 import { definirRutaEtiqueta } from "../../modelo/rutas";
 import type { Apariencia, Modelo, Resultado, TipoEnlace } from "../../modelo/tipos";
@@ -35,6 +36,67 @@ describe("proyeccion JointJS", () => {
       rol: "interno",
     });
     expect(((cells[0]?.attrs as Attrs | undefined)?.label as Attrs | undefined)?.textWrap).toEqual({ width: -12 });
+  });
+
+  test("resalta entidad desde hover OPL sin persistir estilo", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 30 }, "Orden"));
+    const entidad = Object.values(modelo.entidades)[0];
+    expect(entidad).toBeDefined();
+    if (!entidad) return;
+
+    const cell = proyectarModeloAJointCells(modelo, modelo.opdRaizId, null, null, { tipo: "entidad", id: entidad.id })[0];
+    const body = (cell?.attrs as Attrs | undefined)?.body as Attrs | undefined;
+
+    expect(body?.fill).toBe("#E1E6EB");
+    expect(Object.values(modelo.opds[modelo.opdRaizId]?.apariencias ?? {})[0]?.estilo).toBeUndefined();
+  });
+
+  test("resalta enlace desde hover OPL", () => {
+    const modelo = modeloConEnlace("consumo");
+    const enlace = Object.values(modelo.enlaces)[0];
+    expect(enlace).toBeDefined();
+    if (!enlace) return;
+
+    const cell = proyectarModeloAJointCells(modelo, modelo.opdRaizId, null, null, { tipo: "enlace", id: enlace.id })
+      .find((item) => item.type === "standard.Link");
+    const line = (cell?.attrs as Attrs | undefined)?.line as Attrs | undefined;
+
+    expect(line?.strokeWidth).toBe(4);
+  });
+
+  test("aplica overrides de fill y borde en attrs JointJS de la cosa", () => {
+    let modelo = crearModelo();
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 20, y: 30 }, "Validar"));
+    const apariencia = Object.values(modelo.opds[modelo.opdRaizId]?.apariencias ?? {})[0];
+    if (!apariencia) throw new Error("La prueba esperaba apariencia");
+    modelo = must(aplicarEstiloApariencia(modelo, modelo.opdRaizId, apariencia.id, {
+      fill: "#586D8C",
+      borderColor: "#70E483",
+    }));
+
+    const cell = proyectarModeloAJointCells(modelo, modelo.opdRaizId, null, null)[0];
+    const body = ((cell?.attrs as Attrs | undefined)?.body as Attrs | undefined);
+    const label = ((cell?.attrs as Attrs | undefined)?.label as Attrs | undefined);
+
+    expect(body).toMatchObject({ fill: "#586d8c", stroke: "#70e483" });
+    expect(label?.fill).toBe("#ffffff");
+  });
+
+  test("preserva dash de afiliacion ambiental al cambiar color de borde", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 30 }, "Ambiente"));
+    const entidad = Object.values(modelo.entidades)[0];
+    const apariencia = Object.values(modelo.opds[modelo.opdRaizId]?.apariencias ?? {})[0];
+    if (!entidad || !apariencia) throw new Error("La prueba esperaba cosa");
+    modelo = must(cambiarAfiliacion(modelo, entidad.id, "ambiental"));
+    modelo = must(aplicarEstiloApariencia(modelo, modelo.opdRaizId, apariencia.id, { borderColor: "#3BC3FF" }));
+
+    const cell = proyectarModeloAJointCells(modelo, modelo.opdRaizId, null, null)[0];
+    const body = ((cell?.attrs as Attrs | undefined)?.body as Attrs | undefined);
+
+    expect(body?.stroke).toBe("#3bc3ff");
+    expect(body?.strokeDasharray).toBe("8 4");
   });
 
   test("proyecta agente con marker canonico desde assets SVG", () => {

@@ -12,6 +12,7 @@ import { targetsEstado, type EstadoTarget } from "./estadoTargets";
 import { LINK_ASSETS } from "./linkAssets";
 import { filasPlegadoConNesting, type FilaPlegadoParcialExtendida } from "./plegadoNesting";
 import { etiquetasRuta } from "./rutaLabels";
+import type { OplReferencia } from "../../opl/interaccion";
 
 export type RolApariencia = "contorno" | "interno" | "externo";
 
@@ -72,6 +73,7 @@ export function proyectarModeloAJointCells(
   opdId: Id,
   seleccionEntidadId: Id | null,
   seleccionEnlaceId: Id | null,
+  hoverOplRef: OplReferencia | null = null,
 ): JointCellJson[] {
   const opd = modelo.opds[opdId];
   if (!opd) return [];
@@ -80,7 +82,7 @@ export function proyectarModeloAJointCells(
   const aparienciaPorEntidad = new Map(apariencias.map((apariencia) => [apariencia.entidadId, apariencia]));
   const elementos = apariencias.flatMap((apariencia) => {
     const entidad = modelo.entidades[apariencia.entidadId];
-    return entidad ? [proyectarEntidad(modelo, opdId, apariencia, entidad, entidad.id === seleccionEntidadId)] : [];
+    return entidad ? [proyectarEntidad(modelo, opdId, apariencia, entidad, entidad.id === seleccionEntidadId, refResaltaEntidad(modelo, entidad, hoverOplRef))] : [];
   });
   const proxies = apariencias.flatMap((apariencia) => proyectarProxyExtraccion(opdId, opd, apariencia));
   const overlaysAbanico = Object.values(modelo.abanicos ?? {})
@@ -108,7 +110,10 @@ export function proyectarModeloAJointCells(
     modelo,
     opdId,
     enlaces: enlacesConEndpoint,
-    seleccionados: new Set(seleccionEnlaceId ? [seleccionEnlaceId] : []),
+    seleccionados: new Set([
+      ...(seleccionEnlaceId ? [seleccionEnlaceId] : []),
+      ...(hoverOplRef?.tipo === "enlace" ? [hoverOplRef.id] : []),
+    ]),
   });
   const enlaces = Object.values(opd.enlaces).flatMap((aparienciaEnlace) => {
     const enlace = modelo.enlaces[aparienciaEnlace.enlaceId];
@@ -122,20 +127,23 @@ export function proyectarModeloAJointCells(
         enlace,
         aparienciaEnlaceId: aparienciaEnlace.id,
         proceso: origen.apariencia,
-        seleccionada: enlace.id === seleccionEnlaceId,
+        seleccionada: enlace.id === seleccionEnlaceId || refResaltaEnlace(enlace, hoverOplRef),
       });
     }
     if (origen.apariencia.id === destino.apariencia.id) return [];
+    const enlaceResaltado = enlace.id === seleccionEnlaceId || refResaltaEnlace(enlace, hoverOplRef);
     return TIPOS_REFINAMIENTO_ESTRUCTURAL.includes(enlace.tipo) && !origen.proxy && !destino.proxy
-      ? proyectarRefinamientoEstructural(opdId, enlace, aparienciaEnlace.id, origen.apariencia, destino.apariencia, enlace.id === seleccionEnlaceId)
-      : [proyectarEnlace(opdId, enlace, aparienciaEnlace.id, origen, destino, aparienciaEnlace.vertices, enlace.id === seleccionEnlaceId)];
+      ? proyectarRefinamientoEstructural(opdId, enlace, aparienciaEnlace.id, origen.apariencia, destino.apariencia, enlaceResaltado)
+      : [proyectarEnlace(opdId, enlace, aparienciaEnlace.id, origen, destino, aparienciaEnlace.vertices, enlaceResaltado)];
   });
 
   return [...busCells, ...enlaces, ...proxies, ...overlaysAbanico, ...elementos];
 }
 
-function proyectarEntidad(modelo: Modelo, opdId: Id, apariencia: Apariencia, entidad: Entidad, seleccionada: boolean): JointCellJson {
-  const stroke = entidad.tipo === "objeto" ? CANON.colores.objeto : CANON.colores.proceso;
+function proyectarEntidad(modelo: Modelo, opdId: Id, apariencia: Apariencia, entidad: Entidad, seleccionada: boolean, resaltada: boolean): JointCellJson {
+  const stroke = apariencia.estilo?.borderColor ?? (entidad.tipo === "objeto" ? CANON.colores.objeto : CANON.colores.proceso);
+  const fillBase = apariencia.estilo?.fill ?? CANON.colores.relleno;
+  const fill = resaltada ? "#E1E6EB" : fillBase;
   const partes = partesDePlegado(modelo, entidad.id);
   const tienePartes = partes.length > 0;
   const modoParcial = modoPlegadoApariencia(apariencia) === "parcial" && tienePartes;
@@ -152,7 +160,7 @@ function proyectarEntidad(modelo: Modelo, opdId: Id, apariencia: Apariencia, ent
   const strokeWidth = seleccionada ? strokeBase + 2 : strokeBase;
   const bodyTag = entidad.tipo === "objeto" ? "rect" : "ellipse";
   const body = {
-    fill: CANON.colores.relleno,
+    fill,
     stroke,
     strokeWidth,
     strokeDasharray: entidad.afiliacion === "ambiental" ? "8 4" : undefined,
@@ -165,7 +173,7 @@ function proyectarEntidad(modelo: Modelo, opdId: Id, apariencia: Apariencia, ent
       : { ...body, cx: size.width / 2, cy: size.height / 2, rx: size.width / 2, ry: size.height / 2 },
     label: {
       text: entidad.nombre,
-      fill: CANON.colores.texto,
+      fill: colorTextoParaFill(fill),
       fontFamily: CANON.dims.fontFamily,
       fontSize: CANON.dims.fontSize,
       fontWeight: CANON.dims.fontWeight,
@@ -200,6 +208,42 @@ function proyectarEntidad(modelo: Modelo, opdId: Id, apariencia: Apariencia, ent
     },
     z: contornoRefinamiento ? 0 : 10,
   };
+}
+
+function refResaltaEntidad(modelo: Modelo, entidad: Entidad, ref: OplReferencia | null): boolean {
+  if (!ref) return false;
+  if (ref.tipo === "entidad") return ref.id === entidad.id;
+  if (ref.tipo === "estado") return modelo.estados[ref.id]?.entidadId === entidad.id;
+  return false;
+}
+
+function refResaltaEnlace(enlace: Enlace, ref: OplReferencia | null): boolean {
+  return ref?.tipo === "enlace" && ref.id === enlace.id;
+}
+
+function colorTextoParaFill(fill: string): string {
+  const hex = normalizarHex6(fill);
+  if (!hex) return CANON.colores.texto;
+  const r = Number.parseInt(hex.slice(1, 3), 16) / 255;
+  const g = Number.parseInt(hex.slice(3, 5), 16) / 255;
+  const b = Number.parseInt(hex.slice(5, 7), 16) / 255;
+  const luminancia = 0.2126 * canalSrgb(r) + 0.7152 * canalSrgb(g) + 0.0722 * canalSrgb(b);
+  return luminancia < 0.36 ? "#ffffff" : CANON.colores.texto;
+}
+
+function normalizarHex6(value: string): string | null {
+  if (/^#[0-9a-f]{6}$/i.test(value)) return value.toLowerCase();
+  if (/^#[0-9a-f]{3}$/i.test(value)) {
+    const r = value.charAt(1);
+    const g = value.charAt(2);
+    const b = value.charAt(3);
+    return `#${r}${r}${g}${g}${b}${b}`.toLowerCase();
+  }
+  return null;
+}
+
+function canalSrgb(value: number): number {
+  return value <= 0.03928 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4;
 }
 
 // Distingue el rol de una apariencia dentro de su OPD para que el render

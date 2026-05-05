@@ -1,6 +1,9 @@
 import { dia, linkTools, shapes } from "jointjs";
 import { useEffect, useRef } from "preact/hooks";
+import { CANON } from "../../modelo/constantes";
+import type { Modelo } from "../../modelo/tipos";
 import { useOpmStore } from "../../store";
+import type { OplReferencia } from "../../opl/interaccion";
 import type { OpmJointMetadata } from "./proyeccion";
 import { proyectarModeloAJointCells } from "./proyeccion";
 
@@ -18,11 +21,14 @@ export function JointCanvas() {
   const sincronizandoRef = useRef(false);
   const modoEnlace = useOpmStore((s) => s.modoEnlace);
   const modoEnlaceRef = useRef(modoEnlace);
+  const modoCreacion = useOpmStore((s) => s.modoCreacion);
+  const modoCreacionRef = useRef(modoCreacion);
   const modelo = useOpmStore((s) => s.modelo);
   const opdActivoId = useOpmStore((s) => s.opdActivoId);
   const seleccionId = useOpmStore((s) => s.seleccionId);
   const enlaceSeleccionId = useOpmStore((s) => s.enlaceSeleccionId);
   const enlaceSeleccionIdRef = useRef(enlaceSeleccionId);
+  const hoverOplRef = useOpmStore((s) => s.hoverOplRef);
   const seleccionarEntidad = useOpmStore((s) => s.seleccionarEntidad);
   const seleccionarEntidadRef = useRef(seleccionarEntidad);
   const seleccionarPartePlegada = useOpmStore((s) => s.seleccionarPartePlegada);
@@ -39,10 +45,18 @@ export function JointCanvas() {
   const extraerParteDePlegadoRef = useRef(extraerParteDePlegado);
   const actualizarVerticesEnlace = useOpmStore((s) => s.actualizarVerticesEnlace);
   const actualizarVerticesEnlaceRef = useRef(actualizarVerticesEnlace);
+  const crearEntidadEnCanvas = useOpmStore((s) => s.crearEntidadEnCanvas);
+  const crearEntidadEnCanvasRef = useRef(crearEntidadEnCanvas);
+  const fijarHoverOpl = useOpmStore((s) => s.fijarHoverOpl);
+  const fijarHoverOplRef = useRef(fijarHoverOpl);
 
   useEffect(() => {
     modoEnlaceRef.current = modoEnlace;
   }, [modoEnlace]);
+
+  useEffect(() => {
+    modoCreacionRef.current = modoCreacion;
+  }, [modoCreacion]);
 
   useEffect(() => {
     enlaceSeleccionIdRef.current = enlaceSeleccionId;
@@ -57,7 +71,9 @@ export function JointCanvas() {
     cambiarModoPlegadoAparienciaRef.current = cambiarModoPlegadoApariencia;
     extraerParteDePlegadoRef.current = extraerParteDePlegado;
     actualizarVerticesEnlaceRef.current = actualizarVerticesEnlace;
-  }, [actualizarVerticesEnlace, cambiarModoPlegadoApariencia, extraerParteDePlegado, moverApariencia, seleccionarEnlace, seleccionarEntidad, seleccionarEstadoComoExtremo, seleccionarPartePlegada]);
+    crearEntidadEnCanvasRef.current = crearEntidadEnCanvas;
+    fijarHoverOplRef.current = fijarHoverOpl;
+  }, [actualizarVerticesEnlace, cambiarModoPlegadoApariencia, crearEntidadEnCanvas, extraerParteDePlegado, fijarHoverOpl, moverApariencia, seleccionarEnlace, seleccionarEntidad, seleccionarEstadoComoExtremo, seleccionarPartePlegada]);
 
   useEffect(() => {
     if (!paperHostRef.current) return;
@@ -118,7 +134,7 @@ export function JointCanvas() {
         const meta = metadata(model);
         return {
           addLinkFromMagnet: false,
-          elementMove: meta?.kind === "entidad" && !modoEnlaceRef.current,
+          elementMove: meta?.kind === "entidad" && !modoEnlaceRef.current && !modoCreacionRef.current,
         };
       },
     });
@@ -127,6 +143,15 @@ export function JointCanvas() {
 
     paper.on("element:pointerclick", (elementView: dia.ElementView, evt: dia.Event) => {
       evt.stopPropagation();
+      const tipoCreacion = modoCreacionRef.current;
+      if (tipoCreacion) {
+        const posicion = posicionCanvasDesdeEvento(paper, evt);
+        crearEntidadEnCanvasRef.current(tipoCreacion, {
+          x: Math.round(posicion.x),
+          y: Math.round(posicion.y),
+        });
+        return;
+      }
       const meta = metadata(cellViewModel(elementView));
       if (meta?.kind === "entidad") {
         const selector = jointSelector(evt.target);
@@ -164,8 +189,35 @@ export function JointCanvas() {
 
     paper.on("link:pointerclick", (linkView: dia.LinkView, evt: dia.Event) => {
       evt.stopPropagation();
+      const tipoCreacion = modoCreacionRef.current;
+      if (tipoCreacion) {
+        const posicion = posicionCanvasDesdeEvento(paper, evt);
+        crearEntidadEnCanvasRef.current(tipoCreacion, {
+          x: Math.round(posicion.x),
+          y: Math.round(posicion.y),
+        });
+        return;
+      }
       const meta = metadata(cellViewModel(linkView));
       if (meta?.kind === "enlace") seleccionarEnlaceRef.current(meta.enlaceId);
+    });
+
+    paper.on("blank:pointerclick", (evt: dia.Event) => {
+      const tipoCreacion = modoCreacionRef.current;
+      if (!tipoCreacion) return;
+      const posicion = posicionCanvasDesdeEvento(paper, evt);
+      crearEntidadEnCanvasRef.current(tipoCreacion, {
+        x: Math.round(posicion.x),
+        y: Math.round(posicion.y),
+      });
+    });
+
+    paper.on("cell:mouseover", (cellView: dia.CellView, evt: dia.Event) => {
+      fijarHoverOplRef.current(refDesdeCellView(cellView, evt.target));
+    });
+
+    paper.on("cell:mouseout", () => {
+      fijarHoverOplRef.current(null);
     });
 
     paper.on("element:pointerup", (elementView: dia.ElementView) => {
@@ -205,7 +257,14 @@ export function JointCanvas() {
     embedirContorno(adapter.graph);
     sincronizandoRef.current = false;
     instalarHerramientasEnlaceSeleccionado(adapter, enlaceSeleccionId);
+    aplicarHoverOpl(adapter.graph, modelo, hoverOplRef, enlaceSeleccionId);
   }, [enlaceSeleccionId, modelo, opdActivoId, seleccionId]);
+
+  useEffect(() => {
+    const adapter = adapterRef.current;
+    if (!adapter) return;
+    aplicarHoverOpl(adapter.graph, modelo, hoverOplRef, enlaceSeleccionId);
+  }, [enlaceSeleccionId, hoverOplRef, modelo]);
 
   return (
     <div role="img" aria-label="OPD activo" style={style.viewport}>
@@ -228,6 +287,37 @@ function parteEntidadDesdeSelector(meta: OpmJointMetadata, selector: string | nu
 function estadoDesdeSelector(meta: OpmJointMetadata, selector: string | null): string | null {
   if (meta.kind !== "entidad" || !selector) return null;
   return meta.estadosInteractivos?.find((estado) => estado.selector === selector)?.estadoId ?? null;
+}
+
+function refDesdeCellView(cellView: dia.CellView, target: EventTarget | null): OplReferencia | null {
+  const meta = metadata(cellViewModel(cellView));
+  if (meta?.kind === "enlace") return { tipo: "enlace", id: meta.enlaceId };
+  if (meta?.kind !== "entidad") return null;
+  const estadoId = estadoDesdeSelector(meta, jointSelector(target));
+  if (estadoId) return { tipo: "estado", id: estadoId };
+  return { tipo: "entidad", id: meta.entidadId };
+}
+
+function aplicarHoverOpl(graph: dia.Graph, modelo: Modelo, ref: OplReferencia | null, enlaceSeleccionId: string | null): void {
+  for (const cell of graph.getCells()) {
+    const meta = metadata(cell);
+    if (meta?.kind === "entidad") {
+      const entidad = modelo.entidades[meta.entidadId];
+      const apariencia = modelo.opds[meta.opdId]?.apariencias[meta.aparienciaId];
+      if (!entidad || !apariencia) continue;
+      const resaltada = ref?.tipo === "entidad" && ref.id === entidad.id
+        || ref?.tipo === "estado" && modelo.estados[ref.id]?.entidadId === entidad.id;
+      cell.attr("body/fill", resaltada ? "#E1E6EB" : apariencia.estilo?.fill ?? CANON.colores.relleno);
+      continue;
+    }
+    if (meta?.kind === "enlace") {
+      const resaltado = ref?.tipo === "enlace" && ref.id === meta.enlaceId;
+      const seleccionado = enlaceSeleccionId === meta.enlaceId;
+      const strokeWidth = resaltado || seleccionado ? CANON.dims.enlaceVisible + 2 : CANON.dims.enlaceVisible;
+      cell.attr("line/strokeWidth", strokeWidth);
+      cell.attr("body/strokeWidth", strokeWidth);
+    }
+  }
 }
 
 function instalarHerramientasEnlaceSeleccionado(adapter: JointAdapter, enlaceSeleccionId: string | null): void {
@@ -277,6 +367,21 @@ function jointSelector(target: EventTarget | null): string | null {
 
 function paperView(paper: dia.Paper): { remove(): void } {
   return paper as unknown as { remove(): void };
+}
+
+function posicionCanvasDesdeEvento(paper: dia.Paper, evt: dia.Event): { x: number; y: number } {
+  const event = evt as unknown as MouseEvent;
+  const paperConApi = paper as unknown as {
+    pageToLocalPoint?: (x: number, y: number) => { x: number; y: number };
+    clientToLocalPoint?: (x: number, y: number) => { x: number; y: number };
+  };
+  if (typeof paperConApi.pageToLocalPoint === "function" && Number.isFinite(event.pageX) && Number.isFinite(event.pageY)) {
+    return paperConApi.pageToLocalPoint(event.pageX, event.pageY);
+  }
+  if (typeof paperConApi.clientToLocalPoint === "function" && Number.isFinite(event.clientX) && Number.isFinite(event.clientY)) {
+    return paperConApi.clientToLocalPoint(event.clientX, event.clientY);
+  }
+  return { x: 0, y: 0 };
 }
 
 function setPaperDimensions(paper: dia.Paper, dimensiones: { width: number; height: number }): void {

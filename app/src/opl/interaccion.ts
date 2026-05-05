@@ -1,0 +1,115 @@
+import type { Id } from "../modelo/tipos";
+
+export type OplReferencia =
+  | { tipo: "entidad"; id: Id }
+  | { tipo: "enlace"; id: Id }
+  | { tipo: "estado"; id: Id };
+
+export interface OplToken {
+  id: string;
+  texto: string;
+  rol: "texto" | "nombre" | "verbo" | "estado";
+  ref?: OplReferencia;
+  markdown?: "objeto" | "proceso" | "estado";
+}
+
+export interface OplLineaInteractiva {
+  id: string;
+  texto: string;
+  ordinal: number;
+  refs: OplReferencia[];
+  tokens: OplToken[];
+}
+
+export interface OplTokenHint {
+  texto: string;
+  ref: OplReferencia;
+  rol: Exclude<OplToken["rol"], "texto">;
+  markdown?: OplToken["markdown"];
+}
+
+export function crearLineaOplInteractiva(
+  id: string,
+  texto: string,
+  ordinal: number,
+  refs: OplReferencia[],
+  hints: OplTokenHint[] = [],
+): OplLineaInteractiva {
+  const refsUnicas = refsUnicasPorTipoId(refs);
+  return {
+    id,
+    texto,
+    ordinal,
+    refs: refsUnicas,
+    tokens: tokenizarConHints(id, texto, hints),
+  };
+}
+
+export function lineaTocaReferencia(linea: OplLineaInteractiva, ref: OplReferencia | null): boolean {
+  if (!ref) return false;
+  return linea.refs.some((lineaRef) => mismaReferencia(lineaRef, ref));
+}
+
+export function filtrarLineasPorReferencia(
+  lineas: OplLineaInteractiva[],
+  ref: OplReferencia | null,
+): OplLineaInteractiva[] {
+  if (!ref) return lineas;
+  return lineas.filter((linea) => lineaTocaReferencia(linea, ref));
+}
+
+export function mismaReferencia(a: OplReferencia, b: OplReferencia): boolean {
+  return a.tipo === b.tipo && a.id === b.id;
+}
+
+function tokenizarConHints(lineId: string, texto: string, hints: OplTokenHint[]): OplToken[] {
+  const usados = hints
+    .flatMap((hint, hintIndex) => ubicarHint(texto, hint, hintIndex))
+    .sort((a, b) => a.start - b.start || b.texto.length - a.texto.length || a.hintIndex - b.hintIndex);
+
+  const tokens: OplToken[] = [];
+  let cursor = 0;
+  for (const hint of usados) {
+    if (hint.start < cursor) continue;
+    if (hint.start > cursor) {
+      tokens.push(tokenTexto(lineId, tokens.length, texto.slice(cursor, hint.start)));
+    }
+    tokens.push({
+      id: `${lineId}:t${tokens.length}`,
+      texto: hint.texto,
+      rol: hint.rol,
+      ref: hint.ref,
+      ...(hint.markdown ? { markdown: hint.markdown } : {}),
+    });
+    cursor = hint.end;
+  }
+  if (cursor < texto.length) tokens.push(tokenTexto(lineId, tokens.length, texto.slice(cursor)));
+  return tokens.length > 0 ? tokens : [tokenTexto(lineId, 0, texto)];
+}
+
+function ubicarHint(texto: string, hint: OplTokenHint, hintIndex: number): Array<OplTokenHint & { start: number; end: number; hintIndex: number }> {
+  if (hint.texto.length === 0) return [];
+  const ubicaciones: Array<OplTokenHint & { start: number; end: number; hintIndex: number }> = [];
+  let start = texto.indexOf(hint.texto);
+  while (start >= 0) {
+    ubicaciones.push({ ...hint, start, end: start + hint.texto.length, hintIndex });
+    start = texto.indexOf(hint.texto, start + hint.texto.length);
+  }
+  return ubicaciones;
+}
+
+function tokenTexto(lineId: string, index: number, texto: string): OplToken {
+  return { id: `${lineId}:t${index}`, texto, rol: "texto" };
+}
+
+function refsUnicasPorTipoId(refs: OplReferencia[]): OplReferencia[] {
+  const vistas = new Set<string>();
+  const resultado: OplReferencia[] = [];
+  for (const ref of refs) {
+    const key = `${ref.tipo}:${ref.id}`;
+    if (vistas.has(key)) continue;
+    vistas.add(key);
+    resultado.push(ref);
+  }
+  return resultado;
+}

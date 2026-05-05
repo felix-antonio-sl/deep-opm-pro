@@ -19,6 +19,92 @@ test("carga demo OPM en canvas JointJS y mantiene OPL visible", async ({ page })
   expect(pageErrors).toEqual([]);
 });
 
+test("workspace local abre menu, guarda como, guarda incremental y carga desde dialogo", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await expect(page.getByText("Modelo (No guardado)")).toBeVisible();
+  await expect(page.getByRole("treeitem", { name: /SD/ })).toBeVisible();
+  await expect(page.locator(".joint-element")).toHaveCount(0);
+  await expect(page.getByText("Sin OPL todavía.")).toBeVisible();
+
+  await page.getByLabel("Menú principal").click();
+  const menu = page.getByRole("menu", { name: "Menú principal" });
+  await expect(menu).toBeVisible();
+  await expect(menu.getByRole("menuitem", { name: "Nuevo" })).toBeVisible();
+  await menu.getByRole("menuitem", { name: "Guardar", exact: true }).click();
+
+  let dialogoGuardar = page.getByRole("dialog", { name: "Guardar como" });
+  await expect(dialogoGuardar).toBeVisible();
+  await expect(dialogoGuardar.getByText("Inicio")).toBeVisible();
+  await expect(dialogoGuardar.getByRole("button", { name: "Modelos locales" })).toBeVisible();
+  await dialogoGuardar.getByLabel("Nombre del modelo").fill("Workspace L2");
+  await dialogoGuardar.getByLabel("Descripción").fill("Persistencia local");
+  await dialogoGuardar.getByRole("button", { name: "Guardar" }).click();
+  await expect(dialogoGuardar).toHaveCount(0);
+  await expect(page.locator("span").filter({ hasText: /^Workspace L2$/ }).first()).toBeVisible();
+
+  await page.getByRole("button", { name: "Objeto", exact: true }).click();
+  await page.keyboard.press("Control+S");
+  await expect(page.getByRole("dialog", { name: "Guardar como" })).toHaveCount(0);
+  await expect(page.getByText("Modelo guardado exitosamente")).toBeVisible();
+
+  await page.getByRole("button", { name: "Nuevo" }).click();
+  await expect(page.locator(".joint-element")).toHaveCount(0);
+  await page.getByRole("button", { name: "Cargar", exact: true }).first().click();
+  const dialogoCargar = page.getByRole("dialog", { name: "Cargar modelo" });
+  await expect(dialogoCargar).toBeVisible();
+  await expect(dialogoCargar.getByRole("option", { name: /Workspace L2/ })).toBeVisible();
+  await dialogoCargar.getByRole("option", { name: /Workspace L2/ }).dblclick();
+  await expect(dialogoCargar).toHaveCount(0);
+  await expect(elementoPorTexto(page, "Objeto")).toHaveCount(1);
+
+  expect(pageErrors).toEqual([]);
+});
+
+test("sincroniza OPL interactivo con canvas y renombrado inverso", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await page.getByRole("button", { name: "Objeto", exact: true }).click();
+  await page.getByLabel("Nombre").fill("Entrada");
+  await page.getByRole("button", { name: "Proceso", exact: true }).click();
+  await page.getByLabel("Nombre").fill("Procesar");
+
+  await elementoPorTexto(page, "Entrada").click();
+  await page.getByLabel("Tipo de enlace").selectOption("consumo");
+  await elementoPorTexto(page, "Procesar").click();
+
+  const panel = page.getByLabel("Panel OPL-ES");
+  await expect(panel.locator('[data-testid="opl-line"]')).toHaveCount(3);
+  await expect(panel.locator('[data-opl-ordinal="1"]')).toBeVisible();
+  await expect(panel.locator('[data-opl-ordinal="2"]')).toBeVisible();
+  await expect(panel.locator('[data-opl-ordinal="3"]')).toBeVisible();
+
+  const tokenEntrada = panel.getByText("Entrada").first();
+  await tokenEntrada.hover();
+  await expect(tokenEntrada).toHaveCSS("background-color", "rgb(225, 230, 235)");
+
+  await elementoPorTexto(page, "Procesar").click();
+  await panel.getByLabel("Filtrar por selección").check();
+  await expect(panel.getByText("Entrada es un objeto")).toHaveCount(0);
+  await expect(panel.getByText(/Procesar\s+consume\s+Entrada\./)).toBeVisible();
+
+  await panel.getByLabel("Filtrar por selección").uncheck();
+  await tokenEntrada.dblclick();
+  await page.getByLabel("Renombrar desde OPL").fill("Cliente");
+  await page.keyboard.press("Enter");
+
+  await expect(elementoPorTexto(page, "Cliente")).toHaveCount(1);
+  await expect(panel.getByText("Cliente")).toHaveCount(2);
+  await expect(panel.getByText(/Procesar\s+consume\s+Cliente\./)).toBeVisible();
+
+  await page.screenshot({ path: "test-results/opm-opl-interactivo-inverso.png", fullPage: true });
+  expect(pageErrors).toEqual([]);
+});
+
 test("navega OPDs desde el arbol lateral", async ({ page }) => {
   const pageErrors: string[] = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));
@@ -44,7 +130,7 @@ test("navega OPDs desde el arbol lateral", async ({ page }) => {
   await expect(elementoPorTexto(page, "Proceso Hijo")).toHaveCount(1);
   await expect(page.getByText("Proceso Hijo").first()).toBeVisible();
 
-  await page.getByRole("button", { name: "Objeto" }).click();
+  await page.getByRole("button", { name: "Objeto", exact: true }).click();
   await page.getByRole("button", { name: "Exportar" }).click();
   const json = await page.locator("textarea").inputValue();
   const exportado = JSON.parse(json) as ExportadoModelo;
@@ -122,7 +208,7 @@ test("crea auto-invocacion desde Inspector con demora default", async ({ page })
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
-  await page.getByRole("button", { name: "Proceso" }).click();
+  await page.getByRole("button", { name: "Proceso", exact: true }).click();
   await expect(page.getByRole("button", { name: "Auto-invocación" })).toBeVisible();
 
   await page.getByRole("button", { name: "Auto-invocación" }).click();
@@ -151,7 +237,7 @@ test("descompone proceso y navega al OPD hijo", async ({ page }) => {
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
-  await page.getByRole("button", { name: "Proceso" }).click();
+  await page.getByRole("button", { name: "Proceso", exact: true }).click();
   await expect(page.getByRole("button", { name: "Descomponer" })).toBeVisible();
 
   await page.getByRole("button", { name: "Descomponer" }).click();
@@ -234,12 +320,48 @@ test("elimina desde arbol solo OPDs hoja y deshacer restaura", async ({ page }) 
   expect(pageErrors).toEqual([]);
 });
 
+test("crea objeto interno por click dentro del contenedor refinado", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await page.getByRole("button", { name: "Proceso", exact: true }).click();
+  await page.getByRole("button", { name: "Descomponer" }).click();
+  await expect(page.locator('[role="treeitem"]').filter({ hasText: "SD1: Proceso descompuesto" })).toHaveAttribute("aria-current", "page");
+
+  await page.getByRole("button", { name: "Objeto en canvas" }).click();
+  const contorno = await rectDeLocator(elementoPorTexto(page, "Proceso"));
+  await page.mouse.click(contorno.x + 48, contorno.y + 118);
+
+  await expect(elementoPorTexto(page, "Objeto")).toHaveCount(1);
+  await expect(page.getByText(/interior|exterior/i)).toHaveCount(0);
+  await page.getByRole("button", { name: "Exportar" }).click();
+  const exportado = JSON.parse(await page.locator("textarea").inputValue()) as ExportadoModelo;
+  const proceso = Object.values(exportado.modelo.entidades).find((entidad) => entidad.nombre === "Proceso");
+  const objeto = Object.values(exportado.modelo.entidades).find((entidad) => entidad.nombre === "Objeto");
+  const opdHijoId = proceso?.refinamiento?.opdId;
+  if (!proceso || !objeto || !opdHijoId) throw new Error("No se exporto la creación interna esperada");
+  const aparienciasHijo = Object.values(exportado.modelo.opds[opdHijoId]?.apariencias ?? {});
+  const aparienciaContorno = aparienciasHijo.find((apariencia) => apariencia.entidadId === proceso.id);
+  const aparienciaObjeto = aparienciasHijo.find((apariencia) => apariencia.entidadId === objeto.id);
+  if (!aparienciaContorno || !aparienciaObjeto) throw new Error("No se exporto apariencia interna");
+  expect(aparienciaObjeto.x).toBeGreaterThan(aparienciaContorno.x);
+  expect(aparienciaObjeto.y).toBeGreaterThan(aparienciaContorno.y);
+  expect(aparienciaObjeto.x + aparienciaObjeto.width).toBeLessThan(aparienciaContorno.x + aparienciaContorno.width);
+  expect(aparienciaObjeto.y + aparienciaObjeto.height).toBeLessThan(aparienciaContorno.y + aparienciaContorno.height);
+  expect(Object.values(exportado.modelo.opds[exportado.modelo.opdRaizId]?.apariencias ?? {})
+    .some((apariencia) => apariencia.entidadId === objeto.id)).toBe(false);
+
+  await page.screenshot({ path: "test-results/opm-creacion-interna-contenedor.png", fullPage: true });
+  expect(pageErrors).toEqual([]);
+});
+
 test("despliega objeto y navega al OPD hijo", async ({ page }) => {
   const pageErrors: string[] = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
-  await page.getByRole("button", { name: "Objeto" }).click();
+  await page.getByRole("button", { name: "Objeto", exact: true }).click();
   await expect(page.getByText("Desplegar como...")).toBeVisible();
 
   await desplegarComoAgregacion(page);
@@ -281,7 +403,7 @@ test("activa plegado parcial desde Inspector y persiste la vista compacta", asyn
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
-  await page.getByRole("button", { name: "Objeto" }).click();
+  await page.getByRole("button", { name: "Objeto", exact: true }).click();
   await desplegarComoAgregacion(page);
   await page.locator('[role="treeitem"][data-opd-id="opd-1"]').click();
   await expect(page.locator(".joint-element")).toHaveCount(1);
@@ -306,10 +428,9 @@ test("activa plegado parcial desde Inspector y persiste la vista compacta", asyn
   expect(aparienciaPadre?.modoPlegado).toBe("parcial");
   expect(Object.values(exportado.modelo.opds[objeto.refinamiento.opdId]?.apariencias ?? {})).toHaveLength(4);
 
-  await page.keyboard.press("Control+S");
-  await expect(page.getByText("Modelo guardado exitosamente")).toBeVisible();
+  await guardarComoActual(page, "Plegado parcial local");
   await page.getByRole("button", { name: "Nuevo" }).click();
-  await page.getByRole("button", { name: "Cargar" }).first().click();
+  await cargarPrimerModelo(page);
   await expect(elementoPorTexto(page, "Objeto parte 1")).toHaveCount(1);
   await clickCabeceraElemento(page, "Objeto");
   await expect(page.getByRole("button", { name: "Plegado completo" })).toBeVisible();
@@ -318,13 +439,59 @@ test("activa plegado parcial desde Inspector y persiste la vista compacta", asyn
   expect(pageErrors).toEqual([]);
 });
 
+test("edita estilo visual de cosa, persiste local y resetea defaults", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await page.getByRole("button", { name: "Objeto", exact: true }).click();
+  await expect(page.getByRole("button", { name: "Fill #fef3c7" })).toBeVisible();
+
+  await page.getByRole("button", { name: "Fill #fef3c7" }).click();
+  await page.getByRole("button", { name: "Borde #3bc3ff" }).click();
+
+  await expect(page.locator('.joint-element rect[joint-selector="body"]')).toHaveAttribute("fill", "#fef3c7");
+  await expect(page.locator('.joint-element rect[joint-selector="body"]')).toHaveAttribute("stroke", "#3bc3ff");
+
+  await page.getByRole("button", { name: "Exportar" }).click();
+  let json = await page.locator("textarea").inputValue();
+  let exportado = JSON.parse(json) as ExportadoModelo;
+  let objeto = Object.values(exportado.modelo.entidades).find((entidad) => entidad.nombre === "Objeto");
+  if (!objeto) throw new Error("No se exporto objeto");
+  let apariencia = Object.values(exportado.modelo.opds[exportado.modelo.opdRaizId]?.apariencias ?? {})
+    .find((item) => item.entidadId === objeto.id);
+  expect(apariencia?.estilo).toEqual({ fill: "#fef3c7", borderColor: "#3bc3ff" });
+
+  await guardarComoActual(page, "Estilo visual local");
+  await page.getByRole("button", { name: "Nuevo" }).click();
+  await cargarPrimerModelo(page);
+  await expect(page.locator('.joint-element rect[joint-selector="body"]')).toHaveAttribute("fill", "#fef3c7");
+  await expect(page.locator('.joint-element rect[joint-selector="body"]')).toHaveAttribute("stroke", "#3bc3ff");
+
+  await elementoPorTexto(page, "Objeto").click();
+  await page.getByRole("button", { name: "Reset" }).click();
+  await expect(page.locator('.joint-element rect[joint-selector="body"]')).toHaveAttribute("fill", "#fdffff");
+
+  await page.getByRole("button", { name: "Exportar" }).click();
+  json = await page.locator("textarea").inputValue();
+  exportado = JSON.parse(json) as ExportadoModelo;
+  objeto = Object.values(exportado.modelo.entidades).find((entidad) => entidad.nombre === "Objeto");
+  if (!objeto) throw new Error("No se exporto objeto tras reset");
+  apariencia = Object.values(exportado.modelo.opds[exportado.modelo.opdRaizId]?.apariencias ?? {})
+    .find((item) => item.entidadId === objeto.id);
+  expect(apariencia?.estilo).toBeUndefined();
+
+  await page.screenshot({ path: "test-results/opm-estilo-visual-cosa.png", fullPage: true });
+  expect(pageErrors).toEqual([]);
+});
+
 test("crea enlace desde fila plegada sin extraer la parte", async ({ page }) => {
   const pageErrors: string[] = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
-  await page.getByRole("button", { name: "Objeto" }).click();
-  await page.getByRole("button", { name: "Proceso" }).click();
+  await page.getByRole("button", { name: "Objeto", exact: true }).click();
+  await page.getByRole("button", { name: "Proceso", exact: true }).click();
   await page.getByLabel("Nombre").fill("Mover");
   await elementoPorTexto(page, "Objeto").click();
   await desplegarComoAgregacion(page);
@@ -364,7 +531,7 @@ test("mantiene canvas e inspector en columnas separadas tras recalculos", async 
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
-  await page.getByRole("button", { name: "Proceso" }).click();
+  await page.getByRole("button", { name: "Proceso", exact: true }).click();
   await page.getByRole("button", { name: "Descomponer" }).click();
   await elementoPorTexto(page, "Proceso 1").click();
   await page.getByRole("button", { name: "Descomponer" }).click();
@@ -384,11 +551,11 @@ test("redistribuye consumo al primer subproceso y resultado al ultimo", async ({
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
-  await page.getByRole("button", { name: "Objeto" }).click();
+  await page.getByRole("button", { name: "Objeto", exact: true }).click();
   await page.getByLabel("Nombre").fill("Entrada");
-  await page.getByRole("button", { name: "Proceso" }).click();
+  await page.getByRole("button", { name: "Proceso", exact: true }).click();
   await page.getByLabel("Nombre").fill("Procesar");
-  await page.getByRole("button", { name: "Objeto" }).click();
+  await page.getByRole("button", { name: "Objeto", exact: true }).click();
   await page.getByLabel("Nombre").fill("Salida");
 
   await elementoPorTexto(page, "Entrada").click();
@@ -435,9 +602,9 @@ test("reancla consumo derivado y conserva el ancla manual al reordenar", async (
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
-  await page.getByRole("button", { name: "Objeto" }).click();
+  await page.getByRole("button", { name: "Objeto", exact: true }).click();
   await page.getByLabel("Nombre").fill("Entrada");
-  await page.getByRole("button", { name: "Proceso" }).click();
+  await page.getByRole("button", { name: "Proceso", exact: true }).click();
   await page.getByLabel("Nombre").fill("Procesar");
   await elementoPorTexto(page, "Entrada").click();
   await page.getByLabel("Tipo de enlace").selectOption("consumo");
@@ -487,8 +654,8 @@ test("arrastra una cosa JointJS y persiste su apariencia", async ({ page }) => {
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
-  await page.getByRole("button", { name: "Objeto" }).click();
-  await page.getByRole("button", { name: "Proceso" }).click();
+  await page.getByRole("button", { name: "Objeto", exact: true }).click();
+  await page.getByRole("button", { name: "Proceso", exact: true }).click();
 
   await expect(page.locator(".joint-element")).toHaveCount(2);
 
@@ -522,36 +689,36 @@ test("marca dirty state y navega cambios con deshacer y rehacer", async ({ page 
 
   const deshacer = page.getByRole("button", { name: "Deshacer" });
   const rehacer = page.getByRole("button", { name: "Rehacer" });
-  await expect(page.getByText("Modelo OPM (No guardado)")).toHaveCount(0);
+  await expect(page.getByText("Modelo (No guardado)")).toBeVisible();
   await expect(deshacer).toBeDisabled();
   await expect(rehacer).toBeDisabled();
 
-  await page.getByRole("button", { name: "Objeto" }).click();
-  await expect(page.getByText("Modelo OPM (No guardado)")).toBeVisible();
+  await page.getByRole("button", { name: "Objeto", exact: true }).click();
+  await expect(page.getByText("Modelo (No guardado)")).toBeVisible();
   await expect(page.locator(".joint-element")).toHaveCount(1);
   await expect(deshacer).toBeEnabled();
   await expect(rehacer).toBeDisabled();
 
   await page.keyboard.press("Control+Z");
-  await expect(page.getByText("Modelo OPM (No guardado)")).toHaveCount(0);
+  await expect(page.getByText("Modelo (No guardado)")).toBeVisible();
   await expect(page.locator(".joint-element")).toHaveCount(0);
   await expect(deshacer).toBeDisabled();
   await expect(rehacer).toBeEnabled();
 
   await page.keyboard.press("Control+Shift+Z");
-  await expect(page.getByText("Modelo OPM (No guardado)")).toBeVisible();
+  await expect(page.getByText("Modelo (No guardado)")).toBeVisible();
   await expect(page.locator(".joint-element")).toHaveCount(1);
   await expect(deshacer).toBeEnabled();
   await expect(rehacer).toBeDisabled();
 
   await deshacer.click();
-  await expect(page.getByText("Modelo OPM (No guardado)")).toHaveCount(0);
+  await expect(page.getByText("Modelo (No guardado)")).toBeVisible();
   await expect(page.locator(".joint-element")).toHaveCount(0);
   await expect(deshacer).toBeDisabled();
   await expect(rehacer).toBeEnabled();
 
   await rehacer.click();
-  await expect(page.getByText("Modelo OPM (No guardado)")).toBeVisible();
+  await expect(page.getByText("Modelo (No guardado)")).toBeVisible();
   await expect(page.locator(".joint-element")).toHaveCount(1);
   await expect(deshacer).toBeEnabled();
   await expect(rehacer).toBeDisabled();
@@ -571,17 +738,16 @@ test("marca dirty state y navega cambios con deshacer y rehacer", async ({ page 
   await expect(elementoPorTexto(page, "Renombrado")).toHaveCount(1);
 
   await page.screenshot({ path: "test-results/opm-dirty-undo-redo.png", fullPage: true });
-  await page.keyboard.press("Control+S");
-  await expect(page.getByText("Modelo guardado exitosamente")).toBeVisible();
-  await expect(page.getByText("Modelo OPM (No guardado)")).toHaveCount(0);
+  await guardarComoActual(page, "Renombrado local");
+  await expect(page.getByText("Modelo (No guardado)")).toHaveCount(0);
   await expect(deshacer).toBeEnabled();
 
   await page.getByRole("button", { name: "Nuevo" }).click();
   await expect(page.locator(".joint-element")).toHaveCount(0);
   await expect(deshacer).toBeDisabled();
-  await page.getByRole("button", { name: "Cargar" }).first().click();
+  await cargarPrimerModelo(page);
   await expect(elementoPorTexto(page, "Renombrado")).toHaveCount(1);
-  await expect(page.getByText("Modelo OPM (No guardado)")).toHaveCount(0);
+  await expect(page.getByText("Modelo (No guardado)")).toHaveCount(0);
   await expect(deshacer).toBeDisabled();
 
   expect(pageErrors).toEqual([]);
@@ -592,7 +758,7 @@ test("confirma cambios sin guardar antes de crear un modelo nuevo", async ({ pag
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
-  await page.getByRole("button", { name: "Objeto" }).click();
+  await page.getByRole("button", { name: "Objeto", exact: true }).click();
   await expect(elementoPorTexto(page, "Objeto")).toHaveCount(1);
 
   const dialogo = page.getByRole("dialog", { name: "Hay cambios sin guardar" });
@@ -615,7 +781,7 @@ test("confirma cambios sin guardar antes de crear un modelo nuevo", async ({ pag
   await dialogo.getByRole("button", { name: "Descartar" }).click();
   await expect(dialogo).toHaveCount(0);
   await expect(page.locator(".joint-element")).toHaveCount(0);
-  await expect(page.getByText("Modelo OPM (No guardado)")).toHaveCount(0);
+  await expect(page.getByText("Modelo (No guardado)")).toBeVisible();
 
   expect(pageErrors).toEqual([]);
 });
@@ -625,10 +791,9 @@ test("no abre confirmacion cuando Nuevo se ejecuta tras guardar", async ({ page 
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
-  await page.getByRole("button", { name: "Objeto" }).click();
-  await page.keyboard.press("Control+S");
-  await expect(page.getByText("Modelo guardado exitosamente")).toBeVisible();
-  await expect(page.getByText("Modelo OPM (No guardado)")).toHaveCount(0);
+  await page.getByRole("button", { name: "Objeto", exact: true }).click();
+  await guardarComoActual(page, "Modelo sin confirmacion");
+  await expect(page.getByText("Modelo (No guardado)")).toHaveCount(0);
 
   await page.getByRole("button", { name: "Nuevo" }).click();
   await expect(page.getByRole("dialog", { name: "Hay cambios sin guardar" })).toHaveCount(0);
@@ -644,11 +809,10 @@ test("activa beforeunload solo cuando el modelo esta dirty", async ({ page }) =>
   await page.goto("/");
   await expect(await estadoBeforeUnload(page)).toEqual({ canceled: false, defaultPrevented: false });
 
-  await page.getByRole("button", { name: "Objeto" }).click();
+  await page.getByRole("button", { name: "Objeto", exact: true }).click();
   await expect(await estadoBeforeUnload(page)).toEqual({ canceled: true, defaultPrevented: true });
 
-  await page.keyboard.press("Control+S");
-  await expect(page.getByText("Modelo guardado exitosamente")).toBeVisible();
+  await guardarComoActual(page, "Beforeunload limpio");
   await expect(await estadoBeforeUnload(page)).toEqual({ canceled: false, defaultPrevented: false });
 
   expect(pageErrors).toEqual([]);
@@ -659,7 +823,7 @@ test("asiste importacion JSON con archivo, preview, confirmacion y error legible
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
-  await page.getByRole("button", { name: "Objeto" }).click();
+  await page.getByRole("button", { name: "Objeto", exact: true }).click();
   await expect(elementoPorTexto(page, "Objeto")).toHaveCount(1);
 
   await page.getByLabel("Archivo JSON").setInputFiles({
@@ -696,8 +860,8 @@ test("crea enlace, edita vertices y elimina desde celdas JointJS", async ({ page
   await page.goto("/");
   const tipoEnlace = page.getByLabel("Tipo de enlace");
   await expect(tipoEnlace).toBeDisabled();
-  await page.getByRole("button", { name: "Objeto" }).click();
-  await page.getByRole("button", { name: "Proceso" }).click();
+  await page.getByRole("button", { name: "Objeto", exact: true }).click();
+  await page.getByRole("button", { name: "Proceso", exact: true }).click();
 
   await expect(page.locator(".joint-element")).toHaveCount(2);
 
@@ -741,9 +905,9 @@ test("asigna multiplicidad de enlace y sincroniza canvas, OPL y JSON", async ({ 
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
-  await page.getByRole("button", { name: "Objeto" }).click();
+  await page.getByRole("button", { name: "Objeto", exact: true }).click();
   await page.getByLabel("Nombre").fill("Recurso");
-  await page.getByRole("button", { name: "Proceso" }).click();
+  await page.getByRole("button", { name: "Proceso", exact: true }).click();
   await page.getByLabel("Nombre").fill("Procesar");
 
   await elementoPorTexto(page, "Recurso").click();
@@ -773,7 +937,7 @@ test("gestiona estados M0 de objeto con capsulas internas y OPL", async ({ page 
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
-  await page.getByRole("button", { name: "Objeto" }).click();
+  await page.getByRole("button", { name: "Objeto", exact: true }).click();
   await page.getByLabel("Nombre").fill("Pedido");
 
   const seccionEstados = page.locator('section[aria-label="Estados"]');
@@ -889,9 +1053,9 @@ test("split de efecto convierte enlace en consumo + resultado intermedio", async
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
-  await page.getByRole("button", { name: "Objeto" }).click();
+  await page.getByRole("button", { name: "Objeto", exact: true }).click();
   await page.getByLabel("Nombre").fill("Sistema");
-  await page.getByRole("button", { name: "Proceso" }).click();
+  await page.getByRole("button", { name: "Proceso", exact: true }).click();
   await page.getByLabel("Nombre").fill("Actualizar");
 
   // Crear el efecto via toolbar: seleccionar origen, elegir tipo, click destino.
@@ -932,7 +1096,7 @@ test("arrastra subproceso embebido dentro del macroproceso contenedor", async ({
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
-  await page.getByRole("button", { name: "Proceso" }).click();
+  await page.getByRole("button", { name: "Proceso", exact: true }).click();
   await page.getByRole("button", { name: "Descomponer" }).click();
 
   await expect(page.locator('[role="treeitem"]').filter({ hasText: "SD1: Proceso descompuesto" })).toHaveAttribute("aria-current", "page");
@@ -994,8 +1158,8 @@ test("renderiza agregacion como triangulo estructural", async ({ page }) => {
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
-  await page.getByRole("button", { name: "Objeto" }).click();
-  await page.getByRole("button", { name: "Objeto" }).click();
+  await page.getByRole("button", { name: "Objeto", exact: true }).click();
+  await page.getByRole("button", { name: "Objeto", exact: true }).click();
 
   const objetos = elementoPorTexto(page, "Objeto");
   await expect(objetos).toHaveCount(2);
@@ -1087,6 +1251,25 @@ async function clickLinkPorTipo(page: import("@playwright/test").Page, tipo: str
 async function desplegarComoAgregacion(page: import("@playwright/test").Page): Promise<void> {
   await page.getByText("Desplegar como...").click();
   await page.getByRole("button", { name: "Como partes (agregación)" }).click();
+}
+
+async function guardarComoActual(page: import("@playwright/test").Page, nombre: string, descripcion = ""): Promise<void> {
+  await page.keyboard.press("Control+S");
+  const dialogo = page.getByRole("dialog", { name: "Guardar como" });
+  await expect(dialogo).toBeVisible();
+  await dialogo.getByLabel("Nombre del modelo").fill(nombre);
+  if (descripcion) await dialogo.getByLabel("Descripción").fill(descripcion);
+  await dialogo.getByRole("button", { name: "Guardar" }).click();
+  await expect(dialogo).toHaveCount(0);
+  await expect(page.getByText("Modelo guardado exitosamente")).toBeVisible();
+}
+
+async function cargarPrimerModelo(page: import("@playwright/test").Page): Promise<void> {
+  await page.getByRole("button", { name: "Cargar", exact: true }).first().click();
+  const dialogo = page.getByRole("dialog", { name: "Cargar modelo" });
+  await expect(dialogo).toBeVisible();
+  await dialogo.getByRole("button", { name: "Cargar" }).click();
+  await expect(dialogo).toHaveCount(0);
 }
 
 async function assertWorkbenchLayout(page: import("@playwright/test").Page): Promise<void> {
@@ -1618,7 +1801,15 @@ interface ExportadoModelo {
       string,
       {
         padreId: string | null;
-        apariencias: Record<string, { entidadId: string; x: number; y: number; width: number; height: number; modoPlegado?: string }>;
+        apariencias: Record<string, {
+          entidadId: string;
+          x: number;
+          y: number;
+          width: number;
+          height: number;
+          modoPlegado?: string;
+          estilo?: { fill?: string; borderColor?: string };
+        }>;
         enlaces: Record<string, { enlaceId: string; vertices: Array<{ x: number; y: number }> }>;
       }
     >;

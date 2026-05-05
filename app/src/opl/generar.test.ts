@@ -2,12 +2,13 @@ import { describe, expect, test } from "bun:test";
 import { extremoEstado } from "../modelo/extremos";
 import { crearAutoInvocacion } from "../modelo/autoinvocacion";
 import { renombrarEtiquetaEnlace } from "../modelo/etiquetasEnlace";
+import { aplicarEstiloApariencia } from "../modelo/estilos";
 import { aplicarModificador, definirDemora, definirProbabilidad } from "../modelo/modificadores";
 import { ajustarMultiplicidad, cambiarEsencia, crearEnlace, crearEstadosIniciales, crearModelo, crearObjeto, crearProceso, designarEstadoFinal, designarEstadoInicial, descomponerProceso, agregarEstado, desplegarObjeto, estadosDeEntidad, moverApariencia, renombrarEstado } from "../modelo/operaciones";
 import { cambiarModoPlegado } from "../modelo/plegado";
 import { definirRutaEtiqueta } from "../modelo/rutas";
 import type { Apariencia, Modelo, Resultado } from "../modelo/tipos";
-import { generarOpl } from "./generar";
+import { generarOpl, generarOplInteractivo } from "./generar";
 
 describe("OPL-ES — tipos de enlace canonicos", () => {
   test("agregacion emite consta de", () => {
@@ -29,6 +30,24 @@ describe("OPL-ES — tipos de enlace canonicos", () => {
     modelo = must(renombrarEtiquetaEnlace(modelo, enlaceId, "componente critico"));
 
     expect(generarOpl(modelo)).toContain("**Todo** consta de **Parte**. [etiqueta: componente critico]");
+  });
+
+  test("estilo de apariencia no cambia OPL", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 0, y: 0 }, "Entrada"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 200, y: 0 }, "Procesar"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidad(modelo, "Entrada"), entidad(modelo, "Procesar"), "consumo"));
+    const antes = generarOpl(modelo);
+    const apariencia = Object.values(modelo.opds[modelo.opdRaizId]?.apariencias ?? {})
+      .find((item) => item.entidadId === entidad(modelo, "Entrada"));
+    if (!apariencia) throw new Error("La prueba esperaba apariencia");
+
+    modelo = must(aplicarEstiloApariencia(modelo, modelo.opdRaizId, apariencia.id, {
+      fill: "#fef3c7",
+      borderColor: "#586d8c",
+    }));
+
+    expect(generarOpl(modelo)).toEqual(antes);
   });
 
   test("agente emite maneja", () => {
@@ -354,6 +373,43 @@ describe("OPL-ES — refinamiento", () => {
     modelo = must(cambiarModoPlegado(modelo, modelo.opdRaizId, apariencia.id, "parcial"));
 
     expect(generarOpl(modelo, modelo.opdRaizId)).toContain("**Vehiculo** consiste en **Vehiculo parte 1**, **Vehiculo parte 2** y **Vehiculo parte 3**.");
+  });
+});
+
+describe("OPL-ES interactivo", () => {
+  test("conserva texto canonico y ordinales estables", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 0, y: 0 }, "Orden"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 200, y: 0 }, "Aprobar"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidad(modelo, "Orden"), entidad(modelo, "Aprobar"), "consumo"));
+
+    const texto = generarOpl(modelo);
+    const interactivo = generarOplInteractivo(modelo);
+
+    expect(interactivo.map((linea) => linea.texto)).toEqual(texto);
+    expect(interactivo.map((linea) => linea.ordinal)).toEqual(texto.map((_, index) => index + 1));
+    expect(interactivo.map((linea) => linea.id)).toEqual(["opl-opd-1-1", "opl-opd-1-2", "opl-opd-1-3"]);
+  });
+
+  test("oracion de enlace incluye ref de enlace y tokens de extremos", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 0, y: 0 }, "Entrada"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 200, y: 0 }, "Procesar"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidad(modelo, "Entrada"), entidad(modelo, "Procesar"), "consumo"));
+    const enlaceId = Object.values(modelo.enlaces)[0]?.id;
+    if (!enlaceId) throw new Error("La prueba esperaba enlace");
+
+    const linea = generarOplInteractivo(modelo).find((item) => item.refs.some((ref) => ref.tipo === "enlace" && ref.id === enlaceId));
+    expect(linea).toBeDefined();
+    if (!linea) return;
+
+    expect(linea.refs).toEqual(expect.arrayContaining([
+      { tipo: "enlace", id: enlaceId },
+      { tipo: "entidad", id: entidad(modelo, "Entrada") },
+      { tipo: "entidad", id: entidad(modelo, "Procesar") },
+    ]));
+    expect(linea.tokens.filter((token) => token.ref?.tipo === "entidad").map((token) => token.texto)).toEqual(expect.arrayContaining(["**Entrada**", "*Procesar*"]));
+    expect(linea.tokens.some((token) => token.ref?.tipo === "enlace" && token.rol === "verbo")).toBe(true);
   });
 });
 

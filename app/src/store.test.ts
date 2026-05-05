@@ -35,8 +35,15 @@ describe("store undo/redo y dirty state", () => {
   test("guardar limpia dirty sin purgar undo", () => {
     store.getState().crearObjetoDemo();
     store.getState().guardarLocal();
+    expect(store.getState().dialogoGuardarComoAbierto).toBe(true);
+    expect(store.getState().modeloPersistidoId).toBeNull();
+    expect(store.getState().dirty).toBe(true);
+
+    store.getState().guardarComoLocal({ nombre: "Modelo guardado", descripcion: "corte local" });
     expect(store.getState().dirty).toBe(false);
     expect(store.getState().puedeDeshacer).toBe(true);
+    expect(store.getState().modelo.nombre).toBe("Modelo guardado");
+    expect(store.getState().descripcionModeloLocal).toBe("corte local");
 
     store.getState().deshacer();
     expect(cantidadEntidades()).toBe(0);
@@ -50,7 +57,7 @@ describe("store undo/redo y dirty state", () => {
 
   test("guardar local usa indice estructurado y cargar reinicia dirty e historial", () => {
     store.getState().crearObjetoDemo();
-    store.getState().guardarLocal();
+    store.getState().guardarComoLocal({ nombre: "Modelo local base" });
     const primerId = store.getState().modeloPersistidoId;
     expect(primerId).toBeTruthy();
     expect(store.getState().modelosGuardados).toHaveLength(1);
@@ -74,7 +81,7 @@ describe("store undo/redo y dirty state", () => {
 
   test("nuevo modelo descarta historial local activo sin borrar registros guardados", () => {
     store.getState().crearObjetoDemo();
-    store.getState().guardarLocal();
+    store.getState().guardarComoLocal({ nombre: "Modelo antes de nuevo" });
     const primerId = store.getState().modeloPersistidoId;
     if (!primerId) throw new Error("La prueba esperaba id persistido");
     store.getState().crearProcesoDemo();
@@ -88,9 +95,29 @@ describe("store undo/redo y dirty state", () => {
     expect(store.getState().modelosGuardados.map((modelo) => modelo.id)).toContain(primerId);
   });
 
+  test("nuevo modelo deja SD unico canvas y OPL vacios", () => {
+    store.getState().crearObjetoDemo();
+
+    store.getState().nuevoModelo();
+
+    const estado = store.getState();
+    expect(estado.modelo.nombre).toBe("Modelo");
+    expect(estado.modelo.opds[estado.modelo.opdRaizId]?.nombre).toBe("SD");
+    expect(Object.values(estado.modelo.opds)).toHaveLength(1);
+    expect(Object.values(estado.modelo.opds[estado.modelo.opdRaizId]?.apariencias ?? {})).toHaveLength(0);
+    expect(Object.values(estado.modelo.enlaces)).toHaveLength(0);
+    expect(estado.modeloPersistidoId).toBeNull();
+    expect(estado.workspaceLocal).toEqual({
+      id: null,
+      nombre: "Modelo",
+      descripcion: "",
+      carpetaId: "local",
+    });
+  });
+
   test("borrar modelo local actual lo deja sin respaldo persistido", () => {
     store.getState().crearObjetoDemo();
-    store.getState().guardarLocal();
+    store.getState().guardarComoLocal({ nombre: "Modelo a borrar" });
     const primerId = store.getState().modeloPersistidoId;
     if (!primerId) throw new Error("La prueba esperaba id persistido");
 
@@ -114,7 +141,7 @@ describe("store undo/redo y dirty state", () => {
 
   test("seleccion y modo enlace no entran al historial ni activan dirty", () => {
     store.getState().crearObjetoDemo();
-    store.getState().guardarLocal();
+    store.getState().guardarComoLocal({ nombre: "Modelo seleccion" });
     const id = primeraEntidadId();
 
     store.getState().seleccionarEntidad(id);
@@ -123,6 +150,32 @@ describe("store undo/redo y dirty state", () => {
 
     expect(store.getState().dirty).toBe(false);
     expect(store.getState().puedeDeshacer).toBe(true);
+  });
+
+  test("aplicar y resetear estilo seleccionado entran al historial", () => {
+    store.getState().crearObjetoDemo();
+    const id = primeraEntidadId();
+    const aparienciaId = Object.values(store.getState().modelo.opds[store.getState().opdActivoId]?.apariencias ?? {})[0]?.id;
+    if (!aparienciaId) throw new Error("La prueba esperaba apariencia");
+    store.getState().seleccionarEntidad(id);
+
+    store.getState().aplicarEstiloSeleccionado({ fill: "#fef3c7", borderColor: "#70E483" });
+
+    expect(store.getState().modelo.opds[store.getState().opdActivoId]?.apariencias[aparienciaId]?.estilo).toEqual({
+      fill: "#fef3c7",
+      borderColor: "#70e483",
+    });
+    expect(store.getState().dirty).toBe(true);
+    expect(store.getState().puedeDeshacer).toBe(true);
+
+    store.getState().resetearEstiloSeleccionado();
+    expect(store.getState().modelo.opds[store.getState().opdActivoId]?.apariencias[aparienciaId]?.estilo).toBeUndefined();
+
+    store.getState().deshacer();
+    expect(store.getState().modelo.opds[store.getState().opdActivoId]?.apariencias[aparienciaId]?.estilo).toEqual({
+      fill: "#fef3c7",
+      borderColor: "#70e483",
+    });
   });
 
   test("navegar OPDs no entra al historial ni activa dirty", () => {
@@ -149,6 +202,34 @@ describe("store undo/redo y dirty state", () => {
     expect(Object.values(store.getState().modelo.opds["opd-2"]?.apariencias ?? {})).toHaveLength(1);
     expect(store.getState().dirty).toBe(true);
     expect(store.getState().opdActivoId).toBe("opd-2");
+  });
+
+  test("crear entidad en canvas selecciona la cosa nueva y queda dirty", () => {
+    let modelo = crearModelo();
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 220, y: 140 }, "Procesar"));
+    const procesoId = entidadPorNombre(modelo, "Procesar");
+    const descompuesto = must(descomponerProceso(modelo, modelo.opdRaizId, procesoId));
+    modelo = descompuesto.modelo;
+    store.getState().importarJson(exportarModelo(modelo));
+    store.getState().cambiarOpdActivo(descompuesto.opdId);
+    const contorno = Object.values(modelo.opds[descompuesto.opdId]?.apariencias ?? {})
+      .find((apariencia) => apariencia.entidadId === procesoId);
+    if (!contorno) throw new Error("La prueba esperaba contorno de descomposición");
+
+    store.getState().crearEntidadEnCanvas("objeto", { x: contorno.x + 32, y: contorno.y + 96 });
+
+    const estado = store.getState();
+    expect(estado.dirty).toBe(true);
+    expect(estado.puedeDeshacer).toBe(true);
+    expect(estado.seleccionId).toBeTruthy();
+    const seleccionId = estado.seleccionId;
+    if (!seleccionId) return;
+    const apariencia = Object.values(estado.modelo.opds[descompuesto.opdId]?.apariencias ?? {})
+      .find((item) => item.entidadId === seleccionId);
+    expect(apariencia?.opdId).toBe(descompuesto.opdId);
+    expect(apariencia?.x).toBe(contorno.x + 32);
+    expect(Object.values(estado.modelo.opds[estado.modelo.opdRaizId]?.apariencias ?? {})
+      .some((item) => item.entidadId === seleccionId)).toBe(false);
   });
 
   test("ajustar multiplicidad seleccionada entra al historial y rechaza sintaxis invalida", () => {
@@ -555,7 +636,6 @@ describe("store undo/redo y dirty state", () => {
     expect(store.getState().modelo.entidades[procesoId]?.refinamiento?.tipo).toBe("descomposicion");
   });
 
-
   test("eliminar OPD activo hoja desde arbol navega al padre y conserva undo", () => {
     store.getState().crearProcesoDemo();
     const procesoId = primeraEntidadId();
@@ -597,6 +677,7 @@ describe("store undo/redo y dirty state", () => {
     expect(store.getState().mensaje).toContain("Eliminar descendientes primero");
     expect(store.getState().mensaje).toContain(store.getState().opdActivoId);
   });
+
   test("forma abanico automatico al conectar segunda rama y alterna operador desde inspector", () => {
     let modelo = crearModelo("Store abanicos");
     modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 200, y: 200 }, "Procesar"));
@@ -638,6 +719,49 @@ describe("store undo/redo y dirty state", () => {
     expect(cantidadEntidades()).toBe(5);
     expect(store.getState().puedeDeshacer).toBe(false);
     expect(store.getState().puedeRehacer).toBe(true);
+  });
+
+  test("seleccionar desde OPL cambia seleccion y limpia modo enlace", () => {
+    store.getState().crearObjetoDemo();
+    store.getState().crearProcesoDemo();
+    const objetoId = Object.values(store.getState().modelo.entidades).find((entidad) => entidad.tipo === "objeto")?.id;
+    const procesoId = Object.values(store.getState().modelo.entidades).find((entidad) => entidad.tipo === "proceso")?.id;
+    if (!objetoId || !procesoId) throw new Error("La prueba esperaba objeto y proceso");
+
+    store.getState().seleccionarEntidad(objetoId);
+    store.getState().elegirTipoEnlace("consumo");
+    store.getState().seleccionarDesdeOpl({ tipo: "entidad", id: procesoId });
+
+    expect(store.getState().seleccionId).toBe(procesoId);
+    expect(store.getState().enlaceSeleccionId).toBeNull();
+    expect(store.getState().modoEnlace).toBeNull();
+
+    store.getState().seleccionarEntidad(objetoId);
+    store.getState().elegirTipoEnlace("consumo");
+    store.getState().seleccionarEntidad(procesoId);
+    const enlaceId = Object.values(store.getState().modelo.enlaces)[0]?.id;
+    if (!enlaceId) throw new Error("La prueba esperaba enlace");
+
+    store.getState().seleccionarDesdeOpl({ tipo: "enlace", id: enlaceId });
+
+    expect(store.getState().seleccionId).toBeNull();
+    expect(store.getState().enlaceSeleccionId).toBe(enlaceId);
+    expect(store.getState().modoEnlace).toBeNull();
+  });
+
+  test("renombrar desde OPL reutiliza operacion de renombrado con undo", () => {
+    store.getState().crearObjetoDemo();
+    const id = primeraEntidadId();
+
+    store.getState().renombrarEntidadDesdeOpl(id, "Cliente");
+
+    expect(store.getState().modelo.entidades[id]?.nombre).toBe("Cliente");
+    expect(store.getState().seleccionId).toBe(id);
+    expect(store.getState().dirty).toBe(true);
+    expect(store.getState().puedeDeshacer).toBe(true);
+
+    store.getState().deshacer();
+    expect(store.getState().modelo.entidades[id]?.nombre).toBe("Objeto");
   });
 });
 

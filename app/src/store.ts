@@ -1,6 +1,11 @@
 import { useEffect, useState } from "preact/hooks";
 import { createStore } from "zustand/vanilla";
+import { crearCosaEnPosicion } from "./modelo/creacionInterna";
 import { extremoEstado } from "./modelo/extremos";
+import {
+  aplicarEstiloApariencia,
+  resetearEstiloApariencia,
+} from "./modelo/estilos";
 import {
   contenedorRefinamiento,
   dentroDeApariencia,
@@ -68,9 +73,15 @@ import {
   listarModelosLocales,
   type ResumenModeloPersistido,
 } from "./persistencia/local";
+import {
+  validarNombreModeloLocal,
+  workspaceDesdeModelo,
+  type WorkspaceModeloLocal,
+} from "./persistencia/workspace";
 import { exportarModelo, hidratarModelo } from "./serializacion/json";
 import type { Aviso } from "./modelo/validaciones";
-import type { Afiliacion, Apariencia, Esencia, ExtremoEnlace, Id, Modelo, Modificador, ModoDespliegueObjeto, ModoPlegado, OperadorAbanico, OrdenPartesPlegado, Posicion, TipoEnlace } from "./modelo/tipos";
+import type { Afiliacion, Apariencia, Esencia, EstiloApariencia, ExtremoEnlace, Id, Modelo, Modificador, ModoDespliegueObjeto, ModoPlegado, OperadorAbanico, OrdenPartesPlegado, Posicion, TipoEnlace, TipoEntidad } from "./modelo/tipos";
+import { mismaReferencia, type OplReferencia } from "./opl/interaccion";
 
 interface ModoEnlace {
   tipo: TipoEnlace;
@@ -83,16 +94,34 @@ interface OpmStore {
   seleccionId: Id | null;
   enlaceSeleccionId: Id | null;
   modoEnlace: ModoEnlace | null;
+  modoCreacion: TipoEntidad | null;
+  filtroOplPorSeleccion: boolean;
+  hoverOplRef: OplReferencia | null;
   mensaje: string | null;
   dirty: boolean;
   puedeDeshacer: boolean;
   puedeRehacer: boolean;
   modelosGuardados: ResumenModeloPersistido[];
   modeloPersistidoId: Id | null;
+  descripcionModeloLocal: string;
+  menuPrincipalAbierto: boolean;
+  dialogoGuardarComoAbierto: boolean;
+  dialogoCargarModeloAbierto: boolean;
+  workspaceLocal: WorkspaceModeloLocal;
   limpiarMensaje: () => void;
+  abrirMenuPrincipal: () => void;
+  cerrarMenuPrincipal: () => void;
+  abrirGuardarComo: () => void;
+  cerrarGuardarComo: () => void;
+  guardarComoLocal: (input: { nombre: string; descripcion?: string }) => void;
+  abrirCargarModelo: () => void;
+  cerrarCargarModelo: () => void;
+  cargarLocalDesdeDialogo: (id: Id) => void;
   nuevoModelo: () => void;
   crearObjetoDemo: () => void;
   crearProcesoDemo: () => void;
+  crearEntidadEnCanvas: (tipo: TipoEntidad, posicion: Posicion) => void;
+  fijarModoCreacion: (tipo: TipoEntidad | null) => void;
   descomponerSeleccionada: () => void;
   desplegarSeleccionada: (modo?: ModoDespliegueObjeto) => void;
   quitarDescomposicionSeleccionada: () => void;
@@ -102,6 +131,10 @@ interface OpmStore {
   seleccionarEntidad: (id: Id) => void;
   seleccionarEstadoComoExtremo: (estadoId: Id) => void;
   seleccionarEnlace: (id: Id) => void;
+  seleccionarDesdeOpl: (ref: OplReferencia) => void;
+  renombrarEntidadDesdeOpl: (entidadId: Id, nombre: string) => void;
+  fijarFiltroOplPorSeleccion: (activo: boolean) => void;
+  fijarHoverOpl: (ref: OplReferencia | null) => void;
   navegarAviso: (aviso: Aviso) => void;
   deshacer: () => void;
   rehacer: () => void;
@@ -113,6 +146,8 @@ interface OpmStore {
   cambiarModoPlegadoSeleccionado: (modo: ModoPlegado) => void;
   cambiarModoPlegadoApariencia: (aparienciaId: Id, modo: ModoPlegado) => void;
   cambiarOrdenPartesSeleccionado: (orden: OrdenPartesPlegado) => void;
+  aplicarEstiloSeleccionado: (patch: EstiloApariencia) => void;
+  resetearEstiloSeleccionado: () => void;
   seleccionarPartePlegada: (padreAparienciaId: Id, parteEntidadId: Id) => void;
   extraerParteDePlegado: (padreAparienciaId: Id, parteEntidadId: Id) => void;
   reinsertarParteExtraidaSeleccionada: () => void;
@@ -152,7 +187,7 @@ interface OpmStore {
   cargarDemo: () => void;
 }
 
-const modeloInicial = crearModelo();
+const modeloInicial = crearModelo("Modelo");
 const UNDO_LIMIT = 100;
 let snapshotGuardado = exportarModelo(modeloInicial);
 let undoStack: Modelo[] = [];
@@ -164,26 +199,124 @@ export const store = createStore<OpmStore>((set, get) => ({
   seleccionId: null,
   enlaceSeleccionId: null,
   modoEnlace: null,
+  modoCreacion: null,
+  filtroOplPorSeleccion: false,
+  hoverOplRef: null,
   mensaje: null,
   dirty: false,
   puedeDeshacer: false,
   puedeRehacer: false,
   modelosGuardados: [],
   modeloPersistidoId: null,
+  descripcionModeloLocal: "",
+  menuPrincipalAbierto: false,
+  dialogoGuardarComoAbierto: false,
+  dialogoCargarModeloAbierto: false,
+  workspaceLocal: workspaceDesdeModelo(modeloInicial, null),
 
   limpiarMensaje() {
     set({ mensaje: null });
   },
 
+  abrirMenuPrincipal() {
+    set({
+      menuPrincipalAbierto: true,
+      modelosGuardados: listarModelosGuardadosSeguro(),
+      mensaje: null,
+    });
+  },
+
+  cerrarMenuPrincipal() {
+    set({ menuPrincipalAbierto: false });
+  },
+
+  abrirGuardarComo() {
+    const { modelo, modeloPersistidoId, descripcionModeloLocal } = get();
+    set({
+      menuPrincipalAbierto: false,
+      dialogoGuardarComoAbierto: true,
+      workspaceLocal: workspaceDesdeModelo(modelo, modeloPersistidoId, descripcionModeloLocal),
+      modelosGuardados: listarModelosGuardadosSeguro(),
+      mensaje: null,
+    });
+  },
+
+  cerrarGuardarComo() {
+    set({ dialogoGuardarComoAbierto: false });
+  },
+
+  guardarComoLocal(input) {
+    const { modelo, modelosGuardados, opdActivoId } = get();
+    const validacion = validarNombreModeloLocal(input.nombre, modelosGuardados);
+    if (!validacion.ok) {
+      set({ mensaje: validacion.error ?? "Nombre de modelo inválido" });
+      return;
+    }
+    const descripcion = input.descripcion?.trim() ?? "";
+    const modeloNombrado: Modelo = { ...modelo, nombre: validacion.nombre };
+    const json = exportarModelo(modeloNombrado);
+    const guardado = guardarModeloLocal({
+      id: null,
+      nombre: validacion.nombre,
+      descripcion,
+      json,
+    });
+    if (!guardado.ok) {
+      set({ mensaje: guardado.error });
+      return;
+    }
+    snapshotGuardado = json;
+    set(estadoModelo(modeloNombrado, {
+      opdActivoId: opdActivoSeguro(modeloNombrado, opdActivoId),
+      seleccionId: null,
+      enlaceSeleccionId: null,
+      modoEnlace: null,
+      mensaje: "Modelo guardado exitosamente",
+      dirty: false,
+      modeloPersistidoId: guardado.value.id,
+      descripcionModeloLocal: guardado.value.descripcion,
+      modelosGuardados: listarModelosGuardadosSeguro(),
+      dialogoGuardarComoAbierto: false,
+      workspaceLocal: workspaceDesdeModelo(modeloNombrado, guardado.value.id, guardado.value.descripcion),
+    }));
+  },
+
+  abrirCargarModelo() {
+    set({
+      menuPrincipalAbierto: false,
+      dialogoCargarModeloAbierto: true,
+      modelosGuardados: listarModelosGuardadosSeguro(),
+      mensaje: null,
+    });
+  },
+
+  cerrarCargarModelo() {
+    set({ dialogoCargarModeloAbierto: false });
+  },
+
+  cargarLocalDesdeDialogo(id) {
+    get().cargarLocal(id);
+    if (store.getState().modeloPersistidoId === id) {
+      set({ dialogoCargarModeloAbierto: false });
+    }
+  },
+
   nuevoModelo() {
-    const modelo = crearModelo();
+    const modelo = crearModelo("Modelo");
     resetHistorial(modelo);
     set(estadoModelo(modelo, {
       opdActivoId: modelo.opdRaizId,
       seleccionId: null,
       enlaceSeleccionId: null,
       modoEnlace: null,
+      modoCreacion: null,
+      hoverOplRef: null,
       modeloPersistidoId: null,
+      descripcionModeloLocal: "",
+      menuPrincipalAbierto: false,
+      dialogoGuardarComoAbierto: false,
+      dialogoCargarModeloAbierto: false,
+      workspaceLocal: workspaceDesdeModelo(modelo, null),
       mensaje: "Nuevo modelo",
     }));
   },
@@ -198,6 +331,30 @@ export const store = createStore<OpmStore>((set, get) => ({
     const { modelo, opdActivoId } = get();
     const resultado = crearProceso(modelo, opdActivoId, posicionLibre(modelo, opdActivoId, "proceso"));
     if (resultado.ok) commitModelo(set, modelo, resultado.value, { seleccionId: entidadNueva(modelo, resultado.value), enlaceSeleccionId: null, mensaje: null });
+  },
+
+  crearEntidadEnCanvas(tipo, posicion) {
+    const { modelo, opdActivoId } = get();
+    const resultado = crearCosaEnPosicion(modelo, opdActivoId, tipo, posicion);
+    if (!resultado.ok) {
+      set({ mensaje: resultado.error });
+      return;
+    }
+    commitModelo(set, modelo, resultado.value.modelo, {
+      seleccionId: resultado.value.entidadId,
+      enlaceSeleccionId: null,
+      modoEnlace: null,
+      modoCreacion: null,
+      mensaje: null,
+    });
+  },
+
+  fijarModoCreacion(tipo) {
+    set({
+      modoCreacion: tipo,
+      modoEnlace: null,
+      mensaje: tipo ? `Haz clic en el canvas para crear ${tipo === "objeto" ? "un objeto" : "un proceso"}` : null,
+    });
   },
 
   descomponerSeleccionada() {
@@ -332,7 +489,7 @@ export const store = createStore<OpmStore>((set, get) => ({
       set({ mensaje: null });
       return;
     }
-    set({ opdActivoId: id, seleccionId: null, enlaceSeleccionId: null, modoEnlace: null, mensaje: null });
+    set({ opdActivoId: id, seleccionId: null, enlaceSeleccionId: null, modoEnlace: null, modoCreacion: null, hoverOplRef: null, mensaje: null });
   },
 
   seleccionarEntidad(id) {
@@ -402,6 +559,57 @@ export const store = createStore<OpmStore>((set, get) => ({
     set({ seleccionId: null, enlaceSeleccionId: id, modoEnlace: null, mensaje: null });
   },
 
+  seleccionarDesdeOpl(ref) {
+    const { modelo } = get();
+    if (ref.tipo === "enlace") {
+      if (!modelo.enlaces[ref.id]) {
+        set({ mensaje: `Enlace no existe: ${ref.id}` });
+        return;
+      }
+      set({ seleccionId: null, enlaceSeleccionId: ref.id, modoEnlace: null, mensaje: null });
+      return;
+    }
+    if (ref.tipo === "estado") {
+      const estado = modelo.estados[ref.id];
+      if (!estado) {
+        set({ mensaje: `Estado no existe: ${ref.id}` });
+        return;
+      }
+      set({ seleccionId: estado.entidadId, enlaceSeleccionId: null, modoEnlace: null, mensaje: null });
+      return;
+    }
+    if (!modelo.entidades[ref.id]) {
+      set({ mensaje: `Entidad no existe: ${ref.id}` });
+      return;
+    }
+    set({ seleccionId: ref.id, enlaceSeleccionId: null, modoEnlace: null, mensaje: null });
+  },
+
+  renombrarEntidadDesdeOpl(entidadId, nombre) {
+    const { modelo } = get();
+    const resultado = renombrarEntidad(modelo, entidadId, nombre);
+    if (!resultado.ok) {
+      set({ mensaje: resultado.error });
+      return;
+    }
+    commitModelo(set, modelo, resultado.value, {
+      seleccionId: entidadId,
+      enlaceSeleccionId: null,
+      modoEnlace: null,
+      mensaje: null,
+    });
+  },
+
+  fijarFiltroOplPorSeleccion(activo) {
+    set({ filtroOplPorSeleccion: activo });
+  },
+
+  fijarHoverOpl(ref) {
+    const actual = get().hoverOplRef;
+    if ((actual === null && ref === null) || (actual && ref && mismaReferencia(actual, ref))) return;
+    set({ hoverOplRef: ref });
+  },
+
   navegarAviso(aviso) {
     const { modelo, opdActivoId } = get();
     const opdDestino = opdDestinoDeAviso(modelo, aviso, opdActivoId);
@@ -452,7 +660,7 @@ export const store = createStore<OpmStore>((set, get) => ({
       set({ mensaje: "Selecciona primero la entidad origen del enlace" });
       return;
     }
-    set({ modoEnlace: { tipo, origenId }, mensaje: "Selecciona la entidad destino" });
+    set({ modoEnlace: { tipo, origenId }, modoCreacion: null, mensaje: "Selecciona la entidad destino" });
   },
 
   cancelarEnlace() {
@@ -472,6 +680,7 @@ export const store = createStore<OpmStore>((set, get) => ({
       seleccionId: null,
       enlaceSeleccionId: null,
       modoEnlace: null,
+      modoCreacion: null,
       mensaje: "Cambio deshecho",
     }));
   },
@@ -489,6 +698,7 @@ export const store = createStore<OpmStore>((set, get) => ({
       seleccionId: null,
       enlaceSeleccionId: null,
       modoEnlace: null,
+      modoCreacion: null,
       mensaje: "Cambio rehecho",
     }));
   },
@@ -562,6 +772,46 @@ export const store = createStore<OpmStore>((set, get) => ({
       return;
     }
     commitModelo(set, modelo, resultado.value, { seleccionId, enlaceSeleccionId: null, modoEnlace: null, mensaje: null });
+  },
+
+  aplicarEstiloSeleccionado(patch) {
+    const { modelo, opdActivoId, seleccionId } = get();
+    const apariencia = aparienciaSeleccionadaActiva(modelo, opdActivoId, seleccionId);
+    if (!apariencia) {
+      set({ mensaje: "Selecciona una cosa con apariencia activa" });
+      return;
+    }
+    const resultado = aplicarEstiloApariencia(modelo, opdActivoId, apariencia.id, patch);
+    if (!resultado.ok) {
+      set({ mensaje: resultado.error });
+      return;
+    }
+    commitModelo(set, modelo, resultado.value, {
+      seleccionId,
+      enlaceSeleccionId: null,
+      modoEnlace: null,
+      mensaje: null,
+    });
+  },
+
+  resetearEstiloSeleccionado() {
+    const { modelo, opdActivoId, seleccionId } = get();
+    const apariencia = aparienciaSeleccionadaActiva(modelo, opdActivoId, seleccionId);
+    if (!apariencia) {
+      set({ mensaje: "Selecciona una cosa con apariencia activa" });
+      return;
+    }
+    const resultado = resetearEstiloApariencia(modelo, opdActivoId, apariencia.id);
+    if (!resultado.ok) {
+      set({ mensaje: resultado.error });
+      return;
+    }
+    commitModelo(set, modelo, resultado.value, {
+      seleccionId,
+      enlaceSeleccionId: null,
+      modoEnlace: null,
+      mensaje: null,
+    });
   },
 
   seleccionarPartePlegada(_padreAparienciaId, parteEntidadId) {
@@ -1088,7 +1338,10 @@ export const store = createStore<OpmStore>((set, get) => ({
       seleccionId: null,
       enlaceSeleccionId: null,
       modoEnlace: null,
+      modoCreacion: null,
       modeloPersistidoId: null,
+      descripcionModeloLocal: "",
+      workspaceLocal: workspaceDesdeModelo(resultado.value, null),
       mensaje: "Modelo importado",
     }));
   },
@@ -1103,11 +1356,16 @@ export const store = createStore<OpmStore>((set, get) => ({
   },
 
   guardarLocal() {
-    const { modelo, modeloPersistidoId } = get();
+    const { modelo, modeloPersistidoId, descripcionModeloLocal } = get();
+    if (!modeloPersistidoId) {
+      get().abrirGuardarComo();
+      return;
+    }
     const json = exportarModelo(modelo);
     const guardado = guardarModeloLocal({
       id: modeloPersistidoId,
       nombre: modelo.nombre,
+      descripcion: descripcionModeloLocal,
       json,
     });
     if (!guardado.ok) {
@@ -1119,7 +1377,9 @@ export const store = createStore<OpmStore>((set, get) => ({
       mensaje: "Modelo guardado exitosamente",
       dirty: false,
       modeloPersistidoId: guardado.value.id,
+      descripcionModeloLocal: guardado.value.descripcion,
       modelosGuardados: listarModelosGuardadosSeguro(),
+      workspaceLocal: workspaceDesdeModelo(modelo, guardado.value.id, guardado.value.descripcion),
     });
   },
 
@@ -1146,7 +1406,10 @@ export const store = createStore<OpmStore>((set, get) => ({
       enlaceSeleccionId: null,
       modoEnlace: null,
       modeloPersistidoId: cargado.value.id,
+      descripcionModeloLocal: cargado.value.descripcion,
       modelosGuardados: listarModelosGuardadosSeguro(),
+      dialogoCargarModeloAbierto: false,
+      workspaceLocal: workspaceDesdeModelo(resultado.value, cargado.value.id, cargado.value.descripcion),
       mensaje: `Modelo cargado: ${cargado.value.nombre}`,
     }));
   },
@@ -1164,7 +1427,9 @@ export const store = createStore<OpmStore>((set, get) => ({
     if (get().modeloPersistidoId === id) {
       snapshotGuardado = "";
       extra.modeloPersistidoId = null;
+      extra.descripcionModeloLocal = "";
       extra.dirty = true;
+      extra.workspaceLocal = workspaceDesdeModelo(get().modelo, null);
     }
     set(extra);
   },
@@ -1178,6 +1443,8 @@ export const store = createStore<OpmStore>((set, get) => ({
       enlaceSeleccionId: null,
       modoEnlace: null,
       modeloPersistidoId: null,
+      descripcionModeloLocal: "",
+      workspaceLocal: workspaceDesdeModelo(modelo, null),
       mensaje: "Demo cargado",
     }));
   },
@@ -1277,6 +1544,14 @@ function opdActivoSeguro(modelo: Modelo, opdActivoId: Id): Id {
 function confirmarEliminacionOpd(nombre: string): boolean {
   if (typeof globalThis.confirm !== "function") return true;
   return globalThis.confirm(`Eliminar OPD "${nombre}"? Esta acción se puede deshacer.`);
+}
+
+function aparienciaSeleccionadaActiva(modelo: Modelo, opdActivoId: Id, seleccionId: Id | null): Apariencia | null {
+  if (!seleccionId) return null;
+  const entidad = modelo.entidades[seleccionId];
+  if (!entidad) return null;
+  return Object.values(modelo.opds[opdActivoId]?.apariencias ?? {})
+    .find((apariencia) => apariencia.entidadId === seleccionId) ?? null;
 }
 
 function opdDestinoDeAviso(modelo: Modelo, aviso: Aviso, opdActivoId: Id): Id | null {
