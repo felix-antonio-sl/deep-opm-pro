@@ -149,6 +149,37 @@ describe("store undo/redo y dirty state", () => {
     expect(store.getState().opdActivoId).toBe("opd-2");
   });
 
+  test("ajustar multiplicidad seleccionada entra al historial y rechaza sintaxis invalida", () => {
+    store.getState().crearObjetoDemo();
+    store.getState().crearProcesoDemo();
+    const entidades = Object.values(store.getState().modelo.entidades);
+    const objeto = entidades.find((entidad) => entidad.tipo === "objeto");
+    const proceso = entidades.find((entidad) => entidad.tipo === "proceso");
+    expect(objeto).toBeDefined();
+    expect(proceso).toBeDefined();
+    if (!objeto || !proceso) return;
+    store.getState().seleccionarEntidad(objeto.id);
+    store.getState().elegirTipoEnlace("consumo");
+    store.getState().seleccionarEntidad(proceso.id);
+    const enlaceId = Object.values(store.getState().modelo.enlaces)[0]?.id;
+    expect(enlaceId).toBeDefined();
+    if (!enlaceId) return;
+    store.getState().seleccionarEnlace(enlaceId);
+
+    store.getState().ajustarMultiplicidadSeleccionada("origen", "2");
+
+    expect(store.getState().modelo.enlaces[enlaceId]?.multiplicidadOrigen).toBe("2");
+    expect(store.getState().dirty).toBe(true);
+    expect(store.getState().puedeDeshacer).toBe(true);
+
+    store.getState().ajustarMultiplicidadSeleccionada("origen", "2 ");
+    expect(store.getState().modelo.enlaces[enlaceId]?.multiplicidadOrigen).toBe("2");
+    expect(store.getState().mensaje).toContain("Multiplicidad inválida");
+
+    store.getState().deshacer();
+    expect(store.getState().modelo.enlaces[enlaceId]?.multiplicidadOrigen).toBeUndefined();
+  });
+
   test("descomponer seleccionada crea OPD hijo, navega y conserva undo", () => {
     store.getState().crearProcesoDemo();
     const procesoId = primeraEntidadId();
