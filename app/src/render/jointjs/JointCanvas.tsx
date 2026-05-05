@@ -74,18 +74,18 @@ export function JointCanvas() {
         const parent = graph.getCell(parentId) as dia.Element | undefined;
         if (!parent || parent.isLink()) return false;
         const parentBBox = parent.getBBox();
-        const cellBBox = cell.getBBox();
-        // Padding minimo en lados; padTop deja espacio para el label superior
-        // del contorno (HU-12.009). Con valores pequenos, el cell puede ir
-        // hasta el borde interior sin "encerramiento" virtual.
+        // JointJS resta internamente el cellBBox al aplicar el rect
+        // (Element.mjs:130-131); aqui devolvemos el bbox interior del padre
+        // sin descontar cellBBox para evitar doble descuento que bloqueaba
+        // el drag horizontal/vertical de subprocesos embebidos.
         const padX = 4;
         const padTop = 28;
         const padBottom = 8;
         return {
           x: parentBBox.x + padX,
           y: parentBBox.y + padTop,
-          width: Math.max(0, parentBBox.width - 2 * padX - cellBBox.width),
-          height: Math.max(0, parentBBox.height - padTop - padBottom - cellBBox.height),
+          width: Math.max(0, parentBBox.width - 2 * padX),
+          height: Math.max(0, parentBBox.height - padTop - padBottom),
         };
       },
       interactive(cellView) {

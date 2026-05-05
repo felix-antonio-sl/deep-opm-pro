@@ -701,6 +701,62 @@ test("split de efecto convierte enlace en consumo + resultado intermedio", async
   expect(pageErrors).toEqual([]);
 });
 
+test("arrastra subproceso embebido dentro del macroproceso contenedor", async ({ page }) => {
+  // Regresion: rect de restrictTranslate restaba cellBBox.width/height adicional al
+  // que JointJS ya descuenta internamente (Element.mjs:130-131); el doble descuento
+  // dejaba a los subprocesos sin juego horizontal/vertical y los anclaba al centro.
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await page.getByRole("button", { name: "Proceso" }).click();
+  await page.getByRole("button", { name: "Descomponer" }).click();
+
+  await expect(page.locator('[role="treeitem"]').filter({ hasText: "SD1: Proceso descompuesto" })).toHaveAttribute("aria-current", "page");
+  await expect(page.locator(".joint-element")).toHaveCount(4);
+
+  const ellipses = await page.locator(".joint-element").evaluateAll((els) =>
+    els.map((el) => {
+      const r = el.getBoundingClientRect();
+      const tieneEllipse = !!el.querySelector("ellipse");
+      const modelId = el.getAttribute("model-id") ?? "";
+      return { modelId, tieneEllipse, x: r.x, y: r.y, width: r.width, height: r.height };
+    }),
+  );
+  const conEllipse = ellipses.filter((e) => e.tieneEllipse).sort((a, b) => b.width - a.width);
+  const contornoIni = conEllipse[0];
+  const subsIni = conEllipse.slice(1, 4).sort((a, b) => a.y - b.y);
+  expect(subsIni).toHaveLength(3);
+
+  const target = subsIni[1];
+  const cx = target.x + target.width / 2;
+  const cy = target.y + target.height / 2;
+  await page.mouse.move(cx, cy);
+  await page.mouse.down();
+  await page.mouse.move(cx + 200, cy, { steps: 12 });
+  await page.mouse.up();
+
+  const ellipsesFin = await page.locator(".joint-element").evaluateAll((els) =>
+    els.map((el) => {
+      const r = el.getBoundingClientRect();
+      const tieneEllipse = !!el.querySelector("ellipse");
+      return { tieneEllipse, x: r.x, y: r.y, width: r.width };
+    }),
+  );
+  const conEllipseFin = ellipsesFin.filter((e) => e.tieneEllipse).sort((a, b) => b.width - a.width);
+  const contornoFin = conEllipseFin[0];
+  const subsFin = conEllipseFin.slice(1, 4).sort((a, b) => a.y - b.y);
+
+  // El subproceso target se desplaza hacia la derecha (clamp por padding interior).
+  expect(subsFin[1].x - subsIni[1].x).toBeGreaterThan(100);
+  // Contorno y hermanos quedan estaticos.
+  expect(Math.abs(contornoFin.x - contornoIni.x)).toBeLessThan(10);
+  expect(Math.abs(subsFin[0].x - subsIni[0].x)).toBeLessThan(10);
+  expect(Math.abs(subsFin[2].x - subsIni[2].x)).toBeLessThan(10);
+
+  expect(pageErrors).toEqual([]);
+});
+
 test("renderiza agregacion como triangulo estructural", async ({ page }) => {
   const pageErrors: string[] = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));
