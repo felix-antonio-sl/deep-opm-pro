@@ -1,0 +1,110 @@
+import { normalizarExtremo } from "../modelo/extremos";
+import { esColorEstilo, normalizarEstiloApariencia } from "../modelo/estilos";
+import { rutaEtiquetaNormalizada } from "../modelo/rutas";
+import type {
+  Apariencia,
+  Enlace,
+  Id,
+  Modelo,
+  VersionResumen,
+} from "../modelo/tipos";
+import { esRecord } from "./validarGuards";
+
+/**
+ * Normalizadores lossless del documento JSON OPM.
+ *
+ * Consumidores conocidos: `serializacion/json.ts` y tests de serializacion.
+ * Anclaje: OPCloud concentra toJson/fromJson en
+ * `/home/felix/projects/deep-opm-pro/opm-extracted/src/app/models/json.model.ts:15`
+ * y normaliza antes de emitir JSON; aqui se conserva el formato v0 propio.
+ */
+
+export function normalizarModelo(modelo: Modelo): Modelo {
+  const opds = Object.fromEntries(
+    Object.entries(modelo.opds).map(([id, opd]) => {
+      const padreId = id === modelo.opdRaizId
+        ? null
+        : opd.padreId && opd.padreId !== id && modelo.opds[opd.padreId]
+          ? opd.padreId
+          : modelo.opdRaizId;
+      const apariencias = Object.fromEntries(
+        Object.entries(opd.apariencias).map(([aparienciaId, apariencia]) => {
+          const estilo = normalizarEstiloApariencia(apariencia.estilo);
+          const { estilo: _estilo, ...base } = apariencia;
+          return [aparienciaId, {
+            ...base,
+            ...(estilo ? { estilo } : {}),
+          }];
+        }),
+      ) as Record<Id, Apariencia>;
+      return [id, { ...opd, padreId, apariencias }];
+    }),
+  );
+  const enlaces = Object.fromEntries(
+    Object.entries(modelo.enlaces).map(([id, enlace]) => [
+      id,
+      normalizarEnlace(enlace),
+    ]),
+  ) as Record<Id, Enlace>;
+  const versiones = normalizarVersiones(modelo.versiones);
+  return {
+    id: modelo.id,
+    nombre: modelo.nombre,
+    opdRaizId: modelo.opdRaizId,
+    entidades: modelo.entidades,
+    estados: modelo.estados,
+    nextSeq: modelo.nextSeq,
+    opds,
+    enlaces,
+    abanicos: modelo.abanicos ?? {},
+    ...(modelo.archivado ? { archivado: true } : {}),
+    ...(typeof modelo.archivadoEn === "string" ? { archivadoEn: modelo.archivadoEn } : {}),
+    ...(versiones.length > 0 ? { versiones } : {}),
+    ...(modelo.crearVersionAlGuardar ? { crearVersionAlGuardar: true } : {}),
+  };
+}
+
+export function normalizarEnlace(enlace: Enlace): Enlace {
+  const rutaEtiqueta = rutaEtiquetaNormalizada(enlace.rutaEtiqueta);
+  const estilo = normalizarEstiloEnlace(enlace.estilo);
+  return {
+    ...enlace,
+    origenId: normalizarExtremo(enlace.origenId),
+    destinoId: normalizarExtremo(enlace.destinoId),
+    ...(rutaEtiqueta ? { rutaEtiqueta } : {}),
+    ...(estilo ? { estilo } : {}),
+  };
+}
+
+export function normalizarEstiloEnlace(value: unknown): Enlace["estilo"] {
+  if (value === undefined || !esRecord(value)) return undefined;
+  const estilo: Enlace["estilo"] = {};
+  if (typeof value.color === "string" && esColorEstilo(value.color)) estilo.color = value.color.toLowerCase();
+  if (typeof value.strokeWidth === "number" && value.strokeWidth >= 1 && value.strokeWidth <= 6) estilo.strokeWidth = value.strokeWidth;
+  if (typeof value.dashArray === "string" && (value.dashArray === "" || value.dashArray === "4 4" || value.dashArray === "2 4" || value.dashArray === "6 4 2 4")) estilo.dashArray = value.dashArray;
+  return Object.keys(estilo).length > 0 ? estilo : undefined;
+}
+
+export function normalizarVersiones(value: unknown): VersionResumen[] {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((raw) => {
+      if (!esRecord(raw) ||
+        typeof raw.id !== "string" ||
+        typeof raw.creadoEn !== "string" ||
+        typeof raw.nombre !== "string" ||
+        typeof raw.modeloPayloadKey !== "string" ||
+        typeof raw.bytes !== "number") {
+        return null;
+      }
+      return {
+        id: raw.id,
+        creadoEn: raw.creadoEn,
+        nombre: raw.nombre,
+        ...(typeof raw.descripcion === "string" ? { descripcion: raw.descripcion } : {}),
+        modeloPayloadKey: raw.modeloPayloadKey,
+        bytes: raw.bytes,
+      } satisfies VersionResumen;
+    })
+    .filter((version): version is VersionResumen => version !== null);
+}
