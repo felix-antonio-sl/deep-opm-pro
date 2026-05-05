@@ -757,6 +757,31 @@ test("apunta enlaces procedurales a estados y emite transicion OPL TS3", async (
   expect(pageErrors).toEqual([]);
 });
 
+test("crea resultado hacia capsula de estado por gesto directo y preserva TS3", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await page.locator("textarea").fill(JSON.stringify(modeloTransicionEstadosIncompleto(), null, 2));
+  await page.getByRole("button", { name: "Importar" }).click();
+
+  await expect(page.locator('[joint-selector^="stateCapsule"]')).toHaveCount(2);
+  await expect(page.locator(".joint-link")).toHaveCount(1);
+  await elementoPorTexto(page, "Aprobar").click();
+  await page.getByLabel("Tipo de enlace").selectOption("resultado");
+  await page.locator('[joint-selector^="stateLabel"]').filter({ hasText: "aprobado" }).click();
+
+  await expect(page.locator(".joint-link")).toHaveCount(2);
+  await expect(page.getByText(/Aprobar\s+cambia\s+Pedido\s+de `pendiente` a `aprobado`\./)).toBeVisible();
+
+  await page.getByRole("button", { name: "Exportar" }).click();
+  const exportado = JSON.parse(await page.locator("textarea").inputValue()) as ExportadoModelo;
+  const resultado = Object.values(exportado.modelo.enlaces).find((enlace) => enlace.tipo === "resultado");
+  expect(resultado?.destinoId).toEqual(extremoEstado("s-aprobado"));
+
+  expect(pageErrors).toEqual([]);
+});
+
 test("split de efecto convierte enlace en consumo + resultado intermedio", async ({ page }) => {
   const pageErrors: string[] = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));
@@ -1303,6 +1328,14 @@ function modeloTransicionEstados() {
       },
     },
   };
+}
+
+function modeloTransicionEstadosIncompleto() {
+  const base = modeloTransicionEstados();
+  delete base.modelo.enlaces["e-resultado"];
+  delete base.modelo.opds["opd-1"].enlaces["ae-resultado"];
+  base.modelo.nextSeq = 30;
+  return base;
 }
 
 function objeto(id: string, nombre: string, esencia = "informacional") {

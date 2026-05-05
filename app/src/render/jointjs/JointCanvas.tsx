@@ -25,6 +25,8 @@ export function JointCanvas() {
   const enlaceSeleccionIdRef = useRef(enlaceSeleccionId);
   const seleccionarEntidad = useOpmStore((s) => s.seleccionarEntidad);
   const seleccionarEntidadRef = useRef(seleccionarEntidad);
+  const seleccionarEstadoComoExtremo = useOpmStore((s) => s.seleccionarEstadoComoExtremo);
+  const seleccionarEstadoComoExtremoRef = useRef(seleccionarEstadoComoExtremo);
   const seleccionarEnlace = useOpmStore((s) => s.seleccionarEnlace);
   const seleccionarEnlaceRef = useRef(seleccionarEnlace);
   const moverApariencia = useOpmStore((s) => s.moverApariencia);
@@ -46,12 +48,13 @@ export function JointCanvas() {
 
   useEffect(() => {
     seleccionarEntidadRef.current = seleccionarEntidad;
+    seleccionarEstadoComoExtremoRef.current = seleccionarEstadoComoExtremo;
     seleccionarEnlaceRef.current = seleccionarEnlace;
     moverAparienciaRef.current = moverApariencia;
     cambiarModoPlegadoAparienciaRef.current = cambiarModoPlegadoApariencia;
     extraerParteDePlegadoRef.current = extraerParteDePlegado;
     actualizarVerticesEnlaceRef.current = actualizarVerticesEnlace;
-  }, [actualizarVerticesEnlace, cambiarModoPlegadoApariencia, extraerParteDePlegado, moverApariencia, seleccionarEnlace, seleccionarEntidad]);
+  }, [actualizarVerticesEnlace, cambiarModoPlegadoApariencia, extraerParteDePlegado, moverApariencia, seleccionarEnlace, seleccionarEntidad, seleccionarEstadoComoExtremo]);
 
   useEffect(() => {
     if (!paperHostRef.current) return;
@@ -123,8 +126,18 @@ export function JointCanvas() {
       evt.stopPropagation();
       const meta = metadata(cellViewModel(elementView));
       if (meta?.kind === "entidad") {
-        if (jointSelector(evt.target) === "foldBadge") {
+        const selector = jointSelector(evt.target);
+        if (selector === "foldBadge") {
           cambiarModoPlegadoAparienciaRef.current(meta.aparienciaId, "parcial");
+          return;
+        }
+        const estadoId = estadoDesdeSelector(meta, selector);
+        if (estadoId) {
+          if (modoEnlaceRef.current) {
+            seleccionarEstadoComoExtremoRef.current(estadoId);
+            return;
+          }
+          seleccionarEntidadRef.current(meta.entidadId);
           return;
         }
         seleccionarEntidadRef.current(meta.entidadId);
@@ -204,6 +217,11 @@ function parteEntidadDesdeSelector(meta: OpmJointMetadata, selector: string | nu
   return meta.partesPlegadas?.find((parte) => parte.selector === selector)?.entidadId ?? null;
 }
 
+function estadoDesdeSelector(meta: OpmJointMetadata, selector: string | null): string | null {
+  if (meta.kind !== "entidad" || !selector) return null;
+  return meta.estadosInteractivos?.find((estado) => estado.selector === selector)?.estadoId ?? null;
+}
+
 function instalarHerramientasEnlaceSeleccionado(adapter: JointAdapter, enlaceSeleccionId: string | null): void {
   if (!enlaceSeleccionId) return;
   const link = adapter.graph.getLinks().find((cell) => {
@@ -245,7 +263,8 @@ function graphEvents(graph: dia.Graph): { on(eventName: string, callback: (cell:
 }
 
 function jointSelector(target: EventTarget | null): string | null {
-  return target instanceof Element ? target.getAttribute("joint-selector") : null;
+  if (!(target instanceof Element)) return null;
+  return target.closest("[joint-selector]")?.getAttribute("joint-selector") ?? null;
 }
 
 function paperView(paper: dia.Paper): { remove(): void } {

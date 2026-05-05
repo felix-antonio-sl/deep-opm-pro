@@ -435,6 +435,18 @@ describe("proyeccion JointJS", () => {
     expect((attrs?.stateCapsule0 as Attrs | undefined)?.y).toBe(64);
     expect((attrs?.stateLabel0 as Attrs | undefined)?.text).toBe("pendiente");
     expect((attrs?.stateLabel1 as Attrs | undefined)?.text).toBe("cerrado");
+    expect((attrs?.stateCapsule0 as Attrs | undefined)?.pointerEvents).toBe("auto");
+    expect((attrs?.stateLabel0 as Attrs | undefined)?.pointerEvents).toBe("auto");
+    expect((attrs?.stateCapsule0 as Attrs | undefined)?.cursor).toBe("crosshair");
+    expect(cell?.opm).toMatchObject({
+      kind: "entidad",
+      estadosInteractivos: [
+        { selector: "stateCapsule0", estadoId: primero.id },
+        { selector: "stateLabel0", estadoId: primero.id },
+        { selector: "stateCapsule1", estadoId: segundo.id },
+        { selector: "stateLabel1", estadoId: segundo.id },
+      ],
+    });
   });
 
   test("proyecta extremo Estado al centro de la capsula interna", () => {

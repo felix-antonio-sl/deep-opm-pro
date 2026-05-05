@@ -6,6 +6,7 @@ import { filasPlegadoParcial, modoPlegadoApariencia, partesDePlegado, type FilaP
 import type { Apariencia, Enlace, Entidad, Estado, ExtremoEnlace, Id, Modelo, Posicion, TipoEnlace } from "../../modelo/tipos";
 import { proyectarOverlayAbanicoCanonico } from "./abanicoOverlay";
 import { proyectarAutoInvocacion } from "./autoinvocacionLoop";
+import { targetsEstado, type EstadoTarget } from "./estadoTargets";
 import { LINK_ASSETS } from "./linkAssets";
 
 export type RolApariencia = "contorno" | "interno" | "externo";
@@ -17,6 +18,7 @@ export type OpmJointMetadata =
       entidadId: Id;
       aparienciaId: Id;
       rol: RolApariencia;
+      estadosInteractivos?: EstadoTarget[];
       partesPlegadas?: Array<{ selector: string; entidadId: Id }>;
     }
   | {
@@ -174,6 +176,7 @@ function proyectarEntidad(modelo: Modelo, opdId: Id, apariencia: Apariencia, ent
       entidadId: entidad.id,
       aparienciaId: apariencia.id,
       rol: rolApariencia(modelo, opdId, entidad, contornoRefinamiento),
+      ...(estadosVisibles.length > 0 ? { estadosInteractivos: targetsEstado(estadosVisibles) } : {}),
       ...(modoParcial ? { partesPlegadas: selectoresPartesPlegadas(filasParciales) } : {}),
     },
     z: contornoRefinamiento ? 0 : 10,
@@ -316,7 +319,8 @@ function attrsConEstados(
       fill: estado.esFinal ? "#eef8ff" : CANON.colores.relleno,
       stroke: CANON.colores.enlace,
       strokeWidth: estado.esInicial ? 3 : 1,
-      pointerEvents: "none",
+      pointerEvents: "auto",
+      cursor: "crosshair",
     };
     attrs[`stateLabel${index}`] = {
       text: estado.nombre,
@@ -329,7 +333,8 @@ function attrsConEstados(
       textAnchor: "middle",
       textVerticalAnchor: "middle",
       textWrap: { width: width - ESTADOS.paddingHorizontal * 2, height: ESTADOS.capsuleHeight - 4 },
-      pointerEvents: "none",
+      pointerEvents: "auto",
+      cursor: "crosshair",
     };
     x += width + ESTADOS.gap;
   }

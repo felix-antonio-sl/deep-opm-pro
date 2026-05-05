@@ -290,6 +290,33 @@ describe("store undo/redo y dirty state", () => {
     expect(store.getState().modelo.enlaces[enlaceId]?.origenId).toEqual(extremoEstado(pendiente.id));
   });
 
+  test("seleccionar Estado como extremo crea enlace hacia capsula desde modo enlace", () => {
+    let modelo = crearModelo("Store gesto Estado");
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 40, y: 90 }, "Aprobar"));
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 260, y: 90 }, "Pedido"));
+    const aprobarId = entidadPorNombre(modelo, "Aprobar");
+    const pedidoId = entidadPorNombre(modelo, "Pedido");
+    modelo = must(crearEstadosIniciales(modelo, pedidoId)).modelo;
+    const [, aprobado] = estadosDeEntidad(modelo, pedidoId);
+    if (!aprobado) throw new Error("La prueba esperaba estado destino");
+    store.getState().importarJson(exportarModelo(modelo));
+
+    store.getState().seleccionarEntidad(aprobarId);
+    store.getState().elegirTipoEnlace("resultado");
+    store.getState().seleccionarEstadoComoExtremo(aprobado.id);
+
+    const enlace = Object.values(store.getState().modelo.enlaces)[0];
+    expect(enlace).toMatchObject({
+      tipo: "resultado",
+      origenId: extremoEntidad(aprobarId),
+      destinoId: extremoEstado(aprobado.id),
+    });
+    expect(store.getState().seleccionId).toBe(pedidoId);
+    expect(store.getState().modoEnlace).toBeNull();
+    expect(store.getState().dirty).toBe(true);
+    expect(store.getState().puedeDeshacer).toBe(true);
+  });
+
   test("gestiona estados de objeto con historial y designaciones coexistentes", () => {
     store.getState().crearObjetoDemo();
     const objetoId = primeraEntidadId();

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "preact/hooks";
 import { createStore } from "zustand/vanilla";
+import { extremoEstado } from "./modelo/extremos";
 import {
   contenedorRefinamiento,
   dentroDeApariencia,
@@ -93,6 +94,7 @@ interface OpmStore {
   quitarDespliegueSeleccionado: () => void;
   cambiarOpdActivo: (id: Id) => void;
   seleccionarEntidad: (id: Id) => void;
+  seleccionarEstadoComoExtremo: (estadoId: Id) => void;
   seleccionarEnlace: (id: Id) => void;
   navegarAviso: (aviso: Aviso) => void;
   deshacer: () => void;
@@ -325,6 +327,37 @@ export const store = createStore<OpmStore>((set, get) => ({
     }
     commitModelo(set, modelo, modeloFinal, {
       seleccionId: id,
+      enlaceSeleccionId: null,
+      modoEnlace: null,
+      mensaje: null,
+    });
+  },
+
+  seleccionarEstadoComoExtremo(estadoId) {
+    const { modelo, modoEnlace, opdActivoId } = get();
+    const estado = modelo.estados[estadoId];
+    if (!estado) {
+      set({ mensaje: `Estado no existe: ${estadoId}` });
+      return;
+    }
+    if (!modoEnlace) {
+      set({ seleccionId: estado.entidadId, enlaceSeleccionId: null, mensaje: null });
+      return;
+    }
+
+    const resultado = crearEnlace(modelo, opdActivoId, modoEnlace.origenId, extremoEstado(estadoId), modoEnlace.tipo);
+    if (!resultado.ok) {
+      set({ seleccionId: estado.entidadId, enlaceSeleccionId: null, mensaje: resultado.error });
+      return;
+    }
+    let modeloFinal = resultado.value;
+    const enlaceCreadoId = enlaceNuevo(modelo, modeloFinal);
+    if (enlaceCreadoId) {
+      const auto = formarAbanicoAutomatico(modeloFinal, opdActivoId, enlaceCreadoId);
+      if (auto.ok) modeloFinal = auto.value;
+    }
+    commitModelo(set, modelo, modeloFinal, {
+      seleccionId: estado.entidadId,
       enlaceSeleccionId: null,
       modoEnlace: null,
       mensaje: null,
