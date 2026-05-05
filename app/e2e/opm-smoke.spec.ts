@@ -283,6 +283,58 @@ test("redistribuye consumo al primer subproceso y resultado al ultimo", async ({
   expect(pageErrors).toEqual([]);
 });
 
+test("reancla consumo derivado y conserva el ancla manual al reordenar", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await page.getByRole("button", { name: "Objeto" }).click();
+  await page.getByLabel("Nombre").fill("Entrada");
+  await page.getByRole("button", { name: "Proceso" }).click();
+  await page.getByLabel("Nombre").fill("Procesar");
+  await elementoPorTexto(page, "Entrada").click();
+  await page.getByLabel("Tipo de enlace").selectOption("consumo");
+  await elementoPorTexto(page, "Procesar").click();
+  await elementoPorTexto(page, "Procesar").click();
+  await page.getByRole("button", { name: "Descomponer" }).click();
+  await expect(page.locator('[role="treeitem"]').filter({ hasText: "SD1: Procesar descompuesto" })).toHaveAttribute("aria-current", "page");
+
+  await clickLinkPorTipo(page, "Consumo");
+  await expect(page.getByText("Reanclar a subproceso")).toBeVisible();
+  await page.getByTestId("reanclar-subproceso-select").selectOption({ label: "Procesar 2 (2)" });
+  await page.getByRole("button", { name: "Aplicar" }).click();
+  await expect(page.getByText("Derivado (manual)")).toBeVisible();
+
+  const proceso2 = await elementoPorTexto(page, "Procesar 2").boundingBox();
+  if (!proceso2) throw new Error("No se pudo ubicar Procesar 2");
+  await page.mouse.move(proceso2.x + proceso2.width / 2, proceso2.y + proceso2.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(proceso2.x + proceso2.width / 2, proceso2.y + proceso2.height / 2 + 170, { steps: 10 });
+  await page.mouse.up();
+
+  await expect(page.getByText(/Procesar 2\s+consume\s+Entrada/)).toBeVisible();
+  await page.getByRole("button", { name: "Exportar" }).click();
+  const json = await page.locator("textarea").inputValue();
+  const exportado = JSON.parse(json) as ExportadoModelo;
+  const procesar = Object.values(exportado.modelo.entidades).find((entidad) => entidad.nombre === "Procesar");
+  const entrada = Object.values(exportado.modelo.entidades).find((entidad) => entidad.nombre === "Entrada");
+  const segundo = Object.values(exportado.modelo.entidades).find((entidad) => entidad.nombre === "Procesar 2");
+  const opdHijoId = procesar?.refinamiento?.opdId;
+  if (!opdHijoId || !entrada || !segundo) throw new Error("No se exporto el reanclaje esperado");
+  const consumos = Object.values(exportado.modelo.opds[opdHijoId]?.enlaces ?? {})
+    .map((apariencia) => exportado.modelo.enlaces[apariencia.enlaceId])
+    .filter((enlace) => enlace?.tipo === "consumo");
+  expect(consumos).toHaveLength(1);
+  expect(consumos[0]).toEqual(expect.objectContaining({
+    origenId: entrada.id,
+    destinoId: segundo.id,
+    derivado: expect.objectContaining({ origen: "manual" }),
+  }));
+
+  await page.screenshot({ path: "test-results/opm-reanclaje-manual.png", fullPage: true });
+  expect(pageErrors).toEqual([]);
+});
+
 test("arrastra una cosa JointJS y persiste su apariencia", async ({ page }) => {
   const pageErrors: string[] = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));
@@ -655,6 +707,17 @@ async function clickCentroLink(page: import("@playwright/test").Page): Promise<v
   await page.mouse.click(punto.x, punto.y);
 }
 
+async function clickLinkPorTipo(page: import("@playwright/test").Page, tipo: string): Promise<void> {
+  const links = page.locator(".joint-link [joint-selector=wrapper]");
+  const total = await links.count();
+  for (let index = 0; index < total; index += 1) {
+    const punto = await puntoMedioPath(links.nth(index));
+    await page.mouse.click(punto.x, punto.y);
+    if (await page.getByText(`Enlace ${tipo}`).count() > 0) return;
+  }
+  throw new Error(`No se pudo seleccionar enlace ${tipo}`);
+}
+
 async function desplegarComoAgregacion(page: import("@playwright/test").Page): Promise<void> {
   await page.getByText("Desplegar como...").click();
   await page.getByRole("button", { name: "Como partes (agregación)" }).click();
@@ -873,7 +936,15 @@ interface ExportadoModelo {
     opdRaizId: string;
     entidades: Record<string, { id: string; nombre: string; refinamiento?: { tipo: string; opdId: string } }>;
     estados: Record<string, { id: string; entidadId: string; nombre: string; esInicial?: boolean; esFinal?: boolean }>;
-    enlaces: Record<string, { id: string; tipo: string; origenId: string; destinoId: string; multiplicidadOrigen?: string; multiplicidadDestino?: string }>;
+    enlaces: Record<string, {
+      id: string;
+      tipo: string;
+      origenId: string;
+      destinoId: string;
+      multiplicidadOrigen?: string;
+      multiplicidadDestino?: string;
+      derivado?: { tipo: string; refinamientoId: string; enlacePadreId: string; origen?: string };
+    }>;
     opds: Record<
       string,
       {
