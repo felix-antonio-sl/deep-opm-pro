@@ -537,6 +537,38 @@ test("crea enlace, edita vertices y elimina desde celdas JointJS", async ({ page
   expect(pageErrors).toEqual([]);
 });
 
+test("asigna multiplicidad de enlace y sincroniza canvas, OPL y JSON", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await page.getByRole("button", { name: "Objeto" }).click();
+  await page.getByLabel("Nombre").fill("Recurso");
+  await page.getByRole("button", { name: "Proceso" }).click();
+  await page.getByLabel("Nombre").fill("Procesar");
+
+  await elementoPorTexto(page, "Recurso").click();
+  await page.getByLabel("Tipo de enlace").selectOption("consumo");
+  await elementoPorTexto(page, "Procesar").click();
+  await expect(page.locator(".joint-link")).toHaveCount(1);
+
+  await clickCentroLink(page);
+  await expect(page.getByText("Multiplicidad")).toBeVisible();
+  await page.getByLabel("Origen").fill("2");
+
+  await expect(page.locator(".joint-link text").filter({ hasText: /^2$/ })).toHaveCount(1);
+  await expect(page.getByText("Procesar consume 2 Recursos.")).toBeVisible();
+
+  await page.getByRole("button", { name: "Exportar" }).click();
+  const json = await page.locator("textarea").inputValue();
+  const exportado = JSON.parse(json) as ExportadoModelo;
+  const enlace = Object.values(exportado.modelo.enlaces)[0];
+  expect(enlace?.multiplicidadOrigen).toBe("2");
+
+  await page.screenshot({ path: "test-results/opm-multiplicidad-enlace.png", fullPage: true });
+  expect(pageErrors).toEqual([]);
+});
+
 test("renderiza agregacion como triangulo estructural", async ({ page }) => {
   const pageErrors: string[] = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));
@@ -800,7 +832,7 @@ interface ExportadoModelo {
   modelo: {
     opdRaizId: string;
     entidades: Record<string, { id: string; nombre: string; refinamiento?: { tipo: string; opdId: string } }>;
-    enlaces: Record<string, { id: string; tipo: string; origenId: string; destinoId: string }>;
+    enlaces: Record<string, { id: string; tipo: string; origenId: string; destinoId: string; multiplicidadOrigen?: string; multiplicidadDestino?: string }>;
     opds: Record<
       string,
       {
