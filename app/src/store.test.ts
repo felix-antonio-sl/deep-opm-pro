@@ -954,11 +954,16 @@ describe("store undo/redo y dirty state", () => {
     const enlaceId = Object.values(modelo.enlaces).find((e) => e.tipo === "consumo")!.id;
 
     // Cargar via el store
+    const cargarDemoOriginal = store.getState().cargarDemo;
     store.getState().cargarDemo = () => {}; // evitar conflicto
-    store.getState().abrirInspectorEnlaceDesdeOpl(enlaceId);
-    // El enlace no existe en el store actual (que se reseteó en beforeEach)
-    // Así que esperamos un mensaje de error, no selección
-    expect(store.getState().mensaje).toBeTruthy();
+    try {
+      store.getState().abrirInspectorEnlaceDesdeOpl(enlaceId);
+      // El enlace no existe en el store actual (que se reseteó en beforeEach)
+      // Así que esperamos un mensaje de error, no selección
+      expect(store.getState().mensaje).toBeTruthy();
+    } finally {
+      store.getState().cargarDemo = cargarDemoOriginal;
+    }
   });
 
   test("fijarBusquedaOpl actualiza estado UI", () => {
