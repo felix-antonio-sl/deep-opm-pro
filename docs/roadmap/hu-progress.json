@@ -1,17 +1,17 @@
 {
   "schema": "deep-opm-pro.hu-progress-report.v1",
-  "generatedAt": "2026-05-05T03:59:37.927Z",
+  "generatedAt": "2026-05-05T05:27:21.151Z",
   "repoRoot": "/home/felix/projects/deep-opm-pro",
   "backlogRoot": "docs/historias-usuario-v2",
   "evidenceLedger": "docs/roadmap/hu-progress-evidence.json",
   "autoAudit": {
-    "generatedAt": "2026-05-05T03:59:37.927Z",
+    "generatedAt": "2026-05-05T05:27:21.151Z",
     "mode": "sync-real",
-    "rulesEvaluated": 39,
-    "rulesMatched": 39,
+    "rulesEvaluated": 42,
+    "rulesMatched": 42,
     "rulesUnmatched": 0,
     "sourceFiles": {
-      "count": 80,
+      "count": 88,
       "roots": [
         "app/src",
         "app/e2e",
@@ -43,14 +43,14 @@
   "summaries": {
     "total": {
       "total": 1126,
-      "cubierto": 77,
-      "parcial": 55,
-      "pendiente": 616,
+      "cubierto": 87,
+      "parcial": 52,
+      "pendiente": 609,
       "diferido": 378,
       "bloqueado": 0,
       "pesoTotal": 3004,
-      "pesoCubierto": 294.5,
-      "avance": 0.09803595206391479
+      "pesoCubierto": 317.5,
+      "avance": 0.10569241011984021
     },
     "inventario": {
       "totalParseadas": 1173,
@@ -60,14 +60,14 @@
     },
     "m0": {
       "total": 130,
-      "cubierto": 49,
-      "parcial": 33,
-      "pendiente": 48,
+      "cubierto": 54,
+      "parcial": 30,
+      "pendiente": 46,
       "diferido": 0,
       "bloqueado": 0,
       "pesoTotal": 333,
-      "pesoCubierto": 172,
-      "avance": 0.5165165165165165
+      "pesoCubierto": 180,
+      "avance": 0.5405405405405406
     },
     "alpha": {
       "total": 121,
@@ -82,14 +82,14 @@
     },
     "beta": {
       "total": 193,
-      "cubierto": 38,
-      "parcial": 26,
-      "pendiente": 129,
+      "cubierto": 46,
+      "parcial": 23,
+      "pendiente": 124,
       "diferido": 0,
       "bloqueado": 0,
       "pesoTotal": 545,
-      "pesoCubierto": 159.5,
-      "avance": 0.2926605504587156
+      "pesoCubierto": 176.5,
+      "avance": 0.3238532110091743
     },
     "byCut": {
       "alpha": {
@@ -105,25 +105,25 @@
       },
       "beta": {
         "total": 193,
-        "cubierto": 38,
-        "parcial": 26,
-        "pendiente": 129,
+        "cubierto": 46,
+        "parcial": 23,
+        "pendiente": 124,
         "diferido": 0,
         "bloqueado": 0,
         "pesoTotal": 545,
-        "pesoCubierto": 159.5,
-        "avance": 0.2926605504587156
+        "pesoCubierto": 176.5,
+        "avance": 0.3238532110091743
       },
       "gamma": {
         "total": 434,
-        "cubierto": 11,
+        "cubierto": 13,
         "parcial": 5,
-        "pendiente": 418,
+        "pendiente": 416,
         "diferido": 0,
         "bloqueado": 0,
         "pesoTotal": 1126,
-        "pesoCubierto": 38,
-        "avance": 0.03374777975133215
+        "pesoCubierto": 44,
+        "avance": 0.03907637655417407
       },
       "delta": {
         "total": 378,
@@ -151,47 +151,47 @@
     "byPriority": {
       "M0": {
         "total": 130,
-        "cubierto": 49,
-        "parcial": 33,
-        "pendiente": 48,
+        "cubierto": 54,
+        "parcial": 30,
+        "pendiente": 46,
         "diferido": 0,
         "bloqueado": 0,
         "pesoTotal": 333,
-        "pesoCubierto": 172,
-        "avance": 0.5165165165165165
+        "pesoCubierto": 180,
+        "avance": 0.5405405405405406
       },
       "M1": {
         "total": 161,
-        "cubierto": 15,
+        "cubierto": 18,
         "parcial": 13,
-        "pendiente": 127,
+        "pendiente": 124,
         "diferido": 6,
         "bloqueado": 0,
         "pesoTotal": 388,
-        "pesoCubierto": 59.5,
-        "avance": 0.15335051546391754
+        "pesoCubierto": 68.5,
+        "avance": 0.17654639175257733
       },
       "S": {
         "total": 471,
-        "cubierto": 13,
+        "cubierto": 14,
         "parcial": 8,
-        "pendiente": 288,
+        "pendiente": 287,
         "diferido": 162,
         "bloqueado": 0,
         "pesoTotal": 1247,
-        "pesoCubierto": 61,
-        "avance": 0.04891740176423416
+        "pesoCubierto": 65,
+        "avance": 0.052125100240577385
       },
       "C": {
         "total": 247,
-        "cubierto": 0,
+        "cubierto": 1,
         "parcial": 1,
-        "pendiente": 145,
+        "pendiente": 144,
         "diferido": 101,
         "bloqueado": 0,
         "pesoTotal": 661,
-        "pesoCubierto": 2,
-        "avance": 0.0030257186081694403
+        "pesoCubierto": 4,
+        "avance": 0.006051437216338881
       },
       "W": {
         "total": 117,
@@ -256,14 +256,14 @@
       "13": {
         "titulo": "Canvas — estados (designaciones, par entrada-salida, supresión, layout interno)",
         "total": 18,
-        "cubierto": 6,
-        "parcial": 7,
+        "cubierto": 7,
+        "parcial": 6,
         "pendiente": 5,
         "diferido": 0,
         "bloqueado": 0,
         "pesoTotal": 48,
-        "pesoCubierto": 24,
-        "avance": 0.5
+        "pesoCubierto": 26,
+        "avance": 0.5416666666666666
       },
       "14": {
         "titulo": "Canvas — estilado visual de cosas, texto y enlaces",
@@ -280,14 +280,14 @@
       "15": {
         "titulo": "Canvas — enlaces avanzados (multiplicidad, rutas, XOR/O, condición/evento/NO, invocación)",
         "total": 23,
-        "cubierto": 11,
-        "parcial": 3,
-        "pendiente": 9,
+        "cubierto": 18,
+        "parcial": 1,
+        "pendiente": 4,
         "diferido": 0,
         "bloqueado": 0,
         "pesoTotal": 51,
-        "pesoCubierto": 28,
-        "avance": 0.5490196078431373
+        "pesoCubierto": 43,
+        "avance": 0.8431372549019608
       },
       "16": {
         "titulo": "Canvas — enlaces: propiedades, Tabla de Enlaces y estilo",
@@ -316,14 +316,14 @@
       "18": {
         "titulo": "Canvas — plegado parcial (vista compacta de refinadores intra-rectángulo)",
         "total": 15,
-        "cubierto": 10,
+        "cubierto": 12,
         "parcial": 2,
-        "pendiente": 3,
+        "pendiente": 1,
         "diferido": 0,
         "bloqueado": 0,
         "pesoTotal": 43,
-        "pesoCubierto": 32,
-        "avance": 0.7441860465116279
+        "pesoCubierto": 38,
+        "avance": 0.8837209302325582
       },
       "19": {
         "titulo": "Canvas — imágenes incrustadas en cosas (URL, pool, alternar imagen/texto, exportación)",
@@ -20490,13 +20490,11 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-13-canvas-estados.md",
       "lineaInicio": 276,
       "corte": "beta",
-      "estadoAvance": "parcial",
+      "estadoAvance": "cubierto",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto: extremos de enlace pueden apuntar a estados, se serializan y se proyectan a capsula; falta gesto e2e de crear enlace arrastrando directamente al estado.",
-      "brechas": [
-        "Extremos Estado estan modelados, serializados y renderizados; falta gesto directo de creacion arrastrando al estado para cerrar la HU como cubierta."
-      ],
+      "nota": "Auto: extremos de enlace pueden apuntar a estados, se serializan, se proyectan a capsula y se crean por gesto directo sobre la capsula.",
+      "brechas": [],
       "evidencia": [
         {
           "path": "app/src/modelo/extremos.ts",
@@ -20509,6 +20507,18 @@
         {
           "path": "app/src/render/jointjs/proyeccion.ts",
           "hrefDashboard": "../../app/src/render/jointjs/proyeccion.ts"
+        },
+        {
+          "path": "app/src/render/jointjs/estadoTargets.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/estadoTargets.ts"
+        },
+        {
+          "path": "app/src/render/jointjs/JointCanvas.tsx",
+          "hrefDashboard": "../../app/src/render/jointjs/JointCanvas.tsx"
+        },
+        {
+          "path": "app/src/store.ts",
+          "hrefDashboard": "../../app/src/store.ts"
         },
         {
           "path": "app/src/serializacion/json.ts",
@@ -20525,11 +20535,19 @@
         {
           "path": "app/src/serializacion/json.test.ts",
           "hrefDashboard": "../../app/src/serializacion/json.test.ts"
+        },
+        {
+          "path": "app/src/store.test.ts",
+          "hrefDashboard": "../../app/src/store.test.ts"
+        },
+        {
+          "path": "app/e2e/opm-smoke.spec.ts",
+          "hrefDashboard": "../../app/e2e/opm-smoke.spec.ts"
         }
       ],
       "peso": 4,
-      "score": 0.5,
-      "avancePonderado": 2,
+      "score": 1,
+      "avancePonderado": 4,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-13-canvas-estados.md"
     },
     {
@@ -21689,15 +21707,60 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-15-canvas-enlaces-avanzados.md",
       "lineaInicio": 98,
       "corte": "beta",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto: las ramas procedurales con extremo Estado admiten etiqueta de ruta, la renderizan, la serializan y la verbalizan como Por ruta en OPL.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/modelo/rutas.ts",
+          "hrefDashboard": "../../app/src/modelo/rutas.ts"
+        },
+        {
+          "path": "app/src/modelo/abanicos.ts",
+          "hrefDashboard": "../../app/src/modelo/abanicos.ts"
+        },
+        {
+          "path": "app/src/ui/InspectorEnlace.tsx",
+          "hrefDashboard": "../../app/src/ui/InspectorEnlace.tsx"
+        },
+        {
+          "path": "app/src/render/jointjs/rutaLabels.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/rutaLabels.ts"
+        },
+        {
+          "path": "app/src/opl/generar.ts",
+          "hrefDashboard": "../../app/src/opl/generar.ts"
+        },
+        {
+          "path": "app/src/serializacion/json.ts",
+          "hrefDashboard": "../../app/src/serializacion/json.ts"
+        },
+        {
+          "path": "app/src/modelo/rutas.test.ts",
+          "hrefDashboard": "../../app/src/modelo/rutas.test.ts"
+        },
+        {
+          "path": "app/src/opl/generar.test.ts",
+          "hrefDashboard": "../../app/src/opl/generar.test.ts"
+        },
+        {
+          "path": "app/src/render/jointjs/proyeccion.test.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/proyeccion.test.ts"
+        },
+        {
+          "path": "app/src/serializacion/json.test.ts",
+          "hrefDashboard": "../../app/src/serializacion/json.test.ts"
+        },
+        {
+          "path": "app/e2e/opm-smoke.spec.ts",
+          "hrefDashboard": "../../app/e2e/opm-smoke.spec.ts"
+        }
+      ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-15-canvas-enlaces-avanzados.md"
     },
     {
@@ -21723,15 +21786,60 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-15-canvas-enlaces-avanzados.md",
       "lineaInicio": 112,
       "corte": "beta",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto: las ramas procedurales con extremo Estado admiten etiqueta de ruta, la renderizan, la serializan y la verbalizan como Por ruta en OPL.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/modelo/rutas.ts",
+          "hrefDashboard": "../../app/src/modelo/rutas.ts"
+        },
+        {
+          "path": "app/src/modelo/abanicos.ts",
+          "hrefDashboard": "../../app/src/modelo/abanicos.ts"
+        },
+        {
+          "path": "app/src/ui/InspectorEnlace.tsx",
+          "hrefDashboard": "../../app/src/ui/InspectorEnlace.tsx"
+        },
+        {
+          "path": "app/src/render/jointjs/rutaLabels.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/rutaLabels.ts"
+        },
+        {
+          "path": "app/src/opl/generar.ts",
+          "hrefDashboard": "../../app/src/opl/generar.ts"
+        },
+        {
+          "path": "app/src/serializacion/json.ts",
+          "hrefDashboard": "../../app/src/serializacion/json.ts"
+        },
+        {
+          "path": "app/src/modelo/rutas.test.ts",
+          "hrefDashboard": "../../app/src/modelo/rutas.test.ts"
+        },
+        {
+          "path": "app/src/opl/generar.test.ts",
+          "hrefDashboard": "../../app/src/opl/generar.test.ts"
+        },
+        {
+          "path": "app/src/render/jointjs/proyeccion.test.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/proyeccion.test.ts"
+        },
+        {
+          "path": "app/src/serializacion/json.test.ts",
+          "hrefDashboard": "../../app/src/serializacion/json.test.ts"
+        },
+        {
+          "path": "app/e2e/opm-smoke.spec.ts",
+          "hrefDashboard": "../../app/e2e/opm-smoke.spec.ts"
+        }
+      ],
       "peso": 1,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 1,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-15-canvas-enlaces-avanzados.md"
     },
     {
@@ -21760,15 +21868,60 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-15-canvas-enlaces-avanzados.md",
       "lineaInicio": 122,
       "corte": "beta",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto: las ramas procedurales con extremo Estado admiten etiqueta de ruta, la renderizan, la serializan y la verbalizan como Por ruta en OPL.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/modelo/rutas.ts",
+          "hrefDashboard": "../../app/src/modelo/rutas.ts"
+        },
+        {
+          "path": "app/src/modelo/abanicos.ts",
+          "hrefDashboard": "../../app/src/modelo/abanicos.ts"
+        },
+        {
+          "path": "app/src/ui/InspectorEnlace.tsx",
+          "hrefDashboard": "../../app/src/ui/InspectorEnlace.tsx"
+        },
+        {
+          "path": "app/src/render/jointjs/rutaLabels.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/rutaLabels.ts"
+        },
+        {
+          "path": "app/src/opl/generar.ts",
+          "hrefDashboard": "../../app/src/opl/generar.ts"
+        },
+        {
+          "path": "app/src/serializacion/json.ts",
+          "hrefDashboard": "../../app/src/serializacion/json.ts"
+        },
+        {
+          "path": "app/src/modelo/rutas.test.ts",
+          "hrefDashboard": "../../app/src/modelo/rutas.test.ts"
+        },
+        {
+          "path": "app/src/opl/generar.test.ts",
+          "hrefDashboard": "../../app/src/opl/generar.test.ts"
+        },
+        {
+          "path": "app/src/render/jointjs/proyeccion.test.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/proyeccion.test.ts"
+        },
+        {
+          "path": "app/src/serializacion/json.test.ts",
+          "hrefDashboard": "../../app/src/serializacion/json.test.ts"
+        },
+        {
+          "path": "app/e2e/opm-smoke.spec.ts",
+          "hrefDashboard": "../../app/e2e/opm-smoke.spec.ts"
+        }
+      ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-15-canvas-enlaces-avanzados.md"
     },
     {
@@ -21908,16 +22061,20 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-15-canvas-enlaces-avanzados.md",
       "lineaInicio": 158,
       "corte": "beta",
-      "estadoAvance": "parcial",
+      "estadoAvance": "cubierto",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto: existe overlay visual de operador junto al puerto, pero falta render canonico especifico: triangulo XOR y abrazadera curva O con assets/logica visual dedicada.",
-      "brechas": [
-        "Render usa overlay textual eliptico; falta triangulo XOR canonico.",
-        "Render usa overlay textual eliptico; falta abrazadera curva O canonica.",
-        "Abanicos O/XOR tienen kernel, store, inspector y OPL; falta reemplazar el overlay textual por triangulo XOR y abrazadera O canonicos."
-      ],
+      "nota": "Auto: los abanicos O/XOR proyectan conectores canonicos desde assets logicos sin overlay textual.",
+      "brechas": [],
       "evidencia": [
+        {
+          "path": "app/src/render/jointjs/abanicoOverlay.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/abanicoOverlay.ts"
+        },
+        {
+          "path": "app/src/render/jointjs/linkAssets.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/linkAssets.ts"
+        },
         {
           "path": "app/src/render/jointjs/proyeccion.ts",
           "hrefDashboard": "../../app/src/render/jointjs/proyeccion.ts"
@@ -21937,11 +22094,19 @@
         {
           "path": "app/src/ui/InspectorEnlace.tsx",
           "hrefDashboard": "../../app/src/ui/InspectorEnlace.tsx"
+        },
+        {
+          "path": "app/src/render/jointjs/proyeccion.test.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/proyeccion.test.ts"
+        },
+        {
+          "path": "app/e2e/opm-smoke.spec.ts",
+          "hrefDashboard": "../../app/e2e/opm-smoke.spec.ts"
         }
       ],
       "peso": 2,
-      "score": 0.5,
-      "avancePonderado": 1,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-15-canvas-enlaces-avanzados.md"
     },
     {
@@ -21970,16 +22135,20 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-15-canvas-enlaces-avanzados.md",
       "lineaInicio": 169,
       "corte": "beta",
-      "estadoAvance": "parcial",
+      "estadoAvance": "cubierto",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto: existe overlay visual de operador junto al puerto, pero falta render canonico especifico: triangulo XOR y abrazadera curva O con assets/logica visual dedicada.",
-      "brechas": [
-        "Render usa overlay textual eliptico; falta triangulo XOR canonico.",
-        "Render usa overlay textual eliptico; falta abrazadera curva O canonica.",
-        "Abanicos O/XOR tienen kernel, store, inspector y OPL; falta reemplazar el overlay textual por triangulo XOR y abrazadera O canonicos."
-      ],
+      "nota": "Auto: los abanicos O/XOR proyectan conectores canonicos desde assets logicos sin overlay textual.",
+      "brechas": [],
       "evidencia": [
+        {
+          "path": "app/src/render/jointjs/abanicoOverlay.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/abanicoOverlay.ts"
+        },
+        {
+          "path": "app/src/render/jointjs/linkAssets.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/linkAssets.ts"
+        },
         {
           "path": "app/src/render/jointjs/proyeccion.ts",
           "hrefDashboard": "../../app/src/render/jointjs/proyeccion.ts"
@@ -21999,11 +22168,19 @@
         {
           "path": "app/src/ui/InspectorEnlace.tsx",
           "hrefDashboard": "../../app/src/ui/InspectorEnlace.tsx"
+        },
+        {
+          "path": "app/src/render/jointjs/proyeccion.test.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/proyeccion.test.ts"
+        },
+        {
+          "path": "app/e2e/opm-smoke.spec.ts",
+          "hrefDashboard": "../../app/e2e/opm-smoke.spec.ts"
         }
       ],
       "peso": 2,
-      "score": 0.5,
-      "avancePonderado": 1,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-15-canvas-enlaces-avanzados.md"
     },
     {
@@ -22082,15 +22259,60 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-15-canvas-enlaces-avanzados.md",
       "lineaInicio": 190,
       "corte": "beta",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto: las ramas procedurales con extremo Estado admiten etiqueta de ruta, la renderizan, la serializan y la verbalizan como Por ruta en OPL.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/modelo/rutas.ts",
+          "hrefDashboard": "../../app/src/modelo/rutas.ts"
+        },
+        {
+          "path": "app/src/modelo/abanicos.ts",
+          "hrefDashboard": "../../app/src/modelo/abanicos.ts"
+        },
+        {
+          "path": "app/src/ui/InspectorEnlace.tsx",
+          "hrefDashboard": "../../app/src/ui/InspectorEnlace.tsx"
+        },
+        {
+          "path": "app/src/render/jointjs/rutaLabels.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/rutaLabels.ts"
+        },
+        {
+          "path": "app/src/opl/generar.ts",
+          "hrefDashboard": "../../app/src/opl/generar.ts"
+        },
+        {
+          "path": "app/src/serializacion/json.ts",
+          "hrefDashboard": "../../app/src/serializacion/json.ts"
+        },
+        {
+          "path": "app/src/modelo/rutas.test.ts",
+          "hrefDashboard": "../../app/src/modelo/rutas.test.ts"
+        },
+        {
+          "path": "app/src/opl/generar.test.ts",
+          "hrefDashboard": "../../app/src/opl/generar.test.ts"
+        },
+        {
+          "path": "app/src/render/jointjs/proyeccion.test.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/proyeccion.test.ts"
+        },
+        {
+          "path": "app/src/serializacion/json.test.ts",
+          "hrefDashboard": "../../app/src/serializacion/json.test.ts"
+        },
+        {
+          "path": "app/e2e/opm-smoke.spec.ts",
+          "hrefDashboard": "../../app/e2e/opm-smoke.spec.ts"
+        }
+      ],
       "peso": 4,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 4,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-15-canvas-enlaces-avanzados.md"
     },
     {
@@ -22452,17 +22674,56 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-15-canvas-enlaces-avanzados.md",
       "lineaInicio": 264,
       "corte": "beta",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
-      "brechas": [
-        "Auto-invocacion con demora por defecto sigue pendiente; la ronda 3 cubre invocacion normal con demora opcional."
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto: auto-invocacion crea una invocacion proceso->mismo proceso con demora default 1s, render loop dedicado, OPL IV2 e inspector.",
+      "brechas": [],
+      "evidencia": [
+        {
+          "path": "app/src/modelo/autoinvocacion.ts",
+          "hrefDashboard": "../../app/src/modelo/autoinvocacion.ts"
+        },
+        {
+          "path": "app/src/render/jointjs/autoinvocacionLoop.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/autoinvocacionLoop.ts"
+        },
+        {
+          "path": "app/src/opl/generar.ts",
+          "hrefDashboard": "../../app/src/opl/generar.ts"
+        },
+        {
+          "path": "app/src/ui/InspectorEntidad.tsx",
+          "hrefDashboard": "../../app/src/ui/InspectorEntidad.tsx"
+        },
+        {
+          "path": "app/src/store.ts",
+          "hrefDashboard": "../../app/src/store.ts"
+        },
+        {
+          "path": "app/src/modelo/modificadores.test.ts",
+          "hrefDashboard": "../../app/src/modelo/modificadores.test.ts"
+        },
+        {
+          "path": "app/src/opl/generar.test.ts",
+          "hrefDashboard": "../../app/src/opl/generar.test.ts"
+        },
+        {
+          "path": "app/src/render/jointjs/proyeccion.test.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/proyeccion.test.ts"
+        },
+        {
+          "path": "app/src/store.test.ts",
+          "hrefDashboard": "../../app/src/store.test.ts"
+        },
+        {
+          "path": "app/e2e/opm-smoke.spec.ts",
+          "hrefDashboard": "../../app/e2e/opm-smoke.spec.ts"
+        }
       ],
-      "evidencia": [],
       "peso": 4,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 4,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-15-canvas-enlaces-avanzados.md"
     },
     {
@@ -25188,15 +25449,60 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-18-canvas-plegado-parcial.md",
       "lineaInicio": 124,
       "corte": "gamma",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto: filas plegadas son targets activos para enlaces sin extraccion, preservan orden compacto configurable y exponen nesting.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/modelo/plegado.ts",
+          "hrefDashboard": "../../app/src/modelo/plegado.ts"
+        },
+        {
+          "path": "app/src/render/jointjs/plegadoNesting.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/plegadoNesting.ts"
+        },
+        {
+          "path": "app/src/render/jointjs/JointCanvas.tsx",
+          "hrefDashboard": "../../app/src/render/jointjs/JointCanvas.tsx"
+        },
+        {
+          "path": "app/src/store.ts",
+          "hrefDashboard": "../../app/src/store.ts"
+        },
+        {
+          "path": "app/src/ui/InspectorEntidad.tsx",
+          "hrefDashboard": "../../app/src/ui/InspectorEntidad.tsx"
+        },
+        {
+          "path": "app/src/serializacion/json.ts",
+          "hrefDashboard": "../../app/src/serializacion/json.ts"
+        },
+        {
+          "path": "app/src/modelo/plegado.test.ts",
+          "hrefDashboard": "../../app/src/modelo/plegado.test.ts"
+        },
+        {
+          "path": "app/src/render/jointjs/proyeccion.test.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/proyeccion.test.ts"
+        },
+        {
+          "path": "app/src/store.test.ts",
+          "hrefDashboard": "../../app/src/store.test.ts"
+        },
+        {
+          "path": "app/src/serializacion/json.test.ts",
+          "hrefDashboard": "../../app/src/serializacion/json.test.ts"
+        },
+        {
+          "path": "app/e2e/opm-smoke.spec.ts",
+          "hrefDashboard": "../../app/e2e/opm-smoke.spec.ts"
+        }
+      ],
       "peso": 4,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 4,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-18-canvas-plegado-parcial.md"
     },
     {
@@ -25562,15 +25868,60 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-18-canvas-plegado-parcial.md",
       "lineaInicio": 203,
       "corte": "gamma",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto: filas plegadas son targets activos para enlaces sin extraccion, preservan orden compacto configurable y exponen nesting.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/modelo/plegado.ts",
+          "hrefDashboard": "../../app/src/modelo/plegado.ts"
+        },
+        {
+          "path": "app/src/render/jointjs/plegadoNesting.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/plegadoNesting.ts"
+        },
+        {
+          "path": "app/src/render/jointjs/JointCanvas.tsx",
+          "hrefDashboard": "../../app/src/render/jointjs/JointCanvas.tsx"
+        },
+        {
+          "path": "app/src/store.ts",
+          "hrefDashboard": "../../app/src/store.ts"
+        },
+        {
+          "path": "app/src/ui/InspectorEntidad.tsx",
+          "hrefDashboard": "../../app/src/ui/InspectorEntidad.tsx"
+        },
+        {
+          "path": "app/src/serializacion/json.ts",
+          "hrefDashboard": "../../app/src/serializacion/json.ts"
+        },
+        {
+          "path": "app/src/modelo/plegado.test.ts",
+          "hrefDashboard": "../../app/src/modelo/plegado.test.ts"
+        },
+        {
+          "path": "app/src/render/jointjs/proyeccion.test.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/proyeccion.test.ts"
+        },
+        {
+          "path": "app/src/store.test.ts",
+          "hrefDashboard": "../../app/src/store.test.ts"
+        },
+        {
+          "path": "app/src/serializacion/json.test.ts",
+          "hrefDashboard": "../../app/src/serializacion/json.test.ts"
+        },
+        {
+          "path": "app/e2e/opm-smoke.spec.ts",
+          "hrefDashboard": "../../app/e2e/opm-smoke.spec.ts"
+        }
+      ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-18-canvas-plegado-parcial.md"
     },
     {

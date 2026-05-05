@@ -726,35 +726,15 @@
       ]
     }
   ],
-  "knownGaps": [
-    {
-      "ids": [
-        "HU-13.014"
-      ],
-      "nota": "Extremos Estado estan modelados, serializados y renderizados; falta gesto directo de creacion arrastrando al estado para cerrar la HU como cubierta."
-    },
-    {
-      "ids": [
-        "HU-15.010",
-        "HU-15.011"
-      ],
-      "nota": "Abanicos O/XOR tienen kernel, store, inspector y OPL; falta reemplazar el overlay textual por triangulo XOR y abrazadera O canonicos."
-    },
-    {
-      "ids": [
-        "HU-15.020"
-      ],
-      "nota": "Auto-invocacion con demora por defecto sigue pendiente; la ronda 3 cubre invocacion normal con demora opcional."
-    }
-  ],
+  "knownGaps": [],
   "autoAudit": {
-    "generatedAt": "2026-05-05T03:59:37.927Z",
+    "generatedAt": "2026-05-05T05:27:21.151Z",
     "mode": "sync-real",
-    "rulesEvaluated": 39,
-    "rulesMatched": 39,
+    "rulesEvaluated": 42,
+    "rulesMatched": 42,
     "rulesUnmatched": 0,
     "sourceFiles": {
-      "count": 80,
+      "count": 88,
       "roots": [
         "app/src",
         "app/e2e",
@@ -1180,18 +1160,23 @@
       "ids": [
         "HU-13.014"
       ],
-      "estado": "parcial",
+      "estado": "cubierto",
       "confianza": "alta-auto",
       "fuente": "auto",
-      "nota": "Auto: extremos de enlace pueden apuntar a estados, se serializan y se proyectan a capsula; falta gesto e2e de crear enlace arrastrando directamente al estado.",
+      "nota": "Auto: extremos de enlace pueden apuntar a estados, se serializan, se proyectan a capsula y se crean por gesto directo sobre la capsula.",
       "evidencia": [
         "app/src/modelo/extremos.ts",
         "app/src/ui/InspectorEnlace.tsx",
         "app/src/render/jointjs/proyeccion.ts",
+        "app/src/render/jointjs/estadoTargets.ts",
+        "app/src/render/jointjs/JointCanvas.tsx",
+        "app/src/store.ts",
         "app/src/serializacion/json.ts",
         "app/src/modelo/operaciones.test.ts",
         "app/src/render/jointjs/proyeccion.test.ts",
-        "app/src/serializacion/json.test.ts"
+        "app/src/serializacion/json.test.ts",
+        "app/src/store.test.ts",
+        "app/e2e/opm-smoke.spec.ts"
       ]
     },
     {
@@ -1362,20 +1347,20 @@
         "HU-15.010",
         "HU-15.011"
       ],
-      "estado": "parcial",
+      "estado": "cubierto",
       "confianza": "alta-auto",
       "fuente": "auto",
-      "nota": "Auto: existe overlay visual de operador junto al puerto, pero falta render canonico especifico: triangulo XOR y abrazadera curva O con assets/logica visual dedicada.",
+      "nota": "Auto: los abanicos O/XOR proyectan conectores canonicos desde assets logicos sin overlay textual.",
       "evidencia": [
+        "app/src/render/jointjs/abanicoOverlay.ts",
+        "app/src/render/jointjs/linkAssets.ts",
         "app/src/render/jointjs/proyeccion.ts",
         "assets/svg/links/logical/xor.svg",
         "assets/svg/links/logical/or.svg",
         "app/src/modelo/abanicos.ts",
-        "app/src/ui/InspectorEnlace.tsx"
-      ],
-      "brechas": [
-        "Render usa overlay textual eliptico; falta triangulo XOR canonico.",
-        "Render usa overlay textual eliptico; falta abrazadera curva O canonica."
+        "app/src/ui/InspectorEnlace.tsx",
+        "app/src/render/jointjs/proyeccion.test.ts",
+        "app/e2e/opm-smoke.spec.ts"
       ]
     },
     {
@@ -1390,6 +1375,31 @@
         "app/src/opl/generar.ts",
         "app/src/opl/generar.test.ts",
         "app/src/modelo/abanicos.ts"
+      ]
+    },
+    {
+      "ids": [
+        "HU-15.005",
+        "HU-15.006",
+        "HU-15.007",
+        "HU-15.013"
+      ],
+      "estado": "cubierto",
+      "confianza": "alta-auto",
+      "fuente": "auto",
+      "nota": "Auto: las ramas procedurales con extremo Estado admiten etiqueta de ruta, la renderizan, la serializan y la verbalizan como Por ruta en OPL.",
+      "evidencia": [
+        "app/src/modelo/rutas.ts",
+        "app/src/modelo/abanicos.ts",
+        "app/src/ui/InspectorEnlace.tsx",
+        "app/src/render/jointjs/rutaLabels.ts",
+        "app/src/opl/generar.ts",
+        "app/src/serializacion/json.ts",
+        "app/src/modelo/rutas.test.ts",
+        "app/src/opl/generar.test.ts",
+        "app/src/render/jointjs/proyeccion.test.ts",
+        "app/src/serializacion/json.test.ts",
+        "app/e2e/opm-smoke.spec.ts"
       ]
     },
     {
@@ -1441,6 +1451,50 @@
       "evidencia": [
         "app/src/modelo/validaciones.ts",
         "app/src/modelo/validaciones.test.ts"
+      ]
+    },
+    {
+      "ids": [
+        "HU-15.020"
+      ],
+      "estado": "cubierto",
+      "confianza": "alta-auto",
+      "fuente": "auto",
+      "nota": "Auto: auto-invocacion crea una invocacion proceso->mismo proceso con demora default 1s, render loop dedicado, OPL IV2 e inspector.",
+      "evidencia": [
+        "app/src/modelo/autoinvocacion.ts",
+        "app/src/render/jointjs/autoinvocacionLoop.ts",
+        "app/src/opl/generar.ts",
+        "app/src/ui/InspectorEntidad.tsx",
+        "app/src/store.ts",
+        "app/src/modelo/modificadores.test.ts",
+        "app/src/opl/generar.test.ts",
+        "app/src/render/jointjs/proyeccion.test.ts",
+        "app/src/store.test.ts",
+        "app/e2e/opm-smoke.spec.ts"
+      ]
+    },
+    {
+      "ids": [
+        "HU-18.008",
+        "HU-18.015"
+      ],
+      "estado": "cubierto",
+      "confianza": "alta-auto",
+      "fuente": "auto",
+      "nota": "Auto: filas plegadas son targets activos para enlaces sin extraccion, preservan orden compacto configurable y exponen nesting.",
+      "evidencia": [
+        "app/src/modelo/plegado.ts",
+        "app/src/render/jointjs/plegadoNesting.ts",
+        "app/src/render/jointjs/JointCanvas.tsx",
+        "app/src/store.ts",
+        "app/src/ui/InspectorEntidad.tsx",
+        "app/src/serializacion/json.ts",
+        "app/src/modelo/plegado.test.ts",
+        "app/src/render/jointjs/proyeccion.test.ts",
+        "app/src/store.test.ts",
+        "app/src/serializacion/json.test.ts",
+        "app/e2e/opm-smoke.spec.ts"
       ]
     }
   ]
