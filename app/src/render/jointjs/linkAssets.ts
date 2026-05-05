@@ -59,4 +59,17 @@ export const LINK_ASSETS = {
       markerDot: { cx: 15, cy: 20, r: 4 },
     },
   },
+  logical: {
+    or: {
+      source: "assets/svg/links/logical/or.svg",
+      path: "M2 16C8 4 24 4 30 16",
+      size: { width: 32, height: 20 },
+      strokeDasharray: "3 2",
+    },
+    xor: {
+      source: "assets/svg/links/logical/xor.svg",
+      points: "6,5 18,12 6,19",
+      size: { width: 24, height: 24 },
+    },
+  },
 } as const;

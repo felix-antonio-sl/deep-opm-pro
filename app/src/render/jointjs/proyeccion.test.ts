@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+import { formarAbanico } from "../../modelo/abanicos";
 import { entidadIdDeExtremo, extremoEstado } from "../../modelo/extremos";
 import { aplicarModificador, definirDemora, definirProbabilidad } from "../../modelo/modificadores";
 import { ajustarMultiplicidad, cambiarEsencia, crearEnlace, crearEstadosIniciales, crearModelo, crearObjeto, crearProceso, designarEstadoFinal, designarEstadoInicial, descomponerProceso, desplegarObjeto, estadosDeEntidad, renombrarEstado } from "../../modelo/operaciones";
@@ -166,6 +167,60 @@ describe("proyeccion JointJS", () => {
     const line = ((cellEnlace?.attrs as Attrs | undefined)?.line as Attrs | undefined);
     expect((line?.sourceMarker as Attrs | undefined)?.points).toBe(LINK_ASSETS.procedural.invocacion.marker.points);
     expect(line?.targetMarker).toBeNull();
+  });
+
+  test("proyecta O como arco canonico sin overlay textual", () => {
+    const modelo = modeloConAbanico("O");
+    const abanico = Object.values(modelo.abanicos ?? {})[0];
+    expect(abanico).toBeDefined();
+    if (!abanico) return;
+
+    const overlay = proyectarModeloAJointCells(modelo, modelo.opdRaizId, null, null)
+      .find((cell) => cell.opm.kind === "overlay-abanico");
+    const attrs = overlay?.attrs as Attrs | undefined;
+    const body = attrs?.body as Attrs | undefined;
+    const label = attrs?.label as Attrs | undefined;
+
+    expect(overlay?.type).toBe("standard.Path");
+    expect(body?.refD).toBe(LINK_ASSETS.logical.or.path);
+    expect(body?.stroke).toBe("#586D8C");
+    expect(body?.strokeWidth).toBe(1.5);
+    expect(body?.strokeDasharray).toBe(LINK_ASSETS.logical.or.strokeDasharray);
+    expect(label?.text).toBe("");
+    expect(label?.display).toBe("none");
+    expect(overlay?.opm).toEqual({
+      kind: "overlay-abanico",
+      opdId: modelo.opdRaizId,
+      abanicoId: abanico.id,
+      operador: "O",
+    });
+  });
+
+  test("proyecta XOR como triangulo canonico y conserva metadata de abanico", () => {
+    const modelo = modeloConAbanico("XOR");
+    const abanico = Object.values(modelo.abanicos ?? {})[0];
+    expect(abanico).toBeDefined();
+    if (!abanico) return;
+
+    const overlay = proyectarModeloAJointCells(modelo, modelo.opdRaizId, null, null)
+      .find((cell) => cell.opm.kind === "overlay-abanico");
+    const attrs = overlay?.attrs as Attrs | undefined;
+    const body = attrs?.body as Attrs | undefined;
+    const label = attrs?.label as Attrs | undefined;
+
+    expect(overlay?.type).toBe("standard.Polygon");
+    expect(body?.refPoints).toBe(LINK_ASSETS.logical.xor.points);
+    expect(body?.fill).toBe("#586D8C");
+    expect(body?.stroke).toBe("#586D8C");
+    expect(label?.text).toBe("");
+    expect(label?.display).toBe("none");
+    expect(overlay?.opm).toEqual({
+      kind: "overlay-abanico",
+      opdId: modelo.opdRaizId,
+      abanicoId: abanico.id,
+      operador: "XOR",
+    });
+    expect(overlay?.type).not.toBe("standard.Ellipse");
   });
 
   test("proyecta exhibicion como triangulos canonicos verticales anidados", () => {
@@ -475,6 +530,17 @@ function modeloConEnlace(tipo: TipoEnlace): Modelo {
     return must(crearEnlace(modelo, modelo.opdRaizId, proceso, entidadPorNombre(modelo, "Proceso 2"), tipo));
   }
   return must(crearEnlace(modelo, modelo.opdRaizId, objeto, proceso, tipo));
+}
+
+function modeloConAbanico(operador: "O" | "XOR"): Modelo {
+  let modelo = crearModelo();
+  modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 220, y: 130 }, "Procesar"));
+  modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 50 }, "Entrada A"));
+  modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 220 }, "Entrada B"));
+  const procesar = entidadPorNombre(modelo, "Procesar");
+  modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidadPorNombre(modelo, "Entrada A"), procesar, "consumo"));
+  modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidadPorNombre(modelo, "Entrada B"), procesar, "consumo"));
+  return must(formarAbanico(modelo, modelo.opdRaizId, Object.keys(modelo.enlaces), operador));
 }
 
 function modeloConVehiculoDesplegado(): Modelo {

@@ -72,6 +72,31 @@ test("renderiza todos los markers canonicos de enlaces", async ({ page }) => {
   expect(pageErrors).toEqual([]);
 });
 
+test("renderiza abanicos O/XOR con conectores canonicos sin texto de marcador", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await page.locator("textarea").fill(JSON.stringify(modeloAbanicoLogico(), null, 2));
+  await page.getByRole("button", { name: "Importar" }).click();
+
+  await expect(page.locator(".joint-link")).toHaveCount(2);
+  await expect(page.locator(".joint-element path[joint-selector=body]")).toHaveCount(1);
+  await expect(svgText(page, "O")).toHaveCount(0);
+  await expect(svgText(page, "XOR")).toHaveCount(0);
+
+  await clickLinkPorTipo(page, "Consumo");
+  await expect(page.getByText("Abanico O")).toBeVisible();
+  await page.getByTestId("abanico-toggle-XOR").click();
+  await expect(page.getByText("Operador actualizado a XOR")).toBeVisible();
+  await expect(page.locator(".joint-element polygon[joint-selector=body]")).toHaveCount(1);
+  await expect(svgText(page, "O")).toHaveCount(0);
+  await expect(svgText(page, "XOR")).toHaveCount(0);
+
+  await page.screenshot({ path: "test-results/opm-abanico-logico-canonico.png", fullPage: true });
+  expect(pageErrors).toEqual([]);
+});
+
 test("renderiza modificadores evento/condicion y demora de invocacion", async ({ page }) => {
   const pageErrors: string[] = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));
@@ -1117,6 +1142,83 @@ function modeloModificadoresEnlace() {
             "a-p-validar": { id: "a-p-validar", entidadId: "p-validar", opdId: "opd-1", x: 650, y: 80, width: 135, height: 60 },
           },
           enlaces: Object.fromEntries(Object.keys(enlaces).map((id) => [`a-${id}`, { id: `a-${id}`, enlaceId: id, opdId: "opd-1", vertices: [] }])),
+        },
+      },
+    },
+  };
+}
+
+function modeloAbanicoLogico() {
+  return {
+    formato: "deep-opm-pro.modelo.v0",
+    modelo: {
+      id: "modelo-abanico-logico",
+      nombre: "Modelo abanico logico",
+      opdRaizId: "opd-1",
+      nextSeq: 1,
+      entidades: {
+        "o-entrada-a": {
+          id: "o-entrada-a",
+          tipo: "objeto",
+          nombre: "Entrada A",
+          esencia: "informacional",
+          afiliacion: "sistemica",
+        },
+        "o-entrada-b": {
+          id: "o-entrada-b",
+          tipo: "objeto",
+          nombre: "Entrada B",
+          esencia: "informacional",
+          afiliacion: "sistemica",
+        },
+        "p-procesar": {
+          id: "p-procesar",
+          tipo: "proceso",
+          nombre: "Procesar",
+          esencia: "informacional",
+          afiliacion: "sistemica",
+        },
+      },
+      estados: {},
+      enlaces: {
+        "e-consumo-a": {
+          id: "e-consumo-a",
+          tipo: "consumo",
+          origenId: extremoEntidad("o-entrada-a"),
+          destinoId: extremoEntidad("p-procesar"),
+          etiqueta: "",
+        },
+        "e-consumo-b": {
+          id: "e-consumo-b",
+          tipo: "consumo",
+          origenId: extremoEntidad("o-entrada-b"),
+          destinoId: extremoEntidad("p-procesar"),
+          etiqueta: "",
+        },
+      },
+      abanicos: {
+        "ab-1": {
+          id: "ab-1",
+          opdId: "opd-1",
+          puertoEntidadId: "p-procesar",
+          operador: "O",
+          enlaceIds: ["e-consumo-a", "e-consumo-b"],
+        },
+      },
+      opds: {
+        "opd-1": {
+          id: "opd-1",
+          nombre: "SD",
+          padreId: null,
+          apariencias: {
+            "ap-entrada-a": { id: "ap-entrada-a", entidadId: "o-entrada-a", opdId: "opd-1", x: 40, y: 60, width: 135, height: 60 },
+            "ap-entrada-b": { id: "ap-entrada-b", entidadId: "o-entrada-b", opdId: "opd-1", x: 40, y: 230, width: 135, height: 60 },
+            "ap-procesar": { id: "ap-procesar", entidadId: "p-procesar", opdId: "opd-1", x: 310, y: 145, width: 135, height: 60 },
+          },
+          enlaces: {
+            "ae-consumo-a": { id: "ae-consumo-a", enlaceId: "e-consumo-a", opdId: "opd-1", vertices: [] },
+            "ae-consumo-b": { id: "ae-consumo-b", enlaceId: "e-consumo-b", opdId: "opd-1", vertices: [] },
+          },
         },
       },
     },
