@@ -78,7 +78,7 @@ Vista única de navegación del inventario v2. Combina:
 
 | Épica | Título | Prioridad | HU canónicas | Stubs |
 |---|---|---|---:|---:|
-| 70 | [Importar OPCAT](epicas/epica-70-interop-opcat.md) | S | 25 | 0 |
+| 70 | ~~[Importar OPCAT](epicas/epica-70-interop-opcat.md)~~ — **descartada del proyecto (2026-05-05)** | S | 25 | 0 |
 | 71 | [Importar CSV](epicas/epica-71-interop-csv.md) | S | 26 | 0 |
 
 ### 2.8 Configuración (3 épicas)
@@ -94,7 +94,7 @@ Vista única de navegación del inventario v2. Combina:
 | Épica | Título | Prioridad | HU canónicas | Stubs |
 |---|---|---|---:|---:|
 | 90 | [Atajos](epicas/epica-90-interaccion-shortcuts.md) | M1 | 21 | 0 |
-| 91 | [Tutorial](epicas/epica-91-interaccion-tutorial.md) | C | 16 | 0 |
+| 91 | ~~[Tutorial](epicas/epica-91-interaccion-tutorial.md)~~ — **descartada del proyecto (2026-05-05)** | C | 16 | 0 |
 
 ### 2.10 Extensiones del lenguaje (3 épicas)
 

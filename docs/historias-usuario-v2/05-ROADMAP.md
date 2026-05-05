@@ -14,7 +14,7 @@ Cortes operativos para implementación. Refina `RESUMEN-ROADMAP.md` del v1 con l
 |---|---|---|---|
 | **MVP-α** | Kernel OPM editable y persistente | 10, 11, 20, 30, 50 | 002, 003, 006, 007, 008, 009 |
 | **MVP-β** | Modelador usable para dominio real | 12, 13, 15, 16, 1B, 1C, 34, A0 | 001, 004, 005 |
-| **MVP-γ** | Productividad, organización e intercambio | 14, 17, 18, 19, 1A, 21, 31, 32, 33, 35, 42, 60, 61, 70, 71, 82, 90, 91, A1 | (todas las shared estabilizadas) |
+| **MVP-γ** | Productividad, organización e intercambio | 14, 17, 18, 19, 1A, 21, 31, 32, 33, 35, 42, 60, 61, ~~70~~, 71, 82, 90, ~~91~~, A1 | (todas las shared estabilizadas) |
 | **MVP-δ** | Capacidades avanzadas diferidas | 40, 41, 80, 81, A2, B0..B5, C0..C2, D0, D1 | — |
 
 ## 3. Detalle del MVP-α
@@ -63,9 +63,9 @@ Cortes operativos para implementación. Refina `RESUMEN-ROADMAP.md` del v1 con l
 - **Visual y UX**: 14 (estilo), 18 (plegado), 19 (imágenes), 1A (cuadrícula), 21 (mapa).
 - **Persistencia avanzada**: 31 (carpetas), 32 (sub-modelos), 33 (plantillas), 35 (mover y buscar).
 - **Documentación y export**: 42 (notas), 60 (PDF), 61 (SVG).
-- **Interoperabilidad**: 70 (OPCAT), 71 (CSV).
+- **Interoperabilidad**: ~~70 (OPCAT)~~ descartada, 71 (CSV).
 - **Configuración**: 82 (ontología organizacional).
-- **Interacción**: 90 (atajos), 91 (tutorial).
+- **Interacción**: 90 (atajos), ~~91 (tutorial)~~ descartada.
 - **Extensión**: 17 (atributos avanzados), A1 (requisitos).
 
 ## 6. Detalle del MVP-δ
@@ -81,6 +81,15 @@ Cortes operativos para implementación. Refina `RESUMEN-ROADMAP.md` del v1 con l
 - **Análisis**: D0 (conocimiento faltante), D1 (informatividad).
 
 Estas capacidades requieren infraestructura externa o presupuesto de ingeniería significativo. Diferibles sin afectar el modelador core.
+
+## 7. Épicas descartadas del proyecto
+
+Las siguientes épicas **no serán abordadas en deep-opm-pro**. Las HU correspondientes se conservan en sus archivos como referencia histórica y trazabilidad SSOT, pero **quedan fuera del alcance del proyecto** y no deben asignarse a ninguna ronda de desarrollo ni aparecer en briefs de líneas paralelas. Decisión del operador, irreversible salvo nueva instrucción explícita.
+
+| Épica | Título | Fecha de descarte | Razón |
+|---|---|---|---|
+| 70 | [Importación OPCAT 4.2 (.opx)](epicas/epica-70-interop-opcat.md) | 2026-05-05 | Fuera de alcance del proyecto |
+| 91 | [Modo tutorial / tooltips guiados / asistencia pedagógica](epicas/epica-91-interaccion-tutorial.md) | 2026-05-05 | Fuera de alcance del proyecto |
 
 ## 7. Dependencias críticas entre cortes
 

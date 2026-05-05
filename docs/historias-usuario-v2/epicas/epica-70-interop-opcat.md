@@ -3,14 +3,19 @@ epica: "EPICA-70"
 titulo: "Interoperabilidad — importación de modelos OPCAT 4.2 (.opx)"
 slug: "interop-opcat"
 doc_fuente: "opcloud-reverse/70-interop-opcat.md"
-estado: "v2-canonica"
+estado: "descartada-del-proyecto"
 fecha: 2026-05-03
+fecha_descarte: 2026-05-05
+descartada_del_proyecto: true
+razon_descarte: "Fuera de alcance de deep-opm-pro. Decisión del operador."
 prioridad_predominante: "S"
 hu_emitidas: 25
 hu_canonicas: 25
 hu_stubs: 0
 fuente_normativa: "/home/felix/kora/artifacts/knowledge/fxsl/opm/opm-ssot-es"
 ---
+
+> **DESCARTADA DEL PROYECTO** (2026-05-05). EPICA-70 (Importación OPCAT 4.2) **NO será abordada en deep-opm-pro**. Las 25 HU se conservan abajo como referencia histórica y trazabilidad SSOT, pero quedan **fuera del alcance del proyecto**. No deben asignarse a ninguna ronda de desarrollo, no deben aparecer en briefs de líneas paralelas, ni deben contar como pendientes en el roadmap operativo. Decisión del operador, irreversible salvo nueva instrucción explícita.
 
 ## 1. Resumen
 
