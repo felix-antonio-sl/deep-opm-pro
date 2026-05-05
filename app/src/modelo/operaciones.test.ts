@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import {
   actualizarVerticesEnlace,
+  ajustarMultiplicidad,
   cambiarAfiliacion,
   cambiarEsencia,
   crearEnlace,
@@ -18,6 +19,7 @@ import {
   quitarDespliegueObjeto,
   renombrarEntidad,
   validarFirmaEnlace,
+  validarMultiplicidad,
 } from "./operaciones";
 import type { Modelo, ModoDespliegueObjeto, Resultado, TipoEnlace } from "./tipos";
 
@@ -188,6 +190,44 @@ describe("operaciones de modelo", () => {
       { x: 100, y: 20 },
       { x: 140, y: 80 },
     ]);
+  });
+
+  test("valida sintaxis canonica de multiplicidad", () => {
+    for (const texto of ["1", "2", "*", "1..N", "2..N", "1..5"]) {
+      expect(validarMultiplicidad(texto)).toBe(true);
+    }
+    for (const texto of ["", " ", "1.2", "a..b", "1-N", "1..n", " 2", "2 "]) {
+      expect(validarMultiplicidad(texto)).toBe(false);
+    }
+  });
+
+  test("ajusta y limpia multiplicidad por extremo de enlace", () => {
+    let modelo = modeloConEntidades();
+    const part = entidadPorNombre(modelo, "Part");
+    const proceso = entidadPorNombre(modelo, "Proceso");
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, part.id, proceso.id, "consumo"));
+    const enlaceId = Object.values(modelo.enlaces)[0]?.id;
+    expect(enlaceId).toBeDefined();
+    if (!enlaceId) return;
+
+    const origen = ajustarMultiplicidad(modelo, enlaceId, "origen", "2..N");
+    expect(origen.ok).toBe(true);
+    if (!origen.ok) return;
+    expect(origen.value.enlaces[enlaceId]?.multiplicidadOrigen).toBe("2..N");
+
+    const destino = ajustarMultiplicidad(origen.value, enlaceId, "destino", "*");
+    expect(destino.ok).toBe(true);
+    if (!destino.ok) return;
+    expect(destino.value.enlaces[enlaceId]?.multiplicidadDestino).toBe("*");
+
+    const invalido = ajustarMultiplicidad(destino.value, enlaceId, "origen", "1-N");
+    expect(invalido.ok).toBe(false);
+
+    const limpio = ajustarMultiplicidad(destino.value, enlaceId, "origen", "");
+    expect(limpio.ok).toBe(true);
+    if (!limpio.ok) return;
+    expect(limpio.value.enlaces[enlaceId]?.multiplicidadOrigen).toBeUndefined();
+    expect(limpio.value.enlaces[enlaceId]?.multiplicidadDestino).toBe("*");
   });
 
   test("elimina entidad y cascada de enlaces asociados", () => {
