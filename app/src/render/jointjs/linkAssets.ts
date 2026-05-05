@@ -38,7 +38,7 @@ export const LINK_ASSETS = {
     agregacion: {
       source: "assets/svg/links/structural/aggregation.svg",
       points: "55.1769,38 39.5885,11 24,38",
-      markerPoints: "0,15 30,0 30,30",
+      markerPoints: "15,0 30,30 0,30",
     },
     exhibicion: {
       source: "assets/svg/links/structural/exhibition.svg",
@@ -48,13 +48,13 @@ export const LINK_ASSETS = {
     generalizacion: {
       source: "assets/svg/links/structural/generalization.svg",
       path: "M39.5885 11L55.1769 38H24L39.5885 11ZM39.5885 17L29.1962 35H49.9808L39.5885 17Z",
-      markerPoints: "0,15 30,0 30,30",
+      markerPoints: "15,0 30,30 0,30",
       markerFill: "white",
     },
     clasificacion: {
       source: "assets/svg/links/structural/classification.svg",
       path: "M39.5885 11L55.1769 38H24L39.5885 11ZM39.5885 17L29.1962 35H49.9808L39.5885 17Z",
-      markerPoints: "0,15 30,0 30,30",
+      markerPoints: "15,0 30,30 0,30",
       markerFill: "white",
       markerDot: { cx: 15, cy: 20, r: 4 },
     },

@@ -740,9 +740,11 @@ function proyectarRefinamientoEstructural(
   const source = centro(origen);
   const target = centro(destino);
   const center = {
-    x: source.x + (target.x - source.x) * 0.38,
-    y: source.y + (target.y - source.y) * 0.38,
+    x: (source.x + target.x) / 2,
+    y: (source.y + target.y) / 2,
   };
+  const topTriangle = { x: center.x, y: center.y - triangleSize / 2 };
+  const bottomTriangle = { x: center.x, y: center.y + triangleSize / 2 };
   const triangleId = `${aparienciaEnlaceId}-triangulo`;
   const meta: OpmJointMetadata = {
     kind: "enlace",
@@ -757,7 +759,7 @@ function proyectarRefinamientoEstructural(
       id: `${aparienciaEnlaceId}-refinable`,
       type: "standard.Link",
       source: extremo(origen.id),
-      target: extremo(triangleId),
+      target: topTriangle,
       router: routerManhattan(),
       connector: { name: "straight" },
       attrs: lineAttrs,
@@ -767,7 +769,7 @@ function proyectarRefinamientoEstructural(
     {
       id: `${aparienciaEnlaceId}-refinador`,
       type: "standard.Link",
-      source: extremo(triangleId),
+      source: bottomTriangle,
       target: extremo(destino.id),
       router: routerManhattan(),
       connector: { name: "straight" },
@@ -775,7 +777,7 @@ function proyectarRefinamientoEstructural(
       opm: meta,
       z: 1,
     },
-    ...marcadoresEstructurales(enlace.tipo, triangleId, center, triangleSize, source, seleccionada, meta),
+    ...marcadoresEstructurales(enlace.tipo, triangleId, center, triangleSize, seleccionada, meta),
   ];
 }
 
@@ -784,27 +786,19 @@ function marcadoresEstructurales(
   triangleId: Id,
   center: Posicion,
   size: number,
-  source: Posicion,
   seleccionada: boolean,
   meta: OpmJointMetadata,
 ): JointCellJson[] {
-  const angle = anguloTriangulo(source, center);
+  const angle = 0;
   const position = { x: center.x - size / 2, y: center.y - size / 2 };
   const strokeWidth = seleccionada ? CANON.dims.enlaceVisible + 2 : CANON.dims.enlaceVisible;
   const stroke = CANON.colores.enlace;
 
   if (tipo === "exhibicion") {
-    // Exhibicion = triangulo lleno con sub-triangulos anidados visibles. En
-    // OPCloud se dibuja con un solo path SVG y fill-rule="evenodd"; en
-    // JointJS la traduccion camelCase->kebab-case de fillRule es fragil y
-    // ademas el bbox de standard.Path se computa distinto al de Polygon, lo
-    // que rompe rotacion y routing. Lo replicamos con tres polygons anidados
-    // (igual rotacion y bbox que los demas estructurales): grande relleno,
-    // medio vacio (hueco visual), pequeno relleno.
     const innerStrokeWidth = Math.max(1, strokeWidth - 1);
     return [
       polyShapeCell(triangleId, "standard.Polygon", position, size, angle, {
-        refPoints: "0,15 30,0 30,30",
+        refPoints: LINK_ASSETS.structural.agregacion.markerPoints,
         fill: stroke,
         stroke,
         strokeWidth,
@@ -813,12 +807,12 @@ function marcadoresEstructurales(
       {
         id: `${triangleId}-medio`,
         type: "standard.Polygon",
-        position,
-        size: { width: size, height: size },
+        position: { x: position.x + 6, y: position.y + 8 },
+        size: { width: 18, height: 18 },
         angle,
         attrs: {
           body: {
-            refPoints: "5,15 25,5 25,25",
+            refPoints: LINK_ASSETS.structural.agregacion.markerPoints,
             fill: "white",
             stroke,
             strokeWidth: innerStrokeWidth,
@@ -832,12 +826,12 @@ function marcadoresEstructurales(
       {
         id: `${triangleId}-pequeno`,
         type: "standard.Polygon",
-        position,
-        size: { width: size, height: size },
+        position: { x: position.x + 9, y: position.y + 12 },
+        size: { width: 12, height: 12 },
         angle,
         attrs: {
           body: {
-            refPoints: "10,15 22,9 22,21",
+            refPoints: LINK_ASSETS.structural.agregacion.markerPoints,
             fill: stroke,
             stroke,
             strokeWidth: innerStrokeWidth,
@@ -876,7 +870,7 @@ function marcadoresEstructurales(
       {
         id: `${triangleId}-dot`,
         type: "standard.Circle",
-        position: { x: center.x - dot.r, y: center.y - dot.r },
+        position: { x: position.x + dot.cx - dot.r, y: position.y + dot.cy - dot.r },
         size: { width: dot.r * 2, height: dot.r * 2 },
         attrs: {
           body: { fill: stroke, stroke, cursor: "pointer" },
@@ -981,11 +975,6 @@ function centro(apariencia: Apariencia): Posicion {
     x: apariencia.x + apariencia.width / 2,
     y: apariencia.y + apariencia.height / 2,
   };
-}
-
-function anguloTriangulo(source: Posicion, center: Posicion): number {
-  const angleToSource = Math.atan2(source.y - center.y, source.x - center.x) * 180 / Math.PI;
-  return angleToSource - 180;
 }
 
 function routerManhattan(): Record<string, unknown> {

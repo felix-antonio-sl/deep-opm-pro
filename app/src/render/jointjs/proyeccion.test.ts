@@ -168,7 +168,7 @@ describe("proyeccion JointJS", () => {
     expect(line?.targetMarker).toBeNull();
   });
 
-  test("proyecta exhibicion como triangulos anidados (grande lleno + medio vacio + pequeno lleno)", () => {
+  test("proyecta exhibicion como triangulos canonicos verticales anidados", () => {
     let modelo = crearModelo();
     modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 30 }, "Vehiculo"));
     modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 220, y: 130 }, "Color"));
@@ -176,7 +176,8 @@ describe("proyeccion JointJS", () => {
 
     const cells = proyectarModeloAJointCells(modelo, modelo.opdRaizId, null, null);
 
-    expect(cells.filter((cell) => cell.type === "standard.Link")).toHaveLength(2);
+    const links = cells.filter((cell) => cell.type === "standard.Link");
+    expect(links).toHaveLength(2);
     const polygons = cells.filter((cell) => cell.type === "standard.Polygon");
     expect(polygons).toHaveLength(3);
 
@@ -187,10 +188,24 @@ describe("proyeccion JointJS", () => {
     expect(medio).toBeDefined();
     expect(pequeno).toBeDefined();
 
-    expect(((grande?.attrs as Attrs)?.body as Attrs).fill).toBe("#586D8C");
-    expect(((medio?.attrs as Attrs)?.body as Attrs).fill).toBe("white");
-    expect(((pequeno?.attrs as Attrs)?.body as Attrs).fill).toBe("#586D8C");
-    // Stack: grande detras, pequeno adelante.
+    const markerPosition = grande?.position as { x?: number; y?: number } | undefined;
+    expect(links[0]?.target).toEqual({ x: (markerPosition?.x ?? 0) + 15, y: markerPosition?.y });
+    expect(links[1]?.source).toEqual({ x: (markerPosition?.x ?? 0) + 15, y: (markerPosition?.y ?? 0) + 30 });
+
+    const bodyGrande = (grande?.attrs as Attrs | undefined)?.body as Attrs | undefined;
+    const bodyMedio = (medio?.attrs as Attrs | undefined)?.body as Attrs | undefined;
+    const bodyPequeno = (pequeno?.attrs as Attrs | undefined)?.body as Attrs | undefined;
+    expect(grande?.angle).toBe(0);
+    expect(bodyGrande?.refPoints).toBe(LINK_ASSETS.structural.agregacion.markerPoints);
+    expect(bodyGrande?.fill).toBe("#586D8C");
+    expect(medio?.position).toEqual({ x: (markerPosition?.x ?? 0) + 6, y: (markerPosition?.y ?? 0) + 8 });
+    expect(medio?.size).toEqual({ width: 18, height: 18 });
+    expect(bodyMedio?.refPoints).toBe(LINK_ASSETS.structural.agregacion.markerPoints);
+    expect(bodyMedio?.fill).toBe("white");
+    expect(pequeno?.position).toEqual({ x: (markerPosition?.x ?? 0) + 9, y: (markerPosition?.y ?? 0) + 12 });
+    expect(pequeno?.size).toEqual({ width: 12, height: 12 });
+    expect(bodyPequeno?.refPoints).toBe(LINK_ASSETS.structural.agregacion.markerPoints);
+    expect(bodyPequeno?.fill).toBe("#586D8C");
     expect(grande?.z).toBeLessThan(medio?.z ?? 0);
     expect((medio?.z ?? 0)).toBeLessThan(pequeno?.z ?? 0);
   });
@@ -207,6 +222,7 @@ describe("proyeccion JointJS", () => {
     const marker = cells.find((cell) => cell.type === "standard.Polygon");
     expect(marker).toBeDefined();
     const body = (marker?.attrs as Attrs | undefined)?.body as Attrs | undefined;
+    expect(marker?.angle).toBe(0);
     expect(body?.refPoints).toBe(LINK_ASSETS.structural.generalizacion.markerPoints);
     expect(body?.fill).toBe(LINK_ASSETS.structural.generalizacion.markerFill);
     expect(body?.stroke).toBe("#586D8C");
@@ -226,10 +242,15 @@ describe("proyeccion JointJS", () => {
     expect(triangulo).toBeDefined();
     expect(dot).toBeDefined();
     const triBody = (triangulo?.attrs as Attrs | undefined)?.body as Attrs | undefined;
+    expect(triangulo?.angle).toBe(0);
     expect(triBody?.refPoints).toBe(LINK_ASSETS.structural.clasificacion.markerPoints);
     expect(triBody?.fill).toBe(LINK_ASSETS.structural.clasificacion.markerFill);
     const dotSize = dot?.size as { width?: number; height?: number } | undefined;
     expect(dotSize?.width).toBe(LINK_ASSETS.structural.clasificacion.markerDot.r * 2);
+    const dotPosition = dot?.position as { x?: number; y?: number } | undefined;
+    const trianglePosition = triangulo?.position as { x?: number; y?: number } | undefined;
+    expect(dotPosition?.x).toBe((trianglePosition?.x ?? 0) + LINK_ASSETS.structural.clasificacion.markerDot.cx - LINK_ASSETS.structural.clasificacion.markerDot.r);
+    expect(dotPosition?.y).toBe((trianglePosition?.y ?? 0) + LINK_ASSETS.structural.clasificacion.markerDot.cy - LINK_ASSETS.structural.clasificacion.markerDot.r);
   });
 
   test("proyecta agregacion con triangulo estructural separado", () => {
@@ -240,9 +261,14 @@ describe("proyeccion JointJS", () => {
 
     const cells = proyectarModeloAJointCells(modelo, modelo.opdRaizId, null, Object.values(modelo.enlaces)[0]?.id ?? null);
 
-    expect(cells.filter((cell) => cell.type === "standard.Link")).toHaveLength(2);
+    const links = cells.filter((cell) => cell.type === "standard.Link");
+    expect(links).toHaveLength(2);
     const triangulo = cells.find((cell) => cell.type === "standard.Polygon");
     expect(triangulo).toBeDefined();
+    const trianglePosition = triangulo?.position as { x?: number; y?: number } | undefined;
+    expect(links[0]?.target).toEqual({ x: (trianglePosition?.x ?? 0) + 15, y: trianglePosition?.y });
+    expect(links[1]?.source).toEqual({ x: (trianglePosition?.x ?? 0) + 15, y: (trianglePosition?.y ?? 0) + 30 });
+    expect(triangulo?.angle).toBe(0);
     expect(((triangulo?.attrs as Attrs | undefined)?.body as Attrs | undefined)?.refPoints).toBe(LINK_ASSETS.structural.agregacion.markerPoints);
     expect(((triangulo?.attrs as Attrs | undefined)?.body as Attrs | undefined)?.fill).toBe("#586D8C");
     expect(((triangulo?.attrs as Attrs | undefined)?.body as Attrs | undefined)?.strokeWidth).toBe(4);

@@ -65,8 +65,8 @@ test("renderiza todos los markers canonicos de enlaces", async ({ page }) => {
   await page.locator("textarea").fill(JSON.stringify(modeloMarkersCanonicos(), null, 2));
   await page.getByRole("button", { name: "Importar" }).click();
 
-  await expect(page.locator(".joint-link")).toHaveCount(8);
-  await expect(page.locator(".joint-element")).toHaveCount(15);
+  await expect(page.locator(".joint-link")).toHaveCount(14);
+  await expect(page.locator(".joint-element")).toHaveCount(27);
   await page.screenshot({ path: "test-results/opm-markers-canonicos.png", fullPage: true });
 
   expect(pageErrors).toEqual([]);
@@ -1023,6 +1023,12 @@ function modeloMarkersCanonicos() {
     "p-invocation-b": proceso("p-invocation-b", "Invocado"),
     "o-whole": objeto("o-whole", "Todo"),
     "o-part": objeto("o-part", "Parte"),
+    "o-exhibition-a": objeto("o-exhibition-a", "Exhibidor"),
+    "o-exhibition-b": objeto("o-exhibition-b", "Caracteristica"),
+    "o-generalization-a": objeto("o-generalization-a", "General"),
+    "o-generalization-b": objeto("o-generalization-b", "Especial"),
+    "o-classification-a": objeto("o-classification-a", "Clase"),
+    "o-classification-b": objeto("o-classification-b", "Instancia"),
   };
   const enlaces = {
     "e-agent": enlace("e-agent", "agente", "o-agent", "p-agent"),
@@ -1032,6 +1038,9 @@ function modeloMarkersCanonicos() {
     "e-effect": enlace("e-effect", "efecto", "o-effect", "p-effect"),
     "e-invocation": enlace("e-invocation", "invocacion", "p-invocation-a", "p-invocation-b"),
     "e-aggregation": enlace("e-aggregation", "agregacion", "o-whole", "o-part"),
+    "e-exhibition": enlace("e-exhibition", "exhibicion", "o-exhibition-a", "o-exhibition-b"),
+    "e-generalization": enlace("e-generalization", "generalizacion", "o-generalization-a", "o-generalization-b"),
+    "e-classification": enlace("e-classification", "clasificacion", "o-classification-a", "o-classification-b"),
   };
   return {
     formato: "deep-opm-pro.modelo.v0",
@@ -1055,6 +1064,9 @@ function modeloMarkersCanonicos() {
             ...aparienciaPar("o-effect", "p-effect", 70, 280),
             ...aparienciaPar("p-invocation-a", "p-invocation-b", 70, 340),
             ...aparienciaPar("o-whole", "o-part", 70, 400),
+            ...aparienciaPar("o-exhibition-a", "o-exhibition-b", 70, 460),
+            ...aparienciaPar("o-generalization-a", "o-generalization-b", 70, 520),
+            ...aparienciaPar("o-classification-a", "o-classification-b", 70, 580),
           },
           enlaces: Object.fromEntries(Object.keys(enlaces).map((id) => [`a-${id}`, { id: `a-${id}`, enlaceId: id, opdId: "opd-1", vertices: [] }])),
         },
