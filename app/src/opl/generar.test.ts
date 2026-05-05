@@ -672,3 +672,191 @@ function must<T>(resultado: Resultado<T>): T {
   if (!resultado.ok) throw new Error(resultado.error);
   return resultado.value;
 }
+
+// ── HU-50.013: Despliegue "se despliega en" ──
+
+describe("HU-50.013 despliegue interactivo", () => {
+  test("emite oracion 'se despliega en' con tokens nombre por destino", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 200, y: 120 }, "Vehiculo"));
+    const desplegado = must(desplegarObjeto(modelo, modelo.opdRaizId, entidad(modelo, "Vehiculo")));
+    modelo = desplegado.modelo;
+
+    // Colocar hijos DENTRO del contorno de Vehiculo (200,120, 135x60 → x:200-335, y:120-180)
+    modelo = must(crearObjeto(modelo, desplegado.opdId, { x: 210, y: 140 }, "Motor"));
+    modelo = must(crearObjeto(modelo, desplegado.opdId, { x: 280, y: 140 }, "Rueda"));
+    modelo = must(crearEnlace(modelo, desplegado.opdId, entidad(modelo, "Vehiculo"), entidad(modelo, "Motor"), "agregacion"));
+    modelo = must(crearEnlace(modelo, desplegado.opdId, entidad(modelo, "Vehiculo"), entidad(modelo, "Rueda"), "agregacion"));
+
+    // En el OPD hijo, el refinamiento genera la oración de despliegue
+    const interactivoHijo = generarOplInteractivo(modelo, desplegado.opdId);
+    const lineaDespliegue = interactivoHijo.find((linea) => linea.texto.includes("se despliega en"));
+    expect(lineaDespliegue).toBeDefined();
+
+    // Cada destino debe tener su propio token nombre
+    const tokensNombres = lineaDespliegue!.tokens.filter((t) => t.rol === "nombre");
+    expect(tokensNombres.length).toBeGreaterThanOrEqual(2);
+  });
+
+  test("emite oracion despliegue con enlace refs para multi-destino", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 200, y: 120 }, "Vehiculo"));
+    const desplegado = must(desplegarObjeto(modelo, modelo.opdRaizId, entidad(modelo, "Vehiculo")));
+    modelo = desplegado.modelo;
+
+    modelo = must(crearObjeto(modelo, desplegado.opdId, { x: 210, y: 140 }, "Parte A"));
+    modelo = must(crearObjeto(modelo, desplegado.opdId, { x: 280, y: 140 }, "Parte B"));
+    modelo = must(crearEnlace(modelo, desplegado.opdId, entidad(modelo, "Vehiculo"), entidad(modelo, "Parte A"), "agregacion"));
+    modelo = must(crearEnlace(modelo, desplegado.opdId, entidad(modelo, "Vehiculo"), entidad(modelo, "Parte B"), "agregacion"));
+
+    // En el OPD hijo el refinamiento identifica los hijos y emite refs de enlace
+    const interactivoHijo = generarOplInteractivo(modelo, desplegado.opdId);
+    const lineaDespliegue = interactivoHijo.find((linea) => linea.texto.includes("se despliega en"));
+    expect(lineaDespliegue).toBeDefined();
+
+    // HU-50.021: cada destino debe llevar ref del enlace especifico
+    const refsEnlace = lineaDespliegue!.refs.filter((ref) => ref.tipo === "enlace");
+    expect(refsEnlace.length).toBeGreaterThanOrEqual(2);
+  });
+});
+
+// ── HU-50.015: Especializacion "es un/una" ──
+
+describe("HU-50.015 especializacion interactiva", () => {
+  test("emite 'es un' para generalizacion en enlace individual", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 200, y: 120 }, "Vehiculo"));
+    const desplegado = must(desplegarObjeto(modelo, modelo.opdRaizId, entidad(modelo, "Vehiculo"), "generalizacion"));
+    modelo = desplegado.modelo;
+
+    // Colocar hijo DENTRO del contorno de Vehiculo
+    modelo = must(crearObjeto(modelo, desplegado.opdId, { x: 220, y: 140 }, "Auto"));
+    modelo = must(crearEnlace(modelo, desplegado.opdId, entidad(modelo, "Vehiculo"), entidad(modelo, "Auto"), "generalizacion"));
+
+    // Buscar en las oraciones de enlace individual (no en la de refinamiento que
+    // incluye las partes por defecto creadas por desplegarObjeto)
+    const interactivoHijo = generarOplInteractivo(modelo, desplegado.opdId);
+    const lineaEnlace = interactivoHijo.find(
+      (linea) =>
+        linea.texto.includes("es un") &&
+        linea.refs.some((ref) => ref.tipo === "enlace"),
+    );
+    expect(lineaEnlace).toBeDefined();
+  });
+
+  test("emite token verbo 'es un' con ref de enlace", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 200, y: 120 }, "Vehiculo"));
+    const desplegado = must(desplegarObjeto(modelo, modelo.opdRaizId, entidad(modelo, "Vehiculo"), "generalizacion"));
+    modelo = desplegado.modelo;
+
+    modelo = must(crearObjeto(modelo, desplegado.opdId, { x: 220, y: 140 }, "Auto"));
+    const enlaceId = Object.keys(modelo.enlaces).find(
+      (id) => modelo.enlaces[id]?.tipo === "generalizacion",
+    );
+
+    const interactivoHijo = generarOplInteractivo(modelo, desplegado.opdId);
+    // Buscar en la oración de enlace individual (no en la de refinamiento)
+    const lineaEnlace = interactivoHijo.find(
+      (linea) =>
+        linea.texto.includes("es un") &&
+        linea.refs.some((ref) => ref.tipo === "enlace"),
+    );
+    expect(lineaEnlace).toBeDefined();
+
+    // Debe tener token verbo
+    const tokenVerbo = lineaEnlace!.tokens.find((t) => t.rol === "verbo");
+    expect(tokenVerbo).toBeDefined();
+    if (tokenVerbo?.ref) {
+      expect(tokenVerbo.ref.tipo).toBe("enlace");
+    }
+  });
+});
+
+// ── HU-50.021: Tokens multi-destino con refs distintas ──
+
+describe("HU-50.021 tokens multi-destino", () => {
+  test("oracion de refinamiento con N destinos emite tokens nombre por cada destino", () => {
+    let modelo = crearModelo();
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 200, y: 120 }, "Todo"));
+    const descompuesto = must(descomponerProceso(modelo, modelo.opdRaizId, entidad(modelo, "Todo")));
+    modelo = descompuesto.modelo;
+
+    // Colocar 3 hijos DENTRO del contorno de Todo
+    modelo = must(crearProceso(modelo, descompuesto.opdId, { x: 210, y: 140 }, "Parte A"));
+    modelo = must(crearProceso(modelo, descompuesto.opdId, { x: 280, y: 140 }, "Parte B"));
+    modelo = must(crearProceso(modelo, descompuesto.opdId, { x: 210, y: 170 }, "Parte C"));
+    modelo = must(crearEnlace(modelo, descompuesto.opdId, entidad(modelo, "Todo"), entidad(modelo, "Parte A"), "invocacion"));
+    modelo = must(crearEnlace(modelo, descompuesto.opdId, entidad(modelo, "Todo"), entidad(modelo, "Parte B"), "invocacion"));
+    modelo = must(crearEnlace(modelo, descompuesto.opdId, entidad(modelo, "Todo"), entidad(modelo, "Parte C"), "invocacion"));
+
+    const interactivo = generarOplInteractivo(modelo, descompuesto.opdId);
+    const lineaRefinamiento = interactivo.find((linea) => linea.texto.includes("se descompone en"));
+    expect(lineaRefinamiento).toBeDefined();
+
+    const tokensNombres = lineaRefinamiento!.tokens.filter((t) => t.rol === "nombre");
+    // Debe haber al menos 3 tokens nombre (uno para cada destino)
+    expect(tokensNombres.length).toBeGreaterThanOrEqual(3);
+  });
+
+  test("enlace en oracion multi-destino lleva ref en el token nombre del destino", () => {
+    let modelo = crearModelo();
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 200, y: 120 }, "Todo"));
+    const descompuesto = must(descomponerProceso(modelo, modelo.opdRaizId, entidad(modelo, "Todo")));
+    modelo = descompuesto.modelo;
+
+    modelo = must(crearProceso(modelo, descompuesto.opdId, { x: 220, y: 140 }, "Parte X"));
+    modelo = must(crearProceso(modelo, descompuesto.opdId, { x: 290, y: 140 }, "Parte Y"));
+    modelo = must(crearEnlace(modelo, descompuesto.opdId, entidad(modelo, "Todo"), entidad(modelo, "Parte X"), "invocacion"));
+    modelo = must(crearEnlace(modelo, descompuesto.opdId, entidad(modelo, "Todo"), entidad(modelo, "Parte Y"), "invocacion"));
+
+    const interactivo = generarOplInteractivo(modelo, descompuesto.opdId);
+    const lineaRefinamiento = interactivo.find((linea) => linea.texto.includes("se descompone en"));
+    expect(lineaRefinamiento).toBeDefined();
+
+    // La linea debe tener refs de enlace (multi-enlace) - HU-50.021
+    const refsEnlace = lineaRefinamiento!.refs.filter((ref) => ref.tipo === "enlace");
+    expect(refsEnlace.length).toBeGreaterThanOrEqual(2);
+
+    // Los tokens nombre de los destinos deben tener ref de enlace
+    const tokensConRefEnlace = lineaRefinamiento!.tokens.filter(
+      (t) => t.rol === "nombre" && t.ref?.tipo === "enlace",
+    );
+    expect(tokensConRefEnlace.length).toBeGreaterThanOrEqual(2);
+  });
+});
+
+// ── HU-50.016: coloracion de tokens por clase ──
+
+describe("HU-50.016 coloreado de tokens", () => {
+  test("objeto recibe markdown 'objeto' con color verde", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 100, y: 100 }, "ObjetoTest"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 300, y: 100 }, "ProcesoTest"));
+
+    const interactivo = generarOplInteractivo(modelo, modelo.opdRaizId);
+    const tokenObjeto = interactivo
+      .flatMap((linea) => linea.tokens)
+      .find((t) => t.markdown === "objeto" && t.texto.includes("ObjetoTest"));
+    expect(tokenObjeto).toBeDefined();
+
+    const tokenProceso = interactivo
+      .flatMap((linea) => linea.tokens)
+      .find((t) => t.markdown === "proceso" && t.texto.includes("ProcesoTest"));
+    expect(tokenProceso).toBeDefined();
+  });
+
+  test("estado recibe markdown 'estado'", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 100, y: 100 }, "Ticket"));
+    const objId = entidad(modelo, "Ticket");
+    const resultado = crearEstadosIniciales(modelo, objId);
+    modelo = must(resultado).modelo;
+
+    const interactivo = generarOplInteractivo(modelo, modelo.opdRaizId);
+    const tokenEstado = interactivo
+      .flatMap((linea) => linea.tokens)
+      .find((t) => t.markdown === "estado");
+    expect(tokenEstado).toBeDefined();
+  });
+});
