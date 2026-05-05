@@ -1,6 +1,7 @@
-import { useState } from "preact/hooks";
+import { useEffect, useState } from "preact/hooks";
 import { useOpmStore } from "../store";
 import type { Id, Modelo, Opd } from "../modelo/tipos";
+import { MenuContextualArbol } from "./MenuContextualArbol";
 
 const deleteIconUrl = new URL("../../../assets/svg/delete.svg", import.meta.url).href;
 
@@ -19,7 +20,14 @@ export function ArbolOpd() {
   const cambiarOpdActivo = useOpmStore((s) => s.cambiarOpdActivo);
   const eliminarOpdDesdeArbol = useOpmStore((s) => s.eliminarOpdDesdeArbol);
   const moverHermano = useOpmStore((s) => s.moverHermano);
+  const moverOpdEnGestion = useOpmStore((s) => s.moverOpdEnGestion);
   const renombrarOpdDesdeArbol = useOpmStore((s) => s.renombrarOpdDesdeArbol);
+  const nombresArbolVisibles = useOpmStore((s) => s.nombresArbolVisibles);
+  const toggleNombresArbolVisibles = useOpmStore((s) => s.toggleNombresArbolVisibles);
+  const navegarOpdArriba = useOpmStore((s) => s.navegarOpdArriba);
+  const navegarOpdAbajo = useOpmStore((s) => s.navegarOpdAbajo);
+  const navegarOpdIzquierda = useOpmStore((s) => s.navegarOpdIzquierda);
+  const navegarOpdDerecha = useOpmStore((s) => s.navegarOpdDerecha);
   const abrirVistaMapa = useOpmStore((s) => s.abrirVistaMapa);
 
   // Se almacena el set INVERSO: ids explicitamente colapsados por el usuario.
@@ -29,6 +37,8 @@ export function ArbolOpd() {
   const [renombrando, setRenombrando] = useState<{ id: Id; valor: string } | null>(null);
   const [dragOverId, setDragOverId] = useState<Id | null>(null);
   const [colapsarTodo, setColapsarTodo] = useState(false);
+  const [menuContextual, setMenuContextual] = useState<{ opdId: Id; x: number; y: number } | null>(null);
+  const [opdCortadoId, setOpdCortadoId] = useState<Id | null>(null);
 
   const arboles = construirArbol(modelo);
 
@@ -115,6 +125,20 @@ export function ArbolOpd() {
 
   const nodosVisibles = aplanarNodos(arboles, 0, true).filter((n) => n.visible);
 
+  useEffect(() => {
+    if (!menuContextual) return;
+    const cerrar = () => setMenuContextual(null);
+    const cerrarConEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") cerrar();
+    };
+    window.addEventListener("click", cerrar);
+    window.addEventListener("keydown", cerrarConEscape);
+    return () => {
+      window.removeEventListener("click", cerrar);
+      window.removeEventListener("keydown", cerrarConEscape);
+    };
+  }, [menuContextual]);
+
   // Contar total de nodos con hijos para el botón expandir
   const totalConHijos = (() => {
     let count = 0;
@@ -129,7 +153,12 @@ export function ArbolOpd() {
   })();
 
   return (
-    <aside style={style.panel} aria-label="Árbol OPD">
+    <aside
+      style={style.panel}
+      aria-label="Árbol OPD"
+      data-atajos-contexto="panel-arbol"
+      tabIndex={-1}
+    >
       <div style={style.header}>
         <span>OPDs</span>
         <div style={style.headerActions}>
@@ -149,6 +178,16 @@ export function ArbolOpd() {
           >
             {modoOrdenArbol === "manual" ? "Ord: Manual" : "Ord: Auto"}
           </button>
+          <button
+            type="button"
+            style={style.smallActionBtn}
+            title={nombresArbolVisibles ? "Ocultar nombres OPD" : "Mostrar nombres OPD"}
+            aria-label="Alternar etiquetas OPD"
+            aria-pressed={!nombresArbolVisibles}
+            onClick={() => toggleNombresArbolVisibles()}
+          >
+            {nombresArbolVisibles ? "Nom" : "Cod"}
+          </button>
           {totalConHijos > 0 && (
             <button
               type="button"
@@ -161,7 +200,12 @@ export function ArbolOpd() {
           )}
         </div>
       </div>
-      <div role="tree" aria-label="Árbol OPD" style={style.tree}>
+      <div
+        role="tree"
+        aria-label="Árbol OPD"
+        style={style.tree}
+        data-atajos-contexto="panel-arbol"
+      >
         {/* Entrada Mapa del sistema (HU-21.002) */}
         <div
           role="treeitem"
@@ -192,6 +236,7 @@ export function ArbolOpd() {
             const activo = nodo.opd.id === opdActivoId;
             const totalApariencias = Object.keys(nodo.opd.apariencias).length;
             const nombre = nombreNodo(modelo, nodo.opd);
+            const etiquetaVisible = nombresArbolVisibles ? nombre : codigoOpd(nodo.opd.nombre);
             const esRaiz = nodo.opd.id === modelo.opdRaizId;
             const tieneHijos = nodo.hijos.length > 0;
             const estaExpandido = estaExpandidoNodo(nodo.opd.id);
@@ -225,6 +270,29 @@ export function ArbolOpd() {
                     event.preventDefault();
                     cambiarOpdActivo(nodo.opd.id);
                   }
+                  if (!event.ctrlKey && !event.metaKey) {
+                    if (event.key === "ArrowUp") {
+                      event.preventDefault();
+                      navegarOpdArriba();
+                    }
+                    if (event.key === "ArrowDown") {
+                      event.preventDefault();
+                      navegarOpdAbajo();
+                    }
+                    if (event.key === "ArrowLeft") {
+                      event.preventDefault();
+                      navegarOpdIzquierda();
+                    }
+                    if (event.key === "ArrowRight") {
+                      event.preventDefault();
+                      navegarOpdDerecha();
+                    }
+                  }
+                }}
+                onContextMenu={(event) => {
+                  event.preventDefault();
+                  event.stopPropagation();
+                  setMenuContextual({ opdId: nodo.opd.id, x: event.clientX, y: event.clientY });
                 }}
                 onDragStart={(e) => handleDragStart(e as unknown as DragEvent, nodo.opd.id)}
                 onDragOver={(e) => handleDragOver(e as unknown as DragEvent, nodo.opd.id)}
@@ -251,6 +319,7 @@ export function ArbolOpd() {
                   <input
                     autoFocus
                     style={style.inlineInput}
+                    data-modo="inline-rename"
                     value={renombrando!.valor}
                     onInput={(e) =>
                       setRenombrando({ id: nodo.opd.id, valor: (e.currentTarget as HTMLInputElement).value })
@@ -270,7 +339,7 @@ export function ArbolOpd() {
                       setRenombrando({ id: nodo.opd.id, valor: nodo.opd.nombre });
                     }}
                   >
-                    {nombre}
+                    {etiquetaVisible}
                   </span>
                 )}
                 <span style={activo ? style.countActive : style.count}>{totalApariencias}</span>
@@ -292,6 +361,65 @@ export function ArbolOpd() {
           })
         )}
       </div>
+      {menuContextual && (
+        <MenuContextualArbol
+          modelo={modelo}
+          opdId={menuContextual.opdId}
+          posicion={{ x: menuContextual.x, y: menuContextual.y }}
+          nombresVisibles={nombresArbolVisibles}
+          opdCortadoId={opdCortadoId}
+          onCerrar={() => setMenuContextual(null)}
+          onRenombrar={(opdId) => {
+            const opd = modelo.opds[opdId];
+            if (opd) setRenombrando({ id: opdId, valor: opd.nombre });
+            setMenuContextual(null);
+          }}
+          onEliminar={(opdId) => {
+            eliminarOpdDesdeArbol(opdId);
+            setMenuContextual(null);
+          }}
+          onCortar={(opdId) => {
+            setOpdCortadoId(opdId);
+            setMenuContextual(null);
+          }}
+          onPegar={(targetId) => {
+            if (!opdCortadoId) return;
+            moverOpdEnGestion(opdCortadoId, targetId, cantidadHijos(modelo, targetId));
+            setOpdCortadoId(null);
+            setMenuContextual(null);
+          }}
+          onReordenar={(opdId, direccion) => {
+            reordenarDesdeMenu(modelo, opdId, direccion, moverHermano);
+            setMenuContextual(null);
+          }}
+          onOrdenAutomatico={() => {
+            fijarModoOrdenArbol("automatico");
+            setMenuContextual(null);
+          }}
+          onToggleNombres={() => {
+            toggleNombresArbolVisibles();
+            setMenuContextual(null);
+          }}
+          onExpandirTodo={() => {
+            expandirTodo();
+            setMenuContextual(null);
+          }}
+          onColapsarTodo={() => {
+            colapsarTodoAccion();
+            setMenuContextual(null);
+          }}
+          onIrPadre={(opdId) => {
+            const padreId = modelo.opds[opdId]?.padreId;
+            if (padreId) cambiarOpdActivo(padreId);
+            setMenuContextual(null);
+          }}
+          onIrPrimerHijo={(opdId) => {
+            const primero = hijosOrdenados(modelo, opdId)[0];
+            if (primero) cambiarOpdActivo(primero.id);
+            setMenuContextual(null);
+          }}
+        />
+      )}
     </aside>
   );
 }
@@ -352,6 +480,37 @@ function nombreNodo(modelo: Modelo, opd: Opd): string {
 
 function codigoOpd(nombre: string): string {
   return /^SD(?:\d+(?:\.\d+)*)?/.exec(nombre.trim())?.[0] ?? nombre;
+}
+
+function cantidadHijos(modelo: Modelo, padreId: Id): number {
+  return Object.values(modelo.opds).filter((opd) => opd.padreId === padreId).length;
+}
+
+function hijosOrdenados(modelo: Modelo, padreId: Id | null): Opd[] {
+  return Object.values(modelo.opds)
+    .filter((opd) => opd.padreId === padreId)
+    .sort((a, b) => {
+      if (a.ordenLocal !== undefined && b.ordenLocal !== undefined) return a.ordenLocal - b.ordenLocal;
+      if (a.ordenLocal !== undefined) return -1;
+      if (b.ordenLocal !== undefined) return 1;
+      return a.nombre.localeCompare(b.nombre, "es-CL") || a.id.localeCompare(b.id, "es-CL");
+    });
+}
+
+function reordenarDesdeMenu(
+  modelo: Modelo,
+  opdId: Id,
+  direccion: "arriba" | "abajo",
+  moverHermano: (padreId: Id | null, opdId: Id, posicion: number) => void,
+): void {
+  const opd = modelo.opds[opdId];
+  if (!opd) return;
+  const hermanos = hijosOrdenados(modelo, opd.padreId);
+  const indice = hermanos.findIndex((item) => item.id === opdId);
+  if (indice < 0) return;
+  const siguiente = direccion === "arriba" ? indice - 1 : indice + 1;
+  if (siguiente < 0 || siguiente >= hermanos.length) return;
+  moverHermano(opd.padreId, opdId, siguiente);
 }
 
 function estiloNodo(nivel: number, activo: boolean): preact.JSX.CSSProperties {

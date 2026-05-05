@@ -1,0 +1,126 @@
+import type { Id, Modelo } from "../modelo/tipos";
+
+export interface MenuContextualArbolProps {
+  modelo: Modelo;
+  opdId: Id;
+  posicion: { x: number; y: number };
+  nombresVisibles: boolean;
+  opdCortadoId: Id | null;
+  onCerrar: () => void;
+  onRenombrar: (opdId: Id) => void;
+  onEliminar: (opdId: Id) => void;
+  onCortar: (opdId: Id) => void;
+  onPegar: (targetId: Id) => void;
+  onReordenar: (opdId: Id, direccion: "arriba" | "abajo") => void;
+  onOrdenAutomatico: () => void;
+  onToggleNombres: () => void;
+  onExpandirTodo: () => void;
+  onColapsarTodo: () => void;
+  onIrPadre: (opdId: Id) => void;
+  onIrPrimerHijo: (opdId: Id) => void;
+}
+
+export function MenuContextualArbol(props: MenuContextualArbolProps) {
+  const opd = props.modelo.opds[props.opdId];
+  if (!opd) return null;
+  const esRaiz = props.opdId === props.modelo.opdRaizId;
+  const tieneHijos = Object.values(props.modelo.opds).some((item) => item.padreId === props.opdId);
+  const tienePadre = !!opd.padreId && !!props.modelo.opds[opd.padreId];
+
+  return (
+    <div
+      role="menu"
+      aria-label={`Menú contextual ${opd.nombre}`}
+      data-testid="menu-contextual-arbol"
+      style={{
+        ...style.menu,
+        left: props.posicion.x,
+        top: props.posicion.y,
+      }}
+      onClick={(event) => event.stopPropagation()}
+      onKeyDown={(event) => {
+        if (event.key === "Escape") props.onCerrar();
+      }}
+      tabIndex={-1}
+    >
+      <Item label="Renombrar" onClick={() => props.onRenombrar(props.opdId)} />
+      <Item label="Eliminar OPD" disabled={esRaiz || tieneHijos} onClick={() => props.onEliminar(props.opdId)} />
+      <div aria-hidden="true" style={style.divider} />
+      <Item label="Cortar nodo" disabled={esRaiz} onClick={() => props.onCortar(props.opdId)} />
+      <Item label="Pegar aquí" disabled={!props.opdCortadoId || props.opdCortadoId === props.opdId} onClick={() => props.onPegar(props.opdId)} />
+      <div aria-hidden="true" style={style.divider} />
+      <Item label="Reordenar: subir" disabled={esRaiz} onClick={() => props.onReordenar(props.opdId, "arriba")} />
+      <Item label="Reordenar: bajar" disabled={esRaiz} onClick={() => props.onReordenar(props.opdId, "abajo")} />
+      <Item label="Alinear según canvas" onClick={props.onOrdenAutomatico} />
+      <div aria-hidden="true" style={style.divider} />
+      <Item label={props.nombresVisibles ? "Ocultar nombres" : "Mostrar nombres"} onClick={props.onToggleNombres} />
+      <Item label="Expandir todo" onClick={props.onExpandirTodo} />
+      <Item label="Colapsar todo" onClick={props.onColapsarTodo} />
+      <div aria-hidden="true" style={style.divider} />
+      <Item label="Ir al OPD padre" disabled={!tienePadre} onClick={() => props.onIrPadre(props.opdId)} />
+      <Item label="Ir al primer hijo" disabled={!tieneHijos} onClick={() => props.onIrPrimerHijo(props.opdId)} />
+    </div>
+  );
+}
+
+function Item({ label, disabled, onClick }: { label: string; disabled?: boolean; onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      role="menuitem"
+      disabled={disabled}
+      style={disabled ? style.itemDisabled : style.item}
+      onClick={() => {
+        if (!disabled) onClick();
+      }}
+    >
+      {label}
+    </button>
+  );
+}
+
+const style = {
+  menu: {
+    position: "fixed",
+    zIndex: 1200,
+    width: "220px",
+    padding: "6px",
+    border: "1px solid #c8d2df",
+    borderRadius: "6px",
+    background: "#ffffff",
+    boxShadow: "0 16px 32px rgba(16, 24, 40, 0.18)",
+    display: "grid",
+    gap: "2px",
+  },
+  item: {
+    width: "100%",
+    minHeight: "30px",
+    padding: "0 9px",
+    border: "1px solid transparent",
+    borderRadius: "4px",
+    background: "transparent",
+    color: "#1f2937",
+    cursor: "pointer",
+    fontSize: "12px",
+    fontWeight: 700,
+    textAlign: "left",
+  },
+  itemDisabled: {
+    width: "100%",
+    minHeight: "30px",
+    padding: "0 9px",
+    border: "1px solid transparent",
+    borderRadius: "4px",
+    background: "transparent",
+    color: "#98a2b3",
+    cursor: "not-allowed",
+    fontSize: "12px",
+    fontWeight: 700,
+    textAlign: "left",
+  },
+  divider: {
+    height: "1px",
+    margin: "3px 0",
+    background: "#e4eaf1",
+  },
+} satisfies Record<string, preact.JSX.CSSProperties>;
