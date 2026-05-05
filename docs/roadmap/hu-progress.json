@@ -1,17 +1,17 @@
 {
   "schema": "deep-opm-pro.hu-progress-report.v1",
-  "generatedAt": "2026-05-05T17:50:46.006Z",
+  "generatedAt": "2026-05-05T20:30:24.738Z",
   "repoRoot": "/home/felix/projects/deep-opm-pro",
   "backlogRoot": "docs/historias-usuario-v2",
   "evidenceLedger": "docs/roadmap/hu-progress-evidence.json",
   "autoAudit": {
-    "generatedAt": "2026-05-05T17:50:46.006Z",
+    "generatedAt": "2026-05-05T20:30:24.738Z",
     "mode": "sync-real",
     "rulesEvaluated": 49,
-    "rulesMatched": 47,
-    "rulesUnmatched": 2,
+    "rulesMatched": 45,
+    "rulesUnmatched": 4,
     "sourceFiles": {
-      "count": 125,
+      "count": 159,
       "roots": [
         "app/src",
         "app/e2e",
@@ -43,14 +43,14 @@
   "summaries": {
     "total": {
       "total": 1126,
-      "cubierto": 115,
-      "parcial": 51,
-      "pendiente": 582,
+      "cubierto": 109,
+      "parcial": 50,
+      "pendiente": 589,
       "diferido": 378,
       "bloqueado": 0,
       "pesoTotal": 3004,
-      "pesoCubierto": 379.5,
-      "avance": 0.12633155792276965
+      "pesoCubierto": 365.5,
+      "avance": 0.1216711051930759
     },
     "inventario": {
       "totalParseadas": 1173,
@@ -60,70 +60,70 @@
     },
     "m0": {
       "total": 130,
-      "cubierto": 77,
+      "cubierto": 72,
       "parcial": 29,
-      "pendiente": 24,
+      "pendiente": 29,
       "diferido": 0,
       "bloqueado": 0,
       "pesoTotal": 333,
-      "pesoCubierto": 230,
-      "avance": 0.6906906906906907
+      "pesoCubierto": 218,
+      "avance": 0.6546546546546547
     },
     "alpha": {
       "total": 121,
       "cubierto": 46,
-      "parcial": 23,
-      "pendiente": 52,
+      "parcial": 22,
+      "pendiente": 53,
       "diferido": 0,
       "bloqueado": 0,
       "pesoTotal": 326,
-      "pesoCubierto": 141,
-      "avance": 0.4325153374233129
+      "pesoCubierto": 140,
+      "avance": 0.4294478527607362
     },
     "beta": {
       "total": 193,
-      "cubierto": 51,
+      "cubierto": 46,
       "parcial": 23,
-      "pendiente": 119,
+      "pendiente": 124,
       "diferido": 0,
       "bloqueado": 0,
       "pesoTotal": 545,
-      "pesoCubierto": 182.5,
-      "avance": 0.3348623853211009
+      "pesoCubierto": 170.5,
+      "avance": 0.3128440366972477
     },
     "byCut": {
       "alpha": {
         "total": 121,
         "cubierto": 46,
-        "parcial": 23,
-        "pendiente": 52,
+        "parcial": 22,
+        "pendiente": 53,
         "diferido": 0,
         "bloqueado": 0,
         "pesoTotal": 326,
-        "pesoCubierto": 141,
-        "avance": 0.4325153374233129
+        "pesoCubierto": 140,
+        "avance": 0.4294478527607362
       },
       "beta": {
         "total": 193,
-        "cubierto": 51,
+        "cubierto": 46,
         "parcial": 23,
-        "pendiente": 119,
+        "pendiente": 124,
         "diferido": 0,
         "bloqueado": 0,
         "pesoTotal": 545,
-        "pesoCubierto": 182.5,
-        "avance": 0.3348623853211009
+        "pesoCubierto": 170.5,
+        "avance": 0.3128440366972477
       },
       "gamma": {
         "total": 434,
-        "cubierto": 18,
+        "cubierto": 17,
         "parcial": 5,
-        "pendiente": 411,
+        "pendiente": 412,
         "diferido": 0,
         "bloqueado": 0,
         "pesoTotal": 1126,
-        "pesoCubierto": 56,
-        "avance": 0.0497335701598579
+        "pesoCubierto": 55,
+        "avance": 0.04884547069271759
       },
       "delta": {
         "total": 378,
@@ -151,25 +151,25 @@
     "byPriority": {
       "M0": {
         "total": 130,
-        "cubierto": 77,
+        "cubierto": 72,
         "parcial": 29,
-        "pendiente": 24,
+        "pendiente": 29,
         "diferido": 0,
         "bloqueado": 0,
         "pesoTotal": 333,
-        "pesoCubierto": 230,
-        "avance": 0.6906906906906907
+        "pesoCubierto": 218,
+        "avance": 0.6546546546546547
       },
       "M1": {
         "total": 161,
-        "cubierto": 18,
-        "parcial": 13,
-        "pendiente": 124,
+        "cubierto": 17,
+        "parcial": 12,
+        "pendiente": 126,
         "diferido": 6,
         "bloqueado": 0,
         "pesoTotal": 388,
-        "pesoCubierto": 68.5,
-        "avance": 0.17654639175257733
+        "pesoCubierto": 66.5,
+        "avance": 0.1713917525773196
       },
       "S": {
         "total": 471,
@@ -256,14 +256,14 @@
       "13": {
         "titulo": "Canvas — estados (designaciones, par entrada-salida, supresión, layout interno)",
         "total": 18,
-        "cubierto": 7,
+        "cubierto": 2,
         "parcial": 6,
-        "pendiente": 5,
+        "pendiente": 10,
         "diferido": 0,
         "bloqueado": 0,
         "pesoTotal": 48,
-        "pesoCubierto": 26,
-        "avance": 0.5416666666666666
+        "pesoCubierto": 14,
+        "avance": 0.2916666666666667
       },
       "14": {
         "titulo": "Canvas — estilado visual de cosas, texto y enlaces",
@@ -304,14 +304,14 @@
       "17": {
         "titulo": "Canvas — objetos avanzados (alias, unidad, descripción, URL, plegado parcial, designaciones de estado, duración)",
         "total": 28,
-        "cubierto": 1,
+        "cubierto": 0,
         "parcial": 3,
-        "pendiente": 24,
+        "pendiente": 25,
         "diferido": 0,
         "bloqueado": 0,
         "pesoTotal": 54,
-        "pesoCubierto": 6,
-        "avance": 0.1111111111111111
+        "pesoCubierto": 5,
+        "avance": 0.09259259259259259
       },
       "18": {
         "titulo": "Canvas — plegado parcial (vista compacta de refinadores intra-rectángulo)",
@@ -797,13 +797,13 @@
         "titulo": "Patrones transversales",
         "total": 9,
         "cubierto": 0,
-        "parcial": 6,
-        "pendiente": 3,
+        "parcial": 5,
+        "pendiente": 4,
         "diferido": 0,
         "bloqueado": 0,
         "pesoTotal": 48,
-        "pesoCubierto": 14,
-        "avance": 0.2916666666666667
+        "pesoCubierto": 13,
+        "avance": 0.2708333333333333
       }
     }
   },
@@ -1107,11 +1107,13 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/shared/HU-SHARED-006-dirty-state.md",
       "lineaInicio": 16,
       "corte": "alpha",
-      "estadoAvance": "parcial",
+      "estadoAvance": "pendiente",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto: dirty state se calcula contra snapshot guardado y hay confirmacion global antes de acciones destructivas; falta read-only completo.",
-      "brechas": [],
+      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
+      "brechas": [
+        "app/src/store.ts: falta dirty: exportarModelo(modelo) !== snapshotGuardado"
+      ],
       "evidencia": [
         {
           "path": "app/src/store.ts",
@@ -1127,8 +1129,8 @@
         }
       ],
       "peso": 2,
-      "score": 0.5,
-      "avancePonderado": 1,
+      "score": 0,
+      "avancePonderado": 0,
       "enlaceFuente": "../historias-usuario-v2/shared/HU-SHARED-006-dirty-state.md"
     },
     {
@@ -19984,11 +19986,14 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-13-canvas-estados.md",
       "lineaInicio": 86,
       "corte": "beta",
-      "estadoAvance": "cubierto",
+      "estadoAvance": "pendiente",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto: estados inicial/final se validan, renderizan, serializan y verbalizan en OPL con pruebas.",
-      "brechas": [],
+      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
+      "brechas": [
+        "app/src/opl/generar.ts: falta inicial",
+        "app/src/opl/generar.ts: falta final"
+      ],
       "evidencia": [
         {
           "path": "app/src/modelo/operaciones.ts",
@@ -20012,8 +20017,8 @@
         }
       ],
       "peso": 2,
-      "score": 1,
-      "avancePonderado": 2,
+      "score": 0,
+      "avancePonderado": 0,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-13-canvas-estados.md"
     },
     {
@@ -20229,11 +20234,14 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-13-canvas-estados.md",
       "lineaInicio": 171,
       "corte": "beta",
-      "estadoAvance": "cubierto",
+      "estadoAvance": "pendiente",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto: estados inicial/final se validan, renderizan, serializan y verbalizan en OPL con pruebas.",
-      "brechas": [],
+      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
+      "brechas": [
+        "app/src/opl/generar.ts: falta inicial",
+        "app/src/opl/generar.ts: falta final"
+      ],
       "evidencia": [
         {
           "path": "app/src/modelo/operaciones.ts",
@@ -20257,8 +20265,8 @@
         }
       ],
       "peso": 4,
-      "score": 1,
-      "avancePonderado": 4,
+      "score": 0,
+      "avancePonderado": 0,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-13-canvas-estados.md"
     },
     {
@@ -20334,11 +20342,14 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-13-canvas-estados.md",
       "lineaInicio": 207,
       "corte": "beta",
-      "estadoAvance": "cubierto",
+      "estadoAvance": "pendiente",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto: estados inicial/final se validan, renderizan, serializan y verbalizan en OPL con pruebas.",
-      "brechas": [],
+      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
+      "brechas": [
+        "app/src/opl/generar.ts: falta inicial",
+        "app/src/opl/generar.ts: falta final"
+      ],
       "evidencia": [
         {
           "path": "app/src/modelo/operaciones.ts",
@@ -20362,8 +20373,8 @@
         }
       ],
       "peso": 2,
-      "score": 1,
-      "avancePonderado": 2,
+      "score": 0,
+      "avancePonderado": 0,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-13-canvas-estados.md"
     },
     {
@@ -20396,11 +20407,14 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-13-canvas-estados.md",
       "lineaInicio": 225,
       "corte": "beta",
-      "estadoAvance": "cubierto",
+      "estadoAvance": "pendiente",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto: estados inicial/final se validan, renderizan, serializan y verbalizan en OPL con pruebas.",
-      "brechas": [],
+      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
+      "brechas": [
+        "app/src/opl/generar.ts: falta inicial",
+        "app/src/opl/generar.ts: falta final"
+      ],
       "evidencia": [
         {
           "path": "app/src/modelo/operaciones.ts",
@@ -20424,8 +20438,8 @@
         }
       ],
       "peso": 2,
-      "score": 1,
-      "avancePonderado": 2,
+      "score": 0,
+      "avancePonderado": 0,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-13-canvas-estados.md"
     },
     {
@@ -20704,11 +20718,14 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-13-canvas-estados.md",
       "lineaInicio": 317,
       "corte": "beta",
-      "estadoAvance": "cubierto",
+      "estadoAvance": "pendiente",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto: estados inicial/final se validan, renderizan, serializan y verbalizan en OPL con pruebas.",
-      "brechas": [],
+      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
+      "brechas": [
+        "app/src/opl/generar.ts: falta inicial",
+        "app/src/opl/generar.ts: falta final"
+      ],
       "evidencia": [
         {
           "path": "app/src/modelo/operaciones.ts",
@@ -20732,8 +20749,8 @@
         }
       ],
       "peso": 2,
-      "score": 1,
-      "avancePonderado": 2,
+      "score": 0,
+      "avancePonderado": 0,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-13-canvas-estados.md"
     },
     {
@@ -22202,6 +22219,7 @@
       "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
       "brechas": [
         "app/src/render/jointjs/abanicoOverlay.ts: falta standard.Polygon",
+        "app/src/render/jointjs/abanicoOverlay.ts: falta standard.Path",
         "app/src/render/jointjs/proyeccion.ts: falta abanico.operador"
       ],
       "evidencia": [
@@ -22279,6 +22297,7 @@
       "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
       "brechas": [
         "app/src/render/jointjs/abanicoOverlay.ts: falta standard.Polygon",
+        "app/src/render/jointjs/abanicoOverlay.ts: falta standard.Path",
         "app/src/render/jointjs/proyeccion.ts: falta abanico.operador"
       ],
       "evidencia": [
@@ -25057,11 +25076,14 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-17-canvas-objetos-avanzados.md",
       "lineaInicio": 374,
       "corte": "gamma",
-      "estadoAvance": "cubierto",
+      "estadoAvance": "pendiente",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto: estados inicial/final se validan, renderizan, serializan y verbalizan en OPL con pruebas.",
-      "brechas": [],
+      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
+      "brechas": [
+        "app/src/opl/generar.ts: falta inicial",
+        "app/src/opl/generar.ts: falta final"
+      ],
       "evidencia": [
         {
           "path": "app/src/modelo/operaciones.ts",
@@ -25085,8 +25107,8 @@
         }
       ],
       "peso": 1,
-      "score": 1,
-      "avancePonderado": 1,
+      "score": 0,
+      "avancePonderado": 0,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-17-canvas-objetos-avanzados.md"
     },
     {
@@ -39610,7 +39632,7 @@
       "estadoInventario": "viva",
       "archivo": "docs/historias-usuario-v2/epicas/epica-70-interop-opcat.md",
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-70-interop-opcat.md",
-      "lineaInicio": 21,
+      "lineaInicio": 26,
       "corte": "gamma",
       "estadoAvance": "pendiente",
       "confianza": "sin-evidencia",
@@ -39641,7 +39663,7 @@
       "estadoInventario": "viva",
       "archivo": "docs/historias-usuario-v2/epicas/epica-70-interop-opcat.md",
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-70-interop-opcat.md",
-      "lineaInicio": 24,
+      "lineaInicio": 29,
       "corte": "gamma",
       "estadoAvance": "pendiente",
       "confianza": "sin-evidencia",
@@ -39672,7 +39694,7 @@
       "estadoInventario": "viva",
       "archivo": "docs/historias-usuario-v2/epicas/epica-70-interop-opcat.md",
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-70-interop-opcat.md",
-      "lineaInicio": 27,
+      "lineaInicio": 32,
       "corte": "gamma",
       "estadoAvance": "pendiente",
       "confianza": "sin-evidencia",
@@ -39703,7 +39725,7 @@
       "estadoInventario": "viva",
       "archivo": "docs/historias-usuario-v2/epicas/epica-70-interop-opcat.md",
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-70-interop-opcat.md",
-      "lineaInicio": 30,
+      "lineaInicio": 35,
       "corte": "gamma",
       "estadoAvance": "pendiente",
       "confianza": "sin-evidencia",
@@ -39734,7 +39756,7 @@
       "estadoInventario": "viva",
       "archivo": "docs/historias-usuario-v2/epicas/epica-70-interop-opcat.md",
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-70-interop-opcat.md",
-      "lineaInicio": 33,
+      "lineaInicio": 38,
       "corte": "gamma",
       "estadoAvance": "pendiente",
       "confianza": "sin-evidencia",
@@ -39765,7 +39787,7 @@
       "estadoInventario": "viva",
       "archivo": "docs/historias-usuario-v2/epicas/epica-70-interop-opcat.md",
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-70-interop-opcat.md",
-      "lineaInicio": 36,
+      "lineaInicio": 41,
       "corte": "gamma",
       "estadoAvance": "pendiente",
       "confianza": "sin-evidencia",
@@ -39796,7 +39818,7 @@
       "estadoInventario": "viva",
       "archivo": "docs/historias-usuario-v2/epicas/epica-70-interop-opcat.md",
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-70-interop-opcat.md",
-      "lineaInicio": 39,
+      "lineaInicio": 44,
       "corte": "gamma",
       "estadoAvance": "pendiente",
       "confianza": "sin-evidencia",
@@ -39827,7 +39849,7 @@
       "estadoInventario": "viva",
       "archivo": "docs/historias-usuario-v2/epicas/epica-70-interop-opcat.md",
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-70-interop-opcat.md",
-      "lineaInicio": 42,
+      "lineaInicio": 47,
       "corte": "gamma",
       "estadoAvance": "pendiente",
       "confianza": "sin-evidencia",
@@ -39859,7 +39881,7 @@
       "estadoInventario": "viva",
       "archivo": "docs/historias-usuario-v2/epicas/epica-70-interop-opcat.md",
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-70-interop-opcat.md",
-      "lineaInicio": 45,
+      "lineaInicio": 50,
       "corte": "gamma",
       "estadoAvance": "pendiente",
       "confianza": "sin-evidencia",
@@ -39897,7 +39919,7 @@
       "estadoInventario": "viva",
       "archivo": "docs/historias-usuario-v2/epicas/epica-70-interop-opcat.md",
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-70-interop-opcat.md",
-      "lineaInicio": 48,
+      "lineaInicio": 53,
       "corte": "gamma",
       "estadoAvance": "pendiente",
       "confianza": "sin-evidencia",
@@ -39932,7 +39954,7 @@
       "estadoInventario": "viva",
       "archivo": "docs/historias-usuario-v2/epicas/epica-70-interop-opcat.md",
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-70-interop-opcat.md",
-      "lineaInicio": 51,
+      "lineaInicio": 56,
       "corte": "gamma",
       "estadoAvance": "pendiente",
       "confianza": "sin-evidencia",
@@ -39963,7 +39985,7 @@
       "estadoInventario": "viva",
       "archivo": "docs/historias-usuario-v2/epicas/epica-70-interop-opcat.md",
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-70-interop-opcat.md",
-      "lineaInicio": 54,
+      "lineaInicio": 59,
       "corte": "gamma",
       "estadoAvance": "pendiente",
       "confianza": "sin-evidencia",
@@ -40000,7 +40022,7 @@
       "estadoInventario": "viva",
       "archivo": "docs/historias-usuario-v2/epicas/epica-70-interop-opcat.md",
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-70-interop-opcat.md",
-      "lineaInicio": 57,
+      "lineaInicio": 62,
       "corte": "gamma",
       "estadoAvance": "pendiente",
       "confianza": "sin-evidencia",
@@ -40034,7 +40056,7 @@
       "estadoInventario": "viva",
       "archivo": "docs/historias-usuario-v2/epicas/epica-70-interop-opcat.md",
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-70-interop-opcat.md",
-      "lineaInicio": 60,
+      "lineaInicio": 65,
       "corte": "gamma",
       "estadoAvance": "pendiente",
       "confianza": "sin-evidencia",
@@ -40068,7 +40090,7 @@
       "estadoInventario": "viva",
       "archivo": "docs/historias-usuario-v2/epicas/epica-70-interop-opcat.md",
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-70-interop-opcat.md",
-      "lineaInicio": 63,
+      "lineaInicio": 68,
       "corte": "gamma",
       "estadoAvance": "pendiente",
       "confianza": "sin-evidencia",
@@ -40099,7 +40121,7 @@
       "estadoInventario": "viva",
       "archivo": "docs/historias-usuario-v2/epicas/epica-70-interop-opcat.md",
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-70-interop-opcat.md",
-      "lineaInicio": 66,
+      "lineaInicio": 71,
       "corte": "gamma",
       "estadoAvance": "pendiente",
       "confianza": "sin-evidencia",
@@ -40130,7 +40152,7 @@
       "estadoInventario": "viva",
       "archivo": "docs/historias-usuario-v2/epicas/epica-70-interop-opcat.md",
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-70-interop-opcat.md",
-      "lineaInicio": 69,
+      "lineaInicio": 74,
       "corte": "gamma",
       "estadoAvance": "pendiente",
       "confianza": "sin-evidencia",
@@ -40161,7 +40183,7 @@
       "estadoInventario": "viva",
       "archivo": "docs/historias-usuario-v2/epicas/epica-70-interop-opcat.md",
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-70-interop-opcat.md",
-      "lineaInicio": 72,
+      "lineaInicio": 77,
       "corte": "gamma",
       "estadoAvance": "pendiente",
       "confianza": "sin-evidencia",
@@ -40195,7 +40217,7 @@
       "estadoInventario": "viva",
       "archivo": "docs/historias-usuario-v2/epicas/epica-70-interop-opcat.md",
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-70-interop-opcat.md",
-      "lineaInicio": 75,
+      "lineaInicio": 80,
       "corte": "gamma",
       "estadoAvance": "pendiente",
       "confianza": "sin-evidencia",
@@ -40226,7 +40248,7 @@
       "estadoInventario": "viva",
       "archivo": "docs/historias-usuario-v2/epicas/epica-70-interop-opcat.md",
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-70-interop-opcat.md",
-      "lineaInicio": 78,
+      "lineaInicio": 83,
       "corte": "gamma",
       "estadoAvance": "pendiente",
       "confianza": "sin-evidencia",
@@ -40259,7 +40281,7 @@
       "estadoInventario": "viva",
       "archivo": "docs/historias-usuario-v2/epicas/epica-70-interop-opcat.md",
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-70-interop-opcat.md",
-      "lineaInicio": 81,
+      "lineaInicio": 86,
       "corte": "gamma",
       "estadoAvance": "pendiente",
       "confianza": "sin-evidencia",
@@ -40292,7 +40314,7 @@
       "estadoInventario": "viva",
       "archivo": "docs/historias-usuario-v2/epicas/epica-70-interop-opcat.md",
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-70-interop-opcat.md",
-      "lineaInicio": 84,
+      "lineaInicio": 89,
       "corte": "gamma",
       "estadoAvance": "pendiente",
       "confianza": "sin-evidencia",
@@ -40325,7 +40347,7 @@
       "estadoInventario": "viva",
       "archivo": "docs/historias-usuario-v2/epicas/epica-70-interop-opcat.md",
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-70-interop-opcat.md",
-      "lineaInicio": 87,
+      "lineaInicio": 92,
       "corte": "gamma",
       "estadoAvance": "pendiente",
       "confianza": "sin-evidencia",
@@ -40359,7 +40381,7 @@
       "estadoInventario": "viva",
       "archivo": "docs/historias-usuario-v2/epicas/epica-70-interop-opcat.md",
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-70-interop-opcat.md",
-      "lineaInicio": 90,
+      "lineaInicio": 95,
       "corte": "gamma",
       "estadoAvance": "pendiente",
       "confianza": "sin-evidencia",
@@ -40395,7 +40417,7 @@
       "estadoInventario": "viva",
       "archivo": "docs/historias-usuario-v2/epicas/epica-70-interop-opcat.md",
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-70-interop-opcat.md",
-      "lineaInicio": 93,
+      "lineaInicio": 98,
       "corte": "gamma",
       "estadoAvance": "pendiente",
       "confianza": "sin-evidencia",
@@ -44229,7 +44251,7 @@
       "estadoInventario": "viva",
       "archivo": "docs/historias-usuario-v2/epicas/epica-91-interaccion-tutorial.md",
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-91-interaccion-tutorial.md",
-      "lineaInicio": 21,
+      "lineaInicio": 26,
       "corte": "gamma",
       "estadoAvance": "pendiente",
       "confianza": "sin-evidencia",
@@ -44260,7 +44282,7 @@
       "estadoInventario": "viva",
       "archivo": "docs/historias-usuario-v2/epicas/epica-91-interaccion-tutorial.md",
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-91-interaccion-tutorial.md",
-      "lineaInicio": 24,
+      "lineaInicio": 29,
       "corte": "gamma",
       "estadoAvance": "pendiente",
       "confianza": "sin-evidencia",
@@ -44291,7 +44313,7 @@
       "estadoInventario": "viva",
       "archivo": "docs/historias-usuario-v2/epicas/epica-91-interaccion-tutorial.md",
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-91-interaccion-tutorial.md",
-      "lineaInicio": 27,
+      "lineaInicio": 32,
       "corte": "gamma",
       "estadoAvance": "pendiente",
       "confianza": "sin-evidencia",
@@ -44322,7 +44344,7 @@
       "estadoInventario": "viva",
       "archivo": "docs/historias-usuario-v2/epicas/epica-91-interaccion-tutorial.md",
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-91-interaccion-tutorial.md",
-      "lineaInicio": 30,
+      "lineaInicio": 35,
       "corte": "gamma",
       "estadoAvance": "pendiente",
       "confianza": "sin-evidencia",
@@ -44353,7 +44375,7 @@
       "estadoInventario": "viva",
       "archivo": "docs/historias-usuario-v2/epicas/epica-91-interaccion-tutorial.md",
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-91-interaccion-tutorial.md",
-      "lineaInicio": 33,
+      "lineaInicio": 38,
       "corte": "gamma",
       "estadoAvance": "pendiente",
       "confianza": "sin-evidencia",
@@ -44384,7 +44406,7 @@
       "estadoInventario": "viva",
       "archivo": "docs/historias-usuario-v2/epicas/epica-91-interaccion-tutorial.md",
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-91-interaccion-tutorial.md",
-      "lineaInicio": 36,
+      "lineaInicio": 41,
       "corte": "gamma",
       "estadoAvance": "pendiente",
       "confianza": "sin-evidencia",
@@ -44417,7 +44439,7 @@
       "estadoInventario": "viva",
       "archivo": "docs/historias-usuario-v2/epicas/epica-91-interaccion-tutorial.md",
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-91-interaccion-tutorial.md",
-      "lineaInicio": 39,
+      "lineaInicio": 44,
       "corte": "gamma",
       "estadoAvance": "pendiente",
       "confianza": "sin-evidencia",
@@ -44448,7 +44470,7 @@
       "estadoInventario": "viva",
       "archivo": "docs/historias-usuario-v2/epicas/epica-91-interaccion-tutorial.md",
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-91-interaccion-tutorial.md",
-      "lineaInicio": 42,
+      "lineaInicio": 47,
       "corte": "gamma",
       "estadoAvance": "pendiente",
       "confianza": "sin-evidencia",
@@ -44479,7 +44501,7 @@
       "estadoInventario": "viva",
       "archivo": "docs/historias-usuario-v2/epicas/epica-91-interaccion-tutorial.md",
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-91-interaccion-tutorial.md",
-      "lineaInicio": 45,
+      "lineaInicio": 50,
       "corte": "gamma",
       "estadoAvance": "pendiente",
       "confianza": "sin-evidencia",
@@ -44510,7 +44532,7 @@
       "estadoInventario": "viva",
       "archivo": "docs/historias-usuario-v2/epicas/epica-91-interaccion-tutorial.md",
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-91-interaccion-tutorial.md",
-      "lineaInicio": 48,
+      "lineaInicio": 53,
       "corte": "gamma",
       "estadoAvance": "pendiente",
       "confianza": "sin-evidencia",
@@ -44541,7 +44563,7 @@
       "estadoInventario": "viva",
       "archivo": "docs/historias-usuario-v2/epicas/epica-91-interaccion-tutorial.md",
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-91-interaccion-tutorial.md",
-      "lineaInicio": 51,
+      "lineaInicio": 56,
       "corte": "gamma",
       "estadoAvance": "pendiente",
       "confianza": "sin-evidencia",
@@ -44572,7 +44594,7 @@
       "estadoInventario": "viva",
       "archivo": "docs/historias-usuario-v2/epicas/epica-91-interaccion-tutorial.md",
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-91-interaccion-tutorial.md",
-      "lineaInicio": 54,
+      "lineaInicio": 59,
       "corte": "gamma",
       "estadoAvance": "pendiente",
       "confianza": "sin-evidencia",
@@ -44603,7 +44625,7 @@
       "estadoInventario": "viva",
       "archivo": "docs/historias-usuario-v2/epicas/epica-91-interaccion-tutorial.md",
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-91-interaccion-tutorial.md",
-      "lineaInicio": 57,
+      "lineaInicio": 62,
       "corte": "gamma",
       "estadoAvance": "pendiente",
       "confianza": "sin-evidencia",
@@ -44634,7 +44656,7 @@
       "estadoInventario": "viva",
       "archivo": "docs/historias-usuario-v2/epicas/epica-91-interaccion-tutorial.md",
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-91-interaccion-tutorial.md",
-      "lineaInicio": 60,
+      "lineaInicio": 65,
       "corte": "gamma",
       "estadoAvance": "pendiente",
       "confianza": "sin-evidencia",
@@ -44665,7 +44687,7 @@
       "estadoInventario": "viva",
       "archivo": "docs/historias-usuario-v2/epicas/epica-91-interaccion-tutorial.md",
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-91-interaccion-tutorial.md",
-      "lineaInicio": 63,
+      "lineaInicio": 68,
       "corte": "gamma",
       "estadoAvance": "pendiente",
       "confianza": "sin-evidencia",
@@ -44698,7 +44720,7 @@
       "estadoInventario": "viva",
       "archivo": "docs/historias-usuario-v2/epicas/epica-91-interaccion-tutorial.md",
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-91-interaccion-tutorial.md",
-      "lineaInicio": 66,
+      "lineaInicio": 71,
       "corte": "gamma",
       "estadoAvance": "pendiente",
       "confianza": "sin-evidencia",

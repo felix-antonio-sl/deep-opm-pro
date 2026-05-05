@@ -728,13 +728,13 @@
   ],
   "knownGaps": [],
   "autoAudit": {
-    "generatedAt": "2026-05-05T17:50:46.006Z",
+    "generatedAt": "2026-05-05T20:30:24.738Z",
     "mode": "sync-real",
     "rulesEvaluated": 49,
-    "rulesMatched": 47,
-    "rulesUnmatched": 2,
+    "rulesMatched": 45,
+    "rulesUnmatched": 4,
     "sourceFiles": {
-      "count": 125,
+      "count": 159,
       "roots": [
         "app/src",
         "app/e2e",
@@ -764,14 +764,17 @@
       "ids": [
         "HU-SHARED-006"
       ],
-      "estado": "parcial",
+      "estado": "pendiente",
       "confianza": "alta-auto",
       "fuente": "auto",
-      "nota": "Auto: dirty state se calcula contra snapshot guardado y hay confirmacion global antes de acciones destructivas; falta read-only completo.",
+      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
       "evidencia": [
         "app/src/store.ts",
         "app/src/ui/ConfirmacionContext.tsx",
         "app/src/ui/DialogoConfirmacion.tsx"
+      ],
+      "brechas": [
+        "app/src/store.ts: falta dirty: exportarModelo(modelo) !== snapshotGuardado"
       ]
     },
     {
@@ -1148,16 +1151,20 @@
         "HU-13.017",
         "HU-17.033"
       ],
-      "estado": "cubierto",
+      "estado": "pendiente",
       "confianza": "alta-auto",
       "fuente": "auto",
-      "nota": "Auto: estados inicial/final se validan, renderizan, serializan y verbalizan en OPL con pruebas.",
+      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
       "evidencia": [
         "app/src/modelo/operaciones.ts",
         "app/src/opl/generar.ts",
         "app/src/serializacion/json.ts",
         "app/src/completitud.test.ts",
         "app/src/render/jointjs/proyeccion.test.ts"
+      ],
+      "brechas": [
+        "app/src/opl/generar.ts: falta inicial",
+        "app/src/opl/generar.ts: falta final"
       ]
     },
     {
@@ -1368,6 +1375,7 @@
       ],
       "brechas": [
         "app/src/render/jointjs/abanicoOverlay.ts: falta standard.Polygon",
+        "app/src/render/jointjs/abanicoOverlay.ts: falta standard.Path",
         "app/src/render/jointjs/proyeccion.ts: falta abanico.operador"
       ]
     },
