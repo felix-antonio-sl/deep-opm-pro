@@ -4,12 +4,15 @@ import { modoPlegadoApariencia, partesDePlegado, type PartePlegada } from "../..
 import type { Apariencia, Enlace, Entidad, Estado, Id, Modelo, Posicion, TipoEnlace } from "../../modelo/tipos";
 import { LINK_ASSETS } from "./linkAssets";
 
+export type RolApariencia = "contorno" | "interno" | "externo";
+
 export type OpmJointMetadata =
   | {
       kind: "entidad";
       opdId: Id;
       entidadId: Id;
       aparienciaId: Id;
+      rol: RolApariencia;
     }
   | {
       kind: "enlace";
@@ -128,9 +131,33 @@ function proyectarEntidad(modelo: Modelo, opdId: Id, apariencia: Apariencia, ent
       opdId,
       entidadId: entidad.id,
       aparienciaId: apariencia.id,
+      rol: rolApariencia(modelo, opdId, entidad, contornoRefinamiento),
     },
     z: contornoRefinamiento ? 0 : 10,
   };
+}
+
+// Distingue el rol de una apariencia dentro de su OPD para que el render
+// (embed JointJS) y el kernel (drag delta) tomen decisiones consistentes
+// sobre qué cells siguen al contorno y cuáles son anclas externas.
+//
+// - "contorno": apariencia del refinable cuyo OPD descompuesto es el actual.
+// - "externo": apariencia proxy de una entidad que tambien tiene apariencia
+//   en otro OPD (típicamente el padre); representa el contexto del
+//   refinamiento, no su contenido.
+// - "interno": apariencia creada como parte de este OPD (subproceso, parte
+//   refinadora, objeto interno). Único OPD donde aparece.
+function rolApariencia(modelo: Modelo, opdId: Id, entidad: Entidad, esContorno: boolean): RolApariencia {
+  if (esContorno) return "contorno";
+  for (const otroOpdId of Object.keys(modelo.opds)) {
+    if (otroOpdId === opdId) continue;
+    const otroOpd = modelo.opds[otroOpdId];
+    if (!otroOpd) continue;
+    for (const ap of Object.values(otroOpd.apariencias)) {
+      if (ap.entidadId === entidad.id) return "externo";
+    }
+  }
+  return "interno";
 }
 
 function dimensionesPlegadoParcial(apariencia: Apariencia, nombrePadre: string, partes: PartePlegada[]): { width: number; height: number } {

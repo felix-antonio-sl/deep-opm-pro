@@ -75,9 +75,12 @@ export function JointCanvas() {
         if (!parent || parent.isLink()) return false;
         const parentBBox = parent.getBBox();
         const cellBBox = cell.getBBox();
-        const padX = 12;
-        const padTop = 50;
-        const padBottom = 20;
+        // Padding minimo en lados; padTop deja espacio para el label superior
+        // del contorno (HU-12.009). Con valores pequenos, el cell puede ir
+        // hasta el borde interior sin "encerramiento" virtual.
+        const padX = 4;
+        const padTop = 28;
+        const padBottom = 8;
         return {
           x: parentBBox.x + padX,
           y: parentBBox.y + padTop,
@@ -246,37 +249,24 @@ function embedirContorno(graph: dia.Graph): void {
   const elementos = graph.getElements();
   if (elementos.length === 0) return;
   let contorno: dia.Element | null = null;
-  let mayorArea = 0;
   for (const cell of elementos) {
     const meta = cell.prop("opm") as OpmJointMetadata | undefined;
-    if (meta?.kind !== "entidad") continue;
-    const bbox = cell.getBBox();
-    const area = bbox.width * bbox.height;
-    if (area > mayorArea) {
-      mayorArea = area;
+    if (meta?.kind === "entidad" && meta.rol === "contorno") {
       contorno = cell;
+      break;
     }
   }
   if (!contorno) return;
-  // Heuristica: el contorno es entidad y al menos 1.5x el tamano de cosas
-  // canonicas (135x60 = 8100). Si el "mayor" no califica, no hay contorno.
-  if (mayorArea < 16000) return;
 
-  const contornoBBox = contorno.getBBox();
+  // Embeba SOLO apariencias internas. Las externas (proxy de entidades del
+  // padre) deben quedar libres: no siguen al contorno durante el drag, y al
+  // arrastrarse individualmente no se confinan al bbox del contorno.
   for (const cell of elementos) {
     if (cell.id === contorno.id) continue;
     const meta = cell.prop("opm") as OpmJointMetadata | undefined;
     if (meta?.kind !== "entidad") continue;
-    const cellBBox = cell.getBBox();
-    const center = {
-      x: cellBBox.x + cellBBox.width / 2,
-      y: cellBBox.y + cellBBox.height / 2,
-    };
-    const dentro = center.x >= contornoBBox.x
-      && center.x <= contornoBBox.x + contornoBBox.width
-      && center.y >= contornoBBox.y
-      && center.y <= contornoBBox.y + contornoBBox.height;
-    if (dentro) contorno.embed(cell);
+    if (meta.rol !== "interno") continue;
+    contorno.embed(cell);
   }
 }
 

@@ -426,6 +426,18 @@ export function moverApariencia(modelo: Modelo, opdId: Id, entidadId: Id, posici
   return moverAparienciaPorId(modelo, opdId, apariencia.id, posicion);
 }
 
+function aparienciaEsProxyExterna(modelo: Modelo, opdId: Id, apariencia: Apariencia): boolean {
+  for (const otroOpdId of Object.keys(modelo.opds)) {
+    if (otroOpdId === opdId) continue;
+    const otroOpd = modelo.opds[otroOpdId];
+    if (!otroOpd) continue;
+    for (const ap of Object.values(otroOpd.apariencias)) {
+      if (ap.entidadId === apariencia.entidadId) return true;
+    }
+  }
+  return false;
+}
+
 export function moverAparienciaPorId(modelo: Modelo, opdId: Id, aparienciaId: Id, posicion: Posicion): Resultado<Modelo> {
   const opd = modelo.opds[opdId];
   if (!opd) return fallo(`OPD no existe: ${opdId}`);
@@ -438,13 +450,14 @@ export function moverAparienciaPorId(modelo: Modelo, opdId: Id, aparienciaId: Id
 
   let nuevasApariencias: Record<Id, Apariencia>;
   if (esContorno) {
-    // Mover contorno arrastra a las apariencias internas (centro dentro del
-    // bbox del contorno: subprocesos, partes refinadoras, objetos internos).
-    // Las apariencias proxy de externos (objetos del padre que aparecen en
-    // el OPD hijo conectados por enlaces derivados) viven FUERA del bbox
-    // del contorno por diseno y deben mantener su posicion absoluta — son
-    // anclas visuales del contexto del padre, no contenido del refinamiento
-    // (HU-12.008 contenedor envolvente; HU-12.010 externos parciales).
+    // Mover contorno arrastra a las apariencias internas (creadas dentro de
+    // este OPD: subprocesos, partes refinadoras, objetos internos). Las
+    // apariencias proxy de externos (entidades que tambien tienen apariencia
+    // en otro OPD, tipicamente el padre) son anclas del contexto y deben
+    // mantener su posicion absoluta. La distincion se basa en el modelo:
+    // una apariencia es proxy si la entidad existe en otro OPD; no se usa
+    // heuristica geometrica que falla cuando el contorno se desplaza sobre
+    // los proxies (HU-12.008 contenedor envolvente; HU-12.010 externos).
     const dx = posicion.x - apariencia.x;
     const dy = posicion.y - apariencia.y;
     nuevasApariencias = {};
@@ -453,24 +466,19 @@ export function moverAparienciaPorId(modelo: Modelo, opdId: Id, aparienciaId: Id
         nuevasApariencias[id] = { ...ap, x: posicion.x, y: posicion.y };
         continue;
       }
-      const centerX = ap.x + ap.width / 2;
-      const centerY = ap.y + ap.height / 2;
-      const dentroDelContorno = centerX >= apariencia.x
-        && centerX <= apariencia.x + apariencia.width
-        && centerY >= apariencia.y
-        && centerY <= apariencia.y + apariencia.height;
-      nuevasApariencias[id] = dentroDelContorno
-        ? { ...ap, x: ap.x + dx, y: ap.y + dy }
-        : ap;
+      nuevasApariencias[id] = aparienciaEsProxyExterna(modelo, opdId, ap)
+        ? ap
+        : { ...ap, x: ap.x + dx, y: ap.y + dy };
     }
-  } else if (contorno) {
+  } else if (contorno && !aparienciaEsProxyExterna(modelo, opdId, apariencia)) {
     // Apariencia interna: clamp al bbox del contorno (HU-12.020 restriccion
-    // interior). Margen 36px en lados; tope superior respeta header del
-    // contorno; tope inferior deja 24px de aire.
-    const minX = contorno.x + 36;
-    const maxX = contorno.x + contorno.width - apariencia.width - 36;
-    const minY = contorno.y + 60;
-    const maxY = contorno.y + contorno.height - apariencia.height - 24;
+    // interior). Padding coherente con restrictTranslate del paper. Las
+    // apariencias proxy de externos NO se clampean (caen en la rama "else"
+    // de abajo) porque por diseno viven fuera del bbox del contorno.
+    const minX = contorno.x + 4;
+    const maxX = contorno.x + contorno.width - apariencia.width - 4;
+    const minY = contorno.y + 28;
+    const maxY = contorno.y + contorno.height - apariencia.height - 8;
     const clampX = Math.max(minX, Math.min(maxX, posicion.x));
     const clampY = Math.max(minY, Math.min(maxY, posicion.y));
     nuevasApariencias = {

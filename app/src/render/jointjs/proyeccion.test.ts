@@ -26,6 +26,7 @@ describe("proyeccion JointJS", () => {
       opdId: modelo.opdRaizId,
       entidadId: entidad.id,
       aparienciaId: apariencia.id,
+      rol: "interno",
     });
     expect(((cells[0]?.attrs as Attrs | undefined)?.label as Attrs | undefined)?.textWrap).toEqual({ width: -12 });
   });
