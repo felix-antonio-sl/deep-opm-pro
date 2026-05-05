@@ -1,15 +1,15 @@
 {
   "schema": "deep-opm-pro.hu-progress-report.v1",
-  "generatedAt": "2026-05-05T20:30:24.738Z",
-  "repoRoot": "/home/felix/projects/deep-opm-pro",
+  "generatedAt": "2026-05-05T22:11:28.677Z",
+  "repoRoot": "/tmp/deep-opm-pro-l6a-check",
   "backlogRoot": "docs/historias-usuario-v2",
   "evidenceLedger": "docs/roadmap/hu-progress-evidence.json",
   "autoAudit": {
-    "generatedAt": "2026-05-05T20:30:24.738Z",
+    "generatedAt": "2026-05-05T22:11:28.677Z",
     "mode": "sync-real",
-    "rulesEvaluated": 49,
-    "rulesMatched": 45,
-    "rulesUnmatched": 4,
+    "rulesEvaluated": 55,
+    "rulesMatched": 55,
+    "rulesUnmatched": 0,
     "sourceFiles": {
       "count": 159,
       "roots": [
@@ -43,14 +43,14 @@
   "summaries": {
     "total": {
       "total": 1126,
-      "cubierto": 109,
-      "parcial": 50,
-      "pendiente": 589,
+      "cubierto": 168,
+      "parcial": 51,
+      "pendiente": 529,
       "diferido": 378,
       "bloqueado": 0,
       "pesoTotal": 3004,
-      "pesoCubierto": 365.5,
-      "avance": 0.1216711051930759
+      "pesoCubierto": 497.5,
+      "avance": 0.16561251664447404
     },
     "inventario": {
       "totalParseadas": 1173,
@@ -60,70 +60,70 @@
     },
     "m0": {
       "total": 130,
-      "cubierto": 72,
+      "cubierto": 83,
       "parcial": 29,
-      "pendiente": 29,
+      "pendiente": 18,
       "diferido": 0,
       "bloqueado": 0,
       "pesoTotal": 333,
-      "pesoCubierto": 218,
-      "avance": 0.6546546546546547
+      "pesoCubierto": 248,
+      "avance": 0.7447447447447447
     },
     "alpha": {
       "total": 121,
-      "cubierto": 46,
-      "parcial": 22,
-      "pendiente": 53,
+      "cubierto": 48,
+      "parcial": 23,
+      "pendiente": 50,
       "diferido": 0,
       "bloqueado": 0,
       "pesoTotal": 326,
-      "pesoCubierto": 140,
-      "avance": 0.4294478527607362
+      "pesoCubierto": 151,
+      "avance": 0.46319018404907975
     },
     "beta": {
       "total": 193,
-      "cubierto": 46,
+      "cubierto": 57,
       "parcial": 23,
-      "pendiente": 124,
+      "pendiente": 113,
       "diferido": 0,
       "bloqueado": 0,
       "pesoTotal": 545,
-      "pesoCubierto": 170.5,
-      "avance": 0.3128440366972477
+      "pesoCubierto": 195.5,
+      "avance": 0.3587155963302752
     },
     "byCut": {
       "alpha": {
         "total": 121,
-        "cubierto": 46,
-        "parcial": 22,
-        "pendiente": 53,
+        "cubierto": 48,
+        "parcial": 23,
+        "pendiente": 50,
         "diferido": 0,
         "bloqueado": 0,
         "pesoTotal": 326,
-        "pesoCubierto": 140,
-        "avance": 0.4294478527607362
+        "pesoCubierto": 151,
+        "avance": 0.46319018404907975
       },
       "beta": {
         "total": 193,
-        "cubierto": 46,
+        "cubierto": 57,
         "parcial": 23,
-        "pendiente": 124,
+        "pendiente": 113,
         "diferido": 0,
         "bloqueado": 0,
         "pesoTotal": 545,
-        "pesoCubierto": 170.5,
-        "avance": 0.3128440366972477
+        "pesoCubierto": 195.5,
+        "avance": 0.3587155963302752
       },
       "gamma": {
         "total": 434,
-        "cubierto": 17,
+        "cubierto": 63,
         "parcial": 5,
-        "pendiente": 412,
+        "pendiente": 366,
         "diferido": 0,
         "bloqueado": 0,
         "pesoTotal": 1126,
-        "pesoCubierto": 55,
-        "avance": 0.04884547069271759
+        "pesoCubierto": 151,
+        "avance": 0.1341030195381883
       },
       "delta": {
         "total": 378,
@@ -151,47 +151,47 @@
     "byPriority": {
       "M0": {
         "total": 130,
-        "cubierto": 72,
+        "cubierto": 83,
         "parcial": 29,
-        "pendiente": 29,
+        "pendiente": 18,
         "diferido": 0,
         "bloqueado": 0,
         "pesoTotal": 333,
-        "pesoCubierto": 218,
-        "avance": 0.6546546546546547
+        "pesoCubierto": 248,
+        "avance": 0.7447447447447447
       },
       "M1": {
         "total": 161,
-        "cubierto": 17,
-        "parcial": 12,
-        "pendiente": 126,
+        "cubierto": 49,
+        "parcial": 13,
+        "pendiente": 93,
         "diferido": 6,
         "bloqueado": 0,
         "pesoTotal": 388,
-        "pesoCubierto": 66.5,
-        "avance": 0.1713917525773196
+        "pesoCubierto": 130.5,
+        "avance": 0.33634020618556704
       },
       "S": {
         "total": 471,
-        "cubierto": 18,
+        "cubierto": 31,
         "parcial": 8,
-        "pendiente": 283,
+        "pendiente": 270,
         "diferido": 162,
         "bloqueado": 0,
         "pesoTotal": 1247,
-        "pesoCubierto": 73,
-        "avance": 0.05854049719326383
+        "pesoCubierto": 105,
+        "avance": 0.08420208500400962
       },
       "C": {
         "total": 247,
-        "cubierto": 2,
+        "cubierto": 5,
         "parcial": 1,
-        "pendiente": 143,
+        "pendiente": 140,
         "diferido": 101,
         "bloqueado": 0,
         "pesoTotal": 661,
-        "pesoCubierto": 8,
-        "avance": 0.012102874432677761
+        "pesoCubierto": 14,
+        "avance": 0.02118003025718608
       },
       "W": {
         "total": 117,
@@ -256,14 +256,14 @@
       "13": {
         "titulo": "Canvas — estados (designaciones, par entrada-salida, supresión, layout interno)",
         "total": 18,
-        "cubierto": 2,
+        "cubierto": 9,
         "parcial": 6,
-        "pendiente": 10,
+        "pendiente": 3,
         "diferido": 0,
         "bloqueado": 0,
         "pesoTotal": 48,
-        "pesoCubierto": 14,
-        "avance": 0.2916666666666667
+        "pesoCubierto": 32,
+        "avance": 0.6666666666666666
       },
       "14": {
         "titulo": "Canvas — estilado visual de cosas, texto y enlaces",
@@ -280,14 +280,14 @@
       "15": {
         "titulo": "Canvas — enlaces avanzados (multiplicidad, rutas, XOR/O, condición/evento/NO, invocación)",
         "total": 23,
-        "cubierto": 16,
+        "cubierto": 18,
         "parcial": 1,
-        "pendiente": 6,
+        "pendiente": 4,
         "diferido": 0,
         "bloqueado": 0,
         "pesoTotal": 51,
-        "pesoCubierto": 39,
-        "avance": 0.7647058823529411
+        "pesoCubierto": 43,
+        "avance": 0.8431372549019608
       },
       "16": {
         "titulo": "Canvas — enlaces: propiedades, Tabla de Enlaces y estilo",
@@ -304,14 +304,14 @@
       "17": {
         "titulo": "Canvas — objetos avanzados (alias, unidad, descripción, URL, plegado parcial, designaciones de estado, duración)",
         "total": 28,
-        "cubierto": 0,
+        "cubierto": 18,
         "parcial": 3,
-        "pendiente": 25,
+        "pendiente": 7,
         "diferido": 0,
         "bloqueado": 0,
         "pesoTotal": 54,
-        "pesoCubierto": 5,
-        "avance": 0.09259259259259259
+        "pesoCubierto": 33,
+        "avance": 0.6111111111111112
       },
       "18": {
         "titulo": "Canvas — plegado parcial (vista compacta de refinadores intra-rectángulo)",
@@ -364,26 +364,26 @@
       "30": {
         "titulo": "Persistencia — guardar/cargar, diálogos modales, versiones, archivado, búsqueda global, autosalvado",
         "total": 34,
-        "cubierto": 12,
+        "cubierto": 13,
         "parcial": 5,
-        "pendiente": 17,
+        "pendiente": 16,
         "diferido": 0,
         "bloqueado": 0,
         "pesoTotal": 89,
-        "pesoCubierto": 31,
-        "avance": 0.34831460674157305
+        "pesoCubierto": 35,
+        "avance": 0.39325842696629215
       },
       "31": {
         "titulo": "Persistencia — carpetas, jerarquía, permisos y navegación del workspace",
         "total": 26,
-        "cubierto": 0,
+        "cubierto": 3,
         "parcial": 0,
-        "pendiente": 26,
+        "pendiente": 23,
         "diferido": 0,
         "bloqueado": 0,
         "pesoTotal": 51,
-        "pesoCubierto": 0,
-        "avance": 0
+        "pesoCubierto": 8,
+        "avance": 0.1568627450980392
       },
       "32": {
         "titulo": "Persistencia — sub-modelos (vistas de subsistema, archivos peer, composición cross-modelo)",
@@ -412,26 +412,26 @@
       "34": {
         "titulo": "Persistencia — creación de modelo nuevo (ruta simple + asistente de 12 etapas)",
         "total": 28,
-        "cubierto": 6,
-        "parcial": 0,
-        "pendiente": 22,
-        "diferido": 0,
-        "bloqueado": 0,
-        "pesoTotal": 60,
-        "pesoCubierto": 8,
-        "avance": 0.13333333333333333
-      },
-      "35": {
-        "titulo": "Persistencia — mover modelos y buscar cosas (Ctrl+F intra-modelo)",
-        "total": 20,
-        "cubierto": 0,
+        "cubierto": 8,
         "parcial": 0,
         "pendiente": 20,
         "diferido": 0,
         "bloqueado": 0,
+        "pesoTotal": 60,
+        "pesoCubierto": 11,
+        "avance": 0.18333333333333332
+      },
+      "35": {
+        "titulo": "Persistencia — mover modelos y buscar cosas (Ctrl+F intra-modelo)",
+        "total": 20,
+        "cubierto": 5,
+        "parcial": 0,
+        "pendiente": 15,
+        "diferido": 0,
+        "bloqueado": 0,
         "pesoTotal": 44,
-        "pesoCubierto": 0,
-        "avance": 0
+        "pesoCubierto": 14,
+        "avance": 0.3181818181818182
       },
       "40": {
         "titulo": "Colaboración — permisos de modelo, token de edición y auto-lectura desde carpeta",
@@ -568,14 +568,14 @@
       "90": {
         "titulo": "Interacción — atajos de teclado",
         "total": 21,
-        "cubierto": 0,
+        "cubierto": 20,
         "parcial": 0,
-        "pendiente": 21,
+        "pendiente": 1,
         "diferido": 0,
         "bloqueado": 0,
         "pesoTotal": 48,
-        "pesoCubierto": 0,
-        "avance": 0
+        "pesoCubierto": 46,
+        "avance": 0.9583333333333334
       },
       "91": {
         "titulo": "Interacción — modo tutorial, tooltips guiados y asistencia pedagógica",
@@ -796,14 +796,14 @@
       "SHARED": {
         "titulo": "Patrones transversales",
         "total": 9,
-        "cubierto": 0,
-        "parcial": 5,
-        "pendiente": 4,
+        "cubierto": 1,
+        "parcial": 6,
+        "pendiente": 2,
         "diferido": 0,
         "bloqueado": 0,
         "pesoTotal": 48,
-        "pesoCubierto": 13,
-        "avance": 0.2708333333333333
+        "pesoCubierto": 20,
+        "avance": 0.4166666666666667
       }
     }
   },
@@ -1107,13 +1107,11 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/shared/HU-SHARED-006-dirty-state.md",
       "lineaInicio": 16,
       "corte": "alpha",
-      "estadoAvance": "pendiente",
+      "estadoAvance": "parcial",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
-      "brechas": [
-        "app/src/store.ts: falta dirty: exportarModelo(modelo) !== snapshotGuardado"
-      ],
+      "nota": "Auto: dirty state se calcula contra snapshot guardado y hay confirmacion global antes de acciones destructivas; falta read-only completo.",
+      "brechas": [],
       "evidencia": [
         {
           "path": "app/src/store.ts",
@@ -1129,8 +1127,8 @@
         }
       ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 0.5,
+      "avancePonderado": 1,
       "enlaceFuente": "../historias-usuario-v2/shared/HU-SHARED-006-dirty-state.md"
     },
     {
@@ -1177,14 +1175,11 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/shared/HU-SHARED-007-eco-opl.md",
       "lineaInicio": 16,
       "corte": "alpha",
-      "estadoAvance": "pendiente",
+      "estadoAvance": "parcial",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
-      "brechas": [
-        "app/src/ui/PanelOpl.tsx: falta generarOpl(modelo, opdActivoId)",
-        "app/src/ui/PanelOpl.tsx: falta renderOpl"
-      ],
+      "nota": "Auto: generacion OPL-ES forward cubre entidades, enlaces, estados, despliegues y OPD activo; no existe edicion inversa OPL -> canvas.",
+      "brechas": [],
       "evidencia": [
         {
           "path": "app/src/opl/generar.ts",
@@ -1204,8 +1199,8 @@
         }
       ],
       "peso": 8,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 0.5,
+      "avancePonderado": 4,
       "enlaceFuente": "../historias-usuario-v2/shared/HU-SHARED-007-eco-opl.md"
     },
     {
@@ -1236,12 +1231,20 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/shared/HU-SHARED-008-seleccion-canvas.md",
       "lineaInicio": 22,
       "corte": "alpha",
-      "estadoAvance": "parcial",
+      "estadoAvance": "cubierto",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto: seleccion simple de entidad/enlace esta cableada desde JointJS hacia Zustand; faltan multiseleccion, lazo y operaciones masivas.",
+      "nota": "Auto: multi-seleccion canonica con Ctrl+clic, rubber band Shift y operaciones batch atomicas en undo.",
       "brechas": [],
       "evidencia": [
+        {
+          "path": "app/src/canvas/seleccionMultiple.ts",
+          "hrefDashboard": "../../app/src/canvas/seleccionMultiple.ts"
+        },
+        {
+          "path": "app/src/canvas/operacionesBatch.ts",
+          "hrefDashboard": "../../app/src/canvas/operacionesBatch.ts"
+        },
         {
           "path": "app/src/store.ts",
           "hrefDashboard": "../../app/src/store.ts"
@@ -1256,8 +1259,8 @@
         }
       ],
       "peso": 4,
-      "score": 0.5,
-      "avancePonderado": 2,
+      "score": 1,
+      "avancePonderado": 4,
       "enlaceFuente": "../historias-usuario-v2/shared/HU-SHARED-008-seleccion-canvas.md"
     },
     {
@@ -19986,18 +19989,15 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-13-canvas-estados.md",
       "lineaInicio": 86,
       "corte": "beta",
-      "estadoAvance": "pendiente",
+      "estadoAvance": "cubierto",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
-      "brechas": [
-        "app/src/opl/generar.ts: falta inicial",
-        "app/src/opl/generar.ts: falta final"
-      ],
+      "nota": "Auto: estados inicial/final se validan, renderizan, serializan y verbalizan en OPL con pruebas.",
+      "brechas": [],
       "evidencia": [
         {
-          "path": "app/src/modelo/operaciones.ts",
-          "hrefDashboard": "../../app/src/modelo/operaciones.ts"
+          "path": "app/src/modelo/estadosDesignaciones.ts",
+          "hrefDashboard": "../../app/src/modelo/estadosDesignaciones.ts"
         },
         {
           "path": "app/src/opl/generar.ts",
@@ -20017,8 +20017,8 @@
         }
       ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-13-canvas-estados.md"
     },
     {
@@ -20234,18 +20234,15 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-13-canvas-estados.md",
       "lineaInicio": 171,
       "corte": "beta",
-      "estadoAvance": "pendiente",
+      "estadoAvance": "cubierto",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
-      "brechas": [
-        "app/src/opl/generar.ts: falta inicial",
-        "app/src/opl/generar.ts: falta final"
-      ],
+      "nota": "Auto: estados inicial/final se validan, renderizan, serializan y verbalizan en OPL con pruebas.",
+      "brechas": [],
       "evidencia": [
         {
-          "path": "app/src/modelo/operaciones.ts",
-          "hrefDashboard": "../../app/src/modelo/operaciones.ts"
+          "path": "app/src/modelo/estadosDesignaciones.ts",
+          "hrefDashboard": "../../app/src/modelo/estadosDesignaciones.ts"
         },
         {
           "path": "app/src/opl/generar.ts",
@@ -20265,8 +20262,8 @@
         }
       ],
       "peso": 4,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 4,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-13-canvas-estados.md"
     },
     {
@@ -20342,18 +20339,15 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-13-canvas-estados.md",
       "lineaInicio": 207,
       "corte": "beta",
-      "estadoAvance": "pendiente",
+      "estadoAvance": "cubierto",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
-      "brechas": [
-        "app/src/opl/generar.ts: falta inicial",
-        "app/src/opl/generar.ts: falta final"
-      ],
+      "nota": "Auto: estados inicial/final se validan, renderizan, serializan y verbalizan en OPL con pruebas.",
+      "brechas": [],
       "evidencia": [
         {
-          "path": "app/src/modelo/operaciones.ts",
-          "hrefDashboard": "../../app/src/modelo/operaciones.ts"
+          "path": "app/src/modelo/estadosDesignaciones.ts",
+          "hrefDashboard": "../../app/src/modelo/estadosDesignaciones.ts"
         },
         {
           "path": "app/src/opl/generar.ts",
@@ -20373,8 +20367,8 @@
         }
       ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-13-canvas-estados.md"
     },
     {
@@ -20407,18 +20401,15 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-13-canvas-estados.md",
       "lineaInicio": 225,
       "corte": "beta",
-      "estadoAvance": "pendiente",
+      "estadoAvance": "cubierto",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
-      "brechas": [
-        "app/src/opl/generar.ts: falta inicial",
-        "app/src/opl/generar.ts: falta final"
-      ],
+      "nota": "Auto: estados inicial/final se validan, renderizan, serializan y verbalizan en OPL con pruebas.",
+      "brechas": [],
       "evidencia": [
         {
-          "path": "app/src/modelo/operaciones.ts",
-          "hrefDashboard": "../../app/src/modelo/operaciones.ts"
+          "path": "app/src/modelo/estadosDesignaciones.ts",
+          "hrefDashboard": "../../app/src/modelo/estadosDesignaciones.ts"
         },
         {
           "path": "app/src/opl/generar.ts",
@@ -20438,8 +20429,8 @@
         }
       ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-13-canvas-estados.md"
     },
     {
@@ -20471,15 +20462,40 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-13-canvas-estados.md",
       "lineaInicio": 240,
       "corte": "beta",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto: designaciones Default y Current son persistentes, excluyentes y unicas por entidad.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/modelo/estadosDesignaciones.ts",
+          "hrefDashboard": "../../app/src/modelo/estadosDesignaciones.ts"
+        },
+        {
+          "path": "app/src/modelo/tipos.ts",
+          "hrefDashboard": "../../app/src/modelo/tipos.ts"
+        },
+        {
+          "path": "app/src/serializacion/json.ts",
+          "hrefDashboard": "../../app/src/serializacion/json.ts"
+        },
+        {
+          "path": "app/src/opl/generar.ts",
+          "hrefDashboard": "../../app/src/opl/generar.ts"
+        },
+        {
+          "path": "app/src/ui/InspectorEntidad.tsx",
+          "hrefDashboard": "../../app/src/ui/InspectorEntidad.tsx"
+        },
+        {
+          "path": "app/src/completitud.test.ts",
+          "hrefDashboard": "../../app/src/completitud.test.ts"
+        }
+      ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-13-canvas-estados.md"
     },
     {
@@ -20511,15 +20527,40 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-13-canvas-estados.md",
       "lineaInicio": 258,
       "corte": "beta",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto: designaciones Default y Current son persistentes, excluyentes y unicas por entidad.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/modelo/estadosDesignaciones.ts",
+          "hrefDashboard": "../../app/src/modelo/estadosDesignaciones.ts"
+        },
+        {
+          "path": "app/src/modelo/tipos.ts",
+          "hrefDashboard": "../../app/src/modelo/tipos.ts"
+        },
+        {
+          "path": "app/src/serializacion/json.ts",
+          "hrefDashboard": "../../app/src/serializacion/json.ts"
+        },
+        {
+          "path": "app/src/opl/generar.ts",
+          "hrefDashboard": "../../app/src/opl/generar.ts"
+        },
+        {
+          "path": "app/src/ui/InspectorEntidad.tsx",
+          "hrefDashboard": "../../app/src/ui/InspectorEntidad.tsx"
+        },
+        {
+          "path": "app/src/completitud.test.ts",
+          "hrefDashboard": "../../app/src/completitud.test.ts"
+        }
+      ],
       "peso": 4,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 4,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-13-canvas-estados.md"
     },
     {
@@ -20718,18 +20759,15 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-13-canvas-estados.md",
       "lineaInicio": 317,
       "corte": "beta",
-      "estadoAvance": "pendiente",
+      "estadoAvance": "cubierto",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
-      "brechas": [
-        "app/src/opl/generar.ts: falta inicial",
-        "app/src/opl/generar.ts: falta final"
-      ],
+      "nota": "Auto: estados inicial/final se validan, renderizan, serializan y verbalizan en OPL con pruebas.",
+      "brechas": [],
       "evidencia": [
         {
-          "path": "app/src/modelo/operaciones.ts",
-          "hrefDashboard": "../../app/src/modelo/operaciones.ts"
+          "path": "app/src/modelo/estadosDesignaciones.ts",
+          "hrefDashboard": "../../app/src/modelo/estadosDesignaciones.ts"
         },
         {
           "path": "app/src/opl/generar.ts",
@@ -20749,8 +20787,8 @@
         }
       ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-13-canvas-estados.md"
     },
     {
@@ -22213,15 +22251,11 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-15-canvas-enlaces-avanzados.md",
       "lineaInicio": 158,
       "corte": "beta",
-      "estadoAvance": "pendiente",
+      "estadoAvance": "cubierto",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
-      "brechas": [
-        "app/src/render/jointjs/abanicoOverlay.ts: falta standard.Polygon",
-        "app/src/render/jointjs/abanicoOverlay.ts: falta standard.Path",
-        "app/src/render/jointjs/proyeccion.ts: falta abanico.operador"
-      ],
+      "nota": "Auto: los abanicos O/XOR proyectan conectores canonicos desde assets logicos sin overlay textual.",
+      "brechas": [],
       "evidencia": [
         {
           "path": "app/src/render/jointjs/abanicoOverlay.ts",
@@ -22261,8 +22295,8 @@
         }
       ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-15-canvas-enlaces-avanzados.md"
     },
     {
@@ -22291,15 +22325,11 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-15-canvas-enlaces-avanzados.md",
       "lineaInicio": 169,
       "corte": "beta",
-      "estadoAvance": "pendiente",
+      "estadoAvance": "cubierto",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
-      "brechas": [
-        "app/src/render/jointjs/abanicoOverlay.ts: falta standard.Polygon",
-        "app/src/render/jointjs/abanicoOverlay.ts: falta standard.Path",
-        "app/src/render/jointjs/proyeccion.ts: falta abanico.operador"
-      ],
+      "nota": "Auto: los abanicos O/XOR proyectan conectores canonicos desde assets logicos sin overlay textual.",
+      "brechas": [],
       "evidencia": [
         {
           "path": "app/src/render/jointjs/abanicoOverlay.ts",
@@ -22339,8 +22369,8 @@
         }
       ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-15-canvas-enlaces-avanzados.md"
     },
     {
@@ -23931,15 +23961,44 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-17-canvas-objetos-avanzados.md",
       "lineaInicio": 68,
       "corte": "gamma",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto: alias, unidad, descripcion y URLs tipadas viven en modelo, serializacion, render, OPL, inspector y modal.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/modelo/objetoMetadata.ts",
+          "hrefDashboard": "../../app/src/modelo/objetoMetadata.ts"
+        },
+        {
+          "path": "app/src/modelo/tipos.ts",
+          "hrefDashboard": "../../app/src/modelo/tipos.ts"
+        },
+        {
+          "path": "app/src/serializacion/json.ts",
+          "hrefDashboard": "../../app/src/serializacion/json.ts"
+        },
+        {
+          "path": "app/src/render/jointjs/proyeccion.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/proyeccion.ts"
+        },
+        {
+          "path": "app/src/opl/generar.ts",
+          "hrefDashboard": "../../app/src/opl/generar.ts"
+        },
+        {
+          "path": "app/src/ui/InspectorEntidad.tsx",
+          "hrefDashboard": "../../app/src/ui/InspectorEntidad.tsx"
+        },
+        {
+          "path": "app/src/ui/ModalUrlsObjeto.tsx",
+          "hrefDashboard": "../../app/src/ui/ModalUrlsObjeto.tsx"
+        }
+      ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-17-canvas-objetos-avanzados.md"
     },
     {
@@ -23967,15 +24026,44 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-17-canvas-objetos-avanzados.md",
       "lineaInicio": 78,
       "corte": "gamma",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto: alias, unidad, descripcion y URLs tipadas viven en modelo, serializacion, render, OPL, inspector y modal.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/modelo/objetoMetadata.ts",
+          "hrefDashboard": "../../app/src/modelo/objetoMetadata.ts"
+        },
+        {
+          "path": "app/src/modelo/tipos.ts",
+          "hrefDashboard": "../../app/src/modelo/tipos.ts"
+        },
+        {
+          "path": "app/src/serializacion/json.ts",
+          "hrefDashboard": "../../app/src/serializacion/json.ts"
+        },
+        {
+          "path": "app/src/render/jointjs/proyeccion.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/proyeccion.ts"
+        },
+        {
+          "path": "app/src/opl/generar.ts",
+          "hrefDashboard": "../../app/src/opl/generar.ts"
+        },
+        {
+          "path": "app/src/ui/InspectorEntidad.tsx",
+          "hrefDashboard": "../../app/src/ui/InspectorEntidad.tsx"
+        },
+        {
+          "path": "app/src/ui/ModalUrlsObjeto.tsx",
+          "hrefDashboard": "../../app/src/ui/ModalUrlsObjeto.tsx"
+        }
+      ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-17-canvas-objetos-avanzados.md"
     },
     {
@@ -24002,15 +24090,44 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-17-canvas-objetos-avanzados.md",
       "lineaInicio": 88,
       "corte": "gamma",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto: alias, unidad, descripcion y URLs tipadas viven en modelo, serializacion, render, OPL, inspector y modal.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/modelo/objetoMetadata.ts",
+          "hrefDashboard": "../../app/src/modelo/objetoMetadata.ts"
+        },
+        {
+          "path": "app/src/modelo/tipos.ts",
+          "hrefDashboard": "../../app/src/modelo/tipos.ts"
+        },
+        {
+          "path": "app/src/serializacion/json.ts",
+          "hrefDashboard": "../../app/src/serializacion/json.ts"
+        },
+        {
+          "path": "app/src/render/jointjs/proyeccion.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/proyeccion.ts"
+        },
+        {
+          "path": "app/src/opl/generar.ts",
+          "hrefDashboard": "../../app/src/opl/generar.ts"
+        },
+        {
+          "path": "app/src/ui/InspectorEntidad.tsx",
+          "hrefDashboard": "../../app/src/ui/InspectorEntidad.tsx"
+        },
+        {
+          "path": "app/src/ui/ModalUrlsObjeto.tsx",
+          "hrefDashboard": "../../app/src/ui/ModalUrlsObjeto.tsx"
+        }
+      ],
       "peso": 1,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 1,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-17-canvas-objetos-avanzados.md"
     },
     {
@@ -24036,15 +24153,44 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-17-canvas-objetos-avanzados.md",
       "lineaInicio": 98,
       "corte": "gamma",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto: alias, unidad, descripcion y URLs tipadas viven en modelo, serializacion, render, OPL, inspector y modal.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/modelo/objetoMetadata.ts",
+          "hrefDashboard": "../../app/src/modelo/objetoMetadata.ts"
+        },
+        {
+          "path": "app/src/modelo/tipos.ts",
+          "hrefDashboard": "../../app/src/modelo/tipos.ts"
+        },
+        {
+          "path": "app/src/serializacion/json.ts",
+          "hrefDashboard": "../../app/src/serializacion/json.ts"
+        },
+        {
+          "path": "app/src/render/jointjs/proyeccion.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/proyeccion.ts"
+        },
+        {
+          "path": "app/src/opl/generar.ts",
+          "hrefDashboard": "../../app/src/opl/generar.ts"
+        },
+        {
+          "path": "app/src/ui/InspectorEntidad.tsx",
+          "hrefDashboard": "../../app/src/ui/InspectorEntidad.tsx"
+        },
+        {
+          "path": "app/src/ui/ModalUrlsObjeto.tsx",
+          "hrefDashboard": "../../app/src/ui/ModalUrlsObjeto.tsx"
+        }
+      ],
       "peso": 1,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 1,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-17-canvas-objetos-avanzados.md"
     },
     {
@@ -24071,15 +24217,44 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-17-canvas-objetos-avanzados.md",
       "lineaInicio": 107,
       "corte": "gamma",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto: alias, unidad, descripcion y URLs tipadas viven en modelo, serializacion, render, OPL, inspector y modal.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/modelo/objetoMetadata.ts",
+          "hrefDashboard": "../../app/src/modelo/objetoMetadata.ts"
+        },
+        {
+          "path": "app/src/modelo/tipos.ts",
+          "hrefDashboard": "../../app/src/modelo/tipos.ts"
+        },
+        {
+          "path": "app/src/serializacion/json.ts",
+          "hrefDashboard": "../../app/src/serializacion/json.ts"
+        },
+        {
+          "path": "app/src/render/jointjs/proyeccion.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/proyeccion.ts"
+        },
+        {
+          "path": "app/src/opl/generar.ts",
+          "hrefDashboard": "../../app/src/opl/generar.ts"
+        },
+        {
+          "path": "app/src/ui/InspectorEntidad.tsx",
+          "hrefDashboard": "../../app/src/ui/InspectorEntidad.tsx"
+        },
+        {
+          "path": "app/src/ui/ModalUrlsObjeto.tsx",
+          "hrefDashboard": "../../app/src/ui/ModalUrlsObjeto.tsx"
+        }
+      ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-17-canvas-objetos-avanzados.md"
     },
     {
@@ -24109,15 +24284,44 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-17-canvas-objetos-avanzados.md",
       "lineaInicio": 117,
       "corte": "gamma",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto: alias, unidad, descripcion y URLs tipadas viven en modelo, serializacion, render, OPL, inspector y modal.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/modelo/objetoMetadata.ts",
+          "hrefDashboard": "../../app/src/modelo/objetoMetadata.ts"
+        },
+        {
+          "path": "app/src/modelo/tipos.ts",
+          "hrefDashboard": "../../app/src/modelo/tipos.ts"
+        },
+        {
+          "path": "app/src/serializacion/json.ts",
+          "hrefDashboard": "../../app/src/serializacion/json.ts"
+        },
+        {
+          "path": "app/src/render/jointjs/proyeccion.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/proyeccion.ts"
+        },
+        {
+          "path": "app/src/opl/generar.ts",
+          "hrefDashboard": "../../app/src/opl/generar.ts"
+        },
+        {
+          "path": "app/src/ui/InspectorEntidad.tsx",
+          "hrefDashboard": "../../app/src/ui/InspectorEntidad.tsx"
+        },
+        {
+          "path": "app/src/ui/ModalUrlsObjeto.tsx",
+          "hrefDashboard": "../../app/src/ui/ModalUrlsObjeto.tsx"
+        }
+      ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-17-canvas-objetos-avanzados.md"
     },
     {
@@ -24143,15 +24347,44 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-17-canvas-objetos-avanzados.md",
       "lineaInicio": 128,
       "corte": "gamma",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto: alias, unidad, descripcion y URLs tipadas viven en modelo, serializacion, render, OPL, inspector y modal.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/modelo/objetoMetadata.ts",
+          "hrefDashboard": "../../app/src/modelo/objetoMetadata.ts"
+        },
+        {
+          "path": "app/src/modelo/tipos.ts",
+          "hrefDashboard": "../../app/src/modelo/tipos.ts"
+        },
+        {
+          "path": "app/src/serializacion/json.ts",
+          "hrefDashboard": "../../app/src/serializacion/json.ts"
+        },
+        {
+          "path": "app/src/render/jointjs/proyeccion.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/proyeccion.ts"
+        },
+        {
+          "path": "app/src/opl/generar.ts",
+          "hrefDashboard": "../../app/src/opl/generar.ts"
+        },
+        {
+          "path": "app/src/ui/InspectorEntidad.tsx",
+          "hrefDashboard": "../../app/src/ui/InspectorEntidad.tsx"
+        },
+        {
+          "path": "app/src/ui/ModalUrlsObjeto.tsx",
+          "hrefDashboard": "../../app/src/ui/ModalUrlsObjeto.tsx"
+        }
+      ],
       "peso": 1,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 1,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-17-canvas-objetos-avanzados.md"
     },
     {
@@ -24178,15 +24411,44 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-17-canvas-objetos-avanzados.md",
       "lineaInicio": 138,
       "corte": "gamma",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto: alias, unidad, descripcion y URLs tipadas viven en modelo, serializacion, render, OPL, inspector y modal.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/modelo/objetoMetadata.ts",
+          "hrefDashboard": "../../app/src/modelo/objetoMetadata.ts"
+        },
+        {
+          "path": "app/src/modelo/tipos.ts",
+          "hrefDashboard": "../../app/src/modelo/tipos.ts"
+        },
+        {
+          "path": "app/src/serializacion/json.ts",
+          "hrefDashboard": "../../app/src/serializacion/json.ts"
+        },
+        {
+          "path": "app/src/render/jointjs/proyeccion.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/proyeccion.ts"
+        },
+        {
+          "path": "app/src/opl/generar.ts",
+          "hrefDashboard": "../../app/src/opl/generar.ts"
+        },
+        {
+          "path": "app/src/ui/InspectorEntidad.tsx",
+          "hrefDashboard": "../../app/src/ui/InspectorEntidad.tsx"
+        },
+        {
+          "path": "app/src/ui/ModalUrlsObjeto.tsx",
+          "hrefDashboard": "../../app/src/ui/ModalUrlsObjeto.tsx"
+        }
+      ],
       "peso": 1,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 1,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-17-canvas-objetos-avanzados.md"
     },
     {
@@ -24213,15 +24475,44 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-17-canvas-objetos-avanzados.md",
       "lineaInicio": 148,
       "corte": "gamma",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto: alias, unidad, descripcion y URLs tipadas viven en modelo, serializacion, render, OPL, inspector y modal.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/modelo/objetoMetadata.ts",
+          "hrefDashboard": "../../app/src/modelo/objetoMetadata.ts"
+        },
+        {
+          "path": "app/src/modelo/tipos.ts",
+          "hrefDashboard": "../../app/src/modelo/tipos.ts"
+        },
+        {
+          "path": "app/src/serializacion/json.ts",
+          "hrefDashboard": "../../app/src/serializacion/json.ts"
+        },
+        {
+          "path": "app/src/render/jointjs/proyeccion.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/proyeccion.ts"
+        },
+        {
+          "path": "app/src/opl/generar.ts",
+          "hrefDashboard": "../../app/src/opl/generar.ts"
+        },
+        {
+          "path": "app/src/ui/InspectorEntidad.tsx",
+          "hrefDashboard": "../../app/src/ui/InspectorEntidad.tsx"
+        },
+        {
+          "path": "app/src/ui/ModalUrlsObjeto.tsx",
+          "hrefDashboard": "../../app/src/ui/ModalUrlsObjeto.tsx"
+        }
+      ],
       "peso": 1,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 1,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-17-canvas-objetos-avanzados.md"
     },
     {
@@ -24250,15 +24541,44 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-17-canvas-objetos-avanzados.md",
       "lineaInicio": 157,
       "corte": "gamma",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto: alias, unidad, descripcion y URLs tipadas viven en modelo, serializacion, render, OPL, inspector y modal.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/modelo/objetoMetadata.ts",
+          "hrefDashboard": "../../app/src/modelo/objetoMetadata.ts"
+        },
+        {
+          "path": "app/src/modelo/tipos.ts",
+          "hrefDashboard": "../../app/src/modelo/tipos.ts"
+        },
+        {
+          "path": "app/src/serializacion/json.ts",
+          "hrefDashboard": "../../app/src/serializacion/json.ts"
+        },
+        {
+          "path": "app/src/render/jointjs/proyeccion.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/proyeccion.ts"
+        },
+        {
+          "path": "app/src/opl/generar.ts",
+          "hrefDashboard": "../../app/src/opl/generar.ts"
+        },
+        {
+          "path": "app/src/ui/InspectorEntidad.tsx",
+          "hrefDashboard": "../../app/src/ui/InspectorEntidad.tsx"
+        },
+        {
+          "path": "app/src/ui/ModalUrlsObjeto.tsx",
+          "hrefDashboard": "../../app/src/ui/ModalUrlsObjeto.tsx"
+        }
+      ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-17-canvas-objetos-avanzados.md"
     },
     {
@@ -24287,15 +24607,44 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-17-canvas-objetos-avanzados.md",
       "lineaInicio": 170,
       "corte": "gamma",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto: alias, unidad, descripcion y URLs tipadas viven en modelo, serializacion, render, OPL, inspector y modal.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/modelo/objetoMetadata.ts",
+          "hrefDashboard": "../../app/src/modelo/objetoMetadata.ts"
+        },
+        {
+          "path": "app/src/modelo/tipos.ts",
+          "hrefDashboard": "../../app/src/modelo/tipos.ts"
+        },
+        {
+          "path": "app/src/serializacion/json.ts",
+          "hrefDashboard": "../../app/src/serializacion/json.ts"
+        },
+        {
+          "path": "app/src/render/jointjs/proyeccion.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/proyeccion.ts"
+        },
+        {
+          "path": "app/src/opl/generar.ts",
+          "hrefDashboard": "../../app/src/opl/generar.ts"
+        },
+        {
+          "path": "app/src/ui/InspectorEntidad.tsx",
+          "hrefDashboard": "../../app/src/ui/InspectorEntidad.tsx"
+        },
+        {
+          "path": "app/src/ui/ModalUrlsObjeto.tsx",
+          "hrefDashboard": "../../app/src/ui/ModalUrlsObjeto.tsx"
+        }
+      ],
       "peso": 1,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 1,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-17-canvas-objetos-avanzados.md"
     },
     {
@@ -24535,15 +24884,44 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-17-canvas-objetos-avanzados.md",
       "lineaInicio": 238,
       "corte": "gamma",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto: alias, unidad, descripcion y URLs tipadas viven en modelo, serializacion, render, OPL, inspector y modal.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/modelo/objetoMetadata.ts",
+          "hrefDashboard": "../../app/src/modelo/objetoMetadata.ts"
+        },
+        {
+          "path": "app/src/modelo/tipos.ts",
+          "hrefDashboard": "../../app/src/modelo/tipos.ts"
+        },
+        {
+          "path": "app/src/serializacion/json.ts",
+          "hrefDashboard": "../../app/src/serializacion/json.ts"
+        },
+        {
+          "path": "app/src/render/jointjs/proyeccion.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/proyeccion.ts"
+        },
+        {
+          "path": "app/src/opl/generar.ts",
+          "hrefDashboard": "../../app/src/opl/generar.ts"
+        },
+        {
+          "path": "app/src/ui/InspectorEntidad.tsx",
+          "hrefDashboard": "../../app/src/ui/InspectorEntidad.tsx"
+        },
+        {
+          "path": "app/src/ui/ModalUrlsObjeto.tsx",
+          "hrefDashboard": "../../app/src/ui/ModalUrlsObjeto.tsx"
+        }
+      ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-17-canvas-objetos-avanzados.md"
     },
     {
@@ -24571,15 +24949,44 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-17-canvas-objetos-avanzados.md",
       "lineaInicio": 248,
       "corte": "gamma",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto: alias, unidad, descripcion y URLs tipadas viven en modelo, serializacion, render, OPL, inspector y modal.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/modelo/objetoMetadata.ts",
+          "hrefDashboard": "../../app/src/modelo/objetoMetadata.ts"
+        },
+        {
+          "path": "app/src/modelo/tipos.ts",
+          "hrefDashboard": "../../app/src/modelo/tipos.ts"
+        },
+        {
+          "path": "app/src/serializacion/json.ts",
+          "hrefDashboard": "../../app/src/serializacion/json.ts"
+        },
+        {
+          "path": "app/src/render/jointjs/proyeccion.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/proyeccion.ts"
+        },
+        {
+          "path": "app/src/opl/generar.ts",
+          "hrefDashboard": "../../app/src/opl/generar.ts"
+        },
+        {
+          "path": "app/src/ui/InspectorEntidad.tsx",
+          "hrefDashboard": "../../app/src/ui/InspectorEntidad.tsx"
+        },
+        {
+          "path": "app/src/ui/ModalUrlsObjeto.tsx",
+          "hrefDashboard": "../../app/src/ui/ModalUrlsObjeto.tsx"
+        }
+      ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-17-canvas-objetos-avanzados.md"
     },
     {
@@ -24606,15 +25013,44 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-17-canvas-objetos-avanzados.md",
       "lineaInicio": 259,
       "corte": "gamma",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto: alias, unidad, descripcion y URLs tipadas viven en modelo, serializacion, render, OPL, inspector y modal.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/modelo/objetoMetadata.ts",
+          "hrefDashboard": "../../app/src/modelo/objetoMetadata.ts"
+        },
+        {
+          "path": "app/src/modelo/tipos.ts",
+          "hrefDashboard": "../../app/src/modelo/tipos.ts"
+        },
+        {
+          "path": "app/src/serializacion/json.ts",
+          "hrefDashboard": "../../app/src/serializacion/json.ts"
+        },
+        {
+          "path": "app/src/render/jointjs/proyeccion.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/proyeccion.ts"
+        },
+        {
+          "path": "app/src/opl/generar.ts",
+          "hrefDashboard": "../../app/src/opl/generar.ts"
+        },
+        {
+          "path": "app/src/ui/InspectorEntidad.tsx",
+          "hrefDashboard": "../../app/src/ui/InspectorEntidad.tsx"
+        },
+        {
+          "path": "app/src/ui/ModalUrlsObjeto.tsx",
+          "hrefDashboard": "../../app/src/ui/ModalUrlsObjeto.tsx"
+        }
+      ],
       "peso": 1,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 1,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-17-canvas-objetos-avanzados.md"
     },
     {
@@ -24640,15 +25076,44 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-17-canvas-objetos-avanzados.md",
       "lineaInicio": 269,
       "corte": "gamma",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto: alias, unidad, descripcion y URLs tipadas viven en modelo, serializacion, render, OPL, inspector y modal.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/modelo/objetoMetadata.ts",
+          "hrefDashboard": "../../app/src/modelo/objetoMetadata.ts"
+        },
+        {
+          "path": "app/src/modelo/tipos.ts",
+          "hrefDashboard": "../../app/src/modelo/tipos.ts"
+        },
+        {
+          "path": "app/src/serializacion/json.ts",
+          "hrefDashboard": "../../app/src/serializacion/json.ts"
+        },
+        {
+          "path": "app/src/render/jointjs/proyeccion.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/proyeccion.ts"
+        },
+        {
+          "path": "app/src/opl/generar.ts",
+          "hrefDashboard": "../../app/src/opl/generar.ts"
+        },
+        {
+          "path": "app/src/ui/InspectorEntidad.tsx",
+          "hrefDashboard": "../../app/src/ui/InspectorEntidad.tsx"
+        },
+        {
+          "path": "app/src/ui/ModalUrlsObjeto.tsx",
+          "hrefDashboard": "../../app/src/ui/ModalUrlsObjeto.tsx"
+        }
+      ],
       "peso": 1,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 1,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-17-canvas-objetos-avanzados.md"
     },
     {
@@ -24710,15 +25175,44 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-17-canvas-objetos-avanzados.md",
       "lineaInicio": 289,
       "corte": "gamma",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto: alias, unidad, descripcion y URLs tipadas viven en modelo, serializacion, render, OPL, inspector y modal.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/modelo/objetoMetadata.ts",
+          "hrefDashboard": "../../app/src/modelo/objetoMetadata.ts"
+        },
+        {
+          "path": "app/src/modelo/tipos.ts",
+          "hrefDashboard": "../../app/src/modelo/tipos.ts"
+        },
+        {
+          "path": "app/src/serializacion/json.ts",
+          "hrefDashboard": "../../app/src/serializacion/json.ts"
+        },
+        {
+          "path": "app/src/render/jointjs/proyeccion.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/proyeccion.ts"
+        },
+        {
+          "path": "app/src/opl/generar.ts",
+          "hrefDashboard": "../../app/src/opl/generar.ts"
+        },
+        {
+          "path": "app/src/ui/InspectorEntidad.tsx",
+          "hrefDashboard": "../../app/src/ui/InspectorEntidad.tsx"
+        },
+        {
+          "path": "app/src/ui/ModalUrlsObjeto.tsx",
+          "hrefDashboard": "../../app/src/ui/ModalUrlsObjeto.tsx"
+        }
+      ],
       "peso": 1,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 1,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-17-canvas-objetos-avanzados.md"
     },
     {
@@ -25076,18 +25570,15 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-17-canvas-objetos-avanzados.md",
       "lineaInicio": 374,
       "corte": "gamma",
-      "estadoAvance": "pendiente",
+      "estadoAvance": "cubierto",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
-      "brechas": [
-        "app/src/opl/generar.ts: falta inicial",
-        "app/src/opl/generar.ts: falta final"
-      ],
+      "nota": "Auto: estados inicial/final se validan, renderizan, serializan y verbalizan en OPL con pruebas.",
+      "brechas": [],
       "evidencia": [
         {
-          "path": "app/src/modelo/operaciones.ts",
-          "hrefDashboard": "../../app/src/modelo/operaciones.ts"
+          "path": "app/src/modelo/estadosDesignaciones.ts",
+          "hrefDashboard": "../../app/src/modelo/estadosDesignaciones.ts"
         },
         {
           "path": "app/src/opl/generar.ts",
@@ -25107,8 +25598,8 @@
         }
       ],
       "peso": 1,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 1,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-17-canvas-objetos-avanzados.md"
     },
     {
@@ -25143,15 +25634,36 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-17-canvas-objetos-avanzados.md",
       "lineaInicio": 385,
       "corte": "gamma",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto: duracion canonica de estado con unidad, min, nominal y max en modelo, serializacion, OPL y modal.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/modelo/objetoDuracion.ts",
+          "hrefDashboard": "../../app/src/modelo/objetoDuracion.ts"
+        },
+        {
+          "path": "app/src/modelo/tipos.ts",
+          "hrefDashboard": "../../app/src/modelo/tipos.ts"
+        },
+        {
+          "path": "app/src/serializacion/json.ts",
+          "hrefDashboard": "../../app/src/serializacion/json.ts"
+        },
+        {
+          "path": "app/src/opl/generar.ts",
+          "hrefDashboard": "../../app/src/opl/generar.ts"
+        },
+        {
+          "path": "app/src/ui/ModalDuracionEstado.tsx",
+          "hrefDashboard": "../../app/src/ui/ModalDuracionEstado.tsx"
+        }
+      ],
       "peso": 4,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 4,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-17-canvas-objetos-avanzados.md"
     },
     {
@@ -29470,15 +29982,40 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-30-persistencia-save-load.md",
       "lineaInicio": 327,
       "corte": "alpha",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto: workspace single-user cierra cortar/pegar y drag-drop de modelos/carpetas, busqueda global, versiones manuales y archivado.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/persistencia/movimientoModelos.ts",
+          "hrefDashboard": "../../app/src/persistencia/movimientoModelos.ts"
+        },
+        {
+          "path": "app/src/persistencia/versiones.ts",
+          "hrefDashboard": "../../app/src/persistencia/versiones.ts"
+        },
+        {
+          "path": "app/src/persistencia/workspace.ts",
+          "hrefDashboard": "../../app/src/persistencia/workspace.ts"
+        },
+        {
+          "path": "app/src/ui/DialogoBuscarGlobal.tsx",
+          "hrefDashboard": "../../app/src/ui/DialogoBuscarGlobal.tsx"
+        },
+        {
+          "path": "app/src/ui/DialogoVersiones.tsx",
+          "hrefDashboard": "../../app/src/ui/DialogoVersiones.tsx"
+        },
+        {
+          "path": "app/src/ui/DialogoArchivados.tsx",
+          "hrefDashboard": "../../app/src/ui/DialogoArchivados.tsx"
+        }
+      ],
       "peso": 4,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 4,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-30-persistencia-save-load.md"
     },
     {
@@ -30134,15 +30671,40 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-31-persistencia-folders.md",
       "lineaInicio": 53,
       "corte": "gamma",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto: workspace single-user cierra cortar/pegar y drag-drop de modelos/carpetas, busqueda global, versiones manuales y archivado.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/persistencia/movimientoModelos.ts",
+          "hrefDashboard": "../../app/src/persistencia/movimientoModelos.ts"
+        },
+        {
+          "path": "app/src/persistencia/versiones.ts",
+          "hrefDashboard": "../../app/src/persistencia/versiones.ts"
+        },
+        {
+          "path": "app/src/persistencia/workspace.ts",
+          "hrefDashboard": "../../app/src/persistencia/workspace.ts"
+        },
+        {
+          "path": "app/src/ui/DialogoBuscarGlobal.tsx",
+          "hrefDashboard": "../../app/src/ui/DialogoBuscarGlobal.tsx"
+        },
+        {
+          "path": "app/src/ui/DialogoVersiones.tsx",
+          "hrefDashboard": "../../app/src/ui/DialogoVersiones.tsx"
+        },
+        {
+          "path": "app/src/ui/DialogoArchivados.tsx",
+          "hrefDashboard": "../../app/src/ui/DialogoArchivados.tsx"
+        }
+      ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-31-persistencia-folders.md"
     },
     {
@@ -30168,15 +30730,40 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-31-persistencia-folders.md",
       "lineaInicio": 56,
       "corte": "gamma",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto: workspace single-user cierra cortar/pegar y drag-drop de modelos/carpetas, busqueda global, versiones manuales y archivado.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/persistencia/movimientoModelos.ts",
+          "hrefDashboard": "../../app/src/persistencia/movimientoModelos.ts"
+        },
+        {
+          "path": "app/src/persistencia/versiones.ts",
+          "hrefDashboard": "../../app/src/persistencia/versiones.ts"
+        },
+        {
+          "path": "app/src/persistencia/workspace.ts",
+          "hrefDashboard": "../../app/src/persistencia/workspace.ts"
+        },
+        {
+          "path": "app/src/ui/DialogoBuscarGlobal.tsx",
+          "hrefDashboard": "../../app/src/ui/DialogoBuscarGlobal.tsx"
+        },
+        {
+          "path": "app/src/ui/DialogoVersiones.tsx",
+          "hrefDashboard": "../../app/src/ui/DialogoVersiones.tsx"
+        },
+        {
+          "path": "app/src/ui/DialogoArchivados.tsx",
+          "hrefDashboard": "../../app/src/ui/DialogoArchivados.tsx"
+        }
+      ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-31-persistencia-folders.md"
     },
     {
@@ -30203,15 +30790,40 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-31-persistencia-folders.md",
       "lineaInicio": 59,
       "corte": "gamma",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto: workspace single-user cierra cortar/pegar y drag-drop de modelos/carpetas, busqueda global, versiones manuales y archivado.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/persistencia/movimientoModelos.ts",
+          "hrefDashboard": "../../app/src/persistencia/movimientoModelos.ts"
+        },
+        {
+          "path": "app/src/persistencia/versiones.ts",
+          "hrefDashboard": "../../app/src/persistencia/versiones.ts"
+        },
+        {
+          "path": "app/src/persistencia/workspace.ts",
+          "hrefDashboard": "../../app/src/persistencia/workspace.ts"
+        },
+        {
+          "path": "app/src/ui/DialogoBuscarGlobal.tsx",
+          "hrefDashboard": "../../app/src/ui/DialogoBuscarGlobal.tsx"
+        },
+        {
+          "path": "app/src/ui/DialogoVersiones.tsx",
+          "hrefDashboard": "../../app/src/ui/DialogoVersiones.tsx"
+        },
+        {
+          "path": "app/src/ui/DialogoArchivados.tsx",
+          "hrefDashboard": "../../app/src/ui/DialogoArchivados.tsx"
+        }
+      ],
       "peso": 4,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 4,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-31-persistencia-folders.md"
     },
     {
@@ -32558,15 +33170,28 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-34-persistencia-nuevo-modelo.md",
       "lineaInicio": 24,
       "corte": "beta",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto: multi-pestana sesion-only con boton +, cierre protegido, cambio activo y drag-reorder.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/store/pestanas.ts",
+          "hrefDashboard": "../../app/src/store/pestanas.ts"
+        },
+        {
+          "path": "app/src/store.ts",
+          "hrefDashboard": "../../app/src/store.ts"
+        },
+        {
+          "path": "app/src/ui/BarraPestanas.tsx",
+          "hrefDashboard": "../../app/src/ui/BarraPestanas.tsx"
+        }
+      ],
       "peso": 1,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 1,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-34-persistencia-nuevo-modelo.md"
     },
     {
@@ -32591,15 +33216,28 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-34-persistencia-nuevo-modelo.md",
       "lineaInicio": 27,
       "corte": "beta",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto: multi-pestana sesion-only con boton +, cierre protegido, cambio activo y drag-reorder.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/store/pestanas.ts",
+          "hrefDashboard": "../../app/src/store/pestanas.ts"
+        },
+        {
+          "path": "app/src/store.ts",
+          "hrefDashboard": "../../app/src/store.ts"
+        },
+        {
+          "path": "app/src/ui/BarraPestanas.tsx",
+          "hrefDashboard": "../../app/src/ui/BarraPestanas.tsx"
+        }
+      ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-34-persistencia-nuevo-modelo.md"
     },
     {
@@ -33565,15 +34203,40 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-35-persistencia-mover-buscar.md",
       "lineaInicio": 21,
       "corte": "gamma",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto: workspace single-user cierra cortar/pegar y drag-drop de modelos/carpetas, busqueda global, versiones manuales y archivado.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/persistencia/movimientoModelos.ts",
+          "hrefDashboard": "../../app/src/persistencia/movimientoModelos.ts"
+        },
+        {
+          "path": "app/src/persistencia/versiones.ts",
+          "hrefDashboard": "../../app/src/persistencia/versiones.ts"
+        },
+        {
+          "path": "app/src/persistencia/workspace.ts",
+          "hrefDashboard": "../../app/src/persistencia/workspace.ts"
+        },
+        {
+          "path": "app/src/ui/DialogoBuscarGlobal.tsx",
+          "hrefDashboard": "../../app/src/ui/DialogoBuscarGlobal.tsx"
+        },
+        {
+          "path": "app/src/ui/DialogoVersiones.tsx",
+          "hrefDashboard": "../../app/src/ui/DialogoVersiones.tsx"
+        },
+        {
+          "path": "app/src/ui/DialogoArchivados.tsx",
+          "hrefDashboard": "../../app/src/ui/DialogoArchivados.tsx"
+        }
+      ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-35-persistencia-mover-buscar.md"
     },
     {
@@ -33601,15 +34264,40 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-35-persistencia-mover-buscar.md",
       "lineaInicio": 24,
       "corte": "gamma",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto: workspace single-user cierra cortar/pegar y drag-drop de modelos/carpetas, busqueda global, versiones manuales y archivado.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/persistencia/movimientoModelos.ts",
+          "hrefDashboard": "../../app/src/persistencia/movimientoModelos.ts"
+        },
+        {
+          "path": "app/src/persistencia/versiones.ts",
+          "hrefDashboard": "../../app/src/persistencia/versiones.ts"
+        },
+        {
+          "path": "app/src/persistencia/workspace.ts",
+          "hrefDashboard": "../../app/src/persistencia/workspace.ts"
+        },
+        {
+          "path": "app/src/ui/DialogoBuscarGlobal.tsx",
+          "hrefDashboard": "../../app/src/ui/DialogoBuscarGlobal.tsx"
+        },
+        {
+          "path": "app/src/ui/DialogoVersiones.tsx",
+          "hrefDashboard": "../../app/src/ui/DialogoVersiones.tsx"
+        },
+        {
+          "path": "app/src/ui/DialogoArchivados.tsx",
+          "hrefDashboard": "../../app/src/ui/DialogoArchivados.tsx"
+        }
+      ],
       "peso": 4,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 4,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-35-persistencia-mover-buscar.md"
     },
     {
@@ -33635,15 +34323,40 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-35-persistencia-mover-buscar.md",
       "lineaInicio": 27,
       "corte": "gamma",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto: workspace single-user cierra cortar/pegar y drag-drop de modelos/carpetas, busqueda global, versiones manuales y archivado.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/persistencia/movimientoModelos.ts",
+          "hrefDashboard": "../../app/src/persistencia/movimientoModelos.ts"
+        },
+        {
+          "path": "app/src/persistencia/versiones.ts",
+          "hrefDashboard": "../../app/src/persistencia/versiones.ts"
+        },
+        {
+          "path": "app/src/persistencia/workspace.ts",
+          "hrefDashboard": "../../app/src/persistencia/workspace.ts"
+        },
+        {
+          "path": "app/src/ui/DialogoBuscarGlobal.tsx",
+          "hrefDashboard": "../../app/src/ui/DialogoBuscarGlobal.tsx"
+        },
+        {
+          "path": "app/src/ui/DialogoVersiones.tsx",
+          "hrefDashboard": "../../app/src/ui/DialogoVersiones.tsx"
+        },
+        {
+          "path": "app/src/ui/DialogoArchivados.tsx",
+          "hrefDashboard": "../../app/src/ui/DialogoArchivados.tsx"
+        }
+      ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-35-persistencia-mover-buscar.md"
     },
     {
@@ -33669,15 +34382,40 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-35-persistencia-mover-buscar.md",
       "lineaInicio": 30,
       "corte": "gamma",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto: workspace single-user cierra cortar/pegar y drag-drop de modelos/carpetas, busqueda global, versiones manuales y archivado.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/persistencia/movimientoModelos.ts",
+          "hrefDashboard": "../../app/src/persistencia/movimientoModelos.ts"
+        },
+        {
+          "path": "app/src/persistencia/versiones.ts",
+          "hrefDashboard": "../../app/src/persistencia/versiones.ts"
+        },
+        {
+          "path": "app/src/persistencia/workspace.ts",
+          "hrefDashboard": "../../app/src/persistencia/workspace.ts"
+        },
+        {
+          "path": "app/src/ui/DialogoBuscarGlobal.tsx",
+          "hrefDashboard": "../../app/src/ui/DialogoBuscarGlobal.tsx"
+        },
+        {
+          "path": "app/src/ui/DialogoVersiones.tsx",
+          "hrefDashboard": "../../app/src/ui/DialogoVersiones.tsx"
+        },
+        {
+          "path": "app/src/ui/DialogoArchivados.tsx",
+          "hrefDashboard": "../../app/src/ui/DialogoArchivados.tsx"
+        }
+      ],
       "peso": 4,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 4,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-35-persistencia-mover-buscar.md"
     },
     {
@@ -33703,15 +34441,40 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-35-persistencia-mover-buscar.md",
       "lineaInicio": 33,
       "corte": "gamma",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto: workspace single-user cierra cortar/pegar y drag-drop de modelos/carpetas, busqueda global, versiones manuales y archivado.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/persistencia/movimientoModelos.ts",
+          "hrefDashboard": "../../app/src/persistencia/movimientoModelos.ts"
+        },
+        {
+          "path": "app/src/persistencia/versiones.ts",
+          "hrefDashboard": "../../app/src/persistencia/versiones.ts"
+        },
+        {
+          "path": "app/src/persistencia/workspace.ts",
+          "hrefDashboard": "../../app/src/persistencia/workspace.ts"
+        },
+        {
+          "path": "app/src/ui/DialogoBuscarGlobal.tsx",
+          "hrefDashboard": "../../app/src/ui/DialogoBuscarGlobal.tsx"
+        },
+        {
+          "path": "app/src/ui/DialogoVersiones.tsx",
+          "hrefDashboard": "../../app/src/ui/DialogoVersiones.tsx"
+        },
+        {
+          "path": "app/src/ui/DialogoArchivados.tsx",
+          "hrefDashboard": "../../app/src/ui/DialogoArchivados.tsx"
+        }
+      ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-35-persistencia-mover-buscar.md"
     },
     {
@@ -43532,15 +44295,36 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-90-interaccion-shortcuts.md",
       "lineaInicio": 21,
       "corte": "gamma",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto: registry central de atajos con contextos, menu contextual de arbol, divisor y zoom centralizado.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/ui/atajosTeclado.ts",
+          "hrefDashboard": "../../app/src/ui/atajosTeclado.ts"
+        },
+        {
+          "path": "app/src/ui/App.tsx",
+          "hrefDashboard": "../../app/src/ui/App.tsx"
+        },
+        {
+          "path": "app/src/ui/divisorPanel.tsx",
+          "hrefDashboard": "../../app/src/ui/divisorPanel.tsx"
+        },
+        {
+          "path": "app/src/ui/MenuContextualArbol.tsx",
+          "hrefDashboard": "../../app/src/ui/MenuContextualArbol.tsx"
+        },
+        {
+          "path": "app/src/render/jointjs/JointCanvas.tsx",
+          "hrefDashboard": "../../app/src/render/jointjs/JointCanvas.tsx"
+        }
+      ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-90-interaccion-shortcuts.md"
     },
     {
@@ -43566,15 +44350,36 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-90-interaccion-shortcuts.md",
       "lineaInicio": 24,
       "corte": "gamma",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto: registry central de atajos con contextos, menu contextual de arbol, divisor y zoom centralizado.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/ui/atajosTeclado.ts",
+          "hrefDashboard": "../../app/src/ui/atajosTeclado.ts"
+        },
+        {
+          "path": "app/src/ui/App.tsx",
+          "hrefDashboard": "../../app/src/ui/App.tsx"
+        },
+        {
+          "path": "app/src/ui/divisorPanel.tsx",
+          "hrefDashboard": "../../app/src/ui/divisorPanel.tsx"
+        },
+        {
+          "path": "app/src/ui/MenuContextualArbol.tsx",
+          "hrefDashboard": "../../app/src/ui/MenuContextualArbol.tsx"
+        },
+        {
+          "path": "app/src/render/jointjs/JointCanvas.tsx",
+          "hrefDashboard": "../../app/src/render/jointjs/JointCanvas.tsx"
+        }
+      ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-90-interaccion-shortcuts.md"
     },
     {
@@ -43600,15 +44405,36 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-90-interaccion-shortcuts.md",
       "lineaInicio": 27,
       "corte": "gamma",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto: registry central de atajos con contextos, menu contextual de arbol, divisor y zoom centralizado.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/ui/atajosTeclado.ts",
+          "hrefDashboard": "../../app/src/ui/atajosTeclado.ts"
+        },
+        {
+          "path": "app/src/ui/App.tsx",
+          "hrefDashboard": "../../app/src/ui/App.tsx"
+        },
+        {
+          "path": "app/src/ui/divisorPanel.tsx",
+          "hrefDashboard": "../../app/src/ui/divisorPanel.tsx"
+        },
+        {
+          "path": "app/src/ui/MenuContextualArbol.tsx",
+          "hrefDashboard": "../../app/src/ui/MenuContextualArbol.tsx"
+        },
+        {
+          "path": "app/src/render/jointjs/JointCanvas.tsx",
+          "hrefDashboard": "../../app/src/render/jointjs/JointCanvas.tsx"
+        }
+      ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-90-interaccion-shortcuts.md"
     },
     {
@@ -43635,15 +44461,36 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-90-interaccion-shortcuts.md",
       "lineaInicio": 30,
       "corte": "gamma",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto: registry central de atajos con contextos, menu contextual de arbol, divisor y zoom centralizado.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/ui/atajosTeclado.ts",
+          "hrefDashboard": "../../app/src/ui/atajosTeclado.ts"
+        },
+        {
+          "path": "app/src/ui/App.tsx",
+          "hrefDashboard": "../../app/src/ui/App.tsx"
+        },
+        {
+          "path": "app/src/ui/divisorPanel.tsx",
+          "hrefDashboard": "../../app/src/ui/divisorPanel.tsx"
+        },
+        {
+          "path": "app/src/ui/MenuContextualArbol.tsx",
+          "hrefDashboard": "../../app/src/ui/MenuContextualArbol.tsx"
+        },
+        {
+          "path": "app/src/render/jointjs/JointCanvas.tsx",
+          "hrefDashboard": "../../app/src/render/jointjs/JointCanvas.tsx"
+        }
+      ],
       "peso": 4,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 4,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-90-interaccion-shortcuts.md"
     },
     {
@@ -43669,15 +44516,36 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-90-interaccion-shortcuts.md",
       "lineaInicio": 33,
       "corte": "gamma",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto: registry central de atajos con contextos, menu contextual de arbol, divisor y zoom centralizado.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/ui/atajosTeclado.ts",
+          "hrefDashboard": "../../app/src/ui/atajosTeclado.ts"
+        },
+        {
+          "path": "app/src/ui/App.tsx",
+          "hrefDashboard": "../../app/src/ui/App.tsx"
+        },
+        {
+          "path": "app/src/ui/divisorPanel.tsx",
+          "hrefDashboard": "../../app/src/ui/divisorPanel.tsx"
+        },
+        {
+          "path": "app/src/ui/MenuContextualArbol.tsx",
+          "hrefDashboard": "../../app/src/ui/MenuContextualArbol.tsx"
+        },
+        {
+          "path": "app/src/render/jointjs/JointCanvas.tsx",
+          "hrefDashboard": "../../app/src/render/jointjs/JointCanvas.tsx"
+        }
+      ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-90-interaccion-shortcuts.md"
     },
     {
@@ -43704,15 +44572,36 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-90-interaccion-shortcuts.md",
       "lineaInicio": 36,
       "corte": "gamma",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto: registry central de atajos con contextos, menu contextual de arbol, divisor y zoom centralizado.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/ui/atajosTeclado.ts",
+          "hrefDashboard": "../../app/src/ui/atajosTeclado.ts"
+        },
+        {
+          "path": "app/src/ui/App.tsx",
+          "hrefDashboard": "../../app/src/ui/App.tsx"
+        },
+        {
+          "path": "app/src/ui/divisorPanel.tsx",
+          "hrefDashboard": "../../app/src/ui/divisorPanel.tsx"
+        },
+        {
+          "path": "app/src/ui/MenuContextualArbol.tsx",
+          "hrefDashboard": "../../app/src/ui/MenuContextualArbol.tsx"
+        },
+        {
+          "path": "app/src/render/jointjs/JointCanvas.tsx",
+          "hrefDashboard": "../../app/src/render/jointjs/JointCanvas.tsx"
+        }
+      ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-90-interaccion-shortcuts.md"
     },
     {
@@ -43738,15 +44627,36 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-90-interaccion-shortcuts.md",
       "lineaInicio": 39,
       "corte": "gamma",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto: registry central de atajos con contextos, menu contextual de arbol, divisor y zoom centralizado.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/ui/atajosTeclado.ts",
+          "hrefDashboard": "../../app/src/ui/atajosTeclado.ts"
+        },
+        {
+          "path": "app/src/ui/App.tsx",
+          "hrefDashboard": "../../app/src/ui/App.tsx"
+        },
+        {
+          "path": "app/src/ui/divisorPanel.tsx",
+          "hrefDashboard": "../../app/src/ui/divisorPanel.tsx"
+        },
+        {
+          "path": "app/src/ui/MenuContextualArbol.tsx",
+          "hrefDashboard": "../../app/src/ui/MenuContextualArbol.tsx"
+        },
+        {
+          "path": "app/src/render/jointjs/JointCanvas.tsx",
+          "hrefDashboard": "../../app/src/render/jointjs/JointCanvas.tsx"
+        }
+      ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-90-interaccion-shortcuts.md"
     },
     {
@@ -43772,15 +44682,36 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-90-interaccion-shortcuts.md",
       "lineaInicio": 42,
       "corte": "gamma",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto: registry central de atajos con contextos, menu contextual de arbol, divisor y zoom centralizado.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/ui/atajosTeclado.ts",
+          "hrefDashboard": "../../app/src/ui/atajosTeclado.ts"
+        },
+        {
+          "path": "app/src/ui/App.tsx",
+          "hrefDashboard": "../../app/src/ui/App.tsx"
+        },
+        {
+          "path": "app/src/ui/divisorPanel.tsx",
+          "hrefDashboard": "../../app/src/ui/divisorPanel.tsx"
+        },
+        {
+          "path": "app/src/ui/MenuContextualArbol.tsx",
+          "hrefDashboard": "../../app/src/ui/MenuContextualArbol.tsx"
+        },
+        {
+          "path": "app/src/render/jointjs/JointCanvas.tsx",
+          "hrefDashboard": "../../app/src/render/jointjs/JointCanvas.tsx"
+        }
+      ],
       "peso": 4,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 4,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-90-interaccion-shortcuts.md"
     },
     {
@@ -43806,15 +44737,36 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-90-interaccion-shortcuts.md",
       "lineaInicio": 45,
       "corte": "gamma",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto: registry central de atajos con contextos, menu contextual de arbol, divisor y zoom centralizado.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/ui/atajosTeclado.ts",
+          "hrefDashboard": "../../app/src/ui/atajosTeclado.ts"
+        },
+        {
+          "path": "app/src/ui/App.tsx",
+          "hrefDashboard": "../../app/src/ui/App.tsx"
+        },
+        {
+          "path": "app/src/ui/divisorPanel.tsx",
+          "hrefDashboard": "../../app/src/ui/divisorPanel.tsx"
+        },
+        {
+          "path": "app/src/ui/MenuContextualArbol.tsx",
+          "hrefDashboard": "../../app/src/ui/MenuContextualArbol.tsx"
+        },
+        {
+          "path": "app/src/render/jointjs/JointCanvas.tsx",
+          "hrefDashboard": "../../app/src/render/jointjs/JointCanvas.tsx"
+        }
+      ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-90-interaccion-shortcuts.md"
     },
     {
@@ -43840,15 +44792,36 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-90-interaccion-shortcuts.md",
       "lineaInicio": 48,
       "corte": "gamma",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto: registry central de atajos con contextos, menu contextual de arbol, divisor y zoom centralizado.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/ui/atajosTeclado.ts",
+          "hrefDashboard": "../../app/src/ui/atajosTeclado.ts"
+        },
+        {
+          "path": "app/src/ui/App.tsx",
+          "hrefDashboard": "../../app/src/ui/App.tsx"
+        },
+        {
+          "path": "app/src/ui/divisorPanel.tsx",
+          "hrefDashboard": "../../app/src/ui/divisorPanel.tsx"
+        },
+        {
+          "path": "app/src/ui/MenuContextualArbol.tsx",
+          "hrefDashboard": "../../app/src/ui/MenuContextualArbol.tsx"
+        },
+        {
+          "path": "app/src/render/jointjs/JointCanvas.tsx",
+          "hrefDashboard": "../../app/src/render/jointjs/JointCanvas.tsx"
+        }
+      ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-90-interaccion-shortcuts.md"
     },
     {
@@ -43874,15 +44847,36 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-90-interaccion-shortcuts.md",
       "lineaInicio": 51,
       "corte": "gamma",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto: registry central de atajos con contextos, menu contextual de arbol, divisor y zoom centralizado.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/ui/atajosTeclado.ts",
+          "hrefDashboard": "../../app/src/ui/atajosTeclado.ts"
+        },
+        {
+          "path": "app/src/ui/App.tsx",
+          "hrefDashboard": "../../app/src/ui/App.tsx"
+        },
+        {
+          "path": "app/src/ui/divisorPanel.tsx",
+          "hrefDashboard": "../../app/src/ui/divisorPanel.tsx"
+        },
+        {
+          "path": "app/src/ui/MenuContextualArbol.tsx",
+          "hrefDashboard": "../../app/src/ui/MenuContextualArbol.tsx"
+        },
+        {
+          "path": "app/src/render/jointjs/JointCanvas.tsx",
+          "hrefDashboard": "../../app/src/render/jointjs/JointCanvas.tsx"
+        }
+      ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-90-interaccion-shortcuts.md"
     },
     {
@@ -43908,15 +44902,36 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-90-interaccion-shortcuts.md",
       "lineaInicio": 54,
       "corte": "gamma",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto: registry central de atajos con contextos, menu contextual de arbol, divisor y zoom centralizado.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/ui/atajosTeclado.ts",
+          "hrefDashboard": "../../app/src/ui/atajosTeclado.ts"
+        },
+        {
+          "path": "app/src/ui/App.tsx",
+          "hrefDashboard": "../../app/src/ui/App.tsx"
+        },
+        {
+          "path": "app/src/ui/divisorPanel.tsx",
+          "hrefDashboard": "../../app/src/ui/divisorPanel.tsx"
+        },
+        {
+          "path": "app/src/ui/MenuContextualArbol.tsx",
+          "hrefDashboard": "../../app/src/ui/MenuContextualArbol.tsx"
+        },
+        {
+          "path": "app/src/render/jointjs/JointCanvas.tsx",
+          "hrefDashboard": "../../app/src/render/jointjs/JointCanvas.tsx"
+        }
+      ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-90-interaccion-shortcuts.md"
     },
     {
@@ -43942,15 +44957,36 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-90-interaccion-shortcuts.md",
       "lineaInicio": 57,
       "corte": "gamma",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto: registry central de atajos con contextos, menu contextual de arbol, divisor y zoom centralizado.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/ui/atajosTeclado.ts",
+          "hrefDashboard": "../../app/src/ui/atajosTeclado.ts"
+        },
+        {
+          "path": "app/src/ui/App.tsx",
+          "hrefDashboard": "../../app/src/ui/App.tsx"
+        },
+        {
+          "path": "app/src/ui/divisorPanel.tsx",
+          "hrefDashboard": "../../app/src/ui/divisorPanel.tsx"
+        },
+        {
+          "path": "app/src/ui/MenuContextualArbol.tsx",
+          "hrefDashboard": "../../app/src/ui/MenuContextualArbol.tsx"
+        },
+        {
+          "path": "app/src/render/jointjs/JointCanvas.tsx",
+          "hrefDashboard": "../../app/src/render/jointjs/JointCanvas.tsx"
+        }
+      ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-90-interaccion-shortcuts.md"
     },
     {
@@ -43976,15 +45012,36 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-90-interaccion-shortcuts.md",
       "lineaInicio": 60,
       "corte": "gamma",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto: registry central de atajos con contextos, menu contextual de arbol, divisor y zoom centralizado.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/ui/atajosTeclado.ts",
+          "hrefDashboard": "../../app/src/ui/atajosTeclado.ts"
+        },
+        {
+          "path": "app/src/ui/App.tsx",
+          "hrefDashboard": "../../app/src/ui/App.tsx"
+        },
+        {
+          "path": "app/src/ui/divisorPanel.tsx",
+          "hrefDashboard": "../../app/src/ui/divisorPanel.tsx"
+        },
+        {
+          "path": "app/src/ui/MenuContextualArbol.tsx",
+          "hrefDashboard": "../../app/src/ui/MenuContextualArbol.tsx"
+        },
+        {
+          "path": "app/src/render/jointjs/JointCanvas.tsx",
+          "hrefDashboard": "../../app/src/render/jointjs/JointCanvas.tsx"
+        }
+      ],
       "peso": 4,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 4,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-90-interaccion-shortcuts.md"
     },
     {
@@ -44010,15 +45067,36 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-90-interaccion-shortcuts.md",
       "lineaInicio": 63,
       "corte": "gamma",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto: registry central de atajos con contextos, menu contextual de arbol, divisor y zoom centralizado.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/ui/atajosTeclado.ts",
+          "hrefDashboard": "../../app/src/ui/atajosTeclado.ts"
+        },
+        {
+          "path": "app/src/ui/App.tsx",
+          "hrefDashboard": "../../app/src/ui/App.tsx"
+        },
+        {
+          "path": "app/src/ui/divisorPanel.tsx",
+          "hrefDashboard": "../../app/src/ui/divisorPanel.tsx"
+        },
+        {
+          "path": "app/src/ui/MenuContextualArbol.tsx",
+          "hrefDashboard": "../../app/src/ui/MenuContextualArbol.tsx"
+        },
+        {
+          "path": "app/src/render/jointjs/JointCanvas.tsx",
+          "hrefDashboard": "../../app/src/render/jointjs/JointCanvas.tsx"
+        }
+      ],
       "peso": 4,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 4,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-90-interaccion-shortcuts.md"
     },
     {
@@ -44041,15 +45119,36 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-90-interaccion-shortcuts.md",
       "lineaInicio": 66,
       "corte": "gamma",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto: registry central de atajos con contextos, menu contextual de arbol, divisor y zoom centralizado.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/ui/atajosTeclado.ts",
+          "hrefDashboard": "../../app/src/ui/atajosTeclado.ts"
+        },
+        {
+          "path": "app/src/ui/App.tsx",
+          "hrefDashboard": "../../app/src/ui/App.tsx"
+        },
+        {
+          "path": "app/src/ui/divisorPanel.tsx",
+          "hrefDashboard": "../../app/src/ui/divisorPanel.tsx"
+        },
+        {
+          "path": "app/src/ui/MenuContextualArbol.tsx",
+          "hrefDashboard": "../../app/src/ui/MenuContextualArbol.tsx"
+        },
+        {
+          "path": "app/src/render/jointjs/JointCanvas.tsx",
+          "hrefDashboard": "../../app/src/render/jointjs/JointCanvas.tsx"
+        }
+      ],
       "peso": 1,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 1,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-90-interaccion-shortcuts.md"
     },
     {
@@ -44072,15 +45171,36 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-90-interaccion-shortcuts.md",
       "lineaInicio": 69,
       "corte": "gamma",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto: registry central de atajos con contextos, menu contextual de arbol, divisor y zoom centralizado.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/ui/atajosTeclado.ts",
+          "hrefDashboard": "../../app/src/ui/atajosTeclado.ts"
+        },
+        {
+          "path": "app/src/ui/App.tsx",
+          "hrefDashboard": "../../app/src/ui/App.tsx"
+        },
+        {
+          "path": "app/src/ui/divisorPanel.tsx",
+          "hrefDashboard": "../../app/src/ui/divisorPanel.tsx"
+        },
+        {
+          "path": "app/src/ui/MenuContextualArbol.tsx",
+          "hrefDashboard": "../../app/src/ui/MenuContextualArbol.tsx"
+        },
+        {
+          "path": "app/src/render/jointjs/JointCanvas.tsx",
+          "hrefDashboard": "../../app/src/render/jointjs/JointCanvas.tsx"
+        }
+      ],
       "peso": 1,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 1,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-90-interaccion-shortcuts.md"
     },
     {
@@ -44142,15 +45262,36 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-90-interaccion-shortcuts.md",
       "lineaInicio": 75,
       "corte": "gamma",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto: registry central de atajos con contextos, menu contextual de arbol, divisor y zoom centralizado.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/ui/atajosTeclado.ts",
+          "hrefDashboard": "../../app/src/ui/atajosTeclado.ts"
+        },
+        {
+          "path": "app/src/ui/App.tsx",
+          "hrefDashboard": "../../app/src/ui/App.tsx"
+        },
+        {
+          "path": "app/src/ui/divisorPanel.tsx",
+          "hrefDashboard": "../../app/src/ui/divisorPanel.tsx"
+        },
+        {
+          "path": "app/src/ui/MenuContextualArbol.tsx",
+          "hrefDashboard": "../../app/src/ui/MenuContextualArbol.tsx"
+        },
+        {
+          "path": "app/src/render/jointjs/JointCanvas.tsx",
+          "hrefDashboard": "../../app/src/render/jointjs/JointCanvas.tsx"
+        }
+      ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-90-interaccion-shortcuts.md"
     },
     {
@@ -44174,15 +45315,36 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-90-interaccion-shortcuts.md",
       "lineaInicio": 78,
       "corte": "gamma",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto: registry central de atajos con contextos, menu contextual de arbol, divisor y zoom centralizado.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/ui/atajosTeclado.ts",
+          "hrefDashboard": "../../app/src/ui/atajosTeclado.ts"
+        },
+        {
+          "path": "app/src/ui/App.tsx",
+          "hrefDashboard": "../../app/src/ui/App.tsx"
+        },
+        {
+          "path": "app/src/ui/divisorPanel.tsx",
+          "hrefDashboard": "../../app/src/ui/divisorPanel.tsx"
+        },
+        {
+          "path": "app/src/ui/MenuContextualArbol.tsx",
+          "hrefDashboard": "../../app/src/ui/MenuContextualArbol.tsx"
+        },
+        {
+          "path": "app/src/render/jointjs/JointCanvas.tsx",
+          "hrefDashboard": "../../app/src/render/jointjs/JointCanvas.tsx"
+        }
+      ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-90-interaccion-shortcuts.md"
     },
     {
@@ -44221,15 +45383,36 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-90-interaccion-shortcuts.md",
       "lineaInicio": 81,
       "corte": "gamma",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto: registry central de atajos con contextos, menu contextual de arbol, divisor y zoom centralizado.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/ui/atajosTeclado.ts",
+          "hrefDashboard": "../../app/src/ui/atajosTeclado.ts"
+        },
+        {
+          "path": "app/src/ui/App.tsx",
+          "hrefDashboard": "../../app/src/ui/App.tsx"
+        },
+        {
+          "path": "app/src/ui/divisorPanel.tsx",
+          "hrefDashboard": "../../app/src/ui/divisorPanel.tsx"
+        },
+        {
+          "path": "app/src/ui/MenuContextualArbol.tsx",
+          "hrefDashboard": "../../app/src/ui/MenuContextualArbol.tsx"
+        },
+        {
+          "path": "app/src/render/jointjs/JointCanvas.tsx",
+          "hrefDashboard": "../../app/src/render/jointjs/JointCanvas.tsx"
+        }
+      ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-90-interaccion-shortcuts.md"
     },
     {

@@ -1,31 +1,42 @@
+import { lazy, Suspense } from "preact/compat";
 import { useEffect } from "preact/hooks";
 import { JointCanvas } from "../render/jointjs/JointCanvas";
 import { store, useOpmStore } from "../store";
 import { ArbolOpd } from "./ArbolOpd";
 import { BarraPestanas } from "./BarraPestanas";
 import { configurarContextoAtajos, escucharGlobal, registrarAtajo } from "./atajosTeclado";
-import { CheatsheetAtajos } from "./CheatsheetAtajos";
 import { ConfirmacionProvider } from "./ConfirmacionContext";
-import { DialogoArchivados } from "./DialogoArchivados";
-import { DialogoBuscarGlobal } from "./DialogoBuscarGlobal";
-import { DialogoCargarModelo } from "./DialogoCargarModelo";
-import { DialogoGuardarComo } from "./DialogoGuardarComo";
-import { DialogoVersiones } from "./DialogoVersiones";
 import { DivisorPanel } from "./divisorPanel";
 import { GestionArbolOpd } from "./GestionArbolOpd";
 import { Inspector } from "./Inspector";
-import { MapaSistema } from "./MapaSistema";
-import { ModalDuracionEstado } from "./ModalDuracionEstado";
-import { ModalUrlsObjeto } from "./ModalUrlsObjeto";
 import { PanelAvisos } from "./PanelAvisos";
 import { PanelOpl } from "./PanelOpl";
 import { Timeline } from "./Timeline";
 import { Toolbar } from "./Toolbar";
 
+const AsistenteNuevoModelo = lazy(() => import("./AsistenteNuevoModelo").then((m) => ({ default: m.AsistenteNuevoModelo })));
+const CheatsheetAtajos = lazy(() => import("./CheatsheetAtajos").then((m) => ({ default: m.CheatsheetAtajos })));
+const DialogoArchivados = lazy(() => import("./DialogoArchivados").then((m) => ({ default: m.DialogoArchivados })));
+const DialogoBuscarGlobal = lazy(() => import("./DialogoBuscarGlobal").then((m) => ({ default: m.DialogoBuscarGlobal })));
+const DialogoCargarModelo = lazy(() => import("./DialogoCargarModelo").then((m) => ({ default: m.DialogoCargarModelo })));
+const DialogoGuardarComo = lazy(() => import("./DialogoGuardarComo").then((m) => ({ default: m.DialogoGuardarComo })));
+const DialogoVersiones = lazy(() => import("./DialogoVersiones").then((m) => ({ default: m.DialogoVersiones })));
+const MapaSistema = lazy(() => import("./MapaSistema").then((m) => ({ default: m.MapaSistema })));
+const ModalDuracionEstado = lazy(() => import("./ModalDuracionEstado").then((m) => ({ default: m.ModalDuracionEstado })));
+const ModalUrlsObjeto = lazy(() => import("./ModalUrlsObjeto").then((m) => ({ default: m.ModalUrlsObjeto })));
+
 export function App() {
   const vistaMapaActiva = useOpmStore((s) => s.vistaMapaActiva);
   const anchoPanelArbol = useOpmStore((s) => s.anchoPanelArbol);
   const fijarAnchoPanelArbol = useOpmStore((s) => s.fijarAnchoPanelArbol);
+  const asistenteAbierto = useOpmStore((s) => s.asistente !== null);
+  const dialogoGuardarComoAbierto = useOpmStore((s) => s.dialogoGuardarComoAbierto);
+  const dialogoCargarModeloAbierto = useOpmStore((s) => s.dialogoCargarModeloAbierto);
+  const dialogoBuscarGlobalAbierto = useOpmStore((s) => s.dialogoBuscarGlobalAbierto);
+  const dialogoVersionesAbierto = useOpmStore((s) => s.dialogoVersionesAbierto !== null);
+  const dialogoArchivadosAbierto = useOpmStore((s) => s.dialogoArchivadosAbierto);
+  const modalUrlsAbierto = useOpmStore((s) => s.modalUrlsAbierto !== null);
+  const modalDuracionAbierto = useOpmStore((s) => s.modalDuracionAbierto !== null);
   const cheatsheetAtajosAbierto = useOpmStore((s) => s.cheatsheetAtajosAbierto);
   const cerrarCheatsheetAtajos = useOpmStore((s) => s.cerrarCheatsheetAtajos);
 
@@ -57,7 +68,11 @@ export function App() {
             onAnchoChange={fijarAnchoPanelArbol}
           />
           <div data-testid="canvas-pane" style={layout.canvasPane}>
-            {vistaMapaActiva ? <MapaSistema /> : <JointCanvas />}
+            {vistaMapaActiva ? (
+              <Suspense fallback={null}>
+                <MapaSistema />
+              </Suspense>
+            ) : <JointCanvas />}
           </div>
           <div data-testid="inspector-pane" style={layout.inspectorPane}>
             <div style={layout.inspectorContent}>
@@ -68,15 +83,20 @@ export function App() {
           </div>
         </section>
         <PanelOpl />
-        <DialogoGuardarComo />
-        <DialogoCargarModelo />
-        <DialogoBuscarGlobal />
-        <DialogoVersiones />
-        <DialogoArchivados />
+        {dialogoGuardarComoAbierto ? <Suspense fallback={null}><DialogoGuardarComo /></Suspense> : null}
+        {dialogoCargarModeloAbierto ? <Suspense fallback={null}><DialogoCargarModelo /></Suspense> : null}
+        {dialogoBuscarGlobalAbierto ? <Suspense fallback={null}><DialogoBuscarGlobal /></Suspense> : null}
+        {dialogoVersionesAbierto ? <Suspense fallback={null}><DialogoVersiones /></Suspense> : null}
+        {dialogoArchivadosAbierto ? <Suspense fallback={null}><DialogoArchivados /></Suspense> : null}
         <GestionArbolOpd />
-        <ModalUrlsObjeto />
-        <ModalDuracionEstado />
-        <CheatsheetAtajos abierto={cheatsheetAtajosAbierto} onCerrar={cerrarCheatsheetAtajos} />
+        {asistenteAbierto ? <Suspense fallback={null}><AsistenteNuevoModelo /></Suspense> : null}
+        {modalUrlsAbierto ? <Suspense fallback={null}><ModalUrlsObjeto /></Suspense> : null}
+        {modalDuracionAbierto ? <Suspense fallback={null}><ModalDuracionEstado /></Suspense> : null}
+        {cheatsheetAtajosAbierto ? (
+          <Suspense fallback={null}>
+            <CheatsheetAtajos abierto={cheatsheetAtajosAbierto} onCerrar={cerrarCheatsheetAtajos} />
+          </Suspense>
+        ) : null}
       </main>
     </ConfirmacionProvider>
   );

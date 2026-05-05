@@ -728,11 +728,11 @@
   ],
   "knownGaps": [],
   "autoAudit": {
-    "generatedAt": "2026-05-05T20:30:24.738Z",
+    "generatedAt": "2026-05-05T22:11:28.677Z",
     "mode": "sync-real",
-    "rulesEvaluated": 49,
-    "rulesMatched": 45,
-    "rulesUnmatched": 4,
+    "rulesEvaluated": 55,
+    "rulesMatched": 55,
+    "rulesUnmatched": 0,
     "sourceFiles": {
       "count": 159,
       "roots": [
@@ -764,47 +764,42 @@
       "ids": [
         "HU-SHARED-006"
       ],
-      "estado": "pendiente",
+      "estado": "parcial",
       "confianza": "alta-auto",
       "fuente": "auto",
-      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
+      "nota": "Auto: dirty state se calcula contra snapshot guardado y hay confirmacion global antes de acciones destructivas; falta read-only completo.",
       "evidencia": [
         "app/src/store.ts",
         "app/src/ui/ConfirmacionContext.tsx",
         "app/src/ui/DialogoConfirmacion.tsx"
-      ],
-      "brechas": [
-        "app/src/store.ts: falta dirty: exportarModelo(modelo) !== snapshotGuardado"
       ]
     },
     {
       "ids": [
         "HU-SHARED-007"
       ],
-      "estado": "pendiente",
+      "estado": "parcial",
       "confianza": "alta-auto",
       "fuente": "auto",
-      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
+      "nota": "Auto: generacion OPL-ES forward cubre entidades, enlaces, estados, despliegues y OPD activo; no existe edicion inversa OPL -> canvas.",
       "evidencia": [
         "app/src/opl/generar.ts",
         "app/src/ui/PanelOpl.tsx",
         "app/src/opl/generar.test.ts",
         "app/src/completitud.test.ts"
-      ],
-      "brechas": [
-        "app/src/ui/PanelOpl.tsx: falta generarOpl(modelo, opdActivoId)",
-        "app/src/ui/PanelOpl.tsx: falta renderOpl"
       ]
     },
     {
       "ids": [
         "HU-SHARED-008"
       ],
-      "estado": "parcial",
+      "estado": "cubierto",
       "confianza": "alta-auto",
       "fuente": "auto",
-      "nota": "Auto: seleccion simple de entidad/enlace esta cableada desde JointJS hacia Zustand; faltan multiseleccion, lazo y operaciones masivas.",
+      "nota": "Auto: multi-seleccion canonica con Ctrl+clic, rubber band Shift y operaciones batch atomicas en undo.",
       "evidencia": [
+        "app/src/canvas/seleccionMultiple.ts",
+        "app/src/canvas/operacionesBatch.ts",
         "app/src/store.ts",
         "app/src/render/jointjs/JointCanvas.tsx",
         "app/src/render/jointjs/proyeccion.ts"
@@ -1151,20 +1146,16 @@
         "HU-13.017",
         "HU-17.033"
       ],
-      "estado": "pendiente",
+      "estado": "cubierto",
       "confianza": "alta-auto",
       "fuente": "auto",
-      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
+      "nota": "Auto: estados inicial/final se validan, renderizan, serializan y verbalizan en OPL con pruebas.",
       "evidencia": [
-        "app/src/modelo/operaciones.ts",
+        "app/src/modelo/estadosDesignaciones.ts",
         "app/src/opl/generar.ts",
         "app/src/serializacion/json.ts",
         "app/src/completitud.test.ts",
         "app/src/render/jointjs/proyeccion.test.ts"
-      ],
-      "brechas": [
-        "app/src/opl/generar.ts: falta inicial",
-        "app/src/opl/generar.ts: falta final"
       ]
     },
     {
@@ -1358,10 +1349,10 @@
         "HU-15.010",
         "HU-15.011"
       ],
-      "estado": "pendiente",
+      "estado": "cubierto",
       "confianza": "alta-auto",
       "fuente": "auto",
-      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
+      "nota": "Auto: los abanicos O/XOR proyectan conectores canonicos desde assets logicos sin overlay textual.",
       "evidencia": [
         "app/src/render/jointjs/abanicoOverlay.ts",
         "app/src/render/jointjs/linkAssets.ts",
@@ -1372,11 +1363,6 @@
         "app/src/ui/InspectorEnlace.tsx",
         "app/src/render/jointjs/proyeccion.test.ts",
         "app/e2e/opm-smoke.spec.ts"
-      ],
-      "brechas": [
-        "app/src/render/jointjs/abanicoOverlay.ts: falta standard.Polygon",
-        "app/src/render/jointjs/abanicoOverlay.ts: falta standard.Path",
-        "app/src/render/jointjs/proyeccion.ts: falta abanico.operador"
       ]
     },
     {
@@ -1640,6 +1626,148 @@
         "app/src/modelo/etiquetasEnlace.ts",
         "app/src/ui/InspectorEnlace.tsx",
         "app/src/opl/generar.ts"
+      ]
+    },
+    {
+      "ids": [
+        "HU-17.002",
+        "HU-17.003",
+        "HU-17.004",
+        "HU-17.005",
+        "HU-17.006",
+        "HU-17.007",
+        "HU-17.008",
+        "HU-17.009",
+        "HU-17.010",
+        "HU-17.011",
+        "HU-17.012",
+        "HU-17.018",
+        "HU-17.019",
+        "HU-17.020",
+        "HU-17.021",
+        "HU-17.023"
+      ],
+      "estado": "cubierto",
+      "confianza": "alta-auto",
+      "fuente": "auto",
+      "nota": "Auto: alias, unidad, descripcion y URLs tipadas viven en modelo, serializacion, render, OPL, inspector y modal.",
+      "evidencia": [
+        "app/src/modelo/objetoMetadata.ts",
+        "app/src/modelo/tipos.ts",
+        "app/src/serializacion/json.ts",
+        "app/src/render/jointjs/proyeccion.ts",
+        "app/src/opl/generar.ts",
+        "app/src/ui/InspectorEntidad.tsx",
+        "app/src/ui/ModalUrlsObjeto.tsx"
+      ]
+    },
+    {
+      "ids": [
+        "HU-13.012",
+        "HU-13.013"
+      ],
+      "estado": "cubierto",
+      "confianza": "alta-auto",
+      "fuente": "auto",
+      "nota": "Auto: designaciones Default y Current son persistentes, excluyentes y unicas por entidad.",
+      "evidencia": [
+        "app/src/modelo/estadosDesignaciones.ts",
+        "app/src/modelo/tipos.ts",
+        "app/src/serializacion/json.ts",
+        "app/src/opl/generar.ts",
+        "app/src/ui/InspectorEntidad.tsx",
+        "app/src/completitud.test.ts"
+      ]
+    },
+    {
+      "ids": [
+        "HU-17.034"
+      ],
+      "estado": "cubierto",
+      "confianza": "alta-auto",
+      "fuente": "auto",
+      "nota": "Auto: duracion canonica de estado con unidad, min, nominal y max en modelo, serializacion, OPL y modal.",
+      "evidencia": [
+        "app/src/modelo/objetoDuracion.ts",
+        "app/src/modelo/tipos.ts",
+        "app/src/serializacion/json.ts",
+        "app/src/opl/generar.ts",
+        "app/src/ui/ModalDuracionEstado.tsx"
+      ]
+    },
+    {
+      "ids": [
+        "HU-90.001",
+        "HU-90.002",
+        "HU-90.003",
+        "HU-90.004",
+        "HU-90.005",
+        "HU-90.006",
+        "HU-90.007",
+        "HU-90.008",
+        "HU-90.009",
+        "HU-90.010",
+        "HU-90.011",
+        "HU-90.012",
+        "HU-90.013",
+        "HU-90.014",
+        "HU-90.015",
+        "HU-90.016",
+        "HU-90.017",
+        "HU-90.019",
+        "HU-90.020",
+        "HU-90.021"
+      ],
+      "estado": "cubierto",
+      "confianza": "alta-auto",
+      "fuente": "auto",
+      "nota": "Auto: registry central de atajos con contextos, menu contextual de arbol, divisor y zoom centralizado.",
+      "evidencia": [
+        "app/src/ui/atajosTeclado.ts",
+        "app/src/ui/App.tsx",
+        "app/src/ui/divisorPanel.tsx",
+        "app/src/ui/MenuContextualArbol.tsx",
+        "app/src/render/jointjs/JointCanvas.tsx"
+      ]
+    },
+    {
+      "ids": [
+        "HU-31.011",
+        "HU-31.012",
+        "HU-31.013",
+        "HU-35.001",
+        "HU-35.002",
+        "HU-35.003",
+        "HU-35.004",
+        "HU-35.005",
+        "HU-30.029"
+      ],
+      "estado": "cubierto",
+      "confianza": "alta-auto",
+      "fuente": "auto",
+      "nota": "Auto: workspace single-user cierra cortar/pegar y drag-drop de modelos/carpetas, busqueda global, versiones manuales y archivado.",
+      "evidencia": [
+        "app/src/persistencia/movimientoModelos.ts",
+        "app/src/persistencia/versiones.ts",
+        "app/src/persistencia/workspace.ts",
+        "app/src/ui/DialogoBuscarGlobal.tsx",
+        "app/src/ui/DialogoVersiones.tsx",
+        "app/src/ui/DialogoArchivados.tsx"
+      ]
+    },
+    {
+      "ids": [
+        "HU-34.002",
+        "HU-34.003"
+      ],
+      "estado": "cubierto",
+      "confianza": "alta-auto",
+      "fuente": "auto",
+      "nota": "Auto: multi-pestana sesion-only con boton +, cierre protegido, cambio activo y drag-reorder.",
+      "evidencia": [
+        "app/src/store/pestanas.ts",
+        "app/src/store.ts",
+        "app/src/ui/BarraPestanas.tsx"
       ]
     }
   ]
