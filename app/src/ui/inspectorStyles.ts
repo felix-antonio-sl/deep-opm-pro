@@ -161,4 +161,16 @@ export const inspectorStyles = {
     fontSize: "12px",
     fontWeight: 700,
   },
+  oplEditButton: {
+    width: "100%",
+    height: "32px",
+    marginTop: "8px",
+    border: "1px solid #586D8C",
+    borderRadius: "4px",
+    background: "#f0f3f9",
+    color: "#334155",
+    cursor: "pointer",
+    fontSize: "12px",
+    fontWeight: 700,
+  },
 } satisfies Record<string, preact.JSX.CSSProperties>;

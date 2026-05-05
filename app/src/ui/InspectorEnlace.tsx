@@ -5,8 +5,10 @@ import { entidadDeExtremo, entidadIdDeExtremo, extremoEntidad, extremoEstado, no
 import { estadosDeEntidad, validarMultiplicidad } from "../modelo/operaciones";
 import { enlaceAdmiteRuta } from "../modelo/rutas";
 import { useOpmStore } from "../store";
+import { store } from "../store";
 import type { Abanico, Apariencia, Enlace, ExtremoEnlace, Id, Modelo, Modificador, OperadorAbanico } from "../modelo/tipos";
 import { inspectorStyles as style } from "./inspectorStyles";
+import { COLORS_UI, DASH_PATTERNS_UI } from "./StyleControls";
 
 interface Props {
   enlace: Enlace;
@@ -30,6 +32,11 @@ export function InspectorEnlace({ enlace }: Props) {
   const renombrarEtiquetaEnlace = useOpmStore((s) => s.renombrarEtiquetaEnlaceSeleccionado);
   const definirRutaEtiqueta = useOpmStore((s) => s.definirRutaEtiquetaSeleccionada);
   const eliminar = useOpmStore((s) => s.eliminarSeleccion);
+  const aplicarEstiloEnlaceAccion = useOpmStore((s) => s.aplicarEstiloEnlaceAccion);
+  const resetEstiloEnlaceAccion = useOpmStore((s) => s.resetEstiloEnlaceAccion);
+  const copiarEstiloAlPortapapeles = useOpmStore((s) => s.copiarEstiloEnlaceAlPortapapeles);
+  const pegarEstiloDesdePortapapeles = useOpmStore((s) => s.pegarEstiloEnlaceDesdePortapapeles);
+  const enlaceEstiloPortapapeles = useOpmStore((s) => s.enlaceEstiloPortapapeles);
   const abanico = abanicoDeEnlace(modelo, enlace.id);
   const origen = entidadDeExtremo(modelo, enlace.origenId);
   const destino = entidadDeExtremo(modelo, enlace.destinoId);
@@ -141,6 +148,20 @@ export function InspectorEnlace({ enlace }: Props) {
           />
           {!errorEtiqueta.ok ? <span role="alert" style={errorStyle}>{errorEtiqueta.error}</span> : null}
         </label>
+      </section>
+
+      <section style={seccionEstiloStyle}>
+        <div style={seccionEstiloHeaderStyle}>
+          <h3 style={multiplicidadTitleStyle}>Estilo del enlace</h3>
+          <div style={styleRowButtonsStyle}>
+            <button type="button" style={style.secondaryButton} onClick={() => copiarEstiloAlPortapapeles(enlace.id)}>Copiar</button>
+            <button type="button" style={style.secondaryButton} disabled={!enlaceEstiloPortapapeles} onClick={() => pegarEstiloDesdePortapapeles(enlace.id)}>Pegar</button>
+            <button type="button" style={style.secondaryButton} onClick={() => resetEstiloEnlaceAccion(enlace.id)} disabled={!enlace.estilo}>Reset</button>
+          </div>
+        </div>
+        <ColorPickerEnlace label="Color" value={enlace.estilo?.color} onChange={(color) => aplicarEstiloEnlaceAccion(enlace.id, { color })} />
+        <SliderGrosor label="Grosor" value={enlace.estilo?.strokeWidth ?? 2} min={1} max={6} onChange={(v) => aplicarEstiloEnlaceAccion(enlace.id, { strokeWidth: v })} />
+        <SelectorPatron label="Patrón" value={enlace.estilo?.dashArray ?? "ambiental"} onChange={(v) => aplicarEstiloEnlaceAccion(enlace.id, { dashArray: v === "ambiental" ? "" : v })} />
       </section>
 
       <section style={multiplicidadSectionStyle}>
@@ -348,6 +369,16 @@ export function InspectorEnlace({ enlace }: Props) {
       ) : null}
 
       <button type="button" style={style.dangerButton} onClick={eliminar}>Eliminar enlace</button>
+
+      {/* HU-50.022: Botón "Editar OPL" — abre el inspector desde el contexto OPL */}
+      <button
+        type="button"
+        style={style.oplEditButton}
+        onClick={() => store.getState().abrirInspectorEnlaceDesdeOpl(enlace.id)}
+        title="Editar este enlace desde el panel OPL-ES"
+      >
+        Editar OPL
+      </button>
     </>
   );
 }
@@ -519,3 +550,123 @@ const buttonRowStyle = {
   gap: "8px",
   gridTemplateColumns: "1fr",
 } satisfies preact.JSX.CSSProperties;
+
+// ── Estilo de enlace helpers ────────────────────────────────────────────────
+
+function ColorPickerEnlace(props: { label: string; value: string | undefined; onChange: (color: string) => void }) {
+  const swatches = ["#586d8c", "#70e483", "#3bc3ff", "#000002", "#d92d20", "#e87400", "#7c68fc", "#000000"];
+  return (
+    <div style={colorPickerRowStyle}>
+      <span style={sliderLabelStyle}>{props.label}</span>
+      <div style={swatchesRowStyle}>
+        {swatches.map((color) => (
+          <button
+            key={color}
+            type="button"
+            aria-label={`Color ${color}`}
+            title={color}
+            style={{
+              ...swatchStyle,
+              background: color,
+              borderColor: props.value?.toLowerCase() === color ? "#1f2937" : "#c8d2df",
+              boxShadow: props.value?.toLowerCase() === color ? "0 0 0 2px #ffffff, 0 0 0 4px #586D8C" : "none",
+            }}
+            onClick={() => props.onChange(color)}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function SliderGrosor(props: { label: string; value: number; min: number; max: number; onChange: (v: number) => void }) {
+  return (
+    <div style={sliderRowStyle}>
+      <span style={sliderLabelStyle}>{props.label} ({props.value}px)</span>
+      <input
+        type="range"
+        min={props.min}
+        max={props.max}
+        value={props.value}
+        style={sliderInputStyle}
+        onInput={(e) => props.onChange(Number(e.currentTarget.value))}
+      />
+    </div>
+  );
+}
+
+function SelectorPatron(props: { label: string; value: string; onChange: (v: string) => void }) {
+  return (
+    <div style={sliderRowStyle}>
+      <span style={sliderLabelStyle}>{props.label}</span>
+      <select
+        style={style.input}
+        value={props.value}
+        onChange={(e) => props.onChange(e.currentTarget.value)}
+      >
+        <option value="ambiental">Ambiental (sólido)</option>
+        <option value="4 4">Discontinuo</option>
+        <option value="2 4">Punteado</option>
+        <option value="6 4 2 4">Mixto</option>
+      </select>
+    </div>
+  );
+}
+
+const seccionEstiloStyle = {
+  display: "grid",
+  gap: "8px",
+  marginBottom: "14px",
+  padding: "8px",
+  background: "#ffffff",
+  border: "1px solid #e5e7eb",
+  borderRadius: "6px",
+} satisfies preact.JSX.CSSProperties;
+
+const seccionEstiloHeaderStyle = {
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "space-between",
+  gap: "8px",
+} satisfies preact.JSX.CSSProperties;
+
+const styleRowButtonsStyle = {
+  display: "flex",
+  gap: "4px",
+} satisfies preact.JSX.CSSProperties;
+
+const colorPickerRowStyle = {
+  display: "grid",
+  gap: "4px",
+} satisfies preact.JSX.CSSProperties;
+
+const swatchesRowStyle = {
+  display: "flex",
+  gap: "4px",
+  flexWrap: "wrap",
+} satisfies preact.JSX.CSSProperties;
+
+const swatchStyle: preact.JSX.CSSProperties = {
+  width: "24px",
+  height: "24px",
+  border: "1px solid #c8d2df",
+  borderRadius: "4px",
+  cursor: "pointer",
+};
+
+const sliderRowStyle = {
+  display: "grid",
+  gap: "4px",
+} satisfies preact.JSX.CSSProperties;
+
+const sliderLabelStyle = {
+  color: "#667085",
+  fontSize: "12px",
+  fontWeight: 700,
+} satisfies preact.JSX.CSSProperties;
+
+const sliderInputStyle: preact.JSX.CSSProperties = {
+  width: "100%",
+  height: "24px",
+  accentColor: "#586D8C",
+};
