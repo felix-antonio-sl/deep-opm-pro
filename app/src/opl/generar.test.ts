@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { extremoEstado } from "../modelo/extremos";
 import { crearAutoInvocacion } from "../modelo/autoinvocacion";
+import { renombrarEtiquetaEnlace } from "../modelo/etiquetasEnlace";
 import { aplicarModificador, definirDemora, definirProbabilidad } from "../modelo/modificadores";
 import { ajustarMultiplicidad, cambiarEsencia, crearEnlace, crearEstadosIniciales, crearModelo, crearObjeto, crearProceso, designarEstadoFinal, designarEstadoInicial, descomponerProceso, agregarEstado, desplegarObjeto, estadosDeEntidad, moverApariencia, renombrarEstado } from "../modelo/operaciones";
 import { cambiarModoPlegado } from "../modelo/plegado";
@@ -16,6 +17,18 @@ describe("OPL-ES — tipos de enlace canonicos", () => {
     modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidad(modelo, "Todo"), entidad(modelo, "Parte"), "agregacion"));
 
     expect(generarOpl(modelo)).toContain("**Todo** consta de **Parte**.");
+  });
+
+  test("etiqueta de agregacion es tag adicional y no reemplaza verbo canonico", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 0, y: 0 }, "Todo"));
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 180, y: 0 }, "Parte"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidad(modelo, "Todo"), entidad(modelo, "Parte"), "agregacion"));
+    const enlaceId = Object.keys(modelo.enlaces)[0];
+    if (!enlaceId) throw new Error("La prueba esperaba enlace");
+    modelo = must(renombrarEtiquetaEnlace(modelo, enlaceId, "componente critico"));
+
+    expect(generarOpl(modelo)).toContain("**Todo** consta de **Parte**. [etiqueta: componente critico]");
   });
 
   test("agente emite maneja", () => {

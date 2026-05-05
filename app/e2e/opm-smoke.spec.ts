@@ -246,7 +246,7 @@ test("despliega objeto y navega al OPD hijo", async ({ page }) => {
 
   const nodoHijo = page.locator('[role="treeitem"]').filter({ hasText: "SD1: Objeto desplegado" });
   await expect(nodoHijo).toHaveAttribute("aria-current", "page");
-  await expect(page.locator(".joint-element")).toHaveCount(7);
+  await expect(page.locator(".joint-element")).toHaveCount(5);
   await expect(page.getByText("Objeto se despliega en Objeto parte 1, Objeto parte 2 y Objeto parte 3.")).toBeVisible();
 
   await page.getByRole("button", { name: "Exportar" }).click();
@@ -1014,6 +1014,32 @@ test("renderiza agregacion como triangulo estructural", async ({ page }) => {
   expect(pageErrors).toEqual([]);
 });
 
+test("fusiona agregaciones en bus unico y renombra etiqueta de enlace", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await page.locator("textarea").fill(JSON.stringify(modeloBusAgregacion(), null, 2));
+  await page.getByRole("button", { name: "Importar" }).click();
+
+  await expect(page.locator(".joint-link")).toHaveCount(3);
+  await expect(page.locator(".joint-element polygon")).toHaveCount(1);
+
+  await clickLinkPorTipo(page, "Agregacion");
+  await page.getByTestId("enlace-etiqueta-input").fill("componente critico");
+
+  await expect(svgText(page, "componente critico")).toBeVisible();
+  await expect(page.getByText("Todo consta de Parte A. [etiqueta: componente critico]")).toBeVisible();
+
+  await page.getByRole("button", { name: "Exportar" }).click();
+  const json = await page.locator("textarea").inputValue();
+  const exportado = JSON.parse(json) as ExportadoModelo;
+  expect(Object.values(exportado.modelo.enlaces).some((enlace) => enlace.etiqueta === "componente critico")).toBe(true);
+
+  await page.screenshot({ path: "test-results/opm-bus-agregacion-etiqueta.png", fullPage: true });
+  expect(pageErrors).toEqual([]);
+});
+
 function elementoPorTexto(page: import("@playwright/test").Page, texto: string): import("@playwright/test").Locator {
   const flexibleSvgText = new RegExp(`^\\s*${texto.trim().split(/\s+/).map(escapeRegExp).join("\\s*")}\\s*$`);
   return page.locator(".joint-element").filter({
@@ -1317,6 +1343,44 @@ function modeloModificadoresEnlace() {
   };
 }
 
+function modeloBusAgregacion() {
+  return {
+    formato: "deep-opm-pro.modelo.v0",
+    modelo: {
+      id: "modelo-bus-agregacion",
+      nombre: "Bus agregacion",
+      opdRaizId: "opd-1",
+      nextSeq: 1,
+      entidades: {
+        "o-todo": objeto("o-todo", "Todo"),
+        "o-parte-a": objeto("o-parte-a", "Parte A"),
+        "o-parte-b": objeto("o-parte-b", "Parte B"),
+      },
+      estados: {},
+      enlaces: {
+        "e-parte-a": enlace("e-parte-a", "agregacion", "o-todo", "o-parte-a"),
+        "e-parte-b": enlace("e-parte-b", "agregacion", "o-todo", "o-parte-b"),
+      },
+      opds: {
+        "opd-1": {
+          id: "opd-1",
+          nombre: "SD",
+          padreId: null,
+          apariencias: {
+            "a-o-todo": { id: "a-o-todo", entidadId: "o-todo", opdId: "opd-1", x: 70, y: 120, width: 135, height: 60 },
+            "a-o-parte-a": { id: "a-o-parte-a", entidadId: "o-parte-a", opdId: "opd-1", x: 320, y: 60, width: 135, height: 60 },
+            "a-o-parte-b": { id: "a-o-parte-b", entidadId: "o-parte-b", opdId: "opd-1", x: 320, y: 190, width: 135, height: 60 },
+          },
+          enlaces: {
+            "ae-parte-a": { id: "ae-parte-a", enlaceId: "e-parte-a", opdId: "opd-1", vertices: [] },
+            "ae-parte-b": { id: "ae-parte-b", enlaceId: "e-parte-b", opdId: "opd-1", vertices: [] },
+          },
+        },
+      },
+    },
+  };
+}
+
 function modeloAbanicoLogico() {
   return {
     formato: "deep-opm-pro.modelo.v0",
@@ -1543,6 +1607,7 @@ interface ExportadoModelo {
       tipo: string;
       origenId: ExtremoExportado;
       destinoId: ExtremoExportado;
+      etiqueta: string;
       multiplicidadOrigen?: string;
       multiplicidadDestino?: string;
       rutaEtiqueta?: string;

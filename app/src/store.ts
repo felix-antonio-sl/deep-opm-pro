@@ -59,6 +59,7 @@ import {
   definirProbabilidad,
   quitarModificador,
 } from "./modelo/modificadores";
+import { renombrarEtiquetaEnlace } from "./modelo/etiquetasEnlace";
 import { definirRutaEtiqueta } from "./modelo/rutas";
 import {
   borrarModeloLocal,
@@ -139,6 +140,7 @@ interface OpmStore {
   quitarModificadorEnlaceSeleccionado: () => void;
   definirProbabilidadEventoSeleccionada: (probabilidad: number | undefined) => void;
   definirDemoraInvocacionSeleccionada: (demora: string | undefined) => void;
+  renombrarEtiquetaEnlaceSeleccionado: (etiqueta: string) => void;
   definirRutaEtiquetaSeleccionada: (etiqueta: string | undefined) => void;
   eliminarSeleccion: () => void;
   exportarJson: () => string;
@@ -1007,6 +1009,22 @@ export const store = createStore<OpmStore>((set, get) => ({
     const { modelo, enlaceSeleccionId } = get();
     if (!enlaceSeleccionId) return;
     const resultado = definirDemora(modelo, enlaceSeleccionId, demora);
+    if (!resultado.ok) {
+      set({ mensaje: resultado.error });
+      return;
+    }
+    commitModelo(set, modelo, resultado.value, {
+      seleccionId: null,
+      enlaceSeleccionId,
+      modoEnlace: null,
+      mensaje: null,
+    });
+  },
+
+  renombrarEtiquetaEnlaceSeleccionado(etiqueta) {
+    const { modelo, enlaceSeleccionId } = get();
+    if (!enlaceSeleccionId) return;
+    const resultado = renombrarEtiquetaEnlace(modelo, enlaceSeleccionId, etiqueta);
     if (!resultado.ok) {
       set({ mensaje: resultado.error });
       return;

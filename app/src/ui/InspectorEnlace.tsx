@@ -1,5 +1,6 @@
 import { useEffect, useState } from "preact/hooks";
 import { abanicoDeEnlace } from "../modelo/abanicos";
+import { etiquetaEnlaceNormalizada, validarEtiquetaEnlace } from "../modelo/etiquetasEnlace";
 import { entidadDeExtremo, entidadIdDeExtremo, extremoEntidad, extremoEstado, nombreExtremo } from "../modelo/extremos";
 import { estadosDeEntidad, validarMultiplicidad } from "../modelo/operaciones";
 import { enlaceAdmiteRuta } from "../modelo/rutas";
@@ -26,6 +27,7 @@ export function InspectorEnlace({ enlace }: Props) {
   const quitarModificador = useOpmStore((s) => s.quitarModificadorEnlaceSeleccionado);
   const definirProbabilidadEvento = useOpmStore((s) => s.definirProbabilidadEventoSeleccionada);
   const definirDemoraInvocacion = useOpmStore((s) => s.definirDemoraInvocacionSeleccionada);
+  const renombrarEtiquetaEnlace = useOpmStore((s) => s.renombrarEtiquetaEnlaceSeleccionado);
   const definirRutaEtiqueta = useOpmStore((s) => s.definirRutaEtiquetaSeleccionada);
   const eliminar = useOpmStore((s) => s.eliminarSeleccion);
   const abanico = abanicoDeEnlace(modelo, enlace.id);
@@ -38,11 +40,14 @@ export function InspectorEnlace({ enlace }: Props) {
   const [multiplicidadDestino, setMultiplicidadDestino] = useState(enlace.multiplicidadDestino ?? "");
   const [probabilidad, setProbabilidad] = useState(enlace.probabilidad === undefined ? "" : String(enlace.probabilidad));
   const [demora, setDemora] = useState(enlace.demora ?? "");
+  const [etiqueta, setEtiqueta] = useState(enlace.etiqueta);
   const [rutaEtiqueta, setRutaEtiqueta] = useState(enlace.rutaEtiqueta ?? "");
   const [endpointSeleccionado, setEndpointSeleccionado] = useState(endpointActual);
   const errorOrigen = multiplicidadOrigen !== "" && !validarMultiplicidad(multiplicidadOrigen);
   const errorDestino = multiplicidadDestino !== "" && !validarMultiplicidad(multiplicidadDestino);
   const errorProbabilidad = probabilidad !== "" && !probabilidadValida(probabilidad);
+  const etiquetaNormalizada = etiquetaEnlaceNormalizada(etiqueta);
+  const errorEtiqueta = validarEtiquetaEnlace(enlace, etiquetaNormalizada);
 
   useEffect(() => {
     setMultiplicidadOrigen(enlace.multiplicidadOrigen ?? "");
@@ -52,8 +57,9 @@ export function InspectorEnlace({ enlace }: Props) {
   useEffect(() => {
     setProbabilidad(enlace.probabilidad === undefined ? "" : String(enlace.probabilidad));
     setDemora(enlace.demora ?? "");
+    setEtiqueta(enlace.etiqueta);
     setRutaEtiqueta(enlace.rutaEtiqueta ?? "");
-  }, [enlace.id, enlace.probabilidad, enlace.demora, enlace.rutaEtiqueta]);
+  }, [enlace.id, enlace.probabilidad, enlace.demora, enlace.etiqueta, enlace.rutaEtiqueta]);
 
   useEffect(() => {
     setEndpointSeleccionado(endpointActual);
@@ -87,6 +93,12 @@ export function InspectorEnlace({ enlace }: Props) {
     definirDemoraInvocacion(valor.trim() === "" ? undefined : valor);
   };
 
+  const cambiarEtiqueta = (valor: string) => {
+    setEtiqueta(valor);
+    const normalizada = etiquetaEnlaceNormalizada(valor);
+    if (validarEtiquetaEnlace(enlace, normalizada).ok) renombrarEtiquetaEnlace(valor);
+  };
+
   const cambiarRutaEtiqueta = (valor: string) => {
     setRutaEtiqueta(valor);
     definirRutaEtiqueta(valor.trim() === "" ? undefined : valor);
@@ -114,6 +126,22 @@ export function InspectorEnlace({ enlace }: Props) {
         <span style={style.arrow}>{"->"}</span>
         <span>{destino ? nombreExtremo(modelo, enlace.destinoId) : enlace.destinoId.id}</span>
       </div>
+
+      <section style={etiquetaSectionStyle}>
+        <h3 style={multiplicidadTitleStyle}>Etiqueta</h3>
+        <label style={style.field}>
+          <span style={style.label}>Etiqueta</span>
+          <input
+            data-testid="enlace-etiqueta-input"
+            aria-invalid={!errorEtiqueta.ok}
+            placeholder="componente crítico"
+            style={!errorEtiqueta.ok ? inputErrorStyle : style.input}
+            value={etiqueta}
+            onInput={(event) => cambiarEtiqueta(event.currentTarget.value)}
+          />
+          {!errorEtiqueta.ok ? <span role="alert" style={errorStyle}>{errorEtiqueta.error}</span> : null}
+        </label>
+      </section>
 
       <section style={multiplicidadSectionStyle}>
         <h3 style={multiplicidadTitleStyle}>Multiplicidad</h3>
@@ -405,6 +433,16 @@ const multiplicidadSectionStyle = {
   display: "grid",
   gap: "2px",
   marginBottom: "14px",
+} satisfies preact.JSX.CSSProperties;
+
+const etiquetaSectionStyle = {
+  display: "grid",
+  gap: "8px",
+  marginBottom: "14px",
+  padding: "8px",
+  background: "#ffffff",
+  border: "1px solid #e5e7eb",
+  borderRadius: "6px",
 } satisfies preact.JSX.CSSProperties;
 
 const modificadorSectionStyle = {

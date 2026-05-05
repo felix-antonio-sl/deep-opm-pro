@@ -1,10 +1,12 @@
 import { esAutoInvocacion } from "../../modelo/autoinvocacion";
 import { CANON } from "../../modelo/constantes";
+import { etiquetaEnlaceNormalizada } from "../../modelo/etiquetasEnlace";
 import { entidadIdDeExtremo } from "../../modelo/extremos";
 import { estadosDeEntidad } from "../../modelo/operaciones";
 import { modoPlegadoApariencia, partesDePlegado } from "../../modelo/plegado";
 import type { Apariencia, Enlace, Entidad, Estado, ExtremoEnlace, Id, Modelo, Posicion, TipoEnlace } from "../../modelo/tipos";
 import { proyectarOverlayAbanicoCanonico } from "./abanicoOverlay";
+import { proyectarBusesAgregacion, type EnlaceConEndpointVisual } from "./agregacionBus";
 import { proyectarAutoInvocacion } from "./autoinvocacionLoop";
 import { targetsEstado, type EstadoTarget } from "./estadoTargets";
 import { LINK_ASSETS } from "./linkAssets";
@@ -93,9 +95,24 @@ export function proyectarModeloAJointCells(
         aparienciaPuerto,
       });
     });
-  const enlaces = Object.values(opd.enlaces).flatMap((aparienciaEnlace) => {
+  const enlacesConEndpoint = Object.values(opd.enlaces).flatMap((aparienciaEnlace): EnlaceConEndpointVisual[] => {
     const enlace = modelo.enlaces[aparienciaEnlace.enlaceId];
     if (!enlace) return [];
+    const origen = resolverEndpointVisual(modelo, opd, aparienciaPorEntidad, enlace.origenId);
+    const destino = resolverEndpointVisual(modelo, opd, aparienciaPorEntidad, enlace.destinoId);
+    if (!origen || !destino) return [];
+    if (origen.proxy || destino.proxy || origen.punto || destino.punto) return [];
+    return [{ enlace, aparienciaEnlaceId: aparienciaEnlace.id, origen, destino }];
+  });
+  const { busCells, enlacesConsumidos } = proyectarBusesAgregacion({
+    modelo,
+    opdId,
+    enlaces: enlacesConEndpoint,
+    seleccionados: new Set(seleccionEnlaceId ? [seleccionEnlaceId] : []),
+  });
+  const enlaces = Object.values(opd.enlaces).flatMap((aparienciaEnlace) => {
+    const enlace = modelo.enlaces[aparienciaEnlace.enlaceId];
+    if (!enlace || enlacesConsumidos.has(enlace.id)) return [];
     const origen = resolverEndpointVisual(modelo, opd, aparienciaPorEntidad, enlace.origenId);
     const destino = resolverEndpointVisual(modelo, opd, aparienciaPorEntidad, enlace.destinoId);
     if (!origen || !destino) return [];
@@ -114,7 +131,7 @@ export function proyectarModeloAJointCells(
       : [proyectarEnlace(opdId, enlace, aparienciaEnlace.id, origen, destino, aparienciaEnlace.vertices, enlace.id === seleccionEnlaceId)];
   });
 
-  return [...enlaces, ...proxies, ...overlaysAbanico, ...elementos];
+  return [...busCells, ...enlaces, ...proxies, ...overlaysAbanico, ...elementos];
 }
 
 function proyectarEntidad(modelo: Modelo, opdId: Id, apariencia: Apariencia, entidad: Entidad, seleccionada: boolean): JointCellJson {
@@ -519,7 +536,7 @@ function proyectarEnlace(
     vertices: verticesRender,
     router: enlace.tipo === "invocacion" ? undefined : routerManhattan(),
     connector: { name: "straight" },
-    labels: [...etiquetasMultiplicidad(enlace), ...etiquetasModificador(enlace), ...etiquetasRuta(enlace), ...etiquetasProxyParte(origen, destino)],
+    labels: [...etiquetasMultiplicidad(enlace), ...etiquetasModificador(enlace), ...etiquetaEnlace(enlace), ...etiquetasRuta(enlace), ...etiquetasProxyParte(origen, destino)],
     attrs: {
       wrapper: {
         stroke: "transparent",
@@ -683,6 +700,39 @@ function etiquetaTextoModificador(text: string, distance: number, offset: number
   };
 }
 
+function etiquetaEnlace(enlace: Enlace): Array<Record<string, unknown>> {
+  const etiqueta = etiquetaEnlaceNormalizada(enlace.etiqueta);
+  return etiqueta ? [etiquetaTextoEnlace(etiqueta)] : [];
+}
+
+function etiquetaTextoEnlace(text: string): Record<string, unknown> {
+  return {
+    markup: [{ tagName: "text", selector: "label" }],
+    attrs: {
+      label: {
+        text,
+        fill: "#475467",
+        fontFamily: CANON.dims.fontFamily,
+        fontSize: 12,
+        fontStyle: "italic",
+        fontWeight: CANON.dims.fontWeight,
+        textAnchor: "middle",
+        textVerticalAnchor: "middle",
+        pointerEvents: "none",
+      },
+    },
+    position: {
+      distance: 0.5,
+      offset: -20,
+      angle: 0,
+      args: {
+        keepGradient: false,
+        ensureLegibility: true,
+      },
+    },
+  };
+}
+
 function etiquetaMultiplicidad(text: string, distance: number): Record<string, unknown> {
   return {
     markup: [{ tagName: "text", selector: "label" }],
@@ -758,6 +808,7 @@ function proyectarRefinamientoEstructural(
       target: extremo(destino.id),
       router: routerManhattan(),
       connector: { name: "straight" },
+      labels: etiquetaEnlace(enlace),
       attrs: lineAttrs,
       opm: meta,
       z: 1,

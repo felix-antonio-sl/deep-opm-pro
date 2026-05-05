@@ -1,4 +1,5 @@
 import { esAutoInvocacion } from "../modelo/autoinvocacion";
+import { etiquetaEnlaceNormalizada } from "../modelo/etiquetasEnlace";
 import {
   entidadDeExtremo,
   entidadIdDeExtremo,
@@ -115,8 +116,8 @@ function oracionAbanico(modelo: Modelo, abanico: Abanico): string | null {
 function oracionEnlaceConRuta(modelo: Modelo, enlace: Enlace): string | null {
   const ruta = rutaEtiquetaNormalizada(enlace.rutaEtiqueta);
   if (!ruta) return oracionEnlace(modelo, enlace);
-  const base = oracionProcedimentalParaRuta(modelo, enlace) ?? oracionEnlace(modelo, enlace);
-  return base ? `Por ruta ${ruta}, ${base}` : null;
+  const base = oracionProcedimentalParaRuta(modelo, enlace) ?? oracionEnlaceSinEtiqueta(modelo, enlace);
+  return conEtiquetaEnlace(enlace, base ? `Por ruta ${ruta}, ${base}` : null);
 }
 
 function oracionProcedimentalParaRuta(modelo: Modelo, enlace: Enlace): string | null {
@@ -280,6 +281,10 @@ function transicionesEstado(modelo: Modelo, opd: Opd): { lineaPorEnlaceConsumo: 
 }
 
 function oracionEnlace(modelo: Modelo, enlace: Enlace): string | null {
+  return conEtiquetaEnlace(enlace, oracionEnlaceSinEtiqueta(modelo, enlace));
+}
+
+function oracionEnlaceSinEtiqueta(modelo: Modelo, enlace: Enlace): string | null {
   const origen = entidadDeExtremo(modelo, enlace.origenId);
   const destino = entidadDeExtremo(modelo, enlace.destinoId);
   if (!origen || !destino) return null;
@@ -424,7 +429,13 @@ function oracionNegada(
 
 function oracionEnlaceSinModificador(modelo: Modelo, enlace: Enlace): string | null {
   const { modificador: _modificador, probabilidad: _probabilidad, ...sinModificador } = enlace;
-  return oracionEnlace(modelo, sinModificador);
+  return oracionEnlaceSinEtiqueta(modelo, sinModificador);
+}
+
+function conEtiquetaEnlace(enlace: Enlace, linea: string | null): string | null {
+  if (!linea) return null;
+  const etiqueta = etiquetaEnlaceNormalizada(enlace.etiqueta);
+  return etiqueta ? `${linea} [etiqueta: ${etiqueta}]` : linea;
 }
 
 function oracionEfecto(modelo: Modelo, enlace: Enlace, origen: Entidad, destino: Entidad): string | null {

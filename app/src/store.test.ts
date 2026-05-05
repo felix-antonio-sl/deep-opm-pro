@@ -213,6 +213,27 @@ describe("store undo/redo y dirty state", () => {
     expect(store.getState().puedeDeshacer).toBe(true);
   });
 
+  test("renombrar etiqueta de enlace seleccionado entra al historial y conserva seleccion", () => {
+    let modelo = crearModelo("Store etiqueta enlace");
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 80 }, "Todo"));
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 220, y: 80 }, "Parte"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidadPorNombre(modelo, "Todo"), entidadPorNombre(modelo, "Parte"), "agregacion"));
+    store.getState().importarJson(exportarModelo(modelo));
+    const enlaceId = Object.keys(modelo.enlaces)[0];
+    if (!enlaceId) throw new Error("La prueba esperaba enlace");
+
+    store.getState().seleccionarEnlace(enlaceId);
+    store.getState().renombrarEtiquetaEnlaceSeleccionado(" componente critico ");
+
+    expect(store.getState().modelo.enlaces[enlaceId]?.etiqueta).toBe("componente critico");
+    expect(store.getState().enlaceSeleccionId).toBe(enlaceId);
+    expect(store.getState().dirty).toBe(true);
+    expect(store.getState().puedeDeshacer).toBe(true);
+
+    store.getState().deshacer();
+    expect(store.getState().modelo.enlaces[enlaceId]?.etiqueta).toBe("");
+  });
+
   test("accion de store crea auto-invocacion y selecciona el enlace", () => {
     store.getState().crearProcesoDemo();
     const procesoId = primeraEntidadId();

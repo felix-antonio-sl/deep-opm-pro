@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { formarAbanico } from "../../modelo/abanicos";
 import { crearAutoInvocacion } from "../../modelo/autoinvocacion";
+import { renombrarEtiquetaEnlace } from "../../modelo/etiquetasEnlace";
 import { entidadIdDeExtremo, extremoEstado } from "../../modelo/extremos";
 import { aplicarModificador, definirDemora, definirProbabilidad } from "../../modelo/modificadores";
 import { ajustarMultiplicidad, cambiarEsencia, crearEnlace, crearEstadosIniciales, crearModelo, crearObjeto, crearProceso, designarEstadoFinal, designarEstadoInicial, descomponerProceso, desplegarObjeto, estadosDeEntidad, renombrarEstado } from "../../modelo/operaciones";
@@ -377,6 +378,55 @@ describe("proyeccion JointJS", () => {
     expect(((triangulo?.attrs as Attrs | undefined)?.body as Attrs | undefined)?.refPoints).toBe(LINK_ASSETS.structural.agregacion.markerPoints);
     expect(((triangulo?.attrs as Attrs | undefined)?.body as Attrs | undefined)?.fill).toBe("#586D8C");
     expect(((triangulo?.attrs as Attrs | undefined)?.body as Attrs | undefined)?.strokeWidth).toBe(4);
+  });
+
+  test("fusiona dos agregaciones del mismo todo en bus con triangulo unico", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 90 }, "Todo"));
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 260, y: 20 }, "Parte A"));
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 260, y: 170 }, "Parte B"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidadPorNombre(modelo, "Todo"), entidadPorNombre(modelo, "Parte A"), "agregacion"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidadPorNombre(modelo, "Todo"), entidadPorNombre(modelo, "Parte B"), "agregacion"));
+
+    const cells = proyectarModeloAJointCells(modelo, modelo.opdRaizId, null, null);
+
+    const links = cells.filter((cell) => cell.type === "standard.Link");
+    expect(links).toHaveLength(3);
+    const triangulos = cells.filter((cell) => cell.type === "standard.Polygon");
+    expect(triangulos).toHaveLength(1);
+    expect(String(triangulos[0]?.id)).toContain("ag-bus");
+    const ramas = links.filter((cell) => String(cell.id).includes("-rama"));
+    expect(ramas).toHaveLength(2);
+    expect(new Set(ramas.map((cell) => cell.opm.kind === "enlace" ? cell.opm.enlaceId : ""))).toEqual(new Set(Object.keys(modelo.enlaces)));
+  });
+
+  test("una sola agregacion conserva render simple sin bus", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 30 }, "Todo"));
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 220, y: 130 }, "Parte"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidadPorNombre(modelo, "Todo"), entidadPorNombre(modelo, "Parte"), "agregacion"));
+
+    const cells = proyectarModeloAJointCells(modelo, modelo.opdRaizId, null, null);
+
+    expect(cells.filter((cell) => cell.type === "standard.Link")).toHaveLength(2);
+    expect(cells.filter((cell) => cell.type === "standard.Polygon")).toHaveLength(1);
+    expect(cells.some((cell) => String(cell.id).includes("ag-bus"))).toBe(false);
+  });
+
+  test("proyecta etiqueta de enlace como tag italico", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 30 }, "Todo"));
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 220, y: 130 }, "Parte"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidadPorNombre(modelo, "Todo"), entidadPorNombre(modelo, "Parte"), "agregacion"));
+    const enlaceId = Object.keys(modelo.enlaces)[0];
+    if (!enlaceId) throw new Error("La prueba esperaba enlace");
+    modelo = must(renombrarEtiquetaEnlace(modelo, enlaceId, "componente critico"));
+
+    const enlaceConEtiqueta = proyectarModeloAJointCells(modelo, modelo.opdRaizId, null, null)
+      .find((cell) => cell.type === "standard.Link" && (cell.labels as unknown[] | undefined)?.length);
+    const labels = enlaceConEtiqueta?.labels as Array<{ attrs?: { label?: { text?: unknown; fontStyle?: unknown } } }> | undefined;
+
+    expect(labels?.[0]?.attrs?.label).toMatchObject({ text: "componente critico", fontStyle: "italic" });
   });
 
   test("proyecta proceso descompuesto con contorno grueso", () => {
