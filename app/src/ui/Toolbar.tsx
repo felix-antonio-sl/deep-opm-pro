@@ -42,6 +42,7 @@ export function Toolbar() {
   const puedeDeshacer = useOpmStore((s) => s.puedeDeshacer);
   const puedeRehacer = useOpmStore((s) => s.puedeRehacer);
   const modelo = useOpmStore((s) => s.modelo);
+  const autosalvado = useOpmStore((s) => s.autosalvado);
   const confirmarSiDirty = useConfirmarSiDirty();
 
   useEffect(() => {
@@ -153,6 +154,16 @@ export function Toolbar() {
           <button style={style.secondaryButton} type="button" onClick={() => fijarModoCreacion(null)}>Cancelar creación</button>
         ) : null}
         {mensaje ? <span style={style.status}>{mensaje}</span> : null}
+        {autosalvado.activo ? (
+          <span
+            style={autosalvado.salvando ? style.autosaveSaving : style.autosaveIdle}
+            title={autosalvado.ultimo
+              ? `Autosalvado activo · Último: ${new Date(autosalvado.ultimo).toLocaleTimeString("es-CL", { hour: "2-digit", minute: "2-digit" })}`
+              : "Autosalvado activo"}
+          >
+            {autosalvado.salvando ? "●" : "○"} Auto
+          </span>
+        ) : null}
       </div>
     </div>
   );
@@ -306,6 +317,20 @@ const style = {
     color: "#475467",
     fontSize: "13px",
     whiteSpace: "nowrap",
+  },
+  autosaveIdle: {
+    color: "#98a2b3",
+    fontSize: "12px",
+    fontWeight: 600,
+    whiteSpace: "nowrap",
+    cursor: "default",
+  },
+  autosaveSaving: {
+    color: "#586D8C",
+    fontSize: "12px",
+    fontWeight: 700,
+    whiteSpace: "nowrap",
+    cursor: "default",
   },
 } satisfies Record<string, preact.JSX.CSSProperties>;
 
