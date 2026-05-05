@@ -22,9 +22,12 @@ interface Props {
   onCopyStyleEnlace?: () => void;
   onPasteStyleEnlace?: () => void;
   onResetStyleEnlace?: () => void;
+  seleccionMultipleCount?: number;
+  aplicarASeleccion?: boolean;
+  onCambiarAplicarASeleccion?: (activo: boolean) => void;
 }
 
-export function StyleControls({ estilo, onApply, onReset, showText, onApplyText, onResetText, enlaceContext, enlaceEstiloPortapapeles, onCopyStyleEnlace, onPasteStyleEnlace, onResetStyleEnlace }: Props) {
+export function StyleControls({ estilo, onApply, onReset, showText, onApplyText, onResetText, enlaceContext, enlaceEstiloPortapapeles, onCopyStyleEnlace, onPasteStyleEnlace, seleccionMultipleCount = 0, aplicarASeleccion = false, onCambiarAplicarASeleccion }: Props) {
   return (
     <section style={styles.section} aria-label="Style">
       <div style={styles.header}>
@@ -38,6 +41,17 @@ export function StyleControls({ estilo, onApply, onReset, showText, onApplyText,
           Reset
         </button>
       </div>
+      {seleccionMultipleCount >= 2 ? (
+        <label style={styles.batchBar}>
+          <span>{seleccionMultipleCount} elementos seleccionados</span>
+          <input
+            type="checkbox"
+            checked={aplicarASeleccion}
+            onChange={(event) => onCambiarAplicarASeleccion?.(event.currentTarget.checked)}
+          />
+          <span>Aplicar a selección</span>
+        </label>
+      ) : null}
       <Swatches
         label="Fill"
         selected={estilo?.fill}
@@ -201,6 +215,19 @@ const styles = {
     border: "1px solid #c8d2df",
     borderRadius: "4px",
     cursor: "pointer",
+  },
+  batchBar: {
+    display: "flex",
+    alignItems: "center",
+    gap: "8px",
+    minHeight: "28px",
+    padding: "6px 8px",
+    border: "1px solid #c8d2df",
+    borderRadius: "4px",
+    background: "#f3f8ff",
+    color: "#344054",
+    fontSize: "12px",
+    fontWeight: 700,
   },
 } satisfies Record<string, preact.JSX.CSSProperties>;
 

@@ -4,7 +4,9 @@ import { CANON } from "../../modelo/constantes";
 import type { Modelo } from "../../modelo/tipos";
 import { useOpmStore } from "../../store";
 import type { OplReferencia } from "../../opl/interaccion";
-import { abanicosAfectadosPorEntidad, sincronizarOverlayAbanicoEnDrag } from "./abanicoDragSync";
+import { interseccionRectangulo } from "../../canvas/seleccionMultiple";
+import { registrarAtajo } from "../../ui/atajosTeclado";
+import { abanicosAfectadosPorEntidad, recalcularOverlayDesdeLinkView, recalcularOverlaysAbanicoDesdeLinkViews } from "./abanicoDragSync";
 import { opmShapes } from "./customShapes";
 import type { OpmJointMetadata } from "./proyeccion";
 import { proyectarModeloAJointCells } from "./proyeccion";
@@ -30,6 +32,8 @@ export function JointCanvas() {
   const opdActivoId = useOpmStore((s) => s.opdActivoId);
   const opdActivoIdRef = useRef(opdActivoId);
   const seleccionId = useOpmStore((s) => s.seleccionId);
+  const seleccionados = useOpmStore((s) => s.seleccionados);
+  const seleccionadosRef = useRef(seleccionados);
   const enlaceSeleccionId = useOpmStore((s) => s.enlaceSeleccionId);
   const enlaceSeleccionIdRef = useRef(enlaceSeleccionId);
   const hoverOplRef = useOpmStore((s) => s.hoverOplRef);
@@ -53,6 +57,14 @@ export function JointCanvas() {
   const crearEntidadEnCanvasRef = useRef(crearEntidadEnCanvas);
   const fijarHoverOpl = useOpmStore((s) => s.fijarHoverOpl);
   const fijarHoverOplRef = useRef(fijarHoverOpl);
+  const setSeleccion = useOpmStore((s) => s.setSeleccion);
+  const setSeleccionRef = useRef(setSeleccion);
+  const agregarASeleccion = useOpmStore((s) => s.agregarASeleccion);
+  const agregarASeleccionRef = useRef(agregarASeleccion);
+  const toggleSeleccion = useOpmStore((s) => s.toggleSeleccion);
+  const toggleSeleccionRef = useRef(toggleSeleccion);
+  const vaciarSeleccion = useOpmStore((s) => s.vaciarSeleccion);
+  const vaciarSeleccionRef = useRef(vaciarSeleccion);
 
   useEffect(() => {
     modoEnlaceRef.current = modoEnlace;
@@ -64,7 +76,8 @@ export function JointCanvas() {
 
   useEffect(() => {
     enlaceSeleccionIdRef.current = enlaceSeleccionId;
-  }, [enlaceSeleccionId]);
+    seleccionadosRef.current = seleccionados;
+  }, [enlaceSeleccionId, seleccionados]);
 
   useEffect(() => {
     modeloRef.current = modelo;
@@ -82,7 +95,11 @@ export function JointCanvas() {
     actualizarVerticesEnlaceRef.current = actualizarVerticesEnlace;
     crearEntidadEnCanvasRef.current = crearEntidadEnCanvas;
     fijarHoverOplRef.current = fijarHoverOpl;
-  }, [actualizarVerticesEnlace, cambiarModoPlegadoApariencia, crearEntidadEnCanvas, extraerParteDePlegado, fijarHoverOpl, moverApariencia, seleccionarEnlace, seleccionarEntidad, seleccionarEstadoComoExtremo, seleccionarPartePlegada]);
+    setSeleccionRef.current = setSeleccion;
+    agregarASeleccionRef.current = agregarASeleccion;
+    toggleSeleccionRef.current = toggleSeleccion;
+    vaciarSeleccionRef.current = vaciarSeleccion;
+  }, [actualizarVerticesEnlace, agregarASeleccion, cambiarModoPlegadoApariencia, crearEntidadEnCanvas, extraerParteDePlegado, fijarHoverOpl, moverApariencia, seleccionarEnlace, seleccionarEntidad, seleccionarEstadoComoExtremo, seleccionarPartePlegada, setSeleccion, toggleSeleccion, vaciarSeleccion]);
 
   useEffect(() => {
     if (!paperHostRef.current) return;
@@ -149,6 +166,8 @@ export function JointCanvas() {
     });
 
     setPaperDimensions(paper, CANVAS_BASE);
+    let rubberBandActivo = false;
+    let suprimirBlankClick = false;
 
     paper.on("element:pointerclick", (elementView: dia.ElementView, evt: dia.Event) => {
       evt.stopPropagation();
@@ -163,6 +182,11 @@ export function JointCanvas() {
       }
       const meta = metadata(cellViewModel(elementView));
       if (meta?.kind === "entidad") {
+        if (multiEvento(evt)) {
+          if (ctrlEvento(evt)) toggleSeleccionRef.current(meta.entidadId);
+          else agregarASeleccionRef.current(meta.entidadId);
+          return;
+        }
         const selector = jointSelector(evt.target);
         if (selector === "foldBadge") {
           cambiarModoPlegadoAparienciaRef.current(meta.aparienciaId, "parcial");
@@ -184,7 +208,14 @@ export function JointCanvas() {
         }
         seleccionarEntidadRef.current(meta.entidadId);
       }
-      if (meta?.kind === "enlace") seleccionarEnlaceRef.current(meta.enlaceId);
+      if (meta?.kind === "enlace") {
+        if (multiEvento(evt)) {
+          if (ctrlEvento(evt)) toggleSeleccionRef.current(meta.enlaceId);
+          else agregarASeleccionRef.current(meta.enlaceId);
+          return;
+        }
+        seleccionarEnlaceRef.current(meta.enlaceId);
+      }
     });
 
     paper.on("element:pointerdblclick", (elementView: dia.ElementView, evt: dia.Event) => {
@@ -208,12 +239,46 @@ export function JointCanvas() {
         return;
       }
       const meta = metadata(cellViewModel(linkView));
-      if (meta?.kind === "enlace") seleccionarEnlaceRef.current(meta.enlaceId);
+      if (meta?.kind === "enlace") {
+        if (multiEvento(evt)) {
+          if (ctrlEvento(evt)) toggleSeleccionRef.current(meta.enlaceId);
+          else agregarASeleccionRef.current(meta.enlaceId);
+          return;
+        }
+        seleccionarEnlaceRef.current(meta.enlaceId);
+      }
+    });
+
+    paper.on("blank:pointerdown", (evt: dia.Event) => {
+      if (!shiftEvento(evt) || modoCreacionRef.current) return;
+      rubberBandActivo = true;
+      iniciarRubberBand({
+        paper,
+        evt,
+        modelo: () => modeloRef.current,
+        opdId: () => opdActivoIdRef.current,
+        acumular: () => ctrlEvento(evt),
+        setSeleccion: (ids) => setSeleccionRef.current(ids),
+        agregarSeleccion: (ids) => {
+          const actuales = new Set(seleccionadosRef.current);
+          setSeleccionRef.current([...actuales, ...ids]);
+        },
+        onFinish: () => {
+          rubberBandActivo = false;
+          suprimirBlankClick = true;
+          window.setTimeout(() => {
+            suprimirBlankClick = false;
+          }, 0);
+        },
+      });
     });
 
     paper.on("blank:pointerclick", (evt: dia.Event) => {
       const tipoCreacion = modoCreacionRef.current;
-      if (!tipoCreacion) return;
+      if (!tipoCreacion) {
+        if (!rubberBandActivo && !suprimirBlankClick) vaciarSeleccionRef.current();
+        return;
+      }
       const posicion = posicionCanvasDesdeEvento(paper, evt);
       crearEntidadEnCanvasRef.current(tipoCreacion, {
         x: Math.round(posicion.x),
@@ -249,9 +314,11 @@ export function JointCanvas() {
     });
 
     // Reposiciona los overlays de abanico EN VIVO mientras el usuario arrastra
-    // una entidad puerto o cualquier rama del fan. Sin esto el arco se queda
-    // en la posicion previa hasta que `pointerup` reproyecta el modelo, lo que
-    // produce un "salto" visual disonante con el cursor.
+    // una entidad puerto o cualquier rama del fan. Lee dock y puntos-sample
+    // desde los LinkView reales (que JointJS recalcula automaticamente al
+    // mover el elemento), igualando el enfoque de OpCloud en
+    // shared.ts:5004-5031. Sin esto el arco se queda en la posicion previa
+    // hasta el `pointerup` y "salta" disonante con el cursor.
     graphEvents(graph).on("change:position", (cell: dia.Cell) => {
       if (sincronizandoRef.current || cell.isLink()) return;
       const meta = metadata(cell);
@@ -260,13 +327,18 @@ export function JointCanvas() {
       const opdActual = opdActivoIdRef.current;
       const afectados = abanicosAfectadosPorEntidad(modeloActual, opdActual, meta.entidadId);
       for (const abanico of afectados) {
-        sincronizarOverlayAbanicoEnDrag(graph, modeloActual, abanico);
+        recalcularOverlayDesdeLinkView(paper, graph, modeloActual, abanico);
       }
     });
 
     adapterRef.current = { graph, paper };
+    // Hook de debug: permite que la sonda in-vivo (scripts/in-vivo-test.mjs)
+    // mida posiciones reales del graph y endpoints reales del paper. Sin
+    // efecto en runtime; solo es accesible desde DevTools/Playwright.
+    (globalThis as { __opmJointAdapter?: JointAdapter }).__opmJointAdapter = { graph, paper };
     return () => {
       adapterRef.current = null;
+      delete (globalThis as { __opmJointAdapter?: JointAdapter }).__opmJointAdapter;
       paperView(paper).remove();
       graph.clear();
     };
@@ -275,15 +347,26 @@ export function JointCanvas() {
   useEffect(() => {
     const adapter = adapterRef.current;
     if (!adapter) return;
-    const cells = proyectarModeloAJointCells(modelo, opdActivoId, seleccionId, enlaceSeleccionId);
+    const cells = proyectarModeloAJointCells(modelo, opdActivoId, seleccionId, enlaceSeleccionId, null, seleccionados);
     sincronizandoRef.current = true;
     adapter.graph.resetCells(cells as dia.Cell.JSON[]);
     setPaperDimensions(adapter.paper, dimensionesPaper(cells));
     embedirContorno(adapter.graph);
+    // Reposiciona overlays-abanico desde los LinkView ya renderizados (paper
+    // async:false garantiza que los views existen tras resetCells). El path
+    // del cold render era una aproximacion geometrica; aqui lo reemplazamos
+    // por el calculo basado en sourcePoint/targetPoint/getPointAtLength
+    // reales, que coincide con donde JointJS dibuja los enlaces.
+    recalcularOverlaysAbanicoDesdeLinkViews({
+      paper: adapter.paper,
+      graph: adapter.graph,
+      modelo,
+      opdId: opdActivoId,
+    });
     sincronizandoRef.current = false;
     instalarHerramientasEnlaceSeleccionado(adapter, enlaceSeleccionId);
     aplicarHoverOpl(adapter.graph, modelo, hoverOplRef, enlaceSeleccionId);
-  }, [enlaceSeleccionId, modelo, opdActivoId, seleccionId]);
+  }, [enlaceSeleccionId, modelo, opdActivoId, seleccionId, seleccionados]);
 
   useEffect(() => {
     const adapter = adapterRef.current;
@@ -291,8 +374,32 @@ export function JointCanvas() {
     aplicarHoverOpl(adapter.graph, modelo, hoverOplRef, enlaceSeleccionId);
   }, [enlaceSeleccionId, hoverOplRef, modelo]);
 
+  useEffect(() => {
+    return registrarAtajo({
+      combo: "Ctrl+0",
+      ctx: "canvas",
+      categoria: "vista",
+      descripcion: "Ajustar OPD activo a pantalla",
+      handler: () => fitCanvasAPantalla(adapterRef.current?.paper),
+    });
+  }, []);
+
+  useEffect(() => {
+    const host = paperHostRef.current;
+    if (!host) return;
+    const manejarWheel = (event: WheelEvent) => {
+      if (!event.ctrlKey && !event.metaKey) return;
+      const paper = adapterRef.current?.paper;
+      if (!paper) return;
+      event.preventDefault();
+      zoomCanvasEnCursor(paper, event);
+    };
+    host.addEventListener("wheel", manejarWheel, { passive: false });
+    return () => host.removeEventListener("wheel", manejarWheel);
+  }, []);
+
   return (
-    <div role="img" aria-label="OPD activo" style={style.viewport}>
+    <div role="img" aria-label="OPD activo" data-atajos-contexto="canvas" style={style.viewport}>
       <div ref={paperHostRef} style={style.paperHost} />
     </div>
   );
@@ -394,6 +501,43 @@ function paperView(paper: dia.Paper): { remove(): void } {
   return paper as unknown as { remove(): void };
 }
 
+function fitCanvasAPantalla(paper: dia.Paper | undefined): void {
+  const paperConFit = paper as unknown as {
+    scaleContentToFit?: (options: {
+      padding: number;
+      minScale: number;
+      maxScale: number;
+      preserveAspectRatio: boolean;
+    }) => void;
+  } | undefined;
+  paperConFit?.scaleContentToFit?.({
+    padding: 40,
+    minScale: ZOOM_MIN,
+    maxScale: ZOOM_MAX,
+    preserveAspectRatio: true,
+  });
+}
+
+function zoomCanvasEnCursor(paper: dia.Paper, event: WheelEvent): void {
+  const paperConZoom = paper as unknown as {
+    scale(): { sx?: number; sy?: number };
+    scale(sx: number, sy: number, ox?: number, oy?: number): void;
+    clientToLocalPoint?: (x: number, y: number) => { x: number; y: number };
+  };
+  const escalaActual = paperConZoom.scale().sx ?? paperConZoom.scale().sy ?? 1;
+  const siguiente = limitarZoom(escalaActual * (event.deltaY < 0 ? 1.1 : 0.9));
+  const punto = paperConZoom.clientToLocalPoint?.(event.clientX, event.clientY);
+  if (punto) {
+    paperConZoom.scale(siguiente, siguiente, punto.x, punto.y);
+    return;
+  }
+  paperConZoom.scale(siguiente, siguiente);
+}
+
+function limitarZoom(valor: number): number {
+  return Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, valor));
+}
+
 function posicionCanvasDesdeEvento(paper: dia.Paper, evt: dia.Event): { x: number; y: number } {
   const event = evt as unknown as MouseEvent;
   const paperConApi = paper as unknown as {
@@ -407,6 +551,74 @@ function posicionCanvasDesdeEvento(paper: dia.Paper, evt: dia.Event): { x: numbe
     return paperConApi.clientToLocalPoint(event.clientX, event.clientY);
   }
   return { x: 0, y: 0 };
+}
+
+function ctrlEvento(evt: dia.Event): boolean {
+  const event = evt as unknown as MouseEvent;
+  return event.ctrlKey || event.metaKey;
+}
+
+function shiftEvento(evt: dia.Event): boolean {
+  return (evt as unknown as MouseEvent).shiftKey;
+}
+
+function multiEvento(evt: dia.Event): boolean {
+  return ctrlEvento(evt) || shiftEvento(evt);
+}
+
+function iniciarRubberBand(args: {
+  paper: dia.Paper;
+  evt: dia.Event;
+  modelo: () => Modelo;
+  opdId: () => string;
+  acumular: () => boolean;
+  setSeleccion: (ids: string[]) => void;
+  agregarSeleccion: (ids: string[]) => void;
+  onFinish: () => void;
+}): void {
+  const start = posicionCanvasDesdeEvento(args.paper, args.evt);
+  const startClient = args.evt as unknown as MouseEvent;
+  const paperEl = (args.paper as unknown as { el: HTMLElement }).el;
+  const bounds = paperEl.getBoundingClientRect();
+  const overlay = document.createElement("div");
+  overlay.setAttribute("data-testid", "rubber-band-seleccion");
+  overlay.style.position = "absolute";
+  overlay.style.pointerEvents = "none";
+  overlay.style.border = "1px solid #3DA8FF";
+  overlay.style.background = "rgba(61, 168, 255, 0.2)";
+  overlay.style.left = `${startClient.clientX - bounds.left}px`;
+  overlay.style.top = `${startClient.clientY - bounds.top}px`;
+  overlay.style.width = "0px";
+  overlay.style.height = "0px";
+  paperEl.style.position = paperEl.style.position || "relative";
+  paperEl.appendChild(overlay);
+
+  let ultimo = start;
+  const mover = (event: MouseEvent) => {
+    ultimo = posicionCanvasDesdeEvento(args.paper, event as unknown as dia.Event);
+    const x = Math.min(startClient.clientX, event.clientX) - bounds.left;
+    const y = Math.min(startClient.clientY, event.clientY) - bounds.top;
+    overlay.style.left = `${x}px`;
+    overlay.style.top = `${y}px`;
+    overlay.style.width = `${Math.abs(event.clientX - startClient.clientX)}px`;
+    overlay.style.height = `${Math.abs(event.clientY - startClient.clientY)}px`;
+  };
+  const soltar = () => {
+    window.removeEventListener("mousemove", mover);
+    window.removeEventListener("mouseup", soltar);
+    overlay.remove();
+    const ids = interseccionRectangulo(args.modelo(), args.opdId(), {
+      x: start.x,
+      y: start.y,
+      width: ultimo.x - start.x,
+      height: ultimo.y - start.y,
+    });
+    if (args.acumular()) args.agregarSeleccion(ids);
+    else args.setSeleccion(ids);
+    args.onFinish();
+  };
+  window.addEventListener("mousemove", mover);
+  window.addEventListener("mouseup", soltar);
 }
 
 function setPaperDimensions(paper: dia.Paper, dimensiones: { width: number; height: number }): void {
@@ -462,6 +674,8 @@ function dimensionesPaper(cells: dia.Cell.JSON[]): { width: number; height: numb
 
 const CANVAS_BASE = { width: 1800, height: 1200 } as const;
 const CANVAS_PADDING = 240;
+const ZOOM_MIN = 0.25;
+const ZOOM_MAX = 2;
 
 const style = {
   viewport: {

@@ -37,6 +37,8 @@ export function InspectorEnlace({ enlace }: Props) {
   const copiarEstiloAlPortapapeles = useOpmStore((s) => s.copiarEstiloEnlaceAlPortapapeles);
   const pegarEstiloDesdePortapapeles = useOpmStore((s) => s.pegarEstiloEnlaceDesdePortapapeles);
   const enlaceEstiloPortapapeles = useOpmStore((s) => s.enlaceEstiloPortapapeles);
+  const seleccionados = useOpmStore((s) => s.seleccionados);
+  const aplicarEstiloASeleccion = useOpmStore((s) => s.aplicarEstiloASeleccion);
   const abanico = abanicoDeEnlace(modelo, enlace.id);
   const origen = entidadDeExtremo(modelo, enlace.origenId);
   const destino = entidadDeExtremo(modelo, enlace.destinoId);
@@ -162,6 +164,16 @@ export function InspectorEnlace({ enlace }: Props) {
         <ColorPickerEnlace label="Color" value={enlace.estilo?.color} onChange={(color) => aplicarEstiloEnlaceAccion(enlace.id, { color })} />
         <SliderGrosor label="Grosor" value={enlace.estilo?.strokeWidth ?? 2} min={1} max={6} onChange={(v) => aplicarEstiloEnlaceAccion(enlace.id, { strokeWidth: v })} />
         <SelectorPatron label="Patrón" value={enlace.estilo?.dashArray ?? "ambiental"} onChange={(v) => aplicarEstiloEnlaceAccion(enlace.id, { dashArray: v === "ambiental" ? "" : v })} />
+        {seleccionados.length >= 2 && seleccionados.every((id) => modelo.enlaces[id]) ? (
+          <button
+            type="button"
+            style={style.secondaryButton}
+            onClick={() => enlace.estilo ? aplicarEstiloASeleccion(enlace.estilo) : undefined}
+            disabled={!enlace.estilo}
+          >
+            Aplicar a selección
+          </button>
+        ) : null}
       </section>
 
       <section style={multiplicidadSectionStyle}>
