@@ -1,6 +1,7 @@
 import { CANON } from "../../modelo/constantes";
+import { estadosDeEntidad } from "../../modelo/operaciones";
 import { modoPlegadoApariencia, partesDePlegado, type PartePlegada } from "../../modelo/plegado";
-import type { Apariencia, Enlace, Entidad, Id, Modelo, Posicion, TipoEnlace } from "../../modelo/tipos";
+import type { Apariencia, Enlace, Entidad, Estado, Id, Modelo, Posicion, TipoEnlace } from "../../modelo/tipos";
 import { LINK_ASSETS } from "./linkAssets";
 
 export type OpmJointMetadata =
@@ -73,9 +74,14 @@ function proyectarEntidad(modelo: Modelo, opdId: Id, apariencia: Apariencia, ent
   const partes = partesDePlegado(modelo, entidad.id);
   const tienePartes = partes.length > 0;
   const modoParcial = modoPlegadoApariencia(apariencia) === "parcial" && tienePartes;
+  const estadosVisibles = entidad.tipo === "objeto" && !modoParcial ? estadosDeEntidad(modelo, entidad.id) : [];
   const refinada = !!entidad.refinamiento;
   const contornoRefinamiento = refinada && entidad.refinamiento?.opdId === opdId;
-  const size = modoParcial ? dimensionesPlegadoParcial(apariencia, entidad.nombre, partes) : { width: apariencia.width, height: apariencia.height };
+  const size = modoParcial
+    ? dimensionesPlegadoParcial(apariencia, entidad.nombre, partes)
+    : estadosVisibles.length > 0
+      ? dimensionesConEstados(apariencia, entidad.nombre, estadosVisibles)
+      : { width: apariencia.width, height: apariencia.height };
   const strokeBase = refinada ? 4 : CANON.dims.enlaceVisible;
   const strokeWidth = seleccionada ? strokeBase + 2 : strokeBase;
   const bodyTag = entidad.tipo === "objeto" ? "rect" : "ellipse";
@@ -98,7 +104,7 @@ function proyectarEntidad(modelo: Modelo, opdId: Id, apariencia: Apariencia, ent
       fontSize: CANON.dims.fontSize,
       fontWeight: CANON.dims.fontWeight,
       textWrap: { width: -12 },
-      refY: contornoRefinamiento || modoParcial ? "8%" : "50%",
+      refY: refYEtiquetaEntidad(contornoRefinamiento, modoParcial, estadosVisibles.length > 0),
       textVerticalAnchor: contornoRefinamiento || modoParcial ? "top" : "middle",
       textAnchor: "middle",
       pointerEvents: "none",
@@ -110,9 +116,13 @@ function proyectarEntidad(modelo: Modelo, opdId: Id, apariencia: Apariencia, ent
     type: entidad.tipo === "objeto" ? "standard.Rectangle" : "standard.Ellipse",
     position: { x: apariencia.x, y: apariencia.y },
     size,
-    ...(modoParcial ? { markup: markupPlegadoParcial(bodyTag, partes), attrs: attrsPlegadoParcial(attrsBase, size, partes) } : {
-      ...(tienePartes ? { markup: markupConBadge(bodyTag), attrs: attrsConBadge(attrsBase, size) } : { attrs: attrsBase }),
-    }),
+    ...(modoParcial
+      ? { markup: markupPlegadoParcial(bodyTag, partes), attrs: attrsPlegadoParcial(attrsBase, size, partes) }
+      : estadosVisibles.length > 0
+        ? { markup: markupConEstados(bodyTag, estadosVisibles, tienePartes), attrs: attrsConEstados(attrsBase, size, estadosVisibles, tienePartes) }
+        : tienePartes
+          ? { markup: markupConBadge(bodyTag), attrs: attrsConBadge(attrsBase, size) }
+          : { attrs: attrsBase }),
     opm: {
       kind: "entidad",
       opdId,
@@ -131,11 +141,42 @@ function dimensionesPlegadoParcial(apariencia: Apariencia, nombrePadre: string, 
   return { width, height };
 }
 
+function dimensionesConEstados(apariencia: Apariencia, nombre: string, estados: Estado[]): { width: number; height: number } {
+  const capsulas = estados.map((estado) => anchoCapsulaEstado(estado.nombre));
+  const anchoEstados = capsulas.reduce((total, ancho) => total + ancho, 0) + Math.max(0, capsulas.length - 1) * ESTADOS.gap;
+  const width = Math.max(apariencia.width, CANON.dims.cosaWidth, nombre.length * 7 + 24, anchoEstados + ESTADOS.paddingX * 2);
+  const height = Math.max(apariencia.height, CANON.dims.cosaHeight + ESTADOS.regionHeight);
+  return { width, height };
+}
+
+function refYEtiquetaEntidad(contornoRefinamiento: boolean, modoParcial: boolean, tieneEstados: boolean): string {
+  if (contornoRefinamiento || modoParcial) return "8%";
+  if (tieneEstados) return "34%";
+  return "50%";
+}
+
 function markupConBadge(bodyTag: "rect" | "ellipse"): Array<Record<string, unknown>> {
   return [
     { tagName: bodyTag, selector: "body" },
     { tagName: "text", selector: "label" },
     { tagName: "text", selector: "foldBadge" },
+  ];
+}
+
+function markupConEstados(
+  bodyTag: "rect" | "ellipse",
+  estados: Estado[],
+  tienePartes: boolean,
+): Array<Record<string, unknown>> {
+  const capsulas = estados.flatMap((_, index) => [
+    { tagName: "rect", selector: `stateCapsule${index}` },
+    { tagName: "text", selector: `stateLabel${index}` },
+  ]);
+  return [
+    { tagName: bodyTag, selector: "body" },
+    { tagName: "text", selector: "label" },
+    ...capsulas,
+    ...(tienePartes ? [{ tagName: "text", selector: "foldBadge" }] : []),
   ];
 }
 
@@ -171,6 +212,57 @@ function attrsConBadge(
       title: "Plegado parcial",
     },
   };
+}
+
+function attrsConEstados(
+  attrsBase: Record<string, unknown>,
+  size: { width: number; height: number },
+  estados: Estado[],
+  tienePartes: boolean,
+): Record<string, unknown> {
+  const attrs: Record<string, unknown> = {
+    ...attrsBase,
+    label: {
+      ...(attrsBase.label as Record<string, unknown>),
+      textWrap: { width: size.width - 24, height: size.height - ESTADOS.regionHeight - 8 },
+    },
+  };
+  if (tienePartes) attrs.foldBadge = attrsConBadge(attrsBase, size).foldBadge;
+  const anchos = estados.map((estado) => anchoCapsulaEstado(estado.nombre));
+  const anchoTotal = anchos.reduce((total, ancho) => total + ancho, 0) + Math.max(0, anchos.length - 1) * ESTADOS.gap;
+  let x = (size.width - anchoTotal) / 2;
+  const y = size.height - ESTADOS.paddingBottom - ESTADOS.capsuleHeight;
+
+  for (const [index, estado] of estados.entries()) {
+    const width = anchos[index] ?? ESTADOS.minWidth;
+    attrs[`stateCapsule${index}`] = {
+      x,
+      y,
+      width,
+      height: ESTADOS.capsuleHeight,
+      rx: ESTADOS.radius,
+      ry: ESTADOS.radius,
+      fill: estado.esFinal ? "#eef8ff" : CANON.colores.relleno,
+      stroke: CANON.colores.enlace,
+      strokeWidth: estado.esInicial ? 3 : 1,
+      pointerEvents: "none",
+    };
+    attrs[`stateLabel${index}`] = {
+      text: estado.nombre,
+      x: x + width / 2,
+      y: y + ESTADOS.capsuleHeight / 2,
+      fill: CANON.colores.texto,
+      fontFamily: CANON.dims.fontFamily,
+      fontSize: ESTADOS.fontSize,
+      fontWeight: CANON.dims.fontWeight,
+      textAnchor: "middle",
+      textVerticalAnchor: "middle",
+      textWrap: { width: width - ESTADOS.paddingHorizontal * 2, height: ESTADOS.capsuleHeight - 4 },
+      pointerEvents: "none",
+    };
+    x += width + ESTADOS.gap;
+  }
+  return attrs;
 }
 
 function attrsPlegadoParcial(
@@ -211,6 +303,10 @@ function attrsPlegadoParcial(
     };
   }
   return attrs;
+}
+
+function anchoCapsulaEstado(nombre: string): number {
+  return Math.max(ESTADOS.minWidth, nombre.length * 7 + ESTADOS.paddingHorizontal * 2);
 }
 
 function proyectarEnlace(
@@ -608,4 +704,16 @@ const PLEGADO = {
   headerHeight: 38,
   rowHeight: 25,
   paddingBottom: 10,
+} as const;
+
+const ESTADOS = {
+  capsuleHeight: 24,
+  minWidth: 52,
+  paddingHorizontal: 6,
+  paddingX: 8,
+  paddingBottom: 6,
+  gap: 4,
+  radius: 8,
+  fontSize: 12,
+  regionHeight: 34,
 } as const;
