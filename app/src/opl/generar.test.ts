@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { cambiarEsencia, crearEnlace, crearModelo, crearObjeto, crearProceso, descomponerProceso, desplegarObjeto, moverApariencia } from "../modelo/operaciones";
+import { ajustarMultiplicidad, cambiarEsencia, crearEnlace, crearModelo, crearObjeto, crearProceso, descomponerProceso, desplegarObjeto, moverApariencia } from "../modelo/operaciones";
 import type { Modelo, Resultado } from "../modelo/tipos";
 import { generarOpl } from "./generar";
 
@@ -66,6 +66,59 @@ describe("OPL-ES — tipos de enlace canonicos", () => {
     modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidad(modelo, "Preparar"), entidad(modelo, "Servir"), "invocacion"));
 
     expect(generarOpl(modelo)).toContain("*Preparar* invoca *Servir*.");
+  });
+
+  test("multiplicidad de agente pluraliza sujeto y verbo", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 0, y: 0 }, "Conductor"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 200, y: 0 }, "Conducir"));
+    modelo = must(cambiarEsencia(modelo, entidad(modelo, "Conductor"), "fisica"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidad(modelo, "Conductor"), entidad(modelo, "Conducir"), "agente"));
+    const enlaceId = Object.values(modelo.enlaces)[0]?.id;
+    expect(enlaceId).toBeDefined();
+    if (!enlaceId) return;
+    modelo = must(ajustarMultiplicidad(modelo, enlaceId, "origen", "2"));
+
+    expect(generarOpl(modelo)).toContain("2 **Conductores** manejan *Conducir*.");
+  });
+
+  test("multiplicidad de complemento conserva verbo singular y pluraliza z", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 0, y: 0 }, "Vez"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 200, y: 0 }, "Contar"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidad(modelo, "Vez"), entidad(modelo, "Contar"), "consumo"));
+    const enlaceId = Object.values(modelo.enlaces)[0]?.id;
+    expect(enlaceId).toBeDefined();
+    if (!enlaceId) return;
+    modelo = must(ajustarMultiplicidad(modelo, enlaceId, "origen", "*"));
+
+    expect(generarOpl(modelo)).toContain("*Contar* consume * **Veces**.");
+  });
+
+  test("multiplicidad destino pluraliza vocal en resultado", () => {
+    let modelo = crearModelo();
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 0, y: 0 }, "Preparar"));
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 200, y: 0 }, "Recurso"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidad(modelo, "Preparar"), entidad(modelo, "Recurso"), "resultado"));
+    const enlaceId = Object.values(modelo.enlaces)[0]?.id;
+    expect(enlaceId).toBeDefined();
+    if (!enlaceId) return;
+    modelo = must(ajustarMultiplicidad(modelo, enlaceId, "destino", "1..N"));
+
+    expect(generarOpl(modelo)).toContain("*Preparar* genera 1..N **Recursos**.");
+  });
+
+  test("multiplicidad uno mantiene singular explicitando cardinalidad", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 0, y: 0 }, "Recurso"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 200, y: 0 }, "Procesar"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidad(modelo, "Recurso"), entidad(modelo, "Procesar"), "consumo"));
+    const enlaceId = Object.values(modelo.enlaces)[0]?.id;
+    expect(enlaceId).toBeDefined();
+    if (!enlaceId) return;
+    modelo = must(ajustarMultiplicidad(modelo, enlaceId, "origen", "1"));
+
+    expect(generarOpl(modelo)).toContain("*Procesar* consume 1 **Recurso**.");
   });
 });
 
