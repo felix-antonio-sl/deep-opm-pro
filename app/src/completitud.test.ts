@@ -22,11 +22,14 @@ import {
   designarEstadoFinal,
   designarEstadoInicial,
   desplegarObjeto,
+  descomponerProceso,
   estadosDeEntidad,
+  reanclarEnlaceExternoDerivado,
   validarFirmaEnlace,
 } from "./modelo/operaciones";
 import type {
   DesignacionEstado,
+  DerivacionOrigen,
   Entidad,
   Esencia,
   Id,
@@ -40,6 +43,7 @@ import type {
 import { generarOpl } from "./opl/generar";
 import { LINK_ASSETS } from "./render/jointjs/linkAssets";
 import { proyectarModeloAJointCells } from "./render/jointjs/proyeccion";
+import { exportarModelo, hidratarModelo } from "./serializacion/json";
 import { OPCIONES_DESPLIEGUE_OBJETO } from "./ui/InspectorEntidad";
 import { TIPOS_ENLACE } from "./ui/Toolbar";
 
@@ -70,9 +74,15 @@ const TODAS_LAS_DESIGNACIONES_ESTADO: Record<DesignacionEstado, true> = {
   final: true,
 };
 
+const TODOS_LOS_ORIGENES_DERIVACION: Record<DerivacionOrigen, true> = {
+  automatico: true,
+  manual: true,
+};
+
 const TIPOS_ENLACE_LISTA = Object.keys(TODOS_LOS_TIPOS_ENLACE) as TipoEnlace[];
 const MODOS_DESPLIEGUE_LISTA = Object.keys(TODOS_LOS_MODOS_DESPLIEGUE) as ModoDespliegueObjeto[];
 const DESIGNACIONES_ESTADO_LISTA = Object.keys(TODAS_LAS_DESIGNACIONES_ESTADO) as DesignacionEstado[];
+const ORIGENES_DERIVACION_LISTA = Object.keys(TODOS_LOS_ORIGENES_DERIVACION) as DerivacionOrigen[];
 
 describe("completitud / Toolbar dropdown de TipoEnlace", () => {
   test("TIPOS_ENLACE expone todos los TipoEnlace canonicos", () => {
@@ -192,6 +202,37 @@ describe("completitud / estados de objeto", () => {
     const attrs = cell?.attrs as Record<string, Record<string, unknown>> | undefined;
     expect(attrs?.stateCapsule0?.strokeWidth).toBe(3);
     expect(attrs?.stateCapsule0?.fill).toBe("#eef8ff");
+  });
+});
+
+describe("completitud / origen de derivacion de enlace", () => {
+  test("DerivacionOrigen enumera automatico y manual", () => {
+    expect(ORIGENES_DERIVACION_LISTA).toEqual(["automatico", "manual"]);
+  });
+
+  test("origen manual sobrevive round-trip JSON", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 100 }, "Entrada"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 260, y: 120 }, "Procesar"));
+    const entradaId = entidadConNombre(modelo, "Entrada");
+    const procesarId = entidadConNombre(modelo, "Procesar");
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entradaId, procesarId, "consumo"));
+    const descompuesto = must(descomponerProceso(modelo, modelo.opdRaizId, procesarId));
+    modelo = descompuesto.modelo;
+    const segundoId = entidadConNombre(modelo, "Procesar 2");
+    const aparienciaEnlaceId = Object.values(modelo.opds[descompuesto.opdId]?.enlaces ?? {})
+      .find((apariencia) => modelo.enlaces[apariencia.enlaceId]?.tipo === "consumo")?.id;
+    if (!aparienciaEnlaceId) throw new Error("La prueba esperaba enlace derivado");
+    modelo = must(reanclarEnlaceExternoDerivado(modelo, descompuesto.opdId, aparienciaEnlaceId, segundoId));
+
+    const hidratado = hidratarModelo(exportarModelo(modelo));
+
+    expect(hidratado.ok).toBe(true);
+    if (!hidratado.ok) return;
+    expect(Object.values(hidratado.value.enlaces)).toContainEqual(expect.objectContaining({
+      destinoId: segundoId,
+      derivado: expect.objectContaining({ origen: "manual" }),
+    }));
   });
 });
 

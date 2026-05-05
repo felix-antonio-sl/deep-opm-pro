@@ -24,12 +24,14 @@ import {
   quitarDescomposicionProceso,
   quitarDespliegueObjeto,
   quitarEstadosObjeto,
+  reanclarEnlaceExternoDerivado,
   renombrarEntidad,
   renombrarEstado,
+  volverEnlaceExternoDerivadoAAutomatico,
   validarFirmaEnlace,
   validarMultiplicidad,
 } from "./operaciones";
-import type { Modelo, ModoDespliegueObjeto, Resultado, TipoEnlace } from "./tipos";
+import type { Enlace, Modelo, ModoDespliegueObjeto, Resultado, TipoEnlace } from "./tipos";
 
 describe("operaciones de modelo", () => {
   test("crea entidad logica y apariencia separadas", () => {
@@ -688,6 +690,89 @@ describe("operaciones de modelo", () => {
     expect(enlacesHijo.some((enlace) => enlace.tipo === "consumo" && enlace.destinoId === primeroOriginal.id)).toBe(false);
   });
 
+  test("reancla consumo externo derivado al subproceso elegido y marca origen manual", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 100 }, "Entrada"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 260, y: 120 }, "Procesar"));
+    const entrada = entidadPorNombre(modelo, "Entrada");
+    const procesar = entidadPorNombre(modelo, "Procesar");
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entrada.id, procesar.id, "consumo"));
+    const descompuesto = must(descomponerProceso(modelo, modelo.opdRaizId, procesar.id));
+    modelo = descompuesto.modelo;
+
+    const segundo = entidadPorNombre(modelo, "Procesar 2");
+    const { aparienciaId, enlace } = enlaceDerivadoEnOpd(modelo, descompuesto.opdId, "consumo");
+    modelo = must(reanclarEnlaceExternoDerivado(modelo, descompuesto.opdId, aparienciaId, segundo.id));
+
+    expect(modelo.enlaces[enlace.id]).toEqual(expect.objectContaining({
+      tipo: "consumo",
+      origenId: entrada.id,
+      destinoId: segundo.id,
+      derivado: expect.objectContaining({ origen: "manual", refinamientoId: procesar.id }),
+    }));
+  });
+
+  test("reanclaje manual resiste reorden por Y y refresca derivados automaticos restantes", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 100 }, "Entrada"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 260, y: 120 }, "Procesar"));
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 520, y: 100 }, "Salida"));
+    const entrada = entidadPorNombre(modelo, "Entrada");
+    const procesar = entidadPorNombre(modelo, "Procesar");
+    const salida = entidadPorNombre(modelo, "Salida");
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entrada.id, procesar.id, "consumo"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, procesar.id, salida.id, "resultado"));
+    const descompuesto = must(descomponerProceso(modelo, modelo.opdRaizId, procesar.id));
+    modelo = descompuesto.modelo;
+
+    const segundo = entidadPorNombre(modelo, "Procesar 2");
+    const { aparienciaId } = enlaceDerivadoEnOpd(modelo, descompuesto.opdId, "consumo");
+    modelo = must(reanclarEnlaceExternoDerivado(modelo, descompuesto.opdId, aparienciaId, segundo.id));
+    modelo = must(moverApariencia(modelo, descompuesto.opdId, segundo.id, { x: 285, y: 430 }));
+
+    const enlacesHijo = enlacesDelOpd(modelo, descompuesto.opdId);
+    const consumos = enlacesHijo.filter((enlace) => enlace.tipo === "consumo" && enlace.derivado?.enlacePadreId);
+    const resultados = enlacesHijo.filter((enlace) => enlace.tipo === "resultado" && enlace.derivado?.enlacePadreId);
+
+    expect(consumos).toHaveLength(1);
+    expect(consumos[0]).toEqual(expect.objectContaining({
+      origenId: entrada.id,
+      destinoId: segundo.id,
+      derivado: expect.objectContaining({ origen: "manual" }),
+    }));
+    expect(resultados).toHaveLength(1);
+    expect(resultados[0]).toEqual(expect.objectContaining({
+      origenId: segundo.id,
+      destinoId: salida.id,
+      derivado: expect.objectContaining({ origen: "automatico" }),
+    }));
+  });
+
+  test("volver a automatico recalcula el endpoint segun la heuristica por Y", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 100 }, "Entrada"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 260, y: 120 }, "Procesar"));
+    const entrada = entidadPorNombre(modelo, "Entrada");
+    const procesar = entidadPorNombre(modelo, "Procesar");
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entrada.id, procesar.id, "consumo"));
+    const descompuesto = must(descomponerProceso(modelo, modelo.opdRaizId, procesar.id));
+    modelo = descompuesto.modelo;
+
+    const primero = entidadPorNombre(modelo, "Procesar 1");
+    const segundo = entidadPorNombre(modelo, "Procesar 2");
+    const { aparienciaId } = enlaceDerivadoEnOpd(modelo, descompuesto.opdId, "consumo");
+    modelo = must(reanclarEnlaceExternoDerivado(modelo, descompuesto.opdId, aparienciaId, segundo.id));
+    const manual = enlaceDerivadoEnOpd(modelo, descompuesto.opdId, "consumo");
+    modelo = must(volverEnlaceExternoDerivadoAAutomatico(modelo, descompuesto.opdId, manual.aparienciaId));
+
+    expect(enlacesDelOpd(modelo, descompuesto.opdId)).toContainEqual(expect.objectContaining({
+      tipo: "consumo",
+      origenId: entrada.id,
+      destinoId: primero.id,
+      derivado: expect.objectContaining({ origen: "automatico" }),
+    }));
+  });
+
   test("no borra enlaces manuales al recalcular derivados externos", () => {
     let modelo = crearModelo();
     modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 100 }, "Entrada"));
@@ -882,6 +967,21 @@ function tiposEnlacesOpd(modelo: Modelo, opdId: string): TipoEnlace[] {
     .map((apariencia) => modelo.enlaces[apariencia.enlaceId]?.tipo)
     .filter((tipo): tipo is TipoEnlace => tipo !== undefined)
     .sort((a, b) => a.localeCompare(b, "es"));
+}
+
+function enlacesDelOpd(modelo: Modelo, opdId: string): Enlace[] {
+  return Object.values(modelo.opds[opdId]?.enlaces ?? {})
+    .map((apariencia) => modelo.enlaces[apariencia.enlaceId])
+    .filter((enlace): enlace is Enlace => enlace !== undefined);
+}
+
+function enlaceDerivadoEnOpd(modelo: Modelo, opdId: string, tipo: TipoEnlace): { aparienciaId: string; enlace: Enlace } {
+  const encontrado = Object.values(modelo.opds[opdId]?.enlaces ?? {})
+    .map((apariencia) => ({ aparienciaId: apariencia.id, enlace: modelo.enlaces[apariencia.enlaceId] }))
+    .find((item): item is { aparienciaId: string; enlace: Enlace } => item.enlace?.tipo === tipo && item.enlace.derivado !== undefined);
+  expect(encontrado).toBeDefined();
+  if (!encontrado) throw new Error(`Enlace derivado no encontrado: ${tipo}`);
+  return encontrado;
 }
 
 function tipoEnlaceEsperado(modo: ModoDespliegueObjeto): TipoEnlace {

@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, test } from "bun:test";
-import { crearModelo } from "./modelo/operaciones";
+import { crearEnlace, crearModelo, crearObjeto, crearProceso, descomponerProceso } from "./modelo/operaciones";
 import type { Modelo } from "./modelo/tipos";
 import { exportarModelo } from "./serializacion/json";
 import { store } from "./store";
@@ -178,6 +178,31 @@ describe("store undo/redo y dirty state", () => {
 
     store.getState().deshacer();
     expect(store.getState().modelo.enlaces[enlaceId]?.multiplicidadOrigen).toBeUndefined();
+  });
+
+  test("reanclar enlace derivado entra al historial undo y rehacer", () => {
+    const { modelo, opdId, enlaceId, aparienciaEnlaceId, segundoId } = modeloConEnlaceDerivado();
+    store.getState().importarJson(exportarModelo(modelo));
+    store.getState().cambiarOpdActivo(opdId);
+    store.getState().seleccionarEnlace(enlaceId);
+
+    store.getState().reanclarEnlaceExternoDerivado(aparienciaEnlaceId, segundoId);
+
+    expect(store.getState().modelo.enlaces[enlaceId]).toEqual(expect.objectContaining({
+      destinoId: segundoId,
+      derivado: expect.objectContaining({ origen: "manual" }),
+    }));
+    expect(store.getState().dirty).toBe(true);
+    expect(store.getState().puedeDeshacer).toBe(true);
+
+    store.getState().deshacer();
+    expect(store.getState().modelo.enlaces[enlaceId]?.derivado?.origen).toBe("automatico");
+    expect(store.getState().modelo.enlaces[enlaceId]?.destinoId).not.toBe(segundoId);
+    expect(store.getState().puedeRehacer).toBe(true);
+
+    store.getState().rehacer();
+    expect(store.getState().modelo.enlaces[enlaceId]?.derivado?.origen).toBe("manual");
+    expect(store.getState().modelo.enlaces[enlaceId]?.destinoId).toBe(segundoId);
   });
 
   test("gestiona estados de objeto con historial y designaciones coexistentes", () => {
@@ -406,6 +431,45 @@ function modeloConOpdHijo(): Modelo {
       },
     },
   };
+}
+
+function modeloConEnlaceDerivado(): {
+  modelo: Modelo;
+  opdId: string;
+  enlaceId: string;
+  aparienciaEnlaceId: string;
+  segundoId: string;
+} {
+  let modelo = crearModelo("Store derivado");
+  modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 100 }, "Entrada"));
+  modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 260, y: 120 }, "Procesar"));
+  const entradaId = entidadPorNombre(modelo, "Entrada");
+  const procesarId = entidadPorNombre(modelo, "Procesar");
+  modelo = must(crearEnlace(modelo, modelo.opdRaizId, entradaId, procesarId, "consumo"));
+  const descompuesto = must(descomponerProceso(modelo, modelo.opdRaizId, procesarId));
+  modelo = descompuesto.modelo;
+  const segundoId = entidadPorNombre(modelo, "Procesar 2");
+  const apariencia = Object.values(modelo.opds[descompuesto.opdId]?.enlaces ?? {})
+    .find((item) => modelo.enlaces[item.enlaceId]?.tipo === "consumo");
+  if (!apariencia) throw new Error("La prueba esperaba un enlace consumo derivado");
+  return {
+    modelo,
+    opdId: descompuesto.opdId,
+    enlaceId: apariencia.enlaceId,
+    aparienciaEnlaceId: apariencia.id,
+    segundoId,
+  };
+}
+
+function entidadPorNombre(modelo: Modelo, nombre: string): string {
+  const entidad = Object.values(modelo.entidades).find((item) => item.nombre === nombre);
+  if (!entidad) throw new Error(`Entidad no encontrada: ${nombre}`);
+  return entidad.id;
+}
+
+function must<T>(resultado: { ok: true; value: T } | { ok: false; error: string }): T {
+  if (!resultado.ok) throw new Error(resultado.error);
+  return resultado.value;
 }
 
 function instalarLocalStorage(): void {
