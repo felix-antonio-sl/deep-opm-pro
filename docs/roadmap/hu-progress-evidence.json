@@ -1,0 +1,1390 @@
+{
+  "schema": "deep-opm-pro.hu-progress-evidence.v1",
+  "updated": "2026-05-05",
+  "source": "Auditoria automatica local contra app/src, app/e2e, app/scripts y assets/svg/links.",
+  "statusDefinitions": {
+    "cubierto": "La HU tiene implementacion usable y evidencia local directa en codigo, tests o smoke.",
+    "parcial": "Existe un vertical slice verificable, pero faltan criterios, gestos canonicos, bidireccionalidad o cobertura e2e completa.",
+    "pendiente": "No se encontro evidencia local suficiente.",
+    "diferido": "Fuera del corte operativo actual o dependiente de infraestructura externa.",
+    "bloqueado": "Requiere informacion externa o decision no disponible."
+  },
+  "roadmapCuts": {
+    "alpha": {
+      "label": "MVP-alpha",
+      "epics": [
+        "10",
+        "11",
+        "20",
+        "30",
+        "50"
+      ],
+      "shared": [
+        "HU-SHARED-002",
+        "HU-SHARED-003",
+        "HU-SHARED-006",
+        "HU-SHARED-007",
+        "HU-SHARED-008",
+        "HU-SHARED-009"
+      ]
+    },
+    "beta": {
+      "label": "MVP-beta",
+      "epics": [
+        "12",
+        "13",
+        "15",
+        "16",
+        "1B",
+        "1C",
+        "34",
+        "A0"
+      ],
+      "shared": [
+        "HU-SHARED-001",
+        "HU-SHARED-004",
+        "HU-SHARED-005"
+      ]
+    },
+    "gamma": {
+      "label": "MVP-gamma",
+      "epics": [
+        "14",
+        "17",
+        "18",
+        "19",
+        "1A",
+        "21",
+        "31",
+        "32",
+        "33",
+        "35",
+        "42",
+        "60",
+        "61",
+        "70",
+        "71",
+        "82",
+        "90",
+        "91",
+        "A1"
+      ],
+      "shared": []
+    },
+    "delta": {
+      "label": "MVP-delta",
+      "epics": [
+        "40",
+        "41",
+        "80",
+        "81",
+        "A2",
+        "B0",
+        "B1",
+        "B2",
+        "B3",
+        "B4",
+        "B5",
+        "C0",
+        "C1",
+        "C2",
+        "D0",
+        "D1"
+      ],
+      "shared": []
+    }
+  },
+  "epicDefaults": {
+    "40": {
+      "estado": "diferido",
+      "nota": "Colaboracion multiusuario fuera del kernel local actual."
+    },
+    "41": {
+      "estado": "diferido",
+      "nota": "Chat colaborativo requiere infraestructura externa."
+    },
+    "80": {
+      "estado": "diferido",
+      "nota": "Usuarios y organizacion dependen de administracion/autenticacion."
+    },
+    "81": {
+      "estado": "diferido",
+      "nota": "Defaults organizacionales diferidos hasta estabilizar producto local."
+    },
+    "A2": {
+      "estado": "diferido",
+      "nota": "IA generativa fuera del corte local actual."
+    },
+    "B0": {
+      "estado": "diferido",
+      "nota": "Simulacion conceptual diferida hasta cerrar modelador beta."
+    },
+    "B1": {
+      "estado": "diferido",
+      "nota": "Simulacion computacional diferida."
+    },
+    "B2": {
+      "estado": "diferido",
+      "nota": "Funciones de usuario para simulacion diferidas."
+    },
+    "B3": {
+      "estado": "diferido",
+      "nota": "Validacion de rangos para simulacion diferida."
+    },
+    "B4": {
+      "estado": "diferido",
+      "nota": "Condiciones y bucles de simulacion diferidos."
+    },
+    "B5": {
+      "estado": "diferido",
+      "nota": "Entrada de usuario para simulacion diferida."
+    },
+    "C0": {
+      "estado": "diferido",
+      "nota": "Runtime MQTT requiere integracion externa."
+    },
+    "C1": {
+      "estado": "diferido",
+      "nota": "Runtime URL requiere integracion externa."
+    },
+    "C2": {
+      "estado": "diferido",
+      "nota": "Runtime ROS requiere integracion externa."
+    },
+    "D0": {
+      "estado": "diferido",
+      "nota": "Analisis de conocimiento faltante queda fuera del MVP-alpha/beta."
+    },
+    "D1": {
+      "estado": "diferido",
+      "nota": "Analisis de informatividad queda fuera del MVP-alpha/beta."
+    }
+  },
+  "entries": [
+    {
+      "ids": [
+        "HU-SHARED-001"
+      ],
+      "estado": "pendiente",
+      "confianza": "alta",
+      "nota": "No hay menu contextual unificado; las acciones viven en toolbar o inspector.",
+      "evidencia": [
+        "app/src/ui/Toolbar.tsx",
+        "app/src/ui/InspectorEntidad.tsx",
+        "app/src/ui/InspectorEnlace.tsx"
+      ]
+    },
+    {
+      "ids": [
+        "HU-SHARED-002"
+      ],
+      "estado": "parcial",
+      "confianza": "alta",
+      "nota": "Undo/redo existe con snapshots de Modelo, atajos y profundidad 100; falta read-only y comandos inversos granulares configurables.",
+      "evidencia": [
+        "app/src/store.ts",
+        "app/src/store.test.ts",
+        "app/e2e/opm-smoke.spec.ts",
+        "app/scripts/in-vivo-deep-checks.mjs"
+      ]
+    },
+    {
+      "ids": [
+        "HU-SHARED-003"
+      ],
+      "estado": "pendiente",
+      "confianza": "alta",
+      "nota": "No existe modo read-only propagado; el producto actual es local single-user.",
+      "evidencia": [
+        "docs/roadmap/mvp-alpha.md"
+      ]
+    },
+    {
+      "ids": [
+        "HU-SHARED-004"
+      ],
+      "estado": "parcial",
+      "confianza": "media",
+      "nota": "Renombrado existe via inspector/inputs; faltan contrato shared completo, dialogo canonico y unicidad global de entidad.",
+      "evidencia": [
+        "app/src/modelo/operaciones.ts",
+        "app/src/ui/InspectorEntidad.tsx"
+      ]
+    },
+    {
+      "ids": [
+        "HU-SHARED-005"
+      ],
+      "estado": "parcial",
+      "confianza": "media",
+      "nota": "Eliminar entidad/enlace existe con cascadas, pero no hay selector de scope canonico.",
+      "evidencia": [
+        "app/src/modelo/operaciones.ts",
+        "app/src/store.ts"
+      ]
+    },
+    {
+      "ids": [
+        "HU-SHARED-006"
+      ],
+      "estado": "parcial",
+      "confianza": "alta",
+      "nota": "Dirty es computado contra snapshot guardado, guarda/carga lo limpian y hay confirmacion global; falta integracion read-only y algunos flujos avanzados de navegacion entre modelos.",
+      "evidencia": [
+        "app/src/store.ts",
+        "app/src/ui/ConfirmacionContext.tsx",
+        "app/src/ui/DialogoConfirmacion.tsx",
+        "app/src/ui/Toolbar.tsx"
+      ]
+    },
+    {
+      "ids": [
+        "HU-SHARED-007"
+      ],
+      "estado": "parcial",
+      "confianza": "alta",
+      "nota": "OPL-ES forward cubre entidades, enlaces, estados y refinamientos por OPD activo; falta edicion inversa OPL -> canvas.",
+      "evidencia": [
+        "app/src/opl/generar.ts",
+        "app/src/opl/generar.test.ts",
+        "app/src/ui/PanelOpl.tsx",
+        "app/src/completitud.test.ts"
+      ]
+    },
+    {
+      "ids": [
+        "HU-SHARED-008"
+      ],
+      "estado": "parcial",
+      "confianza": "alta",
+      "nota": "Seleccion simple de entidad/enlace existe; falta multiseleccion, lazo, Esc y operaciones masivas.",
+      "evidencia": [
+        "app/src/store.ts",
+        "app/src/render/jointjs/JointCanvas.tsx",
+        "app/src/render/jointjs/proyeccion.ts"
+      ]
+    },
+    {
+      "ids": [
+        "HU-SHARED-009"
+      ],
+      "estado": "parcial",
+      "confianza": "media",
+      "nota": "Hay trim/no-vacio y unicidad local de estados; falta contrato completo para entidades, OPDs, longitud y colapso de espacios.",
+      "evidencia": [
+        "app/src/modelo/operaciones.ts",
+        "app/src/serializacion/json.ts"
+      ]
+    },
+    {
+      "ids": [
+        "HU-10.001",
+        "HU-10.002"
+      ],
+      "estado": "parcial",
+      "confianza": "alta",
+      "nota": "Crear objeto/proceso existe desde botones de toolbar y kernel; falta arrastre canonico desde barra.",
+      "evidencia": [
+        "app/src/modelo/operaciones.ts",
+        "app/src/ui/Toolbar.tsx",
+        "app/src/modelo/operaciones.test.ts",
+        "app/e2e/opm-smoke.spec.ts"
+      ]
+    },
+    {
+      "ids": [
+        "HU-10.003"
+      ],
+      "estado": "parcial",
+      "confianza": "alta",
+      "nota": "Nombrado/renombrado existe en inspector inline; falta dialogo emergente de creacion.",
+      "evidencia": [
+        "app/src/modelo/operaciones.ts",
+        "app/src/ui/InspectorEntidad.tsx"
+      ]
+    },
+    {
+      "ids": [
+        "HU-10.006",
+        "HU-10.012",
+        "HU-10.013",
+        "HU-10.014",
+        "HU-10.015"
+      ],
+      "estado": "cubierto",
+      "confianza": "alta",
+      "nota": "El inspector preserva capitalizacion, cambia esencia/afiliacion y el render muestra sombra fisica y dash ambiental.",
+      "evidencia": [
+        "app/src/modelo/operaciones.ts",
+        "app/src/ui/InspectorEntidad.tsx",
+        "app/src/render/jointjs/proyeccion.ts",
+        "app/src/modelo/constantes.ts"
+      ]
+    },
+    {
+      "ids": [
+        "HU-10.007",
+        "HU-10.008",
+        "HU-10.010",
+        "HU-10.011",
+        "HU-11.025",
+        "HU-11.026"
+      ],
+      "estado": "parcial",
+      "confianza": "alta",
+      "nota": "El flujo selecciona origen, tipo y destino con validacion de firma; falta inicio desde borde y tabla filtrada de tipos validos.",
+      "evidencia": [
+        "app/src/ui/Toolbar.tsx",
+        "app/src/store.ts",
+        "app/src/modelo/operaciones.ts"
+      ]
+    },
+    {
+      "ids": [
+        "HU-10.018"
+      ],
+      "estado": "parcial",
+      "confianza": "media",
+      "nota": "El arbol OPD muestra conteo de apariencias; no existe navegador OPD de cosas equivalente a OPCloud.",
+      "evidencia": [
+        "app/src/ui/ArbolOpd.tsx"
+      ]
+    },
+    {
+      "ids": [
+        "HU-10.021"
+      ],
+      "estado": "parcial",
+      "confianza": "alta",
+      "nota": "Despliegue de objeto crea OPD hijo por modo estructural; no es descomposicion en el mismo diagrama.",
+      "evidencia": [
+        "app/src/modelo/operaciones.ts",
+        "app/src/ui/InspectorEntidad.tsx",
+        "app/src/completitud.test.ts"
+      ]
+    },
+    {
+      "ids": [
+        "HU-11.003",
+        "HU-11.009",
+        "HU-11.010",
+        "HU-11.011",
+        "HU-15.019"
+      ],
+      "estado": "cubierto",
+      "confianza": "alta",
+      "nota": "Firmas canonicas, creacion y OPL de agregacion, instrumento, agente e invocacion estan cubiertas.",
+      "evidencia": [
+        "app/src/modelo/operaciones.ts",
+        "app/src/opl/generar.ts",
+        "app/src/completitud.test.ts",
+        "app/src/modelo/operaciones.test.ts"
+      ]
+    },
+    {
+      "ids": [
+        "HU-11.012",
+        "HU-17.013"
+      ],
+      "estado": "parcial",
+      "confianza": "media",
+      "nota": "El kernel soporta enlaces estructurales exhibicion/generalizacion/clasificacion; faltan propiedades/atributos avanzados de OPCloud.",
+      "evidencia": [
+        "app/src/modelo/tipos.ts",
+        "app/src/modelo/operaciones.ts",
+        "app/src/render/jointjs/linkAssets.ts",
+        "app/src/completitud.test.ts"
+      ]
+    },
+    {
+      "ids": [
+        "HU-11.013"
+      ],
+      "estado": "parcial",
+      "confianza": "alta",
+      "nota": "Propiedades de enlace se editan desde inspector; falta menu contextual canonico.",
+      "evidencia": [
+        "app/src/ui/InspectorEnlace.tsx"
+      ]
+    },
+    {
+      "ids": [
+        "HU-11.015",
+        "HU-15.002",
+        "HU-15.003",
+        "HU-15.004"
+      ],
+      "estado": "cubierto",
+      "confianza": "alta",
+      "nota": "Multiplicidad origen/destino se valida, persiste, renderiza y verbaliza en OPL con pluralizacion.",
+      "evidencia": [
+        "app/src/modelo/operaciones.ts",
+        "app/src/ui/InspectorEnlace.tsx",
+        "app/src/render/jointjs/proyeccion.ts",
+        "app/src/opl/generar.ts",
+        "app/src/modelo/operaciones.test.ts",
+        "app/src/render/jointjs/proyeccion.test.ts"
+      ]
+    },
+    {
+      "ids": [
+        "HU-11.018",
+        "HU-11.019",
+        "HU-15.024"
+      ],
+      "estado": "cubierto",
+      "confianza": "alta",
+      "nota": "JointJS link tools permiten vertices/segments y el kernel persiste vertices.",
+      "evidencia": [
+        "app/src/render/jointjs/JointCanvas.tsx",
+        "app/src/modelo/operaciones.ts",
+        "app/e2e/opm-smoke.spec.ts"
+      ]
+    },
+    {
+      "ids": [
+        "HU-11.024",
+        "HU-30.002",
+        "HU-30.003",
+        "HU-30.014",
+        "HU-30.017"
+      ],
+      "estado": "cubierto",
+      "confianza": "alta",
+      "nota": "Guardar/cargar local, Ctrl+S y nuevo modelo existen en toolbar/store.",
+      "evidencia": [
+        "app/src/ui/Toolbar.tsx",
+        "app/src/store.ts",
+        "app/src/persistencia/local.ts",
+        "app/src/persistencia/local.test.ts"
+      ]
+    },
+    {
+      "ids": [
+        "HU-20.001",
+        "HU-20.002",
+        "HU-20.004",
+        "HU-20.005",
+        "HU-20.006",
+        "HU-20.007",
+        "HU-20.008",
+        "HU-12.004",
+        "HU-12.005",
+        "HU-12.006",
+        "HU-12.025"
+      ],
+      "estado": "cubierto",
+      "confianza": "alta",
+      "nota": "Arbol OPD persistente con raiz SD, hijos por refinamiento, anidamiento y navegacion sincronizada con canvas/OPL.",
+      "evidencia": [
+        "app/src/ui/ArbolOpd.tsx",
+        "app/src/store.ts",
+        "app/src/modelo/operaciones.ts",
+        "app/e2e/opm-smoke.spec.ts"
+      ]
+    },
+    {
+      "ids": [
+        "HU-30.008",
+        "HU-30.019",
+        "HU-30.020",
+        "HU-30.021",
+        "HU-30.037"
+      ],
+      "estado": "parcial",
+      "confianza": "media",
+      "nota": "JSON/localStorage round-trip e import asistido existen; faltan dialogos OPCloud completos, descripcion y politica de workspace.",
+      "evidencia": [
+        "app/src/serializacion/json.ts",
+        "app/src/ui/PersistenciaJson.tsx",
+        "app/src/store.ts",
+        "app/src/serializacion/json.test.ts"
+      ]
+    },
+    {
+      "ids": [
+        "HU-50.001",
+        "HU-50.015",
+        "HU-50.016"
+      ],
+      "estado": "cubierto",
+      "confianza": "alta",
+      "nota": "Panel OPL persistente, tipografia semantica y color por clase de cosa implementados.",
+      "evidencia": [
+        "app/src/ui/PanelOpl.tsx",
+        "app/src/opl/generar.ts"
+      ]
+    },
+    {
+      "ids": [
+        "HU-50.013"
+      ],
+      "estado": "parcial",
+      "confianza": "media",
+      "nota": "El despliegue se verbaliza por modo; no se confirma la plantilla exacta de ocurrencia asincrona de la HU.",
+      "evidencia": [
+        "app/src/opl/generar.ts",
+        "app/src/opl/generar.test.ts"
+      ]
+    },
+    {
+      "ids": [
+        "HU-12.002"
+      ],
+      "estado": "parcial",
+      "confianza": "media",
+      "nota": "Existe accion Descomponer con title en inspector; no hay menu contextual.",
+      "evidencia": [
+        "app/src/ui/InspectorEntidad.tsx"
+      ]
+    },
+    {
+      "ids": [
+        "HU-12.003",
+        "HU-12.007",
+        "HU-12.008",
+        "HU-12.009",
+        "HU-12.010",
+        "HU-12.012",
+        "HU-12.013",
+        "HU-12.014",
+        "HU-12.016",
+        "HU-12.017",
+        "HU-12.019",
+        "HU-12.020",
+        "HU-12.026",
+        "HU-12.027"
+      ],
+      "estado": "cubierto",
+      "confianza": "alta",
+      "nota": "Descomposicion de proceso con OPD hijo, contorno, externos, OPL temporal, paralelismo, clamp y eliminacion reversible.",
+      "evidencia": [
+        "app/src/modelo/operaciones.ts",
+        "app/src/opl/generar.ts",
+        "app/src/render/jointjs/proyeccion.ts",
+        "app/src/modelo/operaciones.test.ts",
+        "app/src/render/jointjs/proyeccion.test.ts",
+        "app/e2e/opm-smoke.spec.ts"
+      ]
+    },
+    {
+      "ids": [
+        "HU-12.011",
+        "HU-12.031"
+      ],
+      "estado": "parcial",
+      "confianza": "alta",
+      "nota": "Reanclaje manual de derivados y split de effect existen; falta cerrar toda la semantica visual avanzada de fase 2.",
+      "evidencia": [
+        "app/src/modelo/operaciones.ts",
+        "app/src/ui/InspectorEnlace.tsx",
+        "app/src/completitud.test.ts"
+      ]
+    },
+    {
+      "ids": [
+        "HU-12.015",
+        "HU-12.018",
+        "HU-12.022",
+        "HU-12.023",
+        "HU-12.024",
+        "HU-12.029",
+        "HU-12.030"
+      ],
+      "estado": "parcial",
+      "confianza": "media",
+      "nota": "Creacion, renombrado y enlaces internos pueden ejercerse en OPD hijo; faltan gestos canonicos de arrastre/dialogo/biblioteca.",
+      "evidencia": [
+        "app/src/store.ts",
+        "app/src/modelo/operaciones.ts",
+        "app/src/ui/InspectorEntidad.tsx"
+      ]
+    },
+    {
+      "ids": [
+        "HU-13.001",
+        "HU-13.002",
+        "HU-13.004",
+        "HU-13.006",
+        "HU-13.019"
+      ],
+      "estado": "parcial",
+      "confianza": "media",
+      "nota": "Estados existen en inspector/render; faltan menu/toolbar contextual canonicos y algunos gestos de edicion.",
+      "evidencia": [
+        "app/src/modelo/operaciones.ts",
+        "app/src/ui/InspectorEntidad.tsx",
+        "app/src/render/jointjs/proyeccion.ts"
+      ]
+    },
+    {
+      "ids": [
+        "HU-13.003",
+        "HU-13.008",
+        "HU-13.010",
+        "HU-13.011",
+        "HU-13.017",
+        "HU-17.033"
+      ],
+      "estado": "cubierto",
+      "confianza": "alta",
+      "nota": "Crear estados, agregar estado, axioma >=2, inicial/final simultaneos y OPL de estados estan cubiertos.",
+      "evidencia": [
+        "app/src/modelo/operaciones.ts",
+        "app/src/opl/generar.ts",
+        "app/src/render/jointjs/proyeccion.ts",
+        "app/src/completitud.test.ts",
+        "app/src/modelo/operaciones.test.ts"
+      ]
+    },
+    {
+      "ids": [
+        "HU-13.015"
+      ],
+      "estado": "parcial",
+      "confianza": "media",
+      "nota": "Split de effect a consumo + resultado existe, pero no cubre todavia enlace dirigido a estado especifico.",
+      "evidencia": [
+        "app/src/modelo/operaciones.ts",
+        "app/src/ui/InspectorEnlace.tsx"
+      ]
+    },
+    {
+      "ids": [
+        "HU-1C.014",
+        "HU-1C.015",
+        "HU-1C.019"
+      ],
+      "estado": "cubierto",
+      "confianza": "alta",
+      "nota": "Cinco reglas pasivas con severidad y cita SSOT estan implementadas.",
+      "evidencia": [
+        "app/src/modelo/validaciones.ts",
+        "app/src/modelo/validaciones.test.ts",
+        "app/src/ui/PanelAvisos.tsx"
+      ]
+    },
+    {
+      "ids": [
+        "HU-1C.013",
+        "HU-1C.016",
+        "HU-1C.017",
+        "HU-1C.018"
+      ],
+      "estado": "parcial",
+      "confianza": "media",
+      "nota": "Panel de verificacion esta siempre visible y navega al elemento; falta apertura on-demand y algunos detalles de UX.",
+      "evidencia": [
+        "app/src/ui/PanelAvisos.tsx",
+        "app/src/modelo/validaciones.ts"
+      ]
+    },
+    {
+      "ids": [
+        "HU-18.001",
+        "HU-18.012"
+      ],
+      "estado": "parcial",
+      "confianza": "media",
+      "nota": "Plegado parcial se alterna desde inspector y se distingue de despliegue, no desde menu contextual.",
+      "evidencia": [
+        "app/src/modelo/plegado.ts",
+        "app/src/ui/InspectorEntidad.tsx",
+        "app/src/render/jointjs/proyeccion.ts"
+      ]
+    },
+    {
+      "ids": [
+        "HU-18.002",
+        "HU-18.003",
+        "HU-18.007",
+        "HU-18.011",
+        "HU-18.014"
+      ],
+      "estado": "cubierto",
+      "confianza": "alta",
+      "nota": "Filas internas, badge, retorno a completo, persistencia de modo y bloqueo sin partes estan cubiertos.",
+      "evidencia": [
+        "app/src/modelo/plegado.ts",
+        "app/src/render/jointjs/proyeccion.ts",
+        "app/src/serializacion/json.ts",
+        "app/src/modelo/plegado.test.ts"
+      ]
+    },
+    {
+      "ids": [
+        "HU-17.028",
+        "HU-17.029"
+      ],
+      "estado": "parcial",
+      "confianza": "media",
+      "nota": "Mostrar despliegue navega al OPD hijo y existen apariencias multiples por refinamiento; falta biblioteca/navegacion avanzada.",
+      "evidencia": [
+        "app/src/ui/InspectorEntidad.tsx",
+        "app/src/modelo/operaciones.ts",
+        "app/src/ui/ArbolOpd.tsx"
+      ]
+    }
+  ],
+  "knownGaps": [
+    {
+      "ids": [
+        "HU-13.014"
+      ],
+      "nota": "Enlaces dirigidos a estado especifico siguen pendientes; requiere extender Enlace.origenId/destinoId para aceptar estado.id."
+    },
+    {
+      "ids": [
+        "HU-15.008",
+        "HU-15.009",
+        "HU-15.010",
+        "HU-15.011",
+        "HU-15.012"
+      ],
+      "nota": "Abanicos XOR/O pendientes."
+    },
+    {
+      "ids": [
+        "HU-15.015",
+        "HU-15.016",
+        "HU-15.020"
+      ],
+      "nota": "Evento, NO e invocacion con demora pendientes."
+    },
+    {
+      "ids": [
+        "HU-18.004",
+        "HU-18.005",
+        "HU-18.009"
+      ],
+      "nota": "Extraccion/reinsercion avanzada de plegado parcial pendiente."
+    }
+  ],
+  "autoAudit": {
+    "generatedAt": "2026-05-05T02:32:28.622Z",
+    "mode": "sync-real",
+    "rulesEvaluated": 33,
+    "rulesMatched": 29,
+    "rulesUnmatched": 4,
+    "sourceFiles": {
+      "count": 73,
+      "roots": [
+        "app/src",
+        "app/e2e",
+        "app/scripts",
+        "assets/svg/links"
+      ]
+    },
+    "note": "autoEntries se regenera; cada regla escribe cobertura detectada o pendiente. entries manuales queda como respaldo solo para HU sin regla automatica."
+  },
+  "autoEntries": [
+    {
+      "ids": [
+        "HU-SHARED-002"
+      ],
+      "estado": "parcial",
+      "confianza": "alta-auto",
+      "fuente": "auto",
+      "nota": "Auto: undo/redo esta implementado con snapshots de Modelo, atajos y profundidad 100; siguen fuera comandos inversos granulares/read-only.",
+      "evidencia": [
+        "app/src/store.ts",
+        "app/src/ui/Toolbar.tsx",
+        "app/src/store.test.ts",
+        "app/e2e/opm-smoke.spec.ts"
+      ]
+    },
+    {
+      "ids": [
+        "HU-SHARED-006"
+      ],
+      "estado": "parcial",
+      "confianza": "alta-auto",
+      "fuente": "auto",
+      "nota": "Auto: dirty state se calcula contra snapshot guardado y hay confirmacion global antes de acciones destructivas; falta read-only completo.",
+      "evidencia": [
+        "app/src/store.ts",
+        "app/src/ui/ConfirmacionContext.tsx",
+        "app/src/ui/DialogoConfirmacion.tsx"
+      ]
+    },
+    {
+      "ids": [
+        "HU-SHARED-007"
+      ],
+      "estado": "parcial",
+      "confianza": "alta-auto",
+      "fuente": "auto",
+      "nota": "Auto: generacion OPL-ES forward cubre entidades, enlaces, estados, despliegues y OPD activo; no existe edicion inversa OPL -> canvas.",
+      "evidencia": [
+        "app/src/opl/generar.ts",
+        "app/src/ui/PanelOpl.tsx",
+        "app/src/opl/generar.test.ts",
+        "app/src/completitud.test.ts"
+      ]
+    },
+    {
+      "ids": [
+        "HU-SHARED-008"
+      ],
+      "estado": "parcial",
+      "confianza": "alta-auto",
+      "fuente": "auto",
+      "nota": "Auto: seleccion simple de entidad/enlace esta cableada desde JointJS hacia Zustand; faltan multiseleccion, lazo y operaciones masivas.",
+      "evidencia": [
+        "app/src/store.ts",
+        "app/src/render/jointjs/JointCanvas.tsx",
+        "app/src/render/jointjs/proyeccion.ts"
+      ]
+    },
+    {
+      "ids": [
+        "HU-SHARED-009"
+      ],
+      "estado": "parcial",
+      "confianza": "media-auto",
+      "fuente": "auto",
+      "nota": "Auto: nombres vacios/duplicados de estados se validan y el JSON conserva nombres; falta contrato global completo de nombres.",
+      "evidencia": [
+        "app/src/modelo/operaciones.ts",
+        "app/src/serializacion/json.ts",
+        "app/src/modelo/operaciones.test.ts"
+      ]
+    },
+    {
+      "ids": [
+        "HU-10.001",
+        "HU-10.002"
+      ],
+      "estado": "parcial",
+      "confianza": "alta-auto",
+      "fuente": "auto",
+      "nota": "Auto: creacion de objeto/proceso existe desde toolbar y kernel; falta gesto canonico de arrastre desde barra.",
+      "evidencia": [
+        "app/src/modelo/operaciones.ts",
+        "app/src/ui/Toolbar.tsx",
+        "app/src/modelo/operaciones.test.ts",
+        "app/e2e/opm-smoke.spec.ts"
+      ]
+    },
+    {
+      "ids": [
+        "HU-10.006",
+        "HU-10.012",
+        "HU-10.013",
+        "HU-10.014",
+        "HU-10.015"
+      ],
+      "estado": "cubierto",
+      "confianza": "alta-auto",
+      "fuente": "auto",
+      "nota": "Auto: esencia/afiliacion se editan en inspector, persisten en modelo y se proyectan con sombra fisica/dash ambiental.",
+      "evidencia": [
+        "app/src/modelo/operaciones.ts",
+        "app/src/ui/InspectorEntidad.tsx",
+        "app/src/render/jointjs/proyeccion.ts",
+        "app/src/modelo/constantes.ts"
+      ]
+    },
+    {
+      "ids": [
+        "HU-10.007",
+        "HU-10.008",
+        "HU-10.010",
+        "HU-10.011",
+        "HU-11.025",
+        "HU-11.026"
+      ],
+      "estado": "parcial",
+      "confianza": "alta-auto",
+      "fuente": "auto",
+      "nota": "Auto: flujo origen-tipo-destino crea enlaces con validacion de firma; faltan puertos/borde y tabla contextual canonica.",
+      "evidencia": [
+        "app/src/ui/Toolbar.tsx",
+        "app/src/store.ts",
+        "app/src/modelo/operaciones.ts"
+      ]
+    },
+    {
+      "ids": [
+        "HU-11.003",
+        "HU-11.009",
+        "HU-11.010",
+        "HU-11.011",
+        "HU-15.019"
+      ],
+      "estado": "cubierto",
+      "confianza": "alta-auto",
+      "fuente": "auto",
+      "nota": "Auto: firmas, proyeccion y OPL de agregacion/instrumento/agente/invocacion estan cubiertas por kernel y pruebas.",
+      "evidencia": [
+        "app/src/modelo/operaciones.ts",
+        "app/src/opl/generar.ts",
+        "app/src/render/jointjs/linkAssets.ts",
+        "app/src/modelo/operaciones.test.ts",
+        "app/src/render/jointjs/proyeccion.test.ts",
+        "assets/svg/links/procedural/agent.svg"
+      ]
+    },
+    {
+      "ids": [
+        "HU-11.012",
+        "HU-17.013"
+      ],
+      "estado": "parcial",
+      "confianza": "alta-auto",
+      "fuente": "auto",
+      "nota": "Auto: exhibicion/generalizacion/clasificacion existen en tipos, validacion, markers y OPL; faltan propiedades avanzadas OPCloud.",
+      "evidencia": [
+        "app/src/modelo/tipos.ts",
+        "app/src/modelo/operaciones.ts",
+        "app/src/render/jointjs/linkAssets.ts",
+        "app/src/opl/generar.ts",
+        "assets/svg/links/structural/exhibition.svg",
+        "assets/svg/links/structural/generalization.svg",
+        "assets/svg/links/structural/classification.svg"
+      ]
+    },
+    {
+      "ids": [
+        "HU-11.015",
+        "HU-15.002",
+        "HU-15.003",
+        "HU-15.004"
+      ],
+      "estado": "cubierto",
+      "confianza": "alta-auto",
+      "fuente": "auto",
+      "nota": "Auto: multiplicidad por extremo se valida, edita, serializa, renderiza y verbaliza en OPL.",
+      "evidencia": [
+        "app/src/modelo/operaciones.ts",
+        "app/src/ui/InspectorEnlace.tsx",
+        "app/src/render/jointjs/proyeccion.ts",
+        "app/src/opl/generar.ts",
+        "app/src/modelo/operaciones.test.ts",
+        "app/src/render/jointjs/proyeccion.test.ts"
+      ]
+    },
+    {
+      "ids": [
+        "HU-11.018",
+        "HU-11.019",
+        "HU-15.024"
+      ],
+      "estado": "cubierto",
+      "confianza": "alta-auto",
+      "fuente": "auto",
+      "nota": "Auto: vertices/segments de JointJS estan activos para enlaces editables y el kernel persiste vertices.",
+      "evidencia": [
+        "app/src/render/jointjs/JointCanvas.tsx",
+        "app/src/modelo/operaciones.ts",
+        "app/src/serializacion/json.ts",
+        "app/e2e/opm-smoke.spec.ts"
+      ]
+    },
+    {
+      "ids": [
+        "HU-11.024",
+        "HU-30.002",
+        "HU-30.003",
+        "HU-30.014",
+        "HU-30.017"
+      ],
+      "estado": "cubierto",
+      "confianza": "alta-auto",
+      "fuente": "auto",
+      "nota": "Auto: guardar/cargar local, nuevo modelo y Ctrl+S estan implementados sobre persistencia local.",
+      "evidencia": [
+        "app/src/ui/Toolbar.tsx",
+        "app/src/store.ts",
+        "app/src/persistencia/local.ts",
+        "app/src/persistencia/local.test.ts"
+      ]
+    },
+    {
+      "ids": [
+        "HU-20.001",
+        "HU-20.002",
+        "HU-20.004",
+        "HU-20.005",
+        "HU-20.006",
+        "HU-20.007",
+        "HU-20.008",
+        "HU-12.004",
+        "HU-12.005",
+        "HU-12.006",
+        "HU-12.025"
+      ],
+      "estado": "cubierto",
+      "confianza": "alta-auto",
+      "fuente": "auto",
+      "nota": "Auto: arbol OPD navega raiz/hijos, conserva jerarquia por refinamiento y sincroniza canvas/OPL con OPD activo.",
+      "evidencia": [
+        "app/src/ui/ArbolOpd.tsx",
+        "app/src/store.ts",
+        "app/src/modelo/operaciones.ts",
+        "app/src/opl/generar.ts",
+        "app/e2e/opm-smoke.spec.ts"
+      ]
+    },
+    {
+      "ids": [
+        "HU-30.008",
+        "HU-30.019",
+        "HU-30.020",
+        "HU-30.021",
+        "HU-30.037"
+      ],
+      "estado": "parcial",
+      "confianza": "alta-auto",
+      "fuente": "auto",
+      "nota": "Auto: export/import JSON y round-trip local existen; faltan dialogos OPCloud completos y politica de workspace.",
+      "evidencia": [
+        "app/src/serializacion/json.ts",
+        "app/src/ui/PersistenciaJson.tsx",
+        "app/src/serializacion/json.test.ts",
+        "app/e2e/opm-smoke.spec.ts"
+      ]
+    },
+    {
+      "ids": [
+        "HU-50.001",
+        "HU-50.015",
+        "HU-50.016"
+      ],
+      "estado": "cubierto",
+      "confianza": "alta-auto",
+      "fuente": "auto",
+      "nota": "Auto: panel OPL persistente renderiza objetos/procesos con marcas semanticas y colores diferenciados.",
+      "evidencia": [
+        "app/src/ui/PanelOpl.tsx",
+        "app/src/opl/generar.ts",
+        "app/src/completitud.test.ts"
+      ]
+    },
+    {
+      "ids": [
+        "HU-50.013"
+      ],
+      "estado": "parcial",
+      "confianza": "media-auto",
+      "fuente": "auto",
+      "nota": "Auto: OPL verbaliza despliegues/descomposiciones; falta cobertura completa de todos los casos narrativos de OPCloud.",
+      "evidencia": [
+        "app/src/opl/generar.ts",
+        "app/src/opl/generar.test.ts"
+      ]
+    },
+    {
+      "ids": [
+        "HU-12.002"
+      ],
+      "estado": "parcial",
+      "confianza": "media-auto",
+      "fuente": "auto",
+      "nota": "Auto: inspector permite descomponer/desplegar desde la entidad seleccionada; faltan menus canonicos y algunos gestos.",
+      "evidencia": [
+        "app/src/ui/InspectorEntidad.tsx",
+        "app/src/store.ts"
+      ]
+    },
+    {
+      "ids": [
+        "HU-12.003",
+        "HU-12.007",
+        "HU-12.008",
+        "HU-12.009",
+        "HU-12.010",
+        "HU-12.012",
+        "HU-12.013",
+        "HU-12.014",
+        "HU-12.016",
+        "HU-12.017",
+        "HU-12.019",
+        "HU-12.020",
+        "HU-12.026",
+        "HU-12.027"
+      ],
+      "estado": "cubierto",
+      "confianza": "alta-auto",
+      "fuente": "auto",
+      "nota": "Auto: descomposicion de proceso crea OPD hijo, subprocesos iniciales, enlaces derivados y OPL/render de contorno.",
+      "evidencia": [
+        "app/src/modelo/operaciones.ts",
+        "app/src/render/jointjs/proyeccion.ts",
+        "app/src/opl/generar.ts",
+        "app/src/modelo/operaciones.test.ts"
+      ]
+    },
+    {
+      "ids": [
+        "HU-12.011",
+        "HU-12.031"
+      ],
+      "estado": "parcial",
+      "confianza": "alta-auto",
+      "fuente": "auto",
+      "nota": "Auto: reanclaje de enlaces externos derivados y split de effect existen; falta UX canonica completa de edicion sobre contorno.",
+      "evidencia": [
+        "app/src/modelo/operaciones.ts",
+        "app/src/ui/InspectorEnlace.tsx",
+        "app/src/modelo/operaciones.test.ts"
+      ]
+    },
+    {
+      "ids": [
+        "HU-12.015",
+        "HU-12.018",
+        "HU-12.022",
+        "HU-12.023",
+        "HU-12.024",
+        "HU-12.029",
+        "HU-12.030"
+      ],
+      "estado": "parcial",
+      "confianza": "media-auto",
+      "fuente": "auto",
+      "nota": "Auto: creacion/movimiento/renombrado en OPD activo y persistencia de apariencias existen; faltan restricciones visuales canonicas completas.",
+      "evidencia": [
+        "app/src/store.ts",
+        "app/src/ui/InspectorEntidad.tsx",
+        "app/src/modelo/operaciones.ts"
+      ]
+    },
+    {
+      "ids": [
+        "HU-13.001",
+        "HU-13.002",
+        "HU-13.004",
+        "HU-13.006",
+        "HU-13.019"
+      ],
+      "estado": "parcial",
+      "confianza": "alta-auto",
+      "fuente": "auto",
+      "nota": "Auto: inspector y kernel manejan estados de objeto; faltan gestos contextuales y toolbar canonica de estados.",
+      "evidencia": [
+        "app/src/modelo/operaciones.ts",
+        "app/src/ui/InspectorEntidad.tsx",
+        "app/src/render/jointjs/proyeccion.ts"
+      ]
+    },
+    {
+      "ids": [
+        "HU-13.003",
+        "HU-13.008",
+        "HU-13.010",
+        "HU-13.011",
+        "HU-13.017",
+        "HU-17.033"
+      ],
+      "estado": "cubierto",
+      "confianza": "alta-auto",
+      "fuente": "auto",
+      "nota": "Auto: estados inicial/final se validan, renderizan, serializan y verbalizan en OPL con pruebas.",
+      "evidencia": [
+        "app/src/modelo/operaciones.ts",
+        "app/src/opl/generar.ts",
+        "app/src/serializacion/json.ts",
+        "app/src/completitud.test.ts",
+        "app/src/render/jointjs/proyeccion.test.ts"
+      ]
+    },
+    {
+      "ids": [
+        "HU-13.014",
+        "HU-13.018"
+      ],
+      "estado": "pendiente",
+      "confianza": "alta-auto",
+      "fuente": "auto",
+      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
+      "evidencia": [
+        "app/src/ui/InspectorEnlace.tsx",
+        "app/src/opl/generar.ts",
+        "app/src/serializacion/json.ts",
+        "app/src/opl/generar.test.ts",
+        "app/src/serializacion/json.test.ts"
+      ],
+      "brechas": [
+        "app/src/modelo/extremos.ts: archivo no encontrado",
+        "app/src/ui/InspectorEnlace.tsx: falta Extremos de estado",
+        "app/src/ui/InspectorEnlace.tsx: falta extremoEstado",
+        "app/src/opl/generar.ts: falta estadoEntrada",
+        "app/src/opl/generar.ts: falta estadoSalida",
+        "app/src/opl/generar.ts: falta cambia",
+        "app/src/serializacion/json.ts: falta validarExtremoEnlace",
+        "app/src/serializacion/json.ts: falta kind === \"estado\""
+      ]
+    },
+    {
+      "ids": [
+        "HU-13.015"
+      ],
+      "estado": "parcial",
+      "confianza": "media-auto",
+      "fuente": "auto",
+      "nota": "Auto: existe splitEffectEnPar para transformar effect en consumo/resultado intermedio; falta gesto visual canonico.",
+      "evidencia": [
+        "app/src/modelo/operaciones.ts",
+        "app/src/modelo/operaciones.test.ts"
+      ]
+    },
+    {
+      "ids": [
+        "HU-1C.014",
+        "HU-1C.015",
+        "HU-1C.019"
+      ],
+      "estado": "cubierto",
+      "confianza": "alta-auto",
+      "fuente": "auto",
+      "nota": "Auto: validador emite avisos con severidad/cita y panel visible consume validarModelo.",
+      "evidencia": [
+        "app/src/modelo/validaciones.ts",
+        "app/src/ui/PanelAvisos.tsx",
+        "app/src/modelo/validaciones.test.ts"
+      ]
+    },
+    {
+      "ids": [
+        "HU-1C.013",
+        "HU-1C.016",
+        "HU-1C.017",
+        "HU-1C.018"
+      ],
+      "estado": "parcial",
+      "confianza": "media-auto",
+      "fuente": "auto",
+      "nota": "Auto: panel de avisos existe y permite seleccionar elementos; faltan todos los patrones de navegacion/correccion asistida.",
+      "evidencia": [
+        "app/src/ui/PanelAvisos.tsx",
+        "app/src/store.ts"
+      ]
+    },
+    {
+      "ids": [
+        "HU-18.001",
+        "HU-18.012"
+      ],
+      "estado": "parcial",
+      "confianza": "alta-auto",
+      "fuente": "auto",
+      "nota": "Auto: plegado completo/parcial se cambia desde inspector y canvas; faltan todos los gestos OPCloud de control de plegado.",
+      "evidencia": [
+        "app/src/modelo/plegado.ts",
+        "app/src/ui/InspectorEntidad.tsx",
+        "app/src/render/jointjs/JointCanvas.tsx"
+      ]
+    },
+    {
+      "ids": [
+        "HU-18.002",
+        "HU-18.003",
+        "HU-18.007",
+        "HU-18.011",
+        "HU-18.014"
+      ],
+      "estado": "pendiente",
+      "confianza": "alta-auto",
+      "fuente": "auto",
+      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
+      "evidencia": [
+        "app/src/modelo/plegado.ts",
+        "app/src/render/jointjs/proyeccion.ts",
+        "app/src/serializacion/json.ts",
+        "app/src/modelo/plegado.test.ts"
+      ],
+      "brechas": [
+        "app/src/modelo/plegado.ts: falta UMBRAL_PARTES_MAS",
+        "app/src/modelo/plegado.ts: falta filasPlegadoParcial",
+        "app/src/render/jointjs/proyeccion.ts: falta filasPlegadoParcial",
+        "app/src/modelo/plegado.test.ts: falta filasPlegadoParcial",
+        "app/src/modelo/plegado.test.ts: falta contarPartesOcultas"
+      ]
+    },
+    {
+      "ids": [
+        "HU-18.004",
+        "HU-18.005",
+        "HU-18.006",
+        "HU-18.010"
+      ],
+      "estado": "pendiente",
+      "confianza": "alta-auto",
+      "fuente": "auto",
+      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
+      "evidencia": [
+        "app/src/modelo/plegado.ts",
+        "app/src/store.ts",
+        "app/src/render/jointjs/proyeccion.test.ts"
+      ],
+      "brechas": [
+        "app/src/modelo/plegado.ts: falta extraerParteDePlegado",
+        "app/src/modelo/plegado.ts: falta reinsertarParteEnPlegado",
+        "app/src/modelo/plegado.ts: falta contarPartesOcultas",
+        "app/src/store.ts: falta extraerParteDePlegado",
+        "app/src/store.ts: falta reinsertarParteEnPlegado",
+        "app/src/render/jointjs/proyeccion.test.ts: falta extraerParteDePlegado",
+        "app/src/render/jointjs/proyeccion.test.ts: falta reinsertarParteEnPlegado"
+      ]
+    },
+    {
+      "ids": [
+        "HU-17.028",
+        "HU-17.029"
+      ],
+      "estado": "parcial",
+      "confianza": "media-auto",
+      "fuente": "auto",
+      "nota": "Auto: despliegue y multiples apariencias estan modelados para OPDs; faltan propiedades completas de apariencia equivalentes a OPCloud.",
+      "evidencia": [
+        "app/src/modelo/operaciones.ts",
+        "app/src/ui/InspectorEntidad.tsx",
+        "app/src/serializacion/json.ts"
+      ]
+    },
+    {
+      "ids": [
+        "HU-15.008",
+        "HU-15.009",
+        "HU-15.010",
+        "HU-15.011",
+        "HU-15.012"
+      ],
+      "estado": "pendiente",
+      "confianza": "alta-auto",
+      "fuente": "auto",
+      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
+      "evidencia": [
+        "app/src/ui/InspectorEnlace.tsx",
+        "app/src/render/jointjs/proyeccion.ts",
+        "app/src/opl/generar.ts",
+        "app/src/render/jointjs/proyeccion.test.ts",
+        "app/src/opl/generar.test.ts"
+      ],
+      "brechas": [
+        "app/src/modelo/abanicos.ts: archivo no encontrado",
+        "app/src/ui/InspectorEnlace.tsx: falta Abanico",
+        "app/src/ui/InspectorEnlace.tsx: falta alternarOperadorAbanico",
+        "app/src/render/jointjs/proyeccion.ts: falta proyectarConectorAbanico",
+        "app/src/render/jointjs/proyeccion.ts: falta LINK_ASSETS.logical",
+        "app/src/opl/generar.ts: falta exactamente uno de",
+        "app/src/opl/generar.ts: falta al menos uno de",
+        "assets/svg/links/logical/xor.svg: archivo no encontrado"
+      ]
+    },
+    {
+      "ids": [
+        "HU-15.025"
+      ],
+      "estado": "parcial",
+      "confianza": "media-auto",
+      "fuente": "auto",
+      "nota": "Auto: validador advierte consumo duplicado y sugiere abanico OR/XOR; falta autocorreccion y UX canonica.",
+      "evidencia": [
+        "app/src/modelo/validaciones.ts",
+        "app/src/modelo/validaciones.test.ts"
+      ]
+    }
+  ]
+}

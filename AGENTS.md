@@ -16,6 +16,7 @@
 - Considera `docs/archive/si-partiese-desde-0.md` antes de modificar historias: el desarrollo previo se hizo sin estos insumos de ingenieria inversa y contiene decisiones/deuda que no deben arrastrarse automaticamente.
 - Las HU existentes nacieron desde `opcloud-reverse` y una metodologia 1:1; al revisarlas, rebasalas contra SSOT OPM + evidencia OPCloud nueva + lecciones del archivo `si-partiese-desde-0.md`.
 - `docs/historias-usuario-v2/` es el backlog completo local vivo; `docs/roadmap/` define el corte operativo activo. No arrastres las 1.117 HU canónicas a cada cambio: trabaja contra Sprint 0/MVP-alpha y consulta HU puntuales.
+- **Auditoria de avance HU v2**: `node docs/historias-usuario-v2/tools/progress-dashboard.mjs --sync-real` escanea `app/src`, `app/e2e`, `app/scripts` y `assets/svg/links`, actualiza `docs/roadmap/hu-progress-evidence.json` (`autoEntries`) y regenera `docs/roadmap/hu-progress.{html,md,json}`. Sin `--sync-real` solo regenera reportes desde el ledger vigente.
 - **Workspace de aplicacion**: `app/` con Bun + Vite + Preact + JointJS (MPL 2.0) + Zustand. Comandos reales:
   - `cd app && bun run dev` — dev server con HMR en localhost:5173
   - `cd app && bun run build` — build produccion a `app/dist/`

@@ -158,6 +158,12 @@ reemplazar y consolidar el contenido anterior en este mismo archivo.
   bloqueante).
 - Roadmap activo: `docs/roadmap/sprint-0.md`,
   `docs/roadmap/mvp-alpha.md`, `docs/roadmap/mvp-alpha-coverage.md`.
+- Auditoria de avance HU v2: `docs/roadmap/hu-progress.html`,
+  `docs/roadmap/hu-progress.md`, `docs/roadmap/hu-progress.json` y ledger
+  `docs/roadmap/hu-progress-evidence.json`; auditar avance real y actualizar
+  `autoEntries` con
+  `node docs/historias-usuario-v2/tools/progress-dashboard.mjs --sync-real`
+  (sin flag solo regenera reportes desde el ledger vigente).
 - Backlog vivo: `docs/historias-usuario-v2/`.
 - Evidencia OPCloud: `opm-extracted/INDEX.md`, `MODULES.md`,
   `assets/INDEX.md`. Especialmente `opm-extracted/src/app/models/
@@ -221,6 +227,31 @@ Loop verde de convergencia ejecutado en `app/`:
 - `bun run build` -> OK; warning esperado de chunk grande JointJS
   (738 KB minificado, 214 KB gzip — +32 KB vs corte previo por L1-L5
   de ronda 2).
+- `node docs/historias-usuario-v2/tools/progress-dashboard.mjs --sync-real`
+  -> OK; escanea el codigo real local, actualiza `autoEntries`, regenera
+  `hu-progress.{html,md,json}` y registra 1 diagnostico de backlog
+  (`HU-13.005` duplicada entre epica y stub shared; se conserva la HU viva).
+
+### Handoff Auditoria HU V2
+
+- Estado actual: el repositorio tiene un instrumento versionado para comparar
+  el backlog vivo `docs/historias-usuario-v2/` contra evidencia local real en
+  `app/src`, `app/e2e`, `app/scripts` y `assets/svg/links`.
+- Decision vigente: `entries` manuales quedan como respaldo para HU sin regla
+  automatica; cuando una HU tiene regla automatica, `autoEntries` gana y puede
+  bajarla a `pendiente` si la evidencia desaparece.
+- Artefactos relevantes: script
+  `docs/historias-usuario-v2/tools/progress-dashboard.mjs`, ledger
+  `docs/roadmap/hu-progress-evidence.json`, dashboard HTML, resumen MD y
+  dataset JSON bajo `docs/roadmap/hu-progress.*`.
+- Pendientes: ampliar reglas automaticas para nuevas verticales; resolver el
+  duplicado `HU-13.005`; mantener las reglas conservadoras y trazables a
+  archivos concretos.
+- Supuestos: la auditoria automatica prueba presencia estructural de codigo,
+  tests, render o assets; no sustituye los checks funcionales de `app/`.
+- Riesgos: patrones demasiado literales pueden requerir ajuste tras refactors;
+  reportes generados deben regenerarse con `--sync-real` antes de cerrar un
+  corte.
 
 Las capturas y reportes browser no se conservan en el repo liviano. Se
 regeneran con:
