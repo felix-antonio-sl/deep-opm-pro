@@ -1,5 +1,6 @@
 import { esAutoInvocacion } from "../modelo/autoinvocacion";
 import { etiquetaEnlaceNormalizada } from "../modelo/etiquetasEnlace";
+import { designacionesEstado } from "../modelo/estadosDesignaciones";
 import {
   entidadDeExtremo,
   entidadIdDeExtremo,
@@ -11,6 +12,7 @@ import { modoPlegadoApariencia, partesDePlegado, UMBRAL_PARTES_MAS } from "../mo
 import { rutaEtiquetaNormalizada } from "../modelo/rutas";
 import type { Abanico, Apariencia, Enlace, Entidad, Estado, Id, Modelo, ModoDespliegueObjeto, Opd, TipoEnlace } from "../modelo/tipos";
 import { crearLineaOplInteractiva, type OplLineaInteractiva, type OplReferencia, type OplTokenHint } from "./interaccion";
+import { profundidadOpd } from "./bloquesJerarquicos";
 
 export function generarOpl(modelo: Modelo, opdId: Id = modelo.opdRaizId): string[] {
   const opd = modelo.opds[opdId];
@@ -21,7 +23,8 @@ export function generarOpl(modelo: Modelo, opdId: Id = modelo.opdRaizId): string
     if (!entidad) continue;
     lineas.push(oracionEntidad(entidad));
     const estados = entidad.tipo === "objeto" ? estadosDeEntidad(modelo, entidad.id) : [];
-    if (estados.length > 0) lineas.push(oracionEstados(entidad, estados));
+    if (estados.some((estado) => !estado.suprimido)) lineas.push(oracionEstados(entidad, estados));
+    for (const linea of oracionesUnidadDescripcionEstados(entidad, estados)) lineas.push(linea);
     const refinamiento = oracionRefinamiento(modelo, apariencia, entidad);
     if (refinamiento) lineas.push(refinamiento);
   }
@@ -59,13 +62,16 @@ export function generarOplInteractivo(modelo: Modelo, opdId: Id = modelo.opdRaiz
     if (!entidad) continue;
     agregarLinea(lineas, oracionEntidad(entidad), refsEntidad(entidad.id), [hintEntidad(entidad)]);
     const estados = entidad.tipo === "objeto" ? estadosDeEntidad(modelo, entidad.id) : [];
-    if (estados.length > 0) {
+    if (estados.some((estado) => !estado.suprimido)) {
       agregarLinea(
         lineas,
         oracionEstados(entidad, estados),
         [refEntidad(entidad.id), ...estados.map((estado) => refEstado(estado.id))],
         [hintEntidad(entidad), ...estados.map(hintEstado)],
       );
+    }
+    for (const linea of oracionesUnidadDescripcionEstados(entidad, estados)) {
+      agregarLinea(lineas, linea, [refEntidad(entidad.id), ...estados.map((estado) => refEstado(estado.id))], [hintEntidad(entidad), ...estados.map(hintEstado)]);
     }
     const refinamiento = oracionRefinamiento(modelo, apariencia, entidad);
     if (refinamiento) {
@@ -97,7 +103,16 @@ export function generarOplInteractivo(modelo: Modelo, opdId: Id = modelo.opdRaiz
     if (texto) agregarLinea(lineas, texto, refsEnlace(modelo, enlace), hintsEnlace(modelo, enlace, texto));
   }
 
-  return lineas.map((linea, index) => crearLineaOplInteractiva(`opl-${opdId}-${index + 1}`, linea.texto, index + 1, linea.refs, linea.hints));
+  const opdNombre = opd.nombre;
+  const opdProfundidad = profundidadOpd(modelo, opdId);
+  return lineas.map((linea, index) => crearLineaOplInteractiva(
+    `opl-${opdId}-${index + 1}`,
+    linea.texto,
+    index + 1,
+    linea.refs,
+    linea.hints,
+    { opdId, opdNombre, opdProfundidad },
+  ));
 }
 
 function agregarLinea(
@@ -255,7 +270,7 @@ function oracionPlegadoParcial(modelo: Modelo, apariencia: Apariencia, entidad: 
   const destino = restantes > 0
     ? `${listarOpl(visibles)} y ${restantes} ${restantes === 1 ? "parte más" : "partes más"}`
     : listarOpl(visibles);
-  return `${nombreOpl(entidad)} consiste en ${destino}.`;
+  return `${nombreOpl(entidad)} se lista con ${destino} como rasgos.`;
 }
 
 function oracionDespliegue(modelo: Modelo, entidad: Entidad, opdHijo: Opd, internos: string[]): string {
@@ -315,15 +330,37 @@ function oracionEntidad(entidad: Entidad): string {
 }
 
 function oracionEstados(entidad: Entidad, estados: Estado[]): string {
-  return `${nombreOpl(entidad)} puede ser ${listarEstadosOpl(estados.map(nombreEstadoOpl))}.`;
+  return `${nombreOpl(entidad)} puede ser ${listarEstadosOpl(estados.filter((estado) => !estado.suprimido).map(nombreEstadoOpl))}.`;
 }
 
 function nombreEstadoOpl(estado: Estado): string {
-  const designaciones = [
-    ...(estado.esInicial ? ["inicial"] : []),
-    ...(estado.esFinal ? ["final"] : []),
-  ];
+  const designaciones = designacionesEstado(estado);
   return `\`${estado.nombre}\`${designaciones.length > 0 ? ` (${listarDesignaciones(designaciones)})` : ""}`;
+}
+
+function oracionesUnidadDescripcionEstados(entidad: Entidad, estados: Estado[]): string[] {
+  const lineas: string[] = [];
+  if (entidad.unidad) {
+    lineas.push(`${nombreOpl(entidad)} tiene unidad \`${entidad.unidad}\`.`);
+  }
+  if (entidad.descripcion) {
+    lineas.push(`${nombreOpl(entidad)} se describe como "${entidad.descripcion}".`);
+  }
+  for (const estado of estados.filter((item) => !item.suprimido)) {
+    for (const designacion of designacionesEstado(estado)) {
+      lineas.push(`${nombreOpl(entidad)} en \`${estado.nombre}\` es ${textoDesignacionEstado(designacion)}.`);
+    }
+    if (estado.duracion) {
+      lineas.push(`${estado.duracion.min}, ${estado.duracion.nominal}, y ${estado.duracion.max} ${estado.duracion.unidad} Duracion Minima, Esperada y Maxima de \`${estado.nombre}\`, respectivamente.`);
+    }
+  }
+  return lineas;
+}
+
+function textoDesignacionEstado(designacion: string): string {
+  if (designacion === "default") return "Default";
+  if (designacion === "current") return "Current";
+  return designacion;
 }
 
 function transicionesEstado(modelo: Modelo, opd: Opd): { lineaPorEnlaceConsumo: Map<Id, string>; enlacesCubiertos: Set<Id> } {
@@ -811,7 +848,8 @@ function formatearProbabilidad(value: number): string {
 }
 
 function nombreOpl(entidad: Entidad): string {
-  return entidad.tipo === "objeto" ? `**${entidad.nombre}**` : `*${entidad.nombre}*`;
+  const nombre = nombreOplBase(entidad, entidad.nombre);
+  return entidad.alias ? `${nombre} {${entidad.alias}}` : nombre;
 }
 
 function nombreOplExtremo(modelo: Modelo, extremo: Enlace["origenId"], multiplicidad: string | undefined): string {
@@ -824,8 +862,13 @@ function nombreOplExtremo(modelo: Modelo, extremo: Enlace["origenId"], multiplic
 
 function nombreOplConMultiplicidad(entidad: Entidad, multiplicidad: string | undefined): string {
   const nombre = multiplicidadPlural(multiplicidad) ? pluralizarCanonico(entidad.nombre) : entidad.nombre;
-  const token = entidad.tipo === "objeto" ? `**${nombre}**` : `*${nombre}*`;
+  const token = nombreOplBase(entidad, nombre);
   return multiplicidad ? `${multiplicidad} ${token}` : token;
+}
+
+function nombreOplBase(entidad: Entidad, nombre: string): string {
+  const conUnidad = entidad.tipo === "objeto" && entidad.unidad ? `${nombre} [${entidad.unidad}]` : nombre;
+  return entidad.tipo === "objeto" ? `**${conUnidad}**` : `*${conUnidad}*`;
 }
 
 function pluralizarCanonico(texto: string): string {

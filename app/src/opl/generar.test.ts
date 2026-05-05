@@ -11,6 +11,17 @@ import type { Apariencia, Modelo, Resultado } from "../modelo/tipos";
 import { generarOpl, generarOplInteractivo } from "./generar";
 
 describe("OPL-ES — tipos de enlace canonicos", () => {
+  test("lineas interactivas exponen opdId para bloques jerarquicos", () => {
+    let modelo = crearModelo("Metadatos OPL");
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 0, y: 0 }, "Sistema"));
+
+    const [linea] = generarOplInteractivo(modelo);
+
+    expect(linea?.opdId).toBe(modelo.opdRaizId);
+    expect(linea?.opdNombre).toBe("SD");
+    expect(linea?.opdProfundidad).toBe(0);
+  });
+
   test("agregacion emite consta de", () => {
     let modelo = crearModelo();
     modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 0, y: 0 }, "Todo"));
@@ -363,7 +374,7 @@ describe("OPL-ES — refinamiento", () => {
     const apariencia = aparienciaDeEntidad(modelo, modelo.opdRaizId, objetoId);
     modelo = must(cambiarModoPlegado(modelo, modelo.opdRaizId, apariencia.id, "parcial"));
 
-    expect(generarOpl(modelo, modelo.opdRaizId)).toContain("**Vehiculo** consiste en **Vehiculo parte 1**, **Vehiculo parte 2** y **Vehiculo parte 3** y 2 partes más.");
+    expect(generarOpl(modelo, modelo.opdRaizId)).toContain("**Vehiculo** se lista con **Vehiculo parte 1**, **Vehiculo parte 2** y **Vehiculo parte 3** y 2 partes más como rasgos.");
   });
 
   test("plegado parcial con tres partes enumera todo sin contador", () => {
@@ -372,7 +383,7 @@ describe("OPL-ES — refinamiento", () => {
     const apariencia = aparienciaDeEntidad(modelo, modelo.opdRaizId, objetoId);
     modelo = must(cambiarModoPlegado(modelo, modelo.opdRaizId, apariencia.id, "parcial"));
 
-    expect(generarOpl(modelo, modelo.opdRaizId)).toContain("**Vehiculo** consiste en **Vehiculo parte 1**, **Vehiculo parte 2** y **Vehiculo parte 3**.");
+    expect(generarOpl(modelo, modelo.opdRaizId)).toContain("**Vehiculo** se lista con **Vehiculo parte 1**, **Vehiculo parte 2** y **Vehiculo parte 3** como rasgos.");
   });
 });
 

@@ -608,11 +608,11 @@ describe("proyeccion JointJS", () => {
       .find((item) => item.opm.kind === "entidad" && item.opm.entidadId === objetoId);
     const attrs = cell?.attrs as Attrs | undefined;
 
-    expect((cell?.size as { height?: number } | undefined)?.height).toBe(94);
+    expect((cell?.size as { height?: number } | undefined)?.height).toBe(100);
     expect((cell?.markup as Array<Attrs> | undefined)?.filter((item) => String(item.selector).startsWith("stateCapsule"))).toHaveLength(2);
     expect(attrs?.stateCapsule0).toMatchObject({ height: 24, rx: 8, fill: "#fdffff", stroke: "#586D8C", strokeWidth: 3 });
     expect(attrs?.stateCapsule1).toMatchObject({ height: 24, rx: 8, fill: "#eef8ff", stroke: "#586D8C", strokeWidth: 1 });
-    expect((attrs?.stateCapsule0 as Attrs | undefined)?.y).toBe(64);
+    expect((attrs?.stateCapsule0 as Attrs | undefined)?.y).toBe(70);
     expect((attrs?.stateLabel0 as Attrs | undefined)?.text).toBe("pendiente");
     expect((attrs?.stateLabel1 as Attrs | undefined)?.text).toBe("cerrado");
     expect((attrs?.stateCapsule0 as Attrs | undefined)?.pointerEvents).toBe("auto");

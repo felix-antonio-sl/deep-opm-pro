@@ -1,7 +1,9 @@
 import { esAutoInvocacion } from "../../modelo/autoinvocacion";
 import { CANON } from "../../modelo/constantes";
 import { etiquetaEnlaceNormalizada } from "../../modelo/etiquetasEnlace";
+import { designacionesEstado } from "../../modelo/estadosDesignaciones";
 import { entidadIdDeExtremo } from "../../modelo/extremos";
+import { formatearNombreCompuesto } from "../../modelo/objetoMetadata";
 import { estadosDeEntidad } from "../../modelo/operaciones";
 import { modoPlegadoApariencia, partesDePlegado } from "../../modelo/plegado";
 import type { Apariencia, Enlace, Entidad, Estado, ExtremoEnlace, Id, Modelo, Posicion, TipoEnlace } from "../../modelo/tipos";
@@ -45,6 +47,11 @@ export type OpmJointMetadata =
       opdId: Id;
       abanicoId: Id;
       operador: "O" | "XOR";
+    }
+  | {
+      kind: "selection-halo";
+      opdId: Id;
+      targetId: Id;
     };
 
 export interface JointCellJson {
@@ -62,6 +69,11 @@ export interface JointCellJson {
   [key: string]: unknown;
 }
 
+export interface OpcionesProyeccion {
+  aliasVisibles?: boolean;
+  descripcionesVisibles?: boolean;
+}
+
 const TIPOS_REFINAMIENTO_ESTRUCTURAL: readonly TipoEnlace[] = [
   "agregacion",
   "exhibicion",
@@ -75,15 +87,18 @@ export function proyectarModeloAJointCells(
   seleccionEntidadId: Id | null,
   seleccionEnlaceId: Id | null,
   hoverOplRef: OplReferencia | null = null,
+  seleccionados: readonly Id[] = [],
+  opciones: OpcionesProyeccion = opcionesProyeccionGlobal(),
 ): JointCellJson[] {
   const opd = modelo.opds[opdId];
   if (!opd) return [];
+  const seleccionMultiple = new Set(seleccionados);
 
   const apariencias = Object.values(opd.apariencias);
   const aparienciaPorEntidad = new Map(apariencias.map((apariencia) => [apariencia.entidadId, apariencia]));
   const elementos = apariencias.flatMap((apariencia) => {
     const entidad = modelo.entidades[apariencia.entidadId];
-    return entidad ? [proyectarEntidad(modelo, opdId, apariencia, entidad, entidad.id === seleccionEntidadId, refResaltaEntidad(modelo, entidad, hoverOplRef))] : [];
+    return entidad ? [proyectarEntidad(modelo, opdId, apariencia, entidad, entidad.id === seleccionEntidadId || seleccionMultiple.has(entidad.id), refResaltaEntidad(modelo, entidad, hoverOplRef), opciones)] : [];
   });
   const proxies = apariencias.flatMap((apariencia) => proyectarProxyExtraccion(opdId, opd, apariencia));
   const overlaysAbanico = Object.values(modelo.abanicos ?? {})
@@ -123,6 +138,7 @@ export function proyectarModeloAJointCells(
     enlaces: enlacesConEndpoint,
     seleccionados: new Set([
       ...(seleccionEnlaceId ? [seleccionEnlaceId] : []),
+      ...seleccionados.filter((id) => modelo.enlaces[id]),
       ...(hoverOplRef?.tipo === "enlace" ? [hoverOplRef.id] : []),
     ]),
   });
@@ -142,16 +158,52 @@ export function proyectarModeloAJointCells(
       });
     }
     if (origen.apariencia.id === destino.apariencia.id) return [];
-    const enlaceResaltado = enlace.id === seleccionEnlaceId || refResaltaEnlace(enlace, hoverOplRef);
+    const enlaceResaltado = enlace.id === seleccionEnlaceId || seleccionMultiple.has(enlace.id) || refResaltaEnlace(enlace, hoverOplRef);
     return TIPOS_REFINAMIENTO_ESTRUCTURAL.includes(enlace.tipo) && !origen.proxy && !destino.proxy
       ? proyectarRefinamientoEstructural(opdId, enlace, aparienciaEnlace.id, origen.apariencia, destino.apariencia, enlaceResaltado)
       : [proyectarEnlace(opdId, enlace, aparienciaEnlace.id, origen, destino, aparienciaEnlace.vertices, enlaceResaltado, enlacesEnAbanico.has(enlace.id))];
   });
 
-  return [...busCells, ...enlaces, ...proxies, ...overlaysAbanico, ...elementos];
+  const halos = seleccionMultiple.size > 1
+    ? apariencias.flatMap((apariencia) => {
+        const entidad = modelo.entidades[apariencia.entidadId];
+        if (!entidad || !seleccionMultiple.has(entidad.id)) return [];
+        return [proyectarHaloSeleccion(opdId, apariencia, entidad)];
+      })
+    : [];
+
+  return [...busCells, ...enlaces, ...proxies, ...overlaysAbanico, ...elementos, ...halos];
 }
 
-function proyectarEntidad(modelo: Modelo, opdId: Id, apariencia: Apariencia, entidad: Entidad, seleccionada: boolean, resaltada: boolean): JointCellJson {
+function opcionesProyeccionGlobal(): OpcionesProyeccion {
+  const global = globalThis as typeof globalThis & {
+    __deepOpmUiAliasVisibles?: boolean;
+    __deepOpmUiDescripcionesVisibles?: boolean;
+  };
+  return {
+    aliasVisibles: global.__deepOpmUiAliasVisibles ?? true,
+    descripcionesVisibles: global.__deepOpmUiDescripcionesVisibles ?? true,
+  };
+}
+
+export function fijarOpcionesProyeccionGlobal(opciones: Required<OpcionesProyeccion>): void {
+  const global = globalThis as typeof globalThis & {
+    __deepOpmUiAliasVisibles?: boolean;
+    __deepOpmUiDescripcionesVisibles?: boolean;
+  };
+  global.__deepOpmUiAliasVisibles = opciones.aliasVisibles;
+  global.__deepOpmUiDescripcionesVisibles = opciones.descripcionesVisibles;
+}
+
+function proyectarEntidad(
+  modelo: Modelo,
+  opdId: Id,
+  apariencia: Apariencia,
+  entidad: Entidad,
+  seleccionada: boolean,
+  resaltada: boolean,
+  opciones: OpcionesProyeccion,
+): JointCellJson {
   const stroke = apariencia.estilo?.borderColor ?? (entidad.tipo === "objeto" ? CANON.colores.objeto : CANON.colores.proceso);
   const fillBase = apariencia.estilo?.fill ?? CANON.colores.relleno;
   const fill = resaltada ? "#E1E6EB" : fillBase;
@@ -159,13 +211,16 @@ function proyectarEntidad(modelo: Modelo, opdId: Id, apariencia: Apariencia, ent
   const tienePartes = partes.length > 0;
   const modoParcial = modoPlegadoApariencia(apariencia) === "parcial" && tienePartes;
   const filasParciales = modoParcial ? filasPlegadoConNesting({ modelo, opdId, padreAparienciaId: apariencia.id }) : [];
-  const estadosVisibles = entidad.tipo === "objeto" && !modoParcial ? estadosDeEntidad(modelo, entidad.id) : [];
+  const estadosVisibles = entidad.tipo === "objeto" && !modoParcial
+    ? estadosDeEntidad(modelo, entidad.id).filter((estado) => !estado.suprimido)
+    : [];
+  const nombreRender = formatearNombreCompuesto(entidad, { aliasVisible: opciones.aliasVisibles !== false });
   const refinada = !!entidad.refinamiento;
   const contornoRefinamiento = refinada && entidad.refinamiento?.opdId === opdId;
   const size = modoParcial
-    ? dimensionesPlegadoParcial(apariencia, entidad.nombre, filasParciales)
+    ? dimensionesPlegadoParcial(apariencia, nombreRender, filasParciales)
     : estadosVisibles.length > 0
-      ? dimensionesConEstados(apariencia, entidad.nombre, estadosVisibles)
+      ? dimensionesConEstados(apariencia, nombreRender, estadosVisibles, entidad.layoutEstados)
       : { width: apariencia.width, height: apariencia.height };
   const strokeBase = refinada ? 4 : CANON.dims.enlaceVisible;
   const strokeWidth = seleccionada ? strokeBase + 2 : strokeBase;
@@ -183,7 +238,7 @@ function proyectarEntidad(modelo: Modelo, opdId: Id, apariencia: Apariencia, ent
       ? { ...body, width: size.width, height: size.height, rx: 4, ry: 4 }
       : { ...body, cx: size.width / 2, cy: size.height / 2, rx: size.width / 2, ry: size.height / 2 },
     label: {
-      text: entidad.nombre,
+      text: nombreRender,
       fill: colorTextoParaFill(fill),
       fontFamily: CANON.dims.fontFamily,
       fontSize: CANON.dims.fontSize,
@@ -195,6 +250,7 @@ function proyectarEntidad(modelo: Modelo, opdId: Id, apariencia: Apariencia, ent
       pointerEvents: "none",
     },
   };
+  const metadatos = metadatosEntidad(entidad, opciones, tienePartes);
 
   return {
     id: apariencia.id,
@@ -204,10 +260,12 @@ function proyectarEntidad(modelo: Modelo, opdId: Id, apariencia: Apariencia, ent
     ...(modoParcial
       ? { markup: markupPlegadoParcial(bodyTag, filasParciales), attrs: attrsPlegadoParcial(attrsBase, size, filasParciales) }
       : estadosVisibles.length > 0
-        ? { markup: markupConEstados(bodyTag, estadosVisibles, tienePartes), attrs: attrsConEstados(attrsBase, size, estadosVisibles, tienePartes) }
+        ? { markup: markupConEstados(bodyTag, estadosVisibles, metadatos), attrs: attrsConEstados(attrsBase, size, estadosVisibles, metadatos, entidad.layoutEstados) }
         : tienePartes
-          ? { markup: markupConBadge(bodyTag), attrs: attrsConBadge(attrsBase, size) }
-          : { attrs: attrsBase }),
+          ? { markup: markupConBadge(bodyTag, metadatos), attrs: attrsConBadge(attrsBase, size, metadatos) }
+          : metadatos.tieneMetadatos
+            ? { markup: markupConBadge(bodyTag, metadatos), attrs: attrsConBadge(attrsBase, size, metadatos) }
+            : { attrs: attrsBase }),
     opm: {
       kind: "entidad",
       opdId,
@@ -218,6 +276,47 @@ function proyectarEntidad(modelo: Modelo, opdId: Id, apariencia: Apariencia, ent
       ...(modoParcial ? { partesPlegadas: selectoresPartesPlegadas(filasParciales) } : {}),
     },
     z: contornoRefinamiento ? 0 : 10,
+  };
+}
+
+function proyectarHaloSeleccion(opdId: Id, apariencia: Apariencia, entidad: Entidad): JointCellJson {
+  const pad = 4;
+  const type = entidad.tipo === "objeto" ? "standard.Rectangle" : "standard.Ellipse";
+  const width = apariencia.width + pad * 2;
+  const height = apariencia.height + pad * 2;
+  return {
+    id: `seleccion-${apariencia.id}`,
+    type,
+    position: { x: apariencia.x - pad, y: apariencia.y - pad },
+    size: { width, height },
+    attrs: {
+      body: entidad.tipo === "objeto"
+        ? {
+            fill: "transparent",
+            stroke: "#3DA8FF",
+            strokeWidth: 2,
+            rx: 6,
+            ry: 6,
+            pointerEvents: "none",
+          }
+        : {
+            fill: "transparent",
+            stroke: "#3DA8FF",
+            strokeWidth: 2,
+            cx: width / 2,
+            cy: height / 2,
+            rx: width / 2,
+            ry: height / 2,
+            pointerEvents: "none",
+          },
+      label: { text: "", display: "none" },
+    },
+    opm: {
+      kind: "selection-halo",
+      opdId,
+      targetId: entidad.id,
+    },
+    z: 30,
   };
 }
 
@@ -288,11 +387,17 @@ function dimensionesPlegadoParcial(apariencia: Apariencia, nombrePadre: string, 
   return { width, height };
 }
 
-function dimensionesConEstados(apariencia: Apariencia, nombre: string, estados: Estado[]): { width: number; height: number } {
+function dimensionesConEstados(apariencia: Apariencia, nombre: string, estados: Estado[], layout: Entidad["layoutEstados"]): { width: number; height: number } {
   const capsulas = estados.map((estado) => anchoCapsulaEstado(estado.nombre));
-  const anchoEstados = capsulas.reduce((total, ancho) => total + ancho, 0) + Math.max(0, capsulas.length - 1) * ESTADOS.gap;
+  const vertical = layout === "vertical";
+  const anchoEstados = vertical
+    ? Math.max(...capsulas, ESTADOS.minWidth)
+    : capsulas.reduce((total, ancho) => total + ancho, 0) + Math.max(0, capsulas.length - 1) * ESTADOS.gap;
+  const altoEstados = vertical
+    ? estados.length * ESTADOS.capsuleHeight + Math.max(0, estados.length - 1) * ESTADOS.gap
+    : ESTADOS.regionHeight;
   const width = Math.max(apariencia.width, CANON.dims.cosaWidth, nombre.length * 7 + 24, anchoEstados + ESTADOS.paddingX * 2);
-  const height = Math.max(apariencia.height, CANON.dims.cosaHeight + ESTADOS.regionHeight);
+  const height = Math.max(apariencia.height, CANON.dims.cosaHeight + altoEstados + ESTADOS.paddingBottom);
   return { width, height };
 }
 
@@ -302,28 +407,61 @@ function refYEtiquetaEntidad(contornoRefinamiento: boolean, modoParcial: boolean
   return "50%";
 }
 
-function markupConBadge(bodyTag: "rect" | "ellipse"): Array<Record<string, unknown>> {
+interface MetadatosEntidadRender {
+  foldBadge: boolean;
+  descripcion?: string;
+  url?: string;
+  tieneMetadatos: boolean;
+}
+
+function metadatosEntidad(entidad: Entidad, opciones: OpcionesProyeccion, tienePartes: boolean): MetadatosEntidadRender {
+  const descripcion = opciones.descripcionesVisibles !== false ? entidad.descripcion?.trim() : undefined;
+  const url = entidad.urls?.[0]?.url;
+  return {
+    foldBadge: tienePartes,
+    ...(descripcion ? { descripcion } : {}),
+    ...(url ? { url } : {}),
+    tieneMetadatos: tienePartes || !!descripcion || !!url,
+  };
+}
+
+function markupConBadge(bodyTag: "rect" | "ellipse", metadatos: MetadatosEntidadRender): Array<Record<string, unknown>> {
   return [
     { tagName: bodyTag, selector: "body" },
     { tagName: "text", selector: "label" },
-    { tagName: "text", selector: "foldBadge" },
+    ...(metadatos.foldBadge ? [{ tagName: "text", selector: "foldBadge" }] : []),
+    ...(metadatos.descripcion ? [{ tagName: "text", selector: "descBadge" }] : []),
+    ...(metadatos.url ? [{
+      tagName: "a",
+      selector: "urlLink",
+      children: [{ tagName: "text", selector: "urlBadge" }],
+    }] : []),
   ];
 }
 
 function markupConEstados(
   bodyTag: "rect" | "ellipse",
   estados: Estado[],
-  tienePartes: boolean,
+  metadatos: MetadatosEntidadRender,
 ): Array<Record<string, unknown>> {
   const capsulas = estados.flatMap((_, index) => [
     { tagName: "rect", selector: `stateCapsule${index}` },
+    { tagName: "rect", selector: `stateFinalInner${index}` },
     { tagName: "text", selector: `stateLabel${index}` },
+    { tagName: "text", selector: `stateDefaultMarker${index}` },
+    { tagName: "text", selector: `stateCurrentMarker${index}` },
   ]);
   return [
     { tagName: bodyTag, selector: "body" },
     { tagName: "text", selector: "label" },
     ...capsulas,
-    ...(tienePartes ? [{ tagName: "text", selector: "foldBadge" }] : []),
+    ...(metadatos.foldBadge ? [{ tagName: "text", selector: "foldBadge" }] : []),
+    ...(metadatos.descripcion ? [{ tagName: "text", selector: "descBadge" }] : []),
+    ...(metadatos.url ? [{
+      tagName: "a",
+      selector: "urlLink",
+      children: [{ tagName: "text", selector: "urlBadge" }],
+    }] : []),
   ];
 }
 
@@ -343,10 +481,13 @@ function markupPlegadoParcial(bodyTag: "rect" | "ellipse", filas: FilaPlegadoPar
 function attrsConBadge(
   attrsBase: Record<string, unknown>,
   size: { width: number; height: number },
+  metadatos: MetadatosEntidadRender,
 ): Record<string, unknown> {
-  return {
+  const attrs: Record<string, unknown> = {
     ...attrsBase,
-    foldBadge: {
+  };
+  if (metadatos.foldBadge) {
+    attrs.foldBadge = {
       text: "▾",
       x: size.width - 14,
       y: 17,
@@ -358,15 +499,18 @@ function attrsConBadge(
       textVerticalAnchor: "middle",
       cursor: "pointer",
       title: "Plegado parcial",
-    },
-  };
+    };
+  }
+  aplicarMetadatosAttrs(attrs, size, metadatos);
+  return attrs;
 }
 
 function attrsConEstados(
   attrsBase: Record<string, unknown>,
   size: { width: number; height: number },
   estados: Estado[],
-  tienePartes: boolean,
+  metadatos: MetadatosEntidadRender,
+  layout: Entidad["layoutEstados"],
 ): Record<string, unknown> {
   const attrs: Record<string, unknown> = {
     ...attrsBase,
@@ -375,14 +519,23 @@ function attrsConEstados(
       textWrap: { width: size.width - 24, height: size.height - ESTADOS.regionHeight - 8 },
     },
   };
-  if (tienePartes) attrs.foldBadge = attrsConBadge(attrsBase, size).foldBadge;
+  if (metadatos.foldBadge) attrs.foldBadge = attrsConBadge(attrsBase, size, metadatos).foldBadge;
+  aplicarMetadatosAttrs(attrs, size, metadatos);
+  const vertical = layout === "vertical";
   const anchos = estados.map((estado) => anchoCapsulaEstado(estado.nombre));
-  const anchoTotal = anchos.reduce((total, ancho) => total + ancho, 0) + Math.max(0, anchos.length - 1) * ESTADOS.gap;
+  const anchoTotal = vertical
+    ? Math.max(...anchos, ESTADOS.minWidth)
+    : anchos.reduce((total, ancho) => total + ancho, 0) + Math.max(0, anchos.length - 1) * ESTADOS.gap;
   let x = (size.width - anchoTotal) / 2;
-  const y = size.height - ESTADOS.paddingBottom - ESTADOS.capsuleHeight;
+  const altoTotal = vertical
+    ? estados.length * ESTADOS.capsuleHeight + Math.max(0, estados.length - 1) * ESTADOS.gap
+    : ESTADOS.capsuleHeight;
+  let y = size.height - ESTADOS.paddingBottom - altoTotal;
 
   for (const [index, estado] of estados.entries()) {
     const width = anchos[index] ?? ESTADOS.minWidth;
+    if (vertical) x = (size.width - width) / 2;
+    const designaciones = designacionesEstado(estado);
     attrs[`stateCapsule${index}`] = {
       x,
       y,
@@ -390,11 +543,24 @@ function attrsConEstados(
       height: ESTADOS.capsuleHeight,
       rx: ESTADOS.radius,
       ry: ESTADOS.radius,
-      fill: estado.esFinal ? "#eef8ff" : CANON.colores.relleno,
+      fill: designaciones.includes("final") ? "#eef8ff" : CANON.colores.relleno,
       stroke: CANON.colores.enlace,
-      strokeWidth: estado.esInicial ? 3 : 1,
+      strokeWidth: designaciones.includes("inicial") ? 3 : 1,
       pointerEvents: "auto",
       cursor: "crosshair",
+    };
+    attrs[`stateFinalInner${index}`] = {
+      x: x + 3,
+      y: y + 3,
+      width: Math.max(0, width - 6),
+      height: ESTADOS.capsuleHeight - 6,
+      rx: Math.max(0, ESTADOS.radius - 2),
+      ry: Math.max(0, ESTADOS.radius - 2),
+      fill: "transparent",
+      stroke: CANON.colores.enlace,
+      strokeWidth: designaciones.includes("final") ? 1 : 0,
+      pointerEvents: "none",
+      display: designaciones.includes("final") ? undefined : "none",
     };
     attrs[`stateLabel${index}`] = {
       text: estado.nombre,
@@ -410,9 +576,97 @@ function attrsConEstados(
       pointerEvents: "auto",
       cursor: "crosshair",
     };
-    x += width + ESTADOS.gap;
+    attrs[`stateDefaultMarker${index}`] = {
+      text: "↗",
+      x: x + width - 10,
+      y: y + 7,
+      fill: CANON.colores.enlace,
+      fontFamily: CANON.dims.fontFamily,
+      fontSize: 12,
+      fontWeight: 700,
+      textAnchor: "middle",
+      textVerticalAnchor: "middle",
+      pointerEvents: "none",
+      display: designaciones.includes("default") ? undefined : "none",
+    };
+    attrs[`stateCurrentMarker${index}`] = {
+      text: "●",
+      x: x + 10,
+      y: y + 7,
+      fill: "#70E483",
+      fontFamily: CANON.dims.fontFamily,
+      fontSize: 10,
+      fontWeight: 700,
+      textAnchor: "middle",
+      textVerticalAnchor: "middle",
+      pointerEvents: "none",
+      display: designaciones.includes("current") ? undefined : "none",
+    };
+    if (vertical) y += ESTADOS.capsuleHeight + ESTADOS.gap;
+    else x += width + ESTADOS.gap;
   }
   return attrs;
+}
+
+function aplicarMetadatosAttrs(
+  attrs: Record<string, unknown>,
+  size: { width: number; height: number },
+  metadatos: MetadatosEntidadRender,
+): void {
+  let x = 14;
+  if (metadatos.descripcion) {
+    attrs.descBadge = {
+      text: "i",
+      x,
+      y: 17,
+      fill: "#586D8C",
+      fontFamily: CANON.dims.fontFamily,
+      fontSize: 12,
+      fontWeight: 700,
+      textAnchor: "middle",
+      textVerticalAnchor: "middle",
+      pointerEvents: "none",
+      title: metadatos.descripcion,
+    };
+    x += 16;
+  }
+  if (metadatos.url) {
+    attrs.urlLink = {
+      href: metadatos.url,
+      xlinkHref: metadatos.url,
+      target: "_blank",
+      rel: "noopener noreferrer",
+      cursor: "pointer",
+    };
+    attrs.urlBadge = {
+      text: "↗",
+      x,
+      y: 17,
+      fill: "#3BC3FF",
+      fontFamily: CANON.dims.fontFamily,
+      fontSize: 13,
+      fontWeight: 700,
+      textAnchor: "middle",
+      textVerticalAnchor: "middle",
+      cursor: "pointer",
+      title: metadatos.url,
+    };
+  }
+  if (metadatos.foldBadge && !attrs.foldBadge) {
+    attrs.foldBadge = {
+      text: "▾",
+      x: size.width - 14,
+      y: 17,
+      fill: CANON.colores.enlace,
+      fontFamily: CANON.dims.fontFamily,
+      fontSize: 16,
+      fontWeight: 700,
+      textAnchor: "middle",
+      textVerticalAnchor: "middle",
+      cursor: "pointer",
+      title: "Plegado parcial",
+    };
+  }
 }
 
 function attrsPlegadoParcial(
@@ -558,15 +812,27 @@ function puntoCapsulaEstado(modelo: Modelo, apariencia: Apariencia, estadoId: Id
   const entidad = estado ? modelo.entidades[estado.entidadId] : undefined;
   if (!estado || !entidad) return null;
   if (modoPlegadoApariencia(apariencia) === "parcial") return null;
-  const estados = estadosDeEntidad(modelo, entidad.id);
+  const estados = estadosDeEntidad(modelo, entidad.id).filter((item) => !item.suprimido);
   const index = estados.findIndex((item) => item.id === estadoId);
   if (index < 0) return null;
-  const size = dimensionesConEstados(apariencia, entidad.nombre, estados);
+  const size = dimensionesConEstados(apariencia, formatearNombreCompuesto(entidad), estados, entidad.layoutEstados);
   const anchos = estados.map((item) => anchoCapsulaEstado(item.nombre));
-  const anchoTotal = anchos.reduce((total, ancho) => total + ancho, 0) + Math.max(0, anchos.length - 1) * ESTADOS.gap;
+  const vertical = entidad.layoutEstados === "vertical";
+  const anchoActual = anchos[index] ?? ESTADOS.minWidth;
+  const anchoTotal = vertical
+    ? anchoActual
+    : anchos.reduce((total, ancho) => total + ancho, 0) + Math.max(0, anchos.length - 1) * ESTADOS.gap;
   const xInicial = (size.width - anchoTotal) / 2;
-  const x = xInicial + anchos.slice(0, index).reduce((total, ancho) => total + ancho + ESTADOS.gap, 0) + (anchos[index] ?? ESTADOS.minWidth) / 2;
-  const y = size.height - ESTADOS.paddingBottom - ESTADOS.capsuleHeight / 2;
+  const x = vertical
+    ? xInicial + anchoActual / 2
+    : xInicial + anchos.slice(0, index).reduce((total, ancho) => total + ancho + ESTADOS.gap, 0) + anchoActual / 2;
+  const altoTotal = vertical
+    ? estados.length * ESTADOS.capsuleHeight + Math.max(0, estados.length - 1) * ESTADOS.gap
+    : ESTADOS.capsuleHeight;
+  const yBase = size.height - ESTADOS.paddingBottom - altoTotal + ESTADOS.capsuleHeight / 2;
+  const y = vertical
+    ? yBase + index * (ESTADOS.capsuleHeight + ESTADOS.gap)
+    : yBase;
   return {
     x: apariencia.x + x,
     y: apariencia.y + y,
@@ -600,7 +866,7 @@ function proyectarEnlace(
     labels: [...etiquetasMultiplicidad(enlace), ...etiquetasModificador(enlace), ...etiquetaEnlace(enlace), ...etiquetasRuta(enlace), ...etiquetasProxyParte(origen, destino)],
     attrs: {
       wrapper: {
-        stroke: "transparent",
+        stroke: seleccionada ? "rgba(61, 168, 255, 0.35)" : "transparent",
         strokeWidth: CANON.dims.enlaceHitArea,
         cursor: "pointer",
       },
@@ -1031,7 +1297,7 @@ function marcadorDestino(tipo: TipoEnlace): Record<string, unknown> | null {
 function attrsLinea(seleccionada: boolean): Record<string, unknown> {
   return {
     wrapper: {
-      stroke: "transparent",
+      stroke: seleccionada ? "rgba(61, 168, 255, 0.35)" : "transparent",
       strokeWidth: CANON.dims.enlaceHitArea,
       cursor: "pointer",
     },

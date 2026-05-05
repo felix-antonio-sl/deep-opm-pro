@@ -1,7 +1,9 @@
+import { useState } from "preact/hooks";
 import { autoInvocacionDeProceso } from "../modelo/autoinvocacion";
+import { designacionesEstado, estadoTieneEnlaces } from "../modelo/estadosDesignaciones";
 import { estadosDeEntidad } from "../modelo/operaciones";
 import { filasPlegadoParcial, modoPlegadoApariencia, partesDePlegado, type FilaPlegadoParcial } from "../modelo/plegado";
-import type { Entidad, Estado, ModoDespliegueObjeto, OrdenPartesPlegado } from "../modelo/tipos";
+import type { DesignacionEstado, Entidad, Estado, LayoutEstados, Modelo, ModoDespliegueObjeto, OrdenPartesPlegado } from "../modelo/tipos";
 import { useOpmStore } from "../store";
 import { inspectorStyles as style } from "./inspectorStyles";
 import { StyleControls } from "./StyleControls";
@@ -36,7 +38,20 @@ export function InspectorEntidad({ entidad }: Props) {
   const renombrarEstado = useOpmStore((s) => s.renombrarEstadoSeleccionado);
   const designarInicial = useOpmStore((s) => s.designarEstadoInicial);
   const designarFinal = useOpmStore((s) => s.designarEstadoFinal);
+  const designarEstadoComo = useOpmStore((s) => s.designarEstadoComo);
+  const quitarDesignacion = useOpmStore((s) => s.quitarDesignacionEstado);
+  const suprimirEstadoPorId = useOpmStore((s) => s.suprimirEstadoPorId);
+  const restaurarEstadoPorId = useOpmStore((s) => s.restaurarEstadoPorId);
+  const abrirModalDuracion = useOpmStore((s) => s.abrirModalDuracion);
+  const abrirModalUrls = useOpmStore((s) => s.abrirModalUrls);
+  const editarAliasEntidad = useOpmStore((s) => s.editarAliasEntidad);
+  const editarUnidadEntidad = useOpmStore((s) => s.editarUnidadEntidad);
+  const editarDescripcionEntidad = useOpmStore((s) => s.editarDescripcionEntidad);
+  const fijarLayoutEstadosEntidad = useOpmStore((s) => s.fijarLayoutEstadosEntidad);
   const eliminar = useOpmStore((s) => s.eliminarSeleccion);
+  const seleccionados = useOpmStore((s) => s.seleccionados);
+  const aplicarEstiloASeleccion = useOpmStore((s) => s.aplicarEstiloASeleccion);
+  const [aplicarABatch, setAplicarABatch] = useState(false);
 
   const aparienciaActiva = Object.values(modelo.opds[opdActivoId]?.apariencias ?? {})
     .find((apariencia) => apariencia.entidadId === entidad.id);
@@ -63,6 +78,44 @@ export function InspectorEntidad({ entidad }: Props) {
           onInput={(event) => renombrar(event.currentTarget.value)}
         />
       </label>
+
+      {entidad.tipo === "objeto" ? (
+        <section style={advancedStyles.section} aria-label="Metadatos avanzados">
+          <div style={advancedStyles.grid2}>
+            <label style={style.field}>
+              <span style={style.label}>Alias</span>
+              <input
+                style={style.input}
+                value={entidad.alias ?? ""}
+                onInput={(event) => editarAliasEntidad(entidad.id, event.currentTarget.value)}
+                placeholder="{alias}"
+              />
+            </label>
+            <label style={style.field}>
+              <span style={style.label}>Unidad</span>
+              <input
+                style={style.input}
+                value={entidad.unidad ?? ""}
+                onInput={(event) => editarUnidadEntidad(entidad.id, event.currentTarget.value)}
+                placeholder="[unidad]"
+              />
+            </label>
+          </div>
+          <label style={style.field}>
+            <span style={style.label}>Descripción</span>
+            <textarea
+              style={advancedStyles.textarea}
+              value={entidad.descripcion ?? ""}
+              onInput={(event) => editarDescripcionEntidad(entidad.id, event.currentTarget.value)}
+            />
+          </label>
+          <div data-testid="inspector-entidad-acciones" style={advancedStyles.actions}>
+            <button type="button" style={style.secondaryButton} onClick={() => abrirModalUrls(entidad.id)}>
+              URLs ({entidad.urls?.length ?? 0})
+            </button>
+          </div>
+        </section>
+      ) : null}
 
       <div style={style.field}>
         <span style={style.label}>Esencia</span>
@@ -185,7 +238,10 @@ export function InspectorEntidad({ entidad }: Props) {
 
       {entidad.tipo === "objeto" ? (
         <EstadosObjeto
+          modelo={modelo}
+          entidadId={entidad.id}
           estados={estados}
+          layout={entidad.layoutEstados ?? "horizontal"}
           onAgregarEstados={agregarEstados}
           onAgregarEstado={agregarEstado}
           onEliminar={eliminarEstado}
@@ -193,20 +249,30 @@ export function InspectorEntidad({ entidad }: Props) {
           onRenombrar={renombrarEstado}
           onDesignarInicial={designarInicial}
           onDesignarFinal={designarFinal}
+          onDesignar={designarEstadoComo}
+          onQuitarDesignacion={quitarDesignacion}
+          onSuprimir={suprimirEstadoPorId}
+          onRestaurar={restaurarEstadoPorId}
+          onAbrirDuracion={abrirModalDuracion}
+          onLayout={(layout) => fijarLayoutEstadosEntidad(entidad.id, layout)}
         />
       ) : null}
 
       {aparienciaActiva ? (
         <StyleControls
           estilo={aparienciaActiva.estilo}
-          onApply={aplicarEstilo}
+          onApply={(patch) => (aplicarABatch ? aplicarEstiloASeleccion(patch) : aplicarEstilo(patch))}
           onReset={resetearEstilo}
           showText
-          onApplyText={(textPatch) => aplicarEstiloTexto(aparienciaActiva.id, textPatch)}
+          onApplyText={(textPatch) => (aplicarABatch ? aplicarEstiloASeleccion(textPatch) : aplicarEstiloTexto(aparienciaActiva.id, textPatch))}
           onResetText={() => resetearEstiloTexto(aparienciaActiva.id)}
+          seleccionMultipleCount={seleccionados.length}
+          aplicarASeleccion={aplicarABatch}
+          onCambiarAplicarASeleccion={setAplicarABatch}
         />
       ) : null}
 
+      {entidad.tipo !== "objeto" ? <div data-testid="inspector-entidad-acciones" /> : null}
       <button type="button" style={style.dangerButton} onClick={eliminar}>Eliminar entidad</button>
     </>
   );
@@ -225,7 +291,10 @@ function Segment(props: { label: string; active: boolean; onClick: () => void })
 }
 
 function EstadosObjeto(props: {
+  modelo: Modelo;
+  entidadId: string;
   estados: Estado[];
+  layout: LayoutEstados;
   onAgregarEstados: () => void;
   onAgregarEstado: () => void;
   onEliminar: (estadoId: string) => void;
@@ -233,7 +302,14 @@ function EstadosObjeto(props: {
   onRenombrar: (estadoId: string, nombre: string) => void;
   onDesignarInicial: (estadoId: string) => void;
   onDesignarFinal: (estadoId: string) => void;
+  onDesignar: (estadoId: string, designacion: DesignacionEstado) => void;
+  onQuitarDesignacion: (estadoId: string, designacion: DesignacionEstado) => void;
+  onSuprimir: (estadoId: string) => void;
+  onRestaurar: (estadoId: string) => void;
+  onAbrirDuracion: (estadoId: string) => void;
+  onLayout: (layout: LayoutEstados) => void;
 }) {
+  const visibles = props.estados.filter((estado) => !estado.suprimido);
   return (
     <section style={stateStyles.section} aria-label="Estados">
       <div style={stateStyles.header}>
@@ -244,6 +320,19 @@ function EstadosObjeto(props: {
           </button>
         ) : null}
       </div>
+      {props.estados.length > 1 ? (
+        <label style={style.field}>
+          <span style={style.label}>Layout</span>
+          <select
+            style={style.input}
+            value={props.layout}
+            onChange={(event) => props.onLayout(event.currentTarget.value as LayoutEstados)}
+          >
+            <option value="horizontal">Horizontal</option>
+            <option value="vertical">Vertical</option>
+          </select>
+        </label>
+      ) : null}
 
       {props.estados.length === 0 ? (
         <button
@@ -265,28 +354,47 @@ function EstadosObjeto(props: {
                 onInput={(event) => props.onRenombrar(estado.id, event.currentTarget.value)}
               />
               <div style={stateStyles.actions}>
+                {(["inicial", "final", "default", "current"] as const).map((designacion) => {
+                  const activa = designacionesEstado(estado).includes(designacion);
+                  const excluida = designacion === "default"
+                    ? designacionesEstado(estado).includes("current")
+                    : designacion === "current" && designacionesEstado(estado).includes("default");
+                  return (
+                    <button
+                      key={designacion}
+                      type="button"
+                      style={activa ? stateStyles.tagActive : stateStyles.tag}
+                      disabled={excluida}
+                      onClick={() => activa ? props.onQuitarDesignacion(estado.id, designacion) : props.onDesignar(estado.id, designacion)}
+                      title={activa ? "Quitar designación" : `Designar ${designacion}`}
+                    >
+                      {etiquetaDesignacion(designacion)}
+                    </button>
+                  );
+                })}
                 <button
                   type="button"
-                  style={estado.esInicial ? stateStyles.tagActive : stateStyles.tag}
-                  onClick={() => props.onDesignarInicial(estado.id)}
-                  title="Designar inicial"
+                  style={stateStyles.tag}
+                  onClick={() => props.onAbrirDuracion(estado.id)}
+                  title="Duración temporal"
                 >
-                  Inicial
+                  {estado.duracion ? "Duración*" : "Duración"}
                 </button>
                 <button
                   type="button"
-                  style={estado.esFinal ? stateStyles.tagActive : stateStyles.tag}
-                  onClick={() => props.onDesignarFinal(estado.id)}
-                  title="Designar final"
+                  style={estado.suprimido ? stateStyles.tagActive : stateStyles.tag}
+                  disabled={!estado.suprimido && estadoTieneEnlaces(props.modelo, estado.id)}
+                  onClick={() => estado.suprimido ? props.onRestaurar(estado.id) : props.onSuprimir(estado.id)}
+                  title={estadoTieneEnlaces(props.modelo, estado.id) ? "No se puede suprimir si tiene enlaces" : "Suprimir estado visualmente"}
                 >
-                  Final
+                  {estado.suprimido ? "Restaurar" : "Suprimir"}
                 </button>
                 <button
                   type="button"
-                  style={props.estados.length <= 2 ? stateStyles.deleteDisabled : stateStyles.delete}
-                  disabled={props.estados.length <= 2}
+                  style={visibles.length <= 2 ? stateStyles.deleteDisabled : stateStyles.delete}
+                  disabled={visibles.length <= 2}
                   onClick={() => props.onEliminar(estado.id)}
-                  title={props.estados.length <= 2 ? "El axioma exige al menos dos estados" : "Eliminar estado"}
+                  title={visibles.length <= 2 ? "El axioma exige al menos dos estados visibles" : "Eliminar estado"}
                 >
                   Eliminar
                 </button>
@@ -300,6 +408,12 @@ function EstadosObjeto(props: {
       )}
     </section>
   );
+}
+
+function etiquetaDesignacion(designacion: DesignacionEstado): string {
+  if (designacion === "default") return "Default";
+  if (designacion === "current") return "Current";
+  return designacion === "inicial" ? "Inicial" : "Final";
 }
 
 function PartesCompactas(props: {
@@ -394,7 +508,7 @@ const stateStyles = {
   },
   actions: {
     display: "grid",
-    gridTemplateColumns: "1fr 1fr 1fr",
+    gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
     gap: "6px",
   },
   smallButton: {
@@ -447,6 +561,35 @@ const stateStyles = {
     cursor: "not-allowed",
     fontSize: "11px",
     fontWeight: 700,
+  },
+} satisfies Record<string, preact.JSX.CSSProperties>;
+
+const advancedStyles = {
+  section: {
+    display: "grid",
+    gap: "8px",
+    marginBottom: "14px",
+  },
+  grid2: {
+    display: "grid",
+    gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1fr)",
+    gap: "8px",
+  },
+  textarea: {
+    width: "100%",
+    minHeight: "72px",
+    padding: "8px",
+    border: "1px solid #c8d2df",
+    borderRadius: "4px",
+    outlineColor: "#586D8C",
+    resize: "vertical",
+    fontFamily: "Arial, sans-serif",
+    fontSize: "12px",
+  },
+  actions: {
+    display: "flex",
+    gap: "8px",
+    flexWrap: "wrap",
   },
 } satisfies Record<string, preact.JSX.CSSProperties>;
 
