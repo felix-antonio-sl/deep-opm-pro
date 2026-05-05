@@ -92,6 +92,7 @@ export interface Enlace {
   modificador?: Modificador;
   probabilidad?: number;
   demora?: string;
+  rutaEtiqueta?: string;
   derivado?: DerivacionEnlace;
 }
 

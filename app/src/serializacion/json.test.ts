@@ -3,6 +3,7 @@ import { extremoApuntaAEntidad, extremoEntidad, extremoEstado } from "../modelo/
 import { aplicarModificador, definirDemora, definirProbabilidad } from "../modelo/modificadores";
 import { ajustarMultiplicidad, crearEnlace, crearEstadosIniciales, crearModelo, crearObjeto, crearProceso, designarEstadoFinal, designarEstadoInicial, descomponerProceso, desplegarObjeto, reanclarEnlaceExternoDerivado } from "../modelo/operaciones";
 import { cambiarModoPlegado, extraerParteDePlegado, partesExtraidasEn } from "../modelo/plegado";
+import { definirRutaEtiqueta } from "../modelo/rutas";
 import type { Apariencia, Modelo, ModoDespliegueObjeto, RefinamientoEntidad, TipoEnlace } from "../modelo/tipos";
 import { exportarModelo, hidratarModelo } from "./json";
 
@@ -360,6 +361,42 @@ describe("serializacion JSON", () => {
     expect(hidratado.value.enlaces[consumoId]?.modificador).toBe("evento");
     expect(hidratado.value.enlaces[consumoId]?.probabilidad).toBe(0.7);
     expect(hidratado.value.enlaces[invocacionId]?.demora).toBe("1s");
+  });
+
+  test("preserva rutaEtiqueta en round-trip y normaliza whitespace", () => {
+    let modelo = crearModelo("Rutas JSON");
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 20, y: 80 }, "Aprobar"));
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 260, y: 80 }, "Pedido"));
+    const pedidoId = entidadPorNombre(modelo, "Pedido");
+    modelo = must(crearEstadosIniciales(modelo, pedidoId)).modelo;
+    const [, aprobado] = Object.values(modelo.estados).filter((estado) => estado.entidadId === pedidoId);
+    if (!aprobado) throw new Error("La prueba esperaba estado");
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidadPorNombre(modelo, "Aprobar"), extremoEstado(aprobado.id), "resultado"));
+    const enlaceId = Object.keys(modelo.enlaces)[0];
+    if (!enlaceId) throw new Error("La prueba esperaba enlace");
+    modelo = must(definirRutaEtiqueta(modelo, enlaceId, " exitoso "));
+
+    const hidratado = hidratarModelo(exportarModelo(modelo));
+
+    expect(hidratado.ok).toBe(true);
+    if (!hidratado.ok) return;
+    expect(hidratado.value.enlaces[enlaceId]?.rutaEtiqueta).toBe("exitoso");
+  });
+
+  test("hidratar rutaEtiqueta vacia la ignora y tipo no string falla", () => {
+    const { modelo, enlaceId } = modeloConRutaManual("   ");
+    const hidratado = hidratarModelo(exportarModelo(modelo));
+
+    expect(hidratado.ok).toBe(true);
+    if (!hidratado.ok) return;
+    expect(hidratado.value.enlaces[enlaceId]?.rutaEtiqueta).toBeUndefined();
+
+    const documento = JSON.parse(exportarModelo(modelo));
+    (documento.modelo.enlaces[enlaceId] as Record<string, unknown>).rutaEtiqueta = 123;
+    const corrupto = hidratarModelo(JSON.stringify(documento));
+    expect(corrupto.ok).toBe(false);
+    if (corrupto.ok) return;
+    expect(corrupto.error).toContain("rutaEtiqueta");
   });
 
   test("rechaza metadatos invalidos de modificador", () => {
@@ -724,6 +761,29 @@ function sinModoPlegado(apariencia: Apariencia): Omit<Apariencia, "modoPlegado">
 function sinModoDespliegue(refinamiento: RefinamientoEntidad): Omit<RefinamientoEntidad, "modo"> {
   const { modo: _modo, ...sinModo } = refinamiento;
   return sinModo;
+}
+
+function modeloConRutaManual(rutaEtiqueta: string): { modelo: Modelo; enlaceId: string } {
+  let modelo = crearModelo("Ruta manual");
+  modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 20, y: 80 }, "Aprobar"));
+  modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 260, y: 80 }, "Pedido"));
+  const pedidoId = entidadPorNombre(modelo, "Pedido");
+  modelo = must(crearEstadosIniciales(modelo, pedidoId)).modelo;
+  const estado = Object.values(modelo.estados).find((item) => item.entidadId === pedidoId);
+  if (!estado) throw new Error("La prueba esperaba estado");
+  modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidadPorNombre(modelo, "Aprobar"), extremoEstado(estado.id), "resultado"));
+  const enlaceId = Object.keys(modelo.enlaces)[0];
+  if (!enlaceId) throw new Error("La prueba esperaba enlace");
+  return {
+    modelo: {
+      ...modelo,
+      enlaces: {
+        ...modelo.enlaces,
+        [enlaceId]: { ...modelo.enlaces[enlaceId]!, rutaEtiqueta },
+      },
+    },
+    enlaceId,
+  };
 }
 
 function must<T>(resultado: { ok: true; value: T } | { ok: false; error: string }): T {

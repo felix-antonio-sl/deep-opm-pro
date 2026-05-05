@@ -2,6 +2,7 @@ import { entidadDeExtremo, entidadIdDeExtremo, extremoEntidad, extremoVisibleEnO
 import { esModificador, validarMetadatosEnlace } from "../modelo/modificadores";
 import { validarFirmaEnlace, validarMultiplicidad } from "../modelo/operaciones";
 import { modoPlegadoApariencia, partesDePlegado } from "../modelo/plegado";
+import { rutaEtiquetaNormalizada } from "../modelo/rutas";
 import type {
   Afiliacion,
   Abanico,
@@ -65,14 +66,20 @@ function normalizarModelo(modelo: Modelo): Modelo {
   const enlaces = Object.fromEntries(
     Object.entries(modelo.enlaces).map(([id, enlace]) => [
       id,
-      {
-        ...enlace,
-        origenId: normalizarExtremo(enlace.origenId),
-        destinoId: normalizarExtremo(enlace.destinoId),
-      },
+      normalizarEnlace(enlace),
     ]),
   ) as Record<Id, Enlace>;
   return { ...modelo, opds, enlaces, abanicos: modelo.abanicos ?? {} };
+}
+
+function normalizarEnlace(enlace: Enlace): Enlace {
+  const rutaEtiqueta = rutaEtiquetaNormalizada(enlace.rutaEtiqueta);
+  return {
+    ...enlace,
+    origenId: normalizarExtremo(enlace.origenId),
+    destinoId: normalizarExtremo(enlace.destinoId),
+    ...(rutaEtiqueta ? { rutaEtiqueta } : {}),
+  };
 }
 
 function validarDocumento(value: unknown): Resultado<DocumentoModelo> {
@@ -423,6 +430,8 @@ function validarEnlaces(
     if (raw.demora !== undefined && typeof raw.demora !== "string") {
       return fallo(`Enlace inválido: ${id}.demora`);
     }
+    const rutaEtiqueta = validarRutaEtiquetaOpcional(id, raw.rutaEtiqueta);
+    if (!rutaEtiqueta.ok) return rutaEtiqueta;
     const enlace: Enlace = {
       id,
       tipo: raw.tipo,
@@ -434,6 +443,7 @@ function validarEnlaces(
       ...(raw.modificador ? { modificador: raw.modificador } : {}),
       ...(raw.probabilidad !== undefined ? { probabilidad: raw.probabilidad } : {}),
       ...(raw.demora ? { demora: raw.demora } : {}),
+      ...(rutaEtiqueta.value ? { rutaEtiqueta: rutaEtiqueta.value } : {}),
       ...(derivado.value ? { derivado: derivado.value } : {}),
     };
     const metadatos = validarMetadatosEnlace(enlace);
@@ -441,6 +451,12 @@ function validarEnlaces(
     enlaces[id] = enlace;
   }
   return ok(enlaces);
+}
+
+function validarRutaEtiquetaOpcional(enlaceId: Id, value: unknown): Resultado<string | undefined> {
+  if (value === undefined) return ok(undefined);
+  if (typeof value !== "string") return fallo(`Enlace inválido: ${enlaceId}.rutaEtiqueta`);
+  return ok(rutaEtiquetaNormalizada(value));
 }
 
 function validarExtremoEnlace(

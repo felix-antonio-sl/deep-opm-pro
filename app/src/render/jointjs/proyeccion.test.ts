@@ -5,6 +5,7 @@ import { entidadIdDeExtremo, extremoEstado } from "../../modelo/extremos";
 import { aplicarModificador, definirDemora, definirProbabilidad } from "../../modelo/modificadores";
 import { ajustarMultiplicidad, cambiarEsencia, crearEnlace, crearEstadosIniciales, crearModelo, crearObjeto, crearProceso, designarEstadoFinal, designarEstadoInicial, descomponerProceso, desplegarObjeto, estadosDeEntidad, renombrarEstado } from "../../modelo/operaciones";
 import { cambiarModoPlegado, extraerParteDePlegado, reinsertarParteEnPlegado } from "../../modelo/plegado";
+import { definirRutaEtiqueta } from "../../modelo/rutas";
 import type { Apariencia, Modelo, Resultado, TipoEnlace } from "../../modelo/tipos";
 import { LINK_ASSETS } from "./linkAssets";
 import { proyectarModeloAJointCells } from "./proyeccion";
@@ -153,6 +154,31 @@ describe("proyeccion JointJS", () => {
     labels = cellEnlace?.labels as Array<{ attrs?: { label?: { text?: unknown } } }> | undefined;
     expect(labels?.some((label) => label.attrs?.label?.text === "c")).toBe(true);
     expect(labels?.some((label) => label.attrs?.label?.text === "1s")).toBe(true);
+  });
+
+  test("proyecta etiqueta de ruta sin reemplazar multiplicidad ni modificador", () => {
+    let modelo = crearModelo();
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 80, y: 90 }, "Aprobar"));
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 300, y: 90 }, "Pedido"));
+    const pedidoId = entidadPorNombre(modelo, "Pedido");
+    modelo = must(crearEstadosIniciales(modelo, pedidoId)).modelo;
+    const [, aprobado] = estadosDeEntidad(modelo, pedidoId);
+    if (!aprobado) throw new Error("La prueba esperaba estado");
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidadPorNombre(modelo, "Aprobar"), extremoEstado(aprobado.id), "resultado"));
+    const enlaceId = Object.keys(modelo.enlaces)[0];
+    if (!enlaceId) throw new Error("La prueba esperaba enlace");
+    modelo = must(ajustarMultiplicidad(modelo, enlaceId, "destino", "1"));
+    modelo = must(aplicarModificador(modelo, enlaceId, "condicion"));
+    modelo = must(definirRutaEtiqueta(modelo, enlaceId, "exitoso"));
+
+    const cellEnlace = proyectarModeloAJointCells(modelo, modelo.opdRaizId, null, null).find((cell) => cell.type === "standard.Link");
+    const labels = cellEnlace?.labels as Array<{ attrs?: { label?: { text?: unknown; fontSize?: unknown; fontFamily?: unknown; fill?: unknown } }; position?: { distance?: unknown; offset?: unknown } }> | undefined;
+
+    expect(labels?.some((label) => label.attrs?.label?.text === "1")).toBe(true);
+    expect(labels?.some((label) => label.attrs?.label?.text === "c")).toBe(true);
+    const ruta = labels?.find((label) => label.attrs?.label?.text === "exitoso");
+    expect(ruta?.attrs?.label).toMatchObject({ fontFamily: "Arial", fontSize: 12, fill: "#475467" });
+    expect(ruta?.position).toMatchObject({ distance: 0.33, offset: -24 });
   });
 
   test("proyecta invocacion como rayo zigzag por defecto", () => {

@@ -1,6 +1,6 @@
 import { naturalezaDeEnlace } from "./constantes";
-import { entidadIdDeExtremo } from "./extremos";
-import type { Abanico, Enlace, Id, Modelo, OperadorAbanico, Resultado, TipoEnlace } from "./tipos";
+import { entidadIdDeExtremo, extremoKey } from "./extremos";
+import type { Abanico, Enlace, ExtremoEnlace, Id, Modelo, OperadorAbanico, Resultado, TipoEnlace } from "./tipos";
 
 export function formarAbanico(
   modelo: Modelo,
@@ -230,6 +230,8 @@ function enlacesDeAbanico(modelo: Modelo, abanico: Abanico): Enlace[] {
 }
 
 function puertosComunes(modelo: Modelo, enlaces: Enlace[]): Id[] {
+  const exactos = puertosExactosComunes(modelo, enlaces);
+  if (exactos.length > 0) return exactos;
   const [primero] = enlaces;
   if (!primero) return [];
   const ids = [
@@ -240,11 +242,30 @@ function puertosComunes(modelo: Modelo, enlaces: Enlace[]): Id[] {
 }
 
 function puertoCompartido(modelo: Modelo, a: Enlace, b: Enlace): Id | null {
+  const exactos = puertosExactosComunes(modelo, [a, b]);
+  if (exactos.length === 1) return exactos[0] ?? null;
+  if (exactos.length > 1) return null;
   const comunes = [
     entidadIdDeExtremo(modelo, a.origenId),
     entidadIdDeExtremo(modelo, a.destinoId),
   ].filter((id): id is Id => id !== null && compartePuerto(modelo, b, id));
   return comunes.length === 1 ? comunes[0] ?? null : null;
+}
+
+function puertosExactosComunes(modelo: Modelo, enlaces: Enlace[]): Id[] {
+  const [primero] = enlaces;
+  if (!primero) return [];
+  const candidatos = [primero.origenId, primero.destinoId];
+  return candidatos.flatMap((extremo) => {
+    if (!enlaces.every((enlace) => tieneExtremoExacto(enlace, extremo))) return [];
+    const entidadId = entidadIdDeExtremo(modelo, extremo);
+    return entidadId ? [entidadId] : [];
+  });
+}
+
+function tieneExtremoExacto(enlace: Enlace, extremo: ExtremoEnlace): boolean {
+  const key = extremoKey(extremo);
+  return extremoKey(enlace.origenId) === key || extremoKey(enlace.destinoId) === key;
 }
 
 function compartePuerto(modelo: Modelo, enlace: Enlace, puertoEntidadId: Id): boolean {

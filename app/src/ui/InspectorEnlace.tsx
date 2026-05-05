@@ -2,6 +2,7 @@ import { useEffect, useState } from "preact/hooks";
 import { abanicoDeEnlace } from "../modelo/abanicos";
 import { entidadDeExtremo, entidadIdDeExtremo, extremoEntidad, extremoEstado, nombreExtremo } from "../modelo/extremos";
 import { estadosDeEntidad, validarMultiplicidad } from "../modelo/operaciones";
+import { enlaceAdmiteRuta } from "../modelo/rutas";
 import { useOpmStore } from "../store";
 import type { Abanico, Apariencia, Enlace, ExtremoEnlace, Id, Modelo, Modificador, OperadorAbanico } from "../modelo/tipos";
 import { inspectorStyles as style } from "./inspectorStyles";
@@ -25,6 +26,7 @@ export function InspectorEnlace({ enlace }: Props) {
   const quitarModificador = useOpmStore((s) => s.quitarModificadorEnlaceSeleccionado);
   const definirProbabilidadEvento = useOpmStore((s) => s.definirProbabilidadEventoSeleccionada);
   const definirDemoraInvocacion = useOpmStore((s) => s.definirDemoraInvocacionSeleccionada);
+  const definirRutaEtiqueta = useOpmStore((s) => s.definirRutaEtiquetaSeleccionada);
   const eliminar = useOpmStore((s) => s.eliminarSeleccion);
   const abanico = abanicoDeEnlace(modelo, enlace.id);
   const origen = entidadDeExtremo(modelo, enlace.origenId);
@@ -36,6 +38,7 @@ export function InspectorEnlace({ enlace }: Props) {
   const [multiplicidadDestino, setMultiplicidadDestino] = useState(enlace.multiplicidadDestino ?? "");
   const [probabilidad, setProbabilidad] = useState(enlace.probabilidad === undefined ? "" : String(enlace.probabilidad));
   const [demora, setDemora] = useState(enlace.demora ?? "");
+  const [rutaEtiqueta, setRutaEtiqueta] = useState(enlace.rutaEtiqueta ?? "");
   const [endpointSeleccionado, setEndpointSeleccionado] = useState(endpointActual);
   const errorOrigen = multiplicidadOrigen !== "" && !validarMultiplicidad(multiplicidadOrigen);
   const errorDestino = multiplicidadDestino !== "" && !validarMultiplicidad(multiplicidadDestino);
@@ -49,7 +52,8 @@ export function InspectorEnlace({ enlace }: Props) {
   useEffect(() => {
     setProbabilidad(enlace.probabilidad === undefined ? "" : String(enlace.probabilidad));
     setDemora(enlace.demora ?? "");
-  }, [enlace.id, enlace.probabilidad, enlace.demora]);
+    setRutaEtiqueta(enlace.rutaEtiqueta ?? "");
+  }, [enlace.id, enlace.probabilidad, enlace.demora, enlace.rutaEtiqueta]);
 
   useEffect(() => {
     setEndpointSeleccionado(endpointActual);
@@ -81,6 +85,11 @@ export function InspectorEnlace({ enlace }: Props) {
   const cambiarDemora = (valor: string) => {
     setDemora(valor);
     definirDemoraInvocacion(valor.trim() === "" ? undefined : valor);
+  };
+
+  const cambiarRutaEtiqueta = (valor: string) => {
+    setRutaEtiqueta(valor);
+    definirRutaEtiqueta(valor.trim() === "" ? undefined : valor);
   };
 
   const aplicarReanclaje = () => {
@@ -200,6 +209,22 @@ export function InspectorEnlace({ enlace }: Props) {
               </select>
             </label>
           ))}
+        </section>
+      ) : null}
+
+      {enlaceAdmiteRuta(modelo, enlace.id) ? (
+        <section style={rutaSectionStyle}>
+          <h3 style={multiplicidadTitleStyle}>Ruta</h3>
+          <label style={style.field}>
+            <span style={style.label}>Etiqueta</span>
+            <input
+              data-testid="ruta-etiqueta-input"
+              placeholder="exitoso"
+              style={style.input}
+              value={rutaEtiqueta}
+              onInput={(event) => cambiarRutaEtiqueta(event.currentTarget.value)}
+            />
+          </label>
         </section>
       ) : null}
 
@@ -399,6 +424,12 @@ const extremosSectionStyle = {
 } satisfies preact.JSX.CSSProperties;
 
 const reanclajeSectionStyle = {
+  display: "grid",
+  gap: "8px",
+  marginBottom: "14px",
+} satisfies preact.JSX.CSSProperties;
+
+const rutaSectionStyle = {
   display: "grid",
   gap: "8px",
   marginBottom: "14px",

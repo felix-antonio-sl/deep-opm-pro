@@ -4,6 +4,7 @@ import { crearAutoInvocacion } from "../modelo/autoinvocacion";
 import { aplicarModificador, definirDemora, definirProbabilidad } from "../modelo/modificadores";
 import { ajustarMultiplicidad, cambiarEsencia, crearEnlace, crearEstadosIniciales, crearModelo, crearObjeto, crearProceso, designarEstadoFinal, designarEstadoInicial, descomponerProceso, agregarEstado, desplegarObjeto, estadosDeEntidad, moverApariencia, renombrarEstado } from "../modelo/operaciones";
 import { cambiarModoPlegado } from "../modelo/plegado";
+import { definirRutaEtiqueta } from "../modelo/rutas";
 import type { Apariencia, Modelo, Resultado } from "../modelo/tipos";
 import { generarOpl } from "./generar";
 
@@ -404,6 +405,31 @@ describe("OPL-ES — abanicos logicos", () => {
     modelo = must(formarAbanico(modelo, modelo.opdRaizId, enlaceIds, "XOR"));
 
     expect(generarOpl(modelo)).toContain("*Procesar* consume exactamente uno de **Entrada A** y **Entrada B**.");
+  });
+
+  test("emite ramas con Por ruta hacia estados distintos sin perder destino", () => {
+    let modelo = crearModelo();
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 200, y: 80 }, "Aprobar"));
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 420, y: 80 }, "Pedido"));
+    const pedidoId = entidad(modelo, "Pedido");
+    modelo = must(crearEstadosIniciales(modelo, pedidoId)).modelo;
+    const [pendiente, aprobado] = estadosDeEntidad(modelo, pedidoId);
+    if (!pendiente || !aprobado) throw new Error("La prueba esperaba dos estados");
+    modelo = must(renombrarEstado(modelo, pendiente.id, "rechazado"));
+    modelo = must(renombrarEstado(modelo, aprobado.id, "aprobado"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidad(modelo, "Aprobar"), extremoEstado(aprobado.id), "resultado"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidad(modelo, "Aprobar"), extremoEstado(pendiente.id), "resultado"));
+    const enlaceIds = Object.values(modelo.enlaces).map((enlace) => enlace.id);
+    const { formarAbanico } = require("../modelo/abanicos") as typeof import("../modelo/abanicos");
+    modelo = must(formarAbanico(modelo, modelo.opdRaizId, enlaceIds, "XOR"));
+    modelo = must(definirRutaEtiqueta(modelo, enlaceIds[0]!, "exitoso"));
+    modelo = must(definirRutaEtiqueta(modelo, enlaceIds[1]!, "fallido"));
+
+    const lineas = generarOpl(modelo);
+
+    expect(lineas).toContain("Por ruta exitoso, *Aprobar* genera **Pedido** en `aprobado`.");
+    expect(lineas).toContain("Por ruta fallido, *Aprobar* genera **Pedido** en `rechazado`.");
+    expect(lineas).not.toContain("*Aprobar* genera exactamente uno de **Pedido** y **Pedido**.");
   });
 });
 

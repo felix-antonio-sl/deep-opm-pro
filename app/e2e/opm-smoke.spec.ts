@@ -782,6 +782,35 @@ test("crea resultado hacia capsula de estado por gesto directo y preserva TS3", 
   expect(pageErrors).toEqual([]);
 });
 
+test("edita rutas en ramas de abanico hacia estados y sincroniza OPL y JSON", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await page.locator("textarea").fill(JSON.stringify(modeloAbanicoRutasEstados(), null, 2));
+  await page.getByRole("button", { name: "Importar" }).click();
+
+  await expect(page.locator('[joint-selector^="stateCapsule"]')).toHaveCount(2);
+  await expect(page.locator(".joint-link")).toHaveCount(2);
+  await expect(svgText(page, "exitoso")).toBeVisible();
+
+  await clickLinkPorIndice(page, 0);
+  await page.getByTestId("ruta-etiqueta-input").fill("fallido");
+  await expect(svgText(page, "fallido")).toBeVisible();
+
+  await expect(page.getByText(/Por ruta exitoso/)).toBeVisible();
+  await expect(page.getByText(/Por ruta fallido/)).toBeVisible();
+  await expect(page.getByText(/genera\s+Pedido\s+en .(aprobado|rechazado).\./).first()).toBeVisible();
+
+  await page.getByRole("button", { name: "Exportar" }).click();
+  const exportado = JSON.parse(await page.locator("textarea").inputValue()) as ExportadoModelo;
+  expect(Object.values(exportado.modelo.enlaces).map((enlace) => enlace.rutaEtiqueta).sort()).toEqual(["exitoso", "fallido"]);
+  expect(exportado.modelo.abanicos?.["ab-rutas"]?.enlaceIds).toEqual(["e-exitoso", "e-fallido"]);
+
+  await page.screenshot({ path: "test-results/opm-rutas-estados.png", fullPage: true });
+  expect(pageErrors).toEqual([]);
+});
+
 test("split de efecto convierte enlace en consumo + resultado intermedio", async ({ page }) => {
   const pageErrors: string[] = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));
@@ -930,6 +959,11 @@ async function rectDeLocator(locator: import("@playwright/test").Locator): Promi
 
 async function clickCentroLink(page: import("@playwright/test").Page): Promise<void> {
   const punto = await puntoMedioPath(page.locator(".joint-link [joint-selector=wrapper]"));
+  await page.mouse.click(punto.x, punto.y);
+}
+
+async function clickLinkPorIndice(page: import("@playwright/test").Page, index: number): Promise<void> {
+  const punto = await puntoMedioPath(page.locator(".joint-link [joint-selector=wrapper]").nth(index));
   await page.mouse.click(punto.x, punto.y);
 }
 
@@ -1338,6 +1372,67 @@ function modeloTransicionEstadosIncompleto() {
   return base;
 }
 
+function modeloAbanicoRutasEstados() {
+  return {
+    formato: "deep-opm-pro.modelo.v0",
+    modelo: {
+      id: "modelo-rutas-estados",
+      nombre: "Rutas a estados",
+      opdRaizId: "opd-1",
+      nextSeq: 30,
+      entidades: {
+        "o-pedido": objeto("o-pedido", "Pedido"),
+        "p-aprobar": proceso("p-aprobar", "Aprobar"),
+      },
+      estados: {
+        "s-aprobado": { id: "s-aprobado", entidadId: "o-pedido", nombre: "aprobado" },
+        "s-rechazado": { id: "s-rechazado", entidadId: "o-pedido", nombre: "rechazado" },
+      },
+      enlaces: {
+        "e-exitoso": {
+          id: "e-exitoso",
+          tipo: "resultado",
+          origenId: extremoEntidad("p-aprobar"),
+          destinoId: extremoEstado("s-aprobado"),
+          etiqueta: "",
+          rutaEtiqueta: "exitoso",
+        },
+        "e-fallido": {
+          id: "e-fallido",
+          tipo: "resultado",
+          origenId: extremoEntidad("p-aprobar"),
+          destinoId: extremoEstado("s-rechazado"),
+          etiqueta: "",
+        },
+      },
+      abanicos: {
+        "ab-rutas": {
+          id: "ab-rutas",
+          opdId: "opd-1",
+          puertoEntidadId: "p-aprobar",
+          operador: "XOR",
+          enlaceIds: ["e-exitoso", "e-fallido"],
+        },
+      },
+      opds: {
+        "opd-1": {
+          id: "opd-1",
+          nombre: "SD",
+          padreId: null,
+          apariencias: {
+            "a-pedido": { id: "a-pedido", entidadId: "o-pedido", opdId: "opd-1", x: 320, y: 90, width: 170, height: 94 },
+            "a-aprobar": { id: "a-aprobar", entidadId: "p-aprobar", opdId: "opd-1", x: 80, y: 110, width: 135, height: 60 },
+          },
+          enlaces: {
+            "ae-exitoso": { id: "ae-exitoso", enlaceId: "e-exitoso", opdId: "opd-1", vertices: [] },
+            "ae-fallido": { id: "ae-fallido", enlaceId: "e-fallido", opdId: "opd-1", vertices: [] },
+          },
+        },
+      },
+    },
+  };
+}
+
 function objeto(id: string, nombre: string, esencia = "informacional") {
   return { id, tipo: "objeto", nombre, esencia, afiliacion: "sistemica" };
 }
@@ -1369,8 +1464,10 @@ interface ExportadoModelo {
       destinoId: ExtremoExportado;
       multiplicidadOrigen?: string;
       multiplicidadDestino?: string;
+      rutaEtiqueta?: string;
       derivado?: { tipo: string; refinamientoId: string; enlacePadreId: string; origen?: string };
     }>;
+    abanicos?: Record<string, { enlaceIds: string[] }>;
     opds: Record<
       string,
       {

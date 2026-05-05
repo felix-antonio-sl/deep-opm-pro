@@ -8,6 +8,7 @@ import { proyectarOverlayAbanicoCanonico } from "./abanicoOverlay";
 import { proyectarAutoInvocacion } from "./autoinvocacionLoop";
 import { targetsEstado, type EstadoTarget } from "./estadoTargets";
 import { LINK_ASSETS } from "./linkAssets";
+import { etiquetasRuta } from "./rutaLabels";
 
 export type RolApariencia = "contorno" | "interno" | "externo";
 
@@ -516,7 +517,7 @@ function proyectarEnlace(
     vertices: verticesRender,
     router: enlace.tipo === "invocacion" ? undefined : routerManhattan(),
     connector: { name: "straight" },
-    labels: [...etiquetasMultiplicidad(enlace), ...etiquetasModificador(enlace), ...etiquetasProxyParte(origen, destino)],
+    labels: [...etiquetasMultiplicidad(enlace), ...etiquetasModificador(enlace), ...etiquetasRuta(enlace), ...etiquetasProxyParte(origen, destino)],
     attrs: {
       wrapper: {
         stroke: "transparent",

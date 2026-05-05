@@ -7,6 +7,7 @@ import {
 } from "../modelo/extremos";
 import { estadosDeEntidad } from "../modelo/operaciones";
 import { modoPlegadoApariencia, partesDePlegado, UMBRAL_PARTES_MAS } from "../modelo/plegado";
+import { rutaEtiquetaNormalizada } from "../modelo/rutas";
 import type { Abanico, Apariencia, Enlace, Entidad, Estado, Id, Modelo, ModoDespliegueObjeto, Opd, TipoEnlace } from "../modelo/tipos";
 
 export function generarOpl(modelo: Modelo, opdId: Id = modelo.opdRaizId): string[] {
@@ -26,8 +27,8 @@ export function generarOpl(modelo: Modelo, opdId: Id = modelo.opdRaizId): string
   const abanicosOpd = Object.values(modelo.abanicos ?? {}).filter((abanico) => abanico.opdId === opd.id);
   const enlacesEnAbanico = new Set<Id>();
   for (const abanico of abanicosOpd) {
-    const linea = oracionAbanico(modelo, abanico);
-    if (linea) lineas.push(linea);
+    const lineasAbanico = oracionesAbanico(modelo, abanico);
+    lineas.push(...lineasAbanico);
     for (const id of abanico.enlaceIds) enlacesEnAbanico.add(id);
   }
   for (const aparienciaEnlace of Object.values(opd.enlaces)) {
@@ -40,10 +41,24 @@ export function generarOpl(modelo: Modelo, opdId: Id = modelo.opdRaizId): string
       continue;
     }
     if (transiciones.enlacesCubiertos.has(enlace.id)) continue;
-    const linea = oracionEnlace(modelo, enlace);
+    const linea = oracionEnlaceConRuta(modelo, enlace);
     if (linea) lineas.push(linea);
   }
   return lineas;
+}
+
+function oracionesAbanico(modelo: Modelo, abanico: Abanico): string[] {
+  const enlaces = abanico.enlaceIds
+    .map((id) => modelo.enlaces[id])
+    .filter((enlace): enlace is Enlace => enlace !== undefined);
+  if (enlaces.some((enlace) => rutaEtiquetaNormalizada(enlace.rutaEtiqueta))) {
+    return enlaces.flatMap((enlace) => {
+      const linea = oracionEnlaceConRuta(modelo, enlace);
+      return linea ? [linea] : [];
+    });
+  }
+  const linea = oracionAbanico(modelo, abanico);
+  return linea ? [linea] : [];
 }
 
 function oracionAbanico(modelo: Modelo, abanico: Abanico): string | null {
@@ -95,6 +110,28 @@ function oracionAbanico(modelo: Modelo, abanico: Abanico): string | null {
     default:
       return null;
   }
+}
+
+function oracionEnlaceConRuta(modelo: Modelo, enlace: Enlace): string | null {
+  const ruta = rutaEtiquetaNormalizada(enlace.rutaEtiqueta);
+  if (!ruta) return oracionEnlace(modelo, enlace);
+  const base = oracionProcedimentalParaRuta(modelo, enlace) ?? oracionEnlace(modelo, enlace);
+  return base ? `Por ruta ${ruta}, ${base}` : null;
+}
+
+function oracionProcedimentalParaRuta(modelo: Modelo, enlace: Enlace): string | null {
+  const origen = entidadDeExtremo(modelo, enlace.origenId);
+  const destino = entidadDeExtremo(modelo, enlace.destinoId);
+  if (!origen || !destino) return null;
+  if (enlace.tipo === "resultado" && enlace.destinoId.kind === "estado" && origen.tipo === "proceso") {
+    const estado = estadoDeExtremo(modelo, enlace.destinoId);
+    return estado ? `${nombreOpl(origen)} genera ${nombreOpl(destino)} en \`${estado.nombre}\`.` : null;
+  }
+  if (enlace.tipo === "consumo" && enlace.origenId.kind === "estado" && destino.tipo === "proceso") {
+    const estado = estadoDeExtremo(modelo, enlace.origenId);
+    return estado ? `${nombreOpl(destino)} consume ${nombreOpl(origen)} en \`${estado.nombre}\`.` : null;
+  }
+  return oracionEnlace(modelo, enlace);
 }
 
 function oracionRefinamiento(modelo: Modelo, apariencia: Apariencia, entidad: Entidad): string | null {

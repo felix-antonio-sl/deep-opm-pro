@@ -8,7 +8,8 @@ import {
   formarAbanicoAutomatico,
   quitarRamaDeAbanico,
 } from "./abanicos";
-import { crearEnlace, crearModelo, crearObjeto, crearProceso } from "./operaciones";
+import { extremoEstado } from "./extremos";
+import { crearEnlace, crearEstadosIniciales, crearModelo, crearObjeto, crearProceso, estadosDeEntidad, renombrarEstado } from "./operaciones";
 import type { Abanico, Id, Modelo, Resultado, TipoEnlace } from "./tipos";
 
 describe("abanicos lógicos O/XOR", () => {
@@ -133,6 +134,32 @@ describe("abanicos lógicos O/XOR", () => {
     expect(unicoAbanico(resultado.value)).toMatchObject({
       puertoEntidadId: procesoId,
       operador: "XOR",
+    });
+  });
+
+  test("dos resultados hacia estados distintos del mismo objeto forman abanico por proceso exacto", () => {
+    let modelo = crearModelo();
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 40, y: 80 }, "Aprobar"));
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 280, y: 80 }, "Pedido"));
+    const procesoId = entidad(modelo, "Aprobar");
+    const pedidoId = entidad(modelo, "Pedido");
+    modelo = must(crearEstadosIniciales(modelo, pedidoId)).modelo;
+    const [pendiente, aprobado] = estadosDeEntidad(modelo, pedidoId);
+    if (!pendiente || !aprobado) throw new Error("La prueba esperaba dos estados");
+    modelo = must(renombrarEstado(modelo, pendiente.id, "pendiente"));
+    modelo = must(renombrarEstado(modelo, aprobado.id, "aprobado"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, procesoId, extremoEstado(pendiente.id), "resultado"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, procesoId, extremoEstado(aprobado.id), "resultado"));
+    const enlaces = Object.keys(modelo.enlaces);
+
+    const resultado = formarAbanico(modelo, modelo.opdRaizId, enlaces, "XOR");
+
+    expect(resultado.ok).toBe(true);
+    if (!resultado.ok) return;
+    expect(unicoAbanico(resultado.value)).toMatchObject({
+      puertoEntidadId: procesoId,
+      operador: "XOR",
+      enlaceIds: enlaces,
     });
   });
 });
