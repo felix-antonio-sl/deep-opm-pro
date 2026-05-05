@@ -498,11 +498,72 @@ function hintsRefinamiento(modelo: Modelo, apariencia: Apariencia, entidad: Enti
   if (!entidad.refinamiento) return hints;
   const opdHijo = modelo.opds[entidad.refinamiento.opdId];
   if (!opdHijo) return hints;
+
+  // Recolectar enlaces que conectan al padre con cada hijo en el OPD hijo
+  // para asociar cada token nombre de hijo al enlace específico (HU-50.021).
+  const enlaceHijoPorEntidadId = new Map<Id, Enlace>();
+  for (const enlace of Object.values(modelo.enlaces)) {
+    const origen = entidadIdDeExtremo(modelo, enlace.origenId);
+    const destino = entidadIdDeExtremo(modelo, enlace.destinoId);
+    if (origen === entidad.id && destino && !enlaceHijoPorEntidadId.has(destino)) {
+      enlaceHijoPorEntidadId.set(destino, enlace);
+    }
+    if (destino === entidad.id && origen && !enlaceHijoPorEntidadId.has(origen)) {
+      enlaceHijoPorEntidadId.set(origen, enlace);
+    }
+  }
+
+  // Verbo de refinamiento (HU-50.022: doble clic en verbo abre inspector)
+  if (entidad.refinamiento.tipo === "despliegue") {
+    const modo = modoDespliegue(modelo, entidad, opdHijo);
+    const verboRefinamiento = verboDespliegue(modo);
+    if (verboRefinamiento) {
+      // Usar el primer enlace hijo como referencia para el verbo
+      const primerEnlace = enlaceHijoPorEntidadId.values().next().value;
+      if (primerEnlace) {
+        hints.push(hintEnlace(primerEnlace, verboRefinamiento));
+      } else {
+        hints.push({ texto: verboRefinamiento, ref: refEntidad(entidad.id), rol: "verbo" });
+      }
+    }
+  } else {
+    const verboDescomposicion = "se descompone en";
+    const primerEnlace = enlaceHijoPorEntidadId.values().next().value;
+    if (primerEnlace) {
+      hints.push(hintEnlace(primerEnlace, verboDescomposicion));
+    } else {
+      hints.push({ texto: verboDescomposicion, ref: refEntidad(entidad.id), rol: "verbo" });
+    }
+  }
+
+  // Cada hijo recibe un hint con la ref de su enlace específico hacia el padre
   for (const interna of aparienciasInternasDeRefinamiento(modelo, opdHijo, entidad)) {
     const entidadInterna = modelo.entidades[interna.entidadId];
-    if (entidadInterna) hints.push(hintEntidad(entidadInterna));
+    if (!entidadInterna) continue;
+    const enlaceHijo = enlaceHijoPorEntidadId.get(interna.entidadId);
+    if (enlaceHijo) {
+      // El token "nombre" del hijo referencia el enlace que lo conecta al padre (HU-50.021)
+      hints.push({
+        texto: nombreOpl(entidadInterna),
+        ref: refEnlace(enlaceHijo.id),
+        rol: "nombre",
+        markdown: entidadInterna.tipo === "objeto" ? "objeto" : "proceso",
+      });
+    } else {
+      hints.push(hintEntidad(entidadInterna));
+    }
   }
   return hints;
+}
+
+/** Verbo canónico para el modo de despliegue, usado como hint interactivo. */
+function verboDespliegue(modo: ModoDespliegueObjeto): string | null {
+  switch (modo) {
+    case "agregacion": return "se despliega en";
+    case "exhibicion": return "exhibe";
+    case "generalizacion": return "es un";
+    case "clasificacion": return "es una instancia de";
+  }
 }
 
 function refsEntidad(id: Id): OplReferencia[] {
@@ -838,4 +899,90 @@ function textoEsencia(entidad: Entidad): string {
 
 function textoAfiliacion(entidad: Entidad): string {
   return entidad.afiliacion === "sistemica" ? "sistémico" : "ambiental";
+}
+
+// ── Generadores exportados para HU-50.013 y HU-50.015 ──
+
+/**
+ * HU-50.013: Emite oración interactiva para despliegue asíncrono "se despliega en".
+ * SSOT: opm-opl-es.md §TS1 — plantilla de despliegue.
+ */
+export function emitirDespliegueOcurren(
+  modelo: Modelo,
+  entidad: Entidad,
+  opdHijo: Opd,
+  ordinal: number,
+): OplLineaInteractiva | null {
+  const aparienciasInternas = aparienciasInternasDeRefinamiento(modelo, opdHijo, entidad)
+    .sort((a, b) => compararOrdenTemporal(a, b));
+  const internos = aparienciasInternas
+    .flatMap((apariencia) => {
+      const interna = modelo.entidades[apariencia.entidadId];
+      return interna ? [nombreOpl(interna)] : [];
+    });
+  const destino = internos.length > 0 ? listarOpl(internos) : codigoOpd(opdHijo.nombre);
+  const texto = `${nombreOpl(entidad)} se despliega en ${destino}.`;
+  const refs: OplReferencia[] = [refEntidad(entidad.id)];
+  const hints: OplTokenHint[] = [hintEntidad(entidad)];
+
+  // Asociar cada hijo a su enlace específico (HU-50.021)
+  for (const interna of aparienciasInternas) {
+    const entidadInterna = modelo.entidades[interna.entidadId];
+    if (!entidadInterna) continue;
+    const enlaceHijo = Object.values(modelo.enlaces).find((enlace) => {
+      const origen = entidadIdDeExtremo(modelo, enlace.origenId);
+      const destino = entidadIdDeExtremo(modelo, enlace.destinoId);
+      return (origen === entidad.id && destino === interna.entidadId) ||
+        (destino === entidad.id && origen === interna.entidadId);
+    });
+    if (enlaceHijo) {
+      refs.push(refEnlace(enlaceHijo.id));
+      hints.push({
+        texto: nombreOpl(entidadInterna),
+        ref: refEnlace(enlaceHijo.id),
+        rol: "nombre",
+        markdown: entidadInterna.tipo === "objeto" ? "objeto" : "proceso",
+      });
+    } else {
+      refs.push(refEntidad(interna.entidadId));
+      hints.push(hintEntidad(entidadInterna));
+    }
+  }
+
+  const verbo = "se despliega en";
+  const primerEnlace = Object.values(modelo.enlaces).find((enlace) => {
+    const origen = entidadIdDeExtremo(modelo, enlace.origenId);
+    const destino = entidadIdDeExtremo(modelo, enlace.destinoId);
+    return origen === entidad.id || destino === entidad.id;
+  });
+  if (primerEnlace) {
+    hints.push(hintEnlace(primerEnlace, verbo));
+    refs.push(refEnlace(primerEnlace.id));
+  }
+
+  return crearLineaOplInteractiva(`opl-desp-${entidad.id}`, texto, ordinal, refs, hints);
+}
+
+/**
+ * HU-50.015: Emite oración interactiva para especialización "es un/una".
+ * SSOT: opm-opl-es.md §TS1 — plantilla de especialización.
+ */
+export function emitirEspecializacion(
+  modelo: Modelo,
+  entidadPadre: Entidad,
+  hijo: { entidad: Entidad; enlace: Enlace },
+  ordinal: number,
+): OplLineaInteractiva | null {
+  const texto = `${nombreOpl(hijo.entidad)} es un ${nombreOpl(entidadPadre)}.`;
+  return crearLineaOplInteractiva(
+    `opl-espec-${hijo.enlace.id}`,
+    texto,
+    ordinal,
+    [refEntidad(entidadPadre.id), refEntidad(hijo.entidad.id), refEnlace(hijo.enlace.id)],
+    [
+      hintEntidad(hijo.entidad),
+      { texto: "es un", ref: refEnlace(hijo.enlace.id), rol: "verbo" },
+      hintEntidad(entidadPadre),
+    ],
+  );
 }
