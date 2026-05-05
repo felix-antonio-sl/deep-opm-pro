@@ -14,6 +14,7 @@ export function InspectorEnlace({ enlace }: Props) {
   const ajustarMultiplicidad = useOpmStore((s) => s.ajustarMultiplicidadSeleccionada);
   const reanclarEnlaceExternoDerivado = useOpmStore((s) => s.reanclarEnlaceExternoDerivado);
   const volverEnlaceExternoDerivadoAAutomatico = useOpmStore((s) => s.volverEnlaceExternoDerivadoAAutomatico);
+  const splitEffect = useOpmStore((s) => s.splitEffectSeleccionado);
   const eliminar = useOpmStore((s) => s.eliminarSeleccion);
   const origen = modelo.entidades[enlace.origenId];
   const destino = modelo.entidades[enlace.destinoId];
@@ -129,6 +130,17 @@ export function InspectorEnlace({ enlace }: Props) {
             </button>
           </div>
         </section>
+      ) : null}
+
+      {enlace.tipo === "efecto" ? (
+        <button
+          type="button"
+          style={style.secondaryButton}
+          onClick={splitEffect}
+          title="Convierte el efecto en consumo + objeto intermedio + resultado"
+        >
+          Split en par
+        </button>
       ) : null}
 
       <button type="button" style={style.dangerButton} onClick={eliminar}>Eliminar enlace</button>

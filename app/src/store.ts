@@ -31,6 +31,7 @@ import {
   reanclarEnlaceExternoDerivado as reanclarEnlaceExternoDerivadoOp,
   renombrarEntidad,
   renombrarEstado,
+  splitEffectEnPar,
   volverEnlaceExternoDerivadoAAutomatico as volverEnlaceExternoDerivadoAAutomaticoOp,
 } from "./modelo/operaciones";
 import { cambiarModoPlegado as cambiarModoPlegadoOp } from "./modelo/plegado";
@@ -94,6 +95,7 @@ interface OpmStore {
   actualizarVerticesEnlace: (aparienciaEnlaceId: Id, vertices: Array<{ x: number; y: number }>) => void;
   ajustarMultiplicidadSeleccionada: (lado: "origen" | "destino", texto: string) => void;
   reanclarEnlaceExternoDerivado: (aparienciaEnlaceId: Id, nuevoEndpointEntidadId: Id) => void;
+  splitEffectSeleccionado: () => void;
   volverEnlaceExternoDerivadoAAutomatico: (aparienciaEnlaceId: Id) => void;
   eliminarSeleccion: () => void;
   exportarJson: () => string;
@@ -591,6 +593,25 @@ export const store = createStore<OpmStore>((set, get) => ({
       enlaceSeleccionId,
       modoEnlace: null,
       mensaje: "Enlace derivado reanclado",
+    });
+  },
+
+  splitEffectSeleccionado() {
+    const { modelo, opdActivoId, enlaceSeleccionId } = get();
+    if (!enlaceSeleccionId) {
+      set({ mensaje: "Selecciona un enlace de efecto para splittear" });
+      return;
+    }
+    const resultado = splitEffectEnPar(modelo, opdActivoId, enlaceSeleccionId);
+    if (!resultado.ok) {
+      set({ mensaje: resultado.error });
+      return;
+    }
+    commitModelo(set, modelo, resultado.value, {
+      seleccionId: null,
+      enlaceSeleccionId: null,
+      modoEnlace: null,
+      mensaje: "Efecto descompuesto en consumo + resultado intermedio",
     });
   },
 
