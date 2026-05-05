@@ -1,4 +1,5 @@
 import { CANON } from "./constantes";
+import { contenedorRefinamiento } from "./layout";
 import type {
   Afiliacion,
   Apariencia,
@@ -304,16 +305,49 @@ export function moverAparienciaPorId(modelo: Modelo, opdId: Id, aparienciaId: Id
   if (!apariencia) return fallo(`Apariencia no existe: ${aparienciaId}`);
   if (apariencia.x === posicion.x && apariencia.y === posicion.y) return ok(modelo);
 
+  const contorno = contenedorRefinamiento(modelo, opdId);
+  const esContorno = contorno !== null && contorno.id === aparienciaId;
+
+  let nuevasApariencias: Record<Id, Apariencia>;
+  if (esContorno) {
+    // Mover contorno arrastra a todas las apariencias del OPD hijo por el
+    // mismo delta para preservar layout interno de subprocesos / partes
+    // refinadoras (HU-12.008 contenedor envolvente).
+    const dx = posicion.x - apariencia.x;
+    const dy = posicion.y - apariencia.y;
+    nuevasApariencias = {};
+    for (const [id, ap] of Object.entries(opd.apariencias)) {
+      nuevasApariencias[id] = { ...ap, x: ap.x + dx, y: ap.y + dy };
+    }
+  } else if (contorno) {
+    // Apariencia interna: clamp al bbox del contorno (HU-12.020 restriccion
+    // interior). Margen 36px en lados; tope superior respeta header del
+    // contorno; tope inferior deja 24px de aire.
+    const minX = contorno.x + 36;
+    const maxX = contorno.x + contorno.width - apariencia.width - 36;
+    const minY = contorno.y + 60;
+    const maxY = contorno.y + contorno.height - apariencia.height - 24;
+    const clampX = Math.max(minX, Math.min(maxX, posicion.x));
+    const clampY = Math.max(minY, Math.min(maxY, posicion.y));
+    nuevasApariencias = {
+      ...opd.apariencias,
+      [apariencia.id]: { ...apariencia, x: clampX, y: clampY },
+    };
+  } else {
+    // OPD raiz o sin refinable: comportamiento sin restriccion.
+    nuevasApariencias = {
+      ...opd.apariencias,
+      [apariencia.id]: { ...apariencia, x: posicion.x, y: posicion.y },
+    };
+  }
+
   const movido: Modelo = {
     ...modelo,
     opds: {
       ...modelo.opds,
       [opdId]: {
         ...opd,
-        apariencias: {
-          ...opd.apariencias,
-          [apariencia.id]: { ...apariencia, x: posicion.x, y: posicion.y },
-        },
+        apariencias: nuevasApariencias,
       },
     },
   };

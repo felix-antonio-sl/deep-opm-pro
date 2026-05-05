@@ -6,6 +6,8 @@ import { CANON } from "./constantes";
 import type { Apariencia, Id, Modelo, Posicion, TipoEntidad } from "./tipos";
 
 export interface ContornoRefinable {
+  id: Id;
+  entidadId: Id;
   x: number;
   y: number;
   width: number;
