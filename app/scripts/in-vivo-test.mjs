@@ -174,7 +174,7 @@ try {
   );
 
   // Ahora creamos manualmente y probamos undo/redo real
-  await page.getByRole("button", { name: "Objeto" }).click();
+  await page.getByRole("button", { name: "Objeto", exact: true }).click();
   await page.waitForTimeout(150);
   const elementosCon4 = await page.locator(".joint-element").count();
   await page.keyboard.press("Control+Z");
@@ -227,8 +227,8 @@ try {
   // Primero creamos modelo limpio
   await page.evaluate(() => localStorage.clear());
   await page.reload({ waitUntil: "networkidle" });
-  await page.getByRole("button", { name: "Objeto" }).click();
-  await page.getByRole("button", { name: "Proceso" }).click();
+  await page.getByRole("button", { name: "Objeto", exact: true }).click();
+  await page.getByRole("button", { name: "Proceso", exact: true }).click();
   await page.waitForTimeout(150);
   const cosasNuevas = await page.locator(".joint-element").count();
   record("7. Crear enlace", `Crear Objeto + Proceso vacíos (vistas: ${cosasNuevas})`, cosasNuevas === 2 ? "OK" : "WARN");
@@ -261,7 +261,7 @@ try {
   // ============================================================
   // 8. CREAR ENLACE INVÁLIDO: objeto→objeto con consumo (consumo exige objeto→proceso)
   // ============================================================
-  await page.getByRole("button", { name: "Objeto" }).click();  // 2do objeto
+  await page.getByRole("button", { name: "Objeto", exact: true }).click();  // 2do objeto
   await page.waitForTimeout(150);
   // Seleccionar primer objeto, intentar consumo a segundo objeto
   const objetos2 = page.locator(".joint-element").filter({ has: page.locator("rect") });
@@ -303,30 +303,68 @@ try {
   await shot(page, "09b-import-corrupto.png");
 
   // ============================================================
-  // 10. PERSISTENCIA LOCAL (Guardar / dirty / Cargar)
+  // 10. PERSISTENCIA LOCAL (Guardar como -> incremental -> Cargar)
+  // L2 ronda 5: el primer "Guardar" abre diálogo "Guardar como"; los
+  // siguientes guardan incremental sin abrir diálogo. "Cargar" abre el
+  // diálogo "Cargar modelo" con la lista del workspace local.
   // ============================================================
-  await page.locator("textarea").fill(jsonExport);
-  await page.getByRole("button", { name: "Importar" }).click();
-  await descartarSiHayDialogo(page);
-  await page.waitForTimeout(200);
-  await page.getByRole("button", { name: "Guardar" }).click();
-  await page.waitForTimeout(120);
-  const tituloTrasGuardar = await page.locator("span").filter({ hasText: /(No guardado)/ }).count();
-  record("10. Persistencia local", "Tras Guardar, deja de aparecer '(No guardado)'", tituloTrasGuardar === 0 ? "OK" : "WARN");
-
-  await page.getByRole("button", { name: "Objeto" }).click();
-  await page.waitForTimeout(120);
-  const tituloDirty = await page.locator("span").filter({ hasText: /(No guardado)/ }).count();
-  record("10. Persistencia local", "Tras crear nueva entidad, aparece '(No guardado)'", tituloDirty > 0 ? "OK" : "WARN");
-
-  // .first() para apuntar al "Cargar" del Toolbar y evitar colisión con
-  // el botón homónimo de PersistenciaJson (deshabilitado sin selección).
-  await page.getByRole("button", { name: "Cargar" }).first().click();
-  await descartarSiHayDialogo(page);
+  await page.evaluate(() => localStorage.clear());
+  await page.reload({ waitUntil: "networkidle" });
+  await page.getByRole("button", { name: "Objeto", exact: true }).click();
   await page.waitForTimeout(150);
-  const tituloTrasCargar = await page.locator("span").filter({ hasText: /(No guardado)/ }).count();
-  record("10. Persistencia local", "Tras Cargar regresa al estado guardado", tituloTrasCargar === 0 ? "OK" : "WARN");
-  await shot(page, "10-persistencia-local.png");
+
+  // Primer Guardar => abre Guardar como
+  await page.getByRole("button", { name: "Guardar" }).first().click();
+  const dialogoGuardarComo = page.getByRole("dialog", { name: "Guardar como" });
+  const guardarComoVisible = await dialogoGuardarComo.isVisible().catch(() => false);
+  record("10. Persistencia local", "Primer Guardar abre diálogo 'Guardar como'", guardarComoVisible ? "OK" : "FAIL");
+  if (guardarComoVisible) {
+    await dialogoGuardarComo.getByLabel("Nombre del modelo").fill("Sonda in-vivo");
+    await dialogoGuardarComo.getByRole("button", { name: "Guardar" }).click();
+    await page.waitForTimeout(300);
+  }
+  const dialogoCerrado = (await dialogoGuardarComo.count()) === 0;
+  const tituloPostGuardarComo = await page.locator("span").filter({ hasText: /\(No guardado\)/ }).count();
+  const nombreModeloPersistido = await page.evaluate(() => {
+    const raw = localStorage.getItem("deep-opm-pro:persistencia:index");
+    if (!raw) return { items: 0, nombres: [] };
+    try {
+      const parsed = JSON.parse(raw);
+      const lista = Array.isArray(parsed?.modelos) ? parsed.modelos : Object.values(parsed ?? {});
+      return { items: lista.length, nombres: lista.map((m) => m?.nombre ?? "?") };
+    } catch (e) { return { items: -1, error: String(e) }; }
+  });
+  record("10. Persistencia local", "Tras Guardar como, diálogo cierra y título pierde '(No guardado)'", dialogoCerrado && tituloPostGuardarComo === 0 ? "OK" : "FAIL");
+  record("10. Persistencia local", `localStorage workspace tiene modelo persistido (n=${nombreModeloPersistido.items})`, "INFO", JSON.stringify(nombreModeloPersistido));
+  await shot(page, "10-persistencia-tras-guardar-como.png");
+
+  // Mutar => dirty=true => título recupera "(No guardado)"
+  await page.getByRole("button", { name: "Proceso", exact: true }).click();
+  await page.waitForTimeout(150);
+  const tituloDirty = await page.locator("span").filter({ hasText: /\(No guardado\)/ }).count();
+  record("10. Persistencia local", "Tras mutar, título reaparece como '(No guardado)'", tituloDirty > 0 ? "OK" : "FAIL");
+
+  // Segundo Guardar => incremental, sin diálogo
+  await page.getByRole("button", { name: "Guardar" }).first().click();
+  await page.waitForTimeout(200);
+  const dialogoIncremental = await page.getByRole("dialog", { name: "Guardar como" }).count();
+  const tituloPostIncremental = await page.locator("span").filter({ hasText: /\(No guardado\)/ }).count();
+  record("10. Persistencia local", "Segundo Guardar es incremental (sin diálogo)", dialogoIncremental === 0 ? "OK" : "FAIL");
+  record("10. Persistencia local", "Tras incremental, título limpio (sin '(No guardado)')", tituloPostIncremental === 0 ? "OK" : "FAIL");
+
+  // Cargar => abre diálogo "Cargar modelo"
+  await page.getByRole("button", { name: "Cargar", exact: true }).first().click();
+  const dialogoCargar = page.getByRole("dialog", { name: "Cargar modelo" });
+  const dialogoCargarVisible = await dialogoCargar.isVisible().catch(() => false);
+  record("10. Persistencia local", "Cargar abre diálogo 'Cargar modelo'", dialogoCargarVisible ? "OK" : "FAIL");
+  if (dialogoCargarVisible) {
+    const opcionWorkspace = await dialogoCargar.getByRole("option", { name: /Sonda in-vivo/ }).count();
+    record("10. Persistencia local", "Diálogo 'Cargar modelo' lista el modelo guardado", opcionWorkspace >= 1 ? "OK" : "FAIL");
+    // Cerrar el diálogo sin cargar para no afectar el siguiente bloque
+    await page.keyboard.press("Escape");
+    await page.waitForTimeout(100);
+  }
+  await shot(page, "10b-persistencia-dialogo-cargar.png");
 
   // ============================================================
   // 11. ÁRBOL OPD CON IMPORT MULTI-OPD
@@ -364,16 +402,18 @@ try {
 
   await page.evaluate(() => localStorage.clear());
   await page.reload({ waitUntil: "networkidle" });
-  await page.getByRole("button", { name: "Proceso" }).click();
+  await page.getByRole("button", { name: "Proceso", exact: true }).click();
   await page.waitForTimeout(150);
   await page.getByRole("button", { name: "Descomponer" }).click();
   await page.waitForTimeout(200);
-  const nodoDescompuesto = await page.locator('[role="treeitem"]').filter({ hasText: "SD1: Un Proceso descompuesto" }).count();
+  // Defaults canónicos (SSOT Glos 3.76): "Proceso" sin artículo, así que el
+  // nombre del OPD derivado es "SD1: Proceso descompuesto".
+  const nodoDescompuesto = await page.locator('[role="treeitem"]').filter({ hasText: "SD1: Proceso descompuesto" }).count();
   record("11. Árbol OPD", "Descomponer crea nodo derivado SD1", nodoDescompuesto === 1 ? "OK" : "FAIL");
   await page.getByRole("button", { name: "Quitar descomposición" }).click();
   await page.waitForTimeout(200);
   const nodosTrasQuitar = await page.locator('[role="treeitem"]').count();
-  const oplDescompuesto = await page.getByText("Un Proceso se descompone en SD1.").count();
+  const oplDescompuesto = await page.getByText("Proceso se descompone en SD1.").count();
   record("11. Árbol OPD", "Quitar descomposición elimina OPD hijo", nodosTrasQuitar === 1 ? "OK" : "FAIL");
   record("11. Árbol OPD", "Quitar descomposición remueve OPL de refinamiento", oplDescompuesto === 0 ? "OK" : "FAIL");
   await shot(page, "11c-quitar-descomposicion.png");
@@ -383,8 +423,8 @@ try {
   // ============================================================
   await page.evaluate(() => localStorage.clear());
   await page.reload({ waitUntil: "networkidle" });
-  await page.getByRole("button", { name: "Objeto" }).click();
-  await page.getByRole("button", { name: "Objeto" }).click();
+  await page.getByRole("button", { name: "Objeto", exact: true }).click();
+  await page.getByRole("button", { name: "Objeto", exact: true }).click();
   await page.waitForTimeout(150);
   const objetosAgg = page.locator(".joint-element").filter({ has: page.locator("rect") });
   await objetosAgg.first().click();
@@ -407,7 +447,7 @@ try {
   // ============================================================
   await page.evaluate(() => localStorage.clear());
   await page.reload({ waitUntil: "networkidle" });
-  await page.getByRole("button", { name: "Objeto" }).click();
+  await page.getByRole("button", { name: "Objeto", exact: true }).click();
   await page.waitForTimeout(150);
   const cosa = page.locator(".joint-element").first();
   const box = await cosa.boundingBox();
