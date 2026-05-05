@@ -1,7 +1,7 @@
 import { useEffect, useState } from "preact/hooks";
 import { validarMultiplicidad } from "../modelo/operaciones";
 import { useOpmStore } from "../store";
-import type { Enlace } from "../modelo/tipos";
+import type { Apariencia, Enlace, Id, Modelo } from "../modelo/tipos";
 import { inspectorStyles as style } from "./inspectorStyles";
 
 interface Props {
@@ -10,12 +10,18 @@ interface Props {
 
 export function InspectorEnlace({ enlace }: Props) {
   const modelo = useOpmStore((s) => s.modelo);
+  const opdActivoId = useOpmStore((s) => s.opdActivoId);
   const ajustarMultiplicidad = useOpmStore((s) => s.ajustarMultiplicidadSeleccionada);
+  const reanclarEnlaceExternoDerivado = useOpmStore((s) => s.reanclarEnlaceExternoDerivado);
+  const volverEnlaceExternoDerivadoAAutomatico = useOpmStore((s) => s.volverEnlaceExternoDerivadoAAutomatico);
   const eliminar = useOpmStore((s) => s.eliminarSeleccion);
   const origen = modelo.entidades[enlace.origenId];
   const destino = modelo.entidades[enlace.destinoId];
+  const reanclaje = contextoReanclaje(modelo, opdActivoId, enlace);
+  const endpointActual = reanclaje?.endpointActualId ?? "";
   const [multiplicidadOrigen, setMultiplicidadOrigen] = useState(enlace.multiplicidadOrigen ?? "");
   const [multiplicidadDestino, setMultiplicidadDestino] = useState(enlace.multiplicidadDestino ?? "");
+  const [endpointSeleccionado, setEndpointSeleccionado] = useState(endpointActual);
   const errorOrigen = multiplicidadOrigen !== "" && !validarMultiplicidad(multiplicidadOrigen);
   const errorDestino = multiplicidadDestino !== "" && !validarMultiplicidad(multiplicidadDestino);
 
@@ -24,10 +30,24 @@ export function InspectorEnlace({ enlace }: Props) {
     setMultiplicidadDestino(enlace.multiplicidadDestino ?? "");
   }, [enlace.id, enlace.multiplicidadDestino, enlace.multiplicidadOrigen]);
 
+  useEffect(() => {
+    setEndpointSeleccionado(endpointActual);
+  }, [enlace.id, endpointActual]);
+
   const cambiarMultiplicidad = (lado: "origen" | "destino", valor: string) => {
     if (lado === "origen") setMultiplicidadOrigen(valor);
     if (lado === "destino") setMultiplicidadDestino(valor);
     if (valor === "" || validarMultiplicidad(valor)) ajustarMultiplicidad(lado, valor);
+  };
+
+  const aplicarReanclaje = () => {
+    if (!reanclaje || !endpointSeleccionado) return;
+    reanclarEnlaceExternoDerivado(reanclaje.aparienciaEnlaceId, endpointSeleccionado);
+  };
+
+  const volverAAutomatico = () => {
+    if (!reanclaje) return;
+    volverEnlaceExternoDerivadoAAutomatico(reanclaje.aparienciaEnlaceId);
   };
 
   return (
@@ -69,6 +89,48 @@ export function InspectorEnlace({ enlace }: Props) {
         </label>
       </section>
 
+      {reanclaje ? (
+        <section style={reanclajeSectionStyle}>
+          <h3 style={multiplicidadTitleStyle}>Reanclar a subproceso</h3>
+          <div style={derivedBadgeStyle}>Derivado ({(enlace.derivado?.origen ?? "automatico") === "manual" ? "manual" : "automático"})</div>
+          <label style={style.field}>
+            <span style={style.label}>Subproceso</span>
+            <select
+              data-testid="reanclar-subproceso-select"
+              style={style.input}
+              value={endpointSeleccionado}
+              onChange={(event) => setEndpointSeleccionado(event.currentTarget.value)}
+              disabled={reanclaje.subprocesos.length <= 1}
+            >
+              {reanclaje.subprocesos.map((subproceso, index) => (
+                <option key={subproceso.id} value={subproceso.id}>
+                  {subproceso.nombre} ({index + 1})
+                </option>
+              ))}
+            </select>
+          </label>
+          {reanclaje.subprocesos.length <= 1 ? <div style={helpStyle}>No hay otro subproceso disponible.</div> : null}
+          <div style={buttonRowStyle}>
+            <button
+              type="button"
+              style={style.secondaryButton}
+              disabled={!endpointSeleccionado || (endpointSeleccionado === endpointActual && enlace.derivado?.origen === "manual")}
+              onClick={aplicarReanclaje}
+            >
+              Aplicar
+            </button>
+            <button
+              type="button"
+              style={style.secondaryButton}
+              disabled={(enlace.derivado?.origen ?? "automatico") !== "manual"}
+              onClick={volverAAutomatico}
+            >
+              Volver a automático
+            </button>
+          </div>
+        </section>
+      ) : null}
+
       <button type="button" style={style.dangerButton} onClick={eliminar}>Eliminar enlace</button>
     </>
   );
@@ -78,9 +140,60 @@ function capitalizar(texto: string): string {
   return texto.charAt(0).toUpperCase() + texto.slice(1);
 }
 
+interface ContextoReanclaje {
+  aparienciaEnlaceId: Id;
+  endpointActualId: Id;
+  subprocesos: Array<{ id: Id; nombre: string }>;
+}
+
+function contextoReanclaje(modelo: Modelo, opdId: Id, enlace: Enlace): ContextoReanclaje | null {
+  if (!enlace.derivado) return null;
+  const opd = modelo.opds[opdId];
+  if (!opd) return null;
+  const aparienciaEnlace = Object.values(opd.enlaces).find((apariencia) => apariencia.enlaceId === enlace.id);
+  if (!aparienciaEnlace) return null;
+  const contorno = Object.values(opd.apariencias).find((apariencia) => apariencia.entidadId === enlace.derivado?.refinamientoId);
+  if (!contorno) return null;
+  const subprocesos = Object.values(opd.apariencias)
+    .filter((apariencia) => apariencia.entidadId !== contorno.entidadId)
+    .filter((apariencia) => dentroDeApariencia(apariencia, contorno))
+    .filter((apariencia) => modelo.entidades[apariencia.entidadId]?.tipo === "proceso")
+    .sort((a, b) => a.y - b.y || a.x - b.x || a.id.localeCompare(b.id));
+  const subprocesoIds = new Set(subprocesos.map((apariencia) => apariencia.entidadId));
+  const endpointActualId = subprocesoIds.has(enlace.destinoId)
+    ? enlace.destinoId
+    : subprocesoIds.has(enlace.origenId)
+      ? enlace.origenId
+      : subprocesos[0]?.entidadId;
+  if (!endpointActualId) return null;
+  return {
+    aparienciaEnlaceId: aparienciaEnlace.id,
+    endpointActualId,
+    subprocesos: subprocesos.map((apariencia) => ({
+      id: apariencia.entidadId,
+      nombre: modelo.entidades[apariencia.entidadId]?.nombre ?? apariencia.entidadId,
+    })),
+  };
+}
+
+function dentroDeApariencia(apariencia: Apariencia, contorno: Apariencia): boolean {
+  return (
+    apariencia.x >= contorno.x &&
+    apariencia.y >= contorno.y &&
+    apariencia.x + apariencia.width <= contorno.x + contorno.width &&
+    apariencia.y + apariencia.height <= contorno.y + contorno.height
+  );
+}
+
 const multiplicidadSectionStyle = {
   display: "grid",
   gap: "2px",
+  marginBottom: "14px",
+} satisfies preact.JSX.CSSProperties;
+
+const reanclajeSectionStyle = {
+  display: "grid",
+  gap: "8px",
   marginBottom: "14px",
 } satisfies preact.JSX.CSSProperties;
 
@@ -101,4 +214,22 @@ const errorStyle = {
   color: "#b42318",
   fontSize: "12px",
   fontWeight: 600,
+} satisfies preact.JSX.CSSProperties;
+
+const derivedBadgeStyle = {
+  color: "#344054",
+  fontSize: "12px",
+  fontWeight: 700,
+} satisfies preact.JSX.CSSProperties;
+
+const helpStyle = {
+  color: "#667085",
+  fontSize: "12px",
+  fontWeight: 600,
+} satisfies preact.JSX.CSSProperties;
+
+const buttonRowStyle = {
+  display: "grid",
+  gap: "8px",
+  gridTemplateColumns: "1fr",
 } satisfies preact.JSX.CSSProperties;
