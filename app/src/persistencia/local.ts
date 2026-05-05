@@ -10,6 +10,9 @@ export interface ResumenModeloPersistido {
   descripcion: string;
   creadoEn: string;
   actualizadoEn: string;
+  carpetaId?: string | null;
+  ultimaApertura?: string;
+  autosalvado?: boolean;
 }
 
 export interface ModeloPersistido extends ResumenModeloPersistido {
@@ -21,6 +24,9 @@ export interface GuardarModeloLocalInput {
   nombre: string;
   descripcion?: string;
   json: string;
+  carpetaId?: string | null;
+  ultimaApertura?: string;
+  autosalvado?: boolean;
 }
 
 interface IndicePersistencia {
@@ -55,6 +61,18 @@ export function guardarModeloLocal(input: GuardarModeloLocalInput): Resultado<Mo
     creadoEn: existente?.creadoEn ?? ahora,
     actualizadoEn: ahora,
   };
+  const carpetaId = input.carpetaId ?? existente?.carpetaId;
+  if (carpetaId !== undefined) {
+    resumen.carpetaId = carpetaId;
+  }
+  const ultimaApertura = input.ultimaApertura ?? existente?.ultimaApertura;
+  if (ultimaApertura !== undefined) {
+    resumen.ultimaApertura = ultimaApertura;
+  }
+  const autosalvado = input.autosalvado ?? existente?.autosalvado;
+  if (autosalvado !== undefined) {
+    resumen.autosalvado = autosalvado;
+  }
   const modelo: ModeloPersistido = { ...resumen, json: input.json };
 
   try {
@@ -161,13 +179,23 @@ function normalizarResumenModeloPersistido(value: unknown): ResumenModeloPersist
     typeof value.actualizadoEn !== "string") {
     return null;
   }
-  return {
+  const base: ResumenModeloPersistido = {
     id: value.id,
     nombre: value.nombre,
     descripcion: typeof value.descripcion === "string" ? value.descripcion : "",
     creadoEn: value.creadoEn,
     actualizadoEn: value.actualizadoEn,
   };
+  if (value.carpetaId !== undefined && (value.carpetaId === null || typeof value.carpetaId === "string")) {
+    base.carpetaId = value.carpetaId;
+  }
+  if (typeof value.ultimaApertura === "string") {
+    base.ultimaApertura = value.ultimaApertura;
+  }
+  if (typeof value.autosalvado === "boolean") {
+    base.autosalvado = value.autosalvado;
+  }
+  return base;
 }
 
 function esRecord(value: unknown): value is Record<string, unknown> {
