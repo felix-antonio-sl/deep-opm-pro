@@ -75,10 +75,14 @@ export function cargarModeloLocal(id: string): Resultado<ModeloPersistido> {
   const raw = storage.value.getItem(modelKey(limpio));
   if (!raw) return fallo("Modelo local no encontrado");
   const parsed = parseJson(raw);
-  if (!esRecord(parsed) || parsed.formato !== FORMATO_PERSISTENCIA || !esModeloPersistido(parsed.modelo)) {
+  if (!esRecord(parsed) || parsed.formato !== FORMATO_PERSISTENCIA) {
     return fallo("Modelo local corrupto");
   }
-  return ok(parsed.modelo);
+  const modelo = normalizarModeloPersistido(parsed.modelo);
+  if (!modelo) {
+    return fallo("Modelo local corrupto");
+  }
+  return ok(modelo);
 }
 
 export function borrarModeloLocal(id: string): Resultado<void> {
@@ -99,7 +103,9 @@ export function borrarModeloLocal(id: string): Resultado<void> {
 function leerIndice(storage: Storage): ResumenModeloPersistido[] {
   const parsed = parseJson(storage.getItem(INDEX_KEY));
   if (!esRecord(parsed) || parsed.formato !== FORMATO_PERSISTENCIA || !Array.isArray(parsed.modelos)) return [];
-  return parsed.modelos.filter(esResumenModeloPersistido);
+  return parsed.modelos
+    .map(normalizarResumenModeloPersistido)
+    .filter((modelo): modelo is ResumenModeloPersistido => modelo !== null);
 }
 
 function escribirIndice(storage: Storage, modelos: ResumenModeloPersistido[]): void {
@@ -141,17 +147,27 @@ function parseJson(raw: string | null): unknown {
   }
 }
 
-function esModeloPersistido(value: unknown): value is ModeloPersistido {
-  return esResumenModeloPersistido(value) && esRecord(value) && typeof value.json === "string";
+function normalizarModeloPersistido(value: unknown): ModeloPersistido | null {
+  const resumen = normalizarResumenModeloPersistido(value);
+  if (!resumen || !esRecord(value) || typeof value.json !== "string") return null;
+  return { ...resumen, json: value.json };
 }
 
-function esResumenModeloPersistido(value: unknown): value is ResumenModeloPersistido {
-  return esRecord(value) &&
-    typeof value.id === "string" &&
-    typeof value.nombre === "string" &&
-    typeof value.descripcion === "string" &&
-    typeof value.creadoEn === "string" &&
-    typeof value.actualizadoEn === "string";
+function normalizarResumenModeloPersistido(value: unknown): ResumenModeloPersistido | null {
+  if (!esRecord(value) ||
+    typeof value.id !== "string" ||
+    typeof value.nombre !== "string" ||
+    typeof value.creadoEn !== "string" ||
+    typeof value.actualizadoEn !== "string") {
+    return null;
+  }
+  return {
+    id: value.id,
+    nombre: value.nombre,
+    descripcion: typeof value.descripcion === "string" ? value.descripcion : "",
+    creadoEn: value.creadoEn,
+    actualizadoEn: value.actualizadoEn,
+  };
 }
 
 function esRecord(value: unknown): value is Record<string, unknown> {

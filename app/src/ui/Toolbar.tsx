@@ -2,6 +2,7 @@ import { useEffect } from "preact/hooks";
 import { useOpmStore } from "../store";
 import type { TipoEnlace } from "../modelo/tipos";
 import { useConfirmarSiDirty } from "./ConfirmacionContext";
+import { MenuPrincipal } from "./MenuPrincipal";
 
 export const TIPOS_ENLACE: Array<{ tipo: TipoEnlace; label: string }> = [
   { tipo: "agregacion", label: "Agregación" },
@@ -18,20 +19,26 @@ export const TIPOS_ENLACE: Array<{ tipo: TipoEnlace; label: string }> = [
 
 export function Toolbar() {
   const nuevoModelo = useOpmStore((s) => s.nuevoModelo);
+  const abrirMenuPrincipal = useOpmStore((s) => s.abrirMenuPrincipal);
+  const cerrarMenuPrincipal = useOpmStore((s) => s.cerrarMenuPrincipal);
   const crearObjeto = useOpmStore((s) => s.crearObjetoDemo);
   const crearProceso = useOpmStore((s) => s.crearProcesoDemo);
+  const fijarModoCreacion = useOpmStore((s) => s.fijarModoCreacion);
   const cargarDemo = useOpmStore((s) => s.cargarDemo);
   const guardarLocal = useOpmStore((s) => s.guardarLocal);
-  const cargarLocal = useOpmStore((s) => s.cargarLocal);
+  const abrirCargarModelo = useOpmStore((s) => s.abrirCargarModelo);
   const deshacer = useOpmStore((s) => s.deshacer);
   const rehacer = useOpmStore((s) => s.rehacer);
   const elegirTipoEnlace = useOpmStore((s) => s.elegirTipoEnlace);
   const cancelarEnlace = useOpmStore((s) => s.cancelarEnlace);
   const limpiarMensaje = useOpmStore((s) => s.limpiarMensaje);
   const modoEnlace = useOpmStore((s) => s.modoEnlace);
+  const modoCreacion = useOpmStore((s) => s.modoCreacion);
   const mensaje = useOpmStore((s) => s.mensaje);
   const seleccionId = useOpmStore((s) => s.seleccionId);
   const dirty = useOpmStore((s) => s.dirty);
+  const menuPrincipalAbierto = useOpmStore((s) => s.menuPrincipalAbierto);
+  const modeloPersistidoId = useOpmStore((s) => s.modeloPersistidoId);
   const puedeDeshacer = useOpmStore((s) => s.puedeDeshacer);
   const puedeRehacer = useOpmStore((s) => s.puedeRehacer);
   const modelo = useOpmStore((s) => s.modelo);
@@ -67,20 +74,49 @@ export function Toolbar() {
   }, [deshacer, guardarLocal, rehacer]);
 
   useEffect(() => {
-    if (!mensaje || modoEnlace) return undefined;
+    if (!mensaje || modoEnlace || modoCreacion) return undefined;
     const timeout = window.setTimeout(limpiarMensaje, 4_500);
     return () => window.clearTimeout(timeout);
-  }, [limpiarMensaje, mensaje, modoEnlace]);
+  }, [limpiarMensaje, mensaje, modoCreacion, modoEnlace]);
 
   const selectorEnlaceDeshabilitado = !seleccionId && !modoEnlace;
+  const tituloModelo = modeloPersistidoId ? modelo.nombre : `${modelo.nombre} (No guardado)`;
 
   return (
     <div style={style.bar}>
-      <span style={style.title}>{modelo.nombre}{dirty ? " (No guardado)" : ""}</span>
+      <div style={style.menuWrapper}>
+        <button
+          type="button"
+          aria-haspopup="menu"
+          aria-expanded={menuPrincipalAbierto}
+          aria-label="Menú principal"
+          title="Menú principal"
+          style={style.iconButton}
+          onClick={() => (menuPrincipalAbierto ? cerrarMenuPrincipal() : abrirMenuPrincipal())}
+        >
+          ☰
+        </button>
+        <MenuPrincipal />
+      </div>
+      <span style={style.title}>{tituloModelo}{dirty && modeloPersistidoId ? " (No guardado)" : ""}</span>
       <div style={style.actions}>
         <span style={style.divider} />
         <button style={style.button} type="button" onClick={crearObjeto}>Objeto</button>
         <button style={style.button} type="button" onClick={crearProceso}>Proceso</button>
+        <button
+          style={modoCreacion === "objeto" ? style.activeButton : style.button}
+          type="button"
+          onClick={() => fijarModoCreacion(modoCreacion === "objeto" ? null : "objeto")}
+        >
+          Objeto en canvas
+        </button>
+        <button
+          style={modoCreacion === "proceso" ? style.activeButton : style.button}
+          type="button"
+          onClick={() => fijarModoCreacion(modoCreacion === "proceso" ? null : "proceso")}
+        >
+          Proceso en canvas
+        </button>
         <span style={style.divider} />
         <button style={puedeDeshacer ? style.button : style.disabledButton} type="button" onClick={deshacer} disabled={!puedeDeshacer}>Deshacer</button>
         <button style={puedeRehacer ? style.button : style.disabledButton} type="button" onClick={rehacer} disabled={!puedeRehacer}>Rehacer</button>
@@ -88,7 +124,7 @@ export function Toolbar() {
         <button style={style.button} type="button" onClick={() => confirmarSiDirty(nuevoModelo)}>Nuevo</button>
         <button style={style.button} type="button" onClick={() => confirmarSiDirty(cargarDemo)}>Demo</button>
         <button style={style.button} type="button" onClick={guardarLocal} title="Guardar (Ctrl+S)">Guardar</button>
-        <button style={style.button} type="button" onClick={() => confirmarSiDirty(() => cargarLocal())}>Cargar</button>
+        <button style={style.button} type="button" onClick={() => confirmarSiDirty(abrirCargarModelo)}>Cargar</button>
         <span style={style.divider} />
         <label style={style.linkPicker}>
           <span style={style.linkPickerLabel}>Enlace</span>
@@ -112,6 +148,9 @@ export function Toolbar() {
         </label>
         {modoEnlace ? (
           <button style={style.secondaryButton} type="button" onClick={cancelarEnlace}>Cancelar</button>
+        ) : null}
+        {modoCreacion ? (
+          <button style={style.secondaryButton} type="button" onClick={() => fijarModoCreacion(null)}>Cancelar creación</button>
         ) : null}
         {mensaje ? <span style={style.status}>{mensaje}</span> : null}
       </div>
@@ -137,6 +176,22 @@ const style = {
     flex: "1 1 auto",
     overflowX: "auto",
   },
+  menuWrapper: {
+    position: "relative",
+    flex: "0 0 auto",
+  },
+  iconButton: {
+    width: "34px",
+    height: "34px",
+    border: "1px solid #b9c5d4",
+    borderRadius: "4px",
+    background: "#f9fbfd",
+    color: "#1f2937",
+    cursor: "pointer",
+    fontSize: "18px",
+    fontWeight: 700,
+    lineHeight: 1,
+  },
   button: {
     height: "34px",
     minWidth: "76px",
@@ -148,6 +203,19 @@ const style = {
     cursor: "pointer",
     fontSize: "13px",
     fontWeight: 600,
+    whiteSpace: "nowrap",
+  },
+  activeButton: {
+    height: "34px",
+    minWidth: "76px",
+    padding: "0 14px",
+    border: "1px solid #3BC3FF",
+    borderRadius: "4px",
+    background: "#eaf8ff",
+    color: "#1f2937",
+    cursor: "pointer",
+    fontSize: "13px",
+    fontWeight: 700,
     whiteSpace: "nowrap",
   },
   disabledButton: {

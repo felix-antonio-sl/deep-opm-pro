@@ -4,6 +4,7 @@ import { filasPlegadoParcial, modoPlegadoApariencia, partesDePlegado, type FilaP
 import type { Entidad, Estado, ModoDespliegueObjeto, OrdenPartesPlegado } from "../modelo/tipos";
 import { useOpmStore } from "../store";
 import { inspectorStyles as style } from "./inspectorStyles";
+import { StyleControls } from "./StyleControls";
 
 interface Props {
   entidad: Entidad;
@@ -22,6 +23,8 @@ export function InspectorEntidad({ entidad }: Props) {
   const crearAutoInvocacion = useOpmStore((s) => s.crearAutoInvocacionSeleccionada);
   const cambiarModoPlegado = useOpmStore((s) => s.cambiarModoPlegadoSeleccionado);
   const cambiarOrdenPartes = useOpmStore((s) => s.cambiarOrdenPartesSeleccionado);
+  const aplicarEstilo = useOpmStore((s) => s.aplicarEstiloSeleccionado);
+  const resetearEstilo = useOpmStore((s) => s.resetearEstiloSeleccionado);
   const extraerParte = useOpmStore((s) => s.extraerParteDePlegado);
   const reinsertarParte = useOpmStore((s) => s.reinsertarParteExtraidaSeleccionada);
   const agregarEstados = useOpmStore((s) => s.agregarEstadosObjeto);
@@ -188,6 +191,14 @@ export function InspectorEntidad({ entidad }: Props) {
           onRenombrar={renombrarEstado}
           onDesignarInicial={designarInicial}
           onDesignarFinal={designarFinal}
+        />
+      ) : null}
+
+      {aparienciaActiva ? (
+        <StyleControls
+          estilo={aparienciaActiva.estilo}
+          onApply={aplicarEstilo}
+          onReset={resetearEstilo}
         />
       ) : null}
 

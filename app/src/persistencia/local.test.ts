@@ -67,6 +67,40 @@ describe("persistencia local estructurada", () => {
       value: expect.objectContaining({ json: exportarModelo(actualizadoModelo.value) }),
     }));
   });
+
+  test("tolera entradas legacy sin descripcion en indice y documento", () => {
+    const modelo = crearModelo("Modelo legacy");
+    const json = exportarModelo(modelo);
+    const ahora = "2026-05-05T00:00:00.000Z";
+    localStorage.setItem("deep-opm-pro:persistencia:index", JSON.stringify({
+      formato: "deep-opm-pro.persistencia.local.v1",
+      modelos: [{
+        id: "legacy-1",
+        nombre: "Modelo legacy",
+        creadoEn: ahora,
+        actualizadoEn: ahora,
+      }],
+    }));
+    localStorage.setItem("deep-opm-pro:persistencia:modelo:legacy-1", JSON.stringify({
+      formato: "deep-opm-pro.persistencia.local.v1",
+      modelo: {
+        id: "legacy-1",
+        nombre: "Modelo legacy",
+        creadoEn: ahora,
+        actualizadoEn: ahora,
+        json,
+      },
+    }));
+
+    expect(listarModelosLocales()).toEqual({
+      ok: true,
+      value: [expect.objectContaining({ id: "legacy-1", descripcion: "" })],
+    });
+    expect(cargarModeloLocal("legacy-1")).toEqual({
+      ok: true,
+      value: expect.objectContaining({ id: "legacy-1", descripcion: "", json }),
+    });
+  });
 });
 
 function instalarLocalStorage(): void {

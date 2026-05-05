@@ -1,6 +1,8 @@
 import { JointCanvas } from "../render/jointjs/JointCanvas";
 import { ArbolOpd } from "./ArbolOpd";
 import { ConfirmacionProvider } from "./ConfirmacionContext";
+import { DialogoCargarModelo } from "./DialogoCargarModelo";
+import { DialogoGuardarComo } from "./DialogoGuardarComo";
 import { Inspector } from "./Inspector";
 import { PanelAvisos } from "./PanelAvisos";
 import { PanelOpl } from "./PanelOpl";
@@ -28,6 +30,8 @@ export function App() {
           </div>
         </section>
         <PanelOpl />
+        <DialogoGuardarComo />
+        <DialogoCargarModelo />
       </main>
     </ConfirmacionProvider>
   );

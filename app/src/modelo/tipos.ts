@@ -53,6 +53,11 @@ export interface Estado {
   esFinal?: boolean;
 }
 
+export interface EstiloApariencia {
+  fill?: string;
+  borderColor?: string;
+}
+
 export interface ExtremoEnlace {
   kind: ExtremoKind;
   id: Id;
@@ -78,6 +83,7 @@ export interface Apariencia {
   y: number;
   width: number;
   height: number;
+  estilo?: EstiloApariencia;
   modoPlegado?: ModoPlegado;
   ordenPartes?: OrdenPartesPlegado;
   parteExtraidaDe?: { padreAparienciaId: Id; parteEntidadId: Id };

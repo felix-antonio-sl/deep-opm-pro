@@ -1,4 +1,5 @@
 import { entidadDeExtremo, entidadIdDeExtremo, extremoEntidad, extremoVisibleEnOpd, normalizarExtremo } from "../modelo/extremos";
+import { esColorEstilo, normalizarEstiloApariencia } from "../modelo/estilos";
 import { esModificador, validarMetadatosEnlace } from "../modelo/modificadores";
 import { validarFirmaEnlace, validarMultiplicidad } from "../modelo/operaciones";
 import { modoPlegadoApariencia, partesDePlegado } from "../modelo/plegado";
@@ -61,7 +62,17 @@ function normalizarModelo(modelo: Modelo): Modelo {
         : opd.padreId && opd.padreId !== id && modelo.opds[opd.padreId]
           ? opd.padreId
           : modelo.opdRaizId;
-      return [id, { ...opd, padreId }];
+      const apariencias = Object.fromEntries(
+        Object.entries(opd.apariencias).map(([aparienciaId, apariencia]) => {
+          const estilo = normalizarEstiloApariencia(apariencia.estilo);
+          const { estilo: _estilo, ...base } = apariencia;
+          return [aparienciaId, {
+            ...base,
+            ...(estilo ? { estilo } : {}),
+          }];
+        }),
+      ) as Record<Id, Apariencia>;
+      return [id, { ...opd, padreId, apariencias }];
     }),
   );
   const enlaces = Object.fromEntries(
@@ -324,6 +335,8 @@ function validarApariencias(
     if (!esNumeroPositivo(raw.height)) return fallo(`Apariencia inválida: ${id}.height`);
     const modoPlegado = validarModoPlegado(id, raw.modoPlegado);
     if (!modoPlegado.ok) return modoPlegado;
+    const estilo = validarEstiloApariencia(id, raw.estilo);
+    if (!estilo.ok) return estilo;
     const ordenPartes = validarOrdenPartes(id, raw.ordenPartes);
     if (!ordenPartes.ok) return ordenPartes;
     const parteExtraidaDe = validarParteExtraidaDe(id, raw.parteExtraidaDe);
@@ -336,12 +349,28 @@ function validarApariencias(
       y: raw.y,
       width: raw.width,
       height: raw.height,
+      ...(estilo.value ? { estilo: estilo.value } : {}),
       modoPlegado: modoPlegado.value,
       ...(ordenPartes.value ? { ordenPartes: ordenPartes.value } : {}),
       ...(parteExtraidaDe.value ? { parteExtraidaDe: parteExtraidaDe.value } : {}),
     };
   }
   return ok(apariencias);
+}
+
+function validarEstiloApariencia(
+  aparienciaId: Id,
+  value: unknown,
+): Resultado<Apariencia["estilo"] | undefined> {
+  if (value === undefined) return ok(undefined);
+  if (!esRecord(value)) return fallo(`Apariencia inválida: ${aparienciaId}.estilo`);
+  if (value.fill !== undefined && (typeof value.fill !== "string" || !esColorEstilo(value.fill))) {
+    return fallo(`Apariencia inválida: ${aparienciaId}.estilo.fill`);
+  }
+  if (value.borderColor !== undefined && (typeof value.borderColor !== "string" || !esColorEstilo(value.borderColor))) {
+    return fallo(`Apariencia inválida: ${aparienciaId}.estilo.borderColor`);
+  }
+  return ok(normalizarEstiloApariencia(value));
 }
 
 function validarParteExtraidaDe(
