@@ -56,6 +56,18 @@ export interface Estado {
 export interface EstiloApariencia {
   fill?: string;
   borderColor?: string;
+  fontFamily?: string;
+  fontSize?: number;
+  fontWeight?: number | "normal" | "bold";
+  fontStyle?: "normal" | "italic";
+  textColor?: string;
+  textAnchor?: "start" | "middle" | "end";
+}
+
+export interface EnlaceEstilo {
+  color?: string;
+  strokeWidth?: number;
+  dashArray?: string;
 }
 
 export interface ExtremoEnlace {
@@ -97,6 +109,7 @@ export interface Enlace {
   etiqueta: string;
   multiplicidadOrigen?: string;
   multiplicidadDestino?: string;
+  estilo?: EnlaceEstilo;
   modificador?: Modificador;
   probabilidad?: number;
   demora?: string;
@@ -117,6 +130,10 @@ export interface Opd {
   padreId: Id | null;
   apariencias: Record<Id, Apariencia>;
   enlaces: Record<Id, AparienciaEnlace>;
+  /** Orden opcional entre hermanos para reordenamiento manual.
+   *  Monotono entre hermanos de un mismo padre.
+   *  Si no esta presente, se usa orden alfabetico por id. */
+  ordenLocal?: number;
 }
 
 export interface Modelo {

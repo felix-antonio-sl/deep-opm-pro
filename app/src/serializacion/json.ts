@@ -34,10 +34,15 @@ const FORMATO = "deep-opm-pro.modelo.v0";
 export interface DocumentoModelo {
   formato: typeof FORMATO;
   modelo: Modelo;
+  carpetaId?: Id | null;
 }
 
-export function exportarModelo(modelo: Modelo): string {
-  const documento: DocumentoModelo = { formato: FORMATO, modelo: normalizarModelo(modelo) };
+export function exportarModelo(modelo: Modelo, carpetaId?: Id | null): string {
+  const documento: DocumentoModelo = {
+    formato: FORMATO,
+    modelo: normalizarModelo(modelo),
+    ...(carpetaId !== undefined ? { carpetaId } : {}),
+  };
   return JSON.stringify(documento, null, 2);
 }
 
@@ -52,6 +57,20 @@ export function hidratarModelo(json: string): Resultado<Modelo> {
   const documento = validarDocumento(parsed);
   if (!documento.ok) return documento;
   return { ok: true, value: normalizarModelo(documento.value.modelo) };
+}
+
+/**
+ * Extrae el carpetaId opcional del JSON del modelo almacenado.
+ * Retorna null si no existe o el JSON no es válido.
+ */
+export function carpetaIdDeJson(json: string): Id | null {
+  try {
+    const parsed = JSON.parse(json);
+    if (esRecord(parsed) && parsed.formato === FORMATO && (parsed.carpetaId === null || typeof parsed.carpetaId === "string")) {
+      return parsed.carpetaId;
+    }
+  } catch { /* vacío */ }
+  return null;
 }
 
 function normalizarModelo(modelo: Modelo): Modelo {
@@ -86,12 +105,23 @@ function normalizarModelo(modelo: Modelo): Modelo {
 
 function normalizarEnlace(enlace: Enlace): Enlace {
   const rutaEtiqueta = rutaEtiquetaNormalizada(enlace.rutaEtiqueta);
+  const estilo = normalizarEstiloEnlace(enlace.estilo);
   return {
     ...enlace,
     origenId: normalizarExtremo(enlace.origenId),
     destinoId: normalizarExtremo(enlace.destinoId),
     ...(rutaEtiqueta ? { rutaEtiqueta } : {}),
+    ...(estilo ? { estilo } : {}),
   };
+}
+
+function normalizarEstiloEnlace(value: unknown): Enlace["estilo"] {
+  if (value === undefined || !esRecord(value)) return undefined;
+  const estilo: Enlace["estilo"] = {};
+  if (typeof value.color === "string" && esColorEstilo(value.color)) estilo.color = value.color.toLowerCase();
+  if (typeof value.strokeWidth === "number" && value.strokeWidth >= 1 && value.strokeWidth <= 6) estilo.strokeWidth = value.strokeWidth;
+  if (typeof value.dashArray === "string" && (value.dashArray === "" || value.dashArray === "4 4" || value.dashArray === "2 4" || value.dashArray === "6 4 2 4")) estilo.dashArray = value.dashArray;
+  return Object.keys(estilo).length > 0 ? estilo : undefined;
 }
 
 function validarDocumento(value: unknown): Resultado<DocumentoModelo> {
@@ -305,12 +335,20 @@ function validarOpds(value: Record<string, unknown>, entidades: Record<Id, Entid
     if (!apariencias.ok) return apariencias;
     const enlaces = validarAparienciasEnlace(id, raw.enlaces);
     if (!enlaces.ok) return enlaces;
+    let ordenLocal: number | undefined;
+    if (raw.ordenLocal !== undefined) {
+      if (typeof raw.ordenLocal !== "number" || !Number.isFinite(raw.ordenLocal) || raw.ordenLocal < 0) {
+        return fallo(`OPD inválido: ${id}.ordenLocal`);
+      }
+      ordenLocal = raw.ordenLocal;
+    }
     opds[id] = {
       id,
       nombre: raw.nombre,
       padreId: raw.padreId ?? null,
       apariencias: apariencias.value,
       enlaces: enlaces.value,
+      ...(ordenLocal !== undefined ? { ordenLocal } : {}),
     };
   }
   return ok(opds);
@@ -471,6 +509,8 @@ function validarEnlaces(
     }
     const rutaEtiqueta = validarRutaEtiquetaOpcional(id, raw.rutaEtiqueta);
     if (!rutaEtiqueta.ok) return rutaEtiqueta;
+    const estilo = validarEstiloEnlaceOpcional(id, raw.estilo);
+    if (!estilo.ok) return estilo;
     const enlace: Enlace = {
       id,
       tipo: raw.tipo,
@@ -479,6 +519,7 @@ function validarEnlaces(
       etiqueta: raw.etiqueta,
       ...(multiplicidadOrigen.value ? { multiplicidadOrigen: multiplicidadOrigen.value } : {}),
       ...(multiplicidadDestino.value ? { multiplicidadDestino: multiplicidadDestino.value } : {}),
+      ...(estilo.value ? { estilo: estilo.value } : {}),
       ...(raw.modificador ? { modificador: raw.modificador } : {}),
       ...(raw.probabilidad !== undefined ? { probabilidad: raw.probabilidad } : {}),
       ...(raw.demora ? { demora: raw.demora } : {}),
@@ -496,6 +537,25 @@ function validarRutaEtiquetaOpcional(enlaceId: Id, value: unknown): Resultado<st
   if (value === undefined) return ok(undefined);
   if (typeof value !== "string") return fallo(`Enlace inválido: ${enlaceId}.rutaEtiqueta`);
   return ok(rutaEtiquetaNormalizada(value));
+}
+
+function validarEstiloEnlaceOpcional(enlaceId: Id, value: unknown): Resultado<Enlace["estilo"]> {
+  if (value === undefined) return ok(undefined);
+  if (!esRecord(value)) return fallo(`Enlace inválido: ${enlaceId}.estilo`);
+  const estilo: Enlace["estilo"] = {};
+  if (value.color !== undefined) {
+    if (typeof value.color !== "string" || !esColorEstilo(value.color)) return fallo(`Enlace inválido: ${enlaceId}.estilo.color`);
+    estilo.color = value.color.toLowerCase();
+  }
+  if (value.strokeWidth !== undefined) {
+    if (typeof value.strokeWidth !== "number" || value.strokeWidth < 1 || value.strokeWidth > 6) return fallo(`Enlace inválido: ${enlaceId}.estilo.strokeWidth`);
+    estilo.strokeWidth = value.strokeWidth;
+  }
+  if (value.dashArray !== undefined) {
+    if (typeof value.dashArray !== "string" || !["", "4 4", "2 4", "6 4 2 4"].includes(value.dashArray)) return fallo(`Enlace inválido: ${enlaceId}.estilo.dashArray`);
+    estilo.dashArray = value.dashArray;
+  }
+  return ok(Object.keys(estilo).length > 0 ? estilo : undefined);
 }
 
 function validarExtremoEnlace(

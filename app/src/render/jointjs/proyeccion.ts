@@ -91,10 +91,11 @@ export function proyectarModeloAJointCells(
       const aparienciaPuerto = aparienciaPorEntidad.get(abanico.puertoEntidadId);
       if (!aparienciaPuerto) return [];
       return proyectarOverlayAbanicoCanonico({
-        opdId,
-        abanicoId: abanico.id,
-        operador: abanico.operador,
+        modelo,
+        opd,
+        abanico,
         aparienciaPuerto,
+        aparienciaPorEntidad,
       });
     });
   const enlacesConEndpoint = Object.values(opd.enlaces).flatMap((aparienciaEnlace): EnlaceConEndpointVisual[] => {
@@ -572,6 +573,10 @@ function proyectarEnlace(
   seleccionada: boolean,
 ): JointCellJson {
   const verticesRender = verticesEnlace(enlace.tipo, origen.apariencia, destino.apariencia, vertices);
+  const estiloE = enlace.estilo;
+  const colorEnlace = estiloE?.color ?? CANON.colores.enlace;
+  const grosorEnlace = estiloE?.strokeWidth ?? CANON.dims.enlaceVisible;
+  const dashOverride = estiloE?.dashArray !== undefined ? estiloE.dashArray || undefined : undefined;
   return {
     id: aparienciaEnlaceId,
     type: "standard.Link",
@@ -588,8 +593,9 @@ function proyectarEnlace(
         cursor: "pointer",
       },
       line: {
-        stroke: CANON.colores.enlace,
-        strokeWidth: seleccionada ? CANON.dims.enlaceVisible + 2 : CANON.dims.enlaceVisible,
+        stroke: colorEnlace,
+        strokeWidth: seleccionada ? grosorEnlace + 2 : grosorEnlace,
+        strokeDasharray: dashOverride,
         sourceMarker: marcadorFuente(enlace.tipo),
         targetMarker: marcadorDestino(enlace.tipo),
       },
@@ -875,34 +881,17 @@ function marcadoresEstructurales(
   const stroke = CANON.colores.enlace;
 
   if (tipo === "exhibicion") {
+    // Canon OpCloud (shared.ts ExhibitionLink.getTriangleSVG): outer triangulo
+    // SOLO contorno (fill blanco + stroke color) + inner pequeno relleno con color.
     const innerStrokeWidth = Math.max(1, strokeWidth - 1);
     return [
       polyShapeCell(triangleId, "standard.Polygon", position, size, angle, {
         refPoints: LINK_ASSETS.structural.agregacion.markerPoints,
-        fill: stroke,
+        fill: "white",
         stroke,
         strokeWidth,
         cursor: "pointer",
       }, meta),
-      {
-        id: `${triangleId}-medio`,
-        type: "standard.Polygon",
-        position: { x: position.x + 6, y: position.y + 8 },
-        size: { width: 18, height: 18 },
-        angle,
-        attrs: {
-          body: {
-            refPoints: LINK_ASSETS.structural.agregacion.markerPoints,
-            fill: "white",
-            stroke,
-            strokeWidth: innerStrokeWidth,
-            cursor: "pointer",
-          },
-          label: { text: "", display: "none" },
-        },
-        opm: meta,
-        z: 3,
-      },
       {
         id: `${triangleId}-pequeno`,
         type: "standard.Polygon",
@@ -920,7 +909,7 @@ function marcadoresEstructurales(
           label: { text: "", display: "none" },
         },
         opm: meta,
-        z: 4,
+        z: 3,
       },
     ];
   }

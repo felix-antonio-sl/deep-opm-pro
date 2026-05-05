@@ -1,15 +1,35 @@
+import { useEffect } from "preact/hooks";
 import { JointCanvas } from "../render/jointjs/JointCanvas";
+import { useOpmStore } from "../store";
 import { ArbolOpd } from "./ArbolOpd";
 import { ConfirmacionProvider } from "./ConfirmacionContext";
 import { DialogoCargarModelo } from "./DialogoCargarModelo";
 import { DialogoGuardarComo } from "./DialogoGuardarComo";
+import { GestionArbolOpd } from "./GestionArbolOpd";
 import { Inspector } from "./Inspector";
+import { MapaSistema } from "./MapaSistema";
 import { PanelAvisos } from "./PanelAvisos";
 import { PanelOpl } from "./PanelOpl";
 import { Timeline } from "./Timeline";
 import { Toolbar } from "./Toolbar";
 
 export function App() {
+  const vistaMapaActiva = useOpmStore((s) => s.vistaMapaActiva);
+  const abrirGestionArbol = useOpmStore((s) => s.abrirGestionArbol);
+  const gestionArbolAbierta = useOpmStore((s) => s.gestionArbolAbierta);
+
+  // Atajo Ctrl+D para Gestión del árbol OPD (HU-20.020)
+  useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.ctrlKey && e.key === "d") {
+        e.preventDefault();
+        abrirGestionArbol();
+      }
+    };
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
+  }, [abrirGestionArbol]);
+
   return (
     <ConfirmacionProvider>
       <main style={layout.page}>
@@ -19,7 +39,7 @@ export function App() {
             <ArbolOpd />
           </div>
           <div data-testid="canvas-pane" style={layout.canvasPane}>
-            <JointCanvas />
+            {vistaMapaActiva ? <MapaSistema /> : <JointCanvas />}
           </div>
           <div data-testid="inspector-pane" style={layout.inspectorPane}>
             <div style={layout.inspectorContent}>
@@ -32,6 +52,7 @@ export function App() {
         <PanelOpl />
         <DialogoGuardarComo />
         <DialogoCargarModelo />
+        <GestionArbolOpd />
       </main>
     </ConfirmacionProvider>
   );

@@ -9,9 +9,13 @@ export function MenuPrincipal() {
   const guardarLocal = useOpmStore((s) => s.guardarLocal);
   const abrirGuardarComo = useOpmStore((s) => s.abrirGuardarComo);
   const abrirCargarModelo = useOpmStore((s) => s.abrirCargarModelo);
+  const abrirBusquedaCosas = useOpmStore((s) => s.abrirBusquedaCosas);
   const cargarDemo = useOpmStore((s) => s.cargarDemo);
   const exportarJson = useOpmStore((s) => s.exportarJson);
+  const abrirVistaMapa = useOpmStore((s) => s.abrirVistaMapa);
+  const abrirTablaEnlaces = useOpmStore((s) => s.abrirTablaEnlaces);
   const confirmarSiDirty = useConfirmarSiDirty();
+  const iniciarAsistente = useOpmStore((s) => s.iniciarAsistente);
 
   if (!abierto) return null;
 
@@ -25,6 +29,9 @@ export function MenuPrincipal() {
       <button type="button" role="menuitem" style={style.item} onClick={() => ejecutar(() => confirmarSiDirty(nuevoModelo))}>
         Nuevo
       </button>
+      <button type="button" role="menuitem" style={style.item} onClick={() => ejecutar(iniciarAsistente)}>
+        Nuevo modelo por asistente
+      </button>
       <button type="button" role="menuitem" style={style.item} onClick={() => ejecutar(guardarLocal)}>
         Guardar
       </button>
@@ -33,6 +40,13 @@ export function MenuPrincipal() {
       </button>
       <button type="button" role="menuitem" style={style.item} onClick={() => ejecutar(() => confirmarSiDirty(abrirCargarModelo))}>
         Cargar
+      </button>
+      <div aria-hidden="true" style={style.divider} />
+      <button type="button" role="menuitem" style={style.item} onClick={() => ejecutar(abrirBusquedaCosas)}>
+        Buscar cosas (Ctrl+F)
+      </button>
+      <button type="button" role="menuitem" style={style.item} onClick={() => ejecutar(() => abrirVistaMapa())}>
+        Mapa del sistema
       </button>
       <button
         type="button"
@@ -47,6 +61,9 @@ export function MenuPrincipal() {
       </button>
       <button type="button" role="menuitem" style={style.item} onClick={() => ejecutar(() => confirmarSiDirty(cargarDemo))}>
         Demo
+      </button>
+      <button type="button" role="menuitem" style={style.item} onClick={() => ejecutar(abrirTablaEnlaces)}>
+        Tabla de enlaces
       </button>
       <div aria-hidden="true" style={style.footer}>
         <img src={modelWizardIcon} alt="" style={style.icon} />
@@ -94,6 +111,11 @@ const style = {
     color: "#667085",
     fontSize: "12px",
     fontWeight: 700,
+  },
+  divider: {
+    height: "1px",
+    margin: "2px 0",
+    background: "#e4eaf1",
   },
   icon: {
     width: "18px",

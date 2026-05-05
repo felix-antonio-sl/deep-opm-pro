@@ -70,6 +70,8 @@ export function resetearEstiloApariencia(modelo: Modelo, opdId: Id, aparienciaId
   });
 }
 
+const FONT_FAMILIES = ["Arial", "Helvetica", "Times New Roman", "Courier New", "Verdana"] as const;
+
 export function normalizarEstiloApariencia(value: unknown): EstiloApariencia | undefined {
   if (value === undefined) return undefined;
   if (!esRecord(value)) return undefined;
@@ -78,8 +80,32 @@ export function normalizarEstiloApariencia(value: unknown): EstiloApariencia | u
   if (typeof value.fill === "string" && esColorEstilo(value.fill)) estilo.fill = normalizarColor(value.fill);
   if (typeof value.borderColor === "string" && esColorEstilo(value.borderColor)) estilo.borderColor = normalizarColor(value.borderColor);
 
+  // Campos de texto
+  if (typeof value.fontFamily === "string" && FONT_FAMILIES.includes(value.fontFamily as typeof FONT_FAMILIES[number])) {
+    estilo.fontFamily = value.fontFamily;
+  }
+  if (typeof value.fontSize === "number" && value.fontSize >= 8 && value.fontSize <= 24) {
+    estilo.fontSize = value.fontSize;
+  }
+  if (typeof value.fontWeight === "number" && [100, 200, 300, 400, 500, 600, 700, 800, 900].includes(value.fontWeight)) {
+    estilo.fontWeight = value.fontWeight;
+  } else if (value.fontWeight === "normal" || value.fontWeight === "bold") {
+    estilo.fontWeight = value.fontWeight;
+  }
+  if (value.fontStyle === "normal" || value.fontStyle === "italic") {
+    estilo.fontStyle = value.fontStyle;
+  }
+  if (typeof value.textColor === "string" && esColorEstilo(value.textColor)) {
+    estilo.textColor = normalizarColor(value.textColor);
+  }
+  if (value.textAnchor === "start" || value.textAnchor === "middle" || value.textAnchor === "end") {
+    estilo.textAnchor = value.textAnchor;
+  }
+
   return Object.keys(estilo).length > 0 ? estilo : undefined;
 }
+
+export const FAMILIAS_TIPOGRAFICAS = [...FONT_FAMILIES] as string[];
 
 export function esColorEstilo(value: string): boolean {
   return HEX_COLOR_RE.test(value);

@@ -25,6 +25,8 @@ export function InspectorEntidad({ entidad }: Props) {
   const cambiarOrdenPartes = useOpmStore((s) => s.cambiarOrdenPartesSeleccionado);
   const aplicarEstilo = useOpmStore((s) => s.aplicarEstiloSeleccionado);
   const resetearEstilo = useOpmStore((s) => s.resetearEstiloSeleccionado);
+  const aplicarEstiloTexto = useOpmStore((s) => s.aplicarEstiloTextoAccion);
+  const resetearEstiloTexto = useOpmStore((s) => s.resetEstiloTextoAccion);
   const extraerParte = useOpmStore((s) => s.extraerParteDePlegado);
   const reinsertarParte = useOpmStore((s) => s.reinsertarParteExtraidaSeleccionada);
   const agregarEstados = useOpmStore((s) => s.agregarEstadosObjeto);
@@ -199,6 +201,9 @@ export function InspectorEntidad({ entidad }: Props) {
           estilo={aparienciaActiva.estilo}
           onApply={aplicarEstilo}
           onReset={resetearEstilo}
+          showText
+          onApplyText={(textPatch) => aplicarEstiloTexto(aparienciaActiva.id, textPatch)}
+          onResetText={() => resetearEstiloTexto(aparienciaActiva.id)}
         />
       ) : null}
 
