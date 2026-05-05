@@ -661,6 +661,46 @@ test("gestiona estados M0 de objeto con capsulas internas y OPL", async ({ page 
   expect(pageErrors).toEqual([]);
 });
 
+test("split de efecto convierte enlace en consumo + resultado intermedio", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await page.getByRole("button", { name: "Objeto" }).click();
+  await page.getByLabel("Nombre").fill("Sistema");
+  await page.getByRole("button", { name: "Proceso" }).click();
+  await page.getByLabel("Nombre").fill("Actualizar");
+
+  // Crear el efecto via toolbar: seleccionar origen, elegir tipo, click destino.
+  const sistema = page.locator(".joint-element").filter({ hasText: "Sistema" }).first();
+  const actualizar = page.locator(".joint-element").filter({ hasText: "Actualizar" }).first();
+  await sistema.click();
+  await page.getByLabel("Tipo de enlace").selectOption("efecto");
+  await actualizar.click();
+
+  // Hay 2 entidades + 1 efecto.
+  await expect(page.locator(".joint-element")).toHaveCount(2);
+  await expect(page.locator(".joint-link")).toHaveCount(1);
+
+  // Seleccionar el enlace de efecto y splittearlo.
+  await clickCentroLink(page);
+  await page.getByRole("button", { name: "Split en par" }).click();
+
+  // Tras el split: 3 entidades (Sistema, Actualizar, "Sistema modificado") y 2 enlaces.
+  await expect(page.locator(".joint-element")).toHaveCount(3);
+  await expect(page.locator(".joint-link")).toHaveCount(2);
+  await expect(elementoPorTexto(page, "Sistema modificado")).toHaveCount(1);
+
+  // El JSON exportado refleja consumo + resultado y NO efecto.
+  await page.getByRole("button", { name: "Exportar" }).click();
+  const json = await page.locator("textarea").first().inputValue();
+  expect(json).toContain('"consumo"');
+  expect(json).toContain('"resultado"');
+  expect(json).not.toMatch(/"tipo"\s*:\s*"efecto"/);
+
+  expect(pageErrors).toEqual([]);
+});
+
 test("renderiza agregacion como triangulo estructural", async ({ page }) => {
   const pageErrors: string[] = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));
