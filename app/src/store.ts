@@ -43,6 +43,7 @@ import {
   type ResumenModeloPersistido,
 } from "./persistencia/local";
 import { exportarModelo, hidratarModelo } from "./serializacion/json";
+import type { Aviso } from "./modelo/validaciones";
 import type { Afiliacion, Apariencia, Esencia, Id, Modelo, ModoDespliegueObjeto, ModoPlegado, Posicion, TipoEnlace } from "./modelo/tipos";
 
 interface ModoEnlace {
@@ -73,6 +74,7 @@ interface OpmStore {
   cambiarOpdActivo: (id: Id) => void;
   seleccionarEntidad: (id: Id) => void;
   seleccionarEnlace: (id: Id) => void;
+  navegarAviso: (aviso: Aviso) => void;
   deshacer: () => void;
   rehacer: () => void;
   elegirTipoEnlace: (tipo: TipoEnlace) => void;
@@ -300,6 +302,49 @@ export const store = createStore<OpmStore>((set, get) => ({
       return;
     }
     set({ seleccionId: null, enlaceSeleccionId: id, modoEnlace: null, mensaje: null });
+  },
+
+  navegarAviso(aviso) {
+    const { modelo, opdActivoId } = get();
+    const opdDestino = opdDestinoDeAviso(modelo, aviso, opdActivoId);
+
+    if (aviso.elementoTipo === "entidad" && aviso.elementoId && modelo.entidades[aviso.elementoId]) {
+      set({
+        opdActivoId: opdDestino ?? opdActivoId,
+        seleccionId: aviso.elementoId,
+        enlaceSeleccionId: null,
+        modoEnlace: null,
+        mensaje: null,
+      });
+      return;
+    }
+
+    if (aviso.elementoTipo === "enlace" && aviso.elementoId && modelo.enlaces[aviso.elementoId]) {
+      set({
+        opdActivoId: opdDestino ?? opdActivoId,
+        seleccionId: null,
+        enlaceSeleccionId: aviso.elementoId,
+        modoEnlace: null,
+        mensaje: null,
+      });
+      return;
+    }
+
+    if (aviso.elementoTipo === "opd") {
+      const destino = aviso.elementoId && modelo.opds[aviso.elementoId] ? aviso.elementoId : opdDestino;
+      if (destino) {
+        set({
+          opdActivoId: destino,
+          seleccionId: null,
+          enlaceSeleccionId: null,
+          modoEnlace: null,
+          mensaje: null,
+        });
+        return;
+      }
+    }
+
+    set({ mensaje: "Aviso sin elemento navegable" });
   },
 
   elegirTipoEnlace(tipo) {
@@ -844,6 +889,37 @@ function estadoModelo(modelo: Modelo, extra: Partial<OpmStore> = {}): Partial<Op
 
 function opdActivoSeguro(modelo: Modelo, opdActivoId: Id): Id {
   return modelo.opds[opdActivoId] ? opdActivoId : modelo.opdRaizId;
+}
+
+function opdDestinoDeAviso(modelo: Modelo, aviso: Aviso, opdActivoId: Id): Id | null {
+  if (aviso.opdId && modelo.opds[aviso.opdId]) return aviso.opdId;
+  if (!aviso.elementoId) return null;
+  if (aviso.elementoTipo === "opd") return modelo.opds[aviso.elementoId] ? aviso.elementoId : null;
+  if (aviso.elementoTipo === "enlace") return opdIdDeEnlace(modelo, aviso.elementoId, opdActivoId);
+  if (aviso.elementoTipo === "entidad") return opdIdDeEntidad(modelo, aviso.elementoId, opdActivoId);
+  return null;
+}
+
+function opdIdDeEnlace(modelo: Modelo, enlaceId: Id, opdPreferidoId: Id): Id | null {
+  const preferido = modelo.opds[opdPreferidoId];
+  if (preferido && Object.values(preferido.enlaces).some((apariencia) => apariencia.enlaceId === enlaceId)) {
+    return opdPreferidoId;
+  }
+  for (const opd of Object.values(modelo.opds)) {
+    if (Object.values(opd.enlaces).some((apariencia) => apariencia.enlaceId === enlaceId)) return opd.id;
+  }
+  return null;
+}
+
+function opdIdDeEntidad(modelo: Modelo, entidadId: Id, opdPreferidoId: Id): Id | null {
+  const preferido = modelo.opds[opdPreferidoId];
+  if (preferido && Object.values(preferido.apariencias).some((apariencia) => apariencia.entidadId === entidadId)) {
+    return opdPreferidoId;
+  }
+  for (const opd of Object.values(modelo.opds)) {
+    if (Object.values(opd.apariencias).some((apariencia) => apariencia.entidadId === entidadId)) return opd.id;
+  }
+  return null;
 }
 
 function crearDemo(): Modelo {

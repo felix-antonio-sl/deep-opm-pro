@@ -30,6 +30,11 @@ export function validarModelo(modelo: Modelo, opdActivoId: Id): Aviso[] {
     ...reglaProceduralNoObjetoObjeto(modelo, opdActivoId),
     ...reglaEstructuralSinDuplicar(modelo, opdActivoId),
     ...reglaSubprocesoNoConectaAlPadre(modelo),
+    ...reglaAgenteRequiereObjetoFisico(modelo, opdActivoId),
+    ...reglaProcesoSinEntradaNiSalida(modelo, opdActivoId),
+    ...reglaInstrumentoYAgenteSimultaneos(modelo, opdActivoId),
+    ...reglaSoloUnNivelDeInstanciacion(modelo, opdActivoId),
+    ...reglaConsumoDobleMismoObjeto(modelo, opdActivoId),
   ];
   return priorizarOpdActivo(avisos, opdActivoId);
 }
@@ -139,6 +144,139 @@ function reglaSubprocesoNoConectaAlPadre(modelo: Modelo): Aviso[] {
   return avisos;
 }
 
+function reglaAgenteRequiereObjetoFisico(modelo: Modelo, opdActivoId: Id): Aviso[] {
+  // Inspirado en OPCloud AgentConsistency; SSOT: agente humano [Glos 3.3] modelado como objeto físico [Glos 3.39].
+  return enlacesConExtremos(modelo)
+    .filter(({ enlace, origen, destino }) => (
+      enlace.tipo === "agente" &&
+      origen.tipo === "objeto" &&
+      destino.tipo === "proceso" &&
+      origen.esencia !== "fisica"
+    ))
+    .map(({ enlace, origen, destino }) => avisoEnlace(modelo, opdActivoId, enlace, {
+      reglaId: "agente-requiere-objeto-fisico",
+      severidad: "error",
+      mensaje: `El agente ${origen.nombre} que habilita ${destino.nombre} debe ser un objeto físico/humano; si es sistema o software usa instrumento.`,
+      citaSSOT: "[Glos 3.3] [Glos 3.39]",
+    }));
+}
+
+function reglaProcesoSinEntradaNiSalida(modelo: Modelo, opdActivoId: Id): Aviso[] {
+  // OPCloud no expone esta clase en behavioral.rules.ts; SSOT exige proceso transformador [Glos 3.58] y V-115.
+  const avisos: Aviso[] = [];
+  const enlacesRelevantes = new Set<TipoEnlace>([
+    "consumo",
+    "resultado",
+    "efecto",
+    "agente",
+    "instrumento",
+    "invocacion",
+  ]);
+
+  for (const proceso of Object.values(modelo.entidades)) {
+    if (proceso.tipo !== "proceso") continue;
+    if (proceso.refinamiento?.tipo === "descomposicion") continue;
+    const tieneEnlaceOperativo = Object.values(modelo.enlaces).some((enlace) => (
+      enlacesRelevantes.has(enlace.tipo) &&
+      (enlace.origenId === proceso.id || enlace.destinoId === proceso.id)
+    ));
+    if (tieneEnlaceOperativo) continue;
+
+    const opdId = opdIdDeEntidad(modelo, proceso.id, opdActivoId);
+    avisos.push({
+      reglaId: "proceso-sin-entrada-ni-salida",
+      severidad: "advertencia",
+      mensaje: `El proceso ${proceso.nombre} no participa en enlaces de transformación, habilitación o invocación; revisa si falta entrada/salida o si debe abstraerse.`,
+      citaSSOT: "[Glos 3.58] [V-115] [V-239]",
+      elementoTipo: "entidad",
+      elementoId: proceso.id,
+      ...(opdId ? { opdId } : {}),
+    });
+  }
+
+  return avisos;
+}
+
+function reglaInstrumentoYAgenteSimultaneos(modelo: Modelo, opdActivoId: Id): Aviso[] {
+  // Inspirado en OPCloud InstrumentWithAgentConsistency1/2; SSOT separa agente humano [Glos 3.3] de instrumento no humano [Glos 3.30].
+  const agentes = new Map<string, Enlace>();
+  const instrumentos = new Map<string, Enlace>();
+  const avisos: Aviso[] = [];
+
+  for (const { enlace, origen, destino } of enlacesConExtremos(modelo)) {
+    if (origen.tipo !== "objeto" || destino.tipo !== "proceso") continue;
+    if (enlace.tipo === "agente") agentes.set(clavePar(origen.id, destino.id), enlace);
+    if (enlace.tipo === "instrumento") instrumentos.set(clavePar(origen.id, destino.id), enlace);
+  }
+
+  for (const [clave, enlaceInstrumento] of instrumentos) {
+    const enlaceAgente = agentes.get(clave);
+    if (!enlaceAgente) continue;
+    const origen = modelo.entidades[enlaceInstrumento.origenId];
+    const destino = modelo.entidades[enlaceInstrumento.destinoId];
+    avisos.push(avisoEnlace(modelo, opdActivoId, enlaceInstrumento, {
+      reglaId: "instrumento-y-agente-simultaneos",
+      severidad: "advertencia",
+      mensaje: `${origen?.nombre ?? enlaceInstrumento.origenId} aparece como agente e instrumento del mismo proceso ${destino?.nombre ?? enlaceInstrumento.destinoId}; elige un rol procedimental único.`,
+      citaSSOT: "[Glos 3.3] [Glos 3.30] [V-239]",
+    }));
+  }
+
+  return avisos;
+}
+
+function reglaSoloUnNivelDeInstanciacion(modelo: Modelo, opdActivoId: Id): Aviso[] {
+  // Inspirado en OPCloud OnlyOneLevelOfInstantiation; en esta app aplica al enlace clasificación-instanciación.
+  const avisos: Aviso[] = [];
+  const clasesPorInstancia = new Map<Id, Enlace[]>();
+
+  for (const enlace of Object.values(modelo.enlaces)) {
+    if (enlace.tipo !== "clasificacion") continue;
+    const existentes = clasesPorInstancia.get(enlace.origenId) ?? [];
+    clasesPorInstancia.set(enlace.origenId, [...existentes, enlace]);
+  }
+
+  for (const enlace of Object.values(modelo.enlaces)) {
+    if (enlace.tipo !== "clasificacion") continue;
+    const enlacesSiguientes = clasesPorInstancia.get(enlace.destinoId) ?? [];
+    for (const enlaceSiguiente of enlacesSiguientes) {
+      const instanciaIntermedia = modelo.entidades[enlace.destinoId];
+      const instanciaFinal = modelo.entidades[enlaceSiguiente.destinoId];
+      avisos.push(avisoEnlace(modelo, opdActivoId, enlaceSiguiente, {
+        reglaId: "solo-un-nivel-de-instanciacion",
+        severidad: "advertencia",
+        mensaje: `${instanciaIntermedia?.nombre ?? enlace.destinoId} ya es instancia y además clasifica a ${instanciaFinal?.nombre ?? enlaceSiguiente.destinoId}; revisa si corresponde generalización o una sola clasificación directa.`,
+        citaSSOT: "[Glos 3.28] [V-239]",
+      }));
+    }
+  }
+
+  return avisos;
+}
+
+function reglaConsumoDobleMismoObjeto(modelo: Modelo, opdActivoId: Id): Aviso[] {
+  // Inspirado en OPCloud LegalConsumptionWarning; V-43 invalida consumo+consumo sobre el mismo objeto abstracto.
+  const avisos: Aviso[] = [];
+  const primerConsumoPorPar = new Set<string>();
+
+  for (const { enlace, origen, destino } of enlacesConExtremos(modelo)) {
+    if (enlace.tipo !== "consumo" || origen.tipo !== "objeto" || destino.tipo !== "proceso") continue;
+    const clave = clavePar(origen.id, destino.id);
+    if (!primerConsumoPorPar.has(clave)) {
+      primerConsumoPorPar.add(clave);
+      continue;
+    }
+    avisos.push(avisoEnlace(modelo, opdActivoId, enlace, {
+      reglaId: "consumo-doble-mismo-objeto",
+      severidad: "advertencia",
+      mensaje: `${destino.nombre} consume ${origen.nombre} más de una vez; considera un único consumo o un abanico XOR/OR cuando sea alternativo.`,
+      citaSSOT: "[V-43] [V-239]",
+    }));
+  }
+
+  return avisos;
+}
+
 function enlacesConExtremos(modelo: Modelo): Array<{ enlace: Enlace; origen: Entidad; destino: Entidad }> {
   return Object.values(modelo.enlaces).flatMap((enlace) => {
     const origen = modelo.entidades[enlace.origenId];
@@ -185,6 +323,17 @@ function opdIdDeEnlace(modelo: Modelo, enlaceId: Id, opdPreferidoId: Id): Id | n
   return null;
 }
 
+function opdIdDeEntidad(modelo: Modelo, entidadId: Id, opdPreferidoId: Id): Id | null {
+  const opdPreferido = modelo.opds[opdPreferidoId];
+  if (opdPreferido && Object.values(opdPreferido.apariencias).some((apariencia) => apariencia.entidadId === entidadId)) {
+    return opdPreferidoId;
+  }
+  for (const opd of Object.values(modelo.opds)) {
+    if (Object.values(opd.apariencias).some((apariencia) => apariencia.entidadId === entidadId)) return opd.id;
+  }
+  return null;
+}
+
 function priorizarOpdActivo(avisos: Aviso[], opdActivoId: Id): Aviso[] {
   return avisos
     .map((aviso, index) => ({ aviso, index }))
@@ -208,4 +357,8 @@ function dentroDe(apariencia: Apariencia, contorno: Apariencia): boolean {
 
 function etiquetaTipo(tipo: TipoEnlace): string {
   return tipo.replaceAll("-", " ");
+}
+
+function clavePar(origenId: Id, destinoId: Id): string {
+  return `${origenId}->${destinoId}`;
 }

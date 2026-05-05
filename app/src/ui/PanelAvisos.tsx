@@ -1,3 +1,4 @@
+import { useState } from "preact/hooks";
 import type { Aviso, SeveridadAviso } from "../modelo/validaciones";
 import { validarModelo } from "../modelo/validaciones";
 import type { Id, Modelo } from "../modelo/tipos";
@@ -38,30 +39,28 @@ const SEVERIDAD: Record<SeveridadAviso, SeveridadMeta> = {
 export function PanelAvisos() {
   const modelo = useOpmStore((s) => s.modelo);
   const opdActivoId = useOpmStore((s) => s.opdActivoId);
-  const cambiarOpdActivo = useOpmStore((s) => s.cambiarOpdActivo);
-  const seleccionarEntidad = useOpmStore((s) => s.seleccionarEntidad);
-  const seleccionarEnlace = useOpmStore((s) => s.seleccionarEnlace);
+  const navegarAviso = useOpmStore((s) => s.navegarAviso);
+  const [revision, setRevision] = useState(0);
+  const [citaActiva, setCitaActiva] = useState<string | null>(null);
   const avisos = validarModelo(modelo, opdActivoId);
 
-  const navegar = (aviso: Aviso) => {
-    const opdDestino = opdDestinoDeAviso(modelo, aviso, opdActivoId);
-    if (opdDestino && opdDestino !== opdActivoId) cambiarOpdActivo(opdDestino);
-
-    if (aviso.elementoTipo === "entidad" && aviso.elementoId && modelo.entidades[aviso.elementoId]) {
-      seleccionarEntidad(aviso.elementoId);
-    } else if (aviso.elementoTipo === "enlace" && aviso.elementoId && modelo.enlaces[aviso.elementoId]) {
-      seleccionarEnlace(aviso.elementoId);
-    } else if (aviso.elementoTipo === "opd" && aviso.elementoId && modelo.opds[aviso.elementoId]) {
-      cambiarOpdActivo(aviso.elementoId);
-    }
-  };
-
   return (
-    <aside data-testid="panel-avisos" aria-label="Verificación metodológica" style={style.panel}>
+    <aside data-testid="panel-avisos" data-revision={revision} aria-label="Verificación metodológica" style={style.panel}>
       <div style={style.header}>
         <span>Verificación metodológica</span>
-        <span style={contadorStyle(avisos)}>{avisos.length}</span>
+        <span style={style.headerActions}>
+          <button type="button" style={style.revalidar} onClick={() => setRevision((valor) => valor + 1)}>
+            Revalidar
+          </button>
+          <span style={contadorStyle(avisos)}>{avisos.length}</span>
+        </span>
       </div>
+      {citaActiva ? (
+        <div data-testid="panel-avisos-cita" style={style.citaDetalle}>
+          <span style={style.citaDetalleLabel}>SSOT</span>
+          <span>{citaActiva}</span>
+        </div>
+      ) : null}
       {avisos.length === 0 ? (
         <div style={style.empty}>
           <span style={style.emptyDot} aria-hidden="true" />
@@ -73,14 +72,11 @@ export function PanelAvisos() {
             const meta = SEVERIDAD[aviso.severidad];
             const disabled = !puedeNavegar(modelo, aviso);
             return (
-              <button
+              <article
                 key={`${aviso.reglaId}-${aviso.elementoId ?? aviso.opdId ?? index}`}
-                type="button"
                 role="listitem"
-                disabled={disabled}
                 style={filaStyle(meta, disabled)}
                 title={disabled ? aviso.mensaje : "Ir al elemento"}
-                onClick={() => navegar(aviso)}
               >
                 <span aria-label={meta.etiqueta} title={meta.etiqueta} style={iconoStyle(meta)}>
                   {meta.icono}
@@ -90,8 +86,25 @@ export function PanelAvisos() {
                   <span style={style.message}>{aviso.mensaje}</span>
                   <span style={style.target}>{etiquetaElemento(modelo, aviso)}</span>
                 </span>
-                <span style={style.cita}>{aviso.citaSSOT}</span>
-              </button>
+                <span style={style.rowActions}>
+                  <button
+                    type="button"
+                    style={style.cita}
+                    title={`Cita SSOT ${aviso.citaSSOT}`}
+                    onClick={() => setCitaActiva(aviso.citaSSOT)}
+                  >
+                    {aviso.citaSSOT}
+                  </button>
+                  <button
+                    type="button"
+                    disabled={disabled}
+                    style={irElementoStyle(disabled)}
+                    onClick={() => navegarAviso(aviso)}
+                  >
+                    Ir
+                  </button>
+                </span>
+              </article>
             );
           })}
         </div>
@@ -186,6 +199,14 @@ function iconoStyle(meta: SeveridadMeta): preact.JSX.CSSProperties {
   };
 }
 
+function irElementoStyle(disabled: boolean): preact.JSX.CSSProperties {
+  return {
+    ...style.irElemento,
+    opacity: disabled ? 0.48 : 1,
+    cursor: disabled ? "default" : "pointer",
+  };
+}
+
 const style = {
   panel: {
     gridRow: "3",
@@ -195,8 +216,8 @@ const style = {
     overflow: "hidden",
     background: "#ffffff",
     borderTop: "1px solid #d9e0ea",
-    display: "grid",
-    gridTemplateRows: "42px minmax(0, 1fr)",
+    display: "flex",
+    flexDirection: "column",
     fontFamily: "Arial, sans-serif",
   },
   header: {
@@ -210,6 +231,22 @@ const style = {
     fontSize: "13px",
     fontWeight: 700,
   },
+  headerActions: {
+    display: "inline-flex",
+    alignItems: "center",
+    gap: "8px",
+  },
+  revalidar: {
+    border: "1px solid #cbd5e1",
+    background: "#ffffff",
+    color: "#334155",
+    borderRadius: "4px",
+    padding: "3px 7px",
+    fontFamily: "Arial, sans-serif",
+    fontSize: "11px",
+    fontWeight: 700,
+    cursor: "pointer",
+  },
   count: {
     minWidth: "24px",
     height: "18px",
@@ -220,8 +257,27 @@ const style = {
     fontSize: "11px",
     fontWeight: 700,
   },
+  citaDetalle: {
+    display: "flex",
+    alignItems: "center",
+    gap: "6px",
+    minWidth: 0,
+    padding: "5px 12px",
+    borderBottom: "1px solid #e4eaf1",
+    color: "#334155",
+    background: "#f8fafc",
+    fontSize: "11px",
+    fontWeight: 700,
+    overflow: "hidden",
+  },
+  citaDetalleLabel: {
+    color: "#175cd3",
+    flex: "0 0 auto",
+  },
   list: {
     overflow: "auto",
+    minHeight: 0,
+    flex: "1 1 auto",
     padding: "8px",
     display: "grid",
     alignContent: "start",
@@ -250,7 +306,7 @@ const style = {
     borderRadius: "4px",
     padding: "7px 8px",
     display: "grid",
-    gridTemplateColumns: "22px minmax(0, 1fr) auto",
+    gridTemplateColumns: "22px minmax(0, 1fr) minmax(92px, auto)",
     alignItems: "start",
     gap: "8px",
     color: "#1f2937",
@@ -293,10 +349,33 @@ const style = {
     lineHeight: 1.2,
     overflowWrap: "anywhere",
   },
+  rowActions: {
+    display: "grid",
+    justifyItems: "end",
+    gap: "5px",
+    minWidth: 0,
+  },
   cita: {
-    color: "#475467",
+    border: "1px solid #cbd5e1",
+    borderRadius: "4px",
+    background: "#ffffff",
+    color: "#175cd3",
     fontSize: "11px",
     fontWeight: 700,
-    whiteSpace: "nowrap",
+    fontFamily: "Arial, sans-serif",
+    padding: "3px 5px",
+    maxWidth: "150px",
+    overflowWrap: "anywhere",
+    cursor: "pointer",
+  },
+  irElemento: {
+    border: "1px solid #cbd5e1",
+    borderRadius: "4px",
+    background: "#ffffff",
+    color: "#334155",
+    fontFamily: "Arial, sans-serif",
+    fontSize: "11px",
+    fontWeight: 700,
+    padding: "3px 8px",
   },
 } satisfies Record<string, preact.JSX.CSSProperties>;
