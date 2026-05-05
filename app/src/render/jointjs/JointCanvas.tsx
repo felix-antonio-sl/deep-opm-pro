@@ -64,6 +64,27 @@ export function JointCanvas() {
       drawGrid: true,
       background: { color: "#eef3f8" },
       linkPinning: false,
+      // Confina children embedded al bbox del padre durante el drag visual
+      // (HU-12.020). Sin esto, los subprocesos internos pueden salir del
+      // contorno y la kernel los snap-back al soltar, generando UX confuso.
+      restrictTranslate(elementView) {
+        const cell = cellViewModel(elementView as unknown as dia.CellView) as dia.Element;
+        const parentId = (cell as unknown as { get(prop: string): string | undefined }).get("parent");
+        if (!parentId) return false;
+        const parent = graph.getCell(parentId) as dia.Element | undefined;
+        if (!parent || parent.isLink()) return false;
+        const parentBBox = parent.getBBox();
+        const cellBBox = cell.getBBox();
+        const padX = 12;
+        const padTop = 50;
+        const padBottom = 20;
+        return {
+          x: parentBBox.x + padX,
+          y: parentBBox.y + padTop,
+          width: Math.max(0, parentBBox.width - 2 * padX - cellBBox.width),
+          height: Math.max(0, parentBBox.height - padTop - padBottom - cellBBox.height),
+        };
+      },
       interactive(cellView) {
         const model = cellViewModel(cellView);
         if (model.isLink()) {
@@ -142,6 +163,7 @@ export function JointCanvas() {
     sincronizandoRef.current = true;
     adapter.graph.resetCells(cells as dia.Cell.JSON[]);
     setPaperDimensions(adapter.paper, dimensionesPaper(cells));
+    embedirContorno(adapter.graph);
     sincronizandoRef.current = false;
     instalarHerramientasEnlaceSeleccionado(adapter, enlaceSeleccionId);
   }, [enlaceSeleccionId, modelo, opdActivoId, seleccionId]);
@@ -212,6 +234,50 @@ function setPaperDimensions(paper: dia.Paper, dimensiones: { width: number; heig
   const element = (paper as unknown as { el: HTMLElement }).el;
   element.style.width = `${dimensiones.width}px`;
   element.style.height = `${dimensiones.height}px`;
+}
+
+// Identifica el contorno refinable (cell de mayor tamano marcado como entidad
+// cuya apariencia define el limite del OPD activo) y le embeba todos los
+// cells "entidad" cuyo centro caiga dentro de su bbox. JointJS arrastra
+// automaticamente los cells embedded cuando el padre se mueve, sincronizando
+// el render durante el drag visual con el delta que la kernel persiste al
+// soltar (HU-12.008 contenedor envolvente; ver moverAparienciaPorId).
+function embedirContorno(graph: dia.Graph): void {
+  const elementos = graph.getElements();
+  if (elementos.length === 0) return;
+  let contorno: dia.Element | null = null;
+  let mayorArea = 0;
+  for (const cell of elementos) {
+    const meta = cell.prop("opm") as OpmJointMetadata | undefined;
+    if (meta?.kind !== "entidad") continue;
+    const bbox = cell.getBBox();
+    const area = bbox.width * bbox.height;
+    if (area > mayorArea) {
+      mayorArea = area;
+      contorno = cell;
+    }
+  }
+  if (!contorno) return;
+  // Heuristica: el contorno es entidad y al menos 1.5x el tamano de cosas
+  // canonicas (135x60 = 8100). Si el "mayor" no califica, no hay contorno.
+  if (mayorArea < 16000) return;
+
+  const contornoBBox = contorno.getBBox();
+  for (const cell of elementos) {
+    if (cell.id === contorno.id) continue;
+    const meta = cell.prop("opm") as OpmJointMetadata | undefined;
+    if (meta?.kind !== "entidad") continue;
+    const cellBBox = cell.getBBox();
+    const center = {
+      x: cellBBox.x + cellBBox.width / 2,
+      y: cellBBox.y + cellBBox.height / 2,
+    };
+    const dentro = center.x >= contornoBBox.x
+      && center.x <= contornoBBox.x + contornoBBox.width
+      && center.y >= contornoBBox.y
+      && center.y <= contornoBBox.y + contornoBBox.height;
+    if (dentro) contorno.embed(cell);
+  }
 }
 
 function dimensionesPaper(cells: dia.Cell.JSON[]): { width: number; height: number } {
