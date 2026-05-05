@@ -16,21 +16,22 @@ export interface GeometriaAbanico {
   size: { width: number; height: number };
 }
 
-export function calcularGeometriaAbanico(args: {
-  aparienciaPuerto: Apariencia;
-  tipoEntidadPuerto: TipoEntidad;
-  centrosOtros: Posicion[];
+export function calcularGeometriaAbanicoDesdePuntos(args: {
+  dock: Posicion;
+  // Un punto sample por rama, a ~RADIO_INTERNO sobre cada link real
+  // (proviene de linkView.getPointAtLength en sync con LinkView). Los
+  // angulos del arco se calculan desde el dock a estos puntos, igual que
+  // OpCloud (shared.ts:5039-5051).
+  puntosOtros: Posicion[];
   operador: "O" | "XOR";
 }): GeometriaAbanico | null {
-  if (args.centrosOtros.length < 2) return null;
-
-  const dock = puntoDockEnPuerto(args.aparienciaPuerto, args.tipoEntidadPuerto, args.centrosOtros);
-  const angulos = args.centrosOtros.map((centro) => anguloDesdeDock(dock, centro));
+  if (args.puntosOtros.length < 2) return null;
+  const angulos = args.puntosOtros.map((p) => anguloDesdeDock(args.dock, p));
   const { startAngle, endAngle } = angulosExtremos(angulos);
 
   const radioMax = args.operador === "O" ? RADIO_EXTERNO : RADIO_INTERNO;
   const padding = radioMax + PADDING_CELL;
-  const cellOrigen: Posicion = { x: dock.x - padding, y: dock.y - padding };
+  const cellOrigen: Posicion = { x: args.dock.x - padding, y: args.dock.y - padding };
   const tamano = padding * 2;
   const centroLocal: Posicion = { x: padding, y: padding };
 
@@ -44,6 +45,24 @@ export function calcularGeometriaAbanico(args: {
     position: cellOrigen,
     size: { width: tamano, height: tamano },
   };
+}
+
+export function calcularGeometriaAbanico(args: {
+  aparienciaPuerto: Apariencia;
+  tipoEntidadPuerto: TipoEntidad;
+  centrosOtros: Posicion[];
+  operador: "O" | "XOR";
+}): GeometriaAbanico | null {
+  if (args.centrosOtros.length < 2) return null;
+  // Cold render (sin paper aun): aproximamos el dock con interseccion
+  // recta-elipse/rect. La sincronizacion definitiva se hace desde el
+  // LinkView una vez existe el paper (abanicoLinkViewSync).
+  const dock = puntoDockEnPuerto(args.aparienciaPuerto, args.tipoEntidadPuerto, args.centrosOtros);
+  return calcularGeometriaAbanicoDesdePuntos({
+    dock,
+    puntosOtros: args.centrosOtros,
+    operador: args.operador,
+  });
 }
 
 export function proyectarOverlayAbanicoCanonico(args: {

@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
-import type { Apariencia } from "../../modelo/tipos";
-import { calcularGeometriaAbanico } from "./abanicoOverlay";
+import type { Apariencia, Posicion } from "../../modelo/tipos";
+import { calcularGeometriaAbanico, calcularGeometriaAbanicoDesdePuntos } from "./abanicoOverlay";
 
 const PUERTO: Apariencia = {
   id: "puerto",
@@ -99,6 +99,28 @@ describe("calcularGeometriaAbanico", () => {
       operador: "O",
     });
     expect(geometria).toBeNull();
+  });
+
+  test("calcularGeometriaAbanicoDesdePuntos centra el path en el dock dado", () => {
+    // Dock arbitrario, dos puntos sample casi simetricos al norte/oeste.
+    const dock: Posicion = { x: 500, y: 400 };
+    const geometria = calcularGeometriaAbanicoDesdePuntos({
+      dock,
+      puntosOtros: [
+        { x: 470, y: 380 },
+        { x: 530, y: 380 },
+      ],
+      operador: "O",
+    });
+    expect(geometria).not.toBeNull();
+    const center = {
+      x: geometria!.position.x + geometria!.size.width / 2,
+      y: geometria!.position.y + geometria!.size.height / 2,
+    };
+    expect(center.x).toBeCloseTo(dock.x, 5);
+    expect(center.y).toBeCloseTo(dock.y, 5);
+    expect(geometria!.d.match(/A 30 30/g)?.length).toBe(1);
+    expect(geometria!.d.match(/A 35 35/g)?.length).toBe(1);
   });
 
   test("operador O genera dos arcos r=30 y r=35; XOR solo uno", () => {

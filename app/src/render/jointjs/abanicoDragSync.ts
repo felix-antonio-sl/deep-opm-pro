@@ -1,11 +1,16 @@
 import type { dia } from "jointjs";
 import { entidadIdDeExtremo } from "../../modelo/extremos";
-import type { Abanico, Apariencia, Id, Modelo, Posicion } from "../../modelo/tipos";
-import { calcularGeometriaAbanico } from "./abanicoOverlay";
+import type { Abanico, Id, Modelo, Posicion } from "../../modelo/tipos";
+import { calcularGeometriaAbanicoDesdePuntos } from "./abanicoOverlay";
+
+// Distancia (px) sobre cada link a la que tomamos el punto-sample para
+// calcular el angulo del arco. OpCloud usa 30 (shared.ts:5004), igualando
+// el radio interno del arco para que el punto quede sobre la curva.
+const RADIO_PROBE = 30;
 
 // Devuelve los abanicos del OPD activo donde la entidad participa, ya sea
 // como puerto compartido o como otro extremo de alguna rama. Necesario para
-// recomputar el overlay durante el drag visual sin pasar por el store.
+// limitar el recompute al subset afectado durante el drag visual.
 export function abanicosAfectadosPorEntidad(modelo: Modelo, opdId: Id, entidadId: Id): Abanico[] {
   const result: Abanico[] = [];
   for (const abanico of Object.values(modelo.abanicos ?? {})) {
@@ -26,13 +31,26 @@ export function abanicosAfectadosPorEntidad(modelo: Modelo, opdId: Id, entidadId
   return result;
 }
 
-// Sincroniza la celda overlay del abanico con la posicion EN VIVO de las
-// entidades en el graph (mid-drag, antes de que `moverApariencia` commitee
-// al store). Sin este puente, el overlay solo se reproyecta al `pointerup`
-// y "salta" a la posicion final desconectado del movimiento del cursor.
-// Equivalente conceptual a OpCloud `Arc.redrawAllArcs` (shared.ts:5946),
-// pero invocado por listener de `change:position` en lugar de pointerUp.
-export function sincronizarOverlayAbanicoEnDrag(
+// Reposiciona TODOS los overlays del OPD activo leyendo dock y puntos-sample
+// desde los LinkView reales del paper. Es la unica fuente de verdad para la
+// posicion del arco: el cold path (geometrico) que produce proyectarOverlay
+// solo sirve como placeholder antes del primer paint.
+export function recalcularOverlaysAbanicoDesdeLinkViews(args: {
+  paper: dia.Paper;
+  graph: dia.Graph;
+  modelo: Modelo;
+  opdId: Id;
+}): void {
+  for (const abanico of Object.values(args.modelo.abanicos ?? {})) {
+    if (abanico.opdId !== args.opdId) continue;
+    recalcularOverlayDesdeLinkView(args.paper, args.graph, args.modelo, abanico);
+  }
+}
+
+// Sincroniza un overlay puntual leyendo del LinkView. Usar como reaccion a
+// `change:position` para cubrir el subset afectado durante el drag.
+export function recalcularOverlayDesdeLinkView(
+  paper: dia.Paper,
   graph: dia.Graph,
   modelo: Modelo,
   abanico: Abanico,
@@ -41,46 +59,62 @@ export function sincronizarOverlayAbanicoEnDrag(
   if (!overlayCell) return;
   const opd = modelo.opds[abanico.opdId];
   if (!opd) return;
-  const tipoPuerto = modelo.entidades[abanico.puertoEntidadId]?.tipo;
-  if (!tipoPuerto) return;
 
-  const aparienciaPorEntidad = new Map<Id, Apariencia>();
-  for (const ap of Object.values(opd.apariencias)) {
-    const cell = graph.getCell(ap.id) as dia.Element | undefined;
-    if (!cell) continue;
-    const pos = cell.position();
-    const size = cell.size();
-    aparienciaPorEntidad.set(ap.entidadId, {
-      ...ap,
-      x: pos.x,
-      y: pos.y,
-      width: size.width,
-      height: size.height,
-    });
+  // Mapa enlaceId -> aparienciaEnlaceId (el cell id en el graph)
+  const apEnlaceById = new Map<Id, Id>();
+  for (const ae of Object.values(opd.enlaces)) {
+    apEnlaceById.set(ae.enlaceId, ae.id);
   }
-  const aparienciaPuerto = aparienciaPorEntidad.get(abanico.puertoEntidadId);
-  if (!aparienciaPuerto) return;
 
-  const centrosOtros: Posicion[] = [];
+  const linkViews: dia.LinkView[] = [];
+  let side: "source" | "target" | null = null;
   for (const enlaceId of abanico.enlaceIds) {
     const enlace = modelo.enlaces[enlaceId];
     if (!enlace) continue;
-    const oId = entidadIdDeExtremo(modelo, enlace.origenId);
-    const dId = entidadIdDeExtremo(modelo, enlace.destinoId);
-    if (!oId || !dId) continue;
-    const otroId = oId === abanico.puertoEntidadId ? dId : oId;
-    const otroAp = aparienciaPorEntidad.get(otroId);
-    if (!otroAp) continue;
-    centrosOtros.push({
-      x: otroAp.x + otroAp.width / 2,
-      y: otroAp.y + otroAp.height / 2,
-    });
+    const aeId = apEnlaceById.get(enlaceId);
+    if (!aeId) continue;
+    const cell = graph.getCell(aeId);
+    if (!cell || !cell.isLink()) continue;
+    const view = paper.findViewByModel(cell) as dia.LinkView | null;
+    if (!view) continue;
+    if (side === null) {
+      const origenEnt = entidadIdDeExtremo(modelo, enlace.origenId);
+      side = origenEnt === abanico.puertoEntidadId ? "source" : "target";
+    }
+    linkViews.push(view);
   }
+  if (linkViews.length < 2 || side === null) return;
 
-  const geometria = calcularGeometriaAbanico({
-    aparienciaPuerto,
-    tipoEntidadPuerto: tipoPuerto,
-    centrosOtros,
+  // dock = endpoint REAL que JointJS computo (shared.ts:5023-5031). Para
+  // procesos (elipse) JointJS ya intersecta correctamente con el borde
+  // curvo, asi que tomamos el punto sin recalcular geometria. Usamos
+  // getPointAtLength(0)/getPointAtLength(len) en vez de sourcePoint/
+  // targetPoint porque solo el primero esta en el .d.ts publico.
+  const firstView = linkViews[0]!;
+  const firstLen = firstView.getConnectionLength();
+  if (!Number.isFinite(firstLen) || firstLen <= 0) return;
+  const dockRaw = side === "source"
+    ? firstView.getPointAtLength(0)
+    : firstView.getPointAtLength(firstLen);
+  if (!dockRaw) return;
+  const dock: Posicion = { x: dockRaw.x, y: dockRaw.y };
+
+  // Cada link contribuye un punto a RADIO_PROBE del dock sobre la linea real.
+  const puntosOtros: Posicion[] = [];
+  for (const view of linkViews) {
+    const len = view.getConnectionLength();
+    if (!Number.isFinite(len) || len <= 0) continue;
+    const lenProbe = Math.min(RADIO_PROBE, Math.max(1, len * 0.45));
+    const dist = side === "source" ? lenProbe : Math.max(0, len - lenProbe);
+    const punto = view.getPointAtLength(dist);
+    if (!punto) continue;
+    puntosOtros.push({ x: punto.x, y: punto.y });
+  }
+  if (puntosOtros.length < 2) return;
+
+  const geometria = calcularGeometriaAbanicoDesdePuntos({
+    dock,
+    puntosOtros,
     operador: abanico.operador,
   });
   if (!geometria) return;
@@ -89,4 +123,16 @@ export function sincronizarOverlayAbanicoEnDrag(
   elem.position(geometria.position.x, geometria.position.y);
   elem.resize(geometria.size.width, geometria.size.height);
   overlayCell.attr("body/d", geometria.d);
+}
+
+// Compat: el viejo helper se mantiene como alias porque el listener de
+// change:position ya lo importa por nombre.
+export function sincronizarOverlayAbanicoEnDrag(
+  graph: dia.Graph,
+  modelo: Modelo,
+  abanico: Abanico,
+  paper?: dia.Paper,
+): void {
+  if (!paper) return;
+  recalcularOverlayDesdeLinkView(paper, graph, modelo, abanico);
 }
