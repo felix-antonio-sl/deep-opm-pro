@@ -1,5 +1,6 @@
+import { estadosDeEntidad } from "../modelo/operaciones";
 import { modoPlegadoApariencia, partesDePlegado } from "../modelo/plegado";
-import type { Entidad, ModoDespliegueObjeto } from "../modelo/tipos";
+import type { Entidad, Estado, ModoDespliegueObjeto } from "../modelo/tipos";
 import { useOpmStore } from "../store";
 import { inspectorStyles as style } from "./inspectorStyles";
 
@@ -18,12 +19,20 @@ export function InspectorEntidad({ entidad }: Props) {
   const quitarDescomposicion = useOpmStore((s) => s.quitarDescomposicionSeleccionada);
   const quitarDespliegue = useOpmStore((s) => s.quitarDespliegueSeleccionado);
   const cambiarModoPlegado = useOpmStore((s) => s.cambiarModoPlegadoSeleccionado);
+  const agregarEstados = useOpmStore((s) => s.agregarEstadosObjeto);
+  const agregarEstado = useOpmStore((s) => s.agregarEstadoObjeto);
+  const eliminarEstado = useOpmStore((s) => s.eliminarEstado);
+  const quitarEstados = useOpmStore((s) => s.quitarEstadosObjetoSeleccionado);
+  const renombrarEstado = useOpmStore((s) => s.renombrarEstadoSeleccionado);
+  const designarInicial = useOpmStore((s) => s.designarEstadoInicial);
+  const designarFinal = useOpmStore((s) => s.designarEstadoFinal);
   const eliminar = useOpmStore((s) => s.eliminarSeleccion);
 
   const aparienciaActiva = Object.values(modelo.opds[opdActivoId]?.apariencias ?? {})
     .find((apariencia) => apariencia.entidadId === entidad.id);
   const partesPlegables = partesDePlegado(modelo, entidad.id);
   const modoPlegado = aparienciaActiva ? modoPlegadoApariencia(aparienciaActiva) : "completo";
+  const estados = entidad.tipo === "objeto" ? estadosDeEntidad(modelo, entidad.id) : [];
 
   return (
     <>
@@ -118,6 +127,19 @@ export function InspectorEntidad({ entidad }: Props) {
         </button>
       ) : null}
 
+      {entidad.tipo === "objeto" ? (
+        <EstadosObjeto
+          estados={estados}
+          onAgregarEstados={agregarEstados}
+          onAgregarEstado={agregarEstado}
+          onEliminar={eliminarEstado}
+          onQuitarEstados={quitarEstados}
+          onRenombrar={renombrarEstado}
+          onDesignarInicial={designarInicial}
+          onDesignarFinal={designarFinal}
+        />
+      ) : null}
+
       <button type="button" style={style.dangerButton} onClick={eliminar}>Eliminar entidad</button>
     </>
   );
@@ -132,6 +154,84 @@ function Segment(props: { label: string; active: boolean; onClick: () => void })
     >
       {props.label}
     </button>
+  );
+}
+
+function EstadosObjeto(props: {
+  estados: Estado[];
+  onAgregarEstados: () => void;
+  onAgregarEstado: () => void;
+  onEliminar: (estadoId: string) => void;
+  onQuitarEstados: () => void;
+  onRenombrar: (estadoId: string, nombre: string) => void;
+  onDesignarInicial: (estadoId: string) => void;
+  onDesignarFinal: (estadoId: string) => void;
+}) {
+  return (
+    <section style={stateStyles.section} aria-label="Estados">
+      <div style={stateStyles.header}>
+        <span style={style.label}>Estados</span>
+        {props.estados.length > 0 ? (
+          <button type="button" style={stateStyles.smallButton} onClick={props.onAgregarEstado}>
+            Agregar estado
+          </button>
+        ) : null}
+      </div>
+
+      {props.estados.length === 0 ? (
+        <button
+          type="button"
+          style={style.primaryButton}
+          onClick={props.onAgregarEstados}
+          title="Crea simultáneamente estado1 y estado2"
+        >
+          Agregar estados
+        </button>
+      ) : (
+        <div style={stateStyles.list}>
+          {props.estados.map((estado) => (
+            <div key={estado.id} style={stateStyles.row}>
+              <input
+                aria-label={`Nombre estado ${estado.nombre}`}
+                style={stateStyles.input}
+                value={estado.nombre}
+                onInput={(event) => props.onRenombrar(estado.id, event.currentTarget.value)}
+              />
+              <div style={stateStyles.actions}>
+                <button
+                  type="button"
+                  style={estado.esInicial ? stateStyles.tagActive : stateStyles.tag}
+                  onClick={() => props.onDesignarInicial(estado.id)}
+                  title="Designar inicial"
+                >
+                  Inicial
+                </button>
+                <button
+                  type="button"
+                  style={estado.esFinal ? stateStyles.tagActive : stateStyles.tag}
+                  onClick={() => props.onDesignarFinal(estado.id)}
+                  title="Designar final"
+                >
+                  Final
+                </button>
+                <button
+                  type="button"
+                  style={props.estados.length <= 2 ? stateStyles.deleteDisabled : stateStyles.delete}
+                  disabled={props.estados.length <= 2}
+                  onClick={() => props.onEliminar(estado.id)}
+                  title={props.estados.length <= 2 ? "El axioma exige al menos dos estados" : "Eliminar estado"}
+                >
+                  Eliminar
+                </button>
+              </div>
+            </div>
+          ))}
+          <button type="button" style={style.secondaryButton} onClick={props.onQuitarEstados}>
+            Quitar estados
+          </button>
+        </div>
+      )}
+    </section>
   );
 }
 
@@ -161,3 +261,95 @@ function DesplegarComo(props: { onSelect: (modo: ModoDespliegueObjeto) => void }
     </details>
   );
 }
+
+const stateStyles = {
+  section: {
+    display: "grid",
+    gap: "8px",
+    marginBottom: "14px",
+    paddingTop: "2px",
+  },
+  header: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: "8px",
+  },
+  list: {
+    display: "grid",
+    gap: "8px",
+  },
+  row: {
+    display: "grid",
+    gap: "6px",
+    padding: "8px",
+    border: "1px solid #d9e0ea",
+    borderRadius: "4px",
+    background: "#ffffff",
+  },
+  input: {
+    width: "100%",
+    height: "30px",
+    padding: "0 8px",
+    border: "1px solid #c8d2df",
+    borderRadius: "4px",
+    outlineColor: "#586D8C",
+    fontSize: "12px",
+  },
+  actions: {
+    display: "grid",
+    gridTemplateColumns: "1fr 1fr 1fr",
+    gap: "6px",
+  },
+  smallButton: {
+    minHeight: "28px",
+    padding: "0 8px",
+    border: "1px solid #c8d2df",
+    borderRadius: "4px",
+    background: "#f9fbfd",
+    color: "#475467",
+    cursor: "pointer",
+    fontSize: "12px",
+    fontWeight: 700,
+  },
+  tag: {
+    height: "28px",
+    border: "1px solid #c8d2df",
+    borderRadius: "4px",
+    background: "#f9fbfd",
+    color: "#475467",
+    cursor: "pointer",
+    fontSize: "11px",
+    fontWeight: 700,
+  },
+  tagActive: {
+    height: "28px",
+    border: "1px solid #586D8C",
+    borderRadius: "4px",
+    background: "#e8eef5",
+    color: "#1f2937",
+    cursor: "pointer",
+    fontSize: "11px",
+    fontWeight: 700,
+  },
+  delete: {
+    height: "28px",
+    border: "1px solid #d92d20",
+    borderRadius: "4px",
+    background: "#fff5f5",
+    color: "#b42318",
+    cursor: "pointer",
+    fontSize: "11px",
+    fontWeight: 700,
+  },
+  deleteDisabled: {
+    height: "28px",
+    border: "1px solid #d9e0ea",
+    borderRadius: "4px",
+    background: "#f3f4f6",
+    color: "#98a2b3",
+    cursor: "not-allowed",
+    fontSize: "11px",
+    fontWeight: 700,
+  },
+} satisfies Record<string, preact.JSX.CSSProperties>;
