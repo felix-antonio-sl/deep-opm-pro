@@ -55,7 +55,8 @@ export interface JointCellJson {
     | "standard.Link"
     | "standard.Polygon"
     | "standard.Path"
-    | "standard.Circle";
+    | "standard.Circle"
+    | "opm.AbanicoArc";
   opm: OpmJointMetadata;
   z: number;
   [key: string]: unknown;
@@ -98,6 +99,15 @@ export function proyectarModeloAJointCells(
         aparienciaPorEntidad,
       });
     });
+  // Enlaces que pertenecen a un abanico usan router recto para converger en
+  // el dockPoint del puerto sin las rutas en L del routerManhattan, replicando
+  // el OpmDefaultLink de OpCloud (shared.ts:2450-2457) cuyos enlaces
+  // procedurales no setean router y caen al default 'normal'.
+  const enlacesEnAbanico = new Set<Id>(
+    Object.values(modelo.abanicos ?? {})
+      .filter((abanico) => abanico.opdId === opdId)
+      .flatMap((abanico) => abanico.enlaceIds),
+  );
   const enlacesConEndpoint = Object.values(opd.enlaces).flatMap((aparienciaEnlace): EnlaceConEndpointVisual[] => {
     const enlace = modelo.enlaces[aparienciaEnlace.enlaceId];
     if (!enlace) return [];
@@ -135,7 +145,7 @@ export function proyectarModeloAJointCells(
     const enlaceResaltado = enlace.id === seleccionEnlaceId || refResaltaEnlace(enlace, hoverOplRef);
     return TIPOS_REFINAMIENTO_ESTRUCTURAL.includes(enlace.tipo) && !origen.proxy && !destino.proxy
       ? proyectarRefinamientoEstructural(opdId, enlace, aparienciaEnlace.id, origen.apariencia, destino.apariencia, enlaceResaltado)
-      : [proyectarEnlace(opdId, enlace, aparienciaEnlace.id, origen, destino, aparienciaEnlace.vertices, enlaceResaltado)];
+      : [proyectarEnlace(opdId, enlace, aparienciaEnlace.id, origen, destino, aparienciaEnlace.vertices, enlaceResaltado, enlacesEnAbanico.has(enlace.id))];
   });
 
   return [...busCells, ...enlaces, ...proxies, ...overlaysAbanico, ...elementos];
@@ -571,19 +581,21 @@ function proyectarEnlace(
   destino: EndpointVisual,
   vertices: Posicion[],
   seleccionada: boolean,
+  enAbanico = false,
 ): JointCellJson {
   const verticesRender = verticesEnlace(enlace.tipo, origen.apariencia, destino.apariencia, vertices);
   const estiloE = enlace.estilo;
   const colorEnlace = estiloE?.color ?? CANON.colores.enlace;
   const grosorEnlace = estiloE?.strokeWidth ?? CANON.dims.enlaceVisible;
   const dashOverride = estiloE?.dashArray !== undefined ? estiloE.dashArray || undefined : undefined;
+  const router = enlace.tipo === "invocacion" || enAbanico ? undefined : routerManhattan();
   return {
     id: aparienciaEnlaceId,
     type: "standard.Link",
     source: endpointJoint(origen),
     target: endpointJoint(destino),
     vertices: verticesRender,
-    router: enlace.tipo === "invocacion" ? undefined : routerManhattan(),
+    router,
     connector: { name: "straight" },
     labels: [...etiquetasMultiplicidad(enlace), ...etiquetasModificador(enlace), ...etiquetaEnlace(enlace), ...etiquetasRuta(enlace), ...etiquetasProxyParte(origen, destino)],
     attrs: {

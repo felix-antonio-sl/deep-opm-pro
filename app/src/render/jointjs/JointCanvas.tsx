@@ -4,6 +4,7 @@ import { CANON } from "../../modelo/constantes";
 import type { Modelo } from "../../modelo/tipos";
 import { useOpmStore } from "../../store";
 import type { OplReferencia } from "../../opl/interaccion";
+import { opmShapes } from "./customShapes";
 import type { OpmJointMetadata } from "./proyeccion";
 import { proyectarModeloAJointCells } from "./proyeccion";
 
@@ -78,7 +79,7 @@ export function JointCanvas() {
   useEffect(() => {
     if (!paperHostRef.current) return;
 
-    const cellNamespace = shapes;
+    const cellNamespace = { ...shapes, opm: opmShapes };
     const graph = new dia.Graph({}, { cellNamespace });
     const paper = new dia.Paper({
       el: paperHostRef.current,

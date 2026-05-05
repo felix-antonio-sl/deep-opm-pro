@@ -37,7 +37,7 @@ export function proyectarOverlayAbanicoCanonico(args: {
 
   return [{
     id: `overlay-abanico-${args.abanico.id}`,
-    type: "standard.Path",
+    type: "opm.AbanicoArc",
     position: cellOrigen,
     size: { width: tamano, height: tamano },
     attrs: {
@@ -50,7 +50,6 @@ export function proyectarOverlayAbanicoCanonico(args: {
         strokeLinecap: "round",
         cursor: "default",
       },
-      label: { text: "", display: "none" },
     },
     opm: {
       kind: "overlay-abanico",

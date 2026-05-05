@@ -280,7 +280,8 @@ try {
   // ============================================================
   // 9. PERSISTENCIA JSON: EXPORT / IMPORT
   // ============================================================
-  await page.getByRole("button", { name: "Exportar" }).click();
+  // exact:true para no colisionar con "Exportar HTML" del PanelOpl.
+  await page.getByRole("button", { name: "Exportar", exact: true }).click();
   await page.waitForTimeout(150);
   const jsonExport = await page.locator("textarea").inputValue();
   let parsed;
@@ -503,6 +504,114 @@ try {
   record("15. Eliminar", `Entidades ${elemAntes}→${elemDespues}`, elemDespues < elemAntes ? "OK" : "FAIL");
   record("15. Eliminar", `Enlaces (cascada) ${linksAntes}→${linksDespues}`, linksDespues < linksAntes ? "OK" : "WARN");
   await shot(page, "15-cascada-borrado.png");
+
+  // ============================================================
+  // 16. ABANICO (fan O/XOR): overlay sin rectangulo + enlaces sin Manhattan
+  // ============================================================
+  await page.evaluate(() => localStorage.clear());
+  await page.reload({ waitUntil: "networkidle" });
+
+  // Crear 2 objetos + 1 proceso. Con posiciones por defecto el fan se forma
+  // pero el arco queda degenerado (start=end) porque el angulo desde el dock
+  // a ambos objetos coincide (ven layout.ts: columnas a y=90). Re-posiciono
+  // con drags positivos para garantizar apertura angular >0 sin invadir el
+  // tree-pane (canvas comienza ~x=300 en pantalla; CANVAS_BASE=1800x1200).
+  await page.getByRole("button", { name: "Objeto", exact: true }).click();
+  await page.waitForTimeout(80);
+  await page.getByRole("button", { name: "Objeto", exact: true }).click();
+  await page.waitForTimeout(80);
+  await page.getByRole("button", { name: "Proceso", exact: true }).click();
+  await page.waitForTimeout(150);
+
+  const objetosFan = page.locator(".joint-element").filter({ has: page.locator("rect") });
+  const procesoFan = page.locator(".joint-element").filter({ has: page.locator("ellipse") });
+
+  async function dragRel(locator, dx, dy) {
+    const box = await locator.boundingBox();
+    if (!box) return;
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(box.x + box.width / 2 + dx, box.y + box.height / 2 + dy, { steps: 10 });
+    await page.mouse.up();
+    await page.waitForTimeout(80);
+  }
+  await dragRel(objetosFan.nth(1), 400, 0);  // Objeto2 desplazado a la derecha
+  await dragRel(procesoFan.first(), -100, 250); // Proceso al centro-abajo
+
+  // Enlace 1: Objeto1 -> Proceso (consumo)
+  await objetosFan.nth(0).click();
+  await page.waitForTimeout(80);
+  await page.getByLabel("Tipo de enlace").selectOption("consumo");
+  await page.waitForTimeout(80);
+  await procesoFan.first().click();
+  await page.waitForTimeout(200);
+
+  // Enlace 2: Objeto2 -> Proceso (consumo) -> debe formar abanico automatico
+  await objetosFan.nth(1).click();
+  await page.waitForTimeout(80);
+  await page.getByLabel("Tipo de enlace").selectOption("consumo");
+  await page.waitForTimeout(80);
+  await procesoFan.first().click();
+  await page.waitForTimeout(300);
+
+  await shot(page, "16-abanico-fan.png");
+  await page.locator(".joint-paper").screenshot({ path: resolve(DIR_SHOTS, "16-abanico-canvas.png") });
+
+  const arcoFan = await page.evaluate(() => {
+    const root = document.querySelector("g.type-opm-abanicoarc, g[model-id^='overlay-abanico-']");
+    if (!root) return { existe: false };
+    const path = root.querySelector("path");
+    return {
+      existe: true,
+      modelId: root.getAttribute("model-id"),
+      classes: root.getAttribute("class"),
+      d: path?.getAttribute("d") ?? null,
+      stroke: path?.getAttribute("stroke") ?? null,
+      strokeDasharray: path?.getAttribute("stroke-dasharray") ?? null,
+      pathCount: root.querySelectorAll("path").length,
+      rectCount: root.querySelectorAll("rect").length,
+    };
+  });
+  record("16. Abanico", "Overlay del abanico presente en el DOM", arcoFan.existe ? "OK" : "FAIL", JSON.stringify(arcoFan).slice(0, 240));
+  if (arcoFan.existe) {
+    const dArco = arcoFan.d ?? "";
+    const tieneArco30 = /A\s*30\s*30/.test(dArco);
+    const tieneArco35 = /A\s*35\s*35/.test(dArco);
+    record("16. Abanico", "Path del overlay contiene arco r=30 (canon OPCloud)", tieneArco30 ? "OK" : "FAIL", dArco.slice(0, 100));
+    record(
+      "16. Abanico",
+      `Operador detectado por el path: ${tieneArco35 ? "O (doble arco)" : "XOR (arco simple)"}`,
+      "INFO",
+      dArco,
+    );
+    record("16. Abanico", "Path del overlay NO es un rectangulo bbox (refD eliminado)", arcoFan.rectCount === 0 && tieneArco30 ? "OK" : "FAIL", `rectCount=${arcoFan.rectCount}`);
+    record("16. Abanico", "Stroke-dasharray canonico '4 1'", arcoFan.strokeDasharray === "4 1" ? "OK" : "WARN", String(arcoFan.strokeDasharray));
+  }
+
+  const linksFan = await page.evaluate(() => {
+    const links = Array.from(document.querySelectorAll(".joint-link"));
+    return links.map((g) => {
+      const conn = g.querySelector("path.connection") ?? g.querySelector("path[joint-selector='line']");
+      return {
+        modelId: g.getAttribute("model-id"),
+        d: conn?.getAttribute("d") ?? null,
+      };
+    });
+  });
+  function contarSegmentosL(d) {
+    if (!d) return 0;
+    return (d.match(/[ML][\s,-]/g) ?? []).length;
+  }
+  const segmentosPorLink = linksFan.map((l) => ({ id: l.modelId, n: contarSegmentosL(l.d), d: l.d }));
+  const maxSegmentos = Math.max(0, ...segmentosPorLink.map((s) => s.n));
+  // Manhattan tipico para este caso = ~5 vertices intermedios (>= 4 L). Recto = 1 L.
+  const fanRectos = segmentosPorLink.length > 0 && segmentosPorLink.every((s) => s.n <= 3);
+  record(
+    "16. Abanico",
+    `Enlaces del fan dibujan rutas rectas (max ${maxSegmentos} segmentos, esperado <=3)`,
+    fanRectos ? "OK" : "WARN",
+    JSON.stringify(segmentosPorLink.map((s) => ({ id: s.id, n: s.n }))),
+  );
 } catch (errFatal) {
   record("FATAL", "Excepción no controlada", "FAIL", errFatal instanceof Error ? errFatal.message : String(errFatal));
   await shot(page, "99-fatal.png").catch(() => {});

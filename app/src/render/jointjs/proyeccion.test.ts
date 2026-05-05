@@ -292,9 +292,10 @@ describe("proyeccion JointJS", () => {
       .find((cell) => cell.opm.kind === "overlay-abanico");
     const attrs = overlay?.attrs as Attrs | undefined;
     const body = attrs?.body as Attrs | undefined;
-    const label = attrs?.label as Attrs | undefined;
 
-    expect(overlay?.type).toBe("standard.Path");
+    // Shape custom sin refD heredado (evita el rectangulo punteado de bbox).
+    expect(overlay?.type).toBe("opm.AbanicoArc");
+    expect(attrs?.label).toBeUndefined();
     const d = body?.d;
     expect(typeof d).toBe("string");
     // O = dos arcos concentricos r=30 y r=35, asi que el path tiene 2 'A '.
@@ -304,8 +305,6 @@ describe("proyeccion JointJS", () => {
     expect(body?.stroke).toBe("#586D8C");
     expect(body?.strokeWidth).toBe(1.5);
     expect(body?.strokeDasharray).toBe("4 1");
-    expect(label?.text).toBe("");
-    expect(label?.display).toBe("none");
     expect(overlay?.opm).toEqual({
       kind: "overlay-abanico",
       opdId: modelo.opdRaizId,
@@ -324,9 +323,9 @@ describe("proyeccion JointJS", () => {
       .find((cell) => cell.opm.kind === "overlay-abanico");
     const attrs = overlay?.attrs as Attrs | undefined;
     const body = attrs?.body as Attrs | undefined;
-    const label = attrs?.label as Attrs | undefined;
 
-    expect(overlay?.type).toBe("standard.Path");
+    expect(overlay?.type).toBe("opm.AbanicoArc");
+    expect(attrs?.label).toBeUndefined();
     const d = body?.d;
     expect(typeof d).toBe("string");
     // XOR = un solo arco r=30, sin segundo arco r=35.
@@ -336,14 +335,28 @@ describe("proyeccion JointJS", () => {
     expect(body?.stroke).toBe("#586D8C");
     expect(body?.strokeWidth).toBe(1.5);
     expect(body?.strokeDasharray).toBe("4 1");
-    expect(label?.text).toBe("");
-    expect(label?.display).toBe("none");
     expect(overlay?.opm).toEqual({
       kind: "overlay-abanico",
       opdId: modelo.opdRaizId,
       abanicoId: abanico.id,
       operador: "XOR",
     });
+  });
+
+  test("enlaces dentro de un abanico usan router recto (no manhattan)", () => {
+    const modelo = modeloConAbanico("O");
+    const abanico = Object.values(modelo.abanicos ?? {})[0];
+    expect(abanico).toBeDefined();
+    if (!abanico) return;
+
+    const cells = proyectarModeloAJointCells(modelo, modelo.opdRaizId, null, null);
+    const enlacesFan = cells.filter(
+      (cell) => cell.opm.kind === "enlace" && abanico.enlaceIds.includes(cell.opm.enlaceId),
+    );
+    expect(enlacesFan.length).toBe(abanico.enlaceIds.length);
+    for (const enlace of enlacesFan) {
+      expect(enlace.router).toBeUndefined();
+    }
   });
 
   test("proyecta exhibicion como triangulo contorno + triangulo interno relleno", () => {
