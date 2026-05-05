@@ -415,6 +415,35 @@ describe("store undo/redo y dirty state", () => {
     expect(store.getState().modelo.entidades[procesoId]?.refinamiento?.tipo).toBe("descomposicion");
   });
 
+  test("forma abanico automatico al conectar segunda rama y alterna operador desde inspector", () => {
+    let modelo = crearModelo("Store abanicos");
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 200, y: 200 }, "Procesar"));
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 60 }, "Entrada A"));
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 220 }, "Entrada B"));
+    const procesarId = entidadPorNombre(modelo, "Procesar");
+    const entradaAId = entidadPorNombre(modelo, "Entrada A");
+    const entradaBId = entidadPorNombre(modelo, "Entrada B");
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entradaAId, procesarId, "consumo"));
+    store.getState().importarJson(exportarModelo(modelo));
+
+    store.getState().seleccionarEntidad(entradaBId);
+    store.getState().elegirTipoEnlace("consumo");
+    store.getState().seleccionarEntidad(procesarId);
+
+    const abanicos = Object.values(store.getState().modelo.abanicos ?? {});
+    expect(abanicos).toHaveLength(1);
+    expect(abanicos[0]?.operador).toBe("O");
+    expect(abanicos[0]?.enlaceIds).toHaveLength(2);
+
+    const enlacesEnAbanico = abanicos[0]?.enlaceIds ?? [];
+    store.getState().seleccionarEnlace(enlacesEnAbanico[0] ?? "");
+    store.getState().alternarOperadorAbanicoSeleccionado("XOR");
+    expect(Object.values(store.getState().modelo.abanicos ?? {})[0]?.operador).toBe("XOR");
+
+    store.getState().disolverAbanicoSeleccionado();
+    expect(Object.values(store.getState().modelo.abanicos ?? {})).toHaveLength(0);
+  });
+
   test("limita undo a 100 snapshots", () => {
     for (let index = 0; index < 105; index += 1) {
       store.getState().crearObjetoDemo();

@@ -6,7 +6,7 @@ import {
 } from "../modelo/extremos";
 import { estadosDeEntidad } from "../modelo/operaciones";
 import { modoPlegadoApariencia, partesDePlegado, UMBRAL_PARTES_MAS } from "../modelo/plegado";
-import type { Apariencia, Enlace, Entidad, Estado, Id, Modelo, ModoDespliegueObjeto, Opd, TipoEnlace } from "../modelo/tipos";
+import type { Abanico, Apariencia, Enlace, Entidad, Estado, Id, Modelo, ModoDespliegueObjeto, Opd, TipoEnlace } from "../modelo/tipos";
 
 export function generarOpl(modelo: Modelo, opdId: Id = modelo.opdRaizId): string[] {
   const opd = modelo.opds[opdId];
@@ -22,9 +22,17 @@ export function generarOpl(modelo: Modelo, opdId: Id = modelo.opdRaizId): string
     if (refinamiento) lineas.push(refinamiento);
   }
   const transiciones = transicionesEstado(modelo, opd);
+  const abanicosOpd = Object.values(modelo.abanicos ?? {}).filter((abanico) => abanico.opdId === opd.id);
+  const enlacesEnAbanico = new Set<Id>();
+  for (const abanico of abanicosOpd) {
+    const linea = oracionAbanico(modelo, abanico);
+    if (linea) lineas.push(linea);
+    for (const id of abanico.enlaceIds) enlacesEnAbanico.add(id);
+  }
   for (const aparienciaEnlace of Object.values(opd.enlaces)) {
     const enlace = modelo.enlaces[aparienciaEnlace.enlaceId];
     if (!enlace) continue;
+    if (enlacesEnAbanico.has(enlace.id)) continue;
     const transicion = transiciones.lineaPorEnlaceConsumo.get(enlace.id);
     if (transicion) {
       lineas.push(transicion);
@@ -35,6 +43,57 @@ export function generarOpl(modelo: Modelo, opdId: Id = modelo.opdRaizId): string
     if (linea) lineas.push(linea);
   }
   return lineas;
+}
+
+function oracionAbanico(modelo: Modelo, abanico: Abanico): string | null {
+  const enlaces = abanico.enlaceIds
+    .map((id) => modelo.enlaces[id])
+    .filter((enlace): enlace is Enlace => enlace !== undefined);
+  if (enlaces.length < 2) return null;
+  const primer = enlaces[0];
+  const puerto = modelo.entidades[abanico.puertoEntidadId];
+  if (!puerto || !primer) return null;
+
+  const otrosNombres: string[] = [];
+  for (const enlace of enlaces) {
+    const origenEntId = entidadIdDeExtremo(modelo, enlace.origenId);
+    const otroExtremo = origenEntId === abanico.puertoEntidadId ? enlace.destinoId : enlace.origenId;
+    const otraEnt = entidadDeExtremo(modelo, otroExtremo);
+    if (otraEnt) otrosNombres.push(nombreOpl(otraEnt));
+  }
+  if (otrosNombres.length < 2) return null;
+
+  const cuantificador = abanico.operador === "XOR" ? "exactamente uno de" : "al menos uno de";
+  const lista = listarOpl(otrosNombres);
+  const puertoEsOrigen = entidadIdDeExtremo(modelo, primer.origenId) === abanico.puertoEntidadId;
+  const puertoOpl = nombreOpl(puerto);
+
+  switch (primer.tipo) {
+    case "agente":
+      return puertoEsOrigen
+        ? `${puertoOpl} maneja ${cuantificador} ${lista}.`
+        : `${puertoOpl} es manejado por ${cuantificador} ${lista}.`;
+    case "instrumento":
+      return puertoEsOrigen
+        ? `${puertoOpl} es requerido por ${cuantificador} ${lista}.`
+        : `${puertoOpl} requiere ${cuantificador} ${lista}.`;
+    case "consumo":
+      return puertoEsOrigen
+        ? `${puertoOpl} es consumido por ${cuantificador} ${lista}.`
+        : `${puertoOpl} consume ${cuantificador} ${lista}.`;
+    case "resultado":
+      return puertoEsOrigen
+        ? `${puertoOpl} genera ${cuantificador} ${lista}.`
+        : `${puertoOpl} es generado por ${cuantificador} ${lista}.`;
+    case "efecto":
+      return `${puertoOpl} afecta ${cuantificador} ${lista}.`;
+    case "invocacion":
+      return puertoEsOrigen
+        ? `${puertoOpl} invoca ${cuantificador} ${lista}.`
+        : `${puertoOpl} es invocado por ${cuantificador} ${lista}.`;
+    default:
+      return null;
+  }
 }
 
 function oracionRefinamiento(modelo: Modelo, apariencia: Apariencia, entidad: Entidad): string | null {

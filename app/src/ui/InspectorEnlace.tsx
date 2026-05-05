@@ -1,8 +1,9 @@
 import { useEffect, useState } from "preact/hooks";
+import { abanicoDeEnlace } from "../modelo/abanicos";
 import { entidadDeExtremo, entidadIdDeExtremo, extremoEntidad, extremoEstado, nombreExtremo } from "../modelo/extremos";
 import { estadosDeEntidad, validarMultiplicidad } from "../modelo/operaciones";
 import { useOpmStore } from "../store";
-import type { Apariencia, Enlace, ExtremoEnlace, Id, Modelo } from "../modelo/tipos";
+import type { Abanico, Apariencia, Enlace, ExtremoEnlace, Id, Modelo, OperadorAbanico } from "../modelo/tipos";
 import { inspectorStyles as style } from "./inspectorStyles";
 
 interface Props {
@@ -17,7 +18,11 @@ export function InspectorEnlace({ enlace }: Props) {
   const reanclarEnlaceExternoDerivado = useOpmStore((s) => s.reanclarEnlaceExternoDerivado);
   const volverEnlaceExternoDerivadoAAutomatico = useOpmStore((s) => s.volverEnlaceExternoDerivadoAAutomatico);
   const splitEffect = useOpmStore((s) => s.splitEffectSeleccionado);
+  const alternarOperadorAbanico = useOpmStore((s) => s.alternarOperadorAbanicoSeleccionado);
+  const quitarRamaDeAbanico = useOpmStore((s) => s.quitarRamaDeAbanicoSeleccionado);
+  const disolverAbanico = useOpmStore((s) => s.disolverAbanicoSeleccionado);
   const eliminar = useOpmStore((s) => s.eliminarSeleccion);
+  const abanico = abanicoDeEnlace(modelo, enlace.id);
   const origen = entidadDeExtremo(modelo, enlace.origenId);
   const destino = entidadDeExtremo(modelo, enlace.destinoId);
   const selectoresExtremo = selectoresEstadoExtremo(modelo, enlace);
@@ -171,6 +176,44 @@ export function InspectorEnlace({ enlace }: Props) {
         </button>
       ) : null}
 
+      {abanico ? (
+        <section style={abanicoSectionStyle}>
+          <h3 style={multiplicidadTitleStyle}>Abanico {abanico.operador}</h3>
+          <div style={helpStyle}>
+            {abanico.enlaceIds.length} ramas comparten puerto.{" "}
+            {abanico.operador === "XOR" ? "Exactamente una se cumple." : "Al menos una se cumple."}
+          </div>
+          <div style={buttonRowStyle}>
+            <button
+              type="button"
+              data-testid="abanico-toggle-O"
+              style={style.secondaryButton}
+              disabled={abanico.operador === "O"}
+              onClick={() => alternarOperadorAbanico("O" satisfies OperadorAbanico)}
+            >
+              O
+            </button>
+            <button
+              type="button"
+              data-testid="abanico-toggle-XOR"
+              style={style.secondaryButton}
+              disabled={abanico.operador === "XOR"}
+              onClick={() => alternarOperadorAbanico("XOR" satisfies OperadorAbanico)}
+            >
+              XOR
+            </button>
+          </div>
+          <div style={buttonRowStyle}>
+            <button type="button" style={style.secondaryButton} onClick={quitarRamaDeAbanico}>
+              Quitar rama
+            </button>
+            <button type="button" style={style.secondaryButton} onClick={disolverAbanico}>
+              Disolver abanico
+            </button>
+          </div>
+        </section>
+      ) : null}
+
       <button type="button" style={style.dangerButton} onClick={eliminar}>Eliminar enlace</button>
     </>
   );
@@ -263,6 +306,16 @@ const reanclajeSectionStyle = {
   display: "grid",
   gap: "8px",
   marginBottom: "14px",
+} satisfies preact.JSX.CSSProperties;
+
+const abanicoSectionStyle = {
+  display: "grid",
+  gap: "8px",
+  marginBottom: "14px",
+  padding: "8px",
+  background: "#f9fafb",
+  border: "1px solid #e5e7eb",
+  borderRadius: "6px",
 } satisfies preact.JSX.CSSProperties;
 
 const multiplicidadTitleStyle = {

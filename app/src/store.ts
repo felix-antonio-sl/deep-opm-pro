@@ -41,6 +41,14 @@ import {
   reinsertarParteEnPlegado as reinsertarParteEnPlegadoOp,
 } from "./modelo/plegado";
 import {
+  abanicoDeEnlace,
+  alternarOperadorAbanico as alternarOperadorAbanicoOp,
+  disolverAbanico as disolverAbanicoOp,
+  formarAbanicoAutomatico,
+  quitarRamaDeAbanico as quitarRamaDeAbanicoOp,
+  sincronizarAbanicos,
+} from "./modelo/abanicos";
+import {
   borrarModeloLocal,
   cargarModeloLocal,
   guardarModeloLocal,
@@ -49,7 +57,7 @@ import {
 } from "./persistencia/local";
 import { exportarModelo, hidratarModelo } from "./serializacion/json";
 import type { Aviso } from "./modelo/validaciones";
-import type { Afiliacion, Apariencia, Esencia, ExtremoEnlace, Id, Modelo, ModoDespliegueObjeto, ModoPlegado, Posicion, TipoEnlace } from "./modelo/tipos";
+import type { Afiliacion, Apariencia, Esencia, ExtremoEnlace, Id, Modelo, ModoDespliegueObjeto, ModoPlegado, OperadorAbanico, Posicion, TipoEnlace } from "./modelo/tipos";
 
 interface ModoEnlace {
   tipo: TipoEnlace;
@@ -107,6 +115,9 @@ interface OpmStore {
   reanclarEnlaceExternoDerivado: (aparienciaEnlaceId: Id, nuevoEndpointEntidadId: Id) => void;
   splitEffectSeleccionado: () => void;
   volverEnlaceExternoDerivadoAAutomatico: (aparienciaEnlaceId: Id) => void;
+  alternarOperadorAbanicoSeleccionado: (operador: OperadorAbanico) => void;
+  quitarRamaDeAbanicoSeleccionado: () => void;
+  disolverAbanicoSeleccionado: () => void;
   eliminarSeleccion: () => void;
   exportarJson: () => string;
   importarJson: (json: string) => void;
@@ -294,7 +305,13 @@ export const store = createStore<OpmStore>((set, get) => ({
       set({ seleccionId: id, enlaceSeleccionId: null, mensaje: resultado.error });
       return;
     }
-    commitModelo(set, modelo, resultado.value, {
+    let modeloFinal = resultado.value;
+    const enlaceCreadoId = enlaceNuevo(modelo, modeloFinal);
+    if (enlaceCreadoId) {
+      const auto = formarAbanicoAutomatico(modeloFinal, opdActivoId, enlaceCreadoId);
+      if (auto.ok) modeloFinal = auto.value;
+    }
+    commitModelo(set, modelo, modeloFinal, {
       seleccionId: id,
       enlaceSeleccionId: null,
       modoEnlace: null,
@@ -739,6 +756,63 @@ export const store = createStore<OpmStore>((set, get) => ({
     });
   },
 
+  alternarOperadorAbanicoSeleccionado(operador) {
+    const { modelo, enlaceSeleccionId } = get();
+    if (!enlaceSeleccionId) {
+      set({ mensaje: "Selecciona un enlace para alternar el operador del abanico" });
+      return;
+    }
+    const abanico = abanicoDeEnlace(modelo, enlaceSeleccionId);
+    if (!abanico) {
+      set({ mensaje: "El enlace no pertenece a un abanico" });
+      return;
+    }
+    const resultado = alternarOperadorAbanicoOp(modelo, abanico.id, operador);
+    if (!resultado.ok) {
+      set({ mensaje: resultado.error });
+      return;
+    }
+    commitModelo(set, modelo, resultado.value, { mensaje: `Operador actualizado a ${operador}` });
+  },
+
+  quitarRamaDeAbanicoSeleccionado() {
+    const { modelo, enlaceSeleccionId } = get();
+    if (!enlaceSeleccionId) {
+      set({ mensaje: "Selecciona un enlace para quitar del abanico" });
+      return;
+    }
+    const abanico = abanicoDeEnlace(modelo, enlaceSeleccionId);
+    if (!abanico) {
+      set({ mensaje: "El enlace no pertenece a un abanico" });
+      return;
+    }
+    const resultado = quitarRamaDeAbanicoOp(modelo, abanico.id, enlaceSeleccionId);
+    if (!resultado.ok) {
+      set({ mensaje: resultado.error });
+      return;
+    }
+    commitModelo(set, modelo, resultado.value, { mensaje: "Rama removida del abanico" });
+  },
+
+  disolverAbanicoSeleccionado() {
+    const { modelo, enlaceSeleccionId } = get();
+    if (!enlaceSeleccionId) {
+      set({ mensaje: "Selecciona un enlace del abanico a disolver" });
+      return;
+    }
+    const abanico = abanicoDeEnlace(modelo, enlaceSeleccionId);
+    if (!abanico) {
+      set({ mensaje: "El enlace no pertenece a un abanico" });
+      return;
+    }
+    const resultado = disolverAbanicoOp(modelo, abanico.id);
+    if (!resultado.ok) {
+      set({ mensaje: resultado.error });
+      return;
+    }
+    commitModelo(set, modelo, resultado.value, { mensaje: "Abanico disuelto" });
+  },
+
   eliminarSeleccion() {
     const { modelo, seleccionId, enlaceSeleccionId } = get();
     if (enlaceSeleccionId) {
@@ -883,6 +957,11 @@ function entidadNueva(previo: Modelo, siguiente: Modelo): Id | null {
   return Object.keys(siguiente.entidades).find((id) => !previos.has(id)) ?? null;
 }
 
+function enlaceNuevo(previo: Modelo, siguiente: Modelo): Id | null {
+  const previos = new Set(Object.keys(previo.enlaces));
+  return Object.keys(siguiente.enlaces).find((id) => !previos.has(id)) ?? null;
+}
+
 function validarSubprocesoTimeline(
   modelo: Modelo,
   opdId: Id,
@@ -920,13 +999,14 @@ function commitModelo(
   siguiente: Modelo,
   extra: Partial<OpmStore> = {},
 ): void {
-  if (previo === siguiente || exportarModelo(previo) === exportarModelo(siguiente)) {
+  const sincronizado = sincronizarAbanicos(siguiente);
+  if (previo === sincronizado || exportarModelo(previo) === exportarModelo(sincronizado)) {
     set(extra);
     return;
   }
   undoStack = [...undoStack, previo].slice(-UNDO_LIMIT);
   redoStack = [];
-  set(estadoModelo(siguiente, extra));
+  set(estadoModelo(sincronizado, extra));
 }
 
 function resetHistorial(modelo: Modelo): void {

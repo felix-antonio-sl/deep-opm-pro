@@ -29,6 +29,12 @@ export type OpmJointMetadata =
       padreAparienciaId: Id;
       parteAparienciaId: Id;
       parteEntidadId: Id;
+    }
+  | {
+      kind: "overlay-abanico";
+      opdId: Id;
+      abanicoId: Id;
+      operador: "O" | "XOR";
     };
 
 export interface JointCellJson {
@@ -68,6 +74,13 @@ export function proyectarModeloAJointCells(
     return entidad ? [proyectarEntidad(modelo, opdId, apariencia, entidad, entidad.id === seleccionEntidadId)] : [];
   });
   const proxies = apariencias.flatMap((apariencia) => proyectarProxyExtraccion(opdId, opd, apariencia));
+  const overlaysAbanico = Object.values(modelo.abanicos ?? {})
+    .filter((abanico) => abanico.opdId === opdId)
+    .flatMap((abanico) => {
+      const aparienciaPuerto = aparienciaPorEntidad.get(abanico.puertoEntidadId);
+      if (!aparienciaPuerto) return [];
+      return [proyectarOverlayAbanico(opdId, abanico, aparienciaPuerto)];
+    });
   const enlaces = Object.values(opd.enlaces).flatMap((aparienciaEnlace) => {
     const enlace = modelo.enlaces[aparienciaEnlace.enlaceId];
     if (!enlace) return [];
@@ -80,7 +93,47 @@ export function proyectarModeloAJointCells(
       : [proyectarEnlace(opdId, enlace, aparienciaEnlace.id, origen, destino, aparienciaEnlace.vertices, enlace.id === seleccionEnlaceId)];
   });
 
-  return [...enlaces, ...proxies, ...elementos];
+  return [...enlaces, ...proxies, ...overlaysAbanico, ...elementos];
+}
+
+function proyectarOverlayAbanico(opdId: Id, abanico: { id: Id; operador: "O" | "XOR" }, aparienciaPuerto: Apariencia): JointCellJson {
+  const tamano = 24;
+  const offsetX = aparienciaPuerto.width + 6;
+  const offsetY = -tamano - 6;
+  const x = aparienciaPuerto.x + offsetX;
+  const y = aparienciaPuerto.y + offsetY;
+  const texto = abanico.operador;
+  return {
+    id: `overlay-abanico-${abanico.id}`,
+    type: "standard.Ellipse",
+    position: { x, y },
+    size: { width: tamano, height: tamano },
+    attrs: {
+      body: {
+        fill: "#ffffff",
+        stroke: "#586D8C",
+        strokeWidth: 1.5,
+        cursor: "default",
+      },
+      label: {
+        text: texto,
+        fill: "#475467",
+        fontFamily: CANON.dims.fontFamily,
+        fontSize: 11,
+        fontWeight: 700,
+        textAnchor: "middle",
+        textVerticalAnchor: "middle",
+        pointerEvents: "none",
+      },
+    },
+    opm: {
+      kind: "overlay-abanico",
+      opdId,
+      abanicoId: abanico.id,
+      operador: abanico.operador,
+    },
+    z: 2,
+  };
 }
 
 function proyectarEntidad(modelo: Modelo, opdId: Id, apariencia: Apariencia, entidad: Entidad, seleccionada: boolean): JointCellJson {

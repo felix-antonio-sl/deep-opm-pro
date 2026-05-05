@@ -318,6 +318,36 @@ describe("OPL-ES — bordes", () => {
   });
 });
 
+describe("OPL-ES — abanicos logicos", () => {
+  test("emite al menos uno de para abanico O", () => {
+    let modelo = crearModelo();
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 200, y: 200 }, "Procesar"));
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 60 }, "Entrada A"));
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 220 }, "Entrada B"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidad(modelo, "Entrada A"), entidad(modelo, "Procesar"), "consumo"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidad(modelo, "Entrada B"), entidad(modelo, "Procesar"), "consumo"));
+    const enlaceIds = Object.values(modelo.enlaces).map((enlace) => enlace.id);
+    const { formarAbanico } = require("../modelo/abanicos") as typeof import("../modelo/abanicos");
+    modelo = must(formarAbanico(modelo, modelo.opdRaizId, enlaceIds, "O"));
+
+    expect(generarOpl(modelo)).toContain("*Procesar* consume al menos uno de **Entrada A** y **Entrada B**.");
+  });
+
+  test("emite exactamente uno de para abanico XOR", () => {
+    let modelo = crearModelo();
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 200, y: 200 }, "Procesar"));
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 60 }, "Entrada A"));
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 220 }, "Entrada B"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidad(modelo, "Entrada A"), entidad(modelo, "Procesar"), "consumo"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidad(modelo, "Entrada B"), entidad(modelo, "Procesar"), "consumo"));
+    const enlaceIds = Object.values(modelo.enlaces).map((enlace) => enlace.id);
+    const { formarAbanico } = require("../modelo/abanicos") as typeof import("../modelo/abanicos");
+    modelo = must(formarAbanico(modelo, modelo.opdRaizId, enlaceIds, "XOR"));
+
+    expect(generarOpl(modelo)).toContain("*Procesar* consume exactamente uno de **Entrada A** y **Entrada B**.");
+  });
+});
+
 describe("generarOpl", () => {
   test("genera OPL para cosas y agente", () => {
     let modelo = crearModelo();
