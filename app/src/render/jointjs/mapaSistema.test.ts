@@ -1,7 +1,16 @@
 import { describe, expect, test } from "bun:test";
 import { crearModelo, crearProceso, descomponerProceso } from "../../modelo/operaciones";
 import type { Modelo } from "../../modelo/tipos";
-import { construirDescriptorMapa, proyectarMapaSistemaAJointCells } from "./mapaSistema";
+import {
+  aplicarMarcadores,
+  calcularEstadisticas,
+  construirDescriptorMapa,
+  filtrarPorProfundidad,
+  filtrarPorSubarbol,
+  proyectarMapaSistemaAJointCells,
+  resaltarPorTipo,
+  type DescriptorMapa,
+} from "./mapaSistema";
 
 function must<T>(r: { ok: true; value: T } | { ok: false; error: string }): T {
   if (!r.ok) throw new Error(r.error);
@@ -23,6 +32,36 @@ function crearModeloConArbol(): Modelo {
   modelo = must(crearProceso(modelo, sd1.id, { x: 100, y: 200 }, "SubC"));
 
   return modelo;
+}
+
+function descriptorTresNiveles(): DescriptorMapa {
+  return {
+    nodos: [
+      nodo("SD", 1, 2, 1, 0, 0),
+      nodo("SD1", 2, 3, 0, 0, 270),
+      nodo("SD1.1", 3, 0, 2, 1, 540),
+    ],
+    aristas: [
+      { desdeOpdId: "SD", haciaOpdId: "SD1" },
+      { desdeOpdId: "SD1", haciaOpdId: "SD1.1" },
+    ],
+    bboxTotal: { w: 720, h: 690 },
+  };
+}
+
+function nodo(opdId: string, profundidad: number, procesos: number, objetos: number, estados: number, y: number) {
+  return {
+    opdId,
+    nombre: opdId,
+    tipoRefinamiento: profundidad === 1 ? "raiz" as const : "descompuesto" as const,
+    bbox: { x: 0, y, w: 200, h: 150 },
+    profundidad,
+    thumbnailEntidades: procesos + objetos,
+    thumbnailEnlaces: profundidad,
+    thumbnailProcesos: procesos,
+    thumbnailObjetos: objetos,
+    thumbnailEstados: estados,
+  };
 }
 
 describe("mapaSistema", () => {
@@ -76,6 +115,48 @@ describe("mapaSistema", () => {
         expect(nodo.thumbnailEnlaces).toBe(Object.keys(opd!.enlaces).length);
       }
     });
+
+    test("calcula estadísticas globales del modelo como lente derivada", () => {
+      const modelo = crearModeloConArbol();
+      const stats = calcularEstadisticas(modelo);
+
+      expect(stats.totalOpds).toBe(Object.keys(modelo.opds).length);
+      expect(stats.totalEntidades).toBe(Object.keys(modelo.entidades).length);
+      expect(stats.totalEnlaces).toBe(Object.keys(modelo.enlaces).length);
+      expect(stats.profundidadMaxima).toBeGreaterThanOrEqual(2);
+      expect(stats.totalRamas).toBeGreaterThanOrEqual(1);
+    });
+  });
+
+  describe("filtros, resaltado y marcadores", () => {
+    test("filtrarPorProfundidad conserva nodos hasta el nivel indicado", () => {
+      const descriptor = descriptorTresNiveles();
+
+      expect(filtrarPorProfundidad(descriptor, 1).nodos.map((n) => n.opdId)).toEqual(["SD"]);
+      expect(filtrarPorProfundidad(descriptor, 2).nodos.map((n) => n.opdId)).toEqual(["SD", "SD1"]);
+      expect(filtrarPorProfundidad(descriptor, null).nodos.map((n) => n.opdId)).toEqual(["SD", "SD1", "SD1.1"]);
+    });
+
+    test("filtrarPorSubarbol conserva raíz elegida y descendientes", () => {
+      const filtrado = filtrarPorSubarbol(descriptorTresNiveles(), "SD1");
+
+      expect(filtrado.nodos.map((n) => n.opdId)).toEqual(["SD1", "SD1.1"]);
+      expect(filtrado.aristas).toEqual([{ desdeOpdId: "SD1", haciaOpdId: "SD1.1" }]);
+    });
+
+    test("resaltarPorTipo marca predominancia de procesos con cyan", () => {
+      const resaltado = resaltarPorTipo(descriptorTresNiveles(), "predominanciaProceso");
+
+      expect(resaltado.nodos.find((n) => n.opdId === "SD")?.estiloResaltado).toBe("cyan");
+      expect(resaltado.nodos.find((n) => n.opdId === "SD1.1")?.estiloResaltado).toBe("gris");
+    });
+
+    test("aplicarMarcadores distingue OPD activo y último visitado", () => {
+      const marcado = aplicarMarcadores(descriptorTresNiveles(), "SD1", "SD");
+
+      expect(marcado.nodos.find((n) => n.opdId === "SD1")?.marcadorActivo).toBe(true);
+      expect(marcado.nodos.find((n) => n.opdId === "SD")?.marcadorVisitado).toBe(true);
+    });
   });
 
   describe("proyectarMapaSistemaAJointCells", () => {
@@ -89,6 +170,13 @@ describe("mapaSistema", () => {
 
       expect(rects.length).toBe(descriptor.nodos.length);
       expect(links.length).toBe(descriptor.aristas.length);
+    });
+
+    test("emite una celda visible por cada nodo de descriptor multinivel", () => {
+      const celdas = proyectarMapaSistemaAJointCells(descriptorTresNiveles());
+
+      expect(celdas.filter((c) => c.type === "standard.Rectangle")).toHaveLength(3);
+      expect(celdas.filter((c) => c.type === "standard.Link")).toHaveLength(2);
     });
 
     test("las aristas no usan estilo OPM", () => {

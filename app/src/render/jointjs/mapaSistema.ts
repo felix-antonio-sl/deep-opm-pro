@@ -8,8 +8,15 @@ export interface NodoMapa {
   nombre: string;
   tipoRefinamiento: "descompuesto" | "desplegado" | "raiz";
   bbox: { x: number; y: number; w: number; h: number };
+  profundidad: number;
   thumbnailEntidades: number;
   thumbnailEnlaces: number;
+  thumbnailProcesos: number;
+  thumbnailObjetos: number;
+  thumbnailEstados: number;
+  estiloResaltado?: EstiloResaltadoMapa;
+  marcadorActivo?: boolean;
+  marcadorVisitado?: boolean;
 }
 
 export interface AristaMapa {
@@ -21,6 +28,30 @@ export interface DescriptorMapa {
   nodos: NodoMapa[];
   aristas: AristaMapa[];
   bboxTotal: { w: number; h: number };
+}
+
+export type EstiloResaltadoMapa = "verde-lima" | "cyan" | "gris" | "azul" | "naranja";
+
+export type CriterioResaltado =
+  | "predominanciaProceso"
+  | "predominanciaObjeto"
+  | "tieneEstados"
+  | "raiz"
+  | "ninguno";
+
+export interface EstadisticasModelo {
+  totalEntidades: number;
+  totalEnlaces: number;
+  totalOpds: number;
+  profundidadMaxima: number;
+  totalRamas: number;
+  porTipoCosa: { proceso: number; objeto: number; estados: number };
+  porFamiliaEnlace: {
+    agregacion: number;
+    etiquetado: number;
+    procedural: number;
+    logico: number;
+  };
 }
 
 // ─── Constantes de layout ────────────────────────────────────────────
@@ -117,8 +148,12 @@ export function construirDescriptorMapa(modelo: Modelo): DescriptorMapa {
         w: NODE_W,
         h: NODE_H,
       },
+      profundidad: actual.depth + 1,
       thumbnailEntidades: Object.keys(actual.opd.apariencias).length,
       thumbnailEnlaces: Object.keys(actual.opd.enlaces).length,
+      thumbnailProcesos: contarEntidadesOpd(modelo, actual.opd, "proceso"),
+      thumbnailObjetos: contarEntidadesOpd(modelo, actual.opd, "objeto"),
+      thumbnailEstados: contarEstadosOpd(modelo, actual.opd),
     });
 
     for (const hijo of actual.hijos) {
@@ -177,6 +212,7 @@ function nombreVisible(modelo: Modelo, opd: Opd): string {
 export interface JointCellJson {
   id: string;
   type: string;
+  markup?: Array<{ tagName: string; selector: string }>;
   position?: { x: number; y: number };
   size?: { width: number; height: number };
   attrs?: Record<string, unknown>;
@@ -206,16 +242,40 @@ export function proyectarMapaSistemaAJointCells(
     celdas.push({
       id: cellId,
       type: "standard.Rectangle",
+      markup: [
+        { tagName: "rect", selector: "body" },
+        { tagName: "circle", selector: "marcadorActivo" },
+        { tagName: "circle", selector: "marcadorVisitado" },
+        { tagName: "text", selector: "label" },
+      ],
       position: { x: nodo.bbox.x, y: nodo.bbox.y },
       size: { width: nodo.bbox.w, height: nodo.bbox.h },
       z: 1,
       attrs: {
         body: {
           fill: "#ffffff",
-          stroke: "#a0b3c8",
-          strokeWidth: 2,
+          stroke: colorResaltado(nodo.estiloResaltado),
+          strokeWidth: nodo.estiloResaltado && nodo.estiloResaltado !== "gris" ? 4 : 2,
           rx: 8,
           ry: 8,
+        },
+        marcadorActivo: {
+          cx: 16,
+          cy: 16,
+          r: 6,
+          fill: "#70E483",
+          stroke: "#ffffff",
+          strokeWidth: 2,
+          opacity: nodo.marcadorActivo ? 1 : 0,
+        },
+        marcadorVisitado: {
+          cx: nodo.bbox.w - 16,
+          cy: 16,
+          r: 6,
+          fill: "#CC0A0E",
+          stroke: "#ffffff",
+          strokeWidth: 2,
+          opacity: nodo.marcadorVisitado ? 1 : 0,
         },
         label: {
           text: `${nombreCorto}\n\n${nodo.thumbnailEntidades} cosas · ${nodo.thumbnailEnlaces} enlaces`,
@@ -255,4 +315,185 @@ export function proyectarMapaSistemaAJointCells(
   }
 
   return celdas;
+}
+
+// ─── Lentes derivadas del mapa ──────────────────────────────────────
+
+export function calcularEstadisticas(modelo: Modelo): EstadisticasModelo {
+  const descriptor = construirDescriptorMapa(modelo);
+  const totalEntidades = Object.keys(modelo.entidades).length;
+  const totalEnlaces = Object.keys(modelo.enlaces).length;
+  const opdsConHijos = new Set(descriptor.aristas.map((arista) => arista.desdeOpdId));
+  const procesos = Object.values(modelo.entidades).filter((entidad) => entidad.tipo === "proceso").length;
+  const objetos = Object.values(modelo.entidades).filter((entidad) => entidad.tipo === "objeto").length;
+  const enlaces = Object.values(modelo.enlaces);
+
+  return {
+    totalEntidades,
+    totalEnlaces,
+    totalOpds: descriptor.nodos.length,
+    profundidadMaxima: descriptor.nodos.reduce((max, nodo) => Math.max(max, nodo.profundidad), 0),
+    totalRamas: descriptor.nodos.filter((nodo) => !opdsConHijos.has(nodo.opdId)).length,
+    porTipoCosa: {
+      proceso: procesos,
+      objeto: objetos,
+      estados: Object.keys(modelo.estados).length,
+    },
+    porFamiliaEnlace: {
+      agregacion: enlaces.filter((enlace) =>
+        enlace.tipo === "agregacion" ||
+        enlace.tipo === "exhibicion" ||
+        enlace.tipo === "generalizacion" ||
+        enlace.tipo === "clasificacion"
+      ).length,
+      etiquetado: 0,
+      procedural: enlaces.filter((enlace) =>
+        enlace.tipo === "agente" ||
+        enlace.tipo === "instrumento" ||
+        enlace.tipo === "consumo" ||
+        enlace.tipo === "resultado" ||
+        enlace.tipo === "efecto" ||
+        enlace.tipo === "invocacion"
+      ).length,
+      logico: Object.keys(modelo.abanicos ?? {}).length,
+    },
+  };
+}
+
+export function filtrarPorProfundidad(
+  descriptor: DescriptorMapa,
+  maxProfundidad: number | null,
+): DescriptorMapa {
+  if (maxProfundidad === null) return clonarDescriptor(descriptor);
+  const max = Math.max(1, Math.floor(maxProfundidad));
+  const nodos = descriptor.nodos.filter((nodo) => nodo.profundidad <= max);
+  return descriptorConNodos(descriptor, nodos);
+}
+
+export function filtrarPorSubarbol(
+  descriptor: DescriptorMapa,
+  raizOpdId: Id | null,
+): DescriptorMapa {
+  if (!raizOpdId) return clonarDescriptor(descriptor);
+  if (!descriptor.nodos.some((nodo) => nodo.opdId === raizOpdId)) {
+    return clonarDescriptor(descriptor);
+  }
+  const visitados = new Set<Id>([raizOpdId]);
+  let cambio = true;
+  while (cambio) {
+    cambio = false;
+    for (const arista of descriptor.aristas) {
+      if (visitados.has(arista.desdeOpdId) && !visitados.has(arista.haciaOpdId)) {
+        visitados.add(arista.haciaOpdId);
+        cambio = true;
+      }
+    }
+  }
+  const nodos = descriptor.nodos.filter((nodo) => visitados.has(nodo.opdId));
+  return descriptorConNodos(descriptor, nodos);
+}
+
+export function resaltarPorTipo(
+  descriptor: DescriptorMapa,
+  criterio: CriterioResaltado,
+): DescriptorMapa {
+  if (criterio === "ninguno") {
+    return {
+      ...clonarDescriptor(descriptor),
+      nodos: descriptor.nodos.map((nodo) => {
+        const { estiloResaltado: _omitido, ...resto } = nodo;
+        void _omitido;
+        return { ...resto, bbox: { ...nodo.bbox } };
+      }),
+    };
+  }
+
+  return {
+    ...clonarDescriptor(descriptor),
+    nodos: descriptor.nodos.map((nodo) => ({
+      ...nodo,
+      estiloResaltado: estiloParaCriterio(nodo, criterio),
+    })),
+  };
+}
+
+export function aplicarMarcadores(
+  descriptor: DescriptorMapa,
+  opdActivoId: Id | null,
+  opdUltimoVisitadoId: Id | null,
+): DescriptorMapa {
+  return {
+    ...clonarDescriptor(descriptor),
+    nodos: descriptor.nodos.map((nodo) => ({
+      ...nodo,
+      marcadorActivo: Boolean(opdActivoId && nodo.opdId === opdActivoId),
+      marcadorVisitado: Boolean(opdUltimoVisitadoId && nodo.opdId === opdUltimoVisitadoId && nodo.opdId !== opdActivoId),
+    })),
+  };
+}
+
+function contarEntidadesOpd(modelo: Modelo, opd: Opd, tipo: "objeto" | "proceso"): number {
+  return Object.values(opd.apariencias).filter((apariencia) => modelo.entidades[apariencia.entidadId]?.tipo === tipo).length;
+}
+
+function contarEstadosOpd(modelo: Modelo, opd: Opd): number {
+  const entidadesOpd = new Set(Object.values(opd.apariencias).map((apariencia) => apariencia.entidadId));
+  return Object.values(modelo.estados).filter((estado) => entidadesOpd.has(estado.entidadId)).length;
+}
+
+function descriptorConNodos(descriptor: DescriptorMapa, nodos: NodoMapa[]): DescriptorMapa {
+  const ids = new Set(nodos.map((nodo) => nodo.opdId));
+  return recalcularBbox({
+    nodos: nodos.map((nodo) => ({ ...nodo })),
+    aristas: descriptor.aristas
+      .filter((arista) => ids.has(arista.desdeOpdId) && ids.has(arista.haciaOpdId))
+      .map((arista) => ({ ...arista })),
+    bboxTotal: { ...descriptor.bboxTotal },
+  });
+}
+
+function clonarDescriptor(descriptor: DescriptorMapa): DescriptorMapa {
+  return {
+    nodos: descriptor.nodos.map((nodo) => ({ ...nodo, bbox: { ...nodo.bbox } })),
+    aristas: descriptor.aristas.map((arista) => ({ ...arista })),
+    bboxTotal: { ...descriptor.bboxTotal },
+  };
+}
+
+function recalcularBbox(descriptor: DescriptorMapa): DescriptorMapa {
+  if (descriptor.nodos.length === 0) return { ...descriptor, bboxTotal: { w: NODE_W, h: NODE_H } };
+  const minX = Math.min(...descriptor.nodos.map((nodo) => nodo.bbox.x));
+  const maxX = Math.max(...descriptor.nodos.map((nodo) => nodo.bbox.x + nodo.bbox.w));
+  const maxY = Math.max(...descriptor.nodos.map((nodo) => nodo.bbox.y + nodo.bbox.h));
+  return {
+    ...descriptor,
+    bboxTotal: {
+      w: Math.max(NODE_W, maxX - minX + NODE_GAP_X),
+      h: Math.max(NODE_H, maxY + NODE_GAP_Y),
+    },
+  };
+}
+
+function estiloParaCriterio(nodo: NodoMapa, criterio: CriterioResaltado): EstiloResaltadoMapa {
+  if (criterio === "predominanciaProceso") {
+    return nodo.thumbnailProcesos > nodo.thumbnailObjetos ? "cyan" : "gris";
+  }
+  if (criterio === "predominanciaObjeto") {
+    return nodo.thumbnailObjetos >= nodo.thumbnailProcesos && nodo.thumbnailObjetos > 0 ? "verde-lima" : "gris";
+  }
+  if (criterio === "tieneEstados") {
+    return nodo.thumbnailEstados > 0 ? "azul" : "gris";
+  }
+  if (criterio === "raiz") {
+    return nodo.tipoRefinamiento === "raiz" || nodo.profundidad === 1 ? "naranja" : "gris";
+  }
+  return "gris";
+}
+
+function colorResaltado(estilo: EstiloResaltadoMapa | undefined): string {
+  if (estilo === "cyan") return "#3BC3FF";
+  if (estilo === "verde-lima") return "#70E483";
+  if (estilo === "azul") return "#3DA8FF";
+  if (estilo === "naranja") return "#FF9F43";
+  return "#a0b3c8";
 }
