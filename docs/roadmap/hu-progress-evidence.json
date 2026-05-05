@@ -728,13 +728,13 @@
   ],
   "knownGaps": [],
   "autoAudit": {
-    "generatedAt": "2026-05-05T22:11:28.677Z",
+    "generatedAt": "2026-05-05T22:56:44.560Z",
     "mode": "sync-real",
     "rulesEvaluated": 55,
     "rulesMatched": 55,
     "rulesUnmatched": 0,
     "sourceFiles": {
-      "count": 159,
+      "count": 249,
       "roots": [
         "app/src",
         "app/e2e",
@@ -752,12 +752,14 @@
       "estado": "parcial",
       "confianza": "alta-auto",
       "fuente": "auto",
-      "nota": "Auto: undo/redo esta implementado con snapshots de Modelo, atajos y profundidad 100; siguen fuera comandos inversos granulares/read-only.",
+      "nota": "Auto: undo/redo esta implementado con snapshots de Modelo, atajos y profundidad 100; siguen fuera comandos inversos granulares/read-only. Slices ronda 8: runtime + modelo.",
       "evidencia": [
-        "app/src/store.ts",
+        "app/src/store/runtime.ts",
+        "app/src/store/modelo.ts",
         "app/src/ui/Toolbar.tsx",
         "app/src/store.test.ts",
-        "app/e2e/opm-smoke.spec.ts"
+        "app/e2e/opm-smoke.spec.ts",
+        "app/src/store.ts"
       ]
     },
     {
@@ -767,9 +769,10 @@
       "estado": "parcial",
       "confianza": "alta-auto",
       "fuente": "auto",
-      "nota": "Auto: dirty state se calcula contra snapshot guardado y hay confirmacion global antes de acciones destructivas; falta read-only completo.",
+      "nota": "Auto: dirty state se calcula contra snapshot guardado y hay confirmacion global antes de acciones destructivas; falta read-only completo. Slices ronda 8: runtime + persistencia.",
       "evidencia": [
-        "app/src/store.ts",
+        "app/src/store/runtime.ts",
+        "app/src/store/persistencia.ts",
         "app/src/ui/ConfirmacionContext.tsx",
         "app/src/ui/DialogoConfirmacion.tsx"
       ]
@@ -784,7 +787,10 @@
       "nota": "Auto: generacion OPL-ES forward cubre entidades, enlaces, estados, despliegues y OPD activo; no existe edicion inversa OPL -> canvas.",
       "evidencia": [
         "app/src/opl/generar.ts",
+        "app/src/opl/generadores/procedural.ts",
+        "app/src/opl/generadores/designaciones.ts",
         "app/src/ui/PanelOpl.tsx",
+        "app/src/ui/panelOpl/Bloques.tsx",
         "app/src/opl/generar.test.ts",
         "app/src/completitud.test.ts"
       ]
@@ -800,9 +806,10 @@
       "evidencia": [
         "app/src/canvas/seleccionMultiple.ts",
         "app/src/canvas/operacionesBatch.ts",
-        "app/src/store.ts",
+        "app/src/store/seleccion.ts",
         "app/src/render/jointjs/JointCanvas.tsx",
-        "app/src/render/jointjs/proyeccion.ts"
+        "app/src/render/jointjs/proyeccion.ts",
+        "app/src/store.ts"
       ]
     },
     {
@@ -869,7 +876,7 @@
       "nota": "Auto: flujo origen-tipo-destino crea enlaces con validacion de firma; faltan puertos/borde y tabla contextual canonica.",
       "evidencia": [
         "app/src/ui/Toolbar.tsx",
-        "app/src/store.ts",
+        "app/src/store/modelo.ts",
         "app/src/modelo/operaciones.ts"
       ]
     },
@@ -964,7 +971,8 @@
       "nota": "Auto: guardar/cargar local, nuevo modelo y Ctrl+S estan implementados sobre persistencia local.",
       "evidencia": [
         "app/src/ui/Toolbar.tsx",
-        "app/src/store.ts",
+        "app/src/store/persistencia.ts",
+        "app/src/store/modelo.ts",
         "app/src/persistencia/local.ts",
         "app/src/persistencia/local.test.ts"
       ]
@@ -989,7 +997,8 @@
       "nota": "Auto: arbol OPD navega raiz/hijos, conserva jerarquia por refinamiento y sincroniza canvas/OPL con OPD activo.",
       "evidencia": [
         "app/src/ui/ArbolOpd.tsx",
-        "app/src/store.ts",
+        "app/src/ui/arbol/NodoOpd.tsx",
+        "app/src/store/modelo.ts",
         "app/src/modelo/operaciones.ts",
         "app/src/opl/generar.ts",
         "app/e2e/opm-smoke.spec.ts"
@@ -1026,7 +1035,9 @@
       "nota": "Auto: panel OPL persistente renderiza objetos/procesos con marcas semanticas y colores diferenciados.",
       "evidencia": [
         "app/src/ui/PanelOpl.tsx",
+        "app/src/ui/panelOpl/RenderToken.tsx",
         "app/src/opl/generar.ts",
+        "app/src/opl/generadores/refsHints.ts",
         "app/src/completitud.test.ts"
       ]
     },
@@ -1052,8 +1063,8 @@
       "fuente": "auto",
       "nota": "Auto: inspector permite descomponer/desplegar desde la entidad seleccionada; faltan menus canonicos y algunos gestos.",
       "evidencia": [
-        "app/src/ui/InspectorEntidad.tsx",
-        "app/src/store.ts"
+        "app/src/ui/inspector/SeccionRefinamiento.tsx",
+        "app/src/store/modelo.ts"
       ]
     },
     {
@@ -1095,7 +1106,8 @@
       "nota": "Auto: reanclaje de enlaces externos derivados y split de effect existen; falta UX canonica completa de edicion sobre contorno.",
       "evidencia": [
         "app/src/modelo/operaciones.ts",
-        "app/src/ui/InspectorEnlace.tsx",
+        "app/src/ui/inspectorEnlace/SeccionReanclaje.tsx",
+        "app/src/store/modelo.ts",
         "app/src/modelo/operaciones.test.ts"
       ]
     },
@@ -1114,7 +1126,7 @@
       "fuente": "auto",
       "nota": "Auto: creacion/movimiento/renombrado en OPD activo y persistencia de apariencias existen; faltan restricciones visuales canonicas completas.",
       "evidencia": [
-        "app/src/store.ts",
+        "app/src/store/modelo.ts",
         "app/src/ui/InspectorEntidad.tsx",
         "app/src/modelo/operaciones.ts"
       ]
@@ -1152,10 +1164,13 @@
       "nota": "Auto: estados inicial/final se validan, renderizan, serializan y verbalizan en OPL con pruebas.",
       "evidencia": [
         "app/src/modelo/estadosDesignaciones.ts",
-        "app/src/opl/generar.ts",
-        "app/src/serializacion/json.ts",
+        "app/src/opl/generadores/designaciones.ts",
+        "app/src/opl/generadores/duracionMetadata.ts",
+        "app/src/serializacion/validarEstados.ts",
         "app/src/completitud.test.ts",
-        "app/src/render/jointjs/proyeccion.test.ts"
+        "app/src/render/jointjs/proyeccion.test.ts",
+        "app/src/serializacion/json.ts",
+        "app/src/opl/generar.ts"
       ]
     },
     {
@@ -1168,17 +1183,18 @@
       "nota": "Auto: extremos de enlace pueden apuntar a estados, se serializan, se proyectan a capsula y se crean por gesto directo sobre la capsula.",
       "evidencia": [
         "app/src/modelo/extremos.ts",
-        "app/src/ui/InspectorEnlace.tsx",
-        "app/src/render/jointjs/proyeccion.ts",
+        "app/src/ui/inspectorEnlace/SeccionExtremos.tsx",
+        "app/src/render/jointjs/composers/enlace.ts",
         "app/src/render/jointjs/estadoTargets.ts",
         "app/src/render/jointjs/JointCanvas.tsx",
-        "app/src/store.ts",
-        "app/src/serializacion/json.ts",
+        "app/src/store/modelo.ts",
+        "app/src/serializacion/validarEnlaces.ts",
         "app/src/modelo/operaciones.test.ts",
         "app/src/render/jointjs/proyeccion.test.ts",
         "app/src/serializacion/json.test.ts",
         "app/src/store.test.ts",
-        "app/e2e/opm-smoke.spec.ts"
+        "app/e2e/opm-smoke.spec.ts",
+        "app/src/serializacion/json.ts"
       ]
     },
     {
@@ -1190,10 +1206,11 @@
       "fuente": "auto",
       "nota": "Auto: OPL-ES TS3 para par consumo-resultado sobre estados emite una transicion unica de estado.",
       "evidencia": [
-        "app/src/opl/generar.ts",
+        "app/src/opl/generadores/procedural.ts",
         "app/src/opl/generar.test.ts",
         "app/src/modelo/extremos.ts",
-        "app/src/serializacion/json.test.ts"
+        "app/src/serializacion/json.test.ts",
+        "app/src/opl/generar.ts"
       ]
     },
     {
@@ -1238,7 +1255,7 @@
       "nota": "Auto: panel de avisos existe y permite seleccionar elementos; faltan todos los patrones de navegacion/correccion asistida.",
       "evidencia": [
         "app/src/ui/PanelAvisos.tsx",
-        "app/src/store.ts"
+        "app/src/store/modelo.ts"
       ]
     },
     {
@@ -1289,14 +1306,16 @@
       "nota": "Auto: extraccion/reinsercion de partes plegadas, proxy visual, reanclaje al padre, contador y OPL resumida estan implementados y probados.",
       "evidencia": [
         "app/src/modelo/plegado.ts",
-        "app/src/store.ts",
+        "app/src/store/modelo.ts",
         "app/src/render/jointjs/JointCanvas.tsx",
-        "app/src/render/jointjs/proyeccion.ts",
-        "app/src/opl/generar.ts",
+        "app/src/render/jointjs/composers/plegado.ts",
+        "app/src/opl/generadores/plegado.ts",
         "app/src/modelo/plegado.test.ts",
         "app/src/render/jointjs/proyeccion.test.ts",
         "app/src/opl/generar.test.ts",
-        "app/src/serializacion/json.test.ts"
+        "app/src/serializacion/json.test.ts",
+        "app/src/render/jointjs/proyeccion.ts",
+        "app/src/opl/generar.ts"
       ]
     },
     {
@@ -1310,7 +1329,7 @@
       "nota": "Auto: despliegue y multiples apariencias estan modelados para OPDs; faltan propiedades completas de apariencia equivalentes a OPCloud.",
       "evidencia": [
         "app/src/modelo/operaciones.ts",
-        "app/src/ui/InspectorEntidad.tsx",
+        "app/src/ui/inspector/SeccionRefinamiento.tsx",
         "app/src/serializacion/json.ts"
       ]
     },
@@ -1324,7 +1343,7 @@
       "nota": "Auto: la segunda rama compatible forma un abanico automaticamente en el store y se cubre con tests de kernel/store.",
       "evidencia": [
         "app/src/modelo/abanicos.ts",
-        "app/src/store.ts",
+        "app/src/store/modelo.ts",
         "app/src/modelo/abanicos.test.ts",
         "app/src/store.test.ts"
       ]
@@ -1339,7 +1358,8 @@
       "nota": "Auto: el operador del abanico alterna entre O y XOR desde modelo, store e inspector.",
       "evidencia": [
         "app/src/modelo/abanicos.ts",
-        "app/src/ui/InspectorEnlace.tsx",
+        "app/src/ui/inspectorEnlace/SeccionAbanico.tsx",
+        "app/src/store/enlaces.ts",
         "app/src/store.test.ts",
         "app/src/modelo/abanicos.test.ts"
       ]
@@ -1356,7 +1376,7 @@
       "evidencia": [
         "app/src/render/jointjs/abanicoOverlay.ts",
         "app/src/render/jointjs/linkAssets.ts",
-        "app/src/render/jointjs/proyeccion.ts",
+        "app/src/render/jointjs/composers/markers.ts",
         "assets/svg/links/logical/xor.svg",
         "assets/svg/links/logical/or.svg",
         "app/src/modelo/abanicos.ts",
@@ -1417,12 +1437,15 @@
       "evidencia": [
         "app/src/modelo/tipos.ts",
         "app/src/modelo/modificadores.ts",
-        "app/src/ui/InspectorEnlace.tsx",
-        "app/src/render/jointjs/proyeccion.ts",
-        "app/src/opl/generar.ts",
+        "app/src/ui/inspectorEnlace/SeccionMultiplicidad.tsx",
+        "app/src/render/jointjs/composers/enlace.ts",
+        "app/src/opl/generadores/procedural.ts",
         "app/src/modelo/modificadores.test.ts",
         "app/src/opl/generar.test.ts",
-        "app/e2e/opm-smoke.spec.ts"
+        "app/e2e/opm-smoke.spec.ts",
+        "app/src/render/jointjs/proyeccion.ts",
+        "app/src/opl/generar.ts",
+        "app/src/ui/InspectorEnlace.tsx"
       ]
     },
     {
@@ -1468,7 +1491,7 @@
         "app/src/render/jointjs/autoinvocacionLoop.ts",
         "app/src/opl/generar.ts",
         "app/src/ui/InspectorEntidad.tsx",
-        "app/src/store.ts",
+        "app/src/store/modelo.ts",
         "app/src/modelo/modificadores.test.ts",
         "app/src/opl/generar.test.ts",
         "app/src/render/jointjs/proyeccion.test.ts",
@@ -1489,7 +1512,7 @@
         "app/src/modelo/plegado.ts",
         "app/src/render/jointjs/plegadoNesting.ts",
         "app/src/render/jointjs/JointCanvas.tsx",
-        "app/src/store.ts",
+        "app/src/store/modelo.ts",
         "app/src/ui/InspectorEntidad.tsx",
         "app/src/serializacion/json.ts",
         "app/src/modelo/plegado.test.ts",
@@ -1515,7 +1538,7 @@
       "evidencia": [
         "app/src/opl/interaccion.ts",
         "app/src/ui/PanelOpl.tsx",
-        "app/src/store.ts",
+        "app/src/store/modelo.ts",
         "app/src/opl/generar.test.ts",
         "app/src/store.test.ts",
         "app/e2e/opm-smoke.spec.ts"
@@ -1577,7 +1600,7 @@
       "nota": "Auto: Nuevo crea pestana con SD vacio, titulo (No guardado) y panel OPL/biblioteca vacios.",
       "evidencia": [
         "app/src/ui/MenuPrincipal.tsx",
-        "app/src/store.ts",
+        "app/src/store/modelo.ts",
         "app/src/ui/Toolbar.tsx"
       ]
     },
@@ -1591,7 +1614,7 @@
       "nota": "Auto: click dentro del bbox de un contenedor refinado crea cosa hija sin advertencia interior/exterior.",
       "evidencia": [
         "app/src/modelo/creacionInterna.ts",
-        "app/src/store.ts",
+        "app/src/store/modelo.ts",
         "app/src/modelo/creacionInterna.test.ts"
       ]
     },
@@ -1607,7 +1630,7 @@
       "evidencia": [
         "app/src/modelo/opdEliminacion.ts",
         "app/src/ui/ArbolOpd.tsx",
-        "app/src/store.ts",
+        "app/src/store/modelo.ts",
         "app/src/modelo/opdEliminacion.test.ts",
         "app/src/store.test.ts"
       ]
@@ -1654,11 +1677,17 @@
       "evidencia": [
         "app/src/modelo/objetoMetadata.ts",
         "app/src/modelo/tipos.ts",
-        "app/src/serializacion/json.ts",
-        "app/src/render/jointjs/proyeccion.ts",
-        "app/src/opl/generar.ts",
+        "app/src/serializacion/validarEntidades.ts",
+        "app/src/render/jointjs/composers/entidad.ts",
+        "app/src/opl/generadores/refsHints.ts",
+        "app/src/ui/inspector/SeccionAlias.tsx",
+        "app/src/ui/inspector/SeccionUrls.tsx",
+        "app/src/ui/inspector/SeccionDescripcion.tsx",
+        "app/src/ui/ModalUrlsObjeto.tsx",
         "app/src/ui/InspectorEntidad.tsx",
-        "app/src/ui/ModalUrlsObjeto.tsx"
+        "app/src/serializacion/json.ts",
+        "app/src/opl/generar.ts",
+        "app/src/render/jointjs/proyeccion.ts"
       ]
     },
     {
@@ -1673,10 +1702,14 @@
       "evidencia": [
         "app/src/modelo/estadosDesignaciones.ts",
         "app/src/modelo/tipos.ts",
-        "app/src/serializacion/json.ts",
-        "app/src/opl/generar.ts",
+        "app/src/serializacion/validarEstados.ts",
+        "app/src/opl/generadores/designaciones.ts",
+        "app/src/opl/generadores/duracionMetadata.ts",
+        "app/src/ui/inspector/SeccionDesignaciones.tsx",
         "app/src/ui/InspectorEntidad.tsx",
-        "app/src/completitud.test.ts"
+        "app/src/completitud.test.ts",
+        "app/src/serializacion/json.ts",
+        "app/src/opl/generar.ts"
       ]
     },
     {
@@ -1690,9 +1723,11 @@
       "evidencia": [
         "app/src/modelo/objetoDuracion.ts",
         "app/src/modelo/tipos.ts",
+        "app/src/serializacion/validarEstados.ts",
+        "app/src/opl/generadores/duracionMetadata.ts",
+        "app/src/ui/ModalDuracionEstado.tsx",
         "app/src/serializacion/json.ts",
-        "app/src/opl/generar.ts",
-        "app/src/ui/ModalDuracionEstado.tsx"
+        "app/src/opl/generar.ts"
       ]
     },
     {
@@ -1766,7 +1801,7 @@
       "nota": "Auto: multi-pestana sesion-only con boton +, cierre protegido, cambio activo y drag-reorder.",
       "evidencia": [
         "app/src/store/pestanas.ts",
-        "app/src/store.ts",
+        "app/src/store/tipos.ts",
         "app/src/ui/BarraPestanas.tsx"
       ]
     }

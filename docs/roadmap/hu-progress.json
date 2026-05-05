@@ -1,17 +1,17 @@
 {
   "schema": "deep-opm-pro.hu-progress-report.v1",
-  "generatedAt": "2026-05-05T22:11:28.677Z",
-  "repoRoot": "/tmp/deep-opm-pro-l6a-check",
+  "generatedAt": "2026-05-05T22:56:44.560Z",
+  "repoRoot": "/home/felix/projects/deep-opm-pro",
   "backlogRoot": "docs/historias-usuario-v2",
   "evidenceLedger": "docs/roadmap/hu-progress-evidence.json",
   "autoAudit": {
-    "generatedAt": "2026-05-05T22:11:28.677Z",
+    "generatedAt": "2026-05-05T22:56:44.560Z",
     "mode": "sync-real",
     "rulesEvaluated": 55,
     "rulesMatched": 55,
     "rulesUnmatched": 0,
     "sourceFiles": {
-      "count": 159,
+      "count": 249,
       "roots": [
         "app/src",
         "app/e2e",
@@ -898,12 +898,16 @@
       "estadoAvance": "parcial",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto: undo/redo esta implementado con snapshots de Modelo, atajos y profundidad 100; siguen fuera comandos inversos granulares/read-only.",
+      "nota": "Auto: undo/redo esta implementado con snapshots de Modelo, atajos y profundidad 100; siguen fuera comandos inversos granulares/read-only. Slices ronda 8: runtime + modelo.",
       "brechas": [],
       "evidencia": [
         {
-          "path": "app/src/store.ts",
-          "hrefDashboard": "../../app/src/store.ts"
+          "path": "app/src/store/runtime.ts",
+          "hrefDashboard": "../../app/src/store/runtime.ts"
+        },
+        {
+          "path": "app/src/store/modelo.ts",
+          "hrefDashboard": "../../app/src/store/modelo.ts"
         },
         {
           "path": "app/src/ui/Toolbar.tsx",
@@ -916,6 +920,10 @@
         {
           "path": "app/e2e/opm-smoke.spec.ts",
           "hrefDashboard": "../../app/e2e/opm-smoke.spec.ts"
+        },
+        {
+          "path": "app/src/store.ts",
+          "hrefDashboard": "../../app/src/store.ts"
         }
       ],
       "peso": 8,
@@ -1110,12 +1118,16 @@
       "estadoAvance": "parcial",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto: dirty state se calcula contra snapshot guardado y hay confirmacion global antes de acciones destructivas; falta read-only completo.",
+      "nota": "Auto: dirty state se calcula contra snapshot guardado y hay confirmacion global antes de acciones destructivas; falta read-only completo. Slices ronda 8: runtime + persistencia.",
       "brechas": [],
       "evidencia": [
         {
-          "path": "app/src/store.ts",
-          "hrefDashboard": "../../app/src/store.ts"
+          "path": "app/src/store/runtime.ts",
+          "hrefDashboard": "../../app/src/store/runtime.ts"
+        },
+        {
+          "path": "app/src/store/persistencia.ts",
+          "hrefDashboard": "../../app/src/store/persistencia.ts"
         },
         {
           "path": "app/src/ui/ConfirmacionContext.tsx",
@@ -1186,8 +1198,20 @@
           "hrefDashboard": "../../app/src/opl/generar.ts"
         },
         {
+          "path": "app/src/opl/generadores/procedural.ts",
+          "hrefDashboard": "../../app/src/opl/generadores/procedural.ts"
+        },
+        {
+          "path": "app/src/opl/generadores/designaciones.ts",
+          "hrefDashboard": "../../app/src/opl/generadores/designaciones.ts"
+        },
+        {
           "path": "app/src/ui/PanelOpl.tsx",
           "hrefDashboard": "../../app/src/ui/PanelOpl.tsx"
+        },
+        {
+          "path": "app/src/ui/panelOpl/Bloques.tsx",
+          "hrefDashboard": "../../app/src/ui/panelOpl/Bloques.tsx"
         },
         {
           "path": "app/src/opl/generar.test.ts",
@@ -1246,8 +1270,8 @@
           "hrefDashboard": "../../app/src/canvas/operacionesBatch.ts"
         },
         {
-          "path": "app/src/store.ts",
-          "hrefDashboard": "../../app/src/store.ts"
+          "path": "app/src/store/seleccion.ts",
+          "hrefDashboard": "../../app/src/store/seleccion.ts"
         },
         {
           "path": "app/src/render/jointjs/JointCanvas.tsx",
@@ -1256,6 +1280,10 @@
         {
           "path": "app/src/render/jointjs/proyeccion.ts",
           "hrefDashboard": "../../app/src/render/jointjs/proyeccion.ts"
+        },
+        {
+          "path": "app/src/store.ts",
+          "hrefDashboard": "../../app/src/store.ts"
         }
       ],
       "peso": 4,
@@ -14904,8 +14932,8 @@
           "hrefDashboard": "../../app/src/modelo/creacionInterna.ts"
         },
         {
-          "path": "app/src/store.ts",
-          "hrefDashboard": "../../app/src/store.ts"
+          "path": "app/src/store/modelo.ts",
+          "hrefDashboard": "../../app/src/store/modelo.ts"
         },
         {
           "path": "app/src/modelo/creacionInterna.test.ts",
@@ -15232,8 +15260,8 @@
           "hrefDashboard": "../../app/src/ui/PanelAvisos.tsx"
         },
         {
-          "path": "app/src/store.ts",
-          "hrefDashboard": "../../app/src/store.ts"
+          "path": "app/src/store/modelo.ts",
+          "hrefDashboard": "../../app/src/store/modelo.ts"
         }
       ],
       "peso": 2,
@@ -15384,8 +15412,8 @@
           "hrefDashboard": "../../app/src/ui/PanelAvisos.tsx"
         },
         {
-          "path": "app/src/store.ts",
-          "hrefDashboard": "../../app/src/store.ts"
+          "path": "app/src/store/modelo.ts",
+          "hrefDashboard": "../../app/src/store/modelo.ts"
         }
       ],
       "peso": 4,
@@ -15428,8 +15456,8 @@
           "hrefDashboard": "../../app/src/ui/PanelAvisos.tsx"
         },
         {
-          "path": "app/src/store.ts",
-          "hrefDashboard": "../../app/src/store.ts"
+          "path": "app/src/store/modelo.ts",
+          "hrefDashboard": "../../app/src/store/modelo.ts"
         }
       ],
       "peso": 2,
@@ -15471,8 +15499,8 @@
           "hrefDashboard": "../../app/src/ui/PanelAvisos.tsx"
         },
         {
-          "path": "app/src/store.ts",
-          "hrefDashboard": "../../app/src/store.ts"
+          "path": "app/src/store/modelo.ts",
+          "hrefDashboard": "../../app/src/store/modelo.ts"
         }
       ],
       "peso": 2,
@@ -15995,8 +16023,8 @@
           "hrefDashboard": "../../app/src/ui/Toolbar.tsx"
         },
         {
-          "path": "app/src/store.ts",
-          "hrefDashboard": "../../app/src/store.ts"
+          "path": "app/src/store/modelo.ts",
+          "hrefDashboard": "../../app/src/store/modelo.ts"
         },
         {
           "path": "app/src/modelo/operaciones.ts",
@@ -16050,8 +16078,8 @@
           "hrefDashboard": "../../app/src/ui/Toolbar.tsx"
         },
         {
-          "path": "app/src/store.ts",
-          "hrefDashboard": "../../app/src/store.ts"
+          "path": "app/src/store/modelo.ts",
+          "hrefDashboard": "../../app/src/store/modelo.ts"
         },
         {
           "path": "app/src/modelo/operaciones.ts",
@@ -16144,8 +16172,8 @@
           "hrefDashboard": "../../app/src/ui/Toolbar.tsx"
         },
         {
-          "path": "app/src/store.ts",
-          "hrefDashboard": "../../app/src/store.ts"
+          "path": "app/src/store/modelo.ts",
+          "hrefDashboard": "../../app/src/store/modelo.ts"
         },
         {
           "path": "app/src/modelo/operaciones.ts",
@@ -16199,8 +16227,8 @@
           "hrefDashboard": "../../app/src/ui/Toolbar.tsx"
         },
         {
-          "path": "app/src/store.ts",
-          "hrefDashboard": "../../app/src/store.ts"
+          "path": "app/src/store/modelo.ts",
+          "hrefDashboard": "../../app/src/store/modelo.ts"
         },
         {
           "path": "app/src/modelo/operaciones.ts",
@@ -17876,8 +17904,12 @@
           "hrefDashboard": "../../app/src/ui/Toolbar.tsx"
         },
         {
-          "path": "app/src/store.ts",
-          "hrefDashboard": "../../app/src/store.ts"
+          "path": "app/src/store/persistencia.ts",
+          "hrefDashboard": "../../app/src/store/persistencia.ts"
+        },
+        {
+          "path": "app/src/store/modelo.ts",
+          "hrefDashboard": "../../app/src/store/modelo.ts"
         },
         {
           "path": "app/src/persistencia/local.ts",
@@ -17934,8 +17966,8 @@
           "hrefDashboard": "../../app/src/ui/Toolbar.tsx"
         },
         {
-          "path": "app/src/store.ts",
-          "hrefDashboard": "../../app/src/store.ts"
+          "path": "app/src/store/modelo.ts",
+          "hrefDashboard": "../../app/src/store/modelo.ts"
         },
         {
           "path": "app/src/modelo/operaciones.ts",
@@ -17988,8 +18020,8 @@
           "hrefDashboard": "../../app/src/ui/Toolbar.tsx"
         },
         {
-          "path": "app/src/store.ts",
-          "hrefDashboard": "../../app/src/store.ts"
+          "path": "app/src/store/modelo.ts",
+          "hrefDashboard": "../../app/src/store/modelo.ts"
         },
         {
           "path": "app/src/modelo/operaciones.ts",
@@ -18058,16 +18090,16 @@
           "hrefDashboard": "../../app/src/modelo/modificadores.ts"
         },
         {
-          "path": "app/src/ui/InspectorEnlace.tsx",
-          "hrefDashboard": "../../app/src/ui/InspectorEnlace.tsx"
+          "path": "app/src/ui/inspectorEnlace/SeccionMultiplicidad.tsx",
+          "hrefDashboard": "../../app/src/ui/inspectorEnlace/SeccionMultiplicidad.tsx"
         },
         {
-          "path": "app/src/render/jointjs/proyeccion.ts",
-          "hrefDashboard": "../../app/src/render/jointjs/proyeccion.ts"
+          "path": "app/src/render/jointjs/composers/enlace.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/composers/enlace.ts"
         },
         {
-          "path": "app/src/opl/generar.ts",
-          "hrefDashboard": "../../app/src/opl/generar.ts"
+          "path": "app/src/opl/generadores/procedural.ts",
+          "hrefDashboard": "../../app/src/opl/generadores/procedural.ts"
         },
         {
           "path": "app/src/modelo/modificadores.test.ts",
@@ -18080,6 +18112,18 @@
         {
           "path": "app/e2e/opm-smoke.spec.ts",
           "hrefDashboard": "../../app/e2e/opm-smoke.spec.ts"
+        },
+        {
+          "path": "app/src/render/jointjs/proyeccion.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/proyeccion.ts"
+        },
+        {
+          "path": "app/src/opl/generar.ts",
+          "hrefDashboard": "../../app/src/opl/generar.ts"
+        },
+        {
+          "path": "app/src/ui/InspectorEnlace.tsx",
+          "hrefDashboard": "../../app/src/ui/InspectorEnlace.tsx"
         }
       ],
       "peso": 4,
@@ -18151,12 +18195,12 @@
       "brechas": [],
       "evidencia": [
         {
-          "path": "app/src/ui/InspectorEntidad.tsx",
-          "hrefDashboard": "../../app/src/ui/InspectorEntidad.tsx"
+          "path": "app/src/ui/inspector/SeccionRefinamiento.tsx",
+          "hrefDashboard": "../../app/src/ui/inspector/SeccionRefinamiento.tsx"
         },
         {
-          "path": "app/src/store.ts",
-          "hrefDashboard": "../../app/src/store.ts"
+          "path": "app/src/store/modelo.ts",
+          "hrefDashboard": "../../app/src/store/modelo.ts"
         }
       ],
       "peso": 1,
@@ -18270,8 +18314,12 @@
           "hrefDashboard": "../../app/src/ui/ArbolOpd.tsx"
         },
         {
-          "path": "app/src/store.ts",
-          "hrefDashboard": "../../app/src/store.ts"
+          "path": "app/src/ui/arbol/NodoOpd.tsx",
+          "hrefDashboard": "../../app/src/ui/arbol/NodoOpd.tsx"
+        },
+        {
+          "path": "app/src/store/modelo.ts",
+          "hrefDashboard": "../../app/src/store/modelo.ts"
         },
         {
           "path": "app/src/modelo/operaciones.ts",
@@ -18327,8 +18375,12 @@
           "hrefDashboard": "../../app/src/ui/ArbolOpd.tsx"
         },
         {
-          "path": "app/src/store.ts",
-          "hrefDashboard": "../../app/src/store.ts"
+          "path": "app/src/ui/arbol/NodoOpd.tsx",
+          "hrefDashboard": "../../app/src/ui/arbol/NodoOpd.tsx"
+        },
+        {
+          "path": "app/src/store/modelo.ts",
+          "hrefDashboard": "../../app/src/store/modelo.ts"
         },
         {
           "path": "app/src/modelo/operaciones.ts",
@@ -18383,8 +18435,12 @@
           "hrefDashboard": "../../app/src/ui/ArbolOpd.tsx"
         },
         {
-          "path": "app/src/store.ts",
-          "hrefDashboard": "../../app/src/store.ts"
+          "path": "app/src/ui/arbol/NodoOpd.tsx",
+          "hrefDashboard": "../../app/src/ui/arbol/NodoOpd.tsx"
+        },
+        {
+          "path": "app/src/store/modelo.ts",
+          "hrefDashboard": "../../app/src/store/modelo.ts"
         },
         {
           "path": "app/src/modelo/operaciones.ts",
@@ -18668,8 +18724,12 @@
           "hrefDashboard": "../../app/src/modelo/operaciones.ts"
         },
         {
-          "path": "app/src/ui/InspectorEnlace.tsx",
-          "hrefDashboard": "../../app/src/ui/InspectorEnlace.tsx"
+          "path": "app/src/ui/inspectorEnlace/SeccionReanclaje.tsx",
+          "hrefDashboard": "../../app/src/ui/inspectorEnlace/SeccionReanclaje.tsx"
+        },
+        {
+          "path": "app/src/store/modelo.ts",
+          "hrefDashboard": "../../app/src/store/modelo.ts"
         },
         {
           "path": "app/src/modelo/operaciones.test.ts",
@@ -18891,8 +18951,8 @@
       "brechas": [],
       "evidencia": [
         {
-          "path": "app/src/store.ts",
-          "hrefDashboard": "../../app/src/store.ts"
+          "path": "app/src/store/modelo.ts",
+          "hrefDashboard": "../../app/src/store/modelo.ts"
         },
         {
           "path": "app/src/ui/InspectorEntidad.tsx",
@@ -19061,8 +19121,8 @@
       "brechas": [],
       "evidencia": [
         {
-          "path": "app/src/store.ts",
-          "hrefDashboard": "../../app/src/store.ts"
+          "path": "app/src/store/modelo.ts",
+          "hrefDashboard": "../../app/src/store/modelo.ts"
         },
         {
           "path": "app/src/ui/InspectorEntidad.tsx",
@@ -19267,8 +19327,8 @@
       "brechas": [],
       "evidencia": [
         {
-          "path": "app/src/store.ts",
-          "hrefDashboard": "../../app/src/store.ts"
+          "path": "app/src/store/modelo.ts",
+          "hrefDashboard": "../../app/src/store/modelo.ts"
         },
         {
           "path": "app/src/ui/InspectorEntidad.tsx",
@@ -19321,8 +19381,8 @@
       "brechas": [],
       "evidencia": [
         {
-          "path": "app/src/store.ts",
-          "hrefDashboard": "../../app/src/store.ts"
+          "path": "app/src/store/modelo.ts",
+          "hrefDashboard": "../../app/src/store/modelo.ts"
         },
         {
           "path": "app/src/ui/InspectorEntidad.tsx",
@@ -19371,8 +19431,8 @@
       "brechas": [],
       "evidencia": [
         {
-          "path": "app/src/store.ts",
-          "hrefDashboard": "../../app/src/store.ts"
+          "path": "app/src/store/modelo.ts",
+          "hrefDashboard": "../../app/src/store/modelo.ts"
         },
         {
           "path": "app/src/ui/InspectorEntidad.tsx",
@@ -19422,8 +19482,12 @@
           "hrefDashboard": "../../app/src/ui/ArbolOpd.tsx"
         },
         {
-          "path": "app/src/store.ts",
-          "hrefDashboard": "../../app/src/store.ts"
+          "path": "app/src/ui/arbol/NodoOpd.tsx",
+          "hrefDashboard": "../../app/src/ui/arbol/NodoOpd.tsx"
+        },
+        {
+          "path": "app/src/store/modelo.ts",
+          "hrefDashboard": "../../app/src/store/modelo.ts"
         },
         {
           "path": "app/src/modelo/operaciones.ts",
@@ -19622,8 +19686,8 @@
       "brechas": [],
       "evidencia": [
         {
-          "path": "app/src/store.ts",
-          "hrefDashboard": "../../app/src/store.ts"
+          "path": "app/src/store/modelo.ts",
+          "hrefDashboard": "../../app/src/store/modelo.ts"
         },
         {
           "path": "app/src/ui/InspectorEntidad.tsx",
@@ -19673,8 +19737,8 @@
       "brechas": [],
       "evidencia": [
         {
-          "path": "app/src/store.ts",
-          "hrefDashboard": "../../app/src/store.ts"
+          "path": "app/src/store/modelo.ts",
+          "hrefDashboard": "../../app/src/store/modelo.ts"
         },
         {
           "path": "app/src/ui/InspectorEntidad.tsx",
@@ -19729,8 +19793,12 @@
           "hrefDashboard": "../../app/src/modelo/operaciones.ts"
         },
         {
-          "path": "app/src/ui/InspectorEnlace.tsx",
-          "hrefDashboard": "../../app/src/ui/InspectorEnlace.tsx"
+          "path": "app/src/ui/inspectorEnlace/SeccionReanclaje.tsx",
+          "hrefDashboard": "../../app/src/ui/inspectorEnlace/SeccionReanclaje.tsx"
+        },
+        {
+          "path": "app/src/store/modelo.ts",
+          "hrefDashboard": "../../app/src/store/modelo.ts"
         },
         {
           "path": "app/src/modelo/operaciones.test.ts",
@@ -20000,12 +20068,16 @@
           "hrefDashboard": "../../app/src/modelo/estadosDesignaciones.ts"
         },
         {
-          "path": "app/src/opl/generar.ts",
-          "hrefDashboard": "../../app/src/opl/generar.ts"
+          "path": "app/src/opl/generadores/designaciones.ts",
+          "hrefDashboard": "../../app/src/opl/generadores/designaciones.ts"
         },
         {
-          "path": "app/src/serializacion/json.ts",
-          "hrefDashboard": "../../app/src/serializacion/json.ts"
+          "path": "app/src/opl/generadores/duracionMetadata.ts",
+          "hrefDashboard": "../../app/src/opl/generadores/duracionMetadata.ts"
+        },
+        {
+          "path": "app/src/serializacion/validarEstados.ts",
+          "hrefDashboard": "../../app/src/serializacion/validarEstados.ts"
         },
         {
           "path": "app/src/completitud.test.ts",
@@ -20014,6 +20086,14 @@
         {
           "path": "app/src/render/jointjs/proyeccion.test.ts",
           "hrefDashboard": "../../app/src/render/jointjs/proyeccion.test.ts"
+        },
+        {
+          "path": "app/src/serializacion/json.ts",
+          "hrefDashboard": "../../app/src/serializacion/json.ts"
+        },
+        {
+          "path": "app/src/opl/generar.ts",
+          "hrefDashboard": "../../app/src/opl/generar.ts"
         }
       ],
       "peso": 2,
@@ -20245,12 +20325,16 @@
           "hrefDashboard": "../../app/src/modelo/estadosDesignaciones.ts"
         },
         {
-          "path": "app/src/opl/generar.ts",
-          "hrefDashboard": "../../app/src/opl/generar.ts"
+          "path": "app/src/opl/generadores/designaciones.ts",
+          "hrefDashboard": "../../app/src/opl/generadores/designaciones.ts"
         },
         {
-          "path": "app/src/serializacion/json.ts",
-          "hrefDashboard": "../../app/src/serializacion/json.ts"
+          "path": "app/src/opl/generadores/duracionMetadata.ts",
+          "hrefDashboard": "../../app/src/opl/generadores/duracionMetadata.ts"
+        },
+        {
+          "path": "app/src/serializacion/validarEstados.ts",
+          "hrefDashboard": "../../app/src/serializacion/validarEstados.ts"
         },
         {
           "path": "app/src/completitud.test.ts",
@@ -20259,6 +20343,14 @@
         {
           "path": "app/src/render/jointjs/proyeccion.test.ts",
           "hrefDashboard": "../../app/src/render/jointjs/proyeccion.test.ts"
+        },
+        {
+          "path": "app/src/serializacion/json.ts",
+          "hrefDashboard": "../../app/src/serializacion/json.ts"
+        },
+        {
+          "path": "app/src/opl/generar.ts",
+          "hrefDashboard": "../../app/src/opl/generar.ts"
         }
       ],
       "peso": 4,
@@ -20350,12 +20442,16 @@
           "hrefDashboard": "../../app/src/modelo/estadosDesignaciones.ts"
         },
         {
-          "path": "app/src/opl/generar.ts",
-          "hrefDashboard": "../../app/src/opl/generar.ts"
+          "path": "app/src/opl/generadores/designaciones.ts",
+          "hrefDashboard": "../../app/src/opl/generadores/designaciones.ts"
         },
         {
-          "path": "app/src/serializacion/json.ts",
-          "hrefDashboard": "../../app/src/serializacion/json.ts"
+          "path": "app/src/opl/generadores/duracionMetadata.ts",
+          "hrefDashboard": "../../app/src/opl/generadores/duracionMetadata.ts"
+        },
+        {
+          "path": "app/src/serializacion/validarEstados.ts",
+          "hrefDashboard": "../../app/src/serializacion/validarEstados.ts"
         },
         {
           "path": "app/src/completitud.test.ts",
@@ -20364,6 +20460,14 @@
         {
           "path": "app/src/render/jointjs/proyeccion.test.ts",
           "hrefDashboard": "../../app/src/render/jointjs/proyeccion.test.ts"
+        },
+        {
+          "path": "app/src/serializacion/json.ts",
+          "hrefDashboard": "../../app/src/serializacion/json.ts"
+        },
+        {
+          "path": "app/src/opl/generar.ts",
+          "hrefDashboard": "../../app/src/opl/generar.ts"
         }
       ],
       "peso": 2,
@@ -20412,12 +20516,16 @@
           "hrefDashboard": "../../app/src/modelo/estadosDesignaciones.ts"
         },
         {
-          "path": "app/src/opl/generar.ts",
-          "hrefDashboard": "../../app/src/opl/generar.ts"
+          "path": "app/src/opl/generadores/designaciones.ts",
+          "hrefDashboard": "../../app/src/opl/generadores/designaciones.ts"
         },
         {
-          "path": "app/src/serializacion/json.ts",
-          "hrefDashboard": "../../app/src/serializacion/json.ts"
+          "path": "app/src/opl/generadores/duracionMetadata.ts",
+          "hrefDashboard": "../../app/src/opl/generadores/duracionMetadata.ts"
+        },
+        {
+          "path": "app/src/serializacion/validarEstados.ts",
+          "hrefDashboard": "../../app/src/serializacion/validarEstados.ts"
         },
         {
           "path": "app/src/completitud.test.ts",
@@ -20426,6 +20534,14 @@
         {
           "path": "app/src/render/jointjs/proyeccion.test.ts",
           "hrefDashboard": "../../app/src/render/jointjs/proyeccion.test.ts"
+        },
+        {
+          "path": "app/src/serializacion/json.ts",
+          "hrefDashboard": "../../app/src/serializacion/json.ts"
+        },
+        {
+          "path": "app/src/opl/generar.ts",
+          "hrefDashboard": "../../app/src/opl/generar.ts"
         }
       ],
       "peso": 2,
@@ -20477,12 +20593,20 @@
           "hrefDashboard": "../../app/src/modelo/tipos.ts"
         },
         {
-          "path": "app/src/serializacion/json.ts",
-          "hrefDashboard": "../../app/src/serializacion/json.ts"
+          "path": "app/src/serializacion/validarEstados.ts",
+          "hrefDashboard": "../../app/src/serializacion/validarEstados.ts"
         },
         {
-          "path": "app/src/opl/generar.ts",
-          "hrefDashboard": "../../app/src/opl/generar.ts"
+          "path": "app/src/opl/generadores/designaciones.ts",
+          "hrefDashboard": "../../app/src/opl/generadores/designaciones.ts"
+        },
+        {
+          "path": "app/src/opl/generadores/duracionMetadata.ts",
+          "hrefDashboard": "../../app/src/opl/generadores/duracionMetadata.ts"
+        },
+        {
+          "path": "app/src/ui/inspector/SeccionDesignaciones.tsx",
+          "hrefDashboard": "../../app/src/ui/inspector/SeccionDesignaciones.tsx"
         },
         {
           "path": "app/src/ui/InspectorEntidad.tsx",
@@ -20491,6 +20615,14 @@
         {
           "path": "app/src/completitud.test.ts",
           "hrefDashboard": "../../app/src/completitud.test.ts"
+        },
+        {
+          "path": "app/src/serializacion/json.ts",
+          "hrefDashboard": "../../app/src/serializacion/json.ts"
+        },
+        {
+          "path": "app/src/opl/generar.ts",
+          "hrefDashboard": "../../app/src/opl/generar.ts"
         }
       ],
       "peso": 2,
@@ -20542,12 +20674,20 @@
           "hrefDashboard": "../../app/src/modelo/tipos.ts"
         },
         {
-          "path": "app/src/serializacion/json.ts",
-          "hrefDashboard": "../../app/src/serializacion/json.ts"
+          "path": "app/src/serializacion/validarEstados.ts",
+          "hrefDashboard": "../../app/src/serializacion/validarEstados.ts"
         },
         {
-          "path": "app/src/opl/generar.ts",
-          "hrefDashboard": "../../app/src/opl/generar.ts"
+          "path": "app/src/opl/generadores/designaciones.ts",
+          "hrefDashboard": "../../app/src/opl/generadores/designaciones.ts"
+        },
+        {
+          "path": "app/src/opl/generadores/duracionMetadata.ts",
+          "hrefDashboard": "../../app/src/opl/generadores/duracionMetadata.ts"
+        },
+        {
+          "path": "app/src/ui/inspector/SeccionDesignaciones.tsx",
+          "hrefDashboard": "../../app/src/ui/inspector/SeccionDesignaciones.tsx"
         },
         {
           "path": "app/src/ui/InspectorEntidad.tsx",
@@ -20556,6 +20696,14 @@
         {
           "path": "app/src/completitud.test.ts",
           "hrefDashboard": "../../app/src/completitud.test.ts"
+        },
+        {
+          "path": "app/src/serializacion/json.ts",
+          "hrefDashboard": "../../app/src/serializacion/json.ts"
+        },
+        {
+          "path": "app/src/opl/generar.ts",
+          "hrefDashboard": "../../app/src/opl/generar.ts"
         }
       ],
       "peso": 4,
@@ -20606,12 +20754,12 @@
           "hrefDashboard": "../../app/src/modelo/extremos.ts"
         },
         {
-          "path": "app/src/ui/InspectorEnlace.tsx",
-          "hrefDashboard": "../../app/src/ui/InspectorEnlace.tsx"
+          "path": "app/src/ui/inspectorEnlace/SeccionExtremos.tsx",
+          "hrefDashboard": "../../app/src/ui/inspectorEnlace/SeccionExtremos.tsx"
         },
         {
-          "path": "app/src/render/jointjs/proyeccion.ts",
-          "hrefDashboard": "../../app/src/render/jointjs/proyeccion.ts"
+          "path": "app/src/render/jointjs/composers/enlace.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/composers/enlace.ts"
         },
         {
           "path": "app/src/render/jointjs/estadoTargets.ts",
@@ -20622,12 +20770,12 @@
           "hrefDashboard": "../../app/src/render/jointjs/JointCanvas.tsx"
         },
         {
-          "path": "app/src/store.ts",
-          "hrefDashboard": "../../app/src/store.ts"
+          "path": "app/src/store/modelo.ts",
+          "hrefDashboard": "../../app/src/store/modelo.ts"
         },
         {
-          "path": "app/src/serializacion/json.ts",
-          "hrefDashboard": "../../app/src/serializacion/json.ts"
+          "path": "app/src/serializacion/validarEnlaces.ts",
+          "hrefDashboard": "../../app/src/serializacion/validarEnlaces.ts"
         },
         {
           "path": "app/src/modelo/operaciones.test.ts",
@@ -20648,6 +20796,10 @@
         {
           "path": "app/e2e/opm-smoke.spec.ts",
           "hrefDashboard": "../../app/e2e/opm-smoke.spec.ts"
+        },
+        {
+          "path": "app/src/serializacion/json.ts",
+          "hrefDashboard": "../../app/src/serializacion/json.ts"
         }
       ],
       "peso": 4,
@@ -20770,12 +20922,16 @@
           "hrefDashboard": "../../app/src/modelo/estadosDesignaciones.ts"
         },
         {
-          "path": "app/src/opl/generar.ts",
-          "hrefDashboard": "../../app/src/opl/generar.ts"
+          "path": "app/src/opl/generadores/designaciones.ts",
+          "hrefDashboard": "../../app/src/opl/generadores/designaciones.ts"
         },
         {
-          "path": "app/src/serializacion/json.ts",
-          "hrefDashboard": "../../app/src/serializacion/json.ts"
+          "path": "app/src/opl/generadores/duracionMetadata.ts",
+          "hrefDashboard": "../../app/src/opl/generadores/duracionMetadata.ts"
+        },
+        {
+          "path": "app/src/serializacion/validarEstados.ts",
+          "hrefDashboard": "../../app/src/serializacion/validarEstados.ts"
         },
         {
           "path": "app/src/completitud.test.ts",
@@ -20784,6 +20940,14 @@
         {
           "path": "app/src/render/jointjs/proyeccion.test.ts",
           "hrefDashboard": "../../app/src/render/jointjs/proyeccion.test.ts"
+        },
+        {
+          "path": "app/src/serializacion/json.ts",
+          "hrefDashboard": "../../app/src/serializacion/json.ts"
+        },
+        {
+          "path": "app/src/opl/generar.ts",
+          "hrefDashboard": "../../app/src/opl/generar.ts"
         }
       ],
       "peso": 2,
@@ -20827,8 +20991,8 @@
       "brechas": [],
       "evidencia": [
         {
-          "path": "app/src/opl/generar.ts",
-          "hrefDashboard": "../../app/src/opl/generar.ts"
+          "path": "app/src/opl/generadores/procedural.ts",
+          "hrefDashboard": "../../app/src/opl/generadores/procedural.ts"
         },
         {
           "path": "app/src/opl/generar.test.ts",
@@ -20841,6 +21005,10 @@
         {
           "path": "app/src/serializacion/json.test.ts",
           "hrefDashboard": "../../app/src/serializacion/json.test.ts"
+        },
+        {
+          "path": "app/src/opl/generar.ts",
+          "hrefDashboard": "../../app/src/opl/generar.ts"
         }
       ],
       "peso": 2,
@@ -22152,8 +22320,8 @@
           "hrefDashboard": "../../app/src/modelo/abanicos.ts"
         },
         {
-          "path": "app/src/store.ts",
-          "hrefDashboard": "../../app/src/store.ts"
+          "path": "app/src/store/modelo.ts",
+          "hrefDashboard": "../../app/src/store/modelo.ts"
         },
         {
           "path": "app/src/modelo/abanicos.test.ts",
@@ -22208,8 +22376,12 @@
           "hrefDashboard": "../../app/src/modelo/abanicos.ts"
         },
         {
-          "path": "app/src/ui/InspectorEnlace.tsx",
-          "hrefDashboard": "../../app/src/ui/InspectorEnlace.tsx"
+          "path": "app/src/ui/inspectorEnlace/SeccionAbanico.tsx",
+          "hrefDashboard": "../../app/src/ui/inspectorEnlace/SeccionAbanico.tsx"
+        },
+        {
+          "path": "app/src/store/enlaces.ts",
+          "hrefDashboard": "../../app/src/store/enlaces.ts"
         },
         {
           "path": "app/src/store.test.ts",
@@ -22266,8 +22438,8 @@
           "hrefDashboard": "../../app/src/render/jointjs/linkAssets.ts"
         },
         {
-          "path": "app/src/render/jointjs/proyeccion.ts",
-          "hrefDashboard": "../../app/src/render/jointjs/proyeccion.ts"
+          "path": "app/src/render/jointjs/composers/markers.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/composers/markers.ts"
         },
         {
           "path": "assets/svg/links/logical/xor.svg",
@@ -22340,8 +22512,8 @@
           "hrefDashboard": "../../app/src/render/jointjs/linkAssets.ts"
         },
         {
-          "path": "app/src/render/jointjs/proyeccion.ts",
-          "hrefDashboard": "../../app/src/render/jointjs/proyeccion.ts"
+          "path": "app/src/render/jointjs/composers/markers.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/composers/markers.ts"
         },
         {
           "path": "assets/svg/links/logical/xor.svg",
@@ -22577,16 +22749,16 @@
           "hrefDashboard": "../../app/src/modelo/modificadores.ts"
         },
         {
-          "path": "app/src/ui/InspectorEnlace.tsx",
-          "hrefDashboard": "../../app/src/ui/InspectorEnlace.tsx"
+          "path": "app/src/ui/inspectorEnlace/SeccionMultiplicidad.tsx",
+          "hrefDashboard": "../../app/src/ui/inspectorEnlace/SeccionMultiplicidad.tsx"
         },
         {
-          "path": "app/src/render/jointjs/proyeccion.ts",
-          "hrefDashboard": "../../app/src/render/jointjs/proyeccion.ts"
+          "path": "app/src/render/jointjs/composers/enlace.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/composers/enlace.ts"
         },
         {
-          "path": "app/src/opl/generar.ts",
-          "hrefDashboard": "../../app/src/opl/generar.ts"
+          "path": "app/src/opl/generadores/procedural.ts",
+          "hrefDashboard": "../../app/src/opl/generadores/procedural.ts"
         },
         {
           "path": "app/src/modelo/modificadores.test.ts",
@@ -22599,6 +22771,18 @@
         {
           "path": "app/e2e/opm-smoke.spec.ts",
           "hrefDashboard": "../../app/e2e/opm-smoke.spec.ts"
+        },
+        {
+          "path": "app/src/render/jointjs/proyeccion.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/proyeccion.ts"
+        },
+        {
+          "path": "app/src/opl/generar.ts",
+          "hrefDashboard": "../../app/src/opl/generar.ts"
+        },
+        {
+          "path": "app/src/ui/InspectorEnlace.tsx",
+          "hrefDashboard": "../../app/src/ui/InspectorEnlace.tsx"
         }
       ],
       "peso": 2,
@@ -22645,16 +22829,16 @@
           "hrefDashboard": "../../app/src/modelo/modificadores.ts"
         },
         {
-          "path": "app/src/ui/InspectorEnlace.tsx",
-          "hrefDashboard": "../../app/src/ui/InspectorEnlace.tsx"
+          "path": "app/src/ui/inspectorEnlace/SeccionMultiplicidad.tsx",
+          "hrefDashboard": "../../app/src/ui/inspectorEnlace/SeccionMultiplicidad.tsx"
         },
         {
-          "path": "app/src/render/jointjs/proyeccion.ts",
-          "hrefDashboard": "../../app/src/render/jointjs/proyeccion.ts"
+          "path": "app/src/render/jointjs/composers/enlace.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/composers/enlace.ts"
         },
         {
-          "path": "app/src/opl/generar.ts",
-          "hrefDashboard": "../../app/src/opl/generar.ts"
+          "path": "app/src/opl/generadores/procedural.ts",
+          "hrefDashboard": "../../app/src/opl/generadores/procedural.ts"
         },
         {
           "path": "app/src/modelo/modificadores.test.ts",
@@ -22667,6 +22851,18 @@
         {
           "path": "app/e2e/opm-smoke.spec.ts",
           "hrefDashboard": "../../app/e2e/opm-smoke.spec.ts"
+        },
+        {
+          "path": "app/src/render/jointjs/proyeccion.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/proyeccion.ts"
+        },
+        {
+          "path": "app/src/opl/generar.ts",
+          "hrefDashboard": "../../app/src/opl/generar.ts"
+        },
+        {
+          "path": "app/src/ui/InspectorEnlace.tsx",
+          "hrefDashboard": "../../app/src/ui/InspectorEnlace.tsx"
         }
       ],
       "peso": 2,
@@ -22887,8 +23083,8 @@
           "hrefDashboard": "../../app/src/ui/InspectorEntidad.tsx"
         },
         {
-          "path": "app/src/store.ts",
-          "hrefDashboard": "../../app/src/store.ts"
+          "path": "app/src/store/modelo.ts",
+          "hrefDashboard": "../../app/src/store/modelo.ts"
         },
         {
           "path": "app/src/modelo/modificadores.test.ts",
@@ -23976,24 +24172,48 @@
           "hrefDashboard": "../../app/src/modelo/tipos.ts"
         },
         {
-          "path": "app/src/serializacion/json.ts",
-          "hrefDashboard": "../../app/src/serializacion/json.ts"
+          "path": "app/src/serializacion/validarEntidades.ts",
+          "hrefDashboard": "../../app/src/serializacion/validarEntidades.ts"
         },
         {
-          "path": "app/src/render/jointjs/proyeccion.ts",
-          "hrefDashboard": "../../app/src/render/jointjs/proyeccion.ts"
+          "path": "app/src/render/jointjs/composers/entidad.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/composers/entidad.ts"
         },
         {
-          "path": "app/src/opl/generar.ts",
-          "hrefDashboard": "../../app/src/opl/generar.ts"
+          "path": "app/src/opl/generadores/refsHints.ts",
+          "hrefDashboard": "../../app/src/opl/generadores/refsHints.ts"
+        },
+        {
+          "path": "app/src/ui/inspector/SeccionAlias.tsx",
+          "hrefDashboard": "../../app/src/ui/inspector/SeccionAlias.tsx"
+        },
+        {
+          "path": "app/src/ui/inspector/SeccionUrls.tsx",
+          "hrefDashboard": "../../app/src/ui/inspector/SeccionUrls.tsx"
+        },
+        {
+          "path": "app/src/ui/inspector/SeccionDescripcion.tsx",
+          "hrefDashboard": "../../app/src/ui/inspector/SeccionDescripcion.tsx"
+        },
+        {
+          "path": "app/src/ui/ModalUrlsObjeto.tsx",
+          "hrefDashboard": "../../app/src/ui/ModalUrlsObjeto.tsx"
         },
         {
           "path": "app/src/ui/InspectorEntidad.tsx",
           "hrefDashboard": "../../app/src/ui/InspectorEntidad.tsx"
         },
         {
-          "path": "app/src/ui/ModalUrlsObjeto.tsx",
-          "hrefDashboard": "../../app/src/ui/ModalUrlsObjeto.tsx"
+          "path": "app/src/serializacion/json.ts",
+          "hrefDashboard": "../../app/src/serializacion/json.ts"
+        },
+        {
+          "path": "app/src/opl/generar.ts",
+          "hrefDashboard": "../../app/src/opl/generar.ts"
+        },
+        {
+          "path": "app/src/render/jointjs/proyeccion.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/proyeccion.ts"
         }
       ],
       "peso": 2,
@@ -24041,24 +24261,48 @@
           "hrefDashboard": "../../app/src/modelo/tipos.ts"
         },
         {
-          "path": "app/src/serializacion/json.ts",
-          "hrefDashboard": "../../app/src/serializacion/json.ts"
+          "path": "app/src/serializacion/validarEntidades.ts",
+          "hrefDashboard": "../../app/src/serializacion/validarEntidades.ts"
         },
         {
-          "path": "app/src/render/jointjs/proyeccion.ts",
-          "hrefDashboard": "../../app/src/render/jointjs/proyeccion.ts"
+          "path": "app/src/render/jointjs/composers/entidad.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/composers/entidad.ts"
         },
         {
-          "path": "app/src/opl/generar.ts",
-          "hrefDashboard": "../../app/src/opl/generar.ts"
+          "path": "app/src/opl/generadores/refsHints.ts",
+          "hrefDashboard": "../../app/src/opl/generadores/refsHints.ts"
+        },
+        {
+          "path": "app/src/ui/inspector/SeccionAlias.tsx",
+          "hrefDashboard": "../../app/src/ui/inspector/SeccionAlias.tsx"
+        },
+        {
+          "path": "app/src/ui/inspector/SeccionUrls.tsx",
+          "hrefDashboard": "../../app/src/ui/inspector/SeccionUrls.tsx"
+        },
+        {
+          "path": "app/src/ui/inspector/SeccionDescripcion.tsx",
+          "hrefDashboard": "../../app/src/ui/inspector/SeccionDescripcion.tsx"
+        },
+        {
+          "path": "app/src/ui/ModalUrlsObjeto.tsx",
+          "hrefDashboard": "../../app/src/ui/ModalUrlsObjeto.tsx"
         },
         {
           "path": "app/src/ui/InspectorEntidad.tsx",
           "hrefDashboard": "../../app/src/ui/InspectorEntidad.tsx"
         },
         {
-          "path": "app/src/ui/ModalUrlsObjeto.tsx",
-          "hrefDashboard": "../../app/src/ui/ModalUrlsObjeto.tsx"
+          "path": "app/src/serializacion/json.ts",
+          "hrefDashboard": "../../app/src/serializacion/json.ts"
+        },
+        {
+          "path": "app/src/opl/generar.ts",
+          "hrefDashboard": "../../app/src/opl/generar.ts"
+        },
+        {
+          "path": "app/src/render/jointjs/proyeccion.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/proyeccion.ts"
         }
       ],
       "peso": 2,
@@ -24105,24 +24349,48 @@
           "hrefDashboard": "../../app/src/modelo/tipos.ts"
         },
         {
-          "path": "app/src/serializacion/json.ts",
-          "hrefDashboard": "../../app/src/serializacion/json.ts"
+          "path": "app/src/serializacion/validarEntidades.ts",
+          "hrefDashboard": "../../app/src/serializacion/validarEntidades.ts"
         },
         {
-          "path": "app/src/render/jointjs/proyeccion.ts",
-          "hrefDashboard": "../../app/src/render/jointjs/proyeccion.ts"
+          "path": "app/src/render/jointjs/composers/entidad.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/composers/entidad.ts"
         },
         {
-          "path": "app/src/opl/generar.ts",
-          "hrefDashboard": "../../app/src/opl/generar.ts"
+          "path": "app/src/opl/generadores/refsHints.ts",
+          "hrefDashboard": "../../app/src/opl/generadores/refsHints.ts"
+        },
+        {
+          "path": "app/src/ui/inspector/SeccionAlias.tsx",
+          "hrefDashboard": "../../app/src/ui/inspector/SeccionAlias.tsx"
+        },
+        {
+          "path": "app/src/ui/inspector/SeccionUrls.tsx",
+          "hrefDashboard": "../../app/src/ui/inspector/SeccionUrls.tsx"
+        },
+        {
+          "path": "app/src/ui/inspector/SeccionDescripcion.tsx",
+          "hrefDashboard": "../../app/src/ui/inspector/SeccionDescripcion.tsx"
+        },
+        {
+          "path": "app/src/ui/ModalUrlsObjeto.tsx",
+          "hrefDashboard": "../../app/src/ui/ModalUrlsObjeto.tsx"
         },
         {
           "path": "app/src/ui/InspectorEntidad.tsx",
           "hrefDashboard": "../../app/src/ui/InspectorEntidad.tsx"
         },
         {
-          "path": "app/src/ui/ModalUrlsObjeto.tsx",
-          "hrefDashboard": "../../app/src/ui/ModalUrlsObjeto.tsx"
+          "path": "app/src/serializacion/json.ts",
+          "hrefDashboard": "../../app/src/serializacion/json.ts"
+        },
+        {
+          "path": "app/src/opl/generar.ts",
+          "hrefDashboard": "../../app/src/opl/generar.ts"
+        },
+        {
+          "path": "app/src/render/jointjs/proyeccion.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/proyeccion.ts"
         }
       ],
       "peso": 1,
@@ -24168,24 +24436,48 @@
           "hrefDashboard": "../../app/src/modelo/tipos.ts"
         },
         {
-          "path": "app/src/serializacion/json.ts",
-          "hrefDashboard": "../../app/src/serializacion/json.ts"
+          "path": "app/src/serializacion/validarEntidades.ts",
+          "hrefDashboard": "../../app/src/serializacion/validarEntidades.ts"
         },
         {
-          "path": "app/src/render/jointjs/proyeccion.ts",
-          "hrefDashboard": "../../app/src/render/jointjs/proyeccion.ts"
+          "path": "app/src/render/jointjs/composers/entidad.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/composers/entidad.ts"
         },
         {
-          "path": "app/src/opl/generar.ts",
-          "hrefDashboard": "../../app/src/opl/generar.ts"
+          "path": "app/src/opl/generadores/refsHints.ts",
+          "hrefDashboard": "../../app/src/opl/generadores/refsHints.ts"
+        },
+        {
+          "path": "app/src/ui/inspector/SeccionAlias.tsx",
+          "hrefDashboard": "../../app/src/ui/inspector/SeccionAlias.tsx"
+        },
+        {
+          "path": "app/src/ui/inspector/SeccionUrls.tsx",
+          "hrefDashboard": "../../app/src/ui/inspector/SeccionUrls.tsx"
+        },
+        {
+          "path": "app/src/ui/inspector/SeccionDescripcion.tsx",
+          "hrefDashboard": "../../app/src/ui/inspector/SeccionDescripcion.tsx"
+        },
+        {
+          "path": "app/src/ui/ModalUrlsObjeto.tsx",
+          "hrefDashboard": "../../app/src/ui/ModalUrlsObjeto.tsx"
         },
         {
           "path": "app/src/ui/InspectorEntidad.tsx",
           "hrefDashboard": "../../app/src/ui/InspectorEntidad.tsx"
         },
         {
-          "path": "app/src/ui/ModalUrlsObjeto.tsx",
-          "hrefDashboard": "../../app/src/ui/ModalUrlsObjeto.tsx"
+          "path": "app/src/serializacion/json.ts",
+          "hrefDashboard": "../../app/src/serializacion/json.ts"
+        },
+        {
+          "path": "app/src/opl/generar.ts",
+          "hrefDashboard": "../../app/src/opl/generar.ts"
+        },
+        {
+          "path": "app/src/render/jointjs/proyeccion.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/proyeccion.ts"
         }
       ],
       "peso": 1,
@@ -24232,24 +24524,48 @@
           "hrefDashboard": "../../app/src/modelo/tipos.ts"
         },
         {
-          "path": "app/src/serializacion/json.ts",
-          "hrefDashboard": "../../app/src/serializacion/json.ts"
+          "path": "app/src/serializacion/validarEntidades.ts",
+          "hrefDashboard": "../../app/src/serializacion/validarEntidades.ts"
         },
         {
-          "path": "app/src/render/jointjs/proyeccion.ts",
-          "hrefDashboard": "../../app/src/render/jointjs/proyeccion.ts"
+          "path": "app/src/render/jointjs/composers/entidad.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/composers/entidad.ts"
         },
         {
-          "path": "app/src/opl/generar.ts",
-          "hrefDashboard": "../../app/src/opl/generar.ts"
+          "path": "app/src/opl/generadores/refsHints.ts",
+          "hrefDashboard": "../../app/src/opl/generadores/refsHints.ts"
+        },
+        {
+          "path": "app/src/ui/inspector/SeccionAlias.tsx",
+          "hrefDashboard": "../../app/src/ui/inspector/SeccionAlias.tsx"
+        },
+        {
+          "path": "app/src/ui/inspector/SeccionUrls.tsx",
+          "hrefDashboard": "../../app/src/ui/inspector/SeccionUrls.tsx"
+        },
+        {
+          "path": "app/src/ui/inspector/SeccionDescripcion.tsx",
+          "hrefDashboard": "../../app/src/ui/inspector/SeccionDescripcion.tsx"
+        },
+        {
+          "path": "app/src/ui/ModalUrlsObjeto.tsx",
+          "hrefDashboard": "../../app/src/ui/ModalUrlsObjeto.tsx"
         },
         {
           "path": "app/src/ui/InspectorEntidad.tsx",
           "hrefDashboard": "../../app/src/ui/InspectorEntidad.tsx"
         },
         {
-          "path": "app/src/ui/ModalUrlsObjeto.tsx",
-          "hrefDashboard": "../../app/src/ui/ModalUrlsObjeto.tsx"
+          "path": "app/src/serializacion/json.ts",
+          "hrefDashboard": "../../app/src/serializacion/json.ts"
+        },
+        {
+          "path": "app/src/opl/generar.ts",
+          "hrefDashboard": "../../app/src/opl/generar.ts"
+        },
+        {
+          "path": "app/src/render/jointjs/proyeccion.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/proyeccion.ts"
         }
       ],
       "peso": 2,
@@ -24299,24 +24615,48 @@
           "hrefDashboard": "../../app/src/modelo/tipos.ts"
         },
         {
-          "path": "app/src/serializacion/json.ts",
-          "hrefDashboard": "../../app/src/serializacion/json.ts"
+          "path": "app/src/serializacion/validarEntidades.ts",
+          "hrefDashboard": "../../app/src/serializacion/validarEntidades.ts"
         },
         {
-          "path": "app/src/render/jointjs/proyeccion.ts",
-          "hrefDashboard": "../../app/src/render/jointjs/proyeccion.ts"
+          "path": "app/src/render/jointjs/composers/entidad.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/composers/entidad.ts"
         },
         {
-          "path": "app/src/opl/generar.ts",
-          "hrefDashboard": "../../app/src/opl/generar.ts"
+          "path": "app/src/opl/generadores/refsHints.ts",
+          "hrefDashboard": "../../app/src/opl/generadores/refsHints.ts"
+        },
+        {
+          "path": "app/src/ui/inspector/SeccionAlias.tsx",
+          "hrefDashboard": "../../app/src/ui/inspector/SeccionAlias.tsx"
+        },
+        {
+          "path": "app/src/ui/inspector/SeccionUrls.tsx",
+          "hrefDashboard": "../../app/src/ui/inspector/SeccionUrls.tsx"
+        },
+        {
+          "path": "app/src/ui/inspector/SeccionDescripcion.tsx",
+          "hrefDashboard": "../../app/src/ui/inspector/SeccionDescripcion.tsx"
+        },
+        {
+          "path": "app/src/ui/ModalUrlsObjeto.tsx",
+          "hrefDashboard": "../../app/src/ui/ModalUrlsObjeto.tsx"
         },
         {
           "path": "app/src/ui/InspectorEntidad.tsx",
           "hrefDashboard": "../../app/src/ui/InspectorEntidad.tsx"
         },
         {
-          "path": "app/src/ui/ModalUrlsObjeto.tsx",
-          "hrefDashboard": "../../app/src/ui/ModalUrlsObjeto.tsx"
+          "path": "app/src/serializacion/json.ts",
+          "hrefDashboard": "../../app/src/serializacion/json.ts"
+        },
+        {
+          "path": "app/src/opl/generar.ts",
+          "hrefDashboard": "../../app/src/opl/generar.ts"
+        },
+        {
+          "path": "app/src/render/jointjs/proyeccion.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/proyeccion.ts"
         }
       ],
       "peso": 2,
@@ -24362,24 +24702,48 @@
           "hrefDashboard": "../../app/src/modelo/tipos.ts"
         },
         {
-          "path": "app/src/serializacion/json.ts",
-          "hrefDashboard": "../../app/src/serializacion/json.ts"
+          "path": "app/src/serializacion/validarEntidades.ts",
+          "hrefDashboard": "../../app/src/serializacion/validarEntidades.ts"
         },
         {
-          "path": "app/src/render/jointjs/proyeccion.ts",
-          "hrefDashboard": "../../app/src/render/jointjs/proyeccion.ts"
+          "path": "app/src/render/jointjs/composers/entidad.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/composers/entidad.ts"
         },
         {
-          "path": "app/src/opl/generar.ts",
-          "hrefDashboard": "../../app/src/opl/generar.ts"
+          "path": "app/src/opl/generadores/refsHints.ts",
+          "hrefDashboard": "../../app/src/opl/generadores/refsHints.ts"
+        },
+        {
+          "path": "app/src/ui/inspector/SeccionAlias.tsx",
+          "hrefDashboard": "../../app/src/ui/inspector/SeccionAlias.tsx"
+        },
+        {
+          "path": "app/src/ui/inspector/SeccionUrls.tsx",
+          "hrefDashboard": "../../app/src/ui/inspector/SeccionUrls.tsx"
+        },
+        {
+          "path": "app/src/ui/inspector/SeccionDescripcion.tsx",
+          "hrefDashboard": "../../app/src/ui/inspector/SeccionDescripcion.tsx"
+        },
+        {
+          "path": "app/src/ui/ModalUrlsObjeto.tsx",
+          "hrefDashboard": "../../app/src/ui/ModalUrlsObjeto.tsx"
         },
         {
           "path": "app/src/ui/InspectorEntidad.tsx",
           "hrefDashboard": "../../app/src/ui/InspectorEntidad.tsx"
         },
         {
-          "path": "app/src/ui/ModalUrlsObjeto.tsx",
-          "hrefDashboard": "../../app/src/ui/ModalUrlsObjeto.tsx"
+          "path": "app/src/serializacion/json.ts",
+          "hrefDashboard": "../../app/src/serializacion/json.ts"
+        },
+        {
+          "path": "app/src/opl/generar.ts",
+          "hrefDashboard": "../../app/src/opl/generar.ts"
+        },
+        {
+          "path": "app/src/render/jointjs/proyeccion.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/proyeccion.ts"
         }
       ],
       "peso": 1,
@@ -24426,24 +24790,48 @@
           "hrefDashboard": "../../app/src/modelo/tipos.ts"
         },
         {
-          "path": "app/src/serializacion/json.ts",
-          "hrefDashboard": "../../app/src/serializacion/json.ts"
+          "path": "app/src/serializacion/validarEntidades.ts",
+          "hrefDashboard": "../../app/src/serializacion/validarEntidades.ts"
         },
         {
-          "path": "app/src/render/jointjs/proyeccion.ts",
-          "hrefDashboard": "../../app/src/render/jointjs/proyeccion.ts"
+          "path": "app/src/render/jointjs/composers/entidad.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/composers/entidad.ts"
         },
         {
-          "path": "app/src/opl/generar.ts",
-          "hrefDashboard": "../../app/src/opl/generar.ts"
+          "path": "app/src/opl/generadores/refsHints.ts",
+          "hrefDashboard": "../../app/src/opl/generadores/refsHints.ts"
+        },
+        {
+          "path": "app/src/ui/inspector/SeccionAlias.tsx",
+          "hrefDashboard": "../../app/src/ui/inspector/SeccionAlias.tsx"
+        },
+        {
+          "path": "app/src/ui/inspector/SeccionUrls.tsx",
+          "hrefDashboard": "../../app/src/ui/inspector/SeccionUrls.tsx"
+        },
+        {
+          "path": "app/src/ui/inspector/SeccionDescripcion.tsx",
+          "hrefDashboard": "../../app/src/ui/inspector/SeccionDescripcion.tsx"
+        },
+        {
+          "path": "app/src/ui/ModalUrlsObjeto.tsx",
+          "hrefDashboard": "../../app/src/ui/ModalUrlsObjeto.tsx"
         },
         {
           "path": "app/src/ui/InspectorEntidad.tsx",
           "hrefDashboard": "../../app/src/ui/InspectorEntidad.tsx"
         },
         {
-          "path": "app/src/ui/ModalUrlsObjeto.tsx",
-          "hrefDashboard": "../../app/src/ui/ModalUrlsObjeto.tsx"
+          "path": "app/src/serializacion/json.ts",
+          "hrefDashboard": "../../app/src/serializacion/json.ts"
+        },
+        {
+          "path": "app/src/opl/generar.ts",
+          "hrefDashboard": "../../app/src/opl/generar.ts"
+        },
+        {
+          "path": "app/src/render/jointjs/proyeccion.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/proyeccion.ts"
         }
       ],
       "peso": 1,
@@ -24490,24 +24878,48 @@
           "hrefDashboard": "../../app/src/modelo/tipos.ts"
         },
         {
-          "path": "app/src/serializacion/json.ts",
-          "hrefDashboard": "../../app/src/serializacion/json.ts"
+          "path": "app/src/serializacion/validarEntidades.ts",
+          "hrefDashboard": "../../app/src/serializacion/validarEntidades.ts"
         },
         {
-          "path": "app/src/render/jointjs/proyeccion.ts",
-          "hrefDashboard": "../../app/src/render/jointjs/proyeccion.ts"
+          "path": "app/src/render/jointjs/composers/entidad.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/composers/entidad.ts"
         },
         {
-          "path": "app/src/opl/generar.ts",
-          "hrefDashboard": "../../app/src/opl/generar.ts"
+          "path": "app/src/opl/generadores/refsHints.ts",
+          "hrefDashboard": "../../app/src/opl/generadores/refsHints.ts"
+        },
+        {
+          "path": "app/src/ui/inspector/SeccionAlias.tsx",
+          "hrefDashboard": "../../app/src/ui/inspector/SeccionAlias.tsx"
+        },
+        {
+          "path": "app/src/ui/inspector/SeccionUrls.tsx",
+          "hrefDashboard": "../../app/src/ui/inspector/SeccionUrls.tsx"
+        },
+        {
+          "path": "app/src/ui/inspector/SeccionDescripcion.tsx",
+          "hrefDashboard": "../../app/src/ui/inspector/SeccionDescripcion.tsx"
+        },
+        {
+          "path": "app/src/ui/ModalUrlsObjeto.tsx",
+          "hrefDashboard": "../../app/src/ui/ModalUrlsObjeto.tsx"
         },
         {
           "path": "app/src/ui/InspectorEntidad.tsx",
           "hrefDashboard": "../../app/src/ui/InspectorEntidad.tsx"
         },
         {
-          "path": "app/src/ui/ModalUrlsObjeto.tsx",
-          "hrefDashboard": "../../app/src/ui/ModalUrlsObjeto.tsx"
+          "path": "app/src/serializacion/json.ts",
+          "hrefDashboard": "../../app/src/serializacion/json.ts"
+        },
+        {
+          "path": "app/src/opl/generar.ts",
+          "hrefDashboard": "../../app/src/opl/generar.ts"
+        },
+        {
+          "path": "app/src/render/jointjs/proyeccion.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/proyeccion.ts"
         }
       ],
       "peso": 1,
@@ -24556,24 +24968,48 @@
           "hrefDashboard": "../../app/src/modelo/tipos.ts"
         },
         {
-          "path": "app/src/serializacion/json.ts",
-          "hrefDashboard": "../../app/src/serializacion/json.ts"
+          "path": "app/src/serializacion/validarEntidades.ts",
+          "hrefDashboard": "../../app/src/serializacion/validarEntidades.ts"
         },
         {
-          "path": "app/src/render/jointjs/proyeccion.ts",
-          "hrefDashboard": "../../app/src/render/jointjs/proyeccion.ts"
+          "path": "app/src/render/jointjs/composers/entidad.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/composers/entidad.ts"
         },
         {
-          "path": "app/src/opl/generar.ts",
-          "hrefDashboard": "../../app/src/opl/generar.ts"
+          "path": "app/src/opl/generadores/refsHints.ts",
+          "hrefDashboard": "../../app/src/opl/generadores/refsHints.ts"
+        },
+        {
+          "path": "app/src/ui/inspector/SeccionAlias.tsx",
+          "hrefDashboard": "../../app/src/ui/inspector/SeccionAlias.tsx"
+        },
+        {
+          "path": "app/src/ui/inspector/SeccionUrls.tsx",
+          "hrefDashboard": "../../app/src/ui/inspector/SeccionUrls.tsx"
+        },
+        {
+          "path": "app/src/ui/inspector/SeccionDescripcion.tsx",
+          "hrefDashboard": "../../app/src/ui/inspector/SeccionDescripcion.tsx"
+        },
+        {
+          "path": "app/src/ui/ModalUrlsObjeto.tsx",
+          "hrefDashboard": "../../app/src/ui/ModalUrlsObjeto.tsx"
         },
         {
           "path": "app/src/ui/InspectorEntidad.tsx",
           "hrefDashboard": "../../app/src/ui/InspectorEntidad.tsx"
         },
         {
-          "path": "app/src/ui/ModalUrlsObjeto.tsx",
-          "hrefDashboard": "../../app/src/ui/ModalUrlsObjeto.tsx"
+          "path": "app/src/serializacion/json.ts",
+          "hrefDashboard": "../../app/src/serializacion/json.ts"
+        },
+        {
+          "path": "app/src/opl/generar.ts",
+          "hrefDashboard": "../../app/src/opl/generar.ts"
+        },
+        {
+          "path": "app/src/render/jointjs/proyeccion.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/proyeccion.ts"
         }
       ],
       "peso": 2,
@@ -24622,24 +25058,48 @@
           "hrefDashboard": "../../app/src/modelo/tipos.ts"
         },
         {
-          "path": "app/src/serializacion/json.ts",
-          "hrefDashboard": "../../app/src/serializacion/json.ts"
+          "path": "app/src/serializacion/validarEntidades.ts",
+          "hrefDashboard": "../../app/src/serializacion/validarEntidades.ts"
         },
         {
-          "path": "app/src/render/jointjs/proyeccion.ts",
-          "hrefDashboard": "../../app/src/render/jointjs/proyeccion.ts"
+          "path": "app/src/render/jointjs/composers/entidad.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/composers/entidad.ts"
         },
         {
-          "path": "app/src/opl/generar.ts",
-          "hrefDashboard": "../../app/src/opl/generar.ts"
+          "path": "app/src/opl/generadores/refsHints.ts",
+          "hrefDashboard": "../../app/src/opl/generadores/refsHints.ts"
+        },
+        {
+          "path": "app/src/ui/inspector/SeccionAlias.tsx",
+          "hrefDashboard": "../../app/src/ui/inspector/SeccionAlias.tsx"
+        },
+        {
+          "path": "app/src/ui/inspector/SeccionUrls.tsx",
+          "hrefDashboard": "../../app/src/ui/inspector/SeccionUrls.tsx"
+        },
+        {
+          "path": "app/src/ui/inspector/SeccionDescripcion.tsx",
+          "hrefDashboard": "../../app/src/ui/inspector/SeccionDescripcion.tsx"
+        },
+        {
+          "path": "app/src/ui/ModalUrlsObjeto.tsx",
+          "hrefDashboard": "../../app/src/ui/ModalUrlsObjeto.tsx"
         },
         {
           "path": "app/src/ui/InspectorEntidad.tsx",
           "hrefDashboard": "../../app/src/ui/InspectorEntidad.tsx"
         },
         {
-          "path": "app/src/ui/ModalUrlsObjeto.tsx",
-          "hrefDashboard": "../../app/src/ui/ModalUrlsObjeto.tsx"
+          "path": "app/src/serializacion/json.ts",
+          "hrefDashboard": "../../app/src/serializacion/json.ts"
+        },
+        {
+          "path": "app/src/opl/generar.ts",
+          "hrefDashboard": "../../app/src/opl/generar.ts"
+        },
+        {
+          "path": "app/src/render/jointjs/proyeccion.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/proyeccion.ts"
         }
       ],
       "peso": 1,
@@ -24899,24 +25359,48 @@
           "hrefDashboard": "../../app/src/modelo/tipos.ts"
         },
         {
-          "path": "app/src/serializacion/json.ts",
-          "hrefDashboard": "../../app/src/serializacion/json.ts"
+          "path": "app/src/serializacion/validarEntidades.ts",
+          "hrefDashboard": "../../app/src/serializacion/validarEntidades.ts"
         },
         {
-          "path": "app/src/render/jointjs/proyeccion.ts",
-          "hrefDashboard": "../../app/src/render/jointjs/proyeccion.ts"
+          "path": "app/src/render/jointjs/composers/entidad.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/composers/entidad.ts"
         },
         {
-          "path": "app/src/opl/generar.ts",
-          "hrefDashboard": "../../app/src/opl/generar.ts"
+          "path": "app/src/opl/generadores/refsHints.ts",
+          "hrefDashboard": "../../app/src/opl/generadores/refsHints.ts"
+        },
+        {
+          "path": "app/src/ui/inspector/SeccionAlias.tsx",
+          "hrefDashboard": "../../app/src/ui/inspector/SeccionAlias.tsx"
+        },
+        {
+          "path": "app/src/ui/inspector/SeccionUrls.tsx",
+          "hrefDashboard": "../../app/src/ui/inspector/SeccionUrls.tsx"
+        },
+        {
+          "path": "app/src/ui/inspector/SeccionDescripcion.tsx",
+          "hrefDashboard": "../../app/src/ui/inspector/SeccionDescripcion.tsx"
+        },
+        {
+          "path": "app/src/ui/ModalUrlsObjeto.tsx",
+          "hrefDashboard": "../../app/src/ui/ModalUrlsObjeto.tsx"
         },
         {
           "path": "app/src/ui/InspectorEntidad.tsx",
           "hrefDashboard": "../../app/src/ui/InspectorEntidad.tsx"
         },
         {
-          "path": "app/src/ui/ModalUrlsObjeto.tsx",
-          "hrefDashboard": "../../app/src/ui/ModalUrlsObjeto.tsx"
+          "path": "app/src/serializacion/json.ts",
+          "hrefDashboard": "../../app/src/serializacion/json.ts"
+        },
+        {
+          "path": "app/src/opl/generar.ts",
+          "hrefDashboard": "../../app/src/opl/generar.ts"
+        },
+        {
+          "path": "app/src/render/jointjs/proyeccion.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/proyeccion.ts"
         }
       ],
       "peso": 2,
@@ -24964,24 +25448,48 @@
           "hrefDashboard": "../../app/src/modelo/tipos.ts"
         },
         {
-          "path": "app/src/serializacion/json.ts",
-          "hrefDashboard": "../../app/src/serializacion/json.ts"
+          "path": "app/src/serializacion/validarEntidades.ts",
+          "hrefDashboard": "../../app/src/serializacion/validarEntidades.ts"
         },
         {
-          "path": "app/src/render/jointjs/proyeccion.ts",
-          "hrefDashboard": "../../app/src/render/jointjs/proyeccion.ts"
+          "path": "app/src/render/jointjs/composers/entidad.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/composers/entidad.ts"
         },
         {
-          "path": "app/src/opl/generar.ts",
-          "hrefDashboard": "../../app/src/opl/generar.ts"
+          "path": "app/src/opl/generadores/refsHints.ts",
+          "hrefDashboard": "../../app/src/opl/generadores/refsHints.ts"
+        },
+        {
+          "path": "app/src/ui/inspector/SeccionAlias.tsx",
+          "hrefDashboard": "../../app/src/ui/inspector/SeccionAlias.tsx"
+        },
+        {
+          "path": "app/src/ui/inspector/SeccionUrls.tsx",
+          "hrefDashboard": "../../app/src/ui/inspector/SeccionUrls.tsx"
+        },
+        {
+          "path": "app/src/ui/inspector/SeccionDescripcion.tsx",
+          "hrefDashboard": "../../app/src/ui/inspector/SeccionDescripcion.tsx"
+        },
+        {
+          "path": "app/src/ui/ModalUrlsObjeto.tsx",
+          "hrefDashboard": "../../app/src/ui/ModalUrlsObjeto.tsx"
         },
         {
           "path": "app/src/ui/InspectorEntidad.tsx",
           "hrefDashboard": "../../app/src/ui/InspectorEntidad.tsx"
         },
         {
-          "path": "app/src/ui/ModalUrlsObjeto.tsx",
-          "hrefDashboard": "../../app/src/ui/ModalUrlsObjeto.tsx"
+          "path": "app/src/serializacion/json.ts",
+          "hrefDashboard": "../../app/src/serializacion/json.ts"
+        },
+        {
+          "path": "app/src/opl/generar.ts",
+          "hrefDashboard": "../../app/src/opl/generar.ts"
+        },
+        {
+          "path": "app/src/render/jointjs/proyeccion.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/proyeccion.ts"
         }
       ],
       "peso": 2,
@@ -25028,24 +25536,48 @@
           "hrefDashboard": "../../app/src/modelo/tipos.ts"
         },
         {
-          "path": "app/src/serializacion/json.ts",
-          "hrefDashboard": "../../app/src/serializacion/json.ts"
+          "path": "app/src/serializacion/validarEntidades.ts",
+          "hrefDashboard": "../../app/src/serializacion/validarEntidades.ts"
         },
         {
-          "path": "app/src/render/jointjs/proyeccion.ts",
-          "hrefDashboard": "../../app/src/render/jointjs/proyeccion.ts"
+          "path": "app/src/render/jointjs/composers/entidad.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/composers/entidad.ts"
         },
         {
-          "path": "app/src/opl/generar.ts",
-          "hrefDashboard": "../../app/src/opl/generar.ts"
+          "path": "app/src/opl/generadores/refsHints.ts",
+          "hrefDashboard": "../../app/src/opl/generadores/refsHints.ts"
+        },
+        {
+          "path": "app/src/ui/inspector/SeccionAlias.tsx",
+          "hrefDashboard": "../../app/src/ui/inspector/SeccionAlias.tsx"
+        },
+        {
+          "path": "app/src/ui/inspector/SeccionUrls.tsx",
+          "hrefDashboard": "../../app/src/ui/inspector/SeccionUrls.tsx"
+        },
+        {
+          "path": "app/src/ui/inspector/SeccionDescripcion.tsx",
+          "hrefDashboard": "../../app/src/ui/inspector/SeccionDescripcion.tsx"
+        },
+        {
+          "path": "app/src/ui/ModalUrlsObjeto.tsx",
+          "hrefDashboard": "../../app/src/ui/ModalUrlsObjeto.tsx"
         },
         {
           "path": "app/src/ui/InspectorEntidad.tsx",
           "hrefDashboard": "../../app/src/ui/InspectorEntidad.tsx"
         },
         {
-          "path": "app/src/ui/ModalUrlsObjeto.tsx",
-          "hrefDashboard": "../../app/src/ui/ModalUrlsObjeto.tsx"
+          "path": "app/src/serializacion/json.ts",
+          "hrefDashboard": "../../app/src/serializacion/json.ts"
+        },
+        {
+          "path": "app/src/opl/generar.ts",
+          "hrefDashboard": "../../app/src/opl/generar.ts"
+        },
+        {
+          "path": "app/src/render/jointjs/proyeccion.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/proyeccion.ts"
         }
       ],
       "peso": 1,
@@ -25091,24 +25623,48 @@
           "hrefDashboard": "../../app/src/modelo/tipos.ts"
         },
         {
-          "path": "app/src/serializacion/json.ts",
-          "hrefDashboard": "../../app/src/serializacion/json.ts"
+          "path": "app/src/serializacion/validarEntidades.ts",
+          "hrefDashboard": "../../app/src/serializacion/validarEntidades.ts"
         },
         {
-          "path": "app/src/render/jointjs/proyeccion.ts",
-          "hrefDashboard": "../../app/src/render/jointjs/proyeccion.ts"
+          "path": "app/src/render/jointjs/composers/entidad.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/composers/entidad.ts"
         },
         {
-          "path": "app/src/opl/generar.ts",
-          "hrefDashboard": "../../app/src/opl/generar.ts"
+          "path": "app/src/opl/generadores/refsHints.ts",
+          "hrefDashboard": "../../app/src/opl/generadores/refsHints.ts"
+        },
+        {
+          "path": "app/src/ui/inspector/SeccionAlias.tsx",
+          "hrefDashboard": "../../app/src/ui/inspector/SeccionAlias.tsx"
+        },
+        {
+          "path": "app/src/ui/inspector/SeccionUrls.tsx",
+          "hrefDashboard": "../../app/src/ui/inspector/SeccionUrls.tsx"
+        },
+        {
+          "path": "app/src/ui/inspector/SeccionDescripcion.tsx",
+          "hrefDashboard": "../../app/src/ui/inspector/SeccionDescripcion.tsx"
+        },
+        {
+          "path": "app/src/ui/ModalUrlsObjeto.tsx",
+          "hrefDashboard": "../../app/src/ui/ModalUrlsObjeto.tsx"
         },
         {
           "path": "app/src/ui/InspectorEntidad.tsx",
           "hrefDashboard": "../../app/src/ui/InspectorEntidad.tsx"
         },
         {
-          "path": "app/src/ui/ModalUrlsObjeto.tsx",
-          "hrefDashboard": "../../app/src/ui/ModalUrlsObjeto.tsx"
+          "path": "app/src/serializacion/json.ts",
+          "hrefDashboard": "../../app/src/serializacion/json.ts"
+        },
+        {
+          "path": "app/src/opl/generar.ts",
+          "hrefDashboard": "../../app/src/opl/generar.ts"
+        },
+        {
+          "path": "app/src/render/jointjs/proyeccion.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/proyeccion.ts"
         }
       ],
       "peso": 1,
@@ -25190,24 +25746,48 @@
           "hrefDashboard": "../../app/src/modelo/tipos.ts"
         },
         {
-          "path": "app/src/serializacion/json.ts",
-          "hrefDashboard": "../../app/src/serializacion/json.ts"
+          "path": "app/src/serializacion/validarEntidades.ts",
+          "hrefDashboard": "../../app/src/serializacion/validarEntidades.ts"
         },
         {
-          "path": "app/src/render/jointjs/proyeccion.ts",
-          "hrefDashboard": "../../app/src/render/jointjs/proyeccion.ts"
+          "path": "app/src/render/jointjs/composers/entidad.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/composers/entidad.ts"
         },
         {
-          "path": "app/src/opl/generar.ts",
-          "hrefDashboard": "../../app/src/opl/generar.ts"
+          "path": "app/src/opl/generadores/refsHints.ts",
+          "hrefDashboard": "../../app/src/opl/generadores/refsHints.ts"
+        },
+        {
+          "path": "app/src/ui/inspector/SeccionAlias.tsx",
+          "hrefDashboard": "../../app/src/ui/inspector/SeccionAlias.tsx"
+        },
+        {
+          "path": "app/src/ui/inspector/SeccionUrls.tsx",
+          "hrefDashboard": "../../app/src/ui/inspector/SeccionUrls.tsx"
+        },
+        {
+          "path": "app/src/ui/inspector/SeccionDescripcion.tsx",
+          "hrefDashboard": "../../app/src/ui/inspector/SeccionDescripcion.tsx"
+        },
+        {
+          "path": "app/src/ui/ModalUrlsObjeto.tsx",
+          "hrefDashboard": "../../app/src/ui/ModalUrlsObjeto.tsx"
         },
         {
           "path": "app/src/ui/InspectorEntidad.tsx",
           "hrefDashboard": "../../app/src/ui/InspectorEntidad.tsx"
         },
         {
-          "path": "app/src/ui/ModalUrlsObjeto.tsx",
-          "hrefDashboard": "../../app/src/ui/ModalUrlsObjeto.tsx"
+          "path": "app/src/serializacion/json.ts",
+          "hrefDashboard": "../../app/src/serializacion/json.ts"
+        },
+        {
+          "path": "app/src/opl/generar.ts",
+          "hrefDashboard": "../../app/src/opl/generar.ts"
+        },
+        {
+          "path": "app/src/render/jointjs/proyeccion.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/proyeccion.ts"
         }
       ],
       "peso": 1,
@@ -25380,8 +25960,8 @@
           "hrefDashboard": "../../app/src/modelo/operaciones.ts"
         },
         {
-          "path": "app/src/ui/InspectorEntidad.tsx",
-          "hrefDashboard": "../../app/src/ui/InspectorEntidad.tsx"
+          "path": "app/src/ui/inspector/SeccionRefinamiento.tsx",
+          "hrefDashboard": "../../app/src/ui/inspector/SeccionRefinamiento.tsx"
         },
         {
           "path": "app/src/serializacion/json.ts",
@@ -25431,8 +26011,8 @@
           "hrefDashboard": "../../app/src/modelo/operaciones.ts"
         },
         {
-          "path": "app/src/ui/InspectorEntidad.tsx",
-          "hrefDashboard": "../../app/src/ui/InspectorEntidad.tsx"
+          "path": "app/src/ui/inspector/SeccionRefinamiento.tsx",
+          "hrefDashboard": "../../app/src/ui/inspector/SeccionRefinamiento.tsx"
         },
         {
           "path": "app/src/serializacion/json.ts",
@@ -25581,12 +26161,16 @@
           "hrefDashboard": "../../app/src/modelo/estadosDesignaciones.ts"
         },
         {
-          "path": "app/src/opl/generar.ts",
-          "hrefDashboard": "../../app/src/opl/generar.ts"
+          "path": "app/src/opl/generadores/designaciones.ts",
+          "hrefDashboard": "../../app/src/opl/generadores/designaciones.ts"
         },
         {
-          "path": "app/src/serializacion/json.ts",
-          "hrefDashboard": "../../app/src/serializacion/json.ts"
+          "path": "app/src/opl/generadores/duracionMetadata.ts",
+          "hrefDashboard": "../../app/src/opl/generadores/duracionMetadata.ts"
+        },
+        {
+          "path": "app/src/serializacion/validarEstados.ts",
+          "hrefDashboard": "../../app/src/serializacion/validarEstados.ts"
         },
         {
           "path": "app/src/completitud.test.ts",
@@ -25595,6 +26179,14 @@
         {
           "path": "app/src/render/jointjs/proyeccion.test.ts",
           "hrefDashboard": "../../app/src/render/jointjs/proyeccion.test.ts"
+        },
+        {
+          "path": "app/src/serializacion/json.ts",
+          "hrefDashboard": "../../app/src/serializacion/json.ts"
+        },
+        {
+          "path": "app/src/opl/generar.ts",
+          "hrefDashboard": "../../app/src/opl/generar.ts"
         }
       ],
       "peso": 1,
@@ -25649,16 +26241,24 @@
           "hrefDashboard": "../../app/src/modelo/tipos.ts"
         },
         {
+          "path": "app/src/serializacion/validarEstados.ts",
+          "hrefDashboard": "../../app/src/serializacion/validarEstados.ts"
+        },
+        {
+          "path": "app/src/opl/generadores/duracionMetadata.ts",
+          "hrefDashboard": "../../app/src/opl/generadores/duracionMetadata.ts"
+        },
+        {
+          "path": "app/src/ui/ModalDuracionEstado.tsx",
+          "hrefDashboard": "../../app/src/ui/ModalDuracionEstado.tsx"
+        },
+        {
           "path": "app/src/serializacion/json.ts",
           "hrefDashboard": "../../app/src/serializacion/json.ts"
         },
         {
           "path": "app/src/opl/generar.ts",
           "hrefDashboard": "../../app/src/opl/generar.ts"
-        },
-        {
-          "path": "app/src/ui/ModalDuracionEstado.tsx",
-          "hrefDashboard": "../../app/src/ui/ModalDuracionEstado.tsx"
         }
       ],
       "peso": 4,
@@ -25864,20 +26464,20 @@
           "hrefDashboard": "../../app/src/modelo/plegado.ts"
         },
         {
-          "path": "app/src/store.ts",
-          "hrefDashboard": "../../app/src/store.ts"
+          "path": "app/src/store/modelo.ts",
+          "hrefDashboard": "../../app/src/store/modelo.ts"
         },
         {
           "path": "app/src/render/jointjs/JointCanvas.tsx",
           "hrefDashboard": "../../app/src/render/jointjs/JointCanvas.tsx"
         },
         {
-          "path": "app/src/render/jointjs/proyeccion.ts",
-          "hrefDashboard": "../../app/src/render/jointjs/proyeccion.ts"
+          "path": "app/src/render/jointjs/composers/plegado.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/composers/plegado.ts"
         },
         {
-          "path": "app/src/opl/generar.ts",
-          "hrefDashboard": "../../app/src/opl/generar.ts"
+          "path": "app/src/opl/generadores/plegado.ts",
+          "hrefDashboard": "../../app/src/opl/generadores/plegado.ts"
         },
         {
           "path": "app/src/modelo/plegado.test.ts",
@@ -25894,6 +26494,14 @@
         {
           "path": "app/src/serializacion/json.test.ts",
           "hrefDashboard": "../../app/src/serializacion/json.test.ts"
+        },
+        {
+          "path": "app/src/render/jointjs/proyeccion.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/proyeccion.ts"
+        },
+        {
+          "path": "app/src/opl/generar.ts",
+          "hrefDashboard": "../../app/src/opl/generar.ts"
         }
       ],
       "peso": 4,
@@ -25935,20 +26543,20 @@
           "hrefDashboard": "../../app/src/modelo/plegado.ts"
         },
         {
-          "path": "app/src/store.ts",
-          "hrefDashboard": "../../app/src/store.ts"
+          "path": "app/src/store/modelo.ts",
+          "hrefDashboard": "../../app/src/store/modelo.ts"
         },
         {
           "path": "app/src/render/jointjs/JointCanvas.tsx",
           "hrefDashboard": "../../app/src/render/jointjs/JointCanvas.tsx"
         },
         {
-          "path": "app/src/render/jointjs/proyeccion.ts",
-          "hrefDashboard": "../../app/src/render/jointjs/proyeccion.ts"
+          "path": "app/src/render/jointjs/composers/plegado.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/composers/plegado.ts"
         },
         {
-          "path": "app/src/opl/generar.ts",
-          "hrefDashboard": "../../app/src/opl/generar.ts"
+          "path": "app/src/opl/generadores/plegado.ts",
+          "hrefDashboard": "../../app/src/opl/generadores/plegado.ts"
         },
         {
           "path": "app/src/modelo/plegado.test.ts",
@@ -25965,6 +26573,14 @@
         {
           "path": "app/src/serializacion/json.test.ts",
           "hrefDashboard": "../../app/src/serializacion/json.test.ts"
+        },
+        {
+          "path": "app/src/render/jointjs/proyeccion.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/proyeccion.ts"
+        },
+        {
+          "path": "app/src/opl/generar.ts",
+          "hrefDashboard": "../../app/src/opl/generar.ts"
         }
       ],
       "peso": 2,
@@ -26008,20 +26624,20 @@
           "hrefDashboard": "../../app/src/modelo/plegado.ts"
         },
         {
-          "path": "app/src/store.ts",
-          "hrefDashboard": "../../app/src/store.ts"
+          "path": "app/src/store/modelo.ts",
+          "hrefDashboard": "../../app/src/store/modelo.ts"
         },
         {
           "path": "app/src/render/jointjs/JointCanvas.tsx",
           "hrefDashboard": "../../app/src/render/jointjs/JointCanvas.tsx"
         },
         {
-          "path": "app/src/render/jointjs/proyeccion.ts",
-          "hrefDashboard": "../../app/src/render/jointjs/proyeccion.ts"
+          "path": "app/src/render/jointjs/composers/plegado.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/composers/plegado.ts"
         },
         {
-          "path": "app/src/opl/generar.ts",
-          "hrefDashboard": "../../app/src/opl/generar.ts"
+          "path": "app/src/opl/generadores/plegado.ts",
+          "hrefDashboard": "../../app/src/opl/generadores/plegado.ts"
         },
         {
           "path": "app/src/modelo/plegado.test.ts",
@@ -26038,6 +26654,14 @@
         {
           "path": "app/src/serializacion/json.test.ts",
           "hrefDashboard": "../../app/src/serializacion/json.test.ts"
+        },
+        {
+          "path": "app/src/render/jointjs/proyeccion.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/proyeccion.ts"
+        },
+        {
+          "path": "app/src/opl/generar.ts",
+          "hrefDashboard": "../../app/src/opl/generar.ts"
         }
       ],
       "peso": 4,
@@ -26143,8 +26767,8 @@
           "hrefDashboard": "../../app/src/render/jointjs/JointCanvas.tsx"
         },
         {
-          "path": "app/src/store.ts",
-          "hrefDashboard": "../../app/src/store.ts"
+          "path": "app/src/store/modelo.ts",
+          "hrefDashboard": "../../app/src/store/modelo.ts"
         },
         {
           "path": "app/src/ui/InspectorEntidad.tsx",
@@ -26215,20 +26839,20 @@
           "hrefDashboard": "../../app/src/modelo/plegado.ts"
         },
         {
-          "path": "app/src/store.ts",
-          "hrefDashboard": "../../app/src/store.ts"
+          "path": "app/src/store/modelo.ts",
+          "hrefDashboard": "../../app/src/store/modelo.ts"
         },
         {
           "path": "app/src/render/jointjs/JointCanvas.tsx",
           "hrefDashboard": "../../app/src/render/jointjs/JointCanvas.tsx"
         },
         {
-          "path": "app/src/render/jointjs/proyeccion.ts",
-          "hrefDashboard": "../../app/src/render/jointjs/proyeccion.ts"
+          "path": "app/src/render/jointjs/composers/plegado.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/composers/plegado.ts"
         },
         {
-          "path": "app/src/opl/generar.ts",
-          "hrefDashboard": "../../app/src/opl/generar.ts"
+          "path": "app/src/opl/generadores/plegado.ts",
+          "hrefDashboard": "../../app/src/opl/generadores/plegado.ts"
         },
         {
           "path": "app/src/modelo/plegado.test.ts",
@@ -26245,6 +26869,14 @@
         {
           "path": "app/src/serializacion/json.test.ts",
           "hrefDashboard": "../../app/src/serializacion/json.test.ts"
+        },
+        {
+          "path": "app/src/render/jointjs/proyeccion.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/proyeccion.ts"
+        },
+        {
+          "path": "app/src/opl/generar.ts",
+          "hrefDashboard": "../../app/src/opl/generar.ts"
         }
       ],
       "peso": 4,
@@ -26287,20 +26919,20 @@
           "hrefDashboard": "../../app/src/modelo/plegado.ts"
         },
         {
-          "path": "app/src/store.ts",
-          "hrefDashboard": "../../app/src/store.ts"
+          "path": "app/src/store/modelo.ts",
+          "hrefDashboard": "../../app/src/store/modelo.ts"
         },
         {
           "path": "app/src/render/jointjs/JointCanvas.tsx",
           "hrefDashboard": "../../app/src/render/jointjs/JointCanvas.tsx"
         },
         {
-          "path": "app/src/render/jointjs/proyeccion.ts",
-          "hrefDashboard": "../../app/src/render/jointjs/proyeccion.ts"
+          "path": "app/src/render/jointjs/composers/plegado.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/composers/plegado.ts"
         },
         {
-          "path": "app/src/opl/generar.ts",
-          "hrefDashboard": "../../app/src/opl/generar.ts"
+          "path": "app/src/opl/generadores/plegado.ts",
+          "hrefDashboard": "../../app/src/opl/generadores/plegado.ts"
         },
         {
           "path": "app/src/modelo/plegado.test.ts",
@@ -26317,6 +26949,14 @@
         {
           "path": "app/src/serializacion/json.test.ts",
           "hrefDashboard": "../../app/src/serializacion/json.test.ts"
+        },
+        {
+          "path": "app/src/render/jointjs/proyeccion.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/proyeccion.ts"
+        },
+        {
+          "path": "app/src/opl/generar.ts",
+          "hrefDashboard": "../../app/src/opl/generar.ts"
         }
       ],
       "peso": 2,
@@ -26562,8 +27202,8 @@
           "hrefDashboard": "../../app/src/render/jointjs/JointCanvas.tsx"
         },
         {
-          "path": "app/src/store.ts",
-          "hrefDashboard": "../../app/src/store.ts"
+          "path": "app/src/store/modelo.ts",
+          "hrefDashboard": "../../app/src/store/modelo.ts"
         },
         {
           "path": "app/src/ui/InspectorEntidad.tsx",
@@ -27204,8 +27844,12 @@
           "hrefDashboard": "../../app/src/ui/ArbolOpd.tsx"
         },
         {
-          "path": "app/src/store.ts",
-          "hrefDashboard": "../../app/src/store.ts"
+          "path": "app/src/ui/arbol/NodoOpd.tsx",
+          "hrefDashboard": "../../app/src/ui/arbol/NodoOpd.tsx"
+        },
+        {
+          "path": "app/src/store/modelo.ts",
+          "hrefDashboard": "../../app/src/store/modelo.ts"
         },
         {
           "path": "app/src/modelo/operaciones.ts",
@@ -27262,8 +27906,12 @@
           "hrefDashboard": "../../app/src/ui/ArbolOpd.tsx"
         },
         {
-          "path": "app/src/store.ts",
-          "hrefDashboard": "../../app/src/store.ts"
+          "path": "app/src/ui/arbol/NodoOpd.tsx",
+          "hrefDashboard": "../../app/src/ui/arbol/NodoOpd.tsx"
+        },
+        {
+          "path": "app/src/store/modelo.ts",
+          "hrefDashboard": "../../app/src/store/modelo.ts"
         },
         {
           "path": "app/src/modelo/operaciones.ts",
@@ -27353,8 +28001,12 @@
           "hrefDashboard": "../../app/src/ui/ArbolOpd.tsx"
         },
         {
-          "path": "app/src/store.ts",
-          "hrefDashboard": "../../app/src/store.ts"
+          "path": "app/src/ui/arbol/NodoOpd.tsx",
+          "hrefDashboard": "../../app/src/ui/arbol/NodoOpd.tsx"
+        },
+        {
+          "path": "app/src/store/modelo.ts",
+          "hrefDashboard": "../../app/src/store/modelo.ts"
         },
         {
           "path": "app/src/modelo/operaciones.ts",
@@ -27409,8 +28061,12 @@
           "hrefDashboard": "../../app/src/ui/ArbolOpd.tsx"
         },
         {
-          "path": "app/src/store.ts",
-          "hrefDashboard": "../../app/src/store.ts"
+          "path": "app/src/ui/arbol/NodoOpd.tsx",
+          "hrefDashboard": "../../app/src/ui/arbol/NodoOpd.tsx"
+        },
+        {
+          "path": "app/src/store/modelo.ts",
+          "hrefDashboard": "../../app/src/store/modelo.ts"
         },
         {
           "path": "app/src/modelo/operaciones.ts",
@@ -27466,8 +28122,12 @@
           "hrefDashboard": "../../app/src/ui/ArbolOpd.tsx"
         },
         {
-          "path": "app/src/store.ts",
-          "hrefDashboard": "../../app/src/store.ts"
+          "path": "app/src/ui/arbol/NodoOpd.tsx",
+          "hrefDashboard": "../../app/src/ui/arbol/NodoOpd.tsx"
+        },
+        {
+          "path": "app/src/store/modelo.ts",
+          "hrefDashboard": "../../app/src/store/modelo.ts"
         },
         {
           "path": "app/src/modelo/operaciones.ts",
@@ -27521,8 +28181,12 @@
           "hrefDashboard": "../../app/src/ui/ArbolOpd.tsx"
         },
         {
-          "path": "app/src/store.ts",
-          "hrefDashboard": "../../app/src/store.ts"
+          "path": "app/src/ui/arbol/NodoOpd.tsx",
+          "hrefDashboard": "../../app/src/ui/arbol/NodoOpd.tsx"
+        },
+        {
+          "path": "app/src/store/modelo.ts",
+          "hrefDashboard": "../../app/src/store/modelo.ts"
         },
         {
           "path": "app/src/modelo/operaciones.ts",
@@ -27576,8 +28240,12 @@
           "hrefDashboard": "../../app/src/ui/ArbolOpd.tsx"
         },
         {
-          "path": "app/src/store.ts",
-          "hrefDashboard": "../../app/src/store.ts"
+          "path": "app/src/ui/arbol/NodoOpd.tsx",
+          "hrefDashboard": "../../app/src/ui/arbol/NodoOpd.tsx"
+        },
+        {
+          "path": "app/src/store/modelo.ts",
+          "hrefDashboard": "../../app/src/store/modelo.ts"
         },
         {
           "path": "app/src/modelo/operaciones.ts",
@@ -27850,8 +28518,8 @@
           "hrefDashboard": "../../app/src/ui/ArbolOpd.tsx"
         },
         {
-          "path": "app/src/store.ts",
-          "hrefDashboard": "../../app/src/store.ts"
+          "path": "app/src/store/modelo.ts",
+          "hrefDashboard": "../../app/src/store/modelo.ts"
         },
         {
           "path": "app/src/modelo/opdEliminacion.test.ts",
@@ -27905,8 +28573,8 @@
           "hrefDashboard": "../../app/src/ui/ArbolOpd.tsx"
         },
         {
-          "path": "app/src/store.ts",
-          "hrefDashboard": "../../app/src/store.ts"
+          "path": "app/src/store/modelo.ts",
+          "hrefDashboard": "../../app/src/store/modelo.ts"
         },
         {
           "path": "app/src/modelo/opdEliminacion.test.ts",
@@ -28828,8 +29496,12 @@
           "hrefDashboard": "../../app/src/ui/Toolbar.tsx"
         },
         {
-          "path": "app/src/store.ts",
-          "hrefDashboard": "../../app/src/store.ts"
+          "path": "app/src/store/persistencia.ts",
+          "hrefDashboard": "../../app/src/store/persistencia.ts"
+        },
+        {
+          "path": "app/src/store/modelo.ts",
+          "hrefDashboard": "../../app/src/store/modelo.ts"
         },
         {
           "path": "app/src/persistencia/local.ts",
@@ -28876,8 +29548,12 @@
           "hrefDashboard": "../../app/src/ui/Toolbar.tsx"
         },
         {
-          "path": "app/src/store.ts",
-          "hrefDashboard": "../../app/src/store.ts"
+          "path": "app/src/store/persistencia.ts",
+          "hrefDashboard": "../../app/src/store/persistencia.ts"
+        },
+        {
+          "path": "app/src/store/modelo.ts",
+          "hrefDashboard": "../../app/src/store/modelo.ts"
         },
         {
           "path": "app/src/persistencia/local.ts",
@@ -29370,8 +30046,12 @@
           "hrefDashboard": "../../app/src/ui/Toolbar.tsx"
         },
         {
-          "path": "app/src/store.ts",
-          "hrefDashboard": "../../app/src/store.ts"
+          "path": "app/src/store/persistencia.ts",
+          "hrefDashboard": "../../app/src/store/persistencia.ts"
+        },
+        {
+          "path": "app/src/store/modelo.ts",
+          "hrefDashboard": "../../app/src/store/modelo.ts"
         },
         {
           "path": "app/src/persistencia/local.ts",
@@ -29506,8 +30186,12 @@
           "hrefDashboard": "../../app/src/ui/Toolbar.tsx"
         },
         {
-          "path": "app/src/store.ts",
-          "hrefDashboard": "../../app/src/store.ts"
+          "path": "app/src/store/persistencia.ts",
+          "hrefDashboard": "../../app/src/store/persistencia.ts"
+        },
+        {
+          "path": "app/src/store/modelo.ts",
+          "hrefDashboard": "../../app/src/store/modelo.ts"
         },
         {
           "path": "app/src/persistencia/local.ts",
@@ -33134,8 +33818,8 @@
           "hrefDashboard": "../../app/src/ui/MenuPrincipal.tsx"
         },
         {
-          "path": "app/src/store.ts",
-          "hrefDashboard": "../../app/src/store.ts"
+          "path": "app/src/store/modelo.ts",
+          "hrefDashboard": "../../app/src/store/modelo.ts"
         },
         {
           "path": "app/src/ui/Toolbar.tsx",
@@ -33181,8 +33865,8 @@
           "hrefDashboard": "../../app/src/store/pestanas.ts"
         },
         {
-          "path": "app/src/store.ts",
-          "hrefDashboard": "../../app/src/store.ts"
+          "path": "app/src/store/tipos.ts",
+          "hrefDashboard": "../../app/src/store/tipos.ts"
         },
         {
           "path": "app/src/ui/BarraPestanas.tsx",
@@ -33227,8 +33911,8 @@
           "hrefDashboard": "../../app/src/store/pestanas.ts"
         },
         {
-          "path": "app/src/store.ts",
-          "hrefDashboard": "../../app/src/store.ts"
+          "path": "app/src/store/tipos.ts",
+          "hrefDashboard": "../../app/src/store/tipos.ts"
         },
         {
           "path": "app/src/ui/BarraPestanas.tsx",
@@ -33274,8 +33958,8 @@
           "hrefDashboard": "../../app/src/ui/MenuPrincipal.tsx"
         },
         {
-          "path": "app/src/store.ts",
-          "hrefDashboard": "../../app/src/store.ts"
+          "path": "app/src/store/modelo.ts",
+          "hrefDashboard": "../../app/src/store/modelo.ts"
         },
         {
           "path": "app/src/ui/Toolbar.tsx",
@@ -33322,8 +34006,8 @@
           "hrefDashboard": "../../app/src/ui/MenuPrincipal.tsx"
         },
         {
-          "path": "app/src/store.ts",
-          "hrefDashboard": "../../app/src/store.ts"
+          "path": "app/src/store/modelo.ts",
+          "hrefDashboard": "../../app/src/store/modelo.ts"
         },
         {
           "path": "app/src/ui/Toolbar.tsx",
@@ -33369,8 +34053,8 @@
           "hrefDashboard": "../../app/src/ui/MenuPrincipal.tsx"
         },
         {
-          "path": "app/src/store.ts",
-          "hrefDashboard": "../../app/src/store.ts"
+          "path": "app/src/store/modelo.ts",
+          "hrefDashboard": "../../app/src/store/modelo.ts"
         },
         {
           "path": "app/src/ui/Toolbar.tsx",
@@ -33419,8 +34103,8 @@
           "hrefDashboard": "../../app/src/ui/MenuPrincipal.tsx"
         },
         {
-          "path": "app/src/store.ts",
-          "hrefDashboard": "../../app/src/store.ts"
+          "path": "app/src/store/modelo.ts",
+          "hrefDashboard": "../../app/src/store/modelo.ts"
         },
         {
           "path": "app/src/ui/Toolbar.tsx",
@@ -33465,8 +34149,8 @@
           "hrefDashboard": "../../app/src/ui/MenuPrincipal.tsx"
         },
         {
-          "path": "app/src/store.ts",
-          "hrefDashboard": "../../app/src/store.ts"
+          "path": "app/src/store/modelo.ts",
+          "hrefDashboard": "../../app/src/store/modelo.ts"
         },
         {
           "path": "app/src/ui/Toolbar.tsx",
@@ -37186,8 +37870,16 @@
           "hrefDashboard": "../../app/src/ui/PanelOpl.tsx"
         },
         {
+          "path": "app/src/ui/panelOpl/RenderToken.tsx",
+          "hrefDashboard": "../../app/src/ui/panelOpl/RenderToken.tsx"
+        },
+        {
           "path": "app/src/opl/generar.ts",
           "hrefDashboard": "../../app/src/opl/generar.ts"
+        },
+        {
+          "path": "app/src/opl/generadores/refsHints.ts",
+          "hrefDashboard": "../../app/src/opl/generadores/refsHints.ts"
         },
         {
           "path": "app/src/completitud.test.ts",
@@ -37237,8 +37929,8 @@
           "hrefDashboard": "../../app/src/ui/PanelOpl.tsx"
         },
         {
-          "path": "app/src/store.ts",
-          "hrefDashboard": "../../app/src/store.ts"
+          "path": "app/src/store/modelo.ts",
+          "hrefDashboard": "../../app/src/store/modelo.ts"
         },
         {
           "path": "app/src/opl/generar.test.ts",
@@ -37701,8 +38393,16 @@
           "hrefDashboard": "../../app/src/ui/PanelOpl.tsx"
         },
         {
+          "path": "app/src/ui/panelOpl/RenderToken.tsx",
+          "hrefDashboard": "../../app/src/ui/panelOpl/RenderToken.tsx"
+        },
+        {
           "path": "app/src/opl/generar.ts",
           "hrefDashboard": "../../app/src/opl/generar.ts"
+        },
+        {
+          "path": "app/src/opl/generadores/refsHints.ts",
+          "hrefDashboard": "../../app/src/opl/generadores/refsHints.ts"
         },
         {
           "path": "app/src/completitud.test.ts",
@@ -37750,8 +38450,16 @@
           "hrefDashboard": "../../app/src/ui/PanelOpl.tsx"
         },
         {
+          "path": "app/src/ui/panelOpl/RenderToken.tsx",
+          "hrefDashboard": "../../app/src/ui/panelOpl/RenderToken.tsx"
+        },
+        {
           "path": "app/src/opl/generar.ts",
           "hrefDashboard": "../../app/src/opl/generar.ts"
+        },
+        {
+          "path": "app/src/opl/generadores/refsHints.ts",
+          "hrefDashboard": "../../app/src/opl/generadores/refsHints.ts"
         },
         {
           "path": "app/src/completitud.test.ts",
@@ -37801,8 +38509,8 @@
           "hrefDashboard": "../../app/src/ui/PanelOpl.tsx"
         },
         {
-          "path": "app/src/store.ts",
-          "hrefDashboard": "../../app/src/store.ts"
+          "path": "app/src/store/modelo.ts",
+          "hrefDashboard": "../../app/src/store/modelo.ts"
         },
         {
           "path": "app/src/opl/generar.test.ts",
@@ -37860,8 +38568,8 @@
           "hrefDashboard": "../../app/src/ui/PanelOpl.tsx"
         },
         {
-          "path": "app/src/store.ts",
-          "hrefDashboard": "../../app/src/store.ts"
+          "path": "app/src/store/modelo.ts",
+          "hrefDashboard": "../../app/src/store/modelo.ts"
         },
         {
           "path": "app/src/opl/generar.test.ts",
@@ -37920,8 +38628,8 @@
           "hrefDashboard": "../../app/src/ui/PanelOpl.tsx"
         },
         {
-          "path": "app/src/store.ts",
-          "hrefDashboard": "../../app/src/store.ts"
+          "path": "app/src/store/modelo.ts",
+          "hrefDashboard": "../../app/src/store/modelo.ts"
         },
         {
           "path": "app/src/opl/generar.test.ts",
@@ -37980,8 +38688,8 @@
           "hrefDashboard": "../../app/src/ui/PanelOpl.tsx"
         },
         {
-          "path": "app/src/store.ts",
-          "hrefDashboard": "../../app/src/store.ts"
+          "path": "app/src/store/modelo.ts",
+          "hrefDashboard": "../../app/src/store/modelo.ts"
         },
         {
           "path": "app/src/opl/generar.test.ts",
@@ -38074,8 +38782,8 @@
           "hrefDashboard": "../../app/src/ui/PanelOpl.tsx"
         },
         {
-          "path": "app/src/store.ts",
-          "hrefDashboard": "../../app/src/store.ts"
+          "path": "app/src/store/modelo.ts",
+          "hrefDashboard": "../../app/src/store/modelo.ts"
         },
         {
           "path": "app/src/opl/generar.test.ts",
