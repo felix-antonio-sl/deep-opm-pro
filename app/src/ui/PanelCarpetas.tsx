@@ -165,6 +165,7 @@ export function PanelCarpetas(props: PanelCarpetasProps) {
               <button
                 key={modelo.id}
                 type="button"
+                data-testid="reciente-modelo"
                 style={style.recienteItem}
                 onClick={() => props.onAbrirModelo(modelo.id)}
                 onDblClick={() => props.onAbrirModelo(modelo.id)}

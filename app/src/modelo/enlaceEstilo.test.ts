@@ -6,6 +6,7 @@ import {
   type EnlaceEstilo,
 } from "./enlaceEstilo";
 import { crearModelo, crearEnlace, crearObjeto, crearProceso } from "./operaciones";
+import type { Enlace, Modelo, TipoEnlace } from "./tipos";
 
 function setup(): { modelo: Modelo; enlaceId: string; enlace(): Enlace } {
   const modelo = crearModelo("Test");
