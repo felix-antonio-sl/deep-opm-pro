@@ -7,6 +7,7 @@ import type {
   Enlace,
   Entidad,
   Esencia,
+  Estado,
   Id,
   Modelo,
   ModoDespliegueObjeto,
@@ -66,7 +67,7 @@ function validarDocumento(value: unknown): Resultado<DocumentoModelo> {
 
 function validarModelo(value: unknown): Resultado<Modelo> {
   if (!esRecord(value)) return fallo("Modelo inválido");
-  const { id, nombre, opdRaizId, nextSeq, opds, entidades, enlaces } = value;
+  const { id, nombre, opdRaizId, nextSeq, opds, entidades, estados, enlaces } = value;
   if (typeof id !== "string") return fallo("Modelo inválido: id");
   if (typeof nombre !== "string") return fallo("Modelo inválido: nombre");
   if (typeof opdRaizId !== "string") return fallo("Modelo inválido: opdRaizId");
@@ -77,6 +78,8 @@ function validarModelo(value: unknown): Resultado<Modelo> {
 
   const entidadesValidadas = validarEntidades(entidades);
   if (!entidadesValidadas.ok) return entidadesValidadas;
+  const estadosValidados = validarEstados(estados, entidadesValidadas.value);
+  if (!estadosValidados.ok) return estadosValidados;
   const opdsValidados = validarOpds(opds, entidadesValidadas.value);
   if (!opdsValidados.ok) return opdsValidados;
   if (!opdsValidados.value[opdRaizId]) return fallo(`OPD raíz no existe: ${opdRaizId}`);
@@ -89,6 +92,7 @@ function validarModelo(value: unknown): Resultado<Modelo> {
     opdRaizId,
     nextSeq,
     entidades: entidadesValidadas.value,
+    estados: estadosValidados.value,
     opds: opdsValidados.value,
     enlaces: enlacesValidados.value,
   };
@@ -119,6 +123,50 @@ function validarEntidades(value: Record<string, unknown>): Resultado<Record<Id, 
     };
   }
   return ok(entidades);
+}
+
+function validarEstados(value: unknown, entidades: Record<Id, Entidad>): Resultado<Record<Id, Estado>> {
+  if (value === undefined) return ok({});
+  if (!esRecord(value)) return fallo("Modelo inválido: estados");
+
+  const estados: Record<Id, Estado> = {};
+  for (const [id, raw] of Object.entries(value)) {
+    if (!esRecord(raw)) return fallo(`Estado inválido: ${id}`);
+    if (raw.id !== id) return fallo(`Estado inválido: ${id}.id`);
+    if (typeof raw.entidadId !== "string") return fallo(`Estado inválido: ${id}.entidadId`);
+    const entidad = entidades[raw.entidadId];
+    if (!entidad) return fallo(`Estado inválido: ${id}.entidadId`);
+    if (entidad.tipo !== "objeto") return fallo(`Estado inválido: ${id}.entidadId`);
+    if (typeof raw.nombre !== "string" || raw.nombre.trim().length === 0) {
+      return fallo(`Estado inválido: ${id}.nombre`);
+    }
+    if (raw.esInicial !== undefined && typeof raw.esInicial !== "boolean") {
+      return fallo(`Estado inválido: ${id}.esInicial`);
+    }
+    if (raw.esFinal !== undefined && typeof raw.esFinal !== "boolean") {
+      return fallo(`Estado inválido: ${id}.esFinal`);
+    }
+    estados[id] = {
+      id,
+      entidadId: raw.entidadId,
+      nombre: raw.nombre.trim(),
+      ...(raw.esInicial ? { esInicial: true } : {}),
+      ...(raw.esFinal ? { esFinal: true } : {}),
+    };
+  }
+
+  for (const entidad of Object.values(entidades).filter((item) => item.tipo === "objeto")) {
+    const estadosObjeto = Object.values(estados).filter((estado) => estado.entidadId === entidad.id);
+    if (estadosObjeto.length === 1) return fallo(`Estado inválido: ${entidad.id}.axioma`);
+    const nombres = new Set<string>();
+    for (const estado of estadosObjeto) {
+      const normalizado = estado.nombre.toLocaleLowerCase("es");
+      if (nombres.has(normalizado)) return fallo(`Estado inválido: ${entidad.id}.nombre`);
+      nombres.add(normalizado);
+    }
+  }
+
+  return ok(estados);
 }
 
 function validarRefinamiento(entidadId: Id, value: unknown): Resultado<RefinamientoEntidad | undefined> {

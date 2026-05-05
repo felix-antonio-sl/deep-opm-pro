@@ -10,19 +10,26 @@ import {
   ajustarMultiplicidad,
   cambiarAfiliacion,
   cambiarEsencia,
+  agregarEstado,
   crearEnlace,
+  crearEstadosIniciales,
   crearModelo,
   crearObjeto,
   crearProceso,
+  designarEstadoFinal as designarEstadoFinalOp,
+  designarEstadoInicial as designarEstadoInicialOp,
   descomponerProceso,
   desplegarObjeto,
   eliminarEntidad,
   eliminarEnlace,
+  eliminarEstado as eliminarEstadoOp,
   moverApariencia as moverAparienciaEntidad,
   moverAparienciaPorId,
   quitarDescomposicionProceso,
   quitarDespliegueObjeto,
+  quitarEstadosObjeto,
   renombrarEntidad,
+  renombrarEstado,
 } from "./modelo/operaciones";
 import { cambiarModoPlegado as cambiarModoPlegadoOp } from "./modelo/plegado";
 import {
@@ -72,6 +79,13 @@ interface OpmStore {
   fijarAfiliacionSeleccionada: (afiliacion: Afiliacion) => void;
   cambiarModoPlegadoSeleccionado: (modo: ModoPlegado) => void;
   cambiarModoPlegadoApariencia: (aparienciaId: Id, modo: ModoPlegado) => void;
+  agregarEstadosObjeto: () => void;
+  agregarEstadoObjeto: () => void;
+  eliminarEstado: (estadoId: Id) => void;
+  quitarEstadosObjetoSeleccionado: () => void;
+  renombrarEstadoSeleccionado: (estadoId: Id, nombre: string) => void;
+  designarEstadoInicial: (estadoId: Id) => void;
+  designarEstadoFinal: (estadoId: Id) => void;
   moverEntidad: (id: Id, x: number, y: number) => void;
   moverApariencia: (aparienciaId: Id, x: number, y: number) => void;
   reordenarSubprocesoEnTimeline: (opdId: Id, aparienciaId: Id, nuevaY: number) => void;
@@ -378,6 +392,123 @@ export const store = createStore<OpmStore>((set, get) => ({
     const apariencia = modelo.opds[opdActivoId]?.apariencias[aparienciaId];
     commitModelo(set, modelo, resultado.value, {
       seleccionId: apariencia?.entidadId ?? null,
+      enlaceSeleccionId: null,
+      modoEnlace: null,
+      mensaje: null,
+    });
+  },
+
+  agregarEstadosObjeto() {
+    const { modelo, seleccionId } = get();
+    if (!seleccionId) {
+      set({ mensaje: "Selecciona un objeto para agregar estados" });
+      return;
+    }
+    const resultado = crearEstadosIniciales(modelo, seleccionId);
+    if (!resultado.ok) {
+      set({ mensaje: resultado.error });
+      return;
+    }
+    commitModelo(set, modelo, resultado.value.modelo, {
+      seleccionId,
+      enlaceSeleccionId: null,
+      modoEnlace: null,
+      mensaje: resultado.value.creado ? "Estados iniciales agregados" : null,
+    });
+  },
+
+  agregarEstadoObjeto() {
+    const { modelo, seleccionId } = get();
+    if (!seleccionId) {
+      set({ mensaje: "Selecciona un objeto para agregar un estado" });
+      return;
+    }
+    const resultado = agregarEstado(modelo, seleccionId);
+    if (!resultado.ok) {
+      set({ mensaje: resultado.error });
+      return;
+    }
+    commitModelo(set, modelo, resultado.value.modelo, {
+      seleccionId,
+      enlaceSeleccionId: null,
+      modoEnlace: null,
+      mensaje: null,
+    });
+  },
+
+  eliminarEstado(estadoId) {
+    const { modelo, seleccionId } = get();
+    const resultado = eliminarEstadoOp(modelo, estadoId);
+    if (!resultado.ok) {
+      set({ mensaje: resultado.error });
+      return;
+    }
+    commitModelo(set, modelo, resultado.value, {
+      seleccionId,
+      enlaceSeleccionId: null,
+      modoEnlace: null,
+      mensaje: null,
+    });
+  },
+
+  quitarEstadosObjetoSeleccionado() {
+    const { modelo, seleccionId } = get();
+    if (!seleccionId) {
+      set({ mensaje: "Selecciona un objeto para quitar estados" });
+      return;
+    }
+    const resultado = quitarEstadosObjeto(modelo, seleccionId);
+    if (!resultado.ok) {
+      set({ mensaje: resultado.error });
+      return;
+    }
+    commitModelo(set, modelo, resultado.value, {
+      seleccionId,
+      enlaceSeleccionId: null,
+      modoEnlace: null,
+      mensaje: "Estados eliminados",
+    });
+  },
+
+  renombrarEstadoSeleccionado(estadoId, nombre) {
+    const { modelo, seleccionId } = get();
+    const resultado = renombrarEstado(modelo, estadoId, nombre);
+    if (!resultado.ok) {
+      set({ mensaje: resultado.error });
+      return;
+    }
+    commitModelo(set, modelo, resultado.value, {
+      seleccionId,
+      enlaceSeleccionId: null,
+      modoEnlace: null,
+      mensaje: null,
+    });
+  },
+
+  designarEstadoInicial(estadoId) {
+    const { modelo, seleccionId } = get();
+    const resultado = designarEstadoInicialOp(modelo, estadoId);
+    if (!resultado.ok) {
+      set({ mensaje: resultado.error });
+      return;
+    }
+    commitModelo(set, modelo, resultado.value, {
+      seleccionId,
+      enlaceSeleccionId: null,
+      modoEnlace: null,
+      mensaje: null,
+    });
+  },
+
+  designarEstadoFinal(estadoId) {
+    const { modelo, seleccionId } = get();
+    const resultado = designarEstadoFinalOp(modelo, estadoId);
+    if (!resultado.ok) {
+      set({ mensaje: resultado.error });
+      return;
+    }
+    commitModelo(set, modelo, resultado.value, {
+      seleccionId,
       enlaceSeleccionId: null,
       modoEnlace: null,
       mensaje: null,
