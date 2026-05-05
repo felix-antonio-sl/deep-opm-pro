@@ -6,14 +6,29 @@ export function MenuPrincipal() {
   const abierto = useOpmStore((s) => s.menuPrincipalAbierto);
   const cerrar = useOpmStore((s) => s.cerrarMenuPrincipal);
   const nuevoModelo = useOpmStore((s) => s.nuevoModelo);
+  const abrirPestanaNueva = useOpmStore((s) => s.abrirPestanaNueva);
   const guardarLocal = useOpmStore((s) => s.guardarLocal);
   const abrirGuardarComo = useOpmStore((s) => s.abrirGuardarComo);
   const abrirCargarModelo = useOpmStore((s) => s.abrirCargarModelo);
   const abrirBusquedaCosas = useOpmStore((s) => s.abrirBusquedaCosas);
+  const abrirBusquedaGlobal = useOpmStore((s) => s.abrirDialogoBuscarGlobal);
+  const abrirArchivados = useOpmStore((s) => s.abrirDialogoArchivados);
+  const abrirVersiones = useOpmStore((s) => s.abrirDialogoVersiones);
+  const modeloPersistidoId = useOpmStore((s) => s.modeloPersistidoId);
+  const mostrarArchivados = useOpmStore((s) => s.mostrarArchivados);
+  const mostrarVersiones = useOpmStore((s) => s.mostrarVersiones);
+  const toggleMostrarArchivados = useOpmStore((s) => s.toggleMostrarArchivados);
+  const toggleMostrarVersiones = useOpmStore((s) => s.toggleMostrarVersiones);
   const cargarDemo = useOpmStore((s) => s.cargarDemo);
   const exportarJson = useOpmStore((s) => s.exportarJson);
   const abrirVistaMapa = useOpmStore((s) => s.abrirVistaMapa);
+  const vistaMapaActiva = useOpmStore((s) => s.vistaMapaActiva);
+  const toggleMapaPanelEstadisticas = useOpmStore((s) => s.toggleMapaPanelEstadisticas);
   const abrirTablaEnlaces = useOpmStore((s) => s.abrirTablaEnlaces);
+  const abrirCheatsheetAtajos = useOpmStore((s) => s.abrirCheatsheetAtajos);
+  const seleccionId = useOpmStore((s) => s.seleccionId);
+  const modelo = useOpmStore((s) => s.modelo);
+  const abrirModalUrls = useOpmStore((s) => s.abrirModalUrls);
   const confirmarSiDirty = useConfirmarSiDirty();
   const iniciarAsistente = useOpmStore((s) => s.iniciarAsistente);
 
@@ -26,8 +41,11 @@ export function MenuPrincipal() {
 
   return (
     <div role="menu" aria-label="Menú principal" style={style.menu}>
-      <button type="button" role="menuitem" style={style.item} onClick={() => ejecutar(() => confirmarSiDirty(nuevoModelo))}>
+      <button type="button" role="menuitem" style={style.item} onClick={() => ejecutar(nuevoModelo)}>
         Nuevo
+      </button>
+      <button type="button" role="menuitem" style={style.item} onClick={() => ejecutar(abrirPestanaNueva)}>
+        Nuevo modelo en pestana
       </button>
       <button type="button" role="menuitem" style={style.item} onClick={() => ejecutar(iniciarAsistente)}>
         Nuevo modelo por asistente
@@ -45,9 +63,39 @@ export function MenuPrincipal() {
       <button type="button" role="menuitem" style={style.item} onClick={() => ejecutar(abrirBusquedaCosas)}>
         Buscar cosas (Ctrl+F)
       </button>
+      <button type="button" role="menuitem" style={style.item} onClick={() => ejecutar(abrirBusquedaGlobal)}>
+        Buscar global (Ctrl+Shift+F)
+      </button>
+      <button type="button" role="menuitem" style={style.item} onClick={() => ejecutar(abrirArchivados)}>
+        Archivados
+      </button>
+      <button type="button" role="menuitem" style={style.item} onClick={() => ejecutar(toggleMostrarArchivados)}>
+        {mostrarArchivados ? "Ocultar archivados" : "Mostrar archivados"}
+      </button>
+      <button type="button" role="menuitem" style={style.item} onClick={() => ejecutar(toggleMostrarVersiones)}>
+        {mostrarVersiones ? "Ocultar glifos de versiones" : "Mostrar glifos de versiones"}
+      </button>
+      {modeloPersistidoId ? (
+        <button type="button" role="menuitem" style={style.item} onClick={() => ejecutar(() => abrirVersiones(modeloPersistidoId))}>
+          Versiones del modelo
+        </button>
+      ) : null}
       <button type="button" role="menuitem" style={style.item} onClick={() => ejecutar(() => abrirVistaMapa())}>
         Mapa del sistema
       </button>
+      {vistaMapaActiva ? (
+        <>
+          <button type="button" role="menuitem" style={style.item} onClick={() => ejecutar(() => solicitarExportMapa("png"))}>
+            Exportar mapa como PNG
+          </button>
+          <button type="button" role="menuitem" style={style.item} onClick={() => ejecutar(() => solicitarExportMapa("svg"))}>
+            Exportar mapa como SVG
+          </button>
+          <button type="button" role="menuitem" style={style.item} onClick={() => ejecutar(toggleMapaPanelEstadisticas)}>
+            Estadísticas del modelo
+          </button>
+        </>
+      ) : null}
       <button
         type="button"
         role="menuitem"
@@ -65,12 +113,24 @@ export function MenuPrincipal() {
       <button type="button" role="menuitem" style={style.item} onClick={() => ejecutar(abrirTablaEnlaces)}>
         Tabla de enlaces
       </button>
+      {seleccionId && modelo.entidades[seleccionId]?.tipo === "objeto" ? (
+        <button type="button" role="menuitem" style={style.item} onClick={() => ejecutar(() => abrirModalUrls(seleccionId))}>
+          URLs del objeto
+        </button>
+      ) : null}
+      <button type="button" role="menuitem" style={style.item} onClick={() => ejecutar(abrirCheatsheetAtajos)}>
+        Atajos de teclado...
+      </button>
       <div aria-hidden="true" style={style.footer}>
         <img src={modelWizardIcon} alt="" style={style.icon} />
         <span>Workspace local</span>
       </div>
     </div>
   );
+}
+
+function solicitarExportMapa(formato: "png" | "svg"): void {
+  window.dispatchEvent(new CustomEvent("deep-opm-pro:exportar-mapa", { detail: { formato } }));
 }
 
 const style = {
@@ -122,4 +182,3 @@ const style = {
     height: "18px",
   },
 } satisfies Record<string, preact.JSX.CSSProperties>;
-

@@ -1,13 +1,22 @@
 import { useEffect } from "preact/hooks";
 import { JointCanvas } from "../render/jointjs/JointCanvas";
-import { useOpmStore } from "../store";
+import { store, useOpmStore } from "../store";
 import { ArbolOpd } from "./ArbolOpd";
+import { BarraPestanas } from "./BarraPestanas";
+import { configurarContextoAtajos, escucharGlobal, registrarAtajo } from "./atajosTeclado";
+import { CheatsheetAtajos } from "./CheatsheetAtajos";
 import { ConfirmacionProvider } from "./ConfirmacionContext";
+import { DialogoArchivados } from "./DialogoArchivados";
+import { DialogoBuscarGlobal } from "./DialogoBuscarGlobal";
 import { DialogoCargarModelo } from "./DialogoCargarModelo";
 import { DialogoGuardarComo } from "./DialogoGuardarComo";
+import { DialogoVersiones } from "./DialogoVersiones";
+import { DivisorPanel } from "./divisorPanel";
 import { GestionArbolOpd } from "./GestionArbolOpd";
 import { Inspector } from "./Inspector";
 import { MapaSistema } from "./MapaSistema";
+import { ModalDuracionEstado } from "./ModalDuracionEstado";
+import { ModalUrlsObjeto } from "./ModalUrlsObjeto";
 import { PanelAvisos } from "./PanelAvisos";
 import { PanelOpl } from "./PanelOpl";
 import { Timeline } from "./Timeline";
@@ -15,29 +24,38 @@ import { Toolbar } from "./Toolbar";
 
 export function App() {
   const vistaMapaActiva = useOpmStore((s) => s.vistaMapaActiva);
-  const abrirGestionArbol = useOpmStore((s) => s.abrirGestionArbol);
-  const gestionArbolAbierta = useOpmStore((s) => s.gestionArbolAbierta);
+  const anchoPanelArbol = useOpmStore((s) => s.anchoPanelArbol);
+  const fijarAnchoPanelArbol = useOpmStore((s) => s.fijarAnchoPanelArbol);
+  const cheatsheetAtajosAbierto = useOpmStore((s) => s.cheatsheetAtajosAbierto);
+  const cerrarCheatsheetAtajos = useOpmStore((s) => s.cerrarCheatsheetAtajos);
 
-  // Atajo Ctrl+D para Gestión del árbol OPD (HU-20.020)
   useEffect(() => {
-    const handleKey = (e: KeyboardEvent) => {
-      if (e.ctrlKey && e.key === "d") {
-        e.preventDefault();
-        abrirGestionArbol();
-      }
+    const limpiarContexto = configurarContextoAtajos({
+      vistaMapaActiva: () => store.getState().vistaMapaActiva,
+    });
+    const dejarDeEscuchar = escucharGlobal();
+    const desregistrar = registrarAtajosAplicacion();
+    return () => {
+      for (const off of desregistrar) off();
+      dejarDeEscuchar();
+      limpiarContexto();
     };
-    window.addEventListener("keydown", handleKey);
-    return () => window.removeEventListener("keydown", handleKey);
-  }, [abrirGestionArbol]);
+  }, []);
 
   return (
     <ConfirmacionProvider>
       <main style={layout.page}>
         <Toolbar />
-        <section style={layout.workbench}>
+        <BarraPestanas />
+        <section style={{ ...layout.workbench, gridTemplateColumns: `${anchoPanelArbol}px 6px minmax(0, 1fr) 300px` }}>
           <div data-testid="tree-pane" style={layout.treePane}>
             <ArbolOpd />
           </div>
+          <DivisorPanel
+            orientacion="vertical"
+            anchoInicial={anchoPanelArbol}
+            onAnchoChange={fijarAnchoPanelArbol}
+          />
           <div data-testid="canvas-pane" style={layout.canvasPane}>
             {vistaMapaActiva ? <MapaSistema /> : <JointCanvas />}
           </div>
@@ -52,24 +70,97 @@ export function App() {
         <PanelOpl />
         <DialogoGuardarComo />
         <DialogoCargarModelo />
+        <DialogoBuscarGlobal />
+        <DialogoVersiones />
+        <DialogoArchivados />
         <GestionArbolOpd />
+        <ModalUrlsObjeto />
+        <ModalDuracionEstado />
+        <CheatsheetAtajos abierto={cheatsheetAtajosAbierto} onCerrar={cerrarCheatsheetAtajos} />
       </main>
     </ConfirmacionProvider>
   );
 }
 
+function registrarAtajosAplicacion(): Array<() => void> {
+  const s = () => store.getState();
+  const cerrarModalSuperiorOVaciarSeleccion = () => {
+    const state = s();
+    if (state.cheatsheetAtajosAbierto) return state.cerrarCheatsheetAtajos();
+    if (state.gestionArbolAbierta) return state.cerrarGestionArbol();
+    if (state.dialogoGuardarComoAbierto) return state.cerrarGuardarComo();
+    if (state.dialogoCargarModeloAbierto) return state.cerrarCargarModelo();
+    if (state.dialogoBuscarGlobalAbierto) return state.cerrarDialogoBuscarGlobal();
+    if (state.dialogoVersionesAbierto) return state.cerrarDialogoVersiones();
+    if (state.dialogoArchivadosAbierto) return state.cerrarDialogoArchivados();
+    if (state.modalUrlsAbierto) return state.cerrarModalUrls();
+    if (state.modalDuracionAbierto) return state.cerrarModalDuracion();
+    if (state.busquedaCosasAbierta) return state.cerrarBusquedaCosas();
+    if (state.menuPrincipalAbierto) return state.cerrarMenuPrincipal();
+    return state.vaciarSeleccion();
+  };
+  return [
+    registrarAtajo({ combo: "Ctrl+S", ctx: "global", categoria: "archivo", descripcion: "Guardar modelo", handler: () => s().guardarLocal() }),
+    registrarAtajo({ combo: "Ctrl+F", ctx: "canvas", categoria: "navegacion", descripcion: "Buscar cosas en el modelo", handler: () => s().abrirBusquedaCosas() }),
+    registrarAtajo({ combo: "Ctrl+Shift+F", ctx: "global", categoria: "navegacion", descripcion: "Buscar en el workspace", handler: () => s().abrirDialogoBuscarGlobal() }),
+    registrarAtajo({ combo: "Ctrl+D", ctx: "global", categoria: "navegacion", descripcion: "Abrir gestión del árbol OPD", handler: () => s().abrirGestionArbol() }),
+    registrarAtajo({ combo: "Ctrl+Z", ctx: "global", categoria: "edicion", descripcion: "Deshacer", handler: () => s().deshacer() }),
+    registrarAtajo({ combo: "Ctrl+Y", ctx: "global", categoria: "edicion", descripcion: "Rehacer", handler: () => s().rehacer() }),
+    registrarAtajo({ combo: "Ctrl+Shift+Z", ctx: "global", categoria: "edicion", descripcion: "Rehacer", handler: () => s().rehacer() }),
+    registrarAtajo({ combo: "Ctrl+A", ctx: "canvas", categoria: "seleccion", descripcion: "Seleccionar todo en el OPD activo", handler: () => s().seleccionarTodoEnOpd() }),
+    registrarAtajo({ combo: "Ctrl+C", ctx: "canvas", categoria: "seleccion", descripcion: "Copiar selección visual", handler: () => s().copiarSeleccionAlBuffer() }),
+    registrarAtajo({ combo: "Ctrl+V", ctx: "canvas", categoria: "seleccion", descripcion: "Pegar selección visual", handler: () => s().pegarBufferEnOpdActivo() }),
+    registrarAtajo({ combo: "Delete", ctx: "canvas", categoria: "seleccion", descripcion: "Eliminar selección", handler: () => s().eliminarSeleccion() }),
+    registrarAtajo({ combo: "Escape", ctx: "global", categoria: "seleccion", descripcion: "Cerrar modal superior o vaciar selección", handler: cerrarModalSuperiorOVaciarSeleccion }),
+    registrarAtajo({ combo: "ArrowUp", ctx: "canvas", categoria: "edicion", descripcion: "Mover selección 1 px hacia arriba", handler: () => s().nudgeSeleccion(0, -1) }),
+    registrarAtajo({ combo: "ArrowDown", ctx: "canvas", categoria: "edicion", descripcion: "Mover selección 1 px hacia abajo", handler: () => s().nudgeSeleccion(0, 1) }),
+    registrarAtajo({ combo: "ArrowLeft", ctx: "canvas", categoria: "edicion", descripcion: "Mover selección 1 px a la izquierda", handler: () => s().nudgeSeleccion(-1, 0) }),
+    registrarAtajo({ combo: "ArrowRight", ctx: "canvas", categoria: "edicion", descripcion: "Mover selección 1 px a la derecha", handler: () => s().nudgeSeleccion(1, 0) }),
+    registrarAtajo({ combo: "Shift+ArrowUp", ctx: "canvas", categoria: "edicion", descripcion: "Mover selección 10 px hacia arriba", handler: () => s().nudgeSeleccion(0, -10) }),
+    registrarAtajo({ combo: "Shift+ArrowDown", ctx: "canvas", categoria: "edicion", descripcion: "Mover selección 10 px hacia abajo", handler: () => s().nudgeSeleccion(0, 10) }),
+    registrarAtajo({ combo: "Shift+ArrowLeft", ctx: "canvas", categoria: "edicion", descripcion: "Mover selección 10 px a la izquierda", handler: () => s().nudgeSeleccion(-10, 0) }),
+    registrarAtajo({ combo: "Shift+ArrowRight", ctx: "canvas", categoria: "edicion", descripcion: "Mover selección 10 px a la derecha", handler: () => s().nudgeSeleccion(10, 0) }),
+    registrarAtajo({ combo: "Ctrl+ArrowUp", ctx: "global", categoria: "navegacion", descripcion: "Ir al OPD hermano anterior", handler: () => s().navegarOpdArriba() }),
+    registrarAtajo({ combo: "Ctrl+ArrowDown", ctx: "global", categoria: "navegacion", descripcion: "Ir al OPD hermano siguiente", handler: () => s().navegarOpdAbajo() }),
+    registrarAtajo({ combo: "Ctrl+ArrowLeft", ctx: "global", categoria: "navegacion", descripcion: "Ir al OPD padre", handler: () => s().navegarOpdIzquierda() }),
+    registrarAtajo({ combo: "Ctrl+ArrowRight", ctx: "global", categoria: "navegacion", descripcion: "Ir al primer OPD hijo", handler: () => s().navegarOpdDerecha() }),
+    registrarAtajo({ combo: "Shift+U", ctx: "canvas", categoria: "edicion", descripcion: "Desplegar selección", handler: () => s().desplegarSeleccionada() }),
+    registrarAtajo({ combo: "Ctrl+Shift+C", ctx: "canvas", categoria: "edicion", descripcion: "Copiar formato de enlace seleccionado", handler: () => {
+      const state = s();
+      if (state.enlaceSeleccionId) state.copiarEstiloEnlaceAlPortapapeles(state.enlaceSeleccionId);
+    } }),
+    registrarAtajo({ combo: "Ctrl+T", ctx: "global", categoria: "navegacion", descripcion: "Abrir pestaña nueva", handler: () => s().abrirPestanaNueva?.() }),
+    registrarAtajo({ combo: "Ctrl+W", ctx: "global", categoria: "navegacion", descripcion: "Cerrar pestaña activa", handler: () => {
+      const state = s();
+      state.cerrarPestana?.(state.pestanaActivaId);
+    } }),
+    registrarAtajo({ combo: "Ctrl+Tab", ctx: "global", categoria: "navegacion", descripcion: "Siguiente pestaña", handler: () => cambiarPestanaRelativa(1) }),
+    registrarAtajo({ combo: "Ctrl+Shift+Tab", ctx: "global", categoria: "navegacion", descripcion: "Pestaña anterior", handler: () => cambiarPestanaRelativa(-1) }),
+  ];
+}
+
+function cambiarPestanaRelativa(delta: 1 | -1): void {
+  const state = store.getState();
+  const pestanas = state.pestanasAbiertas ?? [];
+  if (pestanas.length === 0) return;
+  const actual = pestanas.findIndex((pestana) => pestana.id === state.pestanaActivaId);
+  const siguiente = (actual + delta + pestanas.length) % pestanas.length;
+  const siguienteId = pestanas[siguiente]?.id;
+  if (siguienteId) state.cambiarPestanaActiva?.(siguienteId);
+}
+
 const layout = {
   page: {
     display: "grid",
-    gridTemplateRows: "48px minmax(0, 1fr) 180px",
+    gridTemplateRows: "48px 37px minmax(0, 1fr) 180px",
     width: "100%",
     height: "100%",
     background: "#f5f7fb",
   },
   workbench: {
     display: "grid",
-    gridTemplateColumns: "220px minmax(0, 1fr) 300px",
-    gridTemplateAreas: `"tree canvas inspector"`,
+    gridTemplateColumns: "240px 6px minmax(0, 1fr) 300px",
+    gridTemplateAreas: `"tree divisor canvas inspector"`,
     minHeight: 0,
     minWidth: 0,
     overflow: "hidden",

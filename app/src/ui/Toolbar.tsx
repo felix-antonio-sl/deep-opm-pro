@@ -1,4 +1,5 @@
 import { useEffect } from "preact/hooks";
+import verFileIcon from "../../../assets/svg/verFile.svg";
 import { useOpmStore } from "../store";
 import type { TipoEnlace } from "../modelo/tipos";
 import { useConfirmarSiDirty } from "./ConfirmacionContext";
@@ -36,13 +37,27 @@ export function Toolbar() {
   const modoCreacion = useOpmStore((s) => s.modoCreacion);
   const mensaje = useOpmStore((s) => s.mensaje);
   const seleccionId = useOpmStore((s) => s.seleccionId);
+  const seleccionados = useOpmStore((s) => s.seleccionados);
+  const eliminarSeleccion = useOpmStore((s) => s.eliminarSeleccion);
+  const alinearSeleccionEnlaces = useOpmStore((s) => s.alinearSeleccionEnlaces);
   const dirty = useOpmStore((s) => s.dirty);
   const menuPrincipalAbierto = useOpmStore((s) => s.menuPrincipalAbierto);
   const modeloPersistidoId = useOpmStore((s) => s.modeloPersistidoId);
+  const modelosGuardados = useOpmStore((s) => s.modelosGuardados);
+  const abrirDialogoVersiones = useOpmStore((s) => s.abrirDialogoVersiones);
   const puedeDeshacer = useOpmStore((s) => s.puedeDeshacer);
   const puedeRehacer = useOpmStore((s) => s.puedeRehacer);
   const modelo = useOpmStore((s) => s.modelo);
   const autosalvado = useOpmStore((s) => s.autosalvado);
+  const vistaMapaActiva = useOpmStore((s) => s.vistaMapaActiva);
+  const refrescarVistaMapa = useOpmStore((s) => s.refrescarVistaMapa);
+  const mapaAutoRefresh = useOpmStore((s) => s.mapaAutoRefresh);
+  const toggleMapaAutoRefresh = useOpmStore((s) => s.toggleMapaAutoRefresh);
+  const toggleMapaPanelEstadisticas = useOpmStore((s) => s.toggleMapaPanelEstadisticas);
+  const uiAliasVisibles = useOpmStore((s) => s.uiAliasVisibles);
+  const uiDescripcionesVisibles = useOpmStore((s) => s.uiDescripcionesVisibles);
+  const toggleAliasVisibles = useOpmStore((s) => s.toggleAliasVisibles);
+  const toggleDescripcionesVisibles = useOpmStore((s) => s.toggleDescripcionesVisibles);
   const confirmarSiDirty = useConfirmarSiDirty();
 
   useEffect(() => {
@@ -82,6 +97,8 @@ export function Toolbar() {
 
   const selectorEnlaceDeshabilitado = !seleccionId && !modoEnlace;
   const tituloModelo = modeloPersistidoId ? modelo.nombre : `${modelo.nombre} (No guardado)`;
+  const resumenPersistido = modeloPersistidoId ? modelosGuardados.find((item) => item.id === modeloPersistidoId) : undefined;
+  const totalVersiones = resumenPersistido?.versiones?.length ?? 0;
 
   return (
     <div style={style.bar}>
@@ -100,6 +117,18 @@ export function Toolbar() {
         <MenuPrincipal />
       </div>
       <span style={style.title}>{tituloModelo}{dirty && modeloPersistidoId ? " (No guardado)" : ""}</span>
+      {resumenPersistido?.archivado ? <span style={style.archiveBadge}>ARCH</span> : null}
+      {modeloPersistidoId && totalVersiones > 0 ? (
+        <button
+          type="button"
+          style={style.versionButton}
+          onClick={() => abrirDialogoVersiones(modeloPersistidoId)}
+          title={`${totalVersiones} versiones guardadas`}
+        >
+          <img src={verFileIcon} alt="" style={style.versionIcon} />
+          {totalVersiones}
+        </button>
+      ) : null}
       <div style={style.actions}>
         <span style={style.divider} />
         <button style={style.button} type="button" onClick={crearObjeto}>Objeto</button>
@@ -153,7 +182,71 @@ export function Toolbar() {
         {modoCreacion ? (
           <button style={style.secondaryButton} type="button" onClick={() => fijarModoCreacion(null)}>Cancelar creación</button>
         ) : null}
+        {seleccionados.length >= 2 ? (
+          <>
+            <span style={style.divider} />
+            <span style={style.selectionCount}>{seleccionados.length} seleccionados</span>
+            <button style={style.secondaryButton} type="button" onClick={eliminarSeleccion} title="Eliminar selección">Eliminar</button>
+            <select
+              aria-label="Alinear enlaces seleccionados"
+              style={style.compactSelect}
+              defaultValue=""
+              onChange={(event) => {
+                const value = event.currentTarget.value;
+                if (value) alinearSeleccionEnlaces(value as "izquierda" | "derecha" | "arriba" | "abajo");
+                event.currentTarget.value = "";
+              }}
+            >
+              <option value="">Alinear...</option>
+              <option value="izquierda">Izquierda</option>
+              <option value="derecha">Derecha</option>
+              <option value="arriba">Arriba</option>
+              <option value="abajo">Abajo</option>
+            </select>
+          </>
+        ) : null}
         {mensaje ? <span style={style.status}>{mensaje}</span> : null}
+        <span style={style.divider} />
+        <button
+          style={uiAliasVisibles ? style.activeButton : style.button}
+          type="button"
+          onClick={toggleAliasVisibles}
+          aria-pressed={uiAliasVisibles}
+        >
+          Alias
+        </button>
+        <button
+          style={uiDescripcionesVisibles ? style.activeButton : style.button}
+          type="button"
+          onClick={toggleDescripcionesVisibles}
+          aria-pressed={uiDescripcionesVisibles}
+        >
+          Desc
+        </button>
+        {vistaMapaActiva ? (
+          <>
+            <span style={style.divider} />
+            <button
+              style={style.button}
+              type="button"
+              onClick={refrescarVistaMapa}
+              data-testid="refrescar-mapa"
+            >
+              Refrescar mapa
+            </button>
+            <button
+              style={mapaAutoRefresh ? style.activeButton : style.button}
+              type="button"
+              onClick={toggleMapaAutoRefresh}
+              aria-pressed={mapaAutoRefresh}
+            >
+              Auto-refresh
+            </button>
+            <button style={style.button} type="button" onClick={toggleMapaPanelEstadisticas}>
+              Estadísticas
+            </button>
+          </>
+        ) : null}
         {autosalvado.activo ? (
           <span
             style={autosalvado.salvando ? style.autosaveSaving : style.autosaveIdle}
@@ -252,6 +345,39 @@ const style = {
     fontWeight: 700,
     whiteSpace: "nowrap",
   },
+  archiveBadge: {
+    display: "inline-flex",
+    alignItems: "center",
+    height: "20px",
+    padding: "0 6px",
+    border: "1px solid #c8d2df",
+    borderRadius: "4px",
+    color: "#586D8C",
+    background: "#ffffff",
+    fontSize: "10px",
+    fontWeight: 800,
+    lineHeight: 1,
+    flex: "0 0 auto",
+  },
+  versionButton: {
+    display: "inline-flex",
+    alignItems: "center",
+    gap: "4px",
+    height: "24px",
+    padding: "0 7px",
+    border: "1px solid #c8d2df",
+    borderRadius: "4px",
+    background: "#f9fbfd",
+    color: "#475467",
+    cursor: "pointer",
+    fontSize: "12px",
+    fontWeight: 700,
+    flex: "0 0 auto",
+  },
+  versionIcon: {
+    width: "14px",
+    height: "14px",
+  },
   secondaryButton: {
     height: "34px",
     padding: "0 12px",
@@ -331,6 +457,22 @@ const style = {
     fontWeight: 700,
     whiteSpace: "nowrap",
     cursor: "default",
+  },
+  selectionCount: {
+    color: "#344054",
+    fontSize: "12px",
+    fontWeight: 700,
+    whiteSpace: "nowrap",
+  },
+  compactSelect: {
+    height: "34px",
+    width: "118px",
+    border: "1px solid #b9c5d4",
+    borderRadius: "4px",
+    background: "#f9fbfd",
+    color: "#1f2937",
+    fontSize: "13px",
+    fontWeight: 600,
   },
 } satisfies Record<string, preact.JSX.CSSProperties>;
 

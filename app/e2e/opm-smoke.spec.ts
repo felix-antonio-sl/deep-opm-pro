@@ -24,7 +24,7 @@ test("workspace local abre menu, guarda como, guarda incremental y carga desde d
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
-  await expect(page.getByText("Modelo (No guardado)")).toBeVisible();
+  await expect(page.getByText("Modelo (No guardado)").first()).toBeVisible();
   await expect(page.getByRole("treeitem", { name: /SD/ })).toBeVisible();
   await expect(page.locator(".joint-element")).toHaveCount(0);
   await expect(page.getByText("Sin OPL todavía.")).toBeVisible();
@@ -63,6 +63,47 @@ test("workspace local abre menu, guarda como, guarda incremental y carga desde d
   await tileWorkspaceL2.dblclick();
   await expect(dialogoCargar).toHaveCount(0);
   await expect(elementoPorTexto(page, "Objeto")).toHaveCount(1);
+
+  expect(pageErrors).toEqual([]);
+});
+
+test("workspace L4 mueve modelos y busca global con guard", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await page.getByRole("button", { name: "Objeto", exact: true }).click();
+  await page.keyboard.press("Control+S");
+  const dialogoGuardar = page.getByRole("dialog", { name: "Guardar como" });
+  await expect(dialogoGuardar).toBeVisible();
+  await dialogoGuardar.getByLabel("Nombre del modelo").fill("Workspace L4 Busqueda");
+  await dialogoGuardar.getByLabel("Descripción").fill("hallazgo global l4");
+  await dialogoGuardar.getByLabel("Crear versiones en guardados manuales").check();
+  await dialogoGuardar.getByRole("button", { name: "Guardar" }).click();
+  await expect(dialogoGuardar).toHaveCount(0);
+
+  await page.keyboard.press("Control+Shift+F");
+  const dialogoBuscar = page.getByRole("dialog", { name: "Buscar global" });
+  await expect(dialogoBuscar).toBeVisible();
+  await dialogoBuscar.getByLabel("Buscar global").fill("ha");
+  await expect(dialogoBuscar.getByText("Ingresa al menos 3 caracteres.")).toBeVisible();
+  await dialogoBuscar.getByLabel("Buscar global").fill("hallazgo");
+  await expect(dialogoBuscar.getByTestId(/resultado-busqueda-global-/)).toContainText("Workspace L4 Busqueda");
+  await dialogoBuscar.getByRole("button", { name: "Cerrar" }).click();
+
+  await page.getByRole("button", { name: "Cargar", exact: true }).first().click();
+  const dialogoCargar = page.getByRole("dialog", { name: "Cargar modelo" });
+  await expect(dialogoCargar).toBeVisible();
+  await dialogoCargar.getByRole("button", { name: "+ Nueva carpeta" }).click();
+  await dialogoCargar.getByPlaceholder("Nombre de carpeta").fill("Destino L4");
+  await page.keyboard.press("Enter");
+  await expect(dialogoCargar.getByRole("button", { name: /Destino L4/ })).toBeVisible();
+  await dialogoCargar.locator('button[title="Workspace L4 Busqueda"]').last().click({ button: "right" });
+  await page.getByRole("button", { name: "Cortar" }).click();
+  await dialogoCargar.getByRole("button", { name: /Destino L4/ }).dblclick();
+  await dialogoCargar.getByRole("button", { name: "Pegar aqui" }).click();
+  await expect(dialogoCargar.locator('button[title="Workspace L4 Busqueda"]').last()).toBeVisible();
+  await dialogoCargar.getByRole("button", { name: "Cancelar" }).click();
 
   expect(pageErrors).toEqual([]);
 });
@@ -119,7 +160,7 @@ test("navega OPDs desde el arbol lateral", async ({ page }) => {
   const nodoHijo = page.locator('[role="treeitem"][data-opd-id="opd-2"]');
   await expect(nodoRaiz).toHaveAttribute("aria-current", "page");
 
-  await page.locator("textarea").fill(JSON.stringify(modeloDosOpds(), null, 2));
+  await jsonEditor(page).fill(JSON.stringify(modeloDosOpds(), null, 2));
   await page.getByRole("button", { name: "Importar" }).click();
 
   await expect(nodoRaiz).toHaveAttribute("aria-current", "page");
@@ -136,7 +177,7 @@ test("navega OPDs desde el arbol lateral", async ({ page }) => {
 
   await page.getByRole("button", { name: "Objeto", exact: true }).click();
   await page.getByRole("button", { name: "Exportar", exact: true }).click();
-  const json = await page.locator("textarea").inputValue();
+  const json = await jsonEditor(page).inputValue();
   const exportado = JSON.parse(json) as ExportadoModelo;
   expect(Object.values(exportado.modelo.opds["opd-1"]?.apariencias ?? {})).toHaveLength(1);
   const aparienciasHijo = Object.values(exportado.modelo.opds["opd-2"]?.apariencias ?? {});
@@ -147,12 +188,61 @@ test("navega OPDs desde el arbol lateral", async ({ page }) => {
   expect(pageErrors).toEqual([]);
 });
 
+test("pestanas de sesion mantienen modelos independientes", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await expect(page.getByTestId("barra-pestanas")).toBeVisible();
+  await expect(page.getByRole("tab")).toHaveCount(1);
+
+  await page.getByRole("button", { name: "Objeto", exact: true }).click();
+  await expect(page.locator(".joint-element")).toHaveCount(1);
+
+  await page.getByTestId("nueva-pestana-btn").click();
+  await expect(page.getByRole("tab")).toHaveCount(2);
+  await expect(page.locator(".joint-element")).toHaveCount(0);
+
+  await page.getByRole("tab").nth(0).click();
+  await expect(page.locator(".joint-element")).toHaveCount(1);
+
+  await page.getByRole("tab").nth(1).click();
+  await expect(page.locator(".joint-element")).toHaveCount(0);
+  await page.getByTestId(/^cerrar-pestana-/).nth(1).click();
+  await expect(page.getByRole("tab")).toHaveCount(1);
+
+  expect(pageErrors).toEqual([]);
+});
+
+test("OPL agrupa oraciones por OPD y permite colapsar bloques", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await jsonEditor(page).fill(JSON.stringify(modeloDosOpds(), null, 2));
+  await page.getByRole("button", { name: "Importar" }).click();
+
+  const bloqueRaiz = page.getByTestId("bloque-opl-opd-1");
+  const bloqueHijo = page.getByTestId("bloque-opl-opd-2");
+  await expect(bloqueRaiz).toBeVisible();
+  await expect(bloqueHijo).toBeVisible();
+  await expect(bloqueRaiz.getByText("Objeto Raiz")).toBeVisible();
+  await expect(bloqueHijo.getByText("Proceso Hijo")).toBeVisible();
+
+  await page.getByTestId("cabecera-bloque-opl-opd-2").click();
+  await expect(bloqueHijo.getByText("Proceso Hijo")).toHaveCount(0);
+  await page.getByTestId("cabecera-bloque-opl-opd-2").click();
+  await expect(bloqueHijo.getByText("Proceso Hijo")).toBeVisible();
+
+  expect(pageErrors).toEqual([]);
+});
+
 test("renderiza todos los markers canonicos de enlaces", async ({ page }) => {
   const pageErrors: string[] = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
-  await page.locator("textarea").fill(JSON.stringify(modeloMarkersCanonicos(), null, 2));
+  await jsonEditor(page).fill(JSON.stringify(modeloMarkersCanonicos(), null, 2));
   await page.getByRole("button", { name: "Importar" }).click();
 
   await expect(page.locator(".joint-link")).toHaveCount(14);
@@ -168,7 +258,7 @@ test("renderiza abanicos O/XOR con conectores canonicos sin texto de marcador", 
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
-  await page.locator("textarea").fill(JSON.stringify(modeloAbanicoLogico(), null, 2));
+  await jsonEditor(page).fill(JSON.stringify(modeloAbanicoLogico(), null, 2));
   await page.getByRole("button", { name: "Importar" }).click();
 
   await expect(page.locator(".joint-link")).toHaveCount(2);
@@ -194,7 +284,7 @@ test("renderiza modificadores evento/condicion y demora de invocacion", async ({
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
-  await page.locator("textarea").fill(JSON.stringify(modeloModificadoresEnlace(), null, 2));
+  await jsonEditor(page).fill(JSON.stringify(modeloModificadoresEnlace(), null, 2));
   await page.getByRole("button", { name: "Importar" }).click();
 
   await expect(page.locator(".joint-link")).toHaveCount(3);
@@ -224,7 +314,7 @@ test("crea auto-invocacion desde Inspector con demora default", async ({ page })
   await expect(page.getByText("Proceso se invoca a sí mismo despues de 1s.")).toBeVisible();
 
   await page.getByRole("button", { name: "Exportar", exact: true }).click();
-  const json = await page.locator("textarea").inputValue();
+  const json = await jsonEditor(page).inputValue();
   const exportado = JSON.parse(json) as ExportadoModelo;
   const proceso = Object.values(exportado.modelo.entidades).find((entidad) => entidad.nombre === "Proceso");
   const enlace = Object.values(exportado.modelo.enlaces)[0];
@@ -251,10 +341,10 @@ test("descompone proceso y navega al OPD hijo", async ({ page }) => {
   const nodoHijo = page.locator('[role="treeitem"]').filter({ hasText: "SD1: Proceso descompuesto" });
   await expect(nodoHijo).toHaveAttribute("aria-current", "page");
   await expect(page.locator(".joint-element")).toHaveCount(4);
-  await expect(page.getByText("Proceso se descompone en Proceso 1, Proceso 2 y Proceso 3 en esa secuencia.")).toBeVisible();
+  await expect(page.getByTestId("bloque-opl-opd-1").getByText("Proceso se descompone en Proceso 1, Proceso 2 y Proceso 3 en esa secuencia.")).toBeVisible();
 
   await page.getByRole("button", { name: "Exportar", exact: true }).click();
-  const json = await page.locator("textarea").inputValue();
+  const json = await jsonEditor(page).inputValue();
   const exportado = JSON.parse(json) as ExportadoModelo;
   const proceso = Object.values(exportado.modelo.entidades).find((entidad) => entidad.nombre === "Proceso");
   const subprocesos = Object.values(exportado.modelo.entidades).filter((entidad) => /^Proceso [1-3]$/.test(entidad.nombre));
@@ -285,7 +375,7 @@ test("descompone proceso y navega al OPD hijo", async ({ page }) => {
   await expect(page.locator('[role="treeitem"][data-opd-id="opd-1"]')).toHaveAttribute("aria-current", "page");
   await expect(page.getByText("Proceso se descompone en Proceso 1, Proceso 2 y Proceso 3 en esa secuencia.")).toHaveCount(0);
   await page.getByRole("button", { name: "Exportar", exact: true }).click();
-  const jsonSinDescomposicion = await page.locator("textarea").inputValue();
+  const jsonSinDescomposicion = await jsonEditor(page).inputValue();
   const exportadoSinDescomposicion = JSON.parse(jsonSinDescomposicion) as ExportadoModelo;
   const procesoSinDescomposicion = Object.values(exportadoSinDescomposicion.modelo.entidades).find((entidad) => entidad.nombre === "Proceso");
   expect(procesoSinDescomposicion?.refinamiento).toBeUndefined();
@@ -342,7 +432,7 @@ test("crea objeto interno por click dentro del contenedor refinado", async ({ pa
   await expect(elementoPorTexto(page, "Objeto")).toHaveCount(1);
   await expect(page.getByText(/interior|exterior/i)).toHaveCount(0);
   await page.getByRole("button", { name: "Exportar", exact: true }).click();
-  const exportado = JSON.parse(await page.locator("textarea").inputValue()) as ExportadoModelo;
+  const exportado = JSON.parse(await jsonEditor(page).inputValue()) as ExportadoModelo;
   const proceso = Object.values(exportado.modelo.entidades).find((entidad) => entidad.nombre === "Proceso");
   const objeto = Object.values(exportado.modelo.entidades).find((entidad) => entidad.nombre === "Objeto");
   const opdHijoId = proceso?.refinamiento?.opdId;
@@ -375,10 +465,10 @@ test("despliega objeto y navega al OPD hijo", async ({ page }) => {
   const nodoHijo = page.locator('[role="treeitem"]').filter({ hasText: "SD1: Objeto desplegado" });
   await expect(nodoHijo).toHaveAttribute("aria-current", "page");
   await expect(page.locator(".joint-element")).toHaveCount(5);
-  await expect(page.getByText("Objeto se despliega en Objeto parte 1, Objeto parte 2 y Objeto parte 3.")).toBeVisible();
+  await expect(page.getByTestId("bloque-opl-opd-1").getByText("Objeto se despliega en Objeto parte 1, Objeto parte 2 y Objeto parte 3.")).toBeVisible();
 
   await page.getByRole("button", { name: "Exportar", exact: true }).click();
-  const json = await page.locator("textarea").inputValue();
+  const json = await jsonEditor(page).inputValue();
   const exportado = JSON.parse(json) as ExportadoModelo;
   const objeto = Object.values(exportado.modelo.entidades).find((entidad) => entidad.nombre === "Objeto");
   const partes = Object.values(exportado.modelo.entidades).filter((entidad) => /^Objeto parte [1-3]$/.test(entidad.nombre));
@@ -393,7 +483,7 @@ test("despliega objeto y navega al OPD hijo", async ({ page }) => {
   await page.getByRole("button", { name: "Quitar despliegue" }).click();
   await expect(page.locator('[role="treeitem"]').filter({ hasText: "SD1: Objeto desplegado" })).toHaveCount(0);
   await page.getByRole("button", { name: "Exportar", exact: true }).click();
-  const jsonSinDespliegue = await page.locator("textarea").inputValue();
+  const jsonSinDespliegue = await jsonEditor(page).inputValue();
   const exportadoSinDespliegue = JSON.parse(jsonSinDespliegue) as ExportadoModelo;
   const objetoSinDespliegue = Object.values(exportadoSinDespliegue.modelo.entidades).find((entidad) => entidad.nombre === "Objeto");
   expect(objetoSinDespliegue?.refinamiento).toBeUndefined();
@@ -425,7 +515,7 @@ test("activa plegado parcial desde Inspector y persiste la vista compacta", asyn
   await expect(page.getByRole("button", { name: "Plegado completo" })).toBeVisible();
 
   await page.getByRole("button", { name: "Exportar", exact: true }).click();
-  const json = await page.locator("textarea").inputValue();
+  const json = await jsonEditor(page).inputValue();
   const exportado = JSON.parse(json) as ExportadoModelo;
   const objeto = Object.values(exportado.modelo.entidades).find((entidad) => entidad.nombre === "Objeto");
   if (!objeto?.refinamiento) throw new Error("No se exporto despliegue del objeto");
@@ -460,7 +550,7 @@ test("edita estilo visual de cosa, persiste local y resetea defaults", async ({ 
   await expect(page.locator('.joint-element rect[joint-selector="body"]')).toHaveAttribute("stroke", "#3bc3ff");
 
   await page.getByRole("button", { name: "Exportar", exact: true }).click();
-  let json = await page.locator("textarea").inputValue();
+  let json = await jsonEditor(page).inputValue();
   let exportado = JSON.parse(json) as ExportadoModelo;
   let objeto = Object.values(exportado.modelo.entidades).find((entidad) => entidad.nombre === "Objeto");
   if (!objeto) throw new Error("No se exporto objeto");
@@ -481,7 +571,7 @@ test("edita estilo visual de cosa, persiste local y resetea defaults", async ({ 
   await expect(page.locator('.joint-element rect[joint-selector="body"]')).toHaveAttribute("fill", "#fdffff");
 
   await page.getByRole("button", { name: "Exportar", exact: true }).click();
-  json = await page.locator("textarea").inputValue();
+  json = await jsonEditor(page).inputValue();
   exportado = JSON.parse(json) as ExportadoModelo;
   objeto = Object.values(exportado.modelo.entidades).find((entidad) => entidad.nombre === "Objeto");
   if (!objeto) throw new Error("No se exporto objeto tras reset");
@@ -516,7 +606,7 @@ test("crea enlace desde fila plegada sin extraer la parte", async ({ page }) => 
   await expect(page.locator(".joint-link")).toHaveCount(1);
   await expect(page.getByText(/Mover\s+requiere\s+Objeto parte 1\./)).toBeVisible();
   await page.getByRole("button", { name: "Exportar", exact: true }).click();
-  const exportado = JSON.parse(await page.locator("textarea").inputValue()) as ExportadoModelo;
+  const exportado = JSON.parse(await jsonEditor(page).inputValue()) as ExportadoModelo;
   const objeto = Object.values(exportado.modelo.entidades).find((entidad) => entidad.nombre === "Objeto");
   const parte = Object.values(exportado.modelo.entidades).find((entidad) => entidad.nombre === "Objeto parte 1");
   const mover = Object.values(exportado.modelo.entidades).find((entidad) => entidad.nombre === "Mover");
@@ -585,7 +675,7 @@ test("redistribuye consumo al primer subproceso y resultado al ultimo", async ({
   await expect(page.getByText(/Procesar 3\s+genera\s+Salida/)).toBeVisible();
 
   await page.getByRole("button", { name: "Exportar", exact: true }).click();
-  const json = await page.locator("textarea").inputValue();
+  const json = await jsonEditor(page).inputValue();
   const exportado = JSON.parse(json) as ExportadoModelo;
   const procesar = Object.values(exportado.modelo.entidades).find((entidad) => entidad.nombre === "Procesar");
   const entrada = Object.values(exportado.modelo.entidades).find((entidad) => entidad.nombre === "Entrada");
@@ -636,7 +726,7 @@ test("reancla consumo derivado y conserva el ancla manual al reordenar", async (
 
   await expect(page.getByText(/Procesar 2\s+consume\s+Entrada/)).toBeVisible();
   await page.getByRole("button", { name: "Exportar", exact: true }).click();
-  const json = await page.locator("textarea").inputValue();
+  const json = await jsonEditor(page).inputValue();
   const exportado = JSON.parse(json) as ExportadoModelo;
   const procesar = Object.values(exportado.modelo.entidades).find((entidad) => entidad.nombre === "Procesar");
   const entrada = Object.values(exportado.modelo.entidades).find((entidad) => entidad.nombre === "Entrada");
@@ -675,7 +765,7 @@ test("arrastra una cosa JointJS y persiste su apariencia", async ({ page }) => {
   await page.mouse.up();
 
   await page.getByRole("button", { name: "Exportar", exact: true }).click();
-  const jsonDespuesDeDrag = await page.locator("textarea").inputValue();
+  const jsonDespuesDeDrag = await jsonEditor(page).inputValue();
   const exportadoDespuesDeDrag = JSON.parse(jsonDespuesDeDrag) as ExportadoModelo;
   const objetoMovido = Object.values(exportadoDespuesDeDrag.modelo.entidades).find((entidad) => entidad.nombre === "Objeto");
   if (!objetoMovido) throw new Error("No se encontro Objeto en JSON exportado");
@@ -697,36 +787,36 @@ test("marca dirty state y navega cambios con deshacer y rehacer", async ({ page 
 
   const deshacer = page.getByRole("button", { name: "Deshacer" });
   const rehacer = page.getByRole("button", { name: "Rehacer" });
-  await expect(page.getByText("Modelo (No guardado)")).toBeVisible();
+  await expect(page.getByText("Modelo (No guardado)").first()).toBeVisible();
   await expect(deshacer).toBeDisabled();
   await expect(rehacer).toBeDisabled();
 
   await page.getByRole("button", { name: "Objeto", exact: true }).click();
-  await expect(page.getByText("Modelo (No guardado)")).toBeVisible();
+  await expect(page.getByText("Modelo (No guardado)").first()).toBeVisible();
   await expect(page.locator(".joint-element")).toHaveCount(1);
   await expect(deshacer).toBeEnabled();
   await expect(rehacer).toBeDisabled();
 
   await page.keyboard.press("Control+Z");
-  await expect(page.getByText("Modelo (No guardado)")).toBeVisible();
+  await expect(page.getByText("Modelo (No guardado)").first()).toBeVisible();
   await expect(page.locator(".joint-element")).toHaveCount(0);
   await expect(deshacer).toBeDisabled();
   await expect(rehacer).toBeEnabled();
 
   await page.keyboard.press("Control+Shift+Z");
-  await expect(page.getByText("Modelo (No guardado)")).toBeVisible();
+  await expect(page.getByText("Modelo (No guardado)").first()).toBeVisible();
   await expect(page.locator(".joint-element")).toHaveCount(1);
   await expect(deshacer).toBeEnabled();
   await expect(rehacer).toBeDisabled();
 
   await deshacer.click();
-  await expect(page.getByText("Modelo (No guardado)")).toBeVisible();
+  await expect(page.getByText("Modelo (No guardado)").first()).toBeVisible();
   await expect(page.locator(".joint-element")).toHaveCount(0);
   await expect(deshacer).toBeDisabled();
   await expect(rehacer).toBeEnabled();
 
   await rehacer.click();
-  await expect(page.getByText("Modelo (No guardado)")).toBeVisible();
+  await expect(page.getByText("Modelo (No guardado)").first()).toBeVisible();
   await expect(page.locator(".joint-element")).toHaveCount(1);
   await expect(deshacer).toBeEnabled();
   await expect(rehacer).toBeDisabled();
@@ -747,7 +837,7 @@ test("marca dirty state y navega cambios con deshacer y rehacer", async ({ page 
 
   await page.screenshot({ path: "test-results/opm-dirty-undo-redo.png", fullPage: true });
   await guardarComoActual(page, "Renombrado local");
-  await expect(page.getByText("Modelo (No guardado)")).toHaveCount(0);
+  await expect(page.getByText("Modelo (No guardado)").first()).toHaveCount(0);
   await expect(deshacer).toBeEnabled();
 
   await page.getByRole("button", { name: "Nuevo", exact: true }).click();
@@ -755,7 +845,7 @@ test("marca dirty state y navega cambios con deshacer y rehacer", async ({ page 
   await expect(deshacer).toBeDisabled();
   await cargarPrimerModelo(page);
   await expect(elementoPorTexto(page, "Renombrado")).toHaveCount(1);
-  await expect(page.getByText("Modelo (No guardado)")).toHaveCount(0);
+  await expect(page.getByText("Modelo (No guardado)").first()).toHaveCount(0);
   await expect(deshacer).toBeDisabled();
 
   expect(pageErrors).toEqual([]);
@@ -789,7 +879,7 @@ test("confirma cambios sin guardar antes de crear un modelo nuevo", async ({ pag
   await dialogo.getByRole("button", { name: "Descartar" }).click();
   await expect(dialogo).toHaveCount(0);
   await expect(page.locator(".joint-element")).toHaveCount(0);
-  await expect(page.getByText("Modelo (No guardado)")).toBeVisible();
+  await expect(page.getByText("Modelo (No guardado)").first()).toBeVisible();
 
   expect(pageErrors).toEqual([]);
 });
@@ -801,7 +891,7 @@ test("no abre confirmacion cuando Nuevo se ejecuta tras guardar", async ({ page 
   await page.goto("/");
   await page.getByRole("button", { name: "Objeto", exact: true }).click();
   await guardarComoActual(page, "Modelo sin confirmacion");
-  await expect(page.getByText("Modelo (No guardado)")).toHaveCount(0);
+  await expect(page.getByText("Modelo (No guardado)").first()).toHaveCount(0);
 
   await page.getByRole("button", { name: "Nuevo", exact: true }).click();
   await expect(page.getByRole("dialog", { name: "Hay cambios sin guardar" })).toHaveCount(0);
@@ -855,7 +945,7 @@ test("asiste importacion JSON con archivo, preview, confirmacion y error legible
   await expect(elementoPorTexto(page, "Objeto Raiz")).toHaveCount(1);
   await expect(page.getByText("Modelo multi OPD (No guardado)")).toHaveCount(1);
 
-  await page.locator("textarea").fill("{");
+  await jsonEditor(page).fill("{");
   await expect(page.getByRole("alert")).toHaveText("JSON inválido");
 
   expect(pageErrors).toEqual([]);
@@ -893,7 +983,7 @@ test("crea enlace, edita vertices y elimina desde celdas JointJS", async ({ page
   await page.mouse.move(segmentBox.x + segmentBox.width / 2, segmentBox.y + segmentBox.height / 2 + 70, { steps: 8 });
   await page.mouse.up();
   await page.getByRole("button", { name: "Exportar", exact: true }).click();
-  const jsonConVertice = await page.locator("textarea").inputValue();
+  const jsonConVertice = await jsonEditor(page).inputValue();
   const exportadoConVertice = JSON.parse(jsonConVertice) as ExportadoModelo;
   const vertices = Object.values(exportadoConVertice.modelo.opds[exportadoConVertice.modelo.opdRaizId]?.enlaces ?? {})[0]?.vertices;
   expect(vertices?.length ?? 0).toBeGreaterThan(0);
@@ -931,7 +1021,7 @@ test("asigna multiplicidad de enlace y sincroniza canvas, OPL y JSON", async ({ 
   await expect(page.getByText("Procesar consume 2 Recursos.")).toBeVisible();
 
   await page.getByRole("button", { name: "Exportar", exact: true }).click();
-  const json = await page.locator("textarea").inputValue();
+  const json = await jsonEditor(page).inputValue();
   const exportado = JSON.parse(json) as ExportadoModelo;
   const enlace = Object.values(exportado.modelo.enlaces)[0];
   expect(enlace?.multiplicidadOrigen).toBe("2");
@@ -964,7 +1054,7 @@ test("gestiona estados M0 de objeto con capsulas internas y OPL", async ({ page 
   await expect(page.getByText(/Pedido puede ser .*pendiente.*cerrado/)).toBeVisible();
 
   await page.getByRole("button", { name: "Exportar", exact: true }).click();
-  const json = await page.locator("textarea").inputValue();
+  const json = await jsonEditor(page).inputValue();
   const exportado = JSON.parse(json) as ExportadoModelo;
   const pedido = Object.values(exportado.modelo.entidades).find((entidad) => entidad.nombre === "Pedido");
   expect(pedido).toBeDefined();
@@ -985,7 +1075,7 @@ test("apunta enlaces procedurales a estados y emite transicion OPL TS3", async (
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
-  await page.locator("textarea").fill(JSON.stringify(modeloTransicionEstados(), null, 2));
+  await jsonEditor(page).fill(JSON.stringify(modeloTransicionEstados(), null, 2));
   await page.getByRole("button", { name: "Importar" }).click();
 
   await expect(page.locator('[joint-selector^="stateCapsule"]')).toHaveCount(2);
@@ -995,7 +1085,7 @@ test("apunta enlaces procedurales a estados y emite transicion OPL TS3", async (
   await expect(page.getByText(/Aprobar\s+cambia\s+Pedido\s+a `aprobado`\./)).toHaveCount(0);
 
   await page.getByRole("button", { name: "Exportar", exact: true }).click();
-  const exportado = JSON.parse(await page.locator("textarea").inputValue()) as ExportadoModelo;
+  const exportado = JSON.parse(await jsonEditor(page).inputValue()) as ExportadoModelo;
   expect(exportado.modelo.enlaces["e-consumo"]?.origenId).toEqual(extremoEstado("s-pendiente"));
   expect(exportado.modelo.enlaces["e-resultado"]?.destinoId).toEqual(extremoEstado("s-aprobado"));
 
@@ -1007,7 +1097,7 @@ test("crea resultado hacia capsula de estado por gesto directo y preserva TS3", 
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
-  await page.locator("textarea").fill(JSON.stringify(modeloTransicionEstadosIncompleto(), null, 2));
+  await jsonEditor(page).fill(JSON.stringify(modeloTransicionEstadosIncompleto(), null, 2));
   await page.getByRole("button", { name: "Importar" }).click();
 
   await expect(page.locator('[joint-selector^="stateCapsule"]')).toHaveCount(2);
@@ -1020,7 +1110,7 @@ test("crea resultado hacia capsula de estado por gesto directo y preserva TS3", 
   await expect(page.getByText(/Aprobar\s+cambia\s+Pedido\s+de `pendiente` a `aprobado`\./)).toBeVisible();
 
   await page.getByRole("button", { name: "Exportar", exact: true }).click();
-  const exportado = JSON.parse(await page.locator("textarea").inputValue()) as ExportadoModelo;
+  const exportado = JSON.parse(await jsonEditor(page).inputValue()) as ExportadoModelo;
   const resultado = Object.values(exportado.modelo.enlaces).find((enlace) => enlace.tipo === "resultado");
   expect(resultado?.destinoId).toEqual(extremoEstado("s-aprobado"));
 
@@ -1032,7 +1122,7 @@ test("edita rutas en ramas de abanico hacia estados y sincroniza OPL y JSON", as
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
-  await page.locator("textarea").fill(JSON.stringify(modeloAbanicoRutasEstados(), null, 2));
+  await jsonEditor(page).fill(JSON.stringify(modeloAbanicoRutasEstados(), null, 2));
   await page.getByRole("button", { name: "Importar" }).click();
 
   await expect(page.locator('[joint-selector^="stateCapsule"]')).toHaveCount(2);
@@ -1048,7 +1138,7 @@ test("edita rutas en ramas de abanico hacia estados y sincroniza OPL y JSON", as
   await expect(page.getByText(/genera\s+Pedido\s+en `(aprobado|rechazado)`\./).first()).toBeVisible();
 
   await page.getByRole("button", { name: "Exportar", exact: true }).click();
-  const exportado = JSON.parse(await page.locator("textarea").inputValue()) as ExportadoModelo;
+  const exportado = JSON.parse(await jsonEditor(page).inputValue()) as ExportadoModelo;
   expect(Object.values(exportado.modelo.enlaces).map((enlace) => enlace.rutaEtiqueta).sort()).toEqual(["exitoso", "fallido"]);
   expect(exportado.modelo.abanicos?.["ab-rutas"]?.enlaceIds).toEqual(["e-exitoso", "e-fallido"]);
 
@@ -1088,7 +1178,7 @@ test("split de efecto convierte enlace en consumo + resultado intermedio", async
 
   // El JSON exportado refleja consumo + resultado y NO efecto.
   await page.getByRole("button", { name: "Exportar", exact: true }).click();
-  const json = await page.locator("textarea").first().inputValue();
+  const json = await jsonEditor(page).first().inputValue();
   expect(json).toContain('"consumo"');
   expect(json).toContain('"resultado"');
   expect(json).not.toMatch(/"tipo"\s*:\s*"efecto"/);
@@ -1191,7 +1281,7 @@ test("fusiona agregaciones en bus unico y renombra etiqueta de enlace", async ({
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
-  await page.locator("textarea").fill(JSON.stringify(modeloBusAgregacion(), null, 2));
+  await jsonEditor(page).fill(JSON.stringify(modeloBusAgregacion(), null, 2));
   await page.getByRole("button", { name: "Importar" }).click();
 
   await expect(page.locator(".joint-link")).toHaveCount(3);
@@ -1204,7 +1294,7 @@ test("fusiona agregaciones en bus unico y renombra etiqueta de enlace", async ({
   await expect(page.getByText("Todo consta de Parte A. [etiqueta: componente critico]")).toBeVisible();
 
   await page.getByRole("button", { name: "Exportar", exact: true }).click();
-  const json = await page.locator("textarea").inputValue();
+  const json = await jsonEditor(page).inputValue();
   const exportado = JSON.parse(json) as ExportadoModelo;
   expect(Object.values(exportado.modelo.enlaces).some((enlace) => enlace.etiqueta === "componente critico")).toBe(true);
 
@@ -1353,6 +1443,10 @@ function todasSeparadas(apariencias: Array<{ x: number; y: number; width: number
 function svgText(page: Page, text: string) {
   const flexibleSvgText = new RegExp(`^\\s*${text.trim().split(/\s+/).map(escapeRegExp).join("\\s+")}\\s*$`);
   return page.locator(".joint-paper svg text").filter({ hasText: flexibleSvgText }).first();
+}
+
+function jsonEditor(page: Page) {
+  return page.locator('textarea[spellcheck="false"]').first();
 }
 
 function modeloDosOpds() {
@@ -1858,6 +1952,9 @@ test("mapa del sistema: abre, muestra thumbnails, doble clic navega", async ({ p
   // Esperar a que SD1 aparezca en el arbol; con el arbol expandido por
   // default, el nodo descompuesto es visible inmediatamente.
   await expect(page.locator('[role="treeitem"]').filter({ hasText: "SD1:" })).toHaveCount(1);
+  await elementoPorTexto(page, "Proceso 1").click();
+  await page.getByRole("button", { name: "Descomponer", exact: true }).click();
+  await expect(page.locator('[role="treeitem"]').filter({ hasText: "SD1.1:" })).toHaveCount(1);
   // Verificar al menos 3 treeitems (Mapa + SD raiz + SD1)
   const treeItems = page.getByRole("treeitem");
   const count = await treeItems.count();
@@ -1873,15 +1970,22 @@ test("mapa del sistema: abre, muestra thumbnails, doble clic navega", async ({ p
   const mapa = page.getByTestId("mapa-sistema");
   await expect(mapa).toBeVisible({ timeout: 5000 });
 
-  // Verificar que hay al menos un thumbnail (rectangulo SVG en JointJS).
-  // Nota: el toolbar del mapa reporta correctamente "2 OPDs" pero el render
-  // de JointJS proyecta solo el primer thumbnail visible bajo
-  // `scaleContentToFit`. La cobertura visual del meta-grafo queda como deuda
-  // tecnica registrada en HANDOFF post-ronda 6 (ver §Pendientes inmediatos).
+  // Verificar que la cobertura visual vuelve a igualar el descriptor multinivel.
   const jointElems = page.locator(".joint-element");
   const elemCount = await jointElems.count();
-  expect(elemCount).toBeGreaterThanOrEqual(1);
+  expect(elemCount).toBeGreaterThanOrEqual(3);
   await expect(page.getByText(/\d+ OPDs · \d+ relaciones/)).toBeVisible();
+
+  await page.getByRole("button", { name: "Filtros" }).click();
+  await expect(page.getByTestId("mapa-filtros")).toBeVisible();
+  await page.getByLabel("Filtros del mapa").getByRole("combobox").nth(1).selectOption("predominanciaProceso");
+  await mapa.getByRole("button", { name: "Estadísticas" }).click();
+  await expect(page.getByTestId("mapa-estadisticas")).toBeVisible();
+
+  const downloadPromise = page.waitForEvent("download");
+  await page.getByRole("button", { name: "SVG" }).click();
+  const download = await downloadPromise;
+  expect(download.suggestedFilename()).toMatch(/mapa-\d{4}-\d{2}-\d{2}\.svg$/);
 
   // Cerrar mapa
   await page.getByRole("button", { name: "Cerrar mapa" }).click();

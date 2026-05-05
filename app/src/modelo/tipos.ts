@@ -1,15 +1,19 @@
 export type Id = string;
+export type PestanaId = string;
 
 export type TipoEntidad = "objeto" | "proceso";
 export type Esencia = "informacional" | "fisica";
 export type Afiliacion = "sistemica" | "ambiental";
 export type TipoRefinamiento = "descomposicion" | "despliegue";
-export type ModoPlegado = "completo" | "parcial";
+export type ModoPlegado = "completo" | "parcial" | "plegado" | "desplegado";
 export type OrdenPartesPlegado = "alfabetico" | "creacion";
 export type ModoDespliegueObjeto = "agregacion" | "exhibicion" | "generalizacion" | "clasificacion";
-export type DesignacionEstado = "inicial" | "final";
+export type DesignacionEstado = "inicial" | "final" | "default" | "current";
 export type DerivacionOrigen = "automatico" | "manual";
 export type ExtremoKind = "entidad" | "estado";
+export type LayoutEstados = "horizontal" | "vertical";
+export type TipoUrlObjeto = "imagen" | "video" | "articulo" | "texto" | "oslc";
+export type UnidadTiempo = "ms" | "s" | "min" | "h" | "dia" | "sem" | "mes" | "año";
 
 export type TipoEnlace =
   | "agregacion"
@@ -43,6 +47,24 @@ export interface Entidad {
   esencia: Esencia;
   afiliacion: Afiliacion;
   refinamiento?: RefinamientoEntidad;
+  alias?: string;
+  unidad?: string;
+  descripcion?: string;
+  urls?: UrlObjetoTipada[];
+  layoutEstados?: LayoutEstados;
+}
+
+export interface UrlObjetoTipada {
+  id: Id;
+  url: string;
+  tipo: TipoUrlObjeto;
+}
+
+export interface DuracionTemporal {
+  unidad: UnidadTiempo;
+  min: number;
+  nominal: number;
+  max: number;
 }
 
 export interface Estado {
@@ -51,6 +73,9 @@ export interface Estado {
   nombre: string;
   esInicial?: boolean;
   esFinal?: boolean;
+  designaciones?: DesignacionEstado[];
+  duracion?: DuracionTemporal;
+  suprimido?: boolean;
 }
 
 export interface EstiloApariencia {
@@ -70,6 +95,21 @@ export interface EnlaceEstilo {
   dashArray?: string;
 }
 
+// Estado UI transitorio para Ctrl+C/V visual. No pertenece al JSON OPM.
+export interface UiPortapapelesVisual {
+  apariencias: Array<{
+    entidadId: Id;
+    offsetX: number;
+    offsetY: number;
+    width: number;
+    height: number;
+    estilo?: EstiloApariencia;
+  }>;
+  enlaces: Array<{ enlaceId: Id }>;
+  origenOpdId: Id;
+  pegados?: number;
+}
+
 export interface ExtremoEnlace {
   kind: ExtremoKind;
   id: Id;
@@ -85,6 +125,15 @@ export interface Abanico {
   puertoEntidadId: Id;
   operador: OperadorAbanico;
   enlaceIds: Id[];
+}
+
+export interface VersionResumen {
+  id: Id;
+  creadoEn: string;
+  nombre: string;
+  descripcion?: string;
+  modeloPayloadKey: string;
+  bytes: number;
 }
 
 export interface Apariencia {
@@ -145,7 +194,41 @@ export interface Modelo {
   estados: Record<Id, Estado>;
   enlaces: Record<Id, Enlace>;
   abanicos?: Record<Id, Abanico>;
+  archivado?: boolean;
+  archivadoEn?: string;
+  versiones?: VersionResumen[];
+  crearVersionAlGuardar?: boolean;
   nextSeq: number;
+}
+
+export type OrigenPestana = "nuevo" | "asistente" | "importado" | "persistido";
+export type HistorialEntrada = Modelo;
+
+export interface Pestana {
+  id: PestanaId;
+  etiqueta: string;
+  modeloId: Id | null;
+  modelo: Modelo;
+  cargadoDesde: OrigenPestana;
+  dirty: boolean;
+  historialUndo: HistorialEntrada[];
+  cursorUndo: number;
+  vistaMapaActivaPestana: boolean;
+  seleccionadosPestana?: Id[];
+  snapshotJson?: string;
+  descripcionModeloLocal?: string;
+}
+
+export interface BloqueOplEstado {
+  opdId: Id;
+  colapsado: boolean;
+}
+
+// Preferencias de UI del workspace. No pertenecen al JSON OPM canonico.
+export interface PreferenciasUiUsuario {
+  anchoPanelArbol?: number;
+  nombresArbolVisibles?: boolean;
+  cheatsheetVisible?: boolean;
 }
 
 export interface Posicion {

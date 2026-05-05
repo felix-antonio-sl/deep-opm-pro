@@ -1,6 +1,9 @@
 import { entidadDeExtremo, entidadIdDeExtremo, extremoEntidad, extremoVisibleEnOpd, normalizarExtremo } from "../modelo/extremos";
 import { esColorEstilo, normalizarEstiloApariencia } from "../modelo/estilos";
+import { esDesignacionEstado } from "../modelo/estadosDesignaciones";
 import { esModificador, validarMetadatosEnlace } from "../modelo/modificadores";
+import { esUnidadTiempo, validarDuracion } from "../modelo/objetoDuracion";
+import { validarAlias, validarTipoUrlObjeto, validarUnidad, validarUrl } from "../modelo/objetoMetadata";
 import { validarFirmaEnlace, validarMultiplicidad } from "../modelo/operaciones";
 import { modoPlegadoApariencia, partesDePlegado } from "../modelo/plegado";
 import { rutaEtiquetaNormalizada } from "../modelo/rutas";
@@ -10,6 +13,8 @@ import type {
   Apariencia,
   AparienciaEnlace,
   DerivacionEnlace,
+  DesignacionEstado,
+  DuracionTemporal,
   Enlace,
   Entidad,
   Esencia,
@@ -27,6 +32,8 @@ import type {
   Resultado,
   TipoEnlace,
   TipoEntidad,
+  UrlObjetoTipada,
+  VersionResumen,
 } from "../modelo/tipos";
 
 const FORMATO = "deep-opm-pro.modelo.v0";
@@ -100,7 +107,22 @@ function normalizarModelo(modelo: Modelo): Modelo {
       normalizarEnlace(enlace),
     ]),
   ) as Record<Id, Enlace>;
-  return { ...modelo, opds, enlaces, abanicos: modelo.abanicos ?? {} };
+  const versiones = normalizarVersiones(modelo.versiones);
+  return {
+    id: modelo.id,
+    nombre: modelo.nombre,
+    opdRaizId: modelo.opdRaizId,
+    entidades: modelo.entidades,
+    estados: modelo.estados,
+    nextSeq: modelo.nextSeq,
+    opds,
+    enlaces,
+    abanicos: modelo.abanicos ?? {},
+    ...(modelo.archivado ? { archivado: true } : {}),
+    ...(typeof modelo.archivadoEn === "string" ? { archivadoEn: modelo.archivadoEn } : {}),
+    ...(versiones.length > 0 ? { versiones } : {}),
+    ...(modelo.crearVersionAlGuardar ? { crearVersionAlGuardar: true } : {}),
+  };
 }
 
 function normalizarEnlace(enlace: Enlace): Enlace {
@@ -170,6 +192,10 @@ function validarModelo(value: unknown): Resultado<Modelo> {
     opds: opdsValidados.value,
     enlaces: enlacesValidados.value,
     abanicos: abanicosValidados.value,
+    ...(value.archivado === true ? { archivado: true } : {}),
+    ...(typeof value.archivadoEn === "string" ? { archivadoEn: value.archivadoEn } : {}),
+    ...(Array.isArray(value.versiones) ? { versiones: normalizarVersiones(value.versiones) } : {}),
+    ...(value.crearVersionAlGuardar === true ? { crearVersionAlGuardar: true } : {}),
   };
   const referencias = validarReferenciasOpd(modelo);
   return referencias.ok ? ok(modelo) : referencias;
@@ -243,6 +269,8 @@ function validarEntidades(value: Record<string, unknown>): Resultado<Record<Id, 
     if (!refinamiento.ok) return refinamiento;
     if (refinamiento.value?.tipo === "descomposicion" && raw.tipo !== "proceso") return fallo(`Refinamiento inválido: ${id}.tipo`);
     if (refinamiento.value?.tipo === "despliegue" && raw.tipo !== "objeto") return fallo(`Refinamiento inválido: ${id}.tipo`);
+    const avanzados = camposEntidadAvanzada(id, raw);
+    if (!avanzados.ok) return avanzados;
     entidades[id] = {
       id,
       tipo: raw.tipo,
@@ -250,9 +278,43 @@ function validarEntidades(value: Record<string, unknown>): Resultado<Record<Id, 
       esencia: raw.esencia,
       afiliacion: raw.afiliacion,
       ...(refinamiento.value ? { refinamiento: refinamiento.value } : {}),
+      ...avanzados.value,
     };
   }
   return ok(entidades);
+}
+
+function camposEntidadAvanzada(entidadId: Id, raw: Record<string, unknown>): Resultado<Partial<Entidad>> {
+  const campos: Partial<Entidad> = {};
+  if (raw.alias !== undefined) {
+    if (typeof raw.alias !== "string") return fallo(`Entidad inválida: ${entidadId}.alias`);
+    const validado = validarAlias(raw.alias);
+    if (!validado.ok) return fallo(`Entidad inválida: ${entidadId}.alias`);
+    if (raw.alias.trim()) campos.alias = raw.alias.trim();
+  }
+  if (raw.unidad !== undefined) {
+    if (typeof raw.unidad !== "string") return fallo(`Entidad inválida: ${entidadId}.unidad`);
+    const validado = validarUnidad(raw.unidad);
+    if (!validado.ok) return fallo(`Entidad inválida: ${entidadId}.unidad`);
+    if (raw.unidad.trim()) campos.unidad = raw.unidad.trim();
+  }
+  if (typeof raw.descripcion === "string" && raw.descripcion.trim()) campos.descripcion = raw.descripcion;
+  if (raw.descripcion !== undefined && typeof raw.descripcion !== "string") return fallo(`Entidad inválida: ${entidadId}.descripcion`);
+  if (Array.isArray(raw.urls)) {
+    const urls = raw.urls.flatMap((item): UrlObjetoTipada[] => {
+      if (!esRecord(item)) return [];
+      if (typeof item.id !== "string" || typeof item.url !== "string" || !validarTipoUrlObjeto(item.tipo)) return [];
+      if (!validarUrl(item.url).ok) return [];
+      return [{ id: item.id, tipo: item.tipo, url: item.url.trim() }];
+    });
+    const ids = new Set(urls.map((item) => item.id));
+    if (urls.length > 0 && ids.size === urls.length) campos.urls = urls;
+    if (urls.length !== raw.urls.length || ids.size !== urls.length) return fallo(`Entidad inválida: ${entidadId}.urls`);
+  }
+  if (raw.urls !== undefined && !Array.isArray(raw.urls)) return fallo(`Entidad inválida: ${entidadId}.urls`);
+  if (raw.layoutEstados === "horizontal" || raw.layoutEstados === "vertical") campos.layoutEstados = raw.layoutEstados;
+  if (raw.layoutEstados !== undefined && raw.layoutEstados !== "horizontal" && raw.layoutEstados !== "vertical") return fallo(`Entidad inválida: ${entidadId}.layoutEstados`);
+  return ok(campos);
 }
 
 function validarEstados(value: unknown, entidades: Record<Id, Entidad>): Resultado<Record<Id, Estado>> {
@@ -276,12 +338,22 @@ function validarEstados(value: unknown, entidades: Record<Id, Entidad>): Resulta
     if (raw.esFinal !== undefined && typeof raw.esFinal !== "boolean") {
       return fallo(`Estado inválido: ${id}.esFinal`);
     }
+    const designaciones = validarDesignacionesEstado(id, raw.designaciones);
+    if (!designaciones.ok) return designaciones;
+    const duracion = validarDuracionEstado(id, raw.duracion);
+    if (!duracion.ok) return duracion;
+    if (raw.suprimido !== undefined && typeof raw.suprimido !== "boolean") {
+      return fallo(`Estado inválido: ${id}.suprimido`);
+    }
     estados[id] = {
       id,
       entidadId: raw.entidadId,
       nombre: raw.nombre.trim(),
       ...(raw.esInicial ? { esInicial: true } : {}),
       ...(raw.esFinal ? { esFinal: true } : {}),
+      ...(designaciones.value.length > 0 ? { designaciones: designaciones.value } : {}),
+      ...(duracion.value ? { duracion: duracion.value } : {}),
+      ...(raw.suprimido ? { suprimido: true } : {}),
     };
   }
 
@@ -294,9 +366,45 @@ function validarEstados(value: unknown, entidades: Record<Id, Entidad>): Resulta
       if (nombres.has(normalizado)) return fallo(`Estado inválido: ${entidad.id}.nombre`);
       nombres.add(normalizado);
     }
+    if (estadosObjeto.filter((estado) => estado.designaciones?.includes("default")).length > 1) {
+      return fallo(`Estado inválido: ${entidad.id}.default`);
+    }
+    if (estadosObjeto.filter((estado) => estado.designaciones?.includes("current")).length > 1) {
+      return fallo(`Estado inválido: ${entidad.id}.current`);
+    }
   }
 
   return ok(estados);
+}
+
+function validarDesignacionesEstado(estadoId: Id, value: unknown): Resultado<DesignacionEstado[]> {
+  if (value === undefined) return ok([]);
+  if (!Array.isArray(value)) return fallo(`Estado inválido: ${estadoId}.designaciones`);
+  const designaciones = value.filter(esDesignacionEstado);
+  if (designaciones.length !== value.length) return fallo(`Estado inválido: ${estadoId}.designaciones`);
+  if (new Set(designaciones).size !== designaciones.length) return fallo(`Estado inválido: ${estadoId}.designaciones`);
+  if (designaciones.includes("default") && designaciones.includes("current")) {
+    return fallo(`Estado inválido: ${estadoId}.designaciones`);
+  }
+  return ok(designaciones);
+}
+
+function validarDuracionEstado(estadoId: Id, value: unknown): Resultado<DuracionTemporal | undefined> {
+  if (value === undefined) return ok(undefined);
+  if (!esRecord(value)) return fallo(`Estado inválido: ${estadoId}.duracion`);
+  if (!esUnidadTiempo(value.unidad)) return fallo(`Estado inválido: ${estadoId}.duracion.unidad`);
+  if (!esNumeroFinito(value.min)) return fallo(`Estado inválido: ${estadoId}.duracion.min`);
+  if (!esNumeroFinito(value.nominal)) return fallo(`Estado inválido: ${estadoId}.duracion.nominal`);
+  if (!esNumeroFinito(value.max)) return fallo(`Estado inválido: ${estadoId}.duracion.max`);
+  const duracion: DuracionTemporal = {
+    unidad: value.unidad,
+    min: value.min,
+    nominal: value.nominal,
+    max: value.max,
+  };
+  const validada = validarDuracion(duracion);
+  if (!validada.ok) return fallo(`Estado inválido: ${estadoId}.duracion`);
+  return ok(duracion);
 }
 
 function validarRefinamiento(entidadId: Id, value: unknown): Resultado<RefinamientoEntidad | undefined> {
@@ -427,7 +535,7 @@ function validarParteExtraidaDe(
 
 function validarModoPlegado(aparienciaId: Id, value: unknown): Resultado<ModoPlegado> {
   if (value === undefined) return ok("completo");
-  if (value === "completo" || value === "parcial") return ok(value);
+  if (value === "completo" || value === "parcial" || value === "plegado" || value === "desplegado") return ok(value);
   return fallo(`Apariencia inválida: ${aparienciaId}.modoPlegado`);
 }
 
@@ -556,6 +664,30 @@ function validarEstiloEnlaceOpcional(enlaceId: Id, value: unknown): Resultado<En
     estilo.dashArray = value.dashArray;
   }
   return ok(Object.keys(estilo).length > 0 ? estilo : undefined);
+}
+
+function normalizarVersiones(value: unknown): VersionResumen[] {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((raw) => {
+      if (!esRecord(raw) ||
+        typeof raw.id !== "string" ||
+        typeof raw.creadoEn !== "string" ||
+        typeof raw.nombre !== "string" ||
+        typeof raw.modeloPayloadKey !== "string" ||
+        typeof raw.bytes !== "number") {
+        return null;
+      }
+      return {
+        id: raw.id,
+        creadoEn: raw.creadoEn,
+        nombre: raw.nombre,
+        ...(typeof raw.descripcion === "string" ? { descripcion: raw.descripcion } : {}),
+        modeloPayloadKey: raw.modeloPayloadKey,
+        bytes: raw.bytes,
+      } satisfies VersionResumen;
+    })
+    .filter((version): version is VersionResumen => version !== null);
 }
 
 function validarExtremoEnlace(

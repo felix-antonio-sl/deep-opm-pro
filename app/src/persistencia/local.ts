@@ -1,4 +1,4 @@
-import type { Resultado } from "../modelo/tipos";
+import type { Resultado, VersionResumen } from "../modelo/tipos";
 
 const FORMATO_PERSISTENCIA = "deep-opm-pro.persistencia.local.v1";
 const INDEX_KEY = "deep-opm-pro:persistencia:index";
@@ -13,6 +13,10 @@ export interface ResumenModeloPersistido {
   carpetaId?: string | null;
   ultimaApertura?: string;
   autosalvado?: boolean;
+  archivado?: boolean;
+  archivadoEn?: string;
+  versiones?: VersionResumen[];
+  crearVersionAlGuardar?: boolean;
 }
 
 export interface ModeloPersistido extends ResumenModeloPersistido {
@@ -27,7 +31,16 @@ export interface GuardarModeloLocalInput {
   carpetaId?: string | null;
   ultimaApertura?: string;
   autosalvado?: boolean;
+  archivado?: boolean;
+  archivadoEn?: string;
+  versiones?: VersionResumen[];
+  crearVersionAlGuardar?: boolean;
 }
+
+export type MetadataModeloLocalPatch = Partial<Pick<
+  ResumenModeloPersistido,
+  "carpetaId" | "ultimaApertura" | "autosalvado" | "archivado" | "archivadoEn" | "versiones" | "crearVersionAlGuardar"
+>>;
 
 interface IndicePersistencia {
   formato: typeof FORMATO_PERSISTENCIA;
@@ -73,6 +86,22 @@ export function guardarModeloLocal(input: GuardarModeloLocalInput): Resultado<Mo
   if (autosalvado !== undefined) {
     resumen.autosalvado = autosalvado;
   }
+  const archivado = input.archivado ?? existente?.archivado;
+  if (archivado !== undefined) {
+    resumen.archivado = archivado;
+  }
+  const archivadoEn = input.archivadoEn ?? existente?.archivadoEn;
+  if (archivadoEn !== undefined) {
+    resumen.archivadoEn = archivadoEn;
+  }
+  const versiones = input.versiones ?? existente?.versiones;
+  if (versiones !== undefined) {
+    resumen.versiones = versiones;
+  }
+  const crearVersionAlGuardar = input.crearVersionAlGuardar ?? existente?.crearVersionAlGuardar;
+  if (crearVersionAlGuardar !== undefined) {
+    resumen.crearVersionAlGuardar = crearVersionAlGuardar;
+  }
   const modelo: ModeloPersistido = { ...resumen, json: input.json };
 
   try {
@@ -109,13 +138,41 @@ export function borrarModeloLocal(id: string): Resultado<void> {
   const limpio = id.trim();
   if (!limpio) return fallo("Modelo local inválido");
   const indice = leerIndice(storage.value);
+  const existente = indice.find((item) => item.id === limpio);
   try {
     storage.value.removeItem(modelKey(limpio));
+    for (const version of existente?.versiones ?? []) {
+      storage.value.removeItem(version.modeloPayloadKey);
+    }
     escribirIndice(storage.value, indice.filter((item) => item.id !== limpio));
   } catch {
     return fallo("No se pudo borrar el modelo local");
   }
   return ok(undefined);
+}
+
+export function actualizarMetadataModeloLocal(id: string, patch: MetadataModeloLocalPatch): Resultado<ResumenModeloPersistido> {
+  const storage = storageLocal();
+  if (!storage.ok) return storage;
+  const limpio = id.trim();
+  if (!limpio) return fallo("Modelo local inválido");
+  const indice = leerIndice(storage.value);
+  const resumen = indice.find((item) => item.id === limpio);
+  if (!resumen) return fallo("Modelo local no encontrado");
+  const cargado = cargarModeloLocal(limpio);
+  if (!cargado.ok) return cargado;
+  const actualizado = aplicarPatchResumen(resumen, patch);
+  const documento: DocumentoPersistido = {
+    formato: FORMATO_PERSISTENCIA,
+    modelo: { ...cargado.value, ...actualizado, json: cargado.value.json },
+  };
+  try {
+    storage.value.setItem(modelKey(limpio), JSON.stringify(documento));
+    escribirIndice(storage.value, [actualizado, ...indice.filter((item) => item.id !== limpio)]);
+  } catch {
+    return fallo("No se pudo actualizar metadata local");
+  }
+  return ok(actualizado);
 }
 
 function leerIndice(storage: Storage): ResumenModeloPersistido[] {
@@ -195,7 +252,53 @@ function normalizarResumenModeloPersistido(value: unknown): ResumenModeloPersist
   if (typeof value.autosalvado === "boolean") {
     base.autosalvado = value.autosalvado;
   }
+  if (typeof value.archivado === "boolean") {
+    base.archivado = value.archivado;
+  }
+  if (typeof value.archivadoEn === "string") {
+    base.archivadoEn = value.archivadoEn;
+  }
+  if (Array.isArray(value.versiones)) {
+    const versiones = value.versiones
+      .map(normalizarVersionResumen)
+      .filter((version): version is VersionResumen => version !== null);
+    if (versiones.length > 0) base.versiones = versiones;
+  }
+  if (typeof value.crearVersionAlGuardar === "boolean") {
+    base.crearVersionAlGuardar = value.crearVersionAlGuardar;
+  }
   return base;
+}
+
+function aplicarPatchResumen(resumen: ResumenModeloPersistido, patch: MetadataModeloLocalPatch): ResumenModeloPersistido {
+  const actualizado: ResumenModeloPersistido = { ...resumen };
+  if ("carpetaId" in patch) actualizado.carpetaId = patch.carpetaId;
+  if ("ultimaApertura" in patch) actualizado.ultimaApertura = patch.ultimaApertura;
+  if ("autosalvado" in patch) actualizado.autosalvado = patch.autosalvado;
+  if ("archivado" in patch) actualizado.archivado = patch.archivado;
+  if ("archivadoEn" in patch) actualizado.archivadoEn = patch.archivadoEn;
+  if ("versiones" in patch) actualizado.versiones = patch.versiones;
+  if ("crearVersionAlGuardar" in patch) actualizado.crearVersionAlGuardar = patch.crearVersionAlGuardar;
+  return actualizado;
+}
+
+function normalizarVersionResumen(value: unknown): VersionResumen | null {
+  if (!esRecord(value) ||
+    typeof value.id !== "string" ||
+    typeof value.creadoEn !== "string" ||
+    typeof value.nombre !== "string" ||
+    typeof value.modeloPayloadKey !== "string" ||
+    typeof value.bytes !== "number") {
+    return null;
+  }
+  return {
+    id: value.id,
+    creadoEn: value.creadoEn,
+    nombre: value.nombre,
+    ...(typeof value.descripcion === "string" ? { descripcion: value.descripcion } : {}),
+    modeloPayloadKey: value.modeloPayloadKey,
+    bytes: value.bytes,
+  };
 }
 
 function esRecord(value: unknown): value is Record<string, unknown> {

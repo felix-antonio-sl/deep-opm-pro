@@ -32,6 +32,49 @@ describe("store undo/redo y dirty state", () => {
     expect(store.getState().puedeRehacer).toBe(false);
   });
 
+  test("abrirPestanaNueva agrega pestana y cambia modelo activo", () => {
+    store.getState().crearObjetoDemo();
+    const primeraId = store.getState().pestanaActivaId;
+    expect(Object.values(store.getState().modelo.entidades)).toHaveLength(1);
+
+    store.getState().abrirPestanaNueva();
+
+    expect(store.getState().pestanasAbiertas).toHaveLength(2);
+    expect(store.getState().pestanaActivaId).not.toBe(primeraId);
+    expect(Object.values(store.getState().modelo.entidades)).toHaveLength(0);
+    expect(store.getState().modeloPersistidoId).toBeNull();
+  });
+
+  test("cambiarPestanaActiva preserva modelos independientes", () => {
+    store.getState().crearObjetoDemo();
+    const pestanaA = store.getState().pestanaActivaId;
+    store.getState().abrirPestanaNueva();
+    const pestanaB = store.getState().pestanaActivaId;
+    store.getState().crearProcesoDemo();
+
+    expect(Object.values(store.getState().modelo.entidades)).toHaveLength(1);
+    store.getState().cambiarPestanaActiva(pestanaA);
+    expect(store.getState().pestanaActivaId).toBe(pestanaA);
+    expect(Object.values(store.getState().modelo.entidades).map((e) => e.tipo)).toEqual(["objeto"]);
+
+    store.getState().cambiarPestanaActiva(pestanaB);
+    expect(Object.values(store.getState().modelo.entidades).map((e) => e.tipo)).toEqual(["proceso"]);
+  });
+
+  test("cerrarPestana dirty requiere forzar y no deja el store sin pestanas", () => {
+    store.getState().crearObjetoDemo();
+    const dirtyId = store.getState().pestanaActivaId;
+    store.getState().abrirPestanaNueva();
+
+    store.getState().cerrarPestana(dirtyId);
+    expect(store.getState().pestanasAbiertas.some((p) => p.id === dirtyId)).toBe(true);
+    expect(store.getState().mensaje).toContain("Pestana sin guardar");
+
+    store.getState().cerrarPestana(dirtyId, { forzar: true });
+    expect(store.getState().pestanasAbiertas.some((p) => p.id === dirtyId)).toBe(false);
+    expect(store.getState().pestanasAbiertas.length).toBeGreaterThanOrEqual(1);
+  });
+
   test("guardar limpia dirty sin purgar undo", () => {
     store.getState().crearObjetoDemo();
     store.getState().guardarLocal();
@@ -77,6 +120,53 @@ describe("store undo/redo y dirty state", () => {
     expect(store.getState().dirty).toBe(false);
     expect(store.getState().puedeDeshacer).toBe(false);
     expect(store.getState().puedeRehacer).toBe(false);
+  });
+
+  test("cut paste de workspace mueve modelo entre carpetas y limpia portapapeles", () => {
+    store.getState().crearObjetoDemo();
+    store.getState().guardarComoLocal({ nombre: "Modelo movible" });
+    const modeloId = store.getState().modeloPersistidoId;
+    if (!modeloId) throw new Error("La prueba esperaba id persistido");
+    store.getState().crearCarpetaEnActual("Destino");
+    const destinoId = store.getState().indice.carpetas.find((carpeta) => carpeta.nombre === "Destino")?.id;
+    if (!destinoId) throw new Error("La prueba esperaba carpeta");
+
+    store.getState().cortarModelo(modeloId);
+    expect(store.getState().portapapelesWorkspace?.itemId).toBe(modeloId);
+    store.getState().pegarEn(destinoId);
+
+    expect(store.getState().portapapelesWorkspace).toBeNull();
+    expect(store.getState().indice.modelos.find((modelo) => modelo.id === modeloId)?.carpetaId).toBe(destinoId);
+    expect(store.getState().modelosGuardados.find((modelo) => modelo.id === modeloId)?.carpetaId).toBe(destinoId);
+  });
+
+  test("archivado manual oculta modelos de busqueda global hasta restaurar", async () => {
+    store.getState().crearObjetoDemo();
+    store.getState().guardarComoLocal({ nombre: "Modelo Archivado", descripcion: "flujo secreto" });
+    const modeloId = store.getState().modeloPersistidoId;
+    if (!modeloId) throw new Error("La prueba esperaba id persistido");
+
+    await store.getState().archivarModeloPorId(modeloId);
+    store.getState().fijarBusquedaGlobalQuery("flujo");
+    store.getState().ejecutarBusquedaGlobal();
+    expect(store.getState().busquedaGlobal.resultados).toHaveLength(0);
+
+    await store.getState().restaurarModeloPorId(modeloId);
+    store.getState().ejecutarBusquedaGlobal();
+    expect(store.getState().busquedaGlobal.resultados[0]?.modeloId).toBe(modeloId);
+  });
+
+  test("version manual queda asociada al modelo guardado", async () => {
+    store.getState().crearObjetoDemo();
+    store.getState().guardarComoLocal({ nombre: "Modelo con versiones", crearVersionAlGuardar: true });
+    const modeloId = store.getState().modeloPersistidoId;
+    if (!modeloId) throw new Error("La prueba esperaba id persistido");
+
+    await store.getState().crearVersionAhora({ descripcion: "corte manual" });
+
+    const resumen = store.getState().modelosGuardados.find((modelo) => modelo.id === modeloId);
+    expect(resumen?.versiones?.length).toBeGreaterThanOrEqual(2);
+    expect(resumen?.versiones?.some((version) => version.descripcion === "corte manual")).toBe(true);
   });
 
   test("nuevo modelo descarta historial local activo sin borrar registros guardados", () => {
@@ -150,6 +240,55 @@ describe("store undo/redo y dirty state", () => {
 
     expect(store.getState().dirty).toBe(false);
     expect(store.getState().puedeDeshacer).toBe(true);
+  });
+
+  test("multi-selección mantiene seleccionId derivado compatible", () => {
+    store.getState().crearObjetoDemo();
+    store.getState().crearProcesoDemo();
+    const ids = Object.keys(store.getState().modelo.entidades);
+
+    store.getState().setSeleccion(ids);
+
+    expect(store.getState().seleccionados).toEqual(ids);
+    expect(store.getState().seleccionId).toBeNull();
+
+    const primerId = ids[0];
+    if (!primerId) throw new Error("La prueba esperaba al menos una entidad");
+    store.getState().setSeleccion([primerId]);
+    expect(store.getState().seleccionId).toBe(primerId);
+  });
+
+  test("seleccionar todo en OPD incluye apariencias y enlaces", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 80, y: 80 }, "Entrada"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 260, y: 80 }, "Procesar"));
+    const [objeto, proceso] = Object.values(modelo.entidades);
+    if (!objeto || !proceso) throw new Error("La prueba esperaba dos entidades");
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, objeto.id, proceso.id, "efecto"));
+    store.getState().importarJson(exportarModelo(modelo));
+
+    store.getState().seleccionarTodoEnOpd();
+
+    expect(store.getState().seleccionados).toHaveLength(3);
+  });
+
+  test("eliminar selección batch entra como un solo undo", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 80, y: 80 }, "Todo"));
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 80, y: 180 }, "Parte A"));
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 260, y: 180 }, "Parte B"));
+    const [todo, parteA, parteB] = Object.values(modelo.entidades);
+    if (!todo || !parteA || !parteB) throw new Error("La prueba esperaba entidades");
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, todo.id, parteA.id, "agregacion"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, todo.id, parteB.id, "agregacion"));
+    store.getState().importarJson(exportarModelo(modelo));
+
+    store.getState().setSeleccion(Object.keys(modelo.enlaces));
+    store.getState().eliminarSeleccion();
+
+    expect(Object.keys(store.getState().modelo.enlaces)).toHaveLength(0);
+    store.getState().deshacer();
+    expect(Object.keys(store.getState().modelo.enlaces)).toHaveLength(2);
   });
 
   test("aplicar y resetear estilo seleccionado entran al historial", () => {
@@ -857,6 +996,47 @@ describe("store undo/redo y dirty state", () => {
   });
 });
 
+describe("store mapa del sistema", () => {
+  beforeEach(() => {
+    instalarLocalStorage();
+    instalarConfirmacion();
+    store.getState().importarJson(exportarModelo(modeloConOpdHijo()));
+  });
+
+  test("filtros del mapa reducen descriptor derivado sin tocar JSON OPM", () => {
+    store.getState().abrirVistaMapa();
+    expect(store.getState().descriptorMapaFiltrado().nodos).toHaveLength(2);
+
+    store.getState().fijarMapaProfundidad(1);
+
+    expect(store.getState().descriptorMapaFiltrado().nodos.map((n) => n.opdId)).toEqual([store.getState().modelo.opdRaizId]);
+    expect(exportarModelo(store.getState().modelo)).not.toContain("mapaProfundidadMaxima");
+  });
+
+  test("zoom del mapa queda clampeado y auto-refresh alterna", () => {
+    store.getState().abrirVistaMapa();
+
+    store.getState().fijarMapaZoom(9);
+    expect(store.getState().mapaZoom).toBe(2);
+    store.getState().fijarMapaZoom(0.1);
+    expect(store.getState().mapaZoom).toBe(0.25);
+
+    const valorInicial = store.getState().mapaAutoRefresh;
+    store.getState().toggleMapaAutoRefresh();
+    expect(store.getState().mapaAutoRefresh).toBe(!valorInicial);
+  });
+
+  test("saltar desde mapa registra último OPD visitado", () => {
+    store.getState().abrirVistaMapa();
+    const raiz = store.getState().opdActivoId;
+
+    store.getState().saltarAOpdDesdeMapa("opd-2");
+
+    expect(store.getState().opdActivoId).toBe("opd-2");
+    expect(store.getState().mapaUltimoVisitadoOpdId).toBe(raiz);
+  });
+});
+
 function cantidadEntidades(): number {
   return Object.keys(store.getState().modelo.entidades).length;
 }
@@ -1037,8 +1217,8 @@ describe("asistente nuevo modelo", () => {
 
     expect(store.getState().asistente).toBeNull();
     expect(store.getState().modelo.nombre).toBe("Sistema de Conduccion");
-    // Modelo recien creado: coincide con snapshot, pero no esta persistido.
-    expect(store.getState().dirty).toBe(false);
+    // Contrato vigente ronda 6: el modelo post-asistente queda dirty hasta guardado manual.
+    expect(store.getState().dirty).toBe(true);
     expect(store.getState().modeloPersistidoId).toBeNull();
     // Debe haber al menos 3 entidades: proceso, beneficiario, sistema
     expect(Object.keys(store.getState().modelo.entidades).length).toBeGreaterThanOrEqual(3);
@@ -1107,13 +1287,89 @@ describe("mapa del sistema", () => {
     store.getState().renombrarOpdDesdeArbol(store.getState().modelo.opdRaizId, "  ");
     expect(store.getState().mensaje).toContain("vacío");
   });
+
+  test("navegacion OPD con Ctrl+flechas recorre hermanos padre e hijo", () => {
+    const modelo = modeloConTresOpds();
+    store.setState({
+      modelo,
+      opdActivoId: "opd-b",
+      vistaMapaActiva: false,
+    });
+
+    store.getState().navegarOpdArriba();
+    expect(store.getState().opdActivoId).toBe("opd-a");
+
+    store.getState().navegarOpdAbajo();
+    expect(store.getState().opdActivoId).toBe("opd-b");
+
+    store.getState().navegarOpdDerecha();
+    expect(store.getState().opdActivoId).toBe("opd-b-1");
+
+    store.getState().navegarOpdIzquierda();
+    expect(store.getState().opdActivoId).toBe("opd-b");
+  });
+
+  test("preferencias UI de árbol persisten fuera del JSON OPM", () => {
+    store.getState().fijarAnchoPanelArbol(999);
+    expect(store.getState().anchoPanelArbol).toBe(600);
+
+    store.getState().toggleNombresArbolVisibles();
+    expect(store.getState().nombresArbolVisibles).toBe(false);
+
+    const indice = JSON.parse(localStorage.getItem("deep-opm-pro:persistencia:workspace") ?? "{}");
+    expect(indice.preferenciasUi).toEqual({
+      anchoPanelArbol: 600,
+      nombresArbolVisibles: false,
+    });
+    expect(exportarModelo(store.getState().modelo)).not.toContain("preferenciasUi");
+    expect(exportarModelo(store.getState().modelo)).not.toContain("nombresArbolVisibles");
+  });
 });
+
+function modeloConTresOpds(): Modelo {
+  const modelo = crearModelo();
+  const raizId = modelo.opdRaizId;
+  return {
+    ...modelo,
+    opds: {
+      ...modelo.opds,
+      "opd-a": {
+        id: "opd-a",
+        nombre: "SD1",
+        padreId: raizId,
+        apariencias: {},
+        enlaces: {},
+        ordenLocal: 1,
+      },
+      "opd-b": {
+        id: "opd-b",
+        nombre: "SD2",
+        padreId: raizId,
+        apariencias: {},
+        enlaces: {},
+        ordenLocal: 2,
+      },
+      "opd-b-1": {
+        id: "opd-b-1",
+        nombre: "SD2.1",
+        padreId: "opd-b",
+        apariencias: {},
+        enlaces: {},
+        ordenLocal: 1,
+      },
+    },
+  };
+}
 
 function instalarLocalStorage(): void {
   const datos = new Map<string, string>();
   Object.defineProperty(globalThis, "localStorage", {
     configurable: true,
     value: {
+      get length() {
+        return datos.size;
+      },
+      key: (index: number) => Array.from(datos.keys())[index] ?? null,
       getItem: (key: string) => datos.get(key) ?? null,
       setItem: (key: string, value: string) => datos.set(key, value),
       removeItem: (key: string) => datos.delete(key),

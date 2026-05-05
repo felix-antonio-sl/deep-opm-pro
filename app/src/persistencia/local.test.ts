@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, test } from "bun:test";
 import { crearModelo, crearObjeto } from "../modelo/operaciones";
 import { exportarModelo } from "../serializacion/json";
-import { borrarModeloLocal, cargarModeloLocal, guardarModeloLocal, listarModelosLocales } from "./local";
+import { actualizarMetadataModeloLocal, borrarModeloLocal, cargarModeloLocal, guardarModeloLocal, listarModelosLocales } from "./local";
 
 describe("persistencia local estructurada", () => {
   beforeEach(() => {
@@ -101,6 +101,36 @@ describe("persistencia local estructurada", () => {
       value: expect.objectContaining({ id: "legacy-1", descripcion: "", json }),
     });
   });
+
+  test("preserva metadatos de archivado y versiones en el indice local", () => {
+    const modelo = crearModelo("Modelo versionado");
+    const guardado = guardarModeloLocal({
+      nombre: modelo.nombre,
+      json: exportarModelo(modelo),
+      archivado: true,
+      archivadoEn: "2026-05-05T00:00:00.000Z",
+      crearVersionAlGuardar: true,
+      versiones: [{
+        id: "v1",
+        creadoEn: "2026-05-05T00:00:01.000Z",
+        nombre: "v1",
+        modeloPayloadKey: "deep-opm-pro:version:modelo:v1",
+        bytes: 12,
+      }],
+    });
+    expect(guardado.ok).toBe(true);
+    if (!guardado.ok) return;
+
+    expect(actualizarMetadataModeloLocal(guardado.value.id, { archivado: false }).ok).toBe(true);
+    const listado = listarModelosLocales();
+    expect(listado.ok).toBe(true);
+    if (!listado.ok) return;
+    expect(listado.value[0]).toEqual(expect.objectContaining({
+      archivado: false,
+      crearVersionAlGuardar: true,
+      versiones: [expect.objectContaining({ id: "v1" })],
+    }));
+  });
 });
 
 function instalarLocalStorage(): void {
@@ -120,6 +150,9 @@ function instalarLocalStorage(): void {
 
 import { describe as describe2, expect as expect2, test as test2 } from "bun:test";
 import {
+  archivarCarpeta,
+  archivarModelo,
+  buscarGlobal,
   crearCarpeta,
   eliminarCarpeta,
   indiceVacio,
@@ -272,6 +305,62 @@ describe2("workspace carpetas (L4)", () => {
     expect2(hijos.modelos).toHaveLength(1);
     const m0 = hijos.modelos[0]!;
     expect2(m0.id).toBe("m1");
+  });
+
+  test2("listarHijosDeCarpeta oculta archivados por defecto y puede incluirlos", () => {
+    const indice = {
+      ...indiceVacio(),
+      carpetas: [{ id: "carpeta-arch", nombre: "Archivada", padreId: null, creadoEn: 1, archivada: true }],
+      modelos: [{ id: "m1", carpetaId: null, archivado: true }],
+    };
+
+    expect2(listarHijosDeCarpeta(indice, null).carpetas).toHaveLength(0);
+    expect2(listarHijosDeCarpeta(indice, null).modelos).toHaveLength(0);
+    expect2(listarHijosDeCarpeta(indice, null, { incluirArchivados: true }).carpetas).toHaveLength(1);
+    expect2(listarHijosDeCarpeta(indice, null, { incluirArchivados: true }).modelos).toHaveLength(1);
+  });
+
+  test2("archivar carpeta aplica cascada a subcarpetas y modelos descendientes", () => {
+    const indice = {
+      ...indiceVacio(),
+      carpetas: [
+        { id: "padre", nombre: "Padre", padreId: null, creadoEn: 1 },
+        { id: "hija", nombre: "Hija", padreId: "padre", creadoEn: 2 },
+      ],
+      modelos: [
+        { id: "m-padre", carpetaId: "padre" },
+        { id: "m-hija", carpetaId: "hija" },
+        { id: "m-raiz", carpetaId: null },
+      ],
+    };
+
+    const archivado = archivarCarpeta(indice, "padre", "2026-05-05T00:00:00.000Z");
+
+    expect2(archivado.carpetas.every((carpeta) => carpeta.archivada)).toBe(true);
+    expect2(archivado.modelos.find((modelo) => modelo.id === "m-padre")?.archivado).toBe(true);
+    expect2(archivado.modelos.find((modelo) => modelo.id === "m-hija")?.archivado).toBe(true);
+    expect2(archivado.modelos.find((modelo) => modelo.id === "m-raiz")?.archivado).toBeUndefined();
+  });
+
+  test2("buscarGlobal exige 3 caracteres y cruza carpetas excluyendo archivados", () => {
+    const indice = {
+      ...indiceVacio(),
+      carpetas: [{ id: "ventas", nombre: "Ventas", padreId: null, creadoEn: 1 }],
+      modelos: [
+        { id: "m1", carpetaId: "ventas" },
+        archivarModelo({ ...indiceVacio(), modelos: [{ id: "m2", carpetaId: null }] }, "m2").modelos[0]!,
+      ],
+    };
+
+    expect2(buscarGlobal(indice, "ab", [
+      { id: "m1", nombre: "Abastecimiento", descripcion: "", creadoEn: "", actualizadoEn: "" },
+    ])).toEqual([]);
+    expect2(buscarGlobal(indice, "flujo", [
+      { id: "m1", nombre: "Operacion", descripcion: "Flujo comercial", creadoEn: "", actualizadoEn: "" },
+      { id: "m2", nombre: "Flujo archivado", descripcion: "", creadoEn: "", actualizadoEn: "", archivado: true },
+    ])).toEqual([
+      expect2.objectContaining({ modeloId: "m1", rutaCarpetas: "Inicio / Modelos locales / Ventas" }),
+    ]);
   });
 
   test2("rutaDeCarpeta devuelve breadcrumb correcto en jerarquía de >= 3 niveles", () => {

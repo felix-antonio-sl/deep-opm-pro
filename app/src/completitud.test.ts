@@ -76,6 +76,8 @@ const TODOS_LOS_MODOS_DESPLIEGUE: Record<ModoDespliegueObjeto, true> = {
 const TODAS_LAS_DESIGNACIONES_ESTADO: Record<DesignacionEstado, true> = {
   inicial: true,
   final: true,
+  default: true,
+  current: true,
 };
 
 const TODOS_LOS_ORIGENES_DERIVACION: Record<DerivacionOrigen, true> = {

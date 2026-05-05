@@ -132,6 +132,58 @@ describe("serializacion JSON", () => {
     });
   });
 
+  test("no serializa estado UI transitorio de selección ni portapapeles visual", () => {
+    const modelo = crearModelo();
+    const exportado = exportarModelo({
+      ...modelo,
+      seleccionados: ["o-1"],
+      modoSeleccion: "multi",
+      portapapelesVisual: { apariencias: [], enlaces: [], origenOpdId: modelo.opdRaizId },
+    } as unknown as typeof modelo);
+
+    expect(exportado).not.toContain("seleccionados");
+    expect(exportado).not.toContain("modoSeleccion");
+    expect(exportado).not.toContain("portapapelesVisual");
+  });
+
+  test("preserva metadatos workspace L4 y acepta legacy sin esos campos", () => {
+    const modelo = {
+      ...crearModelo("Workspace"),
+      archivado: true,
+      archivadoEn: "2026-05-05T00:00:00.000Z",
+      crearVersionAlGuardar: true,
+      versiones: [{
+        id: "v1",
+        creadoEn: "2026-05-05T00:00:01.000Z",
+        nombre: "Manual",
+        descripcion: "corte",
+        modeloPayloadKey: "deep-opm-pro:version:modelo:v1",
+        bytes: 42,
+      }],
+    };
+
+    const documento = JSON.parse(exportarModelo(modelo));
+    expect(documento.modelo.archivado).toBe(true);
+    expect(documento.modelo.versiones).toHaveLength(1);
+
+    const hidratado = hidratarModelo(JSON.stringify(documento));
+    expect(hidratado.ok).toBe(true);
+    if (!hidratado.ok) return;
+    expect(hidratado.value.archivado).toBe(true);
+    expect(hidratado.value.versiones?.[0]?.id).toBe("v1");
+    expect(hidratado.value.crearVersionAlGuardar).toBe(true);
+
+    delete documento.modelo.archivado;
+    delete documento.modelo.archivadoEn;
+    delete documento.modelo.versiones;
+    delete documento.modelo.crearVersionAlGuardar;
+    const legacy = hidratarModelo(JSON.stringify(documento));
+    expect(legacy.ok).toBe(true);
+    if (!legacy.ok) return;
+    expect(legacy.value.archivado).toBeUndefined();
+    expect(legacy.value.versiones).toBeUndefined();
+  });
+
   test("omite estilo vacio al exportar y rechaza colores invalidos", () => {
     let modelo = crearModelo("Estilo vacio");
     modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 10, y: 20 }, "Sistema"));
@@ -378,6 +430,16 @@ describe("serializacion JSON", () => {
     if (!hidratado.ok) return;
     expect(hidratado.value.enlaces[enlaceId]?.multiplicidadOrigen).toBe("2..N");
     expect(hidratado.value.enlaces[enlaceId]?.multiplicidadDestino).toBe("*");
+  });
+
+  test("JSON OPM no serializa pestanas de sesion", () => {
+    const modelo = crearModelo("Sin pestanas");
+    const documento = JSON.parse(exportarModelo(modelo));
+
+    expect(documento.pestanasAbiertas).toBeUndefined();
+    expect(documento.pestanaActivaId).toBeUndefined();
+    expect(documento.modelo.pestanasAbiertas).toBeUndefined();
+    expect(documento.modelo.pestanaActivaId).toBeUndefined();
   });
 
   test("hidratar enlace legacy sin multiplicidad deja campos indefinidos", () => {
