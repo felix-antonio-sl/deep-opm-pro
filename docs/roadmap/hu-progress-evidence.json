@@ -728,13 +728,13 @@
   ],
   "knownGaps": [],
   "autoAudit": {
-    "generatedAt": "2026-05-05T06:23:41.359Z",
+    "generatedAt": "2026-05-05T08:03:13.090Z",
     "mode": "sync-real",
-    "rulesEvaluated": 42,
-    "rulesMatched": 40,
+    "rulesEvaluated": 49,
+    "rulesMatched": 47,
     "rulesUnmatched": 2,
     "sourceFiles": {
-      "count": 103,
+      "count": 114,
       "roots": [
         "app/src",
         "app/e2e",
@@ -1022,18 +1022,14 @@
         "HU-50.015",
         "HU-50.016"
       ],
-      "estado": "pendiente",
+      "estado": "cubierto",
       "confianza": "alta-auto",
       "fuente": "auto",
-      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
+      "nota": "Auto: panel OPL persistente renderiza objetos/procesos con marcas semanticas y colores diferenciados.",
       "evidencia": [
         "app/src/ui/PanelOpl.tsx",
         "app/src/opl/generar.ts",
         "app/src/completitud.test.ts"
-      ],
-      "brechas": [
-        "app/src/ui/PanelOpl.tsx: falta generarOpl(modelo, opdActivoId)",
-        "app/src/ui/PanelOpl.tsx: falta renderOpl"
       ]
     },
     {
@@ -1355,10 +1351,10 @@
         "HU-15.010",
         "HU-15.011"
       ],
-      "estado": "cubierto",
+      "estado": "pendiente",
       "confianza": "alta-auto",
       "fuente": "auto",
-      "nota": "Auto: los abanicos O/XOR proyectan conectores canonicos desde assets logicos sin overlay textual.",
+      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
       "evidencia": [
         "app/src/render/jointjs/abanicoOverlay.ts",
         "app/src/render/jointjs/linkAssets.ts",
@@ -1369,6 +1365,10 @@
         "app/src/ui/InspectorEnlace.tsx",
         "app/src/render/jointjs/proyeccion.test.ts",
         "app/e2e/opm-smoke.spec.ts"
+      ],
+      "brechas": [
+        "app/src/render/jointjs/abanicoOverlay.ts: falta standard.Polygon",
+        "app/src/render/jointjs/proyeccion.ts: falta abanico.operador"
       ]
     },
     {
@@ -1503,6 +1503,135 @@
         "app/src/store.test.ts",
         "app/src/serializacion/json.test.ts",
         "app/e2e/opm-smoke.spec.ts"
+      ]
+    },
+    {
+      "ids": [
+        "HU-50.002",
+        "HU-50.017",
+        "HU-50.018",
+        "HU-50.019",
+        "HU-50.020",
+        "HU-50.022"
+      ],
+      "estado": "cubierto",
+      "confianza": "alta-auto",
+      "fuente": "auto",
+      "nota": "Auto: panel OPL numerado con tokens estables, hover/click bidireccional canvas<->OPL, filtro por seleccion y renombrado inverso desde la lente.",
+      "evidencia": [
+        "app/src/opl/interaccion.ts",
+        "app/src/ui/PanelOpl.tsx",
+        "app/src/store.ts",
+        "app/src/opl/generar.test.ts",
+        "app/src/store.test.ts",
+        "app/e2e/opm-smoke.spec.ts"
+      ]
+    },
+    {
+      "ids": [
+        "HU-14.001",
+        "HU-14.002",
+        "HU-14.003",
+        "HU-14.015",
+        "HU-14.017"
+      ],
+      "estado": "cubierto",
+      "confianza": "alta-auto",
+      "fuente": "auto",
+      "nota": "Auto: Apariencia.estilo? con paleta cerrada de fill/borderColor, swatches + Reset y persistencia JSON sin eco OPL.",
+      "evidencia": [
+        "app/src/modelo/estilos.ts",
+        "app/src/ui/StyleControls.tsx",
+        "app/src/serializacion/json.ts",
+        "app/src/modelo/estilos.test.ts"
+      ]
+    },
+    {
+      "ids": [
+        "HU-30.001",
+        "HU-30.005",
+        "HU-30.006",
+        "HU-30.009",
+        "HU-30.010",
+        "HU-30.013",
+        "HU-30.015",
+        "HU-30.018"
+      ],
+      "estado": "cubierto",
+      "confianza": "alta-auto",
+      "fuente": "auto",
+      "nota": "Auto: menu hamburguesa con Guardar como y Cargar; primer Ctrl+S abre dialogo; guardado posterior reescribe id; importacion no autopersiste.",
+      "evidencia": [
+        "app/src/ui/MenuPrincipal.tsx",
+        "app/src/ui/DialogoGuardarComo.tsx",
+        "app/src/ui/DialogoCargarModelo.tsx",
+        "app/src/persistencia/workspace.ts"
+      ]
+    },
+    {
+      "ids": [
+        "HU-34.001",
+        "HU-34.004",
+        "HU-34.005",
+        "HU-34.006",
+        "HU-34.007",
+        "HU-34.008"
+      ],
+      "estado": "cubierto",
+      "confianza": "alta-auto",
+      "fuente": "auto",
+      "nota": "Auto: Nuevo crea pestana con SD vacio, titulo (No guardado) y panel OPL/biblioteca vacios.",
+      "evidencia": [
+        "app/src/ui/MenuPrincipal.tsx",
+        "app/src/store.ts",
+        "app/src/ui/Toolbar.tsx"
+      ]
+    },
+    {
+      "ids": [
+        "HU-1C.004"
+      ],
+      "estado": "cubierto",
+      "confianza": "alta-auto",
+      "fuente": "auto",
+      "nota": "Auto: click dentro del bbox de un contenedor refinado crea cosa hija sin advertencia interior/exterior.",
+      "evidencia": [
+        "app/src/modelo/creacionInterna.ts",
+        "app/src/store.ts",
+        "app/src/modelo/creacionInterna.test.ts"
+      ]
+    },
+    {
+      "ids": [
+        "HU-20.015",
+        "HU-20.016"
+      ],
+      "estado": "cubierto",
+      "confianza": "alta-auto",
+      "fuente": "auto",
+      "nota": "Auto: bloqueo de raiz, mensaje accionable para internos, eliminacion controlada de hojas con limpieza de huerfanos y undo.",
+      "evidencia": [
+        "app/src/modelo/opdEliminacion.ts",
+        "app/src/ui/ArbolOpd.tsx",
+        "app/src/store.ts",
+        "app/src/modelo/opdEliminacion.test.ts",
+        "app/src/store.test.ts"
+      ]
+    },
+    {
+      "ids": [
+        "HU-11.004",
+        "HU-11.014"
+      ],
+      "estado": "cubierto",
+      "confianza": "alta-auto",
+      "fuente": "auto",
+      "nota": "Auto: bus de agregacion derivado en render con triangulo unico + ramas y etiquetas editables que aparecen como sufijo OPL.",
+      "evidencia": [
+        "app/src/render/jointjs/agregacionBus.ts",
+        "app/src/modelo/etiquetasEnlace.ts",
+        "app/src/ui/InspectorEnlace.tsx",
+        "app/src/opl/generar.ts"
       ]
     }
   ]

@@ -1,17 +1,17 @@
 {
   "schema": "deep-opm-pro.hu-progress-report.v1",
-  "generatedAt": "2026-05-05T06:23:41.359Z",
+  "generatedAt": "2026-05-05T08:03:13.090Z",
   "repoRoot": "/home/felix/projects/deep-opm-pro",
   "backlogRoot": "docs/historias-usuario-v2",
   "evidenceLedger": "docs/roadmap/hu-progress-evidence.json",
   "autoAudit": {
-    "generatedAt": "2026-05-05T06:23:41.359Z",
+    "generatedAt": "2026-05-05T08:03:13.090Z",
     "mode": "sync-real",
-    "rulesEvaluated": 42,
-    "rulesMatched": 40,
+    "rulesEvaluated": 49,
+    "rulesMatched": 47,
     "rulesUnmatched": 2,
     "sourceFiles": {
-      "count": 103,
+      "count": 114,
       "roots": [
         "app/src",
         "app/e2e",
@@ -43,14 +43,14 @@
   "summaries": {
     "total": {
       "total": 1126,
-      "cubierto": 84,
+      "cubierto": 115,
       "parcial": 51,
-      "pendiente": 613,
+      "pendiente": 582,
       "diferido": 378,
       "bloqueado": 0,
       "pesoTotal": 3004,
-      "pesoCubierto": 305.5,
-      "avance": 0.10169773635153129
+      "pesoCubierto": 379.5,
+      "avance": 0.12633155792276965
     },
     "inventario": {
       "totalParseadas": 1173,
@@ -60,70 +60,70 @@
     },
     "m0": {
       "total": 130,
-      "cubierto": 51,
+      "cubierto": 77,
       "parcial": 29,
-      "pendiente": 50,
+      "pendiente": 24,
       "diferido": 0,
       "bloqueado": 0,
       "pesoTotal": 333,
-      "pesoCubierto": 168,
-      "avance": 0.5045045045045045
+      "pesoCubierto": 230,
+      "avance": 0.6906906906906907
     },
     "alpha": {
       "total": 121,
-      "cubierto": 25,
+      "cubierto": 46,
       "parcial": 23,
-      "pendiente": 73,
+      "pendiente": 52,
       "diferido": 0,
       "bloqueado": 0,
       "pesoTotal": 326,
-      "pesoCubierto": 85,
-      "avance": 0.2607361963190184
+      "pesoCubierto": 141,
+      "avance": 0.4325153374233129
     },
     "beta": {
       "total": 193,
-      "cubierto": 46,
+      "cubierto": 51,
       "parcial": 23,
-      "pendiente": 124,
+      "pendiente": 119,
       "diferido": 0,
       "bloqueado": 0,
       "pesoTotal": 545,
-      "pesoCubierto": 176.5,
-      "avance": 0.3238532110091743
+      "pesoCubierto": 182.5,
+      "avance": 0.3348623853211009
     },
     "byCut": {
       "alpha": {
         "total": 121,
-        "cubierto": 25,
+        "cubierto": 46,
         "parcial": 23,
-        "pendiente": 73,
+        "pendiente": 52,
         "diferido": 0,
         "bloqueado": 0,
         "pesoTotal": 326,
-        "pesoCubierto": 85,
-        "avance": 0.2607361963190184
+        "pesoCubierto": 141,
+        "avance": 0.4325153374233129
       },
       "beta": {
         "total": 193,
-        "cubierto": 46,
+        "cubierto": 51,
         "parcial": 23,
-        "pendiente": 124,
+        "pendiente": 119,
         "diferido": 0,
         "bloqueado": 0,
         "pesoTotal": 545,
-        "pesoCubierto": 176.5,
-        "avance": 0.3238532110091743
+        "pesoCubierto": 182.5,
+        "avance": 0.3348623853211009
       },
       "gamma": {
         "total": 434,
-        "cubierto": 13,
+        "cubierto": 18,
         "parcial": 5,
-        "pendiente": 416,
+        "pendiente": 411,
         "diferido": 0,
         "bloqueado": 0,
         "pesoTotal": 1126,
-        "pesoCubierto": 44,
-        "avance": 0.03907637655417407
+        "pesoCubierto": 56,
+        "avance": 0.0497335701598579
       },
       "delta": {
         "total": 378,
@@ -151,14 +151,14 @@
     "byPriority": {
       "M0": {
         "total": 130,
-        "cubierto": 51,
+        "cubierto": 77,
         "parcial": 29,
-        "pendiente": 50,
+        "pendiente": 24,
         "diferido": 0,
         "bloqueado": 0,
         "pesoTotal": 333,
-        "pesoCubierto": 168,
-        "avance": 0.5045045045045045
+        "pesoCubierto": 230,
+        "avance": 0.6906906906906907
       },
       "M1": {
         "total": 161,
@@ -173,25 +173,25 @@
       },
       "S": {
         "total": 471,
-        "cubierto": 14,
+        "cubierto": 18,
         "parcial": 8,
-        "pendiente": 287,
+        "pendiente": 283,
         "diferido": 162,
         "bloqueado": 0,
         "pesoTotal": 1247,
-        "pesoCubierto": 65,
-        "avance": 0.052125100240577385
+        "pesoCubierto": 73,
+        "avance": 0.05854049719326383
       },
       "C": {
         "total": 247,
-        "cubierto": 1,
+        "cubierto": 2,
         "parcial": 1,
-        "pendiente": 144,
+        "pendiente": 143,
         "diferido": 101,
         "bloqueado": 0,
         "pesoTotal": 661,
-        "pesoCubierto": 4,
-        "avance": 0.006051437216338881
+        "pesoCubierto": 8,
+        "avance": 0.012102874432677761
       },
       "W": {
         "total": 117,
@@ -232,14 +232,14 @@
       "11": {
         "titulo": "Canvas — modelado básico (agregación, multi-selección, enlaces procedurales, propiedades, alineación, borrado)",
         "total": 22,
-        "cubierto": 9,
+        "cubierto": 11,
         "parcial": 4,
-        "pendiente": 9,
+        "pendiente": 7,
         "diferido": 0,
         "bloqueado": 0,
         "pesoTotal": 56,
-        "pesoCubierto": 26,
-        "avance": 0.4642857142857143
+        "pesoCubierto": 32,
+        "avance": 0.5714285714285714
       },
       "12": {
         "titulo": "Canvas — descomposición de procesos",
@@ -268,26 +268,26 @@
       "14": {
         "titulo": "Canvas — estilado visual de cosas, texto y enlaces",
         "total": 15,
-        "cubierto": 0,
+        "cubierto": 5,
         "parcial": 0,
-        "pendiente": 15,
+        "pendiente": 10,
         "diferido": 0,
         "bloqueado": 0,
         "pesoTotal": 30,
-        "pesoCubierto": 0,
-        "avance": 0
+        "pesoCubierto": 12,
+        "avance": 0.4
       },
       "15": {
         "titulo": "Canvas — enlaces avanzados (multiplicidad, rutas, XOR/O, condición/evento/NO, invocación)",
         "total": 23,
-        "cubierto": 18,
+        "cubierto": 16,
         "parcial": 1,
-        "pendiente": 4,
+        "pendiente": 6,
         "diferido": 0,
         "bloqueado": 0,
         "pesoTotal": 51,
-        "pesoCubierto": 43,
-        "avance": 0.8431372549019608
+        "pesoCubierto": 39,
+        "avance": 0.7647058823529411
       },
       "16": {
         "titulo": "Canvas — enlaces: propiedades, Tabla de Enlaces y estilo",
@@ -340,14 +340,14 @@
       "20": {
         "titulo": "Estructura — árbol OPD (navegación, orden, gestión, vistas derivadas)",
         "total": 21,
-        "cubierto": 7,
+        "cubierto": 9,
         "parcial": 0,
-        "pendiente": 14,
+        "pendiente": 12,
         "diferido": 0,
         "bloqueado": 0,
         "pesoTotal": 54,
-        "pesoCubierto": 15,
-        "avance": 0.2777777777777778
+        "pesoCubierto": 21,
+        "avance": 0.3888888888888889
       },
       "21": {
         "titulo": "Estructura — mapa del sistema (meta-vista gráfica del árbol de OPDs)",
@@ -364,14 +364,14 @@
       "30": {
         "titulo": "Persistencia — guardar/cargar, diálogos modales, versiones, archivado, búsqueda global, autosalvado",
         "total": 34,
-        "cubierto": 4,
+        "cubierto": 12,
         "parcial": 5,
-        "pendiente": 25,
+        "pendiente": 17,
         "diferido": 0,
         "bloqueado": 0,
         "pesoTotal": 89,
-        "pesoCubierto": 13,
-        "avance": 0.14606741573033707
+        "pesoCubierto": 31,
+        "avance": 0.34831460674157305
       },
       "31": {
         "titulo": "Persistencia — carpetas, jerarquía, permisos y navegación del workspace",
@@ -412,14 +412,14 @@
       "34": {
         "titulo": "Persistencia — creación de modelo nuevo (ruta simple + asistente de 12 etapas)",
         "total": 28,
-        "cubierto": 0,
+        "cubierto": 6,
         "parcial": 0,
-        "pendiente": 28,
+        "pendiente": 22,
         "diferido": 0,
         "bloqueado": 0,
         "pesoTotal": 60,
-        "pesoCubierto": 0,
-        "avance": 0
+        "pesoCubierto": 8,
+        "avance": 0.13333333333333333
       },
       "35": {
         "titulo": "Persistencia — mover modelos y buscar cosas (Ctrl+F intra-modelo)",
@@ -472,14 +472,14 @@
       "50": {
         "titulo": "Panel OPL-ES — lente bimodal, edición inversa y sincronización con el canvas",
         "total": 21,
-        "cubierto": 0,
+        "cubierto": 9,
         "parcial": 1,
-        "pendiente": 20,
+        "pendiente": 11,
         "diferido": 0,
         "bloqueado": 0,
         "pesoTotal": 55,
-        "pesoCubierto": 2,
-        "avance": 0.03636363636363636
+        "pesoCubierto": 28,
+        "avance": 0.509090909090909
       },
       "60": {
         "titulo": "Exportar a PDF — pipeline papel, opciones, selección de OPDs, integración Compartir",
@@ -616,14 +616,14 @@
       "1C": {
         "titulo": "Canvas — validaciones (interior/exterior, nombres duplicados, verificación metodológica, alcance de eliminación)",
         "total": 17,
-        "cubierto": 3,
+        "cubierto": 4,
         "parcial": 4,
-        "pendiente": 10,
+        "pendiente": 9,
         "diferido": 0,
         "bloqueado": 0,
         "pesoTotal": 48,
-        "pesoCubierto": 17,
-        "avance": 0.3541666666666667
+        "pesoCubierto": 19,
+        "avance": 0.3958333333333333
       },
       "A0": {
         "titulo": "Extensión — estereotipos OPM (mecanismo genérico de ampliación del lenguaje)",
@@ -14888,15 +14888,28 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-1c-canvas-validaciones.md",
       "lineaInicio": 80,
       "corte": "beta",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto: click dentro del bbox de un contenedor refinado crea cosa hija sin advertencia interior/exterior.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/modelo/creacionInterna.ts",
+          "hrefDashboard": "../../app/src/modelo/creacionInterna.ts"
+        },
+        {
+          "path": "app/src/store.ts",
+          "hrefDashboard": "../../app/src/store.ts"
+        },
+        {
+          "path": "app/src/modelo/creacionInterna.test.ts",
+          "hrefDashboard": "../../app/src/modelo/creacionInterna.test.ts"
+        }
+      ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-1c-canvas-validaciones.md"
     },
     {
@@ -16878,15 +16891,32 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-11-canvas-modelado-basico.md",
       "lineaInicio": 128,
       "corte": "alpha",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto: bus de agregacion derivado en render con triangulo unico + ramas y etiquetas editables que aparecen como sufijo OPL.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/render/jointjs/agregacionBus.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/agregacionBus.ts"
+        },
+        {
+          "path": "app/src/modelo/etiquetasEnlace.ts",
+          "hrefDashboard": "../../app/src/modelo/etiquetasEnlace.ts"
+        },
+        {
+          "path": "app/src/ui/InspectorEnlace.tsx",
+          "hrefDashboard": "../../app/src/ui/InspectorEnlace.tsx"
+        },
+        {
+          "path": "app/src/opl/generar.ts",
+          "hrefDashboard": "../../app/src/opl/generar.ts"
+        }
+      ],
       "peso": 4,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 4,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-11-canvas-modelado-basico.md"
     },
     {
@@ -17378,15 +17408,32 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-11-canvas-modelado-basico.md",
       "lineaInicio": 400,
       "corte": "alpha",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto: bus de agregacion derivado en render con triangulo unico + ramas y etiquetas editables que aparecen como sufijo OPL.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/render/jointjs/agregacionBus.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/agregacionBus.ts"
+        },
+        {
+          "path": "app/src/modelo/etiquetasEnlace.ts",
+          "hrefDashboard": "../../app/src/modelo/etiquetasEnlace.ts"
+        },
+        {
+          "path": "app/src/ui/InspectorEnlace.tsx",
+          "hrefDashboard": "../../app/src/ui/InspectorEnlace.tsx"
+        },
+        {
+          "path": "app/src/opl/generar.ts",
+          "hrefDashboard": "../../app/src/opl/generar.ts"
+        }
+      ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-11-canvas-modelado-basico.md"
     },
     {
@@ -20859,15 +20906,32 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-14-canvas-styling.md",
       "lineaInicio": 45,
       "corte": "gamma",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto: Apariencia.estilo? con paleta cerrada de fill/borderColor, swatches + Reset y persistencia JSON sin eco OPL.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/modelo/estilos.ts",
+          "hrefDashboard": "../../app/src/modelo/estilos.ts"
+        },
+        {
+          "path": "app/src/ui/StyleControls.tsx",
+          "hrefDashboard": "../../app/src/ui/StyleControls.tsx"
+        },
+        {
+          "path": "app/src/serializacion/json.ts",
+          "hrefDashboard": "../../app/src/serializacion/json.ts"
+        },
+        {
+          "path": "app/src/modelo/estilos.test.ts",
+          "hrefDashboard": "../../app/src/modelo/estilos.test.ts"
+        }
+      ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-14-canvas-styling.md"
     },
     {
@@ -20899,15 +20963,32 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-14-canvas-styling.md",
       "lineaInicio": 57,
       "corte": "gamma",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto: Apariencia.estilo? con paleta cerrada de fill/borderColor, swatches + Reset y persistencia JSON sin eco OPL.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/modelo/estilos.ts",
+          "hrefDashboard": "../../app/src/modelo/estilos.ts"
+        },
+        {
+          "path": "app/src/ui/StyleControls.tsx",
+          "hrefDashboard": "../../app/src/ui/StyleControls.tsx"
+        },
+        {
+          "path": "app/src/serializacion/json.ts",
+          "hrefDashboard": "../../app/src/serializacion/json.ts"
+        },
+        {
+          "path": "app/src/modelo/estilos.test.ts",
+          "hrefDashboard": "../../app/src/modelo/estilos.test.ts"
+        }
+      ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-14-canvas-styling.md"
     },
     {
@@ -20938,15 +21019,32 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-14-canvas-styling.md",
       "lineaInicio": 71,
       "corte": "gamma",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto: Apariencia.estilo? con paleta cerrada de fill/borderColor, swatches + Reset y persistencia JSON sin eco OPL.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/modelo/estilos.ts",
+          "hrefDashboard": "../../app/src/modelo/estilos.ts"
+        },
+        {
+          "path": "app/src/ui/StyleControls.tsx",
+          "hrefDashboard": "../../app/src/ui/StyleControls.tsx"
+        },
+        {
+          "path": "app/src/serializacion/json.ts",
+          "hrefDashboard": "../../app/src/serializacion/json.ts"
+        },
+        {
+          "path": "app/src/modelo/estilos.test.ts",
+          "hrefDashboard": "../../app/src/modelo/estilos.test.ts"
+        }
+      ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-14-canvas-styling.md"
     },
     {
@@ -21368,15 +21466,32 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-14-canvas-styling.md",
       "lineaInicio": 208,
       "corte": "gamma",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto: Apariencia.estilo? con paleta cerrada de fill/borderColor, swatches + Reset y persistencia JSON sin eco OPL.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/modelo/estilos.ts",
+          "hrefDashboard": "../../app/src/modelo/estilos.ts"
+        },
+        {
+          "path": "app/src/ui/StyleControls.tsx",
+          "hrefDashboard": "../../app/src/ui/StyleControls.tsx"
+        },
+        {
+          "path": "app/src/serializacion/json.ts",
+          "hrefDashboard": "../../app/src/serializacion/json.ts"
+        },
+        {
+          "path": "app/src/modelo/estilos.test.ts",
+          "hrefDashboard": "../../app/src/modelo/estilos.test.ts"
+        }
+      ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-14-canvas-styling.md"
     },
     {
@@ -21449,15 +21564,32 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-14-canvas-styling.md",
       "lineaInicio": 234,
       "corte": "gamma",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto: Apariencia.estilo? con paleta cerrada de fill/borderColor, swatches + Reset y persistencia JSON sin eco OPL.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/modelo/estilos.ts",
+          "hrefDashboard": "../../app/src/modelo/estilos.ts"
+        },
+        {
+          "path": "app/src/ui/StyleControls.tsx",
+          "hrefDashboard": "../../app/src/ui/StyleControls.tsx"
+        },
+        {
+          "path": "app/src/serializacion/json.ts",
+          "hrefDashboard": "../../app/src/serializacion/json.ts"
+        },
+        {
+          "path": "app/src/modelo/estilos.test.ts",
+          "hrefDashboard": "../../app/src/modelo/estilos.test.ts"
+        }
+      ],
       "peso": 4,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 4,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-14-canvas-styling.md"
     },
     {
@@ -22064,11 +22196,14 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-15-canvas-enlaces-avanzados.md",
       "lineaInicio": 158,
       "corte": "beta",
-      "estadoAvance": "cubierto",
+      "estadoAvance": "pendiente",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto: los abanicos O/XOR proyectan conectores canonicos desde assets logicos sin overlay textual.",
-      "brechas": [],
+      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
+      "brechas": [
+        "app/src/render/jointjs/abanicoOverlay.ts: falta standard.Polygon",
+        "app/src/render/jointjs/proyeccion.ts: falta abanico.operador"
+      ],
       "evidencia": [
         {
           "path": "app/src/render/jointjs/abanicoOverlay.ts",
@@ -22108,8 +22243,8 @@
         }
       ],
       "peso": 2,
-      "score": 1,
-      "avancePonderado": 2,
+      "score": 0,
+      "avancePonderado": 0,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-15-canvas-enlaces-avanzados.md"
     },
     {
@@ -22138,11 +22273,14 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-15-canvas-enlaces-avanzados.md",
       "lineaInicio": 169,
       "corte": "beta",
-      "estadoAvance": "cubierto",
+      "estadoAvance": "pendiente",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto: los abanicos O/XOR proyectan conectores canonicos desde assets logicos sin overlay textual.",
-      "brechas": [],
+      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
+      "brechas": [
+        "app/src/render/jointjs/abanicoOverlay.ts: falta standard.Polygon",
+        "app/src/render/jointjs/proyeccion.ts: falta abanico.operador"
+      ],
       "evidencia": [
         {
           "path": "app/src/render/jointjs/abanicoOverlay.ts",
@@ -22182,8 +22320,8 @@
         }
       ],
       "peso": 2,
-      "score": 1,
-      "avancePonderado": 2,
+      "score": 0,
+      "avancePonderado": 0,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-15-canvas-enlaces-avanzados.md"
     },
     {
@@ -27163,15 +27301,36 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-20-estructura-arbol-opd.md",
       "lineaInicio": 185,
       "corte": "alpha",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto: bloqueo de raiz, mensaje accionable para internos, eliminacion controlada de hojas con limpieza de huerfanos y undo.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/modelo/opdEliminacion.ts",
+          "hrefDashboard": "../../app/src/modelo/opdEliminacion.ts"
+        },
+        {
+          "path": "app/src/ui/ArbolOpd.tsx",
+          "hrefDashboard": "../../app/src/ui/ArbolOpd.tsx"
+        },
+        {
+          "path": "app/src/store.ts",
+          "hrefDashboard": "../../app/src/store.ts"
+        },
+        {
+          "path": "app/src/modelo/opdEliminacion.test.ts",
+          "hrefDashboard": "../../app/src/modelo/opdEliminacion.test.ts"
+        },
+        {
+          "path": "app/src/store.test.ts",
+          "hrefDashboard": "../../app/src/store.test.ts"
+        }
+      ],
       "peso": 4,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 4,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-20-estructura-arbol-opd.md"
     },
     {
@@ -27197,15 +27356,36 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-20-estructura-arbol-opd.md",
       "lineaInicio": 198,
       "corte": "alpha",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto: bloqueo de raiz, mensaje accionable para internos, eliminacion controlada de hojas con limpieza de huerfanos y undo.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/modelo/opdEliminacion.ts",
+          "hrefDashboard": "../../app/src/modelo/opdEliminacion.ts"
+        },
+        {
+          "path": "app/src/ui/ArbolOpd.tsx",
+          "hrefDashboard": "../../app/src/ui/ArbolOpd.tsx"
+        },
+        {
+          "path": "app/src/store.ts",
+          "hrefDashboard": "../../app/src/store.ts"
+        },
+        {
+          "path": "app/src/modelo/opdEliminacion.test.ts",
+          "hrefDashboard": "../../app/src/modelo/opdEliminacion.test.ts"
+        },
+        {
+          "path": "app/src/store.test.ts",
+          "hrefDashboard": "../../app/src/store.test.ts"
+        }
+      ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-20-estructura-arbol-opd.md"
     },
     {
@@ -28054,15 +28234,32 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-30-persistencia-save-load.md",
       "lineaInicio": 65,
       "corte": "alpha",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto: menu hamburguesa con Guardar como y Cargar; primer Ctrl+S abre dialogo; guardado posterior reescribe id; importacion no autopersiste.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/ui/MenuPrincipal.tsx",
+          "hrefDashboard": "../../app/src/ui/MenuPrincipal.tsx"
+        },
+        {
+          "path": "app/src/ui/DialogoGuardarComo.tsx",
+          "hrefDashboard": "../../app/src/ui/DialogoGuardarComo.tsx"
+        },
+        {
+          "path": "app/src/ui/DialogoCargarModelo.tsx",
+          "hrefDashboard": "../../app/src/ui/DialogoCargarModelo.tsx"
+        },
+        {
+          "path": "app/src/persistencia/workspace.ts",
+          "hrefDashboard": "../../app/src/persistencia/workspace.ts"
+        }
+      ],
       "peso": 1,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 1,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-30-persistencia-save-load.md"
     },
     {
@@ -28217,15 +28414,32 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-30-persistencia-save-load.md",
       "lineaInicio": 98,
       "corte": "alpha",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto: menu hamburguesa con Guardar como y Cargar; primer Ctrl+S abre dialogo; guardado posterior reescribe id; importacion no autopersiste.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/ui/MenuPrincipal.tsx",
+          "hrefDashboard": "../../app/src/ui/MenuPrincipal.tsx"
+        },
+        {
+          "path": "app/src/ui/DialogoGuardarComo.tsx",
+          "hrefDashboard": "../../app/src/ui/DialogoGuardarComo.tsx"
+        },
+        {
+          "path": "app/src/ui/DialogoCargarModelo.tsx",
+          "hrefDashboard": "../../app/src/ui/DialogoCargarModelo.tsx"
+        },
+        {
+          "path": "app/src/persistencia/workspace.ts",
+          "hrefDashboard": "../../app/src/persistencia/workspace.ts"
+        }
+      ],
       "peso": 4,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 4,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-30-persistencia-save-load.md"
     },
     {
@@ -28251,15 +28465,32 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-30-persistencia-save-load.md",
       "lineaInicio": 108,
       "corte": "alpha",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto: menu hamburguesa con Guardar como y Cargar; primer Ctrl+S abre dialogo; guardado posterior reescribe id; importacion no autopersiste.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/ui/MenuPrincipal.tsx",
+          "hrefDashboard": "../../app/src/ui/MenuPrincipal.tsx"
+        },
+        {
+          "path": "app/src/ui/DialogoGuardarComo.tsx",
+          "hrefDashboard": "../../app/src/ui/DialogoGuardarComo.tsx"
+        },
+        {
+          "path": "app/src/ui/DialogoCargarModelo.tsx",
+          "hrefDashboard": "../../app/src/ui/DialogoCargarModelo.tsx"
+        },
+        {
+          "path": "app/src/persistencia/workspace.ts",
+          "hrefDashboard": "../../app/src/persistencia/workspace.ts"
+        }
+      ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-30-persistencia-save-load.md"
     },
     {
@@ -28371,15 +28602,32 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-30-persistencia-save-load.md",
       "lineaInicio": 138,
       "corte": "alpha",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto: menu hamburguesa con Guardar como y Cargar; primer Ctrl+S abre dialogo; guardado posterior reescribe id; importacion no autopersiste.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/ui/MenuPrincipal.tsx",
+          "hrefDashboard": "../../app/src/ui/MenuPrincipal.tsx"
+        },
+        {
+          "path": "app/src/ui/DialogoGuardarComo.tsx",
+          "hrefDashboard": "../../app/src/ui/DialogoGuardarComo.tsx"
+        },
+        {
+          "path": "app/src/ui/DialogoCargarModelo.tsx",
+          "hrefDashboard": "../../app/src/ui/DialogoCargarModelo.tsx"
+        },
+        {
+          "path": "app/src/persistencia/workspace.ts",
+          "hrefDashboard": "../../app/src/persistencia/workspace.ts"
+        }
+      ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-30-persistencia-save-load.md"
     },
     {
@@ -28405,15 +28653,32 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-30-persistencia-save-load.md",
       "lineaInicio": 147,
       "corte": "alpha",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto: menu hamburguesa con Guardar como y Cargar; primer Ctrl+S abre dialogo; guardado posterior reescribe id; importacion no autopersiste.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/ui/MenuPrincipal.tsx",
+          "hrefDashboard": "../../app/src/ui/MenuPrincipal.tsx"
+        },
+        {
+          "path": "app/src/ui/DialogoGuardarComo.tsx",
+          "hrefDashboard": "../../app/src/ui/DialogoGuardarComo.tsx"
+        },
+        {
+          "path": "app/src/ui/DialogoCargarModelo.tsx",
+          "hrefDashboard": "../../app/src/ui/DialogoCargarModelo.tsx"
+        },
+        {
+          "path": "app/src/persistencia/workspace.ts",
+          "hrefDashboard": "../../app/src/persistencia/workspace.ts"
+        }
+      ],
       "peso": 1,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 1,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-30-persistencia-save-load.md"
     },
     {
@@ -28508,15 +28773,32 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-30-persistencia-save-load.md",
       "lineaInicio": 174,
       "corte": "alpha",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto: menu hamburguesa con Guardar como y Cargar; primer Ctrl+S abre dialogo; guardado posterior reescribe id; importacion no autopersiste.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/ui/MenuPrincipal.tsx",
+          "hrefDashboard": "../../app/src/ui/MenuPrincipal.tsx"
+        },
+        {
+          "path": "app/src/ui/DialogoGuardarComo.tsx",
+          "hrefDashboard": "../../app/src/ui/DialogoGuardarComo.tsx"
+        },
+        {
+          "path": "app/src/ui/DialogoCargarModelo.tsx",
+          "hrefDashboard": "../../app/src/ui/DialogoCargarModelo.tsx"
+        },
+        {
+          "path": "app/src/persistencia/workspace.ts",
+          "hrefDashboard": "../../app/src/persistencia/workspace.ts"
+        }
+      ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-30-persistencia-save-load.md"
     },
     {
@@ -28595,15 +28877,32 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-30-persistencia-save-load.md",
       "lineaInicio": 193,
       "corte": "alpha",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto: menu hamburguesa con Guardar como y Cargar; primer Ctrl+S abre dialogo; guardado posterior reescribe id; importacion no autopersiste.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/ui/MenuPrincipal.tsx",
+          "hrefDashboard": "../../app/src/ui/MenuPrincipal.tsx"
+        },
+        {
+          "path": "app/src/ui/DialogoGuardarComo.tsx",
+          "hrefDashboard": "../../app/src/ui/DialogoGuardarComo.tsx"
+        },
+        {
+          "path": "app/src/ui/DialogoCargarModelo.tsx",
+          "hrefDashboard": "../../app/src/ui/DialogoCargarModelo.tsx"
+        },
+        {
+          "path": "app/src/persistencia/workspace.ts",
+          "hrefDashboard": "../../app/src/persistencia/workspace.ts"
+        }
+      ],
       "peso": 4,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 4,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-30-persistencia-save-load.md"
     },
     {
@@ -28713,15 +29012,32 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-30-persistencia-save-load.md",
       "lineaInicio": 224,
       "corte": "alpha",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto: menu hamburguesa con Guardar como y Cargar; primer Ctrl+S abre dialogo; guardado posterior reescribe id; importacion no autopersiste.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/ui/MenuPrincipal.tsx",
+          "hrefDashboard": "../../app/src/ui/MenuPrincipal.tsx"
+        },
+        {
+          "path": "app/src/ui/DialogoGuardarComo.tsx",
+          "hrefDashboard": "../../app/src/ui/DialogoGuardarComo.tsx"
+        },
+        {
+          "path": "app/src/ui/DialogoCargarModelo.tsx",
+          "hrefDashboard": "../../app/src/ui/DialogoCargarModelo.tsx"
+        },
+        {
+          "path": "app/src/persistencia/workspace.ts",
+          "hrefDashboard": "../../app/src/persistencia/workspace.ts"
+        }
+      ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-30-persistencia-save-load.md"
     },
     {
@@ -32173,15 +32489,28 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-34-persistencia-nuevo-modelo.md",
       "lineaInicio": 21,
       "corte": "beta",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto: Nuevo crea pestana con SD vacio, titulo (No guardado) y panel OPL/biblioteca vacios.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/ui/MenuPrincipal.tsx",
+          "hrefDashboard": "../../app/src/ui/MenuPrincipal.tsx"
+        },
+        {
+          "path": "app/src/store.ts",
+          "hrefDashboard": "../../app/src/store.ts"
+        },
+        {
+          "path": "app/src/ui/Toolbar.tsx",
+          "hrefDashboard": "../../app/src/ui/Toolbar.tsx"
+        }
+      ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-34-persistencia-nuevo-modelo.md"
     },
     {
@@ -32274,15 +32603,28 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-34-persistencia-nuevo-modelo.md",
       "lineaInicio": 30,
       "corte": "beta",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto: Nuevo crea pestana con SD vacio, titulo (No guardado) y panel OPL/biblioteca vacios.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/ui/MenuPrincipal.tsx",
+          "hrefDashboard": "../../app/src/ui/MenuPrincipal.tsx"
+        },
+        {
+          "path": "app/src/store.ts",
+          "hrefDashboard": "../../app/src/store.ts"
+        },
+        {
+          "path": "app/src/ui/Toolbar.tsx",
+          "hrefDashboard": "../../app/src/ui/Toolbar.tsx"
+        }
+      ],
       "peso": 1,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 1,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-34-persistencia-nuevo-modelo.md"
     },
     {
@@ -32309,15 +32651,28 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-34-persistencia-nuevo-modelo.md",
       "lineaInicio": 33,
       "corte": "beta",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto: Nuevo crea pestana con SD vacio, titulo (No guardado) y panel OPL/biblioteca vacios.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/ui/MenuPrincipal.tsx",
+          "hrefDashboard": "../../app/src/ui/MenuPrincipal.tsx"
+        },
+        {
+          "path": "app/src/store.ts",
+          "hrefDashboard": "../../app/src/store.ts"
+        },
+        {
+          "path": "app/src/ui/Toolbar.tsx",
+          "hrefDashboard": "../../app/src/ui/Toolbar.tsx"
+        }
+      ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-34-persistencia-nuevo-modelo.md"
     },
     {
@@ -32343,15 +32698,28 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-34-persistencia-nuevo-modelo.md",
       "lineaInicio": 36,
       "corte": "beta",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto: Nuevo crea pestana con SD vacio, titulo (No guardado) y panel OPL/biblioteca vacios.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/ui/MenuPrincipal.tsx",
+          "hrefDashboard": "../../app/src/ui/MenuPrincipal.tsx"
+        },
+        {
+          "path": "app/src/store.ts",
+          "hrefDashboard": "../../app/src/store.ts"
+        },
+        {
+          "path": "app/src/ui/Toolbar.tsx",
+          "hrefDashboard": "../../app/src/ui/Toolbar.tsx"
+        }
+      ],
       "peso": 1,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 1,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-34-persistencia-nuevo-modelo.md"
     },
     {
@@ -32380,15 +32748,28 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-34-persistencia-nuevo-modelo.md",
       "lineaInicio": 39,
       "corte": "beta",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto: Nuevo crea pestana con SD vacio, titulo (No guardado) y panel OPL/biblioteca vacios.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/ui/MenuPrincipal.tsx",
+          "hrefDashboard": "../../app/src/ui/MenuPrincipal.tsx"
+        },
+        {
+          "path": "app/src/store.ts",
+          "hrefDashboard": "../../app/src/store.ts"
+        },
+        {
+          "path": "app/src/ui/Toolbar.tsx",
+          "hrefDashboard": "../../app/src/ui/Toolbar.tsx"
+        }
+      ],
       "peso": 1,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 1,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-34-persistencia-nuevo-modelo.md"
     },
     {
@@ -32413,15 +32794,28 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-34-persistencia-nuevo-modelo.md",
       "lineaInicio": 42,
       "corte": "beta",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto: Nuevo crea pestana con SD vacio, titulo (No guardado) y panel OPL/biblioteca vacios.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/ui/MenuPrincipal.tsx",
+          "hrefDashboard": "../../app/src/ui/MenuPrincipal.tsx"
+        },
+        {
+          "path": "app/src/store.ts",
+          "hrefDashboard": "../../app/src/store.ts"
+        },
+        {
+          "path": "app/src/ui/Toolbar.tsx",
+          "hrefDashboard": "../../app/src/ui/Toolbar.tsx"
+        }
+      ],
       "peso": 1,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 1,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-34-persistencia-nuevo-modelo.md"
     },
     {
@@ -35996,14 +36390,11 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-50-opl-pane.md",
       "lineaInicio": 45,
       "corte": "alpha",
-      "estadoAvance": "pendiente",
+      "estadoAvance": "cubierto",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
-      "brechas": [
-        "app/src/ui/PanelOpl.tsx: falta generarOpl(modelo, opdActivoId)",
-        "app/src/ui/PanelOpl.tsx: falta renderOpl"
-      ],
+      "nota": "Auto: panel OPL persistente renderiza objetos/procesos con marcas semanticas y colores diferenciados.",
+      "brechas": [],
       "evidencia": [
         {
           "path": "app/src/ui/PanelOpl.tsx",
@@ -36019,8 +36410,8 @@
         }
       ],
       "peso": 4,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 4,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-50-opl-pane.md"
     },
     {
@@ -36046,15 +36437,40 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-50-opl-pane.md",
       "lineaInicio": 48,
       "corte": "alpha",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto: panel OPL numerado con tokens estables, hover/click bidireccional canvas<->OPL, filtro por seleccion y renombrado inverso desde la lente.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/opl/interaccion.ts",
+          "hrefDashboard": "../../app/src/opl/interaccion.ts"
+        },
+        {
+          "path": "app/src/ui/PanelOpl.tsx",
+          "hrefDashboard": "../../app/src/ui/PanelOpl.tsx"
+        },
+        {
+          "path": "app/src/store.ts",
+          "hrefDashboard": "../../app/src/store.ts"
+        },
+        {
+          "path": "app/src/opl/generar.test.ts",
+          "hrefDashboard": "../../app/src/opl/generar.test.ts"
+        },
+        {
+          "path": "app/src/store.test.ts",
+          "hrefDashboard": "../../app/src/store.test.ts"
+        },
+        {
+          "path": "app/e2e/opm-smoke.spec.ts",
+          "hrefDashboard": "../../app/e2e/opm-smoke.spec.ts"
+        }
+      ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-50-opl-pane.md"
     },
     {
@@ -36489,14 +36905,11 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-50-opl-pane.md",
       "lineaInicio": 87,
       "corte": "alpha",
-      "estadoAvance": "pendiente",
+      "estadoAvance": "cubierto",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
-      "brechas": [
-        "app/src/ui/PanelOpl.tsx: falta generarOpl(modelo, opdActivoId)",
-        "app/src/ui/PanelOpl.tsx: falta renderOpl"
-      ],
+      "nota": "Auto: panel OPL persistente renderiza objetos/procesos con marcas semanticas y colores diferenciados.",
+      "brechas": [],
       "evidencia": [
         {
           "path": "app/src/ui/PanelOpl.tsx",
@@ -36512,8 +36925,8 @@
         }
       ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-50-opl-pane.md"
     },
     {
@@ -36541,14 +36954,11 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-50-opl-pane.md",
       "lineaInicio": 90,
       "corte": "alpha",
-      "estadoAvance": "pendiente",
+      "estadoAvance": "cubierto",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
-      "brechas": [
-        "app/src/ui/PanelOpl.tsx: falta generarOpl(modelo, opdActivoId)",
-        "app/src/ui/PanelOpl.tsx: falta renderOpl"
-      ],
+      "nota": "Auto: panel OPL persistente renderiza objetos/procesos con marcas semanticas y colores diferenciados.",
+      "brechas": [],
       "evidencia": [
         {
           "path": "app/src/ui/PanelOpl.tsx",
@@ -36564,8 +36974,8 @@
         }
       ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-50-opl-pane.md"
     },
     {
@@ -36591,15 +37001,40 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-50-opl-pane.md",
       "lineaInicio": 93,
       "corte": "alpha",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto: panel OPL numerado con tokens estables, hover/click bidireccional canvas<->OPL, filtro por seleccion y renombrado inverso desde la lente.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/opl/interaccion.ts",
+          "hrefDashboard": "../../app/src/opl/interaccion.ts"
+        },
+        {
+          "path": "app/src/ui/PanelOpl.tsx",
+          "hrefDashboard": "../../app/src/ui/PanelOpl.tsx"
+        },
+        {
+          "path": "app/src/store.ts",
+          "hrefDashboard": "../../app/src/store.ts"
+        },
+        {
+          "path": "app/src/opl/generar.test.ts",
+          "hrefDashboard": "../../app/src/opl/generar.test.ts"
+        },
+        {
+          "path": "app/src/store.test.ts",
+          "hrefDashboard": "../../app/src/store.test.ts"
+        },
+        {
+          "path": "app/e2e/opm-smoke.spec.ts",
+          "hrefDashboard": "../../app/e2e/opm-smoke.spec.ts"
+        }
+      ],
       "peso": 4,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 4,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-50-opl-pane.md"
     },
     {
@@ -36625,15 +37060,40 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-50-opl-pane.md",
       "lineaInicio": 96,
       "corte": "alpha",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto: panel OPL numerado con tokens estables, hover/click bidireccional canvas<->OPL, filtro por seleccion y renombrado inverso desde la lente.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/opl/interaccion.ts",
+          "hrefDashboard": "../../app/src/opl/interaccion.ts"
+        },
+        {
+          "path": "app/src/ui/PanelOpl.tsx",
+          "hrefDashboard": "../../app/src/ui/PanelOpl.tsx"
+        },
+        {
+          "path": "app/src/store.ts",
+          "hrefDashboard": "../../app/src/store.ts"
+        },
+        {
+          "path": "app/src/opl/generar.test.ts",
+          "hrefDashboard": "../../app/src/opl/generar.test.ts"
+        },
+        {
+          "path": "app/src/store.test.ts",
+          "hrefDashboard": "../../app/src/store.test.ts"
+        },
+        {
+          "path": "app/e2e/opm-smoke.spec.ts",
+          "hrefDashboard": "../../app/e2e/opm-smoke.spec.ts"
+        }
+      ],
       "peso": 4,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 4,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-50-opl-pane.md"
     },
     {
@@ -36660,15 +37120,40 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-50-opl-pane.md",
       "lineaInicio": 99,
       "corte": "alpha",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto: panel OPL numerado con tokens estables, hover/click bidireccional canvas<->OPL, filtro por seleccion y renombrado inverso desde la lente.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/opl/interaccion.ts",
+          "hrefDashboard": "../../app/src/opl/interaccion.ts"
+        },
+        {
+          "path": "app/src/ui/PanelOpl.tsx",
+          "hrefDashboard": "../../app/src/ui/PanelOpl.tsx"
+        },
+        {
+          "path": "app/src/store.ts",
+          "hrefDashboard": "../../app/src/store.ts"
+        },
+        {
+          "path": "app/src/opl/generar.test.ts",
+          "hrefDashboard": "../../app/src/opl/generar.test.ts"
+        },
+        {
+          "path": "app/src/store.test.ts",
+          "hrefDashboard": "../../app/src/store.test.ts"
+        },
+        {
+          "path": "app/e2e/opm-smoke.spec.ts",
+          "hrefDashboard": "../../app/e2e/opm-smoke.spec.ts"
+        }
+      ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-50-opl-pane.md"
     },
     {
@@ -36695,15 +37180,40 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-50-opl-pane.md",
       "lineaInicio": 102,
       "corte": "alpha",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto: panel OPL numerado con tokens estables, hover/click bidireccional canvas<->OPL, filtro por seleccion y renombrado inverso desde la lente.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/opl/interaccion.ts",
+          "hrefDashboard": "../../app/src/opl/interaccion.ts"
+        },
+        {
+          "path": "app/src/ui/PanelOpl.tsx",
+          "hrefDashboard": "../../app/src/ui/PanelOpl.tsx"
+        },
+        {
+          "path": "app/src/store.ts",
+          "hrefDashboard": "../../app/src/store.ts"
+        },
+        {
+          "path": "app/src/opl/generar.test.ts",
+          "hrefDashboard": "../../app/src/opl/generar.test.ts"
+        },
+        {
+          "path": "app/src/store.test.ts",
+          "hrefDashboard": "../../app/src/store.test.ts"
+        },
+        {
+          "path": "app/e2e/opm-smoke.spec.ts",
+          "hrefDashboard": "../../app/e2e/opm-smoke.spec.ts"
+        }
+      ],
       "peso": 4,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 4,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-50-opl-pane.md"
     },
     {
@@ -36764,15 +37274,40 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-50-opl-pane.md",
       "lineaInicio": 108,
       "corte": "alpha",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto: panel OPL numerado con tokens estables, hover/click bidireccional canvas<->OPL, filtro por seleccion y renombrado inverso desde la lente.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/opl/interaccion.ts",
+          "hrefDashboard": "../../app/src/opl/interaccion.ts"
+        },
+        {
+          "path": "app/src/ui/PanelOpl.tsx",
+          "hrefDashboard": "../../app/src/ui/PanelOpl.tsx"
+        },
+        {
+          "path": "app/src/store.ts",
+          "hrefDashboard": "../../app/src/store.ts"
+        },
+        {
+          "path": "app/src/opl/generar.test.ts",
+          "hrefDashboard": "../../app/src/opl/generar.test.ts"
+        },
+        {
+          "path": "app/src/store.test.ts",
+          "hrefDashboard": "../../app/src/store.test.ts"
+        },
+        {
+          "path": "app/e2e/opm-smoke.spec.ts",
+          "hrefDashboard": "../../app/e2e/opm-smoke.spec.ts"
+        }
+      ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-50-opl-pane.md"
     },
     {
