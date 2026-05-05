@@ -6,6 +6,7 @@ export type Afiliacion = "sistemica" | "ambiental";
 export type TipoRefinamiento = "descomposicion" | "despliegue";
 export type ModoPlegado = "completo" | "parcial";
 export type ModoDespliegueObjeto = "agregacion" | "exhibicion" | "generalizacion" | "clasificacion";
+export type DesignacionEstado = "inicial" | "final";
 
 export type TipoEnlace =
   | "agregacion"
@@ -38,6 +39,14 @@ export interface Entidad {
   esencia: Esencia;
   afiliacion: Afiliacion;
   refinamiento?: RefinamientoEntidad;
+}
+
+export interface Estado {
+  id: Id;
+  entidadId: Id;
+  nombre: string;
+  esInicial?: boolean;
+  esFinal?: boolean;
 }
 
 export interface Apariencia {
@@ -83,6 +92,7 @@ export interface Modelo {
   opdRaizId: Id;
   opds: Record<Id, Opd>;
   entidades: Record<Id, Entidad>;
+  estados: Record<Id, Estado>;
   enlaces: Record<Id, Enlace>;
   nextSeq: number;
 }
