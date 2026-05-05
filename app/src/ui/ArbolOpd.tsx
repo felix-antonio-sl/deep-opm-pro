@@ -22,15 +22,20 @@ export function ArbolOpd() {
   const renombrarOpdDesdeArbol = useOpmStore((s) => s.renombrarOpdDesdeArbol);
   const abrirVistaMapa = useOpmStore((s) => s.abrirVistaMapa);
 
-  const [expandido, setExpandido] = useState<Set<Id>>(new Set());
+  // Se almacena el set INVERSO: ids explicitamente colapsados por el usuario.
+  // Por defecto todos los nodos con hijos arrancan expandidos para evitar
+  // ocultar OPDs recien creados. El usuario puede colapsar manualmente.
+  const [colapsado, setColapsado] = useState<Set<Id>>(new Set());
   const [renombrando, setRenombrando] = useState<{ id: Id; valor: string } | null>(null);
   const [dragOverId, setDragOverId] = useState<Id | null>(null);
   const [colapsarTodo, setColapsarTodo] = useState(false);
 
   const arboles = construirArbol(modelo);
 
+  const estaExpandidoNodo = (id: Id) => !colapsado.has(id);
+
   const toggleExpandido = (id: Id) => {
-    setExpandido((prev) => {
+    setColapsado((prev) => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
       else next.add(id);
@@ -39,7 +44,11 @@ export function ArbolOpd() {
   };
 
   const expandirTodo = () => {
-    // Recopilar todos los ids que tienen hijos
+    setColapsado(new Set());
+    setColapsarTodo(false);
+  };
+
+  const colapsarTodoAccion = () => {
     const idsConHijos = new Set<Id>();
     const recopilar = (nodos: NodoOpd[]) => {
       for (const n of nodos) {
@@ -48,12 +57,7 @@ export function ArbolOpd() {
       }
     };
     recopilar(arboles);
-    setExpandido(idsConHijos);
-    setColapsarTodo(false);
-  };
-
-  const colapsarTodoAccion = () => {
-    setExpandido(new Set());
+    setColapsado(idsConHijos);
     setColapsarTodo(true);
   };
 
@@ -97,7 +101,7 @@ export function ArbolOpd() {
 
   const aplanarNodos = (nodos: NodoOpd[], nivelPadre: number, padreExpandido: boolean): Array<{ nodo: NodoOpd; visible: boolean }> => {
     return nodos.flatMap((n) => {
-      const hijosVisibles = n.hijos.length > 0 && expandido.has(n.opd.id);
+      const hijosVisibles = n.hijos.length > 0 && estaExpandidoNodo(n.opd.id);
       return [
         { nodo: n, visible: true },
         ...(hijosVisibles
@@ -190,7 +194,7 @@ export function ArbolOpd() {
             const nombre = nombreNodo(modelo, nodo.opd);
             const esRaiz = nodo.opd.id === modelo.opdRaizId;
             const tieneHijos = nodo.hijos.length > 0;
-            const estaExpandido = expandido.has(nodo.opd.id);
+            const estaExpandido = estaExpandidoNodo(nodo.opd.id);
             const tituloEliminar = esRaiz
               ? "SD no se puede eliminar"
               : tieneHijos
