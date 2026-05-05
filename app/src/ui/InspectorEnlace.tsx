@@ -1,7 +1,8 @@
 import { useEffect, useState } from "preact/hooks";
-import { validarMultiplicidad } from "../modelo/operaciones";
+import { entidadDeExtremo, entidadIdDeExtremo, extremoEntidad, extremoEstado, nombreExtremo } from "../modelo/extremos";
+import { estadosDeEntidad, validarMultiplicidad } from "../modelo/operaciones";
 import { useOpmStore } from "../store";
-import type { Apariencia, Enlace, Id, Modelo } from "../modelo/tipos";
+import type { Apariencia, Enlace, ExtremoEnlace, Id, Modelo } from "../modelo/tipos";
 import { inspectorStyles as style } from "./inspectorStyles";
 
 interface Props {
@@ -12,12 +13,14 @@ export function InspectorEnlace({ enlace }: Props) {
   const modelo = useOpmStore((s) => s.modelo);
   const opdActivoId = useOpmStore((s) => s.opdActivoId);
   const ajustarMultiplicidad = useOpmStore((s) => s.ajustarMultiplicidadSeleccionada);
+  const apuntarExtremo = useOpmStore((s) => s.apuntarExtremoEnlaceSeleccionado);
   const reanclarEnlaceExternoDerivado = useOpmStore((s) => s.reanclarEnlaceExternoDerivado);
   const volverEnlaceExternoDerivadoAAutomatico = useOpmStore((s) => s.volverEnlaceExternoDerivadoAAutomatico);
   const splitEffect = useOpmStore((s) => s.splitEffectSeleccionado);
   const eliminar = useOpmStore((s) => s.eliminarSeleccion);
-  const origen = modelo.entidades[enlace.origenId];
-  const destino = modelo.entidades[enlace.destinoId];
+  const origen = entidadDeExtremo(modelo, enlace.origenId);
+  const destino = entidadDeExtremo(modelo, enlace.destinoId);
+  const selectoresExtremo = selectoresEstadoExtremo(modelo, enlace);
   const reanclaje = contextoReanclaje(modelo, opdActivoId, enlace);
   const endpointActual = reanclaje?.endpointActualId ?? "";
   const [multiplicidadOrigen, setMultiplicidadOrigen] = useState(enlace.multiplicidadOrigen ?? "");
@@ -59,9 +62,9 @@ export function InspectorEnlace({ enlace }: Props) {
       </div>
 
       <div style={style.summary}>
-        <span>{origen?.nombre ?? enlace.origenId}</span>
+        <span>{origen ? nombreExtremo(modelo, enlace.origenId) : enlace.origenId.id}</span>
         <span style={style.arrow}>{"->"}</span>
-        <span>{destino?.nombre ?? enlace.destinoId}</span>
+        <span>{destino ? nombreExtremo(modelo, enlace.destinoId) : enlace.destinoId.id}</span>
       </div>
 
       <section style={multiplicidadSectionStyle}>
@@ -89,6 +92,31 @@ export function InspectorEnlace({ enlace }: Props) {
           {errorDestino ? <span role="alert" style={errorStyle}>Sintaxis inválida: 1, *, 2..N o 1..5</span> : null}
         </label>
       </section>
+
+      {selectoresExtremo.length > 0 ? (
+        <section style={extremosSectionStyle}>
+          <h3 style={multiplicidadTitleStyle}>Extremos de estado</h3>
+          {selectoresExtremo.map(({ lado, entidad, estados, actual }) => (
+            <label key={lado} style={style.field}>
+              <span style={style.label}>{lado === "origen" ? "Origen" : "Destino"}</span>
+              <select
+                data-testid={`extremo-${lado}-estado-select`}
+                style={style.input}
+                value={actual.kind === "estado" ? actual.id : entidad.id}
+                onChange={(event) => {
+                  const value = event.currentTarget.value;
+                  apuntarExtremo(lado, value === entidad.id ? extremoEntidad(entidad.id) : extremoEstado(value));
+                }}
+              >
+                <option value={entidad.id}>(toda la entidad)</option>
+                {estados.map((estado) => (
+                  <option key={estado.id} value={estado.id}>{estado.nombre}</option>
+                ))}
+              </select>
+            </label>
+          ))}
+        </section>
+      ) : null}
 
       {reanclaje ? (
         <section style={reanclajeSectionStyle}>
@@ -152,6 +180,26 @@ function capitalizar(texto: string): string {
   return texto.charAt(0).toUpperCase() + texto.slice(1);
 }
 
+function selectoresEstadoExtremo(modelo: Modelo, enlace: Enlace): Array<{
+  lado: "origen" | "destino";
+  entidad: NonNullable<ReturnType<typeof entidadDeExtremo>>;
+  estados: ReturnType<typeof estadosDeEntidad>;
+  actual: ExtremoEnlace;
+}> {
+  if (!enlaceProcedural(enlace.tipo)) return [];
+  return (["origen", "destino"] as const).flatMap((lado) => {
+    const actual = lado === "origen" ? enlace.origenId : enlace.destinoId;
+    const entidad = entidadDeExtremo(modelo, actual);
+    if (!entidad || entidad.tipo !== "objeto") return [];
+    const estados = estadosDeEntidad(modelo, entidad.id);
+    return estados.length >= 2 ? [{ lado, entidad, estados, actual }] : [];
+  });
+}
+
+function enlaceProcedural(tipo: Enlace["tipo"]): boolean {
+  return tipo === "agente" || tipo === "instrumento" || tipo === "consumo" || tipo === "resultado" || tipo === "efecto" || tipo === "invocacion";
+}
+
 interface ContextoReanclaje {
   aparienciaEnlaceId: Id;
   endpointActualId: Id;
@@ -172,10 +220,12 @@ function contextoReanclaje(modelo: Modelo, opdId: Id, enlace: Enlace): ContextoR
     .filter((apariencia) => modelo.entidades[apariencia.entidadId]?.tipo === "proceso")
     .sort((a, b) => a.y - b.y || a.x - b.x || a.id.localeCompare(b.id));
   const subprocesoIds = new Set(subprocesos.map((apariencia) => apariencia.entidadId));
-  const endpointActualId = subprocesoIds.has(enlace.destinoId)
-    ? enlace.destinoId
-    : subprocesoIds.has(enlace.origenId)
-      ? enlace.origenId
+  const destinoId = entidadIdDeExtremo(modelo, enlace.destinoId);
+  const origenId = entidadIdDeExtremo(modelo, enlace.origenId);
+  const endpointActualId = destinoId && subprocesoIds.has(destinoId)
+    ? destinoId
+    : origenId && subprocesoIds.has(origenId)
+      ? origenId
       : subprocesos[0]?.entidadId;
   if (!endpointActualId) return null;
   return {
@@ -200,6 +250,12 @@ function dentroDeApariencia(apariencia: Apariencia, contorno: Apariencia): boole
 const multiplicidadSectionStyle = {
   display: "grid",
   gap: "2px",
+  marginBottom: "14px",
+} satisfies preact.JSX.CSSProperties;
+
+const extremosSectionStyle = {
+  display: "grid",
+  gap: "8px",
   marginBottom: "14px",
 } satisfies preact.JSX.CSSProperties;
 

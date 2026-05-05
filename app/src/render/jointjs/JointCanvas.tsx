@@ -4,6 +4,9 @@ import { useOpmStore } from "../../store";
 import type { OpmJointMetadata } from "./proyeccion";
 import { proyectarModeloAJointCells } from "./proyeccion";
 
+type ExtraerParteDePlegado = (aparienciaId: string, parteEntidadId: string) => void;
+type StoreConExtraccionPlegado = { extraerParteDePlegado?: ExtraerParteDePlegado };
+
 interface JointAdapter {
   graph: dia.Graph;
   paper: dia.Paper;

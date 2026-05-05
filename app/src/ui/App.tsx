@@ -71,12 +71,13 @@ const layout = {
     overflow: "hidden",
     position: "relative",
     zIndex: 1,
-    display: "grid",
-    gridTemplateRows: "minmax(0, 1fr) auto auto",
+    display: "flex",
+    flexDirection: "column",
   },
   inspectorContent: {
     minWidth: 0,
     minHeight: 0,
+    flex: "1 1 auto",
     overflow: "auto",
   },
 } satisfies Record<string, preact.JSX.CSSProperties>;

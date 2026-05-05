@@ -32,6 +32,7 @@ import type {
   DerivacionOrigen,
   Entidad,
   Esencia,
+  ExtremoKind,
   Id,
   ModoDespliegueObjeto,
   Modelo,
@@ -40,6 +41,7 @@ import type {
   TipoEnlace,
   TipoEntidad,
 } from "./modelo/tipos";
+import { extremoApuntaAEntidad, extremoEntidad } from "./modelo/extremos";
 import { generarOpl } from "./opl/generar";
 import { LINK_ASSETS } from "./render/jointjs/linkAssets";
 import { proyectarModeloAJointCells } from "./render/jointjs/proyeccion";
@@ -79,10 +81,16 @@ const TODOS_LOS_ORIGENES_DERIVACION: Record<DerivacionOrigen, true> = {
   manual: true,
 };
 
+const TODOS_LOS_EXTREMOS_ENLACE: Record<ExtremoKind, true> = {
+  entidad: true,
+  estado: true,
+};
+
 const TIPOS_ENLACE_LISTA = Object.keys(TODOS_LOS_TIPOS_ENLACE) as TipoEnlace[];
 const MODOS_DESPLIEGUE_LISTA = Object.keys(TODOS_LOS_MODOS_DESPLIEGUE) as ModoDespliegueObjeto[];
 const DESIGNACIONES_ESTADO_LISTA = Object.keys(TODAS_LAS_DESIGNACIONES_ESTADO) as DesignacionEstado[];
 const ORIGENES_DERIVACION_LISTA = Object.keys(TODOS_LOS_ORIGENES_DERIVACION) as DerivacionOrigen[];
+const EXTREMOS_ENLACE_LISTA = Object.keys(TODOS_LOS_EXTREMOS_ENLACE) as ExtremoKind[];
 
 describe("completitud / Toolbar dropdown de TipoEnlace", () => {
   test("TIPOS_ENLACE expone todos los TipoEnlace canonicos", () => {
@@ -131,6 +139,12 @@ describe("completitud / LINK_ASSETS por tipo de enlace", () => {
   });
 });
 
+describe("completitud / ExtremoKind de enlace", () => {
+  test("la firma de enlace cubre entidades completas y estados", () => {
+    expect(EXTREMOS_ENLACE_LISTA).toEqual(["entidad", "estado"]);
+  });
+});
+
 describe("completitud / validarFirmaEnlace responde a cada tipo", () => {
   test("validarFirmaEnlace acepta la firma canonica de cada TipoEnlace", () => {
     for (const tipo of TIPOS_ENLACE_LISTA) {
@@ -153,7 +167,7 @@ describe("completitud / kernel desplegarObjeto por modo", () => {
       const hijo = resultado.value.modelo.opds[resultado.value.opdId];
       expect(hijo).toBeDefined();
       const enlacesHijo = Object.values(resultado.value.modelo.enlaces).filter(
-        (enlace) => enlace.tipo === modo && enlace.origenId === objetoId,
+        (enlace) => enlace.tipo === modo && extremoApuntaAEntidad(enlace.origenId, objetoId),
       );
       expect(enlacesHijo).toHaveLength(3);
     }
@@ -230,7 +244,7 @@ describe("completitud / origen de derivacion de enlace", () => {
     expect(hidratado.ok).toBe(true);
     if (!hidratado.ok) return;
     expect(Object.values(hidratado.value.enlaces)).toContainEqual(expect.objectContaining({
-      destinoId: segundoId,
+      destinoId: extremoEntidad(segundoId),
       derivado: expect.objectContaining({ origen: "manual" }),
     }));
   });

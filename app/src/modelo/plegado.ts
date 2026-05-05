@@ -1,4 +1,5 @@
 import { CANON } from "./constantes";
+import { entidadIdDeExtremo, extremoApuntaAEntidad } from "./extremos";
 import type { Apariencia, Entidad, Id, Modelo, ModoPlegado, Opd, Resultado } from "./tipos";
 
 export interface PartePlegada {
@@ -198,8 +199,9 @@ function partesDeDespliegue(modelo: Modelo, entidad: Entidad, opd: Opd): PartePl
   return Object.values(opd.enlaces)
     .flatMap((aparienciaEnlace) => {
       const enlace = modelo.enlaces[aparienciaEnlace.enlaceId];
-      if (enlace?.tipo !== "agregacion" || enlace.origenId !== entidad.id || !visibles.has(enlace.destinoId)) return [];
-      const parte = modelo.entidades[enlace.destinoId];
+      const destinoId = enlace ? entidadIdDeExtremo(modelo, enlace.destinoId) : null;
+      if (enlace?.tipo !== "agregacion" || !extremoApuntaAEntidad(enlace.origenId, entidad.id) || !destinoId || !visibles.has(destinoId)) return [];
+      const parte = modelo.entidades[destinoId];
       return parte?.tipo === "objeto" ? [{ entidadId: parte.id, nombre: parte.nombre }] : [];
     });
 }

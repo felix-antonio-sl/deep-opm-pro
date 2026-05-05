@@ -1,7 +1,9 @@
+import { entidadDeExtremo, entidadIdDeExtremo, extremoEntidad, extremoVisibleEnOpd, normalizarExtremo } from "../modelo/extremos";
 import { validarFirmaEnlace, validarMultiplicidad } from "../modelo/operaciones";
 import { modoPlegadoApariencia, partesDePlegado } from "../modelo/plegado";
 import type {
   Afiliacion,
+  Abanico,
   Apariencia,
   AparienciaEnlace,
   DerivacionEnlace,
@@ -9,10 +11,13 @@ import type {
   Entidad,
   Esencia,
   Estado,
+  ExtremoEnlace,
+  ExtremoKind,
   Id,
   Modelo,
   ModoDespliegueObjeto,
   ModoPlegado,
+  OperadorAbanico,
   Opd,
   RefinamientoEntidad,
   Resultado,
@@ -28,7 +33,7 @@ export interface DocumentoModelo {
 }
 
 export function exportarModelo(modelo: Modelo): string {
-  const documento: DocumentoModelo = { formato: FORMATO, modelo };
+  const documento: DocumentoModelo = { formato: FORMATO, modelo: normalizarModelo(modelo) };
   return JSON.stringify(documento, null, 2);
 }
 
@@ -56,7 +61,17 @@ function normalizarModelo(modelo: Modelo): Modelo {
       return [id, { ...opd, padreId }];
     }),
   );
-  return { ...modelo, opds };
+  const enlaces = Object.fromEntries(
+    Object.entries(modelo.enlaces).map(([id, enlace]) => [
+      id,
+      {
+        ...enlace,
+        origenId: normalizarExtremo(enlace.origenId),
+        destinoId: normalizarExtremo(enlace.destinoId),
+      },
+    ]),
+  ) as Record<Id, Enlace>;
+  return { ...modelo, opds, enlaces, abanicos: modelo.abanicos ?? {} };
 }
 
 function validarDocumento(value: unknown): Resultado<DocumentoModelo> {
@@ -68,7 +83,7 @@ function validarDocumento(value: unknown): Resultado<DocumentoModelo> {
 
 function validarModelo(value: unknown): Resultado<Modelo> {
   if (!esRecord(value)) return fallo("Modelo inválido");
-  const { id, nombre, opdRaizId, nextSeq, opds, entidades, estados, enlaces } = value;
+  const { id, nombre, opdRaizId, nextSeq, opds, entidades, estados, enlaces, abanicos } = value;
   if (typeof id !== "string") return fallo("Modelo inválido: id");
   if (typeof nombre !== "string") return fallo("Modelo inválido: nombre");
   if (typeof opdRaizId !== "string") return fallo("Modelo inválido: opdRaizId");
@@ -84,8 +99,16 @@ function validarModelo(value: unknown): Resultado<Modelo> {
   const opdsValidados = validarOpds(opds, entidadesValidadas.value);
   if (!opdsValidados.ok) return opdsValidados;
   if (!opdsValidados.value[opdRaizId]) return fallo(`OPD raíz no existe: ${opdRaizId}`);
-  const enlacesValidados = validarEnlaces(enlaces, entidadesValidadas.value);
+  const enlacesValidados = validarEnlaces(enlaces, entidadesValidadas.value, estadosValidados.value);
   if (!enlacesValidados.ok) return enlacesValidados;
+  const abanicosValidados = validarAbanicos(
+    abanicos,
+    opdsValidados.value,
+    enlacesValidados.value,
+    entidadesValidadas.value,
+    estadosValidados.value,
+  );
+  if (!abanicosValidados.ok) return abanicosValidados;
 
   const modelo: Modelo = {
     id,
@@ -96,9 +119,65 @@ function validarModelo(value: unknown): Resultado<Modelo> {
     estados: estadosValidados.value,
     opds: opdsValidados.value,
     enlaces: enlacesValidados.value,
+    abanicos: abanicosValidados.value,
   };
   const referencias = validarReferenciasOpd(modelo);
   return referencias.ok ? ok(modelo) : referencias;
+}
+
+function validarAbanicos(
+  value: unknown,
+  opds: Record<Id, Opd>,
+  enlaces: Record<Id, Enlace>,
+  entidades: Record<Id, Entidad>,
+  estados: Record<Id, Estado>,
+): Resultado<Record<Id, Abanico>> {
+  if (value === undefined) return ok({});
+  if (!esRecord(value)) return fallo("Modelo inválido: abanicos");
+
+  const abanicos: Record<Id, Abanico> = {};
+  for (const [id, raw] of Object.entries(value)) {
+    if (!esRecord(raw)) return fallo(`Abanico inválido: ${id}`);
+    if (raw.id !== id) return fallo(`Abanico inválido: ${id}.id`);
+    if (typeof raw.opdId !== "string" || !opds[raw.opdId]) return fallo(`Abanico inválido: ${id}.opdId`);
+    if (typeof raw.puertoEntidadId !== "string" || !entidades[raw.puertoEntidadId]) {
+      return fallo(`Abanico inválido: ${id}.puertoEntidadId`);
+    }
+    if (!esOperadorAbanico(raw.operador)) return fallo(`Abanico inválido: ${id}.operador`);
+    if (!Array.isArray(raw.enlaceIds)) return fallo(`Abanico inválido: ${id}.enlaceIds`);
+    const enlaceIds = raw.enlaceIds.filter((enlaceId): enlaceId is Id => typeof enlaceId === "string");
+    if (enlaceIds.length !== raw.enlaceIds.length) return fallo(`Abanico inválido: ${id}.enlaceIds`);
+    if (new Set(enlaceIds).size !== enlaceIds.length) return fallo(`Abanico inválido: ${id}.enlaceIds`);
+    if (enlaceIds.length < 2) return fallo(`Abanico inválido: ${id}.min`);
+
+    const miembros: Enlace[] = [];
+    for (const enlaceId of enlaceIds) {
+      const enlace = enlaces[enlaceId];
+      if (!enlace) return fallo(`Abanico inválido: ${id}.enlaceIds`);
+      if (!Object.values(opds[raw.opdId]?.enlaces ?? {}).some((apariencia) => apariencia.enlaceId === enlaceId)) {
+        return fallo(`Abanico inválido: ${id}.opdId`);
+      }
+      miembros.push(enlace);
+    }
+    const tipo = miembros[0]?.tipo;
+    if (!tipo || miembros.some((enlace) => enlace.tipo !== tipo)) return fallo(`Abanico inválido: ${id}.tipo`);
+    const modeloParcial = modeloParaExtremos(entidades, estados);
+    if (!miembros.every((enlace) => (
+      entidadIdDeExtremo(modeloParcial, enlace.origenId) === raw.puertoEntidadId ||
+      entidadIdDeExtremo(modeloParcial, enlace.destinoId) === raw.puertoEntidadId
+    ))) {
+      return fallo(`Abanico inválido: ${id}.puertoEntidadId`);
+    }
+    abanicos[id] = {
+      id,
+      opdId: raw.opdId,
+      puertoEntidadId: raw.puertoEntidadId,
+      operador: raw.operador,
+      enlaceIds,
+    };
+  }
+
+  return ok(abanicos);
 }
 
 function validarEntidades(value: Record<string, unknown>): Resultado<Record<Id, Entidad>> {
@@ -300,23 +379,33 @@ function validarVertices(aparienciaId: Id, value: unknown[]): Resultado<Array<{ 
   return ok(vertices);
 }
 
-function validarEnlaces(value: Record<string, unknown>, entidades: Record<Id, Entidad>): Resultado<Record<Id, Enlace>> {
+function validarEnlaces(
+  value: Record<string, unknown>,
+  entidades: Record<Id, Entidad>,
+  estados: Record<Id, Estado>,
+): Resultado<Record<Id, Enlace>> {
   const enlaces: Record<Id, Enlace> = {};
+  const modeloParcial = modeloParaExtremos(entidades, estados);
   for (const [id, raw] of Object.entries(value)) {
     if (!esRecord(raw)) return fallo(`Enlace inválido: ${id}`);
     if (raw.id !== id) return fallo(`Enlace inválido: ${id}.id`);
     if (!esTipoEnlace(raw.tipo)) return fallo(`Enlace inválido: ${id}.tipo`);
-    const origenId = typeof raw.origenId === "string" ? raw.origenId : null;
-    const destinoId = typeof raw.destinoId === "string" ? raw.destinoId : null;
-    if (!origenId) return fallo(`Enlace inválido: ${id}.origenId`);
-    if (!destinoId) return fallo(`Enlace inválido: ${id}.destinoId`);
-    const origen = origenId ? entidades[origenId] : undefined;
-    const destino = destinoId ? entidades[destinoId] : undefined;
+    const origenExtremo = validarExtremoEnlace(id, "origenId", raw.origenId, entidades, estados);
+    if (!origenExtremo.ok) return origenExtremo;
+    const destinoExtremo = validarExtremoEnlace(id, "destinoId", raw.destinoId, entidades, estados);
+    if (!destinoExtremo.ok) return destinoExtremo;
+    const origen = entidadDeExtremo(modeloParcial, origenExtremo.value);
+    const destino = entidadDeExtremo(modeloParcial, destinoExtremo.value);
     if (!origen) return fallo(`Enlace inválido: ${id}.origenId`);
     if (!destino) return fallo(`Enlace inválido: ${id}.destinoId`);
-    if (origenId === destinoId) return fallo(`Enlace inválido: ${id}.self`);
+    if (origenExtremo.value.kind === destinoExtremo.value.kind && origenExtremo.value.id === destinoExtremo.value.id) {
+      return fallo(`Enlace inválido: ${id}.self`);
+    }
     if (typeof raw.etiqueta !== "string") return fallo(`Enlace inválido: ${id}.etiqueta`);
-    const firma = validarFirmaEnlace(raw.tipo, origen, destino);
+    const firma = validarFirmaEnlace(raw.tipo, origen, destino, {
+      origen: origenExtremo.value,
+      destino: destinoExtremo.value,
+    });
     if (!firma.ok) return fallo(`Enlace inválido: ${id}.firma`);
     const derivado = validarDerivacionEnlace(id, raw.derivado);
     if (!derivado.ok) return derivado;
@@ -327,8 +416,8 @@ function validarEnlaces(value: Record<string, unknown>, entidades: Record<Id, En
     enlaces[id] = {
       id,
       tipo: raw.tipo,
-      origenId,
-      destinoId,
+      origenId: origenExtremo.value,
+      destinoId: destinoExtremo.value,
       etiqueta: raw.etiqueta,
       ...(multiplicidadOrigen.value ? { multiplicidadOrigen: multiplicidadOrigen.value } : {}),
       ...(multiplicidadDestino.value ? { multiplicidadDestino: multiplicidadDestino.value } : {}),
@@ -336,6 +425,26 @@ function validarEnlaces(value: Record<string, unknown>, entidades: Record<Id, En
     };
   }
   return ok(enlaces);
+}
+
+function validarExtremoEnlace(
+  enlaceId: Id,
+  campo: "origenId" | "destinoId",
+  value: unknown,
+  entidades: Record<Id, Entidad>,
+  estados: Record<Id, Estado>,
+): Resultado<ExtremoEnlace> {
+  if (typeof value === "string") {
+    if (!entidades[value]) return fallo(`Enlace inválido: ${enlaceId}.${campo}`);
+    return ok(extremoEntidad(value));
+  }
+  if (!esRecord(value)) return fallo(`Enlace inválido: ${enlaceId}.${campo}`);
+  if (!esExtremoKind(value.kind)) return fallo(`Enlace inválido: ${enlaceId}.${campo}.kind`);
+  if (typeof value.id !== "string") return fallo(`Enlace inválido: ${enlaceId}.${campo}.id`);
+  const extremo = normalizarExtremo({ kind: value.kind, id: value.id });
+  if (extremo.kind === "entidad" && !entidades[extremo.id]) return fallo(`Enlace inválido: ${enlaceId}.${campo}.id`);
+  if (extremo.kind === "estado" && !estados[extremo.id]) return fallo(`Enlace inválido: ${enlaceId}.${campo}.id`);
+  return ok(extremo);
 }
 
 function validarMultiplicidadOpcional(
@@ -385,14 +494,13 @@ function validarReferenciasOpd(modelo: Modelo): Resultado<true> {
     }
   }
   for (const [opdId, opd] of Object.entries(modelo.opds)) {
-    const visibles = new Set(Object.values(opd.apariencias).map((apariencia) => apariencia.entidadId));
     const extraidas = validarAparienciasExtraidas(modelo, opd);
     if (!extraidas.ok) return extraidas;
     for (const [aparienciaId, apariencia] of Object.entries(opd.enlaces)) {
       const enlace = modelo.enlaces[apariencia.enlaceId];
       if (!enlace) return fallo(`Apariencia de enlace inválida: ${aparienciaId}.enlaceId`);
       enlacesConApariencia.add(enlace.id);
-      if (!endpointVisibleEnOpd(modelo, opd, visibles, enlace.origenId) || !endpointVisibleEnOpd(modelo, opd, visibles, enlace.destinoId)) {
+      if (!endpointVisibleEnOpd(modelo, opd, enlace.origenId) || !endpointVisibleEnOpd(modelo, opd, enlace.destinoId)) {
         return fallo(`Apariencia de enlace inválida: ${aparienciaId}.endpoints`);
       }
       if (apariencia.opdId !== opdId) return fallo(`Apariencia de enlace inválida: ${aparienciaId}.opdId`);
@@ -404,8 +512,10 @@ function validarReferenciasOpd(modelo: Modelo): Resultado<true> {
   return ok(true);
 }
 
-function endpointVisibleEnOpd(modelo: Modelo, opd: Opd, visibles: Set<Id>, entidadId: Id): boolean {
-  if (visibles.has(entidadId)) return true;
+function endpointVisibleEnOpd(modelo: Modelo, opd: Opd, extremo: ExtremoEnlace): boolean {
+  if (extremoVisibleEnOpd(modelo, opd, extremo)) return true;
+  const entidadId = entidadIdDeExtremo(modelo, extremo);
+  if (!entidadId) return false;
   return Object.values(opd.apariencias).some((apariencia) => {
     if (modoPlegadoApariencia(apariencia) !== "parcial") return false;
     return partesDePlegado(modelo, apariencia.entidadId).some((parte) => parte.entidadId === entidadId);
@@ -427,8 +537,25 @@ function validarAparienciasExtraidas(modelo: Modelo, opd: Opd): Resultado<true> 
   return ok(true);
 }
 
+function modeloParaExtremos(entidades: Record<Id, Entidad>, estados: Record<Id, Estado>): Modelo {
+  return {
+    id: "modelo-validacion",
+    nombre: "modelo-validacion",
+    opdRaizId: "opd-validacion",
+    opds: {},
+    entidades,
+    estados,
+    enlaces: {},
+    nextSeq: 1,
+  };
+}
+
 function esRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function esExtremoKind(value: unknown): value is ExtremoKind {
+  return value === "entidad" || value === "estado";
 }
 
 function esTipoEntidad(value: unknown): value is TipoEntidad {
@@ -456,6 +583,10 @@ function esTipoEnlace(value: unknown): value is TipoEnlace {
     value === "efecto" ||
     value === "invocacion"
   );
+}
+
+function esOperadorAbanico(value: unknown): value is OperadorAbanico {
+  return value === "O" || value === "XOR";
 }
 
 function esModoDespliegue(value: unknown): value is ModoDespliegueObjeto {

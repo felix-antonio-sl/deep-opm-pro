@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+import { extremoEstado } from "../modelo/extremos";
 import { ajustarMultiplicidad, cambiarEsencia, crearEnlace, crearEstadosIniciales, crearModelo, crearObjeto, crearProceso, designarEstadoFinal, designarEstadoInicial, descomponerProceso, agregarEstado, desplegarObjeto, estadosDeEntidad, moverApariencia, renombrarEstado } from "../modelo/operaciones";
 import { cambiarModoPlegado } from "../modelo/plegado";
 import type { Apariencia, Modelo, Resultado } from "../modelo/tipos";
@@ -163,6 +164,54 @@ describe("OPL-ES — tipos de enlace canonicos", () => {
     modelo = must(renombrarEstado(modelo, segundo.id, "en curso"));
 
     expect(generarOpl(modelo)).toContain("**Ticket** puede ser `nuevo`, `en curso` o `resuelto`.");
+  });
+
+  test("consumo desde Estado emite cambio parcial TS4", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 0, y: 0 }, "Pedido"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 220, y: 0 }, "Aprobar"));
+    const pedidoId = entidad(modelo, "Pedido");
+    modelo = must(crearEstadosIniciales(modelo, pedidoId)).modelo;
+    const [pendiente] = estadosDeEntidad(modelo, pedidoId);
+    if (!pendiente) throw new Error("La prueba esperaba estado");
+    modelo = must(renombrarEstado(modelo, pendiente.id, "pendiente"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, extremoEstado(pendiente.id), entidad(modelo, "Aprobar"), "consumo"));
+
+    expect(generarOpl(modelo)).toContain("*Aprobar* cambia **Pedido** de `pendiente`.");
+  });
+
+  test("resultado hacia Estado emite cambio parcial TS5", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 0, y: 0 }, "Pedido"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 220, y: 0 }, "Aprobar"));
+    const pedidoId = entidad(modelo, "Pedido");
+    modelo = must(crearEstadosIniciales(modelo, pedidoId)).modelo;
+    const [, aprobado] = estadosDeEntidad(modelo, pedidoId);
+    if (!aprobado) throw new Error("La prueba esperaba estado");
+    modelo = must(renombrarEstado(modelo, aprobado.id, "aprobado"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidad(modelo, "Aprobar"), extremoEstado(aprobado.id), "resultado"));
+
+    expect(generarOpl(modelo)).toContain("*Aprobar* cambia **Pedido** a `aprobado`.");
+  });
+
+  test("par consumo-resultado sobre estados emite transicion TS3 unica", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 0, y: 0 }, "Pedido"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 220, y: 0 }, "Aprobar"));
+    const pedidoId = entidad(modelo, "Pedido");
+    modelo = must(crearEstadosIniciales(modelo, pedidoId)).modelo;
+    const [pendiente, aprobado] = estadosDeEntidad(modelo, pedidoId);
+    if (!pendiente || !aprobado) throw new Error("La prueba esperaba dos estados");
+    modelo = must(renombrarEstado(modelo, pendiente.id, "pendiente"));
+    modelo = must(renombrarEstado(modelo, aprobado.id, "aprobado"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, extremoEstado(pendiente.id), entidad(modelo, "Aprobar"), "consumo"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidad(modelo, "Aprobar"), extremoEstado(aprobado.id), "resultado"));
+
+    const lineas = generarOpl(modelo);
+
+    expect(lineas).toContain("*Aprobar* cambia **Pedido** de `pendiente` a `aprobado`.");
+    expect(lineas).not.toContain("*Aprobar* cambia **Pedido** de `pendiente`.");
+    expect(lineas).not.toContain("*Aprobar* cambia **Pedido** a `aprobado`.");
   });
 });
 

@@ -1,4 +1,5 @@
 import { naturalezaDeEnlace } from "./constantes";
+import { entidadDeExtremo, entidadIdDeExtremo, extremoApuntaAEntidad, extremoKey, nombreExtremo } from "./extremos";
 import type { Apariencia, Enlace, Entidad, Id, Modelo, Opd, TipoEnlace } from "./tipos";
 
 export type SeveridadAviso = "error" | "advertencia" | "info";
@@ -27,6 +28,7 @@ export function validarModelo(modelo: Modelo, opdActivoId: Id): Aviso[] {
   const avisos = [
     ...reglaAgregacionMismaEsencia(modelo, opdActivoId),
     ...reglaGeneralizacionMismoTipo(modelo, opdActivoId),
+    ...reglaEstructuralNoAceptaExtremoEstado(modelo, opdActivoId),
     ...reglaProceduralNoObjetoObjeto(modelo, opdActivoId),
     ...reglaEstructuralSinDuplicar(modelo, opdActivoId),
     ...reglaSubprocesoNoConectaAlPadre(modelo),
@@ -37,6 +39,20 @@ export function validarModelo(modelo: Modelo, opdActivoId: Id): Aviso[] {
     ...reglaConsumoDobleMismoObjeto(modelo, opdActivoId),
   ];
   return priorizarOpdActivo(avisos, opdActivoId);
+}
+
+function reglaEstructuralNoAceptaExtremoEstado(modelo: Modelo, opdActivoId: Id): Aviso[] {
+  return Object.values(modelo.enlaces)
+    .filter((enlace) => (
+      naturalezaDeEnlace(enlace.tipo) === "estructural" &&
+      (enlace.origenId.kind === "estado" || enlace.destinoId.kind === "estado")
+    ))
+    .map((enlace) => avisoEnlace(modelo, opdActivoId, enlace, {
+      reglaId: "estructural-no-acepta-extremo-estado",
+      severidad: "error",
+      mensaje: `El enlace estructural ${etiquetaTipo(enlace.tipo)} no puede apuntar a un estado específico: ${nombreExtremo(modelo, enlace.origenId)} -> ${nombreExtremo(modelo, enlace.destinoId)}.`,
+      citaSSOT: "[V-237] [V-239]",
+    }));
 }
 
 function reglaAgregacionMismaEsencia(modelo: Modelo, opdActivoId: Id): Aviso[] {
@@ -84,7 +100,7 @@ function reglaEstructuralSinDuplicar(modelo: Modelo, opdActivoId: Id): Aviso[] {
 
   for (const { enlace, origen, destino } of enlacesConExtremos(modelo)) {
     if (naturalezaDeEnlace(enlace.tipo) !== "estructural") continue;
-    const clave = `${enlace.tipo}:${enlace.origenId}->${enlace.destinoId}`;
+    const clave = `${enlace.tipo}:${extremoKey(enlace.origenId)}->${extremoKey(enlace.destinoId)}`;
     if (!vistos.has(clave)) {
       vistos.add(clave);
       continue;
@@ -121,13 +137,18 @@ function reglaSubprocesoNoConectaAlPadre(modelo: Modelo): Aviso[] {
       const enlace = modelo.enlaces[aparienciaEnlace.enlaceId];
       if (!enlace) continue;
       const conectaPadreConSubproceso = (
-        enlace.origenId === contexto.padre.id && subprocesosInternos.has(enlace.destinoId)
+        extremoApuntaAEntidad(enlace.origenId, contexto.padre.id) &&
+        (entidadIdDeExtremo(modelo, enlace.destinoId) ? subprocesosInternos.has(entidadIdDeExtremo(modelo, enlace.destinoId)!) : false)
       ) || (
-        enlace.destinoId === contexto.padre.id && subprocesosInternos.has(enlace.origenId)
+        extremoApuntaAEntidad(enlace.destinoId, contexto.padre.id) &&
+        (entidadIdDeExtremo(modelo, enlace.origenId) ? subprocesosInternos.has(entidadIdDeExtremo(modelo, enlace.origenId)!) : false)
       );
       if (!conectaPadreConSubproceso) continue;
 
-      const otroId = enlace.origenId === contexto.padre.id ? enlace.destinoId : enlace.origenId;
+      const otroId = extremoApuntaAEntidad(enlace.origenId, contexto.padre.id)
+        ? entidadIdDeExtremo(modelo, enlace.destinoId)
+        : entidadIdDeExtremo(modelo, enlace.origenId);
+      if (!otroId) continue;
       const subproceso = modelo.entidades[otroId];
       avisos.push({
         reglaId: "subproceso-no-conecta-al-padre",
@@ -178,7 +199,7 @@ function reglaProcesoSinEntradaNiSalida(modelo: Modelo, opdActivoId: Id): Aviso[
     if (proceso.refinamiento?.tipo === "descomposicion") continue;
     const tieneEnlaceOperativo = Object.values(modelo.enlaces).some((enlace) => (
       enlacesRelevantes.has(enlace.tipo) &&
-      (enlace.origenId === proceso.id || enlace.destinoId === proceso.id)
+      (extremoApuntaAEntidad(enlace.origenId, proceso.id) || extremoApuntaAEntidad(enlace.destinoId, proceso.id))
     ));
     if (tieneEnlaceOperativo) continue;
 
@@ -212,8 +233,8 @@ function reglaInstrumentoYAgenteSimultaneos(modelo: Modelo, opdActivoId: Id): Av
   for (const [clave, enlaceInstrumento] of instrumentos) {
     const enlaceAgente = agentes.get(clave);
     if (!enlaceAgente) continue;
-    const origen = modelo.entidades[enlaceInstrumento.origenId];
-    const destino = modelo.entidades[enlaceInstrumento.destinoId];
+    const origen = entidadDeExtremo(modelo, enlaceInstrumento.origenId);
+    const destino = entidadDeExtremo(modelo, enlaceInstrumento.destinoId);
     avisos.push(avisoEnlace(modelo, opdActivoId, enlaceInstrumento, {
       reglaId: "instrumento-y-agente-simultaneos",
       severidad: "advertencia",
@@ -232,16 +253,21 @@ function reglaSoloUnNivelDeInstanciacion(modelo: Modelo, opdActivoId: Id): Aviso
 
   for (const enlace of Object.values(modelo.enlaces)) {
     if (enlace.tipo !== "clasificacion") continue;
-    const existentes = clasesPorInstancia.get(enlace.origenId) ?? [];
-    clasesPorInstancia.set(enlace.origenId, [...existentes, enlace]);
+    const origenId = entidadIdDeExtremo(modelo, enlace.origenId);
+    if (!origenId) continue;
+    const existentes = clasesPorInstancia.get(origenId) ?? [];
+    clasesPorInstancia.set(origenId, [...existentes, enlace]);
   }
 
   for (const enlace of Object.values(modelo.enlaces)) {
     if (enlace.tipo !== "clasificacion") continue;
-    const enlacesSiguientes = clasesPorInstancia.get(enlace.destinoId) ?? [];
+    const destinoId = entidadIdDeExtremo(modelo, enlace.destinoId);
+    if (!destinoId) continue;
+    const enlacesSiguientes = clasesPorInstancia.get(destinoId) ?? [];
     for (const enlaceSiguiente of enlacesSiguientes) {
-      const instanciaIntermedia = modelo.entidades[enlace.destinoId];
-      const instanciaFinal = modelo.entidades[enlaceSiguiente.destinoId];
+      const instanciaIntermedia = modelo.entidades[destinoId];
+      const siguienteDestinoId = entidadIdDeExtremo(modelo, enlaceSiguiente.destinoId);
+      const instanciaFinal = siguienteDestinoId ? modelo.entidades[siguienteDestinoId] : undefined;
       avisos.push(avisoEnlace(modelo, opdActivoId, enlaceSiguiente, {
         reglaId: "solo-un-nivel-de-instanciacion",
         severidad: "advertencia",
@@ -279,8 +305,8 @@ function reglaConsumoDobleMismoObjeto(modelo: Modelo, opdActivoId: Id): Aviso[] 
 
 function enlacesConExtremos(modelo: Modelo): Array<{ enlace: Enlace; origen: Entidad; destino: Entidad }> {
   return Object.values(modelo.enlaces).flatMap((enlace) => {
-    const origen = modelo.entidades[enlace.origenId];
-    const destino = modelo.entidades[enlace.destinoId];
+    const origen = entidadDeExtremo(modelo, enlace.origenId);
+    const destino = entidadDeExtremo(modelo, enlace.destinoId);
     return origen && destino ? [{ enlace, origen, destino }] : [];
   });
 }

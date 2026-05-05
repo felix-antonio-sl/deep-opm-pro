@@ -1,7 +1,8 @@
 import { CANON } from "../../modelo/constantes";
+import { entidadIdDeExtremo } from "../../modelo/extremos";
 import { estadosDeEntidad } from "../../modelo/operaciones";
 import { filasPlegadoParcial, modoPlegadoApariencia, partesDePlegado, type FilaPlegadoParcial } from "../../modelo/plegado";
-import type { Apariencia, Enlace, Entidad, Estado, Id, Modelo, Posicion, TipoEnlace } from "../../modelo/tipos";
+import type { Apariencia, Enlace, Entidad, Estado, ExtremoEnlace, Id, Modelo, Posicion, TipoEnlace } from "../../modelo/tipos";
 import { LINK_ASSETS } from "./linkAssets";
 
 export type RolApariencia = "contorno" | "interno" | "externo";
@@ -381,16 +382,22 @@ function anchoCapsulaEstado(nombre: string): number {
 interface EndpointVisual {
   apariencia: Apariencia;
   proxy?: { entidadId: Id; nombre: string };
+  punto?: Posicion;
 }
 
 function resolverEndpointVisual(
   modelo: Modelo,
   opd: { apariencias: Record<Id, Apariencia> },
   aparienciaPorEntidad: Map<Id, Apariencia>,
-  entidadId: Id,
+  extremo: ExtremoEnlace,
 ): EndpointVisual | null {
+  const entidadId = entidadIdDeExtremo(modelo, extremo);
+  if (!entidadId) return null;
   const directa = aparienciaPorEntidad.get(entidadId);
-  if (directa) return { apariencia: directa };
+  if (directa) {
+    const punto = extremo.kind === "estado" ? puntoCapsulaEstado(modelo, directa, extremo.id) : null;
+    return punto ? { apariencia: directa, punto } : { apariencia: directa };
+  }
   for (const apariencia of Object.values(opd.apariencias)) {
     if (modoPlegadoApariencia(apariencia) !== "parcial") continue;
     const parte = partesDePlegado(modelo, apariencia.entidadId).find((item) => item.entidadId === entidadId);
@@ -436,6 +443,26 @@ function proyectarProxyExtraccion(opdId: Id, opd: { apariencias: Record<Id, Apar
   }];
 }
 
+function puntoCapsulaEstado(modelo: Modelo, apariencia: Apariencia, estadoId: Id): Posicion | null {
+  const estado = modelo.estados[estadoId];
+  const entidad = estado ? modelo.entidades[estado.entidadId] : undefined;
+  if (!estado || !entidad) return null;
+  if (modoPlegadoApariencia(apariencia) === "parcial") return null;
+  const estados = estadosDeEntidad(modelo, entidad.id);
+  const index = estados.findIndex((item) => item.id === estadoId);
+  if (index < 0) return null;
+  const size = dimensionesConEstados(apariencia, entidad.nombre, estados);
+  const anchos = estados.map((item) => anchoCapsulaEstado(item.nombre));
+  const anchoTotal = anchos.reduce((total, ancho) => total + ancho, 0) + Math.max(0, anchos.length - 1) * ESTADOS.gap;
+  const xInicial = (size.width - anchoTotal) / 2;
+  const x = xInicial + anchos.slice(0, index).reduce((total, ancho) => total + ancho + ESTADOS.gap, 0) + (anchos[index] ?? ESTADOS.minWidth) / 2;
+  const y = size.height - ESTADOS.paddingBottom - ESTADOS.capsuleHeight / 2;
+  return {
+    x: apariencia.x + x,
+    y: apariencia.y + y,
+  };
+}
+
 function proyectarEnlace(
   opdId: Id,
   enlace: Enlace,
@@ -449,8 +476,8 @@ function proyectarEnlace(
   return {
     id: aparienciaEnlaceId,
     type: "standard.Link",
-    source: extremo(origen.apariencia.id),
-    target: extremo(destino.apariencia.id),
+    source: endpointJoint(origen),
+    target: endpointJoint(destino),
     vertices: verticesRender,
     router: enlace.tipo === "invocacion" ? undefined : routerManhattan(),
     connector: { name: "straight" },
@@ -511,6 +538,11 @@ function etiquetaProxyParte(text: string, distance: number): Record<string, unkn
       },
     },
   };
+}
+
+function endpointJoint(endpoint: EndpointVisual): Record<string, unknown> {
+  if (endpoint.punto) return { x: endpoint.punto.x, y: endpoint.punto.y };
+  return extremo(endpoint.apariencia.id);
 }
 
 function etiquetasMultiplicidad(enlace: Enlace): Array<Record<string, unknown>> {

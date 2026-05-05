@@ -1,4 +1,14 @@
-import { CANON } from "./constantes";
+import { CANON, naturalezaDeEnlace } from "./constantes";
+import {
+  entidadDeExtremo,
+  entidadIdDeExtremo,
+  extremoApuntaAEntidad,
+  extremoEntidad,
+  extremoVisibleEnOpd,
+  mismoExtremo,
+  normalizarExtremo,
+  type ExtremoEntrada,
+} from "./extremos";
 import { contenedorRefinamiento, posicionLibre, solapa } from "./layout";
 import type {
   Afiliacion,
@@ -8,6 +18,7 @@ import type {
   Entidad,
   Esencia,
   Estado,
+  ExtremoEnlace,
   Id,
   ModoDespliegueObjeto,
   Modelo,
@@ -395,7 +406,7 @@ export function eliminarEstado(modelo: Modelo, estadoId: Id): Resultado<Modelo> 
 
   const siguientes = { ...(modelo.estados ?? {}) };
   delete siguientes[estadoId];
-  return ok({ ...modelo, estados: siguientes });
+  return ok(eliminarEnlacesPorExtremosEstado({ ...modelo, estados: siguientes }, new Set([estadoId])));
 }
 
 export function quitarEstadosObjeto(modelo: Modelo, entidadId: Id): Resultado<Modelo> {
@@ -406,7 +417,10 @@ export function quitarEstadosObjeto(modelo: Modelo, entidadId: Id): Resultado<Mo
     Object.entries(modelo.estados ?? {}).filter(([, estado]) => estado.entidadId !== entidadId),
   ) as Record<Id, Estado>;
   if (Object.keys(siguientes).length === Object.keys(modelo.estados ?? {}).length) return ok(modelo);
-  return ok({ ...modelo, estados: siguientes });
+  const removidos = new Set(Object.values(modelo.estados ?? {})
+    .filter((estado) => estado.entidadId === entidadId)
+    .map((estado) => estado.id));
+  return ok(eliminarEnlacesPorExtremosEstado({ ...modelo, estados: siguientes }, removidos));
 }
 
 export function designarEstadoInicial(modelo: Modelo, estadoId: Id): Resultado<Modelo> {
@@ -587,7 +601,10 @@ export function eliminarEntidad(modelo: Modelo, entidadId: Id): Resultado<Modelo
 
   const enlacesEliminados = new Set(
     Object.values(modelo.enlaces)
-      .filter((enlace) => enlace.origenId === entidadId || enlace.destinoId === entidadId)
+      .filter((enlace) => (
+        entidadIdDeExtremo(modelo, enlace.origenId) === entidadId ||
+        entidadIdDeExtremo(modelo, enlace.destinoId) === entidadId
+      ))
       .map((enlace) => enlace.id),
   );
   const enlaces = Object.fromEntries(
@@ -610,6 +627,34 @@ export function eliminarEntidad(modelo: Modelo, entidadId: Id): Resultado<Modelo
   );
 
   return ok({ ...modelo, entidades, estados, enlaces, opds });
+}
+
+function eliminarEnlacesPorExtremosEstado(modelo: Modelo, estadoIds: Set<Id>): Modelo {
+  if (estadoIds.size === 0) return modelo;
+  const enlacesEliminados = new Set(
+    Object.values(modelo.enlaces)
+      .filter((enlace) => (
+        (enlace.origenId.kind === "estado" && estadoIds.has(enlace.origenId.id)) ||
+        (enlace.destinoId.kind === "estado" && estadoIds.has(enlace.destinoId.id))
+      ))
+      .map((enlace) => enlace.id),
+  );
+  if (enlacesEliminados.size === 0) return modelo;
+  const enlaces = Object.fromEntries(
+    Object.entries(modelo.enlaces).filter(([id]) => !enlacesEliminados.has(id)),
+  ) as Record<Id, Enlace>;
+  const opds = Object.fromEntries(
+    Object.entries(modelo.opds).map(([opdId, opd]) => [
+      opdId,
+      {
+        ...opd,
+        enlaces: Object.fromEntries(
+          Object.entries(opd.enlaces).filter(([, apariencia]) => !enlacesEliminados.has(apariencia.enlaceId)),
+        ),
+      },
+    ]),
+  );
+  return { ...modelo, enlaces, opds };
 }
 
 export function eliminarEnlace(modelo: Modelo, enlaceId: Id): Resultado<Modelo> {
@@ -651,8 +696,8 @@ export function splitEffectEnPar(modelo: Modelo, opdId: Id, enlaceId: Id): Resul
   }
   if (enlace.tipo !== "efecto") return fallo("El split requiere un enlace de efecto");
 
-  const origen = modelo.entidades[enlace.origenId];
-  const destino = modelo.entidades[enlace.destinoId];
+  const origen = entidadDeExtremo(modelo, enlace.origenId);
+  const destino = entidadDeExtremo(modelo, enlace.destinoId);
   if (!origen || !destino) return fallo("El enlace de efecto tiene extremos inválidos");
 
   const extremos = extremosEffect(origen, destino);
@@ -695,15 +740,15 @@ export function splitEffectEnPar(modelo: Modelo, opdId: Id, enlaceId: Id): Resul
   const consumo: Enlace = {
     id: consumoId,
     tipo: "consumo",
-    origenId: extremos.value.objeto.id,
-    destinoId: extremos.value.proceso.id,
+    origenId: extremos.value.objeto.id === origen.id ? enlace.origenId : enlace.destinoId,
+    destinoId: extremoEntidad(extremos.value.proceso.id),
     etiqueta: "",
   };
   const resultado: Enlace = {
     id: resultadoId,
     tipo: "resultado",
-    origenId: extremos.value.proceso.id,
-    destinoId: intermedioId,
+    origenId: extremoEntidad(extremos.value.proceso.id),
+    destinoId: extremoEntidad(intermedioId),
     etiqueta: "",
   };
 
@@ -797,28 +842,30 @@ function posicionDentroDeContorno(posicion: Posicion, contenedor: { x: number; y
 export function crearEnlace(
   modelo: Modelo,
   opdId: Id,
-  origenId: Id,
-  destinoId: Id,
+  origenId: ExtremoEntrada,
+  destinoId: ExtremoEntrada,
   tipo: TipoEnlace,
   etiqueta = "",
 ): Resultado<Modelo> {
   const opd = modelo.opds[opdId];
   if (!opd) return fallo(`OPD no existe: ${opdId}`);
-  const origen = modelo.entidades[origenId];
-  const destino = modelo.entidades[destinoId];
-  if (!origen) return fallo(`Origen no existe: ${origenId}`);
-  if (!destino) return fallo(`Destino no existe: ${destinoId}`);
-  if (origenId === destinoId) return fallo("El enlace requiere dos entidades distintas en Sprint 0");
+  const origenExtremo = normalizarExtremo(origenId);
+  const destinoExtremo = normalizarExtremo(destinoId);
+  const origen = entidadDeExtremo(modelo, origenExtremo);
+  const destino = entidadDeExtremo(modelo, destinoExtremo);
+  if (!origen) return fallo(`Origen no existe: ${origenExtremo.id}`);
+  if (!destino) return fallo(`Destino no existe: ${destinoExtremo.id}`);
+  if (mismoExtremo(origenExtremo, destinoExtremo)) return fallo("El enlace requiere dos extremos distintos en Sprint 0");
 
-  const legal = validarFirmaEnlace(tipo, origen, destino);
+  const legal = validarFirmaEnlace(tipo, origen, destino, { origen: origenExtremo, destino: destinoExtremo });
   if (!legal.ok) return legal;
-  if (!entidadVisibleEnOpd(opd, origenId) || !entidadVisibleEnOpd(opd, destinoId)) {
+  if (!extremoVisibleEnOpd(modelo, opd, origenExtremo) || !extremoVisibleEnOpd(modelo, opd, destinoExtremo)) {
     return fallo("El enlace requiere que origen y destino tengan apariencia en el OPD");
   }
 
   const enlaceId = siguienteId(modelo, "e");
   const aparienciaId = siguienteId({ ...modelo, nextSeq: modelo.nextSeq + 1 }, "ae");
-  const enlace: Enlace = { id: enlaceId, tipo, origenId, destinoId, etiqueta };
+  const enlace: Enlace = { id: enlaceId, tipo, origenId: origenExtremo, destinoId: destinoExtremo, etiqueta };
   const apariencia: AparienciaEnlace = { id: aparienciaId, enlaceId, opdId, vertices: [] };
 
   return ok({
@@ -831,6 +878,53 @@ export function crearEnlace(
         ...opd,
         enlaces: { ...opd.enlaces, [aparienciaId]: apariencia },
       },
+    },
+  });
+}
+
+export type LadoExtremoEnlace = "origen" | "destino";
+
+export function apuntarExtremoEnlace(
+  modelo: Modelo,
+  enlaceId: Id,
+  lado: LadoExtremoEnlace,
+  extremo: ExtremoEntrada,
+): Resultado<Modelo> {
+  const enlace = modelo.enlaces[enlaceId];
+  if (!enlace) return fallo(`Enlace no existe: ${enlaceId}`);
+  const siguienteExtremo = normalizarExtremo(extremo);
+  const actual = lado === "origen" ? enlace.origenId : enlace.destinoId;
+  if (mismoExtremo(actual, siguienteExtremo)) return ok(modelo);
+
+  const actualizado: Enlace = {
+    ...enlace,
+    [lado === "origen" ? "origenId" : "destinoId"]: siguienteExtremo,
+  };
+  const origen = entidadDeExtremo(modelo, actualizado.origenId);
+  const destino = entidadDeExtremo(modelo, actualizado.destinoId);
+  if (!origen || !destino) return fallo("Extremo de enlace inválido");
+  if (mismoExtremo(actualizado.origenId, actualizado.destinoId)) {
+    return fallo("El enlace requiere dos extremos distintos en Sprint 0");
+  }
+  const firma = validarFirmaEnlace(actualizado.tipo, origen, destino, {
+    origen: actualizado.origenId,
+    destino: actualizado.destinoId,
+  });
+  if (!firma.ok) return firma;
+
+  for (const opdActual of Object.values(modelo.opds)) {
+    const tieneApariencia = Object.values(opdActual.enlaces).some((apariencia) => apariencia.enlaceId === enlaceId);
+    if (!tieneApariencia) continue;
+    if (!extremoVisibleEnOpd(modelo, opdActual, siguienteExtremo)) {
+      return fallo("El estado elegido debe pertenecer a una entidad visible en todos los OPD donde aparece el enlace");
+    }
+  }
+
+  return ok({
+    ...modelo,
+    enlaces: {
+      ...modelo.enlaces,
+      [enlaceId]: actualizado,
     },
   });
 }
@@ -854,20 +948,23 @@ export function reanclarEnlaceExternoDerivado(
   const { enlace, lado } = validado.value;
   const actualizado: Enlace = {
     ...enlace,
-    [lado === "origen" ? "origenId" : "destinoId"]: nuevoEndpointEntidadId,
+    [lado === "origen" ? "origenId" : "destinoId"]: extremoEntidad(nuevoEndpointEntidadId),
     derivado: {
       ...enlace.derivado!,
       origen: "manual",
     },
   };
-  const origen = modelo.entidades[actualizado.origenId];
-  const destino = modelo.entidades[actualizado.destinoId];
+  const origen = entidadDeExtremo(modelo, actualizado.origenId);
+  const destino = entidadDeExtremo(modelo, actualizado.destinoId);
   if (!origen || !destino) return fallo("Endpoint de reanclaje inválido");
-  const firma = validarFirmaEnlace(actualizado.tipo, origen, destino);
+  const firma = validarFirmaEnlace(actualizado.tipo, origen, destino, {
+    origen: actualizado.origenId,
+    destino: actualizado.destinoId,
+  });
   if (!firma.ok) return fallo("El subproceso elegido no admite la firma del enlace derivado");
   if (
-    enlace.origenId === actualizado.origenId &&
-    enlace.destinoId === actualizado.destinoId &&
+    mismoExtremo(enlace.origenId, actualizado.origenId) &&
+    mismoExtremo(enlace.destinoId, actualizado.destinoId) &&
     enlace.derivado?.origen === "manual"
   ) {
     return ok(modelo);
@@ -946,8 +1043,14 @@ function validarReanclajeEnlaceExterno(
 
 function ladoReanclableDerivado(enlace: Enlace, enlacePadre: Enlace, refinamientoId: Id): LadoEndpointDerivado | null {
   if (enlace.tipo !== enlacePadre.tipo) return null;
-  if (enlacePadre.destinoId === refinamientoId && enlace.origenId === enlacePadre.origenId) return "destino";
-  if (enlacePadre.origenId === refinamientoId && enlace.destinoId === enlacePadre.destinoId) return "origen";
+  if (
+    extremoApuntaAEntidad(enlacePadre.destinoId, refinamientoId) &&
+    mismoExtremo(enlace.origenId, enlacePadre.origenId)
+  ) return "destino";
+  if (
+    extremoApuntaAEntidad(enlacePadre.origenId, refinamientoId) &&
+    mismoExtremo(enlace.destinoId, enlacePadre.destinoId)
+  ) return "origen";
   return null;
 }
 
@@ -1043,7 +1146,18 @@ function crearEntidad(
   return tipo === "proceso" ? redistribuirEnlacesExternosSiPrimerSubproceso(base, opdId, entidadId) : ok(base);
 }
 
-export function validarFirmaEnlace(tipo: TipoEnlace, origen: Entidad, destino: Entidad): Resultado<true> {
+export function validarFirmaEnlace(
+  tipo: TipoEnlace,
+  origen: Entidad,
+  destino: Entidad,
+  extremos: { origen?: ExtremoEnlace; destino?: ExtremoEnlace } = {},
+): Resultado<true> {
+  const origenExtremo = extremos.origen ?? extremoEntidad(origen.id);
+  const destinoExtremo = extremos.destino ?? extremoEntidad(destino.id);
+  const tieneEstado = origenExtremo.kind === "estado" || destinoExtremo.kind === "estado";
+  if (tieneEstado && naturalezaDeEnlace(tipo) === "estructural") {
+    return fallo("Los enlaces estructurales no aceptan extremos Estado [V-237][V-239]");
+  }
   if (tipo === "agregacion") {
     return origen.tipo === "objeto" && destino.tipo === "objeto"
       ? ok(true)
@@ -1122,9 +1236,11 @@ function quitarRefinamientoEntidad(modelo: Modelo, entidadId: Id): Resultado<Mod
   );
   const enlaces = Object.fromEntries(
     Object.entries(modelo.enlaces).filter(([enlaceId, enlace]) => (
-      enlacesVisibles.has(enlaceId) && entidades[enlace.origenId] && entidades[enlace.destinoId]
+      enlacesVisibles.has(enlaceId) &&
+      entidadIdDeExtremo({ ...modelo, entidades, estados }, enlace.origenId) !== null &&
+      entidadIdDeExtremo({ ...modelo, entidades, estados }, enlace.destinoId) !== null
     )),
-  );
+  ) as Record<Id, Enlace>;
   const opdsSinEnlacesHuerfanos = Object.fromEntries(
     Object.entries(opds).map(([opdId, opd]) => [
       opdId,
@@ -1163,7 +1279,7 @@ function aparienciasExtremosExternos(
     existentes.add(externoId);
     const id = siguienteId({ ...modelo, nextSeq }, "a");
     nextSeq += 1;
-    const entrada = enlace.destinoId === procesoId;
+    const entrada = extremoApuntaAEntidad(enlace.destinoId, procesoId);
     const fila = entrada ? entradas : salidas;
     if (entrada) entradas += 1;
     else salidas += 1;
@@ -1302,8 +1418,8 @@ function enlacesEstructuralesDespliegue(
     enlaces[enlaceId] = {
       id: enlaceId,
       tipo,
-      origenId: objetoId,
-      destinoId: parteId,
+      origenId: extremoEntidad(objetoId),
+      destinoId: extremoEntidad(parteId),
       etiqueta: "",
     };
     aparienciasEnlace[aparienciaId] = { id: aparienciaId, enlaceId, opdId, vertices: [] };
@@ -1373,10 +1489,13 @@ function proyectarEnlacesExternosEnRefinamiento(
         aparienciasEnlace[aparienciaId] = { id: aparienciaId, enlaceId: enlace.id, opdId, vertices: [] };
       }
     } else {
-      const origen = modelo.entidades[proyeccion.origenId];
-      const destino = modelo.entidades[proyeccion.destinoId];
+      const origen = entidadDeExtremo(modelo, proyeccion.origenId);
+      const destino = entidadDeExtremo(modelo, proyeccion.destinoId);
       if (!origen || !destino) continue;
-      const firma = validarFirmaEnlace(enlace.tipo, origen, destino);
+      const firma = validarFirmaEnlace(enlace.tipo, origen, destino, {
+        origen: proyeccion.origenId,
+        destino: proyeccion.destinoId,
+      });
       if (!firma.ok) continue;
       if (enlaceDerivadoExiste(enlaces, aparienciasEnlace, enlace.tipo, proyeccion.origenId, proyeccion.destinoId)) {
         continue;
@@ -1426,12 +1545,15 @@ function proyeccionEnlaceExterno(
   enlace: Enlace,
   procesoRefinadoId: Id,
   subprocesos: { primeroId: Id; ultimoId: Id },
-): { tipo: "derivado"; origenId: Id; destinoId: Id } | { tipo: "contorno" } {
-  if (enlace.tipo === "consumo" && enlace.destinoId === procesoRefinadoId) {
-    return { tipo: "derivado", origenId: enlace.origenId, destinoId: subprocesos.primeroId };
+): { tipo: "derivado"; origenId: ExtremoEnlace; destinoId: ExtremoEnlace } | { tipo: "contorno" } {
+  if (enlace.tipo === "consumo" && extremoApuntaAEntidad(enlace.destinoId, procesoRefinadoId)) {
+    return { tipo: "derivado", origenId: enlace.origenId, destinoId: extremoEntidad(subprocesos.primeroId) };
   }
-  if ((enlace.tipo === "resultado" || enlace.tipo === "invocacion") && enlace.origenId === procesoRefinadoId) {
-    return { tipo: "derivado", origenId: subprocesos.ultimoId, destinoId: enlace.destinoId };
+  if (
+    (enlace.tipo === "resultado" || enlace.tipo === "invocacion") &&
+    extremoApuntaAEntidad(enlace.origenId, procesoRefinadoId)
+  ) {
+    return { tipo: "derivado", origenId: extremoEntidad(subprocesos.ultimoId), destinoId: enlace.destinoId };
   }
   return { tipo: "contorno" };
 }
@@ -1444,13 +1566,13 @@ function enlaceDerivadoExiste(
   enlaces: Record<Id, Enlace>,
   apariencias: Record<Id, AparienciaEnlace>,
   tipo: TipoEnlace,
-  origenId: Id,
-  destinoId: Id,
+  origenId: ExtremoEnlace,
+  destinoId: ExtremoEnlace,
 ): boolean {
   return Object.values(enlaces).some((existente) => (
     existente.tipo === tipo &&
-    existente.origenId === origenId &&
-    existente.destinoId === destinoId &&
+    mismoExtremo(existente.origenId, origenId) &&
+    mismoExtremo(existente.destinoId, destinoId) &&
     aparienciaEnlaceExiste(apariencias, existente.id)
   ));
 }
@@ -1550,7 +1672,12 @@ function enlacesExternosDelProceso(
   for (const aparienciaEnlace of Object.values(opdPadre.enlaces)) {
     const enlace = modelo.enlaces[aparienciaEnlace.enlaceId];
     if (!enlace) continue;
-    const externoId = enlace.origenId === procesoId ? enlace.destinoId : enlace.destinoId === procesoId ? enlace.origenId : null;
+    const externoExtremo = extremoApuntaAEntidad(enlace.origenId, procesoId)
+      ? enlace.destinoId
+      : extremoApuntaAEntidad(enlace.destinoId, procesoId)
+        ? enlace.origenId
+        : null;
+    const externoId = externoExtremo ? entidadIdDeExtremo(modelo, externoExtremo) : null;
     if (!externoId) continue;
     const aparienciaPadre = aparienciasPadre.get(externoId);
     if (!aparienciaPadre) continue;

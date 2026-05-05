@@ -154,7 +154,7 @@ test("despliega objeto y navega al OPD hijo", async ({ page }) => {
   expect(opdHijoId).toBeTruthy();
   if (!opdHijoId || !objeto) throw new Error("El despliegue no exporto opdId");
   expect(exportado.modelo.opds[opdHijoId]?.padreId).toBe(exportado.modelo.opdRaizId);
-  expect(Object.values(exportado.modelo.enlaces).filter((enlace) => enlace.tipo === "agregacion" && enlace.origenId === objeto.id)).toHaveLength(3);
+  expect(Object.values(exportado.modelo.enlaces).filter((enlace) => enlace.tipo === "agregacion" && extremoApuntaAEntidad(enlace.origenId, objeto.id))).toHaveLength(3);
 
   await page.getByRole("button", { name: "Quitar despliegue" }).click();
   await expect(page.locator('[role="treeitem"]').filter({ hasText: "SD1: Objeto desplegado" })).toHaveCount(0);
@@ -275,8 +275,8 @@ test("redistribuye consumo al primer subproceso y resultado al ultimo", async ({
   const enlacesHijo = Object.values(exportado.modelo.opds[opdHijoId]?.enlaces ?? {})
     .map((apariencia) => exportado.modelo.enlaces[apariencia.enlaceId]);
   expect(enlacesHijo).toEqual(expect.arrayContaining([
-    expect.objectContaining({ tipo: "consumo", origenId: entrada.id, destinoId: primero.id }),
-    expect.objectContaining({ tipo: "resultado", origenId: ultimo.id, destinoId: salida.id }),
+    expect.objectContaining({ tipo: "consumo", origenId: extremoEntidad(entrada.id), destinoId: extremoEntidad(primero.id) }),
+    expect.objectContaining({ tipo: "resultado", origenId: extremoEntidad(ultimo.id), destinoId: extremoEntidad(salida.id) }),
   ]));
 
   await page.screenshot({ path: "test-results/opm-descomposicion-enlaces-externos.png", fullPage: true });
@@ -326,8 +326,8 @@ test("reancla consumo derivado y conserva el ancla manual al reordenar", async (
     .filter((enlace) => enlace?.tipo === "consumo");
   expect(consumos).toHaveLength(1);
   expect(consumos[0]).toEqual(expect.objectContaining({
-    origenId: entrada.id,
-    destinoId: segundo.id,
+    origenId: extremoEntidad(entrada.id),
+    destinoId: extremoEntidad(segundo.id),
     derivado: expect.objectContaining({ origen: "manual" }),
   }));
 
@@ -658,6 +658,28 @@ test("gestiona estados M0 de objeto con capsulas internas y OPL", async ({ page 
   ]));
 
   await page.screenshot({ path: "test-results/opm-estados-objeto.png", fullPage: true });
+  expect(pageErrors).toEqual([]);
+});
+
+test("apunta enlaces procedurales a estados y emite transicion OPL TS3", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await page.locator("textarea").fill(JSON.stringify(modeloTransicionEstados(), null, 2));
+  await page.getByRole("button", { name: "Importar" }).click();
+
+  await expect(page.locator('[joint-selector^="stateCapsule"]')).toHaveCount(2);
+  await expect(page.locator(".joint-link")).toHaveCount(2);
+  await expect(page.getByText(/Aprobar\s+cambia\s+Pedido\s+de `pendiente` a `aprobado`\./)).toBeVisible();
+  await expect(page.getByText(/Aprobar\s+cambia\s+Pedido\s+de `pendiente`\./)).toHaveCount(0);
+  await expect(page.getByText(/Aprobar\s+cambia\s+Pedido\s+a `aprobado`\./)).toHaveCount(0);
+
+  await page.getByRole("button", { name: "Exportar" }).click();
+  const exportado = JSON.parse(await page.locator("textarea").inputValue()) as ExportadoModelo;
+  expect(exportado.modelo.enlaces["e-consumo"]?.origenId).toEqual(extremoEstado("s-pendiente"));
+  expect(exportado.modelo.enlaces["e-resultado"]?.destinoId).toEqual(extremoEstado("s-aprobado"));
+
   expect(pageErrors).toEqual([]);
 });
 
@@ -1008,6 +1030,57 @@ function modeloMarkersCanonicos() {
   };
 }
 
+function modeloTransicionEstados() {
+  return {
+    formato: "deep-opm-pro.modelo.v0",
+    modelo: {
+      id: "modelo-transicion-estados",
+      nombre: "Transicion estados",
+      opdRaizId: "opd-1",
+      nextSeq: 20,
+      entidades: {
+        "o-pedido": objeto("o-pedido", "Pedido"),
+        "p-aprobar": proceso("p-aprobar", "Aprobar"),
+      },
+      estados: {
+        "s-pendiente": { id: "s-pendiente", entidadId: "o-pedido", nombre: "pendiente" },
+        "s-aprobado": { id: "s-aprobado", entidadId: "o-pedido", nombre: "aprobado" },
+      },
+      enlaces: {
+        "e-consumo": {
+          id: "e-consumo",
+          tipo: "consumo",
+          origenId: extremoEstado("s-pendiente"),
+          destinoId: extremoEntidad("p-aprobar"),
+          etiqueta: "",
+        },
+        "e-resultado": {
+          id: "e-resultado",
+          tipo: "resultado",
+          origenId: extremoEntidad("p-aprobar"),
+          destinoId: extremoEstado("s-aprobado"),
+          etiqueta: "",
+        },
+      },
+      opds: {
+        "opd-1": {
+          id: "opd-1",
+          nombre: "SD",
+          padreId: null,
+          apariencias: {
+            "a-pedido": { id: "a-pedido", entidadId: "o-pedido", opdId: "opd-1", x: 80, y: 90, width: 135, height: 60 },
+            "a-aprobar": { id: "a-aprobar", entidadId: "p-aprobar", opdId: "opd-1", x: 280, y: 90, width: 135, height: 60 },
+          },
+          enlaces: {
+            "ae-consumo": { id: "ae-consumo", enlaceId: "e-consumo", opdId: "opd-1", vertices: [] },
+            "ae-resultado": { id: "ae-resultado", enlaceId: "e-resultado", opdId: "opd-1", vertices: [] },
+          },
+        },
+      },
+    },
+  };
+}
+
 function objeto(id: string, nombre: string, esencia = "informacional") {
   return { id, tipo: "objeto", nombre, esencia, afiliacion: "sistemica" };
 }
@@ -1035,8 +1108,8 @@ interface ExportadoModelo {
     enlaces: Record<string, {
       id: string;
       tipo: string;
-      origenId: string;
-      destinoId: string;
+      origenId: ExtremoExportado;
+      destinoId: ExtremoExportado;
       multiplicidadOrigen?: string;
       multiplicidadDestino?: string;
       derivado?: { tipo: string; refinamientoId: string; enlacePadreId: string; origen?: string };
@@ -1050,4 +1123,20 @@ interface ExportadoModelo {
       }
     >;
   };
+}
+
+type ExtremoExportado = string | { kind: "entidad" | "estado"; id: string };
+
+function extremoEntidad(id: string): ExtremoExportado {
+  return { kind: "entidad", id };
+}
+
+function extremoEstado(id: string): ExtremoExportado {
+  return { kind: "estado", id };
+}
+
+function extremoApuntaAEntidad(extremo: ExtremoExportado, entidadId: string): boolean {
+  return typeof extremo === "string"
+    ? extremo === entidadId
+    : extremo.kind === "entidad" && extremo.id === entidadId;
 }

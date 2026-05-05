@@ -8,6 +8,7 @@ export type ModoPlegado = "completo" | "parcial";
 export type ModoDespliegueObjeto = "agregacion" | "exhibicion" | "generalizacion" | "clasificacion";
 export type DesignacionEstado = "inicial" | "final";
 export type DerivacionOrigen = "automatico" | "manual";
+export type ExtremoKind = "entidad" | "estado";
 
 export type TipoEnlace =
   | "agregacion"
@@ -51,6 +52,21 @@ export interface Estado {
   esFinal?: boolean;
 }
 
+export interface ExtremoEnlace {
+  kind: ExtremoKind;
+  id: Id;
+}
+
+export type OperadorAbanico = "O" | "XOR";
+
+export interface Abanico {
+  id: Id;
+  opdId: Id;
+  puertoEntidadId: Id;
+  operador: OperadorAbanico;
+  enlaceIds: Id[];
+}
+
 export interface Apariencia {
   id: Id;
   entidadId: Id;
@@ -66,8 +82,8 @@ export interface Apariencia {
 export interface Enlace {
   id: Id;
   tipo: TipoEnlace;
-  origenId: Id;
-  destinoId: Id;
+  origenId: ExtremoEnlace;
+  destinoId: ExtremoEnlace;
   etiqueta: string;
   multiplicidadOrigen?: string;
   multiplicidadDestino?: string;
@@ -97,6 +113,7 @@ export interface Modelo {
   entidades: Record<Id, Entidad>;
   estados: Record<Id, Estado>;
   enlaces: Record<Id, Enlace>;
+  abanicos?: Record<Id, Abanico>;
   nextSeq: number;
 }
 

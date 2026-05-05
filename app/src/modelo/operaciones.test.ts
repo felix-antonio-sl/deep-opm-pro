@@ -33,6 +33,7 @@ import {
   validarMultiplicidad,
 } from "./operaciones";
 import { solapa } from "./layout";
+import { extremoApuntaAEntidad, extremoEntidad, extremoEstado } from "./extremos";
 import type { Enlace, Modelo, ModoDespliegueObjeto, Resultado, TipoEnlace } from "./tipos";
 
 describe("operaciones de modelo", () => {
@@ -516,7 +517,7 @@ describe("operaciones de modelo", () => {
       .map((apariencia) => modelo.enlaces[apariencia.enlaceId])
       .filter((enlace): enlace is NonNullable<typeof enlace> => enlace !== undefined);
     expect(enlacesHijo).toHaveLength(3);
-    expect(enlacesHijo.every((enlace) => enlace.tipo === "agregacion" && enlace.origenId === objeto.id)).toBe(true);
+    expect(enlacesHijo.every((enlace) => enlace.tipo === "agregacion" && extremoApuntaAEntidad(enlace.origenId, objeto.id))).toBe(true);
     expect(Object.values(modelo.entidades).map((entidad) => entidad.nombre)).toEqual(expect.arrayContaining([
       "Vehiculo parte 1",
       "Vehiculo parte 2",
@@ -594,6 +595,28 @@ describe("operaciones de modelo", () => {
     expect(validarFirmaEnlace("clasificacion", proceso, whole).ok).toBe(false);
   });
 
+  test("crearEnlace acepta extremos Estado solo en enlaces procedurales", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 0, y: 0 }, "Pedido"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 220, y: 0 }, "Aprobar"));
+    const pedido = entidadPorNombre(modelo, "Pedido");
+    const aprobar = entidadPorNombre(modelo, "Aprobar");
+    modelo = must(crearEstadosIniciales(modelo, pedido.id)).modelo;
+    const [pendiente] = estadosDeEntidad(modelo, pedido.id);
+    if (!pendiente) throw new Error("La prueba esperaba estado inicial");
+
+    const consumo = crearEnlace(modelo, modelo.opdRaizId, extremoEstado(pendiente.id), aprobar.id, "consumo");
+    expect(consumo.ok).toBe(true);
+    if (!consumo.ok) return;
+    const enlace = Object.values(consumo.value.enlaces)[0];
+    expect(enlace?.origenId).toEqual(extremoEstado(pendiente.id));
+
+    const estructural = crearEnlace(modelo, modelo.opdRaizId, pedido.id, extremoEstado(pendiente.id), "exhibicion");
+    expect(estructural.ok).toBe(false);
+    if (estructural.ok) return;
+    expect(estructural.error).toContain("[V-237][V-239]");
+  });
+
   test("quita despliegue y elimina partes/agregaciones locales", () => {
     let modelo = crearModelo();
     modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 160, y: 100 }, "Vehiculo"));
@@ -639,12 +662,12 @@ describe("operaciones de modelo", () => {
     expect(Object.values(split.value.entidades)).toHaveLength(3);
     expect(Object.values(split.value.enlaces).filter((enlace) => enlace.tipo === "efecto")).toHaveLength(0);
     expect(Object.values(split.value.enlaces)).toEqual(expect.arrayContaining([
-      expect.objectContaining({ tipo: "consumo", origenId: sistema.id, destinoId: actualizar.id }),
-      expect.objectContaining({ tipo: "resultado", origenId: actualizar.id }),
+      expect.objectContaining({ tipo: "consumo", origenId: extremoEntidad(sistema.id), destinoId: extremoEntidad(actualizar.id) }),
+      expect.objectContaining({ tipo: "resultado", origenId: extremoEntidad(actualizar.id) }),
     ]));
     const intermedio = entidadPorNombre(split.value, "Sistema modificado");
     const resultado = Object.values(split.value.enlaces).find((enlace) => enlace.tipo === "resultado");
-    expect(resultado?.destinoId).toBe(intermedio.id);
+    expect(resultado?.destinoId).toEqual(extremoEntidad(intermedio.id));
     expect(Object.values(split.value.opds[split.value.opdRaizId]?.enlaces ?? {})).toHaveLength(2);
   });
 
@@ -665,8 +688,8 @@ describe("operaciones de modelo", () => {
     if (!split.ok) return;
     const intermedio = entidadPorNombre(split.value, "Sistema modificado");
     expect(Object.values(split.value.enlaces)).toEqual(expect.arrayContaining([
-      expect.objectContaining({ tipo: "consumo", origenId: sistema.id, destinoId: actualizar.id }),
-      expect.objectContaining({ tipo: "resultado", origenId: actualizar.id, destinoId: intermedio.id }),
+      expect.objectContaining({ tipo: "consumo", origenId: extremoEntidad(sistema.id), destinoId: extremoEntidad(actualizar.id) }),
+      expect.objectContaining({ tipo: "resultado", origenId: extremoEntidad(actualizar.id), destinoId: extremoEntidad(intermedio.id) }),
     ]));
   });
 
@@ -762,14 +785,14 @@ describe("operaciones de modelo", () => {
     expect(enlacesHijo).toEqual(expect.arrayContaining([
       expect.objectContaining({
         tipo: "consumo",
-        origenId: entrada.id,
-        destinoId: primero.id,
+        origenId: extremoEntidad(entrada.id),
+        destinoId: extremoEntidad(primero.id),
         derivado: expect.objectContaining({ refinamientoId: procesar.id }),
       }),
       expect.objectContaining({
         tipo: "resultado",
-        origenId: ultimo.id,
-        destinoId: salida.id,
+        origenId: extremoEntidad(ultimo.id),
+        destinoId: extremoEntidad(salida.id),
         derivado: expect.objectContaining({ refinamientoId: procesar.id }),
       }),
     ]));
@@ -798,10 +821,10 @@ describe("operaciones de modelo", () => {
 
     expect(enlacesHijo).toHaveLength(2);
     expect(enlacesHijo).toEqual(expect.arrayContaining([
-      expect.objectContaining({ tipo: "consumo", origenId: entrada.id, destinoId: nuevoPrimero.id }),
-      expect.objectContaining({ tipo: "resultado", origenId: primeroOriginal.id, destinoId: salida.id }),
+      expect.objectContaining({ tipo: "consumo", origenId: extremoEntidad(entrada.id), destinoId: extremoEntidad(nuevoPrimero.id) }),
+      expect.objectContaining({ tipo: "resultado", origenId: extremoEntidad(primeroOriginal.id), destinoId: extremoEntidad(salida.id) }),
     ]));
-    expect(enlacesHijo.some((enlace) => enlace.tipo === "consumo" && enlace.destinoId === primeroOriginal.id)).toBe(false);
+    expect(enlacesHijo.some((enlace) => enlace.tipo === "consumo" && extremoApuntaAEntidad(enlace.destinoId, primeroOriginal.id))).toBe(false);
   });
 
   test("reancla consumo externo derivado al subproceso elegido y marca origen manual", () => {
@@ -820,8 +843,8 @@ describe("operaciones de modelo", () => {
 
     expect(modelo.enlaces[enlace.id]).toEqual(expect.objectContaining({
       tipo: "consumo",
-      origenId: entrada.id,
-      destinoId: segundo.id,
+      origenId: extremoEntidad(entrada.id),
+      destinoId: extremoEntidad(segundo.id),
       derivado: expect.objectContaining({ origen: "manual", refinamientoId: procesar.id }),
     }));
   });
@@ -850,14 +873,14 @@ describe("operaciones de modelo", () => {
 
     expect(consumos).toHaveLength(1);
     expect(consumos[0]).toEqual(expect.objectContaining({
-      origenId: entrada.id,
-      destinoId: segundo.id,
+      origenId: extremoEntidad(entrada.id),
+      destinoId: extremoEntidad(segundo.id),
       derivado: expect.objectContaining({ origen: "manual" }),
     }));
     expect(resultados).toHaveLength(1);
     expect(resultados[0]).toEqual(expect.objectContaining({
-      origenId: segundo.id,
-      destinoId: salida.id,
+      origenId: extremoEntidad(segundo.id),
+      destinoId: extremoEntidad(salida.id),
       derivado: expect.objectContaining({ origen: "automatico" }),
     }));
   });
@@ -881,8 +904,8 @@ describe("operaciones de modelo", () => {
 
     expect(enlacesDelOpd(modelo, descompuesto.opdId)).toContainEqual(expect.objectContaining({
       tipo: "consumo",
-      origenId: entrada.id,
-      destinoId: primero.id,
+      origenId: extremoEntidad(entrada.id),
+      destinoId: extremoEntidad(primero.id),
       derivado: expect.objectContaining({ origen: "automatico" }),
     }));
   });
@@ -905,8 +928,8 @@ describe("operaciones de modelo", () => {
     modelo = must(crearEnlace(modelo, descompuesto.opdId, entrada.id, primeroOriginal.id, "consumo"));
     const manual = Object.values(modelo.enlaces).find((enlace) => (
       enlace.tipo === "consumo" &&
-      enlace.origenId === entrada.id &&
-      enlace.destinoId === primeroOriginal.id &&
+      extremoApuntaAEntidad(enlace.origenId, entrada.id) &&
+      extremoApuntaAEntidad(enlace.destinoId, primeroOriginal.id) &&
       !enlace.derivado
     ));
     expect(manual).toBeDefined();
@@ -918,8 +941,8 @@ describe("operaciones de modelo", () => {
 
     expect(enlacesHijo.some((enlace) => enlace.id === manual?.id && !enlace.derivado)).toBe(true);
     expect(enlacesHijo).toEqual(expect.arrayContaining([
-      expect.objectContaining({ tipo: "consumo", destinoId: nuevoPrimero.id, derivado: expect.objectContaining({ refinamientoId: procesar.id }) }),
-      expect.objectContaining({ tipo: "resultado", origenId: primeroOriginal.id, destinoId: salida.id, derivado: expect.objectContaining({ refinamientoId: procesar.id }) }),
+      expect.objectContaining({ tipo: "consumo", destinoId: extremoEntidad(nuevoPrimero.id), derivado: expect.objectContaining({ refinamientoId: procesar.id }) }),
+      expect.objectContaining({ tipo: "resultado", origenId: extremoEntidad(primeroOriginal.id), destinoId: extremoEntidad(salida.id), derivado: expect.objectContaining({ refinamientoId: procesar.id }) }),
     ]));
   });
 
@@ -989,10 +1012,10 @@ describe("operaciones de modelo", () => {
       .map((apariencia) => modelo.enlaces[apariencia.enlaceId])
       .filter((enlace): enlace is NonNullable<typeof enlace> => enlace !== undefined);
     expect(enlacesHijo).toEqual(expect.arrayContaining([
-      expect.objectContaining({ tipo: "agente", origenId: driver.id, destinoId: rescate.id }),
-      expect.objectContaining({ tipo: "instrumento", origenId: sistema.id, destinoId: rescate.id }),
+      expect.objectContaining({ tipo: "agente", origenId: extremoEntidad(driver.id), destinoId: extremoEntidad(rescate.id) }),
+      expect.objectContaining({ tipo: "instrumento", origenId: extremoEntidad(sistema.id), destinoId: extremoEntidad(rescate.id) }),
     ]));
-    expect(enlacesHijo.some((enlace) => enlace.destinoId === entidadPorNombre(modelo, "Driver Rescuing 1").id)).toBe(false);
+    expect(enlacesHijo.some((enlace) => extremoApuntaAEntidad(enlace.destinoId, entidadPorNombre(modelo, "Driver Rescuing 1").id))).toBe(false);
   });
 
   test("mantiene efecto externo no refinado en el contorno", () => {
@@ -1010,7 +1033,7 @@ describe("operaciones de modelo", () => {
       .filter((enlace): enlace is NonNullable<typeof enlace> => enlace !== undefined);
 
     expect(enlacesHijo).toHaveLength(1);
-    expect(enlacesHijo[0]).toMatchObject({ tipo: "efecto", origenId: sistema.id, destinoId: rescate.id });
+    expect(enlacesHijo[0]).toMatchObject({ tipo: "efecto", origenId: extremoEntidad(sistema.id), destinoId: extremoEntidad(rescate.id) });
   });
 
   test("numera recursivamente OPDs hijos de procesos internos", () => {

@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, test } from "bun:test";
-import { crearEnlace, crearModelo, crearObjeto, crearProceso, descomponerProceso } from "./modelo/operaciones";
+import { extremoApuntaAEntidad, extremoEntidad, extremoEstado } from "./modelo/extremos";
+import { crearEnlace, crearEstadosIniciales, crearModelo, crearObjeto, crearProceso, descomponerProceso, estadosDeEntidad } from "./modelo/operaciones";
 import type { Modelo } from "./modelo/tipos";
 import { exportarModelo } from "./serializacion/json";
 import { store } from "./store";
@@ -189,7 +190,7 @@ describe("store undo/redo y dirty state", () => {
     store.getState().reanclarEnlaceExternoDerivado(aparienciaEnlaceId, segundoId);
 
     expect(store.getState().modelo.enlaces[enlaceId]).toEqual(expect.objectContaining({
-      destinoId: segundoId,
+      destinoId: extremoEntidad(segundoId),
       derivado: expect.objectContaining({ origen: "manual" }),
     }));
     expect(store.getState().dirty).toBe(true);
@@ -197,12 +198,41 @@ describe("store undo/redo y dirty state", () => {
 
     store.getState().deshacer();
     expect(store.getState().modelo.enlaces[enlaceId]?.derivado?.origen).toBe("automatico");
-    expect(store.getState().modelo.enlaces[enlaceId]?.destinoId).not.toBe(segundoId);
+    expect(extremoApuntaAEntidad(store.getState().modelo.enlaces[enlaceId]?.destinoId ?? extremoEntidad(""), segundoId)).toBe(false);
     expect(store.getState().puedeRehacer).toBe(true);
 
     store.getState().rehacer();
     expect(store.getState().modelo.enlaces[enlaceId]?.derivado?.origen).toBe("manual");
-    expect(store.getState().modelo.enlaces[enlaceId]?.destinoId).toBe(segundoId);
+    expect(store.getState().modelo.enlaces[enlaceId]?.destinoId).toEqual(extremoEntidad(segundoId));
+  });
+
+  test("apuntar extremo Estado de enlace seleccionado entra al historial y conserva undo", () => {
+    let modelo = crearModelo("Store extremos Estado");
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 100 }, "Pedido"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 260, y: 120 }, "Aprobar"));
+    const pedidoId = entidadPorNombre(modelo, "Pedido");
+    const aprobarId = entidadPorNombre(modelo, "Aprobar");
+    modelo = must(crearEstadosIniciales(modelo, pedidoId)).modelo;
+    const [pendiente] = estadosDeEntidad(modelo, pedidoId);
+    if (!pendiente) throw new Error("La prueba esperaba un estado");
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, pedidoId, aprobarId, "consumo"));
+    const enlaceId = Object.values(modelo.enlaces)[0]?.id;
+    if (!enlaceId) throw new Error("La prueba esperaba un enlace");
+    store.getState().importarJson(exportarModelo(modelo));
+    store.getState().seleccionarEnlace(enlaceId);
+
+    store.getState().apuntarExtremoEnlaceSeleccionado("origen", extremoEstado(pendiente.id));
+
+    expect(store.getState().modelo.enlaces[enlaceId]?.origenId).toEqual(extremoEstado(pendiente.id));
+    expect(store.getState().dirty).toBe(true);
+    expect(store.getState().puedeDeshacer).toBe(true);
+
+    store.getState().deshacer();
+    expect(store.getState().modelo.enlaces[enlaceId]?.origenId).toEqual(extremoEntidad(pedidoId));
+    expect(store.getState().puedeRehacer).toBe(true);
+
+    store.getState().rehacer();
+    expect(store.getState().modelo.enlaces[enlaceId]?.origenId).toEqual(extremoEstado(pendiente.id));
   });
 
   test("gestiona estados de objeto con historial y designaciones coexistentes", () => {

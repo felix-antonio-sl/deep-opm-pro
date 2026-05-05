@@ -8,6 +8,7 @@ import {
 import {
   actualizarVerticesEnlace as actualizarVerticesEnlaceOp,
   ajustarMultiplicidad,
+  apuntarExtremoEnlace,
   cambiarAfiliacion,
   cambiarEsencia,
   agregarEstado,
@@ -48,7 +49,7 @@ import {
 } from "./persistencia/local";
 import { exportarModelo, hidratarModelo } from "./serializacion/json";
 import type { Aviso } from "./modelo/validaciones";
-import type { Afiliacion, Apariencia, Esencia, Id, Modelo, ModoDespliegueObjeto, ModoPlegado, Posicion, TipoEnlace } from "./modelo/tipos";
+import type { Afiliacion, Apariencia, Esencia, ExtremoEnlace, Id, Modelo, ModoDespliegueObjeto, ModoPlegado, Posicion, TipoEnlace } from "./modelo/tipos";
 
 interface ModoEnlace {
   tipo: TipoEnlace;
@@ -102,6 +103,7 @@ interface OpmStore {
   reordenarSubprocesoEnTimeline: (opdId: Id, aparienciaId: Id, nuevaY: number) => void;
   actualizarVerticesEnlace: (aparienciaEnlaceId: Id, vertices: Array<{ x: number; y: number }>) => void;
   ajustarMultiplicidadSeleccionada: (lado: "origen" | "destino", texto: string) => void;
+  apuntarExtremoEnlaceSeleccionado: (lado: "origen" | "destino", extremo: ExtremoEnlace) => void;
   reanclarEnlaceExternoDerivado: (aparienciaEnlaceId: Id, nuevoEndpointEntidadId: Id) => void;
   splitEffectSeleccionado: () => void;
   volverEnlaceExternoDerivadoAAutomatico: (aparienciaEnlaceId: Id) => void;
@@ -662,6 +664,23 @@ export const store = createStore<OpmStore>((set, get) => ({
       set({ mensaje: resultado.error });
       return;
     }
+    commitModelo(set, modelo, resultado.value, {
+      seleccionId: null,
+      enlaceSeleccionId,
+      modoEnlace: null,
+      mensaje: null,
+    });
+  },
+
+  apuntarExtremoEnlaceSeleccionado(lado, extremo) {
+    const { modelo, enlaceSeleccionId } = get();
+    if (!enlaceSeleccionId) return;
+    const resultado = apuntarExtremoEnlace(modelo, enlaceSeleccionId, lado, extremo);
+    if (!resultado.ok) {
+      set({ mensaje: resultado.error });
+      return;
+    }
+    if (resultado.value === modelo) return;
     commitModelo(set, modelo, resultado.value, {
       seleccionId: null,
       enlaceSeleccionId,

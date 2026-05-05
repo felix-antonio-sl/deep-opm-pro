@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+import { extremoEntidad, extremoEstado } from "./extremos";
 import { crearModelo } from "./operaciones";
 import type { Apariencia, AparienciaEnlace, Enlace, Entidad, Id, Modelo } from "./tipos";
 import type { Aviso } from "./validaciones";
@@ -60,6 +61,48 @@ describe("validaciones metodologicas pasivas", () => {
       reglaId: "generalizacion-mismo-tipo",
       severidad: "error",
       citaSSOT: "[V-239]",
+    });
+  });
+
+  test("enlace estructural con extremo Estado reporta error SSOT", () => {
+    const base = modeloCon({
+      entidades: [
+        entidad("o-pedido", "objeto", "Pedido", "informacional"),
+        entidad("o-documento", "objeto", "Documento", "informacional"),
+      ],
+    });
+    const enlaceEstado: Enlace = {
+      id: "e-exhibicion-estado",
+      tipo: "exhibicion",
+      origenId: extremoEstado("s-pendiente"),
+      destinoId: extremoEntidad("o-documento"),
+      etiqueta: "",
+    };
+    const modelo: Modelo = {
+      ...base,
+      estados: {
+        "s-pendiente": { id: "s-pendiente", entidadId: "o-pedido", nombre: "pendiente" },
+        "s-aprobado": { id: "s-aprobado", entidadId: "o-pedido", nombre: "aprobado" },
+      },
+      enlaces: { [enlaceEstado.id]: enlaceEstado },
+      opds: {
+        [base.opdRaizId]: {
+          ...base.opds[base.opdRaizId]!,
+          enlaces: {
+            "ae-exhibicion-estado": aparienciaEnlace("ae-exhibicion-estado", enlaceEstado.id, base.opdRaizId),
+          },
+        },
+      },
+    };
+
+    const avisos = avisosDeRegla(modelo, "estructural-no-acepta-extremo-estado");
+
+    expect(avisos).toHaveLength(1);
+    expect(avisos[0]).toMatchObject({
+      severidad: "error",
+      citaSSOT: "[V-237] [V-239]",
+      elementoTipo: "enlace",
+      elementoId: enlaceEstado.id,
     });
   });
 
@@ -551,8 +594,8 @@ function enlace(id: Id, tipo: Enlace["tipo"], origenId: Id, destinoId: Id): Enla
   return {
     id,
     tipo,
-    origenId,
-    destinoId,
+    origenId: extremoEntidad(origenId),
+    destinoId: extremoEntidad(destinoId),
     etiqueta: "",
   };
 }

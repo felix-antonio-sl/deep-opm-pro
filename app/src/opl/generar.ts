@@ -1,3 +1,9 @@
+import {
+  entidadDeExtremo,
+  entidadIdDeExtremo,
+  estadoDeExtremo,
+  extremoApuntaAEntidad,
+} from "../modelo/extremos";
 import { estadosDeEntidad } from "../modelo/operaciones";
 import { modoPlegadoApariencia, partesDePlegado, UMBRAL_PARTES_MAS } from "../modelo/plegado";
 import type { Apariencia, Enlace, Entidad, Estado, Id, Modelo, ModoDespliegueObjeto, Opd, TipoEnlace } from "../modelo/tipos";
@@ -15,9 +21,16 @@ export function generarOpl(modelo: Modelo, opdId: Id = modelo.opdRaizId): string
     const refinamiento = oracionRefinamiento(modelo, apariencia, entidad);
     if (refinamiento) lineas.push(refinamiento);
   }
+  const transiciones = transicionesEstado(modelo, opd);
   for (const aparienciaEnlace of Object.values(opd.enlaces)) {
     const enlace = modelo.enlaces[aparienciaEnlace.enlaceId];
     if (!enlace) continue;
+    const transicion = transiciones.lineaPorEnlaceConsumo.get(enlace.id);
+    if (transicion) {
+      lineas.push(transicion);
+      continue;
+    }
+    if (transiciones.enlacesCubiertos.has(enlace.id)) continue;
     const linea = oracionEnlace(modelo, enlace);
     if (linea) lineas.push(linea);
   }
@@ -82,7 +95,7 @@ function modoDespliegue(modelo: Modelo, entidad: Entidad, opdHijo: Opd): ModoDes
   const tipos = Object.values(opdHijo.enlaces)
     .flatMap((aparienciaEnlace) => {
       const enlace = modelo.enlaces[aparienciaEnlace.enlaceId];
-      return enlace?.origenId === entidad.id ? [enlace.tipo] : [];
+      return enlace && extremoApuntaAEntidad(enlace.origenId, entidad.id) ? [enlace.tipo] : [];
     });
   return tipos.map(modoPorTipoEnlace).find((modo): modo is ModoDespliegueObjeto => modo !== null) ?? "agregacion";
 }
@@ -134,13 +147,48 @@ function nombreEstadoOpl(estado: Estado): string {
   return `\`${estado.nombre}\`${designaciones.length > 0 ? ` (${listarDesignaciones(designaciones)})` : ""}`;
 }
 
+function transicionesEstado(modelo: Modelo, opd: Opd): { lineaPorEnlaceConsumo: Map<Id, string>; enlacesCubiertos: Set<Id> } {
+  const consumos = Object.values(opd.enlaces)
+    .map((apariencia) => modelo.enlaces[apariencia.enlaceId])
+    .filter((enlace): enlace is Enlace => !!enlace && enlace.tipo === "consumo" && enlace.origenId.kind === "estado");
+  const resultados = Object.values(opd.enlaces)
+    .map((apariencia) => modelo.enlaces[apariencia.enlaceId])
+    .filter((enlace): enlace is Enlace => !!enlace && enlace.tipo === "resultado" && enlace.destinoId.kind === "estado");
+  const lineaPorEnlaceConsumo = new Map<Id, string>();
+  const enlacesCubiertos = new Set<Id>();
+
+  for (const consumo of consumos) {
+    const objetoEntradaId = entidadIdDeExtremo(modelo, consumo.origenId);
+    const procesoId = entidadIdDeExtremo(modelo, consumo.destinoId);
+    if (!objetoEntradaId || !procesoId) continue;
+    const resultado = resultados.find((candidato) => (
+      entidadIdDeExtremo(modelo, candidato.origenId) === procesoId &&
+      entidadIdDeExtremo(modelo, candidato.destinoId) === objetoEntradaId
+    ));
+    if (!resultado) continue;
+    const proceso = modelo.entidades[procesoId];
+    const objeto = modelo.entidades[objetoEntradaId];
+    const estadoEntrada = estadoDeExtremo(modelo, consumo.origenId);
+    const estadoSalida = estadoDeExtremo(modelo, resultado.destinoId);
+    if (!proceso || !objeto || !estadoEntrada || !estadoSalida) continue;
+    lineaPorEnlaceConsumo.set(
+      consumo.id,
+      `${nombreOpl(proceso)} cambia ${nombreOpl(objeto)} de \`${estadoEntrada.nombre}\` a \`${estadoSalida.nombre}\`.`,
+    );
+    enlacesCubiertos.add(consumo.id);
+    enlacesCubiertos.add(resultado.id);
+  }
+
+  return { lineaPorEnlaceConsumo, enlacesCubiertos };
+}
+
 function oracionEnlace(modelo: Modelo, enlace: Enlace): string | null {
-  const origen = modelo.entidades[enlace.origenId];
-  const destino = modelo.entidades[enlace.destinoId];
+  const origen = entidadDeExtremo(modelo, enlace.origenId);
+  const destino = entidadDeExtremo(modelo, enlace.destinoId);
   if (!origen || !destino) return null;
 
-  const origenOpl = nombreOplConMultiplicidad(origen, enlace.multiplicidadOrigen);
-  const destinoOpl = nombreOplConMultiplicidad(destino, enlace.multiplicidadDestino);
+  const origenOpl = nombreOplExtremo(modelo, enlace.origenId, enlace.multiplicidadOrigen);
+  const destinoOpl = nombreOplExtremo(modelo, enlace.destinoId, enlace.multiplicidadDestino);
   const origenPlural = multiplicidadPlural(enlace.multiplicidadOrigen);
   const destinoPlural = multiplicidadPlural(enlace.multiplicidadDestino);
 
@@ -158,27 +206,46 @@ function oracionEnlace(modelo: Modelo, enlace: Enlace): string | null {
     case "instrumento":
       return `${destinoOpl} ${verbo("requiere", "requieren", destinoPlural)} ${origenOpl}.`;
     case "consumo":
+      if (enlace.origenId.kind === "estado" && destino.tipo === "proceso") {
+        const estado = estadoDeExtremo(modelo, enlace.origenId);
+        return estado ? `${destinoOpl} cambia ${nombreOpl(origen)} de \`${estado.nombre}\`.` : null;
+      }
       return `${destinoOpl} ${verbo("consume", "consumen", destinoPlural)} ${origenOpl}.`;
     case "resultado":
+      if (enlace.destinoId.kind === "estado" && origen.tipo === "proceso") {
+        const estado = estadoDeExtremo(modelo, enlace.destinoId);
+        return estado ? `${origenOpl} cambia ${nombreOpl(destino)} a \`${estado.nombre}\`.` : null;
+      }
       return `${origenOpl} ${verbo("genera", "generan", origenPlural)} ${destinoOpl}.`;
     case "efecto":
-      return oracionEfecto(enlace, origen, destino);
+      return oracionEfecto(modelo, enlace, origen, destino);
     case "invocacion":
       return `${origenOpl} ${verbo("invoca", "invocan", origenPlural)} ${destinoOpl}.`;
   }
 }
 
-function oracionEfecto(enlace: Enlace, origen: Entidad, destino: Entidad): string | null {
+function oracionEfecto(modelo: Modelo, enlace: Enlace, origen: Entidad, destino: Entidad): string | null {
   const proceso = origen.tipo === "proceso" ? origen : destino.tipo === "proceso" ? destino : null;
   const objeto = origen.tipo === "objeto" ? origen : destino.tipo === "objeto" ? destino : null;
   if (!proceso || !objeto) return null;
-  const multiplicidadProceso = proceso.id === enlace.origenId ? enlace.multiplicidadOrigen : enlace.multiplicidadDestino;
-  const multiplicidadObjeto = objeto.id === enlace.origenId ? enlace.multiplicidadOrigen : enlace.multiplicidadDestino;
-  return `${nombreOplConMultiplicidad(proceso, multiplicidadProceso)} ${verbo("afecta", "afectan", multiplicidadPlural(multiplicidadProceso))} ${nombreOplConMultiplicidad(objeto, multiplicidadObjeto)}.`;
+  const procesoEsOrigen = entidadIdDeExtremo(modelo, enlace.origenId) === proceso.id;
+  const objetoEsOrigen = entidadIdDeExtremo(modelo, enlace.origenId) === objeto.id;
+  const multiplicidadProceso = procesoEsOrigen ? enlace.multiplicidadOrigen : enlace.multiplicidadDestino;
+  const multiplicidadObjeto = objetoEsOrigen ? enlace.multiplicidadOrigen : enlace.multiplicidadDestino;
+  const extremoObjeto = objetoEsOrigen ? enlace.origenId : enlace.destinoId;
+  return `${nombreOplConMultiplicidad(proceso, multiplicidadProceso)} ${verbo("afecta", "afectan", multiplicidadPlural(multiplicidadProceso))} ${nombreOplExtremo(modelo, extremoObjeto, multiplicidadObjeto)}.`;
 }
 
 function nombreOpl(entidad: Entidad): string {
   return entidad.tipo === "objeto" ? `**${entidad.nombre}**` : `*${entidad.nombre}*`;
+}
+
+function nombreOplExtremo(modelo: Modelo, extremo: Enlace["origenId"], multiplicidad: string | undefined): string {
+  const entidad = entidadDeExtremo(modelo, extremo);
+  if (!entidad) return extremo.id;
+  const base = nombreOplConMultiplicidad(entidad, multiplicidad);
+  const estado = estadoDeExtremo(modelo, extremo);
+  return estado ? `${base} en \`${estado.nombre}\`` : base;
 }
 
 function nombreOplConMultiplicidad(entidad: Entidad, multiplicidad: string | undefined): string {

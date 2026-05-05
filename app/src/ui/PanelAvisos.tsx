@@ -1,4 +1,5 @@
 import { useState } from "preact/hooks";
+import { nombreExtremo } from "../modelo/extremos";
 import type { Aviso, SeveridadAviso } from "../modelo/validaciones";
 import { validarModelo } from "../modelo/validaciones";
 import type { Id, Modelo } from "../modelo/tipos";
@@ -159,8 +160,8 @@ function etiquetaElemento(modelo: Modelo, aviso: Aviso): string {
   if (aviso.elementoTipo === "enlace" && aviso.elementoId) {
     const enlace = modelo.enlaces[aviso.elementoId];
     if (!enlace) return aviso.elementoId;
-    const origen = modelo.entidades[enlace.origenId]?.nombre ?? enlace.origenId;
-    const destino = modelo.entidades[enlace.destinoId]?.nombre ?? enlace.destinoId;
+    const origen = nombreExtremo(modelo, enlace.origenId);
+    const destino = nombreExtremo(modelo, enlace.destinoId);
     return `${origen} -> ${destino} · ${enlace.id}`;
   }
   if (aviso.elementoTipo === "opd" && aviso.elementoId) {

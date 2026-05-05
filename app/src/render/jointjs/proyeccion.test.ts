@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+import { entidadIdDeExtremo, extremoEstado } from "../../modelo/extremos";
 import { ajustarMultiplicidad, cambiarEsencia, crearEnlace, crearEstadosIniciales, crearModelo, crearObjeto, crearProceso, designarEstadoFinal, designarEstadoInicial, descomponerProceso, desplegarObjeto, estadosDeEntidad, renombrarEstado } from "../../modelo/operaciones";
 import { cambiarModoPlegado, extraerParteDePlegado, reinsertarParteEnPlegado } from "../../modelo/plegado";
 import type { Apariencia, Modelo, Resultado, TipoEnlace } from "../../modelo/tipos";
@@ -49,8 +50,8 @@ describe("proyeccion JointJS", () => {
     const cells = proyectarModeloAJointCells(modelo, modelo.opdRaizId, null, null);
     const cellEnlace = cells.find((cell) => cell.id === aparienciaEnlace.id);
     expect(cellEnlace?.type).toBe("standard.Link");
-    expect((cellEnlace?.source as { id?: string } | undefined)?.id).toBe(aparienciaPorEntidad.get(enlace.origenId));
-    expect((cellEnlace?.target as { id?: string } | undefined)?.id).toBe(aparienciaPorEntidad.get(enlace.destinoId));
+    expect((cellEnlace?.source as { id?: string } | undefined)?.id).toBe(aparienciaPorEntidad.get(entidadIdDeExtremo(modelo, enlace.origenId) ?? ""));
+    expect((cellEnlace?.target as { id?: string } | undefined)?.id).toBe(aparienciaPorEntidad.get(entidadIdDeExtremo(modelo, enlace.destinoId) ?? ""));
     const line = ((cellEnlace?.attrs as Attrs | undefined)?.line as Attrs | undefined);
     expect(line?.sourceMarker).toBeNull();
     expect((line?.targetMarker as Attrs | undefined)?.type).toBe("circle");
@@ -301,6 +302,34 @@ describe("proyeccion JointJS", () => {
     expect((attrs?.stateCapsule0 as Attrs | undefined)?.y).toBe(64);
     expect((attrs?.stateLabel0 as Attrs | undefined)?.text).toBe("pendiente");
     expect((attrs?.stateLabel1 as Attrs | undefined)?.text).toBe("cerrado");
+  });
+
+  test("proyecta extremo Estado al centro de la capsula interna", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 80, y: 90 }, "Pedido"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 260, y: 90 }, "Aprobar"));
+    const pedidoId = entidadPorNombre(modelo, "Pedido");
+    const aprobarId = entidadPorNombre(modelo, "Aprobar");
+    modelo = must(crearEstadosIniciales(modelo, pedidoId)).modelo;
+    const [pendiente] = estadosDeEntidad(modelo, pedidoId);
+    if (!pendiente) throw new Error("La prueba esperaba un estado");
+    modelo = must(renombrarEstado(modelo, pendiente.id, "pendiente"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, extremoEstado(pendiente.id), aprobarId, "consumo"));
+
+    const cells = proyectarModeloAJointCells(modelo, modelo.opdRaizId, null, null);
+    const objetoCell = cells.find((item) => item.opm.kind === "entidad" && item.opm.entidadId === pedidoId);
+    const enlaceCell = cells.find((item) => item.opm.kind === "enlace");
+    const attrs = objetoCell?.attrs as Attrs | undefined;
+    const stateLabel = attrs?.stateLabel0 as Attrs | undefined;
+    const apariencia = aparienciaDeEntidad(modelo, modelo.opdRaizId, pedidoId);
+
+    expect(enlaceCell?.source).toEqual({
+      x: apariencia.x + Number(stateLabel?.x),
+      y: apariencia.y + Number(stateLabel?.y),
+    });
+    expect((enlaceCell?.target as { id?: string } | undefined)?.id).toBe(
+      aparienciaDeEntidad(modelo, modelo.opdRaizId, aprobarId).id,
+    );
   });
 
   test("plegado parcial oculta capsulas de estado y conserva filas de partes", () => {
