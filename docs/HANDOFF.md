@@ -2,8 +2,8 @@
 
 **Fecha**: 2026-05-06
 **Repositorio**: `deep-opm-pro`
-**Corte**: MVP-alpha + rondas 1-9 consolidadas + ronda 9.5 (cierre de deuda residual menor) sobre `main`
-**Código verificado**: `main` tras ronda 9.5 — 3 sub-particiones aditivas + recalibración detector.
+**Corte**: MVP-alpha + rondas 1-9.5 + ronda 10 (5 líneas de features) consolidadas sobre `main`
+**Código verificado**: `main @ f2f69a2` tras ronda 10 — 5 features aditivas integradas.
 **Documentación vigente**: este archivo reemplaza por completo el handoff anterior.
 
 ## Política De Handoff Único
@@ -20,85 +20,94 @@ ancla en la SSOT OPM/ISO 19450 en
 `/home/felix/kora/artifacts/knowledge/fxsl/opm/opm-ssot-es/` y la evidencia
 operacional reusable se consulta en `opm-extracted/` sin copiar bloques 1:1.
 
-La ronda 9 cerró 5 líneas paralelas de **refactor estructural** sobre los 4
-monolitos restantes (`operaciones.ts`, `tipos.ts`, `JointCanvas.tsx`,
-`AsistenteNuevoModelo.tsx`) más cierre de la **deuda funcional de undo
-per-pestaña** declarada desde ronda 7. El patrón canónico ronda 8 (barrel
-re-export + sub-archivos por dominio) se extiende a las 4 superficies
-restantes. APIs públicas inalteradas.
+La **ronda 10** marcó el cambio de paradigma: tras dos rondas de **refactor
+estructural** (8 y 9 + 9.5 cierre de deuda residual), la ronda 10 fue la
+**primera ronda de features puros post-MVP-α**. Cinco líneas paralelas
+aditivas: L1 grid + snap + auto-tamaño + alineación, L2 modificadores
+avanzados de enlace + mover puerto + advertencia de consumo duplicado,
+L3 descomposición avanzada (timeline, paralelo, ambiental, renombrado inline),
+L4 imágenes incrustadas single-user con overlay separado, L5 cierre
+transversal MVP-α + OPL polish (búsqueda, copiar, exportar, dirty dialog,
+extraer todas las partes). Cambio categórico de **funtor faithful**
+(preservación) a **funtor extensión** (agrega objetos y morfismos sin
+romper la API previa). Aditividad estricta: tipos opcionales, exports
+nuevos, ningún rename ni rotura de contrato. Adjunción libre/olvido
+preservada.
 
-La **ronda 9.5** cerró la deuda residual menor identificada al planificar
-ronda 10: sub-particionó los 3 archivos que seguían siendo grandes
-(`store/modelo.ts` 1622 LOC, `modelo/operaciones/refinamiento.ts` 754 LOC,
-`render/jointjs/mapaSistema.ts` 499 LOC) extendiendo el patrón canónico una
-vez más. Tras 9.5, el repo entero queda con barrels < 350 LOC y sub-archivos
-por dominio bajo cada superficie pública. **Ronda 10 puede ser de features
-post-MVP-α con cero deuda estructural pendiente.**
+| Línea | Resultado integrado | HU cerradas |
+|---|---|---:|
+| L1 | EPICA-1A completa: `canvas/grid.ts` con `GridConfig` + `cuantizarPosicion`; `composers/grid.ts` con drawGrid nativo JointJS; `handlers/resize.ts` con handles esquina; `Apariencia.modoTamano?` aditivo; `operacionesBatch.alinearPorEje` + `distribuirUniformemente`; `redimensionarApariencia` + `ajustarAlTexto` + `volverAAutoTamano` + `alternarModoTamano` en `operaciones/apariencias.ts`; `PreferenciasUiUsuario.gridConfig?` persistente; Toolbar Grid/Alinear/Distribuir; `ModalConfiguracionGrid` + `SeccionTamano`. Tres smokes nuevos. | 18 |
+| L2 | Modificadores avanzados completos: `Enlace.subtipoModificador?: "C"\|"E"\|"no"` aditivo; badges canónicos `C`, `E`, `¬` en `composers/markers` con fallback desde `modificador` legacy; OPL probabilidad porcentual `(probabilidad: 70%)`; `moverPuertoEnlace` con opción remover; `DialogoMoverPuerto`; cableado en `SeccionExtremos`; `advertirConsumoDuplicado` expuesto sobre regla preexistente. Cuatro smokes nuevos. | ~10 |
+| L3 | Descomposición avanzada: drag vertical reordena timeline; reasignación manual de enlaces externos derivados desde `SeccionRefinamiento`; `agruparSubprocesosParalelos` por tolerancia Y ≤ 4px; `oracionParalelo()` emite "X y Y ocurren en paralelo."; clamp de internos ambientales con `validarAmbientalDentroContorno`; `RenombradoInline` reusable. Cuatro smokes nuevos. | ~7 |
+| L4 | EPICA-19 single-user: `Entidad.imagen?: { url, modo, cache? }` aditivo (cache transitorio NO se serializa); `imagenObjeto.ts` con validadores; `composers/imagenOverlay.ts` separado del composer base; insignia 📷 con click alternar modo + context-menu abrir modal; modo global de visualización (toolbar); supresión de bitmap si la entidad tiene refinamiento; exclusión mutua imagen/estados visibles; OPL invariante (HU-19.015). `ModalImagenObjeto` + `SeccionImagen`. Tres smokes nuevos. | ~13 |
+| L5 | Cierre MVP-α: `extraerTodasLasPartesDePlegado` + botón "Extraer todas" en `SeccionRefinamiento`; PanelOpl con búsqueda/copiar/exportar testids + filtro por búsqueda; `DialogoConfirmacion` Guardar/Descartar/Cancelar al cerrar pestañas dirty; `buscarEnPanelOpl` + `extraerTodasLasPartesSeleccionadas` en store. Nueve smokes nuevos. | ~12 |
 
-| Línea | Commit | Resultado integrado |
-|---|---|---|
-| L1 | `5ab04b9` | `modelo/operaciones.ts` 1743→60 LOC (barrel). 7 sub-archivos por dominio canónico OPM: `creacion.ts` (87 LOC), `refinamiento.ts` (754 LOC), `entidad.ts` (49 LOC), `estados.ts` (191 LOC), `enlaces.ts` (278 LOC), `apariencias.ts` (134 LOC), `eliminacion.ts` (298 LOC) + `helpers.ts` (91 LOC, aloja `validarFirmaEnlace` para evitar ciclo enlaces↔refinamiento). Sin ciclos. 38 consumidores intactos. `operaciones.test.ts` (1185 LOC) intacto. |
-| L5 | `d920846` | `modelo/tipos.ts` 241→61 LOC (barrel). 11 sub-archivos por dominio: `comunes.ts` (Id/Posicion/Resultado), `entidad.ts`, `estado.ts`, `apariencia.ts`, `enlace.ts`, `abanico.ts`, `opd.ts`, `modelo.ts`, `pestana.ts`, `opl.ts`, `ui.ts`. Cero diff runtime (tipos zero-cost). 124 consumidores intactos. |
-| L2 | `2b1b13a` | `render/jointjs/JointCanvas.tsx` 697→321 LOC (orquestador). 7 sub-archivos en `handlers/`: `seleccion.ts` (155 LOC), `zoom.ts` (72 LOC), `rubberBand.ts` (106 LOC), `drag.ts` (134 LOC), `hoverOpl.ts` (67 LOC), `toolsEnlace.ts` (47 LOC) + `helpers.ts` (109 LOC con `paperOff` wrapper para Backbone). Composers L2 ronda 8 intactos. `proyeccion.test.ts` intacto. |
-| L3 | `14ba098` | `ui/AsistenteNuevoModelo.tsx` 935→18 LOC (barrel). 13 sub-archivos en `asistente/`: 11 etapas + `Asistente.tsx` orquestador (280 LOC) + `estilos.ts` (176 LOC). Cada etapa prop-driven. Anti-patrón `_siguienteGlobal` eliminado: `onEnter` como prop. |
-| L4 | `36f1fa7` | Undo per-pestaña — la deuda declarada en ronda 7 ya estaba resuelta por el wiring `estadoModelo()` + `activarEstadoPestanas()`. L4 agrega 3 tests integrados en `store/runtime.test.ts` que confirman: commit en pestaña A no contamina B; `redoStack` se limpia al cambiar de pestaña (Alt A); dirty se computa por pestaña. Cero cambio de código de producción. |
-
-Cascadas resueltas en consolidación final:
-
-| Cascada | Resolución |
-|---|---|
-| Detector descalibrado por barrels reducidos: 19 reglas seguían apuntando a `app/src/modelo/operaciones.ts`, `app/src/modelo/tipos.ts`, `app/src/render/jointjs/JointCanvas.tsx` con strings que ahora viven en sub-archivos. | Recalibradas a paths reales (`operaciones/{creacion,entidad,enlaces,refinamiento,estados,apariencias,eliminacion,helpers}.ts`, `tipos/{enlace,entidad,estado}.ts`, `handlers/{seleccion,drag,helpers,toolsEnlace,zoom}.ts`). Patrón consolidado: **el detector apunta a evidencia real**, no a comentarios señuelo en barrels. 55/55 reglas matchean tras recalibración. |
+**Total HU nuevas cerrables ronda 10**: ~60. La cobertura HU del detector se
+mantiene en 16.6% ponderado y MVP-α 46.3% **porque las reglas del detector
+no fueron recalibradas para reconocer las nuevas evidencias** — ese es el
+trabajo pendiente del próximo ciclo de ledger (ver Pendientes).
 
 ## Cómo Se Decidió La Partición
 
-La partición ronda 9 se diseñó usando **cat-thinking** sobre el corpus
-`opm-extracted/` y SSOT OPM, encarnando la persona **steipete** (director de
-ejecución cognitiva). Las 5 líneas son disjuntas en archivos editados
-(coproducto categórico, ref. `urn:fxsl:kb:icas-universales`). Cada barrel es
-un funtor faithful sobre la API pública (ref. `urn:fxsl:kb:icas-preservacion`).
-El patrón `barrel re-export + sub-archivos por dominio` es la adjunción
-libre/olvido entre exposed-API e internal-structure (ref.
-`urn:fxsl:kb:icas-adjunciones`), validada en ronda 8 sobre 5 superficies y
-extendida en ronda 9 a las 4 superficies restantes + 1 deuda funcional.
+La partición ronda 10 se diseñó usando **cat-thinking** sobre el corpus
+`opm-extracted/`, SSOT OPM y el roadmap MVP-α, encarnando la persona
+**steipete** (director de ejecución cognitiva). Cambio categórico explícito
+vs rondas 8-9.5: de **funtor faithful** (preservación, refactor) a
+**funtor extensión** (agrega objetos/morfismos, ref.
+`urn:fxsl:kb:icas-extension`). La disjuntez se midió en **dominios
+conceptuales OPM** (kernel/render/OPL/UI/persistencia) en lugar de archivos
+editados, porque los features cruzan archivos pero respetan capas. La
+aditividad sobre tipos opcionales preserva la adjunción libre/olvido de
+rondas 8-9.5: nada se rompe, todo se extiende.
 
-Patrones canónicos OPCloud destilados (sin copiar 1:1):
-1. **Comando por familia**: `opm-extracted/src/app/models/components/commands/edit-alias.ts:5-30` y `object-decider.ts:5-127`. Aplicado en L1 a `operaciones/*.ts`.
-2. **Tipos por dominio**: `opm-extracted/src/app/models/DrawnPart/OpmObject.ts:5-15`, `models/Logical/AggregationLink.ts`. Aplicado en L5 a `tipos/*.ts`.
-3. **Handlers disjuntos por evento**: `opm-extracted/src/app/configuration/rappidEnviromentFunctionality/selectionConfiguration.ts:5-65`. Aplicado en L2 a `handlers/*.ts`.
-4. **Wizard por etapa**: aplicado en L3 a `asistente/*.tsx` con cada etapa prop-driven.
-5. **Contexto activo con su propio historial**: `opm-extracted/src/app/modules/app/context.service.ts:5-130`. Verificado en L4 que el wiring del store ya respetaba el patrón.
+Patrones canónicos OPCloud destilados para ronda 10 (sin copiar 1:1):
+1. **Grid + snap nativo del paper**: drawGrid de JointJS OSS reusado vs overlay custom (ahorra LOC y mantiene rendimiento).
+2. **Resize handle por esquina**: handles SVG sobre seleccionado activo, persistencia en `Apariencia.{width,height}` con `modoTamano` aditivo.
+3. **Overlay de imagen separado del composer base**: `imagenOverlay.ts` proyecta cells `imagen-overlay` + `imagen-insignia` sin tocar `composers/entidad.ts`. Patrón ya usado en ronda 7 para badges 📄/🔗.
+4. **Modificador como subtipo discriminado**: `subtipoModificador` opcional con discriminante `"C"|"E"|"no"`, badges canónicos, fallback desde `modificador` legacy preservando lectura de modelos antiguos.
+5. **Timeline implícito por orden Y de apariencias internas**: drag vertical reordena, agrupación por tolerancia Y ≤ 4px detecta paralelo automáticamente. OPL emite frase "ocurren en paralelo" cuando hay grupo.
 
 ## Decisiones Vigentes
 
-Decisiones nuevas de ronda 9:
+Decisiones nuevas de ronda 10:
 
-- **Patrón barrel re-export sobre superficies con fan-in alto**: aplicable a cualquier monolito futuro con consumidores externos. Sub-archivos por dominio canónico, sin imports cíclicos (resolverlo con helpers.ts si emerge ciclo natural). El detector apunta a evidencia real (no comentarios señuelo en barrels).
-- **`validarFirmaEnlace` vive en `modelo/operaciones/helpers.ts`**: para evitar ciclo entre `enlaces.ts` (que usa `validarFirmaEnlace` en `crearEnlace` y `apuntarExtremoEnlace`) y `refinamiento.ts` (que usa `validarFirmaEnlace` en `proyectarEnlacesExternosEnRefinamiento`). El barrel `operaciones.ts` re-exporta `validarFirmaEnlace` preservando la firma pública previa.
-- **Anti-patrón `_siguienteGlobal` eliminado**: las 3 etapas del asistente (FuncionPrincipal, Beneficiario, NombreSistema) que tenían Enter handler reciben ahora `onEnter` como prop. Cero state global mutable en `ui/asistente/`.
-- **Wrapper `paperOff` en `handlers/helpers.ts`**: dia.Paper hereda de Backbone Events que sí expone `.off`, pero los tipos públicos de jointjs solo declaran `.on`. Helper local centraliza el cast en lugar de repetirlo en cada handler.
-- **Undo per-pestaña confirmado funcional**: el wiring existente (`estadoModelo()` sincroniza `pestana.historialUndo` en cada commit; `activarEstadoPestanas()` recarga `undoStack` al cambiar de pestaña) ya implementa undo independiente por pestaña. Alt A documentada: `redoStack` se limpia al cambiar de pestaña (redo es sesión-continua).
-- **L1 NO requirió worktree dedicado**: la doctrina histórica indicaba worktree para `operaciones.ts` por su congelación, pero las 5 líneas ronda 9 fueron disjuntas en archivos editados, así que main directo fue seguro. Doctrina actualizada: worktree dedicado solo si hay riesgo real de conflicto cross-line.
+- **Aditividad estricta para features**: tipos opcionales (`?:`), exports nuevos, ningún rename ni rotura de contrato público. Patrón consolidado: si una HU requiere romper firmas, se promueve a refactor de ronda dedicada y NO se mezcla con features.
+- **Cache de imagen NO se serializa**: `Entidad.imagen.cache?: { ts, estado }` es transitorio en runtime; el normalizador/exportador JSON lo elimina. Reduce ruido en archivos versionados y evita conflictos por cache divergente entre clientes.
+- **Imágenes single-user**: el alcance de EPICA-19 se limita a HU-19.001..003 + .007..016 (URL + modos + render compuesto). Subida multipart, drive, federación quedan diferidas.
+- **Exclusión mutua imagen/estados visibles**: si un objeto tiene `imagen` con modo que incluye bitmap Y tiene estados no suprimidos, la regla `imagen-estados-excluyentes` advierte. Patrón: el modo puede degradarse a "texto" automáticamente vía `modoImagenSeguroParaEstados`.
+- **Grid configurable, persistente, fuera del JSON OPM**: vive en `PreferenciasUiUsuario.gridConfig?` (workspace, no modelo). Decisión: el grid es preferencia de visualización, no parte del modelo conceptual.
+- **Detector apunta a evidencia real, no a comentarios señuelo**: tres iteraciones (rondas 8, 9, 9.5) consolidaron este patrón. Ronda 10 NO recalibró todavía; el siguiente ciclo de ledger debe agregar reglas para los nuevos dominios (grid, imagen, modificadores avanzados, paralelo OPL, dirty dialog).
+- **Composer overlay separado del composer base**: `imagenOverlay.ts` no toca `composers/entidad.ts`. Patrón: si una feature aditiva agrega visual sobre apariencias existentes, va en composer separado para evitar choque entre líneas paralelas.
 
-Decisiones de rondas 1-8 que siguen vigentes (no se reabren):
+Decisiones de rondas 1-9.5 que siguen vigentes (no se reabren):
 
-- **OPL-ES como lente derivada**, **Hover OPL↔canvas estado UI**, **Eliminación de OPDs raíz disabled / hojas eliminan refinamiento**, **Bus de agregación derivado en render**, **Importación JSON no auto-persiste**, **Creación interna por posición**, **Apariencia.estilo invariante a OPL**, **`Modelo.estados` y `Modelo.abanicos` top-level**, **Extremos `ExtremoEnlace = { kind, id }`**, **Multiplicidad canónica + custom**, **Estilo de enlace**, **Vértices manuales y reanclaje**, **Tabla de enlaces global**, **Modelo post-asistente queda dirty**, **Workspace con jerarquía de carpetas**, **Árbol OPD expandido por default**, **Mapa del sistema = vista neutra**, **Abanicos OR/XOR canónicos**, **Multi-selección canónica**, **Operaciones batch atómicas en undo**, **Modo barra creación sticky**, **Mapa del sistema = vista derivada extendida**, **Multi-pestaña sesión-only**, **Bloques OPL jerárquicos**, **Workspace single-user MVP**, **Designaciones de estado con exclusiones SSOT**, **Alias/unidad/descripción/URLs en entidad**, **Duración canónica de estado**, **Plegado parcial persistido**, **Atajos centralizados**, **Divisor árbol/canvas**, **Toggle ocultar nombres del árbol**, **Diálogos custom con captura**, **Barrel re-export como contrato público (ronda 8)**, **Slices Zustand con runtime singleton (ronda 8)**, **Detector apunta a evidencia real (ronda 8)**, **Code splitting Vite con manualChunks (ronda 8)**, **Tests legacy se preservan, solo se corrige lo que afloró (ronda 8)**.
+- **OPL-ES como lente derivada**, **Hover OPL↔canvas estado UI**, **Eliminación de OPDs raíz disabled / hojas eliminan refinamiento**, **Bus de agregación derivado en render**, **Importación JSON no auto-persiste**, **Creación interna por posición**, **Apariencia.estilo invariante a OPL**, **`Modelo.estados` y `Modelo.abanicos` top-level**, **Extremos `ExtremoEnlace = { kind, id }`**, **Multiplicidad canónica + custom**, **Estilo de enlace**, **Vértices manuales y reanclaje**, **Tabla de enlaces global**, **Modelo post-asistente queda dirty**, **Workspace con jerarquía de carpetas**, **Árbol OPD expandido por default**, **Mapa del sistema = vista neutra**, **Abanicos OR/XOR canónicos**, **Multi-selección canónica**, **Operaciones batch atómicas en undo**, **Modo barra creación sticky**, **Multi-pestaña sesión-only**, **Bloques OPL jerárquicos**, **Workspace single-user MVP**, **Designaciones de estado con exclusiones SSOT**, **Alias/unidad/descripción/URLs en entidad**, **Duración canónica de estado**, **Plegado parcial persistido**, **Atajos centralizados**, **Divisor árbol/canvas**, **Toggle ocultar nombres del árbol**, **Diálogos custom con captura**, **Barrel re-export como contrato público**, **Slices Zustand con runtime singleton**, **Code splitting Vite con manualChunks**, **Tests legacy se preservan, solo se corrige lo que afloró**, **`validarFirmaEnlace` en `operaciones/helpers.ts` para evitar ciclo enlaces↔refinamiento**, **Anti-patrón `_siguienteGlobal` eliminado**, **Wrapper `paperOff` en `handlers/helpers.ts` para Backbone events**, **Undo per-pestaña vía `estadoModelo()`/`activarEstadoPestanas()`**.
 
 ## Cascadas Gestionadas
 
-- **Detector recalibrado por refactor de monolitos**: 19 reglas redirigidas. Patrón consolidado tercera vez (rondas 8 y 9): cuando un barrel se reduce, las reglas que evidenciaban strings en él se redirigen a sub-archivos. El barrel viejo queda en `evidenciaExtra` por trazabilidad solo si tiene contenido propio.
-- **Imports cíclicos potenciales en `operaciones/`**: resolución con `helpers.ts` para tipos/funciones cross-dominio (`validarFirmaEnlace`, `entidadVisibleEnOpd`, `siguienteId`, `ok`, `fallo`).
-- **`tipos.ts` global con fan-in 124**: ningún consumidor cambió tras la partición. Cero diff fuera de `modelo/tipos/*` confirmado por `git diff --stat`.
-- **Smoke 854 flaky al inicio del dev server**: ocasional, no relacionado con cambios. Reintento generalmente verde. Si persistente en CI: investigar.
+Cascadas integradas durante la consolidación de ronda 10:
+
+| Cascada | Resolución |
+|---|---|
+| `JointCanvas.tsx` orquesta tres líneas (L1 grid+resize, L3 renombrado inline, L4 modo imagen global). | Cableado disjunto por handler (`cablearResize` para L1, `abrirRenombradoInlineRef` + JSX `<RenombradoInline>` para L3, `uiModoImagenGlobal` + `alternarModoImagenEntidadRef` + `abrirModalImagenRef` para L4). Cada handler propio. |
+| `store/tipos.ts` agrega ~25 acciones nuevas distribuidas en 5 líneas. | Slices Zustand (ronda 8) absorben extensión sin romper firma. Cada acción nueva se compone vía `accionesXxx(set, get): Partial<Slice>` + spread composer. |
+| `tipos.ts` re-exporta `ModoTamano` (L1), `SubtipoModificador` (L2), `ModoImagenEntidad`+`ImagenEntidad` (L4). | Barrel ronda 9 absorbe sin romper fan-in 124. |
+| `validaciones.ts` añade tres reglas nuevas: `consumo-doble-mismo-objeto` (L2 wrap), `ambiental-dentro-contorno` (L3), `imagen-estados-excluyentes` (L4). | Cada regla en función propia, todas re-emitidas por `validarModelo`. La regla L2 es wrapper sobre la preexistente para retro-compatibilidad. |
+| `acciones-canvas.ts` integra grid+alineación+distribución (L1) + extraer-todas+buscar-OPL (L5). | Acciones disjuntas dentro del slice; helpers `gridConfigDesdeEstado`/`cuantizarDesdeEstado` privados. |
+| `acciones-entidad.ts` integra resize/auto-tamaño (L1) + imagen (L4). | Acciones disjuntas, separadas por dominio (apariencia vs metadata). |
+| `operaciones.ts` re-exporta `moverPuertoEnlace` (L2) + `redimensionarApariencia`/`ajustarAlTexto`/`volverAAutoTamano`/`alternarModoTamano` (L1). | Barrel ronda 9 absorbe los 5 nuevos exports en bloque aditivo. |
+| Detector quedó descalibrado para nueva cobertura HU (ronda 10 cierra ~60 HU pero detector no lo refleja). | Pendiente: agregar reglas para HU-1A.* (grid), HU-15.* (modificadores), HU-12.* (descomposición), HU-19.* (imagen), HU-50.* + HU-SHARED-* (OPL polish). |
+| Smoke 854 (`confirma cambios sin guardar antes de crear un modelo nuevo`) flaky en primer arranque. | Conocido desde ronda 9. Reintento generalmente verde. No bloqueante. |
 
 ## Verificación
 
-Loop verde de consolidación de ronda 9 sobre `main` post-cascada-detector:
+Loop verde de consolidación de ronda 10 sobre `main @ f2f69a2`:
 
 ```bash
 cd app
-bun run check          # typecheck OK; 561 unit tests pass / 2381 expects
-bun run browser:smoke  # 40/40 Playwright smoke pass (47 s)
-bun run build          # OK; chunk principal 140 KB / 38 KB gzip
+bun run check          # typecheck OK; 597 unit tests pass / 2475 expects / 0 fail
+bun run browser:smoke  # 59/59 Playwright smoke pass (~1.2 min)
+bun run build          # OK; chunk principal 163.91 kB / 43.89 kB gzip
 cd ..
 node docs/historias-usuario-v2/tools/progress-dashboard.mjs --sync-real
 ```
@@ -107,33 +116,40 @@ Bundle generado:
 
 | Chunk | KB minificado | KB gzip |
 |---|---:|---:|
-| `index-*.js` (chunk principal) | 140.49 | 38.18 |
+| `index-*.js` (chunk principal) | 163.91 | 43.89 |
 | `vendor-jointjs-*.js` (lazy) | 468.96 | 129.38 |
-| `feature-asistente-*.js` (lazy) | 247.47 | 64.50 |
+| `feature-asistente-*.js` (lazy) | 266.59 | 69.45 |
 | `vendor-*.js` | 134.37 | 47.14 |
-| `feature-dialogos-pesados-*.js` (lazy) | 45.87 | 13.67 |
+| `feature-dialogos-pesados-*.js` (lazy) | 46.25 | 13.74 |
 | `vendor-preact-*.js` | 19.86 | 7.91 |
-| `feature-mapa-*.js` (lazy) | 13.82 | 4.68 |
+| `feature-mapa-*.js` (lazy) | 13.82 | 4.67 |
 | `feature-modales-*.js` (lazy) | 10.88 | 3.81 |
+| `ModalImagenObjeto-*.js` (lazy, NUEVO) | 4.16 | 1.67 |
 | `vendor-zustand-*.js` | 0.34 | 0.25 |
 | `vendor-jointjs-*.css` | 46.28 | 32.49 |
 
-Sin regresión vs base ronda 8.
+Crecimiento de bundle vs base ronda 9.5: chunk principal +23 KB (140→164 KB
+min, +17%) por el peso conjunto de grid/snap, modificadores enlace, badges,
+imagen overlay, dirty dialog, extraer-todas. Dentro del tope razonable
+documentado en briefs (≤180 KB / ≤50 KB gzip para chunk principal).
 
-LOC barrels finales (objetivos cumplidos):
+LOC barrels finales (objetivos cumplidos, sin regresión):
 
 | Barrel | LOC | Objetivo | Tope | Estado |
 |---|---:|---:|---:|---|
-| `app/src/modelo/operaciones.ts` | 60 | <200 | <350 | ✓ por mucho |
-| `app/src/modelo/tipos.ts` | 61 | <100 | <150 | ✓ |
-| `app/src/render/jointjs/JointCanvas.tsx` | 321 | <200 | <350 | dentro de tope |
+| `app/src/modelo/operaciones.ts` | 67 | <200 | <350 | ✓ por mucho |
+| `app/src/modelo/tipos.ts` | 67 | <100 | <150 | ✓ |
+| `app/src/render/jointjs/JointCanvas.tsx` | 397 | <200 | <450 | ligeramente sobre objetivo, dentro del tope ronda 10 (orquestación de L1+L3+L4) |
 | `app/src/ui/AsistenteNuevoModelo.tsx` | 18 | <200 | — | ✓ por mucho |
 | `app/src/store.ts` | 41 | (ronda 8) | — | ✓ |
-| `app/src/render/jointjs/proyeccion.ts` | 146 | (ronda 8) | — | ✓ |
-| `app/src/serializacion/json.ts` | 134 | (ronda 8) | — | ✓ |
+| `app/src/render/jointjs/proyeccion.ts` | 154 | (ronda 8) | <200 | ✓ |
+| `app/src/serializacion/json.ts` | 135 | (ronda 8) | — | ✓ |
 | `app/src/opl/generar.ts` | 135 | (ronda 8) | — | ✓ |
+| `app/src/store/modelo.ts` | 45 | (ronda 9.5) | — | ✓ |
+| `app/src/modelo/operaciones/refinamiento.ts` | 36 | (ronda 9.5) | — | ✓ |
+| `app/src/render/jointjs/mapaSistema.ts` | 36 | (ronda 9.5) | — | ✓ |
 
-Estado HU tras `--sync-real` final:
+Estado HU tras `--sync-real` final (sin recalibración detector ronda 10):
 
 | Segmento | HU vivas | Cubiertas | Parciales | Pendientes | Diferidas | Avance |
 |---|---:|---:|---:|---:|---:|---:|
@@ -142,37 +158,46 @@ Estado HU tras `--sync-real` final:
 | MVP-beta | 193 | 47 | 23 | 123 | 0 | 32.6% |
 | M0 | 130 | 73 | 29 | 28 | 0 | 65.8% |
 
-Detector: **55/55 reglas matched** sobre 264 archivos fuente (vs 249 post-ronda 8 + nuevos archivos ronda 9). Sin caída.
+**Las cifras anteriores no reflejan el cierre real ronda 10** (~60 HU
+nuevas cerradas). El detector debe ser recalibrado para reconocer las
+nuevas evidencias en grid/imagen/modificadores/descomposición/OPL polish.
+Este trabajo es el primer paso del próximo ciclo. Cobertura real estimada
+post-recalibración: MVP-α ~52-55% (vs 46.3% reportado).
 
-Diagnóstico vigente: 1 advertencia de inventario por ID duplicado `HU-13.005` (legado de rondas previas).
+Detector: **55/55 reglas matched** sobre 282 archivos fuente (vs 264 post-9.5
++ 18 nuevos archivos ronda 10). Sin caída en reglas existentes.
+
+Diagnóstico vigente: 1 advertencia de inventario por ID duplicado
+`HU-13.005` (legado de rondas previas).
 
 ## Estado Por Dominio
 
-- **Modelo/kernel**: creación básica, firmas de enlace, estados con designaciones canónicas, abanicos, multiplicidad canónica + custom, modificadores, invocación, rutas, auto-invocación, descomposición, despliegue, plegado parcial persistido, eliminación segura de OPDs, creación interna, alias/unidad/descripción/URLs, duración temporal, supresión de estados, layout horizontal/vertical, estilo visual editable, vértices y reanclaje. **Operaciones ronda 9**: 7 sub-archivos por dominio canónico + helpers; barrel re-exporta firmas previas. Helpers de dominio modulares en `modelo/{abanicos,autoinvocacion,creacionWizard,creacionInterna,enlace*,estadosDesignaciones,etiquetasEnlace,extremos,modificadores,objetoDuracion,objetoMetadata,opdEliminacion,opdReorden,plegado,rutas,validaciones}.ts`.
-- **Render**: assets canónicos de enlaces. Composers ronda 8 estables (entidad, enlace, markers, plegado, estados, halos, colores). **JointCanvas ronda 9**: 7 sub-archivos en `handlers/` por familia de evento (selección, zoom, rubberBand, drag, hoverOpl, toolsEnlace + helpers); orquestador < 350 LOC.
-- **OPL**: lente derivada con generación bimodal. Generadores ronda 8 separados por familia (procedural, refinamiento, estructural, designaciones, duración/metadata, abanico, plegado, refsHints).
-- **UI/store**: Inspector con secciones nuevas (ronda 8). InspectorEnlace particionado (ronda 8). ArbolOpd, PanelCarpetas, PanelOpl particionados (ronda 8). **Asistente ronda 9**: 11 sub-componentes por etapa + orquestador + estilos compartidos; barrel < 20 LOC. Slices store ronda 8: modelo, seleccion, enlaces, workspaceMod, carpetas, uiPanel, mapa, persistencia, pestanas. Runtime singleton en `store/runtime.ts`. **Tipos store ronda 8** en `store/tipos.ts`. **Tipos modelo ronda 9**: 11 sub-archivos en `modelo/tipos/` por dominio canónico.
-- **Persistencia**: JSON conserva todos los campos OPM. Workspace local con jerarquía de carpetas, archivado, versiones, búsqueda global, autosalvado. Validadores ronda 8 separados por dominio.
-- **Auditoría**: detector calibrado al patrón canónico (barrel + sub-archivos). 55/55 reglas matchean. Cobertura HU 16.6% ponderado / MVP-alpha 46.3%.
+- **Modelo/kernel**: creación básica, firmas de enlace, estados con designaciones canónicas, abanicos, multiplicidad canónica + custom, modificadores básicos + **subtipos avanzados C/E/¬ (ronda 10 L2)**, invocación, rutas, auto-invocación, descomposición + **timeline + paralelo + ambiental (ronda 10 L3)**, despliegue, plegado parcial persistido + **extracción total (ronda 10 L5)**, eliminación segura de OPDs, creación interna, alias/unidad/descripción/URLs + **imágenes incrustadas (ronda 10 L4)**, duración temporal, supresión de estados, layout horizontal/vertical, estilo visual editable, vértices y reanclaje + **mover puerto (ronda 10 L2)**, **auto-tamaño + redimensionado manual (ronda 10 L1)**.
+- **Render**: assets canónicos de enlaces. Composers ronda 8 estables (entidad, enlace, markers, plegado, estados, halos, colores) + **grid (ronda 10 L1) + imagenOverlay (ronda 10 L4)**. Markers extendidos con badges canónicos C/E/¬ (L2). JointCanvas ronda 9: 7 sub-archivos en `handlers/` por familia de evento + **resize.ts (ronda 10 L1)**.
+- **OPL**: lente derivada con generación bimodal. Generadores ronda 8 separados por familia (procedural, refinamiento, estructural, designaciones, duración/metadata, abanico, plegado, refsHints). **Ronda 10**: probabilidad porcentual `(70%)`, oración paralelo "X y Y ocurren en paralelo.", invariante imagen.
+- **UI/store**: Inspector con secciones nuevas (ronda 8) + **SeccionTamano + SeccionImagen (ronda 10)**. InspectorEnlace particionado (ronda 8) + **DialogoMoverPuerto (ronda 10 L2)**. ArbolOpd, PanelCarpetas, PanelOpl particionados (ronda 8) + **PanelOpl búsqueda/copiar/exportar (ronda 10 L5)**. Asistente ronda 9: 11 sub-componentes por etapa + orquestador. Slices store ronda 8 + ronda 9.5: modelo (6 sub-archivos), seleccion, enlaces, workspaceMod, carpetas, uiPanel, mapa, persistencia, pestanas. Runtime singleton en `store/runtime.ts`. Tipos modelo ronda 9: 11 sub-archivos en `modelo/tipos/` por dominio canónico. **Ronda 10**: ModalConfiguracionGrid, ModalImagenObjeto, RenombradoInline.
+- **Persistencia**: JSON conserva todos los campos OPM. Workspace local con jerarquía de carpetas, archivado, versiones, búsqueda global, autosalvado. **`gridConfig` en `PreferenciasUiUsuario` (ronda 10 L1) persistente fuera del JSON OPM**. **`Entidad.imagen.cache` transitorio NO se serializa (ronda 10 L4)**. Validadores ronda 8 separados por dominio + extensión imagen (L4) + extensión apariencia.modoTamano (L1) + extensión enlace.subtipoModificador (L2).
+- **Auditoría**: detector calibrado al patrón canónico (barrel + sub-archivos). 55/55 reglas matchean. Cobertura HU 16.6% ponderado / MVP-α 46.3% (sin recalibración ronda 10). Recalibración pendiente para reflejar las ~60 HU cerradas en ronda 10.
 
 ## Pendientes Inmediatos
 
-Tras ronda 9.5, **cero deuda estructural mayor pendiente**. Los 3 candidatos
-declarados como pendientes en ronda 9 fueron cerrados:
-
-- ✅ `store/modelo.ts` 1622 LOC → 45 LOC barrel + 6 sub-archivos por dominio (acciones-{entidad,estados,opd,enlace,canvas,ui}.ts).
-- ✅ `modelo/operaciones/refinamiento.ts` 754 LOC → 35 LOC barrel + 4 sub-archivos en `refinamiento/{descomposicion,despliegue,proyeccion,helpers}.ts`.
-- ✅ `render/jointjs/mapaSistema.ts` 499 LOC → 36 LOC barrel + 6 sub-archivos en `mapa/{tipos,descriptor,proyeccion,filtros,marcadores,estadisticas}.ts`.
+Tras ronda 10, **cero deuda estructural pendiente** y **MVP-α avanzado en
+~60 HU adicionales** (cobertura real estimada 52-55%, pendiente
+recalibración detector).
 
 Pendientes que siguen vivos:
 
-- **HU de kernel**: `enlace.subtipo`, `enlace.modificadorNot`, slot de valor numérico EPICA-17, multiplicidad avanzada EPICA-15, imágenes EPICA-19, sub-modelos EPICA-32, plantillas EPICA-33. **Ronda 10 = ronda de features**.
+- **Recalibración del detector ronda 10**: agregar reglas para HU cerradas en grid (HU-1A.*), modificadores avanzados (HU-15.014..025), descomposición avanzada (HU-12.011..030), imágenes (HU-19.*), OPL polish (HU-50.013..025), dirty dialog (HU-SHARED-002, HU-SHARED-006), extracción total (HU-12.013, HU-13.015, HU-18.013). Esperado tras recalibración: ≥75 reglas matched / MVP-α 52-55%.
+- **HU de kernel pendientes**: slot de valor numérico EPICA-17, multiplicidad avanzada residual EPICA-15, sub-modelos EPICA-32, plantillas EPICA-33.
 - **EPICA-60 export PDF**, **EPICA-61 export SVG papel**, **EPICA-71 CSV import**: bloqueadas por regla "no introducir dependencias nuevas".
 - **EPICA-70 OPCAT**, **EPICA-91 tutorial**: descartadas del proyecto.
 - **Endurecimiento del boundary JointJS**: `roadmap/jointjs-boundary.md`. Candidato a ronda futura cuando el corte funcional lo justifique.
-- **Smoke 854 flaky**: ocasional, no bloqueante. Reintento generalmente verde.
+- **Smoke 854 flaky**: ocasional, no bloqueante. Reintento generalmente verde. Conocido desde ronda 9.
+- **JointCanvas.tsx 397 LOC**: ligeramente sobre objetivo (200) por orquestación de tres líneas ronda 10. Dentro del tope (450). Particionable a futuro si crece, no urgente.
 
-Sub-archivo más grande post-9.5: `store/modelo/acciones-canvas.ts` 472 LOC. Dentro del dominio coherente (selección + plegado + edición OPL + apariencia + estilo + deshacer/rehacer); particionable si crece pero no urgente.
+Sub-archivo más grande post-ronda-10: `store/modelo/acciones-canvas.ts` 559
+LOC (vs 472 post-9.5). Crecimiento esperado por L1 (grid+alinear+distribuir)
++ L5 (buscar+extraer-todas). Particionable si crece, no urgente.
 
 ## Épicas Descartadas Del Proyecto
 
@@ -190,12 +215,14 @@ salvo nueva instrucción explícita del operador.
 ## Cómo Continuar
 
 1. Leer este `docs/HANDOFF.md` y `docs/roadmap/hu-progress.md`.
-2. Si abrirás una nueva ronda paralela:
-   - Heredar el formato de `docs/instrucciones-lineas-dev/ronda9/` (10 secciones README + 11 secciones por brief, ya consolidado).
+2. Próximo paso natural inmediato: **recalibrar detector ronda 10** antes de abrir nueva ronda. Sin esa recalibración, el ledger no refleja la realidad del proyecto.
+3. Si abrirás una nueva ronda paralela:
+   - Heredar el formato de `docs/instrucciones-lineas-dev/ronda10/` (10 secciones README + 11 secciones por brief, ya consolidado).
    - Asumir cadenas de efecto kernel→render→OPL→UI.
-   - Si hay refactor estructural, **recalibrar el detector ANTES de cerrar la ronda**, no después. Cada barrel reducido con strings en archivos hijos requiere actualizar reglas; el patrón consolidado en rondas 8 y 9 es: nada de comentarios señuelo, solo paths reales con strings reales.
-   - Reservar el último commit del ciclo para una capa explícita de cascadas resueltas (rondas 6, 7, 8 y 9 demostraron que esa capa es ineludible).
-   - **Ronda 10 puede ser de features**: tras 2 rondas de refactor estructural (8 y 9), la deuda de monolitos está cerrada. Las próximas HU pueden enfocarse en kernel/UI nuevo.
-3. Antes de diseñar, consultar `opm-extracted/`, `assets/svg/`, `docs/JOYAS.md` y la SSOT OPM.
-4. Cerrar cada cambio con `bun run check`; si toca UI/render, sumar `bun run browser:smoke`; si toca proyección o bundle, sumar `bun run build`.
-5. Regenerar auditoría con `node docs/historias-usuario-v2/tools/progress-dashboard.mjs --sync-real` antes de publicar un cierre de ronda. **Ronda 9 cerró 55/55 reglas; tras ronda 10 mantener ≥55/N reglas.**
+   - Para features aditivas, ronda 10 confirma el patrón: tipos opcionales (`?:`), exports nuevos, ningún rename. Si una HU requiere romper firmas, dedicar ronda completa a refactor.
+   - Si hay refactor estructural, **recalibrar el detector ANTES de cerrar la ronda**, no después. El patrón consolidado en rondas 8 y 9: nada de comentarios señuelo, solo paths reales con strings reales.
+   - Reservar el último commit del ciclo para una capa explícita de cascadas resueltas (rondas 6, 7, 8, 9, 10 demostraron que esa capa es ineludible).
+   - **Próximas rondas**: kernel restante (EPICA-17, EPICA-32, EPICA-33), endurecimiento boundary JointJS, completitud OPL avanzada.
+4. Antes de diseñar, consultar `opm-extracted/`, `assets/svg/`, `docs/JOYAS.md` y la SSOT OPM.
+5. Cerrar cada cambio con `bun run check`; si toca UI/render, sumar `bun run browser:smoke`; si toca proyección o bundle, sumar `bun run build`.
+6. Regenerar auditoría con `node docs/historias-usuario-v2/tools/progress-dashboard.mjs --sync-real` antes de publicar un cierre de ronda. **Tras recalibración ronda 10 mantener ≥75/N reglas y MVP-α ≥52%.**
