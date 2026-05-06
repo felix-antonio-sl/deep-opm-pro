@@ -5,6 +5,7 @@ import { filtrarLineasPorReferencia, type OplReferencia } from "../opl/interacci
 import { useOpmStore } from "../store";
 import { Bloques } from "./panelOpl/Bloques";
 import type { EdicionOpl } from "./panelOpl/RenderToken";
+import { ToolbarOpl } from "./panelOpl/Toolbar";
 
 /**
  * Barrel publico del panel OPL-ES. Conserva lecturas amplias del store y baja
@@ -19,6 +20,7 @@ export function PanelOpl() {
   const filtroActivo = useOpmStore((s) => s.filtroOplPorSeleccion);
   const hoverOplRef = useOpmStore((s) => s.hoverOplRef);
   const busquedaOpl = useOpmStore((s) => s.busquedaOpl);
+  const preferenciasOpl = useOpmStore((s) => s.indice.preferenciasUi);
   const seleccionarDesdeOpl = useOpmStore((s) => s.seleccionarDesdeOpl);
   const renombrarEntidadDesdeOpl = useOpmStore((s) => s.renombrarEntidadDesdeOpl);
   const renombrarEstadoDesdeOpl = useOpmStore((s) => s.renombrarEstadoDesdeOpl);
@@ -26,10 +28,22 @@ export function PanelOpl() {
   const fijarFiltroOplPorSeleccion = useOpmStore((s) => s.fijarFiltroOplPorSeleccion);
   const fijarHoverOpl = useOpmStore((s) => s.fijarHoverOpl);
   const buscarEnPanelOpl = useOpmStore((s) => s.buscarEnPanelOpl);
+  const alternarNumeracionOpl = useOpmStore((s) => s.alternarNumeracionOpl);
+  const cambiarPosicionOpl = useOpmStore((s) => s.cambiarPosicionOpl);
+  const minimizarOpl = useOpmStore((s) => s.minimizarOpl);
+  const restaurarOpl = useOpmStore((s) => s.restaurarOpl);
+  const alternarBloqueOplContraido = useOpmStore((s) => s.alternarBloqueOplContraido);
+  const mostrarPlaceholderAiOpl = useOpmStore((s) => s.mostrarPlaceholderAiOpl);
   const copiarOplActualAlPortapapeles = useOpmStore((s) => s.copiarOplActualAlPortapapeles);
   const exportarOplActualHtml = useOpmStore((s) => s.exportarOplActualHtml);
   const [edicion, setEdicion] = useState<EdicionOpl | null>(null);
-  const [bloquesColapsados, setBloquesColapsados] = useState<Set<string>>(() => new Set());
+  const numeracionVisible = preferenciasOpl?.oplNumeracionVisible ?? true;
+  const posicion = preferenciasOpl?.oplPosicion ?? "inferior";
+  const minimizado = preferenciasOpl?.oplMinimizado ?? false;
+  const bloquesColapsados = useMemo(
+    () => new Set(Object.keys(preferenciasOpl?.oplBloquesContraidos ?? {})),
+    [preferenciasOpl?.oplBloquesContraidos],
+  );
 
   const seleccionRef: OplReferencia | null = enlaceSeleccionId
     ? { tipo: "enlace", id: enlaceSeleccionId }
@@ -51,45 +65,45 @@ export function PanelOpl() {
   if (vistaMapaActiva) {
     return (
       <aside style={style.panel} aria-label="Panel OPL-ES">
-        <div style={style.toolbar} />
+        <div style={style.toolbarSpacer} />
         <span style={style.empty}>Vista mapa: OPL no disponible</span>
+      </aside>
+    );
+  }
+
+  if (minimizado) {
+    return (
+      <aside style={style.panelMinimizado} aria-label="Panel OPL-ES" data-testid="panel-opl-minimizado">
+        <button
+          type="button"
+          data-testid="panel-opl-restaurar"
+          style={style.barraMinimizada}
+          title="Restaurar panel OPL"
+          onClick={() => restaurarOpl()}
+        >
+          OPL · {lineas.length} oraciones · Restaurar
+        </button>
       </aside>
     );
   }
 
   return (
     <aside style={style.panel} aria-label="Panel OPL-ES" data-atajos-contexto="panel-opl">
-      <div style={style.toolbar}>
-        <input
-          data-testid="panel-opl-buscar"
-          type="text"
-          placeholder="Buscar en OPL..."
-          value={busquedaOpl}
-          aria-label="Buscar texto en OPL"
-          style={style.searchInput}
-          onInput={(event) => buscarEnPanelOpl((event.currentTarget as HTMLInputElement).value)}
-        />
-        <button data-testid="panel-opl-copiar" style={botonToolbar(lineas.length === 0)} disabled={lineas.length === 0} title="Copiar todo el OPL al portapapeles" onClick={() => copiarOplActualAlPortapapeles()}>
-          Copiar OPL
-        </button>
-        <button data-testid="panel-opl-exportar-html" style={botonToolbar(lineas.length === 0)} disabled={lineas.length === 0} title="Exportar OPL como archivo HTML" onClick={() => exportarOplActualHtml()}>
-          Exportar HTML
-        </button>
-        <button style={botonToolbar(bloques.length === 0)} disabled={bloques.length === 0} title="Expandir todos los bloques OPD" onClick={() => setBloquesColapsados(new Set())}>
-          Expandir todo
-        </button>
-        <button style={botonToolbar(bloques.length === 0)} disabled={bloques.length === 0} title="Colapsar todos los bloques OPD" onClick={() => setBloquesColapsados(new Set(bloques.map((bloque) => bloque.opdId)))}>
-          Colapsar todo
-        </button>
-        <label style={style.toggle}>
-          <input
-            type="checkbox"
-            checked={filtroActivo}
-            onInput={(event) => fijarFiltroOplPorSeleccion((event.currentTarget as HTMLInputElement).checked)}
-          />
-          Filtrar por selección
-        </label>
-      </div>
+      <ToolbarOpl
+        totalOraciones={lineas.length}
+        busquedaOpl={busquedaOpl}
+        filtroActivo={filtroActivo}
+        numeracionVisible={numeracionVisible}
+        posicion={posicion}
+        onMinimizar={minimizarOpl}
+        onToggleNumeracion={alternarNumeracionOpl}
+        onTogglePosicion={() => cambiarPosicionOpl()}
+        onPlaceholderAi={mostrarPlaceholderAiOpl}
+        onBuscar={buscarEnPanelOpl}
+        onCopiar={copiarOplActualAlPortapapeles}
+        onExportarHtml={exportarOplActualHtml}
+        onFiltroSeleccion={fijarFiltroOplPorSeleccion}
+      />
 
       {visibles.length === 0 ? (
         <span style={style.empty}>{lineas.length === 0 ? "Sin OPL todavía." : query ? "Sin resultados para la búsqueda." : "Sin oraciones para la selección."}</span>
@@ -100,8 +114,9 @@ export function PanelOpl() {
           opdActivoId={opdActivoId}
           hoverOplRef={hoverOplRef}
           seleccionRef={seleccionRef}
+          numeracionVisible={numeracionVisible}
           bloquesColapsados={bloquesColapsados}
-          setBloquesColapsados={setBloquesColapsados}
+          alternarBloqueContraido={alternarBloqueOplContraido}
           edicion={edicion}
           setEdicion={setEdicion}
           seleccionarDesdeOpl={seleccionarDesdeOpl}
@@ -115,10 +130,6 @@ export function PanelOpl() {
   );
 }
 
-function botonToolbar(disabled: boolean): preact.JSX.CSSProperties {
-  return { ...style.toolbarBtn, ...(disabled ? style.btnDisabled : {}) };
-}
-
 const style = {
   panel: {
     overflow: "auto",
@@ -127,43 +138,32 @@ const style = {
     color: "#1f2937",
     fontSize: "13px",
     lineHeight: 1.65,
+    minHeight: 0,
+    height: "100%",
+    boxSizing: "border-box",
   },
-  toolbar: {
-    display: "flex",
-    flexWrap: "wrap",
-    alignItems: "center",
-    gap: 6,
-    marginBottom: 10,
-  },
-  searchInput: {
-    flex: "1",
-    minWidth: 100,
-    maxWidth: 220,
-    padding: "2px 6px",
-    border: "1px solid #d1d5db",
-    borderRadius: 4,
-    fontSize: "12px",
-    fontFamily: "inherit",
-  },
-  toolbarBtn: {
-    border: "1px solid #d1d5db",
-    borderRadius: 4,
-    background: "#f9fafb",
+  panelMinimizado: {
+    overflow: "hidden",
+    background: "#ffffff",
     color: "#334155",
-    fontSize: "11px",
-    padding: "2px 8px",
+    minHeight: 0,
+    height: "100%",
+    boxSizing: "border-box",
+  },
+  barraMinimizada: {
+    width: "100%",
+    height: "100%",
+    minHeight: 28,
+    border: 0,
+    borderTop: "1px solid #d9e0ea",
+    background: "#f8fafc",
+    color: "#334155",
+    fontSize: "12px",
+    fontWeight: 700,
     cursor: "pointer",
-    whiteSpace: "nowrap",
+    textAlign: "left",
+    padding: "4px 12px",
   },
-  btnDisabled: { opacity: 0.4, cursor: "not-allowed" },
-  toggle: {
-    display: "inline-flex",
-    alignItems: "center",
-    gap: 4,
-    color: "#475467",
-    fontSize: "11px",
-    userSelect: "none",
-    whiteSpace: "nowrap",
-  },
+  toolbarSpacer: { minHeight: 26, marginBottom: 10 },
   empty: { color: "#667085" },
 } satisfies Record<string, preact.JSX.CSSProperties>;

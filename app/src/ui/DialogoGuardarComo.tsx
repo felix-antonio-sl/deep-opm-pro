@@ -10,7 +10,7 @@ import { PanelCarpetas, type VistaModo } from "./PanelCarpetas";
 export function DialogoGuardarComo() {
   const open = useOpmStore((s) => s.dialogoGuardarComoAbierto);
   const cerrar = useOpmStore((s) => s.cerrarGuardarComo);
-  const guardarComoLocal = useOpmStore((s) => s.guardarComoLocal);
+  const guardarComoLocal = useOpmStore((s) => s.guardarComoLocalConDescripcion);
   const workspace = useOpmStore((s) => s.workspaceLocal);
   const modelosGuardados = useOpmStore((s) => s.modelosGuardados);
   const indice = useOpmStore((s) => s.indice);

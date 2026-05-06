@@ -1,6 +1,8 @@
 import modelWizardIcon from "../../../assets/svg/toolbar/modelWizard.svg";
+import { useEffect, useState } from "preact/hooks";
 import { useOpmStore } from "../store";
 import { useConfirmarSiDirty } from "./ConfirmacionContext";
+import { Dialogo } from "./Dialogo";
 
 export function MenuPrincipal() {
   const abierto = useOpmStore((s) => s.menuPrincipalAbierto);
@@ -15,6 +17,10 @@ export function MenuPrincipal() {
   const abrirArchivados = useOpmStore((s) => s.abrirDialogoArchivados);
   const abrirVersiones = useOpmStore((s) => s.abrirDialogoVersiones);
   const modeloPersistidoId = useOpmStore((s) => s.modeloPersistidoId);
+  const dialogoRenombrarModeloAbierto = useOpmStore((s) => s.dialogoRenombrarModeloAbierto);
+  const abrirRenombrarModelo = useOpmStore((s) => s.abrirRenombrarModelo);
+  const cerrarRenombrarModelo = useOpmStore((s) => s.cerrarRenombrarModelo);
+  const renombrarModeloActual = useOpmStore((s) => s.renombrarModeloActual);
   const mostrarArchivados = useOpmStore((s) => s.mostrarArchivados);
   const mostrarVersiones = useOpmStore((s) => s.mostrarVersiones);
   const toggleMostrarArchivados = useOpmStore((s) => s.toggleMostrarArchivados);
@@ -31,8 +37,12 @@ export function MenuPrincipal() {
   const abrirModalUrls = useOpmStore((s) => s.abrirModalUrls);
   const confirmarSiDirty = useConfirmarSiDirty();
   const iniciarAsistente = useOpmStore((s) => s.iniciarAsistente);
+  const cargarEjemploOrganizacional = useOpmStore((s) => s.cargarEjemploOrganizacional);
+  const [nombreRenombrar, setNombreRenombrar] = useState(modelo.nombre);
 
-  if (!abierto) return null;
+  useEffect(() => {
+    if (dialogoRenombrarModeloAbierto) setNombreRenombrar(modelo.nombre);
+  }, [dialogoRenombrarModeloAbierto, modelo.nombre]);
 
   const ejecutar = (accion: () => void) => {
     cerrar();
@@ -40,7 +50,8 @@ export function MenuPrincipal() {
   };
 
   return (
-    <div role="menu" aria-label="Menú principal" style={style.menu}>
+    <>
+    {abierto ? <div role="menu" aria-label="Menú principal" style={style.menu}>
       <button type="button" role="menuitem" style={style.item} onClick={() => ejecutar(nuevoModelo)}>
         Nuevo
       </button>
@@ -55,6 +66,9 @@ export function MenuPrincipal() {
       </button>
       <button type="button" role="menuitem" style={style.item} onClick={() => ejecutar(abrirGuardarComo)}>
         Guardar como
+      </button>
+      <button type="button" role="menuitem" style={modeloPersistidoId ? style.item : style.itemDisabled} disabled={!modeloPersistidoId} onClick={() => ejecutar(abrirRenombrarModelo)}>
+        Renombrar...
       </button>
       <button type="button" role="menuitem" style={style.item} onClick={() => ejecutar(() => confirmarSiDirty(abrirCargarModelo))}>
         Cargar
@@ -108,7 +122,10 @@ export function MenuPrincipal() {
         Exportar JSON
       </button>
       <button type="button" role="menuitem" style={style.item} onClick={() => ejecutar(() => confirmarSiDirty(cargarDemo))}>
-        Demo
+        Ejemplo global
+      </button>
+      <button type="button" role="menuitem" style={style.item} onClick={() => ejecutar(() => confirmarSiDirty(cargarEjemploOrganizacional))}>
+        Ejemplo organizacional
       </button>
       <button type="button" role="menuitem" style={style.item} onClick={() => ejecutar(abrirTablaEnlaces)}>
         Tabla de enlaces
@@ -125,7 +142,33 @@ export function MenuPrincipal() {
         <img src={modelWizardIcon} alt="" style={style.icon} />
         <span>Workspace local</span>
       </div>
-    </div>
+    </div> : null}
+    <Dialogo
+      open={dialogoRenombrarModeloAbierto}
+      title="Renombrar modelo"
+      onCancel={cerrarRenombrarModelo}
+      actions={(
+        <>
+          <button type="button" style={style.secondaryButton} onClick={cerrarRenombrarModelo}>Cancelar</button>
+          <button type="button" style={nombreRenombrar.trim() ? style.primaryButton : style.disabledButton} disabled={!nombreRenombrar.trim()} onClick={() => renombrarModeloActual(nombreRenombrar)}>Renombrar</button>
+        </>
+      )}
+    >
+      <label style={style.label}>
+        <span>Nombre del modelo</span>
+        <input
+          aria-label="Nombre del modelo"
+          style={style.input}
+          value={nombreRenombrar}
+          onInput={(event) => setNombreRenombrar(event.currentTarget.value)}
+          onKeyDown={(event) => {
+            if (event.key === "Enter" && nombreRenombrar.trim()) renombrarModeloActual(nombreRenombrar);
+          }}
+          autoFocus
+        />
+      </label>
+    </Dialogo>
+    </>
   );
 }
 
@@ -161,6 +204,38 @@ const style = {
     fontWeight: 700,
     textAlign: "left",
   },
+  itemDisabled: {
+    width: "100%",
+    minHeight: "34px",
+    padding: "0 10px",
+    border: "1px solid transparent",
+    borderRadius: "4px",
+    background: "transparent",
+    color: "#98a2b3",
+    cursor: "not-allowed",
+    fontSize: "13px",
+    fontWeight: 700,
+    textAlign: "left",
+  },
+  label: {
+    display: "grid",
+    gap: "6px",
+    minWidth: "min(420px, calc(100vw - 80px))",
+    color: "#475467",
+    fontSize: "13px",
+    fontWeight: 700,
+  },
+  input: {
+    height: "34px",
+    border: "1px solid #b9c5d4",
+    borderRadius: "4px",
+    padding: "0 10px",
+    color: "#1f2937",
+    fontSize: "13px",
+  },
+  primaryButton: { height: "34px", padding: "0 14px", border: "1px solid #586D8C", borderRadius: "4px", background: "#586D8C", color: "#ffffff", cursor: "pointer", fontSize: "13px", fontWeight: 700 },
+  secondaryButton: { height: "34px", padding: "0 14px", border: "1px solid #c8d2df", borderRadius: "4px", background: "#ffffff", color: "#475467", cursor: "pointer", fontSize: "13px", fontWeight: 700 },
+  disabledButton: { height: "34px", padding: "0 14px", border: "1px solid #d9e0ea", borderRadius: "4px", background: "#f2f4f7", color: "#98a2b3", fontSize: "13px", fontWeight: 700 },
   footer: {
     display: "flex",
     alignItems: "center",

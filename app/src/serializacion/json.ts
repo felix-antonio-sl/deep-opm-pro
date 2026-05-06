@@ -44,9 +44,13 @@ export interface DocumentoModelo {
 }
 
 export function exportarModelo(modelo: Modelo, carpetaId?: Id | null): string {
+  const normalizado = normalizarModelo(modelo);
   const documento: DocumentoModelo = {
     formato: FORMATO,
-    modelo: normalizarModelo(modelo),
+    modelo: {
+      ...normalizado,
+      ...(typeof modelo.descripcion === "string" ? { descripcion: modelo.descripcion } : {}),
+    },
     ...(carpetaId !== undefined ? { carpetaId } : {}),
   };
   return JSON.stringify(documento, null, 2);
@@ -62,7 +66,14 @@ export function hidratarModelo(json: string): Resultado<Modelo> {
 
   const documento = validarDocumento(parsed);
   if (!documento.ok) return documento;
-  return { ok: true, value: normalizarModelo(documento.value.modelo) };
+  const normalizado = normalizarModelo(documento.value.modelo);
+  return {
+    ok: true,
+    value: {
+      ...normalizado,
+      ...(typeof documento.value.modelo.descripcion === "string" ? { descripcion: documento.value.modelo.descripcion } : {}),
+    },
+  };
 }
 
 /**
@@ -118,6 +129,7 @@ function validarModelo(value: unknown): Resultado<Modelo> {
   const modelo: Modelo = {
     id,
     nombre,
+    ...(typeof value.descripcion === "string" ? { descripcion: value.descripcion } : {}),
     opdRaizId,
     nextSeq,
     entidades: entidadesValidadas.value,

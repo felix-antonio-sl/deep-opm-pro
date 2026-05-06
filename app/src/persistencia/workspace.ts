@@ -18,6 +18,10 @@ export interface ModeloIndice {
   carpetaId: Id | null;   // null = raíz
   archivado?: boolean;
   archivadoEn?: string;
+  archivadoAuto?: boolean;
+  ultimoUso?: string;
+  descripcion?: string;
+  autosalvado?: boolean;
   versiones?: VersionResumen[];
   mapa?: MapaWorkspace;
 }
@@ -358,6 +362,46 @@ export function archivarModelo(indice: WorkspaceIndice, modeloId: Id, ahora = ne
   };
 }
 
+export function autoArchivarPorEdad(
+  indice: WorkspaceIndice,
+  modelosGuardados: ResumenModeloPersistido[] = [],
+  dias = 90,
+  ahora = new Date(),
+): { indice: WorkspaceIndice; modelosAutoArchivados: Id[] } {
+  const limiteMs = Math.max(1, dias) * 24 * 60 * 60 * 1000;
+  const resumenes = new Map(modelosGuardados.map((modelo) => [modelo.id, modelo]));
+  const modelosAutoArchivados: Id[] = [];
+  const isoAhora = ahora.toISOString();
+  const modelos = indice.modelos.map((modelo) => {
+    if (modelo.archivado) return modelo;
+    const resumen = resumenes.get(modelo.id);
+    const uso = fechaUsoModelo(modelo, resumen);
+    if (!uso) return modelo;
+    const ts = Date.parse(uso);
+    if (!Number.isFinite(ts) || ahora.getTime() - ts <= limiteMs) return modelo;
+    modelosAutoArchivados.push(modelo.id);
+    return {
+      ...modelo,
+      archivado: true,
+      archivadoEn: isoAhora,
+      archivadoAuto: true,
+    };
+  });
+  return { indice: { ...indice, modelos }, modelosAutoArchivados };
+}
+
+export function restaurarArchivado(indice: WorkspaceIndice, modeloId: Id, ahora = new Date().toISOString()): WorkspaceIndice {
+  return {
+    ...indice,
+    modelos: indice.modelos.map((modelo) =>
+      modelo.id === modeloId
+        ? { ...sinArchivado(modelo), ultimoUso: ahora }
+        : modelo,
+    ),
+    recientes: [modeloId, ...indice.recientes.filter((id) => id !== modeloId)].slice(0, 12),
+  };
+}
+
 export function restaurarModelo(indice: WorkspaceIndice, modeloId: Id): WorkspaceIndice {
   return {
     ...indice,
@@ -414,11 +458,15 @@ function idsCarpetasDescendientes(indice: WorkspaceIndice, carpetaId: Id): Set<I
 }
 
 function sinArchivado<T extends { archivado?: boolean; archivadoEn?: string }>(value: T): T {
-  const { archivado: _archivado, archivadoEn: _archivadoEn, ...resto } = value;
+  const { archivado: _archivado, archivadoEn: _archivadoEn, archivadoAuto: _archivadoAuto, ...resto } = value as T & { archivadoAuto?: boolean };
   return resto as T;
 }
 
 function sinArchivadoCarpeta(carpeta: CarpetaIndice): CarpetaIndice {
   const { archivada: _archivada, archivadaEn: _archivadaEn, ...resto } = carpeta;
   return resto;
+}
+
+function fechaUsoModelo(modelo: ModeloIndice, resumen: ResumenModeloPersistido | undefined): string | null {
+  return modelo.ultimoUso ?? resumen?.ultimaApertura ?? resumen?.actualizadoEn ?? resumen?.creadoEn ?? null;
 }

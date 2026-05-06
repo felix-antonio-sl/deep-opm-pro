@@ -29,6 +29,18 @@ export interface UiPortapapelesVisual {
 export interface PreferenciasUiUsuario {
   anchoPanelArbol?: number;
   nombresArbolVisibles?: boolean;
+  arbolOrden?: "automatico" | "manual";
+  arbolExpandidoPersistente?: Id[];
   cheatsheetVisible?: boolean;
   gridConfig?: GridConfig;
+  oplPosicion?: "inferior" | "lateral-derecho";
+  oplNumeracionVisible?: boolean;
+  oplMinimizado?: boolean;
+  oplBloquesContraidos?: Record<Id, true>;
+  vistaCargar?: "tiles" | "lista";
+  ordenCargar?: {
+    columna: "nombre" | "descripcion" | "actualizadoEn" | "bytes";
+    direccion: "asc" | "desc";
+  };
+  recientes?: Id[];
 }

@@ -5,10 +5,12 @@ import {
   alinearPorEje,
   alinearEnlacesIzquierda,
   aplicarEstiloApariencias,
+  aplicarEstiloEnlacesBatch,
   conectarMultiAlTodo,
   copiarSeleccion,
   distribuirUniformemente,
   eliminarBatch,
+  eliminarEnlacesBatch,
   nudgeApariencias,
   pegarSeleccion,
   redimensionarBatch,
@@ -20,6 +22,13 @@ describe("operacionesBatch", () => {
     const eliminado = must(eliminarBatch(modelo, modelo.opdRaizId ? enlaces : enlaces, modelo.opdRaizId));
     expect(Object.keys(eliminado.enlaces)).toHaveLength(0);
     expect(Object.keys(eliminado.entidades).length).toBeGreaterThan(0);
+  });
+
+  test("eliminarEnlacesBatch borra lote de enlaces sin tocar cosas", () => {
+    const { modelo, enlaces } = modeloConTodoPartes();
+    const eliminado = must(eliminarEnlacesBatch(modelo, enlaces.slice(0, 2)));
+    expect(Object.keys(eliminado.enlaces)).toHaveLength(enlaces.length - 2);
+    expect(Object.keys(eliminado.entidades)).toHaveLength(Object.keys(modelo.entidades).length);
   });
 
   test("nudgeApariencias mueve cada apariencia seleccionada", () => {
@@ -53,6 +62,14 @@ describe("operacionesBatch", () => {
     for (const parte of partes) {
       expect(aparienciaDeEntidad(actualizado, parte)?.estilo?.fill).toBe("#ff0000");
     }
+  });
+
+  test("aplicarEstiloEnlacesBatch aplica estilo solo a enlaces seleccionados", () => {
+    const { modelo, enlaces } = modeloConTodoPartes();
+    const actualizado = must(aplicarEstiloEnlacesBatch(modelo, modelo.opdRaizId, enlaces.slice(0, 2), { color: "#d92d20", strokeWidth: 3 }));
+    expect(actualizado.enlaces[enlaces[0]!]?.estilo).toEqual({ color: "#d92d20", strokeWidth: 3 });
+    expect(actualizado.enlaces[enlaces[1]!]?.estilo).toEqual({ color: "#d92d20", strokeWidth: 3 });
+    expect(actualizado.enlaces[enlaces[2]!]?.estilo).toBeUndefined();
   });
 
   test("copiarSeleccion y pegarSeleccion reutilizan entidadId con offset visual", () => {

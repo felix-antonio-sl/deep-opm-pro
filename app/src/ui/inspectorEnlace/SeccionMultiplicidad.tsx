@@ -32,6 +32,7 @@ export function SeccionMultiplicidad(props: Props) {
     <>
       <section style={sectionStyle}>
         <h3 style={titleStyle}>Multiplicidad</h3>
+        <span style={hintStyle} data-testid="tabla-filtrada-direccion-tipo">Tabla filtrada por dirección y tipo vigente</span>
         <InputMult label="Origen" value={props.multiplicidadOrigen} error={errorOrigen} onInput={(value) => props.onMultiplicidad("origen", value)} />
         <InputMult label="Destino" value={props.multiplicidadDestino} error={errorDestino} onInput={(value) => props.onMultiplicidad("destino", value)} />
       </section>
@@ -134,6 +135,7 @@ function subtipoDefault(modificador: Modificador): SubtipoModificador {
 const sectionStyle = { display: "grid", gap: "2px", marginBottom: "14px" } satisfies preact.JSX.CSSProperties;
 const cardStyle = { display: "grid", gap: "8px", marginBottom: "14px", padding: "8px", background: "#ffffff", border: "1px solid #e5e7eb", borderRadius: "6px" } satisfies preact.JSX.CSSProperties;
 const titleStyle = { margin: "0 0 8px", color: "#1f2937", fontSize: "13px", fontWeight: 700 } satisfies preact.JSX.CSSProperties;
+const hintStyle = { color: "#667085", fontSize: "11px", fontWeight: 600 } satisfies preact.JSX.CSSProperties;
 const subtipoGroupStyle = { display: "flex", gap: "6px" } satisfies preact.JSX.CSSProperties;
 const subtipoButtonStyle = { minWidth: "32px", height: "28px", border: "1px solid #c8d2df", borderRadius: "6px", background: "#ffffff", color: "#344054", fontFamily: "Arial", fontSize: "13px", fontWeight: 700, cursor: "pointer" } satisfies preact.JSX.CSSProperties;
 const subtipoActivoStyle = { ...subtipoButtonStyle, borderColor: "#586D8C", background: "#e7f6ff", color: "#1f2937" } satisfies preact.JSX.CSSProperties;

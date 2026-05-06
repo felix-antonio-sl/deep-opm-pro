@@ -29,6 +29,7 @@ const ModalUrlsObjeto = lazy(() => import("./ModalUrlsObjeto").then((m) => ({ de
 export function App() {
   const vistaMapaActiva = useOpmStore((s) => s.vistaMapaActiva);
   const anchoPanelArbol = useOpmStore((s) => s.anchoPanelArbol);
+  const preferenciasOpl = useOpmStore((s) => s.indice.preferenciasUi);
   const fijarAnchoPanelArbol = useOpmStore((s) => s.fijarAnchoPanelArbol);
   const asistenteAbierto = useOpmStore((s) => s.asistente !== null);
   const dialogoGuardarComoAbierto = useOpmStore((s) => s.dialogoGuardarComoAbierto);
@@ -41,6 +42,8 @@ export function App() {
   const modalDuracionAbierto = useOpmStore((s) => s.modalDuracionAbierto !== null);
   const cheatsheetAtajosAbierto = useOpmStore((s) => s.cheatsheetAtajosAbierto);
   const cerrarCheatsheetAtajos = useOpmStore((s) => s.cerrarCheatsheetAtajos);
+  const oplLateral = (preferenciasOpl?.oplPosicion ?? "inferior") === "lateral-derecho";
+  const oplMinimizado = preferenciasOpl?.oplMinimizado ?? false;
 
   useEffect(() => {
     const limpiarContexto = configurarContextoAtajos({
@@ -60,7 +63,7 @@ export function App() {
       <main style={layout.page}>
         <Toolbar />
         <BarraPestanas />
-        <section style={{ ...layout.workbench, gridTemplateColumns: `${anchoPanelArbol}px 6px minmax(0, 1fr) 300px` }}>
+        <section style={workbenchStyle(anchoPanelArbol, oplLateral, oplMinimizado)}>
           <div data-testid="tree-pane" style={layout.treePane}>
             <ArbolOpd />
           </div>
@@ -83,8 +86,17 @@ export function App() {
             <Timeline />
             <PanelAvisos />
           </div>
+          {oplLateral ? (
+            <div data-testid="opl-pane" style={layout.oplPane}>
+              <PanelOpl />
+            </div>
+          ) : null}
         </section>
-        <PanelOpl />
+        {!oplLateral ? (
+          <div data-testid="opl-pane" style={oplInferiorStyle(oplMinimizado)}>
+            <PanelOpl />
+          </div>
+        ) : null}
         {dialogoGuardarComoAbierto ? <Suspense fallback={null}><DialogoGuardarComo /></Suspense> : null}
         {dialogoCargarModeloAbierto ? <Suspense fallback={null}><DialogoCargarModelo /></Suspense> : null}
         {dialogoBuscarGlobalAbierto ? <Suspense fallback={null}><DialogoBuscarGlobal /></Suspense> : null}
@@ -176,7 +188,7 @@ function cambiarPestanaRelativa(delta: 1 | -1): void {
 const layout = {
   page: {
     display: "grid",
-    gridTemplateRows: "48px 37px minmax(0, 1fr) 180px",
+    gridTemplateRows: "48px 37px minmax(0, 1fr) auto",
     width: "100%",
     height: "100%",
     background: "#f5f7fb",
@@ -220,4 +232,35 @@ const layout = {
     flex: "1 1 auto",
     overflow: "auto",
   },
+  oplPane: {
+    gridArea: "opl",
+    minWidth: 0,
+    minHeight: 0,
+    overflow: "hidden",
+    borderLeft: "1px solid #d9e0ea",
+  },
 } satisfies Record<string, preact.JSX.CSSProperties>;
+
+function workbenchStyle(anchoPanelArbol: number, oplLateral: boolean, oplMinimizado: boolean): preact.JSX.CSSProperties {
+  if (!oplLateral) {
+    return {
+      ...layout.workbench,
+      gridTemplateColumns: `${anchoPanelArbol}px 6px minmax(0, 1fr) 300px`,
+      gridTemplateAreas: `"tree divisor canvas inspector"`,
+    };
+  }
+  return {
+    ...layout.workbench,
+    gridTemplateColumns: `${anchoPanelArbol}px 6px minmax(0, 1fr) 300px ${oplMinimizado ? "44px" : "320px"}`,
+    gridTemplateAreas: `"tree divisor canvas inspector opl"`,
+  };
+}
+
+function oplInferiorStyle(minimizado: boolean): preact.JSX.CSSProperties {
+  return {
+    minWidth: 0,
+    minHeight: 0,
+    height: minimizado ? "32px" : "180px",
+    overflow: "hidden",
+  };
+}

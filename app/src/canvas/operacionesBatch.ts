@@ -2,6 +2,7 @@ import { extremoEntidad } from "../modelo/extremos";
 import { aplicarEstiloEnlace } from "../modelo/enlaceEstilo";
 import { aplicarEstiloApariencia } from "../modelo/estilos";
 import { crearEnlace, eliminarEnlace, moverAparienciaPorId } from "../modelo/operaciones";
+import { eliminarEnlacesBatch as eliminarEnlacesBatchModelo } from "../modelo/operaciones/enlaces";
 import type {
   Apariencia,
   AparienciaEnlace,
@@ -166,6 +167,19 @@ export function aplicarEstiloEnlaces(
     siguiente = resultado.value;
   }
   return ok(siguiente);
+}
+
+export function eliminarEnlacesBatch(modelo: Modelo, enlaceIds: Id[]): Resultado<Modelo> {
+  return eliminarEnlacesBatchModelo(modelo, enlaceIds);
+}
+
+export function aplicarEstiloEnlacesBatch(
+  modelo: Modelo,
+  opdId: Id,
+  enlaceIds: Id[],
+  estilo: Partial<EnlaceEstilo>,
+): Resultado<Modelo> {
+  return aplicarEstiloEnlaces(modelo, opdId, enlaceIds, estilo);
 }
 
 export function alinearPorEje(modelo: Modelo, opdId: Id, ids: Id[], eje: EjeAlineacion): Resultado<Modelo> {

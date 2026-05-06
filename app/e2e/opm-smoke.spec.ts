@@ -67,11 +67,52 @@ test("workspace local abre menu, guarda como, guarda incremental y carga desde d
   expect(pageErrors).toEqual([]);
 });
 
+test("L2 dialogo cargar abre ejemplo organizacional", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await page.getByRole("button", { name: "Cargar", exact: true }).first().click();
+  const dialogo = page.getByRole("dialog", { name: "Cargar modelo" });
+  await expect(dialogo).toBeVisible();
+  await dialogo.getByRole("button", { name: "Ejemplo organizacional" }).click();
+
+  await expect(dialogo).toHaveCount(0);
+  await expect(elementoPorTexto(page, "Cliente")).toHaveCount(1);
+  await expect(elementoPorTexto(page, "Resolver solicitud")).toHaveCount(1);
+  await expect(page.locator(".joint-link")).toHaveCount(3);
+  expect(pageErrors).toEqual([]);
+});
+
+test("L2 dialogo cargar busca descripcion, selecciona tile y carga", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await page.getByRole("button", { name: "Objeto", exact: true }).click();
+  await guardarComoActual(page, "Busqueda L2", "descripcion persistencia l2");
+  await page.getByRole("button", { name: "Nuevo", exact: true }).click();
+  await page.getByRole("button", { name: "Cargar", exact: true }).first().click();
+  const dialogo = page.getByRole("dialog", { name: "Cargar modelo" });
+  await expect(dialogo).toBeVisible();
+  await dialogo.getByLabel("Buscar modelos por nombre").fill("persistencia");
+
+  const tile = dialogo.getByTestId("modelo-tile-cargar").filter({ hasText: /Busqueda L2/ });
+  await expect(tile).toBeVisible();
+  await tile.click();
+  await dialogo.getByRole("button", { name: "Cargar", exact: true }).click();
+
+  await expect(dialogo).toHaveCount(0);
+  await expect(elementoPorTexto(page, "Objeto")).toHaveCount(1);
+  expect(pageErrors).toEqual([]);
+});
+
 test("workspace L4 mueve modelos y busca global con guard", async ({ page }) => {
   const pageErrors: string[] = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
+  await cerrarPantallaInicioSiVisible(page);
   await page.getByRole("button", { name: "Objeto", exact: true }).click();
   await page.keyboard.press("Control+S");
   const dialogoGuardar = page.getByRole("dialog", { name: "Guardar como" });
@@ -113,6 +154,7 @@ test("sincroniza OPL interactivo con canvas y renombrado inverso", async ({ page
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
+  await cerrarPantallaInicioSiVisible(page);
   await page.getByRole("button", { name: "Objeto", exact: true }).click();
   await page.getByLabel("Nombre").fill("Entrada");
   await page.getByRole("button", { name: "Proceso", exact: true }).click();
@@ -185,6 +227,32 @@ test("navega OPDs desde el arbol lateral", async ({ page }) => {
   expect(todasSeparadas(aparienciasHijo)).toBe(true);
 
   await page.screenshot({ path: "test-results/opm-opd-tree.png", fullPage: true });
+  expect(pageErrors).toEqual([]);
+});
+
+test("arbol OPD atajos panel: F2 renombra y Ctrl+D abre gestion", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await jsonEditor(page).fill(JSON.stringify(modeloDosOpds(), null, 2));
+  await page.getByRole("button", { name: "Importar" }).click();
+
+  const nodoRaiz = page.locator('[role="treeitem"][data-opd-id="opd-1"]');
+  await expect(nodoRaiz).toBeVisible();
+  await nodoRaiz.focus();
+  await page.keyboard.press("F2");
+
+  const input = page.getByTestId("arbol-opd-renombrado-inline");
+  await expect(input).toBeVisible();
+  await input.fill("SD Ajustado");
+  await page.keyboard.press("Enter");
+  await expect(nodoRaiz).toContainText("SD Ajustado");
+
+  await nodoRaiz.focus();
+  await page.keyboard.press("Control+d");
+  await expect(page.getByRole("dialog", { name: "Gestión del árbol OPD" })).toBeVisible();
+
   expect(pageErrors).toEqual([]);
 });
 
@@ -517,6 +585,7 @@ test("despliega objeto y navega al OPD hijo", async ({ page }) => {
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
+  await cerrarPantallaInicioSiVisible(page);
   await page.getByRole("button", { name: "Objeto", exact: true }).click();
   await expect(page.getByText("Desplegar como...")).toBeVisible();
 
@@ -559,6 +628,7 @@ test("activa plegado parcial desde Inspector y persiste la vista compacta", asyn
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
+  await cerrarPantallaInicioSiVisible(page);
   await page.getByRole("button", { name: "Objeto", exact: true }).click();
   await desplegarComoAgregacion(page);
   await page.locator('[role="treeitem"][data-opd-id="opd-1"]').click();
@@ -600,6 +670,7 @@ test("edita estilo visual de cosa, persiste local y resetea defaults", async ({ 
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
+  await cerrarPantallaInicioSiVisible(page);
   await page.getByRole("button", { name: "Objeto", exact: true }).click();
   await expect(page.getByRole("button", { name: "Fill #fef3c7" })).toBeVisible();
 
@@ -1112,6 +1183,127 @@ test("panel OPL copia y exporta HTML desde botones", async ({ page }) => {
   await page.getByTestId("panel-opl-exportar-html").click();
   const download = await downloadPromise;
   expect(download.suggestedFilename()).toMatch(/Modelo-opl\.html$/);
+
+  expect(pageErrors).toEqual([]);
+});
+
+test("panel OPL alterna numeracion 123 sin perder seleccion", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await cerrarPantallaInicioSiVisible(page);
+  await page.getByRole("button", { name: "Objeto", exact: true }).click();
+  await page.getByLabel("Nombre").fill("Entrada");
+  const panel = page.getByLabel("Panel OPL-ES");
+  await expect(panel.locator('[data-opl-ordinal="1"] span').first()).toHaveCSS("opacity", "1");
+
+  await page.getByTestId("panel-opl-toggle-numeracion").click();
+  await expect(panel.locator('[data-opl-ordinal="1"] span').first()).toHaveCSS("opacity", "0");
+  await panel.getByText("Entrada").click();
+  await expect(page.getByLabel("Nombre")).toHaveValue("Entrada");
+
+  expect(pageErrors).toEqual([]);
+});
+
+test("panel OPL minimiza y restaura desde barra colapsada", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await cerrarPantallaInicioSiVisible(page);
+  await page.getByRole("button", { name: "Objeto", exact: true }).click();
+  await page.getByTestId("panel-opl-minimizar").click();
+
+  await expect(page.getByTestId("panel-opl-minimizado")).toBeVisible();
+  await expect(page.getByTestId("panel-opl-restaurar")).toContainText("OPL · 1 oraciones · Restaurar");
+  await expect(page.locator('[data-testid="opl-line"]')).toHaveCount(0);
+
+  await page.getByTestId("panel-opl-restaurar").click();
+  await expect(page.locator('[data-testid="opl-line"]')).toHaveCount(1);
+
+  expect(pageErrors).toEqual([]);
+});
+
+test("panel OPL se mueve a lateral derecho y persiste al recargar", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await cerrarPantallaInicioSiVisible(page);
+  await page.getByRole("button", { name: "Objeto", exact: true }).click();
+  await page.getByTestId("panel-opl-posicion").click();
+
+  const oplLateral = page.getByTestId("opl-pane");
+  const inspector = page.getByTestId("inspector-pane");
+  await expect(oplLateral).toBeVisible();
+  let oplBox = await oplLateral.boundingBox();
+  let inspectorBox = await inspector.boundingBox();
+  if (!oplBox || !inspectorBox) throw new Error("No se pudo medir layout lateral OPL");
+  expect(oplBox.x).toBeGreaterThan(inspectorBox.x);
+  expect(oplBox.height).toBeGreaterThan(300);
+
+  await page.reload();
+  oplBox = await page.getByTestId("opl-pane").boundingBox();
+  inspectorBox = await page.getByTestId("inspector-pane").boundingBox();
+  if (!oplBox || !inspectorBox) throw new Error("No se pudo medir layout lateral OPL tras recarga");
+  expect(oplBox.x).toBeGreaterThan(inspectorBox.x);
+
+  expect(pageErrors).toEqual([]);
+});
+
+test("panel OPL indenta y contrae bloques jerarquicos desde preferencias", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await cerrarPantallaInicioSiVisible(page);
+  await jsonEditor(page).fill(JSON.stringify(modeloDosOpds(), null, 2));
+  await page.getByRole("button", { name: "Importar" }).click();
+
+  const bloqueRaiz = page.getByTestId("bloque-opl-opd-1");
+  const bloqueHijo = page.getByTestId("bloque-opl-opd-2");
+  await expect(bloqueRaiz).toHaveAttribute("data-opl-nivel", "0");
+  await expect(bloqueHijo).toHaveAttribute("data-opl-nivel", "1");
+  expect(await bloqueRaiz.evaluate((el) => getComputedStyle(el).paddingLeft)).toBe("0px");
+  expect(await bloqueHijo.evaluate((el) => getComputedStyle(el).paddingLeft)).toBe("16px");
+
+  await page.getByTestId("cabecera-bloque-opl-opd-2").click();
+  await expect(bloqueHijo.getByText("Proceso Hijo")).toHaveCount(0);
+  await page.reload();
+  await expect(page.getByTestId("bloque-opl-opd-2").getByText("Proceso Hijo")).toHaveCount(0);
+
+  expect(pageErrors).toEqual([]);
+});
+
+test("panel OPL selecciona enlace especifico en oracion multi-enlace", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await cerrarPantallaInicioSiVisible(page);
+  await jsonEditor(page).fill(JSON.stringify(modeloAbanicoLogico(), null, 2));
+  await page.getByRole("button", { name: "Importar" }).click();
+
+  const lineaMultiEnlace = page.locator('[data-testid="opl-line"]').filter({ hasText: "al menos uno de" });
+  await lineaMultiEnlace.getByText("Entrada B").click();
+  await page.getByRole("button", { name: "Eliminar enlace" }).click();
+  await page.getByRole("button", { name: "Exportar", exact: true }).click();
+  const exportado = JSON.parse(await jsonEditor(page).inputValue()) as ExportadoModelo;
+  expect(exportado.modelo.enlaces["e-consumo-a"]).toBeDefined();
+  expect(exportado.modelo.enlaces["e-consumo-b"]).toBeUndefined();
+
+  expect(pageErrors).toEqual([]);
+});
+
+test("panel OPL muestra placeholder de AI Text sin ejecutar funcionalidad", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await cerrarPantallaInicioSiVisible(page);
+  await page.getByTestId("panel-opl-ai-text").click();
+  await expect(page.getByText("Próximamente: oraciones generadas por LLM")).toBeVisible();
 
   expect(pageErrors).toEqual([]);
 });
@@ -1652,6 +1844,13 @@ function elementoPorTexto(page: import("@playwright/test").Page, texto: string):
 
 function escapeRegExp(texto: string): string {
   return texto.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+async function cerrarPantallaInicioSiVisible(page: import("@playwright/test").Page): Promise<void> {
+  const pantalla = page.getByTestId("pantalla-inicio");
+  if (await pantalla.count() === 0) return;
+  await pantalla.getByRole("button", { name: "Nuevo", exact: true }).click();
+  await expect(pantalla).toHaveCount(0);
 }
 
 async function rectDeLocator(locator: import("@playwright/test").Locator): Promise<{ x: number; y: number; width: number; height: number }> {
@@ -2584,6 +2783,111 @@ test("resize handle: esquina persiste tamaño manual", async ({ page }) => {
   expect(apariencia.width).toBeGreaterThan(135);
   expect(apariencia.height).toBeGreaterThan(60);
   expect(apariencia.modoTamano).toBe("manual");
+  expect(pageErrors).toEqual([]);
+});
+
+test("L4 arrastra cosa desde Toolbar al canvas y respeta posicion de drop", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await cerrarPantallaInicioSiVisible(page);
+  const canvas = page.getByRole("img", { name: "OPD activo" });
+  await page.getByRole("button", { name: "Objeto en canvas" }).dragTo(canvas, { targetPosition: { x: 320, y: 190 } });
+
+  await expect(elementoPorTexto(page, "Objeto")).toHaveCount(1);
+  await expect(page.getByTestId("modal-nombre-cosa")).toBeVisible();
+  const apariencia = await aparienciaRaizPorNombre(page, "Objeto");
+  expect(apariencia.x).toBeGreaterThanOrEqual(280);
+  expect(apariencia.x).toBeLessThanOrEqual(360);
+  expect(apariencia.y).toBeGreaterThanOrEqual(150);
+  expect(apariencia.y).toBeLessThanOrEqual(230);
+  expect(pageErrors).toEqual([]);
+});
+
+test("L4 menu de tipos validos muestra previews OPL y filtra por direccion", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await cerrarPantallaInicioSiVisible(page);
+  await page.getByRole("button", { name: "Objeto", exact: true }).click();
+  await page.getByLabel("Nombre").fill("Entrada");
+  await page.getByRole("button", { name: "Proceso", exact: true }).click();
+  await page.getByLabel("Nombre").fill("Procesar");
+  await page.getByRole("img", { name: "OPD activo" }).click({ position: { x: 8, y: 8 } });
+  await page.keyboard.press("Control+a");
+  await page.getByTestId("abrir-menu-tipo-enlace").click();
+
+  const menu = page.getByTestId("menu-tipo-enlace");
+  await expect(menu).toBeVisible();
+  await expect(menu.getByText(/consume/)).toBeVisible();
+  await expect(menu.getByTestId("menu-tipo-enlace-consumo")).toBeVisible();
+  await menu.getByRole("button", { name: "Entrada", exact: true }).click();
+  await expect(menu.getByText(/genera|requiere|maneja/)).toBeVisible();
+  expect(pageErrors).toEqual([]);
+});
+
+test("L4 biblioteca lista cosas y menu contextual borra enlace", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await cerrarPantallaInicioSiVisible(page);
+  await page.getByRole("button", { name: "Objeto", exact: true }).click();
+  await page.getByLabel("Nombre").fill("Entrada");
+  await page.getByRole("button", { name: "Proceso", exact: true }).click();
+  await page.getByLabel("Nombre").fill("Procesar");
+  await page.getByTestId("abrir-biblioteca-cosa").click();
+  await expect(page.getByTestId("biblioteca-cosa")).toBeVisible();
+  await expect(page.getByTestId("biblioteca-cosa").getByText("Entrada")).toBeVisible();
+  await expect(page.getByTestId("biblioteca-cosa").getByText("Procesar")).toBeVisible();
+  await page.getByLabel("Cerrar biblioteca").click();
+  await expect(page.getByTestId("biblioteca-cosa")).toHaveCount(0);
+
+  await elementoPorTexto(page, "Entrada").click();
+  await page.getByLabel("Tipo de enlace").selectOption("consumo");
+  await elementoPorTexto(page, "Procesar").click();
+  await expect(page.locator(".joint-link")).toHaveCount(1);
+  await clickLinkPorTipo(page, "Consumo");
+  await expect(page.getByTestId("reanclar-extremo-btn")).toBeVisible();
+
+  const punto = await puntoMedioPath(page.locator(".joint-link [joint-selector=wrapper]").first());
+  await page.mouse.click(punto.x, punto.y, { button: "right" });
+  await expect(page.getByTestId("menu-contextual-enlace")).toBeVisible();
+  await page.getByRole("menuitem", { name: "Eliminar" }).click();
+  await expect(page.locator(".joint-link")).toHaveCount(0);
+  expect(pageErrors).toEqual([]);
+});
+
+test("L4 dialogo de estilo de enlace persiste color grosor y copia estilo", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await cerrarPantallaInicioSiVisible(page);
+  await page.getByRole("button", { name: "Objeto", exact: true }).click();
+  await page.getByLabel("Nombre").fill("Entrada");
+  await page.getByRole("button", { name: "Proceso", exact: true }).click();
+  await page.getByLabel("Nombre").fill("Procesar");
+  await elementoPorTexto(page, "Entrada").click();
+  await page.getByLabel("Tipo de enlace").selectOption("consumo");
+  await elementoPorTexto(page, "Procesar").click();
+  await clickLinkPorTipo(page, "Consumo");
+
+  await page.getByTestId("abrir-dialogo-estilo-enlace").click();
+  const dialogo = page.getByTestId("dialogo-estilo-enlace");
+  await expect(dialogo).toBeVisible();
+  await dialogo.getByRole("button", { name: "Color #d92d20" }).click();
+  await dialogo.getByRole("button", { name: "3px" }).click();
+  await dialogo.getByRole("button", { name: "Discontinua" }).click();
+  await dialogo.getByRole("button", { name: "Listo" }).click();
+
+  await page.getByRole("button", { name: "Copiar estilo" }).click();
+  await expect(page.getByText("Estilo copiado")).toBeVisible();
+  const exportado = await exportadoActual(page);
+  const enlace = Object.values(exportado.modelo.enlaces)[0];
+  expect(enlace?.estilo).toEqual({ color: "#d92d20", strokeWidth: 3, dashArray: "4 4" });
   expect(pageErrors).toEqual([]);
 });
 

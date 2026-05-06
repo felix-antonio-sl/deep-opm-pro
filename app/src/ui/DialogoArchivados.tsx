@@ -10,7 +10,9 @@ export function DialogoArchivados() {
   const indice = useOpmStore((s) => s.indice);
   const restaurar = useOpmStore((s) => s.restaurarModeloPorId);
   const borrar = useOpmStore((s) => s.borrarLocal);
-  const archivados = useMemo(() => modelos.filter((modelo) => modelo.archivado), [modelos]);
+  const mostrarArchivados = useOpmStore((s) => s.mostrarArchivados);
+  const toggleMostrarArchivados = useOpmStore((s) => s.toggleMostrarArchivados);
+  const archivados = useMemo(() => mostrarArchivados ? modelos.filter((modelo) => modelo.archivado) : [], [modelos, mostrarArchivados]);
 
   return (
     <Dialogo
@@ -19,10 +21,15 @@ export function DialogoArchivados() {
       onCancel={cerrar}
       actions={<button type="button" style={style.secondaryButton} onClick={cerrar}>Cerrar</button>}
     >
-      {archivados.length === 0 ? (
-        <div style={style.empty}>No hay modelos archivados.</div>
-      ) : (
-        <table style={style.table}>
+      <div style={style.body}>
+        <label style={style.flag}>
+          <input type="checkbox" checked={mostrarArchivados} onChange={toggleMostrarArchivados} />
+          Mostrar archivados
+        </label>
+        {archivados.length === 0 ? (
+          <div style={style.empty}>{mostrarArchivados ? "No hay modelos archivados." : "Archivados ocultos."}</div>
+        ) : (
+          <table style={style.table}>
           <thead>
             <tr>
               <th style={style.th}>Modelo</th>
@@ -56,13 +63,16 @@ export function DialogoArchivados() {
               );
             })}
           </tbody>
-        </table>
-      )}
+          </table>
+        )}
+      </div>
     </Dialogo>
   );
 }
 
 const style = {
+  body: { display: "grid", gap: "10px" },
+  flag: { display: "inline-flex", alignItems: "center", gap: "6px", color: "#475467", fontSize: "13px", fontWeight: 700 },
   table: { width: "min(760px, calc(100vw - 80px))", borderCollapse: "collapse", fontSize: "13px" },
   th: { padding: "6px 8px", borderBottom: "2px solid #d9e0ea", textAlign: "left", color: "#667085" },
   row: { borderBottom: "1px solid #eef2f6" },
@@ -74,4 +84,3 @@ const style = {
   smallDanger: { minHeight: "28px", padding: "0 8px", border: "1px solid #f2b8b5", borderRadius: "4px", background: "#fff5f5", color: "#b42318", cursor: "pointer", fontWeight: 700 },
   secondaryButton: { height: "34px", padding: "0 14px", border: "1px solid #c8d2df", borderRadius: "4px", background: "#ffffff", color: "#475467", cursor: "pointer", fontSize: "13px", fontWeight: 700 },
 } satisfies Record<string, preact.JSX.CSSProperties>;
-

@@ -1,4 +1,5 @@
 import { useMemo } from "preact/hooks";
+import { aplicarPoliticaLogScaleVersiones, filtrarVersionesVisibles } from "../persistencia/versiones";
 import { useOpmStore } from "../store";
 import { Dialogo } from "./Dialogo";
 
@@ -10,9 +11,15 @@ export function DialogoVersiones() {
   const crearVersionAhora = useOpmStore((s) => s.crearVersionAhora);
   const restaurar = useOpmStore((s) => s.restaurarVersionComoCopia);
   const eliminar = useOpmStore((s) => s.eliminarVersionPorId);
+  const mostrarVersiones = useOpmStore((s) => s.mostrarVersiones);
+  const toggleMostrarVersiones = useOpmStore((s) => s.toggleMostrarVersiones);
   const modelo = useMemo(
     () => modelos.find((item) => item.id === abierto?.modeloId),
     [abierto?.modeloId, modelos],
+  );
+  const versiones = useMemo(
+    () => filtrarVersionesVisibles(aplicarPoliticaLogScaleVersiones(modelo?.versiones ?? []), mostrarVersiones),
+    [modelo?.versiones, mostrarVersiones],
   );
 
   return (
@@ -31,8 +38,12 @@ export function DialogoVersiones() {
         >
           Crear version ahora
         </button>
-        {(modelo?.versiones ?? []).length === 0 ? (
-          <div style={style.empty}>Este modelo no tiene versiones.</div>
+        <label style={style.flag}>
+          <input type="checkbox" checked={mostrarVersiones} onChange={toggleMostrarVersiones} />
+          Mostrar versiones
+        </label>
+        {(modelo?.versiones ?? []).length === 0 || versiones.length === 0 ? (
+          <div style={style.empty}>{mostrarVersiones ? "Este modelo no tiene versiones." : "Versiones ocultas."}</div>
         ) : (
           <table style={style.table}>
             <thead>
@@ -44,7 +55,7 @@ export function DialogoVersiones() {
               </tr>
             </thead>
             <tbody>
-              {(modelo?.versiones ?? []).map((version) => (
+              {versiones.map((version) => (
                 <tr key={version.id} style={style.row}>
                   <td style={style.td}>{new Date(version.creadoEn).toLocaleString("es-CL")}</td>
                   <td style={style.td}>
@@ -78,6 +89,7 @@ const style = {
   td: { padding: "8px", color: "#1f2937", fontWeight: 600, verticalAlign: "top" },
   actions: { padding: "8px", display: "flex", gap: "6px", flexWrap: "wrap" },
   muted: { color: "#667085", fontSize: "12px", marginTop: "2px" },
+  flag: { display: "inline-flex", alignItems: "center", gap: "6px", color: "#475467", fontSize: "13px", fontWeight: 700 },
   empty: { padding: "14px", border: "1px dashed #c8d2df", borderRadius: "4px", color: "#667085", fontWeight: 700 },
   primaryButton: { height: "32px", justifySelf: "start", padding: "0 12px", border: "1px solid #586D8C", borderRadius: "4px", background: "#586D8C", color: "#ffffff", cursor: "pointer", fontWeight: 700 },
   disabledButton: { height: "32px", justifySelf: "start", padding: "0 12px", border: "1px solid #d9e0ea", borderRadius: "4px", background: "#f2f4f7", color: "#98a2b3", fontWeight: 700 },
@@ -85,4 +97,3 @@ const style = {
   smallDanger: { minHeight: "28px", padding: "0 8px", border: "1px solid #f2b8b5", borderRadius: "4px", background: "#fff5f5", color: "#b42318", cursor: "pointer", fontWeight: 700 },
   secondaryButton: { height: "34px", padding: "0 14px", border: "1px solid #c8d2df", borderRadius: "4px", background: "#ffffff", color: "#475467", cursor: "pointer", fontSize: "13px", fontWeight: 700 },
 } satisfies Record<string, preact.JSX.CSSProperties>;
-

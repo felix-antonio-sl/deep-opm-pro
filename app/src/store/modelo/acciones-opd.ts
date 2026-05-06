@@ -7,6 +7,11 @@ import {
   reanclarEnlaceExternoDerivado,
 } from "../../modelo/operaciones";
 import {
+  moverNodo,
+  ordenSegunCanvasPadre,
+  reordenarHermanos,
+} from "../../modelo/opdReorden";
+import {
   commitModelo,
   confirmarEliminacionOpd,
   opdActivoSeguro,
@@ -15,6 +20,53 @@ import {
   type SetStore,
 } from "../runtime";
 import type { ModeloSlice } from "../tipos";
+import type { Id, Modelo, Resultado } from "../../modelo/tipos";
+
+export function renombrarOpdDesdeArbol(modelo: Modelo, opdId: Id, nombre: string): Resultado<Modelo> {
+  const opd = modelo.opds[opdId];
+  if (!opd) return { ok: false, error: `OPD no existe: ${opdId}` };
+  const limpio = nombre.trim();
+  if (!limpio || limpio === opd.nombre) return { ok: true, value: modelo };
+  const nombreUnico = nombreOpdUnico(modelo, opdId, limpio);
+  return {
+    ok: true,
+    value: {
+      ...modelo,
+      opds: {
+        ...modelo.opds,
+        [opdId]: { ...opd, nombre: nombreUnico },
+      },
+    },
+  };
+}
+
+export function reordenarOpdsHermanos(modelo: Modelo, padreId: Id | null, ordenIds: Id[]): Resultado<Modelo> {
+  return reordenarHermanos(modelo, padreId, ordenIds);
+}
+
+export function reordenarHermanosAutomaticamente(modelo: Modelo, opdPadreId: Id): Resultado<Modelo> {
+  const orden = ordenSegunCanvasPadre(modelo, opdPadreId);
+  if (!orden.ok) return orden;
+  return reordenarHermanos(modelo, opdPadreId, orden.value);
+}
+
+export function moverOpdGestion(modelo: Modelo, opdId: Id, nuevoPadreId: Id | null, posicion?: number): Resultado<Modelo> {
+  return moverNodo(modelo, opdId, nuevoPadreId, posicion);
+}
+
+function nombreOpdUnico(modelo: Modelo, opdId: Id, nombre: string): string {
+  const opd = modelo.opds[opdId];
+  if (!opd) return nombre;
+  const nombresHermanos = new Set(Object.values(modelo.opds)
+    .filter((otro) => otro.id !== opdId && otro.padreId === opd.padreId)
+    .map((otro) => otro.nombre.trim().toLocaleLowerCase("es-CL")));
+  if (!nombresHermanos.has(nombre.toLocaleLowerCase("es-CL"))) return nombre;
+  for (let i = 2; i < 1000; i += 1) {
+    const candidato = `${nombre} ${i}`;
+    if (!nombresHermanos.has(candidato.toLocaleLowerCase("es-CL"))) return candidato;
+  }
+  return `${nombre} ${Date.now()}`;
+}
 
 /**
  * Acciones de OPD: refinamiento (descomponer/desplegar/quitar), navegación

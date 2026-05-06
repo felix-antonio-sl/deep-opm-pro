@@ -37,6 +37,9 @@ export function SeccionExtremos(props: Props) {
       <button type="button" data-testid="mover-puerto-btn" style={style.secondaryButton} onClick={props.onAbrirMoverPuerto}>
         Mover Puerto
       </button>
+      <button type="button" data-testid="reanclar-extremo-btn" style={style.secondaryButton} onClick={props.onAbrirMoverPuerto} title="Usa los handles SourceArrowhead/TargetArrowhead del enlace seleccionado para reanclar">
+        Reanclar extremo
+      </button>
     </section>
   );
 }

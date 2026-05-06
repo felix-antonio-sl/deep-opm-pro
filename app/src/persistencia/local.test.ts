@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, test } from "bun:test";
 import { crearModelo, crearObjeto } from "../modelo/operaciones";
 import { exportarModelo } from "../serializacion/json";
-import { actualizarMetadataModeloLocal, borrarModeloLocal, cargarModeloLocal, guardarModeloLocal, listarModelosLocales } from "./local";
+import { actualizarMetadataModeloLocal, borrarModeloLocal, cargarModeloLocal, guardarModeloLocal, listarModelosLocales, listarRecientes, renombrarModeloLocal, tocarUltimoUso } from "./local";
 
 describe("persistencia local estructurada", () => {
   beforeEach(() => {
@@ -131,6 +131,38 @@ describe("persistencia local estructurada", () => {
       versiones: [expect.objectContaining({ id: "v1" })],
     }));
   });
+
+  test("renombrarModeloLocal cambia nombre, preserva payload y rechaza duplicados", () => {
+    const modelo = crearModelo("Modelo original");
+    const primero = guardarModeloLocal({ nombre: modelo.nombre, json: exportarModelo(modelo) });
+    const segundo = guardarModeloLocal({ nombre: "Otro modelo", json: exportarModelo(crearModelo("Otro modelo")) });
+    expect(primero.ok).toBe(true);
+    expect(segundo.ok).toBe(true);
+    if (!primero.ok) return;
+
+    const renombrado = renombrarModeloLocal(primero.value.id, "Modelo renombrado");
+    expect(renombrado.ok).toBe(true);
+    if (!renombrado.ok) return;
+    expect(renombrado.value.nombre).toBe("Modelo renombrado");
+    expect(renombrado.value.json).toContain('"nombre": "Modelo renombrado"');
+    expect(renombrarModeloLocal(primero.value.id, "Otro modelo").ok).toBe(false);
+  });
+
+  test("tocarUltimoUso actualiza timestamp y listarRecientes ordena por ultimo uso", () => {
+    const a = guardarModeloLocal({ nombre: "A", json: exportarModelo(crearModelo("A")) });
+    const b = guardarModeloLocal({ nombre: "B", json: exportarModelo(crearModelo("B")) });
+    expect(a.ok).toBe(true);
+    expect(b.ok).toBe(true);
+    if (!a.ok || !b.ok) return;
+
+    expect(tocarUltimoUso(a.value.id, "2026-05-05T10:00:00.000Z").ok).toBe(true);
+    expect(tocarUltimoUso(b.value.id, "2026-05-05T09:00:00.000Z").ok).toBe(true);
+
+    const recientes = listarRecientes();
+    expect(recientes.ok).toBe(true);
+    if (!recientes.ok) return;
+    expect(recientes.value.map((modelo) => modelo.nombre)).toEqual(["A", "B"]);
+  });
 });
 
 function instalarLocalStorage(): void {
@@ -152,6 +184,7 @@ import { describe as describe2, expect as expect2, test as test2 } from "bun:tes
 import {
   archivarCarpeta,
   archivarModelo,
+  autoArchivarPorEdad,
   buscarGlobal,
   crearCarpeta,
   eliminarCarpeta,
@@ -160,6 +193,7 @@ import {
   moverModeloACarpeta,
   renombrarCarpeta,
   rutaDeCarpeta,
+  restaurarArchivado,
 } from "./workspace";
 
 describe2("workspace carpetas (L4)", () => {
@@ -384,5 +418,25 @@ describe2("workspace carpetas (L4)", () => {
   test2("rutaDeCarpeta(null) devuelve array vacío", () => {
     const ruta = rutaDeCarpeta(indiceVacio(), null);
     expect2(ruta).toEqual([]);
+  });
+
+  test2("autoArchivarPorEdad marca modelos sin abrir por 90 días y restaurarArchivado los devuelve a recientes", () => {
+    const indice = {
+      ...indiceVacio(),
+      modelos: [{ id: "viejo", carpetaId: null }, { id: "nuevo", carpetaId: null }],
+    };
+    const resultado = autoArchivarPorEdad(indice, [
+      { id: "viejo", nombre: "Viejo", descripcion: "", creadoEn: "2025-12-01T00:00:00.000Z", actualizadoEn: "2025-12-01T00:00:00.000Z" },
+      { id: "nuevo", nombre: "Nuevo", descripcion: "", creadoEn: "2026-05-01T00:00:00.000Z", actualizadoEn: "2026-05-01T00:00:00.000Z" },
+    ], 90, new Date("2026-05-06T00:00:00.000Z"));
+
+    expect2(resultado.modelosAutoArchivados).toEqual(["viejo"]);
+    expect2(resultado.indice.modelos.find((modelo) => modelo.id === "viejo")?.archivadoAuto).toBe(true);
+
+    const restaurado = restaurarArchivado(resultado.indice, "viejo", "2026-05-06T01:00:00.000Z");
+    const modelo = restaurado.modelos.find((item) => item.id === "viejo");
+    expect2(modelo?.archivado).toBeUndefined();
+    expect2(modelo?.ultimoUso).toBe("2026-05-06T01:00:00.000Z");
+    expect2(restaurado.recientes[0]).toBe("viejo");
   });
 });

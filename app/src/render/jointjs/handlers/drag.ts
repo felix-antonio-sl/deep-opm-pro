@@ -1,4 +1,5 @@
 import type { dia } from "jointjs";
+import { extremoEntidad } from "../../../modelo/extremos";
 import type { Modelo } from "../../../modelo/tipos";
 import {
   abanicosAfectadosPorEntidad,
@@ -101,6 +102,14 @@ export function cablearDrag(args: CablearDragArgs): () => void {
     );
   });
 
+  graphEvents(graph).on("change:source", (cell: dia.Cell) => {
+    persistirReanclajeArrowhead(cell, "origen", modeloRef.current, opdActivoIdRef.current);
+  });
+
+  graphEvents(graph).on("change:target", (cell: dia.Cell) => {
+    persistirReanclajeArrowhead(cell, "destino", modeloRef.current, opdActivoIdRef.current);
+  });
+
   // Reposiciona los overlays de abanico EN VIVO mientras el usuario arrastra
   // una entidad puerto o cualquier rama del fan. Lee dock y puntos-sample
   // desde los LinkView reales (que JointJS recalcula automaticamente al
@@ -127,6 +136,29 @@ export function cablearDrag(args: CablearDragArgs): () => void {
     // se destruye junto con el paper en el cleanup del componente; los
     // closures quedan recolectables.
   };
+}
+
+function persistirReanclajeArrowhead(
+  cell: dia.Cell,
+  lado: "origen" | "destino",
+  modelo: Modelo,
+  opdId: string,
+): void {
+  if (!cell.isLink()) return;
+  const meta = metadata(cell);
+  if (meta?.kind !== "enlace") return;
+  const link = cell as dia.Link;
+  const extremo = lado === "origen" ? link.source() : link.target();
+  const aparienciaId = typeof extremo.id === "string" ? extremo.id : null;
+  if (!aparienciaId) return;
+  const apariencia = modelo.opds[opdId]?.apariencias[aparienciaId];
+  if (!apariencia) return;
+  const enlace = modelo.enlaces[meta.enlaceId];
+  const actual = lado === "origen" ? enlace?.origenId : enlace?.destinoId;
+  if (actual?.kind === "entidad" && actual.id === apariencia.entidadId) return;
+  void import("../../../store").then(({ store }) => {
+    store.getState().reanclarExtremoAccion(meta.enlaceId, lado, extremoEntidad(apariencia.entidadId));
+  });
 }
 
 function esSubprocesoInternoTimeline(modelo: Modelo, meta: OpmJointMetadata): meta is Extract<OpmJointMetadata, { kind: "entidad" }> {

@@ -66,6 +66,20 @@ export function filtrarLineasPorReferencia(
   return lineas.filter((linea) => lineaTocaReferencia(linea, ref));
 }
 
+export function referenciaEnlaceEspecifico(
+  linea: OplLineaInteractiva,
+  posicionToken: number,
+): OplReferencia | null {
+  const token = linea.tokens[posicionToken];
+  if (token?.ref?.tipo === "enlace") return token.ref;
+  if (token?.ref?.tipo === "entidad") {
+    const indiceRef = linea.refs.findIndex((ref) => mismaReferencia(ref, token.ref!));
+    const previa = indiceRef > 0 ? linea.refs[indiceRef - 1] : null;
+    if (previa?.tipo === "enlace") return previa;
+  }
+  return null;
+}
+
 export function mismaReferencia(a: OplReferencia, b: OplReferencia): boolean {
   return a.tipo === b.tipo && a.id === b.id;
 }

@@ -32,6 +32,14 @@ export function instalarHerramientasEnlaceSeleccionado(adapter: AdapterMin, enla
           padding: 18,
           useModelGeometry: true,
         }),
+        new linkTools.SourceArrowhead({
+          scale: 1.05,
+          focusOpacity: 0.85,
+        }),
+        new linkTools.TargetArrowhead({
+          scale: 1.05,
+          focusOpacity: 0.85,
+        }),
         new linkTools.Vertices({
           redundancyRemoval: false,
           snapRadius: 4,

@@ -179,6 +179,51 @@ export function accionesCanvas(set: SetStore, get: GetStore): Partial<ModeloSlic
       get().fijarBusquedaOpl(texto);
     },
 
+    alternarNumeracionOpl() {
+      const estado = get();
+      const oplNumeracionVisible = !(estado.indice.preferenciasUi?.oplNumeracionVisible ?? true);
+      const indice = actualizarPreferenciasUi(estado.indice, { oplNumeracionVisible });
+      escribirIndiceWorkspace(indice);
+      set({ indice });
+    },
+
+    cambiarPosicionOpl(posicion) {
+      const estado = get();
+      const actual = estado.indice.preferenciasUi?.oplPosicion ?? "inferior";
+      const oplPosicion = posicion ?? (actual === "inferior" ? "lateral-derecho" : "inferior");
+      const indice = actualizarPreferenciasUi(estado.indice, { oplPosicion });
+      escribirIndiceWorkspace(indice);
+      set({ indice });
+    },
+
+    minimizarOpl() {
+      const estado = get();
+      const indice = actualizarPreferenciasUi(estado.indice, { oplMinimizado: true });
+      escribirIndiceWorkspace(indice);
+      set({ indice });
+    },
+
+    restaurarOpl() {
+      const estado = get();
+      const indice = actualizarPreferenciasUi(estado.indice, { oplMinimizado: false });
+      escribirIndiceWorkspace(indice);
+      set({ indice });
+    },
+
+    alternarBloqueOplContraido(opdId) {
+      const estado = get();
+      const bloques = { ...(estado.indice.preferenciasUi?.oplBloquesContraidos ?? {}) };
+      if (bloques[opdId]) delete bloques[opdId];
+      else bloques[opdId] = true;
+      const indice = actualizarPreferenciasUi(estado.indice, { oplBloquesContraidos: bloques });
+      escribirIndiceWorkspace(indice);
+      set({ indice });
+    },
+
+    mostrarPlaceholderAiOpl() {
+      set({ mensaje: "Próximamente: oraciones generadas por LLM" });
+    },
+
     editarEtiquetaEnlaceDesdeOpl(enlaceId, etiqueta) {
       const { modelo } = get();
       const resultado = renombrarEtiquetaEnlace(modelo, enlaceId, etiqueta);

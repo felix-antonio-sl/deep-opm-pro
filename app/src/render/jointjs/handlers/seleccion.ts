@@ -130,6 +130,18 @@ export function cablearSeleccion(args: CablearSeleccionArgs): () => void {
     }
   };
 
+  const onLinkContextmenu = (linkView: dia.LinkView, evt: dia.Event) => {
+    evt.stopPropagation();
+    const event = evt as unknown as MouseEvent;
+    event.preventDefault();
+    const meta = metadata(cellViewModel(linkView));
+    if (meta?.kind !== "enlace") return;
+    seleccionarEnlaceRef.current(meta.enlaceId);
+    window.dispatchEvent(new CustomEvent("opm:menu-contextual-enlace", {
+      detail: { enlaceId: meta.enlaceId, x: event.clientX, y: event.clientY },
+    }));
+  };
+
   const onElementPointerdblclick = (elementView: dia.ElementView, evt: dia.Event) => {
     const meta = metadata(cellViewModel(elementView));
     if (meta?.kind !== "entidad") return;
@@ -175,18 +187,54 @@ export function cablearSeleccion(args: CablearSeleccionArgs): () => void {
     });
   };
 
+  const onDragOver = (event: DragEvent) => {
+    if (!event.dataTransfer) return;
+    const types = Array.from(event.dataTransfer.types);
+    if (types.includes("application/x-opm-tipo") || types.includes("application/x-opm-entidad-id")) {
+      event.preventDefault();
+      event.dataTransfer.dropEffect = "copy";
+    }
+  };
+
+  const onDrop = (event: DragEvent) => {
+    if (!event.dataTransfer) return;
+    const tipo = event.dataTransfer.getData("application/x-opm-tipo") as TipoEntidad | "";
+    const entidadId = event.dataTransfer.getData("application/x-opm-entidad-id");
+    if (!tipo && !entidadId) return;
+    event.preventDefault();
+    event.stopPropagation();
+    const posicion = posicionCanvasDesdeEvento(paper, event as unknown as dia.Event);
+    const punto = { x: Math.round(posicion.x), y: Math.round(posicion.y) };
+    if (tipo === "objeto" || tipo === "proceso") {
+      crearEntidadEnCanvasRef.current(tipo, punto);
+      return;
+    }
+    if (entidadId) {
+      void import("../../../store").then(({ store }) => {
+        store.getState().crearAparienciaEntidadEnCanvas(entidadId, punto);
+      });
+    }
+  };
+
   paper.on("element:pointerclick", onElementPointerclick);
   paper.on("element:pointerdblclick", onElementPointerdblclick);
   paper.on("element:contextmenu", onElementContextmenu);
   paper.on("link:pointerclick", onLinkPointerclick);
+  paper.on("link:contextmenu", onLinkContextmenu);
   paper.on("blank:pointerclick", onBlankPointerclick);
+  const paperEl = (paper as unknown as { el: HTMLElement }).el;
+  paperEl.addEventListener("dragover", onDragOver);
+  paperEl.addEventListener("drop", onDrop);
 
   return () => {
     paperOff(paper, "element:pointerclick", onElementPointerclick as (...args: never[]) => void);
     paperOff(paper, "element:pointerdblclick", onElementPointerdblclick as (...args: never[]) => void);
     paperOff(paper, "element:contextmenu", onElementContextmenu as (...args: never[]) => void);
     paperOff(paper, "link:pointerclick", onLinkPointerclick as (...args: never[]) => void);
+    paperOff(paper, "link:contextmenu", onLinkContextmenu as (...args: never[]) => void);
     paperOff(paper, "blank:pointerclick", onBlankPointerclick as (...args: never[]) => void);
+    paperEl.removeEventListener("dragover", onDragOver);
+    paperEl.removeEventListener("drop", onDrop);
   };
 }
 

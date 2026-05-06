@@ -18,6 +18,7 @@ export interface VersionResumen {
   creadoEn: string;
   nombre: string;
   descripcion?: string;
+  preservar?: boolean;
   modeloPayloadKey: string;
   bytes: number;
 }
@@ -25,6 +26,7 @@ export interface VersionResumen {
 export interface Modelo {
   id: Id;
   nombre: string;
+  descripcion?: string;
   opdRaizId: Id;
   opds: Record<Id, Opd>;
   entidades: Record<Id, Entidad>;

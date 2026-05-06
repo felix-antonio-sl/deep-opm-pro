@@ -21,6 +21,14 @@ export function expandirTodoArbol(): Set<Id> {
   return new Set();
 }
 
+export function expandirTodos(): Set<Id> {
+  return expandirTodoArbol();
+}
+
+export function colapsarTodos(nodos: NodoOpdData[]): Set<Id> {
+  return idsColapsables(nodos);
+}
+
 export function construirArbol(modelo: Modelo): NodoOpdData[] {
   const raiz = modelo.opds[modelo.opdRaizId];
   if (!raiz) return [];

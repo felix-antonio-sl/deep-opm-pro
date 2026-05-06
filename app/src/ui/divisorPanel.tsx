@@ -1,6 +1,7 @@
 import { useRef } from "preact/hooks";
 
 export const ANCHO_PANEL_ARBOL_DEFAULT = 240;
+export const ANCHO_PANEL_ARBOL_RESET = 280;
 export const ANCHO_PANEL_ARBOL_MIN = 160;
 export const ANCHO_PANEL_ARBOL_MAX = 600;
 
@@ -51,7 +52,7 @@ export function DivisorPanel({
       title="Ajustar ancho del árbol"
       style={orientacion === "vertical" ? style.vertical : style.horizontal}
       onPointerDown={(event) => iniciarDrag(event as unknown as PointerEvent)}
-      onDblClick={() => onAnchoChange(ANCHO_PANEL_ARBOL_DEFAULT)}
+      onDblClick={() => onAnchoChange(ANCHO_PANEL_ARBOL_RESET)}
     >
       <span aria-hidden="true" style={orientacion === "vertical" ? style.controlVertical : style.controlHorizontal} />
     </div>

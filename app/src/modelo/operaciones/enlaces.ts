@@ -10,6 +10,7 @@ import {
 import type {
   AparienciaEnlace,
   Enlace,
+  EnlaceEstilo,
   Id,
   Modelo,
   Resultado,
@@ -170,6 +171,24 @@ export function moverPuertoEnlace(
 ): Resultado<Modelo> {
   if (opcionRemover) return eliminarEnlace(modelo, enlaceId);
   return apuntarExtremoEnlace(modelo, enlaceId, lado, extremo);
+}
+
+export function eliminarEnlacesBatch(modelo: Modelo, enlaceIds: Id[]): Resultado<Modelo> {
+  let siguiente = modelo;
+  for (const enlaceId of enlaceIds) {
+    if (!siguiente.enlaces[enlaceId]) continue;
+    const resultado = eliminarEnlace(siguiente, enlaceId);
+    if (!resultado.ok) return resultado;
+    siguiente = resultado.value;
+  }
+  return ok(siguiente);
+}
+
+export function copiarEstiloEnlace(modelo: Modelo, enlaceId: Id): Resultado<EnlaceEstilo> {
+  const enlace = modelo.enlaces[enlaceId];
+  if (!enlace) return fallo(`Enlace no existe: ${enlaceId}`);
+  if (!enlace.estilo || Object.keys(enlace.estilo).length === 0) return fallo("El enlace no tiene estilo visual");
+  return ok({ ...enlace.estilo });
 }
 
 export function reanclarEnlaceExternoDerivado(

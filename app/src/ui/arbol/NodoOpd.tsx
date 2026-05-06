@@ -88,7 +88,9 @@ export function NodoOpd(props: NodoOpdProps) {
           autoFocus
           style={style.inlineInput}
           data-modo="inline-rename"
+          data-testid="arbol-opd-renombrado-inline"
           value={props.renombrando!.valor}
+          onFocus={(event) => (event.currentTarget as HTMLInputElement).select()}
           onInput={(event) => props.onRenombrandoChange({ id: props.nodo.opd.id, valor: (event.currentTarget as HTMLInputElement).value })}
           onKeyDown={(event) => {
             if (event.key === "Enter") props.onRenombrarSubmit();

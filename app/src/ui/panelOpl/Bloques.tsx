@@ -1,5 +1,5 @@
-import { togglearColapsoBloque, type BloqueOpl } from "../../opl/bloquesJerarquicos";
-import { lineaTocaReferencia, type OplLineaInteractiva, type OplReferencia } from "../../opl/interaccion";
+import type { BloqueOpl } from "../../opl/bloquesJerarquicos";
+import { lineaTocaReferencia, referenciaEnlaceEspecifico, type OplLineaInteractiva, type OplReferencia } from "../../opl/interaccion";
 import { RenderToken, type EdicionOpl } from "./RenderToken";
 
 interface BloquesProps {
@@ -8,8 +8,9 @@ interface BloquesProps {
   opdActivoId: string;
   hoverOplRef: OplReferencia | null;
   seleccionRef: OplReferencia | null;
+  numeracionVisible: boolean;
   bloquesColapsados: Set<string>;
-  setBloquesColapsados: (actualizar: (actual: Set<string>) => Set<string>) => void;
+  alternarBloqueContraido: (opdId: string) => void;
   edicion: EdicionOpl | null;
   setEdicion: (value: EdicionOpl | null) => void;
   seleccionarDesdeOpl: (ref: OplReferencia) => void;
@@ -34,13 +35,14 @@ export function Bloques(props: BloquesProps) {
           <section
             key={bloque.opdId}
             data-testid={`bloque-opl-${bloque.opdId}`}
-            style={{ ...style.bloque, marginLeft: `${bloque.profundidad * 18}px` }}
+            data-opl-nivel={bloque.profundidad}
+            style={estiloBloque(bloque.profundidad)}
           >
             <button
               type="button"
               data-testid={`cabecera-bloque-opl-${bloque.opdId}`}
               style={style.bloqueHeader}
-              onClick={() => props.setBloquesColapsados((actual) => togglearColapsoBloque(actual, bloque.opdId))}
+              onClick={() => props.alternarBloqueContraido(bloque.opdId)}
               aria-expanded={!colapsado}
             >
               <span style={style.chevron}>{colapsado ? "▸" : "▾"}</span>
@@ -70,16 +72,18 @@ function LineaOpl(props: BloquesProps & { linea: OplLineaInteractiva; bloqueOpdI
         ...(lineaTocaReferencia(props.linea, props.seleccionRef) ? style.lineaSeleccionada : {}),
       }}
     >
-      <span style={style.ordinal}>{props.linea.ordinal}.</span>
+      <span style={ordinalStyle(props.numeracionVisible)} aria-hidden={!props.numeracionVisible}>
+        {props.linea.ordinal}.
+      </span>
       <span style={style.texto}>
-        {props.linea.tokens.map((token) => (
+        {props.linea.tokens.map((token, tokenIndex) => (
           <RenderToken
             key={token.id}
             token={token}
             hoverOplRef={props.hoverOplRef}
             edicion={props.edicion}
             setEdicion={props.setEdicion}
-            seleccionarDesdeOpl={props.seleccionarDesdeOpl}
+            seleccionarDesdeOpl={(ref) => props.seleccionarDesdeOpl(referenciaEnlaceEspecifico(props.linea, tokenIndex) ?? ref)}
             renombrarEntidadDesdeOpl={props.renombrarEntidadDesdeOpl}
             renombrarEstadoDesdeOpl={props.renombrarEstadoDesdeOpl}
             abrirInspectorEnlaceDesdeOpl={props.abrirInspectorEnlaceDesdeOpl}
@@ -99,7 +103,11 @@ const style = {
     borderRadius: 4,
     padding: "2px 4px",
   },
-  bloque: { marginBottom: 8 },
+  bloque: {
+    marginBottom: 8,
+    paddingLeft: 0,
+    borderLeft: "0 solid transparent",
+  },
   bloqueHeader: {
     width: "100%",
     minHeight: 28,
@@ -126,5 +134,19 @@ const style = {
     fontVariantNumeric: "tabular-nums",
     textAlign: "right",
   },
+  ordinalOculto: { opacity: 0 },
   texto: { minWidth: 0 },
 } satisfies Record<string, preact.JSX.CSSProperties>;
+
+function estiloBloque(profundidad: number): preact.JSX.CSSProperties {
+  const nivelVisual = Math.min(Math.max(profundidad, 0), 4);
+  return {
+    ...style.bloque,
+    paddingLeft: nivelVisual * 16,
+    borderLeft: profundidad > 0 ? "2px solid #dbe5ee" : "0 solid transparent",
+  };
+}
+
+function ordinalStyle(visible: boolean): preact.JSX.CSSProperties {
+  return visible ? style.ordinal : { ...style.ordinal, ...style.ordinalOculto };
+}

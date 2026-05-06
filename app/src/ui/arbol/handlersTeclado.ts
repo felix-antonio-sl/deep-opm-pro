@@ -2,6 +2,13 @@ import type { Id } from "../../modelo/tipos";
 import type { NodoOpdData } from "./NodoOpd";
 
 export type DireccionArbol = "up" | "down" | "left" | "right";
+export type AtajoPanelArbol =
+  | "foco-anterior"
+  | "foco-siguiente"
+  | "renombrar"
+  | "expandir-todo"
+  | "colapsar-todo"
+  | "abrir-gestion";
 
 export interface AccionesTecladoArbol {
   navegarOpdArriba: () => void;
@@ -40,6 +47,19 @@ export function manejarTeclaNodoArbol(
     event.preventDefault();
     acciones.navegarOpdDerecha();
   }
+}
+
+export function atajoPanelArbolDesdeEvento(
+  event: Pick<KeyboardEvent, "key" | "ctrlKey" | "metaKey" | "shiftKey">,
+): AtajoPanelArbol | null {
+  const control = event.ctrlKey || event.metaKey;
+  if (event.key === "F2") return "renombrar";
+  if (!control) return null;
+  if (event.key === "ArrowUp") return "foco-anterior";
+  if (event.key === "ArrowDown") return "foco-siguiente";
+  if (event.key.toLowerCase() === "e") return event.shiftKey ? "colapsar-todo" : "expandir-todo";
+  if (event.key.toLowerCase() === "d") return "abrir-gestion";
+  return null;
 }
 
 export function aplanarNodosVisibles(

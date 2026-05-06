@@ -7,11 +7,13 @@ import { useOpmStore, store } from "../store";
 import type { Enlace, Modificador } from "../modelo/tipos";
 import { inspectorStyles as style } from "./inspectorStyles";
 import { SeccionAbanico } from "./inspectorEnlace/SeccionAbanico";
+import { SeccionEstilo } from "./inspectorEnlace/SeccionEstilo";
 import { SeccionEstiloEnlace } from "./inspectorEnlace/SeccionEstiloEnlace";
 import { SeccionExtremos } from "./inspectorEnlace/SeccionExtremos";
 import { SeccionEtiquetaEnlace, SeccionMultiplicidad, probabilidadValida } from "./inspectorEnlace/SeccionMultiplicidad";
 import { SeccionReanclaje, contextoReanclaje } from "./inspectorEnlace/SeccionReanclaje";
 import { SeccionRuta } from "./inspectorEnlace/SeccionRuta";
+import { DialogoEstiloEnlace } from "./DialogoEstiloEnlace";
 import { DialogoMoverPuerto } from "./DialogoMoverPuerto";
 
 interface Props {
@@ -61,6 +63,7 @@ export function InspectorEnlace({ enlace }: Props) {
   const [rutaEtiqueta, setRutaEtiqueta] = useState(enlace.rutaEtiqueta ?? "");
   const [endpointSeleccionado, setEndpointSeleccionado] = useState(endpointActual);
   const [dialogoMoverPuertoAbierto, setDialogoMoverPuertoAbierto] = useState(false);
+  const [dialogoEstiloAbierto, setDialogoEstiloAbierto] = useState(false);
 
   useEffect(() => {
     setMultiplicidadOrigen(enlace.multiplicidadOrigen ?? "");
@@ -120,6 +123,21 @@ export function InspectorEnlace({ enlace }: Props) {
         <span>{destino ? nombreExtremo(modelo, enlace.destinoId) : enlace.destinoId.id}</span>
       </div>
       <SeccionEtiquetaEnlace enlace={enlace} etiqueta={etiqueta} onEtiqueta={cambiarEtiqueta} />
+      <SeccionEstilo
+        enlace={enlace}
+        hayPortapapeles={!!enlaceEstiloPortapapeles}
+        onAbrirDialogo={() => setDialogoEstiloAbierto(true)}
+        onCopiar={copiarEstiloAlPortapapeles}
+        onPegar={pegarEstiloDesdePortapapeles}
+        onReset={resetEstiloEnlaceAccion}
+        onAplicar={aplicarEstiloEnlaceAccion}
+      />
+      <DialogoEstiloEnlace
+        abierto={dialogoEstiloAbierto}
+        enlace={enlace}
+        onCerrar={() => setDialogoEstiloAbierto(false)}
+        onAplicar={aplicarEstiloEnlaceAccion}
+      />
       <SeccionEstiloEnlace
         enlace={enlace}
         modelo={modelo}

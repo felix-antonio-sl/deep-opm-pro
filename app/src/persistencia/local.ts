@@ -15,6 +15,7 @@ export interface ResumenModeloPersistido {
   autosalvado?: boolean;
   archivado?: boolean;
   archivadoEn?: string;
+  archivadoAuto?: boolean;
   versiones?: VersionResumen[];
   crearVersionAlGuardar?: boolean;
 }
@@ -33,13 +34,14 @@ export interface GuardarModeloLocalInput {
   autosalvado?: boolean;
   archivado?: boolean;
   archivadoEn?: string;
+  archivadoAuto?: boolean;
   versiones?: VersionResumen[];
   crearVersionAlGuardar?: boolean;
 }
 
 export type MetadataModeloLocalPatch = Partial<Pick<
   ResumenModeloPersistido,
-  "carpetaId" | "ultimaApertura" | "autosalvado" | "archivado" | "archivadoEn" | "versiones" | "crearVersionAlGuardar"
+  "nombre" | "descripcion" | "carpetaId" | "ultimaApertura" | "autosalvado" | "archivado" | "archivadoEn" | "archivadoAuto" | "versiones" | "crearVersionAlGuardar"
 >>;
 
 interface IndicePersistencia {
@@ -94,6 +96,10 @@ export function guardarModeloLocal(input: GuardarModeloLocalInput): Resultado<Mo
   if (archivadoEn !== undefined) {
     resumen.archivadoEn = archivadoEn;
   }
+  const archivadoAuto = input.archivadoAuto ?? existente?.archivadoAuto;
+  if (archivadoAuto !== undefined) {
+    resumen.archivadoAuto = archivadoAuto;
+  }
   const versiones = input.versiones ?? existente?.versiones;
   if (versiones !== undefined) {
     resumen.versiones = versiones;
@@ -130,6 +136,58 @@ export function cargarModeloLocal(id: string): Resultado<ModeloPersistido> {
     return fallo("Modelo local corrupto");
   }
   return ok(modelo);
+}
+
+export function renombrarModeloLocal(id: string, nombre: string): Resultado<ModeloPersistido> {
+  const storage = storageLocal();
+  if (!storage.ok) return storage;
+  const limpio = id.trim();
+  const nuevoNombre = nombre.trim();
+  if (!limpio) return fallo("Modelo local inválido");
+  if (!nuevoNombre) return fallo("Ingresa un nombre de modelo");
+  const indice = leerIndice(storage.value);
+  const existente = indice.find((item) => item.id === limpio);
+  if (!existente) return fallo("Modelo local no encontrado");
+  const duplicado = indice.some((item) =>
+    item.id !== limpio &&
+    item.nombre.trim().toLocaleLowerCase("es-CL") === nuevoNombre.toLocaleLowerCase("es-CL")
+  );
+  if (duplicado) return fallo("Ya existe un modelo local con ese nombre");
+  const cargado = cargarModeloLocal(limpio);
+  if (!cargado.ok) return cargado;
+  const json = renombrarModeloEnJson(cargado.value.json, nuevoNombre);
+  const actualizado = aplicarPatchResumen(existente, { nombre: nuevoNombre });
+  const modelo: ModeloPersistido = { ...cargado.value, ...actualizado, json };
+  try {
+    storage.value.setItem(modelKey(limpio), JSON.stringify({ formato: FORMATO_PERSISTENCIA, modelo } satisfies DocumentoPersistido));
+    escribirIndice(storage.value, [actualizado, ...indice.filter((item) => item.id !== limpio)]);
+  } catch {
+    return fallo("No se pudo renombrar el modelo local");
+  }
+  return ok(modelo);
+}
+
+export function tocarUltimoUso(id: string, ahora = new Date().toISOString()): Resultado<ResumenModeloPersistido> {
+  return actualizarMetadataModeloLocal(id, { ultimaApertura: ahora });
+}
+
+export function tocarUltimoUsoBatch(ids: string[], ahora = new Date().toISOString()): Resultado<ResumenModeloPersistido[]> {
+  const actualizados: ResumenModeloPersistido[] = [];
+  for (const id of ids) {
+    const resultado = tocarUltimoUso(id, ahora);
+    if (!resultado.ok) return resultado;
+    actualizados.push(resultado.value);
+  }
+  return ok(actualizados);
+}
+
+export function listarRecientes(limite = 12): Resultado<ResumenModeloPersistido[]> {
+  const listado = listarModelosLocales();
+  if (!listado.ok) return listado;
+  return ok([...listado.value]
+    .filter((modelo) => !modelo.archivado)
+    .sort((a, b) => fechaUso(b).localeCompare(fechaUso(a)))
+    .slice(0, Math.max(0, limite)));
 }
 
 export function borrarModeloLocal(id: string): Resultado<void> {
@@ -258,6 +316,9 @@ function normalizarResumenModeloPersistido(value: unknown): ResumenModeloPersist
   if (typeof value.archivadoEn === "string") {
     base.archivadoEn = value.archivadoEn;
   }
+  if (typeof value.archivadoAuto === "boolean") {
+    base.archivadoAuto = value.archivadoAuto;
+  }
   if (Array.isArray(value.versiones)) {
     const versiones = value.versiones
       .map(normalizarVersionResumen)
@@ -272,11 +333,14 @@ function normalizarResumenModeloPersistido(value: unknown): ResumenModeloPersist
 
 function aplicarPatchResumen(resumen: ResumenModeloPersistido, patch: MetadataModeloLocalPatch): ResumenModeloPersistido {
   const actualizado: ResumenModeloPersistido = { ...resumen };
+  if ("nombre" in patch && typeof patch.nombre === "string") actualizado.nombre = patch.nombre;
+  if ("descripcion" in patch && typeof patch.descripcion === "string") actualizado.descripcion = patch.descripcion;
   if ("carpetaId" in patch) actualizado.carpetaId = patch.carpetaId;
   if ("ultimaApertura" in patch) actualizado.ultimaApertura = patch.ultimaApertura;
   if ("autosalvado" in patch) actualizado.autosalvado = patch.autosalvado;
   if ("archivado" in patch) actualizado.archivado = patch.archivado;
   if ("archivadoEn" in patch) actualizado.archivadoEn = patch.archivadoEn;
+  if ("archivadoAuto" in patch) actualizado.archivadoAuto = patch.archivadoAuto;
   if ("versiones" in patch) actualizado.versiones = patch.versiones;
   if ("crearVersionAlGuardar" in patch) actualizado.crearVersionAlGuardar = patch.crearVersionAlGuardar;
   return actualizado;
@@ -296,6 +360,7 @@ function normalizarVersionResumen(value: unknown): VersionResumen | null {
     creadoEn: value.creadoEn,
     nombre: value.nombre,
     ...(typeof value.descripcion === "string" ? { descripcion: value.descripcion } : {}),
+    ...(value.preservar === true ? { preservar: true } : {}),
     modeloPayloadKey: value.modeloPayloadKey,
     bytes: value.bytes,
   };
@@ -311,4 +376,20 @@ function ok<T>(value: T): Resultado<T> {
 
 function fallo<T = never>(error: string): Resultado<T> {
   return { ok: false, error };
+}
+
+function fechaUso(modelo: ResumenModeloPersistido): string {
+  return modelo.ultimaApertura ?? modelo.actualizadoEn ?? modelo.creadoEn;
+}
+
+function renombrarModeloEnJson(json: string, nombre: string): string {
+  const parsed = parseJson(json);
+  if (!esRecord(parsed) || !esRecord(parsed.modelo)) return json;
+  return JSON.stringify({
+    ...parsed,
+    modelo: {
+      ...parsed.modelo,
+      nombre,
+    },
+  }, null, 2);
 }

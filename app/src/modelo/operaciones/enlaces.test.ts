@@ -2,6 +2,7 @@ import { describe, expect, test } from "bun:test";
 import { extremoEntidad } from "../extremos";
 import { crearEnlace, crearModelo, crearObjeto, crearProceso, moverPuertoEnlace } from "../operaciones";
 import type { Modelo, Resultado } from "../tipos";
+import { copiarEstiloEnlace, eliminarEnlacesBatch } from "./enlaces";
 
 describe("operaciones/enlaces", () => {
   test("moverPuertoEnlace cambia extremo y mantiene seleccionable el enlace", () => {
@@ -25,6 +26,32 @@ describe("operaciones/enlaces", () => {
 
     expect(modelo.enlaces[enlaceId]).toBeUndefined();
     expect(Object.values(modelo.opds[modelo.opdRaizId]?.enlaces ?? {}).some((apariencia) => apariencia.enlaceId === enlaceId)).toBe(false);
+  });
+
+  test("eliminarEnlacesBatch elimina ids existentes e ignora ids ausentes", () => {
+    let modelo = modeloBase();
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidad(modelo, "Entrada"), entidad(modelo, "Validar"), "consumo"));
+    const enlaces = Object.keys(modelo.enlaces);
+
+    modelo = must(eliminarEnlacesBatch(modelo, [enlaces[0]!, "enlace-inexistente"]));
+
+    expect(Object.keys(modelo.enlaces)).toEqual([enlaces[1]!]);
+    expect(Object.values(modelo.opds[modelo.opdRaizId]?.enlaces ?? {}).map((apariencia) => apariencia.enlaceId)).toEqual([enlaces[1]!]);
+  });
+
+  test("copiarEstiloEnlace retorna una copia defensiva del estilo", () => {
+    const modelo = modeloBase();
+    const enlaceId = Object.keys(modelo.enlaces)[0];
+    if (!enlaceId) throw new Error("La prueba esperaba enlace");
+    modelo.enlaces[enlaceId] = {
+      ...modelo.enlaces[enlaceId]!,
+      estilo: { color: "#1d4ed8", strokeWidth: 2, dashArray: "4 4" },
+    };
+
+    const estilo = must(copiarEstiloEnlace(modelo, enlaceId));
+
+    expect(estilo).toEqual({ color: "#1d4ed8", strokeWidth: 2, dashArray: "4 4" });
+    expect(estilo).not.toBe(modelo.enlaces[enlaceId]?.estilo);
   });
 });
 

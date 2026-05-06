@@ -1,3 +1,4 @@
+import { CANON } from "../../modelo/constantes";
 import { crearCosaEnPosicion } from "../../modelo/creacionInterna";
 import { posicionLibre } from "../../modelo/layout";
 import {
@@ -22,7 +23,7 @@ import {
   quitarImagen,
   reordenarUrls,
 } from "../../modelo/objetoMetadata";
-import type { LayoutEstados, Modelo, ModoImagenEntidad } from "../../modelo/tipos";
+import type { Apariencia, Id, LayoutEstados, Modelo, ModoImagenEntidad } from "../../modelo/tipos";
 import { fijarOpcionesProyeccionGlobal } from "../../render/jointjs/proyeccion";
 import { commitModelo, entidadNueva, type GetStore, type SetStore } from "../runtime";
 import type { ModeloSlice } from "../tipos";
@@ -67,6 +68,61 @@ export function accionesEntidad(set: SetStore, get: GetStore): Partial<ModeloSli
         enlaceSeleccionId: null,
         modoEnlace: null,
         modoCreacion: tipo,
+        mensaje: null,
+      });
+      emitirNuevaCosa(resultado.value.entidadId, resultado.value.aparienciaId, resultado.value.modelo.entidades[resultado.value.entidadId]?.nombre);
+    },
+
+    crearAparienciaEntidadEnCanvas(entidadId, posicion) {
+      const { modelo, opdActivoId } = get();
+      const entidad = modelo.entidades[entidadId];
+      const opd = modelo.opds[opdActivoId];
+      if (!entidad || !opd) {
+        set({ mensaje: "La cosa no existe en el modelo activo" });
+        return;
+      }
+      const existente = Object.values(opd.apariencias).find((apariencia) => apariencia.entidadId === entidadId);
+      if (existente) {
+        set({
+          seleccionId: entidadId,
+          seleccionados: [entidadId],
+          modoSeleccion: "simple",
+          enlaceSeleccionId: null,
+          modoEnlace: null,
+          mensaje: "La cosa ya aparece en este OPD",
+        });
+        return;
+      }
+      const aparienciaId = `a-${modelo.nextSeq}`;
+      const apariencia: Apariencia = {
+        id: aparienciaId,
+        entidadId,
+        opdId: opdActivoId,
+        x: Math.round(posicion.x),
+        y: Math.round(posicion.y),
+        width: CANON.dims.cosaWidth,
+        height: CANON.dims.cosaHeight,
+      };
+      const siguiente: Modelo = {
+        ...modelo,
+        nextSeq: modelo.nextSeq + 1,
+        opds: {
+          ...modelo.opds,
+          [opdActivoId]: {
+            ...opd,
+            apariencias: {
+              ...opd.apariencias,
+              [aparienciaId]: apariencia,
+            },
+          },
+        },
+      };
+      commitModelo(set, modelo, siguiente, {
+        seleccionId: entidadId,
+        seleccionados: [entidadId],
+        modoSeleccion: "simple",
+        enlaceSeleccionId: null,
+        modoEnlace: null,
         mensaje: null,
       });
     },
@@ -318,6 +374,11 @@ export function accionesEntidad(set: SetStore, get: GetStore): Partial<ModeloSli
       set({ uiDescripcionesVisibles: descripcionesVisibles, modelo: { ...modelo } });
     },
   };
+}
+
+function emitirNuevaCosa(entidadId: Id, aparienciaId: Id, nombre?: string): void {
+  if (typeof window === "undefined") return;
+  window.dispatchEvent(new CustomEvent("opm:nueva-cosa", { detail: { entidadId, aparienciaId, nombre } }));
 }
 
 function siguienteModoImagen(modo: ModoImagenEntidad): ModoImagenEntidad {

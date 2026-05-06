@@ -23,6 +23,23 @@ describe("serializacion JSON", () => {
     expect(Object.values(hidratado.value.entidades)[0]?.nombre).toBe("Sistema");
   });
 
+  test("preserva descripcion opcional del modelo y acepta legacy sin descripcion", () => {
+    const modelo = { ...crearModelo("Con descripción"), descripcion: "Contexto del modelo" };
+    const exportado = JSON.parse(exportarModelo(modelo));
+    expect(exportado.modelo.descripcion).toBe("Contexto del modelo");
+
+    const hidratado = hidratarModelo(JSON.stringify(exportado));
+    expect(hidratado.ok).toBe(true);
+    if (!hidratado.ok) return;
+    expect(hidratado.value.descripcion).toBe("Contexto del modelo");
+
+    delete exportado.modelo.descripcion;
+    const legacy = hidratarModelo(JSON.stringify(exportado));
+    expect(legacy.ok).toBe(true);
+    if (!legacy.ok) return;
+    expect(legacy.value.descripcion).toBeUndefined();
+  });
+
   test("preserva estados y designaciones en round-trip", () => {
     let modelo = crearModelo("Estados");
     modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 10, y: 20 }, "Semaforo"));

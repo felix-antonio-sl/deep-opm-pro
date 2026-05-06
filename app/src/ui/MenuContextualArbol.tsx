@@ -16,6 +16,7 @@ export interface MenuContextualArbolProps {
   onToggleNombres: () => void;
   onExpandirTodo: () => void;
   onColapsarTodo: () => void;
+  onBuscar: () => void;
   onIrPadre: (opdId: Id) => void;
   onIrPrimerHijo: (opdId: Id) => void;
 }
@@ -56,6 +57,7 @@ export function MenuContextualArbol(props: MenuContextualArbolProps) {
       <Item label={props.nombresVisibles ? "Ocultar nombres" : "Mostrar nombres"} onClick={props.onToggleNombres} />
       <Item label="Expandir todo" onClick={props.onExpandirTodo} />
       <Item label="Colapsar todo" onClick={props.onColapsarTodo} />
+      <Item label="Buscar OPD" onClick={props.onBuscar} />
       <div aria-hidden="true" style={style.divider} />
       <Item label="Ir al OPD padre" disabled={!tienePadre} onClick={() => props.onIrPadre(props.opdId)} />
       <Item label="Ir al primer hijo" disabled={!tieneHijos} onClick={() => props.onIrPrimerHijo(props.opdId)} />

@@ -2,10 +2,12 @@ import {
   abanicoDeEnlace,
   alternarOperadorAbanico as alternarOperadorAbanicoOp,
   disolverAbanico as disolverAbanicoOp,
+  formarAbanicoAutomatico,
   quitarRamaDeAbanico as quitarRamaDeAbanicoOp,
 } from "../../modelo/abanicos";
 import { crearAutoInvocacion } from "../../modelo/autoinvocacion";
 import { renombrarEtiquetaEnlace } from "../../modelo/etiquetasEnlace";
+import { extremoEntidad } from "../../modelo/extremos";
 import {
   aplicarModificador,
   aplicarSubtipoModificador,
@@ -16,6 +18,7 @@ import {
 import {
   ajustarMultiplicidad,
   apuntarExtremoEnlace,
+  crearEnlace,
   moverPuertoEnlace as moverPuertoEnlaceOp,
   reanclarEnlaceExternoDerivado as reanclarEnlaceExternoDerivadoOp,
   splitEffectEnPar,
@@ -41,6 +44,29 @@ export function accionesEnlace(set: SetStore, get: GetStore): Partial<ModeloSlic
         return;
       }
       set({ modoEnlace: { tipo, origenId }, modoCreacion: null, mensaje: "Selecciona la entidad destino" });
+    },
+
+    crearEnlaceEntreEntidades(origenId, destinoId, tipo) {
+      const { modelo, opdActivoId } = get();
+      const resultado = crearEnlace(modelo, opdActivoId, extremoEntidad(origenId), extremoEntidad(destinoId), tipo);
+      if (!resultado.ok) {
+        set({ mensaje: resultado.error });
+        return;
+      }
+      let modeloFinal = resultado.value;
+      const enlaceCreadoId = enlaceNuevo(modelo, modeloFinal);
+      if (enlaceCreadoId) {
+        const auto = formarAbanicoAutomatico(modeloFinal, opdActivoId, enlaceCreadoId);
+        if (auto.ok) modeloFinal = auto.value;
+      }
+      commitModelo(set, modelo, modeloFinal, {
+        seleccionId: null,
+        seleccionados: enlaceCreadoId ? [enlaceCreadoId] : [],
+        modoSeleccion: "simple",
+        enlaceSeleccionId: enlaceCreadoId,
+        modoEnlace: null,
+        mensaje: null,
+      });
     },
 
     cancelarEnlace() {

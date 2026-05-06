@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, test } from "bun:test";
 import { crearModelo, crearObjeto } from "../modelo/operaciones";
-import { claveVersion, crearVersion, eliminarVersion, listarVersiones, restaurarVersion } from "./versiones";
+import { aplicarPoliticaLogScaleVersiones, claveVersion, crearVersion, eliminarVersion, filtrarVersionesVisibles, idsVersionesPodadas, listarVersiones, restaurarVersion } from "./versiones";
 import type { WorkspaceIndice } from "./workspace";
 
 describe("versiones manuales L4", () => {
@@ -36,6 +36,35 @@ describe("versiones manuales L4", () => {
     const actualizado = eliminarVersion(workspace, modelo.id, v1.id);
     expect(actualizado.modelos[0]?.versiones?.map((version) => version.id)).toEqual([v2.id]);
     expect(localStorage.getItem(v1.modeloPayloadKey)).toBeNull();
+  });
+
+  test("aplica política log-scale y máximo absoluto 10", () => {
+    const base = new Date("2026-05-06T12:00:00.000Z");
+    const versiones = Array.from({ length: 100 }, (_, index) => ({
+      id: `v-${index}`,
+      creadoEn: new Date(base.getTime() - index * 22 * 60 * 60 * 1000).toISOString(),
+      nombre: `v-${index}`,
+      modeloPayloadKey: `deep-opm-pro:version:modelo:v-${index}`,
+      bytes: 10 + index,
+    }));
+
+    const retenidas = aplicarPoliticaLogScaleVersiones(versiones, base);
+
+    expect(retenidas.length).toBeLessThanOrEqual(10);
+    expect(retenidas[0]?.id).toBe("v-0");
+    expect(idsVersionesPodadas(versiones, retenidas).length).toBe(90);
+  });
+
+  test("filtrarVersionesVisibles respeta toggle", () => {
+    const versiones = [{
+      id: "v1",
+      creadoEn: "2026-05-06T00:00:00.000Z",
+      nombre: "v1",
+      modeloPayloadKey: "deep-opm-pro:version:modelo:v1",
+      bytes: 1,
+    }];
+    expect(filtrarVersionesVisibles(versiones, false)).toEqual([]);
+    expect(filtrarVersionesVisibles(versiones, true)).toHaveLength(1);
   });
 });
 

@@ -1,7 +1,8 @@
 import { useEffect, useState } from "preact/hooks";
 import { useOpmStore } from "../store";
+import { registrarAtajo } from "./atajosTeclado";
 import { MenuContextualArbol } from "./MenuContextualArbol";
-import { aplanarNodosVisibles, manejarTeclaNodoArbol } from "./arbol/handlersTeclado";
+import { aplanarNodosVisibles, atajoPanelArbolDesdeEvento, manejarTeclaNodoArbol, siguienteFocoArbol } from "./arbol/handlersTeclado";
 import { NodoOpd } from "./arbol/NodoOpd";
 import {
   cantidadHijos,
@@ -35,6 +36,7 @@ export function ArbolOpd() {
   const navegarOpdIzquierda = useOpmStore((s) => s.navegarOpdIzquierda);
   const navegarOpdDerecha = useOpmStore((s) => s.navegarOpdDerecha);
   const abrirVistaMapa = useOpmStore((s) => s.abrirVistaMapa);
+  const abrirGestionArbol = useOpmStore((s) => s.abrirGestionArbol);
   const [colapsado, setColapsado] = useState<Set<Id>>(new Set());
   const [renombrando, setRenombrando] = useState<{ id: Id; valor: string } | null>(null);
   const [dragOverId, setDragOverId] = useState<Id | null>(null);
@@ -44,6 +46,8 @@ export function ArbolOpd() {
   const arboles = construirArbol(modelo);
   const estaExpandidoNodo = (id: Id) => !colapsado.has(id);
   const nodosVisibles = aplanarNodosVisibles(arboles, estaExpandidoNodo).filter((n) => n.visible);
+  const nodosFoco = nodosVisibles.map(({ nodo }) => nodo);
+  const idsNodosFoco = nodosFoco.map((nodo) => nodo.opd.id).join("|");
   const totalConHijos = idsColapsables(arboles).size;
 
   useEffect(() => {
@@ -68,6 +72,39 @@ export function ArbolOpd() {
     setColapsado(idsColapsables(arboles));
     setColapsarTodo(true);
   };
+
+  useEffect(() => {
+    const navegarFoco = (direccion: "up" | "down") => {
+      const destino = siguienteFocoArbol(nodosFoco, opdActivoId, direccion);
+      if (!destino) return;
+      cambiarOpdActivo(destino);
+      enfocarNodoArbol(destino);
+    };
+    const manejarAtajo = (event: KeyboardEvent) => {
+      const atajo = atajoPanelArbolDesdeEvento(event);
+      if (atajo === "foco-anterior") navegarFoco("up");
+      if (atajo === "foco-siguiente") navegarFoco("down");
+      if (atajo === "renombrar") {
+        const opd = modelo.opds[opdActivoId];
+        if (opd) setRenombrando({ id: opd.id, valor: opd.nombre });
+      }
+      if (atajo === "expandir-todo") expandirTodo();
+      if (atajo === "colapsar-todo") colapsarTodoAccion();
+      if (atajo === "abrir-gestion") abrirGestionArbol();
+    };
+    const offs = [
+      registrarAtajo({ combo: "Ctrl+ArrowUp", ctx: "panel-arbol", categoria: "navegacion", descripcion: "Mover foco al OPD visible anterior", handler: manejarAtajo }),
+      registrarAtajo({ combo: "Ctrl+ArrowDown", ctx: "panel-arbol", categoria: "navegacion", descripcion: "Mover foco al OPD visible siguiente", handler: manejarAtajo }),
+      registrarAtajo({ combo: "F2", ctx: "panel-arbol", categoria: "edicion", descripcion: "Renombrar OPD seleccionado", handler: manejarAtajo }),
+      registrarAtajo({ combo: "Ctrl+E", ctx: "panel-arbol", categoria: "vista", descripcion: "Expandir todo el árbol OPD", handler: manejarAtajo }),
+      registrarAtajo({ combo: "Ctrl+Shift+E", ctx: "panel-arbol", categoria: "vista", descripcion: "Colapsar todo el árbol OPD", handler: manejarAtajo }),
+      registrarAtajo({ combo: "Ctrl+D", ctx: "panel-arbol", categoria: "navegacion", descripcion: "Abrir gestión del árbol OPD", handler: manejarAtajo }),
+    ];
+    return () => {
+      for (const off of offs) off();
+    };
+  }, [abrirGestionArbol, arboles, cambiarOpdActivo, idsNodosFoco, modelo.opds, opdActivoId]);
+
   const renombrarSubmit = () => {
     if (renombrando && renombrando.valor.trim()) renombrarOpdDesdeArbol(renombrando.id, renombrando.valor.trim());
     setRenombrando(null);
@@ -103,6 +140,9 @@ export function ArbolOpd() {
               {colapsarTodo ? "▸" : "▾"}
             </button>
           ) : null}
+          <button type="button" style={style.smallActionBtn} title="Gestión del árbol OPD" aria-label="Abrir gestión del árbol OPD" onClick={abrirGestionArbol}>
+            ⋯
+          </button>
         </div>
       </div>
       <div role="tree" aria-label="Árbol OPD" style={style.tree} data-atajos-contexto="panel-arbol">
@@ -190,6 +230,10 @@ export function ArbolOpd() {
             colapsarTodoAccion();
             setMenuContextual(null);
           }}
+          onBuscar={() => {
+            abrirGestionArbol();
+            setMenuContextual(null);
+          }}
           onIrPadre={(opdId) => {
             const padreId = modelo.opds[opdId]?.padreId;
             if (padreId) cambiarOpdActivo(padreId);
@@ -204,6 +248,15 @@ export function ArbolOpd() {
       ) : null}
     </aside>
   );
+}
+
+function enfocarNodoArbol(opdId: Id): void {
+  queueMicrotask(() => {
+    const nodo = Array.from(document.querySelectorAll<HTMLElement>("[data-opd-id]"))
+      .find((item) => item.getAttribute("data-opd-id") === opdId);
+    nodo?.focus({ preventScroll: true });
+    nodo?.scrollIntoView({ block: "nearest" });
+  });
 }
 
 function MapaSistemaItem(props: { activo: boolean; onAbrir: () => void }) {
