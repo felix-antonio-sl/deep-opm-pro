@@ -1,0 +1,66 @@
+import { TOTAL_ETAPAS, VERBO_SALIDA_ES, type DatosAsistente } from "../../modelo/creacionWizard";
+import { S } from "./estilos";
+
+interface Props {
+  datos: Partial<DatosAsistente>;
+}
+
+export function EtapaConfirmar({ datos }: Props) {
+  return (
+    <div>
+      <h3 style={S.title}>Etapa 11 de {TOTAL_ETAPAS} — Confirmar y Crear Modelo</h3>
+      <p style={S.desc}>
+        Revisa los datos ingresados antes de sembrar el modelo. Al confirmar
+        se creara el SD con layout radial y podras continuar modelando.
+      </p>
+      <div style={{ background: "#f9fbfd", borderRadius: "6px", padding: "12px 16px", marginBottom: "12px" }}>
+        <div style={S.resumenLinea}>
+          <span style={S.resumenLabel}>Funcion principal:</span>
+          <span style={S.resumenValor}>{datos.funcionPrincipal || <em style={{ color: "#b91c1c" }}>(pendiente)</em>}</span>
+        </div>
+        <div style={S.resumenLinea}>
+          <span style={S.resumenLabel}>Beneficiario:</span>
+          <span style={S.resumenValor}>{datos.beneficiario || <em style={{ color: "#b91c1c" }}>(pendiente)</em>}</span>
+        </div>
+        {datos.atributo?.nombre && (
+          <div style={S.resumenLinea}>
+            <span style={S.resumenLabel}>Atributo:</span>
+            <span style={S.resumenValor}>{datos.atributo.nombre} [{datos.atributo.estadoEntrada} → {datos.atributo.estadoSalida}]</span>
+          </div>
+        )}
+        <div style={S.resumenLinea}>
+          <span style={S.resumenLabel}>Handler:</span>
+          <span style={S.resumenValor}>{datos.beneficiarioEsHandler ? "Beneficiario es handler" : (datos.agentesAdicionales ?? []).join(", ") || "(pendiente)"}</span>
+        </div>
+        <div style={S.resumenLinea}>
+          <span style={S.resumenLabel}>Nombre del sistema:</span>
+          <span style={S.resumenValor}>{datos.nombreSistema || <em style={{ color: "#b91c1c" }}>(pendiente)</em>}</span>
+        </div>
+        {(datos.herramientas?.length ?? 0) > 0 && (
+          <div style={S.resumenLinea}>
+            <span style={S.resumenLabel}>Herramientas:</span>
+            <span style={S.resumenValor}>{datos.herramientas!.join(", ")}</span>
+          </div>
+        )}
+        {(datos.entradas?.length ?? 0) > 0 && (
+          <div style={S.resumenLinea}>
+            <span style={S.resumenLabel}>Entradas:</span>
+            <span style={S.resumenValor}>{datos.entradas!.join(", ")}</span>
+          </div>
+        )}
+        {(datos.salidas?.length ?? 0) > 0 && (
+          <div style={S.resumenLinea}>
+            <span style={S.resumenLabel}>Salidas:</span>
+            <span style={S.resumenValor}>{datos.salidas!.map((s) => `${s.nombre} (${VERBO_SALIDA_ES[s.verbo]})`).join(", ")}</span>
+          </div>
+        )}
+        {(datos.ambientales?.length ?? 0) > 0 && (
+          <div style={S.resumenLinea}>
+            <span style={S.resumenLabel}>Ambientales:</span>
+            <span style={S.resumenValor}>{datos.ambientales!.join(", ")}</span>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
