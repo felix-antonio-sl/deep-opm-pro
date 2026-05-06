@@ -1,18 +1,32 @@
-import { dia, linkTools, shapes } from "jointjs";
+import { dia, shapes } from "jointjs";
 import { useEffect, useRef } from "preact/hooks";
-import { CANON } from "../../modelo/constantes";
-import type { Modelo } from "../../modelo/tipos";
 import { useOpmStore } from "../../store";
-import type { OplReferencia } from "../../opl/interaccion";
-import { interseccionRectangulo } from "../../canvas/seleccionMultiple";
-import { registrarAtajo } from "../../ui/atajosTeclado";
-import { abanicosAfectadosPorEntidad, recalcularOverlayDesdeLinkView, recalcularOverlaysAbanicoDesdeLinkViews } from "./abanicoDragSync";
+import { recalcularOverlaysAbanicoDesdeLinkViews } from "./abanicoDragSync";
 import { opmShapes } from "./customShapes";
-import type { OpmJointMetadata } from "./proyeccion";
 import { proyectarModeloAJointCells } from "./proyeccion";
+import { cablearDrag, embedirContorno } from "./handlers/drag";
+import {
+  CANVAS_BASE,
+  cellViewModel,
+  dimensionesPaper,
+  metadata,
+  paperView,
+  setPaperDimensions,
+} from "./handlers/helpers";
+import { aplicarHoverOpl, cablearHoverOpl } from "./handlers/hoverOpl";
+import { cablearRubberBand } from "./handlers/rubberBand";
+import { cablearSeleccion } from "./handlers/seleccion";
+import { instalarHerramientasEnlaceSeleccionado } from "./handlers/toolsEnlace";
+import { cablearZoomFit, cablearZoomWheel } from "./handlers/zoom";
 
-type ExtraerParteDePlegado = (aparienciaId: string, parteEntidadId: string) => void;
-type StoreConExtraccionPlegado = { extraerParteDePlegado?: ExtraerParteDePlegado };
+/**
+ * Orquestador del canvas JointJS. Monta el paper con su configuración
+ * (restrictTranslate, interactive) y compone los handlers por familia
+ * desde `handlers/{seleccion,zoom,rubberBand,drag,hoverOpl,toolsEnlace}.ts`.
+ *
+ * Ronda 9 L2: la lógica de eventos antes inline (697 LOC) vive ahora en
+ * sub-archivos por familia; este componente queda como orquestador delgado.
+ */
 
 interface JointAdapter {
   graph: dia.Graph;
@@ -23,6 +37,9 @@ export function JointCanvas() {
   const paperHostRef = useRef<HTMLDivElement>(null);
   const adapterRef = useRef<JointAdapter | null>(null);
   const sincronizandoRef = useRef(false);
+  const rubberBandRef = useRef(false);
+  const suprimirBlankClickRef = useRef(false);
+
   const modoEnlace = useOpmStore((s) => s.modoEnlace);
   const modoEnlaceRef = useRef(modoEnlace);
   const modoCreacion = useOpmStore((s) => s.modoCreacion);
@@ -101,6 +118,7 @@ export function JointCanvas() {
     vaciarSeleccionRef.current = vaciarSeleccion;
   }, [actualizarVerticesEnlace, agregarASeleccion, cambiarModoPlegadoApariencia, crearEntidadEnCanvas, extraerParteDePlegado, fijarHoverOpl, moverApariencia, seleccionarEnlace, seleccionarEntidad, seleccionarEstadoComoExtremo, seleccionarPartePlegada, setSeleccion, toggleSeleccion, vaciarSeleccion]);
 
+  // Setup del paper + cableado de handlers (mount inicial).
   useEffect(() => {
     if (!paperHostRef.current) return;
 
@@ -166,170 +184,55 @@ export function JointCanvas() {
     });
 
     setPaperDimensions(paper, CANVAS_BASE);
-    let rubberBandActivo = false;
-    let suprimirBlankClick = false;
 
-    paper.on("element:pointerclick", (elementView: dia.ElementView, evt: dia.Event) => {
-      evt.stopPropagation();
-      const tipoCreacion = modoCreacionRef.current;
-      if (tipoCreacion) {
-        const posicion = posicionCanvasDesdeEvento(paper, evt);
-        crearEntidadEnCanvasRef.current(tipoCreacion, {
-          x: Math.round(posicion.x),
-          y: Math.round(posicion.y),
-        });
-        return;
-      }
-      const meta = metadata(cellViewModel(elementView));
-      if (meta?.kind === "entidad") {
-        if (multiEvento(evt)) {
-          if (ctrlEvento(evt)) toggleSeleccionRef.current(meta.entidadId);
-          else agregarASeleccionRef.current(meta.entidadId);
-          return;
-        }
-        const selector = jointSelector(evt.target);
-        if (selector === "foldBadge") {
-          cambiarModoPlegadoAparienciaRef.current(meta.aparienciaId, "parcial");
-          return;
-        }
-        const parteEntidadId = parteEntidadDesdeSelector(meta, selector);
-        if (parteEntidadId) {
-          seleccionarPartePlegadaRef.current(meta.aparienciaId, parteEntidadId);
-          return;
-        }
-        const estadoId = estadoDesdeSelector(meta, selector);
-        if (estadoId) {
-          if (modoEnlaceRef.current) {
-            seleccionarEstadoComoExtremoRef.current(estadoId);
-            return;
-          }
-          seleccionarEntidadRef.current(meta.entidadId);
-          return;
-        }
-        seleccionarEntidadRef.current(meta.entidadId);
-      }
-      if (meta?.kind === "enlace") {
-        if (multiEvento(evt)) {
-          if (ctrlEvento(evt)) toggleSeleccionRef.current(meta.enlaceId);
-          else agregarASeleccionRef.current(meta.enlaceId);
-          return;
-        }
-        seleccionarEnlaceRef.current(meta.enlaceId);
-      }
-    });
+    const cleanups: Array<() => void> = [];
 
-    paper.on("element:pointerdblclick", (elementView: dia.ElementView, evt: dia.Event) => {
-      evt.stopPropagation();
-      const meta = metadata(cellViewModel(elementView));
-      if (meta?.kind !== "entidad") return;
-      const parteEntidadId = parteEntidadDesdeSelector(meta, jointSelector(evt.target));
-      if (!parteEntidadId) return;
-      extraerParteDePlegadoRef.current(meta.aparienciaId, parteEntidadId);
-    });
+    cleanups.push(cablearSeleccion({
+      paper,
+      modoEnlaceRef,
+      modoCreacionRef,
+      rubberBandRef,
+      suprimirBlankClickRef,
+      seleccionarEntidadRef,
+      seleccionarPartePlegadaRef,
+      seleccionarEstadoComoExtremoRef,
+      seleccionarEnlaceRef,
+      cambiarModoPlegadoAparienciaRef,
+      agregarASeleccionRef,
+      toggleSeleccionRef,
+      vaciarSeleccionRef,
+      crearEntidadEnCanvasRef,
+    }));
 
-    paper.on("link:pointerclick", (linkView: dia.LinkView, evt: dia.Event) => {
-      evt.stopPropagation();
-      const tipoCreacion = modoCreacionRef.current;
-      if (tipoCreacion) {
-        const posicion = posicionCanvasDesdeEvento(paper, evt);
-        crearEntidadEnCanvasRef.current(tipoCreacion, {
-          x: Math.round(posicion.x),
-          y: Math.round(posicion.y),
-        });
-        return;
-      }
-      const meta = metadata(cellViewModel(linkView));
-      if (meta?.kind === "enlace") {
-        if (multiEvento(evt)) {
-          if (ctrlEvento(evt)) toggleSeleccionRef.current(meta.enlaceId);
-          else agregarASeleccionRef.current(meta.enlaceId);
-          return;
-        }
-        seleccionarEnlaceRef.current(meta.enlaceId);
-      }
-    });
+    cleanups.push(cablearRubberBand({
+      paper,
+      modeloRef,
+      opdActivoIdRef,
+      modoCreacionRef,
+      seleccionadosRef,
+      setSeleccion: (ids) => setSeleccionRef.current(ids),
+      onActivoChange: (activo) => { rubberBandRef.current = activo; },
+      onSuprimirBlankClick: () => {
+        suprimirBlankClickRef.current = true;
+        window.setTimeout(() => { suprimirBlankClickRef.current = false; }, 0);
+      },
+    }));
 
-    paper.on("blank:pointerdown", (evt: dia.Event) => {
-      if (!shiftEvento(evt) || modoCreacionRef.current) return;
-      rubberBandActivo = true;
-      iniciarRubberBand({
-        paper,
-        evt,
-        modelo: () => modeloRef.current,
-        opdId: () => opdActivoIdRef.current,
-        acumular: () => ctrlEvento(evt),
-        setSeleccion: (ids) => setSeleccionRef.current(ids),
-        agregarSeleccion: (ids) => {
-          const actuales = new Set(seleccionadosRef.current);
-          setSeleccionRef.current([...actuales, ...ids]);
-        },
-        onFinish: () => {
-          rubberBandActivo = false;
-          suprimirBlankClick = true;
-          window.setTimeout(() => {
-            suprimirBlankClick = false;
-          }, 0);
-        },
-      });
-    });
+    cleanups.push(cablearDrag({
+      paper,
+      graph,
+      sincronizandoRef,
+      modeloRef,
+      opdActivoIdRef,
+      moverAparienciaRef,
+      actualizarVerticesEnlaceRef,
+      extraerParteDePlegadoRef,
+    }));
 
-    paper.on("blank:pointerclick", (evt: dia.Event) => {
-      const tipoCreacion = modoCreacionRef.current;
-      if (!tipoCreacion) {
-        if (!rubberBandActivo && !suprimirBlankClick) vaciarSeleccionRef.current();
-        return;
-      }
-      const posicion = posicionCanvasDesdeEvento(paper, evt);
-      crearEntidadEnCanvasRef.current(tipoCreacion, {
-        x: Math.round(posicion.x),
-        y: Math.round(posicion.y),
-      });
-    });
-
-    paper.on("cell:mouseover", (cellView: dia.CellView, evt: dia.Event) => {
-      fijarHoverOplRef.current(refDesdeCellView(cellView, evt.target));
-    });
-
-    paper.on("cell:mouseout", () => {
-      fijarHoverOplRef.current(null);
-    });
-
-    paper.on("element:pointerup", (elementView: dia.ElementView) => {
-      if (sincronizandoRef.current) return;
-      const model = cellViewModel(elementView);
-      const meta = metadata(model);
-      if (meta?.kind !== "entidad") return;
-      const posicion = model.position();
-      moverAparienciaRef.current(meta.aparienciaId, Math.round(posicion.x), Math.round(posicion.y));
-    });
-
-    graphEvents(graph).on("change:vertices", (cell: dia.Cell) => {
-      if (sincronizandoRef.current || !cell.isLink()) return;
-      const meta = metadata(cell);
-      if (meta?.kind !== "enlace") return;
-      actualizarVerticesEnlaceRef.current(
-        meta.aparienciaEnlaceId,
-        cell.vertices().map((vertice) => ({ x: vertice.x, y: vertice.y })),
-      );
-    });
-
-    // Reposiciona los overlays de abanico EN VIVO mientras el usuario arrastra
-    // una entidad puerto o cualquier rama del fan. Lee dock y puntos-sample
-    // desde los LinkView reales (que JointJS recalcula automaticamente al
-    // mover el elemento), igualando el enfoque de OpCloud en
-    // shared.ts:5004-5031. Sin esto el arco se queda en la posicion previa
-    // hasta el `pointerup` y "salta" disonante con el cursor.
-    graphEvents(graph).on("change:position", (cell: dia.Cell) => {
-      if (sincronizandoRef.current || cell.isLink()) return;
-      const meta = metadata(cell);
-      if (meta?.kind !== "entidad") return;
-      const modeloActual = modeloRef.current;
-      const opdActual = opdActivoIdRef.current;
-      const afectados = abanicosAfectadosPorEntidad(modeloActual, opdActual, meta.entidadId);
-      for (const abanico of afectados) {
-        recalcularOverlayDesdeLinkView(paper, graph, modeloActual, abanico);
-      }
-    });
+    cleanups.push(cablearHoverOpl({
+      paper,
+      fijarHoverOplRef,
+    }));
 
     adapterRef.current = { graph, paper };
     // Hook de debug: permite que la sonda in-vivo (scripts/in-vivo-test.mjs)
@@ -339,11 +242,13 @@ export function JointCanvas() {
     return () => {
       adapterRef.current = null;
       delete (globalThis as { __opmJointAdapter?: JointAdapter }).__opmJointAdapter;
+      cleanups.forEach((fn) => fn());
       paperView(paper).remove();
       graph.clear();
     };
   }, []);
 
+  // Proyección modelo → cells.
   useEffect(() => {
     const adapter = adapterRef.current;
     if (!adapter) return;
@@ -375,27 +280,18 @@ export function JointCanvas() {
   }, [enlaceSeleccionId, hoverOplRef, modelo]);
 
   useEffect(() => {
-    return registrarAtajo({
-      combo: "Ctrl+0",
-      ctx: "canvas",
-      categoria: "vista",
-      descripcion: "Ajustar OPD activo a pantalla",
-      handler: () => fitCanvasAPantalla(adapterRef.current?.paper),
+    return cablearZoomFit({
+      get current() { return adapterRef.current?.paper ?? null; },
     });
   }, []);
 
   useEffect(() => {
     const host = paperHostRef.current;
     if (!host) return;
-    const manejarWheel = (event: WheelEvent) => {
-      if (!event.ctrlKey && !event.metaKey) return;
-      const paper = adapterRef.current?.paper;
-      if (!paper) return;
-      event.preventDefault();
-      zoomCanvasEnCursor(paper, event);
-    };
-    host.addEventListener("wheel", manejarWheel, { passive: false });
-    return () => host.removeEventListener("wheel", manejarWheel);
+    return cablearZoomWheel({
+      host,
+      paperRef: { get current() { return adapterRef.current?.paper ?? null; } },
+    });
   }, []);
 
   return (
@@ -404,278 +300,6 @@ export function JointCanvas() {
     </div>
   );
 }
-
-function metadata(cell: dia.Cell): OpmJointMetadata | null {
-  const value = cell.prop("opm") as OpmJointMetadata | undefined;
-  if (value?.kind === "entidad" || value?.kind === "enlace") return value;
-  return null;
-}
-
-function parteEntidadDesdeSelector(meta: OpmJointMetadata, selector: string | null): string | null {
-  if (meta.kind !== "entidad" || !selector) return null;
-  return meta.partesPlegadas?.find((parte) => parte.selector === selector)?.entidadId ?? null;
-}
-
-function estadoDesdeSelector(meta: OpmJointMetadata, selector: string | null): string | null {
-  if (meta.kind !== "entidad" || !selector) return null;
-  return meta.estadosInteractivos?.find((estado) => estado.selector === selector)?.estadoId ?? null;
-}
-
-function refDesdeCellView(cellView: dia.CellView, target: EventTarget | null): OplReferencia | null {
-  const meta = metadata(cellViewModel(cellView));
-  if (meta?.kind === "enlace") return { tipo: "enlace", id: meta.enlaceId };
-  if (meta?.kind !== "entidad") return null;
-  const estadoId = estadoDesdeSelector(meta, jointSelector(target));
-  if (estadoId) return { tipo: "estado", id: estadoId };
-  return { tipo: "entidad", id: meta.entidadId };
-}
-
-function aplicarHoverOpl(graph: dia.Graph, modelo: Modelo, ref: OplReferencia | null, enlaceSeleccionId: string | null): void {
-  for (const cell of graph.getCells()) {
-    const meta = metadata(cell);
-    if (meta?.kind === "entidad") {
-      const entidad = modelo.entidades[meta.entidadId];
-      const apariencia = modelo.opds[meta.opdId]?.apariencias[meta.aparienciaId];
-      if (!entidad || !apariencia) continue;
-      const resaltada = ref?.tipo === "entidad" && ref.id === entidad.id
-        || ref?.tipo === "estado" && modelo.estados[ref.id]?.entidadId === entidad.id;
-      cell.attr("body/fill", resaltada ? "#E1E6EB" : apariencia.estilo?.fill ?? CANON.colores.relleno);
-      continue;
-    }
-    if (meta?.kind === "enlace") {
-      const resaltado = ref?.tipo === "enlace" && ref.id === meta.enlaceId;
-      const seleccionado = enlaceSeleccionId === meta.enlaceId;
-      const strokeWidth = resaltado || seleccionado ? CANON.dims.enlaceVisible + 2 : CANON.dims.enlaceVisible;
-      cell.attr("line/strokeWidth", strokeWidth);
-      cell.attr("body/strokeWidth", strokeWidth);
-    }
-  }
-}
-
-function instalarHerramientasEnlaceSeleccionado(adapter: JointAdapter, enlaceSeleccionId: string | null): void {
-  if (!enlaceSeleccionId) return;
-  const link = adapter.graph.getLinks().find((cell) => {
-    const meta = metadata(cell);
-    return meta?.kind === "enlace" && meta.enlaceId === enlaceSeleccionId;
-  });
-  if (!link) return;
-  const meta = metadata(link);
-  if (meta?.kind === "enlace" && meta.tipo === "agregacion") return;
-  const linkView = adapter.paper.findViewByModel<dia.LinkView>(link);
-  linkView.removeTools();
-  linkView.addTools(
-    new dia.ToolsView({
-      tools: [
-        new linkTools.Boundary({
-          padding: 18,
-          useModelGeometry: true,
-        }),
-        new linkTools.Vertices({
-          redundancyRemoval: false,
-          snapRadius: 4,
-          vertexAdding: true,
-        }),
-        new linkTools.Segments({
-          redundancyRemoval: false,
-          snapRadius: 4,
-        }),
-      ],
-    }),
-  );
-}
-
-function cellViewModel(cellView: dia.CellView): dia.Cell {
-  return (cellView as unknown as { model: dia.Cell }).model;
-}
-
-function graphEvents(graph: dia.Graph): { on(eventName: string, callback: (cell: dia.Cell) => void): void } {
-  return graph as unknown as { on(eventName: string, callback: (cell: dia.Cell) => void): void };
-}
-
-function jointSelector(target: EventTarget | null): string | null {
-  if (!(target instanceof Element)) return null;
-  return target.closest("[joint-selector]")?.getAttribute("joint-selector") ?? null;
-}
-
-function paperView(paper: dia.Paper): { remove(): void } {
-  return paper as unknown as { remove(): void };
-}
-
-function fitCanvasAPantalla(paper: dia.Paper | undefined): void {
-  const paperConFit = paper as unknown as {
-    scaleContentToFit?: (options: {
-      padding: number;
-      minScale: number;
-      maxScale: number;
-      preserveAspectRatio: boolean;
-    }) => void;
-  } | undefined;
-  paperConFit?.scaleContentToFit?.({
-    padding: 40,
-    minScale: ZOOM_MIN,
-    maxScale: ZOOM_MAX,
-    preserveAspectRatio: true,
-  });
-}
-
-function zoomCanvasEnCursor(paper: dia.Paper, event: WheelEvent): void {
-  const paperConZoom = paper as unknown as {
-    scale(): { sx?: number; sy?: number };
-    scale(sx: number, sy: number, ox?: number, oy?: number): void;
-    clientToLocalPoint?: (x: number, y: number) => { x: number; y: number };
-  };
-  const escalaActual = paperConZoom.scale().sx ?? paperConZoom.scale().sy ?? 1;
-  const siguiente = limitarZoom(escalaActual * (event.deltaY < 0 ? 1.1 : 0.9));
-  const punto = paperConZoom.clientToLocalPoint?.(event.clientX, event.clientY);
-  if (punto) {
-    paperConZoom.scale(siguiente, siguiente, punto.x, punto.y);
-    return;
-  }
-  paperConZoom.scale(siguiente, siguiente);
-}
-
-function limitarZoom(valor: number): number {
-  return Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, valor));
-}
-
-function posicionCanvasDesdeEvento(paper: dia.Paper, evt: dia.Event): { x: number; y: number } {
-  const event = evt as unknown as MouseEvent;
-  const paperConApi = paper as unknown as {
-    pageToLocalPoint?: (x: number, y: number) => { x: number; y: number };
-    clientToLocalPoint?: (x: number, y: number) => { x: number; y: number };
-  };
-  if (typeof paperConApi.pageToLocalPoint === "function" && Number.isFinite(event.pageX) && Number.isFinite(event.pageY)) {
-    return paperConApi.pageToLocalPoint(event.pageX, event.pageY);
-  }
-  if (typeof paperConApi.clientToLocalPoint === "function" && Number.isFinite(event.clientX) && Number.isFinite(event.clientY)) {
-    return paperConApi.clientToLocalPoint(event.clientX, event.clientY);
-  }
-  return { x: 0, y: 0 };
-}
-
-function ctrlEvento(evt: dia.Event): boolean {
-  const event = evt as unknown as MouseEvent;
-  return event.ctrlKey || event.metaKey;
-}
-
-function shiftEvento(evt: dia.Event): boolean {
-  return (evt as unknown as MouseEvent).shiftKey;
-}
-
-function multiEvento(evt: dia.Event): boolean {
-  return ctrlEvento(evt) || shiftEvento(evt);
-}
-
-function iniciarRubberBand(args: {
-  paper: dia.Paper;
-  evt: dia.Event;
-  modelo: () => Modelo;
-  opdId: () => string;
-  acumular: () => boolean;
-  setSeleccion: (ids: string[]) => void;
-  agregarSeleccion: (ids: string[]) => void;
-  onFinish: () => void;
-}): void {
-  const start = posicionCanvasDesdeEvento(args.paper, args.evt);
-  const startClient = args.evt as unknown as MouseEvent;
-  const paperEl = (args.paper as unknown as { el: HTMLElement }).el;
-  const bounds = paperEl.getBoundingClientRect();
-  const overlay = document.createElement("div");
-  overlay.setAttribute("data-testid", "rubber-band-seleccion");
-  overlay.style.position = "absolute";
-  overlay.style.pointerEvents = "none";
-  overlay.style.border = "1px solid #3DA8FF";
-  overlay.style.background = "rgba(61, 168, 255, 0.2)";
-  overlay.style.left = `${startClient.clientX - bounds.left}px`;
-  overlay.style.top = `${startClient.clientY - bounds.top}px`;
-  overlay.style.width = "0px";
-  overlay.style.height = "0px";
-  paperEl.style.position = paperEl.style.position || "relative";
-  paperEl.appendChild(overlay);
-
-  let ultimo = start;
-  const mover = (event: MouseEvent) => {
-    ultimo = posicionCanvasDesdeEvento(args.paper, event as unknown as dia.Event);
-    const x = Math.min(startClient.clientX, event.clientX) - bounds.left;
-    const y = Math.min(startClient.clientY, event.clientY) - bounds.top;
-    overlay.style.left = `${x}px`;
-    overlay.style.top = `${y}px`;
-    overlay.style.width = `${Math.abs(event.clientX - startClient.clientX)}px`;
-    overlay.style.height = `${Math.abs(event.clientY - startClient.clientY)}px`;
-  };
-  const soltar = () => {
-    window.removeEventListener("mousemove", mover);
-    window.removeEventListener("mouseup", soltar);
-    overlay.remove();
-    const ids = interseccionRectangulo(args.modelo(), args.opdId(), {
-      x: start.x,
-      y: start.y,
-      width: ultimo.x - start.x,
-      height: ultimo.y - start.y,
-    });
-    if (args.acumular()) args.agregarSeleccion(ids);
-    else args.setSeleccion(ids);
-    args.onFinish();
-  };
-  window.addEventListener("mousemove", mover);
-  window.addEventListener("mouseup", soltar);
-}
-
-function setPaperDimensions(paper: dia.Paper, dimensiones: { width: number; height: number }): void {
-  (paper as unknown as { setDimensions(width: number, height: number): void }).setDimensions(dimensiones.width, dimensiones.height);
-  const element = (paper as unknown as { el: HTMLElement }).el;
-  element.style.width = `${dimensiones.width}px`;
-  element.style.height = `${dimensiones.height}px`;
-}
-
-// Identifica el contorno refinable (cell de mayor tamano marcado como entidad
-// cuya apariencia define el limite del OPD activo) y le embeba todos los
-// cells "entidad" cuyo centro caiga dentro de su bbox. JointJS arrastra
-// automaticamente los cells embedded cuando el padre se mueve, sincronizando
-// el render durante el drag visual con el delta que la kernel persiste al
-// soltar (HU-12.008 contenedor envolvente; ver moverAparienciaPorId).
-function embedirContorno(graph: dia.Graph): void {
-  const elementos = graph.getElements();
-  if (elementos.length === 0) return;
-  let contorno: dia.Element | null = null;
-  for (const cell of elementos) {
-    const meta = cell.prop("opm") as OpmJointMetadata | undefined;
-    if (meta?.kind === "entidad" && meta.rol === "contorno") {
-      contorno = cell;
-      break;
-    }
-  }
-  if (!contorno) return;
-
-  // Embeba SOLO apariencias internas. Las externas (proxy de entidades del
-  // padre) deben quedar libres: no siguen al contorno durante el drag, y al
-  // arrastrarse individualmente no se confinan al bbox del contorno.
-  for (const cell of elementos) {
-    if (cell.id === contorno.id) continue;
-    const meta = cell.prop("opm") as OpmJointMetadata | undefined;
-    if (meta?.kind !== "entidad") continue;
-    if (meta.rol !== "interno") continue;
-    contorno.embed(cell);
-  }
-}
-
-function dimensionesPaper(cells: dia.Cell.JSON[]): { width: number; height: number } {
-  let maxX: number = CANVAS_BASE.width;
-  let maxY: number = CANVAS_BASE.height;
-  for (const cell of cells) {
-    const position = cell.position as { x?: number; y?: number } | undefined;
-    const size = cell.size as { width?: number; height?: number } | undefined;
-    if (!position) continue;
-    maxX = Math.max(maxX, (position.x ?? 0) + (size?.width ?? 0) + CANVAS_PADDING);
-    maxY = Math.max(maxY, (position.y ?? 0) + (size?.height ?? 0) + CANVAS_PADDING);
-  }
-  return { width: Math.ceil(maxX), height: Math.ceil(maxY) };
-}
-
-const CANVAS_BASE = { width: 1800, height: 1200 } as const;
-const CANVAS_PADDING = 240;
-const ZOOM_MIN = 0.25;
-const ZOOM_MAX = 2;
 
 const style = {
   viewport: {
