@@ -1,17 +1,17 @@
 {
   "schema": "deep-opm-pro.hu-progress-report.v1",
-  "generatedAt": "2026-05-05T22:56:44.560Z",
+  "generatedAt": "2026-05-06T06:51:13.644Z",
   "repoRoot": "/home/felix/projects/deep-opm-pro",
   "backlogRoot": "docs/historias-usuario-v2",
   "evidenceLedger": "docs/roadmap/hu-progress-evidence.json",
   "autoAudit": {
-    "generatedAt": "2026-05-05T22:56:44.560Z",
+    "generatedAt": "2026-05-06T06:51:13.644Z",
     "mode": "sync-real",
     "rulesEvaluated": 55,
     "rulesMatched": 55,
     "rulesUnmatched": 0,
     "sourceFiles": {
-      "count": 249,
+      "count": 289,
       "roots": [
         "app/src",
         "app/e2e",
@@ -1331,8 +1331,12 @@
       "brechas": [],
       "evidencia": [
         {
-          "path": "app/src/modelo/operaciones.ts",
-          "hrefDashboard": "../../app/src/modelo/operaciones.ts"
+          "path": "app/src/modelo/operaciones/entidad.ts",
+          "hrefDashboard": "../../app/src/modelo/operaciones/entidad.ts"
+        },
+        {
+          "path": "app/src/modelo/operaciones/estados.ts",
+          "hrefDashboard": "../../app/src/modelo/operaciones/estados.ts"
         },
         {
           "path": "app/src/serializacion/json.ts",
@@ -15711,8 +15715,8 @@
       "brechas": [],
       "evidencia": [
         {
-          "path": "app/src/modelo/operaciones.ts",
-          "hrefDashboard": "../../app/src/modelo/operaciones.ts"
+          "path": "app/src/modelo/operaciones/creacion.ts",
+          "hrefDashboard": "../../app/src/modelo/operaciones/creacion.ts"
         },
         {
           "path": "app/src/ui/Toolbar.tsx",
@@ -15778,8 +15782,8 @@
       "brechas": [],
       "evidencia": [
         {
-          "path": "app/src/modelo/operaciones.ts",
-          "hrefDashboard": "../../app/src/modelo/operaciones.ts"
+          "path": "app/src/modelo/operaciones/creacion.ts",
+          "hrefDashboard": "../../app/src/modelo/operaciones/creacion.ts"
         },
         {
           "path": "app/src/ui/Toolbar.tsx",
@@ -15953,8 +15957,8 @@
       "brechas": [],
       "evidencia": [
         {
-          "path": "app/src/modelo/operaciones.ts",
-          "hrefDashboard": "../../app/src/modelo/operaciones.ts"
+          "path": "app/src/modelo/operaciones/entidad.ts",
+          "hrefDashboard": "../../app/src/modelo/operaciones/entidad.ts"
         },
         {
           "path": "app/src/ui/InspectorEntidad.tsx",
@@ -16027,8 +16031,12 @@
           "hrefDashboard": "../../app/src/store/modelo.ts"
         },
         {
-          "path": "app/src/modelo/operaciones.ts",
-          "hrefDashboard": "../../app/src/modelo/operaciones.ts"
+          "path": "app/src/modelo/operaciones/helpers.ts",
+          "hrefDashboard": "../../app/src/modelo/operaciones/helpers.ts"
+        },
+        {
+          "path": "app/src/modelo/operaciones/enlaces.ts",
+          "hrefDashboard": "../../app/src/modelo/operaciones/enlaces.ts"
         }
       ],
       "peso": 4,
@@ -16082,8 +16090,12 @@
           "hrefDashboard": "../../app/src/store/modelo.ts"
         },
         {
-          "path": "app/src/modelo/operaciones.ts",
-          "hrefDashboard": "../../app/src/modelo/operaciones.ts"
+          "path": "app/src/modelo/operaciones/helpers.ts",
+          "hrefDashboard": "../../app/src/modelo/operaciones/helpers.ts"
+        },
+        {
+          "path": "app/src/modelo/operaciones/enlaces.ts",
+          "hrefDashboard": "../../app/src/modelo/operaciones/enlaces.ts"
         }
       ],
       "peso": 4,
@@ -16176,8 +16188,12 @@
           "hrefDashboard": "../../app/src/store/modelo.ts"
         },
         {
-          "path": "app/src/modelo/operaciones.ts",
-          "hrefDashboard": "../../app/src/modelo/operaciones.ts"
+          "path": "app/src/modelo/operaciones/helpers.ts",
+          "hrefDashboard": "../../app/src/modelo/operaciones/helpers.ts"
+        },
+        {
+          "path": "app/src/modelo/operaciones/enlaces.ts",
+          "hrefDashboard": "../../app/src/modelo/operaciones/enlaces.ts"
         }
       ],
       "peso": 2,
@@ -16231,8 +16247,12 @@
           "hrefDashboard": "../../app/src/store/modelo.ts"
         },
         {
-          "path": "app/src/modelo/operaciones.ts",
-          "hrefDashboard": "../../app/src/modelo/operaciones.ts"
+          "path": "app/src/modelo/operaciones/helpers.ts",
+          "hrefDashboard": "../../app/src/modelo/operaciones/helpers.ts"
+        },
+        {
+          "path": "app/src/modelo/operaciones/enlaces.ts",
+          "hrefDashboard": "../../app/src/modelo/operaciones/enlaces.ts"
         }
       ],
       "peso": 1,
@@ -16283,8 +16303,8 @@
       "brechas": [],
       "evidencia": [
         {
-          "path": "app/src/modelo/operaciones.ts",
-          "hrefDashboard": "../../app/src/modelo/operaciones.ts"
+          "path": "app/src/modelo/operaciones/entidad.ts",
+          "hrefDashboard": "../../app/src/modelo/operaciones/entidad.ts"
         },
         {
           "path": "app/src/ui/InspectorEntidad.tsx",
@@ -16347,8 +16367,8 @@
       "brechas": [],
       "evidencia": [
         {
-          "path": "app/src/modelo/operaciones.ts",
-          "hrefDashboard": "../../app/src/modelo/operaciones.ts"
+          "path": "app/src/modelo/operaciones/entidad.ts",
+          "hrefDashboard": "../../app/src/modelo/operaciones/entidad.ts"
         },
         {
           "path": "app/src/ui/InspectorEntidad.tsx",
@@ -16405,8 +16425,8 @@
       "brechas": [],
       "evidencia": [
         {
-          "path": "app/src/modelo/operaciones.ts",
-          "hrefDashboard": "../../app/src/modelo/operaciones.ts"
+          "path": "app/src/modelo/operaciones/entidad.ts",
+          "hrefDashboard": "../../app/src/modelo/operaciones/entidad.ts"
         },
         {
           "path": "app/src/ui/InspectorEntidad.tsx",
@@ -16460,8 +16480,8 @@
       "brechas": [],
       "evidencia": [
         {
-          "path": "app/src/modelo/operaciones.ts",
-          "hrefDashboard": "../../app/src/modelo/operaciones.ts"
+          "path": "app/src/modelo/operaciones/entidad.ts",
+          "hrefDashboard": "../../app/src/modelo/operaciones/entidad.ts"
         },
         {
           "path": "app/src/ui/InspectorEntidad.tsx",
@@ -16865,8 +16885,8 @@
       "brechas": [],
       "evidencia": [
         {
-          "path": "app/src/modelo/operaciones.ts",
-          "hrefDashboard": "../../app/src/modelo/operaciones.ts"
+          "path": "app/src/modelo/operaciones/helpers.ts",
+          "hrefDashboard": "../../app/src/modelo/operaciones/helpers.ts"
         },
         {
           "path": "app/src/opl/generar.ts",
@@ -17133,8 +17153,8 @@
       "brechas": [],
       "evidencia": [
         {
-          "path": "app/src/modelo/operaciones.ts",
-          "hrefDashboard": "../../app/src/modelo/operaciones.ts"
+          "path": "app/src/modelo/operaciones/helpers.ts",
+          "hrefDashboard": "../../app/src/modelo/operaciones/helpers.ts"
         },
         {
           "path": "app/src/opl/generar.ts",
@@ -17203,8 +17223,8 @@
       "brechas": [],
       "evidencia": [
         {
-          "path": "app/src/modelo/operaciones.ts",
-          "hrefDashboard": "../../app/src/modelo/operaciones.ts"
+          "path": "app/src/modelo/operaciones/helpers.ts",
+          "hrefDashboard": "../../app/src/modelo/operaciones/helpers.ts"
         },
         {
           "path": "app/src/opl/generar.ts",
@@ -17266,8 +17286,8 @@
       "brechas": [],
       "evidencia": [
         {
-          "path": "app/src/modelo/operaciones.ts",
-          "hrefDashboard": "../../app/src/modelo/operaciones.ts"
+          "path": "app/src/modelo/operaciones/helpers.ts",
+          "hrefDashboard": "../../app/src/modelo/operaciones/helpers.ts"
         },
         {
           "path": "app/src/opl/generar.ts",
@@ -17333,12 +17353,16 @@
       "brechas": [],
       "evidencia": [
         {
-          "path": "app/src/modelo/tipos.ts",
-          "hrefDashboard": "../../app/src/modelo/tipos.ts"
+          "path": "app/src/modelo/tipos/enlace.ts",
+          "hrefDashboard": "../../app/src/modelo/tipos/enlace.ts"
         },
         {
-          "path": "app/src/modelo/operaciones.ts",
-          "hrefDashboard": "../../app/src/modelo/operaciones.ts"
+          "path": "app/src/modelo/operaciones/refinamiento.ts",
+          "hrefDashboard": "../../app/src/modelo/operaciones/refinamiento.ts"
+        },
+        {
+          "path": "app/src/modelo/operaciones/helpers.ts",
+          "hrefDashboard": "../../app/src/modelo/operaciones/helpers.ts"
         },
         {
           "path": "app/src/render/jointjs/linkAssets.ts",
@@ -17505,8 +17529,8 @@
       "brechas": [],
       "evidencia": [
         {
-          "path": "app/src/modelo/operaciones.ts",
-          "hrefDashboard": "../../app/src/modelo/operaciones.ts"
+          "path": "app/src/modelo/operaciones/enlaces.ts",
+          "hrefDashboard": "../../app/src/modelo/operaciones/enlaces.ts"
         },
         {
           "path": "app/src/ui/InspectorEnlace.tsx",
@@ -17648,12 +17672,12 @@
       "brechas": [],
       "evidencia": [
         {
-          "path": "app/src/render/jointjs/JointCanvas.tsx",
-          "hrefDashboard": "../../app/src/render/jointjs/JointCanvas.tsx"
+          "path": "app/src/render/jointjs/handlers/toolsEnlace.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/handlers/toolsEnlace.ts"
         },
         {
-          "path": "app/src/modelo/operaciones.ts",
-          "hrefDashboard": "../../app/src/modelo/operaciones.ts"
+          "path": "app/src/modelo/operaciones/apariencias.ts",
+          "hrefDashboard": "../../app/src/modelo/operaciones/apariencias.ts"
         },
         {
           "path": "app/src/serializacion/json.ts",
@@ -17704,12 +17728,12 @@
       "brechas": [],
       "evidencia": [
         {
-          "path": "app/src/render/jointjs/JointCanvas.tsx",
-          "hrefDashboard": "../../app/src/render/jointjs/JointCanvas.tsx"
+          "path": "app/src/render/jointjs/handlers/toolsEnlace.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/handlers/toolsEnlace.ts"
         },
         {
-          "path": "app/src/modelo/operaciones.ts",
-          "hrefDashboard": "../../app/src/modelo/operaciones.ts"
+          "path": "app/src/modelo/operaciones/apariencias.ts",
+          "hrefDashboard": "../../app/src/modelo/operaciones/apariencias.ts"
         },
         {
           "path": "app/src/serializacion/json.ts",
@@ -17970,8 +17994,12 @@
           "hrefDashboard": "../../app/src/store/modelo.ts"
         },
         {
-          "path": "app/src/modelo/operaciones.ts",
-          "hrefDashboard": "../../app/src/modelo/operaciones.ts"
+          "path": "app/src/modelo/operaciones/helpers.ts",
+          "hrefDashboard": "../../app/src/modelo/operaciones/helpers.ts"
+        },
+        {
+          "path": "app/src/modelo/operaciones/enlaces.ts",
+          "hrefDashboard": "../../app/src/modelo/operaciones/enlaces.ts"
         }
       ],
       "peso": 4,
@@ -18024,8 +18052,12 @@
           "hrefDashboard": "../../app/src/store/modelo.ts"
         },
         {
-          "path": "app/src/modelo/operaciones.ts",
-          "hrefDashboard": "../../app/src/modelo/operaciones.ts"
+          "path": "app/src/modelo/operaciones/helpers.ts",
+          "hrefDashboard": "../../app/src/modelo/operaciones/helpers.ts"
+        },
+        {
+          "path": "app/src/modelo/operaciones/enlaces.ts",
+          "hrefDashboard": "../../app/src/modelo/operaciones/enlaces.ts"
         }
       ],
       "peso": 8,
@@ -18082,8 +18114,8 @@
       "brechas": [],
       "evidencia": [
         {
-          "path": "app/src/modelo/tipos.ts",
-          "hrefDashboard": "../../app/src/modelo/tipos.ts"
+          "path": "app/src/modelo/tipos/enlace.ts",
+          "hrefDashboard": "../../app/src/modelo/tipos/enlace.ts"
         },
         {
           "path": "app/src/modelo/modificadores.ts",
@@ -18255,8 +18287,8 @@
       "brechas": [],
       "evidencia": [
         {
-          "path": "app/src/modelo/operaciones.ts",
-          "hrefDashboard": "../../app/src/modelo/operaciones.ts"
+          "path": "app/src/modelo/operaciones/refinamiento.ts",
+          "hrefDashboard": "../../app/src/modelo/operaciones/refinamiento.ts"
         },
         {
           "path": "app/src/render/jointjs/proyeccion.ts",
@@ -18322,8 +18354,8 @@
           "hrefDashboard": "../../app/src/store/modelo.ts"
         },
         {
-          "path": "app/src/modelo/operaciones.ts",
-          "hrefDashboard": "../../app/src/modelo/operaciones.ts"
+          "path": "app/src/modelo/operaciones/refinamiento.ts",
+          "hrefDashboard": "../../app/src/modelo/operaciones/refinamiento.ts"
         },
         {
           "path": "app/src/opl/generar.ts",
@@ -18383,8 +18415,8 @@
           "hrefDashboard": "../../app/src/store/modelo.ts"
         },
         {
-          "path": "app/src/modelo/operaciones.ts",
-          "hrefDashboard": "../../app/src/modelo/operaciones.ts"
+          "path": "app/src/modelo/operaciones/refinamiento.ts",
+          "hrefDashboard": "../../app/src/modelo/operaciones/refinamiento.ts"
         },
         {
           "path": "app/src/opl/generar.ts",
@@ -18443,8 +18475,8 @@
           "hrefDashboard": "../../app/src/store/modelo.ts"
         },
         {
-          "path": "app/src/modelo/operaciones.ts",
-          "hrefDashboard": "../../app/src/modelo/operaciones.ts"
+          "path": "app/src/modelo/operaciones/refinamiento.ts",
+          "hrefDashboard": "../../app/src/modelo/operaciones/refinamiento.ts"
         },
         {
           "path": "app/src/opl/generar.ts",
@@ -18497,8 +18529,8 @@
       "brechas": [],
       "evidencia": [
         {
-          "path": "app/src/modelo/operaciones.ts",
-          "hrefDashboard": "../../app/src/modelo/operaciones.ts"
+          "path": "app/src/modelo/operaciones/refinamiento.ts",
+          "hrefDashboard": "../../app/src/modelo/operaciones/refinamiento.ts"
         },
         {
           "path": "app/src/render/jointjs/proyeccion.ts",
@@ -18554,8 +18586,8 @@
       "brechas": [],
       "evidencia": [
         {
-          "path": "app/src/modelo/operaciones.ts",
-          "hrefDashboard": "../../app/src/modelo/operaciones.ts"
+          "path": "app/src/modelo/operaciones/refinamiento.ts",
+          "hrefDashboard": "../../app/src/modelo/operaciones/refinamiento.ts"
         },
         {
           "path": "app/src/render/jointjs/proyeccion.ts",
@@ -18608,8 +18640,8 @@
       "brechas": [],
       "evidencia": [
         {
-          "path": "app/src/modelo/operaciones.ts",
-          "hrefDashboard": "../../app/src/modelo/operaciones.ts"
+          "path": "app/src/modelo/operaciones/refinamiento.ts",
+          "hrefDashboard": "../../app/src/modelo/operaciones/refinamiento.ts"
         },
         {
           "path": "app/src/render/jointjs/proyeccion.ts",
@@ -18663,8 +18695,8 @@
       "brechas": [],
       "evidencia": [
         {
-          "path": "app/src/modelo/operaciones.ts",
-          "hrefDashboard": "../../app/src/modelo/operaciones.ts"
+          "path": "app/src/modelo/operaciones/refinamiento.ts",
+          "hrefDashboard": "../../app/src/modelo/operaciones/refinamiento.ts"
         },
         {
           "path": "app/src/render/jointjs/proyeccion.ts",
@@ -18720,8 +18752,12 @@
       "brechas": [],
       "evidencia": [
         {
-          "path": "app/src/modelo/operaciones.ts",
-          "hrefDashboard": "../../app/src/modelo/operaciones.ts"
+          "path": "app/src/modelo/operaciones/enlaces.ts",
+          "hrefDashboard": "../../app/src/modelo/operaciones/enlaces.ts"
+        },
+        {
+          "path": "app/src/modelo/operaciones/eliminacion.ts",
+          "hrefDashboard": "../../app/src/modelo/operaciones/eliminacion.ts"
         },
         {
           "path": "app/src/ui/inspectorEnlace/SeccionReanclaje.tsx",
@@ -18777,8 +18813,8 @@
       "brechas": [],
       "evidencia": [
         {
-          "path": "app/src/modelo/operaciones.ts",
-          "hrefDashboard": "../../app/src/modelo/operaciones.ts"
+          "path": "app/src/modelo/operaciones/refinamiento.ts",
+          "hrefDashboard": "../../app/src/modelo/operaciones/refinamiento.ts"
         },
         {
           "path": "app/src/render/jointjs/proyeccion.ts",
@@ -18835,8 +18871,8 @@
       "brechas": [],
       "evidencia": [
         {
-          "path": "app/src/modelo/operaciones.ts",
-          "hrefDashboard": "../../app/src/modelo/operaciones.ts"
+          "path": "app/src/modelo/operaciones/refinamiento.ts",
+          "hrefDashboard": "../../app/src/modelo/operaciones/refinamiento.ts"
         },
         {
           "path": "app/src/render/jointjs/proyeccion.ts",
@@ -18893,8 +18929,8 @@
       "brechas": [],
       "evidencia": [
         {
-          "path": "app/src/modelo/operaciones.ts",
-          "hrefDashboard": "../../app/src/modelo/operaciones.ts"
+          "path": "app/src/modelo/operaciones/refinamiento.ts",
+          "hrefDashboard": "../../app/src/modelo/operaciones/refinamiento.ts"
         },
         {
           "path": "app/src/render/jointjs/proyeccion.ts",
@@ -18959,8 +18995,8 @@
           "hrefDashboard": "../../app/src/ui/InspectorEntidad.tsx"
         },
         {
-          "path": "app/src/modelo/operaciones.ts",
-          "hrefDashboard": "../../app/src/modelo/operaciones.ts"
+          "path": "app/src/modelo/operaciones/apariencias.ts",
+          "hrefDashboard": "../../app/src/modelo/operaciones/apariencias.ts"
         }
       ],
       "peso": 4,
@@ -19004,8 +19040,8 @@
       "brechas": [],
       "evidencia": [
         {
-          "path": "app/src/modelo/operaciones.ts",
-          "hrefDashboard": "../../app/src/modelo/operaciones.ts"
+          "path": "app/src/modelo/operaciones/refinamiento.ts",
+          "hrefDashboard": "../../app/src/modelo/operaciones/refinamiento.ts"
         },
         {
           "path": "app/src/render/jointjs/proyeccion.ts",
@@ -19060,8 +19096,8 @@
       "brechas": [],
       "evidencia": [
         {
-          "path": "app/src/modelo/operaciones.ts",
-          "hrefDashboard": "../../app/src/modelo/operaciones.ts"
+          "path": "app/src/modelo/operaciones/refinamiento.ts",
+          "hrefDashboard": "../../app/src/modelo/operaciones/refinamiento.ts"
         },
         {
           "path": "app/src/render/jointjs/proyeccion.ts",
@@ -19129,8 +19165,8 @@
           "hrefDashboard": "../../app/src/ui/InspectorEntidad.tsx"
         },
         {
-          "path": "app/src/modelo/operaciones.ts",
-          "hrefDashboard": "../../app/src/modelo/operaciones.ts"
+          "path": "app/src/modelo/operaciones/apariencias.ts",
+          "hrefDashboard": "../../app/src/modelo/operaciones/apariencias.ts"
         }
       ],
       "peso": 4,
@@ -19172,8 +19208,8 @@
       "brechas": [],
       "evidencia": [
         {
-          "path": "app/src/modelo/operaciones.ts",
-          "hrefDashboard": "../../app/src/modelo/operaciones.ts"
+          "path": "app/src/modelo/operaciones/refinamiento.ts",
+          "hrefDashboard": "../../app/src/modelo/operaciones/refinamiento.ts"
         },
         {
           "path": "app/src/render/jointjs/proyeccion.ts",
@@ -19228,8 +19264,8 @@
       "brechas": [],
       "evidencia": [
         {
-          "path": "app/src/modelo/operaciones.ts",
-          "hrefDashboard": "../../app/src/modelo/operaciones.ts"
+          "path": "app/src/modelo/operaciones/refinamiento.ts",
+          "hrefDashboard": "../../app/src/modelo/operaciones/refinamiento.ts"
         },
         {
           "path": "app/src/render/jointjs/proyeccion.ts",
@@ -19335,8 +19371,8 @@
           "hrefDashboard": "../../app/src/ui/InspectorEntidad.tsx"
         },
         {
-          "path": "app/src/modelo/operaciones.ts",
-          "hrefDashboard": "../../app/src/modelo/operaciones.ts"
+          "path": "app/src/modelo/operaciones/apariencias.ts",
+          "hrefDashboard": "../../app/src/modelo/operaciones/apariencias.ts"
         }
       ],
       "peso": 2,
@@ -19389,8 +19425,8 @@
           "hrefDashboard": "../../app/src/ui/InspectorEntidad.tsx"
         },
         {
-          "path": "app/src/modelo/operaciones.ts",
-          "hrefDashboard": "../../app/src/modelo/operaciones.ts"
+          "path": "app/src/modelo/operaciones/apariencias.ts",
+          "hrefDashboard": "../../app/src/modelo/operaciones/apariencias.ts"
         }
       ],
       "peso": 2,
@@ -19439,8 +19475,8 @@
           "hrefDashboard": "../../app/src/ui/InspectorEntidad.tsx"
         },
         {
-          "path": "app/src/modelo/operaciones.ts",
-          "hrefDashboard": "../../app/src/modelo/operaciones.ts"
+          "path": "app/src/modelo/operaciones/apariencias.ts",
+          "hrefDashboard": "../../app/src/modelo/operaciones/apariencias.ts"
         }
       ],
       "peso": 2,
@@ -19490,8 +19526,8 @@
           "hrefDashboard": "../../app/src/store/modelo.ts"
         },
         {
-          "path": "app/src/modelo/operaciones.ts",
-          "hrefDashboard": "../../app/src/modelo/operaciones.ts"
+          "path": "app/src/modelo/operaciones/refinamiento.ts",
+          "hrefDashboard": "../../app/src/modelo/operaciones/refinamiento.ts"
         },
         {
           "path": "app/src/opl/generar.ts",
@@ -19540,8 +19576,8 @@
       "brechas": [],
       "evidencia": [
         {
-          "path": "app/src/modelo/operaciones.ts",
-          "hrefDashboard": "../../app/src/modelo/operaciones.ts"
+          "path": "app/src/modelo/operaciones/refinamiento.ts",
+          "hrefDashboard": "../../app/src/modelo/operaciones/refinamiento.ts"
         },
         {
           "path": "app/src/render/jointjs/proyeccion.ts",
@@ -19597,8 +19633,8 @@
       "brechas": [],
       "evidencia": [
         {
-          "path": "app/src/modelo/operaciones.ts",
-          "hrefDashboard": "../../app/src/modelo/operaciones.ts"
+          "path": "app/src/modelo/operaciones/refinamiento.ts",
+          "hrefDashboard": "../../app/src/modelo/operaciones/refinamiento.ts"
         },
         {
           "path": "app/src/render/jointjs/proyeccion.ts",
@@ -19694,8 +19730,8 @@
           "hrefDashboard": "../../app/src/ui/InspectorEntidad.tsx"
         },
         {
-          "path": "app/src/modelo/operaciones.ts",
-          "hrefDashboard": "../../app/src/modelo/operaciones.ts"
+          "path": "app/src/modelo/operaciones/apariencias.ts",
+          "hrefDashboard": "../../app/src/modelo/operaciones/apariencias.ts"
         }
       ],
       "peso": 4,
@@ -19745,8 +19781,8 @@
           "hrefDashboard": "../../app/src/ui/InspectorEntidad.tsx"
         },
         {
-          "path": "app/src/modelo/operaciones.ts",
-          "hrefDashboard": "../../app/src/modelo/operaciones.ts"
+          "path": "app/src/modelo/operaciones/apariencias.ts",
+          "hrefDashboard": "../../app/src/modelo/operaciones/apariencias.ts"
         }
       ],
       "peso": 4,
@@ -19789,8 +19825,12 @@
       "brechas": [],
       "evidencia": [
         {
-          "path": "app/src/modelo/operaciones.ts",
-          "hrefDashboard": "../../app/src/modelo/operaciones.ts"
+          "path": "app/src/modelo/operaciones/enlaces.ts",
+          "hrefDashboard": "../../app/src/modelo/operaciones/enlaces.ts"
+        },
+        {
+          "path": "app/src/modelo/operaciones/eliminacion.ts",
+          "hrefDashboard": "../../app/src/modelo/operaciones/eliminacion.ts"
         },
         {
           "path": "app/src/ui/inspectorEnlace/SeccionReanclaje.tsx",
@@ -19959,8 +19999,8 @@
       "brechas": [],
       "evidencia": [
         {
-          "path": "app/src/modelo/operaciones.ts",
-          "hrefDashboard": "../../app/src/modelo/operaciones.ts"
+          "path": "app/src/modelo/operaciones/estados.ts",
+          "hrefDashboard": "../../app/src/modelo/operaciones/estados.ts"
         },
         {
           "path": "app/src/ui/InspectorEntidad.tsx",
@@ -20009,8 +20049,8 @@
       "brechas": [],
       "evidencia": [
         {
-          "path": "app/src/modelo/operaciones.ts",
-          "hrefDashboard": "../../app/src/modelo/operaciones.ts"
+          "path": "app/src/modelo/operaciones/estados.ts",
+          "hrefDashboard": "../../app/src/modelo/operaciones/estados.ts"
         },
         {
           "path": "app/src/ui/InspectorEntidad.tsx",
@@ -20136,8 +20176,8 @@
       "brechas": [],
       "evidencia": [
         {
-          "path": "app/src/modelo/operaciones.ts",
-          "hrefDashboard": "../../app/src/modelo/operaciones.ts"
+          "path": "app/src/modelo/operaciones/estados.ts",
+          "hrefDashboard": "../../app/src/modelo/operaciones/estados.ts"
         },
         {
           "path": "app/src/ui/InspectorEntidad.tsx",
@@ -20227,8 +20267,8 @@
       "brechas": [],
       "evidencia": [
         {
-          "path": "app/src/modelo/operaciones.ts",
-          "hrefDashboard": "../../app/src/modelo/operaciones.ts"
+          "path": "app/src/modelo/operaciones/estados.ts",
+          "hrefDashboard": "../../app/src/modelo/operaciones/estados.ts"
         },
         {
           "path": "app/src/ui/InspectorEntidad.tsx",
@@ -20589,8 +20629,8 @@
           "hrefDashboard": "../../app/src/modelo/estadosDesignaciones.ts"
         },
         {
-          "path": "app/src/modelo/tipos.ts",
-          "hrefDashboard": "../../app/src/modelo/tipos.ts"
+          "path": "app/src/modelo/tipos/estado.ts",
+          "hrefDashboard": "../../app/src/modelo/tipos/estado.ts"
         },
         {
           "path": "app/src/serializacion/validarEstados.ts",
@@ -20670,8 +20710,8 @@
           "hrefDashboard": "../../app/src/modelo/estadosDesignaciones.ts"
         },
         {
-          "path": "app/src/modelo/tipos.ts",
-          "hrefDashboard": "../../app/src/modelo/tipos.ts"
+          "path": "app/src/modelo/tipos/estado.ts",
+          "hrefDashboard": "../../app/src/modelo/tipos/estado.ts"
         },
         {
           "path": "app/src/serializacion/validarEstados.ts",
@@ -20766,8 +20806,12 @@
           "hrefDashboard": "../../app/src/render/jointjs/estadoTargets.ts"
         },
         {
-          "path": "app/src/render/jointjs/JointCanvas.tsx",
-          "hrefDashboard": "../../app/src/render/jointjs/JointCanvas.tsx"
+          "path": "app/src/render/jointjs/handlers/seleccion.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/handlers/seleccion.ts"
+        },
+        {
+          "path": "app/src/render/jointjs/handlers/helpers.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/handlers/helpers.ts"
         },
         {
           "path": "app/src/store/modelo.ts",
@@ -20840,8 +20884,8 @@
       "brechas": [],
       "evidencia": [
         {
-          "path": "app/src/modelo/operaciones.ts",
-          "hrefDashboard": "../../app/src/modelo/operaciones.ts"
+          "path": "app/src/modelo/operaciones/eliminacion.ts",
+          "hrefDashboard": "../../app/src/modelo/operaciones/eliminacion.ts"
         },
         {
           "path": "app/src/modelo/operaciones.test.ts",
@@ -21048,8 +21092,8 @@
       "brechas": [],
       "evidencia": [
         {
-          "path": "app/src/modelo/operaciones.ts",
-          "hrefDashboard": "../../app/src/modelo/operaciones.ts"
+          "path": "app/src/modelo/operaciones/estados.ts",
+          "hrefDashboard": "../../app/src/modelo/operaciones/estados.ts"
         },
         {
           "path": "app/src/ui/InspectorEntidad.tsx",
@@ -21882,8 +21926,8 @@
       "brechas": [],
       "evidencia": [
         {
-          "path": "app/src/modelo/operaciones.ts",
-          "hrefDashboard": "../../app/src/modelo/operaciones.ts"
+          "path": "app/src/modelo/operaciones/enlaces.ts",
+          "hrefDashboard": "../../app/src/modelo/operaciones/enlaces.ts"
         },
         {
           "path": "app/src/ui/InspectorEnlace.tsx",
@@ -21944,8 +21988,8 @@
       "brechas": [],
       "evidencia": [
         {
-          "path": "app/src/modelo/operaciones.ts",
-          "hrefDashboard": "../../app/src/modelo/operaciones.ts"
+          "path": "app/src/modelo/operaciones/enlaces.ts",
+          "hrefDashboard": "../../app/src/modelo/operaciones/enlaces.ts"
         },
         {
           "path": "app/src/ui/InspectorEnlace.tsx",
@@ -22008,8 +22052,8 @@
       "brechas": [],
       "evidencia": [
         {
-          "path": "app/src/modelo/operaciones.ts",
-          "hrefDashboard": "../../app/src/modelo/operaciones.ts"
+          "path": "app/src/modelo/operaciones/enlaces.ts",
+          "hrefDashboard": "../../app/src/modelo/operaciones/enlaces.ts"
         },
         {
           "path": "app/src/ui/InspectorEnlace.tsx",
@@ -22741,8 +22785,8 @@
       "brechas": [],
       "evidencia": [
         {
-          "path": "app/src/modelo/tipos.ts",
-          "hrefDashboard": "../../app/src/modelo/tipos.ts"
+          "path": "app/src/modelo/tipos/enlace.ts",
+          "hrefDashboard": "../../app/src/modelo/tipos/enlace.ts"
         },
         {
           "path": "app/src/modelo/modificadores.ts",
@@ -22821,8 +22865,8 @@
       "brechas": [],
       "evidencia": [
         {
-          "path": "app/src/modelo/tipos.ts",
-          "hrefDashboard": "../../app/src/modelo/tipos.ts"
+          "path": "app/src/modelo/tipos/enlace.ts",
+          "hrefDashboard": "../../app/src/modelo/tipos/enlace.ts"
         },
         {
           "path": "app/src/modelo/modificadores.ts",
@@ -23003,8 +23047,8 @@
       "brechas": [],
       "evidencia": [
         {
-          "path": "app/src/modelo/operaciones.ts",
-          "hrefDashboard": "../../app/src/modelo/operaciones.ts"
+          "path": "app/src/modelo/operaciones/helpers.ts",
+          "hrefDashboard": "../../app/src/modelo/operaciones/helpers.ts"
         },
         {
           "path": "app/src/opl/generar.ts",
@@ -23255,12 +23299,12 @@
       "brechas": [],
       "evidencia": [
         {
-          "path": "app/src/render/jointjs/JointCanvas.tsx",
-          "hrefDashboard": "../../app/src/render/jointjs/JointCanvas.tsx"
+          "path": "app/src/render/jointjs/handlers/toolsEnlace.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/handlers/toolsEnlace.ts"
         },
         {
-          "path": "app/src/modelo/operaciones.ts",
-          "hrefDashboard": "../../app/src/modelo/operaciones.ts"
+          "path": "app/src/modelo/operaciones/apariencias.ts",
+          "hrefDashboard": "../../app/src/modelo/operaciones/apariencias.ts"
         },
         {
           "path": "app/src/serializacion/json.ts",
@@ -24168,8 +24212,8 @@
           "hrefDashboard": "../../app/src/modelo/objetoMetadata.ts"
         },
         {
-          "path": "app/src/modelo/tipos.ts",
-          "hrefDashboard": "../../app/src/modelo/tipos.ts"
+          "path": "app/src/modelo/tipos/entidad.ts",
+          "hrefDashboard": "../../app/src/modelo/tipos/entidad.ts"
         },
         {
           "path": "app/src/serializacion/validarEntidades.ts",
@@ -24257,8 +24301,8 @@
           "hrefDashboard": "../../app/src/modelo/objetoMetadata.ts"
         },
         {
-          "path": "app/src/modelo/tipos.ts",
-          "hrefDashboard": "../../app/src/modelo/tipos.ts"
+          "path": "app/src/modelo/tipos/entidad.ts",
+          "hrefDashboard": "../../app/src/modelo/tipos/entidad.ts"
         },
         {
           "path": "app/src/serializacion/validarEntidades.ts",
@@ -24345,8 +24389,8 @@
           "hrefDashboard": "../../app/src/modelo/objetoMetadata.ts"
         },
         {
-          "path": "app/src/modelo/tipos.ts",
-          "hrefDashboard": "../../app/src/modelo/tipos.ts"
+          "path": "app/src/modelo/tipos/entidad.ts",
+          "hrefDashboard": "../../app/src/modelo/tipos/entidad.ts"
         },
         {
           "path": "app/src/serializacion/validarEntidades.ts",
@@ -24432,8 +24476,8 @@
           "hrefDashboard": "../../app/src/modelo/objetoMetadata.ts"
         },
         {
-          "path": "app/src/modelo/tipos.ts",
-          "hrefDashboard": "../../app/src/modelo/tipos.ts"
+          "path": "app/src/modelo/tipos/entidad.ts",
+          "hrefDashboard": "../../app/src/modelo/tipos/entidad.ts"
         },
         {
           "path": "app/src/serializacion/validarEntidades.ts",
@@ -24520,8 +24564,8 @@
           "hrefDashboard": "../../app/src/modelo/objetoMetadata.ts"
         },
         {
-          "path": "app/src/modelo/tipos.ts",
-          "hrefDashboard": "../../app/src/modelo/tipos.ts"
+          "path": "app/src/modelo/tipos/entidad.ts",
+          "hrefDashboard": "../../app/src/modelo/tipos/entidad.ts"
         },
         {
           "path": "app/src/serializacion/validarEntidades.ts",
@@ -24611,8 +24655,8 @@
           "hrefDashboard": "../../app/src/modelo/objetoMetadata.ts"
         },
         {
-          "path": "app/src/modelo/tipos.ts",
-          "hrefDashboard": "../../app/src/modelo/tipos.ts"
+          "path": "app/src/modelo/tipos/entidad.ts",
+          "hrefDashboard": "../../app/src/modelo/tipos/entidad.ts"
         },
         {
           "path": "app/src/serializacion/validarEntidades.ts",
@@ -24698,8 +24742,8 @@
           "hrefDashboard": "../../app/src/modelo/objetoMetadata.ts"
         },
         {
-          "path": "app/src/modelo/tipos.ts",
-          "hrefDashboard": "../../app/src/modelo/tipos.ts"
+          "path": "app/src/modelo/tipos/entidad.ts",
+          "hrefDashboard": "../../app/src/modelo/tipos/entidad.ts"
         },
         {
           "path": "app/src/serializacion/validarEntidades.ts",
@@ -24786,8 +24830,8 @@
           "hrefDashboard": "../../app/src/modelo/objetoMetadata.ts"
         },
         {
-          "path": "app/src/modelo/tipos.ts",
-          "hrefDashboard": "../../app/src/modelo/tipos.ts"
+          "path": "app/src/modelo/tipos/entidad.ts",
+          "hrefDashboard": "../../app/src/modelo/tipos/entidad.ts"
         },
         {
           "path": "app/src/serializacion/validarEntidades.ts",
@@ -24874,8 +24918,8 @@
           "hrefDashboard": "../../app/src/modelo/objetoMetadata.ts"
         },
         {
-          "path": "app/src/modelo/tipos.ts",
-          "hrefDashboard": "../../app/src/modelo/tipos.ts"
+          "path": "app/src/modelo/tipos/entidad.ts",
+          "hrefDashboard": "../../app/src/modelo/tipos/entidad.ts"
         },
         {
           "path": "app/src/serializacion/validarEntidades.ts",
@@ -24964,8 +25008,8 @@
           "hrefDashboard": "../../app/src/modelo/objetoMetadata.ts"
         },
         {
-          "path": "app/src/modelo/tipos.ts",
-          "hrefDashboard": "../../app/src/modelo/tipos.ts"
+          "path": "app/src/modelo/tipos/entidad.ts",
+          "hrefDashboard": "../../app/src/modelo/tipos/entidad.ts"
         },
         {
           "path": "app/src/serializacion/validarEntidades.ts",
@@ -25054,8 +25098,8 @@
           "hrefDashboard": "../../app/src/modelo/objetoMetadata.ts"
         },
         {
-          "path": "app/src/modelo/tipos.ts",
-          "hrefDashboard": "../../app/src/modelo/tipos.ts"
+          "path": "app/src/modelo/tipos/entidad.ts",
+          "hrefDashboard": "../../app/src/modelo/tipos/entidad.ts"
         },
         {
           "path": "app/src/serializacion/validarEntidades.ts",
@@ -25142,12 +25186,16 @@
       "brechas": [],
       "evidencia": [
         {
-          "path": "app/src/modelo/tipos.ts",
-          "hrefDashboard": "../../app/src/modelo/tipos.ts"
+          "path": "app/src/modelo/tipos/enlace.ts",
+          "hrefDashboard": "../../app/src/modelo/tipos/enlace.ts"
         },
         {
-          "path": "app/src/modelo/operaciones.ts",
-          "hrefDashboard": "../../app/src/modelo/operaciones.ts"
+          "path": "app/src/modelo/operaciones/refinamiento.ts",
+          "hrefDashboard": "../../app/src/modelo/operaciones/refinamiento.ts"
+        },
+        {
+          "path": "app/src/modelo/operaciones/helpers.ts",
+          "hrefDashboard": "../../app/src/modelo/operaciones/helpers.ts"
         },
         {
           "path": "app/src/render/jointjs/linkAssets.ts",
@@ -25355,8 +25403,8 @@
           "hrefDashboard": "../../app/src/modelo/objetoMetadata.ts"
         },
         {
-          "path": "app/src/modelo/tipos.ts",
-          "hrefDashboard": "../../app/src/modelo/tipos.ts"
+          "path": "app/src/modelo/tipos/entidad.ts",
+          "hrefDashboard": "../../app/src/modelo/tipos/entidad.ts"
         },
         {
           "path": "app/src/serializacion/validarEntidades.ts",
@@ -25444,8 +25492,8 @@
           "hrefDashboard": "../../app/src/modelo/objetoMetadata.ts"
         },
         {
-          "path": "app/src/modelo/tipos.ts",
-          "hrefDashboard": "../../app/src/modelo/tipos.ts"
+          "path": "app/src/modelo/tipos/entidad.ts",
+          "hrefDashboard": "../../app/src/modelo/tipos/entidad.ts"
         },
         {
           "path": "app/src/serializacion/validarEntidades.ts",
@@ -25532,8 +25580,8 @@
           "hrefDashboard": "../../app/src/modelo/objetoMetadata.ts"
         },
         {
-          "path": "app/src/modelo/tipos.ts",
-          "hrefDashboard": "../../app/src/modelo/tipos.ts"
+          "path": "app/src/modelo/tipos/entidad.ts",
+          "hrefDashboard": "../../app/src/modelo/tipos/entidad.ts"
         },
         {
           "path": "app/src/serializacion/validarEntidades.ts",
@@ -25619,8 +25667,8 @@
           "hrefDashboard": "../../app/src/modelo/objetoMetadata.ts"
         },
         {
-          "path": "app/src/modelo/tipos.ts",
-          "hrefDashboard": "../../app/src/modelo/tipos.ts"
+          "path": "app/src/modelo/tipos/entidad.ts",
+          "hrefDashboard": "../../app/src/modelo/tipos/entidad.ts"
         },
         {
           "path": "app/src/serializacion/validarEntidades.ts",
@@ -25742,8 +25790,8 @@
           "hrefDashboard": "../../app/src/modelo/objetoMetadata.ts"
         },
         {
-          "path": "app/src/modelo/tipos.ts",
-          "hrefDashboard": "../../app/src/modelo/tipos.ts"
+          "path": "app/src/modelo/tipos/entidad.ts",
+          "hrefDashboard": "../../app/src/modelo/tipos/entidad.ts"
         },
         {
           "path": "app/src/serializacion/validarEntidades.ts",
@@ -25956,8 +26004,8 @@
       "brechas": [],
       "evidencia": [
         {
-          "path": "app/src/modelo/operaciones.ts",
-          "hrefDashboard": "../../app/src/modelo/operaciones.ts"
+          "path": "app/src/modelo/operaciones/refinamiento.ts",
+          "hrefDashboard": "../../app/src/modelo/operaciones/refinamiento.ts"
         },
         {
           "path": "app/src/ui/inspector/SeccionRefinamiento.tsx",
@@ -26007,8 +26055,8 @@
       "brechas": [],
       "evidencia": [
         {
-          "path": "app/src/modelo/operaciones.ts",
-          "hrefDashboard": "../../app/src/modelo/operaciones.ts"
+          "path": "app/src/modelo/operaciones/refinamiento.ts",
+          "hrefDashboard": "../../app/src/modelo/operaciones/refinamiento.ts"
         },
         {
           "path": "app/src/ui/inspector/SeccionRefinamiento.tsx",
@@ -26237,8 +26285,8 @@
           "hrefDashboard": "../../app/src/modelo/objetoDuracion.ts"
         },
         {
-          "path": "app/src/modelo/tipos.ts",
-          "hrefDashboard": "../../app/src/modelo/tipos.ts"
+          "path": "app/src/modelo/tipos/estado.ts",
+          "hrefDashboard": "../../app/src/modelo/tipos/estado.ts"
         },
         {
           "path": "app/src/serializacion/validarEstados.ts",
@@ -26468,8 +26516,12 @@
           "hrefDashboard": "../../app/src/store/modelo.ts"
         },
         {
-          "path": "app/src/render/jointjs/JointCanvas.tsx",
-          "hrefDashboard": "../../app/src/render/jointjs/JointCanvas.tsx"
+          "path": "app/src/render/jointjs/handlers/drag.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/handlers/drag.ts"
+        },
+        {
+          "path": "app/src/render/jointjs/handlers/helpers.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/handlers/helpers.ts"
         },
         {
           "path": "app/src/render/jointjs/composers/plegado.ts",
@@ -26547,8 +26599,12 @@
           "hrefDashboard": "../../app/src/store/modelo.ts"
         },
         {
-          "path": "app/src/render/jointjs/JointCanvas.tsx",
-          "hrefDashboard": "../../app/src/render/jointjs/JointCanvas.tsx"
+          "path": "app/src/render/jointjs/handlers/drag.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/handlers/drag.ts"
+        },
+        {
+          "path": "app/src/render/jointjs/handlers/helpers.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/handlers/helpers.ts"
         },
         {
           "path": "app/src/render/jointjs/composers/plegado.ts",
@@ -26628,8 +26684,12 @@
           "hrefDashboard": "../../app/src/store/modelo.ts"
         },
         {
-          "path": "app/src/render/jointjs/JointCanvas.tsx",
-          "hrefDashboard": "../../app/src/render/jointjs/JointCanvas.tsx"
+          "path": "app/src/render/jointjs/handlers/drag.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/handlers/drag.ts"
+        },
+        {
+          "path": "app/src/render/jointjs/handlers/helpers.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/handlers/helpers.ts"
         },
         {
           "path": "app/src/render/jointjs/composers/plegado.ts",
@@ -26763,8 +26823,12 @@
           "hrefDashboard": "../../app/src/render/jointjs/plegadoNesting.ts"
         },
         {
-          "path": "app/src/render/jointjs/JointCanvas.tsx",
-          "hrefDashboard": "../../app/src/render/jointjs/JointCanvas.tsx"
+          "path": "app/src/render/jointjs/handlers/seleccion.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/handlers/seleccion.ts"
+        },
+        {
+          "path": "app/src/render/jointjs/handlers/helpers.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/handlers/helpers.ts"
         },
         {
           "path": "app/src/store/modelo.ts",
@@ -26843,8 +26907,12 @@
           "hrefDashboard": "../../app/src/store/modelo.ts"
         },
         {
-          "path": "app/src/render/jointjs/JointCanvas.tsx",
-          "hrefDashboard": "../../app/src/render/jointjs/JointCanvas.tsx"
+          "path": "app/src/render/jointjs/handlers/drag.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/handlers/drag.ts"
+        },
+        {
+          "path": "app/src/render/jointjs/handlers/helpers.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/handlers/helpers.ts"
         },
         {
           "path": "app/src/render/jointjs/composers/plegado.ts",
@@ -26923,8 +26991,12 @@
           "hrefDashboard": "../../app/src/store/modelo.ts"
         },
         {
-          "path": "app/src/render/jointjs/JointCanvas.tsx",
-          "hrefDashboard": "../../app/src/render/jointjs/JointCanvas.tsx"
+          "path": "app/src/render/jointjs/handlers/drag.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/handlers/drag.ts"
+        },
+        {
+          "path": "app/src/render/jointjs/handlers/helpers.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/handlers/helpers.ts"
         },
         {
           "path": "app/src/render/jointjs/composers/plegado.ts",
@@ -27198,8 +27270,12 @@
           "hrefDashboard": "../../app/src/render/jointjs/plegadoNesting.ts"
         },
         {
-          "path": "app/src/render/jointjs/JointCanvas.tsx",
-          "hrefDashboard": "../../app/src/render/jointjs/JointCanvas.tsx"
+          "path": "app/src/render/jointjs/handlers/seleccion.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/handlers/seleccion.ts"
+        },
+        {
+          "path": "app/src/render/jointjs/handlers/helpers.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/handlers/helpers.ts"
         },
         {
           "path": "app/src/store/modelo.ts",
@@ -27852,8 +27928,8 @@
           "hrefDashboard": "../../app/src/store/modelo.ts"
         },
         {
-          "path": "app/src/modelo/operaciones.ts",
-          "hrefDashboard": "../../app/src/modelo/operaciones.ts"
+          "path": "app/src/modelo/operaciones/refinamiento.ts",
+          "hrefDashboard": "../../app/src/modelo/operaciones/refinamiento.ts"
         },
         {
           "path": "app/src/opl/generar.ts",
@@ -27914,8 +27990,8 @@
           "hrefDashboard": "../../app/src/store/modelo.ts"
         },
         {
-          "path": "app/src/modelo/operaciones.ts",
-          "hrefDashboard": "../../app/src/modelo/operaciones.ts"
+          "path": "app/src/modelo/operaciones/refinamiento.ts",
+          "hrefDashboard": "../../app/src/modelo/operaciones/refinamiento.ts"
         },
         {
           "path": "app/src/opl/generar.ts",
@@ -28009,8 +28085,8 @@
           "hrefDashboard": "../../app/src/store/modelo.ts"
         },
         {
-          "path": "app/src/modelo/operaciones.ts",
-          "hrefDashboard": "../../app/src/modelo/operaciones.ts"
+          "path": "app/src/modelo/operaciones/refinamiento.ts",
+          "hrefDashboard": "../../app/src/modelo/operaciones/refinamiento.ts"
         },
         {
           "path": "app/src/opl/generar.ts",
@@ -28069,8 +28145,8 @@
           "hrefDashboard": "../../app/src/store/modelo.ts"
         },
         {
-          "path": "app/src/modelo/operaciones.ts",
-          "hrefDashboard": "../../app/src/modelo/operaciones.ts"
+          "path": "app/src/modelo/operaciones/refinamiento.ts",
+          "hrefDashboard": "../../app/src/modelo/operaciones/refinamiento.ts"
         },
         {
           "path": "app/src/opl/generar.ts",
@@ -28130,8 +28206,8 @@
           "hrefDashboard": "../../app/src/store/modelo.ts"
         },
         {
-          "path": "app/src/modelo/operaciones.ts",
-          "hrefDashboard": "../../app/src/modelo/operaciones.ts"
+          "path": "app/src/modelo/operaciones/refinamiento.ts",
+          "hrefDashboard": "../../app/src/modelo/operaciones/refinamiento.ts"
         },
         {
           "path": "app/src/opl/generar.ts",
@@ -28189,8 +28265,8 @@
           "hrefDashboard": "../../app/src/store/modelo.ts"
         },
         {
-          "path": "app/src/modelo/operaciones.ts",
-          "hrefDashboard": "../../app/src/modelo/operaciones.ts"
+          "path": "app/src/modelo/operaciones/refinamiento.ts",
+          "hrefDashboard": "../../app/src/modelo/operaciones/refinamiento.ts"
         },
         {
           "path": "app/src/opl/generar.ts",
@@ -28248,8 +28324,8 @@
           "hrefDashboard": "../../app/src/store/modelo.ts"
         },
         {
-          "path": "app/src/modelo/operaciones.ts",
-          "hrefDashboard": "../../app/src/modelo/operaciones.ts"
+          "path": "app/src/modelo/operaciones/refinamiento.ts",
+          "hrefDashboard": "../../app/src/modelo/operaciones/refinamiento.ts"
         },
         {
           "path": "app/src/opl/generar.ts",
@@ -45026,8 +45102,8 @@
           "hrefDashboard": "../../app/src/ui/MenuContextualArbol.tsx"
         },
         {
-          "path": "app/src/render/jointjs/JointCanvas.tsx",
-          "hrefDashboard": "../../app/src/render/jointjs/JointCanvas.tsx"
+          "path": "app/src/render/jointjs/handlers/zoom.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/handlers/zoom.ts"
         }
       ],
       "peso": 2,
@@ -45081,8 +45157,8 @@
           "hrefDashboard": "../../app/src/ui/MenuContextualArbol.tsx"
         },
         {
-          "path": "app/src/render/jointjs/JointCanvas.tsx",
-          "hrefDashboard": "../../app/src/render/jointjs/JointCanvas.tsx"
+          "path": "app/src/render/jointjs/handlers/zoom.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/handlers/zoom.ts"
         }
       ],
       "peso": 2,
@@ -45136,8 +45212,8 @@
           "hrefDashboard": "../../app/src/ui/MenuContextualArbol.tsx"
         },
         {
-          "path": "app/src/render/jointjs/JointCanvas.tsx",
-          "hrefDashboard": "../../app/src/render/jointjs/JointCanvas.tsx"
+          "path": "app/src/render/jointjs/handlers/zoom.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/handlers/zoom.ts"
         }
       ],
       "peso": 2,
@@ -45192,8 +45268,8 @@
           "hrefDashboard": "../../app/src/ui/MenuContextualArbol.tsx"
         },
         {
-          "path": "app/src/render/jointjs/JointCanvas.tsx",
-          "hrefDashboard": "../../app/src/render/jointjs/JointCanvas.tsx"
+          "path": "app/src/render/jointjs/handlers/zoom.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/handlers/zoom.ts"
         }
       ],
       "peso": 4,
@@ -45247,8 +45323,8 @@
           "hrefDashboard": "../../app/src/ui/MenuContextualArbol.tsx"
         },
         {
-          "path": "app/src/render/jointjs/JointCanvas.tsx",
-          "hrefDashboard": "../../app/src/render/jointjs/JointCanvas.tsx"
+          "path": "app/src/render/jointjs/handlers/zoom.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/handlers/zoom.ts"
         }
       ],
       "peso": 2,
@@ -45303,8 +45379,8 @@
           "hrefDashboard": "../../app/src/ui/MenuContextualArbol.tsx"
         },
         {
-          "path": "app/src/render/jointjs/JointCanvas.tsx",
-          "hrefDashboard": "../../app/src/render/jointjs/JointCanvas.tsx"
+          "path": "app/src/render/jointjs/handlers/zoom.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/handlers/zoom.ts"
         }
       ],
       "peso": 2,
@@ -45358,8 +45434,8 @@
           "hrefDashboard": "../../app/src/ui/MenuContextualArbol.tsx"
         },
         {
-          "path": "app/src/render/jointjs/JointCanvas.tsx",
-          "hrefDashboard": "../../app/src/render/jointjs/JointCanvas.tsx"
+          "path": "app/src/render/jointjs/handlers/zoom.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/handlers/zoom.ts"
         }
       ],
       "peso": 2,
@@ -45413,8 +45489,8 @@
           "hrefDashboard": "../../app/src/ui/MenuContextualArbol.tsx"
         },
         {
-          "path": "app/src/render/jointjs/JointCanvas.tsx",
-          "hrefDashboard": "../../app/src/render/jointjs/JointCanvas.tsx"
+          "path": "app/src/render/jointjs/handlers/zoom.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/handlers/zoom.ts"
         }
       ],
       "peso": 4,
@@ -45468,8 +45544,8 @@
           "hrefDashboard": "../../app/src/ui/MenuContextualArbol.tsx"
         },
         {
-          "path": "app/src/render/jointjs/JointCanvas.tsx",
-          "hrefDashboard": "../../app/src/render/jointjs/JointCanvas.tsx"
+          "path": "app/src/render/jointjs/handlers/zoom.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/handlers/zoom.ts"
         }
       ],
       "peso": 2,
@@ -45523,8 +45599,8 @@
           "hrefDashboard": "../../app/src/ui/MenuContextualArbol.tsx"
         },
         {
-          "path": "app/src/render/jointjs/JointCanvas.tsx",
-          "hrefDashboard": "../../app/src/render/jointjs/JointCanvas.tsx"
+          "path": "app/src/render/jointjs/handlers/zoom.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/handlers/zoom.ts"
         }
       ],
       "peso": 2,
@@ -45578,8 +45654,8 @@
           "hrefDashboard": "../../app/src/ui/MenuContextualArbol.tsx"
         },
         {
-          "path": "app/src/render/jointjs/JointCanvas.tsx",
-          "hrefDashboard": "../../app/src/render/jointjs/JointCanvas.tsx"
+          "path": "app/src/render/jointjs/handlers/zoom.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/handlers/zoom.ts"
         }
       ],
       "peso": 2,
@@ -45633,8 +45709,8 @@
           "hrefDashboard": "../../app/src/ui/MenuContextualArbol.tsx"
         },
         {
-          "path": "app/src/render/jointjs/JointCanvas.tsx",
-          "hrefDashboard": "../../app/src/render/jointjs/JointCanvas.tsx"
+          "path": "app/src/render/jointjs/handlers/zoom.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/handlers/zoom.ts"
         }
       ],
       "peso": 2,
@@ -45688,8 +45764,8 @@
           "hrefDashboard": "../../app/src/ui/MenuContextualArbol.tsx"
         },
         {
-          "path": "app/src/render/jointjs/JointCanvas.tsx",
-          "hrefDashboard": "../../app/src/render/jointjs/JointCanvas.tsx"
+          "path": "app/src/render/jointjs/handlers/zoom.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/handlers/zoom.ts"
         }
       ],
       "peso": 2,
@@ -45743,8 +45819,8 @@
           "hrefDashboard": "../../app/src/ui/MenuContextualArbol.tsx"
         },
         {
-          "path": "app/src/render/jointjs/JointCanvas.tsx",
-          "hrefDashboard": "../../app/src/render/jointjs/JointCanvas.tsx"
+          "path": "app/src/render/jointjs/handlers/zoom.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/handlers/zoom.ts"
         }
       ],
       "peso": 4,
@@ -45798,8 +45874,8 @@
           "hrefDashboard": "../../app/src/ui/MenuContextualArbol.tsx"
         },
         {
-          "path": "app/src/render/jointjs/JointCanvas.tsx",
-          "hrefDashboard": "../../app/src/render/jointjs/JointCanvas.tsx"
+          "path": "app/src/render/jointjs/handlers/zoom.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/handlers/zoom.ts"
         }
       ],
       "peso": 4,
@@ -45850,8 +45926,8 @@
           "hrefDashboard": "../../app/src/ui/MenuContextualArbol.tsx"
         },
         {
-          "path": "app/src/render/jointjs/JointCanvas.tsx",
-          "hrefDashboard": "../../app/src/render/jointjs/JointCanvas.tsx"
+          "path": "app/src/render/jointjs/handlers/zoom.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/handlers/zoom.ts"
         }
       ],
       "peso": 1,
@@ -45902,8 +45978,8 @@
           "hrefDashboard": "../../app/src/ui/MenuContextualArbol.tsx"
         },
         {
-          "path": "app/src/render/jointjs/JointCanvas.tsx",
-          "hrefDashboard": "../../app/src/render/jointjs/JointCanvas.tsx"
+          "path": "app/src/render/jointjs/handlers/zoom.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/handlers/zoom.ts"
         }
       ],
       "peso": 1,
@@ -45993,8 +46069,8 @@
           "hrefDashboard": "../../app/src/ui/MenuContextualArbol.tsx"
         },
         {
-          "path": "app/src/render/jointjs/JointCanvas.tsx",
-          "hrefDashboard": "../../app/src/render/jointjs/JointCanvas.tsx"
+          "path": "app/src/render/jointjs/handlers/zoom.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/handlers/zoom.ts"
         }
       ],
       "peso": 2,
@@ -46046,8 +46122,8 @@
           "hrefDashboard": "../../app/src/ui/MenuContextualArbol.tsx"
         },
         {
-          "path": "app/src/render/jointjs/JointCanvas.tsx",
-          "hrefDashboard": "../../app/src/render/jointjs/JointCanvas.tsx"
+          "path": "app/src/render/jointjs/handlers/zoom.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/handlers/zoom.ts"
         }
       ],
       "peso": 2,
@@ -46114,8 +46190,8 @@
           "hrefDashboard": "../../app/src/ui/MenuContextualArbol.tsx"
         },
         {
-          "path": "app/src/render/jointjs/JointCanvas.tsx",
-          "hrefDashboard": "../../app/src/render/jointjs/JointCanvas.tsx"
+          "path": "app/src/render/jointjs/handlers/zoom.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/handlers/zoom.ts"
         }
       ],
       "peso": 2,

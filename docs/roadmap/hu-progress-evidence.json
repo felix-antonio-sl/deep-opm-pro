@@ -1,6 +1,6 @@
 {
   "schema": "deep-opm-pro.hu-progress-evidence.v1",
-  "updated": "2026-05-05",
+  "updated": "2026-05-06",
   "source": "Auditoria automatica local contra app/src, app/e2e, app/scripts y assets/svg/links.",
   "statusDefinitions": {
     "cubierto": "La HU tiene implementacion usable y evidencia local directa en codigo, tests o smoke.",
@@ -728,13 +728,13 @@
   ],
   "knownGaps": [],
   "autoAudit": {
-    "generatedAt": "2026-05-05T22:56:44.560Z",
+    "generatedAt": "2026-05-06T06:51:13.644Z",
     "mode": "sync-real",
     "rulesEvaluated": 55,
     "rulesMatched": 55,
     "rulesUnmatched": 0,
     "sourceFiles": {
-      "count": 249,
+      "count": 289,
       "roots": [
         "app/src",
         "app/e2e",
@@ -821,7 +821,8 @@
       "fuente": "auto",
       "nota": "Auto: nombres vacios/duplicados de estados se validan y el JSON conserva nombres; falta contrato global completo de nombres.",
       "evidencia": [
-        "app/src/modelo/operaciones.ts",
+        "app/src/modelo/operaciones/entidad.ts",
+        "app/src/modelo/operaciones/estados.ts",
         "app/src/serializacion/json.ts",
         "app/src/modelo/operaciones.test.ts"
       ]
@@ -836,7 +837,7 @@
       "fuente": "auto",
       "nota": "Auto: creacion de objeto/proceso existe desde toolbar y kernel; falta gesto canonico de arrastre desde barra.",
       "evidencia": [
-        "app/src/modelo/operaciones.ts",
+        "app/src/modelo/operaciones/creacion.ts",
         "app/src/ui/Toolbar.tsx",
         "app/src/modelo/operaciones.test.ts",
         "app/e2e/opm-smoke.spec.ts"
@@ -855,7 +856,7 @@
       "fuente": "auto",
       "nota": "Auto: esencia/afiliacion se editan en inspector, persisten en modelo y se proyectan con sombra fisica/dash ambiental.",
       "evidencia": [
-        "app/src/modelo/operaciones.ts",
+        "app/src/modelo/operaciones/entidad.ts",
         "app/src/ui/InspectorEntidad.tsx",
         "app/src/render/jointjs/proyeccion.ts",
         "app/src/modelo/constantes.ts"
@@ -877,7 +878,8 @@
       "evidencia": [
         "app/src/ui/Toolbar.tsx",
         "app/src/store/modelo.ts",
-        "app/src/modelo/operaciones.ts"
+        "app/src/modelo/operaciones/helpers.ts",
+        "app/src/modelo/operaciones/enlaces.ts"
       ]
     },
     {
@@ -893,7 +895,7 @@
       "fuente": "auto",
       "nota": "Auto: firmas, proyeccion y OPL de agregacion/instrumento/agente/invocacion estan cubiertas por kernel y pruebas.",
       "evidencia": [
-        "app/src/modelo/operaciones.ts",
+        "app/src/modelo/operaciones/helpers.ts",
         "app/src/opl/generar.ts",
         "app/src/render/jointjs/linkAssets.ts",
         "app/src/modelo/operaciones.test.ts",
@@ -911,8 +913,9 @@
       "fuente": "auto",
       "nota": "Auto: exhibicion/generalizacion/clasificacion existen en tipos, validacion, markers y OPL; faltan propiedades avanzadas OPCloud.",
       "evidencia": [
-        "app/src/modelo/tipos.ts",
-        "app/src/modelo/operaciones.ts",
+        "app/src/modelo/tipos/enlace.ts",
+        "app/src/modelo/operaciones/refinamiento.ts",
+        "app/src/modelo/operaciones/helpers.ts",
         "app/src/render/jointjs/linkAssets.ts",
         "app/src/opl/generar.ts",
         "assets/svg/links/structural/exhibition.svg",
@@ -932,7 +935,7 @@
       "fuente": "auto",
       "nota": "Auto: multiplicidad por extremo se valida, edita, serializa, renderiza y verbaliza en OPL.",
       "evidencia": [
-        "app/src/modelo/operaciones.ts",
+        "app/src/modelo/operaciones/enlaces.ts",
         "app/src/ui/InspectorEnlace.tsx",
         "app/src/render/jointjs/proyeccion.ts",
         "app/src/opl/generar.ts",
@@ -951,8 +954,8 @@
       "fuente": "auto",
       "nota": "Auto: vertices/segments de JointJS estan activos para enlaces editables y el kernel persiste vertices.",
       "evidencia": [
-        "app/src/render/jointjs/JointCanvas.tsx",
-        "app/src/modelo/operaciones.ts",
+        "app/src/render/jointjs/handlers/toolsEnlace.ts",
+        "app/src/modelo/operaciones/apariencias.ts",
         "app/src/serializacion/json.ts",
         "app/e2e/opm-smoke.spec.ts"
       ]
@@ -999,7 +1002,7 @@
         "app/src/ui/ArbolOpd.tsx",
         "app/src/ui/arbol/NodoOpd.tsx",
         "app/src/store/modelo.ts",
-        "app/src/modelo/operaciones.ts",
+        "app/src/modelo/operaciones/refinamiento.ts",
         "app/src/opl/generar.ts",
         "app/e2e/opm-smoke.spec.ts"
       ]
@@ -1089,7 +1092,7 @@
       "fuente": "auto",
       "nota": "Auto: descomposicion de proceso crea OPD hijo, subprocesos iniciales, enlaces derivados y OPL/render de contorno.",
       "evidencia": [
-        "app/src/modelo/operaciones.ts",
+        "app/src/modelo/operaciones/refinamiento.ts",
         "app/src/render/jointjs/proyeccion.ts",
         "app/src/opl/generar.ts",
         "app/src/modelo/operaciones.test.ts"
@@ -1105,7 +1108,8 @@
       "fuente": "auto",
       "nota": "Auto: reanclaje de enlaces externos derivados y split de effect existen; falta UX canonica completa de edicion sobre contorno.",
       "evidencia": [
-        "app/src/modelo/operaciones.ts",
+        "app/src/modelo/operaciones/enlaces.ts",
+        "app/src/modelo/operaciones/eliminacion.ts",
         "app/src/ui/inspectorEnlace/SeccionReanclaje.tsx",
         "app/src/store/modelo.ts",
         "app/src/modelo/operaciones.test.ts"
@@ -1128,7 +1132,7 @@
       "evidencia": [
         "app/src/store/modelo.ts",
         "app/src/ui/InspectorEntidad.tsx",
-        "app/src/modelo/operaciones.ts"
+        "app/src/modelo/operaciones/apariencias.ts"
       ]
     },
     {
@@ -1144,7 +1148,7 @@
       "fuente": "auto",
       "nota": "Auto: inspector y kernel manejan estados de objeto; faltan gestos contextuales y toolbar canonica de estados.",
       "evidencia": [
-        "app/src/modelo/operaciones.ts",
+        "app/src/modelo/operaciones/estados.ts",
         "app/src/ui/InspectorEntidad.tsx",
         "app/src/render/jointjs/proyeccion.ts"
       ]
@@ -1186,7 +1190,8 @@
         "app/src/ui/inspectorEnlace/SeccionExtremos.tsx",
         "app/src/render/jointjs/composers/enlace.ts",
         "app/src/render/jointjs/estadoTargets.ts",
-        "app/src/render/jointjs/JointCanvas.tsx",
+        "app/src/render/jointjs/handlers/seleccion.ts",
+        "app/src/render/jointjs/handlers/helpers.ts",
         "app/src/store/modelo.ts",
         "app/src/serializacion/validarEnlaces.ts",
         "app/src/modelo/operaciones.test.ts",
@@ -1222,7 +1227,7 @@
       "fuente": "auto",
       "nota": "Auto: existe splitEffectEnPar para transformar effect en consumo/resultado intermedio; falta gesto visual canonico.",
       "evidencia": [
-        "app/src/modelo/operaciones.ts",
+        "app/src/modelo/operaciones/eliminacion.ts",
         "app/src/modelo/operaciones.test.ts"
       ]
     },
@@ -1307,7 +1312,8 @@
       "evidencia": [
         "app/src/modelo/plegado.ts",
         "app/src/store/modelo.ts",
-        "app/src/render/jointjs/JointCanvas.tsx",
+        "app/src/render/jointjs/handlers/drag.ts",
+        "app/src/render/jointjs/handlers/helpers.ts",
         "app/src/render/jointjs/composers/plegado.ts",
         "app/src/opl/generadores/plegado.ts",
         "app/src/modelo/plegado.test.ts",
@@ -1328,7 +1334,7 @@
       "fuente": "auto",
       "nota": "Auto: despliegue y multiples apariencias estan modelados para OPDs; faltan propiedades completas de apariencia equivalentes a OPCloud.",
       "evidencia": [
-        "app/src/modelo/operaciones.ts",
+        "app/src/modelo/operaciones/refinamiento.ts",
         "app/src/ui/inspector/SeccionRefinamiento.tsx",
         "app/src/serializacion/json.ts"
       ]
@@ -1435,7 +1441,7 @@
       "fuente": "auto",
       "nota": "Auto: condicion/evento/NO viven como Modificador sobre Enlace, se editan desde Inspector, se serializan, se proyectan como badges y generan OPL distintiva.",
       "evidencia": [
-        "app/src/modelo/tipos.ts",
+        "app/src/modelo/tipos/enlace.ts",
         "app/src/modelo/modificadores.ts",
         "app/src/ui/inspectorEnlace/SeccionMultiplicidad.tsx",
         "app/src/render/jointjs/composers/enlace.ts",
@@ -1511,7 +1517,8 @@
       "evidencia": [
         "app/src/modelo/plegado.ts",
         "app/src/render/jointjs/plegadoNesting.ts",
-        "app/src/render/jointjs/JointCanvas.tsx",
+        "app/src/render/jointjs/handlers/seleccion.ts",
+        "app/src/render/jointjs/handlers/helpers.ts",
         "app/src/store/modelo.ts",
         "app/src/ui/InspectorEntidad.tsx",
         "app/src/serializacion/json.ts",
@@ -1676,7 +1683,7 @@
       "nota": "Auto: alias, unidad, descripcion y URLs tipadas viven en modelo, serializacion, render, OPL, inspector y modal.",
       "evidencia": [
         "app/src/modelo/objetoMetadata.ts",
-        "app/src/modelo/tipos.ts",
+        "app/src/modelo/tipos/entidad.ts",
         "app/src/serializacion/validarEntidades.ts",
         "app/src/render/jointjs/composers/entidad.ts",
         "app/src/opl/generadores/refsHints.ts",
@@ -1701,7 +1708,7 @@
       "nota": "Auto: designaciones Default y Current son persistentes, excluyentes y unicas por entidad.",
       "evidencia": [
         "app/src/modelo/estadosDesignaciones.ts",
-        "app/src/modelo/tipos.ts",
+        "app/src/modelo/tipos/estado.ts",
         "app/src/serializacion/validarEstados.ts",
         "app/src/opl/generadores/designaciones.ts",
         "app/src/opl/generadores/duracionMetadata.ts",
@@ -1722,7 +1729,7 @@
       "nota": "Auto: duracion canonica de estado con unidad, min, nominal y max en modelo, serializacion, OPL y modal.",
       "evidencia": [
         "app/src/modelo/objetoDuracion.ts",
-        "app/src/modelo/tipos.ts",
+        "app/src/modelo/tipos/estado.ts",
         "app/src/serializacion/validarEstados.ts",
         "app/src/opl/generadores/duracionMetadata.ts",
         "app/src/ui/ModalDuracionEstado.tsx",
@@ -1762,7 +1769,7 @@
         "app/src/ui/App.tsx",
         "app/src/ui/divisorPanel.tsx",
         "app/src/ui/MenuContextualArbol.tsx",
-        "app/src/render/jointjs/JointCanvas.tsx"
+        "app/src/render/jointjs/handlers/zoom.ts"
       ]
     },
     {

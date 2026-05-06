@@ -437,7 +437,8 @@ function autoAuditRules() {
       confianza: "media-auto",
       nota: "Auto: nombres vacios/duplicados de estados se validan y el JSON conserva nombres; falta contrato global completo de nombres.",
       requires: [
-        { path: "app/src/modelo/operaciones.ts", all: ["validarNombreEstado", "renombrarEntidad", "renombrarEstado"] },
+        { path: "app/src/modelo/operaciones/entidad.ts", all: ["renombrarEntidad"] },
+        { path: "app/src/modelo/operaciones/estados.ts", all: ["validarNombreEstado", "renombrarEstado"] },
         { path: "app/src/serializacion/json.ts", all: ["nombre", "hidratarModelo"] },
         { path: "app/src/modelo/operaciones.test.ts", any: ["duplicado", "vacio", "renombrarEstado"] },
       ],
@@ -448,7 +449,7 @@ function autoAuditRules() {
       confianza: "alta-auto",
       nota: "Auto: creacion de objeto/proceso existe desde toolbar y kernel; falta gesto canonico de arrastre desde barra.",
       requires: [
-        { path: "app/src/modelo/operaciones.ts", all: ["export function crearObjeto", "export function crearProceso"] },
+        { path: "app/src/modelo/operaciones/creacion.ts", all: ["export function crearObjeto", "export function crearProceso"] },
         { path: "app/src/ui/Toolbar.tsx", all: ["crearObjetoDemo", "crearProcesoDemo", ">Objeto<", ">Proceso<"] },
         { path: "app/src/modelo/operaciones.test.ts", any: ["crearObjeto", "crearProceso"] },
       ],
@@ -460,7 +461,7 @@ function autoAuditRules() {
       confianza: "alta-auto",
       nota: "Auto: esencia/afiliacion se editan en inspector, persisten en modelo y se proyectan con sombra fisica/dash ambiental.",
       requires: [
-        { path: "app/src/modelo/operaciones.ts", all: ["export function cambiarEsencia", "export function cambiarAfiliacion"] },
+        { path: "app/src/modelo/operaciones/entidad.ts", all: ["export function cambiarEsencia", "export function cambiarAfiliacion"] },
         { path: "app/src/ui/InspectorEntidad.tsx", all: ["fijarEsencia", "fijarAfiliacion"] },
         { path: "app/src/render/jointjs/proyeccion.ts", all: ["strokeDasharray", "drop-shadow"] },
         { path: "app/src/modelo/constantes.ts", all: ["#70E483", "#3BC3FF"] },
@@ -474,7 +475,8 @@ function autoAuditRules() {
       requires: [
         { path: "app/src/ui/Toolbar.tsx", all: ["TIPOS_ENLACE", "elegirTipoEnlace"] },
         { path: "app/src/store/modelo.ts", all: ["elegirTipoEnlace(tipo)", "crearEnlace", "modoEnlace"] },
-        { path: "app/src/modelo/operaciones.ts", all: ["validarFirmaEnlace", "export function crearEnlace"] },
+        { path: "app/src/modelo/operaciones/helpers.ts", all: ["validarFirmaEnlace"] },
+        { path: "app/src/modelo/operaciones/enlaces.ts", all: ["export function crearEnlace"] },
       ],
     },
     {
@@ -483,7 +485,7 @@ function autoAuditRules() {
       confianza: "alta-auto",
       nota: "Auto: firmas, proyeccion y OPL de agregacion/instrumento/agente/invocacion estan cubiertas por kernel y pruebas.",
       requires: [
-        { path: "app/src/modelo/operaciones.ts", all: ["\"agregacion\"", "\"instrumento\"", "\"agente\"", "\"invocacion\"", "validarFirmaEnlace"] },
+        { path: "app/src/modelo/operaciones/helpers.ts", all: ["\"agregacion\"", "\"instrumento\"", "\"agente\"", "\"invocacion\"", "validarFirmaEnlace"] },
         { path: "app/src/opl/generar.ts", all: ["maneja", "requiere", "invoca", "consta"] },
         { path: "app/src/render/jointjs/linkAssets.ts", all: ["agente", "instrumento", "invocacion", "agregacion"] },
         { path: "app/src/modelo/operaciones.test.ts", all: ["valida firma de agente", "invocacion"] },
@@ -496,8 +498,9 @@ function autoAuditRules() {
       confianza: "alta-auto",
       nota: "Auto: exhibicion/generalizacion/clasificacion existen en tipos, validacion, markers y OPL; faltan propiedades avanzadas OPCloud.",
       requires: [
-        { path: "app/src/modelo/tipos.ts", all: ["\"exhibicion\"", "\"generalizacion\"", "\"clasificacion\""] },
-        { path: "app/src/modelo/operaciones.ts", all: ["desplegarObjeto", "validarFirmaEnlace", "modo"] },
+        { path: "app/src/modelo/tipos/enlace.ts", all: ["\"exhibicion\"", "\"generalizacion\"", "\"clasificacion\""] },
+        { path: "app/src/modelo/operaciones/refinamiento.ts", all: ["desplegarObjeto", "modo"] },
+        { path: "app/src/modelo/operaciones/helpers.ts", all: ["validarFirmaEnlace"] },
         { path: "app/src/render/jointjs/linkAssets.ts", all: ["exhibicion", "generalizacion", "clasificacion"] },
         { path: "app/src/opl/generar.ts", all: ["exhibe", "es un", "instancia de"] },
       ],
@@ -509,7 +512,7 @@ function autoAuditRules() {
       confianza: "alta-auto",
       nota: "Auto: multiplicidad por extremo se valida, edita, serializa, renderiza y verbaliza en OPL.",
       requires: [
-        { path: "app/src/modelo/operaciones.ts", all: ["validarMultiplicidad", "ajustarMultiplicidad"] },
+        { path: "app/src/modelo/operaciones/enlaces.ts", all: ["validarMultiplicidad", "ajustarMultiplicidad"] },
         { path: "app/src/ui/InspectorEnlace.tsx", all: ["multiplicidadOrigen", "multiplicidadDestino", "validarMultiplicidad"] },
         { path: "app/src/render/jointjs/proyeccion.ts", all: ["multiplicidadOrigen", "multiplicidadDestino"] },
         { path: "app/src/opl/generar.ts", all: ["multiplicidadPlural", "nombreOplConMultiplicidad"] },
@@ -522,8 +525,8 @@ function autoAuditRules() {
       confianza: "alta-auto",
       nota: "Auto: vertices/segments de JointJS estan activos para enlaces editables y el kernel persiste vertices.",
       requires: [
-        { path: "app/src/render/jointjs/JointCanvas.tsx", all: ["linkTools.Vertices", "linkTools.Segments", "actualizarVerticesEnlace"] },
-        { path: "app/src/modelo/operaciones.ts", all: ["actualizarVerticesEnlace", "vertices"] },
+        { path: "app/src/render/jointjs/handlers/toolsEnlace.ts", all: ["linkTools.Vertices", "linkTools.Segments"] },
+        { path: "app/src/modelo/operaciones/apariencias.ts", all: ["actualizarVerticesEnlace", "vertices"] },
         { path: "app/src/serializacion/json.ts", all: ["vertices"] },
       ],
       evidenciaExtra: ["app/e2e/opm-smoke.spec.ts"],
@@ -550,7 +553,8 @@ function autoAuditRules() {
         { path: "app/src/ui/ArbolOpd.tsx", any: ["cambiarOpdActivo", "padreId", "ArbolOpd"] },
         { path: "app/src/ui/arbol/NodoOpd.tsx", any: ["padreId", "nombreNodo", "NodoOpd"] },
         { path: "app/src/store/modelo.ts", all: ["cambiarOpdActivo", "opdActivoId"] },
-        { path: "app/src/modelo/operaciones.ts", all: ["opdPadreId", "opdHijoId"] },
+        { path: "app/src/modelo/operaciones/refinamiento.ts", all: ["opdPadreId"] },
+        { path: "app/src/modelo/operaciones/refinamiento.ts", all: ["opdHijoId"] },
         { path: "app/src/opl/generar.ts", all: ["opdId", "modelo.opdRaizId"] },
       ],
       evidenciaExtra: ["app/e2e/opm-smoke.spec.ts"],
@@ -606,7 +610,7 @@ function autoAuditRules() {
       confianza: "alta-auto",
       nota: "Auto: descomposicion de proceso crea OPD hijo, subprocesos iniciales, enlaces derivados y OPL/render de contorno.",
       requires: [
-        { path: "app/src/modelo/operaciones.ts", all: ["descomponerProceso", "subprocesosInicialesInzoom", "refrescarEnlacesExternosDerivados"] },
+        { path: "app/src/modelo/operaciones/refinamiento.ts", all: ["descomponerProceso", "subprocesosInicialesInzoom", "refrescarEnlacesExternosDerivados"] },
         { path: "app/src/render/jointjs/proyeccion.ts", all: ["contornoRefinamiento", "modoPlegadoApariencia"] },
         { path: "app/src/opl/generar.ts", all: ["oracionRefinamiento", "se descompone"] },
         { path: "app/src/modelo/operaciones.test.ts", all: ["descompone proceso en OPD hijo", "subprocesos"] },
@@ -618,7 +622,8 @@ function autoAuditRules() {
       confianza: "alta-auto",
       nota: "Auto: reanclaje de enlaces externos derivados y split de effect existen; falta UX canonica completa de edicion sobre contorno.",
       requires: [
-        { path: "app/src/modelo/operaciones.ts", all: ["reanclarEnlaceExternoDerivado", "splitEffectEnPar"] },
+        { path: "app/src/modelo/operaciones/enlaces.ts", all: ["reanclarEnlaceExternoDerivado"] },
+        { path: "app/src/modelo/operaciones/eliminacion.ts", all: ["splitEffectEnPar"] },
         { path: "app/src/ui/inspectorEnlace/SeccionReanclaje.tsx", all: ["Reanclar a subproceso"] },
         { path: "app/src/store/modelo.ts", any: ["reanclarEnlaceExternoDerivado"] },
         { path: "app/src/modelo/operaciones.test.ts", all: ["reanclarEnlaceExternoDerivado", "splitEffectEnPar"] },
@@ -632,7 +637,7 @@ function autoAuditRules() {
       requires: [
         { path: "app/src/store/modelo.ts", all: ["opdActivoId", "crearObjetoDemo", "crearProcesoDemo", "moverApariencia"] },
         { path: "app/src/ui/InspectorEntidad.tsx", any: ["renombrarSeleccionada", "renombrar", "Inspector"] },
-        { path: "app/src/modelo/operaciones.ts", all: ["moverApariencia", "posicion"] },
+        { path: "app/src/modelo/operaciones/apariencias.ts", all: ["moverApariencia", "posicion"] },
       ],
     },
     {
@@ -641,7 +646,7 @@ function autoAuditRules() {
       confianza: "alta-auto",
       nota: "Auto: inspector y kernel manejan estados de objeto; faltan gestos contextuales y toolbar canonica de estados.",
       requires: [
-        { path: "app/src/modelo/operaciones.ts", all: ["crearEstadosIniciales", "agregarEstado", "renombrarEstado"] },
+        { path: "app/src/modelo/operaciones/estados.ts", all: ["crearEstadosIniciales", "agregarEstado", "renombrarEstado"] },
         { path: "app/src/ui/InspectorEntidad.tsx", all: ["Estados", "onAgregarEstado", "onRenombrar"] },
         { path: "app/src/render/jointjs/proyeccion.ts", all: ["estadosVisibles", "markupConEstados", "attrsConEstados"] },
       ],
@@ -670,7 +675,8 @@ function autoAuditRules() {
         { path: "app/src/ui/inspectorEnlace/SeccionExtremos.tsx", all: ["Extremos de estado", "extremoEstado"] },
         { path: "app/src/render/jointjs/composers/enlace.ts", any: ["puntoCapsulaEstado", "extremo.kind === \"estado\""] },
         { path: "app/src/render/jointjs/estadoTargets.ts", all: ["targetsEstado", "stateCapsule", "stateLabel"] },
-        { path: "app/src/render/jointjs/JointCanvas.tsx", all: ["seleccionarEstadoComoExtremo", "jointSelector", "closest(\"[joint-selector]\")"] },
+        { path: "app/src/render/jointjs/handlers/seleccion.ts", all: ["seleccionarEstadoComoExtremo"] },
+        { path: "app/src/render/jointjs/handlers/helpers.ts", all: ["jointSelector", "closest(\"[joint-selector]\")"] },
         { path: "app/src/store/modelo.ts", all: ["seleccionarEstadoComoExtremo", "extremoEstado(estadoId)"] },
         { path: "app/src/serializacion/validarEnlaces.ts", all: ["validarExtremoEnlace", "kind === \"estado\""] },
       ],
@@ -693,7 +699,7 @@ function autoAuditRules() {
       confianza: "media-auto",
       nota: "Auto: existe splitEffectEnPar para transformar effect en consumo/resultado intermedio; falta gesto visual canonico.",
       requires: [
-        { path: "app/src/modelo/operaciones.ts", all: ["splitEffectEnPar", "consumo", "resultado"] },
+        { path: "app/src/modelo/operaciones/eliminacion.ts", all: ["splitEffectEnPar", "consumo", "resultado"] },
         { path: "app/src/modelo/operaciones.test.ts", all: ["splitEffectEnPar convierte efecto"] },
       ],
     },
@@ -726,7 +732,7 @@ function autoAuditRules() {
       requires: [
         { path: "app/src/modelo/plegado.ts", all: ["cambiarModoPlegado", "modoPlegadoApariencia"] },
         { path: "app/src/ui/InspectorEntidad.tsx", all: ["cambiarModoPlegado", "Plegado"] },
-        { path: "app/src/render/jointjs/JointCanvas.tsx", all: ["cambiarModoPlegadoApariencia"] },
+        { path: "app/src/render/jointjs/JointCanvas.tsx", any: ["cambiarModoPlegadoApariencia", "cambiarModoPlegadoAparienciaRef"] },
       ],
     },
     {
@@ -749,7 +755,8 @@ function autoAuditRules() {
       requires: [
         { path: "app/src/modelo/plegado.ts", all: ["extraerParteDePlegado", "reinsertarParteEnPlegado", "contarPartesOcultas", "filasPlegadoParcial"] },
         { path: "app/src/store/modelo.ts", all: ["extraerParteDePlegado", "reinsertarParteEnPlegado"] },
-        { path: "app/src/render/jointjs/JointCanvas.tsx", all: ["element:pointerdblclick", "parteEntidadDesdeSelector"] },
+        { path: "app/src/render/jointjs/handlers/drag.ts", all: ["element:pointerdblclick"] },
+        { path: "app/src/render/jointjs/handlers/helpers.ts", all: ["parteEntidadDesdeSelector"] },
         { path: "app/src/render/jointjs/composers/plegado.ts", any: ["proxy-plegado", "partCounter", "textDecoration", "PLEGADO"] },
         { path: "app/src/opl/generadores/plegado.ts", all: ["UMBRAL_PARTES_MAS", "partes más"] },
       ],
@@ -761,7 +768,7 @@ function autoAuditRules() {
       confianza: "media-auto",
       nota: "Auto: despliegue y multiples apariencias estan modelados para OPDs; faltan propiedades completas de apariencia equivalentes a OPCloud.",
       requires: [
-        { path: "app/src/modelo/operaciones.ts", all: ["desplegarObjeto", "apariencias", "entidadId"] },
+        { path: "app/src/modelo/operaciones/refinamiento.ts", all: ["desplegarObjeto", "apariencias", "entidadId"] },
         { path: "app/src/ui/inspector/SeccionRefinamiento.tsx", all: ["Desplegar", "DesplegarComo"] },
         { path: "app/src/serializacion/json.ts", all: ["apariencias"] },
       ],
@@ -837,7 +844,7 @@ function autoAuditRules() {
       confianza: "alta-auto",
       nota: "Auto: condicion/evento/NO viven como Modificador sobre Enlace, se editan desde Inspector, se serializan, se proyectan como badges y generan OPL distintiva.",
       requires: [
-        { path: "app/src/modelo/tipos.ts", all: ["export type Modificador", "\"condicion\"", "\"evento\"", "\"no\""] },
+        { path: "app/src/modelo/tipos/enlace.ts", all: ["export type Modificador", "\"condicion\"", "\"evento\"", "\"no\""] },
         { path: "app/src/modelo/modificadores.ts", all: ["aplicarModificador", "quitarModificador", "validarMetadatosEnlace"] },
         { path: "app/src/ui/inspectorEnlace/SeccionMultiplicidad.tsx", all: ["modificador-enlace-select", "Condición", "Evento", "NO"] },
         { path: "app/src/render/jointjs/composers/enlace.ts", any: ["textoModificador", "etiquetaBadgeModificador", "¬"] },
@@ -890,7 +897,8 @@ function autoAuditRules() {
       requires: [
         { path: "app/src/modelo/plegado.ts", all: ["crearEnlaceConExtremoPlegado", "partesDePlegadoOrdenadas", "cambiarOrdenPartes", "ordenPartes"] },
         { path: "app/src/render/jointjs/plegadoNesting.ts", all: ["filasPlegadoConNesting", "partePlegadaTienePartes", "indicadorNesting"] },
-        { path: "app/src/render/jointjs/JointCanvas.tsx", all: ["seleccionarPartePlegada", "parteEntidadDesdeSelector"] },
+        { path: "app/src/render/jointjs/handlers/seleccion.ts", all: ["seleccionarPartePlegada"] },
+        { path: "app/src/render/jointjs/handlers/helpers.ts", all: ["parteEntidadDesdeSelector"] },
         { path: "app/src/store/modelo.ts", all: ["crearEnlaceConExtremoPlegado", "seleccionarPartePlegada", "cambiarOrdenPartesSeleccionado"] },
         { path: "app/src/ui/InspectorEntidad.tsx", any: ["Orden de partes", "cambiarOrdenPartes", "Inspector"] },
         { path: "app/src/serializacion/json.ts", all: ["ordenPartes", "validarOrdenPartes"] },
@@ -986,7 +994,7 @@ function autoAuditRules() {
       nota: "Auto: alias, unidad, descripcion y URLs tipadas viven en modelo, serializacion, render, OPL, inspector y modal.",
       requires: [
         { path: "app/src/modelo/objetoMetadata.ts", all: ["editarAlias", "editarUnidad", "editarDescripcion", "agregarUrl", "eliminarUrl", "parsearNombreCompuesto"] },
-        { path: "app/src/modelo/tipos.ts", all: ["alias?:", "unidad?:", "descripcion?:", "urls?:", "UrlObjetoTipada"] },
+        { path: "app/src/modelo/tipos/entidad.ts", all: ["alias?:", "unidad?:", "descripcion?:", "urls?:", "UrlObjetoTipada"] },
         { path: "app/src/serializacion/validarEntidades.ts", any: ["validarEntidades", "alias", "urls"] },
         { path: "app/src/render/jointjs/composers/entidad.ts", any: ["aliasVisibles", "__deepOpmUiAliasVisibles", "descripcionesVisibles"] },
         { path: "app/src/opl/generadores/refsHints.ts", any: ["entidad.alias", "tiene unidad", "se describe como"] },
@@ -1004,7 +1012,7 @@ function autoAuditRules() {
       nota: "Auto: designaciones Default y Current son persistentes, excluyentes y unicas por entidad.",
       requires: [
         { path: "app/src/modelo/estadosDesignaciones.ts", all: ["designarDefault", "designarCurrent", "Default y Current son excluyentes", "reemplazarUnicaPorEntidad"] },
-        { path: "app/src/modelo/tipos.ts", all: ["DesignacionEstado", "\"default\"", "\"current\""] },
+        { path: "app/src/modelo/tipos/estado.ts", all: ["DesignacionEstado", "\"default\"", "\"current\""] },
         { path: "app/src/serializacion/validarEstados.ts", all: ["validarDesignacionesEstado", "default", "current"] },
         { path: "app/src/opl/generadores/designaciones.ts", all: ["textoDesignacionEstado"] },
         { path: "app/src/opl/generadores/duracionMetadata.ts", all: ["Default", "Current"] },
@@ -1019,7 +1027,7 @@ function autoAuditRules() {
       nota: "Auto: duracion canonica de estado con unidad, min, nominal y max en modelo, serializacion, OPL y modal.",
       requires: [
         { path: "app/src/modelo/objetoDuracion.ts", all: ["fijarDuracion", "validarDuracion", "duracion.min", "duracion.nominal", "duracion.max"] },
-        { path: "app/src/modelo/tipos.ts", all: ["duracion?:", "DuracionTemporal", "UnidadTiempo"] },
+        { path: "app/src/modelo/tipos/estado.ts", all: ["duracion?:", "DuracionTemporal", "UnidadTiempo"] },
         { path: "app/src/serializacion/validarEstados.ts", all: ["validarDuracionEstado", "duracion.min", "duracion.nominal", "duracion.max"] },
         { path: "app/src/opl/generadores/duracionMetadata.ts", all: ["Duracion Minima", "respectivamente"] },
         { path: "app/src/ui/ModalDuracionEstado.tsx", all: ["unidad", "min", "nominal", "max"] },
@@ -1036,7 +1044,7 @@ function autoAuditRules() {
         { path: "app/src/ui/App.tsx", all: ["Ctrl+S", "Ctrl+Tab", "registrarAtajo"] },
         { path: "app/src/ui/divisorPanel.tsx", all: ["limitarAnchoPanel", "onDblClick"] },
         { path: "app/src/ui/MenuContextualArbol.tsx", any: ["Renombrar", "Eliminar"] },
-        { path: "app/src/render/jointjs/JointCanvas.tsx", any: ["Ctrl+rueda", "wheel", "registrarAtajo"] },
+        { path: "app/src/render/jointjs/handlers/zoom.ts", any: ["wheel", "registrarAtajo"] },
       ],
     },
     {
