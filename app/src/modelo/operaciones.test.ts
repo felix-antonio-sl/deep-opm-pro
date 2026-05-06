@@ -124,6 +124,42 @@ describe("operaciones de modelo", () => {
     expect(renombrado.value.entidades[entidad.id]?.nombre).toBe("OnStar System");
   });
 
+  test("rechaza renombrar entidad a nombre vacio o solo whitespace (HU-SHARED-009)", () => {
+    const creado = crearObjeto(crearModelo(), "opd-1", { x: 0, y: 0 }, "Sistema");
+    if (!creado.ok) throw new Error("preparacion falló");
+    const entidad = Object.values(creado.value.entidades)[0]!;
+    const vacio = renombrarEntidad(creado.value, entidad.id, "   ");
+    expect(vacio.ok).toBe(false);
+    if (vacio.ok) return;
+    expect(vacio.error).toContain("vacío");
+  });
+
+  test("rechaza renombrar entidad a nombre duplicado en mismo OPD (HU-SHARED-009)", () => {
+    let modelo = crearModelo();
+    const a = crearObjeto(modelo, "opd-1", { x: 0, y: 0 }, "Documento");
+    if (!a.ok) throw new Error("preparacion falló");
+    modelo = a.value;
+    const b = crearObjeto(modelo, "opd-1", { x: 200, y: 0 }, "Reporte");
+    if (!b.ok) throw new Error("preparacion falló");
+    modelo = b.value;
+    const reporteId = Object.values(modelo.entidades).find((e) => e.nombre === "Reporte")!.id;
+    const duplicado = renombrarEntidad(modelo, reporteId, "Documento", "opd-1");
+    expect(duplicado.ok).toBe(false);
+    if (duplicado.ok) return;
+    expect(duplicado.error).toContain("Ya existe");
+  });
+
+  test("permite mismo nombre en OPDs distintos (HU-SHARED-009)", () => {
+    let modelo = crearModelo();
+    const a = crearObjeto(modelo, "opd-1", { x: 0, y: 0 }, "Sistema");
+    if (!a.ok) throw new Error("preparacion falló");
+    modelo = a.value;
+    // Ahora un OPD distinto sin apariencia compartida
+    modelo.opds["opd-2"] = { id: "opd-2", nombre: "OPD 2", padreId: "opd-1", apariencias: {}, enlaces: {} };
+    const b = crearObjeto(modelo, "opd-2", { x: 0, y: 0 }, "Sistema");
+    expect(b.ok).toBe(true);
+  });
+
   test("cambia esencia y afiliacion de una entidad", () => {
     const creado = crearObjeto(crearModelo(), "opd-1", { x: 0, y: 0 }, "Objeto Ambiental");
     expect(creado.ok).toBe(true);

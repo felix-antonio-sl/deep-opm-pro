@@ -1329,6 +1329,24 @@ describe("mapa del sistema", () => {
     expect(exportarModelo(store.getState().modelo)).not.toContain("preferenciasUi");
     expect(exportarModelo(store.getState().modelo)).not.toContain("nombresArbolVisibles");
   });
+
+  test("readOnly bloquea commitModelo y emite mensaje (HU-SHARED-003)", () => {
+    expect(store.getState().readOnly).toBe(false);
+    store.getState().crearObjetoDemo();
+    expect(cantidadEntidades()).toBe(1);
+
+    store.getState().activarReadOnly(true);
+    expect(store.getState().readOnly).toBe(true);
+
+    store.getState().crearObjetoDemo();
+    expect(cantidadEntidades()).toBe(1);
+    expect(store.getState().mensaje).toContain("solo lectura");
+
+    store.getState().activarReadOnly(false);
+    expect(store.getState().readOnly).toBe(false);
+    store.getState().crearObjetoDemo();
+    expect(cantidadEntidades()).toBe(2);
+  });
 });
 
 function modeloConTresOpds(): Modelo {

@@ -22,7 +22,7 @@ export {
 } from "./operaciones/refinamiento";
 export type { DescomposicionProceso, DespliegueObjeto } from "./operaciones/refinamiento";
 
-export { renombrarEntidad, cambiarEsencia, cambiarAfiliacion } from "./operaciones/entidad";
+export { renombrarEntidad, cambiarEsencia, cambiarAfiliacion, validarNombreEntidad } from "./operaciones/entidad";
 
 export {
   estadosDeEntidad,

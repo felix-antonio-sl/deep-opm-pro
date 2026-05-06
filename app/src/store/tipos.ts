@@ -248,6 +248,13 @@ export interface OpmStore {
   uiAliasVisibles: boolean;
   uiDescripcionesVisibles: boolean;
   gridConfig?: GridConfig;
+  /**
+   * Flag de solo-lectura. Cuando es `true`, todas las acciones que mutan
+   * el modelo se abortan en `commitModelo` con mensaje "Modelo en solo
+   * lectura. Usa Guardar como para crear copia editable.".
+   * (HU-SHARED-003 ronda 11 L5).
+   */
+  readOnly: boolean;
   modalUrlsAbierto: Id | null;
   modalImagenAbierto: Id | null;
   uiModoImagenGlobal: ModoImagenEntidad | null;
@@ -363,6 +370,7 @@ export interface OpmStore {
   cambiarModoImagenEntidad: (entidadId: Id, modo: ModoImagenEntidad) => void;
   alternarModoImagenEntidad: (entidadId: Id) => void;
   fijarModoImagenGlobal: (modo: ModoImagenEntidad | null) => void;
+  activarReadOnly: (activo: boolean) => void;
   designarEstadoComo: (estadoId: Id, designacion: DesignacionEstado) => void;
   quitarDesignacionEstado: (estadoId: Id, designacion: DesignacionEstado) => void;
   suprimirEstadoPorId: (estadoId: Id) => void;

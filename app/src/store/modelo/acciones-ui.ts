@@ -376,6 +376,10 @@ export function accionesUI(set: SetStore, get: GetStore): Partial<ModeloSlice> {
       fijarOpcionesProyeccionGlobal({ aliasVisibles: uiAliasVisibles, descripcionesVisibles: uiDescripcionesVisibles, modoImagenGlobal: modo });
       set({ uiModoImagenGlobal: modo, modelo: { ...modelo } });
     },
+
+    activarReadOnly(activo) {
+      set({ readOnly: activo, mensaje: activo ? "Modelo en solo lectura" : null });
+    },
   };
 }
 

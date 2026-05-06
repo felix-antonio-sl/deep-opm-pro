@@ -225,6 +225,7 @@ export const createUiPanelSlice: CrearSlice<UiPanelSlice> = (set, get) => ({
   dialogoCargarModeloAbierto: false,
   uiAliasVisibles: true,
   uiDescripcionesVisibles: true,
+  readOnly: false,
   modalUrlsAbierto: null,
   modalImagenAbierto: null,
   uiModoImagenGlobal: null,

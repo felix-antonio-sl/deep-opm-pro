@@ -260,6 +260,10 @@ export function commitModelo(
   siguiente: Modelo,
   extra: Partial<OpmStore> = {},
 ): void {
+  if (storeApi?.getState().readOnly) {
+    set({ mensaje: "Modelo en solo lectura. Usa Guardar como para crear copia editable." });
+    return;
+  }
   const sincronizado = sincronizarAbanicos(siguiente);
   if (previo === sincronizado || exportarModelo(previo) === exportarModelo(sincronizado)) {
     set(extra);
