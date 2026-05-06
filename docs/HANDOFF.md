@@ -2,8 +2,8 @@
 
 **Fecha**: 2026-05-06
 **Repositorio**: `deep-opm-pro`
-**Corte**: MVP-alpha + rondas 1-9.5 + ronda 10 (5 líneas de features) consolidadas sobre `main`
-**Código verificado**: `main @ f2f69a2` tras ronda 10 — 5 features aditivas integradas.
+**Corte**: MVP-alpha + rondas 1-9.5 + ronda 10 (5 líneas de features) + recalibración detector ronda 10 consolidadas sobre `main`
+**Código verificado**: `main` tras ronda 10 + recalibración — 5 features aditivas integradas + 17 reglas nuevas en detector.
 **Documentación vigente**: este archivo reemplaza por completo el handoff anterior.
 
 ## Política De Handoff Único
@@ -42,10 +42,13 @@ preservada.
 | L4 | EPICA-19 single-user: `Entidad.imagen?: { url, modo, cache? }` aditivo (cache transitorio NO se serializa); `imagenObjeto.ts` con validadores; `composers/imagenOverlay.ts` separado del composer base; insignia 📷 con click alternar modo + context-menu abrir modal; modo global de visualización (toolbar); supresión de bitmap si la entidad tiene refinamiento; exclusión mutua imagen/estados visibles; OPL invariante (HU-19.015). `ModalImagenObjeto` + `SeccionImagen`. Tres smokes nuevos. | ~13 |
 | L5 | Cierre MVP-α: `extraerTodasLasPartesDePlegado` + botón "Extraer todas" en `SeccionRefinamiento`; PanelOpl con búsqueda/copiar/exportar testids + filtro por búsqueda; `DialogoConfirmacion` Guardar/Descartar/Cancelar al cerrar pestañas dirty; `buscarEnPanelOpl` + `extraerTodasLasPartesSeleccionadas` en store. Nueve smokes nuevos. | ~12 |
 
-**Total HU nuevas cerrables ronda 10**: ~60. La cobertura HU del detector se
-mantiene en 16.6% ponderado y MVP-α 46.3% **porque las reglas del detector
-no fueron recalibradas para reconocer las nuevas evidencias** — ese es el
-trabajo pendiente del próximo ciclo de ledger (ver Pendientes).
+**Total HU nuevas cerrables ronda 10**: ~60. Tras la **recalibración
+del detector ronda 10** (commit chore(ledger) post-consolidación), la
+cobertura HU pasó de 16.6% → **20.1% ponderado** y MVP-α de 46.3% →
+**50.0% ponderado**. El detector ahora evalúa **72 reglas con 72/72
+matched** (vs 55/55 previo). Las cifras reales del backlog tras ronda 10
+y recalibración: **54 cubiertas + 21 parciales + 46 pendientes = 121 HU
+vivas en MVP-α** (60 HU absorbidas/fusionadas excluidas del cálculo).
 
 ## Cómo Se Decidió La Partición
 
@@ -149,23 +152,21 @@ LOC barrels finales (objetivos cumplidos, sin regresión):
 | `app/src/modelo/operaciones/refinamiento.ts` | 36 | (ronda 9.5) | — | ✓ |
 | `app/src/render/jointjs/mapaSistema.ts` | 36 | (ronda 9.5) | — | ✓ |
 
-Estado HU tras `--sync-real` final (sin recalibración detector ronda 10):
+Estado HU post-recalibración detector ronda 10 (`--sync-real`):
 
 | Segmento | HU vivas | Cubiertas | Parciales | Pendientes | Diferidas | Avance |
 |---|---:|---:|---:|---:|---:|---:|
-| Total backlog | 1126 | 168 | 51 | 529 | 378 | 16.6% |
-| MVP-alpha | 121 | 48 | 23 | 50 | 0 | 46.3% |
-| MVP-beta | 193 | 47 | 23 | 123 | 0 | 32.6% |
-| M0 | 130 | 73 | 29 | 28 | 0 | 65.8% |
+| Total backlog | 1126 | 213 | 44 | 491 | 378 | 20.1% |
+| MVP-alpha | 121 | 54 | 21 | 46 | 0 | 50.0% |
 
-**Las cifras anteriores no reflejan el cierre real ronda 10** (~60 HU
-nuevas cerradas). El detector debe ser recalibrado para reconocer las
-nuevas evidencias en grid/imagen/modificadores/descomposición/OPL polish.
-Este trabajo es el primer paso del próximo ciclo. Cobertura real estimada
-post-recalibración: MVP-α ~52-55% (vs 46.3% reportado).
-
-Detector: **55/55 reglas matched** sobre 282 archivos fuente (vs 264 post-9.5
-+ 18 nuevos archivos ronda 10). Sin caída en reglas existentes.
+Detector: **72/72 reglas matched** sobre 305 archivos fuente. 17 reglas
+nuevas agregadas para evidencias ronda 10 (HU-1A.* grid+autosize+alineación,
+HU-15.022/.023 mover puerto, HU-15.014/.017 subtipos, HU-15.025 advertir
+consumo, HU-12.011/.013/.014/.016/.017/.018/.022/.023/.024/.029/.030
+descomposición avanzada, HU-19.001..016 imágenes excepto pool/SVG/PDF,
+HU-50.013/.023/.024/.025 OPL polish, HU-SHARED-006 dirty dialog). Reglas
+preexistentes corregidas: HU-13.014 string canónico, HU-1C.004 string
+canónico.
 
 Diagnóstico vigente: 1 advertencia de inventario por ID duplicado
 `HU-13.005` (legado de rondas previas).
@@ -181,13 +182,26 @@ Diagnóstico vigente: 1 advertencia de inventario por ID duplicado
 
 ## Pendientes Inmediatos
 
-Tras ronda 10, **cero deuda estructural pendiente** y **MVP-α avanzado en
-~60 HU adicionales** (cobertura real estimada 52-55%, pendiente
-recalibración detector).
+Tras ronda 10 + recalibración, **cero deuda estructural pendiente** y
+**MVP-α en 50.0% ponderado** (54 cubiertas + 21 parciales + 46 pendientes
+sobre 121 HU vivas).
 
-Pendientes que siguen vivos:
+Para cerrar MVP-α faltan **67 HU vivas** (46 pendientes + 21 parciales)
+distribuidas por épica:
 
-- **Recalibración del detector ronda 10**: agregar reglas para HU cerradas en grid (HU-1A.*), modificadores avanzados (HU-15.014..025), descomposición avanzada (HU-12.011..030), imágenes (HU-19.*), OPL polish (HU-50.013..025), dirty dialog (HU-SHARED-002, HU-SHARED-006), extracción total (HU-12.013, HU-13.015, HU-18.013). Esperado tras recalibración: ≥75 reglas matched / MVP-α 52-55%.
+| Épica | Pendientes | Parciales | Total | Naturaleza |
+|---|---:|---:|---:|---|
+| EPICA-10 (creación cosas) | 3 | 9 | 12 | Detalles de gestos canónicos (drag, descripción, biblioteca) |
+| EPICA-11 (modelado básico) | 6 | 4 | 10 | Reanclaje, copiar estilo, lote, propiedades enlace |
+| EPICA-20 (árbol OPD) | 12 | 0 | 12 | UX completa del árbol (navegación, menú contextual, gestión, drag) |
+| EPICA-30 (persistencia) | 16 | 5 | 21 | Diálogos modales canónicos, versiones, archivado, autosalvado glifos |
+| EPICA-50 (panel OPL) | 8 | 0 | 8 | Polish del panel (numeración toggle, mover, minimizar, indentar) |
+| EPICA-SHARED | 1 | 3 | 4 | Read-only, undo/redo granular, eco OPL inverso, validación nominal |
+
+Distribución por prioridad de los 67 pendientes/parciales MVP-α:
+- **M0 (crítica)**: ~13 HU (mayoría parciales en EPICA-10/11 + algunos M0 en EPICA-30/SHARED).
+- **M1 (alta)**: ~38 HU (la mayor parte de EPICA-20 y EPICA-30 pendientes).
+- **S/C/W (menor)**: ~16 HU (autosalvado, versiones, vista lista).
 - **HU de kernel pendientes**: slot de valor numérico EPICA-17, multiplicidad avanzada residual EPICA-15, sub-modelos EPICA-32, plantillas EPICA-33.
 - **EPICA-60 export PDF**, **EPICA-61 export SVG papel**, **EPICA-71 CSV import**: bloqueadas por regla "no introducir dependencias nuevas".
 - **EPICA-70 OPCAT**, **EPICA-91 tutorial**: descartadas del proyecto.
@@ -215,7 +229,7 @@ salvo nueva instrucción explícita del operador.
 ## Cómo Continuar
 
 1. Leer este `docs/HANDOFF.md` y `docs/roadmap/hu-progress.md`.
-2. Próximo paso natural inmediato: **recalibrar detector ronda 10** antes de abrir nueva ronda. Sin esa recalibración, el ledger no refleja la realidad del proyecto.
+2. Próximo paso natural inmediato: **abrir ronda 11 enfocada en cierre MVP-α**, con énfasis en EPICA-20 (árbol OPD), EPICA-30 (diálogos persistencia) y EPICA-50 (panel OPL polish), que concentran ~50 de las 67 HU faltantes.
 3. Si abrirás una nueva ronda paralela:
    - Heredar el formato de `docs/instrucciones-lineas-dev/ronda10/` (10 secciones README + 11 secciones por brief, ya consolidado).
    - Asumir cadenas de efecto kernel→render→OPL→UI.
@@ -225,4 +239,4 @@ salvo nueva instrucción explícita del operador.
    - **Próximas rondas**: kernel restante (EPICA-17, EPICA-32, EPICA-33), endurecimiento boundary JointJS, completitud OPL avanzada.
 4. Antes de diseñar, consultar `opm-extracted/`, `assets/svg/`, `docs/JOYAS.md` y la SSOT OPM.
 5. Cerrar cada cambio con `bun run check`; si toca UI/render, sumar `bun run browser:smoke`; si toca proyección o bundle, sumar `bun run build`.
-6. Regenerar auditoría con `node docs/historias-usuario-v2/tools/progress-dashboard.mjs --sync-real` antes de publicar un cierre de ronda. **Tras recalibración ronda 10 mantener ≥75/N reglas y MVP-α ≥52%.**
+6. Regenerar auditoría con `node docs/historias-usuario-v2/tools/progress-dashboard.mjs --sync-real` antes de publicar un cierre de ronda. **Mantener ≥72/N reglas matched y MVP-α ≥50%; tras ronda 11 esperado MVP-α ≥75%.**

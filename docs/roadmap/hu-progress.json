@@ -1,17 +1,17 @@
 {
   "schema": "deep-opm-pro.hu-progress-report.v1",
-  "generatedAt": "2026-05-06T11:40:37.608Z",
+  "generatedAt": "2026-05-06T12:48:02.730Z",
   "repoRoot": "/home/felix/projects/deep-opm-pro",
   "backlogRoot": "docs/historias-usuario-v2",
   "evidenceLedger": "docs/roadmap/hu-progress-evidence.json",
   "autoAudit": {
-    "generatedAt": "2026-05-06T09:04:17.077Z",
+    "generatedAt": "2026-05-06T12:48:02.730Z",
     "mode": "sync-real",
-    "rulesEvaluated": 55,
-    "rulesMatched": 55,
+    "rulesEvaluated": 72,
+    "rulesMatched": 72,
     "rulesUnmatched": 0,
     "sourceFiles": {
-      "count": 305,
+      "count": 323,
       "roots": [
         "app/src",
         "app/e2e",
@@ -43,14 +43,14 @@
   "summaries": {
     "total": {
       "total": 1126,
-      "cubierto": 168,
-      "parcial": 51,
-      "pendiente": 529,
+      "cubierto": 213,
+      "parcial": 44,
+      "pendiente": 491,
       "diferido": 378,
       "bloqueado": 0,
       "pesoTotal": 3004,
-      "pesoCubierto": 497.5,
-      "avance": 0.16561251664447404
+      "pesoCubierto": 603.5,
+      "avance": 0.20089880159786952
     },
     "inventario": {
       "totalParseadas": 1173,
@@ -60,70 +60,70 @@
     },
     "m0": {
       "total": 130,
-      "cubierto": 83,
-      "parcial": 29,
-      "pendiente": 18,
+      "cubierto": 90,
+      "parcial": 25,
+      "pendiente": 15,
       "diferido": 0,
       "bloqueado": 0,
       "pesoTotal": 333,
-      "pesoCubierto": 248,
-      "avance": 0.7447447447447447
+      "pesoCubierto": 258,
+      "avance": 0.7747747747747747
     },
     "alpha": {
       "total": 121,
-      "cubierto": 48,
-      "parcial": 23,
-      "pendiente": 50,
+      "cubierto": 54,
+      "parcial": 21,
+      "pendiente": 46,
       "diferido": 0,
       "bloqueado": 0,
       "pesoTotal": 326,
-      "pesoCubierto": 151,
-      "avance": 0.46319018404907975
+      "pesoCubierto": 163,
+      "avance": 0.5
     },
     "beta": {
       "total": 193,
-      "cubierto": 57,
-      "parcial": 23,
-      "pendiente": 113,
+      "cubierto": 69,
+      "parcial": 14,
+      "pendiente": 110,
       "diferido": 0,
       "bloqueado": 0,
       "pesoTotal": 545,
-      "pesoCubierto": 195.5,
-      "avance": 0.3587155963302752
+      "pesoCubierto": 218.5,
+      "avance": 0.40091743119266054
     },
     "byCut": {
       "alpha": {
         "total": 121,
-        "cubierto": 48,
-        "parcial": 23,
-        "pendiente": 50,
+        "cubierto": 54,
+        "parcial": 21,
+        "pendiente": 46,
         "diferido": 0,
         "bloqueado": 0,
         "pesoTotal": 326,
-        "pesoCubierto": 151,
-        "avance": 0.46319018404907975
+        "pesoCubierto": 163,
+        "avance": 0.5
       },
       "beta": {
         "total": 193,
-        "cubierto": 57,
-        "parcial": 23,
-        "pendiente": 113,
+        "cubierto": 69,
+        "parcial": 14,
+        "pendiente": 110,
         "diferido": 0,
         "bloqueado": 0,
         "pesoTotal": 545,
-        "pesoCubierto": 195.5,
-        "avance": 0.3587155963302752
+        "pesoCubierto": 218.5,
+        "avance": 0.40091743119266054
       },
       "gamma": {
         "total": 434,
-        "cubierto": 63,
-        "parcial": 5,
-        "pendiente": 366,
+        "cubierto": 90,
+        "parcial": 9,
+        "pendiente": 335,
         "diferido": 0,
         "bloqueado": 0,
         "pesoTotal": 1126,
-        "pesoCubierto": 151,
-        "avance": 0.1341030195381883
+        "pesoCubierto": 222,
+        "avance": 0.19715808170515098
       },
       "delta": {
         "total": 378,
@@ -151,47 +151,47 @@
     "byPriority": {
       "M0": {
         "total": 130,
-        "cubierto": 83,
-        "parcial": 29,
-        "pendiente": 18,
+        "cubierto": 90,
+        "parcial": 25,
+        "pendiente": 15,
         "diferido": 0,
         "bloqueado": 0,
         "pesoTotal": 333,
-        "pesoCubierto": 248,
-        "avance": 0.7447447447447447
+        "pesoCubierto": 258,
+        "avance": 0.7747747747747747
       },
       "M1": {
         "total": 161,
-        "cubierto": 49,
-        "parcial": 13,
-        "pendiente": 93,
+        "cubierto": 64,
+        "parcial": 11,
+        "pendiente": 80,
         "diferido": 6,
         "bloqueado": 0,
         "pesoTotal": 388,
-        "pesoCubierto": 130.5,
-        "avance": 0.33634020618556704
+        "pesoCubierto": 163.5,
+        "avance": 0.4213917525773196
       },
       "S": {
         "total": 471,
-        "cubierto": 31,
-        "parcial": 8,
-        "pendiente": 270,
+        "cubierto": 52,
+        "parcial": 4,
+        "pendiente": 253,
         "diferido": 162,
         "bloqueado": 0,
         "pesoTotal": 1247,
-        "pesoCubierto": 105,
-        "avance": 0.08420208500400962
+        "pesoCubierto": 159,
+        "avance": 0.12750601443464316
       },
       "C": {
         "total": 247,
-        "cubierto": 5,
-        "parcial": 1,
-        "pendiente": 140,
+        "cubierto": 7,
+        "parcial": 4,
+        "pendiente": 135,
         "diferido": 101,
         "bloqueado": 0,
         "pesoTotal": 661,
-        "pesoCubierto": 14,
-        "avance": 0.02118003025718608
+        "pesoCubierto": 23,
+        "avance": 0.03479576399394856
       },
       "W": {
         "total": 117,
@@ -232,26 +232,26 @@
       "11": {
         "titulo": "Canvas — modelado básico (agregación, multi-selección, enlaces procedurales, propiedades, alineación, borrado)",
         "total": 22,
-        "cubierto": 11,
+        "cubierto": 12,
         "parcial": 4,
-        "pendiente": 7,
+        "pendiente": 6,
         "diferido": 0,
         "bloqueado": 0,
         "pesoTotal": 56,
-        "pesoCubierto": 32,
-        "avance": 0.5714285714285714
+        "pesoCubierto": 34,
+        "avance": 0.6071428571428571
       },
       "12": {
         "titulo": "Canvas — descomposición de procesos",
         "total": 31,
-        "cubierto": 18,
-        "parcial": 10,
+        "cubierto": 26,
+        "parcial": 2,
         "pendiente": 3,
         "diferido": 0,
         "bloqueado": 0,
         "pesoTotal": 117,
-        "pesoCubierto": 85.5,
-        "avance": 0.7307692307692307
+        "pesoCubierto": 102.5,
+        "avance": 0.8760683760683761
       },
       "13": {
         "titulo": "Canvas — estados (designaciones, par entrada-salida, supresión, layout interno)",
@@ -280,14 +280,14 @@
       "15": {
         "titulo": "Canvas — enlaces avanzados (multiplicidad, rutas, XOR/O, condición/evento/NO, invocación)",
         "total": 23,
-        "cubierto": 18,
-        "parcial": 1,
-        "pendiente": 4,
+        "cubierto": 22,
+        "parcial": 0,
+        "pendiente": 1,
         "diferido": 0,
         "bloqueado": 0,
         "pesoTotal": 51,
-        "pesoCubierto": 43,
-        "avance": 0.8431372549019608
+        "pesoCubierto": 49,
+        "avance": 0.9607843137254902
       },
       "16": {
         "titulo": "Canvas — enlaces: propiedades, Tabla de Enlaces y estilo",
@@ -317,25 +317,25 @@
         "titulo": "Canvas — plegado parcial (vista compacta de refinadores intra-rectángulo)",
         "total": 15,
         "cubierto": 12,
-        "parcial": 2,
-        "pendiente": 1,
+        "parcial": 3,
+        "pendiente": 0,
         "diferido": 0,
         "bloqueado": 0,
         "pesoTotal": 43,
-        "pesoCubierto": 38,
-        "avance": 0.8837209302325582
+        "pesoCubierto": 39,
+        "avance": 0.9069767441860465
       },
       "19": {
         "titulo": "Canvas — imágenes incrustadas en cosas (URL, pool, alternar imagen/texto, exportación)",
         "total": 16,
-        "cubierto": 0,
+        "cubierto": 12,
         "parcial": 0,
-        "pendiente": 16,
+        "pendiente": 4,
         "diferido": 0,
         "bloqueado": 0,
         "pesoTotal": 38,
-        "pesoCubierto": 0,
-        "avance": 0
+        "pesoCubierto": 26,
+        "avance": 0.6842105263157895
       },
       "20": {
         "titulo": "Estructura — árbol OPD (navegación, orden, gestión, vistas derivadas)",
@@ -472,14 +472,14 @@
       "50": {
         "titulo": "Panel OPL-ES — lente bimodal, edición inversa y sincronización con el canvas",
         "total": 21,
-        "cubierto": 9,
-        "parcial": 1,
-        "pendiente": 11,
+        "cubierto": 13,
+        "parcial": 0,
+        "pendiente": 8,
         "diferido": 0,
         "bloqueado": 0,
         "pesoTotal": 55,
-        "pesoCubierto": 28,
-        "avance": 0.509090909090909
+        "pesoCubierto": 37,
+        "avance": 0.6727272727272727
       },
       "60": {
         "titulo": "Exportar a PDF — pipeline papel, opciones, selección de OPDs, integración Compartir",
@@ -592,14 +592,14 @@
       "1A": {
         "titulo": "Canvas — cuadrícula, imán, redimensión y alineación",
         "total": 18,
-        "cubierto": 0,
-        "parcial": 0,
-        "pendiente": 18,
+        "cubierto": 15,
+        "parcial": 3,
+        "pendiente": 0,
         "diferido": 0,
         "bloqueado": 0,
         "pesoTotal": 47,
-        "pesoCubierto": 0,
-        "avance": 0
+        "pesoCubierto": 44,
+        "avance": 0.9361702127659575
       },
       "1B": {
         "titulo": "Canvas — operaciones de traer conectados (hidratar OPD con cosas y enlaces existentes)",
@@ -796,14 +796,14 @@
       "SHARED": {
         "titulo": "Patrones transversales",
         "total": 9,
-        "cubierto": 1,
-        "parcial": 6,
+        "cubierto": 2,
+        "parcial": 5,
         "pendiente": 2,
         "diferido": 0,
         "bloqueado": 0,
         "pesoTotal": 48,
-        "pesoCubierto": 20,
-        "avance": 0.4166666666666667
+        "pesoCubierto": 21,
+        "avance": 0.4375
       }
     }
   },
@@ -1115,32 +1115,36 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/shared/HU-SHARED-006-dirty-state.md",
       "lineaInicio": 16,
       "corte": "alpha",
-      "estadoAvance": "parcial",
+      "estadoAvance": "cubierto",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto: dirty state se calcula contra snapshot guardado y hay confirmacion global antes de acciones destructivas; falta read-only completo. Slices ronda 8: runtime + persistencia.",
+      "nota": "Auto ronda 10 L5: estado dirty del modelo se persiste por pestana y se confirma al cerrar/cambiar con DialogoConfirmacion Guardar/Descartar/Cancelar.",
       "brechas": [],
       "evidencia": [
         {
-          "path": "app/src/store/runtime.ts",
-          "hrefDashboard": "../../app/src/store/runtime.ts"
-        },
-        {
-          "path": "app/src/store/persistencia.ts",
-          "hrefDashboard": "../../app/src/store/persistencia.ts"
+          "path": "app/src/ui/DialogoConfirmacion.tsx",
+          "hrefDashboard": "../../app/src/ui/DialogoConfirmacion.tsx"
         },
         {
           "path": "app/src/ui/ConfirmacionContext.tsx",
           "hrefDashboard": "../../app/src/ui/ConfirmacionContext.tsx"
         },
         {
-          "path": "app/src/ui/DialogoConfirmacion.tsx",
-          "hrefDashboard": "../../app/src/ui/DialogoConfirmacion.tsx"
+          "path": "app/src/ui/BarraPestanas.tsx",
+          "hrefDashboard": "../../app/src/ui/BarraPestanas.tsx"
+        },
+        {
+          "path": "app/src/store/tipos.ts",
+          "hrefDashboard": "../../app/src/store/tipos.ts"
+        },
+        {
+          "path": "app/e2e/opm-smoke.spec.ts",
+          "hrefDashboard": "../../app/e2e/opm-smoke.spec.ts"
         }
       ],
       "peso": 2,
-      "score": 0.5,
-      "avancePonderado": 1,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/shared/HU-SHARED-006-dirty-state.md"
     },
     {
@@ -13614,15 +13618,36 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-1a-canvas-grid-resize.md",
       "lineaInicio": 46,
       "corte": "gamma",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto ronda 10 L1: auto-tamano persiste con modoTamano y operaciones ajustarAlTexto/volverAAutoTamano/alternarModoTamano sobre apariencias.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/modelo/operaciones/apariencias.ts",
+          "hrefDashboard": "../../app/src/modelo/operaciones/apariencias.ts"
+        },
+        {
+          "path": "app/src/modelo/tipos/apariencia.ts",
+          "hrefDashboard": "../../app/src/modelo/tipos/apariencia.ts"
+        },
+        {
+          "path": "app/src/store/modelo/acciones-entidad.ts",
+          "hrefDashboard": "../../app/src/store/modelo/acciones-entidad.ts"
+        },
+        {
+          "path": "app/src/ui/inspector/SeccionTamano.tsx",
+          "hrefDashboard": "../../app/src/ui/inspector/SeccionTamano.tsx"
+        },
+        {
+          "path": "app/src/serializacion/validarApariencias.ts",
+          "hrefDashboard": "../../app/src/serializacion/validarApariencias.ts"
+        }
+      ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-1a-canvas-grid-resize.md"
     },
     {
@@ -13649,15 +13674,36 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-1a-canvas-grid-resize.md",
       "lineaInicio": 56,
       "corte": "gamma",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto ronda 10 L1: auto-tamano persiste con modoTamano y operaciones ajustarAlTexto/volverAAutoTamano/alternarModoTamano sobre apariencias.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/modelo/operaciones/apariencias.ts",
+          "hrefDashboard": "../../app/src/modelo/operaciones/apariencias.ts"
+        },
+        {
+          "path": "app/src/modelo/tipos/apariencia.ts",
+          "hrefDashboard": "../../app/src/modelo/tipos/apariencia.ts"
+        },
+        {
+          "path": "app/src/store/modelo/acciones-entidad.ts",
+          "hrefDashboard": "../../app/src/store/modelo/acciones-entidad.ts"
+        },
+        {
+          "path": "app/src/ui/inspector/SeccionTamano.tsx",
+          "hrefDashboard": "../../app/src/ui/inspector/SeccionTamano.tsx"
+        },
+        {
+          "path": "app/src/serializacion/validarApariencias.ts",
+          "hrefDashboard": "../../app/src/serializacion/validarApariencias.ts"
+        }
+      ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-1a-canvas-grid-resize.md"
     },
     {
@@ -13683,15 +13729,36 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-1a-canvas-grid-resize.md",
       "lineaInicio": 66,
       "corte": "gamma",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto ronda 10 L1: auto-tamano persiste con modoTamano y operaciones ajustarAlTexto/volverAAutoTamano/alternarModoTamano sobre apariencias.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/modelo/operaciones/apariencias.ts",
+          "hrefDashboard": "../../app/src/modelo/operaciones/apariencias.ts"
+        },
+        {
+          "path": "app/src/modelo/tipos/apariencia.ts",
+          "hrefDashboard": "../../app/src/modelo/tipos/apariencia.ts"
+        },
+        {
+          "path": "app/src/store/modelo/acciones-entidad.ts",
+          "hrefDashboard": "../../app/src/store/modelo/acciones-entidad.ts"
+        },
+        {
+          "path": "app/src/ui/inspector/SeccionTamano.tsx",
+          "hrefDashboard": "../../app/src/ui/inspector/SeccionTamano.tsx"
+        },
+        {
+          "path": "app/src/serializacion/validarApariencias.ts",
+          "hrefDashboard": "../../app/src/serializacion/validarApariencias.ts"
+        }
+      ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-1a-canvas-grid-resize.md"
     },
     {
@@ -13718,15 +13785,36 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-1a-canvas-grid-resize.md",
       "lineaInicio": 75,
       "corte": "gamma",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto ronda 10 L1: handles laterales/esquina cableados con cablearResize y redimensionarApariencia + redimensionarBatch para multi-seleccion.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/render/jointjs/handlers/resize.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/handlers/resize.ts"
+        },
+        {
+          "path": "app/src/canvas/operacionesBatch.ts",
+          "hrefDashboard": "../../app/src/canvas/operacionesBatch.ts"
+        },
+        {
+          "path": "app/src/render/jointjs/JointCanvas.tsx",
+          "hrefDashboard": "../../app/src/render/jointjs/JointCanvas.tsx"
+        },
+        {
+          "path": "app/src/store/modelo/acciones-entidad.ts",
+          "hrefDashboard": "../../app/src/store/modelo/acciones-entidad.ts"
+        },
+        {
+          "path": "app/e2e/opm-smoke.spec.ts",
+          "hrefDashboard": "../../app/e2e/opm-smoke.spec.ts"
+        }
+      ],
       "peso": 4,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 4,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-1a-canvas-grid-resize.md"
     },
     {
@@ -13753,15 +13841,36 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-1a-canvas-grid-resize.md",
       "lineaInicio": 85,
       "corte": "gamma",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto ronda 10 L1: handles laterales/esquina cableados con cablearResize y redimensionarApariencia + redimensionarBatch para multi-seleccion.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/render/jointjs/handlers/resize.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/handlers/resize.ts"
+        },
+        {
+          "path": "app/src/canvas/operacionesBatch.ts",
+          "hrefDashboard": "../../app/src/canvas/operacionesBatch.ts"
+        },
+        {
+          "path": "app/src/render/jointjs/JointCanvas.tsx",
+          "hrefDashboard": "../../app/src/render/jointjs/JointCanvas.tsx"
+        },
+        {
+          "path": "app/src/store/modelo/acciones-entidad.ts",
+          "hrefDashboard": "../../app/src/store/modelo/acciones-entidad.ts"
+        },
+        {
+          "path": "app/e2e/opm-smoke.spec.ts",
+          "hrefDashboard": "../../app/e2e/opm-smoke.spec.ts"
+        }
+      ],
       "peso": 4,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 4,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-1a-canvas-grid-resize.md"
     },
     {
@@ -13788,15 +13897,24 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-1a-canvas-grid-resize.md",
       "lineaInicio": 94,
       "corte": "gamma",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "parcial",
+      "confianza": "media-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto ronda 10 L1: validacion de minimo aplica RESIZE_MIN; faltan UX canonicas de proteccion de rotulo, factor de escala y bloqueo de ratio con Shift.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/canvas/grid.ts",
+          "hrefDashboard": "../../app/src/canvas/grid.ts"
+        },
+        {
+          "path": "app/src/modelo/operaciones/apariencias.ts",
+          "hrefDashboard": "../../app/src/modelo/operaciones/apariencias.ts"
+        }
+      ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 0.5,
+      "avancePonderado": 1,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-1a-canvas-grid-resize.md"
     },
     {
@@ -13822,15 +13940,36 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-1a-canvas-grid-resize.md",
       "lineaInicio": 103,
       "corte": "gamma",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto ronda 10 L1: auto-tamano persiste con modoTamano y operaciones ajustarAlTexto/volverAAutoTamano/alternarModoTamano sobre apariencias.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/modelo/operaciones/apariencias.ts",
+          "hrefDashboard": "../../app/src/modelo/operaciones/apariencias.ts"
+        },
+        {
+          "path": "app/src/modelo/tipos/apariencia.ts",
+          "hrefDashboard": "../../app/src/modelo/tipos/apariencia.ts"
+        },
+        {
+          "path": "app/src/store/modelo/acciones-entidad.ts",
+          "hrefDashboard": "../../app/src/store/modelo/acciones-entidad.ts"
+        },
+        {
+          "path": "app/src/ui/inspector/SeccionTamano.tsx",
+          "hrefDashboard": "../../app/src/ui/inspector/SeccionTamano.tsx"
+        },
+        {
+          "path": "app/src/serializacion/validarApariencias.ts",
+          "hrefDashboard": "../../app/src/serializacion/validarApariencias.ts"
+        }
+      ],
       "peso": 1,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 1,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-1a-canvas-grid-resize.md"
     },
     {
@@ -13857,15 +13996,36 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-1a-canvas-grid-resize.md",
       "lineaInicio": 112,
       "corte": "gamma",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto ronda 10 L1: auto-tamano persiste con modoTamano y operaciones ajustarAlTexto/volverAAutoTamano/alternarModoTamano sobre apariencias.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/modelo/operaciones/apariencias.ts",
+          "hrefDashboard": "../../app/src/modelo/operaciones/apariencias.ts"
+        },
+        {
+          "path": "app/src/modelo/tipos/apariencia.ts",
+          "hrefDashboard": "../../app/src/modelo/tipos/apariencia.ts"
+        },
+        {
+          "path": "app/src/store/modelo/acciones-entidad.ts",
+          "hrefDashboard": "../../app/src/store/modelo/acciones-entidad.ts"
+        },
+        {
+          "path": "app/src/ui/inspector/SeccionTamano.tsx",
+          "hrefDashboard": "../../app/src/ui/inspector/SeccionTamano.tsx"
+        },
+        {
+          "path": "app/src/serializacion/validarApariencias.ts",
+          "hrefDashboard": "../../app/src/serializacion/validarApariencias.ts"
+        }
+      ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-1a-canvas-grid-resize.md"
     },
     {
@@ -13892,15 +14052,52 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-1a-canvas-grid-resize.md",
       "lineaInicio": 122,
       "corte": "gamma",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto ronda 10 L1: grid configurable persistido en PreferenciasUiUsuario.gridConfig, drawGrid nativo de JointJS y cuantizacion de movimiento al paso.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/canvas/grid.ts",
+          "hrefDashboard": "../../app/src/canvas/grid.ts"
+        },
+        {
+          "path": "app/src/render/jointjs/composers/grid.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/composers/grid.ts"
+        },
+        {
+          "path": "app/src/modelo/tipos/ui.ts",
+          "hrefDashboard": "../../app/src/modelo/tipos/ui.ts"
+        },
+        {
+          "path": "app/src/store/modelo/acciones-canvas.ts",
+          "hrefDashboard": "../../app/src/store/modelo/acciones-canvas.ts"
+        },
+        {
+          "path": "app/src/ui/Toolbar.tsx",
+          "hrefDashboard": "../../app/src/ui/Toolbar.tsx"
+        },
+        {
+          "path": "app/src/ui/ModalConfiguracionGrid.tsx",
+          "hrefDashboard": "../../app/src/ui/ModalConfiguracionGrid.tsx"
+        },
+        {
+          "path": "app/src/canvas/grid.test.ts",
+          "hrefDashboard": "../../app/src/canvas/grid.test.ts"
+        },
+        {
+          "path": "app/src/render/jointjs/composers/grid.test.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/composers/grid.test.ts"
+        },
+        {
+          "path": "app/e2e/opm-smoke.spec.ts",
+          "hrefDashboard": "../../app/e2e/opm-smoke.spec.ts"
+        }
+      ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-1a-canvas-grid-resize.md"
     },
     {
@@ -13928,15 +14125,52 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-1a-canvas-grid-resize.md",
       "lineaInicio": 131,
       "corte": "gamma",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto ronda 10 L1: grid configurable persistido en PreferenciasUiUsuario.gridConfig, drawGrid nativo de JointJS y cuantizacion de movimiento al paso.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/canvas/grid.ts",
+          "hrefDashboard": "../../app/src/canvas/grid.ts"
+        },
+        {
+          "path": "app/src/render/jointjs/composers/grid.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/composers/grid.ts"
+        },
+        {
+          "path": "app/src/modelo/tipos/ui.ts",
+          "hrefDashboard": "../../app/src/modelo/tipos/ui.ts"
+        },
+        {
+          "path": "app/src/store/modelo/acciones-canvas.ts",
+          "hrefDashboard": "../../app/src/store/modelo/acciones-canvas.ts"
+        },
+        {
+          "path": "app/src/ui/Toolbar.tsx",
+          "hrefDashboard": "../../app/src/ui/Toolbar.tsx"
+        },
+        {
+          "path": "app/src/ui/ModalConfiguracionGrid.tsx",
+          "hrefDashboard": "../../app/src/ui/ModalConfiguracionGrid.tsx"
+        },
+        {
+          "path": "app/src/canvas/grid.test.ts",
+          "hrefDashboard": "../../app/src/canvas/grid.test.ts"
+        },
+        {
+          "path": "app/src/render/jointjs/composers/grid.test.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/composers/grid.test.ts"
+        },
+        {
+          "path": "app/e2e/opm-smoke.spec.ts",
+          "hrefDashboard": "../../app/e2e/opm-smoke.spec.ts"
+        }
+      ],
       "peso": 4,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 4,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-1a-canvas-grid-resize.md"
     },
     {
@@ -13962,15 +14196,52 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-1a-canvas-grid-resize.md",
       "lineaInicio": 141,
       "corte": "gamma",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto ronda 10 L1: grid configurable persistido en PreferenciasUiUsuario.gridConfig, drawGrid nativo de JointJS y cuantizacion de movimiento al paso.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/canvas/grid.ts",
+          "hrefDashboard": "../../app/src/canvas/grid.ts"
+        },
+        {
+          "path": "app/src/render/jointjs/composers/grid.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/composers/grid.ts"
+        },
+        {
+          "path": "app/src/modelo/tipos/ui.ts",
+          "hrefDashboard": "../../app/src/modelo/tipos/ui.ts"
+        },
+        {
+          "path": "app/src/store/modelo/acciones-canvas.ts",
+          "hrefDashboard": "../../app/src/store/modelo/acciones-canvas.ts"
+        },
+        {
+          "path": "app/src/ui/Toolbar.tsx",
+          "hrefDashboard": "../../app/src/ui/Toolbar.tsx"
+        },
+        {
+          "path": "app/src/ui/ModalConfiguracionGrid.tsx",
+          "hrefDashboard": "../../app/src/ui/ModalConfiguracionGrid.tsx"
+        },
+        {
+          "path": "app/src/canvas/grid.test.ts",
+          "hrefDashboard": "../../app/src/canvas/grid.test.ts"
+        },
+        {
+          "path": "app/src/render/jointjs/composers/grid.test.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/composers/grid.test.ts"
+        },
+        {
+          "path": "app/e2e/opm-smoke.spec.ts",
+          "hrefDashboard": "../../app/e2e/opm-smoke.spec.ts"
+        }
+      ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-1a-canvas-grid-resize.md"
     },
     {
@@ -13997,15 +14268,52 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-1a-canvas-grid-resize.md",
       "lineaInicio": 150,
       "corte": "gamma",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto ronda 10 L1: grid configurable persistido en PreferenciasUiUsuario.gridConfig, drawGrid nativo de JointJS y cuantizacion de movimiento al paso.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/canvas/grid.ts",
+          "hrefDashboard": "../../app/src/canvas/grid.ts"
+        },
+        {
+          "path": "app/src/render/jointjs/composers/grid.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/composers/grid.ts"
+        },
+        {
+          "path": "app/src/modelo/tipos/ui.ts",
+          "hrefDashboard": "../../app/src/modelo/tipos/ui.ts"
+        },
+        {
+          "path": "app/src/store/modelo/acciones-canvas.ts",
+          "hrefDashboard": "../../app/src/store/modelo/acciones-canvas.ts"
+        },
+        {
+          "path": "app/src/ui/Toolbar.tsx",
+          "hrefDashboard": "../../app/src/ui/Toolbar.tsx"
+        },
+        {
+          "path": "app/src/ui/ModalConfiguracionGrid.tsx",
+          "hrefDashboard": "../../app/src/ui/ModalConfiguracionGrid.tsx"
+        },
+        {
+          "path": "app/src/canvas/grid.test.ts",
+          "hrefDashboard": "../../app/src/canvas/grid.test.ts"
+        },
+        {
+          "path": "app/src/render/jointjs/composers/grid.test.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/composers/grid.test.ts"
+        },
+        {
+          "path": "app/e2e/opm-smoke.spec.ts",
+          "hrefDashboard": "../../app/e2e/opm-smoke.spec.ts"
+        }
+      ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-1a-canvas-grid-resize.md"
     },
     {
@@ -14030,15 +14338,24 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-1a-canvas-grid-resize.md",
       "lineaInicio": 159,
       "corte": "gamma",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "parcial",
+      "confianza": "media-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto ronda 10 L1: validacion de minimo aplica RESIZE_MIN; faltan UX canonicas de proteccion de rotulo, factor de escala y bloqueo de ratio con Shift.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/canvas/grid.ts",
+          "hrefDashboard": "../../app/src/canvas/grid.ts"
+        },
+        {
+          "path": "app/src/modelo/operaciones/apariencias.ts",
+          "hrefDashboard": "../../app/src/modelo/operaciones/apariencias.ts"
+        }
+      ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 0.5,
+      "avancePonderado": 1,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-1a-canvas-grid-resize.md"
     },
     {
@@ -14065,15 +14382,52 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-1a-canvas-grid-resize.md",
       "lineaInicio": 168,
       "corte": "gamma",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto ronda 10 L1: grid configurable persistido en PreferenciasUiUsuario.gridConfig, drawGrid nativo de JointJS y cuantizacion de movimiento al paso.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/canvas/grid.ts",
+          "hrefDashboard": "../../app/src/canvas/grid.ts"
+        },
+        {
+          "path": "app/src/render/jointjs/composers/grid.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/composers/grid.ts"
+        },
+        {
+          "path": "app/src/modelo/tipos/ui.ts",
+          "hrefDashboard": "../../app/src/modelo/tipos/ui.ts"
+        },
+        {
+          "path": "app/src/store/modelo/acciones-canvas.ts",
+          "hrefDashboard": "../../app/src/store/modelo/acciones-canvas.ts"
+        },
+        {
+          "path": "app/src/ui/Toolbar.tsx",
+          "hrefDashboard": "../../app/src/ui/Toolbar.tsx"
+        },
+        {
+          "path": "app/src/ui/ModalConfiguracionGrid.tsx",
+          "hrefDashboard": "../../app/src/ui/ModalConfiguracionGrid.tsx"
+        },
+        {
+          "path": "app/src/canvas/grid.test.ts",
+          "hrefDashboard": "../../app/src/canvas/grid.test.ts"
+        },
+        {
+          "path": "app/src/render/jointjs/composers/grid.test.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/composers/grid.test.ts"
+        },
+        {
+          "path": "app/e2e/opm-smoke.spec.ts",
+          "hrefDashboard": "../../app/e2e/opm-smoke.spec.ts"
+        }
+      ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-1a-canvas-grid-resize.md"
     },
     {
@@ -14101,15 +14455,36 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-1a-canvas-grid-resize.md",
       "lineaInicio": 178,
       "corte": "gamma",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto ronda 10 L1: handles laterales/esquina cableados con cablearResize y redimensionarApariencia + redimensionarBatch para multi-seleccion.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/render/jointjs/handlers/resize.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/handlers/resize.ts"
+        },
+        {
+          "path": "app/src/canvas/operacionesBatch.ts",
+          "hrefDashboard": "../../app/src/canvas/operacionesBatch.ts"
+        },
+        {
+          "path": "app/src/render/jointjs/JointCanvas.tsx",
+          "hrefDashboard": "../../app/src/render/jointjs/JointCanvas.tsx"
+        },
+        {
+          "path": "app/src/store/modelo/acciones-entidad.ts",
+          "hrefDashboard": "../../app/src/store/modelo/acciones-entidad.ts"
+        },
+        {
+          "path": "app/e2e/opm-smoke.spec.ts",
+          "hrefDashboard": "../../app/e2e/opm-smoke.spec.ts"
+        }
+      ],
       "peso": 4,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 4,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-1a-canvas-grid-resize.md"
     },
     {
@@ -14136,15 +14511,24 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-1a-canvas-grid-resize.md",
       "lineaInicio": 188,
       "corte": "gamma",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "parcial",
+      "confianza": "media-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto ronda 10 L1: validacion de minimo aplica RESIZE_MIN; faltan UX canonicas de proteccion de rotulo, factor de escala y bloqueo de ratio con Shift.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/canvas/grid.ts",
+          "hrefDashboard": "../../app/src/canvas/grid.ts"
+        },
+        {
+          "path": "app/src/modelo/operaciones/apariencias.ts",
+          "hrefDashboard": "../../app/src/modelo/operaciones/apariencias.ts"
+        }
+      ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 0.5,
+      "avancePonderado": 1,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-1a-canvas-grid-resize.md"
     },
     {
@@ -14171,15 +14555,36 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-1a-canvas-grid-resize.md",
       "lineaInicio": 197,
       "corte": "gamma",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto ronda 10 L1: alineacion por eje y distribucion uniforme expuestas en Toolbar y ejecutadas como operaciones batch con un solo undo.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/canvas/operacionesBatch.ts",
+          "hrefDashboard": "../../app/src/canvas/operacionesBatch.ts"
+        },
+        {
+          "path": "app/src/store/modelo/acciones-canvas.ts",
+          "hrefDashboard": "../../app/src/store/modelo/acciones-canvas.ts"
+        },
+        {
+          "path": "app/src/ui/Toolbar.tsx",
+          "hrefDashboard": "../../app/src/ui/Toolbar.tsx"
+        },
+        {
+          "path": "app/src/canvas/operacionesBatch.test.ts",
+          "hrefDashboard": "../../app/src/canvas/operacionesBatch.test.ts"
+        },
+        {
+          "path": "app/e2e/opm-smoke.spec.ts",
+          "hrefDashboard": "../../app/e2e/opm-smoke.spec.ts"
+        }
+      ],
       "peso": 4,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 4,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-1a-canvas-grid-resize.md"
     },
     {
@@ -14208,15 +14613,36 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-1a-canvas-grid-resize.md",
       "lineaInicio": 210,
       "corte": "gamma",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto ronda 10 L1: alineacion por eje y distribucion uniforme expuestas en Toolbar y ejecutadas como operaciones batch con un solo undo.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/canvas/operacionesBatch.ts",
+          "hrefDashboard": "../../app/src/canvas/operacionesBatch.ts"
+        },
+        {
+          "path": "app/src/store/modelo/acciones-canvas.ts",
+          "hrefDashboard": "../../app/src/store/modelo/acciones-canvas.ts"
+        },
+        {
+          "path": "app/src/ui/Toolbar.tsx",
+          "hrefDashboard": "../../app/src/ui/Toolbar.tsx"
+        },
+        {
+          "path": "app/src/canvas/operacionesBatch.test.ts",
+          "hrefDashboard": "../../app/src/canvas/operacionesBatch.test.ts"
+        },
+        {
+          "path": "app/e2e/opm-smoke.spec.ts",
+          "hrefDashboard": "../../app/e2e/opm-smoke.spec.ts"
+        }
+      ],
       "peso": 4,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 4,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-1a-canvas-grid-resize.md"
     },
     {
@@ -17118,15 +17544,36 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-11-canvas-modelado-basico.md",
       "lineaInicio": 210,
       "corte": "alpha",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto ronda 10 L1: alineacion por eje y distribucion uniforme expuestas en Toolbar y ejecutadas como operaciones batch con un solo undo.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/canvas/operacionesBatch.ts",
+          "hrefDashboard": "../../app/src/canvas/operacionesBatch.ts"
+        },
+        {
+          "path": "app/src/store/modelo/acciones-canvas.ts",
+          "hrefDashboard": "../../app/src/store/modelo/acciones-canvas.ts"
+        },
+        {
+          "path": "app/src/ui/Toolbar.tsx",
+          "hrefDashboard": "../../app/src/ui/Toolbar.tsx"
+        },
+        {
+          "path": "app/src/canvas/operacionesBatch.test.ts",
+          "hrefDashboard": "../../app/src/canvas/operacionesBatch.test.ts"
+        },
+        {
+          "path": "app/e2e/opm-smoke.spec.ts",
+          "hrefDashboard": "../../app/e2e/opm-smoke.spec.ts"
+        }
+      ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-11-canvas-modelado-basico.md"
     },
     {
@@ -18793,10 +19240,10 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-12-canvas-descomposicion.md",
       "lineaInicio": 325,
       "corte": "beta",
-      "estadoAvance": "parcial",
+      "estadoAvance": "cubierto",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto: reanclaje de enlaces externos derivados y split de effect existen; falta UX canonica completa de edicion sobre contorno.",
+      "nota": "Auto ronda 10 L3: reanclaje manual de enlace externo derivado disponible desde SeccionRefinamiento via reasignarEnlaceExternoManual; render de paréntesis del contorno completo.",
       "brechas": [],
       "evidencia": [
         {
@@ -18808,21 +19255,25 @@
           "hrefDashboard": "../../app/src/modelo/operaciones/eliminacion.ts"
         },
         {
-          "path": "app/src/ui/inspectorEnlace/SeccionReanclaje.tsx",
-          "hrefDashboard": "../../app/src/ui/inspectorEnlace/SeccionReanclaje.tsx"
+          "path": "app/src/store/modelo/acciones-opd.ts",
+          "hrefDashboard": "../../app/src/store/modelo/acciones-opd.ts"
         },
         {
-          "path": "app/src/store/modelo/acciones-enlace.ts",
-          "hrefDashboard": "../../app/src/store/modelo/acciones-enlace.ts"
+          "path": "app/src/ui/inspector/SeccionRefinamiento.tsx",
+          "hrefDashboard": "../../app/src/ui/inspector/SeccionRefinamiento.tsx"
         },
         {
           "path": "app/src/modelo/operaciones.test.ts",
           "hrefDashboard": "../../app/src/modelo/operaciones.test.ts"
+        },
+        {
+          "path": "app/e2e/opm-smoke.spec.ts",
+          "hrefDashboard": "../../app/e2e/opm-smoke.spec.ts"
         }
       ],
       "peso": 8,
-      "score": 0.5,
-      "avancePonderado": 4,
+      "score": 1,
+      "avancePonderado": 8,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-12-canvas-descomposicion.md"
     },
     {
@@ -18919,28 +19370,16 @@
       "estadoAvance": "cubierto",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto: descomposicion de proceso crea OPD hijo, subprocesos iniciales, enlaces derivados y OPL/render de contorno.",
+      "nota": "Auto ronda 10 L3: OPL distingue se descompone vs se despliega y emite la clausula 'en esa secuencia' al verbalizar la descomposicion.",
       "brechas": [],
       "evidencia": [
         {
-          "path": "app/src/modelo/operaciones/refinamiento/descomposicion.ts",
-          "hrefDashboard": "../../app/src/modelo/operaciones/refinamiento/descomposicion.ts"
+          "path": "app/src/opl/generadores/refinamiento.ts",
+          "hrefDashboard": "../../app/src/opl/generadores/refinamiento.ts"
         },
         {
-          "path": "app/src/modelo/operaciones/refinamiento/proyeccion.ts",
-          "hrefDashboard": "../../app/src/modelo/operaciones/refinamiento/proyeccion.ts"
-        },
-        {
-          "path": "app/src/render/jointjs/proyeccion.ts",
-          "hrefDashboard": "../../app/src/render/jointjs/proyeccion.ts"
-        },
-        {
-          "path": "app/src/opl/generar.ts",
-          "hrefDashboard": "../../app/src/opl/generar.ts"
-        },
-        {
-          "path": "app/src/modelo/operaciones.test.ts",
-          "hrefDashboard": "../../app/src/modelo/operaciones.test.ts"
+          "path": "app/src/opl/generar.test.ts",
+          "hrefDashboard": "../../app/src/opl/generar.test.ts"
         }
       ],
       "peso": 2,
@@ -18981,28 +19420,16 @@
       "estadoAvance": "cubierto",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto: descomposicion de proceso crea OPD hijo, subprocesos iniciales, enlaces derivados y OPL/render de contorno.",
+      "nota": "Auto ronda 10 L3: OPL distingue se descompone vs se despliega y emite la clausula 'en esa secuencia' al verbalizar la descomposicion.",
       "brechas": [],
       "evidencia": [
         {
-          "path": "app/src/modelo/operaciones/refinamiento/descomposicion.ts",
-          "hrefDashboard": "../../app/src/modelo/operaciones/refinamiento/descomposicion.ts"
+          "path": "app/src/opl/generadores/refinamiento.ts",
+          "hrefDashboard": "../../app/src/opl/generadores/refinamiento.ts"
         },
         {
-          "path": "app/src/modelo/operaciones/refinamiento/proyeccion.ts",
-          "hrefDashboard": "../../app/src/modelo/operaciones/refinamiento/proyeccion.ts"
-        },
-        {
-          "path": "app/src/render/jointjs/proyeccion.ts",
-          "hrefDashboard": "../../app/src/render/jointjs/proyeccion.ts"
-        },
-        {
-          "path": "app/src/opl/generar.ts",
-          "hrefDashboard": "../../app/src/opl/generar.ts"
-        },
-        {
-          "path": "app/src/modelo/operaciones.test.ts",
-          "hrefDashboard": "../../app/src/modelo/operaciones.test.ts"
+          "path": "app/src/opl/generar.test.ts",
+          "hrefDashboard": "../../app/src/opl/generar.test.ts"
         }
       ],
       "peso": 4,
@@ -19043,28 +19470,16 @@
       "estadoAvance": "parcial",
       "confianza": "media-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto: creacion/movimiento/renombrado en OPD activo y persistencia de apariencias existen; faltan restricciones visuales canonicas completas.",
+      "nota": "Auto ronda 10 L3: subprocesos internos se crean dentro del contorno por click en posicion; falta gesto canonico de arrastre desde toolbar.",
       "brechas": [],
       "evidencia": [
         {
-          "path": "app/src/store/modelo.ts",
-          "hrefDashboard": "../../app/src/store/modelo.ts"
+          "path": "app/src/modelo/creacionInterna.ts",
+          "hrefDashboard": "../../app/src/modelo/creacionInterna.ts"
         },
         {
           "path": "app/src/store/modelo/acciones-entidad.ts",
           "hrefDashboard": "../../app/src/store/modelo/acciones-entidad.ts"
-        },
-        {
-          "path": "app/src/store/modelo/acciones-canvas.ts",
-          "hrefDashboard": "../../app/src/store/modelo/acciones-canvas.ts"
-        },
-        {
-          "path": "app/src/ui/InspectorEntidad.tsx",
-          "hrefDashboard": "../../app/src/ui/InspectorEntidad.tsx"
-        },
-        {
-          "path": "app/src/modelo/operaciones/apariencias.ts",
-          "hrefDashboard": "../../app/src/modelo/operaciones/apariencias.ts"
         }
       ],
       "peso": 4,
@@ -19104,28 +19519,32 @@
       "estadoAvance": "cubierto",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto: descomposicion de proceso crea OPD hijo, subprocesos iniciales, enlaces derivados y OPL/render de contorno.",
+      "nota": "Auto ronda 10 L3: orden temporal por Y se reordena con drag vertical y agruparSubprocesosParalelos detecta concurrencia con tolerancia ≤4px emitiendo OPL paralelo.",
       "brechas": [],
       "evidencia": [
         {
-          "path": "app/src/modelo/operaciones/refinamiento/descomposicion.ts",
-          "hrefDashboard": "../../app/src/modelo/operaciones/refinamiento/descomposicion.ts"
+          "path": "app/src/modelo/operaciones/refinamiento/helpers.ts",
+          "hrefDashboard": "../../app/src/modelo/operaciones/refinamiento/helpers.ts"
         },
         {
-          "path": "app/src/modelo/operaciones/refinamiento/proyeccion.ts",
-          "hrefDashboard": "../../app/src/modelo/operaciones/refinamiento/proyeccion.ts"
+          "path": "app/src/render/jointjs/handlers/drag.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/handlers/drag.ts"
         },
         {
-          "path": "app/src/render/jointjs/proyeccion.ts",
-          "hrefDashboard": "../../app/src/render/jointjs/proyeccion.ts"
+          "path": "app/src/store/modelo/acciones-canvas.ts",
+          "hrefDashboard": "../../app/src/store/modelo/acciones-canvas.ts"
         },
         {
-          "path": "app/src/opl/generar.ts",
-          "hrefDashboard": "../../app/src/opl/generar.ts"
+          "path": "app/src/opl/generadores/refinamiento.ts",
+          "hrefDashboard": "../../app/src/opl/generadores/refinamiento.ts"
         },
         {
-          "path": "app/src/modelo/operaciones.test.ts",
-          "hrefDashboard": "../../app/src/modelo/operaciones.test.ts"
+          "path": "app/src/opl/generadores/refinamiento.test.ts",
+          "hrefDashboard": "../../app/src/opl/generadores/refinamiento.test.ts"
+        },
+        {
+          "path": "app/e2e/opm-smoke.spec.ts",
+          "hrefDashboard": "../../app/e2e/opm-smoke.spec.ts"
         }
       ],
       "peso": 4,
@@ -19164,28 +19583,32 @@
       "estadoAvance": "cubierto",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto: descomposicion de proceso crea OPD hijo, subprocesos iniciales, enlaces derivados y OPL/render de contorno.",
+      "nota": "Auto ronda 10 L3: orden temporal por Y se reordena con drag vertical y agruparSubprocesosParalelos detecta concurrencia con tolerancia ≤4px emitiendo OPL paralelo.",
       "brechas": [],
       "evidencia": [
         {
-          "path": "app/src/modelo/operaciones/refinamiento/descomposicion.ts",
-          "hrefDashboard": "../../app/src/modelo/operaciones/refinamiento/descomposicion.ts"
+          "path": "app/src/modelo/operaciones/refinamiento/helpers.ts",
+          "hrefDashboard": "../../app/src/modelo/operaciones/refinamiento/helpers.ts"
         },
         {
-          "path": "app/src/modelo/operaciones/refinamiento/proyeccion.ts",
-          "hrefDashboard": "../../app/src/modelo/operaciones/refinamiento/proyeccion.ts"
+          "path": "app/src/render/jointjs/handlers/drag.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/handlers/drag.ts"
         },
         {
-          "path": "app/src/render/jointjs/proyeccion.ts",
-          "hrefDashboard": "../../app/src/render/jointjs/proyeccion.ts"
+          "path": "app/src/store/modelo/acciones-canvas.ts",
+          "hrefDashboard": "../../app/src/store/modelo/acciones-canvas.ts"
         },
         {
-          "path": "app/src/opl/generar.ts",
-          "hrefDashboard": "../../app/src/opl/generar.ts"
+          "path": "app/src/opl/generadores/refinamiento.ts",
+          "hrefDashboard": "../../app/src/opl/generadores/refinamiento.ts"
         },
         {
-          "path": "app/src/modelo/operaciones.test.ts",
-          "hrefDashboard": "../../app/src/modelo/operaciones.test.ts"
+          "path": "app/src/opl/generadores/refinamiento.test.ts",
+          "hrefDashboard": "../../app/src/opl/generadores/refinamiento.test.ts"
+        },
+        {
+          "path": "app/e2e/opm-smoke.spec.ts",
+          "hrefDashboard": "../../app/e2e/opm-smoke.spec.ts"
         }
       ],
       "peso": 4,
@@ -19226,36 +19649,36 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-12-canvas-descomposicion.md",
       "lineaInicio": 534,
       "corte": "beta",
-      "estadoAvance": "parcial",
-      "confianza": "media-auto",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto: creacion/movimiento/renombrado en OPD activo y persistencia de apariencias existen; faltan restricciones visuales canonicas completas.",
+      "nota": "Auto ronda 10 L3: objetos internos se crean dentro del contorno y pueden conectarse con subprocesos internos via firma de enlace y validacion de pertenencia.",
       "brechas": [],
       "evidencia": [
         {
-          "path": "app/src/store/modelo.ts",
-          "hrefDashboard": "../../app/src/store/modelo.ts"
+          "path": "app/src/modelo/creacionInterna.ts",
+          "hrefDashboard": "../../app/src/modelo/creacionInterna.ts"
         },
         {
-          "path": "app/src/store/modelo/acciones-entidad.ts",
-          "hrefDashboard": "../../app/src/store/modelo/acciones-entidad.ts"
+          "path": "app/src/modelo/operaciones/refinamiento/helpers.ts",
+          "hrefDashboard": "../../app/src/modelo/operaciones/refinamiento/helpers.ts"
         },
         {
-          "path": "app/src/store/modelo/acciones-canvas.ts",
-          "hrefDashboard": "../../app/src/store/modelo/acciones-canvas.ts"
+          "path": "app/src/modelo/validaciones.ts",
+          "hrefDashboard": "../../app/src/modelo/validaciones.ts"
         },
         {
-          "path": "app/src/ui/InspectorEntidad.tsx",
-          "hrefDashboard": "../../app/src/ui/InspectorEntidad.tsx"
+          "path": "app/src/modelo/creacionInterna.test.ts",
+          "hrefDashboard": "../../app/src/modelo/creacionInterna.test.ts"
         },
         {
-          "path": "app/src/modelo/operaciones/apariencias.ts",
-          "hrefDashboard": "../../app/src/modelo/operaciones/apariencias.ts"
+          "path": "app/e2e/opm-smoke.spec.ts",
+          "hrefDashboard": "../../app/e2e/opm-smoke.spec.ts"
         }
       ],
       "peso": 4,
-      "score": 0.5,
-      "avancePonderado": 2,
+      "score": 1,
+      "avancePonderado": 4,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-12-canvas-descomposicion.md"
     },
     {
@@ -19448,36 +19871,36 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-12-canvas-descomposicion.md",
       "lineaInicio": 637,
       "corte": "beta",
-      "estadoAvance": "parcial",
-      "confianza": "media-auto",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto: creacion/movimiento/renombrado en OPD activo y persistencia de apariencias existen; faltan restricciones visuales canonicas completas.",
+      "nota": "Auto ronda 10 L3: objetos internos se crean dentro del contorno y pueden conectarse con subprocesos internos via firma de enlace y validacion de pertenencia.",
       "brechas": [],
       "evidencia": [
         {
-          "path": "app/src/store/modelo.ts",
-          "hrefDashboard": "../../app/src/store/modelo.ts"
+          "path": "app/src/modelo/creacionInterna.ts",
+          "hrefDashboard": "../../app/src/modelo/creacionInterna.ts"
         },
         {
-          "path": "app/src/store/modelo/acciones-entidad.ts",
-          "hrefDashboard": "../../app/src/store/modelo/acciones-entidad.ts"
+          "path": "app/src/modelo/operaciones/refinamiento/helpers.ts",
+          "hrefDashboard": "../../app/src/modelo/operaciones/refinamiento/helpers.ts"
         },
         {
-          "path": "app/src/store/modelo/acciones-canvas.ts",
-          "hrefDashboard": "../../app/src/store/modelo/acciones-canvas.ts"
+          "path": "app/src/modelo/validaciones.ts",
+          "hrefDashboard": "../../app/src/modelo/validaciones.ts"
         },
         {
-          "path": "app/src/ui/InspectorEntidad.tsx",
-          "hrefDashboard": "../../app/src/ui/InspectorEntidad.tsx"
+          "path": "app/src/modelo/creacionInterna.test.ts",
+          "hrefDashboard": "../../app/src/modelo/creacionInterna.test.ts"
         },
         {
-          "path": "app/src/modelo/operaciones/apariencias.ts",
-          "hrefDashboard": "../../app/src/modelo/operaciones/apariencias.ts"
+          "path": "app/e2e/opm-smoke.spec.ts",
+          "hrefDashboard": "../../app/e2e/opm-smoke.spec.ts"
         }
       ],
       "peso": 2,
-      "score": 0.5,
-      "avancePonderado": 1,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-12-canvas-descomposicion.md"
     },
     {
@@ -19510,36 +19933,28 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-12-canvas-descomposicion.md",
       "lineaInicio": 663,
       "corte": "beta",
-      "estadoAvance": "parcial",
-      "confianza": "media-auto",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto: creacion/movimiento/renombrado en OPD activo y persistencia de apariencias existen; faltan restricciones visuales canonicas completas.",
+      "nota": "Auto ronda 10 L3: renombrado in situ via RenombradoInline (doble clic en subproceso interno) con propagacion al store y eco OPL.",
       "brechas": [],
       "evidencia": [
         {
-          "path": "app/src/store/modelo.ts",
-          "hrefDashboard": "../../app/src/store/modelo.ts"
+          "path": "app/src/ui/RenombradoInline.tsx",
+          "hrefDashboard": "../../app/src/ui/RenombradoInline.tsx"
         },
         {
-          "path": "app/src/store/modelo/acciones-entidad.ts",
-          "hrefDashboard": "../../app/src/store/modelo/acciones-entidad.ts"
+          "path": "app/src/render/jointjs/JointCanvas.tsx",
+          "hrefDashboard": "../../app/src/render/jointjs/JointCanvas.tsx"
         },
         {
-          "path": "app/src/store/modelo/acciones-canvas.ts",
-          "hrefDashboard": "../../app/src/store/modelo/acciones-canvas.ts"
-        },
-        {
-          "path": "app/src/ui/InspectorEntidad.tsx",
-          "hrefDashboard": "../../app/src/ui/InspectorEntidad.tsx"
-        },
-        {
-          "path": "app/src/modelo/operaciones/apariencias.ts",
-          "hrefDashboard": "../../app/src/modelo/operaciones/apariencias.ts"
+          "path": "app/src/render/jointjs/handlers/seleccion.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/handlers/seleccion.ts"
         }
       ],
       "peso": 2,
-      "score": 0.5,
-      "avancePonderado": 1,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-12-canvas-descomposicion.md"
     },
     {
@@ -19568,36 +19983,28 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-12-canvas-descomposicion.md",
       "lineaInicio": 688,
       "corte": "beta",
-      "estadoAvance": "parcial",
-      "confianza": "media-auto",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto: creacion/movimiento/renombrado en OPD activo y persistencia de apariencias existen; faltan restricciones visuales canonicas completas.",
+      "nota": "Auto ronda 10 L3: renombrado in situ via RenombradoInline (doble clic en subproceso interno) con propagacion al store y eco OPL.",
       "brechas": [],
       "evidencia": [
         {
-          "path": "app/src/store/modelo.ts",
-          "hrefDashboard": "../../app/src/store/modelo.ts"
+          "path": "app/src/ui/RenombradoInline.tsx",
+          "hrefDashboard": "../../app/src/ui/RenombradoInline.tsx"
         },
         {
-          "path": "app/src/store/modelo/acciones-entidad.ts",
-          "hrefDashboard": "../../app/src/store/modelo/acciones-entidad.ts"
+          "path": "app/src/render/jointjs/JointCanvas.tsx",
+          "hrefDashboard": "../../app/src/render/jointjs/JointCanvas.tsx"
         },
         {
-          "path": "app/src/store/modelo/acciones-canvas.ts",
-          "hrefDashboard": "../../app/src/store/modelo/acciones-canvas.ts"
-        },
-        {
-          "path": "app/src/ui/InspectorEntidad.tsx",
-          "hrefDashboard": "../../app/src/ui/InspectorEntidad.tsx"
-        },
-        {
-          "path": "app/src/modelo/operaciones/apariencias.ts",
-          "hrefDashboard": "../../app/src/modelo/operaciones/apariencias.ts"
+          "path": "app/src/render/jointjs/handlers/seleccion.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/handlers/seleccion.ts"
         }
       ],
       "peso": 2,
-      "score": 0.5,
-      "avancePonderado": 1,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-12-canvas-descomposicion.md"
     },
     {
@@ -19843,36 +20250,32 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-12-canvas-descomposicion.md",
       "lineaInicio": 798,
       "corte": "beta",
-      "estadoAvance": "parcial",
-      "confianza": "media-auto",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto: creacion/movimiento/renombrado en OPD activo y persistencia de apariencias existen; faltan restricciones visuales canonicas completas.",
+      "nota": "Auto ronda 10 L3: ambientales internas se restringen al contorno con clamp en creacionInterna y validarAmbientalDentroContorno emite advertencia si quedan fuera.",
       "brechas": [],
       "evidencia": [
         {
-          "path": "app/src/store/modelo.ts",
-          "hrefDashboard": "../../app/src/store/modelo.ts"
+          "path": "app/src/modelo/creacionInterna.ts",
+          "hrefDashboard": "../../app/src/modelo/creacionInterna.ts"
         },
         {
-          "path": "app/src/store/modelo/acciones-entidad.ts",
-          "hrefDashboard": "../../app/src/store/modelo/acciones-entidad.ts"
+          "path": "app/src/modelo/validaciones.ts",
+          "hrefDashboard": "../../app/src/modelo/validaciones.ts"
         },
         {
-          "path": "app/src/store/modelo/acciones-canvas.ts",
-          "hrefDashboard": "../../app/src/store/modelo/acciones-canvas.ts"
+          "path": "app/src/modelo/validaciones.test.ts",
+          "hrefDashboard": "../../app/src/modelo/validaciones.test.ts"
         },
         {
-          "path": "app/src/ui/InspectorEntidad.tsx",
-          "hrefDashboard": "../../app/src/ui/InspectorEntidad.tsx"
-        },
-        {
-          "path": "app/src/modelo/operaciones/apariencias.ts",
-          "hrefDashboard": "../../app/src/modelo/operaciones/apariencias.ts"
+          "path": "app/src/modelo/creacionInterna.test.ts",
+          "hrefDashboard": "../../app/src/modelo/creacionInterna.test.ts"
         }
       ],
       "peso": 4,
-      "score": 0.5,
-      "avancePonderado": 2,
+      "score": 1,
+      "avancePonderado": 4,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-12-canvas-descomposicion.md"
     },
     {
@@ -19902,36 +20305,32 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-12-canvas-descomposicion.md",
       "lineaInicio": 824,
       "corte": "beta",
-      "estadoAvance": "parcial",
-      "confianza": "media-auto",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto: creacion/movimiento/renombrado en OPD activo y persistencia de apariencias existen; faltan restricciones visuales canonicas completas.",
+      "nota": "Auto ronda 10 L3: ambientales internas se restringen al contorno con clamp en creacionInterna y validarAmbientalDentroContorno emite advertencia si quedan fuera.",
       "brechas": [],
       "evidencia": [
         {
-          "path": "app/src/store/modelo.ts",
-          "hrefDashboard": "../../app/src/store/modelo.ts"
+          "path": "app/src/modelo/creacionInterna.ts",
+          "hrefDashboard": "../../app/src/modelo/creacionInterna.ts"
         },
         {
-          "path": "app/src/store/modelo/acciones-entidad.ts",
-          "hrefDashboard": "../../app/src/store/modelo/acciones-entidad.ts"
+          "path": "app/src/modelo/validaciones.ts",
+          "hrefDashboard": "../../app/src/modelo/validaciones.ts"
         },
         {
-          "path": "app/src/store/modelo/acciones-canvas.ts",
-          "hrefDashboard": "../../app/src/store/modelo/acciones-canvas.ts"
+          "path": "app/src/modelo/validaciones.test.ts",
+          "hrefDashboard": "../../app/src/modelo/validaciones.test.ts"
         },
         {
-          "path": "app/src/ui/InspectorEntidad.tsx",
-          "hrefDashboard": "../../app/src/ui/InspectorEntidad.tsx"
-        },
-        {
-          "path": "app/src/modelo/operaciones/apariencias.ts",
-          "hrefDashboard": "../../app/src/modelo/operaciones/apariencias.ts"
+          "path": "app/src/modelo/creacionInterna.test.ts",
+          "hrefDashboard": "../../app/src/modelo/creacionInterna.test.ts"
         }
       ],
       "peso": 4,
-      "score": 0.5,
-      "avancePonderado": 2,
+      "score": 1,
+      "avancePonderado": 4,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-12-canvas-descomposicion.md"
     },
     {
@@ -19962,10 +20361,10 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-12-canvas-descomposicion.md",
       "lineaInicio": 848,
       "corte": "beta",
-      "estadoAvance": "parcial",
+      "estadoAvance": "cubierto",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto: reanclaje de enlaces externos derivados y split de effect existen; falta UX canonica completa de edicion sobre contorno.",
+      "nota": "Auto ronda 10 L3: reanclaje manual de enlace externo derivado disponible desde SeccionRefinamiento via reasignarEnlaceExternoManual; render de paréntesis del contorno completo.",
       "brechas": [],
       "evidencia": [
         {
@@ -19977,21 +20376,25 @@
           "hrefDashboard": "../../app/src/modelo/operaciones/eliminacion.ts"
         },
         {
-          "path": "app/src/ui/inspectorEnlace/SeccionReanclaje.tsx",
-          "hrefDashboard": "../../app/src/ui/inspectorEnlace/SeccionReanclaje.tsx"
+          "path": "app/src/store/modelo/acciones-opd.ts",
+          "hrefDashboard": "../../app/src/store/modelo/acciones-opd.ts"
         },
         {
-          "path": "app/src/store/modelo/acciones-enlace.ts",
-          "hrefDashboard": "../../app/src/store/modelo/acciones-enlace.ts"
+          "path": "app/src/ui/inspector/SeccionRefinamiento.tsx",
+          "hrefDashboard": "../../app/src/ui/inspector/SeccionRefinamiento.tsx"
         },
         {
           "path": "app/src/modelo/operaciones.test.ts",
           "hrefDashboard": "../../app/src/modelo/operaciones.test.ts"
+        },
+        {
+          "path": "app/e2e/opm-smoke.spec.ts",
+          "hrefDashboard": "../../app/e2e/opm-smoke.spec.ts"
         }
       ],
       "peso": 8,
-      "score": 0.5,
-      "avancePonderado": 4,
+      "score": 1,
+      "avancePonderado": 8,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-12-canvas-descomposicion.md"
     },
     {
@@ -21024,7 +21427,7 @@
       "estadoAvance": "parcial",
       "confianza": "media-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto: existe splitEffectEnPar para transformar effect en consumo/resultado intermedio; falta gesto visual canonico.",
+      "nota": "Auto: split effect existe via splitEffectEnPar (sin gesto canonico); navegacion al OPD desplegado se cubre por click en arbol pero falta gesto sobre rectangulo plegado.",
       "brechas": [],
       "evidencia": [
         {
@@ -21032,8 +21435,8 @@
           "hrefDashboard": "../../app/src/modelo/operaciones/eliminacion.ts"
         },
         {
-          "path": "app/src/modelo/operaciones.test.ts",
-          "hrefDashboard": "../../app/src/modelo/operaciones.test.ts"
+          "path": "app/src/store/modelo/acciones-opd.ts",
+          "hrefDashboard": "../../app/src/store/modelo/acciones-opd.ts"
         }
       ],
       "peso": 2,
@@ -22886,11 +23289,40 @@
       "lineaInicio": 202,
       "corte": "beta",
       "estadoAvance": "absorbida",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto ronda 10 L2: subtipoModificador C/E/no aditivo se valida, persiste, proyecta como badge canonico y verbaliza en OPL con fallback desde modificador legacy.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/modelo/tipos/enlace.ts",
+          "hrefDashboard": "../../app/src/modelo/tipos/enlace.ts"
+        },
+        {
+          "path": "app/src/modelo/modificadores.ts",
+          "hrefDashboard": "../../app/src/modelo/modificadores.ts"
+        },
+        {
+          "path": "app/src/render/jointjs/composers/markers.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/composers/markers.ts"
+        },
+        {
+          "path": "app/src/store/modelo/acciones-enlace.ts",
+          "hrefDashboard": "../../app/src/store/modelo/acciones-enlace.ts"
+        },
+        {
+          "path": "app/src/modelo/modificadores.test.ts",
+          "hrefDashboard": "../../app/src/modelo/modificadores.test.ts"
+        },
+        {
+          "path": "app/src/render/jointjs/composers/markers.test.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/composers/markers.test.ts"
+        },
+        {
+          "path": "app/src/render/jointjs/proyeccion.test.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/proyeccion.test.ts"
+        }
+      ],
       "peso": 0,
       "score": 0,
       "avancePonderado": 0,
@@ -23083,15 +23515,44 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-15-canvas-enlaces-avanzados.md",
       "lineaInicio": 229,
       "corte": "beta",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto ronda 10 L2: subtipoModificador C/E/no aditivo se valida, persiste, proyecta como badge canonico y verbaliza en OPL con fallback desde modificador legacy.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/modelo/tipos/enlace.ts",
+          "hrefDashboard": "../../app/src/modelo/tipos/enlace.ts"
+        },
+        {
+          "path": "app/src/modelo/modificadores.ts",
+          "hrefDashboard": "../../app/src/modelo/modificadores.ts"
+        },
+        {
+          "path": "app/src/render/jointjs/composers/markers.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/composers/markers.ts"
+        },
+        {
+          "path": "app/src/store/modelo/acciones-enlace.ts",
+          "hrefDashboard": "../../app/src/store/modelo/acciones-enlace.ts"
+        },
+        {
+          "path": "app/src/modelo/modificadores.test.ts",
+          "hrefDashboard": "../../app/src/modelo/modificadores.test.ts"
+        },
+        {
+          "path": "app/src/render/jointjs/composers/markers.test.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/composers/markers.test.ts"
+        },
+        {
+          "path": "app/src/render/jointjs/proyeccion.test.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/proyeccion.test.ts"
+        }
+      ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-15-canvas-enlaces-avanzados.md"
     },
     {
@@ -23361,15 +23822,40 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-15-canvas-enlaces-avanzados.md",
       "lineaInicio": 286,
       "corte": "beta",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto ronda 10 L2: dialogo Mover Puerto cambia extremo o remueve relacion con un solo gesto, con accion en store y operacion kernel.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/ui/DialogoMoverPuerto.tsx",
+          "hrefDashboard": "../../app/src/ui/DialogoMoverPuerto.tsx"
+        },
+        {
+          "path": "app/src/ui/inspectorEnlace/SeccionExtremos.tsx",
+          "hrefDashboard": "../../app/src/ui/inspectorEnlace/SeccionExtremos.tsx"
+        },
+        {
+          "path": "app/src/modelo/operaciones/enlaces.ts",
+          "hrefDashboard": "../../app/src/modelo/operaciones/enlaces.ts"
+        },
+        {
+          "path": "app/src/store/modelo/acciones-enlace.ts",
+          "hrefDashboard": "../../app/src/store/modelo/acciones-enlace.ts"
+        },
+        {
+          "path": "app/src/modelo/operaciones/enlaces.test.ts",
+          "hrefDashboard": "../../app/src/modelo/operaciones/enlaces.test.ts"
+        },
+        {
+          "path": "app/e2e/opm-smoke.spec.ts",
+          "hrefDashboard": "../../app/e2e/opm-smoke.spec.ts"
+        }
+      ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-15-canvas-enlaces-avanzados.md"
     },
     {
@@ -23396,15 +23882,40 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-15-canvas-enlaces-avanzados.md",
       "lineaInicio": 299,
       "corte": "beta",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto ronda 10 L2: dialogo Mover Puerto cambia extremo o remueve relacion con un solo gesto, con accion en store y operacion kernel.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/ui/DialogoMoverPuerto.tsx",
+          "hrefDashboard": "../../app/src/ui/DialogoMoverPuerto.tsx"
+        },
+        {
+          "path": "app/src/ui/inspectorEnlace/SeccionExtremos.tsx",
+          "hrefDashboard": "../../app/src/ui/inspectorEnlace/SeccionExtremos.tsx"
+        },
+        {
+          "path": "app/src/modelo/operaciones/enlaces.ts",
+          "hrefDashboard": "../../app/src/modelo/operaciones/enlaces.ts"
+        },
+        {
+          "path": "app/src/store/modelo/acciones-enlace.ts",
+          "hrefDashboard": "../../app/src/store/modelo/acciones-enlace.ts"
+        },
+        {
+          "path": "app/src/modelo/operaciones/enlaces.test.ts",
+          "hrefDashboard": "../../app/src/modelo/operaciones/enlaces.test.ts"
+        },
+        {
+          "path": "app/e2e/opm-smoke.spec.ts",
+          "hrefDashboard": "../../app/e2e/opm-smoke.spec.ts"
+        }
+      ],
       "peso": 1,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 1,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-15-canvas-enlaces-avanzados.md"
     },
     {
@@ -23498,10 +24009,10 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-15-canvas-enlaces-avanzados.md",
       "lineaInicio": 321,
       "corte": "beta",
-      "estadoAvance": "parcial",
-      "confianza": "media-auto",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto: validador advierte consumo duplicado y sugiere abanico OR/XOR; falta autocorreccion y UX canonica.",
+      "nota": "Auto ronda 10 L2: advertirConsumoDuplicado se expone como API y validarModelo emite la advertencia con cita SSOT y sugerencia de abanico.",
       "brechas": [],
       "evidencia": [
         {
@@ -23514,8 +24025,8 @@
         }
       ],
       "peso": 2,
-      "score": 0.5,
-      "avancePonderado": 1,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-15-canvas-enlaces-avanzados.md"
     },
     {
@@ -27308,15 +27819,24 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-18-canvas-plegado-parcial.md",
       "lineaInicio": 182,
       "corte": "gamma",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "parcial",
+      "confianza": "media-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto: split effect existe via splitEffectEnPar (sin gesto canonico); navegacion al OPD desplegado se cubre por click en arbol pero falta gesto sobre rectangulo plegado.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/modelo/operaciones/eliminacion.ts",
+          "hrefDashboard": "../../app/src/modelo/operaciones/eliminacion.ts"
+        },
+        {
+          "path": "app/src/store/modelo/acciones-opd.ts",
+          "hrefDashboard": "../../app/src/store/modelo/acciones-opd.ts"
+        }
+      ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 0.5,
+      "avancePonderado": 1,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-18-canvas-plegado-parcial.md"
     },
     {
@@ -27484,15 +28004,44 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-19-canvas-imagenes.md",
       "lineaInicio": 44,
       "corte": "gamma",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto ronda 10 L4: modal de imagen se abre desde inspector y toolbar; insignia 📷 cicla modos con click y reabre modal con context-menu; quitar/editar via store.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/ui/ModalImagenObjeto.tsx",
+          "hrefDashboard": "../../app/src/ui/ModalImagenObjeto.tsx"
+        },
+        {
+          "path": "app/src/ui/inspector/SeccionImagen.tsx",
+          "hrefDashboard": "../../app/src/ui/inspector/SeccionImagen.tsx"
+        },
+        {
+          "path": "app/src/store/modelo/acciones-entidad.ts",
+          "hrefDashboard": "../../app/src/store/modelo/acciones-entidad.ts"
+        },
+        {
+          "path": "app/src/store/modelo/acciones-ui.ts",
+          "hrefDashboard": "../../app/src/store/modelo/acciones-ui.ts"
+        },
+        {
+          "path": "app/src/render/jointjs/handlers/seleccion.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/handlers/seleccion.ts"
+        },
+        {
+          "path": "app/src/render/jointjs/composers/imagenOverlay.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/composers/imagenOverlay.ts"
+        },
+        {
+          "path": "app/e2e/opm-smoke.spec.ts",
+          "hrefDashboard": "../../app/e2e/opm-smoke.spec.ts"
+        }
+      ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-19-canvas-imagenes.md"
     },
     {
@@ -27520,15 +28069,36 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-19-canvas-imagenes.md",
       "lineaInicio": 54,
       "corte": "gamma",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto ronda 10 L4: incrustar imagen por URL valida extension/protocolo, precarga bitmap con timeout y degrada a Solo texto ante URL caida (cache estado fallido).",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/modelo/imagenObjeto.ts",
+          "hrefDashboard": "../../app/src/modelo/imagenObjeto.ts"
+        },
+        {
+          "path": "app/src/modelo/objetoMetadata.ts",
+          "hrefDashboard": "../../app/src/modelo/objetoMetadata.ts"
+        },
+        {
+          "path": "app/src/serializacion/validarEntidades.ts",
+          "hrefDashboard": "../../app/src/serializacion/validarEntidades.ts"
+        },
+        {
+          "path": "app/src/modelo/imagenObjeto.test.ts",
+          "hrefDashboard": "../../app/src/modelo/imagenObjeto.test.ts"
+        },
+        {
+          "path": "app/src/serializacion/json.test.ts",
+          "hrefDashboard": "../../app/src/serializacion/json.test.ts"
+        }
+      ],
       "peso": 4,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 4,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-19-canvas-imagenes.md"
     },
     {
@@ -27554,15 +28124,36 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-19-canvas-imagenes.md",
       "lineaInicio": 67,
       "corte": "gamma",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto ronda 10 L4: incrustar imagen por URL valida extension/protocolo, precarga bitmap con timeout y degrada a Solo texto ante URL caida (cache estado fallido).",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/modelo/imagenObjeto.ts",
+          "hrefDashboard": "../../app/src/modelo/imagenObjeto.ts"
+        },
+        {
+          "path": "app/src/modelo/objetoMetadata.ts",
+          "hrefDashboard": "../../app/src/modelo/objetoMetadata.ts"
+        },
+        {
+          "path": "app/src/serializacion/validarEntidades.ts",
+          "hrefDashboard": "../../app/src/serializacion/validarEntidades.ts"
+        },
+        {
+          "path": "app/src/modelo/imagenObjeto.test.ts",
+          "hrefDashboard": "../../app/src/modelo/imagenObjeto.test.ts"
+        },
+        {
+          "path": "app/src/serializacion/json.test.ts",
+          "hrefDashboard": "../../app/src/serializacion/json.test.ts"
+        }
+      ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-19-canvas-imagenes.md"
     },
     {
@@ -27695,15 +28286,44 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-19-canvas-imagenes.md",
       "lineaInicio": 108,
       "corte": "gamma",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto ronda 10 L4: modal de imagen se abre desde inspector y toolbar; insignia 📷 cicla modos con click y reabre modal con context-menu; quitar/editar via store.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/ui/ModalImagenObjeto.tsx",
+          "hrefDashboard": "../../app/src/ui/ModalImagenObjeto.tsx"
+        },
+        {
+          "path": "app/src/ui/inspector/SeccionImagen.tsx",
+          "hrefDashboard": "../../app/src/ui/inspector/SeccionImagen.tsx"
+        },
+        {
+          "path": "app/src/store/modelo/acciones-entidad.ts",
+          "hrefDashboard": "../../app/src/store/modelo/acciones-entidad.ts"
+        },
+        {
+          "path": "app/src/store/modelo/acciones-ui.ts",
+          "hrefDashboard": "../../app/src/store/modelo/acciones-ui.ts"
+        },
+        {
+          "path": "app/src/render/jointjs/handlers/seleccion.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/handlers/seleccion.ts"
+        },
+        {
+          "path": "app/src/render/jointjs/composers/imagenOverlay.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/composers/imagenOverlay.ts"
+        },
+        {
+          "path": "app/e2e/opm-smoke.spec.ts",
+          "hrefDashboard": "../../app/e2e/opm-smoke.spec.ts"
+        }
+      ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-19-canvas-imagenes.md"
     },
     {
@@ -27729,15 +28349,44 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-19-canvas-imagenes.md",
       "lineaInicio": 119,
       "corte": "gamma",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto ronda 10 L4: modal de imagen se abre desde inspector y toolbar; insignia 📷 cicla modos con click y reabre modal con context-menu; quitar/editar via store.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/ui/ModalImagenObjeto.tsx",
+          "hrefDashboard": "../../app/src/ui/ModalImagenObjeto.tsx"
+        },
+        {
+          "path": "app/src/ui/inspector/SeccionImagen.tsx",
+          "hrefDashboard": "../../app/src/ui/inspector/SeccionImagen.tsx"
+        },
+        {
+          "path": "app/src/store/modelo/acciones-entidad.ts",
+          "hrefDashboard": "../../app/src/store/modelo/acciones-entidad.ts"
+        },
+        {
+          "path": "app/src/store/modelo/acciones-ui.ts",
+          "hrefDashboard": "../../app/src/store/modelo/acciones-ui.ts"
+        },
+        {
+          "path": "app/src/render/jointjs/handlers/seleccion.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/handlers/seleccion.ts"
+        },
+        {
+          "path": "app/src/render/jointjs/composers/imagenOverlay.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/composers/imagenOverlay.ts"
+        },
+        {
+          "path": "app/e2e/opm-smoke.spec.ts",
+          "hrefDashboard": "../../app/e2e/opm-smoke.spec.ts"
+        }
+      ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-19-canvas-imagenes.md"
     },
     {
@@ -27764,15 +28413,44 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-19-canvas-imagenes.md",
       "lineaInicio": 129,
       "corte": "gamma",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto ronda 10 L4: modal de imagen se abre desde inspector y toolbar; insignia 📷 cicla modos con click y reabre modal con context-menu; quitar/editar via store.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/ui/ModalImagenObjeto.tsx",
+          "hrefDashboard": "../../app/src/ui/ModalImagenObjeto.tsx"
+        },
+        {
+          "path": "app/src/ui/inspector/SeccionImagen.tsx",
+          "hrefDashboard": "../../app/src/ui/inspector/SeccionImagen.tsx"
+        },
+        {
+          "path": "app/src/store/modelo/acciones-entidad.ts",
+          "hrefDashboard": "../../app/src/store/modelo/acciones-entidad.ts"
+        },
+        {
+          "path": "app/src/store/modelo/acciones-ui.ts",
+          "hrefDashboard": "../../app/src/store/modelo/acciones-ui.ts"
+        },
+        {
+          "path": "app/src/render/jointjs/handlers/seleccion.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/handlers/seleccion.ts"
+        },
+        {
+          "path": "app/src/render/jointjs/composers/imagenOverlay.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/composers/imagenOverlay.ts"
+        },
+        {
+          "path": "app/e2e/opm-smoke.spec.ts",
+          "hrefDashboard": "../../app/e2e/opm-smoke.spec.ts"
+        }
+      ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-19-canvas-imagenes.md"
     },
     {
@@ -27799,15 +28477,44 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-19-canvas-imagenes.md",
       "lineaInicio": 139,
       "corte": "gamma",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto ronda 10 L4: modal de imagen se abre desde inspector y toolbar; insignia 📷 cicla modos con click y reabre modal con context-menu; quitar/editar via store.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/ui/ModalImagenObjeto.tsx",
+          "hrefDashboard": "../../app/src/ui/ModalImagenObjeto.tsx"
+        },
+        {
+          "path": "app/src/ui/inspector/SeccionImagen.tsx",
+          "hrefDashboard": "../../app/src/ui/inspector/SeccionImagen.tsx"
+        },
+        {
+          "path": "app/src/store/modelo/acciones-entidad.ts",
+          "hrefDashboard": "../../app/src/store/modelo/acciones-entidad.ts"
+        },
+        {
+          "path": "app/src/store/modelo/acciones-ui.ts",
+          "hrefDashboard": "../../app/src/store/modelo/acciones-ui.ts"
+        },
+        {
+          "path": "app/src/render/jointjs/handlers/seleccion.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/handlers/seleccion.ts"
+        },
+        {
+          "path": "app/src/render/jointjs/composers/imagenOverlay.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/composers/imagenOverlay.ts"
+        },
+        {
+          "path": "app/e2e/opm-smoke.spec.ts",
+          "hrefDashboard": "../../app/e2e/opm-smoke.spec.ts"
+        }
+      ],
       "peso": 1,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 1,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-19-canvas-imagenes.md"
     },
     {
@@ -27834,15 +28541,32 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-19-canvas-imagenes.md",
       "lineaInicio": 149,
       "corte": "gamma",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto ronda 10 L4: modo global de visualizacion se fija desde Toolbar y propaga a la proyeccion para forzar imagen/texto/imagen-texto en todo el OPD activo.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/store/modelo/acciones-ui.ts",
+          "hrefDashboard": "../../app/src/store/modelo/acciones-ui.ts"
+        },
+        {
+          "path": "app/src/render/jointjs/proyeccion.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/proyeccion.ts"
+        },
+        {
+          "path": "app/src/render/jointjs/composers/imagenOverlay.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/composers/imagenOverlay.ts"
+        },
+        {
+          "path": "app/src/ui/Toolbar.tsx",
+          "hrefDashboard": "../../app/src/ui/Toolbar.tsx"
+        }
+      ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-19-canvas-imagenes.md"
     },
     {
@@ -27870,15 +28594,36 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-19-canvas-imagenes.md",
       "lineaInicio": 159,
       "corte": "gamma",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto ronda 10 L4: bitmap se suprime si la cosa esta refinada o tiene estados visibles (regla imagen-estados-excluyentes); OPL invariante ante imagen.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/modelo/validaciones.ts",
+          "hrefDashboard": "../../app/src/modelo/validaciones.ts"
+        },
+        {
+          "path": "app/src/render/jointjs/composers/imagenOverlay.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/composers/imagenOverlay.ts"
+        },
+        {
+          "path": "app/src/modelo/imagenObjeto.ts",
+          "hrefDashboard": "../../app/src/modelo/imagenObjeto.ts"
+        },
+        {
+          "path": "app/src/modelo/imagenObjeto.test.ts",
+          "hrefDashboard": "../../app/src/modelo/imagenObjeto.test.ts"
+        },
+        {
+          "path": "app/src/modelo/validaciones.test.ts",
+          "hrefDashboard": "../../app/src/modelo/validaciones.test.ts"
+        }
+      ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-19-canvas-imagenes.md"
     },
     {
@@ -27906,15 +28651,36 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-19-canvas-imagenes.md",
       "lineaInicio": 169,
       "corte": "gamma",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto ronda 10 L4: bitmap se suprime si la cosa esta refinada o tiene estados visibles (regla imagen-estados-excluyentes); OPL invariante ante imagen.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/modelo/validaciones.ts",
+          "hrefDashboard": "../../app/src/modelo/validaciones.ts"
+        },
+        {
+          "path": "app/src/render/jointjs/composers/imagenOverlay.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/composers/imagenOverlay.ts"
+        },
+        {
+          "path": "app/src/modelo/imagenObjeto.ts",
+          "hrefDashboard": "../../app/src/modelo/imagenObjeto.ts"
+        },
+        {
+          "path": "app/src/modelo/imagenObjeto.test.ts",
+          "hrefDashboard": "../../app/src/modelo/imagenObjeto.test.ts"
+        },
+        {
+          "path": "app/src/modelo/validaciones.test.ts",
+          "hrefDashboard": "../../app/src/modelo/validaciones.test.ts"
+        }
+      ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-19-canvas-imagenes.md"
     },
     {
@@ -27977,15 +28743,36 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-19-canvas-imagenes.md",
       "lineaInicio": 189,
       "corte": "gamma",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto ronda 10 L4: bitmap se suprime si la cosa esta refinada o tiene estados visibles (regla imagen-estados-excluyentes); OPL invariante ante imagen.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/modelo/validaciones.ts",
+          "hrefDashboard": "../../app/src/modelo/validaciones.ts"
+        },
+        {
+          "path": "app/src/render/jointjs/composers/imagenOverlay.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/composers/imagenOverlay.ts"
+        },
+        {
+          "path": "app/src/modelo/imagenObjeto.ts",
+          "hrefDashboard": "../../app/src/modelo/imagenObjeto.ts"
+        },
+        {
+          "path": "app/src/modelo/imagenObjeto.test.ts",
+          "hrefDashboard": "../../app/src/modelo/imagenObjeto.test.ts"
+        },
+        {
+          "path": "app/src/modelo/validaciones.test.ts",
+          "hrefDashboard": "../../app/src/modelo/validaciones.test.ts"
+        }
+      ],
       "peso": 1,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 1,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-19-canvas-imagenes.md"
     },
     {
@@ -28016,15 +28803,36 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-19-canvas-imagenes.md",
       "lineaInicio": 200,
       "corte": "gamma",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto ronda 10 L4: incrustar imagen por URL valida extension/protocolo, precarga bitmap con timeout y degrada a Solo texto ante URL caida (cache estado fallido).",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/modelo/imagenObjeto.ts",
+          "hrefDashboard": "../../app/src/modelo/imagenObjeto.ts"
+        },
+        {
+          "path": "app/src/modelo/objetoMetadata.ts",
+          "hrefDashboard": "../../app/src/modelo/objetoMetadata.ts"
+        },
+        {
+          "path": "app/src/serializacion/validarEntidades.ts",
+          "hrefDashboard": "../../app/src/serializacion/validarEntidades.ts"
+        },
+        {
+          "path": "app/src/modelo/imagenObjeto.test.ts",
+          "hrefDashboard": "../../app/src/modelo/imagenObjeto.test.ts"
+        },
+        {
+          "path": "app/src/serializacion/json.test.ts",
+          "hrefDashboard": "../../app/src/serializacion/json.test.ts"
+        }
+      ],
       "peso": 4,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 4,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-19-canvas-imagenes.md"
     },
     {
@@ -38578,24 +39386,24 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-50-opl-pane.md",
       "lineaInicio": 81,
       "corte": "alpha",
-      "estadoAvance": "parcial",
-      "confianza": "media-auto",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto: OPL verbaliza despliegues/descomposiciones; falta cobertura completa de todos los casos narrativos de OPCloud.",
+      "nota": "Auto ronda 10 L5: OPL distingue descomposicion sincrona ('en esa secuencia') de despliegue asincrono mediante oracionDespliegue y oracionParalelo.",
       "brechas": [],
       "evidencia": [
         {
-          "path": "app/src/opl/generar.ts",
-          "hrefDashboard": "../../app/src/opl/generar.ts"
+          "path": "app/src/opl/generadores/refinamiento.ts",
+          "hrefDashboard": "../../app/src/opl/generadores/refinamiento.ts"
         },
         {
-          "path": "app/src/opl/generar.test.ts",
-          "hrefDashboard": "../../app/src/opl/generar.test.ts"
+          "path": "app/src/opl/generadores/refinamiento.test.ts",
+          "hrefDashboard": "../../app/src/opl/generadores/refinamiento.test.ts"
         }
       ],
       "peso": 4,
-      "score": 0.5,
-      "avancePonderado": 2,
+      "score": 1,
+      "avancePonderado": 4,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-50-opl-pane.md"
     },
     {
@@ -39097,15 +39905,28 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-50-opl-pane.md",
       "lineaInicio": 111,
       "corte": "alpha",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto ronda 10 L5: PanelOpl ofrece copiar al portapapeles, exportar HTML y buscar texto, todo cableado a acciones del store con testids estables.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/ui/PanelOpl.tsx",
+          "hrefDashboard": "../../app/src/ui/PanelOpl.tsx"
+        },
+        {
+          "path": "app/src/store/modelo/acciones-canvas.ts",
+          "hrefDashboard": "../../app/src/store/modelo/acciones-canvas.ts"
+        },
+        {
+          "path": "app/e2e/opm-smoke.spec.ts",
+          "hrefDashboard": "../../app/e2e/opm-smoke.spec.ts"
+        }
+      ],
       "peso": 1,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 1,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-50-opl-pane.md"
     },
     {
@@ -39130,15 +39951,28 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-50-opl-pane.md",
       "lineaInicio": 114,
       "corte": "alpha",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto ronda 10 L5: PanelOpl ofrece copiar al portapapeles, exportar HTML y buscar texto, todo cableado a acciones del store con testids estables.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/ui/PanelOpl.tsx",
+          "hrefDashboard": "../../app/src/ui/PanelOpl.tsx"
+        },
+        {
+          "path": "app/src/store/modelo/acciones-canvas.ts",
+          "hrefDashboard": "../../app/src/store/modelo/acciones-canvas.ts"
+        },
+        {
+          "path": "app/e2e/opm-smoke.spec.ts",
+          "hrefDashboard": "../../app/e2e/opm-smoke.spec.ts"
+        }
+      ],
       "peso": 4,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 4,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-50-opl-pane.md"
     },
     {
@@ -39163,15 +39997,28 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-50-opl-pane.md",
       "lineaInicio": 117,
       "corte": "alpha",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto ronda 10 L5: PanelOpl ofrece copiar al portapapeles, exportar HTML y buscar texto, todo cableado a acciones del store con testids estables.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/ui/PanelOpl.tsx",
+          "hrefDashboard": "../../app/src/ui/PanelOpl.tsx"
+        },
+        {
+          "path": "app/src/store/modelo/acciones-canvas.ts",
+          "hrefDashboard": "../../app/src/store/modelo/acciones-canvas.ts"
+        },
+        {
+          "path": "app/e2e/opm-smoke.spec.ts",
+          "hrefDashboard": "../../app/e2e/opm-smoke.spec.ts"
+        }
+      ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-50-opl-pane.md"
     },
     {

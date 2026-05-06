@@ -728,13 +728,13 @@
   ],
   "knownGaps": [],
   "autoAudit": {
-    "generatedAt": "2026-05-06T09:04:17.077Z",
+    "generatedAt": "2026-05-06T12:48:02.730Z",
     "mode": "sync-real",
-    "rulesEvaluated": 55,
-    "rulesMatched": 55,
+    "rulesEvaluated": 72,
+    "rulesMatched": 72,
     "rulesUnmatched": 0,
     "sourceFiles": {
-      "count": 305,
+      "count": 323,
       "roots": [
         "app/src",
         "app/e2e",
@@ -760,21 +760,6 @@
         "app/src/store.test.ts",
         "app/e2e/opm-smoke.spec.ts",
         "app/src/store.ts"
-      ]
-    },
-    {
-      "ids": [
-        "HU-SHARED-006"
-      ],
-      "estado": "parcial",
-      "confianza": "alta-auto",
-      "fuente": "auto",
-      "nota": "Auto: dirty state se calcula contra snapshot guardado y hay confirmacion global antes de acciones destructivas; falta read-only completo. Slices ronda 8: runtime + persistencia.",
-      "evidencia": [
-        "app/src/store/runtime.ts",
-        "app/src/store/persistencia.ts",
-        "app/src/ui/ConfirmacionContext.tsx",
-        "app/src/ui/DialogoConfirmacion.tsx"
       ]
     },
     {
@@ -1047,19 +1032,6 @@
     },
     {
       "ids": [
-        "HU-50.013"
-      ],
-      "estado": "parcial",
-      "confianza": "media-auto",
-      "fuente": "auto",
-      "nota": "Auto: OPL verbaliza despliegues/descomposiciones; falta cobertura completa de todos los casos narrativos de OPCloud.",
-      "evidencia": [
-        "app/src/opl/generar.ts",
-        "app/src/opl/generar.test.ts"
-      ]
-    },
-    {
-      "ids": [
         "HU-12.002"
       ],
       "estado": "parcial",
@@ -1079,10 +1051,6 @@
         "HU-12.009",
         "HU-12.010",
         "HU-12.012",
-        "HU-12.013",
-        "HU-12.014",
-        "HU-12.016",
-        "HU-12.017",
         "HU-12.019",
         "HU-12.020",
         "HU-12.026",
@@ -1098,45 +1066,6 @@
         "app/src/render/jointjs/proyeccion.ts",
         "app/src/opl/generar.ts",
         "app/src/modelo/operaciones.test.ts"
-      ]
-    },
-    {
-      "ids": [
-        "HU-12.011",
-        "HU-12.031"
-      ],
-      "estado": "parcial",
-      "confianza": "alta-auto",
-      "fuente": "auto",
-      "nota": "Auto: reanclaje de enlaces externos derivados y split de effect existen; falta UX canonica completa de edicion sobre contorno.",
-      "evidencia": [
-        "app/src/modelo/operaciones/enlaces.ts",
-        "app/src/modelo/operaciones/eliminacion.ts",
-        "app/src/ui/inspectorEnlace/SeccionReanclaje.tsx",
-        "app/src/store/modelo/acciones-enlace.ts",
-        "app/src/modelo/operaciones.test.ts"
-      ]
-    },
-    {
-      "ids": [
-        "HU-12.015",
-        "HU-12.018",
-        "HU-12.022",
-        "HU-12.023",
-        "HU-12.024",
-        "HU-12.029",
-        "HU-12.030"
-      ],
-      "estado": "parcial",
-      "confianza": "media-auto",
-      "fuente": "auto",
-      "nota": "Auto: creacion/movimiento/renombrado en OPD activo y persistencia de apariencias existen; faltan restricciones visuales canonicas completas.",
-      "evidencia": [
-        "app/src/store/modelo.ts",
-        "app/src/store/modelo/acciones-entidad.ts",
-        "app/src/store/modelo/acciones-canvas.ts",
-        "app/src/ui/InspectorEntidad.tsx",
-        "app/src/modelo/operaciones/apariencias.ts"
       ]
     },
     {
@@ -1220,19 +1149,6 @@
         "app/src/modelo/extremos.ts",
         "app/src/serializacion/json.test.ts",
         "app/src/opl/generar.ts"
-      ]
-    },
-    {
-      "ids": [
-        "HU-13.015"
-      ],
-      "estado": "parcial",
-      "confianza": "media-auto",
-      "fuente": "auto",
-      "nota": "Auto: existe splitEffectEnPar para transformar effect en consumo/resultado intermedio; falta gesto visual canonico.",
-      "evidencia": [
-        "app/src/modelo/operaciones/eliminacion.ts",
-        "app/src/modelo/operaciones.test.ts"
       ]
     },
     {
@@ -1474,19 +1390,6 @@
         "app/e2e/opm-smoke.spec.ts",
         "app/src/store.test.ts",
         "app/src/serializacion/json.test.ts"
-      ]
-    },
-    {
-      "ids": [
-        "HU-15.025"
-      ],
-      "estado": "parcial",
-      "confianza": "media-auto",
-      "fuente": "auto",
-      "nota": "Auto: validador advierte consumo duplicado y sugiere abanico OR/XOR; falta autocorreccion y UX canonica.",
-      "evidencia": [
-        "app/src/modelo/validaciones.ts",
-        "app/src/modelo/validaciones.test.ts"
       ]
     },
     {
@@ -1816,6 +1719,394 @@
         "app/src/store/pestanas.ts",
         "app/src/store/tipos.ts",
         "app/src/ui/BarraPestanas.tsx"
+      ]
+    },
+    {
+      "ids": [
+        "HU-1A.001",
+        "HU-1A.002",
+        "HU-1A.003",
+        "HU-1A.007",
+        "HU-1A.008"
+      ],
+      "estado": "cubierto",
+      "confianza": "alta-auto",
+      "fuente": "auto",
+      "nota": "Auto ronda 10 L1: auto-tamano persiste con modoTamano y operaciones ajustarAlTexto/volverAAutoTamano/alternarModoTamano sobre apariencias.",
+      "evidencia": [
+        "app/src/modelo/operaciones/apariencias.ts",
+        "app/src/modelo/tipos/apariencia.ts",
+        "app/src/store/modelo/acciones-entidad.ts",
+        "app/src/ui/inspector/SeccionTamano.tsx",
+        "app/src/serializacion/validarApariencias.ts"
+      ]
+    },
+    {
+      "ids": [
+        "HU-1A.004",
+        "HU-1A.005",
+        "HU-1A.015"
+      ],
+      "estado": "cubierto",
+      "confianza": "alta-auto",
+      "fuente": "auto",
+      "nota": "Auto ronda 10 L1: handles laterales/esquina cableados con cablearResize y redimensionarApariencia + redimensionarBatch para multi-seleccion.",
+      "evidencia": [
+        "app/src/render/jointjs/handlers/resize.ts",
+        "app/src/canvas/operacionesBatch.ts",
+        "app/src/render/jointjs/JointCanvas.tsx",
+        "app/src/store/modelo/acciones-entidad.ts",
+        "app/e2e/opm-smoke.spec.ts"
+      ]
+    },
+    {
+      "ids": [
+        "HU-1A.009",
+        "HU-1A.010",
+        "HU-1A.011",
+        "HU-1A.012",
+        "HU-1A.014"
+      ],
+      "estado": "cubierto",
+      "confianza": "alta-auto",
+      "fuente": "auto",
+      "nota": "Auto ronda 10 L1: grid configurable persistido en PreferenciasUiUsuario.gridConfig, drawGrid nativo de JointJS y cuantizacion de movimiento al paso.",
+      "evidencia": [
+        "app/src/canvas/grid.ts",
+        "app/src/render/jointjs/composers/grid.ts",
+        "app/src/modelo/tipos/ui.ts",
+        "app/src/store/modelo/acciones-canvas.ts",
+        "app/src/ui/Toolbar.tsx",
+        "app/src/ui/ModalConfiguracionGrid.tsx",
+        "app/src/canvas/grid.test.ts",
+        "app/src/render/jointjs/composers/grid.test.ts",
+        "app/e2e/opm-smoke.spec.ts"
+      ]
+    },
+    {
+      "ids": [
+        "HU-1A.017",
+        "HU-1A.018",
+        "HU-11.008"
+      ],
+      "estado": "cubierto",
+      "confianza": "alta-auto",
+      "fuente": "auto",
+      "nota": "Auto ronda 10 L1: alineacion por eje y distribucion uniforme expuestas en Toolbar y ejecutadas como operaciones batch con un solo undo.",
+      "evidencia": [
+        "app/src/canvas/operacionesBatch.ts",
+        "app/src/store/modelo/acciones-canvas.ts",
+        "app/src/ui/Toolbar.tsx",
+        "app/src/canvas/operacionesBatch.test.ts",
+        "app/e2e/opm-smoke.spec.ts"
+      ]
+    },
+    {
+      "ids": [
+        "HU-1A.006",
+        "HU-1A.013",
+        "HU-1A.016"
+      ],
+      "estado": "parcial",
+      "confianza": "media-auto",
+      "fuente": "auto",
+      "nota": "Auto ronda 10 L1: validacion de minimo aplica RESIZE_MIN; faltan UX canonicas de proteccion de rotulo, factor de escala y bloqueo de ratio con Shift.",
+      "evidencia": [
+        "app/src/canvas/grid.ts",
+        "app/src/modelo/operaciones/apariencias.ts"
+      ]
+    },
+    {
+      "ids": [
+        "HU-15.022",
+        "HU-15.023"
+      ],
+      "estado": "cubierto",
+      "confianza": "alta-auto",
+      "fuente": "auto",
+      "nota": "Auto ronda 10 L2: dialogo Mover Puerto cambia extremo o remueve relacion con un solo gesto, con accion en store y operacion kernel.",
+      "evidencia": [
+        "app/src/ui/DialogoMoverPuerto.tsx",
+        "app/src/ui/inspectorEnlace/SeccionExtremos.tsx",
+        "app/src/modelo/operaciones/enlaces.ts",
+        "app/src/store/modelo/acciones-enlace.ts",
+        "app/src/modelo/operaciones/enlaces.test.ts",
+        "app/e2e/opm-smoke.spec.ts"
+      ]
+    },
+    {
+      "ids": [
+        "HU-15.014",
+        "HU-15.017"
+      ],
+      "estado": "cubierto",
+      "confianza": "alta-auto",
+      "fuente": "auto",
+      "nota": "Auto ronda 10 L2: subtipoModificador C/E/no aditivo se valida, persiste, proyecta como badge canonico y verbaliza en OPL con fallback desde modificador legacy.",
+      "evidencia": [
+        "app/src/modelo/tipos/enlace.ts",
+        "app/src/modelo/modificadores.ts",
+        "app/src/render/jointjs/composers/markers.ts",
+        "app/src/store/modelo/acciones-enlace.ts",
+        "app/src/modelo/modificadores.test.ts",
+        "app/src/render/jointjs/composers/markers.test.ts",
+        "app/src/render/jointjs/proyeccion.test.ts"
+      ]
+    },
+    {
+      "ids": [
+        "HU-15.025"
+      ],
+      "estado": "cubierto",
+      "confianza": "alta-auto",
+      "fuente": "auto",
+      "nota": "Auto ronda 10 L2: advertirConsumoDuplicado se expone como API y validarModelo emite la advertencia con cita SSOT y sugerencia de abanico.",
+      "evidencia": [
+        "app/src/modelo/validaciones.ts",
+        "app/src/modelo/validaciones.test.ts"
+      ]
+    },
+    {
+      "ids": [
+        "HU-12.011",
+        "HU-12.031"
+      ],
+      "estado": "cubierto",
+      "confianza": "alta-auto",
+      "fuente": "auto",
+      "nota": "Auto ronda 10 L3: reanclaje manual de enlace externo derivado disponible desde SeccionRefinamiento via reasignarEnlaceExternoManual; render de paréntesis del contorno completo.",
+      "evidencia": [
+        "app/src/modelo/operaciones/enlaces.ts",
+        "app/src/modelo/operaciones/eliminacion.ts",
+        "app/src/store/modelo/acciones-opd.ts",
+        "app/src/ui/inspector/SeccionRefinamiento.tsx",
+        "app/src/modelo/operaciones.test.ts",
+        "app/e2e/opm-smoke.spec.ts"
+      ]
+    },
+    {
+      "ids": [
+        "HU-12.016",
+        "HU-12.017"
+      ],
+      "estado": "cubierto",
+      "confianza": "alta-auto",
+      "fuente": "auto",
+      "nota": "Auto ronda 10 L3: orden temporal por Y se reordena con drag vertical y agruparSubprocesosParalelos detecta concurrencia con tolerancia ≤4px emitiendo OPL paralelo.",
+      "evidencia": [
+        "app/src/modelo/operaciones/refinamiento/helpers.ts",
+        "app/src/render/jointjs/handlers/drag.ts",
+        "app/src/store/modelo/acciones-canvas.ts",
+        "app/src/opl/generadores/refinamiento.ts",
+        "app/src/opl/generadores/refinamiento.test.ts",
+        "app/e2e/opm-smoke.spec.ts"
+      ]
+    },
+    {
+      "ids": [
+        "HU-12.013",
+        "HU-12.014"
+      ],
+      "estado": "cubierto",
+      "confianza": "alta-auto",
+      "fuente": "auto",
+      "nota": "Auto ronda 10 L3: OPL distingue se descompone vs se despliega y emite la clausula 'en esa secuencia' al verbalizar la descomposicion.",
+      "evidencia": [
+        "app/src/opl/generadores/refinamiento.ts",
+        "app/src/opl/generar.test.ts"
+      ]
+    },
+    {
+      "ids": [
+        "HU-12.023",
+        "HU-12.024"
+      ],
+      "estado": "cubierto",
+      "confianza": "alta-auto",
+      "fuente": "auto",
+      "nota": "Auto ronda 10 L3: renombrado in situ via RenombradoInline (doble clic en subproceso interno) con propagacion al store y eco OPL.",
+      "evidencia": [
+        "app/src/ui/RenombradoInline.tsx",
+        "app/src/render/jointjs/JointCanvas.tsx",
+        "app/src/render/jointjs/handlers/seleccion.ts"
+      ]
+    },
+    {
+      "ids": [
+        "HU-12.029",
+        "HU-12.030"
+      ],
+      "estado": "cubierto",
+      "confianza": "alta-auto",
+      "fuente": "auto",
+      "nota": "Auto ronda 10 L3: ambientales internas se restringen al contorno con clamp en creacionInterna y validarAmbientalDentroContorno emite advertencia si quedan fuera.",
+      "evidencia": [
+        "app/src/modelo/creacionInterna.ts",
+        "app/src/modelo/validaciones.ts",
+        "app/src/modelo/validaciones.test.ts",
+        "app/src/modelo/creacionInterna.test.ts"
+      ]
+    },
+    {
+      "ids": [
+        "HU-19.001",
+        "HU-19.007",
+        "HU-19.008",
+        "HU-19.009",
+        "HU-19.010"
+      ],
+      "estado": "cubierto",
+      "confianza": "alta-auto",
+      "fuente": "auto",
+      "nota": "Auto ronda 10 L4: modal de imagen se abre desde inspector y toolbar; insignia 📷 cicla modos con click y reabre modal con context-menu; quitar/editar via store.",
+      "evidencia": [
+        "app/src/ui/ModalImagenObjeto.tsx",
+        "app/src/ui/inspector/SeccionImagen.tsx",
+        "app/src/store/modelo/acciones-entidad.ts",
+        "app/src/store/modelo/acciones-ui.ts",
+        "app/src/render/jointjs/handlers/seleccion.ts",
+        "app/src/render/jointjs/composers/imagenOverlay.ts",
+        "app/e2e/opm-smoke.spec.ts"
+      ]
+    },
+    {
+      "ids": [
+        "HU-19.002",
+        "HU-19.003",
+        "HU-19.016"
+      ],
+      "estado": "cubierto",
+      "confianza": "alta-auto",
+      "fuente": "auto",
+      "nota": "Auto ronda 10 L4: incrustar imagen por URL valida extension/protocolo, precarga bitmap con timeout y degrada a Solo texto ante URL caida (cache estado fallido).",
+      "evidencia": [
+        "app/src/modelo/imagenObjeto.ts",
+        "app/src/modelo/objetoMetadata.ts",
+        "app/src/serializacion/validarEntidades.ts",
+        "app/src/modelo/imagenObjeto.test.ts",
+        "app/src/serializacion/json.test.ts"
+      ]
+    },
+    {
+      "ids": [
+        "HU-19.011"
+      ],
+      "estado": "cubierto",
+      "confianza": "alta-auto",
+      "fuente": "auto",
+      "nota": "Auto ronda 10 L4: modo global de visualizacion se fija desde Toolbar y propaga a la proyeccion para forzar imagen/texto/imagen-texto en todo el OPD activo.",
+      "evidencia": [
+        "app/src/store/modelo/acciones-ui.ts",
+        "app/src/render/jointjs/proyeccion.ts",
+        "app/src/render/jointjs/composers/imagenOverlay.ts",
+        "app/src/ui/Toolbar.tsx"
+      ]
+    },
+    {
+      "ids": [
+        "HU-19.012",
+        "HU-19.013",
+        "HU-19.015"
+      ],
+      "estado": "cubierto",
+      "confianza": "alta-auto",
+      "fuente": "auto",
+      "nota": "Auto ronda 10 L4: bitmap se suprime si la cosa esta refinada o tiene estados visibles (regla imagen-estados-excluyentes); OPL invariante ante imagen.",
+      "evidencia": [
+        "app/src/modelo/validaciones.ts",
+        "app/src/render/jointjs/composers/imagenOverlay.ts",
+        "app/src/modelo/imagenObjeto.ts",
+        "app/src/modelo/imagenObjeto.test.ts",
+        "app/src/modelo/validaciones.test.ts"
+      ]
+    },
+    {
+      "ids": [
+        "HU-50.013"
+      ],
+      "estado": "cubierto",
+      "confianza": "alta-auto",
+      "fuente": "auto",
+      "nota": "Auto ronda 10 L5: OPL distingue descomposicion sincrona ('en esa secuencia') de despliegue asincrono mediante oracionDespliegue y oracionParalelo.",
+      "evidencia": [
+        "app/src/opl/generadores/refinamiento.ts",
+        "app/src/opl/generadores/refinamiento.test.ts"
+      ]
+    },
+    {
+      "ids": [
+        "HU-50.023",
+        "HU-50.024",
+        "HU-50.025"
+      ],
+      "estado": "cubierto",
+      "confianza": "alta-auto",
+      "fuente": "auto",
+      "nota": "Auto ronda 10 L5: PanelOpl ofrece copiar al portapapeles, exportar HTML y buscar texto, todo cableado a acciones del store con testids estables.",
+      "evidencia": [
+        "app/src/ui/PanelOpl.tsx",
+        "app/src/store/modelo/acciones-canvas.ts",
+        "app/e2e/opm-smoke.spec.ts"
+      ]
+    },
+    {
+      "ids": [
+        "HU-13.015",
+        "HU-18.013"
+      ],
+      "estado": "parcial",
+      "confianza": "media-auto",
+      "fuente": "auto",
+      "nota": "Auto: split effect existe via splitEffectEnPar (sin gesto canonico); navegacion al OPD desplegado se cubre por click en arbol pero falta gesto sobre rectangulo plegado.",
+      "evidencia": [
+        "app/src/modelo/operaciones/eliminacion.ts",
+        "app/src/store/modelo/acciones-opd.ts"
+      ]
+    },
+    {
+      "ids": [
+        "HU-SHARED-006"
+      ],
+      "estado": "cubierto",
+      "confianza": "alta-auto",
+      "fuente": "auto",
+      "nota": "Auto ronda 10 L5: estado dirty del modelo se persiste por pestana y se confirma al cerrar/cambiar con DialogoConfirmacion Guardar/Descartar/Cancelar.",
+      "evidencia": [
+        "app/src/ui/DialogoConfirmacion.tsx",
+        "app/src/ui/ConfirmacionContext.tsx",
+        "app/src/ui/BarraPestanas.tsx",
+        "app/src/store/tipos.ts",
+        "app/e2e/opm-smoke.spec.ts"
+      ]
+    },
+    {
+      "ids": [
+        "HU-12.018",
+        "HU-12.022"
+      ],
+      "estado": "cubierto",
+      "confianza": "alta-auto",
+      "fuente": "auto",
+      "nota": "Auto ronda 10 L3: objetos internos se crean dentro del contorno y pueden conectarse con subprocesos internos via firma de enlace y validacion de pertenencia.",
+      "evidencia": [
+        "app/src/modelo/creacionInterna.ts",
+        "app/src/modelo/operaciones/refinamiento/helpers.ts",
+        "app/src/modelo/validaciones.ts",
+        "app/src/modelo/creacionInterna.test.ts",
+        "app/e2e/opm-smoke.spec.ts"
+      ]
+    },
+    {
+      "ids": [
+        "HU-12.015"
+      ],
+      "estado": "parcial",
+      "confianza": "media-auto",
+      "fuente": "auto",
+      "nota": "Auto ronda 10 L3: subprocesos internos se crean dentro del contorno por click en posicion; falta gesto canonico de arrastre desde toolbar.",
+      "evidencia": [
+        "app/src/modelo/creacionInterna.ts",
+        "app/src/store/modelo/acciones-entidad.ts"
       ]
     }
   ]
