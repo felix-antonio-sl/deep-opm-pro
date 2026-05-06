@@ -2,8 +2,8 @@
 
 **Fecha**: 2026-05-06
 **Repositorio**: `deep-opm-pro`
-**Corte**: MVP-alpha + rondas 1, 2, 3, 4, 5, 6, 7, 8 y 9 consolidadas sobre `main`
-**Código verificado**: `main` tras commits L1-L4 ronda 9 + cascada de detector recalibrado.
+**Corte**: MVP-alpha + rondas 1-9 consolidadas + ronda 9.5 (cierre de deuda residual menor) sobre `main`
+**Código verificado**: `main` tras ronda 9.5 — 3 sub-particiones aditivas + recalibración detector.
 **Documentación vigente**: este archivo reemplaza por completo el handoff anterior.
 
 ## Política De Handoff Único
@@ -25,7 +25,15 @@ monolitos restantes (`operaciones.ts`, `tipos.ts`, `JointCanvas.tsx`,
 `AsistenteNuevoModelo.tsx`) más cierre de la **deuda funcional de undo
 per-pestaña** declarada desde ronda 7. El patrón canónico ronda 8 (barrel
 re-export + sub-archivos por dominio) se extiende a las 4 superficies
-restantes. APIs públicas inalteradas:
+restantes. APIs públicas inalteradas.
+
+La **ronda 9.5** cerró la deuda residual menor identificada al planificar
+ronda 10: sub-particionó los 3 archivos que seguían siendo grandes
+(`store/modelo.ts` 1622 LOC, `modelo/operaciones/refinamiento.ts` 754 LOC,
+`render/jointjs/mapaSistema.ts` 499 LOC) extendiendo el patrón canónico una
+vez más. Tras 9.5, el repo entero queda con barrels < 350 LOC y sub-archivos
+por dominio bajo cada superficie pública. **Ronda 10 puede ser de features
+post-MVP-α con cero deuda estructural pendiente.**
 
 | Línea | Commit | Resultado integrado |
 |---|---|---|
@@ -149,14 +157,22 @@ Diagnóstico vigente: 1 advertencia de inventario por ID duplicado `HU-13.005` (
 
 ## Pendientes Inmediatos
 
-- **`store/modelo.ts`** (1622 LOC): emergente post-ronda 8. NO se partió en ronda 9 por riesgo de choque con L4. Si crece más, candidato natural para ronda 10 con worktree dedicado.
-- **`modelo/operaciones/refinamiento.ts`** (754 LOC): el sub-archivo más grande tras L1. Está dentro del dominio canónico (in-zoom + unfold + helpers), pero podría sub-particionarse si crece más (`refinamiento/{descomposicion,despliegue,proyeccion,helpers}.ts`).
-- **HU de kernel pendientes**: `enlace.subtipo`, `enlace.modificadorNot`, slot de valor numérico EPICA-17, multiplicidad avanzada EPICA-15, imágenes EPICA-19, sub-modelos EPICA-32, plantillas EPICA-33. Son features, no refactor. **Ronda 10 puede ser la primera ronda de features post-MVP-α**.
-- **EPICA-60 export PDF**, **EPICA-61 export SVG papel**, **EPICA-71 CSV import**: requieren librerías nuevas; bloqueadas por regla "no introducir dependencias nuevas" hasta cambio de doctrina.
+Tras ronda 9.5, **cero deuda estructural mayor pendiente**. Los 3 candidatos
+declarados como pendientes en ronda 9 fueron cerrados:
+
+- ✅ `store/modelo.ts` 1622 LOC → 45 LOC barrel + 6 sub-archivos por dominio (acciones-{entidad,estados,opd,enlace,canvas,ui}.ts).
+- ✅ `modelo/operaciones/refinamiento.ts` 754 LOC → 35 LOC barrel + 4 sub-archivos en `refinamiento/{descomposicion,despliegue,proyeccion,helpers}.ts`.
+- ✅ `render/jointjs/mapaSistema.ts` 499 LOC → 36 LOC barrel + 6 sub-archivos en `mapa/{tipos,descriptor,proyeccion,filtros,marcadores,estadisticas}.ts`.
+
+Pendientes que siguen vivos:
+
+- **HU de kernel**: `enlace.subtipo`, `enlace.modificadorNot`, slot de valor numérico EPICA-17, multiplicidad avanzada EPICA-15, imágenes EPICA-19, sub-modelos EPICA-32, plantillas EPICA-33. **Ronda 10 = ronda de features**.
+- **EPICA-60 export PDF**, **EPICA-61 export SVG papel**, **EPICA-71 CSV import**: bloqueadas por regla "no introducir dependencias nuevas".
 - **EPICA-70 OPCAT**, **EPICA-91 tutorial**: descartadas del proyecto.
-- **Endurecimiento del boundary JointJS**: `roadmap/jointjs-boundary.md` documenta el adapter mínimo. Endurecerlo (formalizar contracts del adapter, hacer testeable sin JointJS) es candidato a ronda futura cuando el corte funcional lo justifique.
-- **Refactor de `mapaSistema.ts` (499 LOC)**: bajo blast, modularización pendiente; candidato menor.
-- **Smoke 854 flaky**: el smoke "confirma cambios sin guardar antes de crear un modelo nuevo" ocasionalmente falla en la primera corrida del día (timing al iniciar dev server). Reintento generalmente verde. Si persistente: investigar timing de Playwright o del beforeunload del browser.
+- **Endurecimiento del boundary JointJS**: `roadmap/jointjs-boundary.md`. Candidato a ronda futura cuando el corte funcional lo justifique.
+- **Smoke 854 flaky**: ocasional, no bloqueante. Reintento generalmente verde.
+
+Sub-archivo más grande post-9.5: `store/modelo/acciones-canvas.ts` 472 LOC. Dentro del dominio coherente (selección + plegado + edición OPL + apariencia + estilo + deshacer/rehacer); particionable si crece pero no urgente.
 
 ## Épicas Descartadas Del Proyecto
 

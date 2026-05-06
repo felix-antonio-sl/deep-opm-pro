@@ -728,13 +728,13 @@
   ],
   "knownGaps": [],
   "autoAudit": {
-    "generatedAt": "2026-05-06T06:51:13.644Z",
+    "generatedAt": "2026-05-06T09:04:17.077Z",
     "mode": "sync-real",
     "rulesEvaluated": 55,
     "rulesMatched": 55,
     "rulesUnmatched": 0,
     "sourceFiles": {
-      "count": 289,
+      "count": 305,
       "roots": [
         "app/src",
         "app/e2e",
@@ -755,7 +755,7 @@
       "nota": "Auto: undo/redo esta implementado con snapshots de Modelo, atajos y profundidad 100; siguen fuera comandos inversos granulares/read-only. Slices ronda 8: runtime + modelo.",
       "evidencia": [
         "app/src/store/runtime.ts",
-        "app/src/store/modelo.ts",
+        "app/src/store/modelo/acciones-canvas.ts",
         "app/src/ui/Toolbar.tsx",
         "app/src/store.test.ts",
         "app/e2e/opm-smoke.spec.ts",
@@ -877,7 +877,7 @@
       "nota": "Auto: flujo origen-tipo-destino crea enlaces con validacion de firma; faltan puertos/borde y tabla contextual canonica.",
       "evidencia": [
         "app/src/ui/Toolbar.tsx",
-        "app/src/store/modelo.ts",
+        "app/src/store/modelo/acciones-enlace.ts",
         "app/src/modelo/operaciones/helpers.ts",
         "app/src/modelo/operaciones/enlaces.ts"
       ]
@@ -914,7 +914,7 @@
       "nota": "Auto: exhibicion/generalizacion/clasificacion existen en tipos, validacion, markers y OPL; faltan propiedades avanzadas OPCloud.",
       "evidencia": [
         "app/src/modelo/tipos/enlace.ts",
-        "app/src/modelo/operaciones/refinamiento.ts",
+        "app/src/modelo/operaciones/refinamiento/despliegue.ts",
         "app/src/modelo/operaciones/helpers.ts",
         "app/src/render/jointjs/linkAssets.ts",
         "app/src/opl/generar.ts",
@@ -975,7 +975,7 @@
       "evidencia": [
         "app/src/ui/Toolbar.tsx",
         "app/src/store/persistencia.ts",
-        "app/src/store/modelo.ts",
+        "app/src/store/modelo/acciones-ui.ts",
         "app/src/persistencia/local.ts",
         "app/src/persistencia/local.test.ts"
       ]
@@ -1001,8 +1001,9 @@
       "evidencia": [
         "app/src/ui/ArbolOpd.tsx",
         "app/src/ui/arbol/NodoOpd.tsx",
+        "app/src/store/modelo/acciones-opd.ts",
         "app/src/store/modelo.ts",
-        "app/src/modelo/operaciones/refinamiento.ts",
+        "app/src/modelo/operaciones/refinamiento/descomposicion.ts",
         "app/src/opl/generar.ts",
         "app/e2e/opm-smoke.spec.ts"
       ]
@@ -1067,7 +1068,7 @@
       "nota": "Auto: inspector permite descomponer/desplegar desde la entidad seleccionada; faltan menus canonicos y algunos gestos.",
       "evidencia": [
         "app/src/ui/inspector/SeccionRefinamiento.tsx",
-        "app/src/store/modelo.ts"
+        "app/src/store/modelo/acciones-opd.ts"
       ]
     },
     {
@@ -1092,7 +1093,8 @@
       "fuente": "auto",
       "nota": "Auto: descomposicion de proceso crea OPD hijo, subprocesos iniciales, enlaces derivados y OPL/render de contorno.",
       "evidencia": [
-        "app/src/modelo/operaciones/refinamiento.ts",
+        "app/src/modelo/operaciones/refinamiento/descomposicion.ts",
+        "app/src/modelo/operaciones/refinamiento/proyeccion.ts",
         "app/src/render/jointjs/proyeccion.ts",
         "app/src/opl/generar.ts",
         "app/src/modelo/operaciones.test.ts"
@@ -1111,7 +1113,7 @@
         "app/src/modelo/operaciones/enlaces.ts",
         "app/src/modelo/operaciones/eliminacion.ts",
         "app/src/ui/inspectorEnlace/SeccionReanclaje.tsx",
-        "app/src/store/modelo.ts",
+        "app/src/store/modelo/acciones-enlace.ts",
         "app/src/modelo/operaciones.test.ts"
       ]
     },
@@ -1131,6 +1133,8 @@
       "nota": "Auto: creacion/movimiento/renombrado en OPD activo y persistencia de apariencias existen; faltan restricciones visuales canonicas completas.",
       "evidencia": [
         "app/src/store/modelo.ts",
+        "app/src/store/modelo/acciones-entidad.ts",
+        "app/src/store/modelo/acciones-canvas.ts",
         "app/src/ui/InspectorEntidad.tsx",
         "app/src/modelo/operaciones/apariencias.ts"
       ]
@@ -1192,7 +1196,7 @@
         "app/src/render/jointjs/estadoTargets.ts",
         "app/src/render/jointjs/handlers/seleccion.ts",
         "app/src/render/jointjs/handlers/helpers.ts",
-        "app/src/store/modelo.ts",
+        "app/src/store/modelo/acciones-canvas.ts",
         "app/src/serializacion/validarEnlaces.ts",
         "app/src/modelo/operaciones.test.ts",
         "app/src/render/jointjs/proyeccion.test.ts",
@@ -1260,7 +1264,8 @@
       "nota": "Auto: panel de avisos existe y permite seleccionar elementos; faltan todos los patrones de navegacion/correccion asistida.",
       "evidencia": [
         "app/src/ui/PanelAvisos.tsx",
-        "app/src/store/modelo.ts"
+        "app/src/store/modelo/acciones-opd.ts",
+        "app/src/store/modelo/acciones-canvas.ts"
       ]
     },
     {
@@ -1311,7 +1316,7 @@
       "nota": "Auto: extraccion/reinsercion de partes plegadas, proxy visual, reanclaje al padre, contador y OPL resumida estan implementados y probados.",
       "evidencia": [
         "app/src/modelo/plegado.ts",
-        "app/src/store/modelo.ts",
+        "app/src/store/modelo/acciones-canvas.ts",
         "app/src/render/jointjs/handlers/drag.ts",
         "app/src/render/jointjs/handlers/helpers.ts",
         "app/src/render/jointjs/composers/plegado.ts",
@@ -1334,7 +1339,7 @@
       "fuente": "auto",
       "nota": "Auto: despliegue y multiples apariencias estan modelados para OPDs; faltan propiedades completas de apariencia equivalentes a OPCloud.",
       "evidencia": [
-        "app/src/modelo/operaciones/refinamiento.ts",
+        "app/src/modelo/operaciones/refinamiento/despliegue.ts",
         "app/src/ui/inspector/SeccionRefinamiento.tsx",
         "app/src/serializacion/json.ts"
       ]
@@ -1349,7 +1354,7 @@
       "nota": "Auto: la segunda rama compatible forma un abanico automaticamente en el store y se cubre con tests de kernel/store.",
       "evidencia": [
         "app/src/modelo/abanicos.ts",
-        "app/src/store/modelo.ts",
+        "app/src/store/modelo/acciones-canvas.ts",
         "app/src/modelo/abanicos.test.ts",
         "app/src/store.test.ts"
       ]
@@ -1497,7 +1502,7 @@
         "app/src/render/jointjs/autoinvocacionLoop.ts",
         "app/src/opl/generar.ts",
         "app/src/ui/InspectorEntidad.tsx",
-        "app/src/store/modelo.ts",
+        "app/src/store/modelo/acciones-enlace.ts",
         "app/src/modelo/modificadores.test.ts",
         "app/src/opl/generar.test.ts",
         "app/src/render/jointjs/proyeccion.test.ts",
@@ -1519,7 +1524,7 @@
         "app/src/render/jointjs/plegadoNesting.ts",
         "app/src/render/jointjs/handlers/seleccion.ts",
         "app/src/render/jointjs/handlers/helpers.ts",
-        "app/src/store/modelo.ts",
+        "app/src/store/modelo/acciones-canvas.ts",
         "app/src/ui/InspectorEntidad.tsx",
         "app/src/serializacion/json.ts",
         "app/src/modelo/plegado.test.ts",
@@ -1545,7 +1550,7 @@
       "evidencia": [
         "app/src/opl/interaccion.ts",
         "app/src/ui/PanelOpl.tsx",
-        "app/src/store/modelo.ts",
+        "app/src/store/modelo/acciones-canvas.ts",
         "app/src/opl/generar.test.ts",
         "app/src/store.test.ts",
         "app/e2e/opm-smoke.spec.ts"
@@ -1607,6 +1612,7 @@
       "nota": "Auto: Nuevo crea pestana con SD vacio, titulo (No guardado) y panel OPL/biblioteca vacios.",
       "evidencia": [
         "app/src/ui/MenuPrincipal.tsx",
+        "app/src/store/modelo/acciones-ui.ts",
         "app/src/store/modelo.ts",
         "app/src/ui/Toolbar.tsx"
       ]
@@ -1621,7 +1627,7 @@
       "nota": "Auto: click dentro del bbox de un contenedor refinado crea cosa hija sin advertencia interior/exterior.",
       "evidencia": [
         "app/src/modelo/creacionInterna.ts",
-        "app/src/store/modelo.ts",
+        "app/src/store/modelo/acciones-entidad.ts",
         "app/src/modelo/creacionInterna.test.ts"
       ]
     },
@@ -1637,7 +1643,7 @@
       "evidencia": [
         "app/src/modelo/opdEliminacion.ts",
         "app/src/ui/ArbolOpd.tsx",
-        "app/src/store/modelo.ts",
+        "app/src/store/modelo/acciones-opd.ts",
         "app/src/modelo/opdEliminacion.test.ts",
         "app/src/store.test.ts"
       ]

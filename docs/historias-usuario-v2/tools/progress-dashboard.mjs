@@ -385,7 +385,7 @@ function autoAuditRules() {
       nota: "Auto: undo/redo esta implementado con snapshots de Modelo, atajos y profundidad 100; siguen fuera comandos inversos granulares/read-only. Slices ronda 8: runtime + modelo.",
       requires: [
         { path: "app/src/store/runtime.ts", all: ["const UNDO_LIMIT = 100", "redoStack"] },
-        { path: "app/src/store/modelo.ts", all: ["deshacer()", "rehacer()"] },
+        { path: "app/src/store/modelo/acciones-canvas.ts", all: ["deshacer()", "rehacer()"] },
         { path: "app/src/ui/Toolbar.tsx", all: ["deshacer", "rehacer", "keydown"] },
         { path: "app/src/store.test.ts", any: ["undo", "deshacer"] },
       ],
@@ -474,7 +474,7 @@ function autoAuditRules() {
       nota: "Auto: flujo origen-tipo-destino crea enlaces con validacion de firma; faltan puertos/borde y tabla contextual canonica.",
       requires: [
         { path: "app/src/ui/Toolbar.tsx", all: ["TIPOS_ENLACE", "elegirTipoEnlace"] },
-        { path: "app/src/store/modelo.ts", all: ["elegirTipoEnlace(tipo)", "crearEnlace", "modoEnlace"] },
+        { path: "app/src/store/modelo/acciones-enlace.ts", all: ["elegirTipoEnlace(tipo)", "modoEnlace"] },
         { path: "app/src/modelo/operaciones/helpers.ts", all: ["validarFirmaEnlace"] },
         { path: "app/src/modelo/operaciones/enlaces.ts", all: ["export function crearEnlace"] },
       ],
@@ -499,7 +499,7 @@ function autoAuditRules() {
       nota: "Auto: exhibicion/generalizacion/clasificacion existen en tipos, validacion, markers y OPL; faltan propiedades avanzadas OPCloud.",
       requires: [
         { path: "app/src/modelo/tipos/enlace.ts", all: ["\"exhibicion\"", "\"generalizacion\"", "\"clasificacion\""] },
-        { path: "app/src/modelo/operaciones/refinamiento.ts", all: ["desplegarObjeto", "modo"] },
+        { path: "app/src/modelo/operaciones/refinamiento/despliegue.ts", all: ["desplegarObjeto", "modo"] },
         { path: "app/src/modelo/operaciones/helpers.ts", all: ["validarFirmaEnlace"] },
         { path: "app/src/render/jointjs/linkAssets.ts", all: ["exhibicion", "generalizacion", "clasificacion"] },
         { path: "app/src/opl/generar.ts", all: ["exhibe", "es un", "instancia de"] },
@@ -539,7 +539,7 @@ function autoAuditRules() {
       requires: [
         { path: "app/src/ui/Toolbar.tsx", all: ["Guardar (Ctrl+S)", "Cargar", "Nuevo", "key === \"s\""] },
         { path: "app/src/store/persistencia.ts", all: ["guardarLocal()", "cargarLocal(id)"] },
-        { path: "app/src/store/modelo.ts", all: ["nuevoModelo"] },
+        { path: "app/src/store/modelo/acciones-ui.ts", all: ["nuevoModelo"] },
         { path: "app/src/persistencia/local.ts", all: ["localStorage", "guardarModeloLocal", "cargarModeloLocal"] },
         { path: "app/src/persistencia/local.test.ts", all: ["guardarModeloLocal", "cargarModeloLocal"] },
       ],
@@ -552,9 +552,10 @@ function autoAuditRules() {
       requires: [
         { path: "app/src/ui/ArbolOpd.tsx", any: ["cambiarOpdActivo", "padreId", "ArbolOpd"] },
         { path: "app/src/ui/arbol/NodoOpd.tsx", any: ["padreId", "nombreNodo", "NodoOpd"] },
-        { path: "app/src/store/modelo.ts", all: ["cambiarOpdActivo", "opdActivoId"] },
-        { path: "app/src/modelo/operaciones/refinamiento.ts", all: ["opdPadreId"] },
-        { path: "app/src/modelo/operaciones/refinamiento.ts", all: ["opdHijoId"] },
+        { path: "app/src/store/modelo/acciones-opd.ts", all: ["cambiarOpdActivo"] },
+        { path: "app/src/store/modelo.ts", all: ["opdActivoId"] },
+        { path: "app/src/modelo/operaciones/refinamiento/descomposicion.ts", all: ["opdPadreId"] },
+        { path: "app/src/modelo/operaciones/refinamiento/descomposicion.ts", all: ["opdHijoId"] },
         { path: "app/src/opl/generar.ts", all: ["opdId", "modelo.opdRaizId"] },
       ],
       evidenciaExtra: ["app/e2e/opm-smoke.spec.ts"],
@@ -601,7 +602,7 @@ function autoAuditRules() {
       nota: "Auto: inspector permite descomponer/desplegar desde la entidad seleccionada; faltan menus canonicos y algunos gestos.",
       requires: [
         { path: "app/src/ui/inspector/SeccionRefinamiento.tsx", any: ["Descomponer", "Desplegar"] },
-        { path: "app/src/store/modelo.ts", all: ["descomponerSeleccionada", "desplegarSeleccionada"] },
+        { path: "app/src/store/modelo/acciones-opd.ts", all: ["descomponerSeleccionada", "desplegarSeleccionada"] },
       ],
     },
     {
@@ -610,7 +611,8 @@ function autoAuditRules() {
       confianza: "alta-auto",
       nota: "Auto: descomposicion de proceso crea OPD hijo, subprocesos iniciales, enlaces derivados y OPL/render de contorno.",
       requires: [
-        { path: "app/src/modelo/operaciones/refinamiento.ts", all: ["descomponerProceso", "subprocesosInicialesInzoom", "refrescarEnlacesExternosDerivados"] },
+        { path: "app/src/modelo/operaciones/refinamiento/descomposicion.ts", all: ["descomponerProceso", "subprocesosInicialesInzoom"] },
+        { path: "app/src/modelo/operaciones/refinamiento/proyeccion.ts", all: ["refrescarEnlacesExternosDerivados"] },
         { path: "app/src/render/jointjs/proyeccion.ts", all: ["contornoRefinamiento", "modoPlegadoApariencia"] },
         { path: "app/src/opl/generar.ts", all: ["oracionRefinamiento", "se descompone"] },
         { path: "app/src/modelo/operaciones.test.ts", all: ["descompone proceso en OPD hijo", "subprocesos"] },
@@ -625,7 +627,7 @@ function autoAuditRules() {
         { path: "app/src/modelo/operaciones/enlaces.ts", all: ["reanclarEnlaceExternoDerivado"] },
         { path: "app/src/modelo/operaciones/eliminacion.ts", all: ["splitEffectEnPar"] },
         { path: "app/src/ui/inspectorEnlace/SeccionReanclaje.tsx", all: ["Reanclar a subproceso"] },
-        { path: "app/src/store/modelo.ts", any: ["reanclarEnlaceExternoDerivado"] },
+        { path: "app/src/store/modelo/acciones-enlace.ts", any: ["reanclarEnlaceExternoDerivado"] },
         { path: "app/src/modelo/operaciones.test.ts", all: ["reanclarEnlaceExternoDerivado", "splitEffectEnPar"] },
       ],
     },
@@ -635,7 +637,9 @@ function autoAuditRules() {
       confianza: "media-auto",
       nota: "Auto: creacion/movimiento/renombrado en OPD activo y persistencia de apariencias existen; faltan restricciones visuales canonicas completas.",
       requires: [
-        { path: "app/src/store/modelo.ts", all: ["opdActivoId", "crearObjetoDemo", "crearProcesoDemo", "moverApariencia"] },
+        { path: "app/src/store/modelo.ts", all: ["opdActivoId"] },
+        { path: "app/src/store/modelo/acciones-entidad.ts", all: ["crearObjetoDemo", "crearProcesoDemo"] },
+        { path: "app/src/store/modelo/acciones-canvas.ts", all: ["moverApariencia"] },
         { path: "app/src/ui/InspectorEntidad.tsx", any: ["renombrarSeleccionada", "renombrar", "Inspector"] },
         { path: "app/src/modelo/operaciones/apariencias.ts", all: ["moverApariencia", "posicion"] },
       ],
@@ -677,7 +681,7 @@ function autoAuditRules() {
         { path: "app/src/render/jointjs/estadoTargets.ts", all: ["targetsEstado", "stateCapsule", "stateLabel"] },
         { path: "app/src/render/jointjs/handlers/seleccion.ts", all: ["seleccionarEstadoComoExtremo"] },
         { path: "app/src/render/jointjs/handlers/helpers.ts", all: ["jointSelector", "closest(\"[joint-selector]\")"] },
-        { path: "app/src/store/modelo.ts", all: ["seleccionarEstadoComoExtremo", "extremoEstado(estadoId)"] },
+        { path: "app/src/store/modelo/acciones-canvas.ts", all: ["seleccionarEstadoComoExtremo", "extremoEstado(estadoId)"] },
         { path: "app/src/serializacion/validarEnlaces.ts", all: ["validarExtremoEnlace", "kind === \"estado\""] },
       ],
       evidenciaExtra: ["app/src/modelo/operaciones.test.ts", "app/src/render/jointjs/proyeccion.test.ts", "app/src/serializacion/json.test.ts", "app/src/store.test.ts", "app/e2e/opm-smoke.spec.ts", "app/src/serializacion/json.ts"],
@@ -721,7 +725,8 @@ function autoAuditRules() {
       nota: "Auto: panel de avisos existe y permite seleccionar elementos; faltan todos los patrones de navegacion/correccion asistida.",
       requires: [
         { path: "app/src/ui/PanelAvisos.tsx", all: ["navegarAviso", "validarModelo"] },
-        { path: "app/src/store/modelo.ts", all: ["navegarAviso", "seleccionarEntidad", "seleccionarEnlace"] },
+        { path: "app/src/store/modelo/acciones-opd.ts", all: ["navegarAviso"] },
+        { path: "app/src/store/modelo/acciones-canvas.ts", all: ["seleccionarEntidad", "seleccionarEnlace"] },
       ],
     },
     {
@@ -754,7 +759,7 @@ function autoAuditRules() {
       nota: "Auto: extraccion/reinsercion de partes plegadas, proxy visual, reanclaje al padre, contador y OPL resumida estan implementados y probados.",
       requires: [
         { path: "app/src/modelo/plegado.ts", all: ["extraerParteDePlegado", "reinsertarParteEnPlegado", "contarPartesOcultas", "filasPlegadoParcial"] },
-        { path: "app/src/store/modelo.ts", all: ["extraerParteDePlegado", "reinsertarParteEnPlegado"] },
+        { path: "app/src/store/modelo/acciones-canvas.ts", all: ["extraerParteDePlegado", "reinsertarParteEnPlegado"] },
         { path: "app/src/render/jointjs/handlers/drag.ts", all: ["element:pointerdblclick"] },
         { path: "app/src/render/jointjs/handlers/helpers.ts", all: ["parteEntidadDesdeSelector"] },
         { path: "app/src/render/jointjs/composers/plegado.ts", any: ["proxy-plegado", "partCounter", "textDecoration", "PLEGADO"] },
@@ -768,7 +773,7 @@ function autoAuditRules() {
       confianza: "media-auto",
       nota: "Auto: despliegue y multiples apariencias estan modelados para OPDs; faltan propiedades completas de apariencia equivalentes a OPCloud.",
       requires: [
-        { path: "app/src/modelo/operaciones/refinamiento.ts", all: ["desplegarObjeto", "apariencias", "entidadId"] },
+        { path: "app/src/modelo/operaciones/refinamiento/despliegue.ts", all: ["desplegarObjeto", "apariencias", "entidadId"] },
         { path: "app/src/ui/inspector/SeccionRefinamiento.tsx", all: ["Desplegar", "DesplegarComo"] },
         { path: "app/src/serializacion/json.ts", all: ["apariencias"] },
       ],
@@ -780,7 +785,7 @@ function autoAuditRules() {
       nota: "Auto: la segunda rama compatible forma un abanico automaticamente en el store y se cubre con tests de kernel/store.",
       requires: [
         { path: "app/src/modelo/abanicos.ts", all: ["formarAbanico", "formarAbanicoAutomatico", "detectarPuertoCompartido"] },
-        { path: "app/src/store/modelo.ts", all: ["formarAbanicoAutomatico", "enlaceCreadoId"] },
+        { path: "app/src/store/modelo/acciones-canvas.ts", all: ["formarAbanicoAutomatico", "enlaceCreadoId"] },
         { path: "app/src/modelo/abanicos.test.ts", all: ["formarAbanicoAutomatico crea abanico al conectar segunda rama compatible"] },
         { path: "app/src/store.test.ts", all: ["forma abanico automatico al conectar segunda rama"] },
       ],
@@ -885,7 +890,7 @@ function autoAuditRules() {
         { path: "app/src/render/jointjs/autoinvocacionLoop.ts", all: ["proyectarAutoInvocacion", "standard.Link", "etiquetaDemora"] },
         { path: "app/src/opl/generar.ts", all: ["esAutoInvocacion", "se invoca a sí mismo"] },
         { path: "app/src/ui/InspectorEntidad.tsx", any: ["crearAutoInvocacion", "Auto-invocación", "Inspector"] },
-        { path: "app/src/store/modelo.ts", all: ["crearAutoInvocacionSeleccionada", "crearAutoInvocacion(modelo"] },
+        { path: "app/src/store/modelo/acciones-enlace.ts", all: ["crearAutoInvocacionSeleccionada", "crearAutoInvocacion(modelo"] },
       ],
       evidenciaExtra: ["app/src/modelo/modificadores.test.ts", "app/src/opl/generar.test.ts", "app/src/render/jointjs/proyeccion.test.ts", "app/src/store.test.ts", "app/e2e/opm-smoke.spec.ts"],
     },
@@ -899,7 +904,7 @@ function autoAuditRules() {
         { path: "app/src/render/jointjs/plegadoNesting.ts", all: ["filasPlegadoConNesting", "partePlegadaTienePartes", "indicadorNesting"] },
         { path: "app/src/render/jointjs/handlers/seleccion.ts", all: ["seleccionarPartePlegada"] },
         { path: "app/src/render/jointjs/handlers/helpers.ts", all: ["parteEntidadDesdeSelector"] },
-        { path: "app/src/store/modelo.ts", all: ["crearEnlaceConExtremoPlegado", "seleccionarPartePlegada", "cambiarOrdenPartesSeleccionado"] },
+        { path: "app/src/store/modelo/acciones-canvas.ts", all: ["crearEnlaceConExtremoPlegado", "seleccionarPartePlegada", "cambiarOrdenPartesSeleccionado"] },
         { path: "app/src/ui/InspectorEntidad.tsx", any: ["Orden de partes", "cambiarOrdenPartes", "Inspector"] },
         { path: "app/src/serializacion/json.ts", all: ["ordenPartes", "validarOrdenPartes"] },
       ],
@@ -913,7 +918,7 @@ function autoAuditRules() {
       requires: [
         { path: "app/src/opl/interaccion.ts", all: ["OplLineaInteractiva", "OplReferencia", "filtrarLineasPorReferencia", "lineaTocaReferencia", "mismaReferencia"] },
         { path: "app/src/ui/PanelOpl.tsx", any: ["filtroOplPorSeleccion", "fijarFiltroOplPorSeleccion", "fijarHoverOpl", "seleccionarDesdeOpl", "renombrarEntidadDesdeOpl", "PanelOpl"] },
-        { path: "app/src/store/modelo.ts", all: ["seleccionarDesdeOpl", "renombrarEntidadDesdeOpl", "fijarFiltroOplPorSeleccion", "fijarHoverOpl"] },
+        { path: "app/src/store/modelo/acciones-canvas.ts", all: ["seleccionarDesdeOpl", "renombrarEntidadDesdeOpl", "fijarFiltroOplPorSeleccion", "fijarHoverOpl"] },
       ],
       evidenciaExtra: ["app/src/opl/generar.test.ts", "app/src/store.test.ts", "app/e2e/opm-smoke.spec.ts"],
     },
@@ -948,7 +953,8 @@ function autoAuditRules() {
       nota: "Auto: Nuevo crea pestana con SD vacio, titulo (No guardado) y panel OPL/biblioteca vacios.",
       requires: [
         { path: "app/src/ui/MenuPrincipal.tsx", all: ["Nuevo"] },
-        { path: "app/src/store/modelo.ts", all: ["nuevoModelo", "opdRaizId"] },
+        { path: "app/src/store/modelo/acciones-ui.ts", all: ["nuevoModelo"] },
+        { path: "app/src/store/modelo.ts", all: ["opdRaizId"] },
         { path: "app/src/ui/Toolbar.tsx", any: ["No guardado"] },
       ],
     },
@@ -959,7 +965,7 @@ function autoAuditRules() {
       nota: "Auto: click dentro del bbox de un contenedor refinado crea cosa hija sin advertencia interior/exterior.",
       requires: [
         { path: "app/src/modelo/creacionInterna.ts", all: ["crearCosaEnPosicion", "dentroDeContorno"] },
-        { path: "app/src/store/modelo.ts", any: ["crearCosaEnPosicion", "contenedorRefinamiento"] },
+        { path: "app/src/store/modelo/acciones-entidad.ts", any: ["crearCosaEnPosicion", "contenedorRefinamiento"] },
       ],
       evidenciaExtra: ["app/src/modelo/creacionInterna.test.ts"],
     },
@@ -971,7 +977,7 @@ function autoAuditRules() {
       requires: [
         { path: "app/src/modelo/opdEliminacion.ts", all: ["eliminarOpdHoja", "diagnosticarEliminacionOpd", "MENSAJE_ELIMINAR_DESCENDIENTES"] },
         { path: "app/src/ui/ArbolOpd.tsx", any: ["Eliminar", "eliminarOpd", "ArbolOpd"] },
-        { path: "app/src/store/modelo.ts", any: ["eliminarOpdDesdeArbol"] },
+        { path: "app/src/store/modelo/acciones-opd.ts", any: ["eliminarOpdDesdeArbol"] },
       ],
       evidenciaExtra: ["app/src/modelo/opdEliminacion.test.ts", "app/src/store.test.ts"],
     },
