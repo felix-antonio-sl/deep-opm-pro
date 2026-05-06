@@ -728,13 +728,13 @@
   ],
   "knownGaps": [],
   "autoAudit": {
-    "generatedAt": "2026-05-06T12:48:02.730Z",
+    "generatedAt": "2026-05-06T19:06:07.263Z",
     "mode": "sync-real",
-    "rulesEvaluated": 72,
-    "rulesMatched": 72,
+    "rulesEvaluated": 92,
+    "rulesMatched": 92,
     "rulesUnmatched": 0,
     "sourceFiles": {
-      "count": 323,
+      "count": 333,
       "roots": [
         "app/src",
         "app/e2e",
@@ -799,37 +799,6 @@
     },
     {
       "ids": [
-        "HU-SHARED-009"
-      ],
-      "estado": "parcial",
-      "confianza": "media-auto",
-      "fuente": "auto",
-      "nota": "Auto: nombres vacios/duplicados de estados se validan y el JSON conserva nombres; falta contrato global completo de nombres.",
-      "evidencia": [
-        "app/src/modelo/operaciones/entidad.ts",
-        "app/src/modelo/operaciones/estados.ts",
-        "app/src/serializacion/json.ts",
-        "app/src/modelo/operaciones.test.ts"
-      ]
-    },
-    {
-      "ids": [
-        "HU-10.001",
-        "HU-10.002"
-      ],
-      "estado": "parcial",
-      "confianza": "alta-auto",
-      "fuente": "auto",
-      "nota": "Auto: creacion de objeto/proceso existe desde toolbar y kernel; falta gesto canonico de arrastre desde barra.",
-      "evidencia": [
-        "app/src/modelo/operaciones/creacion.ts",
-        "app/src/ui/Toolbar.tsx",
-        "app/src/modelo/operaciones.test.ts",
-        "app/e2e/opm-smoke.spec.ts"
-      ]
-    },
-    {
-      "ids": [
         "HU-10.006",
         "HU-10.012",
         "HU-10.013",
@@ -850,16 +819,12 @@
     {
       "ids": [
         "HU-10.007",
-        "HU-10.008",
-        "HU-10.010",
-        "HU-10.011",
-        "HU-11.025",
-        "HU-11.026"
+        "HU-11.025"
       ],
-      "estado": "parcial",
+      "estado": "cubierto",
       "confianza": "alta-auto",
       "fuente": "auto",
-      "nota": "Auto: flujo origen-tipo-destino crea enlaces con validacion de firma; faltan puertos/borde y tabla contextual canonica.",
+      "nota": "Auto: flujo origen-tipo-destino crea enlaces con validacion de firma respetando handles de resize; los puertos visuales emergen al iniciar el enlace.",
       "evidencia": [
         "app/src/ui/Toolbar.tsx",
         "app/src/store/modelo/acciones-enlace.ts",
@@ -1015,7 +980,6 @@
     {
       "ids": [
         "HU-50.001",
-        "HU-50.015",
         "HU-50.016"
       ],
       "estado": "cubierto",
@@ -2042,9 +2006,9 @@
       "estado": "cubierto",
       "confianza": "alta-auto",
       "fuente": "auto",
-      "nota": "Auto ronda 10 L5: PanelOpl ofrece copiar al portapapeles, exportar HTML y buscar texto, todo cableado a acciones del store con testids estables.",
+      "nota": "Auto ronda 10 L5 + ronda 11 L3: PanelOpl/ToolbarOpl ofrecen copiar al portapapeles, exportar HTML y buscar texto con testids estables.",
       "evidencia": [
-        "app/src/ui/PanelOpl.tsx",
+        "app/src/ui/panelOpl/Toolbar.tsx",
         "app/src/store/modelo/acciones-canvas.ts",
         "app/e2e/opm-smoke.spec.ts"
       ]
@@ -2107,6 +2071,336 @@
       "evidencia": [
         "app/src/modelo/creacionInterna.ts",
         "app/src/store/modelo/acciones-entidad.ts"
+      ]
+    },
+    {
+      "ids": [
+        "HU-20.009",
+        "HU-20.010",
+        "HU-20.011",
+        "HU-20.012",
+        "HU-20.013"
+      ],
+      "estado": "cubierto",
+      "confianza": "alta-auto",
+      "fuente": "auto",
+      "nota": "Auto ronda 11 L1: arbol OPD con atajos teclado (Ctrl+arrows, F2, Ctrl+E/Shift+E, Ctrl+D), divisor arrastrable persistido, menu contextual extendido con Renombrar/Eliminar/Reordenar/Buscar, expandir/colapsar todo, toggle ocultar/mostrar nombres.",
+      "evidencia": [
+        "app/src/ui/ArbolOpd.tsx",
+        "app/src/ui/arbol/handlersTeclado.ts",
+        "app/src/ui/arbol/togglesArbol.ts",
+        "app/src/ui/MenuContextualArbol.tsx",
+        "app/src/ui/divisorPanel.tsx",
+        "app/src/ui/arbol/handlersTeclado.test.ts",
+        "app/src/ui/arbol/togglesArbol.test.ts",
+        "app/e2e/opm-smoke.spec.ts"
+      ]
+    },
+    {
+      "ids": [
+        "HU-20.014"
+      ],
+      "estado": "cubierto",
+      "confianza": "alta-auto",
+      "fuente": "auto",
+      "nota": "Auto ronda 11 L1: renombrado inline desde el arbol con doble clic / F2 reusando RenombradoInline.",
+      "evidencia": [
+        "app/src/ui/RenombradoInline.tsx",
+        "app/src/ui/ArbolOpd.tsx"
+      ]
+    },
+    {
+      "ids": [
+        "HU-20.017",
+        "HU-20.018",
+        "HU-20.019"
+      ],
+      "estado": "cubierto",
+      "confianza": "alta-auto",
+      "fuente": "auto",
+      "nota": "Auto ronda 11 L1: reorden manual y automatico de hermanos en arbol con modoOrdenArbol configurable en store/preferencias.",
+      "evidencia": [
+        "app/src/store/uiPanel.ts",
+        "app/src/store/modelo/acciones-opd.ts"
+      ]
+    },
+    {
+      "ids": [
+        "HU-20.020",
+        "HU-20.021",
+        "HU-20.022"
+      ],
+      "estado": "cubierto",
+      "confianza": "alta-auto",
+      "fuente": "auto",
+      "nota": "Auto ronda 11 L1: gestion modal Ctrl+D con busqueda y cortar/pegar de OPDs.",
+      "evidencia": [
+        "app/src/ui/DialogoGestionArbol.tsx",
+        "app/src/ui/ArbolOpd.tsx",
+        "app/src/store/uiPanel.ts",
+        "app/e2e/opm-smoke.spec.ts"
+      ]
+    },
+    {
+      "ids": [
+        "HU-30.007"
+      ],
+      "estado": "cubierto",
+      "confianza": "alta-auto",
+      "fuente": "auto",
+      "nota": "Auto ronda 11 L2: descripcion opcional al guardar persistida en Modelo.descripcion? con roundtrip JSON lossless.",
+      "evidencia": [
+        "app/src/modelo/tipos/modelo.ts",
+        "app/src/ui/DialogoGuardarComo.tsx",
+        "app/src/serializacion/json.ts",
+        "app/src/serializacion/json.test.ts"
+      ]
+    },
+    {
+      "ids": [
+        "HU-30.011",
+        "HU-30.012",
+        "HU-30.028"
+      ],
+      "estado": "cubierto",
+      "confianza": "alta-auto",
+      "fuente": "auto",
+      "nota": "Auto ronda 11 L2: PantallaInicio con grid de modelos recientes, telon y busqueda local.",
+      "evidencia": [
+        "app/src/ui/PantallaInicio.tsx"
+      ]
+    },
+    {
+      "ids": [
+        "HU-30.016",
+        "HU-30.022"
+      ],
+      "estado": "cubierto",
+      "confianza": "alta-auto",
+      "fuente": "auto",
+      "nota": "Auto ronda 11 L2: renombrar modelo existente sin Guardar Como + Cargar Ejemplo Organizacional desde MenuPrincipal.",
+      "evidencia": [
+        "app/src/ui/MenuPrincipal.tsx",
+        "app/src/persistencia/local.ts"
+      ]
+    },
+    {
+      "ids": [
+        "HU-30.023",
+        "HU-30.024"
+      ],
+      "estado": "cubierto",
+      "confianza": "alta-auto",
+      "fuente": "auto",
+      "nota": "Auto ronda 11 L2: toggle Mostrar Versiones + politica log-scale (max 10) en versiones.",
+      "evidencia": [
+        "app/src/ui/DialogoVersiones.tsx",
+        "app/src/persistencia/versiones.ts"
+      ]
+    },
+    {
+      "ids": [
+        "HU-30.025",
+        "HU-30.026",
+        "HU-30.027"
+      ],
+      "estado": "cubierto",
+      "confianza": "alta-auto",
+      "fuente": "auto",
+      "nota": "Auto ronda 11 L2: archivados con toggle visible, auto-archivar 90d y restaurar.",
+      "evidencia": [
+        "app/src/ui/DialogoArchivados.tsx",
+        "app/src/persistencia/workspace.ts"
+      ]
+    },
+    {
+      "ids": [
+        "HU-30.032",
+        "HU-30.033",
+        "HU-30.034",
+        "HU-30.035"
+      ],
+      "estado": "cubierto",
+      "confianza": "alta-auto",
+      "fuente": "auto",
+      "nota": "Auto ronda 11 L2: vista tiles/lista, ordenamiento por columna, glifos editable/candado/autosalvado y autosalvado cada 5 min.",
+      "evidencia": [
+        "app/src/ui/DialogoCargarModelo.tsx",
+        "app/src/persistencia/autosalvado.ts"
+      ]
+    },
+    {
+      "ids": [
+        "HU-50.003",
+        "HU-50.004",
+        "HU-50.005",
+        "HU-50.006",
+        "HU-50.028"
+      ],
+      "estado": "cubierto",
+      "confianza": "alta-auto",
+      "fuente": "auto",
+      "nota": "Auto ronda 11 L3: panel OPL Toolbar nuevo con 123 numeracion, posicion lateral, minimizar/restaurar, AI Text placeholder.",
+      "evidencia": [
+        "app/src/ui/panelOpl/Toolbar.tsx",
+        "app/src/modelo/tipos/ui.ts"
+      ]
+    },
+    {
+      "ids": [
+        "HU-50.021",
+        "HU-50.026",
+        "HU-50.027"
+      ],
+      "estado": "cubierto",
+      "confianza": "alta-auto",
+      "fuente": "auto",
+      "nota": "Auto ronda 11 L3: seleccion enlace especifico en oracion multi-enlace, indentacion jerarquica y colapsar bloques OPL.",
+      "evidencia": [
+        "app/src/opl/interaccion.ts",
+        "app/src/ui/panelOpl/Bloques.tsx",
+        "app/src/opl/interaccion.test.ts"
+      ]
+    },
+    {
+      "ids": [
+        "HU-10.001",
+        "HU-10.002"
+      ],
+      "estado": "cubierto",
+      "confianza": "alta-auto",
+      "fuente": "auto",
+      "nota": "Auto ronda 11 L4: drag desde Toolbar al canvas con MIME application/x-opm-tipo crea cosa en posicion exacta.",
+      "evidencia": [
+        "app/src/ui/Toolbar.tsx",
+        "app/e2e/opm-smoke.spec.ts"
+      ]
+    },
+    {
+      "ids": [
+        "HU-10.008",
+        "HU-10.009",
+        "HU-10.010",
+        "HU-10.011",
+        "HU-11.026"
+      ],
+      "estado": "cubierto",
+      "confianza": "alta-auto",
+      "fuente": "auto",
+      "nota": "Auto ronda 11 L4: MenuTipoEnlace con tipos validos via validarFirmaEnlace + previews OPL + filtros por direccion.",
+      "evidencia": [
+        "app/src/ui/MenuTipoEnlace.tsx",
+        "app/src/modelo/operaciones/helpers.ts"
+      ]
+    },
+    {
+      "ids": [
+        "HU-10.017",
+        "HU-10.018"
+      ],
+      "estado": "cubierto",
+      "confianza": "alta-auto",
+      "fuente": "auto",
+      "nota": "Auto ronda 11 L4: BibliotecaCosa lateral lista entidades agrupadas y permite drag-drop al canvas + navegacion a OPDs donde aparece.",
+      "evidencia": [
+        "app/src/ui/BibliotecaCosa.tsx"
+      ]
+    },
+    {
+      "ids": [
+        "HU-11.016",
+        "HU-11.017"
+      ],
+      "estado": "cubierto",
+      "confianza": "alta-auto",
+      "fuente": "auto",
+      "nota": "Auto ronda 11 L4: DialogoEstiloEnlace con paleta + grosor + dash + copiar/pegar estilo entre enlaces vía store y kernel.",
+      "evidencia": [
+        "app/src/ui/DialogoEstiloEnlace.tsx",
+        "app/src/ui/inspectorEnlace/SeccionEstilo.tsx",
+        "app/src/modelo/enlaceEstilo.ts",
+        "app/src/store/tipos.ts"
+      ]
+    },
+    {
+      "ids": [
+        "HU-11.020"
+      ],
+      "estado": "cubierto",
+      "confianza": "alta-auto",
+      "fuente": "auto",
+      "nota": "Auto ronda 11 L4: reanclar extremo de enlace con linkTools.SourceArrowhead/TargetArrowhead.",
+      "evidencia": [
+        "app/src/render/jointjs/handlers/toolsEnlace.ts",
+        "app/src/ui/inspectorEnlace/SeccionExtremos.tsx"
+      ]
+    },
+    {
+      "ids": [
+        "HU-11.023"
+      ],
+      "estado": "cubierto",
+      "confianza": "alta-auto",
+      "fuente": "auto",
+      "nota": "Auto ronda 11 L4: borrar enlaces seleccionados en lote con eliminarEnlacesBatch.",
+      "evidencia": [
+        "app/src/canvas/operacionesBatch.ts",
+        "app/src/canvas/operacionesBatch.test.ts"
+      ]
+    },
+    {
+      "ids": [
+        "HU-11.013"
+      ],
+      "estado": "cubierto",
+      "confianza": "alta-auto",
+      "fuente": "auto",
+      "nota": "Auto ronda 11 L4: menu contextual sobre enlace con propiedades + eliminar.",
+      "evidencia": [
+        "app/src/ui/MenuContextualEnlace.tsx"
+      ]
+    },
+    {
+      "ids": [
+        "HU-SHARED-003"
+      ],
+      "estado": "cubierto",
+      "confianza": "alta-auto",
+      "fuente": "auto",
+      "nota": "Auto ronda 11 L5: readOnly flag bloquea commitModelo con mensaje y permite activar/desactivar via activarReadOnly.",
+      "evidencia": [
+        "app/src/store/runtime.ts",
+        "app/src/store/modelo/acciones-ui.ts",
+        "app/src/store/tipos.ts",
+        "app/src/store.test.ts"
+      ]
+    },
+    {
+      "ids": [
+        "HU-SHARED-009"
+      ],
+      "estado": "cubierto",
+      "confianza": "alta-auto",
+      "fuente": "auto",
+      "nota": "Auto ronda 11 L5: validarNombreEntidad rechaza vacio y duplicado dentro del OPD activo.",
+      "evidencia": [
+        "app/src/modelo/operaciones/entidad.ts",
+        "app/src/modelo/operaciones.ts",
+        "app/src/modelo/operaciones.test.ts"
+      ]
+    },
+    {
+      "ids": [
+        "HU-50.015"
+      ],
+      "estado": "cubierto",
+      "confianza": "alta-auto",
+      "fuente": "auto",
+      "nota": "Auto ronda 11 L5 (verificacion): generalizacion verbaliza 'es un' / 'son' canonicamente en OPL desde rondas previas; regla nueva consolida evidencia.",
+      "evidencia": [
+        "app/src/opl/generadores/estructural.ts",
+        "app/src/opl/generadores/refsHints.ts",
+        "app/src/opl/generadores/estructural.test.ts"
       ]
     }
   ]

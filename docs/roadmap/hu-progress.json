@@ -1,17 +1,17 @@
 {
   "schema": "deep-opm-pro.hu-progress-report.v1",
-  "generatedAt": "2026-05-06T12:48:02.730Z",
+  "generatedAt": "2026-05-06T19:06:07.263Z",
   "repoRoot": "/home/felix/projects/deep-opm-pro",
   "backlogRoot": "docs/historias-usuario-v2",
   "evidenceLedger": "docs/roadmap/hu-progress-evidence.json",
   "autoAudit": {
-    "generatedAt": "2026-05-06T12:48:02.730Z",
+    "generatedAt": "2026-05-06T19:06:07.263Z",
     "mode": "sync-real",
-    "rulesEvaluated": 72,
-    "rulesMatched": 72,
+    "rulesEvaluated": 92,
+    "rulesMatched": 92,
     "rulesUnmatched": 0,
     "sourceFiles": {
-      "count": 323,
+      "count": 333,
       "roots": [
         "app/src",
         "app/e2e",
@@ -43,14 +43,14 @@
   "summaries": {
     "total": {
       "total": 1126,
-      "cubierto": 213,
-      "parcial": 44,
-      "pendiente": 491,
+      "cubierto": 266,
+      "parcial": 33,
+      "pendiente": 449,
       "diferido": 378,
       "bloqueado": 0,
       "pesoTotal": 3004,
-      "pesoCubierto": 603.5,
-      "avance": 0.20089880159786952
+      "pesoCubierto": 737.5,
+      "avance": 0.24550599201065246
     },
     "inventario": {
       "totalParseadas": 1173,
@@ -60,25 +60,25 @@
     },
     "m0": {
       "total": 130,
-      "cubierto": 90,
-      "parcial": 25,
+      "cubierto": 99,
+      "parcial": 16,
       "pendiente": 15,
       "diferido": 0,
       "bloqueado": 0,
       "pesoTotal": 333,
-      "pesoCubierto": 258,
-      "avance": 0.7747747747747747
+      "pesoCubierto": 275.5,
+      "avance": 0.8273273273273273
     },
     "alpha": {
       "total": 121,
-      "cubierto": 54,
-      "parcial": 21,
-      "pendiente": 46,
+      "cubierto": 107,
+      "parcial": 10,
+      "pendiente": 4,
       "diferido": 0,
       "bloqueado": 0,
       "pesoTotal": 326,
-      "pesoCubierto": 163,
-      "avance": 0.5
+      "pesoCubierto": 297,
+      "avance": 0.911042944785276
     },
     "beta": {
       "total": 193,
@@ -94,14 +94,14 @@
     "byCut": {
       "alpha": {
         "total": 121,
-        "cubierto": 54,
-        "parcial": 21,
-        "pendiente": 46,
+        "cubierto": 107,
+        "parcial": 10,
+        "pendiente": 4,
         "diferido": 0,
         "bloqueado": 0,
         "pesoTotal": 326,
-        "pesoCubierto": 163,
-        "avance": 0.5
+        "pesoCubierto": 297,
+        "avance": 0.911042944785276
       },
       "beta": {
         "total": 193,
@@ -151,58 +151,58 @@
     "byPriority": {
       "M0": {
         "total": 130,
-        "cubierto": 90,
-        "parcial": 25,
+        "cubierto": 99,
+        "parcial": 16,
         "pendiente": 15,
         "diferido": 0,
         "bloqueado": 0,
         "pesoTotal": 333,
-        "pesoCubierto": 258,
-        "avance": 0.7747747747747747
+        "pesoCubierto": 275.5,
+        "avance": 0.8273273273273273
       },
       "M1": {
         "total": 161,
-        "cubierto": 64,
-        "parcial": 11,
-        "pendiente": 80,
+        "cubierto": 88,
+        "parcial": 9,
+        "pendiente": 58,
         "diferido": 6,
         "bloqueado": 0,
         "pesoTotal": 388,
-        "pesoCubierto": 163.5,
-        "avance": 0.4213917525773196
+        "pesoCubierto": 222,
+        "avance": 0.5721649484536082
       },
       "S": {
         "total": 471,
-        "cubierto": 52,
+        "cubierto": 69,
         "parcial": 4,
-        "pendiente": 253,
+        "pendiente": 236,
         "diferido": 162,
         "bloqueado": 0,
         "pesoTotal": 1247,
-        "pesoCubierto": 159,
-        "avance": 0.12750601443464316
+        "pesoCubierto": 210,
+        "avance": 0.16840417000801924
       },
       "C": {
         "total": 247,
-        "cubierto": 7,
+        "cubierto": 9,
         "parcial": 4,
-        "pendiente": 135,
+        "pendiente": 133,
         "diferido": 101,
         "bloqueado": 0,
         "pesoTotal": 661,
-        "pesoCubierto": 23,
-        "avance": 0.03479576399394856
+        "pesoCubierto": 26,
+        "avance": 0.039334341906202726
       },
       "W": {
         "total": 117,
-        "cubierto": 0,
+        "cubierto": 1,
         "parcial": 0,
-        "pendiente": 8,
+        "pendiente": 7,
         "diferido": 109,
         "bloqueado": 0,
         "pesoTotal": 375,
-        "pesoCubierto": 0,
-        "avance": 0
+        "pesoCubierto": 4,
+        "avance": 0.010666666666666666
       },
       "sin-prioridad": {
         "total": 0,
@@ -220,26 +220,26 @@
       "10": {
         "titulo": "Canvas — creación de cosas (proceso, objeto, enlace inicial, afiliación, esencia)",
         "total": 17,
-        "cubierto": 5,
-        "parcial": 9,
-        "pendiente": 3,
+        "cubierto": 14,
+        "parcial": 2,
+        "pendiente": 1,
         "diferido": 0,
         "bloqueado": 0,
         "pesoTotal": 38,
-        "pesoCubierto": 20,
-        "avance": 0.5263157894736842
+        "pesoCubierto": 34,
+        "avance": 0.8947368421052632
       },
       "11": {
         "titulo": "Canvas — modelado básico (agregación, multi-selección, enlaces procedurales, propiedades, alineación, borrado)",
         "total": 22,
-        "cubierto": 12,
-        "parcial": 4,
-        "pendiente": 6,
+        "cubierto": 19,
+        "parcial": 1,
+        "pendiente": 2,
         "diferido": 0,
         "bloqueado": 0,
         "pesoTotal": 56,
-        "pesoCubierto": 34,
-        "avance": 0.6071428571428571
+        "pesoCubierto": 49,
+        "avance": 0.875
       },
       "12": {
         "titulo": "Canvas — descomposición de procesos",
@@ -340,14 +340,14 @@
       "20": {
         "titulo": "Estructura — árbol OPD (navegación, orden, gestión, vistas derivadas)",
         "total": 21,
-        "cubierto": 9,
+        "cubierto": 21,
         "parcial": 0,
-        "pendiente": 12,
+        "pendiente": 0,
         "diferido": 0,
         "bloqueado": 0,
         "pesoTotal": 54,
-        "pesoCubierto": 21,
-        "avance": 0.3888888888888889
+        "pesoCubierto": 54,
+        "avance": 1
       },
       "21": {
         "titulo": "Estructura — mapa del sistema (meta-vista gráfica del árbol de OPDs)",
@@ -364,14 +364,14 @@
       "30": {
         "titulo": "Persistencia — guardar/cargar, diálogos modales, versiones, archivado, búsqueda global, autosalvado",
         "total": 34,
-        "cubierto": 13,
+        "cubierto": 28,
         "parcial": 5,
-        "pendiente": 16,
+        "pendiente": 1,
         "diferido": 0,
         "bloqueado": 0,
         "pesoTotal": 89,
-        "pesoCubierto": 35,
-        "avance": 0.39325842696629215
+        "pesoCubierto": 79,
+        "avance": 0.8876404494382022
       },
       "31": {
         "titulo": "Persistencia — carpetas, jerarquía, permisos y navegación del workspace",
@@ -472,14 +472,14 @@
       "50": {
         "titulo": "Panel OPL-ES — lente bimodal, edición inversa y sincronización con el canvas",
         "total": 21,
-        "cubierto": 13,
+        "cubierto": 21,
         "parcial": 0,
-        "pendiente": 8,
+        "pendiente": 0,
         "diferido": 0,
         "bloqueado": 0,
         "pesoTotal": 55,
-        "pesoCubierto": 37,
-        "avance": 0.6727272727272727
+        "pesoCubierto": 55,
+        "avance": 1
       },
       "60": {
         "titulo": "Exportar a PDF — pipeline papel, opciones, selección de OPDs, integración Compartir",
@@ -796,14 +796,14 @@
       "SHARED": {
         "titulo": "Patrones transversales",
         "total": 9,
-        "cubierto": 2,
-        "parcial": 5,
-        "pendiente": 2,
+        "cubierto": 4,
+        "parcial": 4,
+        "pendiente": 1,
         "diferido": 0,
         "bloqueado": 0,
         "pesoTotal": 48,
-        "pesoCubierto": 21,
-        "avance": 0.4375
+        "pesoCubierto": 31,
+        "avance": 0.6458333333333334
       }
     }
   },
@@ -961,20 +961,32 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/shared/HU-SHARED-003-permisos-readonly.md",
       "lineaInicio": 18,
       "corte": "alpha",
-      "estadoAvance": "pendiente",
-      "confianza": "alta",
-      "fuenteEvidencia": "manual",
-      "nota": "No existe modo read-only propagado; el producto actual es local single-user.",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto ronda 11 L5: readOnly flag bloquea commitModelo con mensaje y permite activar/desactivar via activarReadOnly.",
       "brechas": [],
       "evidencia": [
         {
-          "path": "docs/roadmap/mvp-alpha.md",
-          "hrefDashboard": "mvp-alpha.md"
+          "path": "app/src/store/runtime.ts",
+          "hrefDashboard": "../../app/src/store/runtime.ts"
+        },
+        {
+          "path": "app/src/store/modelo/acciones-ui.ts",
+          "hrefDashboard": "../../app/src/store/modelo/acciones-ui.ts"
+        },
+        {
+          "path": "app/src/store/tipos.ts",
+          "hrefDashboard": "../../app/src/store/tipos.ts"
+        },
+        {
+          "path": "app/src/store.test.ts",
+          "hrefDashboard": "../../app/src/store.test.ts"
         }
       ],
       "peso": 8,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 8,
       "enlaceFuente": "../historias-usuario-v2/shared/HU-SHARED-003-permisos-readonly.md"
     },
     {
@@ -1328,10 +1340,10 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/shared/HU-SHARED-009-validacion-nominal.md",
       "lineaInicio": 16,
       "corte": "alpha",
-      "estadoAvance": "parcial",
-      "confianza": "media-auto",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto: nombres vacios/duplicados de estados se validan y el JSON conserva nombres; falta contrato global completo de nombres.",
+      "nota": "Auto ronda 11 L5: validarNombreEntidad rechaza vacio y duplicado dentro del OPD activo.",
       "brechas": [],
       "evidencia": [
         {
@@ -1339,12 +1351,8 @@
           "hrefDashboard": "../../app/src/modelo/operaciones/entidad.ts"
         },
         {
-          "path": "app/src/modelo/operaciones/estados.ts",
-          "hrefDashboard": "../../app/src/modelo/operaciones/estados.ts"
-        },
-        {
-          "path": "app/src/serializacion/json.ts",
-          "hrefDashboard": "../../app/src/serializacion/json.ts"
+          "path": "app/src/modelo/operaciones.ts",
+          "hrefDashboard": "../../app/src/modelo/operaciones.ts"
         },
         {
           "path": "app/src/modelo/operaciones.test.ts",
@@ -1352,8 +1360,8 @@
         }
       ],
       "peso": 4,
-      "score": 0.5,
-      "avancePonderado": 2,
+      "score": 1,
+      "avancePonderado": 4,
       "enlaceFuente": "../historias-usuario-v2/shared/HU-SHARED-009-validacion-nominal.md"
     },
     {
@@ -16150,23 +16158,15 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-10-canvas-creacion-cosas.md",
       "lineaInicio": 53,
       "corte": "alpha",
-      "estadoAvance": "parcial",
+      "estadoAvance": "cubierto",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto: creacion de objeto/proceso existe desde toolbar y kernel; falta gesto canonico de arrastre desde barra.",
+      "nota": "Auto ronda 11 L4: drag desde Toolbar al canvas con MIME application/x-opm-tipo crea cosa en posicion exacta.",
       "brechas": [],
       "evidencia": [
         {
-          "path": "app/src/modelo/operaciones/creacion.ts",
-          "hrefDashboard": "../../app/src/modelo/operaciones/creacion.ts"
-        },
-        {
           "path": "app/src/ui/Toolbar.tsx",
           "hrefDashboard": "../../app/src/ui/Toolbar.tsx"
-        },
-        {
-          "path": "app/src/modelo/operaciones.test.ts",
-          "hrefDashboard": "../../app/src/modelo/operaciones.test.ts"
         },
         {
           "path": "app/e2e/opm-smoke.spec.ts",
@@ -16174,8 +16174,8 @@
         }
       ],
       "peso": 4,
-      "score": 0.5,
-      "avancePonderado": 2,
+      "score": 1,
+      "avancePonderado": 4,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-10-canvas-creacion-cosas.md"
     },
     {
@@ -16217,23 +16217,15 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-10-canvas-creacion-cosas.md",
       "lineaInicio": 119,
       "corte": "alpha",
-      "estadoAvance": "parcial",
+      "estadoAvance": "cubierto",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto: creacion de objeto/proceso existe desde toolbar y kernel; falta gesto canonico de arrastre desde barra.",
+      "nota": "Auto ronda 11 L4: drag desde Toolbar al canvas con MIME application/x-opm-tipo crea cosa en posicion exacta.",
       "brechas": [],
       "evidencia": [
         {
-          "path": "app/src/modelo/operaciones/creacion.ts",
-          "hrefDashboard": "../../app/src/modelo/operaciones/creacion.ts"
-        },
-        {
           "path": "app/src/ui/Toolbar.tsx",
           "hrefDashboard": "../../app/src/ui/Toolbar.tsx"
-        },
-        {
-          "path": "app/src/modelo/operaciones.test.ts",
-          "hrefDashboard": "../../app/src/modelo/operaciones.test.ts"
         },
         {
           "path": "app/e2e/opm-smoke.spec.ts",
@@ -16241,8 +16233,8 @@
         }
       ],
       "peso": 4,
-      "score": 0.5,
-      "avancePonderado": 2,
+      "score": 1,
+      "avancePonderado": 4,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-10-canvas-creacion-cosas.md"
     },
     {
@@ -16458,10 +16450,10 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-10-canvas-creacion-cosas.md",
       "lineaInicio": 327,
       "corte": "alpha",
-      "estadoAvance": "parcial",
+      "estadoAvance": "cubierto",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto: flujo origen-tipo-destino crea enlaces con validacion de firma; faltan puertos/borde y tabla contextual canonica.",
+      "nota": "Auto: flujo origen-tipo-destino crea enlaces con validacion de firma respetando handles de resize; los puertos visuales emergen al iniciar el enlace.",
       "brechas": [],
       "evidencia": [
         {
@@ -16482,8 +16474,8 @@
         }
       ],
       "peso": 4,
-      "score": 0.5,
-      "avancePonderado": 2,
+      "score": 1,
+      "avancePonderado": 4,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-10-canvas-creacion-cosas.md"
     },
     {
@@ -16517,32 +16509,24 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-10-canvas-creacion-cosas.md",
       "lineaInicio": 383,
       "corte": "alpha",
-      "estadoAvance": "parcial",
+      "estadoAvance": "cubierto",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto: flujo origen-tipo-destino crea enlaces con validacion de firma; faltan puertos/borde y tabla contextual canonica.",
+      "nota": "Auto ronda 11 L4: MenuTipoEnlace con tipos validos via validarFirmaEnlace + previews OPL + filtros por direccion.",
       "brechas": [],
       "evidencia": [
         {
-          "path": "app/src/ui/Toolbar.tsx",
-          "hrefDashboard": "../../app/src/ui/Toolbar.tsx"
-        },
-        {
-          "path": "app/src/store/modelo/acciones-enlace.ts",
-          "hrefDashboard": "../../app/src/store/modelo/acciones-enlace.ts"
+          "path": "app/src/ui/MenuTipoEnlace.tsx",
+          "hrefDashboard": "../../app/src/ui/MenuTipoEnlace.tsx"
         },
         {
           "path": "app/src/modelo/operaciones/helpers.ts",
           "hrefDashboard": "../../app/src/modelo/operaciones/helpers.ts"
-        },
-        {
-          "path": "app/src/modelo/operaciones/enlaces.ts",
-          "hrefDashboard": "../../app/src/modelo/operaciones/enlaces.ts"
         }
       ],
       "peso": 4,
-      "score": 0.5,
-      "avancePonderado": 2,
+      "score": 1,
+      "avancePonderado": 4,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-10-canvas-creacion-cosas.md"
     },
     {
@@ -16575,15 +16559,24 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-10-canvas-creacion-cosas.md",
       "lineaInicio": 429,
       "corte": "alpha",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto ronda 11 L4: MenuTipoEnlace con tipos validos via validarFirmaEnlace + previews OPL + filtros por direccion.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/ui/MenuTipoEnlace.tsx",
+          "hrefDashboard": "../../app/src/ui/MenuTipoEnlace.tsx"
+        },
+        {
+          "path": "app/src/modelo/operaciones/helpers.ts",
+          "hrefDashboard": "../../app/src/modelo/operaciones/helpers.ts"
+        }
+      ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-10-canvas-creacion-cosas.md"
     },
     {
@@ -16615,32 +16608,24 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-10-canvas-creacion-cosas.md",
       "lineaInicio": 475,
       "corte": "alpha",
-      "estadoAvance": "parcial",
+      "estadoAvance": "cubierto",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto: flujo origen-tipo-destino crea enlaces con validacion de firma; faltan puertos/borde y tabla contextual canonica.",
+      "nota": "Auto ronda 11 L4: MenuTipoEnlace con tipos validos via validarFirmaEnlace + previews OPL + filtros por direccion.",
       "brechas": [],
       "evidencia": [
         {
-          "path": "app/src/ui/Toolbar.tsx",
-          "hrefDashboard": "../../app/src/ui/Toolbar.tsx"
-        },
-        {
-          "path": "app/src/store/modelo/acciones-enlace.ts",
-          "hrefDashboard": "../../app/src/store/modelo/acciones-enlace.ts"
+          "path": "app/src/ui/MenuTipoEnlace.tsx",
+          "hrefDashboard": "../../app/src/ui/MenuTipoEnlace.tsx"
         },
         {
           "path": "app/src/modelo/operaciones/helpers.ts",
           "hrefDashboard": "../../app/src/modelo/operaciones/helpers.ts"
-        },
-        {
-          "path": "app/src/modelo/operaciones/enlaces.ts",
-          "hrefDashboard": "../../app/src/modelo/operaciones/enlaces.ts"
         }
       ],
       "peso": 2,
-      "score": 0.5,
-      "avancePonderado": 1,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-10-canvas-creacion-cosas.md"
     },
     {
@@ -16674,32 +16659,24 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-10-canvas-creacion-cosas.md",
       "lineaInicio": 516,
       "corte": "alpha",
-      "estadoAvance": "parcial",
+      "estadoAvance": "cubierto",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto: flujo origen-tipo-destino crea enlaces con validacion de firma; faltan puertos/borde y tabla contextual canonica.",
+      "nota": "Auto ronda 11 L4: MenuTipoEnlace con tipos validos via validarFirmaEnlace + previews OPL + filtros por direccion.",
       "brechas": [],
       "evidencia": [
         {
-          "path": "app/src/ui/Toolbar.tsx",
-          "hrefDashboard": "../../app/src/ui/Toolbar.tsx"
-        },
-        {
-          "path": "app/src/store/modelo/acciones-enlace.ts",
-          "hrefDashboard": "../../app/src/store/modelo/acciones-enlace.ts"
+          "path": "app/src/ui/MenuTipoEnlace.tsx",
+          "hrefDashboard": "../../app/src/ui/MenuTipoEnlace.tsx"
         },
         {
           "path": "app/src/modelo/operaciones/helpers.ts",
           "hrefDashboard": "../../app/src/modelo/operaciones/helpers.ts"
-        },
-        {
-          "path": "app/src/modelo/operaciones/enlaces.ts",
-          "hrefDashboard": "../../app/src/modelo/operaciones/enlaces.ts"
         }
       ],
       "peso": 1,
-      "score": 0.5,
-      "avancePonderado": 0.5,
+      "score": 1,
+      "avancePonderado": 1,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-10-canvas-creacion-cosas.md"
     },
     {
@@ -17004,15 +16981,20 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-10-canvas-creacion-cosas.md",
       "lineaInicio": 735,
       "corte": "alpha",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto ronda 11 L4: BibliotecaCosa lateral lista entidades agrupadas y permite drag-drop al canvas + navegacion a OPDs donde aparece.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/ui/BibliotecaCosa.tsx",
+          "hrefDashboard": "../../app/src/ui/BibliotecaCosa.tsx"
+        }
+      ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-10-canvas-creacion-cosas.md"
     },
     {
@@ -17040,20 +17022,20 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-10-canvas-creacion-cosas.md",
       "lineaInicio": 779,
       "corte": "alpha",
-      "estadoAvance": "parcial",
-      "confianza": "media",
-      "fuenteEvidencia": "manual",
-      "nota": "El arbol OPD muestra conteo de apariencias; no existe navegador OPD de cosas equivalente a OPCloud.",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto ronda 11 L4: BibliotecaCosa lateral lista entidades agrupadas y permite drag-drop al canvas + navegacion a OPDs donde aparece.",
       "brechas": [],
       "evidencia": [
         {
-          "path": "app/src/ui/ArbolOpd.tsx",
-          "hrefDashboard": "../../app/src/ui/ArbolOpd.tsx"
+          "path": "app/src/ui/BibliotecaCosa.tsx",
+          "hrefDashboard": "../../app/src/ui/BibliotecaCosa.tsx"
         }
       ],
       "peso": 1,
-      "score": 0.5,
-      "avancePonderado": 0.5,
+      "score": 1,
+      "avancePonderado": 1,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-10-canvas-creacion-cosas.md"
     },
     {
@@ -17881,20 +17863,20 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-11-canvas-modelado-basico.md",
       "lineaInicio": 367,
       "corte": "alpha",
-      "estadoAvance": "parcial",
-      "confianza": "alta",
-      "fuenteEvidencia": "manual",
-      "nota": "Propiedades de enlace se editan desde inspector; falta menu contextual canonico.",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto ronda 11 L4: menu contextual sobre enlace con propiedades + eliminar.",
       "brechas": [],
       "evidencia": [
         {
-          "path": "app/src/ui/InspectorEnlace.tsx",
-          "hrefDashboard": "../../app/src/ui/InspectorEnlace.tsx"
+          "path": "app/src/ui/MenuContextualEnlace.tsx",
+          "hrefDashboard": "../../app/src/ui/MenuContextualEnlace.tsx"
         }
       ],
       "peso": 2,
-      "score": 0.5,
-      "avancePonderado": 1,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-11-canvas-modelado-basico.md"
     },
     {
@@ -18049,15 +18031,32 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-11-canvas-modelado-basico.md",
       "lineaInicio": 463,
       "corte": "alpha",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto ronda 11 L4: DialogoEstiloEnlace con paleta + grosor + dash + copiar/pegar estilo entre enlaces vía store y kernel.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/ui/DialogoEstiloEnlace.tsx",
+          "hrefDashboard": "../../app/src/ui/DialogoEstiloEnlace.tsx"
+        },
+        {
+          "path": "app/src/ui/inspectorEnlace/SeccionEstilo.tsx",
+          "hrefDashboard": "../../app/src/ui/inspectorEnlace/SeccionEstilo.tsx"
+        },
+        {
+          "path": "app/src/modelo/enlaceEstilo.ts",
+          "hrefDashboard": "../../app/src/modelo/enlaceEstilo.ts"
+        },
+        {
+          "path": "app/src/store/tipos.ts",
+          "hrefDashboard": "../../app/src/store/tipos.ts"
+        }
+      ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-11-canvas-modelado-basico.md"
     },
     {
@@ -18088,15 +18087,32 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-11-canvas-modelado-basico.md",
       "lineaInicio": 494,
       "corte": "alpha",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto ronda 11 L4: DialogoEstiloEnlace con paleta + grosor + dash + copiar/pegar estilo entre enlaces vía store y kernel.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/ui/DialogoEstiloEnlace.tsx",
+          "hrefDashboard": "../../app/src/ui/DialogoEstiloEnlace.tsx"
+        },
+        {
+          "path": "app/src/ui/inspectorEnlace/SeccionEstilo.tsx",
+          "hrefDashboard": "../../app/src/ui/inspectorEnlace/SeccionEstilo.tsx"
+        },
+        {
+          "path": "app/src/modelo/enlaceEstilo.ts",
+          "hrefDashboard": "../../app/src/modelo/enlaceEstilo.ts"
+        },
+        {
+          "path": "app/src/store/tipos.ts",
+          "hrefDashboard": "../../app/src/store/tipos.ts"
+        }
+      ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-11-canvas-modelado-basico.md"
     },
     {
@@ -18243,15 +18259,24 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-11-canvas-modelado-basico.md",
       "lineaInicio": 578,
       "corte": "alpha",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto ronda 11 L4: reanclar extremo de enlace con linkTools.SourceArrowhead/TargetArrowhead.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/render/jointjs/handlers/toolsEnlace.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/handlers/toolsEnlace.ts"
+        },
+        {
+          "path": "app/src/ui/inspectorEnlace/SeccionExtremos.tsx",
+          "hrefDashboard": "../../app/src/ui/inspectorEnlace/SeccionExtremos.tsx"
+        }
+      ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-11-canvas-modelado-basico.md"
     },
     {
@@ -18342,15 +18367,24 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-11-canvas-modelado-basico.md",
       "lineaInicio": 626,
       "corte": "alpha",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto ronda 11 L4: borrar enlaces seleccionados en lote con eliminarEnlacesBatch.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/canvas/operacionesBatch.ts",
+          "hrefDashboard": "../../app/src/canvas/operacionesBatch.ts"
+        },
+        {
+          "path": "app/src/canvas/operacionesBatch.test.ts",
+          "hrefDashboard": "../../app/src/canvas/operacionesBatch.test.ts"
+        }
+      ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-11-canvas-modelado-basico.md"
     },
     {
@@ -18442,10 +18476,10 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-11-canvas-modelado-basico.md",
       "lineaInicio": 686,
       "corte": "alpha",
-      "estadoAvance": "parcial",
+      "estadoAvance": "cubierto",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto: flujo origen-tipo-destino crea enlaces con validacion de firma; faltan puertos/borde y tabla contextual canonica.",
+      "nota": "Auto: flujo origen-tipo-destino crea enlaces con validacion de firma respetando handles de resize; los puertos visuales emergen al iniciar el enlace.",
       "brechas": [],
       "evidencia": [
         {
@@ -18466,8 +18500,8 @@
         }
       ],
       "peso": 4,
-      "score": 0.5,
-      "avancePonderado": 2,
+      "score": 1,
+      "avancePonderado": 4,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-11-canvas-modelado-basico.md"
     },
     {
@@ -18500,32 +18534,24 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-11-canvas-modelado-basico.md",
       "lineaInicio": 716,
       "corte": "alpha",
-      "estadoAvance": "parcial",
+      "estadoAvance": "cubierto",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto: flujo origen-tipo-destino crea enlaces con validacion de firma; faltan puertos/borde y tabla contextual canonica.",
+      "nota": "Auto ronda 11 L4: MenuTipoEnlace con tipos validos via validarFirmaEnlace + previews OPL + filtros por direccion.",
       "brechas": [],
       "evidencia": [
         {
-          "path": "app/src/ui/Toolbar.tsx",
-          "hrefDashboard": "../../app/src/ui/Toolbar.tsx"
-        },
-        {
-          "path": "app/src/store/modelo/acciones-enlace.ts",
-          "hrefDashboard": "../../app/src/store/modelo/acciones-enlace.ts"
+          "path": "app/src/ui/MenuTipoEnlace.tsx",
+          "hrefDashboard": "../../app/src/ui/MenuTipoEnlace.tsx"
         },
         {
           "path": "app/src/modelo/operaciones/helpers.ts",
           "hrefDashboard": "../../app/src/modelo/operaciones/helpers.ts"
-        },
-        {
-          "path": "app/src/modelo/operaciones/enlaces.ts",
-          "hrefDashboard": "../../app/src/modelo/operaciones/enlaces.ts"
         }
       ],
       "peso": 8,
-      "score": 0.5,
-      "avancePonderado": 4,
+      "score": 1,
+      "avancePonderado": 8,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-11-canvas-modelado-basico.md"
     },
     {
@@ -29344,15 +29370,48 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-20-estructura-arbol-opd.md",
       "lineaInicio": 127,
       "corte": "alpha",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto ronda 11 L1: arbol OPD con atajos teclado (Ctrl+arrows, F2, Ctrl+E/Shift+E, Ctrl+D), divisor arrastrable persistido, menu contextual extendido con Renombrar/Eliminar/Reordenar/Buscar, expandir/colapsar todo, toggle ocultar/mostrar nombres.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/ui/ArbolOpd.tsx",
+          "hrefDashboard": "../../app/src/ui/ArbolOpd.tsx"
+        },
+        {
+          "path": "app/src/ui/arbol/handlersTeclado.ts",
+          "hrefDashboard": "../../app/src/ui/arbol/handlersTeclado.ts"
+        },
+        {
+          "path": "app/src/ui/arbol/togglesArbol.ts",
+          "hrefDashboard": "../../app/src/ui/arbol/togglesArbol.ts"
+        },
+        {
+          "path": "app/src/ui/MenuContextualArbol.tsx",
+          "hrefDashboard": "../../app/src/ui/MenuContextualArbol.tsx"
+        },
+        {
+          "path": "app/src/ui/divisorPanel.tsx",
+          "hrefDashboard": "../../app/src/ui/divisorPanel.tsx"
+        },
+        {
+          "path": "app/src/ui/arbol/handlersTeclado.test.ts",
+          "hrefDashboard": "../../app/src/ui/arbol/handlersTeclado.test.ts"
+        },
+        {
+          "path": "app/src/ui/arbol/togglesArbol.test.ts",
+          "hrefDashboard": "../../app/src/ui/arbol/togglesArbol.test.ts"
+        },
+        {
+          "path": "app/e2e/opm-smoke.spec.ts",
+          "hrefDashboard": "../../app/e2e/opm-smoke.spec.ts"
+        }
+      ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-20-estructura-arbol-opd.md"
     },
     {
@@ -29378,15 +29437,48 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-20-estructura-arbol-opd.md",
       "lineaInicio": 136,
       "corte": "alpha",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto ronda 11 L1: arbol OPD con atajos teclado (Ctrl+arrows, F2, Ctrl+E/Shift+E, Ctrl+D), divisor arrastrable persistido, menu contextual extendido con Renombrar/Eliminar/Reordenar/Buscar, expandir/colapsar todo, toggle ocultar/mostrar nombres.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/ui/ArbolOpd.tsx",
+          "hrefDashboard": "../../app/src/ui/ArbolOpd.tsx"
+        },
+        {
+          "path": "app/src/ui/arbol/handlersTeclado.ts",
+          "hrefDashboard": "../../app/src/ui/arbol/handlersTeclado.ts"
+        },
+        {
+          "path": "app/src/ui/arbol/togglesArbol.ts",
+          "hrefDashboard": "../../app/src/ui/arbol/togglesArbol.ts"
+        },
+        {
+          "path": "app/src/ui/MenuContextualArbol.tsx",
+          "hrefDashboard": "../../app/src/ui/MenuContextualArbol.tsx"
+        },
+        {
+          "path": "app/src/ui/divisorPanel.tsx",
+          "hrefDashboard": "../../app/src/ui/divisorPanel.tsx"
+        },
+        {
+          "path": "app/src/ui/arbol/handlersTeclado.test.ts",
+          "hrefDashboard": "../../app/src/ui/arbol/handlersTeclado.test.ts"
+        },
+        {
+          "path": "app/src/ui/arbol/togglesArbol.test.ts",
+          "hrefDashboard": "../../app/src/ui/arbol/togglesArbol.test.ts"
+        },
+        {
+          "path": "app/e2e/opm-smoke.spec.ts",
+          "hrefDashboard": "../../app/e2e/opm-smoke.spec.ts"
+        }
+      ],
       "peso": 1,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 1,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-20-estructura-arbol-opd.md"
     },
     {
@@ -29416,15 +29508,48 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-20-estructura-arbol-opd.md",
       "lineaInicio": 146,
       "corte": "alpha",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto ronda 11 L1: arbol OPD con atajos teclado (Ctrl+arrows, F2, Ctrl+E/Shift+E, Ctrl+D), divisor arrastrable persistido, menu contextual extendido con Renombrar/Eliminar/Reordenar/Buscar, expandir/colapsar todo, toggle ocultar/mostrar nombres.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/ui/ArbolOpd.tsx",
+          "hrefDashboard": "../../app/src/ui/ArbolOpd.tsx"
+        },
+        {
+          "path": "app/src/ui/arbol/handlersTeclado.ts",
+          "hrefDashboard": "../../app/src/ui/arbol/handlersTeclado.ts"
+        },
+        {
+          "path": "app/src/ui/arbol/togglesArbol.ts",
+          "hrefDashboard": "../../app/src/ui/arbol/togglesArbol.ts"
+        },
+        {
+          "path": "app/src/ui/MenuContextualArbol.tsx",
+          "hrefDashboard": "../../app/src/ui/MenuContextualArbol.tsx"
+        },
+        {
+          "path": "app/src/ui/divisorPanel.tsx",
+          "hrefDashboard": "../../app/src/ui/divisorPanel.tsx"
+        },
+        {
+          "path": "app/src/ui/arbol/handlersTeclado.test.ts",
+          "hrefDashboard": "../../app/src/ui/arbol/handlersTeclado.test.ts"
+        },
+        {
+          "path": "app/src/ui/arbol/togglesArbol.test.ts",
+          "hrefDashboard": "../../app/src/ui/arbol/togglesArbol.test.ts"
+        },
+        {
+          "path": "app/e2e/opm-smoke.spec.ts",
+          "hrefDashboard": "../../app/e2e/opm-smoke.spec.ts"
+        }
+      ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-20-estructura-arbol-opd.md"
     },
     {
@@ -29450,15 +29575,48 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-20-estructura-arbol-opd.md",
       "lineaInicio": 156,
       "corte": "alpha",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto ronda 11 L1: arbol OPD con atajos teclado (Ctrl+arrows, F2, Ctrl+E/Shift+E, Ctrl+D), divisor arrastrable persistido, menu contextual extendido con Renombrar/Eliminar/Reordenar/Buscar, expandir/colapsar todo, toggle ocultar/mostrar nombres.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/ui/ArbolOpd.tsx",
+          "hrefDashboard": "../../app/src/ui/ArbolOpd.tsx"
+        },
+        {
+          "path": "app/src/ui/arbol/handlersTeclado.ts",
+          "hrefDashboard": "../../app/src/ui/arbol/handlersTeclado.ts"
+        },
+        {
+          "path": "app/src/ui/arbol/togglesArbol.ts",
+          "hrefDashboard": "../../app/src/ui/arbol/togglesArbol.ts"
+        },
+        {
+          "path": "app/src/ui/MenuContextualArbol.tsx",
+          "hrefDashboard": "../../app/src/ui/MenuContextualArbol.tsx"
+        },
+        {
+          "path": "app/src/ui/divisorPanel.tsx",
+          "hrefDashboard": "../../app/src/ui/divisorPanel.tsx"
+        },
+        {
+          "path": "app/src/ui/arbol/handlersTeclado.test.ts",
+          "hrefDashboard": "../../app/src/ui/arbol/handlersTeclado.test.ts"
+        },
+        {
+          "path": "app/src/ui/arbol/togglesArbol.test.ts",
+          "hrefDashboard": "../../app/src/ui/arbol/togglesArbol.test.ts"
+        },
+        {
+          "path": "app/e2e/opm-smoke.spec.ts",
+          "hrefDashboard": "../../app/e2e/opm-smoke.spec.ts"
+        }
+      ],
       "peso": 1,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 1,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-20-estructura-arbol-opd.md"
     },
     {
@@ -29484,15 +29642,48 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-20-estructura-arbol-opd.md",
       "lineaInicio": 165,
       "corte": "alpha",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto ronda 11 L1: arbol OPD con atajos teclado (Ctrl+arrows, F2, Ctrl+E/Shift+E, Ctrl+D), divisor arrastrable persistido, menu contextual extendido con Renombrar/Eliminar/Reordenar/Buscar, expandir/colapsar todo, toggle ocultar/mostrar nombres.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/ui/ArbolOpd.tsx",
+          "hrefDashboard": "../../app/src/ui/ArbolOpd.tsx"
+        },
+        {
+          "path": "app/src/ui/arbol/handlersTeclado.ts",
+          "hrefDashboard": "../../app/src/ui/arbol/handlersTeclado.ts"
+        },
+        {
+          "path": "app/src/ui/arbol/togglesArbol.ts",
+          "hrefDashboard": "../../app/src/ui/arbol/togglesArbol.ts"
+        },
+        {
+          "path": "app/src/ui/MenuContextualArbol.tsx",
+          "hrefDashboard": "../../app/src/ui/MenuContextualArbol.tsx"
+        },
+        {
+          "path": "app/src/ui/divisorPanel.tsx",
+          "hrefDashboard": "../../app/src/ui/divisorPanel.tsx"
+        },
+        {
+          "path": "app/src/ui/arbol/handlersTeclado.test.ts",
+          "hrefDashboard": "../../app/src/ui/arbol/handlersTeclado.test.ts"
+        },
+        {
+          "path": "app/src/ui/arbol/togglesArbol.test.ts",
+          "hrefDashboard": "../../app/src/ui/arbol/togglesArbol.test.ts"
+        },
+        {
+          "path": "app/e2e/opm-smoke.spec.ts",
+          "hrefDashboard": "../../app/e2e/opm-smoke.spec.ts"
+        }
+      ],
       "peso": 1,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 1,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-20-estructura-arbol-opd.md"
     },
     {
@@ -29521,15 +29712,24 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-20-estructura-arbol-opd.md",
       "lineaInicio": 174,
       "corte": "alpha",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto ronda 11 L1: renombrado inline desde el arbol con doble clic / F2 reusando RenombradoInline.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/ui/RenombradoInline.tsx",
+          "hrefDashboard": "../../app/src/ui/RenombradoInline.tsx"
+        },
+        {
+          "path": "app/src/ui/ArbolOpd.tsx",
+          "hrefDashboard": "../../app/src/ui/ArbolOpd.tsx"
+        }
+      ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-20-estructura-arbol-opd.md"
     },
     {
@@ -29670,15 +29870,24 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-20-estructura-arbol-opd.md",
       "lineaInicio": 207,
       "corte": "alpha",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto ronda 11 L1: reorden manual y automatico de hermanos en arbol con modoOrdenArbol configurable en store/preferencias.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/store/uiPanel.ts",
+          "hrefDashboard": "../../app/src/store/uiPanel.ts"
+        },
+        {
+          "path": "app/src/store/modelo/acciones-opd.ts",
+          "hrefDashboard": "../../app/src/store/modelo/acciones-opd.ts"
+        }
+      ],
       "peso": 4,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 4,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-20-estructura-arbol-opd.md"
     },
     {
@@ -29706,15 +29915,24 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-20-estructura-arbol-opd.md",
       "lineaInicio": 217,
       "corte": "alpha",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto ronda 11 L1: reorden manual y automatico de hermanos en arbol con modoOrdenArbol configurable en store/preferencias.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/store/uiPanel.ts",
+          "hrefDashboard": "../../app/src/store/uiPanel.ts"
+        },
+        {
+          "path": "app/src/store/modelo/acciones-opd.ts",
+          "hrefDashboard": "../../app/src/store/modelo/acciones-opd.ts"
+        }
+      ],
       "peso": 4,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 4,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-20-estructura-arbol-opd.md"
     },
     {
@@ -29739,15 +29957,24 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-20-estructura-arbol-opd.md",
       "lineaInicio": 227,
       "corte": "alpha",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto ronda 11 L1: reorden manual y automatico de hermanos en arbol con modoOrdenArbol configurable en store/preferencias.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/store/uiPanel.ts",
+          "hrefDashboard": "../../app/src/store/uiPanel.ts"
+        },
+        {
+          "path": "app/src/store/modelo/acciones-opd.ts",
+          "hrefDashboard": "../../app/src/store/modelo/acciones-opd.ts"
+        }
+      ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-20-estructura-arbol-opd.md"
     },
     {
@@ -29774,15 +30001,32 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-20-estructura-arbol-opd.md",
       "lineaInicio": 237,
       "corte": "alpha",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto ronda 11 L1: gestion modal Ctrl+D con busqueda y cortar/pegar de OPDs.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/ui/DialogoGestionArbol.tsx",
+          "hrefDashboard": "../../app/src/ui/DialogoGestionArbol.tsx"
+        },
+        {
+          "path": "app/src/ui/ArbolOpd.tsx",
+          "hrefDashboard": "../../app/src/ui/ArbolOpd.tsx"
+        },
+        {
+          "path": "app/src/store/uiPanel.ts",
+          "hrefDashboard": "../../app/src/store/uiPanel.ts"
+        },
+        {
+          "path": "app/e2e/opm-smoke.spec.ts",
+          "hrefDashboard": "../../app/e2e/opm-smoke.spec.ts"
+        }
+      ],
       "peso": 4,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 4,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-20-estructura-arbol-opd.md"
     },
     {
@@ -29807,15 +30051,32 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-20-estructura-arbol-opd.md",
       "lineaInicio": 246,
       "corte": "alpha",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto ronda 11 L1: gestion modal Ctrl+D con busqueda y cortar/pegar de OPDs.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/ui/DialogoGestionArbol.tsx",
+          "hrefDashboard": "../../app/src/ui/DialogoGestionArbol.tsx"
+        },
+        {
+          "path": "app/src/ui/ArbolOpd.tsx",
+          "hrefDashboard": "../../app/src/ui/ArbolOpd.tsx"
+        },
+        {
+          "path": "app/src/store/uiPanel.ts",
+          "hrefDashboard": "../../app/src/store/uiPanel.ts"
+        },
+        {
+          "path": "app/e2e/opm-smoke.spec.ts",
+          "hrefDashboard": "../../app/e2e/opm-smoke.spec.ts"
+        }
+      ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-20-estructura-arbol-opd.md"
     },
     {
@@ -29847,15 +30108,32 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-20-estructura-arbol-opd.md",
       "lineaInicio": 255,
       "corte": "alpha",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto ronda 11 L1: gestion modal Ctrl+D con busqueda y cortar/pegar de OPDs.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/ui/DialogoGestionArbol.tsx",
+          "hrefDashboard": "../../app/src/ui/DialogoGestionArbol.tsx"
+        },
+        {
+          "path": "app/src/ui/ArbolOpd.tsx",
+          "hrefDashboard": "../../app/src/ui/ArbolOpd.tsx"
+        },
+        {
+          "path": "app/src/store/uiPanel.ts",
+          "hrefDashboard": "../../app/src/store/uiPanel.ts"
+        },
+        {
+          "path": "app/e2e/opm-smoke.spec.ts",
+          "hrefDashboard": "../../app/e2e/opm-smoke.spec.ts"
+        }
+      ],
       "peso": 8,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 8,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-20-estructura-arbol-opd.md"
     },
     {
@@ -30782,15 +31060,32 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-30-persistencia-save-load.md",
       "lineaInicio": 118,
       "corte": "alpha",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto ronda 11 L2: descripcion opcional al guardar persistida en Modelo.descripcion? con roundtrip JSON lossless.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/modelo/tipos/modelo.ts",
+          "hrefDashboard": "../../app/src/modelo/tipos/modelo.ts"
+        },
+        {
+          "path": "app/src/ui/DialogoGuardarComo.tsx",
+          "hrefDashboard": "../../app/src/ui/DialogoGuardarComo.tsx"
+        },
+        {
+          "path": "app/src/serializacion/json.ts",
+          "hrefDashboard": "../../app/src/serializacion/json.ts"
+        },
+        {
+          "path": "app/src/serializacion/json.test.ts",
+          "hrefDashboard": "../../app/src/serializacion/json.test.ts"
+        }
+      ],
       "peso": 1,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 1,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-30-persistencia-save-load.md"
     },
     {
@@ -30970,15 +31265,20 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-30-persistencia-save-load.md",
       "lineaInicio": 156,
       "corte": "alpha",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto ronda 11 L2: PantallaInicio con grid de modelos recientes, telon y busqueda local.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/ui/PantallaInicio.tsx",
+          "hrefDashboard": "../../app/src/ui/PantallaInicio.tsx"
+        }
+      ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-30-persistencia-save-load.md"
     },
     {
@@ -31004,15 +31304,20 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-30-persistencia-save-load.md",
       "lineaInicio": 165,
       "corte": "alpha",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto ronda 11 L2: PantallaInicio con grid de modelos recientes, telon y busqueda local.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/ui/PantallaInicio.tsx",
+          "hrefDashboard": "../../app/src/ui/PantallaInicio.tsx"
+        }
+      ],
       "peso": 1,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 1,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-30-persistencia-save-load.md"
     },
     {
@@ -31199,15 +31504,24 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-30-persistencia-save-load.md",
       "lineaInicio": 203,
       "corte": "alpha",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto ronda 11 L2: renombrar modelo existente sin Guardar Como + Cargar Ejemplo Organizacional desde MenuPrincipal.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/ui/MenuPrincipal.tsx",
+          "hrefDashboard": "../../app/src/ui/MenuPrincipal.tsx"
+        },
+        {
+          "path": "app/src/persistencia/local.ts",
+          "hrefDashboard": "../../app/src/persistencia/local.ts"
+        }
+      ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-30-persistencia-save-load.md"
     },
     {
@@ -31488,15 +31802,24 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-30-persistencia-save-load.md",
       "lineaInicio": 261,
       "corte": "alpha",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto ronda 11 L2: renombrar modelo existente sin Guardar Como + Cargar Ejemplo Organizacional desde MenuPrincipal.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/ui/MenuPrincipal.tsx",
+          "hrefDashboard": "../../app/src/ui/MenuPrincipal.tsx"
+        },
+        {
+          "path": "app/src/persistencia/local.ts",
+          "hrefDashboard": "../../app/src/persistencia/local.ts"
+        }
+      ],
       "peso": 4,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 4,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-30-persistencia-save-load.md"
     },
     {
@@ -31521,15 +31844,24 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-30-persistencia-save-load.md",
       "lineaInicio": 270,
       "corte": "alpha",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto ronda 11 L2: toggle Mostrar Versiones + politica log-scale (max 10) en versiones.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/ui/DialogoVersiones.tsx",
+          "hrefDashboard": "../../app/src/ui/DialogoVersiones.tsx"
+        },
+        {
+          "path": "app/src/persistencia/versiones.ts",
+          "hrefDashboard": "../../app/src/persistencia/versiones.ts"
+        }
+      ],
       "peso": 4,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 4,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-30-persistencia-save-load.md"
     },
     {
@@ -31555,15 +31887,24 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-30-persistencia-save-load.md",
       "lineaInicio": 280,
       "corte": "alpha",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto ronda 11 L2: toggle Mostrar Versiones + politica log-scale (max 10) en versiones.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/ui/DialogoVersiones.tsx",
+          "hrefDashboard": "../../app/src/ui/DialogoVersiones.tsx"
+        },
+        {
+          "path": "app/src/persistencia/versiones.ts",
+          "hrefDashboard": "../../app/src/persistencia/versiones.ts"
+        }
+      ],
       "peso": 8,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 8,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-30-persistencia-save-load.md"
     },
     {
@@ -31588,15 +31929,24 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-30-persistencia-save-load.md",
       "lineaInicio": 290,
       "corte": "alpha",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto ronda 11 L2: archivados con toggle visible, auto-archivar 90d y restaurar.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/ui/DialogoArchivados.tsx",
+          "hrefDashboard": "../../app/src/ui/DialogoArchivados.tsx"
+        },
+        {
+          "path": "app/src/persistencia/workspace.ts",
+          "hrefDashboard": "../../app/src/persistencia/workspace.ts"
+        }
+      ],
       "peso": 4,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 4,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-30-persistencia-save-load.md"
     },
     {
@@ -31622,15 +31972,24 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-30-persistencia-save-load.md",
       "lineaInicio": 299,
       "corte": "alpha",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto ronda 11 L2: archivados con toggle visible, auto-archivar 90d y restaurar.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/ui/DialogoArchivados.tsx",
+          "hrefDashboard": "../../app/src/ui/DialogoArchivados.tsx"
+        },
+        {
+          "path": "app/src/persistencia/workspace.ts",
+          "hrefDashboard": "../../app/src/persistencia/workspace.ts"
+        }
+      ],
       "peso": 4,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 4,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-30-persistencia-save-load.md"
     },
     {
@@ -31655,15 +32014,24 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-30-persistencia-save-load.md",
       "lineaInicio": 309,
       "corte": "alpha",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto ronda 11 L2: archivados con toggle visible, auto-archivar 90d y restaurar.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/ui/DialogoArchivados.tsx",
+          "hrefDashboard": "../../app/src/ui/DialogoArchivados.tsx"
+        },
+        {
+          "path": "app/src/persistencia/workspace.ts",
+          "hrefDashboard": "../../app/src/persistencia/workspace.ts"
+        }
+      ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-30-persistencia-save-load.md"
     },
     {
@@ -31688,15 +32056,20 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-30-persistencia-save-load.md",
       "lineaInicio": 318,
       "corte": "alpha",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto ronda 11 L2: PantallaInicio con grid de modelos recientes, telon y busqueda local.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/ui/PantallaInicio.tsx",
+          "hrefDashboard": "../../app/src/ui/PantallaInicio.tsx"
+        }
+      ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-30-persistencia-save-load.md"
     },
     {
@@ -31843,15 +32216,24 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-30-persistencia-save-load.md",
       "lineaInicio": 348,
       "corte": "alpha",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto ronda 11 L2: vista tiles/lista, ordenamiento por columna, glifos editable/candado/autosalvado y autosalvado cada 5 min.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/ui/DialogoCargarModelo.tsx",
+          "hrefDashboard": "../../app/src/ui/DialogoCargarModelo.tsx"
+        },
+        {
+          "path": "app/src/persistencia/autosalvado.ts",
+          "hrefDashboard": "../../app/src/persistencia/autosalvado.ts"
+        }
+      ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-30-persistencia-save-load.md"
     },
     {
@@ -31876,15 +32258,24 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-30-persistencia-save-load.md",
       "lineaInicio": 357,
       "corte": "alpha",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto ronda 11 L2: vista tiles/lista, ordenamiento por columna, glifos editable/candado/autosalvado y autosalvado cada 5 min.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/ui/DialogoCargarModelo.tsx",
+          "hrefDashboard": "../../app/src/ui/DialogoCargarModelo.tsx"
+        },
+        {
+          "path": "app/src/persistencia/autosalvado.ts",
+          "hrefDashboard": "../../app/src/persistencia/autosalvado.ts"
+        }
+      ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-30-persistencia-save-load.md"
     },
     {
@@ -31911,15 +32302,24 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-30-persistencia-save-load.md",
       "lineaInicio": 366,
       "corte": "alpha",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto ronda 11 L2: vista tiles/lista, ordenamiento por columna, glifos editable/candado/autosalvado y autosalvado cada 5 min.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/ui/DialogoCargarModelo.tsx",
+          "hrefDashboard": "../../app/src/ui/DialogoCargarModelo.tsx"
+        },
+        {
+          "path": "app/src/persistencia/autosalvado.ts",
+          "hrefDashboard": "../../app/src/persistencia/autosalvado.ts"
+        }
+      ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-30-persistencia-save-load.md"
     },
     {
@@ -31945,15 +32345,24 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-30-persistencia-save-load.md",
       "lineaInicio": 375,
       "corte": "alpha",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto ronda 11 L2: vista tiles/lista, ordenamiento por columna, glifos editable/candado/autosalvado y autosalvado cada 5 min.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/ui/DialogoCargarModelo.tsx",
+          "hrefDashboard": "../../app/src/ui/DialogoCargarModelo.tsx"
+        },
+        {
+          "path": "app/src/persistencia/autosalvado.ts",
+          "hrefDashboard": "../../app/src/persistencia/autosalvado.ts"
+        }
+      ],
       "peso": 4,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 4,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-30-persistencia-save-load.md"
     },
     {
@@ -39052,15 +39461,24 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-50-opl-pane.md",
       "lineaInicio": 51,
       "corte": "alpha",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto ronda 11 L3: panel OPL Toolbar nuevo con 123 numeracion, posicion lateral, minimizar/restaurar, AI Text placeholder.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/ui/panelOpl/Toolbar.tsx",
+          "hrefDashboard": "../../app/src/ui/panelOpl/Toolbar.tsx"
+        },
+        {
+          "path": "app/src/modelo/tipos/ui.ts",
+          "hrefDashboard": "../../app/src/modelo/tipos/ui.ts"
+        }
+      ],
       "peso": 1,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 1,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-50-opl-pane.md"
     },
     {
@@ -39086,15 +39504,24 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-50-opl-pane.md",
       "lineaInicio": 54,
       "corte": "alpha",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto ronda 11 L3: panel OPL Toolbar nuevo con 123 numeracion, posicion lateral, minimizar/restaurar, AI Text placeholder.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/ui/panelOpl/Toolbar.tsx",
+          "hrefDashboard": "../../app/src/ui/panelOpl/Toolbar.tsx"
+        },
+        {
+          "path": "app/src/modelo/tipos/ui.ts",
+          "hrefDashboard": "../../app/src/modelo/tipos/ui.ts"
+        }
+      ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-50-opl-pane.md"
     },
     {
@@ -39119,15 +39546,24 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-50-opl-pane.md",
       "lineaInicio": 57,
       "corte": "alpha",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto ronda 11 L3: panel OPL Toolbar nuevo con 123 numeracion, posicion lateral, minimizar/restaurar, AI Text placeholder.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/ui/panelOpl/Toolbar.tsx",
+          "hrefDashboard": "../../app/src/ui/panelOpl/Toolbar.tsx"
+        },
+        {
+          "path": "app/src/modelo/tipos/ui.ts",
+          "hrefDashboard": "../../app/src/modelo/tipos/ui.ts"
+        }
+      ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-50-opl-pane.md"
     },
     {
@@ -39152,15 +39588,24 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-50-opl-pane.md",
       "lineaInicio": 60,
       "corte": "alpha",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto ronda 11 L3: panel OPL Toolbar nuevo con 123 numeracion, posicion lateral, minimizar/restaurar, AI Text placeholder.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/ui/panelOpl/Toolbar.tsx",
+          "hrefDashboard": "../../app/src/ui/panelOpl/Toolbar.tsx"
+        },
+        {
+          "path": "app/src/modelo/tipos/ui.ts",
+          "hrefDashboard": "../../app/src/modelo/tipos/ui.ts"
+        }
+      ],
       "peso": 1,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 1,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-50-opl-pane.md"
     },
     {
@@ -39465,28 +39910,20 @@
       "estadoAvance": "cubierto",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto: panel OPL persistente renderiza objetos/procesos con marcas semanticas y colores diferenciados.",
+      "nota": "Auto ronda 11 L5 (verificacion): generalizacion verbaliza 'es un' / 'son' canonicamente en OPL desde rondas previas; regla nueva consolida evidencia.",
       "brechas": [],
       "evidencia": [
         {
-          "path": "app/src/ui/PanelOpl.tsx",
-          "hrefDashboard": "../../app/src/ui/PanelOpl.tsx"
-        },
-        {
-          "path": "app/src/ui/panelOpl/RenderToken.tsx",
-          "hrefDashboard": "../../app/src/ui/panelOpl/RenderToken.tsx"
-        },
-        {
-          "path": "app/src/opl/generar.ts",
-          "hrefDashboard": "../../app/src/opl/generar.ts"
+          "path": "app/src/opl/generadores/estructural.ts",
+          "hrefDashboard": "../../app/src/opl/generadores/estructural.ts"
         },
         {
           "path": "app/src/opl/generadores/refsHints.ts",
           "hrefDashboard": "../../app/src/opl/generadores/refsHints.ts"
         },
         {
-          "path": "app/src/completitud.test.ts",
-          "hrefDashboard": "../../app/src/completitud.test.ts"
+          "path": "app/src/opl/generadores/estructural.test.ts",
+          "hrefDashboard": "../../app/src/opl/generadores/estructural.test.ts"
         }
       ],
       "peso": 2,
@@ -39811,15 +40248,28 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-50-opl-pane.md",
       "lineaInicio": 105,
       "corte": "alpha",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto ronda 11 L3: seleccion enlace especifico en oracion multi-enlace, indentacion jerarquica y colapsar bloques OPL.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/opl/interaccion.ts",
+          "hrefDashboard": "../../app/src/opl/interaccion.ts"
+        },
+        {
+          "path": "app/src/ui/panelOpl/Bloques.tsx",
+          "hrefDashboard": "../../app/src/ui/panelOpl/Bloques.tsx"
+        },
+        {
+          "path": "app/src/opl/interaccion.test.ts",
+          "hrefDashboard": "../../app/src/opl/interaccion.test.ts"
+        }
+      ],
       "peso": 4,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 4,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-50-opl-pane.md"
     },
     {
@@ -39908,12 +40358,12 @@
       "estadoAvance": "cubierto",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto ronda 10 L5: PanelOpl ofrece copiar al portapapeles, exportar HTML y buscar texto, todo cableado a acciones del store con testids estables.",
+      "nota": "Auto ronda 10 L5 + ronda 11 L3: PanelOpl/ToolbarOpl ofrecen copiar al portapapeles, exportar HTML y buscar texto con testids estables.",
       "brechas": [],
       "evidencia": [
         {
-          "path": "app/src/ui/PanelOpl.tsx",
-          "hrefDashboard": "../../app/src/ui/PanelOpl.tsx"
+          "path": "app/src/ui/panelOpl/Toolbar.tsx",
+          "hrefDashboard": "../../app/src/ui/panelOpl/Toolbar.tsx"
         },
         {
           "path": "app/src/store/modelo/acciones-canvas.ts",
@@ -39954,12 +40404,12 @@
       "estadoAvance": "cubierto",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto ronda 10 L5: PanelOpl ofrece copiar al portapapeles, exportar HTML y buscar texto, todo cableado a acciones del store con testids estables.",
+      "nota": "Auto ronda 10 L5 + ronda 11 L3: PanelOpl/ToolbarOpl ofrecen copiar al portapapeles, exportar HTML y buscar texto con testids estables.",
       "brechas": [],
       "evidencia": [
         {
-          "path": "app/src/ui/PanelOpl.tsx",
-          "hrefDashboard": "../../app/src/ui/PanelOpl.tsx"
+          "path": "app/src/ui/panelOpl/Toolbar.tsx",
+          "hrefDashboard": "../../app/src/ui/panelOpl/Toolbar.tsx"
         },
         {
           "path": "app/src/store/modelo/acciones-canvas.ts",
@@ -40000,12 +40450,12 @@
       "estadoAvance": "cubierto",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto ronda 10 L5: PanelOpl ofrece copiar al portapapeles, exportar HTML y buscar texto, todo cableado a acciones del store con testids estables.",
+      "nota": "Auto ronda 10 L5 + ronda 11 L3: PanelOpl/ToolbarOpl ofrecen copiar al portapapeles, exportar HTML y buscar texto con testids estables.",
       "brechas": [],
       "evidencia": [
         {
-          "path": "app/src/ui/PanelOpl.tsx",
-          "hrefDashboard": "../../app/src/ui/PanelOpl.tsx"
+          "path": "app/src/ui/panelOpl/Toolbar.tsx",
+          "hrefDashboard": "../../app/src/ui/panelOpl/Toolbar.tsx"
         },
         {
           "path": "app/src/store/modelo/acciones-canvas.ts",
@@ -40044,15 +40494,28 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-50-opl-pane.md",
       "lineaInicio": 120,
       "corte": "alpha",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto ronda 11 L3: seleccion enlace especifico en oracion multi-enlace, indentacion jerarquica y colapsar bloques OPL.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/opl/interaccion.ts",
+          "hrefDashboard": "../../app/src/opl/interaccion.ts"
+        },
+        {
+          "path": "app/src/ui/panelOpl/Bloques.tsx",
+          "hrefDashboard": "../../app/src/ui/panelOpl/Bloques.tsx"
+        },
+        {
+          "path": "app/src/opl/interaccion.test.ts",
+          "hrefDashboard": "../../app/src/opl/interaccion.test.ts"
+        }
+      ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-50-opl-pane.md"
     },
     {
@@ -40077,15 +40540,28 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-50-opl-pane.md",
       "lineaInicio": 123,
       "corte": "alpha",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto ronda 11 L3: seleccion enlace especifico en oracion multi-enlace, indentacion jerarquica y colapsar bloques OPL.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/opl/interaccion.ts",
+          "hrefDashboard": "../../app/src/opl/interaccion.ts"
+        },
+        {
+          "path": "app/src/ui/panelOpl/Bloques.tsx",
+          "hrefDashboard": "../../app/src/ui/panelOpl/Bloques.tsx"
+        },
+        {
+          "path": "app/src/opl/interaccion.test.ts",
+          "hrefDashboard": "../../app/src/opl/interaccion.test.ts"
+        }
+      ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-50-opl-pane.md"
     },
     {
@@ -40118,15 +40594,24 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-50-opl-pane.md",
       "lineaInicio": 126,
       "corte": "alpha",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto ronda 11 L3: panel OPL Toolbar nuevo con 123 numeracion, posicion lateral, minimizar/restaurar, AI Text placeholder.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/ui/panelOpl/Toolbar.tsx",
+          "hrefDashboard": "../../app/src/ui/panelOpl/Toolbar.tsx"
+        },
+        {
+          "path": "app/src/modelo/tipos/ui.ts",
+          "hrefDashboard": "../../app/src/modelo/tipos/ui.ts"
+        }
+      ],
       "peso": 4,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 4,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-50-opl-pane.md"
     },
     {

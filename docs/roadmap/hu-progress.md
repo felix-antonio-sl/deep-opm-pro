@@ -1,9 +1,9 @@
 # Auditoria de avance HU v2
 
-**Generado:** 2026-05-06T12:48:02.730Z
+**Generado:** 2026-05-06T19:06:07.263Z
 **Backlog:** `docs/historias-usuario-v2`
 **Ledger de evidencia:** `docs/roadmap/hu-progress-evidence.json`
-**Auditoria automatica:** 72/72 reglas matcheadas sobre 323 archivos fuente.
+**Auditoria automatica:** 92/92 reglas matcheadas sobre 333 archivos fuente.
 
 
 Regenerar desde la raiz del repo:
@@ -20,16 +20,16 @@ node docs/historias-usuario-v2/tools/progress-dashboard.mjs
 
 | Segmento | HU vivas | Cubiertas | Parciales | Pendientes | Diferidas | Avance ponderado |
 |---|---:|---:|---:|---:|---:|---:|
-| Total backlog | 1126 | 213 | 44 | 491 | 378 | 20.1% |
-| M0 | 130 | 90 | 25 | 15 | 0 | 77.5% |
-| MVP-alpha | 121 | 54 | 21 | 46 | 0 | 50.0% |
+| Total backlog | 1126 | 266 | 33 | 449 | 378 | 24.6% |
+| M0 | 130 | 99 | 16 | 15 | 0 | 82.7% |
+| MVP-alpha | 121 | 107 | 10 | 4 | 0 | 91.1% |
 | MVP-beta | 193 | 69 | 14 | 110 | 0 | 40.1% |
 
 ## Por corte
 
 | Corte | HU vivas | Cubiertas | Parciales | Pendientes | Diferidas | Avance ponderado |
 |---|---:|---:|---:|---:|---:|---:|
-| MVP-alpha | 121 | 54 | 21 | 46 | 0 | 50.0% |
+| MVP-alpha | 121 | 107 | 10 | 4 | 0 | 91.1% |
 | MVP-beta | 193 | 69 | 14 | 110 | 0 | 40.1% |
 | MVP-gamma | 434 | 90 | 9 | 335 | 0 | 19.7% |
 | MVP-delta | 378 | 0 | 0 | 0 | 378 | 0.0% |
@@ -39,19 +39,19 @@ node docs/historias-usuario-v2/tools/progress-dashboard.mjs
 
 | Prioridad | HU vivas | Cubiertas | Parciales | Pendientes | Diferidas | Avance ponderado |
 |---|---:|---:|---:|---:|---:|---:|
-| M0 | 130 | 90 | 25 | 15 | 0 | 77.5% |
-| M1 | 161 | 64 | 11 | 80 | 6 | 42.1% |
-| S | 471 | 52 | 4 | 253 | 162 | 12.8% |
-| C | 247 | 7 | 4 | 135 | 101 | 3.5% |
-| W | 117 | 0 | 0 | 8 | 109 | 0.0% |
+| M0 | 130 | 99 | 16 | 15 | 0 | 82.7% |
+| M1 | 161 | 88 | 9 | 58 | 6 | 57.2% |
+| S | 471 | 69 | 4 | 236 | 162 | 16.8% |
+| C | 247 | 9 | 4 | 133 | 101 | 3.9% |
+| W | 117 | 1 | 0 | 7 | 109 | 1.1% |
 | sin-prioridad | 0 | 0 | 0 | 0 | 0 | 0.0% |
 
 ## Por epica
 
 | Epica | Titulo | HU vivas | Cubiertas | Parciales | Pendientes | Diferidas | Avance ponderado |
 |---|---|---:|---:|---:|---:|---:|---:|
-| 10 | Canvas — creación de cosas (proceso, objeto, enlace inicial, afiliación, esencia) | 17 | 5 | 9 | 3 | 0 | 52.6% |
-| 11 | Canvas — modelado básico (agregación, multi-selección, enlaces procedurales, propiedades, alineación, borrado) | 22 | 12 | 4 | 6 | 0 | 60.7% |
+| 10 | Canvas — creación de cosas (proceso, objeto, enlace inicial, afiliación, esencia) | 17 | 14 | 2 | 1 | 0 | 89.5% |
+| 11 | Canvas — modelado básico (agregación, multi-selección, enlaces procedurales, propiedades, alineación, borrado) | 22 | 19 | 1 | 2 | 0 | 87.5% |
 | 12 | Canvas — descomposición de procesos | 31 | 26 | 2 | 3 | 0 | 87.6% |
 | 13 | Canvas — estados (designaciones, par entrada-salida, supresión, layout interno) | 18 | 9 | 6 | 3 | 0 | 66.7% |
 | 14 | Canvas — estilado visual de cosas, texto y enlaces | 15 | 5 | 0 | 10 | 0 | 40.0% |
@@ -60,9 +60,9 @@ node docs/historias-usuario-v2/tools/progress-dashboard.mjs
 | 17 | Canvas — objetos avanzados (alias, unidad, descripción, URL, plegado parcial, designaciones de estado, duración) | 28 | 18 | 3 | 7 | 0 | 61.1% |
 | 18 | Canvas — plegado parcial (vista compacta de refinadores intra-rectángulo) | 15 | 12 | 3 | 0 | 0 | 90.7% |
 | 19 | Canvas — imágenes incrustadas en cosas (URL, pool, alternar imagen/texto, exportación) | 16 | 12 | 0 | 4 | 0 | 68.4% |
-| 20 | Estructura — árbol OPD (navegación, orden, gestión, vistas derivadas) | 21 | 9 | 0 | 12 | 0 | 38.9% |
+| 20 | Estructura — árbol OPD (navegación, orden, gestión, vistas derivadas) | 21 | 21 | 0 | 0 | 0 | 100.0% |
 | 21 | Estructura — mapa del sistema (meta-vista gráfica del árbol de OPDs) | 18 | 0 | 0 | 18 | 0 | 0.0% |
-| 30 | Persistencia — guardar/cargar, diálogos modales, versiones, archivado, búsqueda global, autosalvado | 34 | 13 | 5 | 16 | 0 | 39.3% |
+| 30 | Persistencia — guardar/cargar, diálogos modales, versiones, archivado, búsqueda global, autosalvado | 34 | 28 | 5 | 1 | 0 | 88.8% |
 | 31 | Persistencia — carpetas, jerarquía, permisos y navegación del workspace | 26 | 3 | 0 | 23 | 0 | 15.7% |
 | 32 | Persistencia — sub-modelos (vistas de subsistema, archivos peer, composición cross-modelo) | 31 | 0 | 0 | 31 | 0 | 0.0% |
 | 33 | Persistencia — plantillas (artefactos reutilizables, ámbitos Privado/Organizacional/Global) | 22 | 0 | 0 | 22 | 0 | 0.0% |
@@ -71,7 +71,7 @@ node docs/historias-usuario-v2/tools/progress-dashboard.mjs
 | 40 | Colaboración — permisos de modelo, token de edición y auto-lectura desde carpeta | 25 | 0 | 0 | 0 | 25 | 0.0% |
 | 41 | Colaboración — chat del modelo | 17 | 0 | 0 | 0 | 17 | 0.0% |
 | 42 | Colaboración — notas adhesivas (anclaje, toggle, integración) | 22 | 0 | 0 | 22 | 0 | 0.0% |
-| 50 | Panel OPL-ES — lente bimodal, edición inversa y sincronización con el canvas | 21 | 13 | 0 | 8 | 0 | 67.3% |
+| 50 | Panel OPL-ES — lente bimodal, edición inversa y sincronización con el canvas | 21 | 21 | 0 | 0 | 0 | 100.0% |
 | 60 | Exportar a PDF — pipeline papel, opciones, selección de OPDs, integración Compartir | 35 | 0 | 0 | 35 | 0 | 0.0% |
 | 61 | Exportar SVG — exportar diagramas OPD como imágenes vectoriales | 26 | 0 | 0 | 26 | 0 | 0.0% |
 | 70 | Interoperabilidad — importación de modelos OPCAT 4.2 (.opx) | 25 | 0 | 0 | 25 | 0 | 0.0% |
@@ -98,7 +98,7 @@ node docs/historias-usuario-v2/tools/progress-dashboard.mjs
 | C2 | Runtime ROS — integración con Robot Operating System | 28 | 0 | 0 | 0 | 28 | 0.0% |
 | D0 | Análisis — detección de conocimiento faltante (predicción de enlaces sobre el grafo del modelo) | 22 | 0 | 0 | 0 | 22 | 0.0% |
 | D1 | Análisis — calificación de informatividad del modelo (MFSP, INF, WINF, TWINF) | 16 | 0 | 0 | 0 | 16 | 0.0% |
-| SHARED | Patrones transversales | 9 | 2 | 5 | 2 | 0 | 43.8% |
+| SHARED | Patrones transversales | 9 | 4 | 4 | 1 | 0 | 64.6% |
 
 ## Pendientes M0 inmediatos
 
