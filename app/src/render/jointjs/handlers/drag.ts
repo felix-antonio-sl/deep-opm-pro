@@ -28,8 +28,10 @@ export interface CablearDragArgs {
   modeloRef: { current: Modelo };
   opdActivoIdRef: { current: string };
   moverAparienciaRef: { current: (aparienciaId: string, x: number, y: number) => void };
+  reordenarSubprocesoEnTimelineRef: { current: (opdId: string, aparienciaId: string, nuevaY: number) => void };
   actualizarVerticesEnlaceRef: { current: (aparienciaEnlaceId: string, vertices: { x: number; y: number }[]) => void };
   extraerParteDePlegadoRef: { current: (aparienciaId: string, parteEntidadId: string) => void };
+  abrirRenombradoInlineRef: { current: (input: { aparienciaId: string; entidadId: string }) => void };
 }
 
 export function cablearDrag(args: CablearDragArgs): () => void {
@@ -40,8 +42,10 @@ export function cablearDrag(args: CablearDragArgs): () => void {
     modeloRef,
     opdActivoIdRef,
     moverAparienciaRef,
+    reordenarSubprocesoEnTimelineRef,
     actualizarVerticesEnlaceRef,
     extraerParteDePlegadoRef,
+    abrirRenombradoInlineRef,
   } = args;
 
   const onElementPointerup = (elementView: dia.ElementView) => {
@@ -50,6 +54,10 @@ export function cablearDrag(args: CablearDragArgs): () => void {
     const meta = metadata(model);
     if (meta?.kind !== "entidad") return;
     const posicion = (model as dia.Element).position();
+    if (esSubprocesoInternoTimeline(modeloRef.current, meta) && esDragVertical(modeloRef.current, meta, posicion)) {
+      reordenarSubprocesoEnTimelineRef.current(meta.opdId, meta.aparienciaId, Math.round(posicion.y));
+      return;
+    }
     moverAparienciaRef.current(meta.aparienciaId, Math.round(posicion.x), Math.round(posicion.y));
   };
 
@@ -58,12 +66,30 @@ export function cablearDrag(args: CablearDragArgs): () => void {
     const meta = metadata(cellViewModel(elementView));
     if (meta?.kind !== "entidad") return;
     const parteEntidadId = parteEntidadDesdeSelector(meta, jointSelector(evt.target));
-    if (!parteEntidadId) return;
+    if (!parteEntidadId) {
+      if (esSubprocesoInternoTimeline(modeloRef.current, meta)) {
+        abrirRenombradoInlineRef.current({ aparienciaId: meta.aparienciaId, entidadId: meta.entidadId });
+      }
+      return;
+    }
     extraerParteDePlegadoRef.current(meta.aparienciaId, parteEntidadId);
+  };
+
+  const onElementPointerclickRenombrado = (elementView: dia.ElementView, evt: dia.Event) => {
+    const event = evt as unknown as MouseEvent;
+    if (event.detail < 2) return;
+    const meta = metadata(cellViewModel(elementView));
+    if (meta?.kind !== "entidad") return;
+    if (parteEntidadDesdeSelector(meta, jointSelector(evt.target))) return;
+    if (esSubprocesoInternoTimeline(modeloRef.current, meta)) {
+      evt.stopPropagation();
+      abrirRenombradoInlineRef.current({ aparienciaId: meta.aparienciaId, entidadId: meta.entidadId });
+    }
   };
 
   paper.on("element:pointerup", onElementPointerup);
   paper.on("element:pointerdblclick", onElementPointerdblclick);
+  paper.on("element:pointerclick", onElementPointerclickRenombrado);
 
   graphEvents(graph).on("change:vertices", (cell: dia.Cell) => {
     if (sincronizandoRef.current || !cell.isLink()) return;
@@ -96,10 +122,38 @@ export function cablearDrag(args: CablearDragArgs): () => void {
   return () => {
     paperOff(paper, "element:pointerup", onElementPointerup as (...args: never[]) => void);
     paperOff(paper, "element:pointerdblclick", onElementPointerdblclick as (...args: never[]) => void);
+    paperOff(paper, "element:pointerclick", onElementPointerclickRenombrado as (...args: never[]) => void);
     // graphEvents listeners no se desinstalan explicitamente porque el graph
     // se destruye junto con el paper en el cleanup del componente; los
     // closures quedan recolectables.
   };
+}
+
+function esSubprocesoInternoTimeline(modelo: Modelo, meta: OpmJointMetadata): meta is Extract<OpmJointMetadata, { kind: "entidad" }> {
+  if (meta.kind !== "entidad") return false;
+  const entidad = modelo.entidades[meta.entidadId];
+  if (entidad?.tipo !== "proceso") return false;
+  const opd = modelo.opds[meta.opdId];
+  if (!opd) return false;
+  const contorno = Object.values(opd.apariencias).find((apariencia) => {
+    const refinable = modelo.entidades[apariencia.entidadId];
+    return refinable?.tipo === "proceso" && refinable.refinamiento?.tipo === "descomposicion" && refinable.refinamiento.opdId === opd.id;
+  });
+  if (!contorno || contorno.entidadId === meta.entidadId) return false;
+  const apariencia = opd.apariencias[meta.aparienciaId];
+  return !!apariencia &&
+    apariencia.x >= contorno.x &&
+    apariencia.y >= contorno.y &&
+    apariencia.x + apariencia.width <= contorno.x + contorno.width &&
+    apariencia.y + apariencia.height <= contorno.y + contorno.height;
+}
+
+function esDragVertical(modelo: Modelo, meta: Extract<OpmJointMetadata, { kind: "entidad" }>, posicion: { x: number; y: number }): boolean {
+  const apariencia = modelo.opds[meta.opdId]?.apariencias[meta.aparienciaId];
+  if (!apariencia) return false;
+  const dx = Math.abs(Math.round(posicion.x) - apariencia.x);
+  const dy = Math.abs(Math.round(posicion.y) - apariencia.y);
+  return dy > 0 && dy >= dx;
 }
 
 // Identifica el contorno refinable (cell de mayor tamano marcado como entidad

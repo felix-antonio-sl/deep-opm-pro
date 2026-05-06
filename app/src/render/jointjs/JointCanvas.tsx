@@ -1,9 +1,12 @@
 import { dia, shapes } from "jointjs";
-import { useEffect, useRef } from "preact/hooks";
+import { useEffect, useRef, useState } from "preact/hooks";
+import { normalizarGridConfig } from "../../canvas/grid";
 import { useOpmStore } from "../../store";
+import { RenombradoInline } from "../../ui/RenombradoInline";
 import { recalcularOverlaysAbanicoDesdeLinkViews } from "./abanicoDragSync";
 import { opmShapes } from "./customShapes";
 import { proyectarModeloAJointCells } from "./proyeccion";
+import { configurarGridPaper } from "./composers/grid";
 import { cablearDrag, embedirContorno } from "./handlers/drag";
 import {
   CANVAS_BASE,
@@ -15,6 +18,7 @@ import {
 } from "./handlers/helpers";
 import { aplicarHoverOpl, cablearHoverOpl } from "./handlers/hoverOpl";
 import { cablearRubberBand } from "./handlers/rubberBand";
+import { cablearResize } from "./handlers/resize";
 import { cablearSeleccion } from "./handlers/seleccion";
 import { instalarHerramientasEnlaceSeleccionado } from "./handlers/toolsEnlace";
 import { cablearZoomFit, cablearZoomWheel } from "./handlers/zoom";
@@ -54,6 +58,9 @@ export function JointCanvas() {
   const enlaceSeleccionId = useOpmStore((s) => s.enlaceSeleccionId);
   const enlaceSeleccionIdRef = useRef(enlaceSeleccionId);
   const hoverOplRef = useOpmStore((s) => s.hoverOplRef);
+  const uiAliasVisibles = useOpmStore((s) => s.uiAliasVisibles);
+  const uiDescripcionesVisibles = useOpmStore((s) => s.uiDescripcionesVisibles);
+  const uiModoImagenGlobal = useOpmStore((s) => s.uiModoImagenGlobal);
   const seleccionarEntidad = useOpmStore((s) => s.seleccionarEntidad);
   const seleccionarEntidadRef = useRef(seleccionarEntidad);
   const seleccionarPartePlegada = useOpmStore((s) => s.seleccionarPartePlegada);
@@ -66,6 +73,10 @@ export function JointCanvas() {
   const moverAparienciaRef = useRef(moverApariencia);
   const cambiarModoPlegadoApariencia = useOpmStore((s) => s.cambiarModoPlegadoApariencia);
   const cambiarModoPlegadoAparienciaRef = useRef(cambiarModoPlegadoApariencia);
+  const alternarModoImagenEntidad = useOpmStore((s) => s.alternarModoImagenEntidad);
+  const alternarModoImagenEntidadRef = useRef(alternarModoImagenEntidad);
+  const abrirModalImagen = useOpmStore((s) => s.abrirModalImagen);
+  const abrirModalImagenRef = useRef(abrirModalImagen);
   const extraerParteDePlegado = useOpmStore((s) => s.extraerParteDePlegado);
   const extraerParteDePlegadoRef = useRef(extraerParteDePlegado);
   const actualizarVerticesEnlace = useOpmStore((s) => s.actualizarVerticesEnlace);
@@ -82,6 +93,15 @@ export function JointCanvas() {
   const toggleSeleccionRef = useRef(toggleSeleccion);
   const vaciarSeleccion = useOpmStore((s) => s.vaciarSeleccion);
   const vaciarSeleccionRef = useRef(vaciarSeleccion);
+  const redimensionarAparienciaEnCanvas = useOpmStore((s) => s.redimensionarAparienciaEnCanvas);
+  const redimensionarAparienciaEnCanvasRef = useRef(redimensionarAparienciaEnCanvas);
+  const reordenarSubprocesoEnTimeline = useOpmStore((s) => s.reordenarSubprocesoEnTimeline);
+  const reordenarSubprocesoEnTimelineRef = useRef(reordenarSubprocesoEnTimeline);
+  const renombrarEntidadDesdeOpl = useOpmStore((s) => s.renombrarEntidadDesdeOpl);
+  const renombrarEntidadDesdeOplRef = useRef(renombrarEntidadDesdeOpl);
+  const [renombradoInline, setRenombradoInline] = useState<null | { aparienciaId: string; entidadId: string }>(null);
+  const abrirRenombradoInlineRef = useRef((input: { aparienciaId: string; entidadId: string }) => setRenombradoInline(input));
+  const gridConfig = useOpmStore((s) => normalizarGridConfig(s.gridConfig ?? s.indice.preferenciasUi?.gridConfig));
 
   useEffect(() => {
     modoEnlaceRef.current = modoEnlace;
@@ -108,6 +128,8 @@ export function JointCanvas() {
     seleccionarEnlaceRef.current = seleccionarEnlace;
     moverAparienciaRef.current = moverApariencia;
     cambiarModoPlegadoAparienciaRef.current = cambiarModoPlegadoApariencia;
+    alternarModoImagenEntidadRef.current = alternarModoImagenEntidad;
+    abrirModalImagenRef.current = abrirModalImagen;
     extraerParteDePlegadoRef.current = extraerParteDePlegado;
     actualizarVerticesEnlaceRef.current = actualizarVerticesEnlace;
     crearEntidadEnCanvasRef.current = crearEntidadEnCanvas;
@@ -116,7 +138,10 @@ export function JointCanvas() {
     agregarASeleccionRef.current = agregarASeleccion;
     toggleSeleccionRef.current = toggleSeleccion;
     vaciarSeleccionRef.current = vaciarSeleccion;
-  }, [actualizarVerticesEnlace, agregarASeleccion, cambiarModoPlegadoApariencia, crearEntidadEnCanvas, extraerParteDePlegado, fijarHoverOpl, moverApariencia, seleccionarEnlace, seleccionarEntidad, seleccionarEstadoComoExtremo, seleccionarPartePlegada, setSeleccion, toggleSeleccion, vaciarSeleccion]);
+    redimensionarAparienciaEnCanvasRef.current = redimensionarAparienciaEnCanvas;
+    reordenarSubprocesoEnTimelineRef.current = reordenarSubprocesoEnTimeline;
+    renombrarEntidadDesdeOplRef.current = renombrarEntidadDesdeOpl;
+  }, [actualizarVerticesEnlace, agregarASeleccion, alternarModoImagenEntidad, abrirModalImagen, cambiarModoPlegadoApariencia, crearEntidadEnCanvas, extraerParteDePlegado, fijarHoverOpl, moverApariencia, redimensionarAparienciaEnCanvas, reordenarSubprocesoEnTimeline, renombrarEntidadDesdeOpl, seleccionarEnlace, seleccionarEntidad, seleccionarEstadoComoExtremo, seleccionarPartePlegada, setSeleccion, toggleSeleccion, vaciarSeleccion]);
 
   // Setup del paper + cableado de handlers (mount inicial).
   useEffect(() => {
@@ -184,11 +209,13 @@ export function JointCanvas() {
     });
 
     setPaperDimensions(paper, CANVAS_BASE);
+    configurarGridPaper(paper, gridConfig);
 
     const cleanups: Array<() => void> = [];
 
     cleanups.push(cablearSeleccion({
       paper,
+      modeloRef,
       modoEnlaceRef,
       modoCreacionRef,
       rubberBandRef,
@@ -198,10 +225,13 @@ export function JointCanvas() {
       seleccionarEstadoComoExtremoRef,
       seleccionarEnlaceRef,
       cambiarModoPlegadoAparienciaRef,
+      alternarModoImagenEntidadRef,
+      abrirModalImagenRef,
       agregarASeleccionRef,
       toggleSeleccionRef,
       vaciarSeleccionRef,
       crearEntidadEnCanvasRef,
+      abrirRenombradoInlineRef,
     }));
 
     cleanups.push(cablearRubberBand({
@@ -225,8 +255,15 @@ export function JointCanvas() {
       modeloRef,
       opdActivoIdRef,
       moverAparienciaRef,
+      reordenarSubprocesoEnTimelineRef,
       actualizarVerticesEnlaceRef,
       extraerParteDePlegadoRef,
+      abrirRenombradoInlineRef,
+    }));
+
+    cleanups.push(cablearResize({
+      paper,
+      redimensionarAparienciaRef: redimensionarAparienciaEnCanvasRef,
     }));
 
     cleanups.push(cablearHoverOpl({
@@ -248,11 +285,21 @@ export function JointCanvas() {
     };
   }, []);
 
+  useEffect(() => {
+    const adapter = adapterRef.current;
+    if (!adapter) return;
+    configurarGridPaper(adapter.paper, gridConfig);
+  }, [gridConfig]);
+
   // Proyección modelo → cells.
   useEffect(() => {
     const adapter = adapterRef.current;
     if (!adapter) return;
-    const cells = proyectarModeloAJointCells(modelo, opdActivoId, seleccionId, enlaceSeleccionId, null, seleccionados);
+    const cells = proyectarModeloAJointCells(modelo, opdActivoId, seleccionId, enlaceSeleccionId, null, seleccionados, {
+      aliasVisibles: uiAliasVisibles,
+      descripcionesVisibles: uiDescripcionesVisibles,
+      modoImagenGlobal: uiModoImagenGlobal,
+    });
     sincronizandoRef.current = true;
     adapter.graph.resetCells(cells as dia.Cell.JSON[]);
     setPaperDimensions(adapter.paper, dimensionesPaper(cells));
@@ -271,7 +318,7 @@ export function JointCanvas() {
     sincronizandoRef.current = false;
     instalarHerramientasEnlaceSeleccionado(adapter, enlaceSeleccionId);
     aplicarHoverOpl(adapter.graph, modelo, hoverOplRef, enlaceSeleccionId);
-  }, [enlaceSeleccionId, modelo, opdActivoId, seleccionId, seleccionados]);
+  }, [enlaceSeleccionId, modelo, opdActivoId, seleccionId, seleccionados, uiAliasVisibles, uiDescripcionesVisibles, uiModoImagenGlobal]);
 
   useEffect(() => {
     const adapter = adapterRef.current;
@@ -294,9 +341,30 @@ export function JointCanvas() {
     });
   }, []);
 
+  const renombrado = renombradoInline
+    ? {
+        entidad: modelo.entidades[renombradoInline.entidadId],
+        apariencia: modelo.opds[opdActivoId]?.apariencias[renombradoInline.aparienciaId],
+      }
+    : null;
+
   return (
     <div role="img" aria-label="OPD activo" data-atajos-contexto="canvas" style={style.viewport}>
-      <div ref={paperHostRef} style={style.paperHost} />
+      <div ref={paperHostRef} style={style.paperHost}>
+        {renombrado?.entidad && renombrado.apariencia ? (
+          <RenombradoInline
+            nombre={renombrado.entidad.nombre}
+            rect={renombrado.apariencia}
+            onConfirmar={(nombre) => {
+              const entidad = renombrado.entidad;
+              if (!entidad) return;
+              renombrarEntidadDesdeOplRef.current(entidad.id, nombre);
+              setRenombradoInline(null);
+            }}
+            onCancelar={() => setRenombradoInline(null)}
+          />
+        ) : null}
+      </div>
     </div>
   );
 }
@@ -312,6 +380,7 @@ const style = {
     overscrollBehavior: "contain",
   },
   paperHost: {
+    position: "relative",
     width: `${CANVAS_BASE.width}px`,
     height: `${CANVAS_BASE.height}px`,
     minWidth: `${CANVAS_BASE.width}px`,

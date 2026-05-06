@@ -61,13 +61,40 @@ describe("creacion interna por posicion", () => {
     });
     expect(hidratado.value.entidades[creado.entidadId]?.tipo).toBe("objeto");
   });
+
+  test("crear ambiental dentro del contorno hereda afiliacion y clampea bbox", () => {
+    const base = modeloConDescomposicion("ambiental");
+    const contorno = contenedorRefinamiento(base.modelo, base.opdHijoId);
+    if (!contorno) throw new Error("La prueba esperaba contorno de refinamiento");
+
+    const creado = must(crearCosaEnPosicion(base.modelo, base.opdHijoId, "objeto", {
+      x: contorno.x + contorno.width - 12,
+      y: contorno.y + contorno.height - 12,
+    }));
+    const apariencia = creado.modelo.opds[base.opdHijoId]?.apariencias[creado.aparienciaId];
+
+    expect(creado.modelo.entidades[creado.entidadId]?.afiliacion).toBe("ambiental");
+    expect(apariencia).toBeDefined();
+    if (!apariencia) return;
+    expect(dentroDeContorno(apariencia, contorno)).toBe(true);
+  });
 });
 
-function modeloConDescomposicion(): { modelo: Modelo; opdHijoId: string } {
+function modeloConDescomposicion(afiliacion: "sistemica" | "ambiental" = "sistemica"): { modelo: Modelo; opdHijoId: string } {
   let modelo = crearModelo();
   modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 220, y: 140 }, "Procesar"));
   const procesoId = Object.values(modelo.entidades).find((entidad) => entidad.nombre === "Procesar")?.id;
   if (!procesoId) throw new Error("La prueba esperaba proceso");
+  modelo = {
+    ...modelo,
+    entidades: {
+      ...modelo.entidades,
+      [procesoId]: {
+        ...modelo.entidades[procesoId]!,
+        afiliacion,
+      },
+    },
+  };
   const descompuesto = must(descomponerProceso(modelo, modelo.opdRaizId, procesoId));
   return { modelo: descompuesto.modelo, opdHijoId: descompuesto.opdId };
 }

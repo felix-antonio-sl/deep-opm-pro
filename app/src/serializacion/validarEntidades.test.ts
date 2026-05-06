@@ -14,6 +14,7 @@ describe("validarEntidades", () => {
         unidad: "°C",
         descripcion: "Mide temperatura",
         urls: [{ id: "u-1", url: "https://example.com/img.png", tipo: "imagen" }],
+        imagen: { url: "https://example.com/foto.webp", modo: "imagen-texto", cache: { ts: 1, estado: "ok" } },
         layoutEstados: "vertical",
       },
     });
@@ -22,6 +23,7 @@ describe("validarEntidades", () => {
     if (!resultado.ok) return;
     expect(resultado.value["e-1"]?.alias).toBe("iP");
     expect(resultado.value["e-1"]?.urls?.[0]?.tipo).toBe("imagen");
+    expect(resultado.value["e-1"]?.imagen).toEqual({ url: "https://example.com/foto.webp", modo: "imagen-texto" });
   });
 
   test("rechaza entidad sin nombre", () => {
@@ -46,5 +48,9 @@ describe("validarEntidades", () => {
     const resultado = camposEntidadAvanzada("e-1", { urls: "no-array" });
 
     expect(resultado.ok).toBe(false);
+  });
+
+  test("camposEntidadAvanzada rechaza imagen invalida", () => {
+    expect(camposEntidadAvanzada("e-1", { imagen: { url: "https://example.com/a.txt", modo: "imagen" } }).ok).toBe(false);
   });
 });

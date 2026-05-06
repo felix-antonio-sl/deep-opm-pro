@@ -4,6 +4,7 @@ import {
   desplegarObjeto,
   quitarDescomposicionProceso,
   quitarDespliegueObjeto,
+  reanclarEnlaceExternoDerivado,
 } from "../../modelo/operaciones";
 import {
   commitModelo,
@@ -123,6 +124,21 @@ export function accionesOpd(set: SetStore, get: GetStore): Partial<ModeloSlice> 
         enlaceSeleccionId: null,
         modoEnlace: null,
         mensaje: "Despliegue eliminado",
+      });
+    },
+
+    reasignarEnlaceExternoManual(opdId, aparienciaEnlaceId, nuevoSubprocesoId) {
+      const { modelo } = get();
+      const resultado = reanclarEnlaceExternoDerivado(modelo, opdId, aparienciaEnlaceId, nuevoSubprocesoId);
+      if (!resultado.ok) {
+        set({ mensaje: resultado.error });
+        return;
+      }
+      commitModelo(set, modelo, resultado.value, {
+        seleccionId: null,
+        enlaceSeleccionId: resultado.value.opds[opdId]?.enlaces[aparienciaEnlaceId]?.enlaceId ?? null,
+        modoEnlace: null,
+        mensaje: "Enlace externo reasignado",
       });
     },
 

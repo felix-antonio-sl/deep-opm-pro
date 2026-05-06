@@ -184,6 +184,30 @@ describe("serializacion JSON", () => {
     expect(legacy.value.versiones).toBeUndefined();
   });
 
+  test("preserva imagen de objeto y no serializa cache transitorio", () => {
+    let modelo = crearModelo("Imagen JSON");
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 10, y: 20 }, "Sistema"));
+    const entidadId = entidadPorNombre(modelo, "Sistema");
+    modelo = {
+      ...modelo,
+      entidades: {
+        ...modelo.entidades,
+        [entidadId]: {
+          ...modelo.entidades[entidadId]!,
+          imagen: { url: "https://example.com/sistema.png", modo: "imagen-texto", cache: { ts: 123, estado: "ok" } },
+        },
+      },
+    };
+
+    const exportado = JSON.parse(exportarModelo(modelo));
+    expect(exportado.modelo.entidades[entidadId].imagen).toEqual({ url: "https://example.com/sistema.png", modo: "imagen-texto" });
+
+    const hidratado = hidratarModelo(JSON.stringify(exportado));
+    expect(hidratado.ok).toBe(true);
+    if (!hidratado.ok) return;
+    expect(hidratado.value.entidades[entidadId]?.imagen).toEqual({ url: "https://example.com/sistema.png", modo: "imagen-texto" });
+  });
+
   test("omite estilo vacio al exportar y rechaza colores invalidos", () => {
     let modelo = crearModelo("Estilo vacio");
     modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 10, y: 20 }, "Sistema"));

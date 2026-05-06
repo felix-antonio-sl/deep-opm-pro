@@ -264,7 +264,7 @@ function oracionNegada(
 }
 
 function oracionEnlaceSinModificador(modelo: Modelo, enlace: Enlace): string | null {
-  const { modificador: _modificador, probabilidad: _probabilidad, ...sinModificador } = enlace;
+  const { modificador: _modificador, subtipoModificador: _subtipoModificador, probabilidad: _probabilidad, ...sinModificador } = enlace;
   return oracionEnlaceSinEtiqueta(modelo, sinModificador);
 }
 
@@ -281,9 +281,9 @@ function oracionEfecto(modelo: Modelo, enlace: Enlace, origen: Entidad, destino:
 }
 
 function sufijoProbabilidad(enlace: Enlace): string {
-  return enlace.probabilidad === undefined ? "" : ` (probabilidad ${formatearProbabilidad(enlace.probabilidad)})`;
+  return enlace.probabilidad === undefined ? "" : ` (probabilidad: ${formatearProbabilidad(enlace.probabilidad)})`;
 }
 
 function formatearProbabilidad(value: number): string {
-  return Number.isInteger(value) ? String(value) : String(Number(value.toFixed(3)));
+  return `${Math.round(value * 100)}%`;
 }

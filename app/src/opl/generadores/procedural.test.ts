@@ -15,6 +15,21 @@ describe("procedural OPL", () => {
     expect(oracionEnlaceConRuta(modelo, enlace)).toBe("Por ruta exito, *Procesar* genera **Producto**.");
   });
 
+  test("evento con probabilidad emite porcentaje canonico", () => {
+    const modelo = modeloBase();
+    const enlace: Enlace = {
+      id: "l1",
+      tipo: "consumo",
+      origenId: { kind: "entidad", id: "producto" },
+      destinoId: { kind: "entidad", id: "proceso" },
+      etiqueta: "",
+      modificador: "evento",
+      subtipoModificador: "E",
+      probabilidad: 0.7,
+    };
+    expect(oracionEnlaceConRuta(modelo, enlace)).toBe("**Producto** inicia *Procesar*, que consume **Producto** (probabilidad: 70%).");
+  });
+
   test("par consumo resultado sobre estados emite transicion TS3 unica", () => {
     const modelo = modeloConEstados();
     const transiciones = transicionesEstado(modelo, modelo.opds.opd!);

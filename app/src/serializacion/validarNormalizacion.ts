@@ -3,6 +3,7 @@ import { esColorEstilo, normalizarEstiloApariencia } from "../modelo/estilos";
 import { rutaEtiquetaNormalizada } from "../modelo/rutas";
 import type {
   Apariencia,
+  Entidad,
   Enlace,
   Id,
   Modelo,
@@ -46,12 +47,15 @@ export function normalizarModelo(modelo: Modelo): Modelo {
       normalizarEnlace(enlace),
     ]),
   ) as Record<Id, Enlace>;
+  const entidades = Object.fromEntries(
+    Object.entries(modelo.entidades).map(([id, entidad]) => [id, normalizarEntidad(entidad)]),
+  ) as Record<Id, Entidad>;
   const versiones = normalizarVersiones(modelo.versiones);
   return {
     id: modelo.id,
     nombre: modelo.nombre,
     opdRaizId: modelo.opdRaizId,
-    entidades: modelo.entidades,
+    entidades,
     estados: modelo.estados,
     nextSeq: modelo.nextSeq,
     opds,
@@ -62,6 +66,12 @@ export function normalizarModelo(modelo: Modelo): Modelo {
     ...(versiones.length > 0 ? { versiones } : {}),
     ...(modelo.crearVersionAlGuardar ? { crearVersionAlGuardar: true } : {}),
   };
+}
+
+export function normalizarEntidad(entidad: Entidad): Entidad {
+  if (!entidad.imagen) return entidad;
+  const { cache: _cache, ...imagen } = entidad.imagen;
+  return { ...entidad, imagen };
 }
 
 export function normalizarEnlace(enlace: Enlace): Enlace {

@@ -12,12 +12,19 @@ import { store, useOpmStore } from "../store";
 import { DialogoConfirmacion } from "./DialogoConfirmacion";
 
 type ConfirmarSiDirty = (accion: () => void) => void;
+type ConfirmarCierreDirty = (accion: () => void, opciones?: { dirty?: boolean; onGuardar?: () => void }) => void;
 
 interface ConfirmacionPendiente {
   accion: () => void;
+  onGuardar: () => void;
 }
 
-const ConfirmacionContext = createContext<ConfirmarSiDirty | null>(null);
+interface ConfirmacionApi {
+  confirmarSiDirty: ConfirmarSiDirty;
+  confirmarCierreDirty: ConfirmarCierreDirty;
+}
+
+const ConfirmacionContext = createContext<ConfirmacionApi | null>(null);
 
 interface ProviderProps {
   children: preact.ComponentChildren;
@@ -35,7 +42,16 @@ export function ConfirmacionProvider({ children }: ProviderProps) {
       accion();
       return;
     }
-    setPendiente({ accion });
+    setPendiente({ accion, onGuardar: guardarLocal });
+  };
+
+  const confirmarCierreDirty: ConfirmarCierreDirty = (accion, opciones) => {
+    const dirty = opciones?.dirty ?? store.getState().dirty;
+    if (!dirty) {
+      accion();
+      return;
+    }
+    setPendiente({ accion, onGuardar: opciones?.onGuardar ?? guardarLocal });
   };
 
   const cancelar = () => setPendiente(null);
@@ -46,7 +62,7 @@ export function ConfirmacionProvider({ children }: ProviderProps) {
   };
   const guardarYContinuar = () => {
     if (!pendiente) return;
-    guardarLocal();
+    pendiente.onGuardar();
     if (!store.getState().dirty) {
       const accion = pendiente.accion;
       setPendiente(null);
@@ -55,7 +71,7 @@ export function ConfirmacionProvider({ children }: ProviderProps) {
   };
 
   return (
-    <ConfirmacionContext.Provider value={confirmarSiDirty}>
+    <ConfirmacionContext.Provider value={{ confirmarSiDirty, confirmarCierreDirty }}>
       {children}
       <DialogoConfirmacion
         open={pendiente !== null}
@@ -72,5 +88,13 @@ export function useConfirmarSiDirty(): ConfirmarSiDirty {
   if (!ctx) {
     throw new Error("useConfirmarSiDirty requiere <ConfirmacionProvider>");
   }
-  return ctx;
+  return ctx.confirmarSiDirty;
+}
+
+export function useConfirmarCierreDirty(): ConfirmarCierreDirty {
+  const ctx = useContext(ConfirmacionContext);
+  if (!ctx) {
+    throw new Error("useConfirmarCierreDirty requiere <ConfirmacionProvider>");
+  }
+  return ctx.confirmarCierreDirty;
 }

@@ -1,4 +1,6 @@
-import type { Entidad, Id, Modelo, Resultado, TipoUrlObjeto, UrlObjetoTipada } from "./tipos";
+import { imagenConCache, imagenIncluyeBitmap, validarModoImagen, validarUrlImagen } from "./imagenObjeto";
+import { estadosDeEntidad } from "./operaciones";
+import type { Entidad, Id, ImagenEntidad, Modelo, ModoImagenEntidad, Resultado, TipoUrlObjeto, UrlObjetoTipada } from "./tipos";
 
 export interface NombreCompuesto {
   nombre: string;
@@ -72,6 +74,29 @@ export function reordenarUrls(modelo: Modelo, entidadId: Id, idsOrdenados: Id[])
   }));
 }
 
+export function editarImagen(modelo: Modelo, entidadId: Id, imagen: ImagenEntidad): Resultado<Modelo> {
+  const validado = validarImagenEntidad(imagen);
+  if (!validado.ok) return validado;
+  return actualizarEntidad(modelo, entidadId, (entidad) => {
+    if (entidad.tipo !== "objeto") return entidad;
+    const modo = modoImagenSeguroParaEstados(modelo, entidadId, validado.value.modo);
+    return { ...entidad, imagen: imagenConCache({ ...validado.value, modo }) };
+  });
+}
+
+export function quitarImagen(modelo: Modelo, entidadId: Id): Resultado<Modelo> {
+  return actualizarEntidad(modelo, entidadId, (entidad) => sinCampo(entidad, "imagen"));
+}
+
+export function cambiarModoImagen(modelo: Modelo, entidadId: Id, modo: ModoImagenEntidad): Resultado<Modelo> {
+  if (!validarModoImagen(modo)) return fallo("Modo de imagen inválido");
+  return actualizarEntidad(modelo, entidadId, (entidad) => {
+    if (!entidad.imagen) return entidad;
+    const modoSeguro = modoImagenSeguroParaEstados(modelo, entidadId, modo);
+    return { ...entidad, imagen: imagenConCache({ ...entidad.imagen, modo: modoSeguro }) };
+  });
+}
+
 export function parsearNombreCompuesto(input: string): NombreCompuesto {
   const limpio = input.trim();
   const match = /^(?<nombre>.*?)(?:\s+\[(?<unidad>[^\]\r\n]+)\])?(?:\s+\{(?<alias>[^}\s._]+)\})?$/.exec(limpio);
@@ -122,6 +147,24 @@ export function validarUrlObjeto(url: UrlObjetoTipada): Resultado<void> {
   if (!url.id.trim()) return fallo("La URL requiere id");
   if (!validarTipoUrlObjeto(url.tipo)) return fallo("Tipo de URL inválido");
   return validarUrl(url.url);
+}
+
+export function validarImagenEntidad(imagen: ImagenEntidad): Resultado<ImagenEntidad> {
+  const url = validarUrlImagen(imagen.url);
+  if (!url.ok) return url;
+  if (!validarModoImagen(imagen.modo)) return fallo("Modo de imagen inválido");
+  return ok({
+    url: url.value,
+    modo: imagen.modo,
+    ...(imagen.cache?.estado === "ok" || imagen.cache?.estado === "fallido"
+      ? { cache: { ts: Number.isFinite(imagen.cache.ts) ? Math.max(0, Math.round(imagen.cache.ts)) : 0, estado: imagen.cache.estado } }
+      : {}),
+  });
+}
+
+function modoImagenSeguroParaEstados(modelo: Modelo, entidadId: Id, modo: ModoImagenEntidad): ModoImagenEntidad {
+  const tieneEstadosVisibles = estadosDeEntidad(modelo, entidadId).some((estado) => !estado.suprimido);
+  return tieneEstadosVisibles && imagenIncluyeBitmap(modo) ? "texto" : modo;
 }
 
 function actualizarEntidad(modelo: Modelo, entidadId: Id, fn: (entidad: Entidad) => Entidad): Resultado<Modelo> {

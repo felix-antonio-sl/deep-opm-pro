@@ -1,6 +1,6 @@
 import { naturalezaDeEnlace } from "./constantes";
 import { crearEnlace } from "./operaciones";
-import type { Enlace, Id, Modelo, Modificador, Resultado } from "./tipos";
+import type { Enlace, Id, Modelo, Modificador, Resultado, SubtipoModificador } from "./tipos";
 
 export function aplicarModificador(modelo: Modelo, enlaceId: Id, modificador: Modificador): Resultado<Modelo> {
   const enlace = modelo.enlaces[enlaceId];
@@ -14,6 +14,7 @@ export function aplicarModificador(modelo: Modelo, enlaceId: Id, modificador: Mo
       [enlaceId]: limpiarCamposIncompatibles({
         ...enlace,
         modificador,
+        subtipoModificador: subtipoParaModificador(modificador),
       }),
     },
   });
@@ -22,12 +23,38 @@ export function aplicarModificador(modelo: Modelo, enlaceId: Id, modificador: Mo
 export function quitarModificador(modelo: Modelo, enlaceId: Id): Resultado<Modelo> {
   const enlace = modelo.enlaces[enlaceId];
   if (!enlace) return fallo(`Enlace no existe: ${enlaceId}`);
-  const { modificador: _modificador, probabilidad: _probabilidad, ...resto } = enlace;
+  const { modificador: _modificador, subtipoModificador: _subtipoModificador, probabilidad: _probabilidad, ...resto } = enlace;
   return ok({
     ...modelo,
     enlaces: {
       ...modelo.enlaces,
       [enlaceId]: resto,
+    },
+  });
+}
+
+export function aplicarSubtipoModificador(
+  modelo: Modelo,
+  enlaceId: Id,
+  subtipo: SubtipoModificador,
+): Resultado<Modelo> {
+  const enlace = modelo.enlaces[enlaceId];
+  if (!enlace) return fallo(`Enlace no existe: ${enlaceId}`);
+  if (!enlace.modificador) return fallo("El subtipo requiere un modificador de enlace activo");
+  const requerido = modificadorParaSubtipo(subtipo);
+  if (enlace.modificador !== requerido) {
+    return fallo(`El subtipo ${subtipo} requiere modificador ${requerido}`);
+  }
+  const legal = validarSubtipoModificador(enlace, subtipo);
+  if (!legal.ok) return legal;
+  return ok({
+    ...modelo,
+    enlaces: {
+      ...modelo.enlaces,
+      [enlaceId]: {
+        ...enlace,
+        subtipoModificador: subtipo,
+      },
     },
   });
 }
@@ -104,6 +131,10 @@ export function validarMetadatosEnlace(enlace: Enlace): Resultado<true> {
     const modificador = validarModificadorEnlace(enlace, enlace.modificador);
     if (!modificador.ok) return modificador;
   }
+  if (enlace.subtipoModificador !== undefined) {
+    const subtipo = validarSubtipoModificador(enlace, enlace.subtipoModificador);
+    if (!subtipo.ok) return subtipo;
+  }
   if (enlace.probabilidad !== undefined) {
     if (enlace.modificador !== "evento") return fallo("La probabilidad solo aplica a enlaces evento [Glos 3.60]");
     if (!probabilidadValida(enlace.probabilidad)) return fallo("La probabilidad debe estar entre 0 y 1");
@@ -117,6 +148,10 @@ export function validarMetadatosEnlace(enlace: Enlace): Resultado<true> {
 
 export function esModificador(value: unknown): value is Modificador {
   return value === "condicion" || value === "evento" || value === "no";
+}
+
+export function esSubtipoModificador(value: unknown): value is SubtipoModificador {
+  return value === "C" || value === "E" || value === "no";
 }
 
 export function probabilidadValida(value: number): boolean {
@@ -133,12 +168,46 @@ function validarModificadorEnlace(enlace: Enlace, modificador: Modificador): Res
   return ok(true);
 }
 
+function validarSubtipoModificador(enlace: Enlace, subtipo: SubtipoModificador): Resultado<true> {
+  const requerido = modificadorParaSubtipo(subtipo);
+  if (enlace.modificador !== requerido) {
+    return fallo(`El subtipo ${subtipo} requiere modificador ${requerido}`);
+  }
+  const legal = validarModificadorEnlace(enlace, requerido);
+  if (!legal.ok) return legal;
+  return ok(true);
+}
+
 function limpiarCamposIncompatibles(enlace: Enlace): Enlace {
   if (enlace.modificador !== "evento") {
     const { probabilidad: _probabilidad, ...resto } = enlace;
+    return limpiarSubtipoIncompatible(resto);
+  }
+  return limpiarSubtipoIncompatible(enlace);
+}
+
+function limpiarSubtipoIncompatible(enlace: Enlace): Enlace {
+  if (!enlace.modificador) {
+    const { subtipoModificador: _subtipoModificador, ...resto } = enlace;
+    return resto;
+  }
+  if (enlace.subtipoModificador !== undefined && modificadorParaSubtipo(enlace.subtipoModificador) !== enlace.modificador) {
+    const { subtipoModificador: _subtipoModificador, ...resto } = enlace;
     return resto;
   }
   return enlace;
+}
+
+function subtipoParaModificador(modificador: Modificador): SubtipoModificador {
+  if (modificador === "condicion") return "C";
+  if (modificador === "evento") return "E";
+  return "no";
+}
+
+function modificadorParaSubtipo(subtipo: SubtipoModificador): Modificador {
+  if (subtipo === "C") return "condicion";
+  if (subtipo === "E") return "evento";
+  return "no";
 }
 
 function ok<T>(value: T): Resultado<T> {

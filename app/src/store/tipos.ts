@@ -155,7 +155,7 @@ import {
 } from "../persistencia/autosalvado";
 import { exportarModelo, hidratarModelo } from "../serializacion/json";
 import type { Aviso } from "../modelo/validaciones";
-import type { Afiliacion, Apariencia, DesignacionEstado, DuracionTemporal, EnlaceEstilo, Esencia, EstiloApariencia, ExtremoEnlace, Id, LayoutEstados, Modelo, Modificador, ModoDespliegueObjeto, ModoPlegado, Opd, OperadorAbanico, OrdenPartesPlegado, Pestana, PestanaId, Posicion, TipoEnlace, TipoEntidad, UrlObjetoTipada, UiPortapapelesVisual, VersionResumen } from "../modelo/tipos";
+import type { Afiliacion, Apariencia, DesignacionEstado, DuracionTemporal, EnlaceEstilo, Esencia, EstiloApariencia, ExtremoEnlace, Id, ImagenEntidad, LayoutEstados, Modelo, Modificador, ModoDespliegueObjeto, ModoImagenEntidad, ModoPlegado, Opd, OperadorAbanico, OrdenPartesPlegado, Pestana, PestanaId, Posicion, SubtipoModificador, TipoEnlace, TipoEntidad, UrlObjetoTipada, UiPortapapelesVisual, VersionResumen } from "../modelo/tipos";
 import { mismaReferencia, type OplReferencia } from "../opl/interaccion";
 import { datosAsistenteVacio, sembrarModeloDesdeAsistente, validarDatosAsistente, type DatosAsistente, type EtapaAsistente } from "../modelo/creacionWizard";
 import { generarOpl } from "../opl/generar";
@@ -171,6 +171,8 @@ import {
   type EstadisticasModelo,
 } from "../render/jointjs/mapaSistema";
 import { fijarOpcionesProyeccionGlobal } from "../render/jointjs/proyeccion";
+import type { EjeAlineacion, OrientacionDistribucion } from "../canvas/operacionesBatch";
+import type { GridConfig } from "../canvas/grid";
 import {
   abrirPestana as abrirPestanaEstado,
   cambiarActiva as cambiarPestanaActivaEstado,
@@ -243,7 +245,10 @@ export interface OpmStore {
   enlaceEstiloPortapapeles: EnlaceEstilo | null;
   uiAliasVisibles: boolean;
   uiDescripcionesVisibles: boolean;
+  gridConfig?: GridConfig;
   modalUrlsAbierto: Id | null;
+  modalImagenAbierto: Id | null;
+  uiModoImagenGlobal: ModoImagenEntidad | null;
   modalDuracionAbierto: Id | null;
   // ── Carpetas (L4) ──
   indice: WorkspaceIndice;
@@ -279,6 +284,7 @@ export interface OpmStore {
   desplegarSeleccionada: (modo?: ModoDespliegueObjeto) => void;
   quitarDescomposicionSeleccionada: () => void;
   quitarDespliegueSeleccionado: () => void;
+  reasignarEnlaceExternoManual: (opdId: Id, aparienciaEnlaceId: Id, nuevoSubprocesoId: Id) => void;
   eliminarOpdDesdeArbol: (opdId: Id) => void;
   cambiarOpdActivo: (id: Id) => void;
   seleccionarEntidad: (id: Id) => void;
@@ -289,6 +295,7 @@ export interface OpmStore {
   fijarFiltroOplPorSeleccion: (activo: boolean) => void;
   fijarHoverOpl: (ref: OplReferencia | null) => void;
   fijarBusquedaOpl: (texto: string) => void;
+  buscarEnPanelOpl: (texto: string) => void;
   editarEtiquetaEnlaceDesdeOpl: (enlaceId: Id, etiqueta: string) => void;
   renombrarEstadoDesdeOpl: (estadoId: Id, nombre: string) => void;
   abrirInspectorEnlaceDesdeOpl: (enlaceId: Id) => void;
@@ -302,6 +309,11 @@ export interface OpmStore {
   renombrarSeleccionada: (nombre: string) => void;
   fijarEsenciaSeleccionada: (esencia: Esencia) => void;
   fijarAfiliacionSeleccionada: (afiliacion: Afiliacion) => void;
+  redimensionarSeleccionada: (width: number, height: number) => void;
+  redimensionarAparienciaEnCanvas: (aparienciaId: Id, x: number, y: number, width: number, height: number) => void;
+  ajustarSeleccionadaAlTexto: () => void;
+  volverSeleccionadaAAuto: () => void;
+  alternarModoTamanoSeleccionado: () => void;
   cambiarModoPlegadoSeleccionado: (modo: ModoPlegado) => void;
   cambiarModoPlegadoApariencia: (aparienciaId: Id, modo: ModoPlegado) => void;
   fijarModoPlegadoApariencia: (aparienciaId: Id, modo: ModoPlegado) => void;
@@ -311,6 +323,7 @@ export interface OpmStore {
   resetearEstiloSeleccionado: () => void;
   seleccionarPartePlegada: (padreAparienciaId: Id, parteEntidadId: Id) => void;
   extraerParteDePlegado: (padreAparienciaId: Id, parteEntidadId: Id) => void;
+  extraerTodasLasPartesSeleccionadas: () => void;
   reinsertarParteExtraidaSeleccionada: () => void;
   agregarEstadosObjeto: () => void;
   agregarEstadoObjeto: () => void;
@@ -327,6 +340,13 @@ export interface OpmStore {
   agregarUrlAEntidad: (entidadId: Id, url: Omit<UrlObjetoTipada, "id">) => void;
   eliminarUrlDeEntidad: (entidadId: Id, urlId: Id) => void;
   reordenarUrlsEntidad: (entidadId: Id, urlIds: Id[]) => void;
+  abrirModalImagen: (entidadId: Id) => void;
+  cerrarModalImagen: () => void;
+  editarImagenEntidad: (entidadId: Id, imagen: ImagenEntidad) => void;
+  quitarImagenEntidad: (entidadId: Id) => void;
+  cambiarModoImagenEntidad: (entidadId: Id, modo: ModoImagenEntidad) => void;
+  alternarModoImagenEntidad: (entidadId: Id) => void;
+  fijarModoImagenGlobal: (modo: ModoImagenEntidad | null) => void;
   designarEstadoComo: (estadoId: Id, designacion: DesignacionEstado) => void;
   quitarDesignacionEstado: (estadoId: Id, designacion: DesignacionEstado) => void;
   suprimirEstadoPorId: (estadoId: Id) => void;
@@ -340,6 +360,10 @@ export interface OpmStore {
   toggleDescripcionesVisibles: () => void;
   moverEntidad: (id: Id, x: number, y: number) => void;
   moverApariencia: (aparienciaId: Id, x: number, y: number) => void;
+  toggleGrid: () => void;
+  fijarGridConfig: (patch: Partial<GridConfig>) => void;
+  alinearSeleccion: (eje: EjeAlineacion) => void;
+  distribuirSeleccion: (orientacion: OrientacionDistribucion) => void;
   reordenarSubprocesoEnTimeline: (opdId: Id, aparienciaId: Id, nuevaY: number) => void;
   actualizarVerticesEnlace: (aparienciaEnlaceId: Id, vertices: Array<{ x: number; y: number }>) => void;
   ajustarMultiplicidadSeleccionada: (lado: "origen" | "destino", texto: string) => void;
@@ -352,9 +376,11 @@ export interface OpmStore {
   disolverAbanicoSeleccionado: () => void;
   crearAutoInvocacionSeleccionada: () => void;
   aplicarModificadorEnlaceSeleccionado: (modificador: Modificador) => void;
+  aplicarSubtipoModificadorEnlaceSeleccionado: (subtipo: SubtipoModificador) => void;
   quitarModificadorEnlaceSeleccionado: () => void;
   definirProbabilidadEventoSeleccionada: (probabilidad: number | undefined) => void;
   definirDemoraInvocacionSeleccionada: (demora: string | undefined) => void;
+  moverPuertoEnlaceSeleccionado: (lado: "origen" | "destino", extremo: ExtremoEnlace, opcionRemover?: boolean) => void;
   renombrarEtiquetaEnlaceSeleccionado: (etiqueta: string) => void;
   definirRutaEtiquetaSeleccionada: (etiqueta: string | undefined) => void;
   eliminarSeleccion: () => void;

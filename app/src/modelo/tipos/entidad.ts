@@ -16,6 +16,7 @@ export type Afiliacion = "sistemica" | "ambiental";
 export type TipoRefinamiento = "descomposicion" | "despliegue";
 export type ModoDespliegueObjeto = "agregacion" | "exhibicion" | "generalizacion" | "clasificacion";
 export type TipoUrlObjeto = "imagen" | "video" | "articulo" | "texto" | "oslc";
+export type ModoImagenEntidad = "imagen" | "texto" | "imagen-texto";
 
 export interface RefinamientoEntidad {
   tipo: TipoRefinamiento;
@@ -29,6 +30,15 @@ export interface UrlObjetoTipada {
   tipo: TipoUrlObjeto;
 }
 
+export interface ImagenEntidad {
+  url: string;
+  modo: ModoImagenEntidad;
+  cache?: {
+    ts: number;
+    estado: "ok" | "fallido";
+  };
+}
+
 export interface Entidad {
   id: Id;
   tipo: TipoEntidad;
@@ -40,5 +50,6 @@ export interface Entidad {
   unidad?: string;
   descripcion?: string;
   urls?: UrlObjetoTipada[];
+  imagen?: ImagenEntidad;
   layoutEstados?: LayoutEstados;
 }

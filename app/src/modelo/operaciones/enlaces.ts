@@ -21,6 +21,7 @@ import {
   refrescarEnlacesExternosDerivados,
   subprocesosOrdenadosDeRefinamiento,
 } from "./refinamiento";
+import { eliminarEnlace } from "./eliminacion";
 
 /**
  * Operaciones de enlaces: crear con firma validada, apuntar extremo (mover
@@ -158,6 +159,17 @@ export function apuntarExtremoEnlace(
       [enlaceId]: actualizado,
     },
   });
+}
+
+export function moverPuertoEnlace(
+  modelo: Modelo,
+  enlaceId: Id,
+  lado: LadoExtremoEnlace,
+  extremo: ExtremoEntrada,
+  opcionRemover = false,
+): Resultado<Modelo> {
+  if (opcionRemover) return eliminarEnlace(modelo, enlaceId);
+  return apuntarExtremoEnlace(modelo, enlaceId, lado, extremo);
 }
 
 export function reanclarEnlaceExternoDerivado(

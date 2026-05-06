@@ -1,5 +1,6 @@
 import type { EstiloApariencia } from "./apariencia";
 import type { Id } from "./comunes";
+import type { GridConfig } from "../../canvas/grid";
 
 /**
  * Tipos UI del workspace que NO pertenecen al JSON OPM canónico.
@@ -29,4 +30,5 @@ export interface PreferenciasUiUsuario {
   anchoPanelArbol?: number;
   nombresArbolVisibles?: boolean;
   cheatsheetVisible?: boolean;
+  gridConfig?: GridConfig;
 }

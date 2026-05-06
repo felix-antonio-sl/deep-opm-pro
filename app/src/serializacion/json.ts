@@ -24,6 +24,7 @@ const CLAVES_DETECTOR_SERIALIZACION_JSON = [
   "modoPlegado",
   "apariencias",
   "rutaEtiqueta",
+  "subtipoModificador",
   "ordenPartes",
   "estilo",
   "probabilidad",

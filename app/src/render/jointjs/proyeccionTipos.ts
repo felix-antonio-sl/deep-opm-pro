@@ -1,4 +1,4 @@
-import type { Id, TipoEnlace } from "../../modelo/tipos";
+import type { Id, ModoImagenEntidad, TipoEnlace } from "../../modelo/tipos";
 import type { EstadoTarget } from "./estadoTargets";
 
 export type RolApariencia = "contorno" | "interno" | "externo";
@@ -34,6 +34,18 @@ export type OpmJointMetadata =
       operador: "O" | "XOR";
     }
   | {
+      kind: "imagen-overlay";
+      opdId: Id;
+      entidadId: Id;
+      aparienciaId: Id;
+    }
+  | {
+      kind: "imagen-insignia";
+      opdId: Id;
+      entidadId: Id;
+      aparienciaId: Id;
+    }
+  | {
       kind: "selection-halo";
       opdId: Id;
       targetId: Id;
@@ -48,6 +60,7 @@ export interface JointCellJson {
     | "standard.Polygon"
     | "standard.Path"
     | "standard.Circle"
+    | "standard.Image"
     | "opm.AbanicoArc";
   opm: OpmJointMetadata;
   z: number;
@@ -57,5 +70,5 @@ export interface JointCellJson {
 export interface OpcionesProyeccion {
   aliasVisibles?: boolean;
   descripcionesVisibles?: boolean;
+  modoImagenGlobal?: ModoImagenEntidad | null;
 }
-

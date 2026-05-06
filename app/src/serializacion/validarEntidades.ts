@@ -1,7 +1,9 @@
-import { validarAlias, validarTipoUrlObjeto, validarUnidad, validarUrl } from "../modelo/objetoMetadata";
+import { validarModoImagen, validarUrlImagen } from "../modelo/imagenObjeto";
+import { validarAlias, validarImagenEntidad, validarTipoUrlObjeto, validarUnidad, validarUrl } from "../modelo/objetoMetadata";
 import type {
   Entidad,
   Id,
+  ImagenEntidad,
   Resultado,
   UrlObjetoTipada,
 } from "../modelo/tipos";
@@ -71,6 +73,16 @@ export function camposEntidadAvanzada(entidadId: Id, raw: Record<string, unknown
     if (urls.length !== raw.urls.length || ids.size !== urls.length) return fallo(`Entidad inválida: ${entidadId}.urls`);
   }
   if (raw.urls !== undefined && !Array.isArray(raw.urls)) return fallo(`Entidad inválida: ${entidadId}.urls`);
+  if (raw.imagen !== undefined) {
+    if (!esRecord(raw.imagen)) return fallo(`Entidad inválida: ${entidadId}.imagen`);
+    if (typeof raw.imagen.url !== "string" || !validarModoImagen(raw.imagen.modo)) return fallo(`Entidad inválida: ${entidadId}.imagen`);
+    const url = validarUrlImagen(raw.imagen.url);
+    if (!url.ok) return fallo(`Entidad inválida: ${entidadId}.imagen`);
+    const imagen: ImagenEntidad = { url: url.value, modo: raw.imagen.modo };
+    const validada = validarImagenEntidad(imagen);
+    if (!validada.ok) return fallo(`Entidad inválida: ${entidadId}.imagen`);
+    campos.imagen = validada.value;
+  }
   if (raw.layoutEstados === "horizontal" || raw.layoutEstados === "vertical") campos.layoutEstados = raw.layoutEstados;
   if (raw.layoutEstados !== undefined && raw.layoutEstados !== "horizontal" && raw.layoutEstados !== "vertical") return fallo(`Entidad inválida: ${entidadId}.layoutEstados`);
   return ok(campos);

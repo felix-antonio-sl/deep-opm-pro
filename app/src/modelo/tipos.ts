@@ -21,8 +21,10 @@ export type {
   TipoRefinamiento,
   ModoDespliegueObjeto,
   TipoUrlObjeto,
+  ModoImagenEntidad,
   RefinamientoEntidad,
   UrlObjetoTipada,
+  ImagenEntidad,
   Entidad,
 } from "./tipos/entidad";
 
@@ -30,6 +32,7 @@ export type { DesignacionEstado, UnidadTiempo, DuracionTemporal, Estado } from "
 
 export type {
   ModoPlegado,
+  ModoTamano,
   OrdenPartesPlegado,
   LayoutEstados,
   EstiloApariencia,
@@ -41,6 +44,7 @@ export type {
   DerivacionOrigen,
   ExtremoKind,
   Modificador,
+  SubtipoModificador,
   EnlaceEstilo,
   ExtremoEnlace,
   DerivacionEnlace,

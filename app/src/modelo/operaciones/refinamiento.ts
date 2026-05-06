@@ -29,6 +29,7 @@ export {
 } from "./refinamiento/proyeccion";
 
 export {
+  agruparSubprocesosParalelos,
   procesoDescompuestoEnOpd,
   quitarRefinamientoEntidad,
   subprocesosOrdenadosDeRefinamiento,

@@ -2,13 +2,16 @@ import { describe, expect, test } from "bun:test";
 import { crearEnlace, crearModelo, crearObjeto, crearProceso } from "../modelo/operaciones";
 import type { Id, Modelo, Resultado } from "../modelo/tipos";
 import {
+  alinearPorEje,
   alinearEnlacesIzquierda,
   aplicarEstiloApariencias,
   conectarMultiAlTodo,
   copiarSeleccion,
+  distribuirUniformemente,
   eliminarBatch,
   nudgeApariencias,
   pegarSeleccion,
+  redimensionarBatch,
 } from "./operacionesBatch";
 
 describe("operacionesBatch", () => {
@@ -59,6 +62,59 @@ describe("operacionesBatch", () => {
     const pegado = must(pegarSeleccion(modelo, modelo.opdRaizId, buffer, { x: 24, y: 24 }));
     expect(Object.keys(pegado.modelo.entidades)).toHaveLength(Object.keys(modelo.entidades).length);
     expect(Object.values(pegado.modelo.opds[modelo.opdRaizId]?.apariencias ?? {})).toHaveLength(Object.values(modelo.opds[modelo.opdRaizId]?.apariencias ?? {}).length + partes.length);
+  });
+
+  test("alinearPorEje alinea cosas por borde y centro", () => {
+    const { modelo, partes } = modeloConTodoPartes();
+    const izquierda = must(alinearPorEje(modelo, modelo.opdRaizId, partes, "izq"));
+    expect(new Set(partes.map((id) => aparienciaDeEntidad(izquierda, id)?.x)).size).toBe(1);
+
+    const centro = must(alinearPorEje(modelo, modelo.opdRaizId, partes, "centro"));
+    const centros = partes.map((id) => {
+      const ap = aparienciaDeEntidad(centro, id)!;
+      return ap.x + ap.width / 2;
+    });
+    expect(new Set(centros).size).toBe(1);
+  });
+
+  test("distribuirUniformemente reparte centros horizontal y vertical", () => {
+    const { modelo, partes } = modeloConTodoPartes();
+    const horizontal = must(distribuirUniformemente(modelo, modelo.opdRaizId, partes, "horizontal"));
+    const xs = partes.map((id) => {
+      const ap = aparienciaDeEntidad(horizontal, id)!;
+      return ap.x + ap.width / 2;
+    }).sort((a, b) => a - b);
+    expect(xs[1]! - xs[0]!).toBe(xs[2]! - xs[1]!);
+
+    const vertical = must(distribuirUniformemente(modelo, modelo.opdRaizId, partes, "vertical"));
+    const ys = partes.map((id) => {
+      const ap = aparienciaDeEntidad(vertical, id)!;
+      return ap.y + ap.height / 2;
+    }).sort((a, b) => a - b);
+    expect(ys[1]! - ys[0]!).toBe(ys[2]! - ys[1]!);
+  });
+
+  test("redimensionarBatch aplica delta y preserva modoTamano existente", () => {
+    const { modelo, partes } = modeloConTodoPartes();
+    const primera = aparienciaDeEntidad(modelo, partes[0]!)!;
+    const opd = modelo.opds[modelo.opdRaizId]!;
+    const manual: Modelo = {
+      ...modelo,
+      opds: {
+        ...modelo.opds,
+        [modelo.opdRaizId]: {
+          ...opd,
+          apariencias: {
+            ...opd.apariencias,
+            [primera.id]: { ...primera, modoTamano: "manual" },
+          },
+        },
+      },
+    };
+    const actualizado = must(redimensionarBatch(manual, modelo.opdRaizId, partes, { dw: 20, dh: -10 }));
+    expect(aparienciaDeEntidad(actualizado, partes[0]!)?.width).toBe(155);
+    expect(aparienciaDeEntidad(actualizado, partes[0]!)?.height).toBe(50);
+    expect(aparienciaDeEntidad(actualizado, partes[0]!)?.modoTamano).toBe("manual");
   });
 });
 

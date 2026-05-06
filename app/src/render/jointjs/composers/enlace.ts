@@ -6,7 +6,7 @@ import type { Apariencia, Enlace, ExtremoEnlace, Id, Modelo, Posicion, TipoEnlac
 import { etiquetasRuta } from "../rutaLabels";
 import type { JointCellJson, OpmJointMetadata } from "../proyeccionTipos";
 import { puntoCapsulaEstado } from "./estados";
-import { marcadorDestino, marcadorFuente, marcadoresEstructurales } from "./markers";
+import { etiquetaBadgeModificadorCanonico, marcadorDestino, marcadorFuente, marcadoresEstructurales, textoSubtipoModificador } from "./markers";
 
 /**
  * Composer de enlaces OPM: endpoints, etiquetas, rutas, vertices,
@@ -179,8 +179,9 @@ export function etiquetasMultiplicidad(enlace: Enlace): Array<Record<string, unk
 
 export function etiquetasModificador(enlace: Enlace): Array<Record<string, unknown>> {
   const labels: Array<Record<string, unknown>> = [];
-  if (enlace.modificador) {
-    labels.push(etiquetaBadgeModificador(textoModificador(enlace.modificador), 0));
+  const subtipo = textoSubtipoModificador(enlace);
+  if (subtipo) {
+    labels.push(etiquetaBadgeModificadorCanonico(subtipo, 0));
   }
   if (enlace.modificador === "evento" && enlace.probabilidad !== undefined) {
     labels.push(etiquetaTextoModificador(`${Math.round(enlace.probabilidad * 100)}%`, 0, 22));
@@ -192,7 +193,7 @@ export function etiquetasModificador(enlace: Enlace): Array<Record<string, unkno
 }
 
 export function textoModificador(modificador: NonNullable<Enlace["modificador"]>): string {
-  if (modificador === "condicion") return "c";
+  if (modificador === "condicion") return "C";
   if (modificador === "evento") return "E";
   return "¬";
 }
@@ -448,4 +449,3 @@ export function puntoZigzag(source: Posicion, dx: number, dy: number, px: number
     y: Math.round(source.y + dy * t + py * offset),
   };
 }
-

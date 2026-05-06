@@ -8,6 +8,7 @@ import { crearAutoInvocacion } from "../../modelo/autoinvocacion";
 import { renombrarEtiquetaEnlace } from "../../modelo/etiquetasEnlace";
 import {
   aplicarModificador,
+  aplicarSubtipoModificador,
   definirDemora,
   definirProbabilidad,
   quitarModificador,
@@ -15,6 +16,7 @@ import {
 import {
   ajustarMultiplicidad,
   apuntarExtremoEnlace,
+  moverPuertoEnlace as moverPuertoEnlaceOp,
   reanclarEnlaceExternoDerivado as reanclarEnlaceExternoDerivadoOp,
   splitEffectEnPar,
   volverEnlaceExternoDerivadoAAutomatico as volverEnlaceExternoDerivadoAAutomaticoOp,
@@ -229,6 +231,25 @@ export function accionesEnlace(set: SetStore, get: GetStore): Partial<ModeloSlic
       });
     },
 
+    aplicarSubtipoModificadorEnlaceSeleccionado(subtipo) {
+      const { modelo, enlaceSeleccionId } = get();
+      if (!enlaceSeleccionId) {
+        set({ mensaje: "Selecciona un enlace para aplicar subtipo" });
+        return;
+      }
+      const resultado = aplicarSubtipoModificador(modelo, enlaceSeleccionId, subtipo);
+      if (!resultado.ok) {
+        set({ mensaje: resultado.error });
+        return;
+      }
+      commitModelo(set, modelo, resultado.value, {
+        seleccionId: null,
+        enlaceSeleccionId,
+        modoEnlace: null,
+        mensaje: null,
+      });
+    },
+
     quitarModificadorEnlaceSeleccionado() {
       const { modelo, enlaceSeleccionId } = get();
       if (!enlaceSeleccionId) return;
@@ -274,6 +295,26 @@ export function accionesEnlace(set: SetStore, get: GetStore): Partial<ModeloSlic
         enlaceSeleccionId,
         modoEnlace: null,
         mensaje: null,
+      });
+    },
+
+    moverPuertoEnlaceSeleccionado(lado, extremo, opcionRemover = false) {
+      const { modelo, enlaceSeleccionId } = get();
+      if (!enlaceSeleccionId) {
+        set({ mensaje: "Selecciona un enlace para mover puerto" });
+        return;
+      }
+      const resultado = moverPuertoEnlaceOp(modelo, enlaceSeleccionId, lado, extremo, opcionRemover);
+      if (!resultado.ok) {
+        set({ mensaje: resultado.error });
+        return;
+      }
+      const enlaceExiste = !!resultado.value.enlaces[enlaceSeleccionId];
+      commitModelo(set, modelo, resultado.value, {
+        seleccionId: null,
+        enlaceSeleccionId: enlaceExiste ? enlaceSeleccionId : null,
+        modoEnlace: null,
+        mensaje: opcionRemover ? "Relacion removida" : "Puerto movido",
       });
     },
 

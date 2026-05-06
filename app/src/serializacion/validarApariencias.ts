@@ -5,6 +5,7 @@ import type {
   Entidad,
   Id,
   ModoPlegado,
+  ModoTamano,
   OrdenPartesPlegado,
   Resultado,
 } from "../modelo/tipos";
@@ -38,6 +39,8 @@ export function validarApariencias(
     if (!esNumeroPositivo(raw.height)) return fallo(`Apariencia inválida: ${id}.height`);
     const modoPlegado = validarModoPlegado(id, raw.modoPlegado);
     if (!modoPlegado.ok) return modoPlegado;
+    const modoTamano = validarModoTamano(id, raw.modoTamano);
+    if (!modoTamano.ok) return modoTamano;
     const estilo = validarEstiloApariencia(id, raw.estilo);
     if (!estilo.ok) return estilo;
     const ordenPartes = validarOrdenPartes(id, raw.ordenPartes);
@@ -53,6 +56,7 @@ export function validarApariencias(
       width: raw.width,
       height: raw.height,
       ...(estilo.value ? { estilo: estilo.value } : {}),
+      ...(modoTamano.value ? { modoTamano: modoTamano.value } : {}),
       modoPlegado: modoPlegado.value,
       ...(ordenPartes.value ? { ordenPartes: ordenPartes.value } : {}),
       ...(parteExtraidaDe.value ? { parteExtraidaDe: parteExtraidaDe.value } : {}),
@@ -94,6 +98,12 @@ export function validarModoPlegado(aparienciaId: Id, value: unknown): Resultado<
   if (value === undefined) return ok("completo");
   if (value === "completo" || value === "parcial" || value === "plegado" || value === "desplegado") return ok(value);
   return fallo(`Apariencia inválida: ${aparienciaId}.modoPlegado`);
+}
+
+export function validarModoTamano(aparienciaId: Id, value: unknown): Resultado<ModoTamano | undefined> {
+  if (value === undefined) return ok(undefined);
+  if (value === "auto" || value === "manual") return ok(value);
+  return fallo(`Apariencia inválida: ${aparienciaId}.modoTamano`);
 }
 
 export function validarOrdenPartes(aparienciaId: Id, value: unknown): Resultado<OrdenPartesPlegado | undefined> {

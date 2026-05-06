@@ -1,9 +1,9 @@
 import { describe, expect, test } from "bun:test";
 import { extremoEntidad, extremoEstado } from "./extremos";
-import { crearModelo } from "./operaciones";
+import { crearEstadosIniciales, crearModelo, crearObjeto } from "./operaciones";
 import type { Apariencia, AparienciaEnlace, Enlace, Entidad, Id, Modelo } from "./tipos";
 import type { Aviso } from "./validaciones";
-import { validarModelo } from "./validaciones";
+import { advertirConsumoDuplicado, validarModelo } from "./validaciones";
 
 describe("validaciones metodologicas pasivas", () => {
   test("modelo limpio retorna lista vacia", () => {
@@ -161,6 +161,21 @@ describe("validaciones metodologicas pasivas", () => {
       citaSSOT: "[Glos 3.33]",
       opdId: "opd-hijo",
       elementoId: "e-padre-hijo",
+    });
+  });
+
+  test("ambiental interno fuera del contorno reporta advertencia", () => {
+    const modelo = modeloConAmbientalFueraDeContorno();
+
+    const avisos = validarModelo(modelo, "opd-hijo").filter((aviso) => aviso.reglaId === "ambiental-dentro-contorno");
+
+    expect(avisos).toHaveLength(1);
+    expect(avisos[0]).toMatchObject({
+      reglaId: "ambiental-dentro-contorno",
+      severidad: "advertencia",
+      elementoTipo: "entidad",
+      elementoId: "o-ambiente",
+      opdId: "opd-hijo",
     });
   });
 
@@ -388,6 +403,7 @@ describe("validaciones metodologicas pasivas", () => {
       citaSSOT: "[V-43] [V-239]",
       elementoId: "e-consumo-2",
     });
+    expect(advertirConsumoDuplicado(modelo)).toHaveLength(1);
   });
 
   test("mismo objeto consumido por procesos distintos no es consumo doble", () => {
@@ -420,6 +436,36 @@ describe("validaciones metodologicas pasivas", () => {
     });
 
     expect(avisosDeRegla(modelo, "consumo-doble-mismo-objeto")).toHaveLength(0);
+  });
+
+  test("imagen interior y estados visibles reportan advertencia", () => {
+    let modelo = crearModelo();
+    const creado = crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 30 }, "Documento");
+    if (!creado.ok) throw new Error(creado.error);
+    modelo = creado.value;
+    const entidadId = Object.keys(modelo.entidades)[0]!;
+    const conEstados = crearEstadosIniciales(modelo, entidadId);
+    if (!conEstados.ok) throw new Error(conEstados.error);
+    modelo = {
+      ...conEstados.value.modelo,
+      entidades: {
+        ...conEstados.value.modelo.entidades,
+        [entidadId]: {
+          ...conEstados.value.modelo.entidades[entidadId]!,
+          imagen: { url: "https://example.com/a.png", modo: "imagen" },
+        },
+      },
+    };
+
+    const avisos = avisosDeRegla(modelo, "imagen-estados-excluyentes");
+
+    expect(avisos).toHaveLength(1);
+    expect(avisos[0]).toMatchObject({
+      severidad: "advertencia",
+      citaSSOT: "[Glos 3.39] [Glos 3.68]",
+      elementoTipo: "entidad",
+      elementoId: entidadId,
+    });
   });
 
   test("todos los avisos emitidos declaran cita SSOT no vacia", () => {
@@ -567,6 +613,41 @@ function modeloConDescomposicionConEnlaceAlPadre(): Modelo {
         },
         enlaces: {
           "ae-padre-hijo": aparienciaEnlace("ae-padre-hijo", enlacePadreHijo.id, "opd-hijo"),
+        },
+      },
+    },
+  };
+}
+
+function modeloConAmbientalFueraDeContorno(): Modelo {
+  const modelo = modeloConDescomposicionConEnlaceAlPadre();
+  return {
+    ...modelo,
+    entidades: {
+      ...modelo.entidades,
+      "o-ambiente": {
+        id: "o-ambiente",
+        tipo: "objeto",
+        nombre: "Ambiente",
+        esencia: "informacional",
+        afiliacion: "ambiental",
+      },
+    },
+    opds: {
+      ...modelo.opds,
+      "opd-hijo": {
+        ...modelo.opds["opd-hijo"]!,
+        apariencias: {
+          ...modelo.opds["opd-hijo"]!.apariencias,
+          "a-ambiente": {
+            id: "a-ambiente",
+            entidadId: "o-ambiente",
+            opdId: "opd-hijo",
+            x: 20,
+            y: 20,
+            width: 135,
+            height: 60,
+          },
         },
       },
     },

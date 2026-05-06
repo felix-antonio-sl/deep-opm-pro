@@ -226,6 +226,45 @@ export function extraerParteDePlegado(
   });
 }
 
+/**
+ * Extrae en una sola operación todas las partes plegadas que aún no tienen
+ * apariencia independiente en el OPD activo.
+ */
+export function extraerTodasLasPartesDePlegado(
+  modelo: Modelo,
+  opdId: Id,
+  padreAparienciaId: Id,
+): Resultado<Modelo> {
+  const opd = modelo.opds[opdId];
+  if (!opd) return fallo(`OPD no existe: ${opdId}`);
+  const padre = opd.apariencias[padreAparienciaId];
+  if (!padre) return fallo(`Apariencia padre no existe: ${padreAparienciaId}`);
+  if (modoPlegadoApariencia(padre) !== "parcial") return fallo("La extracción requiere plegado parcial activo");
+
+  const extraidasIniciales = partesExtraidasEn(modelo, opdId, padreAparienciaId);
+  const extraidasIds = new Set(extraidasIniciales.map((apariencia) => apariencia.entidadId));
+  const pendientes = partesDePlegadoOrdenadas(modelo, padre).filter((parte) => !extraidasIds.has(parte.entidadId));
+  if (pendientes.length === 0) return ok(modelo);
+
+  let actual = modelo;
+  for (let index = 0; index < pendientes.length; index += 1) {
+    const parte = pendientes[index];
+    if (!parte) continue;
+    const antes = new Set(Object.keys(actual.opds[opdId]?.apariencias ?? {}));
+    const resultado = extraerParteDePlegado(actual, opdId, padreAparienciaId, parte.entidadId);
+    if (!resultado.ok) return resultado;
+    actual = reposicionarNuevaParteExtraida(
+      resultado.value,
+      opdId,
+      antes,
+      padre,
+      extraidasIniciales.length + index,
+    );
+  }
+
+  return ok(actual);
+}
+
 export function reinsertarParteEnPlegado(modelo: Modelo, parteAparienciaId: Id): Resultado<Modelo> {
   const encontrada = encontrarApariencia(modelo, parteAparienciaId);
   if (!encontrada) return fallo(`Apariencia no existe: ${parteAparienciaId}`);
@@ -347,6 +386,36 @@ function filaContador(cantidad: number): FilaPlegadoParcial {
     tipo: "contador",
     cantidad,
     texto: `y ${cantidad} ${cantidad === 1 ? "parte más" : "partes más"}`,
+  };
+}
+
+function reposicionarNuevaParteExtraida(
+  modelo: Modelo,
+  opdId: Id,
+  idsAntes: Set<Id>,
+  padre: Apariencia,
+  offset: number,
+): Modelo {
+  const opd = modelo.opds[opdId];
+  if (!opd) return modelo;
+  const nueva = Object.values(opd.apariencias).find((apariencia) => !idsAntes.has(apariencia.id));
+  if (!nueva) return modelo;
+  return {
+    ...modelo,
+    opds: {
+      ...modelo.opds,
+      [opdId]: {
+        ...opd,
+        apariencias: {
+          ...opd.apariencias,
+          [nueva.id]: {
+            ...nueva,
+            x: padre.x + padre.width + 48,
+            y: padre.y + offset * (nueva.height + 16),
+          },
+        },
+      },
+    },
   };
 }
 

@@ -8,8 +8,10 @@ import { inspectorStyles as style } from "./inspectorStyles";
 import { SeccionAlias } from "./inspector/SeccionAlias";
 import { SeccionDescripcion } from "./inspector/SeccionDescripcion";
 import { SeccionEsenciaAfiliacion } from "./inspector/SeccionEsenciaAfiliacion";
+import { SeccionImagen } from "./inspector/SeccionImagen";
 import { SeccionLayoutEstados } from "./inspector/SeccionLayoutEstados";
 import { SeccionRefinamiento, OPCIONES_DESPLIEGUE_OBJETO } from "./inspector/SeccionRefinamiento";
+import { SeccionTamano } from "./inspector/SeccionTamano";
 import { SeccionUrls } from "./inspector/SeccionUrls";
 import { StyleControls } from "./StyleControls";
 
@@ -33,6 +35,7 @@ export function InspectorEntidad({ entidad }: Props) {
   const desplegar = useOpmStore((s) => s.desplegarSeleccionada);
   const quitarDescomposicion = useOpmStore((s) => s.quitarDescomposicionSeleccionada);
   const quitarDespliegue = useOpmStore((s) => s.quitarDespliegueSeleccionado);
+  const reasignarEnlaceExternoManual = useOpmStore((s) => s.reasignarEnlaceExternoManual);
   const crearAutoInvocacion = useOpmStore((s) => s.crearAutoInvocacionSeleccionada);
   const cambiarModoPlegado = useOpmStore((s) => s.cambiarModoPlegadoSeleccionado);
   const cambiarOrdenPartes = useOpmStore((s) => s.cambiarOrdenPartesSeleccionado);
@@ -40,7 +43,12 @@ export function InspectorEntidad({ entidad }: Props) {
   const resetearEstilo = useOpmStore((s) => s.resetearEstiloSeleccionado);
   const aplicarEstiloTexto = useOpmStore((s) => s.aplicarEstiloTextoAccion);
   const resetearEstiloTexto = useOpmStore((s) => s.resetEstiloTextoAccion);
+  const redimensionarSeleccionada = useOpmStore((s) => s.redimensionarSeleccionada);
+  const ajustarSeleccionadaAlTexto = useOpmStore((s) => s.ajustarSeleccionadaAlTexto);
+  const volverSeleccionadaAAuto = useOpmStore((s) => s.volverSeleccionadaAAuto);
+  const alternarModoTamanoSeleccionado = useOpmStore((s) => s.alternarModoTamanoSeleccionado);
   const extraerParte = useOpmStore((s) => s.extraerParteDePlegado);
+  const extraerTodasLasPartes = useOpmStore((s) => s.extraerTodasLasPartesSeleccionadas);
   const reinsertarParte = useOpmStore((s) => s.reinsertarParteExtraidaSeleccionada);
   const agregarEstados = useOpmStore((s) => s.agregarEstadosObjeto);
   const agregarEstado = useOpmStore((s) => s.agregarEstadoObjeto);
@@ -53,6 +61,8 @@ export function InspectorEntidad({ entidad }: Props) {
   const restaurarEstadoPorId = useOpmStore((s) => s.restaurarEstadoPorId);
   const abrirModalDuracion = useOpmStore((s) => s.abrirModalDuracion);
   const abrirModalUrls = useOpmStore((s) => s.abrirModalUrls);
+  const abrirModalImagen = useOpmStore((s) => s.abrirModalImagen);
+  const quitarImagenEntidad = useOpmStore((s) => s.quitarImagenEntidad);
   const editarAliasEntidad = useOpmStore((s) => s.editarAliasEntidad);
   const editarUnidadEntidad = useOpmStore((s) => s.editarUnidadEntidad);
   const editarDescripcionEntidad = useOpmStore((s) => s.editarDescripcionEntidad);
@@ -83,11 +93,22 @@ export function InspectorEntidad({ entidad }: Props) {
           <SeccionAlias alias={entidad.alias} unidad={entidad.unidad} onAlias={(value) => editarAliasEntidad(entidad.id, value)} onUnidad={(value) => editarUnidadEntidad(entidad.id, value)} />
           <SeccionDescripcion descripcion={entidad.descripcion} onDescripcion={(value) => editarDescripcionEntidad(entidad.id, value)} />
           <SeccionUrls entidadId={entidad.id} urls={entidad.urls} onAbrirUrls={abrirModalUrls} />
+          <SeccionImagen entidadId={entidad.id} {...(entidad.imagen ? { imagen: entidad.imagen } : {})} onAbrirImagen={abrirModalImagen} onQuitarImagen={quitarImagenEntidad} />
         </section>
       ) : null}
       <SeccionEsenciaAfiliacion esencia={entidad.esencia} afiliacion={entidad.afiliacion} onEsencia={fijarEsencia} onAfiliacion={fijarAfiliacion} />
+      {aparienciaActiva ? (
+        <SeccionTamano
+          apariencia={aparienciaActiva}
+          onRedimensionar={redimensionarSeleccionada}
+          onAjustarTexto={ajustarSeleccionadaAlTexto}
+          onVolverAuto={volverSeleccionadaAAuto}
+          onAlternarModo={alternarModoTamanoSeleccionado}
+        />
+      ) : null}
       <SeccionRefinamiento
         entidad={entidad}
+        modelo={modelo}
         autoInvocacion={autoInvocacion}
         tienePartesPlegables={partesPlegables.length > 0 && !!aparienciaActiva}
         modoPlegado={modoPlegado}
@@ -99,10 +120,12 @@ export function InspectorEntidad({ entidad }: Props) {
         onDesplegar={desplegar}
         onQuitarDescomposicion={quitarDescomposicion}
         onQuitarDespliegue={quitarDespliegue}
+        onReasignarEnlaceExterno={reasignarEnlaceExternoManual}
         onCrearAutoInvocacion={crearAutoInvocacion}
         onCambiarModoPlegado={() => cambiarModoPlegado(modoPlegado === "parcial" ? "completo" : "parcial")}
         onCambiarOrdenPartes={(orden: OrdenPartesPlegado) => cambiarOrdenPartes(orden)}
         onExtraer={extraerParte}
+        onExtraerTodas={extraerTodasLasPartes}
         onReinsertarParte={reinsertarParte}
       />
       {entidad.tipo === "objeto" ? (

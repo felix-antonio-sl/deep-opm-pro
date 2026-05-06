@@ -61,6 +61,26 @@ describe("OPL-ES — tipos de enlace canonicos", () => {
     expect(generarOpl(modelo)).toEqual(antes);
   });
 
+  test("imagen de objeto no cambia OPL", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 0, y: 0 }, "Entrada"));
+    const antes = generarOpl(modelo);
+    const entrada = entidad(modelo, "Entrada");
+
+    modelo = {
+      ...modelo,
+      entidades: {
+        ...modelo.entidades,
+        [entrada]: {
+          ...modelo.entidades[entrada]!,
+          imagen: { url: "https://example.com/entrada.png", modo: "imagen-texto" },
+        },
+      },
+    };
+
+    expect(generarOpl(modelo)).toEqual(antes);
+  });
+
   test("agente emite maneja", () => {
     let modelo = crearModelo();
     modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 0, y: 0 }, "Operador"));
@@ -126,7 +146,7 @@ describe("OPL-ES — tipos de enlace canonicos", () => {
     modelo = must(aplicarModificador(modelo, enlaceId, "evento"));
     modelo = must(definirProbabilidad(modelo, enlaceId, 0.7));
 
-    expect(generarOpl(modelo)).toContain("**Orden** inicia *Aprobar*, que consume **Orden** (probabilidad 0.7).");
+    expect(generarOpl(modelo)).toContain("**Orden** inicia *Aprobar*, que consume **Orden** (probabilidad: 70%).");
   });
 
   test("modificador NO emite negacion", () => {
@@ -604,7 +624,7 @@ describe("generarOpl", () => {
     expect(generarOpl(modelo, modelo.opdRaizId)).toContain("*Atender Paciente* se descompone en *Examinar*, *Atender Paciente 1*, *Atender Paciente 2* y *Atender Paciente 3* en esa secuencia.");
   });
 
-  test("reordena OPL de descomposicion por Y y agrupa paralelos con misma Y estricta", () => {
+  test("reordena OPL de descomposicion por Y y agrupa paralelos con tolerancia", () => {
     let modelo = crearModelo();
     modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 200, y: 120 }, "Atender Paciente"));
     const procesoId = entidad(modelo, "Atender Paciente");
@@ -612,19 +632,19 @@ describe("generarOpl", () => {
     modelo = descompuesto.modelo;
     modelo = must(moverApariencia(modelo, descompuesto.opdId, entidad(modelo, "Atender Paciente 3"), { x: 420, y: 280 }));
 
-    expect(generarOpl(modelo, modelo.opdRaizId)).toContain("*Atender Paciente* se descompone en *Atender Paciente 1*, *Atender Paciente 2* y *Atender Paciente 3* en paralelo, en esa secuencia.");
+    expect(generarOpl(modelo, modelo.opdRaizId)).toContain("*Atender Paciente* se descompone en *Atender Paciente 1*, paralelo *Atender Paciente 2* y *Atender Paciente 3*, en esa secuencia.");
 
     modelo = must(moverApariencia(modelo, descompuesto.opdId, entidad(modelo, "Atender Paciente 1"), { x: 285, y: 420 }));
-    expect(generarOpl(modelo, modelo.opdRaizId)).toContain("*Atender Paciente* se descompone en *Atender Paciente 2* y *Atender Paciente 3* en paralelo, *Atender Paciente 1*, en esa secuencia.");
+    expect(generarOpl(modelo, modelo.opdRaizId)).toContain("*Atender Paciente* se descompone en paralelo *Atender Paciente 2* y *Atender Paciente 3*, *Atender Paciente 1*, en esa secuencia.");
   });
 
-  test("no agrupa paralelos cuando las coordenadas Y son cercanas pero distintas", () => {
+  test("no agrupa paralelos cuando las coordenadas Y exceden la tolerancia", () => {
     let modelo = crearModelo();
     modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 200, y: 120 }, "Atender Paciente"));
     const procesoId = entidad(modelo, "Atender Paciente");
     const descompuesto = must(descomponerProceso(modelo, modelo.opdRaizId, procesoId));
     modelo = descompuesto.modelo;
-    modelo = must(moverApariencia(modelo, descompuesto.opdId, entidad(modelo, "Atender Paciente 3"), { x: 285, y: 282 }));
+    modelo = must(moverApariencia(modelo, descompuesto.opdId, entidad(modelo, "Atender Paciente 3"), { x: 285, y: 285 }));
 
     expect(generarOpl(modelo, modelo.opdRaizId)).toContain("*Atender Paciente* se descompone en *Atender Paciente 1*, *Atender Paciente 2* y *Atender Paciente 3* en esa secuencia.");
   });

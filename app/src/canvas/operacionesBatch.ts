@@ -15,6 +15,10 @@ import type {
   TipoEnlace,
   UiPortapapelesVisual,
 } from "../modelo/tipos";
+import { RESIZE_MIN } from "./grid";
+
+export type EjeAlineacion = "izq" | "centro" | "der" | "sup" | "medio" | "inf";
+export type OrientacionDistribucion = "horizontal" | "vertical";
 
 export function eliminarBatch(modelo: Modelo, ids: Id[], opdId?: Id): Resultado<Modelo> {
   const seleccion = new Set(ids);
@@ -164,6 +168,90 @@ export function aplicarEstiloEnlaces(
   return ok(siguiente);
 }
 
+export function alinearPorEje(modelo: Modelo, opdId: Id, ids: Id[], eje: EjeAlineacion): Resultado<Modelo> {
+  const opd = modelo.opds[opdId];
+  if (!opd) return fallo(`OPD no existe: ${opdId}`);
+  const seleccion = aparienciasSeleccionadas(opd, ids);
+  if (seleccion.length < 2) return ok(modelo);
+  const objetivo = objetivoAlineacion(seleccion, eje);
+  let siguiente = modelo;
+  for (const apariencia of seleccion) {
+    const pos = posicionAlineada(apariencia, eje, objetivo);
+    const resultado = moverAparienciaPorId(siguiente, opdId, apariencia.id, pos);
+    if (!resultado.ok) return resultado;
+    siguiente = resultado.value;
+  }
+  return ok(siguiente);
+}
+
+export function distribuirUniformemente(
+  modelo: Modelo,
+  opdId: Id,
+  ids: Id[],
+  orientacion: OrientacionDistribucion,
+): Resultado<Modelo> {
+  const opd = modelo.opds[opdId];
+  if (!opd) return fallo(`OPD no existe: ${opdId}`);
+  const seleccion = aparienciasSeleccionadas(opd, ids);
+  if (seleccion.length < 3) return ok(modelo);
+  const ordenadas = [...seleccion].sort((a, b) => orientacion === "horizontal" ? a.x - b.x : a.y - b.y);
+  const primera = ordenadas[0];
+  const ultima = ordenadas[ordenadas.length - 1];
+  if (!primera || !ultima) return ok(modelo);
+  let siguiente = modelo;
+
+  if (orientacion === "horizontal") {
+    const inicio = primera.x + primera.width / 2;
+    const fin = ultima.x + ultima.width / 2;
+    const paso = (fin - inicio) / (ordenadas.length - 1);
+    for (const [index, apariencia] of ordenadas.entries()) {
+      const centroX = inicio + paso * index;
+      const resultado = moverAparienciaPorId(siguiente, opdId, apariencia.id, {
+        x: Math.round(centroX - apariencia.width / 2),
+        y: apariencia.y,
+      });
+      if (!resultado.ok) return resultado;
+      siguiente = resultado.value;
+    }
+    return ok(siguiente);
+  }
+
+  const inicio = primera.y + primera.height / 2;
+  const fin = ultima.y + ultima.height / 2;
+  const paso = (fin - inicio) / (ordenadas.length - 1);
+  for (const [index, apariencia] of ordenadas.entries()) {
+    const centroY = inicio + paso * index;
+    const resultado = moverAparienciaPorId(siguiente, opdId, apariencia.id, {
+      x: apariencia.x,
+      y: Math.round(centroY - apariencia.height / 2),
+    });
+    if (!resultado.ok) return resultado;
+    siguiente = resultado.value;
+  }
+  return ok(siguiente);
+}
+
+export function redimensionarBatch(
+  modelo: Modelo,
+  opdId: Id,
+  ids: Id[],
+  delta: { dw: number; dh: number },
+): Resultado<Modelo> {
+  const opd = modelo.opds[opdId];
+  if (!opd) return fallo(`OPD no existe: ${opdId}`);
+  const seleccion = aparienciasSeleccionadas(opd, ids);
+  if (seleccion.length === 0) return ok(modelo);
+  const apariencias = { ...opd.apariencias };
+  for (const apariencia of seleccion) {
+    apariencias[apariencia.id] = {
+      ...apariencia,
+      width: Math.max(RESIZE_MIN.width, Math.round(apariencia.width + delta.dw)),
+      height: Math.max(RESIZE_MIN.height, Math.round(apariencia.height + delta.dh)),
+    };
+  }
+  return ok({ ...modelo, opds: { ...modelo.opds, [opdId]: { ...opd, apariencias } } });
+}
+
 export function copiarSeleccion(modelo: Modelo, opdId: Id, ids: Id[]): UiPortapapelesVisual {
   const opd = modelo.opds[opdId];
   if (!opd || ids.length === 0) return { apariencias: [], enlaces: [], origenOpdId: opdId, pegados: 0 };
@@ -311,6 +399,35 @@ function aparienciaDeEntidad(opd: Opd, entidadId: Id): Apariencia | undefined {
 
 function centro(apariencia: Apariencia): Posicion {
   return { x: apariencia.x + apariencia.width / 2, y: apariencia.y + apariencia.height / 2 };
+}
+
+function aparienciasSeleccionadas(opd: Opd, ids: Id[]): Apariencia[] {
+  const seleccion = new Set(ids);
+  return Object.values(opd.apariencias).filter((apariencia) => seleccion.has(apariencia.entidadId) || seleccion.has(apariencia.id));
+}
+
+function objetivoAlineacion(apariencias: Apariencia[], eje: EjeAlineacion): number {
+  if (eje === "izq") return Math.min(...apariencias.map((apariencia) => apariencia.x));
+  if (eje === "der") return Math.max(...apariencias.map((apariencia) => apariencia.x + apariencia.width));
+  if (eje === "sup") return Math.min(...apariencias.map((apariencia) => apariencia.y));
+  if (eje === "inf") return Math.max(...apariencias.map((apariencia) => apariencia.y + apariencia.height));
+  if (eje === "centro") {
+    const min = Math.min(...apariencias.map((apariencia) => apariencia.x));
+    const max = Math.max(...apariencias.map((apariencia) => apariencia.x + apariencia.width));
+    return (min + max) / 2;
+  }
+  const min = Math.min(...apariencias.map((apariencia) => apariencia.y));
+  const max = Math.max(...apariencias.map((apariencia) => apariencia.y + apariencia.height));
+  return (min + max) / 2;
+}
+
+function posicionAlineada(apariencia: Apariencia, eje: EjeAlineacion, objetivo: number): Posicion {
+  if (eje === "izq") return { x: objetivo, y: apariencia.y };
+  if (eje === "der") return { x: objetivo - apariencia.width, y: apariencia.y };
+  if (eje === "sup") return { x: apariencia.x, y: objetivo };
+  if (eje === "inf") return { x: apariencia.x, y: objetivo - apariencia.height };
+  if (eje === "centro") return { x: Math.round(objetivo - apariencia.width / 2), y: apariencia.y };
+  return { x: apariencia.x, y: Math.round(objetivo - apariencia.height / 2) };
 }
 
 function removerAparienciasDeOpd(modelo: Modelo, opdId: Id, entidadIds: Set<Id>, enlaceIds: Set<Id>): Modelo {

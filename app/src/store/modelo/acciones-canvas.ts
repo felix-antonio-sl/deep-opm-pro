@@ -9,6 +9,7 @@ import {
   cambiarModoPlegado as cambiarModoPlegadoOp,
   crearEnlaceConExtremoPlegado,
   extraerParteDePlegado as extraerParteDePlegadoOp,
+  extraerTodasLasPartesDePlegado as extraerTodasLasPartesDePlegadoOp,
   reinsertarParteEnPlegado as reinsertarParteEnPlegadoOp,
 } from "../../modelo/plegado";
 import {
@@ -25,8 +26,10 @@ import {
   aparienciaSeleccionadaActiva,
   commitModelo,
   deshacerRuntime,
+  escribirIndiceWorkspace,
   enlaceNuevo,
   generarHtmlOpl,
+  actualizarPreferenciasUi,
   limitar,
   rehacerRuntime,
   validarSubprocesoTimeline,
@@ -34,6 +37,8 @@ import {
   type SetStore,
 } from "../runtime";
 import type { ModeloSlice } from "../tipos";
+import { alinearPorEje, distribuirUniformemente } from "../../canvas/operacionesBatch";
+import { cuantizarPosicion, normalizarGridConfig, type GridConfig } from "../../canvas/grid";
 
 /**
  * Acciones de canvas: selección (entidad/estado/enlace + multi vía Ctrl/Shift),
@@ -168,6 +173,10 @@ export function accionesCanvas(set: SetStore, get: GetStore): Partial<ModeloSlic
 
     fijarBusquedaOpl(texto) {
       set({ busquedaOpl: texto });
+    },
+
+    buscarEnPanelOpl(texto) {
+      get().fijarBusquedaOpl(texto);
     },
 
     editarEtiquetaEnlaceDesdeOpl(enlaceId, etiqueta) {
@@ -402,6 +411,28 @@ export function accionesCanvas(set: SetStore, get: GetStore): Partial<ModeloSlic
       });
     },
 
+    extraerTodasLasPartesSeleccionadas() {
+      const { modelo, opdActivoId, seleccionId } = get();
+      if (!seleccionId) return;
+      const apariencia = Object.values(modelo.opds[opdActivoId]?.apariencias ?? {})
+        .find((item) => item.entidadId === seleccionId);
+      if (!apariencia) {
+        set({ mensaje: "La entidad seleccionada no tiene apariencia en el OPD activo" });
+        return;
+      }
+      const resultado = extraerTodasLasPartesDePlegadoOp(modelo, opdActivoId, apariencia.id);
+      if (!resultado.ok) {
+        set({ mensaje: resultado.error });
+        return;
+      }
+      commitModelo(set, modelo, resultado.value, {
+        seleccionId,
+        enlaceSeleccionId: null,
+        modoEnlace: null,
+        mensaje: null,
+      });
+    },
+
     reinsertarParteExtraidaSeleccionada() {
       const { modelo, opdActivoId, seleccionId } = get();
       if (!seleccionId) return;
@@ -427,14 +458,53 @@ export function accionesCanvas(set: SetStore, get: GetStore): Partial<ModeloSlic
 
     moverEntidad(id, x, y) {
       const { modelo, opdActivoId } = get();
-      const resultado = moverAparienciaEntidad(modelo, opdActivoId, id, { x, y });
+      const pos = cuantizarDesdeEstado(get(), x, y);
+      const resultado = moverAparienciaEntidad(modelo, opdActivoId, id, pos);
       if (resultado.ok) commitModelo(set, modelo, resultado.value);
     },
 
     moverApariencia(aparienciaId, x, y) {
       const { modelo, opdActivoId } = get();
-      const resultado = moverAparienciaPorId(modelo, opdActivoId, aparienciaId, { x, y });
+      const pos = cuantizarDesdeEstado(get(), x, y);
+      const resultado = moverAparienciaPorId(modelo, opdActivoId, aparienciaId, pos);
       if (resultado.ok) commitModelo(set, modelo, resultado.value);
+    },
+
+    toggleGrid() {
+      const estado = get();
+      const actual = gridConfigDesdeEstado(estado);
+      const gridConfig = { ...actual, activa: !actual.activa };
+      const indice = actualizarPreferenciasUi(estado.indice, { gridConfig });
+      escribirIndiceWorkspace(indice);
+      set({ indice, gridConfig, modelo: { ...estado.modelo } });
+    },
+
+    fijarGridConfig(patch) {
+      const estado = get();
+      const gridConfig = normalizarGridConfig({ ...gridConfigDesdeEstado(estado), ...(patch as Partial<GridConfig>) });
+      const indice = actualizarPreferenciasUi(estado.indice, { gridConfig });
+      escribirIndiceWorkspace(indice);
+      set({ indice, gridConfig, modelo: { ...estado.modelo } });
+    },
+
+    alinearSeleccion(eje) {
+      const { modelo, opdActivoId, seleccionados } = get();
+      const resultado = alinearPorEje(modelo, opdActivoId, seleccionados, eje);
+      if (!resultado.ok) {
+        set({ mensaje: resultado.error });
+        return;
+      }
+      commitModelo(set, modelo, resultado.value, { seleccionados: [...seleccionados], mensaje: "Selección alineada" });
+    },
+
+    distribuirSeleccion(orientacion) {
+      const { modelo, opdActivoId, seleccionados } = get();
+      const resultado = distribuirUniformemente(modelo, opdActivoId, seleccionados, orientacion);
+      if (!resultado.ok) {
+        set({ mensaje: resultado.error });
+        return;
+      }
+      commitModelo(set, modelo, resultado.value, { seleccionados: [...seleccionados], mensaje: "Selección distribuida" });
     },
 
     reordenarSubprocesoEnTimeline(opdId, aparienciaId, nuevaY) {
@@ -469,4 +539,12 @@ export function accionesCanvas(set: SetStore, get: GetStore): Partial<ModeloSlic
       if (resultado.ok) commitModelo(set, modelo, resultado.value);
     },
   };
+}
+
+function gridConfigDesdeEstado(estado: ReturnType<GetStore>): GridConfig {
+  return normalizarGridConfig(estado.gridConfig ?? estado.indice.preferenciasUi?.gridConfig);
+}
+
+function cuantizarDesdeEstado(estado: ReturnType<GetStore>, x: number, y: number): { x: number; y: number } {
+  return cuantizarPosicion(x, y, gridConfigDesdeEstado(estado));
 }

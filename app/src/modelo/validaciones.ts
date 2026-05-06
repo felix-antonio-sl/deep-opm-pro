@@ -1,5 +1,7 @@
 import { naturalezaDeEnlace } from "./constantes";
 import { entidadDeExtremo, entidadIdDeExtremo, extremoApuntaAEntidad, extremoKey, nombreExtremo } from "./extremos";
+import { imagenIncluyeBitmap } from "./imagenObjeto";
+import { estadosDeEntidad } from "./operaciones";
 import type { Apariencia, Enlace, Entidad, Id, Modelo, Opd, TipoEnlace } from "./tipos";
 
 export type SeveridadAviso = "error" | "advertencia" | "info";
@@ -36,9 +38,60 @@ export function validarModelo(modelo: Modelo, opdActivoId: Id): Aviso[] {
     ...reglaProcesoSinEntradaNiSalida(modelo, opdActivoId),
     ...reglaInstrumentoYAgenteSimultaneos(modelo, opdActivoId),
     ...reglaSoloUnNivelDeInstanciacion(modelo, opdActivoId),
-    ...reglaConsumoDobleMismoObjeto(modelo, opdActivoId),
+    ...advertirConsumoDuplicado(modelo, opdActivoId),
+    ...validarExclusionImagenEstados(modelo, opdActivoId),
+    ...validarAmbientalDentroContorno(modelo, opdActivoId),
   ];
   return priorizarOpdActivo(avisos, opdActivoId);
+}
+
+export function advertirConsumoDuplicado(modelo: Modelo, opdActivoId: Id = modelo.opdRaizId): Aviso[] {
+  return reglaConsumoDobleMismoObjeto(modelo, opdActivoId);
+}
+
+export function validarAmbientalDentroContorno(modelo: Modelo, opdActivoId: Id = modelo.opdRaizId): Aviso[] {
+  const avisos: Aviso[] = [];
+
+  for (const opd of Object.values(modelo.opds)) {
+    const contexto = contextoDescomposicion(modelo, opd);
+    if (!contexto) continue;
+    for (const apariencia of Object.values(opd.apariencias)) {
+      if (apariencia.entidadId === contexto.padre.id) continue;
+      const entidad = modelo.entidades[apariencia.entidadId];
+      if (entidad?.afiliacion !== "ambiental") continue;
+      if (aparienciaEsProxyExterna(modelo, opd.id, apariencia)) continue;
+      if (dentroDe(apariencia, contexto.contorno)) continue;
+      avisos.push({
+        reglaId: "ambiental-dentro-contorno",
+        severidad: "advertencia",
+        mensaje: `La cosa ambiental ${entidad.nombre} queda fuera del contorno ${opd.nombre}; ajustala dentro del proceso descompuesto.`,
+        citaSSOT: "[ISO-19450 in-zooming] opm-iso-19450-es.md:708",
+        elementoTipo: "entidad",
+        elementoId: entidad.id,
+        opdId: opd.id,
+      });
+    }
+  }
+
+  return priorizarOpdActivo(avisos, opdActivoId);
+}
+
+export function validarExclusionImagenEstados(modelo: Modelo, opdActivoId: Id = modelo.opdRaizId): Aviso[] {
+  return Object.values(modelo.entidades).flatMap((entidad) => {
+    if (entidad.tipo !== "objeto" || !entidad.imagen || !imagenIncluyeBitmap(entidad.imagen.modo)) return [];
+    const tieneEstadosVisibles = estadosDeEntidad(modelo, entidad.id).some((estado) => !estado.suprimido);
+    if (!tieneEstadosVisibles) return [];
+    const opdId = opdIdDeEntidad(modelo, entidad.id, opdActivoId);
+    return [{
+      reglaId: "imagen-estados-excluyentes",
+      severidad: "advertencia",
+      mensaje: `El objeto ${entidad.nombre} tiene imagen interior y estados visibles; usa modo Solo texto o suprime estados.`,
+      citaSSOT: "[Glos 3.39] [Glos 3.68]",
+      elementoTipo: "entidad",
+      elementoId: entidad.id,
+      ...(opdId ? { opdId } : {}),
+    } satisfies Aviso];
+  });
 }
 
 function reglaEstructuralNoAceptaExtremoEstado(modelo: Modelo, opdActivoId: Id): Aviso[] {
@@ -379,6 +432,16 @@ function dentroDe(apariencia: Apariencia, contorno: Apariencia): boolean {
     apariencia.x + apariencia.width <= contorno.x + contorno.width &&
     apariencia.y + apariencia.height <= contorno.y + contorno.height
   );
+}
+
+function aparienciaEsProxyExterna(modelo: Modelo, opdId: Id, apariencia: Apariencia): boolean {
+  for (const otroOpdId of Object.keys(modelo.opds)) {
+    if (otroOpdId === opdId) continue;
+    const otroOpd = modelo.opds[otroOpdId];
+    if (!otroOpd) continue;
+    if (Object.values(otroOpd.apariencias).some((ap) => ap.entidadId === apariencia.entidadId)) return true;
+  }
+  return false;
 }
 
 function etiquetaTipo(tipo: TipoEnlace): string {

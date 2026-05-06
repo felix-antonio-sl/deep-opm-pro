@@ -72,21 +72,29 @@ export function proyectarEntidad(
     },
   };
   const metadatos = metadatosEntidad(entidad, opciones, tienePartes);
+  const renderBase = modoParcial
+    ? { markup: markupPlegadoParcial(bodyTag, filasParciales), attrs: attrsPlegadoParcial(attrsBase, size, filasParciales) }
+    : estadosVisibles.length > 0
+      ? { markup: markupConEstados(bodyTag, estadosVisibles, metadatos), attrs: attrsConEstados(attrsBase, size, estadosVisibles, metadatos, entidad.layoutEstados) }
+      : tienePartes
+        ? { markup: markupConBadge(bodyTag, metadatos), attrs: attrsConBadge(attrsBase, size, metadatos) }
+        : metadatos.tieneMetadatos
+          ? { markup: markupConBadge(bodyTag, metadatos), attrs: attrsConBadge(attrsBase, size, metadatos) }
+          : { attrs: attrsBase };
+  const render = seleccionada
+    ? {
+        ...renderBase,
+        markup: markupConResizeHandles(renderBase.markup ?? markupBase(bodyTag)),
+        attrs: attrsConResizeHandles(renderBase.attrs, size),
+      }
+    : renderBase;
 
   return {
     id: apariencia.id,
     type: entidad.tipo === "objeto" ? "standard.Rectangle" : "standard.Ellipse",
     position: { x: apariencia.x, y: apariencia.y },
     size,
-    ...(modoParcial
-      ? { markup: markupPlegadoParcial(bodyTag, filasParciales), attrs: attrsPlegadoParcial(attrsBase, size, filasParciales) }
-      : estadosVisibles.length > 0
-        ? { markup: markupConEstados(bodyTag, estadosVisibles, metadatos), attrs: attrsConEstados(attrsBase, size, estadosVisibles, metadatos, entidad.layoutEstados) }
-        : tienePartes
-          ? { markup: markupConBadge(bodyTag, metadatos), attrs: attrsConBadge(attrsBase, size, metadatos) }
-          : metadatos.tieneMetadatos
-            ? { markup: markupConBadge(bodyTag, metadatos), attrs: attrsConBadge(attrsBase, size, metadatos) }
-            : { attrs: attrsBase }),
+    ...render,
     opm: {
       kind: "entidad",
       opdId,
@@ -98,6 +106,57 @@ export function proyectarEntidad(
     },
     z: contornoRefinamiento ? 0 : 10,
   };
+}
+
+function markupBase(bodyTag: "rect" | "ellipse"): Array<Record<string, unknown>> {
+  return [
+    { tagName: bodyTag, selector: "body" },
+    { tagName: "text", selector: "label" },
+  ];
+}
+
+function markupConResizeHandles(markup: Array<Record<string, unknown>>): Array<Record<string, unknown>> {
+  return [
+    ...markup,
+    ...["nw", "n", "ne", "e", "se", "s", "sw", "w"].map((handle) => ({
+      tagName: "rect",
+      selector: `resize-${handle}`,
+    })),
+  ];
+}
+
+function attrsConResizeHandles(
+  attrsBase: Record<string, unknown>,
+  size: { width: number; height: number },
+): Record<string, unknown> {
+  const points: Record<string, { x: number; y: number; cursor: string }> = {
+    "resize-nw": { x: 0, y: 0, cursor: "nwse-resize" },
+    "resize-n": { x: size.width / 2, y: 0, cursor: "ns-resize" },
+    "resize-ne": { x: size.width, y: 0, cursor: "nesw-resize" },
+    "resize-e": { x: size.width, y: size.height / 2, cursor: "ew-resize" },
+    "resize-se": { x: size.width, y: size.height, cursor: "nwse-resize" },
+    "resize-s": { x: size.width / 2, y: size.height, cursor: "ns-resize" },
+    "resize-sw": { x: 0, y: size.height, cursor: "nesw-resize" },
+    "resize-w": { x: 0, y: size.height / 2, cursor: "ew-resize" },
+  };
+  const attrs: Record<string, unknown> = { ...attrsBase };
+  for (const [selector, point] of Object.entries(points)) {
+    attrs[selector] = {
+      x: point.x - 4,
+      y: point.y - 4,
+      width: 8,
+      height: 8,
+      rx: 1,
+      ry: 1,
+      fill: "#ffffff",
+      stroke: CANON.colores.enlace,
+      strokeWidth: 1.5,
+      cursor: point.cursor,
+      pointerEvents: "auto",
+      title: "Redimensionar",
+    };
+  }
+  return attrs;
 }
 
 export function rolApariencia(modelo: Modelo, opdId: Id, entidad: Entidad, esContorno: boolean): RolApariencia {
@@ -370,4 +429,3 @@ export function aplicarMetadatosAttrs(
 
 export { dimensionesConEstados, ESTADOS } from "./estados";
 export { dimensionesPlegadoParcial, PLEGADO, attrsPlegadoParcial, markupPlegadoParcial, selectoresPartesPlegadas, textoFilaPlegado } from "./plegado";
-

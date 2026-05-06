@@ -26,6 +26,7 @@ export type TipoEnlace =
 export type DerivacionOrigen = "automatico" | "manual";
 export type ExtremoKind = "entidad" | "estado";
 export type Modificador = "condicion" | "evento" | "no";
+export type SubtipoModificador = "C" | "E" | "no";
 
 export interface EnlaceEstilo {
   color?: string;
@@ -55,6 +56,7 @@ export interface Enlace {
   multiplicidadDestino?: string;
   estilo?: EnlaceEstilo;
   modificador?: Modificador;
+  subtipoModificador?: SubtipoModificador;
   probabilidad?: number;
   demora?: string;
   rutaEtiqueta?: string;

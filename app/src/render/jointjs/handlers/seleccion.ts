@@ -1,5 +1,6 @@
 import type { dia } from "jointjs";
-import type { ModoPlegado, TipoEntidad } from "../../../modelo/tipos";
+import type { Modelo, ModoPlegado, TipoEntidad } from "../../../modelo/tipos";
+import type { OpmJointMetadata } from "../proyeccion";
 import {
   cellViewModel,
   ctrlEvento,
@@ -26,6 +27,7 @@ import {
 
 export interface CablearSeleccionArgs {
   paper: dia.Paper;
+  modeloRef: { current: Modelo };
   modoEnlaceRef: { current: unknown };
   modoCreacionRef: { current: TipoEntidad | null };
   rubberBandRef: { current: boolean };
@@ -35,15 +37,19 @@ export interface CablearSeleccionArgs {
   seleccionarEstadoComoExtremoRef: { current: (estadoId: string) => void };
   seleccionarEnlaceRef: { current: (id: string) => void };
   cambiarModoPlegadoAparienciaRef: { current: (aparienciaId: string, modo: ModoPlegado) => void };
+  alternarModoImagenEntidadRef: { current: (entidadId: string) => void };
+  abrirModalImagenRef: { current: (entidadId: string) => void };
   agregarASeleccionRef: { current: (id: string) => void };
   toggleSeleccionRef: { current: (id: string) => void };
   vaciarSeleccionRef: { current: () => void };
   crearEntidadEnCanvasRef: { current: (tipo: TipoEntidad, posicion: { x: number; y: number }) => void };
+  abrirRenombradoInlineRef: { current: (input: { aparienciaId: string; entidadId: string }) => void };
 }
 
 export function cablearSeleccion(args: CablearSeleccionArgs): () => void {
   const {
     paper,
+    modeloRef,
     modoEnlaceRef,
     modoCreacionRef,
     rubberBandRef,
@@ -53,10 +59,13 @@ export function cablearSeleccion(args: CablearSeleccionArgs): () => void {
     seleccionarEstadoComoExtremoRef,
     seleccionarEnlaceRef,
     cambiarModoPlegadoAparienciaRef,
+    alternarModoImagenEntidadRef,
+    abrirModalImagenRef,
     agregarASeleccionRef,
     toggleSeleccionRef,
     vaciarSeleccionRef,
     crearEntidadEnCanvasRef,
+    abrirRenombradoInlineRef,
   } = args;
 
   const onElementPointerclick = (elementView: dia.ElementView, evt: dia.Event) => {
@@ -71,6 +80,10 @@ export function cablearSeleccion(args: CablearSeleccionArgs): () => void {
       return;
     }
     const meta = metadata(cellViewModel(elementView));
+    if (meta?.kind === "imagen-insignia") {
+      alternarModoImagenEntidadRef.current(meta.entidadId);
+      return;
+    }
     if (meta?.kind === "entidad") {
       if (multiEvento(evt)) {
         if (ctrlEvento(evt)) toggleSeleccionRef.current(meta.entidadId);
@@ -106,6 +119,25 @@ export function cablearSeleccion(args: CablearSeleccionArgs): () => void {
       }
       seleccionarEnlaceRef.current(meta.enlaceId);
     }
+  };
+
+  const onElementContextmenu = (elementView: dia.ElementView, evt: dia.Event) => {
+    evt.stopPropagation();
+    (evt as unknown as MouseEvent).preventDefault();
+    const meta = metadata(cellViewModel(elementView));
+    if (meta?.kind === "imagen-insignia") {
+      abrirModalImagenRef.current(meta.entidadId);
+    }
+  };
+
+  const onElementPointerdblclick = (elementView: dia.ElementView, evt: dia.Event) => {
+    const meta = metadata(cellViewModel(elementView));
+    if (meta?.kind !== "entidad") return;
+    const selector = jointSelector(evt.target);
+    if (parteEntidadDesdeSelector(meta, selector) || estadoDesdeSelector(meta, selector)) return;
+    if (!esSubprocesoInternoTimeline(modeloRef.current, meta)) return;
+    evt.stopPropagation();
+    abrirRenombradoInlineRef.current({ aparienciaId: meta.aparienciaId, entidadId: meta.entidadId });
   };
 
   const onLinkPointerclick = (linkView: dia.LinkView, evt: dia.Event) => {
@@ -144,12 +176,35 @@ export function cablearSeleccion(args: CablearSeleccionArgs): () => void {
   };
 
   paper.on("element:pointerclick", onElementPointerclick);
+  paper.on("element:pointerdblclick", onElementPointerdblclick);
+  paper.on("element:contextmenu", onElementContextmenu);
   paper.on("link:pointerclick", onLinkPointerclick);
   paper.on("blank:pointerclick", onBlankPointerclick);
 
   return () => {
     paperOff(paper, "element:pointerclick", onElementPointerclick as (...args: never[]) => void);
+    paperOff(paper, "element:pointerdblclick", onElementPointerdblclick as (...args: never[]) => void);
+    paperOff(paper, "element:contextmenu", onElementContextmenu as (...args: never[]) => void);
     paperOff(paper, "link:pointerclick", onLinkPointerclick as (...args: never[]) => void);
     paperOff(paper, "blank:pointerclick", onBlankPointerclick as (...args: never[]) => void);
   };
+}
+
+function esSubprocesoInternoTimeline(modelo: Modelo, meta: OpmJointMetadata): meta is Extract<OpmJointMetadata, { kind: "entidad" }> {
+  if (meta.kind !== "entidad") return false;
+  const entidad = modelo.entidades[meta.entidadId];
+  if (entidad?.tipo !== "proceso") return false;
+  const opd = modelo.opds[meta.opdId];
+  if (!opd) return false;
+  const contorno = Object.values(opd.apariencias).find((apariencia) => {
+    const refinable = modelo.entidades[apariencia.entidadId];
+    return refinable?.tipo === "proceso" && refinable.refinamiento?.tipo === "descomposicion" && refinable.refinamiento.opdId === opd.id;
+  });
+  if (!contorno || contorno.entidadId === meta.entidadId) return false;
+  const apariencia = opd.apariencias[meta.aparienciaId];
+  return !!apariencia &&
+    apariencia.x >= contorno.x &&
+    apariencia.y >= contorno.y &&
+    apariencia.x + apariencia.width <= contorno.x + contorno.width &&
+    apariencia.y + apariencia.height <= contorno.y + contorno.height;
 }

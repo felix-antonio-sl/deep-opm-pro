@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import type { Modelo } from "../../modelo/tipos";
-import { oracionRefinamiento } from "./refinamiento";
+import { oracionParalelo, oracionRefinamiento } from "./refinamiento";
 
 describe("refinamiento OPL", () => {
   test("descomposicion ordena subprocesos por y", () => {
@@ -15,6 +15,19 @@ describe("refinamiento OPL", () => {
     const padre = modelo.entidades.padre!;
     const apariencia = modelo.opds.opd!.apariencias.ap!;
     expect(oracionRefinamiento(modelo, apariencia, padre)).toBe("*Atender* se despliega en *A* y *B*.");
+  });
+
+  test("descomposicion detecta paralelo por tolerancia Y", () => {
+    const modelo = modeloRefinamiento("descomposicion");
+    modelo.opds.hijo!.apariencias.b!.y = 23;
+    const padre = modelo.entidades.padre!;
+    const apariencia = modelo.opds.opd!.apariencias.ap!;
+
+    expect(oracionRefinamiento(modelo, apariencia, padre)).toBe("*Atender* se descompone en paralelo *A* y *B*.");
+  });
+
+  test("oracionParalelo emite ocurren en paralelo", () => {
+    expect(oracionParalelo([modeloRefinamiento("descomposicion").entidades.a!, modeloRefinamiento("descomposicion").entidades.b!])).toBe("*A* y *B* ocurren en paralelo.");
   });
 });
 

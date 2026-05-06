@@ -10,6 +10,7 @@ import {
   type WorkspaceIndice,
 } from "../../persistencia/workspace";
 import { crearVersion } from "../../persistencia/versiones";
+import { fijarOpcionesProyeccionGlobal } from "../../render/jointjs/proyeccion";
 import { exportarModelo } from "../../serializacion/json";
 import {
   activarPestanaNueva,
@@ -202,6 +203,22 @@ export function accionesUI(set: SetStore, get: GetStore): Partial<ModeloSlice> {
 
     cerrarModalUrls() {
       set({ modalUrlsAbierto: null });
+    },
+
+    abrirModalImagen(entidadId) {
+      const entidad = get().modelo.entidades[entidadId];
+      if (!entidad || entidad.tipo !== "objeto") return;
+      set({ modalImagenAbierto: entidadId, menuPrincipalAbierto: false, mensaje: null });
+    },
+
+    cerrarModalImagen() {
+      set({ modalImagenAbierto: null });
+    },
+
+    fijarModoImagenGlobal(modo) {
+      const { uiAliasVisibles, uiDescripcionesVisibles, modelo } = get();
+      fijarOpcionesProyeccionGlobal({ aliasVisibles: uiAliasVisibles, descripcionesVisibles: uiDescripcionesVisibles, modoImagenGlobal: modo });
+      set({ uiModoImagenGlobal: modo, modelo: { ...modelo } });
     },
   };
 }

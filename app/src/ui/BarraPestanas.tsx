@@ -1,6 +1,7 @@
 import { useState } from "preact/hooks";
 import { useOpmStore } from "../store";
 import type { Pestana } from "../modelo/tipos";
+import { useConfirmarCierreDirty } from "./ConfirmacionContext";
 
 const MIME_PESTANA = "text/pestana-id";
 
@@ -11,16 +12,34 @@ export function BarraPestanas() {
   const cambiarPestanaActiva = useOpmStore((s) => s.cambiarPestanaActiva);
   const cerrarPestana = useOpmStore((s) => s.cerrarPestana);
   const reordenarPestanas = useOpmStore((s) => s.reordenarPestanas);
+  const guardarLocal = useOpmStore((s) => s.guardarLocal);
+  const confirmarCierreDirty = useConfirmarCierreDirty();
   const [arrastrandoId, setArrastrandoId] = useState<string | null>(null);
 
   const cerrarConConfirmacion = (pestana: Pestana) => {
-    if (pestana.dirty && typeof globalThis.confirm === "function") {
-      const confirmado = globalThis.confirm("Hay cambios sin guardar. Cerrar pestana?");
-      if (!confirmado) return;
-      cerrarPestana(pestana.id, { forzar: true });
+    if (pestana.dirty) {
+      confirmarCierreDirty(
+        () => cerrarPestana(pestana.id, { forzar: true }),
+        {
+          dirty: true,
+          onGuardar: () => {
+            if (pestana.id !== activa) cambiarPestanaActiva(pestana.id);
+            guardarLocal();
+          },
+        },
+      );
       return;
     }
     cerrarPestana(pestana.id);
+  };
+
+  const activarConConfirmacion = (pestana: Pestana) => {
+    if (pestana.id === activa) return;
+    const pestanaActiva = pestanas.find((item) => item.id === activa);
+    confirmarCierreDirty(
+      () => cambiarPestanaActiva(pestana.id),
+      { dirty: pestanaActiva?.dirty ?? false },
+    );
   };
 
   const soltarSobre = (event: preact.JSX.TargetedDragEvent<HTMLDivElement>, destinoId: string) => {
@@ -61,7 +80,7 @@ export function BarraPestanas() {
                 ...(activaActual ? style.pestanaActiva : {}),
                 ...(pestana.dirty ? style.pestanaDirty : {}),
               }}
-              onClick={() => cambiarPestanaActiva(pestana.id)}
+              onClick={() => activarConConfirmacion(pestana)}
             >
               <span style={style.etiqueta} title={pestana.etiqueta}>
                 {pestana.etiqueta}{pestana.dirty ? " *" : ""}

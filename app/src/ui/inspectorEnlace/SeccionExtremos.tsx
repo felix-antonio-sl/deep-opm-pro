@@ -8,14 +8,15 @@ interface Props {
   modelo: Modelo;
   enlace: Enlace;
   onApuntarExtremo: (lado: "origen" | "destino", extremo: ExtremoEnlace) => void;
+  onAbrirMoverPuerto: () => void;
 }
 
 export function SeccionExtremos(props: Props) {
   const selectores = selectoresEstadoExtremo(props.modelo, props.enlace);
-  if (selectores.length === 0) return null;
+  if (!enlaceProcedural(props.enlace.tipo)) return null;
   return (
     <section style={sectionStyle}>
-      <h3 style={titleStyle}>Extremos de estado</h3>
+      <h3 style={titleStyle}>Extremos</h3>
       {selectores.map(({ lado, entidad, estados, actual }) => (
         <label key={lado} style={style.field}>
           <span style={style.label}>{lado === "origen" ? "Origen" : "Destino"}</span>
@@ -33,6 +34,9 @@ export function SeccionExtremos(props: Props) {
           </select>
         </label>
       ))}
+      <button type="button" data-testid="mover-puerto-btn" style={style.secondaryButton} onClick={props.onAbrirMoverPuerto}>
+        Mover Puerto
+      </button>
     </section>
   );
 }

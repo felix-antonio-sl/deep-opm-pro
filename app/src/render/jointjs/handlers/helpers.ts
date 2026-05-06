@@ -16,7 +16,12 @@ export const ZOOM_MAX = 2;
 
 export function metadata(cell: dia.Cell): OpmJointMetadata | null {
   const value = cell.prop("opm") as OpmJointMetadata | undefined;
-  if (value?.kind === "entidad" || value?.kind === "enlace") return value;
+  if (
+    value?.kind === "entidad" ||
+    value?.kind === "enlace" ||
+    value?.kind === "imagen-overlay" ||
+    value?.kind === "imagen-insignia"
+  ) return value;
   return null;
 }
 

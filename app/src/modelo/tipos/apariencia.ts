@@ -11,6 +11,7 @@ import type { Id } from "./comunes";
 export type ModoPlegado = "completo" | "parcial" | "plegado" | "desplegado";
 export type OrdenPartesPlegado = "alfabetico" | "creacion";
 export type LayoutEstados = "horizontal" | "vertical";
+export type ModoTamano = "auto" | "manual";
 
 export interface EstiloApariencia {
   fill?: string;
@@ -32,6 +33,7 @@ export interface Apariencia {
   width: number;
   height: number;
   estilo?: EstiloApariencia;
+  modoTamano?: ModoTamano;
   modoPlegado?: ModoPlegado;
   ordenPartes?: OrdenPartesPlegado;
   parteExtraidaDe?: { padreAparienciaId: Id; parteEntidadId: Id };

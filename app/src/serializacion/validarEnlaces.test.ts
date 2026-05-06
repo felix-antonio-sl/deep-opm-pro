@@ -26,6 +26,23 @@ describe("validarEnlaces", () => {
     expect(resultado.value["l-1"]?.tipo).toBe("agregacion");
   });
 
+  test("acepta subtipoModificador coherente y rechaza incoherente", () => {
+    const entidadesProcedural: Record<string, Entidad> = {
+      ...entidades,
+      "p-1": { id: "p-1", tipo: "proceso", nombre: "Procesar", esencia: "informacional", afiliacion: "sistemica" },
+    };
+    const ok = validarEnlaces({
+      "l-1": { id: "l-1", tipo: "consumo", origenId: extremoEntidad("e-1"), destinoId: extremoEntidad("p-1"), etiqueta: "", modificador: "evento", subtipoModificador: "E", probabilidad: 0.7 },
+    }, entidadesProcedural, estados);
+    expect(ok.ok).toBe(true);
+    if (ok.ok) expect(ok.value["l-1"]?.subtipoModificador).toBe("E");
+
+    const invalido = validarEnlaces({
+      "l-1": { id: "l-1", tipo: "consumo", origenId: extremoEntidad("e-1"), destinoId: extremoEntidad("p-1"), etiqueta: "", modificador: "evento", subtipoModificador: "C" },
+    }, entidadesProcedural, estados);
+    expect(invalido.ok).toBe(false);
+  });
+
   test("acepta multiplicidad canonica y rechaza invalida", () => {
     expect(validarMultiplicidadOpcional("l-1", "multiplicidadDestino", "1..N").ok).toBe(true);
     expect(validarMultiplicidadOpcional("l-1", "multiplicidadDestino", "abc").ok).toBe(false);

@@ -8,6 +8,7 @@ import { proyectarAutoInvocacion } from "./autoinvocacionLoop";
 import { proyectarEntidad } from "./composers/entidad";
 import { proyectarEnlace, proyectarProxyExtraccion, proyectarRefinamientoEstructural, resolverEndpointVisual } from "./composers/enlace";
 import { proyectarHaloSeleccion, refResaltaEnlace, refResaltaEntidad } from "./composers/halos";
+import { proyectarImagenesEntidad } from "./composers/imagenOverlay";
 import type { JointCellJson, OpcionesProyeccion } from "./proyeccionTipos";
 
 export type { JointCellJson, OpcionesProyeccion, OpmJointMetadata, RolApariencia } from "./proyeccionTipos";
@@ -49,6 +50,10 @@ export function proyectarModeloAJointCells(
   const elementos = apariencias.flatMap((apariencia) => {
     const entidad = modelo.entidades[apariencia.entidadId];
     return entidad ? [proyectarEntidad(modelo, opdId, apariencia, entidad, entidad.id === seleccionEntidadId || seleccionMultiple.has(entidad.id), refResaltaEntidad(modelo, entidad, hoverOplRef), opciones)] : [];
+  });
+  const imagenes = apariencias.flatMap((apariencia) => {
+    const entidad = modelo.entidades[apariencia.entidadId];
+    return entidad ? proyectarImagenesEntidad(modelo, opdId, apariencia, entidad, opciones.modoImagenGlobal ?? null) : [];
   });
   const proxies = apariencias.flatMap((apariencia) => proyectarProxyExtraccion(opdId, opd, apariencia));
   const overlaysAbanico = Object.values(modelo.abanicos ?? {})
@@ -122,25 +127,29 @@ export function proyectarModeloAJointCells(
       })
     : [];
 
-  return [...busCells, ...enlaces, ...proxies, ...overlaysAbanico, ...elementos, ...halos];
+  return [...busCells, ...enlaces, ...proxies, ...overlaysAbanico, ...elementos, ...imagenes, ...halos];
 }
 
 function opcionesProyeccionGlobal(): OpcionesProyeccion {
   const global = globalThis as typeof globalThis & {
     __deepOpmUiAliasVisibles?: boolean;
     __deepOpmUiDescripcionesVisibles?: boolean;
+    __deepOpmUiModoImagenGlobal?: OpcionesProyeccion["modoImagenGlobal"];
   };
   return {
     aliasVisibles: global.__deepOpmUiAliasVisibles ?? true,
     descripcionesVisibles: global.__deepOpmUiDescripcionesVisibles ?? true,
+    modoImagenGlobal: global.__deepOpmUiModoImagenGlobal ?? null,
   };
 }
 
-export function fijarOpcionesProyeccionGlobal(opciones: Required<OpcionesProyeccion>): void {
+export function fijarOpcionesProyeccionGlobal(opciones: OpcionesProyeccion): void {
   const global = globalThis as typeof globalThis & {
     __deepOpmUiAliasVisibles?: boolean;
     __deepOpmUiDescripcionesVisibles?: boolean;
+    __deepOpmUiModoImagenGlobal?: OpcionesProyeccion["modoImagenGlobal"];
   };
-  global.__deepOpmUiAliasVisibles = opciones.aliasVisibles;
-  global.__deepOpmUiDescripcionesVisibles = opciones.descripcionesVisibles;
+  global.__deepOpmUiAliasVisibles = opciones.aliasVisibles ?? global.__deepOpmUiAliasVisibles ?? true;
+  global.__deepOpmUiDescripcionesVisibles = opciones.descripcionesVisibles ?? global.__deepOpmUiDescripcionesVisibles ?? true;
+  global.__deepOpmUiModoImagenGlobal = opciones.modoImagenGlobal ?? null;
 }

@@ -4,6 +4,7 @@ import {
   validarApariencias,
   validarAparienciasEnlace,
   validarEstiloApariencia,
+  validarModoTamano,
   validarVertices,
 } from "./validarApariencias";
 
@@ -20,6 +21,18 @@ describe("validarApariencias", () => {
     expect(resultado.ok).toBe(true);
     if (!resultado.ok) return;
     expect(resultado.value["a-1"]?.modoPlegado).toBe("parcial");
+  });
+
+  test("acepta modoTamano opcional y rechaza valores no canonicos", () => {
+    const resultado = validarApariencias("opd-1", {
+      "a-1": { id: "a-1", entidadId: "e-1", opdId: "opd-1", x: 1, y: 2, width: 135, height: 60, modoTamano: "manual" },
+    }, entidades);
+
+    expect(resultado.ok).toBe(true);
+    if (!resultado.ok) return;
+    expect(resultado.value["a-1"]?.modoTamano).toBe("manual");
+    expect(validarModoTamano("a-1", "gigante").ok).toBe(false);
+    expect(validarModoTamano("a-1", undefined).ok).toBe(true);
   });
 
   test("acepta vertices validos", () => {

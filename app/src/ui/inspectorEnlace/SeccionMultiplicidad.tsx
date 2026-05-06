@@ -1,6 +1,6 @@
 import { etiquetaEnlaceNormalizada, validarEtiquetaEnlace } from "../../modelo/etiquetasEnlace";
 import { validarMultiplicidad } from "../../modelo/operaciones";
-import type { Enlace, Modificador } from "../../modelo/tipos";
+import type { Enlace, Modificador, SubtipoModificador } from "../../modelo/tipos";
 import { inspectorStyles as style } from "../inspectorStyles";
 
 interface Props {
@@ -11,6 +11,7 @@ interface Props {
   demora: string;
   onMultiplicidad: (lado: "origen" | "destino", value: string) => void;
   onModificador: (value: string) => void;
+  onSubtipoModificador: (value: SubtipoModificador) => void;
   onProbabilidad: (value: string) => void;
   onDemora: (value: string) => void;
 }
@@ -25,6 +26,8 @@ export function SeccionMultiplicidad(props: Props) {
   const errorOrigen = props.multiplicidadOrigen !== "" && !validarMultiplicidad(props.multiplicidadOrigen);
   const errorDestino = props.multiplicidadDestino !== "" && !validarMultiplicidad(props.multiplicidadDestino);
   const errorProbabilidad = props.probabilidad !== "" && !probabilidadValida(props.probabilidad);
+  const modificadorActual = props.enlace.modificador;
+  const subtipoActual = modificadorActual ? props.enlace.subtipoModificador ?? subtipoDefault(modificadorActual) : undefined;
   return (
     <>
       <section style={sectionStyle}>
@@ -44,6 +47,25 @@ export function SeccionMultiplicidad(props: Props) {
               {props.enlace.tipo !== "invocacion" ? <option value="no">NO</option> : null}
             </select>
           </label>
+          {modificadorActual ? (
+            <div style={style.field}>
+              <span style={style.label}>Subtipo</span>
+              <div role="group" aria-label="Subtipo modificador" style={subtipoGroupStyle}>
+                {subtiposPermitidos(modificadorActual).map((subtipo) => (
+                  <button
+                    key={subtipo}
+                    type="button"
+                    data-testid={`subtipo-modificador-${subtipo}`}
+                    aria-pressed={subtipoActual === subtipo}
+                    style={subtipoActual === subtipo ? subtipoActivoStyle : subtipoButtonStyle}
+                    onClick={() => props.onSubtipoModificador(subtipo)}
+                  >
+                    {subtipo === "no" ? "¬" : subtipo}
+                  </button>
+                ))}
+              </div>
+            </div>
+          ) : null}
           {props.enlace.modificador === "evento" ? (
             <label style={style.field}>
               <span style={style.label}>Probabilidad</span>
@@ -97,8 +119,23 @@ export function probabilidadValida(value: string): boolean {
   return Number.isFinite(numero) && numero >= 0 && numero <= 1;
 }
 
+function subtiposPermitidos(modificador: Modificador): SubtipoModificador[] {
+  if (modificador === "condicion") return ["C"];
+  if (modificador === "evento") return ["E"];
+  return ["no"];
+}
+
+function subtipoDefault(modificador: Modificador): SubtipoModificador {
+  if (modificador === "condicion") return "C";
+  if (modificador === "evento") return "E";
+  return "no";
+}
+
 const sectionStyle = { display: "grid", gap: "2px", marginBottom: "14px" } satisfies preact.JSX.CSSProperties;
 const cardStyle = { display: "grid", gap: "8px", marginBottom: "14px", padding: "8px", background: "#ffffff", border: "1px solid #e5e7eb", borderRadius: "6px" } satisfies preact.JSX.CSSProperties;
 const titleStyle = { margin: "0 0 8px", color: "#1f2937", fontSize: "13px", fontWeight: 700 } satisfies preact.JSX.CSSProperties;
+const subtipoGroupStyle = { display: "flex", gap: "6px" } satisfies preact.JSX.CSSProperties;
+const subtipoButtonStyle = { minWidth: "32px", height: "28px", border: "1px solid #c8d2df", borderRadius: "6px", background: "#ffffff", color: "#344054", fontFamily: "Arial", fontSize: "13px", fontWeight: 700, cursor: "pointer" } satisfies preact.JSX.CSSProperties;
+const subtipoActivoStyle = { ...subtipoButtonStyle, borderColor: "#586D8C", background: "#e7f6ff", color: "#1f2937" } satisfies preact.JSX.CSSProperties;
 const inputErrorStyle = { ...style.input, borderColor: "#d92d20", outlineColor: "#d92d20" } satisfies preact.JSX.CSSProperties;
 const errorStyle = { color: "#b42318", fontSize: "12px", fontWeight: 600 } satisfies preact.JSX.CSSProperties;

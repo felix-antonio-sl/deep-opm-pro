@@ -1,4 +1,5 @@
 import { entidadIdDeExtremo, extremoApuntaAEntidad } from "../../modelo/extremos";
+import { agruparSubprocesosParalelos } from "../../modelo/operaciones/refinamiento";
 import { modoPlegadoApariencia, partesDePlegado } from "../../modelo/plegado";
 import type { Apariencia, Enlace, Entidad, Id, Modelo, ModoDespliegueObjeto, Opd, TipoEnlace } from "../../modelo/tipos";
 import { crearLineaOplInteractiva, type OplLineaInteractiva, type OplReferencia, type OplTokenHint } from "../interaccion";
@@ -55,6 +56,10 @@ export function oracionDespliegue(modelo: Modelo, entidad: Entidad, opdHijo: Opd
   if (modo === "exhibicion") return `${nombreOpl(entidad)} exhibe ${destino}.`;
   if (modo === "generalizacion") return `${destino} ${internos.length === 1 ? "es un" : "son"} ${nombreOpl(entidad)}.`;
   return `${destino} ${internos.length === 1 ? "es una instancia" : "son instancias"} de ${nombreOpl(entidad)}.`;
+}
+
+export function oracionParalelo(grupoSubprocesos: Entidad[]): string {
+  return `${listarOpl(grupoSubprocesos.map((entidad) => nombreOpl(entidad)))} ocurren en paralelo.`;
 }
 
 export function modoDespliegue(modelo: Modelo, entidad: Entidad, opdHijo: Opd): ModoDespliegueObjeto {
@@ -184,21 +189,17 @@ export function verboDespliegue(modo: ModoDespliegueObjeto): string | null {
 }
 
 function describirProcesosTemporales(modelo: Modelo, apariencias: Apariencia[]): { texto: string; tieneParalelos: boolean; tieneSecuencia: boolean } {
-  const grupos: Array<{ y: number; items: string[] }> = [];
-  for (const apariencia of apariencias) {
-    const entidad = modelo.entidades[apariencia.entidadId];
-    if (!entidad) continue;
-    const ultimoGrupo = grupos[grupos.length - 1];
-    if (ultimoGrupo && apariencia.y === ultimoGrupo.y) {
-      ultimoGrupo.items.push(nombreOpl(entidad));
-    } else {
-      grupos.push({ y: apariencia.y, items: [nombreOpl(entidad)] });
-    }
-  }
+  const grupos = agruparSubprocesosParalelos(apariencias)
+    .map((grupo) => grupo
+      .flatMap((apariencia) => {
+        const entidad = modelo.entidades[apariencia.entidadId];
+        return entidad ? [nombreOpl(entidad)] : [];
+      }))
+    .filter((grupo) => grupo.length > 0);
 
   return {
-    texto: listarSecuenciaTemporal(grupos.map((grupo) => grupo.items.length > 1 ? `${listarOpl(grupo.items)} en paralelo` : grupo.items[0] ?? "")),
-    tieneParalelos: grupos.some((grupo) => grupo.items.length > 1),
+    texto: listarSecuenciaTemporal(grupos.map((grupo) => grupo.length > 1 ? `paralelo ${listarOpl(grupo)}` : grupo[0] ?? "")),
+    tieneParalelos: grupos.some((grupo) => grupo.length > 1),
     tieneSecuencia: grupos.length > 1,
   };
 }

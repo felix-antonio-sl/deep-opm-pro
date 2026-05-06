@@ -25,7 +25,7 @@ export function PanelOpl() {
   const abrirInspectorEnlaceDesdeOpl = useOpmStore((s) => s.abrirInspectorEnlaceDesdeOpl);
   const fijarFiltroOplPorSeleccion = useOpmStore((s) => s.fijarFiltroOplPorSeleccion);
   const fijarHoverOpl = useOpmStore((s) => s.fijarHoverOpl);
-  const fijarBusquedaOpl = useOpmStore((s) => s.fijarBusquedaOpl);
+  const buscarEnPanelOpl = useOpmStore((s) => s.buscarEnPanelOpl);
   const copiarOplActualAlPortapapeles = useOpmStore((s) => s.copiarOplActualAlPortapapeles);
   const exportarOplActualHtml = useOpmStore((s) => s.exportarOplActualHtml);
   const [edicion, setEdicion] = useState<EdicionOpl | null>(null);
@@ -58,20 +58,21 @@ export function PanelOpl() {
   }
 
   return (
-    <aside style={style.panel} aria-label="Panel OPL-ES">
+    <aside style={style.panel} aria-label="Panel OPL-ES" data-atajos-contexto="panel-opl">
       <div style={style.toolbar}>
         <input
+          data-testid="panel-opl-buscar"
           type="text"
           placeholder="Buscar en OPL..."
           value={busquedaOpl}
           aria-label="Buscar texto en OPL"
           style={style.searchInput}
-          onInput={(event) => fijarBusquedaOpl((event.currentTarget as HTMLInputElement).value)}
+          onInput={(event) => buscarEnPanelOpl((event.currentTarget as HTMLInputElement).value)}
         />
-        <button style={botonToolbar(lineas.length === 0)} disabled={lineas.length === 0} title="Copiar todo el OPL al portapapeles" onClick={() => copiarOplActualAlPortapapeles()}>
+        <button data-testid="panel-opl-copiar" style={botonToolbar(lineas.length === 0)} disabled={lineas.length === 0} title="Copiar todo el OPL al portapapeles" onClick={() => copiarOplActualAlPortapapeles()}>
           Copiar OPL
         </button>
-        <button style={botonToolbar(lineas.length === 0)} disabled={lineas.length === 0} title="Exportar OPL como archivo HTML" onClick={() => exportarOplActualHtml()}>
+        <button data-testid="panel-opl-exportar-html" style={botonToolbar(lineas.length === 0)} disabled={lineas.length === 0} title="Exportar OPL como archivo HTML" onClick={() => exportarOplActualHtml()}>
           Exportar HTML
         </button>
         <button style={botonToolbar(bloques.length === 0)} disabled={bloques.length === 0} title="Expandir todos los bloques OPD" onClick={() => setBloquesColapsados(new Set())}>
@@ -91,7 +92,7 @@ export function PanelOpl() {
       </div>
 
       {visibles.length === 0 ? (
-        <span style={style.empty}>{lineas.length === 0 ? "Sin OPL todavía." : "Sin oraciones para la selección."}</span>
+        <span style={style.empty}>{lineas.length === 0 ? "Sin OPL todavía." : query ? "Sin resultados para la búsqueda." : "Sin oraciones para la selección."}</span>
       ) : (
         <Bloques
           bloques={bloques}

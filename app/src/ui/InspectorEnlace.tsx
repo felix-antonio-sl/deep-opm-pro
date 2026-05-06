@@ -12,6 +12,7 @@ import { SeccionExtremos } from "./inspectorEnlace/SeccionExtremos";
 import { SeccionEtiquetaEnlace, SeccionMultiplicidad, probabilidadValida } from "./inspectorEnlace/SeccionMultiplicidad";
 import { SeccionReanclaje, contextoReanclaje } from "./inspectorEnlace/SeccionReanclaje";
 import { SeccionRuta } from "./inspectorEnlace/SeccionRuta";
+import { DialogoMoverPuerto } from "./DialogoMoverPuerto";
 
 interface Props {
   enlace: Enlace;
@@ -33,9 +34,11 @@ export function InspectorEnlace({ enlace }: Props) {
   const quitarRamaDeAbanico = useOpmStore((s) => s.quitarRamaDeAbanicoSeleccionado);
   const disolverAbanico = useOpmStore((s) => s.disolverAbanicoSeleccionado);
   const aplicarModificador = useOpmStore((s) => s.aplicarModificadorEnlaceSeleccionado);
+  const aplicarSubtipoModificador = useOpmStore((s) => s.aplicarSubtipoModificadorEnlaceSeleccionado);
   const quitarModificador = useOpmStore((s) => s.quitarModificadorEnlaceSeleccionado);
   const definirProbabilidadEvento = useOpmStore((s) => s.definirProbabilidadEventoSeleccionada);
   const definirDemoraInvocacion = useOpmStore((s) => s.definirDemoraInvocacionSeleccionada);
+  const moverPuerto = useOpmStore((s) => s.moverPuertoEnlaceSeleccionado);
   const renombrarEtiquetaEnlace = useOpmStore((s) => s.renombrarEtiquetaEnlaceSeleccionado);
   const definirRutaEtiqueta = useOpmStore((s) => s.definirRutaEtiquetaSeleccionada);
   const eliminar = useOpmStore((s) => s.eliminarSeleccion);
@@ -57,6 +60,7 @@ export function InspectorEnlace({ enlace }: Props) {
   const [etiqueta, setEtiqueta] = useState(enlace.etiqueta);
   const [rutaEtiqueta, setRutaEtiqueta] = useState(enlace.rutaEtiqueta ?? "");
   const [endpointSeleccionado, setEndpointSeleccionado] = useState(endpointActual);
+  const [dialogoMoverPuertoAbierto, setDialogoMoverPuertoAbierto] = useState(false);
 
   useEffect(() => {
     setMultiplicidadOrigen(enlace.multiplicidadOrigen ?? "");
@@ -135,10 +139,26 @@ export function InspectorEnlace({ enlace }: Props) {
         demora={demora}
         onMultiplicidad={cambiarMultiplicidad}
         onModificador={cambiarModificador}
+        onSubtipoModificador={aplicarSubtipoModificador}
         onProbabilidad={cambiarProbabilidad}
         onDemora={cambiarDemora}
       />
-      <SeccionExtremos modelo={modelo} enlace={enlace} onApuntarExtremo={apuntarExtremo} />
+      <SeccionExtremos modelo={modelo} enlace={enlace} onApuntarExtremo={apuntarExtremo} onAbrirMoverPuerto={() => setDialogoMoverPuertoAbierto(true)} />
+      <DialogoMoverPuerto
+        open={dialogoMoverPuertoAbierto}
+        modelo={modelo}
+        opdId={opdActivoId}
+        enlace={enlace}
+        onCancel={() => setDialogoMoverPuertoAbierto(false)}
+        onMover={(lado, extremo) => {
+          moverPuerto(lado, extremo);
+          setDialogoMoverPuertoAbierto(false);
+        }}
+        onRemover={() => {
+          moverPuerto("destino", enlace.destinoId, true);
+          setDialogoMoverPuertoAbierto(false);
+        }}
+      />
       <SeccionRuta modelo={modelo} enlace={enlace} rutaEtiqueta={rutaEtiqueta} onRutaEtiqueta={cambiarRutaEtiqueta} />
       <SeccionReanclaje
         modelo={modelo}

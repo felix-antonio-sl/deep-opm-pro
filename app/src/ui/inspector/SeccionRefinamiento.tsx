@@ -1,5 +1,7 @@
+import { useEffect, useState } from "preact/hooks";
 import type { FilaPlegadoParcial } from "../../modelo/plegado";
-import type { Entidad, ModoDespliegueObjeto, OrdenPartesPlegado } from "../../modelo/tipos";
+import type { Enlace, Entidad, Id, Modelo, ModoDespliegueObjeto, OrdenPartesPlegado } from "../../modelo/tipos";
+import { contextoReanclaje, type ContextoReanclaje } from "../inspectorEnlace/SeccionReanclaje";
 import { inspectorStyles as style } from "../inspectorStyles";
 
 export const OPCIONES_DESPLIEGUE_OBJETO: Array<{ modo: ModoDespliegueObjeto; label: string }> = [
@@ -18,14 +20,17 @@ interface Props {
   filasParciales: FilaPlegadoParcial[];
   padreAparienciaId?: string | undefined;
   parteExtraidaDe?: unknown | undefined;
+  modelo: Modelo;
   onDescomponer: () => void;
   onDesplegar: (modo?: ModoDespliegueObjeto) => void;
   onQuitarDescomposicion: () => void;
   onQuitarDespliegue: () => void;
+  onReasignarEnlaceExterno: (opdId: Id, aparienciaEnlaceId: Id, nuevoSubprocesoId: Id) => void;
   onCrearAutoInvocacion: () => void;
   onCambiarModoPlegado: () => void;
   onCambiarOrdenPartes: (orden: OrdenPartesPlegado) => void;
   onExtraer: (padreAparienciaId: string, parteEntidadId: string) => void;
+  onExtraerTodas: () => void;
   onReinsertarParte: () => void;
 }
 
@@ -49,7 +54,7 @@ export function SeccionRefinamiento(props: Props) {
         </>
       ) : null}
       {props.parteExtraidaDe ? <button type="button" style={style.secondaryButton} onClick={props.onReinsertarParte} title="Reinsertar esta parte en la lista compacta del padre">Reinsertar al padre</button> : null}
-      {props.padreAparienciaId && props.filasParciales.length > 0 ? <PartesCompactas filas={props.filasParciales} padreAparienciaId={props.padreAparienciaId} onExtraer={props.onExtraer} /> : null}
+      {props.padreAparienciaId && props.filasParciales.length > 0 ? <PartesCompactas filas={props.filasParciales} padreAparienciaId={props.padreAparienciaId} onExtraer={props.onExtraer} onExtraerTodas={props.onExtraerTodas} /> : null}
     </>
   );
 }
@@ -61,10 +66,63 @@ function RefinamientoProceso(props: Props) {
         {props.entidad.refinamiento?.tipo === "descomposicion" ? "Abrir descomposición" : "Descomponer"}
       </button>
       {props.entidad.refinamiento?.tipo === "descomposicion" ? <button type="button" style={style.secondaryButton} onClick={props.onQuitarDescomposicion} title="Eliminar el OPD hijo de descomposición">Quitar descomposición</button> : null}
+      {props.entidad.refinamiento?.tipo === "descomposicion" ? <ReasignacionExternos modelo={props.modelo} entidad={props.entidad} onReasignar={props.onReasignarEnlaceExterno} /> : null}
       <button type="button" style={props.autoInvocacion ? style.secondaryButton : style.primaryButton} onClick={props.onCrearAutoInvocacion} disabled={!!props.autoInvocacion} title={props.autoInvocacion ? "El proceso ya tiene auto-invocación en este OPD" : "Crear auto-invocación con demora de 1s"}>
         {props.autoInvocacion ? "Auto-invocación existente" : "Auto-invocación"}
       </button>
     </>
+  );
+}
+
+function ReasignacionExternos(props: { modelo: Modelo; entidad: Entidad; onReasignar: (opdId: Id, aparienciaEnlaceId: Id, nuevoSubprocesoId: Id) => void }) {
+  const opdId = props.entidad.refinamiento?.opdId;
+  const opd = opdId ? props.modelo.opds[opdId] : undefined;
+  if (!opdId || !opd) return null;
+  const rows = Object.values(opd.enlaces)
+    .flatMap((aparienciaEnlace) => {
+      const enlace = props.modelo.enlaces[aparienciaEnlace.enlaceId];
+      if (enlace?.derivado?.tipo !== "enlace-externo-refinamiento" || enlace.derivado.refinamientoId !== props.entidad.id) return [];
+      const reanclaje = contextoReanclaje(props.modelo, opdId, enlace);
+      return reanclaje ? [{ enlace, reanclaje }] : [];
+    });
+  if (rows.length === 0) return null;
+
+  return (
+    <section style={reassignStyles.section} aria-label="Enlaces externos derivados">
+      <span style={style.label}>Enlaces externos derivados</span>
+      {rows.map((row) => (
+        <ReasignacionExternoRow
+          key={row.reanclaje.aparienciaEnlaceId}
+          opdId={opdId}
+          enlace={row.enlace}
+          reanclaje={row.reanclaje}
+          onReasignar={props.onReasignar}
+        />
+      ))}
+    </section>
+  );
+}
+
+function ReasignacionExternoRow(props: { opdId: Id; enlace: Enlace; reanclaje: ContextoReanclaje; onReasignar: (opdId: Id, aparienciaEnlaceId: Id, nuevoSubprocesoId: Id) => void }) {
+  const [seleccionado, setSeleccionado] = useState(props.reanclaje.endpointActualId);
+  useEffect(() => setSeleccionado(props.reanclaje.endpointActualId), [props.reanclaje.endpointActualId]);
+
+  return (
+    <div style={reassignStyles.row}>
+      <div style={reassignStyles.summary}>
+        <span style={reassignStyles.kind}>{props.enlace.tipo}</span>
+        <span style={reassignStyles.badge}>{props.enlace.derivado?.origen === "manual" ? "manual" : "automático"}</span>
+      </div>
+      <label style={style.field}>
+        <span style={style.label}>Reasignar a subproceso</span>
+        <select data-testid={`refinamiento-reasignar-${props.reanclaje.aparienciaEnlaceId}`} style={style.input} value={seleccionado} onChange={(event) => setSeleccionado(event.currentTarget.value)}>
+          {props.reanclaje.subprocesos.map((subproceso, index) => <option key={subproceso.id} value={subproceso.id}>{subproceso.nombre} ({index + 1})</option>)}
+        </select>
+      </label>
+      <button type="button" style={style.secondaryButton} disabled={!seleccionado || (seleccionado === props.reanclaje.endpointActualId && props.enlace.derivado?.origen === "manual")} onClick={() => props.onReasignar(props.opdId, props.reanclaje.aparienciaEnlaceId, seleccionado)}>
+        Reasignar
+      </button>
+    </div>
   );
 }
 
@@ -92,10 +150,22 @@ function DesplegarComo(props: { onSelect: (modo: ModoDespliegueObjeto) => void }
   );
 }
 
-function PartesCompactas(props: { filas: FilaPlegadoParcial[]; padreAparienciaId: string; onExtraer: (padreAparienciaId: string, parteEntidadId: string) => void }) {
+function PartesCompactas(props: { filas: FilaPlegadoParcial[]; padreAparienciaId: string; onExtraer: (padreAparienciaId: string, parteEntidadId: string) => void; onExtraerTodas: () => void }) {
+  const tienePendientes = props.filas.some((fila) => fila.tipo === "parte" && !fila.extraida);
   return (
     <section style={partialStyles.section} aria-label="Partes plegadas">
-      <span style={style.label}>Partes</span>
+      <div style={partialStyles.header}>
+        <span style={style.label}>Partes</span>
+        <button
+          type="button"
+          data-testid="extraer-todas-partes-btn"
+          style={tienePendientes ? partialStyles.button : partialStyles.buttonDisabled}
+          disabled={!tienePendientes}
+          onClick={props.onExtraerTodas}
+        >
+          Extraer todas
+        </button>
+      </div>
       <div style={partialStyles.list}>
         {props.filas.map((fila, index) => fila.tipo === "contador" ? (
           <div key={`contador-${index}`} style={partialStyles.counter}>{fila.texto}</div>
@@ -114,6 +184,7 @@ function PartesCompactas(props: { filas: FilaPlegadoParcial[]; padreAparienciaId
 
 const partialStyles = {
   section: { display: "grid", gap: "8px", marginBottom: "14px", paddingTop: "2px" },
+  header: { display: "grid", gridTemplateColumns: "minmax(0, 1fr) auto", alignItems: "center", gap: "8px" },
   list: { display: "grid", gap: "6px" },
   row: { display: "grid", gridTemplateColumns: "minmax(0, 1fr) auto", alignItems: "center", gap: "8px", padding: "8px", border: "1px solid #d9e0ea", borderRadius: "4px", background: "#ffffff" },
   name: { minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: "#1f2937", fontSize: "12px", fontWeight: 700 },
@@ -121,4 +192,12 @@ const partialStyles = {
   counter: { padding: "8px", color: "#667085", fontSize: "12px", fontStyle: "italic" },
   button: { minHeight: "28px", padding: "0 8px", border: "1px solid #c8d2df", borderRadius: "4px", background: "#f9fbfd", color: "#475467", cursor: "pointer", fontSize: "12px", fontWeight: 700 },
   buttonDisabled: { minHeight: "28px", padding: "0 8px", border: "1px solid #d9e0ea", borderRadius: "4px", background: "#f3f4f6", color: "#98a2b3", cursor: "not-allowed", fontSize: "12px", fontWeight: 700 },
+} satisfies Record<string, preact.JSX.CSSProperties>;
+
+const reassignStyles = {
+  section: { display: "grid", gap: "8px", margin: "4px 0 14px" },
+  row: { display: "grid", gap: "8px", padding: "8px", border: "1px solid #d9e0ea", borderRadius: "4px", background: "#ffffff" },
+  summary: { display: "flex", justifyContent: "space-between", gap: "8px", alignItems: "center" },
+  kind: { color: "#1f2937", fontSize: "12px", fontWeight: 700 },
+  badge: { color: "#667085", fontSize: "11px", fontWeight: 700 },
 } satisfies Record<string, preact.JSX.CSSProperties>;

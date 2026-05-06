@@ -1,6 +1,6 @@
 import { entidadDeExtremo, entidadIdDeExtremo, extremoEntidad, normalizarExtremo } from "../modelo/extremos";
 import { esColorEstilo } from "../modelo/estilos";
-import { esModificador, validarMetadatosEnlace } from "../modelo/modificadores";
+import { esModificador, esSubtipoModificador, validarMetadatosEnlace } from "../modelo/modificadores";
 import { validarFirmaEnlace, validarMultiplicidad } from "../modelo/operaciones";
 import { rutaEtiquetaNormalizada } from "../modelo/rutas";
 import type {
@@ -69,6 +69,10 @@ export function validarEnlaces(
     if (raw.modificador !== undefined && !esModificador(raw.modificador)) {
       return fallo(`Enlace inválido: ${id}.modificador`);
     }
+    if (raw.subtipoModificador !== undefined && !esSubtipoModificador(raw.subtipoModificador)) {
+      return fallo(`Enlace inválido: ${id}.subtipoModificador`);
+    }
+    const subtipoModificador = raw.subtipoModificador;
     if (raw.probabilidad !== undefined && !esNumeroFinito(raw.probabilidad)) {
       return fallo(`Enlace inválido: ${id}.probabilidad`);
     }
@@ -89,6 +93,7 @@ export function validarEnlaces(
       ...(multiplicidadDestino.value ? { multiplicidadDestino: multiplicidadDestino.value } : {}),
       ...(estilo.value ? { estilo: estilo.value } : {}),
       ...(raw.modificador ? { modificador: raw.modificador } : {}),
+      ...(subtipoModificador ? { subtipoModificador } : {}),
       ...(raw.probabilidad !== undefined ? { probabilidad: raw.probabilidad } : {}),
       ...(raw.demora ? { demora: raw.demora } : {}),
       ...(rutaEtiqueta.value ? { rutaEtiqueta: rutaEtiqueta.value } : {}),

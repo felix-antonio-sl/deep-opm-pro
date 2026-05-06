@@ -23,6 +23,7 @@ const DialogoGuardarComo = lazy(() => import("./DialogoGuardarComo").then((m) =>
 const DialogoVersiones = lazy(() => import("./DialogoVersiones").then((m) => ({ default: m.DialogoVersiones })));
 const MapaSistema = lazy(() => import("./MapaSistema").then((m) => ({ default: m.MapaSistema })));
 const ModalDuracionEstado = lazy(() => import("./ModalDuracionEstado").then((m) => ({ default: m.ModalDuracionEstado })));
+const ModalImagenObjeto = lazy(() => import("./ModalImagenObjeto").then((m) => ({ default: m.ModalImagenObjeto })));
 const ModalUrlsObjeto = lazy(() => import("./ModalUrlsObjeto").then((m) => ({ default: m.ModalUrlsObjeto })));
 
 export function App() {
@@ -36,6 +37,7 @@ export function App() {
   const dialogoVersionesAbierto = useOpmStore((s) => s.dialogoVersionesAbierto !== null);
   const dialogoArchivadosAbierto = useOpmStore((s) => s.dialogoArchivadosAbierto);
   const modalUrlsAbierto = useOpmStore((s) => s.modalUrlsAbierto !== null);
+  const modalImagenAbierto = useOpmStore((s) => s.modalImagenAbierto !== null);
   const modalDuracionAbierto = useOpmStore((s) => s.modalDuracionAbierto !== null);
   const cheatsheetAtajosAbierto = useOpmStore((s) => s.cheatsheetAtajosAbierto);
   const cerrarCheatsheetAtajos = useOpmStore((s) => s.cerrarCheatsheetAtajos);
@@ -90,6 +92,7 @@ export function App() {
         {dialogoArchivadosAbierto ? <Suspense fallback={null}><DialogoArchivados /></Suspense> : null}
         <GestionArbolOpd />
         {asistenteAbierto ? <Suspense fallback={null}><AsistenteNuevoModelo /></Suspense> : null}
+        {modalImagenAbierto ? <Suspense fallback={null}><ModalImagenObjeto /></Suspense> : null}
         {modalUrlsAbierto ? <Suspense fallback={null}><ModalUrlsObjeto /></Suspense> : null}
         {modalDuracionAbierto ? <Suspense fallback={null}><ModalDuracionEstado /></Suspense> : null}
         {cheatsheetAtajosAbierto ? (
@@ -113,6 +116,7 @@ function registrarAtajosAplicacion(): Array<() => void> {
     if (state.dialogoBuscarGlobalAbierto) return state.cerrarDialogoBuscarGlobal();
     if (state.dialogoVersionesAbierto) return state.cerrarDialogoVersiones();
     if (state.dialogoArchivadosAbierto) return state.cerrarDialogoArchivados();
+    if (state.modalImagenAbierto) return state.cerrarModalImagen();
     if (state.modalUrlsAbierto) return state.cerrarModalUrls();
     if (state.modalDuracionAbierto) return state.cerrarModalDuracion();
     if (state.busquedaCosasAbierta) return state.cerrarBusquedaCosas();

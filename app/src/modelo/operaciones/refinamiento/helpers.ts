@@ -83,6 +83,34 @@ export function subprocesosOrdenadosDeRefinamiento(modelo: Modelo, opd: Opd, pro
     .sort((a, b) => compararOrdenTemporal(a, b));
 }
 
+/**
+ * Agrupa subprocesos cuya altura superior difiere dentro de la tolerancia OPM
+ * de in-zooming. La linea temporal fluye de arriba hacia abajo; alturas
+ * equivalentes representan invocacion implicita paralela.
+ *
+ * Refs: opm-iso-19450-es.md:708, opm-opl-es.md:453-454.
+ */
+export function agruparSubprocesosParalelos(
+  subprocesos: Apariencia[],
+  toleranciaY = 4,
+): Apariencia[][] {
+  const ordenados = [...subprocesos].sort((a, b) => compararOrdenTemporal(a, b));
+  const grupos: Apariencia[][] = [];
+
+  for (const apariencia of ordenados) {
+    const ultimo = grupos[grupos.length - 1];
+    const referenciaY = ultimo?.[0]?.y;
+    if (ultimo && referenciaY !== undefined && Math.abs(apariencia.y - referenciaY) <= toleranciaY) {
+      ultimo.push(apariencia);
+      ultimo.sort((a, b) => a.x - b.x || a.id.localeCompare(b.id));
+      continue;
+    }
+    grupos.push([apariencia]);
+  }
+
+  return grupos;
+}
+
 export function procesoDescompuestoEnOpd(modelo: Modelo, opd: Opd): { entidad: Entidad; apariencia: Apariencia } | null {
   for (const apariencia of Object.values(opd.apariencias)) {
     const entidad = modelo.entidades[apariencia.entidadId];

@@ -120,7 +120,7 @@ test("sincroniza OPL interactivo con canvas y renombrado inverso", async ({ page
 
   await elementoPorTexto(page, "Entrada").click();
   await page.getByLabel("Tipo de enlace").selectOption("consumo");
-  await elementoPorTexto(page, "Procesar").click();
+  await clickCabeceraElemento(page, "Procesar");
 
   const panel = page.getByLabel("Panel OPL-ES");
   await expect(panel.locator('[data-testid="opl-line"]')).toHaveCount(3);
@@ -207,6 +207,9 @@ test("pestanas de sesion mantienen modelos independientes", async ({ page }) => 
   await expect(page.locator(".joint-element")).toHaveCount(1);
 
   await page.getByRole("tab").nth(1).click();
+  const dialogo = page.getByRole("dialog", { name: "Hay cambios sin guardar" });
+  await expect(dialogo).toBeVisible();
+  await dialogo.getByRole("button", { name: "Descartar" }).click();
   await expect(page.locator(".joint-element")).toHaveCount(0);
   await page.getByTestId(/^cerrar-pestana-/).nth(1).click();
   await expect(page.getByRole("tab")).toHaveCount(1);
@@ -290,12 +293,69 @@ test("renderiza modificadores evento/condicion y demora de invocacion", async ({
   await expect(page.locator(".joint-link")).toHaveCount(3);
   await expect(svgText(page, "E")).toBeVisible();
   await expect(svgText(page, "70%")).toBeVisible();
-  await expect(svgText(page, "c")).toBeVisible();
+  await expect(svgText(page, "C")).toBeVisible();
   await expect(svgText(page, "1s")).toBeVisible();
-  await expect(page.getByText("Orden inicia Aprobar, que consume Orden (probabilidad 0.7).")).toBeVisible();
+  await expect(page.getByText("Orden inicia Aprobar, que consume Orden (probabilidad: 70%).")).toBeVisible();
   await expect(page.getByText("Aprobar invoca Validar despues de 1s.")).toBeVisible();
 
   await page.screenshot({ path: "test-results/opm-modificadores-enlace.png", fullPage: true });
+  expect(pageErrors).toEqual([]);
+});
+
+test("aplica subtipo NO desde inspector y emite badge negado", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await jsonEditor(page).fill(JSON.stringify(modeloNoModificador(), null, 2));
+  await page.getByRole("button", { name: "Importar" }).click();
+
+  await clickLinkPorTipo(page, "Consumo");
+  await page.getByTestId("modificador-enlace-select").selectOption("no");
+
+  await expect(svgText(page, "¬")).toBeVisible();
+  await expect(page.getByText("Aprobar no consume Orden.")).toBeVisible();
+
+  await page.getByRole("button", { name: "Exportar", exact: true }).click();
+  const exportado = JSON.parse(await jsonEditor(page).inputValue()) as ExportadoModelo;
+  const enlace = Object.values(exportado.modelo.enlaces)[0];
+  expect(enlace?.modificador).toBe("no");
+  expect(enlace?.subtipoModificador).toBe("no");
+  expect(pageErrors).toEqual([]);
+});
+
+test("mover puerto desde dialogo cambia extremo destino del enlace", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await jsonEditor(page).fill(JSON.stringify(modeloMoverPuerto(), null, 2));
+  await page.getByRole("button", { name: "Importar" }).click();
+
+  await clickLinkPorTipo(page, "Consumo");
+  await page.getByTestId("mover-puerto-btn").click();
+  const dialogo = page.getByRole("dialog", { name: "Mover Puerto" });
+  await expect(dialogo).toBeVisible();
+  await dialogo.getByTestId("mover-puerto-extremo-select").selectOption("entidad:p-validar");
+  await page.getByRole("dialog", { name: "Mover Puerto" }).getByRole("button", { name: "Mover", exact: true }).click();
+
+  await expect(page.getByText("Puerto movido")).toBeVisible();
+  await page.getByRole("button", { name: "Exportar", exact: true }).click();
+  const exportado = JSON.parse(await jsonEditor(page).inputValue()) as ExportadoModelo;
+  expect(Object.values(exportado.modelo.enlaces)[0]?.destinoId).toEqual({ kind: "entidad", id: "p-validar" });
+  expect(pageErrors).toEqual([]);
+});
+
+test("dos consumos al mismo objeto emiten advertencia", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await jsonEditor(page).fill(JSON.stringify(modeloConsumoDuplicado(), null, 2));
+  await page.getByRole("button", { name: "Importar" }).click();
+
+  await expect(page.getByTestId("panel-avisos")).toContainText("consumo-doble-mismo-objeto");
+  await expect(page.getByTestId("panel-avisos")).toContainText("Procesar consume Entrada más de una vez");
   expect(pageErrors).toEqual([]);
 });
 
@@ -658,7 +718,7 @@ test("redistribuye consumo al primer subproceso y resultado al ultimo", async ({
 
   await elementoPorTexto(page, "Entrada").click();
   await page.getByLabel("Tipo de enlace").selectOption("consumo");
-  await elementoPorTexto(page, "Procesar").click();
+  await clickCabeceraElemento(page, "Procesar");
   await elementoPorTexto(page, "Procesar").click();
   await page.getByLabel("Tipo de enlace").selectOption("resultado");
   await elementoPorTexto(page, "Salida").click();
@@ -744,6 +804,79 @@ test("reancla consumo derivado y conserva el ancla manual al reordenar", async (
   }));
 
   await page.screenshot({ path: "test-results/opm-reanclaje-manual.png", fullPage: true });
+  expect(pageErrors).toEqual([]);
+});
+
+test("L3 descomposicion avanzada: inspector reasigna, inline renombra, paralelo y ambiental clamp", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await page.getByRole("button", { name: "Objeto", exact: true }).click();
+  await page.getByLabel("Nombre").fill("Entrada");
+  await page.getByRole("button", { name: "Proceso", exact: true }).click();
+  await page.getByLabel("Nombre").fill("Procesar");
+  await elementoPorTexto(page, "Entrada").click();
+  await page.getByLabel("Tipo de enlace").selectOption("consumo");
+  await elementoPorTexto(page, "Procesar").click();
+  await elementoPorTexto(page, "Procesar").click();
+  await page.getByRole("button", { name: "Descomponer" }).click();
+  await expect(page.locator('[role="treeitem"]').filter({ hasText: "SD1: Procesar descompuesto" })).toHaveAttribute("aria-current", "page");
+
+  await clickCabeceraElemento(page, "Procesar");
+  await expect(page.getByText("Enlaces externos derivados")).toBeVisible();
+  await page.getByTestId(/refinamiento-reasignar-/).selectOption({ label: "Procesar 2 (2)" });
+  await page.getByRole("button", { name: "Reasignar" }).click();
+
+  const proceso2ParaRename = await elementoPorTexto(page, "Procesar 2").boundingBox();
+  if (!proceso2ParaRename) throw new Error("No se pudo ubicar Procesar 2 para renombrado");
+  await page.mouse.dblclick(proceso2ParaRename.x + proceso2ParaRename.width / 2, proceso2ParaRename.y + proceso2ParaRename.height / 2);
+  await expect(page.getByTestId("renombrado-inline")).toBeVisible();
+  await page.getByTestId("renombrado-inline").fill("Validar Entrada");
+  await page.keyboard.press("Enter");
+  await expect(elementoPorTexto(page, "Validar Entrada")).toHaveCount(1);
+  await expect(page.getByText(/Validar Entrada\s+consume\s+Entrada/)).toBeVisible();
+
+  const p1 = await elementoPorTexto(page, "Procesar 1").boundingBox();
+  const p2 = await elementoPorTexto(page, "Validar Entrada").boundingBox();
+  if (!p1 || !p2) throw new Error("No se pudo ubicar subprocesos para paralelo");
+  await page.mouse.move(p1.x + p1.width / 2, p1.y + p1.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(p1.x + p1.width / 2, p2.y + p2.height / 2, { steps: 8 });
+  await page.mouse.up();
+  await expect(page.getByText(/Procesar se descompone en paralelo/).first()).toBeVisible();
+
+  await page.getByRole("button", { name: "Objeto", exact: true }).click();
+  const contorno = await elementoPorTexto(page, "Procesar").boundingBox();
+  if (!contorno) throw new Error("No se pudo ubicar contorno para creacion ambiental");
+  await page.mouse.click(contorno.x + contorno.width - 10, contorno.y + contorno.height - 10);
+  await page.getByRole("button", { name: "Ambiental" }).click();
+
+  await page.getByRole("button", { name: "Exportar", exact: true }).click();
+  const exportado = JSON.parse(await jsonEditor(page).inputValue()) as ExportadoModelo;
+  const procesar = Object.values(exportado.modelo.entidades).find((entidad) => entidad.nombre === "Procesar");
+  const entrada = Object.values(exportado.modelo.entidades).find((entidad) => entidad.nombre === "Entrada");
+  const validado = Object.values(exportado.modelo.entidades).find((entidad) => entidad.nombre === "Validar Entrada");
+  const ambiental = Object.values(exportado.modelo.entidades).find((entidad) => entidad.nombre === "Objeto");
+  const opdHijoId = procesar?.refinamiento?.opdId;
+  if (!opdHijoId || !entrada || !validado || !ambiental) throw new Error("No se exporto modelo L3 esperado");
+  const enlaceManual = Object.values(exportado.modelo.opds[opdHijoId]?.enlaces ?? {})
+    .map((apariencia) => exportado.modelo.enlaces[apariencia.enlaceId])
+    .find((enlace) => enlace?.tipo === "consumo");
+  expect(enlaceManual).toEqual(expect.objectContaining({
+    origenId: extremoEntidad(entrada.id),
+    destinoId: extremoEntidad(validado.id),
+    derivado: expect.objectContaining({ origen: "manual" }),
+  }));
+  const aparienciasHijo = Object.values(exportado.modelo.opds[opdHijoId]?.apariencias ?? {});
+  const contornoExportado = aparienciasHijo.find((apariencia) => apariencia.entidadId === procesar.id);
+  const ambientalExportado = aparienciasHijo.find((apariencia) => apariencia.entidadId === ambiental.id);
+  if (!contornoExportado || !ambientalExportado) throw new Error("No se exporto ambiental interno");
+  expect(ambiental.afiliacion).toBe("ambiental");
+  expect(ambientalExportado.x + ambientalExportado.width).toBeLessThanOrEqual(contornoExportado.x + contornoExportado.width);
+  expect(ambientalExportado.y + ambientalExportado.height).toBeLessThanOrEqual(contornoExportado.y + contornoExportado.height);
+
+  await page.screenshot({ path: "test-results/opm-l3-descomposicion-avanzada.png", fullPage: true });
   expect(pageErrors).toEqual([]);
 });
 
@@ -896,6 +1029,214 @@ test("no abre confirmacion cuando Nuevo se ejecuta tras guardar", async ({ page 
   await page.getByRole("button", { name: "Nuevo", exact: true }).click();
   await expect(page.getByRole("dialog", { name: "Hay cambios sin guardar" })).toHaveCount(0);
   await expect(page.locator(".joint-element")).toHaveCount(0);
+
+  expect(pageErrors).toEqual([]);
+});
+
+test("dialogo cerrar con cambios dirty ofrece Guardar Descartar Cancelar en pestañas", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await page.getByTestId("nueva-pestana-btn").click();
+  await page.getByRole("button", { name: "Objeto", exact: true }).click();
+  await expect(elementoPorTexto(page, "Objeto")).toHaveCount(1);
+
+  await page.getByRole("tab").first().click();
+  const dialogo = page.getByRole("dialog", { name: "Hay cambios sin guardar" });
+  await expect(dialogo).toBeVisible();
+  await expect(page.getByTestId("dialogo-confirmacion-cerrar-dirty")).toBeVisible();
+  await expect(dialogo.getByRole("button", { name: "Guardar" })).toBeVisible();
+  await expect(dialogo.getByRole("button", { name: "Descartar" })).toBeVisible();
+  await expect(dialogo.getByRole("button", { name: "Cancelar" })).toBeVisible();
+
+  await dialogo.getByRole("button", { name: "Cancelar" }).click();
+  await expect(dialogo).toHaveCount(0);
+  await expect(elementoPorTexto(page, "Objeto")).toHaveCount(1);
+
+  await page.getByTestId(/^cerrar-pestana-/).nth(1).click();
+  await expect(dialogo).toBeVisible();
+  await dialogo.getByRole("button", { name: "Descartar" }).click();
+  await expect(dialogo).toHaveCount(0);
+  await expect(page.getByRole("tab")).toHaveCount(1);
+
+  expect(pageErrors).toEqual([]);
+});
+
+test("panel OPL busca texto y filtra lineas", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await page.getByRole("button", { name: "Objeto", exact: true }).click();
+  await page.getByLabel("Nombre").fill("Entrada");
+  await page.getByRole("button", { name: "Proceso", exact: true }).click();
+  await page.getByLabel("Nombre").fill("Procesar");
+  await elementoPorTexto(page, "Entrada").click();
+  await page.getByLabel("Tipo de enlace").selectOption("consumo");
+  await elementoPorTexto(page, "Procesar").click();
+
+  const panel = page.getByLabel("Panel OPL-ES");
+  await expect(panel.locator('[data-testid="opl-line"]')).toHaveCount(3);
+  await page.getByTestId("panel-opl-buscar").fill("consume");
+  await expect(panel.locator('[data-testid="opl-line"]')).toHaveCount(1);
+  await expect(panel.getByText(/Procesar\s+consume\s+Entrada\./)).toBeVisible();
+  await expect(panel.getByText("Entrada es un objeto")).toHaveCount(0);
+
+  expect(pageErrors).toEqual([]);
+});
+
+test("panel OPL copia y exporta HTML desde botones", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await page.evaluate(() => {
+    Object.defineProperty(navigator, "clipboard", {
+      configurable: true,
+      value: {
+        writeText: async (texto: string) => {
+          (window as Window & { __copiedOpl?: string }).__copiedOpl = texto;
+        },
+      },
+    });
+  });
+  await page.getByRole("button", { name: "Objeto", exact: true }).click();
+
+  await page.getByTestId("panel-opl-copiar").click();
+  const copiado = await page.evaluate(() => (window as Window & { __copiedOpl?: string }).__copiedOpl ?? "");
+  expect(copiado).toContain("**Objeto** es un objeto informacional y sistémico.");
+  await expect(page.getByText("OPL copiado al portapapeles")).toBeVisible();
+
+  const downloadPromise = page.waitForEvent("download");
+  await page.getByTestId("panel-opl-exportar-html").click();
+  const download = await downloadPromise;
+  expect(download.suggestedFilename()).toMatch(/Modelo-opl\.html$/);
+
+  expect(pageErrors).toEqual([]);
+});
+
+test("undo elimina entidad y restaura modelo previo", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await page.getByRole("button", { name: "Objeto", exact: true }).click();
+  await elementoPorTexto(page, "Objeto").click();
+  await page.getByRole("button", { name: "Eliminar entidad" }).click();
+  await expect(page.locator(".joint-element")).toHaveCount(0);
+
+  await page.keyboard.press("Control+Z");
+  await expect(elementoPorTexto(page, "Objeto")).toHaveCount(1);
+
+  expect(pageErrors).toEqual([]);
+});
+
+test("undo renombra entidad y restaura nombre previo", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await page.getByRole("button", { name: "Objeto", exact: true }).click();
+  await page.getByLabel("Nombre").fill("Renombrado");
+  await expect(elementoPorTexto(page, "Renombrado")).toHaveCount(1);
+
+  await page.keyboard.press("Control+Z");
+  await expect(elementoPorTexto(page, "Objeto")).toHaveCount(1);
+  await expect(elementoPorTexto(page, "Renombrado")).toHaveCount(0);
+
+  expect(pageErrors).toEqual([]);
+});
+
+test("undo mueve apariencia y restaura posicion previa", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await page.getByRole("button", { name: "Objeto", exact: true }).click();
+  await elementoPorTexto(page, "Objeto").click();
+  const antes = await aparienciaRaizPorNombre(page, "Objeto");
+
+  await page.keyboard.press("ArrowRight");
+  await page.keyboard.press("ArrowRight");
+  const movida = await aparienciaRaizPorNombre(page, "Objeto");
+  expect(movida.x).toBeGreaterThan(antes.x);
+
+  await page.keyboard.press("Control+Z");
+  await page.keyboard.press("Control+Z");
+  const restaurada = await aparienciaRaizPorNombre(page, "Objeto");
+  expect(restaurada.x).toBe(antes.x);
+  expect(restaurada.y).toBe(antes.y);
+
+  expect(pageErrors).toEqual([]);
+});
+
+test("undo cambia esencia y restaura valor previo", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await page.getByRole("button", { name: "Objeto", exact: true }).click();
+  await page.getByRole("button", { name: "Física" }).click();
+  await expect(page.getByText("Objeto es un objeto físico y sistémico.")).toBeVisible();
+
+  await page.keyboard.press("Control+Z");
+  await expect(page.getByText("Objeto es un objeto informacional y sistémico.")).toBeVisible();
+
+  expect(pageErrors).toEqual([]);
+});
+
+test("undo edita vertices y restaura ruta previa", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await page.getByRole("button", { name: "Objeto", exact: true }).click();
+  await page.getByRole("button", { name: "Proceso", exact: true }).click();
+  await elementoPorTexto(page, "Objeto").click();
+  await page.getByLabel("Tipo de enlace").selectOption("instrumento");
+  await clickCabeceraElemento(page, "Proceso");
+  await clickCentroLink(page);
+
+  const segmentBox = await rectDeLocator(page.locator(".joint-marker-segment").first());
+  await page.mouse.move(segmentBox.x + segmentBox.width / 2, segmentBox.y + segmentBox.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(segmentBox.x + segmentBox.width / 2, segmentBox.y + segmentBox.height / 2 + 70, { steps: 8 });
+  await page.mouse.up();
+  expect((await verticesPrimerEnlace(page)).length).toBeGreaterThan(0);
+
+  await page.keyboard.press("Control+Z");
+  expect(await verticesPrimerEnlace(page)).toHaveLength(0);
+
+  expect(pageErrors).toEqual([]);
+});
+
+test("extraer todas las partes plegadas crea apariencias en un solo undo", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await page.getByRole("button", { name: "Objeto", exact: true }).click();
+  await desplegarComoAgregacion(page);
+  await page.locator('[role="treeitem"][data-opd-id="opd-1"]').click();
+  await clickCabeceraElemento(page, "Objeto");
+  await page.getByRole("button", { name: "Plegado parcial" }).click();
+  await page.getByTestId("extraer-todas-partes-btn").click();
+
+  await expect(page.locator(".joint-element")).toHaveCount(4);
+  await page.getByRole("button", { name: "Exportar", exact: true }).click();
+  let exportado = JSON.parse(await jsonEditor(page).inputValue()) as ExportadoModelo;
+  const objeto = Object.values(exportado.modelo.entidades).find((entidad) => entidad.nombre === "Objeto");
+  if (!objeto) throw new Error("No se exporto Objeto");
+  const extraidas = Object.values(exportado.modelo.opds[exportado.modelo.opdRaizId]?.apariencias ?? {})
+    .filter((apariencia) => apariencia.parteExtraidaDe);
+  expect(extraidas).toHaveLength(3);
+
+  await page.keyboard.press("Control+Z");
+  await page.getByRole("button", { name: "Exportar", exact: true }).click();
+  exportado = JSON.parse(await jsonEditor(page).inputValue()) as ExportadoModelo;
+  expect(Object.values(exportado.modelo.opds[exportado.modelo.opdRaizId]?.apariencias ?? {})
+    .filter((apariencia) => apariencia.parteExtraidaDe)).toHaveLength(0);
 
   expect(pageErrors).toEqual([]);
 });
@@ -1161,7 +1502,7 @@ test("split de efecto convierte enlace en consumo + resultado intermedio", async
   const actualizar = page.locator(".joint-element").filter({ hasText: "Actualizar" }).first();
   await sistema.click();
   await page.getByLabel("Tipo de enlace").selectOption("efecto");
-  await actualizar.click();
+  await clickCabeceraElemento(page, "Actualizar");
 
   // Hay 2 entidades + 1 efecto.
   await expect(page.locator(".joint-element")).toHaveCount(2);
@@ -1321,8 +1662,12 @@ async function rectDeLocator(locator: import("@playwright/test").Locator): Promi
 }
 
 async function clickCabeceraElemento(page: import("@playwright/test").Page, texto: string): Promise<void> {
-  const rect = await rectDeLocator(elementoPorTexto(page, texto));
-  await page.mouse.click(rect.x + rect.width / 2, rect.y + Math.min(14, rect.height / 3));
+  const target = elementoPorTexto(page, texto);
+  const rect = await rectDeLocator(target);
+  await target.click({
+    position: { x: rect.width / 2, y: Math.min(14, rect.height / 3) },
+    force: true,
+  });
 }
 
 async function clickCentroLink(page: import("@playwright/test").Page): Promise<void> {
@@ -1447,6 +1792,26 @@ function svgText(page: Page, text: string) {
 
 function jsonEditor(page: Page) {
   return page.locator('textarea[spellcheck="false"]').first();
+}
+
+async function exportadoActual(page: Page): Promise<ExportadoModelo> {
+  await page.getByRole("button", { name: "Exportar", exact: true }).click();
+  return JSON.parse(await jsonEditor(page).inputValue()) as ExportadoModelo;
+}
+
+async function aparienciaRaizPorNombre(page: Page, nombre: string): Promise<{ x: number; y: number; width: number; height: number }> {
+  const exportado = await exportadoActual(page);
+  const entidad = Object.values(exportado.modelo.entidades).find((item) => item.nombre === nombre);
+  if (!entidad) throw new Error(`No se exporto entidad ${nombre}`);
+  const apariencia = Object.values(exportado.modelo.opds[exportado.modelo.opdRaizId]?.apariencias ?? {})
+    .find((item) => item.entidadId === entidad.id);
+  if (!apariencia) throw new Error(`No se exporto apariencia de ${nombre}`);
+  return apariencia;
+}
+
+async function verticesPrimerEnlace(page: Page): Promise<Array<{ x: number; y: number }>> {
+  const exportado = await exportadoActual(page);
+  return Object.values(exportado.modelo.opds[exportado.modelo.opdRaizId]?.enlaces ?? {})[0]?.vertices ?? [];
 }
 
 function modeloDosOpds() {
@@ -1624,6 +1989,106 @@ function modeloModificadoresEnlace() {
             "a-p-validar": { id: "a-p-validar", entidadId: "p-validar", opdId: "opd-1", x: 650, y: 80, width: 135, height: 60 },
           },
           enlaces: Object.fromEntries(Object.keys(enlaces).map((id) => [`a-${id}`, { id: `a-${id}`, enlaceId: id, opdId: "opd-1", vertices: [] }])),
+        },
+      },
+    },
+  };
+}
+
+function modeloNoModificador() {
+  const entidades = {
+    "o-orden": objeto("o-orden", "Orden"),
+    "p-aprobar": proceso("p-aprobar", "Aprobar"),
+  };
+  const enlaces = {
+    "e-consumo": enlace("e-consumo", "consumo", "o-orden", "p-aprobar"),
+  };
+  return {
+    formato: "deep-opm-pro.modelo.v0",
+    modelo: {
+      id: "modelo-no-modificador",
+      nombre: "NO modificador",
+      opdRaizId: "opd-1",
+      nextSeq: 10,
+      entidades,
+      estados: {},
+      enlaces,
+      opds: {
+        "opd-1": {
+          id: "opd-1",
+          nombre: "SD",
+          padreId: null,
+          apariencias: aparienciaPar("o-orden", "p-aprobar", 70, 90),
+          enlaces: { "ae-e-consumo": { id: "ae-e-consumo", enlaceId: "e-consumo", opdId: "opd-1", vertices: [] } },
+        },
+      },
+    },
+  };
+}
+
+function modeloMoverPuerto() {
+  const entidades = {
+    "o-entrada": objeto("o-entrada", "Entrada"),
+    "p-procesar": proceso("p-procesar", "Procesar"),
+    "p-validar": proceso("p-validar", "Validar"),
+  };
+  return {
+    formato: "deep-opm-pro.modelo.v0",
+    modelo: {
+      id: "modelo-mover-puerto",
+      nombre: "Mover Puerto",
+      opdRaizId: "opd-1",
+      nextSeq: 10,
+      entidades,
+      estados: {},
+      enlaces: {
+        "e-consumo": enlace("e-consumo", "consumo", "o-entrada", "p-procesar"),
+      },
+      opds: {
+        "opd-1": {
+          id: "opd-1",
+          nombre: "SD",
+          padreId: null,
+          apariencias: {
+            ...aparienciaPar("o-entrada", "p-procesar", 70, 90),
+            "a-p-validar": { id: "a-p-validar", entidadId: "p-validar", opdId: "opd-1", x: 650, y: 90, width: 135, height: 60 },
+          },
+          enlaces: { "ae-e-consumo": { id: "ae-e-consumo", enlaceId: "e-consumo", opdId: "opd-1", vertices: [] } },
+        },
+      },
+    },
+  };
+}
+
+function modeloConsumoDuplicado() {
+  const entidades = {
+    "o-entrada": objeto("o-entrada", "Entrada"),
+    "p-procesar": proceso("p-procesar", "Procesar"),
+  };
+  const enlaces = {
+    "e-consumo-1": enlace("e-consumo-1", "consumo", "o-entrada", "p-procesar"),
+    "e-consumo-2": enlace("e-consumo-2", "consumo", "o-entrada", "p-procesar"),
+  };
+  return {
+    formato: "deep-opm-pro.modelo.v0",
+    modelo: {
+      id: "modelo-consumo-duplicado",
+      nombre: "Consumo duplicado",
+      opdRaizId: "opd-1",
+      nextSeq: 10,
+      entidades,
+      estados: {},
+      enlaces,
+      opds: {
+        "opd-1": {
+          id: "opd-1",
+          nombre: "SD",
+          padreId: null,
+          apariencias: aparienciaPar("o-entrada", "p-procesar", 70, 90),
+          enlaces: {
+            "ae-e-consumo-1": { id: "ae-e-consumo-1", enlaceId: "e-consumo-1", opdId: "opd-1", vertices: [] },
+            "ae-e-consumo-2": { id: "ae-e-consumo-2", enlaceId: "e-consumo-2", opdId: "opd-1", vertices: [{ x: 260, y: 190 }] },
+          },
         },
       },
     },
@@ -1887,7 +2352,7 @@ function aparienciaPar(origenId: string, destinoId: string, x: number, y: number
 interface ExportadoModelo {
   modelo: {
     opdRaizId: string;
-    entidades: Record<string, { id: string; nombre: string; refinamiento?: { tipo: string; opdId: string } }>;
+    entidades: Record<string, { id: string; nombre: string; afiliacion?: string; refinamiento?: { tipo: string; opdId: string }; imagen?: { url: string; modo: string } }>;
     estados: Record<string, { id: string; entidadId: string; nombre: string; esInicial?: boolean; esFinal?: boolean }>;
     enlaces: Record<string, {
       id: string;
@@ -1897,6 +2362,9 @@ interface ExportadoModelo {
       etiqueta: string;
       multiplicidadOrigen?: string;
       multiplicidadDestino?: string;
+      modificador?: string;
+      subtipoModificador?: string;
+      probabilidad?: number;
       rutaEtiqueta?: string;
       derivado?: { tipo: string; refinamientoId: string; enlacePadreId: string; origen?: string };
     }>;
@@ -1911,8 +2379,10 @@ interface ExportadoModelo {
           y: number;
           width: number;
           height: number;
+          modoTamano?: string;
           modoPlegado?: string;
           estilo?: { fill?: string; borderColor?: string };
+          parteExtraidaDe?: { padreAparienciaId: string; parteEntidadId: string };
         }>;
         enlaces: Record<string, { enlaceId: string; vertices: Array<{ x: number; y: number }> }>;
       }
@@ -2048,3 +2518,242 @@ test("arbol OPD: renombrado inline y expandir/colapsar funcionan", async ({ page
 
   expect(pageErrors).toEqual([]);
 });
+
+test("grid: toggle, configuración y snap al mover cosa", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await page.getByTestId("toggle-grid").click();
+  await expect(page.getByTestId("toggle-grid")).toHaveAttribute("aria-pressed", "false");
+  await page.getByTestId("toggle-grid").click();
+  await page.getByTestId("config-grid").click();
+  const dialog = page.getByTestId("modal-config-grid");
+  await expect(dialog).toBeVisible();
+  await dialog.getByLabel("Paso").fill("20");
+  await dialog.getByRole("button", { name: "Guardar" }).click();
+
+  await page.getByRole("button", { name: "Objeto", exact: true }).click();
+  const objetoBox = await elementoPorTexto(page, "Objeto").boundingBox();
+  if (!objetoBox) throw new Error("No se renderizó Objeto");
+  await page.mouse.move(objetoBox.x + objetoBox.width / 2, objetoBox.y + objetoBox.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(objetoBox.x + objetoBox.width / 2 + 37, objetoBox.y + objetoBox.height / 2 + 23, { steps: 6 });
+  await page.mouse.up();
+
+  const apariencia = await aparienciaRaizPorNombre(page, "Objeto");
+  expect(apariencia.x % 20).toBe(0);
+  expect(apariencia.y % 20).toBe(0);
+  expect(pageErrors).toEqual([]);
+});
+
+test("alinear selección: tres cosas quedan alineadas a la izquierda", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await page.getByRole("button", { name: "Objeto", exact: true }).click();
+  await page.getByRole("button", { name: "Objeto", exact: true }).click();
+  await page.getByRole("button", { name: "Objeto", exact: true }).click();
+  await page.keyboard.press("Control+a");
+  await page.getByTestId("alinear-cosas").selectOption("izq");
+
+  const exportado = await exportadoActual(page);
+  const xs = Object.values(exportado.modelo.opds[exportado.modelo.opdRaizId]?.apariencias ?? {}).map((ap) => ap.x);
+  expect(new Set(xs).size).toBe(1);
+  expect(pageErrors).toEqual([]);
+});
+
+test("resize handle: esquina persiste tamaño manual", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await page.getByRole("button", { name: "Objeto", exact: true }).click();
+  await elementoPorTexto(page, "Objeto").click();
+  const handle = page.locator('[joint-selector="resize-se"]').first();
+  await expect(handle).toBeVisible();
+  const box = await handle.boundingBox();
+  if (!box) throw new Error("No se renderizó handle de resize");
+  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(box.x + box.width / 2 + 42, box.y + box.height / 2 + 28, { steps: 6 });
+  await page.mouse.up();
+
+  const apariencia = await aparienciaRaizPorNombre(page, "Objeto");
+  expect(apariencia.width).toBeGreaterThan(135);
+  expect(apariencia.height).toBeGreaterThan(60);
+  expect(apariencia.modoTamano).toBe("manual");
+  expect(pageErrors).toEqual([]);
+});
+
+test("imagenes: agrega URL a objeto, renderiza overlay e insignia y alterna modo desde insignia", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+  await routeImagenSmoke(page);
+
+  await page.goto("/");
+  await page.getByRole("button", { name: "Objeto", exact: true }).click();
+  await page.locator('button[title="Editar imagen del objeto seleccionado"]').click();
+  const dialog = page.getByRole("dialog", { name: "Imagen de Objeto" });
+  await expect(dialog).toBeVisible();
+  await dialog.getByLabel("URL de imagen").fill("https://example.com/smoke.png");
+  await dialog.getByRole("button", { name: "Confirmar" }).click();
+  await expect(dialog).toHaveCount(0);
+
+  await expect(page.locator('.joint-element image[joint-selector="imagen"]')).toHaveCount(1);
+  await expect(page.locator('[data-testid="entidad-insignia-imagen"]').first()).toBeVisible();
+
+  await page.locator('[data-testid="entidad-insignia-imagen"]').last().click();
+  await expect(page.locator('.joint-element image[joint-selector="imagen"]')).toHaveCount(1);
+  await page.locator('[data-testid="entidad-insignia-imagen"]').last().click();
+  await expect(page.locator('.joint-element image[joint-selector="imagen"]')).toHaveCount(0);
+
+  expect(pageErrors).toEqual([]);
+});
+
+test("imagenes: suprime bitmap en objeto desplegado y conserva metadata", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+  await routeImagenSmoke(page);
+
+  await page.goto("/");
+  await jsonEditor(page).fill(JSON.stringify(modeloConImagenRefinada(), null, 2));
+  await page.getByRole("button", { name: "Importar" }).click();
+  await expect(page.locator('.joint-element image[joint-selector="imagen"]')).toHaveCount(0);
+
+  const exportado = await exportadoActual(page);
+  expect(exportado.modelo.entidades["o-img-a"]).toMatchObject({
+    imagen: { url: "https://example.com/smoke.png", modo: "imagen-texto" },
+    refinamiento: { tipo: "despliegue", opdId: "opd-img-hijo" },
+  });
+  expect(pageErrors).toEqual([]);
+});
+
+test("imagenes: toggle global modo texto oculta bitmaps del OPD activo", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+  await routeImagenSmoke(page);
+
+  await page.goto("/");
+  await jsonEditor(page).fill(JSON.stringify(modeloConImagenes(), null, 2));
+  await page.getByRole("button", { name: "Importar" }).click();
+  await expect(page.locator('.joint-element image[joint-selector="imagen"]')).toHaveCount(2);
+
+  await page.getByTestId("toolbar-modo-imagen-global").click();
+  await page.getByTestId("toolbar-modo-imagen-global").click();
+  await page.getByTestId("toolbar-modo-imagen-global").click();
+
+  await expect(page.getByTestId("toolbar-modo-imagen-global")).toHaveText("Texto");
+  await expect(page.locator('.joint-element image[joint-selector="imagen"]')).toHaveCount(0);
+  expect(pageErrors).toEqual([]);
+});
+
+async function routeImagenSmoke(page: Page): Promise<void> {
+  await page.route("https://example.com/smoke.png", async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: "image/png",
+      body: Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/p9sAAAAASUVORK5CYII=", "base64"),
+    });
+  });
+}
+
+function modeloConImagenes() {
+  return {
+    formato: "deep-opm-pro.modelo.v0",
+    modelo: {
+      id: "modelo-img",
+      nombre: "Modelo imagenes",
+      opdRaizId: "opd-1",
+      nextSeq: 20,
+      entidades: {
+        "o-img-a": {
+          id: "o-img-a",
+          tipo: "objeto",
+          nombre: "Objeto A",
+          esencia: "informacional",
+          afiliacion: "sistemica",
+          imagen: { url: "https://example.com/smoke.png", modo: "imagen-texto" },
+        },
+        "o-img-b": {
+          id: "o-img-b",
+          tipo: "objeto",
+          nombre: "Objeto B",
+          esencia: "informacional",
+          afiliacion: "sistemica",
+          imagen: { url: "https://example.com/smoke.png", modo: "imagen" },
+        },
+      },
+      estados: {},
+      enlaces: {},
+      abanicos: {},
+      opds: {
+        "opd-1": {
+          id: "opd-1",
+          nombre: "SD",
+          padreId: null,
+          apariencias: {
+            "a-img-a": { id: "a-img-a", entidadId: "o-img-a", opdId: "opd-1", x: 120, y: 100, width: 135, height: 60 },
+            "a-img-b": { id: "a-img-b", entidadId: "o-img-b", opdId: "opd-1", x: 320, y: 100, width: 135, height: 60 },
+          },
+          enlaces: {},
+        },
+      },
+    },
+  };
+}
+
+function modeloConImagenRefinada() {
+  return {
+    formato: "deep-opm-pro.modelo.v0",
+    modelo: {
+      id: "modelo-img-ref",
+      nombre: "Modelo imagen refinada",
+      opdRaizId: "opd-1",
+      nextSeq: 30,
+      entidades: {
+        "o-img-a": {
+          id: "o-img-a",
+          tipo: "objeto",
+          nombre: "Objeto A",
+          esencia: "informacional",
+          afiliacion: "sistemica",
+          refinamiento: { tipo: "despliegue", opdId: "opd-img-hijo", modo: "agregacion" },
+          imagen: { url: "https://example.com/smoke.png", modo: "imagen-texto" },
+        },
+        "o-img-parte": {
+          id: "o-img-parte",
+          tipo: "objeto",
+          nombre: "Parte A",
+          esencia: "informacional",
+          afiliacion: "sistemica",
+        },
+      },
+      estados: {},
+      enlaces: {},
+      abanicos: {},
+      opds: {
+        "opd-1": {
+          id: "opd-1",
+          nombre: "SD",
+          padreId: null,
+          apariencias: {
+            "a-img-a": { id: "a-img-a", entidadId: "o-img-a", opdId: "opd-1", x: 120, y: 100, width: 135, height: 60 },
+          },
+          enlaces: {},
+        },
+        "opd-img-hijo": {
+          id: "opd-img-hijo",
+          nombre: "SD1",
+          padreId: "opd-1",
+          apariencias: {
+            "a-img-a-hijo": { id: "a-img-a-hijo", entidadId: "o-img-a", opdId: "opd-img-hijo", x: 90, y: 70, width: 420, height: 260 },
+            "a-img-parte": { id: "a-img-parte", entidadId: "o-img-parte", opdId: "opd-img-hijo", x: 140, y: 150, width: 135, height: 60 },
+          },
+          enlaces: {},
+        },
+      },
+    },
+  };
+}

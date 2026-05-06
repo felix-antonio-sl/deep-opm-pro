@@ -1,9 +1,11 @@
-import { useEffect } from "preact/hooks";
+import { useEffect, useState } from "preact/hooks";
 import verFileIcon from "../../../assets/svg/verFile.svg";
+import { normalizarGridConfig } from "../canvas/grid";
 import { useOpmStore } from "../store";
-import type { TipoEnlace } from "../modelo/tipos";
+import type { ModoImagenEntidad, TipoEnlace } from "../modelo/tipos";
 import { useConfirmarSiDirty } from "./ConfirmacionContext";
 import { MenuPrincipal } from "./MenuPrincipal";
+import { ModalConfiguracionGrid } from "./ModalConfiguracionGrid";
 
 export const TIPOS_ENLACE: Array<{ tipo: TipoEnlace; label: string }> = [
   { tipo: "agregacion", label: "Agregación" },
@@ -58,7 +60,16 @@ export function Toolbar() {
   const uiDescripcionesVisibles = useOpmStore((s) => s.uiDescripcionesVisibles);
   const toggleAliasVisibles = useOpmStore((s) => s.toggleAliasVisibles);
   const toggleDescripcionesVisibles = useOpmStore((s) => s.toggleDescripcionesVisibles);
+  const uiModoImagenGlobal = useOpmStore((s) => s.uiModoImagenGlobal);
+  const fijarModoImagenGlobal = useOpmStore((s) => s.fijarModoImagenGlobal);
+  const abrirModalImagen = useOpmStore((s) => s.abrirModalImagen);
+  const gridConfig = useOpmStore((s) => normalizarGridConfig(s.gridConfig ?? s.indice.preferenciasUi?.gridConfig));
+  const toggleGrid = useOpmStore((s) => s.toggleGrid);
+  const fijarGridConfig = useOpmStore((s) => s.fijarGridConfig);
+  const alinearSeleccion = useOpmStore((s) => s.alinearSeleccion);
+  const distribuirSeleccion = useOpmStore((s) => s.distribuirSeleccion);
   const confirmarSiDirty = useConfirmarSiDirty();
+  const [gridModalAbierto, setGridModalAbierto] = useState(false);
 
   useEffect(() => {
     const manejarAtajo = (event: KeyboardEvent) => {
@@ -96,6 +107,8 @@ export function Toolbar() {
   }, [limpiarMensaje, mensaje, modoCreacion, modoEnlace]);
 
   const selectorEnlaceDeshabilitado = !seleccionId && !modoEnlace;
+  const entidadSeleccionada = seleccionId ? modelo.entidades[seleccionId] : undefined;
+  const puedeEditarImagen = entidadSeleccionada?.tipo === "objeto";
   const tituloModelo = modeloPersistidoId ? modelo.nombre : `${modelo.nombre} (No guardado)`;
   const resumenPersistido = modeloPersistidoId ? modelosGuardados.find((item) => item.id === modeloPersistidoId) : undefined;
   const totalVersiones = resumenPersistido?.versiones?.length ?? 0;
@@ -188,6 +201,40 @@ export function Toolbar() {
             <span style={style.selectionCount}>{seleccionados.length} seleccionados</span>
             <button style={style.secondaryButton} type="button" onClick={eliminarSeleccion} title="Eliminar selección">Eliminar</button>
             <select
+              aria-label="Alinear cosas seleccionadas"
+              style={style.compactSelect}
+              defaultValue=""
+              onChange={(event) => {
+                const value = event.currentTarget.value;
+                if (value) alinearSeleccion(value as "izq" | "centro" | "der" | "sup" | "medio" | "inf");
+                event.currentTarget.value = "";
+              }}
+              data-testid="alinear-cosas"
+            >
+              <option value="">Alinear cosas...</option>
+              <option value="izq">Izquierda</option>
+              <option value="centro">Centro</option>
+              <option value="der">Derecha</option>
+              <option value="sup">Arriba</option>
+              <option value="medio">Medio</option>
+              <option value="inf">Abajo</option>
+            </select>
+            <select
+              aria-label="Distribuir cosas seleccionadas"
+              style={style.compactSelect}
+              defaultValue=""
+              onChange={(event) => {
+                const value = event.currentTarget.value;
+                if (value) distribuirSeleccion(value as "horizontal" | "vertical");
+                event.currentTarget.value = "";
+              }}
+              data-testid="distribuir-cosas"
+            >
+              <option value="">Distribuir...</option>
+              <option value="horizontal">Horizontal</option>
+              <option value="vertical">Vertical</option>
+            </select>
+            <select
               aria-label="Alinear enlaces seleccionados"
               style={style.compactSelect}
               defaultValue=""
@@ -208,6 +255,19 @@ export function Toolbar() {
         {mensaje ? <span style={style.status}>{mensaje}</span> : null}
         <span style={style.divider} />
         <button
+          style={gridConfig.activa ? style.activeButton : style.button}
+          type="button"
+          onClick={toggleGrid}
+          aria-pressed={gridConfig.activa}
+          data-testid="toggle-grid"
+        >
+          Grid
+        </button>
+        <button style={style.secondaryButton} type="button" onClick={() => setGridModalAbierto(true)} data-testid="config-grid">
+          Config grid
+        </button>
+        <span style={style.divider} />
+        <button
           style={uiAliasVisibles ? style.activeButton : style.button}
           type="button"
           onClick={toggleAliasVisibles}
@@ -222,6 +282,25 @@ export function Toolbar() {
           aria-pressed={uiDescripcionesVisibles}
         >
           Desc
+        </button>
+        <button
+          style={puedeEditarImagen ? style.button : style.disabledButton}
+          type="button"
+          disabled={!puedeEditarImagen}
+          onClick={() => seleccionId && abrirModalImagen(seleccionId)}
+          title={puedeEditarImagen ? "Editar imagen del objeto seleccionado" : "Selecciona un objeto"}
+        >
+          📷
+        </button>
+        <button
+          style={uiModoImagenGlobal ? style.activeButton : style.button}
+          type="button"
+          onClick={() => fijarModoImagenGlobal(siguienteModoGlobal(uiModoImagenGlobal))}
+          aria-pressed={uiModoImagenGlobal !== null}
+          data-testid="toolbar-modo-imagen-global"
+          title={`Modo imagen global: ${etiquetaModoGlobal(uiModoImagenGlobal)}`}
+        >
+          {etiquetaModoGlobal(uiModoImagenGlobal)}
         </button>
         {vistaMapaActiva ? (
           <>
@@ -258,6 +337,12 @@ export function Toolbar() {
           </span>
         ) : null}
       </div>
+      <ModalConfiguracionGrid
+        abierto={gridModalAbierto}
+        config={gridConfig}
+        onCerrar={() => setGridModalAbierto(false)}
+        onGuardar={fijarGridConfig}
+      />
     </div>
   );
 }
@@ -466,7 +551,7 @@ const style = {
   },
   compactSelect: {
     height: "34px",
-    width: "118px",
+    width: "136px",
     border: "1px solid #b9c5d4",
     borderRadius: "4px",
     background: "#f9fbfd",
@@ -479,4 +564,18 @@ const style = {
 function esCampoEditable(target: EventTarget | null): boolean {
   if (!(target instanceof HTMLElement)) return false;
   return Boolean(target.closest("input, textarea, select, [contenteditable=true]"));
+}
+
+function siguienteModoGlobal(modo: ModoImagenEntidad | null): ModoImagenEntidad | null {
+  if (modo === null) return "imagen-texto";
+  if (modo === "imagen-texto") return "imagen";
+  if (modo === "imagen") return "texto";
+  return null;
+}
+
+function etiquetaModoGlobal(modo: ModoImagenEntidad | null): string {
+  if (modo === "imagen-texto") return "Img+Txt";
+  if (modo === "imagen") return "Img";
+  if (modo === "texto") return "Texto";
+  return "Respeta";
 }

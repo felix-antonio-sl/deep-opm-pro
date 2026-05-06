@@ -1,5 +1,8 @@
 import { contenedorRefinamiento } from "../layout";
+import { CANON } from "../constantes";
+import { formatearNombreCompuesto } from "../objetoMetadata";
 import type { Apariencia, Id, Modelo, Posicion, Resultado } from "../tipos";
+import { RESIZE_MIN, clampValor } from "../../canvas/grid";
 import { fallo, ok } from "./helpers";
 import { refrescarEnlacesExternosDerivados } from "./refinamiento";
 
@@ -89,6 +92,102 @@ export function moverAparienciaPorId(modelo: Modelo, opdId: Id, aparienciaId: Id
   return refrescarEnlacesExternosDerivados(movido, opdId);
 }
 
+export function redimensionarApariencia(
+  modelo: Modelo,
+  opdId: Id,
+  aparienciaId: Id,
+  width: number,
+  height: number,
+  posicion?: Posicion,
+): Resultado<Modelo> {
+  const opd = modelo.opds[opdId];
+  if (!opd) return fallo(`OPD no existe: ${opdId}`);
+  const apariencia = opd.apariencias[aparienciaId];
+  if (!apariencia) return fallo(`Apariencia no existe: ${aparienciaId}`);
+  if (!Number.isFinite(width) || !Number.isFinite(height)) return fallo("Tamaño inválido");
+
+  const siguienteWidth = Math.round(Math.max(RESIZE_MIN.width, width));
+  const siguienteHeight = Math.round(Math.max(RESIZE_MIN.height, height));
+  const siguienteX = Math.round(posicion?.x ?? apariencia.x);
+  const siguienteY = Math.round(posicion?.y ?? apariencia.y);
+  if (
+    apariencia.width === siguienteWidth &&
+    apariencia.height === siguienteHeight &&
+    apariencia.x === siguienteX &&
+    apariencia.y === siguienteY &&
+    apariencia.modoTamano === "manual"
+  ) {
+    return ok(modelo);
+  }
+
+  const redimensionado = {
+    ...modelo,
+    opds: {
+      ...modelo.opds,
+      [opdId]: {
+        ...opd,
+        apariencias: {
+          ...opd.apariencias,
+          [aparienciaId]: {
+            ...apariencia,
+            x: siguienteX,
+            y: siguienteY,
+            width: siguienteWidth,
+            height: siguienteHeight,
+            modoTamano: "manual" as const,
+          },
+        },
+      },
+    },
+  };
+  return refrescarEnlacesExternosDerivados(redimensionado, opdId);
+}
+
+export function ajustarAlTexto(modelo: Modelo, opdId: Id, aparienciaId: Id): Resultado<Modelo> {
+  const opd = modelo.opds[opdId];
+  if (!opd) return fallo(`OPD no existe: ${opdId}`);
+  const apariencia = opd.apariencias[aparienciaId];
+  if (!apariencia) return fallo(`Apariencia no existe: ${aparienciaId}`);
+  const entidad = modelo.entidades[apariencia.entidadId];
+  if (!entidad) return fallo(`Entidad no existe: ${apariencia.entidadId}`);
+  const size = tamanoAjustadoAlTexto(formatearNombreCompuesto(entidad, { aliasVisible: true }));
+  return redimensionarApariencia(modelo, opdId, aparienciaId, size.width, size.height, { x: apariencia.x, y: apariencia.y });
+}
+
+export function volverAAutoTamano(modelo: Modelo, opdId: Id, aparienciaId: Id): Resultado<Modelo> {
+  const opd = modelo.opds[opdId];
+  if (!opd) return fallo(`OPD no existe: ${opdId}`);
+  const apariencia = opd.apariencias[aparienciaId];
+  if (!apariencia) return fallo(`Apariencia no existe: ${aparienciaId}`);
+  const siguiente: Apariencia = {
+    ...apariencia,
+    width: CANON.dims.cosaWidth,
+    height: CANON.dims.cosaHeight,
+    modoTamano: "auto",
+  };
+  const actualizado = {
+    ...modelo,
+    opds: {
+      ...modelo.opds,
+      [opdId]: {
+        ...opd,
+        apariencias: { ...opd.apariencias, [aparienciaId]: siguiente },
+      },
+    },
+  };
+  return refrescarEnlacesExternosDerivados(actualizado, opdId);
+}
+
+export function alternarModoTamano(modelo: Modelo, opdId: Id, aparienciaId: Id): Resultado<Modelo> {
+  const opd = modelo.opds[opdId];
+  if (!opd) return fallo(`OPD no existe: ${opdId}`);
+  const apariencia = opd.apariencias[aparienciaId];
+  if (!apariencia) return fallo(`Apariencia no existe: ${aparienciaId}`);
+  return apariencia.modoTamano === "manual"
+    ? volverAAutoTamano(modelo, opdId, aparienciaId)
+    : redimensionarApariencia(modelo, opdId, aparienciaId, apariencia.width, apariencia.height);
+}
+
 export function actualizarVerticesEnlace(
   modelo: Modelo,
   opdId: Id,
@@ -131,4 +230,22 @@ function aparienciaEsProxyExterna(modelo: Modelo, opdId: Id, apariencia: Aparien
 
 function mismosVertices(a: Posicion[], b: Posicion[]): boolean {
   return a.length === b.length && a.every((vertice, index) => vertice.x === b[index]?.x && vertice.y === b[index]?.y);
+}
+
+function tamanoAjustadoAlTexto(texto: string): { width: number; height: number } {
+  const lineas = texto.split(/\s+/).reduce<string[]>((acc, palabra) => {
+    const actual = acc[acc.length - 1] ?? "";
+    const candidato = actual ? `${actual} ${palabra}` : palabra;
+    if (candidato.length > 18 && actual) acc.push(palabra);
+    else if (acc.length === 0) acc.push(candidato);
+    else acc[acc.length - 1] = candidato;
+    return acc;
+  }, []);
+  const maxChars = Math.max(...lineas.map((linea) => linea.length), texto.length, 1);
+  const widthTexto = maxChars * CANON.dims.fontSize * 0.62 + 28;
+  const heightTexto = Math.max(1, lineas.length) * CANON.dims.fontSize * 1.35 + 24;
+  return {
+    width: Math.round(clampValor(RESIZE_MIN.width, 420, Math.max(CANON.dims.cosaWidth, widthTexto))),
+    height: Math.round(clampValor(RESIZE_MIN.height, 220, Math.max(CANON.dims.cosaHeight, heightTexto))),
+  };
 }

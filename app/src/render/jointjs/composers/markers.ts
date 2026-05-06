@@ -1,5 +1,5 @@
 import { CANON } from "../../../modelo/constantes";
-import type { Id, Posicion, TipoEnlace } from "../../../modelo/tipos";
+import type { Enlace, Id, Posicion, SubtipoModificador, TipoEnlace } from "../../../modelo/tipos";
 import { LINK_ASSETS } from "../linkAssets";
 import type { JointCellJson, OpmJointMetadata } from "../proyeccionTipos";
 
@@ -161,3 +161,59 @@ export function markerAttrs(marker: Record<string, unknown>): Record<string, unk
   return { ...marker };
 }
 
+export function textoSubtipoModificador(enlace: Enlace): string | null {
+  const subtipo = enlace.subtipoModificador ?? subtipoDesdeModificador(enlace);
+  if (!subtipo) return null;
+  return subtipo === "no" ? "¬" : subtipo;
+}
+
+export function etiquetaBadgeModificadorCanonico(text: string, distance: number): Record<string, unknown> {
+  const color = text === "¬" ? "#b42318" : CANON.colores.enlace;
+  const fill = text === "C" ? "#fff7cc" : text === "E" ? "#e7f6ff" : "#fff1f0";
+  return {
+    markup: [
+      { tagName: "rect", selector: "badge" },
+      { tagName: "text", selector: "label" },
+    ],
+    attrs: {
+      badge: {
+        width: 18,
+        height: 18,
+        x: -9,
+        y: -9,
+        rx: 9,
+        ry: 9,
+        fill,
+        stroke: color,
+        strokeWidth: 1.5,
+        pointerEvents: "none",
+      },
+      label: {
+        text,
+        fill: color,
+        fontFamily: CANON.dims.fontFamily,
+        fontSize: 12,
+        fontWeight: 700,
+        textAnchor: "middle",
+        textVerticalAnchor: "middle",
+        pointerEvents: "none",
+      },
+    },
+    position: {
+      distance,
+      offset: -20,
+      angle: 0,
+      args: {
+        keepGradient: false,
+        ensureLegibility: true,
+      },
+    },
+  };
+}
+
+function subtipoDesdeModificador(enlace: Enlace): SubtipoModificador | null {
+  if (enlace.modificador === "condicion") return "C";
+  if (enlace.modificador === "evento") return "E";
+  if (enlace.modificador === "no") return "no";
+  return null;
+}

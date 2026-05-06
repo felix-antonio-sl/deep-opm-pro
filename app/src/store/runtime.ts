@@ -31,6 +31,7 @@ import {
   nudgeEnlaces,
   pegarSeleccion,
 } from "../canvas/operacionesBatch";
+import { normalizarGridConfig } from "../canvas/grid";
 import type { StoreApi } from "zustand/vanilla";
 import type { OpmStore } from "./tipos";
 
@@ -499,6 +500,10 @@ export function esPreferenciasUi(value: unknown): value is NonNullable<Workspace
   if (value.anchoPanelArbol !== undefined && typeof value.anchoPanelArbol !== "number") return false;
   if (value.nombresArbolVisibles !== undefined && typeof value.nombresArbolVisibles !== "boolean") return false;
   if (value.cheatsheetVisible !== undefined && typeof value.cheatsheetVisible !== "boolean") return false;
+  if (value.gridConfig !== undefined) {
+    if (!esRecord(value.gridConfig)) return false;
+    normalizarGridConfig(value.gridConfig);
+  }
   return true;
 }
 

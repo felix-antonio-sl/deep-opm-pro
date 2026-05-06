@@ -41,12 +41,21 @@ export {
   apuntarExtremoEnlace,
   validarMultiplicidad,
   ajustarMultiplicidad,
+  moverPuertoEnlace,
   reanclarEnlaceExternoDerivado,
   volverEnlaceExternoDerivadoAAutomatico,
 } from "./operaciones/enlaces";
 export type { LadoMultiplicidadEnlace, LadoExtremoEnlace } from "./operaciones/enlaces";
 
-export { moverApariencia, moverAparienciaPorId, actualizarVerticesEnlace } from "./operaciones/apariencias";
+export {
+  moverApariencia,
+  moverAparienciaPorId,
+  actualizarVerticesEnlace,
+  redimensionarApariencia,
+  ajustarAlTexto,
+  volverAAutoTamano,
+  alternarModoTamano,
+} from "./operaciones/apariencias";
 
 export {
   eliminarEntidad,

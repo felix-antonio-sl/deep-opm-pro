@@ -3,6 +3,7 @@ import { crearEnlace, crearModelo, crearObjeto, crearProceso, desplegarObjeto } 
 import { autoInvocacionDeProceso, crearAutoInvocacion, esAutoInvocacion } from "./autoinvocacion";
 import {
   aplicarModificador,
+  aplicarSubtipoModificador,
   crearInvocacion,
   definirDemora,
   definirProbabilidad,
@@ -18,12 +19,15 @@ describe("modificadores de enlace", () => {
 
     modelo = must(aplicarModificador(modelo, enlaceId, "condicion"));
     expect(modelo.enlaces[enlaceId]?.modificador).toBe("condicion");
+    expect(modelo.enlaces[enlaceId]?.subtipoModificador).toBe("C");
 
     modelo = must(aplicarModificador(modelo, enlaceId, "evento"));
     expect(modelo.enlaces[enlaceId]?.modificador).toBe("evento");
+    expect(modelo.enlaces[enlaceId]?.subtipoModificador).toBe("E");
 
     modelo = must(aplicarModificador(modelo, enlaceId, "no"));
     expect(modelo.enlaces[enlaceId]?.modificador).toBe("no");
+    expect(modelo.enlaces[enlaceId]?.subtipoModificador).toBe("no");
 
     modelo = must(desplegarObjeto(modelo, modelo.opdRaizId, entidad(modelo, "Entrada"), "agregacion")).modelo;
     const estructural = Object.values(modelo.enlaces).find((enlace) => enlace.tipo === "agregacion");
@@ -46,7 +50,23 @@ describe("modificadores de enlace", () => {
 
     modelo = must(quitarModificador(modelo, enlaceId));
     expect(modelo.enlaces[enlaceId]?.modificador).toBeUndefined();
+    expect(modelo.enlaces[enlaceId]?.subtipoModificador).toBeUndefined();
     expect(modelo.enlaces[enlaceId]?.probabilidad).toBeUndefined();
+  });
+
+  test("aplicarSubtipoModificador valida coherencia con modificador base", () => {
+    let modelo = modeloBase();
+    const enlaceId = enlacePorTipo(modelo, "consumo");
+
+    expect(aplicarSubtipoModificador(modelo, enlaceId, "E").ok).toBe(false);
+
+    modelo = must(aplicarModificador(modelo, enlaceId, "evento"));
+    modelo = must(aplicarSubtipoModificador(modelo, enlaceId, "E"));
+    expect(modelo.enlaces[enlaceId]?.subtipoModificador).toBe("E");
+    expect(aplicarSubtipoModificador(modelo, enlaceId, "C").ok).toBe(false);
+
+    modelo = must(aplicarModificador(modelo, enlaceId, "no"));
+    expect(aplicarSubtipoModificador(modelo, enlaceId, "no").ok).toBe(true);
   });
 
   test("crearInvocacion crea Proceso -> Proceso y rechaza objeto como origen", () => {
@@ -116,6 +136,8 @@ describe("modificadores de enlace", () => {
     expect(validarMetadatosEnlace({ ...enlace, probabilidad: 0.5 }).ok).toBe(false);
     expect(validarMetadatosEnlace({ ...enlace, modificador: "evento", probabilidad: 0.5 }).ok).toBe(true);
     expect(validarMetadatosEnlace({ ...enlace, modificador: "evento", probabilidad: 2 }).ok).toBe(false);
+    expect(validarMetadatosEnlace({ ...enlace, modificador: "evento", subtipoModificador: "C" }).ok).toBe(false);
+    expect(validarMetadatosEnlace({ ...enlace, modificador: "evento", subtipoModificador: "E" }).ok).toBe(true);
   });
 });
 

@@ -6,6 +6,7 @@ import {
   contarPartesOcultas,
   crearEnlaceConExtremoPlegado,
   extraerParteDePlegado,
+  extraerTodasLasPartesDePlegado,
   filasPlegadoParcial,
   partePlegadaTienePartes,
   partesDePlegado,
@@ -104,6 +105,38 @@ describe("plegado parcial", () => {
       parteExtraidaDe: { padreAparienciaId: padre.id, parteEntidadId: parteId },
     });
     expect(extraidas[0]?.x).toBeGreaterThan(padre.x + padre.width);
+  });
+
+  test("extrae todas las partes plegadas pendientes en una sola operación", () => {
+    let modelo = modeloConObjetoDesplegadoParcial();
+    const padre = aparienciaDeEntidad(modelo, modelo.opdRaizId, entidadPorNombre(modelo, "Vehiculo"));
+    modelo = must(extraerParteDePlegado(modelo, modelo.opdRaizId, padre.id, entidadPorNombre(modelo, "Vehiculo parte 1")));
+
+    const resultado = extraerTodasLasPartesDePlegado(modelo, modelo.opdRaizId, padre.id);
+
+    expect(resultado.ok).toBe(true);
+    if (!resultado.ok) return;
+    const extraidas = partesExtraidasEn(resultado.value, modelo.opdRaizId, padre.id);
+    expect(extraidas.map((apariencia) => resultado.value.entidades[apariencia.entidadId]?.nombre).sort()).toEqual([
+      "Vehiculo parte 1",
+      "Vehiculo parte 2",
+      "Vehiculo parte 3",
+    ]);
+    expect(contarPartesOcultas(resultado.value, modelo.opdRaizId, padre.id)).toBe(0);
+    const posiciones = extraidas.map((apariencia) => `${apariencia.x}:${apariencia.y}`);
+    expect(new Set(posiciones).size).toBe(3);
+  });
+
+  test("extraer todas es idempotente cuando no quedan partes ocultas", () => {
+    let modelo = modeloConObjetoDesplegadoParcial();
+    const padre = aparienciaDeEntidad(modelo, modelo.opdRaizId, entidadPorNombre(modelo, "Vehiculo"));
+    modelo = must(extraerTodasLasPartesDePlegado(modelo, modelo.opdRaizId, padre.id));
+
+    const resultado = extraerTodasLasPartesDePlegado(modelo, modelo.opdRaizId, padre.id);
+
+    expect(resultado.ok).toBe(true);
+    if (!resultado.ok) return;
+    expect(resultado.value).toEqual(modelo);
   });
 
   test("rechaza extraer si el padre no esta en plegado parcial", () => {

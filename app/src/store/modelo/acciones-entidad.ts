@@ -1,21 +1,28 @@
 import { crearCosaEnPosicion } from "../../modelo/creacionInterna";
 import { posicionLibre } from "../../modelo/layout";
 import {
+  ajustarAlTexto,
+  alternarModoTamano,
   cambiarAfiliacion,
   cambiarEsencia,
   crearObjeto,
   crearProceso,
+  redimensionarApariencia,
   renombrarEntidad,
+  volverAAutoTamano,
 } from "../../modelo/operaciones";
 import {
   agregarUrl,
+  cambiarModoImagen,
+  editarImagen,
   editarAlias,
   editarDescripcion,
   editarUnidad,
   eliminarUrl,
+  quitarImagen,
   reordenarUrls,
 } from "../../modelo/objetoMetadata";
-import type { LayoutEstados, Modelo } from "../../modelo/tipos";
+import type { LayoutEstados, Modelo, ModoImagenEntidad } from "../../modelo/tipos";
 import { fijarOpcionesProyeccionGlobal } from "../../render/jointjs/proyeccion";
 import { commitModelo, entidadNueva, type GetStore, type SetStore } from "../runtime";
 import type { ModeloSlice } from "../tipos";
@@ -93,6 +100,83 @@ export function accionesEntidad(set: SetStore, get: GetStore): Partial<ModeloSli
       if (resultado.ok) commitModelo(set, modelo, resultado.value, { mensaje: null });
     },
 
+    redimensionarSeleccionada(width, height) {
+      const { modelo, opdActivoId, seleccionId } = get();
+      if (!seleccionId) return;
+      const apariencia = Object.values(modelo.opds[opdActivoId]?.apariencias ?? {})
+        .find((item) => item.entidadId === seleccionId);
+      if (!apariencia) {
+        set({ mensaje: "La entidad seleccionada no tiene apariencia en el OPD activo" });
+        return;
+      }
+      const resultado = redimensionarApariencia(modelo, opdActivoId, apariencia.id, width, height);
+      if (!resultado.ok) {
+        set({ mensaje: resultado.error });
+        return;
+      }
+      commitModelo(set, modelo, resultado.value, { seleccionId, seleccionados: [seleccionId], modoSeleccion: "simple", mensaje: null });
+    },
+
+    redimensionarAparienciaEnCanvas(aparienciaId, x, y, width, height) {
+      const { modelo, opdActivoId } = get();
+      const apariencia = modelo.opds[opdActivoId]?.apariencias[aparienciaId];
+      const resultado = redimensionarApariencia(modelo, opdActivoId, aparienciaId, width, height, { x, y });
+      if (!resultado.ok) {
+        set({ mensaje: resultado.error });
+        return;
+      }
+      commitModelo(set, modelo, resultado.value, {
+        seleccionId: apariencia?.entidadId ?? null,
+        seleccionados: apariencia?.entidadId ? [apariencia.entidadId] : [],
+        modoSeleccion: "simple",
+        enlaceSeleccionId: null,
+        modoEnlace: null,
+        mensaje: null,
+      });
+    },
+
+    ajustarSeleccionadaAlTexto() {
+      const { modelo, opdActivoId, seleccionId } = get();
+      if (!seleccionId) return;
+      const apariencia = Object.values(modelo.opds[opdActivoId]?.apariencias ?? {})
+        .find((item) => item.entidadId === seleccionId);
+      if (!apariencia) return;
+      const resultado = ajustarAlTexto(modelo, opdActivoId, apariencia.id);
+      if (!resultado.ok) {
+        set({ mensaje: resultado.error });
+        return;
+      }
+      commitModelo(set, modelo, resultado.value, { seleccionId, seleccionados: [seleccionId], modoSeleccion: "simple", mensaje: null });
+    },
+
+    volverSeleccionadaAAuto() {
+      const { modelo, opdActivoId, seleccionId } = get();
+      if (!seleccionId) return;
+      const apariencia = Object.values(modelo.opds[opdActivoId]?.apariencias ?? {})
+        .find((item) => item.entidadId === seleccionId);
+      if (!apariencia) return;
+      const resultado = volverAAutoTamano(modelo, opdActivoId, apariencia.id);
+      if (!resultado.ok) {
+        set({ mensaje: resultado.error });
+        return;
+      }
+      commitModelo(set, modelo, resultado.value, { seleccionId, seleccionados: [seleccionId], modoSeleccion: "simple", mensaje: null });
+    },
+
+    alternarModoTamanoSeleccionado() {
+      const { modelo, opdActivoId, seleccionId } = get();
+      if (!seleccionId) return;
+      const apariencia = Object.values(modelo.opds[opdActivoId]?.apariencias ?? {})
+        .find((item) => item.entidadId === seleccionId);
+      if (!apariencia) return;
+      const resultado = alternarModoTamano(modelo, opdActivoId, apariencia.id);
+      if (!resultado.ok) {
+        set({ mensaje: resultado.error });
+        return;
+      }
+      commitModelo(set, modelo, resultado.value, { seleccionId, seleccionados: [seleccionId], modoSeleccion: "simple", mensaje: null });
+    },
+
     editarAliasEntidad(entidadId, alias) {
       const { modelo } = get();
       const resultado = editarAlias(modelo, entidadId, alias);
@@ -157,6 +241,55 @@ export function accionesEntidad(set: SetStore, get: GetStore): Partial<ModeloSli
       commitModelo(set, modelo, resultado.value, { seleccionId: entidadId, enlaceSeleccionId: null, modoEnlace: null, mensaje: null });
     },
 
+    editarImagenEntidad(entidadId, imagen) {
+      const { modelo } = get();
+      const resultado = editarImagen(modelo, entidadId, imagen);
+      if (!resultado.ok) {
+        set({ mensaje: resultado.error });
+        return;
+      }
+      const modoForzado = resultado.value.entidades[entidadId]?.imagen?.modo === "texto" && imagen.modo !== "texto";
+      commitModelo(set, modelo, resultado.value, {
+        seleccionId: entidadId,
+        enlaceSeleccionId: null,
+        modoEnlace: null,
+        modalImagenAbierto: null,
+        mensaje: modoForzado ? "Imagen guardada en modo texto por estados visibles o URL caída" : null,
+      });
+    },
+
+    quitarImagenEntidad(entidadId) {
+      const { modelo } = get();
+      const resultado = quitarImagen(modelo, entidadId);
+      if (!resultado.ok) {
+        set({ mensaje: resultado.error });
+        return;
+      }
+      commitModelo(set, modelo, resultado.value, { seleccionId: entidadId, enlaceSeleccionId: null, modoEnlace: null, modalImagenAbierto: null, mensaje: null });
+    },
+
+    cambiarModoImagenEntidad(entidadId, modo) {
+      const { modelo } = get();
+      const resultado = cambiarModoImagen(modelo, entidadId, modo);
+      if (!resultado.ok) {
+        set({ mensaje: resultado.error });
+        return;
+      }
+      const modoForzado = resultado.value.entidades[entidadId]?.imagen?.modo === "texto" && modo !== "texto";
+      commitModelo(set, modelo, resultado.value, {
+        seleccionId: entidadId,
+        enlaceSeleccionId: null,
+        modoEnlace: null,
+        mensaje: modoForzado ? "Imagen en modo texto por estados visibles o URL caída" : null,
+      });
+    },
+
+    alternarModoImagenEntidad(entidadId) {
+      const entidad = get().modelo.entidades[entidadId];
+      if (!entidad?.imagen) return;
+      get().cambiarModoImagenEntidad(entidadId, siguienteModoImagen(entidad.imagen.modo));
+    },
+
     fijarLayoutEstadosEntidad(entidadId, layout: LayoutEstados) {
       const { modelo } = get();
       const entidad = modelo.entidades[entidadId];
@@ -172,17 +305,23 @@ export function accionesEntidad(set: SetStore, get: GetStore): Partial<ModeloSli
     },
 
     toggleAliasVisibles() {
-      const { uiAliasVisibles, uiDescripcionesVisibles, modelo } = get();
+      const { uiAliasVisibles, uiDescripcionesVisibles, uiModoImagenGlobal, modelo } = get();
       const aliasVisibles = !uiAliasVisibles;
-      fijarOpcionesProyeccionGlobal({ aliasVisibles, descripcionesVisibles: uiDescripcionesVisibles });
+      fijarOpcionesProyeccionGlobal({ aliasVisibles, descripcionesVisibles: uiDescripcionesVisibles, modoImagenGlobal: uiModoImagenGlobal });
       set({ uiAliasVisibles: aliasVisibles, modelo: { ...modelo } });
     },
 
     toggleDescripcionesVisibles() {
-      const { uiAliasVisibles, uiDescripcionesVisibles, modelo } = get();
+      const { uiAliasVisibles, uiDescripcionesVisibles, uiModoImagenGlobal, modelo } = get();
       const descripcionesVisibles = !uiDescripcionesVisibles;
-      fijarOpcionesProyeccionGlobal({ aliasVisibles: uiAliasVisibles, descripcionesVisibles });
+      fijarOpcionesProyeccionGlobal({ aliasVisibles: uiAliasVisibles, descripcionesVisibles, modoImagenGlobal: uiModoImagenGlobal });
       set({ uiDescripcionesVisibles: descripcionesVisibles, modelo: { ...modelo } });
     },
   };
+}
+
+function siguienteModoImagen(modo: ModoImagenEntidad): ModoImagenEntidad {
+  if (modo === "imagen-texto") return "imagen";
+  if (modo === "imagen") return "texto";
+  return "imagen-texto";
 }

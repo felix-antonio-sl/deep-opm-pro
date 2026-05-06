@@ -25,7 +25,9 @@ export function DialogoConfirmacion(props: DialogoConfirmacionProps) {
         </>
       )}
     >
-      Guarda el modelo antes de continuar, descarta los cambios actuales o cancela la acción.
+      <span data-testid="dialogo-confirmacion-cerrar-dirty">
+        Hay cambios sin guardar. ¿Qué quieres hacer?
+      </span>
     </Dialogo>
   );
 }
