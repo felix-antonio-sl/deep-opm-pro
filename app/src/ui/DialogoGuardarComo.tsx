@@ -1,3 +1,4 @@
+// [JOYAS §1-3] Chrome UI consume tokens centralizados; canvas semántico invariante.
 import { useCallback, useEffect, useMemo, useRef, useState } from "preact/hooks";
 import folderIcon from "../../../assets/svg/folder.svg";
 import type { Id } from "../modelo/tipos";
@@ -6,6 +7,7 @@ import { rutaDeCarpeta, listarHijosDeCarpeta, validarNombreModeloLocal } from ".
 import { useOpmStore } from "../store";
 import { Dialogo } from "./Dialogo";
 import { PanelCarpetas, type VistaModo } from "./PanelCarpetas";
+import { tokens } from "./tokens";
 
 export function DialogoGuardarComo() {
   const open = useOpmStore((s) => s.dialogoGuardarComoAbierto);
@@ -160,7 +162,7 @@ const style = {
     alignItems: "center",
     gap: "8px",
     marginBottom: "4px",
-    color: "#1f2937",
+    color: tokens.colors.textoPrimario,
     fontSize: "13px",
     fontWeight: 700,
   },
@@ -169,13 +171,13 @@ const style = {
     height: "22px",
   },
   folderSelector: {
-    border: "1px solid #d9e0ea",
-    borderRadius: "4px",
+    border: `1px solid ${tokens.colors.bordeIntermedio}`,
+    borderRadius: tokens.radii.sm,
     padding: "6px 10px",
-    background: "#f9fbfd",
+    background: tokens.colors.fondoCard,
   },
   folderSummary: {
-    color: "#586D8C",
+    color: tokens.colors.chromeNeutral,
     fontSize: "13px",
     fontWeight: 700,
     cursor: "pointer",
@@ -188,30 +190,30 @@ const style = {
   label: {
     display: "grid",
     gap: "5px",
-    color: "#475467",
+    color: tokens.colors.textoSecundario,
     fontSize: "13px",
     fontWeight: 700,
   },
   input: {
     height: "34px",
-    border: "1px solid #b9c5d4",
-    borderRadius: "4px",
+    border: `1px solid ${tokens.colors.bordeInput}`,
+    borderRadius: tokens.radii.sm,
     padding: "0 10px",
-    color: "#1f2937",
+    color: tokens.colors.textoPrimario,
     fontSize: "13px",
   },
   textarea: {
     minHeight: "72px",
     resize: "vertical",
-    border: "1px solid #b9c5d4",
-    borderRadius: "4px",
+    border: `1px solid ${tokens.colors.bordeInput}`,
+    borderRadius: tokens.radii.sm,
     padding: "8px 10px",
-    color: "#1f2937",
+    color: tokens.colors.textoPrimario,
     fontSize: "13px",
-    fontFamily: "Arial, sans-serif",
+    fontFamily: tokens.typography.familyChrome,
   },
   error: {
-    color: "#b42318",
+    color: tokens.colors.errorTexto,
     fontSize: "12px",
     fontWeight: 700,
   },
@@ -219,17 +221,17 @@ const style = {
     display: "inline-flex",
     alignItems: "center",
     gap: "7px",
-    color: "#475467",
+    color: tokens.colors.textoSecundario,
     fontSize: "13px",
     fontWeight: 700,
   },
   primaryButton: {
     height: "34px",
     padding: "0 14px",
-    border: "1px solid #586D8C",
-    borderRadius: "4px",
-    background: "#586D8C",
-    color: "#ffffff",
+    border: `1px solid ${tokens.colors.chromeNeutral}`,
+    borderRadius: tokens.radii.sm,
+    background: tokens.colors.chromeNeutral,
+    color: tokens.colors.fondoChrome,
     cursor: "pointer",
     fontSize: "13px",
     fontWeight: 700,
@@ -237,10 +239,10 @@ const style = {
   secondaryButton: {
     height: "34px",
     padding: "0 14px",
-    border: "1px solid #c8d2df",
-    borderRadius: "4px",
-    background: "#ffffff",
-    color: "#475467",
+    border: `1px solid ${tokens.colors.bordeControl}`,
+    borderRadius: tokens.radii.sm,
+    background: tokens.colors.fondoChrome,
+    color: tokens.colors.textoSecundario,
     cursor: "pointer",
     fontSize: "13px",
     fontWeight: 700,
@@ -248,10 +250,10 @@ const style = {
   disabledButton: {
     height: "34px",
     padding: "0 14px",
-    border: "1px solid #d9e0ea",
-    borderRadius: "4px",
-    background: "#f2f4f7",
-    color: "#98a2b3",
+    border: `1px solid ${tokens.colors.bordeIntermedio}`,
+    borderRadius: tokens.radii.sm,
+    background: tokens.colors.fondoDeshabilitado,
+    color: tokens.colors.textoDeshabilitado,
     fontSize: "13px",
     fontWeight: 700,
   },
