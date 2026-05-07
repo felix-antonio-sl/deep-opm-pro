@@ -50,7 +50,15 @@ export function ToolbarOpl(props: ToolbarOplProps) {
         aria-label={props.posicion === "inferior" ? "Mover OPL al lateral derecho" : "Mover OPL abajo"}
         onClick={props.onTogglePosicion}
       >
-        {props.posicion === "inferior" ? "↔" : "↧"}
+        {props.posicion === "inferior" ? (
+          <svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+            <path d="M3 8 L13 8 M3 8 L5 6 M3 8 L5 10 M13 8 L11 6 M13 8 L11 10" stroke="currentColor" strokeWidth="1.4" fill="none" strokeLinecap="round"/>
+          </svg>
+        ) : (
+          <svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+            <path d="M8 3 L8 13 M8 13 L6 11 M8 13 L10 11" stroke="currentColor" strokeWidth="1.4" fill="none" strokeLinecap="round"/>
+          </svg>
+        )}
       </button>
       <button
         type="button"

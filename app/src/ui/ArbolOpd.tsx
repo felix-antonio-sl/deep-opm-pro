@@ -143,7 +143,11 @@ export function ArbolOpd() {
             </button>
           ) : null}
           <button type="button" style={style.smallActionBtn} title="Gestión del árbol OPD" aria-label="Abrir gestión del árbol OPD" onClick={abrirGestionArbol}>
-            ⋯
+            <svg width="12" height="12" viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+              <circle cx="3" cy="8" r="1.5" fill="currentColor"/>
+              <circle cx="8" cy="8" r="1.5" fill="currentColor"/>
+              <circle cx="13" cy="8" r="1.5" fill="currentColor"/>
+            </svg>
           </button>
         </div>
       </div>
@@ -269,7 +273,11 @@ function MapaSistemaItem(props: { activo: boolean; onAbrir: () => void }) {
         props.onAbrir();
       }
     }}>
-      <span style={style.nodeName}>🗺 Mapa del sistema</span>
+      <svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" focusable="false" style={{ flex: "0 0 auto" }}>
+        <path d="M5 2 L1 4 L1 14 L5 12 L11 14 L15 12 L15 2 L11 4 Z" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round"/>
+        <path d="M5 2 L5 12 M11 4 L11 14" stroke="currentColor" strokeWidth="1.2" fill="none"/>
+      </svg>
+      <span style={style.nodeName}>Mapa del sistema</span>
     </div>
   );
 }

@@ -51,7 +51,12 @@ export function ToolbarSeleccion({ slotBarraFlotante }: ToolbarSeleccionProps) {
       <span style={style.divider} />
       <button style={uiAliasVisibles ? style.activeButton : style.button} type="button" onClick={toggleAliasVisibles} aria-pressed={uiAliasVisibles} title={uiAliasVisibles ? "Ocultar alias bajo el nombre" : "Mostrar alias bajo el nombre"}>Alias</button>
       <button style={uiDescripcionesVisibles ? style.activeButton : style.button} type="button" onClick={toggleDescripcionesVisibles} aria-pressed={uiDescripcionesVisibles} title={uiDescripcionesVisibles ? "Ocultar descripciones bajo el nombre" : "Mostrar descripciones bajo el nombre"}>Desc</button>
-      <button style={puedeEditarImagen ? style.button : style.disabledButton} type="button" disabled={!puedeEditarImagen} onClick={handleAbrirImagen} title={puedeEditarImagen ? "Editar imagen del objeto seleccionado" : "Selecciona un objeto"} aria-label="Editar imagen del objeto"><span aria-hidden="true">📷</span></button>
+      <button style={puedeEditarImagen ? style.button : style.disabledButton} type="button" disabled={!puedeEditarImagen} onClick={handleAbrirImagen} title={puedeEditarImagen ? "Editar imagen del objeto seleccionado" : "Selecciona un objeto"} aria-label="Editar imagen del objeto">
+        <svg width="16" height="16" viewBox="0 0 20 20" aria-hidden="true" focusable="false">
+          <path d="M3 6 L6 6 L7 4 L13 4 L14 6 L17 6 L17 16 L3 16 Z" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round"/>
+          <circle cx="10" cy="11" r="3" fill="none" stroke="currentColor" strokeWidth="1.4"/>
+        </svg>
+      </button>
       <button style={uiModoImagenGlobal ? style.activeButton : style.button} type="button" onClick={handleSiguienteModoImagen} aria-pressed={uiModoImagenGlobal !== null} data-testid="toolbar-modo-imagen-global" title={`Modo imagen global: ${etiquetaModoGlobal(uiModoImagenGlobal)}`}>{etiquetaModoGlobal(uiModoImagenGlobal)}</button>
       {slotBarraFlotante ?? null}
     </>
