@@ -728,13 +728,13 @@
   ],
   "knownGaps": [],
   "autoAudit": {
-    "generatedAt": "2026-05-07T10:45:06.004Z",
+    "generatedAt": "2026-05-07T17:57:42.269Z",
     "mode": "sync-real",
     "rulesEvaluated": 102,
     "rulesMatched": 102,
     "rulesUnmatched": 0,
     "sourceFiles": {
-      "count": 388,
+      "count": 398,
       "roots": [
         "app/src",
         "app/e2e",
@@ -2469,10 +2469,11 @@
       "estado": "cubierto",
       "confianza": "alta-auto",
       "fuente": "auto",
-      "nota": "Auto ronda 12 L1: ejemplo-organizacional cargable por URL como asset (app/examples/ejemplo-organizacional.json); cargarEjemploOrganizacional disponible en MenuPrincipal/DialogoCargarModelo/PantallaInicio. Preservacion exacta JSON local cubierta por test dedicado.",
+      "nota": "Auto ronda 12 L1 + BUG-20260507T170832Z-2dae09: ejemplo-organizacional cargable por URL como asset (app/examples/ejemplo-organizacional.json); catalogo unico via listarFixtures/cargarFixtureDemo en MenuPrincipal/DialogoCargarModelo/PantallaInicio, sin duplicar item especial. Preservacion exacta JSON local cubierta por test dedicado.",
       "evidencia": [
         "app/src/store/modelo/acciones-ui.ts",
         "app/src/ui/DialogoCargarModelo.tsx",
+        "app/e2e/01-carga-y-workspace.spec.ts",
         "app/src/persistencia/local.test.ts",
         "app/e2e/_smoke-helpers.ts"
       ]

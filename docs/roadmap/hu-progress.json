@@ -1,17 +1,17 @@
 {
   "schema": "deep-opm-pro.hu-progress-report.v1",
-  "generatedAt": "2026-05-07T10:45:06.004Z",
+  "generatedAt": "2026-05-07T17:57:42.269Z",
   "repoRoot": "/home/felix/projects/deep-opm-pro",
   "backlogRoot": "docs/historias-usuario-v2",
   "evidenceLedger": "docs/roadmap/hu-progress-evidence.json",
   "autoAudit": {
-    "generatedAt": "2026-05-07T10:45:06.004Z",
+    "generatedAt": "2026-05-07T17:57:42.269Z",
     "mode": "sync-real",
     "rulesEvaluated": 102,
     "rulesMatched": 102,
     "rulesUnmatched": 0,
     "sourceFiles": {
-      "count": 388,
+      "count": 398,
       "roots": [
         "app/src",
         "app/e2e",
@@ -31757,7 +31757,7 @@
       "estadoAvance": "cubierto",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto ronda 12 L1: ejemplo-organizacional cargable por URL como asset (app/examples/ejemplo-organizacional.json); cargarEjemploOrganizacional disponible en MenuPrincipal/DialogoCargarModelo/PantallaInicio. Preservacion exacta JSON local cubierta por test dedicado.",
+      "nota": "Auto ronda 12 L1 + BUG-20260507T170832Z-2dae09: ejemplo-organizacional cargable por URL como asset (app/examples/ejemplo-organizacional.json); catalogo unico via listarFixtures/cargarFixtureDemo en MenuPrincipal/DialogoCargarModelo/PantallaInicio, sin duplicar item especial. Preservacion exacta JSON local cubierta por test dedicado.",
       "brechas": [],
       "evidencia": [
         {
@@ -31767,6 +31767,10 @@
         {
           "path": "app/src/ui/DialogoCargarModelo.tsx",
           "hrefDashboard": "../../app/src/ui/DialogoCargarModelo.tsx"
+        },
+        {
+          "path": "app/e2e/01-carga-y-workspace.spec.ts",
+          "hrefDashboard": "../../app/e2e/01-carga-y-workspace.spec.ts"
         },
         {
           "path": "app/src/persistencia/local.test.ts",
@@ -32404,7 +32408,7 @@
       "estadoAvance": "cubierto",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto ronda 12 L1: ejemplo-organizacional cargable por URL como asset (app/examples/ejemplo-organizacional.json); cargarEjemploOrganizacional disponible en MenuPrincipal/DialogoCargarModelo/PantallaInicio. Preservacion exacta JSON local cubierta por test dedicado.",
+      "nota": "Auto ronda 12 L1 + BUG-20260507T170832Z-2dae09: ejemplo-organizacional cargable por URL como asset (app/examples/ejemplo-organizacional.json); catalogo unico via listarFixtures/cargarFixtureDemo en MenuPrincipal/DialogoCargarModelo/PantallaInicio, sin duplicar item especial. Preservacion exacta JSON local cubierta por test dedicado.",
       "brechas": [],
       "evidencia": [
         {
@@ -32414,6 +32418,10 @@
         {
           "path": "app/src/ui/DialogoCargarModelo.tsx",
           "hrefDashboard": "../../app/src/ui/DialogoCargarModelo.tsx"
+        },
+        {
+          "path": "app/e2e/01-carga-y-workspace.spec.ts",
+          "hrefDashboard": "../../app/e2e/01-carga-y-workspace.spec.ts"
         },
         {
           "path": "app/src/persistencia/local.test.ts",
