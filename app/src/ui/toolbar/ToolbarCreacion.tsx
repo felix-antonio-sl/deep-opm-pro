@@ -12,7 +12,7 @@
  * (ahorra ~6 chars y deja de truncarse en viewport ~1280). El testId
  * `toolbar-aplicar-layout` se preserva.
  */
-import { useMemo, useState } from "preact/hooks";
+import { useEffect, useMemo, useRef, useState } from "preact/hooks";
 import { normalizarGridConfig } from "../../canvas/grid";
 import type { Id, TipoEnlace } from "../../modelo/tipos";
 import { useOpmStore } from "../../store";
@@ -58,10 +58,49 @@ export function ToolbarCreacion() {
   const [bibliotecaAbierta, setBibliotecaAbierta] = useState(false);
   const [menuTiposAbierto, setMenuTiposAbierto] = useState(false);
   const [direccionTipoEnlace, setDireccionTipoEnlace] = useState<"saliente" | "entrante">("saliente");
+  const triggerTiposRef = useRef<HTMLButtonElement | null>(null);
+  const menuTiposRef = useRef<HTMLDivElement | null>(null);
+  const menuTiposAbiertoRef = useRef(false);
+  menuTiposAbiertoRef.current = menuTiposAbierto;
 
   const origenMenuTipo = useMemo(() => seleccionId ?? seleccionados.find((id) => !!modelo.entidades[id]) ?? null, [modelo.entidades, seleccionId, seleccionados]);
   const destinoMenuTipo = useMemo(() => seleccionados.find((id) => id !== origenMenuTipo && !!modelo.entidades[id]) ?? null, [modelo.entidades, origenMenuTipo, seleccionados]);
   const selectorEnlaceDeshabilitado = !origenMenuTipo && !modoEnlace;
+  const estiloBotonTipos = selectorEnlaceDeshabilitado
+    ? style.disabledButton
+    : menuTiposAbierto
+      ? style.activeButton
+      : style.button;
+
+  useEffect(() => {
+    if (selectorEnlaceDeshabilitado) setMenuTiposAbierto(false);
+  }, [selectorEnlaceDeshabilitado]);
+
+  useEffect(() => {
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key !== "Escape") return;
+      if (!menuTiposAbiertoRef.current) return;
+      event.preventDefault();
+      event.stopPropagation();
+      event.stopImmediatePropagation();
+      setMenuTiposAbierto(false);
+      triggerTiposRef.current?.focus();
+    }
+    function onPointerDown(event: PointerEvent) {
+      if (!menuTiposAbiertoRef.current) return;
+      const target = event.target;
+      if (!(target instanceof Node)) return;
+      if (menuTiposRef.current?.contains(target)) return;
+      if (triggerTiposRef.current?.contains(target)) return;
+      setMenuTiposAbierto(false);
+    }
+    window.addEventListener("keydown", onKeyDown, { capture: true });
+    window.addEventListener("pointerdown", onPointerDown, { capture: true });
+    return () => {
+      window.removeEventListener("keydown", onKeyDown, { capture: true });
+      window.removeEventListener("pointerdown", onPointerDown, { capture: true });
+    };
+  }, []);
 
   function handleCambiarTipoEnlace(event: Event) {
     const tipo = (event.currentTarget as HTMLSelectElement).value;
@@ -96,7 +135,7 @@ export function ToolbarCreacion() {
         </select>
       </label>
       {modoEnlace ? <button style={style.secondaryButton} type="button" onClick={cancelarEnlace} title="Cancelar creación de enlace">Cancelar</button> : null}
-      <button style={menuTiposAbierto ? style.activeButton : selectorEnlaceDeshabilitado ? style.disabledButton : style.button} type="button" onClick={handleToggleTiposValidos} disabled={selectorEnlaceDeshabilitado} data-testid="abrir-menu-tipo-enlace" title={selectorEnlaceDeshabilitado ? "Selecciona una entidad origen" : "Tipos válidos · sugerencias OPL para origen/destino"}>
+      <button ref={triggerTiposRef} style={estiloBotonTipos} type="button" onClick={handleToggleTiposValidos} disabled={selectorEnlaceDeshabilitado} aria-haspopup="dialog" aria-expanded={menuTiposAbierto} data-testid="abrir-menu-tipo-enlace" title={selectorEnlaceDeshabilitado ? "Selecciona una entidad origen" : "Tipos válidos · sugerencias OPL para origen/destino"}>
         Tipos válidos
       </button>
       <button style={bibliotecaAbierta ? style.activeButton : style.button} type="button" onClick={() => setBibliotecaAbierta((actual) => !actual)} data-testid="abrir-biblioteca-cosa" title="Biblioteca de cosas · arrastra al canvas para reusar">Biblioteca</button>
@@ -119,7 +158,11 @@ export function ToolbarCreacion() {
       <button style={style.button} type="button" onClick={aplicarLayoutSugerido} data-testid="toolbar-aplicar-layout" title="Auto-layout · reorganiza apariencias del OPD activo en niveles top-down. Undoable con Ctrl+Z.">Auto-layout</button>
       <ModalConfiguracionGrid abierto={gridModalAbierto} config={gridConfig} onCerrar={handleCerrarGridConfig} onGuardar={fijarGridConfig} />
       {bibliotecaAbierta ? <BibliotecaCosa modelo={modelo} opdActivoId={opdActivoId} onCerrar={() => setBibliotecaAbierta(false)} onNavegarOpd={cambiarOpdActivo} /> : null}
-      {menuTiposAbierto ? <MenuTipoEnlace modelo={modelo} origenId={origenMenuTipo} destinoId={destinoMenuTipo} direccion={direccionTipoEnlace} onDireccion={setDireccionTipoEnlace} onElegir={handleElegirTipoValido} /> : null}
+      {menuTiposAbierto ? (
+        <div ref={menuTiposRef}>
+          <MenuTipoEnlace modelo={modelo} origenId={origenMenuTipo} destinoId={destinoMenuTipo} direccion={direccionTipoEnlace} onDireccion={setDireccionTipoEnlace} onElegir={handleElegirTipoValido} />
+        </div>
+      ) : null}
     </>
   );
 }

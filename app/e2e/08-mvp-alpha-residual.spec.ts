@@ -153,6 +153,8 @@ test("L4 menu de tipos validos muestra previews OPL y filtra por direccion", asy
   await expect(menu.getByTestId("menu-tipo-enlace-consumo")).toBeVisible();
   await menu.getByRole("button", { name: "Entrada", exact: true }).click();
   await expect(menu.getByText(/genera|requiere|maneja/)).toBeVisible();
+  await page.getByRole("img", { name: "OPD activo" }).click({ position: { x: 8, y: 8 } });
+  await expect(page.getByTestId("menu-tipo-enlace")).toHaveCount(0);
   expect(pageErrors).toEqual([]);
 });
 
