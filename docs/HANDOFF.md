@@ -1,14 +1,14 @@
-# HANDOFF - Ronda 15 cerrada, Beta1 habilitada
+# HANDOFF — Corte pre-betas (ronda 18 + 15.2 + hotfixes consolidados)
 
-**Fecha**: 2026-05-07  
-**Repositorio**: `deep-opm-pro`  
-**Rama**: `main`  
-**Corte**: ronda 15 fusionada cerrada; Beta0 hardening completo; Beta1 habilitada.  
-**Estado de codigo**: `main` incluye ronda 15 hasta `ae79282`, hotfix posterior `c51e109` para barra contextual y fixes `e1c8528`/`d63c8e2` para despliegue/unfold. Este handoff consolida ese estado y versiona bugs capturados post-cierre.
+**Fecha**: 2026-05-08
+**Repositorio**: `deep-opm-pro`
+**Rama**: `main`
+**HEAD**: `cf289ce`
+**Corte**: pre-Beta1/Beta2. Todo lo planificado para Beta0 + el polish visual de chrome (ronda 18) + el schema dual ortogonal de refinamiento (ronda 15.2) está consolidado en main. Beta1 (ronda 16) y Beta2 (ronda 17) están **diseñadas pero no ejecutadas**.
 
-## Politica De Handoff Unico
+## Política De Handoff Único
 
-`docs/HANDOFF.md` es la unica memoria de traspaso vigente del proyecto. Este
+`docs/HANDOFF.md` es la única memoria de traspaso vigente del proyecto. Este
 archivo reemplaza y consolida el handoff anterior. No crear handoffs paralelos,
 fechados ni duplicados.
 
@@ -31,171 +31,146 @@ crear una solucion nueva, revisar SSOT, `assets/`, `docs/JOYAS.md` y
 
 ## Estado Ejecutivo
 
-Ronda 15 cerro el hardening Beta0 pre-Beta1. La app ya puede entrar a ronda 16
-Beta1 con sus precondiciones confirmadas:
+`main` está 20 commits adelante de `origin/main` y agrupa cuatro bloques sucesivos sobre el cierre Beta0 anterior (`6d26146`):
 
-- `Dialogo` estable via portal a `document.body`.
-- IFML local sin `window.dispatchEvent("opm:nueva-cosa")`; flujo nueva-cosa
-  vive tipado en store.
-- Toolbar con menu `⋯ Mas`, 22 controles visibles iniciales y controles
-  secundarios fuera de la banda principal.
-- Canvas con `connector: jumpover` en enlaces procedurales y layout sugerido
-  aplicable/undoable.
-- Superficie contextual mas coherente: Inspector, OPL, arbol, paneles y barra
-  contextual alineados.
-- Alpha real preservado en 100%: OPL reverse editable ya no queda parcial.
+1. **Ronda 18** — refactor visual chrome (4 commits + 3 merges no-ff).
+2. **Ronda 15.2** — schema dual ortogonal de refinamiento (6 commits, breaking change semántico via migración legacy faithful).
+3. **Hotfix triple** — Delete cross-OPD, unicidad global de nombres canónicos, menú Tipos válidos cierra con Escape/click-outside (3 commits + 1 ajuste de smoke).
+4. **Hotfix barra contextual** — siembra de estados iniciales y Unfold paritario (2 commits previos a ronda 18).
 
-La siguiente ronda operacional es **ronda 16 / Beta1**:
-`docs/instrucciones-lineas-dev/ronda16/`.
+Loop verde sobre `main @ cf289ce`:
 
-## Memoria Consolidada De Ronda 15
+- `bun run check` → **926 unit pass / 0 fail / 3684 expect()**
+- `bun run lint` → clean
+- `bun run build` → `index.js` ~260 KB (gzip ≈69 KB)
+- `bun run browser:smoke` → **129 passed / 0 fail / 5 skipped** (contrato TablaEnlaces pending implementation)
+- Working tree limpio. Solo branch `main`. Cero worktrees auxiliares.
 
-### L1 - Dialogo root-cause
+La siguiente ronda operacional **disponible** es **ronda 16 / Beta1**:
+`docs/instrucciones-lineas-dev/ronda16/`. Ronda 17 / Beta2 también está empacada en `docs/instrucciones-lineas-dev/ronda17/`. Decisión de orden Beta1→Beta2 sigue siendo del operador.
 
-Se reprodujo y corrigio la causa raiz del `Dialogo` invisible: el componente
-vivía dentro de `<main display:grid>` y quedaba vulnerable a containing-block
-traps por ancestros con `transform`, `filter`, `contain` o `will-change`. El
-fix porta `Dialogo` a `document.body` con `createPortal` de `preact/compat`.
+## Memoria Consolidada Del Corte
 
-La migracion `modal-grid` quedo reintroducida con smoke focal. Quedan fuera:
-`mask-image` de affordance scroll y `canvas role="application"`, ambos
-documentados como deudas no bloqueantes.
+### Ronda 18 — Refactor visual chrome (3 pasadas seriales mergeadas con --no-ff)
 
-### L3 - IFML local
+Línea única L1 con tres pasadas en archivos disjuntos. Briefs en `docs/instrucciones-lineas-dev/ronda18/`.
 
-Ruta B aplicada: `nuevaCosaPendiente: { entidadId, aparienciaId, nombre } |
-null` reemplaza el evento DOM `opm:nueva-cosa`. `ToolbarBase` consume el estado
-del store y lo limpia con `confirmarNombreNuevaCosa` o
-`descartarNuevaCosaPendiente`.
+- **P1** (`a536578` + merge `fe6fa5f`): `Inspector` vacío rediseñado con jerarquía (título 14/700, body 13/normal secundario, card "Atajos para empezar"); `<PersistenciaJson />` envuelto en `<details open>` cuando inspector vacío (`open` por defecto autorizado por sección 10 del brief para preservar smokes que hacen `fill()` sobre textarea JSON sin selección previa); `<input type=file>` reemplazado por label custom + nombre con `text-overflow: ellipsis`; tres bloques (`Modelos locales`, `JSON`, `Archivo JSON`) en tarjeta única con border + radius + padding tokenizados.
+- **P2** (`69b6b30` + merge `549e49e`): cabecera del panel OPL en tres clusters separados por dividers — chrome (`▾`, `↔`), display (`123`, `AI`, `Editar`), consulta (búsqueda, `Copiar`, `HTML`); toggle `Filtrar por selección` al extremo derecho con divider previo; tipografía 12 (de 11), height 28 (de 26), search input minWidth 180; cero hex literales fuera de `tokens.ts`.
+- **P3** (`cd9c87b` + merge `dd5ba9a`): toolbar superior en cinco clusters por intención — Crear · Historia · Modelo · Enlace · Vista — separados por dividers; `Deshacer`/`Rehacer` como iconos `↶`/`↷` con `aria-label` explícito; `Sugerir layout` renombrado a `Auto-layout`; placeholder del select de enlace `Tipo de enlace…` (sin label `Enlace` previo); `botonBase` sin `minWidth`, `height: 30`, padding y tipografía con tokens. **Dos desviaciones documentadas en commit, autorizadas por regla 5.5 del README ronda18 ("smokes intactos > reorganización")**: `Crear varios objetos/procesos` mantenidos en banda (8+ smokes hacen `dragTo()` directo y `ToolbarMasItem` no soporta `draggable`); `Config grid` en banda mantenido (3 smokes hacen click directo, espejo `toolbar-mas-config-grid` ya en menú).
 
-`evaluacion-exhaustiva.mjs` admite `--out <subdir>` y agrega verificadores IFML
-para no pisar capturas y poder comparar rondas.
+Cierra `BUG-20260507T212356Z-692129` ("paneles horribles, refactorizar visualmente"). Política: tokens existentes únicamente, cero hex literales nuevos, preservación dura de `data-testid` y `aria-label`.
 
-### L2 - Toolbar Mas
+### Ronda 15.2 — Schema dual ortogonal de refinamiento
 
-`ToolbarMas.tsx` agrega menu accesible para acciones secundarias. Soporta
-Enter/Space/ArrowDown para abrir, Escape para cerrar, click-outside y semantica
-`aria-haspopup="menu"`, `aria-expanded`, `role="menuitem"`.
+Cierre semántico de la ortogonalidad descomposición/despliegue. 6 commits.
 
-La banda queda con 22 controles visibles iniciales. Algunas acciones siguen
-replicadas en banda y menu para preservar smokes legacy; se deja como cleanup.
+- `a3bc6de` `feat(modelo)!`: schema dual `Entidad.refinamientos: Partial<Record<TipoRefinamiento, SlotRefinamiento>>` con migración legacy en `validarRefinamientos`. Campo `refinamiento` eliminado del tipo TS — solo sobrevive como interface de input legacy del migrador.
+- `fdecd2c` `refactor(operaciones)`: `descomponerProceso`/`desplegarObjeto` escriben a su slot via `fijarRefinamiento`; idempotencia preservada (mismo tipo → reabrir OPD existente); cross-reject removido.
+- `fed4dfb` `refactor(modelo,canvas)`: consumers internos migrados via helpers (`obtenerRefinamiento`, `refinaA`, `refinamientosDe`, `fijarRefinamiento`).
+- `a19939b` `refactor(render,ui,opl)`: `SeccionRefinamiento` muestra ambos botones independientes; OPL `oracionesRefinamiento` emite UNA oración por slot presente; `NodoOpd`/`Timeline` buscan refinador por `refinaA(opdId)`.
+- `aa18120` `test(refinamiento)`: suite focal `refinamientos.test.ts`, ley `law-refinement-thing-matrix` extendida con caso dual, e2e nuevo `ronda 15.2: descomposicion + despliegue simultaneos` en `05-refinamiento-y-plegado.spec.ts`.
+- `0e6cec4` `fix(opl,leyes)`: completa migración dual en `aparienciasInternasDeRefinamiento` y test helper `internasDelRefinamiento` (omitidos por el agente porque rebaseó sobre base previa al hotfix `6d26146`).
 
-### L4 - Canvas fidelity
+Lectura categorial: schema migra de **coproducto exclusivo** a **producto parcial indexado por tipo**; migración legacy → record es funtor faithful (modelos pre-15.2 cargan sin pérdida); aciclicidad V-220/V-221 preservada por construcción.
 
-`connector: jumpover` en enlaces procedurales con `routerManhattan` mejora
-cruces sin nueva dependencia. `aplicarLayoutSugerido` usa BFS por niveles,
-entra como accion undoable y se expone como "Sugerir layout". La ley
-`law-render-stable-metadata` se preserva.
+### Hotfix triple — pre-betas
 
-### L5 - Superficie contextual
+- `e5a0613` `fix(modelo,canvas,store)`: **BUG-20260507T231712Z-91e001** (Delete solo borraba en OPD activo) y **BUG-20260507T231852Z-13c786** (creación permitía nombres duplicados). `canvas/operacionesBatch.ts` Delete remueve la entidad lógica del modelo completo; `Ocultar apariencia` queda como vía local. `modelo/operaciones/entidad.ts` y `creacion.ts` enforce unicidad global del nombre canónico al crear/renombrar; placeholders sin nombre auto-suffix `Objeto_2` para no bloquear el flujo de creación antes del modal. `store/modelo/acciones-entidad.ts` deja el modal abierto con error de duplicado en lugar de cerrar silenciosamente.
+- `1e55a72` `fix(toolbar)`: **BUG-20260507T231609Z-13e330** (menú "Tipos válidos" se quedaba pegado). Refs al trigger y al contenedor del menú; listeners globales en captura para Escape (foco vuelve al botón) y `pointerdown` fuera del menú/trigger; `aria-haspopup="dialog"` + `aria-expanded` sobre el trigger; cierre automático cuando el selector se deshabilita.
+- `cf289ce` `test(e2e)`: ajusta `02-canvas-y-render.spec.ts:351 renderiza agregacion como triangulo estructural` — regresión esperada del Fix A. Filter por regex `/^Objeto(_\d+)?$/` para cubrir el segundo placeholder con auto-suffix.
 
-Inspector agrega `data-modo-inspector` y `aria-live`; muestra
-apariencia≠entidad cuando una cosa aparece en multiples OPDs. Enlaces fuera del
-OPD activo ofrecen "Ir al OPD". Panel OPL scrollea a la oracion seleccionada.
-PanelMetodologia y PanelAvisos son colapsables sin perder contador.
+### Hotfix barra contextual (previo a ronda 18)
 
-El contrato Beta1 de `TablaEnlaces` queda expresado como `describe.skip` en
-`e2e/15-superficie-contextual.spec.ts`.
+- `4232029` `fix(barra-contextual)`: agregar-estado siembra dos iniciales (`Estado1`, `Estado2`) si no existen.
+- `49a1238` `feat(barra-contextual)`: agrega Unfold paritario al Inzoom (botón `barra-unfold` aparece junto a `barra-inzoom` cuando aplica).
 
-## Hotfix Post-Cierre
+## Bugs Cerrados En Este Ciclo
 
-| Commit | Aporte | Estado |
+| Bug | Cerrado por | Lectura operativa |
 |---|---|---|
-| `c51e109` | `fix(barra-contextual): oculta copiar/pegar-estilo sin enlace operable` | Resuelve `BUG-20260507T211815Z-d78ae2`. Los botones "Copiar"/"Pegar" eran acciones de estilo de enlace, pero se mostraban con entidad seleccionada sin enlace operable. Ahora se ocultan cuando no aplican y reaparecen cuando hay enlace. Incluye unit de `accionesPilotoBarra` y ajuste e2e en `02-canvas-y-render.spec.ts`. |
-| `e1c8528` | `fix(render): despliegue no proyecta contorno embebido` | Primera mitad de `BUG-20260507T211702Z-372334`: en OPD hijo, solo `descomposicion/inzoom` usa contorno embebido; `despliegue/unfold` renderiza el padre como entidad normal. Incluye test `BUG-372334` en `proyeccion.test.ts`. |
-| `d63c8e2` | `fix(modelo): posiciona partes de despliegue fuera del padre` | Segunda mitad de `BUG-20260507T211702Z-372334`: la operacion `desplegarObjeto` crea al padre con tamaño normal y posiciona partes/refinadores fuera, debajo, conectados por enlaces estructurales. Incluye aserciones en `operaciones.test.ts`. |
-| `6d26146` | `fix(opl,tests): alinea OPL/leyes/e2e con despliegue fuera del padre` | Cierre de `BUG-20260507T211702Z-372334`: aparienciasInternasDeRefinamiento ya no filtra por dentroDe en despliegue (sin esto generarOpl emitia "se despliega en SD1" en vez de listar partes); leyes diferencian rol="contorno"+dentroDe descomposicion vs rol="externo"+fuera despliegue; smoke `05-refinamiento-y-plegado` asserta partes FUERA del bbox. |
+| `BUG-20260507T211702Z-372334` | `e1c8528` + `d63c8e2` + `6d26146` (cierre previo) | Despliegue/unfold no proyecta contorno embebido y posiciona partes fuera del padre. |
+| `BUG-20260507T211815Z-d78ae2` | `c51e109` (cierre previo) | Botones Copiar/Pegar de barra contextual ocultos cuando no hay enlace operable. |
+| `BUG-20260507T212356Z-692129` | Ronda 18 P1+P2+P3 (`a536578`/`69b6b30`/`cd9c87b` + 3 merges) | Refactor visual chrome de Inspector vacío + cabecera OPL + toolbar superior. |
+| `BUG-20260507T231609Z-13e330` | `1e55a72` | Menú Tipos válidos cierra con Escape y click fuera. |
+| `BUG-20260507T231712Z-91e001` | `e5a0613` | Delete cross-OPD: borra la entidad lógica del modelo completo. |
+| `BUG-20260507T231852Z-13c786` | `e5a0613` | Unicidad global de nombres canónicos enforced en creación/rename. |
 
-## Commits Relevantes
+Reportes versionados bajo `docs/bugs/` con payload + screenshots como evidencia.
 
-| Linea | Commits | Aporte |
+## Decisiones Vigentes
+
+1. **Política tokens-only para chrome UI**: cualquier valor visual de chrome (no canvas) sale de `app/src/ui/tokens.ts`. Cero hex literales nuevos. Paleta canvas (`docs/JOYAS.md`) sigue invariante.
+2. **`<details open>` en `Inspector` vacío**: smokes hacen `fill()` sobre `<textarea>` JSON sin selección previa; `<details>` cerrado provoca `display:none` y timeout de Playwright. Mantener `open` por defecto; el operador puede colapsar manualmente.
+3. **Schema dual de refinamiento**: una entidad puede tener simultáneamente descomposición y despliegue, cada uno apuntando a un OPD hijo distinto. Migración legacy es faithful.
+4. **Unicidad global de nombres canónicos**: enforced en creación y rename. Placeholders sin nombre confirmado auto-suffix `Objeto_2`. El modal de nombre permanece abierto con error si el operador intenta confirmar un duplicado.
+5. **Delete cross-OPD vs Ocultar apariencia**: `Delete` borra la entidad lógica del modelo completo; `Ocultar apariencia` solo deja de mostrarla en el OPD activo. Decisión documentada porque en el bug original el operador mencionó las dos vías como alternativas — quedaron ambas con semántica clara y disjunta.
+6. **Smokes > reorganización (regla 5.5 ronda 18)**: cuando un cambio de UX rompe smokes, prevalece el smoke a menos que el cambio sea estrictamente necesario por brief. Aplicado en P3 con `Crear varios *` y `Config grid` mantenidos en banda.
+7. **Política de handoff único** (sin cambio): `docs/HANDOFF.md` se reescribe, no se acumulan handoffs paralelos.
+8. **Política de no actuar fuera de scope** (sin cambio): bugs descubiertos durante un fix se anotan como reportes nuevos, no se mezclan con el commit del fix en curso.
+
+## Commits Relevantes Del Corte
+
+| Bloque | Commits | Aporte |
 |---|---|---|
-| L1 | `c2a66d7`, `8c43075`, `dbdd29c`, `f8017ed` | Reproduccion dialogo-portal, portal a body, modal-grid canonico, preservacion de testid. |
-| L3 | `eb493f2`, `88ce250`, `6aeb30e` | IFML nueva-cosa tipado en store, smoke, evaluacion exhaustiva con `--out`. |
-| L2 | `be851d4`, `6111533`, `c1fa142` | `ToolbarMas.tsx`, acciones secundarias a Mas, smoke overflow. |
-| L4 | `56208a3`, `b1a39b8`, `00ab638` | Jumpover procedural, layout sugerido undoable, smoke canvas fidelity. |
-| L5 | `6b875f3`, `b535758`, `8aeff65` | Superficie contextual, journey pre-Beta1, contrato TablaEnlaces. |
-| Cons. | `ae79282` | HANDOFF/cortes/dashboard ronda 15; Beta1 habilitada. |
-| Hotfix | `c51e109` | Oculta copiar/pegar estilo sin enlace operable. |
-| Hotfix | `e1c8528` | Despliegue/unfold no proyecta contorno embebido en OPD hijo. |
-| Hotfix | `d63c8e2` | Despliegue/unfold posiciona partes afuera del padre. |
-| Hotfix | `6d26146` | OPL/leyes/e2e alineados con despliegue fuera del padre. |
+| Hotfix barra-contextual | `49a1238` `4232029` | Unfold paritario al Inzoom; agregar-estado siembra dos estados iniciales. |
+| Ronda 18 docs | `eb9f42e` | Briefs en `docs/instrucciones-lineas-dev/ronda18/`. |
+| Ronda 18 P1 | `a536578` + merge `fe6fa5f` | Inspector vacío + file picker custom. |
+| Ronda 18 P2 | `69b6b30` + merge `549e49e` | Cabecera OPL en 3 clusters. |
+| Ronda 18 P3 | `cd9c87b` + merge `dd5ba9a` | Toolbar superior en 5 clusters. |
+| Ronda 15.2 | `a3bc6de` `fdecd2c` `fed4dfb` `a19939b` `aa18120` `0e6cec4` | Schema dual ortogonal + migración + tests. |
+| Hotfix triple | `e5a0613` `1e55a72` `cf289ce` | Delete cross-OPD + unicidad global + menú Tipos cierra + smoke ajustado. |
 
 ## Verificacion Final Conocida
 
-Loop verde del cierre ronda 15 (`main @ ae79282`):
+`main @ cf289ce`:
 
 ```bash
 cd app && bun run check
-# 912 unit / 0 fail
+# 926 unit pass / 0 fail / 3684 expect() / 93 files
 
 cd app && bun run lint
 # clean
 
 cd app && bun run build
-# 256.09 kB / 68.49 kB gzip
+# index-CP93Ui3X.js ~260 KB / ~69 KB gzip
+# vendor-jointjs-Cfe4rKV_.js 470 KB / 130 KB gzip (lazy)
 
 cd app && bun run browser:smoke
-# 128 passed / 5 skipped (contrato TablaEnlaces)
-
-node docs/historias-usuario-v2/tools/progress-dashboard.mjs --sync-real
-# MVP-alpha 100.0%; 102/102 reglas matched
+# 129 passed / 0 fail / 5 skipped (contrato TablaEnlaces pending implementation)
 ```
 
 Notas:
 
-- Loop verde post-hotfixes ejecutado tras `6d26146` (`main @ 6d26146`):
-  `bun run check` -> 914 unit / 0 fail; `bun run lint` -> clean;
-  `bun run build` -> 256.12 KB / 68.50 KB gzip;
-  `bun run browser:smoke` -> 128 passed / 5 skipped (contrato TablaEnlaces).
-- Bundle queda bajo el umbral de delta gzip de ronda 15: +2.78 KB gzip vs
-  baseline pre-ronda.
-- Vite dev server estuvo activo en `http://138.201.53.205:5173/` durante la
-  captura de bugs; no es requisito de estado persistente.
+- Vite dev server estuvo activo en `http://138.201.53.205:5173/` durante validación in-vivo. El puerto 5173 está abierto en `ufw allow`. El puerto 5174 NO; cualquier reinicio externo del server debe usar `--host 0.0.0.0 --port 5173 --strictPort`.
+- Bundle `index.js` subió ~3 KB vs corte ronda 15.1 (`256 KB → 260 KB`); atribuible a ronda 15.2 + ronda 18 + hotfix triple. Sigue dentro del umbral del proyecto.
 
-## Bugs Capturados Post-Cierre
+## Pendientes Y Supuestos Para Beta1/Beta2
 
-Los siguientes bugs quedan versionados bajo `docs/bugs/` para referencia de
-agentes.
+### Beta1 (ronda 16) — diseñada, no ejecutada
 
-| Bug | Estado | Lectura operativa |
-|---|---|---|
-| `BUG-20260507T211702Z-372334` | Resuelto por `e1c8528` + `d63c8e2` + `6d26146` | En despliegue/unfold, los componentes aparecian dentro del contenedor grande. Los fixes limitan el contorno embebido a `descomposicion/inzoom`, posicionan los refinadores de `despliegue/unfold` fuera del padre y alinean OPL/leyes/e2e con la nueva semantica visual. Mantener reporte como evidencia. |
-| `BUG-20260507T211815Z-d78ae2` | Resuelto por `c51e109` | Botones de barra contextual "Copiar"/"Pegar" aparecian inactivos porque no habia enlace operable. Se ocultaron cuando no aplican. Mantener reporte como evidencia. |
-| `BUG-20260507T212356Z-692129` | Abierto | Paneles/Workbench se perciben visualmente sucios y poco usables. Afecta calidad de uso diario; candidato a sub-slice de polish visual temprano en ronda 16, especialmente L3/L5, sin reabrir Beta0 global. |
+`docs/instrucciones-lineas-dev/ronda16/` empaca cinco líneas:
 
-## Deuda Viva No Bloqueante Para Beta1
-
-| Item | Origen | Sugerencia |
-|---|---|---|
-| `mask-image` affordance scroll horizontal Toolbar no reintroducida | L1/L2 | Polish post-Beta1 o micro-ronda visual. |
-| canvas `role="application"` no reintroducido | L1/L4 | Requiere migrar helpers `getByRole("img")` en bloque. |
-| Acciones replicadas en banda y menu Mas | L2 | Actualizar smokes legacy y mover acciones secundarias solo a Mas. |
-| FAIL eval `dialogo-biblioteca` / `dialogo-menu-principal` | L3 | Refinar criterios: panel/menu inline no son Dialogo canonico. |
-| `BUG-20260507T212356Z-692129` | Captura post-cierre | Tratar como polish visual de workbench en Beta1 temprano. |
-| HU-13.005 duplicate-id | Dashboard legado | Sin bloqueo. |
-
-## Ronda 16 / Beta1
-
-Diseño ejecutable ya existe en `docs/instrucciones-lineas-dev/ronda16/`:
-
-1. **L1 Tabla de Enlaces workbench**: convertir la tabla en superficie de
-   inspeccion/edicion real.
-2. **L2 Busqueda intra-modelo**: Ctrl/Cmd+F, apariciones, salto a OPD,
-   seleccion visible y OPL sync.
-3. **L3 Validacion metodologica accionable**: avisos con severidad, cita SSOT,
-   navegacion y revalidacion.
-4. **L4 Catalogo simple + modelos ancla**: fijar evals reales sobre `hd-dt`,
-   `hdos`, `hdos-app` o KORA/HDOS/HODOM/GOREOS.
+1. **L1 Tabla de Enlaces workbench**: convertir `TablaEnlaces` en superficie de inspección/edición real (contrato actual vive como `describe.skip` en `e2e/15-superficie-contextual.spec.ts`).
+2. **L2 Búsqueda intra-modelo**: Ctrl/Cmd+F, apariciones, salto a OPD, selección visible, OPL sync.
+3. **L3 Validación metodológica accionable**: avisos con severidad, cita SSOT, navegación y revalidación.
+4. **L4 Catálogo simple + modelos ancla**: fijar evals reales sobre `hd-dt`, `hdos`, `hdos-app` o KORA/HDOS/HODOM/GOREOS.
 5. **L5 Eval Beta1 dominio real**: flujo end-to-end sin workaround.
 
-Orden recomendado: **L4 -> L3 -> L1 -> L2 -> L5**.
+Orden recomendado: **L4 → L3 → L1 → L2 → L5**.
 
-Rationale: L4 fija modelos/evals; L3 define validacion; L1/L2 construyen
-superficies de inspeccion/navegacion; L5 cierra con flujo real y absorbe bugs
-post-cierre relevantes.
+### Beta2 (ronda 17) — diseñada, no ejecutada
 
-## Criterio De Cierre Beta1
+`docs/instrucciones-lineas-dev/ronda17/` empaca cuatro líneas para simulación conceptual + valores simples:
+
+1. **L1 Kernel de simulación conceptual** (`modelo/simulacion/*` nuevo).
+2. **L2 UI modo simulación** (`ui/simulacion/*` nuevo).
+3. **L3 Valores simples y transiciones** (reusa EPICA-17 value slots y `validadores/valorSlot.ts`).
+4. **L4 Eval Beta2 sobre dominio ancla**.
+
+Beta2 supone **al menos un dominio ancla real cerrado por Beta1**.
+
+### Criterios de cierre Beta1 (sin cambio)
 
 Beta1 solo cierra cuando al menos un dominio ancla real:
 
@@ -208,24 +183,41 @@ Beta1 solo cierra cuando al menos un dominio ancla real:
 7. no requiere editar JSON ni usar workaround de desarrollo;
 8. resuelve o documenta explicitamente bugs capturados que afecten el flujo.
 
+### Deuda viva no bloqueante
+
+| Item | Origen | Sugerencia |
+|---|---|---|
+| `linkPickerLabel` huérfano en `toolbarStyles.ts` | Ronda 18 P3 | Limpieza no aditiva en próxima micro-ronda. |
+| `mask-image` affordance scroll horizontal Toolbar no reintroducida | Ronda 15 L1/L2 | Polish post-Beta1 o micro-ronda visual. |
+| Canvas `role="application"` no reintroducido | Ronda 15 L1/L4 | Requiere migrar helpers `getByRole("img")` en bloque. |
+| Acciones replicadas en banda y menú Más (`config-grid`, `Crear varios *`) | Ronda 15 L2 + ronda 18 P3 | El espejo es deliberado por compatibilidad smoke; cleanup con migración smoke en bloque. |
+| FAIL eval `dialogo-biblioteca` / `dialogo-menu-principal` | Ronda 15 L3 | Refinar criterios: panel/menu inline no son Dialogo canónico. |
+| Icono "Traer" superpuesto en `ToolbarMapaSistema.tsx` | Captura BUG-692129 | Anotado fuera de scope ronda 18; bug nuevo si persiste. |
+| HU-13.005 duplicate-id en dashboard legado | Anterior | Sin bloqueo. |
+
+### Riesgos
+
+1. **Branch `worktree-agent-a2cf56ddc79a6d145` ya borrada**, pero su trabajo está consolidado en main como ronda 15.2. No quedan worktrees auxiliares ni branches huérfanas.
+2. **20 commits ahead de origin** sin pushear. El push controlado se hace en este corte.
+3. **Beta1 y Beta2 no han pasado eval real**. Las precondiciones están sostenidas, pero el primer dominio ancla cerrado decidirá si los criterios son alcanzables como están escritos.
+4. **`<details open>` en Inspector vacío**: si futuras rondas modifican el flujo de selección o el modal de nombre, revalidar que la afordancia sigue siendo legible y no añade ruido visual. Riesgo bajo; mitigado por unit/smoke vigentes.
+5. **Schema dual de refinamiento**: cualquier consumer nuevo debe usar helpers `obtenerRefinamiento` / `refinaA` / `refinamientosDe`, **nunca** acceder a `entidad.refinamiento` directamente — el campo singular fue eliminado del tipo TS.
+
 ## Proximos Pasos Operativos
 
-1. Ejecutar ronda 16 desde `docs/instrucciones-lineas-dev/ronda16/`.
-2. Incorporar polish visual de `BUG-20260507T212356Z-692129` temprano si
-   contamina el uso diario de validacion/OPL/Inspector.
-3. Mantener loop verde:
+1. **Decidir orden de ejecución**: Beta1 (ronda 16) primero o iniciar paralelo cauteloso con Beta2 (ronda 17). Recomendación: Beta1 primero porque Beta2 supone dominio ancla cerrado.
+2. **Antes de abrir ronda 16**:
+   - Calibrar `progress-dashboard.mjs` si la deuda de detector documentada en ciclos previos sigue presente (revisar contra estado actual).
+   - Revisar si los reportes en `docs/bugs/` post-cierre hacen surgir bugs adicionales no listados acá.
+   - Considerar si el icono "Traer" en `ToolbarMapaSistema.tsx` (anotado durante ronda 18 P3) merece bug propio.
+3. **Mantener loop verde**:
    - `cd app && bun run check`
    - `cd app && bun run lint`
    - `cd app && bun run build`
    - `cd app && bun run browser:smoke`
    - `node docs/historias-usuario-v2/tools/progress-dashboard.mjs --sync-real`
+4. **Push controlado a `origin/main`** ejecutado en este corte. Posteriores empujes desde main por el operador habituales.
 
 ## Prompt De Continuacion Breve
 
-Usa `docs/HANDOFF.md` como memoria unica. Ronda 15 esta cerrada y Beta1 esta
-habilitada. `main` incluye portal modal, IFML store-flow, Toolbar `⋯ Mas`,
-jumpover procedural, layout sugerido undoable, superficie contextual, hotfix de
-barra contextual `c51e109` y fixes unfold `e1c8528`/`d63c8e2`. Ejecutar ronda 16:
-catalogo/evals ancla, validacion metodologica, TablaEnlaces, busqueda y eval
-dominio real. Bug vivo principal: `BUG-20260507T212356Z-692129` (paneles
-visualmente poco usables).
+Usa `docs/HANDOFF.md` como memoria única. Estado: `main @ cf289ce`, 20 commits empujados a `origin/main` en el corte pre-Beta1/Beta2. Loop verde 926 unit / 129 smoke / build ~260 KB. Ronda 18 (refactor visual chrome) y ronda 15.2 (schema dual ortogonal de refinamiento) integradas; bugs 692129 + 91e001 + 13c786 + 13e330 cerrados. Beta1 (ronda 16) y Beta2 (ronda 17) están **diseñadas pero no ejecutadas** en `docs/instrucciones-lineas-dev/ronda{16,17}/`. Próximo paso: ejecutar Beta1 desde ronda 16 con orden L4 → L3 → L1 → L2 → L5 sobre un dominio ancla real, manteniendo política tokens-only y handoff único.
