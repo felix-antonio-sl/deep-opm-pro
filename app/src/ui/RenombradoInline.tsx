@@ -1,4 +1,6 @@
+// [JOYAS §1-3] Chrome UI consume tokens centralizados; canvas semántico invariante.
 import { useEffect, useRef, useState } from "preact/hooks";
+import { tokens } from "./tokens";
 
 interface Props {
   nombre: string;
@@ -46,11 +48,11 @@ export function RenombradoInline(props: Props) {
         width: `${Math.max(80, props.rect.width - 16)}px`,
         height: "30px",
         zIndex: 5,
-        border: "2px solid #3BC3FF",
-        borderRadius: "4px",
-        background: "#ffffff",
-        color: "#1f2937",
-        fontFamily: "Arial, sans-serif",
+        border: `2px solid ${tokens.colors.canvas.proceso}`,
+        borderRadius: tokens.radii.sm,
+        background: tokens.colors.fondoChrome,
+        color: tokens.colors.textoPrimario,
+        fontFamily: tokens.typography.familyChrome,
         fontSize: "14px",
         fontWeight: 700,
         textAlign: "center",
