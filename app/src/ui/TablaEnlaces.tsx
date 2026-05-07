@@ -1,6 +1,8 @@
+// [JOYAS §1-3] Chrome UI consume tokens centralizados; canvas semántico invariante.
 import { useOpmStore, store } from "../store";
 import type { Enlace, Id, TipoEnlace } from "../modelo/tipos";
 import { naturalezaDeEnlace } from "../modelo/constantes";
+import { tokens } from "./tokens";
 
 interface FilaEnlace {
   enlaceId: Id;
@@ -198,7 +200,7 @@ function capitalizar(texto: string): string {
 }
 
 function tipoColor(tipo: TipoEnlace): string {
-  return naturalezaDeEnlace(tipo) === "estructural" ? "#70E483" : "#3BC3FF";
+  return naturalezaDeEnlace(tipo) === "estructural" ? tokens.colors.canvas.objeto : tokens.colors.canvas.proceso;
 }
 
 // ── Estilos ────────────────────────────────────────────────────────────────
@@ -216,9 +218,9 @@ const overlayStyle: preact.JSX.CSSProperties = {
 const panelStyle: preact.JSX.CSSProperties = {
   width: "min(90vw, 960px)",
   maxHeight: "85vh",
-  background: "#ffffff",
-  borderRadius: "8px",
-  boxShadow: "0 20px 60px rgba(16, 24, 40, 0.25)",
+  background: tokens.colors.fondoChrome,
+  borderRadius: tokens.radii.lg,
+  boxShadow: tokens.shadows.tabla,
   display: "flex",
   flexDirection: "column",
   overflow: "hidden",
@@ -229,14 +231,14 @@ const headerStyle: preact.JSX.CSSProperties = {
   alignItems: "center",
   justifyContent: "space-between",
   padding: "16px 20px",
-  borderBottom: "1px solid #e5e7eb",
+  borderBottom: `1px solid ${tokens.colors.bordeTabla}`,
 };
 
 const titleStyle: preact.JSX.CSSProperties = {
   margin: 0,
   fontSize: "16px",
   fontWeight: 700,
-  color: "#1f2937",
+  color: tokens.colors.textoPrimario,
 };
 
 const closeButtonStyle: preact.JSX.CSSProperties = {
@@ -245,15 +247,15 @@ const closeButtonStyle: preact.JSX.CSSProperties = {
   border: "none",
   background: "transparent",
   fontSize: "18px",
-  color: "#667085",
+  color: tokens.colors.textoTerciario,
   cursor: "pointer",
-  borderRadius: "4px",
+  borderRadius: tokens.radii.sm,
 };
 
 const toolbarStyle: preact.JSX.CSSProperties = {
   padding: "10px 20px",
-  borderBottom: "1px solid #e5e7eb",
-  background: "#f9fafb",
+  borderBottom: `1px solid ${tokens.colors.bordeTabla}`,
+  background: tokens.colors.fondoTabla,
 };
 
 const filterLabelStyle: preact.JSX.CSSProperties = {
@@ -262,16 +264,16 @@ const filterLabelStyle: preact.JSX.CSSProperties = {
   gap: "8px",
   fontSize: "13px",
   fontWeight: 600,
-  color: "#475467",
+  color: tokens.colors.textoSecundario,
 };
 
 const filterSelectStyle: preact.JSX.CSSProperties = {
   minHeight: "30px",
   padding: "0 8px",
-  border: "1px solid #c8d2df",
-  borderRadius: "4px",
+  border: `1px solid ${tokens.colors.bordeControl}`,
+  borderRadius: tokens.radii.sm,
   fontSize: "13px",
-  outlineColor: "#586D8C",
+  outlineColor: tokens.colors.chromeNeutral,
 };
 
 const tableContainerStyle: preact.JSX.CSSProperties = {
@@ -288,12 +290,12 @@ const tableStyle: preact.JSX.CSSProperties = {
 const thStyle: preact.JSX.CSSProperties = {
   position: "sticky",
   top: 0,
-  background: "#f3f4f6",
+  background: tokens.colors.fondoNeutral,
   padding: "8px 12px",
   textAlign: "left",
   fontWeight: 700,
-  color: "#475467",
-  borderBottom: "2px solid #d9e0ea",
+  color: tokens.colors.textoSecundario,
+  borderBottom: `2px solid ${tokens.colors.bordeIntermedio}`,
   cursor: "pointer",
   whiteSpace: "nowrap",
   userSelect: "none",
@@ -301,8 +303,8 @@ const thStyle: preact.JSX.CSSProperties = {
 
 const tdStyle: preact.JSX.CSSProperties = {
   padding: "6px 12px",
-  borderBottom: "1px solid #f0f0f0",
-  color: "#1f2937",
+  borderBottom: `1px solid ${tokens.colors.bordeFila}`,
+  color: tokens.colors.textoPrimario,
 };
 
 const trStyle: preact.JSX.CSSProperties = {
@@ -314,24 +316,24 @@ const inlineInputStyle: preact.JSX.CSSProperties = {
   minWidth: "60px",
   padding: "2px 6px",
   border: "1px solid transparent",
-  borderRadius: "3px",
+  borderRadius: tokens.radii.xs,
   background: "transparent",
   fontSize: "12px",
-  color: "#1f2937",
+  color: tokens.colors.textoPrimario,
   outline: "none",
 };
 
 const emptyStyle: preact.JSX.CSSProperties = {
   padding: "24px",
   textAlign: "center",
-  color: "#667085",
+  color: tokens.colors.textoTerciario,
   fontSize: "13px",
   fontWeight: 600,
 };
 
 const footerStyle: preact.JSX.CSSProperties = {
   padding: "12px 20px",
-  borderTop: "1px solid #e5e7eb",
+  borderTop: `1px solid ${tokens.colors.bordeTabla}`,
   display: "flex",
   justifyContent: "flex-end",
 };
@@ -339,10 +341,10 @@ const footerStyle: preact.JSX.CSSProperties = {
 const closeFooterButtonStyle: preact.JSX.CSSProperties = {
   minHeight: "32px",
   padding: "0 16px",
-  border: "1px solid #c8d2df",
-  borderRadius: "4px",
-  background: "#f9fbfd",
-  color: "#475467",
+  border: `1px solid ${tokens.colors.bordeControl}`,
+  borderRadius: tokens.radii.sm,
+  background: tokens.colors.fondoCard,
+  color: tokens.colors.textoSecundario,
   cursor: "pointer",
   fontSize: "13px",
   fontWeight: 700,
