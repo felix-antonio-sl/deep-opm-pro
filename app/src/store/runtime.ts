@@ -102,6 +102,7 @@ export function activarEstadoPestanas(set: SetStore, estado: { pestanas: Pestana
     enlaceSeleccionId: null,
     modoEnlace: null,
     modoCreacion: null,
+    nuevaCosaPendiente: null,
     hoverOplRef: null,
     modeloPersistidoId: pestana.modeloId,
     descripcionModeloLocal: pestana.descripcionModeloLocal ?? "",

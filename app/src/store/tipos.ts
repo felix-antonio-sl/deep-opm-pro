@@ -225,6 +225,14 @@ export interface OpmStore {
   enlaceSeleccionId: Id | null;
   modoEnlace: ModoEnlace | null;
   modoCreacion: TipoEntidad | null;
+  /**
+   * IFML H-3 / Ronda 15 L3: NavigationFlow tipado del flujo
+   * `crearEntidadEnCanvas` -> sub-ViewContainer "modal nombre cosa".
+   * Reemplaza el SystemEvent ad-hoc `window.dispatchEvent("opm:nueva-cosa")`.
+   * Estado UI (no serializable) que el ToolbarBase escucha vía store y limpia
+   * al confirmar (renombrar) o descartar.
+   */
+  nuevaCosaPendiente: { entidadId: Id; aparienciaId: Id; nombre: string } | null;
   filtroOplPorSeleccion: boolean;
   hoverOplRef: OplReferencia | null;
   busquedaOpl: string;
@@ -311,6 +319,10 @@ export interface OpmStore {
   crearObjetoDemo: () => void;
   crearProcesoDemo: () => void;
   crearEntidadEnCanvas: (tipo: TipoEntidad, posicion: Posicion) => void;
+  /** Confirma `nuevaCosaPendiente` aplicando el nombre tipeado y la limpia. */
+  confirmarNombreNuevaCosa: (nombre: string) => void;
+  /** Descarta `nuevaCosaPendiente` sin renombrar (Escape o cancel). */
+  descartarNuevaCosaPendiente: () => void;
   crearAparienciaEntidadEnCanvas: (entidadId: Id, posicion: Posicion) => void;
   fijarModoCreacion: (tipo: TipoEntidad | null) => void;
   descomponerSeleccionada: () => void;

@@ -64,6 +64,8 @@ export function accionesEntidad(set: SetStore, get: GetStore): Partial<ModeloSli
         set({ mensaje: resultado.error });
         return;
       }
+      const entidadCreada = resultado.value.modelo.entidades[resultado.value.entidadId];
+      const nombre = entidadCreada?.nombre ?? "Cosa";
       commitModelo(set, modelo, resultado.value.modelo, {
         seleccionId: resultado.value.entidadId,
         seleccionados: [resultado.value.entidadId],
@@ -72,8 +74,23 @@ export function accionesEntidad(set: SetStore, get: GetStore): Partial<ModeloSli
         modoEnlace: null,
         modoCreacion: tipo,
         mensaje: null,
+        // IFML H-3 / Ronda 15 L3: NavigationFlow explícito al sub-ViewContainer
+        // "modal nombre cosa". Reemplaza el SystemEvent global previo.
+        nuevaCosaPendiente: { entidadId: resultado.value.entidadId, aparienciaId: resultado.value.aparienciaId, nombre },
       });
-      emitirNuevaCosa(resultado.value.entidadId, resultado.value.aparienciaId, resultado.value.modelo.entidades[resultado.value.entidadId]?.nombre);
+    },
+
+    confirmarNombreNuevaCosa(nombre) {
+      const pendiente = get().nuevaCosaPendiente;
+      if (!pendiente) return;
+      // Renombrar opera sobre la selección activa, que ya es la entidad recién creada.
+      get().renombrarSeleccionada(nombre);
+      set({ nuevaCosaPendiente: null });
+    },
+
+    descartarNuevaCosaPendiente() {
+      if (!get().nuevaCosaPendiente) return;
+      set({ nuevaCosaPendiente: null });
     },
 
     crearAparienciaEntidadEnCanvas(entidadId, posicion) {
@@ -429,11 +446,6 @@ export function accionesEntidad(set: SetStore, get: GetStore): Partial<ModeloSli
       set({ uiDescripcionesVisibles: descripcionesVisibles, modelo: { ...modelo } });
     },
   };
-}
-
-function emitirNuevaCosa(entidadId: Id, aparienciaId: Id, nombre?: string): void {
-  if (typeof window === "undefined") return;
-  window.dispatchEvent(new CustomEvent("opm:nueva-cosa", { detail: { entidadId, aparienciaId, nombre } }));
 }
 
 function siguienteModoImagen(modo: ModoImagenEntidad): ModoImagenEntidad {

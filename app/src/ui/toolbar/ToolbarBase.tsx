@@ -55,6 +55,9 @@ export function ToolbarBase({ children }: ToolbarBaseProps) {
   const seleccionId = useOpmStore((s) => s.seleccionId);
   const seleccionados = useOpmStore((s) => s.seleccionados);
   const renombrarSeleccionada = useOpmStore((s) => s.renombrarSeleccionada);
+  const nuevaCosaPendiente = useOpmStore((s) => s.nuevaCosaPendiente);
+  const confirmarNombreNuevaCosa = useOpmStore((s) => s.confirmarNombreNuevaCosa);
+  const descartarNuevaCosaPendiente = useOpmStore((s) => s.descartarNuevaCosaPendiente);
   const seleccionarEntidad = useOpmStore((s) => s.seleccionarEntidad);
   const seleccionarEnlace = useOpmStore((s) => s.seleccionarEnlace);
   const abrirDialogoTraerConectados = useOpmStore((s) => s.abrirDialogoTraerConectados);
@@ -71,7 +74,6 @@ export function ToolbarBase({ children }: ToolbarBaseProps) {
   const dirty = useOpmStore((s) => s.dirty);
   const modoCreacion = useOpmStore((s) => s.modoCreacion);
   const confirmarSiDirty = useConfirmarSiDirty();
-  const [nuevaCosa, setNuevaCosa] = useState<null | { entidadId: Id; nombre: string }>(null);
   const [nombreNuevaCosa, setNombreNuevaCosa] = useState("");
   const [menuContextual, setMenuContextual] = useState<null | { enlaceId: Id; x: number; y: number }>(null);
   const [menuEntidad, setMenuEntidad] = useState<null | { aparienciaId: Id; entidadId: Id; x: number; y: number }>(null);
@@ -85,19 +87,14 @@ export function ToolbarBase({ children }: ToolbarBaseProps) {
     if (PantallaInicioLazy) return;
     void import("../PantallaInicio").then((modulo) => setPantallaInicioLazy(() => modulo.PantallaInicio));
   }, [PantallaInicioLazy]);
+  // IFML H-3 / Ronda 15 L3: el modal "nombre cosa" lee `nuevaCosaPendiente` del
+  // store en vez de un SystemEvent global. Cada vez que el flujo
+  // `crearEntidadEnCanvas` la activa, sincronizamos el input local con el
+  // nombre sugerido por el modelo.
   useEffect(() => {
-    const onNuevaCosa = (event: Event) => {
-      const detail = (event as CustomEvent<{ entidadId?: Id; nombre?: string }>).detail;
-      const entidadId = detail?.entidadId;
-      if (!entidadId) return;
-      const entidad = modelo.entidades[entidadId];
-      const nombre = detail?.nombre ?? entidad?.nombre ?? "Cosa";
-      setNuevaCosa({ entidadId, nombre });
-      setNombreNuevaCosa(nombre);
-    };
-    window.addEventListener("opm:nueva-cosa", onNuevaCosa);
-    return () => window.removeEventListener("opm:nueva-cosa", onNuevaCosa);
-  }, [modelo.entidades]);
+    if (!nuevaCosaPendiente) return;
+    setNombreNuevaCosa(nuevaCosaPendiente.nombre);
+  }, [nuevaCosaPendiente]);
   useEffect(() => {
     const onMenu = (event: Event) => {
       const detail = (event as CustomEvent<{ enlaceId: Id; x: number; y: number }>).detail;
@@ -150,8 +147,10 @@ export function ToolbarBase({ children }: ToolbarBaseProps) {
   }
   function handleGuardarNombreNuevaCosa(event: Event) {
     event.preventDefault();
-    renombrarSeleccionada(nombreNuevaCosa);
-    setNuevaCosa(null);
+    confirmarNombreNuevaCosa(nombreNuevaCosa);
+  }
+  function handleDescartarNuevaCosa() {
+    descartarNuevaCosaPendiente();
   }
   function handleEstiloEnlace(id: Id) {
     seleccionarEnlace(id);
@@ -228,10 +227,10 @@ export function ToolbarBase({ children }: ToolbarBaseProps) {
         {children}
       </div>
       <ModelessToolbarLayer
-        nuevaCosa={nuevaCosa}
+        nuevaCosa={nuevaCosaPendiente ? { entidadId: nuevaCosaPendiente.entidadId, nombre: nuevaCosaPendiente.nombre } : null}
         nombreNuevaCosa={nombreNuevaCosa}
         setNombreNuevaCosa={setNombreNuevaCosa}
-        setNuevaCosa={setNuevaCosa}
+        onDescartarNuevaCosa={handleDescartarNuevaCosa}
         onSubmitNuevaCosa={handleGuardarNombreNuevaCosa}
         menuContextual={menuContextual}
         setMenuContextual={setMenuContextual}
@@ -259,7 +258,7 @@ function ModelessToolbarLayer(props: {
   nuevaCosa: { entidadId: Id; nombre: string } | null;
   nombreNuevaCosa: string;
   setNombreNuevaCosa: (value: string) => void;
-  setNuevaCosa: (value: null | { entidadId: Id; nombre: string }) => void;
+  onDescartarNuevaCosa: () => void;
   onSubmitNuevaCosa: (event: Event) => void;
   menuContextual: { enlaceId: Id; x: number; y: number } | null;
   setMenuContextual: (value: null | { enlaceId: Id; x: number; y: number }) => void;
@@ -282,7 +281,7 @@ function ModelessToolbarLayer(props: {
         <form style={style.nombreModal} data-testid="modal-nombre-cosa" onSubmit={props.onSubmitNuevaCosa}>
           <label style={style.nombreField}>
             <span style={style.nombreLabel}>Nombre</span>
-            <input autoFocus style={style.nombreInput} value={props.nombreNuevaCosa} onInput={(event) => props.setNombreNuevaCosa(event.currentTarget.value)} onKeyDown={(event) => { if (event.key === "Escape") props.setNuevaCosa(null); }} />
+            <input autoFocus style={style.nombreInput} value={props.nombreNuevaCosa} onInput={(event) => props.setNombreNuevaCosa(event.currentTarget.value)} onKeyDown={(event) => { if (event.key === "Escape") props.onDescartarNuevaCosa(); }} />
           </label>
           <button type="submit" style={style.primarySmall}>OK</button>
         </form>
