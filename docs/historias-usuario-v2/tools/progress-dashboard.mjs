@@ -573,9 +573,9 @@ function autoAuditRules() {
       ids: ["HU-12.003", "HU-12.007", "HU-12.008", "HU-12.009", "HU-12.010", "HU-12.012", "HU-12.019", "HU-12.020", "HU-12.026", "HU-12.027"],
       estado: "cubierto",
       confianza: "alta-auto",
-      nota: "Auto: descomposicion de proceso crea OPD hijo, subprocesos iniciales, enlaces derivados y OPL/render de contorno.",
+      nota: "Auto: descomposicion/inzoom de cosa crea OPD hijo, subcosas iniciales, enlaces derivados y OPL/render de contorno.",
       requires: [
-        { path: "app/src/modelo/operaciones/refinamiento/descomposicion.ts", all: ["descomponerProceso", "subprocesosInicialesInzoom"] },
+        { path: "app/src/modelo/operaciones/refinamiento/descomposicion.ts", all: ["descomponerProceso", "subcosasInicialesInzoom"] },
         { path: "app/src/modelo/operaciones/refinamiento/proyeccion.ts", all: ["refrescarEnlacesExternosDerivados"] },
         { path: "app/src/render/jointjs/proyeccion.ts", all: ["contornoRefinamiento", "modoPlegadoApariencia"] },
         { path: "app/src/opl/generar.ts", all: ["oracionRefinamiento", "se descompone"] },

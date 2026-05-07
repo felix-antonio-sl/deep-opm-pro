@@ -1,11 +1,11 @@
 {
   "schema": "deep-opm-pro.hu-progress-report.v1",
-  "generatedAt": "2026-05-07T09:02:13.039Z",
+  "generatedAt": "2026-05-07T09:47:32.660Z",
   "repoRoot": "/home/felix/projects/deep-opm-pro",
   "backlogRoot": "docs/historias-usuario-v2",
   "evidenceLedger": "docs/roadmap/hu-progress-evidence.json",
   "autoAudit": {
-    "generatedAt": "2026-05-07T09:02:13.039Z",
+    "generatedAt": "2026-05-07T09:47:32.660Z",
     "mode": "sync-real",
     "rulesEvaluated": 102,
     "rulesMatched": 102,
@@ -19338,7 +19338,7 @@
       "estadoAvance": "cubierto",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto: descomposicion de proceso crea OPD hijo, subprocesos iniciales, enlaces derivados y OPL/render de contorno.",
+      "nota": "Auto: descomposicion/inzoom de cosa crea OPD hijo, subcosas iniciales, enlaces derivados y OPL/render de contorno.",
       "brechas": [],
       "evidencia": [
         {
@@ -19596,7 +19596,7 @@
       "estadoAvance": "cubierto",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto: descomposicion de proceso crea OPD hijo, subprocesos iniciales, enlaces derivados y OPL/render de contorno.",
+      "nota": "Auto: descomposicion/inzoom de cosa crea OPD hijo, subcosas iniciales, enlaces derivados y OPL/render de contorno.",
       "brechas": [],
       "evidencia": [
         {
@@ -19657,7 +19657,7 @@
       "estadoAvance": "cubierto",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto: descomposicion de proceso crea OPD hijo, subprocesos iniciales, enlaces derivados y OPL/render de contorno.",
+      "nota": "Auto: descomposicion/inzoom de cosa crea OPD hijo, subcosas iniciales, enlaces derivados y OPL/render de contorno.",
       "brechas": [],
       "evidencia": [
         {
@@ -19715,7 +19715,7 @@
       "estadoAvance": "cubierto",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto: descomposicion de proceso crea OPD hijo, subprocesos iniciales, enlaces derivados y OPL/render de contorno.",
+      "nota": "Auto: descomposicion/inzoom de cosa crea OPD hijo, subcosas iniciales, enlaces derivados y OPL/render de contorno.",
       "brechas": [],
       "evidencia": [
         {
@@ -19774,7 +19774,7 @@
       "estadoAvance": "cubierto",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto: descomposicion de proceso crea OPD hijo, subprocesos iniciales, enlaces derivados y OPL/render de contorno.",
+      "nota": "Auto: descomposicion/inzoom de cosa crea OPD hijo, subcosas iniciales, enlaces derivados y OPL/render de contorno.",
       "brechas": [],
       "evidencia": [
         {
@@ -19900,7 +19900,7 @@
       "estadoAvance": "cubierto",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto: descomposicion de proceso crea OPD hijo, subprocesos iniciales, enlaces derivados y OPL/render de contorno.",
+      "nota": "Auto: descomposicion/inzoom de cosa crea OPD hijo, subcosas iniciales, enlaces derivados y OPL/render de contorno.",
       "brechas": [],
       "evidencia": [
         {
@@ -20303,7 +20303,7 @@
       "estadoAvance": "cubierto",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto: descomposicion de proceso crea OPD hijo, subprocesos iniciales, enlaces derivados y OPL/render de contorno.",
+      "nota": "Auto: descomposicion/inzoom de cosa crea OPD hijo, subcosas iniciales, enlaces derivados y OPL/render de contorno.",
       "brechas": [],
       "evidencia": [
         {
@@ -20363,7 +20363,7 @@
       "estadoAvance": "cubierto",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto: descomposicion de proceso crea OPD hijo, subprocesos iniciales, enlaces derivados y OPL/render de contorno.",
+      "nota": "Auto: descomposicion/inzoom de cosa crea OPD hijo, subcosas iniciales, enlaces derivados y OPL/render de contorno.",
       "brechas": [],
       "evidencia": [
         {
@@ -20691,7 +20691,7 @@
       "estadoAvance": "cubierto",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto: descomposicion de proceso crea OPD hijo, subprocesos iniciales, enlaces derivados y OPL/render de contorno.",
+      "nota": "Auto: descomposicion/inzoom de cosa crea OPD hijo, subcosas iniciales, enlaces derivados y OPL/render de contorno.",
       "brechas": [],
       "evidencia": [
         {
@@ -20752,7 +20752,7 @@
       "estadoAvance": "cubierto",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto: descomposicion de proceso crea OPD hijo, subprocesos iniciales, enlaces derivados y OPL/render de contorno.",
+      "nota": "Auto: descomposicion/inzoom de cosa crea OPD hijo, subcosas iniciales, enlaces derivados y OPL/render de contorno.",
       "brechas": [],
       "evidencia": [
         {

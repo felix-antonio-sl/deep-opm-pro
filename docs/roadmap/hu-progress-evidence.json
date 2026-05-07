@@ -728,7 +728,7 @@
   ],
   "knownGaps": [],
   "autoAudit": {
-    "generatedAt": "2026-05-07T09:02:13.039Z",
+    "generatedAt": "2026-05-07T09:47:32.660Z",
     "mode": "sync-real",
     "rulesEvaluated": 102,
     "rulesMatched": 102,
@@ -1029,7 +1029,7 @@
       "estado": "cubierto",
       "confianza": "alta-auto",
       "fuente": "auto",
-      "nota": "Auto: descomposicion de proceso crea OPD hijo, subprocesos iniciales, enlaces derivados y OPL/render de contorno.",
+      "nota": "Auto: descomposicion/inzoom de cosa crea OPD hijo, subcosas iniciales, enlaces derivados y OPL/render de contorno.",
       "evidencia": [
         "app/src/modelo/operaciones/refinamiento/descomposicion.ts",
         "app/src/modelo/operaciones/refinamiento/proyeccion.ts",
