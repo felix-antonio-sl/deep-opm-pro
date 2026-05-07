@@ -1,6 +1,8 @@
+// [JOYAS §1-3] Chrome UI consume tokens centralizados; canvas semántico invariante.
 import { useState } from "preact/hooks";
 import { TOTAL_ETAPAS } from "../../modelo/creacionWizard";
 import { S } from "./estilos";
+import { tokens } from "../tokens";
 
 interface Props {
   valor: string[];
@@ -18,7 +20,7 @@ export function EtapaHerramientas({ valor, onChange }: Props) {
   };
   return (
     <div>
-      <h3 style={S.title}>Etapa 7 de {TOTAL_ETAPAS} — Herramientas <span style={{ fontWeight: 400, color: "#667085" }}>(opcional)</span></h3>
+      <h3 style={S.title}>Etapa 7 de {TOTAL_ETAPAS} — Herramientas <span style={{ fontWeight: 400, color: tokens.colors.textoTerciario }}>(opcional)</span></h3>
       <p style={S.desc}>
         ¿Que instrumentos o herramientas usa el sistema? Son objetos que el
         proceso necesita para operar, pero no consume.
