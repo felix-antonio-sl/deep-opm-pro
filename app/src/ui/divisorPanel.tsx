@@ -1,4 +1,6 @@
+// [JOYAS §1-3] Chrome UI consume tokens centralizados; canvas semántico invariante.
 import { useRef } from "preact/hooks";
+import { tokens } from "./tokens";
 
 export const ANCHO_PANEL_ARBOL_DEFAULT = 240;
 export const ANCHO_PANEL_ARBOL_RESET = 280;
@@ -74,9 +76,9 @@ const style = {
     width: "6px",
     minWidth: "6px",
     cursor: "col-resize",
-    background: "#f8fafc",
-    borderRight: "1px solid #d9e0ea",
-    borderLeft: "1px solid #edf2f7",
+    background: tokens.colors.fondoElevado,
+    borderRight: `1px solid ${tokens.colors.bordeIntermedio}`,
+    borderLeft: `1px solid ${tokens.colors.fondoLineaTiempo}`,
     display: "flex",
     alignItems: "stretch",
     justifyContent: "center",
@@ -86,22 +88,22 @@ const style = {
     height: "6px",
     minHeight: "6px",
     cursor: "row-resize",
-    background: "#f8fafc",
-    borderTop: "1px solid #edf2f7",
-    borderBottom: "1px solid #d9e0ea",
+    background: tokens.colors.fondoElevado,
+    borderTop: `1px solid ${tokens.colors.fondoLineaTiempo}`,
+    borderBottom: `1px solid ${tokens.colors.bordeIntermedio}`,
     display: "flex",
     alignItems: "center",
     justifyContent: "stretch",
   },
   controlVertical: {
     width: "2px",
-    background: "#c8d2df",
+    background: tokens.colors.bordeControl,
     opacity: 0.7,
   },
   controlHorizontal: {
     height: "2px",
     width: "100%",
-    background: "#c8d2df",
+    background: tokens.colors.bordeControl,
     opacity: 0.7,
   },
 } satisfies Record<string, preact.JSX.CSSProperties>;
