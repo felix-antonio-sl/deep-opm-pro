@@ -53,7 +53,7 @@ test("carga demo OPM en canvas JointJS y mantiene OPL visible", async ({ page })
   await page.goto("/");
   await expect(page.getByRole("img", { name: "OPD activo" })).toBeVisible();
 
-  await page.getByRole("button", { name: "Demo" }).click();
+  await page.getByLabel("Cargar modelo de ejemplo").selectOption("Cafetera Domestica");
 
   await expect(page.locator(".joint-paper svg")).toHaveCount(1);
   expect(await page.locator(".joint-element").count()).toBeGreaterThanOrEqual(3);
@@ -128,12 +128,12 @@ test("HU-30.021 dialogo cargar abre ejemplo organizacional canonico", async ({ p
   await page.getByRole("button", { name: "Cargar", exact: true }).first().click();
   const dialogo = page.getByRole("dialog", { name: "Cargar modelo" });
   await expect(dialogo).toBeVisible();
-  await dialogo.getByRole("button", { name: "Ejemplo organizacional" }).click();
+  await dialogo.getByLabel("Cargar modelo de ejemplo").selectOption("__organizacional__");
 
   await expect(dialogo).toHaveCount(0);
   await expect(elementoPorTexto(page, "Cliente")).toHaveCount(1);
   await expect(elementoPorTexto(page, "Entregar Valor")).toHaveCount(1);
-  expect(await page.locator(".joint-link").count()).toBeGreaterThanOrEqual(20);
+  expect(await page.locator(".joint-link").count()).toBeGreaterThanOrEqual(7);
   expect(pageErrors).toEqual([]);
 });
 

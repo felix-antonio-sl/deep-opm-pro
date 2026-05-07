@@ -390,7 +390,7 @@ test("L3 UX: DialogoTraerConectados muestra conteo por familia", async ({ page }
 
   await page.goto("/");
   await cerrarPantallaInicioSiVisible(page);
-  await page.getByRole("button", { name: "Demo" }).click();
+  await page.getByLabel("Cargar modelo de ejemplo").selectOption("Cafetera Domestica");
 
   await elementoPorTexto(page, "Hacer Cafe").first().click();
   await page.getByTestId("toolbar-traer-conectados").click();

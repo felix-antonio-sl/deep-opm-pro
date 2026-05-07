@@ -683,7 +683,7 @@ test("HU-30.037: Esc cancela DialogoArchivados sin persistir cambios al modelo",
 
   await page.goto("/");
   await cerrarPantallaInicioSiVisible(page);
-  await page.getByRole("button", { name: "Demo" }).click();
+  await page.getByLabel("Cargar modelo de ejemplo").selectOption("Cafetera Domestica");
 
   const exportadoAntes = await exportadoActual(page);
 
@@ -709,7 +709,7 @@ test("HU-30.037: Esc cancela DialogoBuscarGlobal sin persistir cambios al modelo
 
   await page.goto("/");
   await cerrarPantallaInicioSiVisible(page);
-  await page.getByRole("button", { name: "Demo" }).click();
+  await page.getByLabel("Cargar modelo de ejemplo").selectOption("Cafetera Domestica");
 
   const exportadoAntes = await exportadoActual(page);
 
@@ -733,7 +733,7 @@ test("HU-30.037: Esc cancela DialogoVersiones sin persistir cambios al modelo", 
 
   await page.goto("/");
   await cerrarPantallaInicioSiVisible(page);
-  await page.getByRole("button", { name: "Demo" }).click();
+  await page.getByLabel("Cargar modelo de ejemplo").selectOption("Cafetera Domestica");
 
   // Persistir el modelo: el diálogo de versiones requiere `modeloPersistidoId`.
   await page.getByLabel("Menú principal").click();
@@ -741,7 +741,7 @@ test("HU-30.037: Esc cancela DialogoVersiones sin persistir cambios al modelo", 
     .getByRole("menuitem", { name: "Guardar", exact: true }).click();
   const dialogoGuardar = page.getByRole("dialog", { name: "Guardar como" });
   await expect(dialogoGuardar).toBeVisible();
-  await dialogoGuardar.getByLabel("Nombre del modelo").fill("HU-30.037 versiones");
+  await dialogoGuardar.getByLabel("Nombre del modelo").fill("HU 30037 versiones");
   await dialogoGuardar.getByRole("button", { name: "Guardar" }).click();
   await expect(dialogoGuardar).toHaveCount(0);
 
