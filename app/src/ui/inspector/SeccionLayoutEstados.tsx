@@ -1,9 +1,11 @@
+// [JOYAS §1-3] Chrome UI consume tokens centralizados; canvas semántico invariante.
 import addStatesIcon from "../../../../assets/svg/addStates.svg";
 import { estadoTieneEnlaces } from "../../modelo/estadosDesignaciones";
 import type { DesignacionEstado, Estado, LayoutEstados, Modelo } from "../../modelo/tipos";
 import { inspectorStyles as style } from "../inspectorStyles";
 import { SeccionDesignaciones } from "./SeccionDesignaciones";
 import { SeccionDuracion } from "./SeccionDuracion";
+import { tokens } from "../tokens";
 
 /**
  * Iconografía canónica de gestión de estados.
@@ -83,16 +85,16 @@ const stateStyles = {
   section: { display: "grid", gap: "8px", marginBottom: "14px", paddingTop: "2px" },
   header: { display: "flex", alignItems: "center", justifyContent: "space-between", gap: "8px" },
   list: { display: "grid", gap: "8px" },
-  row: { display: "grid", gap: "6px", padding: "8px", border: "1px solid #d9e0ea", borderRadius: "4px", background: "#ffffff" },
-  input: { width: "100%", height: "30px", padding: "0 8px", border: "1px solid #c8d2df", borderRadius: "4px", outlineColor: "#586D8C", fontSize: "12px" },
+  row: { display: "grid", gap: "6px", padding: "8px", border: `1px solid ${tokens.colors.bordeIntermedio}`, borderRadius: tokens.radii.sm, background: tokens.colors.fondoChrome },
+  input: { width: "100%", height: "30px", padding: "0 8px", border: `1px solid ${tokens.colors.bordeControl}`, borderRadius: tokens.radii.sm, outlineColor: tokens.colors.chromeNeutral, fontSize: "12px" },
   actions: { display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: "6px" },
-  smallButton: { minHeight: "28px", padding: "0 8px", border: "1px solid #c8d2df", borderRadius: "4px", background: "#f9fbfd", color: "#475467", cursor: "pointer", fontSize: "12px", fontWeight: 700 },
-  smallButtonIcon: { minHeight: "28px", padding: "0 8px", border: "1px solid #c8d2df", borderRadius: "4px", background: "#f9fbfd", color: "#475467", cursor: "pointer", fontSize: "12px", fontWeight: 700, display: "inline-flex", alignItems: "center", gap: "4px" },
-  primaryIcon: { minHeight: "32px", padding: "6px 10px", border: "1px solid #1a3763", borderRadius: "4px", background: "#1a3763", color: "#ffffff", cursor: "pointer", fontSize: "12px", fontWeight: 700, display: "inline-flex", alignItems: "center", gap: "6px" },
+  smallButton: { minHeight: "28px", padding: "0 8px", border: `1px solid ${tokens.colors.bordeControl}`, borderRadius: tokens.radii.sm, background: tokens.colors.fondoCard, color: tokens.colors.textoSecundario, cursor: "pointer", fontSize: "12px", fontWeight: 700 },
+  smallButtonIcon: { minHeight: "28px", padding: "0 8px", border: `1px solid ${tokens.colors.bordeControl}`, borderRadius: tokens.radii.sm, background: tokens.colors.fondoCard, color: tokens.colors.textoSecundario, cursor: "pointer", fontSize: "12px", fontWeight: 700, display: "inline-flex", alignItems: "center", gap: "4px" },
+  primaryIcon: { minHeight: "32px", padding: "6px 10px", border: `1px solid ${tokens.colors.acentoSecundario}`, borderRadius: tokens.radii.sm, background: tokens.colors.acentoSecundario, color: tokens.colors.fondoChrome, cursor: "pointer", fontSize: "12px", fontWeight: 700, display: "inline-flex", alignItems: "center", gap: "6px" },
   iconSmall: { width: "14px", height: "14px", display: "block" },
   iconLarge: { width: "16px", height: "16px", display: "block", filter: "brightness(0) invert(1)" },
-  tag: { height: "28px", border: "1px solid #c8d2df", borderRadius: "4px", background: "#f9fbfd", color: "#475467", cursor: "pointer", fontSize: "11px", fontWeight: 700 },
-  tagActive: { height: "28px", border: "1px solid #586D8C", borderRadius: "4px", background: "#e8eef5", color: "#1f2937", cursor: "pointer", fontSize: "11px", fontWeight: 700 },
-  delete: { height: "28px", border: "1px solid #d92d20", borderRadius: "4px", background: "#fff5f5", color: "#b42318", cursor: "pointer", fontSize: "11px", fontWeight: 700 },
-  deleteDisabled: { height: "28px", border: "1px solid #d9e0ea", borderRadius: "4px", background: "#f3f4f6", color: "#98a2b3", cursor: "not-allowed", fontSize: "11px", fontWeight: 700 },
+  tag: { height: "28px", border: `1px solid ${tokens.colors.bordeControl}`, borderRadius: tokens.radii.sm, background: tokens.colors.fondoCard, color: tokens.colors.textoSecundario, cursor: "pointer", fontSize: "11px", fontWeight: 700 },
+  tagActive: { height: "28px", border: `1px solid ${tokens.colors.chromeNeutral}`, borderRadius: tokens.radii.sm, background: tokens.colors.chromeNeutralSuave, color: tokens.colors.textoPrimario, cursor: "pointer", fontSize: "11px", fontWeight: 700 },
+  delete: { height: "28px", border: `1px solid ${tokens.colors.errorBase}`, borderRadius: tokens.radii.sm, background: tokens.colors.errorFondo, color: tokens.colors.errorTexto, cursor: "pointer", fontSize: "11px", fontWeight: 700 },
+  deleteDisabled: { height: "28px", border: `1px solid ${tokens.colors.bordeIntermedio}`, borderRadius: tokens.radii.sm, background: tokens.colors.fondoNeutral, color: tokens.colors.textoDeshabilitado, cursor: "not-allowed", fontSize: "11px", fontWeight: 700 },
 } satisfies Record<string, preact.JSX.CSSProperties>;
