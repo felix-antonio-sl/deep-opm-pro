@@ -1,6 +1,8 @@
+// [JOYAS §1-3] Chrome UI consume tokens centralizados; canvas semántico invariante.
 import { entidadIdDeExtremo } from "../../modelo/extremos";
 import type { Apariencia, Enlace, Id, Modelo } from "../../modelo/tipos";
 import { inspectorStyles as style } from "../inspectorStyles";
+import { tokens } from "../tokens";
 
 export interface ContextoReanclaje {
   aparienciaEnlaceId: Id;
@@ -78,7 +80,7 @@ function dentroDeApariencia(apariencia: Apariencia, contorno: Apariencia): boole
 }
 
 const sectionStyle = { display: "grid", gap: "8px", marginBottom: "14px" } satisfies preact.JSX.CSSProperties;
-const titleStyle = { margin: "0 0 8px", color: "#1f2937", fontSize: "13px", fontWeight: 700 } satisfies preact.JSX.CSSProperties;
-const derivedBadgeStyle = { color: "#344054", fontSize: "12px", fontWeight: 700 } satisfies preact.JSX.CSSProperties;
-const helpStyle = { color: "#667085", fontSize: "12px", fontWeight: 600 } satisfies preact.JSX.CSSProperties;
+const titleStyle = { margin: "0 0 8px", color: tokens.colors.textoPrimario, fontSize: "13px", fontWeight: 700 } satisfies preact.JSX.CSSProperties;
+const derivedBadgeStyle = { color: tokens.colors.textoControl, fontSize: "12px", fontWeight: 700 } satisfies preact.JSX.CSSProperties;
+const helpStyle = { color: tokens.colors.textoTerciario, fontSize: "12px", fontWeight: 600 } satisfies preact.JSX.CSSProperties;
 const buttonRowStyle = { display: "grid", gap: "8px", gridTemplateColumns: "1fr" } satisfies preact.JSX.CSSProperties;
