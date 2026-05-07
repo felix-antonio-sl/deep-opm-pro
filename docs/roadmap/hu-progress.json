@@ -1,17 +1,17 @@
 {
   "schema": "deep-opm-pro.hu-progress-report.v1",
-  "generatedAt": "2026-05-07T05:59:01.104Z",
+  "generatedAt": "2026-05-07T07:18:10.150Z",
   "repoRoot": "/home/felix/projects/deep-opm-pro",
   "backlogRoot": "docs/historias-usuario-v2",
   "evidenceLedger": "docs/roadmap/hu-progress-evidence.json",
   "autoAudit": {
-    "generatedAt": "2026-05-07T05:59:01.104Z",
+    "generatedAt": "2026-05-07T07:18:10.150Z",
     "mode": "sync-real",
     "rulesEvaluated": 102,
     "rulesMatched": 102,
     "rulesUnmatched": 0,
     "sourceFiles": {
-      "count": 353,
+      "count": 361,
       "roots": [
         "app/src",
         "app/e2e",
@@ -918,8 +918,8 @@
           "hrefDashboard": "../../app/src/store.test.ts"
         },
         {
-          "path": "app/e2e/opm-smoke.spec.ts",
-          "hrefDashboard": "../../app/e2e/opm-smoke.spec.ts"
+          "path": "app/e2e/_smoke-helpers.ts",
+          "hrefDashboard": "../../app/e2e/_smoke-helpers.ts"
         },
         {
           "path": "app/src/store.ts",
@@ -1150,8 +1150,8 @@
           "hrefDashboard": "../../app/src/store/tipos.ts"
         },
         {
-          "path": "app/e2e/opm-smoke.spec.ts",
-          "hrefDashboard": "../../app/e2e/opm-smoke.spec.ts"
+          "path": "app/e2e/_smoke-helpers.ts",
+          "hrefDashboard": "../../app/e2e/_smoke-helpers.ts"
         }
       ],
       "peso": 2,
@@ -13816,8 +13816,8 @@
           "hrefDashboard": "../../app/src/store/modelo/acciones-entidad.ts"
         },
         {
-          "path": "app/e2e/opm-smoke.spec.ts",
-          "hrefDashboard": "../../app/e2e/opm-smoke.spec.ts"
+          "path": "app/e2e/_smoke-helpers.ts",
+          "hrefDashboard": "../../app/e2e/_smoke-helpers.ts"
         }
       ],
       "peso": 4,
@@ -13872,8 +13872,8 @@
           "hrefDashboard": "../../app/src/store/modelo/acciones-entidad.ts"
         },
         {
-          "path": "app/e2e/opm-smoke.spec.ts",
-          "hrefDashboard": "../../app/e2e/opm-smoke.spec.ts"
+          "path": "app/e2e/_smoke-helpers.ts",
+          "hrefDashboard": "../../app/e2e/_smoke-helpers.ts"
         }
       ],
       "peso": 4,
@@ -14099,8 +14099,8 @@
           "hrefDashboard": "../../app/src/render/jointjs/composers/grid.test.ts"
         },
         {
-          "path": "app/e2e/opm-smoke.spec.ts",
-          "hrefDashboard": "../../app/e2e/opm-smoke.spec.ts"
+          "path": "app/e2e/_smoke-helpers.ts",
+          "hrefDashboard": "../../app/e2e/_smoke-helpers.ts"
         }
       ],
       "peso": 2,
@@ -14172,8 +14172,8 @@
           "hrefDashboard": "../../app/src/render/jointjs/composers/grid.test.ts"
         },
         {
-          "path": "app/e2e/opm-smoke.spec.ts",
-          "hrefDashboard": "../../app/e2e/opm-smoke.spec.ts"
+          "path": "app/e2e/_smoke-helpers.ts",
+          "hrefDashboard": "../../app/e2e/_smoke-helpers.ts"
         }
       ],
       "peso": 4,
@@ -14243,8 +14243,8 @@
           "hrefDashboard": "../../app/src/render/jointjs/composers/grid.test.ts"
         },
         {
-          "path": "app/e2e/opm-smoke.spec.ts",
-          "hrefDashboard": "../../app/e2e/opm-smoke.spec.ts"
+          "path": "app/e2e/_smoke-helpers.ts",
+          "hrefDashboard": "../../app/e2e/_smoke-helpers.ts"
         }
       ],
       "peso": 2,
@@ -14315,8 +14315,8 @@
           "hrefDashboard": "../../app/src/render/jointjs/composers/grid.test.ts"
         },
         {
-          "path": "app/e2e/opm-smoke.spec.ts",
-          "hrefDashboard": "../../app/e2e/opm-smoke.spec.ts"
+          "path": "app/e2e/_smoke-helpers.ts",
+          "hrefDashboard": "../../app/e2e/_smoke-helpers.ts"
         }
       ],
       "peso": 2,
@@ -14429,8 +14429,8 @@
           "hrefDashboard": "../../app/src/render/jointjs/composers/grid.test.ts"
         },
         {
-          "path": "app/e2e/opm-smoke.spec.ts",
-          "hrefDashboard": "../../app/e2e/opm-smoke.spec.ts"
+          "path": "app/e2e/_smoke-helpers.ts",
+          "hrefDashboard": "../../app/e2e/_smoke-helpers.ts"
         }
       ],
       "peso": 2,
@@ -14486,8 +14486,8 @@
           "hrefDashboard": "../../app/src/store/modelo/acciones-entidad.ts"
         },
         {
-          "path": "app/e2e/opm-smoke.spec.ts",
-          "hrefDashboard": "../../app/e2e/opm-smoke.spec.ts"
+          "path": "app/e2e/_smoke-helpers.ts",
+          "hrefDashboard": "../../app/e2e/_smoke-helpers.ts"
         }
       ],
       "peso": 4,
@@ -14586,8 +14586,8 @@
           "hrefDashboard": "../../app/src/canvas/operacionesBatch.test.ts"
         },
         {
-          "path": "app/e2e/opm-smoke.spec.ts",
-          "hrefDashboard": "../../app/e2e/opm-smoke.spec.ts"
+          "path": "app/e2e/_smoke-helpers.ts",
+          "hrefDashboard": "../../app/e2e/_smoke-helpers.ts"
         }
       ],
       "peso": 4,
@@ -14644,8 +14644,8 @@
           "hrefDashboard": "../../app/src/canvas/operacionesBatch.test.ts"
         },
         {
-          "path": "app/e2e/opm-smoke.spec.ts",
-          "hrefDashboard": "../../app/e2e/opm-smoke.spec.ts"
+          "path": "app/e2e/_smoke-helpers.ts",
+          "hrefDashboard": "../../app/e2e/_smoke-helpers.ts"
         }
       ],
       "peso": 4,
@@ -16664,8 +16664,8 @@
           "hrefDashboard": "../../app/src/ui/Toolbar.tsx"
         },
         {
-          "path": "app/e2e/opm-smoke.spec.ts",
-          "hrefDashboard": "../../app/e2e/opm-smoke.spec.ts"
+          "path": "app/e2e/_smoke-helpers.ts",
+          "hrefDashboard": "../../app/e2e/_smoke-helpers.ts"
         }
       ],
       "peso": 4,
@@ -16723,8 +16723,8 @@
           "hrefDashboard": "../../app/src/ui/Toolbar.tsx"
         },
         {
-          "path": "app/e2e/opm-smoke.spec.ts",
-          "hrefDashboard": "../../app/e2e/opm-smoke.spec.ts"
+          "path": "app/e2e/_smoke-helpers.ts",
+          "hrefDashboard": "../../app/e2e/_smoke-helpers.ts"
         }
       ],
       "peso": 4,
@@ -16775,8 +16775,8 @@
           "hrefDashboard": "../../app/src/ui/Toolbar.tsx"
         },
         {
-          "path": "app/e2e/opm-smoke.spec.ts",
-          "hrefDashboard": "../../app/e2e/opm-smoke.spec.ts"
+          "path": "app/e2e/08-mvp-alpha-residual.spec.ts",
+          "hrefDashboard": "../../app/e2e/08-mvp-alpha-residual.spec.ts"
         }
       ],
       "peso": 2,
@@ -17654,8 +17654,8 @@
           "hrefDashboard": "../../app/src/store.test.ts"
         },
         {
-          "path": "app/e2e/opm-smoke.spec.ts",
-          "hrefDashboard": "../../app/e2e/opm-smoke.spec.ts"
+          "path": "app/e2e/05-refinamiento-y-plegado.spec.ts",
+          "hrefDashboard": "../../app/e2e/05-refinamiento-y-plegado.spec.ts"
         }
       ],
       "peso": 4,
@@ -18075,8 +18075,8 @@
           "hrefDashboard": "../../app/src/canvas/operacionesBatch.test.ts"
         },
         {
-          "path": "app/e2e/opm-smoke.spec.ts",
-          "hrefDashboard": "../../app/e2e/opm-smoke.spec.ts"
+          "path": "app/e2e/_smoke-helpers.ts",
+          "hrefDashboard": "../../app/e2e/_smoke-helpers.ts"
         }
       ],
       "peso": 2,
@@ -18693,8 +18693,8 @@
           "hrefDashboard": "../../app/src/serializacion/json.ts"
         },
         {
-          "path": "app/e2e/opm-smoke.spec.ts",
-          "hrefDashboard": "../../app/e2e/opm-smoke.spec.ts"
+          "path": "app/e2e/_smoke-helpers.ts",
+          "hrefDashboard": "../../app/e2e/_smoke-helpers.ts"
         }
       ],
       "peso": 2,
@@ -18749,8 +18749,8 @@
           "hrefDashboard": "../../app/src/serializacion/json.ts"
         },
         {
-          "path": "app/e2e/opm-smoke.spec.ts",
-          "hrefDashboard": "../../app/e2e/opm-smoke.spec.ts"
+          "path": "app/e2e/_smoke-helpers.ts",
+          "hrefDashboard": "../../app/e2e/_smoke-helpers.ts"
         }
       ],
       "peso": 1,
@@ -19161,8 +19161,8 @@
           "hrefDashboard": "../../app/src/opl/generar.test.ts"
         },
         {
-          "path": "app/e2e/opm-smoke.spec.ts",
-          "hrefDashboard": "../../app/e2e/opm-smoke.spec.ts"
+          "path": "app/e2e/_smoke-helpers.ts",
+          "hrefDashboard": "../../app/e2e/_smoke-helpers.ts"
         },
         {
           "path": "app/src/render/jointjs/proyeccion.ts",
@@ -19389,8 +19389,8 @@
           "hrefDashboard": "../../app/src/opl/generar.ts"
         },
         {
-          "path": "app/e2e/opm-smoke.spec.ts",
-          "hrefDashboard": "../../app/e2e/opm-smoke.spec.ts"
+          "path": "app/e2e/_smoke-helpers.ts",
+          "hrefDashboard": "../../app/e2e/_smoke-helpers.ts"
         }
       ],
       "peso": 2,
@@ -19454,8 +19454,8 @@
           "hrefDashboard": "../../app/src/opl/generar.ts"
         },
         {
-          "path": "app/e2e/opm-smoke.spec.ts",
-          "hrefDashboard": "../../app/e2e/opm-smoke.spec.ts"
+          "path": "app/e2e/_smoke-helpers.ts",
+          "hrefDashboard": "../../app/e2e/_smoke-helpers.ts"
         }
       ],
       "peso": 1,
@@ -19518,8 +19518,8 @@
           "hrefDashboard": "../../app/src/opl/generar.ts"
         },
         {
-          "path": "app/e2e/opm-smoke.spec.ts",
-          "hrefDashboard": "../../app/e2e/opm-smoke.spec.ts"
+          "path": "app/e2e/_smoke-helpers.ts",
+          "hrefDashboard": "../../app/e2e/_smoke-helpers.ts"
         }
       ],
       "peso": 2,
@@ -19823,8 +19823,8 @@
           "hrefDashboard": "../../app/src/modelo/operaciones.test.ts"
         },
         {
-          "path": "app/e2e/opm-smoke.spec.ts",
-          "hrefDashboard": "../../app/e2e/opm-smoke.spec.ts"
+          "path": "app/e2e/_smoke-helpers.ts",
+          "hrefDashboard": "../../app/e2e/_smoke-helpers.ts"
         }
       ],
       "peso": 8,
@@ -20099,8 +20099,8 @@
           "hrefDashboard": "../../app/src/opl/generadores/refinamiento.test.ts"
         },
         {
-          "path": "app/e2e/opm-smoke.spec.ts",
-          "hrefDashboard": "../../app/e2e/opm-smoke.spec.ts"
+          "path": "app/e2e/_smoke-helpers.ts",
+          "hrefDashboard": "../../app/e2e/_smoke-helpers.ts"
         }
       ],
       "peso": 4,
@@ -20163,8 +20163,8 @@
           "hrefDashboard": "../../app/src/opl/generadores/refinamiento.test.ts"
         },
         {
-          "path": "app/e2e/opm-smoke.spec.ts",
-          "hrefDashboard": "../../app/e2e/opm-smoke.spec.ts"
+          "path": "app/e2e/_smoke-helpers.ts",
+          "hrefDashboard": "../../app/e2e/_smoke-helpers.ts"
         }
       ],
       "peso": 4,
@@ -20228,8 +20228,8 @@
           "hrefDashboard": "../../app/src/modelo/creacionInterna.test.ts"
         },
         {
-          "path": "app/e2e/opm-smoke.spec.ts",
-          "hrefDashboard": "../../app/e2e/opm-smoke.spec.ts"
+          "path": "app/e2e/_smoke-helpers.ts",
+          "hrefDashboard": "../../app/e2e/_smoke-helpers.ts"
         }
       ],
       "peso": 4,
@@ -20450,8 +20450,8 @@
           "hrefDashboard": "../../app/src/modelo/creacionInterna.test.ts"
         },
         {
-          "path": "app/e2e/opm-smoke.spec.ts",
-          "hrefDashboard": "../../app/e2e/opm-smoke.spec.ts"
+          "path": "app/e2e/_smoke-helpers.ts",
+          "hrefDashboard": "../../app/e2e/_smoke-helpers.ts"
         }
       ],
       "peso": 2,
@@ -20617,8 +20617,8 @@
           "hrefDashboard": "../../app/src/opl/generar.ts"
         },
         {
-          "path": "app/e2e/opm-smoke.spec.ts",
-          "hrefDashboard": "../../app/e2e/opm-smoke.spec.ts"
+          "path": "app/e2e/_smoke-helpers.ts",
+          "hrefDashboard": "../../app/e2e/_smoke-helpers.ts"
         }
       ],
       "peso": 2,
@@ -20944,8 +20944,8 @@
           "hrefDashboard": "../../app/src/modelo/operaciones.test.ts"
         },
         {
-          "path": "app/e2e/opm-smoke.spec.ts",
-          "hrefDashboard": "../../app/e2e/opm-smoke.spec.ts"
+          "path": "app/e2e/_smoke-helpers.ts",
+          "hrefDashboard": "../../app/e2e/_smoke-helpers.ts"
         }
       ],
       "peso": 8,
@@ -21941,8 +21941,8 @@
           "hrefDashboard": "../../app/src/store.test.ts"
         },
         {
-          "path": "app/e2e/opm-smoke.spec.ts",
-          "hrefDashboard": "../../app/e2e/opm-smoke.spec.ts"
+          "path": "app/e2e/_smoke-helpers.ts",
+          "hrefDashboard": "../../app/e2e/_smoke-helpers.ts"
         },
         {
           "path": "app/src/serializacion/json.ts",
@@ -23259,8 +23259,8 @@
           "hrefDashboard": "../../app/src/serializacion/json.test.ts"
         },
         {
-          "path": "app/e2e/opm-smoke.spec.ts",
-          "hrefDashboard": "../../app/e2e/opm-smoke.spec.ts"
+          "path": "app/e2e/_smoke-helpers.ts",
+          "hrefDashboard": "../../app/e2e/_smoke-helpers.ts"
         }
       ],
       "peso": 2,
@@ -23338,8 +23338,8 @@
           "hrefDashboard": "../../app/src/serializacion/json.test.ts"
         },
         {
-          "path": "app/e2e/opm-smoke.spec.ts",
-          "hrefDashboard": "../../app/e2e/opm-smoke.spec.ts"
+          "path": "app/e2e/_smoke-helpers.ts",
+          "hrefDashboard": "../../app/e2e/_smoke-helpers.ts"
         }
       ],
       "peso": 1,
@@ -23420,8 +23420,8 @@
           "hrefDashboard": "../../app/src/serializacion/json.test.ts"
         },
         {
-          "path": "app/e2e/opm-smoke.spec.ts",
-          "hrefDashboard": "../../app/e2e/opm-smoke.spec.ts"
+          "path": "app/e2e/_smoke-helpers.ts",
+          "hrefDashboard": "../../app/e2e/_smoke-helpers.ts"
         }
       ],
       "peso": 2,
@@ -23609,8 +23609,8 @@
           "hrefDashboard": "../../app/src/render/jointjs/proyeccion.test.ts"
         },
         {
-          "path": "app/e2e/opm-smoke.spec.ts",
-          "hrefDashboard": "../../app/e2e/opm-smoke.spec.ts"
+          "path": "app/e2e/_smoke-helpers.ts",
+          "hrefDashboard": "../../app/e2e/_smoke-helpers.ts"
         }
       ],
       "peso": 2,
@@ -23683,8 +23683,8 @@
           "hrefDashboard": "../../app/src/render/jointjs/proyeccion.test.ts"
         },
         {
-          "path": "app/e2e/opm-smoke.spec.ts",
-          "hrefDashboard": "../../app/e2e/opm-smoke.spec.ts"
+          "path": "app/e2e/_smoke-helpers.ts",
+          "hrefDashboard": "../../app/e2e/_smoke-helpers.ts"
         }
       ],
       "peso": 2,
@@ -23815,8 +23815,8 @@
           "hrefDashboard": "../../app/src/serializacion/json.test.ts"
         },
         {
-          "path": "app/e2e/opm-smoke.spec.ts",
-          "hrefDashboard": "../../app/e2e/opm-smoke.spec.ts"
+          "path": "app/e2e/_smoke-helpers.ts",
+          "hrefDashboard": "../../app/e2e/_smoke-helpers.ts"
         }
       ],
       "peso": 4,
@@ -23945,8 +23945,8 @@
           "hrefDashboard": "../../app/src/opl/generar.test.ts"
         },
         {
-          "path": "app/e2e/opm-smoke.spec.ts",
-          "hrefDashboard": "../../app/e2e/opm-smoke.spec.ts"
+          "path": "app/e2e/_smoke-helpers.ts",
+          "hrefDashboard": "../../app/e2e/_smoke-helpers.ts"
         },
         {
           "path": "app/src/render/jointjs/proyeccion.ts",
@@ -24025,8 +24025,8 @@
           "hrefDashboard": "../../app/src/opl/generar.test.ts"
         },
         {
-          "path": "app/e2e/opm-smoke.spec.ts",
-          "hrefDashboard": "../../app/e2e/opm-smoke.spec.ts"
+          "path": "app/e2e/_smoke-helpers.ts",
+          "hrefDashboard": "../../app/e2e/_smoke-helpers.ts"
         },
         {
           "path": "app/src/render/jointjs/proyeccion.ts",
@@ -24156,8 +24156,12 @@
           "hrefDashboard": "../../app/src/render/jointjs/proyeccion.ts"
         },
         {
-          "path": "app/e2e/opm-smoke.spec.ts",
-          "hrefDashboard": "../../app/e2e/opm-smoke.spec.ts"
+          "path": "app/e2e/_smoke-helpers.ts",
+          "hrefDashboard": "../../app/e2e/_smoke-helpers.ts"
+        },
+        {
+          "path": "app/e2e/02-canvas-y-render.spec.ts",
+          "hrefDashboard": "../../app/e2e/02-canvas-y-render.spec.ts"
         },
         {
           "path": "app/src/store.test.ts",
@@ -24308,8 +24312,8 @@
           "hrefDashboard": "../../app/src/store.test.ts"
         },
         {
-          "path": "app/e2e/opm-smoke.spec.ts",
-          "hrefDashboard": "../../app/e2e/opm-smoke.spec.ts"
+          "path": "app/e2e/_smoke-helpers.ts",
+          "hrefDashboard": "../../app/e2e/_smoke-helpers.ts"
         }
       ],
       "peso": 4,
@@ -24405,8 +24409,8 @@
           "hrefDashboard": "../../app/src/modelo/operaciones/enlaces.test.ts"
         },
         {
-          "path": "app/e2e/opm-smoke.spec.ts",
-          "hrefDashboard": "../../app/e2e/opm-smoke.spec.ts"
+          "path": "app/e2e/_smoke-helpers.ts",
+          "hrefDashboard": "../../app/e2e/_smoke-helpers.ts"
         }
       ],
       "peso": 2,
@@ -24465,8 +24469,8 @@
           "hrefDashboard": "../../app/src/modelo/operaciones/enlaces.test.ts"
         },
         {
-          "path": "app/e2e/opm-smoke.spec.ts",
-          "hrefDashboard": "../../app/e2e/opm-smoke.spec.ts"
+          "path": "app/e2e/_smoke-helpers.ts",
+          "hrefDashboard": "../../app/e2e/_smoke-helpers.ts"
         }
       ],
       "peso": 1,
@@ -24522,8 +24526,8 @@
           "hrefDashboard": "../../app/src/serializacion/json.ts"
         },
         {
-          "path": "app/e2e/opm-smoke.spec.ts",
-          "hrefDashboard": "../../app/e2e/opm-smoke.spec.ts"
+          "path": "app/e2e/_smoke-helpers.ts",
+          "hrefDashboard": "../../app/e2e/_smoke-helpers.ts"
         }
       ],
       "peso": 2,
@@ -28134,8 +28138,8 @@
           "hrefDashboard": "../../app/src/serializacion/json.test.ts"
         },
         {
-          "path": "app/e2e/opm-smoke.spec.ts",
-          "hrefDashboard": "../../app/e2e/opm-smoke.spec.ts"
+          "path": "app/e2e/_smoke-helpers.ts",
+          "hrefDashboard": "../../app/e2e/_smoke-helpers.ts"
         }
       ],
       "peso": 4,
@@ -28590,8 +28594,8 @@
           "hrefDashboard": "../../app/src/serializacion/json.test.ts"
         },
         {
-          "path": "app/e2e/opm-smoke.spec.ts",
-          "hrefDashboard": "../../app/e2e/opm-smoke.spec.ts"
+          "path": "app/e2e/_smoke-helpers.ts",
+          "hrefDashboard": "../../app/e2e/_smoke-helpers.ts"
         }
       ],
       "peso": 2,
@@ -28655,8 +28659,8 @@
           "hrefDashboard": "../../app/src/render/jointjs/composers/imagenOverlay.ts"
         },
         {
-          "path": "app/e2e/opm-smoke.spec.ts",
-          "hrefDashboard": "../../app/e2e/opm-smoke.spec.ts"
+          "path": "app/e2e/_smoke-helpers.ts",
+          "hrefDashboard": "../../app/e2e/_smoke-helpers.ts"
         }
       ],
       "peso": 2,
@@ -28937,8 +28941,8 @@
           "hrefDashboard": "../../app/src/render/jointjs/composers/imagenOverlay.ts"
         },
         {
-          "path": "app/e2e/opm-smoke.spec.ts",
-          "hrefDashboard": "../../app/e2e/opm-smoke.spec.ts"
+          "path": "app/e2e/_smoke-helpers.ts",
+          "hrefDashboard": "../../app/e2e/_smoke-helpers.ts"
         }
       ],
       "peso": 2,
@@ -29000,8 +29004,8 @@
           "hrefDashboard": "../../app/src/render/jointjs/composers/imagenOverlay.ts"
         },
         {
-          "path": "app/e2e/opm-smoke.spec.ts",
-          "hrefDashboard": "../../app/e2e/opm-smoke.spec.ts"
+          "path": "app/e2e/_smoke-helpers.ts",
+          "hrefDashboard": "../../app/e2e/_smoke-helpers.ts"
         }
       ],
       "peso": 2,
@@ -29064,8 +29068,8 @@
           "hrefDashboard": "../../app/src/render/jointjs/composers/imagenOverlay.ts"
         },
         {
-          "path": "app/e2e/opm-smoke.spec.ts",
-          "hrefDashboard": "../../app/e2e/opm-smoke.spec.ts"
+          "path": "app/e2e/_smoke-helpers.ts",
+          "hrefDashboard": "../../app/e2e/_smoke-helpers.ts"
         }
       ],
       "peso": 2,
@@ -29128,8 +29132,8 @@
           "hrefDashboard": "../../app/src/render/jointjs/composers/imagenOverlay.ts"
         },
         {
-          "path": "app/e2e/opm-smoke.spec.ts",
-          "hrefDashboard": "../../app/e2e/opm-smoke.spec.ts"
+          "path": "app/e2e/_smoke-helpers.ts",
+          "hrefDashboard": "../../app/e2e/_smoke-helpers.ts"
         }
       ],
       "peso": 1,
@@ -29512,8 +29516,8 @@
           "hrefDashboard": "../../app/src/opl/generar.ts"
         },
         {
-          "path": "app/e2e/opm-smoke.spec.ts",
-          "hrefDashboard": "../../app/e2e/opm-smoke.spec.ts"
+          "path": "app/e2e/_smoke-helpers.ts",
+          "hrefDashboard": "../../app/e2e/_smoke-helpers.ts"
         }
       ],
       "peso": 2,
@@ -29578,8 +29582,8 @@
           "hrefDashboard": "../../app/src/opl/generar.ts"
         },
         {
-          "path": "app/e2e/opm-smoke.spec.ts",
-          "hrefDashboard": "../../app/e2e/opm-smoke.spec.ts"
+          "path": "app/e2e/_smoke-helpers.ts",
+          "hrefDashboard": "../../app/e2e/_smoke-helpers.ts"
         }
       ],
       "peso": 1,
@@ -29677,8 +29681,8 @@
           "hrefDashboard": "../../app/src/opl/generar.ts"
         },
         {
-          "path": "app/e2e/opm-smoke.spec.ts",
-          "hrefDashboard": "../../app/e2e/opm-smoke.spec.ts"
+          "path": "app/e2e/_smoke-helpers.ts",
+          "hrefDashboard": "../../app/e2e/_smoke-helpers.ts"
         }
       ],
       "peso": 4,
@@ -29741,8 +29745,8 @@
           "hrefDashboard": "../../app/src/opl/generar.ts"
         },
         {
-          "path": "app/e2e/opm-smoke.spec.ts",
-          "hrefDashboard": "../../app/e2e/opm-smoke.spec.ts"
+          "path": "app/e2e/_smoke-helpers.ts",
+          "hrefDashboard": "../../app/e2e/_smoke-helpers.ts"
         }
       ],
       "peso": 2,
@@ -29806,8 +29810,8 @@
           "hrefDashboard": "../../app/src/opl/generar.ts"
         },
         {
-          "path": "app/e2e/opm-smoke.spec.ts",
-          "hrefDashboard": "../../app/e2e/opm-smoke.spec.ts"
+          "path": "app/e2e/_smoke-helpers.ts",
+          "hrefDashboard": "../../app/e2e/_smoke-helpers.ts"
         }
       ],
       "peso": 2,
@@ -29869,8 +29873,8 @@
           "hrefDashboard": "../../app/src/opl/generar.ts"
         },
         {
-          "path": "app/e2e/opm-smoke.spec.ts",
-          "hrefDashboard": "../../app/e2e/opm-smoke.spec.ts"
+          "path": "app/e2e/_smoke-helpers.ts",
+          "hrefDashboard": "../../app/e2e/_smoke-helpers.ts"
         }
       ],
       "peso": 2,
@@ -29932,8 +29936,8 @@
           "hrefDashboard": "../../app/src/opl/generar.ts"
         },
         {
-          "path": "app/e2e/opm-smoke.spec.ts",
-          "hrefDashboard": "../../app/e2e/opm-smoke.spec.ts"
+          "path": "app/e2e/_smoke-helpers.ts",
+          "hrefDashboard": "../../app/e2e/_smoke-helpers.ts"
         }
       ],
       "peso": 2,
@@ -29999,8 +30003,8 @@
           "hrefDashboard": "../../app/src/ui/arbol/togglesArbol.test.ts"
         },
         {
-          "path": "app/e2e/opm-smoke.spec.ts",
-          "hrefDashboard": "../../app/e2e/opm-smoke.spec.ts"
+          "path": "app/e2e/_smoke-helpers.ts",
+          "hrefDashboard": "../../app/e2e/_smoke-helpers.ts"
         }
       ],
       "peso": 2,
@@ -30066,8 +30070,8 @@
           "hrefDashboard": "../../app/src/ui/arbol/togglesArbol.test.ts"
         },
         {
-          "path": "app/e2e/opm-smoke.spec.ts",
-          "hrefDashboard": "../../app/e2e/opm-smoke.spec.ts"
+          "path": "app/e2e/_smoke-helpers.ts",
+          "hrefDashboard": "../../app/e2e/_smoke-helpers.ts"
         }
       ],
       "peso": 1,
@@ -30137,8 +30141,8 @@
           "hrefDashboard": "../../app/src/ui/arbol/togglesArbol.test.ts"
         },
         {
-          "path": "app/e2e/opm-smoke.spec.ts",
-          "hrefDashboard": "../../app/e2e/opm-smoke.spec.ts"
+          "path": "app/e2e/_smoke-helpers.ts",
+          "hrefDashboard": "../../app/e2e/_smoke-helpers.ts"
         }
       ],
       "peso": 2,
@@ -30204,8 +30208,8 @@
           "hrefDashboard": "../../app/src/ui/arbol/togglesArbol.test.ts"
         },
         {
-          "path": "app/e2e/opm-smoke.spec.ts",
-          "hrefDashboard": "../../app/e2e/opm-smoke.spec.ts"
+          "path": "app/e2e/_smoke-helpers.ts",
+          "hrefDashboard": "../../app/e2e/_smoke-helpers.ts"
         }
       ],
       "peso": 1,
@@ -30271,8 +30275,8 @@
           "hrefDashboard": "../../app/src/ui/arbol/togglesArbol.test.ts"
         },
         {
-          "path": "app/e2e/opm-smoke.spec.ts",
-          "hrefDashboard": "../../app/e2e/opm-smoke.spec.ts"
+          "path": "app/e2e/_smoke-helpers.ts",
+          "hrefDashboard": "../../app/e2e/_smoke-helpers.ts"
         }
       ],
       "peso": 1,
@@ -30614,8 +30618,8 @@
           "hrefDashboard": "../../app/src/store/uiPanel.ts"
         },
         {
-          "path": "app/e2e/opm-smoke.spec.ts",
-          "hrefDashboard": "../../app/e2e/opm-smoke.spec.ts"
+          "path": "app/e2e/_smoke-helpers.ts",
+          "hrefDashboard": "../../app/e2e/_smoke-helpers.ts"
         }
       ],
       "peso": 4,
@@ -30664,8 +30668,8 @@
           "hrefDashboard": "../../app/src/store/uiPanel.ts"
         },
         {
-          "path": "app/e2e/opm-smoke.spec.ts",
-          "hrefDashboard": "../../app/e2e/opm-smoke.spec.ts"
+          "path": "app/e2e/_smoke-helpers.ts",
+          "hrefDashboard": "../../app/e2e/_smoke-helpers.ts"
         }
       ],
       "peso": 2,
@@ -30721,8 +30725,8 @@
           "hrefDashboard": "../../app/src/store/uiPanel.ts"
         },
         {
-          "path": "app/e2e/opm-smoke.spec.ts",
-          "hrefDashboard": "../../app/e2e/opm-smoke.spec.ts"
+          "path": "app/e2e/_smoke-helpers.ts",
+          "hrefDashboard": "../../app/e2e/_smoke-helpers.ts"
         }
       ],
       "peso": 8,
@@ -31725,8 +31729,8 @@
           "hrefDashboard": "../../app/src/persistencia/local.test.ts"
         },
         {
-          "path": "app/e2e/opm-smoke.spec.ts",
-          "hrefDashboard": "../../app/e2e/opm-smoke.spec.ts"
+          "path": "app/e2e/_smoke-helpers.ts",
+          "hrefDashboard": "../../app/e2e/_smoke-helpers.ts"
         }
       ],
       "peso": 8,
@@ -32264,8 +32268,8 @@
           "hrefDashboard": "../../app/src/serializacion/json.test.ts"
         },
         {
-          "path": "app/e2e/opm-smoke.spec.ts",
-          "hrefDashboard": "../../app/e2e/opm-smoke.spec.ts"
+          "path": "app/e2e/_smoke-helpers.ts",
+          "hrefDashboard": "../../app/e2e/_smoke-helpers.ts"
         }
       ],
       "peso": 2,
@@ -32314,8 +32318,8 @@
           "hrefDashboard": "../../app/src/serializacion/json.test.ts"
         },
         {
-          "path": "app/e2e/opm-smoke.spec.ts",
-          "hrefDashboard": "../../app/e2e/opm-smoke.spec.ts"
+          "path": "app/e2e/_smoke-helpers.ts",
+          "hrefDashboard": "../../app/e2e/_smoke-helpers.ts"
         }
       ],
       "peso": 1,
@@ -32364,8 +32368,8 @@
           "hrefDashboard": "../../app/src/persistencia/local.test.ts"
         },
         {
-          "path": "app/e2e/opm-smoke.spec.ts",
-          "hrefDashboard": "../../app/e2e/opm-smoke.spec.ts"
+          "path": "app/e2e/_smoke-helpers.ts",
+          "hrefDashboard": "../../app/e2e/_smoke-helpers.ts"
         }
       ],
       "peso": 4,
@@ -33053,8 +33057,8 @@
           "hrefDashboard": "../../app/src/serializacion/json.test.ts"
         },
         {
-          "path": "app/e2e/opm-smoke.spec.ts",
-          "hrefDashboard": "../../app/e2e/opm-smoke.spec.ts"
+          "path": "app/e2e/_smoke-helpers.ts",
+          "hrefDashboard": "../../app/e2e/_smoke-helpers.ts"
         }
       ],
       "peso": 1,
@@ -40514,8 +40518,8 @@
           "hrefDashboard": "../../app/src/store.test.ts"
         },
         {
-          "path": "app/e2e/opm-smoke.spec.ts",
-          "hrefDashboard": "../../app/e2e/opm-smoke.spec.ts"
+          "path": "app/e2e/_smoke-helpers.ts",
+          "hrefDashboard": "../../app/e2e/_smoke-helpers.ts"
         }
       ],
       "peso": 2,
@@ -41122,8 +41126,8 @@
           "hrefDashboard": "../../app/src/store.test.ts"
         },
         {
-          "path": "app/e2e/opm-smoke.spec.ts",
-          "hrefDashboard": "../../app/e2e/opm-smoke.spec.ts"
+          "path": "app/e2e/_smoke-helpers.ts",
+          "hrefDashboard": "../../app/e2e/_smoke-helpers.ts"
         }
       ],
       "peso": 4,
@@ -41181,8 +41185,8 @@
           "hrefDashboard": "../../app/src/store.test.ts"
         },
         {
-          "path": "app/e2e/opm-smoke.spec.ts",
-          "hrefDashboard": "../../app/e2e/opm-smoke.spec.ts"
+          "path": "app/e2e/_smoke-helpers.ts",
+          "hrefDashboard": "../../app/e2e/_smoke-helpers.ts"
         }
       ],
       "peso": 4,
@@ -41241,8 +41245,8 @@
           "hrefDashboard": "../../app/src/store.test.ts"
         },
         {
-          "path": "app/e2e/opm-smoke.spec.ts",
-          "hrefDashboard": "../../app/e2e/opm-smoke.spec.ts"
+          "path": "app/e2e/_smoke-helpers.ts",
+          "hrefDashboard": "../../app/e2e/_smoke-helpers.ts"
         }
       ],
       "peso": 2,
@@ -41301,8 +41305,8 @@
           "hrefDashboard": "../../app/src/store.test.ts"
         },
         {
-          "path": "app/e2e/opm-smoke.spec.ts",
-          "hrefDashboard": "../../app/e2e/opm-smoke.spec.ts"
+          "path": "app/e2e/_smoke-helpers.ts",
+          "hrefDashboard": "../../app/e2e/_smoke-helpers.ts"
         }
       ],
       "peso": 4,
@@ -41408,8 +41412,8 @@
           "hrefDashboard": "../../app/src/store.test.ts"
         },
         {
-          "path": "app/e2e/opm-smoke.spec.ts",
-          "hrefDashboard": "../../app/e2e/opm-smoke.spec.ts"
+          "path": "app/e2e/_smoke-helpers.ts",
+          "hrefDashboard": "../../app/e2e/_smoke-helpers.ts"
         }
       ],
       "peso": 2,
@@ -41454,8 +41458,8 @@
           "hrefDashboard": "../../app/src/store/modelo/acciones-canvas.ts"
         },
         {
-          "path": "app/e2e/opm-smoke.spec.ts",
-          "hrefDashboard": "../../app/e2e/opm-smoke.spec.ts"
+          "path": "app/e2e/_smoke-helpers.ts",
+          "hrefDashboard": "../../app/e2e/_smoke-helpers.ts"
         }
       ],
       "peso": 1,
@@ -41500,8 +41504,8 @@
           "hrefDashboard": "../../app/src/store/modelo/acciones-canvas.ts"
         },
         {
-          "path": "app/e2e/opm-smoke.spec.ts",
-          "hrefDashboard": "../../app/e2e/opm-smoke.spec.ts"
+          "path": "app/e2e/_smoke-helpers.ts",
+          "hrefDashboard": "../../app/e2e/_smoke-helpers.ts"
         }
       ],
       "peso": 4,
@@ -41546,8 +41550,8 @@
           "hrefDashboard": "../../app/src/store/modelo/acciones-canvas.ts"
         },
         {
-          "path": "app/e2e/opm-smoke.spec.ts",
-          "hrefDashboard": "../../app/e2e/opm-smoke.spec.ts"
+          "path": "app/e2e/_smoke-helpers.ts",
+          "hrefDashboard": "../../app/e2e/_smoke-helpers.ts"
         }
       ],
       "peso": 2,

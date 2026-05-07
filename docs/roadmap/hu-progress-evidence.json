@@ -728,13 +728,13 @@
   ],
   "knownGaps": [],
   "autoAudit": {
-    "generatedAt": "2026-05-07T05:59:01.104Z",
+    "generatedAt": "2026-05-07T07:18:10.150Z",
     "mode": "sync-real",
     "rulesEvaluated": 102,
     "rulesMatched": 102,
     "rulesUnmatched": 0,
     "sourceFiles": {
-      "count": 353,
+      "count": 361,
       "roots": [
         "app/src",
         "app/e2e",
@@ -758,7 +758,7 @@
         "app/src/store/modelo/acciones-canvas.ts",
         "app/src/ui/Toolbar.tsx",
         "app/src/store.test.ts",
-        "app/e2e/opm-smoke.spec.ts",
+        "app/e2e/_smoke-helpers.ts",
         "app/src/store.ts"
       ]
     },
@@ -907,7 +907,7 @@
         "app/src/render/jointjs/handlers/toolsEnlace.ts",
         "app/src/modelo/operaciones/apariencias.ts",
         "app/src/serializacion/json.ts",
-        "app/e2e/opm-smoke.spec.ts"
+        "app/e2e/_smoke-helpers.ts"
       ]
     },
     {
@@ -955,7 +955,7 @@
         "app/src/store/modelo.ts",
         "app/src/modelo/operaciones/refinamiento/descomposicion.ts",
         "app/src/opl/generar.ts",
-        "app/e2e/opm-smoke.spec.ts"
+        "app/e2e/_smoke-helpers.ts"
       ]
     },
     {
@@ -972,7 +972,7 @@
         "app/src/serializacion/json.ts",
         "app/src/ui/PersistenciaJson.tsx",
         "app/src/serializacion/json.test.ts",
-        "app/e2e/opm-smoke.spec.ts"
+        "app/e2e/_smoke-helpers.ts"
       ]
     },
     {
@@ -1093,7 +1093,7 @@
         "app/src/render/jointjs/proyeccion.test.ts",
         "app/src/serializacion/json.test.ts",
         "app/src/store.test.ts",
-        "app/e2e/opm-smoke.spec.ts",
+        "app/e2e/_smoke-helpers.ts",
         "app/src/serializacion/json.ts"
       ]
     },
@@ -1271,7 +1271,7 @@
         "app/src/modelo/abanicos.ts",
         "app/src/ui/InspectorEnlace.tsx",
         "app/src/render/jointjs/proyeccion.test.ts",
-        "app/e2e/opm-smoke.spec.ts"
+        "app/e2e/_smoke-helpers.ts"
       ]
     },
     {
@@ -1310,7 +1310,7 @@
         "app/src/opl/generar.test.ts",
         "app/src/render/jointjs/proyeccion.test.ts",
         "app/src/serializacion/json.test.ts",
-        "app/e2e/opm-smoke.spec.ts"
+        "app/e2e/_smoke-helpers.ts"
       ]
     },
     {
@@ -1331,7 +1331,7 @@
         "app/src/opl/generadores/procedural.ts",
         "app/src/modelo/modificadores.test.ts",
         "app/src/opl/generar.test.ts",
-        "app/e2e/opm-smoke.spec.ts",
+        "app/e2e/_smoke-helpers.ts",
         "app/src/render/jointjs/proyeccion.ts",
         "app/src/opl/generar.ts",
         "app/src/ui/InspectorEnlace.tsx"
@@ -1349,7 +1349,8 @@
         "app/src/modelo/modificadores.ts",
         "app/src/serializacion/json.ts",
         "app/src/render/jointjs/proyeccion.ts",
-        "app/e2e/opm-smoke.spec.ts",
+        "app/e2e/_smoke-helpers.ts",
+        "app/e2e/02-canvas-y-render.spec.ts",
         "app/src/store.test.ts",
         "app/src/serializacion/json.test.ts"
       ]
@@ -1372,7 +1373,7 @@
         "app/src/opl/generar.test.ts",
         "app/src/render/jointjs/proyeccion.test.ts",
         "app/src/store.test.ts",
-        "app/e2e/opm-smoke.spec.ts"
+        "app/e2e/_smoke-helpers.ts"
       ]
     },
     {
@@ -1396,7 +1397,7 @@
         "app/src/render/jointjs/proyeccion.test.ts",
         "app/src/store.test.ts",
         "app/src/serializacion/json.test.ts",
-        "app/e2e/opm-smoke.spec.ts"
+        "app/e2e/_smoke-helpers.ts"
       ]
     },
     {
@@ -1418,7 +1419,7 @@
         "app/src/store/modelo/acciones-canvas.ts",
         "app/src/opl/generar.test.ts",
         "app/src/store.test.ts",
-        "app/e2e/opm-smoke.spec.ts"
+        "app/e2e/_smoke-helpers.ts"
       ]
     },
     {
@@ -1716,7 +1717,7 @@
         "app/src/canvas/operacionesBatch.ts",
         "app/src/render/jointjs/JointCanvas.tsx",
         "app/src/store/modelo/acciones-entidad.ts",
-        "app/e2e/opm-smoke.spec.ts"
+        "app/e2e/_smoke-helpers.ts"
       ]
     },
     {
@@ -1740,7 +1741,7 @@
         "app/src/ui/ModalConfiguracionGrid.tsx",
         "app/src/canvas/grid.test.ts",
         "app/src/render/jointjs/composers/grid.test.ts",
-        "app/e2e/opm-smoke.spec.ts"
+        "app/e2e/_smoke-helpers.ts"
       ]
     },
     {
@@ -1758,7 +1759,7 @@
         "app/src/store/modelo/acciones-canvas.ts",
         "app/src/ui/Toolbar.tsx",
         "app/src/canvas/operacionesBatch.test.ts",
-        "app/e2e/opm-smoke.spec.ts"
+        "app/e2e/_smoke-helpers.ts"
       ]
     },
     {
@@ -1791,7 +1792,7 @@
         "app/src/modelo/operaciones/enlaces.ts",
         "app/src/store/modelo/acciones-enlace.ts",
         "app/src/modelo/operaciones/enlaces.test.ts",
-        "app/e2e/opm-smoke.spec.ts"
+        "app/e2e/_smoke-helpers.ts"
       ]
     },
     {
@@ -1841,7 +1842,7 @@
         "app/src/store/modelo/acciones-opd.ts",
         "app/src/ui/inspector/SeccionRefinamiento.tsx",
         "app/src/modelo/operaciones.test.ts",
-        "app/e2e/opm-smoke.spec.ts"
+        "app/e2e/_smoke-helpers.ts"
       ]
     },
     {
@@ -1859,7 +1860,7 @@
         "app/src/store/modelo/acciones-canvas.ts",
         "app/src/opl/generadores/refinamiento.ts",
         "app/src/opl/generadores/refinamiento.test.ts",
-        "app/e2e/opm-smoke.spec.ts"
+        "app/e2e/_smoke-helpers.ts"
       ]
     },
     {
@@ -1926,7 +1927,7 @@
         "app/src/store/modelo/acciones-ui.ts",
         "app/src/render/jointjs/handlers/seleccion.ts",
         "app/src/render/jointjs/composers/imagenOverlay.ts",
-        "app/e2e/opm-smoke.spec.ts"
+        "app/e2e/_smoke-helpers.ts"
       ]
     },
     {
@@ -2006,7 +2007,7 @@
       "evidencia": [
         "app/src/ui/panelOpl/Toolbar.tsx",
         "app/src/store/modelo/acciones-canvas.ts",
-        "app/e2e/opm-smoke.spec.ts"
+        "app/e2e/_smoke-helpers.ts"
       ]
     },
     {
@@ -2036,7 +2037,7 @@
         "app/src/ui/ConfirmacionContext.tsx",
         "app/src/ui/BarraPestanas.tsx",
         "app/src/store/tipos.ts",
-        "app/e2e/opm-smoke.spec.ts"
+        "app/e2e/_smoke-helpers.ts"
       ]
     },
     {
@@ -2053,7 +2054,7 @@
         "app/src/modelo/operaciones/refinamiento/helpers.ts",
         "app/src/modelo/validaciones.ts",
         "app/src/modelo/creacionInterna.test.ts",
-        "app/e2e/opm-smoke.spec.ts"
+        "app/e2e/_smoke-helpers.ts"
       ]
     },
     {
@@ -2089,7 +2090,7 @@
         "app/src/ui/divisorPanel.tsx",
         "app/src/ui/arbol/handlersTeclado.test.ts",
         "app/src/ui/arbol/togglesArbol.test.ts",
-        "app/e2e/opm-smoke.spec.ts"
+        "app/e2e/_smoke-helpers.ts"
       ]
     },
     {
@@ -2134,7 +2135,7 @@
         "app/src/ui/DialogoGestionArbol.tsx",
         "app/src/ui/ArbolOpd.tsx",
         "app/src/store/uiPanel.ts",
-        "app/e2e/opm-smoke.spec.ts"
+        "app/e2e/_smoke-helpers.ts"
       ]
     },
     {
@@ -2269,7 +2270,7 @@
       "nota": "Auto ronda 11 L4: drag desde Toolbar al canvas con MIME application/x-opm-tipo crea cosa en posicion exacta.",
       "evidencia": [
         "app/src/ui/Toolbar.tsx",
-        "app/e2e/opm-smoke.spec.ts"
+        "app/e2e/_smoke-helpers.ts"
       ]
     },
     {
@@ -2465,7 +2466,7 @@
         "app/src/store/modelo/acciones-ui.ts",
         "app/src/ui/DialogoCargarModelo.tsx",
         "app/src/persistencia/local.test.ts",
-        "app/e2e/opm-smoke.spec.ts"
+        "app/e2e/_smoke-helpers.ts"
       ]
     },
     {
@@ -2567,7 +2568,7 @@
       "nota": "Auto ronda 12.1 L1: smoke verifica que crear cosa expone modal-nombre-cosa con form + input + Enter persiste nombre.",
       "evidencia": [
         "app/src/ui/Toolbar.tsx",
-        "app/e2e/opm-smoke.spec.ts"
+        "app/e2e/08-mvp-alpha-residual.spec.ts"
       ]
     },
     {
@@ -2581,7 +2582,7 @@
       "evidencia": [
         "app/src/store/modelo/acciones-opd.ts",
         "app/src/store.test.ts",
-        "app/e2e/opm-smoke.spec.ts"
+        "app/e2e/05-refinamiento-y-plegado.spec.ts"
       ]
     }
   ]

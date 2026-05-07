@@ -389,7 +389,7 @@ function autoAuditRules() {
         { path: "app/src/ui/Toolbar.tsx", all: ["deshacer", "rehacer"] },
         { path: "app/src/store.test.ts", all: ["undoStack.length"] },
       ],
-      evidenciaExtra: ["app/e2e/opm-smoke.spec.ts", "app/src/store.ts"],
+      evidenciaExtra: ["app/e2e/_smoke-helpers.ts", "app/src/store.ts"],
     },
     {
       ids: ["HU-SHARED-007"],
@@ -494,7 +494,7 @@ function autoAuditRules() {
         { path: "app/src/modelo/operaciones/apariencias.ts", all: ["actualizarVerticesEnlace", "vertices"] },
         { path: "app/src/serializacion/json.ts", all: ["vertices"] },
       ],
-      evidenciaExtra: ["app/e2e/opm-smoke.spec.ts"],
+      evidenciaExtra: ["app/e2e/_smoke-helpers.ts"],
     },
     {
       ids: ["HU-11.024", "HU-30.002", "HU-30.003", "HU-30.014", "HU-30.017"],
@@ -523,7 +523,7 @@ function autoAuditRules() {
         { path: "app/src/modelo/operaciones/refinamiento/descomposicion.ts", all: ["opdHijoId"] },
         { path: "app/src/opl/generar.ts", all: ["opdId", "modelo.opdRaizId"] },
       ],
-      evidenciaExtra: ["app/e2e/opm-smoke.spec.ts"],
+      evidenciaExtra: ["app/e2e/_smoke-helpers.ts"],
     },
     {
       ids: ["HU-30.019", "HU-30.020", "HU-30.037"],
@@ -535,7 +535,7 @@ function autoAuditRules() {
         { path: "app/src/ui/PersistenciaJson.tsx", all: ["Exportar", "Importar", "hidratarModelo"] },
         { path: "app/src/serializacion/json.test.ts", all: ["exportarModelo", "hidratarModelo"] },
       ],
-      evidenciaExtra: ["app/e2e/opm-smoke.spec.ts"],
+      evidenciaExtra: ["app/e2e/_smoke-helpers.ts"],
     },
     {
       ids: ["HU-50.001", "HU-50.016"],
@@ -613,7 +613,7 @@ function autoAuditRules() {
         { path: "app/src/store/modelo/acciones-canvas.ts", all: ["seleccionarEstadoComoExtremo", "extremoEstado(estadoId)"] },
         { path: "app/src/serializacion/validarEnlaces.ts", all: ["validarExtremoEnlace", "kind === \"estado\""] },
       ],
-      evidenciaExtra: ["app/src/modelo/operaciones.test.ts", "app/src/render/jointjs/proyeccion.test.ts", "app/src/serializacion/json.test.ts", "app/src/store.test.ts", "app/e2e/opm-smoke.spec.ts", "app/src/serializacion/json.ts"],
+      evidenciaExtra: ["app/src/modelo/operaciones.test.ts", "app/src/render/jointjs/proyeccion.test.ts", "app/src/serializacion/json.test.ts", "app/src/store.test.ts", "app/e2e/_smoke-helpers.ts", "app/src/serializacion/json.ts"],
     },
     {
       ids: ["HU-13.018"],
@@ -734,7 +734,7 @@ function autoAuditRules() {
         { path: "assets/svg/links/logical/xor.svg", all: ["<svg"] },
         { path: "assets/svg/links/logical/or.svg", all: ["<svg"] },
       ],
-      evidenciaExtra: ["app/src/modelo/abanicos.ts", "app/src/ui/InspectorEnlace.tsx", "app/src/render/jointjs/proyeccion.test.ts", "app/e2e/opm-smoke.spec.ts"],
+      evidenciaExtra: ["app/src/modelo/abanicos.ts", "app/src/ui/InspectorEnlace.tsx", "app/src/render/jointjs/proyeccion.test.ts", "app/e2e/_smoke-helpers.ts"],
     },
     {
       ids: ["HU-15.012"],
@@ -760,7 +760,7 @@ function autoAuditRules() {
         { path: "app/src/opl/generar.ts", all: ["Por ruta", "rutaEtiquetaNormalizada"] },
         { path: "app/src/serializacion/json.ts", all: ["rutaEtiqueta", "validarRutaEtiquetaOpcional"] },
       ],
-      evidenciaExtra: ["app/src/modelo/rutas.test.ts", "app/src/opl/generar.test.ts", "app/src/render/jointjs/proyeccion.test.ts", "app/src/serializacion/json.test.ts", "app/e2e/opm-smoke.spec.ts"],
+      evidenciaExtra: ["app/src/modelo/rutas.test.ts", "app/src/opl/generar.test.ts", "app/src/render/jointjs/proyeccion.test.ts", "app/src/serializacion/json.test.ts", "app/e2e/_smoke-helpers.ts"],
     },
     {
       ids: ["HU-11.027", "HU-15.015", "HU-15.016"],
@@ -774,7 +774,7 @@ function autoAuditRules() {
         { path: "app/src/render/jointjs/composers/enlace.ts", any: ["textoModificador", "etiquetaBadgeModificador", "¬"] },
         { path: "app/src/opl/generadores/procedural.ts", any: ["oracionEvento", "oracionCondicion", "oracionNegada"] },
       ],
-      evidenciaExtra: ["app/src/modelo/modificadores.test.ts", "app/src/opl/generar.test.ts", "app/e2e/opm-smoke.spec.ts", "app/src/render/jointjs/proyeccion.ts", "app/src/opl/generar.ts", "app/src/ui/InspectorEnlace.tsx"],
+      evidenciaExtra: ["app/src/modelo/modificadores.test.ts", "app/src/opl/generar.test.ts", "app/e2e/_smoke-helpers.ts", "app/src/render/jointjs/proyeccion.ts", "app/src/opl/generar.ts", "app/src/ui/InspectorEnlace.tsx"],
     },
     {
       ids: ["HU-15.018"],
@@ -785,7 +785,8 @@ function autoAuditRules() {
         { path: "app/src/modelo/modificadores.ts", all: ["definirProbabilidad", "probabilidadValida", "modificador !== \"evento\""] },
         { path: "app/src/serializacion/json.ts", all: ["probabilidad", "validarMetadatosEnlace"] },
         { path: "app/src/render/jointjs/proyeccion.ts", all: ["Math.round(enlace.probabilidad * 100)", "etiquetaTextoModificador"] },
-        { path: "app/e2e/opm-smoke.spec.ts", all: ["probabilidad: 0.7", "70%"] },
+        { path: "app/e2e/_smoke-helpers.ts", all: ["probabilidad: 0.7"] },
+        { path: "app/e2e/02-canvas-y-render.spec.ts", all: ["70%"] },
       ],
       evidenciaExtra: ["app/src/store.test.ts", "app/src/serializacion/json.test.ts"],
     },
@@ -801,7 +802,7 @@ function autoAuditRules() {
         { path: "app/src/ui/InspectorEntidad.tsx", any: ["crearAutoInvocacion", "Auto-invocación", "Inspector"] },
         { path: "app/src/store/modelo/acciones-enlace.ts", all: ["crearAutoInvocacionSeleccionada", "crearAutoInvocacion(modelo"] },
       ],
-      evidenciaExtra: ["app/src/modelo/modificadores.test.ts", "app/src/opl/generar.test.ts", "app/src/render/jointjs/proyeccion.test.ts", "app/src/store.test.ts", "app/e2e/opm-smoke.spec.ts"],
+      evidenciaExtra: ["app/src/modelo/modificadores.test.ts", "app/src/opl/generar.test.ts", "app/src/render/jointjs/proyeccion.test.ts", "app/src/store.test.ts", "app/e2e/_smoke-helpers.ts"],
     },
     {
       ids: ["HU-18.008", "HU-18.015"],
@@ -817,7 +818,7 @@ function autoAuditRules() {
         { path: "app/src/ui/InspectorEntidad.tsx", any: ["Orden de partes", "cambiarOrdenPartes", "Inspector"] },
         { path: "app/src/serializacion/json.ts", all: ["ordenPartes", "validarOrdenPartes"] },
       ],
-      evidenciaExtra: ["app/src/modelo/plegado.test.ts", "app/src/render/jointjs/proyeccion.test.ts", "app/src/store.test.ts", "app/src/serializacion/json.test.ts", "app/e2e/opm-smoke.spec.ts"],
+      evidenciaExtra: ["app/src/modelo/plegado.test.ts", "app/src/render/jointjs/proyeccion.test.ts", "app/src/store.test.ts", "app/src/serializacion/json.test.ts", "app/e2e/_smoke-helpers.ts"],
     },
     {
       ids: ["HU-50.002", "HU-50.017", "HU-50.018", "HU-50.019", "HU-50.020", "HU-50.022"],
@@ -829,7 +830,7 @@ function autoAuditRules() {
         { path: "app/src/ui/PanelOpl.tsx", any: ["filtroOplPorSeleccion", "fijarFiltroOplPorSeleccion", "fijarHoverOpl", "seleccionarDesdeOpl", "renombrarEntidadDesdeOpl", "PanelOpl"] },
         { path: "app/src/store/modelo/acciones-canvas.ts", all: ["seleccionarDesdeOpl", "renombrarEntidadDesdeOpl", "fijarFiltroOplPorSeleccion", "fijarHoverOpl"] },
       ],
-      evidenciaExtra: ["app/src/opl/generar.test.ts", "app/src/store.test.ts", "app/e2e/opm-smoke.spec.ts"],
+      evidenciaExtra: ["app/src/opl/generar.test.ts", "app/src/store.test.ts", "app/e2e/_smoke-helpers.ts"],
     },
     {
       ids: ["HU-14.001", "HU-14.002", "HU-14.003", "HU-14.015", "HU-14.017"],
@@ -1011,7 +1012,7 @@ function autoAuditRules() {
         { path: "app/src/render/jointjs/JointCanvas.tsx", all: ["cablearResize", "redimensionarAparienciaEnCanvas"] },
         { path: "app/src/store/modelo/acciones-entidad.ts", all: ["redimensionarAparienciaEnCanvas"] },
       ],
-      evidenciaExtra: ["app/e2e/opm-smoke.spec.ts"],
+      evidenciaExtra: ["app/e2e/_smoke-helpers.ts"],
     },
     {
       ids: ["HU-1A.009", "HU-1A.010", "HU-1A.011", "HU-1A.012", "HU-1A.014"],
@@ -1026,7 +1027,7 @@ function autoAuditRules() {
         { path: "app/src/ui/Toolbar.tsx", all: ["toggle-grid", "config-grid"] },
         { path: "app/src/ui/ModalConfiguracionGrid.tsx", all: ["ModalConfiguracionGrid"] },
       ],
-      evidenciaExtra: ["app/src/canvas/grid.test.ts", "app/src/render/jointjs/composers/grid.test.ts", "app/e2e/opm-smoke.spec.ts"],
+      evidenciaExtra: ["app/src/canvas/grid.test.ts", "app/src/render/jointjs/composers/grid.test.ts", "app/e2e/_smoke-helpers.ts"],
     },
     {
       ids: ["HU-1A.017", "HU-1A.018", "HU-11.008"],
@@ -1038,7 +1039,7 @@ function autoAuditRules() {
         { path: "app/src/store/modelo/acciones-canvas.ts", all: ["alinearSeleccion", "distribuirSeleccion"] },
         { path: "app/src/ui/Toolbar.tsx", all: ["alinear-cosas", "distribuir-cosas"] },
       ],
-      evidenciaExtra: ["app/src/canvas/operacionesBatch.test.ts", "app/e2e/opm-smoke.spec.ts"],
+      evidenciaExtra: ["app/src/canvas/operacionesBatch.test.ts", "app/e2e/_smoke-helpers.ts"],
     },
     {
       ids: ["HU-1A.006", "HU-1A.013", "HU-1A.016"],
@@ -1061,7 +1062,7 @@ function autoAuditRules() {
         { path: "app/src/modelo/operaciones/enlaces.ts", all: ["moverPuertoEnlace", "opcionRemover"] },
         { path: "app/src/store/modelo/acciones-enlace.ts", all: ["moverPuertoEnlaceSeleccionado", "opcionRemover"] },
       ],
-      evidenciaExtra: ["app/src/modelo/operaciones/enlaces.test.ts", "app/e2e/opm-smoke.spec.ts"],
+      evidenciaExtra: ["app/src/modelo/operaciones/enlaces.test.ts", "app/e2e/_smoke-helpers.ts"],
     },
     {
       ids: ["HU-15.014", "HU-15.017"],
@@ -1097,7 +1098,7 @@ function autoAuditRules() {
         { path: "app/src/store/modelo/acciones-opd.ts", all: ["reasignarEnlaceExternoManual"] },
         { path: "app/src/ui/inspector/SeccionRefinamiento.tsx", any: ["reasignarEnlaceExternoManual", "Reasignar"] },
       ],
-      evidenciaExtra: ["app/src/modelo/operaciones.test.ts", "app/e2e/opm-smoke.spec.ts"],
+      evidenciaExtra: ["app/src/modelo/operaciones.test.ts", "app/e2e/_smoke-helpers.ts"],
     },
     {
       ids: ["HU-12.016", "HU-12.017"],
@@ -1110,7 +1111,7 @@ function autoAuditRules() {
         { path: "app/src/store/modelo/acciones-canvas.ts", any: ["reordenarSubprocesoEnTimeline"] },
         { path: "app/src/opl/generadores/refinamiento.ts", all: ["oracionParalelo", "ocurren en paralelo"] },
       ],
-      evidenciaExtra: ["app/src/opl/generadores/refinamiento.test.ts", "app/e2e/opm-smoke.spec.ts"],
+      evidenciaExtra: ["app/src/opl/generadores/refinamiento.test.ts", "app/e2e/_smoke-helpers.ts"],
     },
     {
       ids: ["HU-12.013", "HU-12.014"],
@@ -1158,7 +1159,7 @@ function autoAuditRules() {
         { path: "app/src/render/jointjs/handlers/seleccion.ts", all: ["alternarModoImagenEntidadRef", "abrirModalImagenRef", "imagen-insignia"] },
         { path: "app/src/render/jointjs/composers/imagenOverlay.ts", all: ["componerInsigniaCamara"] },
       ],
-      evidenciaExtra: ["app/e2e/opm-smoke.spec.ts"],
+      evidenciaExtra: ["app/e2e/_smoke-helpers.ts"],
     },
     {
       ids: ["HU-19.002", "HU-19.003", "HU-19.016"],
@@ -1215,7 +1216,7 @@ function autoAuditRules() {
         { path: "app/src/ui/panelOpl/Toolbar.tsx", all: ["panel-opl-buscar", "panel-opl-copiar", "panel-opl-exportar-html"] },
         { path: "app/src/store/modelo/acciones-canvas.ts", all: ["buscarEnPanelOpl"] },
       ],
-      evidenciaExtra: ["app/e2e/opm-smoke.spec.ts"],
+      evidenciaExtra: ["app/e2e/_smoke-helpers.ts"],
     },
     {
       ids: ["HU-13.015", "HU-18.013"],
@@ -1238,7 +1239,7 @@ function autoAuditRules() {
         { path: "app/src/ui/BarraPestanas.tsx", all: ["pestana.dirty"] },
         { path: "app/src/store/tipos.ts", any: ["dirty"] },
       ],
-      evidenciaExtra: ["app/e2e/opm-smoke.spec.ts"],
+      evidenciaExtra: ["app/e2e/_smoke-helpers.ts"],
     },
     {
       ids: ["HU-12.018", "HU-12.022"],
@@ -1250,7 +1251,7 @@ function autoAuditRules() {
         { path: "app/src/modelo/operaciones/refinamiento/helpers.ts", any: ["validarFirmaEnlace", "subprocesosOrdenadosDeRefinamiento"] },
         { path: "app/src/modelo/validaciones.ts", any: ["ambiental-dentro-contorno"] },
       ],
-      evidenciaExtra: ["app/src/modelo/creacionInterna.test.ts", "app/e2e/opm-smoke.spec.ts"],
+      evidenciaExtra: ["app/src/modelo/creacionInterna.test.ts", "app/e2e/_smoke-helpers.ts"],
     },
     {
       ids: ["HU-12.015"],
@@ -1274,7 +1275,7 @@ function autoAuditRules() {
         { path: "app/src/ui/MenuContextualArbol.tsx", all: ["menu-contextual-arbol"] },
         { path: "app/src/ui/divisorPanel.tsx", any: ["limitarAnchoPanel", "anchoPanelArbol"] },
       ],
-      evidenciaExtra: ["app/src/ui/arbol/handlersTeclado.test.ts", "app/src/ui/arbol/togglesArbol.test.ts", "app/e2e/opm-smoke.spec.ts"],
+      evidenciaExtra: ["app/src/ui/arbol/handlersTeclado.test.ts", "app/src/ui/arbol/togglesArbol.test.ts", "app/e2e/_smoke-helpers.ts"],
     },
     {
       ids: ["HU-20.014"],
@@ -1306,7 +1307,7 @@ function autoAuditRules() {
         { path: "app/src/ui/ArbolOpd.tsx", any: ["Ctrl+D", "abrirGestionArbol"] },
         { path: "app/src/store/uiPanel.ts", any: ["gestionArbolAbierta", "abrirGestionArbol"] },
       ],
-      evidenciaExtra: ["app/e2e/opm-smoke.spec.ts"],
+      evidenciaExtra: ["app/e2e/_smoke-helpers.ts"],
     },
     {
       ids: ["HU-30.007"],
@@ -1398,7 +1399,7 @@ function autoAuditRules() {
       requires: [
         { path: "app/src/ui/Toolbar.tsx", all: ["toolbar-drag-objeto", "toolbar-drag-proceso"] },
       ],
-      evidenciaExtra: ["app/e2e/opm-smoke.spec.ts"],
+      evidenciaExtra: ["app/e2e/_smoke-helpers.ts"],
     },
     {
       ids: ["HU-10.008", "HU-10.009", "HU-10.010", "HU-10.011", "HU-11.026"],
@@ -1545,7 +1546,7 @@ function autoAuditRules() {
         { path: "app/src/ui/DialogoCargarModelo.tsx", any: ["cargarEjemploOrganizacional"] },
         { path: "app/src/persistencia/local.test.ts", all: ["guardarModeloLocal", "cargarModeloLocal"] },
       ],
-      evidenciaExtra: ["app/examples/ejemplo-organizacional.json", "app/e2e/opm-smoke.spec.ts"],
+      evidenciaExtra: ["app/examples/ejemplo-organizacional.json", "app/e2e/_smoke-helpers.ts"],
     },
     {
       ids: ["HU-17.011", "HU-17.012", "HU-17.013", "HU-17.014", "HU-17.015", "HU-17.016", "HU-17.017"],
@@ -1599,7 +1600,7 @@ function autoAuditRules() {
       nota: "Auto ronda 12.1 L1: smoke verifica que crear cosa expone modal-nombre-cosa con form + input + Enter persiste nombre.",
       requires: [
         { path: "app/src/ui/Toolbar.tsx", any: ["modal-nombre-cosa"] },
-        { path: "app/e2e/opm-smoke.spec.ts", all: ["modal-nombre-cosa"] },
+        { path: "app/e2e/08-mvp-alpha-residual.spec.ts", all: ["modal-nombre-cosa"] },
       ],
     },
     {
@@ -1610,7 +1611,7 @@ function autoAuditRules() {
       requires: [
         { path: "app/src/store/modelo/acciones-opd.ts", any: ["desplegarObjeto"] },
         { path: "app/src/store.test.ts", any: ["desplegarSeleccionada", "desplegarComoAgregacion"] },
-        { path: "app/e2e/opm-smoke.spec.ts", any: ["desplegarComoAgregacion", "HU-10.021"] },
+        { path: "app/e2e/05-refinamiento-y-plegado.spec.ts", any: ["desplegarComoAgregacion", "HU-10.021"] },
       ],
     },
   ];
