@@ -1,4 +1,6 @@
+// [JOYAS §1-3] Chrome UI consume tokens centralizados; canvas semántico invariante.
 import type { Entidad, Id, Modelo, Opd } from "../../modelo/tipos";
+import { tokens } from "../tokens";
 
 const deleteIconUrl = new URL("../../../../assets/svg/delete.svg", import.meta.url).href;
 const objectListLogicalUrl = new URL("../../../../assets/svg/list-logical/object.svg", import.meta.url).href;
@@ -180,22 +182,22 @@ const style = {
     display: "grid",
     gridTemplateColumns: "16px 18px minmax(0, 1fr) auto auto",
     alignItems: "center", gap: "4px", paddingTop: "4px", paddingBottom: "4px",
-    border: "1px solid transparent", borderRadius: "4px", background: "transparent",
-    color: "#475467", cursor: "pointer", fontSize: "13px", fontWeight: 600, textAlign: "left",
+    border: "1px solid transparent", borderRadius: tokens.radii.sm, background: "transparent",
+    color: tokens.colors.textoSecundario, cursor: "pointer", fontSize: "13px", fontWeight: 600, textAlign: "left",
   },
-  nodeActive: { border: "1px solid #b9d2df", background: "#e8f7ff", color: "#1f2937", fontWeight: 700 },
-  nodeDragOver: { borderTop: "2px solid #586D8C" },
+  nodeActive: { border: `1px solid ${tokens.colors.arbolSeleccionBorde}`, background: tokens.colors.infoFondo, color: tokens.colors.textoPrimario, fontWeight: 700 },
+  nodeDragOver: { borderTop: `2px solid ${tokens.colors.chromeNeutral}` },
   nodeName: { overflow: "visible", lineHeight: 1.2, overflowWrap: "anywhere", whiteSpace: "normal", fontSize: "13px" },
-  count: contador("#edf2f7", "#667085"),
-  countActive: contador("#d1eefb", "#1f2937"),
-  expandBtn: compactoBoton("16px", "16px", "pointer", 1, { fontSize: "9px", color: "#667085", marginRight: "0" }),
+  count: contador(tokens.colors.fondoLineaTiempo, tokens.colors.textoTerciario),
+  countActive: contador(tokens.colors.arbolSeleccion, tokens.colors.textoPrimario),
+  expandBtn: compactoBoton("16px", "16px", "pointer", 1, { fontSize: "9px", color: tokens.colors.textoTerciario, marginRight: "0" }),
   expandSpacer: { width: "16px", height: "16px" },
   logicalIcon: { width: "16px", height: "12px", display: "block" },
   logicalIconSpacer: { width: "16px", height: "12px" },
   deleteButton: botonEliminar("pointer", 1),
   deleteButtonDisabled: botonEliminar("not-allowed", 0.35),
   deleteIcon: { width: "18px", height: "18px", display: "block" },
-  inlineInput: { width: "100%", minWidth: 0, padding: "1px 4px", border: "1px solid #586D8C", borderRadius: "3px", fontSize: "13px", color: "#1f2937", font: "inherit" },
+  inlineInput: { width: "100%", minWidth: 0, padding: "1px 4px", border: `1px solid ${tokens.colors.chromeNeutral}`, borderRadius: tokens.radii.xs, fontSize: "13px", color: tokens.colors.textoPrimario, font: "inherit" },
 } satisfies Record<string, preact.JSX.CSSProperties>;
 
 function contador(background: string, color: string): preact.JSX.CSSProperties {
@@ -221,7 +223,7 @@ function compactoBoton(
   width: string, height: string, cursor: string, opacity?: number, extra: preact.JSX.CSSProperties = {},
 ): preact.JSX.CSSProperties {
   return {
-    width, height, borderRadius: "4px", border: "1px solid transparent",
+    width, height, borderRadius: tokens.radii.sm, border: "1px solid transparent",
     background: "transparent", cursor, display: "inline-flex",
     alignItems: "center", justifyContent: "center", padding: 0, opacity,
     ...extra,
