@@ -2,7 +2,7 @@
  * Estilos compartidos del Toolbar L1. [JOYAS §1-3], [V-0c], [V-63].
  */
 import type { ModoImagenEntidad, TipoEntidad } from "../../modelo/tipos";
-import { colors } from "../tokens";
+import { colors, spacing, typography } from "../tokens";
 
 /**
  * Toolbar ronda 13 L1: chrome UI basado en [JOYAS §1-3] y SSOT visual [V-0c]/[V-63].
@@ -31,15 +31,15 @@ export const toolbarStyle = {
     flex: "0 0 auto",
   },
   iconButton: {
-    width: "34px",
-    height: "34px",
-    border: "1px solid #b9c5d4",
+    width: "30px",
+    height: "30px",
+    border: `1px solid ${colors.bordeInput}`,
     borderRadius: "4px",
-    background: "#f9fbfd",
-    color: "#1f2937",
+    background: colors.fondoCard,
+    color: colors.textoPrimario,
     cursor: "pointer",
-    fontSize: "18px",
-    fontWeight: 700,
+    fontSize: `${typography.sizes.lg}px`,
+    fontWeight: typography.weights.bold,
     lineHeight: 1,
   },
   button: botonBase(),
@@ -55,12 +55,11 @@ export const toolbarStyle = {
   },
   iconTextButton: {
     ...botonBase(),
-    minWidth: "82px",
-    padding: "0 12px",
+    padding: `0 ${spacing.md}px`,
     display: "inline-flex",
     alignItems: "center",
     justifyContent: "center",
-    gap: "6px",
+    gap: `${spacing.xs}px`,
   },
   smallIcon: {
     width: "18px",
@@ -178,9 +177,10 @@ export const toolbarStyle = {
   disabledSelect: selectBase("#d9e0ea", "#f2f4f7", "#98a2b3", "not-allowed", 600),
   divider: {
     width: "1px",
-    height: "24px",
+    height: "22px",
     flex: "0 0 auto",
-    background: "#d9e0ea",
+    margin: `0 ${spacing.xs}px`,
+    background: colors.bordeChrome,
   },
   status: {
     color: "#475467",
@@ -292,16 +292,15 @@ export function etiquetaModoGlobal(modo: ModoImagenEntidad | null): string {
 
 function botonBase(): preact.JSX.CSSProperties {
   return {
-    height: "34px",
-    minWidth: "76px",
-    padding: "0 14px",
-    border: "1px solid #b9c5d4",
+    height: "30px",
+    padding: `0 ${spacing.md}px`,
+    border: `1px solid ${colors.bordeInput}`,
     borderRadius: "4px",
-    background: "#f9fbfd",
-    color: "#1f2937",
+    background: colors.fondoCard,
+    color: colors.textoPrimario,
     cursor: "pointer",
-    fontSize: "13px",
-    fontWeight: 600,
+    fontSize: `${typography.sizes.md}px`,
+    fontWeight: typography.weights.semibold,
     whiteSpace: "nowrap",
   };
 }

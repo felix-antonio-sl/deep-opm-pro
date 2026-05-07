@@ -240,17 +240,25 @@ export function ToolbarBase({ children }: ToolbarBaseProps) {
       ) : null}
       <div style={style.actions}>
         <span style={style.divider} />
+        {/* Cluster Crear */}
         <button style={style.button} type="button" onClick={crearObjeto} draggable onDragStart={dragToolbar("objeto")} data-testid="toolbar-drag-objeto" title="Crear objeto · arrastra al canvas o clic para insertar">Objeto</button>
         <button style={style.button} type="button" onClick={crearProceso} draggable onDragStart={dragToolbar("proceso")} data-testid="toolbar-drag-proceso" title="Crear proceso · arrastra al canvas o clic para insertar">Proceso</button>
         <button style={puedeCrearAtributo ? style.iconTextButton : style.disabledButton} type="button" disabled={!puedeCrearAtributo} draggable={puedeCrearAtributo} onDragStart={dragAtributoNumerico} onClick={() => crearAtributoNumerico({ nombre: "Valor [u]", tipoSlot: "float" })} title={puedeCrearAtributo ? "Crear atributo numérico en el objeto seleccionado" : "Selecciona un objeto"} data-testid="toolbar-crear-atributo-numerico">
           <img src={objectDragIcon} alt="" style={style.smallIcon} />+ Atributo
         </button>
+        {/* Crear varios objetos/procesos: en banda con drag soportado.
+            Decisión P3: 8+ smokes hacen `dragTo(canvas)` directamente sobre los
+            testIds, y el menú ⋯ Más no soporta drag desde sus items. Mantener
+            en cluster Crear preserva la API de smokes y la affordance de
+            arrastre originaria. */}
         <button style={modoCreacion === "objeto" ? style.activeButton : style.button} type="button" aria-pressed={modoCreacion === "objeto"} className={modoCreacion === "objeto" ? "boton-toolbar-activo" : undefined} draggable onDragStart={dragToolbar("objeto")} onClick={() => fijarModoCreacion(modoCreacion === "objeto" ? null : "objeto")} title={modoCreacion === "objeto" ? "Creación continua de objetos activa · clic para desactivar" : "Crear objetos en serie · cada clic en canvas inserta un objeto"} data-testid="toolbar-modo-creacion-objeto">Crear varios objetos</button>
         <button style={modoCreacion === "proceso" ? style.activeButton : style.button} type="button" aria-pressed={modoCreacion === "proceso"} className={modoCreacion === "proceso" ? "boton-toolbar-activo" : undefined} draggable onDragStart={dragToolbar("proceso")} onClick={() => fijarModoCreacion(modoCreacion === "proceso" ? null : "proceso")} title={modoCreacion === "proceso" ? "Creación continua de procesos activa · clic para desactivar" : "Crear procesos en serie · cada clic en canvas inserta un proceso"} data-testid="toolbar-modo-creacion-proceso">Crear varios procesos</button>
         <span style={style.divider} />
-        <button style={puedeDeshacer ? style.button : style.disabledButton} type="button" onClick={deshacer} disabled={!puedeDeshacer} title="Deshacer · Ctrl+Z">Deshacer</button>
-        <button style={puedeRehacer ? style.button : style.disabledButton} type="button" onClick={rehacer} disabled={!puedeRehacer} title="Rehacer · Ctrl+Shift+Z">Rehacer</button>
+        {/* Cluster Historia */}
+        <button style={puedeDeshacer ? style.button : style.disabledButton} type="button" onClick={deshacer} disabled={!puedeDeshacer} aria-label="Deshacer" title="Deshacer · Ctrl+Z">↶</button>
+        <button style={puedeRehacer ? style.button : style.disabledButton} type="button" onClick={rehacer} disabled={!puedeRehacer} aria-label="Rehacer" title="Rehacer · Ctrl+Shift+Z">↷</button>
         <span style={style.divider} />
+        {/* Cluster Modelo */}
         <button style={style.button} type="button" onClick={handleNuevoModelo} title="Nuevo modelo · descarta el actual si pides confirmación">Nuevo</button>
         <select style={style.demoSelect} aria-label="Cargar modelo de ejemplo" value="" onChange={handleSeleccionDemo}>
           <option value="" disabled>Demo</option>
@@ -259,6 +267,8 @@ export function ToolbarBase({ children }: ToolbarBaseProps) {
         <button style={style.button} type="button" onClick={guardarLocal} title="Guardar (Ctrl+S)">{readOnly ? <img src={lockIcon} alt="" style={style.lockIcon} /> : null}Guardar</button>
         {readOnly ? <span style={style.readOnlyBadge} data-testid="indicador-readonly">Solo lectura</span> : null}
         <button style={style.button} type="button" onClick={() => confirmarSiDirty(abrirCargarModelo)} title="Cargar modelo guardado">Cargar</button>
+        <span style={style.divider} />
+        {/* Children: clusters Enlace + Vista (los aporta ToolbarCreacion) */}
         {children}
         <ToolbarMas items={masItems} />
       </div>
