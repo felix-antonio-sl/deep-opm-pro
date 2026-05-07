@@ -1,6 +1,8 @@
+// [JOYAS §1-3] Chrome UI consume tokens centralizados; canvas semántico invariante.
 import { useState } from "preact/hooks";
 import { TOTAL_ETAPAS, VERBOS_SALIDA, VERBO_SALIDA_ES, type VerboSalida } from "../../modelo/creacionWizard";
 import { S } from "./estilos";
+import { tokens } from "../tokens";
 
 export interface ItemSalida {
   nombre: string;
@@ -25,7 +27,7 @@ export function EtapaSalidas({ valor, onChange }: Props) {
   };
   return (
     <div>
-      <h3 style={S.title}>Etapa 9 de {TOTAL_ETAPAS} — Salidas <span style={{ fontWeight: 400, color: "#667085" }}>(opcional)</span></h3>
+      <h3 style={S.title}>Etapa 9 de {TOTAL_ETAPAS} — Salidas <span style={{ fontWeight: 400, color: tokens.colors.textoTerciario }}>(opcional)</span></h3>
       <p style={S.desc}>
         ¿Que objetos produce el proceso? Pueden ser creados, afectados o
         cambiados por el proceso.
