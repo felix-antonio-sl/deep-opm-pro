@@ -1,3 +1,5 @@
+// [JOYAS §1-3] Chrome UI consume tokens centralizados; canvas semántico invariante.
+import { tokens } from "../tokens";
 interface ToolbarOplProps {
   totalOraciones: number;
   busquedaOpl: string;
@@ -118,19 +120,19 @@ const style = {
   iconButton: {
     minWidth: 30,
     height: 26,
-    border: "1px solid #cbd5e1",
+    border: `1px solid ${tokens.colors.bordeSlate}`,
     borderRadius: 4,
-    background: "#f8fafc",
-    color: "#334155",
+    background: tokens.colors.fondoElevado,
+    color: tokens.colors.textoSlate,
     fontSize: "11px",
     fontWeight: 700,
     padding: "2px 6px",
     cursor: "pointer",
   },
   iconButtonActivo: {
-    borderColor: "#586D8C",
-    background: "#edf2f7",
-    color: "#1f2937",
+    borderColor: tokens.colors.chromeNeutral,
+    background: tokens.colors.fondoLineaTiempo,
+    color: tokens.colors.textoPrimario,
   },
   searchInput: {
     flex: "1",
@@ -138,17 +140,17 @@ const style = {
     maxWidth: 240,
     height: 26,
     padding: "2px 6px",
-    border: "1px solid #d1d5db",
+    border: `1px solid ${tokens.colors.bordeNeutral}`,
     borderRadius: 4,
     fontSize: "12px",
     fontFamily: "inherit",
   },
   toolbarBtn: {
     height: 26,
-    border: "1px solid #d1d5db",
+    border: `1px solid ${tokens.colors.bordeNeutral}`,
     borderRadius: 4,
-    background: "#f9fafb",
-    color: "#334155",
+    background: tokens.colors.fondoTabla,
+    color: tokens.colors.textoSlate,
     fontSize: "11px",
     padding: "2px 8px",
     cursor: "pointer",
@@ -159,7 +161,7 @@ const style = {
     display: "inline-flex",
     alignItems: "center",
     gap: 4,
-    color: "#475467",
+    color: tokens.colors.textoSecundario,
     fontSize: "11px",
     userSelect: "none",
     whiteSpace: "nowrap",
