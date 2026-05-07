@@ -49,9 +49,9 @@ Filtro de valor:
 | **14.1** | **Refinamiento OPM completo sobre Thing — hardening** | Continuar desde el corte `refinamiento OPM completo sobre Thing`: auditar deuda de slots visuales separados (`refineeInzooming`/`refineeUnfolding`/`refineable`), cubrir e2e object-inzoom y process-unfold, y validar OPL especifico de descomposicion de objeto contra SSOT. | Decision documentada sobre slots, 2 smokes nuevos verdes, OPL de object decomposition auditado y corregido si aplica. |
 | **14.2** | **Leyes ejecutables + ledger de calidad** | Convertir la auditoria categorial en tests de leyes: JSON round-trip, render metadata estable, OPL reverse safe lens, matriz Thing refinement y undo atomicity. Agregar ledger de calidad versionado. | Las proyecciones criticas tienen tests law nombrados, el ledger declara umbrales iniciales y el dashboard queda como evidencia secundaria, no como sustituto de leyes. |
 | **14.3** | **Fronteras Store/Render/Effects** | Refactor incremental sin big-bang: reemplazar aliases `Partial<OpmStore>` por contratos de slices reales, encapsular efectos runtime y sacar `globalThis` del core puro de proyeccion JointJS. | Store compone por contratos explicitos, runtime effects quedan inyectables/testeables, y `proyectarModeloAJointCells` es reproducible por argumentos explicitos. |
-| **15** | **Beta0 hardening fusionado pre-Beta1** | Fusiona el hardening visual/interacción y la ronda 16 propuesta: `Dialogo` root-cause, Toolbar `⋯ Más`, IFML flow cleanup + `evaluacion-exhaustiva`, visual-canvas fidelity (shapes, enlaces, anclaje, routing, cruces, autolayout sugerido/aplicable) y cierre UX contextual (barra contextual, Inspector, OPL, árbol, contrato TablaEnlaces). | Dialogos pintan de forma estable; Toolbar no tiene overflow horizontal; flujos/modales/eventos críticos quedan explícitos; canvas se ve profesional y estable; la superficie contextual opera como workbench único. Solo entonces se habilita entrada a Beta1. |
-| **Beta1** | **Dominio real mediano** | Modelar HD/KORA/GOREOS con validacion metodologica, tabla de enlaces, busqueda, estados, descomposicion y catalogo simple. | Un modelo ancla real se construye, valida, guarda/carga, busca y corrige sin workaround mayor. |
-| **Beta2** | **Simulacion conceptual + valores simples** | Ejecutar simulacion conceptual y valores simples sobre procesos/estados/atributos. | Un flujo real de dominio puede simular estado/valor antes-despues con trazabilidad. |
+| **15** | **Beta0 hardening fusionado pre-Beta1** | Fusiona el hardening visual/interacción y la antigua ronda visual propuesta: `Dialogo` root-cause, Toolbar `⋯ Más`, IFML flow cleanup + `evaluacion-exhaustiva`, visual-canvas fidelity (shapes, enlaces, anclaje, routing, cruces, autolayout sugerido/aplicable) y cierre UX contextual (barra contextual, Inspector, OPL, árbol, contrato TablaEnlaces). | Dialogos pintan de forma estable; Toolbar no tiene overflow horizontal; flujos/modales/eventos críticos quedan explícitos; canvas se ve profesional y estable; la superficie contextual opera como workbench único. Solo entonces se habilita entrada a Beta1. |
+| **16 / Beta1** | **Dominio real mediano** | Modelar HD/KORA/GOREOS con validacion metodologica, tabla de enlaces, busqueda, estados, descomposicion y catalogo simple. | Un modelo ancla real se construye, valida, guarda/carga, busca y corrige sin workaround mayor. Diseño ejecutable: `docs/instrucciones-lineas-dev/ronda16/`. |
+| **17 / Beta2** | **Simulacion conceptual + valores simples** | Ejecutar simulacion conceptual y valores simples sobre procesos/estados/atributos. | Un flujo real de dominio puede simular estado/valor antes-despues con trazabilidad. Diseño ejecutable: `docs/instrucciones-lineas-dev/ronda17/`. |
 | **Gamma** | **Productividad operativa secundaria** | Mapa del sistema, export, imagenes, estilos avanzados, plantillas avanzadas, organizacion no critica. | Trabajo largo mas comodo, no requisito para probar beta. |
 | **Delta** | **Capacidades especializadas** | Estereotipos, wizard app, colaboracion, permisos, simulacion avanzada, runtime externo, IA generativa. | Solo suben con necesidad concreta y eval asociado. |
 
@@ -215,6 +215,18 @@ Precondición de entrada a Beta1:
 - Las mejoras revertidas solo se consideran parte de Beta0 si tienen test
   browser que reproduce el fallo anterior y demuestra el fix.
 
+### Diseño ejecutable
+
+Beta1 se ejecuta como **ronda 16** en cinco lineas paralelas:
+
+1. Tabla de Enlaces como workbench de propiedades.
+2. Busqueda intra-modelo y navegacion por apariciones.
+3. Validacion metodologica accionable con citas SSOT.
+4. Catalogo simple y modelos ancla.
+5. Eval end-to-end de dominio real.
+
+Briefs: `docs/instrucciones-lineas-dev/ronda16/`.
+
 ## 7. Beta2 — simulación
 
 ### Propósito
@@ -237,6 +249,17 @@ runtime externo.
 - MQTT/HTTP/ROS.
 - Integracion backend.
 - Simulacion distribuida o multiusuario.
+
+### Diseño ejecutable
+
+Beta2 se ejecuta como **ronda 17** en cuatro lineas paralelas:
+
+1. Kernel puro de simulacion conceptual.
+2. UI de modo simulacion y canvas read-only.
+3. Valores simples y transiciones runtime.
+4. Eval sobre dominio ancla Beta1.
+
+Briefs: `docs/instrucciones-lineas-dev/ronda17/`.
 
 ## 8. Gamma
 
