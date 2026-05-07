@@ -1,4 +1,5 @@
 import { entidadIdDeExtremo } from "./extremos";
+import { quitarRefinamiento, refinaA } from "./refinamientos";
 import type { Abanico, Enlace, Entidad, Estado, Id, Modelo, Resultado } from "./tipos";
 
 export const MENSAJE_ELIMINAR_DESCENDIENTES = "Eliminar descendientes primero";
@@ -41,7 +42,7 @@ export function eliminarOpdHoja(modelo: Modelo, opdId: Id): Resultado<{
   if (!opd) return fallo(`OPD no existe: ${opdId}`);
 
   const entidadRefinada = Object.values(modelo.entidades).find(
-    (entidad) => entidad.refinamiento?.opdId === opdId,
+    (entidad) => refinaA(entidad, opdId) !== null,
   );
   const opds = { ...modelo.opds };
   delete opds[opdId];
@@ -118,9 +119,9 @@ function limpiarAbanicos(
 }
 
 function quitarRefinamientoAOpd(entidad: Entidad, opdId: Id): Entidad {
-  if (entidad.refinamiento?.opdId !== opdId) return entidad;
-  const { refinamiento: _refinamiento, ...sinRefinamiento } = entidad;
-  return sinRefinamiento;
+  const ref = refinaA(entidad, opdId);
+  if (!ref) return entidad;
+  return quitarRefinamiento(entidad, ref.tipo);
 }
 
 function ok<T>(value: T): Resultado<T> {

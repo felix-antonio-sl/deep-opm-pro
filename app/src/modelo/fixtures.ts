@@ -12,6 +12,7 @@ import {
   renombrarEntidad,
   renombrarEstado,
 } from "./operaciones";
+import { tieneRefinamiento } from "./refinamientos";
 import type { Id, Modelo } from "./tipos";
 
 function must<T>(resultado: { ok: true; value: T } | { ok: false; error: string }): T {
@@ -141,7 +142,7 @@ export function crearLogisticaEnvios(): FixtureDemo {
 
   const subEntidades = Object.values(modelo.entidades)
     .filter((e) => e.tipo === "proceso"
-      && !e.refinamiento
+      && !tieneRefinamiento(e)
       && Object.values(sd1.apariencias).some((a) => a.entidadId === e.id));
   const subIds = subEntidades.map((e) => e.id);
 
@@ -330,7 +331,7 @@ export function crearSdAsyncInzoomed(): FixtureDemo {
 
   const subEntidades = Object.values(modelo.entidades)
     .filter((e) => e.tipo === "proceso"
-      && !e.refinamiento
+      && !tieneRefinamiento(e)
       && Object.values(sd1.apariencias).some((a) => a.entidadId === e.id));
   const subIds = subEntidades.map((e) => e.id);
 
@@ -396,7 +397,7 @@ export function crearEjemploOrganizacional(): FixtureDemo {
 
   const subEntidades = Object.values(modelo.entidades)
     .filter((e) => e.tipo === "proceso"
-      && !e.refinamiento
+      && !tieneRefinamiento(e)
       && Object.values(sd1.apariencias).some((a) => a.entidadId === e.id));
   const subIds = subEntidades.map((e) => e.id);
 

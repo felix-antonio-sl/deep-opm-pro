@@ -18,6 +18,7 @@ import { naturalezaDeEnlace } from "./constantes";
 import { entidadDeExtremo, entidadIdDeExtremo, extremoApuntaAEntidad, extremoKey, nombreExtremo } from "./extremos";
 import { imagenIncluyeBitmap } from "./imagenObjeto";
 import { estadosDeEntidad } from "./operaciones";
+import { obtenerRefinamiento } from "./refinamientos";
 import type { Apariencia, Enlace, Entidad, Id, Modelo, Opd, TipoEnlace } from "./tipos";
 
 export type SeveridadAviso = "error" | "advertencia" | "info";
@@ -265,7 +266,7 @@ function reglaProcesoSinEntradaNiSalida(modelo: Modelo, opdActivoId: Id): Aviso[
 
   for (const proceso of Object.values(modelo.entidades)) {
     if (proceso.tipo !== "proceso") continue;
-    if (proceso.refinamiento?.tipo === "descomposicion") continue;
+    if (obtenerRefinamiento(proceso, "descomposicion")) continue;
     const tieneEnlaceOperativo = Object.values(modelo.enlaces).some((enlace) => (
       enlacesRelevantes.has(enlace.tipo) &&
       (extremoApuntaAEntidad(enlace.origenId, proceso.id) || extremoApuntaAEntidad(enlace.destinoId, proceso.id))
@@ -399,8 +400,7 @@ function contextoDescomposicion(modelo: Modelo, opd: Opd): { padre: Entidad; con
   if (!opd.padreId) return null;
   const padre = Object.values(modelo.entidades).find((entidad) => (
     entidad.tipo === "proceso" &&
-    entidad.refinamiento?.tipo === "descomposicion" &&
-    entidad.refinamiento.opdId === opd.id
+    obtenerRefinamiento(entidad, "descomposicion")?.opdId === opd.id
   ));
   if (!padre) return null;
   const contorno = Object.values(opd.apariencias).find((apariencia) => apariencia.entidadId === padre.id);

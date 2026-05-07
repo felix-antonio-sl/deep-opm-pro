@@ -17,7 +17,8 @@
 
 import { naturalezaDeEnlace } from "./constantes";
 import { entidadDeExtremo, entidadIdDeExtremo, extremoApuntaAEntidad } from "./extremos";
-import type { AvisoMetodologico, CodigoChecker, Entidad, Id, Modelo, TipoEnlace } from "./tipos";
+import { obtenerRefinamiento, refinamientosDe, tieneRefinamiento } from "./refinamientos";
+import type { AvisoMetodologico, CodigoChecker, Entidad, Id, Modelo, TipoEnlace, TipoRefinamiento } from "./tipos";
 
 const TRANSFORMADORES = new Set<TipoEnlace>(["consumo", "resultado", "efecto"]);
 const INVARIABLES_SINGULAR = new Set(["analisis", "sintesis", "crisis", "tesis", "hipotesis", "virus", "gas"]);
@@ -55,8 +56,8 @@ export function checkObjetoNombreSingular(modelo: Modelo): AvisoMetodologico[] {
 
 export function checkInzoomContenido(modelo: Modelo): AvisoMetodologico[] {
   return Object.values(modelo.entidades)
-    .filter((entidad) => entidad.refinamiento?.tipo === "descomposicion")
-    .filter((entidad) => cantidadCosasEnOpdHijo(modelo, entidad) < 2)
+    .filter((entidad) => obtenerRefinamiento(entidad, "descomposicion") !== undefined)
+    .filter((entidad) => cantidadCosasEnOpdHijo(modelo, entidad, "descomposicion") < 2)
     .map((entidad) => aviso("INZOOM_CONTENIDO_INSUFICIENTE", entidad, {
       severidad: "advertencia",
       mensaje: `La descomposicion de "${entidad.nombre}" contiene menos de dos cosas.`,
@@ -66,7 +67,7 @@ export function checkInzoomContenido(modelo: Modelo): AvisoMetodologico[] {
 
 export function checkUnfoldContenido(modelo: Modelo): AvisoMetodologico[] {
   return Object.values(modelo.entidades)
-    .filter((entidad) => entidad.refinamiento?.tipo === "despliegue")
+    .filter((entidad) => obtenerRefinamiento(entidad, "despliegue") !== undefined)
     .filter((entidad) => cantidadRefinadoresEstructurales(modelo, entidad) < 2)
     .map((entidad) => aviso("UNFOLD_CONTENIDO_INSUFICIENTE", entidad, {
       severidad: "advertencia",
@@ -147,8 +148,8 @@ function palabrasNormalizadas(nombre: string): string[] {
     .filter(Boolean);
 }
 
-function cantidadCosasEnOpdHijo(modelo: Modelo, entidad: Entidad): number {
-  const opdId = entidad.refinamiento?.opdId;
+function cantidadCosasEnOpdHijo(modelo: Modelo, entidad: Entidad, tipo: TipoRefinamiento = "descomposicion"): number {
+  const opdId = obtenerRefinamiento(entidad, tipo)?.opdId;
   const opd = opdId ? modelo.opds[opdId] : undefined;
   if (!opd) return 0;
   const ids = new Set<Id>();
@@ -161,7 +162,7 @@ function cantidadCosasEnOpdHijo(modelo: Modelo, entidad: Entidad): number {
 }
 
 function cantidadRefinadoresEstructurales(modelo: Modelo, entidad: Entidad): number {
-  const opdId = entidad.refinamiento?.opdId;
+  const opdId = obtenerRefinamiento(entidad, "despliegue")?.opdId;
   const opd = opdId ? modelo.opds[opdId] : undefined;
   if (!opd) return 0;
   const ids = new Set<Id>();
@@ -234,17 +235,20 @@ function vecinosMetodologicos(modelo: Modelo, entidadId: Id): Id[] {
 
 function hijosDeRefinamiento(modelo: Modelo, entidadId: Id): Entidad[] {
   const entidad = modelo.entidades[entidadId];
-  const opdId = entidad?.refinamiento?.opdId;
-  const opd = opdId ? modelo.opds[opdId] : undefined;
-  if (!opd) return [];
-  const ids = new Set(Object.values(opd.apariencias).map((apariencia) => apariencia.entidadId));
+  if (!entidad) return [];
+  const ids = new Set<Id>();
+  for (const ref of refinamientosDe(entidad)) {
+    const opd = modelo.opds[ref.opdId];
+    if (!opd) continue;
+    for (const apariencia of Object.values(opd.apariencias)) ids.add(apariencia.entidadId);
+  }
   ids.delete(entidadId);
   return [...ids].map((id) => modelo.entidades[id]).filter((item): item is Entidad => Boolean(item));
 }
 
 function padreRefinamientoDe(modelo: Modelo, entidadId: Id): Id | null {
   for (const entidad of Object.values(modelo.entidades)) {
-    if (entidad.refinamiento && hijosDeRefinamiento(modelo, entidad.id).some((hijo) => hijo.id === entidadId)) {
+    if (tieneRefinamiento(entidad) && hijosDeRefinamiento(modelo, entidad.id).some((hijo) => hijo.id === entidadId)) {
       return entidad.id;
     }
   }

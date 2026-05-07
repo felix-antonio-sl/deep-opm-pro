@@ -4,6 +4,7 @@ import { aplicarEstiloEnlace } from "../modelo/enlaceEstilo";
 import { aplicarEstiloApariencia } from "../modelo/estilos";
 import { crearEnlace, eliminarEnlace, moverAparienciaPorId } from "../modelo/operaciones";
 import { eliminarEnlacesBatch as eliminarEnlacesBatchModelo } from "../modelo/operaciones/enlaces";
+import { fijarRefinamiento, refinamientosDe } from "../modelo/refinamientos";
 import type {
   Apariencia,
   AparienciaEnlace,
@@ -392,15 +393,22 @@ export function insertarPlantillaBatch(
     const visibleEnRaiz = Object.values(opdFuente.apariencias).some((apariencia) => apariencia.entidadId === entidadFuente.id);
     const nombre = visibleEnRaiz ? nombreSinColision(entidadFuente.nombre, nombresDestino) : entidadFuente.nombre;
     if (visibleEnRaiz) nombresDestino.add(nombre.toLocaleLowerCase("es-CL"));
-    const entidadCopiada: Entidad = {
+    let entidadCopiada: Entidad = {
       ...entidadFuente,
       id: nuevoId,
       nombre,
     };
-    if (entidadFuente.refinamiento && opdMap.has(entidadFuente.refinamiento.opdId)) {
-      entidadCopiada.refinamiento = { ...entidadFuente.refinamiento, opdId: opdMap.get(entidadFuente.refinamiento.opdId)! };
-    } else {
-      delete entidadCopiada.refinamiento;
+    // Reset de refinamientos; se vuelven a fijar solo aquellos cuyo opd
+    // destino fue copiado (mapa opdMap). Ronda 15.2: ambos slots posibles.
+    const { refinamientos: _omitido, ...sinRefinamientos } = entidadCopiada;
+    entidadCopiada = sinRefinamientos as Entidad;
+    for (const ref of refinamientosDe(entidadFuente)) {
+      const nuevoOpdId = opdMap.get(ref.opdId);
+      if (!nuevoOpdId) continue;
+      const slot = ref.tipo === "despliegue"
+        ? { opdId: nuevoOpdId, ...(ref.modo ? { modo: ref.modo } : {}) }
+        : { opdId: nuevoOpdId };
+      entidadCopiada = fijarRefinamiento(entidadCopiada, ref.tipo, slot);
     }
     entidades[nuevoId] = entidadCopiada;
     idsNuevos.push(nuevoId);

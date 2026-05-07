@@ -1,3 +1,4 @@
+import { refinaA } from "./refinamientos";
 import type { Id, Modelo, Opd, Resultado } from "./tipos";
 
 // ─── Ayudantes privados ────────────────────────────────────────────
@@ -272,7 +273,7 @@ export function ordenSegunCanvasPadre(
 
   for (const hijo of hijos) {
     const refinador = Object.values(modelo.entidades).find(
-      (entidad) => entidad.refinamiento?.opdId === hijo.id,
+      (entidad) => refinaA(entidad, hijo.id) !== null,
     );
     if (!refinador) {
       conY.push({ id: hijo.id, y: Number.POSITIVE_INFINITY });

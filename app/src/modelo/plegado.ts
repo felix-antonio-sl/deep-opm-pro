@@ -9,6 +9,7 @@ import {
   type ExtremoEntrada,
 } from "./extremos";
 import { validarFirmaEnlace } from "./operaciones";
+import { obtenerRefinamiento, refinamientosDe } from "./refinamientos";
 import type {
   Apariencia,
   AparienciaEnlace,
@@ -326,12 +327,21 @@ export function partesDePlegado(modelo: Modelo, entidadId: Id): PartePlegada[] {
 
 function partesDePlegadoEnOrdenMaterial(modelo: Modelo, entidadId: Id): PartePlegada[] {
   const entidad = modelo.entidades[entidadId];
-  if (!entidad?.refinamiento) return [];
-  const opd = modelo.opds[entidad.refinamiento.opdId];
-  if (!opd) return [];
-  return entidad.refinamiento.tipo === "descomposicion"
-    ? subprocesosDeDescomposicion(modelo, entidad, opd)
-    : partesDeDespliegue(modelo, entidad, opd);
+  if (!entidad) return [];
+  // Si la entidad tiene ambos refinamientos, las partes plegables provienen
+  // del despliegue (estructura, agregación) — sin destruir el OPD de
+  // descomposición. Sin despliegue, caemos a descomposición. Ronda 15.2.
+  const slotDespliegue = obtenerRefinamiento(entidad, "despliegue");
+  if (slotDespliegue) {
+    const opd = modelo.opds[slotDespliegue.opdId];
+    return opd ? partesDeDespliegue(modelo, entidad, opd) : [];
+  }
+  const slotDescomposicion = obtenerRefinamiento(entidad, "descomposicion");
+  if (slotDescomposicion) {
+    const opd = modelo.opds[slotDescomposicion.opdId];
+    return opd ? subprocesosDeDescomposicion(modelo, entidad, opd) : [];
+  }
+  return [];
 }
 
 function subprocesosDeDescomposicion(modelo: Modelo, entidad: Entidad, opd: Opd): PartePlegada[] {
@@ -364,10 +374,13 @@ function aparienciaDeEntidad(opd: Opd, entidadId: Id): Apariencia | undefined {
 }
 
 function aparienciaReferenciaParte(modelo: Modelo, padre: Entidad, parteEntidadId: Id): Apariencia | undefined {
-  const opdRefinamientoId = padre.refinamiento?.opdId;
-  if (!opdRefinamientoId) return undefined;
-  const opd = modelo.opds[opdRefinamientoId];
-  return opd ? aparienciaDeEntidad(opd, parteEntidadId) : undefined;
+  // Buscar la apariencia de la parte en cualquiera de los OPDs hijo del padre.
+  for (const ref of refinamientosDe(padre)) {
+    const opd = modelo.opds[ref.opdId];
+    const apariencia = opd ? aparienciaDeEntidad(opd, parteEntidadId) : undefined;
+    if (apariencia) return apariencia;
+  }
+  return undefined;
 }
 
 function encontrarApariencia(

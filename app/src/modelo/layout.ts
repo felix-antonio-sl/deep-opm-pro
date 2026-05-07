@@ -3,6 +3,7 @@
 // arquitecturales con calculo de posiciones; permite testear el layout
 // sin levantar el ciclo completo de zustand.
 import { CANON } from "./constantes";
+import { refinaA } from "./refinamientos";
 import type { Apariencia, Id, Modelo, Posicion, TipoEntidad } from "./tipos";
 
 export interface ContornoRefinable {
@@ -69,7 +70,7 @@ export function contenedorRefinamiento(modelo: Modelo, opdId: Id): ContornoRefin
   if (!opd?.padreId) return null;
   return Object.values(opd.apariencias).find((apariencia) => {
     const entidad = modelo.entidades[apariencia.entidadId];
-    return entidad?.refinamiento?.opdId === opdId;
+    return entidad ? refinaA(entidad, opdId) !== null : false;
   }) ?? null;
 }
 
