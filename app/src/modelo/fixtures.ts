@@ -353,6 +353,72 @@ export function crearSdAsyncInzoomed(): FixtureDemo {
   };
 }
 
+export function crearEjemploOrganizacional(): FixtureDemo {
+  let modelo = crearModelo("Ejemplo organizacional");
+
+  modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 90, y: 50 }, "Cliente"));
+  modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 260, y: 50 }, "Necesidad"));
+  modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 430, y: 50 }, "Persona"));
+  modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 600, y: 50 }, "Agente IA"));
+  modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 90, y: 340 }, "Organizacion"));
+  modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 600, y: 340 }, "Servicio"));
+  modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 345, y: 430 }, "Aprendizaje"));
+  modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 345, y: 195 }, "Entregar Valor"));
+
+  const cliente = entidadPorNombre(modelo, "Cliente");
+  const necesidad = entidadPorNombre(modelo, "Necesidad");
+  const persona = entidadPorNombre(modelo, "Persona");
+  const agenteIa = entidadPorNombre(modelo, "Agente IA");
+  const organizacion = entidadPorNombre(modelo, "Organizacion");
+  const servicio = entidadPorNombre(modelo, "Servicio");
+  const aprendizaje = entidadPorNombre(modelo, "Aprendizaje");
+  const entregarValor = entidadPorNombre(modelo, "Entregar Valor");
+
+  modelo = must(cambiarEsencia(modelo, cliente, "fisica"));
+  modelo = must(cambiarEsencia(modelo, persona, "fisica"));
+  modelo = must(cambiarEsencia(modelo, entregarValor, "fisica"));
+  modelo = must(cambiarAfiliacion(modelo, cliente, "ambiental"));
+  modelo = must(cambiarAfiliacion(modelo, persona, "ambiental"));
+
+  modelo = must(crearEnlace(modelo, modelo.opdRaizId, necesidad, entregarValor, "consumo"));
+  modelo = must(crearEnlace(modelo, modelo.opdRaizId, entregarValor, servicio, "resultado"));
+  modelo = must(crearEnlace(modelo, modelo.opdRaizId, entregarValor, aprendizaje, "resultado"));
+  modelo = must(crearEnlace(modelo, modelo.opdRaizId, persona, entregarValor, "agente"));
+  modelo = must(crearEnlace(modelo, modelo.opdRaizId, agenteIa, entregarValor, "instrumento"));
+  modelo = must(crearEnlace(modelo, modelo.opdRaizId, organizacion, entregarValor, "instrumento"));
+  modelo = must(crearEnlace(modelo, modelo.opdRaizId, entregarValor, cliente, "efecto"));
+
+  const descRes = must(descomponerProceso(modelo, modelo.opdRaizId, entregarValor));
+  modelo = descRes.modelo;
+  const sd1Id = descRes.opdId;
+  const sd1 = modelo.opds[sd1Id];
+  if (!sd1) throw new Error("SD1 no creado");
+
+  const subEntidades = Object.values(modelo.entidades)
+    .filter((e) => e.tipo === "proceso"
+      && !e.refinamiento
+      && Object.values(sd1.apariencias).some((a) => a.entidadId === e.id));
+  const subIds = subEntidades.map((e) => e.id);
+
+  if (subIds.length >= 3) {
+    modelo = must(renombrarEntidad(modelo, subIds[0]!, "Analizar Necesidad"));
+    modelo = must(renombrarEntidad(modelo, subIds[1]!, "Disenar Solucion"));
+    modelo = must(renombrarEntidad(modelo, subIds[2]!, "Validar Entrega"));
+
+    for (const sid of subIds) {
+      modelo = must(cambiarEsencia(modelo, sid, "fisica"));
+    }
+    modelo = must(crearEnlace(modelo, sd1Id, subIds[0]!, subIds[1]!, "invocacion"));
+    modelo = must(crearEnlace(modelo, sd1Id, subIds[1]!, subIds[2]!, "invocacion"));
+  }
+
+  return {
+    modelo,
+    proposito: "Transformar necesidades de clientes en servicios entregados, mediante personas como agentes y Agente IA + Organizacion como instrumentos.",
+    descripcion: "Ejemplo organizacional canonico: SD con 8 entidades (7+1), wizard completo. Agente IA como instrumento (no agente: OPM §agente requiere entidad fisica). SD1 con in-zooming a 3 sub-procesos encadenados por invocacion.",
+  };
+}
+
 export function fixtureTodos(): FixtureDemo[] {
   return [
     crearCafetera(),
@@ -362,5 +428,6 @@ export function fixtureTodos(): FixtureDemo[] {
     crearLogisticaEnvios(),
     crearSdAsyncInzoomed(),
     crearControlCalidad(),
+    crearEjemploOrganizacional(),
   ];
 }

@@ -4,17 +4,20 @@
  * Generador de fixtures demo desde el kernel del modelo.
  * Ejecutar: cd app && bun run scripts/generar-demos.ts
  * Salida: fixtures/demo-models/ (desde raiz del repo)
+ *         app/examples/ejemplo-organizacional.json (asset publico)
  */
 
 import { exportarModelo } from "../src/serializacion/json";
-import { fixtureTodos } from "../src/modelo/fixtures";
+import { crearEjemploOrganizacional, fixtureTodos } from "../src/modelo/fixtures";
 import { generarOplTexto } from "../src/modelo/opl/generador-opl";
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
 const OUT_DIR = join(import.meta.dir, "..", "..", "fixtures", "demo-models");
+const EXAMPLE_DIR = join(import.meta.dir, "..", "examples");
 
 mkdirSync(OUT_DIR, { recursive: true });
+mkdirSync(EXAMPLE_DIR, { recursive: true });
 
 const modelos = fixtureTodos();
 let creados = 0;
@@ -54,4 +57,12 @@ for (const fixture of modelos) {
   creados++;
 }
 
-console.log(`\nGenerados ${creados} fixtures en ${OUT_DIR}`);
+const ejemploOrg = crearEjemploOrganizacional();
+const ejemploJson = exportarModelo(ejemploOrg.modelo);
+writeFileSync(join(EXAMPLE_DIR, "ejemplo-organizacional.json"), ejemploJson, "utf-8");
+const ejemploOpl = generarOplTexto(ejemploOrg.modelo);
+writeFileSync(join(EXAMPLE_DIR, "ejemplo-organizacional.opl.txt"), ejemploOpl, "utf-8");
+creados++;
+
+console.log(`✓ Ejemplo organizacional → app/examples/ejemplo-organizacional.json`);
+console.log(`\nGenerados ${creados} artefactos (${modelos.length} fixtures + ejemplo organizacional)`);
