@@ -61,6 +61,8 @@ export type { Opd } from "./tipos/opd";
 
 export type { VersionResumen, Modelo } from "./tipos/modelo";
 
+export type { SeveridadAviso, CodigoChecker, AvisoMetodologico } from "./tipos/avisos";
+
 export type { OrigenPestana, HistorialEntrada, Pestana } from "./tipos/pestana";
 
 export type { BloqueOplEstado } from "./tipos/opl";
