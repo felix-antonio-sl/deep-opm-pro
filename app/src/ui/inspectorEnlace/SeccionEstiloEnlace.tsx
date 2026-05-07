@@ -1,5 +1,7 @@
+// [JOYAS §1-3] Chrome UI consume tokens centralizados; canvas semántico invariante.
 import type { Enlace, Id, Modelo } from "../../modelo/tipos";
 import { inspectorStyles as style } from "../inspectorStyles";
+import { tokens } from "../tokens";
 
 interface Props {
   enlace: Enlace;
@@ -37,7 +39,7 @@ export function SeccionEstiloEnlace(props: Props) {
 }
 
 function ColorPickerEnlace(props: { label: string; value: string | undefined; onChange: (color: string) => void }) {
-  const swatches = ["#586d8c", "#70e483", "#3bc3ff", "#000002", "#d92d20", "#e87400", "#7c68fc", "#000000"];
+  const swatches = [tokens.colors.chromeNeutral, tokens.colors.canvas.objeto, tokens.colors.canvas.proceso, tokens.colors.canvas.texto, tokens.colors.errorBase, tokens.colors.naranja, tokens.colors.violeta, tokens.colors.negro];
   return (
     <div style={colorPickerRowStyle}>
       <span style={sliderLabelStyle}>{props.label}</span>
@@ -48,7 +50,7 @@ function ColorPickerEnlace(props: { label: string; value: string | undefined; on
             type="button"
             aria-label={`Color ${color}`}
             title={color}
-            style={{ ...swatchStyle, background: color, borderColor: props.value?.toLowerCase() === color ? "#1f2937" : "#c8d2df", boxShadow: props.value?.toLowerCase() === color ? "0 0 0 2px #ffffff, 0 0 0 4px #586D8C" : "none" }}
+            style={{ ...swatchStyle, background: color, borderColor: props.value?.toLowerCase() === color ? tokens.colors.textoPrimario : tokens.colors.bordeControl, boxShadow: props.value?.toLowerCase() === color ? `0 0 0 2px ${tokens.colors.fondoChrome}, 0 0 0 4px ${tokens.colors.chromeNeutral}` : "none" }}
             onClick={() => props.onChange(color)}
           />
         ))}
@@ -80,13 +82,13 @@ function SelectorPatron(props: { label: string; value: string; onChange: (v: str
   );
 }
 
-const titleStyle = { margin: "0 0 8px", color: "#1f2937", fontSize: "13px", fontWeight: 700 } satisfies preact.JSX.CSSProperties;
-const seccionEstiloStyle = { display: "grid", gap: "8px", marginBottom: "14px", padding: "8px", background: "#ffffff", border: "1px solid #e5e7eb", borderRadius: "6px" } satisfies preact.JSX.CSSProperties;
+const titleStyle = { margin: "0 0 8px", color: tokens.colors.textoPrimario, fontSize: "13px", fontWeight: 700 } satisfies preact.JSX.CSSProperties;
+const seccionEstiloStyle = { display: "grid", gap: "8px", marginBottom: "14px", padding: "8px", background: tokens.colors.fondoChrome, border: `1px solid ${tokens.colors.bordeTabla}`, borderRadius: tokens.radii.md } satisfies preact.JSX.CSSProperties;
 const seccionEstiloHeaderStyle = { display: "flex", alignItems: "center", justifyContent: "space-between", gap: "8px" } satisfies preact.JSX.CSSProperties;
 const styleRowButtonsStyle = { display: "flex", gap: "4px" } satisfies preact.JSX.CSSProperties;
 const colorPickerRowStyle = { display: "grid", gap: "4px" } satisfies preact.JSX.CSSProperties;
 const swatchesRowStyle = { display: "flex", gap: "4px", flexWrap: "wrap" } satisfies preact.JSX.CSSProperties;
-const swatchStyle: preact.JSX.CSSProperties = { width: "24px", height: "24px", border: "1px solid #c8d2df", borderRadius: "4px", cursor: "pointer" };
+const swatchStyle: preact.JSX.CSSProperties = { width: "24px", height: "24px", border: `1px solid ${tokens.colors.bordeControl}`, borderRadius: tokens.radii.sm, cursor: "pointer" };
 const sliderRowStyle = { display: "grid", gap: "4px" } satisfies preact.JSX.CSSProperties;
-const sliderLabelStyle = { color: "#667085", fontSize: "12px", fontWeight: 700 } satisfies preact.JSX.CSSProperties;
-const sliderInputStyle: preact.JSX.CSSProperties = { width: "100%", height: "24px", accentColor: "#586D8C" };
+const sliderLabelStyle = { color: tokens.colors.textoTerciario, fontSize: "12px", fontWeight: 700 } satisfies preact.JSX.CSSProperties;
+const sliderInputStyle: preact.JSX.CSSProperties = { width: "100%", height: "24px", accentColor: tokens.colors.chromeNeutral };
