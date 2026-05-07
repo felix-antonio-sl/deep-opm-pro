@@ -32,6 +32,7 @@ import {
   validarFirmaEnlace,
   validarMultiplicidad,
 } from "./operaciones";
+import { CANON } from "./constantes";
 import { solapa } from "./layout";
 import { extremoApuntaAEntidad, extremoEntidad, extremoEstado } from "./extremos";
 import type { Enlace, Modelo, ModoDespliegueObjeto, Resultado, TipoEnlace } from "./tipos";
@@ -549,6 +550,14 @@ describe("operaciones de modelo", () => {
     expect(Object.values(modelo.opds[modelo.opdRaizId]?.apariencias ?? {}).filter((apariencia) => apariencia.entidadId === objeto.id)).toHaveLength(1);
     expect(Object.values(opdHijo?.apariencias ?? {}).filter((apariencia) => apariencia.entidadId === objeto.id)).toHaveLength(1);
     expect(Object.values(opdHijo?.apariencias ?? {}).filter((apariencia) => modelo.entidades[apariencia.entidadId]?.tipo === "objeto")).toHaveLength(4);
+    const aparienciasHijo = Object.values(opdHijo?.apariencias ?? {});
+    const padreApariencia = aparienciasHijo.find((apariencia) => apariencia.entidadId === objeto.id);
+    if (!padreApariencia) throw new Error("La prueba esperaba apariencia del padre en despliegue");
+    expect(padreApariencia.width).toBe(CANON.dims.cosaWidth);
+    expect(padreApariencia.height).toBe(CANON.dims.cosaHeight);
+    for (const parte of aparienciasHijo.filter((apariencia) => apariencia.entidadId !== objeto.id)) {
+      expect(parte.y).toBeGreaterThan(padreApariencia.y + padreApariencia.height);
+    }
     const enlacesHijo = Object.values(opdHijo?.enlaces ?? {})
       .map((apariencia) => modelo.enlaces[apariencia.enlaceId])
       .filter((enlace): enlace is NonNullable<typeof enlace> => enlace !== undefined);

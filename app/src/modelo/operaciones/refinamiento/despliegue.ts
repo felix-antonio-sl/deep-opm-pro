@@ -31,12 +31,16 @@ export interface DespliegueObjeto {
   modo: ModoDespliegueObjeto;
 }
 
+// BUG-372334: en despliegue (unfold) el padre OPM va en su tamaño normal y las
+// partes se posicionan FUERA, debajo, conectadas por enlaces estructurales con
+// markers canonicos (triangulo agregacion, etc.). Inzoom (descomposicion) es
+// el modo donde las partes van EMBEBIDAS dentro del contorno.
 const UNFOLD = {
   partesIniciales: 3,
-  paddingSuperior: 132,
   separacionHorizontal: 30,
-  contornoWidth: CANON.dims.cosaWidth * 3 + 120,
-  contornoHeight: CANON.dims.cosaHeight + 132 + 80,
+  partesOffsetSuperior: 200, // distancia del padre (top) a la fila de partes
+  padreOffsetSuperior: 40,   // y del padre dentro del OPD hijo
+  padreOffsetIzquierdo: 80,  // origen X de la fila de partes; padre se centra sobre ellas
 } as const;
 
 export function desplegarObjeto(
@@ -64,14 +68,18 @@ export function desplegarObjeto(
   let nextSeq = modelo.nextSeq + 1;
   const aparienciaHijoId = siguienteId({ ...modelo, nextSeq }, "a");
   nextSeq += 1;
+  // Padre en tamaño normal y centrado horizontalmente sobre la fila de partes.
+  const partesTotalWidth = CANON.dims.cosaWidth * UNFOLD.partesIniciales
+    + UNFOLD.separacionHorizontal * (UNFOLD.partesIniciales - 1);
+  const padreX = UNFOLD.padreOffsetIzquierdo + (partesTotalWidth - CANON.dims.cosaWidth) / 2;
   const aparienciaHijo: Apariencia = {
     id: aparienciaHijoId,
     entidadId: objetoId,
     opdId: opdHijoId,
-    x: 150,
-    y: 90,
-    width: UNFOLD.contornoWidth,
-    height: UNFOLD.contornoHeight,
+    x: padreX,
+    y: UNFOLD.padreOffsetSuperior,
+    width: CANON.dims.cosaWidth,
+    height: CANON.dims.cosaHeight,
   };
   const partes = partesInicialesDespliegue(modelo, objeto, aparienciaHijo, opdHijoId, nextSeq, modo);
   nextSeq = partes.nextSeq;
@@ -139,9 +147,11 @@ function partesInicialesDespliegue(
   const apariencias: Record<Id, Apariencia> = {};
   const parteIds: Id[] = [];
   let nextSeq = nextSeqInicial;
-  const totalWidth = CANON.dims.cosaWidth * UNFOLD.partesIniciales + UNFOLD.separacionHorizontal * (UNFOLD.partesIniciales - 1);
-  let x = contorno.x + (contorno.width - totalWidth) / 2;
-  const y = contorno.y + UNFOLD.paddingSuperior;
+  // BUG-372334: las partes se posicionan FUERA del padre, debajo, en una fila
+  // horizontal. La fila empieza en padreOffsetIzquierdo y baja
+  // partesOffsetSuperior unidades desde el top del padre.
+  let x = UNFOLD.padreOffsetIzquierdo;
+  const y = contorno.y + UNFOLD.partesOffsetSuperior;
 
   for (let index = 1; index <= UNFOLD.partesIniciales; index += 1) {
     const entidadId = siguienteId({ ...modelo, nextSeq }, prefijoEntidad(objeto.tipo));
