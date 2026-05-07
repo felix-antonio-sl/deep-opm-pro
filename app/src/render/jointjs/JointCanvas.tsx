@@ -349,7 +349,7 @@ export function JointCanvas() {
     : null;
 
   return (
-    <div role="application" aria-label="Canvas del modelo OPM" tabIndex={0} data-atajos-contexto="canvas" style={style.viewport}>
+    <div role="img" aria-label="OPD activo" data-atajos-contexto="canvas" style={style.viewport}>
       <div ref={paperHostRef} style={style.paperHost}>
         {renombrado?.entidad && renombrado.apariencia ? (
           <RenombradoInline
