@@ -1,6 +1,29 @@
-import type { Id, Modelo, Opd } from "../../modelo/tipos";
+import type { Entidad, Id, Modelo, Opd } from "../../modelo/tipos";
 
 const deleteIconUrl = new URL("../../../../assets/svg/delete.svg", import.meta.url).href;
+const objectListLogicalUrl = new URL("../../../../assets/svg/list-logical/object.svg", import.meta.url).href;
+const objectDashedListLogicalUrl = new URL("../../../../assets/svg/list-logical/objectDashed.svg", import.meta.url).href;
+const processListLogicalUrl = new URL("../../../../assets/svg/list-logical/process.svg", import.meta.url).href;
+const processDashedListLogicalUrl = new URL("../../../../assets/svg/list-logical/processDashed.svg", import.meta.url).href;
+
+/**
+ * Iconografía list-logical canónica del nodo OPD.
+ * SSOT: [V-209] variantes visuales por esencia, [Glos 3.55] Object, [Glos 3.69] Process.
+ * Assets: assets/svg/list-logical/{object,objectDashed,process,processDashed}.svg [JOYAS §2].
+ */
+function refinadorDeOpd(modelo: Modelo, opdId: Id): Entidad | undefined {
+  return Object.values(modelo.entidades).find((entidad) => entidad.refinamiento?.opdId === opdId);
+}
+
+function iconoListLogicalOpd(modelo: Modelo, opdId: Id): { src: string; etiqueta: string } | null {
+  const refinador = refinadorDeOpd(modelo, opdId);
+  if (!refinador) return null;
+  const dashed = refinador.esencia === "informacional";
+  if (refinador.tipo === "objeto") {
+    return { src: dashed ? objectDashedListLogicalUrl : objectListLogicalUrl, etiqueta: dashed ? "Objeto informacional" : "Objeto físico" };
+  }
+  return { src: dashed ? processDashedListLogicalUrl : processListLogicalUrl, etiqueta: dashed ? "Proceso informacional" : "Proceso físico" };
+}
 
 export interface NodoOpdData {
   opd: Opd;
@@ -46,6 +69,7 @@ export function NodoOpd(props: NodoOpdProps) {
       ? "Eliminar descendientes primero"
       : "Eliminar OPD";
   const esRenombrando = props.renombrando?.id === props.nodo.opd.id;
+  const iconoLogico = iconoListLogicalOpd(props.modelo, props.nodo.opd.id);
 
   return (
     <div
@@ -81,6 +105,12 @@ export function NodoOpd(props: NodoOpdProps) {
         </button>
       ) : (
         <span style={style.expandSpacer} />
+      )}
+
+      {iconoLogico ? (
+        <img src={iconoLogico.src} alt="" aria-hidden="true" title={iconoLogico.etiqueta} style={style.logicalIcon} />
+      ) : (
+        <span style={style.logicalIconSpacer} />
       )}
 
       {esRenombrando ? (
@@ -148,7 +178,7 @@ const style = {
     width: "100%",
     minHeight: "34px",
     display: "grid",
-    gridTemplateColumns: "16px minmax(0, 1fr) auto auto",
+    gridTemplateColumns: "16px 18px minmax(0, 1fr) auto auto",
     alignItems: "center", gap: "4px", paddingTop: "4px", paddingBottom: "4px",
     border: "1px solid transparent", borderRadius: "4px", background: "transparent",
     color: "#475467", cursor: "pointer", fontSize: "13px", fontWeight: 600, textAlign: "left",
@@ -160,6 +190,8 @@ const style = {
   countActive: contador("#d1eefb", "#1f2937"),
   expandBtn: compactoBoton("16px", "16px", "pointer", 1, { fontSize: "9px", color: "#667085", marginRight: "0" }),
   expandSpacer: { width: "16px", height: "16px" },
+  logicalIcon: { width: "16px", height: "12px", display: "block" },
+  logicalIconSpacer: { width: "16px", height: "12px" },
   deleteButton: botonEliminar("pointer", 1),
   deleteButtonDisabled: botonEliminar("not-allowed", 0.35),
   deleteIcon: { width: "18px", height: "18px", display: "block" },

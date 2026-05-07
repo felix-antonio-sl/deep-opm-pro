@@ -1,4 +1,20 @@
-import type { Id, Modelo, TipoEntidad } from "../modelo/tipos";
+import objectIcon from "../../../assets/svg/list-logical/object.svg";
+import objectDashedIcon from "../../../assets/svg/list-logical/objectDashed.svg";
+import processIcon from "../../../assets/svg/list-logical/process.svg";
+import processDashedIcon from "../../../assets/svg/list-logical/processDashed.svg";
+import type { Entidad, Id, Modelo, TipoEntidad } from "../modelo/tipos";
+
+/**
+ * Biblioteca de cosas con iconografía list-logical canónica.
+ * SSOT: [V-209] variantes visuales objeto/proceso por esencia
+ * (informacional → dashed, fisica → solid). [Glos 3.55] Object, [Glos 3.69] Process.
+ * Assets: assets/svg/list-logical/{object,objectDashed,process,processDashed}.svg [JOYAS §2].
+ */
+function iconoListLogical(entidad: Entidad): string {
+  const dashed = entidad.esencia === "informacional";
+  if (entidad.tipo === "objeto") return dashed ? objectDashedIcon : objectIcon;
+  return dashed ? processDashedIcon : processIcon;
+}
 
 interface Props {
   modelo: Modelo;
@@ -49,7 +65,13 @@ function GrupoBiblioteca(props: {
             }}
           >
             <div style={style.itemMain}>
-              <span style={entidad.tipo === "objeto" ? style.objectDot : style.processDot} />
+              <img
+                src={iconoListLogical(entidad)}
+                alt=""
+                aria-hidden="true"
+                title={`${entidad.tipo === "objeto" ? "Objeto" : "Proceso"} ${entidad.esencia === "informacional" ? "informacional" : "físico"}`}
+                style={style.iconLogical}
+              />
               <span style={style.name}>{entidad.nombre}</span>
               {apareceActivo ? <span style={style.badge}>OPD actual</span> : null}
             </div>
@@ -118,6 +140,7 @@ const style = {
   itemMain: { display: "flex", alignItems: "center", gap: "7px", minWidth: 0 },
   objectDot: { width: "10px", height: "10px", borderRadius: "2px", background: "#70e483", border: "1px solid #0e7c66" },
   processDot: { width: "12px", height: "8px", borderRadius: "999px", background: "#3bc3ff", border: "1px solid #1d4ed8" },
+  iconLogical: { width: "18px", height: "14px", display: "block", flex: "0 0 auto" },
   name: { flex: "1 1 auto", minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontSize: "13px", fontWeight: 700, color: "#1f2937" },
   badge: { flex: "0 0 auto", fontSize: "10px", color: "#0e7c66", fontWeight: 700 },
   opdList: { display: "flex", flexWrap: "wrap", gap: "4px" },
