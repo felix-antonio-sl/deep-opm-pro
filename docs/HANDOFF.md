@@ -2,8 +2,8 @@
 
 **Fecha**: 2026-05-07
 **Repositorio**: `deep-opm-pro`
-**Corte**: ronda 13 (UX foundation + cleanup TIER 1 + enmienda IFML) consolidada sobre `main`.
-**Código verificado**: `main` tras `e0957af` y este handoff. **MVP-alpha 98.8% ponderado**, **103/103 smokes**, **871 unit tests**, `lint` verde, `build` OK.
+**Corte**: ronda 13 (UX foundation + cleanup TIER 1 + enmienda IFML + rescate OPL reverse) consolidada sobre `main`.
+**Código verificado**: `main` tras `1cf8065` y este handoff. **MVP-alpha 100.0% ponderado**, **104/104 smokes**, **883 unit tests**, `lint` verde, `build` OK.
 **Documentación vigente**: este archivo reemplaza por completo el handoff anterior post-ronda 12.1.
 
 ## Política De Handoff Único
@@ -49,6 +49,13 @@ Commits auxiliares:
 - `83c6474` define cortes operativos post-ronda13.
 - `a7f0c29` fija guardrail OPL reverse alpha-lock: alpha no se cierra
   oficialmente hasta resolver HU-SHARED-007 / OPL inverso editable.
+- `d4c35dd` rescata e integra el scaffold parser OPL reverse encontrado como WIP
+  valioso en el worktree principal.
+- `aa276d8` integra el editor libre OPL reverse en `PanelOpl` con preview,
+  diagnostics y aplicación undoable al store.
+- `1cf8065` agrega smoke browser para edición libre OPL y recalibra
+  HU-SHARED-007 como cubierta; el guardrail `a7f0c29` queda satisfecho para
+  MVP-alpha.
 
 ## Verificación
 
@@ -56,19 +63,19 @@ Loop verde final sobre el árbol integrado:
 
 ```bash
 cd app
-bun run check          # 871 pass / 0 fail / 2913 expect() / 85 archivos
+bun run check          # 883 pass / 0 fail / 2946 expect() / 87 archivos
 bun run lint           # eslint src/ui/ verde
 bun run build          # build OK
-bun run browser:smoke  # 103 passed
+bun run browser:smoke  # 104 passed
 cd ..
-node docs/historias-usuario-v2/tools/progress-dashboard.mjs --sync-real
+node docs/historias-usuario-v2/tools/progress-dashboard.mjs --sync-real --strict
 ```
 
 Build final:
 
 | Chunk | KB minificado | KB gzip |
 |---|---:|---:|
-| `index-*.js` (principal) | **229.74** | **61.83** |
+| `index-*.js` (principal) | **233.50** | **62.78** |
 | `feature-asistente-*.js` | 311.06 | 81.18 |
 | `vendor-jointjs-*.js` | 470.77 | 129.72 |
 | `feature-dialogos-pesados-*.js` | 64.89 | 17.11 |
@@ -82,27 +89,29 @@ Build final:
 
 El objetivo histórico `index <= 195 kB` **no se alcanzó**. Los lazy splits
 pedidos sí se emitieron, pero el crecimiento neto de L2 tokens + L3 panel +
-L4 barra + glue de App dejó el chunk principal en 229.74 kB. Esto queda como
-deuda explícita de bundle; no se invadió scope para forzar recortes.
+L4 barra + editor OPL reverse dejó el chunk principal en 233.50 kB. Esto queda
+como deuda explícita de bundle; no se invadió scope para forzar recortes.
 
 Estado HU post-recalibración:
 
 | Segmento | HU vivas | Cubiertas | Parciales | Pendientes | Diferidas | Avance |
 |---|---:|---:|---:|---:|---:|---:|
-| Total backlog | 1126 | 312 | 23 | 413 | 378 | **28.3%** |
-| MVP-alpha | 121 | **120** | **1** | **0** | 0 | **98.8%** |
+| Total backlog | 1126 | 313 | 22 | 413 | 378 | **28.5%** |
+| MVP-alpha | 121 | **121** | **0** | **0** | 0 | **100.0%** |
 
-Detector: **102/102 reglas matched** sobre **374 archivos fuente**. La única
+Detector: **102/102 reglas matched** sobre **381 archivos fuente**. La única
 advertencia de ledger sigue siendo `HU-13.005` duplicada, legado pre-ronda-8.
 
 ## Cascadas Gestionadas
 
 | Cascada | Resolución |
 |---|---|
+| **Dos worktrees temporales seguían registrados en `/tmp`** (`/tmp/deep-opm-pro-l1-check`, `/tmp/deep-opm-pro-l6a-check`). | Se auditó cada uno contra `origin/main`: eran artefactos stale de rondas antiguas (`e251c7e` detached) con WIP regresivo o ya absorbido. No contenían valor único; se eliminaron con `git worktree remove --force` y `git worktree prune`. `git worktree list` queda solo con el worktree principal. |
+| **Apareció WIP valioso fuera de esos worktrees**: `app/src/opl/parser/` y la integración PanelOpl/Store estaban sin cerrar en el worktree principal. | Se recuperó en commits atómicos: `d4c35dd` parser/planner/apply/tipos/tests; `aa276d8` editor libre OPL reverse con preview y acción undoable; `1cf8065` smoke + detector. No se perdió el trabajo ni se mezcló con los worktrees stale. |
 | **L2 llegó commiteada con 74 commits antes que L1/L3/L4**. | Se respetó su historia: `d308708..e292a25` queda como secuencia archivo-por-archivo. No se squasheó para preservar trazabilidad de migración tokens. |
 | **L1 y L4 compartían `App.tsx`; L3 también necesitaba montar `PanelMetodologia`**. | Se separaron commits puros por dominio (`ba0e28a`, `350a2ff`, `6784830`) y un commit de integración `671aae6` para App + smokes cruzados. |
 | **`Toolbar.tsx` era SSOT de muchas reglas detector**. | Tras el split, la evidencia se movió a `toolbar/ToolbarBase.tsx`, `ToolbarCreacion.tsx`, `ToolbarMultiseleccion.tsx` y `ToolbarSeleccion.tsx`. `e0957af` recalibra 12 referencias sin cambiar cobertura real. |
-| **Dashboard cayó temporalmente a 86.2% MVP-alpha** al regenerar. | Diagnóstico: no era regresión funcional, sino reglas buscando strings en el archivo viejo. Recalibración devolvió `98.8%`, `120 cubiertas / 1 parcial / 0 pendientes`. |
+| **Dashboard cayó temporalmente a 86.2% MVP-alpha** al regenerar tras split Toolbar; luego subió con OPL reverse. | Diagnóstico inicial: no era regresión funcional, sino reglas buscando strings en el archivo viejo. `e0957af` devolvió `98.8%`. Después, `1cf8065` recalibró HU-SHARED-007 con parser/editor OPL reverse y dejó `100.0%`, `121 cubiertas / 0 parciales / 0 pendientes`. |
 | **IFML H-1/H-3/H-4/O-4/O-7 presionaban scope**. | No se abordaron en ronda 13 grande. Quedan diferidos a ronda 13.1 IFML flow cleanup: modal-stack real, reemplazo de CustomEvents, breadcrumbs y TablaEnlaces como vista XOR. |
 | **Atajos duplicados en Toolbar/App**. | L1 migró atajos materiales restantes a `registrarAtajosAplicacion` en `App.tsx`; Toolbar no registra `keydown`. Ctrl+S/Z/Y quedan centralizados. |
 | **`window.dispatchEvent("opm:nueva-cosa")` legacy sigue existiendo**. | No se agregó ningún CustomEvent nuevo. El reemplazo del bridge legacy se difiere a ronda 13.1 porque cruza render handlers, App y ToolbarBase. |
@@ -131,8 +140,11 @@ advertencia de ledger sigue siendo `HU-13.005` duplicada, legado pre-ronda-8.
 - **No nuevos CustomEvents**: cualquier interacción nueva debe modelarse como
   Event -> handler/Action nombrada -> Flow explícito. Los CustomEvents legacy
   se reemplazan juntos en ronda 13.1, no por partes.
-- **Alpha-lock OPL reverse**: aunque MVP-alpha operativo está en 98.8%, no se
-  declara alpha cerrada hasta resolver HU-SHARED-007 (OPL inverso editable).
+- **OPL reverse seguro cubre MVP-alpha**: `PanelOpl` ya permite edición libre
+  con preview de patches, diagnostics, aplicación undoable al store y smoke UI.
+  El parser acepta oraciones canónicas, no borra por ausencia y diagnostica
+  familias fuera de kernel. Ronda 14 queda para profundizar EPICA-50, no para
+  desbloquear MVP-alpha.
 
 Decisiones de rondas previas que siguen vigentes:
 
@@ -153,22 +165,25 @@ copiar código 1:1.
 - **Render JointJS**: sin cambios en handlers ni composers durante la
   consolidación final. L4 calcula posición de la barra leyendo bbox DOM/JointJS,
   sin tocar `JointCanvas` ni `customShapes`.
-- **OPL**: sin cambios en generadores OPL. Guardrail `a7f0c29` documenta que
-  parser inverso queda bloqueante alpha.
+- **OPL**: forward histórico sin cambios destructivos. Se agrega
+  `app/src/opl/parser/` con parser/planner/apply/tipos para edición inversa
+  segura, más `aplicarEdicionOplLibre()` en store y editor libre en `PanelOpl`.
+  HU-SHARED-007 queda cubierta para MVP-alpha; EPICA-50 profunda sigue viva.
 - **Persistencia**: sin cambios de formato ni serializadores. Checkers y avisos
   no se persisten.
-- **Tests**: suite unitaria sube a 871 tests; smokes browser suben a 103 y
+- **Tests**: suite unitaria sube a 883 tests; smokes browser suben a 104 y
   pasan completos.
-- **Roadmap/detector**: reglas recalibradas por split Toolbar; métricas alpha
-  preservadas.
+- **Roadmap/detector**: reglas recalibradas por split Toolbar y OPL reverse;
+  MVP-alpha cierra en 100.0%.
 
 ## Pendientes Inmediatos
 
-**Bloqueante alpha real**:
+**MVP-alpha**:
 
-- **HU-SHARED-007**: eco OPL-ES sincronizado inverso editable. Forward canvas ->
-  OPL está cubierto; OPL -> canvas libre requiere parser/edición formal. Este
-  es el único parcial MVP-alpha.
+- **Cerrado al 100.0% ponderado**. HU-SHARED-007 queda cubierta para alpha con
+  edición libre OPL -> canvas vía parser seguro, preview, diagnostics, apply
+  undoable y smoke browser. La implementación evita borrar por ausencia y
+  reporta familias fuera de kernel en lugar de inventar semántica.
 
 **Ronda 13.1 recomendada: IFML flow cleanup**:
 
@@ -180,16 +195,18 @@ copiar código 1:1.
 - Revisar `ToolbarBase` para mover bridges modeless legacy fuera del toolbar si
   el reemplazo de CustomEvents lo permite.
 
-**Ronda 14 recomendada: OPL reverse alpha-lock**:
+**Ronda 14 recomendada: OPL reverse profundo / EPICA-50**:
 
-- HU-SHARED-007.
-- HU-50.019/.020/.022 parser OPL bidireccional.
+- HU-50.019/.020/.022 parser OPL bidireccional completo.
+- Refinar cobertura fuera del subset alpha: ediciones estructurales avanzadas,
+  refinamientos, borrado explícito con confirmación, metadata avanzada y evals
+  diferenciales contra `opm-extracted/`.
 - Decidir convergencia entre `app/src/opl/` y
   `app/src/modelo/opl/generador-opl.ts` sin romper el forward actual.
 
 **Deuda técnica viva**:
 
-- Bundle principal 229.74 kB sobre objetivo histórico 195 kB. Medir composición
+- Bundle principal 233.50 kB sobre objetivo histórico 195 kB. Medir composición
   antes de mover más código a lazy.
 - `HU-13.005` duplicada en ledger pre-ronda-8.
 - CN-MOT multi-selección para `BarraHerramientasElemento`.
@@ -201,8 +218,8 @@ copiar código 1:1.
 1. Leer este `docs/HANDOFF.md` y `docs/roadmap/hu-progress.md`.
 2. Para UX/flujo inmediato, abrir **ronda 13.1 IFML flow cleanup**. Mantenerla
    separada de OPL reverse.
-3. Para cierre alpha formal, abrir **ronda 14 OPL reverse** con parser y evals
-   estrictos. No mezclar con UI polish.
+3. Para OPL profundo, abrir **ronda 14 EPICA-50** con parser bidireccional más
+   amplio y evals estrictos. No mezclar con UI polish.
 4. Antes de crear soluciones nuevas, consultar en orden:
    `assets/svg/`, `assets/png/`, `docs/JOYAS.md`, `opm-extracted/`, SSOT OPM.
 5. Cerrar cada ronda con:
