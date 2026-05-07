@@ -226,7 +226,7 @@ test("imagenes: suprime bitmap en objeto desplegado y conserva metadata", async 
   const exportado = await exportadoActual(page);
   expect(exportado.modelo.entidades["o-img-a"]).toMatchObject({
     imagen: { url: "https://example.com/smoke.png", modo: "imagen-texto" },
-    refinamiento: { tipo: "despliegue", opdId: "opd-img-hijo" },
+    refinamientos: { despliegue: { opdId: "opd-img-hijo" } },
   });
   expect(pageErrors).toEqual([]);
 });

@@ -659,7 +659,7 @@ function entidad(
   tipo: Entidad["tipo"],
   nombre: string,
   esencia: Entidad["esencia"],
-  refinamiento?: Entidad["refinamiento"],
+  refinamiento?: import("../modelo/tipos").RefinamientoEntidad,
 ): Entidad {
   return {
     id,
@@ -667,7 +667,15 @@ function entidad(
     nombre,
     esencia,
     afiliacion: "sistemica",
-    ...(refinamiento ? { refinamiento } : {}),
+    ...(refinamiento
+      ? {
+          refinamientos: {
+            [refinamiento.tipo]: refinamiento.tipo === "despliegue"
+              ? { opdId: refinamiento.opdId, ...(refinamiento.modo ? { modo: refinamiento.modo } : {}) }
+              : { opdId: refinamiento.opdId },
+          },
+        }
+      : {}),
   };
 }
 

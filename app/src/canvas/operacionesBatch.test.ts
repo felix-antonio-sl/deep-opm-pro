@@ -227,7 +227,7 @@ describe("operacionesBatch", () => {
     expect(resultado.opdsInsertados).toBe(1);
     expect(hijos).toHaveLength(1);
     const proceso = Object.values(resultado.modelo.entidades).find((entidad) => entidad.nombre === "Proceso plantilla");
-    expect(proceso?.refinamiento?.opdId).toBe(hijos[0]?.id);
+    expect(proceso?.refinamientos?.descomposicion?.opdId).toBe(hijos[0]?.id);
     expect(Object.values(hijos[0]?.apariencias ?? {}).some((ap) =>
       resultado.modelo.entidades[ap.entidadId]?.nombre === "Paso interno"
     )).toBe(true);
@@ -369,7 +369,7 @@ function plantillaConSubOpd(): Modelo {
       ...modelo.entidades,
       [procesoId]: {
         ...modelo.entidades[procesoId]!,
-        refinamiento: { tipo: "descomposicion", opdId: childId },
+        refinamientos: { descomposicion: { opdId: childId } },
       },
     },
     opds: {

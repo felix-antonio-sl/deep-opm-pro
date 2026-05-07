@@ -18,7 +18,7 @@ describe("plegado OPL", () => {
 
 function modeloConPartes(cantidad: number): Modelo {
   const entidades: Record<string, Entidad> = {
-    padre: { id: "padre", tipo: "objeto" as const, nombre: "Vehiculo", esencia: "informacional" as const, afiliacion: "sistemica" as const, refinamiento: { tipo: "despliegue" as const, opdId: "hijo" } },
+    padre: { id: "padre", tipo: "objeto" as const, nombre: "Vehiculo", esencia: "informacional" as const, afiliacion: "sistemica" as const, refinamientos: { despliegue: { opdId: "hijo" } } },
   };
   const apariencias: Record<string, Apariencia> = {
     contorno: { id: "contorno", entidadId: "padre", opdId: "hijo", x: 0, y: 0, width: 500, height: 250 },

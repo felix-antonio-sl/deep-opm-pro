@@ -109,14 +109,14 @@ describe("opdReorden", () => {
 
       const sd1 = Object.values(modelo.opds).find((o) => {
         const ref = Object.values(modelo.entidades).find(
-          (e) => e.refinamiento?.opdId === o.id && e.nombre === "A",
+          (e) => (e.refinamientos?.descomposicion?.opdId === o.id || e.refinamientos?.despliegue?.opdId === o.id) && e.nombre === "A",
         );
         return ref != null;
       })!;
 
       const sd2 = Object.values(modelo.opds).find((o) => {
         const ref = Object.values(modelo.entidades).find(
-          (e) => e.refinamiento?.opdId === o.id && e.nombre === "B",
+          (e) => (e.refinamientos?.descomposicion?.opdId === o.id || e.refinamientos?.despliegue?.opdId === o.id) && e.nombre === "B",
         );
         return ref != null;
       })!;
@@ -149,14 +149,14 @@ describe("opdReorden", () => {
 
       const sd1 = Object.values(modelo.opds).find((o) => {
         const ref = Object.values(modelo.entidades).find(
-          (e) => e.refinamiento?.opdId === o.id && e.nombre === "A",
+          (e) => (e.refinamientos?.descomposicion?.opdId === o.id || e.refinamientos?.despliegue?.opdId === o.id) && e.nombre === "A",
         );
         return ref != null;
       })!;
 
       const sd2 = Object.values(modelo.opds).find((o) => {
         const ref = Object.values(modelo.entidades).find(
-          (e) => e.refinamiento?.opdId === o.id && e.nombre === "B",
+          (e) => (e.refinamientos?.descomposicion?.opdId === o.id || e.refinamientos?.despliegue?.opdId === o.id) && e.nombre === "B",
         );
         return ref != null;
       })!;
@@ -260,7 +260,7 @@ describe("opdReorden", () => {
         // Verificar que el orden corresponde a Y
         const yDeOrdenados = ordenados.map((id) => {
           const refinador = Object.values(modelo.entidades).find(
-            (e) => e.refinamiento?.opdId === id,
+            (e) => (e.refinamientos?.descomposicion?.opdId === id || e.refinamientos?.despliegue?.opdId === id),
           );
           if (!refinador) return Number.POSITIVE_INFINITY;
           const ap = Object.values(modelo.opds[baseOpdId]!.apariencias).find(

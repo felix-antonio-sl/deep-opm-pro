@@ -55,7 +55,7 @@ function modeloTransformador(nombreProceso = "Procesar"): { modelo: Modelo; proc
 
 function dejarCosasEnRefinamiento(modelo: Modelo, entidadId: Id, cantidad: number): Modelo {
   const entidad = modelo.entidades[entidadId];
-  const opdId = entidad?.refinamiento?.opdId;
+  const opdId = entidad?.refinamientos?.descomposicion?.opdId;
   const opd = opdId ? modelo.opds[opdId] : undefined;
   if (!opd) throw new Error("Sin OPD de refinamiento");
   const mantener = new Set(
@@ -80,7 +80,7 @@ function dejarCosasEnRefinamiento(modelo: Modelo, entidadId: Id, cantidad: numbe
 
 function dejarEnlacesEnRefinamiento(modelo: Modelo, entidadId: Id, cantidad: number): Modelo {
   const entidad = modelo.entidades[entidadId];
-  const opdId = entidad?.refinamiento?.opdId;
+  const opdId = entidad?.refinamientos?.despliegue?.opdId;
   const opd = opdId ? modelo.opds[opdId] : undefined;
   if (!opd) throw new Error("Sin OPD de refinamiento");
   const mantener = new Set(Object.entries(opd.enlaces).slice(0, cantidad).map(([id]) => id));
@@ -237,7 +237,7 @@ describe("checkProcesoTransforma", () => {
   test("acepta proceso padre si algun hijo transforma", () => {
     const base = modeloTransformador("Procesar Pedido");
     let modelo = must(descomponerProceso(base.modelo, base.modelo.opdRaizId, base.procesoId)).modelo;
-    const opdHijoId = modelo.entidades[base.procesoId]?.refinamiento?.opdId ?? "";
+    const opdHijoId = modelo.entidades[base.procesoId]?.refinamientos?.descomposicion?.opdId ?? "";
     const hijo = Object.values(modelo.entidades).find((entidad) => entidad.tipo === "proceso" && entidad.id !== base.procesoId && Object.values(modelo.opds[opdHijoId]?.apariencias ?? {}).some((apariencia) => apariencia.entidadId === entidad.id));
     if (!hijo) throw new Error("Sin hijo");
     modelo = must(crearObjeto(modelo, opdHijoId, { x: 520, y: 160 }, "Objeto Interno"));

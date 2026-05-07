@@ -625,8 +625,7 @@ describe("store undo/redo y dirty state", () => {
     if (!opdHijo) return;
     expect(opdHijo.nombre).toBe("SD1");
     expect(estado.opdActivoId).toBe(opdHijo.id);
-    expect(estado.modelo.entidades[procesoId]?.refinamiento).toEqual({
-      tipo: "descomposicion",
+    expect(estado.modelo.entidades[procesoId]?.refinamientos?.descomposicion).toEqual({
       opdId: opdHijo.id,
     });
     expect(estado.dirty).toBe(true);
@@ -655,8 +654,7 @@ describe("store undo/redo y dirty state", () => {
     if (!opdHijo) return;
     expect(opdHijo.nombre).toBe("SD1");
     expect(estado.opdActivoId).toBe(opdHijo.id);
-    expect(estado.modelo.entidades[objetoId]?.refinamiento).toEqual({
-      tipo: "despliegue",
+    expect(estado.modelo.entidades[objetoId]?.refinamientos?.despliegue).toEqual({
       opdId: opdHijo.id,
       modo: "agregacion",
     });
@@ -679,7 +677,7 @@ describe("store undo/redo y dirty state", () => {
     const opdHijo = Object.values(estado.modelo.opds).find((opd) => opd.padreId === estado.modelo.opdRaizId);
     expect(opdHijo).toBeDefined();
     if (!opdHijo) return;
-    expect(estado.modelo.entidades[objetoId]?.refinamiento?.modo).toBe("exhibicion");
+    expect(estado.modelo.entidades[objetoId]?.refinamientos?.despliegue?.modo).toBe("exhibicion");
     const enlaces = Object.values(opdHijo.enlaces)
       .map((apariencia) => estado.modelo.enlaces[apariencia.enlaceId])
       .filter((enlace): enlace is NonNullable<typeof enlace> => enlace !== undefined);
@@ -702,7 +700,7 @@ describe("store undo/redo y dirty state", () => {
     const apariencia = Object.values(estado.modelo.opds[estado.modelo.opdRaizId]?.apariencias ?? {})
       .find((item) => item.entidadId === objetoId);
     expect(apariencia?.modoPlegado).toBe("parcial");
-    expect(estado.modelo.entidades[objetoId]?.refinamiento?.opdId).toBe(opdHijoId);
+    expect(estado.modelo.entidades[objetoId]?.refinamientos?.despliegue?.opdId).toBe(opdHijoId);
     expect(Object.values(estado.modelo.opds)).toHaveLength(2);
     expect(estado.dirty).toBe(true);
     expect(estado.puedeDeshacer).toBe(true);
@@ -720,7 +718,7 @@ describe("store undo/redo y dirty state", () => {
     store.getState().seleccionarEntidad(objetoId);
     store.getState().desplegarSeleccionada();
     const modeloTrasDespliegue = store.getState().modelo;
-    const opdHijoId = modeloTrasDespliegue.entidades[objetoId]?.refinamiento?.opdId;
+    const opdHijoId = modeloTrasDespliegue.entidades[objetoId]?.refinamientos?.despliegue?.opdId;
     if (!opdHijoId) throw new Error("La prueba esperaba despliegue");
     const parteId = Object.values(modeloTrasDespliegue.opds[opdHijoId]?.apariencias ?? {})
       .map((apariencia) => modeloTrasDespliegue.entidades[apariencia.entidadId])
@@ -761,7 +759,7 @@ describe("store undo/redo y dirty state", () => {
     store.getState().quitarDespliegueSeleccionado();
 
     expect(Object.values(store.getState().modelo.opds)).toHaveLength(1);
-    expect(store.getState().modelo.entidades[objetoId]?.refinamiento).toBeUndefined();
+    expect(store.getState().modelo.entidades[objetoId]?.refinamientos).toBeUndefined();
     expect(Object.values(store.getState().modelo.enlaces)).toHaveLength(0);
     expect(store.getState().opdActivoId).toBe(store.getState().modelo.opdRaizId);
     expect(store.getState().dirty).toBe(true);
@@ -769,7 +767,7 @@ describe("store undo/redo y dirty state", () => {
 
     store.getState().deshacer();
     expect(Object.values(store.getState().modelo.opds)).toHaveLength(2);
-    expect(store.getState().modelo.entidades[objetoId]?.refinamiento?.tipo).toBe("despliegue");
+    expect(store.getState().modelo.entidades[objetoId]?.refinamientos?.despliegue).toBeDefined();
   });
 
   test("quitar descomposicion seleccionada elimina OPD hijo y conserva undo", () => {
@@ -782,14 +780,14 @@ describe("store undo/redo y dirty state", () => {
     store.getState().quitarDescomposicionSeleccionada();
 
     expect(Object.values(store.getState().modelo.opds)).toHaveLength(1);
-    expect(store.getState().modelo.entidades[procesoId]?.refinamiento).toBeUndefined();
+    expect(store.getState().modelo.entidades[procesoId]?.refinamientos).toBeUndefined();
     expect(store.getState().opdActivoId).toBe(store.getState().modelo.opdRaizId);
     expect(store.getState().dirty).toBe(true);
     expect(store.getState().puedeDeshacer).toBe(true);
 
     store.getState().deshacer();
     expect(Object.values(store.getState().modelo.opds)).toHaveLength(2);
-    expect(store.getState().modelo.entidades[procesoId]?.refinamiento?.tipo).toBe("descomposicion");
+    expect(store.getState().modelo.entidades[procesoId]?.refinamientos?.descomposicion).toBeDefined();
   });
 
   test("eliminar OPD activo hoja desde arbol navega al padre y conserva undo", () => {
@@ -802,7 +800,7 @@ describe("store undo/redo y dirty state", () => {
     store.getState().eliminarOpdDesdeArbol(opdHijoId);
 
     expect(Object.values(store.getState().modelo.opds)).toHaveLength(1);
-    expect(store.getState().modelo.entidades[procesoId]?.refinamiento).toBeUndefined();
+    expect(store.getState().modelo.entidades[procesoId]?.refinamientos).toBeUndefined();
     expect(store.getState().opdActivoId).toBe(store.getState().modelo.opdRaizId);
     expect(store.getState().mensaje).toBe("OPD eliminado");
     expect(store.getState().dirty).toBe(true);
@@ -810,7 +808,7 @@ describe("store undo/redo y dirty state", () => {
 
     store.getState().deshacer();
     expect(Object.values(store.getState().modelo.opds)).toHaveLength(2);
-    expect(store.getState().modelo.entidades[procesoId]?.refinamiento?.opdId).toBe(opdHijoId);
+    expect(store.getState().modelo.entidades[procesoId]?.refinamientos?.descomposicion?.opdId).toBe(opdHijoId);
   });
 
   test("intento de eliminar OPD interno deja modelo intacto y muestra mensaje claro", () => {
@@ -1544,8 +1542,8 @@ describe("store HU-10.021 descomposición objeto en mismo OPD", () => {
     store.getState().desplegarSeleccionada("agregacion");
 
     const sistema = store.getState().modelo.entidades[sistemaId];
-    expect(sistema?.refinamiento?.tipo).toBe("despliegue");
-    const opdHijoId = sistema?.refinamiento?.opdId;
+    expect(sistema?.refinamientos?.despliegue).toBeDefined();
+    const opdHijoId = sistema?.refinamientos?.despliegue?.opdId;
     expect(opdHijoId).toBeTruthy();
     expect(Object.keys(store.getState().modelo.opds).length).toBe(opdsAntes + 1);
     const hijo = store.getState().modelo.opds[opdHijoId!];
@@ -1568,8 +1566,8 @@ describe("store HU-10.021 descomposición objeto en mismo OPD", () => {
       store.getState().seleccionarEntidad(padreId);
       store.getState().desplegarSeleccionada(modo);
 
-      const ref = store.getState().modelo.entidades[padreId]?.refinamiento;
-      expect(ref?.tipo).toBe("despliegue");
+      const ref = store.getState().modelo.entidades[padreId]?.refinamientos?.despliegue;
+      expect(ref).toBeDefined();
       expect(ref?.opdId).toBeTruthy();
     }
   });

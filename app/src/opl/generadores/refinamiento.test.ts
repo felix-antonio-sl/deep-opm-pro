@@ -75,7 +75,7 @@ function modeloRefinamiento(tipo: "descomposicion" | "despliegue"): Modelo {
       },
     },
     entidades: {
-      padre: { id: "padre", tipo: "proceso", nombre: "Atender", esencia: "informacional", afiliacion: "sistemica", refinamiento: { tipo, opdId: "hijo" } },
+      padre: { id: "padre", tipo: "proceso", nombre: "Atender", esencia: "informacional", afiliacion: "sistemica", refinamientos: { [tipo]: { opdId: "hijo" } } },
       a: { id: "a", tipo: "proceso", nombre: "A", esencia: "informacional", afiliacion: "sistemica" },
       b: { id: "b", tipo: "proceso", nombre: "B", esencia: "informacional", afiliacion: "sistemica" },
     },
@@ -111,7 +111,7 @@ function modeloRefinamientoObjeto(): Modelo {
       },
     },
     entidades: {
-      padre: { id: "padre", tipo: "objeto", nombre: "Vehiculo", esencia: "informacional", afiliacion: "sistemica", refinamiento: { tipo: "descomposicion", opdId: "hijo" } },
+      padre: { id: "padre", tipo: "objeto", nombre: "Vehiculo", esencia: "informacional", afiliacion: "sistemica", refinamientos: { descomposicion: { opdId: "hijo" } } },
       motor: { id: "motor", tipo: "objeto", nombre: "Motor", esencia: "informacional", afiliacion: "sistemica" },
       rueda: { id: "rueda", tipo: "objeto", nombre: "Rueda", esencia: "informacional", afiliacion: "sistemica" },
     },

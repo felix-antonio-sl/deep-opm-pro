@@ -57,8 +57,8 @@ function modeloConHermanos(): Modelo {
     opdRaizId: "opd-raiz",
     entidades: {
       ...modelo.entidades,
-      "proc-a": { id: "proc-a", tipo: "proceso", nombre: "A", esencia: "informacional", afiliacion: "sistemica", refinamiento: { tipo: "descomposicion", opdId: "opd-a" } },
-      "proc-b": { id: "proc-b", tipo: "proceso", nombre: "B", esencia: "informacional", afiliacion: "sistemica", refinamiento: { tipo: "descomposicion", opdId: "opd-b" } },
+      "proc-a": { id: "proc-a", tipo: "proceso", nombre: "A", esencia: "informacional", afiliacion: "sistemica", refinamientos: { descomposicion: { opdId: "opd-a" } } },
+      "proc-b": { id: "proc-b", tipo: "proceso", nombre: "B", esencia: "informacional", afiliacion: "sistemica", refinamientos: { descomposicion: { opdId: "opd-b" } } },
     },
     opds: {
       "opd-raiz": {

@@ -638,7 +638,7 @@ describe("proyeccion JointJS", () => {
     let modelo = modeloConVehiculoDesplegado();
     const objetoId = entidadPorNombre(modelo, "Vehiculo");
     const parteId = entidadPorNombre(modelo, "Vehiculo parte 1");
-    const opdDespliegueId = modelo.entidades[objetoId]?.refinamiento?.opdId;
+    const opdDespliegueId = modelo.entidades[objetoId]?.refinamientos?.despliegue?.opdId;
     if (!opdDespliegueId) throw new Error("Despliegue no encontrado");
     modelo = must(desplegarObjeto(modelo, opdDespliegueId, parteId)).modelo;
     const padre = aparienciaDeEntidad(modelo, modelo.opdRaizId, objetoId);
@@ -909,7 +909,7 @@ function modeloConVehiculoDesplegado(): Modelo {
 function agregarPartes(modeloInicial: Modelo, cantidad: number): Modelo {
   let modelo = modeloInicial;
   const objetoId = entidadPorNombre(modelo, "Vehiculo");
-  const opdDespliegueId = modelo.entidades[objetoId]?.refinamiento?.opdId;
+  const opdDespliegueId = modelo.entidades[objetoId]?.refinamientos?.despliegue?.opdId;
   expect(opdDespliegueId).toBeDefined();
   if (!opdDespliegueId) throw new Error("Despliegue no encontrado");
 

@@ -855,6 +855,10 @@ export interface ExportadoModelo {
       esAtributo?: boolean;
       valorSlot?: { tipo: string; placeholder: "value"; valor?: number | string };
       refinamiento?: { tipo: string; opdId: string };
+      refinamientos?: {
+        descomposicion?: { opdId: string };
+        despliegue?: { opdId: string; modo?: string };
+      };
       imagen?: { url: string; modo: string };
     }>;
     estados: Record<string, { id: string; entidadId: string; nombre: string; esInicial?: boolean; esFinal?: boolean }>;

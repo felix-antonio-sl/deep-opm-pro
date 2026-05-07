@@ -66,9 +66,9 @@ test("descompone proceso y navega al OPD hijo", async ({ page }) => {
   const exportado = JSON.parse(json) as ExportadoModelo;
   const proceso = Object.values(exportado.modelo.entidades).find((entidad) => entidad.nombre === "Proceso");
   const subprocesos = Object.values(exportado.modelo.entidades).filter((entidad) => /^Proceso [1-3]$/.test(entidad.nombre));
-  expect(proceso?.refinamiento?.tipo).toBe("descomposicion");
+  expect(proceso?.refinamientos?.descomposicion).toBeDefined();
   expect(subprocesos).toHaveLength(3);
-  const opdHijoId = proceso?.refinamiento?.opdId;
+  const opdHijoId = proceso?.refinamientos?.descomposicion?.opdId;
   expect(opdHijoId).toBeTruthy();
   if (!opdHijoId) throw new Error("La descomposicion no exporto opdId");
   expect(exportado.modelo.opds[opdHijoId]?.padreId).toBe(exportado.modelo.opdRaizId);
@@ -96,7 +96,7 @@ test("descompone proceso y navega al OPD hijo", async ({ page }) => {
   const jsonSinDescomposicion = await jsonEditor(page).inputValue();
   const exportadoSinDescomposicion = JSON.parse(jsonSinDescomposicion) as ExportadoModelo;
   const procesoSinDescomposicion = Object.values(exportadoSinDescomposicion.modelo.entidades).find((entidad) => entidad.nombre === "Proceso");
-  expect(procesoSinDescomposicion?.refinamiento).toBeUndefined();
+  expect(procesoSinDescomposicion?.refinamientos).toBeUndefined();
   expect(Object.values(exportadoSinDescomposicion.modelo.opds)).toHaveLength(1);
 
   expect(pageErrors).toEqual([]);
@@ -122,10 +122,10 @@ test("descompone objeto desde barra contextual y navega al OPD hijo", async ({ p
   const exportado = JSON.parse(await jsonEditor(page).inputValue()) as ExportadoModelo;
   const objeto = Object.values(exportado.modelo.entidades).find((entidad) => entidad.nombre === "Objeto");
   const componentes = Object.values(exportado.modelo.entidades).filter((entidad) => /^Objeto [1-3]$/.test(entidad.nombre));
-  expect(objeto?.refinamiento?.tipo).toBe("descomposicion");
+  expect(objeto?.refinamientos?.descomposicion).toBeDefined();
   expect(componentes).toHaveLength(3);
   expect(componentes.every((entidad) => (entidad as { tipo?: string }).tipo === "objeto")).toBe(true);
-  const opdHijoId = objeto?.refinamiento?.opdId;
+  const opdHijoId = objeto?.refinamientos?.descomposicion?.opdId;
   if (!opdHijoId || !objeto) throw new Error("La descomposicion de objeto no exporto opdId");
   expect(exportado.modelo.opds[opdHijoId]?.padreId).toBe(exportado.modelo.opdRaizId);
   const aparienciasHijo = Object.values(exportado.modelo.opds[opdHijoId]?.apariencias ?? {});
@@ -195,7 +195,7 @@ test("crea objeto interno por click dentro del contenedor refinado", async ({ pa
   const exportado = JSON.parse(await jsonEditor(page).inputValue()) as ExportadoModelo;
   const proceso = Object.values(exportado.modelo.entidades).find((entidad) => entidad.nombre === "Proceso");
   const objeto = Object.values(exportado.modelo.entidades).find((entidad) => entidad.nombre === "Objeto");
-  const opdHijoId = proceso?.refinamiento?.opdId;
+  const opdHijoId = proceso?.refinamientos?.descomposicion?.opdId;
   if (!proceso || !objeto || !opdHijoId) throw new Error("No se exporto la creación interna esperada");
   const aparienciasHijo = Object.values(exportado.modelo.opds[opdHijoId]?.apariencias ?? {});
   const aparienciaContorno = aparienciasHijo.find((apariencia) => apariencia.entidadId === proceso.id);
@@ -233,9 +233,9 @@ test("despliega objeto y navega al OPD hijo", async ({ page }) => {
   const exportado = JSON.parse(json) as ExportadoModelo;
   const objeto = Object.values(exportado.modelo.entidades).find((entidad) => entidad.nombre === "Objeto");
   const partes = Object.values(exportado.modelo.entidades).filter((entidad) => /^Objeto parte [1-3]$/.test(entidad.nombre));
-  expect(objeto?.refinamiento?.tipo).toBe("despliegue");
+  expect(objeto?.refinamientos?.despliegue).toBeDefined();
   expect(partes).toHaveLength(3);
-  const opdHijoId = objeto?.refinamiento?.opdId;
+  const opdHijoId = objeto?.refinamientos?.despliegue?.opdId;
   expect(opdHijoId).toBeTruthy();
   if (!opdHijoId || !objeto) throw new Error("El despliegue no exporto opdId");
   expect(exportado.modelo.opds[opdHijoId]?.padreId).toBe(exportado.modelo.opdRaizId);
@@ -247,7 +247,7 @@ test("despliega objeto y navega al OPD hijo", async ({ page }) => {
   const jsonSinDespliegue = await jsonEditor(page).inputValue();
   const exportadoSinDespliegue = JSON.parse(jsonSinDespliegue) as ExportadoModelo;
   const objetoSinDespliegue = Object.values(exportadoSinDespliegue.modelo.entidades).find((entidad) => entidad.nombre === "Objeto");
-  expect(objetoSinDespliegue?.refinamiento).toBeUndefined();
+  expect(objetoSinDespliegue?.refinamientos).toBeUndefined();
   expect(Object.values(exportadoSinDespliegue.modelo.opds)).toHaveLength(1);
   expect(Object.values(exportadoSinDespliegue.modelo.enlaces)).toHaveLength(0);
 
@@ -275,10 +275,10 @@ test("despliega proceso desde inspector y navega al OPD hijo", async ({ page }) 
   const exportado = JSON.parse(await jsonEditor(page).inputValue()) as ExportadoModelo;
   const proceso = Object.values(exportado.modelo.entidades).find((entidad) => entidad.nombre === "Proceso");
   const partes = Object.values(exportado.modelo.entidades).filter((entidad) => /^Proceso parte [1-3]$/.test(entidad.nombre));
-  expect(proceso?.refinamiento?.tipo).toBe("despliegue");
+  expect(proceso?.refinamientos?.despliegue).toBeDefined();
   expect(partes).toHaveLength(3);
   expect(partes.every((entidad) => (entidad as { tipo?: string }).tipo === "proceso")).toBe(true);
-  const opdHijoId = proceso?.refinamiento?.opdId;
+  const opdHijoId = proceso?.refinamientos?.despliegue?.opdId;
   if (!opdHijoId || !proceso) throw new Error("El despliegue de proceso no exporto opdId");
   expect(exportado.modelo.opds[opdHijoId]?.padreId).toBe(exportado.modelo.opdRaizId);
   expect(Object.values(exportado.modelo.enlaces).filter((enlace) => enlace.tipo === "agregacion" && extremoApuntaAEntidad(enlace.origenId, proceso.id))).toHaveLength(3);
@@ -303,6 +303,47 @@ test("despliega proceso desde inspector y navega al OPD hijo", async ({ page }) 
   await expect(page.getByRole("button", { name: "Mostrar despliegue" })).toBeVisible();
 
   await page.screenshot({ path: "test-results/opm-process-unfold-opd-hijo.png", fullPage: true });
+  expect(pageErrors).toEqual([]);
+});
+
+test("ronda 15.2: una entidad acepta descomposicion + despliegue simultaneos y el arbol muestra ambos OPDs hijos", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await cerrarPantallaInicioSiVisible(page);
+  await page.getByRole("button", { name: "Proceso", exact: true }).click();
+  // Descomponer (in-zoom)
+  await page.getByRole("button", { name: "Descomponer" }).click();
+  const nodoInzoom = page.locator('[role="treeitem"]').filter({ hasText: "SD1: Proceso descompuesto" });
+  await expect(nodoInzoom).toHaveAttribute("aria-current", "page");
+  // Volver a la raíz para desplegar
+  await page.locator('[role="treeitem"][data-opd-id="opd-1"]').click();
+  await elementoPorTexto(page, "Proceso").click();
+  // Desplegar (unfold) sin remover la descomposicion previa.
+  await desplegarComoAgregacion(page);
+  const nodoUnfold = page.locator('[role="treeitem"]').filter({ hasText: "SD2: Proceso desplegado" });
+  await expect(nodoUnfold).toHaveAttribute("aria-current", "page");
+
+  // Árbol muestra ambos OPDs hijos.
+  await expect(nodoInzoom).toHaveCount(1);
+  await expect(nodoUnfold).toHaveCount(1);
+
+  // Volver a la raíz y verificar que el inspector ofrece ambos: "Abrir descomposición" y "Mostrar despliegue".
+  await page.locator('[role="treeitem"][data-opd-id="opd-1"]').click();
+  await elementoPorTexto(page, "Proceso").click();
+  await expect(page.getByRole("button", { name: "Abrir descomposición" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Mostrar despliegue" })).toBeVisible();
+
+  // El JSON exportado preserva ambos slots ortogonales.
+  await page.getByRole("button", { name: "Exportar", exact: true }).click();
+  const exportado = JSON.parse(await jsonEditor(page).inputValue()) as ExportadoModelo;
+  const proceso = Object.values(exportado.modelo.entidades).find((entidad) => entidad.nombre === "Proceso");
+  expect(proceso?.refinamientos?.descomposicion?.opdId).toBeTruthy();
+  expect(proceso?.refinamientos?.despliegue?.opdId).toBeTruthy();
+  expect(proceso?.refinamientos?.descomposicion?.opdId).not.toBe(proceso?.refinamientos?.despliegue?.opdId);
+
+  await page.screenshot({ path: "test-results/opm-refinamiento-dual.png", fullPage: true });
   expect(pageErrors).toEqual([]);
 });
 
@@ -331,11 +372,11 @@ test("activa plegado parcial desde Inspector y persiste la vista compacta", asyn
   const json = await jsonEditor(page).inputValue();
   const exportado = JSON.parse(json) as ExportadoModelo;
   const objeto = Object.values(exportado.modelo.entidades).find((entidad) => entidad.nombre === "Objeto");
-  if (!objeto?.refinamiento) throw new Error("No se exporto despliegue del objeto");
+  if (!objeto?.refinamientos?.despliegue) throw new Error("No se exporto despliegue del objeto");
   const aparienciaPadre = Object.values(exportado.modelo.opds[exportado.modelo.opdRaizId]?.apariencias ?? {})
     .find((apariencia) => apariencia.entidadId === objeto.id);
   expect(aparienciaPadre?.modoPlegado).toBe("parcial");
-  expect(Object.values(exportado.modelo.opds[objeto.refinamiento.opdId]?.apariencias ?? {})).toHaveLength(4);
+  expect(Object.values(exportado.modelo.opds[objeto.refinamientos.despliegue.opdId]?.apariencias ?? {})).toHaveLength(4);
 
   await guardarComoActual(page, "Plegado parcial local");
   await page.getByRole("button", { name: "Nuevo", exact: true }).click();
@@ -496,7 +537,7 @@ test("redistribuye consumo al primer subproceso y resultado al ultimo", async ({
   const salida = Object.values(exportado.modelo.entidades).find((entidad) => entidad.nombre === "Salida");
   const primero = Object.values(exportado.modelo.entidades).find((entidad) => entidad.nombre === "Procesar 1");
   const ultimo = Object.values(exportado.modelo.entidades).find((entidad) => entidad.nombre === "Procesar 3");
-  const opdHijoId = procesar?.refinamiento?.opdId;
+  const opdHijoId = procesar?.refinamientos?.descomposicion?.opdId;
   if (!opdHijoId || !entrada || !salida || !primero || !ultimo) throw new Error("No se exporto la redistribucion esperada");
   const enlacesHijo = Object.values(exportado.modelo.opds[opdHijoId]?.enlaces ?? {})
     .map((apariencia) => exportado.modelo.enlaces[apariencia.enlaceId]);
@@ -545,7 +586,7 @@ test("reancla consumo derivado y conserva el ancla manual al reordenar", async (
   const procesar = Object.values(exportado.modelo.entidades).find((entidad) => entidad.nombre === "Procesar");
   const entrada = Object.values(exportado.modelo.entidades).find((entidad) => entidad.nombre === "Entrada");
   const segundo = Object.values(exportado.modelo.entidades).find((entidad) => entidad.nombre === "Procesar 2");
-  const opdHijoId = procesar?.refinamiento?.opdId;
+  const opdHijoId = procesar?.refinamientos?.descomposicion?.opdId;
   if (!opdHijoId || !entrada || !segundo) throw new Error("No se exporto el reanclaje esperado");
   const consumos = Object.values(exportado.modelo.opds[opdHijoId]?.enlaces ?? {})
     .map((apariencia) => exportado.modelo.enlaces[apariencia.enlaceId])
@@ -612,7 +653,7 @@ test("L3 descomposicion avanzada: inspector reasigna, inline renombra, paralelo 
   const entrada = Object.values(exportado.modelo.entidades).find((entidad) => entidad.nombre === "Entrada");
   const validado = Object.values(exportado.modelo.entidades).find((entidad) => entidad.nombre === "Validar Entrada");
   const ambiental = Object.values(exportado.modelo.entidades).find((entidad) => entidad.nombre === "Objeto");
-  const opdHijoId = procesar?.refinamiento?.opdId;
+  const opdHijoId = procesar?.refinamientos?.descomposicion?.opdId;
   if (!opdHijoId || !entrada || !validado || !ambiental) throw new Error("No se exporto modelo L3 esperado");
   const enlaceManual = Object.values(exportado.modelo.opds[opdHijoId]?.enlaces ?? {})
     .map((apariencia) => exportado.modelo.enlaces[apariencia.enlaceId])

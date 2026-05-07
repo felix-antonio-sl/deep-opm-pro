@@ -505,8 +505,7 @@ describe("operaciones de modelo", () => {
     expect(descompuesto.value.creado).toBe(true);
     expect(opdHijo?.nombre).toBe("SD1");
     expect(opdHijo?.padreId).toBe(modelo.opdRaizId);
-    expect(modelo.entidades[proceso.id]?.refinamiento).toEqual({
-      tipo: "descomposicion",
+    expect(modelo.entidades[proceso.id]?.refinamientos?.descomposicion).toEqual({
       opdId: descompuesto.value.opdId,
     });
     expect(Object.values(modelo.entidades)).toHaveLength(4);
@@ -541,8 +540,7 @@ describe("operaciones de modelo", () => {
     expect(desplegado.value.creado).toBe(true);
     expect(opdHijo?.nombre).toBe("SD1");
     expect(opdHijo?.padreId).toBe(modelo.opdRaizId);
-    expect(modelo.entidades[objeto.id]?.refinamiento).toEqual({
-      tipo: "despliegue",
+    expect(modelo.entidades[objeto.id]?.refinamientos?.despliegue).toEqual({
       opdId: desplegado.value.opdId,
       modo: "agregacion",
     });
@@ -618,7 +616,7 @@ describe("operaciones de modelo", () => {
       expect(sinDespliegue.ok).toBe(true);
       if (!sinDespliegue.ok) return;
       expect(Object.values(sinDespliegue.value.opds)).toHaveLength(1);
-      expect(sinDespliegue.value.entidades[objeto.id]?.refinamiento).toBeUndefined();
+      expect(sinDespliegue.value.entidades[objeto.id]?.refinamientos).toBeUndefined();
       expect(Object.values(sinDespliegue.value.enlaces)).toHaveLength(0);
       expect(Object.values(sinDespliegue.value.entidades)).toHaveLength(1);
     }
@@ -673,9 +671,43 @@ describe("operaciones de modelo", () => {
     expect(sinDespliegue.ok).toBe(true);
     if (!sinDespliegue.ok) return;
     expect(Object.values(sinDespliegue.value.opds)).toHaveLength(1);
-    expect(sinDespliegue.value.entidades[objeto.id]?.refinamiento).toBeUndefined();
+    expect(sinDespliegue.value.entidades[objeto.id]?.refinamientos).toBeUndefined();
     expect(Object.values(sinDespliegue.value.entidades).map((entidad) => entidad.nombre)).not.toContain("Vehiculo parte 1");
     expect(Object.values(sinDespliegue.value.enlaces)).toHaveLength(0);
+  });
+
+  test("ronda 15.2: permite descomponer y desplegar la misma cosa sin conflicto (ortogonalidad)", () => {
+    let modelo = crearModelo();
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 220, y: 120 }, "Procesar"));
+    const proceso = entidadPorNombre(modelo, "Procesar");
+
+    const inzoom = descomponerProceso(modelo, modelo.opdRaizId, proceso.id);
+    expect(inzoom.ok).toBe(true);
+    if (!inzoom.ok) return;
+    modelo = inzoom.value.modelo;
+
+    const unfold = desplegarObjeto(modelo, modelo.opdRaizId, proceso.id, "agregacion");
+    expect(unfold.ok).toBe(true);
+    if (!unfold.ok) return;
+    modelo = unfold.value.modelo;
+
+    expect(modelo.entidades[proceso.id]?.refinamientos?.descomposicion?.opdId).toBe(inzoom.value.opdId);
+    expect(modelo.entidades[proceso.id]?.refinamientos?.despliegue?.opdId).toBe(unfold.value.opdId);
+    expect(inzoom.value.opdId).not.toBe(unfold.value.opdId);
+
+    // Quitar despliegue conserva descomposicion.
+    const sinUnfold = quitarDespliegueObjeto(modelo, proceso.id);
+    expect(sinUnfold.ok).toBe(true);
+    if (!sinUnfold.ok) return;
+    expect(sinUnfold.value.entidades[proceso.id]?.refinamientos?.descomposicion?.opdId).toBe(inzoom.value.opdId);
+    expect(sinUnfold.value.entidades[proceso.id]?.refinamientos?.despliegue).toBeUndefined();
+
+    // Quitar descomposicion sobre el modelo dual conserva despliegue.
+    const sinInzoom = quitarDescomposicionProceso(modelo, proceso.id);
+    expect(sinInzoom.ok).toBe(true);
+    if (!sinInzoom.ok) return;
+    expect(sinInzoom.value.entidades[proceso.id]?.refinamientos?.descomposicion).toBeUndefined();
+    expect(sinInzoom.value.entidades[proceso.id]?.refinamientos?.despliegue?.opdId).toBe(unfold.value.opdId);
   });
 
   test("acepta despliegue de procesos y descomposicion de objetos", () => {
@@ -688,7 +720,7 @@ describe("operaciones de modelo", () => {
     const desplegadoProceso = desplegarObjeto(modelo, modelo.opdRaizId, proceso.id);
     expect(desplegadoProceso.ok).toBe(true);
     if (!desplegadoProceso.ok) return;
-    expect(desplegadoProceso.value.modelo.entidades[proceso.id]?.refinamiento?.tipo).toBe("despliegue");
+    expect(desplegadoProceso.value.modelo.entidades[proceso.id]?.refinamientos?.despliegue).toBeDefined();
     expect(nombresInternosDespliegue(desplegadoProceso.value.modelo, desplegadoProceso.value.opdId, proceso.id)).toEqual([
       "Proceso parte 1",
       "Proceso parte 2",
@@ -698,7 +730,7 @@ describe("operaciones de modelo", () => {
     const descompuestoObjeto = descomponerProceso(modelo, modelo.opdRaizId, objeto.id);
     expect(descompuestoObjeto.ok).toBe(true);
     if (!descompuestoObjeto.ok) return;
-    expect(descompuestoObjeto.value.modelo.entidades[objeto.id]?.refinamiento?.tipo).toBe("descomposicion");
+    expect(descompuestoObjeto.value.modelo.entidades[objeto.id]?.refinamientos?.descomposicion).toBeDefined();
     expect(nombresInternosDespliegue(descompuestoObjeto.value.modelo, descompuestoObjeto.value.opdId, objeto.id)).toEqual([
       "Objeto 1",
       "Objeto 2",
@@ -1130,7 +1162,7 @@ describe("operaciones de modelo", () => {
     let modelo = crearModelo();
     modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 200, y: 120 }, "Atender Paciente"));
     modelo = must(descomponerProceso(modelo, modelo.opdRaizId, entidadPorNombre(modelo, "Atender Paciente").id)).modelo;
-    const opdHijoId = modelo.entidades[entidadPorNombre(modelo, "Atender Paciente").id]?.refinamiento?.opdId;
+    const opdHijoId = modelo.entidades[entidadPorNombre(modelo, "Atender Paciente").id]?.refinamientos?.descomposicion?.opdId;
     expect(opdHijoId).toBeDefined();
     if (!opdHijoId) return;
     modelo = must(crearProceso(modelo, opdHijoId, { x: 200, y: 180 }, "Examinar"));
@@ -1148,7 +1180,7 @@ describe("operaciones de modelo", () => {
     modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 200, y: 120 }, "Atender Paciente"));
     const proceso = entidadPorNombre(modelo, "Atender Paciente");
     modelo = must(descomponerProceso(modelo, modelo.opdRaizId, proceso.id)).modelo;
-    const opdHijoId = modelo.entidades[proceso.id]?.refinamiento?.opdId;
+    const opdHijoId = modelo.entidades[proceso.id]?.refinamientos?.descomposicion?.opdId;
     expect(opdHijoId).toBeDefined();
     if (!opdHijoId) return;
     modelo = must(crearObjeto(modelo, opdHijoId, { x: 40, y: 70 }, "Orden"));
@@ -1164,7 +1196,7 @@ describe("operaciones de modelo", () => {
     if (!sinDescomposicion.ok) return;
     expect(Object.values(sinDescomposicion.value.opds)).toHaveLength(1);
     expect(sinDescomposicion.value.opds[modelo.opdRaizId]).toBeDefined();
-    expect(sinDescomposicion.value.entidades[proceso.id]?.refinamiento).toBeUndefined();
+    expect(sinDescomposicion.value.entidades[proceso.id]?.refinamientos).toBeUndefined();
     expect(sinDescomposicion.value.entidades[orden.id]).toBeUndefined();
     expect(sinDescomposicion.value.entidades[examinar.id]).toBeUndefined();
     expect(Object.values(sinDescomposicion.value.enlaces)).toHaveLength(0);
@@ -1216,8 +1248,7 @@ function assertDespliegueModo(modo: ModoDespliegueObjeto, nombres: string[]): vo
   expect(desplegado.ok).toBe(true);
   if (!desplegado.ok) return;
   expect(desplegado.value.modo).toBe(modo);
-  expect(desplegado.value.modelo.entidades[objeto.id]?.refinamiento).toEqual({
-    tipo: "despliegue",
+  expect(desplegado.value.modelo.entidades[objeto.id]?.refinamientos?.despliegue).toEqual({
     opdId: desplegado.value.opdId,
     modo,
   });

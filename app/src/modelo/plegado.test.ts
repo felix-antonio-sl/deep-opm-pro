@@ -77,9 +77,9 @@ describe("plegado parcial", () => {
   test("marca una parte plegada con refinamiento propio como anidable sin expandirla", () => {
     let modelo = modeloConObjetoDesplegadoParcial();
     const parteId = entidadPorNombre(modelo, "Vehiculo parte 1");
-    const opdParteId = modelo.entidades[parteId]?.refinamiento?.opdId;
+    const opdParteId = modelo.entidades[parteId]?.refinamientos?.despliegue?.opdId;
     expect(opdParteId).toBeUndefined();
-    const opdDesplieguePadreId = modelo.entidades[entidadPorNombre(modelo, "Vehiculo")]?.refinamiento?.opdId;
+    const opdDesplieguePadreId = modelo.entidades[entidadPorNombre(modelo, "Vehiculo")]?.refinamientos?.despliegue?.opdId;
     if (!opdDesplieguePadreId) throw new Error("Despliegue padre no encontrado");
 
     modelo = must(desplegarObjeto(modelo, opdDesplieguePadreId, parteId)).modelo;

@@ -42,7 +42,7 @@ describe("leyes de proyeccion JSON/render/refinement", () => {
     for (const caso of CASOS_THING_REFINAMIENTO) {
       const modelo = modeloRefinamientoThing(caso.thing, caso.refinamiento);
       const entidadId = entidadRefinadaId(modelo, caso);
-      const refinamiento = refinamientoDe(modelo, entidadId);
+      const refinamiento = refinamientoDe(modelo, entidadId, caso.refinamiento);
       const aparienciasContorno = snapshotAparienciasContorno(modelo, entidadId);
 
       const hidratado = roundTrip(modelo);
@@ -51,7 +51,11 @@ describe("leyes de proyeccion JSON/render/refinement", () => {
       expect(ids(hidratado.estados)).toEqual(ids(modelo.estados));
       expect(ids(hidratado.enlaces)).toEqual(ids(modelo.enlaces));
       expect(ids(hidratado.opds)).toEqual(ids(modelo.opds));
-      expect(hidratado.entidades[entidadId]?.refinamiento).toEqual(refinamiento);
+      expect(hidratado.entidades[entidadId]?.refinamientos?.[caso.refinamiento]).toEqual(
+        caso.refinamiento === "descomposicion"
+          ? { opdId: refinamiento.opdId }
+          : { opdId: refinamiento.opdId, ...(refinamiento.modo ? { modo: refinamiento.modo } : {}) },
+      );
       expect(hidratado.opds[refinamiento.opdId]?.padreId).toBe(modelo.opdRaizId);
       expect(snapshotAparienciasContorno(hidratado, entidadId)).toEqual(aparienciasContorno);
       assertSinReferenciasHuerfanas(hidratado);
@@ -107,14 +111,14 @@ describe("leyes de proyeccion JSON/render/refinement", () => {
       const modelo = roundTrip(modeloRefinamientoThing(caso.thing, caso.refinamiento));
       const entidadId = entidadRefinadaId(modelo, caso);
       const entidad = entidadRequerida(modelo, entidadId);
-      const refinamiento = refinamientoDe(modelo, entidadId);
+      const refinamiento = refinamientoDe(modelo, entidadId, caso.refinamiento);
       const opdHijo = opdRequerido(modelo, refinamiento.opdId);
       const contorno = aparienciaDeEntidad(modelo, opdHijo.id, entidadId);
       const internas = internasDelRefinamiento(modelo, opdHijo.id, entidadId);
       const cells = proyectarModeloAJointCells(modelo, opdHijo.id, null, null);
       const cellContorno = celdaEntidad(cells, entidadId);
 
-      expect(entidad.refinamiento?.tipo).toBe(caso.refinamiento);
+      expect(entidad.refinamientos?.[caso.refinamiento]).toBeDefined();
       expect(opdHijo.padreId).toBe(modelo.opdRaizId);
       // BUG-372334: descomposicion (inzoom) renderiza el padre como contorno
       // con partes embebidas (dentroDe=true). Despliegue (unfold) renderiza el
@@ -153,6 +157,29 @@ describe("leyes de proyeccion JSON/render/refinement", () => {
     }
   });
 
+  test("law-refinement-thing-matrix admite descomposicion + despliegue simultaneos (ortogonalidad ronda 15.2)", () => {
+    let modelo = crearModelo("Dual proceso");
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 220, y: 120 }, "Procesar"));
+    const procesoId = entidadPorNombre(modelo, "Procesar").id;
+    const inzoom = must(descomponerProceso(modelo, modelo.opdRaizId, procesoId));
+    modelo = inzoom.modelo;
+    const unfold = must(desplegarObjeto(modelo, modelo.opdRaizId, procesoId, "agregacion"));
+    modelo = unfold.modelo;
+
+    const proceso = modelo.entidades[procesoId];
+    expect(proceso?.refinamientos?.descomposicion?.opdId).toBe(inzoom.opdId);
+    expect(proceso?.refinamientos?.despliegue?.opdId).toBe(unfold.opdId);
+    expect(inzoom.opdId).not.toBe(unfold.opdId);
+    // Ambos OPDs hijos cuelgan del raiz: el arbol de refinamiento sigue siendo arbol (V-220/V-221).
+    expect(modelo.opds[inzoom.opdId]?.padreId).toBe(modelo.opdRaizId);
+    expect(modelo.opds[unfold.opdId]?.padreId).toBe(modelo.opdRaizId);
+    // Round-trip preserva ambos slots.
+    const hidratado = roundTrip(modelo);
+    expect(hidratado.entidades[procesoId]?.refinamientos?.descomposicion?.opdId).toBe(inzoom.opdId);
+    expect(hidratado.entidades[procesoId]?.refinamientos?.despliegue?.opdId).toBe(unfold.opdId);
+    assertSinReferenciasHuerfanas(hidratado);
+  });
+
   test("law-refinement-removal remueve descomposicion de proceso sin huerfanos", () => {
     let modelo = modeloRefinamientoThing("proceso", "descomposicion");
     const procesoId = entidadRefinadaId(modelo, { thing: "proceso", refinamiento: "descomposicion" });
@@ -165,7 +192,7 @@ describe("leyes de proyeccion JSON/render/refinement", () => {
     const removido = must(quitarDescomposicionProceso(modelo, procesoId));
 
     expect(removido.opds[opdHijoId]).toBeUndefined();
-    expect(removido.entidades[procesoId]?.refinamiento).toBeUndefined();
+    expect(removido.entidades[procesoId]?.refinamientos).toBeUndefined();
     assertIdsAusentes(removido.opds, removibles.opdIds);
     assertIdsAusentes(removido.entidades, removibles.entidadIds);
     assertIdsAusentes(removido.estados, removibles.estadoIds);
@@ -185,7 +212,7 @@ describe("leyes de proyeccion JSON/render/refinement", () => {
     const removido = must(quitarDespliegueObjeto(modelo, objetoId));
 
     expect(removido.opds[opdHijoId]).toBeUndefined();
-    expect(removido.entidades[objetoId]?.refinamiento).toBeUndefined();
+    expect(removido.entidades[objetoId]?.refinamientos).toBeUndefined();
     assertIdsAusentes(removido.opds, removibles.opdIds);
     assertIdsAusentes(removido.entidades, removibles.entidadIds);
     assertIdsAusentes(removido.estados, removibles.estadoIds);
@@ -251,15 +278,19 @@ function assertSinReferenciasHuerfanas(modelo: Modelo): void {
     expect(extremoExiste(modelo, enlace.destinoId)).toBe(true);
     expect(enlaceVisible(modelo, enlace.id)).toBe(true);
     if (enlace.derivado?.tipo === "enlace-externo-refinamiento") {
-      expect(modelo.entidades[enlace.derivado.refinamientoId]?.refinamiento).toBeDefined();
+      expect(modelo.entidades[enlace.derivado.refinamientoId]?.refinamientos).toBeDefined();
       expect(modelo.enlaces[enlace.derivado.enlacePadreId]).toBeDefined();
     }
   }
   for (const entidad of Object.values(modelo.entidades)) {
-    if (!entidad.refinamiento) continue;
-    const opd = modelo.opds[entidad.refinamiento.opdId];
-    expect(opd).toBeDefined();
-    expect(opd ? Object.values(opd.apariencias).some((apariencia) => apariencia.entidadId === entidad.id) : false).toBe(true);
+    if (!entidad.refinamientos) continue;
+    for (const tipo of ["descomposicion", "despliegue"] as const) {
+      const slot = entidad.refinamientos[tipo];
+      if (!slot) continue;
+      const opd = modelo.opds[slot.opdId];
+      expect(opd).toBeDefined();
+      expect(opd ? Object.values(opd.apariencias).some((apariencia) => apariencia.entidadId === entidad.id) : false).toBe(true);
+    }
   }
 }
 
@@ -427,10 +458,23 @@ function opdRequerido(modelo: Modelo, opdId: Id): Modelo["opds"][Id] {
   return opd;
 }
 
-function refinamientoDe(modelo: Modelo, entidadId: Id): NonNullable<Entidad["refinamiento"]> {
-  const refinamiento = modelo.entidades[entidadId]?.refinamiento;
-  if (!refinamiento) throw new Error(`Refinamiento no encontrado: ${entidadId}`);
-  return refinamiento;
+function refinamientoDe(
+  modelo: Modelo,
+  entidadId: Id,
+  tipoEsperado?: TipoRefinamiento,
+): { tipo: TipoRefinamiento; opdId: Id; modo?: import("../modelo/tipos").ModoDespliegueObjeto } {
+  const entidad = modelo.entidades[entidadId];
+  if (!entidad?.refinamientos) throw new Error(`Refinamiento no encontrado: ${entidadId}`);
+  if (tipoEsperado) {
+    const slot = entidad.refinamientos[tipoEsperado];
+    if (!slot) throw new Error(`Refinamiento ${tipoEsperado} no encontrado: ${entidadId}`);
+    return { tipo: tipoEsperado, ...slot };
+  }
+  for (const tipo of ["descomposicion", "despliegue"] as const) {
+    const slot = entidad.refinamientos[tipo];
+    if (slot) return { tipo, ...slot };
+  }
+  throw new Error(`Refinamiento no encontrado: ${entidadId}`);
 }
 
 function withApariencia(modelo: Modelo, opdId: Id, aparienciaId: Id, patch: Partial<Apariencia>): Modelo {

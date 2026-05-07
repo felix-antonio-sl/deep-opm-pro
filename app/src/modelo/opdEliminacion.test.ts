@@ -40,7 +40,7 @@ describe("eliminacion segura de OPDs hoja", () => {
     expect(eliminado.value.entidadRefinadaId).toBe(procesoId);
     expect(eliminado.value.opdActivoSugerido).toBe(modelo.opdRaizId);
     expect(eliminado.value.modelo.opds[opdHijoId]).toBeUndefined();
-    expect(eliminado.value.modelo.entidades[procesoId]?.refinamiento).toBeUndefined();
+    expect(eliminado.value.modelo.entidades[procesoId]?.refinamientos).toBeUndefined();
     expect(eliminado.value.modelo.entidades[externoId]).toBeDefined();
     expect(eliminado.value.modelo.entidades[internoId]).toBeUndefined();
     assertSinReferenciasHuerfanas(eliminado.value.modelo);
