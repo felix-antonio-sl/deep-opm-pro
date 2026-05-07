@@ -10,10 +10,14 @@ import { oracionEnlaceConRuta, transicionesEstado, transicionesEstadoInteractivo
 import {
   hintsRefinamiento,
   oracionRefinamiento,
+  oracionesRefinamiento,
   refsRefinamiento,
   emitirDespliegueOcurren,
   emitirEspecializacion,
 } from "./generadores/refinamiento";
+import { obtenerRefinamiento, refinamientosDe } from "../modelo/refinamientos";
+import { modoPlegadoApariencia } from "../modelo/plegado";
+import type { TipoRefinamiento } from "../modelo/tipos";
 import {
   agregarLinea,
   hintEntidad,
@@ -44,8 +48,9 @@ export function generarOpl(modelo: Modelo, opdId: Id = modelo.opdRaizId): string
     const estados = entidad.tipo === "objeto" ? estadosDeEntidad(modelo, entidad.id) : [];
     if (estados.some((estado) => !estado.suprimido)) lineas.push(oracionEstados(entidad, estados));
     for (const linea of oracionesUnidadDescripcionEstados(entidad, estados)) lineas.push(linea);
-    const refinamiento = oracionRefinamiento(modelo, apariencia, entidad);
-    if (refinamiento) lineas.push(refinamiento);
+    for (const oracion of oracionesRefinamiento(modelo, apariencia, entidad)) {
+      lineas.push(oracion);
+    }
   }
 
   const transiciones = transicionesEstado(modelo, opd);
@@ -85,8 +90,27 @@ export function generarOplInteractivo(modelo: Modelo, opdId: Id = modelo.opdRaiz
     for (const linea of oracionesUnidadDescripcionEstados(entidad, estados)) {
       agregarLinea(lineas, linea, [refEntidad(entidad.id), ...estados.map((estado) => refEstado(estado.id))], [hintEntidad(entidad), ...estados.map(hintEstado)]);
     }
-    const refinamiento = oracionRefinamiento(modelo, apariencia, entidad);
-    if (refinamiento) agregarLinea(lineas, refinamiento, refsRefinamiento(modelo, apariencia, entidad), hintsRefinamiento(modelo, apariencia, entidad));
+    // Si la apariencia está plegada parcialmente, una sola oración cubre la
+    // semántica de plegado; en caso contrario se emite una oración por slot
+    // de refinamiento presente.
+    if (modoPlegadoApariencia(apariencia) === "parcial") {
+      const refinamiento = oracionRefinamiento(modelo, apariencia, entidad);
+      if (refinamiento) agregarLinea(lineas, refinamiento, refsRefinamiento(modelo, apariencia, entidad), hintsRefinamiento(modelo, apariencia, entidad));
+    } else {
+      for (const slot of refinamientosDe(entidad)) {
+        const tipoSlot: TipoRefinamiento = slot.tipo;
+        if (!obtenerRefinamiento(entidad, tipoSlot)) continue;
+        const refinamiento = oracionRefinamiento(modelo, apariencia, entidad, tipoSlot);
+        if (refinamiento) {
+          agregarLinea(
+            lineas,
+            refinamiento,
+            refsRefinamiento(modelo, apariencia, entidad, tipoSlot),
+            hintsRefinamiento(modelo, apariencia, entidad, tipoSlot),
+          );
+        }
+      }
+    }
   }
 
   const transiciones = transicionesEstadoInteractivo(modelo, opd);

@@ -1,5 +1,6 @@
 // [JOYAS §1-3] Chrome UI consume tokens centralizados; canvas semántico invariante.
-import type { Entidad, Id, Modelo, Opd } from "../../modelo/tipos";
+import { refinaA } from "../../modelo/refinamientos";
+import type { Entidad, Id, Modelo, Opd, TipoRefinamiento } from "../../modelo/tipos";
 import { tokens } from "../tokens";
 
 const deleteIconUrl = new URL("../../../../assets/svg/delete.svg", import.meta.url).href;
@@ -13,13 +14,18 @@ const processDashedListLogicalUrl = new URL("../../../../assets/svg/list-logical
  * SSOT: [V-209] variantes visuales por esencia, [Glos 3.55] Object, [Glos 3.69] Process.
  * Assets: assets/svg/list-logical/{object,objectDashed,process,processDashed}.svg [JOYAS §2].
  */
-function refinadorDeOpd(modelo: Modelo, opdId: Id): Entidad | undefined {
-  return Object.values(modelo.entidades).find((entidad) => entidad.refinamiento?.opdId === opdId);
+function refinadorDeOpd(modelo: Modelo, opdId: Id): { entidad: Entidad; tipo: TipoRefinamiento } | undefined {
+  for (const entidad of Object.values(modelo.entidades)) {
+    const ref = refinaA(entidad, opdId);
+    if (ref) return { entidad, tipo: ref.tipo };
+  }
+  return undefined;
 }
 
 function iconoListLogicalOpd(modelo: Modelo, opdId: Id): { src: string; etiqueta: string } | null {
-  const refinador = refinadorDeOpd(modelo, opdId);
-  if (!refinador) return null;
+  const ref = refinadorDeOpd(modelo, opdId);
+  if (!ref) return null;
+  const refinador = ref.entidad;
   const dashed = refinador.esencia === "informacional";
   if (refinador.tipo === "objeto") {
     return { src: dashed ? objectDashedListLogicalUrl : objectListLogicalUrl, etiqueta: dashed ? "Objeto informacional" : "Objeto físico" };
@@ -161,10 +167,10 @@ export function NodoOpd(props: NodoOpdProps) {
 }
 
 export function nombreNodo(modelo: Modelo, opd: Opd): string {
-  const refinador = Object.values(modelo.entidades).find((entidad) => entidad.refinamiento?.opdId === opd.id);
-  if (!refinador) return opd.nombre;
-  const sufijo = refinador.refinamiento?.tipo === "despliegue" ? "desplegado" : "descompuesto";
-  return `${codigoOpd(opd.nombre)}: ${refinador.nombre} ${sufijo}`;
+  const ref = refinadorDeOpd(modelo, opd.id);
+  if (!ref) return opd.nombre;
+  const sufijo = ref.tipo === "despliegue" ? "desplegado" : "descompuesto";
+  return `${codigoOpd(opd.nombre)}: ${ref.entidad.nombre} ${sufijo}`;
 }
 
 export function codigoOpd(nombre: string): string {

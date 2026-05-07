@@ -1,5 +1,6 @@
 // [JOYAS §1-3] Chrome UI consume tokens centralizados; canvas semántico invariante.
 import { useState } from "preact/hooks";
+import { obtenerRefinamiento } from "../modelo/refinamientos";
 import type { Apariencia, Entidad, Id, Modelo, Opd } from "../modelo/tipos";
 import { useOpmStore } from "../store";
 import { tokens } from "./tokens";
@@ -137,7 +138,7 @@ function contextoTimeline(modelo: Modelo, opdId: Id): TimelineContext | null {
   const padre = modelo.opds[opd.padreId];
   if (!padre) return null;
   const refinador = Object.values(modelo.entidades).find(
-    (entidad) => entidad.tipo === "proceso" && entidad.refinamiento?.tipo === "descomposicion" && entidad.refinamiento.opdId === opd.id,
+    (entidad) => entidad.tipo === "proceso" && obtenerRefinamiento(entidad, "descomposicion")?.opdId === opd.id,
   );
   if (!refinador) return null;
   if (!Object.values(padre.apariencias).some((apariencia) => apariencia.entidadId === refinador.id)) return null;

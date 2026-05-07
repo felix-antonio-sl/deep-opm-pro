@@ -1,4 +1,5 @@
 import type { dia } from "jointjs";
+import { obtenerRefinamiento } from "../../../modelo/refinamientos";
 import type { Modelo, ModoPlegado, TipoEntidad } from "../../../modelo/tipos";
 import type { OpmJointMetadata } from "../proyeccion";
 import {
@@ -246,7 +247,7 @@ function esSubprocesoInternoTimeline(modelo: Modelo, meta: OpmJointMetadata): me
   if (!opd) return false;
   const contorno = Object.values(opd.apariencias).find((apariencia) => {
     const refinable = modelo.entidades[apariencia.entidadId];
-    return refinable?.tipo === "proceso" && refinable.refinamiento?.tipo === "descomposicion" && refinable.refinamiento.opdId === opd.id;
+    return refinable?.tipo === "proceso" && obtenerRefinamiento(refinable, "descomposicion")?.opdId === opd.id;
   });
   if (!contorno || contorno.entidadId === meta.entidadId) return false;
   const apariencia = opd.apariencias[meta.aparienciaId];

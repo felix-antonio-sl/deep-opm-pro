@@ -8,6 +8,7 @@
 
 import { lazy, Suspense } from "preact/compat";
 import { useEffect, useState } from "preact/hooks";
+import { obtenerRefinamiento } from "../modelo/refinamientos";
 import type { Id, Modelo } from "../modelo/tipos";
 import { JointCanvas } from "../render/jointjs/JointCanvas";
 import { store, useOpmStore } from "../store";
@@ -250,7 +251,7 @@ function tieneTimelineDisponible(modelo: Modelo, opdId: Id): boolean {
   const padre = modelo.opds[opd.padreId];
   if (!padre) return false;
   const refinador = Object.values(modelo.entidades).find(
-    (entidad) => entidad.tipo === "proceso" && entidad.refinamiento?.tipo === "descomposicion" && entidad.refinamiento.opdId === opd.id,
+    (entidad) => entidad.tipo === "proceso" && obtenerRefinamiento(entidad, "descomposicion")?.opdId === opd.id,
   );
   if (!refinador) return false;
   return Object.values(opd.apariencias).some((apariencia) => modelo.entidades[apariencia.entidadId]?.tipo === "proceso");

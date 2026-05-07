@@ -4,6 +4,7 @@ import type { Aviso } from "../modelo/validaciones";
 import type { Apariencia, Id, Modelo, Opd, Pestana, PestanaId } from "../modelo/tipos";
 import { construirDescriptorMapa, type CriterioResaltado } from "../render/jointjs/mapaSistema";
 import { dentroDeApariencia } from "../modelo/layout";
+import { obtenerRefinamiento } from "../modelo/refinamientos";
 import { sincronizarAbanicos } from "../modelo/abanicos";
 import { cambiarAfiliacion, cambiarEsencia, crearEnlace, crearModelo, crearObjeto, crearProceso } from "../modelo/operaciones";
 import { fixtureTodos, type FixtureDemo } from "../modelo/fixtures";
@@ -158,7 +159,7 @@ export function validarSubprocesoTimeline(
   }
   const contorno = Object.values(opd.apariencias).find((apariencia) => {
     const entidad = modelo.entidades[apariencia.entidadId];
-    return entidad?.tipo === "proceso" && entidad.refinamiento?.tipo === "descomposicion" && entidad.refinamiento.opdId === opdId;
+    return entidad?.tipo === "proceso" && obtenerRefinamiento(entidad, "descomposicion")?.opdId === opdId;
   });
   if (!contorno) return { ok: false, error: "Timeline requiere una descomposición de proceso activa" };
   const apariencia = opd.apariencias[aparienciaId];

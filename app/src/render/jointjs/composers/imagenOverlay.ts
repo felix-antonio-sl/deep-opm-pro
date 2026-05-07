@@ -1,5 +1,6 @@
 import { CANON } from "../../../modelo/constantes";
 import { estadosDeEntidad } from "../../../modelo/operaciones";
+import { tieneRefinamiento } from "../../../modelo/refinamientos";
 import type { Apariencia, Entidad, Id, Modelo, ModoImagenEntidad } from "../../../modelo/tipos";
 import type { JointCellJson } from "../proyeccionTipos";
 
@@ -31,7 +32,7 @@ export function componerImagenOverlay(
   entidad: Entidad,
   modoGlobal: ModoImagenEntidad | null = null,
 ): JointCellJson | null {
-  if (entidad.tipo !== "objeto" || !entidad.imagen || entidad.refinamiento) return null;
+  if (entidad.tipo !== "objeto" || !entidad.imagen || tieneRefinamiento(entidad)) return null;
   const modo = modoGlobal ?? entidad.imagen.modo;
   if (modo === "texto") return null;
   const estadosVisibles = estadosDeEntidad(modelo, entidad.id).some((estado) => !estado.suprimido);

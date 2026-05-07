@@ -1,4 +1,5 @@
 import { eliminarOpdHoja } from "../../modelo/opdEliminacion";
+import { obtenerRefinamiento } from "../../modelo/refinamientos";
 import {
   descomponerProceso,
   desplegarObjeto,
@@ -134,7 +135,7 @@ export function accionesOpd(set: SetStore, get: GetStore): Partial<ModeloSlice> 
         return;
       }
       const entidad = modelo.entidades[seleccionId];
-      if (!entidad || entidad.refinamiento?.tipo !== "descomposicion") {
+      if (!entidad || !obtenerRefinamiento(entidad, "descomposicion")) {
         set({ mensaje: "Selecciona una cosa descompuesta" });
         return;
       }
@@ -160,7 +161,7 @@ export function accionesOpd(set: SetStore, get: GetStore): Partial<ModeloSlice> 
         return;
       }
       const entidad = modelo.entidades[seleccionId];
-      if (!entidad || entidad.refinamiento?.tipo !== "despliegue") {
+      if (!entidad || !obtenerRefinamiento(entidad, "despliegue")) {
         set({ mensaje: "Selecciona una cosa desplegada" });
         return;
       }

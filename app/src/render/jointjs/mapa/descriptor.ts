@@ -1,5 +1,6 @@
 import type { Id, Modelo, Opd } from "../../../modelo/tipos";
 import { ordenarHermanos } from "../../../modelo/opdReorden";
+import { refinaA } from "../../../modelo/refinamientos";
 import {
   NODE_GAP_X,
   NODE_GAP_Y,
@@ -124,24 +125,21 @@ export function construirDescriptorMapa(modelo: Modelo): DescriptorMapa {
 }
 
 function tieneRefinamientoTipo(modelo: Modelo, opd: Opd): NodoMapa["tipoRefinamiento"] {
-  const refinador = Object.values(modelo.entidades).find(
-    (entidad) => entidad.refinamiento?.opdId === opd.id,
-  );
-  if (!refinador?.refinamiento) return "raiz";
-  return refinador.refinamiento.tipo === "despliegue"
-    ? "desplegado"
-    : "descompuesto";
+  for (const entidad of Object.values(modelo.entidades)) {
+    const ref = refinaA(entidad, opd.id);
+    if (!ref) continue;
+    return ref.tipo === "despliegue" ? "desplegado" : "descompuesto";
+  }
+  return "raiz";
 }
 
 function nombreVisible(modelo: Modelo, opd: Opd): string {
-  const refinador = Object.values(modelo.entidades).find(
-    (entidad) => entidad.refinamiento?.opdId === opd.id,
-  );
-  if (refinador) {
-    const sufijo =
-      refinador.refinamiento?.tipo === "despliegue" ? "desplegado" : "descompuesto";
+  for (const entidad of Object.values(modelo.entidades)) {
+    const ref = refinaA(entidad, opd.id);
+    if (!ref) continue;
+    const sufijo = ref.tipo === "despliegue" ? "desplegado" : "descompuesto";
     const codigo = /^SD(?:\d+(?:\.\d+)*)?/.exec(opd.nombre.trim())?.[0] ?? opd.nombre;
-    return `${codigo}: ${refinador.nombre} ${sufijo}`;
+    return `${codigo}: ${entidad.nombre} ${sufijo}`;
   }
   return opd.nombre;
 }

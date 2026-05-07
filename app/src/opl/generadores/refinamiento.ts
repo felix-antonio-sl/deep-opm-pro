@@ -1,7 +1,8 @@
 import { entidadIdDeExtremo, extremoApuntaAEntidad } from "../../modelo/extremos";
 import { agruparSubprocesosParalelos } from "../../modelo/operaciones/refinamiento";
 import { modoPlegadoApariencia, partesDePlegado } from "../../modelo/plegado";
-import type { Apariencia, Enlace, Entidad, Id, Modelo, ModoDespliegueObjeto, Opd, TipoEnlace } from "../../modelo/tipos";
+import { obtenerRefinamiento, refinamientosDe, tieneRefinamiento } from "../../modelo/refinamientos";
+import type { Apariencia, Enlace, Entidad, Id, Modelo, ModoDespliegueObjeto, Opd, TipoEnlace, TipoRefinamiento } from "../../modelo/tipos";
 import { crearLineaOplInteractiva, type OplLineaInteractiva, type OplReferencia, type OplTokenHint } from "../interaccion";
 import { oracionPlegadoParcial } from "./plegado";
 import {
@@ -21,24 +22,51 @@ import {
  * Consumidores: `opl/generar.ts` y helpers interactivos HU-50.
  */
 
-export function oracionRefinamiento(modelo: Modelo, apariencia: Apariencia, entidad: Entidad): string | null {
-  if (!entidad.refinamiento) return null;
+export function oracionRefinamiento(modelo: Modelo, apariencia: Apariencia, entidad: Entidad, tipo?: TipoRefinamiento): string | null {
+  if (!tieneRefinamiento(entidad)) return null;
   const parcial = oracionPlegadoParcial(modelo, apariencia, entidad);
-  if (parcial) return parcial;
-  const opdHijo = modelo.opds[entidad.refinamiento.opdId];
-  if (!opdHijo) return null;
-  const aparienciasInternas = aparienciasInternasDeRefinamiento(modelo, opdHijo, entidad)
-    .sort((a, b) => compararOrdenTemporal(a, b));
-  const internos = aparienciasInternas
-    .flatMap((aparienciaInterna) => {
-      const interna = modelo.entidades[aparienciaInterna.entidadId];
-      return interna ? [nombreOpl(interna)] : [];
-    });
-  if (entidad.refinamiento.tipo === "despliegue") {
-    return oracionDespliegue(modelo, entidad, opdHijo, internos);
+  if (parcial && !tipo) return parcial;
+  // Si no se especifica tipo y existe un único refinamiento, ese es el blanco;
+  // si hay dos, devolvemos la primera oración no-nula (descomposicion primero
+  // por convención SSOT comportamiento → estructura).
+  const tiposPrueba: TipoRefinamiento[] = tipo
+    ? [tipo]
+    : refinamientosDe(entidad).map((slot) => slot.tipo);
+  for (const tipoActual of tiposPrueba) {
+    const slot = obtenerRefinamiento(entidad, tipoActual);
+    if (!slot) continue;
+    const opdHijo = modelo.opds[slot.opdId];
+    if (!opdHijo) continue;
+    const aparienciasInternas = aparienciasInternasDeRefinamiento(modelo, opdHijo, entidad)
+      .sort((a, b) => compararOrdenTemporal(a, b));
+    const internos = aparienciasInternas
+      .flatMap((aparienciaInterna) => {
+        const interna = modelo.entidades[aparienciaInterna.entidadId];
+        return interna ? [nombreOpl(interna)] : [];
+      });
+    if (tipoActual === "despliegue") {
+      return oracionDespliegue(modelo, entidad, opdHijo, internos);
+    }
+    return oracionDescomposicion(modelo, entidad, opdHijo, aparienciasInternas, internos);
   }
+  return null;
+}
 
-  return oracionDescomposicion(modelo, entidad, opdHijo, aparienciasInternas, internos);
+/**
+ * Emite todas las oraciones de refinamiento que aplican a la entidad. Si la
+ * entidad tiene descomposicion + despliegue (ronda 15.2), produce ambas
+ * oraciones en orden Comportamiento → Estructura.
+ */
+export function oracionesRefinamiento(modelo: Modelo, apariencia: Apariencia, entidad: Entidad): string[] {
+  const parcial = oracionPlegadoParcial(modelo, apariencia, entidad);
+  if (parcial) return [parcial];
+  const oraciones: string[] = [];
+  for (const tipo of ["descomposicion", "despliegue"] as const) {
+    if (!obtenerRefinamiento(entidad, tipo)) continue;
+    const oracion = oracionRefinamiento(modelo, apariencia, entidad, tipo);
+    if (oracion) oraciones.push(oracion);
+  }
+  return oraciones;
 }
 
 export function oracionDespliegue(modelo: Modelo, entidad: Entidad, opdHijo: Opd, internos: string[]): string {
@@ -79,7 +107,7 @@ export function oracionParalelo(grupoSubprocesos: Entidad[]): string {
 }
 
 export function modoDespliegue(modelo: Modelo, entidad: Entidad, opdHijo: Opd): ModoDespliegueObjeto {
-  const modoPersistido = entidad.refinamiento?.tipo === "despliegue" ? entidad.refinamiento.modo : undefined;
+  const modoPersistido = obtenerRefinamiento(entidad, "despliegue")?.modo;
   if (modoPersistido) return modoPersistido;
   const tipos = Object.values(opdHijo.enlaces)
     .flatMap((aparienciaEnlace) => {
@@ -122,13 +150,17 @@ export function compararOrdenTemporal(a: Apariencia, b: Apariencia): number {
   return a.y - b.y || a.x - b.x || a.id.localeCompare(b.id);
 }
 
-export function refsRefinamiento(modelo: Modelo, apariencia: Apariencia, entidad: Entidad): OplReferencia[] {
+export function refsRefinamiento(modelo: Modelo, apariencia: Apariencia, entidad: Entidad, tipo?: TipoRefinamiento): OplReferencia[] {
   const refs = refsEntidad(entidad.id);
-  if (!entidad.refinamiento) return refs;
-  const opdHijo = modelo.opds[entidad.refinamiento.opdId];
-  if (!opdHijo) return refs;
-  for (const interna of aparienciasInternasDeRefinamiento(modelo, opdHijo, entidad)) {
-    refs.push(refEntidad(interna.entidadId));
+  if (!tieneRefinamiento(entidad)) return refs;
+  const tipos: TipoRefinamiento[] = tipo ? [tipo] : refinamientosDe(entidad).map((slot) => slot.tipo);
+  for (const tipoActual of tipos) {
+    const opdId = obtenerRefinamiento(entidad, tipoActual)?.opdId;
+    const opdHijo = opdId ? modelo.opds[opdId] : undefined;
+    if (!opdHijo) continue;
+    for (const interna of aparienciasInternasDeRefinamiento(modelo, opdHijo, entidad)) {
+      refs.push(refEntidad(interna.entidadId));
+    }
   }
   for (const enlace of Object.values(modelo.enlaces)) {
     const origen = entidadIdDeExtremo(modelo, enlace.origenId);
@@ -141,7 +173,7 @@ export function refsRefinamiento(modelo: Modelo, apariencia: Apariencia, entidad
   return refs;
 }
 
-export function hintsRefinamiento(modelo: Modelo, apariencia: Apariencia, entidad: Entidad): OplTokenHint[] {
+export function hintsRefinamiento(modelo: Modelo, apariencia: Apariencia, entidad: Entidad, tipo?: TipoRefinamiento): OplTokenHint[] {
   const hints: OplTokenHint[] = [hintEntidad(entidad)];
   if (modoPlegadoApariencia(apariencia) === "parcial") {
     for (const parte of partesDePlegado(modelo, entidad.id)) {
@@ -150,8 +182,13 @@ export function hintsRefinamiento(modelo: Modelo, apariencia: Apariencia, entida
     }
     return hints;
   }
-  if (!entidad.refinamiento) return hints;
-  const opdHijo = modelo.opds[entidad.refinamiento.opdId];
+  if (!tieneRefinamiento(entidad)) return hints;
+  // Si no se especifica tipo, escoge en orden Comportamiento → Estructura.
+  const tipoActual = tipo
+    ?? (obtenerRefinamiento(entidad, "descomposicion") ? "descomposicion" : "despliegue");
+  const slot = obtenerRefinamiento(entidad, tipoActual);
+  if (!slot) return hints;
+  const opdHijo = modelo.opds[slot.opdId];
   if (!opdHijo) return hints;
 
   const enlaceHijoPorEntidadId = new Map<Id, Enlace>();
@@ -166,7 +203,7 @@ export function hintsRefinamiento(modelo: Modelo, apariencia: Apariencia, entida
     }
   }
 
-  if (entidad.refinamiento.tipo === "despliegue") {
+  if (tipoActual === "despliegue") {
     const modo = modoDespliegue(modelo, entidad, opdHijo);
     const verboRefinamiento = verboDespliegue(modo);
     if (verboRefinamiento) {

@@ -3,6 +3,7 @@ import { useEffect, useState } from "preact/hooks";
 import inzoomIcon from "../../../../assets/svg/inzoom.svg";
 import unfoldIcon from "../../../../assets/svg/unfold.svg";
 import type { FilaPlegadoParcial } from "../../modelo/plegado";
+import { obtenerRefinamiento } from "../../modelo/refinamientos";
 import type { Enlace, Entidad, Id, Modelo, ModoDespliegueObjeto, OrdenPartesPlegado } from "../../modelo/tipos";
 import { contextoReanclaje, type ContextoReanclaje } from "../inspectorEnlace/SeccionReanclaje";
 import { inspectorStyles as style } from "../inspectorStyles";
@@ -69,20 +70,19 @@ export function SeccionRefinamiento(props: Props) {
 }
 
 function RefinamientoThing(props: Props) {
-  const descompuesta = props.entidad.refinamiento?.tipo === "descomposicion";
-  const desplegada = props.entidad.refinamiento?.tipo === "despliegue";
-  const sinRefinamiento = !props.entidad.refinamiento;
+  // Ronda 15.2: descomposicion y despliegue son ortogonales. Cada slot
+  // muestra sus controles independientemente del otro.
+  const descompuesta = obtenerRefinamiento(props.entidad, "descomposicion") !== undefined;
+  const desplegada = obtenerRefinamiento(props.entidad, "despliegue") !== undefined;
   return (
     <>
-      {sinRefinamiento || descompuesta ? (
-        <button type="button" style={refinamientoStyles.iconButton} onClick={props.onDescomponer} title="Crear o abrir el OPD hijo de descomposición">
-          <img src={inzoomIcon} alt="" aria-hidden="true" style={refinamientoStyles.icon} />
-          {descompuesta ? "Abrir descomposición" : "Descomponer"}
-        </button>
-      ) : null}
+      <button type="button" style={refinamientoStyles.iconButton} onClick={props.onDescomponer} title="Crear o abrir el OPD hijo de descomposición">
+        <img src={inzoomIcon} alt="" aria-hidden="true" style={refinamientoStyles.icon} />
+        {descompuesta ? "Abrir descomposición" : "Descomponer"}
+      </button>
       {descompuesta ? <button type="button" style={style.secondaryButton} onClick={props.onQuitarDescomposicion} title="Eliminar el OPD hijo de descomposición">Quitar descomposición</button> : null}
       {props.entidad.tipo === "proceso" && descompuesta ? <ReasignacionExternos modelo={props.modelo} entidad={props.entidad} onReasignar={props.onReasignarEnlaceExterno} /> : null}
-      {sinRefinamiento || desplegada ? <RefinamientoDespliegue {...props} /> : null}
+      <RefinamientoDespliegue {...props} desplegada={desplegada} />
       {props.entidad.tipo === "proceso" ? (
         <button type="button" style={props.autoInvocacion ? style.secondaryButton : style.primaryButton} onClick={props.onCrearAutoInvocacion} disabled={!!props.autoInvocacion} title={props.autoInvocacion ? "El proceso ya tiene auto-invocación en este OPD" : "Crear auto-invocación con demora de 1s"}>
           {props.autoInvocacion ? "Auto-invocación existente" : "Auto-invocación"}
@@ -93,7 +93,9 @@ function RefinamientoThing(props: Props) {
 }
 
 function ReasignacionExternos(props: { modelo: Modelo; entidad: Entidad; onReasignar: (opdId: Id, aparienciaEnlaceId: Id, nuevoSubprocesoId: Id) => void }) {
-  const opdId = props.entidad.refinamiento?.opdId;
+  // Ronda 15.2: la reasignación de enlaces externos derivados solo aplica a la
+  // descomposición (subprocesos internos), no al despliegue.
+  const opdId = obtenerRefinamiento(props.entidad, "descomposicion")?.opdId;
   const opd = opdId ? props.modelo.opds[opdId] : undefined;
   if (!opdId || !opd) return null;
   const rows = Object.values(opd.enlaces)
@@ -144,10 +146,10 @@ function ReasignacionExternoRow(props: { opdId: Id; enlace: Enlace; reanclaje: C
   );
 }
 
-function RefinamientoDespliegue(props: Props) {
+function RefinamientoDespliegue(props: Props & { desplegada: boolean }) {
   return (
     <>
-      {props.entidad.refinamiento?.tipo === "despliegue" ? (
+      {props.desplegada ? (
         <button type="button" style={refinamientoStyles.iconButton} onClick={() => props.onDesplegar()} title="Abrir el OPD hijo de despliegue">
           <img src={unfoldIcon} alt="" aria-hidden="true" style={refinamientoStyles.icon} />
           Mostrar despliegue
@@ -155,7 +157,7 @@ function RefinamientoDespliegue(props: Props) {
       ) : (
         <DesplegarComo onSelect={props.onDesplegar} />
       )}
-      {props.entidad.refinamiento?.tipo === "despliegue" ? <button type="button" style={style.secondaryButton} onClick={props.onQuitarDespliegue} title="Eliminar el OPD hijo de despliegue y sus refinadores locales">Quitar despliegue</button> : null}
+      {props.desplegada ? <button type="button" style={style.secondaryButton} onClick={props.onQuitarDespliegue} title="Eliminar el OPD hijo de despliegue y sus refinadores locales">Quitar despliegue</button> : null}
     </>
   );
 }
