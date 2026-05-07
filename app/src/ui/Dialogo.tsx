@@ -1,5 +1,7 @@
+// [JOYAS §1-3] Chrome UI consume tokens centralizados; canvas semántico invariante.
 import type { ComponentChildren, RefObject } from "preact";
 import { useLayoutEffect, useMemo, useRef } from "preact/hooks";
+import { tokens } from "./tokens";
 
 /**
  * Diálogo modal accesible con captura Esc obligatoria [HU-30.037, Met §6]
@@ -147,23 +149,23 @@ const style = {
     // El ancho concreto lo fija `ANCHO_POR_TAMANO[size]`; default "md" preserva
     // el comportamiento histórico (`min(460px, calc(100vw - 32px))`).
     padding: "18px",
-    border: "1px solid #c8d2df",
-    borderRadius: "6px",
-    background: "#ffffff",
-    boxShadow: "0 18px 42px rgba(16, 24, 40, 0.24)",
-    color: "#1f2937",
-    fontFamily: "Arial, sans-serif",
+    border: `1px solid ${tokens.colors.bordeControl}`,
+    borderRadius: tokens.radii.md,
+    background: tokens.colors.fondoChrome,
+    boxShadow: tokens.shadows.flotante,
+    color: tokens.colors.textoPrimario,
+    fontFamily: tokens.typography.familyChrome,
     outline: "none",
   },
   title: {
     margin: "0 0 10px",
-    color: "#1f2937",
+    color: tokens.colors.textoPrimario,
     fontSize: "16px",
     fontWeight: 700,
     lineHeight: 1.3,
   },
   body: {
-    color: "#475467",
+    color: tokens.colors.textoSecundario,
     fontSize: "14px",
     fontWeight: 600,
     lineHeight: 1.45,
