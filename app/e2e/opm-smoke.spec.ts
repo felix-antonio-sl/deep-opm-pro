@@ -3748,3 +3748,100 @@ test("HU-SHARED-002: deshacer revierte creación de cosa con un solo Ctrl+Z (ato
 
   expect(pageErrors).toEqual([]);
 });
+// ─────────────────────────────────────────────────────────────────────────────
+// Ronda 12.1 L2 — HU-30.037 cobertura Esc en diálogos legados.
+// El componente `Dialogo.tsx` ya captura Esc en fase de captura
+// (líneas 32-44, ronda 12). Estos smokes verifican que los diálogos
+// instanciados en MenuPrincipal (Versiones, Archivados, BuscarGlobal)
+// efectivamente cierran sin persistir el modelo cuando el operador presiona
+// Esc. Anclaje SSOT: [Met §6 etapas SD persistencia].
+// Bloque pegable al final de `app/e2e/opm-smoke.spec.ts` (sin tocar tests
+// previos). Requiere helpers `cerrarPantallaInicioSiVisible` y
+// `exportadoActual` ya presentes en el archivo.
+// ─────────────────────────────────────────────────────────────────────────────
+
+test("HU-30.037: Esc cancela DialogoArchivados sin persistir cambios al modelo", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await cerrarPantallaInicioSiVisible(page);
+  await page.getByRole("button", { name: "Demo" }).click();
+
+  const exportadoAntes = await exportadoActual(page);
+
+  await page.getByLabel("Menú principal").click();
+  const menu = page.getByRole("menu", { name: "Menú principal" });
+  await menu.getByRole("menuitem", { name: "Archivados", exact: true }).click();
+
+  const dialogo = page.getByRole("dialog", { name: "Modelos archivados" });
+  await expect(dialogo).toBeVisible();
+
+  await page.keyboard.press("Escape");
+  await expect(dialogo).toHaveCount(0);
+
+  const exportadoDespues = await exportadoActual(page);
+  expect(exportadoDespues).toEqual(exportadoAntes);
+
+  expect(pageErrors).toEqual([]);
+});
+
+test("HU-30.037: Esc cancela DialogoBuscarGlobal sin persistir cambios al modelo", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await cerrarPantallaInicioSiVisible(page);
+  await page.getByRole("button", { name: "Demo" }).click();
+
+  const exportadoAntes = await exportadoActual(page);
+
+  await page.keyboard.press("Control+Shift+F");
+  const dialogo = page.getByRole("dialog", { name: "Buscar global" });
+  await expect(dialogo).toBeVisible();
+
+  await dialogo.getByLabel("Buscar global").fill("Cafe");
+  await page.keyboard.press("Escape");
+  await expect(dialogo).toHaveCount(0);
+
+  const exportadoDespues = await exportadoActual(page);
+  expect(exportadoDespues).toEqual(exportadoAntes);
+
+  expect(pageErrors).toEqual([]);
+});
+
+test("HU-30.037: Esc cancela DialogoVersiones sin persistir cambios al modelo", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await cerrarPantallaInicioSiVisible(page);
+  await page.getByRole("button", { name: "Demo" }).click();
+
+  // Persistir el modelo: el diálogo de versiones requiere `modeloPersistidoId`.
+  await page.getByLabel("Menú principal").click();
+  await page.getByRole("menu", { name: "Menú principal" })
+    .getByRole("menuitem", { name: "Guardar", exact: true }).click();
+  const dialogoGuardar = page.getByRole("dialog", { name: "Guardar como" });
+  await expect(dialogoGuardar).toBeVisible();
+  await dialogoGuardar.getByLabel("Nombre del modelo").fill("HU-30.037 versiones");
+  await dialogoGuardar.getByRole("button", { name: "Guardar" }).click();
+  await expect(dialogoGuardar).toHaveCount(0);
+
+  const exportadoAntes = await exportadoActual(page);
+
+  await page.getByLabel("Menú principal").click();
+  await page.getByRole("menu", { name: "Menú principal" })
+    .getByRole("menuitem", { name: "Versiones del modelo", exact: true }).click();
+
+  const dialogo = page.getByRole("dialog", { name: /Versiones de "/ });
+  await expect(dialogo).toBeVisible();
+
+  await page.keyboard.press("Escape");
+  await expect(dialogo).toHaveCount(0);
+
+  const exportadoDespues = await exportadoActual(page);
+  expect(exportadoDespues).toEqual(exportadoAntes);
+
+  expect(pageErrors).toEqual([]);
+});
