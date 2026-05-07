@@ -25,6 +25,13 @@ export function ModalConfiguracionGrid({ abierto, config, onCerrar, onGuardar }:
       title="Cuadrícula"
       onCancel={onCerrar}
       size="sm"
+      // testId al elemento <section role="dialog"> para preservar el contrato
+      // de smokes existentes que hacen
+      // `getByTestId("modal-config-grid").getByRole("button", { name: "Guardar" })`.
+      // En el wrapper propio, este testid envolvia body + actions; con la
+      // migracion el body es un grid item y las actions son hermanas, asi
+      // que el testid sube al dialog completo.
+      testId="modal-config-grid"
       actions={(
         <>
           <button type="button" style={style.secondaryButton} onClick={onCerrar}>Cancelar</button>
@@ -32,7 +39,7 @@ export function ModalConfiguracionGrid({ abierto, config, onCerrar, onGuardar }:
         </>
       )}
     >
-      <div data-testid="modal-config-grid" style={style.body}>
+      <div style={style.body}>
         <label style={style.field}>
           <span style={style.label}>Paso</span>
           <input style={style.input} type="number" min={4} max={160} value={local.paso} onInput={(event) => actualizar({ paso: Number(event.currentTarget.value) })} />

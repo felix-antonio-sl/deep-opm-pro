@@ -48,6 +48,14 @@ interface DialogoProps {
   onCancel: () => void;
   initialFocusRef?: RefObject<HTMLElement>;
   size?: DialogoSize;
+  /**
+   * `data-testid` opcional aplicado al elemento `<section role="dialog">`.
+   * Permite que smokes existentes (p. ej. `08-mvp-alpha-residual.spec.ts`)
+   * sigan usando `getByTestId(...)` para alcanzar tanto el body como las
+   * acciones del dialogo. Sin este prop el testid solo cubre el subarbol
+   * que el cliente decida marcar.
+   */
+  testId?: string;
 }
 
 export function Dialogo(props: DialogoProps) {
@@ -105,6 +113,7 @@ export function Dialogo(props: DialogoProps) {
         aria-labelledby={titleId.current}
         tabIndex={-1}
         style={dialogStyle}
+        data-testid={props.testId}
       >
         <h2 id={titleId.current} style={style.title}>{props.title}</h2>
         <div style={style.body}>{props.children}</div>
