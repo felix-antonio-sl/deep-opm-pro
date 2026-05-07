@@ -1,8 +1,10 @@
+// [JOYAS §1-3] Chrome UI consume tokens centralizados; canvas semántico invariante.
 import { useEffect, useState } from "preact/hooks";
 import { precargarBitmap, registrarCacheImagen, validarUrlImagen } from "../modelo/imagenObjeto";
 import type { ImagenEntidad, ModoImagenEntidad } from "../modelo/tipos";
 import { useOpmStore } from "../store";
 import { Dialogo } from "./Dialogo";
+import { tokens } from "./tokens";
 
 const MODOS: Array<{ value: ModoImagenEntidad; label: string }> = [
   { value: "imagen-texto", label: "Imagen + texto" },
@@ -128,17 +130,17 @@ export function ModalImagenObjeto() {
 const style = {
   body: { display: "grid", gap: "10px", minWidth: "min(560px, calc(100vw - 80px))" },
   field: { display: "grid", gap: "6px" },
-  label: { color: "#475467", fontSize: "12px", fontWeight: 800 },
-  input: { height: "34px", padding: "0 10px", border: "1px solid #c8d2df", borderRadius: "4px", fontSize: "13px" },
-  inputError: { height: "34px", padding: "0 10px", border: "1px solid #d92d20", borderRadius: "4px", fontSize: "13px" },
+  label: { color: tokens.colors.textoSecundario, fontSize: "12px", fontWeight: 800 },
+  input: { height: "34px", padding: "0 10px", border: `1px solid ${tokens.colors.bordeControl}`, borderRadius: tokens.radii.sm, fontSize: "13px" },
+  inputError: { height: "34px", padding: "0 10px", border: `1px solid ${tokens.colors.errorBase}`, borderRadius: tokens.radii.sm, fontSize: "13px" },
   modos: { display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "8px" },
-  modo: { display: "flex", alignItems: "center", justifyContent: "center", gap: "6px", height: "34px", border: "1px solid #c8d2df", borderRadius: "4px", background: "#f9fbfd", color: "#475467", fontSize: "12px", fontWeight: 700 },
-  modoActivo: { display: "flex", alignItems: "center", justifyContent: "center", gap: "6px", height: "34px", border: "1px solid #586D8C", borderRadius: "4px", background: "#e8eef5", color: "#1f2937", fontSize: "12px", fontWeight: 800 },
-  preview: { display: "grid", placeItems: "center", height: "190px", border: "1px solid #d9e0ea", borderRadius: "4px", background: "#f8fafc", overflow: "hidden" },
+  modo: { display: "flex", alignItems: "center", justifyContent: "center", gap: "6px", height: "34px", border: `1px solid ${tokens.colors.bordeControl}`, borderRadius: tokens.radii.sm, background: tokens.colors.fondoCard, color: tokens.colors.textoSecundario, fontSize: "12px", fontWeight: 700 },
+  modoActivo: { display: "flex", alignItems: "center", justifyContent: "center", gap: "6px", height: "34px", border: `1px solid ${tokens.colors.chromeNeutral}`, borderRadius: tokens.radii.sm, background: tokens.colors.chromeNeutralSuave, color: tokens.colors.textoPrimario, fontSize: "12px", fontWeight: 800 },
+  preview: { display: "grid", placeItems: "center", height: "190px", border: `1px solid ${tokens.colors.bordeIntermedio}`, borderRadius: tokens.radii.sm, background: tokens.colors.fondoElevado, overflow: "hidden" },
   image: { width: "100%", height: "100%", objectFit: "contain" },
-  empty: { color: "#667085", fontSize: "13px", fontWeight: 700 },
-  error: { color: "#b42318", fontSize: "12px", fontWeight: 700 },
-  primaryButton: { height: "34px", padding: "0 12px", border: "1px solid #586D8C", borderRadius: "4px", background: "#586D8C", color: "#ffffff", cursor: "pointer", fontWeight: 700 },
-  secondaryButton: { height: "34px", padding: "0 12px", border: "1px solid #c8d2df", borderRadius: "4px", background: "#ffffff", color: "#475467", cursor: "pointer", fontWeight: 700 },
-  dangerButton: { height: "34px", padding: "0 12px", border: "1px solid #f2b8b5", borderRadius: "4px", background: "#fff5f5", color: "#b42318", cursor: "pointer", fontWeight: 700 },
+  empty: { color: tokens.colors.textoTerciario, fontSize: "13px", fontWeight: 700 },
+  error: { color: tokens.colors.errorTexto, fontSize: "12px", fontWeight: 700 },
+  primaryButton: { height: "34px", padding: "0 12px", border: `1px solid ${tokens.colors.chromeNeutral}`, borderRadius: tokens.radii.sm, background: tokens.colors.chromeNeutral, color: tokens.colors.fondoChrome, cursor: "pointer", fontWeight: 700 },
+  secondaryButton: { height: "34px", padding: "0 12px", border: `1px solid ${tokens.colors.bordeControl}`, borderRadius: tokens.radii.sm, background: tokens.colors.fondoChrome, color: tokens.colors.textoSecundario, cursor: "pointer", fontWeight: 700 },
+  dangerButton: { height: "34px", padding: "0 12px", border: `1px solid ${tokens.colors.errorBorde}`, borderRadius: tokens.radii.sm, background: tokens.colors.errorFondo, color: tokens.colors.errorTexto, cursor: "pointer", fontWeight: 700 },
 } satisfies Record<string, preact.JSX.CSSProperties>;
