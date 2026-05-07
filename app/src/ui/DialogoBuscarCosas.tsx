@@ -1,7 +1,9 @@
+// [JOYAS §1-3] Chrome UI consume tokens centralizados; canvas semántico invariante.
 import { useEffect, useMemo, useRef } from "preact/hooks";
 import type { Id, TipoEntidad } from "../modelo/tipos";
 import { useOpmStore } from "../store";
 import { Dialogo } from "./Dialogo";
+import { tokens } from "./tokens";
 
 interface ResultadoBusqueda {
   entidadId: Id;
@@ -63,7 +65,7 @@ export function DialogoBuscarCosas() {
 
   // Color semántico por tipo (JOYAS §1)
   const colorTipo = (tipo: TipoEntidad): string =>
-    tipo === "objeto" ? "#70E483" : "#3BC3FF";
+    tipo === "objeto" ? tokens.colors.canvas.objeto : tokens.colors.canvas.proceso;
 
   return (
     <Dialogo
@@ -148,8 +150,8 @@ const style = {
   searchInput: {
     flex: "1 1 auto",
     height: "34px",
-    border: "1px solid #b9c5d4",
-    borderRadius: "4px",
+    border: `1px solid ${tokens.colors.bordeInput}`,
+    borderRadius: tokens.radii.sm,
     padding: "0 10px",
     fontSize: "13px",
     boxSizing: "border-box",
@@ -157,10 +159,10 @@ const style = {
   filterSelect: {
     height: "34px",
     width: "130px",
-    border: "1px solid #b9c5d4",
-    borderRadius: "4px",
-    background: "#f9fbfd",
-    color: "#1f2937",
+    border: `1px solid ${tokens.colors.bordeInput}`,
+    borderRadius: tokens.radii.sm,
+    background: tokens.colors.fondoCard,
+    color: tokens.colors.textoPrimario,
     fontSize: "13px",
   },
   resultados: {
@@ -169,7 +171,7 @@ const style = {
   },
   empty: {
     padding: "14px",
-    color: "#667085",
+    color: tokens.colors.textoTerciario,
     fontSize: "13px",
     fontWeight: 600,
   },
@@ -180,14 +182,14 @@ const style = {
   },
   th: {
     padding: "6px 8px",
-    borderBottom: "2px solid #d9e0ea",
-    color: "#667085",
+    borderBottom: `2px solid ${tokens.colors.bordeIntermedio}`,
+    color: tokens.colors.textoTerciario,
     fontSize: "12px",
     fontWeight: 700,
     textAlign: "left",
   },
   fila: {
-    borderBottom: "1px solid #f2f4f7",
+    borderBottom: `1px solid ${tokens.colors.fondoDeshabilitado}`,
     cursor: "pointer",
   },
   td: {
@@ -205,20 +207,20 @@ const style = {
   },
   tdName: {
     fontWeight: 600,
-    color: "#1f2937",
+    color: tokens.colors.textoPrimario,
   },
   tdTipo: {
-    color: "#98a2b3",
+    color: tokens.colors.textoDeshabilitado,
     fontSize: "11px",
     fontWeight: 600,
   },
   primaryButton: {
     height: "34px",
     padding: "0 14px",
-    border: "1px solid #586D8C",
-    borderRadius: "4px",
-    background: "#586D8C",
-    color: "#ffffff",
+    border: `1px solid ${tokens.colors.chromeNeutral}`,
+    borderRadius: tokens.radii.sm,
+    background: tokens.colors.chromeNeutral,
+    color: tokens.colors.fondoChrome,
     cursor: "pointer",
     fontSize: "13px",
     fontWeight: 700,
