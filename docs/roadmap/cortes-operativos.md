@@ -42,14 +42,14 @@ Filtro de valor:
 | Piso | Nombre | Propósito | Gate de salida |
 |---|---|---|---|
 | **13 grande** | **Beta0 foundation, medio piso en curso** | UX foundation: split Toolbar, tokens central, checkers metodologicos, barra contextual, IFML local. | `browser:smoke` verde, bundle bajo control, toolbar delgado, checkers visibles, acciones contextuales usables. |
-| **13.1** | **Normalización IFML + UI bugs** | Modal-stack, flujos explicitos, eventos, breadcrumbs minimos si procede, bugs visuales evidentes. | No quedan flujos criticos opacos ni bugs visuales que bloqueen modelado diario. |
-| **13.2** | **Visual-canvas fidelity** | Apariencia exacta de shapes, enlaces, anclaje, routing, cruces y layout aplicable usando `assets/`, `JOYAS.md`, `opm-extracted/`. | Un modelo mediano se ve profesional y estable; los enlaces se entienden sin trabajo manual excesivo. |
-| **13.3** | **Bug capture loop dev-only** | Capturar screenshot + texto + metadata en disco con ID referenciable por agentes. | El operador puede decir "arregla BUG-YYYYMMDD-NNN" y el agente puede leer imagen/texto desde el repo local. |
+| **13.1** | **Normalización IFML + UI bugs** | **Absorbida por ronda 15 fusionada**: modal-stack/flujos/eventos y bugs visuales evidentes. | Ver gate de ronda 15. |
+| **13.2** | **Visual-canvas fidelity** | **Absorbida por ronda 15 fusionada**: shapes, enlaces, anclaje, routing, cruces y layout aplicable usando `assets/`, `JOYAS.md`, `opm-extracted/`. | Ver gate de ronda 15. |
+| **13.3** | **Bug capture loop dev-only** | **Cerrada**: capturar screenshot + texto + metadata en disco con ID referenciable por agentes. | Implementado en `e9e7a00`; ronda 15 solo usa el loop y `evaluacion-exhaustiva`. |
 | **14** | **Alpha-lock OPL reverse** | OPL inverso libre completo suficiente para editar desde texto y reconciliar con canvas. | **Cerrado**: parser SSOT + diagnosticos + preview de patches + apply undoable + smoke UI. Alpha queda 100%. |
 | **14.1** | **Refinamiento OPM completo sobre Thing — hardening** | Continuar desde el corte `refinamiento OPM completo sobre Thing`: auditar deuda de slots visuales separados (`refineeInzooming`/`refineeUnfolding`/`refineable`), cubrir e2e object-inzoom y process-unfold, y validar OPL especifico de descomposicion de objeto contra SSOT. | Decision documentada sobre slots, 2 smokes nuevos verdes, OPL de object decomposition auditado y corregido si aplica. |
 | **14.2** | **Leyes ejecutables + ledger de calidad** | Convertir la auditoria categorial en tests de leyes: JSON round-trip, render metadata estable, OPL reverse safe lens, matriz Thing refinement y undo atomicity. Agregar ledger de calidad versionado. | Las proyecciones criticas tienen tests law nombrados, el ledger declara umbrales iniciales y el dashboard queda como evidencia secundaria, no como sustituto de leyes. |
 | **14.3** | **Fronteras Store/Render/Effects** | Refactor incremental sin big-bang: reemplazar aliases `Partial<OpmStore>` por contratos de slices reales, encapsular efectos runtime y sacar `globalThis` del core puro de proyeccion JointJS. | Store compone por contratos explicitos, runtime effects quedan inyectables/testeables, y `proyectarModeloAJointCells` es reproducible por argumentos explicitos. |
-| **15** | **Pre-Beta1 hardening visual e interacción** | Investigar y corregir la causa raiz del bug de `Dialogo` que produjo los reverts `modal-grid`, `mask-image` scroll y `canvas role`; reducir overflow de Toolbar con menú manual `⋯ Más` (~38 controles → ~25 visibles). | Dialogos pintan de forma estable sobre `main display:grid` + canvas SVG/composite layers; las mejoras revertidas se reintroducen solo con smoke focal; Toolbar no tiene overflow horizontal y conserva acciones secundarias accesibles desde `⋯ Más`. |
+| **15** | **Beta0 hardening fusionado pre-Beta1** | Fusiona el hardening visual/interacción y la ronda 16 propuesta: `Dialogo` root-cause, Toolbar `⋯ Más`, IFML flow cleanup + `evaluacion-exhaustiva`, visual-canvas fidelity (shapes, enlaces, anclaje, routing, cruces, autolayout sugerido/aplicable) y cierre UX contextual (barra contextual, Inspector, OPL, árbol, contrato TablaEnlaces). | Dialogos pintan de forma estable; Toolbar no tiene overflow horizontal; flujos/modales/eventos críticos quedan explícitos; canvas se ve profesional y estable; la superficie contextual opera como workbench único. Solo entonces se habilita entrada a Beta1. |
 | **Beta1** | **Dominio real mediano** | Modelar HD/KORA/GOREOS con validacion metodologica, tabla de enlaces, busqueda, estados, descomposicion y catalogo simple. | Un modelo ancla real se construye, valida, guarda/carga, busca y corrige sin workaround mayor. |
 | **Beta2** | **Simulacion conceptual + valores simples** | Ejecutar simulacion conceptual y valores simples sobre procesos/estados/atributos. | Un flujo real de dominio puede simular estado/valor antes-despues con trazabilidad. |
 | **Gamma** | **Productividad operativa secundaria** | Mapa del sistema, export, imagenes, estilos avanzados, plantillas avanzadas, organizacion no critica. | Trabajo largo mas comodo, no requisito para probar beta. |
@@ -143,7 +143,7 @@ evita construir beta sobre chrome, flujos y validacion debiles.
   persistente automatico.
 - Capturador de bugs dev-only.
 
-### Incluye hardening 15 pre-Beta1
+### Incluye hardening 15 fusionado pre-Beta1
 
 - **Dialogo root-cause**: el componente se monta pero puede no pintar cuando
   conviven `main display:grid`, subárboles SVG/JointJS y composite layers. Este
@@ -153,8 +153,16 @@ evita construir beta sobre chrome, flujos y validacion debiles.
 - **Toolbar overflow manual `⋯ Más`**: no usar overflow automático con
   IntersectionObserver en esta fase. El diseño oficial mueve acciones
   secundarias a un menú estable y accesible, dejando ~25 controles visibles.
-- Estos dos trabajos son gate previo a Beta1 porque afectan uso diario del
-  modelador y claridad de baseline visual.
+- **IFML + bugs visuales**: normalizar al menos un flujo/modal/evento de alto
+  impacto y ejecutar `app/scripts/evaluacion-exhaustiva.mjs` como loop de
+  captura.
+- **Visual-canvas fidelity**: shapes, enlaces, anclaje, routing, cruces y
+  autolayout como vista sugerida/aplicar layout usando SSOT + `opm-extracted/`.
+- **Cierre UX contextual**: barra contextual, Inspector, Panel OPL, árbol y
+  contrato de TablaEnlaces deben sentirse como una superficie única de modelado
+  diario.
+- Estos trabajos son gate previo a Beta1 porque afectan uso diario del modelador
+  y claridad de baseline visual.
 
 ### Incluye normalizaciones 14.2-14.3
 
@@ -201,8 +209,9 @@ Beta1 solo cierra cuando al menos un dominio ancla real:
 
 Precondición de entrada a Beta1:
 
-- Ronda 15 cerrada: `Dialogo` estabilizado con smoke focal y Toolbar sin
-  overflow horizontal mediante `⋯ Más`.
+- Ronda 15 fusionada cerrada: `Dialogo` estabilizado con smoke focal, Toolbar
+  sin overflow horizontal mediante `⋯ Más`, IFML/evaluación visual operativo,
+  canvas fidelity suficiente y superficie contextual coherente.
 - Las mejoras revertidas solo se consideran parte de Beta0 si tienen test
   browser que reproduce el fallo anterior y demuestra el fix.
 

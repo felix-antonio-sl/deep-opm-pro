@@ -286,6 +286,9 @@ Incluye:
   composite layers;
 - Toolbar overflow manual `⋯ Más` para reducir ~38 controles a ~25 visibles
   antes de abrir Beta1;
+- ejecución de `evaluacion-exhaustiva.mjs` como loop de captura pre-Beta1;
+- cierre de coherencia UX contextual entre barra contextual, Inspector, Panel
+  OPL, árbol y contrato de TablaEnlaces futura;
 - autolayout asistido como vista sugerida/aplicar layout, no motor obligatorio;
 - apariencia exacta de shapes/enlaces/anclaje/cruces desde `opm-extracted/` +
   SSOT visual;
@@ -312,21 +315,19 @@ fuera y el asistente se resuelve como skill, no como requisito del producto.
 
 ## Proximos Pasos Operativos
 
-1. Ejecutar `docs/instrucciones-lineas-dev/ronda15/` antes de Beta1:
-   - L1: investigar y corregir causa raiz de `Dialogo`; solo reintroducir
-     `modal-grid`, `mask-image` o `canvas role` con smoke focal.
+1. Ejecutar `docs/instrucciones-lineas-dev/ronda15/` fusionada antes de Beta1:
+   - L1: `Dialogo` root-cause + reintroducción controlada de reverts.
    - L2: Toolbar overflow manual `⋯ Más`, no overflow automático.
-2. Incorporar la auditoria IFML restante como backlog foundation, no como parche
-   lateral.
-3. Cerrar bugs visuales capturados y ejecutar `evaluacion-exhaustiva.mjs` como
-   loop corto antes de abrir features beta1.
-4. Definir evals de Beta-0/Beta-1 contra modelos ancla:
+   - L3: IFML flow cleanup + `evaluacion-exhaustiva.mjs`.
+   - L4: visual-canvas fidelity + autolayout sugerido/aplicable.
+   - L5: cierre UX contextual de superficie única.
+2. Definir evals de Beta-0/Beta-1 contra modelos ancla:
    - `/home/felix/projects/hd-dt`
    - `/home/felix/projects/hdos`
    - `/home/felix/projects/hdos-app`
-5. Antes de nuevas features, revisar con profundidad SSOT OPM + `opm-extracted/`
+3. Antes de nuevas features, revisar con profundidad SSOT OPM + `opm-extracted/`
    para apariencia, enlaces, anclaje, routing y cruces.
-6. Mantener el loop:
+4. Mantener el loop:
    - `cd app && bun run check`
    - `cd app && bun run lint`
    - `cd app && bun run build`
@@ -338,7 +339,6 @@ fuera y el asistente se resuelve como skill, no como requisito del producto.
 Usa `docs/HANDOFF.md` como memoria unica. El alpha real esta cerrado: OPL reverse
 editable ya no queda parcial y las leyes 14.2 lo protegen. Continua con la capa
 operativa de cortes (`docs/roadmap/cortes-operativos.md`) y la normalizacion
-pre-beta: primero ronda 15 (`Dialogo` root-cause + Toolbar `⋯ Más`), luego IFML,
-UX visual, autolayout sugerido y apariencia/enlaces/anclaje desde SSOT +
-`opm-extracted/`. El capturador ya existe; usalo para cerrar bugs visuales con
-ID referenciable.
+pre-beta: ejecutar ronda 15 fusionada (`Dialogo` root-cause, Toolbar `⋯ Más`,
+IFML + evaluación visual, canvas fidelity, superficie contextual). El capturador
+ya existe; úsalo para cerrar bugs visuales con ID referenciable.

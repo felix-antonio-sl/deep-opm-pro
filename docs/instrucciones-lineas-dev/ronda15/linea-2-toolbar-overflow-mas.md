@@ -40,7 +40,9 @@ app/e2e/12-toolbar-overflow.spec.ts            NUEVO
 
 ## 5. Restricciones De No Colisión
 
-- No tocar `Dialogo.tsx` ni `App.tsx` (territorio L1).
+- No tocar `Dialogo.tsx` ni `App.tsx` (territorio L1/L3).
+- No tocar render/canvas fidelity (territorio L4).
+- No tocar Inspector/PanelOpl/Arbol fuera de lectura (territorio L5).
 - No mover acciones al Inspector si eso rompe discoverability.
 - No ocultar acciones críticas de creación, guardar, undo/redo, selección contextual primaria ni OPL reverse.
 - No implementar medición automática de ancho en esta línea.

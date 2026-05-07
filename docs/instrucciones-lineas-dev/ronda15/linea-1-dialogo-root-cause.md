@@ -10,7 +10,7 @@ Slice mínimo:
 - Fix focal en `Dialogo.tsx` o su montaje.
 - Si el fix lo permite, reintroducir una mejora revertida por commit separado.
 
-Fuera de slice: modal-stack completo IFML H-1; eso puede quedar para otra ronda si la causa raíz no lo exige.
+Fuera de slice: normalización IFML sistémica. Si aparece deuda de modal-stack, coordinar con L3 y no absorberla salvo que sea causa directa del bug.
 
 ## 2. HU Base
 
@@ -44,6 +44,8 @@ app/e2e/11-dialogo-layout-regression.spec.ts   NUEVO
 ## 5. Restricciones De No Colisión
 
 - No tocar `app/src/ui/toolbar/*` (territorio L2).
+- No tocar `app/scripts/evaluacion-exhaustiva.mjs` ni flujos/eventos globales (territorio L3).
+- No tocar render fidelity general (territorio L4).
 - No tocar store/kernel/OPL/serializadores.
 - No meter modal-stack completo salvo que el repro demuestre que es la causa real.
 - No usar z-index arbitrariamente alto sin documentar stacking context.
