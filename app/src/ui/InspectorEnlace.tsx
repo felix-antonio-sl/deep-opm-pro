@@ -23,6 +23,12 @@ interface Props {
 /**
  * Barrel publico del inspector de enlace. Mantiene acciones Zustand exactas y
  * delega secciones alineadas con SSOT: multiplicidad, rutas y abanicos.
+ *
+ * Contrato TablaEnlaces Beta1 (ronda 15 L5): TablaEnlaces debe compartir
+ * data-binding y validators con este Inspector (validarEtiquetaEnlace,
+ * validarMultiplicidad, ajustarMultiplicidadSeleccionada). El acuerdo
+ * formal se documenta en `app/e2e/15-superficie-contextual.spec.ts`
+ * bajo el describe.skip "Contrato TablaEnlaces Beta1".
  */
 export function InspectorEnlace({ enlace }: Props) {
   const modelo = useOpmStore((s) => s.modelo);

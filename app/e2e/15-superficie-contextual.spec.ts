@@ -132,6 +132,60 @@ test("PanelMetodologia y PanelAvisos se pueden colapsar sin perder informacion c
   expect(pageErrors).toEqual([]);
 });
 
+/**
+ * Contrato UX TablaEnlaces (Beta1) — descrito como tests pendientes para que
+ * la siguiente ronda lo materialice sin reinventar el contrato. La feature
+ * completa NO se implementa aqui (fuera de slice L5); este describe.skip es
+ * la SSOT operativa del acuerdo de integracion.
+ *
+ * Anclajes:
+ *  - EPICA-16 Tabla de Enlaces (backlog vivo).
+ *  - Auditoria IFML §6 O-4: TablaEnlaces como vista alterna en XOR canvas/mapa,
+ *    no como modal aislado.
+ *  - Selector existente `tablaEnlacesAbierta` en App.tsx queda como puente
+ *    legacy; Beta1 puede sustituirlo por una pestana de la BarraPestanas.
+ *
+ * Reglas duras del contrato (validadas por estos tests cuando se enciendan):
+ *  1. Columnas minimas obligatorias por fila: Tipo, Origen, Destino, Etiqueta,
+ *     Multiplicidad origen, Multiplicidad destino, OPDs donde aparece.
+ *     Columnas opcionales: Modificador, Probabilidad, Demora, Ruta de etiqueta.
+ *  2. Seleccion bidireccional: clickear una fila pone enlaceSeleccionId en
+ *     el store y enciende Inspector en modo enlace; seleccionar un enlace en
+ *     canvas/OPL marca la fila correspondiente con scrollIntoView automatico.
+ *     Misma semantica que la integracion canvas <-> OPL ya cubierta por
+ *     `seleccionarDesdeOpl` y el effect de scroll en PanelOpl.
+ *  3. Edicion in-place de etiqueta y multiplicidades por celda, validada con
+ *     los mismos validators del Inspector (validarEtiquetaEnlace,
+ *     validarMultiplicidad). Cancelar con Escape, confirmar con Enter o blur.
+ *  4. Navegacion a extremos: dos botones por fila ("Ir a origen", "Ir a
+ *     destino") cambian opdActivoId al OPD donde la apariencia del extremo
+ *     existe y dejan la entidad seleccionada. Si el extremo es un estado,
+ *     se selecciona la entidad portadora (mismo contrato que el panel OPL).
+ *  5. Render no obligatorio en Beta1: vista de tabla virtualizada solo si
+ *     |enlaces| > 200; debajo de ese umbral basta lista plana.
+ *  6. Layout: Beta1 expone TablaEnlaces como pestana adicional en
+ *     BarraPestanas, no como modal exclusivo. Mientras llega esa migracion,
+ *     el modal sobrevive como acceso secundario.
+ */
+test.describe.skip("Contrato TablaEnlaces Beta1 — pending implementation", () => {
+  test("columnas minimas presentes y orden estable", () => {
+    // Verificar Tipo, Origen, Destino, Etiqueta, MultOrigen, MultDestino, OPDs.
+  });
+  test("clickear fila enciende Inspector en modo enlace", () => {
+    // page.getByTestId("tabla-enlaces-fila").first().click();
+    // expect(page.getByTestId("inspector")).toHaveAttribute("data-modo-inspector", "enlace");
+  });
+  test("seleccion en canvas marca y revela fila correspondiente", () => {
+    // Reciproco del journey 2 ya cubierto en este spec.
+  });
+  test("edicion in-place de etiqueta valida con validarEtiquetaEnlace", () => {
+    // Espejar el contrato del Inspector para mantener una sola fuente de verdad.
+  });
+  test("Ir a origen / Ir a destino cambia opdActivoId y selecciona la entidad", () => {
+    // page.getByTestId("tabla-enlaces-fila-N-ir-origen").click();
+  });
+});
+
 test("Inspector vacio expone CTA y aria-live consistente al limpiar seleccion", async ({ page }) => {
   const pageErrors: string[] = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));
