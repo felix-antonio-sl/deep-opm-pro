@@ -1366,6 +1366,277 @@ describe("mapa del sistema", () => {
   });
 });
 
+// HU-SHARED-002 undo granular [Met §6 etapas SD; aditividad sobre comandos ronda 11].
+// Cada comando emite exactamente un push en undoStack.length (verificado vía
+// historialUndo.length de la pestaña activa, que es el espejo persistible del
+// undoStack singleton del runtime — ver app/src/store/runtime.ts:273,316).
+describe("store HU-SHARED-002 undo granular comandos ronda 11", () => {
+  beforeEach(() => {
+    instalarLocalStorage();
+    instalarConfirmacion();
+    store.getState().importarJson(exportarModelo(crearModelo()));
+  });
+
+  test("borrarEnlacesEnLote emite un solo push en undoStack.length", () => {
+    const { aId, bId, cId } = montarTresObjetosConDosEnlaces();
+    expect(aId && bId && cId).toBeTruthy();
+    const ids = Object.keys(store.getState().modelo.enlaces);
+    expect(ids.length).toBe(2);
+
+    const antes = undoStackLength();
+    store.getState().borrarEnlacesEnLote(ids);
+    const despues = undoStackLength();
+
+    expect(despues - antes).toBe(1);
+    expect(Object.keys(store.getState().modelo.enlaces)).toHaveLength(0);
+    store.getState().deshacer();
+    expect(Object.keys(store.getState().modelo.enlaces)).toHaveLength(2);
+    expect(undoStackLength()).toBe(antes);
+  });
+
+  test("aplicarEstiloEnlaceAccion emite un solo push en undoStack.length", () => {
+    montarTresObjetosConDosEnlaces();
+    const enlaceId = Object.keys(store.getState().modelo.enlaces)[0]!;
+    const antes = undoStackLength();
+
+    store.getState().aplicarEstiloEnlaceAccion(enlaceId, { color: "#d92d20", strokeWidth: 3 });
+    const despues = undoStackLength();
+
+    expect(despues - antes).toBe(1);
+    expect(store.getState().modelo.enlaces[enlaceId]?.estilo).toEqual({ color: "#d92d20", strokeWidth: 3 });
+    store.getState().deshacer();
+    expect(store.getState().modelo.enlaces[enlaceId]?.estilo).toBeUndefined();
+    expect(undoStackLength()).toBe(antes);
+  });
+
+  test("pegarEstiloEnlaceDesdePortapapeles emite un solo push en undoStack.length", () => {
+    montarTresObjetosConDosEnlaces();
+    const [origenId, destinoId] = Object.keys(store.getState().modelo.enlaces);
+    if (!origenId || !destinoId) throw new Error("La prueba esperaba dos enlaces");
+    store.getState().aplicarEstiloEnlaceAccion(origenId, { color: "#3da8ff", strokeWidth: 2 });
+    store.getState().copiarEstiloEnlaceAlPortapapeles(origenId);
+    const undoCopia = undoStackLength();
+
+    store.getState().pegarEstiloEnlaceDesdePortapapeles(destinoId);
+    const despues = undoStackLength();
+
+    expect(despues - undoCopia).toBe(1);
+    expect(store.getState().modelo.enlaces[destinoId]?.estilo).toEqual({ color: "#3da8ff", strokeWidth: 2 });
+  });
+
+  test("copiarEstiloEnlaceAlPortapapeles NO mueve undoStack.length (acción de buffer in-memory)", () => {
+    montarTresObjetosConDosEnlaces();
+    const enlaceId = Object.keys(store.getState().modelo.enlaces)[0]!;
+    store.getState().aplicarEstiloEnlaceAccion(enlaceId, { color: "#586D8C" });
+    const antes = undoStackLength();
+
+    store.getState().copiarEstiloEnlaceAlPortapapeles(enlaceId);
+    const despues = undoStackLength();
+
+    expect(despues - antes).toBe(0);
+    expect(store.getState().enlaceEstiloPortapapeles).toEqual({ color: "#586d8c" });
+  });
+
+  test("reanclarExtremoAccion emite un solo push en undoStack.length", () => {
+    const { aId, bId, cId } = montarTresObjetosConDosEnlaces();
+    if (!aId || !bId || !cId) throw new Error("La prueba esperaba tres entidades");
+    const enlaceAB = Object.values(store.getState().modelo.enlaces)
+      .find((enlace) => extremoApuntaAEntidad(enlace.origenId, aId) && extremoApuntaAEntidad(enlace.destinoId, bId));
+    if (!enlaceAB) throw new Error("La prueba esperaba enlace A→B");
+    const antes = undoStackLength();
+
+    store.getState().reanclarExtremoAccion(enlaceAB.id, "destino", extremoEntidad(cId));
+    const despues = undoStackLength();
+
+    expect(despues - antes).toBe(1);
+    const enlaceActualizado = store.getState().modelo.enlaces[enlaceAB.id];
+    expect(extremoApuntaAEntidad(enlaceActualizado!.destinoId, cId)).toBe(true);
+    store.getState().deshacer();
+    expect(extremoApuntaAEntidad(store.getState().modelo.enlaces[enlaceAB.id]!.destinoId, bId)).toBe(true);
+    expect(undoStackLength()).toBe(antes);
+  });
+
+  test("crearAparienciaEntidadEnCanvas (drop biblioteca) emite un solo push en undoStack.length", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 60, y: 60 }, "Cosa biblioteca"));
+    store.getState().importarJson(exportarModelo(modelo));
+    const entidadId = entidadPorNombre(store.getState().modelo, "Cosa biblioteca");
+    const opdHijoId = "opd-drop";
+    store.setState({
+      modelo: {
+        ...store.getState().modelo,
+        opds: {
+          ...store.getState().modelo.opds,
+          [opdHijoId]: { id: opdHijoId, nombre: "SDhijo", padreId: store.getState().modelo.opdRaizId, apariencias: {}, enlaces: {} },
+        },
+      },
+    });
+    store.getState().cambiarOpdActivo(opdHijoId);
+    const antes = undoStackLength();
+
+    store.getState().crearAparienciaEntidadEnCanvas(entidadId, { x: 200, y: 100 });
+    const despues = undoStackLength();
+
+    expect(despues - antes).toBe(1);
+    const apariencias = Object.values(store.getState().modelo.opds[opdHijoId]?.apariencias ?? {});
+    expect(apariencias).toHaveLength(1);
+    expect(apariencias[0]?.entidadId).toBe(entidadId);
+    store.getState().deshacer();
+    expect(Object.values(store.getState().modelo.opds[opdHijoId]?.apariencias ?? {})).toHaveLength(0);
+    expect(undoStackLength()).toBe(antes);
+  });
+
+  test("conectarSeleccionAlTodo emite un solo push en undoStack.length (verificación cruzada)", () => {
+    const { aId, bId, cId } = montarTresObjetosConDosEnlaces(false);
+    if (!aId || !bId || !cId) throw new Error("La prueba esperaba tres entidades");
+    store.getState().setSeleccion([aId, bId, cId]);
+    const antes = undoStackLength();
+
+    store.getState().conectarSeleccionAlTodo(cId, "agregacion");
+    const despues = undoStackLength();
+
+    expect(despues - antes).toBe(1);
+    expect(Object.keys(store.getState().modelo.enlaces).length).toBeGreaterThanOrEqual(2);
+    store.getState().deshacer();
+    expect(undoStackLength()).toBe(antes);
+  });
+});
+
+// HU-10.021 descomposición de objeto en mismo diagrama [Glos 3.55 Object;
+// Met §inzoom]. La SSOT prefiere modo tradicional (OPD hijo); el path canónico
+// para objetos es desplegarSeleccionada con modo agregación/exhibición/
+// generalización/clasificación. El modo in-diagram (apariencia.descomposicionEnDiagrama)
+// es propuesta diferida por kernel actual; el cierre de la HU se ancla en el
+// despliegue canónico ya operativo.
+describe("store HU-10.021 descomposición objeto en mismo OPD", () => {
+  beforeEach(() => {
+    instalarLocalStorage();
+    instalarConfirmacion();
+    store.getState().importarJson(exportarModelo(crearModelo()));
+  });
+
+  test("desplegarSeleccionada sobre objeto crea OPD hijo + entrada en árbol jerárquico", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 80, y: 80 }, "Sistema"));
+    store.getState().importarJson(exportarModelo(modelo));
+    const sistemaId = entidadPorNombre(store.getState().modelo, "Sistema");
+    const opdsAntes = Object.keys(store.getState().modelo.opds).length;
+
+    store.getState().seleccionarEntidad(sistemaId);
+    store.getState().desplegarSeleccionada("agregacion");
+
+    const sistema = store.getState().modelo.entidades[sistemaId];
+    expect(sistema?.refinamiento?.tipo).toBe("despliegue");
+    const opdHijoId = sistema?.refinamiento?.opdId;
+    expect(opdHijoId).toBeTruthy();
+    expect(Object.keys(store.getState().modelo.opds).length).toBe(opdsAntes + 1);
+    const hijo = store.getState().modelo.opds[opdHijoId!];
+    expect(hijo?.padreId).toBe(store.getState().modelo.opdRaizId);
+  });
+
+  test("desplegar con cada modo estructural marca refinamiento correcto", () => {
+    const modos: Array<"agregacion" | "exhibicion" | "generalizacion" | "clasificacion"> = [
+      "agregacion",
+      "exhibicion",
+      "generalizacion",
+      "clasificacion",
+    ];
+    for (const modo of modos) {
+      let modelo = crearModelo(`Despliegue ${modo}`);
+      modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 80, y: 80 }, "Padre"));
+      store.getState().importarJson(exportarModelo(modelo));
+      const padreId = entidadPorNombre(store.getState().modelo, "Padre");
+
+      store.getState().seleccionarEntidad(padreId);
+      store.getState().desplegarSeleccionada(modo);
+
+      const ref = store.getState().modelo.entidades[padreId]?.refinamiento;
+      expect(ref?.tipo).toBe("despliegue");
+      expect(ref?.opdId).toBeTruthy();
+    }
+  });
+});
+
+// HU-11.012 enlace estructural etiquetado [V-239 familias estructurales;
+// Glos 3.x link signature]. Inspector cubre input editable + persistencia + OPL.
+// Validación "etiqueta no vacía" (etiquetasEnlace.ts:33) sólo aplica al tipo
+// kernel "etiquetado" (HU-11.012 propuesta), inerte sobre estructurales canónicos.
+describe("store HU-11.012 etiqueta enlace estructural", () => {
+  beforeEach(() => {
+    instalarLocalStorage();
+    instalarConfirmacion();
+    store.getState().importarJson(exportarModelo(crearModelo()));
+  });
+
+  test("edita etiqueta en enlaces exhibición, generalización y clasificación", () => {
+    const tipos: Array<"exhibicion" | "generalizacion" | "clasificacion"> = [
+      "exhibicion",
+      "generalizacion",
+      "clasificacion",
+    ];
+    for (const tipo of tipos) {
+      let modelo = crearModelo(`Etiqueta ${tipo}`);
+      modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 60, y: 60 }, "Padre"));
+      modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 240, y: 60 }, "Hijo"));
+      const padre = entidadPorNombre(modelo, "Padre");
+      const hijo = entidadPorNombre(modelo, "Hijo");
+      modelo = must(crearEnlace(modelo, modelo.opdRaizId, padre, hijo, tipo));
+      store.getState().importarJson(exportarModelo(modelo));
+      const enlaceId = Object.keys(store.getState().modelo.enlaces)[0]!;
+
+      store.getState().seleccionarEnlace(enlaceId);
+      store.getState().renombrarEtiquetaEnlaceSeleccionado(`etiqueta-${tipo}`);
+
+      expect(store.getState().modelo.enlaces[enlaceId]?.etiqueta).toBe(`etiqueta-${tipo}`);
+      expect(store.getState().modelo.enlaces[enlaceId]?.tipo).toBe(tipo);
+    }
+  });
+
+  test("persiste etiqueta vacía en estructurales canónicos (no requiere etiqueta)", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 60, y: 60 }, "Origen"));
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 240, y: 60 }, "Destino"));
+    const origen = entidadPorNombre(modelo, "Origen");
+    const destino = entidadPorNombre(modelo, "Destino");
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, origen, destino, "exhibicion", "rol-temp"));
+    store.getState().importarJson(exportarModelo(modelo));
+    const enlaceId = Object.keys(store.getState().modelo.enlaces)[0]!;
+    store.getState().seleccionarEnlace(enlaceId);
+
+    store.getState().renombrarEtiquetaEnlaceSeleccionado("");
+
+    expect(store.getState().modelo.enlaces[enlaceId]?.etiqueta).toBe("");
+    expect(store.getState().mensaje ?? "").not.toContain("vacía");
+  });
+});
+
+function undoStackLength(): number {
+  const estado = store.getState();
+  const pestana = estado.pestanasAbiertas.find((p) => p.id === estado.pestanaActivaId);
+  return pestana?.historialUndo.length ?? 0;
+}
+
+function montarTresObjetosConDosEnlaces(conEnlaces = true): { aId: string; bId: string; cId: string } {
+  let modelo = crearModelo();
+  modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 60, y: 60 }, "A_undo"));
+  modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 240, y: 60 }, "B_undo"));
+  modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 420, y: 60 }, "C_undo"));
+  if (conEnlaces) {
+    const aId = entidadPorNombre(modelo, "A_undo");
+    const bId = entidadPorNombre(modelo, "B_undo");
+    const cId = entidadPorNombre(modelo, "C_undo");
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, aId, bId, "agregacion"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, aId, cId, "agregacion"));
+  }
+  store.getState().importarJson(exportarModelo(modelo));
+  const stateActual = store.getState().modelo;
+  return {
+    aId: entidadPorNombre(stateActual, "A_undo"),
+    bId: entidadPorNombre(stateActual, "B_undo"),
+    cId: entidadPorNombre(stateActual, "C_undo"),
+  };
+}
+
 function modeloConTresOpds(): Modelo {
   const modelo = crearModelo();
   const raizId = modelo.opdRaizId;
