@@ -226,6 +226,60 @@ test("arrastra una cosa JointJS y persiste su apariencia", async ({ page }) => {
   expect(pageErrors).toEqual([]);
 });
 
+test("barra flotante aparece anclada a la cosa seleccionada con acciones piloto", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await page.getByRole("button", { name: "Objeto", exact: true }).click();
+  await elementoPorTexto(page, "Objeto").click();
+
+  const barra = page.getByTestId("barra-herramientas-elemento");
+  await expect(barra).toBeVisible();
+  await expect(page.getByTestId("barra-copiar-estilo")).toBeVisible();
+  await expect(page.getByTestId("barra-pegar-estilo")).toBeVisible();
+  await expect(page.getByTestId("barra-agregar-estado")).toBeVisible();
+  await expect(page.getByTestId("barra-inzoom")).toBeVisible();
+  await expect(page.getByTestId("barra-editar-alias")).toBeVisible();
+  await expect(page.getByTestId("barra-editar-imagen")).toBeVisible();
+  await expect(page.getByTestId("barra-mas-opciones")).toBeVisible();
+
+  const objetoBox = await elementoPorTexto(page, "Objeto").boundingBox();
+  const barraBox = await barra.boundingBox();
+  if (!objetoBox || !barraBox) throw new Error("No se pudo medir anchor de barra");
+  expect(barraBox.y).toBeLessThan(objetoBox.y + objetoBox.height + 8);
+  expect(pageErrors).toEqual([]);
+});
+
+test("boton mas opciones colapsa y reabre el Inspector lateral", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await page.getByRole("button", { name: "Objeto", exact: true }).click();
+  await elementoPorTexto(page, "Objeto").click();
+
+  await expect(page.getByTestId("inspector-pane")).toBeVisible();
+  await page.getByTestId("barra-mas-opciones").click();
+  await expect(page.getByTestId("inspector-pane")).toBeHidden();
+  await page.getByTestId("barra-mas-opciones").click();
+  await expect(page.getByTestId("inspector-pane")).toBeVisible();
+  expect(pageErrors).toEqual([]);
+});
+
+test("editar imagen desde barra abre ModalImagenObjeto para objeto seleccionado", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await page.getByRole("button", { name: "Objeto", exact: true }).click();
+  await elementoPorTexto(page, "Objeto").click();
+  await page.getByTestId("barra-editar-imagen").click();
+
+  await expect(page.getByRole("dialog", { name: "Imagen de Objeto" })).toBeVisible();
+  expect(pageErrors).toEqual([]);
+});
+
 test("arrastra subproceso embebido dentro del macroproceso contenedor", async ({ page }) => {
   // Regresion: rect de restrictTranslate restaba cellBBox.width/height adicional al
   // que JointJS ya descuenta internamente (Element.mjs:130-131); el doble descuento
@@ -361,5 +415,32 @@ test("HU-17.017 asigna valor concreto y reemplaza placeholder en OPL", async ({ 
   const exportado = await exportadoActual(page);
   const atributo = Object.values(exportado.modelo.entidades).find((item) => item.nombre === "Temperatura");
   expect(atributo?.valorSlot?.valor).toBe(25);
+  expect(pageErrors).toEqual([]);
+});
+
+test("L1 toolbar split conserva root y controles por modo", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await cerrarPantallaInicioSiVisible(page);
+  await expect(page.getByTestId("toolbar-root")).toBeVisible();
+  await expect(page.getByTestId("abrir-menu-tipo-enlace")).toBeDisabled();
+
+  await page.getByRole("button", { name: "Objeto", exact: true }).click();
+  const modal = page.getByTestId("modal-nombre-cosa");
+  if (await modal.count()) {
+    await modal.getByLabel("Nombre").fill("Objeto L1");
+    await modal.getByRole("button", { name: "OK" }).click();
+    await expect(modal).toHaveCount(0);
+  }
+
+  await expect(page.getByTestId("toolbar-traer-conectados")).toBeVisible();
+  await expect(page.getByTestId("toolbar-plantillas")).toBeVisible();
+  await expect(page.getByTestId("abrir-menu-tipo-enlace")).toBeEnabled();
+
+  await page.getByRole("button", { name: "Objeto en canvas" }).click();
+  await expect(page.getByTestId("indicador-modo-sticky")).toContainText("Objeto");
+
   expect(pageErrors).toEqual([]);
 });

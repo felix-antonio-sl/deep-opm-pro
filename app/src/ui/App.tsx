@@ -1,17 +1,26 @@
+/**
+ * Workbench raíz OPM.
+ *
+ * Citas SSOT L1/L3: [JOYAS §1-3], [V-0c], [Met §metodologia].
+ * PanelMetodologia se monta como
+ * ViewComponent derivado por DataFlow puro, no Action ni side-effect.
+ */
+
 import { lazy, Suspense } from "preact/compat";
-import { useEffect } from "preact/hooks";
+import { useEffect, useState } from "preact/hooks";
+import type { Id, Modelo } from "../modelo/tipos";
 import { JointCanvas } from "../render/jointjs/JointCanvas";
 import { store, useOpmStore } from "../store";
 import { ArbolOpd } from "./ArbolOpd";
+import { BarraHerramientasElemento } from "./BarraHerramientasElemento";
 import { BarraPestanas } from "./BarraPestanas";
 import { configurarContextoAtajos, escucharGlobal, registrarAtajo } from "./atajosTeclado";
 import { ConfirmacionProvider } from "./ConfirmacionContext";
 import { DivisorPanel } from "./divisorPanel";
-import { GestionArbolOpd } from "./GestionArbolOpd";
 import { Inspector } from "./Inspector";
 import { PanelAvisos } from "./PanelAvisos";
+import { PanelMetodologia } from "./PanelMetodologia";
 import { PanelOpl } from "./PanelOpl";
-import { Timeline } from "./Timeline";
 import { Toolbar } from "./Toolbar";
 
 const AsistenteNuevoModelo = lazy(() => import("./AsistenteNuevoModelo").then((m) => ({ default: m.AsistenteNuevoModelo })));
@@ -21,7 +30,11 @@ const DialogoBuscarGlobal = lazy(() => import("./DialogoBuscarGlobal").then((m) 
 const DialogoCargarModelo = lazy(() => import("./DialogoCargarModelo").then((m) => ({ default: m.DialogoCargarModelo })));
 const DialogoGuardarComo = lazy(() => import("./DialogoGuardarComo").then((m) => ({ default: m.DialogoGuardarComo })));
 const DialogoVersiones = lazy(() => import("./DialogoVersiones").then((m) => ({ default: m.DialogoVersiones })));
+// Ronda 13 L1 T2.6: lazy splits para recuperar objetivo historico de chunk principal <=195 kB.
 const MapaSistema = lazy(() => import("./MapaSistema").then((m) => ({ default: m.MapaSistema })));
+const Timeline = lazy(() => import("./Timeline").then((m) => ({ default: m.Timeline })));
+const TablaEnlaces = lazy(() => import("./TablaEnlaces").then((m) => ({ default: m.TablaEnlaces })));
+const GestionArbolOpd = lazy(() => import("./GestionArbolOpd").then((m) => ({ default: m.GestionArbolOpd })));
 const ModalDuracionEstado = lazy(() => import("./ModalDuracionEstado").then((m) => ({ default: m.ModalDuracionEstado })));
 const ModalImagenObjeto = lazy(() => import("./ModalImagenObjeto").then((m) => ({ default: m.ModalImagenObjeto })));
 const ModalUrlsObjeto = lazy(() => import("./ModalUrlsObjeto").then((m) => ({ default: m.ModalUrlsObjeto })));
@@ -30,6 +43,8 @@ export function App() {
   const vistaMapaActiva = useOpmStore((s) => s.vistaMapaActiva);
   const anchoPanelArbol = useOpmStore((s) => s.anchoPanelArbol);
   const preferenciasOpl = useOpmStore((s) => s.indice.preferenciasUi);
+  const modelo = useOpmStore((s) => s.modelo);
+  const opdActivoId = useOpmStore((s) => s.opdActivoId);
   const fijarAnchoPanelArbol = useOpmStore((s) => s.fijarAnchoPanelArbol);
   const asistenteAbierto = useOpmStore((s) => s.asistente !== null);
   const dialogoGuardarComoAbierto = useOpmStore((s) => s.dialogoGuardarComoAbierto);
@@ -40,10 +55,14 @@ export function App() {
   const modalUrlsAbierto = useOpmStore((s) => s.modalUrlsAbierto !== null);
   const modalImagenAbierto = useOpmStore((s) => s.modalImagenAbierto !== null);
   const modalDuracionAbierto = useOpmStore((s) => s.modalDuracionAbierto !== null);
+  const tablaEnlacesAbierta = useOpmStore((s) => s.tablaEnlacesAbierta);
+  const gestionArbolAbierta = useOpmStore((s) => s.gestionArbolAbierta);
   const cheatsheetAtajosAbierto = useOpmStore((s) => s.cheatsheetAtajosAbierto);
   const cerrarCheatsheetAtajos = useOpmStore((s) => s.cerrarCheatsheetAtajos);
+  const [inspectorAbierto, setInspectorAbierto] = useState(true);
   const oplLateral = (preferenciasOpl?.oplPosicion ?? "inferior") === "lateral-derecho";
   const oplMinimizado = preferenciasOpl?.oplMinimizado ?? false;
+  const timelineDisponible = tieneTimelineDisponible(modelo, opdActivoId);
 
   useEffect(() => {
     const limpiarContexto = configurarContextoAtajos({
@@ -63,7 +82,7 @@ export function App() {
       <main style={layout.page}>
         <Toolbar />
         <BarraPestanas />
-        <section style={workbenchStyle(anchoPanelArbol, oplLateral, oplMinimizado)}>
+        <section style={workbenchStyle(anchoPanelArbol, oplLateral, oplMinimizado, inspectorAbierto)}>
           <div data-testid="tree-pane" style={layout.treePane}>
             <ArbolOpd />
           </div>
@@ -77,14 +96,30 @@ export function App() {
               <Suspense fallback={null}>
                 <MapaSistema />
               </Suspense>
-            ) : <JointCanvas />}
+            ) : (
+              <>
+                <JointCanvas />
+                <BarraHerramientasElemento
+                  inspectorAbierto={inspectorAbierto}
+                  onAbrirInspector={() => setInspectorAbierto(true)}
+                  onToggleInspector={() => setInspectorAbierto((abierto) => !abierto)}
+                />
+              </>
+            )}
           </div>
-          <div data-testid="inspector-pane" style={layout.inspectorPane}>
+          <div data-testid="inspector-pane" style={inspectorPaneStyle(inspectorAbierto)}>
             <div style={layout.inspectorContent}>
               <Inspector />
+              {timelineDisponible ? (
+                <div style={layout.timelineInInspector}>
+                  <Suspense fallback={<div style={layout.timelineFallback} />}>
+                    <Timeline />
+                  </Suspense>
+                </div>
+              ) : null}
             </div>
-            <Timeline />
             <PanelAvisos />
+            <PanelMetodologia />
           </div>
           {oplLateral ? (
             <div data-testid="opl-pane" style={layout.oplPane}>
@@ -102,7 +137,8 @@ export function App() {
         {dialogoBuscarGlobalAbierto ? <Suspense fallback={null}><DialogoBuscarGlobal /></Suspense> : null}
         {dialogoVersionesAbierto ? <Suspense fallback={null}><DialogoVersiones /></Suspense> : null}
         {dialogoArchivadosAbierto ? <Suspense fallback={null}><DialogoArchivados /></Suspense> : null}
-        <GestionArbolOpd />
+        {tablaEnlacesAbierta ? <Suspense fallback={null}><TablaEnlaces /></Suspense> : null}
+        {gestionArbolAbierta ? <Suspense fallback={null}><GestionArbolOpd /></Suspense> : null}
         {asistenteAbierto ? <Suspense fallback={null}><AsistenteNuevoModelo /></Suspense> : null}
         {modalImagenAbierto ? <Suspense fallback={null}><ModalImagenObjeto /></Suspense> : null}
         {modalUrlsAbierto ? <Suspense fallback={null}><ModalUrlsObjeto /></Suspense> : null}
@@ -119,6 +155,21 @@ export function App() {
 
 function registrarAtajosAplicacion(): Array<() => void> {
   const s = () => store.getState();
+  const abrirTraerConectados = () => s().abrirDialogoTraerConectados();
+  const ocultarApariencia = () => s().ocultarAparienciaSeleccionada();
+  const copiarEstiloEnlace = () => {
+    const state = s();
+    if (state.enlaceSeleccionId) state.copiarEstiloEnlaceAlPortapapeles(state.enlaceSeleccionId);
+  };
+  const pegarEstiloEnlace = () => {
+    const state = s();
+    if (state.enlaceSeleccionId) state.pegarEstiloEnlaceDesdePortapapeles(state.enlaceSeleccionId);
+  };
+  const conectarMultiAlTodo = () => {
+    const state = s();
+    const todo = state.seleccionados.length >= 2 ? state.seleccionados[state.seleccionados.length - 1] : null;
+    if (todo) state.conectarSeleccionAlTodo(todo, "agregacion");
+  };
   const cerrarModalSuperiorOVaciarSeleccion = () => {
     const state = s();
     if (state.cheatsheetAtajosAbierto) return state.cerrarCheatsheetAtajos();
@@ -147,6 +198,11 @@ function registrarAtajosAplicacion(): Array<() => void> {
     registrarAtajo({ combo: "Ctrl+C", ctx: "canvas", categoria: "seleccion", descripcion: "Copiar selección visual", handler: () => s().copiarSeleccionAlBuffer() }),
     registrarAtajo({ combo: "Ctrl+V", ctx: "canvas", categoria: "seleccion", descripcion: "Pegar selección visual", handler: () => s().pegarBufferEnOpdActivo() }),
     registrarAtajo({ combo: "Delete", ctx: "canvas", categoria: "seleccion", descripcion: "Eliminar selección", handler: () => s().eliminarSeleccion() }),
+    registrarAtajo({ combo: "Ctrl+Shift+T", ctx: "canvas", categoria: "edicion", descripcion: "Traer conectados de la cosa seleccionada", handler: abrirTraerConectados }),
+    registrarAtajo({ combo: "Ctrl+H", ctx: "canvas", categoria: "vista", descripcion: "Ocultar apariencia seleccionada", handler: ocultarApariencia }),
+    registrarAtajo({ combo: "Ctrl+Alt+C", ctx: "canvas", categoria: "edicion", descripcion: "Copiar estilo del enlace seleccionado", handler: copiarEstiloEnlace }),
+    registrarAtajo({ combo: "Ctrl+Alt+V", ctx: "canvas", categoria: "edicion", descripcion: "Pegar estilo al enlace seleccionado", handler: pegarEstiloEnlace }),
+    registrarAtajo({ combo: "Ctrl+Alt+T", ctx: "canvas", categoria: "edicion", descripcion: "Conectar selección al todo", handler: conectarMultiAlTodo }),
     registrarAtajo({ combo: "Escape", ctx: "global", categoria: "seleccion", descripcion: "Cerrar modal superior o vaciar selección", handler: cerrarModalSuperiorOVaciarSeleccion }),
     registrarAtajo({ combo: "ArrowUp", ctx: "canvas", categoria: "edicion", descripcion: "Mover selección 1 px hacia arriba", handler: () => s().nudgeSeleccion(0, -1) }),
     registrarAtajo({ combo: "ArrowDown", ctx: "canvas", categoria: "edicion", descripcion: "Mover selección 1 px hacia abajo", handler: () => s().nudgeSeleccion(0, 1) }),
@@ -161,10 +217,7 @@ function registrarAtajosAplicacion(): Array<() => void> {
     registrarAtajo({ combo: "Ctrl+ArrowLeft", ctx: "global", categoria: "navegacion", descripcion: "Ir al OPD padre", handler: () => s().navegarOpdIzquierda() }),
     registrarAtajo({ combo: "Ctrl+ArrowRight", ctx: "global", categoria: "navegacion", descripcion: "Ir al primer OPD hijo", handler: () => s().navegarOpdDerecha() }),
     registrarAtajo({ combo: "Shift+U", ctx: "canvas", categoria: "edicion", descripcion: "Desplegar selección", handler: () => s().desplegarSeleccionada() }),
-    registrarAtajo({ combo: "Ctrl+Shift+C", ctx: "canvas", categoria: "edicion", descripcion: "Copiar formato de enlace seleccionado", handler: () => {
-      const state = s();
-      if (state.enlaceSeleccionId) state.copiarEstiloEnlaceAlPortapapeles(state.enlaceSeleccionId);
-    } }),
+    registrarAtajo({ combo: "Ctrl+Shift+C", ctx: "canvas", categoria: "edicion", descripcion: "Copiar formato de enlace seleccionado", handler: copiarEstiloEnlace }),
     registrarAtajo({ combo: "Ctrl+T", ctx: "global", categoria: "navegacion", descripcion: "Abrir pestaña nueva", handler: () => s().abrirPestanaNueva?.() }),
     registrarAtajo({ combo: "Ctrl+W", ctx: "global", categoria: "navegacion", descripcion: "Cerrar pestaña activa", handler: () => {
       const state = s();
@@ -183,6 +236,18 @@ function cambiarPestanaRelativa(delta: 1 | -1): void {
   const siguiente = (actual + delta + pestanas.length) % pestanas.length;
   const siguienteId = pestanas[siguiente]?.id;
   if (siguienteId) state.cambiarPestanaActiva?.(siguienteId);
+}
+
+function tieneTimelineDisponible(modelo: Modelo, opdId: Id): boolean {
+  const opd = modelo.opds[opdId];
+  if (!opd?.padreId) return false;
+  const padre = modelo.opds[opd.padreId];
+  if (!padre) return false;
+  const refinador = Object.values(modelo.entidades).find(
+    (entidad) => entidad.tipo === "proceso" && entidad.refinamiento?.tipo === "descomposicion" && entidad.refinamiento.opdId === opd.id,
+  );
+  if (!refinador) return false;
+  return Object.values(opd.apariencias).some((apariencia) => modelo.entidades[apariencia.entidadId]?.tipo === "proceso");
 }
 
 const layout = {
@@ -229,8 +294,18 @@ const layout = {
   inspectorContent: {
     minWidth: 0,
     minHeight: 0,
-    flex: "1 1 auto",
+    flex: "1 1 0",
     overflow: "auto",
+  },
+  timelineInInspector: {
+    height: "220px",
+    minHeight: "220px",
+    overflow: "hidden",
+    borderTop: "1px solid #d9e0ea",
+  },
+  timelineFallback: {
+    height: "220px",
+    borderTop: "1px solid #d9e0ea",
   },
   oplPane: {
     gridArea: "opl",
@@ -241,19 +316,29 @@ const layout = {
   },
 } satisfies Record<string, preact.JSX.CSSProperties>;
 
-function workbenchStyle(anchoPanelArbol: number, oplLateral: boolean, oplMinimizado: boolean): preact.JSX.CSSProperties {
+function workbenchStyle(anchoPanelArbol: number, oplLateral: boolean, oplMinimizado: boolean, inspectorAbierto: boolean): preact.JSX.CSSProperties {
+  const anchoInspector = inspectorAbierto ? "300px" : "0px";
   if (!oplLateral) {
     return {
       ...layout.workbench,
-      gridTemplateColumns: `${anchoPanelArbol}px 6px minmax(0, 1fr) 300px`,
+      gridTemplateColumns: `${anchoPanelArbol}px 6px minmax(0, 1fr) ${anchoInspector}`,
       gridTemplateAreas: `"tree divisor canvas inspector"`,
     };
   }
   return {
     ...layout.workbench,
-    gridTemplateColumns: `${anchoPanelArbol}px 6px minmax(0, 1fr) 300px ${oplMinimizado ? "44px" : "320px"}`,
+    gridTemplateColumns: `${anchoPanelArbol}px 6px minmax(0, 1fr) ${anchoInspector} ${oplMinimizado ? "44px" : "320px"}`,
     gridTemplateAreas: `"tree divisor canvas inspector opl"`,
   };
+}
+
+function inspectorPaneStyle(abierto: boolean): preact.JSX.CSSProperties {
+  return abierto
+    ? layout.inspectorPane
+    : {
+        ...layout.inspectorPane,
+        display: "none",
+      };
 }
 
 function oplInferiorStyle(minimizado: boolean): preact.JSX.CSSProperties {

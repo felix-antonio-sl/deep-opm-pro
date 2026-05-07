@@ -118,6 +118,18 @@ test("marca dirty state y navega cambios con deshacer y rehacer", async ({ page 
   expect(pageErrors).toEqual([]);
 });
 
+test("L3 panel metodologia muestra aviso al crear proceso con nombre no verbal", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await page.getByRole("button", { name: "Proceso", exact: true }).click();
+
+  await expect(page.getByTestId("panel-metodologia")).toBeVisible();
+  await expect(page.getByTestId("aviso-PROCESO_NOMBRE_FORMA_VERBAL")).toContainText("Proceso");
+  expect(pageErrors).toEqual([]);
+});
+
 test("confirma cambios sin guardar antes de crear un modelo nuevo", async ({ page }) => {
   const pageErrors: string[] = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));
@@ -259,6 +271,27 @@ test("undo mueve apariencia y restaura posicion previa", async ({ page }) => {
   expect(pageErrors).toEqual([]);
 });
 
+test("accion agregar estado desde barra flotante participa en undo", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await page.getByRole("button", { name: "Objeto", exact: true }).click();
+  await elementoPorTexto(page, "Objeto").click();
+  await page.getByRole("button", { name: "Agregar estados" }).click();
+  await page.getByTestId("barra-agregar-estado").click();
+
+  await page.getByRole("button", { name: "Exportar", exact: true }).click();
+  const conEstado = JSON.parse(await jsonEditor(page).inputValue()) as ExportadoModelo;
+  expect(Object.keys(conEstado.modelo.estados)).toHaveLength(3);
+
+  await page.keyboard.press("Control+Z");
+  await page.getByRole("button", { name: "Exportar", exact: true }).click();
+  const sinEstado = JSON.parse(await jsonEditor(page).inputValue()) as ExportadoModelo;
+  expect(Object.keys(sinEstado.modelo.estados)).toHaveLength(2);
+  expect(pageErrors).toEqual([]);
+});
+
 test("undo cambia esencia y restaura valor previo", async ({ page }) => {
   const pageErrors: string[] = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));
@@ -364,6 +397,29 @@ test("HU-SHARED-002: deshacer revierte creación de cosa con un solo Ctrl+Z (ato
   // Un solo Ctrl+Z debe revertir la operación completa (creación = un push).
   await page.keyboard.press("Control+z");
   await expect(elementoPorTexto(page, "Cosa undo")).toHaveCount(0);
+
+  expect(pageErrors).toEqual([]);
+});
+
+test("L1 botones Deshacer Rehacer siguen operando desde ToolbarBase", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await cerrarPantallaInicioSiVisible(page);
+
+  const deshacer = page.getByRole("button", { name: "Deshacer" });
+  const rehacer = page.getByRole("button", { name: "Rehacer" });
+  await expect(page.getByTestId("toolbar-root")).toBeVisible();
+  await expect(deshacer).toBeDisabled();
+  await expect(rehacer).toBeDisabled();
+
+  await page.getByRole("button", { name: "Proceso", exact: true }).click();
+  await expect(page.locator(".joint-element")).toHaveCount(1);
+  await deshacer.click();
+  await expect(page.locator(".joint-element")).toHaveCount(0);
+  await rehacer.click();
+  await expect(page.locator(".joint-element")).toHaveCount(1);
 
   expect(pageErrors).toEqual([]);
 });

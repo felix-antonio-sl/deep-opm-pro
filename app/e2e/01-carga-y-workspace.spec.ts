@@ -65,6 +65,19 @@ test("carga demo OPM en canvas JointJS y mantiene OPL visible", async ({ page })
   expect(pageErrors).toEqual([]);
 });
 
+test("L3 panel metodologia marca Cafetera Domestica como valida", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await page.getByLabel("Cargar modelo de ejemplo").selectOption("Cafetera Domestica");
+
+  await expect(page.getByTestId("panel-metodologia")).toBeVisible();
+  await expect(page.getByTestId("panel-metodologia-total")).toHaveText("0");
+  await expect(page.getByTestId("panel-metodologia-vacio")).toContainText("Modelo metodológicamente válido");
+  expect(pageErrors).toEqual([]);
+});
+
 test("workspace local abre menu, guarda como, guarda incremental y carga desde dialogo", async ({ page }) => {
   const pageErrors: string[] = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));
