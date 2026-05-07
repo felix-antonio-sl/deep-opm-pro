@@ -1,3 +1,4 @@
+// [JOYAS §1-3] Chrome UI consume tokens centralizados; canvas semántico invariante.
 import { dia, shapes } from "jointjs";
 import { useEffect, useRef, useState } from "preact/hooks";
 import { descargarMapa, type FormatoExport } from "../render/jointjs/mapaExport";
@@ -5,6 +6,7 @@ import { proyectarMapaSistemaAJointCells, type NodoMapa } from "../render/jointj
 import { useOpmStore } from "../store";
 import { MapaFiltros } from "./MapaFiltros";
 import { MapaPanelEstadisticas } from "./MapaPanelEstadisticas";
+import { tokens } from "./tokens";
 
 interface TooltipMapa {
   nodo: NodoMapa;
@@ -66,7 +68,7 @@ export function MapaSistema() {
       async: false,
       frozen: false,
       gridSize: 10,
-      background: { color: "#f5f7fb" },
+      background: { color: tokens.colors.fondoApp },
       linkPinning: false,
       interactive: false,
     });
@@ -269,19 +271,19 @@ const style = {
     height: "100%",
     display: "grid",
     gridTemplateRows: "44px minmax(0, 1fr)",
-    background: "#f5f7fb",
+    background: tokens.colors.fondoApp,
   },
   toolbar: {
     display: "flex",
     alignItems: "center",
     justifyContent: "space-between",
     padding: "0 12px",
-    borderBottom: "1px solid #d9e0ea",
-    background: "#ffffff",
+    borderBottom: `1px solid ${tokens.colors.bordeIntermedio}`,
+    background: tokens.colors.fondoChrome,
     minWidth: 0,
   },
   toolbarTitle: {
-    color: "#1f2937",
+    color: tokens.colors.textoPrimario,
     fontSize: "13px",
     fontWeight: 700,
     whiteSpace: "nowrap",
@@ -294,13 +296,13 @@ const style = {
     minWidth: 0,
   },
   stats: {
-    color: "#667085",
+    color: tokens.colors.textoTerciario,
     fontSize: "12px",
     whiteSpace: "nowrap",
   },
   zoom: {
     minWidth: "44px",
-    color: "#1f2937",
+    color: tokens.colors.textoPrimario,
     fontSize: "12px",
     fontWeight: 700,
     textAlign: "right",
@@ -308,10 +310,10 @@ const style = {
   btn: {
     height: "28px",
     padding: "0 10px",
-    borderRadius: "4px",
-    border: "1px solid #c8d2df",
-    background: "#ffffff",
-    color: "#1f2937",
+    borderRadius: tokens.radii.sm,
+    border: `1px solid ${tokens.colors.bordeControl}`,
+    background: tokens.colors.fondoChrome,
+    color: tokens.colors.textoPrimario,
     cursor: "pointer",
     fontSize: "12px",
     fontWeight: 600,
@@ -320,10 +322,10 @@ const style = {
   activeBtn: {
     height: "28px",
     padding: "0 10px",
-    borderRadius: "4px",
-    border: "1px solid #70E483",
-    background: "#ebfff0",
-    color: "#1f2937",
+    borderRadius: tokens.radii.sm,
+    border: `1px solid ${tokens.colors.canvas.objeto}`,
+    background: tokens.colors.objetoFondo,
+    color: tokens.colors.textoPrimario,
     cursor: "pointer",
     fontSize: "12px",
     fontWeight: 700,
@@ -354,17 +356,17 @@ const style = {
     gap: "3px",
     maxWidth: "260px",
     padding: "8px 10px",
-    border: "1px solid #c8d2df",
-    borderRadius: "4px",
-    background: "#ffffff",
-    boxShadow: "0 10px 24px rgba(16, 24, 40, 0.16)",
-    color: "#1f2937",
+    border: `1px solid ${tokens.colors.bordeControl}`,
+    borderRadius: tokens.radii.sm,
+    background: tokens.colors.fondoChrome,
+    boxShadow: tokens.shadows.mapaPopup,
+    color: tokens.colors.textoPrimario,
     fontSize: "12px",
     pointerEvents: "none",
   },
   empty: {
     padding: "20px",
-    color: "#667085",
+    color: tokens.colors.textoTerciario,
     fontSize: "13px",
   },
 } satisfies Record<string, preact.JSX.CSSProperties>;
