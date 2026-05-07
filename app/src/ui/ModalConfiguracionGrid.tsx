@@ -1,5 +1,7 @@
+// [JOYAS §1-3] Chrome UI consume tokens centralizados; canvas semántico invariante.
 import { useEffect, useState } from "preact/hooks";
 import { normalizarGridConfig, type GridConfig } from "../canvas/grid";
+import { tokens } from "./tokens";
 
 interface Props {
   abierto: boolean;
@@ -70,21 +72,21 @@ const style = {
   },
   dialog: {
     width: "min(360px, calc(100vw - 32px))",
-    background: "#ffffff",
-    border: "1px solid #c8d2df",
-    borderRadius: "6px",
-    boxShadow: "0 18px 42px rgb(15 23 42 / 0.22)",
+    background: tokens.colors.fondoChrome,
+    border: `1px solid ${tokens.colors.bordeControl}`,
+    borderRadius: tokens.radii.md,
+    boxShadow: tokens.shadows.modalGrid,
     padding: "16px",
     display: "grid",
     gap: "10px",
   },
-  title: { margin: 0, fontSize: "16px", color: "#1f2937" },
+  title: { margin: 0, fontSize: "16px", color: tokens.colors.textoPrimario },
   field: { display: "grid", gridTemplateColumns: "84px 1fr", alignItems: "center", gap: "8px" },
-  label: { fontSize: "13px", color: "#475467", fontWeight: 700 },
-  input: { height: "32px", border: "1px solid #c8d2df", borderRadius: "4px", padding: "0 8px", fontSize: "13px" },
-  colorInput: { width: "54px", height: "32px", border: "1px solid #c8d2df", borderRadius: "4px", background: "#ffffff" },
-  checkbox: { display: "inline-flex", alignItems: "center", gap: "8px", color: "#344054", fontSize: "13px", fontWeight: 700 },
+  label: { fontSize: "13px", color: tokens.colors.textoSecundario, fontWeight: 700 },
+  input: { height: "32px", border: `1px solid ${tokens.colors.bordeControl}`, borderRadius: tokens.radii.sm, padding: "0 8px", fontSize: "13px" },
+  colorInput: { width: "54px", height: "32px", border: `1px solid ${tokens.colors.bordeControl}`, borderRadius: tokens.radii.sm, background: tokens.colors.fondoChrome },
+  checkbox: { display: "inline-flex", alignItems: "center", gap: "8px", color: tokens.colors.textoControl, fontSize: "13px", fontWeight: 700 },
   actions: { display: "flex", justifyContent: "flex-end", gap: "8px", marginTop: "4px" },
-  primaryButton: { height: "34px", padding: "0 12px", border: "1px solid #586D8C", borderRadius: "4px", background: "#586D8C", color: "#ffffff", cursor: "pointer", fontWeight: 700 },
-  secondaryButton: { height: "34px", padding: "0 12px", border: "1px solid #c8d2df", borderRadius: "4px", background: "#ffffff", color: "#475467", cursor: "pointer", fontWeight: 700 },
+  primaryButton: { height: "34px", padding: "0 12px", border: `1px solid ${tokens.colors.chromeNeutral}`, borderRadius: tokens.radii.sm, background: tokens.colors.chromeNeutral, color: tokens.colors.fondoChrome, cursor: "pointer", fontWeight: 700 },
+  secondaryButton: { height: "34px", padding: "0 12px", border: `1px solid ${tokens.colors.bordeControl}`, borderRadius: tokens.radii.sm, background: tokens.colors.fondoChrome, color: tokens.colors.textoSecundario, cursor: "pointer", fontWeight: 700 },
 } satisfies Record<string, preact.JSX.CSSProperties>;
