@@ -1,6 +1,8 @@
+// [JOYAS §1-3] Chrome UI consume tokens centralizados; canvas semántico invariante.
 import type { Id } from "../../modelo/tipos";
 import type { ResumenModeloPersistido } from "../../persistencia/local";
 import type { CarpetaIndice } from "../../persistencia/workspace";
+import { tokens } from "../tokens";
 
 export interface MenuContextualState {
   abierto: boolean;
@@ -80,10 +82,10 @@ const style = {
   contextMenu: {
     position: "fixed",
     zIndex: 2000,
-    background: "#ffffff",
-    border: "1px solid #c8d2df",
-    borderRadius: "6px",
-    boxShadow: "0 8px 24px rgba(16, 24, 40, 0.18)",
+    background: tokens.colors.fondoChrome,
+    border: `1px solid ${tokens.colors.bordeControl}`,
+    borderRadius: tokens.radii.md,
+    boxShadow: tokens.shadows.menuLigero,
     padding: "4px",
     display: "grid",
     gap: "2px",
@@ -92,9 +94,9 @@ const style = {
     height: "30px",
     padding: "0 12px",
     border: "1px solid transparent",
-    borderRadius: "4px",
+    borderRadius: tokens.radii.sm,
     background: "transparent",
-    color: "#1f2937",
+    color: tokens.colors.textoPrimario,
     cursor: "pointer",
     fontSize: "13px",
     fontWeight: 600,
