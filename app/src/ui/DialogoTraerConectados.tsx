@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from "preact/hooks";
-import { FAMILIAS_TRAER, type FamiliaTraerConectados } from "../canvas/reglasTraer";
+import { FAMILIAS_TRAER, tiposDeFamilia, type FamiliaTraerConectados } from "../canvas/reglasTraer";
+import { entidadIdDeExtremo } from "../modelo/extremos";
+import type { Id, Modelo } from "../modelo/tipos";
 import { useOpmStore } from "../store";
 import { Dialogo } from "./Dialogo";
 
@@ -8,8 +10,24 @@ import { Dialogo } from "./Dialogo";
  *
  * SSOT: [Met §multi-OPD] hidrata solo la vista activa; [Glos 3.6] una
  * apariencia puede existir en mas de un OPD sin duplicar el hecho logical.
+ * El conteo por familia se deriva localmente de `tiposDeFamilia` (export
+ * existente de reglasTraer.ts) + `entidadIdDeExtremo`, sin agregar funciones
+ * nuevas al kernel — la UI cuenta enlaces candidatos en la vista activa.
  * Referencia tecnica verificada: opm-extracted/src/app/models/consistency/bringConnectedRules.ts.
  */
+
+function contarCandidatosUi(modelo: Modelo, entidadFocoId: Id, familia: FamiliaTraerConectados): number {
+  const tipos = new Set(tiposDeFamilia(familia));
+  if (tipos.size === 0) return 0;
+  let total = 0;
+  for (const enlace of Object.values(modelo.enlaces)) {
+    if (!tipos.has(enlace.tipo)) continue;
+    const origen = entidadIdDeExtremo(modelo, enlace.origenId);
+    const destino = entidadIdDeExtremo(modelo, enlace.destinoId);
+    if (origen === entidadFocoId || destino === entidadFocoId) total += 1;
+  }
+  return total;
+}
 
 const LABELS: Record<FamiliaTraerConectados, string> = {
   "procedural-habilitador": "Procedurales habilitadores",
@@ -23,8 +41,33 @@ export function DialogoTraerConectados() {
   const cerrar = useOpmStore((s) => s.cerrarDialogoTraerConectados);
   const traer = useOpmStore((s) => s.traerConectadosSeleccionado);
   const ultima = useOpmStore((s) => s.indice.preferenciasUi?.traerConectadosUltimo);
+  const modelo = useOpmStore((s) => s.modelo);
+  const seleccionId = useOpmStore((s) => s.seleccionId);
+  const seleccionados = useOpmStore((s) => s.seleccionados);
   const inicial = useMemo(() => new Set<FamiliaTraerConectados>(ultima?.length ? ultima : FAMILIAS_TRAER), [ultima]);
   const [seleccion, setSeleccion] = useState(inicial);
+
+  const entidadFocoId = useMemo(() => {
+    const candidatos = [seleccionId, ...seleccionados];
+    for (const id of candidatos) {
+      if (id && modelo.entidades[id]) return id;
+    }
+    return null;
+  }, [modelo.entidades, seleccionId, seleccionados]);
+
+  const conteos = useMemo(() => {
+    const out: Record<FamiliaTraerConectados, number> = {
+      "procedural-habilitador": 0,
+      "procedural-transformador": 0,
+      direccional: 0,
+      estructural: 0,
+    };
+    if (!entidadFocoId) return out;
+    for (const familia of FAMILIAS_TRAER) {
+      out[familia] = contarCandidatosUi(modelo, entidadFocoId, familia);
+    }
+    return out;
+  }, [modelo, entidadFocoId]);
 
   useEffect(() => {
     if (abierto) setSeleccion(new Set(ultima?.length ? ultima : FAMILIAS_TRAER));
@@ -55,21 +98,26 @@ export function DialogoTraerConectados() {
         }}
       >
         <div style={style.lista}>
-          {FAMILIAS_TRAER.map((familia) => (
-            <label key={familia} style={style.check}>
-              <input
-                type="checkbox"
-                checked={seleccion.has(familia)}
-                onChange={(event) => {
-                  const siguiente = new Set(seleccion);
-                  if (event.currentTarget.checked) siguiente.add(familia);
-                  else siguiente.delete(familia);
-                  setSeleccion(siguiente);
-                }}
-              />
-              <span>{LABELS[familia]}</span>
-            </label>
-          ))}
+          {FAMILIAS_TRAER.map((familia) => {
+            const n = conteos[familia];
+            const sinCandidatos = n === 0;
+            return (
+              <label key={familia} style={sinCandidatos ? style.checkDisabled : style.check} data-testid={`familia-traer-${familia}`}>
+                <input
+                  type="checkbox"
+                  checked={seleccion.has(familia) && !sinCandidatos}
+                  disabled={sinCandidatos}
+                  onChange={(event) => {
+                    const siguiente = new Set(seleccion);
+                    if (event.currentTarget.checked) siguiente.add(familia);
+                    else siguiente.delete(familia);
+                    setSeleccion(siguiente);
+                  }}
+                />
+                <span>{LABELS[familia]} · <span data-testid={`conteo-${familia}`}>{n} {n === 1 ? "candidato" : "candidatos"}</span></span>
+              </label>
+            );
+          })}
         </div>
       </form>
     </Dialogo>
@@ -99,6 +147,14 @@ const style = {
     gap: "10px",
     fontSize: "14px",
     color: "#1f2937",
+  },
+  checkDisabled: {
+    display: "flex",
+    alignItems: "center",
+    gap: "10px",
+    fontSize: "14px",
+    color: "#98a2b3",
+    cursor: "not-allowed",
   },
   primary: {
     ...buttonBase,
