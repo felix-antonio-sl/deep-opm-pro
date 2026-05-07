@@ -188,7 +188,7 @@ export const toolbarStyle = {
     whiteSpace: "nowrap",
   },
   autosaveIdle: {
-    color: "#98a2b3",
+    color: colors.textoTerciario,
     fontSize: "12px",
     fontWeight: 600,
     whiteSpace: "nowrap",
