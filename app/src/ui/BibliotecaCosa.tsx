@@ -1,8 +1,10 @@
+// [JOYAS §1-3] Chrome UI consume tokens centralizados; canvas semántico invariante.
 import objectIcon from "../../../assets/svg/list-logical/object.svg";
 import objectDashedIcon from "../../../assets/svg/list-logical/objectDashed.svg";
 import processIcon from "../../../assets/svg/list-logical/process.svg";
 import processDashedIcon from "../../../assets/svg/list-logical/processDashed.svg";
 import type { Entidad, Id, Modelo, TipoEntidad } from "../modelo/tipos";
+import { tokens } from "./tokens";
 
 /**
  * Biblioteca de cosas con iconografía list-logical canónica.
@@ -126,24 +128,24 @@ const style = {
     gap: "10px",
     overflow: "auto",
     padding: "10px",
-    border: "1px solid #c8d2df",
-    borderRadius: "6px",
-    background: "#ffffff",
-    boxShadow: "0 10px 26px rgba(15, 23, 42, 0.14)",
+    border: `1px solid ${tokens.colors.bordeControl}`,
+    borderRadius: tokens.radii.md,
+    background: tokens.colors.fondoChrome,
+    boxShadow: tokens.shadows.menu,
   },
-  header: { display: "flex", alignItems: "center", justifyContent: "space-between", color: "#1f2937", fontSize: "14px" },
-  closeButton: { width: "26px", height: "26px", border: "1px solid #c8d2df", borderRadius: "4px", background: "#f8fafc", cursor: "pointer" },
+  header: { display: "flex", alignItems: "center", justifyContent: "space-between", color: tokens.colors.textoPrimario, fontSize: "14px" },
+  closeButton: { width: "26px", height: "26px", border: `1px solid ${tokens.colors.bordeControl}`, borderRadius: tokens.radii.sm, background: tokens.colors.fondoElevado, cursor: "pointer" },
   group: { display: "grid", gap: "6px" },
-  groupTitle: { margin: "4px 0", fontSize: "12px", color: "#475467", textTransform: "uppercase", letterSpacing: "0" },
-  empty: { color: "#98a2b3", fontSize: "12px" },
-  item: { display: "grid", gap: "5px", padding: "8px", border: "1px solid #e5e7eb", borderRadius: "6px", background: "#f9fbfd", cursor: "grab" },
+  groupTitle: { margin: "4px 0", fontSize: "12px", color: tokens.colors.textoSecundario, textTransform: "uppercase", letterSpacing: "0" },
+  empty: { color: tokens.colors.textoDeshabilitado, fontSize: "12px" },
+  item: { display: "grid", gap: "5px", padding: "8px", border: `1px solid ${tokens.colors.bordeTabla}`, borderRadius: tokens.radii.md, background: tokens.colors.fondoCard, cursor: "grab" },
   itemMain: { display: "flex", alignItems: "center", gap: "7px", minWidth: 0 },
-  objectDot: { width: "10px", height: "10px", borderRadius: "2px", background: "#70e483", border: "1px solid #0e7c66" },
-  processDot: { width: "12px", height: "8px", borderRadius: "999px", background: "#3bc3ff", border: "1px solid #1d4ed8" },
+  objectDot: { width: "10px", height: "10px", borderRadius: "2px", background: tokens.colors.canvas.objeto, border: `1px solid ${tokens.colors.verdeObjetoOscuro}` },
+  processDot: { width: "12px", height: "8px", borderRadius: tokens.radii.pill, background: tokens.colors.canvas.proceso, border: `1px solid ${tokens.colors.azulAccion}` },
   iconLogical: { width: "18px", height: "14px", display: "block", flex: "0 0 auto" },
-  name: { flex: "1 1 auto", minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontSize: "13px", fontWeight: 700, color: "#1f2937" },
-  badge: { flex: "0 0 auto", fontSize: "10px", color: "#0e7c66", fontWeight: 700 },
+  name: { flex: "1 1 auto", minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontSize: "13px", fontWeight: 700, color: tokens.colors.textoPrimario },
+  badge: { flex: "0 0 auto", fontSize: "10px", color: tokens.colors.verdeObjetoOscuro, fontWeight: 700 },
   opdList: { display: "flex", flexWrap: "wrap", gap: "4px" },
-  opdButton: { border: "1px solid #d9e0ea", borderRadius: "4px", background: "#ffffff", color: "#475467", fontSize: "11px", cursor: "pointer" },
-  opdButtonActive: { border: "1px solid #3bc3ff", borderRadius: "4px", background: "#eaf8ff", color: "#1d4ed8", fontSize: "11px", cursor: "pointer" },
+  opdButton: { border: `1px solid ${tokens.colors.bordeIntermedio}`, borderRadius: tokens.radii.sm, background: tokens.colors.fondoChrome, color: tokens.colors.textoSecundario, fontSize: "11px", cursor: "pointer" },
+  opdButtonActive: { border: `1px solid ${tokens.colors.canvas.proceso}`, borderRadius: tokens.radii.sm, background: tokens.colors.acentoUiSuave, color: tokens.colors.azulAccion, fontSize: "11px", cursor: "pointer" },
 } satisfies Record<string, preact.JSX.CSSProperties>;
