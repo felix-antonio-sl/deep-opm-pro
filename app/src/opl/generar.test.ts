@@ -624,6 +624,37 @@ describe("generarOpl", () => {
     expect(generarOpl(modelo, modelo.opdRaizId)).toContain("*Atender Paciente* se descompone en *Examinar*, *Atender Paciente 1*, *Atender Paciente 2* y *Atender Paciente 3* en esa secuencia.");
   });
 
+  test("emite OPL de descomposicion para objeto refinado con componentes", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 200, y: 120 }, "Vehiculo"));
+    const descompuesto = must(descomponerProceso(modelo, modelo.opdRaizId, entidad(modelo, "Vehiculo")));
+    modelo = descompuesto.modelo;
+
+    expect(generarOpl(modelo, modelo.opdRaizId)).toContain("**Vehiculo** se descompone en **Vehiculo 1**, **Vehiculo 2** y **Vehiculo 3** en esa secuencia.");
+    expect(generarOpl(modelo, descompuesto.opdId)).toContain("**Vehiculo** se descompone en **Vehiculo 1**, **Vehiculo 2** y **Vehiculo 3** en esa secuencia.");
+  });
+
+  test("descomposicion de objeto en OPL interactivo separa refs y hints de operaciones internas", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 200, y: 120 }, "Vehiculo"));
+    const descompuesto = must(descomponerProceso(modelo, modelo.opdRaizId, entidad(modelo, "Vehiculo")));
+    modelo = descompuesto.modelo;
+    modelo = must(crearProceso(modelo, descompuesto.opdId, { x: 305, y: 350 }, "Inspeccionar"));
+
+    const interactivo = generarOplInteractivo(modelo, descompuesto.opdId);
+    const linea = interactivo.find((item) => item.texto.includes("Vehiculo") && item.texto.includes("se descompone en"));
+    expect(linea?.texto).toBe("**Vehiculo** se descompone en **Vehiculo 1**, **Vehiculo 2** y **Vehiculo 3** en esa secuencia, así como *Inspeccionar*.");
+    expect(linea?.refs).toEqual(expect.arrayContaining([
+      expect.objectContaining({ tipo: "entidad", id: entidad(modelo, "Vehiculo") }),
+      expect.objectContaining({ tipo: "entidad", id: entidad(modelo, "Vehiculo 1") }),
+      expect.objectContaining({ tipo: "entidad", id: entidad(modelo, "Inspeccionar") }),
+    ]));
+    expect(linea?.tokens).toEqual(expect.arrayContaining([
+      expect.objectContaining({ texto: "**Vehiculo 1**", markdown: "objeto" }),
+      expect.objectContaining({ texto: "*Inspeccionar*", markdown: "proceso" }),
+    ]));
+  });
+
   test("reordena OPL de descomposicion por Y y agrupa paralelos con tolerancia", () => {
     let modelo = crearModelo();
     modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 200, y: 120 }, "Atender Paciente"));

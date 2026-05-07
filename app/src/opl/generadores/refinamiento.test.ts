@@ -29,6 +29,24 @@ describe("refinamiento OPL", () => {
   test("oracionParalelo emite ocurren en paralelo", () => {
     expect(oracionParalelo([modeloRefinamiento("descomposicion").entidades.a!, modeloRefinamiento("descomposicion").entidades.b!])).toBe("*A* y *B* ocurren en paralelo.");
   });
+
+  test("descomposicion de objeto lista componentes como objetos", () => {
+    const modelo = modeloRefinamientoObjeto();
+    const padre = modelo.entidades.padre!;
+    const apariencia = modelo.opds.opd!.apariencias.ap!;
+
+    expect(oracionRefinamiento(modelo, apariencia, padre)).toBe("**Vehiculo** se descompone en **Motor** y **Rueda** en esa secuencia.");
+  });
+
+  test("descomposicion de objeto separa operaciones internas de componentes", () => {
+    const modelo = modeloRefinamientoObjeto();
+    modelo.entidades.operar = { id: "operar", tipo: "proceso", nombre: "Operar", esencia: "informacional", afiliacion: "sistemica" };
+    modelo.opds.hijo!.apariencias.operar = { id: "operar", entidadId: "operar", opdId: "hijo", x: 120, y: 140, width: 80, height: 40 };
+    const padre = modelo.entidades.padre!;
+    const apariencia = modelo.opds.opd!.apariencias.ap!;
+
+    expect(oracionRefinamiento(modelo, apariencia, padre)).toBe("**Vehiculo** se descompone en **Motor** y **Rueda** en esa secuencia, así como *Operar*.");
+  });
 });
 
 function modeloRefinamiento(tipo: "descomposicion" | "despliegue"): Modelo {
@@ -60,6 +78,42 @@ function modeloRefinamiento(tipo: "descomposicion" | "despliegue"): Modelo {
       padre: { id: "padre", tipo: "proceso", nombre: "Atender", esencia: "informacional", afiliacion: "sistemica", refinamiento: { tipo, opdId: "hijo" } },
       a: { id: "a", tipo: "proceso", nombre: "A", esencia: "informacional", afiliacion: "sistemica" },
       b: { id: "b", tipo: "proceso", nombre: "B", esencia: "informacional", afiliacion: "sistemica" },
+    },
+    estados: {},
+    enlaces: {},
+    nextSeq: 1,
+  };
+}
+
+function modeloRefinamientoObjeto(): Modelo {
+  return {
+    id: "m1",
+    nombre: "M",
+    opdRaizId: "opd",
+    opds: {
+      opd: {
+        id: "opd",
+        nombre: "SD",
+        padreId: null,
+        apariencias: { ap: { id: "ap", entidadId: "padre", opdId: "opd", x: 0, y: 0, width: 200, height: 120 } },
+        enlaces: {},
+      },
+      hijo: {
+        id: "hijo",
+        nombre: "SD1",
+        padreId: "opd",
+        apariencias: {
+          contorno: { id: "contorno", entidadId: "padre", opdId: "hijo", x: 0, y: 0, width: 300, height: 220 },
+          motor: { id: "motor", entidadId: "motor", opdId: "hijo", x: 20, y: 20, width: 80, height: 40 },
+          rueda: { id: "rueda", entidadId: "rueda", opdId: "hijo", x: 20, y: 80, width: 80, height: 40 },
+        },
+        enlaces: {},
+      },
+    },
+    entidades: {
+      padre: { id: "padre", tipo: "objeto", nombre: "Vehiculo", esencia: "informacional", afiliacion: "sistemica", refinamiento: { tipo: "descomposicion", opdId: "hijo" } },
+      motor: { id: "motor", tipo: "objeto", nombre: "Motor", esencia: "informacional", afiliacion: "sistemica" },
+      rueda: { id: "rueda", tipo: "objeto", nombre: "Rueda", esencia: "informacional", afiliacion: "sistemica" },
     },
     estados: {},
     enlaces: {},

@@ -38,14 +38,7 @@ export function oracionRefinamiento(modelo: Modelo, apariencia: Apariencia, enti
     return oracionDespliegue(modelo, entidad, opdHijo, internos);
   }
 
-  const destino = internos.length > 0 ? listarOpl(internos) : codigoOpd(opdHijo.nombre);
-  const todosProcesos = aparienciasInternas.length > 1 && aparienciasInternas.every((aparienciaInterna) => modelo.entidades[aparienciaInterna.entidadId]?.tipo === "proceso");
-  const temporal = todosProcesos ? describirProcesosTemporales(modelo, aparienciasInternas) : null;
-  const destinoProcesos = temporal?.texto ?? destino;
-  const secuencia = todosProcesos && temporal?.tieneSecuencia
-    ? temporal.tieneParalelos ? ", en esa secuencia" : " en esa secuencia"
-    : "";
-  return `${nombreOpl(entidad)} se descompone en ${destinoProcesos}${secuencia}.`;
+  return oracionDescomposicion(modelo, entidad, opdHijo, aparienciasInternas, internos);
 }
 
 export function oracionDespliegue(modelo: Modelo, entidad: Entidad, opdHijo: Opd, internos: string[]): string {
@@ -56,6 +49,29 @@ export function oracionDespliegue(modelo: Modelo, entidad: Entidad, opdHijo: Opd
   if (modo === "exhibicion") return `${nombreOpl(entidad)} exhibe ${destino}.`;
   if (modo === "generalizacion") return `${destino} ${internos.length === 1 ? "es un" : "son"} ${nombreOpl(entidad)}.`;
   return `${destino} ${internos.length === 1 ? "es una instancia" : "son instancias"} de ${nombreOpl(entidad)}.`;
+}
+
+export function oracionDescomposicion(modelo: Modelo, entidad: Entidad, opdHijo: Opd, aparienciasInternas: Apariencia[], internos: string[]): string {
+  const destino = internos.length > 0 ? listarOpl(internos) : codigoOpd(opdHijo.nombre);
+  const aparienciasProcesos = aparienciasInternas.filter((aparienciaInterna) => modelo.entidades[aparienciaInterna.entidadId]?.tipo === "proceso");
+  const aparienciasObjetos = aparienciasInternas.filter((aparienciaInterna) => modelo.entidades[aparienciaInterna.entidadId]?.tipo === "objeto");
+  const objetos = nombresDeApariencias(modelo, aparienciasObjetos);
+  const procesos = nombresDeApariencias(modelo, aparienciasProcesos);
+
+  if (entidad.tipo === "objeto") {
+    const componentes = objetos.length > 0 ? listarOpl(objetos) : destino;
+    const operaciones = procesos.length > 0 ? `, así como ${listarOpl(procesos)}` : "";
+    const secuencia = objetos.length > 1 ? " en esa secuencia" : "";
+    return `${nombreOpl(entidad)} se descompone en ${componentes}${secuencia}${operaciones}.`;
+  }
+
+  const temporal = aparienciasProcesos.length > 1 ? describirProcesosTemporales(modelo, aparienciasProcesos) : null;
+  const destinoProcesos = temporal?.texto ?? (procesos.length > 0 ? listarOpl(procesos) : destino);
+  const secuencia = aparienciasProcesos.length > 1 && temporal?.tieneSecuencia
+    ? temporal.tieneParalelos ? ", en esa secuencia" : " en esa secuencia"
+    : "";
+  const objetosEnZoom = objetos.length > 0 ? `, así como ${listarOpl(objetos)}` : "";
+  return `${nombreOpl(entidad)} se descompone en ${destinoProcesos}${secuencia}${objetosEnZoom}.`;
 }
 
 export function oracionParalelo(grupoSubprocesos: Entidad[]): string {
@@ -202,6 +218,13 @@ function describirProcesosTemporales(modelo: Modelo, apariencias: Apariencia[]):
     tieneParalelos: grupos.some((grupo) => grupo.length > 1),
     tieneSecuencia: grupos.length > 1,
   };
+}
+
+function nombresDeApariencias(modelo: Modelo, apariencias: Apariencia[]): string[] {
+  return apariencias.flatMap((apariencia) => {
+    const entidad = modelo.entidades[apariencia.entidadId];
+    return entidad ? [nombreOpl(entidad)] : [];
+  });
 }
 
 function listarSecuenciaTemporal(items: string[]): string {
