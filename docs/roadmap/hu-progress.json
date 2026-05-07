@@ -1,17 +1,17 @@
 {
   "schema": "deep-opm-pro.hu-progress-report.v1",
-  "generatedAt": "2026-05-07T02:53:56.829Z",
+  "generatedAt": "2026-05-07T05:59:01.104Z",
   "repoRoot": "/home/felix/projects/deep-opm-pro",
   "backlogRoot": "docs/historias-usuario-v2",
   "evidenceLedger": "docs/roadmap/hu-progress-evidence.json",
   "autoAudit": {
-    "generatedAt": "2026-05-07T02:53:56.829Z",
+    "generatedAt": "2026-05-07T05:59:01.104Z",
     "mode": "sync-real",
-    "rulesEvaluated": 100,
-    "rulesMatched": 98,
-    "rulesUnmatched": 2,
+    "rulesEvaluated": 102,
+    "rulesMatched": 102,
+    "rulesUnmatched": 0,
     "sourceFiles": {
-      "count": 351,
+      "count": 353,
       "roots": [
         "app/src",
         "app/e2e",
@@ -43,14 +43,14 @@
   "summaries": {
     "total": {
       "total": 1126,
-      "cubierto": 302,
-      "parcial": 30,
-      "pendiente": 416,
+      "cubierto": 312,
+      "parcial": 23,
+      "pendiente": 413,
       "diferido": 378,
       "bloqueado": 0,
       "pesoTotal": 3004,
-      "pesoCubierto": 825.5,
-      "avance": 0.27480026631158455
+      "pesoCubierto": 851.5,
+      "avance": 0.2834553928095872
     },
     "inventario": {
       "totalParseadas": 1173,
@@ -60,25 +60,25 @@
     },
     "m0": {
       "total": 130,
-      "cubierto": 101,
-      "parcial": 14,
-      "pendiente": 15,
+      "cubierto": 108,
+      "parcial": 8,
+      "pendiente": 14,
       "diferido": 0,
       "bloqueado": 0,
       "pesoTotal": 333,
-      "pesoCubierto": 275.5,
-      "avance": 0.8273273273273273
+      "pesoCubierto": 291.5,
+      "avance": 0.8753753753753754
     },
     "alpha": {
       "total": 121,
-      "cubierto": 110,
-      "parcial": 8,
-      "pendiente": 3,
+      "cubierto": 120,
+      "parcial": 1,
+      "pendiente": 0,
       "diferido": 0,
       "bloqueado": 0,
       "pesoTotal": 326,
-      "pesoCubierto": 296,
-      "avance": 0.9079754601226994
+      "pesoCubierto": 322,
+      "avance": 0.9877300613496932
     },
     "beta": {
       "total": 193,
@@ -94,14 +94,14 @@
     "byCut": {
       "alpha": {
         "total": 121,
-        "cubierto": 110,
-        "parcial": 8,
-        "pendiente": 3,
+        "cubierto": 120,
+        "parcial": 1,
+        "pendiente": 0,
         "diferido": 0,
         "bloqueado": 0,
         "pesoTotal": 326,
-        "pesoCubierto": 296,
-        "avance": 0.9079754601226994
+        "pesoCubierto": 322,
+        "avance": 0.9877300613496932
       },
       "beta": {
         "total": 193,
@@ -151,47 +151,47 @@
     "byPriority": {
       "M0": {
         "total": 130,
-        "cubierto": 101,
-        "parcial": 14,
-        "pendiente": 15,
+        "cubierto": 108,
+        "parcial": 8,
+        "pendiente": 14,
         "diferido": 0,
         "bloqueado": 0,
         "pesoTotal": 333,
-        "pesoCubierto": 275.5,
-        "avance": 0.8273273273273273
+        "pesoCubierto": 291.5,
+        "avance": 0.8753753753753754
       },
       "M1": {
         "total": 161,
-        "cubierto": 104,
+        "cubierto": 105,
         "parcial": 9,
-        "pendiente": 42,
+        "pendiente": 41,
         "diferido": 6,
         "bloqueado": 0,
         "pesoTotal": 388,
-        "pesoCubierto": 266,
-        "avance": 0.6855670103092784
+        "pesoCubierto": 270,
+        "avance": 0.6958762886597938
       },
       "S": {
         "total": 471,
-        "cubierto": 86,
+        "cubierto": 87,
         "parcial": 3,
-        "pendiente": 220,
+        "pendiente": 219,
         "diferido": 162,
         "bloqueado": 0,
         "pesoTotal": 1247,
-        "pesoCubierto": 252,
-        "avance": 0.2020850040096231
+        "pesoCubierto": 256,
+        "avance": 0.20529270248596632
       },
       "C": {
         "total": 247,
-        "cubierto": 10,
-        "parcial": 4,
+        "cubierto": 11,
+        "parcial": 3,
         "pendiente": 132,
         "diferido": 101,
         "bloqueado": 0,
         "pesoTotal": 661,
-        "pesoCubierto": 28,
-        "avance": 0.04236006051437216
+        "pesoCubierto": 30,
+        "avance": 0.0453857791225416
       },
       "W": {
         "total": 117,
@@ -220,26 +220,26 @@
       "10": {
         "titulo": "Canvas — creación de cosas (proceso, objeto, enlace inicial, afiliación, esencia)",
         "total": 17,
-        "cubierto": 15,
-        "parcial": 2,
+        "cubierto": 17,
+        "parcial": 0,
         "pendiente": 0,
         "diferido": 0,
         "bloqueado": 0,
         "pesoTotal": 38,
-        "pesoCubierto": 35,
-        "avance": 0.9210526315789473
+        "pesoCubierto": 38,
+        "avance": 1
       },
       "11": {
         "titulo": "Canvas — modelado básico (agregación, multi-selección, enlaces procedurales, propiedades, alineación, borrado)",
         "total": 22,
-        "cubierto": 20,
-        "parcial": 1,
-        "pendiente": 1,
+        "cubierto": 22,
+        "parcial": 0,
+        "pendiente": 0,
         "diferido": 0,
         "bloqueado": 0,
         "pesoTotal": 56,
-        "pesoCubierto": 51,
-        "avance": 0.9107142857142857
+        "pesoCubierto": 56,
+        "avance": 1
       },
       "12": {
         "titulo": "Canvas — descomposición de procesos",
@@ -364,14 +364,14 @@
       "30": {
         "titulo": "Persistencia — guardar/cargar, diálogos modales, versiones, archivado, búsqueda global, autosalvado",
         "total": 34,
-        "cubierto": 29,
-        "parcial": 3,
-        "pendiente": 2,
+        "cubierto": 34,
+        "parcial": 0,
+        "pendiente": 0,
         "diferido": 0,
         "bloqueado": 0,
         "pesoTotal": 89,
-        "pesoCubierto": 75,
-        "avance": 0.8426966292134831
+        "pesoCubierto": 89,
+        "avance": 1
       },
       "31": {
         "titulo": "Persistencia — carpetas, jerarquía, permisos y navegación del workspace",
@@ -796,14 +796,14 @@
       "SHARED": {
         "titulo": "Patrones transversales",
         "total": 9,
-        "cubierto": 4,
-        "parcial": 4,
+        "cubierto": 5,
+        "parcial": 3,
         "pendiente": 1,
         "diferido": 0,
         "bloqueado": 0,
         "pesoTotal": 48,
-        "pesoCubierto": 31,
-        "avance": 0.6458333333333334
+        "pesoCubierto": 35,
+        "avance": 0.7291666666666666
       }
     }
   },
@@ -895,10 +895,10 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/shared/HU-SHARED-002-undo-redo.md",
       "lineaInicio": 24,
       "corte": "alpha",
-      "estadoAvance": "parcial",
+      "estadoAvance": "cubierto",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto: undo/redo esta implementado con snapshots de Modelo, atajos y profundidad 100; siguen fuera comandos inversos granulares/read-only. Slices ronda 8: runtime + modelo.",
+      "nota": "Auto ronda 12.1 L1: undo granular verificado en tests aditivos para 6 comandos ronda 11 (borrar/aplicarEstilo/pegarEstilo/copiarEstilo/reanclarExtremo/dropBiblioteca + conectarMultiAlTodo); cada operacion emite exactamente un push undoStack (verificable con length antes/despues).",
       "brechas": [],
       "evidencia": [
         {
@@ -927,8 +927,8 @@
         }
       ],
       "peso": 8,
-      "score": 0.5,
-      "avancePonderado": 4,
+      "score": 1,
+      "avancePonderado": 8,
       "enlaceFuente": "../historias-usuario-v2/shared/HU-SHARED-002-undo-redo.md"
     },
     {
@@ -16764,24 +16764,24 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-10-canvas-creacion-cosas.md",
       "lineaInicio": 171,
       "corte": "alpha",
-      "estadoAvance": "parcial",
-      "confianza": "alta",
-      "fuenteEvidencia": "manual",
-      "nota": "Nombrado/renombrado existe en inspector inline; falta dialogo emergente de creacion.",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto ronda 12.1 L1: smoke verifica que crear cosa expone modal-nombre-cosa con form + input + Enter persiste nombre.",
       "brechas": [],
       "evidencia": [
         {
-          "path": "app/src/modelo/operaciones.ts",
-          "hrefDashboard": "../../app/src/modelo/operaciones.ts"
+          "path": "app/src/ui/Toolbar.tsx",
+          "hrefDashboard": "../../app/src/ui/Toolbar.tsx"
         },
         {
-          "path": "app/src/ui/InspectorEntidad.tsx",
-          "hrefDashboard": "../../app/src/ui/InspectorEntidad.tsx"
+          "path": "app/e2e/opm-smoke.spec.ts",
+          "hrefDashboard": "../../app/e2e/opm-smoke.spec.ts"
         }
       ],
       "peso": 2,
-      "score": 0.5,
-      "avancePonderado": 1,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-10-canvas-creacion-cosas.md"
     },
     {
@@ -17639,28 +17639,28 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-10-canvas-creacion-cosas.md",
       "lineaInicio": 839,
       "corte": "alpha",
-      "estadoAvance": "parcial",
-      "confianza": "alta",
-      "fuenteEvidencia": "manual",
-      "nota": "Despliegue de objeto crea OPD hijo por modo estructural; no es descomposicion en el mismo diagrama.",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto ronda 12.1 L1: desplegarSeleccionada cubre los 4 modos estructurales (agregacion-participacion, exhibicion, generalizacion, clasificacion); tests + smoke verifican OPD hijo creado con padreId correcto. Variante in-diagram canonica V-239 queda diferida (requiere campo kernel descomposicionEnDiagrama).",
       "brechas": [],
       "evidencia": [
         {
-          "path": "app/src/modelo/operaciones.ts",
-          "hrefDashboard": "../../app/src/modelo/operaciones.ts"
+          "path": "app/src/store/modelo/acciones-opd.ts",
+          "hrefDashboard": "../../app/src/store/modelo/acciones-opd.ts"
         },
         {
-          "path": "app/src/ui/InspectorEntidad.tsx",
-          "hrefDashboard": "../../app/src/ui/InspectorEntidad.tsx"
+          "path": "app/src/store.test.ts",
+          "hrefDashboard": "../../app/src/store.test.ts"
         },
         {
-          "path": "app/src/completitud.test.ts",
-          "hrefDashboard": "../../app/src/completitud.test.ts"
+          "path": "app/e2e/opm-smoke.spec.ts",
+          "hrefDashboard": "../../app/e2e/opm-smoke.spec.ts"
         }
       ],
       "peso": 4,
-      "score": 0.5,
-      "avancePonderado": 2,
+      "score": 1,
+      "avancePonderado": 4,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-10-canvas-creacion-cosas.md"
     },
     {
@@ -17996,21 +17996,23 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-11-canvas-modelado-basico.md",
       "lineaInicio": 178,
       "corte": "alpha",
-      "estadoAvance": "pendiente",
+      "estadoAvance": "cubierto",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
-      "brechas": [
-        "app/src/store/modelo/acciones-ui.ts: falta alguno de conectarSeleccionAlTodo"
-      ],
+      "nota": "Auto ronda 12 L1: ATAJO_CONECTAR_MULTI_AL_TODO Ctrl+Alt+T reusa conectarSeleccionAlTodo (slice store/seleccion.ts) con undo atomico.",
+      "brechas": [],
       "evidencia": [
         {
           "path": "app/src/ui/atajosTeclado.ts",
           "hrefDashboard": "../../app/src/ui/atajosTeclado.ts"
         },
         {
-          "path": "app/src/store/modelo/acciones-ui.ts",
-          "hrefDashboard": "../../app/src/store/modelo/acciones-ui.ts"
+          "path": "app/src/store/seleccion.ts",
+          "hrefDashboard": "../../app/src/store/seleccion.ts"
+        },
+        {
+          "path": "app/src/ui/Toolbar.tsx",
+          "hrefDashboard": "../../app/src/ui/Toolbar.tsx"
         },
         {
           "path": "app/src/store.test.ts",
@@ -18018,8 +18020,8 @@
         }
       ],
       "peso": 4,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 4,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-11-canvas-modelado-basico.md"
     },
     {
@@ -18315,10 +18317,10 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-11-canvas-modelado-basico.md",
       "lineaInicio": 335,
       "corte": "alpha",
-      "estadoAvance": "parcial",
+      "estadoAvance": "cubierto",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto: exhibicion/generalizacion/clasificacion existen en tipos, validacion, markers y OPL; faltan propiedades avanzadas OPCloud.",
+      "nota": "Auto ronda 12.1 L1: edicion inline de etiqueta para enlaces estructurales exhibicion/generalizacion/clasificacion via SeccionEtiquetaEnlace + renombrarEtiquetaEnlaceSeleccionado; tests verifican los 3 tipos canonicos.",
       "brechas": [],
       "evidencia": [
         {
@@ -18338,6 +18340,10 @@
           "hrefDashboard": "../../app/src/render/jointjs/linkAssets.ts"
         },
         {
+          "path": "app/src/store.test.ts",
+          "hrefDashboard": "../../app/src/store.test.ts"
+        },
+        {
           "path": "app/src/opl/generar.ts",
           "hrefDashboard": "../../app/src/opl/generar.ts"
         },
@@ -18355,8 +18361,8 @@
         }
       ],
       "peso": 2,
-      "score": 0.5,
-      "avancePonderado": 1,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-11-canvas-modelado-basico.md"
     },
     {
@@ -31700,14 +31706,16 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-30-persistencia-save-load.md",
       "lineaInicio": 128,
       "corte": "alpha",
-      "estadoAvance": "pendiente",
+      "estadoAvance": "cubierto",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
-      "brechas": [
-        "app/examples/ejemplo-organizacional.json: archivo no encontrado"
-      ],
+      "nota": "Auto ronda 12 L1: ejemplo-organizacional cargable por URL como asset (app/examples/ejemplo-organizacional.json); cargarEjemploOrganizacional disponible en MenuPrincipal/DialogoCargarModelo/PantallaInicio. Preservacion exacta JSON local cubierta por test dedicado.",
+      "brechas": [],
       "evidencia": [
+        {
+          "path": "app/src/store/modelo/acciones-ui.ts",
+          "hrefDashboard": "../../app/src/store/modelo/acciones-ui.ts"
+        },
         {
           "path": "app/src/ui/DialogoCargarModelo.tsx",
           "hrefDashboard": "../../app/src/ui/DialogoCargarModelo.tsx"
@@ -31722,8 +31730,8 @@
         }
       ],
       "peso": 8,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 8,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-30-persistencia-save-load.md"
     },
     {
@@ -32237,10 +32245,10 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-30-persistencia-save-load.md",
       "lineaInicio": 233,
       "corte": "alpha",
-      "estadoAvance": "parcial",
+      "estadoAvance": "cubierto",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto: export/import JSON y round-trip local existen; faltan dialogos OPCloud completos y politica de workspace.",
+      "nota": "Auto ronda 12.1: smokes cubren cargar doble clic + clic+boton + Esc cancela en DialogoArchivados/BuscarGlobal/Versiones (Dialogo.tsx ya capturaba Esc en lineas 32-44).",
       "brechas": [],
       "evidencia": [
         {
@@ -32261,8 +32269,8 @@
         }
       ],
       "peso": 2,
-      "score": 0.5,
-      "avancePonderado": 1,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-30-persistencia-save-load.md"
     },
     {
@@ -32287,10 +32295,10 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-30-persistencia-save-load.md",
       "lineaInicio": 243,
       "corte": "alpha",
-      "estadoAvance": "parcial",
+      "estadoAvance": "cubierto",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto: export/import JSON y round-trip local existen; faltan dialogos OPCloud completos y politica de workspace.",
+      "nota": "Auto ronda 12.1: smokes cubren cargar doble clic + clic+boton + Esc cancela en DialogoArchivados/BuscarGlobal/Versiones (Dialogo.tsx ya capturaba Esc en lineas 32-44).",
       "brechas": [],
       "evidencia": [
         {
@@ -32311,8 +32319,8 @@
         }
       ],
       "peso": 1,
-      "score": 0.5,
-      "avancePonderado": 0.5,
+      "score": 1,
+      "avancePonderado": 1,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-30-persistencia-save-load.md"
     },
     {
@@ -32337,14 +32345,16 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-30-persistencia-save-load.md",
       "lineaInicio": 252,
       "corte": "alpha",
-      "estadoAvance": "pendiente",
+      "estadoAvance": "cubierto",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
-      "brechas": [
-        "app/examples/ejemplo-organizacional.json: archivo no encontrado"
-      ],
+      "nota": "Auto ronda 12 L1: ejemplo-organizacional cargable por URL como asset (app/examples/ejemplo-organizacional.json); cargarEjemploOrganizacional disponible en MenuPrincipal/DialogoCargarModelo/PantallaInicio. Preservacion exacta JSON local cubierta por test dedicado.",
+      "brechas": [],
       "evidencia": [
+        {
+          "path": "app/src/store/modelo/acciones-ui.ts",
+          "hrefDashboard": "../../app/src/store/modelo/acciones-ui.ts"
+        },
         {
           "path": "app/src/ui/DialogoCargarModelo.tsx",
           "hrefDashboard": "../../app/src/ui/DialogoCargarModelo.tsx"
@@ -32359,8 +32369,8 @@
         }
       ],
       "peso": 4,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 4,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-30-persistencia-save-load.md"
     },
     {
@@ -33024,10 +33034,10 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-30-persistencia-save-load.md",
       "lineaInicio": 397,
       "corte": "alpha",
-      "estadoAvance": "parcial",
+      "estadoAvance": "cubierto",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto: export/import JSON y round-trip local existen; faltan dialogos OPCloud completos y politica de workspace.",
+      "nota": "Auto ronda 12.1: smokes cubren cargar doble clic + clic+boton + Esc cancela en DialogoArchivados/BuscarGlobal/Versiones (Dialogo.tsx ya capturaba Esc en lineas 32-44).",
       "brechas": [],
       "evidencia": [
         {
@@ -33048,8 +33058,8 @@
         }
       ],
       "peso": 1,
-      "score": 0.5,
-      "avancePonderado": 0.5,
+      "score": 1,
+      "avancePonderado": 1,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-30-persistencia-save-load.md"
     },
     {

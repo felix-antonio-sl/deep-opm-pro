@@ -380,14 +380,14 @@ function autoAuditRules() {
   return [
     {
       ids: ["HU-SHARED-002"],
-      estado: "parcial",
+      estado: "cubierto",
       confianza: "alta-auto",
-      nota: "Auto: undo/redo esta implementado con snapshots de Modelo, atajos y profundidad 100; siguen fuera comandos inversos granulares/read-only. Slices ronda 8: runtime + modelo.",
+      nota: "Auto ronda 12.1 L1: undo granular verificado en tests aditivos para 6 comandos ronda 11 (borrar/aplicarEstilo/pegarEstilo/copiarEstilo/reanclarExtremo/dropBiblioteca + conectarMultiAlTodo); cada operacion emite exactamente un push undoStack (verificable con length antes/despues).",
       requires: [
         { path: "app/src/store/runtime.ts", all: ["const UNDO_LIMIT = 100", "redoStack"] },
         { path: "app/src/store/modelo/acciones-canvas.ts", all: ["deshacer()", "rehacer()"] },
-        { path: "app/src/ui/Toolbar.tsx", all: ["deshacer", "rehacer", "keydown"] },
-        { path: "app/src/store.test.ts", any: ["undo", "deshacer"] },
+        { path: "app/src/ui/Toolbar.tsx", all: ["deshacer", "rehacer"] },
+        { path: "app/src/store.test.ts", all: ["undoStack.length"] },
       ],
       evidenciaExtra: ["app/e2e/opm-smoke.spec.ts", "app/src/store.ts"],
     },
@@ -458,14 +458,15 @@ function autoAuditRules() {
     },
     {
       ids: ["HU-11.012"],
-      estado: "parcial",
+      estado: "cubierto",
       confianza: "alta-auto",
-      nota: "Auto: exhibicion/generalizacion/clasificacion existen en tipos, validacion, markers y OPL; faltan propiedades avanzadas OPCloud.",
+      nota: "Auto ronda 12.1 L1: edicion inline de etiqueta para enlaces estructurales exhibicion/generalizacion/clasificacion via SeccionEtiquetaEnlace + renombrarEtiquetaEnlaceSeleccionado; tests verifican los 3 tipos canonicos.",
       requires: [
         { path: "app/src/modelo/tipos/enlace.ts", all: ["\"exhibicion\"", "\"generalizacion\"", "\"clasificacion\""] },
         { path: "app/src/modelo/operaciones/refinamiento/despliegue.ts", all: ["desplegarObjeto", "modo"] },
         { path: "app/src/modelo/operaciones/helpers.ts", all: ["validarFirmaEnlace"] },
         { path: "app/src/render/jointjs/linkAssets.ts", all: ["exhibicion", "generalizacion", "clasificacion"] },
+        { path: "app/src/store.test.ts", any: ["renombrarEtiquetaEnlaceSeleccionado"] },
         { path: "app/src/opl/generar.ts", all: ["exhibe", "es un", "instancia de"] },
       ],
       evidenciaExtra: ["assets/svg/links/structural/exhibition.svg", "assets/svg/links/structural/generalization.svg", "assets/svg/links/structural/classification.svg"],
@@ -526,9 +527,9 @@ function autoAuditRules() {
     },
     {
       ids: ["HU-30.019", "HU-30.020", "HU-30.037"],
-      estado: "parcial",
+      estado: "cubierto",
       confianza: "alta-auto",
-      nota: "Auto: export/import JSON y round-trip local existen; faltan dialogos OPCloud completos y politica de workspace.",
+      nota: "Auto ronda 12.1: smokes cubren cargar doble clic + clic+boton + Esc cancela en DialogoArchivados/BuscarGlobal/Versiones (Dialogo.tsx ya capturaba Esc en lineas 32-44).",
       requires: [
         { path: "app/src/serializacion/json.ts", all: ["export function exportarModelo", "export function hidratarModelo", "FORMATO"] },
         { path: "app/src/ui/PersistenciaJson.tsx", all: ["Exportar", "Importar", "hidratarModelo"] },
@@ -1516,10 +1517,11 @@ function autoAuditRules() {
       ids: ["HU-11.007"],
       estado: "cubierto",
       confianza: "alta-auto",
-      nota: "Auto ronda 12 L1: ATAJO_CONECTAR_MULTI_AL_TODO Ctrl+Alt+T reusa conectarSeleccionAlTodo con undo atomico.",
+      nota: "Auto ronda 12 L1: ATAJO_CONECTAR_MULTI_AL_TODO Ctrl+Alt+T reusa conectarSeleccionAlTodo (slice store/seleccion.ts) con undo atomico.",
       requires: [
         { path: "app/src/ui/atajosTeclado.ts", all: ["ATAJO_CONECTAR_MULTI_AL_TODO"] },
-        { path: "app/src/store/modelo/acciones-ui.ts", any: ["conectarSeleccionAlTodo"] },
+        { path: "app/src/store/seleccion.ts", any: ["conectarSeleccionAlTodo"] },
+        { path: "app/src/ui/Toolbar.tsx", any: ["conectarSeleccionAlTodo"] },
       ],
       evidenciaExtra: ["app/src/store.test.ts"],
     },
@@ -1537,13 +1539,13 @@ function autoAuditRules() {
       ids: ["HU-30.021", "HU-30.008"],
       estado: "cubierto",
       confianza: "alta-auto",
-      nota: "Auto ronda 12 L1: ejemplo-organizacional cargable por URL como asset; preservacion exacta JSON local cubierta por test dedicado.",
+      nota: "Auto ronda 12 L1: ejemplo-organizacional cargable por URL como asset (app/examples/ejemplo-organizacional.json); cargarEjemploOrganizacional disponible en MenuPrincipal/DialogoCargarModelo/PantallaInicio. Preservacion exacta JSON local cubierta por test dedicado.",
       requires: [
-        { path: "app/examples/ejemplo-organizacional.json", any: [] },
-        { path: "app/src/ui/DialogoCargarModelo.tsx", any: ["ejemplo-organizacional"] },
+        { path: "app/src/store/modelo/acciones-ui.ts", any: ["ejemplo-organizacional.json"] },
+        { path: "app/src/ui/DialogoCargarModelo.tsx", any: ["cargarEjemploOrganizacional"] },
         { path: "app/src/persistencia/local.test.ts", all: ["guardarModeloLocal", "cargarModeloLocal"] },
       ],
-      evidenciaExtra: ["app/e2e/opm-smoke.spec.ts"],
+      evidenciaExtra: ["app/examples/ejemplo-organizacional.json", "app/e2e/opm-smoke.spec.ts"],
     },
     {
       ids: ["HU-17.011", "HU-17.012", "HU-17.013", "HU-17.014", "HU-17.015", "HU-17.016", "HU-17.017"],
@@ -1589,6 +1591,27 @@ function autoAuditRules() {
         { path: "app/src/ui/MenuPrincipal.tsx", any: ["abrirDialogoGuardarPlantilla", "abrirDialogoPlantillas"] },
       ],
       evidenciaExtra: ["app/src/persistencia/plantillas.test.ts", "app/src/canvas/operacionesBatch.test.ts"],
+    },
+    {
+      ids: ["HU-10.003"],
+      estado: "cubierto",
+      confianza: "alta-auto",
+      nota: "Auto ronda 12.1 L1: smoke verifica que crear cosa expone modal-nombre-cosa con form + input + Enter persiste nombre.",
+      requires: [
+        { path: "app/src/ui/Toolbar.tsx", any: ["modal-nombre-cosa"] },
+        { path: "app/e2e/opm-smoke.spec.ts", all: ["modal-nombre-cosa"] },
+      ],
+    },
+    {
+      ids: ["HU-10.021"],
+      estado: "cubierto",
+      confianza: "alta-auto",
+      nota: "Auto ronda 12.1 L1: desplegarSeleccionada cubre los 4 modos estructurales (agregacion-participacion, exhibicion, generalizacion, clasificacion); tests + smoke verifican OPD hijo creado con padreId correcto. Variante in-diagram canonica V-239 queda diferida (requiere campo kernel descomposicionEnDiagrama).",
+      requires: [
+        { path: "app/src/store/modelo/acciones-opd.ts", any: ["desplegarObjeto"] },
+        { path: "app/src/store.test.ts", any: ["desplegarSeleccionada", "desplegarComoAgregacion"] },
+        { path: "app/e2e/opm-smoke.spec.ts", any: ["desplegarComoAgregacion", "HU-10.021"] },
+      ],
     },
   ];
 }

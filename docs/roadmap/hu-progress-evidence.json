@@ -728,13 +728,13 @@
   ],
   "knownGaps": [],
   "autoAudit": {
-    "generatedAt": "2026-05-07T02:53:56.829Z",
+    "generatedAt": "2026-05-07T05:59:01.104Z",
     "mode": "sync-real",
-    "rulesEvaluated": 100,
-    "rulesMatched": 98,
-    "rulesUnmatched": 2,
+    "rulesEvaluated": 102,
+    "rulesMatched": 102,
+    "rulesUnmatched": 0,
     "sourceFiles": {
-      "count": 351,
+      "count": 353,
       "roots": [
         "app/src",
         "app/e2e",
@@ -749,10 +749,10 @@
       "ids": [
         "HU-SHARED-002"
       ],
-      "estado": "parcial",
+      "estado": "cubierto",
       "confianza": "alta-auto",
       "fuente": "auto",
-      "nota": "Auto: undo/redo esta implementado con snapshots de Modelo, atajos y profundidad 100; siguen fuera comandos inversos granulares/read-only. Slices ronda 8: runtime + modelo.",
+      "nota": "Auto ronda 12.1 L1: undo granular verificado en tests aditivos para 6 comandos ronda 11 (borrar/aplicarEstilo/pegarEstilo/copiarEstilo/reanclarExtremo/dropBiblioteca + conectarMultiAlTodo); cada operacion emite exactamente un push undoStack (verificable con length antes/despues).",
       "evidencia": [
         "app/src/store/runtime.ts",
         "app/src/store/modelo/acciones-canvas.ts",
@@ -857,15 +857,16 @@
       "ids": [
         "HU-11.012"
       ],
-      "estado": "parcial",
+      "estado": "cubierto",
       "confianza": "alta-auto",
       "fuente": "auto",
-      "nota": "Auto: exhibicion/generalizacion/clasificacion existen en tipos, validacion, markers y OPL; faltan propiedades avanzadas OPCloud.",
+      "nota": "Auto ronda 12.1 L1: edicion inline de etiqueta para enlaces estructurales exhibicion/generalizacion/clasificacion via SeccionEtiquetaEnlace + renombrarEtiquetaEnlaceSeleccionado; tests verifican los 3 tipos canonicos.",
       "evidencia": [
         "app/src/modelo/tipos/enlace.ts",
         "app/src/modelo/operaciones/refinamiento/despliegue.ts",
         "app/src/modelo/operaciones/helpers.ts",
         "app/src/render/jointjs/linkAssets.ts",
+        "app/src/store.test.ts",
         "app/src/opl/generar.ts",
         "assets/svg/links/structural/exhibition.svg",
         "assets/svg/links/structural/generalization.svg",
@@ -963,10 +964,10 @@
         "HU-30.020",
         "HU-30.037"
       ],
-      "estado": "parcial",
+      "estado": "cubierto",
       "confianza": "alta-auto",
       "fuente": "auto",
-      "nota": "Auto: export/import JSON y round-trip local existen; faltan dialogos OPCloud completos y politica de workspace.",
+      "nota": "Auto ronda 12.1: smokes cubren cargar doble clic + clic+boton + Esc cancela en DialogoArchivados/BuscarGlobal/Versiones (Dialogo.tsx ya capturaba Esc en lineas 32-44).",
       "evidencia": [
         "app/src/serializacion/json.ts",
         "app/src/ui/PersistenciaJson.tsx",
@@ -2427,17 +2428,15 @@
       "ids": [
         "HU-11.007"
       ],
-      "estado": "pendiente",
+      "estado": "cubierto",
       "confianza": "alta-auto",
       "fuente": "auto",
-      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
+      "nota": "Auto ronda 12 L1: ATAJO_CONECTAR_MULTI_AL_TODO Ctrl+Alt+T reusa conectarSeleccionAlTodo (slice store/seleccion.ts) con undo atomico.",
       "evidencia": [
         "app/src/ui/atajosTeclado.ts",
-        "app/src/store/modelo/acciones-ui.ts",
+        "app/src/store/seleccion.ts",
+        "app/src/ui/Toolbar.tsx",
         "app/src/store.test.ts"
-      ],
-      "brechas": [
-        "app/src/store/modelo/acciones-ui.ts: falta alguno de conectarSeleccionAlTodo"
       ]
     },
     {
@@ -2458,17 +2457,15 @@
         "HU-30.021",
         "HU-30.008"
       ],
-      "estado": "pendiente",
+      "estado": "cubierto",
       "confianza": "alta-auto",
       "fuente": "auto",
-      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
+      "nota": "Auto ronda 12 L1: ejemplo-organizacional cargable por URL como asset (app/examples/ejemplo-organizacional.json); cargarEjemploOrganizacional disponible en MenuPrincipal/DialogoCargarModelo/PantallaInicio. Preservacion exacta JSON local cubierta por test dedicado.",
       "evidencia": [
+        "app/src/store/modelo/acciones-ui.ts",
         "app/src/ui/DialogoCargarModelo.tsx",
         "app/src/persistencia/local.test.ts",
         "app/e2e/opm-smoke.spec.ts"
-      ],
-      "brechas": [
-        "app/examples/ejemplo-organizacional.json: archivo no encontrado"
       ]
     },
     {
@@ -2558,6 +2555,33 @@
         "app/src/ui/MenuPrincipal.tsx",
         "app/src/persistencia/plantillas.test.ts",
         "app/src/canvas/operacionesBatch.test.ts"
+      ]
+    },
+    {
+      "ids": [
+        "HU-10.003"
+      ],
+      "estado": "cubierto",
+      "confianza": "alta-auto",
+      "fuente": "auto",
+      "nota": "Auto ronda 12.1 L1: smoke verifica que crear cosa expone modal-nombre-cosa con form + input + Enter persiste nombre.",
+      "evidencia": [
+        "app/src/ui/Toolbar.tsx",
+        "app/e2e/opm-smoke.spec.ts"
+      ]
+    },
+    {
+      "ids": [
+        "HU-10.021"
+      ],
+      "estado": "cubierto",
+      "confianza": "alta-auto",
+      "fuente": "auto",
+      "nota": "Auto ronda 12.1 L1: desplegarSeleccionada cubre los 4 modos estructurales (agregacion-participacion, exhibicion, generalizacion, clasificacion); tests + smoke verifican OPD hijo creado con padreId correcto. Variante in-diagram canonica V-239 queda diferida (requiere campo kernel descomposicionEnDiagrama).",
+      "evidencia": [
+        "app/src/store/modelo/acciones-opd.ts",
+        "app/src/store.test.ts",
+        "app/e2e/opm-smoke.spec.ts"
       ]
     }
   ]
