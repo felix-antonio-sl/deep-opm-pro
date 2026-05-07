@@ -1,5 +1,6 @@
 import { CANON } from "../../constantes";
 import { extremoEntidad } from "../../extremos";
+import { fijarRefinamiento, obtenerRefinamiento } from "../../refinamientos";
 import type {
   Apariencia,
   AparienciaEnlace,
@@ -57,12 +58,14 @@ export function desplegarObjeto(
     return fallo("El despliegue requiere que la entidad tenga apariencia en el OPD activo");
   }
 
-  if (objeto.refinamiento?.tipo === "despliegue") {
-    const opdExistente = modelo.opds[objeto.refinamiento.opdId];
-    if (!opdExistente) return fallo(`OPD de despliegue no existe: ${objeto.refinamiento.opdId}`);
-    return ok({ modelo, opdId: opdExistente.id, creado: false, modo: objeto.refinamiento.modo ?? "agregacion" });
+  const slotExistente = obtenerRefinamiento(objeto, "despliegue");
+  if (slotExistente) {
+    const opdExistente = modelo.opds[slotExistente.opdId];
+    if (!opdExistente) return fallo(`OPD de despliegue no existe: ${slotExistente.opdId}`);
+    return ok({ modelo, opdId: opdExistente.id, creado: false, modo: slotExistente.modo ?? "agregacion" });
   }
-  if (objeto.refinamiento) return fallo("La entidad ya tiene otro refinamiento");
+  // Nota ronda 15.2: descomposicion y despliegue son ortogonales. No se
+  // rechaza por presencia del slot complementario; solo idempotencia.
 
   const opdHijoId = siguienteId(modelo, "opd");
   let nextSeq = modelo.nextSeq + 1;
@@ -102,14 +105,7 @@ export function desplegarObjeto(
       nextSeq,
       entidades: {
         ...modelo.entidades,
-        [objetoId]: {
-          ...objeto,
-          refinamiento: {
-            tipo: "despliegue",
-            opdId: opdHijoId,
-            modo,
-          },
-        },
+        [objetoId]: fijarRefinamiento(objeto, "despliegue", { opdId: opdHijoId, modo }),
         ...partes.entidades,
       },
       enlaces: {
@@ -130,9 +126,9 @@ export function desplegarObjeto(
 export function quitarDespliegueObjeto(modelo: Modelo, objetoId: Id): Resultado<Modelo> {
   const objeto = modelo.entidades[objetoId];
   if (!objeto) return fallo(`Entidad no existe: ${objetoId}`);
-  if (objeto.refinamiento?.tipo !== "despliegue") return fallo("La entidad no tiene despliegue");
+  if (!obtenerRefinamiento(objeto, "despliegue")) return fallo("La entidad no tiene despliegue");
 
-  return quitarRefinamientoEntidad(modelo, objetoId);
+  return quitarRefinamientoEntidad(modelo, objetoId, "despliegue");
 }
 
 function partesInicialesDespliegue(

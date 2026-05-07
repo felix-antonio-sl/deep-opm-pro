@@ -1,6 +1,7 @@
 import { CANON } from "../constantes";
 import { entidadDeExtremo, entidadIdDeExtremo, extremoEntidad } from "../extremos";
 import { contenedorRefinamiento, posicionLibre, solapa } from "../layout";
+import { refinamientosDe, tieneRefinamiento } from "../refinamientos";
 import type {
   Apariencia,
   Enlace,
@@ -29,10 +30,17 @@ import { quitarRefinamientoEntidad } from "./refinamiento";
 export function eliminarEntidad(modelo: Modelo, entidadId: Id): Resultado<Modelo> {
   const entidad = modelo.entidades[entidadId];
   if (!entidad) return fallo(`Entidad no existe: ${entidadId}`);
-  if (entidad.refinamiento) {
-    const sinRefinamiento = quitarRefinamientoEntidad(modelo, entidadId);
-    if (!sinRefinamiento.ok) return sinRefinamiento;
-    return eliminarEntidad(sinRefinamiento.value, entidadId);
+  if (tieneRefinamiento(entidad)) {
+    let modeloLimpio: Modelo = modelo;
+    for (const ref of refinamientosDe(entidad)) {
+      const paso = quitarRefinamientoEntidad(modeloLimpio, entidadId, ref.tipo);
+      if (!paso.ok) return paso;
+      modeloLimpio = paso.value;
+      // El subárbol pudo haber removido la entidad si solo aparecía en el OPD
+      // hijo eliminado; en ese caso no queda nada que eliminar.
+      if (!modeloLimpio.entidades[entidadId]) return ok(modeloLimpio);
+    }
+    return eliminarEntidad(modeloLimpio, entidadId);
   }
 
   const entidades = { ...modelo.entidades };

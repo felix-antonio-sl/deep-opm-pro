@@ -2,6 +2,12 @@ import {
   entidadIdDeExtremo,
   extremoApuntaAEntidad,
 } from "../../extremos";
+import {
+  obtenerRefinamiento,
+  quitarRefinamiento as quitarRefinamientoSlot,
+  refinamientosDe,
+  tieneRefinamiento,
+} from "../../refinamientos";
 import type {
   Apariencia,
   Enlace,
@@ -11,6 +17,7 @@ import type {
   Modelo,
   Opd,
   Resultado,
+  TipoRefinamiento,
 } from "../../tipos";
 import { fallo, ok } from "../helpers";
 
@@ -26,12 +33,18 @@ import { fallo, ok } from "../helpers";
  * El resto son privados al subdirectorio.
  */
 
-export function quitarRefinamientoEntidad(modelo: Modelo, entidadId: Id): Resultado<Modelo> {
+export function quitarRefinamientoEntidad(modelo: Modelo, entidadId: Id, tipo?: TipoRefinamiento): Resultado<Modelo> {
   const entidad = modelo.entidades[entidadId];
-  if (!entidad?.refinamiento) return fallo("La entidad no tiene refinamiento");
-  const removidos = idsSubarbolOpd(modelo, entidad.refinamiento.opdId);
-  if (!removidos.has(entidad.refinamiento.opdId)) {
-    return fallo(`OPD de refinamiento no existe: ${entidad.refinamiento.opdId}`);
+  if (!entidad || !tieneRefinamiento(entidad)) return fallo("La entidad no tiene refinamiento");
+  // Si no se especifica tipo y hay solo uno, ese es el blanco; si hay dos, es ambiguo.
+  const slots = refinamientosDe(entidad);
+  const tipoBlanco = tipo ?? (slots.length === 1 ? slots[0]!.tipo : undefined);
+  if (!tipoBlanco) return fallo("Refinamiento ambiguo: especificar tipo");
+  const slot = obtenerRefinamiento(entidad, tipoBlanco);
+  if (!slot) return fallo("La entidad no tiene refinamiento");
+  const removidos = idsSubarbolOpd(modelo, slot.opdId);
+  if (!removidos.has(slot.opdId)) {
+    return fallo(`OPD de refinamiento no existe: ${slot.opdId}`);
   }
 
   const opds = Object.fromEntries(
@@ -93,7 +106,7 @@ export function entidadesInternasOrdenadasDeRefinamiento(modelo: Modelo, opd: Op
 export function cosaDescompuestaEnOpd(modelo: Modelo, opd: Opd): { entidad: Entidad; apariencia: Apariencia } | null {
   for (const apariencia of Object.values(opd.apariencias)) {
     const entidad = modelo.entidades[apariencia.entidadId];
-    if (entidad?.refinamiento?.tipo === "descomposicion" && entidad.refinamiento.opdId === opd.id) {
+    if (entidad && obtenerRefinamiento(entidad, "descomposicion")?.opdId === opd.id) {
       return { entidad, apariencia };
     }
   }
@@ -131,7 +144,7 @@ export function agruparSubprocesosParalelos(
 export function procesoDescompuestoEnOpd(modelo: Modelo, opd: Opd): { entidad: Entidad; apariencia: Apariencia } | null {
   for (const apariencia of Object.values(opd.apariencias)) {
     const entidad = modelo.entidades[apariencia.entidadId];
-    if (entidad?.tipo === "proceso" && entidad.refinamiento?.tipo === "descomposicion" && entidad.refinamiento.opdId === opd.id) {
+    if (entidad?.tipo === "proceso" && obtenerRefinamiento(entidad, "descomposicion")?.opdId === opd.id) {
       return { entidad, apariencia };
     }
   }
@@ -218,7 +231,13 @@ function idsSubarbolOpd(modelo: Modelo, raizId: Id): Set<Id> {
 }
 
 function sinRefinamientoRemovido(entidad: Entidad, removidos: Set<Id>): Entidad {
-  if (!entidad.refinamiento || !removidos.has(entidad.refinamiento.opdId)) return entidad;
-  const { refinamiento: _refinamiento, ...sinRefinamiento } = entidad;
-  return sinRefinamiento;
+  if (!entidad.refinamientos) return entidad;
+  let resultado = entidad;
+  for (const tipo of ["descomposicion", "despliegue"] as const) {
+    const slot = resultado.refinamientos?.[tipo];
+    if (slot && removidos.has(slot.opdId)) {
+      resultado = quitarRefinamientoSlot(resultado, tipo);
+    }
+  }
+  return resultado;
 }

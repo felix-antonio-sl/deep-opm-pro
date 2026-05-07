@@ -1,5 +1,6 @@
 import { CANON } from "../../constantes";
 import { extremoApuntaAEntidad } from "../../extremos";
+import { fijarRefinamiento, obtenerRefinamiento } from "../../refinamientos";
 import type {
   Apariencia,
   Entidad,
@@ -49,12 +50,15 @@ export function descomponerProceso(modelo: Modelo, opdPadreId: Id, procesoId: Id
     return fallo("La descomposición requiere que la entidad tenga apariencia en el OPD activo");
   }
 
-  if (proceso.refinamiento?.tipo === "descomposicion") {
-    const opdExistente = modelo.opds[proceso.refinamiento.opdId];
-    if (!opdExistente) return fallo(`OPD de descomposición no existe: ${proceso.refinamiento.opdId}`);
+  const slotExistente = obtenerRefinamiento(proceso, "descomposicion");
+  if (slotExistente) {
+    const opdExistente = modelo.opds[slotExistente.opdId];
+    if (!opdExistente) return fallo(`OPD de descomposición no existe: ${slotExistente.opdId}`);
     return ok({ modelo, opdId: opdExistente.id, creado: false });
   }
-  if (proceso.refinamiento) return fallo("La entidad ya tiene otro refinamiento");
+  // Nota ronda 15.2: descomposicion y despliegue son ortogonales (Comportamiento
+  // vs Estructura, SSOT §refinamiento). No se rechaza por presencia del slot
+  // complementario; solo idempotencia del mismo tipo.
 
   const opdHijoId = siguienteId(modelo, "opd");
   let nextSeq = modelo.nextSeq + 1;
@@ -89,13 +93,7 @@ export function descomponerProceso(modelo: Modelo, opdPadreId: Id, procesoId: Id
     nextSeq,
     entidades: {
       ...modelo.entidades,
-      [procesoId]: {
-        ...proceso,
-        refinamiento: {
-          tipo: "descomposicion",
-          opdId: opdHijoId,
-        },
-      },
+      [procesoId]: fijarRefinamiento(proceso, "descomposicion", { opdId: opdHijoId }),
       ...subprocesos.entidades,
     },
     opds: {
@@ -116,9 +114,9 @@ export function descomponerProceso(modelo: Modelo, opdPadreId: Id, procesoId: Id
 export function quitarDescomposicionProceso(modelo: Modelo, procesoId: Id): Resultado<Modelo> {
   const proceso = modelo.entidades[procesoId];
   if (!proceso) return fallo(`Entidad no existe: ${procesoId}`);
-  if (proceso.refinamiento?.tipo !== "descomposicion") return fallo("La entidad no tiene descomposición");
+  if (!obtenerRefinamiento(proceso, "descomposicion")) return fallo("La entidad no tiene descomposición");
 
-  return quitarRefinamientoEntidad(modelo, procesoId);
+  return quitarRefinamientoEntidad(modelo, procesoId, "descomposicion");
 }
 
 function aparienciasExtremosExternos(
