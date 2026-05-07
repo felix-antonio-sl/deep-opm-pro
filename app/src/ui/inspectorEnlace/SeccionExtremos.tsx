@@ -1,8 +1,10 @@
+// [JOYAS §1-3] Chrome UI consume tokens centralizados; canvas semántico invariante.
 import { entidadDeExtremo, extremoEntidad, extremoEstado } from "../../modelo/extremos";
 import { estadosDeEntidad } from "../../modelo/operaciones";
 import type { Enlace, ExtremoEnlace, Modelo } from "../../modelo/tipos";
 import { inspectorStyles as style } from "../inspectorStyles";
 import { enlaceProcedural } from "./SeccionMultiplicidad";
+import { tokens } from "../tokens";
 
 interface Props {
   modelo: Modelo;
@@ -61,4 +63,4 @@ export function selectoresEstadoExtremo(modelo: Modelo, enlace: Enlace): Array<{
 }
 
 const sectionStyle = { display: "grid", gap: "8px", marginBottom: "14px" } satisfies preact.JSX.CSSProperties;
-const titleStyle = { margin: "0 0 8px", color: "#1f2937", fontSize: "13px", fontWeight: 700 } satisfies preact.JSX.CSSProperties;
+const titleStyle = { margin: "0 0 8px", color: tokens.colors.textoPrimario, fontSize: "13px", fontWeight: 700 } satisfies preact.JSX.CSSProperties;
