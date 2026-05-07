@@ -728,13 +728,13 @@
   ],
   "knownGaps": [],
   "autoAudit": {
-    "generatedAt": "2026-05-07T08:42:43.964Z",
+    "generatedAt": "2026-05-07T09:02:13.039Z",
     "mode": "sync-real",
     "rulesEvaluated": 102,
     "rulesMatched": 102,
     "rulesUnmatched": 0,
     "sourceFiles": {
-      "count": 374,
+      "count": 381,
       "roots": [
         "app/src",
         "app/e2e",
@@ -766,17 +766,23 @@
       "ids": [
         "HU-SHARED-007"
       ],
-      "estado": "parcial",
+      "estado": "cubierto",
       "confianza": "alta-auto",
       "fuente": "auto",
-      "nota": "Auto: generacion OPL-ES forward cubre entidades, enlaces, estados, despliegues y OPD activo; no existe edicion inversa OPL -> canvas.",
+      "nota": "Auto ronda 14 alpha-lock: OPL-ES forward + reverse editable cubierto con parser SSOT, diagnosticos, preview de patches, aplicacion undoable al store y smoke UI. El reverse acepta oraciones canonicas, no borra por ausencia y diagnostica familias fuera de kernel.",
       "evidencia": [
         "app/src/opl/generar.ts",
         "app/src/opl/generadores/procedural.ts",
         "app/src/opl/generadores/designaciones.ts",
+        "app/src/opl/parser/parsear.ts",
+        "app/src/opl/parser/planificar.ts",
+        "app/src/opl/parser/aplicar.ts",
+        "app/src/store/modelo/acciones-canvas.ts",
         "app/src/ui/PanelOpl.tsx",
         "app/src/ui/panelOpl/Bloques.tsx",
         "app/src/opl/generar.test.ts",
+        "app/src/opl/parser/parser.test.ts",
+        "app/e2e/03-opl-panel.spec.ts",
         "app/src/completitud.test.ts"
       ]
     },

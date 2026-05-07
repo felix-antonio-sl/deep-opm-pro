@@ -89,6 +89,26 @@ test("sincroniza OPL interactivo con canvas y renombrado inverso", async ({ page
   expect(pageErrors).toEqual([]);
 });
 
+test("panel OPL aplica edicion libre con preview y propaga al canvas", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await cerrarPantallaInicioSiVisible(page);
+  await page.getByRole("button", { name: "Objeto", exact: true }).click();
+  await page.getByLabel("Nombre").fill("Entrada");
+
+  await page.getByTestId("panel-opl-editar-libre").click();
+  await page.getByTestId("panel-opl-editor-textarea").fill("**Cliente** es un objeto físico y ambiental.");
+  await expect(page.getByTestId("panel-opl-editor-preview")).toContainText("renombrar Entrada -> Cliente");
+  await page.getByTestId("panel-opl-editor-aplicar").click();
+
+  await expect(elementoPorTexto(page, "Cliente")).toHaveCount(1);
+  await expect(page.getByLabel("Panel OPL-ES").getByText("Cliente es un objeto físico y ambiental.")).toBeVisible();
+  await expect(page.getByText("OPL aplicado: 3 cambios")).toBeVisible();
+  expect(pageErrors).toEqual([]);
+});
+
 test("OPL agrupa oraciones por OPD y permite colapsar bloques", async ({ page }) => {
   const pageErrors: string[] = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));

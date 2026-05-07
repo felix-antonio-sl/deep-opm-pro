@@ -1,9 +1,9 @@
 # Auditoria de avance HU v2
 
-**Generado:** 2026-05-07T08:42:43.964Z
+**Generado:** 2026-05-07T09:02:13.039Z
 **Backlog:** `docs/historias-usuario-v2`
 **Ledger de evidencia:** `docs/roadmap/hu-progress-evidence.json`
-**Auditoria automatica:** 102/102 reglas matcheadas sobre 374 archivos fuente.
+**Auditoria automatica:** 102/102 reglas matcheadas sobre 381 archivos fuente.
 
 
 Regenerar desde la raiz del repo:
@@ -20,16 +20,16 @@ node docs/historias-usuario-v2/tools/progress-dashboard.mjs
 
 | Segmento | HU vivas | Cubiertas | Parciales | Pendientes | Diferidas | Avance ponderado |
 |---|---:|---:|---:|---:|---:|---:|
-| Total backlog | 1126 | 312 | 23 | 413 | 378 | 28.3% |
-| M0 | 130 | 108 | 8 | 14 | 0 | 87.5% |
-| MVP-alpha | 121 | 120 | 1 | 0 | 0 | 98.8% |
+| Total backlog | 1126 | 313 | 22 | 413 | 378 | 28.5% |
+| M0 | 130 | 109 | 7 | 14 | 0 | 88.7% |
+| MVP-alpha | 121 | 121 | 0 | 0 | 0 | 100.0% |
 | MVP-beta | 193 | 84 | 14 | 95 | 0 | 47.6% |
 
 ## Por corte
 
 | Corte | HU vivas | Cubiertas | Parciales | Pendientes | Diferidas | Avance ponderado |
 |---|---:|---:|---:|---:|---:|---:|
-| MVP-alpha | 121 | 120 | 1 | 0 | 0 | 98.8% |
+| MVP-alpha | 121 | 121 | 0 | 0 | 0 | 100.0% |
 | MVP-beta | 193 | 84 | 14 | 95 | 0 | 47.6% |
 | MVP-gamma | 434 | 108 | 8 | 318 | 0 | 24.0% |
 | MVP-delta | 378 | 0 | 0 | 0 | 378 | 0.0% |
@@ -39,7 +39,7 @@ node docs/historias-usuario-v2/tools/progress-dashboard.mjs
 
 | Prioridad | HU vivas | Cubiertas | Parciales | Pendientes | Diferidas | Avance ponderado |
 |---|---:|---:|---:|---:|---:|---:|
-| M0 | 130 | 108 | 8 | 14 | 0 | 87.5% |
+| M0 | 130 | 109 | 7 | 14 | 0 | 88.7% |
 | M1 | 161 | 105 | 9 | 41 | 6 | 69.6% |
 | S | 471 | 87 | 3 | 219 | 162 | 20.5% |
 | C | 247 | 11 | 3 | 132 | 101 | 4.5% |
@@ -98,7 +98,7 @@ node docs/historias-usuario-v2/tools/progress-dashboard.mjs
 | C2 | Runtime ROS — integración con Robot Operating System | 28 | 0 | 0 | 0 | 28 | 0.0% |
 | D0 | Análisis — detección de conocimiento faltante (predicción de enlaces sobre el grafo del modelo) | 22 | 0 | 0 | 0 | 22 | 0.0% |
 | D1 | Análisis — calificación de informatividad del modelo (MFSP, INF, WINF, TWINF) | 16 | 0 | 0 | 0 | 16 | 0.0% |
-| SHARED | Patrones transversales | 9 | 5 | 3 | 1 | 0 | 72.9% |
+| SHARED | Patrones transversales | 9 | 6 | 2 | 1 | 0 | 81.3% |
 
 ## Pendientes M0 inmediatos
 

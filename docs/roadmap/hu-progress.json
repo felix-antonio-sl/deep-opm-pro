@@ -1,17 +1,17 @@
 {
   "schema": "deep-opm-pro.hu-progress-report.v1",
-  "generatedAt": "2026-05-07T08:42:43.964Z",
+  "generatedAt": "2026-05-07T09:02:13.039Z",
   "repoRoot": "/home/felix/projects/deep-opm-pro",
   "backlogRoot": "docs/historias-usuario-v2",
   "evidenceLedger": "docs/roadmap/hu-progress-evidence.json",
   "autoAudit": {
-    "generatedAt": "2026-05-07T08:42:43.964Z",
+    "generatedAt": "2026-05-07T09:02:13.039Z",
     "mode": "sync-real",
     "rulesEvaluated": 102,
     "rulesMatched": 102,
     "rulesUnmatched": 0,
     "sourceFiles": {
-      "count": 374,
+      "count": 381,
       "roots": [
         "app/src",
         "app/e2e",
@@ -43,14 +43,14 @@
   "summaries": {
     "total": {
       "total": 1126,
-      "cubierto": 312,
-      "parcial": 23,
+      "cubierto": 313,
+      "parcial": 22,
       "pendiente": 413,
       "diferido": 378,
       "bloqueado": 0,
       "pesoTotal": 3004,
-      "pesoCubierto": 851.5,
-      "avance": 0.2834553928095872
+      "pesoCubierto": 855.5,
+      "avance": 0.2847869507323569
     },
     "inventario": {
       "totalParseadas": 1173,
@@ -60,25 +60,25 @@
     },
     "m0": {
       "total": 130,
-      "cubierto": 108,
-      "parcial": 8,
+      "cubierto": 109,
+      "parcial": 7,
       "pendiente": 14,
       "diferido": 0,
       "bloqueado": 0,
       "pesoTotal": 333,
-      "pesoCubierto": 291.5,
-      "avance": 0.8753753753753754
+      "pesoCubierto": 295.5,
+      "avance": 0.8873873873873874
     },
     "alpha": {
       "total": 121,
-      "cubierto": 120,
-      "parcial": 1,
+      "cubierto": 121,
+      "parcial": 0,
       "pendiente": 0,
       "diferido": 0,
       "bloqueado": 0,
       "pesoTotal": 326,
-      "pesoCubierto": 322,
-      "avance": 0.9877300613496932
+      "pesoCubierto": 326,
+      "avance": 1
     },
     "beta": {
       "total": 193,
@@ -94,14 +94,14 @@
     "byCut": {
       "alpha": {
         "total": 121,
-        "cubierto": 120,
-        "parcial": 1,
+        "cubierto": 121,
+        "parcial": 0,
         "pendiente": 0,
         "diferido": 0,
         "bloqueado": 0,
         "pesoTotal": 326,
-        "pesoCubierto": 322,
-        "avance": 0.9877300613496932
+        "pesoCubierto": 326,
+        "avance": 1
       },
       "beta": {
         "total": 193,
@@ -151,14 +151,14 @@
     "byPriority": {
       "M0": {
         "total": 130,
-        "cubierto": 108,
-        "parcial": 8,
+        "cubierto": 109,
+        "parcial": 7,
         "pendiente": 14,
         "diferido": 0,
         "bloqueado": 0,
         "pesoTotal": 333,
-        "pesoCubierto": 291.5,
-        "avance": 0.8753753753753754
+        "pesoCubierto": 295.5,
+        "avance": 0.8873873873873874
       },
       "M1": {
         "total": 161,
@@ -796,14 +796,14 @@
       "SHARED": {
         "titulo": "Patrones transversales",
         "total": 9,
-        "cubierto": 5,
-        "parcial": 3,
+        "cubierto": 6,
+        "parcial": 2,
         "pendiente": 1,
         "diferido": 0,
         "bloqueado": 0,
         "pesoTotal": 48,
-        "pesoCubierto": 35,
-        "avance": 0.7291666666666666
+        "pesoCubierto": 39,
+        "avance": 0.8125
       }
     }
   },
@@ -1203,10 +1203,10 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/shared/HU-SHARED-007-eco-opl.md",
       "lineaInicio": 16,
       "corte": "alpha",
-      "estadoAvance": "parcial",
+      "estadoAvance": "cubierto",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto: generacion OPL-ES forward cubre entidades, enlaces, estados, despliegues y OPD activo; no existe edicion inversa OPL -> canvas.",
+      "nota": "Auto ronda 14 alpha-lock: OPL-ES forward + reverse editable cubierto con parser SSOT, diagnosticos, preview de patches, aplicacion undoable al store y smoke UI. El reverse acepta oraciones canonicas, no borra por ausencia y diagnostica familias fuera de kernel.",
       "brechas": [],
       "evidencia": [
         {
@@ -1222,6 +1222,22 @@
           "hrefDashboard": "../../app/src/opl/generadores/designaciones.ts"
         },
         {
+          "path": "app/src/opl/parser/parsear.ts",
+          "hrefDashboard": "../../app/src/opl/parser/parsear.ts"
+        },
+        {
+          "path": "app/src/opl/parser/planificar.ts",
+          "hrefDashboard": "../../app/src/opl/parser/planificar.ts"
+        },
+        {
+          "path": "app/src/opl/parser/aplicar.ts",
+          "hrefDashboard": "../../app/src/opl/parser/aplicar.ts"
+        },
+        {
+          "path": "app/src/store/modelo/acciones-canvas.ts",
+          "hrefDashboard": "../../app/src/store/modelo/acciones-canvas.ts"
+        },
+        {
           "path": "app/src/ui/PanelOpl.tsx",
           "hrefDashboard": "../../app/src/ui/PanelOpl.tsx"
         },
@@ -1234,13 +1250,21 @@
           "hrefDashboard": "../../app/src/opl/generar.test.ts"
         },
         {
+          "path": "app/src/opl/parser/parser.test.ts",
+          "hrefDashboard": "../../app/src/opl/parser/parser.test.ts"
+        },
+        {
+          "path": "app/e2e/03-opl-panel.spec.ts",
+          "hrefDashboard": "../../app/e2e/03-opl-panel.spec.ts"
+        },
+        {
           "path": "app/src/completitud.test.ts",
           "hrefDashboard": "../../app/src/completitud.test.ts"
         }
       ],
       "peso": 8,
-      "score": 0.5,
-      "avancePonderado": 4,
+      "score": 1,
+      "avancePonderado": 8,
       "enlaceFuente": "../historias-usuario-v2/shared/HU-SHARED-007-eco-opl.md"
     },
     {
