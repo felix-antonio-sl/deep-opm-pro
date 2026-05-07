@@ -1,5 +1,7 @@
+// [JOYAS §1-3] Chrome UI consume tokens centralizados; canvas semántico invariante.
 import { TOTAL_ETAPAS, VERBO_SALIDA_ES, type DatosAsistente } from "../../modelo/creacionWizard";
 import { S } from "./estilos";
+import { tokens } from "../tokens";
 
 interface Props {
   datos: Partial<DatosAsistente>;
@@ -13,14 +15,14 @@ export function EtapaConfirmar({ datos }: Props) {
         Revisa los datos ingresados antes de sembrar el modelo. Al confirmar
         se creara el SD con layout radial y podras continuar modelando.
       </p>
-      <div style={{ background: "#f9fbfd", borderRadius: "6px", padding: "12px 16px", marginBottom: "12px" }}>
+      <div style={{ background: tokens.colors.fondoCard, borderRadius: tokens.radii.md, padding: "12px 16px", marginBottom: "12px" }}>
         <div style={S.resumenLinea}>
           <span style={S.resumenLabel}>Funcion principal:</span>
-          <span style={S.resumenValor}>{datos.funcionPrincipal || <em style={{ color: "#b91c1c" }}>(pendiente)</em>}</span>
+          <span style={S.resumenValor}>{datos.funcionPrincipal || <em style={{ color: tokens.colors.errorOscuro }}>(pendiente)</em>}</span>
         </div>
         <div style={S.resumenLinea}>
           <span style={S.resumenLabel}>Beneficiario:</span>
-          <span style={S.resumenValor}>{datos.beneficiario || <em style={{ color: "#b91c1c" }}>(pendiente)</em>}</span>
+          <span style={S.resumenValor}>{datos.beneficiario || <em style={{ color: tokens.colors.errorOscuro }}>(pendiente)</em>}</span>
         </div>
         {datos.atributo?.nombre && (
           <div style={S.resumenLinea}>
@@ -34,7 +36,7 @@ export function EtapaConfirmar({ datos }: Props) {
         </div>
         <div style={S.resumenLinea}>
           <span style={S.resumenLabel}>Nombre del sistema:</span>
-          <span style={S.resumenValor}>{datos.nombreSistema || <em style={{ color: "#b91c1c" }}>(pendiente)</em>}</span>
+          <span style={S.resumenValor}>{datos.nombreSistema || <em style={{ color: tokens.colors.errorOscuro }}>(pendiente)</em>}</span>
         </div>
         {(datos.herramientas?.length ?? 0) > 0 && (
           <div style={S.resumenLinea}>
