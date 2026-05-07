@@ -356,7 +356,10 @@ test("renderiza agregacion como triangulo estructural", async ({ page }) => {
   await page.getByRole("button", { name: "Objeto", exact: true }).click();
   await page.getByRole("button", { name: "Objeto", exact: true }).click();
 
-  const objetos = elementoPorTexto(page, "Objeto");
+  // Regla de unicidad global (e5a0613): el segundo objeto auto-suffix a Objeto_2.
+  const objetos = page.locator(".joint-element").filter({
+    has: page.locator("text").filter({ hasText: /^\s*Objeto(_\d+)?\s*$/ }),
+  });
   await expect(objetos).toHaveCount(2);
   await objetos.nth(0).click();
   await page.getByLabel("Tipo de enlace").selectOption("agregacion");
