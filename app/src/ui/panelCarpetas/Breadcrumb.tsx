@@ -1,5 +1,7 @@
+// [JOYAS §1-3] Chrome UI consume tokens centralizados; canvas semántico invariante.
 import type { Id } from "../../modelo/tipos";
 import type { CarpetaIndice } from "../../persistencia/workspace";
+import { tokens } from "../tokens";
 
 interface BreadcrumbProps {
   segmentos: CarpetaIndice[];
@@ -61,10 +63,10 @@ const style = {
   backButton: {
     width: "30px",
     height: "30px",
-    border: "1px solid #d9e0ea",
-    borderRadius: "4px",
-    background: "#f2f4f7",
-    color: "#98a2b3",
+    border: `1px solid ${tokens.colors.bordeIntermedio}`,
+    borderRadius: tokens.radii.sm,
+    background: tokens.colors.fondoDeshabilitado,
+    color: tokens.colors.textoDeshabilitado,
     fontWeight: 700,
     flexShrink: 0,
   },
@@ -76,12 +78,12 @@ const style = {
     gap: "4px",
   },
   breadcrumbPart: { display: "inline-flex", alignItems: "center", gap: "4px" },
-  separator: { color: "#98a2b3" },
+  separator: { color: tokens.colors.textoDeshabilitado },
   breadcrumbButton: {
     border: 0,
     padding: 0,
     background: "transparent",
-    color: "#475467",
+    color: tokens.colors.textoSecundario,
     fontSize: "13px",
     cursor: "pointer",
   },
