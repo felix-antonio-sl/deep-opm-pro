@@ -2,8 +2,8 @@
 
 **Fecha**: 2026-05-07
 **Repositorio**: `deep-opm-pro`
-**Corte**: ronda 12.1 (3 líneas chicas L1-L3 + recalibración detector) consolidada sobre `main` con commits atómicos por capa.
-**Código verificado**: `main` tras commits `4ddb0a3 71c285b da99dcc 572756d 04da453` (sobre base post-ronda 12 `5aa387e` + L3 `560dc22`). **MVP-α 98.8% ponderado**. Tests **673/673 + smokes 81+ verdes** (3 nuevos Esc passing por background validation).
+**Corte**: ronda 12.1 (3 líneas chicas L1-L3 + L0 catálogo demos del operador + recalibración detector) consolidada sobre `main` con commits atómicos por capa.
+**Código verificado**: `main` tras commits `4ddb0a3 71c285b da99dcc 572756d 04da453` (sobre base post-ronda 12 + L0 `f9092a1..5fb9b46` + L1 `24ea546 5aa387e` + L3 `b01778a..560dc22`). **MVP-α 98.8% ponderado**. Tests **673/673 + smokes 86+ verdes**.
 **Documentación vigente**: este archivo reemplaza por completo el handoff anterior (post-ronda 12).
 
 ## Política De Handoff Único
@@ -24,38 +24,58 @@ La **ronda 12.1** es una ronda **corta de cierre fino MVP-α + UX polish del
 chrome**, ejecutada sobre la base post-ronda 12 (que cerró 4 épicas grandes:
 EPICA-17 valor numérico, EPICA-1B traer conectados, EPICA-33 plantillas
 privadas, más cierre L1 MVP-α). Tres líneas paralelas con disjuntez por
-dominio funcional, una de ellas (L2) entregada como patches a `/tmp` por
-decisión consciente del operador ante WIP cruzado de L1+L3.
+dominio funcional + una **línea L0 díscola** del operador (catálogo unificado
+de demos canónicos + UX unificada en 4 puntos de entrada + rediseño ejemplo
+organizacional) ejecutada de forma anterior y autónoma sobre `main`. La
+consolidación integra las 4 contribuciones.
 
 | Línea | Resultado integrado | Commit | HU cerradas |
 |---|---|---|---:|
+| L0 (operador, autónoma sobre main) | **Catálogo unificado de demos canónicos + UX unificada**: 8 modelos demo construidos programáticamente desde la API del kernel OPM en `app/src/modelo/fixtures.ts` (Cafetera Doméstica, OnStar System, Diagnóstico Clínico, SD Genérico, Logística de Envíos, SD Async, Control de Calidad, Ejemplo organizacional). Cada modelo es bimodal (OPD + OPL-ES), serializable via `exportarModelo()`, con archivos `.json` + `.md` + `.opl.txt` en `fixtures/demo-models/`. Generador `app/src/modelo/opl/generador-opl.ts` emite OPL-ES completo agrupado por OPD usando plantillas modelamiento-opm. Script regenerable `app/scripts/generar-demos.ts` invocable con `bun run scripts/generar-demos.ts` que también escribe `app/examples/ejemplo-organizacional.json` como asset público. Integración en runtime: `crearDemo()` carga primer fixture (Cafetera), `cargarFixtureDemo(nombre)` permite cargar cualquiera, `listarFixtures()` expone catálogo. **UX unificada** en 4 puntos de entrada (PantallaInicio + DialogoCargarModelo + MenuPrincipal submenu hover "Ejemplos ▸" + Toolbar `<select>` "Demo"); todos usan `cargarFixtureDemo(nombre)` con confirmación dirty. **Rediseño ejemplo organizacional** siguiendo wizard modelamiento-opm: 2 OPDs poblados (vs 10 con 8 vacíos antes), 8 entidades (vs 20 en un solo SD), 7 links correctos, Agente IA reclasificado como instrumento (era agente físico; corrige error semántico OPM), bimodal con OPL-ES en SD y SD1, SD1 con 3 sub-procesos encadenados. Auditoría previa de fuentes externas (opcloud.systems, opcloud.tech, opm-extracted) confirmó que no existen repos públicos descargables; documenta formatos descubiertos (.opcl, .opx, .ttl, .xmi). | `f9092a1 38e602c 8217215 9fc1b05 5fb9b46` | refuerzo HU-30.021/.022/.008 |
 | L1 (commiteado por agente) | Cierre HU semánticas MVP-α: 11 unit tests + 6 smokes; verificación de undo granular para 6 comandos ronda 11; verificación de inzoom para 4 modos estructurales (no solo procesos); edición etiqueta enlace estructural confirmada via SeccionEtiquetaEnlace + renombrarEtiquetaEnlaceSeleccionado; smokes para modal-nombre-cosa + carga doble clic + carga clic+botón. | `24ea546 5aa387e` | 6 |
 | L2 (entregado como patches, integrado por consolidación) | Base UI: módulo `app/src/ui/tokens.ts` mínimo (separa `#3DA8FF` acento UI del `#3BC3FF` color de proceso del canvas); prop `size?` opcional en Dialogo.tsx con default `"md"` invariante (sm/md/lg/xl = 360/460/720/960 px); aplicación `size="lg"` en DialogoCargarModelo + DialogoPlantillas; lazy splits in-place en Toolbar.tsx para DialogoTraerConectados + DialogoPlantillas (~5.4 KB ahorro chunk principal); 3 smokes Esc cancela en DialogoArchivados/BuscarGlobal/Versiones (HU-30.037 cubierto). | `4ddb0a3 71c285b da99dcc 572756d` | 1 |
 | L3 (commiteado por agente) | UX polish chrome: 20 tooltips nuevos sistemáticos en Toolbar.tsx (formato `Acción · Atajo`); iconografía canónica reusada en SeccionRefinamiento (inzoom + unfold), SeccionLayoutEstados (addStates), SeccionDuracion (timeDuration); list-logical SVGs en NodoOpd + BibliotecaCosa con discriminante `esencia` (informacional → dashed, fisica → sólido); delete.svg en MenuContextualEntidad + MenuContextualArbol; conteo derivado por familia en DialogoTraerConectados + 4 candidatos por familia con disabled cuando 0; 2 smokes UX. | `b01778a dfb32e7 7f30cfe 7ae1567 c07ca4e 560dc22` | 0 (chrome polish) |
-| Consolidación (operador) | Recalibración detector ronda 12.1: 2 reglas nuevas (HU-10.003, HU-10.021) + 5 reglas actualizadas a "cubierto" (HU-SHARED-002, HU-11.012, HU-30.019/.020/.037) + 2 correcciones de paths/strings (HU-11.007 path acciones-ui→seleccion+Toolbar; HU-30.021/.008 string ejemplo-organizacional→cargarEjemploOrganizacional+ejemplo-organizacional.json en acciones-ui.ts; archivo .json movido a evidenciaExtra porque detector solo indexa .css/js/mjs/svg/ts/tsx). | `04da453` | recalibración |
+| Consolidación (operador + agente) | Recalibración detector ronda 12.1: 2 reglas nuevas (HU-10.003, HU-10.021) + 5 reglas actualizadas a "cubierto" (HU-SHARED-002, HU-11.012, HU-30.019/.020/.037) + 2 correcciones de paths/strings tras commits L0 (HU-11.007 path acciones-ui→seleccion+Toolbar tras unificación selector demo en `9fc1b05`; HU-30.021/.008 string ejemplo-organizacional→cargarEjemploOrganizacional+ejemplo-organizacional.json en acciones-ui.ts tras rediseño en `5fb9b46`; archivo .json movido a evidenciaExtra porque detector solo indexa .css/js/mjs/svg/ts/tsx). | `04da453` | recalibración |
 
-**Total HU cerradas ronda 12.1**: 7 directas (6 L1 + 1 L2; L3 no cierra HU
-directas — chrome polish). Detector ronda 12.1: **detector recalibrado;
-MVP-α de 90.8% → 98.8% ponderado** (+8.0 pts). La única HU MVP-α no cubierta
-es **HU-SHARED-007** (eco OPL inverso editable), honestamente diferida a
-**ronda 14 dedicada** que introduce parser OPL bidireccional.
+**Total HU cerradas ronda 12.1**: 7 directas (6 L1 + 1 L2; L3 chrome polish
+sin HU directas; L0 refuerza HU-30.021/.022/.008 con catálogo unificado y UX
+canónica sin agregar HU nuevas al ledger). Detector ronda 12.1: **detector
+recalibrado; MVP-α de 90.8% → 98.8% ponderado** (+8.0 pts). La única HU
+MVP-α no cubierta es **HU-SHARED-007** (eco OPL inverso editable),
+honestamente diferida a **ronda 14 dedicada** que introduce parser OPL
+bidireccional.
 
 **Total backlog: 27.5% → 28.3% ponderado** (+0.8 pts; 302→312 cubiertas, +10).
 Los avances pequeños fuera de MVP-α reflejan que ronda 12.1 fue por diseño una
 ronda de cierre, no apertura.
+
+**Aporte estructural L0 sin equivalente HU**: el catálogo de 8 modelos demo
+canónicos + UX unificada en 4 puntos de entrada + rediseño semánticamente
+correcto del ejemplo organizacional son contribuciones técnicas de alto valor
+que el backlog HU no captura como historias específicas (las HU existentes
+HU-30.021/.022 cubren "cargar ejemplo" pero no "catálogo unificado",
+"selector unificado en 4 puntos" o "modelos como kernel-construible
+serializable bimodal"). Reconocidas aquí como infraestructura habilitante
+para futuras rondas.
 
 ## Cómo Se Decidió La Partición Y La Consolidación
 
 La partición ronda 12.1 fue declarada por briefs en
 `docs/instrucciones-lineas-dev/ronda12.1/` (5 archivos, 1172 LOC). Tres líneas
 paralelas con disjuntez por dominio funcional + diferimiento explícito a
-ronda 13 (UX foundation) y ronda 14 (parser OPL).
+ronda 13 (UX foundation) y ronda 14 (parser OPL). **Una cuarta línea L0 del
+operador** (no orquestada por brief) entró autónomamente sobre `main` antes
+que las líneas L1/L2/L3 aterrizaran: catálogo unificado de demos canónicos +
+UX unificada + rediseño ejemplo organizacional. La consolidación reconoce L0
+como contribución estructural separada con atribución propia.
 
 La **consolidación post-líneas** (este handoff) se diseñó así:
 
-- **Coproducto disjunto por dominio**: L1 cosecha kernel/store/smokes; L2
-  base UI (tokens + Dialogo + lazy bundle); L3 chrome polish (Toolbar +
-  Inspector + árbol + biblioteca + menús).
+- **Coproducto disjunto por dominio**: L0 base de demos (operador autónomo);
+  L1 cosecha kernel/store/smokes; L2 base UI (tokens + Dialogo + lazy
+  bundle); L3 chrome polish (Toolbar + Inspector + árbol + biblioteca +
+  menús). L0 aterrizó primero sobre main; L1/L2/L3 trabajaron luego sobre
+  worktree con commits operador L0 ya integrados como base.
 - **Toolbar.tsx compartido en hunks disjuntos**: descubrimiento durante
   ejecución reveló que `DialogoTraerConectados` y `DialogoPlantillas` se
   montan en `Toolbar.tsx`, no en `App.tsx` como asumía el brief V1.
@@ -99,6 +119,30 @@ Patrones canónicos OPCloud destilados (sin copiar 1:1):
 
 Decisiones nuevas de ronda 12.1:
 
+- **Catálogo de demos como kernel-construible** (L0 operador): los 8 modelos
+  demo se construyen programáticamente desde la API del kernel OPM en
+  `app/src/modelo/fixtures.ts`, no se cargan como JSON estáticos
+  pre-armados. Cada modelo es bimodal (OPD + OPL-ES generado dinámicamente)
+  y serializable via `exportarModelo()`. Garantiza que cualquier cambio
+  kernel mantenga consistencia con los demos sin maintenance manual de
+  fixtures, y que el catálogo evolucione con la SSOT.
+- **UX unificada para selección de demos** (L0 operador): los 4 puntos de
+  entrada (PantallaInicio, DialogoCargarModelo, MenuPrincipal submenu hover,
+  Toolbar `<select>` "Demo") usan un único helper `cargarFixtureDemo(nombre)`
+  con confirmación dirty. El catálogo es regenerable via
+  `bun run scripts/generar-demos.ts` que también escribe el asset público
+  `app/examples/ejemplo-organizacional.json`.
+- **Agente IA reclasificado como instrumento** (L0 operador, rediseño
+  ejemplo organizacional `5fb9b46`): en OPM canónico un agente debe ser
+  físico (humano u organización); IA/sistema actuando sobre proceso es
+  *instrumento*. Corrección semántica documentada para futuros modelos
+  demo y tutoriales.
+- **No hay repos públicos OPM descargables** (L0 operador, auditoría
+  `f9092a1`): opcloud.systems y opcloud.tech no exponen modelos
+  `.opl/.oplx/.opx` descargables; los formatos nativos (.opcl, .opx, .ttl,
+  .xmi) y endpoints `/storage/*` están auth-gated. El catálogo de 8 modelos
+  construidos desde kernel es el inventario completo disponible para el
+  proyecto.
 - **Tokens UI separados de paleta canvas**: `colors.acentoUi = "#3DA8FF"`
   (no `#3BC3FF`); paleta canvas (`#70E483 objeto`, `#3BC3FF proceso`,
   `#586D8C enlace`) preservada como invariante. Migración archivo por
@@ -193,7 +237,8 @@ Cascadas integradas durante la consolidación de ronda 12.1:
 
 | Cascada | Resolución |
 |---|---|
-| **3 líneas paralelas concurrentes con WIP cruzado de 804 LOC**: L2 detectó archivos compartidos modificados por L1+L3 en flight. | Operador autorizó "patches a /tmp" para L2 + commits directos para L1 y L3 (que tenían worktree limpio en sus archivos exclusivos). Consolidación aplicó los patches L2 sobre HEAD post-L1+L3. Cero conflictos. |
+| **L0 entró autónomamente sobre main antes que las líneas orquestadas** (5 commits del operador `f9092a1..5fb9b46` entre la base post-ronda-12 y los commits L1/L2/L3): catálogo unificado de demos + UX unificada + rediseño ejemplo organizacional. Las líneas L1/L2/L3 partieron sobre worktree que ya tenía L0 como base. | Reconocida como contribución estructural propia con su atribución en HANDOFF. La recalibración del detector tras L0 ajustó paths/strings que el rediseño cambió (HU-30.021/.008 string `ejemplo-organizacional` → `cargarEjemploOrganizacional` + `ejemplo-organizacional.json` en `acciones-ui.ts:39`; HU-11.007 path `acciones-ui.ts` → `seleccion.ts + Toolbar.tsx`). |
+| **3 líneas paralelas concurrentes con WIP cruzado de 804 LOC**: L2 detectó archivos compartidos modificados por L1+L3 en flight (sobre base L0 ya integrada). | Operador autorizó "patches a /tmp" para L2 + commits directos para L1 y L3 (que tenían worktree limpio en sus archivos exclusivos). Consolidación aplicó los patches L2 sobre HEAD post-L1+L3. Cero conflictos. |
 | **Toolbar.tsx con hunks L2 (lazy) + L3 (tooltips) disjuntos pero compartidos**: descubrimiento que diálogos viven en Toolbar.tsx, no App.tsx. | Autorización scope-restringido a L2 para SOLO imports líneas 14/19 + Suspense wrapper líneas 684-685; L3 limitado a `title=` en botones distintos. Hunks textualmente disjuntos garantizados; aplicación de patches sin conflicto. |
 | **Reglas detector mal calibradas tras commits operador intermedios** (`9fc1b05 5fb9b46`): HU-11.007 buscaba `conectarSeleccionAlTodo` en `acciones-ui.ts` pero vive en `seleccion.ts`; HU-30.021/.008 buscaba string `ejemplo-organizacional` que solo existe como `ejemplo-organizacional.json` en `acciones-ui.ts:39` (camelCase `cargarEjemploOrganizacional` no contiene el guión). | Recalibración: HU-11.007 path → seleccion.ts + Toolbar.tsx; HU-30.021/.008 string → cargarEjemploOrganizacional + ejemplo-organizacional.json (con guión); archivo .json movido a evidenciaExtra porque `walkSourceTree` solo indexa css/js/mjs/svg/ts/tsx. |
 | **Reglas existentes con HU residuales aún en parcial pese a evidencia commiteada**: HU-SHARED-002 (undo granular), HU-11.012 (etiqueta estructural), HU-30.019/.020/.037 (carga + Esc cobertura). | Actualización in-place de cada regla: parcial → cubierto + nota auto-actualizada citando commits ronda 12.1 + requires con paths/strings que matcheen. |
@@ -266,30 +311,46 @@ Diagnóstico vigente: 1 advertencia de inventario por ID duplicado
 - **Modelo/kernel**: estable. **Cero cambios kernel en ronda 12.1**
   (decisión consciente: si emergía necesidad, abortar línea y reportar —
   no ocurrió). Tipos heredados de ronda 12 estables.
+- **Demos / fixtures** (NUEVO L0 ronda 12.1): `app/src/modelo/fixtures.ts`
+  con `fixtureTodos()` retornando 8 modelos canónicos construidos via API
+  kernel; cada uno bimodal (OPD + OPL-ES) y serializable lossless. Helpers
+  `cargarFixtureDemo(nombre)` y `listarFixtures()` expuestos en runtime.
+  Catálogo regenerable via `bun run scripts/generar-demos.ts`. Asset
+  público `app/examples/ejemplo-organizacional.json` mantenido en sync con
+  el fixture homónimo.
 - **Render**: composers ronda 8-12 estables. **Cero cambios render en
   ronda 12.1**.
 - **OPL**: lente derivada estable. **Cero oraciones nuevas en ronda 12.1**;
-  generadores intactos.
+  generadores intactos. L0 introdujo `app/src/modelo/opl/generador-opl.ts`
+  como generador bimodal completo agrupado por OPD usando plantillas
+  modelamiento-opm (cubre cambios de estado, instrumentos, agentes, links
+  estructurales) — coexiste con `app/src/opl/` legado sin reemplazarlo.
 - **Canvas**: ronda 12.1 NO toca `canvas/operacionesBatch.ts`. Solo
   observación: HU-SHARED-002 verificó que cada comando ronda 11 emite
   exactamente 1 push undoStack atómico.
 - **UI/store**:
-  - `app/src/ui/tokens.ts` (NUEVO): paleta UI separada del canvas semántico.
-  - `Dialogo.tsx`: prop `size?` opcional (sm/md/lg/xl); aplicada en
+  - **L0 (operador)**: `PantallaInicio.tsx`, `DialogoCargarModelo.tsx`,
+    `MenuPrincipal.tsx`, `Toolbar.tsx` con selectores unificados de
+    ejemplos demo; `cargarFixtureDemo(nombre)` + `listarFixtures()` en
+    store; submenu hover "Ejemplos ▸" en MenuPrincipal.
+  - `app/src/ui/tokens.ts` (NUEVO L2): paleta UI separada del canvas
+    semántico.
+  - `Dialogo.tsx` (L2): prop `size?` opcional (sm/md/lg/xl); aplicada en
     `DialogoCargarModelo` + `DialogoPlantillas` con `size="lg"`.
-  - `Toolbar.tsx`: lazy splits in-place para `DialogoTraerConectados` +
-    `DialogoPlantillas` (líneas 14/19/684-685). 20 tooltips nuevos
-    sistemáticos en botones distintos.
+  - `Toolbar.tsx` (L2 lazy + L3 tooltips): lazy splits in-place para
+    `DialogoTraerConectados` + `DialogoPlantillas` (líneas 14/19/684-685
+    aprox post offset L0+L3). 20 tooltips nuevos sistemáticos en botones
+    distintos.
   - Inspector secciones (`SeccionRefinamiento`, `SeccionLayoutEstados`,
-    `SeccionDuracion`): iconografía canónica cableada (inzoom + unfold +
-    addStates + timeDuration).
-  - `arbol/NodoOpd.tsx` + `BibliotecaCosa.tsx`: list-logical SVGs por
-    esencia (informacional → dashed, física → sólido).
-  - `MenuContextualEntidad.tsx` + `MenuContextualArbol.tsx`: ícono
+    `SeccionDuracion`) (L3): iconografía canónica cableada (inzoom +
+    unfold + addStates + timeDuration).
+  - `arbol/NodoOpd.tsx` + `BibliotecaCosa.tsx` (L3): list-logical SVGs
+    por esencia (informacional → dashed, física → sólido).
+  - `MenuContextualEntidad.tsx` + `MenuContextualArbol.tsx` (L3): ícono
     `delete.svg` cableado.
-  - `DialogoTraerConectados.tsx`: conteo derivado por familia + disabled
-    cuando 0 candidatos.
-  - 3 smokes Esc cobertura HU-30.037 al final de `opm-smoke.spec.ts`.
+  - `DialogoTraerConectados.tsx` (L3): conteo derivado por familia +
+    disabled cuando 0 candidatos.
+  - 3 smokes Esc cobertura HU-30.037 (L2) al final de `opm-smoke.spec.ts`.
 - **Persistencia**: ronda 12.1 NO toca serializadores ni JSON canónico.
   HU-30.008 cubierta por reglas detector heredadas de ronda 12.
 - **Auditoría**: detector recalibrado. Cobertura HU **28.3% ponderado /
