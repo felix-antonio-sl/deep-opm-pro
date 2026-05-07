@@ -120,6 +120,7 @@ export function DialogoCargarModelo() {
       open={open}
       title="Cargar modelo"
       onCancel={cerrar}
+      size="lg"
 	      actions={(
 	        <>
 	          <button type="button" style={style.secondaryButton} onClick={cerrar}>Cancelar</button>

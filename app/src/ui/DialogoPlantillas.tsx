@@ -39,6 +39,7 @@ export function DialogoPlantillas() {
       open={abierto}
       title="Plantillas"
       onCancel={cerrar}
+      size="lg"
       actions={(
         <>
           <button type="button" style={style.secondaryButton} onClick={cerrar}>Cancelar</button>
@@ -108,7 +109,8 @@ function fechaCorta(value: string): string {
 }
 
 const style = {
-  body: { display: "grid", gap: "14px", width: "min(680px, calc(100vw - 80px))" },
+  // Ancho gobernado por `<Dialogo size="lg">` (ronda 12.1, [JOYAS §2]).
+  body: { display: "grid", gap: "14px" },
   header: { display: "grid", gridTemplateColumns: "1fr 220px", gap: "12px", alignItems: "center" },
   search: { height: "34px", border: "1px solid #b9c5d4", borderRadius: "4px", padding: "0 10px", fontSize: "13px", fontWeight: 600 },
   grid: { display: "grid", gap: "8px", maxHeight: "420px", overflow: "auto" },
