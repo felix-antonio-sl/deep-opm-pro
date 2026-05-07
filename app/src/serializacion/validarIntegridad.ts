@@ -1,5 +1,6 @@
 import { entidadIdDeExtremo, extremoVisibleEnOpd } from "../modelo/extremos";
 import { modoPlegadoApariencia, partesDePlegado } from "../modelo/plegado";
+import { refinamientosDe, tieneRefinamiento } from "./../modelo/refinamientos";
 import type {
   Entidad,
   Estado,
@@ -24,16 +25,18 @@ import { fallo, ok } from "./validarHelpers";
 export function validarReferenciasOpd(modelo: Modelo): Resultado<true> {
   const enlacesConApariencia = new Set<Id>();
   for (const entidad of Object.values(modelo.entidades)) {
-    if (!entidad.refinamiento) continue;
-    const opdRefinado = modelo.opds[entidad.refinamiento.opdId];
-    if (!opdRefinado) return fallo(`Refinamiento inválido: ${entidad.id}.opdId`);
-    if (!Object.values(opdRefinado.apariencias).some((apariencia) => apariencia.entidadId === entidad.id)) {
-      return fallo(`Refinamiento inválido: ${entidad.id}.apariencia`);
+    for (const ref of refinamientosDe(entidad)) {
+      const opdRefinado = modelo.opds[ref.opdId];
+      if (!opdRefinado) return fallo(`Refinamiento inválido: ${entidad.id}.opdId`);
+      if (!Object.values(opdRefinado.apariencias).some((apariencia) => apariencia.entidadId === entidad.id)) {
+        return fallo(`Refinamiento inválido: ${entidad.id}.apariencia`);
+      }
     }
   }
   for (const enlace of Object.values(modelo.enlaces)) {
     if (!enlace.derivado) continue;
-    if (!modelo.entidades[enlace.derivado.refinamientoId]?.refinamiento) {
+    const refinador = modelo.entidades[enlace.derivado.refinamientoId];
+    if (!refinador || !tieneRefinamiento(refinador)) {
       return fallo(`Enlace inválido: ${enlace.id}.derivado.refinamientoId`);
     }
     if (!modelo.enlaces[enlace.derivado.enlacePadreId]) {

@@ -21,6 +21,22 @@ export type ModoImagenEntidad = "imagen" | "texto" | "imagen-texto";
 export type TipoValorSlot = "integer" | "float" | "char" | "string";
 export type ValorConcreto = number | string;
 
+/**
+ * Slot indexado por TipoRefinamiento dentro del producto parcial
+ * `Entidad.refinamientos`. La clave del record fija `tipo`, por lo que el
+ * slot solo guarda el destino (opdId) y el modo (solo aplicable a despliegue).
+ */
+export interface SlotRefinamiento {
+  opdId: Id;
+  modo?: ModoDespliegueObjeto;
+}
+
+/**
+ * Forma legacy pre-ronda 15.2: una sola entrada `tipo` + `opdId` (+ `modo`).
+ * Se conserva como tipo nominal para validación/migración de modelos
+ * exportados antes del cambio. Tras hidratar, el modelo runtime expone
+ * únicamente `Entidad.refinamientos`.
+ */
 export interface RefinamientoEntidad {
   tipo: TipoRefinamiento;
   opdId: Id;
@@ -54,7 +70,14 @@ export interface Entidad {
   nombre: string;
   esencia: Esencia;
   afiliacion: Afiliacion;
-  refinamiento?: RefinamientoEntidad;
+  /**
+   * Producto parcial indexado por TipoRefinamiento. Una entidad puede tener
+   * descomposicion (in-zoom) y despliegue (unfold) simultáneos: son
+   * ortogonales (Comportamiento vs Estructura, SSOT §refinamiento).
+   * Pre-ronda 15.2 existía un único `refinamiento?: RefinamientoEntidad`;
+   * los modelos legacy se migran al hidratar.
+   */
+  refinamientos?: Partial<Record<TipoRefinamiento, SlotRefinamiento>>;
   alias?: string;
   unidad?: string;
   esAtributo?: boolean;

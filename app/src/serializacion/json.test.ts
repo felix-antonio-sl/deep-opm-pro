@@ -693,8 +693,8 @@ describe("serializacion JSON", () => {
 
     expect(hidratado.ok).toBe(true);
     if (!hidratado.ok) return;
-    expect(hidratado.value.entidades[procesoId]?.refinamiento?.tipo).toBe("descomposicion");
-    const opdHijoId = hidratado.value.entidades[procesoId]?.refinamiento?.opdId;
+    expect(hidratado.value.entidades[procesoId]?.refinamientos?.descomposicion).toBeDefined();
+    const opdHijoId = hidratado.value.entidades[procesoId]?.refinamientos?.descomposicion?.opdId;
     expect(opdHijoId).toBeDefined();
     if (!opdHijoId) return;
     expect(hidratado.value.opds[opdHijoId]?.padreId).toBe(modelo.opdRaizId);
@@ -784,8 +784,8 @@ describe("serializacion JSON", () => {
 
     expect(hidratado.ok).toBe(true);
     if (!hidratado.ok) return;
-    expect(hidratado.value.entidades[objetoId]?.refinamiento?.tipo).toBe("despliegue");
-    const opdHijoId = hidratado.value.entidades[objetoId]?.refinamiento?.opdId;
+    expect(hidratado.value.entidades[objetoId]?.refinamientos?.despliegue).toBeDefined();
+    const opdHijoId = hidratado.value.entidades[objetoId]?.refinamientos?.despliegue?.opdId;
     expect(opdHijoId).toBeDefined();
     if (!opdHijoId) return;
     expect(hidratado.value.opds[opdHijoId]?.padreId).toBe(modelo.opdRaizId);
@@ -810,7 +810,7 @@ describe("serializacion JSON", () => {
 
       expect(hidratado.ok).toBe(true);
       if (!hidratado.ok) return;
-      expect(hidratado.value.entidades[objetoId]?.refinamiento?.modo).toBe(caso.modo);
+      expect(hidratado.value.entidades[objetoId]?.refinamientos?.despliegue?.modo).toBe(caso.modo);
       const enlaces = Object.values(hidratado.value.enlaces).filter((enlace) => enlace.tipo === caso.tipo && extremoApuntaAEntidad(enlace.origenId, objetoId));
       expect(enlaces).toHaveLength(3);
     }
@@ -822,8 +822,13 @@ describe("serializacion JSON", () => {
     const objetoId = entidadPorNombre(modelo, "Vehiculo");
     modelo = must(desplegarObjeto(modelo, modelo.opdRaizId, objetoId)).modelo;
     const entidad = modelo.entidades[objetoId];
-    expect(entidad?.refinamiento).toBeDefined();
-    if (!entidad?.refinamiento) return;
+    expect(entidad?.refinamientos?.despliegue).toBeDefined();
+    const slotDesp = entidad?.refinamientos?.despliegue;
+    if (!entidad || !slotDesp) return;
+    // Inyecta el documento con el formato legacy `refinamiento` y SIN `modo`
+    // (escenario pre-15.2 sin modo persistido); el migrador debe asumir
+    // "agregacion" y hidratar al record nuevo `refinamientos`.
+    const { refinamientos: _omit, ...sinNuevo } = entidad;
     const json = JSON.stringify({
       formato: "deep-opm-pro.modelo.v0",
       modelo: {
@@ -831,8 +836,8 @@ describe("serializacion JSON", () => {
         entidades: {
           ...modelo.entidades,
           [objetoId]: {
-            ...entidad,
-            refinamiento: sinModoDespliegue(entidad.refinamiento),
+            ...sinNuevo,
+            refinamiento: { tipo: "despliegue", opdId: slotDesp.opdId },
           },
         },
       },
@@ -842,7 +847,7 @@ describe("serializacion JSON", () => {
 
     expect(hidratado.ok).toBe(true);
     if (!hidratado.ok) return;
-    expect(hidratado.value.entidades[objetoId]?.refinamiento?.modo).toBe("agregacion");
+    expect(hidratado.value.entidades[objetoId]?.refinamientos?.despliegue?.modo).toBe("agregacion");
   });
 
   test("round-trip preserva apariencia.modoPlegado parcial", () => {
@@ -910,6 +915,41 @@ describe("serializacion JSON", () => {
     expect(hidratado.value.opds[modelo.opdRaizId]?.apariencias[apariencia.id]?.modoPlegado).toBe("completo");
   });
 
+  test("ronda 15.2: hidratar JSON con campo legacy `refinamiento` migra a record `refinamientos`", () => {
+    let modelo = crearModelo("Legacy migracion");
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 200, y: 120 }, "Procesar"));
+    const procesoId = entidadPorNombre(modelo, "Procesar");
+    modelo = must(descomponerProceso(modelo, modelo.opdRaizId, procesoId)).modelo;
+    const slot = modelo.entidades[procesoId]?.refinamientos?.descomposicion;
+    if (!slot) throw new Error("La prueba esperaba descomposicion");
+    const entidad = modelo.entidades[procesoId];
+    if (!entidad) return;
+    // Construye un documento al estilo pre-15.2: solo `refinamiento` legacy,
+    // sin `refinamientos`. El migrador debe absorber el campo legacy.
+    const { refinamientos: _omit, ...sinNuevo } = entidad;
+    const doc = JSON.stringify({
+      formato: "deep-opm-pro.modelo.v0",
+      modelo: {
+        ...modelo,
+        entidades: {
+          ...modelo.entidades,
+          [procesoId]: {
+            ...sinNuevo,
+            refinamiento: { tipo: "descomposicion", opdId: slot.opdId },
+          },
+        },
+      },
+    });
+
+    const hidratado = hidratarModelo(doc);
+    expect(hidratado.ok).toBe(true);
+    if (!hidratado.ok) return;
+    // Funtor faithful: el slot llega al record nuevo intacto.
+    expect(hidratado.value.entidades[procesoId]?.refinamientos?.descomposicion?.opdId).toBe(slot.opdId);
+    // Y el campo legacy ya no se conserva en runtime.
+    expect((hidratado.value.entidades[procesoId] as unknown as { refinamiento?: unknown }).refinamiento).toBeUndefined();
+  });
+
   test("rechaza refinamiento que apunta a OPD inexistente", () => {
     let modelo = crearModelo("Refinamiento roto");
     modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 200, y: 120 }, "Proceso"));
@@ -920,9 +960,8 @@ describe("serializacion JSON", () => {
         ...modelo.entidades,
         [procesoId]: {
           ...modelo.entidades[procesoId]!,
-          refinamiento: {
-            tipo: "descomposicion",
-            opdId: "opd-inexistente",
+          refinamientos: {
+            descomposicion: { opdId: "opd-inexistente" },
           },
         },
       },
@@ -953,11 +992,6 @@ function aparienciaDeEntidad(modelo: Modelo, opdId: string, entidadId: string): 
 
 function sinModoPlegado(apariencia: Apariencia): Omit<Apariencia, "modoPlegado"> {
   const { modoPlegado: _modoPlegado, ...sinModo } = apariencia;
-  return sinModo;
-}
-
-function sinModoDespliegue(refinamiento: RefinamientoEntidad): Omit<RefinamientoEntidad, "modo"> {
-  const { modo: _modo, ...sinModo } = refinamiento;
   return sinModo;
 }
 

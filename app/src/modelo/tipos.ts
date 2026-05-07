@@ -25,6 +25,7 @@ export type {
 	  TipoValorSlot,
 	  ValorConcreto,
 	  RefinamientoEntidad,
+	  SlotRefinamiento,
 	  UrlObjetoTipada,
 	  ImagenEntidad,
 	  ValorSlot,

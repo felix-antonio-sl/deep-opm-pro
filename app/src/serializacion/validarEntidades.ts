@@ -8,7 +8,7 @@ import type {
   UrlObjetoTipada,
 } from "../modelo/tipos";
 import { fallo, ok, esAfiliacion, esEsencia, esRecord, esTipoEntidad } from "./validarHelpers";
-import { validarRefinamiento } from "./validarOpds";
+import { validarRefinamientos } from "./validarOpds";
 
 /**
  * Validadores para entidades y campos avanzados de objeto/proceso.
@@ -26,8 +26,8 @@ export function validarEntidades(value: Record<string, unknown>): Resultado<Reco
     if (typeof raw.nombre !== "string") return fallo(`Entidad inválida: ${id}.nombre`);
     if (!esEsencia(raw.esencia)) return fallo(`Entidad inválida: ${id}.esencia`);
     if (!esAfiliacion(raw.afiliacion)) return fallo(`Entidad inválida: ${id}.afiliacion`);
-    const refinamiento = validarRefinamiento(id, raw.refinamiento);
-    if (!refinamiento.ok) return refinamiento;
+    const refinamientos = validarRefinamientos(id, raw);
+    if (!refinamientos.ok) return refinamientos;
     const avanzados = camposEntidadAvanzada(id, raw);
     if (!avanzados.ok) return avanzados;
     entidades[id] = {
@@ -36,7 +36,7 @@ export function validarEntidades(value: Record<string, unknown>): Resultado<Reco
       nombre: raw.nombre,
       esencia: raw.esencia,
       afiliacion: raw.afiliacion,
-      ...(refinamiento.value ? { refinamiento: refinamiento.value } : {}),
+      ...(refinamientos.value ? { refinamientos: refinamientos.value } : {}),
       ...avanzados.value,
     };
   }
