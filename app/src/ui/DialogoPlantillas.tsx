@@ -66,9 +66,17 @@ export function DialogoPlantillas() {
           />
         </div>
         {filtradas.length === 0 ? (
-          <p style={style.empty} data-testid="plantillas-vacio">
-            Sin plantillas en esta carpeta. Crea una desde Menú principal → Guardar como plantilla.
-          </p>
+          <div style={style.empty} data-testid="plantillas-vacio">
+            <p style={{ margin: "0 0 12px" }}>Sin plantillas en esta carpeta.</p>
+            <button
+              type="button"
+              style={style.insertButton}
+              onClick={() => { cerrar(); abrirGuardar(); }}
+              data-testid="plantillas-vacio-cta"
+            >
+              Guardar modelo actual como plantilla
+            </button>
+          </div>
         ) : (
           <div style={style.grid}>
             {filtradas.map((plantilla) => (

@@ -137,7 +137,13 @@ export function PanelOpl() {
           }}
         />
       ) : visibles.length === 0 ? (
-        <span style={style.empty}>{lineas.length === 0 ? "Sin OPL todavía." : query ? "Sin resultados para la búsqueda." : "Sin oraciones para la selección."}</span>
+        <span style={style.empty}>
+          {lineas.length === 0
+            ? "Sin OPL todavía. Inserta una cosa con la toolbar para que las oraciones aparezcan aquí en español."
+            : query
+              ? "Sin resultados para la búsqueda."
+              : "Sin oraciones para la selección."}
+        </span>
       ) : (
         <Bloques
           bloques={bloques}
