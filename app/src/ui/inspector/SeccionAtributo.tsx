@@ -1,7 +1,9 @@
+// [JOYAS §1-3] Chrome UI consume tokens centralizados; canvas semántico invariante.
 import editAliasIcon from "../../../../assets/svg/editAlias.svg";
 import editUnitsIcon from "../../../../assets/svg/editUnits.svg";
 import type { Entidad, TipoValorSlot, ValorConcreto } from "../../modelo/tipos";
 import { inspectorStyles as style } from "../inspectorStyles";
+import { tokens } from "../tokens";
 
 /**
  * Inspector de atributo con slot de valor.
@@ -81,9 +83,9 @@ const styles = {
     gap: "8px",
     marginBottom: "14px",
     padding: "10px",
-    border: "1px solid #d9e0ea",
-    borderRadius: "4px",
-    background: "#f9fbfd",
+    border: `1px solid ${tokens.colors.bordeIntermedio}`,
+    borderRadius: tokens.radii.sm,
+    background: tokens.colors.fondoCard,
   },
   header: {
     display: "flex",
@@ -92,10 +94,10 @@ const styles = {
     gap: "8px",
   },
   badge: {
-    color: "#1f2937",
-    background: "#e8eef5",
-    border: "1px solid #c8d2df",
-    borderRadius: "4px",
+    color: tokens.colors.textoPrimario,
+    background: tokens.colors.chromeNeutralSuave,
+    border: `1px solid ${tokens.colors.bordeControl}`,
+    borderRadius: tokens.radii.sm,
     padding: "2px 6px",
     fontSize: "11px",
     fontWeight: 700,
@@ -104,7 +106,7 @@ const styles = {
     display: "inline-flex",
     alignItems: "center",
     gap: "6px",
-    color: "#475467",
+    color: tokens.colors.textoSecundario,
     fontSize: "12px",
     fontWeight: 700,
   },
@@ -116,11 +118,11 @@ const styles = {
     width: "100%",
     height: "34px",
     padding: "0 10px",
-    border: "1px solid #c8d2df",
-    borderRadius: "4px",
-    color: "#1f2937",
-    background: "#ffffff",
-    outlineColor: "#586D8C",
+    border: `1px solid ${tokens.colors.bordeControl}`,
+    borderRadius: tokens.radii.sm,
+    color: tokens.colors.textoPrimario,
+    background: tokens.colors.fondoChrome,
+    outlineColor: tokens.colors.chromeNeutral,
     fontSize: "13px",
     fontWeight: 600,
   },
