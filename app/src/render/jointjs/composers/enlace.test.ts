@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import type { Apariencia, Enlace } from "../../../modelo/tipos";
 import { LINK_ASSETS } from "../linkAssets";
-import { etiquetasMultiplicidad, proyectarEnlace, routerManhattan, verticesInvocacion } from "./enlace";
+import { connectorJumpover, etiquetasMultiplicidad, proyectarEnlace, routerManhattan, verticesInvocacion } from "./enlace";
 
 describe("composer enlace", () => {
   test("proyecta enlace con multiplicidad, estilo y metadata OPM", () => {
@@ -25,11 +25,34 @@ describe("composer enlace", () => {
     expect(line.strokeDasharray).toBe("2 2");
     expect(line.targetMarker).toEqual(LINK_ASSETS.procedural.consumo.marker);
     expect(cell.opm).toMatchObject({ kind: "enlace", enlaceId: "en-1", aparienciaEnlaceId: "ae-1", tipo: "consumo" });
+    // Ronda 15 L4: enlaces procedurales con routerManhattan deben usar
+    // jumpover para que cruces se dibujen como puentes.
+    expect(cell.connector).toEqual({ name: "jumpover", args: { type: "arc", size: 8 } });
+  });
+
+  test("invocacion conserva connector straight (vertices manuales en zigzag)", () => {
+    const enlaceInvocacion: Enlace = {
+      id: "en-inv",
+      tipo: "invocacion",
+      origenId: { kind: "entidad", id: "origen" },
+      destinoId: { kind: "entidad", id: "destino" },
+      etiqueta: "",
+    };
+    const cell = proyectarEnlace("opd-1", enlaceInvocacion, "ae-inv", { apariencia: origen }, { apariencia: destino }, [], false);
+    expect(cell.router).toBeUndefined();
+    expect(cell.connector).toEqual({ name: "straight" });
+  });
+
+  test("enlace en abanico mantiene connector straight (dock-point explicito)", () => {
+    const cell = proyectarEnlace("opd-1", enlaceBase, "ae-aba", { apariencia: origen }, { apariencia: destino }, [], false, true);
+    expect(cell.router).toBeUndefined();
+    expect(cell.connector).toEqual({ name: "straight" });
   });
 
   test("mantiene helpers de labels, router e invocacion", () => {
     expect(etiquetasMultiplicidad({ ...enlaceBase, multiplicidadDestino: "0..N" })[0]?.position).toMatchObject({ distance: -18, offset: -12 });
     expect(routerManhattan()).toEqual({ name: "manhattan", args: { padding: 5, step: 11 } });
+    expect(connectorJumpover()).toEqual({ name: "jumpover", args: { type: "arc", size: 8 } });
     expect(verticesInvocacion(origen, destino)).toHaveLength(3);
   });
 });

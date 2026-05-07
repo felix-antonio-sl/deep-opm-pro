@@ -93,6 +93,13 @@ export function proyectarEnlace(
   const grosorEnlace = estiloE?.strokeWidth ?? CANON.dims.enlaceVisible;
   const dashOverride = estiloE?.dashArray !== undefined ? estiloE.dashArray || undefined : undefined;
   const router = enlace.tipo === "invocacion" || enAbanico ? undefined : routerManhattan();
+  // Ronda 15 L4: enlaces procedurales con routerManhattan usan connector
+  // 'jumpover' para que los cruces se dibujen como puentes (mejora real de
+  // legibilidad). Invocacion y enlaces en abanico mantienen 'straight' porque
+  // sus vertices/dock-points son explicitos. Refinamientos estructurales
+  // (agregacion/exhibicion/...) tambien quedan 'straight' (cruzan triangulos
+  // centrales, jumpover introduciria saltos artificiales).
+  const connector = router ? connectorJumpover() : { name: "straight" };
   return {
     id: aparienciaEnlaceId,
     type: "standard.Link",
@@ -100,7 +107,7 @@ export function proyectarEnlace(
     target: endpointJoint(destino),
     vertices: verticesRender,
     router,
-    connector: { name: "straight" },
+    connector,
     labels: [...etiquetasMultiplicidad(enlace), ...etiquetasModificador(enlace), ...etiquetaEnlace(enlace), ...etiquetasRuta(enlace), ...etiquetasProxyParte(origen, destino)],
     attrs: {
       wrapper: {
@@ -417,6 +424,15 @@ export function centro(apariencia: Apariencia): Posicion {
 
 export function routerManhattan(): Record<string, unknown> {
   return { name: "manhattan", args: { padding: 5, step: 11 } };
+}
+
+// Connector 'jumpover': cuando dos enlaces se cruzan, el de encima dibuja un
+// pequeño arco sobre el otro. Mejora legibilidad real en modelos medianos sin
+// migrar de JointJS ni cambiar router. Tipos: 'arc' (arco) | 'gap' (corte) |
+// 'cubic'. Tamano por defecto JointJS es 10px; bajamos a 8 para no comerse
+// markers swallowtail (23x17) cuando estan cerca de un cruce.
+export function connectorJumpover(): Record<string, unknown> {
+  return { name: "jumpover", args: { type: "arc", size: 8 } };
 }
 
 export function verticesEnlace(tipo: TipoEnlace, origen: Apariencia, destino: Apariencia, vertices: Posicion[]): Posicion[] {
