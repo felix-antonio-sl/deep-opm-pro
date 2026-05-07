@@ -1,6 +1,8 @@
+// [JOYAS §1-3] Chrome UI consume tokens centralizados; canvas semántico invariante.
 import { useEffect, useRef, useState } from "preact/hooks";
 import { useOpmStore } from "../store";
 import { Dialogo } from "./Dialogo";
+import { tokens } from "./tokens";
 
 /**
  * Diálogo para guardar el modelo activo como plantilla privada.
@@ -88,11 +90,11 @@ export function DialogoGuardarPlantilla() {
 
 const style = {
   body: { display: "grid", gap: "12px", minWidth: "min(420px, calc(100vw - 80px))" },
-  label: { display: "grid", gap: "6px", color: "#475467", fontSize: "13px", fontWeight: 700 },
-  input: { height: "34px", border: "1px solid #b9c5d4", borderRadius: "4px", padding: "0 10px", fontSize: "13px", fontWeight: 600 },
-  textarea: { minHeight: "76px", border: "1px solid #b9c5d4", borderRadius: "4px", padding: "8px 10px", fontSize: "13px", fontWeight: 600, resize: "vertical" },
-  error: { margin: 0, color: "#CC0A0E", fontSize: "12px", fontWeight: 700 },
-  primaryButton: { height: "34px", padding: "0 14px", border: "1px solid #586D8C", borderRadius: "4px", background: "#586D8C", color: "#ffffff", cursor: "pointer", fontSize: "13px", fontWeight: 700 },
-  secondaryButton: { height: "34px", padding: "0 14px", border: "1px solid #c8d2df", borderRadius: "4px", background: "#ffffff", color: "#475467", cursor: "pointer", fontSize: "13px", fontWeight: 700 },
-  disabledButton: { height: "34px", padding: "0 14px", border: "1px solid #d9e0ea", borderRadius: "4px", background: "#f2f4f7", color: "#98a2b3", fontSize: "13px", fontWeight: 700 },
+  label: { display: "grid", gap: "6px", color: tokens.colors.textoSecundario, fontSize: "13px", fontWeight: 700 },
+  input: { height: "34px", border: `1px solid ${tokens.colors.bordeInput}`, borderRadius: tokens.radii.sm, padding: "0 10px", fontSize: "13px", fontWeight: 600 },
+  textarea: { minHeight: "76px", border: `1px solid ${tokens.colors.bordeInput}`, borderRadius: tokens.radii.sm, padding: "8px 10px", fontSize: "13px", fontWeight: 600, resize: "vertical" },
+  error: { margin: 0, color: tokens.colors.rojoOpcloud, fontSize: "12px", fontWeight: 700 },
+  primaryButton: { height: "34px", padding: "0 14px", border: `1px solid ${tokens.colors.chromeNeutral}`, borderRadius: tokens.radii.sm, background: tokens.colors.chromeNeutral, color: tokens.colors.fondoChrome, cursor: "pointer", fontSize: "13px", fontWeight: 700 },
+  secondaryButton: { height: "34px", padding: "0 14px", border: `1px solid ${tokens.colors.bordeControl}`, borderRadius: tokens.radii.sm, background: tokens.colors.fondoChrome, color: tokens.colors.textoSecundario, cursor: "pointer", fontSize: "13px", fontWeight: 700 },
+  disabledButton: { height: "34px", padding: "0 14px", border: `1px solid ${tokens.colors.bordeIntermedio}`, borderRadius: tokens.radii.sm, background: tokens.colors.fondoDeshabilitado, color: tokens.colors.textoDeshabilitado, fontSize: "13px", fontWeight: 700 },
 } satisfies Record<string, preact.JSX.CSSProperties>;
