@@ -18,7 +18,7 @@ export const S = {
   modal: {
     width: "620px",
     maxHeight: "85vh",
-    background: "${tokens.colors.fondoChrome}",
+    background: tokens.colors.fondoChrome,
     borderRadius: tokens.radii.xl,
     boxShadow: tokens.shadows.asistente,
     display: "flex",
@@ -30,13 +30,13 @@ export const S = {
     alignItems: "center",
     gap: "10px",
     padding: "14px 22px 8px",
-    borderBottom: "1px solid ${tokens.colors.bordeChrome}",
+    borderBottom: `1px solid ${tokens.colors.bordeChrome}`,
   },
   progressBar: {
     flex: 1,
     height: "6px",
     borderRadius: tokens.radii.xs,
-    background: "${tokens.colors.bordeChrome}",
+    background: tokens.colors.bordeChrome,
     overflow: "hidden",
   },
   progressFill: (pct: number) => ({

@@ -159,8 +159,8 @@ function Swatches(props: {
               style={{
                 ...styles.swatch,
                 background: color,
-                borderColor: selected ? "${tokens.colors.textoPrimario}" : "${tokens.colors.bordeControl}",
-                boxShadow: selected ? "0 0 0 2px ${tokens.colors.fondoChrome}, 0 0 0 4px ${tokens.colors.chromeNeutral}" : "none",
+                borderColor: selected ? tokens.colors.textoPrimario : tokens.colors.bordeControl,
+                boxShadow: selected ? `0 0 0 2px ${tokens.colors.fondoChrome}, 0 0 0 4px ${tokens.colors.chromeNeutral}` : "none",
               }}
               onClick={() => props.onSelect(color)}
             />
@@ -177,9 +177,9 @@ const styles = {
     gap: "10px",
     marginBottom: "14px",
     padding: "10px",
-    border: "1px solid ${tokens.colors.bordeIntermedio}",
+    border: `1px solid ${tokens.colors.bordeIntermedio}`,
     borderRadius: tokens.radii.sm,
-    background: "${tokens.colors.fondoChrome}",
+    background: tokens.colors.fondoChrome,
   },
   header: {
     display: "grid",
@@ -190,10 +190,10 @@ const styles = {
   reset: {
     height: "28px",
     padding: "0 10px",
-    border: "1px solid ${tokens.colors.bordeControl}",
+    border: `1px solid ${tokens.colors.bordeControl}`,
     borderRadius: tokens.radii.sm,
-    background: "${tokens.colors.fondoCard}",
-    color: "${tokens.colors.textoSecundario}",
+    background: tokens.colors.fondoCard,
+    color: tokens.colors.textoSecundario,
     cursor: "pointer",
     fontSize: "12px",
     fontWeight: 700,
@@ -203,7 +203,7 @@ const styles = {
     gap: "6px",
   },
   rowLabel: {
-    color: "${tokens.colors.textoTerciario}",
+    color: tokens.colors.textoTerciario,
     fontSize: "12px",
     fontWeight: 700,
   },
@@ -216,7 +216,7 @@ const styles = {
   swatch: {
     width: "28px",
     height: "28px",
-    border: "1px solid ${tokens.colors.bordeControl}",
+    border: `1px solid ${tokens.colors.bordeControl}`,
     borderRadius: tokens.radii.sm,
     cursor: "pointer",
   },
@@ -226,10 +226,10 @@ const styles = {
     gap: "8px",
     minHeight: "28px",
     padding: "6px 8px",
-    border: "1px solid ${tokens.colors.bordeControl}",
+    border: `1px solid ${tokens.colors.bordeControl}`,
     borderRadius: tokens.radii.sm,
-    background: "${tokens.colors.azulMuySuave}",
-    color: "${tokens.colors.textoControl}",
+    background: tokens.colors.azulMuySuave,
+    color: tokens.colors.textoControl,
     fontSize: "12px",
     fontWeight: 700,
   },
