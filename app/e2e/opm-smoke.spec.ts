@@ -3494,3 +3494,48 @@ function modeloPlantillaSmoke() {
     },
   };
 }
+
+test("L3 UX: tooltips sistemáticos en Toolbar (Deshacer, Cargar, Nuevo)", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await cerrarPantallaInicioSiVisible(page);
+
+  const botonDeshacer = page.getByRole("button", { name: "Deshacer", exact: true });
+  await expect(botonDeshacer).toHaveAttribute("title", /Deshacer.*Ctrl\+Z/);
+
+  const botonCargar = page.getByRole("button", { name: "Cargar", exact: true }).first();
+  await expect(botonCargar).toHaveAttribute("title", /Cargar modelo/);
+
+  const botonNuevo = page.getByRole("button", { name: "Nuevo", exact: true });
+  await expect(botonNuevo).toHaveAttribute("title", /Nuevo modelo/);
+
+  expect(pageErrors).toEqual([]);
+});
+
+test("L3 UX: DialogoTraerConectados muestra conteo por familia", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await cerrarPantallaInicioSiVisible(page);
+  await page.getByRole("button", { name: "Demo" }).click();
+
+  await elementoPorTexto(page, "Hacer Cafe").first().click();
+  await page.getByTestId("toolbar-traer-conectados").click();
+  await expect(page.getByTestId("dialogo-traer-conectados")).toBeVisible();
+
+  for (const familia of ["procedural-habilitador", "procedural-transformador", "direccional", "estructural"]) {
+    await expect(page.getByTestId(`familia-traer-${familia}`)).toContainText(/candidato/);
+  }
+  const conteoTransformadores = page.getByTestId("conteo-procedural-transformador");
+  await expect(conteoTransformadores).toBeVisible();
+  const textoTransformadores = (await conteoTransformadores.textContent()) ?? "";
+  expect(textoTransformadores).toMatch(/^\d+\s+candidato/);
+
+  await page.keyboard.press("Escape");
+  await expect(page.getByTestId("dialogo-traer-conectados")).toHaveCount(0);
+
+  expect(pageErrors).toEqual([]);
+});
