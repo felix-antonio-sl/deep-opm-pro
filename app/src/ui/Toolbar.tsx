@@ -9,6 +9,7 @@ import { normalizarGridConfig } from "../canvas/grid";
 import { listarFixtures } from "../store/runtime";
 import { useOpmStore } from "../store";
 import type { Id, ModoImagenEntidad, TipoEnlace, TipoEntidad } from "../modelo/tipos";
+import { colors } from "./tokens";
 import { BibliotecaCosa } from "./BibliotecaCosa";
 import { ATAJO_CONECTAR_MULTI_AL_TODO } from "./atajosTeclado";
 import { useConfirmarSiDirty } from "./ConfirmacionContext";
@@ -818,9 +819,9 @@ const style = {
     height: "34px",
     minWidth: "76px",
     padding: "0 14px",
-    border: "1px solid #3BC3FF",
+    border: `1px solid ${colors.acentoUi}`,
     borderRadius: "4px",
-    background: "#eaf8ff",
+    background: colors.acentoUiSuave,
     color: "#1f2937",
     cursor: "pointer",
     fontSize: "13px",
@@ -867,9 +868,9 @@ const style = {
     display: "inline-flex",
     alignItems: "center",
     padding: "0 8px",
-    border: "1px solid #3BC3FF",
+    border: `1px solid ${colors.acentoUi}`,
     borderRadius: "4px",
-    background: "#eaf8ff",
+    background: colors.acentoUiSuave,
     color: "#1f2937",
     fontSize: "12px",
     fontWeight: 800,
@@ -880,7 +881,7 @@ const style = {
     display: "inline-flex",
     alignItems: "center",
     padding: "0 8px",
-    border: "1px solid #586D8C",
+    border: `1px solid ${colors.chromeNeutral}`,
     borderRadius: "4px",
     background: "#eef2f6",
     color: "#344054",
@@ -911,7 +912,7 @@ const style = {
     padding: "0 6px",
     border: "1px solid #c8d2df",
     borderRadius: "4px",
-    color: "#586D8C",
+    color: colors.chromeNeutral,
     background: "#ffffff",
     fontSize: "10px",
     fontWeight: 800,
@@ -974,9 +975,9 @@ const style = {
   activeSelect: {
     height: "34px",
     width: "148px",
-    border: "1px solid #586D8C",
+    border: `1px solid ${colors.chromeNeutral}`,
     borderRadius: "4px",
-    background: "#e8eef5",
+    background: colors.chromeNeutralSuave,
     color: "#1f2937",
     fontSize: "13px",
     fontWeight: 700,
@@ -1011,7 +1012,7 @@ const style = {
     cursor: "default",
   },
   autosaveSaving: {
-    color: "#586D8C",
+    color: colors.chromeNeutral,
     fontSize: "12px",
     fontWeight: 700,
     whiteSpace: "nowrap",
@@ -1063,14 +1064,14 @@ const style = {
     border: "1px solid #b9c5d4",
     borderRadius: "4px",
     padding: "0 8px",
-    outlineColor: "#586D8C",
+    outlineColor: colors.chromeNeutral,
     fontSize: "13px",
   },
   primarySmall: {
     height: "32px",
-    border: "1px solid #586D8C",
+    border: `1px solid ${colors.chromeNeutral}`,
     borderRadius: "4px",
-    background: "#586D8C",
+    background: colors.chromeNeutral,
     color: "#ffffff",
     cursor: "pointer",
     fontSize: "13px",

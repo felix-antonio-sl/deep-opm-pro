@@ -15,13 +15,20 @@
  * y `colors.chromeNeutral` se introducen como tokens de UI. La sección
  * `colors.canvas` se expone únicamente como referencia documental — no es
  * para uso UI; el canvas semántico se mantiene con literales en su capa
- * de render. Migración completa a tokens (Toolbar, Inspector, MenuContextual*,
- * spacing/radii/typography) está diferida a ronda 13 dedicada.
+ * de render.
+ *
+ * Alcance ronda 13.0 T1.2 (steipete §2): se añaden dos tokens "Suaves" para
+ * fondos derivados del acento y del chrome neutro (`acentoUiSuave`,
+ * `chromeNeutralSuave`), usados por activeButton/stickyBadge/activeSelect en
+ * `Toolbar.tsx`. Migración completa a tokens (Inspector, MenuContextual*,
+ * spacing/radii/typography) sigue diferida a ronda 13 grande T2.2.
  */
 export const colors = {
   acentoUi: "#3DA8FF",
+  acentoUiSuave: "#eaf8ff",
   acentoSecundario: "#1a3763",
   chromeNeutral: "#586D8C",
+  chromeNeutralSuave: "#e8eef5",
   canvas: {
     objeto: "#70E483",
     proceso: "#3BC3FF",
