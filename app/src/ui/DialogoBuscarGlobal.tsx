@@ -1,7 +1,9 @@
+// [JOYAS §1-3] Chrome UI consume tokens centralizados; canvas semántico invariante.
 import { useEffect, useRef } from "preact/hooks";
 import { useOpmStore } from "../store";
 import { Dialogo } from "./Dialogo";
 import { useConfirmarSiDirty } from "./ConfirmacionContext";
+import { tokens } from "./tokens";
 
 export function DialogoBuscarGlobal() {
   const open = useOpmStore((s) => s.dialogoBuscarGlobalAbierto);
@@ -80,24 +82,24 @@ const style = {
   body: { display: "grid", gap: "10px", minWidth: "min(720px, calc(100vw - 80px))" },
   input: {
     height: "36px",
-    border: "1px solid #b9c5d4",
-    borderRadius: "4px",
+    border: `1px solid ${tokens.colors.bordeInput}`,
+    borderRadius: tokens.radii.sm,
     padding: "0 10px",
     fontSize: "14px",
   },
-  empty: { padding: "16px", border: "1px dashed #c8d2df", borderRadius: "4px", color: "#667085", fontWeight: 700 },
+  empty: { padding: "16px", border: `1px dashed ${tokens.colors.bordeControl}`, borderRadius: tokens.radii.sm, color: tokens.colors.textoTerciario, fontWeight: 700 },
   table: { width: "100%", borderCollapse: "collapse", fontSize: "13px" },
-  th: { padding: "6px 8px", borderBottom: "2px solid #d9e0ea", textAlign: "left", color: "#667085" },
-  row: { cursor: "pointer", borderBottom: "1px solid #eef2f6" },
-  td: { padding: "8px", color: "#1f2937", fontWeight: 700 },
-  tdMuted: { padding: "8px", color: "#667085", fontWeight: 600 },
+  th: { padding: "6px 8px", borderBottom: `2px solid ${tokens.colors.bordeIntermedio}`, textAlign: "left", color: tokens.colors.textoTerciario },
+  row: { cursor: "pointer", borderBottom: `1px solid ${tokens.colors.fondoMuted}` },
+  td: { padding: "8px", color: tokens.colors.textoPrimario, fontWeight: 700 },
+  tdMuted: { padding: "8px", color: tokens.colors.textoTerciario, fontWeight: 600 },
   secondaryButton: {
     height: "34px",
     padding: "0 14px",
-    border: "1px solid #c8d2df",
-    borderRadius: "4px",
-    background: "#ffffff",
-    color: "#475467",
+    border: `1px solid ${tokens.colors.bordeControl}`,
+    borderRadius: tokens.radii.sm,
+    background: tokens.colors.fondoChrome,
+    color: tokens.colors.textoSecundario,
     cursor: "pointer",
     fontSize: "13px",
     fontWeight: 700,
