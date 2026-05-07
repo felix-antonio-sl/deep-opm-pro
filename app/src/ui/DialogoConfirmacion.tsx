@@ -1,5 +1,7 @@
+// [JOYAS §1-3] Chrome UI consume tokens centralizados; canvas semántico invariante.
 import { useRef } from "preact/hooks";
 import { Dialogo } from "./Dialogo";
+import { tokens } from "./tokens";
 
 interface DialogoConfirmacionProps {
   open: boolean;
@@ -36,9 +38,9 @@ const baseButton = {
   height: "34px",
   minWidth: "92px",
   padding: "0 14px",
-  borderRadius: "4px",
+  borderRadius: tokens.radii.sm,
   cursor: "pointer",
-  fontFamily: "Arial, sans-serif",
+  fontFamily: tokens.typography.familyChrome,
   fontSize: "14px",
   fontWeight: 700,
   whiteSpace: "nowrap",
@@ -47,14 +49,14 @@ const baseButton = {
 const style = {
   primaryButton: {
     ...baseButton,
-    border: "1px solid #147aa5",
-    background: "#3BC3FF",
-    color: "#0b2f3f",
+    border: `1px solid ${tokens.colors.infoBorde}`,
+    background: tokens.colors.canvas.proceso,
+    color: tokens.colors.azulProfundo,
   },
   secondaryButton: {
     ...baseButton,
-    border: "1px solid #c8d2df",
-    background: "#f9fbfd",
-    color: "#1f2937",
+    border: `1px solid ${tokens.colors.bordeControl}`,
+    background: tokens.colors.fondoCard,
+    color: tokens.colors.textoPrimario,
   },
 } satisfies Record<string, preact.JSX.CSSProperties>;
