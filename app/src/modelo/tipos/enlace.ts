@@ -7,7 +7,7 @@ import type { Id } from "./comunes";
  * refinamiento externo, estilo visual y apariencia (vértices manuales).
  *
  * Refs: SSOT opm-iso-19450-es.md §3.* (Link), opm-visual-es.md V-237/V-239,
- *       opm-extracted/src/app/models/Logical/AggregationLink.ts,
+ *       opm-extracted/src/app/models/DrawnPart/Links/AggregationLink.ts,
  *       opm-extracted/src/app/models/DrawnPart/Links/EffectLink.ts:117.
  */
 

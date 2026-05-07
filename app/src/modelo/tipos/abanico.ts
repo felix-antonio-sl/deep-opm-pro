@@ -5,7 +5,7 @@ import type { Id } from "./comunes";
  * Cubre operador disyuntivo (al menos uno) y exclusivo (exactamente uno).
  *
  * Refs: SSOT opm-visual-es.md V-* (abanicos lógicos),
- *       opm-extracted/src/app/models/Logical/* (lógica de fan).
+ *       opm-extracted/src/app/models/LogicalPart/* (lógica de fan).
  */
 
 export type OperadorAbanico = "O" | "XOR";

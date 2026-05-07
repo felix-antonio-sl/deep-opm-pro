@@ -1,3 +1,19 @@
+/**
+ * Reglas de validación semántica del modelo OPM (consistency rules).
+ * Implementa avisos por categoría sobre kernel: cardinalidad, esencia,
+ * direccionalidad, agregación, instanciación, generalización.
+ *
+ * Refs: SSOT opm-iso-19450-es.md §Reglas (autoridad semántica),
+ *       opm-extracted/src/app/models/consistency/behavioral.rules.ts
+ *       (40 reglas behavioral; referencia técnica de inspiración),
+ *       opm-extracted/src/app/models/consistency/structural.rules.ts
+ *       (11 reglas structural; referencia técnica de inspiración).
+ *
+ * SSOT manda sobre opm-extracted: el conjunto de reglas se decide por HU
+ * activas (EPICA-1c, EPICA-15) y SSOT, no por paridad bruta con OPCloud.
+ * Auditoría 2026-05-07-ssot-opm-extracted.md §4.4 / RF-3 mide el delta real.
+ */
+
 import { naturalezaDeEnlace } from "./constantes";
 import { entidadDeExtremo, entidadIdDeExtremo, extremoApuntaAEntidad, extremoKey, nombreExtremo } from "./extremos";
 import { imagenIncluyeBitmap } from "./imagenObjeto";

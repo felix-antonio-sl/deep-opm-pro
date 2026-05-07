@@ -30,7 +30,7 @@ import { eliminarEnlace } from "./eliminacion";
  * en refinamiento, multiplicidad canónica.
  *
  * Refs: SSOT opm-iso-19450-es.md §3.* (Link signature),
- *       opm-extracted/src/app/models/Logical/AggregationLink.ts (separación por familia).
+ *       opm-extracted/src/app/models/DrawnPart/Links/AggregationLink.ts (separación por familia).
  */
 
 export type LadoMultiplicidadEnlace = "origen" | "destino";

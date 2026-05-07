@@ -40,15 +40,30 @@ Slice mínimo entregable: feature **cosecha de cierre** sin nuevos módulos gran
 
 ## 3. Anclaje a evidencia
 
-- **JOYAS** (`docs/JOYAS.md`): paleta canónica para indicadores (HU-11.001 modo sticky usa cyan `#3BC3FF`/process activo si modo proceso; verde lima `#70E483` si modo objeto). HU-30.036 indicador candado usa `#586D8C` (gris azulado) sobre fondo claro.
-- **Assets canónicos** (`assets/svg/`): `lock.svg` para HU-30.036 indicador candado read-only; `example.svg` para HU-30.021 botón "Cargar Ejemplo Organizacional"; `unfold.svg`/`inzoom.svg` ya existen para HU-10.021 (no recrear).
-- **opm-extracted/ verificado**:
+**Nivel 1 — SSOT (citas obligatorias en cada archivo modificado, RF-2 remediation)**:
+
+- `/home/felix/kora/artifacts/knowledge/fxsl/opm/opm-ssot-es/metodologia-opm-es.md`:
+  - §read-only: modelos en read-only son artefactos publicados; cualquier cambio requiere copia editable. **Cita obligatoria HU-30.036**: `[Met §read-only]`.
+  - §6 etapas SD: persistencia íntegra del payload. **Cita obligatoria HU-30.008/.019/.020/.021/.037**: `[Met §6]`.
+- `/home/felix/kora/artifacts/knowledge/fxsl/opm/opm-ssot-es/opm-iso-19450-es.md`:
+  - §3.55 Object, §3.69 Process: cosas tienen descripción opcional persistida. **Cita obligatoria HU-10.004**: `[Glos 3.55]` o `[Glos 3.69]`.
+  - §3.* Link signature: enlaces estructurales etiquetados. **Cita obligatoria HU-11.012**: `[Glos 3.x]` correspondiente.
+- `/home/felix/kora/artifacts/knowledge/fxsl/opm/opm-ssot-es/opm-opl-es.md`:
+  - §multi-al-todo: oraciones de agregación. **Cita obligatoria HU-11.007/HU-SHARED-007**: `[OPL-ES …]` correspondiente.
+- `docs/historias-usuario-v2/00-METODOLOGIA.md §6`: jerarquía SSOT.
+- `docs/auditorias/2026-05-07-ssot-opm-extracted.md §RF-2`: motivación y alcance de las citas SSOT obligatorias en EPICA-30.
+
+**Nivel 2 — `app/src/modelo/tipos.ts`**: cualquier cambio en HU-30.008 (payload íntegro) verifica coherencia con todos los campos opcionales declarados en `tipos/{modelo,entidad,enlace,opd,apariencia,abanico,estado,opl,pestana,ui}.ts`.
+
+**Nivel 3 — respaldo técnico (citas opcionales)**:
+
+- **JOYAS** (`docs/JOYAS.md`): paleta canónica para indicadores (HU-11.001 modo sticky usa cyan `#3BC3FF` si modo proceso; verde lima `#70E483` si modo objeto). HU-30.036 indicador candado usa `#586D8C` (gris azulado) sobre fondo claro.
+- **Assets canónicos** (`assets/svg/`, política PROVENANCE obliga reuso): `lock.svg` para HU-30.036 indicador candado read-only; `example.svg` para HU-30.021 botón "Cargar Ejemplo Organizacional"; `unfold.svg`/`inzoom.svg` ya existen para HU-10.021 (no recrear).
+- **opm-extracted/ verificado** (paths con `ls`/`grep`; citas opcionales en headers):
   - `opm-extracted/src/app/dialogs/save-as-dialog/` (consolidado en ronda 11 L2): el patrón "redirect en read-only" no tiene path explícito; deducido por simetría con read-only flag (L5 ronda 11). Implementación propia del repo.
   - `opm-extracted/src/app/dialogs/existing-name-dialog/existing-name-dialog.component.ts`: patrón "manejar nombre existente" útil para HU-30.037 cobertura modal cancelable.
-- **SSOT**:
-  - `/home/felix/kora/artifacts/knowledge/fxsl/opm/opm-ssot-es/metodologia-opm-es.md` §read-only: modelos en read-only son artefactos publicados; cualquier cambio requiere copia editable.
-  - `/home/felix/kora/artifacts/knowledge/fxsl/opm/opm-ssot-es/opm-iso-19450-es.md` §3.55, §3.69: cosas tienen descripción opcional persistida (HU-10.004).
-- **Estado actual del código (post-ronda-11)**:
+
+**Estado actual del código (post-ronda-11)**:
   - `app/src/canvas/operacionesBatch.ts:106` — `conectarMultiAlTodo` ya existe; **L1 agrega solo wiring UI**.
   - `app/src/store/modelo/acciones-ui.ts:84,150` — `guardarComoLocal` existe; HU-30.036 envuelve `guardarLocal`/atajo Ctrl+S con check `readOnly` antes de despachar.
   - `app/src/store/runtime.ts` — `readOnly` flag ya existe (ronda 11 L5).
@@ -186,6 +201,7 @@ Cada commit debe dejar la rama verde. Co-author si aplica.
 | **Smoke 854 stabilization rompe asserts existentes**: si reescribo el wait con condición distinta, otros smokes pueden depender. | Reescritura mínima sobre el smoke específico; otros smokes intactos. |
 | **HU-11.012 etiqueta enlace estructural**: `RenombradoInline` posiblemente no admite enlaces. | Auditar primero; si solo cubre entidades, agregar wrapper para enlaces sin tocar el componente core. Patrón aditivo. |
 | **HU-30.008 roundtrip puede exponer drift en serializador**: si un campo opcional no se serializa, el test falla. | El test es la verificación; si falla, identificar el campo y corregir el serializador (aditivo). No cambiar el contrato. |
+| **RF-2: HU EPICA-30 sin citas SSOT en headers**: auditoría 2026-05-07 detectó violación `00-METODOLOGIA.md §6` para EPICA-30. | Cada archivo modificado en L1 que cierra HU EPICA-30 debe agregar cita SSOT al header (`[Met §6]` o `[Met §read-only]` según aplique). Verificación cruzada: tras L1 cerrado, grep `[Met §` en archivos persistencia debe retornar matches. Aplica a `acciones-ui.ts`, `persistencia/local.ts`, `DialogoCargarModelo.tsx`, `Dialogo.tsx`. |
 
 ## 11. Salida esperada
 
@@ -201,3 +217,5 @@ Al cierre de L1, el operador debe poder:
 - Ver smoke 854 verde sin retry.
 
 **MVP-α esperado post-L1+L5**: 91.1% → **≥98% ponderado** (cierre de 14 HU residuales con evidencia detectable). Cero pendientes en MVP-α salvo HU explícitamente diferidas que se documentan en HANDOFF.
+
+**Remediación auditoría 2026-05-07** alcanzada en L1: RF-2 (citas SSOT EPICA-30) cerrada parcialmente — las HU EPICA-30 cubiertas por L1 (HU-30.008/.019/.020/.021/.036/.037) llevan cita SSOT en el header del archivo modificado. El resto de HU EPICA-30 ya cubiertas en rondas previas se difieren a auditoría dirigida en ronda 13+ (R2 esfuerzo S 1-2h).

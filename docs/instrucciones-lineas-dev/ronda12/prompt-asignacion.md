@@ -12,14 +12,26 @@ Toma control de la línea {{LINEA}} de la ronda 12 de deep-opm-pro: ronda de CIE
 Repo: /home/felix/projects/deep-opm-pro
 Base: main @ ff75966 (post-ronda-11, MVP-α 91.1% ponderado, detector 92/92)
 
-Lee primero, en este orden:
-1. /home/felix/projects/deep-opm-pro/docs/JOYAS.md (paleta canónica, dimensiones, tipografía — contrato visual)
-2. /home/felix/projects/deep-opm-pro/assets/svg/ (inventario de iconos canónicos disponibles para reuso)
-3. {{PATH_BRIEF}} (brief de la línea)
-4. /home/felix/projects/deep-opm-pro/docs/instrucciones-lineas-dev/ronda12/README.md (filosofía + reglas duras §2 + assets §5b + JOYAS §5c + mapa colisiones §7 + protocolo merge §8)
-5. /home/felix/projects/deep-opm-pro/opm-extracted/ dirigido a la línea: paths verificados en README §5 + grep amplio (`grep -ri "concepto-clave" opm-extracted/src/app -l`) ANTES de inventar API. Cualquier path no verificable con `ls`/`grep` se rechaza.
-6. /home/felix/projects/deep-opm-pro/docs/HANDOFF.md (decisiones vigentes rondas 1-11 que NO se reabren)
-7. SSOT relevante en /home/felix/kora/artifacts/knowledge/fxsl/opm/opm-ssot-es/ según la línea.
+Lee primero, en este orden de jerarquía SSOT (auditoría docs/auditorias/2026-05-07-ssot-opm-extracted.md):
+
+NIVEL 1 (autoridad obligatoria):
+1. SSOT relevante en /home/felix/kora/artifacts/knowledge/fxsl/opm/opm-ssot-es/ según la línea (opm-iso-19450-es.md, opm-visual-es.md, opm-opl-es.md, metodologia-opm-es.md).
+2. /home/felix/projects/deep-opm-pro/docs/historias-usuario-v2/00-METODOLOGIA.md §6 (jerarquía SSOT y citas obligatorias por tipo HU).
+3. /home/felix/projects/deep-opm-pro/docs/historias-usuario-v2/06-PROVENANCE.md §2 (política operativa: reuso obligatorio SVGs/dimensiones/colores/tipografía/plantillas OPL).
+
+NIVEL 2 (coherencia obligatoria):
+4. /home/felix/projects/deep-opm-pro/app/src/modelo/tipos.ts (SSOT viva del modelo en TS).
+
+NIVEL 3 (respaldo opcional pero recomendado):
+5. /home/felix/projects/deep-opm-pro/docs/JOYAS.md (paleta canónica + dimensiones + tipografía — elevado a contrato visual obligatorio por PROVENANCE §2).
+6. /home/felix/projects/deep-opm-pro/assets/svg/ (inventario iconos canónicos — reuso obligatorio por PROVENANCE §2).
+7. /home/felix/projects/deep-opm-pro/opm-extracted/ dirigido a la línea: paths verificados en README §5 + grep amplio (`grep -ri "concepto-clave" opm-extracted/src/app -l`) ANTES de citar. Cualquier path no verificable con `ls`/`grep` se rechaza (RF-1 evita recurrencia).
+
+CONTRATO HEREDADO:
+8. {{PATH_BRIEF}} (brief de la línea).
+9. /home/felix/projects/deep-opm-pro/docs/instrucciones-lineas-dev/ronda12/README.md (filosofía SSOT-céntrico §1 + reglas §2 + opm-extracted §5 + assets §5b + JOYAS §5c + citas SSOT §5d + colisiones §7 + merge §8 + anclaje §9).
+10. /home/felix/projects/deep-opm-pro/docs/HANDOFF.md (decisiones vigentes rondas 1-11 que NO se reabren).
+11. /home/felix/projects/deep-opm-pro/docs/auditorias/2026-05-07-ssot-opm-extracted.md (marco SSOT-céntrico + hallazgos RF-1..RF-4 + recomendaciones R1..R6).
 
 Antes de codificar, captura:
 - Lista exacta de archivos permitidos (§4 del brief).
@@ -30,26 +42,35 @@ Antes de codificar, captura:
 - Assets canónicos a reusar (§5b del README + §3 del brief).
 
 Reglas duras comunes (no negociables):
-1. **Aditividad**: tipos opcionales (`?:`), funciones nuevas exportadas, NO renames, NO breaks de firma pública.
-2. **Scope estricto**: solo archivos permitidos. Si aparece cambio cross-line, detente y reporta.
-3. **Tests existentes intactos**: 624 baseline pasa sin tocar.
-4. **JSON roundtrip lossless**: cargar JSON pre-ronda 12 produce modelo válido sin pérdida. Crítico para L2 (`Entidad.valorSlot?` opcional con default `undefined`).
-5. **OPL invariante donde aplica**: oraciones existentes preservadas; oraciones nuevas son aditivas. **L2 declara explícitamente la nueva oración canónica `Atributo es valor [Unidad].`**. Otras líneas no agregan oraciones.
-6. **Patrón canónico (rondas 8-11)**: barrel + sub-archivos por dominio + composer overlay separado para features visuales aditivas + slices Zustand con runtime singleton.
-7. **Citas explícitas**: cada decisión arquitectural cita SSOT (id sección) o documento interno (path absoluto + línea).
-8. **Reuso obligatorio del corpus interno**: opm-extracted/ es **primera fuente** para soluciones, lógica y patrones. Antes de inventar nada nuevo, verificar si existe el equivalente. Pero NUNCA copiar 1:1 (depende de Angular/Rappid/Firebase que no aplican); reescribir en Preact + Zustand + JointJS OSS preservando la semántica.
-9. **Reuso obligatorio de assets**: assets/svg/ es **primera fuente** para iconos. Verificar inventario antes de crear iconos nuevos. Si se necesita un icono nuevo, declarar por qué no aplica un SVG existente.
-10. **JOYAS canónicas respetadas**: paleta de colores (`#70E483`, `#3BC3FF`, `#586D8C`, `#fdffff`, `#000002`, paleta secundaria), dimensiones (135×60 px Object/Process), tipografía (Arial 14px font-weight 600). Cualquier desviación se declara con rationale.
+
+JERARQUÍA SSOT-CÉNTRICA (auditoría 2026-05-07):
+1. **SSOT (nivel 1) es autoridad obligatoria**. Cada archivo nuevo o feature nueva agrega cita SSOT al header según tipo de HU: `[V-xxx]` (visual), `[Glos 3.x]` (glosario ISO 19450), `[OPL-ES …]` (OPL canónica), `[Met §x]` (metodología/etapas SD), `[JOYAS §x]` (cuando aplique visualmente). Ver README §5d para mapeo por línea. **RF-2 evita reincidencia**: EPICA-30 sin citas SSOT fue red flag de la auditoría; ronda 12 lo remedia parcialmente.
+2. **`tipos.ts` (nivel 2)** es SSOT viva en TS: cualquier cambio kernel debe ser coherente con ISO-19450.
+3. **JOYAS y `assets/svg/` son contrato operativo obligatorio** (PROVENANCE §2: "SVGs/dimensiones/colores/tipografía se reutilizan"). Cualquier desviación declarada con rationale.
+4. **`opm-extracted/` es nivel 3 (respaldo técnico opcional)**: usar para evitar reinventar lógica destilada por OPCloud, pero NUNCA copiar 1:1 (depende de Angular/Rappid/Firebase). Reescribir en Preact + Zustand + JointJS OSS preservando la semántica. Citas opcionales pero recomendadas. **Paths verificados con `ls`/`grep` SIEMPRE** (RF-1 evita recurrencia).
+
+ADITIVIDAD Y CONTRATOS:
+5. **Aditividad**: tipos opcionales (`?:`), funciones nuevas exportadas, NO renames, NO breaks de firma pública.
+6. **Scope estricto**: solo archivos permitidos. Si aparece cambio cross-line, detente y reporta.
+7. **Tests existentes intactos**: 624 baseline pasa sin tocar.
+8. **JSON roundtrip lossless**: cargar JSON pre-ronda 12 produce modelo válido sin pérdida. Crítico para L2 (`Entidad.valorSlot?` opcional con default `undefined`).
+9. **OPL invariante donde aplica**: oraciones existentes preservadas; oraciones nuevas son aditivas. **L2 declara explícitamente la nueva oración canónica `Atributo es valor [Unidad].`**. Otras líneas no agregan oraciones.
+10. **Patrón canónico (rondas 8-11)**: barrel + sub-archivos por dominio + composer overlay separado para features visuales aditivas + slices Zustand con runtime singleton.
+
+OPERATIVA:
 11. **No introducir dependencias nuevas** (libs, frameworks, utilidades).
 12. **Si descubres bug fuera de scope**: entrega como patch a /tmp/, NO commitees ni mezcles.
 13. **Idiomas**: docs y mensajes UI en es-CL; identificadores en estilo del repo.
-14. **No tocar**: docs/HANDOFF.md (excepto L5 en consolidación), docs/historias-usuario-v2/, docs/JOYAS.md, docs/instrucciones-lineas-dev/ronda1..11/, customShapes.ts, in-vivo-test.mjs, home/.
+14. **No tocar**: docs/HANDOFF.md (excepto L5 en consolidación), docs/historias-usuario-v2/, docs/JOYAS.md, docs/auditorias/, docs/instrucciones-lineas-dev/ronda1..11/, customShapes.ts, in-vivo-test.mjs, home/.
+
+DIFERIMIENTOS:
 15. **EPICA-70/91 descartadas del proyecto** desde 2026-05-05; no proponerlas.
 16. **EPICA-32 sub-modelos y HU-50.019/.020/.022 parser OPL DIFERIDAS** a rondas 13-14 dedicadas; no incluir.
 17. **HU-33.004/.005/.016/.017/.019/.020/.021** (plantillas org/global, modo plantilla AO, favoritas, cortar carpeta) DIFERIDAS post multi-user; no incluir.
 18. **HU-1B.006/.014** (preferencias default + burbuja sugerencia) DIFERIDAS bajo prioridad; no incluir.
-19. **No reabrir contratos rondas 1-11** (HANDOFF §Decisiones Vigentes).
-20. **Detector ledger es territorio L5**: cada línea declara internamente sus reglas detector pero NO edita progress-dashboard.mjs (excepto L5).
+19. **RF-3/R5 auditoría** (delta consistency rules + linter SSOT en CI) DIFERIDOS a ronda 13+; no incluir en briefs ronda 12.
+20. **No reabrir contratos rondas 1-11** (HANDOFF §Decisiones Vigentes).
+21. **Detector ledger es territorio L5**: cada línea declara internamente sus reglas detector pero NO edita progress-dashboard.mjs (excepto L5).
 
 Loop verde obligatorio antes de cerrar:
 - cd app && bun run check          (624+ tests, sin regresión)
@@ -66,8 +87,9 @@ Forma del entregable (al cerrar):
 - Decisiones declaradas (§10 del brief).
 - HU cerradas con id (de §2 del brief).
 - Reglas detector que esta línea declara para consolidación L5 (§8 del brief).
-- Assets reusados de assets/svg/ (lista explícita).
-- Patrones de opm-extracted/ reusados semánticamente (con paths verificados).
+- **Citas SSOT agregadas en headers** (lista por archivo: `[V-…]`, `[Glos 3.x]`, `[OPL-ES …]`, `[Met §x]`, `[JOYAS §x]`) — RF-2 remediation.
+- **Assets reusados de assets/svg/** (lista explícita; obligatorio por PROVENANCE §2).
+- **Patrones de opm-extracted/ reusados semánticamente** (con paths verificados con `ls`/`grep`; opcional pero recomendado).
 - Bloqueos o desviaciones explícitas con rationale.
 - Confirmación de archivos no tocados (de §11 del brief).
 
@@ -251,7 +273,8 @@ Archivos prohibidos: features de L1/L2/L3/L4 salvo cascadas estrictamente necesa
 3. **Conflictos en archivos compartidos** (Toolbar, acciones-canvas, acciones-ui, tipos/ui, canvas/operacionesBatch): se resuelven a favor de la línea con scope explícito sobre el archivo (ver §7 del README); si ambas reclaman scope, se pide al operador.
 4. **Bug fuera de scope** detectado por una línea: se entrega como patch a `/tmp/ronda12-bug-{nombre}.patch` y se documenta. NO se commitea.
 5. **Si el detector unmatchea reglas existentes**: la línea responsable del cambio que rompió el match debe corregirla en el mismo commit (igual que ronda 8/9/9.5/10/11).
-6. **Reuso obligatorio assets + opm-extracted**: cada línea documenta en su entregable los assets reusados de `assets/svg/` y los patrones reusados semánticamente de `opm-extracted/` (con paths verificados). Esto es contrato, no opcional.
+6. **Reuso obligatorio assets + JOYAS**: cada línea documenta en su entregable los assets reusados de `assets/svg/` (obligatorio por PROVENANCE §2). Patrones reusados semánticamente de `opm-extracted/` son opcionales pero recomendados (con paths verificados — RF-1 evita recurrencia).
+7. **Citas SSOT obligatorias en headers**: cada archivo nuevo o modificado materialmente cita SSOT según tipo de HU (`[V-…]`, `[Glos 3.x]`, `[OPL-ES …]`, `[Met §x]`, `[JOYAS §x]`). RF-2 remediation: especialmente crítico para L1 sobre HU EPICA-30.
 
 ## Cierre de ronda
 

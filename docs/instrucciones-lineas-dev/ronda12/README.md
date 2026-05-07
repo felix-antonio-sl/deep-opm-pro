@@ -6,6 +6,10 @@
 
 ## 1. Filosofía operativa
 
+- **Marco SSOT-céntrico** (referencia: `docs/auditorias/2026-05-07-ssot-opm-extracted.md`, `docs/historias-usuario-v2/00-METODOLOGIA.md §6`). Tres niveles de autoridad:
+  - **Nivel 1 — SSOT OPM v3.0.0** (`opm-iso-19450-es.md`, `opm-visual-es.md`, `opm-opl-es.md`, `metodologia-opm-es.md`): autoridad semántica, visual, textual y procedimental. **Citas obligatorias** (`[V-xxx]`, `[Glos 3.x]`, `[OPL-ES …]`, `[Met §x]`, `[JOYAS §x]`) según tipo de HU.
+  - **Nivel 2 — `app/src/modelo/tipos.ts`**: SSOT viva en TypeScript del modelo de datos. Coherencia obligatoria con ISO-19450.
+  - **Nivel 3 — `opm-extracted/`, `assets/`, `JOYAS.md`, `fixtures/`, `catalog/`, `config/`**: **respaldo técnico referencial**. Citas opcionales pero recomendadas para trazabilidad. **No es "primera fuente"**; es referencia para evitar reinventar lógica ya destilada por OPCloud, pero NUNCA se copia 1:1 (depende de Angular/Rappid/Firebase). Política operativa (`06-PROVENANCE.md §2`): "no inventa funcionalidad ausente en SSOT y OPCloud; no copia arquitectura OPCloud; SVGs/dimensiones/colores/tipografía/plantillas OPL se reutilizan".
 - **Cierre + apertura controlada**: ronda 11 cerró el primer hito presentable (MVP-α 91.1%). Ronda 12 cierra los residuales (≥98%) y abre 3 épicas grandes seleccionadas por blast aditivo. Apertura, no explosión.
 - **Coproducto disjunto asimétrico** (`urn:fxsl:kb:icas-universales`): la disjuntez no es sobre "tipo de trabajo" sino sobre dominio conceptual. L1 (cierre) opera sobre HU residuales pequeñas; L2/L3/L4 abren dominios nuevos cada uno con su capa principal.
 - **Aditividad estricta** preservada (`urn:fxsl:kb:icas-extension`): cada feature agrega tipos opcionales (`?:`), exports nuevos, ningún rename. La adjunción libre/olvido entre exposed-API e internal-structure se mantiene (`urn:fxsl:kb:icas-adjunciones`).
@@ -97,9 +101,9 @@ Estado post-ronda-11:
 - **EPICA-60/61 export PDF/SVG papel**, **EPICA-71 CSV import**: bloqueadas por regla "no introducir dependencias nuevas".
 - **EPICA-19 pool organizacional** (HU-19.004..006): multi-user, diferida.
 
-## 5. Contraste opm-extracted ↔ deep-opm-pro
+## 5. Patrones técnicos referenciales en `opm-extracted/` (nivel 3, respaldo opcional)
 
-OPCloud opera con ~349 archivos / ~165k LOC. Patrones canónicos destilables relevantes para ronda 12. **Todos los paths de esta tabla fueron verificados con `ls`/`grep` antes de citarse**; cualquier path no existente en `opm-extracted/` se rechaza:
+OPCloud opera con ~349 archivos / ~165k LOC. **`opm-extracted/` es nivel 3** según la jerarquía SSOT (auditoría `docs/auditorias/2026-05-07-ssot-opm-extracted.md` §2): citas opcionales pero recomendadas para evitar reinventar lógica ya destilada. **No es "primera fuente"** — la SSOT (nivel 1) es la autoridad. Estos patrones son **referencia técnica**, NUNCA se copian 1:1 (dependen de Angular/Rappid/Firebase). Todos los paths de esta tabla fueron verificados con `ls`/`grep` antes de citarse; cualquier path no existente en `opm-extracted/` se rechaza (ver auditoría §RF-1 sobre paths errados a corregir):
 
 | Patrón OPCloud | Path verificado | Aplicación ronda 12 |
 |---|---|---|
@@ -109,11 +113,11 @@ OPCloud opera con ~349 archivos / ~165k LOC. Patrones canónicos destilables rel
 | **Cierre micro-features MVP** | sin path único; cosecha sobre archivos ya existentes en `app/src/`. | L1: residuales sin archivos nuevos grandes (excepto `examples/ejemplo-organizacional.json`). |
 | **Read-only redirect Save→Save As** | `opm-extracted/src/app/dialogs/save-as-dialog/` ya integrado en ronda 11 L2; el patrón "redirect en read-only" no tiene path explícito en `opm-extracted/` (deducido por simetría con read-only flag de ronda 11 L5). | L1 HU-30.036: en `acciones-ui.guardarLocal` si `readOnly`, dispara `guardarComo()` con confirmación. **Ojo**: el patrón es propio del repo, no copia 1:1. |
 
-Ningún brief debe inventar paths bajo `opm-extracted/`. Si un path no aparece en esta tabla o no se verifica con `ls`/`grep` antes, NO se cita en un brief.
+Ningún brief debe inventar paths bajo `opm-extracted/`. Si un path no aparece en esta tabla o no se verifica con `ls`/`grep` antes, NO se cita en un brief. **El header de cada archivo nuevo debe citar primero SSOT (nivel 1, obligatorio) y opcionalmente opm-extracted (nivel 3) con paths verificados**.
 
-## 5b. Assets SVG canónicos a reusar
+## 5b. Assets SVG canónicos a reusar (obligatorio)
 
-`assets/svg/` ya contiene iconos canónicos de OPCloud listos para reuso visual. Antes de crear iconos nuevos, **verificar** si existe el equivalente:
+`assets/svg/` ya contiene iconos canónicos de OPCloud listos para reuso visual. La política `06-PROVENANCE.md §2` dice **"SVGs, dimensiones, colores, tipografía y plantillas OPL se reutilizan"** — **es obligación**, no opcional. Antes de crear iconos nuevos, **verificar** si existe el equivalente:
 
 | Archivo SVG | Usado por | Aplicación ronda 12 |
 |---|---|---|
@@ -127,9 +131,9 @@ Ningún brief debe inventar paths bajo `opm-extracted/`. Si un path no aparece e
 
 Cualquier brief que necesite un icono nuevo debe primero declarar por qué no aplica un SVG existente.
 
-## 5c. JOYAS canónicas (paleta + dimensiones)
+## 5c. JOYAS canónicas (paleta + dimensiones) — contrato visual obligatorio
 
-`docs/JOYAS.md` documenta la paleta y dimensiones extraídas del bundle real de OPCloud. **Toda nueva UI ronda 12 respeta**:
+`docs/JOYAS.md` documenta la paleta y dimensiones extraídas del bundle real de OPCloud. Aunque JOYAS es nivel 3 técnicamente, la política `06-PROVENANCE.md §2` lo eleva a **contrato visual obligatorio** ("dimensiones, colores, tipografía se reutilizan"). **Toda nueva UI ronda 12 respeta**:
 
 - **Paleta canónica** (`docs/JOYAS.md §1`): `#70E483` Object stroke, `#3BC3FF` Process stroke, `#586D8C` link stroke, `#fdffff` fill, `#000002` text. Inspector usa la paleta secundaria documentada.
 - **Dimensiones canónicas** (`docs/JOYAS.md §2`): Object/Process 135×60 px, link visible `stroke-width=2`, link wrapper `stroke-width=15`, marker triangle 30×30 px.
@@ -137,6 +141,28 @@ Cualquier brief que necesite un icono nuevo debe primero declarar por qué no ap
 - **Halo button conventions** (`docs/JOYAS.md §...`): si L3 emite halo button, replica geometría halo de OPCloud.
 
 **Cualquier elección de color/tamaño/tipografía** que se desvíe de JOYAS.md debe declararse explícitamente con rationale.
+
+## 5d. Política de citas SSOT obligatorias en archivos nuevos (RF-2 remediation)
+
+Auditoría `docs/auditorias/2026-05-07-ssot-opm-extracted.md` §RF-2 detectó que **EPICA-30 tiene 0 citas SSOT en sus HU**, violando `00-METODOLOGIA.md §6`. Para evitar reincidencia, **cada archivo nuevo o feature nueva en ronda 12 debe agregar cita SSOT al header** según tipo de HU:
+
+| Tipo de HU | Cita obligatoria |
+|---|---|
+| `opm-semantica` | `[Glos 3.x]` (definición), `[V-xxx]` (visual si aplica), `[Met §x]` (procedimiento) |
+| `opcloud-ui` | `[V-xxx]` o `[JOYAS §x]` cuando aplica visualmente |
+| `opl-es` | `[OPL-ES x.y.z]` |
+| `mixto` | combinar las anteriores según los aspectos tocados |
+
+Aplicación concreta ronda 12:
+
+- **L1** HU-30.008/.019/.020/.021/.036/.037 (`mixto` persistencia): cita obligatoria `[Met §6]` (etapas SD) o estructura específica de `app/src/modelo/tipos.ts` en el header del archivo modificado.
+- **L1** HU-10.004 (`opm-semantica`): cita `[Glos 3.55]` u `[Glos 3.69]` para descripción de cosa.
+- **L2** HU-17.011..017: cita `[Glos 3.4]`, `[V-163]`, `[OPL-ES …]` (ya documentadas en el brief §3).
+- **L3** HU-1B.*: cita `[Met §multi-OPD]`, `[Glos 3.6]` (apariencia).
+- **L4** HU-33.*: cita `[Met §plantillas]`, `[Glos 3.6]`.
+- **L5**: en `progress-dashboard.mjs` no aplica (es tooling, no kernel).
+
+**`opm-extracted/` es complemento opcional** al header. Citar SSOT primero, opm-extracted después si aplica.
 
 ## 6. Visión general de las 5 líneas
 
@@ -234,26 +260,36 @@ Chequeo de contrato por merge:
 - **Behavioral surface**: `JointCellJson` mantiene orden/id/type/selectores/metadata `opm`; UI mantiene `data-testid`, foco y propagación de eventos. Cualquier `data-testid` nuevo se agrega aditivamente.
 - **Detector surface**: cada HU cerrada declara su evidencia; L5 agrega ~22 reglas nuevas en consolidación (L1: ~4, L2: ~5, L3: ~6, L4: ~6, L5 propias: ~1).
 
-## 9. Anclaje obligatorio a SSOT, opm-extracted, assets y JOYAS
+## 9. Anclaje obligatorio: SSOT (autoridad) + nivel 2 + nivel 3 (respaldo)
 
-Antes de codificar cada línea, leer **en este orden**:
+Antes de codificar cada línea, leer **en este orden de jerarquía SSOT**:
 
-1. **`docs/JOYAS.md`** completo: paleta canónica, dimensiones, arquitectura wrapper+line, tipografía. Contrato visual de toda nueva UI.
-2. **`assets/svg/`** inventario: confirmar si existe icono canónico antes de crear uno nuevo (ver §5b).
-3. **`opm-extracted/`** dirigido a la línea: leer paths verificados en §5 + grep amplio (`grep -ri "concepto-clave" opm-extracted/src/app -l`) antes de inventar API. **Cualquier path que no se verifique con `ls`/`grep` no se cita en el brief**.
-4. **SSOT** en `/home/felix/kora/artifacts/knowledge/fxsl/opm/opm-ssot-es/`:
-   - `metodologia-opm-es.md`: workflow OPM. Más relevante para L3 (gestión de contexto entre OPDs), L4 (plantillas como artefactos reutilizables), L1 (residuales).
-   - `opm-iso-19450-es.md`: glosario y axiomas. **Más relevante para L2** (§3.4 atributo, §3.40 exhibición, V-163 slot de valor).
-   - `opm-visual-es.md`: V-1 a V-240. Más relevante para L2 (V-163 slot valor numérico).
-   - `opm-opl-es.md`: D5-D8, T1-T3, TS1-TS3. **Más relevante para L2** (oración `Atributo es valor [Unidad].`, refinamiento exhibición-característica).
-5. **HANDOFF + briefs de rondas 1-11** (`docs/HANDOFF.md §Decisiones Vigentes`). Ronda 12 las preserva sin reabrir.
+**Nivel 1 — SSOT (autoridad obligatoria)** en `/home/felix/kora/artifacts/knowledge/fxsl/opm/opm-ssot-es/`:
+
+- `metodologia-opm-es.md`: workflow OPM, etapas SD, persistencia. Más relevante para L1 (HU EPICA-30 — RF-2), L3 (gestión multi-OPD), L4 (plantillas como artefactos).
+- `opm-iso-19450-es.md`: glosario y axiomas. **Más relevante para L2** (§3.4 atributo, §3.40 exhibición), L1 (§3.55 Object, §3.69 Process), L3/L4 (§3.6 apariencia).
+- `opm-visual-es.md`: V-1 a V-240. Más relevante para L2 (V-163 slot valor numérico).
+- `opm-opl-es.md`: D5-D8, T1-T3, TS1-TS3. **Más relevante para L2** (oración `Atributo es valor [Unidad].`).
+- `06-PROVENANCE.md §2`: política operativa "no inventa funcionalidad ausente; SVGs/dimensiones/colores/tipografía/plantillas OPL se reutilizan".
+- `00-METODOLOGIA.md §6`: jerarquía SSOT y citas obligatorias por tipo de HU.
+
+**Nivel 2 — `app/src/modelo/tipos.ts` (SSOT viva)**: coherencia obligatoria con ISO-19450. Los tipos en TS son contrato.
+
+**Nivel 3 — respaldo técnico referencial (citas opcionales pero recomendadas)**:
+
+- **`docs/JOYAS.md`** completo: paleta canónica, dimensiones, arquitectura wrapper+line, tipografía. Aunque nivel 3 técnicamente, la política PROVENANCE lo eleva a contrato visual obligatorio.
+- **`assets/svg/`** inventario: política PROVENANCE obliga reuso (ver §5b).
+- **`opm-extracted/`** dirigido a la línea: leer paths verificados en §5 + grep amplio (`grep -ri "concepto-clave" opm-extracted/src/app -l`) antes de inventar API. **Cualquier path que no se verifique con `ls`/`grep` no se cita en el brief** (RF-1 evita recurrencia). Citas opcionales pero recomendadas para trazabilidad.
+
+**HANDOFF + briefs rondas 1-11** (`docs/HANDOFF.md §Decisiones Vigentes`): contrato heredado. Ronda 12 las preserva sin reabrir.
 
 **Orden de prioridad cuando hay conflicto**:
 
-- SSOT manda sobre OPCloud (si OPCloud implementa algo no canónico, no se replica).
-- JOYAS manda sobre intuición de diseño (la paleta y dimensiones no se inventan).
-- `opm-extracted/` es **primera fuente** para soluciones, lógica y patrones — antes de inventar nada nuevo, se verifica si existe el equivalente. Pero **nunca se copia 1:1**: se reescribe en Preact + Zustand + JointJS OSS preservando la semántica.
-- `assets/svg/` es **primera fuente** para iconos — se prefiere reuso a creación.
+- **SSOT (nivel 1) manda sobre todo**. Si OPCloud implementa algo no canónico, no se replica.
+- **`tipos.ts` (nivel 2)** es contrato vivo: cualquier cambio debe ser coherente con ISO-19450.
+- **JOYAS + `assets/svg/`**: contrato visual y de iconos; reusar es obligación operativa por política PROVENANCE.
+- **`opm-extracted/` (nivel 3)**: respaldo técnico para evitar reinventar lógica destilada por OPCloud, pero **nunca se copia 1:1** (depende de Angular/Rappid/Firebase). Se reescribe en Preact + Zustand + JointJS OSS preservando la semántica.
+- **Header del archivo nuevo cita primero SSOT (obligatorio), después opm-extracted (opcional, paths verificados)**. Ver §5d.
 
 ## 10. Brief por línea
 

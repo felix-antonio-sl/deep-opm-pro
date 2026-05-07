@@ -2,14 +2,21 @@
 
 ## 1. Misión
 
-Cerrar ronda 12 con la **capa explícita de cascadas + ledger** (patrón ronda 8-11 ineludible):
+Cerrar ronda 12 con la **capa explícita de cascadas + ledger** (patrón ronda 8-11 ineludible) y **documentar la remediación de la auditoría 2026-05-07**:
 
 - **Recalibración del detector ronda 12**: agregar ~22 reglas nuevas en `progress-dashboard.mjs` para HU cerradas por L1+L2+L3+L4 + corregir cualquier preexistente desactualizada por refactor (drift de paths/strings).
 - **Cascadas residuales**: capa final que resuelve choques de integración (typecheck, smokes, paths) que solo emergen al juntar las 4 líneas en `main`.
-- **Draft `docs/HANDOFF.md` post-ronda-12**: borrador con MVP-α ≥98% + apertura MVP-β + decisiones nuevas + cascadas resueltas. **Aplicación final en consolidación, no durante la línea**.
+- **Remediación auditoría `docs/auditorias/2026-05-07-ssot-opm-extracted.md`**:
+  - **RF-1 / R1** (paths errados): YA APLICADO antes de la ronda 12 (commit dedicado): `Logical/AggregationLink.ts` → `DrawnPart/Links/AggregationLink.ts` en `enlaces.ts`, `tipos/enlace.ts`, `tipos/abanico.ts`. L5 verifica que persiste en main + cita en HANDOFF.
+  - **R4** (header `// Refs:` en `validaciones.ts`): YA APLICADO antes de la ronda 12 (mismo commit). L5 verifica.
+  - **RF-2 / R2** (citas SSOT EPICA-30): cerrado parcialmente en L1 sobre HU residuales (HU-30.008/.019/.020/.021/.036/.037). Auditoría dirigida sobre las HU EPICA-30 cubiertas en rondas anteriores se DIFIERE a ronda 13+ (esfuerzo S, 1-2h).
+  - **RF-3 / R3** (mapeo reglas consistency vs HU activas EPICA-1c/EPICA-15): se DIFIERE a ronda 13+ (esfuerzo M, 2-4h auditoría dirigida).
+  - **R5** (linter de provenance SSOT en CI): se DIFIERE a ronda 13+ (esfuerzo M, 3-6h).
+  - **RF-4 / R6** (referencia PNGs modelWizard): latente, se activa cuando HU del wizard entre a flujo. Sin acción ronda 12.
+- **Draft `docs/HANDOFF.md` post-ronda-12**: borrador con MVP-α ≥98% + apertura MVP-β + decisiones nuevas + cascadas resueltas + sección dedicada §Auditoría 2026-05-07 (remediación aplicada y diferida). **Aplicación final en consolidación, no durante la línea**.
 - **Verificación cierre métricas**: `bun run check`, `bun run browser:smoke`, `bun run build`, dashboard `--sync-real`.
 
-Esta línea NO introduce features de producto. Es **chore + verificación + ledger**. Aditividad estricta sobre el detector + edición final del handoff único.
+Esta línea NO introduce features de producto. Es **chore + verificación + ledger + remediación auditoría**. Aditividad estricta sobre el detector + edición final del handoff único.
 
 **Fuera de slice**:
 - No tocar features (territorio L1/L2/L3/L4).
@@ -28,7 +35,8 @@ Esta línea NO introduce features de producto. Es **chore + verificación + ledg
 | **Reglas L5 propias** | ~1 regla: detector ronda 12 baseline counts (informativa). |
 | **Corrección de drift preexistente** | Tras refactors ronda 12 puede haber drift en reglas existentes: ej. `Toolbar.tsx` cambia paths internos, `acciones-canvas.ts` cambia firmas. Corregir cualquier regla que pase a `unmatched`. **Patrón ronda 11**: detector debe terminar en `N/N reglas matched`, cero unmatched. |
 | **Cascadas residuales esperadas** | Hunks disjuntos en `Toolbar.tsx`, `acciones-canvas.ts`, `acciones-ui.ts`, `tipos/ui.ts`, `canvas/operacionesBatch.ts`, `e2e/opm-smoke.spec.ts` pueden chocar al merge final. L5 las concilia con principio "menor blast prima". |
-| **Draft HANDOFF post-ronda-12** | Reescribe `docs/HANDOFF.md` siguiendo el patrón ronda 11: §Estado Integrado, §Cómo Se Decidió La Partición (anclar a cat-thinking + steipete + URNs ICAS), §Decisiones Vigentes (preserva todas previas + agrega ronda 12), §Cascadas Gestionadas, §Verificación, §Estado Por Dominio, §Pendientes Inmediatos, §Épicas Descartadas (preserva), §Cómo Continuar (apuntando a ronda 13 EPICA-32 + ronda 14 EPICA-50 parser). **Solo se aplica en consolidación final, no durante la línea**. |
+| **Verificación remediación auditoría** | Tras merge L1-L4: (a) `grep -n "Logical/AggregationLink" app/src` debe retornar 0 matches (RF-1 cerrado); (b) `head -20 app/src/modelo/validaciones.ts` debe mostrar header `// Refs:` (R4 cerrado); (c) HU EPICA-30 cerradas en L1 deben tener cita SSOT (`[Met §`) en headers (RF-2 parcial). |
+| **Draft HANDOFF post-ronda-12** | Reescribe `docs/HANDOFF.md` siguiendo el patrón ronda 11: §Estado Integrado, §Cómo Se Decidió La Partición (anclar a cat-thinking + steipete + URNs ICAS), §Decisiones Vigentes (preserva todas previas + agrega ronda 12), §Cascadas Gestionadas, §Auditoría 2026-05-07 (RF-1/R4 cerrados, RF-2 parcial, RF-3/R5 diferidos a ronda 13+, RF-4 latente), §Verificación, §Estado Por Dominio, §Pendientes Inmediatos, §Épicas Descartadas (preserva), §Cómo Continuar (apuntando a ronda 13 EPICA-32 + auditoría dirigida RF-3 + cierre RF-2 EPICA-30; ronda 14 EPICA-50 parser; linter SSOT R5 cuándo). **Solo se aplica en consolidación final, no durante la línea**. |
 | **Verificación final** | `cd app && bun run check` (≥680 unit), `bun run browser:smoke` (≥90), `bun run build` (chunk principal <195 KB / <55 KB gzip). `node docs/historias-usuario-v2/tools/progress-dashboard.mjs --sync-real`: detector ≥110 reglas matched, MVP-α ≥98%, MVP-β +20-30 HU. |
 
 ## 3. Anclaje a evidencia
@@ -36,6 +44,9 @@ Esta línea NO introduce features de producto. Es **chore + verificación + ledg
 - **Patrón ronda 11 L5**: `docs/instrucciones-lineas-dev/ronda11/linea-5-transversales-ledger.md` — referencia canónica para esta línea.
 - **`docs/historias-usuario-v2/tools/progress-dashboard.mjs`**: detector vive aquí. 92 reglas baseline post-ronda-11. **L5 ronda 12 agrega ~22 reglas; cero ruptura de reglas previas (corregir si hay drift).**
 - **HANDOFF actual** (`docs/HANDOFF.md`): patrón a respetar; reescribe en consolidación.
+- **Auditoría `docs/auditorias/2026-05-07-ssot-opm-extracted.md`**: marco SSOT-céntrico; RF-1/R4 ya aplicados pre-ronda-12; RF-2 parcial en L1; RF-3/R5 diferidos a ronda 13+.
+- **`docs/historias-usuario-v2/00-METODOLOGIA.md §6`**: jerarquía SSOT y citas obligatorias.
+- **`docs/historias-usuario-v2/06-PROVENANCE.md §2`**: política operativa de reuso (SVGs/dimensiones/colores/tipografía/plantillas OPL).
 - **Reglas duras** (README §2): aditividad estricta, JSON lossless, OPL invariante salvo declaradas, cero rename, cero deps nuevas.
 
 ## 4. Archivos permitidos
@@ -146,3 +157,5 @@ Al cierre de L5 + consolidación, el operador debe poder:
 - Iniciar ronda 13 (EPICA-32 sub-modelos peer-persistence dedicada) sobre base estable.
 
 **Estado proyecto post-ronda-12 esperado**: cierre del primer hito presentable (MVP-α ≥98%) + apertura controlada de MVP-β con 3 épicas grandes seleccionadas por blast aditivo. EPICA-32 (sub-modelos peer) y HU-50 parser bidireccional explícitamente diferidas a rondas 13-14 dedicadas. Cero deuda estructural pendiente.
+
+**Remediación auditoría 2026-05-07**: RF-1 (paths errados) y R4 (header validaciones.ts) cerrados pre-ronda-12; RF-2 (citas SSOT EPICA-30) cerrado parcialmente sobre HU residuales en L1; RF-3 (delta consistency rules) y R5 (linter SSOT en CI) diferidos a ronda 13+. RF-4/R6 (PNGs modelWizard) latente. Marco SSOT-céntrico aplicado retroactivamente al README ronda 12 (§1, §5, §5b, §5c, §5d, §9).
