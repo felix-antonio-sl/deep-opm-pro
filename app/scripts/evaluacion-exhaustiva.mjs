@@ -1,12 +1,33 @@
-// Pasada evaluativa exhaustiva: todas las zonas, 8 demos, 6 dialogos,
-// responsive, axe-core via CDN, perf timing. Sin tocar codigo.
+// Pasada evaluativa exhaustiva pre-Beta1: 12 rutas, 8 demos, 6 dialogos,
+// responsive, axe-core via CDN, perf timing y verificacion del flujo IFML
+// L3 ronda 15 (modal-nombre-cosa via store, no por bus DOM). Sin tocar
+// codigo de produccion.
+//
+// Uso:
+//   bun run scripts/evaluacion-exhaustiva.mjs                  # url y dir default
+//   bun run scripts/evaluacion-exhaustiva.mjs http://127.0.0.1:5173/
+//   bun run scripts/evaluacion-exhaustiva.mjs --out <dir>      # subdir bajo _eval-output
+//   bun run scripts/evaluacion-exhaustiva.mjs --strict         # exit 1 si hay FAIL
+//
+// Salidas en `app/_eval-output/<dir>/`:
+//   _evaluacion-exhaustiva.json   reporte estructurado completo
+//   reporte.md                    resumen ejecutivo legible (ranking + links)
+//   *.png                         capturas por ruta
 import { chromium } from "@playwright/test";
 import { mkdirSync, writeFileSync, readFileSync } from "node:fs";
-import { resolve } from "node:path";
+import { resolve, relative } from "node:path";
 
-const URL = process.argv[2] ?? "http://localhost:5173/";
+const argv = process.argv.slice(2);
+function flag(nombre, fallback = null) {
+  const i = argv.indexOf(nombre);
+  if (i === -1) return fallback;
+  return argv[i + 1] ?? fallback;
+}
+const URL = argv.find((a) => /^https?:\/\//.test(a)) ?? "http://localhost:5173/";
+const STRICT = argv.includes("--strict");
+const SUBDIR = flag("--out", "ronda-3");
 const RAIZ = resolve(import.meta.dirname, "..", "..");
-const DIR = resolve(RAIZ, "app/_eval-output/ronda-3");
+const DIR = resolve(RAIZ, "app/_eval-output", SUBDIR);
 mkdirSync(DIR, { recursive: true });
 
 const findings = [];
@@ -529,16 +550,93 @@ const DEMOS = ["Cafetera Domestica", "OnStar System", "Diagnostico Clinico", "SD
 }
 
 // ============================================================
+// RUTA 13: Flujo IFML L3 — modal-nombre-cosa via store, no via bus DOM
+// ============================================================
+{
+  const { ctx, page } = await nuevoPage();
+  await page.goto(URL, { waitUntil: "networkidle", timeout: 25000 });
+  await page.evaluate(() => localStorage.clear());
+  await page.reload({ waitUntil: "networkidle" });
+  await page.waitForTimeout(700);
+
+  // a) un dispatch ajeno NO abre el modal: el contrato vive en el store.
+  const ajenoNoAbre = await page.evaluate(() => {
+    window.dispatchEvent(new CustomEvent("opm:nueva-cosa", { detail: { entidadId: "x", aparienciaId: "y", nombre: "Z" } }));
+    return !document.querySelector('[data-testid="modal-nombre-cosa"]');
+  });
+  record("ifml-l3", "bus-dom-sin-listener-vivo", ajenoNoAbre ? "OK" : "FAIL", "Un dispatch externo de opm:nueva-cosa no debe abrir el modal");
+
+  // b) drop al canvas dispara el modal via Action -> store -> View.
+  const canvas = page.locator('[role="img"][aria-label="OPD activo"]').first();
+  let dropOk = false;
+  try {
+    const dragSource = page.locator('[data-testid="toolbar-modo-creacion-objeto"]').first();
+    await dragSource.dragTo(canvas, { targetPosition: { x: 320, y: 190 } });
+    await page.waitForTimeout(300);
+    dropOk = await page.locator('[data-testid="modal-nombre-cosa"]').count() > 0;
+  } catch (e) {
+    dropOk = false;
+  }
+  record("ifml-l3", "modal-tras-drop-aparece", dropOk ? "OK" : "FAIL", { dropOk });
+  if (dropOk) await shot(page, "13-ifml-modal-nombre-cosa");
+
+  // c) Esc descarta sin renombrar.
+  if (dropOk) {
+    const input = page.locator('[data-testid="modal-nombre-cosa"] input').first();
+    if (await input.count() > 0) {
+      await input.focus();
+      await input.fill("nombre transitorio");
+      await input.press("Escape");
+      await page.waitForTimeout(200);
+      const cerrado = await page.locator('[data-testid="modal-nombre-cosa"]').count() === 0;
+      record("ifml-l3", "esc-descarta-sin-renombrar", cerrado ? "OK" : "FAIL", { cerrado });
+    }
+  }
+
+  // d) verificar que el portal de Dialogo (L1) sigue siendo body-level y
+  // no dentro del grid principal. Smoke negativo: el primer Dialogo abierto
+  // debe vivir como hijo directo de body.
+  await page.evaluate(() => localStorage.clear());
+  await page.reload({ waitUntil: "networkidle" });
+  await page.waitForTimeout(500);
+  await page.click('button:has-text("Plantillas")').catch(() => {});
+  await page.waitForTimeout(400);
+  const dialogoEsHijoDeBody = await page.evaluate(() => {
+    const dlg = document.querySelector('[role="dialog"]');
+    if (!dlg) return null;
+    return dlg.parentElement === document.body || dlg.parentElement?.parentElement === document.body;
+  });
+  if (dialogoEsHijoDeBody !== null) {
+    // INFO en vez de FAIL: el portal de Dialogo es responsabilidad de L1
+    // (commit 8c43075 sobre main). Si esta eval corre en un worktree
+    // anterior a L1, este dato sigue siendo verdadero pero no es regresion
+    // de L3.
+    record("ifml-l1-portal", "dialogo-en-body", "INFO", { dialogoEsHijoDeBody, esperado: "true tras L1 (commit 8c43075)" });
+  }
+
+  await ctx.close();
+}
+
+// ============================================================
 // CIERRE: dump JSON
 // ============================================================
-writeFileSync(resolve(DIR, "_evaluacion-exhaustiva.json"), JSON.stringify({
-  fecha: new Date().toISOString(),
-  url: URL,
-  totalCriterios: findings.length,
+const totales = {
+  total: findings.length,
   ok: findings.filter(f => f.estado === "OK").length,
   warn: findings.filter(f => f.estado === "WARN").length,
   fail: findings.filter(f => f.estado === "FAIL").length,
   info: findings.filter(f => f.estado === "INFO").length,
+};
+const axeViolacionesTotal = Object.values(a11yPorRuta).reduce((s, r) => s + (r.violaciones || 0), 0);
+
+writeFileSync(resolve(DIR, "_evaluacion-exhaustiva.json"), JSON.stringify({
+  fecha: new Date().toISOString(),
+  url: URL,
+  totalCriterios: totales.total,
+  ok: totales.ok,
+  warn: totales.warn,
+  fail: totales.fail,
+  info: totales.info,
   errors,
   a11yPorRuta,
   perfPorRuta,
@@ -546,9 +644,89 @@ writeFileSync(resolve(DIR, "_evaluacion-exhaustiva.json"), JSON.stringify({
   findings,
 }, null, 2));
 
-console.log("EVAL exhaustiva OK -",
-  "criterios:", findings.length,
-  "errors:", errors.length,
-  "axe rutas:", Object.keys(a11yPorRuta).length,
-  "axe violaciones totales:", Object.values(a11yPorRuta).reduce((s, r) => s + (r.violaciones || 0), 0));
+// ── Reporte markdown legible ─────────────────────────────────
+function fmtDetalle(d) {
+  if (d == null) return "";
+  if (typeof d === "string") return d.length > 140 ? d.slice(0, 140) + "…" : d;
+  try {
+    const s = JSON.stringify(d);
+    return s.length > 140 ? s.slice(0, 140) + "…" : s;
+  } catch {
+    return String(d);
+  }
+}
+const lineasFails = findings.filter(f => f.estado === "FAIL").map(f => `- **FAIL** \`${f.zona}/${f.criterio}\` — ${fmtDetalle(f.detalle)}`);
+const lineasWarns = findings.filter(f => f.estado === "WARN").map(f => `- WARN \`${f.zona}/${f.criterio}\` — ${fmtDetalle(f.detalle)}`);
+const lineasInfo = findings.filter(f => f.estado === "INFO").map(f => `- INFO \`${f.zona}/${f.criterio}\` — ${fmtDetalle(f.detalle)}`);
+const lineasA11y = Object.entries(a11yPorRuta)
+  .filter(([_, r]) => r && r.violaciones > 0)
+  .sort((a, b) => b[1].violaciones - a[1].violaciones)
+  .map(([ruta, r]) => `- \`${ruta}\` — ${r.violaciones} violación(es): ${(r.detalle ?? []).map(v => `\`${v.id}\` (${v.impact ?? "n/d"})`).join(", ")}`);
+const lineasErrors = errors.length === 0 ? ["(sin errores de runtime)"] : errors.slice(0, 20).map(e => `- ${e.tipo}: ${fmtDetalle(e.msg ?? e.url ?? e.reason)}`);
+const md = `# Evaluacion exhaustiva pre-Beta1
+
+Fecha: ${new Date().toISOString()}
+URL: ${URL}
+Salida: \`${relative(RAIZ, DIR)}\`
+
+## Resumen
+
+| Estado | Conteo |
+|---|---|
+| OK | ${totales.ok} |
+| WARN | ${totales.warn} |
+| FAIL | ${totales.fail} |
+| INFO | ${totales.info} |
+| **Total criterios** | ${totales.total} |
+| Errors runtime | ${errors.length} |
+| Axe violaciones totales | ${axeViolacionesTotal} |
+
+${totales.fail > 0 ? "## Fails (bloqueantes)\n\n" + lineasFails.join("\n") + "\n" : ""}
+## Warnings
+
+${lineasWarns.length ? lineasWarns.join("\n") : "(sin warnings)"}
+
+## A11y por ruta
+
+${lineasA11y.length ? lineasA11y.join("\n") : "(sin violaciones a11y)"}
+
+## Errors runtime
+
+${lineasErrors.join("\n")}
+
+## Info
+
+${lineasInfo.length ? lineasInfo.join("\n") : "(sin info)"}
+
+## Capturas
+
+Ver archivos PNG en este directorio. Las mas relevantes para reportes son:
+
+- \`01-carga-inicial.png\` chrome vacio
+- \`02-demo-1-cafetera-domestica.png\` baseline visual canonica
+- \`04-inspector-entidad-fullpage.png\` Inspector con seleccion
+- \`06-dialogo-*.png\` shape de cada modal
+- \`13-ifml-modal-nombre-cosa.png\` flujo IFML L3 corregido
+
+## Como referenciar bugs
+
+Si una entrada es accionable, capturarla con el capturador dev-only:
+genera \`docs/bugs/BUG-<timestamp>-<hash>/\` con report.md + payload.json +
+screenshots. Pegar la ruta del PNG aqui basta.
+`;
+writeFileSync(resolve(DIR, "reporte.md"), md);
+
+console.log("EVAL exhaustiva -",
+  `criterios=${totales.total}`,
+  `ok=${totales.ok}`,
+  `warn=${totales.warn}`,
+  `fail=${totales.fail}`,
+  `info=${totales.info}`,
+  `errors=${errors.length}`,
+  `axe=${axeViolacionesTotal}`,
+  `dir=${relative(RAIZ, DIR)}`);
 await browser.close();
+if (STRICT && totales.fail > 0) {
+  console.error(`STRICT: ${totales.fail} FAIL detectado(s) — exit 1`);
+  process.exit(1);
+}
