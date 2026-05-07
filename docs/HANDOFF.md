@@ -268,3 +268,35 @@ salvo nueva instrucción explícita del operador.
 5. Antes de diseñar, consultar `opm-extracted/`, `assets/svg/`, `docs/JOYAS.md` y la SSOT OPM.
 6. Cerrar cada cambio con `bun run check`; si toca UI/render: `bun run browser:smoke`; si toca proyección o bundle: `bun run build`.
 7. Regenerar auditoría con `node docs/historias-usuario-v2/tools/progress-dashboard.mjs --sync-real` antes de publicar un cierre de ronda. **Mantener ≥100/N reglas matched y MVP-α ≥90%; objetivo MVP-α ≥95% post-cierre fino.**
+
+## Exploración de fuentes externas de modelos OPM (2026-05-07)
+
+Se auditó la disponibilidad de modelos OPM descargables desde las dos URLs
+públicas de OPCloud (`opcloud.systems`, `opcloud.tech`) y ecosistemas
+adyacentes:
+
+**Formatos descubiertos en OPCloud (via `opm-extracted/` decompilado):**
+
+| Formato | Extensión | Origen | Acceso |
+|---|---|---|---|
+| OPCloud nativo | `.opcl` | `GET /storage/downloadModel?modelId=X` | Auth-gated (Firebase `opcloud-trial`) |
+| OPCAT 4.2 | `.opx` (XML) | Desktop Java, Technion | Libre, GPL |
+| RDF/Turtle | `.ttl` | Export OPCloud | Requiere modelo cargado |
+| SysML XMI | `.xmi` | Export OPCloud | Requiere modelo cargado |
+| OPL HTML | `.html` | Export OPCloud | Requiere modelo cargado |
+
+**Lo que NO existe:**
+- `.oplx` no es un formato real en el ecosistema OPM. OPL es generación textual.
+- No hay repositorio público de modelos `.opcl`/`.opx` accesible sin autenticación.
+- El sandbox (`opcloud-sandbox.web.app`) requiere Firebase auth.
+
+**Conclusión**: los 6 modelos en `fixtures/` (extraídos del sandbox antes del
+auth-gate) + los 4 modelos demo nuevos en `fixtures/demo-models/` (generados
+desde kernel canónico) constituyen el catálogo completo de modelos OPM
+disponibles para el proyecto. La ruta OPCAT 4.2 (.opx) queda como opción de
+expansión futura (parser completo en `opm-extracted/src/app/ImportOPX/`) pero
+EPICA-70 está descartada del scope.
+
+**API REST de OPCloud** (`opcloud-trial.uc.r.appspot.com`): 30+ endpoints
+`/storage/*` documentados en `opm-extracted/src/app/database/ServerDatabaseDrive.ts`.
+Todos auth-gated. Sin cuenta/token Firebase no son accesibles.
