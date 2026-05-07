@@ -1,8 +1,8 @@
-# Ronda 13 — UX foundation (refactor estructural TIER 2 + enmienda IFML)
+# Ronda 13 — UX foundation (refactor estructural TIER 2 + enmienda IFML + guardrail OPL)
 
 **Fecha**: 2026-05-07
 **Base**: `main` post-ronda-13.0 + micro-fix e2e `80d947f` (cleanup TIER 1 ya ejecutado: stashes vacíos si autorizado, 9 literales `#3BC3FF`/`#586D8C` en Toolbar.tsx ya migrados a tokens, headers SSOT corregidos, opm-smoke.spec.ts particionado en 8 archivos por dominio, detector strict clean, smoke browser 93/93 verde).
-**Origen**: auditoría `docs/auditorias/2026-05-07-refactor-radical-steipete.md` §3 (TIER 2 — refactor estructural con tradeoffs reales) + §6.1 (lo que se absorbe en ronda 13) **con enmienda estructural IFML** desde `docs/auditorias/2026-05-07-auditoria-ifml.md`. El operador aceptó la recomendación primaria steipete; la auditoría IFML actúa como lente de interacción, no como apertura ilimitada de scope. Las opciones por ítem ya están elegidas:
+**Origen**: auditoría `docs/auditorias/2026-05-07-refactor-radical-steipete.md` §3 (TIER 2 — refactor estructural con tradeoffs reales) + §6.1 (lo que se absorbe en ronda 13) **con enmienda estructural IFML** desde `docs/auditorias/2026-05-07-auditoria-ifml.md` + **guardrail alpha-lock OPL** desde `docs/auditorias/2026-05-07-opl-reverse-ssot-opm-extracted.md`. El operador aceptó la recomendación primaria steipete; la auditoría IFML actúa como lente de interacción, no como apertura ilimitada de scope. La auditoría OPL reverse no agrega trabajo a ronda 13; solo endurece el diferimiento a ronda 14. Las opciones por ítem ya están elegidas:
 
 - **T2.1 split Toolbar**: opción B (descomponer por modo del editor, no por bandas visuales) — opción A descartada porque BarraContextual seguiría siendo monolito ~600 LOC; opción C descartada por exceso de complejidad.
 - **T2.2 + T2.4 tokens central**: introducir spacing/radii/shadows/typography + ESLint rule + migración archivo-por-archivo (~108 ocurrencias UI estimadas, 827 totales si se incluyen composers canvas — alcance solo UI chrome).
@@ -20,6 +20,7 @@
 - T2.7 unificación generador OPL viejo/nuevo (steipete §T2.7: mantener separados, evento gatillante = parser OPL ronda 14).
 - TIER 3 completo (Zustand→signals, JointJS→canvas custom, CQRS, DI runtime, branded `Id`, Web Components, signals-subset).
 - HU-SHARED-007 OPL inverso editable + HU-50.019/.020/.022 + EPICA-32 sub-modelos peer.
+- **OPL reverse libre completo**: parser OPL-ES basado en SSOT Apendice A + binder semantico + preview/diff + aplicador undoable. La auditoria `2026-05-07-opl-reverse-ssot-opm-extracted.md` fija el contrato y confirma que `opm-extracted` aporta render/export/highlight/doble-click, no un parser inverso reusable.
 - **IFML H-1/H-3/H-4/O-4/O-7**: modal-stack real, reemplazo de `window.dispatchEvent("opm:nueva-cosa")`, reemplazo de `deep-opm-pro:exportar-mapa`, TablaEnlaces como tercera vista XOR, breadcrumbs CN-BREAD. Se abordan en ronda 13.1 IFML flow cleanup o ronda posterior dedicada; NO se mezclan en las 4 líneas actuales.
 
 **Objetivo cuantitativo**: 4 líneas paralelas en ~3-5 días. Coproducto disjunto por dominio funcional con orden de merge controlado (L2→L1→L4→L3) que minimiza el blast cross-line.
@@ -32,6 +33,7 @@
 - **Aditividad estricta** preservada (`urn:fxsl:kb:icas-extension`): cada cambio agrega tipos opcionales (`?:`), funciones nuevas exportadas, ningún rename de exports kernel. Excepción autorizada: L1 refactoriza `Toolbar.tsx` (1098 LOC → ~80 LOC orquestador), pero los imports de Toolbar permanecen estables (los 5 nuevos archivos `app/src/ui/toolbar/*.tsx` se montan internamente).
 - **Diferimiento por blast** (`urn:fxsl:kb:icas-calidad-riesgo`): TIER 3 y T2.7 expresamente excluidos.
 - **Faithful sobre rondas 1-12.1** (`urn:fxsl:kb:icas-preservacion`): contratos públicos preservados, JSON lossless invariante, OPL invariante. Cero cambios kernel.
+- **Guardrail OPL reverse**: ronda 13 prepara arquitectura, pero NO implementa parser inverso, NO unifica generadores OPL, NO cambia `app/src/opl/**`, NO toca `app/src/modelo/opl/generador-opl.ts` y NO declara alpha cerrado. Ronda 14 tiene contrato propio: parser SSOT + binder + preview/diff + aplicador undoable.
 - **Loop verde obligatorio**: cada línea cierra con `cd app && bun run check`; si toca UI/render: `bun run browser:smoke`; si toca proyección o bundle: `bun run build`. Línea base post-ronda-13.0 + micro-fix: 675 unit / 2702 expect / 0 fail, 93 smokes redistribuidos en 8 archivos, chunk principal ≈ 219.20 kB / 59.08 kB gzip.
 - **Ship-beats-perfect**: si una línea expone bug fuera de scope, se entrega como patch a `/tmp/` y NO se commitea (regla feedback consolidada).
 - **Honestidad sobre cobertura**: ronda 13 es refactor estructural; las HU del backlog NO crecen mucho (L3 puede abrir métrica nueva "modelo metodológicamente válido" si se quiere registrar). MVP-α se preserva en 98.8% (HU-SHARED-007 sigue diferida ronda 14).
@@ -46,15 +48,16 @@
 6. **APIs públicas estables**: ningún rename de exports kernel. **L1 refactoriza Toolbar.tsx internamente** pero `App.tsx` sigue importando `Toolbar` desde `./Toolbar`. **L4 introduce `BarraHerramientasElemento` como export nuevo**, no rename.
 7. **JSON lossless**: cero cambios serializadores. Roundtrip permanece intacto.
 8. **OPL invariante**: cero oraciones nuevas. Generadores OPL no se tocan (L3 podría agregar avisos sobre nombres de procesos pero NO modifica generador OPL).
-9. **Idiomas**: docs y mensajes UI en es-CL; identificadores en estilo del repo (camelCase TS, kebab-case data-testid).
-10. **Tests por capa**: cada feature trae tests al lado. Tests viejos se preservan sin reescribir.
-11. **No introducir backend, Firebase, auth, Rappid, jspdf, pdf-lib, papaparse ni dependencias nuevas** salvo ESLint plugin necesario para L2 rule custom (validar con operador antes).
-12. **Commits de línea**: `feat(...)` para features chicas, `refactor(...)` para extracción/split, `chore(...)` para tokens/lazy/lint, `test(...)` para evidencia. Co-author footer si aplica.
-13. **No reabrir contratos rondas 1-12.1**: `docs/HANDOFF.md §Decisiones Vigentes` es contrato. Mantener vigentes en particular: read-only flag de runtime no de modelo, validación nominal `validarNombreEntidad`, modo barra creación sticky, atajos centralizados, paleta canónica canvas (`#70E483`/`#3BC3FF`/`#586D8C`), aditividad estricta, catálogo de demos kernel-construible, agente IA reclasificado como instrumento.
-14. **EPICA-70 (OPCAT) y EPICA-91 (tutorial) descartadas del proyecto** desde 2026-05-05.
-15. **Diferimiento explícito ronda 14** (lista cerrada): T2.7 unificación OPL, TIER 3 completo, HU-SHARED-007 inverso editable, HU-50.019/.020/.022 parser OPL bidireccional, EPICA-32 sub-modelos peer-persistence.
-16. **Cada línea registra sus reglas detector ronda 13**: agrega reglas nuevas en `docs/historias-usuario-v2/tools/progress-dashboard.mjs` solo en consolidación final del operador, pero declara internamente qué evidencia respalda su entrega (especialmente L3 que abre dominio nuevo de avisos metodológicos).
-17. **Reglas IFML absorbidas**: si una línea toca interacción, debe declarar el `ViewContainer`, `Event`, `Action` y `Flow` que preserva o explicita. No introducir lambdas inline opacas para acciones con efecto; no duplicar atajos; no introducir `window.dispatchEvent` nuevo.
+9. **Parser OPL diferido**: no crear `app/src/opl/parser/**`, no agregar `parseOpl`, no ampliar `app/src/opl/edicionCanvas.ts`, no modificar `PanelOpl` para edicion textual libre y no usar regex OPL nuevas en ronda 13. Si una línea necesita eso, entrega hallazgo como patch/nota a `/tmp` y se agenda para ronda 14.
+10. **Idiomas**: docs y mensajes UI en es-CL; identificadores en estilo del repo (camelCase TS, kebab-case data-testid).
+11. **Tests por capa**: cada feature trae tests al lado. Tests viejos se preservan sin reescribir.
+12. **No introducir backend, Firebase, auth, Rappid, jspdf, pdf-lib, papaparse ni dependencias nuevas** salvo ESLint plugin necesario para L2 rule custom (validar con operador antes).
+13. **Commits de línea**: `feat(...)` para features chicas, `refactor(...)` para extracción/split, `chore(...)` para tokens/lazy/lint, `test(...)` para evidencia. Co-author footer si aplica.
+14. **No reabrir contratos rondas 1-12.1**: `docs/HANDOFF.md §Decisiones Vigentes` es contrato. Mantener vigentes en particular: read-only flag de runtime no de modelo, validación nominal `validarNombreEntidad`, modo barra creación sticky, atajos centralizados, paleta canónica canvas (`#70E483`/`#3BC3FF`/`#586D8C`), aditividad estricta, catálogo de demos kernel-construible, agente IA reclasificado como instrumento.
+15. **EPICA-70 (OPCAT) y EPICA-91 (tutorial) descartadas del proyecto** desde 2026-05-05.
+16. **Diferimiento explícito ronda 14** (lista cerrada): T2.7 unificación OPL, TIER 3 completo, HU-SHARED-007 inverso editable, HU-50.019/.020/.022 parser OPL bidireccional, EPICA-32 sub-modelos peer-persistence.
+17. **Cada línea registra sus reglas detector ronda 13**: agrega reglas nuevas en `docs/historias-usuario-v2/tools/progress-dashboard.mjs` solo en consolidación final del operador, pero declara internamente qué evidencia respalda su entrega (especialmente L3 que abre dominio nuevo de avisos metodológicos).
+18. **Reglas IFML absorbidas**: si una línea toca interacción, debe declarar el `ViewContainer`, `Event`, `Action` y `Flow` que preserva o explicita. No introducir lambdas inline opacas para acciones con efecto; no duplicar atajos; no introducir `window.dispatchEvent` nuevo.
 
 ## 3. Stack y comandos del repo
 
@@ -117,8 +120,28 @@ NO entran en ronda 13:
 - **TIER 3 completo** (Zustand→signals, JointJS→canvas custom, CQRS, DI runtime, branded `Id`, Web Components, signals-subset). Espera evento gatillante específico.
 - **HU-SHARED-007 OPL inverso editable** (forward cubierto, inverso requiere parser).
 - **HU-50.019/.020/.022 parser OPL bidireccional**.
+- **Contrato exacto OPL reverse libre completo**: definido por `docs/auditorias/2026-05-07-opl-reverse-ssot-opm-extracted.md`; parser de Apendice A OPL-ES + binder + preview/diff + patch undoable. No empezar en ronda 13.
 - **EPICA-32 sub-modelos peer-persistence**.
 - **IFML flow cleanup sistémico**: modal-stack LIFO, CustomEvents tipados/reemplazados, breadcrumbs CN-BREAD, TablaEnlaces como vista XOR. Ronda 13.1 candidata, no ronda 13 grande.
+
+### 4c. Alpha-lock OPL reverse — contrato fijado para ronda 14
+
+La auditoria `docs/auditorias/2026-05-07-opl-reverse-ssot-opm-extracted.md`
+resuelve la pregunta abierta de `docs/roadmap/cortes-operativos.md`: "OPL
+reverse libre completo" significa parser OPL-ES propio basado en el Apendice A
+de `opm-opl-es.md`, con AST tipado, binder semantico, diagnosticos, preview/diff
+y aplicador undoable.
+
+Lectura clave para ronda 13:
+
+- `opm-extracted` aporta render/export/highlight/doble-click y orden de OPDs.
+- `opm-extracted` NO aporta parser inverso libre reusable.
+- La edicion por doble click OPCloud abre editores de entidad/enlace existentes;
+  no interpreta un parrafo humano arbitrario.
+- Las 4 líneas de ronda 13 deben preservar OPL invariante y no adelantar parser.
+
+Ronda 14 convierte esta auditoria en briefs propios por capas: lexer/parser,
+binder, patch planner, applicator, UI preview y evals de round-trip.
 
 ## 5. Patrones técnicos referenciales en `opm-extracted/` (nivel 3, respaldo)
 
@@ -294,6 +317,7 @@ Antes de codificar cada línea, leer **en este orden**:
 - **`opm-extracted/`** dirigido a la línea: paths verificados en §5.
 - **`docs/auditorias/2026-05-07-refactor-radical-steipete.md`**: contrato técnico de ronda 13.
 - **`docs/auditorias/2026-05-07-auditoria-ifml.md`**: contrato secundario de interacción. Absorber solo §8 H-2/H-5/H-10/H-12 en L1, §10 DataFlow/PanelAvisos en L3 y §6 CN-SOT/CN-MOT en L4; diferir H-1/H-3/H-4/O-4/O-7.
+- **`docs/auditorias/2026-05-07-opl-reverse-ssot-opm-extracted.md`**: contrato alpha-lock OPL para ronda 14. En ronda 13 funciona como guardrail: no parser, no unificacion de generadores, no edicion textual libre.
 - **HANDOFF + briefs rondas 1-12.1** (`docs/HANDOFF.md §Decisiones Vigentes`): contrato heredado.
 
 **Orden de prioridad cuando hay conflicto**: SSOT (nivel 1) manda → `tipos.ts` (nivel 2) → JOYAS + assets/svg → opm-extracted (nivel 3).

@@ -66,20 +66,38 @@ reverse siga parcial.
 
 ### OPL reverse esperado
 
-El operador eligio **libre completo**. Interpretacion operativa:
+El operador eligio **libre completo**. La gramatica exacta queda fijada por la
+auditoria dirigida `docs/auditorias/2026-05-07-opl-reverse-ssot-opm-extracted.md`.
 
-- Acepta OPL escrito por humano, no solo OPL generado por la app.
-- Reconoce entidades, procesos, estados y enlaces canonicos.
-- Puede crear y actualizar elementos del modelo desde OPL.
-- Emite diagnosticos claros cuando una frase no puede mapearse al kernel.
+Interpretacion operativa:
+
+- Acepta parrafos OPL-ES canonicos escritos por humano, no solo OPL generado
+  por la app.
+- Reconoce la gramatica formal del Apendice A de `opm-opl-es.md`: descripcion
+  de cosas, procedimental, estructural y gestion de contexto.
+- Produce AST tipado, binder semantico contra el modelo, diagnosticos y
+  `PatchOplPropuesto[]`; no muta el modelo durante parse/bind.
+- Reconoce entidades, procesos, estados, enlaces canonicos, OPDs visibles
+  (`SD`, `SD1`, etc.) y los resuelve contra identidad persistente interna.
+- Puede crear y actualizar elementos del modelo desde OPL cuando la sentencia
+  es semantica y operacionalmente valida.
+- Emite diagnosticos claros cuando una frase no puede mapearse al kernel,
+  cuando el nombre es ambiguo o cuando una produccion OPL valida pertenece a
+  una capacidad aun no soportada por el kernel.
 - Ofrece preview/diff antes de aplicar cambios destructivos.
-- Preserva round-trip razonable: canvas -> OPL -> parser -> modelo sin perdida
-  para el subconjunto soportado.
+- Aplica cambios como operacion undoable y atomica.
+- Preserva round-trip semantico: canvas -> OPL -> parser -> modelo -> OPL sin
+  perdida de hechos OPM para el subconjunto soportado por el kernel actual.
 
 ### Anti-alcance
 
 - No exige entender lenguaje natural arbitrario fuera de gramatica OPL.
 - No exige resolver ambiguedades sin pedir confirmacion.
+- No borra hechos por mera ausencia de una linea en el texto editado; los
+  deletes implicitos requieren modo estricto separado y confirmacion.
+- No usa etiquetas visibles `SD*` como identidad persistente.
+- No clona el panel OPL de OPCloud: `opm-extracted` aporta render/export/UX de
+  highlight y doble click, pero no parser inverso libre reutilizable.
 - No exige simulacion.
 
 ## 5. Beta0 foundation
@@ -271,11 +289,11 @@ rondas.
 
 ## 13. Preguntas abiertas que no bloquean este documento
 
-1. Definir la gramatica exacta de "OPL reverse libre completo" antes de iniciar
-   ronda 14.
-2. Elegir el primer dominio ancla entre `hd-dt`, `hdos` y `hdos-app`.
-3. Decidir si GOREOS tiene corpus local verificable o queda como familia futura.
-4. Definir si el catalogo simple vive en `DialogoCargarModelo`, pantalla inicio
+1. Elegir el primer dominio ancla entre `hd-dt`, `hdos` y `hdos-app`.
+2. Decidir si GOREOS tiene corpus local verificable o queda como familia futura.
+3. Definir si el catalogo simple vive en `DialogoCargarModelo`, pantalla inicio
    o una vista propia.
-5. Definir si el bug capture dev-only usa endpoint Vite, script local o ambos.
+4. Definir si el bug capture dev-only usa endpoint Vite, script local o ambos.
 
+Resuelto el 2026-05-07: la gramatica exacta de `OPL reverse libre completo`
+queda fijada por `docs/auditorias/2026-05-07-opl-reverse-ssot-opm-extracted.md`.

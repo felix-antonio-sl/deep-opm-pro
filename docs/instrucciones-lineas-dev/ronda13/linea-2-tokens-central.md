@@ -6,6 +6,8 @@ Expandir `app/src/ui/tokens.ts` (mínimo introducido en ronda 12.1 + 2 tokens su
 
 Combina T2.2 + T2.4 según auditoría steipete §3. La auditoría IFML `docs/auditorias/2026-05-07-auditoria-ifml.md` **no cambia el scope de L2**: IFML modela interacción, no look & feel. L2 no debe absorber H-1..H-14 salvo asegurar que la migración de tokens no cambie estados, eventos ni flujos.
 
+La auditoría OPL reverse `docs/auditorias/2026-05-07-opl-reverse-ssot-opm-extracted.md` tampoco cambia el scope de L2: tokens no tocan OPL, parser, generadores ni `PanelOpl`. L2 solo debe preservar el guardrail.
+
 Slice mínimo entregable: 1 commit `feat(tokens): extension central` + N commits `refactor(<archivo>): migra literales a tokens` + 1 commit `chore(lint): rule no-restricted-syntax color literales`. Total ~30-40 commits según volumen real (cada archivo modificado es un commit visible para reversibilidad simple).
 
 **Fuera de slice**:
@@ -41,6 +43,7 @@ L2 NO cierra HU directas. Es **refactor estructural** preparatorio para dark mod
 - **`docs/JOYAS.md`** completo: paleta canónica + dimensiones + tipografía. **Cita obligatoria L2** en header `tokens.ts`.
 - **`docs/auditorias/2026-05-07-refactor-radical-steipete.md` §T2.2 + §T2.4**: contrato L2.
 - **`docs/auditorias/2026-05-07-auditoria-ifml.md`**: lectura opcional solo para confirmar no-impacto. No introducir cambios de interacción desde L2.
+- **`docs/auditorias/2026-05-07-opl-reverse-ssot-opm-extracted.md`**: lectura opcional solo para confirmar no-impacto. No introducir cambios OPL desde L2.
 - **`opm-extracted/src/styles/`** (verificar con `ls`; si existe, referencia para spacing/radii scales; si no, derivar de patterns observables).
 - **Estado actual del código (verificado)**:
   - `app/src/ui/tokens.ts` ronda 12.1 + ronda 13.0: `colors.acentoUi`, `colors.acentoSecundario`, `colors.chromeNeutral`, `colors.canvas` + `colors.acentoUiSuave` + `colors.chromeNeutralSuave` (T1.2).
@@ -99,6 +102,7 @@ Cualquier otro archivo es **fuera de scope**.
 - **No tocar `app/src/modelo/checkers.ts`** (L3).
 - **No tocar paleta canvas en composers** (`app/src/render/jointjs/composers/*.ts` mantiene literales `#70E483`/`#3BC3FF`/`#586D8C` por contrato JOYAS).
 - **No tocar literales en archivos de tests** (`*.test.ts`, `app/e2e/**`) salvo `tokens.test.ts`.
+- **No tocar OPL**: `app/src/opl/**`, `app/src/modelo/opl/**`, `PanelOpl.tsx`, `panelOpl/**` quedan fuera salvo que el archivo ya esté listado para migración de chrome UI (`panelOpl/Bloques.tsx`, `panelOpl/Toolbar.tsx`) y el cambio sea puramente visual/token, sin oraciones ni parser.
 - **No tocar `customShapes.ts`, `in-vivo-test.mjs`** (sueltos del operador).
 - **No introducir dependencias nuevas** salvo ESLint y plugins necesarios para la rule custom (validar con operador antes; `eslint`, `@typescript-eslint/parser`, `@typescript-eslint/eslint-plugin` son estándar).
 

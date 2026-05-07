@@ -6,6 +6,8 @@ Crear `app/src/modelo/checkers.ts` (~250 LOC) con **6 checkers metodológicos de
 
 **Enmienda IFML absorbida**: `PanelMetodologia` se modela como View derivada por DataFlow (`modelo` → `verificarMetodologia(modelo)` → `AvisoMetodologico[]`), no como side-effect de Actions. Ver `docs/auditorias/2026-05-07-auditoria-ifml.md` §10 punto 4 (validación como SystemEvent OPM) y §4 `PanelAvisos`.
 
+**Guardrail OPL reverse**: aunque L3 produce avisos metodológicos relacionados con nombres/procesos, no modifica OPL. No crea parser, no cambia generadores, no reescribe `PanelOpl` y no abre HU-SHARED-007. Ver `docs/auditorias/2026-05-07-opl-reverse-ssot-opm-extracted.md`.
+
 6 checkers a destilar (paths reales verificados con `ls`):
 
 | Checker OPCloud | Path | Reglas semánticas |
@@ -68,6 +70,7 @@ L3 abre **métrica nueva opcional** "modelo metodológicamente válido" que el o
 - **`opm-extracted/src/app/dialogs/methodological-checking-dialog/checkers/`**: 6 archivos TS legibles (no decompilados Angular IVY). Listados en §1.
 - **`docs/auditorias/2026-05-07-refactor-radical-steipete.md` §T2.3**: contrato L3.
 - **`docs/auditorias/2026-05-07-auditoria-ifml.md` §4 y §10.4**: contrato de interacción L3; PanelMetodologia es ViewComponent derivado, no Action ni serialización.
+- **`docs/auditorias/2026-05-07-opl-reverse-ssot-opm-extracted.md`**: guardrail L3; checkers metodológicos no son parser OPL ni edicion textual libre.
 - **Estado actual del código (verificado)**:
   - `app/src/modelo/tipos.ts`: re-exports de `tipos/{modelo,entidad,enlace,opd,apariencia,abanico,estado,opl,pestana,ui,plantilla,comunes}.ts`.
   - `app/src/modelo/tipos/`: 12 archivos de tipos. **NO existe `tipos/avisos.ts`** (L3 lo crea NUEVO).
@@ -104,7 +107,7 @@ Cualquier otro archivo es **fuera de scope**.
 - **No tocar `tokens.ts`** salvo lectura (L2).
 - **No tocar `BarraHerramientasElemento.tsx`** (L4).
 - **No tocar `InspectorEntidad.tsx`** ni `Inspector*` (L4 puede leer).
-- **No tocar generadores OPL** (`app/src/opl/generadores/*.ts`, `app/src/modelo/opl/generador-opl.ts`).
+- **No tocar generadores OPL** (`app/src/opl/generadores/*.ts`, `app/src/modelo/opl/generador-opl.ts`), `app/src/opl/parser/**`, `app/src/opl/edicionCanvas.ts`, `PanelOpl.tsx` ni `panelOpl/**`.
 - **No tocar serializadores**: `AvisoMetodologico` se calcula en runtime, NO se serializa.
 - **No tocar render JointJS**: cero overlays canvas para avisos en ronda 13.
 - **No tocar `progress-dashboard.mjs`**: consolidación operador.

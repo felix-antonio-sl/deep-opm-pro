@@ -6,6 +6,8 @@ Crear `app/src/ui/BarraHerramientasElemento.tsx` (NUEVO ~400 LOC) — barra flot
 
 **Enmienda IFML absorbida**: la barra se implementa explícitamente como `CN-SOT/CN-MOT` (Single/Multiple Object Toolbar; ronda 13 solo Single Object). Cada botón debe mapear `Event → Action existente/handler nombrado`; no introducir lambdas inline opacas ni nuevas acciones de store fuera de scope. Ver `docs/auditorias/2026-05-07-auditoria-ifml.md` §6 y §8 H-2.
 
+**Guardrail OPL reverse**: L4 es una barra de acciones contextuales sobre canvas/Inspector. No toca `PanelOpl`, generadores OPL, parser, edicion textual libre ni HU-SHARED-007. Ver `docs/auditorias/2026-05-07-opl-reverse-ssot-opm-extracted.md`.
+
 12 acciones primarias OPCloud (steipete §T2.5):
 
 | # | Acción OPCloud | SVG canónico | Acción equivalente repo | Piloto en ronda 13 |
@@ -63,6 +65,7 @@ L4 puede registrar nueva métrica complementaria "tiempo a acción primaria" (UX
 - **`docs/JOYAS.md §2`**: dimensiones canónicas íconos. **Cita obligatoria header BarraHerramientasElemento**: `[JOYAS §2]`.
 - **`docs/auditorias/2026-05-07-refactor-radical-steipete.md` §T2.5**: contrato L4 (lista 12 acciones, recomendación de pilotar 6).
 - **`docs/auditorias/2026-05-07-auditoria-ifml.md` §6 CN-SOT/CN-MOT + §8 H-2**: contrato de interacción L4; barra contextual como ViewContainer/ViewComponent de acción sobre objeto seleccionado.
+- **`docs/auditorias/2026-05-07-opl-reverse-ssot-opm-extracted.md`**: guardrail L4; la barra no adelanta OPL reverse.
 - **`opm-extracted/src/app/modules/layout/element-tool-bar/element-tool-bar.component.ts`** (8979 LOC, post-Angular IVY, **NO portar 1:1**): solo extraer la lista de 12 acciones. Implementación nueva en Preact + JointJS OSS.
 - **Estado actual del código (verificado)**:
   - `app/src/render/jointjs/handlers/seleccion.ts`: handler de selección (lectura para anchor coordinates).
@@ -108,6 +111,7 @@ Cualquier otro archivo es **fuera de scope**.
 - **No introducir keyboard shortcut nuevo** para abrir/cerrar barra (selección hace toggle natural).
 - **No reemplazar Inspector**: el botón "···" lo expande/colapsa, pero el Inspector lateral sigue siendo el lugar canónico para todas las propiedades.
 - **No tocar acciones-canvas/ui/entidad.ts** salvo lectura. La barra invoca acciones existentes; cero acciones nuevas.
+- **No tocar OPL**: `app/src/opl/**`, `app/src/modelo/opl/**`, `PanelOpl.tsx` y `panelOpl/**` quedan fuera de scope.
 - **No crear lambdas opacas**: si un botón combina pasos (ej. abrir sección + enfocar), crear `handleAbrirAlias`/`handleInzoom` nombrado dentro de `BarraHerramientasElemento.tsx`.
 - **App.tsx en zona compartida con L1 (lazy) y L3 (PanelMetodologia)**: L4 monta `BarraHerramientasElemento` como overlay flotante (no en layout principal). Hunks disjuntos.
 - **No portar las 12 acciones OPCloud**: solo 6 piloto. Las 6 diferidas a iteración futura.

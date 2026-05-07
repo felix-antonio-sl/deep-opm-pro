@@ -6,6 +6,8 @@ Refactorizar `app/src/ui/Toolbar.tsx` (1098 LOC) a **orquestador delgado (~80 LO
 
 **Enmienda IFML absorbida** desde `docs/auditorias/2026-05-07-auditoria-ifml.md`: L1 también corrige H-2 (Actions opacas en lambdas inline), H-5/H-12 (atajos duplicados o fuera de catálogo central) y H-10 (disponibilidad incoherente entre selector de enlace y botón "Tipos válidos"). No abre H-1/H-3/H-4 (modal-stack y CustomEvents) porque son ronda 13.1.
 
+**Guardrail OPL reverse** desde `docs/auditorias/2026-05-07-opl-reverse-ssot-opm-extracted.md`: L1 no toca parser OPL, generadores OPL, `PanelOpl` ni edición textual libre. La auditoría confirma que `opm-extracted` aporta render/export/highlight/doble-click OPL, no un parser inverso reusable; todo OPL reverse queda para ronda 14.
+
 5 modos del editor mapeados desde `store/runtime.ts` y `store/seleccion.ts`:
 
 - **`ToolbarBase.tsx`** — chrome estable: encabezado (menú hamburguesa + título + autosave) + drag tipos + undo/redo + CRUD modelo (Nuevo/Demo/Cargar/Guardar). Siempre visible.
@@ -62,6 +64,7 @@ L1 NO cierra HU directas. Es **refactor estructural derivado de auditoría steip
 
 - **`docs/auditorias/2026-05-07-refactor-radical-steipete.md` §T2.1 opción B + §T2.6**: contrato técnico L1.
 - **`docs/auditorias/2026-05-07-auditoria-ifml.md` §8 H-2/H-5/H-10/H-12**: contrato secundario de interacción L1 (Actions nombradas, Event→Action único por contexto, disponibilidad coherente).
+- **`docs/auditorias/2026-05-07-opl-reverse-ssot-opm-extracted.md`**: guardrail L1; no parser OPL, no generadores OPL, no edicion textual libre.
 - **`docs/JOYAS.md`**: paleta + dimensiones (L1 los 5 archivos toolbar/ importan tokens.colors existentes).
 - **`opm-extracted/src/app/modules/layout/{header,rappid-toolbar,element-tool-bar,navigator,opl-container,main}/`**: referencia semántica del modelo de modos del editor (NO copia 1:1 — Angular con Material).
 - **Estado actual del código (verificado)**:
@@ -117,7 +120,7 @@ Cualquier otro archivo es **fuera de scope**.
 - **No tocar `app/src/render/jointjs/**`**: cero cambios canvas.
 - **No tocar `acciones-canvas.ts`, `acciones-ui.ts`, `acciones-entidad.ts`, `store/persistencia.ts`** salvo lectura para entender qué acción invoca cada botón del Toolbar.
 - **No crear nuevas acciones de store** para resolver IFML H-2. En esta línea, "Action nombrada" significa handler local nombrado o Action existente del store. Si hace falta una Action de slice nueva, entregar patch a `/tmp` y reportar.
-- **No tocar generadores OPL** ni serializadores.
+- **No tocar generadores OPL**, `app/src/opl/parser/**`, `app/src/opl/edicionCanvas.ts`, `app/src/modelo/opl/generador-opl.ts`, `PanelOpl` ni serializadores. Cualquier necesidad de parser/reverse se reporta para ronda 14.
 - **No tocar `progress-dashboard.mjs`**: consolidación operador.
 - **`App.tsx` en zona compartida con L3 y L4**: L1 modifica imports (lazy) y rendering principal; L3 monta `PanelMetodologia` en una zona del layout; L4 monta `BarraHerramientasElemento` overlay. Hunks disjuntos. **Coordinación de orden**: L1 → L4 → L3.
 
