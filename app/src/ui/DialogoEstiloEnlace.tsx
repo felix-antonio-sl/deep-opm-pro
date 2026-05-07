@@ -1,4 +1,6 @@
+// [JOYAS §1-3] Chrome UI consume tokens centralizados; canvas semántico invariante.
 import type { Enlace, EnlaceEstilo, Id } from "../modelo/tipos";
+import { tokens } from "./tokens";
 
 interface Props {
   abierto: boolean;
@@ -7,7 +9,7 @@ interface Props {
   onAplicar: (enlaceId: Id, estilo: Partial<EnlaceEstilo>) => void;
 }
 
-const COLORES = ["#475467", "#d92d20", "#0e7c66", "#1d4ed8", "#ca8a04", "#9333ea"] as const;
+const COLORES = [tokens.colors.textoSecundario, tokens.colors.errorBase, tokens.colors.verdeObjetoOscuro, tokens.colors.azulAccion, tokens.colors.ambarOscuro, tokens.colors.violetaFuerte] as const;
 const GROSORES = [1, 1.5, 2, 3] as const;
 const TRAZOS: Array<{ label: string; value: string }> = [
   { label: "Continua", value: "" },
@@ -37,8 +39,8 @@ export function DialogoEstiloEnlace({ abierto, enlace, onCerrar, onAplicar }: Pr
                 style={{
                   ...style.swatch,
                   background: color,
-                  borderColor: estilo.color?.toLowerCase() === color ? "#111827" : "#c8d2df",
-                  boxShadow: estilo.color?.toLowerCase() === color ? "0 0 0 2px #ffffff, 0 0 0 4px #586d8c" : "none",
+                  borderColor: estilo.color?.toLowerCase() === color ? tokens.colors.textoCasiNegro : tokens.colors.bordeControl,
+                  boxShadow: estilo.color?.toLowerCase() === color ? `0 0 0 2px ${tokens.colors.fondoChrome}, 0 0 0 4px ${tokens.colors.chromeNeutral}` : "none",
                 }}
                 onClick={() => onAplicar(enlace.id, { color })}
               />
@@ -85,17 +87,17 @@ export function DialogoEstiloEnlace({ abierto, enlace, onCerrar, onAplicar }: Pr
 
 const style = {
   backdrop: { position: "fixed", inset: 0, zIndex: 40, display: "grid", placeItems: "center", background: "rgba(15, 23, 42, 0.28)" },
-  modal: { width: "360px", display: "grid", gap: "14px", padding: "16px", background: "#ffffff", border: "1px solid #c8d2df", borderRadius: "6px", boxShadow: "0 18px 44px rgba(15, 23, 42, 0.22)" },
+  modal: { width: "360px", display: "grid", gap: "14px", padding: "16px", background: tokens.colors.fondoChrome, border: `1px solid ${tokens.colors.bordeControl}`, borderRadius: tokens.radii.md, boxShadow: tokens.shadows.modal },
   header: { display: "flex", justifyContent: "space-between", alignItems: "center" },
-  title: { margin: 0, color: "#1f2937", fontSize: "16px", fontWeight: 800 },
-  iconButton: { width: "28px", height: "28px", border: "1px solid #c8d2df", borderRadius: "4px", background: "#f9fbfd", cursor: "pointer" },
+  title: { margin: 0, color: tokens.colors.textoPrimario, fontSize: "16px", fontWeight: 800 },
+  iconButton: { width: "28px", height: "28px", border: `1px solid ${tokens.colors.bordeControl}`, borderRadius: tokens.radii.sm, background: tokens.colors.fondoCard, cursor: "pointer" },
   section: { display: "grid", gap: "8px" },
-  label: { color: "#475467", fontSize: "12px", fontWeight: 800 },
+  label: { color: tokens.colors.textoSecundario, fontSize: "12px", fontWeight: 800 },
   swatches: { display: "flex", gap: "8px", flexWrap: "wrap" },
-  swatch: { width: "30px", height: "30px", border: "1px solid #c8d2df", borderRadius: "4px", cursor: "pointer" },
+  swatch: { width: "30px", height: "30px", border: `1px solid ${tokens.colors.bordeControl}`, borderRadius: tokens.radii.sm, cursor: "pointer" },
   row: { display: "flex", gap: "8px", flexWrap: "wrap" },
-  choice: { height: "30px", border: "1px solid #c8d2df", borderRadius: "4px", background: "#ffffff", color: "#344054", cursor: "pointer", fontSize: "12px", fontWeight: 700 },
-  choiceActive: { height: "30px", border: "1px solid #1d4ed8", borderRadius: "4px", background: "#eaf8ff", color: "#1d4ed8", cursor: "pointer", fontSize: "12px", fontWeight: 800 },
+  choice: { height: "30px", border: `1px solid ${tokens.colors.bordeControl}`, borderRadius: tokens.radii.sm, background: tokens.colors.fondoChrome, color: tokens.colors.textoControl, cursor: "pointer", fontSize: "12px", fontWeight: 700 },
+  choiceActive: { height: "30px", border: `1px solid ${tokens.colors.azulAccion}`, borderRadius: tokens.radii.sm, background: tokens.colors.acentoUiSuave, color: tokens.colors.azulAccion, cursor: "pointer", fontSize: "12px", fontWeight: 800 },
   footer: { display: "flex", justifyContent: "flex-end" },
-  primary: { height: "34px", border: "1px solid #586d8c", borderRadius: "4px", background: "#586d8c", color: "#ffffff", cursor: "pointer", fontSize: "13px", fontWeight: 800 },
+  primary: { height: "34px", border: `1px solid ${tokens.colors.chromeNeutral}`, borderRadius: tokens.radii.sm, background: tokens.colors.chromeNeutral, color: tokens.colors.fondoChrome, cursor: "pointer", fontSize: "13px", fontWeight: 800 },
 } satisfies Record<string, preact.JSX.CSSProperties>;
