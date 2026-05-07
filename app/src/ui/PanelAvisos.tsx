@@ -1,9 +1,11 @@
+// [JOYAS §1-3] Chrome UI consume tokens centralizados; canvas semántico invariante.
 import { useState } from "preact/hooks";
 import { nombreExtremo } from "../modelo/extremos";
 import type { Aviso, SeveridadAviso } from "../modelo/validaciones";
 import { validarModelo } from "../modelo/validaciones";
 import type { Id, Modelo } from "../modelo/tipos";
 import { useOpmStore } from "../store";
+import { tokens } from "./tokens";
 
 interface SeveridadMeta {
   icono: string;
@@ -17,23 +19,23 @@ const SEVERIDAD: Record<SeveridadAviso, SeveridadMeta> = {
   error: {
     icono: "⛔",
     etiqueta: "Error",
-    color: "#b42318",
-    fondo: "#fff3f1",
-    borde: "#fecdca",
+    color: tokens.colors.errorTexto,
+    fondo: tokens.colors.errorFondoIntenso,
+    borde: tokens.colors.errorBordeSuave,
   },
   advertencia: {
     icono: "⚠",
     etiqueta: "Advertencia",
-    color: "#dc6803",
-    fondo: "#fff8eb",
-    borde: "#fedf89",
+    color: tokens.colors.alertaTexto,
+    fondo: tokens.colors.advertenciaFondo,
+    borde: tokens.colors.advertenciaBorde,
   },
   info: {
     icono: "ℹ",
     etiqueta: "Info",
-    color: "#175cd3",
-    fondo: "#eff8ff",
-    borde: "#b2ddff",
+    color: tokens.colors.azulInfo,
+    fondo: tokens.colors.infoFondoAlterno,
+    borde: tokens.colors.infoBordeSuave,
   },
 };
 
@@ -173,8 +175,8 @@ function etiquetaElemento(modelo: Modelo, aviso: Aviso): string {
 function contadorStyle(avisos: Aviso[]): preact.JSX.CSSProperties {
   const hayError = avisos.some((aviso) => aviso.severidad === "error");
   const hayAdvertencia = avisos.some((aviso) => aviso.severidad === "advertencia");
-  const color = hayError ? "#b42318" : hayAdvertencia ? "#dc6803" : "#147a4a";
-  const background = avisos.length === 0 ? "#ecfdf3" : hayError ? "#fff3f1" : hayAdvertencia ? "#fff8eb" : "#eff8ff";
+  const color = hayError ? tokens.colors.errorTexto : hayAdvertencia ? tokens.colors.alertaTexto : tokens.colors.exitoTexto;
+  const background = avisos.length === 0 ? tokens.colors.exitoFondo : hayError ? tokens.colors.errorFondoIntenso : hayAdvertencia ? tokens.colors.advertenciaFondo : tokens.colors.infoFondoAlterno;
   return {
     ...style.count,
     color,
@@ -215,11 +217,11 @@ const style = {
     maxHeight: "34%",
     minWidth: 0,
     overflow: "hidden",
-    background: "#ffffff",
-    borderTop: "1px solid #d9e0ea",
+    background: tokens.colors.fondoChrome,
+    borderTop: `1px solid ${tokens.colors.bordeIntermedio}`,
     display: "flex",
     flexDirection: "column",
-    fontFamily: "Arial, sans-serif",
+    fontFamily: tokens.typography.familyChrome,
   },
   header: {
     display: "flex",
@@ -227,8 +229,8 @@ const style = {
     justifyContent: "space-between",
     gap: "8px",
     padding: "0 12px",
-    borderBottom: "1px solid #e4eaf1",
-    color: "#1f2937",
+    borderBottom: `1px solid ${tokens.colors.bordeChrome}`,
+    color: tokens.colors.textoPrimario,
     fontSize: "13px",
     fontWeight: 700,
   },
@@ -238,12 +240,12 @@ const style = {
     gap: "8px",
   },
   revalidar: {
-    border: "1px solid #cbd5e1",
-    background: "#ffffff",
-    color: "#334155",
-    borderRadius: "4px",
+    border: `1px solid ${tokens.colors.bordeSlate}`,
+    background: tokens.colors.fondoChrome,
+    color: tokens.colors.textoSlate,
+    borderRadius: tokens.radii.sm,
     padding: "3px 7px",
-    fontFamily: "Arial, sans-serif",
+    fontFamily: tokens.typography.familyChrome,
     fontSize: "11px",
     fontWeight: 700,
     cursor: "pointer",
@@ -264,15 +266,15 @@ const style = {
     gap: "6px",
     minWidth: 0,
     padding: "5px 12px",
-    borderBottom: "1px solid #e4eaf1",
-    color: "#334155",
-    background: "#f8fafc",
+    borderBottom: `1px solid ${tokens.colors.bordeChrome}`,
+    color: tokens.colors.textoSlate,
+    background: tokens.colors.fondoElevado,
     fontSize: "11px",
     fontWeight: 700,
     overflow: "hidden",
   },
   citaDetalleLabel: {
-    color: "#175cd3",
+    color: tokens.colors.azulInfo,
     flex: "0 0 auto",
   },
   list: {
@@ -289,7 +291,7 @@ const style = {
     alignItems: "center",
     gap: "8px",
     padding: "12px",
-    color: "#147a4a",
+    color: tokens.colors.exitoTexto,
     fontSize: "12px",
     fontWeight: 700,
   },
@@ -297,22 +299,22 @@ const style = {
     width: "8px",
     height: "8px",
     borderRadius: "50%",
-    background: "#12b76a",
+    background: tokens.colors.exitoBase,
     flex: "0 0 auto",
   },
   row: {
     width: "100%",
-    border: "1px solid #dbe5ef",
-    borderLeft: "3px solid #175cd3",
-    borderRadius: "4px",
+    border: `1px solid ${tokens.colors.mapaBorde}`,
+    borderLeft: `3px solid ${tokens.colors.azulInfo}`,
+    borderRadius: tokens.radii.sm,
     padding: "7px 8px",
     display: "grid",
     gridTemplateColumns: "22px minmax(0, 1fr) minmax(92px, auto)",
     alignItems: "start",
     gap: "8px",
-    color: "#1f2937",
+    color: tokens.colors.textoPrimario,
     textAlign: "left",
-    fontFamily: "Arial, sans-serif",
+    fontFamily: tokens.typography.familyChrome,
   },
   icon: {
     minWidth: "22px",
@@ -329,7 +331,7 @@ const style = {
     gap: "3px",
   },
   rule: {
-    color: "#475467",
+    color: tokens.colors.textoSecundario,
     fontSize: "10px",
     fontWeight: 700,
     textTransform: "uppercase",
@@ -337,14 +339,14 @@ const style = {
     overflowWrap: "anywhere",
   },
   message: {
-    color: "#1f2937",
+    color: tokens.colors.textoPrimario,
     fontSize: "12px",
     fontWeight: 700,
     lineHeight: 1.25,
     overflowWrap: "anywhere",
   },
   target: {
-    color: "#667085",
+    color: tokens.colors.textoTerciario,
     fontSize: "11px",
     fontWeight: 600,
     lineHeight: 1.2,
@@ -357,24 +359,24 @@ const style = {
     minWidth: 0,
   },
   cita: {
-    border: "1px solid #cbd5e1",
-    borderRadius: "4px",
-    background: "#ffffff",
-    color: "#175cd3",
+    border: `1px solid ${tokens.colors.bordeSlate}`,
+    borderRadius: tokens.radii.sm,
+    background: tokens.colors.fondoChrome,
+    color: tokens.colors.azulInfo,
     fontSize: "11px",
     fontWeight: 700,
-    fontFamily: "Arial, sans-serif",
+    fontFamily: tokens.typography.familyChrome,
     padding: "3px 5px",
     maxWidth: "150px",
     overflowWrap: "anywhere",
     cursor: "pointer",
   },
   irElemento: {
-    border: "1px solid #cbd5e1",
-    borderRadius: "4px",
-    background: "#ffffff",
-    color: "#334155",
-    fontFamily: "Arial, sans-serif",
+    border: `1px solid ${tokens.colors.bordeSlate}`,
+    borderRadius: tokens.radii.sm,
+    background: tokens.colors.fondoChrome,
+    color: tokens.colors.textoSlate,
+    fontFamily: tokens.typography.familyChrome,
     fontSize: "11px",
     fontWeight: 700,
     padding: "3px 8px",
