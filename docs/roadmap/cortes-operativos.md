@@ -1,7 +1,7 @@
 # Cortes operativos de producto
 
 **Fecha:** 2026-05-07  
-**Estado:** capa operativa vigente propuesta sobre el backlog HU v2.  
+**Estado:** capa operativa vigente sobre el backlog HU v2; alpha-lock OPL reverse resuelto.  
 **No sustituye:** `docs/historias-usuario-v2/05-ROADMAP.md` ni edita las HU
 canonicas.  
 **Si gobierna:** planificacion de rondas desde la ronda 13 grande en adelante.
@@ -30,7 +30,7 @@ Filtro de valor:
 
 | Tesis vieja | Antitesis observada | Sintesis operativa |
 |---|---|---|
-| MVP-alpha termina cuando el core editable/persistente esta casi completo. | Alpha aun tiene `HU-SHARED-007`: OPL inverso editable. El operador no acepta cerrar alpha sin OPL reverse. | Crear **alpha-lock**: no pasar a beta oficial hasta resolver OPL reverse libre completo. |
+| MVP-alpha termina cuando el core editable/persistente esta casi completo. | Alpha tenia `HU-SHARED-007`: OPL inverso editable. El operador no aceptaba cerrar alpha sin OPL reverse. | **Alpha queda cerrado** cuando OPL reverse pasa parser, preview, apply undoable y smoke. Este gate ya esta resuelto en ronda 14 alpha-lock. |
 | MVP-beta = modelador usable para dominio real. | El corte beta vigente mezcla capacidades de dominio real con paridad OPCloud pesada (`A0`, wizard 12 etapas). | Dividir beta en **beta0 foundation**, **beta1 modelado dominio real**, **beta2 simulacion**. |
 | Ronda 13 grande abre beta. | Ronda 13 grande es infraestructura UX/metodologica; no prueba todavia KORA/HDOS/GOREOS end-to-end. | Ronda 13 grande pasa a ser **medio piso beta0**, no beta oficial. |
 | OPCloud es referente de backlog. | Muchas HU existen solo porque OPCloud las tiene; no todas producen valor para el producto propio. | OPCloud sigue como evidencia semantica/visual, no como obligacion de paridad. HU sin valor para dominios objetivo se bajan, congelan o descartan operativamente. |
@@ -45,7 +45,7 @@ Filtro de valor:
 | **13.1** | **Normalización IFML + UI bugs** | Modal-stack, flujos explicitos, eventos, breadcrumbs minimos si procede, bugs visuales evidentes. | No quedan flujos criticos opacos ni bugs visuales que bloqueen modelado diario. |
 | **13.2** | **Visual-canvas fidelity** | Apariencia exacta de shapes, enlaces, anclaje, routing, cruces y layout aplicable usando `assets/`, `JOYAS.md`, `opm-extracted/`. | Un modelo mediano se ve profesional y estable; los enlaces se entienden sin trabajo manual excesivo. |
 | **13.3** | **Bug capture loop dev-only** | Capturar screenshot + texto + metadata en disco con ID referenciable por agentes. | El operador puede decir "arregla BUG-YYYYMMDD-NNN" y el agente puede leer imagen/texto desde el repo local. |
-| **14** | **Alpha-lock OPL reverse** | OPL inverso libre completo suficiente para editar desde texto y reconciliar con canvas. | Alpha se declara cerrado solo si OPL reverse pasa evals de round-trip y diagnostico. |
+| **14** | **Alpha-lock OPL reverse** | OPL inverso libre completo suficiente para editar desde texto y reconciliar con canvas. | **Cerrado**: parser SSOT + diagnosticos + preview de patches + apply undoable + smoke UI. Alpha queda 100%. |
 | **Beta1** | **Dominio real mediano** | Modelar HD/KORA/GOREOS con validacion metodologica, tabla de enlaces, busqueda, estados, descomposicion y catalogo simple. | Un modelo ancla real se construye, valida, guarda/carga, busca y corrige sin workaround mayor. |
 | **Beta2** | **Simulacion conceptual + valores simples** | Ejecutar simulacion conceptual y valores simples sobre procesos/estados/atributos. | Un flujo real de dominio puede simular estado/valor antes-despues con trazabilidad. |
 | **Gamma** | **Productividad operativa secundaria** | Mapa del sistema, export, imagenes, estilos avanzados, plantillas avanzadas, organizacion no critica. | Trabajo largo mas comodo, no requisito para probar beta. |
@@ -55,21 +55,22 @@ Filtro de valor:
 
 ### Propósito
 
-Cerrar el core OPM de forma honesta. Alpha no se considera cerrada mientras OPL
-reverse siga parcial.
+Cerrar el core OPM de forma honesta. Alpha se considera cerrada cuando OPL
+reverse deja de ser parcial y puede editar OPL-ES canonico con propagacion al
+canvas.
 
 ### Incluye
 
-- Todo el alpha ya cubierto por rondas 1-13.0.
-- `HU-SHARED-007` como bloqueo final.
-- HU-50.019/.020/.022 u otras HU necesarias para parser OPL bidireccional.
+- Todo el alpha ya cubierto por rondas 1-13.
+- `HU-SHARED-007` resuelta como bloqueo final.
+- Parser OPL-ES, diagnosticos, preview de patches y aplicacion undoable.
 
 ### OPL reverse esperado
 
 El operador eligio **libre completo**. La gramatica exacta queda fijada por la
 auditoria dirigida `docs/auditorias/2026-05-07-opl-reverse-ssot-opm-extracted.md`.
 
-Interpretacion operativa:
+Interpretacion operativa resuelta:
 
 - Acepta parrafos OPL-ES canonicos escritos por humano, no solo OPL generado
   por la app.
@@ -88,6 +89,17 @@ Interpretacion operativa:
 - Aplica cambios como operacion undoable y atomica.
 - Preserva round-trip semantico: canvas -> OPL -> parser -> modelo -> OPL sin
   perdida de hechos OPM para el subconjunto soportado por el kernel actual.
+
+Estado 2026-05-07:
+
+- Implementado en `app/src/opl/parser/` con `parsearParrafoOpl`,
+  `planificarEdicionOplLibre` y `aplicarPatchesOpl`.
+- UI en `PanelOpl`: boton `Editar`, textarea, diagnosticos, preview y `Aplicar`.
+- Store: `aplicarEdicionOplLibre` entra por `commitModelo`, por tanto es
+  undoable y respeta read-only.
+- Evals: `app/src/opl/parser/parser.test.ts`, `store.test.ts` y smoke
+  `panel OPL aplica edicion libre con preview y propaga al canvas`.
+- Dashboard: MVP-alpha **100.0%** (121 cubiertas, 0 parciales, 0 pendientes).
 
 ### Anti-alcance
 
