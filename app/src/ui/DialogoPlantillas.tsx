@@ -1,9 +1,11 @@
+// [JOYAS §1-3] Chrome UI consume tokens centralizados; canvas semántico invariante.
 import { useEffect, useMemo, useState } from "preact/hooks";
 import templateIcon from "../../../assets/svg/template.svg";
 import type { PlantillaIndice } from "../modelo/tipos";
 import { useOpmStore } from "../store";
 import { Dialogo } from "./Dialogo";
 import { Breadcrumb } from "./panelCarpetas/Breadcrumb";
+import { tokens } from "./tokens";
 
 /**
  * Catálogo de plantillas privadas con búsqueda y breadcrumb raíz.
@@ -112,16 +114,16 @@ const style = {
   // Ancho gobernado por `<Dialogo size="lg">` (ronda 12.1, [JOYAS §2]).
   body: { display: "grid", gap: "14px" },
   header: { display: "grid", gridTemplateColumns: "1fr 220px", gap: "12px", alignItems: "center" },
-  search: { height: "34px", border: "1px solid #b9c5d4", borderRadius: "4px", padding: "0 10px", fontSize: "13px", fontWeight: 600 },
+  search: { height: "34px", border: `1px solid ${tokens.colors.bordeInput}`, borderRadius: tokens.radii.sm, padding: "0 10px", fontSize: "13px", fontWeight: 600 },
   grid: { display: "grid", gap: "8px", maxHeight: "420px", overflow: "auto" },
-  tile: { display: "grid", gridTemplateColumns: "38px minmax(0, 1fr) auto", gap: "10px", alignItems: "center", minHeight: "68px", padding: "10px", border: "1px solid #d9e0ea", borderRadius: "6px", background: "#ffffff" },
+  tile: { display: "grid", gridTemplateColumns: "38px minmax(0, 1fr) auto", gap: "10px", alignItems: "center", minHeight: "68px", padding: "10px", border: `1px solid ${tokens.colors.bordeIntermedio}`, borderRadius: tokens.radii.md, background: tokens.colors.fondoChrome },
   icon: { width: "30px", height: "34px" },
   tileBody: { display: "grid", minWidth: 0, gap: "3px" },
-  name: { color: "#1f2937", fontSize: "13px", fontWeight: 700, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" },
-  description: { color: "#475467", fontSize: "12px", fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" },
-  meta: { color: "#667085", fontSize: "11px", fontWeight: 700 },
-  empty: { margin: 0, padding: "20px 8px", color: "#667085", fontSize: "13px", fontWeight: 700, textAlign: "center" },
-  insertButton: { height: "32px", padding: "0 12px", border: "1px solid #586D8C", borderRadius: "4px", background: "#586D8C", color: "#ffffff", cursor: "pointer", fontSize: "12px", fontWeight: 700 },
-  primaryButton: { height: "34px", padding: "0 14px", border: "1px solid #586D8C", borderRadius: "4px", background: "#586D8C", color: "#ffffff", cursor: "pointer", fontSize: "13px", fontWeight: 700 },
-  secondaryButton: { height: "34px", padding: "0 14px", border: "1px solid #c8d2df", borderRadius: "4px", background: "#ffffff", color: "#475467", cursor: "pointer", fontSize: "13px", fontWeight: 700 },
+  name: { color: tokens.colors.textoPrimario, fontSize: "13px", fontWeight: 700, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" },
+  description: { color: tokens.colors.textoSecundario, fontSize: "12px", fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" },
+  meta: { color: tokens.colors.textoTerciario, fontSize: "11px", fontWeight: 700 },
+  empty: { margin: 0, padding: "20px 8px", color: tokens.colors.textoTerciario, fontSize: "13px", fontWeight: 700, textAlign: "center" },
+  insertButton: { height: "32px", padding: "0 12px", border: `1px solid ${tokens.colors.chromeNeutral}`, borderRadius: tokens.radii.sm, background: tokens.colors.chromeNeutral, color: tokens.colors.fondoChrome, cursor: "pointer", fontSize: "12px", fontWeight: 700 },
+  primaryButton: { height: "34px", padding: "0 14px", border: `1px solid ${tokens.colors.chromeNeutral}`, borderRadius: tokens.radii.sm, background: tokens.colors.chromeNeutral, color: tokens.colors.fondoChrome, cursor: "pointer", fontSize: "13px", fontWeight: 700 },
+  secondaryButton: { height: "34px", padding: "0 14px", border: `1px solid ${tokens.colors.bordeControl}`, borderRadius: tokens.radii.sm, background: tokens.colors.fondoChrome, color: tokens.colors.textoSecundario, cursor: "pointer", fontSize: "13px", fontWeight: 700 },
 } satisfies Record<string, preact.JSX.CSSProperties>;
