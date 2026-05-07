@@ -174,6 +174,10 @@ function registrarAtajosAplicacion(): Array<() => void> {
   };
   const cerrarModalSuperiorOVaciarSeleccion = () => {
     const state = s();
+    // IFML H-3 / Ronda 15 L3: el sub-ViewContainer "modal-nombre-cosa" entra
+    // primero en el orden LIFO porque es el modal recién montado por la
+    // Action `crearEntidadEnCanvas`.
+    if (state.nuevaCosaPendiente) return state.descartarNuevaCosaPendiente();
     if (state.cheatsheetAtajosAbierto) return state.cerrarCheatsheetAtajos();
     if (state.gestionArbolAbierta) return state.cerrarGestionArbol();
     if (state.dialogoGuardarComoAbierto) return state.cerrarGuardarComo();
