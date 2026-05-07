@@ -1,5 +1,11 @@
 /**
  * ViewContainer ToolbarMultiseleccion: acciones batch sobre dos o mas cosas. [JOYAS §1-3], [V-0c], IFML H-2.
+ *
+ * Ronda 15 L2: los 3 selects (alinear cosas, distribuir, alinear enlaces) se
+ * mantienen en banda por compatibilidad con tests legacy (testIds
+ * `alinear-cosas`, `distribuir-cosas`, etc.). Las mismas acciones se exponen
+ * tambien en ⋯ Más como items planos accesibles por teclado, lo que reduce la
+ * dependencia visual de los selects en monitores estrechos.
  */
 import { ATAJO_CONECTAR_MULTI_AL_TODO } from "../atajosTeclado";
 import { useOpmStore } from "../../store";
@@ -41,7 +47,7 @@ export function ToolbarMultiseleccion() {
     <>
       <span style={style.divider} />
       <span style={style.selectionCount}>{seleccionados.length} seleccionados</span>
-      <button style={style.secondaryButton} type="button" onClick={eliminarSeleccion} title="Eliminar selección">Eliminar</button>
+      <button style={style.secondaryButton} type="button" onClick={eliminarSeleccion} title="Eliminar selección · Delete">Eliminar</button>
       {todoMultiSeleccion ? (
         <button style={style.secondaryButton} type="button" onClick={handleConectarMultiAlTodo} title={`Usa el último seleccionado como todo (${ATAJO_CONECTAR_MULTI_AL_TODO})`} data-testid="conectar-multi-al-todo">Agregar al todo</button>
       ) : null}

@@ -6,14 +6,17 @@ import { useEffect, useMemo, useState } from "preact/hooks";
 import lockIcon from "../../../../assets/svg/lock.svg";
 import objectDragIcon from "../../../../assets/svg/objectDrag.svg";
 import verFileIcon from "../../../../assets/svg/verFile.svg";
+import { normalizarGridConfig } from "../../canvas/grid";
 import { listarFixtures } from "../../store/runtime";
 import { useOpmStore } from "../../store";
 import { useConfirmarSiDirty } from "../ConfirmacionContext";
 import { DialogoGuardarPlantilla } from "../DialogoGuardarPlantilla";
 import { MenuContextualEnlace } from "../MenuContextualEnlace";
 import { MenuContextualEntidad } from "../MenuContextualEntidad";
+import { ModalConfiguracionGrid } from "../ModalConfiguracionGrid";
 import type { Id, TipoEnlace } from "../../modelo/tipos";
-import { dragAtributoNumerico, dragToolbar, toolbarStyle as style } from "./toolbarStyles";
+import { ToolbarMas, type ToolbarMasItem } from "./ToolbarMas";
+import { dragAtributoNumerico, dragToolbar, etiquetaModoGlobal, siguienteModoGlobal, toolbarStyle as style } from "./toolbarStyles";
 
 const DialogoPlantillas = lazy(() => import("../DialogoPlantillas").then((m) => ({ default: m.DialogoPlantillas })));
 const DialogoTraerConectados = lazy(() => import("../DialogoTraerConectados").then((m) => ({ default: m.DialogoTraerConectados })));
@@ -74,6 +77,20 @@ export function ToolbarBase({ children }: ToolbarBaseProps) {
   const dirty = useOpmStore((s) => s.dirty);
   const modoCreacion = useOpmStore((s) => s.modoCreacion);
   const confirmarSiDirty = useConfirmarSiDirty();
+  const abrirDialogoPlantillas = useOpmStore((s) => s.abrirDialogoPlantillas);
+  const uiAliasVisibles = useOpmStore((s) => s.uiAliasVisibles);
+  const uiDescripcionesVisibles = useOpmStore((s) => s.uiDescripcionesVisibles);
+  const toggleAliasVisibles = useOpmStore((s) => s.toggleAliasVisibles);
+  const toggleDescripcionesVisibles = useOpmStore((s) => s.toggleDescripcionesVisibles);
+  const uiModoImagenGlobal = useOpmStore((s) => s.uiModoImagenGlobal);
+  const fijarModoImagenGlobal = useOpmStore((s) => s.fijarModoImagenGlobal);
+  const abrirModalImagen = useOpmStore((s) => s.abrirModalImagen);
+  const gridConfig = useOpmStore((s) => normalizarGridConfig(s.gridConfig ?? s.indice.preferenciasUi?.gridConfig));
+  const fijarGridConfig = useOpmStore((s) => s.fijarGridConfig);
+  const alinearSeleccion = useOpmStore((s) => s.alinearSeleccion);
+  const distribuirSeleccion = useOpmStore((s) => s.distribuirSeleccion);
+  const alinearSeleccionEnlaces = useOpmStore((s) => s.alinearSeleccionEnlaces);
+  const [gridModalAbierto, setGridModalAbierto] = useState(false);
   const [nombreNuevaCosa, setNombreNuevaCosa] = useState("");
   const [menuContextual, setMenuContextual] = useState<null | { enlaceId: Id; x: number; y: number }>(null);
   const [menuEntidad, setMenuEntidad] = useState<null | { aparienciaId: Id; entidadId: Id; x: number; y: number }>(null);
@@ -133,6 +150,24 @@ export function ToolbarBase({ children }: ToolbarBaseProps) {
   const totalVersiones = resumenPersistido?.versiones?.length ?? 0;
   const demos = useMemo(() => listarFixtures(), []);
   const todoMultiSeleccion = seleccionados.length >= 2 ? seleccionados[seleccionados.length - 1] : null;
+  const puedeEditarImagen = entidadSeleccionada?.tipo === "objeto";
+  const hayMultiSeleccion = seleccionados.length >= 2;
+  const masItems = construirItemsMenuMas({
+    puedeEditarImagen,
+    hayMultiSeleccion,
+    uiAliasVisibles,
+    uiDescripcionesVisibles,
+    uiModoImagenGlobal,
+    onAbrirPlantillas: abrirDialogoPlantillas,
+    onToggleAlias: toggleAliasVisibles,
+    onToggleDescripciones: toggleDescripcionesVisibles,
+    onSiguienteModoImagen: () => fijarModoImagenGlobal(siguienteModoGlobal(uiModoImagenGlobal)),
+    onEditarImagen: () => { if (seleccionId) abrirModalImagen(seleccionId); },
+    onConfigGrid: () => setGridModalAbierto(true),
+    onAlinearCosa: alinearSeleccion,
+    onDistribuirCosa: distribuirSeleccion,
+    onAlinearEnlaces: alinearSeleccionEnlaces,
+  });
 
   function handleToggleMenuPrincipal() {
     if (menuPrincipalAbierto) cerrarMenuPrincipal();
@@ -225,7 +260,9 @@ export function ToolbarBase({ children }: ToolbarBaseProps) {
         {readOnly ? <span style={style.readOnlyBadge} data-testid="indicador-readonly">Solo lectura</span> : null}
         <button style={style.button} type="button" onClick={() => confirmarSiDirty(abrirCargarModelo)} title="Cargar modelo guardado">Cargar</button>
         {children}
+        <ToolbarMas items={masItems} />
       </div>
+      <ModalConfiguracionGrid abierto={gridModalAbierto} config={gridConfig} onCerrar={() => setGridModalAbierto(false)} onGuardar={fijarGridConfig} />
       <ModelessToolbarLayer
         nuevaCosa={nuevaCosaPendiente ? { entidadId: nuevaCosaPendiente.entidadId, nombre: nuevaCosaPendiente.nombre } : null}
         nombreNuevaCosa={nombreNuevaCosa}
@@ -294,6 +331,121 @@ function ModelessToolbarLayer(props: {
       ) : null}
     </>
   );
+}
+
+type ParametrosItemsMas = {
+  puedeEditarImagen: boolean;
+  hayMultiSeleccion: boolean;
+  uiAliasVisibles: boolean;
+  uiDescripcionesVisibles: boolean;
+  uiModoImagenGlobal: import("../../modelo/tipos").ModoImagenEntidad | null;
+  onAbrirPlantillas: () => void;
+  onToggleAlias: () => void;
+  onToggleDescripciones: () => void;
+  onSiguienteModoImagen: () => void;
+  onEditarImagen: () => void;
+  onConfigGrid: () => void;
+  onAlinearCosa: (eje: "izq" | "centro" | "der" | "sup" | "medio" | "inf") => void;
+  onDistribuirCosa: (orientacion: "horizontal" | "vertical") => void;
+  onAlinearEnlaces: (direccion: "izquierda" | "derecha" | "arriba" | "abajo") => void;
+};
+
+function construirItemsMenuMas(p: ParametrosItemsMas): ToolbarMasItem[] {
+  const items: ToolbarMasItem[] = [];
+
+  // Apariencia y display: alias, descripciones, imagen, modo imagen global.
+  items.push({ kind: "separador", id: "sep-display", label: "Apariencia" });
+  items.push({
+    kind: "accion",
+    id: "alias-visibles",
+    label: p.uiAliasVisibles ? "Ocultar alias" : "Mostrar alias",
+    activo: p.uiAliasVisibles,
+    title: p.uiAliasVisibles ? "Ocultar alias bajo el nombre" : "Mostrar alias bajo el nombre",
+    onClick: p.onToggleAlias,
+  });
+  items.push({
+    kind: "accion",
+    id: "desc-visibles",
+    label: p.uiDescripcionesVisibles ? "Ocultar descripciones" : "Mostrar descripciones",
+    activo: p.uiDescripcionesVisibles,
+    title: p.uiDescripcionesVisibles ? "Ocultar descripciones bajo el nombre" : "Mostrar descripciones bajo el nombre",
+    onClick: p.onToggleDescripciones,
+  });
+  items.push({
+    kind: "accion",
+    id: "modo-imagen-global",
+    label: `Imagen global: ${etiquetaModoGlobal(p.uiModoImagenGlobal)}`,
+    activo: p.uiModoImagenGlobal !== null,
+    title: `Modo imagen global · ciclo Respeta → Img+Txt → Img → Texto. Actual: ${etiquetaModoGlobal(p.uiModoImagenGlobal)}`,
+    onClick: p.onSiguienteModoImagen,
+    testId: "toolbar-mas-modo-imagen-global",
+  });
+  items.push({
+    kind: "accion",
+    id: "editar-imagen",
+    label: "Editar imagen del objeto…",
+    title: p.puedeEditarImagen ? "Editar imagen del objeto seleccionado" : "Selecciona un objeto",
+    disabled: !p.puedeEditarImagen,
+    onClick: p.onEditarImagen,
+    testId: "toolbar-mas-editar-imagen",
+  });
+
+  // Plantillas como acción accesoria (mantener invocable desde el menú).
+  items.push({ kind: "separador", id: "sep-plantillas", label: "Plantillas y vista" });
+  items.push({
+    kind: "accion",
+    id: "abrir-plantillas",
+    label: "Plantillas…",
+    title: "Abrir biblioteca de plantillas",
+    onClick: p.onAbrirPlantillas,
+    testId: "toolbar-mas-plantillas",
+  });
+  items.push({
+    kind: "accion",
+    id: "config-grid",
+    label: "Configurar grid…",
+    title: "Configurar paso, color y snap del grid",
+    onClick: p.onConfigGrid,
+    testId: "toolbar-mas-config-grid",
+  });
+
+  // Alineación y distribución (visible cuando hay multi-seleccion).
+  if (p.hayMultiSeleccion) {
+    items.push({ kind: "separador", id: "sep-alinear", label: "Alinear cosas" });
+    items.push({ kind: "accion", id: "alinear-izq", label: "Alinear izquierda", onClick: () => p.onAlinearCosa("izq") });
+    items.push({ kind: "accion", id: "alinear-centro", label: "Alinear centro horizontal", onClick: () => p.onAlinearCosa("centro") });
+    items.push({ kind: "accion", id: "alinear-der", label: "Alinear derecha", onClick: () => p.onAlinearCosa("der") });
+    items.push({ kind: "accion", id: "alinear-sup", label: "Alinear arriba", onClick: () => p.onAlinearCosa("sup") });
+    items.push({ kind: "accion", id: "alinear-medio", label: "Alinear medio vertical", onClick: () => p.onAlinearCosa("medio") });
+    items.push({ kind: "accion", id: "alinear-inf", label: "Alinear abajo", onClick: () => p.onAlinearCosa("inf") });
+    items.push({ kind: "separador", id: "sep-distribuir", label: "Distribuir y enlaces" });
+    items.push({ kind: "accion", id: "distribuir-h", label: "Distribuir horizontal", onClick: () => p.onDistribuirCosa("horizontal") });
+    items.push({ kind: "accion", id: "distribuir-v", label: "Distribuir vertical", onClick: () => p.onDistribuirCosa("vertical") });
+    items.push({ kind: "accion", id: "alinear-enl-izq", label: "Alinear enlaces a izquierda", onClick: () => p.onAlinearEnlaces("izquierda") });
+    items.push({ kind: "accion", id: "alinear-enl-der", label: "Alinear enlaces a derecha", onClick: () => p.onAlinearEnlaces("derecha") });
+    items.push({ kind: "accion", id: "alinear-enl-arr", label: "Alinear enlaces arriba", onClick: () => p.onAlinearEnlaces("arriba") });
+    items.push({ kind: "accion", id: "alinear-enl-aba", label: "Alinear enlaces abajo", onClick: () => p.onAlinearEnlaces("abajo") });
+  }
+
+  // ToolbarMapaSistema mantiene sus controles secundarios (Auto-refresh,
+  // Estadisticas) en banda porque ese archivo queda fuera del scope L2.
+
+  // Suprime separadores ociosos (no aporta accion despues).
+  return purgarSeparadoresVacios(items);
+}
+
+function purgarSeparadoresVacios(items: ToolbarMasItem[]): ToolbarMasItem[] {
+  const limpio: ToolbarMasItem[] = [];
+  for (let i = 0; i < items.length; i += 1) {
+    const item = items[i];
+    if (!item) continue;
+    if (item.kind === "separador") {
+      const siguiente = items[i + 1];
+      if (!siguiente || siguiente.kind === "separador") continue;
+    }
+    limpio.push(item);
+  }
+  return limpio;
 }
 
 function metadataEntidadDesdeContextMenu(event: MouseEvent): { aparienciaId: Id; entidadId: Id } | null {

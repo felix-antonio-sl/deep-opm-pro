@@ -1,5 +1,10 @@
 /**
  * ViewContainer ToolbarCreacion: modo creacion y enlace. [JOYAS §1-3], [V-0c], [Glos 3.x], IFML H-10.
+ *
+ * Ronda 15 L2: el toggle Grid queda visible porque es accion frecuente. El
+ * boton "Config grid" tambien queda en banda por compatibilidad con tests
+ * legacy (testId `config-grid`); ademas se replica en el menu ⋯ Más como
+ * ruta secundaria de discoverability con etiqueta "Configurar grid…".
  */
 import { useMemo, useState } from "preact/hooks";
 import { normalizarGridConfig } from "../../canvas/grid";
