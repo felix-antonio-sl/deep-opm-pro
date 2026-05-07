@@ -49,6 +49,7 @@ Filtro de valor:
 | **14.1** | **Refinamiento OPM completo sobre Thing — hardening** | Continuar desde el corte `refinamiento OPM completo sobre Thing`: auditar deuda de slots visuales separados (`refineeInzooming`/`refineeUnfolding`/`refineable`), cubrir e2e object-inzoom y process-unfold, y validar OPL especifico de descomposicion de objeto contra SSOT. | Decision documentada sobre slots, 2 smokes nuevos verdes, OPL de object decomposition auditado y corregido si aplica. |
 | **14.2** | **Leyes ejecutables + ledger de calidad** | Convertir la auditoria categorial en tests de leyes: JSON round-trip, render metadata estable, OPL reverse safe lens, matriz Thing refinement y undo atomicity. Agregar ledger de calidad versionado. | Las proyecciones criticas tienen tests law nombrados, el ledger declara umbrales iniciales y el dashboard queda como evidencia secundaria, no como sustituto de leyes. |
 | **14.3** | **Fronteras Store/Render/Effects** | Refactor incremental sin big-bang: reemplazar aliases `Partial<OpmStore>` por contratos de slices reales, encapsular efectos runtime y sacar `globalThis` del core puro de proyeccion JointJS. | Store compone por contratos explicitos, runtime effects quedan inyectables/testeables, y `proyectarModeloAJointCells` es reproducible por argumentos explicitos. |
+| **15** | **Pre-Beta1 hardening visual e interacción** | Investigar y corregir la causa raiz del bug de `Dialogo` que produjo los reverts `modal-grid`, `mask-image` scroll y `canvas role`; reducir overflow de Toolbar con menú manual `⋯ Más` (~38 controles → ~25 visibles). | Dialogos pintan de forma estable sobre `main display:grid` + canvas SVG/composite layers; las mejoras revertidas se reintroducen solo con smoke focal; Toolbar no tiene overflow horizontal y conserva acciones secundarias accesibles desde `⋯ Más`. |
 | **Beta1** | **Dominio real mediano** | Modelar HD/KORA/GOREOS con validacion metodologica, tabla de enlaces, busqueda, estados, descomposicion y catalogo simple. | Un modelo ancla real se construye, valida, guarda/carga, busca y corrige sin workaround mayor. |
 | **Beta2** | **Simulacion conceptual + valores simples** | Ejecutar simulacion conceptual y valores simples sobre procesos/estados/atributos. | Un flujo real de dominio puede simular estado/valor antes-despues con trazabilidad. |
 | **Gamma** | **Productividad operativa secundaria** | Mapa del sistema, export, imagenes, estilos avanzados, plantillas avanzadas, organizacion no critica. | Trabajo largo mas comodo, no requisito para probar beta. |
@@ -142,6 +143,19 @@ evita construir beta sobre chrome, flujos y validacion debiles.
   persistente automatico.
 - Capturador de bugs dev-only.
 
+### Incluye hardening 15 pre-Beta1
+
+- **Dialogo root-cause**: el componente se monta pero puede no pintar cuando
+  conviven `main display:grid`, subárboles SVG/JointJS y composite layers. Este
+  bug es la causa común sospechada de tres reverts (`modal-grid`, `mask-image`
+  scroll affordance y `canvas role`). Se corrige focalmente antes de reabrir
+  esas mejoras.
+- **Toolbar overflow manual `⋯ Más`**: no usar overflow automático con
+  IntersectionObserver en esta fase. El diseño oficial mueve acciones
+  secundarias a un menú estable y accesible, dejando ~25 controles visibles.
+- Estos dos trabajos son gate previo a Beta1 porque afectan uso diario del
+  modelador y claridad de baseline visual.
+
 ### Incluye normalizaciones 14.2-14.3
 
 - Leyes ejecutables de proyeccion (`JSON`, `Render`, `OPL reverse`,
@@ -184,6 +198,13 @@ Beta1 solo cierra cuando al menos un dominio ancla real:
 5. permite inspeccionar/editar enlaces desde tabla;
 6. guarda/carga sin perdida;
 7. no requiere editar JSON ni usar workaround de desarrollo.
+
+Precondición de entrada a Beta1:
+
+- Ronda 15 cerrada: `Dialogo` estabilizado con smoke focal y Toolbar sin
+  overflow horizontal mediante `⋯ Más`.
+- Las mejoras revertidas solo se consideran parte de Beta0 si tienen test
+  browser que reproduce el fallo anterior y demuestra el fix.
 
 ## 7. Beta2 — simulación
 
