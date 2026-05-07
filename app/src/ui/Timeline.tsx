@@ -1,6 +1,8 @@
+// [JOYAS §1-3] Chrome UI consume tokens centralizados; canvas semántico invariante.
 import { useState } from "preact/hooks";
 import type { Apariencia, Entidad, Id, Modelo, Opd } from "../modelo/tipos";
 import { useOpmStore } from "../store";
+import { tokens } from "./tokens";
 
 type DropMode = "before" | "parallel" | "after";
 
@@ -254,11 +256,11 @@ const style = {
     maxHeight: "42%",
     minWidth: 0,
     overflow: "hidden",
-    background: "#ffffff",
-    borderTop: "1px solid #d9e0ea",
+    background: tokens.colors.fondoChrome,
+    borderTop: `1px solid ${tokens.colors.bordeIntermedio}`,
     display: "grid",
     gridTemplateRows: "42px minmax(0, 1fr)",
-    fontFamily: "Arial, sans-serif",
+    fontFamily: tokens.typography.familyChrome,
   },
   header: {
     display: "flex",
@@ -266,8 +268,8 @@ const style = {
     justifyContent: "space-between",
     gap: "8px",
     padding: "0 12px",
-    borderBottom: "1px solid #e4eaf1",
-    color: "#1f2937",
+    borderBottom: `1px solid ${tokens.colors.bordeChrome}`,
+    color: tokens.colors.textoPrimario,
     fontSize: "13px",
     fontWeight: 700,
   },
@@ -275,8 +277,8 @@ const style = {
     minWidth: "22px",
     height: "18px",
     borderRadius: "9px",
-    background: "#e8f7ff",
-    color: "#147aa5",
+    background: tokens.colors.infoFondo,
+    color: tokens.colors.infoBorde,
     display: "inline-flex",
     alignItems: "center",
     justifyContent: "center",
@@ -292,7 +294,7 @@ const style = {
   },
   empty: {
     padding: "8px 4px",
-    color: "#667085",
+    color: tokens.colors.textoTerciario,
     fontSize: "12px",
   },
   row: {
@@ -302,11 +304,11 @@ const style = {
     gap: "8px",
     minHeight: "44px",
     padding: "6px 8px",
-    border: "1px solid #dbe5ef",
-    borderLeft: "3px solid #3BC3FF",
-    borderRadius: "4px",
-    background: "#fdffff",
-    color: "#1f2937",
+    border: `1px solid ${tokens.colors.mapaBorde}`,
+    borderLeft: `3px solid ${tokens.colors.canvas.proceso}`,
+    borderRadius: tokens.radii.sm,
+    background: tokens.colors.canvas.fill,
+    color: tokens.colors.textoPrimario,
     cursor: "grab",
     userSelect: "none",
     fontSize: "12px",
@@ -314,31 +316,31 @@ const style = {
     outline: "none",
   },
   rowActive: {
-    borderColor: "#9fcbe0",
-    boxShadow: "0 0 0 2px #e8f7ff inset",
+    borderColor: tokens.colors.timelineActivo,
+    boxShadow: `0 0 0 2px ${tokens.colors.infoFondo} inset`,
   },
   rowParallel: {
-    borderLeftColor: "#586D8C",
-    background: "#f4fbff",
+    borderLeftColor: tokens.colors.chromeNeutral,
+    background: tokens.colors.timelineFondo,
   },
   rowDragging: {
     opacity: 0.55,
     cursor: "grabbing",
   },
   hintBefore: {
-    borderTopColor: "#3BC3FF",
+    borderTopColor: tokens.colors.canvas.proceso,
     borderTopWidth: "3px",
   },
   hintParallel: {
-    background: "#e8f7ff",
-    borderColor: "#3BC3FF",
+    background: tokens.colors.infoFondo,
+    borderColor: tokens.colors.canvas.proceso,
   },
   hintAfter: {
-    borderBottomColor: "#3BC3FF",
+    borderBottomColor: tokens.colors.canvas.proceso,
     borderBottomWidth: "3px",
   },
   handle: {
-    color: "#586D8C",
+    color: tokens.colors.chromeNeutral,
     fontWeight: 700,
     letterSpacing: 0,
     textAlign: "center",
@@ -350,21 +352,21 @@ const style = {
   },
   name: {
     minWidth: 0,
-    color: "#1f2937",
+    color: tokens.colors.textoPrimario,
     overflowWrap: "anywhere",
     lineHeight: 1.2,
   },
   meta: {
-    color: "#667085",
+    color: tokens.colors.textoTerciario,
     fontSize: "11px",
     fontWeight: 600,
   },
   parallel: {
     minWidth: "56px",
     height: "20px",
-    borderRadius: "10px",
-    background: "#eef2f7",
-    color: "#586D8C",
+    borderRadius: tokens.radii.xl,
+    background: tokens.colors.timelineFondoSuave,
+    color: tokens.colors.chromeNeutral,
     display: "inline-flex",
     alignItems: "center",
     justifyContent: "center",
@@ -374,10 +376,10 @@ const style = {
   breakButton: {
     minHeight: "26px",
     padding: "0 8px",
-    border: "1px solid #d0d7e2",
-    borderRadius: "4px",
-    background: "#ffffff",
-    color: "#475467",
+    border: `1px solid ${tokens.colors.timelineBorde}`,
+    borderRadius: tokens.radii.sm,
+    background: tokens.colors.fondoChrome,
+    color: tokens.colors.textoSecundario,
     cursor: "pointer",
     fontSize: "11px",
     fontWeight: 700,
