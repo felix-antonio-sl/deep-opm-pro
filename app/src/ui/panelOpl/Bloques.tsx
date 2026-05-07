@@ -1,6 +1,8 @@
+// [JOYAS §1-3] Chrome UI consume tokens centralizados; canvas semántico invariante.
 import type { BloqueOpl } from "../../opl/bloquesJerarquicos";
 import { lineaTocaReferencia, referenciaEnlaceEspecifico, type OplLineaInteractiva, type OplReferencia } from "../../opl/interaccion";
 import { RenderToken, type EdicionOpl } from "./RenderToken";
+import { tokens } from "../tokens";
 
 interface BloquesProps {
   bloques: BloqueOpl[];
@@ -114,23 +116,23 @@ const style = {
     display: "inline-flex",
     alignItems: "center",
     gap: 6,
-    border: "1px solid #e4eaf1",
+    border: `1px solid ${tokens.colors.bordeChrome}`,
     borderRadius: 4,
-    background: "#f8fafc",
-    color: "#334155",
+    background: tokens.colors.fondoElevado,
+    color: tokens.colors.textoSlate,
     fontSize: "12px",
     fontWeight: 700,
     cursor: "pointer",
     textAlign: "left",
     padding: "3px 8px",
   },
-  chevron: { width: 14, color: "#586D8C", fontWeight: 700 },
-  bloqueConteo: { color: "#667085", fontSize: "11px", fontWeight: 600 },
-  lineaOpdActiva: { background: "#fbfdff" },
-  lineaHover: { background: "#edf2f7" },
-  lineaSeleccionada: { boxShadow: "inset 3px 0 0 #586D8C" },
+  chevron: { width: 14, color: tokens.colors.chromeNeutral, fontWeight: 700 },
+  bloqueConteo: { color: tokens.colors.textoTerciario, fontSize: "11px", fontWeight: 600 },
+  lineaOpdActiva: { background: tokens.colors.oplFondo },
+  lineaHover: { background: tokens.colors.fondoLineaTiempo },
+  lineaSeleccionada: { boxShadow: `inset 3px 0 0 ${tokens.colors.chromeNeutral}` },
   ordinal: {
-    color: "#667085",
+    color: tokens.colors.textoTerciario,
     fontVariantNumeric: "tabular-nums",
     textAlign: "right",
   },
@@ -143,7 +145,7 @@ function estiloBloque(profundidad: number): preact.JSX.CSSProperties {
   return {
     ...style.bloque,
     paddingLeft: nivelVisual * 16,
-    borderLeft: profundidad > 0 ? "2px solid #dbe5ee" : "0 solid transparent",
+    borderLeft: profundidad > 0 ? `2px solid ${tokens.colors.oplBorde}` : "0 solid transparent",
   };
 }
 
