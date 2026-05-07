@@ -1,5 +1,7 @@
+// [JOYAS §1-3] Chrome UI consume tokens centralizados; canvas semántico invariante.
 import type { Id } from "../modelo/tipos";
 import type { CriterioResaltado, DescriptorMapa } from "../render/jointjs/mapaSistema";
+import { tokens } from "./tokens";
 
 interface Props {
   descriptor: DescriptorMapa;
@@ -100,8 +102,8 @@ const style = {
   panel: {
     minWidth: "240px",
     maxWidth: "280px",
-    borderRight: "1px solid #d9e0ea",
-    background: "#ffffff",
+    borderRight: `1px solid ${tokens.colors.bordeIntermedio}`,
+    background: tokens.colors.fondoChrome,
     overflow: "auto",
   },
   header: {
@@ -110,21 +112,21 @@ const style = {
     alignItems: "center",
     justifyContent: "space-between",
     padding: "0 10px",
-    borderBottom: "1px solid #e4eaf1",
+    borderBottom: `1px solid ${tokens.colors.bordeChrome}`,
   },
   title: {
     margin: 0,
-    color: "#1f2937",
+    color: tokens.colors.textoPrimario,
     fontSize: "13px",
     fontWeight: 700,
   },
   iconButton: {
     width: "28px",
     height: "28px",
-    border: "1px solid #c8d2df",
-    borderRadius: "4px",
-    background: "#ffffff",
-    color: "#475467",
+    border: `1px solid ${tokens.colors.bordeControl}`,
+    borderRadius: tokens.radii.sm,
+    background: tokens.colors.fondoChrome,
+    color: tokens.colors.textoSecundario,
     cursor: "pointer",
     fontSize: "18px",
     lineHeight: 1,
@@ -139,7 +141,7 @@ const style = {
     gap: "6px",
   },
   label: {
-    color: "#344054",
+    color: tokens.colors.textoControl,
     fontSize: "12px",
     fontWeight: 700,
   },
@@ -149,12 +151,12 @@ const style = {
     gap: "6px",
   },
   help: {
-    color: "#667085",
+    color: tokens.colors.textoTerciario,
     fontSize: "12px",
     fontWeight: 600,
   },
   value: {
-    color: "#667085",
+    color: tokens.colors.textoTerciario,
     fontSize: "12px",
     fontWeight: 600,
   },
@@ -164,18 +166,18 @@ const style = {
   select: {
     width: "100%",
     height: "32px",
-    border: "1px solid #c8d2df",
-    borderRadius: "4px",
-    background: "#ffffff",
-    color: "#1f2937",
+    border: `1px solid ${tokens.colors.bordeControl}`,
+    borderRadius: tokens.radii.sm,
+    background: tokens.colors.fondoChrome,
+    color: tokens.colors.textoPrimario,
     fontSize: "12px",
   },
   button: {
     height: "32px",
-    border: "1px solid #c8d2df",
-    borderRadius: "4px",
-    background: "#f9fbfd",
-    color: "#1f2937",
+    border: `1px solid ${tokens.colors.bordeControl}`,
+    borderRadius: tokens.radii.sm,
+    background: tokens.colors.fondoCard,
+    color: tokens.colors.textoPrimario,
     cursor: "pointer",
     fontSize: "12px",
     fontWeight: 700,
