@@ -1,4 +1,6 @@
+// [JOYAS §1-3] Chrome UI consume tokens centralizados; canvas semántico invariante.
 import { S } from "./estilos";
+import { tokens } from "../tokens";
 
 export function Bienvenida() {
   return (
@@ -14,7 +16,7 @@ export function Bienvenida() {
         radial automatico y el panel OPL pre-poblado. Podras continuar
         modelando de inmediato.
       </p>
-      <p style={{ ...S.desc, color: "#667085", fontSize: "13px" }}>
+      <p style={{ ...S.desc, color: tokens.colors.textoTerciario, fontSize: "13px" }}>
         Las etapas marcadas como opcionales se pueden saltar. Al confirmar
         podras revisar todo antes de crear el modelo.
       </p>
