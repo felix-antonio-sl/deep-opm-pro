@@ -297,8 +297,8 @@ export function Toolbar() {
       ) : null}
       <div style={style.actions}>
         <span style={style.divider} />
-        <button style={style.button} type="button" onClick={crearObjeto} draggable onDragStart={dragToolbar("objeto")} data-testid="toolbar-drag-objeto">Objeto</button>
-        <button style={style.button} type="button" onClick={crearProceso} draggable onDragStart={dragToolbar("proceso")} data-testid="toolbar-drag-proceso">Proceso</button>
+        <button style={style.button} type="button" onClick={crearObjeto} draggable onDragStart={dragToolbar("objeto")} data-testid="toolbar-drag-objeto" title="Crear objeto · arrastra al canvas o clic para insertar">Objeto</button>
+        <button style={style.button} type="button" onClick={crearProceso} draggable onDragStart={dragToolbar("proceso")} data-testid="toolbar-drag-proceso" title="Crear proceso · arrastra al canvas o clic para insertar">Proceso</button>
         <button
           style={puedeCrearAtributo ? style.iconTextButton : style.disabledButton}
           type="button"
@@ -320,6 +320,7 @@ export function Toolbar() {
           draggable
           onDragStart={dragToolbar("objeto")}
           onClick={() => fijarModoCreacion(modoCreacion === "objeto" ? null : "objeto")}
+          title={modoCreacion === "objeto" ? "Modo creación objeto activo · clic para desactivar" : "Activar modo creación objeto · clic en canvas inserta uno tras otro"}
         >
           Objeto en canvas
         </button>
@@ -331,21 +332,22 @@ export function Toolbar() {
           draggable
           onDragStart={dragToolbar("proceso")}
           onClick={() => fijarModoCreacion(modoCreacion === "proceso" ? null : "proceso")}
+          title={modoCreacion === "proceso" ? "Modo creación proceso activo · clic para desactivar" : "Activar modo creación proceso · clic en canvas inserta uno tras otro"}
         >
           Proceso en canvas
         </button>
         <span style={style.divider} />
-        <button style={puedeDeshacer ? style.button : style.disabledButton} type="button" onClick={deshacer} disabled={!puedeDeshacer}>Deshacer</button>
-        <button style={puedeRehacer ? style.button : style.disabledButton} type="button" onClick={rehacer} disabled={!puedeRehacer}>Rehacer</button>
+        <button style={puedeDeshacer ? style.button : style.disabledButton} type="button" onClick={deshacer} disabled={!puedeDeshacer} title="Deshacer · Ctrl+Z">Deshacer</button>
+        <button style={puedeRehacer ? style.button : style.disabledButton} type="button" onClick={rehacer} disabled={!puedeRehacer} title="Rehacer · Ctrl+Shift+Z">Rehacer</button>
         <span style={style.divider} />
-        <button style={style.button} type="button" onClick={() => confirmarSiDirty(nuevoModelo)}>Nuevo</button>
-        <button style={style.button} type="button" onClick={() => confirmarSiDirty(cargarDemo)}>Demo</button>
+        <button style={style.button} type="button" onClick={() => confirmarSiDirty(nuevoModelo)} title="Nuevo modelo · descarta el actual si pides confirmación">Nuevo</button>
+        <button style={style.button} type="button" onClick={() => confirmarSiDirty(cargarDemo)} title="Demo · cargar modelo de ejemplo">Demo</button>
         <button style={style.button} type="button" onClick={guardarLocal} title="Guardar (Ctrl+S)">
           {readOnly ? <img src={lockIcon} alt="" style={style.lockIcon} /> : null}
           Guardar
         </button>
         {readOnly ? <span style={style.readOnlyBadge} data-testid="indicador-readonly">Solo lectura</span> : null}
-        <button style={style.button} type="button" onClick={() => confirmarSiDirty(abrirCargarModelo)}>Cargar</button>
+        <button style={style.button} type="button" onClick={() => confirmarSiDirty(abrirCargarModelo)} title="Cargar modelo guardado">Cargar</button>
         <span style={style.divider} />
         <label style={style.linkPicker}>
           <span style={style.linkPickerLabel}>Enlace</span>
@@ -368,13 +370,14 @@ export function Toolbar() {
           </select>
         </label>
         {modoEnlace ? (
-          <button style={style.secondaryButton} type="button" onClick={cancelarEnlace}>Cancelar</button>
+          <button style={style.secondaryButton} type="button" onClick={cancelarEnlace} title="Cancelar creación de enlace">Cancelar</button>
         ) : null}
         <button
           style={menuTiposAbierto ? style.activeButton : style.button}
           type="button"
           onClick={() => setMenuTiposAbierto((actual) => !actual)}
           data-testid="abrir-menu-tipo-enlace"
+          title="Tipos válidos · sugerencias OPL para origen/destino"
         >
           Tipos válidos
         </button>
@@ -383,6 +386,7 @@ export function Toolbar() {
           type="button"
           onClick={() => setBibliotecaAbierta((actual) => !actual)}
           data-testid="abrir-biblioteca-cosa"
+          title="Biblioteca de cosas · arrastra al canvas para reusar"
         >
           Biblioteca
         </button>
@@ -412,7 +416,7 @@ export function Toolbar() {
             <span style={style.stickyBadge} data-testid="indicador-modo-sticky">
               Modo sticky: {modoCreacion === "objeto" ? "Objeto" : "Proceso"}
             </span>
-            <button style={style.secondaryButton} type="button" onClick={() => fijarModoCreacion(null)}>Cancelar creación</button>
+            <button style={style.secondaryButton} type="button" onClick={() => fijarModoCreacion(null)} title="Salir del modo creación sticky">Cancelar creación</button>
           </>
         ) : null}
         {seleccionados.length >= 2 ? (
@@ -436,6 +440,7 @@ export function Toolbar() {
               type="button"
               onClick={traerEnlacesEntreSeleccionadas}
               data-testid="toolbar-traer-enlaces-internos"
+              title="Traer enlaces existentes entre las cosas seleccionadas"
             >
               Traer enlaces
             </button>
@@ -499,10 +504,11 @@ export function Toolbar() {
           onClick={toggleGrid}
           aria-pressed={gridConfig.activa}
           data-testid="toggle-grid"
+          title={gridConfig.activa ? "Grid activa · clic para ocultar" : "Mostrar grid del canvas"}
         >
           Grid
         </button>
-        <button style={style.secondaryButton} type="button" onClick={() => setGridModalAbierto(true)} data-testid="config-grid">
+        <button style={style.secondaryButton} type="button" onClick={() => setGridModalAbierto(true)} data-testid="config-grid" title="Configurar paso, color y snap del grid">
           Config grid
         </button>
         <span style={style.divider} />
@@ -511,6 +517,7 @@ export function Toolbar() {
           type="button"
           onClick={toggleAliasVisibles}
           aria-pressed={uiAliasVisibles}
+          title={uiAliasVisibles ? "Ocultar alias bajo el nombre" : "Mostrar alias bajo el nombre"}
         >
           Alias
         </button>
@@ -519,6 +526,7 @@ export function Toolbar() {
           type="button"
           onClick={toggleDescripcionesVisibles}
           aria-pressed={uiDescripcionesVisibles}
+          title={uiDescripcionesVisibles ? "Ocultar descripciones bajo el nombre" : "Mostrar descripciones bajo el nombre"}
         >
           Desc
         </button>
@@ -549,6 +557,7 @@ export function Toolbar() {
               type="button"
               onClick={refrescarVistaMapa}
               data-testid="refrescar-mapa"
+              title="Refrescar miniaturas y conexiones del mapa"
             >
               Refrescar mapa
             </button>
@@ -557,10 +566,11 @@ export function Toolbar() {
               type="button"
               onClick={toggleMapaAutoRefresh}
               aria-pressed={mapaAutoRefresh}
+              title={mapaAutoRefresh ? "Auto-refresh del mapa activo" : "Activar auto-refresh del mapa"}
             >
               Auto-refresh
             </button>
-            <button style={style.button} type="button" onClick={toggleMapaPanelEstadisticas}>
+            <button style={style.button} type="button" onClick={toggleMapaPanelEstadisticas} title="Mostrar/ocultar panel de estadísticas del mapa">
               Estadísticas
             </button>
           </>
