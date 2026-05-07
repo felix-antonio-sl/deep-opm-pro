@@ -1,3 +1,4 @@
+import { entidadIdDeExtremo } from "../modelo/extremos";
 import type { Apariencia, Id, Modelo } from "../modelo/tipos";
 
 export type ModoSeleccion = "simple" | "multi" | "rectangulo";
@@ -47,6 +48,35 @@ export function todasDelOpd(modelo: Modelo, opdId: Id): Id[] {
     ...Object.values(opd.apariencias).map((apariencia) => apariencia.entidadId),
     ...Object.values(opd.enlaces).map((apariencia) => apariencia.enlaceId),
   ];
+}
+
+/**
+ * Retorna enlaces logical cuyos extremos estan contenidos en la seleccion
+ * visible del OPD activo.
+ *
+ * SSOT: [Met §multi-OPD] la seleccion opera sobre apariencias de una vista;
+ * [Glos 3.6] las apariencias no duplican hechos de modelo.
+ */
+export function enlacesInternosSeleccion(modelo: Modelo, opdId: Id, aparienciasIds: readonly Id[]): Id[] {
+  const opd = modelo.opds[opdId];
+  if (!opd) return [];
+  const seleccion = new Set(aparienciasIds);
+  const entidadesSeleccionadas = new Set<Id>();
+
+  for (const apariencia of Object.values(opd.apariencias)) {
+    if (seleccion.has(apariencia.id) || seleccion.has(apariencia.entidadId)) {
+      entidadesSeleccionadas.add(apariencia.entidadId);
+    }
+  }
+  if (entidadesSeleccionadas.size < 2) return [];
+
+  return Object.values(modelo.enlaces)
+    .filter((enlace) => {
+      const origen = entidadIdDeExtremo(modelo, enlace.origenId);
+      const destino = entidadIdDeExtremo(modelo, enlace.destinoId);
+      return !!origen && !!destino && entidadesSeleccionadas.has(origen) && entidadesSeleccionadas.has(destino);
+    })
+    .map((enlace) => enlace.id);
 }
 
 export function interseccionRectangulo(modelo: Modelo, opdId: Id, rect: BBox): Id[] {

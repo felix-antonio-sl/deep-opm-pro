@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { crearEnlace, crearModelo, crearObjeto, crearProceso } from "../modelo/operaciones";
 import type { Modelo, Resultado } from "../modelo/tipos";
-import { agregar, interseccionRectangulo, todasDelOpd, toggle, vacia } from "./seleccionMultiple";
+import { agregar, enlacesInternosSeleccion, interseccionRectangulo, todasDelOpd, toggle, vacia } from "./seleccionMultiple";
 
 describe("seleccionMultiple", () => {
   test("estado vacío usa modo simple", () => {
@@ -26,6 +26,17 @@ describe("seleccionMultiple", () => {
     const ids = interseccionRectangulo(modelo, modelo.opdRaizId, { x: 40, y: 40, width: 20, height: 20 });
     expect(ids).toContain(entidad.id);
   });
+
+  test("enlacesInternosSeleccion retorna solo enlaces cuyos extremos están seleccionados", () => {
+    const modelo = modeloConEnlacesInternos();
+    const ids = Object.values(modelo.entidades);
+    const a = ids.find((entidad) => entidad.nombre === "A")!.id;
+    const b = ids.find((entidad) => entidad.nombre === "B")!.id;
+    const c = ids.find((entidad) => entidad.nombre === "C")!.id;
+    const internos = enlacesInternosSeleccion(modelo, modelo.opdRaizId, [a, b, c]);
+    const nombres = internos.map((id) => modelo.enlaces[id]!.etiqueta).sort();
+    expect(nombres).toEqual(["A-B", "A-C"]);
+  });
 });
 
 function modeloBase(): Modelo {
@@ -35,6 +46,19 @@ function modeloBase(): Modelo {
   const [objeto, proceso] = Object.values(modelo.entidades);
   if (!objeto || !proceso) throw new Error("fixture inválido");
   modelo = must(crearEnlace(modelo, modelo.opdRaizId, objeto.id, proceso.id, "efecto"));
+  return modelo;
+}
+
+function modeloConEnlacesInternos(): Modelo {
+  let modelo = crearModelo();
+  modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 50, y: 50 }, "A"));
+  modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 240, y: 50 }, "B"));
+  modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 430, y: 50 }, "C"));
+  modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 620, y: 50 }, "D"));
+  const entidad = (nombre: string) => Object.values(modelo.entidades).find((item) => item.nombre === nombre)!.id;
+  modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidad("A"), entidad("B"), "agregacion", "A-B"));
+  modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidad("A"), entidad("C"), "agregacion", "A-C"));
+  modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidad("B"), entidad("D"), "agregacion", "B-D"));
   return modelo;
 }
 
