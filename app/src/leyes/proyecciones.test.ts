@@ -116,12 +116,19 @@ describe("leyes de proyeccion JSON/render/refinement", () => {
 
       expect(entidad.refinamiento?.tipo).toBe(caso.refinamiento);
       expect(opdHijo.padreId).toBe(modelo.opdRaizId);
+      // BUG-372334: descomposicion (inzoom) renderiza el padre como contorno
+      // con partes embebidas (dentroDe=true). Despliegue (unfold) renderiza el
+      // padre como entidad normal y las partes viven FUERA, conectadas por
+      // enlaces estructurales canonicos.
+      const rolEsperado = caso.refinamiento === "descomposicion" ? "contorno" : "externo";
       assertMetadataEntidad(cellContorno, {
         opdId: opdHijo.id,
         entidadId,
         aparienciaId: contorno.id,
-        rol: "contorno",
+        rol: rolEsperado,
       });
+      // strokeWidth=4 vive sobre cualquier entidad refinada (refinada=true en
+      // composer); aplica para los dos refinamientos como marca visual.
       expect(bodyAttrs(cellContorno).strokeWidth).toBe(4);
       expect(internas).toHaveLength(3);
       for (const interna of internas) {
@@ -129,7 +136,11 @@ describe("leyes de proyeccion JSON/render/refinement", () => {
         expect(internaEntidad.tipo).toBe(caso.thing);
         expect(internaEntidad.esencia).toBe(entidad.esencia);
         expect(internaEntidad.afiliacion).toBe(entidad.afiliacion);
-        expect(dentroDe(interna, contorno)).toBe(true);
+        if (caso.refinamiento === "descomposicion") {
+          expect(dentroDe(interna, contorno)).toBe(true);
+        } else {
+          expect(dentroDe(interna, contorno)).toBe(false);
+        }
       }
 
       if (caso.refinamiento === "despliegue") {
@@ -318,9 +329,15 @@ function extremoExiste(modelo: Modelo, extremo: ExtremoEnlace): boolean {
 
 function internasDelRefinamiento(modelo: Modelo, opdId: Id, entidadId: Id): Apariencia[] {
   const contorno = aparienciaDeEntidad(modelo, opdId, entidadId);
+  const tipo = modelo.entidades[entidadId]?.refinamiento?.tipo;
+  // BUG-372334: en despliegue las partes viven FUERA del padre. La pertenencia
+  // se determina por presencia en el OPD hijo, no por contencion espacial.
+  const filtroEspacial = tipo === "despliegue"
+    ? () => true
+    : (apariencia: Apariencia) => dentroDe(apariencia, contorno);
   return Object.values(modelo.opds[opdId]?.apariencias ?? {})
     .filter((apariencia) => apariencia.entidadId !== entidadId)
-    .filter((apariencia) => dentroDe(apariencia, contorno))
+    .filter(filtroEspacial)
     .sort((a, b) => a.y - b.y || a.x - b.x || a.id.localeCompare(b.id));
 }
 

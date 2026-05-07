@@ -100,9 +100,13 @@ export function modoPorTipoEnlace(tipo: TipoEnlace): ModoDespliegueObjeto | null
 export function aparienciasInternasDeRefinamiento(modelo: Modelo, opdHijo: Opd, entidad: Entidad): Apariencia[] {
   const contorno = Object.values(opdHijo.apariencias).find((apariencia) => apariencia.entidadId === entidad.id);
   if (!contorno) return [];
-  return Object.values(opdHijo.apariencias)
-    .filter((apariencia) => apariencia.entidadId !== entidad.id)
-    .filter((apariencia) => dentroDe(apariencia, contorno));
+  const otras = Object.values(opdHijo.apariencias).filter((apariencia) => apariencia.entidadId !== entidad.id);
+  // BUG-372334: en despliegue (unfold) las partes se posicionan FUERA del padre
+  // y se conectan via enlaces estructurales canonicos. La pertenencia se
+  // determina por presencia en el OPD hijo, no por contencion espacial.
+  // Descomposicion (inzoom) sigue el criterio espacial dentroDe.
+  if (entidad.refinamiento?.tipo === "despliegue") return otras;
+  return otras.filter((apariencia) => dentroDe(apariencia, contorno));
 }
 
 export function dentroDe(apariencia: Apariencia, contorno: Apariencia): boolean {

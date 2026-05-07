@@ -288,10 +288,14 @@ test("despliega proceso desde inspector y navega al OPD hijo", async ({ page }) 
   for (const parte of partes) {
     const apariencia = aparienciasHijo.find((item) => item.entidadId === parte.id);
     if (!apariencia) throw new Error(`No se exporto apariencia de ${parte.nombre}`);
-    expect(apariencia.x).toBeGreaterThan(contorno.x);
-    expect(apariencia.y).toBeGreaterThan(contorno.y);
-    expect(apariencia.x + apariencia.width).toBeLessThan(contorno.x + contorno.width);
-    expect(apariencia.y + apariencia.height).toBeLessThan(contorno.y + contorno.height);
+    // BUG-372334: en despliegue (unfold) las partes viven FUERA del padre y se
+    // posicionan debajo (no embebidas). Inzoom es el modo embebido.
+    const dentro = apariencia.x >= contorno.x
+      && apariencia.y >= contorno.y
+      && apariencia.x + apariencia.width <= contorno.x + contorno.width
+      && apariencia.y + apariencia.height <= contorno.y + contorno.height;
+    expect(dentro).toBe(false);
+    expect(apariencia.y).toBeGreaterThanOrEqual(contorno.y + contorno.height);
   }
 
   await page.locator('[role="treeitem"][data-opd-id="opd-1"]').click();
