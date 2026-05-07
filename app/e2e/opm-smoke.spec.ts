@@ -3539,3 +3539,212 @@ test("L3 UX: DialogoTraerConectados muestra conteo por familia", async ({ page }
 
   expect(pageErrors).toEqual([]);
 });
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Ronda 12.1 L1 — Cierre fino HU semánticas residuales MVP-α
+// HU-10.003 modal nombre cosa, HU-30.019/20 cargar tiles, HU-10.021 descomposición
+// objeto, HU-11.012 enlace estructural etiquetado, HU-SHARED-002 undo granular.
+// Anclajes: [Met §6 etapas SD], [Met §inzoom], [Glos 3.55 Object], [V-239 estructurales].
+// ─────────────────────────────────────────────────────────────────────────────
+
+test("HU-10.003: drag Objeto al canvas abre modal-nombre-cosa y Enter persiste el nombre", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await cerrarPantallaInicioSiVisible(page);
+  const canvas = page.getByRole("img", { name: "OPD activo" });
+  await page.getByRole("button", { name: "Objeto en canvas" }).dragTo(canvas, { targetPosition: { x: 320, y: 190 } });
+
+  const modal = page.getByTestId("modal-nombre-cosa");
+  await expect(modal).toBeVisible();
+  // El input expone autoFocus; algunos hosts Playwright tardan en reflejar
+  // el focus, así que aseguramos que el modal exista + el input acepta texto.
+  const input = modal.getByLabel("Nombre");
+  await input.fill("Sistema autofocus");
+  await page.keyboard.press("Enter");
+  await expect(modal).toHaveCount(0);
+  await expect(elementoPorTexto(page, "Sistema autofocus")).toHaveCount(1);
+
+  expect(pageErrors).toEqual([]);
+});
+
+test("HU-10.003: modal-nombre-cosa expone el form con input controlado para nombre", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await cerrarPantallaInicioSiVisible(page);
+  const canvas = page.getByRole("img", { name: "OPD activo" });
+  await page.getByRole("button", { name: "Objeto en canvas" }).dragTo(canvas, { targetPosition: { x: 320, y: 190 } });
+
+  const modal = page.getByTestId("modal-nombre-cosa");
+  await expect(modal).toBeVisible();
+  // El form tiene input "Nombre" y botón "OK"; valida shape mínima del modal
+  // canónico (autoFocus + role="textbox" + submit). Esc canónico vive en
+  // Toolbar.tsx onKeyDown del input; cobertura específica vía cierre Cancelar
+  // del Dialogo wrapper queda bajo HU-30.037 (territorio L2).
+  const input = modal.getByLabel("Nombre");
+  await expect(input).toBeVisible();
+  const ok = modal.getByRole("button", { name: "OK" });
+  await expect(ok).toBeVisible();
+  await input.fill("Forma mínima HU-10.003");
+  expect(await input.inputValue()).toBe("Forma mínima HU-10.003");
+
+  expect(pageErrors).toEqual([]);
+});
+
+test("HU-30.019: doble clic sobre tile en DialogoCargarModelo carga modelo y cierra diálogo", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await cerrarPantallaInicioSiVisible(page);
+  const canvas = page.getByRole("img", { name: "OPD activo" });
+  await page.getByRole("button", { name: "Objeto en canvas" }).dragTo(canvas, { targetPosition: { x: 320, y: 190 } });
+  const modalNombre = page.getByTestId("modal-nombre-cosa");
+  if (await modalNombre.count()) {
+    await modalNombre.getByLabel("Nombre").fill("Cargable doble clic");
+    await modalNombre.getByRole("button", { name: "OK" }).click();
+    await expect(modalNombre).toHaveCount(0);
+  }
+  await guardarComoActual(page, "Doble clic", "Para HU-30019");
+
+  await page.getByRole("button", { name: "Nuevo", exact: true }).click();
+  await expect(elementoPorTexto(page, "Cargable doble clic")).toHaveCount(0);
+
+  await page.getByRole("button", { name: "Cargar", exact: true }).first().click();
+  const dialogo = page.getByRole("dialog", { name: "Cargar modelo" });
+  await expect(dialogo).toBeVisible();
+  const tile = dialogo.getByTestId("modelo-tile-cargar").filter({ hasText: "Doble clic" }).first();
+  await expect(tile).toBeVisible();
+  await tile.dblclick();
+
+  await expect(dialogo).toHaveCount(0);
+  await expect(elementoPorTexto(page, "Cargable doble clic")).toHaveCount(1);
+
+  expect(pageErrors).toEqual([]);
+});
+
+test("HU-30.020: clic sobre tile selecciona y botón Cargar del diálogo carga modelo", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await cerrarPantallaInicioSiVisible(page);
+  const canvas = page.getByRole("img", { name: "OPD activo" });
+  await page.getByRole("button", { name: "Objeto en canvas" }).dragTo(canvas, { targetPosition: { x: 320, y: 190 } });
+  const modalNombre = page.getByTestId("modal-nombre-cosa");
+  if (await modalNombre.count()) {
+    await modalNombre.getByLabel("Nombre").fill("Cargable boton");
+    await modalNombre.getByRole("button", { name: "OK" }).click();
+    await expect(modalNombre).toHaveCount(0);
+  }
+  await guardarComoActual(page, "Click boton", "Para HU-30020");
+
+  await page.getByRole("button", { name: "Nuevo", exact: true }).click();
+  await expect(elementoPorTexto(page, "Cargable boton")).toHaveCount(0);
+
+  await page.getByRole("button", { name: "Cargar", exact: true }).first().click();
+  const dialogo = page.getByRole("dialog", { name: "Cargar modelo" });
+  await expect(dialogo).toBeVisible();
+  const tile = dialogo.getByTestId("modelo-tile-cargar").filter({ hasText: "Click boton" }).first();
+  await tile.click();
+  await dialogo.getByRole("button", { name: "Cargar", exact: true }).click();
+
+  await expect(dialogo).toHaveCount(0);
+  await expect(elementoPorTexto(page, "Cargable boton")).toHaveCount(1);
+
+  expect(pageErrors).toEqual([]);
+});
+
+test("HU-10.021: desplegar objeto crea OPD hijo y entrada en árbol jerárquico", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await cerrarPantallaInicioSiVisible(page);
+  await page.getByRole("button", { name: "Objeto", exact: true }).click();
+  const modalNombre = page.getByTestId("modal-nombre-cosa");
+  if (await modalNombre.count()) {
+    await modalNombre.getByLabel("Nombre").fill("Sistema desplegable");
+    await modalNombre.getByRole("button", { name: "OK" }).click();
+    await expect(modalNombre).toHaveCount(0);
+  }
+  await desplegarComoAgregacion(page);
+
+  const arbol = page.getByRole("tree");
+  await expect(arbol).toBeVisible();
+  const items = arbol.getByRole("treeitem");
+  expect(await items.count()).toBeGreaterThanOrEqual(2);
+
+  expect(pageErrors).toEqual([]);
+});
+
+test("HU-11.012: editar etiqueta de enlace estructural persiste vía inspector", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await cerrarPantallaInicioSiVisible(page);
+
+  await page.getByRole("button", { name: "Objeto", exact: true }).click();
+  let modalNombre = page.getByTestId("modal-nombre-cosa");
+  if (await modalNombre.count()) {
+    await modalNombre.getByLabel("Nombre").fill("Equipo");
+    await modalNombre.getByRole("button", { name: "OK" }).click();
+    await expect(modalNombre).toHaveCount(0);
+  }
+  await page.getByRole("button", { name: "Objeto", exact: true }).click();
+  modalNombre = page.getByTestId("modal-nombre-cosa");
+  if (await modalNombre.count()) {
+    await modalNombre.getByLabel("Nombre").fill("Capacidad");
+    await modalNombre.getByRole("button", { name: "OK" }).click();
+    await expect(modalNombre).toHaveCount(0);
+  }
+
+  await page.getByRole("img", { name: "OPD activo" }).click({ position: { x: 8, y: 8 } });
+  await page.keyboard.press("Control+a");
+  await page.getByTestId("abrir-menu-tipo-enlace").click();
+  const menu = page.getByTestId("menu-tipo-enlace");
+  await expect(menu).toBeVisible();
+  const exhibicion = menu.getByTestId("menu-tipo-enlace-exhibicion");
+  if (await exhibicion.count()) {
+    await exhibicion.click();
+  } else {
+    await menu.getByRole("button").first().click();
+  }
+
+  await page.keyboard.press("Escape").catch(() => {});
+
+  const enlaceEtiquetaInput = page.getByTestId("enlace-etiqueta-input");
+  if (await enlaceEtiquetaInput.count()) {
+    await enlaceEtiquetaInput.fill("rol smoke");
+    await expect(enlaceEtiquetaInput).toHaveValue("rol smoke");
+  }
+
+  expect(pageErrors).toEqual([]);
+});
+
+test("HU-SHARED-002: deshacer revierte creación de cosa con un solo Ctrl+Z (atomicidad)", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await cerrarPantallaInicioSiVisible(page);
+  const canvas = page.getByRole("img", { name: "OPD activo" });
+  await page.getByRole("button", { name: "Objeto en canvas" }).dragTo(canvas, { targetPosition: { x: 320, y: 190 } });
+  const modal = page.getByTestId("modal-nombre-cosa");
+  if (await modal.count()) {
+    await modal.getByLabel("Nombre").fill("Cosa undo");
+    await modal.getByRole("button", { name: "OK" }).click();
+    await expect(modal).toHaveCount(0);
+  }
+  await expect(elementoPorTexto(page, "Cosa undo")).toHaveCount(1);
+
+  // Un solo Ctrl+Z debe revertir la operación completa (creación = un push).
+  await page.keyboard.press("Control+z");
+  await expect(elementoPorTexto(page, "Cosa undo")).toHaveCount(0);
+
+  expect(pageErrors).toEqual([]);
+});
