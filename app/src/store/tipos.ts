@@ -593,14 +593,18 @@ export interface OpmStore {
 
 
 
-export type CrearSlice<T> = (set: (partial: Partial<OpmStore> | ((state: OpmStore) => Partial<OpmStore>)) => void, get: () => OpmStore) => T;
-
-export type ModeloSlice = Partial<OpmStore>;
-export type SeleccionSlice = Partial<OpmStore>;
-export type EnlacesSlice = Partial<OpmStore>;
-export type WorkspaceModSlice = Partial<OpmStore>;
-export type CarpetasSlice = Partial<OpmStore>;
-export type UiPanelSlice = Partial<OpmStore>;
-export type MapaSlice = Partial<OpmStore>;
-export type PersistenciaSlice = Partial<OpmStore>;
-export type PestanasSlice = Partial<OpmStore>;
+export type {
+  CarpetasSlice,
+  CrearSlice,
+  EnlacesSlice,
+  MapaSlice,
+  ModeloSlice,
+  OpmStoreSliceExtraKeys,
+  OpmStoreSliceMissingKeys,
+  OpmStoreSlices,
+  PersistenciaSlice,
+  PestanasSlice,
+  SeleccionSlice,
+  UiPanelSlice,
+  WorkspaceModSlice,
+} from "./sliceTypes";
