@@ -1,5 +1,7 @@
+// [JOYAS §1-3] Chrome UI consume tokens centralizados; canvas semántico invariante.
 import { designacionesEstado } from "../../modelo/estadosDesignaciones";
 import type { DesignacionEstado, Estado } from "../../modelo/tipos";
+import { tokens } from "../tokens";
 
 interface Props {
   estado: Estado;
@@ -41,20 +43,20 @@ function etiquetaDesignacion(designacion: DesignacionEstado): string {
 const stateStyles = {
   tag: {
     height: "28px",
-    border: "1px solid #c8d2df",
-    borderRadius: "4px",
-    background: "#f9fbfd",
-    color: "#475467",
+    border: `1px solid ${tokens.colors.bordeControl}`,
+    borderRadius: tokens.radii.sm,
+    background: tokens.colors.fondoCard,
+    color: tokens.colors.textoSecundario,
     cursor: "pointer",
     fontSize: "11px",
     fontWeight: 700,
   },
   tagActive: {
     height: "28px",
-    border: "1px solid #586D8C",
-    borderRadius: "4px",
-    background: "#e8eef5",
-    color: "#1f2937",
+    border: `1px solid ${tokens.colors.chromeNeutral}`,
+    borderRadius: tokens.radii.sm,
+    background: tokens.colors.chromeNeutralSuave,
+    color: tokens.colors.textoPrimario,
     cursor: "pointer",
     fontSize: "11px",
     fontWeight: 700,
