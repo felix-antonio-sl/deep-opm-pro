@@ -78,12 +78,12 @@ export function accionesOpd(set: SetStore, get: GetStore): Partial<ModeloSlice> 
     descomponerSeleccionada() {
       const { modelo, opdActivoId, seleccionId } = get();
       if (!seleccionId) {
-        set({ mensaje: "Selecciona un proceso para descomponer" });
+        set({ mensaje: "Selecciona una cosa para descomponer" });
         return;
       }
       const entidad = modelo.entidades[seleccionId];
-      if (!entidad || entidad.tipo !== "proceso") {
-        set({ mensaje: "Selecciona un proceso para descomponer" });
+      if (!entidad) {
+        set({ mensaje: "Selecciona una cosa para descomponer" });
         return;
       }
 
@@ -104,12 +104,12 @@ export function accionesOpd(set: SetStore, get: GetStore): Partial<ModeloSlice> 
     desplegarSeleccionada(modo = "agregacion") {
       const { modelo, opdActivoId, seleccionId } = get();
       if (!seleccionId) {
-        set({ mensaje: "Selecciona un objeto para desplegar" });
+        set({ mensaje: "Selecciona una cosa para desplegar" });
         return;
       }
       const entidad = modelo.entidades[seleccionId];
-      if (!entidad || entidad.tipo !== "objeto") {
-        set({ mensaje: "Selecciona un objeto para desplegar" });
+      if (!entidad) {
+        set({ mensaje: "Selecciona una cosa para desplegar" });
         return;
       }
 
@@ -130,12 +130,12 @@ export function accionesOpd(set: SetStore, get: GetStore): Partial<ModeloSlice> 
     quitarDescomposicionSeleccionada() {
       const { modelo, opdActivoId, seleccionId } = get();
       if (!seleccionId) {
-        set({ mensaje: "Selecciona un proceso descompuesto" });
+        set({ mensaje: "Selecciona una cosa descompuesta" });
         return;
       }
       const entidad = modelo.entidades[seleccionId];
-      if (!entidad || entidad.tipo !== "proceso" || entidad.refinamiento?.tipo !== "descomposicion") {
-        set({ mensaje: "Selecciona un proceso descompuesto" });
+      if (!entidad || entidad.refinamiento?.tipo !== "descomposicion") {
+        set({ mensaje: "Selecciona una cosa descompuesta" });
         return;
       }
 
@@ -156,12 +156,12 @@ export function accionesOpd(set: SetStore, get: GetStore): Partial<ModeloSlice> 
     quitarDespliegueSeleccionado() {
       const { modelo, opdActivoId, seleccionId } = get();
       if (!seleccionId) {
-        set({ mensaje: "Selecciona un objeto desplegado" });
+        set({ mensaje: "Selecciona una cosa desplegada" });
         return;
       }
       const entidad = modelo.entidades[seleccionId];
-      if (!entidad || entidad.tipo !== "objeto" || entidad.refinamiento?.tipo !== "despliegue") {
-        set({ mensaje: "Selecciona un objeto desplegado" });
+      if (!entidad || entidad.refinamiento?.tipo !== "despliegue") {
+        set({ mensaje: "Selecciona una cosa desplegada" });
         return;
       }
 

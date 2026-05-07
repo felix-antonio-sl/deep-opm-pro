@@ -54,13 +54,13 @@ export function checkObjetoNombreSingular(modelo: Modelo): AvisoMetodologico[] {
 }
 
 export function checkInzoomContenido(modelo: Modelo): AvisoMetodologico[] {
-  return procesos(modelo)
-    .filter((proceso) => proceso.refinamiento?.tipo === "descomposicion")
-    .filter((proceso) => cantidadCosasEnOpdHijo(modelo, proceso) < 2)
-    .map((proceso) => aviso("INZOOM_CONTENIDO_INSUFICIENTE", proceso, {
+  return Object.values(modelo.entidades)
+    .filter((entidad) => entidad.refinamiento?.tipo === "descomposicion")
+    .filter((entidad) => cantidadCosasEnOpdHijo(modelo, entidad) < 2)
+    .map((entidad) => aviso("INZOOM_CONTENIDO_INSUFICIENTE", entidad, {
       severidad: "advertencia",
-      mensaje: `La descomposicion de "${proceso.nombre}" contiene menos de dos cosas.`,
-      rationale: "[Met §inzoom] Un proceso descompuesto debe agregar al menos dos subprocesos o cosas internas.",
+      mensaje: `La descomposicion de "${entidad.nombre}" contiene menos de dos cosas.`,
+      rationale: "[Met §inzoom] Una cosa descompuesta debe agregar al menos dos refinadores internos.",
     }));
 }
 

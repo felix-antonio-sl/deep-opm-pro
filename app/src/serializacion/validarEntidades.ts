@@ -28,8 +28,6 @@ export function validarEntidades(value: Record<string, unknown>): Resultado<Reco
     if (!esAfiliacion(raw.afiliacion)) return fallo(`Entidad inválida: ${id}.afiliacion`);
     const refinamiento = validarRefinamiento(id, raw.refinamiento);
     if (!refinamiento.ok) return refinamiento;
-    if (refinamiento.value?.tipo === "descomposicion" && raw.tipo !== "proceso") return fallo(`Refinamiento inválido: ${id}.tipo`);
-    if (refinamiento.value?.tipo === "despliegue" && raw.tipo !== "objeto") return fallo(`Refinamiento inválido: ${id}.tipo`);
     const avanzados = camposEntidadAvanzada(id, raw);
     if (!avanzados.ok) return avanzados;
     entidades[id] = {

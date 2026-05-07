@@ -40,9 +40,9 @@ export function validarFirmaEnlace(
     return fallo("Los enlaces estructurales no aceptan extremos Estado [V-237][V-239]");
   }
   if (tipo === "agregacion") {
-    return origen.tipo === "objeto" && destino.tipo === "objeto"
+    return origen.tipo === destino.tipo
       ? ok(true)
-      : fallo("Agregación requiere Objeto -> Objeto en Sprint 0");
+      : fallo("Agregación requiere entidades de la misma clase OPM");
   }
   if (tipo === "exhibicion") {
     return ok(true);

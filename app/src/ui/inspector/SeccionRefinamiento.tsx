@@ -10,7 +10,7 @@ import { tokens } from "../tokens";
 
 /**
  * Iconografía canónica del refinamiento OPM.
- * SSOT: [Met §inzoom] descomposición proceso, [Met §unfold] despliegue objeto.
+ * SSOT: [Met §inzoom] descomposición de cosa, [Met §unfold] despliegue de cosa.
  * Assets: assets/svg/inzoom.svg y assets/svg/unfold.svg [JOYAS §2].
  */
 
@@ -47,8 +47,7 @@ interface Props {
 export function SeccionRefinamiento(props: Props) {
   return (
     <>
-      {props.entidad.tipo === "proceso" ? <RefinamientoProceso {...props} /> : null}
-      {props.entidad.tipo === "objeto" ? <RefinamientoObjeto {...props} /> : null}
+      <RefinamientoThing {...props} />
       {props.tienePartesPlegables ? (
         <>
           <button type="button" style={style.secondaryButton} onClick={props.onCambiarModoPlegado} title="Alternar vista compacta intra-rectángulo sin abrir ni destruir el OPD hijo">
@@ -69,18 +68,26 @@ export function SeccionRefinamiento(props: Props) {
   );
 }
 
-function RefinamientoProceso(props: Props) {
+function RefinamientoThing(props: Props) {
+  const descompuesta = props.entidad.refinamiento?.tipo === "descomposicion";
+  const desplegada = props.entidad.refinamiento?.tipo === "despliegue";
+  const sinRefinamiento = !props.entidad.refinamiento;
   return (
     <>
-      <button type="button" style={refinamientoStyles.iconButton} onClick={props.onDescomponer} title="Crear o abrir el OPD hijo de descomposición">
-        <img src={inzoomIcon} alt="" aria-hidden="true" style={refinamientoStyles.icon} />
-        {props.entidad.refinamiento?.tipo === "descomposicion" ? "Abrir descomposición" : "Descomponer"}
-      </button>
-      {props.entidad.refinamiento?.tipo === "descomposicion" ? <button type="button" style={style.secondaryButton} onClick={props.onQuitarDescomposicion} title="Eliminar el OPD hijo de descomposición">Quitar descomposición</button> : null}
-      {props.entidad.refinamiento?.tipo === "descomposicion" ? <ReasignacionExternos modelo={props.modelo} entidad={props.entidad} onReasignar={props.onReasignarEnlaceExterno} /> : null}
-      <button type="button" style={props.autoInvocacion ? style.secondaryButton : style.primaryButton} onClick={props.onCrearAutoInvocacion} disabled={!!props.autoInvocacion} title={props.autoInvocacion ? "El proceso ya tiene auto-invocación en este OPD" : "Crear auto-invocación con demora de 1s"}>
-        {props.autoInvocacion ? "Auto-invocación existente" : "Auto-invocación"}
-      </button>
+      {sinRefinamiento || descompuesta ? (
+        <button type="button" style={refinamientoStyles.iconButton} onClick={props.onDescomponer} title="Crear o abrir el OPD hijo de descomposición">
+          <img src={inzoomIcon} alt="" aria-hidden="true" style={refinamientoStyles.icon} />
+          {descompuesta ? "Abrir descomposición" : "Descomponer"}
+        </button>
+      ) : null}
+      {descompuesta ? <button type="button" style={style.secondaryButton} onClick={props.onQuitarDescomposicion} title="Eliminar el OPD hijo de descomposición">Quitar descomposición</button> : null}
+      {props.entidad.tipo === "proceso" && descompuesta ? <ReasignacionExternos modelo={props.modelo} entidad={props.entidad} onReasignar={props.onReasignarEnlaceExterno} /> : null}
+      {sinRefinamiento || desplegada ? <RefinamientoDespliegue {...props} /> : null}
+      {props.entidad.tipo === "proceso" ? (
+        <button type="button" style={props.autoInvocacion ? style.secondaryButton : style.primaryButton} onClick={props.onCrearAutoInvocacion} disabled={!!props.autoInvocacion} title={props.autoInvocacion ? "El proceso ya tiene auto-invocación en este OPD" : "Crear auto-invocación con demora de 1s"}>
+          {props.autoInvocacion ? "Auto-invocación existente" : "Auto-invocación"}
+        </button>
+      ) : null}
     </>
   );
 }
@@ -137,7 +144,7 @@ function ReasignacionExternoRow(props: { opdId: Id; enlace: Enlace; reanclaje: C
   );
 }
 
-function RefinamientoObjeto(props: Props) {
+function RefinamientoDespliegue(props: Props) {
   return (
     <>
       {props.entidad.refinamiento?.tipo === "despliegue" ? (

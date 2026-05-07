@@ -74,13 +74,30 @@ export function quitarRefinamientoEntidad(modelo: Modelo, entidadId: Id): Result
 }
 
 export function subprocesosOrdenadosDeRefinamiento(modelo: Modelo, opd: Opd, procesoRefinadoId: Id): Apariencia[] {
-  const contorno = Object.values(opd.apariencias).find((apariencia) => apariencia.entidadId === procesoRefinadoId);
+  return entidadesInternasOrdenadasDeRefinamiento(modelo, opd, procesoRefinadoId, "proceso");
+}
+
+export function entidadesInternasOrdenadasDeRefinamiento(modelo: Modelo, opd: Opd, entidadRefinadaId: Id, tipo?: Entidad["tipo"]): Apariencia[] {
+  const contorno = Object.values(opd.apariencias).find((apariencia) => apariencia.entidadId === entidadRefinadaId);
   if (!contorno) return [];
   return Object.values(opd.apariencias)
-    .filter((apariencia) => apariencia.entidadId !== procesoRefinadoId)
-    .filter((apariencia) => modelo.entidades[apariencia.entidadId]?.tipo === "proceso")
+    .filter((apariencia) => apariencia.entidadId !== entidadRefinadaId)
+    .filter((apariencia) => {
+      const entidad = modelo.entidades[apariencia.entidadId];
+      return entidad && (!tipo || entidad.tipo === tipo);
+    })
     .filter((apariencia) => dentroDe(apariencia, contorno))
     .sort((a, b) => compararOrdenTemporal(a, b));
+}
+
+export function cosaDescompuestaEnOpd(modelo: Modelo, opd: Opd): { entidad: Entidad; apariencia: Apariencia } | null {
+  for (const apariencia of Object.values(opd.apariencias)) {
+    const entidad = modelo.entidades[apariencia.entidadId];
+    if (entidad?.refinamiento?.tipo === "descomposicion" && entidad.refinamiento.opdId === opd.id) {
+      return { entidad, apariencia };
+    }
+  }
+  return null;
 }
 
 /**
@@ -121,19 +138,19 @@ export function procesoDescompuestoEnOpd(modelo: Modelo, opd: Opd): { entidad: E
   return null;
 }
 
-export function enlacesExternosDelProceso(
+export function enlacesExternosDeEntidad(
   modelo: Modelo,
   opdPadre: Opd,
-  procesoId: Id,
+  entidadId: Id,
 ): Array<{ enlace: Enlace; externoId: Id; aparienciaPadre: Apariencia }> {
   const aparienciasPadre = new Map(Object.values(opdPadre.apariencias).map((apariencia) => [apariencia.entidadId, apariencia]));
   const externos: Array<{ enlace: Enlace; externoId: Id; aparienciaPadre: Apariencia }> = [];
   for (const aparienciaEnlace of Object.values(opdPadre.enlaces)) {
     const enlace = modelo.enlaces[aparienciaEnlace.enlaceId];
     if (!enlace) continue;
-    const externoExtremo = extremoApuntaAEntidad(enlace.origenId, procesoId)
+    const externoExtremo = extremoApuntaAEntidad(enlace.origenId, entidadId)
       ? enlace.destinoId
-      : extremoApuntaAEntidad(enlace.destinoId, procesoId)
+      : extremoApuntaAEntidad(enlace.destinoId, entidadId)
         ? enlace.origenId
         : null;
     const externoId = externoExtremo ? entidadIdDeExtremo(modelo, externoExtremo) : null;
@@ -143,6 +160,14 @@ export function enlacesExternosDelProceso(
     externos.push({ enlace, externoId, aparienciaPadre });
   }
   return externos;
+}
+
+export function enlacesExternosDelProceso(
+  modelo: Modelo,
+  opdPadre: Opd,
+  procesoId: Id,
+): Array<{ enlace: Enlace; externoId: Id; aparienciaPadre: Apariencia }> {
+  return enlacesExternosDeEntidad(modelo, opdPadre, procesoId);
 }
 
 export function siguienteNombreOpdHijo(modelo: Modelo, opdPadreId: Id): string {

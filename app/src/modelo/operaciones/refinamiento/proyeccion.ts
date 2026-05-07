@@ -15,6 +15,8 @@ import type {
 } from "../../tipos";
 import { entidadVisibleEnOpd, ok, siguienteId, validarFirmaEnlace } from "../helpers";
 import {
+  cosaDescompuestaEnOpd,
+  enlacesExternosDeEntidad,
   enlacesExternosDelProceso,
   procesoDescompuestoEnOpd,
   subprocesosOrdenadosDeRefinamiento,
@@ -45,6 +47,7 @@ export function refrescarEnlacesExternosDerivados(modelo: Modelo, opdId: Id): Re
   return proyectarEnlacesExternosEnRefinamiento(limpio, opdId, {
     primeroId: primero.entidadId,
     ultimoId: ultimo.entidadId,
+    todosIds: subprocesos.map((apariencia) => apariencia.entidadId),
   });
 }
 
@@ -65,15 +68,15 @@ export function redistribuirEnlacesExternosSiPrimerSubproceso(modelo: Modelo, op
 export function proyectarEnlacesExternosEnRefinamiento(
   modelo: Modelo,
   opdId: Id,
-  subprocesos: { primeroId: Id; ultimoId: Id },
+  subprocesos: { primeroId: Id; ultimoId: Id; todosIds?: Id[] },
 ): Resultado<Modelo> {
   const opd = modelo.opds[opdId];
   if (!opd?.padreId) return ok(modelo);
-  const contorno = procesoDescompuestoEnOpd(modelo, opd);
+  const contorno = cosaDescompuestaEnOpd(modelo, opd);
   if (!contorno) return ok(modelo);
   const padre = modelo.opds[opd.padreId];
   if (!padre) return ok(modelo);
-  const externos = enlacesExternosDelProceso(modelo, padre, contorno.entidad.id)
+  const externos = enlacesExternosDeEntidad(modelo, padre, contorno.entidad.id)
     .filter(({ externoId }) => entidadVisibleEnOpd(opd, externoId));
   if (externos.length === 0) return ok(modelo);
   let nextSeq = modelo.nextSeq;
@@ -84,48 +87,52 @@ export function proyectarEnlacesExternosEnRefinamiento(
     if (enlaceDerivadoManualExisteParaPadre(enlaces, aparienciasEnlace, enlace.id, contorno.entidad.id)) {
       continue;
     }
-    const proyeccion = proyeccionEnlaceExterno(enlace, contorno.entidad.id, subprocesos);
-    if (proyeccion.tipo === "contorno") {
+    const proyecciones = contorno.entidad.tipo === "proceso"
+      ? proyeccionesEnlaceExterno(enlace, contorno.entidad.id, subprocesos)
+      : [];
+    if (proyecciones.length === 0) {
       if (!aparienciaEnlaceExiste(aparienciasEnlace, enlace.id)) {
         const aparienciaId = siguienteId({ ...modelo, nextSeq }, "ae");
         nextSeq += 1;
         aparienciasEnlace[aparienciaId] = { id: aparienciaId, enlaceId: enlace.id, opdId, vertices: [] };
       }
     } else {
-      const origen = entidadDeExtremo(modelo, proyeccion.origenId);
-      const destino = entidadDeExtremo(modelo, proyeccion.destinoId);
-      if (!origen || !destino) continue;
-      const firma = validarFirmaEnlace(enlace.tipo, origen, destino, {
-        origen: proyeccion.origenId,
-        destino: proyeccion.destinoId,
-      });
-      if (!firma.ok) continue;
-      if (enlaceDerivadoExiste(enlaces, aparienciasEnlace, enlace.tipo, proyeccion.origenId, proyeccion.destinoId)) {
-        continue;
+      for (const proyeccion of proyecciones) {
+        const origen = entidadDeExtremo(modelo, proyeccion.origenId);
+        const destino = entidadDeExtremo(modelo, proyeccion.destinoId);
+        if (!origen || !destino) continue;
+        const firma = validarFirmaEnlace(enlace.tipo, origen, destino, {
+          origen: proyeccion.origenId,
+          destino: proyeccion.destinoId,
+        });
+        if (!firma.ok) continue;
+        if (enlaceDerivadoExiste(enlaces, aparienciasEnlace, enlace.tipo, proyeccion.origenId, proyeccion.destinoId)) {
+          continue;
+        }
+        const enlaceId = siguienteId({ ...modelo, nextSeq }, "e");
+        nextSeq += 1;
+        const aparienciaId = siguienteId({ ...modelo, nextSeq }, "ae");
+        nextSeq += 1;
+        enlaces[enlaceId] = {
+          id: enlaceId,
+          tipo: enlace.tipo,
+          origenId: proyeccion.origenId,
+          destinoId: proyeccion.destinoId,
+          etiqueta: enlace.etiqueta,
+          derivado: {
+            tipo: "enlace-externo-refinamiento",
+            refinamientoId: contorno.entidad.id,
+            enlacePadreId: enlace.id,
+            origen: "automatico",
+          },
+        };
+        aparienciasEnlace[aparienciaId] = {
+          id: aparienciaId,
+          enlaceId,
+          opdId,
+          vertices: [],
+        };
       }
-      const enlaceId = siguienteId({ ...modelo, nextSeq }, "e");
-      nextSeq += 1;
-      const aparienciaId = siguienteId({ ...modelo, nextSeq }, "ae");
-      nextSeq += 1;
-      enlaces[enlaceId] = {
-        id: enlaceId,
-        tipo: enlace.tipo,
-        origenId: proyeccion.origenId,
-        destinoId: proyeccion.destinoId,
-        etiqueta: enlace.etiqueta,
-        derivado: {
-          tipo: "enlace-externo-refinamiento",
-          refinamientoId: contorno.entidad.id,
-          enlacePadreId: enlace.id,
-          origen: "automatico",
-        },
-      };
-      aparienciasEnlace[aparienciaId] = {
-        id: aparienciaId,
-        enlaceId,
-        opdId,
-        vertices: [],
-      };
     }
   }
 
@@ -144,21 +151,31 @@ export function proyectarEnlacesExternosEnRefinamiento(
   });
 }
 
-function proyeccionEnlaceExterno(
+function proyeccionesEnlaceExterno(
   enlace: Enlace,
   procesoRefinadoId: Id,
-  subprocesos: { primeroId: Id; ultimoId: Id },
-): { tipo: "derivado"; origenId: ExtremoEnlace; destinoId: ExtremoEnlace } | { tipo: "contorno" } {
+  subprocesos: { primeroId: Id; ultimoId: Id; todosIds?: Id[] },
+): Array<{ origenId: ExtremoEnlace; destinoId: ExtremoEnlace }> {
+  const todos = subprocesos.todosIds?.length ? subprocesos.todosIds : [subprocesos.primeroId, subprocesos.ultimoId];
   if (enlace.tipo === "consumo" && extremoApuntaAEntidad(enlace.destinoId, procesoRefinadoId)) {
-    return { tipo: "derivado", origenId: enlace.origenId, destinoId: extremoEntidad(subprocesos.primeroId) };
+    return [{ origenId: enlace.origenId, destinoId: extremoEntidad(subprocesos.primeroId) }];
   }
   if (
     (enlace.tipo === "resultado" || enlace.tipo === "invocacion") &&
     extremoApuntaAEntidad(enlace.origenId, procesoRefinadoId)
   ) {
-    return { tipo: "derivado", origenId: extremoEntidad(subprocesos.ultimoId), destinoId: enlace.destinoId };
+    return [{ origenId: extremoEntidad(subprocesos.ultimoId), destinoId: enlace.destinoId }];
   }
-  return { tipo: "contorno" };
+  if ((enlace.tipo === "agente" || enlace.tipo === "instrumento") && extremoApuntaAEntidad(enlace.destinoId, procesoRefinadoId)) {
+    return todos.map((subprocesoId) => ({ origenId: enlace.origenId, destinoId: extremoEntidad(subprocesoId) }));
+  }
+  if (enlace.tipo === "efecto" && extremoApuntaAEntidad(enlace.destinoId, procesoRefinadoId)) {
+    return todos.map((subprocesoId) => ({ origenId: enlace.origenId, destinoId: extremoEntidad(subprocesoId) }));
+  }
+  if (enlace.tipo === "efecto" && extremoApuntaAEntidad(enlace.origenId, procesoRefinadoId)) {
+    return todos.map((subprocesoId) => ({ origenId: extremoEntidad(subprocesoId), destinoId: enlace.destinoId }));
+  }
+  return [];
 }
 
 function aparienciaEnlaceExiste(apariencias: Record<Id, AparienciaEnlace>, enlaceId: Id): boolean {

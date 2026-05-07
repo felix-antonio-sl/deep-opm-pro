@@ -11,17 +11,17 @@ import type {
   Opd,
   Resultado,
   TipoEnlace,
+  TipoEntidad,
 } from "../../tipos";
 import { entidadVisibleEnOpd, fallo, ok, siguienteId } from "../helpers";
 import { quitarRefinamientoEntidad, siguienteNombreOpdHijo } from "./helpers";
 
 /**
- * Operaciones de despliegue de objeto (unfold):
- * - `desplegarObjeto`: crea OPD hijo con contorno + 3 partes iniciales y
- *   enlaces estructurales según el modo (agregación/exhibición/generalización/clasificación).
- * - `quitarDespliegueObjeto`: elimina el OPD hijo y limpia consecuencias.
+ * Operaciones de despliegue/unfold de cosa OPM.
  *
- * Refs: SSOT opm-iso-19450-es.md §3.* (unfolding).
+ * El nombre público `desplegarObjeto` se conserva por compatibilidad. La
+ * operación replica el patrón OPCloud `tryToUnfold(thing)`: acepta objetos o
+ * procesos y crea refinadores estructurales del mismo tipo que la cosa padre.
  */
 
 export interface DespliegueObjeto {
@@ -49,9 +49,8 @@ export function desplegarObjeto(
   if (!opdPadre) return fallo(`OPD no existe: ${opdPadreId}`);
   const objeto = modelo.entidades[objetoId];
   if (!objeto) return fallo(`Entidad no existe: ${objetoId}`);
-  if (objeto.tipo !== "objeto") return fallo("El despliegue requiere un objeto");
   if (!entidadVisibleEnOpd(opdPadre, objetoId)) {
-    return fallo("El despliegue requiere que el objeto tenga apariencia en el OPD activo");
+    return fallo("El despliegue requiere que la entidad tenga apariencia en el OPD activo");
   }
 
   if (objeto.refinamiento?.tipo === "despliegue") {
@@ -59,7 +58,7 @@ export function desplegarObjeto(
     if (!opdExistente) return fallo(`OPD de despliegue no existe: ${objeto.refinamiento.opdId}`);
     return ok({ modelo, opdId: opdExistente.id, creado: false, modo: objeto.refinamiento.modo ?? "agregacion" });
   }
-  if (objeto.refinamiento) return fallo("El objeto ya tiene otro refinamiento");
+  if (objeto.refinamiento) return fallo("La entidad ya tiene otro refinamiento");
 
   const opdHijoId = siguienteId(modelo, "opd");
   let nextSeq = modelo.nextSeq + 1;
@@ -123,8 +122,7 @@ export function desplegarObjeto(
 export function quitarDespliegueObjeto(modelo: Modelo, objetoId: Id): Resultado<Modelo> {
   const objeto = modelo.entidades[objetoId];
   if (!objeto) return fallo(`Entidad no existe: ${objetoId}`);
-  if (objeto.tipo !== "objeto") return fallo("El despliegue requiere un objeto");
-  if (objeto.refinamiento?.tipo !== "despliegue") return fallo("El objeto no tiene despliegue");
+  if (objeto.refinamiento?.tipo !== "despliegue") return fallo("La entidad no tiene despliegue");
 
   return quitarRefinamientoEntidad(modelo, objetoId);
 }
@@ -146,13 +144,13 @@ function partesInicialesDespliegue(
   const y = contorno.y + UNFOLD.paddingSuperior;
 
   for (let index = 1; index <= UNFOLD.partesIniciales; index += 1) {
-    const entidadId = siguienteId({ ...modelo, nextSeq }, "o");
+    const entidadId = siguienteId({ ...modelo, nextSeq }, prefijoEntidad(objeto.tipo));
     nextSeq += 1;
     const aparienciaId = siguienteId({ ...modelo, nextSeq }, "a");
     nextSeq += 1;
     entidades[entidadId] = {
       id: entidadId,
-      tipo: "objeto",
+      tipo: objeto.tipo,
       nombre: nombreInicialDespliegue(objeto, modo, index),
       esencia: objeto.esencia,
       afiliacion: objeto.afiliacion,
@@ -174,6 +172,12 @@ function partesInicialesDespliegue(
 }
 
 function nombreInicialDespliegue(objeto: Entidad, modo: ModoDespliegueObjeto, index: number): string {
+  if (objeto.tipo === "proceso") {
+    if (modo === "agregacion") return `${objeto.nombre} parte ${index}`;
+    if (modo === "exhibicion") return `${objeto.nombre} rasgo ${index}`;
+    if (modo === "generalizacion") return `${objeto.nombre} especialización ${index}`;
+    return `${objeto.nombre} instancia ${index}`;
+  }
   if (modo === "agregacion") return `${objeto.nombre} parte ${index}`;
   if (modo === "exhibicion") return `Atributo ${index}`;
   if (modo === "generalizacion") return `Especialización ${index}`;
@@ -216,4 +220,8 @@ function enlacesEstructuralesDespliegue(
   }
 
   return { enlaces, aparienciasEnlace, nextSeq };
+}
+
+function prefijoEntidad(tipo: TipoEntidad): string {
+  return tipo === "proceso" ? "p" : "o";
 }

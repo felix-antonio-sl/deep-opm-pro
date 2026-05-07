@@ -669,15 +669,51 @@ describe("operaciones de modelo", () => {
     expect(Object.values(sinDespliegue.value.enlaces)).toHaveLength(0);
   });
 
-  test("rechaza despliegue de procesos y descomposicion de objetos", () => {
+  test("acepta despliegue de procesos y descomposicion de objetos", () => {
     let modelo = crearModelo();
     modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 0, y: 0 }, "Objeto"));
     modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 220, y: 0 }, "Proceso"));
     const objeto = entidadPorNombre(modelo, "Objeto");
     const proceso = entidadPorNombre(modelo, "Proceso");
 
-    expect(desplegarObjeto(modelo, modelo.opdRaizId, proceso.id).ok).toBe(false);
-    expect(descomponerProceso(modelo, modelo.opdRaizId, objeto.id).ok).toBe(false);
+    const desplegadoProceso = desplegarObjeto(modelo, modelo.opdRaizId, proceso.id);
+    expect(desplegadoProceso.ok).toBe(true);
+    if (!desplegadoProceso.ok) return;
+    expect(desplegadoProceso.value.modelo.entidades[proceso.id]?.refinamiento?.tipo).toBe("despliegue");
+    expect(nombresInternosDespliegue(desplegadoProceso.value.modelo, desplegadoProceso.value.opdId, proceso.id)).toEqual([
+      "Proceso parte 1",
+      "Proceso parte 2",
+      "Proceso parte 3",
+    ]);
+
+    const descompuestoObjeto = descomponerProceso(modelo, modelo.opdRaizId, objeto.id);
+    expect(descompuestoObjeto.ok).toBe(true);
+    if (!descompuestoObjeto.ok) return;
+    expect(descompuestoObjeto.value.modelo.entidades[objeto.id]?.refinamiento?.tipo).toBe("descomposicion");
+    expect(nombresInternosDespliegue(descompuestoObjeto.value.modelo, descompuestoObjeto.value.opdId, objeto.id)).toEqual([
+      "Objeto 1",
+      "Objeto 2",
+      "Objeto 3",
+    ]);
+  });
+
+  test("descomposicion de objeto conserva contexto externo visible", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 0, y: 0 }, "Sistema"));
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 220, y: 0 }, "Entorno"));
+    const sistema = entidadPorNombre(modelo, "Sistema");
+    const entorno = entidadPorNombre(modelo, "Entorno");
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, sistema.id, entorno.id, "agregacion"));
+
+    const descompuesto = must(descomponerProceso(modelo, modelo.opdRaizId, sistema.id));
+    const opdHijo = descompuesto.modelo.opds[descompuesto.opdId];
+    expect(opdHijo).toBeDefined();
+    if (!opdHijo) return;
+
+    expect(Object.values(opdHijo.apariencias).some((apariencia) => apariencia.entidadId === entorno.id)).toBe(true);
+    expect(enlacesDelOpd(descompuesto.modelo, descompuesto.opdId)).toEqual(expect.arrayContaining([
+      expect.objectContaining({ tipo: "agregacion", origenId: extremoEntidad(sistema.id), destinoId: extremoEntidad(entorno.id) }),
+    ]));
   });
 
   test("splitEffectEnPar convierte efecto objeto a proceso en consumo y resultado intermedio", () => {
@@ -1026,7 +1062,7 @@ describe("operaciones de modelo", () => {
     expect(apariencasMovidas[externoProxy.id]?.y).toBe(externoProxy.y);
   });
 
-  test("mantiene agente e instrumento externos sobre el contorno del refinamiento", () => {
+  test("distribuye agente e instrumento externos a todos los subprocesos del refinamiento", () => {
     let modelo = crearModelo();
     modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 40 }, "Driver"));
     modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 150 }, "OnStar System"));
@@ -1047,14 +1083,18 @@ describe("operaciones de modelo", () => {
     const enlacesHijo = Object.values(opdHijo.enlaces)
       .map((apariencia) => modelo.enlaces[apariencia.enlaceId])
       .filter((enlace): enlace is NonNullable<typeof enlace> => enlace !== undefined);
-    expect(enlacesHijo).toEqual(expect.arrayContaining([
-      expect.objectContaining({ tipo: "agente", origenId: extremoEntidad(driver.id), destinoId: extremoEntidad(rescate.id) }),
-      expect.objectContaining({ tipo: "instrumento", origenId: extremoEntidad(sistema.id), destinoId: extremoEntidad(rescate.id) }),
-    ]));
-    expect(enlacesHijo.some((enlace) => extremoApuntaAEntidad(enlace.destinoId, entidadPorNombre(modelo, "Driver Rescuing 1").id))).toBe(false);
+    expect(enlacesHijo.filter((enlace) => enlace.tipo === "agente")).toHaveLength(3);
+    expect(enlacesHijo.filter((enlace) => enlace.tipo === "instrumento")).toHaveLength(3);
+    for (const index of [1, 2, 3]) {
+      const subproceso = entidadPorNombre(modelo, `Driver Rescuing ${index}`);
+      expect(enlacesHijo).toEqual(expect.arrayContaining([
+        expect.objectContaining({ tipo: "agente", origenId: extremoEntidad(driver.id), destinoId: extremoEntidad(subproceso.id) }),
+        expect.objectContaining({ tipo: "instrumento", origenId: extremoEntidad(sistema.id), destinoId: extremoEntidad(subproceso.id) }),
+      ]));
+    }
   });
 
-  test("mantiene efecto externo no refinado en el contorno", () => {
+  test("distribuye efecto externo a todos los subprocesos del refinamiento", () => {
     let modelo = crearModelo();
     modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 100 }, "OnStar System"));
     modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 260, y: 120 }, "Driver Rescuing"));
@@ -1068,8 +1108,13 @@ describe("operaciones de modelo", () => {
       .map((apariencia) => modelo.enlaces[apariencia.enlaceId])
       .filter((enlace): enlace is NonNullable<typeof enlace> => enlace !== undefined);
 
-    expect(enlacesHijo).toHaveLength(1);
-    expect(enlacesHijo[0]).toMatchObject({ tipo: "efecto", origenId: extremoEntidad(sistema.id), destinoId: extremoEntidad(rescate.id) });
+    expect(enlacesHijo.filter((enlace) => enlace.tipo === "efecto")).toHaveLength(3);
+    for (const index of [1, 2, 3]) {
+      const subproceso = entidadPorNombre(modelo, `Driver Rescuing ${index}`);
+      expect(enlacesHijo).toEqual(expect.arrayContaining([
+        expect.objectContaining({ tipo: "efecto", origenId: extremoEntidad(sistema.id), destinoId: extremoEntidad(subproceso.id) }),
+      ]));
+    }
   });
 
   test("numera recursivamente OPDs hijos de procesos internos", () => {

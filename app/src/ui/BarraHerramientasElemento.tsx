@@ -79,7 +79,7 @@ export function BarraHerramientasElemento({ inspectorAbierto, onToggleInspector,
   const copiarEstiloEnlace = useOpmStore((s) => s.copiarEstiloEnlaceAlPortapapeles);
   const pegarEstiloEnlace = useOpmStore((s) => s.pegarEstiloEnlaceDesdePortapapeles);
   const agregarEstado = useOpmStore((s) => s.agregarEstadoObjeto);
-  const desplegar = useOpmStore((s) => s.desplegarSeleccionada);
+  const descomponer = useOpmStore((s) => s.descomponerSeleccionada);
   const abrirModalImagen = useOpmStore((s) => s.abrirModalImagen);
   const [posicion, setPosicion] = useState<PosicionBarra | null>(null);
 
@@ -141,8 +141,7 @@ export function BarraHerramientasElemento({ inspectorAbierto, onToggleInspector,
     agregarEstado();
   };
   const handleInzoom = () => {
-    if (entidad.tipo !== "objeto") return;
-    desplegar("agregacion");
+    descomponer();
   };
   const handleEditarAlias = () => {
     if (entidad.tipo !== "objeto") return;
@@ -242,11 +241,12 @@ export function accionesPilotoBarra(
   inspectorAbierto: boolean,
 ): AccionBarra[] {
   const esObjeto = entidad?.tipo === "objeto";
+  const esCosa = !!entidad;
   return [
     accion("copiar-estilo", "Copiar estilo", "barra-copiar-estilo", !!enlaceEstiloId, { texto: "Copiar" }),
     accion("pegar-estilo", "Pegar estilo", "barra-pegar-estilo", !!enlaceEstiloId && hayEstiloEnPortapapeles, { texto: "Pegar" }),
     accion("agregar-estado", "Agregar estado", "barra-agregar-estado", !!esObjeto, { icon: addStatesIcon, visible: !!esObjeto }),
-    accion("inzoom", "Inzoom", "barra-inzoom", !!esObjeto, { icon: inzoomIcon }),
+    accion("inzoom", "Inzoom", "barra-inzoom", esCosa, { icon: inzoomIcon }),
     accion("editar-alias", "Editar alias", "barra-editar-alias", !!esObjeto, { icon: editAliasIcon }),
     accion("editar-imagen", "Editar imagen", "barra-editar-imagen", !!esObjeto, { texto: "Img", visible: !!esObjeto }),
     accion("mas-opciones", inspectorAbierto ? "Cerrar Inspector lateral" : "Abrir Inspector lateral", "barra-mas-opciones", !!entidad, { texto: "···" }),
