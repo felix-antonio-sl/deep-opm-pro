@@ -110,6 +110,7 @@ Decisiones nuevas de ronda 12:
 - **Ejemplo organizacional como asset, no chunk**: `app/examples/ejemplo-organizacional.json` (15.11 kB / 2.42 kB gzip) se carga vía URL de asset, no como import — mantiene el chunk principal estable.
 - **HU-SHARED-002/007 son honestamente parciales**: el cambio L1 estabilizó smokes 854 con HU-30.021 canónico y conteos no frágiles, pero no resolvió undo granular ni OPL inverso. La métrica refleja la verdad.
 - **Fixtures demo como kernel + script regenerable**: `app/src/modelo/fixtures.ts` define los modelos en TypeScript; `app/scripts/generar-demos.ts` los emite a `fixtures/demo-models/{Nombre}.{json,md,opl.txt}`. `crearDemo()` en runtime usa el primer fixture del catálogo.
+- **Catálogo unificado de 7 modelos (2026-05-07)**: `fixtureTodos()` cubre el espectro OPM completo: Cafetera Domestica (SD básico), OnStar System (agregación clásica ISO 19450), Diagnostico Clinico (estados + efecto), SD Generico (plantilla wizard), Logistica de Envios (SD+SD1 in-zoom), SD Async (SD+SD1 async), Control de Calidad (estados + efecto). Los 3 últimos portados desde los fixtures históricos de OPCloud.
 
 Decisiones de rondas 1-11 que siguen vigentes (no se reabren):
 
