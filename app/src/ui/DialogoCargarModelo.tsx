@@ -179,8 +179,8 @@ export function DialogoCargarModelo() {
 	              value={query}
 	              onInput={(event) => setQuery(event.currentTarget.value)}
 	            />
-	            <button type="button" style={modo === "tiles" ? style.activeToggle : style.toggle} onClick={() => cambiarModo("tiles")} title="Vista de tiles">▦</button>
-	            <button type="button" style={modo === "lista" ? style.activeToggle : style.toggle} onClick={() => cambiarModo("lista")} title="Vista de lista">☰</button>
+	            <button type="button" style={modo === "tiles" ? style.activeToggle : style.toggle} onClick={() => cambiarModo("tiles")} title="Vista de tiles" aria-label="Vista de tiles" aria-pressed={modo === "tiles"}><span aria-hidden="true">▦</span></button>
+	            <button type="button" style={modo === "lista" ? style.activeToggle : style.toggle} onClick={() => cambiarModo("lista")} title="Vista de lista" aria-label="Vista de lista" aria-pressed={modo === "lista"}><span aria-hidden="true">☰</span></button>
 	          </div>
 	          {modo === "lista" ? (
 	            <TablaModelos

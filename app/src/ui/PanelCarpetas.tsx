@@ -192,8 +192,8 @@ function ToolbarAcciones(props: PanelCarpetasProps & { puedePegar: boolean }) {
           <button type="button" style={style.toggle} onClick={props.onCancelarPortapapeles} title="Cancelar cortar">x</button>
         </>
       ) : null}
-      <button type="button" style={props.vista === "tiles" ? style.activeToggle : style.toggle} onClick={() => props.onVistaChange("tiles")} title="Vista de tiles">▦</button>
-      <button type="button" style={props.vista === "lista" ? style.activeToggle : style.toggle} onClick={() => props.onVistaChange("lista")} title="Vista de lista">☰</button>
+      <button type="button" style={props.vista === "tiles" ? style.activeToggle : style.toggle} onClick={() => props.onVistaChange("tiles")} title="Vista de tiles" aria-label="Vista de tiles" aria-pressed={props.vista === "tiles"}><span aria-hidden="true">▦</span></button>
+      <button type="button" style={props.vista === "lista" ? style.activeToggle : style.toggle} onClick={() => props.onVistaChange("lista")} title="Vista de lista" aria-label="Vista de lista" aria-pressed={props.vista === "lista"}><span aria-hidden="true">☰</span></button>
     </div>
   );
 }
