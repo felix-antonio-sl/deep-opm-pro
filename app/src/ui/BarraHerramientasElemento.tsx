@@ -23,6 +23,15 @@ const ICONO_INZOOM = (
     <rect x="7" y="7" width="6" height="6" rx="1" fill="none" stroke="currentColor" strokeWidth="1.4" />
   </svg>
 );
+// Unfold canonico: caja padre arriba con triangulo de despliegue (agregacion)
+// emanando hacia abajo, indicando refinadores fuera del contorno.
+const ICONO_UNFOLD = (
+  <svg width="16" height="16" viewBox="0 0 20 20" aria-hidden="true" focusable="false">
+    <rect x="6" y="2" width="8" height="6" rx="1" fill="none" stroke="currentColor" strokeWidth="1.4" />
+    <path d="M10 9 L10 12" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+    <path d="M7 17 L13 17 L10 12 Z" fill="currentColor" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round" />
+  </svg>
+);
 const ICONO_EDITAR_ALIAS = (
   <svg width="16" height="16" viewBox="0 0 20 20" aria-hidden="true" focusable="false">
     <path d="M3 16 L4 13 L13 4 L16 7 L7 16 Z" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" />
@@ -72,6 +81,7 @@ type AccionBarraId =
   | "pegar-estilo"
   | "agregar-estado"
   | "inzoom"
+  | "unfold"
   | "editar-alias"
   | "editar-imagen"
   | "mas-opciones";
@@ -94,6 +104,7 @@ export function BarraHerramientasElemento({ inspectorAbierto, onToggleInspector,
   const pegarEstiloEnlace = useOpmStore((s) => s.pegarEstiloEnlaceDesdePortapapeles);
   const agregarEstado = useOpmStore((s) => s.agregarEstadoObjeto);
   const descomponer = useOpmStore((s) => s.descomponerSeleccionada);
+  const desplegar = useOpmStore((s) => s.desplegarSeleccionada);
   const abrirModalImagen = useOpmStore((s) => s.abrirModalImagen);
   const [posicion, setPosicion] = useState<PosicionBarra | null>(null);
 
@@ -157,6 +168,9 @@ export function BarraHerramientasElemento({ inspectorAbierto, onToggleInspector,
   const handleInzoom = () => {
     descomponer();
   };
+  const handleUnfold = () => {
+    desplegar();
+  };
   const handleEditarAlias = () => {
     if (entidad.tipo !== "objeto") return;
     onAbrirInspector();
@@ -175,6 +189,7 @@ export function BarraHerramientasElemento({ inspectorAbierto, onToggleInspector,
     "pegar-estilo": handlePegarEstilo,
     "agregar-estado": handleAgregarEstado,
     inzoom: handleInzoom,
+    unfold: handleUnfold,
     "editar-alias": handleEditarAlias,
     "editar-imagen": handleEditarImagen,
     "mas-opciones": handleMasOpciones,
@@ -264,7 +279,8 @@ export function accionesPilotoBarra(
     accion("copiar-estilo", "Copiar estilo", "barra-copiar-estilo", !!enlaceEstiloId, { texto: "Copiar", visible: !!enlaceEstiloId }),
     accion("pegar-estilo", "Pegar estilo", "barra-pegar-estilo", !!enlaceEstiloId && hayEstiloEnPortapapeles, { texto: "Pegar", visible: !!enlaceEstiloId }),
     accion("agregar-estado", "Agregar estado", "barra-agregar-estado", !!esObjeto, { icon: ICONO_AGREGAR_ESTADO, visible: !!esObjeto }),
-    accion("inzoom", "Inzoom", "barra-inzoom", esCosa, { icon: ICONO_INZOOM }),
+    accion("inzoom", "Inzoom (descomposición)", "barra-inzoom", esCosa, { icon: ICONO_INZOOM }),
+    accion("unfold", "Unfold (despliegue)", "barra-unfold", esCosa, { icon: ICONO_UNFOLD }),
     accion("editar-alias", "Editar alias", "barra-editar-alias", !!esObjeto, { icon: ICONO_EDITAR_ALIAS }),
     accion("editar-imagen", "Editar imagen", "barra-editar-imagen", !!esObjeto, { texto: "Img", visible: !!esObjeto }),
     accion("mas-opciones", inspectorAbierto ? "Cerrar Inspector lateral" : "Abrir Inspector lateral", "barra-mas-opciones", !!entidad, { texto: "···" }),

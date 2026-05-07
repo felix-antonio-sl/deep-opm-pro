@@ -242,6 +242,7 @@ test("barra flotante aparece anclada a la cosa seleccionada con acciones piloto"
   await expect(page.getByTestId("barra-pegar-estilo")).toHaveCount(0);
   await expect(page.getByTestId("barra-agregar-estado")).toBeVisible();
   await expect(page.getByTestId("barra-inzoom")).toBeVisible();
+  await expect(page.getByTestId("barra-unfold")).toBeVisible();
   await expect(page.getByTestId("barra-editar-alias")).toBeVisible();
   await expect(page.getByTestId("barra-editar-imagen")).toBeVisible();
   await expect(page.getByTestId("barra-mas-opciones")).toBeVisible();

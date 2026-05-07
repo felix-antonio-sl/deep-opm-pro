@@ -145,12 +145,17 @@ describe("enlace visual relacionado", () => {
 });
 
 describe("accionesPilotoBarra", () => {
-  test("expone siete botones para objeto: seis acciones piloto mas mas opciones", () => {
-    expect(accionesPilotoBarra(objeto, "enlace-1", true, true).filter((accion) => accion.visible)).toHaveLength(7);
+  test("expone ocho botones para objeto: siete acciones piloto mas mas opciones", () => {
+    expect(accionesPilotoBarra(objeto, "enlace-1", true, true).filter((accion) => accion.visible)).toHaveLength(8);
   });
 
-  test("expone cinco botones visibles para proceso", () => {
-    expect(accionesPilotoBarra(proceso, "enlace-1", true, true).filter((accion) => accion.visible)).toHaveLength(5);
+  test("expone seis botones visibles para proceso", () => {
+    expect(accionesPilotoBarra(proceso, "enlace-1", true, true).filter((accion) => accion.visible)).toHaveLength(6);
+  });
+
+  test("expone unfold para objeto y proceso", () => {
+    expect(accionesPilotoBarra(objeto, null, false, true).find((accion) => accion.id === "unfold")?.enabled).toBe(true);
+    expect(accionesPilotoBarra(proceso, null, false, true).find((accion) => accion.id === "unfold")?.enabled).toBe(true);
   });
 
   test("habilita copiar estilo si hay enlace relacionado", () => {
