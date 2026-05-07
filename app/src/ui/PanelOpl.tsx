@@ -1,3 +1,4 @@
+// [JOYAS §1-3] Chrome UI consume tokens centralizados; canvas semántico invariante.
 import { useMemo, useState } from "preact/hooks";
 import { agruparOracionesPorOpd, ordenarOpdsParaOpl } from "../opl/bloquesJerarquicos";
 import { generarOplInteractivo } from "../opl/generar";
@@ -6,6 +7,7 @@ import { useOpmStore } from "../store";
 import { Bloques } from "./panelOpl/Bloques";
 import type { EdicionOpl } from "./panelOpl/RenderToken";
 import { ToolbarOpl } from "./panelOpl/Toolbar";
+import { tokens } from "./tokens";
 
 /**
  * Barrel publico del panel OPL-ES. Conserva lecturas amplias del store y baja
@@ -134,8 +136,8 @@ const style = {
   panel: {
     overflow: "auto",
     padding: "10px 14px",
-    background: "#ffffff",
-    color: "#1f2937",
+    background: tokens.colors.fondoChrome,
+    color: tokens.colors.textoPrimario,
     fontSize: "13px",
     lineHeight: 1.65,
     minHeight: 0,
@@ -144,8 +146,8 @@ const style = {
   },
   panelMinimizado: {
     overflow: "hidden",
-    background: "#ffffff",
-    color: "#334155",
+    background: tokens.colors.fondoChrome,
+    color: tokens.colors.textoSlate,
     minHeight: 0,
     height: "100%",
     boxSizing: "border-box",
@@ -155,9 +157,9 @@ const style = {
     height: "100%",
     minHeight: 28,
     border: 0,
-    borderTop: "1px solid #d9e0ea",
-    background: "#f8fafc",
-    color: "#334155",
+    borderTop: `1px solid ${tokens.colors.bordeIntermedio}`,
+    background: tokens.colors.fondoElevado,
+    color: tokens.colors.textoSlate,
     fontSize: "12px",
     fontWeight: 700,
     cursor: "pointer",
@@ -165,5 +167,5 @@ const style = {
     padding: "4px 12px",
   },
   toolbarSpacer: { minHeight: 26, marginBottom: 10 },
-  empty: { color: "#667085" },
+  empty: { color: tokens.colors.textoTerciario },
 } satisfies Record<string, preact.JSX.CSSProperties>;
