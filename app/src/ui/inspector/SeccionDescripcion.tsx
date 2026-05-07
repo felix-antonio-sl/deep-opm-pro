@@ -1,4 +1,6 @@
+// [JOYAS §1-3] Chrome UI consume tokens centralizados; canvas semántico invariante.
 import { inspectorStyles as style } from "../inspectorStyles";
+import { tokens } from "../tokens";
 
 /**
  * Descripción persistente de una cosa OPM. SSOT: [Glos 3.76] cosa =
@@ -28,11 +30,11 @@ const advancedStyles = {
     width: "100%",
     minHeight: "72px",
     padding: "8px",
-    border: "1px solid #c8d2df",
-    borderRadius: "4px",
-    outlineColor: "#586D8C",
+    border: `1px solid ${tokens.colors.bordeControl}`,
+    borderRadius: tokens.radii.sm,
+    outlineColor: tokens.colors.chromeNeutral,
     resize: "vertical",
-    fontFamily: "Arial, sans-serif",
+    fontFamily: tokens.typography.familyChrome,
     fontSize: "12px",
   },
 } satisfies Record<string, preact.JSX.CSSProperties>;
