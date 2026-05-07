@@ -205,11 +205,162 @@ export function crearControlCalidad(): FixtureDemo {
   };
 }
 
+export function crearOnStarSystem(): FixtureDemo {
+  let modelo = crearModelo("OnStar System");
+
+  modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 90, y: 50 }, "Driver"));
+  modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 660, y: 50 }, "OnStar System"));
+  modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 760, y: 110 }, "GPS"));
+  modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 760, y: 180 }, "Cellular Network"));
+  modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 760, y: 250 }, "VCIM"));
+  modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 760, y: 320 }, "OnStar Console"));
+  modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 390, y: 200 }, "Driver Rescuing"));
+  modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 210, y: 310 }, "OnStar Advisor"));
+
+  const driver = entidadPorNombre(modelo, "Driver");
+  const onstarSys = entidadPorNombre(modelo, "OnStar System");
+  const gps = entidadPorNombre(modelo, "GPS");
+  const celNet = entidadPorNombre(modelo, "Cellular Network");
+  const vcim = entidadPorNombre(modelo, "VCIM");
+  const console_ = entidadPorNombre(modelo, "OnStar Console");
+  const rescuing = entidadPorNombre(modelo, "Driver Rescuing");
+  const advisor = entidadPorNombre(modelo, "OnStar Advisor");
+
+  for (const id of [driver, onstarSys, gps, celNet, vcim, console_, rescuing, advisor]) {
+    modelo = must(cambiarEsencia(modelo, id, "fisica"));
+  }
+  modelo = must(cambiarAfiliacion(modelo, driver, "ambiental"));
+
+  modelo = must(crearEnlace(modelo, modelo.opdRaizId, onstarSys, gps, "agregacion"));
+  modelo = must(crearEnlace(modelo, modelo.opdRaizId, onstarSys, celNet, "agregacion"));
+  modelo = must(crearEnlace(modelo, modelo.opdRaizId, onstarSys, vcim, "agregacion"));
+  modelo = must(crearEnlace(modelo, modelo.opdRaizId, onstarSys, console_, "agregacion"));
+  modelo = must(crearEnlace(modelo, modelo.opdRaizId, advisor, rescuing, "agente"));
+  modelo = must(crearEnlace(modelo, modelo.opdRaizId, onstarSys, rescuing, "instrumento"));
+  modelo = must(crearEnlace(modelo, modelo.opdRaizId, rescuing, driver, "efecto"));
+
+  return {
+    modelo,
+    proposito: "Rescatar a un conductor en peligro mediante el sistema OnStar y un asesor.",
+    descripcion: "Ejemplo clasico OPM del estandar ISO 19450. Agregacion estructural (OnStar System consta de GPS, Cellular Network, VCIM, OnStar Console), agente (OnStar Advisor), instrumento (OnStar System) y efecto sobre Driver.",
+  };
+}
+
+export function crearSdTemplate(): FixtureDemo {
+  let modelo = crearModelo("SD Generico");
+
+  modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 90, y: 50 }, "System Name"));
+  modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 260, y: 50 }, "System Handler"));
+  modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 430, y: 50 }, "System Tool Set"));
+  modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 90, y: 150 }, "Main Input"));
+  modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 660, y: 50 }, "Beneficiary Group"));
+  modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 660, y: 150 }, "Beneficiary Attribute"));
+  modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 390, y: 230 }, "Main System Doing"));
+  modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 390, y: 370 }, "Main Output"));
+
+  const sysName = entidadPorNombre(modelo, "System Name");
+  const handler = entidadPorNombre(modelo, "System Handler");
+  const toolSet = entidadPorNombre(modelo, "System Tool Set");
+  const mainInput = entidadPorNombre(modelo, "Main Input");
+  const beneficiary = entidadPorNombre(modelo, "Beneficiary Group");
+  const attr = entidadPorNombre(modelo, "Beneficiary Attribute");
+  const mainDoing = entidadPorNombre(modelo, "Main System Doing");
+  const mainOutput = entidadPorNombre(modelo, "Main Output");
+
+  modelo = must(cambiarEsencia(modelo, handler, "fisica"));
+  modelo = must(cambiarEsencia(modelo, beneficiary, "fisica"));
+  modelo = must(cambiarEsencia(modelo, mainDoing, "fisica"));
+
+  const estRes = must(crearEstadosIniciales(modelo, attr));
+  modelo = estRes.modelo;
+  const [e1Id, e2Id] = estRes.estadoIds;
+  modelo = must(renombrarEstado(modelo, e1Id, "problematic"));
+  modelo = must(renombrarEstado(modelo, e2Id, "satisfactory"));
+  modelo = must(designarEstadoInicial(modelo, e1Id));
+  modelo = must(designarEstadoFinal(modelo, e2Id));
+
+  modelo = must(crearEnlace(modelo, modelo.opdRaizId, sysName, mainDoing, "exhibicion"));
+  modelo = must(crearEnlace(modelo, modelo.opdRaizId, beneficiary, attr, "exhibicion"));
+  modelo = must(crearEnlace(modelo, modelo.opdRaizId, mainDoing, attr, "efecto"));
+  modelo = must(crearEnlace(modelo, modelo.opdRaizId, handler, mainDoing, "agente"));
+  modelo = must(crearEnlace(modelo, modelo.opdRaizId, mainInput, mainDoing, "consumo"));
+  modelo = must(crearEnlace(modelo, modelo.opdRaizId, sysName, mainDoing, "instrumento"));
+  modelo = must(crearEnlace(modelo, modelo.opdRaizId, toolSet, mainDoing, "instrumento"));
+  modelo = must(crearEnlace(modelo, modelo.opdRaizId, mainDoing, mainOutput, "resultado"));
+
+  return {
+    modelo,
+    proposito: "Plantilla generica de SD con agente, instrumentos, consumo, produccion y efecto con cambio de estado.",
+    descripcion: "Plantilla wizard canonica: System Name exhibe Main System Doing, System Handler + Tool Set como enablers, Main Input consumido, Main Output producido, Beneficiary con atributo de estado problematic→satisfactory.",
+  };
+}
+
+export function crearSdAsyncInzoomed(): FixtureDemo {
+  let modelo = crearModelo("SD Async");
+
+  modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 90, y: 50 }, "System Name"));
+  modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 260, y: 50 }, "System Handler"));
+  modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 430, y: 50 }, "System Tool Set"));
+  modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 600, y: 50 }, "Main Input"));
+  modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 390, y: 230 }, "Main System Doing"));
+  modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 390, y: 370 }, "Main Output"));
+
+  const sysName = entidadPorNombre(modelo, "System Name");
+  const handler = entidadPorNombre(modelo, "System Handler");
+  const toolSet = entidadPorNombre(modelo, "System Tool Set");
+  const mainInput = entidadPorNombre(modelo, "Main Input");
+  const mainDoing = entidadPorNombre(modelo, "Main System Doing");
+  const mainOutput = entidadPorNombre(modelo, "Main Output");
+
+  modelo = must(cambiarEsencia(modelo, handler, "fisica"));
+  modelo = must(cambiarEsencia(modelo, mainDoing, "fisica"));
+
+  modelo = must(crearEnlace(modelo, modelo.opdRaizId, sysName, mainDoing, "exhibicion"));
+  modelo = must(crearEnlace(modelo, modelo.opdRaizId, handler, mainDoing, "agente"));
+  modelo = must(crearEnlace(modelo, modelo.opdRaizId, mainInput, mainDoing, "consumo"));
+  modelo = must(crearEnlace(modelo, modelo.opdRaizId, sysName, mainDoing, "instrumento"));
+  modelo = must(crearEnlace(modelo, modelo.opdRaizId, toolSet, mainDoing, "instrumento"));
+  modelo = must(crearEnlace(modelo, modelo.opdRaizId, mainDoing, mainOutput, "resultado"));
+
+  const descRes = must(descomponerProceso(modelo, modelo.opdRaizId, mainDoing));
+  modelo = descRes.modelo;
+  const sd1Id = descRes.opdId;
+  const sd1 = modelo.opds[sd1Id];
+  if (!sd1) throw new Error("SD1 no creado");
+
+  const subEntidades = Object.values(modelo.entidades)
+    .filter((e) => e.tipo === "proceso"
+      && !e.refinamiento
+      && Object.values(sd1.apariencias).some((a) => a.entidadId === e.id));
+  const subIds = subEntidades.map((e) => e.id);
+
+  if (subIds.length >= 3) {
+    modelo = must(renombrarEntidad(modelo, subIds[0]!, "First Processing"));
+    modelo = must(renombrarEntidad(modelo, subIds[1]!, "Second Processing"));
+    modelo = must(renombrarEntidad(modelo, subIds[2]!, "Third Processing"));
+
+    for (const sid of subIds) {
+      modelo = must(cambiarEsencia(modelo, sid, "fisica"));
+    }
+    modelo = must(crearEnlace(modelo, sd1Id, subIds[0]!, subIds[1]!, "invocacion"));
+    modelo = must(crearEnlace(modelo, sd1Id, subIds[1]!, subIds[2]!, "invocacion"));
+  }
+
+  return {
+    modelo,
+    proposito: "Procesamiento asincrono con descomposicion en 3 sub-procesos independientes.",
+    descripcion: "SD con in-zooming asincrono: Main System Doing se descompone en First/Second/Third Processing. Sub-procesos invocados secuencialmente pero sin dependencia de estado (asincrono).",
+  };
+}
+
 export function fixtureTodos(): FixtureDemo[] {
   return [
     crearCafetera(),
+    crearOnStarSystem(),
     crearDiagnosticoClinico(),
+    crearSdTemplate(),
     crearLogisticaEnvios(),
+    crearSdAsyncInzoomed(),
     crearControlCalidad(),
   ];
 }
