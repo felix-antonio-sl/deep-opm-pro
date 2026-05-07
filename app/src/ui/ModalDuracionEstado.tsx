@@ -1,8 +1,10 @@
+// [JOYAS §1-3] Chrome UI consume tokens centralizados; canvas semántico invariante.
 import { useEffect, useState } from "preact/hooks";
 import { UNIDADES_TIEMPO } from "../modelo/objetoDuracion";
 import { useOpmStore } from "../store";
 import type { UnidadTiempo } from "../modelo/tipos";
 import { Dialogo } from "./Dialogo";
+import { tokens } from "./tokens";
 
 export function ModalDuracionEstado() {
   const abierto = useOpmStore((s) => s.modalDuracionAbierto);
@@ -87,8 +89,8 @@ const style = {
   body: { display: "grid", gap: "12px", minWidth: "min(420px, calc(100vw - 80px))" },
   grid3: { display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: "8px" },
   field: { display: "grid", gap: "4px" },
-  label: { color: "#667085", fontSize: "12px", fontWeight: 700 },
-  input: { height: "34px", padding: "0 8px", border: "1px solid #c8d2df", borderRadius: "4px", fontSize: "13px" },
-  primaryButton: { height: "34px", padding: "0 12px", border: "1px solid #586D8C", borderRadius: "4px", background: "#586D8C", color: "#ffffff", cursor: "pointer", fontWeight: 700 },
-  secondaryButton: { height: "34px", padding: "0 14px", border: "1px solid #c8d2df", borderRadius: "4px", background: "#ffffff", color: "#475467", cursor: "pointer", fontSize: "13px", fontWeight: 700 },
+  label: { color: tokens.colors.textoTerciario, fontSize: "12px", fontWeight: 700 },
+  input: { height: "34px", padding: "0 8px", border: `1px solid ${tokens.colors.bordeControl}`, borderRadius: tokens.radii.sm, fontSize: "13px" },
+  primaryButton: { height: "34px", padding: "0 12px", border: `1px solid ${tokens.colors.chromeNeutral}`, borderRadius: tokens.radii.sm, background: tokens.colors.chromeNeutral, color: tokens.colors.fondoChrome, cursor: "pointer", fontWeight: 700 },
+  secondaryButton: { height: "34px", padding: "0 14px", border: `1px solid ${tokens.colors.bordeControl}`, borderRadius: tokens.radii.sm, background: tokens.colors.fondoChrome, color: tokens.colors.textoSecundario, cursor: "pointer", fontSize: "13px", fontWeight: 700 },
 } satisfies Record<string, preact.JSX.CSSProperties>;
