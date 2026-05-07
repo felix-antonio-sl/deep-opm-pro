@@ -14,6 +14,8 @@ interface ToolbarOplProps {
   onCopiar: () => void;
   onExportarHtml: () => void;
   onFiltroSeleccion: (activo: boolean) => void;
+  editorActivo: boolean;
+  onEditarLibre: () => void;
 }
 
 export function ToolbarOpl(props: ToolbarOplProps) {
@@ -59,6 +61,16 @@ export function ToolbarOpl(props: ToolbarOplProps) {
         onClick={props.onPlaceholderAi}
       >
         AI
+      </button>
+      <button
+        type="button"
+        data-testid="panel-opl-editar-libre"
+        style={botonActivo(props.editorActivo)}
+        title={props.editorActivo ? "Cerrar edición OPL" : "Editar OPL libre"}
+        aria-pressed={props.editorActivo}
+        onClick={props.onEditarLibre}
+      >
+        Editar
       </button>
       <input
         data-testid="panel-opl-buscar"

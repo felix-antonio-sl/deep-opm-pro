@@ -960,6 +960,24 @@ describe("store undo/redo y dirty state", () => {
     expect(store.getState().seleccionId).toBe(objId);
   });
 
+  test("aplicarEdicionOplLibre aplica parser inverso con undo atomico", () => {
+    store.getState().nuevoModelo();
+    store.getState().crearObjetoDemo();
+    const id = primeraEntidadId();
+
+    const texto = "**Cliente** es un objeto físico y ambiental.";
+    store.getState().aplicarEdicionOplLibre(texto);
+
+    expect(store.getState().modelo.entidades[id]?.nombre).toBe("Cliente");
+    expect(store.getState().modelo.entidades[id]?.esencia).toBe("fisica");
+    expect(store.getState().modelo.entidades[id]?.afiliacion).toBe("ambiental");
+    expect(store.getState().puedeDeshacer).toBe(true);
+
+    store.getState().deshacer();
+    expect(store.getState().modelo.entidades[id]?.nombre).toBe("Objeto");
+    expect(store.getState().modelo.entidades[id]?.esencia).toBe("informacional");
+  });
+
   test("abrirInspectorEnlaceDesdeOpl selecciona enlace valido", () => {
     // Crear modelo con enlace via operaciones, importarlo
     let modelo = crearModelo("L2");

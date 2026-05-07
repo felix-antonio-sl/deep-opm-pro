@@ -22,6 +22,7 @@ import {
 import { renombrarEtiquetaEnlace } from "../../modelo/etiquetasEnlace";
 import { mismaReferencia } from "../../opl/interaccion";
 import { generarOpl } from "../../opl/generar";
+import { aplicarPatchesOpl, planificarEdicionOplLibre } from "../../opl/parser";
 import { cargarPlantilla } from "../../persistencia/plantillas";
 import { hidratarModelo } from "../../serializacion/json";
 import {
@@ -274,6 +275,31 @@ export function accionesCanvas(set: SetStore, get: GetStore): Partial<ModeloSlic
         return;
       }
       set({ seleccionId: null, enlaceSeleccionId: enlaceId, modoEnlace: null, mensaje: null });
+    },
+
+    aplicarEdicionOplLibre(texto) {
+      const { modelo, opdActivoId } = get();
+      const preview = planificarEdicionOplLibre(modelo, texto, { opdActivoId });
+      const bloqueante = preview.diagnosticos.find((diagnostico) => diagnostico.severidad === "error");
+      if (bloqueante) {
+        set({ mensaje: `OPL no aplicado: linea ${bloqueante.linea}: ${bloqueante.mensaje}` });
+        return;
+      }
+      if (preview.patches.length === 0) {
+        set({ mensaje: "OPL sin cambios aplicables" });
+        return;
+      }
+      const resultado = aplicarPatchesOpl(modelo, preview.patches, opdActivoId);
+      if (!resultado.ok) {
+        set({ mensaje: `OPL no aplicado: ${resultado.error}` });
+        return;
+      }
+      commitModelo(set, modelo, resultado.value, {
+        seleccionId: null,
+        enlaceSeleccionId: null,
+        modoEnlace: null,
+        mensaje: `OPL aplicado: ${preview.patches.length} cambio${preview.patches.length === 1 ? "" : "s"}`,
+      });
     },
 
     async copiarOplActualAlPortapapeles() {

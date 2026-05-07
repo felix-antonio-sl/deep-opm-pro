@@ -3,6 +3,7 @@ import { useMemo, useState } from "preact/hooks";
 import { agruparOracionesPorOpd, ordenarOpdsParaOpl } from "../opl/bloquesJerarquicos";
 import { generarOplInteractivo } from "../opl/generar";
 import { filtrarLineasPorReferencia, type OplReferencia } from "../opl/interaccion";
+import { planificarEdicionOplLibre, type PrevisualizacionOplReverse } from "../opl/parser";
 import { useOpmStore } from "../store";
 import { Bloques } from "./panelOpl/Bloques";
 import type { EdicionOpl } from "./panelOpl/RenderToken";
@@ -27,6 +28,7 @@ export function PanelOpl() {
   const renombrarEntidadDesdeOpl = useOpmStore((s) => s.renombrarEntidadDesdeOpl);
   const renombrarEstadoDesdeOpl = useOpmStore((s) => s.renombrarEstadoDesdeOpl);
   const abrirInspectorEnlaceDesdeOpl = useOpmStore((s) => s.abrirInspectorEnlaceDesdeOpl);
+  const aplicarEdicionOplLibre = useOpmStore((s) => s.aplicarEdicionOplLibre);
   const fijarFiltroOplPorSeleccion = useOpmStore((s) => s.fijarFiltroOplPorSeleccion);
   const fijarHoverOpl = useOpmStore((s) => s.fijarHoverOpl);
   const buscarEnPanelOpl = useOpmStore((s) => s.buscarEnPanelOpl);
@@ -39,6 +41,8 @@ export function PanelOpl() {
   const copiarOplActualAlPortapapeles = useOpmStore((s) => s.copiarOplActualAlPortapapeles);
   const exportarOplActualHtml = useOpmStore((s) => s.exportarOplActualHtml);
   const [edicion, setEdicion] = useState<EdicionOpl | null>(null);
+  const [editorLibre, setEditorLibre] = useState(false);
+  const [textoLibre, setTextoLibre] = useState("");
   const numeracionVisible = preferenciasOpl?.oplNumeracionVisible ?? true;
   const posicion = preferenciasOpl?.oplPosicion ?? "inferior";
   const minimizado = preferenciasOpl?.oplMinimizado ?? false;
@@ -55,6 +59,11 @@ export function PanelOpl() {
   const lineas = useMemo(
     () => ordenarOpdsParaOpl(modelo).flatMap((id) => generarOplInteractivo(modelo, id)),
     [modelo],
+  );
+  const textoOplActual = useMemo(() => lineas.map((linea) => linea.texto).join("\n"), [lineas]);
+  const previewLibre = useMemo<PrevisualizacionOplReverse | null>(
+    () => editorLibre ? planificarEdicionOplLibre(modelo, textoLibre, { opdActivoId }) : null,
+    [editorLibre, modelo, textoLibre, opdActivoId],
   );
   const bloques = useMemo(() => agruparOracionesPorOpd(lineas, modelo), [lineas, modelo]);
   const filtradasPorSeleccion = filtroActivo ? filtrarLineasPorReferencia(lineas, seleccionRef) : lineas;
@@ -105,9 +114,29 @@ export function PanelOpl() {
         onCopiar={copiarOplActualAlPortapapeles}
         onExportarHtml={exportarOplActualHtml}
         onFiltroSeleccion={fijarFiltroOplPorSeleccion}
+        editorActivo={editorLibre}
+        onEditarLibre={() => {
+          const siguiente = !editorLibre;
+          setEditorLibre(siguiente);
+          if (siguiente) setTextoLibre(textoOplActual);
+        }}
       />
 
-      {visibles.length === 0 ? (
+      {editorLibre ? (
+        <EditorLibre
+          texto={textoLibre}
+          preview={previewLibre}
+          onTexto={setTextoLibre}
+          onCancelar={() => {
+            setEditorLibre(false);
+            setTextoLibre("");
+          }}
+          onAplicar={() => {
+            aplicarEdicionOplLibre(textoLibre);
+            setEditorLibre(false);
+          }}
+        />
+      ) : visibles.length === 0 ? (
         <span style={style.empty}>{lineas.length === 0 ? "Sin OPL todavía." : query ? "Sin resultados para la búsqueda." : "Sin oraciones para la selección."}</span>
       ) : (
         <Bloques
@@ -130,6 +159,76 @@ export function PanelOpl() {
       )}
     </aside>
   );
+}
+
+function EditorLibre(props: {
+  texto: string;
+  preview: PrevisualizacionOplReverse | null;
+  onTexto: (texto: string) => void;
+  onAplicar: () => void;
+  onCancelar: () => void;
+}) {
+  const errores = props.preview?.diagnosticos.filter((diagnostico) => diagnostico.severidad === "error") ?? [];
+  const avisos = props.preview?.diagnosticos.filter((diagnostico) => diagnostico.severidad !== "error") ?? [];
+  const patches = props.preview?.patches ?? [];
+  const puedeAplicar = errores.length === 0 && patches.length > 0;
+
+  return (
+    <section style={style.editor} data-testid="panel-opl-editor-libre">
+      <textarea
+        data-testid="panel-opl-editor-textarea"
+        aria-label="Editor OPL libre"
+        value={props.texto}
+        style={style.editorTextarea}
+        spellcheck={false}
+        onInput={(event) => props.onTexto((event.currentTarget as HTMLTextAreaElement).value)}
+      />
+      <div style={style.editorFooter}>
+        <span style={errores.length > 0 ? style.editorError : style.editorResumen}>
+          {errores.length > 0
+            ? `${errores.length} error${errores.length === 1 ? "" : "es"}`
+            : `${patches.length} cambio${patches.length === 1 ? "" : "s"} aplicable${patches.length === 1 ? "" : "s"}`}
+        </span>
+        <button type="button" style={style.editorBtn} onClick={props.onCancelar}>Cancelar</button>
+        <button
+          type="button"
+          data-testid="panel-opl-editor-aplicar"
+          style={{ ...style.editorBtn, ...(puedeAplicar ? style.editorBtnPrimario : style.editorBtnDisabled) }}
+          disabled={!puedeAplicar}
+          onClick={props.onAplicar}
+        >
+          Aplicar
+        </button>
+      </div>
+      {patches.length > 0 ? (
+        <ul style={style.previewList} data-testid="panel-opl-editor-preview">
+          {patches.slice(0, 8).map((patch, index) => (
+            <li key={`${patch.tipo}-${index}`}>L{patch.linea}: {descripcionPatch(patch)}</li>
+          ))}
+        </ul>
+      ) : null}
+      {[...errores, ...avisos].length > 0 ? (
+        <ul style={style.diagnostics} data-testid="panel-opl-editor-diagnosticos">
+          {[...errores, ...avisos].slice(0, 6).map((diagnostico, index) => (
+            <li key={`${diagnostico.codigo}-${index}`}>L{diagnostico.linea}: {diagnostico.mensaje}</li>
+          ))}
+        </ul>
+      ) : null}
+    </section>
+  );
+}
+
+function descripcionPatch(patch: PrevisualizacionOplReverse["patches"][number]): string {
+  switch (patch.tipo) {
+    case "renombrar-entidad": return `renombrar ${patch.anterior} -> ${patch.siguiente}`;
+    case "cambiar-esencia": return `esencia ${patch.anterior} -> ${patch.siguiente}`;
+    case "cambiar-afiliacion": return `afiliacion ${patch.anterior} -> ${patch.siguiente}`;
+    case "crear-entidad": return `crear ${patch.entidadTipo} ${patch.nombre}`;
+    case "sincronizar-estados": return `sincronizar estados (${patch.nombres.join(", ")})`;
+    case "renombrar-estado": return `estado ${patch.anterior} -> ${patch.siguiente}`;
+    case "crear-enlace": return `crear enlace ${patch.tipoEnlace}`;
+    case "fijar-etiqueta-enlace": return `etiqueta enlace -> ${patch.siguiente || "(vacia)"}`;
+  }
 }
 
 const style = {
@@ -168,4 +267,59 @@ const style = {
   },
   toolbarSpacer: { minHeight: 26, marginBottom: 10 },
   empty: { color: tokens.colors.textoTerciario },
+  editor: {
+    display: "grid",
+    gap: 8,
+    border: `1px solid ${tokens.colors.bordeChrome}`,
+    borderRadius: 4,
+    background: tokens.colors.fondoElevado,
+    padding: 10,
+  },
+  editorTextarea: {
+    minHeight: 220,
+    resize: "vertical",
+    border: `1px solid ${tokens.colors.bordeNeutral}`,
+    borderRadius: 4,
+    padding: 8,
+    fontFamily: "Arial, sans-serif",
+    fontSize: "13px",
+    lineHeight: 1.5,
+    color: tokens.colors.textoPrimario,
+    background: tokens.colors.fondoChrome,
+  },
+  editorFooter: {
+    display: "flex",
+    alignItems: "center",
+    gap: 8,
+  },
+  editorResumen: { color: tokens.colors.textoSecundario, marginRight: "auto", fontSize: "12px", fontWeight: 700 },
+  editorError: { color: tokens.colors.errorTexto, marginRight: "auto", fontSize: "12px", fontWeight: 700 },
+  editorBtn: {
+    border: `1px solid ${tokens.colors.bordeNeutral}`,
+    borderRadius: 4,
+    background: tokens.colors.fondoTabla,
+    color: tokens.colors.textoSlate,
+    fontSize: "12px",
+    fontWeight: 700,
+    padding: "5px 10px",
+    cursor: "pointer",
+  },
+  editorBtnPrimario: {
+    borderColor: tokens.colors.chromeNeutral,
+    background: tokens.colors.fondoLineaTiempo,
+    color: tokens.colors.textoPrimario,
+  },
+  editorBtnDisabled: { opacity: 0.45, cursor: "not-allowed" },
+  previewList: {
+    margin: 0,
+    paddingLeft: 18,
+    color: tokens.colors.textoSecundario,
+    fontSize: "12px",
+  },
+  diagnostics: {
+    margin: 0,
+    paddingLeft: 18,
+    color: tokens.colors.textoTerciario,
+    fontSize: "12px",
+  },
 } satisfies Record<string, preact.JSX.CSSProperties>;

@@ -338,6 +338,7 @@ export interface OpmStore {
   editarEtiquetaEnlaceDesdeOpl: (enlaceId: Id, etiqueta: string) => void;
   renombrarEstadoDesdeOpl: (estadoId: Id, nombre: string) => void;
   abrirInspectorEnlaceDesdeOpl: (enlaceId: Id) => void;
+  aplicarEdicionOplLibre: (texto: string) => void;
   copiarOplActualAlPortapapeles: () => Promise<void>;
   exportarOplActualHtml: () => Promise<void>;
   navegarAviso: (aviso: Aviso) => void;
