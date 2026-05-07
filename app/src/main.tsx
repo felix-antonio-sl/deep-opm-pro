@@ -1,6 +1,7 @@
 import { render } from "preact";
 import "jointjs/dist/joint.css";
 import "./render/jointjs/jointjs.css";
+import "./ui/focus.css";
 import { store } from "./store";
 import { App } from "./ui/App";
 
