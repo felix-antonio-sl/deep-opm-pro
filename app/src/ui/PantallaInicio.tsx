@@ -1,3 +1,4 @@
+// [JOYAS §1-3] Chrome UI consume tokens centralizados; canvas semántico invariante.
 import { useEffect, useMemo, useState } from "preact/hooks";
 import autosaveIcon from "../../../assets/svg/autosave.svg";
 import regFileIcon from "../../../assets/svg/regFile.svg";
@@ -7,6 +8,7 @@ import type { ResumenModeloPersistido } from "../persistencia/local";
 import { listarFixtures } from "../store/runtime";
 import { useOpmStore } from "../store";
 import { useConfirmarSiDirty } from "./ConfirmacionContext";
+import { tokens } from "./tokens";
 
 export function PantallaInicio() {
   const modeloPersistidoId = useOpmStore((s) => s.modeloPersistidoId);
@@ -151,27 +153,27 @@ const style = {
     gridTemplateRows: "auto auto minmax(0, 1fr) auto",
     gap: "12px",
     padding: "18px",
-    border: "1px solid #c8d2df",
-    borderRadius: "8px",
-    background: "#ffffff",
-    boxShadow: "0 24px 60px rgba(16, 24, 40, 0.28)",
+    border: `1px solid ${tokens.colors.bordeControl}`,
+    borderRadius: tokens.radii.lg,
+    background: tokens.colors.fondoChrome,
+    boxShadow: tokens.shadows.inicio,
     overflow: "hidden",
   },
   header: { display: "flex", alignItems: "center", gap: "12px" },
-  title: { margin: 0, color: "#1f2937", fontSize: "20px", fontWeight: 800 },
-  search: { marginLeft: "auto", width: "min(360px, 45vw)", height: "34px", border: "1px solid #b9c5d4", borderRadius: "4px", padding: "0 10px", fontSize: "13px" },
+  title: { margin: 0, color: tokens.colors.textoPrimario, fontSize: "20px", fontWeight: 800 },
+  search: { marginLeft: "auto", width: "min(360px, 45vw)", height: "34px", border: `1px solid ${tokens.colors.bordeInput}`, borderRadius: tokens.radii.sm, padding: "0 10px", fontSize: "13px" },
   actions: { display: "flex", flexWrap: "wrap", gap: "8px" },
-  primaryButton: { height: "34px", padding: "0 14px", border: "1px solid #586D8C", borderRadius: "4px", background: "#586D8C", color: "#ffffff", cursor: "pointer", fontSize: "13px", fontWeight: 700 },
-  secondaryButton: { height: "34px", padding: "0 14px", border: "1px solid #c8d2df", borderRadius: "4px", background: "#ffffff", color: "#475467", cursor: "pointer", fontSize: "13px", fontWeight: 700 },
-  demoSelect: { height: "34px", padding: "0 8px", border: "1px solid #c8d2df", borderRadius: "4px", background: "#ffffff", color: "#475467", cursor: "pointer", fontSize: "13px", fontWeight: 700, maxWidth: "220px" },
+  primaryButton: { height: "34px", padding: "0 14px", border: `1px solid ${tokens.colors.chromeNeutral}`, borderRadius: tokens.radii.sm, background: tokens.colors.chromeNeutral, color: tokens.colors.fondoChrome, cursor: "pointer", fontSize: "13px", fontWeight: 700 },
+  secondaryButton: { height: "34px", padding: "0 14px", border: `1px solid ${tokens.colors.bordeControl}`, borderRadius: tokens.radii.sm, background: tokens.colors.fondoChrome, color: tokens.colors.textoSecundario, cursor: "pointer", fontSize: "13px", fontWeight: 700 },
+  demoSelect: { height: "34px", padding: "0 8px", border: `1px solid ${tokens.colors.bordeControl}`, borderRadius: tokens.radii.sm, background: tokens.colors.fondoChrome, color: tokens.colors.textoSecundario, cursor: "pointer", fontSize: "13px", fontWeight: 700, maxWidth: "220px" },
   grid: { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: "10px", overflow: "auto", minHeight: 0 },
-  tile: { position: "relative", minHeight: "140px", display: "grid", gridTemplateRows: "24px auto auto 18px", gap: "4px", padding: "10px", border: "1px solid #d9e0ea", borderRadius: "6px", background: "#f9fbfd", color: "#1f2937", textAlign: "left", cursor: "pointer" },
+  tile: { position: "relative", minHeight: "140px", display: "grid", gridTemplateRows: "24px auto auto 18px", gap: "4px", padding: "10px", border: `1px solid ${tokens.colors.bordeIntermedio}`, borderRadius: tokens.radii.md, background: tokens.colors.fondoCard, color: tokens.colors.textoPrimario, textAlign: "left", cursor: "pointer" },
   tileIcon: { width: "24px", height: "24px" },
   tileName: { fontSize: "13px", overflowWrap: "anywhere" },
-  tileDesc: { color: "#667085", fontSize: "12px", lineHeight: 1.25, overflowWrap: "anywhere" },
-  tileDate: { color: "#667085", fontSize: "11px", fontWeight: 700 },
+  tileDesc: { color: tokens.colors.textoTerciario, fontSize: "12px", lineHeight: 1.25, overflowWrap: "anywhere" },
+  tileDate: { color: tokens.colors.textoTerciario, fontSize: "11px", fontWeight: 700 },
   glyphs: { display: "inline-flex", gap: "5px", alignItems: "center", justifySelf: "end" },
   glyphIcon: { width: "14px", height: "14px" },
-  glyphText: { color: "#586D8C", fontSize: "14px", fontWeight: 800, lineHeight: 1 },
-  empty: { padding: "18px", border: "1px dashed #c8d2df", borderRadius: "4px", color: "#667085", fontSize: "13px", fontWeight: 700, textAlign: "center" },
+  glyphText: { color: tokens.colors.chromeNeutral, fontSize: "14px", fontWeight: 800, lineHeight: 1 },
+  empty: { padding: "18px", border: `1px dashed ${tokens.colors.bordeControl}`, borderRadius: tokens.radii.sm, color: tokens.colors.textoTerciario, fontSize: "13px", fontWeight: 700, textAlign: "center" },
 } satisfies Record<string, preact.JSX.CSSProperties>;
