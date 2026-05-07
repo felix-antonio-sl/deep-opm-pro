@@ -1,8 +1,10 @@
+// [JOYAS §1-3] Chrome UI consume tokens centralizados; canvas semántico invariante.
 import {
   mismaReferencia,
   type OplReferencia,
   type OplToken,
 } from "../../opl/interaccion";
+import { tokens } from "../tokens";
 
 export interface EdicionOpl {
   tipo: "entidad" | "estado";
@@ -145,21 +147,21 @@ function styleTokenMarkdown(token: OplToken): preact.JSX.CSSProperties {
 const style = {
   token: { borderRadius: 3 },
   tokenInteractivo: { cursor: "pointer" },
-  tokenHover: { background: "#E1E6EB" },
-  tokenMultiEnlace: { borderBottom: "1px dotted #93a3b8" },
-  objeto: { color: "#1f7a3c", fontWeight: 700 },
-  proceso: { color: "#147aa5", fontStyle: "italic", fontWeight: 700 },
+  tokenHover: { background: tokens.colors.oplTokenBorde },
+  tokenMultiEnlace: { borderBottom: `1px dotted ${tokens.colors.oplTokenTexto}` },
+  objeto: { color: tokens.colors.verdeOpl, fontWeight: 700 },
+  proceso: { color: tokens.colors.infoBorde, fontStyle: "italic", fontWeight: 700 },
   estado: {
-    color: "#475467",
+    color: tokens.colors.textoSecundario,
     fontFamily: "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace",
     fontSize: "12px",
   },
-  verbo: { color: "#334155", fontWeight: 700 },
+  verbo: { color: tokens.colors.textoSlate, fontWeight: 700 },
   inputInline: {
     width: "14ch",
     minWidth: 80,
     maxWidth: 220,
-    border: "1px solid #586D8C",
+    border: `1px solid ${tokens.colors.chromeNeutral}`,
     borderRadius: 4,
     padding: "1px 4px",
     font: "inherit",
