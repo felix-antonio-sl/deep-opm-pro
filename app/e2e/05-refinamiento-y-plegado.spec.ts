@@ -102,6 +102,48 @@ test("descompone proceso y navega al OPD hijo", async ({ page }) => {
   expect(pageErrors).toEqual([]);
 });
 
+test("descompone objeto desde barra contextual y navega al OPD hijo", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await cerrarPantallaInicioSiVisible(page);
+  await page.getByRole("button", { name: "Objeto", exact: true }).click();
+  await expect(page.getByTestId("barra-inzoom")).toBeVisible();
+
+  await page.getByTestId("barra-inzoom").click();
+
+  const nodoHijo = page.locator('[role="treeitem"]').filter({ hasText: "SD1: Objeto descompuesto" });
+  await expect(nodoHijo).toHaveAttribute("aria-current", "page");
+  await expect(page.locator(".joint-element")).toHaveCount(4);
+  await expect(page.getByTestId("bloque-opl-opd-1").getByText("Objeto se descompone en Objeto 1, Objeto 2 y Objeto 3 en esa secuencia.")).toBeVisible();
+
+  await page.getByRole("button", { name: "Exportar", exact: true }).click();
+  const exportado = JSON.parse(await jsonEditor(page).inputValue()) as ExportadoModelo;
+  const objeto = Object.values(exportado.modelo.entidades).find((entidad) => entidad.nombre === "Objeto");
+  const componentes = Object.values(exportado.modelo.entidades).filter((entidad) => /^Objeto [1-3]$/.test(entidad.nombre));
+  expect(objeto?.refinamiento?.tipo).toBe("descomposicion");
+  expect(componentes).toHaveLength(3);
+  expect(componentes.every((entidad) => (entidad as { tipo?: string }).tipo === "objeto")).toBe(true);
+  const opdHijoId = objeto?.refinamiento?.opdId;
+  if (!opdHijoId || !objeto) throw new Error("La descomposicion de objeto no exporto opdId");
+  expect(exportado.modelo.opds[opdHijoId]?.padreId).toBe(exportado.modelo.opdRaizId);
+  const aparienciasHijo = Object.values(exportado.modelo.opds[opdHijoId]?.apariencias ?? {});
+  const contorno = aparienciasHijo.find((apariencia) => apariencia.entidadId === objeto.id);
+  if (!contorno) throw new Error("No se exporto contorno de objeto descompuesto");
+  for (const componente of componentes) {
+    const apariencia = aparienciasHijo.find((item) => item.entidadId === componente.id);
+    if (!apariencia) throw new Error(`No se exporto apariencia de ${componente.nombre}`);
+    expect(apariencia.x).toBeGreaterThan(contorno.x);
+    expect(apariencia.y).toBeGreaterThan(contorno.y);
+    expect(apariencia.x + apariencia.width).toBeLessThan(contorno.x + contorno.width);
+    expect(apariencia.y + apariencia.height).toBeLessThan(contorno.y + contorno.height);
+  }
+
+  await page.screenshot({ path: "test-results/opm-object-inzoom-opd-hijo.png", fullPage: true });
+  expect(pageErrors).toEqual([]);
+});
+
 test("elimina desde arbol solo OPDs hoja y deshacer restaura", async ({ page }) => {
   const pageErrors: string[] = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));
@@ -210,6 +252,53 @@ test("despliega objeto y navega al OPD hijo", async ({ page }) => {
   expect(Object.values(exportadoSinDespliegue.modelo.enlaces)).toHaveLength(0);
 
   await page.screenshot({ path: "test-results/opm-despliegue-opd-hijo.png", fullPage: true });
+  expect(pageErrors).toEqual([]);
+});
+
+test("despliega proceso desde inspector y navega al OPD hijo", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await cerrarPantallaInicioSiVisible(page);
+  await page.getByRole("button", { name: "Proceso", exact: true }).click();
+  await expect(page.getByText("Desplegar como...")).toBeVisible();
+
+  await desplegarComoAgregacion(page);
+
+  const nodoHijo = page.locator('[role="treeitem"]').filter({ hasText: "SD1: Proceso desplegado" });
+  await expect(nodoHijo).toHaveAttribute("aria-current", "page");
+  await expect(page.locator(".joint-element")).toHaveCount(5);
+  await expect(page.getByTestId("bloque-opl-opd-1").getByText("Proceso se despliega en Proceso parte 1, Proceso parte 2 y Proceso parte 3.")).toBeVisible();
+
+  await page.getByRole("button", { name: "Exportar", exact: true }).click();
+  const exportado = JSON.parse(await jsonEditor(page).inputValue()) as ExportadoModelo;
+  const proceso = Object.values(exportado.modelo.entidades).find((entidad) => entidad.nombre === "Proceso");
+  const partes = Object.values(exportado.modelo.entidades).filter((entidad) => /^Proceso parte [1-3]$/.test(entidad.nombre));
+  expect(proceso?.refinamiento?.tipo).toBe("despliegue");
+  expect(partes).toHaveLength(3);
+  expect(partes.every((entidad) => (entidad as { tipo?: string }).tipo === "proceso")).toBe(true);
+  const opdHijoId = proceso?.refinamiento?.opdId;
+  if (!opdHijoId || !proceso) throw new Error("El despliegue de proceso no exporto opdId");
+  expect(exportado.modelo.opds[opdHijoId]?.padreId).toBe(exportado.modelo.opdRaizId);
+  expect(Object.values(exportado.modelo.enlaces).filter((enlace) => enlace.tipo === "agregacion" && extremoApuntaAEntidad(enlace.origenId, proceso.id))).toHaveLength(3);
+  const aparienciasHijo = Object.values(exportado.modelo.opds[opdHijoId]?.apariencias ?? {});
+  const contorno = aparienciasHijo.find((apariencia) => apariencia.entidadId === proceso.id);
+  if (!contorno) throw new Error("No se exporto contorno de proceso desplegado");
+  for (const parte of partes) {
+    const apariencia = aparienciasHijo.find((item) => item.entidadId === parte.id);
+    if (!apariencia) throw new Error(`No se exporto apariencia de ${parte.nombre}`);
+    expect(apariencia.x).toBeGreaterThan(contorno.x);
+    expect(apariencia.y).toBeGreaterThan(contorno.y);
+    expect(apariencia.x + apariencia.width).toBeLessThan(contorno.x + contorno.width);
+    expect(apariencia.y + apariencia.height).toBeLessThan(contorno.y + contorno.height);
+  }
+
+  await page.locator('[role="treeitem"][data-opd-id="opd-1"]').click();
+  await elementoPorTexto(page, "Proceso").click();
+  await expect(page.getByRole("button", { name: "Mostrar despliegue" })).toBeVisible();
+
+  await page.screenshot({ path: "test-results/opm-process-unfold-opd-hijo.png", fullPage: true });
   expect(pageErrors).toEqual([]);
 });
 
