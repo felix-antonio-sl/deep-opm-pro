@@ -59,8 +59,8 @@ export function BarraPestanas() {
   };
 
   return (
-    <div role="tablist" aria-label="Modelos abiertos" data-testid="barra-pestanas" style={style.barra}>
-      <div style={style.lista}>
+    <div data-testid="barra-pestanas" style={style.barra}>
+      <div role="tablist" aria-label="Modelos abiertos" style={style.lista}>
         {pestanas.map((pestana) => {
           const activaActual = pestana.id === activa;
           return (
