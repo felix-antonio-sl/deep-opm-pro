@@ -37,7 +37,15 @@ export function proyectarEntidad(
     : [];
   const nombreRender = formatearNombreCompuesto(entidad, { aliasVisible: opciones.aliasVisibles !== false });
   const refinada = !!entidad.refinamiento;
-  const contornoRefinamiento = refinada && entidad.refinamiento?.opdId === opdId;
+  // BUG-372334: distinguir descomposicion (inzoom: partes EMBEBIDAS dentro del
+  // contorno) vs despliegue (unfold: partes FUERA, conectadas via enlaces
+  // estructurales canonicos). Solo descomposicion entra en modo contorno
+  // (stroke grueso, label-top, z=0, embedding via embedirContorno). Despliegue
+  // renderiza el padre como entidad normal en el OPD hijo; los enlaces
+  // estructurales (proyectarRefinamientoEstructural) ya manejan la conexion.
+  const contornoRefinamiento = refinada
+    && entidad.refinamiento?.opdId === opdId
+    && entidad.refinamiento?.tipo === "descomposicion";
   const size = modoParcial
     ? dimensionesPlegadoParcial(apariencia, nombreRender, filasParciales)
     : estadosVisibles.length > 0

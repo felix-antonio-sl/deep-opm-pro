@@ -583,6 +583,23 @@ describe("proyeccion JointJS", () => {
     expect(contenido?.z).toBe(10);
   });
 
+  test("BUG-372334 proyecta despliegue en OPD hijo como entidad normal, no contorno", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 80, y: 90 }, "Agua"));
+    const objetoId = entidadPorNombre(modelo, "Agua");
+    const desplegado = must(desplegarObjeto(modelo, modelo.opdRaizId, objetoId));
+    modelo = desplegado.modelo;
+
+    const cell = cellDeEntidad(proyectarModeloAJointCells(modelo, desplegado.opdId, null, null), objetoId);
+    const attrs = cell.attrs as Attrs | undefined;
+    const label = attrs?.label as Attrs | undefined;
+
+    expect(cell.z).toBe(10);
+    expect(cell.opm.kind === "entidad" ? cell.opm.rol : null).not.toBe("contorno");
+    expect(label?.refY).toBe("50%");
+    expect(label?.textVerticalAnchor).toBe("middle");
+  });
+
   test("proyecta badge de partes en plegado completo", () => {
     let modelo = crearModelo();
     modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 80, y: 90 }, "Vehiculo"));
