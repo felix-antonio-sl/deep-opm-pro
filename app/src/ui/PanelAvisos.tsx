@@ -1,4 +1,7 @@
 // [JOYAS §1-3] Chrome UI consume tokens centralizados; canvas semántico invariante.
+// Ronda 15 L5: panel colapsable para no competir con Inspector ni PanelMetodologia
+// por altura del costado derecho. Cuando esta colapsado el contador y la severidad
+// agregada siguen siendo visibles para que el usuario sepa si hay errores activos.
 import { useState } from "preact/hooks";
 import { nombreExtremo } from "../modelo/extremos";
 import type { Aviso, SeveridadAviso } from "../modelo/validaciones";
@@ -45,19 +48,41 @@ export function PanelAvisos() {
   const navegarAviso = useOpmStore((s) => s.navegarAviso);
   const [revision, setRevision] = useState(0);
   const [citaActiva, setCitaActiva] = useState<string | null>(null);
+  const [colapsado, setColapsado] = useState(false);
   const avisos = validarModelo(modelo, opdActivoId);
 
   return (
-    <aside data-testid="panel-avisos" data-revision={revision} aria-label="Verificación metodológica" style={style.panel}>
+    <aside
+      data-testid="panel-avisos"
+      data-revision={revision}
+      data-colapsado={colapsado ? "true" : "false"}
+      aria-label="Verificación metodológica"
+      style={colapsado ? panelColapsado : style.panel}
+    >
       <div style={style.header}>
-        <span>Verificación metodológica</span>
+        <button
+          type="button"
+          data-testid="panel-avisos-toggle"
+          aria-expanded={!colapsado}
+          aria-controls="panel-avisos-cuerpo"
+          title={colapsado ? "Expandir verificación metodológica" : "Colapsar verificación metodológica"}
+          style={style.headerToggle}
+          onClick={() => setColapsado((prev) => !prev)}
+        >
+          <span aria-hidden="true" style={style.chevron}>{colapsado ? "▸" : "▾"}</span>
+          <span>Verificación metodológica</span>
+        </button>
         <span style={style.headerActions}>
-          <button type="button" style={style.revalidar} onClick={() => setRevision((valor) => valor + 1)}>
-            Revalidar
-          </button>
+          {!colapsado ? (
+            <button type="button" style={style.revalidar} onClick={(event) => { event.stopPropagation(); setRevision((valor) => valor + 1); }}>
+              Revalidar
+            </button>
+          ) : null}
           <span style={contadorStyle(avisos)}>{avisos.length}</span>
         </span>
       </div>
+      {colapsado ? null : (
+      <div id="panel-avisos-cuerpo" style={style.cuerpo}>
       {citaActiva ? (
         <div data-testid="panel-avisos-cita" style={style.citaDetalle}>
           <span style={style.citaDetalleLabel}>SSOT</span>
@@ -112,9 +137,25 @@ export function PanelAvisos() {
           })}
         </div>
       )}
+      </div>
+      )}
     </aside>
   );
 }
+
+const panelColapsado: preact.JSX.CSSProperties = {
+  gridRow: "3",
+  flex: "0 0 auto",
+  minHeight: "32px",
+  maxHeight: "32px",
+  minWidth: 0,
+  overflow: "hidden",
+  background: tokens.colors.fondoChrome,
+  borderTop: `1px solid ${tokens.colors.bordeIntermedio}`,
+  display: "flex",
+  flexDirection: "column",
+  fontFamily: tokens.typography.familyChrome,
+};
 
 function puedeNavegar(modelo: Modelo, aviso: Aviso): boolean {
   if (!aviso.elementoTipo || !aviso.elementoId) return false;
@@ -229,10 +270,36 @@ const style = {
     justifyContent: "space-between",
     gap: "8px",
     padding: "0 12px",
+    minHeight: "30px",
     borderBottom: `1px solid ${tokens.colors.bordeChrome}`,
     color: tokens.colors.textoPrimario,
     fontSize: "13px",
     fontWeight: 700,
+  },
+  headerToggle: {
+    display: "inline-flex",
+    alignItems: "center",
+    gap: "6px",
+    border: 0,
+    background: "transparent",
+    padding: "4px 0",
+    cursor: "pointer",
+    color: tokens.colors.textoPrimario,
+    fontSize: "13px",
+    fontWeight: 700,
+    fontFamily: tokens.typography.familyChrome,
+  },
+  chevron: {
+    width: "12px",
+    color: tokens.colors.textoTerciario,
+    fontWeight: 700,
+  },
+  cuerpo: {
+    minHeight: 0,
+    flex: "1 1 auto",
+    display: "flex",
+    flexDirection: "column",
+    overflow: "hidden",
   },
   headerActions: {
     display: "inline-flex",

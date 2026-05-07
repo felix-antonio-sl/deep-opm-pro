@@ -4,8 +4,15 @@
  * Citas SSOT: [Met §metodologia] [Met §inzoom] [Met §unfold].
  * Contrato IFML ronda 13 L3: Modelo -> verificarMetodologia(modelo) ->
  * AvisoMetodologico[]; no Action, no store side-effect, no serializacion.
+ *
+ * Ronda 15 L5 (Cierre superficie contextual): el panel se puede colapsar
+ * para que no compita con Inspector ni PanelAvisos por el alto del costado
+ * derecho. El estado vive en useState local (no necesita persistir entre
+ * modelos; preferencia de sesion). Cuando esta colapsado el contador
+ * sigue visible para que el usuario sepa que hay avisos pendientes.
  */
 
+import { useState } from "preact/hooks";
 import { verificarMetodologia } from "../modelo/checkers";
 import type { AvisoMetodologico, CodigoChecker, Modelo, SeveridadAviso } from "../modelo/tipos";
 import { useOpmStore } from "../store";
@@ -42,37 +49,70 @@ const SEVERIDAD: Record<SeveridadAviso, SeveridadMeta> = {
 export function PanelMetodologia() {
   const modelo = useOpmStore((s) => s.modelo);
   const avisos = verificarMetodologia(modelo);
+  const [colapsado, setColapsado] = useState(false);
 
   return (
-    <aside data-testid="panel-metodologia" aria-label="Avisos metodológicos" style={style.panel}>
-      <div style={style.header}>
-        <span>Metodología</span>
+    <aside
+      data-testid="panel-metodologia"
+      aria-label="Avisos metodológicos"
+      data-colapsado={colapsado ? "true" : "false"}
+      style={colapsado ? panelColapsado : style.panel}
+    >
+      <button
+        type="button"
+        data-testid="panel-metodologia-toggle"
+        aria-expanded={!colapsado}
+        aria-controls="panel-metodologia-cuerpo"
+        title={colapsado ? "Expandir avisos metodológicos" : "Colapsar avisos metodológicos"}
+        style={style.header}
+        onClick={() => setColapsado((prev) => !prev)}
+      >
+        <span style={style.headerLabel}>
+          <span aria-hidden="true" style={style.chevron}>{colapsado ? "▸" : "▾"}</span>
+          <span>Metodología</span>
+        </span>
         <span data-testid="panel-metodologia-total" style={contadorStyle(avisos.length)}>{avisos.length}</span>
-      </div>
-      {avisos.length === 0 ? (
-        <div data-testid="panel-metodologia-vacio" style={style.empty}>
-          Modelo metodológicamente válido
-        </div>
-      ) : (
-        <div role="list" style={style.list}>
-          {avisos.map((aviso, index) => (
-            <article
-              key={`${aviso.codigo}-${aviso.entidadId ?? aviso.opdId ?? index}`}
-              role="listitem"
-              data-testid={`aviso-${aviso.codigo}`}
-              style={filaStyle(aviso.severidad)}
-              title={aviso.rationale}
-            >
-              <span style={style.codigo}>{etiquetaCodigo(aviso.codigo)}</span>
-              <span style={style.mensaje}>{aviso.mensaje}</span>
-              <span style={style.target}>{etiquetaDestino(modelo, aviso)}</span>
-            </article>
-          ))}
+      </button>
+      {colapsado ? null : (
+        <div id="panel-metodologia-cuerpo">
+          {avisos.length === 0 ? (
+            <div data-testid="panel-metodologia-vacio" style={style.empty}>
+              Modelo metodológicamente válido
+            </div>
+          ) : (
+            <div role="list" style={style.list}>
+              {avisos.map((aviso, index) => (
+                <article
+                  key={`${aviso.codigo}-${aviso.entidadId ?? aviso.opdId ?? index}`}
+                  role="listitem"
+                  data-testid={`aviso-${aviso.codigo}`}
+                  style={filaStyle(aviso.severidad)}
+                  title={aviso.rationale}
+                >
+                  <span style={style.codigo}>{etiquetaCodigo(aviso.codigo)}</span>
+                  <span style={style.mensaje}>{aviso.mensaje}</span>
+                  <span style={style.target}>{etiquetaDestino(modelo, aviso)}</span>
+                </article>
+              ))}
+            </div>
+          )}
         </div>
       )}
     </aside>
   );
 }
+
+const panelColapsado: preact.JSX.CSSProperties = {
+  flex: "0 0 auto",
+  minWidth: 0,
+  minHeight: "32px",
+  overflow: "hidden",
+  background: "white",
+  borderTop: "1px solid rgb(217, 224, 234)",
+  display: "flex",
+  flexDirection: "column",
+  fontFamily: "Arial, sans-serif",
+};
 
 function etiquetaCodigo(codigo: CodigoChecker): string {
   return codigo.toLowerCase().replaceAll("_", " ");
@@ -124,9 +164,25 @@ const style = {
     justifyContent: "space-between",
     gap: "8px",
     padding: "5px 12px",
+    border: "0 none",
     borderBottom: "1px solid rgb(228, 234, 241)",
+    background: "white",
     color: "rgb(31, 41, 55)",
     fontSize: "13px",
+    fontWeight: 700,
+    cursor: "pointer",
+    width: "100%",
+    textAlign: "left",
+    fontFamily: "inherit",
+  },
+  headerLabel: {
+    display: "inline-flex",
+    alignItems: "center",
+    gap: "6px",
+  },
+  chevron: {
+    width: "12px",
+    color: "rgb(100, 116, 139)",
     fontWeight: 700,
   },
   count: {

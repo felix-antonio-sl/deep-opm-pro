@@ -2,7 +2,7 @@ import { useState } from "preact/hooks";
 import { autoInvocacionDeProceso } from "../modelo/autoinvocacion";
 import { esAtributoDerivado, estadosDeEntidad } from "../modelo/operaciones";
 import { filasPlegadoParcial, modoPlegadoApariencia, partesDePlegado } from "../modelo/plegado";
-import type { Entidad, OrdenPartesPlegado } from "../modelo/tipos";
+import type { Entidad, Id, Modelo, OrdenPartesPlegado } from "../modelo/tipos";
 import { useOpmStore } from "../store";
 import { inspectorStyles as style } from "./inspectorStyles";
 import { SeccionAlias } from "./inspector/SeccionAlias";
@@ -82,12 +82,23 @@ export function InspectorEntidad({ entidad }: Props) {
   const atributoDerivado = entidad.tipo === "objeto" && esAtributoDerivado(modelo, entidad.id);
   const autoInvocacion = entidad.tipo === "proceso" ? autoInvocacionDeProceso(modelo, opdActivoId, entidad.id) : undefined;
 
+  const cobertura = coberturaApariencias(modelo, entidad.id);
+
   return (
     <>
       <div style={style.header}>
         <span style={style.kind}>{entidad.tipo === "objeto" ? "Objeto" : "Proceso"}</span>
         <code style={style.id}>{entidad.id}</code>
       </div>
+      {cobertura.opdsConEntidad >= 2 ? (
+        <p
+          data-testid="inspector-cobertura-apariencias"
+          style={advancedStyles.cobertura}
+          title="Editar nombre, esencia o afiliación afecta a todas las apariencias en todos los OPDs (ver auditoría IFML §10.2)."
+        >
+          Esta cosa aparece {cobertura.totalApariencias} {cobertura.totalApariencias === 1 ? "vez" : "veces"} en {cobertura.opdsConEntidad} OPDs. Los cambios afectan a todas.
+        </p>
+      ) : null}
       <label style={style.field}>
         <span style={style.label}>Nombre</span>
         <input style={style.input} value={entidad.nombre} onInput={(event) => renombrar(event.currentTarget.value)} />
@@ -179,6 +190,39 @@ export function InspectorEntidad({ entidad }: Props) {
   );
 }
 
+/**
+ * Indica cuantas apariencias tiene la entidad y en cuantos OPDs distintos.
+ * Hace explicito el contrato apariencia != entidad descrito en la auditoria
+ * IFML §10.2: la edicion mediante Inspector se proyecta sobre todas las
+ * apariencias, no solo la activa.
+ */
+function coberturaApariencias(modelo: Modelo, entidadId: Id): { totalApariencias: number; opdsConEntidad: number } {
+  let totalApariencias = 0;
+  let opdsConEntidad = 0;
+  for (const opd of Object.values(modelo.opds)) {
+    let aparicionesEnOpd = 0;
+    for (const apariencia of Object.values(opd.apariencias)) {
+      if (apariencia.entidadId === entidadId) aparicionesEnOpd += 1;
+    }
+    if (aparicionesEnOpd > 0) {
+      totalApariencias += aparicionesEnOpd;
+      opdsConEntidad += 1;
+    }
+  }
+  return { totalApariencias, opdsConEntidad };
+}
+
 const advancedStyles = {
   section: { display: "grid", gap: "8px", marginBottom: "14px" },
+  cobertura: {
+    margin: "0 0 12px",
+    padding: "6px 8px",
+    border: "1px solid rgb(191, 219, 254)",
+    borderRadius: "6px",
+    background: "rgb(239, 246, 255)",
+    color: "rgb(30, 64, 175)",
+    fontSize: "11px",
+    fontWeight: 600,
+    lineHeight: 1.35,
+  },
 } satisfies Record<string, preact.JSX.CSSProperties>;

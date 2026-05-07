@@ -1,8 +1,8 @@
 // [JOYAS §1-3] Chrome UI consume tokens centralizados; canvas semántico invariante.
-import { useMemo, useState } from "preact/hooks";
+import { useEffect, useMemo, useRef, useState } from "preact/hooks";
 import { agruparOracionesPorOpd, ordenarOpdsParaOpl } from "../opl/bloquesJerarquicos";
 import { generarOplInteractivo } from "../opl/generar";
-import { filtrarLineasPorReferencia, type OplReferencia } from "../opl/interaccion";
+import { filtrarLineasPorReferencia, lineaTocaReferencia, type OplReferencia } from "../opl/interaccion";
 import { planificarEdicionOplLibre, type PrevisualizacionOplReverse } from "../opl/parser";
 import { useOpmStore } from "../store";
 import { Bloques } from "./panelOpl/Bloques";
@@ -43,6 +43,7 @@ export function PanelOpl() {
   const [edicion, setEdicion] = useState<EdicionOpl | null>(null);
   const [editorLibre, setEditorLibre] = useState(false);
   const [textoLibre, setTextoLibre] = useState("");
+  const contenedorRef = useRef<HTMLElement | null>(null);
   const numeracionVisible = preferenciasOpl?.oplNumeracionVisible ?? true;
   const posicion = preferenciasOpl?.oplPosicion ?? "inferior";
   const minimizado = preferenciasOpl?.oplMinimizado ?? false;
@@ -73,6 +74,21 @@ export function PanelOpl() {
     : filtradasPorSeleccion;
   const visiblesPorId = new Set(visibles.map((linea) => linea.id));
 
+  /**
+   * Coherencia transversal: cuando una seleccion proviene de canvas/Inspector,
+   * el panel debe revelar la oracion correspondiente sin exigir scroll manual.
+   * Se ancla a la primera linea OPL que toca la seleccion actual.
+   */
+  useEffect(() => {
+    if (!seleccionRef || editorLibre || minimizado || vistaMapaActiva) return;
+    const contenedor = contenedorRef.current;
+    if (!contenedor) return;
+    const primera = visibles.find((linea) => lineaTocaReferencia(linea, seleccionRef));
+    if (!primera) return;
+    const node = contenedor.querySelector<HTMLElement>(`[data-opl-ordinal="${primera.ordinal}"]`);
+    node?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+  }, [seleccionRef?.tipo, seleccionRef?.id, editorLibre, minimizado, vistaMapaActiva, lineas.length]);
+
   if (vistaMapaActiva) {
     return (
       <aside style={style.panel} aria-label="Panel OPL-ES">
@@ -99,7 +115,13 @@ export function PanelOpl() {
   }
 
   return (
-    <aside style={style.panel} aria-label="Panel OPL-ES" data-atajos-contexto="panel-opl">
+    <aside
+      ref={contenedorRef}
+      style={style.panel}
+      aria-label="Panel OPL-ES"
+      data-testid="panel-opl"
+      data-atajos-contexto="panel-opl"
+    >
       <ToolbarOpl
         totalOraciones={lineas.length}
         busquedaOpl={busquedaOpl}

@@ -4,7 +4,7 @@ import { etiquetaEnlaceNormalizada, validarEtiquetaEnlace } from "../modelo/etiq
 import { entidadDeExtremo, nombreExtremo } from "../modelo/extremos";
 import { validarMultiplicidad } from "../modelo/operaciones";
 import { useOpmStore, store } from "../store";
-import type { Enlace, Modificador } from "../modelo/tipos";
+import type { Enlace, Id, Modelo, Modificador } from "../modelo/tipos";
 import { inspectorStyles as style } from "./inspectorStyles";
 import { SeccionAbanico } from "./inspectorEnlace/SeccionAbanico";
 import { SeccionEstilo } from "./inspectorEnlace/SeccionEstilo";
@@ -27,6 +27,7 @@ interface Props {
 export function InspectorEnlace({ enlace }: Props) {
   const modelo = useOpmStore((s) => s.modelo);
   const opdActivoId = useOpmStore((s) => s.opdActivoId);
+  const cambiarOpdActivo = useOpmStore((s) => s.cambiarOpdActivo);
   const ajustarMultiplicidad = useOpmStore((s) => s.ajustarMultiplicidadSeleccionada);
   const apuntarExtremo = useOpmStore((s) => s.apuntarExtremoEnlaceSeleccionado);
   const reanclarEnlaceExternoDerivado = useOpmStore((s) => s.reanclarEnlaceExternoDerivado);
@@ -111,6 +112,10 @@ export function InspectorEnlace({ enlace }: Props) {
     definirRutaEtiqueta(valor.trim() === "" ? undefined : valor);
   };
 
+  const opdsDelEnlace = opdsConEnlace(modelo, enlace.id);
+  const enlaceFueraDelOpdActivo = opdsDelEnlace.length > 0 && !opdsDelEnlace.includes(opdActivoId);
+  const opdDestinoNavegacion = enlaceFueraDelOpdActivo ? opdsDelEnlace[0] : null;
+
   return (
     <>
       <div style={style.header}>
@@ -122,6 +127,17 @@ export function InspectorEnlace({ enlace }: Props) {
         <span style={style.arrow}>{"->"}</span>
         <span>{destino ? nombreExtremo(modelo, enlace.destinoId) : enlace.destinoId.id}</span>
       </div>
+      {enlaceFueraDelOpdActivo && opdDestinoNavegacion ? (
+        <button
+          type="button"
+          data-testid="inspector-enlace-ir-opd"
+          style={enlaceStyles.irOpd}
+          title="Cambia al OPD donde aparece el enlace seleccionado"
+          onClick={() => cambiarOpdActivo(opdDestinoNavegacion)}
+        >
+          Ir al OPD donde aparece este enlace ({modelo.opds[opdDestinoNavegacion]?.nombre ?? opdDestinoNavegacion})
+        </button>
+      ) : null}
       <SeccionEtiquetaEnlace enlace={enlace} etiqueta={etiqueta} onEtiqueta={cambiarEtiqueta} />
       <SeccionEstilo
         enlace={enlace}
@@ -200,3 +216,35 @@ export function InspectorEnlace({ enlace }: Props) {
 function capitalizar(texto: string): string {
   return texto.charAt(0).toUpperCase() + texto.slice(1);
 }
+
+/**
+ * Devuelve los IDs de OPDs que contienen una apariencia de este enlace.
+ * Se usa para ofrecer navegacion explicita "Ir al OPD del enlace" cuando el
+ * usuario seleccionan un enlace via OPL/Tabla y el OPD activo no lo contiene.
+ */
+function opdsConEnlace(modelo: Modelo, enlaceId: Id): Id[] {
+  const ids: Id[] = [];
+  for (const opd of Object.values(modelo.opds)) {
+    if (Object.values(opd.enlaces).some((apariencia) => apariencia.enlaceId === enlaceId)) {
+      ids.push(opd.id);
+    }
+  }
+  return ids;
+}
+
+const enlaceStyles = {
+  irOpd: {
+    width: "100%",
+    minHeight: "30px",
+    marginBottom: "12px",
+    padding: "5px 10px",
+    border: "1px solid rgb(191, 219, 254)",
+    borderRadius: "6px",
+    background: "rgb(239, 246, 255)",
+    color: "rgb(30, 64, 175)",
+    cursor: "pointer",
+    fontSize: "11px",
+    fontWeight: 700,
+    textAlign: "left",
+  },
+} satisfies Record<string, preact.JSX.CSSProperties>;
