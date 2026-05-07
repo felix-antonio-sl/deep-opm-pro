@@ -18,7 +18,6 @@ export function PantallaInicio() {
   const cargar = useOpmStore((s) => s.cargarLocal);
   const nuevoModelo = useOpmStore((s) => s.nuevoModelo);
   const cargarFixtureDemo = useOpmStore((s) => s.cargarFixtureDemo);
-  const cargarEjemploOrganizacional = useOpmStore((s) => s.cargarEjemploOrganizacional);
   const cerrarPantallaInicio = useOpmStore((s) => s.cerrarPantallaInicio);
   const confirmarSiDirty = useConfirmarSiDirty();
   const [query, setQuery] = useState("");
@@ -76,11 +75,7 @@ export function PantallaInicio() {
               setDemoSeleccionado("");
               confirmarSiDirty(() => {
                 cerrarPantallaInicio();
-                if (nombre === "__organizacional__") {
-                  cargarEjemploOrganizacional();
-                } else {
-                  cargarFixtureDemo(nombre);
-                }
+                cargarFixtureDemo(nombre);
               });
             }}
           >
@@ -90,8 +85,6 @@ export function PantallaInicio() {
                 {d.modelo.nombre}
               </option>
             ))}
-            <option disabled>──────────</option>
-            <option value="__organizacional__">Ejemplo organizacional</option>
           </select>
         </div>
         <div style={style.grid}>

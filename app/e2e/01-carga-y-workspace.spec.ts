@@ -141,7 +141,9 @@ test("HU-30.021 dialogo cargar abre ejemplo organizacional canonico", async ({ p
   await page.getByRole("button", { name: "Cargar", exact: true }).first().click();
   const dialogo = page.getByRole("dialog", { name: "Cargar modelo" });
   await expect(dialogo).toBeVisible();
-  await dialogo.getByLabel("Cargar modelo de ejemplo").selectOption("__organizacional__");
+  const selectorEjemplos = dialogo.getByLabel("Cargar modelo de ejemplo");
+  await expect(selectorEjemplos.locator("option").filter({ hasText: /^Ejemplo organizacional$/ })).toHaveCount(1);
+  await selectorEjemplos.selectOption("Ejemplo organizacional");
 
   await expect(dialogo).toHaveCount(0);
   await expect(elementoPorTexto(page, "Cliente")).toHaveCount(1);

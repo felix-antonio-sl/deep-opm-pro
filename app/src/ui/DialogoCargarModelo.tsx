@@ -17,7 +17,7 @@ import { tokens } from "./tokens";
 
 /**
  * Diálogo de carga local. Persistencia/carga: [Met §6].
- * Ejemplo organizacional reutiliza assets/svg/example.svg por [JOYAS §1].
+ * Los ejemplos se leen desde `fixtureTodos()` como catálogo único.
  */
 export function DialogoCargarModelo() {
   const open = useOpmStore((s) => s.dialogoCargarModeloAbierto);
@@ -28,7 +28,6 @@ export function DialogoCargarModelo() {
   const listar = useOpmStore((s) => s.listarModelosGuardados);
   const cargar = useOpmStore((s) => s.cargarLocal);
   const cargarFixtureDemo = useOpmStore((s) => s.cargarFixtureDemo);
-  const cargarEjemploOrganizacional = useOpmStore((s) => s.cargarEjemploOrganizacional);
   const abrirPestanaConModelo = useOpmStore((s) => s.abrirPestanaConModelo);
   const abrirCarpeta = useOpmStore((s) => s.abrirCarpeta);
   const crearCarpeta = useOpmStore((s) => s.crearCarpetaEnActual);
@@ -141,11 +140,7 @@ export function DialogoCargarModelo() {
               if (!nombre) return;
               setDemoSeleccionado("");
               cargarEjemplo(() => {
-                if (nombre === "__organizacional__") {
-                  cargarEjemploOrganizacional();
-                } else {
-                  cargarFixtureDemo(nombre);
-                }
+                cargarFixtureDemo(nombre);
               });
             }}
           >
@@ -155,8 +150,6 @@ export function DialogoCargarModelo() {
                 {d.modelo.nombre}
               </option>
             ))}
-            <option disabled>──────────</option>
-            <option value="__organizacional__">Ejemplo organizacional</option>
           </select>
         </div>
 	        <div style={style.flagsBar}>

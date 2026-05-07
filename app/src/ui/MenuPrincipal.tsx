@@ -47,7 +47,6 @@ export function MenuPrincipal() {
   const abrirModalUrls = useOpmStore((s) => s.abrirModalUrls);
   const confirmarSiDirty = useConfirmarSiDirty();
   const iniciarAsistente = useOpmStore((s) => s.iniciarAsistente);
-  const cargarEjemploOrganizacional = useOpmStore((s) => s.cargarEjemploOrganizacional);
   const [nombreRenombrar, setNombreRenombrar] = useState(modelo.nombre);
   const [mostrarSubmenuDemos, setMostrarSubmenuDemos] = useState(false);
   const demos = useMemo(() => listarFixtures(), []);
@@ -161,14 +160,6 @@ export function MenuPrincipal() {
                 {d.modelo.nombre}
               </button>
             ))}
-            <div style={style.submenuDivider} />
-            <button
-              type="button"
-              style={style.submenuItem}
-              onClick={() => ejecutar(() => confirmarSiDirty(cargarEjemploOrganizacional))}
-            >
-              Ejemplo organizacional
-            </button>
           </div>
         ) : null}
       </div>
@@ -343,11 +334,6 @@ const style = {
     fontWeight: 600,
     textAlign: "left",
     whiteSpace: "nowrap",
-  },
-  submenuDivider: {
-    height: "1px",
-    margin: "3px 8px",
-    background: tokens.colors.bordeChrome,
   },
   icon: {
     width: "18px",
