@@ -25,14 +25,6 @@ export const toolbarStyle = {
     minWidth: 0,
     flex: "1 1 auto",
     overflowX: "auto",
-    // Affordance visual de scroll: gradiente sutil del lado derecho que hace
-    // visible que hay más acciones cuando la barra desborda. Cuando no hay
-    // overflow el efecto es imperceptible (el área del fade queda dentro del
-    // viewport y no recorta nada). Atiende C.3 del informe ronda 3.
-    maskImage:
-      "linear-gradient(to right, #000 0, #000 calc(100% - 28px), rgba(0,0,0,0.15) 100%)",
-    WebkitMaskImage:
-      "linear-gradient(to right, #000 0, #000 calc(100% - 28px), rgba(0,0,0,0.15) 100%)",
   },
   menuWrapper: {
     position: "relative",
