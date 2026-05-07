@@ -4,7 +4,7 @@
 **Repositorio**: `deep-opm-pro`
 **Corte**: ronda 13 (UX foundation + cleanup TIER 1 + enmienda IFML + rescate OPL reverse) consolidada sobre `main`.
 **Código verificado**: `main` tras `1cf8065` y este handoff. **MVP-alpha 100.0% ponderado**, **104/104 smokes**, **883 unit tests**, `lint` verde, `build` OK.
-**Documentación vigente**: este archivo reemplaza por completo el handoff anterior post-ronda 12.1.
+**Documentación vigente**: este archivo reemplaza por completo el handoff anterior post-ronda 13 / alpha-lock OPL reverse.
 
 ## Política De Handoff Único
 
