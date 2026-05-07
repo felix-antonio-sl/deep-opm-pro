@@ -1,5 +1,7 @@
+// [JOYAS §1-3] Chrome UI consume tokens centralizados; canvas semántico invariante.
 import { validarFirmaEnlace } from "../modelo/operaciones";
 import type { Entidad, Id, Modelo, TipoEnlace } from "../modelo/tipos";
+import { tokens } from "./tokens";
 
 type DireccionFiltro = "saliente" | "entrante";
 
@@ -122,19 +124,19 @@ const style = {
     display: "grid",
     gap: "8px",
     padding: "10px",
-    border: "1px solid #c8d2df",
-    borderRadius: "6px",
-    background: "#ffffff",
-    boxShadow: "0 10px 26px rgba(15, 23, 42, 0.14)",
+    border: `1px solid ${tokens.colors.bordeControl}`,
+    borderRadius: tokens.radii.md,
+    background: tokens.colors.fondoChrome,
+    boxShadow: tokens.shadows.menu,
   },
-  header: { display: "flex", justifyContent: "space-between", alignItems: "center", gap: "10px", fontSize: "13px", color: "#1f2937" },
-  segmented: { display: "flex", border: "1px solid #c8d2df", borderRadius: "5px", overflow: "hidden" },
-  segment: { border: 0, background: "#ffffff", color: "#475467", height: "26px", padding: "0 8px", cursor: "pointer", fontSize: "12px" },
-  segmentActive: { border: 0, background: "#eaf8ff", color: "#1d4ed8", height: "26px", padding: "0 8px", cursor: "pointer", fontSize: "12px", fontWeight: 700 },
+  header: { display: "flex", justifyContent: "space-between", alignItems: "center", gap: "10px", fontSize: "13px", color: tokens.colors.textoPrimario },
+  segmented: { display: "flex", border: `1px solid ${tokens.colors.bordeControl}`, borderRadius: tokens.radii.control, overflow: "hidden" },
+  segment: { border: 0, background: tokens.colors.fondoChrome, color: tokens.colors.textoSecundario, height: "26px", padding: "0 8px", cursor: "pointer", fontSize: "12px" },
+  segmentActive: { border: 0, background: tokens.colors.acentoUiSuave, color: tokens.colors.azulAccion, height: "26px", padding: "0 8px", cursor: "pointer", fontSize: "12px", fontWeight: 700 },
   list: { display: "grid", gap: "6px" },
-  item: { display: "flex", alignItems: "center", gap: "8px", width: "100%", border: "1px solid #e5e7eb", borderRadius: "6px", background: "#f9fbfd", padding: "8px", textAlign: "left", cursor: "pointer" },
-  icon: { display: "grid", placeItems: "center", flex: "0 0 28px", width: "28px", height: "28px", borderRadius: "4px", background: "#eef3f8", color: "#344054", fontSize: "11px", fontWeight: 800 },
-  itemText: { display: "grid", gap: "2px", minWidth: 0, color: "#1f2937", fontSize: "13px" },
-  preview: { color: "#667085", fontSize: "11px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" },
-  empty: { margin: 0, color: "#667085", fontSize: "12px" },
+  item: { display: "flex", alignItems: "center", gap: "8px", width: "100%", border: `1px solid ${tokens.colors.bordeTabla}`, borderRadius: tokens.radii.md, background: tokens.colors.fondoCard, padding: "8px", textAlign: "left", cursor: "pointer" },
+  icon: { display: "grid", placeItems: "center", flex: "0 0 28px", width: "28px", height: "28px", borderRadius: tokens.radii.sm, background: tokens.colors.fondoIcono, color: tokens.colors.textoControl, fontSize: "11px", fontWeight: 800 },
+  itemText: { display: "grid", gap: "2px", minWidth: 0, color: tokens.colors.textoPrimario, fontSize: "13px" },
+  preview: { color: tokens.colors.textoTerciario, fontSize: "11px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" },
+  empty: { margin: 0, color: tokens.colors.textoTerciario, fontSize: "12px" },
 } satisfies Record<string, preact.JSX.CSSProperties>;
