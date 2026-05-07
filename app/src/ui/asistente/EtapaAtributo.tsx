@@ -1,5 +1,7 @@
+// [JOYAS §1-3] Chrome UI consume tokens centralizados; canvas semántico invariante.
 import { TOTAL_ETAPAS } from "../../modelo/creacionWizard";
 import { S } from "./estilos";
+import { tokens } from "../tokens";
 
 interface Atributo {
   nombre: string;
@@ -17,7 +19,7 @@ export function EtapaAtributo({ valor, onChange }: Props) {
   const set = (patch: Partial<Atributo>) => onChange({ ...a, ...patch });
   return (
     <div>
-      <h3 style={S.title}>Etapa 4 de {TOTAL_ETAPAS} — Atributo Relevante <span style={{ fontWeight: 400, color: "#667085" }}>(opcional)</span></h3>
+      <h3 style={S.title}>Etapa 4 de {TOTAL_ETAPAS} — Atributo Relevante <span style={{ fontWeight: 400, color: tokens.colors.textoTerciario }}>(opcional)</span></h3>
       <p style={S.desc}>
         Si el beneficiario tiene un atributo que cambia con el proceso,
         indicalo aqui junto con su estado de entrada y salida.
