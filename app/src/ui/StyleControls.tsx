@@ -1,8 +1,10 @@
+// [JOYAS §1-3] Chrome UI consume tokens centralizados; canvas semántico invariante.
 import { FAMILIAS_TIPOGRAFICAS, PALETA_ESTILO_COSA } from "../modelo/estilos";
 import type { EstiloApariencia } from "../modelo/tipos";
 import { inspectorStyles as inspector } from "./inspectorStyles";
+import { tokens } from "./tokens";
 
-export const COLORS_UI = ["#586d8c", "#70e483", "#3bc3ff", "#000002", "#d92d20", "#e87400", "#7c68fc", "#000000"] as const;
+export const COLORS_UI = [tokens.colors.chromeNeutral, tokens.colors.canvas.objeto, tokens.colors.canvas.proceso, tokens.colors.canvas.texto, tokens.colors.errorBase, tokens.colors.naranja, tokens.colors.violeta, tokens.colors.negro] as const;
 export const DASH_PATTERNS_UI = ["ambiental", "4 4", "2 4", "6 4 2 4"] as const;
 
 interface Props {
@@ -155,8 +157,8 @@ function Swatches(props: {
               style={{
                 ...styles.swatch,
                 background: color,
-                borderColor: selected ? "#1f2937" : "#c8d2df",
-                boxShadow: selected ? "0 0 0 2px #ffffff, 0 0 0 4px #586D8C" : "none",
+                borderColor: selected ? "${tokens.colors.textoPrimario}" : "${tokens.colors.bordeControl}",
+                boxShadow: selected ? "0 0 0 2px ${tokens.colors.fondoChrome}, 0 0 0 4px ${tokens.colors.chromeNeutral}" : "none",
               }}
               onClick={() => props.onSelect(color)}
             />
@@ -173,9 +175,9 @@ const styles = {
     gap: "10px",
     marginBottom: "14px",
     padding: "10px",
-    border: "1px solid #d9e0ea",
-    borderRadius: "4px",
-    background: "#ffffff",
+    border: "1px solid ${tokens.colors.bordeIntermedio}",
+    borderRadius: tokens.radii.sm,
+    background: "${tokens.colors.fondoChrome}",
   },
   header: {
     display: "grid",
@@ -186,10 +188,10 @@ const styles = {
   reset: {
     height: "28px",
     padding: "0 10px",
-    border: "1px solid #c8d2df",
-    borderRadius: "4px",
-    background: "#f9fbfd",
-    color: "#475467",
+    border: "1px solid ${tokens.colors.bordeControl}",
+    borderRadius: tokens.radii.sm,
+    background: "${tokens.colors.fondoCard}",
+    color: "${tokens.colors.textoSecundario}",
     cursor: "pointer",
     fontSize: "12px",
     fontWeight: 700,
@@ -199,7 +201,7 @@ const styles = {
     gap: "6px",
   },
   rowLabel: {
-    color: "#667085",
+    color: "${tokens.colors.textoTerciario}",
     fontSize: "12px",
     fontWeight: 700,
   },
@@ -212,8 +214,8 @@ const styles = {
   swatch: {
     width: "28px",
     height: "28px",
-    border: "1px solid #c8d2df",
-    borderRadius: "4px",
+    border: "1px solid ${tokens.colors.bordeControl}",
+    borderRadius: tokens.radii.sm,
     cursor: "pointer",
   },
   batchBar: {
@@ -222,10 +224,10 @@ const styles = {
     gap: "8px",
     minHeight: "28px",
     padding: "6px 8px",
-    border: "1px solid #c8d2df",
-    borderRadius: "4px",
-    background: "#f3f8ff",
-    color: "#344054",
+    border: "1px solid ${tokens.colors.bordeControl}",
+    borderRadius: tokens.radii.sm,
+    background: "${tokens.colors.azulMuySuave}",
+    color: "${tokens.colors.textoControl}",
     fontSize: "12px",
     fontWeight: 700,
   },
@@ -249,10 +251,10 @@ function SwatchesCompact(props: {
               width: "22px",
               height: "22px",
               background: color,
-              border: selected ? "2px solid #1f2937" : "1px solid #c8d2df",
-              borderRadius: "4px",
+              border: selected ? `2px solid ${tokens.colors.textoPrimario}` : `1px solid ${tokens.colors.bordeControl}`,
+              borderRadius: tokens.radii.sm,
               cursor: "pointer",
-              boxShadow: selected ? "0 0 0 1px #ffffff, 0 0 0 3px #586D8C" : "none",
+              boxShadow: selected ? `0 0 0 1px ${tokens.colors.fondoChrome}, 0 0 0 3px ${tokens.colors.chromeNeutral}` : "none",
             }}
             onClick={() => props.onSelect(color)}
           />
@@ -268,9 +270,9 @@ const textStyles = {
     gap: "8px",
     padding: "8px",
     marginTop: "4px",
-    border: "1px solid #d9e0ea",
-    borderRadius: "4px",
-    background: "#fafbfc",
+    border: `1px solid ${tokens.colors.bordeIntermedio}`,
+    borderRadius: tokens.radii.sm,
+    background: tokens.colors.fondoInput,
   },
   headerRow: {
     display: "flex",
@@ -288,20 +290,20 @@ const textStyles = {
     alignItems: "center",
   },
   fieldLabel: {
-    color: "#667085",
+    color: tokens.colors.textoTerciario,
     fontSize: "11px",
     fontWeight: 700,
   },
   slider: {
     width: "100%",
     height: "20px",
-    accentColor: "#586D8C",
+    accentColor: tokens.colors.chromeNeutral,
   },
   checkLabel: {
     display: "flex",
     gap: "4px",
     alignItems: "center",
-    color: "#475467",
+    color: tokens.colors.textoSecundario,
     fontSize: "12px",
     fontWeight: 600,
     cursor: "pointer",
@@ -309,16 +311,16 @@ const textStyles = {
   segmented: {
     display: "flex",
     gap: "0",
-    borderRadius: "4px",
+    borderRadius: tokens.radii.sm,
     overflow: "hidden",
-    border: "1px solid #c8d2df",
+    border: `1px solid ${tokens.colors.bordeControl}`,
   },
   segment: {
     flex: 1,
     minHeight: "28px",
     border: "none",
-    background: "#f9fbfd",
-    color: "#475467",
+    background: tokens.colors.fondoCard,
+    color: tokens.colors.textoSecundario,
     cursor: "pointer",
     fontSize: "11px",
     fontWeight: 600,
@@ -327,8 +329,8 @@ const textStyles = {
     flex: 1,
     minHeight: "28px",
     border: "none",
-    background: "#586D8C",
-    color: "#ffffff",
+    background: tokens.colors.chromeNeutral,
+    color: tokens.colors.fondoChrome,
     cursor: "pointer",
     fontSize: "11px",
     fontWeight: 700,
