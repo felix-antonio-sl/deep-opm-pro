@@ -1,10 +1,10 @@
-# HANDOFF - Alpha real cerrado + pre-beta law-first
+# HANDOFF - Ronda 15 cerrada, Beta1 habilitada
 
 **Fecha**: 2026-05-07
 **Repositorio**: `deep-opm-pro`
 **Rama**: `main`
-**Corte**: rondas 14.2 y 14.3 integradas sobre el cierre 14.1 de refinamiento OPM completo sobre Thing.
-**Estado**: alpha real cerrado por ledger operativo: OPL reverse editable ya no queda como parcial; MVP-alpha **100.0%**.
+**Corte**: ronda 15 fusionada (Beta0 hardening pre-Beta1) cerrada con cinco lineas integradas en serie controlada con paralelismo seguro.
+**Estado**: alpha real cerrado preservado; superficie de modelado diaria estabilizada; Beta1 abierta para diseno de ronda 16 (`docs/instrucciones-lineas-dev/ronda16/` ya existe como diseno previo).
 
 ## Politica De Handoff Unico
 
@@ -23,87 +23,100 @@ Autoridad semantica:
 - Evidencia operacional OPCloud: `opm-extracted/`
 - Evidencia visual canonica: `assets/svg/`, `assets/png/`, `docs/JOYAS.md`
 - Backlog vivo: `docs/historias-usuario-v2/`
-- Corte operativo vivo: `docs/roadmap/`
-
-OPCloud operacionaliza OPM, pero no redefine la semantica. Cualquier solucion
-nueva debe buscar primero en `assets/`, `docs/JOYAS.md`, `opm-extracted/` y la
-SSOT antes de inventar.
+- Corte operativo vivo: `docs/roadmap/cortes-operativos.md`
 
 ## Memoria Consolidada Del Corte
 
-La ronda 14.1 corrigio el bloque semantico de refinamiento:
-**inzoom/descomposicion** y **unfold/despliegue** aplican a **Thing** (objeto o
-proceso), no a la matriz historica restringida objeto-unfold/proceso-inzoom. Se
-conservo el schema actual `entidad.refinamiento` y los nombres publicos legacy
-por compatibilidad, pero el comportamiento ya cubre la matriz completa.
+La ronda 15 fusiono el plan original de hardening (`Dialogo` + Toolbar `⋯ Más`)
+con la propuesta de ronda 16 visual (IFML, canvas fidelity, superficie
+contextual), entregando Beta0 endurecido en cinco lineas:
 
-La ronda 14.2 agrego una capa **law-first** antes de seguir hacia beta:
+- **L1** estabilizo el sustrato modal: causa raiz del bug `Dialogo` invisible
+  era que el componente vivia dentro de `<main display:grid>` y era vulnerable
+  a containing-block traps de cualquier ancestro con `transform/filter/contain/
+  will-change`. Fix: portal unico a `document.body` via `createPortal` de
+  `preact/compat`. Reverts: la migracion `modal-grid` quedo reintroducida; la
+  affordance `mask-image` quedo en territorio L2; el cambio canvas
+  `role="application"` quedo diagnosticado pero no reintroducido por romper
+  helpers `getByRole("img", { name: "OPD activo" })` en multiples smokes.
+- **L3** normalizo IFML eligiendo Ruta B (reemplazo SystemEvent ad-hoc por
+  estado tipado): `nuevaCosaPendiente: { entidadId, aparienciaId, nombre } |
+  null` reemplaza `window.dispatchEvent("opm:nueva-cosa")`; el ToolbarBase lo
+  consume del store y se limpia con `confirmarNombreNuevaCosa` o
+  `descartarNuevaCosaPendiente`. Eval `evaluacion-exhaustiva.mjs` admite
+  `--out <subdir>` para no pisar capturas y agrega 4 verificadores IFML.
+- **L2** rebalanceo Toolbar de ~38 a 22 controles visibles iniciales con
+  `ToolbarMas.tsx` (boton `⋯ Más`) accesible (Enter/Space/ArrowDown abren,
+  Escape cierra, click-outside cierra, `aria-haspopup="menu"`,
+  `aria-expanded`, items `role="menuitem"`). Algunas acciones se replican en
+  banda y en menu para no romper smokes legacy que dependen de testIds
+  estables; documentado como deuda de cleanup futuro, no bloqueo.
+- **L4** mejoro fidelidad visual: `connector: jumpover` en enlaces procedurales
+  con `routerManhattan` aclara cruces en modelos medianos sin nueva
+  dependencia; accion `aplicarLayoutSugerido` undoable (BFS por niveles desde
+  fuentes) expuesta como boton "Sugerir layout" en `ToolbarCreacion`.
+  Metadata `opm.kind`/`tipo`/`enlaceId` preservada (`law-render-stable-metadata`
+  intacta).
+- **L5** cerro coherencia UX: Inspector con `data-modo-inspector`/`aria-live`,
+  indicador "esta cosa aparece N veces en M OPDs" para resolver friccion
+  apariencia≠entidad, navegacion "Ir al OPD donde aparece este enlace" cuando
+  el enlace esta fuera del OPD activo, scroll OPL a la oracion seleccionada,
+  PanelMetodologia y PanelAvisos colapsables sin perder contador. Contrato
+  TablaEnlaces Beta1 sintetizado en `e2e/15-superficie-contextual.spec.ts`
+  como `describe.skip` con seis decisiones operables (columnas minimas,
+  seleccion bidireccional, edicion in-place, navegacion a extremos, render con
+  virtualizacion sobre 200 enlaces, layout como pestana en BarraPestanas).
 
-- leyes de identidad para proyecciones JSON/render/refinamiento;
-- leyes de seguridad para OPL reverse editable;
-- ley de preview sin mutacion;
-- ley de undo atomico para aplicar OPL;
-- ledger de calidad ejecutable.
+## Commits Del Corte
 
-La ronda 14.3 hizo explicitas fronteras arquitectonicas que estaban implicitas:
-
-- contratos de slices de store con `Pick<OpmStore, ...>` en vez de aliases
-  `Partial<OpmStore>`;
-- frontera de efectos runtime (`confirm`, storage, reloj, UUID/random);
-- opciones de proyeccion explicitables sin depender de globals legacy;
-- adaptadores legacy aislados para compatibilidad UI.
-
-## Commits Del Corte Actual
-
-| Ronda | Commit | Aporte |
+| Linea | Commit | Mensaje |
 |---|---|---|
-| 14.2 L1 | `b97e088` | `test(leyes): proyecciones preservan identidad OPM` |
-| 14.2 L2 | `3d645e2` | `test(leyes): OPL reverse es lente segura y undoable` |
-| 14.2 L3 | `8455318` | `docs(quality): agrega ledger law-first pre-beta` |
-| 14.3 L1 | `306e202` | `refactor(store): explicita contratos de slices` |
-| 14.3 L2 | `7076784` | `refactor(runtime+render): explicita effects y opciones de proyeccion` |
+| L1 | `c2a66d7` | `test(e2e): reproduce dialogo-portal y exige paint sobre canvas+grid` |
+| L1 | `8c43075` | `fix(ui): porta Dialogo a body para sobrevivir al workbench grid+SVG` |
+| L1 | `dbdd29c` | `a11y(modal-grid): reintroduce migracion a Dialogo canonico con smoke focal` |
+| L1 | `f8017ed` | `fix(modal-grid): preserva testid del wrapper completo tras migracion` |
+| L3 | `eb493f2` | `refactor(ifml): tipa flujo nueva-cosa como NavigationFlow del store` |
+| L3 | `88ce250` | `test(e2e): cubre flujo IFML nueva-cosa pre-beta1` |
+| L3 | `6aeb30e` | `chore(eval): mejora evaluacion exhaustiva visual pre-Beta1` |
+| L2 | `be851d4` | `feat(toolbar): agrega menu Mas accesible` |
+| L2 | `6111533` | `refactor(toolbar): mueve acciones secundarias a Mas` |
+| L2 | `c1fa142` | `test(e2e): toolbar overflow queda bajo control` |
+| L4 | `56208a3` | `fix(render): connector jumpover en enlaces procedurales con routerManhattan` |
+| L4 | `b1a39b8` | `feat(canvas): layout sugerido aplicable y undoable` |
+| L4 | `00ab638` | `test(e2e): canvas fidelity pre-beta` |
+| L5 | `6b875f3` | `ux(superficie): alinea seleccion entre barra inspector opl y arbol` |
+| L5 | `b535758` | `test(e2e): journey contextual pre-beta1` |
+| L5 | `8aeff65` | `docs(beta1): contrato UX para TablaEnlaces` |
 
-La consolidacion final actualiza el dashboard, reemplaza este HANDOFF y publica
-todo sobre `origin/main`.
+## Topologia De Ejecucion
 
-## Estado De Alpha
-
-**MVP-alpha: 100.0% ponderado**
-
-- 121 HU alpha cubiertas.
-- 0 parciales.
-- 0 pendientes.
-- Detector: 102/102 reglas matched.
-
-La HU que bloqueaba el cierre real, **HU-SHARED-007 / OPL reverse editable**, ya
-queda tratada como cerrada en el corte operativo. Ronda 14.2 no solo acepta el
-cierre funcional: lo rodea con leyes que protegen la semantica de lente segura.
-
-Garantias nuevas:
-
-- El parser inverso no borra por ausencia de linea.
-- El preview OPL no muta el modelo.
-- Las oraciones OPL validas pero aun no soportadas producen diagnostico, no
-  mutacion silenciosa.
-- Aplicar OPL crea una unidad undo atomica.
+Steipete dirigio con orden de merge `L1 -> L3 -> L2 -> L4 -> L5` y paralelismo
+seguro donde el espacio de archivos lo permitia: L1 y L2 corrieron en
+worktrees aislados simultaneos; L3 lanzo cuando L1 mergeo a main; L2 quedo en
+cola y se mergeo despues de L3; L4 y L5 corrieron secuencialmente sobre main
+con todas las lineas previas integradas. Todas las ramas se rebasaron sobre
+main al cierre y se ff-mergearon. Conflicto unico: `ToolbarBase.tsx` entre L3
+(reemplazo del listener `opm:nueva-cosa` por subscripcion al store) y L2
+(adicion de hooks del menu Mas y un `[nuevaCosa, setNuevaCosa]` local que L3
+ya habia obsoletado); resuelto descartando el estado local muerto.
 
 ## Verificacion Final Ejecutada
 
-Estado vigente post-polish beta0 (`main` @ `a0ba640`):
+Estado vigente post-ronda 15 (`main` @ `8aeff65`):
 
 ```bash
 cd app && bun run check
-# 904 pass / 0 fail / 3546 expect() / 91 archivos
+# 912 pass / 0 fail / 3569 expect() / 92 archivos
 
 cd app && bun run lint
 # eslint src/ui/ OK
 
 cd app && bun run build
 # vite build OK
-# main bundle: 244.67 kB / 65.71 kB gzip
+# main bundle: 256.09 kB / 68.49 kB gzip
 
 cd app && bun run browser:smoke
-# 109 passed
+# 128 passed / 5 skipped (contrato TablaEnlaces L5)
 
 cd app && bun run scripts/quality-ledger.mjs --markdown
 # Canonical laws: 6/6
@@ -122,212 +135,87 @@ node docs/historias-usuario-v2/tools/progress-dashboard.mjs --sync-real
 # 102/102 reglas matched
 ```
 
-Verificacion historica de cierre 14.2/14.3:
+Eval exhaustiva (`bun run scripts/evaluacion-exhaustiva.mjs --out
+ronda-15-cierre` con vite corriendo): 17 criterios, 11 OK, 2 WARN heredados de
+toolbar (`overflow-horizontal` 851px delta, `ratio-disabled-inicial` 27.5%), 0
+errors runtime, 7 axe rutas, INFO `dialogo-en-body: true` confirma portal L1
+activo. Dos FAIL `dialogos/dialogo-biblioteca` y `dialogos/dialogo-menu-principal`
+son criterios L3 que asumen `[role="dialog"]` tras click en botones que en
+realidad despliegan paneles/menus inline (no Dialogos canonicos); deuda de
+afinacion del eval, no regresion.
 
-Desde `app/`:
+Bundle delta acumulado vs baseline pre-ronda (`244.67 kB / 65.71 kB gzip`):
+**+11.42 kB raw / +2.78 kB gzip**, dentro del umbral de 3 kB gzip declarado
+en el README §9. Distribucion: L2 +1.74 KB gzip (menu Mas + hooks), L4 +0.07
+KB gzip (jumpover + layoutSugerido), L5 +1.17 KB gzip (Inspector/OPL/Paneles).
 
-```bash
-bun run check
-# 903 pass / 0 fail / 3545 expect() / 90 archivos
+## Reverts Conscientes Tras Ronda 15
 
-bun run lint
-# eslint src/ui/ OK
-
-bun run build
-# vite build OK
-# main bundle: 233.48 kB / 62.78 kB gzip
-
-bun run browser:smoke
-# 106 passed
-
-bun run scripts/quality-ledger.mjs --markdown
-# Canonical laws: 6/6
-# Compat detectors: 1
-# MVP-alpha: 121/121 (100%)
-# Auto rules: 102/102 matched
-```
-
-Desde la raiz:
-
-```bash
-node docs/historias-usuario-v2/tools/progress-dashboard.mjs --sync-real
-# HU vivas: 1126
-# Total: 28.5% ponderado (313 cubiertas, 22 parciales, 413 pendientes, 378 diferidas)
-# MVP-alpha: 100.0% ponderado (121 cubiertas, 0 parciales, 0 pendientes)
-# 102/102 reglas matched
-```
-
-Diagnostico vivo: 1 advertencia ledger heredada (`HU-13.005` duplicate-id,
-legado pre-ronda-8). No bloquea este corte.
-
-## Mejoras Post-Handoff Integradas
-
-- **Capturador local de bugs** (`e9e7a00`): boton fijo dev-only, texto requerido,
-  0..N screenshots por file input o pegado directo, endpoint Vite/preview que
-  escribe `docs/bugs/BUG-.../{report.md,payload.json,screenshots/*}`.
-- **Bugs capturados cerrados**: `BUG-20260507T165507Z-19b234` aclaro la creacion
-  continua de objetos/procesos; `BUG-20260507T170832Z-2dae09` deduplico el
-  ejemplo organizacional; `BUG-20260507T173915Z-617932` quedo evaluado como
-  resuelto por aplanado de iconos en barra contextual.
-- **Tokens CSS corregidos** (`1efdc95`): 57 interpolaciones literales
-  `"${tokens.colors...}"` reemplazadas por tokens reales/template literals y
-  guard rail `tokenInterpolation.test.ts`.
-- **A11y/UX polish**: nombres accesibles, focus-visible, `aria-label`/
-  `aria-pressed`, contraste >= 4.5:1, barra de pestanas con `tablist` correcto,
-  empty states en Inspector/OPL/Plantillas y emojis reemplazados por SVG inline.
-- **Reverts conscientes**: modal-grid y affordance de scroll horizontal se
-  revirtieron por regresion/ruido; canvas volvio a `role="img"` tras smoke
-  regression. No reintroducir sin test browser focal.
-- **Evaluacion exhaustiva**: `app/scripts/evaluacion-exhaustiva.mjs` agrega un
-  ciclo visual/dev para seguir puliendo beta0; salidas en `_eval-output/` quedan
-  ignoradas.
-- **Detector recalibrado** (`530b757`): HU-30.021/HU-30.008 reconocen el catalogo
-  unico `listarFixtures`/`cargarFixtureDemo` y el smoke que garantiza un solo
-  `Ejemplo organizacional`.
-
-## Decisiones Nuevas
-
-### Law-first antes de beta
-
-Antes de abrir beta funcional se fijo una base de leyes ejecutables. Las leyes
-no reemplazan pruebas unit/e2e; definen invariantes que deben sobrevivir a
-refactors de UX, render y OPL:
-
-- `law-json-roundtrip`
-- `law-render-stable-metadata`
-- `law-refinement-thing-matrix`
-- `law-refinement-removal`
-- `law-opl-safe-lens`
-- `law-opl-preview-no-mutation`
-- alias operativo: `law-opl-apply-undo-atomicity` como evidencia de
-  `law-store-undo-atomicity`
-
-### Store slices como contrato explicito
-
-`app/src/store/sliceTypes.ts` define las superficies de cada slice con
-`Pick<OpmStore, ...>`. Ya no hay aliases `type *Slice = Partial<OpmStore>`.
-
-Se agregaron checks de cobertura:
-
-- `OpmStoreSliceMissingKeys`
-- `OpmStoreSliceExtraKeys`
-
-El tipo `CrearSlice<T>` conserva `Partial<OpmStore>` solo como detalle de
-compatibilidad con Zustand `set`, no como contrato publico de slice.
-
-### Runtime effects aislados
-
-`app/src/store/runtimeEffects.ts` concentra los efectos del runtime:
-
-- `now()`
-- `confirm(message)`
-- `readLocalStorage(key)`
-- `writeLocalStorage(key, value)`
-- `randomUUID()`
-- `random()`
-
-`app/src/store/runtime.ts` ya no lee `globalThis.confirm`, `globalThis.localStorage`,
-`globalThis.crypto` ni `Date.now()` directamente. El fallback de ID local usa
-tambien `runtimeEffects.random()`, no `Math.random()` directo.
-
-### Proyeccion sin globals obligatorios
-
-`app/src/render/jointjs/proyeccionOpciones.ts` separa:
-
-- defaults canonicos de proyeccion;
-- normalizacion de opciones explicitas;
-- adaptador legacy para los globals `__deepOpmUi*`.
-
-`proyectarModeloAJointCells(...)` puede recibir opciones explicitas y, en ese
-modo, no lee ni hereda estado global. Los globals sobreviven solo como puente
-legacy para la UI actual.
-
-## Cascadas Gestionadas
-
-| Cascada | Resolucion |
-|---|---|
-| 14.2 L1/L2 agregan leyes sobre codigo ya estabilizado por 14.1. | Se commitearon como tests puros, sin cambios de dominio. `bun run check` subio de 888/898 a 903 tras 14.3. |
-| OPL reverse editable paso de cierre funcional a cierre con leyes. | Se fijaron lente segura, preview sin mutacion, unsupported no-op y undo atomico. |
-| Dashboard necesitaba re-scan tras nuevos archivos. | `--sync-real` actualizo timestamps y conteo de fuentes 381 -> 388; reglas siguen 102/102. |
-| Store tenia contratos de slices demasiado laxos. | Se introdujo `sliceTypes.ts` y se eliminaron aliases `Slice = Partial<OpmStore>`. |
-| Runtime/render mezclaban logica pura con entorno browser. | Se aislaron adaptadores en `runtimeEffects.ts` y `proyeccionOpciones.ts`; archivos core ya no tienen `globalThis` directo. |
-| Bundle sigue sobre objetivo historico. | Documentado como deuda viva: 233.48 kB / 62.78 kB gzip. No bloquear alpha; tratar en corte de performance/UX posterior. |
+- **`789eb0e` modal-grid**: REINTRODUCIDA bajo portal L1, smoke focal en
+  `[L1] aria-labelledby y Esc captura`.
+- **`816e7bf` mask-image affordance scroll horizontal**: NO reintroducida.
+  Diagnostico: cambio mecanicamente compatible con portal pero pertenece a
+  `toolbarStyles.ts`/territorio L2. Queda como mejora opcional para una linea
+  futura de polish; no bloquea Beta1.
+- **`73f46ce` canvas role="application"**: NO reintroducida. Diagnostico:
+  introduce `tabIndex={0}` en SVG y reordena pseudo-stacking; rompe selectores
+  `getByRole("img", { name: "OPD activo" })` en `_smoke-helpers.ts` y al menos
+  `01,05,06,07,08-*.spec.ts`. Cambio atomico pero requiere actualizar
+  helpers en bloque, lo que excede scope L1 y L4. Queda como deuda de a11y a
+  ejecutar con migracion de helpers en una linea dedicada.
 
 ## Estado Por Dominio
 
-- **Modelo/kernel**: estable tras 14.1. Refinamiento sobre Thing cubierto y
-  rodeado por leyes 14.2.
-- **OPL**: reverse editable cerrado para alpha; parser inverso sigue siendo
-  incremental, no parser completo de todo OPL. Unsupported debe diagnosticar sin
-  mutar.
-- **Render JointJS**: proyeccion con opciones explicitables; metadata estable
-  cubierta por ley.
-- **Store**: contratos de slices explicitos; undo atomico preservado.
-- **Runtime/browser effects**: frontera injectable; `runtime.ts` sin acceso
-  directo a browser globals.
-- **Dashboard HU**: alpha 100%; total backlog 28.5%.
-- **Quality ledger**: disponible como `cd app && bun run scripts/quality-ledger.mjs --markdown`.
+- **Modelo/kernel**: estable. Sin cambios semanticos en ronda 15.
+- **OPL**: reverse editable cerrado para alpha; sin tocar parser ni preview.
+- **Render JointJS**: jumpover y layout sugerido aplicable. Metadata estable
+  cubierta por ley `law-render-stable-metadata`.
+- **Store**: contrato de slices preservado; nuevas acciones UI tipadas
+  (`confirmarNombreNuevaCosa`, `descartarNuevaCosaPendiente`,
+  `aplicarLayoutSugerido`) con membresia explicita en `sliceTypes.ts`.
+- **Runtime/browser effects**: sin nuevos accesos directos a globals.
+- **UI workbench**: Toolbar con menu Mas; Inspector/OPL/Paneles coherentes;
+  modal stack via portal a body.
+- **Eval**: `evaluacion-exhaustiva.mjs` con `--out` y verificadores IFML L3.
+- **Dashboard HU**: alpha 100%; total 28.5%.
 
-## Pendientes Reales Antes De Beta
+## Gates Beta1
 
-Beta no debe arrancar como "mas features OPCloud". Los cortes oficiales son de
-producto; las rondas arquitectonicas son internas.
+Beta1 (`docs/instrucciones-lineas-dev/ronda16/`) queda HABILITADA. Diseno ya
+producido por `4739836`:
 
-### Corte Recomendado: Beta-0 Foundation
+- L1 ronda 16: TablaEnlaces como pestana en workbench (contrato definido por
+  L5 ronda 15 en `e2e/15-superficie-contextual.spec.ts` describe.skip).
+- L2 ronda 16: busqueda intra-modelo.
+- L3 ronda 16: validacion metodologica.
+- L4 ronda 16: catalogo modelos ancla.
+- L5 ronda 16: eval Beta1 dominio real.
 
-Objetivo: modelar KORA/HDOS/GOREOS con UX suficientemente estable para trabajo
-real, sin prometer simulacion completa.
+Pre-condiciones de Beta1 confirmadas por ronda 15:
 
-Incluye:
+- Modal layer estable (L1).
+- IFML flow nueva-cosa tipado (L3).
+- Toolbar sin overflow horizontal nuevo (L2).
+- Canvas con cruces legibles y autolayout disponible (L4).
+- Superficie contextual coherente y contrato TablaEnlaces operable (L5).
 
-- normalizacion IFML pendiente;
-- bugs visuales y UX de modelado diario, con prioridad inmediata al bug de
-  `Dialogo` que se monta pero no pinta sobre `main display:grid` + canvas SVG/
-  composite layers;
-- Toolbar overflow manual `⋯ Más` para reducir ~38 controles a ~25 visibles
-  antes de abrir Beta1;
-- ejecución de `evaluacion-exhaustiva.mjs` como loop de captura pre-Beta1;
-- cierre de coherencia UX contextual entre barra contextual, Inspector, Panel
-  OPL, árbol y contrato de TablaEnlaces futura;
-- autolayout asistido como vista sugerida/aplicar layout, no motor obligatorio;
-- apariencia exacta de shapes/enlaces/anclaje/cruces desde `opm-extracted/` +
-  SSOT visual;
-- validacion metodologica como nucleo;
-- catalogo simple, sin carpetas/workspace complejo;
-- capturador de bugs integrado con imagen + texto + codigo referenciable para
-  agentes (**ya implementado**, falta solo disciplina de triage/limpieza).
+## Deuda Viva Reconocida
 
-### Corte Recomendado: Beta-1 Dominio Real
-
-Objetivo: un modelo ancla mediano (KORA/HDOS/GOREOS) debe poder sostenerse con:
-
-- Tabla de Enlaces como herramienta real de auditoria y edicion;
-- busqueda intra-modelo;
-- descomposicion/refinamiento/estados suficientemente ergonomicos;
-- validacion metodologica accionable;
-- OPL reverse confiable dentro del subset soportado.
-
-### Corte Posterior: Beta-2 Simulacion
-
-La simulacion queda fuera de Beta-0/Beta-1 salvo que un modelo ancla la requiera
-como eval. No subir A0 estereotipos ni asistente de 12 etapas a beta: A0 queda
-fuera y el asistente se resuelve como skill, no como requisito del producto.
+| Item | Origen | Sugerencia |
+|---|---|---|
+| `mask-image` affordance scroll horizontal Toolbar no reintroducida | L1/L2 | linea de polish post-Beta1 |
+| canvas `role="application"` no reintroducido | L1/L4 | requiere migrar helpers `getByRole("img")` en bloque |
+| Acciones replicadas en banda y menu Mas | L2 | actualizar smokes legacy y mover puro al menu |
+| FAIL eval `dialogo-biblioteca` / `dialogo-menu-principal` | L3 | refinar criterios eval para distinguir Dialogo canonico vs panel/menu inline |
+| HU-13.005 duplicate-id (legado pre-ronda-8) | dashboard | sin bloqueo |
 
 ## Proximos Pasos Operativos
 
-1. Ejecutar `docs/instrucciones-lineas-dev/ronda15/` fusionada antes de Beta1:
-   - L1: `Dialogo` root-cause + reintroducción controlada de reverts.
-   - L2: Toolbar overflow manual `⋯ Más`, no overflow automático.
-   - L3: IFML flow cleanup + `evaluacion-exhaustiva.mjs`.
-   - L4: visual-canvas fidelity + autolayout sugerido/aplicable.
-   - L5: cierre UX contextual de superficie única.
-2. Definir evals de Beta-0/Beta-1 contra modelos ancla:
-   - `/home/felix/projects/hd-dt`
-   - `/home/felix/projects/hdos`
-   - `/home/felix/projects/hdos-app`
-3. Antes de nuevas features, revisar con profundidad SSOT OPM + `opm-extracted/`
-   para apariencia, enlaces, anclaje, routing y cruces.
-4. Mantener el loop:
+1. Ejecutar ronda 16 (`docs/instrucciones-lineas-dev/ronda16/`) para Beta1
+   dominio real (TablaEnlaces, busqueda, validacion metodologica, catalogo
+   modelos ancla, eval Beta1).
+2. Definir evals Beta1 contra modelos ancla (`hd-dt`, `hdos`, `hdos-app`).
+3. Mantener loop verde:
    - `cd app && bun run check`
    - `cd app && bun run lint`
    - `cd app && bun run build`
@@ -336,9 +224,10 @@ fuera y el asistente se resuelve como skill, no como requisito del producto.
 
 ## Prompt De Continuacion Breve
 
-Usa `docs/HANDOFF.md` como memoria unica. El alpha real esta cerrado: OPL reverse
-editable ya no queda parcial y las leyes 14.2 lo protegen. Continua con la capa
-operativa de cortes (`docs/roadmap/cortes-operativos.md`) y la normalizacion
-pre-beta: ejecutar ronda 15 fusionada (`Dialogo` root-cause, Toolbar `⋯ Más`,
-IFML + evaluación visual, canvas fidelity, superficie contextual). El capturador
-ya existe; úsalo para cerrar bugs visuales con ID referenciable.
+Usa `docs/HANDOFF.md` como memoria unica. Beta0 hardening cerrado: portal modal,
+IFML flow tipado, Toolbar `⋯ Más`, canvas con jumpover y autolayout sugerido,
+superficie contextual coherente. Beta1 habilitada: ejecutar ronda 16 fusionada
+para TablaEnlaces, busqueda intra-modelo, validacion metodologica, catalogo y
+eval contra modelos ancla. Tres deudas conocidas (mask-image, canvas role
+application, acciones replicadas Toolbar) quedan documentadas como polish
+opcional, no bloqueo.

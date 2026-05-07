@@ -1,17 +1,17 @@
 {
   "schema": "deep-opm-pro.hu-progress-report.v1",
-  "generatedAt": "2026-05-07T17:57:42.269Z",
+  "generatedAt": "2026-05-07T21:08:49.278Z",
   "repoRoot": "/home/felix/projects/deep-opm-pro",
   "backlogRoot": "docs/historias-usuario-v2",
   "evidenceLedger": "docs/roadmap/hu-progress-evidence.json",
   "autoAudit": {
-    "generatedAt": "2026-05-07T17:57:42.269Z",
+    "generatedAt": "2026-05-07T21:08:49.278Z",
     "mode": "sync-real",
     "rulesEvaluated": 102,
     "rulesMatched": 102,
     "rulesUnmatched": 0,
     "sourceFiles": {
-      "count": 398,
+      "count": 406,
       "roots": [
         "app/src",
         "app/e2e",
