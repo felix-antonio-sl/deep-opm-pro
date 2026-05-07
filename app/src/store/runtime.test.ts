@@ -1,7 +1,16 @@
-import { beforeEach, describe, expect, test } from "bun:test";
+import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import { exportarModelo } from "../serializacion/json";
 import { crearModelo } from "../modelo/operaciones";
 import { store } from "../store";
+import {
+  confirmarEliminacionOpd,
+  crearIdModeloLocal,
+  escribirIndiceWorkspace,
+  fijarRuntimeEffects,
+  leerIndiceWorkspace,
+  resetRuntimeEffects,
+} from "./runtime";
+import type { RuntimeEffects } from "./runtimeEffects";
 
 /**
  * Tests de runtime singleton: undo per-pestaña, dirty/snapshot.
@@ -13,6 +22,7 @@ import { store } from "../store";
  */
 
 beforeEach(() => {
+  resetRuntimeEffects();
   Object.defineProperty(globalThis, "localStorage", {
     configurable: true,
     value: {
@@ -26,6 +36,71 @@ beforeEach(() => {
   });
   store.getState().importarJson(exportarModelo(crearModelo()));
   store.getState().listarModelosGuardados();
+});
+
+afterEach(() => {
+  resetRuntimeEffects();
+});
+
+describe("runtime effects", () => {
+  test("confirm inyectado controla confirmacion de eliminacion OPD", () => {
+    const mensajes: string[] = [];
+    fijarRuntimeEffects(fakeRuntimeEffects({
+      confirm: (message) => {
+        mensajes.push(message);
+        return false;
+      },
+    }));
+
+    expect(confirmarEliminacionOpd("Vista hija")).toBe(false);
+    expect(mensajes).toEqual(["Eliminar OPD \"Vista hija\"? Esta acción se puede deshacer."]);
+
+    fijarRuntimeEffects(fakeRuntimeEffects({ confirm: () => true }));
+    expect(confirmarEliminacionOpd("Vista hija")).toBe(true);
+  });
+
+  test("storage inyectado aísla indice workspace de localStorage global", () => {
+    const storage = new Map<string, string>();
+    Object.defineProperty(globalThis, "localStorage", {
+      configurable: true,
+      get() {
+        throw new Error("runtime con storage fake no debe tocar localStorage global");
+      },
+    });
+    fijarRuntimeEffects(fakeRuntimeEffects({
+      readLocalStorage: (key) => storage.get(key) ?? null,
+      writeLocalStorage: (key, value) => {
+        storage.set(key, value);
+      },
+    }));
+
+    const indice = {
+      modelos: [{ id: "modelo-1", carpetaId: null }],
+      carpetas: [],
+      recientes: ["modelo-1"],
+    };
+
+    escribirIndiceWorkspace(indice);
+
+    expect(storage.size).toBe(1);
+    expect(leerIndiceWorkspace()).toEqual(indice);
+  });
+
+  test("ids locales usan runtime effects para reloj, UUID y random", () => {
+    fijarRuntimeEffects(fakeRuntimeEffects({
+      randomUUID: () => "uuid-controlado",
+      random: () => {
+        throw new Error("random no se usa cuando crypto provee UUID");
+      },
+    }));
+    expect(crearIdModeloLocal()).toBe("uuid-controlado");
+
+    fijarRuntimeEffects(fakeRuntimeEffects({
+      randomUUID: () => null,
+      random: () => 0.5,
+    }));
+    expect(crearIdModeloLocal()).toBe("modelo-moupz400-i");
+  });
 });
 
 describe("runtime undo per-pestaña", () => {
@@ -101,3 +176,15 @@ describe("runtime undo per-pestaña", () => {
     expect(store.getState().dirty).toBe(false);
   });
 });
+
+function fakeRuntimeEffects(overrides: Partial<RuntimeEffects> = {}): RuntimeEffects {
+  return {
+    now: () => new Date("2026-05-07T00:00:00.000Z"),
+    confirm: () => true,
+    readLocalStorage: () => null,
+    writeLocalStorage: () => undefined,
+    randomUUID: () => null,
+    random: () => 0,
+    ...overrides,
+  };
+}

@@ -34,6 +34,7 @@ import {
 } from "../canvas/operacionesBatch";
 import { normalizarGridConfig } from "../canvas/grid";
 import type { StoreApi } from "zustand/vanilla";
+import { RUNTIME_EFFECTS_DEFAULT, type RuntimeEffects } from "./runtimeEffects";
 import type { OpmStore } from "./tipos";
 
 export const UNDO_LIMIT = 100;
@@ -50,8 +51,12 @@ let undoStack: Modelo[] = [];
 let redoStack: Modelo[] = [];
 let autosalvadoControl: AutosalvadoControl | null = null;
 let storeApi: StoreApi<OpmStore> | null = null;
+let runtimeEffects: RuntimeEffects = RUNTIME_EFFECTS_DEFAULT;
 
 export function conectarRuntimeStore(api: StoreApi<OpmStore>): void { storeApi = api; }
+export function obtenerRuntimeEffects(): RuntimeEffects { return runtimeEffects; }
+export function fijarRuntimeEffects(effects: RuntimeEffects): void { runtimeEffects = effects; }
+export function resetRuntimeEffects(): void { runtimeEffects = RUNTIME_EFFECTS_DEFAULT; }
 function estadoActual(): OpmStore | null { return storeApi?.getState() ?? null; }
 export function obtenerEstadoStore(): OpmStore { const estado = estadoActual(); if (!estado) throw new Error("Store OPM no inicializado"); return estado; }
 export function setEstadoStore(partial: Partial<OpmStore>): void { storeApi?.setState(partial); }
@@ -351,8 +356,7 @@ export function opdActivoSeguro(modelo: Modelo, opdActivoId: Id): Id {
 }
 
 export function confirmarEliminacionOpd(nombre: string): boolean {
-  if (typeof globalThis.confirm !== "function") return true;
-  return globalThis.confirm(`Eliminar OPD "${nombre}"? Esta acción se puede deshacer.`);
+  return runtimeEffects.confirm(`Eliminar OPD "${nombre}"? Esta acción se puede deshacer.`);
 }
 
 export function aparienciaSeleccionadaActiva(modelo: Modelo, opdActivoId: Id, seleccionId: Id | null): Apariencia | null {
@@ -443,15 +447,13 @@ export function must<T>(resultado: { ok: true; value: T } | { ok: false; error: 
 
 export function escribirIndiceWorkspace(indice: WorkspaceIndice): void {
   try {
-    if (typeof globalThis.localStorage === "undefined") return;
-    globalThis.localStorage.setItem(WS_KEY, JSON.stringify(indice));
+    runtimeEffects.writeLocalStorage(WS_KEY, JSON.stringify(indice));
   } catch { /* storage no disponible */ }
 }
 
 export function leerIndiceWorkspace(): WorkspaceIndice {
   try {
-    if (typeof globalThis.localStorage === "undefined") return indiceVacio();
-    const raw = globalThis.localStorage.getItem(WS_KEY);
+    const raw = runtimeEffects.readLocalStorage(WS_KEY);
     if (!raw) return indiceVacio();
     const parsed = JSON.parse(raw);
     if (!esRecord(parsed)) return indiceVacio();
@@ -535,8 +537,7 @@ export function modelosRecientesDeIndice(indice: WorkspaceIndice, guardados: Res
 
 export function leerPreferenciaBooleana(key: string, fallback: boolean): boolean {
   try {
-    if (typeof globalThis.localStorage === "undefined") return fallback;
-    const raw = globalThis.localStorage.getItem(key);
+    const raw = runtimeEffects.readLocalStorage(key);
     if (raw === "true") return true;
     if (raw === "false") return false;
   } catch { /* storage no disponible */ }
@@ -545,14 +546,12 @@ export function leerPreferenciaBooleana(key: string, fallback: boolean): boolean
 
 export function escribirPreferenciaBooleana(key: string, value: boolean): void {
   try {
-    if (typeof globalThis.localStorage === "undefined") return;
-    globalThis.localStorage.setItem(key, value ? "true" : "false");
+    runtimeEffects.writeLocalStorage(key, value ? "true" : "false");
   } catch { /* storage no disponible */ }
 }
 
 export function crearIdModeloLocal(): Id {
-  if (typeof globalThis.crypto?.randomUUID === "function") return globalThis.crypto.randomUUID();
-  return `modelo-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+  return runtimeEffects.randomUUID() ?? `modelo-${runtimeEffects.now().getTime().toString(36)}-${runtimeEffects.random().toString(36).slice(2, 10)}`;
 }
 
 /**

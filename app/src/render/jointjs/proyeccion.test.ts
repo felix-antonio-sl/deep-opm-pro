@@ -1,4 +1,4 @@
-import { describe, expect, test } from "bun:test";
+import { afterEach, describe, expect, test } from "bun:test";
 import { formarAbanico } from "../../modelo/abanicos";
 import { crearAutoInvocacion } from "../../modelo/autoinvocacion";
 import { renombrarEtiquetaEnlace } from "../../modelo/etiquetasEnlace";
@@ -6,13 +6,63 @@ import { entidadIdDeExtremo, extremoEstado } from "../../modelo/extremos";
 import { aplicarEstiloApariencia } from "../../modelo/estilos";
 import { aplicarModificador, definirDemora, definirProbabilidad } from "../../modelo/modificadores";
 import { ajustarMultiplicidad, cambiarAfiliacion, cambiarEsencia, crearEnlace, crearEstadosIniciales, crearModelo, crearObjeto, crearProceso, designarEstadoFinal, designarEstadoInicial, descomponerProceso, desplegarObjeto, estadosDeEntidad, renombrarEstado } from "../../modelo/operaciones";
+import { editarAlias, editarDescripcion } from "../../modelo/objetoMetadata";
 import { cambiarModoPlegado, crearEnlaceConExtremoPlegado, extraerParteDePlegado, reinsertarParteEnPlegado } from "../../modelo/plegado";
 import { definirRutaEtiqueta } from "../../modelo/rutas";
 import type { Apariencia, Modelo, Resultado, TipoEnlace } from "../../modelo/tipos";
 import { LINK_ASSETS } from "./linkAssets";
-import { proyectarModeloAJointCells } from "./proyeccion";
+import { fijarOpcionesProyeccionGlobal, OPCIONES_PROYECCION_DEFAULT, proyectarModeloAJointCells } from "./proyeccion";
+
+afterEach(() => {
+  fijarOpcionesProyeccionGlobal(OPCIONES_PROYECCION_DEFAULT);
+});
 
 describe("proyeccion JointJS", () => {
+  test("opciones explicitas no leen ni heredan estado global", () => {
+    const modelo = modeloConAliasYDescripcion();
+    const entidadId = entidadPorNombre(modelo, "Solicitud");
+    const descriptores = capturarDescriptoresOpcionesGlobales();
+    instalarOpcionesGlobalesQueFallen();
+    try {
+      const visible = cellDeEntidad(proyectarModeloAJointCells(
+        modelo,
+        modelo.opdRaizId,
+        null,
+        null,
+        null,
+        [],
+        { aliasVisibles: true, descripcionesVisibles: true, modoImagenGlobal: null },
+      ), entidadId);
+      const oculta = cellDeEntidad(proyectarModeloAJointCells(
+        modelo,
+        modelo.opdRaizId,
+        null,
+        null,
+        null,
+        [],
+        { aliasVisibles: false, descripcionesVisibles: false, modoImagenGlobal: null },
+      ), entidadId);
+
+      expect(textoEtiqueta(visible)).toBe("Solicitud {sol}");
+      expect(textoEtiqueta(oculta)).toBe("Solicitud");
+      expect((visible.markup as Array<Attrs> | undefined)?.some((item) => item.selector === "descBadge")).toBe(true);
+      expect((oculta.markup as Array<Attrs> | undefined)?.some((item) => item.selector === "descBadge") ?? false).toBe(false);
+    } finally {
+      restaurarDescriptoresOpcionesGlobales(descriptores);
+    }
+  });
+
+  test("default legacy conserva opciones globales de proyeccion", () => {
+    const modelo = modeloConAliasYDescripcion();
+    const entidadId = entidadPorNombre(modelo, "Solicitud");
+    fijarOpcionesProyeccionGlobal({ aliasVisibles: false, descripcionesVisibles: false, modoImagenGlobal: null });
+
+    const cell = cellDeEntidad(proyectarModeloAJointCells(modelo, modelo.opdRaizId, null, null), entidadId);
+
+    expect(textoEtiqueta(cell)).toBe("Solicitud");
+    expect((cell.markup as Array<Attrs> | undefined)?.some((item) => item.selector === "descBadge") ?? false).toBe(false);
+  });
+
   test("proyecta apariencias como ids de celdas y mantiene metadata OPM", () => {
     let modelo = crearModelo();
     modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 30 }, "Driver"));
@@ -738,6 +788,61 @@ describe("proyeccion JointJS", () => {
 });
 
 type Attrs = Record<string, unknown>;
+
+type OpcionGlobal = "__deepOpmUiAliasVisibles" | "__deepOpmUiDescripcionesVisibles" | "__deepOpmUiModoImagenGlobal";
+
+const OPCIONES_GLOBALES: readonly OpcionGlobal[] = [
+  "__deepOpmUiAliasVisibles",
+  "__deepOpmUiDescripcionesVisibles",
+  "__deepOpmUiModoImagenGlobal",
+];
+
+function capturarDescriptoresOpcionesGlobales(): Array<[OpcionGlobal, PropertyDescriptor | undefined]> {
+  return OPCIONES_GLOBALES.map((key) => [key, Object.getOwnPropertyDescriptor(globalThis, key)]);
+}
+
+function instalarOpcionesGlobalesQueFallen(): void {
+  for (const key of OPCIONES_GLOBALES) {
+    Object.defineProperty(globalThis, key, {
+      configurable: true,
+      get() {
+        throw new Error(`La proyeccion explicita no debe leer ${key}`);
+      },
+      set() {
+        throw new Error(`La proyeccion explicita no debe escribir ${key}`);
+      },
+    });
+  }
+}
+
+function restaurarDescriptoresOpcionesGlobales(descriptores: Array<[OpcionGlobal, PropertyDescriptor | undefined]>): void {
+  for (const [key, descriptor] of descriptores) {
+    if (descriptor) {
+      Object.defineProperty(globalThis, key, descriptor);
+    } else {
+      delete (globalThis as unknown as Record<OpcionGlobal, unknown>)[key];
+    }
+  }
+}
+
+function modeloConAliasYDescripcion(): Modelo {
+  let modelo = crearModelo();
+  modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 30 }, "Solicitud"));
+  const entidadId = entidadPorNombre(modelo, "Solicitud");
+  modelo = must(editarAlias(modelo, entidadId, "sol"));
+  return must(editarDescripcion(modelo, entidadId, "Descripcion visible"));
+}
+
+function cellDeEntidad(cells: ReturnType<typeof proyectarModeloAJointCells>, entidadId: string) {
+  const cell = cells.find((item) => item.opm.kind === "entidad" && item.opm.entidadId === entidadId);
+  expect(cell).toBeDefined();
+  if (!cell) throw new Error(`Cell no encontrada: ${entidadId}`);
+  return cell;
+}
+
+function textoEtiqueta(cell: ReturnType<typeof cellDeEntidad>): unknown {
+  return ((cell.attrs as Attrs | undefined)?.label as Attrs | undefined)?.text;
+}
 
 function modeloConAgente(): Modelo {
   let modelo = crearModelo();

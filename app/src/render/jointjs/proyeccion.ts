@@ -9,9 +9,11 @@ import { proyectarEntidad } from "./composers/entidad";
 import { proyectarEnlace, proyectarProxyExtraccion, proyectarRefinamientoEstructural, resolverEndpointVisual } from "./composers/enlace";
 import { proyectarHaloSeleccion, refResaltaEnlace, refResaltaEntidad } from "./composers/halos";
 import { proyectarImagenesEntidad } from "./composers/imagenOverlay";
+import { normalizarOpcionesProyeccion, opcionesProyeccionDesdeEntornoLegacy } from "./proyeccionOpciones";
 import type { JointCellJson, OpcionesProyeccion } from "./proyeccionTipos";
 
 export type { JointCellJson, OpcionesProyeccion, OpmJointMetadata, RolApariencia } from "./proyeccionTipos";
+export { fijarOpcionesProyeccionGlobal, normalizarOpcionesProyeccion, OPCIONES_PROYECCION_DEFAULT } from "./proyeccionOpciones";
 export { proyectarProxyExtraccion } from "./composers/enlace";
 
 const TIPOS_REFINAMIENTO_ESTRUCTURAL: readonly TipoEnlace[] = [
@@ -39,21 +41,22 @@ export function proyectarModeloAJointCells(
   seleccionEnlaceId: Id | null,
   hoverOplRef: OplReferencia | null = null,
   seleccionados: readonly Id[] = [],
-  opciones: OpcionesProyeccion = opcionesProyeccionGlobal(),
+  opciones: OpcionesProyeccion = opcionesProyeccionDesdeEntornoLegacy(),
 ): JointCellJson[] {
   const opd = modelo.opds[opdId];
   if (!opd) return [];
+  const opcionesRender = normalizarOpcionesProyeccion(opciones);
   const seleccionMultiple = new Set(seleccionados);
 
   const apariencias = Object.values(opd.apariencias);
   const aparienciaPorEntidad = new Map(apariencias.map((apariencia) => [apariencia.entidadId, apariencia]));
   const elementos = apariencias.flatMap((apariencia) => {
     const entidad = modelo.entidades[apariencia.entidadId];
-    return entidad ? [proyectarEntidad(modelo, opdId, apariencia, entidad, entidad.id === seleccionEntidadId || seleccionMultiple.has(entidad.id), refResaltaEntidad(modelo, entidad, hoverOplRef), opciones)] : [];
+    return entidad ? [proyectarEntidad(modelo, opdId, apariencia, entidad, entidad.id === seleccionEntidadId || seleccionMultiple.has(entidad.id), refResaltaEntidad(modelo, entidad, hoverOplRef), opcionesRender)] : [];
   });
   const imagenes = apariencias.flatMap((apariencia) => {
     const entidad = modelo.entidades[apariencia.entidadId];
-    return entidad ? proyectarImagenesEntidad(modelo, opdId, apariencia, entidad, opciones.modoImagenGlobal ?? null) : [];
+    return entidad ? proyectarImagenesEntidad(modelo, opdId, apariencia, entidad, opcionesRender.modoImagenGlobal) : [];
   });
   const proxies = apariencias.flatMap((apariencia) => proyectarProxyExtraccion(opdId, opd, apariencia));
   const overlaysAbanico = Object.values(modelo.abanicos ?? {})
@@ -128,28 +131,4 @@ export function proyectarModeloAJointCells(
     : [];
 
   return [...busCells, ...enlaces, ...proxies, ...overlaysAbanico, ...elementos, ...imagenes, ...halos];
-}
-
-function opcionesProyeccionGlobal(): OpcionesProyeccion {
-  const global = globalThis as typeof globalThis & {
-    __deepOpmUiAliasVisibles?: boolean;
-    __deepOpmUiDescripcionesVisibles?: boolean;
-    __deepOpmUiModoImagenGlobal?: OpcionesProyeccion["modoImagenGlobal"];
-  };
-  return {
-    aliasVisibles: global.__deepOpmUiAliasVisibles ?? true,
-    descripcionesVisibles: global.__deepOpmUiDescripcionesVisibles ?? true,
-    modoImagenGlobal: global.__deepOpmUiModoImagenGlobal ?? null,
-  };
-}
-
-export function fijarOpcionesProyeccionGlobal(opciones: OpcionesProyeccion): void {
-  const global = globalThis as typeof globalThis & {
-    __deepOpmUiAliasVisibles?: boolean;
-    __deepOpmUiDescripcionesVisibles?: boolean;
-    __deepOpmUiModoImagenGlobal?: OpcionesProyeccion["modoImagenGlobal"];
-  };
-  global.__deepOpmUiAliasVisibles = opciones.aliasVisibles ?? global.__deepOpmUiAliasVisibles ?? true;
-  global.__deepOpmUiDescripcionesVisibles = opciones.descripcionesVisibles ?? global.__deepOpmUiDescripcionesVisibles ?? true;
-  global.__deepOpmUiModoImagenGlobal = opciones.modoImagenGlobal ?? null;
 }
