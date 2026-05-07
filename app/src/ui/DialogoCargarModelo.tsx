@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "preact/hooks";
 import autosaveIcon from "../../../assets/svg/autosave.svg";
-import exampleIcon from "../../../assets/svg/example.svg";
 import lockIcon from "../../../assets/svg/lock.svg";
 import regFileIcon from "../../../assets/svg/regFile.svg";
 import verFileIcon from "../../../assets/svg/verFile.svg";
@@ -8,6 +7,7 @@ import type { Id } from "../modelo/tipos";
 import type { ResumenModeloPersistido } from "../persistencia/local";
 import type { CarpetaIndice } from "../persistencia/workspace";
 import { rutaDeCarpeta, listarHijosDeCarpeta } from "../persistencia/workspace";
+import { listarFixtures } from "../store/runtime";
 import { useOpmStore } from "../store";
 import { Dialogo } from "./Dialogo";
 import { useConfirmarSiDirty } from "./ConfirmacionContext";
@@ -25,7 +25,7 @@ export function DialogoCargarModelo() {
   const carpetaActualId = useOpmStore((s) => s.carpetaActualId);
   const listar = useOpmStore((s) => s.listarModelosGuardados);
   const cargar = useOpmStore((s) => s.cargarLocal);
-  const cargarDemo = useOpmStore((s) => s.cargarDemo);
+  const cargarFixtureDemo = useOpmStore((s) => s.cargarFixtureDemo);
   const cargarEjemploOrganizacional = useOpmStore((s) => s.cargarEjemploOrganizacional);
   const abrirPestanaConModelo = useOpmStore((s) => s.abrirPestanaConModelo);
   const abrirCarpeta = useOpmStore((s) => s.abrirCarpeta);
@@ -54,6 +54,8 @@ export function DialogoCargarModelo() {
   const [orden, setOrden] = useState<OrdenCargar>(() => leerOrdenCargar());
   const [query, setQuery] = useState("");
   const [breadcrumb, setBreadcrumb] = useState<CarpetaIndice[]>([]);
+  const [demoSeleccionado, setDemoSeleccionado] = useState("");
+  const demos = useMemo(() => listarFixtures(), []);
 
   useEffect(() => {
     if (!open) return;
@@ -126,13 +128,34 @@ export function DialogoCargarModelo() {
 	      )}
 	    >
 	      <div style={style.container}>
-	        <div style={style.exampleBar}>
-	          <button type="button" style={style.secondaryButton} onClick={() => cargarEjemplo(cargarDemo)}>Ejemplo global</button>
-	          <button type="button" style={style.secondaryButton} onClick={() => cargarEjemplo(cargarEjemploOrganizacional)} data-testid="cargar-ejemplo-organizacional">
-	            <img src={exampleIcon} alt="" style={style.exampleIcon} />
-	            Ejemplo organizacional
-	          </button>
-	        </div>
+        <div style={style.exampleBar}>
+          <select
+            aria-label="Cargar modelo de ejemplo"
+            value={demoSeleccionado}
+            style={style.demoSelect}
+            onChange={(e) => {
+              const nombre = e.currentTarget.value;
+              if (!nombre) return;
+              setDemoSeleccionado("");
+              cargarEjemplo(() => {
+                if (nombre === "__organizacional__") {
+                  cargarEjemploOrganizacional();
+                } else {
+                  cargarFixtureDemo(nombre);
+                }
+              });
+            }}
+          >
+            <option value="" disabled>Ejemplos...</option>
+            {demos.map((d) => (
+              <option key={d.modelo.nombre} value={d.modelo.nombre} title={d.proposito}>
+                {d.modelo.nombre}
+              </option>
+            ))}
+            <option disabled>──────────</option>
+            <option value="__organizacional__">Ejemplo organizacional</option>
+          </select>
+        </div>
 	        <div style={style.flagsBar}>
           <label style={style.flag}>
             <input type="checkbox" checked={mostrarArchivados} onChange={toggleMostrarArchivados} />
@@ -404,6 +427,18 @@ const style = {
     gap: "8px",
     alignItems: "center",
   },
+  demoSelect: {
+    height: "34px",
+    padding: "0 8px",
+    border: "1px solid #c8d2df",
+    borderRadius: "4px",
+    background: "#ffffff",
+    color: "#475467",
+    cursor: "pointer",
+    fontSize: "13px",
+    fontWeight: 700,
+    maxWidth: "220px",
+  },
   primaryButton: {
     height: "34px",
     padding: "0 14px",
@@ -429,7 +464,6 @@ const style = {
     alignItems: "center",
     gap: "6px",
   },
-  exampleIcon: { width: "15px", height: "15px" },
   disabledButton: {
     height: "34px",
     padding: "0 14px",

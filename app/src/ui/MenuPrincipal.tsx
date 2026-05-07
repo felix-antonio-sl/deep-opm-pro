@@ -1,6 +1,7 @@
 import modelWizardIcon from "../../../assets/svg/toolbar/modelWizard.svg";
 import templateIcon from "../../../assets/svg/template.svg";
-import { useEffect, useState } from "preact/hooks";
+import { useEffect, useMemo, useState } from "preact/hooks";
+import { listarFixtures } from "../store/runtime";
 import { useOpmStore } from "../store";
 import { useConfirmarSiDirty } from "./ConfirmacionContext";
 import { Dialogo } from "./Dialogo";
@@ -30,7 +31,7 @@ export function MenuPrincipal() {
   const mostrarVersiones = useOpmStore((s) => s.mostrarVersiones);
   const toggleMostrarArchivados = useOpmStore((s) => s.toggleMostrarArchivados);
   const toggleMostrarVersiones = useOpmStore((s) => s.toggleMostrarVersiones);
-  const cargarDemo = useOpmStore((s) => s.cargarDemo);
+  const cargarFixtureDemo = useOpmStore((s) => s.cargarFixtureDemo);
   const exportarJson = useOpmStore((s) => s.exportarJson);
   const abrirVistaMapa = useOpmStore((s) => s.abrirVistaMapa);
   const vistaMapaActiva = useOpmStore((s) => s.vistaMapaActiva);
@@ -46,6 +47,8 @@ export function MenuPrincipal() {
   const iniciarAsistente = useOpmStore((s) => s.iniciarAsistente);
   const cargarEjemploOrganizacional = useOpmStore((s) => s.cargarEjemploOrganizacional);
   const [nombreRenombrar, setNombreRenombrar] = useState(modelo.nombre);
+  const [mostrarSubmenuDemos, setMostrarSubmenuDemos] = useState(false);
+  const demos = useMemo(() => listarFixtures(), []);
 
   useEffect(() => {
     if (dialogoRenombrarModeloAbierto) setNombreRenombrar(modelo.nombre);
@@ -136,12 +139,37 @@ export function MenuPrincipal() {
       >
         Exportar JSON
       </button>
-      <button type="button" role="menuitem" style={style.item} onClick={() => ejecutar(() => confirmarSiDirty(cargarDemo))}>
-        Ejemplo global
-      </button>
-      <button type="button" role="menuitem" style={style.item} onClick={() => ejecutar(() => confirmarSiDirty(cargarEjemploOrganizacional))}>
-        Ejemplo organizacional
-      </button>
+      <div
+        role="menuitem"
+        style={{ ...style.item, position: "relative" }}
+        onMouseEnter={() => setMostrarSubmenuDemos(true)}
+        onMouseLeave={() => setMostrarSubmenuDemos(false)}
+      >
+        Ejemplos ▸
+        {mostrarSubmenuDemos ? (
+          <div style={style.submenu}>
+            {demos.map((d) => (
+              <button
+                key={d.modelo.nombre}
+                type="button"
+                style={style.submenuItem}
+                title={d.proposito}
+                onClick={() => ejecutar(() => confirmarSiDirty(() => cargarFixtureDemo(d.modelo.nombre)))}
+              >
+                {d.modelo.nombre}
+              </button>
+            ))}
+            <div style={style.submenuDivider} />
+            <button
+              type="button"
+              style={style.submenuItem}
+              onClick={() => ejecutar(() => confirmarSiDirty(cargarEjemploOrganizacional))}
+            >
+              Ejemplo organizacional
+            </button>
+          </div>
+        ) : null}
+      </div>
       <button type="button" role="menuitem" style={style.item} onClick={() => ejecutar(abrirTablaEnlaces)}>
         Tabla de enlaces
       </button>
@@ -286,6 +314,37 @@ const style = {
   divider: {
     height: "1px",
     margin: "2px 0",
+    background: "#e4eaf1",
+  },
+  submenu: {
+    position: "absolute",
+    top: 0,
+    left: "100%",
+    zIndex: 901,
+    minWidth: "200px",
+    padding: "4px",
+    border: "1px solid #c8d2df",
+    borderRadius: "6px",
+    background: "#ffffff",
+    boxShadow: "0 8px 24px rgba(16, 24, 40, 0.18)",
+  },
+  submenuItem: {
+    display: "block",
+    width: "100%",
+    padding: "6px 12px",
+    border: "none",
+    borderRadius: "4px",
+    background: "transparent",
+    color: "#1f2937",
+    cursor: "pointer",
+    fontSize: "13px",
+    fontWeight: 600,
+    textAlign: "left",
+    whiteSpace: "nowrap",
+  },
+  submenuDivider: {
+    height: "1px",
+    margin: "3px 8px",
     background: "#e4eaf1",
   },
   icon: {

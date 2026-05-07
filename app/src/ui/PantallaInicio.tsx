@@ -4,6 +4,7 @@ import regFileIcon from "../../../assets/svg/regFile.svg";
 import verFileIcon from "../../../assets/svg/verFile.svg";
 import type { Id } from "../modelo/tipos";
 import type { ResumenModeloPersistido } from "../persistencia/local";
+import { listarFixtures } from "../store/runtime";
 import { useOpmStore } from "../store";
 import { useConfirmarSiDirty } from "./ConfirmacionContext";
 
@@ -14,11 +15,14 @@ export function PantallaInicio() {
   const listar = useOpmStore((s) => s.listarModelosGuardados);
   const cargar = useOpmStore((s) => s.cargarLocal);
   const nuevoModelo = useOpmStore((s) => s.nuevoModelo);
-  const cargarDemo = useOpmStore((s) => s.cargarDemo);
+  const cargarFixtureDemo = useOpmStore((s) => s.cargarFixtureDemo);
   const cargarEjemploOrganizacional = useOpmStore((s) => s.cargarEjemploOrganizacional);
   const cerrarPantallaInicio = useOpmStore((s) => s.cerrarPantallaInicio);
   const confirmarSiDirty = useConfirmarSiDirty();
   const [query, setQuery] = useState("");
+  const [demoSeleccionado, setDemoSeleccionado] = useState("");
+
+  const demos = useMemo(() => listarFixtures(), []);
 
   useEffect(() => {
     listar();
@@ -60,8 +64,33 @@ export function PantallaInicio() {
         </div>
         <div style={style.actions}>
           <button type="button" style={style.primaryButton} onClick={ejecutarNuevo}>Nuevo</button>
-          <button type="button" style={style.secondaryButton} onClick={() => confirmarSiDirty(() => { cerrarPantallaInicio(); cargarDemo(); })}>Ejemplo global</button>
-          <button type="button" style={style.secondaryButton} onClick={() => confirmarSiDirty(() => { cerrarPantallaInicio(); cargarEjemploOrganizacional(); })}>Ejemplo organizacional</button>
+          <select
+            aria-label="Cargar modelo de ejemplo"
+            value={demoSeleccionado}
+            style={style.demoSelect}
+            onChange={(e) => {
+              const nombre = e.currentTarget.value;
+              if (!nombre) return;
+              setDemoSeleccionado("");
+              confirmarSiDirty(() => {
+                cerrarPantallaInicio();
+                if (nombre === "__organizacional__") {
+                  cargarEjemploOrganizacional();
+                } else {
+                  cargarFixtureDemo(nombre);
+                }
+              });
+            }}
+          >
+            <option value="" disabled>Ejemplos...</option>
+            {demos.map((d) => (
+              <option key={d.modelo.nombre} value={d.modelo.nombre} title={d.proposito}>
+                {d.modelo.nombre}
+              </option>
+            ))}
+            <option disabled>──────────</option>
+            <option value="__organizacional__">Ejemplo organizacional</option>
+          </select>
         </div>
         <div style={style.grid}>
           {recientes.map((modelo) => <TileReciente key={modelo.id} modelo={modelo} onAbrir={abrir} />)}
@@ -134,6 +163,7 @@ const style = {
   actions: { display: "flex", flexWrap: "wrap", gap: "8px" },
   primaryButton: { height: "34px", padding: "0 14px", border: "1px solid #586D8C", borderRadius: "4px", background: "#586D8C", color: "#ffffff", cursor: "pointer", fontSize: "13px", fontWeight: 700 },
   secondaryButton: { height: "34px", padding: "0 14px", border: "1px solid #c8d2df", borderRadius: "4px", background: "#ffffff", color: "#475467", cursor: "pointer", fontSize: "13px", fontWeight: 700 },
+  demoSelect: { height: "34px", padding: "0 8px", border: "1px solid #c8d2df", borderRadius: "4px", background: "#ffffff", color: "#475467", cursor: "pointer", fontSize: "13px", fontWeight: 700, maxWidth: "220px" },
   grid: { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: "10px", overflow: "auto", minHeight: 0 },
   tile: { position: "relative", minHeight: "140px", display: "grid", gridTemplateRows: "24px auto auto 18px", gap: "4px", padding: "10px", border: "1px solid #d9e0ea", borderRadius: "6px", background: "#f9fbfd", color: "#1f2937", textAlign: "left", cursor: "pointer" },
   tileIcon: { width: "24px", height: "24px" },

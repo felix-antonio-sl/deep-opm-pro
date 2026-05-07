@@ -5,6 +5,7 @@ import objectDragIcon from "../../../assets/svg/objectDrag.svg";
 import templateIcon from "../../../assets/svg/template.svg";
 import verFileIcon from "../../../assets/svg/verFile.svg";
 import { normalizarGridConfig } from "../canvas/grid";
+import { listarFixtures } from "../store/runtime";
 import { useOpmStore } from "../store";
 import type { Id, ModoImagenEntidad, TipoEnlace, TipoEntidad } from "../modelo/tipos";
 import { BibliotecaCosa } from "./BibliotecaCosa";
@@ -48,7 +49,7 @@ export function Toolbar() {
   const crearProceso = useOpmStore((s) => s.crearProcesoDemo);
   const crearAtributoNumerico = useOpmStore((s) => s.crearAtributoEnObjetoSeleccionado);
   const fijarModoCreacion = useOpmStore((s) => s.fijarModoCreacion);
-  const cargarDemo = useOpmStore((s) => s.cargarDemo);
+  const cargarFixtureDemo = useOpmStore((s) => s.cargarFixtureDemo);
   const guardarLocal = useOpmStore((s) => s.guardarLocal);
   const abrirCargarModelo = useOpmStore((s) => s.abrirCargarModelo);
   const deshacer = useOpmStore((s) => s.deshacer);
@@ -265,6 +266,7 @@ export function Toolbar() {
   const destinoMenuTipo = useMemo(() => seleccionados.find((id) => id !== origenMenuTipo && !!modelo.entidades[id]) ?? null, [modelo.entidades, origenMenuTipo, seleccionados]);
   const todoMultiSeleccion = seleccionados.length >= 2 ? seleccionados[seleccionados.length - 1] : null;
   const hayEntidadSeleccionada = !!seleccionId || seleccionados.some((id) => !!modelo.entidades[id]);
+  const demos = useMemo(() => listarFixtures(), []);
 
   return (
     <div style={style.bar}>
@@ -341,7 +343,23 @@ export function Toolbar() {
         <button style={puedeRehacer ? style.button : style.disabledButton} type="button" onClick={rehacer} disabled={!puedeRehacer} title="Rehacer · Ctrl+Shift+Z">Rehacer</button>
         <span style={style.divider} />
         <button style={style.button} type="button" onClick={() => confirmarSiDirty(nuevoModelo)} title="Nuevo modelo · descarta el actual si pides confirmación">Nuevo</button>
-        <button style={style.button} type="button" onClick={() => confirmarSiDirty(cargarDemo)} title="Demo · cargar modelo de ejemplo">Demo</button>
+        <select
+          style={style.demoSelect}
+          aria-label="Cargar modelo de ejemplo"
+          value=""
+          onChange={(e) => {
+            const nombre = e.currentTarget.value;
+            if (!nombre) return;
+            confirmarSiDirty(() => cargarFixtureDemo(nombre));
+          }}
+        >
+          <option value="" disabled>Demo</option>
+          {demos.map((d) => (
+            <option key={d.modelo.nombre} value={d.modelo.nombre} title={d.proposito}>
+              {d.modelo.nombre}
+            </option>
+          ))}
+        </select>
         <button style={style.button} type="button" onClick={guardarLocal} title="Guardar (Ctrl+S)">
           {readOnly ? <img src={lockIcon} alt="" style={style.lockIcon} /> : null}
           Guardar
@@ -768,6 +786,19 @@ const style = {
     height: "34px",
     minWidth: "76px",
     padding: "0 14px",
+    border: "1px solid #b9c5d4",
+    borderRadius: "4px",
+    background: "#f9fbfd",
+    color: "#1f2937",
+    cursor: "pointer",
+    fontSize: "13px",
+    fontWeight: 600,
+    whiteSpace: "nowrap",
+  },
+  demoSelect: {
+    height: "34px",
+    minWidth: "76px",
+    padding: "0 8px",
     border: "1px solid #b9c5d4",
     borderRadius: "4px",
     background: "#f9fbfd",
