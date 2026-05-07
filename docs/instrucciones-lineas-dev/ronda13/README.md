@@ -1,8 +1,8 @@
-# Ronda 13 — UX foundation (refactor estructural TIER 2 derivado de auditoría steipete)
+# Ronda 13 — UX foundation (refactor estructural TIER 2 + enmienda IFML)
 
 **Fecha**: 2026-05-07
-**Base**: `main` post-ronda-13.0 (cleanup TIER 1 ya ejecutado: stashes vacíos si autorizado, 9 literales `#3BC3FF`/`#586D8C` en Toolbar.tsx ya migrados a tokens, headers SSOT corregidos, opm-smoke.spec.ts particionado en 8 archivos por dominio, detector strict clean).
-**Origen**: auditoría `docs/auditorias/2026-05-07-refactor-radical-steipete.md` §3 (TIER 2 — refactor estructural con tradeoffs reales) + §6.1 (lo que se absorbe en ronda 13). El operador aceptó la recomendación primaria steipete. Las opciones por ítem ya están elegidas:
+**Base**: `main` post-ronda-13.0 + micro-fix e2e `80d947f` (cleanup TIER 1 ya ejecutado: stashes vacíos si autorizado, 9 literales `#3BC3FF`/`#586D8C` en Toolbar.tsx ya migrados a tokens, headers SSOT corregidos, opm-smoke.spec.ts particionado en 8 archivos por dominio, detector strict clean, smoke browser 93/93 verde).
+**Origen**: auditoría `docs/auditorias/2026-05-07-refactor-radical-steipete.md` §3 (TIER 2 — refactor estructural con tradeoffs reales) + §6.1 (lo que se absorbe en ronda 13) **con enmienda estructural IFML** desde `docs/auditorias/2026-05-07-auditoria-ifml.md`. El operador aceptó la recomendación primaria steipete; la auditoría IFML actúa como lente de interacción, no como apertura ilimitada de scope. Las opciones por ítem ya están elegidas:
 
 - **T2.1 split Toolbar**: opción B (descomponer por modo del editor, no por bandas visuales) — opción A descartada porque BarraContextual seguiría siendo monolito ~600 LOC; opción C descartada por exceso de complejidad.
 - **T2.2 + T2.4 tokens central**: introducir spacing/radii/shadows/typography + ESLint rule + migración archivo-por-archivo (~108 ocurrencias UI estimadas, 827 totales si se incluyen composers canvas — alcance solo UI chrome).
@@ -10,10 +10,17 @@
 - **T2.5 BarraHerramientasElemento**: pilotar como **complemento** del Inspector lateral (no reemplazo); 6 acciones primarias + "···" → Inspector.
 - **T2.6 lazy split adicional**: absorbido en L1 (toca misma capa de orquestación que split Toolbar).
 
+**Enmienda IFML absorbida en ronda 13**:
+- **L1** absorbe H-2/H-5/H-10/H-12: Actions nombradas donde hoy hay lambdas opacas, atajos no duplicados y ruteados por catálogo central, disponibilidad coherente de controles con la misma precondición.
+- **L2** no cambia de scope: IFML no gobierna look & feel; tokens siguen siendo refactor visual/chrome.
+- **L3** implementa `PanelMetodologia` como View derivada por DataFlow (`Modelo → AvisoMetodologico[]`), no como side-effect de acciones.
+- **L4** declara `BarraHerramientasElemento` como `CN-SOT/CN-MOT` IFML; sus botones invocan Actions existentes o handlers nombrados, nunca lambdas inline opacas.
+
 **Diferimientos absolutos a ronda 14** (NO entran en ronda 13):
 - T2.7 unificación generador OPL viejo/nuevo (steipete §T2.7: mantener separados, evento gatillante = parser OPL ronda 14).
 - TIER 3 completo (Zustand→signals, JointJS→canvas custom, CQRS, DI runtime, branded `Id`, Web Components, signals-subset).
 - HU-SHARED-007 OPL inverso editable + HU-50.019/.020/.022 + EPICA-32 sub-modelos peer.
+- **IFML H-1/H-3/H-4/O-4/O-7**: modal-stack real, reemplazo de `window.dispatchEvent("opm:nueva-cosa")`, reemplazo de `deep-opm-pro:exportar-mapa`, TablaEnlaces como tercera vista XOR, breadcrumbs CN-BREAD. Se abordan en ronda 13.1 IFML flow cleanup o ronda posterior dedicada; NO se mezclan en las 4 líneas actuales.
 
 **Objetivo cuantitativo**: 4 líneas paralelas en ~3-5 días. Coproducto disjunto por dominio funcional con orden de merge controlado (L2→L1→L4→L3) que minimiza el blast cross-line.
 
@@ -21,10 +28,11 @@
 
 - **Marco SSOT-céntrico** heredado de rondas 11-12.1. Tres niveles de autoridad (SSOT en `/home/felix/kora/artifacts/knowledge/fxsl/opm/opm-ssot-es/`, `app/src/modelo/tipos.ts` viva, `opm-extracted/` + JOYAS + assets como respaldo). Ronda 13 NO modifica nivel 1 ni nivel 2 salvo extensiones aditivas justificadas (L3 puede crear `tipos/avisos.ts` aditivo).
 - **Refactor estructural autorizado por brief**: a diferencia de rondas previas que cerraban HU del backlog, ronda 13 ejecuta **refactor de UX foundation autorizado explícitamente** por el operador tras auditoría steipete. La métrica de éxito no es "HU cerradas" sino "deuda técnica reducida + arquitectura preparada para ronda 14".
+- **IFML como lente de interacción**: la auditoría IFML agrega restricciones sobre ViewContainers, Events, Actions y Flows. Entra como criterio de calidad para L1/L3/L4; no habilita cambios sistémicos fuera de scope.
 - **Aditividad estricta** preservada (`urn:fxsl:kb:icas-extension`): cada cambio agrega tipos opcionales (`?:`), funciones nuevas exportadas, ningún rename de exports kernel. Excepción autorizada: L1 refactoriza `Toolbar.tsx` (1098 LOC → ~80 LOC orquestador), pero los imports de Toolbar permanecen estables (los 5 nuevos archivos `app/src/ui/toolbar/*.tsx` se montan internamente).
 - **Diferimiento por blast** (`urn:fxsl:kb:icas-calidad-riesgo`): TIER 3 y T2.7 expresamente excluidos.
 - **Faithful sobre rondas 1-12.1** (`urn:fxsl:kb:icas-preservacion`): contratos públicos preservados, JSON lossless invariante, OPL invariante. Cero cambios kernel.
-- **Loop verde obligatorio**: cada línea cierra con `cd app && bun run check`; si toca UI/render: `bun run browser:smoke`; si toca proyección o bundle: `bun run build`. Línea base post-ronda-13.0 (asumiendo T1 ejecutado): 675 unit / 2700 expect / 0 fail, 86 smokes redistribuidos en 8 archivos, chunk principal ≈ 218.99 kB / 59 kB gzip.
+- **Loop verde obligatorio**: cada línea cierra con `cd app && bun run check`; si toca UI/render: `bun run browser:smoke`; si toca proyección o bundle: `bun run build`. Línea base post-ronda-13.0 + micro-fix: 675 unit / 2702 expect / 0 fail, 93 smokes redistribuidos en 8 archivos, chunk principal ≈ 219.20 kB / 59.08 kB gzip.
 - **Ship-beats-perfect**: si una línea expone bug fuera de scope, se entrega como patch a `/tmp/` y NO se commitea (regla feedback consolidada).
 - **Honestidad sobre cobertura**: ronda 13 es refactor estructural; las HU del backlog NO crecen mucho (L3 puede abrir métrica nueva "modelo metodológicamente válido" si se quiere registrar). MVP-α se preserva en 98.8% (HU-SHARED-007 sigue diferida ronda 14).
 
@@ -34,7 +42,7 @@
 2. **No tocar `docs/HANDOFF.md` ni `docs/historias-usuario-v2/`** desde las líneas. Consolidación final del operador actualiza el HANDOFF. Tampoco tocar `docs/instrucciones-lineas-dev/ronda1..12.1/`, ni `docs/JOYAS.md`, ni la SSOT en `/home/felix/kora/artifacts/knowledge/fxsl/opm/opm-ssot-es/` (lectura).
 3. **No tocar archivos sueltos del operador**: ni `app/scripts/in-vivo-test.mjs` ni `app/src/render/jointjs/customShapes.ts` ni `home/`.
 4. **No copiar código 1:1 desde `opm-extracted/`**. Se usa como evidencia semántica/UX/arquitectura; la implementación se reescribe con Preact/Zustand/JointJS OSS. **L3 destila los 6 checkers semánticamente** (lógica adaptable, tipos del kernel propio); L4 extrae **solo la lista de 12 acciones** del element-tool-bar.component.ts 8979 LOC post-Angular IVY.
-5. **Citas explícitas**: cada decisión arquitectural cita SSOT (`opm-iso-19450-es.md`, `opm-visual-es.md`, `opm-opl-es.md`, `metodologia-opm-es.md`) o documento interno con paths absolutos + líneas. Auditoría steipete en `docs/auditorias/2026-05-07-refactor-radical-steipete.md` es el contrato de ronda 13.
+5. **Citas explícitas**: cada decisión arquitectural cita SSOT (`opm-iso-19450-es.md`, `opm-visual-es.md`, `opm-opl-es.md`, `metodologia-opm-es.md`) o documento interno con paths absolutos + líneas. Auditoría steipete en `docs/auditorias/2026-05-07-refactor-radical-steipete.md` es el contrato técnico de ronda 13; auditoría IFML en `docs/auditorias/2026-05-07-auditoria-ifml.md` es contrato secundario de interacción para L1/L3/L4.
 6. **APIs públicas estables**: ningún rename de exports kernel. **L1 refactoriza Toolbar.tsx internamente** pero `App.tsx` sigue importando `Toolbar` desde `./Toolbar`. **L4 introduce `BarraHerramientasElemento` como export nuevo**, no rename.
 7. **JSON lossless**: cero cambios serializadores. Roundtrip permanece intacto.
 8. **OPL invariante**: cero oraciones nuevas. Generadores OPL no se tocan (L3 podría agregar avisos sobre nombres de procesos pero NO modifica generador OPL).
@@ -46,6 +54,7 @@
 14. **EPICA-70 (OPCAT) y EPICA-91 (tutorial) descartadas del proyecto** desde 2026-05-05.
 15. **Diferimiento explícito ronda 14** (lista cerrada): T2.7 unificación OPL, TIER 3 completo, HU-SHARED-007 inverso editable, HU-50.019/.020/.022 parser OPL bidireccional, EPICA-32 sub-modelos peer-persistence.
 16. **Cada línea registra sus reglas detector ronda 13**: agrega reglas nuevas en `docs/historias-usuario-v2/tools/progress-dashboard.mjs` solo en consolidación final del operador, pero declara internamente qué evidencia respalda su entrega (especialmente L3 que abre dominio nuevo de avisos metodológicos).
+17. **Reglas IFML absorbidas**: si una línea toca interacción, debe declarar el `ViewContainer`, `Event`, `Action` y `Flow` que preserva o explicita. No introducir lambdas inline opacas para acciones con efecto; no duplicar atajos; no introducir `window.dispatchEvent` nuevo.
 
 ## 3. Stack y comandos del repo
 
@@ -55,8 +64,8 @@
 ```bash
 cd app
 bun run check          # typecheck + unit tests (675 baseline post-ronda-13.0)
-bun run browser:smoke  # Playwright Chromium 86 smokes en 8 archivos
-bun run build          # build Vite; chunk principal 218.99 kB / 59 kB gzip baseline; objetivo ronda 13 ≤ 195 kB
+bun run browser:smoke  # Playwright Chromium 93 smokes en 8 archivos
+bun run build          # build Vite; chunk principal 219.20 kB / 59.08 kB gzip baseline; objetivo ronda 13 ≤ 195 kB
 bun run dev            # localhost:5173
 bun run lint           # solo si L2 introduce config ESLint
 ```
@@ -74,8 +83,8 @@ Estado base post-ronda-13.0 (asumido):
 | Métrica | Valor |
 |---|---|
 | Unit tests | 675 (vs 673 post-ronda-12.1; +2 por tokens.test.ts T1.2) |
-| Smoke browser | 86 redistribuidos en 8 archivos (T1.4) |
-| Chunk principal | ≈ 218.99 kB / 59 kB gzip |
+| Smoke browser | 93 redistribuidos en 8 archivos (T1.4 + micro-fix L0 selectors) |
+| Chunk principal | ≈ 219.20 kB / 59.08 kB gzip |
 | MVP-α | 98.8% ponderado (sin cambios) |
 | Detector | strict clean (T1.5 verificado) |
 | Stashes pendientes | 0 (T1.1 si autorizado, sino N) |
@@ -89,12 +98,13 @@ Estado base post-ronda-13.0 (asumido):
 | Objetivo | Línea | Métrica |
 |---|---|---|
 | Toolbar.tsx orquestador delgado | L1 | Toolbar.tsx ≤ 100 LOC; 5 archivos en `app/src/ui/toolbar/` |
-| Lazy split adicional | L1 (combinado T2.6) | Chunk principal ≤ 195 kB (-23 kB vs 218.99 baseline) |
+| Lazy split adicional | L1 (combinado T2.6) | Chunk principal ≤ 195 kB (-24.2 kB vs 219.20 baseline) |
 | tokens.ts central completo | L2 | spacing/radii/shadows/typography agregados; 108 literales UI migrados |
 | ESLint rule color literales | L2 | `bun run lint` rechaza `#xxxxxx` en `app/src/ui/**` excepto tokens.ts |
 | 6 checkers metodológicos | L3 | `app/src/modelo/checkers.ts` con `verificarMetodologia(modelo): AvisoMetodologico[]` |
 | Panel metodológico visual | L3 | extensión `PanelAvisos` o nuevo `PanelMetodologia`; integrado en App.tsx |
 | Barra flotante elemento | L4 | `BarraHerramientasElemento.tsx` con 6 acciones piloto + "···" → Inspector |
+| Contrato IFML explícito | L1/L3/L4 | Actions nombradas, atajos no duplicados, View derivada para metodología, CN-SOT/CN-MOT para barra flotante |
 | Tests | L3+L4 | unit ≥ 825 (L3 ~150 nuevos checkers + L4 ~30 barra) |
 | Smokes | L1+L2+L3+L4 | smoke ≥ 92 (cada línea ~2-3 smokes nuevos) |
 | MVP-α | preservado | ≥ 98.8% (HU-SHARED-007 sigue diferida) |
@@ -108,6 +118,7 @@ NO entran en ronda 13:
 - **HU-SHARED-007 OPL inverso editable** (forward cubierto, inverso requiere parser).
 - **HU-50.019/.020/.022 parser OPL bidireccional**.
 - **EPICA-32 sub-modelos peer-persistence**.
+- **IFML flow cleanup sistémico**: modal-stack LIFO, CustomEvents tipados/reemplazados, breadcrumbs CN-BREAD, TablaEnlaces como vista XOR. Ronda 13.1 candidata, no ronda 13 grande.
 
 ## 5. Patrones técnicos referenciales en `opm-extracted/` (nivel 3, respaldo)
 
@@ -120,6 +131,20 @@ NO entran en ronda 13:
 | **Lazy chunk pattern** | `opm-extracted/src/app/dialogs/Spinner/`, `multi-delete-progress/`, etc. | **L1** referencia para `<Suspense fallback={...}>` en lazy de MapaSistema/Timeline/TablaEnlaces/GestionArbolOpd. |
 
 Ningún brief debe inventar paths bajo `opm-extracted/`. Si un path no aparece en esta tabla o no se verifica con `ls`/`grep` antes, NO se cita en un brief.
+
+## 5a. Enmienda IFML — qué se absorbe y qué se difiere
+
+La auditoría `docs/auditorias/2026-05-07-auditoria-ifml.md` modela el workbench como `AppRoot <<AND>>` con landmarks (`Toolbar`, `BarraPestanas`, `ArbolOpd`, `Inspector`, `PanelOpl`, `PanelAvisos`) y un único `CanvasArea <<XOR>>` (`JointCanvas` vs `MapaSistema`). Ronda 13 absorbe solo hallazgos que caen naturalmente dentro de los cuatro scopes ya definidos:
+
+| IFML | Línea | Absorción ronda 13 |
+|---|---|---|
+| H-2 Actions implícitas en lambdas Toolbar/MenuTipoEnlace | **L1** | Extraer handlers nombrados dentro de los nuevos componentes `toolbar/*` o reusar Actions existentes del store. No crear nueva capa store fuera de archivos permitidos. |
+| H-5/H-12 atajos duplicados o fuera del catálogo | **L1** | Al partir `Toolbar.tsx`, eliminar `useEffect` ad-hoc duplicado y mover los atajos restantes de Toolbar al catálogo central si ya existe patrón `registrarAtajo`. Si requiere tocar más que `atajosTeclado.ts`, pausar. |
+| H-10 disponibilidad incoherente SelectorEnlace/Tipos válidos | **L1** | Aplicar el mismo guard `selectorEnlaceDeshabilitado` al botón "Tipos válidos" al migrarlo a `ToolbarCreacion`. |
+| L3 View derivada de validación metodológica | **L3** | `verificarMetodologia(modelo)` es DataFlow puro hacia `PanelMetodologia`; no se dispara desde Actions y no serializa estado. |
+| CN-SOT/CN-MOT barra flotante | **L4** | `BarraHerramientasElemento` es toolbar contextual de objeto seleccionado. Botones con Actions existentes/handlers nombrados y `data-testid` estable. |
+
+Quedan **fuera** por blast radius: H-1 modal-stack real, H-3/H-4 reemplazo de `window.dispatchEvent`, O-4 `TablaEnlaces` como tercera vista XOR, O-7 breadcrumbs CN-BREAD. Esos cambios cruzan App/store/dialogos/mapa y se reservan para ronda 13.1 IFML flow cleanup.
 
 ## 5b. Assets SVG canónicos a reusar (obligatorio)
 
@@ -154,13 +179,13 @@ L2 introduce tokens secundarios derivados de los patterns observables en el repo
 
 Política heredada de rondas previas. Cada archivo nuevo o modificado materialmente cita SSOT al header según tipo de HU/refactor. Aplicación concreta ronda 13:
 
-- **L1** refactor Toolbar (`opcloud-ui`): `[JOYAS §1-3]` + cita a steipete §T2.1 opción B + referencia al modelo de modos del editor (`store/seleccion.ts` para discriminante).
+- **L1** refactor Toolbar (`opcloud-ui`): `[JOYAS §1-3]` + cita a steipete §T2.1 opción B + referencia IFML H-2/H-5/H-10/H-12 (`docs/auditorias/2026-05-07-auditoria-ifml.md`) + modelo de modos del editor (`store/seleccion.ts` para discriminante).
 - **L1** lazy splits (`opcloud-ui`): `[JOYAS §2]` opcional + comentario rationale "lazy bundle <195 kB objetivo histórico" + referencia steipete §T2.6.
 - **L2** tokens (`opcloud-ui`): `[JOYAS §1-3]` para colors/dimensions/typography + cita a steipete §T2.2 + comentario sobre alcance (chrome UI puro, NO canvas semantico).
 - **L2** ESLint rule (`opcloud-ui`): comentario en config explicando objetivo (impedir colision semantica chrome vs canvas) + cita steipete §T2.2.
 - **L3** checkers (`opm-semantica`): `[Met §metodologia]` + `[Glos 3.55 Object]` + `[Glos 3.69 Process]` + cita a `opm-iso-19450-es.md` para reglas semánticas + cita opcional al checker original en opm-extracted (path verificado).
-- **L3** PanelMetodologia/PanelAvisos extension (`opcloud-ui`): `[Met §metodologia]` + cita steipete §T2.3.
-- **L4** BarraHerramientasElemento (`opcloud-ui`): `[V-209]` o `[JOYAS §2]` + cita steipete §T2.5 + comentario rationale "complemento del Inspector lateral, no reemplazo".
+- **L3** PanelMetodologia/PanelAvisos extension (`opcloud-ui`): `[Met §metodologia]` + cita steipete §T2.3 + cita IFML `PanelMetodologia` como View derivada/DataFlow, no Action side-effect.
+- **L4** BarraHerramientasElemento (`opcloud-ui`): `[V-209]` o `[JOYAS §2]` + cita steipete §T2.5 + cita IFML `CN-SOT/CN-MOT` + comentario rationale "complemento del Inspector lateral, no reemplazo".
 
 ## 6. Visión general de las 4 líneas
 
@@ -267,7 +292,8 @@ Antes de codificar cada línea, leer **en este orden**:
 - **`docs/JOYAS.md`** completo: paleta canónica + dimensiones + tipografía. **Cita obligatoria L2** por contrato visual.
 - **`assets/svg/`** inventario: política PROVENANCE obliga reuso. **Cita obligatoria L4**.
 - **`opm-extracted/`** dirigido a la línea: paths verificados en §5.
-- **`docs/auditorias/2026-05-07-refactor-radical-steipete.md`**: contrato de ronda 13.
+- **`docs/auditorias/2026-05-07-refactor-radical-steipete.md`**: contrato técnico de ronda 13.
+- **`docs/auditorias/2026-05-07-auditoria-ifml.md`**: contrato secundario de interacción. Absorber solo §8 H-2/H-5/H-10/H-12 en L1, §10 DataFlow/PanelAvisos en L3 y §6 CN-SOT/CN-MOT en L4; diferir H-1/H-3/H-4/O-4/O-7.
 - **HANDOFF + briefs rondas 1-12.1** (`docs/HANDOFF.md §Decisiones Vigentes`): contrato heredado.
 
 **Orden de prioridad cuando hay conflicto**: SSOT (nivel 1) manda → `tipos.ts` (nivel 2) → JOYAS + assets/svg → opm-extracted (nivel 3).
@@ -295,10 +321,10 @@ cd ..
 node docs/historias-usuario-v2/tools/progress-dashboard.mjs --sync-real --strict
 ```
 
-Métricas esperadas post-ronda 13 (sobre base post-ronda-13.0: 675 unit / ~2700 expect, 86 smokes, chunk principal 218.99 kB / 59 kB gzip, MVP-α 98.8%):
+Métricas esperadas post-ronda 13 (sobre base post-ronda-13.0 + micro-fix: 675 unit / 2702 expect, 93 smokes, chunk principal 219.20 kB / 59.08 kB gzip, MVP-α 98.8%):
 
 - **Unit tests ≥ 825** (L3 ~150 nuevos checkers + L4 ~30 barra; L1+L2 sin tests funcionales nuevos significativos).
-- **Smoke browser ≥ 92** (L1 ~3, L2 ~3 visual snapshots, L3 ~2, L4 ~3).
+- **Smoke browser ≥ 102** (L1 ~3, L2 ~3 visual snapshots, L3 ~2, L4 ~3; baseline ya es 93/93).
 - **Build**: chunk principal **≤ 195 kB / ≤ 53 kB gzip** (objetivo histórico recuperado por T2.6 lazy splits).
 - **Lint**: `bun run lint` pasa con cero violaciones de `no-restricted-syntax` color literales en `app/src/ui/**` excepto tokens.ts.
 - **Toolbar.tsx**: **≤ 100 LOC** (orquestador delgado).

@@ -4,6 +4,8 @@
 
 Crear `app/src/modelo/checkers.ts` (~250 LOC) con **6 checkers metodológicos destilados semánticamente** desde `opm-extracted/src/app/dialogs/methodological-checking-dialog/checkers/` (la única joya semántica nueva real de OPCloud según auditoría steipete §T2.3). Exponer `verificarMetodologia(modelo: Modelo): AvisoMetodologico[]` + integrar como **panel visual** (extensión `PanelAvisos` o nuevo `PanelMetodologia` — decisión final en línea según research del agente).
 
+**Enmienda IFML absorbida**: `PanelMetodologia` se modela como View derivada por DataFlow (`modelo` → `verificarMetodologia(modelo)` → `AvisoMetodologico[]`), no como side-effect de Actions. Ver `docs/auditorias/2026-05-07-auditoria-ifml.md` §10 punto 4 (validación como SystemEvent OPM) y §4 `PanelAvisos`.
+
 6 checkers a destilar (paths reales verificados con `ls`):
 
 | Checker OPCloud | Path | Reglas semánticas |
@@ -35,6 +37,7 @@ Slice mínimo entregable: 6 commits (1 por checker) + 1 `feat(modelo): tipos/avi
 - **No tocar generadores OPL** (`app/src/opl/generadores/*.ts`, `app/src/modelo/opl/generador-opl.ts`).
 - **No modificar Inspector secciones** (L4 podría leer InspectorEntidad para botón "···").
 - **No modificar render JointJS**: avisos metodológicos son blandos (no errores), no se renderean como overlays canvas en ronda 13 (eso queda como mejora futura — badges sobre entidades inválidas).
+- **No introducir SystemEvent/store side-effect nuevo** para recalcular avisos: la función es pura y el panel deriva en render.
 
 ## 2. HU base
 
@@ -64,6 +67,7 @@ L3 abre **métrica nueva opcional** "modelo metodológicamente válido" que el o
 
 - **`opm-extracted/src/app/dialogs/methodological-checking-dialog/checkers/`**: 6 archivos TS legibles (no decompilados Angular IVY). Listados en §1.
 - **`docs/auditorias/2026-05-07-refactor-radical-steipete.md` §T2.3**: contrato L3.
+- **`docs/auditorias/2026-05-07-auditoria-ifml.md` §4 y §10.4**: contrato de interacción L3; PanelMetodologia es ViewComponent derivado, no Action ni serialización.
 - **Estado actual del código (verificado)**:
   - `app/src/modelo/tipos.ts`: re-exports de `tipos/{modelo,entidad,enlace,opd,apariencia,abanico,estado,opl,pestana,ui,plantilla,comunes}.ts`.
   - `app/src/modelo/tipos/`: 12 archivos de tipos. **NO existe `tipos/avisos.ts`** (L3 lo crea NUEVO).
@@ -87,6 +91,7 @@ app/e2e/01-carga-y-workspace.spec.ts                    EDIT aditivo (1 smoke ch
 opm-extracted/src/app/dialogs/methodological-checking-dialog/checkers/  LECTURA
 docs/HANDOFF.md                                         LECTURA
 docs/auditorias/2026-05-07-refactor-radical-steipete.md LECTURA
+docs/auditorias/2026-05-07-auditoria-ifml.md            LECTURA
 docs/JOYAS.md                                           LECTURA
 assets/svg/**                                           LECTURA
 ```
@@ -104,6 +109,7 @@ Cualquier otro archivo es **fuera de scope**.
 - **No tocar render JointJS**: cero overlays canvas para avisos en ronda 13.
 - **No tocar `progress-dashboard.mjs`**: consolidación operador.
 - **No tocar `acciones-canvas.ts`, `acciones-ui.ts`**: los avisos son derivados puros del modelo (función pura `Modelo → AvisoMetodologico[]`), no requieren acciones store.
+- **No crear triggers incrementales ni SystemEvents**: IFML reconoce que sería ideal, pero ronda 13 implementa DataFlow derivado simple; optimización incremental queda para ronda futura si hay benchmark >500 entidades.
 - **App.tsx en zona compartida con L1 (lazy) y L4 (flotante)**: L3 monta `PanelMetodologia` en una zona del layout sin chocar. Hunks disjuntos. **Coordinación de orden**: L1 → L4 → L3.
 
 ## 6. Slice mínimo shippeable
@@ -256,7 +262,7 @@ export function PanelMetodologia() {
 ```bash
 cd app
 bun run check          # 675 → ~825 (con +150 tests checkers)
-bun run browser:smoke  # 86 → ~88 (con +2 smokes panel)
+bun run browser:smoke  # 93 → ~95 (con +2 smokes panel)
 bun run build          # main chunk + ~3 kB por checkers + panel; sigue ≤ 195 kB post-L1 lazy
 ```
 
@@ -284,6 +290,7 @@ Verificar:
 - **Mensajes en es-CL**: cada checker emite mensaje legible. Documentar tabla final.
 - **Severidad por checker**: el slice usa "sugerencia" para nombres y "advertencia" para estructurales (in-zoom, transformación). Ajustar si emerge consenso distinto.
 - **Layout de `PanelMetodologia`**: posición exacta en App.tsx (lateral, inferior, tabbed). Verificar que no choca con L1 lazy ni L4 flotante.
+- **Modelo IFML exacto del panel**: documentar si queda como `PanelAvisos` extendido (mismo ViewContainer) o `PanelMetodologia` hermano (ViewComponent/List derivado). En ambos casos, entrada = DataFlow desde `modelo`, salida opcional = NavigationFlow al elemento afectado.
 - **Si checker requiere helper kernel nuevo** (ej. `cosasEnInzoom(opdId)`), agregarlo en `app/src/canvas/reglasTraer.ts` o `app/src/modelo/operaciones/refinamiento/*.ts` SOLO si es trivialmente puro y aditivo. Si requiere refactor mayor, **abortar y reportar**.
 - **Si demo Cafetera produce avisos inesperados**: documentar y decidir si (a) ajustar heurística, (b) corregir demo (ronda 14 fixtures), o (c) aceptar como evidencia de imperfección del demo.
 
@@ -298,6 +305,7 @@ Al cierre de L3, declarar:
 - Decisiones declaradas (§10): opción A/B, heurística forma verbal, mensajes, severidades, layout panel.
 - Conteo de tests: ~150 unit nuevos (5-10 por checker × 6) + 2 integración + 2 smokes.
 - Tabla de avisos producidos por cada demo del catálogo (Cafetera/OnStar/Diagnóstico/Logística/Async/CalControl/Organizacional): conteo por checker.
+- Mapa IFML L3: DataFlow `modelo → avisos`, ViewComponent elegido y cualquier NavigationFlow "Ir al elemento".
 - Confirmación archivos no tocados (de §5).
 
 Commits sugeridos (orden):

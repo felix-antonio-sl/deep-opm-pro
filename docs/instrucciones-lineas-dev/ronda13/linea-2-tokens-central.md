@@ -4,7 +4,7 @@
 
 Expandir `app/src/ui/tokens.ts` (mínimo introducido en ronda 12.1 + 2 tokens suaves T1.2 ronda 13.0) a **módulo central completo** con `colors`, `spacing`, `radii`, `shadows`, `typography`. Migrar las **~108 ocurrencias de literales** en `app/src/ui/**/*.{ts,tsx}` (excluye Toolbar.tsx que L1 refactoriza) con commits atómicos por archivo. Introducir **ESLint rule custom** `no-restricted-syntax` con regex `/#[0-9A-Fa-f]{3,8}/` solo en `app/src/ui/**/*.{ts,tsx}` (excluye `tokens.ts`).
 
-Combina T2.2 + T2.4 según auditoría steipete §3.
+Combina T2.2 + T2.4 según auditoría steipete §3. La auditoría IFML `docs/auditorias/2026-05-07-auditoria-ifml.md` **no cambia el scope de L2**: IFML modela interacción, no look & feel. L2 no debe absorber H-1..H-14 salvo asegurar que la migración de tokens no cambie estados, eventos ni flujos.
 
 Slice mínimo entregable: 1 commit `feat(tokens): extension central` + N commits `refactor(<archivo>): migra literales a tokens` + 1 commit `chore(lint): rule no-restricted-syntax color literales`. Total ~30-40 commits según volumen real (cada archivo modificado es un commit visible para reversibilidad simple).
 
@@ -40,6 +40,7 @@ L2 NO cierra HU directas. Es **refactor estructural** preparatorio para dark mod
 
 - **`docs/JOYAS.md`** completo: paleta canónica + dimensiones + tipografía. **Cita obligatoria L2** en header `tokens.ts`.
 - **`docs/auditorias/2026-05-07-refactor-radical-steipete.md` §T2.2 + §T2.4**: contrato L2.
+- **`docs/auditorias/2026-05-07-auditoria-ifml.md`**: lectura opcional solo para confirmar no-impacto. No introducir cambios de interacción desde L2.
 - **`opm-extracted/src/styles/`** (verificar con `ls`; si existe, referencia para spacing/radii scales; si no, derivar de patterns observables).
 - **Estado actual del código (verificado)**:
   - `app/src/ui/tokens.ts` ronda 12.1 + ronda 13.0: `colors.acentoUi`, `colors.acentoSecundario`, `colors.chromeNeutral`, `colors.canvas` + `colors.acentoUiSuave` + `colors.chromeNeutralSuave` (T1.2).
@@ -81,6 +82,7 @@ app/e2e/01-carga-y-workspace.spec.ts                    EDIT aditivo (1 smoke vi
 opm-extracted/src/styles/                               LECTURA (si existe; referencia spacing/radii)
 docs/HANDOFF.md                                         LECTURA
 docs/auditorias/2026-05-07-refactor-radical-steipete.md LECTURA
+docs/auditorias/2026-05-07-auditoria-ifml.md            LECTURA opcional (no-impacto L2)
 docs/JOYAS.md                                           LECTURA
 assets/svg/**                                           LECTURA
 ```
@@ -237,7 +239,7 @@ Smoke para `.toolbar`, `.inspector`, `.dialogo` antes/después usando `expect(pa
 ```bash
 cd app
 bun run check          # 675 → ~680 (con tokens.test extendido)
-bun run browser:smoke  # 86 → ~89 (con +3 snapshots L2)
+bun run browser:smoke  # 93 → ~96 (con +3 snapshots L2)
 bun run build          # main chunk sin crecimiento (cambios son referencias, no bytes nuevos)
 bun run lint           # cero violaciones color literales en app/src/ui/** (excepto tokens.ts)
 ```
@@ -250,6 +252,7 @@ bun run lint           # cero violaciones color literales en app/src/ui/** (exce
 - **NO migrar tests** ni `app/e2e/**` ni `*.test.ts` (literales en tests son OK por contrato de explicit-fixture).
 - **NO migrar Toolbar.tsx** (territorio L1; los 5 nuevos archivos `toolbar/*.tsx` ya nacen con tokens).
 - **Tokens secundarios derivados de patterns observables**, no inventados: spacing 4/8/12/16/24/32, radii 4/6/8, shadow dialogo `0 12px 30px rgba(15,23,42,0.16)` (literal repetido 8 veces verificado).
+- **NO absorber hallazgos IFML** desde L2: nada de modal-stack, atajos, breadcrumbs, Actions nombradas ni CustomEvents. Si al migrar tokens aparece un bug de interacción, entregar patch a `/tmp` y reportar.
 
 ## 10. Decisiones que tomas vos (documentar en commit)
 

@@ -2,7 +2,9 @@
 
 ## 1. Misión
 
-Refactorizar `app/src/ui/Toolbar.tsx` (1098 LOC) a **orquestador delgado (~80 LOC)** + 5 archivos hijos en `app/src/ui/toolbar/` que reflejen los **modos del editor** (no bandas visuales). Combina T2.1 opción B + T2.6 (lazy split adicional) según auditoría steipete. Reducir chunk principal de 218.99 kB → ≤ 195 kB.
+Refactorizar `app/src/ui/Toolbar.tsx` (1098 LOC) a **orquestador delgado (~80 LOC)** + 5 archivos hijos en `app/src/ui/toolbar/` que reflejen los **modos del editor** (no bandas visuales). Combina T2.1 opción B + T2.6 (lazy split adicional) según auditoría steipete. Reducir chunk principal de 219.20 kB → ≤ 195 kB.
+
+**Enmienda IFML absorbida** desde `docs/auditorias/2026-05-07-auditoria-ifml.md`: L1 también corrige H-2 (Actions opacas en lambdas inline), H-5/H-12 (atajos duplicados o fuera de catálogo central) y H-10 (disponibilidad incoherente entre selector de enlace y botón "Tipos válidos"). No abre H-1/H-3/H-4 (modal-stack y CustomEvents) porque son ronda 13.1.
 
 5 modos del editor mapeados desde `store/runtime.ts` y `store/seleccion.ts`:
 
@@ -33,6 +35,7 @@ Slice mínimo entregable: 6 commits atómicos (1 por archivo nuevo + 1 refactor 
 - **No tocar render JointJS** (cero cambios canvas).
 - **No consolidar duplicación Objeto/Objeto-sticky** (decisión vigente desde rondas previas; se preserva en `ToolbarBase.tsx`).
 - **No optimizar más allá de los 4 lazy candidatos identificados**.
+- **No implementar modal-stack ni reemplazar `window.dispatchEvent`** (IFML H-1/H-3/H-4 quedan para ronda 13.1).
 
 ## 2. HU base
 
@@ -43,7 +46,7 @@ Slice mínimo entregable: 6 commits atómicos (1 por archivo nuevo + 1 refactor 
 L1 NO cierra HU directas. Es **refactor estructural derivado de auditoría steipete**. La métrica de éxito es:
 - Toolbar.tsx ≤ 100 LOC.
 - 5 archivos en `app/src/ui/toolbar/` con cohesión por modo del editor.
-- Chunk principal ≤ 195 kB (-23 kB vs 218.99 baseline).
+- Chunk principal ≤ 195 kB (-24.2 kB vs 219.20 baseline).
 - Tests existentes intactos; smokes existentes pasan.
 
 ## 3. Anclaje a evidencia
@@ -57,7 +60,8 @@ L1 NO cierra HU directas. Es **refactor estructural derivado de auditoría steip
 
 **Nivel 3 — respaldo técnico**:
 
-- **`docs/auditorias/2026-05-07-refactor-radical-steipete.md` §T2.1 opción B + §T2.6**: contrato L1.
+- **`docs/auditorias/2026-05-07-refactor-radical-steipete.md` §T2.1 opción B + §T2.6**: contrato técnico L1.
+- **`docs/auditorias/2026-05-07-auditoria-ifml.md` §8 H-2/H-5/H-10/H-12**: contrato secundario de interacción L1 (Actions nombradas, Event→Action único por contexto, disponibilidad coherente).
 - **`docs/JOYAS.md`**: paleta + dimensiones (L1 los 5 archivos toolbar/ importan tokens.colors existentes).
 - **`opm-extracted/src/app/modules/layout/{header,rappid-toolbar,element-tool-bar,navigator,opl-container,main}/`**: referencia semántica del modelo de modos del editor (NO copia 1:1 — Angular con Material).
 - **Estado actual del código (verificado)**:
@@ -88,6 +92,7 @@ app/src/ui/GestionArbolOpd.tsx                          LECTURA
 app/src/store/runtime.ts                                LECTURA (modoEnlace, modoCreacion, vistaMapaActiva)
 app/src/store/seleccion.ts                              LECTURA (seleccion, seleccionPrincipal)
 app/src/store/tipos.ts                                  LECTURA (OpmStore interface)
+app/src/ui/atajosTeclado.ts                             EDIT aditivo restringido (solo si al migrar Toolbar se centralizan Ctrl+H/Ctrl+Alt+C/V/T; NO rediseñar catálogo)
 app/src/ui/tokens.ts                                    LECTURA (importar tokens.colors en los 5 nuevos archivos)
 app/e2e/02-canvas-y-render.spec.ts                      EDIT aditivo (1-2 smokes split toolbar)
 app/e2e/06-undo-redo-dirty.spec.ts                      EDIT aditivo (1 smoke verificación toolbar después de refactor)
@@ -111,6 +116,7 @@ Cualquier otro archivo es **fuera de scope**.
 - **No tocar `app/src/modelo/checkers.ts` ni `tipos/avisos.ts` ni `PanelMetodologia.tsx`** (territorio L3).
 - **No tocar `app/src/render/jointjs/**`**: cero cambios canvas.
 - **No tocar `acciones-canvas.ts`, `acciones-ui.ts`, `acciones-entidad.ts`, `store/persistencia.ts`** salvo lectura para entender qué acción invoca cada botón del Toolbar.
+- **No crear nuevas acciones de store** para resolver IFML H-2. En esta línea, "Action nombrada" significa handler local nombrado o Action existente del store. Si hace falta una Action de slice nueva, entregar patch a `/tmp` y reportar.
 - **No tocar generadores OPL** ni serializadores.
 - **No tocar `progress-dashboard.mjs`**: consolidación operador.
 - **`App.tsx` en zona compartida con L3 y L4**: L1 modifica imports (lazy) y rendering principal; L3 monta `PanelMetodologia` en una zona del layout; L4 monta `BarraHerramientasElemento` overlay. Hunks disjuntos. **Coordinación de orden**: L1 → L4 → L3.
@@ -176,7 +182,15 @@ Mover las secciones JSX de Toolbar.tsx a los 5 archivos correspondientes según 
 
 Cada archivo mantiene **idéntico comportamiento** que el código original (cero refactor de lógica; solo movimiento + decompositioning).
 
-### 6.4 Tokens (lectura desde L2)
+### 6.4 Contrato IFML de L1
+
+- Cada botón con efecto material debe invocar una Action existente del store o un handler local nombrado (`handleCrearEnlaceDesdeMenuTipos`, `handleOcultarApariencia`, etc.). Evitar lambdas inline que combinen varias acciones sin nombre.
+- El `useEffect` ad-hoc de atajos en Toolbar debe desaparecer o reducirse a cero. Los atajos de edición contextual (`Ctrl+H`, `Ctrl+Alt+C/V/T`) se registran en `atajosTeclado.ts` si el patrón central ya lo permite.
+- `Ctrl+S`, `Ctrl+Z`, `Ctrl+Y` y `Ctrl+Shift+Z` no deben quedar duplicados entre App y Toolbar.
+- `selectorEnlaceDeshabilitado` gobierna tanto el selector de tipo de enlace como el botón "Tipos válidos".
+- No introducir `window.dispatchEvent` nuevo.
+
+### 6.5 Tokens (lectura desde L2)
 
 Cada archivo importa `import { tokens } from "../tokens"` y usa `tokens.colors.acentoUi`, `tokens.spacing.gap8`, etc. **L2 los crea**; L1 los consume. Si un valor no está en tokens al momento de L1, dejar comentario `// TODO L2 token` y usar literal temporal (que L2 migrará).
 
@@ -196,8 +210,8 @@ Verificar especialmente que **todos los `data-testid` previos se preservan** en 
 ```bash
 cd app
 bun run check          # 675 → 675 (sin tests funcionales nuevos significativos)
-bun run browser:smoke  # 86 → ~89 (con +3 smokes nuevos L1)
-bun run build          # main chunk 218.99 → ≤ 195 kB; lazy chunks nuevos para MapaSistema/Timeline/TablaEnlaces/GestionArbolOpd
+bun run browser:smoke  # 93 → ~96 (con +3 smokes nuevos L1)
+bun run build          # main chunk 219.20 → ≤ 195 kB; lazy chunks nuevos para MapaSistema/Timeline/TablaEnlaces/GestionArbolOpd
 ```
 
 Verificar:
@@ -214,6 +228,7 @@ Verificar:
 - **NO consolidar duplicación Objeto/Objeto-sticky en Toolbar** — decisión vigente desde rondas previas (se preserva tal cual en `ToolbarBase.tsx`).
 - **Toolbar.tsx mantiene su export `Toolbar`** — los consumidores (`App.tsx`) no cambian.
 - **NO migrar literales en los 5 nuevos archivos toolbar/** salvo importar `tokens.colors` desde L2; el resto es responsabilidad L2.
+- **NO resolver IFML H-1/H-3/H-4**: modal-stack y CustomEvents son ronda 13.1. L1 solo evita añadir nuevos CustomEvents y nombra Actions/atajos dentro del scope Toolbar.
 
 ## 10. Decisiones que tomas vos (documentar en commit)
 
@@ -223,6 +238,7 @@ Verificar:
 - **Botón "···" → BarraHerramientasElemento (L4)**: dejar slot opcional `{slotBarraFlotante ?? null}` en `ToolbarSeleccion.tsx`. L4 decide si lo invoca aquí o como overlay separado.
 - **Lazy chunks naming**: respetar el patrón consolidado de App.tsx (`MapaSistema-*.js` style).
 - **Si algún archivo crece > 300 LOC**: re-particionar (ej. ToolbarSeleccion en `ToolbarSeleccionEntidad` y `ToolbarSeleccionEnlace`). Documentar.
+- **Resolución IFML H-2/H-5/H-10/H-12**: documentar tabla corta `Event → Action nombrada → archivo` y qué atajos quedaron en catálogo central.
 
 ## 11. Forma del entregable
 
@@ -233,6 +249,7 @@ Al cierre de L1, declarar:
 - Output de `bun run check`, `bun run browser:smoke`, `bun run build` (último tail con tabla de chunks).
 - Lista de commits creados en orden + rationale por uno.
 - Decisiones declaradas (§10).
+- Mapa IFML L1: ViewContainer (`Toolbar*`), Events tocados, Actions nombradas y atajos centralizados.
 - LOC final de cada archivo (`wc -l app/src/ui/Toolbar.tsx app/src/ui/toolbar/*.tsx`).
 - Tabla de distribución de botones por archivo.
 - Confirmación que **todos los `data-testid` previos se preservan** (grep antes/después).

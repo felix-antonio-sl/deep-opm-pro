@@ -4,6 +4,8 @@
 
 Crear `app/src/ui/BarraHerramientasElemento.tsx` (NUEVO ~400 LOC) — barra flotante anclada al canvas junto a la cosa seleccionada con **6 acciones primarias OPCloud destiladas** (de las 12 catalogadas por steipete §T2.5). Pilotar como **complemento del Inspector lateral** (no reemplazo). Botón "···" abre/cierra Inspector lateral con detalle completo.
 
+**Enmienda IFML absorbida**: la barra se implementa explícitamente como `CN-SOT/CN-MOT` (Single/Multiple Object Toolbar; ronda 13 solo Single Object). Cada botón debe mapear `Event → Action existente/handler nombrado`; no introducir lambdas inline opacas ni nuevas acciones de store fuera de scope. Ver `docs/auditorias/2026-05-07-auditoria-ifml.md` §6 y §8 H-2.
+
 12 acciones primarias OPCloud (steipete §T2.5):
 
 | # | Acción OPCloud | SVG canónico | Acción equivalente repo | Piloto en ronda 13 |
@@ -37,6 +39,7 @@ Slice mínimo entregable: 1 commit `feat(ui): BarraHerramientasElemento esquelet
 - **No modificar render JointJS handlers/seleccion.ts** salvo lectura del anchor coordinates. Si requiere extensión, **abortar y reportar**.
 - **No introducir collision avoidance complejo**: heurística simple suficiente para piloto.
 - **No introducir keyboard shortcut nuevo** para abrir/cerrar la barra (selección hace toggle automático).
+- **No resolver modal-stack ni CustomEvents** (IFML H-1/H-3/H-4 quedan para ronda 13.1).
 
 ## 2. HU base
 
@@ -59,6 +62,7 @@ L4 puede registrar nueva métrica complementaria "tiempo a acción primaria" (UX
 
 - **`docs/JOYAS.md §2`**: dimensiones canónicas íconos. **Cita obligatoria header BarraHerramientasElemento**: `[JOYAS §2]`.
 - **`docs/auditorias/2026-05-07-refactor-radical-steipete.md` §T2.5**: contrato L4 (lista 12 acciones, recomendación de pilotar 6).
+- **`docs/auditorias/2026-05-07-auditoria-ifml.md` §6 CN-SOT/CN-MOT + §8 H-2**: contrato de interacción L4; barra contextual como ViewContainer/ViewComponent de acción sobre objeto seleccionado.
 - **`opm-extracted/src/app/modules/layout/element-tool-bar/element-tool-bar.component.ts`** (8979 LOC, post-Angular IVY, **NO portar 1:1**): solo extraer la lista de 12 acciones. Implementación nueva en Preact + JointJS OSS.
 - **Estado actual del código (verificado)**:
   - `app/src/render/jointjs/handlers/seleccion.ts`: handler de selección (lectura para anchor coordinates).
@@ -87,6 +91,7 @@ app/e2e/06-undo-redo-dirty.spec.ts                      EDIT aditivo (1 smoke ac
 opm-extracted/src/app/modules/layout/element-tool-bar/  LECTURA (referencia lista 12 acciones, NO copia 1:1)
 docs/HANDOFF.md                                         LECTURA
 docs/auditorias/2026-05-07-refactor-radical-steipete.md LECTURA
+docs/auditorias/2026-05-07-auditoria-ifml.md            LECTURA
 docs/JOYAS.md                                           LECTURA
 assets/svg/**                                           LECTURA
 ```
@@ -103,6 +108,7 @@ Cualquier otro archivo es **fuera de scope**.
 - **No introducir keyboard shortcut nuevo** para abrir/cerrar barra (selección hace toggle natural).
 - **No reemplazar Inspector**: el botón "···" lo expande/colapsa, pero el Inspector lateral sigue siendo el lugar canónico para todas las propiedades.
 - **No tocar acciones-canvas/ui/entidad.ts** salvo lectura. La barra invoca acciones existentes; cero acciones nuevas.
+- **No crear lambdas opacas**: si un botón combina pasos (ej. abrir sección + enfocar), crear `handleAbrirAlias`/`handleInzoom` nombrado dentro de `BarraHerramientasElemento.tsx`.
 - **App.tsx en zona compartida con L1 (lazy) y L3 (PanelMetodologia)**: L4 monta `BarraHerramientasElemento` como overlay flotante (no en layout principal). Hunks disjuntos.
 - **No portar las 12 acciones OPCloud**: solo 6 piloto. Las 6 diferidas a iteración futura.
 
@@ -114,6 +120,7 @@ Cualquier otro archivo es **fuera de scope**.
 // app/src/ui/BarraHerramientasElemento.tsx (~400 LOC total)
 // [JOYAS §2] [HU-SHARED-001] barra flotante con 6 acciones primarias OPCloud
 // destiladas (steipete §T2.5). Complemento del Inspector lateral, no reemplazo.
+// IFML: CN-SOT/CN-MOT contextual toolbar; Event -> Action nombrada.
 // Refs: opm-extracted/src/app/modules/layout/element-tool-bar/element-tool-bar.component.ts
 //       (8979 LOC post-Angular IVY; solo lista de acciones extraída).
 
@@ -295,7 +302,7 @@ export function InspectorEntidad({ /* ... */, colapsado = false }: Props) {
 ```bash
 cd app
 bun run check          # 675 → ~705 (con +30 tests barra)
-bun run browser:smoke  # 86 → ~89 (con +3 smokes barra)
+bun run browser:smoke  # 93 → ~96 (con +3 smokes barra)
 bun run build          # main chunk +~5 kB por barra; sigue ≤ 195 kB post-L1 lazy
 ```
 
@@ -329,6 +336,7 @@ Verificar:
 - **Mensajes title de los botones**: en es-CL con atajo cuando aplique. Documentar tabla.
 - **Si `getBoundingClientRect` no funciona** porque JointJS usa SVG: usar `paperToClient` o equivalente. Documentar elección.
 - **Si seleccionar enlace** (no entidad): el slice asume entidad. Si se quiere extender a enlace, agregar discriminante. Recomendación: ronda 13 solo entidades; enlaces en iteración futura.
+- **Mapa IFML de cada botón**: documentar `Event`, `Action`, precondición y resultado normal/excepcional (mensaje/disabled).
 
 ## 11. Forma del entregable
 
@@ -340,6 +348,7 @@ Al cierre de L4, declarar:
 - Lista de commits creados en orden + rationale por uno.
 - Decisiones declaradas (§10): acciones store, helper bbox, visualización, posición "···", integración con ToolbarSeleccion, mensajes title.
 - Tabla de las 6 acciones implementadas con su `data-testid` y la acción store invocada.
+- Tabla IFML L4: `Event → Action nombrada → Flow/resultado` para los 6 botones + "···".
 - Confirmación que `BarraHerramientasElemento` aparece/desaparece correctamente con cambio de selección (smoke verde).
 - Confirmación archivos no tocados (de §5) — especialmente `seleccion.ts` solo lectura.
 
