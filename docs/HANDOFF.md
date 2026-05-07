@@ -1,10 +1,10 @@
-# HANDOFF - refinamiento OPM completo sobre Thing
+# HANDOFF - Alpha real cerrado + pre-beta law-first
 
 **Fecha**: 2026-05-07
 **Repositorio**: `deep-opm-pro`
 **Rama**: `main`
-**Corte**: correccion semantica de refinamiento `inzoom`/`unfold` contra SSOT OPM + evidencia OPCloud en `opm-extracted/`.
-**Estado**: patch listo para commit atomico en `main`; build, tests, lint y smoke browser verdes.
+**Corte**: rondas 14.2 y 14.3 integradas sobre el cierre 14.1 de refinamiento OPM completo sobre Thing.
+**Estado**: alpha real cerrado por ledger operativo: OPL reverse editable ya no queda como parcial; MVP-alpha **100.0%**.
 
 ## Politica De Handoff Unico
 
@@ -12,175 +12,262 @@
 archivo reemplaza y consolida el handoff anterior. No crear handoffs paralelos,
 fechados ni duplicados.
 
-## Memoria Consolidada
+## Contexto Normativo
 
 El modelador OPM vive en `app/` con Bun + Vite + Preact + Zustand + JointJS OSS.
-La arquitectura sigue siendo propia: no Angular, no Firebase, no Rappid. La
-semantica se ancla en la SSOT OPM/ISO 19450 en
-`/home/felix/kora/artifacts/knowledge/fxsl/opm/opm-ssot-es/`; OPCloud se usa
-como evidencia operacional en `opm-extracted/`, sin copiar codigo 1:1.
+La arquitectura sigue siendo propia: no Angular, no Firebase, no Rappid.
 
-La decision principal de este corte: **refinamiento aplica a Thing**, no a una
-matriz restringida `proceso -> descomposicion` y `objeto -> despliegue`.
-Se conserva el schema actual `entidad.refinamiento` y las APIs publicas legacy
-por compatibilidad, pero se corrige su semantica.
+Autoridad semantica:
 
-## Estado Actual
+- SSOT OPM/ISO 19450: `/home/felix/kora/artifacts/knowledge/fxsl/opm/opm-ssot-es/`
+- Evidencia operacional OPCloud: `opm-extracted/`
+- Evidencia visual canonica: `assets/svg/`, `assets/png/`, `docs/JOYAS.md`
+- Backlog vivo: `docs/historias-usuario-v2/`
+- Corte operativo vivo: `docs/roadmap/`
 
-### Refinamiento
+OPCloud operacionaliza OPM, pero no redefine la semantica. Cualquier solucion
+nueva debe buscar primero en `assets/`, `docs/JOYAS.md`, `opm-extracted/` y la
+SSOT antes de inventar.
 
-- `descomponerProceso(...)` conserva su nombre publico, pero ahora implementa
-  **inzoom/descomposicion de cualquier cosa OPM**.
-- En inzoom, los refinadores iniciales se crean del mismo tipo que la cosa
-  refinada:
-  - proceso -> tres procesos internos.
-  - objeto -> tres objetos internos.
-- `desplegarObjeto(...)` conserva su nombre publico, pero ahora implementa
-  **unfold/despliegue de cualquier cosa OPM**.
-- En unfold, los refinadores estructurales iniciales tambien conservan el tipo
-  del padre:
-  - objeto -> objetos vinculados por agregacion/exhibicion/generalizacion/clasificacion.
-  - proceso -> procesos vinculados por agregacion/exhibicion/generalizacion/clasificacion.
-- La UI ya no etiqueta un unfold como inzoom:
-  - la barra flotante `Inzoom` llama a descomposicion real.
-  - el inspector expone descomposicion y despliegue para objetos y procesos.
-- La serializacion ya no rechaza `descomposicion` en objetos ni `despliegue`
-  en procesos.
+## Memoria Consolidada Del Corte
 
-### Enlaces Y Cadenas De Efectos
+La ronda 14.1 corrigio el bloque semantico de refinamiento:
+**inzoom/descomposicion** y **unfold/despliegue** aplican a **Thing** (objeto o
+proceso), no a la matriz historica restringida objeto-unfold/proceso-inzoom. Se
+conservo el schema actual `entidad.refinamiento` y los nombres publicos legacy
+por compatibilidad, pero el comportamiento ya cubre la matriz completa.
 
-- La firma de `agregacion` permite entidades de la misma clase OPM. Esto habilita
-  agregacion proceso->proceso para unfold de procesos.
-- La proyeccion de enlaces externos en descomposicion de proceso queda alineada
-  con SSOT:
-  - `consumo` hacia el proceso refinado -> primer subproceso.
-  - `resultado` desde el proceso refinado -> ultimo subproceso.
-  - `agente`, `instrumento` y `efecto` basico -> todos los subprocesos.
-- La descomposicion de objeto conserva contexto externo visible en el OPD hijo,
-  mostrando el enlace original sobre el contorno cuando no aplica distribucion
-  procedural.
-- Los reanclajes manuales de enlaces derivados siguen teniendo prioridad sobre
-  recalculos automaticos.
+La ronda 14.2 agrego una capa **law-first** antes de seguir hacia beta:
 
-### Archivos Principales Del Corte
+- leyes de identidad para proyecciones JSON/render/refinamiento;
+- leyes de seguridad para OPL reverse editable;
+- ley de preview sin mutacion;
+- ley de undo atomico para aplicar OPL;
+- ledger de calidad ejecutable.
 
-- `app/src/modelo/operaciones/refinamiento/descomposicion.ts`
-- `app/src/modelo/operaciones/refinamiento/despliegue.ts`
-- `app/src/modelo/operaciones/refinamiento/proyeccion.ts`
-- `app/src/modelo/operaciones/refinamiento/helpers.ts`
-- `app/src/modelo/operaciones/helpers.ts`
-- `app/src/serializacion/validarEntidades.ts`
-- `app/src/modelo/checkers.ts`
-- `app/src/store/modelo/acciones-opd.ts`
-- `app/src/ui/BarraHerramientasElemento.tsx`
-- `app/src/ui/inspector/SeccionRefinamiento.tsx`
-- `app/src/modelo/operaciones.test.ts`
+La ronda 14.3 hizo explicitas fronteras arquitectonicas que estaban implicitas:
 
-## Decisiones Vigentes
+- contratos de slices de store con `Pick<OpmStore, ...>` en vez de aliases
+  `Partial<OpmStore>`;
+- frontera de efectos runtime (`confirm`, storage, reloj, UUID/random);
+- opciones de proyeccion explicitables sin depender de globals legacy;
+- adaptadores legacy aislados para compatibilidad UI.
 
-- **Compatibilidad primero**: no se migro el modelo serializado a
-  `refineeInzooming/refineeUnfolding`. El patch corrige semantica sin introducir
-  migracion de schema.
-- **Un refinamiento activo por entidad**: el modelo local conserva un unico
-  `entidad.refinamiento`. OPCloud puede mantener inzoom y unfold separados por
-  visual thing; esa paridad queda como mejora futura.
-- **Distribucion automatica solo para proceso descompuesto**: para objeto
-  descompuesto se preserva contexto externo, pero no se inventa split procedural.
-- **Nombres publicos legacy se mantienen**: `descomponerProceso` y
-  `desplegarObjeto` siguen exportados para evitar una refactorizacion amplia de
-  consumidores. Su documentacion interna aclara que operan sobre Thing.
-- **Tests actualizan la norma**: se reemplazaron tests que fijaban el rechazo de
-  process-unfold/object-inzoom por tests positivos de la matriz completa.
+## Commits Del Corte Actual
 
-Decisiones previas que siguen vigentes:
+| Ronda | Commit | Aporte |
+|---|---|---|
+| 14.2 L1 | `b97e088` | `test(leyes): proyecciones preservan identidad OPM` |
+| 14.2 L2 | `3d645e2` | `test(leyes): OPL reverse es lente segura y undoable` |
+| 14.2 L3 | `8455318` | `docs(quality): agrega ledger law-first pre-beta` |
+| 14.3 L1 | `306e202` | `refactor(store): explicita contratos de slices` |
+| 14.3 L2 | `7076784` | `refactor(runtime+render): explicita effects y opciones de proyeccion` |
 
-- `assets/svg/` y `docs/JOYAS.md` son fuente canonica visual.
-- `opm-extracted/` es referencia semantica operacional, no fuente a copiar.
-- OPL-ES sigue siendo lente derivada.
-- JSON OPM debe permanecer lossless.
-- No Firebase, no Rappid.
-- `docs/HANDOFF.md` es handoff unico.
+La consolidacion final actualiza el dashboard, reemplaza este HANDOFF y publica
+todo sobre `origin/main`.
 
-## Verificacion Ejecutada
+## Estado De Alpha
+
+**MVP-alpha: 100.0% ponderado**
+
+- 121 HU alpha cubiertas.
+- 0 parciales.
+- 0 pendientes.
+- Detector: 102/102 reglas matched.
+
+La HU que bloqueaba el cierre real, **HU-SHARED-007 / OPL reverse editable**, ya
+queda tratada como cerrada en el corte operativo. Ronda 14.2 no solo acepta el
+cierre funcional: lo rodea con leyes que protegen la semantica de lente segura.
+
+Garantias nuevas:
+
+- El parser inverso no borra por ausencia de linea.
+- El preview OPL no muta el modelo.
+- Las oraciones OPL validas pero aun no soportadas producen diagnostico, no
+  mutacion silenciosa.
+- Aplicar OPL crea una unidad undo atomica.
+
+## Verificacion Final Ejecutada
 
 Desde `app/`:
 
 ```bash
 bun run check
-# tsc --noEmit
-# bun test src
-# 884 pass / 0 fail / 2964 expect() / 87 archivos
-
-bun run build
-# vite build OK
+# 903 pass / 0 fail / 3545 expect() / 90 archivos
 
 bun run lint
 # eslint src/ui/ OK
 
+bun run build
+# vite build OK
+# main bundle: 233.48 kB / 62.78 kB gzip
+
 bun run browser:smoke
-# 104 passed
+# 106 passed
+
+bun run scripts/quality-ledger.mjs --markdown
+# Canonical laws: 6/6
+# Compat detectors: 1
+# MVP-alpha: 121/121 (100%)
+# Auto rules: 102/102 matched
 ```
 
-`app/dist/` se elimino despues del build para respetar la politica de repo
-liviano.
+Desde la raiz:
 
-## Pendientes
+```bash
+node docs/historias-usuario-v2/tools/progress-dashboard.mjs --sync-real
+# HU vivas: 1126
+# Total: 28.5% ponderado (313 cubiertas, 22 parciales, 413 pendientes, 378 diferidas)
+# MVP-alpha: 100.0% ponderado (121 cubiertas, 0 parciales, 0 pendientes)
+# 102/102 reglas matched
+```
 
-### Refinamiento
+Diagnostico vivo: 1 advertencia ledger heredada (`HU-13.005` duplicate-id,
+legado pre-ronda-8). No bloquea este corte.
 
-- Migrar, si se decide necesario, desde un unico `entidad.refinamiento` a slots
-  separados equivalentes a OPCloud:
-  - `refineeInzooming`
-  - `refineeUnfolding`
-  - `refineable`
-- Agregar e2e especificos para:
-  - inzoom de objeto desde inspector y barra.
-  - unfold de proceso desde inspector.
-  - distribucion agente/instrumento/efecto visible en UI, no solo kernel.
-- Revisar OPL de object decomposition con partes + operaciones internas. El
-  generador actual ya emite descomposicion general, pero falta profundizar
-  plantillas especificas de objeto descompuesto.
-- Implementar split de efecto con estados especificos segun SSOT cuando haya
-  transiciones de estado refinadas.
+## Decisiones Nuevas
 
-### Deuda General Viva
+### Law-first antes de beta
 
-- Bundle principal sigue sobre el objetivo historico de 195 kB; medir antes de
-  mover mas chunks.
-- Ronda 13.1 IFML flow cleanup sigue pendiente:
-  - modal-stack LIFO real.
-  - reemplazo de CustomEvents legacy.
-  - breadcrumbs.
-  - TablaEnlaces como vista XOR.
-- Ronda 14 OPL reverse profundo / EPICA-50 sigue viva.
+Antes de abrir beta funcional se fijo una base de leyes ejecutables. Las leyes
+no reemplazan pruebas unit/e2e; definen invariantes que deben sobrevivir a
+refactors de UX, render y OPL:
 
-## Supuestos
+- `law-json-roundtrip`
+- `law-render-stable-metadata`
+- `law-refinement-thing-matrix`
+- `law-refinement-removal`
+- `law-opl-safe-lens`
+- `law-opl-preview-no-mutation`
+- alias operativo: `law-opl-apply-undo-atomicity` como evidencia de
+  `law-store-undo-atomicity`
 
-- La correccion apunta a paridad semantica suficiente con OPCloud para
-  refinamiento, no a paridad exacta de persistencia interna.
-- El schema actual de un solo refinamiento por entidad es aceptable para este
-  incremento por reversibilidad y blast radius.
-- Los fixtures existentes no modelan aun process-unfold ni object-inzoom con
-  profundidad suficiente; la cobertura nueva queda principalmente en unit tests
-  de kernel y en smokes existentes de regresion.
+### Store slices como contrato explicito
 
-## Riesgos
+`app/src/store/sliceTypes.ts` define las superficies de cada slice con
+`Pick<OpmStore, ...>`. Ya no hay aliases `type *Slice = Partial<OpmStore>`.
 
-- El nombre legacy `descomponerProceso` puede inducir errores futuros si alguien
-  asume de nuevo que solo acepta procesos. La documentacion interna lo corrige,
-  pero una renombrada publica requeriria migracion amplia.
-- La UI ahora permite las cuatro combinaciones, pero algunos textos historicos
-  del backlog/HU pueden seguir hablando de "objeto desplegable" o "proceso
-  descomponible". Auditar wording antes de nuevas HU.
-- La falta de slots separados impide, por ahora, que una misma entidad tenga
-  simultaneamente inzoom y unfold como en OPCloud.
-- La distribucion de `invocacion` se mantiene como comportamiento previo
-  `ultimo -> externo`; revisar contra SSOT/OPCloud antes de ampliar reglas.
+Se agregaron checks de cobertura:
+
+- `OpmStoreSliceMissingKeys`
+- `OpmStoreSliceExtraKeys`
+
+El tipo `CrearSlice<T>` conserva `Partial<OpmStore>` solo como detalle de
+compatibilidad con Zustand `set`, no como contrato publico de slice.
+
+### Runtime effects aislados
+
+`app/src/store/runtimeEffects.ts` concentra los efectos del runtime:
+
+- `now()`
+- `confirm(message)`
+- `readLocalStorage(key)`
+- `writeLocalStorage(key, value)`
+- `randomUUID()`
+- `random()`
+
+`app/src/store/runtime.ts` ya no lee `globalThis.confirm`, `globalThis.localStorage`,
+`globalThis.crypto` ni `Date.now()` directamente. El fallback de ID local usa
+tambien `runtimeEffects.random()`, no `Math.random()` directo.
+
+### Proyeccion sin globals obligatorios
+
+`app/src/render/jointjs/proyeccionOpciones.ts` separa:
+
+- defaults canonicos de proyeccion;
+- normalizacion de opciones explicitas;
+- adaptador legacy para los globals `__deepOpmUi*`.
+
+`proyectarModeloAJointCells(...)` puede recibir opciones explicitas y, en ese
+modo, no lee ni hereda estado global. Los globals sobreviven solo como puente
+legacy para la UI actual.
+
+## Cascadas Gestionadas
+
+| Cascada | Resolucion |
+|---|---|
+| 14.2 L1/L2 agregan leyes sobre codigo ya estabilizado por 14.1. | Se commitearon como tests puros, sin cambios de dominio. `bun run check` subio de 888/898 a 903 tras 14.3. |
+| OPL reverse editable paso de cierre funcional a cierre con leyes. | Se fijaron lente segura, preview sin mutacion, unsupported no-op y undo atomico. |
+| Dashboard necesitaba re-scan tras nuevos archivos. | `--sync-real` actualizo timestamps y conteo de fuentes 381 -> 388; reglas siguen 102/102. |
+| Store tenia contratos de slices demasiado laxos. | Se introdujo `sliceTypes.ts` y se eliminaron aliases `Slice = Partial<OpmStore>`. |
+| Runtime/render mezclaban logica pura con entorno browser. | Se aislaron adaptadores en `runtimeEffects.ts` y `proyeccionOpciones.ts`; archivos core ya no tienen `globalThis` directo. |
+| Bundle sigue sobre objetivo historico. | Documentado como deuda viva: 233.48 kB / 62.78 kB gzip. No bloquear alpha; tratar en corte de performance/UX posterior. |
+
+## Estado Por Dominio
+
+- **Modelo/kernel**: estable tras 14.1. Refinamiento sobre Thing cubierto y
+  rodeado por leyes 14.2.
+- **OPL**: reverse editable cerrado para alpha; parser inverso sigue siendo
+  incremental, no parser completo de todo OPL. Unsupported debe diagnosticar sin
+  mutar.
+- **Render JointJS**: proyeccion con opciones explicitables; metadata estable
+  cubierta por ley.
+- **Store**: contratos de slices explicitos; undo atomico preservado.
+- **Runtime/browser effects**: frontera injectable; `runtime.ts` sin acceso
+  directo a browser globals.
+- **Dashboard HU**: alpha 100%; total backlog 28.5%.
+- **Quality ledger**: disponible como `cd app && bun run scripts/quality-ledger.mjs --markdown`.
+
+## Pendientes Reales Antes De Beta
+
+Beta no debe arrancar como "mas features OPCloud". Los cortes oficiales son de
+producto; las rondas arquitectonicas son internas.
+
+### Corte Recomendado: Beta-0 Foundation
+
+Objetivo: modelar KORA/HDOS/GOREOS con UX suficientemente estable para trabajo
+real, sin prometer simulacion completa.
+
+Incluye:
+
+- normalizacion IFML pendiente;
+- bugs visuales y UX de modelado diario;
+- autolayout asistido como vista sugerida/aplicar layout, no motor obligatorio;
+- apariencia exacta de shapes/enlaces/anclaje/cruces desde `opm-extracted/` +
+  SSOT visual;
+- validacion metodologica como nucleo;
+- catalogo simple, sin carpetas/workspace complejo;
+- capturador de bugs integrado con imagen + texto + codigo referenciable para
+  agentes.
+
+### Corte Recomendado: Beta-1 Dominio Real
+
+Objetivo: un modelo ancla mediano (KORA/HDOS/GOREOS) debe poder sostenerse con:
+
+- Tabla de Enlaces como herramienta real de auditoria y edicion;
+- busqueda intra-modelo;
+- descomposicion/refinamiento/estados suficientemente ergonomicos;
+- validacion metodologica accionable;
+- OPL reverse confiable dentro del subset soportado.
+
+### Corte Posterior: Beta-2 Simulacion
+
+La simulacion queda fuera de Beta-0/Beta-1 salvo que un modelo ancla la requiera
+como eval. No subir A0 estereotipos ni asistente de 12 etapas a beta: A0 queda
+fuera y el asistente se resuelve como skill, no como requisito del producto.
+
+## Proximos Pasos Operativos
+
+1. Actualizar `docs/roadmap/cortes-operativos.md` sin editar HU originales.
+2. Incorporar la auditoria IFML como ronda 13.1/15 foundation, no como parche
+   lateral.
+3. Definir evals de Beta-0/Beta-1 contra modelos ancla:
+   - `/home/felix/projects/hd-dt`
+   - `/home/felix/projects/hdos`
+   - `/home/felix/projects/hdos-app`
+4. Antes de nuevas features, revisar con profundidad SSOT OPM + `opm-extracted/`
+   para apariencia, enlaces, anclaje, routing y cruces.
+5. Mantener el loop:
+   - `cd app && bun run check`
+   - `cd app && bun run lint`
+   - `cd app && bun run build`
+   - `cd app && bun run browser:smoke`
+   - `node docs/historias-usuario-v2/tools/progress-dashboard.mjs --sync-real`
 
 ## Prompt De Continuacion Breve
 
-Usa `docs/HANDOFF.md` como memoria unica. Continua desde el corte
-"refinamiento OPM completo sobre Thing": revisar deuda de slots separados
-`refineeInzooming/refineeUnfolding/refineable`, agregar e2e para object-inzoom y
-process-unfold, y auditar OPL especifico de descomposicion de objeto contra SSOT
-OPM + `opm-extracted/`.
+Usa `docs/HANDOFF.md` como memoria unica. El alpha real esta cerrado: OPL reverse
+editable ya no queda parcial y las leyes 14.2 lo protegen. Continua con la capa
+operativa de cortes (`docs/roadmap/cortes-operativos.md`) y la normalizacion
+pre-beta: IFML, UX visual, autolayout sugerido, apariencia/enlaces/anclaje desde
+SSOT + `opm-extracted/`, y capturador de bugs integrado.
