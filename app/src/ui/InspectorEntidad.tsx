@@ -1,11 +1,12 @@
 import { useState } from "preact/hooks";
 import { autoInvocacionDeProceso } from "../modelo/autoinvocacion";
-import { estadosDeEntidad } from "../modelo/operaciones";
+import { esAtributoDerivado, estadosDeEntidad } from "../modelo/operaciones";
 import { filasPlegadoParcial, modoPlegadoApariencia, partesDePlegado } from "../modelo/plegado";
 import type { Entidad, OrdenPartesPlegado } from "../modelo/tipos";
 import { useOpmStore } from "../store";
 import { inspectorStyles as style } from "./inspectorStyles";
 import { SeccionAlias } from "./inspector/SeccionAlias";
+import { SeccionAtributo } from "./inspector/SeccionAtributo";
 import { SeccionDescripcion } from "./inspector/SeccionDescripcion";
 import { SeccionEsenciaAfiliacion } from "./inspector/SeccionEsenciaAfiliacion";
 import { SeccionImagen } from "./inspector/SeccionImagen";
@@ -66,6 +67,8 @@ export function InspectorEntidad({ entidad }: Props) {
   const editarAliasEntidad = useOpmStore((s) => s.editarAliasEntidad);
   const editarUnidadEntidad = useOpmStore((s) => s.editarUnidadEntidad);
   const editarDescripcionEntidad = useOpmStore((s) => s.editarDescripcionEntidad);
+  const asignarValorAtributo = useOpmStore((s) => s.asignarValorAtributoSeleccionado);
+  const cambiarTipoValorAtributo = useOpmStore((s) => s.cambiarTipoValorAtributoSeleccionado);
   const fijarLayoutEstadosEntidad = useOpmStore((s) => s.fijarLayoutEstadosEntidad);
   const eliminar = useOpmStore((s) => s.eliminarSeleccion);
   const seleccionados = useOpmStore((s) => s.seleccionados);
@@ -76,6 +79,7 @@ export function InspectorEntidad({ entidad }: Props) {
   const modoPlegado = aparienciaActiva ? modoPlegadoApariencia(aparienciaActiva) : "completo";
   const filasParciales = aparienciaActiva && modoPlegado === "parcial" ? filasPlegadoParcial(modelo, opdActivoId, aparienciaActiva.id) : [];
   const estados = entidad.tipo === "objeto" ? estadosDeEntidad(modelo, entidad.id) : [];
+  const atributoDerivado = entidad.tipo === "objeto" && esAtributoDerivado(modelo, entidad.id);
   const autoInvocacion = entidad.tipo === "proceso" ? autoInvocacionDeProceso(modelo, opdActivoId, entidad.id) : undefined;
 
   return (
@@ -88,15 +92,24 @@ export function InspectorEntidad({ entidad }: Props) {
         <span style={style.label}>Nombre</span>
         <input style={style.input} value={entidad.nombre} onInput={(event) => renombrar(event.currentTarget.value)} />
       </label>
+      <SeccionDescripcion descripcion={entidad.descripcion} onDescripcion={(value) => editarDescripcionEntidad(entidad.id, value)} />
       {entidad.tipo === "objeto" ? (
         <section style={advancedStyles.section} aria-label="Metadatos avanzados">
           <SeccionAlias alias={entidad.alias} unidad={entidad.unidad} onAlias={(value) => editarAliasEntidad(entidad.id, value)} onUnidad={(value) => editarUnidadEntidad(entidad.id, value)} />
-          <SeccionDescripcion descripcion={entidad.descripcion} onDescripcion={(value) => editarDescripcionEntidad(entidad.id, value)} />
           <SeccionUrls entidadId={entidad.id} urls={entidad.urls} onAbrirUrls={abrirModalUrls} />
-          <SeccionImagen entidadId={entidad.id} {...(entidad.imagen ? { imagen: entidad.imagen } : {})} onAbrirImagen={abrirModalImagen} onQuitarImagen={quitarImagenEntidad} />
-        </section>
-      ) : null}
-      <SeccionEsenciaAfiliacion esencia={entidad.esencia} afiliacion={entidad.afiliacion} onEsencia={fijarEsencia} onAfiliacion={fijarAfiliacion} />
+	          <SeccionImagen entidadId={entidad.id} {...(entidad.imagen ? { imagen: entidad.imagen } : {})} onAbrirImagen={abrirModalImagen} onQuitarImagen={quitarImagenEntidad} />
+	        </section>
+	      ) : null}
+	      {atributoDerivado ? (
+	        <SeccionAtributo
+	          entidad={entidad}
+	          derivado={atributoDerivado}
+	          onUnidad={(value) => editarUnidadEntidad(entidad.id, value)}
+	          onTipo={cambiarTipoValorAtributo}
+	          onValor={asignarValorAtributo}
+	        />
+	      ) : null}
+	      <SeccionEsenciaAfiliacion esencia={entidad.esencia} afiliacion={entidad.afiliacion} onEsencia={fijarEsencia} onAfiliacion={fijarAfiliacion} />
       {aparienciaActiva ? (
         <SeccionTamano
           apariencia={aparienciaActiva}

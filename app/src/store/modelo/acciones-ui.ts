@@ -1,10 +1,12 @@
-import { cambiarAfiliacion, cambiarEsencia, crearEnlace, crearModelo, crearObjeto, crearProceso } from "../../modelo/operaciones";
+import { crearModelo } from "../../modelo/operaciones";
 import type { Modelo, VersionResumen } from "../../modelo/tipos";
 import {
   guardarModeloLocal,
   actualizarMetadataModeloLocal,
   renombrarModeloLocal,
+  type ModeloPersistido,
 } from "../../persistencia/local";
+import { guardarPlantilla, listarPlantillas } from "../../persistencia/plantillas";
 import {
   validarNombreModeloLocal,
   workspaceDesdeModelo,
@@ -12,7 +14,7 @@ import {
 } from "../../persistencia/workspace";
 import { crearVersion } from "../../persistencia/versiones";
 import { fijarOpcionesProyeccionGlobal } from "../../render/jointjs/proyeccion";
-import { exportarModelo } from "../../serializacion/json";
+import { exportarModelo, hidratarModelo } from "../../serializacion/json";
 import {
   activarPestanaNueva,
   escribirIndiceWorkspace,
@@ -33,15 +35,25 @@ import {
 import { crearPestanaNueva } from "../pestanas";
 import type { ModeloSlice } from "../tipos";
 
+let limpiarResaltadoPlantillaTimer: number | null = null;
+const EJEMPLO_ORGANIZACIONAL_URL = new URL("../../../examples/ejemplo-organizacional.json", import.meta.url);
+
 /**
  * Acciones de UI: limpiar mensaje, abrir/cerrar menú principal y diálogos
  * (guardar como, cargar modelo), guardar como local, cargar local desde
  * diálogo, nuevo modelo (reemplaza pestaña vacía o abre nueva), modal URLs.
+ *
+ * L3 traer conectados: [Met §multi-OPD], [Glos 3.6].
+ * L4 plantillas privadas: [Met §8.8], [V-52], [V-123], [JOYAS §1].
+ * L1 persistencia/carga: [Met §6].
  */
 export function accionesUI(set: SetStore, get: GetStore): Partial<ModeloSlice> {
   return {
     pantallaInicioCerrada: false,
     dialogoRenombrarModeloAbierto: false,
+    dialogoTraerConectadosAbierto: false,
+    dialogoPlantillasAbierto: false,
+    dialogoGuardarPlantillaAbierto: false,
 
     limpiarMensaje() {
       set({ mensaje: null });
@@ -255,6 +267,95 @@ export function accionesUI(set: SetStore, get: GetStore): Partial<ModeloSlice> {
       set({ dialogoRenombrarModeloAbierto: false });
     },
 
+    abrirDialogoTraerConectados() {
+      set({ dialogoTraerConectadosAbierto: true, mensaje: null });
+    },
+
+    cerrarDialogoTraerConectados() {
+      set({ dialogoTraerConectadosAbierto: false });
+    },
+
+    abrirDialogoPlantillas() {
+      const listado = listarPlantillas("privado");
+      if (!listado.ok) {
+        set({ mensaje: listado.error, menuPrincipalAbierto: false });
+        return;
+      }
+      set({
+        plantillasGuardadas: listado.value,
+        dialogoPlantillasAbierto: true,
+        menuPrincipalAbierto: false,
+        mensaje: null,
+      });
+    },
+
+    cerrarDialogoPlantillas() {
+      set({ dialogoPlantillasAbierto: false });
+    },
+
+    abrirDialogoGuardarPlantilla() {
+      set({
+        dialogoGuardarPlantillaAbierto: true,
+        menuPrincipalAbierto: false,
+        mensaje: null,
+      });
+    },
+
+    cerrarDialogoGuardarPlantilla() {
+      set({ dialogoGuardarPlantillaAbierto: false });
+    },
+
+    guardarComoPlantillaConfirmar(input) {
+      const { modelo, descripcionModeloLocal, indice } = get();
+      const ambito = input.ambito ?? "privado";
+      if (ambito !== "privado") {
+        set({ mensaje: "Disponible cuando se habilite multi-usuario" });
+        return;
+      }
+      const ahora = new Date().toISOString();
+      const modeloPersistido: ModeloPersistido = {
+        id: `plantilla-contenido-${modelo.id}`,
+        nombre: modelo.nombre,
+        descripcion: descripcionModeloLocal || modelo.descripcion || "",
+        creadoEn: ahora,
+        actualizadoEn: ahora,
+        json: exportarModelo(modelo),
+      };
+      const descripcion = input.descripcion?.trim();
+      const guardada = guardarPlantilla({
+        nombre: input.nombre,
+        modeloPersistido,
+        ambito,
+        ...(descripcion ? { descripcion } : {}),
+      });
+      if (!guardada.ok) {
+        set({ mensaje: guardada.error });
+        return;
+      }
+      const listado = listarPlantillas("privado");
+      const plantillasGuardadas = listado.ok ? listado.value : [guardada.value];
+      const indiceActualizado = { ...indice, plantillas: plantillasGuardadas };
+      escribirIndiceWorkspace(indiceActualizado);
+      set({
+        indice: indiceActualizado,
+        plantillasGuardadas,
+        dialogoGuardarPlantillaAbierto: false,
+        dialogoPlantillasAbierto: false,
+        mensaje: "Plantilla guardada",
+      });
+    },
+
+    resaltarTemporalmente(ids, ms = 3000) {
+      if (limpiarResaltadoPlantillaTimer !== null) {
+        window.clearTimeout(limpiarResaltadoPlantillaTimer);
+      }
+      set({ idsResaltadosTemporales: [...ids] });
+      limpiarResaltadoPlantillaTimer = window.setTimeout(() => {
+        set({ idsResaltadosTemporales: [] });
+        limpiarResaltadoPlantillaTimer = null;
+      }, ms);
+    },
+
     renombrarModeloActual(nombre) {
       const { modelo, modeloPersistidoId, descripcionModeloLocal, modelosGuardados, carpetaActualId } = get();
       if (!modeloPersistidoId) {
@@ -288,21 +389,18 @@ export function accionesUI(set: SetStore, get: GetStore): Partial<ModeloSlice> {
       }));
     },
 
-    cargarEjemploOrganizacional() {
-      let modelo = crearModelo("Ejemplo organizacional");
-      modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 80, y: 90 }, "Cliente"));
-      modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 340, y: 90 }, "Equipo de soporte"));
-      modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 600, y: 90 }, "Base de conocimiento"));
-      modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 330, y: 245 }, "Resolver solicitud"));
-      const cliente = entidadPorNombre(modelo, "Cliente");
-      const equipo = entidadPorNombre(modelo, "Equipo de soporte");
-      const conocimiento = entidadPorNombre(modelo, "Base de conocimiento");
-      const resolver = entidadPorNombre(modelo, "Resolver solicitud");
-      modelo = must(cambiarEsencia(modelo, cliente, "fisica"));
-      modelo = must(cambiarAfiliacion(modelo, cliente, "ambiental"));
-      modelo = must(crearEnlace(modelo, modelo.opdRaizId, cliente, resolver, "agente"));
-      modelo = must(crearEnlace(modelo, modelo.opdRaizId, equipo, resolver, "instrumento"));
-      modelo = must(crearEnlace(modelo, modelo.opdRaizId, conocimiento, resolver, "instrumento"));
+    async cargarEjemploOrganizacional() {
+      const respuesta = await fetch(EJEMPLO_ORGANIZACIONAL_URL);
+      if (!respuesta.ok) {
+        set({ mensaje: "No se pudo cargar el ejemplo organizacional" });
+        return;
+      }
+      const hidratado = hidratarModelo(await respuesta.text());
+      if (!hidratado.ok) {
+        set({ mensaje: hidratado.error });
+        return;
+      }
+      const modelo = hidratado.value;
       resetHistorial(modelo);
       set(estadoModelo(modelo, {
         opdActivoId: modelo.opdRaizId,
@@ -318,6 +416,8 @@ export function accionesUI(set: SetStore, get: GetStore): Partial<ModeloSlice> {
         dialogoCargarModeloAbierto: false,
         pantallaInicioCerrada: true,
         workspaceLocal: workspaceDesdeModelo(modelo, null, "Ejemplo organizacional local"),
+        dirty: true,
+        readOnly: false,
         mensaje: "Ejemplo organizacional cargado",
       }));
     },
@@ -381,15 +481,4 @@ export function accionesUI(set: SetStore, get: GetStore): Partial<ModeloSlice> {
       set({ readOnly: activo, mensaje: activo ? "Modelo en solo lectura" : null });
     },
   };
-}
-
-function entidadPorNombre(modelo: Modelo, nombre: string): string {
-  const entidad = Object.values(modelo.entidades).find((item) => item.nombre === nombre);
-  if (!entidad) throw new Error(`Entidad ejemplo no encontrada: ${nombre}`);
-  return entidad.id;
-}
-
-function must<T>(resultado: { ok: true; value: T } | { ok: false; error: string }): T {
-  if (!resultado.ok) throw new Error(resultado.error);
-  return resultado.value;
 }

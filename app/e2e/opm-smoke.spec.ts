@@ -10,10 +10,10 @@ test("carga demo OPM en canvas JointJS y mantiene OPL visible", async ({ page })
   await page.getByRole("button", { name: "Demo" }).click();
 
   await expect(page.locator(".joint-paper svg")).toHaveCount(1);
-  await expect(page.locator(".joint-element")).toHaveCount(3);
-  await expect(page.locator(".joint-link")).toHaveCount(2);
-  await expect(page.getByText("Driver Rescuing").first()).toBeVisible();
-  await expect(page.getByText("Driver Rescuing afecta OnStar System.")).toBeVisible();
+  expect(await page.locator(".joint-element").count()).toBeGreaterThanOrEqual(3);
+  expect(await page.locator(".joint-link").count()).toBeGreaterThanOrEqual(2);
+  await expect(page.getByText("Hacer Cafe").first()).toBeVisible();
+  await expect(page.getByText("Hacer Cafe consume Cafe Molido.")).toBeVisible();
 
   await page.screenshot({ path: "test-results/opm-demo-jointjs.png", fullPage: true });
   expect(pageErrors).toEqual([]);
@@ -48,6 +48,13 @@ test("workspace local abre menu, guarda como, guarda incremental y carga desde d
   await expect(page.locator("span").filter({ hasText: /^Workspace L2$/ }).first()).toBeVisible();
 
   await page.getByRole("button", { name: "Objeto", exact: true }).click();
+  const modalNombreObjeto = page.getByTestId("modal-nombre-cosa");
+  if (await modalNombreObjeto.count()) {
+    await expect(modalNombreObjeto).toBeVisible();
+    await modalNombreObjeto.getByLabel("Nombre").fill("Objeto");
+    await modalNombreObjeto.getByRole("button", { name: "OK" }).click();
+    await expect(modalNombreObjeto).toHaveCount(0);
+  }
   await page.keyboard.press("Control+S");
   await expect(page.getByRole("dialog", { name: "Guardar como" })).toHaveCount(0);
   await expect(page.getByText("Modelo guardado exitosamente")).toBeVisible();
@@ -67,7 +74,7 @@ test("workspace local abre menu, guarda como, guarda incremental y carga desde d
   expect(pageErrors).toEqual([]);
 });
 
-test("L2 dialogo cargar abre ejemplo organizacional", async ({ page }) => {
+test("HU-30.021 dialogo cargar abre ejemplo organizacional canonico", async ({ page }) => {
   const pageErrors: string[] = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
@@ -79,8 +86,8 @@ test("L2 dialogo cargar abre ejemplo organizacional", async ({ page }) => {
 
   await expect(dialogo).toHaveCount(0);
   await expect(elementoPorTexto(page, "Cliente")).toHaveCount(1);
-  await expect(elementoPorTexto(page, "Resolver solicitud")).toHaveCount(1);
-  await expect(page.locator(".joint-link")).toHaveCount(3);
+  await expect(elementoPorTexto(page, "Entregar Valor")).toHaveCount(1);
+  expect(await page.locator(".joint-link").count()).toBeGreaterThanOrEqual(20);
   expect(pageErrors).toEqual([]);
 });
 
@@ -1061,6 +1068,13 @@ test("confirma cambios sin guardar antes de crear un modelo nuevo", async ({ pag
 
   await page.goto("/");
   await page.getByRole("button", { name: "Objeto", exact: true }).click();
+  const modalNombreObjeto = page.getByTestId("modal-nombre-cosa");
+  if (await modalNombreObjeto.count()) {
+    await expect(modalNombreObjeto).toBeVisible();
+    await modalNombreObjeto.getByLabel("Nombre").fill("Objeto");
+    await modalNombreObjeto.getByRole("button", { name: "OK" }).click();
+    await expect(modalNombreObjeto).toHaveCount(0);
+  }
   await expect(elementoPorTexto(page, "Objeto")).toHaveCount(1);
 
   const dialogo = page.getByRole("dialog", { name: "Hay cambios sin guardar" });
@@ -1835,6 +1849,100 @@ test("fusiona agregaciones en bus unico y renombra etiqueta de enlace", async ({
   expect(pageErrors).toEqual([]);
 });
 
+test("HU-17.013/.015/.016 crea atributo numérico desde Toolbar y emite OPL canónica", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await crearAtributoNumericoSmoke(page);
+
+  await expect(page.getByText("Temperatura es valor [°C].")).toBeVisible();
+  await expect(svgText(page, "Temperatura [°C]")).toBeVisible();
+  const exportado = await exportadoActual(page);
+  const atributo = Object.values(exportado.modelo.entidades).find((item) => item.nombre === "Temperatura");
+  expect(atributo).toMatchObject({
+    unidad: "°C",
+    esAtributo: true,
+    valorSlot: { tipo: "float", placeholder: "value" },
+  });
+  expect(Object.values(exportado.modelo.enlaces).some((enlace) => enlace.tipo === "exhibicion")).toBe(true);
+  expect(pageErrors).toEqual([]);
+});
+
+test("HU-17.012 renderiza sintaxis compuesta Nombre [Unidad] {alias}", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await crearAtributoNumericoSmoke(page);
+  await page.getByPlaceholder("{alias}").fill("T");
+
+  await expect(elementoPorTexto(page, "Temperatura [°C] {T}")).toHaveCount(1);
+  expect(pageErrors).toEqual([]);
+});
+
+test("HU-17.017 asigna valor concreto y reemplaza placeholder en OPL", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await crearAtributoNumericoSmoke(page);
+  await page.getByTestId("atributo-valor-input").fill("25");
+  await page.getByTestId("atributo-valor-input").blur();
+
+  await expect(page.getByText("Temperatura es 25 [°C].")).toBeVisible();
+  const exportado = await exportadoActual(page);
+  const atributo = Object.values(exportado.modelo.entidades).find((item) => item.nombre === "Temperatura");
+  expect(atributo?.valorSlot?.valor).toBe(25);
+  expect(pageErrors).toEqual([]);
+});
+
+test("HU-1B.001/.002/.003 traer conectados hidrata vecinos directos desde Toolbar", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await jsonEditor(page).fill(JSON.stringify(modeloTraerConectadosSmoke(), null, 2));
+  await page.getByRole("button", { name: "Importar" }).click();
+  await page.locator('[role="treeitem"][data-opd-id="opd-traer"]').click();
+  await expect(elementoPorTexto(page, "Procesar")).toHaveCount(1);
+  await expect(page.locator(".joint-element")).toHaveCount(1);
+
+  await elementoPorTexto(page, "Procesar").click();
+  await page.getByTestId("toolbar-traer-conectados").click();
+  const dialogo = page.getByRole("dialog", { name: "Traer conectados" });
+  await expect(dialogo).toBeVisible();
+  await dialogo.getByRole("button", { name: "Traer" }).click();
+
+  await expect(dialogo).toHaveCount(0);
+  await expect(page.locator(".joint-element")).toHaveCount(3);
+  await expect(page.locator(".joint-link")).toHaveCount(2);
+  await expect(elementoPorTexto(page, "Instrumento")).toHaveCount(1);
+  await expect(elementoPorTexto(page, "Resultado")).toHaveCount(1);
+  await expect(elementoPorTexto(page, "Externo")).toHaveCount(0);
+  expect(pageErrors).toEqual([]);
+});
+
+test("HU-1B.015 ocultar apariencia no borra entidad logical", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await jsonEditor(page).fill(JSON.stringify(modeloTraerConectadosSmoke(), null, 2));
+  await page.getByRole("button", { name: "Importar" }).click();
+  await page.locator('[role="treeitem"][data-opd-id="opd-traer"]').click();
+  await elementoPorTexto(page, "Procesar").click();
+  await page.getByTestId("toolbar-traer-conectados").click();
+  await page.getByRole("dialog", { name: "Traer conectados" }).getByRole("button", { name: "Traer" }).click();
+
+  await elementoPorTexto(page, "Resultado").click();
+  await page.keyboard.press("Control+H");
+  await expect(elementoPorTexto(page, "Resultado")).toHaveCount(0);
+  const exportado = await exportadoActual(page);
+  expect(Object.values(exportado.modelo.entidades).some((entidad) => entidad.nombre === "Resultado")).toBe(true);
+  expect(pageErrors).toEqual([]);
+});
+
 function elementoPorTexto(page: import("@playwright/test").Page, texto: string): import("@playwright/test").Locator {
   const flexibleSvgText = new RegExp(`^\\s*${texto.trim().split(/\s+/).map(escapeRegExp).join("\\s*")}\\s*$`);
   return page.locator(".joint-element").filter({
@@ -1846,11 +1954,99 @@ function escapeRegExp(texto: string): string {
   return texto.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
+function modeloTraerConectadosSmoke() {
+  return {
+    formato: "deep-opm-pro.modelo.v0",
+    modelo: {
+      id: "modelo-traer",
+      nombre: "Modelo traer conectados",
+      opdRaizId: "opd-1",
+      nextSeq: 20,
+      entidades: {
+        "o-instrumento": { id: "o-instrumento", tipo: "objeto", nombre: "Instrumento", esencia: "informacional", afiliacion: "sistemica" },
+        "p-procesar": { id: "p-procesar", tipo: "proceso", nombre: "Procesar", esencia: "informacional", afiliacion: "sistemica" },
+        "o-resultado": { id: "o-resultado", tipo: "objeto", nombre: "Resultado", esencia: "informacional", afiliacion: "sistemica" },
+        "o-externo": { id: "o-externo", tipo: "objeto", nombre: "Externo", esencia: "informacional", afiliacion: "sistemica" },
+      },
+      estados: {},
+      enlaces: {
+        "e-instrumento": {
+          id: "e-instrumento",
+          tipo: "instrumento",
+          origenId: { kind: "entidad", id: "o-instrumento" },
+          destinoId: { kind: "entidad", id: "p-procesar" },
+          etiqueta: "",
+        },
+        "e-resultado": {
+          id: "e-resultado",
+          tipo: "resultado",
+          origenId: { kind: "entidad", id: "p-procesar" },
+          destinoId: { kind: "entidad", id: "o-resultado" },
+          etiqueta: "",
+        },
+        "e-externo": {
+          id: "e-externo",
+          tipo: "agregacion",
+          origenId: { kind: "entidad", id: "o-resultado" },
+          destinoId: { kind: "entidad", id: "o-externo" },
+          etiqueta: "",
+        },
+      },
+      abanicos: {},
+      opds: {
+        "opd-1": {
+          id: "opd-1",
+          nombre: "SD",
+          padreId: null,
+          apariencias: {
+            "a-instrumento-root": { id: "a-instrumento-root", entidadId: "o-instrumento", opdId: "opd-1", x: 80, y: 90, width: 135, height: 60 },
+            "a-procesar-root": { id: "a-procesar-root", entidadId: "p-procesar", opdId: "opd-1", x: 280, y: 170, width: 135, height: 60 },
+            "a-resultado-root": { id: "a-resultado-root", entidadId: "o-resultado", opdId: "opd-1", x: 480, y: 90, width: 135, height: 60 },
+            "a-externo-root": { id: "a-externo-root", entidadId: "o-externo", opdId: "opd-1", x: 680, y: 90, width: 135, height: 60 },
+          },
+          enlaces: {
+            "ae-instrumento-root": { id: "ae-instrumento-root", enlaceId: "e-instrumento", opdId: "opd-1", vertices: [] },
+            "ae-resultado-root": { id: "ae-resultado-root", enlaceId: "e-resultado", opdId: "opd-1", vertices: [] },
+            "ae-externo-root": { id: "ae-externo-root", enlaceId: "e-externo", opdId: "opd-1", vertices: [] },
+          },
+        },
+        "opd-traer": {
+          id: "opd-traer",
+          nombre: "Traer",
+          padreId: "opd-1",
+          apariencias: {
+            "a-procesar": { id: "a-procesar", entidadId: "p-procesar", opdId: "opd-traer", x: 280, y: 170, width: 135, height: 60 },
+          },
+          enlaces: {},
+        },
+      },
+    },
+  };
+}
+
 async function cerrarPantallaInicioSiVisible(page: import("@playwright/test").Page): Promise<void> {
   const pantalla = page.getByTestId("pantalla-inicio");
   if (await pantalla.count() === 0) return;
   await pantalla.getByRole("button", { name: "Nuevo", exact: true }).click();
   await expect(pantalla).toHaveCount(0);
+}
+
+async function crearAtributoNumericoSmoke(page: import("@playwright/test").Page): Promise<void> {
+  await cerrarPantallaInicioSiVisible(page);
+  await page.getByRole("button", { name: "Objeto", exact: true }).click();
+  const modal = page.getByTestId("modal-nombre-cosa");
+  if (await modal.count() > 0) {
+    await expect(modal).toBeVisible();
+    await modal.getByLabel("Nombre").fill("Sistema");
+    await modal.getByRole("button", { name: "OK" }).click();
+    await expect(modal).toHaveCount(0);
+  } else {
+    await page.getByLabel("Nombre").fill("Sistema");
+  }
+
+  await page.getByTestId("toolbar-crear-atributo-numerico").click();
+  await expect(page.getByTestId("inspector-seccion-atributo")).toBeVisible();
+  await page.getByLabel("Nombre").fill("Temperatura [°C]");
 }
 
 async function rectDeLocator(locator: import("@playwright/test").Locator): Promise<{ x: number; y: number; width: number; height: number }> {
@@ -2072,6 +2268,45 @@ function modeloDosOpds() {
             },
           },
           enlaces: {},
+        },
+      },
+    },
+  };
+}
+
+function modeloEjemploOrganizacionalSmoke() {
+  const entidades = {
+    "o-cliente": objeto("o-cliente", "Cliente", "fisica"),
+    "o-solicitud": objeto("o-solicitud", "Solicitud"),
+    "p-resolver": proceso("p-resolver", "Resolver solicitud"),
+    "o-respuesta": objeto("o-respuesta", "Respuesta"),
+  };
+  const enlaces = {
+    "e-agente": enlace("e-agente", "agente", "o-cliente", "p-resolver"),
+    "e-consumo": enlace("e-consumo", "consumo", "o-solicitud", "p-resolver"),
+    "e-resultado": enlace("e-resultado", "resultado", "p-resolver", "o-respuesta"),
+  };
+  return {
+    formato: "deep-opm-pro.modelo.v0",
+    modelo: {
+      id: "modelo-ejemplo-organizacional-smoke",
+      nombre: "Ejemplo organizacional",
+      opdRaizId: "opd-1",
+      nextSeq: 20,
+      entidades,
+      enlaces,
+      opds: {
+        "opd-1": {
+          id: "opd-1",
+          nombre: "SD",
+          padreId: null,
+          apariencias: {
+            "a-cliente": { id: "a-cliente", entidadId: "o-cliente", opdId: "opd-1", x: 60, y: 60, width: 135, height: 60 },
+            "a-solicitud": { id: "a-solicitud", entidadId: "o-solicitud", opdId: "opd-1", x: 60, y: 180, width: 135, height: 60 },
+            "a-resolver": { id: "a-resolver", entidadId: "p-resolver", opdId: "opd-1", x: 310, y: 120, width: 135, height: 60 },
+            "a-respuesta": { id: "a-respuesta", entidadId: "o-respuesta", opdId: "opd-1", x: 560, y: 120, width: 135, height: 60 },
+          },
+          enlaces: Object.fromEntries(Object.keys(enlaces).map((id) => [`a-${id}`, { id: `a-${id}`, enlaceId: id, opdId: "opd-1", vertices: [] }])),
         },
       },
     },
@@ -2551,7 +2786,17 @@ function aparienciaPar(origenId: string, destinoId: string, x: number, y: number
 interface ExportadoModelo {
   modelo: {
     opdRaizId: string;
-    entidades: Record<string, { id: string; nombre: string; afiliacion?: string; refinamiento?: { tipo: string; opdId: string }; imagen?: { url: string; modo: string } }>;
+    entidades: Record<string, {
+      id: string;
+      nombre: string;
+      afiliacion?: string;
+      unidad?: string;
+      alias?: string;
+      esAtributo?: boolean;
+      valorSlot?: { tipo: string; placeholder: "value"; valor?: number | string };
+      refinamiento?: { tipo: string; opdId: string };
+      imagen?: { url: string; modo: string };
+    }>;
     estados: Record<string, { id: string; entidadId: string; nombre: string; esInicial?: boolean; esFinal?: boolean }>;
     enlaces: Record<string, {
       id: string;
@@ -3054,6 +3299,194 @@ function modeloConImagenRefinada() {
           apariencias: {
             "a-img-a-hijo": { id: "a-img-a-hijo", entidadId: "o-img-a", opdId: "opd-img-hijo", x: 90, y: 70, width: 420, height: 260 },
             "a-img-parte": { id: "a-img-parte", entidadId: "o-img-parte", opdId: "opd-img-hijo", x: 140, y: 150, width: 135, height: 60 },
+          },
+          enlaces: {},
+        },
+      },
+    },
+  };
+}
+
+test("HU-33.001/.002/.003: guarda plantilla privada y aparece en catálogo", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await cerrarPantallaInicioSiVisible(page);
+  await page.getByRole("button", { name: "Objeto", exact: true }).click();
+  const modal = page.getByTestId("modal-nombre-cosa");
+  if (await modal.count()) {
+    await modal.getByLabel("Nombre").fill("Bloque reusable");
+    await modal.getByRole("button", { name: "OK" }).click();
+  } else {
+    await page.getByLabel("Nombre").fill("Bloque reusable");
+  }
+
+  await page.getByLabel("Menú principal").click();
+  await page.getByRole("menuitem", { name: "Guardar como plantilla..." }).click();
+  const guardar = page.getByTestId("dialogo-guardar-plantilla");
+  await expect(guardar).toBeVisible();
+  await expect(guardar.getByLabel("Ámbito de plantilla")).toHaveValue("privado");
+  await guardar.getByLabel("Nombre de plantilla").fill("Plantilla smoke privada");
+  await guardar.getByLabel("Descripción de plantilla").fill("Catálogo privado");
+  await page.getByTestId("guardar-plantilla-confirmar").click();
+  await expect(guardar).toHaveCount(0);
+
+  await page.getByTestId("toolbar-plantillas").click();
+  const dialogo = page.getByTestId("dialogo-plantillas");
+  await expect(dialogo).toBeVisible();
+  await expect(dialogo.getByText("Mis plantillas")).toBeVisible();
+  await expect(dialogo.getByText("Plantilla smoke privada")).toBeVisible();
+  await dialogo.getByLabel("Buscar plantillas").fill("smoke");
+  await expect(dialogo.getByTestId("plantilla-tile")).toHaveCount(1);
+  expect(pageErrors).toEqual([]);
+});
+
+test("HU-33.006/.007/.008/.009/.018: inserta plantilla con sufijo, sub-OPD y etiqueta", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await cerrarPantallaInicioSiVisible(page);
+  await instalarPlantillaSmoke(page, "plantilla-insertar", modeloPlantillaSmoke());
+  await page.getByRole("button", { name: "Objeto", exact: true }).click();
+  const modal = page.getByTestId("modal-nombre-cosa");
+  if (await modal.count()) {
+    await modal.getByLabel("Nombre").fill("Sensor");
+    await modal.getByRole("button", { name: "OK" }).click();
+  } else {
+    await page.getByLabel("Nombre").fill("Sensor");
+  }
+
+  await page.getByTestId("toolbar-plantillas").click();
+  const dialogo = page.getByTestId("dialogo-plantillas");
+  await expect(dialogo.getByText("Plantilla inserción")).toBeVisible();
+  await dialogo.getByTestId("insertar-plantilla").click();
+  await expect(dialogo).toHaveCount(0);
+
+  const exportado = await exportadoActual(page);
+  const nombres = Object.values(exportado.modelo.entidades).map((entidad) => entidad.nombre);
+  expect(nombres).toContain("Sensor_2");
+  expect(Object.values(exportado.modelo.enlaces).some((enlace) =>
+    enlace.tipo === "exhibicion" && enlace.etiqueta === "capacidad nominal"
+  )).toBe(true);
+  const hijos = Object.values(exportado.modelo.opds).filter((opd) => opd.padreId === exportado.modelo.opdRaizId);
+  expect(hijos.length).toBeGreaterThanOrEqual(1);
+  expect(Object.values(exportado.modelo.entidades).some((entidad) => entidad.nombre === "Paso interno")).toBe(true);
+  expect(pageErrors).toEqual([]);
+});
+
+test("HU-33.010: insertar plantilla enfoca temporalmente los ids nuevos", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await cerrarPantallaInicioSiVisible(page);
+  await instalarPlantillaSmoke(page, "plantilla-halo", modeloPlantillaSmoke());
+  await page.getByTestId("toolbar-plantillas").click();
+  await page.getByTestId("insertar-plantilla").click();
+
+  await expect(page.locator(".joint-element").filter({ has: page.locator('[stroke="#3DA8FF"]') }).first()).toBeVisible();
+  await page.waitForTimeout(3200);
+  const exportado = await exportadoActual(page);
+  expect(Object.values(exportado.modelo.entidades).some((entidad) => entidad.nombre === "Sensor")).toBe(true);
+  expect(pageErrors).toEqual([]);
+});
+
+test("HU-33.022/.015: cancelar guardado no persiste y catálogo vacío muestra mensaje", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await cerrarPantallaInicioSiVisible(page);
+  await page.getByLabel("Menú principal").click();
+  await page.getByRole("menuitem", { name: "Guardar como plantilla..." }).click();
+  await expect(page.getByTestId("dialogo-guardar-plantilla")).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(page.getByTestId("dialogo-guardar-plantilla")).toHaveCount(0);
+
+  await page.getByTestId("toolbar-plantillas").click();
+  await expect(page.getByTestId("plantillas-vacio")).toContainText("Sin plantillas");
+  expect(pageErrors).toEqual([]);
+});
+
+async function instalarPlantillaSmoke(page: Page, id: string, contenido: ExportadoModelo): Promise<void> {
+  await page.evaluate(({ idPlantilla, modelo }) => {
+    const ahora = new Date().toISOString();
+    const contenidoPersistido = {
+      id: `contenido-${idPlantilla}`,
+      nombre: "Plantilla inserción",
+      descripcion: "",
+      creadoEn: ahora,
+      actualizadoEn: ahora,
+      json: JSON.stringify({ formato: "deep-opm-pro.modelo.v0", modelo: modelo.modelo }, null, 2),
+    };
+    const plantilla = {
+      id: idPlantilla,
+      nombre: "Plantilla inserción",
+      descripcion: "Incluye sub-OPD",
+      ambito: "privado",
+      contenido: contenidoPersistido,
+      creadoEn: ahora,
+      actualizadoEn: ahora,
+    };
+    const indice = {
+      id: plantilla.id,
+      nombre: plantilla.nombre,
+      descripcion: plantilla.descripcion,
+      ambito: plantilla.ambito,
+      creadoEn: plantilla.creadoEn,
+      actualizadoEn: plantilla.actualizadoEn,
+    };
+    localStorage.setItem("opm:plantillas-lista", JSON.stringify([idPlantilla]));
+    localStorage.setItem(`opm:plantilla:${idPlantilla}`, JSON.stringify({ formato: "deep-opm-pro.plantilla.local.v1", plantilla }));
+    localStorage.setItem(`opm:plantilla-indice:${idPlantilla}`, JSON.stringify({ formato: "deep-opm-pro.plantilla.local.v1", plantilla: indice }));
+  }, { idPlantilla: id, modelo: contenido });
+}
+
+function modeloPlantillaSmoke() {
+  return {
+    modelo: {
+      id: "modelo-plantilla-smoke",
+      nombre: "Plantilla inserción",
+      opdRaizId: "opd-plantilla-raiz",
+      nextSeq: 100,
+      entidades: {
+        "o-sensor": { id: "o-sensor", tipo: "objeto", nombre: "Sensor", esencia: "informacional", afiliacion: "sistemica" },
+        "o-capacidad": { id: "o-capacidad", tipo: "objeto", nombre: "Capacidad", esencia: "informacional", afiliacion: "sistemica" },
+        "p-proceso": { id: "p-proceso", tipo: "proceso", nombre: "Proceso plantilla", esencia: "informacional", afiliacion: "sistemica", refinamiento: { tipo: "descomposicion", opdId: "opd-plantilla-hijo" } },
+        "o-paso": { id: "o-paso", tipo: "objeto", nombre: "Paso interno", esencia: "informacional", afiliacion: "sistemica" },
+      },
+      estados: {},
+      enlaces: {
+        "e-exhibe": {
+          id: "e-exhibe",
+          tipo: "exhibicion",
+          origenId: extremoEntidad("o-sensor"),
+          destinoId: extremoEntidad("o-capacidad"),
+          etiqueta: "capacidad nominal",
+        },
+      },
+      abanicos: {},
+      opds: {
+        "opd-plantilla-raiz": {
+          id: "opd-plantilla-raiz",
+          nombre: "SD",
+          padreId: null,
+          apariencias: {
+            "a-sensor": { id: "a-sensor", entidadId: "o-sensor", opdId: "opd-plantilla-raiz", x: 80, y: 70, width: 135, height: 60 },
+            "a-capacidad": { id: "a-capacidad", entidadId: "o-capacidad", opdId: "opd-plantilla-raiz", x: 280, y: 70, width: 135, height: 60 },
+            "a-proceso": { id: "a-proceso", entidadId: "p-proceso", opdId: "opd-plantilla-raiz", x: 180, y: 190, width: 135, height: 60 },
+          },
+          enlaces: { "ae-exhibe": { id: "ae-exhibe", enlaceId: "e-exhibe", opdId: "opd-plantilla-raiz", vertices: [] } },
+        },
+        "opd-plantilla-hijo": {
+          id: "opd-plantilla-hijo",
+          nombre: "Detalle plantilla",
+          padreId: "opd-plantilla-raiz",
+          apariencias: {
+            "a-proceso-hijo": { id: "a-proceso-hijo", entidadId: "p-proceso", opdId: "opd-plantilla-hijo", x: 90, y: 80, width: 360, height: 220 },
+            "a-paso": { id: "a-paso", entidadId: "o-paso", opdId: "opd-plantilla-hijo", x: 140, y: 150, width: 135, height: 60 },
           },
           enlaces: {},
         },

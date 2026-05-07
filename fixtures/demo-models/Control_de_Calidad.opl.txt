@@ -1,0 +1,13 @@
+SD del sistema Control de Calidad.
+Producto es un objeto fisico y ambiental.
+Inspector es un objeto fisico y ambiental.
+Estandar de Calidad es un objeto fisico.
+Inspeccionar es un proceso fisico.
+Sistema de Inspeccion es un objeto fisico.
+Producto puede estar en no-inspeccionado o aprobado.
+Producto esta inicialmente en no-inspeccionado.
+Producto esta terminalmente en aprobado.
+Inspeccionar cambia Producto de no-inspeccionado a aprobado.
+Inspector manipula Inspeccionar.
+Inspeccionar usa Estandar de Calidad.
+Inspeccionar usa Sistema de Inspeccion.

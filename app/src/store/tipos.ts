@@ -155,7 +155,7 @@ import {
 } from "../persistencia/autosalvado";
 import { exportarModelo, hidratarModelo } from "../serializacion/json";
 import type { Aviso } from "../modelo/validaciones";
-import type { Afiliacion, Apariencia, DesignacionEstado, DuracionTemporal, EnlaceEstilo, Esencia, EstiloApariencia, ExtremoEnlace, Id, ImagenEntidad, LayoutEstados, Modelo, Modificador, ModoDespliegueObjeto, ModoImagenEntidad, ModoPlegado, Opd, OperadorAbanico, OrdenPartesPlegado, Pestana, PestanaId, Posicion, SubtipoModificador, TipoEnlace, TipoEntidad, UrlObjetoTipada, UiPortapapelesVisual, VersionResumen } from "../modelo/tipos";
+import type { Afiliacion, Apariencia, DesignacionEstado, DuracionTemporal, EnlaceEstilo, Esencia, EstiloApariencia, ExtremoEnlace, Id, ImagenEntidad, LayoutEstados, Modelo, Modificador, ModoDespliegueObjeto, ModoImagenEntidad, ModoPlegado, Opd, OperadorAbanico, OrdenPartesPlegado, Pestana, PestanaId, PlantillaIndice, Posicion, SubtipoModificador, TipoEnlace, TipoEntidad, TipoValorSlot, UrlObjetoTipada, UiPortapapelesVisual, ValorConcreto, VersionResumen } from "../modelo/tipos";
 import { mismaReferencia, type OplReferencia } from "../opl/interaccion";
 import { datosAsistenteVacio, sembrarModeloDesdeAsistente, validarDatosAsistente, type DatosAsistente, type EtapaAsistente } from "../modelo/creacionWizard";
 import { generarOpl } from "../opl/generar";
@@ -172,6 +172,7 @@ import {
 } from "../render/jointjs/mapaSistema";
 import { fijarOpcionesProyeccionGlobal } from "../render/jointjs/proyeccion";
 import type { EjeAlineacion, OrientacionDistribucion } from "../canvas/operacionesBatch";
+import type { FamiliaTraerConectados } from "../canvas/reglasTraer";
 import type { GridConfig } from "../canvas/grid";
 import {
   abrirPestana as abrirPestanaEstado,
@@ -239,6 +240,13 @@ export interface OpmStore {
   dialogoCargarModeloAbierto: boolean;
   pantallaInicioCerrada: boolean;
   dialogoRenombrarModeloAbierto: boolean;
+  dialogoTraerConectadosAbierto: boolean;
+  /** [Met §8.8] Catálogo runtime de plantillas privadas, no serializado en Modelo. */
+  plantillasGuardadas: PlantillaIndice[];
+  dialogoPlantillasAbierto: boolean;
+  dialogoGuardarPlantillaAbierto: boolean;
+  /** [JOYAS §1] Halo temporal solicitado para inserción; amarillo canónico #FFFC7F. */
+  idsResaltadosTemporales: Id[];
   workspaceLocal: WorkspaceModeloLocal;
   tablaEnlacesAbierta: boolean;
   tablaEnlacesFiltroTipo: TipoEnlace | "todos";
@@ -288,7 +296,16 @@ export interface OpmStore {
   cerrarPantallaInicio: () => void;
   abrirRenombrarModelo: () => void;
   cerrarRenombrarModelo: () => void;
+  abrirDialogoTraerConectados: () => void;
+  cerrarDialogoTraerConectados: () => void;
   renombrarModeloActual: (nombre: string) => void;
+  abrirDialogoPlantillas: () => void;
+  cerrarDialogoPlantillas: () => void;
+  abrirDialogoGuardarPlantilla: () => void;
+  cerrarDialogoGuardarPlantilla: () => void;
+  guardarComoPlantillaConfirmar: (input: { nombre: string; descripcion?: string; ambito?: "privado" | "organizacional" | "global" }) => void;
+  insertarPlantillaEnOpdActivo: (plantillaId: Id) => void;
+  resaltarTemporalmente: (ids: Id[], ms?: number) => void;
   cargarEjemploOrganizacional: () => void;
   nuevoModelo: () => void;
   crearObjetoDemo: () => void;
@@ -329,8 +346,11 @@ export interface OpmStore {
   elegirTipoEnlace: (tipo: TipoEnlace) => void;
   crearEnlaceEntreEntidades: (origenId: Id, destinoId: Id, tipo: TipoEnlace) => void;
   cancelarEnlace: () => void;
-  renombrarSeleccionada: (nombre: string) => void;
-  fijarEsenciaSeleccionada: (esencia: Esencia) => void;
+	  renombrarSeleccionada: (nombre: string) => void;
+	  crearAtributoEnObjetoSeleccionado: (input?: { nombre?: string; tipoSlot?: TipoValorSlot; unidad?: string }) => void;
+	  asignarValorAtributoSeleccionado: (valor: ValorConcreto) => void;
+	  cambiarTipoValorAtributoSeleccionado: (tipo: TipoValorSlot) => void;
+	  fijarEsenciaSeleccionada: (esencia: Esencia) => void;
   fijarAfiliacionSeleccionada: (afiliacion: Afiliacion) => void;
   redimensionarSeleccionada: (width: number, height: number) => void;
   redimensionarAparienciaEnCanvas: (aparienciaId: Id, x: number, y: number, width: number, height: number) => void;
@@ -390,6 +410,9 @@ export interface OpmStore {
   distribuirSeleccion: (orientacion: OrientacionDistribucion) => void;
   reordenarSubprocesoEnTimeline: (opdId: Id, aparienciaId: Id, nuevaY: number) => void;
   actualizarVerticesEnlace: (aparienciaEnlaceId: Id, vertices: Array<{ x: number; y: number }>) => void;
+  traerConectadosSeleccionado: (familias?: readonly FamiliaTraerConectados[]) => void;
+  traerEnlacesEntreSeleccionadas: () => void;
+  ocultarAparienciaSeleccionada: () => void;
   ajustarMultiplicidadSeleccionada: (lado: "origen" | "destino", texto: string) => void;
   apuntarExtremoEnlaceSeleccionado: (lado: "origen" | "destino", extremo: ExtremoEnlace) => void;
   reanclarEnlaceExternoDerivado: (aparienciaEnlaceId: Id, nuevoEndpointEntidadId: Id) => void;
@@ -436,6 +459,7 @@ export interface OpmStore {
   cargarLocal: (id?: Id) => void;
   borrarLocal: (id: Id) => void;
   cargarDemo: () => void;
+  cargarFixtureDemo: (nombre: string) => void;
   // ── Carpetas (L4) ──
   crearCarpetaEnActual: (nombre: string) => void;
   renombrarCarpetaEnIndice: (carpetaId: Id, nombre: string) => void;

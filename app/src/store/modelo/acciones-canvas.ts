@@ -22,6 +22,8 @@ import {
 import { renombrarEtiquetaEnlace } from "../../modelo/etiquetasEnlace";
 import { mismaReferencia } from "../../opl/interaccion";
 import { generarOpl } from "../../opl/generar";
+import { cargarPlantilla } from "../../persistencia/plantillas";
+import { hidratarModelo } from "../../serializacion/json";
 import {
   aparienciaSeleccionadaActiva,
   commitModelo,
@@ -37,7 +39,15 @@ import {
   type SetStore,
 } from "../runtime";
 import type { ModeloSlice } from "../tipos";
-import { alinearPorEje, distribuirUniformemente } from "../../canvas/operacionesBatch";
+import {
+  alinearPorEje,
+  distribuirUniformemente,
+  insertarPlantillaBatch,
+  ocultarAparienciaBatch,
+  traerConectadosBatch,
+  traerEnlacesEntreBatch,
+} from "../../canvas/operacionesBatch";
+import { FAMILIAS_TRAER_DEFAULT, normalizarFamiliasTraer } from "../../canvas/reglasTraer";
 import { cuantizarPosicion, normalizarGridConfig, type GridConfig } from "../../canvas/grid";
 
 /**
@@ -46,6 +56,8 @@ import { cuantizarPosicion, normalizarGridConfig, type GridConfig } from "../../
  * filtros y hover OPL, plegado (modo + orden partes + extracción/reinserción),
  * estilo apariencia, mover apariencia y vértices de enlace, copiar/exportar OPL,
  * deshacer/rehacer.
+ *
+ * L4 plantillas privadas: [Met §8.8], [V-52], [V-123].
  */
 export function accionesCanvas(set: SetStore, get: GetStore): Partial<ModeloSlice> {
   return {
@@ -583,6 +595,118 @@ export function accionesCanvas(set: SetStore, get: GetStore): Partial<ModeloSlic
       const resultado = actualizarVerticesEnlaceOp(modelo, opdActivoId, aparienciaEnlaceId, vertices);
       if (resultado.ok) commitModelo(set, modelo, resultado.value);
     },
+
+    insertarPlantillaEnOpdActivo(plantillaId) {
+      const estado = get();
+      if (estado.readOnly) {
+        set({ mensaje: "Modelo en solo lectura. Usa Guardar como para crear copia editable." });
+        return;
+      }
+      const plantilla = cargarPlantilla(plantillaId);
+      if (!plantilla.ok) {
+        set({ mensaje: plantilla.error });
+        return;
+      }
+      const fuente = hidratarModelo(plantilla.value.contenido.json);
+      if (!fuente.ok) {
+        set({ mensaje: fuente.error });
+        return;
+      }
+      const resultado = insertarPlantillaBatch(estado.modelo, estado.opdActivoId, fuente.value, fuente.value.opdRaizId);
+      if (!resultado.ok) {
+        set({ mensaje: resultado.error });
+        return;
+      }
+      const idsEntidades = resultado.value.idsNuevos.filter((id) => !!resultado.value.modelo.entidades[id]);
+      commitModelo(set, estado.modelo, resultado.value.modelo, {
+        seleccionId: idsEntidades[0] ?? null,
+        seleccionados: resultado.value.idsNuevos,
+        modoSeleccion: resultado.value.idsNuevos.length > 1 ? "multi" : "simple",
+        enlaceSeleccionId: null,
+        modoEnlace: null,
+        dialogoPlantillasAbierto: false,
+        mensaje: `Insertar plantilla: ${resultado.value.entidadesInsertadas} entidades, ${resultado.value.enlacesInsertados} enlaces`,
+      });
+      get().resaltarTemporalmente(resultado.value.idsNuevos, 3000);
+    },
+
+    traerConectadosSeleccionado(familiasInput) {
+      const estado = get();
+      const { modelo, opdActivoId } = estado;
+      const apariencia = aparienciaSeleccionadaParaTraer(modelo, opdActivoId, estado.seleccionId, estado.seleccionados);
+      if (!apariencia) {
+        set({ mensaje: "Selecciona una cosa visible para traer conectados" });
+        return;
+      }
+      const familias = normalizarFamiliasTraer(familiasInput ?? estado.indice.preferenciasUi?.traerConectadosUltimo ?? FAMILIAS_TRAER_DEFAULT);
+      const resultado = traerConectadosBatch(modelo, opdActivoId, apariencia.id, familias);
+      if (!resultado.ok) {
+        set({ mensaje: resultado.error });
+        return;
+      }
+      if (resultado.value === modelo) {
+        set({ mensaje: "Sin cambios", dialogoTraerConectadosAbierto: false });
+        return;
+      }
+      const indice = actualizarPreferenciasUi(estado.indice, { traerConectadosUltimo: [...familias] });
+      escribirIndiceWorkspace(indice);
+      const antesApariencias = Object.keys(modelo.opds[opdActivoId]?.apariencias ?? {}).length;
+      const antesEnlaces = Object.keys(modelo.opds[opdActivoId]?.enlaces ?? {}).length;
+      const despuesApariencias = Object.keys(resultado.value.opds[opdActivoId]?.apariencias ?? {}).length;
+      const despuesEnlaces = Object.keys(resultado.value.opds[opdActivoId]?.enlaces ?? {}).length;
+      commitModelo(set, modelo, resultado.value, {
+        indice,
+        seleccionId: apariencia.entidadId,
+        seleccionados: [apariencia.entidadId],
+        modoSeleccion: "simple",
+        enlaceSeleccionId: null,
+        dialogoTraerConectadosAbierto: false,
+        mensaje: `Traer conectados: ${Math.max(0, despuesApariencias - antesApariencias)} cosas, ${Math.max(0, despuesEnlaces - antesEnlaces)} enlaces`,
+      });
+    },
+
+    traerEnlacesEntreSeleccionadas() {
+      const { modelo, opdActivoId, seleccionados } = get();
+      if (seleccionados.length < 2) {
+        set({ mensaje: "Selecciona al menos dos cosas visibles" });
+        return;
+      }
+      const resultado = traerEnlacesEntreBatch(modelo, opdActivoId, seleccionados);
+      if (!resultado.ok) {
+        set({ mensaje: resultado.error });
+        return;
+      }
+      if (resultado.value === modelo) {
+        set({ mensaje: "Sin cambios" });
+        return;
+      }
+      commitModelo(set, modelo, resultado.value, {
+        seleccionados: [...seleccionados],
+        modoSeleccion: seleccionados.length > 1 ? "multi" : "simple",
+        mensaje: "Enlaces internos traídos",
+      });
+    },
+
+    ocultarAparienciaSeleccionada() {
+      const { modelo, opdActivoId, seleccionId, seleccionados } = get();
+      const apariencia = aparienciaSeleccionadaParaTraer(modelo, opdActivoId, seleccionId, seleccionados);
+      if (!apariencia) {
+        set({ mensaje: "Selecciona una cosa visible para ocultar" });
+        return;
+      }
+      const resultado = ocultarAparienciaBatch(modelo, opdActivoId, apariencia.id);
+      if (!resultado.ok) {
+        set({ mensaje: resultado.error });
+        return;
+      }
+      commitModelo(set, modelo, resultado.value, {
+        seleccionId: null,
+        seleccionados: [],
+        modoSeleccion: "simple",
+        enlaceSeleccionId: null,
+        mensaje: "Apariencia oculta del OPD actual",
+      });
+    },
   };
 }
 
@@ -592,4 +716,20 @@ function gridConfigDesdeEstado(estado: ReturnType<GetStore>): GridConfig {
 
 function cuantizarDesdeEstado(estado: ReturnType<GetStore>, x: number, y: number): { x: number; y: number } {
   return cuantizarPosicion(x, y, gridConfigDesdeEstado(estado));
+}
+
+function aparienciaSeleccionadaParaTraer(
+  modelo: ReturnType<GetStore>["modelo"],
+  opdId: string,
+  seleccionId: string | null,
+  seleccionados: readonly string[],
+) {
+  const opd = modelo.opds[opdId];
+  if (!opd) return null;
+  const ids = [seleccionId, ...seleccionados].filter((id): id is string => !!id);
+  for (const id of ids) {
+    const apariencia = opd.apariencias[id] ?? Object.values(opd.apariencias).find((item) => item.entidadId === id);
+    if (apariencia) return apariencia;
+  }
+  return null;
 }

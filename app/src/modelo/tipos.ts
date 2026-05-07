@@ -20,13 +20,16 @@ export type {
   Afiliacion,
   TipoRefinamiento,
   ModoDespliegueObjeto,
-  TipoUrlObjeto,
-  ModoImagenEntidad,
-  RefinamientoEntidad,
-  UrlObjetoTipada,
-  ImagenEntidad,
-  Entidad,
-} from "./tipos/entidad";
+	  TipoUrlObjeto,
+	  ModoImagenEntidad,
+	  TipoValorSlot,
+	  ValorConcreto,
+	  RefinamientoEntidad,
+	  UrlObjetoTipada,
+	  ImagenEntidad,
+	  ValorSlot,
+	  Entidad,
+	} from "./tipos/entidad";
 
 export type { DesignacionEstado, UnidadTiempo, DuracionTemporal, Estado } from "./tipos/estado";
 
@@ -63,3 +66,5 @@ export type { OrigenPestana, HistorialEntrada, Pestana } from "./tipos/pestana";
 export type { BloqueOplEstado } from "./tipos/opl";
 
 export type { UiPortapapelesVisual, PreferenciasUiUsuario } from "./tipos/ui";
+
+export type { AmbitoPlantilla, Plantilla, PlantillaIndice } from "./tipos/plantilla";

@@ -1,17 +1,30 @@
 import { useEffect, useMemo, useState } from "preact/hooks";
+import addConnectedIcon from "../../../assets/svg/addConnected.svg";
+import lockIcon from "../../../assets/svg/lock.svg";
+import objectDragIcon from "../../../assets/svg/objectDrag.svg";
+import templateIcon from "../../../assets/svg/template.svg";
 import verFileIcon from "../../../assets/svg/verFile.svg";
 import { normalizarGridConfig } from "../canvas/grid";
 import { useOpmStore } from "../store";
 import type { Id, ModoImagenEntidad, TipoEnlace, TipoEntidad } from "../modelo/tipos";
 import { BibliotecaCosa } from "./BibliotecaCosa";
+import { ATAJO_CONECTAR_MULTI_AL_TODO } from "./atajosTeclado";
 import { useConfirmarSiDirty } from "./ConfirmacionContext";
+import { DialogoGuardarPlantilla } from "./DialogoGuardarPlantilla";
+import { DialogoPlantillas } from "./DialogoPlantillas";
 import { MenuContextualEnlace } from "./MenuContextualEnlace";
+import { MenuContextualEntidad } from "./MenuContextualEntidad";
 import { MenuTipoEnlace } from "./MenuTipoEnlace";
 import { ModalConfiguracionGrid } from "./ModalConfiguracionGrid";
+import { DialogoTraerConectados } from "./DialogoTraerConectados";
 
 type MenuPrincipalComponent = () => preact.JSX.Element;
 type PantallaInicioComponent = () => preact.JSX.Element | null;
 
+/**
+ * Botón toolbar Plantillas: [Met §8.8], [JOYAS §1], [V-52]/[V-123].
+ * Reusa assets/svg/template.svg canónico.
+ */
 export const TIPOS_ENLACE: Array<{ tipo: TipoEnlace; label: string }> = [
   { tipo: "agregacion", label: "Agregación" },
   { tipo: "exhibicion", label: "Exhibición" },
@@ -33,6 +46,7 @@ export function Toolbar() {
   const cerrarMenuPrincipal = useOpmStore((s) => s.cerrarMenuPrincipal);
   const crearObjeto = useOpmStore((s) => s.crearObjetoDemo);
   const crearProceso = useOpmStore((s) => s.crearProcesoDemo);
+  const crearAtributoNumerico = useOpmStore((s) => s.crearAtributoEnObjetoSeleccionado);
   const fijarModoCreacion = useOpmStore((s) => s.fijarModoCreacion);
   const cargarDemo = useOpmStore((s) => s.cargarDemo);
   const guardarLocal = useOpmStore((s) => s.guardarLocal);
@@ -61,13 +75,20 @@ export function Toolbar() {
   const cambiarOpdActivo = useOpmStore((s) => s.cambiarOpdActivo);
   const crearEnlaceEntreEntidades = useOpmStore((s) => s.crearEnlaceEntreEntidades);
   const renombrarSeleccionada = useOpmStore((s) => s.renombrarSeleccionada);
+  const seleccionarEntidad = useOpmStore((s) => s.seleccionarEntidad);
   const enlaceSeleccionId = useOpmStore((s) => s.enlaceSeleccionId);
   const seleccionarEnlace = useOpmStore((s) => s.seleccionarEnlace);
   const conectarSeleccionAlTodo = useOpmStore((s) => s.conectarSeleccionAlTodo);
+  const abrirDialogoTraerConectados = useOpmStore((s) => s.abrirDialogoTraerConectados);
+  const abrirDialogoPlantillas = useOpmStore((s) => s.abrirDialogoPlantillas);
+  const traerConectadosSeleccionado = useOpmStore((s) => s.traerConectadosSeleccionado);
+  const traerEnlacesEntreSeleccionadas = useOpmStore((s) => s.traerEnlacesEntreSeleccionadas);
+  const ocultarAparienciaSeleccionada = useOpmStore((s) => s.ocultarAparienciaSeleccionada);
   const copiarEstiloEnlaceAlPortapapeles = useOpmStore((s) => s.copiarEstiloEnlaceAlPortapapeles);
   const pegarEstiloEnlaceDesdePortapapeles = useOpmStore((s) => s.pegarEstiloEnlaceDesdePortapapeles);
   const borrarEnlacesEnLote = useOpmStore((s) => s.borrarEnlacesEnLote);
   const autosalvado = useOpmStore((s) => s.autosalvado);
+  const readOnly = useOpmStore((s) => s.readOnly);
   const iniciarAutosalvado = useOpmStore((s) => s.iniciarAutosalvado);
   const vistaMapaActiva = useOpmStore((s) => s.vistaMapaActiva);
   const refrescarVistaMapa = useOpmStore((s) => s.refrescarVistaMapa);
@@ -94,6 +115,7 @@ export function Toolbar() {
   const [nuevaCosa, setNuevaCosa] = useState<null | { entidadId: Id; nombre: string }>(null);
   const [nombreNuevaCosa, setNombreNuevaCosa] = useState("");
   const [menuContextual, setMenuContextual] = useState<null | { enlaceId: Id; x: number; y: number }>(null);
+  const [menuEntidad, setMenuEntidad] = useState<null | { aparienciaId: Id; entidadId: Id; x: number; y: number }>(null);
 
   useEffect(() => {
     iniciarAutosalvado();
@@ -174,6 +196,41 @@ export function Toolbar() {
   }, []);
 
   useEffect(() => {
+    const onMenuEntidad = (event: MouseEvent) => {
+      const meta = metadataEntidadDesdeContextMenu(event);
+      if (!meta) return;
+      event.preventDefault();
+      seleccionarEntidad(meta.entidadId);
+      setMenuContextual(null);
+      setMenuEntidad({ aparienciaId: meta.aparienciaId, entidadId: meta.entidadId, x: event.clientX, y: event.clientY });
+    };
+    const cerrar = () => setMenuEntidad(null);
+    window.addEventListener("contextmenu", onMenuEntidad, { capture: true });
+    window.addEventListener("click", cerrar);
+    return () => {
+      window.removeEventListener("contextmenu", onMenuEntidad, { capture: true });
+      window.removeEventListener("click", cerrar);
+    };
+  }, [seleccionarEntidad]);
+
+  useEffect(() => {
+    const manejarAtajosTraer = (event: KeyboardEvent) => {
+      if (esCampoEditable(event.target)) return;
+      const key = event.key.toLowerCase();
+      if ((event.ctrlKey || event.metaKey) && event.shiftKey && key === "t") {
+        event.preventDefault();
+        abrirDialogoTraerConectados();
+      }
+      if ((event.ctrlKey || event.metaKey) && key === "h") {
+        event.preventDefault();
+        ocultarAparienciaSeleccionada();
+      }
+    };
+    window.addEventListener("keydown", manejarAtajosTraer);
+    return () => window.removeEventListener("keydown", manejarAtajosTraer);
+  }, [abrirDialogoTraerConectados, ocultarAparienciaSeleccionada]);
+
+  useEffect(() => {
     const manejarAtajoEstilo = (event: KeyboardEvent) => {
       if (!event.ctrlKey || !event.altKey) return;
       if (esCampoEditable(event.target)) return;
@@ -186,20 +243,28 @@ export function Toolbar() {
         event.preventDefault();
         pegarEstiloEnlaceDesdePortapapeles(enlaceSeleccionId);
       }
+      if (key === "t" && seleccionados.length >= 2) {
+        const todo = seleccionados[seleccionados.length - 1];
+        if (!todo) return;
+        event.preventDefault();
+        conectarSeleccionAlTodo(todo, "agregacion");
+      }
     };
     window.addEventListener("keydown", manejarAtajoEstilo);
     return () => window.removeEventListener("keydown", manejarAtajoEstilo);
-  }, [copiarEstiloEnlaceAlPortapapeles, enlaceSeleccionId, pegarEstiloEnlaceDesdePortapapeles]);
+  }, [conectarSeleccionAlTodo, copiarEstiloEnlaceAlPortapapeles, enlaceSeleccionId, pegarEstiloEnlaceDesdePortapapeles, seleccionados]);
 
   const selectorEnlaceDeshabilitado = !seleccionId && !modoEnlace;
   const entidadSeleccionada = seleccionId ? modelo.entidades[seleccionId] : undefined;
   const puedeEditarImagen = entidadSeleccionada?.tipo === "objeto";
+  const puedeCrearAtributo = entidadSeleccionada?.tipo === "objeto";
   const tituloModelo = modeloPersistidoId ? modelo.nombre : `${modelo.nombre} (No guardado)`;
   const resumenPersistido = modeloPersistidoId ? modelosGuardados.find((item) => item.id === modeloPersistidoId) : undefined;
   const totalVersiones = resumenPersistido?.versiones?.length ?? 0;
   const origenMenuTipo = useMemo(() => seleccionId ?? seleccionados.find((id) => !!modelo.entidades[id]) ?? null, [modelo.entidades, seleccionId, seleccionados]);
   const destinoMenuTipo = useMemo(() => seleccionados.find((id) => id !== origenMenuTipo && !!modelo.entidades[id]) ?? null, [modelo.entidades, origenMenuTipo, seleccionados]);
   const todoMultiSeleccion = seleccionados.length >= 2 ? seleccionados[seleccionados.length - 1] : null;
+  const hayEntidadSeleccionada = !!seleccionId || seleccionados.some((id) => !!modelo.entidades[id]);
 
   return (
     <div style={style.bar}>
@@ -235,8 +300,23 @@ export function Toolbar() {
         <button style={style.button} type="button" onClick={crearObjeto} draggable onDragStart={dragToolbar("objeto")} data-testid="toolbar-drag-objeto">Objeto</button>
         <button style={style.button} type="button" onClick={crearProceso} draggable onDragStart={dragToolbar("proceso")} data-testid="toolbar-drag-proceso">Proceso</button>
         <button
+          style={puedeCrearAtributo ? style.iconTextButton : style.disabledButton}
+          type="button"
+          disabled={!puedeCrearAtributo}
+          draggable={puedeCrearAtributo}
+          onDragStart={dragAtributoNumerico}
+          onClick={() => crearAtributoNumerico({ nombre: "Valor [u]", tipoSlot: "float" })}
+          title={puedeCrearAtributo ? "Crear atributo numérico en el objeto seleccionado" : "Selecciona un objeto"}
+          data-testid="toolbar-crear-atributo-numerico"
+        >
+          <img src={objectDragIcon} alt="" style={style.smallIcon} />
+          + Atributo
+        </button>
+        <button
           style={modoCreacion === "objeto" ? style.activeButton : style.button}
           type="button"
+          aria-pressed={modoCreacion === "objeto"}
+          className={modoCreacion === "objeto" ? "boton-toolbar-activo" : undefined}
           draggable
           onDragStart={dragToolbar("objeto")}
           onClick={() => fijarModoCreacion(modoCreacion === "objeto" ? null : "objeto")}
@@ -246,6 +326,8 @@ export function Toolbar() {
         <button
           style={modoCreacion === "proceso" ? style.activeButton : style.button}
           type="button"
+          aria-pressed={modoCreacion === "proceso"}
+          className={modoCreacion === "proceso" ? "boton-toolbar-activo" : undefined}
           draggable
           onDragStart={dragToolbar("proceso")}
           onClick={() => fijarModoCreacion(modoCreacion === "proceso" ? null : "proceso")}
@@ -258,7 +340,11 @@ export function Toolbar() {
         <span style={style.divider} />
         <button style={style.button} type="button" onClick={() => confirmarSiDirty(nuevoModelo)}>Nuevo</button>
         <button style={style.button} type="button" onClick={() => confirmarSiDirty(cargarDemo)}>Demo</button>
-        <button style={style.button} type="button" onClick={guardarLocal} title="Guardar (Ctrl+S)">Guardar</button>
+        <button style={style.button} type="button" onClick={guardarLocal} title="Guardar (Ctrl+S)">
+          {readOnly ? <img src={lockIcon} alt="" style={style.lockIcon} /> : null}
+          Guardar
+        </button>
+        {readOnly ? <span style={style.readOnlyBadge} data-testid="indicador-readonly">Solo lectura</span> : null}
         <button style={style.button} type="button" onClick={() => confirmarSiDirty(abrirCargarModelo)}>Cargar</button>
         <span style={style.divider} />
         <label style={style.linkPicker}>
@@ -300,8 +386,34 @@ export function Toolbar() {
         >
           Biblioteca
         </button>
+        <button
+          style={hayEntidadSeleccionada ? style.iconTextButton : style.disabledButton}
+          type="button"
+          disabled={!hayEntidadSeleccionada}
+          onClick={abrirDialogoTraerConectados}
+          title={hayEntidadSeleccionada ? "Traer conectados (Ctrl+Shift+T)" : "Selecciona una cosa visible"}
+          data-testid="toolbar-traer-conectados"
+        >
+          <img src={addConnectedIcon} alt="" style={style.smallIcon} />
+          Traer
+        </button>
+        <button
+          style={style.iconTextButton}
+          type="button"
+          onClick={abrirDialogoPlantillas}
+          title="Plantillas"
+          data-testid="toolbar-plantillas"
+        >
+          <img src={templateIcon} alt="" style={style.smallIcon} />
+          Plantillas
+        </button>
         {modoCreacion ? (
-          <button style={style.secondaryButton} type="button" onClick={() => fijarModoCreacion(null)}>Cancelar creación</button>
+          <>
+            <span style={style.stickyBadge} data-testid="indicador-modo-sticky">
+              Modo sticky: {modoCreacion === "objeto" ? "Objeto" : "Proceso"}
+            </span>
+            <button style={style.secondaryButton} type="button" onClick={() => fijarModoCreacion(null)}>Cancelar creación</button>
+          </>
         ) : null}
         {seleccionados.length >= 2 ? (
           <>
@@ -313,12 +425,20 @@ export function Toolbar() {
                 style={style.secondaryButton}
                 type="button"
                 onClick={() => conectarSeleccionAlTodo(todoMultiSeleccion, "agregacion")}
-                title="Usa el último seleccionado como todo"
+                title={`Usa el último seleccionado como todo (${ATAJO_CONECTAR_MULTI_AL_TODO})`}
                 data-testid="conectar-multi-al-todo"
               >
                 Agregar al todo
               </button>
             ) : null}
+            <button
+              style={style.secondaryButton}
+              type="button"
+              onClick={traerEnlacesEntreSeleccionadas}
+              data-testid="toolbar-traer-enlaces-internos"
+            >
+              Traer enlaces
+            </button>
             <select
               aria-label="Alinear cosas seleccionadas"
               style={style.compactSelect}
@@ -530,8 +650,40 @@ export function Toolbar() {
             borrarEnlacesEnLote([id]);
             setMenuContextual(null);
           }}
+          onConectarMultiAlTodo={todoMultiSeleccion ? ((tipo) => {
+            conectarSeleccionAlTodo(todoMultiSeleccion, tipo);
+            setMenuContextual(null);
+          }) : undefined}
         />
       ) : null}
+      {menuEntidad ? (
+        <MenuContextualEntidad
+          aparienciaId={menuEntidad.aparienciaId}
+          x={menuEntidad.x}
+          y={menuEntidad.y}
+          multi={seleccionados.length >= 2}
+          onCerrar={() => setMenuEntidad(null)}
+          onTraer={() => {
+            abrirDialogoTraerConectados();
+            setMenuEntidad(null);
+          }}
+          onTraerDefault={() => {
+            traerConectadosSeleccionado();
+            setMenuEntidad(null);
+          }}
+          onTraerEnlaces={() => {
+            traerEnlacesEntreSeleccionadas();
+            setMenuEntidad(null);
+          }}
+          onOcultar={() => {
+            ocultarAparienciaSeleccionada();
+            setMenuEntidad(null);
+          }}
+        />
+      ) : null}
+      <DialogoTraerConectados />
+      <DialogoPlantillas />
+      <DialogoGuardarPlantilla />
       {PantallaInicioLazy ? <PantallaInicioLazy /> : null}
     </div>
   );
@@ -543,6 +695,29 @@ function dragToolbar(tipo: TipoEntidad) {
     event.dataTransfer?.setData("text/plain", tipo);
     if (event.dataTransfer) event.dataTransfer.effectAllowed = "copy";
   };
+}
+
+function dragAtributoNumerico(event: DragEvent) {
+  event.dataTransfer?.setData("application/x-opm-atributo-numerico", "float");
+  event.dataTransfer?.setData("text/plain", "atributo-numerico");
+  if (event.dataTransfer) event.dataTransfer.effectAllowed = "copy";
+}
+
+type GlobalJointAdapter = {
+  graph?: {
+    getCell?: (id: string) => { prop?: (name: string) => unknown } | undefined;
+  };
+};
+
+function metadataEntidadDesdeContextMenu(event: MouseEvent): { aparienciaId: Id; entidadId: Id } | null {
+  const target = event.target instanceof Element ? event.target : null;
+  const cellEl = target?.closest?.(".joint-cell,[model-id],[data-model-id]");
+  const modelId = cellEl?.getAttribute("model-id") ?? cellEl?.getAttribute("data-model-id");
+  if (!modelId) return null;
+  const adapter = (globalThis as typeof globalThis & { __opmJointAdapter?: GlobalJointAdapter }).__opmJointAdapter;
+  const meta = adapter?.graph?.getCell?.(modelId)?.prop?.("opm") as { kind?: string; aparienciaId?: Id; entidadId?: Id } | undefined;
+  if (meta?.kind !== "entidad" || !meta.aparienciaId || !meta.entidadId) return null;
+  return { aparienciaId: meta.aparienciaId, entidadId: meta.entidadId };
 }
 
 const style = {
@@ -605,6 +780,28 @@ const style = {
     fontWeight: 700,
     whiteSpace: "nowrap",
   },
+  iconTextButton: {
+    height: "34px",
+    minWidth: "82px",
+    padding: "0 12px",
+    border: "1px solid #b9c5d4",
+    borderRadius: "4px",
+    background: "#f9fbfd",
+    color: "#1f2937",
+    cursor: "pointer",
+    fontSize: "13px",
+    fontWeight: 600,
+    whiteSpace: "nowrap",
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: "6px",
+  },
+  smallIcon: {
+    width: "18px",
+    height: "18px",
+    display: "block",
+  },
   disabledButton: {
     height: "34px",
     minWidth: "76px",
@@ -617,6 +814,38 @@ const style = {
     fontSize: "13px",
     fontWeight: 600,
     whiteSpace: "nowrap",
+  },
+  stickyBadge: {
+    height: "26px",
+    display: "inline-flex",
+    alignItems: "center",
+    padding: "0 8px",
+    border: "1px solid #3BC3FF",
+    borderRadius: "4px",
+    background: "#eaf8ff",
+    color: "#1f2937",
+    fontSize: "12px",
+    fontWeight: 800,
+    whiteSpace: "nowrap",
+  },
+  readOnlyBadge: {
+    height: "26px",
+    display: "inline-flex",
+    alignItems: "center",
+    padding: "0 8px",
+    border: "1px solid #586D8C",
+    borderRadius: "4px",
+    background: "#eef2f6",
+    color: "#344054",
+    fontSize: "12px",
+    fontWeight: 800,
+    whiteSpace: "nowrap",
+  },
+  lockIcon: {
+    width: "13px",
+    height: "13px",
+    marginRight: "6px",
+    verticalAlign: "-2px",
   },
   title: {
     flex: "0 0 auto",

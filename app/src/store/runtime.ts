@@ -6,6 +6,7 @@ import { construirDescriptorMapa, type CriterioResaltado } from "../render/joint
 import { dentroDeApariencia } from "../modelo/layout";
 import { sincronizarAbanicos } from "../modelo/abanicos";
 import { cambiarAfiliacion, cambiarEsencia, crearEnlace, crearModelo, crearObjeto, crearProceso } from "../modelo/operaciones";
+import { fixtureTodos, type FixtureDemo } from "../modelo/fixtures";
 import { listarModelosLocales, type ResumenModeloPersistido } from "../persistencia/local";
 import { indiceVacio, workspaceDesdeModelo, type MapaWorkspace, type WorkspaceIndice } from "../persistencia/workspace";
 import {
@@ -394,6 +395,11 @@ export function opdIdDeEntidad(modelo: Modelo, entidadId: Id, opdPreferidoId: Id
 }
 
 export function crearDemo(): Modelo {
+  const fixtures = fixtureTodos();
+  return fixtures[0]?.modelo ?? crearModeloOnStarMinimo();
+}
+
+function crearModeloOnStarMinimo(): Modelo {
   let modelo = crearModelo("OnStar mínimo");
   modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 90, y: 90 }, "Driver"));
   modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 330, y: 90 }, "OnStar System"));
@@ -410,6 +416,16 @@ export function crearDemo(): Modelo {
   modelo = must(crearEnlace(modelo, modelo.opdRaizId, driver, rescate, "agente"));
   modelo = must(crearEnlace(modelo, modelo.opdRaizId, sistema, rescate, "efecto"));
   return modelo;
+}
+
+export function listarFixtures(): FixtureDemo[] {
+  return fixtureTodos();
+}
+
+export function crearFixturePorNombre(nombre: string): Modelo | null {
+  const fixtures = fixtureTodos();
+  const fixture = fixtures.find((f) => f.modelo.nombre === nombre);
+  return fixture?.modelo ?? null;
 }
 
 export function entidadPorNombre(modelo: Modelo, nombre: string): Id {
