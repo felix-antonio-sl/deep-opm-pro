@@ -385,7 +385,7 @@ test("HU-SHARED-002: deshacer revierte creación de cosa con un solo Ctrl+Z (ato
   await page.goto("/");
   await cerrarPantallaInicioSiVisible(page);
   const canvas = page.getByRole("img", { name: "OPD activo" });
-  await page.getByRole("button", { name: "Modo objeto" }).dragTo(canvas, { targetPosition: { x: 320, y: 190 } });
+  await page.getByTestId("toolbar-modo-creacion-objeto").dragTo(canvas, { targetPosition: { x: 320, y: 190 } });
   const modal = page.getByTestId("modal-nombre-cosa");
   if (await modal.count()) {
     await modal.getByLabel("Nombre").fill("Cosa undo");

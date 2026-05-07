@@ -185,7 +185,7 @@ test("crea objeto interno por click dentro del contenedor refinado", async ({ pa
   await page.getByRole("button", { name: "Descomponer" }).click();
   await expect(page.locator('[role="treeitem"]').filter({ hasText: "SD1: Proceso descompuesto" })).toHaveAttribute("aria-current", "page");
 
-  await page.getByRole("button", { name: "Modo objeto" }).click();
+  await page.getByTestId("toolbar-modo-creacion-objeto").click();
   const contorno = await rectDeLocator(elementoPorTexto(page, "Proceso"));
   await page.mouse.click(contorno.x + 48, contorno.y + 118);
 

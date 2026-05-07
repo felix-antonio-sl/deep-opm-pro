@@ -439,7 +439,7 @@ test("L1 toolbar split conserva root y controles por modo", async ({ page }) => 
   await expect(page.getByTestId("toolbar-plantillas")).toBeVisible();
   await expect(page.getByTestId("abrir-menu-tipo-enlace")).toBeEnabled();
 
-  await page.getByRole("button", { name: "Modo objeto" }).click();
+  await page.getByTestId("toolbar-modo-creacion-objeto").click();
   await expect(page.getByTestId("indicador-modo-sticky")).toContainText("Objeto");
 
   expect(pageErrors).toEqual([]);

@@ -121,7 +121,7 @@ test("L4 arrastra cosa desde Toolbar al canvas y respeta posicion de drop", asyn
   await page.goto("/");
   await cerrarPantallaInicioSiVisible(page);
   const canvas = page.getByRole("img", { name: "OPD activo" });
-  await page.getByRole("button", { name: "Modo objeto" }).dragTo(canvas, { targetPosition: { x: 320, y: 190 } });
+  await page.getByTestId("toolbar-modo-creacion-objeto").dragTo(canvas, { targetPosition: { x: 320, y: 190 } });
 
   await expect(elementoPorTexto(page, "Objeto")).toHaveCount(1);
   await expect(page.getByTestId("modal-nombre-cosa")).toBeVisible();
@@ -573,7 +573,7 @@ test("HU-10.003: drag Objeto al canvas abre modal-nombre-cosa y Enter persiste e
   await page.goto("/");
   await cerrarPantallaInicioSiVisible(page);
   const canvas = page.getByRole("img", { name: "OPD activo" });
-  await page.getByRole("button", { name: "Modo objeto" }).dragTo(canvas, { targetPosition: { x: 320, y: 190 } });
+  await page.getByTestId("toolbar-modo-creacion-objeto").dragTo(canvas, { targetPosition: { x: 320, y: 190 } });
 
   const modal = page.getByTestId("modal-nombre-cosa");
   await expect(modal).toBeVisible();
@@ -595,7 +595,7 @@ test("HU-10.003: modal-nombre-cosa expone el form con input controlado para nomb
   await page.goto("/");
   await cerrarPantallaInicioSiVisible(page);
   const canvas = page.getByRole("img", { name: "OPD activo" });
-  await page.getByRole("button", { name: "Modo objeto" }).dragTo(canvas, { targetPosition: { x: 320, y: 190 } });
+  await page.getByTestId("toolbar-modo-creacion-objeto").dragTo(canvas, { targetPosition: { x: 320, y: 190 } });
 
   const modal = page.getByTestId("modal-nombre-cosa");
   await expect(modal).toBeVisible();
@@ -620,7 +620,7 @@ test("HU-30.019: doble clic sobre tile en DialogoCargarModelo carga modelo y cie
   await page.goto("/");
   await cerrarPantallaInicioSiVisible(page);
   const canvas = page.getByRole("img", { name: "OPD activo" });
-  await page.getByRole("button", { name: "Modo objeto" }).dragTo(canvas, { targetPosition: { x: 320, y: 190 } });
+  await page.getByTestId("toolbar-modo-creacion-objeto").dragTo(canvas, { targetPosition: { x: 320, y: 190 } });
   const modalNombre = page.getByTestId("modal-nombre-cosa");
   if (await modalNombre.count()) {
     await modalNombre.getByLabel("Nombre").fill("Cargable doble clic");
@@ -652,7 +652,7 @@ test("HU-30.020: clic sobre tile selecciona y botón Cargar del diálogo carga m
   await page.goto("/");
   await cerrarPantallaInicioSiVisible(page);
   const canvas = page.getByRole("img", { name: "OPD activo" });
-  await page.getByRole("button", { name: "Modo objeto" }).dragTo(canvas, { targetPosition: { x: 320, y: 190 } });
+  await page.getByTestId("toolbar-modo-creacion-objeto").dragTo(canvas, { targetPosition: { x: 320, y: 190 } });
   const modalNombre = page.getByTestId("modal-nombre-cosa");
   if (await modalNombre.count()) {
     await modalNombre.getByLabel("Nombre").fill("Cargable boton");

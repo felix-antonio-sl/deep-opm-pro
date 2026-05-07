@@ -1,0 +1,26 @@
+{
+  "id": "BUG-20260507T165507Z-19b234",
+  "createdAt": "2026-05-07T16:55:07.618Z",
+  "text": "para que son las funciones dentro del círculo rojo?",
+  "context": {
+    "modeloId": "modelo-1",
+    "modeloNombre": "Diagnostico Clinico",
+    "opdActivoId": "opd-1",
+    "opdActivoNombre": "SD",
+    "seleccionEntidadId": null,
+    "seleccionEnlaceId": null,
+    "pestanaActivaId": "pestana-movpw6sa-4vukltzn",
+    "vistaMapaActiva": false,
+    "url": "http://138.201.53.205:5173/",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36",
+    "viewport": {
+      "width": 1920,
+      "height": 963,
+      "devicePixelRatio": 1
+    },
+    "capturedAt": "2026-05-07T16:54:10.472Z"
+  },
+  "screenshots": [
+    "screenshots/01-cleanshot-2026-05-07-at-12.54.48.jpg"
+  ]
+}
