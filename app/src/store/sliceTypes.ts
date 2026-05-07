@@ -151,6 +151,7 @@ export type ModeloSlice = Slice<
   | "fijarGridConfig"
   | "alinearSeleccion"
   | "distribuirSeleccion"
+  | "aplicarLayoutSugerido"
   | "reordenarSubprocesoEnTimeline"
   | "actualizarVerticesEnlace"
   | "traerConectadosSeleccionado"

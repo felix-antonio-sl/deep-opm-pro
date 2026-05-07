@@ -44,6 +44,7 @@ export function ToolbarCreacion() {
   const opdActivoId = useOpmStore((s) => s.opdActivoId);
   const cambiarOpdActivo = useOpmStore((s) => s.cambiarOpdActivo);
   const crearEnlaceEntreEntidades = useOpmStore((s) => s.crearEnlaceEntreEntidades);
+  const aplicarLayoutSugerido = useOpmStore((s) => s.aplicarLayoutSugerido);
   const gridConfig = useOpmStore((s) => normalizarGridConfig(s.gridConfig ?? s.indice.preferenciasUi?.gridConfig));
   const toggleGrid = useOpmStore((s) => s.toggleGrid);
   const fijarGridConfig = useOpmStore((s) => s.fijarGridConfig);
@@ -103,6 +104,9 @@ export function ToolbarCreacion() {
       <span style={style.divider} />
       <button style={gridConfig.activa ? style.activeButton : style.button} type="button" onClick={toggleGrid} aria-pressed={gridConfig.activa} data-testid="toggle-grid" title={gridConfig.activa ? "Grid activa · clic para ocultar" : "Mostrar grid del canvas"}>Grid</button>
       <button style={style.secondaryButton} type="button" onClick={handleAbrirGridConfig} data-testid="config-grid" title="Configurar paso, color y snap del grid">Config grid</button>
+      {/* Ronda 15 L4: layout sugerido como accion explicita. No persiste */}
+      {/* automaticamente al cargar; cada clic crea una entrada undo atomica. */}
+      <button style={style.button} type="button" onClick={aplicarLayoutSugerido} data-testid="toolbar-aplicar-layout" title="Sugerir layout · reorganiza apariencias del OPD activo en niveles top-down. Undoable con Ctrl+Z.">Sugerir layout</button>
       <ModalConfiguracionGrid abierto={gridModalAbierto} config={gridConfig} onCerrar={handleCerrarGridConfig} onGuardar={fijarGridConfig} />
       {bibliotecaAbierta ? <BibliotecaCosa modelo={modelo} opdActivoId={opdActivoId} onCerrar={() => setBibliotecaAbierta(false)} onNavegarOpd={cambiarOpdActivo} /> : null}
       {menuTiposAbierto ? <MenuTipoEnlace modelo={modelo} origenId={origenMenuTipo} destinoId={destinoMenuTipo} direccion={direccionTipoEnlace} onDireccion={setDireccionTipoEnlace} onElegir={handleElegirTipoValido} /> : null}

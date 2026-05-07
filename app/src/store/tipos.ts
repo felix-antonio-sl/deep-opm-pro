@@ -421,6 +421,7 @@ export interface OpmStore {
   fijarGridConfig: (patch: Partial<GridConfig>) => void;
   alinearSeleccion: (eje: EjeAlineacion) => void;
   distribuirSeleccion: (orientacion: OrientacionDistribucion) => void;
+  aplicarLayoutSugerido: () => void;
   reordenarSubprocesoEnTimeline: (opdId: Id, aparienciaId: Id, nuevaY: number) => void;
   actualizarVerticesEnlace: (aparienciaEnlaceId: Id, vertices: Array<{ x: number; y: number }>) => void;
   traerConectadosSeleccionado: (familias?: readonly FamiliaTraerConectados[]) => void;

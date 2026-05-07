@@ -50,6 +50,7 @@ import {
 } from "../../canvas/operacionesBatch";
 import { FAMILIAS_TRAER_DEFAULT, normalizarFamiliasTraer } from "../../canvas/reglasTraer";
 import { cuantizarPosicion, normalizarGridConfig, type GridConfig } from "../../canvas/grid";
+import { aplicarLayoutSugerido as aplicarLayoutSugeridoOp } from "../../canvas/layoutSugerido";
 
 /**
  * Acciones de canvas: selección (entidad/estado/enlace + multi vía Ctrl/Shift),
@@ -588,6 +589,23 @@ export function accionesCanvas(set: SetStore, get: GetStore): Partial<ModeloSlic
         return;
       }
       commitModelo(set, modelo, resultado.value, { seleccionados: [...seleccionados], mensaje: "Selección distribuida" });
+    },
+
+    aplicarLayoutSugerido() {
+      // Ronda 15 L4: layout sugerido aplicable bajo accion explicita.
+      // Undoable atomicamente porque commitModelo crea una sola entrada en
+      // el ledger; deshacer revierte el batch entero. No persiste al cargar.
+      const { modelo, opdActivoId, seleccionados } = get();
+      const resultado = aplicarLayoutSugeridoOp(modelo, opdActivoId);
+      if (!resultado.ok) {
+        set({ mensaje: resultado.error });
+        return;
+      }
+      if (resultado.value === modelo) {
+        set({ mensaje: "Layout ya esta aplicado" });
+        return;
+      }
+      commitModelo(set, modelo, resultado.value, { seleccionados: [...seleccionados], mensaje: "Layout sugerido aplicado" });
     },
 
     reordenarSubprocesoEnTimeline(opdId, aparienciaId, nuevaY) {
