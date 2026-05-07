@@ -22,6 +22,7 @@ import type {
   TipoEntidad,
   TipoRefinamiento,
 } from "../modelo/tipos";
+import { refinaA } from "../modelo/refinamientos";
 import { proyectarModeloAJointCells, type JointCellJson } from "../render/jointjs/proyeccion";
 import { exportarModelo, hidratarModelo } from "../serializacion/json";
 
@@ -360,10 +361,12 @@ function extremoExiste(modelo: Modelo, extremo: ExtremoEnlace): boolean {
 
 function internasDelRefinamiento(modelo: Modelo, opdId: Id, entidadId: Id): Apariencia[] {
   const contorno = aparienciaDeEntidad(modelo, opdId, entidadId);
-  const tipo = modelo.entidades[entidadId]?.refinamiento?.tipo;
-  // BUG-372334: en despliegue las partes viven FUERA del padre. La pertenencia
-  // se determina por presencia en el OPD hijo, no por contencion espacial.
-  const filtroEspacial = tipo === "despliegue"
+  const entidad = modelo.entidades[entidadId];
+  // BUG-372334 + ronda 15.2 dual: en despliegue las partes viven FUERA del
+  // padre. La pertenencia se determina por presencia en el OPD hijo. Con
+  // refinamiento dual decidimos por tipo del OPD hijo concreto.
+  const tipoOpd = entidad ? refinaA(entidad, opdId)?.tipo : undefined;
+  const filtroEspacial = tipoOpd === "despliegue"
     ? () => true
     : (apariencia: Apariencia) => dentroDe(apariencia, contorno);
   return Object.values(modelo.opds[opdId]?.apariencias ?? {})

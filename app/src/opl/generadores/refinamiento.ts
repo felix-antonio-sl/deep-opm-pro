@@ -1,7 +1,7 @@
 import { entidadIdDeExtremo, extremoApuntaAEntidad } from "../../modelo/extremos";
 import { agruparSubprocesosParalelos } from "../../modelo/operaciones/refinamiento";
 import { modoPlegadoApariencia, partesDePlegado } from "../../modelo/plegado";
-import { obtenerRefinamiento, refinamientosDe, tieneRefinamiento } from "../../modelo/refinamientos";
+import { obtenerRefinamiento, refinaA, refinamientosDe, tieneRefinamiento } from "../../modelo/refinamientos";
 import type { Apariencia, Enlace, Entidad, Id, Modelo, ModoDespliegueObjeto, Opd, TipoEnlace, TipoRefinamiento } from "../../modelo/tipos";
 import { crearLineaOplInteractiva, type OplLineaInteractiva, type OplReferencia, type OplTokenHint } from "../interaccion";
 import { oracionPlegadoParcial } from "./plegado";
@@ -129,11 +129,12 @@ export function aparienciasInternasDeRefinamiento(modelo: Modelo, opdHijo: Opd, 
   const contorno = Object.values(opdHijo.apariencias).find((apariencia) => apariencia.entidadId === entidad.id);
   if (!contorno) return [];
   const otras = Object.values(opdHijo.apariencias).filter((apariencia) => apariencia.entidadId !== entidad.id);
-  // BUG-372334: en despliegue (unfold) las partes se posicionan FUERA del padre
-  // y se conectan via enlaces estructurales canonicos. La pertenencia se
-  // determina por presencia en el OPD hijo, no por contencion espacial.
-  // Descomposicion (inzoom) sigue el criterio espacial dentroDe.
-  if (entidad.refinamiento?.tipo === "despliegue") return otras;
+  // BUG-372334 + ronda 15.2 dual: en despliegue (unfold) las partes viven FUERA
+  // del padre y se conectan via enlaces estructurales canonicos. La pertenencia
+  // se determina por presencia en el OPD hijo. Descomposicion (inzoom) sigue
+  // el criterio espacial dentroDe. Con refinamiento dual, decidimos por tipo
+  // del OPD hijo, no por una propiedad global de la entidad.
+  if (refinaA(entidad, opdHijo.id)?.tipo === "despliegue") return otras;
   return otras.filter((apariencia) => dentroDe(apariencia, contorno));
 }
 
