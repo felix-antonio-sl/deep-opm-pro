@@ -1,0 +1,380 @@
+import { expect, test, type Page } from "@playwright/test";
+import {
+  elementoPorTexto,
+  escapeRegExp,
+  modeloTraerConectadosSmoke,
+  cerrarPantallaInicioSiVisible,
+  crearAtributoNumericoSmoke,
+  rectDeLocator,
+  clickCabeceraElemento,
+  clickCentroLink,
+  clickLinkPorIndice,
+  clickLinkPorTipo,
+  desplegarComoAgregacion,
+  guardarComoActual,
+  cargarPrimerModelo,
+  assertWorkbenchLayout,
+  assertCanvasScrollable,
+  estadoBeforeUnload,
+  puntoMedioPath,
+  todasSeparadas,
+  svgText,
+  jsonEditor,
+  exportadoActual,
+  aparienciaRaizPorNombre,
+  verticesPrimerEnlace,
+  modeloDosOpds,
+  modeloEjemploOrganizacionalSmoke,
+  modeloMarkersCanonicos,
+  modeloModificadoresEnlace,
+  modeloNoModificador,
+  modeloMoverPuerto,
+  modeloConsumoDuplicado,
+  modeloBusAgregacion,
+  modeloAbanicoLogico,
+  modeloTransicionEstados,
+  modeloTransicionEstadosIncompleto,
+  modeloAbanicoRutasEstados,
+  objeto,
+  proceso,
+  enlace,
+  aparienciaPar,
+  extremoEntidad,
+  extremoEstado,
+  extremoApuntaAEntidad,
+  type ExportadoModelo,
+  type ExtremoExportado,
+} from "./_smoke-helpers";
+
+test("marca dirty state y navega cambios con deshacer y rehacer", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+
+  const deshacer = page.getByRole("button", { name: "Deshacer" });
+  const rehacer = page.getByRole("button", { name: "Rehacer" });
+  await expect(page.getByText("Modelo (No guardado)").first()).toBeVisible();
+  await expect(deshacer).toBeDisabled();
+  await expect(rehacer).toBeDisabled();
+
+  await page.getByRole("button", { name: "Objeto", exact: true }).click();
+  await expect(page.getByText("Modelo (No guardado)").first()).toBeVisible();
+  await expect(page.locator(".joint-element")).toHaveCount(1);
+  await expect(deshacer).toBeEnabled();
+  await expect(rehacer).toBeDisabled();
+
+  await page.keyboard.press("Control+Z");
+  await expect(page.getByText("Modelo (No guardado)").first()).toBeVisible();
+  await expect(page.locator(".joint-element")).toHaveCount(0);
+  await expect(deshacer).toBeDisabled();
+  await expect(rehacer).toBeEnabled();
+
+  await page.keyboard.press("Control+Shift+Z");
+  await expect(page.getByText("Modelo (No guardado)").first()).toBeVisible();
+  await expect(page.locator(".joint-element")).toHaveCount(1);
+  await expect(deshacer).toBeEnabled();
+  await expect(rehacer).toBeDisabled();
+
+  await deshacer.click();
+  await expect(page.getByText("Modelo (No guardado)").first()).toBeVisible();
+  await expect(page.locator(".joint-element")).toHaveCount(0);
+  await expect(deshacer).toBeDisabled();
+  await expect(rehacer).toBeEnabled();
+
+  await rehacer.click();
+  await expect(page.getByText("Modelo (No guardado)").first()).toBeVisible();
+  await expect(page.locator(".joint-element")).toHaveCount(1);
+  await expect(deshacer).toBeEnabled();
+  await expect(rehacer).toBeDisabled();
+
+  await elementoPorTexto(page, "Objeto").click();
+  await page.getByLabel("Nombre").fill("Renombrado");
+  await expect(elementoPorTexto(page, "Renombrado")).toHaveCount(1);
+  await deshacer.click();
+  await expect(elementoPorTexto(page, "Objeto")).toHaveCount(1);
+  await rehacer.click();
+  await expect(elementoPorTexto(page, "Renombrado")).toHaveCount(1);
+
+  await elementoPorTexto(page, "Renombrado").click();
+  await page.getByRole("button", { name: "Eliminar entidad" }).click();
+  await expect(page.locator(".joint-element")).toHaveCount(0);
+  await deshacer.click();
+  await expect(elementoPorTexto(page, "Renombrado")).toHaveCount(1);
+
+  await page.screenshot({ path: "test-results/opm-dirty-undo-redo.png", fullPage: true });
+  await guardarComoActual(page, "Renombrado local");
+  await expect(page.getByText("Modelo (No guardado)").first()).toHaveCount(0);
+  await expect(deshacer).toBeEnabled();
+
+  await page.getByRole("button", { name: "Nuevo", exact: true }).click();
+  await expect(page.locator(".joint-element")).toHaveCount(0);
+  await expect(deshacer).toBeDisabled();
+  await cargarPrimerModelo(page);
+  await expect(elementoPorTexto(page, "Renombrado")).toHaveCount(1);
+  await expect(page.getByText("Modelo (No guardado)").first()).toHaveCount(0);
+  await expect(deshacer).toBeDisabled();
+
+  expect(pageErrors).toEqual([]);
+});
+
+test("confirma cambios sin guardar antes de crear un modelo nuevo", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await page.getByRole("button", { name: "Objeto", exact: true }).click();
+  const modalNombreObjeto = page.getByTestId("modal-nombre-cosa");
+  if (await modalNombreObjeto.count()) {
+    await expect(modalNombreObjeto).toBeVisible();
+    await modalNombreObjeto.getByLabel("Nombre").fill("Objeto");
+    await modalNombreObjeto.getByRole("button", { name: "OK" }).click();
+    await expect(modalNombreObjeto).toHaveCount(0);
+  }
+  await expect(elementoPorTexto(page, "Objeto")).toHaveCount(1);
+
+  const dialogo = page.getByRole("dialog", { name: "Hay cambios sin guardar" });
+  await page.getByRole("button", { name: "Nuevo", exact: true }).click();
+  await expect(dialogo).toBeVisible();
+  await expect(dialogo.getByRole("button", { name: "Guardar" })).toBeFocused();
+
+  await dialogo.getByRole("button", { name: "Cancelar" }).click();
+  await expect(dialogo).toHaveCount(0);
+  await expect(elementoPorTexto(page, "Objeto")).toHaveCount(1);
+
+  await page.getByRole("button", { name: "Nuevo", exact: true }).click();
+  await expect(dialogo).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(dialogo).toHaveCount(0);
+  await expect(elementoPorTexto(page, "Objeto")).toHaveCount(1);
+
+  await page.getByRole("button", { name: "Nuevo", exact: true }).click();
+  await expect(dialogo).toBeVisible();
+  await dialogo.getByRole("button", { name: "Descartar" }).click();
+  await expect(dialogo).toHaveCount(0);
+  await expect(page.locator(".joint-element")).toHaveCount(0);
+  await expect(page.getByText("Modelo (No guardado)").first()).toBeVisible();
+
+  expect(pageErrors).toEqual([]);
+});
+
+test("no abre confirmacion cuando Nuevo se ejecuta tras guardar", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await page.getByRole("button", { name: "Objeto", exact: true }).click();
+  await guardarComoActual(page, "Modelo sin confirmacion");
+  await expect(page.getByText("Modelo (No guardado)").first()).toHaveCount(0);
+
+  await page.getByRole("button", { name: "Nuevo", exact: true }).click();
+  await expect(page.getByRole("dialog", { name: "Hay cambios sin guardar" })).toHaveCount(0);
+  await expect(page.locator(".joint-element")).toHaveCount(0);
+
+  expect(pageErrors).toEqual([]);
+});
+
+test("dialogo cerrar con cambios dirty ofrece Guardar Descartar Cancelar en pestañas", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await page.getByTestId("nueva-pestana-btn").click();
+  await page.getByRole("button", { name: "Objeto", exact: true }).click();
+  await expect(elementoPorTexto(page, "Objeto")).toHaveCount(1);
+
+  await page.getByRole("tab").first().click();
+  const dialogo = page.getByRole("dialog", { name: "Hay cambios sin guardar" });
+  await expect(dialogo).toBeVisible();
+  await expect(page.getByTestId("dialogo-confirmacion-cerrar-dirty")).toBeVisible();
+  await expect(dialogo.getByRole("button", { name: "Guardar" })).toBeVisible();
+  await expect(dialogo.getByRole("button", { name: "Descartar" })).toBeVisible();
+  await expect(dialogo.getByRole("button", { name: "Cancelar" })).toBeVisible();
+
+  await dialogo.getByRole("button", { name: "Cancelar" }).click();
+  await expect(dialogo).toHaveCount(0);
+  await expect(elementoPorTexto(page, "Objeto")).toHaveCount(1);
+
+  await page.getByTestId(/^cerrar-pestana-/).nth(1).click();
+  await expect(dialogo).toBeVisible();
+  await dialogo.getByRole("button", { name: "Descartar" }).click();
+  await expect(dialogo).toHaveCount(0);
+  await expect(page.getByRole("tab")).toHaveCount(1);
+
+  expect(pageErrors).toEqual([]);
+});
+
+test("undo elimina entidad y restaura modelo previo", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await page.getByRole("button", { name: "Objeto", exact: true }).click();
+  await elementoPorTexto(page, "Objeto").click();
+  await page.getByRole("button", { name: "Eliminar entidad" }).click();
+  await expect(page.locator(".joint-element")).toHaveCount(0);
+
+  await page.keyboard.press("Control+Z");
+  await expect(elementoPorTexto(page, "Objeto")).toHaveCount(1);
+
+  expect(pageErrors).toEqual([]);
+});
+
+test("undo renombra entidad y restaura nombre previo", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await page.getByRole("button", { name: "Objeto", exact: true }).click();
+  await page.getByLabel("Nombre").fill("Renombrado");
+  await expect(elementoPorTexto(page, "Renombrado")).toHaveCount(1);
+
+  await page.keyboard.press("Control+Z");
+  await expect(elementoPorTexto(page, "Objeto")).toHaveCount(1);
+  await expect(elementoPorTexto(page, "Renombrado")).toHaveCount(0);
+
+  expect(pageErrors).toEqual([]);
+});
+
+test("undo mueve apariencia y restaura posicion previa", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await page.getByRole("button", { name: "Objeto", exact: true }).click();
+  await elementoPorTexto(page, "Objeto").click();
+  const antes = await aparienciaRaizPorNombre(page, "Objeto");
+
+  await page.keyboard.press("ArrowRight");
+  await page.keyboard.press("ArrowRight");
+  const movida = await aparienciaRaizPorNombre(page, "Objeto");
+  expect(movida.x).toBeGreaterThan(antes.x);
+
+  await page.keyboard.press("Control+Z");
+  await page.keyboard.press("Control+Z");
+  const restaurada = await aparienciaRaizPorNombre(page, "Objeto");
+  expect(restaurada.x).toBe(antes.x);
+  expect(restaurada.y).toBe(antes.y);
+
+  expect(pageErrors).toEqual([]);
+});
+
+test("undo cambia esencia y restaura valor previo", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await page.getByRole("button", { name: "Objeto", exact: true }).click();
+  await page.getByRole("button", { name: "Física" }).click();
+  await expect(page.getByText("Objeto es un objeto físico y sistémico.")).toBeVisible();
+
+  await page.keyboard.press("Control+Z");
+  await expect(page.getByText("Objeto es un objeto informacional y sistémico.")).toBeVisible();
+
+  expect(pageErrors).toEqual([]);
+});
+
+test("undo edita vertices y restaura ruta previa", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await page.getByRole("button", { name: "Objeto", exact: true }).click();
+  await page.getByRole("button", { name: "Proceso", exact: true }).click();
+  await elementoPorTexto(page, "Objeto").click();
+  await page.getByLabel("Tipo de enlace").selectOption("instrumento");
+  await clickCabeceraElemento(page, "Proceso");
+  await clickCentroLink(page);
+
+  const segmentBox = await rectDeLocator(page.locator(".joint-marker-segment").first());
+  await page.mouse.move(segmentBox.x + segmentBox.width / 2, segmentBox.y + segmentBox.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(segmentBox.x + segmentBox.width / 2, segmentBox.y + segmentBox.height / 2 + 70, { steps: 8 });
+  await page.mouse.up();
+  expect((await verticesPrimerEnlace(page)).length).toBeGreaterThan(0);
+
+  await page.keyboard.press("Control+Z");
+  expect(await verticesPrimerEnlace(page)).toHaveLength(0);
+
+  expect(pageErrors).toEqual([]);
+});
+
+test("extraer todas las partes plegadas crea apariencias en un solo undo", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await page.getByRole("button", { name: "Objeto", exact: true }).click();
+  await desplegarComoAgregacion(page);
+  await page.locator('[role="treeitem"][data-opd-id="opd-1"]').click();
+  await clickCabeceraElemento(page, "Objeto");
+  await page.getByRole("button", { name: "Plegado parcial" }).click();
+  await page.getByTestId("extraer-todas-partes-btn").click();
+
+  await expect(page.locator(".joint-element")).toHaveCount(4);
+  await page.getByRole("button", { name: "Exportar", exact: true }).click();
+  let exportado = JSON.parse(await jsonEditor(page).inputValue()) as ExportadoModelo;
+  const objeto = Object.values(exportado.modelo.entidades).find((entidad) => entidad.nombre === "Objeto");
+  if (!objeto) throw new Error("No se exporto Objeto");
+  const extraidas = Object.values(exportado.modelo.opds[exportado.modelo.opdRaizId]?.apariencias ?? {})
+    .filter((apariencia) => apariencia.parteExtraidaDe);
+  expect(extraidas).toHaveLength(3);
+
+  await page.keyboard.press("Control+Z");
+  await page.getByRole("button", { name: "Exportar", exact: true }).click();
+  exportado = JSON.parse(await jsonEditor(page).inputValue()) as ExportadoModelo;
+  expect(Object.values(exportado.modelo.opds[exportado.modelo.opdRaizId]?.apariencias ?? {})
+    .filter((apariencia) => apariencia.parteExtraidaDe)).toHaveLength(0);
+
+  expect(pageErrors).toEqual([]);
+});
+
+test("activa beforeunload solo cuando el modelo esta dirty", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await expect(await estadoBeforeUnload(page)).toEqual({ canceled: false, defaultPrevented: false });
+
+  await page.getByRole("button", { name: "Objeto", exact: true }).click();
+  await expect(await estadoBeforeUnload(page)).toEqual({ canceled: true, defaultPrevented: true });
+
+  await guardarComoActual(page, "Beforeunload limpio");
+  await expect(await estadoBeforeUnload(page)).toEqual({ canceled: false, defaultPrevented: false });
+
+  expect(pageErrors).toEqual([]);
+});
+
+test("HU-SHARED-002: deshacer revierte creación de cosa con un solo Ctrl+Z (atomicidad)", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await cerrarPantallaInicioSiVisible(page);
+  const canvas = page.getByRole("img", { name: "OPD activo" });
+  await page.getByRole("button", { name: "Objeto en canvas" }).dragTo(canvas, { targetPosition: { x: 320, y: 190 } });
+  const modal = page.getByTestId("modal-nombre-cosa");
+  if (await modal.count()) {
+    await modal.getByLabel("Nombre").fill("Cosa undo");
+    await modal.getByRole("button", { name: "OK" }).click();
+    await expect(modal).toHaveCount(0);
+  }
+  await expect(elementoPorTexto(page, "Cosa undo")).toHaveCount(1);
+
+  // Un solo Ctrl+Z debe revertir la operación completa (creación = un push).
+  await page.keyboard.press("Control+z");
+  await expect(elementoPorTexto(page, "Cosa undo")).toHaveCount(0);
+
+  expect(pageErrors).toEqual([]);
+});
+// ─────────────────────────────────────────────────────────────────────────────
+// Ronda 12.1 L2 — HU-30.037 cobertura Esc en diálogos legados.
+// El componente `Dialogo.tsx` ya captura Esc en fase de captura
+// (líneas 32-44, ronda 12). Estos smokes verifican que los diálogos
+// instanciados en MenuPrincipal (Versiones, Archivados, BuscarGlobal)
+// efectivamente cierran sin persistir el modelo cuando el operador presiona
+// Esc. Anclaje SSOT: [Met §6 etapas SD persistencia].
+// Bloque pegable al final de `app/e2e/opm-smoke.spec.ts` (sin tocar tests
+// previos). Requiere helpers `cerrarPantallaInicioSiVisible` y
+// `exportadoActual` ya presentes en el archivo.
+// ─────────────────────────────────────────────────────────────────────────────

@@ -1,0 +1,365 @@
+import { expect, test, type Page } from "@playwright/test";
+import {
+  elementoPorTexto,
+  escapeRegExp,
+  modeloTraerConectadosSmoke,
+  cerrarPantallaInicioSiVisible,
+  crearAtributoNumericoSmoke,
+  rectDeLocator,
+  clickCabeceraElemento,
+  clickCentroLink,
+  clickLinkPorIndice,
+  clickLinkPorTipo,
+  desplegarComoAgregacion,
+  guardarComoActual,
+  cargarPrimerModelo,
+  assertWorkbenchLayout,
+  assertCanvasScrollable,
+  estadoBeforeUnload,
+  puntoMedioPath,
+  todasSeparadas,
+  svgText,
+  jsonEditor,
+  exportadoActual,
+  aparienciaRaizPorNombre,
+  verticesPrimerEnlace,
+  modeloDosOpds,
+  modeloEjemploOrganizacionalSmoke,
+  modeloMarkersCanonicos,
+  modeloModificadoresEnlace,
+  modeloNoModificador,
+  modeloMoverPuerto,
+  modeloConsumoDuplicado,
+  modeloBusAgregacion,
+  modeloAbanicoLogico,
+  modeloTransicionEstados,
+  modeloTransicionEstadosIncompleto,
+  modeloAbanicoRutasEstados,
+  objeto,
+  proceso,
+  enlace,
+  aparienciaPar,
+  extremoEntidad,
+  extremoEstado,
+  extremoApuntaAEntidad,
+  type ExportadoModelo,
+  type ExtremoExportado,
+} from "./_smoke-helpers";
+
+test("renderiza todos los markers canonicos de enlaces", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await jsonEditor(page).fill(JSON.stringify(modeloMarkersCanonicos(), null, 2));
+  await page.getByRole("button", { name: "Importar" }).click();
+
+  await expect(page.locator(".joint-link")).toHaveCount(14);
+  // Exhibicion = 2 poligonos (outer contorno + inner relleno); antes eran 3.
+  await expect(page.locator(".joint-element")).toHaveCount(26);
+  await page.screenshot({ path: "test-results/opm-markers-canonicos.png", fullPage: true });
+
+  expect(pageErrors).toEqual([]);
+});
+
+test("renderiza abanicos O/XOR con conectores canonicos sin texto de marcador", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await jsonEditor(page).fill(JSON.stringify(modeloAbanicoLogico(), null, 2));
+  await page.getByRole("button", { name: "Importar" }).click();
+
+  await expect(page.locator(".joint-link")).toHaveCount(2);
+  await expect(page.locator(".joint-element path[joint-selector=body]")).toHaveCount(1);
+  await expect(svgText(page, "O")).toHaveCount(0);
+  await expect(svgText(page, "XOR")).toHaveCount(0);
+
+  await clickLinkPorTipo(page, "Consumo");
+  await expect(page.getByText("Abanico O")).toBeVisible();
+  await page.getByTestId("abanico-toggle-XOR").click();
+  await expect(page.getByText("Operador actualizado a XOR")).toBeVisible();
+  // XOR ahora tambien es un arco SVG (un solo trazo, sin segundo concentrico).
+  await expect(page.locator(".joint-element path[joint-selector=body]")).toHaveCount(1);
+  await expect(svgText(page, "O")).toHaveCount(0);
+  await expect(svgText(page, "XOR")).toHaveCount(0);
+
+  await page.screenshot({ path: "test-results/opm-abanico-logico-canonico.png", fullPage: true });
+  expect(pageErrors).toEqual([]);
+});
+
+test("renderiza modificadores evento/condicion y demora de invocacion", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await jsonEditor(page).fill(JSON.stringify(modeloModificadoresEnlace(), null, 2));
+  await page.getByRole("button", { name: "Importar" }).click();
+
+  await expect(page.locator(".joint-link")).toHaveCount(3);
+  await expect(svgText(page, "E")).toBeVisible();
+  await expect(svgText(page, "70%")).toBeVisible();
+  await expect(svgText(page, "C")).toBeVisible();
+  await expect(svgText(page, "1s")).toBeVisible();
+  await expect(page.getByText("Orden inicia Aprobar, que consume Orden (probabilidad: 70%).")).toBeVisible();
+  await expect(page.getByText("Aprobar invoca Validar despues de 1s.")).toBeVisible();
+
+  await page.screenshot({ path: "test-results/opm-modificadores-enlace.png", fullPage: true });
+  expect(pageErrors).toEqual([]);
+});
+
+test("aplica subtipo NO desde inspector y emite badge negado", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await jsonEditor(page).fill(JSON.stringify(modeloNoModificador(), null, 2));
+  await page.getByRole("button", { name: "Importar" }).click();
+
+  await clickLinkPorTipo(page, "Consumo");
+  await page.getByTestId("modificador-enlace-select").selectOption("no");
+
+  await expect(svgText(page, "¬")).toBeVisible();
+  await expect(page.getByText("Aprobar no consume Orden.")).toBeVisible();
+
+  await page.getByRole("button", { name: "Exportar", exact: true }).click();
+  const exportado = JSON.parse(await jsonEditor(page).inputValue()) as ExportadoModelo;
+  const enlace = Object.values(exportado.modelo.enlaces)[0];
+  expect(enlace?.modificador).toBe("no");
+  expect(enlace?.subtipoModificador).toBe("no");
+  expect(pageErrors).toEqual([]);
+});
+
+test("mover puerto desde dialogo cambia extremo destino del enlace", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await jsonEditor(page).fill(JSON.stringify(modeloMoverPuerto(), null, 2));
+  await page.getByRole("button", { name: "Importar" }).click();
+
+  await clickLinkPorTipo(page, "Consumo");
+  await page.getByTestId("mover-puerto-btn").click();
+  const dialogo = page.getByRole("dialog", { name: "Mover Puerto" });
+  await expect(dialogo).toBeVisible();
+  await dialogo.getByTestId("mover-puerto-extremo-select").selectOption("entidad:p-validar");
+  await page.getByRole("dialog", { name: "Mover Puerto" }).getByRole("button", { name: "Mover", exact: true }).click();
+
+  await expect(page.getByText("Puerto movido")).toBeVisible();
+  await page.getByRole("button", { name: "Exportar", exact: true }).click();
+  const exportado = JSON.parse(await jsonEditor(page).inputValue()) as ExportadoModelo;
+  expect(Object.values(exportado.modelo.enlaces)[0]?.destinoId).toEqual({ kind: "entidad", id: "p-validar" });
+  expect(pageErrors).toEqual([]);
+});
+
+test("dos consumos al mismo objeto emiten advertencia", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await jsonEditor(page).fill(JSON.stringify(modeloConsumoDuplicado(), null, 2));
+  await page.getByRole("button", { name: "Importar" }).click();
+
+  await expect(page.getByTestId("panel-avisos")).toContainText("consumo-doble-mismo-objeto");
+  await expect(page.getByTestId("panel-avisos")).toContainText("Procesar consume Entrada más de una vez");
+  expect(pageErrors).toEqual([]);
+});
+
+test("crea auto-invocacion desde Inspector con demora default", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await page.getByRole("button", { name: "Proceso", exact: true }).click();
+  await expect(page.getByRole("button", { name: "Auto-invocación" })).toBeVisible();
+
+  await page.getByRole("button", { name: "Auto-invocación" }).click();
+
+  await expect(page.locator(".joint-link")).toHaveCount(2);
+  await expect(svgText(page, "1s")).toBeVisible();
+  await expect(page.getByText("Proceso se invoca a sí mismo despues de 1s.")).toBeVisible();
+
+  await page.getByRole("button", { name: "Exportar", exact: true }).click();
+  const json = await jsonEditor(page).inputValue();
+  const exportado = JSON.parse(json) as ExportadoModelo;
+  const proceso = Object.values(exportado.modelo.entidades).find((entidad) => entidad.nombre === "Proceso");
+  const enlace = Object.values(exportado.modelo.enlaces)[0];
+  if (!proceso || !enlace) throw new Error("La auto-invocacion no se exporto");
+  expect(enlace.tipo).toBe("invocacion");
+  expect(enlace.origenId).toEqual({ kind: "entidad", id: proceso.id });
+  expect(enlace.destinoId).toEqual({ kind: "entidad", id: proceso.id });
+  expect(enlace.demora).toBe("1s");
+
+  await page.screenshot({ path: "test-results/opm-auto-invocacion.png", fullPage: true });
+  expect(pageErrors).toEqual([]);
+});
+
+test("arrastra una cosa JointJS y persiste su apariencia", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await page.getByRole("button", { name: "Objeto", exact: true }).click();
+  await page.getByRole("button", { name: "Proceso", exact: true }).click();
+
+  await expect(page.locator(".joint-element")).toHaveCount(2);
+
+  const objectBox = await elementoPorTexto(page, "Objeto").boundingBox();
+  if (!objectBox) throw new Error("No se pudo ubicar la celda de objeto para drag");
+  await page.mouse.move(objectBox.x + objectBox.width / 2, objectBox.y + objectBox.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(objectBox.x + objectBox.width / 2 + 120, objectBox.y + objectBox.height / 2 + 70, { steps: 8 });
+  await page.mouse.up();
+
+  await page.getByRole("button", { name: "Exportar", exact: true }).click();
+  const jsonDespuesDeDrag = await jsonEditor(page).inputValue();
+  const exportadoDespuesDeDrag = JSON.parse(jsonDespuesDeDrag) as ExportadoModelo;
+  const objetoMovido = Object.values(exportadoDespuesDeDrag.modelo.entidades).find((entidad) => entidad.nombre === "Objeto");
+  if (!objetoMovido) throw new Error("No se encontro Objeto en JSON exportado");
+  const aparienciaMovida = Object.values(exportadoDespuesDeDrag.modelo.opds[exportadoDespuesDeDrag.modelo.opdRaizId]?.apariencias ?? {}).find(
+    (apariencia) => apariencia.entidadId === objetoMovido.id,
+  );
+  expect(aparienciaMovida?.x).toBeGreaterThan(150);
+  expect(aparienciaMovida?.y).toBeGreaterThan(120);
+
+  await page.screenshot({ path: "test-results/opm-drag-jointjs.png", fullPage: true });
+  expect(pageErrors).toEqual([]);
+});
+
+test("arrastra subproceso embebido dentro del macroproceso contenedor", async ({ page }) => {
+  // Regresion: rect de restrictTranslate restaba cellBBox.width/height adicional al
+  // que JointJS ya descuenta internamente (Element.mjs:130-131); el doble descuento
+  // dejaba a los subprocesos sin juego horizontal/vertical y los anclaba al centro.
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await page.getByRole("button", { name: "Proceso", exact: true }).click();
+  await page.getByRole("button", { name: "Descomponer" }).click();
+
+  await expect(page.locator('[role="treeitem"]').filter({ hasText: "SD1: Proceso descompuesto" })).toHaveAttribute("aria-current", "page");
+  await expect(page.locator(".joint-element")).toHaveCount(4);
+
+  const ellipses = await page.locator(".joint-element").evaluateAll((els) =>
+    els.map((el) => {
+      const r = el.getBoundingClientRect();
+      const tieneEllipse = !!el.querySelector("ellipse");
+      const modelId = el.getAttribute("model-id") ?? "";
+      return { modelId, tieneEllipse, x: r.x, y: r.y, width: r.width, height: r.height };
+    }),
+  );
+  const conEllipse = ellipses.filter((e) => e.tieneEllipse).sort((a, b) => b.width - a.width);
+  const contornoIni = conEllipse[0];
+  const subsIni = conEllipse.slice(1, 4).sort((a, b) => a.y - b.y);
+  expect(subsIni).toHaveLength(3);
+
+  const target = subsIni[1];
+  const cx = target.x + target.width / 2;
+  const cy = target.y + target.height / 2;
+  await page.mouse.move(cx, cy);
+  await page.mouse.down();
+  await page.mouse.move(cx + 200, cy, { steps: 12 });
+  await page.mouse.up();
+
+  const ellipsesFin = await page.locator(".joint-element").evaluateAll((els) =>
+    els.map((el) => {
+      const r = el.getBoundingClientRect();
+      const tieneEllipse = !!el.querySelector("ellipse");
+      const modelId = el.getAttribute("model-id") ?? "";
+      return { modelId, tieneEllipse, x: r.x, y: r.y, width: r.width };
+    }),
+  );
+  const conEllipseFin = ellipsesFin.filter((e) => e.tieneEllipse).sort((a, b) => b.width - a.width);
+  const contornoFin = conEllipseFin[0];
+  const subsFin = conEllipseFin.slice(1, 4).sort((a, b) => a.y - b.y);
+  const subsFinPorId = new Map(subsFin.map((subproceso) => [subproceso.modelId, subproceso]));
+  const targetFin = subsFinPorId.get(target.modelId);
+  const hermanoSuperiorFin = subsFinPorId.get(subsIni[0]?.modelId ?? "");
+  const hermanoInferiorFin = subsFinPorId.get(subsIni[2]?.modelId ?? "");
+  expect(targetFin).toBeDefined();
+  expect(hermanoSuperiorFin).toBeDefined();
+  expect(hermanoInferiorFin).toBeDefined();
+  if (!targetFin || !hermanoSuperiorFin || !hermanoInferiorFin) return;
+
+  // El subproceso target se desplaza hacia la derecha (clamp por padding interior).
+  expect(targetFin.x - target.x).toBeGreaterThan(100);
+  // Contorno y hermanos quedan estaticos.
+  expect(Math.abs(contornoFin.x - contornoIni.x)).toBeLessThan(10);
+  expect(Math.abs(hermanoSuperiorFin.x - subsIni[0].x)).toBeLessThan(10);
+  expect(Math.abs(hermanoInferiorFin.x - subsIni[2].x)).toBeLessThan(10);
+
+  expect(pageErrors).toEqual([]);
+});
+
+test("renderiza agregacion como triangulo estructural", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await page.getByRole("button", { name: "Objeto", exact: true }).click();
+  await page.getByRole("button", { name: "Objeto", exact: true }).click();
+
+  const objetos = elementoPorTexto(page, "Objeto");
+  await expect(objetos).toHaveCount(2);
+  await objetos.nth(0).click();
+  await page.getByLabel("Tipo de enlace").selectOption("agregacion");
+  await objetos.nth(1).click();
+
+  await expect(page.locator(".joint-link")).toHaveCount(2);
+  await expect(page.locator(".joint-element polygon")).toHaveCount(1);
+  await page.locator(".joint-element polygon").click();
+  await expect(page.getByText("Enlace Agregacion")).toBeVisible();
+  await expect(page.locator('[data-tool-name="vertices"]')).toHaveCount(0);
+  await expect(page.locator('[data-tool-name="segments"]')).toHaveCount(0);
+  await page.screenshot({ path: "test-results/opm-agregacion-triangulo.png", fullPage: true });
+
+  expect(pageErrors).toEqual([]);
+});
+
+test("HU-17.013/.015/.016 crea atributo numérico desde Toolbar y emite OPL canónica", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await crearAtributoNumericoSmoke(page);
+
+  await expect(page.getByText("Temperatura es valor [°C].")).toBeVisible();
+  await expect(svgText(page, "Temperatura [°C]")).toBeVisible();
+  const exportado = await exportadoActual(page);
+  const atributo = Object.values(exportado.modelo.entidades).find((item) => item.nombre === "Temperatura");
+  expect(atributo).toMatchObject({
+    unidad: "°C",
+    esAtributo: true,
+    valorSlot: { tipo: "float", placeholder: "value" },
+  });
+  expect(Object.values(exportado.modelo.enlaces).some((enlace) => enlace.tipo === "exhibicion")).toBe(true);
+  expect(pageErrors).toEqual([]);
+});
+
+test("HU-17.012 renderiza sintaxis compuesta Nombre [Unidad] {alias}", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await crearAtributoNumericoSmoke(page);
+  await page.getByPlaceholder("{alias}").fill("T");
+
+  await expect(elementoPorTexto(page, "Temperatura [°C] {T}")).toHaveCount(1);
+  expect(pageErrors).toEqual([]);
+});
+
+test("HU-17.017 asigna valor concreto y reemplaza placeholder en OPL", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await crearAtributoNumericoSmoke(page);
+  await page.getByTestId("atributo-valor-input").fill("25");
+  await page.getByTestId("atributo-valor-input").blur();
+
+  await expect(page.getByText("Temperatura es 25 [°C].")).toBeVisible();
+  const exportado = await exportadoActual(page);
+  const atributo = Object.values(exportado.modelo.entidades).find((item) => item.nombre === "Temperatura");
+  expect(atributo?.valorSlot?.valor).toBe(25);
+  expect(pageErrors).toEqual([]);
+});

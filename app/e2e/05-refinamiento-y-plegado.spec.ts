@@ -1,0 +1,565 @@
+import { expect, test, type Page } from "@playwright/test";
+import {
+  elementoPorTexto,
+  escapeRegExp,
+  modeloTraerConectadosSmoke,
+  cerrarPantallaInicioSiVisible,
+  crearAtributoNumericoSmoke,
+  rectDeLocator,
+  clickCabeceraElemento,
+  clickCentroLink,
+  clickLinkPorIndice,
+  clickLinkPorTipo,
+  desplegarComoAgregacion,
+  guardarComoActual,
+  cargarPrimerModelo,
+  assertWorkbenchLayout,
+  assertCanvasScrollable,
+  estadoBeforeUnload,
+  puntoMedioPath,
+  todasSeparadas,
+  svgText,
+  jsonEditor,
+  exportadoActual,
+  aparienciaRaizPorNombre,
+  verticesPrimerEnlace,
+  modeloDosOpds,
+  modeloEjemploOrganizacionalSmoke,
+  modeloMarkersCanonicos,
+  modeloModificadoresEnlace,
+  modeloNoModificador,
+  modeloMoverPuerto,
+  modeloConsumoDuplicado,
+  modeloBusAgregacion,
+  modeloAbanicoLogico,
+  modeloTransicionEstados,
+  modeloTransicionEstadosIncompleto,
+  modeloAbanicoRutasEstados,
+  objeto,
+  proceso,
+  enlace,
+  aparienciaPar,
+  extremoEntidad,
+  extremoEstado,
+  extremoApuntaAEntidad,
+  type ExportadoModelo,
+  type ExtremoExportado,
+} from "./_smoke-helpers";
+
+test("descompone proceso y navega al OPD hijo", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await page.getByRole("button", { name: "Proceso", exact: true }).click();
+  await expect(page.getByRole("button", { name: "Descomponer" })).toBeVisible();
+
+  await page.getByRole("button", { name: "Descomponer" }).click();
+
+  const nodoHijo = page.locator('[role="treeitem"]').filter({ hasText: "SD1: Proceso descompuesto" });
+  await expect(nodoHijo).toHaveAttribute("aria-current", "page");
+  await expect(page.locator(".joint-element")).toHaveCount(4);
+  await expect(page.getByTestId("bloque-opl-opd-1").getByText("Proceso se descompone en Proceso 1, Proceso 2 y Proceso 3 en esa secuencia.")).toBeVisible();
+
+  await page.getByRole("button", { name: "Exportar", exact: true }).click();
+  const json = await jsonEditor(page).inputValue();
+  const exportado = JSON.parse(json) as ExportadoModelo;
+  const proceso = Object.values(exportado.modelo.entidades).find((entidad) => entidad.nombre === "Proceso");
+  const subprocesos = Object.values(exportado.modelo.entidades).filter((entidad) => /^Proceso [1-3]$/.test(entidad.nombre));
+  expect(proceso?.refinamiento?.tipo).toBe("descomposicion");
+  expect(subprocesos).toHaveLength(3);
+  const opdHijoId = proceso?.refinamiento?.opdId;
+  expect(opdHijoId).toBeTruthy();
+  if (!opdHijoId) throw new Error("La descomposicion no exporto opdId");
+  expect(exportado.modelo.opds[opdHijoId]?.padreId).toBe(exportado.modelo.opdRaizId);
+  expect(Object.values(exportado.modelo.opds[opdHijoId]?.apariencias ?? {}).some((apariencia) => apariencia.entidadId === proceso?.id)).toBe(true);
+  const aparienciasHijo = Object.values(exportado.modelo.opds[opdHijoId]?.apariencias ?? {});
+  const contorno = aparienciasHijo.find((apariencia) => apariencia.entidadId === proceso.id);
+  if (!contorno) throw new Error("No se exporto contorno de descomposicion");
+  for (const subproceso of subprocesos) {
+    const apariencia = aparienciasHijo.find((item) => item.entidadId === subproceso.id);
+    if (!apariencia) throw new Error(`No se exporto apariencia de ${subproceso.nombre}`);
+    expect(apariencia.x).toBeGreaterThan(contorno.x);
+    expect(apariencia.y).toBeGreaterThan(contorno.y);
+    expect(apariencia.x + apariencia.width).toBeLessThan(contorno.x + contorno.width);
+    expect(apariencia.y + apariencia.height).toBeLessThan(contorno.y + contorno.height);
+  }
+
+  await page.screenshot({ path: "test-results/opm-descomposicion-opd-hijo.png", fullPage: true });
+  await assertWorkbenchLayout(page);
+
+  await page.getByRole("button", { name: "Quitar descomposición" }).click();
+  await expect(page.locator('[role="treeitem"]').filter({ hasText: "SD1: Proceso descompuesto" })).toHaveCount(0);
+  await expect(page.locator('[role="treeitem"][data-opd-id="opd-1"]')).toHaveAttribute("aria-current", "page");
+  await expect(page.getByText("Proceso se descompone en Proceso 1, Proceso 2 y Proceso 3 en esa secuencia.")).toHaveCount(0);
+  await page.getByRole("button", { name: "Exportar", exact: true }).click();
+  const jsonSinDescomposicion = await jsonEditor(page).inputValue();
+  const exportadoSinDescomposicion = JSON.parse(jsonSinDescomposicion) as ExportadoModelo;
+  const procesoSinDescomposicion = Object.values(exportadoSinDescomposicion.modelo.entidades).find((entidad) => entidad.nombre === "Proceso");
+  expect(procesoSinDescomposicion?.refinamiento).toBeUndefined();
+  expect(Object.values(exportadoSinDescomposicion.modelo.opds)).toHaveLength(1);
+
+  expect(pageErrors).toEqual([]);
+});
+
+test("elimina desde arbol solo OPDs hoja y deshacer restaura", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await page.getByRole("button", { name: "Proceso", exact: true }).click();
+  await page.getByRole("button", { name: "Descomponer" }).click();
+  const nodoPadre = page.locator('[role="treeitem"]').filter({ hasText: "SD1: Proceso descompuesto" });
+  await expect(nodoPadre).toHaveAttribute("aria-current", "page");
+
+  await elementoPorTexto(page, "Proceso 1").click();
+  await page.getByRole("button", { name: "Descomponer" }).click();
+  const nodoHoja = page.locator('[role="treeitem"]').filter({ hasText: "SD1.1: Proceso 1 descompuesto" });
+  await expect(nodoHoja).toHaveAttribute("aria-current", "page");
+
+  await nodoPadre.getByRole("button", { name: /Eliminar OPD/ }).click();
+  await expect(page.getByText(/Eliminar descendientes primero/)).toBeVisible();
+  await expect(nodoPadre).toHaveCount(1);
+  await expect(nodoHoja).toHaveCount(1);
+
+  page.once("dialog", (dialog) => dialog.accept());
+  await nodoHoja.getByRole("button", { name: /Eliminar OPD/ }).click();
+  await expect(nodoHoja).toHaveCount(0);
+  await expect(nodoPadre).toHaveAttribute("aria-current", "page");
+
+  await page.getByRole("button", { name: "Deshacer" }).click();
+  await expect(page.locator('[role="treeitem"]').filter({ hasText: "SD1.1: Proceso 1 descompuesto" })).toHaveCount(1);
+
+  await page.screenshot({ path: "test-results/opm-eliminar-opd-hoja.png", fullPage: true });
+  expect(pageErrors).toEqual([]);
+});
+
+test("crea objeto interno por click dentro del contenedor refinado", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await page.getByRole("button", { name: "Proceso", exact: true }).click();
+  await page.getByRole("button", { name: "Descomponer" }).click();
+  await expect(page.locator('[role="treeitem"]').filter({ hasText: "SD1: Proceso descompuesto" })).toHaveAttribute("aria-current", "page");
+
+  await page.getByRole("button", { name: "Objeto en canvas" }).click();
+  const contorno = await rectDeLocator(elementoPorTexto(page, "Proceso"));
+  await page.mouse.click(contorno.x + 48, contorno.y + 118);
+
+  await expect(elementoPorTexto(page, "Objeto")).toHaveCount(1);
+  await expect(page.getByText(/interior|exterior/i)).toHaveCount(0);
+  await page.getByRole("button", { name: "Exportar", exact: true }).click();
+  const exportado = JSON.parse(await jsonEditor(page).inputValue()) as ExportadoModelo;
+  const proceso = Object.values(exportado.modelo.entidades).find((entidad) => entidad.nombre === "Proceso");
+  const objeto = Object.values(exportado.modelo.entidades).find((entidad) => entidad.nombre === "Objeto");
+  const opdHijoId = proceso?.refinamiento?.opdId;
+  if (!proceso || !objeto || !opdHijoId) throw new Error("No se exporto la creación interna esperada");
+  const aparienciasHijo = Object.values(exportado.modelo.opds[opdHijoId]?.apariencias ?? {});
+  const aparienciaContorno = aparienciasHijo.find((apariencia) => apariencia.entidadId === proceso.id);
+  const aparienciaObjeto = aparienciasHijo.find((apariencia) => apariencia.entidadId === objeto.id);
+  if (!aparienciaContorno || !aparienciaObjeto) throw new Error("No se exporto apariencia interna");
+  expect(aparienciaObjeto.x).toBeGreaterThan(aparienciaContorno.x);
+  expect(aparienciaObjeto.y).toBeGreaterThan(aparienciaContorno.y);
+  expect(aparienciaObjeto.x + aparienciaObjeto.width).toBeLessThan(aparienciaContorno.x + aparienciaContorno.width);
+  expect(aparienciaObjeto.y + aparienciaObjeto.height).toBeLessThan(aparienciaContorno.y + aparienciaContorno.height);
+  expect(Object.values(exportado.modelo.opds[exportado.modelo.opdRaizId]?.apariencias ?? {})
+    .some((apariencia) => apariencia.entidadId === objeto.id)).toBe(false);
+
+  await page.screenshot({ path: "test-results/opm-creacion-interna-contenedor.png", fullPage: true });
+  expect(pageErrors).toEqual([]);
+});
+
+test("despliega objeto y navega al OPD hijo", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await cerrarPantallaInicioSiVisible(page);
+  await page.getByRole("button", { name: "Objeto", exact: true }).click();
+  await expect(page.getByText("Desplegar como...")).toBeVisible();
+
+  await desplegarComoAgregacion(page);
+
+  const nodoHijo = page.locator('[role="treeitem"]').filter({ hasText: "SD1: Objeto desplegado" });
+  await expect(nodoHijo).toHaveAttribute("aria-current", "page");
+  await expect(page.locator(".joint-element")).toHaveCount(5);
+  await expect(page.getByTestId("bloque-opl-opd-1").getByText("Objeto se despliega en Objeto parte 1, Objeto parte 2 y Objeto parte 3.")).toBeVisible();
+
+  await page.getByRole("button", { name: "Exportar", exact: true }).click();
+  const json = await jsonEditor(page).inputValue();
+  const exportado = JSON.parse(json) as ExportadoModelo;
+  const objeto = Object.values(exportado.modelo.entidades).find((entidad) => entidad.nombre === "Objeto");
+  const partes = Object.values(exportado.modelo.entidades).filter((entidad) => /^Objeto parte [1-3]$/.test(entidad.nombre));
+  expect(objeto?.refinamiento?.tipo).toBe("despliegue");
+  expect(partes).toHaveLength(3);
+  const opdHijoId = objeto?.refinamiento?.opdId;
+  expect(opdHijoId).toBeTruthy();
+  if (!opdHijoId || !objeto) throw new Error("El despliegue no exporto opdId");
+  expect(exportado.modelo.opds[opdHijoId]?.padreId).toBe(exportado.modelo.opdRaizId);
+  expect(Object.values(exportado.modelo.enlaces).filter((enlace) => enlace.tipo === "agregacion" && extremoApuntaAEntidad(enlace.origenId, objeto.id))).toHaveLength(3);
+
+  await page.getByRole("button", { name: "Quitar despliegue" }).click();
+  await expect(page.locator('[role="treeitem"]').filter({ hasText: "SD1: Objeto desplegado" })).toHaveCount(0);
+  await page.getByRole("button", { name: "Exportar", exact: true }).click();
+  const jsonSinDespliegue = await jsonEditor(page).inputValue();
+  const exportadoSinDespliegue = JSON.parse(jsonSinDespliegue) as ExportadoModelo;
+  const objetoSinDespliegue = Object.values(exportadoSinDespliegue.modelo.entidades).find((entidad) => entidad.nombre === "Objeto");
+  expect(objetoSinDespliegue?.refinamiento).toBeUndefined();
+  expect(Object.values(exportadoSinDespliegue.modelo.opds)).toHaveLength(1);
+  expect(Object.values(exportadoSinDespliegue.modelo.enlaces)).toHaveLength(0);
+
+  await page.screenshot({ path: "test-results/opm-despliegue-opd-hijo.png", fullPage: true });
+  expect(pageErrors).toEqual([]);
+});
+
+test("activa plegado parcial desde Inspector y persiste la vista compacta", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await cerrarPantallaInicioSiVisible(page);
+  await page.getByRole("button", { name: "Objeto", exact: true }).click();
+  await desplegarComoAgregacion(page);
+  await page.locator('[role="treeitem"][data-opd-id="opd-1"]').click();
+  await expect(page.locator(".joint-element")).toHaveCount(1);
+  await elementoPorTexto(page, "Objeto").click();
+
+  await expect(page.getByRole("button", { name: "Plegado parcial" })).toBeVisible();
+  await page.getByRole("button", { name: "Plegado parcial" }).click();
+
+  await expect(page.locator(".joint-element")).toHaveCount(1);
+  await expect(elementoPorTexto(page, "Objeto parte 1")).toHaveCount(1);
+  await expect(elementoPorTexto(page, "Objeto parte 2")).toHaveCount(1);
+  await expect(elementoPorTexto(page, "Objeto parte 3")).toHaveCount(1);
+  await expect(page.getByRole("button", { name: "Plegado completo" })).toBeVisible();
+
+  await page.getByRole("button", { name: "Exportar", exact: true }).click();
+  const json = await jsonEditor(page).inputValue();
+  const exportado = JSON.parse(json) as ExportadoModelo;
+  const objeto = Object.values(exportado.modelo.entidades).find((entidad) => entidad.nombre === "Objeto");
+  if (!objeto?.refinamiento) throw new Error("No se exporto despliegue del objeto");
+  const aparienciaPadre = Object.values(exportado.modelo.opds[exportado.modelo.opdRaizId]?.apariencias ?? {})
+    .find((apariencia) => apariencia.entidadId === objeto.id);
+  expect(aparienciaPadre?.modoPlegado).toBe("parcial");
+  expect(Object.values(exportado.modelo.opds[objeto.refinamiento.opdId]?.apariencias ?? {})).toHaveLength(4);
+
+  await guardarComoActual(page, "Plegado parcial local");
+  await page.getByRole("button", { name: "Nuevo", exact: true }).click();
+  await cargarPrimerModelo(page);
+  await expect(elementoPorTexto(page, "Objeto parte 1")).toHaveCount(1);
+  await clickCabeceraElemento(page, "Objeto");
+  await expect(page.getByRole("button", { name: "Plegado completo" })).toBeVisible();
+
+  await page.screenshot({ path: "test-results/opm-plegado-parcial.png", fullPage: true });
+  expect(pageErrors).toEqual([]);
+});
+
+test("edita estilo visual de cosa, persiste local y resetea defaults", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await cerrarPantallaInicioSiVisible(page);
+  await page.getByRole("button", { name: "Objeto", exact: true }).click();
+  await expect(page.getByRole("button", { name: "Fill #fef3c7" })).toBeVisible();
+
+  await page.getByRole("button", { name: "Fill #fef3c7" }).click();
+  await page.getByRole("button", { name: "Borde #3bc3ff" }).click();
+
+  await expect(page.locator('.joint-element rect[joint-selector="body"]')).toHaveAttribute("fill", "#fef3c7");
+  await expect(page.locator('.joint-element rect[joint-selector="body"]')).toHaveAttribute("stroke", "#3bc3ff");
+
+  await page.getByRole("button", { name: "Exportar", exact: true }).click();
+  let json = await jsonEditor(page).inputValue();
+  let exportado = JSON.parse(json) as ExportadoModelo;
+  let objeto = Object.values(exportado.modelo.entidades).find((entidad) => entidad.nombre === "Objeto");
+  if (!objeto) throw new Error("No se exporto objeto");
+  let apariencia = Object.values(exportado.modelo.opds[exportado.modelo.opdRaizId]?.apariencias ?? {})
+    .find((item) => item.entidadId === objeto.id);
+  expect(apariencia?.estilo).toEqual({ fill: "#fef3c7", borderColor: "#3bc3ff" });
+
+  await guardarComoActual(page, "Estilo visual local");
+  await page.getByRole("button", { name: "Nuevo", exact: true }).click();
+  await cargarPrimerModelo(page);
+  await expect(page.locator('.joint-element rect[joint-selector="body"]')).toHaveAttribute("fill", "#fef3c7");
+  await expect(page.locator('.joint-element rect[joint-selector="body"]')).toHaveAttribute("stroke", "#3bc3ff");
+
+  await elementoPorTexto(page, "Objeto").click();
+  // Tras L6 ronda6 hay dos botones "Reset": uno para Style (apariencia) y otro
+  // para texto del rotulo. El test apunta al de apariencia (Reset Style).
+  await page.getByTitle("Reset Style").click();
+  await expect(page.locator('.joint-element rect[joint-selector="body"]')).toHaveAttribute("fill", "#fdffff");
+
+  await page.getByRole("button", { name: "Exportar", exact: true }).click();
+  json = await jsonEditor(page).inputValue();
+  exportado = JSON.parse(json) as ExportadoModelo;
+  objeto = Object.values(exportado.modelo.entidades).find((entidad) => entidad.nombre === "Objeto");
+  if (!objeto) throw new Error("No se exporto objeto tras reset");
+  apariencia = Object.values(exportado.modelo.opds[exportado.modelo.opdRaizId]?.apariencias ?? {})
+    .find((item) => item.entidadId === objeto.id);
+  expect(apariencia?.estilo).toBeUndefined();
+
+  await page.screenshot({ path: "test-results/opm-estilo-visual-cosa.png", fullPage: true });
+  expect(pageErrors).toEqual([]);
+});
+
+test("crea enlace desde fila plegada sin extraer la parte", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await page.getByRole("button", { name: "Objeto", exact: true }).click();
+  await page.getByRole("button", { name: "Proceso", exact: true }).click();
+  await page.getByLabel("Nombre").fill("Mover");
+  await elementoPorTexto(page, "Objeto").click();
+  await desplegarComoAgregacion(page);
+  await page.locator('[role="treeitem"][data-opd-id="opd-1"]').click();
+  await expect(page.locator(".joint-element")).toHaveCount(2);
+  await clickCabeceraElemento(page, "Objeto");
+  await page.getByRole("button", { name: "Plegado parcial" }).click();
+  await expect(elementoPorTexto(page, "Objeto parte 1")).toHaveCount(1);
+
+  await elementoPorTexto(page, "Objeto parte 1").click();
+  await page.getByLabel("Tipo de enlace").selectOption("instrumento");
+  await elementoPorTexto(page, "Mover").click();
+
+  await expect(page.locator(".joint-link")).toHaveCount(1);
+  await expect(page.getByText(/Mover\s+requiere\s+Objeto parte 1\./)).toBeVisible();
+  await page.getByRole("button", { name: "Exportar", exact: true }).click();
+  const exportado = JSON.parse(await jsonEditor(page).inputValue()) as ExportadoModelo;
+  const objeto = Object.values(exportado.modelo.entidades).find((entidad) => entidad.nombre === "Objeto");
+  const parte = Object.values(exportado.modelo.entidades).find((entidad) => entidad.nombre === "Objeto parte 1");
+  const mover = Object.values(exportado.modelo.entidades).find((entidad) => entidad.nombre === "Mover");
+  if (!objeto || !parte || !mover) throw new Error("No se exportaron entidades esperadas");
+  const enlace = Object.values(exportado.modelo.enlaces).find((item) => item.tipo === "instrumento");
+  expect(enlace).toMatchObject({
+    origenId: extremoEntidad(parte.id),
+    destinoId: extremoEntidad(mover.id),
+  });
+  const aparienciasRaiz = Object.values(exportado.modelo.opds[exportado.modelo.opdRaizId]?.apariencias ?? {});
+  expect(aparienciasRaiz.some((apariencia) => apariencia.entidadId === parte.id)).toBe(false);
+  expect(aparienciasRaiz.some((apariencia) => apariencia.entidadId === objeto.id && apariencia.modoPlegado === "parcial")).toBe(true);
+
+  await page.screenshot({ path: "test-results/opm-fila-plegada-enlace.png", fullPage: true });
+  expect(pageErrors).toEqual([]);
+});
+
+test("mantiene canvas e inspector en columnas separadas tras recalculos", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await page.getByRole("button", { name: "Proceso", exact: true }).click();
+  await page.getByRole("button", { name: "Descomponer" }).click();
+  await elementoPorTexto(page, "Proceso 1").click();
+  await page.getByRole("button", { name: "Descomponer" }).click();
+  await expect(page.locator('[role="treeitem"]').filter({ hasText: "SD1.1:" })).toHaveAttribute("aria-current", "page");
+
+  await page.waitForTimeout(4000);
+  await assertWorkbenchLayout(page);
+  await assertCanvasScrollable(page);
+  await page.getByRole("img", { name: "OPD activo" }).evaluate((element) => (element as HTMLElement).scrollTo({ left: 0, top: 0 }));
+  await page.screenshot({ path: "test-results/opm-layout-columns.png", fullPage: true });
+
+  expect(pageErrors).toEqual([]);
+});
+
+test("redistribuye consumo al primer subproceso y resultado al ultimo", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await page.getByRole("button", { name: "Objeto", exact: true }).click();
+  await page.getByLabel("Nombre").fill("Entrada");
+  await page.getByRole("button", { name: "Proceso", exact: true }).click();
+  await page.getByLabel("Nombre").fill("Procesar");
+  await page.getByRole("button", { name: "Objeto", exact: true }).click();
+  await page.getByLabel("Nombre").fill("Salida");
+
+  await elementoPorTexto(page, "Entrada").click();
+  await page.getByLabel("Tipo de enlace").selectOption("consumo");
+  await clickCabeceraElemento(page, "Procesar");
+  await elementoPorTexto(page, "Procesar").click();
+  await page.getByLabel("Tipo de enlace").selectOption("resultado");
+  await elementoPorTexto(page, "Salida").click();
+  await expect(page.locator(".joint-link")).toHaveCount(2);
+
+  await elementoPorTexto(page, "Procesar").click();
+  await page.getByRole("button", { name: "Descomponer" }).click();
+  await expect(page.locator('[role="treeitem"]').filter({ hasText: "SD1: Procesar descompuesto" })).toHaveAttribute("aria-current", "page");
+  await expect(page.locator(".joint-element")).toHaveCount(6);
+  await expect(page.locator(".joint-link")).toHaveCount(2);
+  await expect(elementoPorTexto(page, "Entrada")).toHaveCount(1);
+  await expect(elementoPorTexto(page, "Salida")).toHaveCount(1);
+  await expect(page.getByText(/Procesar 1\s+consume\s+Entrada/)).toBeVisible();
+  await expect(page.getByText(/Procesar 3\s+genera\s+Salida/)).toBeVisible();
+
+  await page.getByRole("button", { name: "Exportar", exact: true }).click();
+  const json = await jsonEditor(page).inputValue();
+  const exportado = JSON.parse(json) as ExportadoModelo;
+  const procesar = Object.values(exportado.modelo.entidades).find((entidad) => entidad.nombre === "Procesar");
+  const entrada = Object.values(exportado.modelo.entidades).find((entidad) => entidad.nombre === "Entrada");
+  const salida = Object.values(exportado.modelo.entidades).find((entidad) => entidad.nombre === "Salida");
+  const primero = Object.values(exportado.modelo.entidades).find((entidad) => entidad.nombre === "Procesar 1");
+  const ultimo = Object.values(exportado.modelo.entidades).find((entidad) => entidad.nombre === "Procesar 3");
+  const opdHijoId = procesar?.refinamiento?.opdId;
+  if (!opdHijoId || !entrada || !salida || !primero || !ultimo) throw new Error("No se exporto la redistribucion esperada");
+  const enlacesHijo = Object.values(exportado.modelo.opds[opdHijoId]?.enlaces ?? {})
+    .map((apariencia) => exportado.modelo.enlaces[apariencia.enlaceId]);
+  expect(enlacesHijo).toEqual(expect.arrayContaining([
+    expect.objectContaining({ tipo: "consumo", origenId: extremoEntidad(entrada.id), destinoId: extremoEntidad(primero.id) }),
+    expect.objectContaining({ tipo: "resultado", origenId: extremoEntidad(ultimo.id), destinoId: extremoEntidad(salida.id) }),
+  ]));
+
+  await page.screenshot({ path: "test-results/opm-descomposicion-enlaces-externos.png", fullPage: true });
+  expect(pageErrors).toEqual([]);
+});
+
+test("reancla consumo derivado y conserva el ancla manual al reordenar", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await page.getByRole("button", { name: "Objeto", exact: true }).click();
+  await page.getByLabel("Nombre").fill("Entrada");
+  await page.getByRole("button", { name: "Proceso", exact: true }).click();
+  await page.getByLabel("Nombre").fill("Procesar");
+  await elementoPorTexto(page, "Entrada").click();
+  await page.getByLabel("Tipo de enlace").selectOption("consumo");
+  await elementoPorTexto(page, "Procesar").click();
+  await elementoPorTexto(page, "Procesar").click();
+  await page.getByRole("button", { name: "Descomponer" }).click();
+  await expect(page.locator('[role="treeitem"]').filter({ hasText: "SD1: Procesar descompuesto" })).toHaveAttribute("aria-current", "page");
+
+  await clickLinkPorTipo(page, "Consumo");
+  await expect(page.getByText("Reanclar a subproceso")).toBeVisible();
+  await page.getByTestId("reanclar-subproceso-select").selectOption({ label: "Procesar 2 (2)" });
+  await page.getByRole("button", { name: "Aplicar" }).click();
+  await expect(page.getByText("Derivado (manual)")).toBeVisible();
+
+  const proceso2 = await elementoPorTexto(page, "Procesar 2").boundingBox();
+  if (!proceso2) throw new Error("No se pudo ubicar Procesar 2");
+  await page.mouse.move(proceso2.x + proceso2.width / 2, proceso2.y + proceso2.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(proceso2.x + proceso2.width / 2, proceso2.y + proceso2.height / 2 + 170, { steps: 10 });
+  await page.mouse.up();
+
+  await expect(page.getByText(/Procesar 2\s+consume\s+Entrada/)).toBeVisible();
+  await page.getByRole("button", { name: "Exportar", exact: true }).click();
+  const json = await jsonEditor(page).inputValue();
+  const exportado = JSON.parse(json) as ExportadoModelo;
+  const procesar = Object.values(exportado.modelo.entidades).find((entidad) => entidad.nombre === "Procesar");
+  const entrada = Object.values(exportado.modelo.entidades).find((entidad) => entidad.nombre === "Entrada");
+  const segundo = Object.values(exportado.modelo.entidades).find((entidad) => entidad.nombre === "Procesar 2");
+  const opdHijoId = procesar?.refinamiento?.opdId;
+  if (!opdHijoId || !entrada || !segundo) throw new Error("No se exporto el reanclaje esperado");
+  const consumos = Object.values(exportado.modelo.opds[opdHijoId]?.enlaces ?? {})
+    .map((apariencia) => exportado.modelo.enlaces[apariencia.enlaceId])
+    .filter((enlace) => enlace?.tipo === "consumo");
+  expect(consumos).toHaveLength(1);
+  expect(consumos[0]).toEqual(expect.objectContaining({
+    origenId: extremoEntidad(entrada.id),
+    destinoId: extremoEntidad(segundo.id),
+    derivado: expect.objectContaining({ origen: "manual" }),
+  }));
+
+  await page.screenshot({ path: "test-results/opm-reanclaje-manual.png", fullPage: true });
+  expect(pageErrors).toEqual([]);
+});
+
+test("L3 descomposicion avanzada: inspector reasigna, inline renombra, paralelo y ambiental clamp", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await page.getByRole("button", { name: "Objeto", exact: true }).click();
+  await page.getByLabel("Nombre").fill("Entrada");
+  await page.getByRole("button", { name: "Proceso", exact: true }).click();
+  await page.getByLabel("Nombre").fill("Procesar");
+  await elementoPorTexto(page, "Entrada").click();
+  await page.getByLabel("Tipo de enlace").selectOption("consumo");
+  await elementoPorTexto(page, "Procesar").click();
+  await elementoPorTexto(page, "Procesar").click();
+  await page.getByRole("button", { name: "Descomponer" }).click();
+  await expect(page.locator('[role="treeitem"]').filter({ hasText: "SD1: Procesar descompuesto" })).toHaveAttribute("aria-current", "page");
+
+  await clickCabeceraElemento(page, "Procesar");
+  await expect(page.getByText("Enlaces externos derivados")).toBeVisible();
+  await page.getByTestId(/refinamiento-reasignar-/).selectOption({ label: "Procesar 2 (2)" });
+  await page.getByRole("button", { name: "Reasignar" }).click();
+
+  const proceso2ParaRename = await elementoPorTexto(page, "Procesar 2").boundingBox();
+  if (!proceso2ParaRename) throw new Error("No se pudo ubicar Procesar 2 para renombrado");
+  await page.mouse.dblclick(proceso2ParaRename.x + proceso2ParaRename.width / 2, proceso2ParaRename.y + proceso2ParaRename.height / 2);
+  await expect(page.getByTestId("renombrado-inline")).toBeVisible();
+  await page.getByTestId("renombrado-inline").fill("Validar Entrada");
+  await page.keyboard.press("Enter");
+  await expect(elementoPorTexto(page, "Validar Entrada")).toHaveCount(1);
+  await expect(page.getByText(/Validar Entrada\s+consume\s+Entrada/)).toBeVisible();
+
+  const p1 = await elementoPorTexto(page, "Procesar 1").boundingBox();
+  const p2 = await elementoPorTexto(page, "Validar Entrada").boundingBox();
+  if (!p1 || !p2) throw new Error("No se pudo ubicar subprocesos para paralelo");
+  await page.mouse.move(p1.x + p1.width / 2, p1.y + p1.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(p1.x + p1.width / 2, p2.y + p2.height / 2, { steps: 8 });
+  await page.mouse.up();
+  await expect(page.getByText(/Procesar se descompone en paralelo/).first()).toBeVisible();
+
+  await page.getByRole("button", { name: "Objeto", exact: true }).click();
+  const contorno = await elementoPorTexto(page, "Procesar").boundingBox();
+  if (!contorno) throw new Error("No se pudo ubicar contorno para creacion ambiental");
+  await page.mouse.click(contorno.x + contorno.width - 10, contorno.y + contorno.height - 10);
+  await page.getByRole("button", { name: "Ambiental" }).click();
+
+  await page.getByRole("button", { name: "Exportar", exact: true }).click();
+  const exportado = JSON.parse(await jsonEditor(page).inputValue()) as ExportadoModelo;
+  const procesar = Object.values(exportado.modelo.entidades).find((entidad) => entidad.nombre === "Procesar");
+  const entrada = Object.values(exportado.modelo.entidades).find((entidad) => entidad.nombre === "Entrada");
+  const validado = Object.values(exportado.modelo.entidades).find((entidad) => entidad.nombre === "Validar Entrada");
+  const ambiental = Object.values(exportado.modelo.entidades).find((entidad) => entidad.nombre === "Objeto");
+  const opdHijoId = procesar?.refinamiento?.opdId;
+  if (!opdHijoId || !entrada || !validado || !ambiental) throw new Error("No se exporto modelo L3 esperado");
+  const enlaceManual = Object.values(exportado.modelo.opds[opdHijoId]?.enlaces ?? {})
+    .map((apariencia) => exportado.modelo.enlaces[apariencia.enlaceId])
+    .find((enlace) => enlace?.tipo === "consumo");
+  expect(enlaceManual).toEqual(expect.objectContaining({
+    origenId: extremoEntidad(entrada.id),
+    destinoId: extremoEntidad(validado.id),
+    derivado: expect.objectContaining({ origen: "manual" }),
+  }));
+  const aparienciasHijo = Object.values(exportado.modelo.opds[opdHijoId]?.apariencias ?? {});
+  const contornoExportado = aparienciasHijo.find((apariencia) => apariencia.entidadId === procesar.id);
+  const ambientalExportado = aparienciasHijo.find((apariencia) => apariencia.entidadId === ambiental.id);
+  if (!contornoExportado || !ambientalExportado) throw new Error("No se exporto ambiental interno");
+  expect(ambiental.afiliacion).toBe("ambiental");
+  expect(ambientalExportado.x + ambientalExportado.width).toBeLessThanOrEqual(contornoExportado.x + contornoExportado.width);
+  expect(ambientalExportado.y + ambientalExportado.height).toBeLessThanOrEqual(contornoExportado.y + contornoExportado.height);
+
+  await page.screenshot({ path: "test-results/opm-l3-descomposicion-avanzada.png", fullPage: true });
+  expect(pageErrors).toEqual([]);
+});
+
+test("HU-10.021: desplegar objeto crea OPD hijo y entrada en árbol jerárquico", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await cerrarPantallaInicioSiVisible(page);
+  await page.getByRole("button", { name: "Objeto", exact: true }).click();
+  const modalNombre = page.getByTestId("modal-nombre-cosa");
+  if (await modalNombre.count()) {
+    await modalNombre.getByLabel("Nombre").fill("Sistema desplegable");
+    await modalNombre.getByRole("button", { name: "OK" }).click();
+    await expect(modalNombre).toHaveCount(0);
+  }
+  await desplegarComoAgregacion(page);
+
+  const arbol = page.getByRole("tree");
+  await expect(arbol).toBeVisible();
+  const items = arbol.getByRole("treeitem");
+  expect(await items.count()).toBeGreaterThanOrEqual(2);
+
+  expect(pageErrors).toEqual([]);
+});
