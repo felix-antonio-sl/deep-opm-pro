@@ -1,5 +1,7 @@
+// [JOYAS §1-3] Chrome UI consume tokens centralizados; canvas semántico invariante.
 import timeDurationIcon from "../../../../assets/svg/timeDuration.svg";
 import type { Estado } from "../../modelo/tipos";
+import { tokens } from "../tokens";
 
 /**
  * Tag de duración temporal del estado.
@@ -23,10 +25,10 @@ const stateStyles = {
   tag: {
     height: "28px",
     padding: "0 8px",
-    border: "1px solid #c8d2df",
-    borderRadius: "4px",
-    background: "#f9fbfd",
-    color: "#475467",
+    border: `1px solid ${tokens.colors.bordeControl}`,
+    borderRadius: tokens.radii.sm,
+    background: tokens.colors.fondoCard,
+    color: tokens.colors.textoSecundario,
     cursor: "pointer",
     fontSize: "11px",
     fontWeight: 700,
