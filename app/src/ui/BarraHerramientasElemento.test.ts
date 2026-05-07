@@ -173,6 +173,12 @@ describe("accionesPilotoBarra", () => {
     expect(accionesPilotoBarra(proceso, null, false, true).find((accion) => accion.id === "agregar-estado")?.visible).toBe(false);
   });
 
+  test("BUG-d78ae2: oculta copiar/pegar-estilo cuando no hay enlace operable", () => {
+    const acciones = accionesPilotoBarra(objeto, null, true, true);
+    expect(acciones.find((accion) => accion.id === "copiar-estilo")?.visible).toBe(false);
+    expect(acciones.find((accion) => accion.id === "pegar-estilo")?.visible).toBe(false);
+  });
+
   test("cambia el label de mas opciones segun estado del Inspector", () => {
     expect(accionesPilotoBarra(objeto, null, false, true).find((accion) => accion.id === "mas-opciones")?.label).toBe("Cerrar Inspector lateral");
     expect(accionesPilotoBarra(objeto, null, false, false).find((accion) => accion.id === "mas-opciones")?.label).toBe("Abrir Inspector lateral");

@@ -257,8 +257,12 @@ export function accionesPilotoBarra(
   const esObjeto = entidad?.tipo === "objeto";
   const esCosa = !!entidad;
   return [
-    accion("copiar-estilo", "Copiar estilo", "barra-copiar-estilo", !!enlaceEstiloId, { texto: "Copiar" }),
-    accion("pegar-estilo", "Pegar estilo", "barra-pegar-estilo", !!enlaceEstiloId && hayEstiloEnPortapapeles, { texto: "Pegar" }),
+    // BUG-d78ae2: ocultar copiar/pegar-estilo cuando no hay enlace operable.
+    // El label "Copiar"/"Pegar" sobre barra de entidad confunde con copia de
+    // entidad; en realidad operan sobre el primer enlace visual de la entidad
+    // en el OPD activo. Sin enlace operable no aplican y se esconden.
+    accion("copiar-estilo", "Copiar estilo", "barra-copiar-estilo", !!enlaceEstiloId, { texto: "Copiar", visible: !!enlaceEstiloId }),
+    accion("pegar-estilo", "Pegar estilo", "barra-pegar-estilo", !!enlaceEstiloId && hayEstiloEnPortapapeles, { texto: "Pegar", visible: !!enlaceEstiloId }),
     accion("agregar-estado", "Agregar estado", "barra-agregar-estado", !!esObjeto, { icon: ICONO_AGREGAR_ESTADO, visible: !!esObjeto }),
     accion("inzoom", "Inzoom", "barra-inzoom", esCosa, { icon: ICONO_INZOOM }),
     accion("editar-alias", "Editar alias", "barra-editar-alias", !!esObjeto, { icon: ICONO_EDITAR_ALIAS }),
