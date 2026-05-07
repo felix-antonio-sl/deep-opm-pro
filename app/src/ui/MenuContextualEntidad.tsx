@@ -1,3 +1,4 @@
+import deleteIcon from "../../../assets/svg/delete.svg";
 import type { Id } from "../modelo/tipos";
 
 /**
@@ -6,6 +7,7 @@ import type { Id } from "../modelo/tipos";
  * SSOT: [Met §multi-OPD] una accion sobre apariencia afecta solo el OPD
  * activo; [Glos 3.6] apariencia separada de la entidad logical; [JOYAS §2]
  * mantiene la semantica visual OPCloud sin redibujar shapes.
+ * Asset: assets/svg/delete.svg (ítem destructivo).
  */
 
 interface Props {
@@ -35,6 +37,7 @@ export function MenuContextualEntidad(props: Props) {
         title="Ocultar del OPD actual; no borra la entidad del modelo"
         onClick={() => props.onOcultar(props.aparienciaId)}
       >
+        <img src={deleteIcon} alt="" aria-hidden="true" style={style.dangerIcon} />
         Ocultar de este OPD
       </button>
     </div>
@@ -66,5 +69,6 @@ const style = {
     boxShadow: "0 12px 28px rgba(15, 23, 42, 0.18)",
   },
   item: baseItem,
-  danger: { ...baseItem, color: "#b42318" },
+  danger: { ...baseItem, color: "#b42318", display: "inline-flex", alignItems: "center", gap: "8px" },
+  dangerIcon: { width: "14px", height: "14px", display: "block", flex: "0 0 auto" },
 } satisfies Record<string, preact.JSX.CSSProperties>;

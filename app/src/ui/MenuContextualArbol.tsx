@@ -1,4 +1,10 @@
+import deleteIcon from "../../../assets/svg/delete.svg";
 import type { Id, Modelo } from "../modelo/tipos";
+
+/**
+ * Menú contextual del árbol OPD.
+ * Asset: assets/svg/delete.svg para ítem destructivo "Eliminar OPD" [JOYAS §2].
+ */
 
 export interface MenuContextualArbolProps {
   modelo: Modelo;
@@ -45,7 +51,7 @@ export function MenuContextualArbol(props: MenuContextualArbolProps) {
       tabIndex={-1}
     >
       <Item label="Renombrar" onClick={() => props.onRenombrar(props.opdId)} />
-      <Item label="Eliminar OPD" disabled={esRaiz || tieneHijos} onClick={() => props.onEliminar(props.opdId)} />
+      <Item label="Eliminar OPD" iconUrl={deleteIcon} disabled={esRaiz || tieneHijos} onClick={() => props.onEliminar(props.opdId)} />
       <div aria-hidden="true" style={style.divider} />
       <Item label="Cortar nodo" disabled={esRaiz} onClick={() => props.onCortar(props.opdId)} />
       <Item label="Pegar aquí" disabled={!props.opdCortadoId || props.opdCortadoId === props.opdId} onClick={() => props.onPegar(props.opdId)} />
@@ -65,17 +71,18 @@ export function MenuContextualArbol(props: MenuContextualArbolProps) {
   );
 }
 
-function Item({ label, disabled, onClick }: { label: string; disabled?: boolean; onClick: () => void }) {
+function Item({ label, disabled, onClick, iconUrl }: { label: string; disabled?: boolean; onClick: () => void; iconUrl?: string }) {
   return (
     <button
       type="button"
       role="menuitem"
       disabled={disabled}
-      style={disabled ? style.itemDisabled : style.item}
+      style={disabled ? style.itemDisabled : iconUrl ? style.itemIcon : style.item}
       onClick={() => {
         if (!disabled) onClick();
       }}
     >
+      {iconUrl ? <img src={iconUrl} alt="" aria-hidden="true" style={style.itemIconImg} /> : null}
       {label}
     </button>
   );
@@ -120,6 +127,23 @@ const style = {
     fontWeight: 700,
     textAlign: "left",
   },
+  itemIcon: {
+    width: "100%",
+    minHeight: "30px",
+    padding: "0 9px",
+    border: "1px solid transparent",
+    borderRadius: "4px",
+    background: "transparent",
+    color: "#1f2937",
+    cursor: "pointer",
+    fontSize: "12px",
+    fontWeight: 700,
+    textAlign: "left",
+    display: "inline-flex",
+    alignItems: "center",
+    gap: "8px",
+  },
+  itemIconImg: { width: "14px", height: "14px", display: "block", flex: "0 0 auto" },
   divider: {
     height: "1px",
     margin: "3px 0",
