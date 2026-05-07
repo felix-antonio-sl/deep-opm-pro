@@ -1,3 +1,4 @@
+// [JOYAS §1-3] Chrome UI consume tokens centralizados; canvas semántico invariante.
 import { useEffect, useState } from "preact/hooks";
 import { useOpmStore } from "../store";
 import { registrarAtajo } from "./atajosTeclado";
@@ -13,6 +14,7 @@ import {
   reordenarDesdeMenu,
 } from "./arbol/togglesArbol";
 import type { Id } from "../modelo/tipos";
+import { tokens } from "./tokens";
 
 /**
  * Barrel publico del arbol OPD. Lee el store y compone NodoOpd con handlers
@@ -283,8 +285,8 @@ const style = {
   panel: {
     minWidth: 0,
     overflow: "hidden",
-    background: "#ffffff",
-    borderRight: "1px solid #d9e0ea",
+    background: tokens.colors.fondoChrome,
+    borderRight: `1px solid ${tokens.colors.bordeIntermedio}`,
     display: "grid",
     gridTemplateRows: "42px minmax(0, 1fr)",
   },
@@ -293,38 +295,38 @@ const style = {
     alignItems: "center",
     justifyContent: "space-between",
     padding: "0 8px",
-    borderBottom: "1px solid #e4eaf1",
-    color: "#1f2937",
+    borderBottom: `1px solid ${tokens.colors.bordeChrome}`,
+    color: tokens.colors.textoPrimario,
     fontSize: "13px",
     fontWeight: 700,
   },
   headerActions: { display: "flex", alignItems: "center", gap: "4px" },
   modeBtn: {
     padding: "2px 6px",
-    borderRadius: "4px",
-    border: "1px solid #c8d2df",
-    background: "#ffffff",
+    borderRadius: tokens.radii.sm,
+    border: `1px solid ${tokens.colors.bordeControl}`,
+    background: tokens.colors.fondoChrome,
     cursor: "pointer",
     fontSize: "10px",
     fontWeight: 600,
-    color: "#475467",
+    color: tokens.colors.textoSecundario,
   },
   smallActionBtn: {
     width: "22px",
     height: "22px",
-    borderRadius: "4px",
-    border: "1px solid #c8d2df",
-    background: "#ffffff",
+    borderRadius: tokens.radii.sm,
+    border: `1px solid ${tokens.colors.bordeControl}`,
+    background: tokens.colors.fondoChrome,
     cursor: "pointer",
     fontSize: "10px",
-    color: "#475467",
+    color: tokens.colors.textoSecundario,
     display: "inline-flex",
     alignItems: "center",
     justifyContent: "center",
     padding: 0,
   },
   tree: { overflow: "auto", padding: "8px" },
-  empty: { padding: "8px 4px", color: "#667085", fontSize: "12px" },
+  empty: { padding: "8px 4px", color: tokens.colors.textoTerciario, fontSize: "12px" },
   nodeMapa: {
     width: "100%",
     minHeight: "34px",
@@ -336,14 +338,14 @@ const style = {
     paddingBottom: "4px",
     paddingLeft: "12px",
     border: "1px solid transparent",
-    borderRadius: "4px",
+    borderRadius: tokens.radii.sm,
     background: "transparent",
-    color: "#475467",
+    color: tokens.colors.textoSecundario,
     cursor: "pointer",
     fontSize: "13px",
     fontWeight: 600,
     textAlign: "left",
   },
-  nodeActive: { border: "1px solid #b9d2df", background: "#e8f7ff", color: "#1f2937", fontWeight: 700 },
+  nodeActive: { border: `1px solid ${tokens.colors.arbolSeleccionBorde}`, background: tokens.colors.infoFondo, color: tokens.colors.textoPrimario, fontWeight: 700 },
   nodeName: { overflow: "visible", lineHeight: 1.2, overflowWrap: "anywhere", whiteSpace: "normal", fontSize: "13px" },
 } satisfies Record<string, preact.JSX.CSSProperties>;
