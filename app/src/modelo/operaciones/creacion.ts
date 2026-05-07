@@ -1,5 +1,6 @@
 import { CANON } from "../constantes";
 import type { Apariencia, Entidad, Id, Modelo, Opd, Posicion, Resultado, TipoEntidad } from "../tipos";
+import { nombreEntidadDisponible, nombreUnicoEntidad } from "./entidad";
 import { fallo, ok, siguienteId } from "./helpers";
 import { redistribuirEnlacesExternosSiPrimerSubproceso } from "./refinamiento";
 
@@ -34,11 +35,11 @@ export function crearModelo(nombre = "Modelo OPM"): Modelo {
   };
 }
 
-export function crearObjeto(modelo: Modelo, opdId: Id, posicion: Posicion, nombre = "Objeto"): Resultado<Modelo> {
+export function crearObjeto(modelo: Modelo, opdId: Id, posicion: Posicion, nombre?: string): Resultado<Modelo> {
   return crearEntidad(modelo, opdId, "objeto", posicion, nombre);
 }
 
-export function crearProceso(modelo: Modelo, opdId: Id, posicion: Posicion, nombre = "Proceso"): Resultado<Modelo> {
+export function crearProceso(modelo: Modelo, opdId: Id, posicion: Posicion, nombre?: string): Resultado<Modelo> {
   return crearEntidad(modelo, opdId, "proceso", posicion, nombre);
 }
 
@@ -47,17 +48,24 @@ function crearEntidad(
   opdId: Id,
   tipo: TipoEntidad,
   posicion: Posicion,
-  nombre: string,
+  nombre: string | undefined,
 ): Resultado<Modelo> {
   const opd = modelo.opds[opdId];
   if (!opd) return fallo(`OPD no existe: ${opdId}`);
+
+  const nombreBase = tipo === "objeto" ? "Objeto" : "Proceso";
+  const nombreLimpio = nombre?.trim();
+  const nombreFinal = nombreLimpio ? nombreLimpio : nombreUnicoEntidad(modelo, nombreBase);
+  if (!nombreEntidadDisponible(modelo, nombreFinal)) {
+    return fallo(`Ya existe '${nombreFinal}' en el modelo`);
+  }
 
   const entidadId = siguienteId(modelo, tipo === "objeto" ? "o" : "p");
   const aparienciaId = siguienteId({ ...modelo, nextSeq: modelo.nextSeq + 1 }, "a");
   const entidad: Entidad = {
     id: entidadId,
     tipo,
-    nombre: nombre.trim() || (tipo === "objeto" ? "Objeto" : "Proceso"),
+    nombre: nombreFinal,
     esencia: "informacional",
     afiliacion: "sistemica",
   };

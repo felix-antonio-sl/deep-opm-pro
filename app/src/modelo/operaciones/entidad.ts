@@ -60,30 +60,35 @@ export function renombrarEntidad(modelo: Modelo, entidadId: Id, nombre: string, 
 }
 
 /**
- * Valida nombre de entidad: rechaza vacío y rechaza duplicado dentro del OPD
- * activo (HU-SHARED-009). Si `opdActivoId` no se provee, solo valida vacío.
- * Mismo nombre puede repetirse entre OPDs distintos.
+ * Valida nombre de entidad: rechaza vacío y rechaza duplicados globales de
+ * nombre canónico. En OPM, varias apariencias pueden compartir una entidad,
+ * pero dos entidades distintas no deben colisionar por nombre.
  */
 export function validarNombreEntidad(
   modelo: Modelo,
   entidadId: Id,
   nombre: string,
-  opdActivoId?: Id,
+  _opdActivoId?: Id,
 ): Resultado<string> {
   const limpio = parsearNombreUnidadEntidad(nombre).nombre;
   if (limpio.length === 0) return fallo("El nombre no puede estar vacío");
-  if (opdActivoId === undefined) return ok(limpio);
-  const opd = modelo.opds[opdActivoId];
-  if (!opd) return ok(limpio);
-  const aparienciasOpd = Object.values(opd.apariencias);
-  for (const apariencia of aparienciasOpd) {
-    if (apariencia.entidadId === entidadId) continue;
-    const otra = modelo.entidades[apariencia.entidadId];
-    if (otra && otra.nombre === limpio) {
-      return fallo(`Ya existe '${limpio}' en este OPD`);
-    }
+  const duplicada = entidadPorNombreCanonico(modelo, limpio, entidadId);
+  if (duplicada) {
+    return fallo(`Ya existe '${limpio}' en el modelo`);
   }
   return ok(limpio);
+}
+
+export function nombreEntidadDisponible(modelo: Modelo, nombre: string, excluirEntidadId?: Id): boolean {
+  return !entidadPorNombreCanonico(modelo, nombre, excluirEntidadId);
+}
+
+export function nombreUnicoEntidad(modelo: Modelo, base: string): string {
+  const raiz = parsearNombreUnidadEntidad(base).nombre || "Cosa";
+  if (nombreEntidadDisponible(modelo, raiz)) return raiz;
+  let indice = 2;
+  while (!nombreEntidadDisponible(modelo, `${raiz}_${indice}`)) indice += 1;
+  return `${raiz}_${indice}`;
 }
 
 export function crearAtributoEnObjeto(
@@ -101,7 +106,8 @@ export function crearAtributoEnObjeto(
   if (!aparienciaPadre) return fallo("El objeto padre debe tener apariencia en el OPD activo");
 
   const compuesto = parsearNombreUnidadEntidad(nombreAtributo);
-  const nombre = compuesto.nombre || "Atributo";
+  const nombre = compuesto.nombre || nombreUnicoEntidad(modelo, "Atributo");
+  if (!nombreEntidadDisponible(modelo, nombre)) return fallo(`Ya existe '${nombre}' en el modelo`);
   const unidad = opciones.unidad?.trim() || compuesto.unidad;
   const atributoId = siguienteId(modelo, "o");
   const aparienciaId = siguienteId({ ...modelo, nextSeq: modelo.nextSeq + 1 }, "a");
@@ -235,4 +241,15 @@ function parsearNombreUnidadEntidad(nombre: string, unidadActual?: string): { no
   const unidad = (match.groups.unidad ?? "").trim();
   if (!base || !unidad || unidad.length > 20) return { nombre: limpio };
   return { nombre: base, unidad: unidadActual && unidadActual === unidad ? unidadActual : unidad };
+}
+
+function entidadPorNombreCanonico(modelo: Modelo, nombre: string, excluirEntidadId?: Id): Entidad | null {
+  const clave = claveNombreCanonico(nombre);
+  return Object.values(modelo.entidades).find((entidad) =>
+    entidad.id !== excluirEntidadId && claveNombreCanonico(entidad.nombre) === clave
+  ) ?? null;
+}
+
+function claveNombreCanonico(nombre: string): string {
+  return nombre.trim().toLocaleLowerCase("es-CL");
 }

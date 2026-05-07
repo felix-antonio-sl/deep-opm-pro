@@ -150,15 +150,24 @@ describe("operaciones de modelo", () => {
     expect(duplicado.error).toContain("Ya existe");
   });
 
-  test("permite mismo nombre en OPDs distintos (HU-SHARED-009)", () => {
+  test("rechaza crear o renombrar entidades con nombre duplicado global", () => {
     let modelo = crearModelo();
     const a = crearObjeto(modelo, "opd-1", { x: 0, y: 0 }, "Sistema");
     if (!a.ok) throw new Error("preparacion falló");
     modelo = a.value;
-    // Ahora un OPD distinto sin apariencia compartida
     modelo.opds["opd-2"] = { id: "opd-2", nombre: "OPD 2", padreId: "opd-1", apariencias: {}, enlaces: {} };
     const b = crearObjeto(modelo, "opd-2", { x: 0, y: 0 }, "Sistema");
-    expect(b.ok).toBe(true);
+    expect(b.ok).toBe(false);
+    if (!b.ok) expect(b.error).toContain("Ya existe");
+  });
+
+  test("crea nombres placeholder únicos cuando no se especifica nombre", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, "opd-1", { x: 0, y: 0 }));
+    const segundo = crearObjeto(modelo, "opd-1", { x: 160, y: 0 });
+    expect(segundo.ok).toBe(true);
+    if (!segundo.ok) return;
+    expect(Object.values(segundo.value.entidades).map((entidad) => entidad.nombre).sort()).toEqual(["Objeto", "Objeto_2"]);
   });
 
   test("cambia esencia y afiliacion de una entidad", () => {

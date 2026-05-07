@@ -185,6 +185,17 @@ describe("operacionesBatch", () => {
     expect(Object.keys(oculto.enlaces)).toHaveLength(Object.keys(modelo.enlaces).length);
   });
 
+  test("eliminarBatch borra la entidad lógica de todos los OPDs", () => {
+    const { modelo, opdId, a, b } = modeloEnlacesInternosSinApariencias({ conEnlaceVisible: true });
+    const eliminado = must(eliminarBatch(modelo, [a], opdId));
+
+    expect(eliminado.entidades[a]).toBeUndefined();
+    expect(aparienciaDeEntidad(eliminado, a)).toBeUndefined();
+    expect(aparienciaDeEntidadEnOpd(eliminado, opdId, a)).toBeUndefined();
+    expect(eliminado.entidades[b]).toBeDefined();
+    expect(Object.values(eliminado.enlaces).some((enlace) => enlace.origenId.id === a || enlace.destinoId.id === a)).toBe(false);
+  });
+
   test("insertarPlantillaBatch copia entidades, enlaces, apariencias y genera IDs nuevos", () => {
     const destino = must(crearObjeto(crearModelo("Destino"), "opd-1", { x: 20, y: 20 }, "Sensor"));
     const fuente = plantillaConExhibicion();

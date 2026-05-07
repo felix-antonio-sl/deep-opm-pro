@@ -2,15 +2,15 @@ import { CANON } from "../../modelo/constantes";
 import { crearCosaEnPosicion } from "../../modelo/creacionInterna";
 import { posicionLibre } from "../../modelo/layout";
 import {
-	  ajustarAlTexto,
-	  alternarModoTamano,
-	  asignarValorAtributo,
-	  cambiarAfiliacion,
-	  cambiarEsencia,
-	  cambiarTipoValorAtributo,
-	  crearAtributoEnObjeto,
-	  crearObjeto,
-	  crearProceso,
+  ajustarAlTexto,
+  alternarModoTamano,
+  asignarValorAtributo,
+  cambiarAfiliacion,
+  cambiarEsencia,
+  cambiarTipoValorAtributo,
+  crearAtributoEnObjeto,
+  crearObjeto,
+  crearProceso,
   redimensionarApariencia,
   renombrarEntidad,
   volverAAutoTamano,
@@ -83,9 +83,21 @@ export function accionesEntidad(set: SetStore, get: GetStore): Partial<ModeloSli
     confirmarNombreNuevaCosa(nombre) {
       const pendiente = get().nuevaCosaPendiente;
       if (!pendiente) return;
-      // Renombrar opera sobre la selección activa, que ya es la entidad recién creada.
-      get().renombrarSeleccionada(nombre);
-      set({ nuevaCosaPendiente: null });
+      const { modelo } = get();
+      const resultado = renombrarEntidad(modelo, pendiente.entidadId, nombre);
+      if (!resultado.ok) {
+        set({ mensaje: resultado.error });
+        return;
+      }
+      commitModelo(set, modelo, resultado.value, {
+        seleccionId: pendiente.entidadId,
+        seleccionados: [pendiente.entidadId],
+        modoSeleccion: "simple",
+        enlaceSeleccionId: null,
+        modoEnlace: null,
+        mensaje: null,
+        nuevaCosaPendiente: null,
+      });
     },
 
     descartarNuevaCosaPendiente() {
@@ -159,38 +171,39 @@ export function accionesEntidad(set: SetStore, get: GetStore): Partial<ModeloSli
       const { modelo, seleccionId } = get();
       if (!seleccionId) return;
       const resultado = renombrarEntidad(modelo, seleccionId, nombre);
-	      if (resultado.ok) commitModelo(set, modelo, resultado.value, { mensaje: null });
-	    },
+      if (resultado.ok) commitModelo(set, modelo, resultado.value, { mensaje: null });
+      else set({ mensaje: resultado.error });
+    },
 
-	    crearAtributoEnObjetoSeleccionado(input = {}) {
-	      const { modelo, opdActivoId, seleccionId } = get();
-	      if (!seleccionId) {
-	        set({ mensaje: "Selecciona un objeto para crear atributo" });
-	        return;
-	      }
-	      const entidad = modelo.entidades[seleccionId];
-	      if (!entidad || entidad.tipo !== "objeto") {
-	        set({ mensaje: "Selecciona un objeto para crear atributo" });
-	        return;
-	      }
-	      const nombre = input.nombre ?? "Valor [u]";
-	      const resultado = crearAtributoEnObjeto(modelo, opdActivoId, seleccionId, nombre, {
-	        tipoSlot: input.tipoSlot ?? "float",
-	        ...(input.unidad ? { unidad: input.unidad } : {}),
-	      });
-	      if (!resultado.ok) {
-	        set({ mensaje: resultado.error });
-	        return;
-	      }
-	      commitModelo(set, modelo, resultado.value.modelo, {
-	        seleccionId: resultado.value.atributoId,
-	        seleccionados: [resultado.value.atributoId],
-	        modoSeleccion: "simple",
-	        enlaceSeleccionId: null,
-	        modoEnlace: null,
-	        mensaje: null,
-	      });
-	    },
+    crearAtributoEnObjetoSeleccionado(input = {}) {
+      const { modelo, opdActivoId, seleccionId } = get();
+      if (!seleccionId) {
+        set({ mensaje: "Selecciona un objeto para crear atributo" });
+        return;
+      }
+      const entidad = modelo.entidades[seleccionId];
+      if (!entidad || entidad.tipo !== "objeto") {
+        set({ mensaje: "Selecciona un objeto para crear atributo" });
+        return;
+      }
+      const nombre = input.nombre ?? "Valor [u]";
+      const resultado = crearAtributoEnObjeto(modelo, opdActivoId, seleccionId, nombre, {
+        tipoSlot: input.tipoSlot ?? "float",
+        ...(input.unidad ? { unidad: input.unidad } : {}),
+      });
+      if (!resultado.ok) {
+        set({ mensaje: resultado.error });
+        return;
+      }
+      commitModelo(set, modelo, resultado.value.modelo, {
+        seleccionId: resultado.value.atributoId,
+        seleccionados: [resultado.value.atributoId],
+        modoSeleccion: "simple",
+        enlaceSeleccionId: null,
+        modoEnlace: null,
+        mensaje: null,
+      });
+    },
 
 	    asignarValorAtributoSeleccionado(valor) {
 	      const { modelo, seleccionId } = get();

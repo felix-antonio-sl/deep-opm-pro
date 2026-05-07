@@ -2,7 +2,7 @@ import { entidadIdDeExtremo, extremoEntidad } from "../modelo/extremos";
 import { CANON } from "../modelo/constantes";
 import { aplicarEstiloEnlace } from "../modelo/enlaceEstilo";
 import { aplicarEstiloApariencia } from "../modelo/estilos";
-import { crearEnlace, eliminarEnlace, moverAparienciaPorId } from "../modelo/operaciones";
+import { crearEnlace, eliminarEnlace, eliminarEntidad, moverAparienciaPorId } from "../modelo/operaciones";
 import { eliminarEnlacesBatch as eliminarEnlacesBatchModelo } from "../modelo/operaciones/enlaces";
 import { fijarRefinamiento, refinamientosDe } from "../modelo/refinamientos";
 import type {
@@ -41,26 +41,25 @@ export function eliminarBatch(modelo: Modelo, ids: Id[], opdId?: Id): Resultado<
     }
   }
 
+  const entidadesAEliminar = new Set<Id>();
+  for (const id of ids) {
+    if (siguiente.entidades[id]) entidadesAEliminar.add(id);
+  }
   for (const actualOpdId of opds) {
     const opd = siguiente.opds[actualOpdId];
     if (!opd) continue;
-    const entidadesRemovidas = new Set(
-      Object.values(opd.apariencias)
-        .filter((apariencia) => seleccion.has(apariencia.entidadId) || seleccion.has(apariencia.id))
-        .map((apariencia) => apariencia.entidadId),
-    );
-    if (entidadesRemovidas.size === 0) continue;
-    const enlacesRemovidos = new Set(
-      Object.values(opd.enlaces)
-        .filter((apariencia) => {
-          const enlace = siguiente.enlaces[apariencia.enlaceId];
-          if (!enlace) return false;
-          return entidadesRemovidas.has(entidadIdDeExtremoLigero(siguiente, enlace.origenId)) ||
-            entidadesRemovidas.has(entidadIdDeExtremoLigero(siguiente, enlace.destinoId));
-        })
-        .map((apariencia) => apariencia.enlaceId),
-    );
-    siguiente = removerAparienciasDeOpd(siguiente, actualOpdId, entidadesRemovidas, enlacesRemovidos);
+    for (const apariencia of Object.values(opd.apariencias)) {
+      if (seleccion.has(apariencia.entidadId) || seleccion.has(apariencia.id)) {
+        entidadesAEliminar.add(apariencia.entidadId);
+      }
+    }
+  }
+
+  for (const entidadId of entidadesAEliminar) {
+    if (!siguiente.entidades[entidadId]) continue;
+    const resultado = eliminarEntidad(siguiente, entidadId);
+    if (!resultado.ok) return resultado;
+    siguiente = resultado.value;
   }
 
   return { ok: true, value: purgarHuerfanos(siguiente) };
@@ -764,26 +763,6 @@ function posicionAlineada(apariencia: Apariencia, eje: EjeAlineacion, objetivo: 
   if (eje === "inf") return { x: apariencia.x, y: objetivo - apariencia.height };
   if (eje === "centro") return { x: Math.round(objetivo - apariencia.width / 2), y: apariencia.y };
   return { x: apariencia.x, y: Math.round(objetivo - apariencia.height / 2) };
-}
-
-function removerAparienciasDeOpd(modelo: Modelo, opdId: Id, entidadIds: Set<Id>, enlaceIds: Set<Id>): Modelo {
-  const opd = modelo.opds[opdId];
-  if (!opd) return modelo;
-  return {
-    ...modelo,
-    opds: {
-      ...modelo.opds,
-      [opdId]: {
-        ...opd,
-        apariencias: Object.fromEntries(
-          Object.entries(opd.apariencias).filter(([, apariencia]) => !entidadIds.has(apariencia.entidadId)),
-        ),
-        enlaces: Object.fromEntries(
-          Object.entries(opd.enlaces).filter(([, apariencia]) => !enlaceIds.has(apariencia.enlaceId)),
-        ),
-      },
-    },
-  };
 }
 
 function purgarHuerfanos(modelo: Modelo): Modelo {

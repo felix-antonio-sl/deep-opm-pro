@@ -1,0 +1,36 @@
+# BUG-20260507T231712Z-91e001
+
+**Creado**: 2026-05-07T23:17:12.315Z
+
+## Texto
+
+al eliminar una cosa en un diagrama no se borra en los otros diagramas. 
+2 opciones: borralo en todos o preguntar si solo quiere dejar de ser visto o se elimina del modelo.
+para solucionar esto usa las skills modelamiento-opm y cat-thinking
+
+## Screenshots
+
+Sin screenshots adjuntos.
+
+## Contexto
+
+```json
+{
+  "modeloId": "modelo-1",
+  "modeloNombre": "Diagnostico Clinico",
+  "opdActivoId": "opd-1",
+  "opdActivoNombre": "SD",
+  "seleccionEntidadId": null,
+  "seleccionEnlaceId": null,
+  "pestanaActivaId": "pestana-mow3ml3u-2xpxpaby",
+  "vistaMapaActiva": false,
+  "url": "http://138.201.53.205:5173/",
+  "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36",
+  "viewport": {
+    "width": 1920,
+    "height": 963,
+    "devicePixelRatio": 1
+  },
+  "capturedAt": "2026-05-07T23:16:15.123Z"
+}
+```
