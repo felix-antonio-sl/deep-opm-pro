@@ -1,6 +1,8 @@
+// [JOYAS §1-3] Chrome UI consume tokens centralizados; canvas semántico invariante.
 import { useState } from "preact/hooks";
 import { TOTAL_ETAPAS } from "../../modelo/creacionWizard";
 import { S } from "./estilos";
+import { tokens } from "../tokens";
 
 interface Props {
   valor: string[];
@@ -18,7 +20,7 @@ export function EtapaEntradas({ valor, onChange }: Props) {
   };
   return (
     <div>
-      <h3 style={S.title}>Etapa 8 de {TOTAL_ETAPAS} — Entradas <span style={{ fontWeight: 400, color: "#667085" }}>(opcional)</span></h3>
+      <h3 style={S.title}>Etapa 8 de {TOTAL_ETAPAS} — Entradas <span style={{ fontWeight: 400, color: tokens.colors.textoTerciario }}>(opcional)</span></h3>
       <p style={S.desc}>
         ¿Que objetos consume o transforma el proceso? Son las entradas
         del sistema.
