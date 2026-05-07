@@ -62,93 +62,107 @@ export function PersistenciaJson() {
   };
 
   return (
-    <div style={style.block}>
-      <div style={style.title}>Modelos locales</div>
-      <div style={style.actions}>
-        <select
-          aria-label="Modelo local"
-          style={style.select}
-          value={modeloSeleccionado}
-          onChange={(event) => setModeloSeleccionadoId(event.currentTarget.value)}
-        >
-          {modelosGuardados.length === 0 ? <option value="">Sin modelos</option> : null}
-          {modelosGuardados.map((modelo) => (
-            <option key={modelo.id} value={modelo.id}>{modelo.nombre}</option>
-          ))}
-        </select>
-        <button
-          type="button"
-          style={modeloSeleccionado ? style.button : style.disabledButton}
-          disabled={!modeloSeleccionado}
-          onClick={() => confirmarSiDirty(() => cargarLocal(modeloSeleccionado))}
-        >
-          Cargar
-        </button>
-        <button type="button" style={modeloSeleccionado ? style.button : style.disabledButton} disabled={!modeloSeleccionado} onClick={() => borrarLocal(modeloSeleccionado)}>Borrar</button>
+    <div style={style.root}>
+      <div style={style.block}>
+        <div style={style.title}>Modelos locales</div>
+        <div style={style.actions}>
+          <select
+            aria-label="Modelo local"
+            style={style.select}
+            value={modeloSeleccionado}
+            onChange={(event) => setModeloSeleccionadoId(event.currentTarget.value)}
+          >
+            {modelosGuardados.length === 0 ? <option value="">Sin modelos</option> : null}
+            {modelosGuardados.map((modelo) => (
+              <option key={modelo.id} value={modelo.id}>{modelo.nombre}</option>
+            ))}
+          </select>
+          <button
+            type="button"
+            style={modeloSeleccionado ? style.button : style.disabledButton}
+            disabled={!modeloSeleccionado}
+            onClick={() => confirmarSiDirty(() => cargarLocal(modeloSeleccionado))}
+          >
+            Cargar
+          </button>
+          <button type="button" style={modeloSeleccionado ? style.button : style.disabledButton} disabled={!modeloSeleccionado} onClick={() => borrarLocal(modeloSeleccionado)}>Borrar</button>
+        </div>
       </div>
-      <div style={style.title}>JSON</div>
-      <div style={style.actions}>
-        <button
-          type="button"
-          style={style.button}
-          onClick={() => {
-            setTexto(exportarJson());
+
+      <div style={style.block}>
+        <div style={style.title}>JSON</div>
+        <div style={style.actions}>
+          <button
+            type="button"
+            style={style.button}
+            onClick={() => {
+              setTexto(exportarJson());
+              setArchivoNombre("");
+              setErrorImportacion(null);
+            }}
+          >
+            Exportar
+          </button>
+          <button type="button" style={style.button} onClick={manejarImportar}>Importar</button>
+        </div>
+      </div>
+
+      <div style={style.block}>
+        <div style={style.title}>Archivo JSON</div>
+        <label style={style.filePicker}>
+          <span style={style.filePickerRow}>
+            <span style={style.filePickerButton}>Elegir archivo…</span>
+            <span style={style.filePickerName} title={archivoNombre || "Sin archivo"}>
+              {archivoNombre || "Sin archivo"}
+            </span>
+            <input
+              aria-label="Archivo JSON"
+              style={style.fileInputOculto}
+              type="file"
+              accept="application/json,.json"
+              onChange={(event) => {
+                void manejarArchivo(event.currentTarget.files?.[0] ?? null);
+                event.currentTarget.value = "";
+              }}
+            />
+          </span>
+        </label>
+        <div
+          style={arrastrando ? style.dropZoneActive : style.dropZone}
+          onDragEnter={(event) => {
+            event.preventDefault();
+            setArrastrando(true);
+          }}
+          onDragOver={(event) => event.preventDefault()}
+          onDragLeave={(event) => {
+            event.preventDefault();
+            setArrastrando(false);
+          }}
+          onDrop={(event) => {
+            event.preventDefault();
+            setArrastrando(false);
+            void manejarArchivo(event.dataTransfer?.files?.[0] ?? null);
+          }}
+        >
+          Soltar JSON
+        </div>
+        {archivoNombre ? <div style={style.meta}>Archivo: {archivoNombre}</div> : null}
+        {vistaPrevia?.ok ? <div data-testid="import-preview" style={style.preview}>{vistaPrevia.texto}</div> : null}
+        {mensajeError ? <div role="alert" style={style.error}>{mensajeError}</div> : null}
+        <textarea
+          data-testid="textarea-json"
+          aria-label="Pegar JSON del modelo OPM"
+          placeholder="Pega aquí el JSON del modelo o usa Importar/Soltar JSON"
+          style={style.textarea}
+          value={texto}
+          spellcheck={false}
+          onInput={(event) => {
+            setTexto(event.currentTarget.value);
             setArchivoNombre("");
             setErrorImportacion(null);
           }}
-        >
-          Exportar
-        </button>
-        <button type="button" style={style.button} onClick={manejarImportar}>Importar</button>
-      </div>
-      <label style={style.filePicker}>
-        <span style={style.fileLabel}>Archivo JSON</span>
-        <input
-          aria-label="Archivo JSON"
-          style={style.fileInput}
-          type="file"
-          accept="application/json,.json"
-          onChange={(event) => {
-            void manejarArchivo(event.currentTarget.files?.[0] ?? null);
-            event.currentTarget.value = "";
-          }}
         />
-      </label>
-      <div
-        style={arrastrando ? style.dropZoneActive : style.dropZone}
-        onDragEnter={(event) => {
-          event.preventDefault();
-          setArrastrando(true);
-        }}
-        onDragOver={(event) => event.preventDefault()}
-        onDragLeave={(event) => {
-          event.preventDefault();
-          setArrastrando(false);
-        }}
-        onDrop={(event) => {
-          event.preventDefault();
-          setArrastrando(false);
-          void manejarArchivo(event.dataTransfer?.files?.[0] ?? null);
-        }}
-      >
-        Soltar JSON
       </div>
-      {archivoNombre ? <div style={style.meta}>Archivo: {archivoNombre}</div> : null}
-      {vistaPrevia?.ok ? <div data-testid="import-preview" style={style.preview}>{vistaPrevia.texto}</div> : null}
-      {mensajeError ? <div role="alert" style={style.error}>{mensajeError}</div> : null}
-      <textarea
-        data-testid="textarea-json"
-        aria-label="Pegar JSON del modelo OPM"
-        placeholder="Pega aquí el JSON del modelo o usa Importar/Soltar JSON"
-        style={style.textarea}
-        value={texto}
-        spellcheck={false}
-        onInput={(event) => {
-          setTexto(event.currentTarget.value);
-          setArchivoNombre("");
-          setErrorImportacion(null);
-        }}
-      />
     </div>
   );
 }
@@ -176,128 +190,167 @@ function cantidad(valor: number, singular: string, plural: string): string {
 }
 
 const style = {
+  // Contenedor del componente: stack de tres tarjetas (Modelos locales / JSON / Archivo JSON).
+  root: {
+    display: "grid",
+    gap: tokens.spacing.md,
+    marginTop: tokens.spacing.lg,
+  },
+  // Cada tarjeta: borde + radio + padding tokenizados, fondo elevado.
   block: {
     display: "grid",
-    gap: "8px",
-    marginTop: "18px",
-    paddingTop: "14px",
-    borderTop: `1px solid ${tokens.colors.bordeChrome}`,
+    gap: tokens.spacing.sm,
+    padding: tokens.spacing.md,
+    border: `1px solid ${tokens.colors.bordeChrome}`,
+    borderRadius: tokens.radii.md,
+    background: tokens.colors.fondoCard,
   },
   title: {
     color: tokens.colors.textoSecundario,
-    fontSize: "12px",
-    fontWeight: 700,
+    fontSize: tokens.typography.sizes.sm,
+    fontWeight: tokens.typography.weights.bold,
   },
   actions: {
     display: "flex",
-    gap: "8px",
+    gap: tokens.spacing.sm,
     alignItems: "center",
     flexWrap: "wrap",
   },
   button: {
-    height: "30px",
-    padding: "0 10px",
+    height: 30,
+    padding: `0 ${tokens.spacing.sm}px`,
     border: `1px solid ${tokens.colors.bordeControl}`,
     borderRadius: tokens.radii.sm,
-    background: tokens.colors.fondoCard,
+    background: tokens.colors.fondoChrome,
     color: tokens.colors.textoPrimario,
     cursor: "pointer",
-    fontSize: "12px",
-    fontWeight: 600,
+    fontSize: tokens.typography.sizes.sm,
+    fontWeight: tokens.typography.weights.semibold,
   },
   disabledButton: {
-    height: "30px",
-    padding: "0 10px",
+    height: 30,
+    padding: `0 ${tokens.spacing.sm}px`,
     border: `1px solid ${tokens.colors.bordeIntermedio}`,
     borderRadius: tokens.radii.sm,
     background: tokens.colors.fondoDeshabilitado,
     color: tokens.colors.textoDeshabilitado,
     cursor: "default",
-    fontSize: "12px",
-    fontWeight: 600,
+    fontSize: tokens.typography.sizes.sm,
+    fontWeight: tokens.typography.weights.semibold,
   },
   select: {
     minWidth: 0,
     flex: "1 1 auto",
-    height: "30px",
+    height: 30,
     border: `1px solid ${tokens.colors.bordeControl}`,
     borderRadius: tokens.radii.sm,
     background: tokens.colors.fondoChrome,
     color: tokens.colors.textoPrimario,
-    fontSize: "12px",
+    fontSize: tokens.typography.sizes.sm,
   },
+  // File picker custom: label envuelve la fila visible y el input oculto pero accesible.
   filePicker: {
-    display: "grid",
-    gap: "4px",
+    display: "block",
+    cursor: "pointer",
   },
-  fileLabel: {
-    color: tokens.colors.textoSecundario,
-    fontSize: "12px",
-    fontWeight: 700,
+  filePickerRow: {
+    display: "flex",
+    alignItems: "center",
+    gap: tokens.spacing.sm,
+    border: `1px solid ${tokens.colors.bordeControl}`,
+    borderRadius: tokens.radii.sm,
+    padding: `${tokens.spacing.xs}px ${tokens.spacing.sm}px`,
+    background: tokens.colors.fondoChrome,
+    position: "relative",
   },
-  fileInput: {
-    width: "100%",
+  filePickerButton: {
+    display: "inline-block",
+    padding: `${tokens.spacing.xs}px ${tokens.spacing.sm}px`,
+    border: `1px solid ${tokens.colors.bordeControl}`,
+    borderRadius: tokens.radii.sm,
+    background: tokens.colors.fondoCard,
     color: tokens.colors.textoPrimario,
-    fontSize: "12px",
+    fontSize: tokens.typography.sizes.sm,
+    fontWeight: tokens.typography.weights.semibold,
+    whiteSpace: "nowrap",
+    cursor: "pointer",
+  },
+  filePickerName: {
+    flex: "1 1 auto",
+    minWidth: 0,
+    color: tokens.colors.textoSecundario,
+    fontSize: tokens.typography.sizes.sm,
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+    whiteSpace: "nowrap",
+  },
+  // <input type=file> oculto visualmente pero accesible: preserva aria-label y permite
+  // setInputFiles desde Playwright (smoke 01-carga-y-workspace).
+  fileInputOculto: {
+    position: "absolute",
+    width: 1,
+    height: 1,
+    opacity: 0,
+    pointerEvents: "none",
   },
   dropZone: {
     display: "grid",
     placeItems: "center",
-    minHeight: "42px",
+    minHeight: 42,
     border: `1px dashed ${tokens.colors.bordeControl}`,
     borderRadius: tokens.radii.sm,
-    background: tokens.colors.fondoCard,
+    background: tokens.colors.fondoChrome,
     color: tokens.colors.textoSecundario,
-    fontSize: "12px",
-    fontWeight: 700,
+    fontSize: tokens.typography.sizes.sm,
+    fontWeight: tokens.typography.weights.bold,
   },
   dropZoneActive: {
     display: "grid",
     placeItems: "center",
-    minHeight: "42px",
+    minHeight: 42,
     border: `1px dashed ${tokens.colors.infoBorde}`,
     borderRadius: tokens.radii.sm,
     background: tokens.colors.infoFondo,
     color: tokens.colors.infoTextoOscuro,
-    fontSize: "12px",
-    fontWeight: 700,
+    fontSize: tokens.typography.sizes.sm,
+    fontWeight: tokens.typography.weights.bold,
   },
   meta: {
     color: tokens.colors.textoTerciario,
-    fontSize: "12px",
+    fontSize: tokens.typography.sizes.sm,
     lineHeight: 1.35,
   },
   preview: {
-    padding: "8px",
+    padding: tokens.spacing.sm,
     border: `1px solid ${tokens.colors.bordeInput}`,
     borderRadius: tokens.radii.sm,
     background: tokens.colors.infoFondoClaro,
     color: tokens.colors.infoTextoOscuro,
-    fontSize: "12px",
-    fontWeight: 700,
+    fontSize: tokens.typography.sizes.sm,
+    fontWeight: tokens.typography.weights.bold,
     lineHeight: 1.35,
   },
   error: {
-    padding: "8px",
+    padding: tokens.spacing.sm,
     border: `1px solid ${tokens.colors.errorBordeFuerte}`,
     borderRadius: tokens.radii.sm,
     background: tokens.colors.errorFondo,
     color: tokens.colors.errorTexto,
-    fontSize: "12px",
-    fontWeight: 700,
+    fontSize: tokens.typography.sizes.sm,
+    fontWeight: tokens.typography.weights.bold,
     lineHeight: 1.35,
   },
   textarea: {
     width: "100%",
-    minHeight: "120px",
+    minHeight: 120,
     resize: "vertical",
-    padding: "8px",
+    padding: tokens.spacing.sm,
     border: `1px solid ${tokens.colors.bordeControl}`,
     borderRadius: tokens.radii.sm,
     color: tokens.colors.textoPrimario,
     background: tokens.colors.fondoChrome,
     fontFamily: "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace",
-    fontSize: "11px",
+    fontSize: tokens.typography.sizes.xs,
     lineHeight: 1.4,
   },
 } satisfies Record<string, preact.JSX.CSSProperties>;

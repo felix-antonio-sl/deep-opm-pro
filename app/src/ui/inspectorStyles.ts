@@ -16,6 +16,61 @@ export const inspectorStyles = {
     color: tokens.colors.textoTerciario,
     fontSize: "13px",
   },
+  // P1 — Inspector vacío: jerarquía título / body / card "Atajos para empezar".
+  vacioContainer: {
+    color: tokens.colors.textoTerciario,
+    fontSize: tokens.typography.sizes.md,
+  },
+  vacioTitle: {
+    margin: `0 0 ${tokens.spacing.sm}px`,
+    color: tokens.colors.textoPrimario,
+    fontSize: tokens.typography.sizes.lg,
+    fontWeight: tokens.typography.weights.bold,
+  },
+  vacioBody: {
+    margin: `0 0 ${tokens.spacing.md}px`,
+    color: tokens.colors.textoSecundario,
+    fontSize: tokens.typography.sizes.md,
+    lineHeight: 1.5,
+  },
+  vacioCard: {
+    padding: tokens.spacing.md,
+    border: `1px solid ${tokens.colors.bordeChrome}`,
+    borderRadius: tokens.radii.md,
+    background: tokens.colors.fondoCard,
+  },
+  vacioCaption: {
+    margin: `0 0 ${tokens.spacing.sm}px`,
+    color: tokens.colors.textoSecundario,
+    fontSize: tokens.typography.sizes.xs,
+    fontWeight: tokens.typography.weights.semibold,
+    textTransform: "uppercase",
+    letterSpacing: "0.04em",
+  },
+  vacioList: {
+    margin: 0,
+    paddingLeft: tokens.spacing.lg,
+    lineHeight: 1.6,
+    fontSize: tokens.typography.sizes.md,
+  },
+  // P1 — wrapper <details> que envuelve <PersistenciaJson /> en modo vacío.
+  vacioPersistenciaWrapper: {
+    marginTop: tokens.spacing.lg,
+    border: `1px solid ${tokens.colors.bordeChrome}`,
+    borderRadius: tokens.radii.md,
+    background: tokens.colors.fondoCard,
+    padding: `${tokens.spacing.sm}px ${tokens.spacing.md}px ${tokens.spacing.md}px`,
+  },
+  vacioPersistenciaSummary: {
+    color: tokens.colors.textoSecundario,
+    fontSize: tokens.typography.sizes.xs,
+    fontWeight: tokens.typography.weights.semibold,
+    textTransform: "uppercase",
+    letterSpacing: "0.04em",
+    cursor: "pointer",
+    listStylePosition: "inside",
+    paddingBottom: tokens.spacing.xs,
+  },
   header: {
     display: "flex",
     alignItems: "center",
