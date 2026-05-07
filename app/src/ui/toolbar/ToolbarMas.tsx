@@ -49,33 +49,42 @@ export function ToolbarMas({
   const [abierto, setAbierto] = useState(false);
   const triggerRef = useRef<HTMLButtonElement | null>(null);
   const menuRef = useRef<HTMLDivElement | null>(null);
+  const abiertoRef = useRef(false);
+  abiertoRef.current = abierto;
   const menuId = useId();
   const accionVisibles = items.filter((item) => item.kind === "accion") as Array<Extract<ToolbarMasItem, { kind: "accion" }>>;
   const habilitado = accionVisibles.length > 0;
 
+  // Listener de Escape registrado SIEMPRE en captura. El orden de useEffect en
+  // hijos corre antes que en padres durante el mount, asi que este listener
+  // queda antes que el atajo global de App.tsx en la lista de captura. Solo
+  // actua cuando el menu esta abierto y stop-detiene propagacion para que el
+  // atajo global no vacie la seleccion ni cierre otro modal.
   useEffect(() => {
-    if (!abierto) return undefined;
     function onKeyDown(event: KeyboardEvent) {
-      if (event.key === "Escape") {
-        event.preventDefault();
-        setAbierto(false);
-        triggerRef.current?.focus();
-      }
+      if (event.key !== "Escape") return;
+      if (!abiertoRef.current) return;
+      event.preventDefault();
+      event.stopPropagation();
+      event.stopImmediatePropagation();
+      setAbierto(false);
+      triggerRef.current?.focus();
     }
     function onPointerDown(event: PointerEvent) {
+      if (!abiertoRef.current) return;
       const target = event.target;
       if (!(target instanceof Node)) return;
       if (menuRef.current?.contains(target)) return;
       if (triggerRef.current?.contains(target)) return;
       setAbierto(false);
     }
-    window.addEventListener("keydown", onKeyDown);
+    window.addEventListener("keydown", onKeyDown, { capture: true });
     window.addEventListener("pointerdown", onPointerDown, { capture: true });
     return () => {
-      window.removeEventListener("keydown", onKeyDown);
+      window.removeEventListener("keydown", onKeyDown, { capture: true });
       window.removeEventListener("pointerdown", onPointerDown, { capture: true });
     };
-  }, [abierto]);
+  }, []);
 
   useEffect(() => {
     if (!abierto || !menuRef.current) return;
