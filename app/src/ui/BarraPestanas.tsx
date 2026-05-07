@@ -1,7 +1,9 @@
+// [JOYAS §1-3] Chrome UI consume tokens centralizados; canvas semántico invariante.
 import { useState } from "preact/hooks";
 import { useOpmStore } from "../store";
 import type { Pestana } from "../modelo/tipos";
 import { useConfirmarCierreDirty } from "./ConfirmacionContext";
+import { tokens } from "./tokens";
 
 const MIME_PESTANA = "text/pestana-id";
 
@@ -121,8 +123,8 @@ const style = {
     display: "flex",
     alignItems: "stretch",
     minWidth: 0,
-    borderBottom: "1px solid #d9e0ea",
-    background: "#eef3f8",
+    borderBottom: `1px solid ${tokens.colors.bordeIntermedio}`,
+    background: tokens.colors.fondoIcono,
   },
   lista: {
     display: "flex",
@@ -138,19 +140,19 @@ const style = {
     alignItems: "center",
     gap: 6,
     padding: "0 8px 0 10px",
-    borderRight: "1px solid #d9e0ea",
+    borderRight: `1px solid ${tokens.colors.bordeIntermedio}`,
     borderTop: "2px solid transparent",
-    background: "#f8fafc",
-    color: "#475467",
+    background: tokens.colors.fondoElevado,
+    color: tokens.colors.textoSecundario,
     cursor: "pointer",
     userSelect: "none",
     fontSize: "12px",
     fontWeight: 700,
   },
   pestanaActiva: {
-    background: "#ffffff",
-    color: "#1f2937",
-    borderTop: "2px solid #586D8C",
+    background: tokens.colors.fondoChrome,
+    color: tokens.colors.textoPrimario,
+    borderTop: `2px solid ${tokens.colors.chromeNeutral}`,
   },
   pestanaDirty: {
     fontStyle: "italic",
@@ -168,7 +170,7 @@ const style = {
     border: "1px solid transparent",
     borderRadius: 4,
     background: "transparent",
-    color: "#667085",
+    color: tokens.colors.textoTerciario,
     cursor: "pointer",
     lineHeight: 1,
     fontSize: "13px",
@@ -179,9 +181,9 @@ const style = {
     width: 38,
     height: 36,
     border: 0,
-    borderLeft: "1px solid #d9e0ea",
-    background: "#ffffff",
-    color: "#1f2937",
+    borderLeft: `1px solid ${tokens.colors.bordeIntermedio}`,
+    background: tokens.colors.fondoChrome,
+    color: tokens.colors.textoPrimario,
     cursor: "pointer",
     fontSize: "18px",
     fontWeight: 700,
