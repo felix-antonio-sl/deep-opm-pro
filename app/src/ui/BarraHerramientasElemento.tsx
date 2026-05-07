@@ -1,8 +1,5 @@
 import type { dia } from "jointjs";
 import { useEffect, useMemo, useState } from "preact/hooks";
-import addStatesIcon from "../../../assets/svg/addStates.svg";
-import editAliasIcon from "../../../assets/svg/editAlias.svg";
-import inzoomIcon from "../../../assets/svg/inzoom.svg";
 import type { Entidad, Id, Modelo } from "../modelo/tipos";
 import { useOpmStore } from "../store";
 import { colors } from "./tokens";
@@ -12,9 +9,26 @@ import { colors } from "./tokens";
  * Contrato ronda 13 L4: steipete §T2.5 pilota 6 acciones OPCloud destiladas
  * desde opm-extracted/src/app/modules/layout/element-tool-bar/element-tool-bar.component.ts.
  * IFML: ViewComponent BarraHerramientasElemento; Event -> Action nombrada -> resultado.
- * PROVENANCE §2 solicitado por brief no existe en disco; se reusan assets/svg
- * canonicos verificados: addStates.svg, inzoom.svg, editAlias.svg.
  */
+
+const ICONO_AGREGAR_ESTADO = (
+  <svg width="16" height="16" viewBox="0 0 20 20" aria-hidden="true" focusable="false">
+    <rect x="8" y="6" width="9" height="8" rx="2" fill="none" stroke="currentColor" strokeWidth="1.4" />
+    <path d="M3 10 L7 10 M5 8 L5 12" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+  </svg>
+);
+const ICONO_INZOOM = (
+  <svg width="16" height="16" viewBox="0 0 20 20" aria-hidden="true" focusable="false">
+    <rect x="3" y="3" width="14" height="14" rx="2" fill="none" stroke="currentColor" strokeWidth="1.4" />
+    <rect x="7" y="7" width="6" height="6" rx="1" fill="none" stroke="currentColor" strokeWidth="1.4" />
+  </svg>
+);
+const ICONO_EDITAR_ALIAS = (
+  <svg width="16" height="16" viewBox="0 0 20 20" aria-hidden="true" focusable="false">
+    <path d="M3 16 L4 13 L13 4 L16 7 L7 16 Z" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" />
+    <path d="M11 6 L14 9" stroke="currentColor" strokeWidth="1.4" />
+  </svg>
+);
 
 interface Props {
   inspectorAbierto: boolean;
@@ -49,7 +63,7 @@ interface AccionBarra {
   testId: string;
   visible: boolean;
   enabled: boolean;
-  icon?: string;
+  icon?: preact.JSX.Element;
   texto?: string;
 }
 
@@ -189,7 +203,7 @@ export function BarraHerramientasElemento({ inspectorAbierto, onToggleInspector,
           style={accion.enabled ? styles.boton : styles.botonDeshabilitado}
           title={accion.label}
         >
-          {accion.icon ? <img src={accion.icon} alt="" aria-hidden="true" style={styles.icono} /> : <span aria-hidden="true">{accion.texto}</span>}
+          {accion.icon ? accion.icon : <span aria-hidden="true">{accion.texto}</span>}
         </button>
       ))}
     </div>
@@ -245,9 +259,9 @@ export function accionesPilotoBarra(
   return [
     accion("copiar-estilo", "Copiar estilo", "barra-copiar-estilo", !!enlaceEstiloId, { texto: "Copiar" }),
     accion("pegar-estilo", "Pegar estilo", "barra-pegar-estilo", !!enlaceEstiloId && hayEstiloEnPortapapeles, { texto: "Pegar" }),
-    accion("agregar-estado", "Agregar estado", "barra-agregar-estado", !!esObjeto, { icon: addStatesIcon, visible: !!esObjeto }),
-    accion("inzoom", "Inzoom", "barra-inzoom", esCosa, { icon: inzoomIcon }),
-    accion("editar-alias", "Editar alias", "barra-editar-alias", !!esObjeto, { icon: editAliasIcon }),
+    accion("agregar-estado", "Agregar estado", "barra-agregar-estado", !!esObjeto, { icon: ICONO_AGREGAR_ESTADO, visible: !!esObjeto }),
+    accion("inzoom", "Inzoom", "barra-inzoom", esCosa, { icon: ICONO_INZOOM }),
+    accion("editar-alias", "Editar alias", "barra-editar-alias", !!esObjeto, { icon: ICONO_EDITAR_ALIAS }),
     accion("editar-imagen", "Editar imagen", "barra-editar-imagen", !!esObjeto, { texto: "Img", visible: !!esObjeto }),
     accion("mas-opciones", inspectorAbierto ? "Cerrar Inspector lateral" : "Abrir Inspector lateral", "barra-mas-opciones", !!entidad, { texto: "···" }),
   ];
@@ -258,7 +272,7 @@ function accion(
   label: string,
   testId: string,
   enabled: boolean,
-  extra: { icon?: string; texto?: string; visible?: boolean } = {},
+  extra: { icon?: preact.JSX.Element; texto?: string; visible?: boolean } = {},
 ): AccionBarra {
   return {
     id,
@@ -380,10 +394,5 @@ const styles = {
     lineHeight: 1,
     cursor: "not-allowed",
     opacity: 0.52,
-  },
-  icono: {
-    width: "18px",
-    height: "18px",
-    display: "block",
   },
 } satisfies Record<string, preact.JSX.CSSProperties>;
