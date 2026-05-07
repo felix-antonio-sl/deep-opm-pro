@@ -1,5 +1,7 @@
+// [JOYAS §1-3] Chrome UI consume tokens centralizados; canvas semántico invariante.
 import type { Apariencia } from "../../modelo/tipos";
 import { inspectorStyles as style } from "../inspectorStyles";
+import { tokens } from "../tokens";
 
 interface Props {
   apariencia: Apariencia;
@@ -54,7 +56,7 @@ const local = {
   header: { display: "flex", alignItems: "center", justifyContent: "space-between", gap: "8px" },
   grid: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" },
   actions: { display: "flex", gap: "8px", flexWrap: "wrap" },
-  miniButton: { height: "28px", padding: "0 8px", border: "1px solid #c8d2df", borderRadius: "4px", background: "#ffffff", color: "#475467", cursor: "pointer", fontSize: "12px", fontWeight: 700 },
-  activeMiniButton: { height: "28px", padding: "0 8px", border: "1px solid #586D8C", borderRadius: "4px", background: "#e8eef5", color: "#1f2937", cursor: "pointer", fontSize: "12px", fontWeight: 800 },
-  secondaryButton: { height: "30px", padding: "0 10px", border: "1px solid #c8d2df", borderRadius: "4px", background: "#ffffff", color: "#475467", cursor: "pointer", fontSize: "12px", fontWeight: 700 },
+  miniButton: { height: "28px", padding: "0 8px", border: `1px solid ${tokens.colors.bordeControl}`, borderRadius: tokens.radii.sm, background: tokens.colors.fondoChrome, color: tokens.colors.textoSecundario, cursor: "pointer", fontSize: "12px", fontWeight: 700 },
+  activeMiniButton: { height: "28px", padding: "0 8px", border: `1px solid ${tokens.colors.chromeNeutral}`, borderRadius: tokens.radii.sm, background: tokens.colors.chromeNeutralSuave, color: tokens.colors.textoPrimario, cursor: "pointer", fontSize: "12px", fontWeight: 800 },
+  secondaryButton: { height: "30px", padding: "0 10px", border: `1px solid ${tokens.colors.bordeControl}`, borderRadius: tokens.radii.sm, background: tokens.colors.fondoChrome, color: tokens.colors.textoSecundario, cursor: "pointer", fontSize: "12px", fontWeight: 700 },
 } satisfies Record<string, preact.JSX.CSSProperties>;
