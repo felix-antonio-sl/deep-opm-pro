@@ -5,6 +5,12 @@
  * boton "Config grid" tambien queda en banda por compatibilidad con tests
  * legacy (testId `config-grid`); ademas se replica en el menu ⋯ Más como
  * ruta secundaria de discoverability con etiqueta "Configurar grid…".
+ *
+ * Ronda 18 L1 P3: cluster Enlace + cluster Vista. La etiqueta visual
+ * "Enlace" se removió porque el placeholder del select ("Tipo de enlace…")
+ * ya transmite la intención. "Sugerir layout" se renombró a "Auto-layout"
+ * (ahorra ~6 chars y deja de truncarse en viewport ~1280). El testId
+ * `toolbar-aplicar-layout` se preserva.
  */
 import { useMemo, useState } from "preact/hooks";
 import { normalizarGridConfig } from "../../canvas/grid";
@@ -82,11 +88,10 @@ export function ToolbarCreacion() {
 
   return (
     <>
-      <span style={style.divider} />
+      {/* Cluster Enlace */}
       <label style={style.linkPicker}>
-        <span style={style.linkPickerLabel}>Enlace</span>
         <select aria-label="Tipo de enlace" title={selectorEnlaceDeshabilitado ? "Selecciona una entidad origen" : undefined} disabled={selectorEnlaceDeshabilitado} style={selectorEnlaceDeshabilitado ? style.disabledSelect : modoEnlace ? style.activeSelect : style.select} value={modoEnlace?.tipo ?? ""} onChange={handleCambiarTipoEnlace}>
-          <option value="">Tipo...</option>
+          <option value="">Tipo de enlace…</option>
           {TIPOS_ENLACE.map((item) => <option key={item.tipo} value={item.tipo}>{item.label}</option>)}
         </select>
       </label>
@@ -102,11 +107,16 @@ export function ToolbarCreacion() {
         </>
       ) : null}
       <span style={style.divider} />
+      {/* Cluster Vista */}
       <button style={gridConfig.activa ? style.activeButton : style.button} type="button" onClick={toggleGrid} aria-pressed={gridConfig.activa} data-testid="toggle-grid" title={gridConfig.activa ? "Grid activa · clic para ocultar" : "Mostrar grid del canvas"}>Grid</button>
+      {/* Ronda 18 P3: `Config grid` se mantiene en banda. Decisión documentada
+          en commit: 3 smokes (08, 11) hacen `getByTestId("config-grid").click()`
+          directamente sin abrir el menú ⋯ Más, así que el en-banda es
+          load-bearing. El menú "Más" lo espeja con `toolbar-mas-config-grid`. */}
       <button style={style.secondaryButton} type="button" onClick={handleAbrirGridConfig} data-testid="config-grid" title="Configurar paso, color y snap del grid">Config grid</button>
       {/* Ronda 15 L4: layout sugerido como accion explicita. No persiste */}
       {/* automaticamente al cargar; cada clic crea una entrada undo atomica. */}
-      <button style={style.button} type="button" onClick={aplicarLayoutSugerido} data-testid="toolbar-aplicar-layout" title="Sugerir layout · reorganiza apariencias del OPD activo en niveles top-down. Undoable con Ctrl+Z.">Sugerir layout</button>
+      <button style={style.button} type="button" onClick={aplicarLayoutSugerido} data-testid="toolbar-aplicar-layout" title="Auto-layout · reorganiza apariencias del OPD activo en niveles top-down. Undoable con Ctrl+Z.">Auto-layout</button>
       <ModalConfiguracionGrid abierto={gridModalAbierto} config={gridConfig} onCerrar={handleCerrarGridConfig} onGuardar={fijarGridConfig} />
       {bibliotecaAbierta ? <BibliotecaCosa modelo={modelo} opdActivoId={opdActivoId} onCerrar={() => setBibliotecaAbierta(false)} onNavegarOpd={cambiarOpdActivo} /> : null}
       {menuTiposAbierto ? <MenuTipoEnlace modelo={modelo} origenId={origenMenuTipo} destinoId={destinoMenuTipo} direccion={direccionTipoEnlace} onDireccion={setDireccionTipoEnlace} onElegir={handleElegirTipoValido} /> : null}
