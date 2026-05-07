@@ -2,8 +2,9 @@ import type { Enlace, Entidad, Modelo } from "../../modelo/tipos";
 import type { OplLineaPendiente } from "./refsHints";
 import {
   agregarLinea,
-  hintsEnlace,
-  nombreOpl,
+	  hintsEnlace,
+	  nombreOplAtributoValor,
+	  nombreOpl,
   nombreOplExtremo,
   refsEntidad,
   refsEnlace,
@@ -15,13 +16,23 @@ import {
 
 /**
  * Generador de oraciones OPL para descripcion de entidades y enlaces estructurales.
- * Cubre SSOT OPL-ES §3.1 y §9.2; consumidores: `opl/generar.ts`.
+ * Cubre SSOT OPL-ES §3.1, §9.2 y [OPL-ES §14] atributos y valores;
+ * consumidores: `opl/generar.ts`.
  */
 
 export function oracionEntidad(entidad: Entidad): string {
+  const atributoValor = oracionValorAtributo(entidad);
+  if (atributoValor) return atributoValor;
   const nombre = nombreOpl(entidad);
   const tipo = entidad.tipo === "objeto" ? "objeto" : "proceso";
   return `${nombre} es un ${tipo} ${textoEsencia(entidad)} y ${textoAfiliacion(entidad)}.`;
+}
+
+export function oracionValorAtributo(entidad: Entidad): string | null {
+  if (!entidad.valorSlot) return null;
+  const valor = entidad.valorSlot.valor ?? "valor";
+  const unidad = entidad.unidad ? ` [${entidad.unidad}]` : "";
+  return `${nombreOplAtributoValor(entidad)} es ${valor}${unidad}.`;
 }
 
 export function oracionEnlaceEstructural(modelo: Modelo, enlace: Enlace): string | null {

@@ -1,5 +1,21 @@
-import type { Afiliacion, Esencia, Id, Modelo, Resultado } from "../tipos";
-import { fallo, ok } from "./helpers";
+import { CANON } from "../constantes";
+import type {
+  Afiliacion,
+  Apariencia,
+  AparienciaEnlace,
+  Enlace,
+  Entidad,
+  Esencia,
+  Id,
+  Modelo,
+  Opd,
+  Resultado,
+  TipoValorSlot,
+  ValorConcreto,
+  ValorSlot,
+} from "../tipos";
+import { placeholderValorSlot, validarValorSlot } from "../validadores/valorSlot";
+import { fallo, ok, siguienteId } from "./helpers";
 
 /**
  * Operaciones de edición de entidad: renombrar, cambiar esencia, cambiar afiliación.
@@ -7,19 +23,38 @@ import { fallo, ok } from "./helpers";
  * extendida (alias, unidad, descripción, URLs) tiene su propio módulo
  * `modelo/objetoMetadata.ts` (no es parte de operaciones).
  *
- * Refs: SSOT opm-iso-19450-es.md §3.55 / §3.69 (esencia/afiliación).
+ * Refs: SSOT opm-iso-19450-es.md §3.55 / §3.69 (esencia/afiliación),
+ *       [Glos 3.4] atributo, [V-163] slot de valor visible, [OPL-ES §14].
  */
+
+export interface CrearAtributoOpciones {
+  tipoSlot?: TipoValorSlot;
+  unidad?: string;
+  valor?: ValorConcreto;
+}
+
+export interface AtributoCreado {
+  modelo: Modelo;
+  atributoId: Id;
+  aparienciaId: Id;
+  enlaceId: Id;
+}
 
 export function renombrarEntidad(modelo: Modelo, entidadId: Id, nombre: string, opdActivoId?: Id): Resultado<Modelo> {
   const entidad = modelo.entidades[entidadId];
   if (!entidad) return fallo(`Entidad no existe: ${entidadId}`);
   const validado = validarNombreEntidad(modelo, entidadId, nombre, opdActivoId);
   if (!validado.ok) return validado;
+  const compuesto = parsearNombreUnidadEntidad(nombre, entidad.unidad);
   return ok({
     ...modelo,
     entidades: {
       ...modelo.entidades,
-      [entidadId]: { ...entidad, nombre: validado.value },
+      [entidadId]: {
+        ...entidad,
+        nombre: validado.value,
+        ...(compuesto.unidad ? { unidad: compuesto.unidad } : {}),
+      },
     },
   });
 }
@@ -35,7 +70,7 @@ export function validarNombreEntidad(
   nombre: string,
   opdActivoId?: Id,
 ): Resultado<string> {
-  const limpio = nombre.trim();
+  const limpio = parsearNombreUnidadEntidad(nombre).nombre;
   if (limpio.length === 0) return fallo("El nombre no puede estar vacío");
   if (opdActivoId === undefined) return ok(limpio);
   const opd = modelo.opds[opdActivoId];
@@ -49,6 +84,116 @@ export function validarNombreEntidad(
     }
   }
   return ok(limpio);
+}
+
+export function crearAtributoEnObjeto(
+  modelo: Modelo,
+  opdId: Id,
+  objetoPadreId: Id,
+  nombreAtributo: string,
+  opciones: CrearAtributoOpciones = {},
+): Resultado<AtributoCreado> {
+  const opd = modelo.opds[opdId];
+  if (!opd) return fallo(`OPD no existe: ${opdId}`);
+  const padre = modelo.entidades[objetoPadreId];
+  if (!padre || padre.tipo !== "objeto") return fallo("Crear atributo requiere un objeto padre");
+  const aparienciaPadre = Object.values(opd.apariencias).find((apariencia) => apariencia.entidadId === objetoPadreId);
+  if (!aparienciaPadre) return fallo("El objeto padre debe tener apariencia en el OPD activo");
+
+  const compuesto = parsearNombreUnidadEntidad(nombreAtributo);
+  const nombre = compuesto.nombre || "Atributo";
+  const unidad = opciones.unidad?.trim() || compuesto.unidad;
+  const atributoId = siguienteId(modelo, "o");
+  const aparienciaId = siguienteId({ ...modelo, nextSeq: modelo.nextSeq + 1 }, "a");
+  const enlaceId = siguienteId({ ...modelo, nextSeq: modelo.nextSeq + 2 }, "e");
+  const aparienciaEnlaceId = siguienteId({ ...modelo, nextSeq: modelo.nextSeq + 3 }, "ae");
+  const valorSlot = opciones.tipoSlot ? crearValorSlotInicial(opciones.tipoSlot, opciones.valor) : undefined;
+  if (valorSlot && !valorSlot.ok) return valorSlot;
+
+  const atributo: Entidad = {
+    id: atributoId,
+    tipo: "objeto",
+    nombre,
+    esencia: "informacional",
+    afiliacion: padre.afiliacion,
+    esAtributo: true,
+    ...(unidad ? { unidad } : {}),
+    ...(valorSlot?.ok ? { valorSlot: valorSlot.value } : {}),
+  };
+  const apariencia: Apariencia = {
+    id: aparienciaId,
+    entidadId: atributoId,
+    opdId,
+    x: aparienciaPadre.x + aparienciaPadre.width + 80,
+    y: aparienciaPadre.y,
+    width: CANON.dims.cosaWidth,
+    height: CANON.dims.cosaHeight,
+  };
+  const enlace: Enlace = {
+    id: enlaceId,
+    tipo: "exhibicion",
+    origenId: { kind: "entidad", id: objetoPadreId },
+    destinoId: { kind: "entidad", id: atributoId },
+    etiqueta: "",
+  };
+  const aparienciaEnlace: AparienciaEnlace = { id: aparienciaEnlaceId, enlaceId, opdId, vertices: [] };
+  const nextOpd: Opd = {
+    ...opd,
+    apariencias: { ...opd.apariencias, [aparienciaId]: apariencia },
+    enlaces: { ...opd.enlaces, [aparienciaEnlaceId]: aparienciaEnlace },
+  };
+  const siguiente: Modelo = {
+    ...modelo,
+    nextSeq: modelo.nextSeq + 4,
+    entidades: { ...modelo.entidades, [atributoId]: atributo },
+    enlaces: { ...modelo.enlaces, [enlaceId]: enlace },
+    opds: { ...modelo.opds, [opdId]: nextOpd },
+  };
+  return ok({ modelo: siguiente, atributoId, aparienciaId, enlaceId });
+}
+
+export function esAtributoDerivado(modelo: Modelo, entidadId: Id): boolean {
+  const entidad = modelo.entidades[entidadId];
+  if (!entidad) return false;
+  if (entidad.esAtributo === true) return true;
+  return Object.values(modelo.enlaces).some((enlace) =>
+    enlace.tipo === "exhibicion" &&
+    enlace.destinoId.kind === "entidad" &&
+    enlace.destinoId.id === entidadId
+  );
+}
+
+export function asignarValorAtributo(modelo: Modelo, entidadId: Id, valor: ValorConcreto): Resultado<Modelo> {
+  const entidad = modelo.entidades[entidadId];
+  if (!entidad) return fallo(`Entidad no existe: ${entidadId}`);
+  if (!esAtributoDerivado(modelo, entidadId) || !entidad.valorSlot) return fallo("La entidad no tiene slot de valor de atributo");
+  const validado = validarValorSlot(entidad.valorSlot.tipo, valor);
+  if (!validado.ok) return validado;
+  return ok({
+    ...modelo,
+    entidades: {
+      ...modelo.entidades,
+      [entidadId]: {
+        ...entidad,
+        esAtributo: true,
+        valorSlot: { ...entidad.valorSlot, valor: validado.value },
+      },
+    },
+  });
+}
+
+export function cambiarTipoValorAtributo(modelo: Modelo, entidadId: Id, tipo: TipoValorSlot): Resultado<Modelo> {
+  const entidad = modelo.entidades[entidadId];
+  if (!entidad) return fallo(`Entidad no existe: ${entidadId}`);
+  if (!esAtributoDerivado(modelo, entidadId)) return fallo("La entidad no es atributo");
+  const valorSlot: ValorSlot = { tipo, placeholder: placeholderValorSlot() };
+  return ok({
+    ...modelo,
+    entidades: {
+      ...modelo.entidades,
+      [entidadId]: { ...entidad, esAtributo: true, valorSlot },
+    },
+  });
 }
 
 export function cambiarEsencia(modelo: Modelo, entidadId: Id, esencia: Esencia): Resultado<Modelo> {
@@ -73,4 +218,21 @@ export function cambiarAfiliacion(modelo: Modelo, entidadId: Id, afiliacion: Afi
       [entidadId]: { ...entidad, afiliacion },
     },
   });
+}
+
+function crearValorSlotInicial(tipo: TipoValorSlot, valor?: ValorConcreto): Resultado<ValorSlot> {
+  const base: ValorSlot = { tipo, placeholder: placeholderValorSlot() };
+  if (valor === undefined) return ok(base);
+  const validado = validarValorSlot(tipo, valor);
+  return validado.ok ? ok({ ...base, valor: validado.value }) : validado;
+}
+
+function parsearNombreUnidadEntidad(nombre: string, unidadActual?: string): { nombre: string; unidad?: string } {
+  const limpio = nombre.trim();
+  const match = /^(?<nombre>.*?)(?<!\\)\s+\[(?<unidad>[^\]\r\n]+)\]$/.exec(limpio);
+  if (!match?.groups) return { nombre: limpio };
+  const base = (match.groups.nombre ?? "").trim();
+  const unidad = (match.groups.unidad ?? "").trim();
+  if (!base || !unidad || unidad.length > 20) return { nombre: limpio };
+  return { nombre: base, unidad: unidadActual && unidadActual === unidad ? unidadActual : unidad };
 }

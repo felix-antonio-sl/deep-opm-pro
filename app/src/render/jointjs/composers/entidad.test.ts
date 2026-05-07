@@ -24,7 +24,7 @@ describe("composer entidad", () => {
     });
   });
 
-  test("proyecta estados embebidos con selectores interactivos", () => {
+	  test("proyecta estados embebidos con selectores interactivos", () => {
     let modelo = crearModelo();
     modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 30 }, "Pedido"));
     const entidad = Object.values(modelo.entidades)[0];
@@ -48,6 +48,20 @@ describe("composer entidad", () => {
         { selector: "stateLabel0", estadoId: estado.id },
       ]),
     );
+	  });
+
+  test("HU-17.012 renderiza Nombre [Unidad] {alias}", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 30 }, "Temperatura"));
+    const entidad = Object.values(modelo.entidades)[0];
+    const apariencia = Object.values(modelo.opds[modelo.opdRaizId]?.apariencias ?? {})[0];
+    if (!entidad || !apariencia) throw new Error("Fixture invalido");
+    modelo.entidades[entidad.id] = { ...entidad, unidad: "°C", alias: "T" };
+
+    const cell = proyectarEntidad(modelo, modelo.opdRaizId, apariencia, modelo.entidades[entidad.id]!, false, false, {});
+    const attrs = cell.attrs as Record<string, unknown>;
+
+    expect((attrs.label as Record<string, unknown>).text).toBe("Temperatura [°C] {T}");
   });
 });
 

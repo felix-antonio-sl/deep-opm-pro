@@ -4,9 +4,10 @@ import type { Id } from "./comunes";
 /**
  * Tipos del dominio Entidad (Object/Process en SSOT OPM) y su metadata.
  * Cubre tipo, esencia, afiliación, refinamiento, alias/unidad/descripción/URLs
- * (HU-17.* metadata extendida ronda 7).
+ * (HU-17.* metadata extendida ronda 7) y atributo con slot de valor aditivo.
  *
  * Refs: SSOT opm-iso-19450-es.md §3.55 (Object), §3.69 (Process), §3.71 (State),
+ *       [Glos 3.4] atributo, [V-163] slot de valor visible,
  *       opm-extracted/src/app/models/DrawnPart/OpmObject.ts:5-15.
  */
 
@@ -17,6 +18,8 @@ export type TipoRefinamiento = "descomposicion" | "despliegue";
 export type ModoDespliegueObjeto = "agregacion" | "exhibicion" | "generalizacion" | "clasificacion";
 export type TipoUrlObjeto = "imagen" | "video" | "articulo" | "texto" | "oslc";
 export type ModoImagenEntidad = "imagen" | "texto" | "imagen-texto";
+export type TipoValorSlot = "integer" | "float" | "char" | "string";
+export type ValorConcreto = number | string;
 
 export interface RefinamientoEntidad {
   tipo: TipoRefinamiento;
@@ -39,6 +42,12 @@ export interface ImagenEntidad {
   };
 }
 
+export interface ValorSlot {
+  tipo: TipoValorSlot;
+  placeholder: "value";
+  valor?: ValorConcreto;
+}
+
 export interface Entidad {
   id: Id;
   tipo: TipoEntidad;
@@ -48,6 +57,8 @@ export interface Entidad {
   refinamiento?: RefinamientoEntidad;
   alias?: string;
   unidad?: string;
+  esAtributo?: boolean;
+  valorSlot?: ValorSlot;
   descripcion?: string;
   urls?: UrlObjetoTipada[];
   imagen?: ImagenEntidad;

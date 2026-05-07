@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import type { Enlace, Entidad, Modelo } from "../../modelo/tipos";
-import { oracionEnlaceEstructural, oracionEntidad } from "./estructural";
+import { oracionEnlaceEstructural, oracionEntidad, oracionValorAtributo } from "./estructural";
 
 describe("estructural OPL", () => {
   test("oracionEntidad conserva esencia y afiliacion", () => {
@@ -14,10 +14,29 @@ describe("estructural OPL", () => {
     expect(oracionEnlaceEstructural(modelo, enlace)).toBe("**Todo** consta de **Parte**.");
   });
 
-  test("clasificacion emite instancia", () => {
+	  test("clasificacion emite instancia", () => {
     const modelo = modeloBase();
     const enlace: Enlace = { id: "l1", tipo: "clasificacion", origenId: { kind: "entidad", id: "todo" }, destinoId: { kind: "entidad", id: "parte" }, etiqueta: "" };
     expect(oracionEnlaceEstructural(modelo, enlace)).toBe("**Parte** es una instancia de **Todo**.");
+	  });
+
+  test("HU-17.016 emite atributo con placeholder, valor y unidad opcional", () => {
+    const atributo: Entidad = {
+      id: "temp",
+      tipo: "objeto",
+      nombre: "Temperatura",
+      esencia: "informacional",
+      afiliacion: "sistemica",
+      esAtributo: true,
+      unidad: "°C",
+      valorSlot: { tipo: "float", placeholder: "value" },
+    };
+
+    expect(oracionValorAtributo(atributo)).toBe("**Temperatura** es valor [°C].");
+    expect(oracionEntidad(atributo)).toBe("**Temperatura** es valor [°C].");
+    expect(oracionEntidad({ ...atributo, valorSlot: { ...atributo.valorSlot!, valor: 25.5 } })).toBe("**Temperatura** es 25.5 [°C].");
+    const { unidad: _unidad, ...sinUnidad } = atributo;
+    expect(oracionEntidad({ ...sinUnidad, valorSlot: { ...atributo.valorSlot!, valor: 25 } })).toBe("**Temperatura** es 25.");
   });
 });
 

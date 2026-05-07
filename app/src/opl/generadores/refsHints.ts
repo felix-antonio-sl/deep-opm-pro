@@ -92,8 +92,9 @@ export function refEstado(id: Id): OplReferencia {
 }
 
 export function hintEntidad(entidad: Entidad, texto = nombreOpl(entidad)): OplTokenHint {
+  const textoEntidad = texto === nombreOpl(entidad) && entidad.valorSlot ? nombreOplAtributoValor(entidad) : texto;
   return {
-    texto,
+    texto: textoEntidad,
     ref: refEntidad(entidad.id),
     rol: "nombre",
     markdown: entidad.tipo === "objeto" ? "objeto" : "proceso",
@@ -144,6 +145,10 @@ const verbosPorTipo: Record<TipoEnlace, string[]> = {
 export function nombreOpl(entidad: Entidad): string {
   const nombre = nombreOplBase(entidad, entidad.nombre);
   return entidad.alias ? `${nombre} {${entidad.alias}}` : nombre;
+}
+
+export function nombreOplAtributoValor(entidad: Entidad): string {
+  return entidad.tipo === "objeto" ? `**${entidad.nombre}**` : `*${entidad.nombre}*`;
 }
 
 export function nombreOplExtremo(modelo: Modelo, extremo: Enlace["origenId"], multiplicidad: string | undefined): string {
