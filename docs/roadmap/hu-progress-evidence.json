@@ -1,6 +1,6 @@
 {
   "schema": "deep-opm-pro.hu-progress-evidence.v1",
-  "updated": "2026-05-06",
+  "updated": "2026-05-07",
   "source": "Auditoria automatica local contra app/src, app/e2e, app/scripts y assets/svg/links.",
   "statusDefinitions": {
     "cubierto": "La HU tiene implementacion usable y evidencia local directa en codigo, tests o smoke.",
@@ -728,13 +728,13 @@
   ],
   "knownGaps": [],
   "autoAudit": {
-    "generatedAt": "2026-05-06T19:06:07.263Z",
+    "generatedAt": "2026-05-07T02:53:56.829Z",
     "mode": "sync-real",
-    "rulesEvaluated": 92,
-    "rulesMatched": 92,
-    "rulesUnmatched": 0,
+    "rulesEvaluated": 100,
+    "rulesMatched": 98,
+    "rulesUnmatched": 2,
     "sourceFiles": {
-      "count": 333,
+      "count": 351,
       "roots": [
         "app/src",
         "app/e2e",
@@ -855,8 +855,7 @@
     },
     {
       "ids": [
-        "HU-11.012",
-        "HU-17.013"
+        "HU-11.012"
       ],
       "estado": "parcial",
       "confianza": "alta-auto",
@@ -960,10 +959,8 @@
     },
     {
       "ids": [
-        "HU-30.008",
         "HU-30.019",
         "HU-30.020",
-        "HU-30.021",
         "HU-30.037"
       ],
       "estado": "parcial",
@@ -1542,8 +1539,6 @@
         "HU-17.008",
         "HU-17.009",
         "HU-17.010",
-        "HU-17.011",
-        "HU-17.012",
         "HU-17.018",
         "HU-17.019",
         "HU-17.020",
@@ -2401,6 +2396,168 @@
         "app/src/opl/generadores/estructural.ts",
         "app/src/opl/generadores/refsHints.ts",
         "app/src/opl/generadores/estructural.test.ts"
+      ]
+    },
+    {
+      "ids": [
+        "HU-10.004"
+      ],
+      "estado": "cubierto",
+      "confianza": "alta-auto",
+      "fuente": "auto",
+      "nota": "Auto ronda 12 L1: SeccionDescripcion canonica con data-testid seccion-descripcion-cosa render desde InspectorEntidad.",
+      "evidencia": [
+        "app/src/ui/inspector/SeccionDescripcion.tsx",
+        "app/src/ui/InspectorEntidad.tsx"
+      ]
+    },
+    {
+      "ids": [
+        "HU-11.001"
+      ],
+      "estado": "cubierto",
+      "confianza": "alta-auto",
+      "fuente": "auto",
+      "nota": "Auto ronda 12 L1: indicador de modo sticky en Toolbar (data-testid indicador-modo-sticky).",
+      "evidencia": [
+        "app/src/ui/Toolbar.tsx"
+      ]
+    },
+    {
+      "ids": [
+        "HU-11.007"
+      ],
+      "estado": "pendiente",
+      "confianza": "alta-auto",
+      "fuente": "auto",
+      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
+      "evidencia": [
+        "app/src/ui/atajosTeclado.ts",
+        "app/src/store/modelo/acciones-ui.ts",
+        "app/src/store.test.ts"
+      ],
+      "brechas": [
+        "app/src/store/modelo/acciones-ui.ts: falta alguno de conectarSeleccionAlTodo"
+      ]
+    },
+    {
+      "ids": [
+        "HU-30.036"
+      ],
+      "estado": "cubierto",
+      "confianza": "alta-auto",
+      "fuente": "auto",
+      "nota": "Auto ronda 12 L1: guardarLocal redirige a copia editable cuando readOnly y limpia indicador post-commit.",
+      "evidencia": [
+        "app/src/store/persistencia.ts",
+        "app/src/store/persistencia.test.ts"
+      ]
+    },
+    {
+      "ids": [
+        "HU-30.021",
+        "HU-30.008"
+      ],
+      "estado": "pendiente",
+      "confianza": "alta-auto",
+      "fuente": "auto",
+      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
+      "evidencia": [
+        "app/src/ui/DialogoCargarModelo.tsx",
+        "app/src/persistencia/local.test.ts",
+        "app/e2e/opm-smoke.spec.ts"
+      ],
+      "brechas": [
+        "app/examples/ejemplo-organizacional.json: archivo no encontrado"
+      ]
+    },
+    {
+      "ids": [
+        "HU-17.011",
+        "HU-17.012",
+        "HU-17.013",
+        "HU-17.014",
+        "HU-17.015",
+        "HU-17.016",
+        "HU-17.017"
+      ],
+      "estado": "cubierto",
+      "confianza": "alta-auto",
+      "fuente": "auto",
+      "nota": "Auto ronda 12 L2: atributos canonicos con valor slot integer/float/char/string + render Nombre [Unidad] {alias} + OPL + UI Inspector y Toolbar.",
+      "evidencia": [
+        "app/src/modelo/tipos/entidad.ts",
+        "app/src/modelo/operaciones/entidad.ts",
+        "app/src/modelo/validadores/valorSlot.ts",
+        "app/src/ui/inspector/SeccionAtributo.tsx",
+        "app/src/ui/Toolbar.tsx",
+        "app/src/modelo/operaciones/entidad.test.ts",
+        "app/src/modelo/validadores/valorSlot.test.ts"
+      ]
+    },
+    {
+      "ids": [
+        "HU-1B.001",
+        "HU-1B.002",
+        "HU-1B.003",
+        "HU-1B.004",
+        "HU-1B.005",
+        "HU-1B.006",
+        "HU-1B.007",
+        "HU-1B.008",
+        "HU-1B.009",
+        "HU-1B.010",
+        "HU-1B.011",
+        "HU-1B.012",
+        "HU-1B.013",
+        "HU-1B.014",
+        "HU-1B.015"
+      ],
+      "estado": "cubierto",
+      "confianza": "alta-auto",
+      "fuente": "auto",
+      "nota": "Auto ronda 12 L3: traer conectados con familias canonicas + layout radial + ocultar apariencia + dialogo + menu contextual de entidad.",
+      "evidencia": [
+        "app/src/canvas/operacionesBatch.ts",
+        "app/src/canvas/reglasTraer.ts",
+        "app/src/canvas/layoutRadial.ts",
+        "app/src/canvas/seleccionMultiple.ts",
+        "app/src/ui/DialogoTraerConectados.tsx",
+        "app/src/ui/MenuContextualEntidad.tsx",
+        "app/src/canvas/reglasTraer.test.ts",
+        "app/src/canvas/layoutRadial.test.ts"
+      ]
+    },
+    {
+      "ids": [
+        "HU-33.001",
+        "HU-33.002",
+        "HU-33.003",
+        "HU-33.006",
+        "HU-33.007",
+        "HU-33.008",
+        "HU-33.009",
+        "HU-33.010",
+        "HU-33.012",
+        "HU-33.014",
+        "HU-33.015",
+        "HU-33.018",
+        "HU-33.022"
+      ],
+      "estado": "cubierto",
+      "confianza": "alta-auto",
+      "fuente": "auto",
+      "nota": "Auto ronda 12 L4: plantillas privadas EPICA-33 con persistencia separada, insercion atomica con IDs nuevos, sub-OPDs, sufijo, foco temporal y catalogo.",
+      "evidencia": [
+        "app/src/modelo/tipos/plantilla.ts",
+        "app/src/persistencia/plantillas.ts",
+        "app/src/canvas/operacionesBatch.ts",
+        "app/src/store/modelo.ts",
+        "app/src/ui/DialogoPlantillas.tsx",
+        "app/src/ui/DialogoGuardarPlantilla.tsx",
+        "app/src/ui/MenuPrincipal.tsx",
+        "app/src/persistencia/plantillas.test.ts",
+        "app/src/canvas/operacionesBatch.test.ts"
       ]
     }
   ]

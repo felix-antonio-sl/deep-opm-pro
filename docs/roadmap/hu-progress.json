@@ -1,17 +1,17 @@
 {
   "schema": "deep-opm-pro.hu-progress-report.v1",
-  "generatedAt": "2026-05-06T19:06:07.263Z",
+  "generatedAt": "2026-05-07T02:53:56.829Z",
   "repoRoot": "/home/felix/projects/deep-opm-pro",
   "backlogRoot": "docs/historias-usuario-v2",
   "evidenceLedger": "docs/roadmap/hu-progress-evidence.json",
   "autoAudit": {
-    "generatedAt": "2026-05-06T19:06:07.263Z",
+    "generatedAt": "2026-05-07T02:53:56.829Z",
     "mode": "sync-real",
-    "rulesEvaluated": 92,
-    "rulesMatched": 92,
-    "rulesUnmatched": 0,
+    "rulesEvaluated": 100,
+    "rulesMatched": 98,
+    "rulesUnmatched": 2,
     "sourceFiles": {
-      "count": 333,
+      "count": 351,
       "roots": [
         "app/src",
         "app/e2e",
@@ -43,14 +43,14 @@
   "summaries": {
     "total": {
       "total": 1126,
-      "cubierto": 266,
-      "parcial": 33,
-      "pendiente": 449,
+      "cubierto": 302,
+      "parcial": 30,
+      "pendiente": 416,
       "diferido": 378,
       "bloqueado": 0,
       "pesoTotal": 3004,
-      "pesoCubierto": 737.5,
-      "avance": 0.24550599201065246
+      "pesoCubierto": 825.5,
+      "avance": 0.27480026631158455
     },
     "inventario": {
       "totalParseadas": 1173,
@@ -60,8 +60,8 @@
     },
     "m0": {
       "total": 130,
-      "cubierto": 99,
-      "parcial": 16,
+      "cubierto": 101,
+      "parcial": 14,
       "pendiente": 15,
       "diferido": 0,
       "bloqueado": 0,
@@ -71,59 +71,59 @@
     },
     "alpha": {
       "total": 121,
-      "cubierto": 107,
-      "parcial": 10,
-      "pendiente": 4,
+      "cubierto": 110,
+      "parcial": 8,
+      "pendiente": 3,
       "diferido": 0,
       "bloqueado": 0,
       "pesoTotal": 326,
-      "pesoCubierto": 297,
-      "avance": 0.911042944785276
+      "pesoCubierto": 296,
+      "avance": 0.9079754601226994
     },
     "beta": {
       "total": 193,
-      "cubierto": 69,
+      "cubierto": 84,
       "parcial": 14,
-      "pendiente": 110,
+      "pendiente": 95,
       "diferido": 0,
       "bloqueado": 0,
       "pesoTotal": 545,
-      "pesoCubierto": 218.5,
-      "avance": 0.40091743119266054
+      "pesoCubierto": 259.5,
+      "avance": 0.4761467889908257
     },
     "byCut": {
       "alpha": {
         "total": 121,
-        "cubierto": 107,
-        "parcial": 10,
-        "pendiente": 4,
+        "cubierto": 110,
+        "parcial": 8,
+        "pendiente": 3,
         "diferido": 0,
         "bloqueado": 0,
         "pesoTotal": 326,
-        "pesoCubierto": 297,
-        "avance": 0.911042944785276
+        "pesoCubierto": 296,
+        "avance": 0.9079754601226994
       },
       "beta": {
         "total": 193,
-        "cubierto": 69,
+        "cubierto": 84,
         "parcial": 14,
-        "pendiente": 110,
+        "pendiente": 95,
         "diferido": 0,
         "bloqueado": 0,
         "pesoTotal": 545,
-        "pesoCubierto": 218.5,
-        "avance": 0.40091743119266054
+        "pesoCubierto": 259.5,
+        "avance": 0.4761467889908257
       },
       "gamma": {
         "total": 434,
-        "cubierto": 90,
-        "parcial": 9,
-        "pendiente": 335,
+        "cubierto": 108,
+        "parcial": 8,
+        "pendiente": 318,
         "diferido": 0,
         "bloqueado": 0,
         "pesoTotal": 1126,
-        "pesoCubierto": 222,
-        "avance": 0.19715808170515098
+        "pesoCubierto": 270,
+        "avance": 0.23978685612788633
       },
       "delta": {
         "total": 378,
@@ -151,8 +151,8 @@
     "byPriority": {
       "M0": {
         "total": 130,
-        "cubierto": 99,
-        "parcial": 16,
+        "cubierto": 101,
+        "parcial": 14,
         "pendiente": 15,
         "diferido": 0,
         "bloqueado": 0,
@@ -162,36 +162,36 @@
       },
       "M1": {
         "total": 161,
-        "cubierto": 88,
+        "cubierto": 104,
         "parcial": 9,
-        "pendiente": 58,
+        "pendiente": 42,
         "diferido": 6,
         "bloqueado": 0,
         "pesoTotal": 388,
-        "pesoCubierto": 222,
-        "avance": 0.5721649484536082
+        "pesoCubierto": 266,
+        "avance": 0.6855670103092784
       },
       "S": {
         "total": 471,
-        "cubierto": 69,
-        "parcial": 4,
-        "pendiente": 236,
+        "cubierto": 86,
+        "parcial": 3,
+        "pendiente": 220,
         "diferido": 162,
         "bloqueado": 0,
         "pesoTotal": 1247,
-        "pesoCubierto": 210,
-        "avance": 0.16840417000801924
+        "pesoCubierto": 252,
+        "avance": 0.2020850040096231
       },
       "C": {
         "total": 247,
-        "cubierto": 9,
+        "cubierto": 10,
         "parcial": 4,
-        "pendiente": 133,
+        "pendiente": 132,
         "diferido": 101,
         "bloqueado": 0,
         "pesoTotal": 661,
-        "pesoCubierto": 26,
-        "avance": 0.039334341906202726
+        "pesoCubierto": 28,
+        "avance": 0.04236006051437216
       },
       "W": {
         "total": 117,
@@ -220,26 +220,26 @@
       "10": {
         "titulo": "Canvas — creación de cosas (proceso, objeto, enlace inicial, afiliación, esencia)",
         "total": 17,
-        "cubierto": 14,
+        "cubierto": 15,
         "parcial": 2,
-        "pendiente": 1,
+        "pendiente": 0,
         "diferido": 0,
         "bloqueado": 0,
         "pesoTotal": 38,
-        "pesoCubierto": 34,
-        "avance": 0.8947368421052632
+        "pesoCubierto": 35,
+        "avance": 0.9210526315789473
       },
       "11": {
         "titulo": "Canvas — modelado básico (agregación, multi-selección, enlaces procedurales, propiedades, alineación, borrado)",
         "total": 22,
-        "cubierto": 19,
+        "cubierto": 20,
         "parcial": 1,
-        "pendiente": 2,
+        "pendiente": 1,
         "diferido": 0,
         "bloqueado": 0,
         "pesoTotal": 56,
-        "pesoCubierto": 49,
-        "avance": 0.875
+        "pesoCubierto": 51,
+        "avance": 0.9107142857142857
       },
       "12": {
         "titulo": "Canvas — descomposición de procesos",
@@ -304,14 +304,14 @@
       "17": {
         "titulo": "Canvas — objetos avanzados (alias, unidad, descripción, URL, plegado parcial, designaciones de estado, duración)",
         "total": 28,
-        "cubierto": 18,
-        "parcial": 3,
-        "pendiente": 7,
+        "cubierto": 23,
+        "parcial": 2,
+        "pendiente": 3,
         "diferido": 0,
         "bloqueado": 0,
         "pesoTotal": 54,
-        "pesoCubierto": 33,
-        "avance": 0.6111111111111112
+        "pesoCubierto": 46,
+        "avance": 0.8518518518518519
       },
       "18": {
         "titulo": "Canvas — plegado parcial (vista compacta de refinadores intra-rectángulo)",
@@ -364,14 +364,14 @@
       "30": {
         "titulo": "Persistencia — guardar/cargar, diálogos modales, versiones, archivado, búsqueda global, autosalvado",
         "total": 34,
-        "cubierto": 28,
-        "parcial": 5,
-        "pendiente": 1,
+        "cubierto": 29,
+        "parcial": 3,
+        "pendiente": 2,
         "diferido": 0,
         "bloqueado": 0,
         "pesoTotal": 89,
-        "pesoCubierto": 79,
-        "avance": 0.8876404494382022
+        "pesoCubierto": 75,
+        "avance": 0.8426966292134831
       },
       "31": {
         "titulo": "Persistencia — carpetas, jerarquía, permisos y navegación del workspace",
@@ -400,14 +400,14 @@
       "33": {
         "titulo": "Persistencia — plantillas (artefactos reutilizables, ámbitos Privado/Organizacional/Global)",
         "total": 22,
-        "cubierto": 0,
+        "cubierto": 13,
         "parcial": 0,
-        "pendiente": 22,
+        "pendiente": 9,
         "diferido": 0,
         "bloqueado": 0,
         "pesoTotal": 57,
-        "pesoCubierto": 0,
-        "avance": 0
+        "pesoCubierto": 35,
+        "avance": 0.6140350877192983
       },
       "34": {
         "titulo": "Persistencia — creación de modelo nuevo (ruta simple + asistente de 12 etapas)",
@@ -604,14 +604,14 @@
       "1B": {
         "titulo": "Canvas — operaciones de traer conectados (hidratar OPD con cosas y enlaces existentes)",
         "total": 16,
-        "cubierto": 0,
+        "cubierto": 15,
         "parcial": 0,
-        "pendiente": 16,
+        "pendiente": 1,
         "diferido": 0,
         "bloqueado": 0,
         "pesoTotal": 42,
-        "pesoCubierto": 0,
-        "avance": 0
+        "pesoCubierto": 41,
+        "avance": 0.9761904761904762
       },
       "1C": {
         "titulo": "Canvas — validaciones (interior/exterior, nombres duplicados, verificación metodológica, alcance de eliminación)",
@@ -14679,15 +14679,48 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-1b-canvas-traer-conectados.md",
       "lineaInicio": 44,
       "corte": "beta",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto ronda 12 L3: traer conectados con familias canonicas + layout radial + ocultar apariencia + dialogo + menu contextual de entidad.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/canvas/operacionesBatch.ts",
+          "hrefDashboard": "../../app/src/canvas/operacionesBatch.ts"
+        },
+        {
+          "path": "app/src/canvas/reglasTraer.ts",
+          "hrefDashboard": "../../app/src/canvas/reglasTraer.ts"
+        },
+        {
+          "path": "app/src/canvas/layoutRadial.ts",
+          "hrefDashboard": "../../app/src/canvas/layoutRadial.ts"
+        },
+        {
+          "path": "app/src/canvas/seleccionMultiple.ts",
+          "hrefDashboard": "../../app/src/canvas/seleccionMultiple.ts"
+        },
+        {
+          "path": "app/src/ui/DialogoTraerConectados.tsx",
+          "hrefDashboard": "../../app/src/ui/DialogoTraerConectados.tsx"
+        },
+        {
+          "path": "app/src/ui/MenuContextualEntidad.tsx",
+          "hrefDashboard": "../../app/src/ui/MenuContextualEntidad.tsx"
+        },
+        {
+          "path": "app/src/canvas/reglasTraer.test.ts",
+          "hrefDashboard": "../../app/src/canvas/reglasTraer.test.ts"
+        },
+        {
+          "path": "app/src/canvas/layoutRadial.test.ts",
+          "hrefDashboard": "../../app/src/canvas/layoutRadial.test.ts"
+        }
+      ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-1b-canvas-traer-conectados.md"
     },
     {
@@ -14714,15 +14747,48 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-1b-canvas-traer-conectados.md",
       "lineaInicio": 54,
       "corte": "beta",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto ronda 12 L3: traer conectados con familias canonicas + layout radial + ocultar apariencia + dialogo + menu contextual de entidad.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/canvas/operacionesBatch.ts",
+          "hrefDashboard": "../../app/src/canvas/operacionesBatch.ts"
+        },
+        {
+          "path": "app/src/canvas/reglasTraer.ts",
+          "hrefDashboard": "../../app/src/canvas/reglasTraer.ts"
+        },
+        {
+          "path": "app/src/canvas/layoutRadial.ts",
+          "hrefDashboard": "../../app/src/canvas/layoutRadial.ts"
+        },
+        {
+          "path": "app/src/canvas/seleccionMultiple.ts",
+          "hrefDashboard": "../../app/src/canvas/seleccionMultiple.ts"
+        },
+        {
+          "path": "app/src/ui/DialogoTraerConectados.tsx",
+          "hrefDashboard": "../../app/src/ui/DialogoTraerConectados.tsx"
+        },
+        {
+          "path": "app/src/ui/MenuContextualEntidad.tsx",
+          "hrefDashboard": "../../app/src/ui/MenuContextualEntidad.tsx"
+        },
+        {
+          "path": "app/src/canvas/reglasTraer.test.ts",
+          "hrefDashboard": "../../app/src/canvas/reglasTraer.test.ts"
+        },
+        {
+          "path": "app/src/canvas/layoutRadial.test.ts",
+          "hrefDashboard": "../../app/src/canvas/layoutRadial.test.ts"
+        }
+      ],
       "peso": 4,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 4,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-1b-canvas-traer-conectados.md"
     },
     {
@@ -14751,15 +14817,48 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-1b-canvas-traer-conectados.md",
       "lineaInicio": 64,
       "corte": "beta",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto ronda 12 L3: traer conectados con familias canonicas + layout radial + ocultar apariencia + dialogo + menu contextual de entidad.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/canvas/operacionesBatch.ts",
+          "hrefDashboard": "../../app/src/canvas/operacionesBatch.ts"
+        },
+        {
+          "path": "app/src/canvas/reglasTraer.ts",
+          "hrefDashboard": "../../app/src/canvas/reglasTraer.ts"
+        },
+        {
+          "path": "app/src/canvas/layoutRadial.ts",
+          "hrefDashboard": "../../app/src/canvas/layoutRadial.ts"
+        },
+        {
+          "path": "app/src/canvas/seleccionMultiple.ts",
+          "hrefDashboard": "../../app/src/canvas/seleccionMultiple.ts"
+        },
+        {
+          "path": "app/src/ui/DialogoTraerConectados.tsx",
+          "hrefDashboard": "../../app/src/ui/DialogoTraerConectados.tsx"
+        },
+        {
+          "path": "app/src/ui/MenuContextualEntidad.tsx",
+          "hrefDashboard": "../../app/src/ui/MenuContextualEntidad.tsx"
+        },
+        {
+          "path": "app/src/canvas/reglasTraer.test.ts",
+          "hrefDashboard": "../../app/src/canvas/reglasTraer.test.ts"
+        },
+        {
+          "path": "app/src/canvas/layoutRadial.test.ts",
+          "hrefDashboard": "../../app/src/canvas/layoutRadial.test.ts"
+        }
+      ],
       "peso": 4,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 4,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-1b-canvas-traer-conectados.md"
     },
     {
@@ -14785,15 +14884,48 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-1b-canvas-traer-conectados.md",
       "lineaInicio": 75,
       "corte": "beta",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto ronda 12 L3: traer conectados con familias canonicas + layout radial + ocultar apariencia + dialogo + menu contextual de entidad.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/canvas/operacionesBatch.ts",
+          "hrefDashboard": "../../app/src/canvas/operacionesBatch.ts"
+        },
+        {
+          "path": "app/src/canvas/reglasTraer.ts",
+          "hrefDashboard": "../../app/src/canvas/reglasTraer.ts"
+        },
+        {
+          "path": "app/src/canvas/layoutRadial.ts",
+          "hrefDashboard": "../../app/src/canvas/layoutRadial.ts"
+        },
+        {
+          "path": "app/src/canvas/seleccionMultiple.ts",
+          "hrefDashboard": "../../app/src/canvas/seleccionMultiple.ts"
+        },
+        {
+          "path": "app/src/ui/DialogoTraerConectados.tsx",
+          "hrefDashboard": "../../app/src/ui/DialogoTraerConectados.tsx"
+        },
+        {
+          "path": "app/src/ui/MenuContextualEntidad.tsx",
+          "hrefDashboard": "../../app/src/ui/MenuContextualEntidad.tsx"
+        },
+        {
+          "path": "app/src/canvas/reglasTraer.test.ts",
+          "hrefDashboard": "../../app/src/canvas/reglasTraer.test.ts"
+        },
+        {
+          "path": "app/src/canvas/layoutRadial.test.ts",
+          "hrefDashboard": "../../app/src/canvas/layoutRadial.test.ts"
+        }
+      ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-1b-canvas-traer-conectados.md"
     },
     {
@@ -14821,15 +14953,48 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-1b-canvas-traer-conectados.md",
       "lineaInicio": 84,
       "corte": "beta",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto ronda 12 L3: traer conectados con familias canonicas + layout radial + ocultar apariencia + dialogo + menu contextual de entidad.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/canvas/operacionesBatch.ts",
+          "hrefDashboard": "../../app/src/canvas/operacionesBatch.ts"
+        },
+        {
+          "path": "app/src/canvas/reglasTraer.ts",
+          "hrefDashboard": "../../app/src/canvas/reglasTraer.ts"
+        },
+        {
+          "path": "app/src/canvas/layoutRadial.ts",
+          "hrefDashboard": "../../app/src/canvas/layoutRadial.ts"
+        },
+        {
+          "path": "app/src/canvas/seleccionMultiple.ts",
+          "hrefDashboard": "../../app/src/canvas/seleccionMultiple.ts"
+        },
+        {
+          "path": "app/src/ui/DialogoTraerConectados.tsx",
+          "hrefDashboard": "../../app/src/ui/DialogoTraerConectados.tsx"
+        },
+        {
+          "path": "app/src/ui/MenuContextualEntidad.tsx",
+          "hrefDashboard": "../../app/src/ui/MenuContextualEntidad.tsx"
+        },
+        {
+          "path": "app/src/canvas/reglasTraer.test.ts",
+          "hrefDashboard": "../../app/src/canvas/reglasTraer.test.ts"
+        },
+        {
+          "path": "app/src/canvas/layoutRadial.test.ts",
+          "hrefDashboard": "../../app/src/canvas/layoutRadial.test.ts"
+        }
+      ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-1b-canvas-traer-conectados.md"
     },
     {
@@ -14855,15 +15020,48 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-1b-canvas-traer-conectados.md",
       "lineaInicio": 94,
       "corte": "beta",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto ronda 12 L3: traer conectados con familias canonicas + layout radial + ocultar apariencia + dialogo + menu contextual de entidad.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/canvas/operacionesBatch.ts",
+          "hrefDashboard": "../../app/src/canvas/operacionesBatch.ts"
+        },
+        {
+          "path": "app/src/canvas/reglasTraer.ts",
+          "hrefDashboard": "../../app/src/canvas/reglasTraer.ts"
+        },
+        {
+          "path": "app/src/canvas/layoutRadial.ts",
+          "hrefDashboard": "../../app/src/canvas/layoutRadial.ts"
+        },
+        {
+          "path": "app/src/canvas/seleccionMultiple.ts",
+          "hrefDashboard": "../../app/src/canvas/seleccionMultiple.ts"
+        },
+        {
+          "path": "app/src/ui/DialogoTraerConectados.tsx",
+          "hrefDashboard": "../../app/src/ui/DialogoTraerConectados.tsx"
+        },
+        {
+          "path": "app/src/ui/MenuContextualEntidad.tsx",
+          "hrefDashboard": "../../app/src/ui/MenuContextualEntidad.tsx"
+        },
+        {
+          "path": "app/src/canvas/reglasTraer.test.ts",
+          "hrefDashboard": "../../app/src/canvas/reglasTraer.test.ts"
+        },
+        {
+          "path": "app/src/canvas/layoutRadial.test.ts",
+          "hrefDashboard": "../../app/src/canvas/layoutRadial.test.ts"
+        }
+      ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-1b-canvas-traer-conectados.md"
     },
     {
@@ -14889,15 +15087,48 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-1b-canvas-traer-conectados.md",
       "lineaInicio": 104,
       "corte": "beta",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto ronda 12 L3: traer conectados con familias canonicas + layout radial + ocultar apariencia + dialogo + menu contextual de entidad.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/canvas/operacionesBatch.ts",
+          "hrefDashboard": "../../app/src/canvas/operacionesBatch.ts"
+        },
+        {
+          "path": "app/src/canvas/reglasTraer.ts",
+          "hrefDashboard": "../../app/src/canvas/reglasTraer.ts"
+        },
+        {
+          "path": "app/src/canvas/layoutRadial.ts",
+          "hrefDashboard": "../../app/src/canvas/layoutRadial.ts"
+        },
+        {
+          "path": "app/src/canvas/seleccionMultiple.ts",
+          "hrefDashboard": "../../app/src/canvas/seleccionMultiple.ts"
+        },
+        {
+          "path": "app/src/ui/DialogoTraerConectados.tsx",
+          "hrefDashboard": "../../app/src/ui/DialogoTraerConectados.tsx"
+        },
+        {
+          "path": "app/src/ui/MenuContextualEntidad.tsx",
+          "hrefDashboard": "../../app/src/ui/MenuContextualEntidad.tsx"
+        },
+        {
+          "path": "app/src/canvas/reglasTraer.test.ts",
+          "hrefDashboard": "../../app/src/canvas/reglasTraer.test.ts"
+        },
+        {
+          "path": "app/src/canvas/layoutRadial.test.ts",
+          "hrefDashboard": "../../app/src/canvas/layoutRadial.test.ts"
+        }
+      ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-1b-canvas-traer-conectados.md"
     },
     {
@@ -14925,15 +15156,48 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-1b-canvas-traer-conectados.md",
       "lineaInicio": 114,
       "corte": "beta",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto ronda 12 L3: traer conectados con familias canonicas + layout radial + ocultar apariencia + dialogo + menu contextual de entidad.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/canvas/operacionesBatch.ts",
+          "hrefDashboard": "../../app/src/canvas/operacionesBatch.ts"
+        },
+        {
+          "path": "app/src/canvas/reglasTraer.ts",
+          "hrefDashboard": "../../app/src/canvas/reglasTraer.ts"
+        },
+        {
+          "path": "app/src/canvas/layoutRadial.ts",
+          "hrefDashboard": "../../app/src/canvas/layoutRadial.ts"
+        },
+        {
+          "path": "app/src/canvas/seleccionMultiple.ts",
+          "hrefDashboard": "../../app/src/canvas/seleccionMultiple.ts"
+        },
+        {
+          "path": "app/src/ui/DialogoTraerConectados.tsx",
+          "hrefDashboard": "../../app/src/ui/DialogoTraerConectados.tsx"
+        },
+        {
+          "path": "app/src/ui/MenuContextualEntidad.tsx",
+          "hrefDashboard": "../../app/src/ui/MenuContextualEntidad.tsx"
+        },
+        {
+          "path": "app/src/canvas/reglasTraer.test.ts",
+          "hrefDashboard": "../../app/src/canvas/reglasTraer.test.ts"
+        },
+        {
+          "path": "app/src/canvas/layoutRadial.test.ts",
+          "hrefDashboard": "../../app/src/canvas/layoutRadial.test.ts"
+        }
+      ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-1b-canvas-traer-conectados.md"
     },
     {
@@ -14961,15 +15225,48 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-1b-canvas-traer-conectados.md",
       "lineaInicio": 124,
       "corte": "beta",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto ronda 12 L3: traer conectados con familias canonicas + layout radial + ocultar apariencia + dialogo + menu contextual de entidad.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/canvas/operacionesBatch.ts",
+          "hrefDashboard": "../../app/src/canvas/operacionesBatch.ts"
+        },
+        {
+          "path": "app/src/canvas/reglasTraer.ts",
+          "hrefDashboard": "../../app/src/canvas/reglasTraer.ts"
+        },
+        {
+          "path": "app/src/canvas/layoutRadial.ts",
+          "hrefDashboard": "../../app/src/canvas/layoutRadial.ts"
+        },
+        {
+          "path": "app/src/canvas/seleccionMultiple.ts",
+          "hrefDashboard": "../../app/src/canvas/seleccionMultiple.ts"
+        },
+        {
+          "path": "app/src/ui/DialogoTraerConectados.tsx",
+          "hrefDashboard": "../../app/src/ui/DialogoTraerConectados.tsx"
+        },
+        {
+          "path": "app/src/ui/MenuContextualEntidad.tsx",
+          "hrefDashboard": "../../app/src/ui/MenuContextualEntidad.tsx"
+        },
+        {
+          "path": "app/src/canvas/reglasTraer.test.ts",
+          "hrefDashboard": "../../app/src/canvas/reglasTraer.test.ts"
+        },
+        {
+          "path": "app/src/canvas/layoutRadial.test.ts",
+          "hrefDashboard": "../../app/src/canvas/layoutRadial.test.ts"
+        }
+      ],
       "peso": 4,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 4,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-1b-canvas-traer-conectados.md"
     },
     {
@@ -14995,15 +15292,48 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-1b-canvas-traer-conectados.md",
       "lineaInicio": 133,
       "corte": "beta",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto ronda 12 L3: traer conectados con familias canonicas + layout radial + ocultar apariencia + dialogo + menu contextual de entidad.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/canvas/operacionesBatch.ts",
+          "hrefDashboard": "../../app/src/canvas/operacionesBatch.ts"
+        },
+        {
+          "path": "app/src/canvas/reglasTraer.ts",
+          "hrefDashboard": "../../app/src/canvas/reglasTraer.ts"
+        },
+        {
+          "path": "app/src/canvas/layoutRadial.ts",
+          "hrefDashboard": "../../app/src/canvas/layoutRadial.ts"
+        },
+        {
+          "path": "app/src/canvas/seleccionMultiple.ts",
+          "hrefDashboard": "../../app/src/canvas/seleccionMultiple.ts"
+        },
+        {
+          "path": "app/src/ui/DialogoTraerConectados.tsx",
+          "hrefDashboard": "../../app/src/ui/DialogoTraerConectados.tsx"
+        },
+        {
+          "path": "app/src/ui/MenuContextualEntidad.tsx",
+          "hrefDashboard": "../../app/src/ui/MenuContextualEntidad.tsx"
+        },
+        {
+          "path": "app/src/canvas/reglasTraer.test.ts",
+          "hrefDashboard": "../../app/src/canvas/reglasTraer.test.ts"
+        },
+        {
+          "path": "app/src/canvas/layoutRadial.test.ts",
+          "hrefDashboard": "../../app/src/canvas/layoutRadial.test.ts"
+        }
+      ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-1b-canvas-traer-conectados.md"
     },
     {
@@ -15029,15 +15359,48 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-1b-canvas-traer-conectados.md",
       "lineaInicio": 142,
       "corte": "beta",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto ronda 12 L3: traer conectados con familias canonicas + layout radial + ocultar apariencia + dialogo + menu contextual de entidad.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/canvas/operacionesBatch.ts",
+          "hrefDashboard": "../../app/src/canvas/operacionesBatch.ts"
+        },
+        {
+          "path": "app/src/canvas/reglasTraer.ts",
+          "hrefDashboard": "../../app/src/canvas/reglasTraer.ts"
+        },
+        {
+          "path": "app/src/canvas/layoutRadial.ts",
+          "hrefDashboard": "../../app/src/canvas/layoutRadial.ts"
+        },
+        {
+          "path": "app/src/canvas/seleccionMultiple.ts",
+          "hrefDashboard": "../../app/src/canvas/seleccionMultiple.ts"
+        },
+        {
+          "path": "app/src/ui/DialogoTraerConectados.tsx",
+          "hrefDashboard": "../../app/src/ui/DialogoTraerConectados.tsx"
+        },
+        {
+          "path": "app/src/ui/MenuContextualEntidad.tsx",
+          "hrefDashboard": "../../app/src/ui/MenuContextualEntidad.tsx"
+        },
+        {
+          "path": "app/src/canvas/reglasTraer.test.ts",
+          "hrefDashboard": "../../app/src/canvas/reglasTraer.test.ts"
+        },
+        {
+          "path": "app/src/canvas/layoutRadial.test.ts",
+          "hrefDashboard": "../../app/src/canvas/layoutRadial.test.ts"
+        }
+      ],
       "peso": 4,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 4,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-1b-canvas-traer-conectados.md"
     },
     {
@@ -15064,15 +15427,48 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-1b-canvas-traer-conectados.md",
       "lineaInicio": 151,
       "corte": "beta",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto ronda 12 L3: traer conectados con familias canonicas + layout radial + ocultar apariencia + dialogo + menu contextual de entidad.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/canvas/operacionesBatch.ts",
+          "hrefDashboard": "../../app/src/canvas/operacionesBatch.ts"
+        },
+        {
+          "path": "app/src/canvas/reglasTraer.ts",
+          "hrefDashboard": "../../app/src/canvas/reglasTraer.ts"
+        },
+        {
+          "path": "app/src/canvas/layoutRadial.ts",
+          "hrefDashboard": "../../app/src/canvas/layoutRadial.ts"
+        },
+        {
+          "path": "app/src/canvas/seleccionMultiple.ts",
+          "hrefDashboard": "../../app/src/canvas/seleccionMultiple.ts"
+        },
+        {
+          "path": "app/src/ui/DialogoTraerConectados.tsx",
+          "hrefDashboard": "../../app/src/ui/DialogoTraerConectados.tsx"
+        },
+        {
+          "path": "app/src/ui/MenuContextualEntidad.tsx",
+          "hrefDashboard": "../../app/src/ui/MenuContextualEntidad.tsx"
+        },
+        {
+          "path": "app/src/canvas/reglasTraer.test.ts",
+          "hrefDashboard": "../../app/src/canvas/reglasTraer.test.ts"
+        },
+        {
+          "path": "app/src/canvas/layoutRadial.test.ts",
+          "hrefDashboard": "../../app/src/canvas/layoutRadial.test.ts"
+        }
+      ],
       "peso": 4,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 4,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-1b-canvas-traer-conectados.md"
     },
     {
@@ -15099,15 +15495,48 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-1b-canvas-traer-conectados.md",
       "lineaInicio": 160,
       "corte": "beta",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto ronda 12 L3: traer conectados con familias canonicas + layout radial + ocultar apariencia + dialogo + menu contextual de entidad.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/canvas/operacionesBatch.ts",
+          "hrefDashboard": "../../app/src/canvas/operacionesBatch.ts"
+        },
+        {
+          "path": "app/src/canvas/reglasTraer.ts",
+          "hrefDashboard": "../../app/src/canvas/reglasTraer.ts"
+        },
+        {
+          "path": "app/src/canvas/layoutRadial.ts",
+          "hrefDashboard": "../../app/src/canvas/layoutRadial.ts"
+        },
+        {
+          "path": "app/src/canvas/seleccionMultiple.ts",
+          "hrefDashboard": "../../app/src/canvas/seleccionMultiple.ts"
+        },
+        {
+          "path": "app/src/ui/DialogoTraerConectados.tsx",
+          "hrefDashboard": "../../app/src/ui/DialogoTraerConectados.tsx"
+        },
+        {
+          "path": "app/src/ui/MenuContextualEntidad.tsx",
+          "hrefDashboard": "../../app/src/ui/MenuContextualEntidad.tsx"
+        },
+        {
+          "path": "app/src/canvas/reglasTraer.test.ts",
+          "hrefDashboard": "../../app/src/canvas/reglasTraer.test.ts"
+        },
+        {
+          "path": "app/src/canvas/layoutRadial.test.ts",
+          "hrefDashboard": "../../app/src/canvas/layoutRadial.test.ts"
+        }
+      ],
       "peso": 1,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 1,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-1b-canvas-traer-conectados.md"
     },
     {
@@ -15134,15 +15563,48 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-1b-canvas-traer-conectados.md",
       "lineaInicio": 170,
       "corte": "beta",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto ronda 12 L3: traer conectados con familias canonicas + layout radial + ocultar apariencia + dialogo + menu contextual de entidad.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/canvas/operacionesBatch.ts",
+          "hrefDashboard": "../../app/src/canvas/operacionesBatch.ts"
+        },
+        {
+          "path": "app/src/canvas/reglasTraer.ts",
+          "hrefDashboard": "../../app/src/canvas/reglasTraer.ts"
+        },
+        {
+          "path": "app/src/canvas/layoutRadial.ts",
+          "hrefDashboard": "../../app/src/canvas/layoutRadial.ts"
+        },
+        {
+          "path": "app/src/canvas/seleccionMultiple.ts",
+          "hrefDashboard": "../../app/src/canvas/seleccionMultiple.ts"
+        },
+        {
+          "path": "app/src/ui/DialogoTraerConectados.tsx",
+          "hrefDashboard": "../../app/src/ui/DialogoTraerConectados.tsx"
+        },
+        {
+          "path": "app/src/ui/MenuContextualEntidad.tsx",
+          "hrefDashboard": "../../app/src/ui/MenuContextualEntidad.tsx"
+        },
+        {
+          "path": "app/src/canvas/reglasTraer.test.ts",
+          "hrefDashboard": "../../app/src/canvas/reglasTraer.test.ts"
+        },
+        {
+          "path": "app/src/canvas/layoutRadial.test.ts",
+          "hrefDashboard": "../../app/src/canvas/layoutRadial.test.ts"
+        }
+      ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-1b-canvas-traer-conectados.md"
     },
     {
@@ -15169,15 +15631,48 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-1b-canvas-traer-conectados.md",
       "lineaInicio": 179,
       "corte": "beta",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto ronda 12 L3: traer conectados con familias canonicas + layout radial + ocultar apariencia + dialogo + menu contextual de entidad.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/canvas/operacionesBatch.ts",
+          "hrefDashboard": "../../app/src/canvas/operacionesBatch.ts"
+        },
+        {
+          "path": "app/src/canvas/reglasTraer.ts",
+          "hrefDashboard": "../../app/src/canvas/reglasTraer.ts"
+        },
+        {
+          "path": "app/src/canvas/layoutRadial.ts",
+          "hrefDashboard": "../../app/src/canvas/layoutRadial.ts"
+        },
+        {
+          "path": "app/src/canvas/seleccionMultiple.ts",
+          "hrefDashboard": "../../app/src/canvas/seleccionMultiple.ts"
+        },
+        {
+          "path": "app/src/ui/DialogoTraerConectados.tsx",
+          "hrefDashboard": "../../app/src/ui/DialogoTraerConectados.tsx"
+        },
+        {
+          "path": "app/src/ui/MenuContextualEntidad.tsx",
+          "hrefDashboard": "../../app/src/ui/MenuContextualEntidad.tsx"
+        },
+        {
+          "path": "app/src/canvas/reglasTraer.test.ts",
+          "hrefDashboard": "../../app/src/canvas/reglasTraer.test.ts"
+        },
+        {
+          "path": "app/src/canvas/layoutRadial.test.ts",
+          "hrefDashboard": "../../app/src/canvas/layoutRadial.test.ts"
+        }
+      ],
       "peso": 4,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 4,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-1b-canvas-traer-conectados.md"
     },
     {
@@ -16315,15 +16810,24 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-10-canvas-creacion-cosas.md",
       "lineaInicio": 226,
       "corte": "alpha",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto ronda 12 L1: SeccionDescripcion canonica con data-testid seccion-descripcion-cosa render desde InspectorEntidad.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/ui/inspector/SeccionDescripcion.tsx",
+          "hrefDashboard": "../../app/src/ui/inspector/SeccionDescripcion.tsx"
+        },
+        {
+          "path": "app/src/ui/InspectorEntidad.tsx",
+          "hrefDashboard": "../../app/src/ui/InspectorEntidad.tsx"
+        }
+      ],
       "peso": 1,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 1,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-10-canvas-creacion-cosas.md"
     },
     {
@@ -17228,15 +17732,20 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-11-canvas-modelado-basico.md",
       "lineaInicio": 55,
       "corte": "alpha",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto ronda 12 L1: indicador de modo sticky en Toolbar (data-testid indicador-modo-sticky).",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/ui/Toolbar.tsx",
+          "hrefDashboard": "../../app/src/ui/Toolbar.tsx"
+        }
+      ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-11-canvas-modelado-basico.md"
     },
     {
@@ -17488,11 +17997,26 @@
       "lineaInicio": 178,
       "corte": "alpha",
       "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
-      "brechas": [],
-      "evidencia": [],
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
+      "brechas": [
+        "app/src/store/modelo/acciones-ui.ts: falta alguno de conectarSeleccionAlTodo"
+      ],
+      "evidencia": [
+        {
+          "path": "app/src/ui/atajosTeclado.ts",
+          "hrefDashboard": "../../app/src/ui/atajosTeclado.ts"
+        },
+        {
+          "path": "app/src/store/modelo/acciones-ui.ts",
+          "hrefDashboard": "../../app/src/store/modelo/acciones-ui.ts"
+        },
+        {
+          "path": "app/src/store.test.ts",
+          "hrefDashboard": "../../app/src/store.test.ts"
+        }
+      ],
       "peso": 4,
       "score": 0,
       "avancePonderado": 0,
@@ -25681,60 +26205,36 @@
       "estadoAvance": "cubierto",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto: alias, unidad, descripcion y URLs tipadas viven en modelo, serializacion, render, OPL, inspector y modal.",
+      "nota": "Auto ronda 12 L2: atributos canonicos con valor slot integer/float/char/string + render Nombre [Unidad] {alias} + OPL + UI Inspector y Toolbar.",
       "brechas": [],
       "evidencia": [
-        {
-          "path": "app/src/modelo/objetoMetadata.ts",
-          "hrefDashboard": "../../app/src/modelo/objetoMetadata.ts"
-        },
         {
           "path": "app/src/modelo/tipos/entidad.ts",
           "hrefDashboard": "../../app/src/modelo/tipos/entidad.ts"
         },
         {
-          "path": "app/src/serializacion/validarEntidades.ts",
-          "hrefDashboard": "../../app/src/serializacion/validarEntidades.ts"
+          "path": "app/src/modelo/operaciones/entidad.ts",
+          "hrefDashboard": "../../app/src/modelo/operaciones/entidad.ts"
         },
         {
-          "path": "app/src/render/jointjs/composers/entidad.ts",
-          "hrefDashboard": "../../app/src/render/jointjs/composers/entidad.ts"
+          "path": "app/src/modelo/validadores/valorSlot.ts",
+          "hrefDashboard": "../../app/src/modelo/validadores/valorSlot.ts"
         },
         {
-          "path": "app/src/opl/generadores/refsHints.ts",
-          "hrefDashboard": "../../app/src/opl/generadores/refsHints.ts"
+          "path": "app/src/ui/inspector/SeccionAtributo.tsx",
+          "hrefDashboard": "../../app/src/ui/inspector/SeccionAtributo.tsx"
         },
         {
-          "path": "app/src/ui/inspector/SeccionAlias.tsx",
-          "hrefDashboard": "../../app/src/ui/inspector/SeccionAlias.tsx"
+          "path": "app/src/ui/Toolbar.tsx",
+          "hrefDashboard": "../../app/src/ui/Toolbar.tsx"
         },
         {
-          "path": "app/src/ui/inspector/SeccionUrls.tsx",
-          "hrefDashboard": "../../app/src/ui/inspector/SeccionUrls.tsx"
+          "path": "app/src/modelo/operaciones/entidad.test.ts",
+          "hrefDashboard": "../../app/src/modelo/operaciones/entidad.test.ts"
         },
         {
-          "path": "app/src/ui/inspector/SeccionDescripcion.tsx",
-          "hrefDashboard": "../../app/src/ui/inspector/SeccionDescripcion.tsx"
-        },
-        {
-          "path": "app/src/ui/ModalUrlsObjeto.tsx",
-          "hrefDashboard": "../../app/src/ui/ModalUrlsObjeto.tsx"
-        },
-        {
-          "path": "app/src/ui/InspectorEntidad.tsx",
-          "hrefDashboard": "../../app/src/ui/InspectorEntidad.tsx"
-        },
-        {
-          "path": "app/src/serializacion/json.ts",
-          "hrefDashboard": "../../app/src/serializacion/json.ts"
-        },
-        {
-          "path": "app/src/opl/generar.ts",
-          "hrefDashboard": "../../app/src/opl/generar.ts"
-        },
-        {
-          "path": "app/src/render/jointjs/proyeccion.ts",
-          "hrefDashboard": "../../app/src/render/jointjs/proyeccion.ts"
+          "path": "app/src/modelo/validadores/valorSlot.test.ts",
+          "hrefDashboard": "../../app/src/modelo/validadores/valorSlot.test.ts"
         }
       ],
       "peso": 2,
@@ -25771,60 +26271,36 @@
       "estadoAvance": "cubierto",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto: alias, unidad, descripcion y URLs tipadas viven en modelo, serializacion, render, OPL, inspector y modal.",
+      "nota": "Auto ronda 12 L2: atributos canonicos con valor slot integer/float/char/string + render Nombre [Unidad] {alias} + OPL + UI Inspector y Toolbar.",
       "brechas": [],
       "evidencia": [
-        {
-          "path": "app/src/modelo/objetoMetadata.ts",
-          "hrefDashboard": "../../app/src/modelo/objetoMetadata.ts"
-        },
         {
           "path": "app/src/modelo/tipos/entidad.ts",
           "hrefDashboard": "../../app/src/modelo/tipos/entidad.ts"
         },
         {
-          "path": "app/src/serializacion/validarEntidades.ts",
-          "hrefDashboard": "../../app/src/serializacion/validarEntidades.ts"
+          "path": "app/src/modelo/operaciones/entidad.ts",
+          "hrefDashboard": "../../app/src/modelo/operaciones/entidad.ts"
         },
         {
-          "path": "app/src/render/jointjs/composers/entidad.ts",
-          "hrefDashboard": "../../app/src/render/jointjs/composers/entidad.ts"
+          "path": "app/src/modelo/validadores/valorSlot.ts",
+          "hrefDashboard": "../../app/src/modelo/validadores/valorSlot.ts"
         },
         {
-          "path": "app/src/opl/generadores/refsHints.ts",
-          "hrefDashboard": "../../app/src/opl/generadores/refsHints.ts"
+          "path": "app/src/ui/inspector/SeccionAtributo.tsx",
+          "hrefDashboard": "../../app/src/ui/inspector/SeccionAtributo.tsx"
         },
         {
-          "path": "app/src/ui/inspector/SeccionAlias.tsx",
-          "hrefDashboard": "../../app/src/ui/inspector/SeccionAlias.tsx"
+          "path": "app/src/ui/Toolbar.tsx",
+          "hrefDashboard": "../../app/src/ui/Toolbar.tsx"
         },
         {
-          "path": "app/src/ui/inspector/SeccionUrls.tsx",
-          "hrefDashboard": "../../app/src/ui/inspector/SeccionUrls.tsx"
+          "path": "app/src/modelo/operaciones/entidad.test.ts",
+          "hrefDashboard": "../../app/src/modelo/operaciones/entidad.test.ts"
         },
         {
-          "path": "app/src/ui/inspector/SeccionDescripcion.tsx",
-          "hrefDashboard": "../../app/src/ui/inspector/SeccionDescripcion.tsx"
-        },
-        {
-          "path": "app/src/ui/ModalUrlsObjeto.tsx",
-          "hrefDashboard": "../../app/src/ui/ModalUrlsObjeto.tsx"
-        },
-        {
-          "path": "app/src/ui/InspectorEntidad.tsx",
-          "hrefDashboard": "../../app/src/ui/InspectorEntidad.tsx"
-        },
-        {
-          "path": "app/src/serializacion/json.ts",
-          "hrefDashboard": "../../app/src/serializacion/json.ts"
-        },
-        {
-          "path": "app/src/opl/generar.ts",
-          "hrefDashboard": "../../app/src/opl/generar.ts"
-        },
-        {
-          "path": "app/src/render/jointjs/proyeccion.ts",
-          "hrefDashboard": "../../app/src/render/jointjs/proyeccion.ts"
+          "path": "app/src/modelo/validadores/valorSlot.test.ts",
+          "hrefDashboard": "../../app/src/modelo/validadores/valorSlot.test.ts"
         }
       ],
       "peso": 1,
@@ -25860,48 +26336,44 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-17-canvas-objetos-avanzados.md",
       "lineaInicio": 180,
       "corte": "gamma",
-      "estadoAvance": "parcial",
+      "estadoAvance": "cubierto",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto: exhibicion/generalizacion/clasificacion existen en tipos, validacion, markers y OPL; faltan propiedades avanzadas OPCloud.",
+      "nota": "Auto ronda 12 L2: atributos canonicos con valor slot integer/float/char/string + render Nombre [Unidad] {alias} + OPL + UI Inspector y Toolbar.",
       "brechas": [],
       "evidencia": [
         {
-          "path": "app/src/modelo/tipos/enlace.ts",
-          "hrefDashboard": "../../app/src/modelo/tipos/enlace.ts"
+          "path": "app/src/modelo/tipos/entidad.ts",
+          "hrefDashboard": "../../app/src/modelo/tipos/entidad.ts"
         },
         {
-          "path": "app/src/modelo/operaciones/refinamiento/despliegue.ts",
-          "hrefDashboard": "../../app/src/modelo/operaciones/refinamiento/despliegue.ts"
+          "path": "app/src/modelo/operaciones/entidad.ts",
+          "hrefDashboard": "../../app/src/modelo/operaciones/entidad.ts"
         },
         {
-          "path": "app/src/modelo/operaciones/helpers.ts",
-          "hrefDashboard": "../../app/src/modelo/operaciones/helpers.ts"
+          "path": "app/src/modelo/validadores/valorSlot.ts",
+          "hrefDashboard": "../../app/src/modelo/validadores/valorSlot.ts"
         },
         {
-          "path": "app/src/render/jointjs/linkAssets.ts",
-          "hrefDashboard": "../../app/src/render/jointjs/linkAssets.ts"
+          "path": "app/src/ui/inspector/SeccionAtributo.tsx",
+          "hrefDashboard": "../../app/src/ui/inspector/SeccionAtributo.tsx"
         },
         {
-          "path": "app/src/opl/generar.ts",
-          "hrefDashboard": "../../app/src/opl/generar.ts"
+          "path": "app/src/ui/Toolbar.tsx",
+          "hrefDashboard": "../../app/src/ui/Toolbar.tsx"
         },
         {
-          "path": "assets/svg/links/structural/exhibition.svg",
-          "hrefDashboard": "../../assets/svg/links/structural/exhibition.svg"
+          "path": "app/src/modelo/operaciones/entidad.test.ts",
+          "hrefDashboard": "../../app/src/modelo/operaciones/entidad.test.ts"
         },
         {
-          "path": "assets/svg/links/structural/generalization.svg",
-          "hrefDashboard": "../../assets/svg/links/structural/generalization.svg"
-        },
-        {
-          "path": "assets/svg/links/structural/classification.svg",
-          "hrefDashboard": "../../assets/svg/links/structural/classification.svg"
+          "path": "app/src/modelo/validadores/valorSlot.test.ts",
+          "hrefDashboard": "../../app/src/modelo/validadores/valorSlot.test.ts"
         }
       ],
       "peso": 4,
-      "score": 0.5,
-      "avancePonderado": 2,
+      "score": 1,
+      "avancePonderado": 4,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-17-canvas-objetos-avanzados.md"
     },
     {
@@ -25928,15 +26400,44 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-17-canvas-objetos-avanzados.md",
       "lineaInicio": 194,
       "corte": "gamma",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto ronda 12 L2: atributos canonicos con valor slot integer/float/char/string + render Nombre [Unidad] {alias} + OPL + UI Inspector y Toolbar.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/modelo/tipos/entidad.ts",
+          "hrefDashboard": "../../app/src/modelo/tipos/entidad.ts"
+        },
+        {
+          "path": "app/src/modelo/operaciones/entidad.ts",
+          "hrefDashboard": "../../app/src/modelo/operaciones/entidad.ts"
+        },
+        {
+          "path": "app/src/modelo/validadores/valorSlot.ts",
+          "hrefDashboard": "../../app/src/modelo/validadores/valorSlot.ts"
+        },
+        {
+          "path": "app/src/ui/inspector/SeccionAtributo.tsx",
+          "hrefDashboard": "../../app/src/ui/inspector/SeccionAtributo.tsx"
+        },
+        {
+          "path": "app/src/ui/Toolbar.tsx",
+          "hrefDashboard": "../../app/src/ui/Toolbar.tsx"
+        },
+        {
+          "path": "app/src/modelo/operaciones/entidad.test.ts",
+          "hrefDashboard": "../../app/src/modelo/operaciones/entidad.test.ts"
+        },
+        {
+          "path": "app/src/modelo/validadores/valorSlot.test.ts",
+          "hrefDashboard": "../../app/src/modelo/validadores/valorSlot.test.ts"
+        }
+      ],
       "peso": 1,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 1,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-17-canvas-objetos-avanzados.md"
     },
     {
@@ -25965,15 +26466,44 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-17-canvas-objetos-avanzados.md",
       "lineaInicio": 205,
       "corte": "gamma",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto ronda 12 L2: atributos canonicos con valor slot integer/float/char/string + render Nombre [Unidad] {alias} + OPL + UI Inspector y Toolbar.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/modelo/tipos/entidad.ts",
+          "hrefDashboard": "../../app/src/modelo/tipos/entidad.ts"
+        },
+        {
+          "path": "app/src/modelo/operaciones/entidad.ts",
+          "hrefDashboard": "../../app/src/modelo/operaciones/entidad.ts"
+        },
+        {
+          "path": "app/src/modelo/validadores/valorSlot.ts",
+          "hrefDashboard": "../../app/src/modelo/validadores/valorSlot.ts"
+        },
+        {
+          "path": "app/src/ui/inspector/SeccionAtributo.tsx",
+          "hrefDashboard": "../../app/src/ui/inspector/SeccionAtributo.tsx"
+        },
+        {
+          "path": "app/src/ui/Toolbar.tsx",
+          "hrefDashboard": "../../app/src/ui/Toolbar.tsx"
+        },
+        {
+          "path": "app/src/modelo/operaciones/entidad.test.ts",
+          "hrefDashboard": "../../app/src/modelo/operaciones/entidad.test.ts"
+        },
+        {
+          "path": "app/src/modelo/validadores/valorSlot.test.ts",
+          "hrefDashboard": "../../app/src/modelo/validadores/valorSlot.test.ts"
+        }
+      ],
       "peso": 4,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 4,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-17-canvas-objetos-avanzados.md"
     },
     {
@@ -26003,15 +26533,44 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-17-canvas-objetos-avanzados.md",
       "lineaInicio": 216,
       "corte": "gamma",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto ronda 12 L2: atributos canonicos con valor slot integer/float/char/string + render Nombre [Unidad] {alias} + OPL + UI Inspector y Toolbar.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/modelo/tipos/entidad.ts",
+          "hrefDashboard": "../../app/src/modelo/tipos/entidad.ts"
+        },
+        {
+          "path": "app/src/modelo/operaciones/entidad.ts",
+          "hrefDashboard": "../../app/src/modelo/operaciones/entidad.ts"
+        },
+        {
+          "path": "app/src/modelo/validadores/valorSlot.ts",
+          "hrefDashboard": "../../app/src/modelo/validadores/valorSlot.ts"
+        },
+        {
+          "path": "app/src/ui/inspector/SeccionAtributo.tsx",
+          "hrefDashboard": "../../app/src/ui/inspector/SeccionAtributo.tsx"
+        },
+        {
+          "path": "app/src/ui/Toolbar.tsx",
+          "hrefDashboard": "../../app/src/ui/Toolbar.tsx"
+        },
+        {
+          "path": "app/src/modelo/operaciones/entidad.test.ts",
+          "hrefDashboard": "../../app/src/modelo/operaciones/entidad.test.ts"
+        },
+        {
+          "path": "app/src/modelo/validadores/valorSlot.test.ts",
+          "hrefDashboard": "../../app/src/modelo/validadores/valorSlot.test.ts"
+        }
+      ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-17-canvas-objetos-avanzados.md"
     },
     {
@@ -26039,15 +26598,44 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-17-canvas-objetos-avanzados.md",
       "lineaInicio": 227,
       "corte": "gamma",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto ronda 12 L2: atributos canonicos con valor slot integer/float/char/string + render Nombre [Unidad] {alias} + OPL + UI Inspector y Toolbar.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/modelo/tipos/entidad.ts",
+          "hrefDashboard": "../../app/src/modelo/tipos/entidad.ts"
+        },
+        {
+          "path": "app/src/modelo/operaciones/entidad.ts",
+          "hrefDashboard": "../../app/src/modelo/operaciones/entidad.ts"
+        },
+        {
+          "path": "app/src/modelo/validadores/valorSlot.ts",
+          "hrefDashboard": "../../app/src/modelo/validadores/valorSlot.ts"
+        },
+        {
+          "path": "app/src/ui/inspector/SeccionAtributo.tsx",
+          "hrefDashboard": "../../app/src/ui/inspector/SeccionAtributo.tsx"
+        },
+        {
+          "path": "app/src/ui/Toolbar.tsx",
+          "hrefDashboard": "../../app/src/ui/Toolbar.tsx"
+        },
+        {
+          "path": "app/src/modelo/operaciones/entidad.test.ts",
+          "hrefDashboard": "../../app/src/modelo/operaciones/entidad.test.ts"
+        },
+        {
+          "path": "app/src/modelo/validadores/valorSlot.test.ts",
+          "hrefDashboard": "../../app/src/modelo/validadores/valorSlot.test.ts"
+        }
+      ],
       "peso": 4,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 4,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-17-canvas-objetos-avanzados.md"
     },
     {
@@ -31112,23 +31700,21 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-30-persistencia-save-load.md",
       "lineaInicio": 128,
       "corte": "alpha",
-      "estadoAvance": "parcial",
+      "estadoAvance": "pendiente",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto: export/import JSON y round-trip local existen; faltan dialogos OPCloud completos y politica de workspace.",
-      "brechas": [],
+      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
+      "brechas": [
+        "app/examples/ejemplo-organizacional.json: archivo no encontrado"
+      ],
       "evidencia": [
         {
-          "path": "app/src/serializacion/json.ts",
-          "hrefDashboard": "../../app/src/serializacion/json.ts"
+          "path": "app/src/ui/DialogoCargarModelo.tsx",
+          "hrefDashboard": "../../app/src/ui/DialogoCargarModelo.tsx"
         },
         {
-          "path": "app/src/ui/PersistenciaJson.tsx",
-          "hrefDashboard": "../../app/src/ui/PersistenciaJson.tsx"
-        },
-        {
-          "path": "app/src/serializacion/json.test.ts",
-          "hrefDashboard": "../../app/src/serializacion/json.test.ts"
+          "path": "app/src/persistencia/local.test.ts",
+          "hrefDashboard": "../../app/src/persistencia/local.test.ts"
         },
         {
           "path": "app/e2e/opm-smoke.spec.ts",
@@ -31136,8 +31722,8 @@
         }
       ],
       "peso": 8,
-      "score": 0.5,
-      "avancePonderado": 4,
+      "score": 0,
+      "avancePonderado": 0,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-30-persistencia-save-load.md"
     },
     {
@@ -31751,23 +32337,21 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-30-persistencia-save-load.md",
       "lineaInicio": 252,
       "corte": "alpha",
-      "estadoAvance": "parcial",
+      "estadoAvance": "pendiente",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto: export/import JSON y round-trip local existen; faltan dialogos OPCloud completos y politica de workspace.",
-      "brechas": [],
+      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
+      "brechas": [
+        "app/examples/ejemplo-organizacional.json: archivo no encontrado"
+      ],
       "evidencia": [
         {
-          "path": "app/src/serializacion/json.ts",
-          "hrefDashboard": "../../app/src/serializacion/json.ts"
+          "path": "app/src/ui/DialogoCargarModelo.tsx",
+          "hrefDashboard": "../../app/src/ui/DialogoCargarModelo.tsx"
         },
         {
-          "path": "app/src/ui/PersistenciaJson.tsx",
-          "hrefDashboard": "../../app/src/ui/PersistenciaJson.tsx"
-        },
-        {
-          "path": "app/src/serializacion/json.test.ts",
-          "hrefDashboard": "../../app/src/serializacion/json.test.ts"
+          "path": "app/src/persistencia/local.test.ts",
+          "hrefDashboard": "../../app/src/persistencia/local.test.ts"
         },
         {
           "path": "app/e2e/opm-smoke.spec.ts",
@@ -31775,8 +32359,8 @@
         }
       ],
       "peso": 4,
-      "score": 0.5,
-      "avancePonderado": 2,
+      "score": 0,
+      "avancePonderado": 0,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-30-persistencia-save-load.md"
     },
     {
@@ -32389,15 +32973,24 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-30-persistencia-save-load.md",
       "lineaInicio": 387,
       "corte": "alpha",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto ronda 12 L1: guardarLocal redirige a copia editable cuando readOnly y limpia indicador post-commit.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/store/persistencia.ts",
+          "hrefDashboard": "../../app/src/store/persistencia.ts"
+        },
+        {
+          "path": "app/src/store/persistencia.test.ts",
+          "hrefDashboard": "../../app/src/store/persistencia.test.ts"
+        }
+      ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-30-persistencia-save-load.md"
     },
     {
@@ -34520,15 +35113,52 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-33-persistencia-plantillas.md",
       "lineaInicio": 21,
       "corte": "gamma",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto ronda 12 L4: plantillas privadas EPICA-33 con persistencia separada, insercion atomica con IDs nuevos, sub-OPDs, sufijo, foco temporal y catalogo.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/modelo/tipos/plantilla.ts",
+          "hrefDashboard": "../../app/src/modelo/tipos/plantilla.ts"
+        },
+        {
+          "path": "app/src/persistencia/plantillas.ts",
+          "hrefDashboard": "../../app/src/persistencia/plantillas.ts"
+        },
+        {
+          "path": "app/src/canvas/operacionesBatch.ts",
+          "hrefDashboard": "../../app/src/canvas/operacionesBatch.ts"
+        },
+        {
+          "path": "app/src/store/modelo.ts",
+          "hrefDashboard": "../../app/src/store/modelo.ts"
+        },
+        {
+          "path": "app/src/ui/DialogoPlantillas.tsx",
+          "hrefDashboard": "../../app/src/ui/DialogoPlantillas.tsx"
+        },
+        {
+          "path": "app/src/ui/DialogoGuardarPlantilla.tsx",
+          "hrefDashboard": "../../app/src/ui/DialogoGuardarPlantilla.tsx"
+        },
+        {
+          "path": "app/src/ui/MenuPrincipal.tsx",
+          "hrefDashboard": "../../app/src/ui/MenuPrincipal.tsx"
+        },
+        {
+          "path": "app/src/persistencia/plantillas.test.ts",
+          "hrefDashboard": "../../app/src/persistencia/plantillas.test.ts"
+        },
+        {
+          "path": "app/src/canvas/operacionesBatch.test.ts",
+          "hrefDashboard": "../../app/src/canvas/operacionesBatch.test.ts"
+        }
+      ],
       "peso": 1,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 1,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-33-persistencia-plantillas.md"
     },
     {
@@ -34554,15 +35184,52 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-33-persistencia-plantillas.md",
       "lineaInicio": 24,
       "corte": "gamma",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto ronda 12 L4: plantillas privadas EPICA-33 con persistencia separada, insercion atomica con IDs nuevos, sub-OPDs, sufijo, foco temporal y catalogo.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/modelo/tipos/plantilla.ts",
+          "hrefDashboard": "../../app/src/modelo/tipos/plantilla.ts"
+        },
+        {
+          "path": "app/src/persistencia/plantillas.ts",
+          "hrefDashboard": "../../app/src/persistencia/plantillas.ts"
+        },
+        {
+          "path": "app/src/canvas/operacionesBatch.ts",
+          "hrefDashboard": "../../app/src/canvas/operacionesBatch.ts"
+        },
+        {
+          "path": "app/src/store/modelo.ts",
+          "hrefDashboard": "../../app/src/store/modelo.ts"
+        },
+        {
+          "path": "app/src/ui/DialogoPlantillas.tsx",
+          "hrefDashboard": "../../app/src/ui/DialogoPlantillas.tsx"
+        },
+        {
+          "path": "app/src/ui/DialogoGuardarPlantilla.tsx",
+          "hrefDashboard": "../../app/src/ui/DialogoGuardarPlantilla.tsx"
+        },
+        {
+          "path": "app/src/ui/MenuPrincipal.tsx",
+          "hrefDashboard": "../../app/src/ui/MenuPrincipal.tsx"
+        },
+        {
+          "path": "app/src/persistencia/plantillas.test.ts",
+          "hrefDashboard": "../../app/src/persistencia/plantillas.test.ts"
+        },
+        {
+          "path": "app/src/canvas/operacionesBatch.test.ts",
+          "hrefDashboard": "../../app/src/canvas/operacionesBatch.test.ts"
+        }
+      ],
       "peso": 4,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 4,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-33-persistencia-plantillas.md"
     },
     {
@@ -34587,15 +35254,52 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-33-persistencia-plantillas.md",
       "lineaInicio": 27,
       "corte": "gamma",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto ronda 12 L4: plantillas privadas EPICA-33 con persistencia separada, insercion atomica con IDs nuevos, sub-OPDs, sufijo, foco temporal y catalogo.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/modelo/tipos/plantilla.ts",
+          "hrefDashboard": "../../app/src/modelo/tipos/plantilla.ts"
+        },
+        {
+          "path": "app/src/persistencia/plantillas.ts",
+          "hrefDashboard": "../../app/src/persistencia/plantillas.ts"
+        },
+        {
+          "path": "app/src/canvas/operacionesBatch.ts",
+          "hrefDashboard": "../../app/src/canvas/operacionesBatch.ts"
+        },
+        {
+          "path": "app/src/store/modelo.ts",
+          "hrefDashboard": "../../app/src/store/modelo.ts"
+        },
+        {
+          "path": "app/src/ui/DialogoPlantillas.tsx",
+          "hrefDashboard": "../../app/src/ui/DialogoPlantillas.tsx"
+        },
+        {
+          "path": "app/src/ui/DialogoGuardarPlantilla.tsx",
+          "hrefDashboard": "../../app/src/ui/DialogoGuardarPlantilla.tsx"
+        },
+        {
+          "path": "app/src/ui/MenuPrincipal.tsx",
+          "hrefDashboard": "../../app/src/ui/MenuPrincipal.tsx"
+        },
+        {
+          "path": "app/src/persistencia/plantillas.test.ts",
+          "hrefDashboard": "../../app/src/persistencia/plantillas.test.ts"
+        },
+        {
+          "path": "app/src/canvas/operacionesBatch.test.ts",
+          "hrefDashboard": "../../app/src/canvas/operacionesBatch.test.ts"
+        }
+      ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-33-persistencia-plantillas.md"
     },
     {
@@ -34692,15 +35396,52 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-33-persistencia-plantillas.md",
       "lineaInicio": 36,
       "corte": "gamma",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto ronda 12 L4: plantillas privadas EPICA-33 con persistencia separada, insercion atomica con IDs nuevos, sub-OPDs, sufijo, foco temporal y catalogo.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/modelo/tipos/plantilla.ts",
+          "hrefDashboard": "../../app/src/modelo/tipos/plantilla.ts"
+        },
+        {
+          "path": "app/src/persistencia/plantillas.ts",
+          "hrefDashboard": "../../app/src/persistencia/plantillas.ts"
+        },
+        {
+          "path": "app/src/canvas/operacionesBatch.ts",
+          "hrefDashboard": "../../app/src/canvas/operacionesBatch.ts"
+        },
+        {
+          "path": "app/src/store/modelo.ts",
+          "hrefDashboard": "../../app/src/store/modelo.ts"
+        },
+        {
+          "path": "app/src/ui/DialogoPlantillas.tsx",
+          "hrefDashboard": "../../app/src/ui/DialogoPlantillas.tsx"
+        },
+        {
+          "path": "app/src/ui/DialogoGuardarPlantilla.tsx",
+          "hrefDashboard": "../../app/src/ui/DialogoGuardarPlantilla.tsx"
+        },
+        {
+          "path": "app/src/ui/MenuPrincipal.tsx",
+          "hrefDashboard": "../../app/src/ui/MenuPrincipal.tsx"
+        },
+        {
+          "path": "app/src/persistencia/plantillas.test.ts",
+          "hrefDashboard": "../../app/src/persistencia/plantillas.test.ts"
+        },
+        {
+          "path": "app/src/canvas/operacionesBatch.test.ts",
+          "hrefDashboard": "../../app/src/canvas/operacionesBatch.test.ts"
+        }
+      ],
       "peso": 8,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 8,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-33-persistencia-plantillas.md"
     },
     {
@@ -34726,15 +35467,52 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-33-persistencia-plantillas.md",
       "lineaInicio": 39,
       "corte": "gamma",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto ronda 12 L4: plantillas privadas EPICA-33 con persistencia separada, insercion atomica con IDs nuevos, sub-OPDs, sufijo, foco temporal y catalogo.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/modelo/tipos/plantilla.ts",
+          "hrefDashboard": "../../app/src/modelo/tipos/plantilla.ts"
+        },
+        {
+          "path": "app/src/persistencia/plantillas.ts",
+          "hrefDashboard": "../../app/src/persistencia/plantillas.ts"
+        },
+        {
+          "path": "app/src/canvas/operacionesBatch.ts",
+          "hrefDashboard": "../../app/src/canvas/operacionesBatch.ts"
+        },
+        {
+          "path": "app/src/store/modelo.ts",
+          "hrefDashboard": "../../app/src/store/modelo.ts"
+        },
+        {
+          "path": "app/src/ui/DialogoPlantillas.tsx",
+          "hrefDashboard": "../../app/src/ui/DialogoPlantillas.tsx"
+        },
+        {
+          "path": "app/src/ui/DialogoGuardarPlantilla.tsx",
+          "hrefDashboard": "../../app/src/ui/DialogoGuardarPlantilla.tsx"
+        },
+        {
+          "path": "app/src/ui/MenuPrincipal.tsx",
+          "hrefDashboard": "../../app/src/ui/MenuPrincipal.tsx"
+        },
+        {
+          "path": "app/src/persistencia/plantillas.test.ts",
+          "hrefDashboard": "../../app/src/persistencia/plantillas.test.ts"
+        },
+        {
+          "path": "app/src/canvas/operacionesBatch.test.ts",
+          "hrefDashboard": "../../app/src/canvas/operacionesBatch.test.ts"
+        }
+      ],
       "peso": 4,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 4,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-33-persistencia-plantillas.md"
     },
     {
@@ -34761,15 +35539,52 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-33-persistencia-plantillas.md",
       "lineaInicio": 42,
       "corte": "gamma",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto ronda 12 L4: plantillas privadas EPICA-33 con persistencia separada, insercion atomica con IDs nuevos, sub-OPDs, sufijo, foco temporal y catalogo.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/modelo/tipos/plantilla.ts",
+          "hrefDashboard": "../../app/src/modelo/tipos/plantilla.ts"
+        },
+        {
+          "path": "app/src/persistencia/plantillas.ts",
+          "hrefDashboard": "../../app/src/persistencia/plantillas.ts"
+        },
+        {
+          "path": "app/src/canvas/operacionesBatch.ts",
+          "hrefDashboard": "../../app/src/canvas/operacionesBatch.ts"
+        },
+        {
+          "path": "app/src/store/modelo.ts",
+          "hrefDashboard": "../../app/src/store/modelo.ts"
+        },
+        {
+          "path": "app/src/ui/DialogoPlantillas.tsx",
+          "hrefDashboard": "../../app/src/ui/DialogoPlantillas.tsx"
+        },
+        {
+          "path": "app/src/ui/DialogoGuardarPlantilla.tsx",
+          "hrefDashboard": "../../app/src/ui/DialogoGuardarPlantilla.tsx"
+        },
+        {
+          "path": "app/src/ui/MenuPrincipal.tsx",
+          "hrefDashboard": "../../app/src/ui/MenuPrincipal.tsx"
+        },
+        {
+          "path": "app/src/persistencia/plantillas.test.ts",
+          "hrefDashboard": "../../app/src/persistencia/plantillas.test.ts"
+        },
+        {
+          "path": "app/src/canvas/operacionesBatch.test.ts",
+          "hrefDashboard": "../../app/src/canvas/operacionesBatch.test.ts"
+        }
+      ],
       "peso": 4,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 4,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-33-persistencia-plantillas.md"
     },
     {
@@ -34795,15 +35610,52 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-33-persistencia-plantillas.md",
       "lineaInicio": 45,
       "corte": "gamma",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto ronda 12 L4: plantillas privadas EPICA-33 con persistencia separada, insercion atomica con IDs nuevos, sub-OPDs, sufijo, foco temporal y catalogo.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/modelo/tipos/plantilla.ts",
+          "hrefDashboard": "../../app/src/modelo/tipos/plantilla.ts"
+        },
+        {
+          "path": "app/src/persistencia/plantillas.ts",
+          "hrefDashboard": "../../app/src/persistencia/plantillas.ts"
+        },
+        {
+          "path": "app/src/canvas/operacionesBatch.ts",
+          "hrefDashboard": "../../app/src/canvas/operacionesBatch.ts"
+        },
+        {
+          "path": "app/src/store/modelo.ts",
+          "hrefDashboard": "../../app/src/store/modelo.ts"
+        },
+        {
+          "path": "app/src/ui/DialogoPlantillas.tsx",
+          "hrefDashboard": "../../app/src/ui/DialogoPlantillas.tsx"
+        },
+        {
+          "path": "app/src/ui/DialogoGuardarPlantilla.tsx",
+          "hrefDashboard": "../../app/src/ui/DialogoGuardarPlantilla.tsx"
+        },
+        {
+          "path": "app/src/ui/MenuPrincipal.tsx",
+          "hrefDashboard": "../../app/src/ui/MenuPrincipal.tsx"
+        },
+        {
+          "path": "app/src/persistencia/plantillas.test.ts",
+          "hrefDashboard": "../../app/src/persistencia/plantillas.test.ts"
+        },
+        {
+          "path": "app/src/canvas/operacionesBatch.test.ts",
+          "hrefDashboard": "../../app/src/canvas/operacionesBatch.test.ts"
+        }
+      ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-33-persistencia-plantillas.md"
     },
     {
@@ -34829,15 +35681,52 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-33-persistencia-plantillas.md",
       "lineaInicio": 48,
       "corte": "gamma",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto ronda 12 L4: plantillas privadas EPICA-33 con persistencia separada, insercion atomica con IDs nuevos, sub-OPDs, sufijo, foco temporal y catalogo.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/modelo/tipos/plantilla.ts",
+          "hrefDashboard": "../../app/src/modelo/tipos/plantilla.ts"
+        },
+        {
+          "path": "app/src/persistencia/plantillas.ts",
+          "hrefDashboard": "../../app/src/persistencia/plantillas.ts"
+        },
+        {
+          "path": "app/src/canvas/operacionesBatch.ts",
+          "hrefDashboard": "../../app/src/canvas/operacionesBatch.ts"
+        },
+        {
+          "path": "app/src/store/modelo.ts",
+          "hrefDashboard": "../../app/src/store/modelo.ts"
+        },
+        {
+          "path": "app/src/ui/DialogoPlantillas.tsx",
+          "hrefDashboard": "../../app/src/ui/DialogoPlantillas.tsx"
+        },
+        {
+          "path": "app/src/ui/DialogoGuardarPlantilla.tsx",
+          "hrefDashboard": "../../app/src/ui/DialogoGuardarPlantilla.tsx"
+        },
+        {
+          "path": "app/src/ui/MenuPrincipal.tsx",
+          "hrefDashboard": "../../app/src/ui/MenuPrincipal.tsx"
+        },
+        {
+          "path": "app/src/persistencia/plantillas.test.ts",
+          "hrefDashboard": "../../app/src/persistencia/plantillas.test.ts"
+        },
+        {
+          "path": "app/src/canvas/operacionesBatch.test.ts",
+          "hrefDashboard": "../../app/src/canvas/operacionesBatch.test.ts"
+        }
+      ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-33-persistencia-plantillas.md"
     },
     {
@@ -34895,15 +35784,52 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-33-persistencia-plantillas.md",
       "lineaInicio": 54,
       "corte": "gamma",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto ronda 12 L4: plantillas privadas EPICA-33 con persistencia separada, insercion atomica con IDs nuevos, sub-OPDs, sufijo, foco temporal y catalogo.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/modelo/tipos/plantilla.ts",
+          "hrefDashboard": "../../app/src/modelo/tipos/plantilla.ts"
+        },
+        {
+          "path": "app/src/persistencia/plantillas.ts",
+          "hrefDashboard": "../../app/src/persistencia/plantillas.ts"
+        },
+        {
+          "path": "app/src/canvas/operacionesBatch.ts",
+          "hrefDashboard": "../../app/src/canvas/operacionesBatch.ts"
+        },
+        {
+          "path": "app/src/store/modelo.ts",
+          "hrefDashboard": "../../app/src/store/modelo.ts"
+        },
+        {
+          "path": "app/src/ui/DialogoPlantillas.tsx",
+          "hrefDashboard": "../../app/src/ui/DialogoPlantillas.tsx"
+        },
+        {
+          "path": "app/src/ui/DialogoGuardarPlantilla.tsx",
+          "hrefDashboard": "../../app/src/ui/DialogoGuardarPlantilla.tsx"
+        },
+        {
+          "path": "app/src/ui/MenuPrincipal.tsx",
+          "hrefDashboard": "../../app/src/ui/MenuPrincipal.tsx"
+        },
+        {
+          "path": "app/src/persistencia/plantillas.test.ts",
+          "hrefDashboard": "../../app/src/persistencia/plantillas.test.ts"
+        },
+        {
+          "path": "app/src/canvas/operacionesBatch.test.ts",
+          "hrefDashboard": "../../app/src/canvas/operacionesBatch.test.ts"
+        }
+      ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-33-persistencia-plantillas.md"
     },
     {
@@ -34962,15 +35888,52 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-33-persistencia-plantillas.md",
       "lineaInicio": 60,
       "corte": "gamma",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto ronda 12 L4: plantillas privadas EPICA-33 con persistencia separada, insercion atomica con IDs nuevos, sub-OPDs, sufijo, foco temporal y catalogo.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/modelo/tipos/plantilla.ts",
+          "hrefDashboard": "../../app/src/modelo/tipos/plantilla.ts"
+        },
+        {
+          "path": "app/src/persistencia/plantillas.ts",
+          "hrefDashboard": "../../app/src/persistencia/plantillas.ts"
+        },
+        {
+          "path": "app/src/canvas/operacionesBatch.ts",
+          "hrefDashboard": "../../app/src/canvas/operacionesBatch.ts"
+        },
+        {
+          "path": "app/src/store/modelo.ts",
+          "hrefDashboard": "../../app/src/store/modelo.ts"
+        },
+        {
+          "path": "app/src/ui/DialogoPlantillas.tsx",
+          "hrefDashboard": "../../app/src/ui/DialogoPlantillas.tsx"
+        },
+        {
+          "path": "app/src/ui/DialogoGuardarPlantilla.tsx",
+          "hrefDashboard": "../../app/src/ui/DialogoGuardarPlantilla.tsx"
+        },
+        {
+          "path": "app/src/ui/MenuPrincipal.tsx",
+          "hrefDashboard": "../../app/src/ui/MenuPrincipal.tsx"
+        },
+        {
+          "path": "app/src/persistencia/plantillas.test.ts",
+          "hrefDashboard": "../../app/src/persistencia/plantillas.test.ts"
+        },
+        {
+          "path": "app/src/canvas/operacionesBatch.test.ts",
+          "hrefDashboard": "../../app/src/canvas/operacionesBatch.test.ts"
+        }
+      ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-33-persistencia-plantillas.md"
     },
     {
@@ -34995,15 +35958,52 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-33-persistencia-plantillas.md",
       "lineaInicio": 63,
       "corte": "gamma",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto ronda 12 L4: plantillas privadas EPICA-33 con persistencia separada, insercion atomica con IDs nuevos, sub-OPDs, sufijo, foco temporal y catalogo.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/modelo/tipos/plantilla.ts",
+          "hrefDashboard": "../../app/src/modelo/tipos/plantilla.ts"
+        },
+        {
+          "path": "app/src/persistencia/plantillas.ts",
+          "hrefDashboard": "../../app/src/persistencia/plantillas.ts"
+        },
+        {
+          "path": "app/src/canvas/operacionesBatch.ts",
+          "hrefDashboard": "../../app/src/canvas/operacionesBatch.ts"
+        },
+        {
+          "path": "app/src/store/modelo.ts",
+          "hrefDashboard": "../../app/src/store/modelo.ts"
+        },
+        {
+          "path": "app/src/ui/DialogoPlantillas.tsx",
+          "hrefDashboard": "../../app/src/ui/DialogoPlantillas.tsx"
+        },
+        {
+          "path": "app/src/ui/DialogoGuardarPlantilla.tsx",
+          "hrefDashboard": "../../app/src/ui/DialogoGuardarPlantilla.tsx"
+        },
+        {
+          "path": "app/src/ui/MenuPrincipal.tsx",
+          "hrefDashboard": "../../app/src/ui/MenuPrincipal.tsx"
+        },
+        {
+          "path": "app/src/persistencia/plantillas.test.ts",
+          "hrefDashboard": "../../app/src/persistencia/plantillas.test.ts"
+        },
+        {
+          "path": "app/src/canvas/operacionesBatch.test.ts",
+          "hrefDashboard": "../../app/src/canvas/operacionesBatch.test.ts"
+        }
+      ],
       "peso": 1,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 1,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-33-persistencia-plantillas.md"
     },
     {
@@ -35097,15 +36097,52 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-33-persistencia-plantillas.md",
       "lineaInicio": 72,
       "corte": "gamma",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto ronda 12 L4: plantillas privadas EPICA-33 con persistencia separada, insercion atomica con IDs nuevos, sub-OPDs, sufijo, foco temporal y catalogo.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/modelo/tipos/plantilla.ts",
+          "hrefDashboard": "../../app/src/modelo/tipos/plantilla.ts"
+        },
+        {
+          "path": "app/src/persistencia/plantillas.ts",
+          "hrefDashboard": "../../app/src/persistencia/plantillas.ts"
+        },
+        {
+          "path": "app/src/canvas/operacionesBatch.ts",
+          "hrefDashboard": "../../app/src/canvas/operacionesBatch.ts"
+        },
+        {
+          "path": "app/src/store/modelo.ts",
+          "hrefDashboard": "../../app/src/store/modelo.ts"
+        },
+        {
+          "path": "app/src/ui/DialogoPlantillas.tsx",
+          "hrefDashboard": "../../app/src/ui/DialogoPlantillas.tsx"
+        },
+        {
+          "path": "app/src/ui/DialogoGuardarPlantilla.tsx",
+          "hrefDashboard": "../../app/src/ui/DialogoGuardarPlantilla.tsx"
+        },
+        {
+          "path": "app/src/ui/MenuPrincipal.tsx",
+          "hrefDashboard": "../../app/src/ui/MenuPrincipal.tsx"
+        },
+        {
+          "path": "app/src/persistencia/plantillas.test.ts",
+          "hrefDashboard": "../../app/src/persistencia/plantillas.test.ts"
+        },
+        {
+          "path": "app/src/canvas/operacionesBatch.test.ts",
+          "hrefDashboard": "../../app/src/canvas/operacionesBatch.test.ts"
+        }
+      ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-33-persistencia-plantillas.md"
     },
     {
@@ -35238,15 +36275,52 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-33-persistencia-plantillas.md",
       "lineaInicio": 84,
       "corte": "gamma",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta-auto",
+      "fuenteEvidencia": "auto",
+      "nota": "Auto ronda 12 L4: plantillas privadas EPICA-33 con persistencia separada, insercion atomica con IDs nuevos, sub-OPDs, sufijo, foco temporal y catalogo.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/modelo/tipos/plantilla.ts",
+          "hrefDashboard": "../../app/src/modelo/tipos/plantilla.ts"
+        },
+        {
+          "path": "app/src/persistencia/plantillas.ts",
+          "hrefDashboard": "../../app/src/persistencia/plantillas.ts"
+        },
+        {
+          "path": "app/src/canvas/operacionesBatch.ts",
+          "hrefDashboard": "../../app/src/canvas/operacionesBatch.ts"
+        },
+        {
+          "path": "app/src/store/modelo.ts",
+          "hrefDashboard": "../../app/src/store/modelo.ts"
+        },
+        {
+          "path": "app/src/ui/DialogoPlantillas.tsx",
+          "hrefDashboard": "../../app/src/ui/DialogoPlantillas.tsx"
+        },
+        {
+          "path": "app/src/ui/DialogoGuardarPlantilla.tsx",
+          "hrefDashboard": "../../app/src/ui/DialogoGuardarPlantilla.tsx"
+        },
+        {
+          "path": "app/src/ui/MenuPrincipal.tsx",
+          "hrefDashboard": "../../app/src/ui/MenuPrincipal.tsx"
+        },
+        {
+          "path": "app/src/persistencia/plantillas.test.ts",
+          "hrefDashboard": "../../app/src/persistencia/plantillas.test.ts"
+        },
+        {
+          "path": "app/src/canvas/operacionesBatch.test.ts",
+          "hrefDashboard": "../../app/src/canvas/operacionesBatch.test.ts"
+        }
+      ],
       "peso": 1,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 1,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-33-persistencia-plantillas.md"
     },
     {

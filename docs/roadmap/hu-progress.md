@@ -1,9 +1,9 @@
 # Auditoria de avance HU v2
 
-**Generado:** 2026-05-06T19:06:07.263Z
+**Generado:** 2026-05-07T02:53:56.829Z
 **Backlog:** `docs/historias-usuario-v2`
 **Ledger de evidencia:** `docs/roadmap/hu-progress-evidence.json`
-**Auditoria automatica:** 92/92 reglas matcheadas sobre 333 archivos fuente.
+**Auditoria automatica:** 98/100 reglas matcheadas sobre 351 archivos fuente.
 
 
 Regenerar desde la raiz del repo:
@@ -20,18 +20,18 @@ node docs/historias-usuario-v2/tools/progress-dashboard.mjs
 
 | Segmento | HU vivas | Cubiertas | Parciales | Pendientes | Diferidas | Avance ponderado |
 |---|---:|---:|---:|---:|---:|---:|
-| Total backlog | 1126 | 266 | 33 | 449 | 378 | 24.6% |
-| M0 | 130 | 99 | 16 | 15 | 0 | 82.7% |
-| MVP-alpha | 121 | 107 | 10 | 4 | 0 | 91.1% |
-| MVP-beta | 193 | 69 | 14 | 110 | 0 | 40.1% |
+| Total backlog | 1126 | 302 | 30 | 416 | 378 | 27.5% |
+| M0 | 130 | 101 | 14 | 15 | 0 | 82.7% |
+| MVP-alpha | 121 | 110 | 8 | 3 | 0 | 90.8% |
+| MVP-beta | 193 | 84 | 14 | 95 | 0 | 47.6% |
 
 ## Por corte
 
 | Corte | HU vivas | Cubiertas | Parciales | Pendientes | Diferidas | Avance ponderado |
 |---|---:|---:|---:|---:|---:|---:|
-| MVP-alpha | 121 | 107 | 10 | 4 | 0 | 91.1% |
-| MVP-beta | 193 | 69 | 14 | 110 | 0 | 40.1% |
-| MVP-gamma | 434 | 90 | 9 | 335 | 0 | 19.7% |
+| MVP-alpha | 121 | 110 | 8 | 3 | 0 | 90.8% |
+| MVP-beta | 193 | 84 | 14 | 95 | 0 | 47.6% |
+| MVP-gamma | 434 | 108 | 8 | 318 | 0 | 24.0% |
 | MVP-delta | 378 | 0 | 0 | 0 | 378 | 0.0% |
 | Sin corte | 0 | 0 | 0 | 0 | 0 | 0.0% |
 
@@ -39,10 +39,10 @@ node docs/historias-usuario-v2/tools/progress-dashboard.mjs
 
 | Prioridad | HU vivas | Cubiertas | Parciales | Pendientes | Diferidas | Avance ponderado |
 |---|---:|---:|---:|---:|---:|---:|
-| M0 | 130 | 99 | 16 | 15 | 0 | 82.7% |
-| M1 | 161 | 88 | 9 | 58 | 6 | 57.2% |
-| S | 471 | 69 | 4 | 236 | 162 | 16.8% |
-| C | 247 | 9 | 4 | 133 | 101 | 3.9% |
+| M0 | 130 | 101 | 14 | 15 | 0 | 82.7% |
+| M1 | 161 | 104 | 9 | 42 | 6 | 68.6% |
+| S | 471 | 86 | 3 | 220 | 162 | 20.2% |
+| C | 247 | 10 | 4 | 132 | 101 | 4.2% |
 | W | 117 | 1 | 0 | 7 | 109 | 1.1% |
 | sin-prioridad | 0 | 0 | 0 | 0 | 0 | 0.0% |
 
@@ -50,22 +50,22 @@ node docs/historias-usuario-v2/tools/progress-dashboard.mjs
 
 | Epica | Titulo | HU vivas | Cubiertas | Parciales | Pendientes | Diferidas | Avance ponderado |
 |---|---|---:|---:|---:|---:|---:|---:|
-| 10 | Canvas — creación de cosas (proceso, objeto, enlace inicial, afiliación, esencia) | 17 | 14 | 2 | 1 | 0 | 89.5% |
-| 11 | Canvas — modelado básico (agregación, multi-selección, enlaces procedurales, propiedades, alineación, borrado) | 22 | 19 | 1 | 2 | 0 | 87.5% |
+| 10 | Canvas — creación de cosas (proceso, objeto, enlace inicial, afiliación, esencia) | 17 | 15 | 2 | 0 | 0 | 92.1% |
+| 11 | Canvas — modelado básico (agregación, multi-selección, enlaces procedurales, propiedades, alineación, borrado) | 22 | 20 | 1 | 1 | 0 | 91.1% |
 | 12 | Canvas — descomposición de procesos | 31 | 26 | 2 | 3 | 0 | 87.6% |
 | 13 | Canvas — estados (designaciones, par entrada-salida, supresión, layout interno) | 18 | 9 | 6 | 3 | 0 | 66.7% |
 | 14 | Canvas — estilado visual de cosas, texto y enlaces | 15 | 5 | 0 | 10 | 0 | 40.0% |
 | 15 | Canvas — enlaces avanzados (multiplicidad, rutas, XOR/O, condición/evento/NO, invocación) | 23 | 22 | 0 | 1 | 0 | 96.1% |
 | 16 | Canvas — enlaces: propiedades, Tabla de Enlaces y estilo | 17 | 0 | 0 | 17 | 0 | 0.0% |
-| 17 | Canvas — objetos avanzados (alias, unidad, descripción, URL, plegado parcial, designaciones de estado, duración) | 28 | 18 | 3 | 7 | 0 | 61.1% |
+| 17 | Canvas — objetos avanzados (alias, unidad, descripción, URL, plegado parcial, designaciones de estado, duración) | 28 | 23 | 2 | 3 | 0 | 85.2% |
 | 18 | Canvas — plegado parcial (vista compacta de refinadores intra-rectángulo) | 15 | 12 | 3 | 0 | 0 | 90.7% |
 | 19 | Canvas — imágenes incrustadas en cosas (URL, pool, alternar imagen/texto, exportación) | 16 | 12 | 0 | 4 | 0 | 68.4% |
 | 20 | Estructura — árbol OPD (navegación, orden, gestión, vistas derivadas) | 21 | 21 | 0 | 0 | 0 | 100.0% |
 | 21 | Estructura — mapa del sistema (meta-vista gráfica del árbol de OPDs) | 18 | 0 | 0 | 18 | 0 | 0.0% |
-| 30 | Persistencia — guardar/cargar, diálogos modales, versiones, archivado, búsqueda global, autosalvado | 34 | 28 | 5 | 1 | 0 | 88.8% |
+| 30 | Persistencia — guardar/cargar, diálogos modales, versiones, archivado, búsqueda global, autosalvado | 34 | 29 | 3 | 2 | 0 | 84.3% |
 | 31 | Persistencia — carpetas, jerarquía, permisos y navegación del workspace | 26 | 3 | 0 | 23 | 0 | 15.7% |
 | 32 | Persistencia — sub-modelos (vistas de subsistema, archivos peer, composición cross-modelo) | 31 | 0 | 0 | 31 | 0 | 0.0% |
-| 33 | Persistencia — plantillas (artefactos reutilizables, ámbitos Privado/Organizacional/Global) | 22 | 0 | 0 | 22 | 0 | 0.0% |
+| 33 | Persistencia — plantillas (artefactos reutilizables, ámbitos Privado/Organizacional/Global) | 22 | 13 | 0 | 9 | 0 | 61.4% |
 | 34 | Persistencia — creación de modelo nuevo (ruta simple + asistente de 12 etapas) | 28 | 8 | 0 | 20 | 0 | 18.3% |
 | 35 | Persistencia — mover modelos y buscar cosas (Ctrl+F intra-modelo) | 20 | 5 | 0 | 15 | 0 | 31.8% |
 | 40 | Colaboración — permisos de modelo, token de edición y auto-lectura desde carpeta | 25 | 0 | 0 | 0 | 25 | 0.0% |
@@ -82,7 +82,7 @@ node docs/historias-usuario-v2/tools/progress-dashboard.mjs
 | 90 | Interacción — atajos de teclado | 21 | 20 | 0 | 1 | 0 | 95.8% |
 | 91 | Interacción — modo tutorial, tooltips guiados y asistencia pedagógica | 16 | 0 | 0 | 16 | 0 | 0.0% |
 | 1A | Canvas — cuadrícula, imán, redimensión y alineación | 18 | 15 | 3 | 0 | 0 | 93.6% |
-| 1B | Canvas — operaciones de traer conectados (hidratar OPD con cosas y enlaces existentes) | 16 | 0 | 0 | 16 | 0 | 0.0% |
+| 1B | Canvas — operaciones de traer conectados (hidratar OPD con cosas y enlaces existentes) | 16 | 15 | 0 | 1 | 0 | 97.6% |
 | 1C | Canvas — validaciones (interior/exterior, nombres duplicados, verificación metodológica, alcance de eliminación) | 17 | 4 | 4 | 9 | 0 | 39.6% |
 | A0 | Extensión — estereotipos OPM (mecanismo genérico de ampliación del lenguaje) | 40 | 0 | 0 | 40 | 0 | 0.0% |
 | A1 | Extensión — modelado de requisitos OPM (trazabilidad, plantilla canónica, vistas proyectadas) | 34 | 0 | 0 | 34 | 0 | 0.0% |
@@ -102,7 +102,7 @@ node docs/historias-usuario-v2/tools/progress-dashboard.mjs
 
 ## Pendientes M0 inmediatos
 
-- [HU-11.001](../historias-usuario-v2/epicas/epica-11-canvas-modelado-basico.md) — Crear cosa y sus partes en secuencia sobre el mismo OPD (M0, pendiente)
+- [HU-30.008](../historias-usuario-v2/epicas/epica-30-persistencia-save-load.md) — Persistir payload OPM íntegro al guardar (layout, stroke, dash, alias) (M0, pendiente)
 
 ## Brechas registradas
 
