@@ -86,7 +86,11 @@ test("[L1] ModalConfiguracionGrid pinta sobre canvas SVG y acepta edicion sin cl
   await page.getByLabel("Cargar modelo de ejemplo").selectOption("Cafetera Domestica");
   await expect(page.locator(".joint-paper svg")).toHaveCount(1);
 
-  await page.getByTestId("config-grid").click();
+  // El boton Config grid puede vivir mas alla del overflow horizontal del
+  // toolbar; lo traemos a la vista antes de clickear.
+  const configBtn = page.getByTestId("config-grid");
+  await configBtn.scrollIntoViewIfNeeded();
+  await configBtn.click();
   const modal = page.getByRole("dialog", { name: "Cuadrícula" }).or(page.getByTestId("modal-config-grid"));
   await expect(modal.first()).toBeVisible();
   const bbox = await rectOf(modal.first());

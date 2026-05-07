@@ -1,5 +1,6 @@
 // [JOYAS §1-3] Chrome UI consume tokens centralizados; canvas semántico invariante.
 import type { ComponentChildren, RefObject } from "preact";
+import { createPortal } from "preact/compat";
 import { useLayoutEffect, useMemo, useRef } from "preact/hooks";
 import { tokens } from "./tokens";
 
@@ -7,6 +8,18 @@ import { tokens } from "./tokens";
  * Diálogo modal accesible con captura Esc obligatoria [HU-30.037, Met §6]
  * y prop opcional `size?` que mapea a un ancho canónico [JOYAS §2].
  * El default `"md"` mantiene comportamiento histórico (ronda <= 12).
+ *
+ * Ronda 15 L1: el árbol del modal vive en un portal anclado a `body` para
+ * desacoplarlo del subárbol del workbench (`<main display:grid>` + canvas
+ * SVG/composite layers). Esta es la regla canónica para overlays modales y
+ * coincide con el patrón OPCloud `cdk-overlay-pane`
+ * (`opm-extracted/src/app/modules/layout/main/main.component.ts:206`,
+ * `MatDialog.open` con `panelClass`). Sin portal, cualquier ancestro que
+ * forme containing block para `position: fixed` (transform/filter/perspective/
+ * `contain: paint`/`will-change: transform`) hace que el modal pinte
+ * relativo al ancestro y deje de cubrir el viewport — el síntoma observado
+ * en los tres reverts: modal montado pero invisible, o clicks robados por
+ * el SVG del paper cuando éste compartía contexto de stacking.
  */
 
 const FOCUSABLE_SELECTOR = [
@@ -76,8 +89,9 @@ export function Dialogo(props: DialogoProps) {
   }, [props.open, props.onCancel]);
 
   if (!props.open) return null;
+  if (typeof document === "undefined") return null;
 
-  return (
+  const overlay = (
     <div
       style={style.backdrop}
       onMouseDown={(event) => {
@@ -98,6 +112,11 @@ export function Dialogo(props: DialogoProps) {
       </section>
     </div>
   );
+
+  // Portal a `document.body` para desacoplar del workbench grid + canvas SVG.
+  // Inspiración: `cdk-overlay-pane` de Angular CDK, usado por OPCloud
+  // (`MatDialog.open(..., { panelClass: "choose-link-dialog", ... })`).
+  return createPortal(overlay, document.body);
 }
 
 function primerFoco(dialog: HTMLElement | null): HTMLElement | null {
