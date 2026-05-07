@@ -111,7 +111,7 @@ export function proyectarEnlace(
       line: {
         stroke: colorEnlace,
         strokeWidth: seleccionada ? grosorEnlace + 2 : grosorEnlace,
-        strokeDasharray: dashOverride,
+        ...(dashOverride !== undefined ? { strokeDasharray: dashOverride } : {}),
         sourceMarker: marcadorFuente(enlace.tipo),
         targetMarker: marcadorDestino(enlace.tipo),
       },

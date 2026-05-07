@@ -50,8 +50,10 @@ export function proyectarEntidad(
     fill,
     stroke,
     strokeWidth,
-    strokeDasharray: entidad.afiliacion === "ambiental" ? "8 4" : undefined,
-    filter: entidad.esencia === "fisica" ? "drop-shadow(1px 2px 2px rgb(0 0 0 / 0.25))" : undefined,
+    // Atributos opcionales: solo presentes cuando aplican; pasar undefined a JointJS
+    // serializa el string literal "undefined" en el SVG.
+    ...(entidad.afiliacion === "ambiental" ? { strokeDasharray: "8 4" } : {}),
+    ...(entidad.esencia === "fisica" ? { filter: "drop-shadow(1px 2px 2px rgb(0 0 0 / 0.25))" } : {}),
     cursor: "pointer",
   };
   const attrsBase = {
