@@ -117,6 +117,47 @@ test("[L1] ModalConfiguracionGrid pinta sobre canvas SVG y acepta edicion sin cl
   expect(pageErrors).toEqual([]);
 });
 
+test("[L1] ModalConfiguracionGrid migrado a Dialogo expone aria-labelledby y Esc captura", async ({ page }) => {
+  // Regresion: antes de la migracion (revert 789eb0e) este modal usaba un
+  // wrapper propio sin focus trap, sin captura Esc con
+  // stopImmediatePropagation y solo `aria-label` en lugar de
+  // `aria-labelledby`. Si la migracion se reintroduce sobre un sustrato
+  // modal inestable, este smoke detecta cualquier perdida de a11y o de
+  // captura de teclado.
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await cerrarPantallaInicioSiVisible(page);
+  await page.getByLabel("Cargar modelo de ejemplo").selectOption("Cafetera Domestica");
+  await expect(page.locator(".joint-paper svg")).toHaveCount(1);
+
+  const configBtn = page.getByTestId("config-grid");
+  await configBtn.scrollIntoViewIfNeeded();
+  await configBtn.click();
+
+  const modal = page.getByRole("dialog", { name: "Cuadrícula" });
+  await expect(modal).toBeVisible();
+
+  // aria-labelledby valido: apunta a un id que es el heading "Cuadrícula".
+  const aria = await modal.evaluate((dialog) => {
+    const labelledby = dialog.getAttribute("aria-labelledby");
+    if (!labelledby) return { ok: false, motivo: "sin aria-labelledby" };
+    const heading = document.getElementById(labelledby);
+    if (!heading) return { ok: false, motivo: `id ${labelledby} no existe` };
+    return { ok: heading.textContent?.trim() === "Cuadrícula", motivo: heading.textContent?.trim() ?? "(vacio)" };
+  });
+  expect(aria.ok, `aria-labelledby invalido: ${aria.motivo}`).toBe(true);
+
+  // Esc cierra (captura con stopImmediatePropagation del Dialogo
+  // canonico). Antes del migrate, Esc era manejado por atajos globales y
+  // se filtraba al canvas-context, sin cerrar el modal.
+  await page.keyboard.press("Escape");
+  await expect(modal).toHaveCount(0);
+
+  expect(pageErrors).toEqual([]);
+});
+
 test("[L1] Dialogo se monta fuera del subarbol del workbench (portal a body)", async ({ page }) => {
   const pageErrors: string[] = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));
