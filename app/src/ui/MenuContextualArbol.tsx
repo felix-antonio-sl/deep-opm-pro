@@ -1,5 +1,7 @@
+// [JOYAS §1-3] Chrome UI consume tokens centralizados; canvas semántico invariante.
 import deleteIcon from "../../../assets/svg/delete.svg";
 import type { Id, Modelo } from "../modelo/tipos";
+import { tokens } from "./tokens";
 
 /**
  * Menú contextual del árbol OPD.
@@ -94,10 +96,10 @@ const style = {
     zIndex: 1200,
     width: "220px",
     padding: "6px",
-    border: "1px solid #c8d2df",
-    borderRadius: "6px",
-    background: "#ffffff",
-    boxShadow: "0 16px 32px rgba(16, 24, 40, 0.18)",
+    border: `1px solid ${tokens.colors.bordeControl}`,
+    borderRadius: tokens.radii.md,
+    background: tokens.colors.fondoChrome,
+    boxShadow: tokens.shadows.menuArbol,
     display: "grid",
     gap: "2px",
   },
@@ -106,9 +108,9 @@ const style = {
     minHeight: "30px",
     padding: "0 9px",
     border: "1px solid transparent",
-    borderRadius: "4px",
+    borderRadius: tokens.radii.sm,
     background: "transparent",
-    color: "#1f2937",
+    color: tokens.colors.textoPrimario,
     cursor: "pointer",
     fontSize: "12px",
     fontWeight: 700,
@@ -119,9 +121,9 @@ const style = {
     minHeight: "30px",
     padding: "0 9px",
     border: "1px solid transparent",
-    borderRadius: "4px",
+    borderRadius: tokens.radii.sm,
     background: "transparent",
-    color: "#98a2b3",
+    color: tokens.colors.textoDeshabilitado,
     cursor: "not-allowed",
     fontSize: "12px",
     fontWeight: 700,
@@ -132,9 +134,9 @@ const style = {
     minHeight: "30px",
     padding: "0 9px",
     border: "1px solid transparent",
-    borderRadius: "4px",
+    borderRadius: tokens.radii.sm,
     background: "transparent",
-    color: "#1f2937",
+    color: tokens.colors.textoPrimario,
     cursor: "pointer",
     fontSize: "12px",
     fontWeight: 700,
@@ -147,6 +149,6 @@ const style = {
   divider: {
     height: "1px",
     margin: "3px 0",
-    background: "#e4eaf1",
+    background: tokens.colors.bordeChrome,
   },
 } satisfies Record<string, preact.JSX.CSSProperties>;
