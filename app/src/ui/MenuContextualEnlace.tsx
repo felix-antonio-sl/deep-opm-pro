@@ -1,4 +1,6 @@
+// [JOYAS §1-3] Chrome UI consume tokens centralizados; canvas semántico invariante.
 import type { Id, TipoEnlace } from "../modelo/tipos";
+import { tokens } from "./tokens";
 
 interface Props {
   enlaceId: Id;
@@ -44,7 +46,7 @@ const baseItem = {
   height: "30px",
   border: 0,
   background: "transparent",
-  color: "#1f2937",
+  color: tokens.colors.textoPrimario,
   textAlign: "left",
   padding: "0 10px",
   cursor: "pointer",
@@ -58,12 +60,12 @@ const style = {
     zIndex: 45,
     width: "170px",
     padding: "6px",
-    border: "1px solid #c8d2df",
-    borderRadius: "6px",
-    background: "#ffffff",
-    boxShadow: "0 12px 28px rgba(15, 23, 42, 0.18)",
+    border: `1px solid ${tokens.colors.bordeControl}`,
+    borderRadius: tokens.radii.md,
+    background: tokens.colors.fondoChrome,
+    boxShadow: tokens.shadows.menuContextual,
   },
   item: baseItem,
-  disabled: { ...baseItem, color: "#98a2b3", cursor: "default" },
-  danger: { ...baseItem, color: "#b42318" },
+  disabled: { ...baseItem, color: tokens.colors.textoDeshabilitado, cursor: "default" },
+  danger: { ...baseItem, color: tokens.colors.errorTexto },
 } satisfies Record<string, preact.JSX.CSSProperties>;
