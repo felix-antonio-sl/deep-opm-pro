@@ -1,6 +1,7 @@
 // [JOYAS §1-3] Chrome UI consume tokens centralizados; canvas semántico invariante.
 import { useEffect, useState } from "preact/hooks";
 import { normalizarGridConfig, type GridConfig } from "../canvas/grid";
+import { Dialogo } from "./Dialogo";
 import { tokens } from "./tokens";
 
 interface Props {
@@ -15,14 +16,23 @@ export function ModalConfiguracionGrid({ abierto, config, onCerrar, onGuardar }:
   useEffect(() => {
     if (abierto) setLocal(normalizarGridConfig(config));
   }, [abierto, config]);
-  if (!abierto) return null;
 
   const actualizar = (patch: Partial<GridConfig>) => setLocal((actual) => normalizarGridConfig({ ...actual, ...patch }));
 
   return (
-    <div role="dialog" aria-modal="true" aria-label="Configuración de cuadrícula" style={style.backdrop} data-testid="modal-config-grid">
-      <div style={style.dialog}>
-        <h2 style={style.title}>Cuadrícula</h2>
+    <Dialogo
+      open={abierto}
+      title="Cuadrícula"
+      onCancel={onCerrar}
+      size="sm"
+      actions={(
+        <>
+          <button type="button" style={style.secondaryButton} onClick={onCerrar}>Cancelar</button>
+          <button type="button" style={style.primaryButton} onClick={() => { onGuardar(local); onCerrar(); }}>Guardar</button>
+        </>
+      )}
+    >
+      <div data-testid="modal-config-grid" style={style.body}>
         <label style={style.field}>
           <span style={style.label}>Paso</span>
           <input style={style.input} type="number" min={4} max={160} value={local.paso} onInput={(event) => actualizar({ paso: Number(event.currentTarget.value) })} />
@@ -43,50 +53,18 @@ export function ModalConfiguracionGrid({ abierto, config, onCerrar, onGuardar }:
           <input type="checkbox" checked={local.snapActivo} onChange={(event) => actualizar({ snapActivo: event.currentTarget.checked })} />
           <span>Snap</span>
         </label>
-        <div style={style.actions}>
-          <button type="button" style={style.secondaryButton} onClick={onCerrar}>Cancelar</button>
-          <button
-            type="button"
-            style={style.primaryButton}
-            onClick={() => {
-              onGuardar(local);
-              onCerrar();
-            }}
-          >
-            Guardar
-          </button>
-        </div>
       </div>
-    </div>
+    </Dialogo>
   );
 }
 
 const style = {
-  backdrop: {
-    position: "fixed",
-    inset: 0,
-    zIndex: 50,
-    background: "rgb(15 23 42 / 0.28)",
-    display: "grid",
-    placeItems: "center",
-  },
-  dialog: {
-    width: "min(360px, calc(100vw - 32px))",
-    background: tokens.colors.fondoChrome,
-    border: `1px solid ${tokens.colors.bordeControl}`,
-    borderRadius: tokens.radii.md,
-    boxShadow: tokens.shadows.modalGrid,
-    padding: "16px",
-    display: "grid",
-    gap: "10px",
-  },
-  title: { margin: 0, fontSize: "16px", color: tokens.colors.textoPrimario },
+  body: { display: "grid", gap: "10px" },
   field: { display: "grid", gridTemplateColumns: "84px 1fr", alignItems: "center", gap: "8px" },
   label: { fontSize: "13px", color: tokens.colors.textoSecundario, fontWeight: 700 },
   input: { height: "32px", border: `1px solid ${tokens.colors.bordeControl}`, borderRadius: tokens.radii.sm, padding: "0 8px", fontSize: "13px" },
   colorInput: { width: "54px", height: "32px", border: `1px solid ${tokens.colors.bordeControl}`, borderRadius: tokens.radii.sm, background: tokens.colors.fondoChrome },
   checkbox: { display: "inline-flex", alignItems: "center", gap: "8px", color: tokens.colors.textoControl, fontSize: "13px", fontWeight: 700 },
-  actions: { display: "flex", justifyContent: "flex-end", gap: "8px", marginTop: "4px" },
   primaryButton: { height: "34px", padding: "0 12px", border: `1px solid ${tokens.colors.chromeNeutral}`, borderRadius: tokens.radii.sm, background: tokens.colors.chromeNeutral, color: tokens.colors.fondoChrome, cursor: "pointer", fontWeight: 700 },
   secondaryButton: { height: "34px", padding: "0 12px", border: `1px solid ${tokens.colors.bordeControl}`, borderRadius: tokens.radii.sm, background: tokens.colors.fondoChrome, color: tokens.colors.textoSecundario, cursor: "pointer", fontWeight: 700 },
 } satisfies Record<string, preact.JSX.CSSProperties>;
