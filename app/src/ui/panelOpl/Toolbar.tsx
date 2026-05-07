@@ -22,6 +22,7 @@ export function ToolbarOpl(props: ToolbarOplProps) {
   const sinOraciones = props.totalOraciones === 0;
   return (
     <div style={style.toolbar} data-testid="panel-opl-toolbar">
+      {/* Cluster 1: chrome del contenedor */}
       <button
         type="button"
         data-testid="panel-opl-minimizar"
@@ -31,16 +32,6 @@ export function ToolbarOpl(props: ToolbarOplProps) {
         onClick={props.onMinimizar}
       >
         ▾
-      </button>
-      <button
-        type="button"
-        data-testid="panel-opl-toggle-numeracion"
-        style={botonActivo(props.numeracionVisible)}
-        title={props.numeracionVisible ? "Ocultar numeración" : "Mostrar numeración"}
-        aria-pressed={props.numeracionVisible}
-        onClick={props.onToggleNumeracion}
-      >
-        123
       </button>
       <button
         type="button"
@@ -59,6 +50,19 @@ export function ToolbarOpl(props: ToolbarOplProps) {
             <path d="M8 3 L8 13 M8 13 L6 11 M8 13 L10 11" stroke="currentColor" strokeWidth="1.4" fill="none" strokeLinecap="round"/>
           </svg>
         )}
+      </button>
+      <span style={style.divider} aria-hidden="true" />
+
+      {/* Cluster 2: display y modos */}
+      <button
+        type="button"
+        data-testid="panel-opl-toggle-numeracion"
+        style={botonActivo(props.numeracionVisible)}
+        title={props.numeracionVisible ? "Ocultar numeración" : "Mostrar numeración"}
+        aria-pressed={props.numeracionVisible}
+        onClick={props.onToggleNumeracion}
+      >
+        123
       </button>
       <button
         type="button"
@@ -80,6 +84,9 @@ export function ToolbarOpl(props: ToolbarOplProps) {
       >
         Editar
       </button>
+      <span style={style.divider} aria-hidden="true" />
+
+      {/* Cluster 3: consulta y exportación */}
       <input
         data-testid="panel-opl-buscar"
         type="text"
@@ -109,6 +116,9 @@ export function ToolbarOpl(props: ToolbarOplProps) {
       >
         HTML
       </button>
+      <span style={style.divider} aria-hidden="true" />
+
+      {/* Toggle independiente al extremo derecho */}
       <label style={style.toggle}>
         <input
           type="checkbox"
@@ -134,17 +144,24 @@ const style = {
     display: "flex",
     flexWrap: "wrap",
     alignItems: "center",
-    gap: 6,
+    gap: tokens.spacing.sm,
     marginBottom: 10,
+  },
+  divider: {
+    width: 1,
+    height: 18,
+    flex: "0 0 auto",
+    margin: `0 ${tokens.spacing.xs}px`,
+    background: tokens.colors.bordeChrome,
   },
   iconButton: {
     minWidth: 30,
-    height: 26,
+    height: 28,
     border: `1px solid ${tokens.colors.bordeSlate}`,
     borderRadius: 4,
     background: tokens.colors.fondoElevado,
     color: tokens.colors.textoSlate,
-    fontSize: "11px",
+    fontSize: tokens.typography.sizes.sm,
     fontWeight: 700,
     padding: "2px 6px",
     cursor: "pointer",
@@ -156,22 +173,22 @@ const style = {
   },
   searchInput: {
     flex: "1",
-    minWidth: 120,
-    maxWidth: 240,
-    height: 26,
+    minWidth: 180,
+    maxWidth: 280,
+    height: 28,
     padding: "2px 6px",
     border: `1px solid ${tokens.colors.bordeNeutral}`,
     borderRadius: 4,
-    fontSize: "12px",
+    fontSize: tokens.typography.sizes.sm,
     fontFamily: "inherit",
   },
   toolbarBtn: {
-    height: 26,
+    height: 28,
     border: `1px solid ${tokens.colors.bordeNeutral}`,
     borderRadius: 4,
     background: tokens.colors.fondoTabla,
     color: tokens.colors.textoSlate,
-    fontSize: "11px",
+    fontSize: tokens.typography.sizes.sm,
     padding: "2px 8px",
     cursor: "pointer",
     whiteSpace: "nowrap",
@@ -182,7 +199,7 @@ const style = {
     alignItems: "center",
     gap: 4,
     color: tokens.colors.textoSecundario,
-    fontSize: "11px",
+    fontSize: tokens.typography.sizes.sm,
     userSelect: "none",
     whiteSpace: "nowrap",
   },
