@@ -386,7 +386,7 @@ function autoAuditRules() {
       requires: [
         { path: "app/src/store/runtime.ts", all: ["const UNDO_LIMIT = 100", "redoStack"] },
         { path: "app/src/store/modelo/acciones-canvas.ts", all: ["deshacer()", "rehacer()"] },
-        { path: "app/src/ui/Toolbar.tsx", all: ["deshacer", "rehacer"] },
+        { path: "app/src/ui/toolbar/ToolbarBase.tsx", all: ["deshacer", "rehacer"] },
         { path: "app/src/store.test.ts", all: ["undoStack.length"] },
       ],
       evidenciaExtra: ["app/e2e/_smoke-helpers.ts", "app/src/store.ts"],
@@ -437,7 +437,8 @@ function autoAuditRules() {
       confianza: "alta-auto",
       nota: "Auto: flujo origen-tipo-destino crea enlaces con validacion de firma respetando handles de resize; los puertos visuales emergen al iniciar el enlace.",
       requires: [
-        { path: "app/src/ui/Toolbar.tsx", all: ["TIPOS_ENLACE", "elegirTipoEnlace"] },
+        { path: "app/src/ui/Toolbar.tsx", all: ["TIPOS_ENLACE"] },
+        { path: "app/src/ui/toolbar/ToolbarCreacion.tsx", all: ["TIPOS_ENLACE", "elegirTipoEnlace"] },
         { path: "app/src/store/modelo/acciones-enlace.ts", all: ["elegirTipoEnlace(tipo)", "modoEnlace"] },
         { path: "app/src/modelo/operaciones/helpers.ts", all: ["validarFirmaEnlace"] },
         { path: "app/src/modelo/operaciones/enlaces.ts", all: ["export function crearEnlace"] },
@@ -502,7 +503,8 @@ function autoAuditRules() {
       confianza: "alta-auto",
       nota: "Auto: guardar/cargar local, nuevo modelo y Ctrl+S estan implementados sobre persistencia local.",
       requires: [
-        { path: "app/src/ui/Toolbar.tsx", all: ["Guardar (Ctrl+S)", "Cargar", "Nuevo", "key === \"s\""] },
+        { path: "app/src/ui/toolbar/ToolbarBase.tsx", all: ["Guardar (Ctrl+S)", "Cargar", "Nuevo"] },
+        { path: "app/src/ui/App.tsx", all: ["Ctrl+S", "guardarLocal"] },
         { path: "app/src/store/persistencia.ts", all: ["guardarLocal()", "cargarLocal(id)"] },
         { path: "app/src/store/modelo/acciones-ui.ts", all: ["nuevoModelo"] },
         { path: "app/src/persistencia/local.ts", all: ["localStorage", "guardarModeloLocal", "cargarModeloLocal"] },
@@ -865,7 +867,7 @@ function autoAuditRules() {
         { path: "app/src/ui/MenuPrincipal.tsx", all: ["Nuevo"] },
         { path: "app/src/store/modelo/acciones-ui.ts", all: ["nuevoModelo"] },
         { path: "app/src/store/modelo.ts", all: ["opdRaizId"] },
-        { path: "app/src/ui/Toolbar.tsx", any: ["No guardado"] },
+        { path: "app/src/ui/toolbar/ToolbarBase.tsx", any: ["No guardado"] },
       ],
     },
     {
@@ -1024,7 +1026,7 @@ function autoAuditRules() {
         { path: "app/src/render/jointjs/composers/grid.ts", all: ["configurarGridPaper", "drawGrid"] },
         { path: "app/src/modelo/tipos/ui.ts", all: ["gridConfig?:"] },
         { path: "app/src/store/modelo/acciones-canvas.ts", all: ["toggleGrid", "fijarGridConfig", "cuantizarDesdeEstado"] },
-        { path: "app/src/ui/Toolbar.tsx", all: ["toggle-grid", "config-grid"] },
+        { path: "app/src/ui/toolbar/ToolbarCreacion.tsx", all: ["toggle-grid", "config-grid"] },
         { path: "app/src/ui/ModalConfiguracionGrid.tsx", all: ["ModalConfiguracionGrid"] },
       ],
       evidenciaExtra: ["app/src/canvas/grid.test.ts", "app/src/render/jointjs/composers/grid.test.ts", "app/e2e/_smoke-helpers.ts"],
@@ -1037,7 +1039,7 @@ function autoAuditRules() {
       requires: [
         { path: "app/src/canvas/operacionesBatch.ts", all: ["alinearPorEje", "distribuirUniformemente", "EjeAlineacion", "OrientacionDistribucion"] },
         { path: "app/src/store/modelo/acciones-canvas.ts", all: ["alinearSeleccion", "distribuirSeleccion"] },
-        { path: "app/src/ui/Toolbar.tsx", all: ["alinear-cosas", "distribuir-cosas"] },
+        { path: "app/src/ui/toolbar/ToolbarMultiseleccion.tsx", all: ["alinear-cosas", "distribuir-cosas"] },
       ],
       evidenciaExtra: ["app/src/canvas/operacionesBatch.test.ts", "app/e2e/_smoke-helpers.ts"],
     },
@@ -1182,7 +1184,7 @@ function autoAuditRules() {
         { path: "app/src/store/modelo/acciones-ui.ts", all: ["fijarModoImagenGlobal", "uiModoImagenGlobal"] },
         { path: "app/src/render/jointjs/proyeccion.ts", all: ["modoImagenGlobal", "proyectarImagenesEntidad"] },
         { path: "app/src/render/jointjs/composers/imagenOverlay.ts", all: ["proyectarImagenesEntidad", "modoGlobal"] },
-        { path: "app/src/ui/Toolbar.tsx", any: ["toolbar-modo-imagen-global", "fijarModoImagenGlobal"] },
+        { path: "app/src/ui/toolbar/ToolbarSeleccion.tsx", any: ["toolbar-modo-imagen-global", "fijarModoImagenGlobal"] },
       ],
     },
     {
@@ -1397,7 +1399,7 @@ function autoAuditRules() {
       confianza: "alta-auto",
       nota: "Auto ronda 11 L4: drag desde Toolbar al canvas con MIME application/x-opm-tipo crea cosa en posicion exacta.",
       requires: [
-        { path: "app/src/ui/Toolbar.tsx", all: ["toolbar-drag-objeto", "toolbar-drag-proceso"] },
+        { path: "app/src/ui/toolbar/ToolbarBase.tsx", all: ["toolbar-drag-objeto", "toolbar-drag-proceso"] },
       ],
       evidenciaExtra: ["app/e2e/_smoke-helpers.ts"],
     },
@@ -1511,7 +1513,7 @@ function autoAuditRules() {
       confianza: "alta-auto",
       nota: "Auto ronda 12 L1: indicador de modo sticky en Toolbar (data-testid indicador-modo-sticky).",
       requires: [
-        { path: "app/src/ui/Toolbar.tsx", all: ["indicador-modo-sticky"] },
+        { path: "app/src/ui/toolbar/ToolbarCreacion.tsx", all: ["indicador-modo-sticky"] },
       ],
     },
     {
@@ -1522,7 +1524,7 @@ function autoAuditRules() {
       requires: [
         { path: "app/src/ui/atajosTeclado.ts", all: ["ATAJO_CONECTAR_MULTI_AL_TODO"] },
         { path: "app/src/store/seleccion.ts", any: ["conectarSeleccionAlTodo"] },
-        { path: "app/src/ui/Toolbar.tsx", any: ["conectarSeleccionAlTodo"] },
+        { path: "app/src/ui/toolbar/ToolbarMultiseleccion.tsx", any: ["conectarSeleccionAlTodo"] },
       ],
       evidenciaExtra: ["app/src/store.test.ts"],
     },
@@ -1558,7 +1560,7 @@ function autoAuditRules() {
         { path: "app/src/modelo/operaciones/entidad.ts", all: ["crearAtributoEnObjeto", "asignarValorAtributo", "cambiarTipoValorAtributo"] },
         { path: "app/src/modelo/validadores/valorSlot.ts", all: ["integer", "float", "char", "string"] },
         { path: "app/src/ui/inspector/SeccionAtributo.tsx", any: ["SeccionAtributo"] },
-        { path: "app/src/ui/Toolbar.tsx", any: ["objectDrag.svg"] },
+        { path: "app/src/ui/toolbar/ToolbarBase.tsx", any: ["objectDrag.svg", "objectDragIcon"] },
       ],
       evidenciaExtra: ["app/src/modelo/operaciones/entidad.test.ts", "app/src/modelo/validadores/valorSlot.test.ts"],
     },
@@ -1599,7 +1601,7 @@ function autoAuditRules() {
       confianza: "alta-auto",
       nota: "Auto ronda 12.1 L1: smoke verifica que crear cosa expone modal-nombre-cosa con form + input + Enter persiste nombre.",
       requires: [
-        { path: "app/src/ui/Toolbar.tsx", any: ["modal-nombre-cosa"] },
+        { path: "app/src/ui/toolbar/ToolbarBase.tsx", any: ["modal-nombre-cosa"] },
         { path: "app/e2e/08-mvp-alpha-residual.spec.ts", all: ["modal-nombre-cosa"] },
       ],
     },

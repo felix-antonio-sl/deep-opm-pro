@@ -1,17 +1,17 @@
 {
   "schema": "deep-opm-pro.hu-progress-report.v1",
-  "generatedAt": "2026-05-07T07:18:10.150Z",
+  "generatedAt": "2026-05-07T08:42:43.964Z",
   "repoRoot": "/home/felix/projects/deep-opm-pro",
   "backlogRoot": "docs/historias-usuario-v2",
   "evidenceLedger": "docs/roadmap/hu-progress-evidence.json",
   "autoAudit": {
-    "generatedAt": "2026-05-07T07:18:10.150Z",
+    "generatedAt": "2026-05-07T08:42:43.964Z",
     "mode": "sync-real",
     "rulesEvaluated": 102,
     "rulesMatched": 102,
     "rulesUnmatched": 0,
     "sourceFiles": {
-      "count": 361,
+      "count": 374,
       "roots": [
         "app/src",
         "app/e2e",
@@ -910,8 +910,8 @@
           "hrefDashboard": "../../app/src/store/modelo/acciones-canvas.ts"
         },
         {
-          "path": "app/src/ui/Toolbar.tsx",
-          "hrefDashboard": "../../app/src/ui/Toolbar.tsx"
+          "path": "app/src/ui/toolbar/ToolbarBase.tsx",
+          "hrefDashboard": "../../app/src/ui/toolbar/ToolbarBase.tsx"
         },
         {
           "path": "app/src/store.test.ts",
@@ -14083,8 +14083,8 @@
           "hrefDashboard": "../../app/src/store/modelo/acciones-canvas.ts"
         },
         {
-          "path": "app/src/ui/Toolbar.tsx",
-          "hrefDashboard": "../../app/src/ui/Toolbar.tsx"
+          "path": "app/src/ui/toolbar/ToolbarCreacion.tsx",
+          "hrefDashboard": "../../app/src/ui/toolbar/ToolbarCreacion.tsx"
         },
         {
           "path": "app/src/ui/ModalConfiguracionGrid.tsx",
@@ -14156,8 +14156,8 @@
           "hrefDashboard": "../../app/src/store/modelo/acciones-canvas.ts"
         },
         {
-          "path": "app/src/ui/Toolbar.tsx",
-          "hrefDashboard": "../../app/src/ui/Toolbar.tsx"
+          "path": "app/src/ui/toolbar/ToolbarCreacion.tsx",
+          "hrefDashboard": "../../app/src/ui/toolbar/ToolbarCreacion.tsx"
         },
         {
           "path": "app/src/ui/ModalConfiguracionGrid.tsx",
@@ -14227,8 +14227,8 @@
           "hrefDashboard": "../../app/src/store/modelo/acciones-canvas.ts"
         },
         {
-          "path": "app/src/ui/Toolbar.tsx",
-          "hrefDashboard": "../../app/src/ui/Toolbar.tsx"
+          "path": "app/src/ui/toolbar/ToolbarCreacion.tsx",
+          "hrefDashboard": "../../app/src/ui/toolbar/ToolbarCreacion.tsx"
         },
         {
           "path": "app/src/ui/ModalConfiguracionGrid.tsx",
@@ -14299,8 +14299,8 @@
           "hrefDashboard": "../../app/src/store/modelo/acciones-canvas.ts"
         },
         {
-          "path": "app/src/ui/Toolbar.tsx",
-          "hrefDashboard": "../../app/src/ui/Toolbar.tsx"
+          "path": "app/src/ui/toolbar/ToolbarCreacion.tsx",
+          "hrefDashboard": "../../app/src/ui/toolbar/ToolbarCreacion.tsx"
         },
         {
           "path": "app/src/ui/ModalConfiguracionGrid.tsx",
@@ -14413,8 +14413,8 @@
           "hrefDashboard": "../../app/src/store/modelo/acciones-canvas.ts"
         },
         {
-          "path": "app/src/ui/Toolbar.tsx",
-          "hrefDashboard": "../../app/src/ui/Toolbar.tsx"
+          "path": "app/src/ui/toolbar/ToolbarCreacion.tsx",
+          "hrefDashboard": "../../app/src/ui/toolbar/ToolbarCreacion.tsx"
         },
         {
           "path": "app/src/ui/ModalConfiguracionGrid.tsx",
@@ -14578,8 +14578,8 @@
           "hrefDashboard": "../../app/src/store/modelo/acciones-canvas.ts"
         },
         {
-          "path": "app/src/ui/Toolbar.tsx",
-          "hrefDashboard": "../../app/src/ui/Toolbar.tsx"
+          "path": "app/src/ui/toolbar/ToolbarMultiseleccion.tsx",
+          "hrefDashboard": "../../app/src/ui/toolbar/ToolbarMultiseleccion.tsx"
         },
         {
           "path": "app/src/canvas/operacionesBatch.test.ts",
@@ -14636,8 +14636,8 @@
           "hrefDashboard": "../../app/src/store/modelo/acciones-canvas.ts"
         },
         {
-          "path": "app/src/ui/Toolbar.tsx",
-          "hrefDashboard": "../../app/src/ui/Toolbar.tsx"
+          "path": "app/src/ui/toolbar/ToolbarMultiseleccion.tsx",
+          "hrefDashboard": "../../app/src/ui/toolbar/ToolbarMultiseleccion.tsx"
         },
         {
           "path": "app/src/canvas/operacionesBatch.test.ts",
@@ -16660,8 +16660,8 @@
       "brechas": [],
       "evidencia": [
         {
-          "path": "app/src/ui/Toolbar.tsx",
-          "hrefDashboard": "../../app/src/ui/Toolbar.tsx"
+          "path": "app/src/ui/toolbar/ToolbarBase.tsx",
+          "hrefDashboard": "../../app/src/ui/toolbar/ToolbarBase.tsx"
         },
         {
           "path": "app/e2e/_smoke-helpers.ts",
@@ -16719,8 +16719,8 @@
       "brechas": [],
       "evidencia": [
         {
-          "path": "app/src/ui/Toolbar.tsx",
-          "hrefDashboard": "../../app/src/ui/Toolbar.tsx"
+          "path": "app/src/ui/toolbar/ToolbarBase.tsx",
+          "hrefDashboard": "../../app/src/ui/toolbar/ToolbarBase.tsx"
         },
         {
           "path": "app/e2e/_smoke-helpers.ts",
@@ -16771,8 +16771,8 @@
       "brechas": [],
       "evidencia": [
         {
-          "path": "app/src/ui/Toolbar.tsx",
-          "hrefDashboard": "../../app/src/ui/Toolbar.tsx"
+          "path": "app/src/ui/toolbar/ToolbarBase.tsx",
+          "hrefDashboard": "../../app/src/ui/toolbar/ToolbarBase.tsx"
         },
         {
           "path": "app/e2e/08-mvp-alpha-residual.spec.ts",
@@ -16963,6 +16963,10 @@
         {
           "path": "app/src/ui/Toolbar.tsx",
           "hrefDashboard": "../../app/src/ui/Toolbar.tsx"
+        },
+        {
+          "path": "app/src/ui/toolbar/ToolbarCreacion.tsx",
+          "hrefDashboard": "../../app/src/ui/toolbar/ToolbarCreacion.tsx"
         },
         {
           "path": "app/src/store/modelo/acciones-enlace.ts",
@@ -17739,8 +17743,8 @@
       "brechas": [],
       "evidencia": [
         {
-          "path": "app/src/ui/Toolbar.tsx",
-          "hrefDashboard": "../../app/src/ui/Toolbar.tsx"
+          "path": "app/src/ui/toolbar/ToolbarCreacion.tsx",
+          "hrefDashboard": "../../app/src/ui/toolbar/ToolbarCreacion.tsx"
         }
       ],
       "peso": 2,
@@ -18011,8 +18015,8 @@
           "hrefDashboard": "../../app/src/store/seleccion.ts"
         },
         {
-          "path": "app/src/ui/Toolbar.tsx",
-          "hrefDashboard": "../../app/src/ui/Toolbar.tsx"
+          "path": "app/src/ui/toolbar/ToolbarMultiseleccion.tsx",
+          "hrefDashboard": "../../app/src/ui/toolbar/ToolbarMultiseleccion.tsx"
         },
         {
           "path": "app/src/store.test.ts",
@@ -18067,8 +18071,8 @@
           "hrefDashboard": "../../app/src/store/modelo/acciones-canvas.ts"
         },
         {
-          "path": "app/src/ui/Toolbar.tsx",
-          "hrefDashboard": "../../app/src/ui/Toolbar.tsx"
+          "path": "app/src/ui/toolbar/ToolbarMultiseleccion.tsx",
+          "hrefDashboard": "../../app/src/ui/toolbar/ToolbarMultiseleccion.tsx"
         },
         {
           "path": "app/src/canvas/operacionesBatch.test.ts",
@@ -18951,8 +18955,12 @@
       "brechas": [],
       "evidencia": [
         {
-          "path": "app/src/ui/Toolbar.tsx",
-          "hrefDashboard": "../../app/src/ui/Toolbar.tsx"
+          "path": "app/src/ui/toolbar/ToolbarBase.tsx",
+          "hrefDashboard": "../../app/src/ui/toolbar/ToolbarBase.tsx"
+        },
+        {
+          "path": "app/src/ui/App.tsx",
+          "hrefDashboard": "../../app/src/ui/App.tsx"
         },
         {
           "path": "app/src/store/persistencia.ts",
@@ -19015,6 +19023,10 @@
         {
           "path": "app/src/ui/Toolbar.tsx",
           "hrefDashboard": "../../app/src/ui/Toolbar.tsx"
+        },
+        {
+          "path": "app/src/ui/toolbar/ToolbarCreacion.tsx",
+          "hrefDashboard": "../../app/src/ui/toolbar/ToolbarCreacion.tsx"
         },
         {
           "path": "app/src/store/modelo/acciones-enlace.ts",
@@ -26235,8 +26247,8 @@
           "hrefDashboard": "../../app/src/ui/inspector/SeccionAtributo.tsx"
         },
         {
-          "path": "app/src/ui/Toolbar.tsx",
-          "hrefDashboard": "../../app/src/ui/Toolbar.tsx"
+          "path": "app/src/ui/toolbar/ToolbarBase.tsx",
+          "hrefDashboard": "../../app/src/ui/toolbar/ToolbarBase.tsx"
         },
         {
           "path": "app/src/modelo/operaciones/entidad.test.ts",
@@ -26301,8 +26313,8 @@
           "hrefDashboard": "../../app/src/ui/inspector/SeccionAtributo.tsx"
         },
         {
-          "path": "app/src/ui/Toolbar.tsx",
-          "hrefDashboard": "../../app/src/ui/Toolbar.tsx"
+          "path": "app/src/ui/toolbar/ToolbarBase.tsx",
+          "hrefDashboard": "../../app/src/ui/toolbar/ToolbarBase.tsx"
         },
         {
           "path": "app/src/modelo/operaciones/entidad.test.ts",
@@ -26369,8 +26381,8 @@
           "hrefDashboard": "../../app/src/ui/inspector/SeccionAtributo.tsx"
         },
         {
-          "path": "app/src/ui/Toolbar.tsx",
-          "hrefDashboard": "../../app/src/ui/Toolbar.tsx"
+          "path": "app/src/ui/toolbar/ToolbarBase.tsx",
+          "hrefDashboard": "../../app/src/ui/toolbar/ToolbarBase.tsx"
         },
         {
           "path": "app/src/modelo/operaciones/entidad.test.ts",
@@ -26433,8 +26445,8 @@
           "hrefDashboard": "../../app/src/ui/inspector/SeccionAtributo.tsx"
         },
         {
-          "path": "app/src/ui/Toolbar.tsx",
-          "hrefDashboard": "../../app/src/ui/Toolbar.tsx"
+          "path": "app/src/ui/toolbar/ToolbarBase.tsx",
+          "hrefDashboard": "../../app/src/ui/toolbar/ToolbarBase.tsx"
         },
         {
           "path": "app/src/modelo/operaciones/entidad.test.ts",
@@ -26499,8 +26511,8 @@
           "hrefDashboard": "../../app/src/ui/inspector/SeccionAtributo.tsx"
         },
         {
-          "path": "app/src/ui/Toolbar.tsx",
-          "hrefDashboard": "../../app/src/ui/Toolbar.tsx"
+          "path": "app/src/ui/toolbar/ToolbarBase.tsx",
+          "hrefDashboard": "../../app/src/ui/toolbar/ToolbarBase.tsx"
         },
         {
           "path": "app/src/modelo/operaciones/entidad.test.ts",
@@ -26566,8 +26578,8 @@
           "hrefDashboard": "../../app/src/ui/inspector/SeccionAtributo.tsx"
         },
         {
-          "path": "app/src/ui/Toolbar.tsx",
-          "hrefDashboard": "../../app/src/ui/Toolbar.tsx"
+          "path": "app/src/ui/toolbar/ToolbarBase.tsx",
+          "hrefDashboard": "../../app/src/ui/toolbar/ToolbarBase.tsx"
         },
         {
           "path": "app/src/modelo/operaciones/entidad.test.ts",
@@ -26631,8 +26643,8 @@
           "hrefDashboard": "../../app/src/ui/inspector/SeccionAtributo.tsx"
         },
         {
-          "path": "app/src/ui/Toolbar.tsx",
-          "hrefDashboard": "../../app/src/ui/Toolbar.tsx"
+          "path": "app/src/ui/toolbar/ToolbarBase.tsx",
+          "hrefDashboard": "../../app/src/ui/toolbar/ToolbarBase.tsx"
         },
         {
           "path": "app/src/modelo/operaciones/entidad.test.ts",
@@ -29184,8 +29196,8 @@
           "hrefDashboard": "../../app/src/render/jointjs/composers/imagenOverlay.ts"
         },
         {
-          "path": "app/src/ui/Toolbar.tsx",
-          "hrefDashboard": "../../app/src/ui/Toolbar.tsx"
+          "path": "app/src/ui/toolbar/ToolbarSeleccion.tsx",
+          "hrefDashboard": "../../app/src/ui/toolbar/ToolbarSeleccion.tsx"
         }
       ],
       "peso": 2,
@@ -31424,8 +31436,12 @@
       "brechas": [],
       "evidencia": [
         {
-          "path": "app/src/ui/Toolbar.tsx",
-          "hrefDashboard": "../../app/src/ui/Toolbar.tsx"
+          "path": "app/src/ui/toolbar/ToolbarBase.tsx",
+          "hrefDashboard": "../../app/src/ui/toolbar/ToolbarBase.tsx"
+        },
+        {
+          "path": "app/src/ui/App.tsx",
+          "hrefDashboard": "../../app/src/ui/App.tsx"
         },
         {
           "path": "app/src/store/persistencia.ts",
@@ -31476,8 +31492,12 @@
       "brechas": [],
       "evidencia": [
         {
-          "path": "app/src/ui/Toolbar.tsx",
-          "hrefDashboard": "../../app/src/ui/Toolbar.tsx"
+          "path": "app/src/ui/toolbar/ToolbarBase.tsx",
+          "hrefDashboard": "../../app/src/ui/toolbar/ToolbarBase.tsx"
+        },
+        {
+          "path": "app/src/ui/App.tsx",
+          "hrefDashboard": "../../app/src/ui/App.tsx"
         },
         {
           "path": "app/src/store/persistencia.ts",
@@ -32001,8 +32021,12 @@
       "brechas": [],
       "evidencia": [
         {
-          "path": "app/src/ui/Toolbar.tsx",
-          "hrefDashboard": "../../app/src/ui/Toolbar.tsx"
+          "path": "app/src/ui/toolbar/ToolbarBase.tsx",
+          "hrefDashboard": "../../app/src/ui/toolbar/ToolbarBase.tsx"
+        },
+        {
+          "path": "app/src/ui/App.tsx",
+          "hrefDashboard": "../../app/src/ui/App.tsx"
         },
         {
           "path": "app/src/store/persistencia.ts",
@@ -32150,8 +32174,12 @@
       "brechas": [],
       "evidencia": [
         {
-          "path": "app/src/ui/Toolbar.tsx",
-          "hrefDashboard": "../../app/src/ui/Toolbar.tsx"
+          "path": "app/src/ui/toolbar/ToolbarBase.tsx",
+          "hrefDashboard": "../../app/src/ui/toolbar/ToolbarBase.tsx"
+        },
+        {
+          "path": "app/src/ui/App.tsx",
+          "hrefDashboard": "../../app/src/ui/App.tsx"
         },
         {
           "path": "app/src/store/persistencia.ts",
@@ -36379,8 +36407,8 @@
           "hrefDashboard": "../../app/src/store/modelo.ts"
         },
         {
-          "path": "app/src/ui/Toolbar.tsx",
-          "hrefDashboard": "../../app/src/ui/Toolbar.tsx"
+          "path": "app/src/ui/toolbar/ToolbarBase.tsx",
+          "hrefDashboard": "../../app/src/ui/toolbar/ToolbarBase.tsx"
         }
       ],
       "peso": 2,
@@ -36523,8 +36551,8 @@
           "hrefDashboard": "../../app/src/store/modelo.ts"
         },
         {
-          "path": "app/src/ui/Toolbar.tsx",
-          "hrefDashboard": "../../app/src/ui/Toolbar.tsx"
+          "path": "app/src/ui/toolbar/ToolbarBase.tsx",
+          "hrefDashboard": "../../app/src/ui/toolbar/ToolbarBase.tsx"
         }
       ],
       "peso": 1,
@@ -36575,8 +36603,8 @@
           "hrefDashboard": "../../app/src/store/modelo.ts"
         },
         {
-          "path": "app/src/ui/Toolbar.tsx",
-          "hrefDashboard": "../../app/src/ui/Toolbar.tsx"
+          "path": "app/src/ui/toolbar/ToolbarBase.tsx",
+          "hrefDashboard": "../../app/src/ui/toolbar/ToolbarBase.tsx"
         }
       ],
       "peso": 2,
@@ -36626,8 +36654,8 @@
           "hrefDashboard": "../../app/src/store/modelo.ts"
         },
         {
-          "path": "app/src/ui/Toolbar.tsx",
-          "hrefDashboard": "../../app/src/ui/Toolbar.tsx"
+          "path": "app/src/ui/toolbar/ToolbarBase.tsx",
+          "hrefDashboard": "../../app/src/ui/toolbar/ToolbarBase.tsx"
         }
       ],
       "peso": 1,
@@ -36680,8 +36708,8 @@
           "hrefDashboard": "../../app/src/store/modelo.ts"
         },
         {
-          "path": "app/src/ui/Toolbar.tsx",
-          "hrefDashboard": "../../app/src/ui/Toolbar.tsx"
+          "path": "app/src/ui/toolbar/ToolbarBase.tsx",
+          "hrefDashboard": "../../app/src/ui/toolbar/ToolbarBase.tsx"
         }
       ],
       "peso": 1,
@@ -36730,8 +36758,8 @@
           "hrefDashboard": "../../app/src/store/modelo.ts"
         },
         {
-          "path": "app/src/ui/Toolbar.tsx",
-          "hrefDashboard": "../../app/src/ui/Toolbar.tsx"
+          "path": "app/src/ui/toolbar/ToolbarBase.tsx",
+          "hrefDashboard": "../../app/src/ui/toolbar/ToolbarBase.tsx"
         }
       ],
       "peso": 1,

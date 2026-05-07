@@ -728,13 +728,13 @@
   ],
   "knownGaps": [],
   "autoAudit": {
-    "generatedAt": "2026-05-07T07:18:10.150Z",
+    "generatedAt": "2026-05-07T08:42:43.964Z",
     "mode": "sync-real",
     "rulesEvaluated": 102,
     "rulesMatched": 102,
     "rulesUnmatched": 0,
     "sourceFiles": {
-      "count": 361,
+      "count": 374,
       "roots": [
         "app/src",
         "app/e2e",
@@ -756,7 +756,7 @@
       "evidencia": [
         "app/src/store/runtime.ts",
         "app/src/store/modelo/acciones-canvas.ts",
-        "app/src/ui/Toolbar.tsx",
+        "app/src/ui/toolbar/ToolbarBase.tsx",
         "app/src/store.test.ts",
         "app/e2e/_smoke-helpers.ts",
         "app/src/store.ts"
@@ -827,6 +827,7 @@
       "nota": "Auto: flujo origen-tipo-destino crea enlaces con validacion de firma respetando handles de resize; los puertos visuales emergen al iniciar el enlace.",
       "evidencia": [
         "app/src/ui/Toolbar.tsx",
+        "app/src/ui/toolbar/ToolbarCreacion.tsx",
         "app/src/store/modelo/acciones-enlace.ts",
         "app/src/modelo/operaciones/helpers.ts",
         "app/src/modelo/operaciones/enlaces.ts"
@@ -923,7 +924,8 @@
       "fuente": "auto",
       "nota": "Auto: guardar/cargar local, nuevo modelo y Ctrl+S estan implementados sobre persistencia local.",
       "evidencia": [
-        "app/src/ui/Toolbar.tsx",
+        "app/src/ui/toolbar/ToolbarBase.tsx",
+        "app/src/ui/App.tsx",
         "app/src/store/persistencia.ts",
         "app/src/store/modelo/acciones-ui.ts",
         "app/src/persistencia/local.ts",
@@ -1480,7 +1482,7 @@
         "app/src/ui/MenuPrincipal.tsx",
         "app/src/store/modelo/acciones-ui.ts",
         "app/src/store/modelo.ts",
-        "app/src/ui/Toolbar.tsx"
+        "app/src/ui/toolbar/ToolbarBase.tsx"
       ]
     },
     {
@@ -1737,7 +1739,7 @@
         "app/src/render/jointjs/composers/grid.ts",
         "app/src/modelo/tipos/ui.ts",
         "app/src/store/modelo/acciones-canvas.ts",
-        "app/src/ui/Toolbar.tsx",
+        "app/src/ui/toolbar/ToolbarCreacion.tsx",
         "app/src/ui/ModalConfiguracionGrid.tsx",
         "app/src/canvas/grid.test.ts",
         "app/src/render/jointjs/composers/grid.test.ts",
@@ -1757,7 +1759,7 @@
       "evidencia": [
         "app/src/canvas/operacionesBatch.ts",
         "app/src/store/modelo/acciones-canvas.ts",
-        "app/src/ui/Toolbar.tsx",
+        "app/src/ui/toolbar/ToolbarMultiseleccion.tsx",
         "app/src/canvas/operacionesBatch.test.ts",
         "app/e2e/_smoke-helpers.ts"
       ]
@@ -1960,7 +1962,7 @@
         "app/src/store/modelo/acciones-ui.ts",
         "app/src/render/jointjs/proyeccion.ts",
         "app/src/render/jointjs/composers/imagenOverlay.ts",
-        "app/src/ui/Toolbar.tsx"
+        "app/src/ui/toolbar/ToolbarSeleccion.tsx"
       ]
     },
     {
@@ -2269,7 +2271,7 @@
       "fuente": "auto",
       "nota": "Auto ronda 11 L4: drag desde Toolbar al canvas con MIME application/x-opm-tipo crea cosa en posicion exacta.",
       "evidencia": [
-        "app/src/ui/Toolbar.tsx",
+        "app/src/ui/toolbar/ToolbarBase.tsx",
         "app/e2e/_smoke-helpers.ts"
       ]
     },
@@ -2422,7 +2424,7 @@
       "fuente": "auto",
       "nota": "Auto ronda 12 L1: indicador de modo sticky en Toolbar (data-testid indicador-modo-sticky).",
       "evidencia": [
-        "app/src/ui/Toolbar.tsx"
+        "app/src/ui/toolbar/ToolbarCreacion.tsx"
       ]
     },
     {
@@ -2436,7 +2438,7 @@
       "evidencia": [
         "app/src/ui/atajosTeclado.ts",
         "app/src/store/seleccion.ts",
-        "app/src/ui/Toolbar.tsx",
+        "app/src/ui/toolbar/ToolbarMultiseleccion.tsx",
         "app/src/store.test.ts"
       ]
     },
@@ -2488,7 +2490,7 @@
         "app/src/modelo/operaciones/entidad.ts",
         "app/src/modelo/validadores/valorSlot.ts",
         "app/src/ui/inspector/SeccionAtributo.tsx",
-        "app/src/ui/Toolbar.tsx",
+        "app/src/ui/toolbar/ToolbarBase.tsx",
         "app/src/modelo/operaciones/entidad.test.ts",
         "app/src/modelo/validadores/valorSlot.test.ts"
       ]
@@ -2567,7 +2569,7 @@
       "fuente": "auto",
       "nota": "Auto ronda 12.1 L1: smoke verifica que crear cosa expone modal-nombre-cosa con form + input + Enter persiste nombre.",
       "evidencia": [
-        "app/src/ui/Toolbar.tsx",
+        "app/src/ui/toolbar/ToolbarBase.tsx",
         "app/e2e/08-mvp-alpha-residual.spec.ts"
       ]
     },
