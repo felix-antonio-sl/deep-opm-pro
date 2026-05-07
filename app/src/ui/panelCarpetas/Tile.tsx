@@ -1,3 +1,4 @@
+// [JOYAS §1-3] Chrome UI consume tokens centralizados; canvas semántico invariante.
 import folderIcon from "../../../../assets/svg/folder.svg";
 import regFileIcon from "../../../../assets/svg/regFile.svg";
 import autosaveIcon from "../../../../assets/svg/autosave.svg";
@@ -5,6 +6,7 @@ import verFileIcon from "../../../../assets/svg/verFile.svg";
 import type { Id } from "../../modelo/tipos";
 import type { ResumenModeloPersistido } from "../../persistencia/local";
 import type { CarpetaIndice } from "../../persistencia/workspace";
+import { tokens } from "../tokens";
 
 export type TileData =
   | { tipo: "carpeta"; carpeta: CarpetaIndice }
@@ -140,36 +142,36 @@ const style = {
     gridTemplateRows: "28px auto auto",
     gap: "4px",
     padding: "10px",
-    border: "1px solid #d9e0ea",
-    borderRadius: "6px",
-    background: "#ffffff",
-    color: "#1f2937",
+    border: `1px solid ${tokens.colors.bordeIntermedio}`,
+    borderRadius: tokens.radii.md,
+    background: tokens.colors.fondoChrome,
+    color: tokens.colors.textoPrimario,
     cursor: "pointer",
     textAlign: "left",
   },
-  tileArchivado: { borderColor: "#c8d2df", background: "#f5f7fa", color: "#667085" },
-  tileDrop: { borderColor: "#3BC3FF", boxShadow: "0 0 0 2px rgba(59, 195, 255, 0.18)" },
+  tileArchivado: { borderColor: tokens.colors.bordeControl, background: tokens.colors.carpetaFondo, color: tokens.colors.textoTerciario },
+  tileDrop: { borderColor: tokens.colors.canvas.proceso, boxShadow: tokens.shadows.dropProceso },
   tileIcon: { width: "24px", height: "24px" },
-  tileName: { minWidth: 0, color: "#1f2937", fontSize: "13px", fontWeight: 700, lineHeight: 1.2, overflowWrap: "anywhere" },
-  tileDesc: { minWidth: 0, color: "#667085", fontSize: "11px", lineHeight: 1.25, overflowWrap: "anywhere" },
-  tileDate: { color: "#667085", fontSize: "11px", fontWeight: 700 },
-  tileType: { color: "#98a2b3", fontSize: "11px", fontWeight: 600 },
+  tileName: { minWidth: 0, color: tokens.colors.textoPrimario, fontSize: "13px", fontWeight: 700, lineHeight: 1.2, overflowWrap: "anywhere" },
+  tileDesc: { minWidth: 0, color: tokens.colors.textoTerciario, fontSize: "11px", lineHeight: 1.25, overflowWrap: "anywhere" },
+  tileDate: { color: tokens.colors.textoTerciario, fontSize: "11px", fontWeight: 700 },
+  tileType: { color: tokens.colors.textoDeshabilitado, fontSize: "11px", fontWeight: 600 },
   glyphIcon: { width: "14px", height: "14px", justifySelf: "end" },
-  fila: { borderBottom: "1px solid #f2f4f7", cursor: "pointer" },
-  filaArchivada: { background: "#f5f7fa", color: "#667085" },
-  dropActivo: { outline: "2px solid #3BC3FF", outlineOffset: "-2px" },
+  fila: { borderBottom: `1px solid ${tokens.colors.fondoDeshabilitado}`, cursor: "pointer" },
+  filaArchivada: { background: tokens.colors.carpetaFondo, color: tokens.colors.textoTerciario },
+  dropActivo: { outline: `2px solid ${tokens.colors.canvas.proceso}`, outlineOffset: "-2px" },
   td: { padding: "8px", display: "flex", alignItems: "center", gap: "6px" },
   tableIcon: { width: "18px", height: "18px", flexShrink: 0 },
-  tdName: { fontWeight: 600, color: "#1f2937" },
+  tdName: { fontWeight: 600, color: tokens.colors.textoPrimario },
   archiveBadge: {
     display: "inline-flex",
     alignItems: "center",
     height: "16px",
     padding: "0 5px",
-    border: "1px solid #c8d2df",
-    borderRadius: "4px",
-    color: "#586D8C",
-    background: "#ffffff",
+    border: `1px solid ${tokens.colors.bordeControl}`,
+    borderRadius: tokens.radii.sm,
+    color: tokens.colors.chromeNeutral,
+    background: tokens.colors.fondoChrome,
     fontSize: "10px",
     fontWeight: 800,
     lineHeight: 1,
@@ -177,8 +179,8 @@ const style = {
   inlineInput: {
     width: "100%",
     height: "28px",
-    border: "1px solid #586D8C",
-    borderRadius: "4px",
+    border: `1px solid ${tokens.colors.chromeNeutral}`,
+    borderRadius: tokens.radii.sm,
     padding: "0 6px",
     fontSize: "13px",
     boxSizing: "border-box",
