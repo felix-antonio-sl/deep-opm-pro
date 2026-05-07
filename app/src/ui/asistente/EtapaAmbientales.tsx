@@ -1,5 +1,7 @@
+// [JOYAS §1-3] Chrome UI consume tokens centralizados; canvas semántico invariante.
 import { TOTAL_ETAPAS } from "../../modelo/creacionWizard";
 import { S } from "./estilos";
+import { tokens } from "../tokens";
 
 interface Props {
   cosas: string[];
@@ -11,7 +13,7 @@ export function EtapaAmbientales({ cosas, seleccionados, onToggle }: Props) {
   if (cosas.length === 0) {
     return (
       <div>
-        <h3 style={S.title}>Etapa 10 de {TOTAL_ETAPAS} — Objetos Ambientales <span style={{ fontWeight: 400, color: "#667085" }}>(opcional)</span></h3>
+        <h3 style={S.title}>Etapa 10 de {TOTAL_ETAPAS} — Objetos Ambientales <span style={{ fontWeight: 400, color: tokens.colors.textoTerciario }}>(opcional)</span></h3>
         <p style={S.desc}>
           No hay objetos creados todavia. Puedes marcar objetos como
           ambientales mas tarde desde el inspector.
@@ -21,7 +23,7 @@ export function EtapaAmbientales({ cosas, seleccionados, onToggle }: Props) {
   }
   return (
     <div>
-      <h3 style={S.title}>Etapa 10 de {TOTAL_ETAPAS} — Objetos Ambientales <span style={{ fontWeight: 400, color: "#667085" }}>(opcional)</span></h3>
+      <h3 style={S.title}>Etapa 10 de {TOTAL_ETAPAS} — Objetos Ambientales <span style={{ fontWeight: 400, color: tokens.colors.textoTerciario }}>(opcional)</span></h3>
       <p style={S.desc}>
         Marca los objetos que son externos al sistema (ambientales).
       </p>
