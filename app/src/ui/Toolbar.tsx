@@ -1,3 +1,4 @@
+import { lazy, Suspense } from "preact/compat";
 import { useEffect, useMemo, useState } from "preact/hooks";
 import addConnectedIcon from "../../../assets/svg/addConnected.svg";
 import lockIcon from "../../../assets/svg/lock.svg";
@@ -12,12 +13,15 @@ import { BibliotecaCosa } from "./BibliotecaCosa";
 import { ATAJO_CONECTAR_MULTI_AL_TODO } from "./atajosTeclado";
 import { useConfirmarSiDirty } from "./ConfirmacionContext";
 import { DialogoGuardarPlantilla } from "./DialogoGuardarPlantilla";
-import { DialogoPlantillas } from "./DialogoPlantillas";
 import { MenuContextualEnlace } from "./MenuContextualEnlace";
 import { MenuContextualEntidad } from "./MenuContextualEntidad";
 import { MenuTipoEnlace } from "./MenuTipoEnlace";
 import { ModalConfiguracionGrid } from "./ModalConfiguracionGrid";
-import { DialogoTraerConectados } from "./DialogoTraerConectados";
+
+// Lazy splits ronda 12.1 L2: ambos diálogos solo se montan cuando el operador
+// los abre desde Toolbar (acción puntual). Code-split reduce el chunk principal.
+const DialogoPlantillas = lazy(() => import("./DialogoPlantillas").then((m) => ({ default: m.DialogoPlantillas })));
+const DialogoTraerConectados = lazy(() => import("./DialogoTraerConectados").then((m) => ({ default: m.DialogoTraerConectados })));
 
 type MenuPrincipalComponent = () => preact.JSX.Element;
 type PantallaInicioComponent = () => preact.JSX.Element | null;
@@ -709,8 +713,10 @@ export function Toolbar() {
           }}
         />
       ) : null}
-      <DialogoTraerConectados />
-      <DialogoPlantillas />
+      <Suspense fallback={null}>
+        <DialogoTraerConectados />
+        <DialogoPlantillas />
+      </Suspense>
       <DialogoGuardarPlantilla />
       {PantallaInicioLazy ? <PantallaInicioLazy /> : null}
     </div>
