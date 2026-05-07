@@ -206,7 +206,7 @@ import {
 } from "../canvas/operacionesBatch";
 import type { CrearSlice, OpmStore, PersistenciaSlice } from "./tipos";
 import {
-  ANCHO_PANEL_ARBOL_DEFAULT, ANCHO_PANEL_ARBOL_MAX, ANCHO_PANEL_ARBOL_MIN, PORTAPAPELES_WORKSPACE_TTL_MS, PREF_MOSTRAR_ARCHIVADOS_KEY, PREF_MOSTRAR_VERSIONES_KEY, activarEstadoPestanas, activarPestanaNueva, aparienciaSeleccionadaActiva, commitModelo, confirmarEliminacionOpd, crearDemo, crearIdModeloLocal, entidadNueva, enlaceNuevo, escribirIndiceWorkspace, escribirPreferenciaBooleana, estadoModelo, estadoSeleccionDesdeIds, generarHtmlOpl, hermanosOrdenados, leerIndiceWorkspace, leerPreferenciaBooleana, leerPreferenciasMapa, limitar, limitarAnchoPanelArbol, listarModelosGuardadosSeguro, mapaWorkspaceDesdeEstado, marcarSnapshotJson, marcarSnapshotModelo, modelosRecientesDeIndice, obtenerAutosalvadoControl, obtenerEstadoStore, opdActivoSeguro, opdDestinoDeAviso, persistirPreferenciasMapa, fijarAutosalvadoControl, resetHistorial, setEstadoStore, sincronizarIndiceConModelosGuardados, actualizarPreferenciasUi, validarSubprocesoTimeline,
+  ANCHO_PANEL_ARBOL_DEFAULT, ANCHO_PANEL_ARBOL_MAX, ANCHO_PANEL_ARBOL_MIN, PORTAPAPELES_WORKSPACE_TTL_MS, PREF_MOSTRAR_ARCHIVADOS_KEY, PREF_MOSTRAR_VERSIONES_KEY, activarEstadoPestanas, activarPestanaNueva, aparienciaSeleccionadaActiva, commitModelo, confirmarEliminacionOpd, crearDemo, crearFixturePorNombre, crearIdModeloLocal, entidadNueva, enlaceNuevo, escribirIndiceWorkspace, escribirPreferenciaBooleana, estadoModelo, estadoSeleccionDesdeIds, generarHtmlOpl, hermanosOrdenados, leerIndiceWorkspace, leerPreferenciaBooleana, leerPreferenciasMapa, limitar, limitarAnchoPanelArbol, listarModelosGuardadosSeguro, mapaWorkspaceDesdeEstado, marcarSnapshotJson, marcarSnapshotModelo, modelosRecientesDeIndice, obtenerAutosalvadoControl, obtenerEstadoStore, opdActivoSeguro, opdDestinoDeAviso, persistirPreferenciasMapa, fijarAutosalvadoControl, resetHistorial, setEstadoStore, sincronizarIndiceConModelosGuardados, actualizarPreferenciasUi, validarSubprocesoTimeline,
   pestanaReemplazable,
   deshacerRuntime,
   rehacerRuntime,
@@ -257,6 +257,16 @@ export const createPersistenciaSlice: CrearSlice<PersistenciaSlice> = (set, get)
   },
 
   guardarLocal() {
+    if (get().readOnly) {
+      const estado = get();
+      const idPrevio = estado.modeloPersistidoId;
+      const nombre = nombreCopiaReadOnly(estado.modelo.nombre, listarModelosGuardadosSeguro());
+      estado.guardarComoLocal({ nombre, descripcion: estado.descripcionModeloLocal });
+      if (get().modeloPersistidoId && get().modeloPersistidoId !== idPrevio) {
+        set({ readOnly: false, mensaje: "Modelo en solo lectura — guardando como copia nueva" });
+      }
+      return;
+    }
     const { modelo, modeloPersistidoId, descripcionModeloLocal, indice } = get();
     if (!modeloPersistidoId) {
       get().abrirGuardarComo();
@@ -401,6 +411,26 @@ export const createPersistenciaSlice: CrearSlice<PersistenciaSlice> = (set, get)
     }));
   },
 
+  cargarFixtureDemo(nombre: string) {
+    const modelo = crearFixturePorNombre(nombre);
+    if (!modelo) {
+      set({ mensaje: `Fixture no encontrado: ${nombre}` });
+      return;
+    }
+    resetHistorial(modelo);
+    set(estadoModelo(modelo, {
+      opdActivoId: modelo.opdRaizId,
+      seleccionId: null,
+      enlaceSeleccionId: null,
+      modoEnlace: null,
+      modeloPersistidoId: null,
+      descripcionModeloLocal: "",
+      carpetaActualId: null,
+      workspaceLocal: workspaceDesdeModelo(modelo, null),
+      mensaje: `Fixture cargado: ${nombre}`,
+    }));
+  },
+
   iniciarAutosalvado() {
     if (obtenerAutosalvadoControl()) return;
     const control = crearAutosalvado({
@@ -438,3 +468,12 @@ export const createPersistenciaSlice: CrearSlice<PersistenciaSlice> = (set, get)
     set({ autosalvado: { activo: false, ultimo: null, salvando: false } });
   }
 });
+
+function nombreCopiaReadOnly(nombre: string, modelos: ResumenModeloPersistido[]): string {
+  const base = `${nombre.trim() || "Modelo"} copia`;
+  for (let i = 1; i < 100; i += 1) {
+    const candidato = i === 1 ? base : `${base} ${i}`;
+    if (validarNombreModeloLocal(candidato, modelos).ok) return candidato;
+  }
+  return `${base} ${Date.now()}`;
+}

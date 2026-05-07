@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "preact/hooks";
 import autosaveIcon from "../../../assets/svg/autosave.svg";
+import exampleIcon from "../../../assets/svg/example.svg";
 import lockIcon from "../../../assets/svg/lock.svg";
 import regFileIcon from "../../../assets/svg/regFile.svg";
 import verFileIcon from "../../../assets/svg/verFile.svg";
@@ -12,6 +13,10 @@ import { Dialogo } from "./Dialogo";
 import { useConfirmarSiDirty } from "./ConfirmacionContext";
 import { PanelCarpetas, type VistaModo } from "./PanelCarpetas";
 
+/**
+ * Diálogo de carga local. Persistencia/carga: [Met §6].
+ * Ejemplo organizacional reutiliza assets/svg/example.svg por [JOYAS §1].
+ */
 export function DialogoCargarModelo() {
   const open = useOpmStore((s) => s.dialogoCargarModeloAbierto);
   const cerrar = useOpmStore((s) => s.cerrarCargarModelo);
@@ -123,7 +128,10 @@ export function DialogoCargarModelo() {
 	      <div style={style.container}>
 	        <div style={style.exampleBar}>
 	          <button type="button" style={style.secondaryButton} onClick={() => cargarEjemplo(cargarDemo)}>Ejemplo global</button>
-	          <button type="button" style={style.secondaryButton} onClick={() => cargarEjemplo(cargarEjemploOrganizacional)}>Ejemplo organizacional</button>
+	          <button type="button" style={style.secondaryButton} onClick={() => cargarEjemplo(cargarEjemploOrganizacional)} data-testid="cargar-ejemplo-organizacional">
+	            <img src={exampleIcon} alt="" style={style.exampleIcon} />
+	            Ejemplo organizacional
+	          </button>
 	        </div>
 	        <div style={style.flagsBar}>
           <label style={style.flag}>
@@ -417,7 +425,11 @@ const style = {
     cursor: "pointer",
     fontSize: "13px",
     fontWeight: 700,
+    display: "inline-flex",
+    alignItems: "center",
+    gap: "6px",
   },
+  exampleIcon: { width: "15px", height: "15px" },
   disabledButton: {
     height: "34px",
     padding: "0 14px",

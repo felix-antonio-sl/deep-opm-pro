@@ -1,5 +1,9 @@
 import { inspectorStyles as style } from "../inspectorStyles";
 
+/**
+ * Descripción persistente de una cosa OPM. SSOT: [Glos 3.76] cosa =
+ * objeto o proceso; la metadata se conserva en JSON por [Met §6].
+ */
 interface Props {
   descripcion?: string | undefined;
   onDescripcion: (value: string) => void;
@@ -10,6 +14,7 @@ export function SeccionDescripcion(props: Props) {
     <label style={style.field} data-testid="inspector-seccion-descripcion">
       <span style={style.label}>Descripción</span>
       <textarea
+        data-testid="seccion-descripcion-cosa"
         style={advancedStyles.textarea}
         value={props.descripcion ?? ""}
         onInput={(event) => props.onDescripcion(event.currentTarget.value)}

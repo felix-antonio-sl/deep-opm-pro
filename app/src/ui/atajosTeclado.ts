@@ -1,5 +1,8 @@
 export type Combo = string;
 
+// HU-11.007: gesto único multi-al-todo, SSOT textual [OPL-ES RF1].
+export const ATAJO_CONECTAR_MULTI_AL_TODO = "Ctrl+Alt+T" as const;
+
 export type ContextoAtajo =
   | "global"
   | "canvas"

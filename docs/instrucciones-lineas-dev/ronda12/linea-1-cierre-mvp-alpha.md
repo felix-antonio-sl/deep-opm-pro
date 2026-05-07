@@ -22,8 +22,8 @@ Slice mínimo entregable: feature **cosecha de cierre** sin nuevos módulos gran
 |---|---|---|
 | HU-10.004 — Editar descripción opcional cosas | pendiente | Verificar wiring de `inspector/SeccionDescripcion.tsx` para entidades tipo `objeto`/`proceso` (no solo estados). Si ya está, agregar regla detector con paths exactos. Si falta, exponer el campo `Entidad.descripcion` en la sección con `data-testid="seccion-descripcion-cosa"`. |
 | HU-11.001 — Modo sticky verificación visual | pendiente | Indicador visible cuando modo barra creación sticky está activo (token UI ya en `OpmStore`). Botón Toolbar muestra estado pressed/active y un hint textual. `data-testid="indicador-modo-sticky"`. No reabre la decisión "modo barra creación sticky" (vigente desde ronda anterior). |
-| HU-11.007 — Multi-al-todo gesto único | pendiente | `conectarMultiAlTodo(modelo, opdId, partesApariencias, todoApariencia, tipoEnlace)` existe en `app/src/canvas/operacionesBatch.ts:106`. Falta wiring UI: con multi-selección de N apariencias + todo como ancla (último seleccionado o explícito), atajo `Ctrl+Alt+T` o ítem menú contextual ejecuta `acciones-canvas.conectarMultiAlTodoSeleccion(tipoEnlace)`. |
-| HU-30.036 — Redirigir Guardar→Guardar Como en read-only | pendiente | En `acciones-ui.ts`: si `readOnly`, intercepción del botón/atajo `Guardar` redirige a `guardarComoLocal` con confirmación "Modelo en solo lectura — guardando como copia nueva" + reuso de `assets/svg/lock.svg` para el indicador. |
+| HU-11.007 — Multi-al-todo gesto único | pendiente | Acción `conectarSeleccionAlTodo(todoApariencia, tipo)` **ya existe** en `app/src/store/seleccion.ts:305` (expuesta en API pública `store/tipos.ts:429`). Falta wiring UI: atajo `Ctrl+Alt+T` en `atajosTeclado.ts` invoca acción existente; ítem en `MenuContextualEnlace.tsx` (o sub-menú con tipoEnlace) hace lo mismo. **No se crean nuevas acciones**. |
+| HU-30.036 — Redirigir Guardar→Guardar Como en read-only | pendiente | En `app/src/store/persistencia.ts:259` (donde vive `guardarLocal`): insertar check `if (get().readOnly)` al inicio del body; si true, dispara `get().guardarComoLocal({...})` con mensaje "Modelo en solo lectura — guardando como copia nueva" + reuso de `assets/svg/lock.svg` para indicador. Resto del body intacto. **Slice raíz; no acciones-ui.ts**. |
 | HU-SHARED-002 — Undo granular comandos ronda 11 | parcial → cubierto | Tests aditivos en `app/src/store.test.ts` o `app/src/store/modelo/acciones-canvas.test.ts` cubriendo undo atómico de cada comando ronda 11: `reanclarExtremoEnlaceSeleccionado`, `aplicarEstiloEnlacesBatch`, `eliminarEnlacesBatch`, `copiarEstiloEnlaceAlPortapapeles`, BibliotecaCosa drag-drop, `conectarMultiAlTodo`. Cada uno entra como una operación atómica (un único push en `undoStack`). |
 | HU-SHARED-007 — Eco OPL multi-al-todo | parcial → cubierto | Smoke + unit que verifican: tras `conectarMultiAlTodo` con N partes, panel OPL emite N oraciones de agregación canónicas (no una sola oración collapsada, no N+1 con duplicados). |
 | HU-10.003 — Modal nombre tras crear | parcial → cubierto | Smoke estabilizado para `data-testid="modal-nombre-cosa"` en flujo crear cosa con click + drag. Verificar autofocus + Enter confirma + Esc cancela. |
@@ -64,9 +64,12 @@ Slice mínimo entregable: feature **cosecha de cierre** sin nuevos módulos gran
   - `opm-extracted/src/app/dialogs/existing-name-dialog/existing-name-dialog.component.ts`: patrón "manejar nombre existente" útil para HU-30.037 cobertura modal cancelable.
 
 **Estado actual del código (post-ronda-11)**:
-  - `app/src/canvas/operacionesBatch.ts:106` — `conectarMultiAlTodo` ya existe; **L1 agrega solo wiring UI**.
-  - `app/src/store/modelo/acciones-ui.ts:84,150` — `guardarComoLocal` existe; HU-30.036 envuelve `guardarLocal`/atajo Ctrl+S con check `readOnly` antes de despachar.
+  - `app/src/canvas/operacionesBatch.ts:106` — `conectarMultiAlTodo` operación kernel existe.
+  - `app/src/store/seleccion.ts:305` — acción pública `conectarSeleccionAlTodo(todoApariencia, tipo)` ya cablea kernel + commit. **L1 agrega solo wiring UI sobre acción existente; NO modifica este archivo**.
+  - `app/src/store/persistencia.ts:259` — `guardarLocal()` vive aquí. **L1 modifica el body** insertando check `readOnly` al inicio (HU-30.036). Slice raíz autorizado en §4.
+  - `app/src/store/modelo/acciones-ui.ts:87,153` — `guardarComoLocal`/`guardarComoLocalConDescripcion` existen como destinos del redirect. **L1 NO modifica esto** para HU-30.036.
   - `app/src/store/runtime.ts` — `readOnly` flag ya existe (ronda 11 L5).
+  - `app/src/store/tipos.ts:429,445` — `conectarSeleccionAlTodo` y `guardarLocal` ya en API pública.
   - `app/src/ui/Toolbar.tsx` — ya tiene `data-testid="modal-nombre-cosa"`; agregar `data-testid="indicador-modo-sticky"`.
   - `app/src/ui/Dialogo.tsx` — wrapper con captura Esc ya existe; HU-30.037 verifica cobertura completa por smokes.
   - `app/src/ui/inspector/SeccionDescripcion.tsx` — verificar si admite cosas (objetos/procesos) o solo estados.
@@ -77,20 +80,23 @@ Slice mínimo entregable: feature **cosecha de cierre** sin nuevos módulos gran
 app/src/ui/inspector/SeccionDescripcion.tsx        EDIT extiende (HU-10.004 wiring cosas si falta) o LECTURA (si ya cubre)
 app/src/ui/InspectorEntidad.tsx                    LECTURA (verificar montaje SeccionDescripcion)
 app/src/ui/Toolbar.tsx                             EDIT aditivo (HU-11.001 indicador modo sticky con data-testid; HU-30.036 candado read-only adicional al ya existente)
-app/src/ui/MenuContextualEnlace.tsx                EDIT aditivo (ítem "Conectar multi al todo" con tipoEnlace HU-11.007)
+app/src/ui/MenuContextualEnlace.tsx                EDIT aditivo (ítem "Conectar multi al todo" con tipoEnlace HU-11.007 invoca acción ya existente conectarSeleccionAlTodo)
 app/src/ui/MenuContextualArbol.tsx                 LECTURA
-app/src/ui/atajosTeclado.ts                        EDIT aditivo (Ctrl+Alt+T para multi-al-todo HU-11.007)
+app/src/ui/atajosTeclado.ts                        EDIT aditivo (Ctrl+Alt+T cablea acción existente conectarSeleccionAlTodo HU-11.007)
 app/src/ui/Dialogo.tsx                             EDIT aditivo (HU-30.037 cobertura captura Esc, si falta) o LECTURA
 app/src/ui/DialogoCargarModelo.tsx                 EDIT aditivo (HU-30.019 doble clic + HU-30.020 clic+botón verificación + HU-30.021 botón Cargar Ejemplo)
-app/src/store/modelo/acciones-canvas.ts            EDIT extiende (`conectarMultiAlTodoSeleccion(tipoEnlace)`)
+app/src/store/persistencia.ts                      EDIT extiende (HU-30.036 intercepción en guardarLocal con check readOnly; ver §5 nota arquitectónica)
+app/src/store/persistencia.test.ts                 EDIT aditivo (test redirect read-only)
+app/src/store/modelo/acciones-canvas.ts            EDIT aditivo (solo si emerge necesidad de wrapper; preferir cablear conectarSeleccionAlTodo desde UI directamente)
 app/src/store/modelo/acciones-entidad.ts           EDIT extiende (HU-10.004 `editarDescripcionEntidad` si falta)
-app/src/store/modelo/acciones-ui.ts                EDIT extiende (HU-30.036 `guardarLocalConRedirect` o intercepción en `guardarLocal`; HU-30.021 `cargarEjemploOrganizacional`)
-app/src/store/tipos.ts                             EDIT aditivo (3 acciones nuevas en OpmStore)
+app/src/store/modelo/acciones-ui.ts                EDIT extiende (HU-30.021 `cargarEjemploOrganizacional`; NO HU-30.036 — vive en store/persistencia.ts)
+app/src/store/tipos.ts                             EDIT aditivo (acciones nuevas necesarias en OpmStore)
 app/src/persistencia/local.ts                      EDIT aditivo (HU-30.008 verificación payload íntegro; tests roundtrip)
 app/src/persistencia/local.test.ts                 EDIT aditivo (test roundtrip todos los campos opcionales)
 app/src/canvas/operacionesBatch.ts                 LECTURA (no nuevos exports; verificar atomicidad)
 app/src/canvas/operacionesBatch.test.ts            EDIT aditivo (tests atomicidad HU-SHARED-002 comandos ronda 11)
 app/src/store.test.ts                              EDIT aditivo (smokes undo granular ronda 11)
+app/src/store/seleccion.ts                         LECTURA — NO EDIT (acción conectarSeleccionAlTodo ya existe en línea 305; HU-11.007 cierra cableando atajo)
 app/examples/ejemplo-organizacional.json           NUEVO (HU-30.021 JSON canónico)
 app/e2e/opm-smoke.spec.ts                          EDIT aditivo (smokes residuales L1 + smoke 854 stabilization)
 opm-extracted/**                                   LECTURA
@@ -101,6 +107,16 @@ assets/svg/**                                      LECTURA
 ```
 
 Cualquier otro archivo es **fuera de scope**.
+
+### Nota arquitectónica sobre slices raíz vs sub-slices (corrección a brief original)
+
+El brief original asumió que `guardarLocal` vivía en `store/modelo/acciones-ui.ts` y que HU-11.007 requeriría una nueva acción `conectarMultiAlTodoSeleccion` en `store/modelo/acciones-canvas.ts`. **Verificación post-asignación reveló**:
+
+1. **`guardarLocal()` efectivo vive en `app/src/store/persistencia.ts:259`** (slice raíz `createPersistenciaSlice`). Los slices Zustand se componen, no se interceptan; el body de la función está allí. **HU-30.036 (redirigir Guardar→Guardar Como en read-only) requiere modificar este archivo**. Autorización CONCEDIDA con scope mínimo: insertar check `if (get().readOnly)` al inicio del body, redirigir a `get().guardarComoLocal({...})` con mensaje canónico, preservar el resto del body intacto. ~10-15 LOC añadidas.
+
+2. **`conectarSeleccionAlTodo(todoApariencia, tipo)` ya existe** en `app/src/store/seleccion.ts:305` y está expuesta como API pública en `app/src/store/tipos.ts:429`. **HU-11.007 (multi-al-todo gesto único) cierra cableando atajo `Ctrl+Alt+T` y/o ítem en `MenuContextualEnlace.tsx`** que invocan la acción existente. **NO se modifica `store/seleccion.ts`**. Esto preserva blast y respeta scope.
+
+Justificación arquitectónica: zustand compone slices con spread; cada slice raíz puede definir las acciones públicas finales. La estructura `store/modelo/*` es para sub-acciones específicas del modelo OPM (creación, OPDs, entidades), mientras `store/persistencia.ts`, `store/seleccion.ts`, `store/pestanas.ts`, etc. cubren responsabilidades transversales. Para HU que tocan responsabilidades transversales (persistencia, selección), el cambio efectivo va al slice raíz correspondiente.
 
 ## 5. Restricciones de no-colisión
 
@@ -113,9 +129,10 @@ Cualquier otro archivo es **fuera de scope**.
 - **No tocar `persistencia/plantillas.ts` ni `persistencia/workspace.ts` con `PlantillaIndice`** (territorio L4).
 - **No tocar `ui/MenuPrincipal.tsx` para Plantillas...** (territorio L4).
 - **No tocar `progress-dashboard.mjs`** (territorio L5).
+- **`store/seleccion.ts` y `store/persistencia.ts` (slices raíz)**: **L1 modifica solo el body de `guardarLocal()` en `store/persistencia.ts`** (autorización §4 nota arquitectónica). **No modifica `store/seleccion.ts`** (acción `conectarSeleccionAlTodo` ya existe). L2/L3/L4 no tocan estos slices raíz: si L4 necesita acciones plantillas que muten store, debe crear `store/plantillas.ts` separado. Si L3 necesita extender selección, primero pausa y reporta.
 - **`Toolbar.tsx`**: L1 agrega indicador modo sticky + reforzar candado; L2 agrega botón crear atributo numérico; L3 agrega botón traer conectados; L4 agrega botón plantillas. Hunks disjuntos por sección JSX. **Coordinación**: L1 al final del orden de merge para que sus indicadores coexistan con todos los botones nuevos.
-- **`acciones-canvas.ts`**: L1 (HU-11.007 multi-al-todo), L3 (3 acciones traer), L4 (insertar plantilla). Hunks disjuntos.
-- **`acciones-ui.ts`**: L1 (HU-30.036 redirigir; HU-30.021 cargar ejemplo), L3 (abrir diálogo traer), L4 (2 acciones plantillas). Hunks disjuntos por línea.
+- **`acciones-canvas.ts`**: L1 (aditivo solo si emerge necesidad de wrapper, normalmente vacío), L3 (3 acciones traer), L4 (insertar plantilla). Hunks disjuntos.
+- **`acciones-ui.ts`**: L1 (HU-30.021 cargar ejemplo; HU-30.036 ya NO va aquí, va en store/persistencia.ts), L3 (abrir diálogo traer), L4 (2 acciones plantillas). Hunks disjuntos por línea.
 - **`acciones-entidad.ts`**: L1 (HU-10.004 si falta), L2 (asignarValor). Hunks disjuntos.
 
 ## 6. Comportamiento esperado
@@ -154,8 +171,8 @@ Cualquier otro archivo es **fuera de scope**.
 
 **Detector**: L1 declara las reglas siguientes para consolidación L5 (~4 reglas):
 
-- HU-11.007: paths `app/src/store/modelo/acciones-canvas.ts` (string `conectarMultiAlTodoSeleccion`) + `app/src/ui/atajosTeclado.ts` (`Ctrl+Alt+T`).
-- HU-30.036: paths `app/src/store/modelo/acciones-ui.ts` (string `readOnly` cerca de `guardarComoLocal`).
+- HU-11.007: `app/src/ui/atajosTeclado.ts` (string `Ctrl+Alt+T` con referencia a `conectarSeleccionAlTodo`) + `app/src/ui/MenuContextualEnlace.tsx` (ítem multi-al-todo).
+- HU-30.036: `app/src/store/persistencia.ts` (string `readOnly` cerca de `guardarComoLocal` en body de `guardarLocal`).
 - HU-30.021: existencia `app/examples/ejemplo-organizacional.json` + `app/src/store/modelo/acciones-ui.ts` string `cargarEjemploOrganizacional`.
 - HU-11.001/HU-10.004/HU-30.037: regla agrupada `Toolbar.tsx` `data-testid="indicador-modo-sticky"` + `Dialogo.tsx` captura Esc.
 
@@ -180,8 +197,8 @@ Commits sugeridos (orden):
 
 1. `feat(inspector): SeccionDescripcion cubre cosas (HU-10.004)` (si falta wiring)
 2. `feat(toolbar): indicador modo sticky con data-testid (HU-11.001)`
-3. `feat(canvas): conectarMultiAlTodoSeleccion + atajo Ctrl+Alt+T (HU-11.007)`
-4. `feat(persistencia): redirigir Guardar→Guardar Como en read-only (HU-30.036)`
+3. `feat(ui): atajo Ctrl+Alt+T cablea conectarSeleccionAlTodo existente (HU-11.007)` (ítem MenuContextualEnlace + atajosTeclado.ts; sin nuevas acciones)
+4. `feat(store): redirigir Guardar→Guardar Como en read-only (HU-30.036)` (intervención puntual en body de guardarLocal en store/persistencia.ts)
 5. `feat(persistencia): cargar ejemplo organizacional canónico (HU-30.021)` + `app/examples/ejemplo-organizacional.json`
 6. `test(persistencia): roundtrip lossless con todos los campos (HU-30.008)`
 7. `test(store): undo granular comandos ronda 11 (HU-SHARED-002)`
@@ -195,7 +212,8 @@ Cada commit debe dejar la rama verde. Co-author si aplica.
 |---|---|
 | **HU-10.004 ya cubierto pero sin regla detector**: la SeccionDescripcion existe y maneja entidades; el detector no tenía evidencia explícita. | Auditar primero el código actual; si ya cubre, solo agregar regla detector con paths verificados. No modificar comportamiento. |
 | **HU-11.007 wiring rompe atomicidad existente**: si la acción dispara N `commitModelo`, undo no es atómico. | `conectarMultiAlTodoSeleccion` debe envolver `conectarMultiAlTodo` (kernel) en **un solo `commitModelo`** con mensaje "Conectar multi al todo: N enlaces". Test verifica un solo entry en undo. |
-| **HU-30.036 redirect rompe flujo Guardar normal**: si la intercepción es en `guardarLocal`, todos los flujos Guardar pasan por el check. | Check explícito `if (readOnly)` antes de cualquier acción modificante de `guardarLocal`. Ningún cambio de comportamiento si `readOnly === false`. |
+| **HU-30.036 redirect rompe flujo Guardar normal**: si la intercepción es en `guardarLocal`, todos los flujos Guardar pasan por el check. | Check explícito `if (get().readOnly)` al inicio del body en `app/src/store/persistencia.ts:259`. Ningún cambio de comportamiento si `readOnly === false`; solo redirige cuando `readOnly === true`. |
+| **Slice raíz `store/persistencia.ts` autorizado pero scope mínimo**: tentación de refactor en el archivo. | Brief §4 nota arquitectónica autoriza solo intervención puntual en body de `guardarLocal()` (~10-15 LOC). Cualquier refactor adicional se reporta y pausa. |
 | **HU-30.021 ejemplo organizacional grande puede romper bundle**: si el JSON se importa estáticamente, suma al chunk principal. | Cargar via `fetch('/examples/ejemplo-organizacional.json')` o dynamic import. Mantener bundle bajo control. JSON realista pero no excesivo (≤30 KB raw). |
 | **HU-30.037 cancelar Esc en diálogos legados**: algunos diálogos pueden tener su propio handler que ignora Esc. | Auditar cada `Dialogo*.tsx` con grep `keyDown\|escape`. Si tienen captura propia que no cierra, ajustar para llamar `onCancelar` consistente. |
 | **Smoke 854 stabilization rompe asserts existentes**: si reescribo el wait con condición distinta, otros smokes pueden depender. | Reescritura mínima sobre el smoke específico; otros smokes intactos. |

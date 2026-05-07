@@ -68,7 +68,7 @@ describe("persistencia local estructurada", () => {
     }));
   });
 
-  test("tolera entradas legacy sin descripcion en indice y documento", () => {
+	  test("tolera entradas legacy sin descripcion en indice y documento", () => {
     const modelo = crearModelo("Modelo legacy");
     const json = exportarModelo(modelo);
     const ahora = "2026-05-05T00:00:00.000Z";
@@ -92,13 +92,105 @@ describe("persistencia local estructurada", () => {
       },
     }));
 
-    expect(listarModelosLocales()).toEqual({
-      ok: true,
-      value: [expect.objectContaining({ id: "legacy-1", descripcion: "" })],
+	    expect(listarModelosLocales()).toEqual({
+	      ok: true,
+	      value: [expect.objectContaining({ id: "legacy-1", descripcion: "" })],
+	    });
+	    expect(cargarModeloLocal("legacy-1")).toEqual({
+	      ok: true,
+	      value: expect.objectContaining({ id: "legacy-1", descripcion: "", json }),
+	    });
+	  });
+
+	  test("preserva JSON local con valorSlot y esAtributo sin alterar payload", () => {
+    const modelo = crearModelo("Modelo atributo");
+    const json = exportarModelo({
+      ...modelo,
+      entidades: {
+        "o-1": {
+          id: "o-1",
+          tipo: "objeto",
+          nombre: "Temperatura",
+          esencia: "informacional",
+          afiliacion: "sistemica",
+          unidad: "°C",
+          esAtributo: true,
+          valorSlot: { tipo: "float", placeholder: "value", valor: 25.5 },
+        },
+      },
+      opds: {
+        ...modelo.opds,
+        [modelo.opdRaizId]: {
+          ...modelo.opds[modelo.opdRaizId]!,
+          apariencias: {
+            "a-1": { id: "a-1", entidadId: "o-1", opdId: modelo.opdRaizId, x: 20, y: 30, width: 135, height: 60 },
+          },
+        },
+      },
+      nextSeq: 2,
     });
-    expect(cargarModeloLocal("legacy-1")).toEqual({
+
+    const guardado = guardarModeloLocal({ nombre: "Modelo atributo", json });
+    expect(guardado.ok).toBe(true);
+    if (!guardado.ok) return;
+	    expect(cargarModeloLocal(guardado.value.id)).toEqual({
+	      ok: true,
+	      value: expect.objectContaining({ json }),
+	    });
+	  });
+
+  test("HU-30.008 preserva payload OPM integro en roundtrip JSON local", () => {
+    const modelo = crearModelo("Roundtrip integro");
+    const opd = modelo.opds[modelo.opdRaizId]!;
+    const serializado = exportarModelo({
+      ...modelo,
+      descripcion: "Descripcion del modelo",
+      entidades: {
+        "o-1": {
+          id: "o-1",
+          tipo: "objeto",
+          nombre: "Servicio",
+          esencia: "informacional",
+          afiliacion: "sistemica",
+          alias: "Svc",
+          unidad: "casos/dia",
+          descripcion: "Objeto con metadata completa",
+          urls: [{ id: "url-1", tipo: "articulo", url: "https://example.com/servicio" }],
+          imagen: { url: "https://example.com/servicio.png", modo: "imagen-texto", cache: { ts: 1, estado: "ok" } },
+          layoutEstados: "vertical",
+          esAtributo: true,
+          valorSlot: { tipo: "float", placeholder: "value", valor: 42.5 },
+        },
+      },
+      opds: {
+        [modelo.opdRaizId]: {
+          ...opd,
+          apariencias: {
+            "a-1": {
+              id: "a-1",
+              entidadId: "o-1",
+              opdId: modelo.opdRaizId,
+              x: 20,
+              y: 30,
+              width: 135,
+              height: 60,
+              modoPlegado: "parcial",
+              ordenPartes: "alfabetico",
+              estilo: { fill: "#fdffff", borderColor: "#70E483", fontFamily: "Arial", fontSize: 14, fontWeight: 600 },
+            },
+          },
+          enlaces: {},
+        },
+      },
+      nextSeq: 2,
+    });
+
+    const guardado = guardarModeloLocal({ nombre: "Roundtrip integro", json: serializado });
+    expect(guardado.ok).toBe(true);
+    if (!guardado.ok) return;
+    expect(cargarModeloLocal(guardado.value.id)).toEqual({
       ok: true,
-      value: expect.objectContaining({ id: "legacy-1", descripcion: "", json }),
+      value: expect.objectContaining({ json: serializado }),
     });
   });
 

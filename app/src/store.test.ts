@@ -291,6 +291,23 @@ describe("store undo/redo y dirty state", () => {
     expect(Object.keys(store.getState().modelo.enlaces)).toHaveLength(2);
   });
 
+  test("conectarSeleccionAlTodo crea lote en un solo undo", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 80, y: 80 }, "Todo"));
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 80, y: 180 }, "Parte A"));
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 260, y: 180 }, "Parte B"));
+    const [todo, parteA, parteB] = Object.values(modelo.entidades);
+    if (!todo || !parteA || !parteB) throw new Error("La prueba esperaba entidades");
+    store.getState().importarJson(exportarModelo(modelo));
+
+    store.getState().setSeleccion([parteA.id, parteB.id, todo.id]);
+    store.getState().conectarSeleccionAlTodo(todo.id, "agregacion");
+
+    expect(Object.keys(store.getState().modelo.enlaces)).toHaveLength(2);
+    store.getState().deshacer();
+    expect(Object.keys(store.getState().modelo.enlaces)).toHaveLength(0);
+  });
+
   test("aplicar y resetear estilo seleccionado entran al historial", () => {
     store.getState().crearObjetoDemo();
     const id = primeraEntidadId();
