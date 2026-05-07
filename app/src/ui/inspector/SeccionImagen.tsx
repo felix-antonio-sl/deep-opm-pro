@@ -1,5 +1,7 @@
+// [JOYAS §1-3] Chrome UI consume tokens centralizados; canvas semántico invariante.
 import type { Id, ImagenEntidad } from "../../modelo/tipos";
 import { inspectorStyles as style } from "../inspectorStyles";
+import { tokens } from "../tokens";
 
 interface Props {
   entidadId: Id;
@@ -46,10 +48,10 @@ function etiquetaModo(modo: ImagenEntidad["modo"]): string {
 
 const styles = {
   panel: { display: "grid", gap: "8px" },
-  preview: { display: "grid", gridTemplateColumns: "54px minmax(0, 1fr)", alignItems: "center", gap: "8px", padding: "8px", border: "1px solid #d9e0ea", borderRadius: "4px" },
-  thumb: { width: "54px", height: "40px", objectFit: "cover", border: "1px solid #c8d2df", borderRadius: "4px", background: "#f2f4f7" },
+  preview: { display: "grid", gridTemplateColumns: "54px minmax(0, 1fr)", alignItems: "center", gap: "8px", padding: "8px", border: `1px solid ${tokens.colors.bordeIntermedio}`, borderRadius: tokens.radii.sm },
+  thumb: { width: "54px", height: "40px", objectFit: "cover", border: `1px solid ${tokens.colors.bordeControl}`, borderRadius: tokens.radii.sm, background: tokens.colors.fondoDeshabilitado },
   meta: { display: "grid", gap: "3px", minWidth: 0 },
-  modo: { color: "#1f2937", fontSize: "12px", fontWeight: 800 },
-  url: { minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: "#586D8C", fontSize: "11px", fontWeight: 700 },
+  modo: { color: tokens.colors.textoPrimario, fontSize: "12px", fontWeight: 800 },
+  url: { minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: tokens.colors.chromeNeutral, fontSize: "11px", fontWeight: 700 },
   actions: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" },
 } satisfies Record<string, preact.JSX.CSSProperties>;
