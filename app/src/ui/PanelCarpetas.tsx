@@ -1,3 +1,4 @@
+// [JOYAS §1-3] Chrome UI consume tokens centralizados; canvas semántico invariante.
 import { useCallback, useState } from "preact/hooks";
 import regFileIcon from "../../../assets/svg/regFile.svg";
 import type { Id } from "../modelo/tipos";
@@ -7,6 +8,7 @@ import { Breadcrumb } from "./panelCarpetas/Breadcrumb";
 import { MenuContextual, type MenuContextualState } from "./panelCarpetas/MenuContextual";
 import { Tile, type TileData } from "./panelCarpetas/Tile";
 import { iniciarDragWorkspace, leerDragWorkspace } from "./panelCarpetas/handlersDragDrop";
+import { tokens } from "./tokens";
 
 export type VistaModo = "tiles" | "lista";
 
@@ -230,28 +232,28 @@ const style = {
   toolbar: { display: "flex", flexDirection: "column", gap: "8px", marginBottom: "10px" },
   toolbarActions: { display: "flex", gap: "6px", alignItems: "center" },
   searchBox: { flex: "1 1 auto" },
-  searchInput: { width: "100%", height: "30px", border: "1px solid #b9c5d4", borderRadius: "4px", padding: "0 8px", fontSize: "13px", boxSizing: "border-box" },
-  toggle: botonToggle("#d9e0ea", "#f9fbfd", "#475467", 400),
-  activeToggle: botonToggle("#586D8C", "#e8eef5", "#1f2937", 700),
-  pendingButton: { height: "30px", padding: "0 10px", border: "1px solid #586D8C", borderRadius: "4px", background: "#e8eef5", color: "#1f2937", cursor: "pointer", fontSize: "12px", fontWeight: 700, whiteSpace: "nowrap" },
-  recientesPanel: { width: "160px", flexShrink: 0, borderRight: "1px solid #e4eaf1", paddingRight: "10px", marginRight: "10px", overflow: "auto" },
-  recientesTitulo: { margin: "0 0 8px", color: "#667085", fontSize: "11px", fontWeight: 700, textTransform: "uppercase" },
+  searchInput: { width: "100%", height: "30px", border: `1px solid ${tokens.colors.bordeInput}`, borderRadius: tokens.radii.sm, padding: "0 8px", fontSize: "13px", boxSizing: "border-box" },
+  toggle: botonToggle(tokens.colors.bordeIntermedio, tokens.colors.fondoCard, tokens.colors.textoSecundario, 400),
+  activeToggle: botonToggle(tokens.colors.chromeNeutral, tokens.colors.chromeNeutralSuave, tokens.colors.textoPrimario, 700),
+  pendingButton: { height: "30px", padding: "0 10px", border: `1px solid ${tokens.colors.chromeNeutral}`, borderRadius: tokens.radii.sm, background: tokens.colors.chromeNeutralSuave, color: tokens.colors.textoPrimario, cursor: "pointer", fontSize: "12px", fontWeight: 700, whiteSpace: "nowrap" },
+  recientesPanel: { width: "160px", flexShrink: 0, borderRight: `1px solid ${tokens.colors.bordeChrome}`, paddingRight: "10px", marginRight: "10px", overflow: "auto" },
+  recientesTitulo: { margin: "0 0 8px", color: tokens.colors.textoTerciario, fontSize: "11px", fontWeight: 700, textTransform: "uppercase" },
   recientesList: { display: "flex", flexDirection: "column", gap: "4px" },
-  recienteItem: { display: "flex", alignItems: "center", gap: "6px", padding: "5px 8px", border: "1px solid transparent", borderRadius: "4px", background: "transparent", color: "#475467", cursor: "pointer", fontSize: "12px", fontWeight: 600, textAlign: "left" },
+  recienteItem: { display: "flex", alignItems: "center", gap: "6px", padding: "5px 8px", border: "1px solid transparent", borderRadius: tokens.radii.sm, background: "transparent", color: tokens.colors.textoSecundario, cursor: "pointer", fontSize: "12px", fontWeight: 600, textAlign: "left" },
   recienteIcon: { width: "16px", height: "16px", flexShrink: 0 },
   recienteNombre: { overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" },
   contenidoConRecientes: { display: "flex", minHeight: 0, flex: "1 1 auto", overflow: "auto" },
   contenido: { flex: "1 1 auto", overflow: "auto", minHeight: 0 },
   grid: { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(145px, 1fr))", gap: "8px" },
   tabla: { width: "100%", borderCollapse: "collapse", fontSize: "13px" },
-  th: { padding: "6px 8px", borderBottom: "2px solid #d9e0ea", color: "#667085", fontSize: "12px", fontWeight: 700, textAlign: "left" },
-  dropActivo: { outline: "2px solid #3BC3FF", outlineOffset: "-2px" },
-  empty: { padding: "18px", border: "1px dashed #c8d2df", borderRadius: "4px", color: "#667085", fontSize: "13px", fontWeight: 700, textAlign: "center" },
+  th: { padding: "6px 8px", borderBottom: `2px solid ${tokens.colors.bordeIntermedio}`, color: tokens.colors.textoTerciario, fontSize: "12px", fontWeight: 700, textAlign: "left" },
+  dropActivo: { outline: `2px solid ${tokens.colors.canvas.proceso}`, outlineOffset: "-2px" },
+  empty: { padding: "18px", border: `1px dashed ${tokens.colors.bordeControl}`, borderRadius: tokens.radii.sm, color: tokens.colors.textoTerciario, fontSize: "13px", fontWeight: 700, textAlign: "center" },
   footer: { marginTop: "10px" },
-  newFolderButton: { width: "100%", height: "34px", border: "1px dashed #b9c5d4", borderRadius: "4px", background: "transparent", color: "#586D8C", cursor: "pointer", fontSize: "13px", fontWeight: 700 },
-  inlineInput: { width: "100%", height: "28px", border: "1px solid #586D8C", borderRadius: "4px", padding: "0 6px", fontSize: "13px", boxSizing: "border-box" },
+  newFolderButton: { width: "100%", height: "34px", border: `1px dashed ${tokens.colors.bordeInput}`, borderRadius: tokens.radii.sm, background: "transparent", color: tokens.colors.chromeNeutral, cursor: "pointer", fontSize: "13px", fontWeight: 700 },
+  inlineInput: { width: "100%", height: "28px", border: `1px solid ${tokens.colors.chromeNeutral}`, borderRadius: tokens.radii.sm, padding: "0 6px", fontSize: "13px", boxSizing: "border-box" },
 } satisfies Record<string, preact.JSX.CSSProperties>;
 
 function botonToggle(border: string, background: string, color: string, fontWeight: number): preact.JSX.CSSProperties {
-  return { width: "30px", height: "30px", border: `1px solid ${border}`, borderRadius: "4px", background, color, cursor: "pointer", fontSize: "15px", lineHeight: 1, padding: 0, fontWeight };
+  return { width: "30px", height: "30px", border: `1px solid ${border}`, borderRadius: tokens.radii.sm, background, color, cursor: "pointer", fontSize: "15px", lineHeight: 1, padding: 0, fontWeight };
 }
