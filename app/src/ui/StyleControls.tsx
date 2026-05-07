@@ -78,6 +78,7 @@ export function StyleControls({ estilo, onApply, onReset, showText, onApplyText,
           <div style={textStyles.row}>
             <span style={textStyles.fieldLabel}>Familia</span>
             <select
+              aria-label="Familia tipográfica"
               style={inspector.input}
               value={estilo?.fontFamily ?? "Arial"}
               onChange={(e) => onApplyText?.({ fontFamily: e.currentTarget.value })}
@@ -90,6 +91,7 @@ export function StyleControls({ estilo, onApply, onReset, showText, onApplyText,
           <div style={textStyles.row}>
             <span style={textStyles.fieldLabel}>Tamaño ({estilo?.fontSize ?? 14}px)</span>
             <input
+              aria-label={`Tamaño de fuente: ${estilo?.fontSize ?? 14} píxeles`}
               type="range"
               min={8}
               max={24}

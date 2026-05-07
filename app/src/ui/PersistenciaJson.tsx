@@ -138,6 +138,8 @@ export function PersistenciaJson() {
       {mensajeError ? <div role="alert" style={style.error}>{mensajeError}</div> : null}
       <textarea
         data-testid="textarea-json"
+        aria-label="Pegar JSON del modelo OPM"
+        placeholder="Pega aquí el JSON del modelo o usa Importar/Soltar JSON"
         style={style.textarea}
         value={texto}
         spellcheck={false}

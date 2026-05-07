@@ -51,7 +51,7 @@ export function ToolbarSeleccion({ slotBarraFlotante }: ToolbarSeleccionProps) {
       <span style={style.divider} />
       <button style={uiAliasVisibles ? style.activeButton : style.button} type="button" onClick={toggleAliasVisibles} aria-pressed={uiAliasVisibles} title={uiAliasVisibles ? "Ocultar alias bajo el nombre" : "Mostrar alias bajo el nombre"}>Alias</button>
       <button style={uiDescripcionesVisibles ? style.activeButton : style.button} type="button" onClick={toggleDescripcionesVisibles} aria-pressed={uiDescripcionesVisibles} title={uiDescripcionesVisibles ? "Ocultar descripciones bajo el nombre" : "Mostrar descripciones bajo el nombre"}>Desc</button>
-      <button style={puedeEditarImagen ? style.button : style.disabledButton} type="button" disabled={!puedeEditarImagen} onClick={handleAbrirImagen} title={puedeEditarImagen ? "Editar imagen del objeto seleccionado" : "Selecciona un objeto"}>📷</button>
+      <button style={puedeEditarImagen ? style.button : style.disabledButton} type="button" disabled={!puedeEditarImagen} onClick={handleAbrirImagen} title={puedeEditarImagen ? "Editar imagen del objeto seleccionado" : "Selecciona un objeto"} aria-label="Editar imagen del objeto"><span aria-hidden="true">📷</span></button>
       <button style={uiModoImagenGlobal ? style.activeButton : style.button} type="button" onClick={handleSiguienteModoImagen} aria-pressed={uiModoImagenGlobal !== null} data-testid="toolbar-modo-imagen-global" title={`Modo imagen global: ${etiquetaModoGlobal(uiModoImagenGlobal)}`}>{etiquetaModoGlobal(uiModoImagenGlobal)}</button>
       {slotBarraFlotante ?? null}
     </>
