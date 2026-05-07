@@ -1,7 +1,9 @@
+// [JOYAS §1-3] Chrome UI consume tokens centralizados; canvas semántico invariante.
 import { etiquetaEnlaceNormalizada, validarEtiquetaEnlace } from "../../modelo/etiquetasEnlace";
 import { validarMultiplicidad } from "../../modelo/operaciones";
 import type { Enlace, Modificador, SubtipoModificador } from "../../modelo/tipos";
 import { inspectorStyles as style } from "../inspectorStyles";
+import { tokens } from "../tokens";
 
 interface Props {
   enlace: Enlace;
@@ -133,11 +135,11 @@ function subtipoDefault(modificador: Modificador): SubtipoModificador {
 }
 
 const sectionStyle = { display: "grid", gap: "2px", marginBottom: "14px" } satisfies preact.JSX.CSSProperties;
-const cardStyle = { display: "grid", gap: "8px", marginBottom: "14px", padding: "8px", background: "#ffffff", border: "1px solid #e5e7eb", borderRadius: "6px" } satisfies preact.JSX.CSSProperties;
-const titleStyle = { margin: "0 0 8px", color: "#1f2937", fontSize: "13px", fontWeight: 700 } satisfies preact.JSX.CSSProperties;
-const hintStyle = { color: "#667085", fontSize: "11px", fontWeight: 600 } satisfies preact.JSX.CSSProperties;
+const cardStyle = { display: "grid", gap: "8px", marginBottom: "14px", padding: "8px", background: tokens.colors.fondoChrome, border: `1px solid ${tokens.colors.bordeTabla}`, borderRadius: tokens.radii.md } satisfies preact.JSX.CSSProperties;
+const titleStyle = { margin: "0 0 8px", color: tokens.colors.textoPrimario, fontSize: "13px", fontWeight: 700 } satisfies preact.JSX.CSSProperties;
+const hintStyle = { color: tokens.colors.textoTerciario, fontSize: "11px", fontWeight: 600 } satisfies preact.JSX.CSSProperties;
 const subtipoGroupStyle = { display: "flex", gap: "6px" } satisfies preact.JSX.CSSProperties;
-const subtipoButtonStyle = { minWidth: "32px", height: "28px", border: "1px solid #c8d2df", borderRadius: "6px", background: "#ffffff", color: "#344054", fontFamily: "Arial", fontSize: "13px", fontWeight: 700, cursor: "pointer" } satisfies preact.JSX.CSSProperties;
-const subtipoActivoStyle = { ...subtipoButtonStyle, borderColor: "#586D8C", background: "#e7f6ff", color: "#1f2937" } satisfies preact.JSX.CSSProperties;
-const inputErrorStyle = { ...style.input, borderColor: "#d92d20", outlineColor: "#d92d20" } satisfies preact.JSX.CSSProperties;
-const errorStyle = { color: "#b42318", fontSize: "12px", fontWeight: 600 } satisfies preact.JSX.CSSProperties;
+const subtipoButtonStyle = { minWidth: "32px", height: "28px", border: `1px solid ${tokens.colors.bordeControl}`, borderRadius: tokens.radii.md, background: tokens.colors.fondoChrome, color: tokens.colors.textoControl, fontFamily: tokens.typography.familyCanvas, fontSize: "13px", fontWeight: 700, cursor: "pointer" } satisfies preact.JSX.CSSProperties;
+const subtipoActivoStyle = { ...subtipoButtonStyle, borderColor: tokens.colors.chromeNeutral, background: tokens.colors.infoMuySuave, color: tokens.colors.textoPrimario } satisfies preact.JSX.CSSProperties;
+const inputErrorStyle = { ...style.input, borderColor: tokens.colors.errorBase, outlineColor: tokens.colors.errorBase } satisfies preact.JSX.CSSProperties;
+const errorStyle = { color: tokens.colors.errorTexto, fontSize: "12px", fontWeight: 600 } satisfies preact.JSX.CSSProperties;
