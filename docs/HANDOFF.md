@@ -104,6 +104,7 @@ El contrato Beta1 de `TablaEnlaces` queda expresado como `describe.skip` en
 | `c51e109` | `fix(barra-contextual): oculta copiar/pegar-estilo sin enlace operable` | Resuelve `BUG-20260507T211815Z-d78ae2`. Los botones "Copiar"/"Pegar" eran acciones de estilo de enlace, pero se mostraban con entidad seleccionada sin enlace operable. Ahora se ocultan cuando no aplican y reaparecen cuando hay enlace. Incluye unit de `accionesPilotoBarra` y ajuste e2e en `02-canvas-y-render.spec.ts`. |
 | `e1c8528` | `fix(render): despliegue no proyecta contorno embebido` | Primera mitad de `BUG-20260507T211702Z-372334`: en OPD hijo, solo `descomposicion/inzoom` usa contorno embebido; `despliegue/unfold` renderiza el padre como entidad normal. Incluye test `BUG-372334` en `proyeccion.test.ts`. |
 | `d63c8e2` | `fix(modelo): posiciona partes de despliegue fuera del padre` | Segunda mitad de `BUG-20260507T211702Z-372334`: la operacion `desplegarObjeto` crea al padre con tamaño normal y posiciona partes/refinadores fuera, debajo, conectados por enlaces estructurales. Incluye aserciones en `operaciones.test.ts`. |
+| `6d26146` | `fix(opl,tests): alinea OPL/leyes/e2e con despliegue fuera del padre` | Cierre de `BUG-20260507T211702Z-372334`: aparienciasInternasDeRefinamiento ya no filtra por dentroDe en despliegue (sin esto generarOpl emitia "se despliega en SD1" en vez de listar partes); leyes diferencian rol="contorno"+dentroDe descomposicion vs rol="externo"+fuera despliegue; smoke `05-refinamiento-y-plegado` asserta partes FUERA del bbox. |
 
 ## Commits Relevantes
 
@@ -118,6 +119,7 @@ El contrato Beta1 de `TablaEnlaces` queda expresado como `describe.skip` en
 | Hotfix | `c51e109` | Oculta copiar/pegar estilo sin enlace operable. |
 | Hotfix | `e1c8528` | Despliegue/unfold no proyecta contorno embebido en OPD hijo. |
 | Hotfix | `d63c8e2` | Despliegue/unfold posiciona partes afuera del padre. |
+| Hotfix | `6d26146` | OPL/leyes/e2e alineados con despliegue fuera del padre. |
 
 ## Verificacion Final Conocida
 
@@ -142,10 +144,10 @@ node docs/historias-usuario-v2/tools/progress-dashboard.mjs --sync-real
 
 Notas:
 
-- Los hotfixes `c51e109`, `e1c8528` y `d63c8e2` tienen pruebas focales asociadas. No
-  consta aqui un full loop completo posterior a esos hotfixes.
-- Verificacion focal ejecutada para `e1c8528`/`d63c8e2`:
-  `cd app && bun test src/modelo/operaciones.test.ts src/render/jointjs/proyeccion.test.ts` -> 88 pass / 0 fail.
+- Loop verde post-hotfixes ejecutado tras `6d26146` (`main @ 6d26146`):
+  `bun run check` -> 914 unit / 0 fail; `bun run lint` -> clean;
+  `bun run build` -> 256.12 KB / 68.50 KB gzip;
+  `bun run browser:smoke` -> 128 passed / 5 skipped (contrato TablaEnlaces).
 - Bundle queda bajo el umbral de delta gzip de ronda 15: +2.78 KB gzip vs
   baseline pre-ronda.
 - Vite dev server estuvo activo en `http://138.201.53.205:5173/` durante la
@@ -158,7 +160,7 @@ agentes.
 
 | Bug | Estado | Lectura operativa |
 |---|---|---|
-| `BUG-20260507T211702Z-372334` | Resuelto por `e1c8528` + `d63c8e2` | En despliegue/unfold, los componentes aparecian dentro del contenedor grande. Los fixes limitan el contorno embebido a `descomposicion/inzoom` y posicionan los refinadores de `despliegue/unfold` fuera del padre. Mantener reporte como evidencia visual. |
+| `BUG-20260507T211702Z-372334` | Resuelto por `e1c8528` + `d63c8e2` + `6d26146` | En despliegue/unfold, los componentes aparecian dentro del contenedor grande. Los fixes limitan el contorno embebido a `descomposicion/inzoom`, posicionan los refinadores de `despliegue/unfold` fuera del padre y alinean OPL/leyes/e2e con la nueva semantica visual. Mantener reporte como evidencia. |
 | `BUG-20260507T211815Z-d78ae2` | Resuelto por `c51e109` | Botones de barra contextual "Copiar"/"Pegar" aparecian inactivos porque no habia enlace operable. Se ocultaron cuando no aplican. Mantener reporte como evidencia. |
 | `BUG-20260507T212356Z-692129` | Abierto | Paneles/Workbench se perciben visualmente sucios y poco usables. Afecta calidad de uso diario; candidato a sub-slice de polish visual temprano en ronda 16, especialmente L3/L5, sin reabrir Beta0 global. |
 
