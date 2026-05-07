@@ -47,6 +47,8 @@ Filtro de valor:
 | **13.3** | **Bug capture loop dev-only** | Capturar screenshot + texto + metadata en disco con ID referenciable por agentes. | El operador puede decir "arregla BUG-YYYYMMDD-NNN" y el agente puede leer imagen/texto desde el repo local. |
 | **14** | **Alpha-lock OPL reverse** | OPL inverso libre completo suficiente para editar desde texto y reconciliar con canvas. | **Cerrado**: parser SSOT + diagnosticos + preview de patches + apply undoable + smoke UI. Alpha queda 100%. |
 | **14.1** | **Refinamiento OPM completo sobre Thing — hardening** | Continuar desde el corte `refinamiento OPM completo sobre Thing`: auditar deuda de slots visuales separados (`refineeInzooming`/`refineeUnfolding`/`refineable`), cubrir e2e object-inzoom y process-unfold, y validar OPL especifico de descomposicion de objeto contra SSOT. | Decision documentada sobre slots, 2 smokes nuevos verdes, OPL de object decomposition auditado y corregido si aplica. |
+| **14.2** | **Leyes ejecutables + ledger de calidad** | Convertir la auditoria categorial en tests de leyes: JSON round-trip, render metadata estable, OPL reverse safe lens, matriz Thing refinement y undo atomicity. Agregar ledger de calidad versionado. | Las proyecciones criticas tienen tests law nombrados, el ledger declara umbrales iniciales y el dashboard queda como evidencia secundaria, no como sustituto de leyes. |
+| **14.3** | **Fronteras Store/Render/Effects** | Refactor incremental sin big-bang: reemplazar aliases `Partial<OpmStore>` por contratos de slices reales, encapsular efectos runtime y sacar `globalThis` del core puro de proyeccion JointJS. | Store compone por contratos explicitos, runtime effects quedan inyectables/testeables, y `proyectarModeloAJointCells` es reproducible por argumentos explicitos. |
 | **Beta1** | **Dominio real mediano** | Modelar HD/KORA/GOREOS con validacion metodologica, tabla de enlaces, busqueda, estados, descomposicion y catalogo simple. | Un modelo ancla real se construye, valida, guarda/carga, busca y corrige sin workaround mayor. |
 | **Beta2** | **Simulacion conceptual + valores simples** | Ejecutar simulacion conceptual y valores simples sobre procesos/estados/atributos. | Un flujo real de dominio puede simular estado/valor antes-despues con trazabilidad. |
 | **Gamma** | **Productividad operativa secundaria** | Mapa del sistema, export, imagenes, estilos avanzados, plantillas avanzadas, organizacion no critica. | Trabajo largo mas comodo, no requisito para probar beta. |
@@ -139,6 +141,15 @@ evita construir beta sobre chrome, flujos y validacion debiles.
 - Autolayout como **vista sugerida / aplicar layout**, no como movimiento
   persistente automatico.
 - Capturador de bugs dev-only.
+
+### Incluye normalizaciones 14.2-14.3
+
+- Leyes ejecutables de proyeccion (`JSON`, `Render`, `OPL reverse`,
+  refinamiento `Thing`, undo atomicity) como gate previo a Beta1.
+- Ledger de calidad versionado: bundle, tests, smoke, law tests activos,
+  comentarios detector legacy y deuda arquitectonica aceptada.
+- Fronteras arquitectonicas explicitas: slices de store por contrato,
+  runtime effects inyectables y render reproducible por argumentos.
 
 ## 6. Beta1 — modelado de dominio real
 
