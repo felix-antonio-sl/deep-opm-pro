@@ -14,6 +14,7 @@ import { store, useOpmStore } from "../store";
 import { ArbolOpd } from "./ArbolOpd";
 import { BarraHerramientasElemento } from "./BarraHerramientasElemento";
 import { BarraPestanas } from "./BarraPestanas";
+import { CapturadorBugs } from "./CapturadorBugs";
 import { configurarContextoAtajos, escucharGlobal, registrarAtajo } from "./atajosTeclado";
 import { ConfirmacionProvider } from "./ConfirmacionContext";
 import { DivisorPanel } from "./divisorPanel";
@@ -148,6 +149,7 @@ export function App() {
             <CheatsheetAtajos abierto={cheatsheetAtajosAbierto} onCerrar={cerrarCheatsheetAtajos} />
           </Suspense>
         ) : null}
+        <CapturadorBugs />
       </main>
     </ConfirmacionProvider>
   );
