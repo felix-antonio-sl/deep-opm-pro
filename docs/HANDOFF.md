@@ -89,6 +89,41 @@ Garantias nuevas:
 
 ## Verificacion Final Ejecutada
 
+Estado vigente post-polish beta0 (`main` @ `a0ba640`):
+
+```bash
+cd app && bun run check
+# 904 pass / 0 fail / 3546 expect() / 91 archivos
+
+cd app && bun run lint
+# eslint src/ui/ OK
+
+cd app && bun run build
+# vite build OK
+# main bundle: 244.67 kB / 65.71 kB gzip
+
+cd app && bun run browser:smoke
+# 109 passed
+
+cd app && bun run scripts/quality-ledger.mjs --markdown
+# Canonical laws: 6/6
+# Compat detectors: 1
+# MVP-alpha: 121/121 (100%)
+# Auto rules: 102/102 matched
+```
+
+Desde la raiz:
+
+```bash
+node docs/historias-usuario-v2/tools/progress-dashboard.mjs --sync-real
+# HU vivas: 1126
+# Total: 28.5% ponderado (313 cubiertas, 22 parciales, 413 pendientes, 378 diferidas)
+# MVP-alpha: 100.0% ponderado (121 cubiertas, 0 parciales, 0 pendientes)
+# 102/102 reglas matched
+```
+
+Verificacion historica de cierre 14.2/14.3:
+
 Desde `app/`:
 
 ```bash
@@ -124,6 +159,31 @@ node docs/historias-usuario-v2/tools/progress-dashboard.mjs --sync-real
 
 Diagnostico vivo: 1 advertencia ledger heredada (`HU-13.005` duplicate-id,
 legado pre-ronda-8). No bloquea este corte.
+
+## Mejoras Post-Handoff Integradas
+
+- **Capturador local de bugs** (`e9e7a00`): boton fijo dev-only, texto requerido,
+  0..N screenshots por file input o pegado directo, endpoint Vite/preview que
+  escribe `docs/bugs/BUG-.../{report.md,payload.json,screenshots/*}`.
+- **Bugs capturados cerrados**: `BUG-20260507T165507Z-19b234` aclaro la creacion
+  continua de objetos/procesos; `BUG-20260507T170832Z-2dae09` deduplico el
+  ejemplo organizacional; `BUG-20260507T173915Z-617932` quedo evaluado como
+  resuelto por aplanado de iconos en barra contextual.
+- **Tokens CSS corregidos** (`1efdc95`): 57 interpolaciones literales
+  `"${tokens.colors...}"` reemplazadas por tokens reales/template literals y
+  guard rail `tokenInterpolation.test.ts`.
+- **A11y/UX polish**: nombres accesibles, focus-visible, `aria-label`/
+  `aria-pressed`, contraste >= 4.5:1, barra de pestanas con `tablist` correcto,
+  empty states en Inspector/OPL/Plantillas y emojis reemplazados por SVG inline.
+- **Reverts conscientes**: modal-grid y affordance de scroll horizontal se
+  revirtieron por regresion/ruido; canvas volvio a `role="img"` tras smoke
+  regression. No reintroducir sin test browser focal.
+- **Evaluacion exhaustiva**: `app/scripts/evaluacion-exhaustiva.mjs` agrega un
+  ciclo visual/dev para seguir puliendo beta0; salidas en `_eval-output/` quedan
+  ignoradas.
+- **Detector recalibrado** (`530b757`): HU-30.021/HU-30.008 reconocen el catalogo
+  unico `listarFixtures`/`cargarFixtureDemo` y el smoke que garantiza un solo
+  `Ejemplo organizacional`.
 
 ## Decisiones Nuevas
 
@@ -228,7 +288,7 @@ Incluye:
 - validacion metodologica como nucleo;
 - catalogo simple, sin carpetas/workspace complejo;
 - capturador de bugs integrado con imagen + texto + codigo referenciable para
-  agentes.
+  agentes (**ya implementado**, falta solo disciplina de triage/limpieza).
 
 ### Corte Recomendado: Beta-1 Dominio Real
 
@@ -248,9 +308,10 @@ fuera y el asistente se resuelve como skill, no como requisito del producto.
 
 ## Proximos Pasos Operativos
 
-1. Actualizar `docs/roadmap/cortes-operativos.md` sin editar HU originales.
-2. Incorporar la auditoria IFML como ronda 13.1/15 foundation, no como parche
+1. Incorporar la auditoria IFML como ronda 13.1/15 foundation, no como parche
    lateral.
+2. Cerrar bugs visuales capturados y ejecutar `evaluacion-exhaustiva.mjs` como
+   loop corto antes de abrir features beta1.
 3. Definir evals de Beta-0/Beta-1 contra modelos ancla:
    - `/home/felix/projects/hd-dt`
    - `/home/felix/projects/hdos`
@@ -269,5 +330,6 @@ fuera y el asistente se resuelve como skill, no como requisito del producto.
 Usa `docs/HANDOFF.md` como memoria unica. El alpha real esta cerrado: OPL reverse
 editable ya no queda parcial y las leyes 14.2 lo protegen. Continua con la capa
 operativa de cortes (`docs/roadmap/cortes-operativos.md`) y la normalizacion
-pre-beta: IFML, UX visual, autolayout sugerido, apariencia/enlaces/anclaje desde
-SSOT + `opm-extracted/`, y capturador de bugs integrado.
+pre-beta: IFML, UX visual, autolayout sugerido y apariencia/enlaces/anclaje
+desde SSOT + `opm-extracted/`. El capturador ya existe; usalo para cerrar bugs
+visuales con ID referenciable.

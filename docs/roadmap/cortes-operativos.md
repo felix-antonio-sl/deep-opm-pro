@@ -264,14 +264,37 @@ pendientes operativos.
 Cerrar el loop humano-agente sobre bugs visuales sin depender de descripciones
 fragiles en chat.
 
+### Estado 2026-05-07
+
+**Implementado** en `e9e7a00 feat(ui): capturador local de bugs con screenshots`.
+El capturador vive en `app/src/ui/CapturadorBugs.tsx`, se monta en `App.tsx` y
+persiste reportes mediante middleware Vite/preview en `app/vite.config.ts`.
+
+Formato real versionado hasta ahora:
+
+```text
+docs/bugs/BUG-<timestamp>Z-<hex>/
+├── report.md
+├── payload.json
+└── screenshots/
+    └── 01-*.jpg|png
+```
+
+Evals activos:
+
+- `e2e/10-capturador-bugs.spec.ts`: guarda texto sin screenshot, adjunta uno o
+  mas screenshots, y acepta screenshot pegado directamente.
+- Bugs ya procesados: `BUG-20260507T165507Z-19b234`,
+  `BUG-20260507T170832Z-2dae09`, `BUG-20260507T173915Z-617932`.
+
 ### Contrato
 
 - Dev-only.
 - No feature de usuario final.
-- No versiona capturas.
-- Guarda en disco local bajo ruta gitignored.
+- El peso de imagenes se acepta temporalmente; se limpia despues si hace falta.
+- Guarda en disco local bajo `docs/bugs/` con ID referenciable.
 
-Estructura propuesta:
+Estructura inicialmente propuesta (superada por el formato real anterior):
 
 ```text
 app/bug-reports/
@@ -298,6 +321,11 @@ Eval:
 > El operador puede decir "arregla BUG-20260507-001" y el agente puede leer
 > screenshot + texto + metadata sin pedir contexto adicional.
 
+Contrato actualizado:
+
+> El operador puede decir "evalua/arregla BUG-20260507T170832Z-2dae09" y el
+> agente lee `docs/bugs/<ID>/report.md`, `payload.json` y screenshots asociados.
+
 ## 12. Ajuste futuro del dashboard
 
 No se editan HU canonicas en esta fase. El ajuste recomendado es agregar una
@@ -317,7 +345,9 @@ rondas.
 2. Decidir si GOREOS tiene corpus local verificable o queda como familia futura.
 3. Definir si el catalogo simple vive en `DialogoCargarModelo`, pantalla inicio
    o una vista propia.
-4. Definir si el bug capture dev-only usa endpoint Vite, script local o ambos.
 
 Resuelto el 2026-05-07: la gramatica exacta de `OPL reverse libre completo`
 queda fijada por `docs/auditorias/2026-05-07-opl-reverse-ssot-opm-extracted.md`.
+
+Resuelto el 2026-05-07: el bug capture dev-only usa endpoint Vite/preview y
+guarda bajo `docs/bugs/`.
