@@ -1,8 +1,14 @@
+import addStatesIcon from "../../../../assets/svg/addStates.svg";
 import { estadoTieneEnlaces } from "../../modelo/estadosDesignaciones";
 import type { DesignacionEstado, Estado, LayoutEstados, Modelo } from "../../modelo/tipos";
 import { inspectorStyles as style } from "../inspectorStyles";
 import { SeccionDesignaciones } from "./SeccionDesignaciones";
 import { SeccionDuracion } from "./SeccionDuracion";
+
+/**
+ * Iconografía canónica de gestión de estados.
+ * SSOT: [Glos 3.66] axioma "al menos dos estados visibles"; asset assets/svg/addStates.svg [JOYAS §2].
+ */
 
 interface Props {
   modelo: Modelo;
@@ -28,7 +34,12 @@ export function SeccionLayoutEstados(props: Props) {
     <section style={stateStyles.section} aria-label="Estados" data-testid="inspector-seccion-estados">
       <div style={stateStyles.header}>
         <span style={style.label}>Estados</span>
-        {props.estados.length > 0 ? <button type="button" style={stateStyles.smallButton} onClick={props.onAgregarEstado}>Agregar estado</button> : null}
+        {props.estados.length > 0 ? (
+          <button type="button" style={stateStyles.smallButtonIcon} onClick={props.onAgregarEstado} title="Agregar nuevo estado">
+            <img src={addStatesIcon} alt="" aria-hidden="true" style={stateStyles.iconSmall} />
+            Agregar estado
+          </button>
+        ) : null}
       </div>
       {props.estados.length > 1 ? (
         <label style={style.field}>
@@ -40,7 +51,10 @@ export function SeccionLayoutEstados(props: Props) {
         </label>
       ) : null}
       {props.estados.length === 0 ? (
-        <button type="button" style={style.primaryButton} onClick={props.onAgregarEstados} title="Crea simultáneamente estado1 y estado2">Agregar estados</button>
+        <button type="button" style={stateStyles.primaryIcon} onClick={props.onAgregarEstados} title="Crea simultáneamente estado1 y estado2">
+          <img src={addStatesIcon} alt="" aria-hidden="true" style={stateStyles.iconLarge} />
+          Agregar estados
+        </button>
       ) : (
         <div style={stateStyles.list}>
           {props.estados.map((estado) => (
@@ -73,6 +87,10 @@ const stateStyles = {
   input: { width: "100%", height: "30px", padding: "0 8px", border: "1px solid #c8d2df", borderRadius: "4px", outlineColor: "#586D8C", fontSize: "12px" },
   actions: { display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: "6px" },
   smallButton: { minHeight: "28px", padding: "0 8px", border: "1px solid #c8d2df", borderRadius: "4px", background: "#f9fbfd", color: "#475467", cursor: "pointer", fontSize: "12px", fontWeight: 700 },
+  smallButtonIcon: { minHeight: "28px", padding: "0 8px", border: "1px solid #c8d2df", borderRadius: "4px", background: "#f9fbfd", color: "#475467", cursor: "pointer", fontSize: "12px", fontWeight: 700, display: "inline-flex", alignItems: "center", gap: "4px" },
+  primaryIcon: { minHeight: "32px", padding: "6px 10px", border: "1px solid #1a3763", borderRadius: "4px", background: "#1a3763", color: "#ffffff", cursor: "pointer", fontSize: "12px", fontWeight: 700, display: "inline-flex", alignItems: "center", gap: "6px" },
+  iconSmall: { width: "14px", height: "14px", display: "block" },
+  iconLarge: { width: "16px", height: "16px", display: "block", filter: "brightness(0) invert(1)" },
   tag: { height: "28px", border: "1px solid #c8d2df", borderRadius: "4px", background: "#f9fbfd", color: "#475467", cursor: "pointer", fontSize: "11px", fontWeight: 700 },
   tagActive: { height: "28px", border: "1px solid #586D8C", borderRadius: "4px", background: "#e8eef5", color: "#1f2937", cursor: "pointer", fontSize: "11px", fontWeight: 700 },
   delete: { height: "28px", border: "1px solid #d92d20", borderRadius: "4px", background: "#fff5f5", color: "#b42318", cursor: "pointer", fontSize: "11px", fontWeight: 700 },

@@ -1,8 +1,16 @@
 import { useEffect, useState } from "preact/hooks";
+import inzoomIcon from "../../../../assets/svg/inzoom.svg";
+import unfoldIcon from "../../../../assets/svg/unfold.svg";
 import type { FilaPlegadoParcial } from "../../modelo/plegado";
 import type { Enlace, Entidad, Id, Modelo, ModoDespliegueObjeto, OrdenPartesPlegado } from "../../modelo/tipos";
 import { contextoReanclaje, type ContextoReanclaje } from "../inspectorEnlace/SeccionReanclaje";
 import { inspectorStyles as style } from "../inspectorStyles";
+
+/**
+ * Iconografía canónica del refinamiento OPM.
+ * SSOT: [Met §inzoom] descomposición proceso, [Met §unfold] despliegue objeto.
+ * Assets: assets/svg/inzoom.svg y assets/svg/unfold.svg [JOYAS §2].
+ */
 
 export const OPCIONES_DESPLIEGUE_OBJETO: Array<{ modo: ModoDespliegueObjeto; label: string }> = [
   { modo: "agregacion", label: "Como partes (agregación)" },
@@ -62,7 +70,8 @@ export function SeccionRefinamiento(props: Props) {
 function RefinamientoProceso(props: Props) {
   return (
     <>
-      <button type="button" style={style.primaryButton} onClick={props.onDescomponer} title="Crear o abrir el OPD hijo de descomposición">
+      <button type="button" style={refinamientoStyles.iconButton} onClick={props.onDescomponer} title="Crear o abrir el OPD hijo de descomposición">
+        <img src={inzoomIcon} alt="" aria-hidden="true" style={refinamientoStyles.icon} />
         {props.entidad.refinamiento?.tipo === "descomposicion" ? "Abrir descomposición" : "Descomponer"}
       </button>
       {props.entidad.refinamiento?.tipo === "descomposicion" ? <button type="button" style={style.secondaryButton} onClick={props.onQuitarDescomposicion} title="Eliminar el OPD hijo de descomposición">Quitar descomposición</button> : null}
@@ -130,7 +139,10 @@ function RefinamientoObjeto(props: Props) {
   return (
     <>
       {props.entidad.refinamiento?.tipo === "despliegue" ? (
-        <button type="button" style={style.primaryButton} onClick={() => props.onDesplegar()} title="Abrir el OPD hijo de despliegue">Mostrar despliegue</button>
+        <button type="button" style={refinamientoStyles.iconButton} onClick={() => props.onDesplegar()} title="Abrir el OPD hijo de despliegue">
+          <img src={unfoldIcon} alt="" aria-hidden="true" style={refinamientoStyles.icon} />
+          Mostrar despliegue
+        </button>
       ) : (
         <DesplegarComo onSelect={props.onDesplegar} />
       )}
@@ -142,7 +154,10 @@ function RefinamientoObjeto(props: Props) {
 function DesplegarComo(props: { onSelect: (modo: ModoDespliegueObjeto) => void }) {
   return (
     <details style={style.menu}>
-      <summary style={style.menuSummary}>Desplegar como...</summary>
+      <summary style={style.menuSummary}>
+        <img src={unfoldIcon} alt="" aria-hidden="true" style={refinamientoStyles.iconInline} />
+        Desplegar como...
+      </summary>
       <div style={style.menuItems}>
         {OPCIONES_DESPLIEGUE_OBJETO.map((opcion) => <button key={opcion.modo} type="button" style={style.menuButton} onClick={() => props.onSelect(opcion.modo)}>{opcion.label}</button>)}
       </div>
@@ -192,6 +207,25 @@ const partialStyles = {
   counter: { padding: "8px", color: "#667085", fontSize: "12px", fontStyle: "italic" },
   button: { minHeight: "28px", padding: "0 8px", border: "1px solid #c8d2df", borderRadius: "4px", background: "#f9fbfd", color: "#475467", cursor: "pointer", fontSize: "12px", fontWeight: 700 },
   buttonDisabled: { minHeight: "28px", padding: "0 8px", border: "1px solid #d9e0ea", borderRadius: "4px", background: "#f3f4f6", color: "#98a2b3", cursor: "not-allowed", fontSize: "12px", fontWeight: 700 },
+} satisfies Record<string, preact.JSX.CSSProperties>;
+
+const refinamientoStyles = {
+  iconButton: {
+    minHeight: "32px",
+    padding: "6px 10px",
+    border: "1px solid #1a3763",
+    borderRadius: "4px",
+    background: "#1a3763",
+    color: "#ffffff",
+    cursor: "pointer",
+    fontSize: "12px",
+    fontWeight: 700,
+    display: "inline-flex",
+    alignItems: "center",
+    gap: "6px",
+  },
+  icon: { width: "16px", height: "16px", display: "block", filter: "brightness(0) invert(1)" },
+  iconInline: { width: "14px", height: "14px", verticalAlign: "-2px", marginRight: "4px" },
 } satisfies Record<string, preact.JSX.CSSProperties>;
 
 const reassignStyles = {
