@@ -10,6 +10,7 @@
     "test": "bun test src",
     "browser:smoke": "playwright test",
     "check": "bun run typecheck && bun run test",
+    "lint": "eslint src/ui/",
     "security:scan": "bun pm scan",
     "visual:audit": "node scripts/in-vivo-test.mjs",
     "visual:deep": "node scripts/in-vivo-deep-checks.mjs"
@@ -24,6 +25,9 @@
     "@preact/preset-vite": "^2.10.0",
     "@socketsecurity/bun-security-scanner": "^1.1.2",
     "@types/bun": "^1.3.13",
+    "@typescript-eslint/eslint-plugin": "^8.59.1",
+    "@typescript-eslint/parser": "^8.59.1",
+    "eslint": "^10.2.1",
     "typescript": "^5.7.0",
     "vite": "^6.0.0"
   }
