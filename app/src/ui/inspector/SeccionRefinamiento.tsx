@@ -1,3 +1,4 @@
+// [JOYAS §1-3] Chrome UI consume tokens centralizados; canvas semántico invariante.
 import { useEffect, useState } from "preact/hooks";
 import inzoomIcon from "../../../../assets/svg/inzoom.svg";
 import unfoldIcon from "../../../../assets/svg/unfold.svg";
@@ -5,6 +6,7 @@ import type { FilaPlegadoParcial } from "../../modelo/plegado";
 import type { Enlace, Entidad, Id, Modelo, ModoDespliegueObjeto, OrdenPartesPlegado } from "../../modelo/tipos";
 import { contextoReanclaje, type ContextoReanclaje } from "../inspectorEnlace/SeccionReanclaje";
 import { inspectorStyles as style } from "../inspectorStyles";
+import { tokens } from "../tokens";
 
 /**
  * Iconografía canónica del refinamiento OPM.
@@ -201,22 +203,22 @@ const partialStyles = {
   section: { display: "grid", gap: "8px", marginBottom: "14px", paddingTop: "2px" },
   header: { display: "grid", gridTemplateColumns: "minmax(0, 1fr) auto", alignItems: "center", gap: "8px" },
   list: { display: "grid", gap: "6px" },
-  row: { display: "grid", gridTemplateColumns: "minmax(0, 1fr) auto", alignItems: "center", gap: "8px", padding: "8px", border: "1px solid #d9e0ea", borderRadius: "4px", background: "#ffffff" },
-  name: { minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: "#1f2937", fontSize: "12px", fontWeight: 700 },
-  nameExtracted: { minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: "#667085", fontSize: "12px", fontWeight: 700, fontStyle: "italic", textDecoration: "line-through" },
-  counter: { padding: "8px", color: "#667085", fontSize: "12px", fontStyle: "italic" },
-  button: { minHeight: "28px", padding: "0 8px", border: "1px solid #c8d2df", borderRadius: "4px", background: "#f9fbfd", color: "#475467", cursor: "pointer", fontSize: "12px", fontWeight: 700 },
-  buttonDisabled: { minHeight: "28px", padding: "0 8px", border: "1px solid #d9e0ea", borderRadius: "4px", background: "#f3f4f6", color: "#98a2b3", cursor: "not-allowed", fontSize: "12px", fontWeight: 700 },
+  row: { display: "grid", gridTemplateColumns: "minmax(0, 1fr) auto", alignItems: "center", gap: "8px", padding: "8px", border: `1px solid ${tokens.colors.bordeIntermedio}`, borderRadius: tokens.radii.sm, background: tokens.colors.fondoChrome },
+  name: { minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: tokens.colors.textoPrimario, fontSize: "12px", fontWeight: 700 },
+  nameExtracted: { minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: tokens.colors.textoTerciario, fontSize: "12px", fontWeight: 700, fontStyle: "italic", textDecoration: "line-through" },
+  counter: { padding: "8px", color: tokens.colors.textoTerciario, fontSize: "12px", fontStyle: "italic" },
+  button: { minHeight: "28px", padding: "0 8px", border: `1px solid ${tokens.colors.bordeControl}`, borderRadius: tokens.radii.sm, background: tokens.colors.fondoCard, color: tokens.colors.textoSecundario, cursor: "pointer", fontSize: "12px", fontWeight: 700 },
+  buttonDisabled: { minHeight: "28px", padding: "0 8px", border: `1px solid ${tokens.colors.bordeIntermedio}`, borderRadius: tokens.radii.sm, background: tokens.colors.fondoNeutral, color: tokens.colors.textoDeshabilitado, cursor: "not-allowed", fontSize: "12px", fontWeight: 700 },
 } satisfies Record<string, preact.JSX.CSSProperties>;
 
 const refinamientoStyles = {
   iconButton: {
     minHeight: "32px",
     padding: "6px 10px",
-    border: "1px solid #1a3763",
-    borderRadius: "4px",
-    background: "#1a3763",
-    color: "#ffffff",
+    border: `1px solid ${tokens.colors.acentoSecundario}`,
+    borderRadius: tokens.radii.sm,
+    background: tokens.colors.acentoSecundario,
+    color: tokens.colors.fondoChrome,
     cursor: "pointer",
     fontSize: "12px",
     fontWeight: 700,
@@ -230,8 +232,8 @@ const refinamientoStyles = {
 
 const reassignStyles = {
   section: { display: "grid", gap: "8px", margin: "4px 0 14px" },
-  row: { display: "grid", gap: "8px", padding: "8px", border: "1px solid #d9e0ea", borderRadius: "4px", background: "#ffffff" },
+  row: { display: "grid", gap: "8px", padding: "8px", border: `1px solid ${tokens.colors.bordeIntermedio}`, borderRadius: tokens.radii.sm, background: tokens.colors.fondoChrome },
   summary: { display: "flex", justifyContent: "space-between", gap: "8px", alignItems: "center" },
-  kind: { color: "#1f2937", fontSize: "12px", fontWeight: 700 },
-  badge: { color: "#667085", fontSize: "11px", fontWeight: 700 },
+  kind: { color: tokens.colors.textoPrimario, fontSize: "12px", fontWeight: 700 },
+  badge: { color: tokens.colors.textoTerciario, fontSize: "11px", fontWeight: 700 },
 } satisfies Record<string, preact.JSX.CSSProperties>;
