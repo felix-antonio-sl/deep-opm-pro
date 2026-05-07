@@ -1,9 +1,11 @@
+// [JOYAS §1-3] Chrome UI consume tokens centralizados; canvas semántico invariante.
 import { useEffect, useMemo, useState } from "preact/hooks";
 import { FAMILIAS_TRAER, tiposDeFamilia, type FamiliaTraerConectados } from "../canvas/reglasTraer";
 import { entidadIdDeExtremo } from "../modelo/extremos";
 import type { Id, Modelo } from "../modelo/tipos";
 import { useOpmStore } from "../store";
 import { Dialogo } from "./Dialogo";
+import { tokens } from "./tokens";
 
 /**
  * Dialogo de familias para traer conectados.
@@ -126,7 +128,7 @@ export function DialogoTraerConectados() {
 
 const buttonBase = {
   height: "32px",
-  borderRadius: "4px",
+  borderRadius: tokens.radii.sm,
   padding: "0 14px",
   fontSize: "13px",
   fontWeight: 700,
@@ -146,35 +148,35 @@ const style = {
     alignItems: "center",
     gap: "10px",
     fontSize: "14px",
-    color: "#1f2937",
+    color: tokens.colors.textoPrimario,
   },
   checkDisabled: {
     display: "flex",
     alignItems: "center",
     gap: "10px",
     fontSize: "14px",
-    color: "#98a2b3",
+    color: tokens.colors.textoDeshabilitado,
     cursor: "not-allowed",
   },
   primary: {
     ...buttonBase,
-    border: "1px solid #1a3763",
-    background: "#1a3763",
-    color: "#ffffff",
+    border: `1px solid ${tokens.colors.acentoSecundario}`,
+    background: tokens.colors.acentoSecundario,
+    color: tokens.colors.fondoChrome,
     cursor: "pointer",
   },
   secondary: {
     ...buttonBase,
-    border: "1px solid #b9c5d4",
-    background: "#ffffff",
-    color: "#1f2937",
+    border: `1px solid ${tokens.colors.bordeInput}`,
+    background: tokens.colors.fondoChrome,
+    color: tokens.colors.textoPrimario,
     cursor: "pointer",
   },
   disabled: {
     ...buttonBase,
-    border: "1px solid #d9e0ea",
-    background: "#f2f4f7",
-    color: "#98a2b3",
+    border: `1px solid ${tokens.colors.bordeIntermedio}`,
+    background: tokens.colors.fondoDeshabilitado,
+    color: tokens.colors.textoDeshabilitado,
     cursor: "default",
   },
 } satisfies Record<string, preact.JSX.CSSProperties>;
