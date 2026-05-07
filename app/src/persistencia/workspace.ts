@@ -1,4 +1,4 @@
-import type { Id, Modelo, PreferenciasUiUsuario, Resultado, VersionResumen } from "../modelo/tipos";
+import type { Id, Modelo, PlantillaIndice, PreferenciasUiUsuario, Resultado, VersionResumen } from "../modelo/tipos";
 import type { CriterioResaltado } from "../render/jointjs/mapaSistema";
 import type { ResumenModeloPersistido } from "./local";
 
@@ -40,6 +40,8 @@ export interface WorkspaceIndice {
   modelos: ModeloIndice[];
   carpetas: CarpetaIndice[];
   recientes: Id[];        // ids de modelos en orden de apertura, max 10
+  /** [Met §8.8] Catálogo aditivo de plantillas privadas, separado de modelos. */
+  plantillas?: PlantillaIndice[];
   busquedaGlobalUltima?: string;
   preferenciasUi?: PreferenciasUiUsuario;
 }

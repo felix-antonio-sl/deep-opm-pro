@@ -6,7 +6,8 @@ import type { GridConfig } from "../../canvas/grid";
  * Tipos UI del workspace que NO pertenecen al JSON OPM canónico.
  * Cubre portapapeles visual transitorio (Ctrl+C/V) y preferencias UI por usuario.
  *
- * Refs: docs/HANDOFF.md §Decisiones Vigentes (multi-selección, divisor árbol/canvas,
+ * Refs: [Met §multi-OPD], [Glos 3.6],
+ *       docs/HANDOFF.md §Decisiones Vigentes (multi-selección, divisor árbol/canvas,
  *       toggle ocultar nombres del árbol).
  */
 
@@ -37,10 +38,18 @@ export interface PreferenciasUiUsuario {
   oplNumeracionVisible?: boolean;
   oplMinimizado?: boolean;
   oplBloquesContraidos?: Record<Id, true>;
+  /** [Met §8.8] Preferencia UI aditiva para ordenar plantillas privadas. */
+  plantillasOrden?: "actualizado-desc" | "nombre-asc";
   vistaCargar?: "tiles" | "lista";
   ordenCargar?: {
     columna: "nombre" | "descripcion" | "actualizadoEn" | "bytes";
     direccion: "asc" | "desc";
   };
   recientes?: Id[];
+  traerConectadosUltimo?: Array<
+    "procedural-habilitador" |
+    "procedural-transformador" |
+    "direccional" |
+    "estructural"
+  >;
 }

@@ -1,9 +1,14 @@
 import modelWizardIcon from "../../../assets/svg/toolbar/modelWizard.svg";
+import templateIcon from "../../../assets/svg/template.svg";
 import { useEffect, useState } from "preact/hooks";
 import { useOpmStore } from "../store";
 import { useConfirmarSiDirty } from "./ConfirmacionContext";
 import { Dialogo } from "./Dialogo";
 
+/**
+ * Entradas de menú para plantillas privadas: [Met §8.8], [JOYAS §1],
+ * [V-52]/[V-123]. Reusa assets/svg/template.svg canónico.
+ */
 export function MenuPrincipal() {
   const abierto = useOpmStore((s) => s.menuPrincipalAbierto);
   const cerrar = useOpmStore((s) => s.cerrarMenuPrincipal);
@@ -31,6 +36,8 @@ export function MenuPrincipal() {
   const vistaMapaActiva = useOpmStore((s) => s.vistaMapaActiva);
   const toggleMapaPanelEstadisticas = useOpmStore((s) => s.toggleMapaPanelEstadisticas);
   const abrirTablaEnlaces = useOpmStore((s) => s.abrirTablaEnlaces);
+  const abrirDialogoPlantillas = useOpmStore((s) => s.abrirDialogoPlantillas);
+  const abrirDialogoGuardarPlantilla = useOpmStore((s) => s.abrirDialogoGuardarPlantilla);
   const abrirCheatsheetAtajos = useOpmStore((s) => s.abrirCheatsheetAtajos);
   const seleccionId = useOpmStore((s) => s.seleccionId);
   const modelo = useOpmStore((s) => s.modelo);
@@ -66,6 +73,14 @@ export function MenuPrincipal() {
       </button>
       <button type="button" role="menuitem" style={style.item} onClick={() => ejecutar(abrirGuardarComo)}>
         Guardar como
+      </button>
+      <button type="button" role="menuitem" style={style.itemWithIcon} onClick={() => ejecutar(abrirDialogoGuardarPlantilla)}>
+        <img src={templateIcon} alt="" style={style.itemIcon} />
+        <span>Guardar como plantilla...</span>
+      </button>
+      <button type="button" role="menuitem" style={style.itemWithIcon} onClick={() => ejecutar(abrirDialogoPlantillas)}>
+        <img src={templateIcon} alt="" style={style.itemIcon} />
+        <span>Plantillas...</span>
       </button>
       <button type="button" role="menuitem" style={modeloPersistidoId ? style.item : style.itemDisabled} disabled={!modeloPersistidoId} onClick={() => ejecutar(abrirRenombrarModelo)}>
         Renombrar...
@@ -216,6 +231,27 @@ const style = {
     fontSize: "13px",
     fontWeight: 700,
     textAlign: "left",
+  },
+  itemWithIcon: {
+    width: "100%",
+    minHeight: "34px",
+    padding: "0 10px",
+    border: "1px solid transparent",
+    borderRadius: "4px",
+    background: "transparent",
+    color: "#1f2937",
+    cursor: "pointer",
+    fontSize: "13px",
+    fontWeight: 700,
+    textAlign: "left",
+    display: "flex",
+    alignItems: "center",
+    gap: "8px",
+  },
+  itemIcon: {
+    width: "18px",
+    height: "18px",
+    flexShrink: 0,
   },
   label: {
     display: "grid",

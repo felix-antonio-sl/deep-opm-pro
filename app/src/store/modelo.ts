@@ -35,6 +35,10 @@ export const createModeloSlice: CrearSlice<ModeloSlice> = (set, get) => ({
   dirty: false,
   puedeDeshacer: false,
   puedeRehacer: false,
+  plantillasGuardadas: [],
+  dialogoPlantillasAbierto: false,
+  dialogoGuardarPlantillaAbierto: false,
+  idsResaltadosTemporales: [],
 
   ...accionesEntidad(set, get),
   ...accionesEstados(set, get),
