@@ -4,6 +4,10 @@ Fecha: 2026-05-07
 Target evaluado: http://138.201.53.205:5173/  
 Rol de evaluacion: modelador OPM avanzado, criterio visual exigente, foco en valor validado y bimodalidad OPD/OPL.
 
+## Informe final
+
+- `informe-final-ui-ux.md`: consolidacion final exigente, directa y accionable de problemas y mejoras UI/UX, con prioridades, impacto, acciones viables y criterios de salida.
+
 ## Resumen ejecutivo
 
 La app ya tiene una base valiosa: el canvas se siente liviano, las primitivas OPM aparecen rapido, la validacion metodologica responde en vivo y el panel OPL-ES cierra la bimodalidad de forma visible. El mayor riesgo no esta en ausencia de funcionalidad, sino en friccion de flujo: la interfaz aun obliga al usuario a descubrir gestos, nombres de estado y paneles que compiten por espacio. La velocidad sin lectura clara se convierte en deuda de modelamiento.
