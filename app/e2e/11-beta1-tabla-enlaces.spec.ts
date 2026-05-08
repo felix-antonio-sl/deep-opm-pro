@@ -1,0 +1,140 @@
+/**
+ * Smoke ronda 16 L1 — Beta1: TablaEnlaces como workbench.
+ *
+ * Cubre el slice minimo del brief `linea-1-tabla-enlaces-workbench.md`:
+ *  - filtro por tipo,
+ *  - eliminacion con confirmacion inline (cross-OPD),
+ *  - edicion canonica de multiplicidad (1, 0..1, N, 0..N, *) con commit en Enter,
+ *  - filas reflejan modelo cargado por JSON con multiples enlaces,
+ *  - empty state tras vaciar.
+ *
+ * Anclajes complementarios al contrato cerrado en
+ * `15-superficie-contextual.spec.ts` describe "Contrato TablaEnlaces Beta1".
+ */
+
+import { expect, test } from "@playwright/test";
+import { cerrarPantallaInicioSiVisible, jsonEditor, modeloEjemploOrganizacionalSmoke } from "./_smoke-helpers";
+
+async function abrirTablaPorMenu(page: import("@playwright/test").Page): Promise<void> {
+  await page.getByLabel("Menú principal").click();
+  await page.getByRole("menu", { name: "Menú principal" })
+    .getByRole("menuitem", { name: "Tabla de enlaces" })
+    .click();
+  await expect(page.getByTestId("tabla-enlaces")).toBeVisible();
+}
+
+test("workbench Beta1: lista, filtra, edita multiplicidad y elimina enlace cross-OPD", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await jsonEditor(page).fill(JSON.stringify(modeloEjemploOrganizacionalSmoke(), null, 2));
+  await page.getByRole("button", { name: "Importar" }).click();
+
+  await abrirTablaPorMenu(page);
+  // El modelo organizacional smoke trae 3 enlaces (agente, consumo, resultado).
+  await expect(page.getByTestId("tabla-enlaces-fila")).toHaveCount(3);
+
+  // Filtro por tipo deja una sola fila.
+  await page.getByTestId("tabla-enlaces-filtro").selectOption("consumo");
+  await expect(page.getByTestId("tabla-enlaces-fila")).toHaveCount(1);
+  const filaConsumo = page.getByTestId("tabla-enlaces-fila").first();
+  await expect(filaConsumo.getByTestId("tabla-enlaces-celda-tipo")).toHaveText("Consumo");
+  await expect(filaConsumo.getByTestId("tabla-enlaces-celda-origen")).toHaveText("Solicitud");
+  await expect(filaConsumo.getByTestId("tabla-enlaces-celda-destino")).toHaveText("Resolver solicitud");
+
+  // Edicion canonica de multiplicidad origen y destino.
+  await filaConsumo.getByTestId("tabla-enlaces-mult-origen-input").click();
+  await filaConsumo.getByTestId("tabla-enlaces-mult-origen-input").fill("1");
+  await filaConsumo.getByTestId("tabla-enlaces-mult-origen-input").press("Enter");
+  await filaConsumo.getByTestId("tabla-enlaces-mult-destino-input").click();
+  await filaConsumo.getByTestId("tabla-enlaces-mult-destino-input").fill("0..N");
+  await filaConsumo.getByTestId("tabla-enlaces-mult-destino-input").press("Tab");
+
+  // Quito el filtro y verifico que las 3 filas siguen ahi.
+  await page.getByTestId("tabla-enlaces-filtro").selectOption("todos");
+  await expect(page.getByTestId("tabla-enlaces-fila")).toHaveCount(3);
+
+  // Eliminacion con confirmacion: borro la agregacion organizacional (en realidad no hay, eliminemos la 'agente').
+  await page.getByTestId("tabla-enlaces-filtro").selectOption("agente");
+  const filaAgente = page.getByTestId("tabla-enlaces-fila").first();
+  await filaAgente.getByTestId("tabla-enlaces-eliminar").click();
+  await expect(filaAgente.getByTestId("tabla-enlaces-confirmar-eliminar")).toBeVisible();
+  // Cancelar primero — la fila sigue.
+  await filaAgente.getByTestId("tabla-enlaces-cancelar-eliminar").click();
+  await expect(page.getByTestId("tabla-enlaces-fila")).toHaveCount(1);
+  // Confirmar ahora.
+  await filaAgente.getByTestId("tabla-enlaces-eliminar").click();
+  await filaAgente.getByTestId("tabla-enlaces-confirmar-eliminar").click();
+
+  // Tras borrado, en el filtro "agente" no quedan filas.
+  await expect(page.getByTestId("tabla-enlaces-vacio")).toBeVisible();
+  await page.getByTestId("tabla-enlaces-filtro").selectOption("todos");
+  await expect(page.getByTestId("tabla-enlaces-fila")).toHaveCount(2);
+
+  // Verifico via JSON: el enlace agente desaparecio del modelo y la mult quedo persistida.
+  await page.getByTestId("tabla-enlaces-cerrar").click();
+  await page.getByRole("button", { name: "Exportar", exact: true }).click();
+  const json = await jsonEditor(page).inputValue();
+  const exportado = JSON.parse(json);
+  const enlaces = Object.values(exportado.modelo.enlaces) as Array<Record<string, unknown>>;
+  expect(enlaces.find((e) => e.tipo === "agente")).toBeUndefined();
+  const consumoFinal = enlaces.find((e) => e.tipo === "consumo");
+  expect(consumoFinal?.multiplicidadOrigen).toBe("1");
+  expect(consumoFinal?.multiplicidadDestino).toBe("0..N");
+
+  expect(pageErrors).toEqual([]);
+});
+
+test("workbench Beta1: ordenamiento por columna alterna ascendente/descendente", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await jsonEditor(page).fill(JSON.stringify(modeloEjemploOrganizacionalSmoke(), null, 2));
+  await page.getByRole("button", { name: "Importar" }).click();
+  await abrirTablaPorMenu(page);
+
+  const colTipo = page.getByTestId("tabla-enlaces-col-tipo");
+  await colTipo.click();
+  await expect(colTipo).toHaveAttribute("aria-sort", "ascending");
+  await colTipo.click();
+  await expect(colTipo).toHaveAttribute("aria-sort", "descending");
+
+  // El orden ascendente por tipo deja la primera fila en "Agente" (alfabético entre agente/consumo/resultado).
+  await colTipo.click();
+  await expect(colTipo).toHaveAttribute("aria-sort", "ascending");
+  await expect(page.getByTestId("tabla-enlaces-fila").first()
+    .getByTestId("tabla-enlaces-celda-tipo")).toHaveText("Agente");
+
+  expect(pageErrors).toEqual([]);
+});
+
+test("workbench Beta1: edicion de etiqueta persiste y la fila refleja el cambio sin reabrir", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await jsonEditor(page).fill(JSON.stringify(modeloEjemploOrganizacionalSmoke(), null, 2));
+  await page.getByRole("button", { name: "Importar" }).click();
+  await abrirTablaPorMenu(page);
+
+  await page.getByTestId("tabla-enlaces-filtro").selectOption("agente");
+  const fila = page.getByTestId("tabla-enlaces-fila").first();
+  const etiqueta = fila.getByTestId("tabla-enlaces-etiqueta-input");
+  await etiqueta.click();
+  await etiqueta.fill("inicia");
+  await etiqueta.blur();
+
+  await expect(etiqueta).toHaveValue("inicia");
+
+  // Verifico via JSON.
+  await page.getByTestId("tabla-enlaces-cerrar").click();
+  await page.getByRole("button", { name: "Exportar", exact: true }).click();
+  const exportado = JSON.parse(await jsonEditor(page).inputValue());
+  const agente = (Object.values(exportado.modelo.enlaces) as Array<Record<string, unknown>>)
+    .find((e) => e.tipo === "agente");
+  expect(agente?.etiqueta).toBe("inicia");
+
+  expect(pageErrors).toEqual([]);
+});
