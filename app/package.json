@@ -13,7 +13,8 @@
     "lint": "eslint src/ui/",
     "security:scan": "bun pm scan",
     "visual:audit": "node scripts/in-vivo-test.mjs",
-    "visual:deep": "node scripts/in-vivo-deep-checks.mjs"
+    "visual:deep": "node scripts/in-vivo-deep-checks.mjs",
+    "ux:eval": "bun run scripts/evaluacion-ux-permanente.mjs"
   },
   "dependencies": {
     "jointjs": "^3.7.7",
