@@ -194,6 +194,7 @@ export const typography = {
   weightHeavy: 800,
 } as const;
 
+<<<<<<< HEAD
 /* L3 ronda 20 — Biblioteca dock acoplable junto al árbol OPD.
  * Geometria del dock: alto inicial dentro del tree-pane (px) y limites
  * para el redimensionamiento via DivisorPanel horizontal. Citas brief
@@ -230,4 +231,47 @@ export const inspectorTabs = {
   panelGap: spacing.sm,
 } as const;
 
-export const tokens = { colors, spacing, radii, shadows, typography, bibliotecaDock, inspectorTabs } as const;
+/* L2 ronda 20 — severidades para editor OPL honesto (clasificador de edición). */
+/**
+ * Mapas semánticos consumidos por `EditorOplHonesto.tsx` para cada uno de los
+ * 4 grupos visuales (texto, reconocidas, aplicables, no-aplicables) y por la
+ * tipografía monoespaciada del textarea OPL libre. Reusan tokens existentes
+ * para no inventar paleta. Tokens-only, sin hex literales nuevos.
+ */
+export const editorOplHonesto = {
+  severidades: {
+    aplicable: {
+      bordeIzq: colors.exitoBase,
+      fondo: colors.exitoFondo,
+      texto: colors.exitoTexto,
+    },
+    noAplicable: {
+      bordeIzq: colors.alertaAmbar,
+      fondo: colors.advertenciaFondo,
+      texto: colors.alertaTexto,
+    },
+    sinCambio: {
+      bordeIzq: colors.bordeNeutral,
+      fondo: colors.fondoMuted,
+      texto: colors.textoTerciario,
+    },
+    ignorada: {
+      bordeIzq: colors.bordeSuave,
+      fondo: colors.fondoChrome,
+      texto: colors.textoDeshabilitado,
+    },
+  },
+  textareaMono: {
+    fontFamily: "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace",
+  },
+  contadorPill: {
+    fondoNeutro: colors.neutralBadge,
+    fondoExito: colors.exitoFondo,
+    fondoAlerta: colors.advertenciaFondo,
+    textoNeutro: colors.textoSecundario,
+    textoExito: colors.exitoTexto,
+    textoAlerta: colors.alertaTexto,
+  },
+} as const;
+
+export const tokens = { colors, spacing, radii, shadows, typography, bibliotecaDock, inspectorTabs, editorOplHonesto } as const;
