@@ -11,6 +11,8 @@ import {
   clickLinkPorIndice,
   clickLinkPorTipo,
   desplegarComoAgregacion,
+  irATabExtremos,
+  irATabRefinamiento,
   guardarComoActual,
   cargarPrimerModelo,
   assertWorkbenchLayout,
@@ -139,6 +141,8 @@ test("mover puerto desde dialogo cambia extremo destino del enlace", async ({ pa
   await page.getByRole("button", { name: "Importar" }).click();
 
   await clickLinkPorTipo(page, "Consumo");
+  // Ronda 20 L1: SeccionExtremos vive en tab `Extremos` del Inspector enlace.
+  await irATabExtremos(page);
   await page.getByTestId("mover-puerto-btn").click();
   const dialogo = page.getByRole("dialog", { name: "Mover Puerto" });
   await expect(dialogo).toBeVisible();
@@ -171,6 +175,8 @@ test("crea auto-invocacion desde Inspector con demora default", async ({ page })
 
   await page.goto("/");
   await page.getByRole("button", { name: "Proceso", exact: true }).click();
+  // Ronda 20 L1: Auto-invocación vive en el tab `Refinamiento` del Inspector.
+  await irATabRefinamiento(page);
   await expect(page.getByRole("button", { name: "Auto-invocación" })).toBeVisible();
 
   await page.getByRole("button", { name: "Auto-invocación" }).click();
@@ -292,6 +298,8 @@ test("arrastra subproceso embebido dentro del macroproceso contenedor", async ({
 
   await page.goto("/");
   await page.getByRole("button", { name: "Proceso", exact: true }).click();
+  // Ronda 20 L1: Descomponer vive en el tab `Refinamiento` del Inspector.
+  await irATabRefinamiento(page);
   await page.getByRole("button", { name: "Descomponer" }).click();
 
   await expect(page.locator('[role="treeitem"]').filter({ hasText: "SD1: Proceso descompuesto" })).toHaveAttribute("aria-current", "page");

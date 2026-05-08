@@ -146,7 +146,48 @@ export async function clickLinkPorTipo(page: import("@playwright/test").Page, ti
   throw new Error(`No se pudo seleccionar enlace ${tipo}`);
 }
 
+/**
+ * L1 ronda 20: el Inspector se reorganiza en tabs por intención. Las acciones
+ * de refinamiento (Descomponer, Desplegar, Plegado parcial, Auto-invocación,
+ * Quitar descomposición, Mostrar despliegue, Reasignar enlaces externos,
+ * Extraer todas las partes, etc.) viven ahora en el tab `Refinamiento`, que
+ * NO es default. Estos helpers garantizan que el tab esté activo antes de
+ * buscar el control esperado. El tab activo persiste por sesión vía store,
+ * así que llamar al helper varias veces es idempotente.
+ */
+export async function irATabRefinamiento(page: import("@playwright/test").Page): Promise<void> {
+  const tab = page.getByTestId("inspector-tab-refinamiento");
+  if ((await tab.count()) === 0) return;
+  await tab.click();
+}
+
+export async function irATabApariciones(page: import("@playwright/test").Page): Promise<void> {
+  const tab = page.getByTestId("inspector-tab-apariciones");
+  if ((await tab.count()) === 0) return;
+  await tab.click();
+}
+
+export async function irATabEstiloEntidad(page: import("@playwright/test").Page): Promise<void> {
+  const tab = page.getByTestId("inspector-tab-estilo");
+  if ((await tab.count()) === 0) return;
+  await tab.click();
+}
+
+export async function irATabExtremos(page: import("@playwright/test").Page): Promise<void> {
+  const tab = page.getByTestId("inspector-enlace-tab-extremos");
+  if ((await tab.count()) === 0) return;
+  await tab.click();
+}
+
+export async function irATabEstiloEnlace(page: import("@playwright/test").Page): Promise<void> {
+  const tab = page.getByTestId("inspector-enlace-tab-estilo");
+  if ((await tab.count()) === 0) return;
+  await tab.click();
+}
+
 export async function desplegarComoAgregacion(page: import("@playwright/test").Page): Promise<void> {
+  // Tab `Refinamiento` no es default; navegar antes de buscar "Desplegar como...".
+  await irATabRefinamiento(page);
   await page.getByText("Desplegar como...").click();
   await page.getByRole("button", { name: "Como partes (agregación)" }).click();
 }

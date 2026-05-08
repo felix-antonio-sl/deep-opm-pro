@@ -11,6 +11,9 @@ import {
   clickLinkPorIndice,
   clickLinkPorTipo,
   desplegarComoAgregacion,
+  irATabRefinamiento,
+  irATabExtremos,
+  irATabEstiloEntidad,
   guardarComoActual,
   cargarPrimerModelo,
   assertWorkbenchLayout,
@@ -52,6 +55,8 @@ test("descompone proceso y navega al OPD hijo", async ({ page }) => {
 
   await page.goto("/");
   await page.getByRole("button", { name: "Proceso", exact: true }).click();
+  // Ronda 20 L1: Descomponer vive en el tab `Refinamiento` (no default).
+  await irATabRefinamiento(page);
   await expect(page.getByRole("button", { name: "Descomponer" })).toBeVisible();
 
   await page.getByRole("button", { name: "Descomponer" }).click();
@@ -150,11 +155,14 @@ test("elimina desde arbol solo OPDs hoja y deshacer restaura", async ({ page }) 
 
   await page.goto("/");
   await page.getByRole("button", { name: "Proceso", exact: true }).click();
+  // Ronda 20 L1: Descomponer vive en el tab `Refinamiento`.
+  await irATabRefinamiento(page);
   await page.getByRole("button", { name: "Descomponer" }).click();
   const nodoPadre = page.locator('[role="treeitem"]').filter({ hasText: "SD1: Proceso descompuesto" });
   await expect(nodoPadre).toHaveAttribute("aria-current", "page");
 
   await elementoPorTexto(page, "Proceso 1").click();
+  await irATabRefinamiento(page);
   await page.getByRole("button", { name: "Descomponer" }).click();
   const nodoHoja = page.locator('[role="treeitem"]').filter({ hasText: "SD1.1: Proceso 1 descompuesto" });
   await expect(nodoHoja).toHaveAttribute("aria-current", "page");
@@ -182,6 +190,8 @@ test("crea objeto interno por click dentro del contenedor refinado", async ({ pa
 
   await page.goto("/");
   await page.getByRole("button", { name: "Proceso", exact: true }).click();
+  // Ronda 20 L1: Descomponer vive en el tab `Refinamiento`.
+  await irATabRefinamiento(page);
   await page.getByRole("button", { name: "Descomponer" }).click();
   await expect(page.locator('[role="treeitem"]').filter({ hasText: "SD1: Proceso descompuesto" })).toHaveAttribute("aria-current", "page");
 
@@ -219,6 +229,8 @@ test("despliega objeto y navega al OPD hijo", async ({ page }) => {
   await page.goto("/");
   await cerrarPantallaInicioSiVisible(page);
   await page.getByRole("button", { name: "Objeto", exact: true }).click();
+  // Ronda 20 L1: el menú "Desplegar como..." vive en el tab `Refinamiento`.
+  await irATabRefinamiento(page);
   await expect(page.getByText("Desplegar como...")).toBeVisible();
 
   await desplegarComoAgregacion(page);
@@ -262,6 +274,8 @@ test("despliega proceso desde inspector y navega al OPD hijo", async ({ page }) 
   await page.goto("/");
   await cerrarPantallaInicioSiVisible(page);
   await page.getByRole("button", { name: "Proceso", exact: true }).click();
+  // Ronda 20 L1: el menú "Desplegar como..." vive en el tab `Refinamiento`.
+  await irATabRefinamiento(page);
   await expect(page.getByText("Desplegar como...")).toBeVisible();
 
   await desplegarComoAgregacion(page);
@@ -313,14 +327,17 @@ test("ronda 15.2: una entidad acepta descomposicion + despliegue simultaneos y e
   await page.goto("/");
   await cerrarPantallaInicioSiVisible(page);
   await page.getByRole("button", { name: "Proceso", exact: true }).click();
-  // Descomponer (in-zoom)
+  // Descomponer (in-zoom). Ronda 20 L1: vive en tab `Refinamiento`.
+  await irATabRefinamiento(page);
   await page.getByRole("button", { name: "Descomponer" }).click();
   const nodoInzoom = page.locator('[role="treeitem"]').filter({ hasText: "SD1: Proceso descompuesto" });
   await expect(nodoInzoom).toHaveAttribute("aria-current", "page");
   // Volver a la raíz para desplegar
   await page.locator('[role="treeitem"][data-opd-id="opd-1"]').click();
   await elementoPorTexto(page, "Proceso").click();
-  // Desplegar (unfold) sin remover la descomposicion previa.
+  // Desplegar (unfold) sin remover la descomposicion previa. desplegarComoAgregacion
+  // ya navega al tab Refinamiento, pero el botón "Mostrar despliegue"/"Abrir descomposición"
+  // se valida abajo y requiere que el tab siga activo.
   await desplegarComoAgregacion(page);
   const nodoUnfold = page.locator('[role="treeitem"]').filter({ hasText: "SD2: Proceso desplegado" });
   await expect(nodoUnfold).toHaveAttribute("aria-current", "page");
@@ -359,6 +376,8 @@ test("activa plegado parcial desde Inspector y persiste la vista compacta", asyn
   await expect(page.locator(".joint-element")).toHaveCount(1);
   await elementoPorTexto(page, "Objeto").click();
 
+  // Ronda 20 L1: Plegado parcial/completo vive en el tab `Refinamiento`.
+  await irATabRefinamiento(page);
   await expect(page.getByRole("button", { name: "Plegado parcial" })).toBeVisible();
   await page.getByRole("button", { name: "Plegado parcial" }).click();
 
@@ -383,6 +402,8 @@ test("activa plegado parcial desde Inspector y persiste la vista compacta", asyn
   await cargarPrimerModelo(page);
   await expect(elementoPorTexto(page, "Objeto parte 1")).toHaveCount(1);
   await clickCabeceraElemento(page, "Objeto");
+  // Ronda 20 L1: el toggle Plegado completo/parcial vive en el tab `Refinamiento`.
+  await irATabRefinamiento(page);
   await expect(page.getByRole("button", { name: "Plegado completo" })).toBeVisible();
 
   await page.screenshot({ path: "test-results/opm-plegado-parcial.png", fullPage: true });
@@ -396,6 +417,8 @@ test("edita estilo visual de cosa, persiste local y resetea defaults", async ({ 
   await page.goto("/");
   await cerrarPantallaInicioSiVisible(page);
   await page.getByRole("button", { name: "Objeto", exact: true }).click();
+  // Ronda 20 L1: los swatches Fill/Borde viven en el tab `Estilo`.
+  await irATabEstiloEntidad(page);
   await expect(page.getByRole("button", { name: "Fill #fef3c7" })).toBeVisible();
 
   await page.getByRole("button", { name: "Fill #fef3c7" }).click();
@@ -420,6 +443,8 @@ test("edita estilo visual de cosa, persiste local y resetea defaults", async ({ 
   await expect(page.locator('.joint-element rect[joint-selector="body"]')).toHaveAttribute("stroke", "#3bc3ff");
 
   await elementoPorTexto(page, "Objeto").click();
+  // Ronda 20 L1: Reset Style vive en el tab `Estilo`.
+  await irATabEstiloEntidad(page);
   // Tras L6 ronda6 hay dos botones "Reset": uno para Style (apariencia) y otro
   // para texto del rotulo. El test apunta al de apariencia (Reset Style).
   await page.getByTitle("Reset Style").click();
@@ -451,6 +476,8 @@ test("crea enlace desde fila plegada sin extraer la parte", async ({ page }) => 
   await page.locator('[role="treeitem"][data-opd-id="opd-1"]').click();
   await expect(page.locator(".joint-element")).toHaveCount(2);
   await clickCabeceraElemento(page, "Objeto");
+  // Ronda 20 L1: Plegado parcial vive en el tab `Refinamiento`.
+  await irATabRefinamiento(page);
   await page.getByRole("button", { name: "Plegado parcial" }).click();
   await expect(elementoPorTexto(page, "Objeto parte 1")).toHaveCount(1);
 
@@ -485,8 +512,11 @@ test("mantiene canvas e inspector en columnas separadas tras recalculos", async 
 
   await page.goto("/");
   await page.getByRole("button", { name: "Proceso", exact: true }).click();
+  // Ronda 20 L1: Descomponer vive en el tab `Refinamiento`.
+  await irATabRefinamiento(page);
   await page.getByRole("button", { name: "Descomponer" }).click();
   await elementoPorTexto(page, "Proceso 1").click();
+  await irATabRefinamiento(page);
   await page.getByRole("button", { name: "Descomponer" }).click();
   await expect(page.locator('[role="treeitem"]').filter({ hasText: "SD1.1:" })).toHaveAttribute("aria-current", "page");
 
@@ -520,6 +550,8 @@ test("redistribuye consumo al primer subproceso y resultado al ultimo", async ({
   await expect(page.locator(".joint-link")).toHaveCount(2);
 
   await elementoPorTexto(page, "Procesar").click();
+  // Ronda 20 L1: Descomponer vive en el tab `Refinamiento`.
+  await irATabRefinamiento(page);
   await page.getByRole("button", { name: "Descomponer" }).click();
   await expect(page.locator('[role="treeitem"]').filter({ hasText: "SD1: Procesar descompuesto" })).toHaveAttribute("aria-current", "page");
   await expect(page.locator(".joint-element")).toHaveCount(6);
@@ -563,10 +595,14 @@ test("reancla consumo derivado y conserva el ancla manual al reordenar", async (
   await page.getByLabel("Tipo de enlace").selectOption("consumo");
   await elementoPorTexto(page, "Procesar").click();
   await elementoPorTexto(page, "Procesar").click();
+  // Ronda 20 L1: Descomponer vive en el tab `Refinamiento`.
+  await irATabRefinamiento(page);
   await page.getByRole("button", { name: "Descomponer" }).click();
   await expect(page.locator('[role="treeitem"]').filter({ hasText: "SD1: Procesar descompuesto" })).toHaveAttribute("aria-current", "page");
 
   await clickLinkPorTipo(page, "Consumo");
+  // Ronda 20 L1: SeccionReanclaje vive en el tab `Extremos` del Inspector enlace.
+  await irATabExtremos(page);
   await expect(page.getByText("Reanclar a subproceso")).toBeVisible();
   await page.getByTestId("reanclar-subproceso-select").selectOption({ label: "Procesar 2 (2)" });
   await page.getByRole("button", { name: "Aplicar" }).click();
@@ -615,10 +651,14 @@ test("L3 descomposicion avanzada: inspector reasigna, inline renombra, paralelo 
   await page.getByLabel("Tipo de enlace").selectOption("consumo");
   await elementoPorTexto(page, "Procesar").click();
   await elementoPorTexto(page, "Procesar").click();
+  // Ronda 20 L1: Descomponer vive en el tab `Refinamiento`.
+  await irATabRefinamiento(page);
   await page.getByRole("button", { name: "Descomponer" }).click();
   await expect(page.locator('[role="treeitem"]').filter({ hasText: "SD1: Procesar descompuesto" })).toHaveAttribute("aria-current", "page");
 
   await clickCabeceraElemento(page, "Procesar");
+  // Ronda 20 L1: ReasignacionExternos vive en el tab `Refinamiento`.
+  await irATabRefinamiento(page);
   await expect(page.getByText("Enlaces externos derivados")).toBeVisible();
   await page.getByTestId(/refinamiento-reasignar-/).selectOption({ label: "Procesar 2 (2)" });
   await page.getByRole("button", { name: "Reasignar" }).click();
@@ -645,6 +685,10 @@ test("L3 descomposicion avanzada: inspector reasigna, inline renombra, paralelo 
   const contorno = await elementoPorTexto(page, "Procesar").boundingBox();
   if (!contorno) throw new Error("No se pudo ubicar contorno para creacion ambiental");
   await page.mouse.click(contorno.x + contorno.width - 10, contorno.y + contorno.height - 10);
+  // Ronda 20 L1: el toggle Ambiental/Sistémica vive en SeccionEsenciaAfiliacion,
+  // dentro del tab `Semántica` (default). El tab persiste por sesión, así que
+  // volvemos explícitamente para seleccionar el botón "Ambiental".
+  await page.getByTestId("inspector-tab-semantica").click();
   await page.getByRole("button", { name: "Ambiental" }).click();
 
   await page.getByRole("button", { name: "Exportar", exact: true }).click();

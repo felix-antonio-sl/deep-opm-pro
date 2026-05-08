@@ -11,6 +11,7 @@ import {
   clickLinkPorIndice,
   clickLinkPorTipo,
   desplegarComoAgregacion,
+  irATabRefinamiento,
   guardarComoActual,
   cargarPrimerModelo,
   assertWorkbenchLayout,
@@ -344,6 +345,8 @@ test("extraer todas las partes plegadas crea apariencias en un solo undo", async
   await desplegarComoAgregacion(page);
   await page.locator('[role="treeitem"][data-opd-id="opd-1"]').click();
   await clickCabeceraElemento(page, "Objeto");
+  // Ronda 20 L1: Plegado parcial y "Extraer todas" viven en el tab `Refinamiento`.
+  await irATabRefinamiento(page);
   await page.getByRole("button", { name: "Plegado parcial" }).click();
   await page.getByTestId("extraer-todas-partes-btn").click();
 

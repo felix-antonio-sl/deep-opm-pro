@@ -11,6 +11,7 @@ import {
   clickLinkPorIndice,
   clickLinkPorTipo,
   desplegarComoAgregacion,
+  irATabRefinamiento,
   guardarComoActual,
   cargarPrimerModelo,
   assertWorkbenchLayout,
@@ -148,12 +149,15 @@ test("mapa del sistema: abre, muestra thumbnails, doble clic navega", async ({ p
   await page.getByRole("button", { name: "Proceso", exact: true }).click();
   // Asegurar que el proceso esta seleccionado para que "Descomponer" funcione
   await elementoPorTexto(page, "Proceso").click();
+  // Ronda 20 L1: el botón Descomponer vive en el tab `Refinamiento` del Inspector.
+  await irATabRefinamiento(page);
   await page.getByRole("button", { name: "Descomponer", exact: true }).click();
 
   // Esperar a que SD1 aparezca en el arbol; con el arbol expandido por
   // default, el nodo descompuesto es visible inmediatamente.
   await expect(page.locator('[role="treeitem"]').filter({ hasText: "SD1:" })).toHaveCount(1);
   await elementoPorTexto(page, "Proceso 1").click();
+  await irATabRefinamiento(page);
   await page.getByRole("button", { name: "Descomponer", exact: true }).click();
   await expect(page.locator('[role="treeitem"]').filter({ hasText: "SD1.1:" })).toHaveCount(1);
   // Verificar al menos 3 treeitems (Mapa + SD raiz + SD1)
@@ -233,7 +237,8 @@ test("arbol OPD: renombrado inline y expandir/colapsar funcionan", async ({ page
   await page.keyboard.press("Escape");
   await canvasPane.locator(".joint-element").first().click();
 
-  // Descomponer para crear SD1
+  // Descomponer para crear SD1 (ronda 20 L1: vive en tab Refinamiento).
+  await irATabRefinamiento(page);
   await page.getByRole("button", { name: "Descomponer", exact: true }).click();
 
   // Verificar que el árbol tiene nodos expandibles
