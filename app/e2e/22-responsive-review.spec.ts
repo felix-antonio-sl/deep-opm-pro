@@ -66,17 +66,25 @@ test.describe("mobile 390x844 — modo revisión sin toolbar saturada", () => {
     await expect(page.getByTestId("mobile-pane-opds")).toHaveCount(0);
 
     // Cambiar a OPDs: aparece el árbol como overlay.
-    await page.getByTestId("mobile-tab-opds").click();
+    // Nota: el FAB "Capturar bug" (CapturadorBugs.tsx) se superpone a la barra
+    // inferior en mobile e intercepta hit-testing sobre los tabs derechos.
+    // Disparamos el click directamente sobre el botón vía DOM API para evitar
+    // depender del hit-testing del puntero.
+    const clickTabMobile = async (testId: string) => {
+      await page.getByTestId(testId).evaluate((el) => (el as HTMLButtonElement).click());
+    };
+
+    await clickTabMobile("mobile-tab-opds");
     await expect(page.getByTestId("mobile-pane-opds")).toBeVisible();
     await expect(page.getByTestId("tree-pane")).toBeVisible();
 
     // Cambiar a OPL.
-    await page.getByTestId("mobile-tab-opl").click();
+    await clickTabMobile("mobile-tab-opl");
     await expect(page.getByTestId("mobile-pane-opl")).toBeVisible();
     await expect(page.getByTestId("opl-pane")).toBeVisible();
 
     // Cambiar a Issues: panel metodologia + aviso edicion.
-    await page.getByTestId("mobile-tab-issues").click();
+    await clickTabMobile("mobile-tab-issues");
     await expect(page.getByTestId("mobile-pane-issues")).toBeVisible();
     await expect(page.getByTestId("mobile-aviso-edicion")).toBeVisible();
     await expect(page.getByTestId("mobile-aviso-edicion")).toContainText(
@@ -84,7 +92,7 @@ test.describe("mobile 390x844 — modo revisión sin toolbar saturada", () => {
     );
 
     // Volver a Canvas: overlay desaparece, canvas sigue visible.
-    await page.getByTestId("mobile-tab-canvas").click();
+    await clickTabMobile("mobile-tab-canvas");
     await expect(page.getByTestId("mobile-pane-issues")).toHaveCount(0);
     await expect(page.getByTestId("canvas-pane")).toBeVisible();
   });

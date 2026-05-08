@@ -86,6 +86,8 @@ test("tab Apariciones lista OPDs y navega cross-OPD con un click", async ({ page
   await cerrarPantallaInicioSiVisible(page);
   await page.getByRole("button", { name: "Proceso", exact: true }).click();
   // Descomponer crea OPD hijo; el proceso aparece en el contorno del OPD hijo.
+  // Ronda 20 L1: Descomponer vive en el tab `Refinamiento` (no default).
+  await page.getByTestId("inspector-tab-refinamiento").click();
   await page.getByRole("button", { name: "Descomponer", exact: true }).click();
   // Tras la descomposición el OPD activo es el hijo (SD1). Volvemos a la raíz.
   await page.locator('[role="treeitem"][data-opd-id="opd-1"]').click();
