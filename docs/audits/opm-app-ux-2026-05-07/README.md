@@ -47,6 +47,17 @@ Todas las capturas estan en `docs/audits/opm-app-ux-2026-05-07/screenshots/`.
 - `44-mobile-390x844-toolbar-panels.png`, `45-tablet-768x1024-toolbar-panels.png`, `46-desktop-after-responsive-reset.png`: comportamiento responsive de barras y paneles.
 - `47-save-action-result.png`: modal de guardado local/versionado.
 - `48-main-menu-duplicate-action-attempt.png`, `49-main-menu-shortcuts-attempt-still-menu.png`, `50-assistant-click-before-dialog-paints.png`, `51-new-model-assistant-dialog.png`: navegacion por menu y asistente de nuevo modelo.
+- `53-ronda3-before-json-import.png`: estado previo a la importacion del modelo amplio.
+- `54-ronda3-imported-root-model.png`: JSON reconocido por la app antes de confirmar reemplazo del modelo activo.
+- `55-ronda3-loaded-root-sd.png`: modelo `App modeladora OPM deseada` cargado, con 8 OPDs visibles.
+- `56-ronda3-after-auto-layout-root.png`: auto-layout aplicado sobre el SD raiz.
+- `57-ronda3-library-large-model.png`: biblioteca lateral sobre modelo amplio.
+- `58-ronda3-navigate-sd1-1-kernel.png`: navegacion al refinamiento `SD1.1`.
+- `59-ronda3-navigate-sd2-app-unfold.png`: navegacion a despliegue estructural `SD2`.
+- `60-ronda3-sd2-unfold-without-library.png`: `SD2` sin biblioteca, mostrando componentes de la app.
+- `61-ronda3-select-app-object-filter-opl.png`: seleccion de `App modeladora OPM` con filtro OPL activo.
+- `62-ronda3-save-as-modal-large-model.png`: modal `Guardar como` para el modelo amplio.
+- `63-ronda3-saved-local-model.png`: modelo guardado localmente.
 
 ## Hallazgos
 
@@ -239,6 +250,93 @@ Recomendacion: definir dos modos: `Editar` desktop/tablet grande y `Revisar` mob
 La app ya tiene muchas piezas que un modelador avanzado necesita, pero estan distribuidas como inventario de funciones mas que como una mesa de trabajo. La barra superior intenta ser todo; el inspector intenta contener todo; OPL intenta ser texto, filtro, editor y futuro asistente IA. El resultado es rico, pero aun no sereno.
 
 El siguiente salto no es agregar mas botones. Es bajar la entropia: agrupar por intencion, distinguir semantica de vista, hacer que cada panel tenga una responsabilidad y dar a la descomposicion SD/OPD el lugar central que merece.
+
+## Tercera ronda: modelo amplio de la app deseada
+
+Artefacto: `ronda3-modelo-app-deseada/app-modeladora-opm-deseada.json`.
+
+Se construyo un modelo OPM amplio a partir de `docs/historias-usuario-v2`: 8 OPDs, 47 entidades, 3 estados y 49 enlaces. El modelo cubre el SD raiz de la app, la descomposicion operacional del proceso central, refinamientos SD1.1-SD1.4 y despliegues estructurales de la app y del payload del modelo. El runtime local lo hidrato correctamente y genero 135 sentencias OPL.
+
+Superficies ejercitadas en la app real:
+
+- Importacion JSON desde inspector.
+- Gate de cambios sin guardar.
+- Arbol OPD profundo.
+- Auto-layout.
+- Biblioteca lateral.
+- Panel OPL-ES con filtro por seleccion.
+- Validacion estructural/metodologica.
+- Guardado local.
+
+### H1 - La identidad del modelo sigue inconsistente hasta guardar
+
+Evidencia: `55-ronda3-loaded-root-sd.png`, `63-ronda3-saved-local-model.png`.
+
+Tras importar, el header mostro `App modeladora OPM deseada (No guardado)`, pero la pestana siguio como `Modelo (No guardado)`. Despues de guardar, la pestana adopto el nombre correcto.
+
+Impacto: el usuario queda en un estado ambiguo justo despues de una operacion de alto impacto como importar/reemplazar un modelo.
+
+Recomendacion: al importar un modelo valido, sincronizar inmediatamente header, pestana, metadata y estado dirty. Si el modelo no esta persistido, usar `App modeladora OPM deseada (No guardado)` en ambas superficies.
+
+### H2 - El arbol OPD soporta profundidad, pero aun no comunica suficiente estructura
+
+Evidencia: `55-ronda3-loaded-root-sd.png`, `58-ronda3-navigate-sd1-1-kernel.png`, `59-ronda3-navigate-sd2-app-unfold.png`.
+
+La app mostro correctamente SD, SD1, SD1.1-SD1.4, SD2 y SD3. Los badges de conteo ayudan, pero los nodos quedan muy comprimidos y el usuario no ve de inmediato si un nodo es in-zoom o unfold salvo por el icono/color y el label truncado.
+
+Impacto: en un modelo real, el arbol OPD es la arquitectura del sistema. Si se lee como lista compacta, baja la orientacion.
+
+Recomendacion: mostrar tipo de refinamiento con etiqueta textual breve (`Inzoom`, `Unfold`), nombre del proceso/objeto refinado y estado de validacion por OPD.
+
+### H2 - Auto-layout ordena, pero no hace fit-to-view
+
+Evidencia: `56-ronda3-after-auto-layout-root.png`.
+
+El auto-layout aplico cambios sobre el SD, pero el viewport quedo recortado y el usuario aun debe desplazarse para entender el resultado completo.
+
+Impacto: una accion de layout deberia terminar en lectura mejorada. Si no encuadra el modelo, se siente incompleta.
+
+Recomendacion: despues de auto-layout ejecutar `fit content` o mostrar una accion secundaria inmediata `encuadrar`.
+
+### H2 - La biblioteca escala en contenido, pero tapa el lienzo
+
+Evidencia: `57-ronda3-library-large-model.png`.
+
+Con 47 entidades, la biblioteca mostro apariciones por OPD y resulto util para orientacion. El costo sigue siendo el mismo: aparece como overlay sobre el canvas y compite con arbol, inspector y OPL.
+
+Impacto: en modelos medianos, la biblioteca deja de ser un popup auxiliar y pasa a ser navegacion estructural.
+
+Recomendacion: convertirla en panel acoplable o integrarla con el arbol OPD; mantener busqueda, apariciones y botones SD sin cubrir el canvas.
+
+### H2 - OPL filtrado por seleccion es una de las mejores herramientas de lectura
+
+Evidencia: `61-ronda3-select-app-object-filter-opl.png`.
+
+Al seleccionar `App modeladora OPM`, el OPL filtrado mostro sentencias relevantes en SD y SD1. El resultado fue muy util: conecta existencia, descripcion, despliegue y rol instrumental.
+
+Impacto: esta es una superficie de valor fuerte porque hace navegable un modelo amplio sin obligar a leer todo el OPL.
+
+Recomendacion: promover `Filtrar por seleccion` como modo de lectura principal y hacerlo mas visible cuando el modelo supera cierto tamano.
+
+### H2 - Cero avisos estructurales no equivale a buen modelo metodologico
+
+Evidencia: `55-ronda3-loaded-root-sd.png`, `63-ronda3-saved-local-model.png`.
+
+La verificacion estructural quedo en `0`, pero metodologia levanto 21 avisos. La mayoria son correctos: varios subprocesos internos describen capacidades de UI y no transformaciones con objeto afectado.
+
+Impacto: este contraste es sano, pero la UI debe dejar claro que hay dos niveles de calidad: validez estructural y calidad metodologica.
+
+Recomendacion: mostrar un resumen combinado: `Estructura: 0 bloqueos / Metodologia: 21 mejoras`, con severidad y proximo fix sugerido.
+
+### H3 - Guardar resuelve identidad, pero confirma que importar no lo hacia
+
+Evidencia: `62-ronda3-save-as-modal-large-model.png`, `63-ronda3-saved-local-model.png`.
+
+El modal `Guardar como` funciono bien, tomo el nombre correcto y despues del guardado la pestana se sincronizo.
+
+Impacto: la persistencia corrige una inconsistencia que ya deberia estar resuelta en memoria tras importar.
+
+Recomendacion: reutilizar la misma normalizacion de identidad del flujo de guardado al completar una importacion valida.
 
 ## Fortalezas observadas
 
