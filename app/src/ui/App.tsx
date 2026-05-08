@@ -274,6 +274,9 @@ function registrarAtajosAplicacion(): Array<() => void> {
     } }),
     registrarAtajo({ combo: "Ctrl+Tab", ctx: "global", categoria: "navegacion", descripcion: "Siguiente pestaña", handler: () => cambiarPestanaRelativa(1) }),
     registrarAtajo({ combo: "Ctrl+Shift+Tab", ctx: "global", categoria: "navegacion", descripcion: "Pestaña anterior", handler: () => cambiarPestanaRelativa(-1) }),
+    // L3 ronda 20: Ctrl+B abre/cierra la biblioteca dock acoplada bajo el árbol OPD.
+    // Verificado en atajosTeclado: combo libre. Decisión §10 brief: usamos Ctrl+B.
+    registrarAtajo({ combo: "Ctrl+B", ctx: "global", categoria: "vista", descripcion: "Abrir/cerrar biblioteca dock", handler: () => s().toggleBibliotecaDock() }),
   ];
 }
 
