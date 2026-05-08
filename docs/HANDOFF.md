@@ -1,10 +1,10 @@
-# HANDOFF — Corte post-Fase 0 UX (informe UI/UX 2026-05-07)
+# HANDOFF — Corte post-Ronda 19 / Fase 1 UX
 
 **Fecha**: 2026-05-08
 **Repositorio**: `deep-opm-pro`
 **Rama**: `main`
-**HEAD**: `a7dfce4`
-**Corte**: cierre de Fase 0 del informe UI/UX 2026-05-07. Identidad de modelo unificada, menús mutuamente excluyentes, AI Text como beta, bug capture color neutral, auto-layout con fit-to-view, "Tipos válidos" persistente al cambiar selección en canvas. Beta1 (ronda 16) ya estaba ejecutada; Fase 1 UX (ronda 19) está empacada como briefs paralelos pero **no ejecutada**.
+**HEAD**: `7d9db7a`
+**Corte**: Ronda 19 completa sobre el informe UI/UX 2026-05-07 Fase 1. Quedan integradas las 5 líneas: chip de persistencia visible, OPD tree como navegación primaria, toolbar agrupada por intención, issues metodológicos separados y modo enlace con feedback visible en canvas. Fase 0 ya estaba cerrada; Ronda 19 queda ejecutada y verificada.
 
 ## Política De Handoff Único
 
@@ -27,25 +27,46 @@ Regla viva: OPCloud operacionaliza OPM, pero no redefine la semantica. Antes de 
 
 ## Estado Ejecutivo
 
-`main` está en `a7dfce4`, **2 commits adelante de `origin/main`** (no pusheados todavía):
+`main` está en `7d9db7a`, **4 commits adelante de `origin/main`** (no pusheados todavía, según política vigente):
 
-1. **Fase 0 UX bundle** (`a7dfce4`): cierra P0-2..P0-6 del informe UI/UX 2026-05-07 + corrige bug derivado de duplicación de MenuPrincipal.
-2. **P0-1 identidad de modelo** (`f3e0ba4`): unifica etiqueta de pestaña con nombre real del modelo (header + pestaña + selector consistentes).
+1. **Ronda 19 / Fase 1 UX** (`7d9db7a`): completa toolbar agrupada por intención, árbol OPD con badges/conteos/issues, panel metodología por severidad, modo enlace con halos/highlights/drag y ajustes de smoke.
+2. **Chip persistencia** (`711bf00`): estado visible `Local/Importado/Fixture/Nuevo`, versiones, tiempo relativo y acción Guardar como.
+3. **Fase 0 UX bundle** (`a7dfce4`): cierra P0-2..P0-6 del informe UI/UX 2026-05-07 + corrige bug derivado de duplicación de MenuPrincipal.
+4. **P0-1 identidad de modelo** (`f3e0ba4`): unifica etiqueta de pestaña con nombre real del modelo (header + pestaña + selector consistentes).
 
-Loop verde sobre `main @ a7dfce4`:
+Loop verde sobre `main @ 7d9db7a`:
 
-- `bun run check` → **977 unit pass / 0 fail / 3880 expect()**
+- `bun run typecheck` → pass
+- `bun run test` → **1024 unit pass / 0 fail / 3968 expect()**
 - `bun run lint` → clean
-- `bun run build` → `index.js` 284 KB (gzip 75 KB)
-- `bun run browser:smoke` → **149 passed / 0 fail / 0 skipped** (cierra los 5 skips de TablaEnlaces y los 14 fallos preexistentes de Beta1)
-- Working tree limpio. Solo branch `main`. Cero worktrees auxiliares.
+- `bun run build` → `index-B8-scMqo.js` 304.12 KB / 80.35 KB gzip (`index.js` sigue bajo umbral ronda19 ≤320 KB)
+- `bun run browser:smoke` → **149 passed / 0 fail / 0 skipped**
+- Working tree con material no rastreado fuera de scope: `docs/instrucciones-lineas-dev/ronda20/` y `docs/instrucciones-lineas-dev/ronda21/`. No se incluyeron en Ronda 19.
 
 Próximas rondas disponibles:
 
-- **Ronda 19 / Fase 1 UX** (NUEVO): `docs/instrucciones-lineas-dev/ronda19/` — 5 líneas paralelas para el reordenamiento estructural del informe UI/UX (toolbar agrupada, modo enlace canvas, issues separados, OPD tree con badges, chip persistencia). **Diseñada pero no ejecutada**.
+- **Ronda 20 / Fase 2 UX**: Inspector + OPL como producto serio. Hay material no rastreado bajo `docs/instrucciones-lineas-dev/ronda20/`; revisar antes de versionar.
+- **Ronda 21 / continuidad**: material no rastreado bajo `docs/instrucciones-lineas-dev/ronda21/`; revisar origen/scope antes de usar.
 - **Ronda 17 / Beta2**: `docs/instrucciones-lineas-dev/ronda17/` — simulación conceptual + valores simples. **Diseñada pero no ejecutada**. Supone dominio ancla cerrado por Beta1.
 
 ## Memoria Consolidada Del Corte
+
+### Ronda 19 / Fase 1 UX (commits `711bf00` + `7d9db7a`)
+
+| Línea | Implementación | Verificación |
+|---|---|---|
+| **L5 Chip persistencia** | Nuevo `<ChipPersistencia />` en cluster Modelo. Muestra `Local`, `Importado`, `Fixture`, `Asistente` o `Nuevo`, versiones y tiempo relativo. Click abre Guardar como. `importarJson` ahora marca la pestaña activa como `importado`, para que el chip no quede en `Nuevo`. | `ChipPersistencia.test.ts`, smoke 01 import JSON actualizado |
+| **L4 OPD tree primario** | `ArbolOpd` usa labels claros (`Orden automático`, `Mostrar códigos`, `Más opciones`), badges `SD/Inzoom/Unfold`, conteos `o/p/e`, dot de issues, acciones inline y navegación al refinador. Lógica pura en `ui/arbol/badges.ts`. | `badges.test.ts`, smokes de árbol/mapa verdes |
+| **L1 Toolbar intención** | `ToolbarBase` expone clusters `Modelo`, `Modelar`, `Conectar`, `Vista`, `Validar`, `Ayuda` con `role=group`, `aria-label` y `data-slot`. `ToolbarCreacion` queda solo para conectar; Grid/Config/Auto-layout migran a Vista; Mapa queda en Validar. | `toolbarStyles.test.ts`, smoke 02 toolbar split, 12 overflow |
+| **L3 Issues separados** | `PanelMetodologia` agrupa issues en `Bloqueos estructurales`, `Mejoras metodológicas`, `Estilo/legibilidad`, con resumen y contexto visible de regla/razón/acción. Lógica pura en `panelMetodologiaIssues.ts`. | `panelMetodologiaIssues.test.ts`, smoke 11 validación |
+| **L2 Modo enlace canvas** | `canvas/modoEnlace.ts` evalúa destinos con `validarFirmaEnlace`; `handlers/modoEnlace.ts` pinta halo de origen, resalta destinos válidos, atenúa inválidos y permite drag origen→destino. Escape cancela modo enlace. `MenuTipoEnlace` muestra preview OPL inline persistente por hover/focus. | `modoEnlace.test.ts`, smokes de enlace/menú existentes verdes |
+
+Decisiones relevantes:
+
+- El feedback de modo enlace se aplica como estilo DOM sobre vistas JointJS, sin tocar la proyección del modelo ni los composers.
+- `validarFirmaEnlace` sigue siendo la única fuente de verdad para validez.
+- Los testids y aria-labels existentes se preservaron; los smokes se ajustaron solo donde cambió el contrato visible (persistencia por chip, mapa desde cluster Validar, ancla por texto visible en canvas).
+- `docs/instrucciones-lineas-dev/ronda20/` y `ronda21/` quedaron fuera del commit por estar fuera del scope de Ronda 19.
 
 ### Fase 0 UX (commits `f3e0ba4` + `a7dfce4`)
 
