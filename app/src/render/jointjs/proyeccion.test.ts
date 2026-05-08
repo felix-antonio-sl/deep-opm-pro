@@ -696,7 +696,7 @@ describe("proyeccion JointJS", () => {
     });
   });
 
-  test("proyecta extremo Estado al centro de la capsula interna", () => {
+  test("proyecta extremo Estado como sub-selector del cell padre (BUG-1fc4d2)", () => {
     let modelo = crearModelo();
     modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 80, y: 90 }, "Pedido"));
     modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 260, y: 90 }, "Aprobar"));
@@ -709,19 +709,23 @@ describe("proyeccion JointJS", () => {
     modelo = must(crearEnlace(modelo, modelo.opdRaizId, extremoEstado(pendiente.id), aprobarId, "consumo"));
 
     const cells = proyectarModeloAJointCells(modelo, modelo.opdRaizId, null, null);
-    const objetoCell = cells.find((item) => item.opm.kind === "entidad" && item.opm.entidadId === pedidoId);
     const enlaceCell = cells.find((item) => item.opm.kind === "enlace");
-    const attrs = objetoCell?.attrs as Attrs | undefined;
-    const stateLabel = attrs?.stateLabel0 as Attrs | undefined;
-    const apariencia = aparienciaDeEntidad(modelo, modelo.opdRaizId, pedidoId);
+    const aparienciaPedido = aparienciaDeEntidad(modelo, modelo.opdRaizId, pedidoId);
+    const aparienciaAprobar = aparienciaDeEntidad(modelo, modelo.opdRaizId, aprobarId);
 
+    // BUG-1fc4d2: el extremo a estado debe ser un endpoint id+selector, no un
+    // punto literal {x, y}. Esto permite que JointJS reposicione la flecha en
+    // cada drag del padre y que la linea termine en el sub-rect de la capsula.
     expect(enlaceCell?.source).toEqual({
-      x: apariencia.x + Number(stateLabel?.x),
-      y: apariencia.y + Number(stateLabel?.y),
+      id: aparienciaPedido.id,
+      selector: "stateCapsule0",
+      anchor: { name: "midSide" },
+      connectionPoint: { name: "boundary", args: { offset: 1 } },
     });
-    expect((enlaceCell?.target as { id?: string } | undefined)?.id).toBe(
-      aparienciaDeEntidad(modelo, modelo.opdRaizId, aprobarId).id,
-    );
+    expect((enlaceCell?.target as { id?: string } | undefined)?.id).toBe(aparienciaAprobar.id);
+    // BUG-1fc4d2: enlaces que tocan estado se proyectan en z=20 para quedar
+    // por encima del cell del Objeto contenedor (z=10) y no ocultos detras.
+    expect(enlaceCell?.z).toBe(20);
   });
 
   test("plegado parcial oculta capsulas de estado y conserva filas de partes", () => {

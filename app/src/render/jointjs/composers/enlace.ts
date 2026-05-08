@@ -5,17 +5,33 @@ import { modoPlegadoApariencia, partesDePlegado } from "../../../modelo/plegado"
 import type { Apariencia, Enlace, ExtremoEnlace, Id, Modelo, Posicion, TipoEnlace } from "../../../modelo/tipos";
 import { etiquetasRuta } from "../rutaLabels";
 import type { JointCellJson, OpmJointMetadata } from "../proyeccionTipos";
-import { puntoCapsulaEstado } from "./estados";
+import { selectorCapsulaEstado } from "./estados";
 import { etiquetaBadgeModificadorCanonico, marcadorDestino, marcadorFuente, marcadoresEstructurales, textoSubtipoModificador } from "./markers";
 
 /**
  * Composer de enlaces OPM: endpoints, etiquetas, rutas, vertices,
  * refinamientos estructurales sinteticos y proxies de plegado.
  * Consumidor: proyeccion.ts.
+ *
+ * BUG-1fc4d2 (estados): un enlace que apunta a un estado interno se resuelve
+ * via `endpoint.selectorEstado = "stateCapsuleN"` (sub-elemento del cell
+ * padre montado por composers/entidad.ts). El endpoint JointJS resultante es
+ * `{ id: aparienciaPadre, selector, anchor, connectionPoint }`, lo cual:
+ *   1. Termina la flecha en el sub-rect de la capsula (no en el bbox padre).
+ *   2. Reposiciona el extremo automaticamente en cada drag (id-based, no
+ *      punto literal {x,y}).
+ *   3. Permite subir el `z` del link a 20 (encima del padre con z=10) para
+ *      que la linea no quede oculta por el contorno del Objeto contenedor.
  */
 export interface EndpointVisual {
   apariencia: Apariencia;
   proxy?: { entidadId: Id; nombre: string };
+  selectorEstado?: string;
+  /**
+   * Mantenido como compat para callers historicos (busesAgregacion). No se
+   * popula en el flujo a-estado porque los enlaces a estado nunca pueden
+   * formar parte de un bus de agregacion (regla OPM).
+   */
   punto?: Posicion;
 }
 
@@ -29,8 +45,11 @@ export function resolverEndpointVisual(
   if (!entidadId) return null;
   const directa = aparienciaPorEntidad.get(entidadId);
   if (directa) {
-    const punto = extremo.kind === "estado" ? puntoCapsulaEstado(modelo, directa, extremo.id) : null;
-    return punto ? { apariencia: directa, punto } : { apariencia: directa };
+    if (extremo.kind === "estado") {
+      const target = selectorCapsulaEstado(modelo, directa, extremo.id);
+      return target ? { apariencia: directa, selectorEstado: target.selector } : { apariencia: directa };
+    }
+    return { apariencia: directa };
   }
   for (const apariencia of Object.values(opd.apariencias)) {
     if (modoPlegadoApariencia(apariencia) !== "parcial") continue;
@@ -100,6 +119,11 @@ export function proyectarEnlace(
   // (agregacion/exhibicion/...) tambien quedan 'straight' (cruzan triangulos
   // centrales, jumpover introduciria saltos artificiales).
   const connector = router ? connectorJumpover() : { name: "straight" };
+  // BUG-1fc4d2: cuando el enlace toca un estado, el path debe quedar por
+  // encima del bbox del padre (z=10) para que la flecha no se vea cortada
+  // por el contorno del Objeto contenedor. Resto de enlaces conservan z=1
+  // (debajo de los cells de entidad, layout natural JointJS).
+  const tocaEstado = !!origen.selectorEstado || !!destino.selectorEstado;
   return {
     id: aparienciaEnlaceId,
     type: "standard.Link",
@@ -130,7 +154,7 @@ export function proyectarEnlace(
       aparienciaEnlaceId,
       tipo: enlace.tipo,
     },
-    z: 1,
+    z: tocaEstado ? 20 : 1,
   };
 }
 
@@ -169,8 +193,28 @@ export function etiquetaProxyParte(text: string, distance: number): Record<strin
 }
 
 export function endpointJoint(endpoint: EndpointVisual): Record<string, unknown> {
+  if (endpoint.selectorEstado) return extremoEstado(endpoint.apariencia.id, endpoint.selectorEstado);
   if (endpoint.punto) return { x: endpoint.punto.x, y: endpoint.punto.y };
   return extremo(endpoint.apariencia.id);
+}
+
+/**
+ * BUG-1fc4d2: extremo de enlace que apunta a un sub-rect del cell padre
+ * (capsula de estado). JointJS resuelve `selector` contra el markup del cell;
+ * el anchor `midSide` aplica `getNodeBBox(magnet)` sobre ese sub-elemento
+ * (joint.core.js:28161-28197), por lo que la linea engancha al lado mas
+ * cercano de la capsula, no al bbox del Objeto contenedor. ConnectionPoint
+ * `boundary` corta la linea en el borde del rect de la capsula. El endpoint
+ * es id-based (no punto literal), por lo que JointJS lo reposiciona en
+ * cada drag/resize del padre sin intervencion del store.
+ */
+export function extremoEstado(id: Id, selector: string): Record<string, unknown> {
+  return {
+    id,
+    selector,
+    anchor: { name: "midSide" },
+    connectionPoint: { name: "boundary", args: { offset: 1 } },
+  };
 }
 
 export function etiquetasMultiplicidad(enlace: Enlace): Array<Record<string, unknown>> {

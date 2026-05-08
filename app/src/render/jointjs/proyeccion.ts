@@ -87,7 +87,10 @@ export function proyectarModeloAJointCells(
     const origen = resolverEndpointVisual(modelo, opd, aparienciaPorEntidad, enlace.origenId);
     const destino = resolverEndpointVisual(modelo, opd, aparienciaPorEntidad, enlace.destinoId);
     if (!origen || !destino) return [];
-    if (origen.proxy || destino.proxy || origen.punto || destino.punto) return [];
+    // BUG-1fc4d2: enlaces a estado (selectorEstado) tampoco entran al bus de
+    // agregacion — agregacion no puede conectar a estados (regla OPM) y aun
+    // si por error apareciera, el bus opera por endpoint cell-padre.
+    if (origen.proxy || destino.proxy || origen.punto || destino.punto || origen.selectorEstado || destino.selectorEstado) return [];
     return [{ enlace, aparienciaEnlaceId: aparienciaEnlace.id, origen, destino }];
   });
   const { busCells, enlacesConsumidos } = proyectarBusesAgregacion({

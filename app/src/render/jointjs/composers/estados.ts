@@ -64,6 +64,29 @@ export function puntoCapsulaEstado(modelo: Modelo, apariencia: Apariencia, estad
   };
 }
 
+/**
+ * BUG-1fc4d2: el extremo de un enlace que apunta a un estado debe resolverse
+ * como sub-selector del cell padre (no como punto literal {x,y}). El selector
+ * `stateCapsuleN` matchea con el sub-rect montado por composers/entidad.ts
+ * (markupConEstados/attrsConEstados). Devolver `null` cuando el estado no es
+ * visible en la apariencia (modo plegado parcial, suprimido, no encontrado)
+ * para que el caller fallback al endpoint del cell padre por id.
+ */
+export function selectorCapsulaEstado(
+  modelo: Modelo,
+  apariencia: Apariencia,
+  estadoId: Id,
+): { selector: string } | null {
+  const estado = modelo.estados[estadoId];
+  const entidad = estado ? modelo.entidades[estado.entidadId] : undefined;
+  if (!estado || !entidad) return null;
+  if (modoPlegadoApariencia(apariencia) === "parcial") return null;
+  const estados = estadosDeEntidad(modelo, entidad.id).filter((item) => !item.suprimido);
+  const index = estados.findIndex((item) => item.id === estadoId);
+  if (index < 0) return null;
+  return { selector: `stateCapsule${index}` };
+}
+
 export const ESTADOS = {
   capsuleHeight: 24,
   minWidth: 52,
