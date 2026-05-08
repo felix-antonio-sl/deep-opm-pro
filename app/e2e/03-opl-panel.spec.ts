@@ -101,6 +101,8 @@ test("panel OPL aplica edicion libre con preview y propaga al canvas", async ({ 
   await page.getByTestId("panel-opl-editar-libre").click();
   await page.getByTestId("panel-opl-editor-textarea").fill("**Cliente** es un objeto físico y ambiental.");
   await expect(page.getByTestId("panel-opl-editor-preview")).toContainText("renombrar Entrada -> Cliente");
+  // L2 ronda 20: el editor honesto incluye conteo en el botón "Aplicar".
+  await expect(page.getByTestId("panel-opl-editor-aplicar")).toContainText(/Aplicar \d+ cambio/);
   await page.getByTestId("panel-opl-editor-aplicar").click();
 
   await expect(elementoPorTexto(page, "Cliente")).toHaveCount(1);
