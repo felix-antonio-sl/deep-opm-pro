@@ -1,0 +1,34 @@
+# BUG-20260508T013631Z-a0dc5f
+
+**Creado**: 2026-05-08T01:36:31.000Z
+
+## Texto
+
+el autolayout es horrible. puedes buscar en opm-extracted como se hace en opcloud y a partir de ahi mejoralo.
+
+## Screenshots
+
+- [screenshots/01-cleanshot-2026-05-07-at-21.35.55.jpg](screenshots/01-cleanshot-2026-05-07-at-21.35.55.jpg)
+
+## Contexto
+
+```json
+{
+  "modeloId": "modelo-1",
+  "modeloNombre": "Prestamo Bibliotecario",
+  "opdActivoId": "opd-40",
+  "opdActivoNombre": "SD2",
+  "seleccionEntidadId": null,
+  "seleccionEnlaceId": null,
+  "pestanaActivaId": "pestana-mow8gnny-8u2jz4z2",
+  "vistaMapaActiva": false,
+  "url": "http://138.201.53.205:5173/",
+  "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36",
+  "viewport": {
+    "width": 1920,
+    "height": 963,
+    "devicePixelRatio": 1
+  },
+  "capturedAt": "2026-05-08T01:35:56.453Z"
+}
+```
