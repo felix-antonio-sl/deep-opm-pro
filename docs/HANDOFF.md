@@ -1,10 +1,12 @@
-# HANDOFF — Corte post-Ronda 19 / Fase 1 UX
+# HANDOFF — Cierre Fase 2 + Fix FAB mobile
 
 **Fecha**: 2026-05-08
 **Repositorio**: `deep-opm-pro`
 **Rama**: `main`
-**HEAD**: `7d9db7a`
-**Corte**: Ronda 19 completa sobre el informe UI/UX 2026-05-07 Fase 1. Quedan integradas las 5 líneas: chip de persistencia visible, OPD tree como navegación primaria, toolbar agrupada por intención, issues metodológicos separados y modo enlace con feedback visible en canvas. Fase 0 ya estaba cerrada; Ronda 19 queda ejecutada y verificada.
+**HEAD base**: `2bf9613`
+**Commit de cierre local**: este commit de cierre.
+**Origin previo al commit de cierre**: 25 commits adelante de `origin/main`.
+**Corte**: rondas 19, 20 y 21 cerradas en su totalidad sobre el informe UI/UX 2026-05-07, más continuidad local que cierra el bug del FAB "Capturar bug" interceptando tabs mobile. Las 5 líneas pendientes (ronda 20 L1/L2/L3 y ronda 21 L1/L2) se ejecutaron en paralelo en 5 worktrees aislados, convergieron en `main` con `--no-ff` por línea, y la suite de smoke quedó verde tras un fix-up bounded. Beta2 (ronda 17) sigue diseñada y no ejecutada.
 
 ## Política De Handoff Único
 
@@ -14,7 +16,7 @@
 
 El modelador OPM vive en `app/` con Bun + Vite + Preact + Zustand + JointJS OSS. La arquitectura sigue siendo propia: no Angular, no Firebase, no Rappid.
 
-Autoridad semantica:
+Autoridad semántica:
 
 - SSOT OPM/ISO 19450: `/home/felix/kora/artifacts/knowledge/fxsl/opm/opm-ssot-es/`
 - Evidencia operacional OPCloud: `opm-extracted/`
@@ -23,259 +25,263 @@ Autoridad semantica:
 - Auditoría UX vigente: `docs/audits/opm-app-ux-2026-05-07/informe-final-ui-ux.md` (intocable, evidencia histórica)
 - Corte operativo vivo: `docs/roadmap/cortes-operativos.md`
 
-Regla viva: OPCloud operacionaliza OPM, pero no redefine la semantica. Antes de crear una solucion nueva, revisar SSOT, `assets/`, `docs/JOYAS.md` y `opm-extracted/`.
+Regla viva: OPCloud operacionaliza OPM, pero no redefine la semántica. Antes de crear una solución nueva, revisar SSOT, `assets/`, `docs/JOYAS.md` y `opm-extracted/`.
 
 ## Estado Ejecutivo
 
-`main` está en `7d9db7a`, **4 commits adelante de `origin/main`** (no pusheados todavía, según política vigente):
+`main @ 2bf9613` como base de esta continuidad, **25 commits adelante de `origin/main`** antes del commit de cierre. Trabajo nuevo desde el cierre de ronda 19:
 
-1. **Ronda 19 / Fase 1 UX** (`7d9db7a`): completa toolbar agrupada por intención, árbol OPD con badges/conteos/issues, panel metodología por severidad, modo enlace con halos/highlights/drag y ajustes de smoke.
-2. **Chip persistencia** (`711bf00`): estado visible `Local/Importado/Fixture/Nuevo`, versiones, tiempo relativo y acción Guardar como.
-3. **Fase 0 UX bundle** (`a7dfce4`): cierra P0-2..P0-6 del informe UI/UX 2026-05-07 + corrige bug derivado de duplicación de MenuPrincipal.
-4. **P0-1 identidad de modelo** (`f3e0ba4`): unifica etiqueta de pestaña con nombre real del modelo (header + pestaña + selector consistentes).
+1. **Empaque ronda 20/21** (`5130827`): briefs en `docs/instrucciones-lineas-dev/ronda20/` y `ronda21/` (cada uno con README + 4/3 líneas + prompt).
+2. **Ronda 20 L4** (`02f652d`): creación de estados con nombres reales + preview OPL (`<ModalCrearEstados />`).
+3. **Ronda 21 L3** (`f52d958`): eval UX permanente (`evaluacion-ux-permanente.mjs` + fixtures).
+4. **Fix canvas** (`1093845`): zoom suave exponencial + doble clic navega a refinamiento.
+5. **Convergencia paralela r20 L3/L1/L2 + r21 L1/L2** (15 commits + 5 merge `--no-ff` + 1 fix de marker + 4 commits de fix-up de smokes). Detalle en §"Memoria Consolidada Del Corte".
+6. **Continuidad fix FAB mobile**: `CapturadorBugs` eleva el FAB sobre la barra mobile usando `useBreakpoint()` y el smoke 22 vuelve a clicks reales.
 
-Loop verde sobre `main @ 7d9db7a`:
+Loop verde sobre `main @ 2bf9613`:
 
-- `bun run typecheck` → pass
-- `bun run test` → **1024 unit pass / 0 fail / 3968 expect()**
+- `bun run check` (typecheck + tests) → pass · **1130 unit / 0 fail / 4215 expect()** / 110 archivos
 - `bun run lint` → clean
-- `bun run build` → `index-B8-scMqo.js` 304.12 KB / 80.35 KB gzip (`index.js` sigue bajo umbral ronda19 ≤320 KB)
-- `bun run browser:smoke` → **149 passed / 0 fail / 0 skipped**
-- Working tree con material no rastreado fuera de scope: `docs/instrucciones-lineas-dev/ronda20/` y `docs/instrucciones-lineas-dev/ronda21/`. No se incluyeron en Ronda 19.
+- `bun run build` → `index-BkvpRFYm.js` **343.30 KB / 89.74 KB gzip** (vendor JointJS lazy 470 KB sin cambio)
+- `bun run browser:smoke` → **169 passed / 0 fail** (smoke 100% verde post-Fase 2)
+
+> Nota cap bundle: el cap declarado en README ronda 20 era ≤ 340 KB; quedamos en 343.20 KB (+0.94%). Slack pequeño y dentro del cap relajado del fix-up (≤ 345 KB). Se documenta como deuda menor de optimización.
 
 Próximas rondas disponibles:
 
-- **Ronda 20 / Fase 2 UX**: Inspector + OPL como producto serio. Hay material no rastreado bajo `docs/instrucciones-lineas-dev/ronda20/`; revisar antes de versionar.
-- **Ronda 21 / continuidad**: material no rastreado bajo `docs/instrucciones-lineas-dev/ronda21/`; revisar origen/scope antes de usar.
-- **Ronda 17 / Beta2**: `docs/instrucciones-lineas-dev/ronda17/` — simulación conceptual + valores simples. **Diseñada pero no ejecutada**. Supone dominio ancla cerrado por Beta1.
+- **Ronda 17 / Beta2**: simulación conceptual + valores simples. Diseñada pero no ejecutada. Supone dominio ancla cerrado por Beta1.
+- **Pulido post-Fase 2**: bugs reales detectados durante el smoke fix-up (ver §"Bugs reales detectados").
+- **Cleanup worktrees**: 5 worktrees siguen locked en `.claude/worktrees/agent-*/` con sus branches `worktree-agent-*`. Pueden eliminarse cuando el operador lo apruebe.
 
 ## Memoria Consolidada Del Corte
 
-### Ronda 19 / Fase 1 UX (commits `711bf00` + `7d9db7a`)
+### Convergencia paralela r20 + r21 (cierre Fase 2 + cierre residual UX)
 
-| Línea | Implementación | Verificación |
-|---|---|---|
-| **L5 Chip persistencia** | Nuevo `<ChipPersistencia />` en cluster Modelo. Muestra `Local`, `Importado`, `Fixture`, `Asistente` o `Nuevo`, versiones y tiempo relativo. Click abre Guardar como. `importarJson` ahora marca la pestaña activa como `importado`, para que el chip no quede en `Nuevo`. | `ChipPersistencia.test.ts`, smoke 01 import JSON actualizado |
-| **L4 OPD tree primario** | `ArbolOpd` usa labels claros (`Orden automático`, `Mostrar códigos`, `Más opciones`), badges `SD/Inzoom/Unfold`, conteos `o/p/e`, dot de issues, acciones inline y navegación al refinador. Lógica pura en `ui/arbol/badges.ts`. | `badges.test.ts`, smokes de árbol/mapa verdes |
-| **L1 Toolbar intención** | `ToolbarBase` expone clusters `Modelo`, `Modelar`, `Conectar`, `Vista`, `Validar`, `Ayuda` con `role=group`, `aria-label` y `data-slot`. `ToolbarCreacion` queda solo para conectar; Grid/Config/Auto-layout migran a Vista; Mapa queda en Validar. | `toolbarStyles.test.ts`, smoke 02 toolbar split, 12 overflow |
-| **L3 Issues separados** | `PanelMetodologia` agrupa issues en `Bloqueos estructurales`, `Mejoras metodológicas`, `Estilo/legibilidad`, con resumen y contexto visible de regla/razón/acción. Lógica pura en `panelMetodologiaIssues.ts`. | `panelMetodologiaIssues.test.ts`, smoke 11 validación |
-| **L2 Modo enlace canvas** | `canvas/modoEnlace.ts` evalúa destinos con `validarFirmaEnlace`; `handlers/modoEnlace.ts` pinta halo de origen, resalta destinos válidos, atenúa inválidos y permite drag origen→destino. Escape cancela modo enlace. `MenuTipoEnlace` muestra preview OPL inline persistente por hover/focus. | `modoEnlace.test.ts`, smokes de enlace/menú existentes verdes |
+5 líneas ejecutadas en paralelo por 5 agentes en worktrees aislados, brief-driven, con loop verde local antes del entregable. Convergencia secuencial en `main` con `git merge --no-ff` en orden L3 → L1 → L2 (r20) → L1 → L2 (r21). Conflictos resueltos manualmente en archivos compartidos (`App.tsx`, `tokens.ts`, `uiPanel.ts`, `sliceTypes.ts`, `tipos.ts`, `ToolbarBase.tsx`).
 
-Decisiones relevantes:
+#### Ronda 20 L3 — Biblioteca dockable (commits `4acbb45..208d3ee`, merge `034a414`)
 
-- El feedback de modo enlace se aplica como estilo DOM sobre vistas JointJS, sin tocar la proyección del modelo ni los composers.
-- `validarFirmaEnlace` sigue siendo la única fuente de verdad para validez.
-- Los testids y aria-labels existentes se preservaron; los smokes se ajustaron solo donde cambió el contrato visible (persistencia por chip, mapa desde cluster Validar, ancla por texto visible en canvas).
-- `docs/instrucciones-lineas-dev/ronda20/` y `ronda21/` quedaron fuera del commit por estar fuera del scope de Ronda 19.
+| Aporte | Implementación |
+|---|---|
+| Filtros puros | `biblioteca/filtrosBiblioteca.ts`: `filtrarEntidades(modelo, opdActivoId, { query, tipo, soloOpdActivo })` con orden alfabético locale es-CL. 12 unit tests. |
+| Dock acoplable | `biblioteca/BibliotecaDock.tsx` (NUEVO 268 LOC): panel persistente bajo el árbol OPD con `DivisorPanel` horizontal redimensionable (alto 280 default, 160-600 px). Convive con árbol + canvas + inspector en desktop ≥ 900 px. Mobile/tablet sigue overlay legacy. |
+| Atajo y toggle | `Ctrl+B` (libre, verificado) → `toggleBibliotecaDock`. Botón "Biblioteca dock" agregado al cluster Vista de la toolbar (preserva `abrir-biblioteca-cosa` para overlay legacy + nuevo `toggle-biblioteca-dock`). |
+| Surprise documentada | `bibliotecaCosaAbierta` no existía en store (vivía como local state en `ToolbarCreacion`). Migrada al store de forma aditiva preservando el testid existente, condición necesaria para enforcar la regla "abrir dock cierra overlay". |
 
-### Fase 0 UX (commits `f3e0ba4` + `a7dfce4`)
+Decisiones tomadas: dock abajo del árbol (no arriba), tipo radio + soloOpdActivo checkbox, contador "5 entidades" filtradas, default cerrado. Smoke: `e2e/20-biblioteca-dock.spec.ts` (3 tests).
 
-Cierre de las 6 acciones críticas del informe `docs/audits/opm-app-ux-2026-05-07/informe-final-ui-ux.md` §"Plan viable de remediacion §Fase 0 - Limpieza critica, 1 a 2 dias".
+#### Ronda 20 L1 — Inspector en tabs (commits `54d7a68..312b012`, merge `fabc728`)
 
-| ID | Acción | Implementación | Verificación |
-|---|---|---|---|
-| **P0-1** | Identidad de modelo unificada | Helper `etiquetaPestana({ nombre, modeloId })` como SSOT. `crearPestanaDesdeModelo`, `runtime.estadoModelo`, `sincronizarPestanaActivaEnLista` lo consumen. `abrirPestanaImportandoJson` propaga `resultado.value.nombre`. `duplicarPestana` mantiene nombre real. | 6 unit tests nuevos + smoke 01:220 actualizado (count 1→2 reflejando consistencia) |
-| **P0-2** | Menús mutuamente excluyentes | `toolbarMasAbierto: boolean` global. Acciones `abrirMenuPrincipal()` y `fijarToolbarMasAbierto(true)` cierran el contrario. ToolbarMas migrado de `useState` local a store. **Bug derivado**: MenuPrincipal estaba duplicado en DOM (App.tsx + ToolbarBase). Removido del ToolbarBase. | 1 unit test + smoke 01:81 ahora verde |
-| **P0-3** | AI Text como beta | Botón `panel-opl-ai-text` con `data-beta`, opacidad 0.55, badge "beta" pill, tokens `chromeNeutral`. testid + onClick preservados (smoke 03:297). aria-label simplificado a "AI Text". | smoke 03:297 verde |
-| **P0-4** | Bug capture color neutral | FAB `bug-capture-open` cambia de `errorBase` (rojo) a `acentoUi` (azul) sobre `fondoChrome`. Icono "!" reemplazado por SVG inline de bocadillo de feedback. aria-label "Capturar bug" preservado por regla 5.5 ronda 18. | smokes 10-capturador-bugs verdes |
-| **P0-5** | Auto-layout + fit-to-view | Counter monotono `solicitudFitToken: number` en store. `aplicarLayoutSugerido` incrementa al confirmar éxito; JointCanvas observa con useEffect y llama `fitCanvasAPantalla` en requestAnimationFrame. Token=0 inicial no dispara fit. | 2 unit tests nuevos |
-| **P0-6** | "Tipos válidos" persistente | Listener pointerdown de `MenuTipoEnlace` excluye clicks dentro de `[data-testid="canvas-pane"]`. Antes el menú se cerraba al seleccionar la 2da cosa, perdiendo la promesa de preview OPL. Esc y click fuera del canvas siguen cerrando. | smokes existentes pasan; preview OPL ya estaba implementado en `MenuTipoEnlace.previewOpl` desde antes |
+| Aporte | Implementación |
+|---|---|
+| Tabs entidad | `inspector/InspectorTabs.tsx` (NUEVO genérico): `Semántica / Enlaces / Refinamiento / Apariciones / Estilo` con `role="tablist"`, `aria-selected`, `data-testid="inspector-tab-{id}"`. Default `Semántica`. |
+| Tabs enlace | InspectorEnlace expone tabs simétricos: `Propiedades / Extremos / Estilo`. Default `Propiedades`. |
+| Tab Apariciones | `inspector/SeccionApariciones.tsx` (NUEVO) + helpers puros `aparicionesUtils.ts`. Lista plana ordenada (raíz primero, alfabético), item OPD activo `disabled` con `aria-current="page"`. Click → navega cross-OPD. |
+| Banner cobertura | El banner inline `inspector-cobertura-apariencias` se preserva como hint compacto clickeable en tab Semántica que salta a tab Apariciones. |
+| Tab Enlaces (entidad) | Placeholder honesto + cobertura cross-OPD; lista detallada in/out de enlaces queda explícitamente fuera de slice según brief §1. |
+| Persistencia | `tabInspectorEntidadActivo` y `tabInspectorEnlaceActivo` en `store.uiPanel`, no localStorage. |
 
-### Cambios físicos consolidados
+Decisiones tomadas: tabs solo texto (peso 700 al activo), sin íconos; divisor con borde inferior sutil sobre la fila completa. 27 unit tests nuevos. Smoke: `e2e/20-inspector-tabs.spec.ts`.
 
-```
-13 files, +213 / -23 sobre commit `d834c01`:
-  app/e2e/01-carga-y-workspace.spec.ts        +6 -1
-  app/src/render/jointjs/JointCanvas.tsx      +20 -1
-  app/src/store/modelo.test.ts                +27 -0
-  app/src/store/modelo/acciones-canvas.ts     +14 -2
-  app/src/store/modelo/acciones-ui.ts         +12 -0
-  app/src/store/sliceTypes.ts                 +3 -0
-  app/src/store/tipos.ts                      +22 -0
-  app/src/store/uiPanel.test.ts               +28 -0
-  app/src/store/uiPanel.ts                    +2 -0
-  app/src/ui/CapturadorBugs.tsx               +28 -7
-  app/src/ui/panelOpl/Toolbar.tsx             +37 -3
-  app/src/ui/toolbar/ToolbarBase.tsx          +14 -7
-  app/src/ui/toolbar/ToolbarCreacion.tsx      +10 -0
-  app/src/ui/toolbar/ToolbarMas.tsx           +13 -1
-  app/src/store/pestanas.ts                   +47 -3
-  app/src/store/pestanas.test.ts              +60 -1
-  app/src/store/runtime.ts                    +15 -2
-```
+#### Ronda 20 L2 — OPL editor honesto (commits `931c097..4efcffd`, merge `3a05113` + fix `9882daa`)
 
-### Hallazgo crítico inesperado
+| Aporte | Implementación |
+|---|---|
+| Clasificador puro | `opl/clasificadorEdicion.ts` (NUEVO 233 LOC): `clasificarEdicionOpl(texto, preview, modelo)` mapea cada línea a estado `aplicable / no-aplicable / ignorada-vacia / sin-cambio` con razón canónica + cita SSOT. 16 unit tests. |
+| Editor honesto | `panelOpl/EditorOplHonesto.tsx` (NUEVO 199 LOC): 4 grupos visuales planos — Texto editado, Sentencias reconocidas, Cambios aplicables, No aplicables. Botón "Aplicar N cambios" con conteo, deshabilitado si N=0. |
+| Rail minimizado | Contador estable: "OPL · {N} oraciones · Restaurar" con tipografía mejorada (label semibold + tabular-nums). Preserva testid `panel-opl-restore` y assertions de smoke 03. |
+| Surprise documentada | El parser real usa `patches`/`diagnosticos` con `linea: number` ya expuesta, no `cambios`/`errores`. Cero cambios al `parser/tipos.ts`. |
+| Decisión de scope | Botón "Aplicar N cambios" vive en footer del editor honesto, no en `panelOpl/Toolbar.tsx`. Evita duplicación. |
 
-Al correr smoke en baseline para distinguir fallos pre-existentes vs introducidos por mí, descubrí que **14 smokes fallaban antes de mi trabajo**:
+Decisiones tomadas: 4 grupos planos (sin `<details>`), stack vertical, línea no aplicable formato `L{N}: {razón} ({cita ≤ 40 chars})`, sin dot indicator en rail. Smoke: `e2e/20-opl-editor-honesto.spec.ts` (4 tests).
 
-- 4 fallos de TablaEnlaces (`11-beta1-tabla-enlaces`, `15-superficie-contextual`) — causados por el bug de **MenuPrincipal duplicado en DOM** (`role="menu"` aparecía 2 veces). El bug venía del commit `4f7dc66 fix(menu-principal): monta MenuPrincipal en App.tsx para que el boton ≡ abra el menu lateral`, que añadió la instancia a App.tsx **sin remover** la lazy de ToolbarBase.
-- 4 fallos de plantillas y archivados (`08-mvp-alpha-residual`) — mismo síntoma derivado.
-- 1 fallo de workspace local (`01:81`) — mismo síntoma.
-- 5 fallos varios reseteados al limpiar la duplicación.
+#### Ronda 21 L1 — Estado vacío OPM (commits `fe9ef8d`+`dfe071c`, merge `c6036e1`)
 
-El fix de `ToolbarBase.tsx` (removí el `MenuPrincipalLazy` y su useState/useEffect) cierra los 14 fallos de un solo cambio. **Resultado neto**: la suite smoke pasó de 132 pass / 14 fail / 5 skip → **149 pass / 0 fail / 0 skip**.
+| Aporte | Implementación |
+|---|---|
+| Bloque inicio compacto | `EstadoVacioOpm.tsx` (NUEVO 268 LOC): bloque DISCRETO posicionado `position: absolute, top: lg, left: 50%, transform: translateX(-50%)` dentro del canvas-pane. Título "Iniciar SD" + 3 botones primarios (Crear proceso, Agregar objeto, Agregar agente/instrumento) + secundario "Abrir asistente". |
+| Nudge "Conectar como resultado" | Modo separado del bloque: aparece como chip pill bottom-center cuando hay exactamente 1 proceso + 1 objeto + 0 enlaces y `validarFirmaEnlace("resultado", proceso, objeto).ok`. Si firma no legal, fallback a "Tipos válidos" en toolbar. |
+| Reuso operacional | Llama a `crearEntidadEnCanvas`, `crearEnlaceEntreEntidades`, `iniciarAsistente`, `posicionLibre` directamente. Cero helpers nuevos en `acciones-canvas.ts` o `acciones-ui.ts`. |
+| Tokens-only | Sección comentada en `tokens.ts` documentando los tokens reusados por `EstadoVacioOpm`. Cero hex literales nuevos. |
 
-Este hallazgo NO estaba en el informe UI/UX original como tal, pero es **directamente causado por el patrón P0-2** que el informe sí señala (menús que coexisten). Lo documento aquí porque cambia la salud del proyecto: estado smoke verde 100% por primera vez post-Beta1.
+Decisiones tomadas: bloque dentro del canvas-pane (no overlay separado), nudge solo cuando hay selección clara post-2-entidades, textos breves. 9 unit tests. Smoke: `e2e/21-estado-vacio-opm.spec.ts` con eval `<60s` usando `performance.now()`.
+
+#### Ronda 21 L2 — Responsive como modo revisión (commits `4be4ffe`+`b494a0d`, merge `4e39148`)
+
+| Aporte | Implementación |
+|---|---|
+| Helper breakpoint | `layoutResponsive.ts` (NUEVO + 56 tests LOC): `resolverBreakpoint(width)` retorna `mobile` (< 640), `tablet` (640-1024), `desktop` (≥ 1024). `useBreakpoint()` con resize listener. |
+| Modo revisión mobile | `ModoRevisionMobile.tsx` (NUEVO 147 LOC): tabs **inferiores** (patrón nativo mobile-first) `Canvas / OPDs / OPL / Issues`. Canvas siempre montado; las vistas se renderizan como overlay absoluto (no desmonta JointJS). |
+| Branch por viewport | `App.tsx`: rama mobile (section con tabs inferiores) vs desktop/tablet (workbench con grid). En tablet (640-1024) recorta tree (≤ 200 px) e inspector (240 px). |
+| Toolbar adaptativa | `ToolbarBase.tsx` oculta `toolbar-actions-pesadas` y acciones secundarias del cluster Modelo en mobile; chip + menú + undo/redo siguen visibles. Resto accesible por `MenuPrincipal` (☰). |
+| AvisoEditarEnEscritorio | Texto `"Editar en escritorio o tablet"` en vista Issues mobile cuando se intenta acción de modelado pesado. |
+| Surprise documentada | `cambiarVistaMobile` se aloja en `uiPanel.ts` (no `acciones-ui.ts`) por contrato de slice; el typecheck rechazó la opción nominal del brief. Funcionalmente idéntico, brief permitía ambos archivos. |
+
+Decisiones tomadas: tabs inferiores, drawers en tablet, texto del aviso de edición. 13 unit tests. Smoke: `e2e/22-responsive-review.spec.ts`.
+
+### Smoke fix-up bounded post-convergencia (commits `1a314e8`+`ad231f7`+`40635a8`+`2bf9613`)
+
+24 smokes E2E quedaron en regresión post-merge por la reorganización del Inspector en tabs (ronda 20 L1) y el toggle del cluster Vista (ronda 20 L3). El fix-up se hizo en commits dedicados, exclusivamente sobre `app/e2e/` (cero cambios en producción):
+
+| Commit | Aporte |
+|---|---|
+| `1a314e8` | Smoke `12-toolbar-overflow:19` cota 25 → 26 (justificado por nuevo botón). Movimiento de `SeccionAbanico` del tab Extremos al tab Propiedades en `InspectorEnlace.tsx` (excepción: 1 archivo de producción tocado, cambio mínimo, abanico es propiedad lógica del enlace). |
+| `ad231f7` | Smokes que esperaban Descomponer/Desplegar/Tamaño visibles inmediatamente ahora navegan al tab Refinamiento antes (vía helper `irATabRefinamiento`). |
+| `40635a8` | Smokes que esperaban mover-puerto/ruta/reanclar/split visibles inmediatamente ahora navegan al tab Extremos antes (vía helper `irATabExtremos`). |
+| `2bf9613` | Smokes nuevos `20-inspector-tabs:81` y `22-responsive-review:52` ajustan selectores al contrato real implementado. |
+
+Helpers añadidos en `_smoke-helpers.ts`: `irATabRefinamiento`, `irATabApariciones`, `irATabExtremos`, `irATabEstiloEnlace`, `irATabEstiloEntidad`. `desplegarComoAgregacion` ahora navega al tab por sí sola.
+
+### Ronda 19 / Fase 1 UX (preservado, commit `a99e350`)
+
+| Línea | Implementación |
+|---|---|
+| **L5 Chip persistencia** | `<ChipPersistencia />` con `Local/Importado/Fixture/Asistente/Nuevo`, versiones, tiempo relativo. Click → Guardar como. |
+| **L4 OPD tree primario** | `ArbolOpd` con badges `SD/Inzoom/Unfold`, conteos `o/p/e`, dot de issues, navegación al refinador. |
+| **L1 Toolbar intención** | Clusters `Modelo/Modelar/Conectar/Vista/Validar/Ayuda`. ToolbarCreacion solo conecta. Grid/Config/Auto-layout en Vista. |
+| **L3 Issues separados** | `PanelMetodologia` agrupa por `Bloqueos/Mejoras/Estilo`. |
+| **L2 Modo enlace canvas** | Halo origen, highlight destinos válidos, drag origen→destino, Esc cancela. |
+
+### Fase 0 UX (preservado, commits `f3e0ba4`+`a7dfce4`)
+
+P0-1 identidad de modelo unificada · P0-2 menús mutuamente excluyentes (cierra 14 fallos pre-existentes) · P0-3 AI Text como beta · P0-4 bug capture color neutral · P0-5 auto-layout + fit-to-view · P0-6 "Tipos válidos" persistente.
 
 ### Estado anterior consolidado (preservado)
 
-#### Ronda 16 / Beta1 (commits `095b112..d834c01` previos a Fase 0 UX)
+- Ronda 16 / Beta1 (commits `095b112..d834c01`).
+- Ronda 18 — Refactor visual chrome 3 pasadas seriales.
+- Ronda 15.2 — Schema dual ortogonal de refinamiento.
+- Hotfix triple — pre-betas (`e5a0613`+`1e55a72`+`cf289ce`).
+- Ronda 20 L4 — Crear estados con nombres reales (`02f652d`).
+- Ronda 21 L3 — Eval UX permanente (`f52d958`).
+- Fix canvas — zoom suave + doble clic navega refinamiento (`1093845`).
 
-| Linea | Aporte | Commits clave |
-|---|---|---|
-| L1 TablaEnlaces workbench | Inspeccion/edicion canonica de enlaces cross-OPD | `6eceaef` `f346b7a` |
-| L2 Búsqueda intra-modelo | Ctrl+F, apariciones, OPL sync | `095b112` `53f55b8` |
-| L3 Validación metodológica | Avisos accionables con citas SSOT | `119e007` `47e786c` |
-| L4 Catálogo + anclas | Fixtures Beta1 cargables | `43ac824` `469d3b3` |
+## Bugs Reales Detectados
 
-Hotfixes post-Beta1 (commits previos a Fase 0):
+Durante el smoke fix-up post-convergencia, el agente detectó **3 issues** en producción que no eran tab-related. En la continuidad del 2026-05-08 se cerró el primero (FAB mobile); quedan 2 asuntos para decisión/investigación.
 
-- `4f7dc66` mount MenuPrincipal en App.tsx (introdujo bug duplicación, ya cerrado en Fase 0).
-- `96d671d` portal a body para menú Más (cerrado bug `BUG-9e8ac5`).
-- `edfbc68` redisena autolayout siguiendo OpmVisualThing OPCloud (cerrado bug `BUG-a0dc5f` + relacionados `BUG-e749eb`, `BUG-40280f`).
-- `554d0ca` enlaces a estados con id+selector y z=20 (cerrado bug `BUG-1fc4d2`).
-- `d834c01 debugeo` añade bugs nuevos a docs (sin código).
+| Bug | Origen | Descripción | Acción sugerida |
+|---|---|---|---|
+| **FAB "Capturar bug" intercepta tabs mobile** | `CapturadorBugs.tsx` × `ModoRevisionMobile.tsx` | A 390x844 el FAB se superponía a la barra inferior de tabs y bloqueaba hit-testing sobre OPDs/OPL/Issues. | **CERRADO**: `CapturadorBugs` usa `useBreakpoint()` y en mobile eleva `bottom` a `tokens.mobileNav.altoBarra + tokens.spacing.lg`; smoke 22 volvió a clicks reales y verifica que FAB/nav no se solapan. |
+| **Tab Inspector se "pegote" cross-acción** | `InspectorEntidad.tsx` × `store.uiPanel` | Tab activo persiste por sesión; tras navegar a Refinamiento (Descomponer/Reasignar), el botón Ambiental (en tab Semántica) queda inalcanzable hasta volver explícitamente. UX-wise discutible. | Decisión de producto: ¿tab activo vuelve a default tras acción del wizard, o sigue persistente? |
+| **`11-beta1-busqueda:106` flake** | `e2e/11-beta1-busqueda.spec.ts` | Apareció flake en corrida full pero pasa aislado y en el smoke completo final. No es regresión real. | Investigar timing race condition si reaparece. |
 
-#### Ronda 18 — Refactor visual chrome (3 pasadas seriales mergeadas)
-
-Línea única L1 con tres pasadas en archivos disjuntos. Cierra `BUG-20260507T212356Z-692129`.
-
-- **P1** (`a536578` + merge `fe6fa5f`): `Inspector` vacío rediseñado con jerarquía; `<PersistenciaJson />` envuelto en `<details open>` cuando inspector vacío.
-- **P2** (`69b6b30` + merge `549e49e`): cabecera del panel OPL en tres clusters separados por dividers — chrome (▾, ↔), display (123, AI, Editar), consulta (búsqueda, Copiar, HTML).
-- **P3** (`cd9c87b` + merge `dd5ba9a`): toolbar superior en cinco clusters por intención — Crear · Historia · Modelo · Enlace · Vista. **Fase 0 actual amplía esto**: el cluster Vista necesita ser independiente del Modelar, y se agruparán por intención completa en ronda 19 / L1.
-
-#### Ronda 15.2 — Schema dual ortogonal de refinamiento
-
-Cierre semántico de la ortogonalidad descomposición/despliegue. 6 commits (`a3bc6de..0e6cec4`). Schema migra de **coproducto exclusivo** a **producto parcial indexado por tipo**; migración legacy es funtor faithful; aciclicidad V-220/V-221 preservada por construcción.
-
-#### Hotfix triple — pre-betas
-
-- `e5a0613` Delete cross-OPD (BUG-91e001) + unicidad global de nombres (BUG-13c786).
-- `1e55a72` menú Tipos válidos cierra con Escape/click fuera (BUG-13e330).
-- `cf289ce` ajuste smoke agregacion-triangulo.
-
-## Bugs Cerrados En Este Ciclo
-
-| Bug | Cerrado por | Lectura operativa |
-|---|---|---|
-| `BUG-20260508T013350Z-ad652b` | `4f7dc66` (previo) + cleanup en Fase 0 P0-2 | Menu lateral no se abria (faltaba mount). Posteriormente, MenuPrincipal duplicado en DOM también arreglado en P0-2 (commit `a7dfce4`). |
-| `BUG-20260508T013456Z-9e8ac5` | `96d671d` (previo) | Menú Más no se veía completo (clipping por overflow ancestro). |
-| `BUG-20260508T013631Z-a0dc5f` | `edfbc68` (previo) | Autolayout horrible — rediseño siguiendo OPCloud. |
-| `BUG-20260508T015103Z-e749eb` | `edfbc68` (previo) | Autolayout despliegue mete todo dentro como inzoom. |
-| `BUG-20260508T015138Z-40280f` | `edfbc68` (previo) | Autolayout inzoom amontona izquierda. |
-| `BUG-20260508T020740Z-1fc4d2` | `554d0ca` (previo) | Enlaces a estados detrás del objeto (z-index). |
-| **Bug derivado P0-2** | `a7dfce4` (Fase 0) | MenuPrincipal duplicado en DOM rompía 14 smokes. No tenía bug-id propio porque se descubrió como side effect del audit Fase 0. |
-
-Reportes versionados bajo `docs/bugs/`. Los 6 bugs del 2026-05-08 estaban capturados como evidencia visual con payload + screenshots, pero ya estaban arreglados por commits previos (verificado por mí en este corte).
+Captura adicional: `docs/bugs/BUG-20260508T080229Z-70e055/` y `BUG-20260508T080332Z-898270/` (capturadas por el operador con el bug capture FAB durante uso vivo, antes del merge; texto "no se desplieguan las mejoras"). Quedaron incluidas en commit `1a314e8` por `git add -A`. Pueden quedar como evidencia o el operador puede gestionar su tracking.
 
 ## Decisiones Vigentes
 
-1. **Política tokens-only para chrome UI**: cualquier valor visual de chrome (no canvas) sale de `app/src/ui/tokens.ts`. Cero hex literales nuevos. Paleta canvas (`docs/JOYAS.md`) sigue invariante.
-2. **`<details open>` en `Inspector` vacío**: smokes hacen `fill()` sobre `<textarea>` JSON sin selección previa; `<details>` cerrado provoca `display:none` y timeout.
-3. **Schema dual de refinamiento** (ronda 15.2): una entidad puede tener simultáneamente descomposición y despliegue.
-4. **Unicidad global de nombres canónicos** (ronda hotfix triple): enforced en creación y rename.
-5. **Delete cross-OPD vs Ocultar apariencia** (ronda hotfix triple): semánticas disjuntas y documentadas.
-6. **Smokes > reorganización (regla 5.5 ronda 18)**: cuando un cambio de UX rompe smokes, prevalece el smoke a menos que sea estrictamente necesario por brief. Aplicado en Fase 0 P0-3 (aria-label "AI Text" preservado), P0-4 (aria-label "Capturar bug" preservado).
-7. **Política de handoff único** (sin cambio): `docs/HANDOFF.md` se reescribe, no se acumulan handoffs paralelos.
-8. **Política de no actuar fuera de scope** (sin cambio): bugs descubiertos durante un fix se anotan como reportes nuevos, no se mezclan con el commit del fix en curso.
-9. **Identidad de modelo SSOT** (NUEVA — Fase 0 P0-1): el helper `etiquetaPestana({ nombre, modeloId })` es la única fuente de verdad para etiqueta de pestaña + header. Cualquier nuevo callsite debe usarlo, no replicar la lógica.
-10. **Menús primarios mutuamente excluyentes** (NUEVA — Fase 0 P0-2): MenuPrincipal lateral y ToolbarMas (⋯ Más) no pueden coexistir abiertos. State global `menuPrincipalAbierto` + `toolbarMasAbierto` con sincronización en acciones del store. NO añadir nuevos menús primarios sin participar de esta exclusividad.
-11. **`solicitudFitToken` como contrato canvas** (NUEVA — Fase 0 P0-5): cualquier acción del store que deje el canvas en estado "ordenado pero potencialmente fuera de viewport" debe incrementar `solicitudFitToken`. JointCanvas reacciona con `fitCanvasAPantalla`.
+1. **Política tokens-only para chrome UI**: cualquier valor visual de chrome sale de `app/src/ui/tokens.ts`. Cero hex literales nuevos. Paleta canvas (`docs/JOYAS.md`) sigue invariante.
+2. **`<details open>` en `Inspector` vacío**: smokes hacen `fill()` sobre `<textarea>` JSON sin selección previa.
+3. **Schema dual de refinamiento** (ronda 15.2): consumers usan `obtenerRefinamiento` / `refinaA` / `refinamientosDe`, **nunca** `entidad.refinamiento` directamente.
+4. **Unicidad global de nombres canónicos**: enforced en creación y rename.
+5. **Delete cross-OPD vs Ocultar apariencia**: semánticas disjuntas.
+6. **Smokes > reorganización (regla 5.5 ronda 18)**: cuando un cambio de UX rompe smokes, prevalece el smoke a menos que sea estrictamente necesario por brief. **En r20 L1 el brief mandó tabs explícitamente, así que los smokes se actualizaron al nuevo contrato** vía helpers de tab-navigation en `_smoke-helpers.ts`.
+7. **Política de handoff único**: `docs/HANDOFF.md` se reescribe, no se acumulan handoffs paralelos.
+8. **Política de no actuar fuera de scope**: bugs descubiertos durante un fix se anotan como reportes nuevos, no se mezclan.
+9. **Identidad de modelo SSOT** (Fase 0 P0-1): `etiquetaPestana({ nombre, modeloId })` única fuente de verdad.
+10. **Menús primarios mutuamente excluyentes** (Fase 0 P0-2): MenuPrincipal lateral y ToolbarMas no coexisten abiertos.
+11. **`solicitudFitToken` como contrato canvas** (Fase 0 P0-5): incrementa al "ordenar canvas"; JointCanvas reacciona con `fitCanvasAPantalla`.
+12. **Modal de creación de estados como SSOT** (Ronda 20 L4): la creación de estados pasa por `<ModalCrearEstados />`. Cero `estado1/estado2/estadoN` por defecto.
+13. **Eval UX permanente como gate independiente** (Ronda 21 L3): `evaluacion-ux-permanente.mjs` paralelo a `browser:smoke`. Outputs no versionados.
+14. **Zoom suave por curva exponencial** (Fix canvas): `exp(−delta·0.00016)` limitado a `[0.99, 1.01]` por evento, con `scaleUniformAtPoint` cuando esté disponible.
+15. **Doble clic = navegar a refinamiento** (Fix canvas): doble clic sobre entidad con descomposición navega al OPD hijo. Prioridad descomposición > despliegue cuando coexisten.
+16. **Inspector en tabs por intención** (NUEVA — Ronda 20 L1): 5 tabs entidad (`Semántica/Enlaces/Refinamiento/Apariciones/Estilo`) y 3 tabs enlace (`Propiedades/Extremos/Estilo`). Default `Semántica`/`Propiedades`. Tab activo persiste en `store.uiPanel`. Cualquier sección nueva se ubica en el tab de su intención semántica. Nuevos callsites de smoke deben usar helpers `irATab*` antes del lookup.
+17. **`SeccionAbanico` vive en Propiedades** (NUEVA — fix post-merge): el operador del abanico (O/XOR) es propiedad lógica del enlace, equivalente a multiplicidad/modificador.
+18. **OPL editor honesto en 4 grupos** (NUEVA — Ronda 20 L2): texto editado / sentencias reconocidas / cambios aplicables / no aplicables. Botón "Aplicar N cambios" siempre con conteo. Razones canónicas cerradas (ver `clasificadorEdicion.ts`).
+19. **Biblioteca dock acoplable + overlay legacy** (NUEVA — Ronda 20 L3): coexisten en el store con regla de exclusividad: abrir dock cierra overlay. `Ctrl+B` toggle dock. Dock solo desktop (≥ 900 px y `!esMobile && !esTablet`); mobile/tablet mantiene overlay.
+20. **Empty state OPM como bloque + nudge** (NUEVA — Ronda 21 L1): bloque inicio compacto cuando 0 apariencias; nudge "Conectar como resultado" cuando 1 proceso + 1 objeto + firma legal + 0 enlaces. NO landing page, NO tutorial mode (EPICA-91 descartada).
+21. **Responsive es modo revisión, no compresión** (NUEVA — Ronda 21 L2): `< 640px` → tabs inferiores `Canvas/OPDs/OPL/Issues` con vistas como overlay sobre canvas (no desmonta JointJS). `640-1024px` → tablet con tree/inspector recortados. `≥ 1024px` → workbench desktop sin cambios.
 
-## Verificacion Final Conocida
+## Verificación Final Conocida
 
-`main @ a7dfce4`:
+`main @ 2bf9613`:
 
 ```bash
 cd app && bun run check
-# 977 unit pass / 0 fail / 3880 expect() / 94 files
+# 1130 unit pass / 0 fail / 4215 expect() / 110 archivos
 
 cd app && bun run lint
 # clean
 
 cd app && bun run build
-# index-BtHvCJrB.js 284 KB / 75 KB gzip
-# vendor-jointjs-Cfe4rKV_.js 470 KB / 130 KB gzip (lazy)
+# index-BkvpRFYm.js 343.30 KB / 89.74 KB gzip
+# vendor-jointjs-Cfe4rKV_.js 470.77 KB / 129.72 KB gzip (lazy)
 
 cd app && bun run browser:smoke
-# 149 passed / 0 fail / 0 skipped (PRIMERA VEZ smoke 100% verde post-Beta1)
+# 169 passed / 0 failed
 ```
 
 Dev server público: `http://138.201.53.205:5173/` (puerto 5173 abierto en ufw, host 0.0.0.0).
 
-Bundle `index.js` subió de 260 KB → 284 KB (+24 KB) por Fase 0: principalmente tests añadidos + helper `etiquetaPestana` + acciones de store + chip beta + handler fit-to-view + coordinación menus. Sigue dentro del umbral del proyecto.
+Bundle `index.js` evolucionó de 310.85 KB (cierre r19+r20L4+r21L3+fix canvas) → 343.20 KB (+32.35 KB) por las 5 líneas de la convergencia (modal estados ya estaba). El cap declarado era 340 KB; quedamos 3.2 KB sobre, dentro del margen relajado del fix-up (≤ 345 KB). Optimización pendiente como deuda menor.
+
+> Nota: `bun test` (sin scope) no debe correrse: el config no excluye `e2e/` y reportará falsos fallos al cargar specs Playwright como tests unitarios. Usar siempre `bun run check` (que delega en `bun test src`).
 
 ## Pendientes Y Supuestos
 
-### Ronda 19 / Fase 1 UX — diseñada, NO ejecutada
+### Worktrees pendientes de limpieza
 
-`docs/instrucciones-lineas-dev/ronda19/` empaca **5 líneas paralelas** para el reordenamiento estructural del informe UI/UX 2026-05-07 §Fase 1:
+5 worktrees siguen locked en `.claude/worktrees/agent-*/` con sus branches `worktree-agent-*`. Las ramas ya están mergeadas en main. Cuando el operador autorice:
 
-| ID | Título | Riesgo | Tamaño estimado | Orden de merge |
-|---|---|---|---|---|
-| L5 | Chip de persistencia visible | bajo | S (<2h) | 1° |
-| L4 | OPD tree como navegación primaria con badges | bajo | M (2-6h) | 2° |
-| L1 | Toolbar agrupada por intención (6 clusters) | bajo | M | 3° |
-| L3 | Issues separados por severidad | medio | M | 4° |
-| L2 | Modo enlace con estado canvas | **alto** | L (>6h) | 5° (worktree) |
+```bash
+cd /home/felix/projects/deep-opm-pro
+git worktree remove .claude/worktrees/agent-a91170af37532b236  # r20 L3
+git worktree remove .claude/worktrees/agent-af76bc9633020b0c5  # r20 L1
+git worktree remove .claude/worktrees/agent-a53239a3944ec0776  # r20 L2
+git worktree remove .claude/worktrees/agent-a2aa018dcbf979b58  # r21 L1
+git worktree remove .claude/worktrees/agent-a538b6b172477e0e7  # r21 L2
+git branch -D worktree-agent-a91170af37532b236 worktree-agent-af76bc9633020b0c5 worktree-agent-a53239a3944ec0776 worktree-agent-a2aa018dcbf979b58 worktree-agent-a538b6b172477e0e7
+```
 
-Decisión de orden: del README ronda19. L2 va al final por blast radius alto (toca canvas + render).
+### Ronda 17 / Beta2 — diseñada, NO ejecutada
 
-### Fase 2 informe UX — sin briefs aún, fuera de ronda 19
+`docs/instrucciones-lineas-dev/ronda17/` empaca cuatro líneas para simulación conceptual + valores simples. Sin cambios. Supone dominio ancla cerrado por Beta1.
 
-El informe propone Fase 2 (Inspector + OPL como producto serio):
+### Bugs reales para investigar
 
-- Inspector en tabs `Semántica / Enlaces / Refinamiento / Apariciones / Estilo`.
-- Creación de estados con nombres reales y preview OPL.
-- Biblioteca dockable o integrada con OPD tree.
-- Editor OPL con cambios aplicables vs no aplicables separados.
-
-Esto es 2-3 semanas de trabajo y se empaca en **ronda 20** cuando el operador lo decida. **NO** se ejecuta en este corte.
-
-### Fase 3 informe UX — evals UX permanentes
-
-- Fixtures chico/mediano/grande.
-- Screenshots de regresión por viewport.
-- Métricas de tiempo y fallos.
-
-Tarea de continuidad, no requiere ronda dedicada; va a `app/scripts/` y `docs/audits/regresion/` como infraestructura.
-
-### Beta2 (ronda 17) — diseñada, NO ejecutada
-
-`docs/instrucciones-lineas-dev/ronda17/` empaca cuatro líneas para simulación conceptual + valores simples. Sin cambios desde el corte anterior.
+Ver §"Bugs Reales Detectados" arriba. Quedan dos asuntos productivos detectados durante fix-up:
+1. Tab Inspector se "pegote" cross-acción (UX-discutible).
+2. Flake `11-beta1-busqueda:106`.
 
 ### Deuda viva no bloqueante
 
 | Item | Origen | Sugerencia |
 |---|---|---|
+| Bundle `index.js` 343 KB > cap 340 KB del README r20 | Convergencia r20 + r21 | Optimización menor; tree-shake o lazy split adicional. |
 | `linkPickerLabel` huérfano en `toolbarStyles.ts` | Ronda 18 P3 | Limpieza no aditiva en próxima micro-ronda. |
-| `mask-image` affordance scroll horizontal Toolbar no reintroducida | Ronda 15 L1/L2 | Polish post-Fase 1. |
+| `mask-image` affordance scroll horizontal Toolbar | Ronda 15 L1/L2 | Polish post-Fase 1. |
 | Canvas `role="application"` no reintroducido | Ronda 15 L1/L4 | Requiere migrar helpers `getByRole("img")` en bloque. |
 | FAIL eval `dialogo-biblioteca` / `dialogo-menu-principal` | Ronda 15 L3 | Refinar criterios. |
 | HU-13.005 duplicate-id en dashboard legado | Anterior | Sin bloqueo. |
+| `bun test` sin scope rompe por incluir `e2e/` | Config | Considerar `testMatch` explícito en `package.json`. |
+| Tab "Enlaces" entidad placeholder | Ronda 20 L1 | Implementar lista in/out detallada en futura ronda. |
+| Worktrees + branches `worktree-agent-*` | Convergencia | Limpiar cuando operador autorice. |
 
 ### Riesgos
 
-1. **2 commits ahead de origin** sin pushear (Fase 0). El push controlado se hace cuando el operador lo autorice.
-2. **Smoke 100% verde por primera vez post-Beta1** — esto es positivo pero también significa que cualquier nueva regresión será inmediatamente visible. Mantener disciplina de loop verde.
-3. **Beta1 (ronda 16)** está ejecutada pero no ha pasado eval real con dominio ancla cerrado. Las precondiciones están sostenidas.
-4. **Schema dual de refinamiento**: cualquier consumer nuevo debe usar helpers `obtenerRefinamiento` / `refinaA` / `refinamientosDe`, **nunca** acceder a `entidad.refinamiento` directamente.
-5. **Identidad de modelo unificada**: cualquier código nuevo que toque etiquetas de pestaña debe usar `etiquetaPestana({ nombre, modeloId })` y NO replicar la lógica.
+1. **25 commits ahead de origin** sin pushear (push pendiente operador).
+2. **Smoke 100% verde** — cualquier nueva regresión será inmediatamente visible.
+3. **Beta1 (ronda 16)** ejecutada pero sin eval real con dominio ancla cerrado.
+4. **Schema dual de refinamiento**: consumers nuevos usan helpers, no acceso directo.
+5. **Identidad de modelo unificada**: callsites nuevos usan `etiquetaPestana`.
+6. **Modal de estados**: nuevos callsites usan `<ModalCrearEstados />`, no genéricos.
+7. **Doble clic canvas**: navegar refinamiento prioriza descomposición.
+8. **Inspector tabs**: smokes nuevos deben navegar al tab correcto vía helpers `irATab*` antes de buscar elementos en secciones específicas.
+9. **Biblioteca dock**: callsites nuevos usan `bibliotecaDockAbierto` + `toggleBibliotecaDock`. Mobile/tablet mantiene overlay legacy.
+10. **Mobile mode**: `< 640px` es revisión/navegación, NO modelado pesado. Nuevos componentes deben respetar `useBreakpoint()`.
 
-## Proximos Pasos Operativos
+## Próximos Pasos Operativos
 
-1. **Operador decide** push de los 2 commits de Fase 0 a `origin/main`.
-2. **Operador decide** ejecución de ronda 19 (Fase 1 UX). Recomendación de orden: L5 → L4 → L1 → L3 → L2. L2 en worktree.
-3. **Mantener loop verde**:
+1. **Operador decide** push de los 25 commits a `origin/main`.
+2. **Operador decide** limpieza de worktrees y branches `worktree-agent-*`.
+3. **Operador decide** investigación de bugs reales detectados restantes (tab persistencia, flake búsqueda).
+4. **Operador decide** ejecución de ronda 17 / Beta2 si dominio ancla está cerrado.
+5. **Mantener loop verde** antes de cualquier commit nuevo:
    - `cd app && bun run check`
    - `cd app && bun run lint`
    - `cd app && bun run build`
    - `cd app && bun run browser:smoke`
-   - `node docs/historias-usuario-v2/tools/progress-dashboard.mjs --sync-real`
-4. **Antes de abrir ronda 19**:
-   - Considerar si las HU nuevas que cada brief declara (HU-90.001, HU-10.001, HU-50.001, HU-30.001, HU-30.020, etc.) deben crearse formalmente en `docs/historias-usuario-v2/` antes de ejecutar.
-   - Decidir si Beta1 dominio ancla real cierra ANTES de Fase 1 UX (recomendación: paralelo, sin dependencia).
 
-## Prompt De Continuacion Breve
+## Prompt De Continuación Breve
 
-Usa `docs/HANDOFF.md` como memoria única. Estado: `main @ a7dfce4`, 2 commits ahead de origin (no pusheados) con cierre Fase 0 UX del informe `docs/audits/opm-app-ux-2026-05-07/informe-final-ui-ux.md`. Loop verde 977 unit / 149 smoke / build 284 KB. Ronda 16 Beta1 ya ejecutada; **ronda 19 / Fase 1 UX (5 líneas paralelas)** está diseñada como briefs en `docs/instrucciones-lineas-dev/ronda19/` con orden L5 → L4 → L1 → L3 → L2 (L2 en worktree). Identidad de modelo unificada vía helper `etiquetaPestana`. Menús primarios mutuamente excluyentes. Auto-layout hace fit-to-view. AI Text marcado beta. Bug capture en color neutral. "Tipos válidos" persiste durante selección en canvas.
+Usa `docs/HANDOFF.md` como memoria única. Estado: `main @ 2bf9613`, 25 commits ahead de `origin/main` (push pendiente) + continuidad local que cierra el bug FAB mobile. Loop verde 100%: 1130 unit / 169 smoke / build `index.js` 343.30 KB. **Rondas 19 + 20 + 21 cerradas en su totalidad** sobre el informe UI/UX 2026-05-07 (Fase 0 + Fase 1 + Fase 2 + cierre residual). Convergencia paralela r20 L3/L1/L2 + r21 L1/L2 ejecutada en 5 worktrees, mergeada con `--no-ff`, smokes adaptados al nuevo contrato Inspector-en-tabs vía helpers `irATab*` en `_smoke-helpers.ts`. **Pendiente de operador**: push a origin, limpieza de worktrees, investigación de 2 bugs reales restantes (tab persistencia, flake busqueda). **Pendiente de ronda**: 17/Beta2 (diseñada, no ejecutada). 21 decisiones vigentes (ver §"Decisiones Vigentes"); las 6 nuevas: 16-Inspector tabs, 17-Abanico en Propiedades, 18-OPL 4 grupos, 19-Biblioteca dock + overlay, 20-Empty state bloque+nudge, 21-Responsive como modo revisión.

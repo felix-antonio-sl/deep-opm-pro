@@ -1,6 +1,7 @@
 import { useRef, useState } from "preact/hooks";
 import { useOpmStore } from "../store";
 import { Dialogo } from "./Dialogo";
+import { useBreakpoint } from "./layoutResponsive";
 import { tokens } from "./tokens";
 
 type ScreenshotAdjunto = {
@@ -19,6 +20,7 @@ type BugCaptureResponse = {
 };
 
 export function CapturadorBugs() {
+  const breakpoint = useBreakpoint();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [abierto, setAbierto] = useState(false);
   const [texto, setTexto] = useState("");
@@ -92,7 +94,7 @@ export function CapturadorBugs() {
         aria-label="Capturar bug"
         title="Capturar bug · feedback al equipo"
         data-testid="bug-capture-open"
-        style={style.fab}
+        style={fabStyle(breakpoint === "mobile")}
         onClick={abrir}
       >
         {/* P0-4 (informe UI/UX 2026-05-07): FAB en color chrome neutral
@@ -424,3 +426,11 @@ const style = {
     fontSize: tokens.typography.sizes.md,
   },
 } satisfies Record<string, preact.JSX.CSSProperties>;
+
+function fabStyle(esMobile: boolean): preact.JSX.CSSProperties {
+  if (!esMobile) return style.fab;
+  return {
+    ...style.fab,
+    bottom: tokens.mobileNav.altoBarra + tokens.spacing.lg,
+  };
+}
