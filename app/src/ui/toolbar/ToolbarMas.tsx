@@ -7,8 +7,19 @@
  * - Las acciones se mueven manualmente desde ToolbarBase/Creacion/Seleccion/Multiseleccion.
  * - Accesibilidad: aria-haspopup="menu", aria-expanded, items con role="menuitem",
  *   Enter/Space abre, Escape cierra, click-outside cierra. Tooltips/atajos visibles.
+ *
+ * BUG-20260508T013456Z-9e8ac5 (post hotfix): el popover se renderizaba con
+ * `position: absolute` dentro del wrapper relativo, que vive dentro de
+ * `style.actions` (overflowX: auto) y `style.bar` (overflow: hidden). Esos
+ * ancestros con overflow recortado clipeaban el popover a una franja
+ * estrechísima en el borde derecho. Aplicamos la regla canónica documentada
+ * en Dialogo.tsx: el subárbol del overlay vive en un portal anclado a
+ * `document.body`, posicionado con `position: fixed` y coordenadas
+ * recalculadas desde el rect del trigger en mount, resize y scroll. Mismo
+ * patrón que `cdk-overlay-pane` de OPCloud.
  */
-import { useEffect, useId, useRef, useState } from "preact/hooks";
+import { createPortal } from "preact/compat";
+import { useEffect, useId, useLayoutEffect, useRef, useState } from "preact/hooks";
 import { tokens } from "../tokens";
 import { toolbarStyle as style } from "./toolbarStyles";
 
@@ -47,6 +58,7 @@ export function ToolbarMas({
   testId = "toolbar-mas-trigger",
 }: ToolbarMasProps) {
   const [abierto, setAbierto] = useState(false);
+  const [anclaje, setAnclaje] = useState<{ top: number; right: number } | null>(null);
   const triggerRef = useRef<HTMLButtonElement | null>(null);
   const menuRef = useRef<HTMLDivElement | null>(null);
   const abiertoRef = useRef(false);
@@ -92,6 +104,36 @@ export function ToolbarMas({
     primero?.focus();
   }, [abierto]);
 
+  // BUG-20260508T013456Z-9e8ac5: recalcular el anclaje del popover en
+  // viewport coordinates cuando se abre o cambia el layout. Usamos
+  // `useLayoutEffect` para que el primer paint tenga ya las coordenadas
+  // correctas y no se vea un flash mal posicionado. La ancla es:
+  //   top   = rect.bottom + spacing.xs
+  //   right = innerWidth - rect.right (ancla al edge derecho del trigger)
+  useLayoutEffect(() => {
+    if (!abierto) {
+      setAnclaje(null);
+      return;
+    }
+    function recalcular() {
+      const trigger = triggerRef.current;
+      if (!trigger) return;
+      const rect = trigger.getBoundingClientRect();
+      const margenDerecho = Math.max(tokens.spacing.sm, window.innerWidth - rect.right);
+      setAnclaje({
+        top: rect.bottom + tokens.spacing.xs,
+        right: margenDerecho,
+      });
+    }
+    recalcular();
+    window.addEventListener("resize", recalcular);
+    window.addEventListener("scroll", recalcular, { capture: true });
+    return () => {
+      window.removeEventListener("resize", recalcular);
+      window.removeEventListener("scroll", recalcular, { capture: true });
+    };
+  }, [abierto]);
+
   function toggle() {
     if (!habilitado) return;
     setAbierto((prev) => !prev);
@@ -130,43 +172,50 @@ export function ToolbarMas({
         <span aria-hidden="true" style={masStyle.dots}>⋯</span>
         {triggerLabel}
       </button>
-      {abierto ? (
-        <div
-          ref={menuRef}
-          id={menuId}
-          role="menu"
-          aria-label={ariaLabel}
-          data-testid="toolbar-mas-menu"
-          style={masStyle.menu}
-        >
-          {items.map((item) => {
-            if (item.kind === "separador") {
-              return (
-                <div key={item.id} style={masStyle.separadorWrap}>
-                  {item.label ? <span style={masStyle.separadorLabel}>{item.label}</span> : null}
-                  <div style={masStyle.separadorLinea} aria-hidden="true" />
-                </div>
-              );
-            }
-            return (
-              <button
-                key={item.id}
-                type="button"
-                role="menuitem"
-                disabled={item.disabled}
-                title={item.title ?? item.label}
-                onClick={() => ejecutar(item)}
-                data-testid={item.testId}
-                aria-pressed={item.activo === undefined ? undefined : item.activo}
-                style={item.disabled ? masStyle.itemDisabled : item.activo ? masStyle.itemActivo : masStyle.item}
-              >
-                <span style={masStyle.itemLabel}>{item.label}</span>
-                {item.atajo ? <span style={masStyle.itemAtajo}>{item.atajo}</span> : null}
-              </button>
-            );
-          })}
-        </div>
-      ) : null}
+      {abierto && anclaje
+        ? createPortal(
+            <div
+              ref={menuRef}
+              id={menuId}
+              role="menu"
+              aria-label={ariaLabel}
+              data-testid="toolbar-mas-menu"
+              style={{
+                ...masStyle.menu,
+                top: `${anclaje.top}px`,
+                right: `${anclaje.right}px`,
+              }}
+            >
+              {items.map((item) => {
+                if (item.kind === "separador") {
+                  return (
+                    <div key={item.id} style={masStyle.separadorWrap}>
+                      {item.label ? <span style={masStyle.separadorLabel}>{item.label}</span> : null}
+                      <div style={masStyle.separadorLinea} aria-hidden="true" />
+                    </div>
+                  );
+                }
+                return (
+                  <button
+                    key={item.id}
+                    type="button"
+                    role="menuitem"
+                    disabled={item.disabled}
+                    title={item.title ?? item.label}
+                    onClick={() => ejecutar(item)}
+                    data-testid={item.testId}
+                    aria-pressed={item.activo === undefined ? undefined : item.activo}
+                    style={item.disabled ? masStyle.itemDisabled : item.activo ? masStyle.itemActivo : masStyle.item}
+                  >
+                    <span style={masStyle.itemLabel}>{item.label}</span>
+                    {item.atajo ? <span style={masStyle.itemAtajo}>{item.atajo}</span> : null}
+                  </button>
+                );
+              })}
+            </div>,
+            document.body,
+          )
+        : null}
     </div>
   );
 }
@@ -184,13 +233,15 @@ const masStyle = {
     lineHeight: 1,
   },
   menu: {
-    position: "absolute",
-    top: "40px",
-    right: 0,
+    // BUG-20260508T013456Z-9e8ac5: `position: fixed` + portal a body evita
+    // que ancestros con overflow recortado (style.actions overflowX:auto,
+    // style.bar overflow:hidden) clipeen el popover. top/right se inyectan
+    // dinámicamente desde el rect del trigger.
+    position: "fixed",
     zIndex: 900,
-    minWidth: "240px",
+    minWidth: "260px",
     maxWidth: "320px",
-    padding: "6px",
+    padding: `${tokens.spacing.xs + 2}px`,
     border: `1px solid ${tokens.colors.bordeControl}`,
     borderRadius: tokens.radii.md,
     background: tokens.colors.fondoChrome,
