@@ -325,6 +325,15 @@ export type UiPanelSlice = Slice<
   | "etapaAnterior"
   | "cancelarAsistente"
   | "confirmarAsistente"
+  // L3 ronda 20: biblioteca overlay legacy + dock acoplable
+  | "bibliotecaCosaAbierta"
+  | "bibliotecaDockAbierto"
+  | "toggleBibliotecaCosa"
+  | "abrirBibliotecaCosa"
+  | "cerrarBibliotecaCosa"
+  | "toggleBibliotecaDock"
+  | "abrirBibliotecaDock"
+  | "cerrarBibliotecaDock"
 >;
 
 export type MapaSlice = Slice<

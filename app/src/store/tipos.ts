@@ -633,6 +633,19 @@ export interface OpmStore {
   navegarOpdIzquierda: () => void;
   navegarOpdDerecha: () => void;
   // ── /L5 ──────────────────────────────────────────────────────────
+  // ── L3 ronda 20: Biblioteca dock + overlay ───────────────────────
+  /** Overlay legacy de biblioteca (Toolbar > Biblioteca). Vive en store */
+  /** desde ronda 20 L3 para que `toggleBibliotecaDock` pueda cerrarlo. */
+  bibliotecaCosaAbierta: boolean;
+  /** Dock acoplable junto al árbol OPD (panel persistente, desktop ≥900px). */
+  bibliotecaDockAbierto: boolean;
+  toggleBibliotecaCosa: () => void;
+  abrirBibliotecaCosa: () => void;
+  cerrarBibliotecaCosa: () => void;
+  toggleBibliotecaDock: () => void;
+  abrirBibliotecaDock: () => void;
+  cerrarBibliotecaDock: () => void;
+  // ── /L3 ronda 20 ─────────────────────────────────────────────────
   // ── L3: Asistente nuevo modelo ───────────────────────────────────
   iniciarAsistente: () => void;
   siguienteEtapa: (parcial: Partial<DatosAsistente>) => void;

@@ -15,6 +15,7 @@ import { store, useOpmStore } from "../store";
 import { ArbolOpd } from "./ArbolOpd";
 import { BarraHerramientasElemento } from "./BarraHerramientasElemento";
 import { BarraPestanas } from "./BarraPestanas";
+import { BibliotecaDock } from "./biblioteca/BibliotecaDock";
 import { CapturadorBugs } from "./CapturadorBugs";
 import { configurarContextoAtajos, escucharGlobal, registrarAtajo } from "./atajosTeclado";
 import { ConfirmacionProvider } from "./ConfirmacionContext";
@@ -24,6 +25,7 @@ import { MenuPrincipal } from "./MenuPrincipal";
 import { PanelAvisos } from "./PanelAvisos";
 import { PanelMetodologia } from "./PanelMetodologia";
 import { PanelOpl } from "./PanelOpl";
+import { tokens } from "./tokens";
 import { Toolbar } from "./Toolbar";
 
 const AsistenteNuevoModelo = lazy(() => import("./AsistenteNuevoModelo").then((m) => ({ default: m.AsistenteNuevoModelo })));
@@ -68,6 +70,19 @@ export function App() {
   const oplLateral = (preferenciasOpl?.oplPosicion ?? "inferior") === "lateral-derecho";
   const oplMinimizado = preferenciasOpl?.oplMinimizado ?? false;
   const timelineDisponible = tieneTimelineDisponible(modelo, opdActivoId);
+  // L3 ronda 20: biblioteca dock acoplable bajo el arbol OPD.
+  const bibliotecaDockAbierto = useOpmStore((s) => s.bibliotecaDockAbierto);
+  const cerrarBibliotecaDock = useOpmStore((s) => s.cerrarBibliotecaDock);
+  const cambiarOpdActivo = useOpmStore((s) => s.cambiarOpdActivo);
+  const [esDesktop, setEsDesktop] = useState(typeof window === "undefined" ? true : window.innerWidth >= tokens.bibliotecaDock.desktopMinPx);
+  const [altoDock, setAltoDock] = useState<number>(tokens.bibliotecaDock.altoInicial);
+  useEffect(() => {
+    if (typeof window === "undefined") return undefined;
+    const onResize = () => setEsDesktop(window.innerWidth >= tokens.bibliotecaDock.desktopMinPx);
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
+  const dockVisible = bibliotecaDockAbierto && esDesktop;
 
   useEffect(() => {
     const limpiarContexto = configurarContextoAtajos({
@@ -89,8 +104,29 @@ export function App() {
         <MenuPrincipal />
         <BarraPestanas />
         <section style={workbenchStyle(anchoPanelArbol, oplLateral, oplMinimizado, inspectorAbierto)}>
-          <div data-testid="tree-pane" style={layout.treePane}>
-            <ArbolOpd />
+          <div data-testid="tree-pane" style={treePaneStyle(dockVisible, altoDock)}>
+            <div style={layout.treePaneArbol}>
+              <ArbolOpd />
+            </div>
+            {dockVisible ? (
+              <>
+                <DivisorPanel
+                  orientacion="horizontal"
+                  anchoInicial={altoDock}
+                  anchoMin={tokens.bibliotecaDock.altoMin}
+                  anchoMax={tokens.bibliotecaDock.altoMax}
+                  onAnchoChange={setAltoDock}
+                />
+                <div data-testid="biblioteca-dock-pane" style={layout.bibliotecaDockPane}>
+                  <BibliotecaDock
+                    modelo={modelo}
+                    opdActivoId={opdActivoId}
+                    onCerrar={cerrarBibliotecaDock}
+                    onNavegarOpd={cambiarOpdActivo}
+                  />
+                </div>
+              </>
+            ) : null}
           </div>
           <DivisorPanel
             orientacion="vertical"
@@ -287,6 +323,16 @@ const layout = {
     minHeight: 0,
     overflow: "hidden",
   },
+  treePaneArbol: {
+    minWidth: 0,
+    minHeight: 0,
+    overflow: "hidden",
+  },
+  bibliotecaDockPane: {
+    minWidth: 0,
+    minHeight: 0,
+    overflow: "hidden",
+  },
   canvasPane: {
     gridArea: "canvas",
     minWidth: 0,
@@ -342,6 +388,21 @@ function workbenchStyle(anchoPanelArbol: number, oplLateral: boolean, oplMinimiz
     ...layout.workbench,
     gridTemplateColumns: `${anchoPanelArbol}px 6px minmax(0, 1fr) ${anchoInspector} ${oplMinimizado ? "44px" : "320px"}`,
     gridTemplateAreas: `"tree divisor canvas inspector opl"`,
+  };
+}
+
+/**
+ * L3 ronda 20: cuando el dock está visible, el tree-pane se vuelve un grid
+ * vertical `arbol | divisor 6px | dock` con la biblioteca dock acoplada
+ * al borde inferior. Cuando está cerrado o el viewport es mobile, el
+ * tree-pane mantiene la altura completa del workbench.
+ */
+function treePaneStyle(dockVisible: boolean, altoDock: number): preact.JSX.CSSProperties {
+  if (!dockVisible) return layout.treePane;
+  return {
+    ...layout.treePane,
+    display: "grid",
+    gridTemplateRows: `minmax(0, 1fr) 6px ${altoDock}px`,
   };
 }
 

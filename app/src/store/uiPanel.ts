@@ -239,6 +239,10 @@ export const createUiPanelSlice: CrearSlice<UiPanelSlice> = (set, get) => ({
   nombresArbolVisibles: preferenciasUiIniciales.nombresArbolVisibles ?? true,
   cheatsheetAtajosAbierto: false,
   asistente: null,
+  // L3 ronda 20: biblioteca overlay legacy y dock acoplable.
+  // Default cerrado para ambos (decision §10 brief).
+  bibliotecaCosaAbierta: false,
+  bibliotecaDockAbierto: false,
 
   fijarModoOrdenArbol(modo) {
     const { modelo } = get();
@@ -365,6 +369,36 @@ export const createUiPanelSlice: CrearSlice<UiPanelSlice> = (set, get) => ({
 
 	  cerrarCheatsheetAtajos() {
 	    set({ cheatsheetAtajosAbierto: false });
+	  },
+
+	  // ── L3 ronda 20: Biblioteca overlay legacy + dock acoplable ──
+	  // Overlay y dock son mutuamente exclusivos: abrir uno cierra el otro
+	  // para evitar duplicación visual del catálogo. Decisión §6 del brief.
+
+	  toggleBibliotecaCosa() {
+	    const abierta = !get().bibliotecaCosaAbierta;
+	    set({ bibliotecaCosaAbierta: abierta, bibliotecaDockAbierto: abierta ? false : get().bibliotecaDockAbierto });
+	  },
+
+	  abrirBibliotecaCosa() {
+	    set({ bibliotecaCosaAbierta: true, bibliotecaDockAbierto: false });
+	  },
+
+	  cerrarBibliotecaCosa() {
+	    set({ bibliotecaCosaAbierta: false });
+	  },
+
+	  toggleBibliotecaDock() {
+	    const abierto = !get().bibliotecaDockAbierto;
+	    set({ bibliotecaDockAbierto: abierto, bibliotecaCosaAbierta: abierto ? false : get().bibliotecaCosaAbierta });
+	  },
+
+	  abrirBibliotecaDock() {
+	    set({ bibliotecaDockAbierto: true, bibliotecaCosaAbierta: false });
+	  },
+
+	  cerrarBibliotecaDock() {
+	    set({ bibliotecaDockAbierto: false });
 	  },
 
 	  navegarOpdArriba() {
