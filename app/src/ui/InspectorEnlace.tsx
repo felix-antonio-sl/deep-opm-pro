@@ -195,6 +195,11 @@ export function InspectorEnlace({ enlace }: Props) {
               onProbabilidad={cambiarProbabilidad}
               onDemora={cambiarDemora}
             />
+            {/* Ronda 20 L1 ajuste post-merge: el operador del Abanico es propiedad
+                lógica del enlace (igual que multiplicidad/modificador), por lo que
+                vive en Propiedades. Smokes 02-canvas-y-render lo asumen visible al
+                seleccionar el enlace. */}
+            <SeccionAbanico abanico={abanico} onAlternarOperador={alternarOperadorAbanico} onQuitarRama={quitarRamaDeAbanico} onDisolver={disolverAbanico} />
           </>
         ) : null}
         {tabActivo === "extremos" ? (
@@ -211,7 +216,6 @@ export function InspectorEnlace({ enlace }: Props) {
               onAutomatico={volverEnlaceExternoDerivadoAAutomatico}
             />
             {enlace.tipo === "efecto" ? <button type="button" style={style.secondaryButton} onClick={splitEffect} title="Convierte el efecto en consumo + objeto intermedio + resultado">Split en par</button> : null}
-            <SeccionAbanico abanico={abanico} onAlternarOperador={alternarOperadorAbanico} onQuitarRama={quitarRamaDeAbanico} onDisolver={disolverAbanico} />
           </>
         ) : null}
         {tabActivo === "estilo" ? (
