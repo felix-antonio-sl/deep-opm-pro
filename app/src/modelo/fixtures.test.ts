@@ -46,6 +46,17 @@ describe("FixtureDemo categoria", () => {
     expect(nombres).toContain("Prestamo Bibliotecario");
     expect(nombres).toContain("Comprar Pan");
   });
+
+  test("fixtures observacionales y modelo amplio estan presentes en el catalogo", () => {
+    const nombres = fixtureTodos().map((fixture) => fixture.modelo.nombre);
+    expect(nombres).toContain("Modelo Vacio");
+    expect(nombres).toContain("System Diagram");
+    expect(nombres).toContain("SD Sync");
+    expect(nombres).toContain("SD Async");
+    expect(nombres).toContain("OnStar System");
+    expect(nombres).toContain("OPM Structure Meta Model");
+    expect(nombres).toContain("App modeladora OPM deseada");
+  });
 });
 
 describe("ancla primario: Prestamo Bibliotecario", () => {

@@ -8,13 +8,15 @@ import {
   crearObjeto,
   crearProceso,
   descomponerProceso,
+  desplegarObjeto,
   designarEstadoFinal,
   designarEstadoInicial,
-  desplegarObjeto,
   renombrarEntidad,
   renombrarEstado,
 } from "./operaciones";
+import appModeladoraOpmDeseadaDoc from "./demo-models/app-modeladora-opm-deseada.json";
 import { tieneRefinamiento } from "./refinamientos";
+import { hidratarModelo } from "../serializacion/json";
 import type { Id, Modelo } from "./tipos";
 
 function must<T>(resultado: { ok: true; value: T } | { ok: false; error: string }): T {
@@ -45,12 +47,49 @@ function entidadPorNombre(modelo: Modelo, nombre: string): Id {
  */
 export type CategoriaFixture = "demo-pedagogica" | "ancla-real";
 
+function fixtureDesdeDocumento(documento: unknown, proposito: string, descripcion: string): FixtureDemo {
+  const hidratado = hidratarModelo(JSON.stringify(documento));
+  if (!hidratado.ok) throw new Error(`Fixture JSON invalido: ${hidratado.error}`);
+  return { modelo: hidratado.value, proposito, descripcion };
+}
+
+function renombrarRefinadores(modelo: Modelo, opdId: Id, contornoId: Id, nombres: string[]): Modelo {
+  const opd = modelo.opds[opdId];
+  if (!opd) throw new Error(`OPD no encontrado: ${opdId}`);
+  const refinadores = Object.values(opd.apariencias)
+    .map((apariencia) => ({
+      apariencia,
+      entidad: modelo.entidades[apariencia.entidadId],
+    }))
+    .filter((item): item is { apariencia: typeof item.apariencia; entidad: NonNullable<typeof item.entidad> } => (
+      item.entidad !== undefined && item.entidad.id !== contornoId
+    ))
+    .sort((a, b) => a.apariencia.y === b.apariencia.y ? a.apariencia.x - b.apariencia.x : a.apariencia.y - b.apariencia.y);
+
+  let actual = modelo;
+  for (const [index, nombre] of nombres.entries()) {
+    const entidad = refinadores[index]?.entidad;
+    if (!entidad) continue;
+    actual = must(renombrarEntidad(actual, entidad.id, nombre));
+  }
+  return actual;
+}
+
 export interface FixtureDemo {
   modelo: Modelo;
   proposito: string;
   descripcion: string;
   /** Categoria del fixture. Default `"demo-pedagogica"` para preservar fixtures previas sin tocarlas. */
   categoria?: CategoriaFixture;
+}
+
+export function crearModeloVacioFixture(): FixtureDemo {
+  return {
+    modelo: crearModelo("Modelo Vacio"),
+    proposito: "Probar el estado inicial, canvas vacio, guardado y primer flujo de modelamiento.",
+    descripcion: "Fixture minimo equivalente a fixtures/empty-model. Sirve para QA de onboarding, estado vacio y acciones iniciales.",
+    categoria: "demo-pedagogica",
+  };
 }
 
 export function crearCafetera(): FixtureDemo {
@@ -323,6 +362,20 @@ export function crearSdTemplate(): FixtureDemo {
   };
 }
 
+export function crearSystemDiagramFixture(): FixtureDemo {
+  const fixture = crearSdTemplate();
+  return {
+    modelo: {
+      ...fixture.modelo,
+      nombre: "System Diagram",
+      descripcion: "Equivalente kernel del fixture observacional fixtures/system-diagram.",
+    },
+    proposito: "Representar un System Diagram canonico con input, output, handler, tool set y beneficiario.",
+    descripcion: "Demo equivalente a fixtures/system-diagram: SD raiz con proceso central, consumo, resultado, agente, instrumentos y cambio de estado del atributo beneficiario.",
+    categoria: "demo-pedagogica",
+  };
+}
+
 export function crearSdAsyncInzoomed(): FixtureDemo {
   let modelo = crearModelo("SD Async");
 
@@ -379,6 +432,170 @@ export function crearSdAsyncInzoomed(): FixtureDemo {
     proposito: "Procesamiento asincrono con descomposicion en 3 sub-procesos independientes.",
     descripcion: "SD con in-zooming asincrono: Main System Doing se descompone en First/Second/Third Processing. Sub-procesos invocados secuencialmente pero sin dependencia de estado (asincrono).",
     categoria: "demo-pedagogica",
+  };
+}
+
+export function crearSdSyncInzoomed(): FixtureDemo {
+  let modelo = crearModelo("SD Sync");
+
+  modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 90, y: 50 }, "System Name"));
+  modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 260, y: 50 }, "System Handler"));
+  modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 430, y: 50 }, "System Tool Set"));
+  modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 90, y: 150 }, "Main Input"));
+  modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 660, y: 50 }, "Beneficiary Group"));
+  modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 660, y: 150 }, "Beneficiary Relevant Attribute"));
+  modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 390, y: 230 }, "Main System Doing"));
+  modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 390, y: 370 }, "Main Output"));
+
+  const sysName = entidadPorNombre(modelo, "System Name");
+  const handler = entidadPorNombre(modelo, "System Handler");
+  const toolSet = entidadPorNombre(modelo, "System Tool Set");
+  const mainInput = entidadPorNombre(modelo, "Main Input");
+  const beneficiary = entidadPorNombre(modelo, "Beneficiary Group");
+  const attr = entidadPorNombre(modelo, "Beneficiary Relevant Attribute");
+  const mainDoing = entidadPorNombre(modelo, "Main System Doing");
+  const mainOutput = entidadPorNombre(modelo, "Main Output");
+
+  modelo = must(cambiarEsencia(modelo, handler, "fisica"));
+  modelo = must(cambiarEsencia(modelo, beneficiary, "fisica"));
+  modelo = must(cambiarEsencia(modelo, mainDoing, "fisica"));
+
+  const estRes = must(crearEstadosIniciales(modelo, attr));
+  modelo = estRes.modelo;
+  const [e1Id, e2Id] = estRes.estadoIds;
+  modelo = must(renombrarEstado(modelo, e1Id, "problematic"));
+  modelo = must(renombrarEstado(modelo, e2Id, "satisfactory"));
+  modelo = must(designarEstadoInicial(modelo, e1Id));
+  modelo = must(designarEstadoFinal(modelo, e2Id));
+
+  modelo = must(crearEnlace(modelo, modelo.opdRaizId, sysName, mainDoing, "exhibicion"));
+  modelo = must(crearEnlace(modelo, modelo.opdRaizId, beneficiary, attr, "exhibicion"));
+  modelo = must(crearEnlace(modelo, modelo.opdRaizId, mainDoing, attr, "efecto"));
+  modelo = must(crearEnlace(modelo, modelo.opdRaizId, handler, mainDoing, "agente"));
+  modelo = must(crearEnlace(modelo, modelo.opdRaizId, mainInput, mainDoing, "consumo"));
+  modelo = must(crearEnlace(modelo, modelo.opdRaizId, sysName, mainDoing, "instrumento"));
+  modelo = must(crearEnlace(modelo, modelo.opdRaizId, toolSet, mainDoing, "instrumento"));
+  modelo = must(crearEnlace(modelo, modelo.opdRaizId, mainDoing, mainOutput, "resultado"));
+
+  const descRes = must(descomponerProceso(modelo, modelo.opdRaizId, mainDoing));
+  modelo = descRes.modelo;
+  const sd1Id = descRes.opdId;
+  const sd1 = modelo.opds[sd1Id];
+  if (!sd1) throw new Error("SD1 no creado");
+  const subProcesos = Object.values(modelo.entidades)
+    .filter((e) => e.tipo === "proceso"
+      && e.id !== mainDoing
+      && !tieneRefinamiento(e)
+      && Object.values(sd1.apariencias).some((a) => a.entidadId === e.id))
+    .sort((a, b) => {
+      const aparienciaA = Object.values(sd1.apariencias).find((item) => item.entidadId === a.id);
+      const aparienciaB = Object.values(sd1.apariencias).find((item) => item.entidadId === b.id);
+      return (aparienciaA?.x ?? 0) - (aparienciaB?.x ?? 0);
+    });
+  for (const [index, nombre] of ["First Processing", "Second Processing", "Third Processing"].entries()) {
+    const subProceso = subProcesos[index];
+    if (subProceso) modelo = must(renombrarEntidad(modelo, subProceso.id, nombre));
+  }
+  modelo = must(crearProceso(modelo, sd1Id, { x: 720, y: 250 }, "Last Processing"));
+  modelo = must(crearObjeto(modelo, sd1Id, { x: 90, y: 90 }, "SD1 Main Input"));
+  modelo = must(crearObjeto(modelo, sd1Id, { x: 570, y: 90 }, "Main I/O Output"));
+  modelo = must(crearObjeto(modelo, sd1Id, { x: 570, y: 180 }, "I/O Object Relevant Attribute"));
+  modelo = must(crearObjeto(modelo, sd1Id, { x: 430, y: 370 }, "Temp Object"));
+  modelo = must(crearObjeto(modelo, sd1Id, { x: 720, y: 370 }, "SD1 Main Output"));
+
+  const first = entidadPorNombre(modelo, "First Processing");
+  const second = entidadPorNombre(modelo, "Second Processing");
+  const third = entidadPorNombre(modelo, "Third Processing");
+  const last = entidadPorNombre(modelo, "Last Processing");
+  const sd1Input = entidadPorNombre(modelo, "SD1 Main Input");
+  const ioOutput = entidadPorNombre(modelo, "Main I/O Output");
+  const ioAttr = entidadPorNombre(modelo, "I/O Object Relevant Attribute");
+  const temp = entidadPorNombre(modelo, "Temp Object");
+  const sd1Output = entidadPorNombre(modelo, "SD1 Main Output");
+
+  for (const id of [first, second, third, last]) modelo = must(cambiarEsencia(modelo, id, "fisica"));
+  modelo = must(crearEnlace(modelo, sd1Id, ioOutput, ioAttr, "exhibicion"));
+  modelo = must(crearEnlace(modelo, sd1Id, sd1Input, first, "consumo"));
+  modelo = must(crearEnlace(modelo, sd1Id, first, ioAttr, "efecto"));
+  modelo = must(crearEnlace(modelo, sd1Id, first, temp, "resultado"));
+  modelo = must(crearEnlace(modelo, sd1Id, temp, second, "consumo"));
+  modelo = must(crearEnlace(modelo, sd1Id, second, ioAttr, "efecto"));
+  modelo = must(crearEnlace(modelo, sd1Id, third, ioAttr, "efecto"));
+  modelo = must(crearEnlace(modelo, sd1Id, third, temp, "efecto"));
+  modelo = must(crearEnlace(modelo, sd1Id, temp, last, "consumo"));
+  modelo = must(crearEnlace(modelo, sd1Id, last, sd1Output, "resultado"));
+  modelo = must(crearEnlace(modelo, sd1Id, first, second, "invocacion"));
+  modelo = must(crearEnlace(modelo, sd1Id, second, third, "invocacion"));
+  modelo = must(crearEnlace(modelo, sd1Id, third, last, "invocacion"));
+
+  return {
+    modelo,
+    proposito: "Ejercitar in-zoom sincronico con cadena de subprocesos, objeto temporal y atributo afectado.",
+    descripcion: "Equivalente kernel de fixtures/sd-sync: SD raiz con transformacion y SD1 con First/Second/Third/Last Processing, Temp Object y Main I/O Output.",
+    categoria: "demo-pedagogica",
+  };
+}
+
+export function crearOpmStructureMetaModel(): FixtureDemo {
+  let modelo = crearModelo("OPM Structure Meta Model");
+
+  const nombres = [
+    "OPM Model", "System", "OPD Set", "OPL Spec", "OPM Stereotype", "OPD",
+    "OPL Paragraph", "OPD Construct", "OPL Sentence", "Link Set", "Link",
+    "Thing Set", "Thing", "Name", "Phrase", "Reserved Phrase",
+  ];
+  for (const [index, nombre] of nombres.entries()) {
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, {
+      x: 60 + (index % 4) * 190,
+      y: 40 + Math.floor(index / 4) * 105,
+    }, nombre));
+  }
+
+  const id = (nombre: string) => entidadPorNombre(modelo, nombre);
+  modelo = must(crearEnlace(modelo, modelo.opdRaizId, id("OPM Model"), id("System"), "exhibicion", "specifies"));
+  modelo = must(crearEnlace(modelo, modelo.opdRaizId, id("OPM Model"), id("OPD Set"), "agregacion"));
+  modelo = must(crearEnlace(modelo, modelo.opdRaizId, id("OPM Model"), id("OPL Spec"), "agregacion"));
+  modelo = must(crearEnlace(modelo, modelo.opdRaizId, id("OPM Model"), id("OPM Stereotype"), "generalizacion"));
+  modelo = must(crearEnlace(modelo, modelo.opdRaizId, id("OPD Set"), id("OPD"), "agregacion"));
+  modelo = must(crearEnlace(modelo, modelo.opdRaizId, id("OPL Spec"), id("OPL Paragraph"), "agregacion"));
+  modelo = must(crearEnlace(modelo, modelo.opdRaizId, id("OPL Paragraph"), id("OPL Sentence"), "agregacion"));
+  modelo = must(crearEnlace(modelo, modelo.opdRaizId, id("OPD"), id("OPD Construct"), "agregacion"));
+  modelo = must(crearEnlace(modelo, modelo.opdRaizId, id("OPD Construct"), id("OPL Sentence"), "exhibicion", "equivalent"));
+  modelo = must(crearEnlace(modelo, modelo.opdRaizId, id("OPD Construct"), id("Link Set"), "agregacion"));
+  modelo = must(crearEnlace(modelo, modelo.opdRaizId, id("OPD Construct"), id("Thing Set"), "agregacion"));
+  modelo = must(crearEnlace(modelo, modelo.opdRaizId, id("Link Set"), id("Link"), "agregacion"));
+  modelo = must(crearEnlace(modelo, modelo.opdRaizId, id("Thing Set"), id("Thing"), "agregacion"));
+  modelo = must(crearEnlace(modelo, modelo.opdRaizId, id("Thing"), id("Name"), "exhibicion"));
+  modelo = must(crearEnlace(modelo, modelo.opdRaizId, id("Phrase"), id("Reserved Phrase"), "generalizacion"));
+
+  const construct = id("OPD Construct");
+  const constructUnfold = must(desplegarObjeto(modelo, modelo.opdRaizId, construct, "agregacion"));
+  modelo = renombrarRefinadores(constructUnfold.modelo, constructUnfold.opdId, construct, ["Construct Link Set", "Construct Thing Set", "Construct OPL Sentence"]);
+
+  const thing = id("Thing");
+  const thingUnfold = must(desplegarObjeto(modelo, modelo.opdRaizId, thing, "generalizacion"));
+  modelo = renombrarRefinadores(thingUnfold.modelo, thingUnfold.opdId, thing, ["Linked Thing", "OPM Object", "OPM Process"]);
+
+  const link = id("Link");
+  const linkUnfold = must(desplegarObjeto(modelo, modelo.opdRaizId, link, "agregacion"));
+  modelo = renombrarRefinadores(linkUnfold.modelo, linkUnfold.opdId, link, ["Source", "Connector", "Destination"]);
+
+  return {
+    modelo,
+    proposito: "Mostrar la estructura de OPM como modelo: OPD, OPL, constructos, cosas y enlaces.",
+    descripcion: "Equivalente kernel reducido de fixtures/opm-meta-model. Incluye SD raiz y despliegues de OPD Construct, Thing y Link para ejercitar arbol OPD y enlaces estructurales.",
+    categoria: "demo-pedagogica",
+  };
+}
+
+export function crearAppModeladoraOpmDeseada(): FixtureDemo {
+  return {
+    ...fixtureDesdeDocumento(
+    appModeladoraOpmDeseadaDoc,
+    "Modelo amplio derivado de historias-usuario-v2 para probar la app como sistema modelado.",
+    "Modelo de 8 OPDs usado en la auditoria UX: fuerza importacion, arbol OPD profundo, biblioteca, OPL filtrable, validacion metodologica y guardado local.",
+    ),
+    categoria: "ancla-real",
   };
 }
 
@@ -638,12 +855,17 @@ export function fixtureTodos(): FixtureDemo[] {
     crearOnStarSystem(),
     crearDiagnosticoClinico(),
     crearSdTemplate(),
+    crearSystemDiagramFixture(),
     crearLogisticaEnvios(),
     crearSdAsyncInzoomed(),
+    crearSdSyncInzoomed(),
     crearControlCalidad(),
     crearEjemploOrganizacional(),
     crearPrestamoBibliotecario(),
     crearComprarPan(),
+    crearModeloVacioFixture(),
+    crearOpmStructureMetaModel(),
+    crearAppModeladoraOpmDeseada(),
   ];
 }
 

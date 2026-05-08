@@ -1,0 +1,22 @@
+{
+  "formato": "deep-opm-pro.modelo.v0",
+  "modelo": {
+    "id": "modelo-1",
+    "nombre": "Modelo Vacio",
+    "opdRaizId": "opd-1",
+    "entidades": {},
+    "estados": {},
+    "nextSeq": 1,
+    "opds": {
+      "opd-1": {
+        "id": "opd-1",
+        "nombre": "SD",
+        "padreId": null,
+        "apariencias": {},
+        "enlaces": {}
+      }
+    },
+    "enlaces": {},
+    "abanicos": {}
+  }
+}
