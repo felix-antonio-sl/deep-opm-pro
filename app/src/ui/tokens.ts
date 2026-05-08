@@ -194,4 +194,18 @@ export const typography = {
   weightHeavy: 800,
 } as const;
 
-export const tokens = { colors, spacing, radii, shadows, typography } as const;
+/* L3 ronda 20 — Biblioteca dock acoplable junto al árbol OPD.
+ * Geometria del dock: alto inicial dentro del tree-pane (px) y limites
+ * para el redimensionamiento via DivisorPanel horizontal. Citas brief
+ * §6 (panel persistente) y SSOT informe UI/UX 2026-05-07 línea 159
+ * ("biblioteca no debe tapar el area central del modelo salvo en mobile").
+ */
+export const bibliotecaDock = {
+  altoInicial: 280,
+  altoMin: 160,
+  altoMax: 600,
+  /** Breakpoint mínimo de viewport para mostrar el dock. */
+  desktopMinPx: 900,
+} as const;
+
+export const tokens = { colors, spacing, radii, shadows, typography, bibliotecaDock } as const;

@@ -23,13 +23,19 @@ interface Props {
   opdActivoId: Id;
   onCerrar: () => void;
   onNavegarOpd: (opdId: Id) => void;
+  /**
+   * Modo de presentación. L3 ronda 20: el modo "dock" suprime el chrome
+   * `position: fixed` para que el componente pueda montarse dentro del
+   * tree-pane. La API publica preserva el modo "overlay" como default.
+   */
+  modo?: "overlay" | "dock";
 }
 
-export function BibliotecaCosa({ modelo, opdActivoId, onCerrar, onNavegarOpd }: Props) {
+export function BibliotecaCosa({ modelo, opdActivoId, onCerrar, onNavegarOpd, modo = "overlay" }: Props) {
   const objetos = cosasPorTipo(modelo, "objeto");
   const procesos = cosasPorTipo(modelo, "proceso");
   return (
-    <aside style={style.panel} data-testid="biblioteca-cosa" aria-label="Biblioteca de cosas">
+    <aside style={modo === "dock" ? style.panelDock : style.panel} data-testid="biblioteca-cosa" aria-label="Biblioteca de cosas">
       <div style={style.header}>
         <strong>Biblioteca</strong>
         <button type="button" style={style.closeButton} onClick={onCerrar} aria-label="Cerrar biblioteca">x</button>
@@ -132,6 +138,20 @@ const style = {
     borderRadius: tokens.radii.md,
     background: tokens.colors.fondoChrome,
     boxShadow: tokens.shadows.menu,
+  },
+  // L3 ronda 20: variante "dock" sin position:fixed; el contenedor padre
+  // (BibliotecaDock) controla el flujo. Sin sombra fuerte para integrarse
+  // con el tree-pane.
+  panelDock: {
+    display: "grid",
+    alignContent: "start",
+    gap: "10px",
+    overflow: "auto",
+    padding: "10px",
+    border: "none",
+    borderRadius: 0,
+    background: "transparent",
+    boxShadow: "none",
   },
   header: { display: "flex", alignItems: "center", justifyContent: "space-between", color: tokens.colors.textoPrimario, fontSize: "14px" },
   closeButton: { width: "26px", height: "26px", border: `1px solid ${tokens.colors.bordeControl}`, borderRadius: tokens.radii.sm, background: tokens.colors.fondoElevado, cursor: "pointer" },

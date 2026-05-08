@@ -300,6 +300,11 @@ export function ToolbarBase({ children, modelarSlot, conectarSlot, validarSlot, 
           {/* Ronda 15 L4: layout sugerido como accion explicita. No persiste */}
           {/* automaticamente al cargar; cada clic crea una entrada undo atomica. */}
           <button style={style.button} type="button" onClick={aplicarLayoutSugerido} data-testid="toolbar-aplicar-layout" title="Auto-layout · reorganiza apariencias del OPD activo en niveles top-down. Undoable con Ctrl+Z.">Auto-layout</button>
+          {/* L3 ronda 20: toggle del dock biblioteca. El testid del overlay legacy
+              (`abrir-biblioteca-cosa`) vive en cluster Conectar via ToolbarCreacion;
+              este toggle es nuevo (`toggle-biblioteca-dock`) y abre el panel
+              acoplable bajo el árbol OPD. Atajo Ctrl+B. */}
+          <ToggleBibliotecaDock />
         </div>
         <span style={style.divider} />
         <div role="group" aria-label="Validar" style={style.cluster} data-slot="cluster-validar" data-cluster="validar">
@@ -510,3 +515,27 @@ function metadataEntidadDesdeContextMenu(event: MouseEvent): { aparienciaId: Id;
   if (meta?.kind !== "entidad" || !meta.aparienciaId || !meta.entidadId) return null;
   return { aparienciaId: meta.aparienciaId, entidadId: meta.entidadId };
 }
+
+/**
+ * L3 ronda 20: toggle del dock biblioteca dentro del cluster Vista.
+ * Subscriptor delgado para evitar re-renders innecesarios del resto de
+ * ToolbarBase. Atajo Ctrl+B (registrado en App.tsx). El testid del
+ * overlay legacy `abrir-biblioteca-cosa` vive en ToolbarCreacion.
+ */
+function ToggleBibliotecaDock() {
+  const abierto = useOpmStore((s) => s.bibliotecaDockAbierto);
+  const toggle = useOpmStore((s) => s.toggleBibliotecaDock);
+  return (
+    <button
+      type="button"
+      style={abierto ? style.activeButton : style.button}
+      onClick={toggle}
+      aria-pressed={abierto}
+      data-testid="toggle-biblioteca-dock"
+      title={abierto ? "Cerrar biblioteca dock (Ctrl+B)" : "Abrir biblioteca dock acoplada al árbol (Ctrl+B)"}
+    >
+      Biblioteca dock
+    </button>
+  );
+}
+

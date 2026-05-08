@@ -44,7 +44,12 @@ export function ToolbarCreacion() {
   const opdActivoId = useOpmStore((s) => s.opdActivoId);
   const cambiarOpdActivo = useOpmStore((s) => s.cambiarOpdActivo);
   const crearEnlaceEntreEntidades = useOpmStore((s) => s.crearEnlaceEntreEntidades);
-  const [bibliotecaAbierta, setBibliotecaAbierta] = useState(false);
+  // L3 ronda 20: el overlay legacy ahora vive en el store para que el toggle
+  // del dock pueda cerrarlo al abrirse (mutuamente exclusivos). El testid
+  // `abrir-biblioteca-cosa` se preserva intacto.
+  const bibliotecaAbierta = useOpmStore((s) => s.bibliotecaCosaAbierta);
+  const toggleBibliotecaCosa = useOpmStore((s) => s.toggleBibliotecaCosa);
+  const cerrarBibliotecaCosa = useOpmStore((s) => s.cerrarBibliotecaCosa);
   const [menuTiposAbierto, setMenuTiposAbierto] = useState(false);
   const [direccionTipoEnlace, setDireccionTipoEnlace] = useState<"saliente" | "entrante">("saliente");
   const triggerTiposRef = useRef<HTMLButtonElement | null>(null);
@@ -130,14 +135,14 @@ export function ToolbarCreacion() {
       <button ref={triggerTiposRef} style={estiloBotonTipos} type="button" onClick={handleToggleTiposValidos} disabled={selectorEnlaceDeshabilitado} aria-haspopup="dialog" aria-expanded={menuTiposAbierto} data-testid="abrir-menu-tipo-enlace" title={selectorEnlaceDeshabilitado ? "Selecciona una entidad origen" : "Tipos válidos · sugerencias OPL para origen/destino"}>
         Tipos válidos
       </button>
-      <button style={bibliotecaAbierta ? style.activeButton : style.button} type="button" onClick={() => setBibliotecaAbierta((actual) => !actual)} data-testid="abrir-biblioteca-cosa" title="Biblioteca de cosas · arrastra al canvas para reusar">Biblioteca</button>
+      <button style={bibliotecaAbierta ? style.activeButton : style.button} type="button" onClick={toggleBibliotecaCosa} data-testid="abrir-biblioteca-cosa" title="Biblioteca de cosas · arrastra al canvas para reusar">Biblioteca</button>
       {modoCreacion ? (
         <>
           <span style={style.stickyBadge} data-testid="indicador-modo-sticky">Modo sticky: {modoCreacion === "objeto" ? "Objeto" : "Proceso"}</span>
           <button style={style.secondaryButton} type="button" onClick={handleCancelarCreacion} title="Salir del modo creación sticky">Cancelar creación</button>
         </>
       ) : null}
-      {bibliotecaAbierta ? <BibliotecaCosa modelo={modelo} opdActivoId={opdActivoId} onCerrar={() => setBibliotecaAbierta(false)} onNavegarOpd={cambiarOpdActivo} /> : null}
+      {bibliotecaAbierta ? <BibliotecaCosa modelo={modelo} opdActivoId={opdActivoId} onCerrar={cerrarBibliotecaCosa} onNavegarOpd={cambiarOpdActivo} /> : null}
       {menuTiposAbierto ? (
         <div ref={menuTiposRef}>
           <MenuTipoEnlace modelo={modelo} origenId={origenMenuTipo} destinoId={destinoMenuTipo} direccion={direccionTipoEnlace} onDireccion={setDireccionTipoEnlace} onElegir={handleElegirTipoValido} />
