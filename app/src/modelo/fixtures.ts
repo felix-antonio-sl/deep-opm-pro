@@ -1,4 +1,5 @@
 import {
+  agregarEstado,
   cambiarAfiliacion,
   cambiarEsencia,
   crearEnlace,
@@ -9,6 +10,7 @@ import {
   descomponerProceso,
   designarEstadoFinal,
   designarEstadoInicial,
+  desplegarObjeto,
   renombrarEntidad,
   renombrarEstado,
 } from "./operaciones";
@@ -26,10 +28,29 @@ function entidadPorNombre(modelo: Modelo, nombre: string): Id {
   return entidad.id;
 }
 
+/**
+ * Categoria del fixture en el catalogo Beta1 (ronda 16 L4).
+ *
+ * - "demo-pedagogica": ejemplos pequeños y didacticos del wizard SD canonico
+ *   (Cafetera, OnStar, SD Generico, etc.) y demos secundarias para enseñar
+ *   patrones aislados (estados, descomposicion, agregacion).
+ * - "ancla-real": modelos no triviales con multi-OPD, estados, descomposicion
+ *   y/o despliegue, usados como base de eval Beta1 (criterios de cierre §174
+ *   en HANDOFF). Distinto de "demo-pedagogica" porque condensa un dominio
+ *   completo, no un patron aislado.
+ *
+ * El catalogo simple (DialogoCargarModelo / PantallaInicio) lista ambos sin
+ * carpetas. El campo es declarativo: filtros y agrupaciones son
+ * responsabilidad de consumidores (no se introducen aqui).
+ */
+export type CategoriaFixture = "demo-pedagogica" | "ancla-real";
+
 export interface FixtureDemo {
   modelo: Modelo;
   proposito: string;
   descripcion: string;
+  /** Categoria del fixture. Default `"demo-pedagogica"` para preservar fixtures previas sin tocarlas. */
+  categoria?: CategoriaFixture;
 }
 
 export function crearCafetera(): FixtureDemo {
@@ -64,6 +85,7 @@ export function crearCafetera(): FixtureDemo {
     modelo,
     proposito: "Transformar cafe molido y agua en cafe hecho, mediante una persona y una cafetera.",
     descripcion: "Ejemplo canonico del wizard SD del manual metodologico OPM. Modelo minimo con consumo, produccion, agente e instrumento.",
+    categoria: "demo-pedagogica",
   };
 }
 
@@ -105,6 +127,7 @@ export function crearDiagnosticoClinico(): FixtureDemo {
     modelo,
     proposito: "Transformar un paciente no-diagnosticado en diagnosticado, mediante un medico y su historia clinica.",
     descripcion: "SD canonico con estados (no-diagnosticado / diagnosticado) y efecto a nivel entidad. Dos instrumentos.",
+    categoria: "demo-pedagogica",
   };
 }
 
@@ -162,6 +185,7 @@ export function crearLogisticaEnvios(): FixtureDemo {
     modelo,
     proposito: "Transformar un pedido en una entrega mediante procesamiento logistico con tres sub-procesos.",
     descripcion: "Modelo multi-nivel: SD con in-zooming a SD1 (Recibir Pedido, Preparar Paquete, Enviar Paquete). Incluye invocacion entre sub-procesos.",
+    categoria: "demo-pedagogica",
   };
 }
 
@@ -203,6 +227,7 @@ export function crearControlCalidad(): FixtureDemo {
     modelo,
     proposito: "Transformar un producto no-inspeccionado en aprobado, mediante un inspector que usa un estandar de calidad.",
     descripcion: "SD con estados en objeto transformee (no-inspeccionado / aprobado) y efecto a nivel entidad. Dos instrumentos.",
+    categoria: "demo-pedagogica",
   };
 }
 
@@ -244,6 +269,7 @@ export function crearOnStarSystem(): FixtureDemo {
     modelo,
     proposito: "Rescatar a un conductor en peligro mediante el sistema OnStar y un asesor.",
     descripcion: "Ejemplo clasico OPM del estandar ISO 19450. Agregacion estructural (OnStar System consta de GPS, Cellular Network, VCIM, OnStar Console), agente (OnStar Advisor), instrumento (OnStar System) y efecto sobre Driver.",
+    categoria: "demo-pedagogica",
   };
 }
 
@@ -293,6 +319,7 @@ export function crearSdTemplate(): FixtureDemo {
     modelo,
     proposito: "Plantilla generica de SD con agente, instrumentos, consumo, produccion y efecto con cambio de estado.",
     descripcion: "Plantilla wizard canonica: System Name exhibe Main System Doing, System Handler + Tool Set como enablers, Main Input consumido, Main Output producido, Beneficiary con atributo de estado problematic→satisfactory.",
+    categoria: "demo-pedagogica",
   };
 }
 
@@ -351,6 +378,7 @@ export function crearSdAsyncInzoomed(): FixtureDemo {
     modelo,
     proposito: "Procesamiento asincrono con descomposicion en 3 sub-procesos independientes.",
     descripcion: "SD con in-zooming asincrono: Main System Doing se descompone en First/Second/Third Processing. Sub-procesos invocados secuencialmente pero sin dependencia de estado (asincrono).",
+    categoria: "demo-pedagogica",
   };
 }
 
@@ -417,6 +445,190 @@ export function crearEjemploOrganizacional(): FixtureDemo {
     modelo,
     proposito: "Transformar necesidades de clientes en servicios entregados, mediante personas como agentes y Agente IA + Organizacion como instrumentos.",
     descripcion: "Ejemplo organizacional canonico: SD con 8 entidades (7+1), wizard completo. Agente IA como instrumento (no agente: OPM §agente requiere entidad fisica). SD1 con in-zooming a 3 sub-procesos encadenados por invocacion.",
+    categoria: "demo-pedagogica",
+  };
+}
+
+/**
+ * Ancla pedagogico Beta1 (ronda 16 L4).
+ *
+ * Modelo "Prestamo Bibliotecario": dominio NO clinico (HODOM-HSC reservado a L5)
+ * que ejerce los criterios de cierre Beta1 (ver HANDOFF §174):
+ *   1) multi-OPD: SD raiz + SD1 in-zoom de "Procesar Prestamo" + OPD despliegue
+ *      de "Biblioteca" como agregacion estructural.
+ *   2) descomposicion + despliegue ortogonales en distintas entidades (schema
+ *      dual ronda 15.2; usa helpers de ./refinamientos para preservar el
+ *      contrato post-15.2).
+ *   3) estados de "Libro": disponible/prestado/atrasado, con designacion
+ *      inicial y final via crearEstadosIniciales + agregarEstado.
+ *   4) >= 6 enlaces variados: agente, instrumento, consumo, resultado, efecto,
+ *      agregacion (estructural) e invocacion (en SD1).
+ *
+ * El modelo es sintetico, construido desde conocimiento general (no se importa
+ * de repos hd-dt/hdos/hdos-app porque ninguno expone modelos OPM verificables
+ * — decision documentada en docs/roadmap/plan-betas-operativo.md). Es seguro
+ * para rerun: el catalogo simple lo lista junto a las demos pedagogicas con la
+ * categoria "ancla-real".
+ *
+ * Refs: SSOT opm-iso-19450-es.md §3.69 in-zoom, §3.71 State, §refinamiento.
+ */
+export function crearPrestamoBibliotecario(): FixtureDemo {
+  let modelo = crearModelo("Prestamo Bibliotecario");
+
+  // SD raiz: Socio + Libro + Bibliotecario + Biblioteca + Procesar Prestamo + Boleta de Prestamo.
+  modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 90, y: 60 }, "Socio"));
+  modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 280, y: 60 }, "Libro"));
+  modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 470, y: 60 }, "Bibliotecario"));
+  modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 660, y: 60 }, "Biblioteca"));
+  modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 380, y: 230 }, "Procesar Prestamo"));
+  modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 380, y: 380 }, "Boleta de Prestamo"));
+
+  const socio = entidadPorNombre(modelo, "Socio");
+  const libro = entidadPorNombre(modelo, "Libro");
+  const bibliotecario = entidadPorNombre(modelo, "Bibliotecario");
+  const biblioteca = entidadPorNombre(modelo, "Biblioteca");
+  const procesarPrestamo = entidadPorNombre(modelo, "Procesar Prestamo");
+  const boleta = entidadPorNombre(modelo, "Boleta de Prestamo");
+
+  // Esencia fisica para participantes humanos y artefactos materiales.
+  for (const id of [socio, libro, bibliotecario, biblioteca, procesarPrestamo, boleta]) {
+    modelo = must(cambiarEsencia(modelo, id, "fisica"));
+  }
+  // Socio y Bibliotecario son ambientales (externos al sistema biblioteca).
+  modelo = must(cambiarAfiliacion(modelo, socio, "ambiental"));
+  modelo = must(cambiarAfiliacion(modelo, bibliotecario, "ambiental"));
+
+  // Estados de Libro: disponible -> prestado, mas un tercer estado "atrasado"
+  // para ejercer agregarEstado() ademas de crearEstadosIniciales().
+  const estResLibro = must(crearEstadosIniciales(modelo, libro));
+  modelo = estResLibro.modelo;
+  const [eDisponibleId, ePrestadoId] = estResLibro.estadoIds;
+  modelo = must(renombrarEstado(modelo, eDisponibleId, "disponible"));
+  modelo = must(renombrarEstado(modelo, ePrestadoId, "prestado"));
+  modelo = must(designarEstadoInicial(modelo, eDisponibleId));
+  modelo = must(designarEstadoFinal(modelo, ePrestadoId));
+  const estResAtrasado = must(agregarEstado(modelo, libro, "atrasado"));
+  modelo = estResAtrasado.modelo;
+
+  // Enlaces SD raiz: 5 variados del wizard SD canonico (agente, instrumento,
+  // consumo, resultado, efecto). La agregacion estructural Biblioteca->{partes}
+  // se materializa en el OPD despliegue (SD1) y NO en el SD raiz; replicarla
+  // aqui seria redundante. Una agregacion Biblioteca->Bibliotecario seria
+  // OPM-incorrecta (el bibliotecario es agente ambiental, no parte estructural).
+  modelo = must(crearEnlace(modelo, modelo.opdRaizId, bibliotecario, procesarPrestamo, "agente"));
+  modelo = must(crearEnlace(modelo, modelo.opdRaizId, biblioteca, procesarPrestamo, "instrumento"));
+  modelo = must(crearEnlace(modelo, modelo.opdRaizId, socio, procesarPrestamo, "consumo"));
+  modelo = must(crearEnlace(modelo, modelo.opdRaizId, procesarPrestamo, boleta, "resultado"));
+  modelo = must(crearEnlace(modelo, modelo.opdRaizId, procesarPrestamo, libro, "efecto"));
+
+  // Despliegue estructural de Biblioteca como agregacion (Estructura, ortogonal
+  // a Comportamiento). Slot "despliegue" indexado en entidad.refinamientos
+  // (helpers fijarRefinamiento, ver ronda 15.2).
+  const desRes = must(desplegarObjeto(modelo, modelo.opdRaizId, biblioteca, "agregacion"));
+  modelo = desRes.modelo;
+  const opdBibliotecaId = desRes.opdId;
+  const opdBiblioteca = modelo.opds[opdBibliotecaId];
+  if (!opdBiblioteca) throw new Error("OPD despliegue Biblioteca no creado");
+
+  // El despliegue genera 3 partes placeholder (UNFOLD.partesIniciales = 3).
+  // Renombrarlas a los componentes estructurales reales: Sucursal Central,
+  // Sucursal Barrial, Catalogo Digital. Conservar esencia "fisica" para las
+  // partes (asset material) salvo el Catalogo (informacional).
+  const partesBiblioteca = Object.values(modelo.entidades)
+    .filter((e) => e.tipo === "objeto"
+      && !tieneRefinamiento(e)
+      && e.id !== biblioteca
+      && Object.values(opdBiblioteca.apariencias).some((a) => a.entidadId === e.id))
+    .map((e) => e.id);
+
+  if (partesBiblioteca.length >= 3) {
+    modelo = must(renombrarEntidad(modelo, partesBiblioteca[0]!, "Sucursal Central"));
+    modelo = must(renombrarEntidad(modelo, partesBiblioteca[1]!, "Sucursal Barrial"));
+    modelo = must(renombrarEntidad(modelo, partesBiblioteca[2]!, "Catalogo Digital"));
+    for (const sid of partesBiblioteca.slice(0, 2)) {
+      modelo = must(cambiarEsencia(modelo, sid, "fisica"));
+    }
+    // Catalogo Digital queda en informacional (default) por ser activo digital.
+  }
+
+  // Descomposicion de "Procesar Prestamo" en SD1 con sub-procesos en cadena.
+  const descRes = must(descomponerProceso(modelo, modelo.opdRaizId, procesarPrestamo));
+  modelo = descRes.modelo;
+  const sd1Id = descRes.opdId;
+  const sd1 = modelo.opds[sd1Id];
+  if (!sd1) throw new Error("SD1 Procesar Prestamo no creado");
+
+  const subProcesos = Object.values(modelo.entidades)
+    .filter((e) => e.tipo === "proceso"
+      && !tieneRefinamiento(e)
+      && Object.values(sd1.apariencias).some((a) => a.entidadId === e.id))
+    .map((e) => e.id);
+
+  if (subProcesos.length >= 3) {
+    modelo = must(renombrarEntidad(modelo, subProcesos[0]!, "Validar Socio"));
+    modelo = must(renombrarEntidad(modelo, subProcesos[1]!, "Registrar Prestamo"));
+    modelo = must(renombrarEntidad(modelo, subProcesos[2]!, "Entregar Libro"));
+    for (const sid of subProcesos) {
+      modelo = must(cambiarEsencia(modelo, sid, "fisica"));
+    }
+    // Encadenar via invocacion sincrona: validar -> registrar -> entregar.
+    modelo = must(crearEnlace(modelo, sd1Id, subProcesos[0]!, subProcesos[1]!, "invocacion"));
+    modelo = must(crearEnlace(modelo, sd1Id, subProcesos[1]!, subProcesos[2]!, "invocacion"));
+  }
+
+  return {
+    modelo,
+    proposito: "Transformar un libro disponible en libro prestado, mediante un bibliotecario que registra la operacion en una boleta para un socio externo.",
+    descripcion: "Ancla Beta1 pedagogica multi-OPD. Biblioteca se despliega en SD-Biblioteca (Sucursal Central, Sucursal Barrial, Catalogo Digital). Procesar Prestamo se descompone en SD1 (Validar Socio -> Registrar Prestamo -> Entregar Libro). Estados Libro: disponible/prestado/atrasado.",
+    categoria: "ancla-real",
+  };
+}
+
+/**
+ * Ancla pedagogica secundaria liviana Beta1 (ronda 16 L4).
+ *
+ * Modelo "Comprar Pan": SD unico, sin descomposicion ni despliegue, sin
+ * estados de objeto. Ejerce el catalogo simple para verificar que la
+ * categoria "ancla-real" puede convivir con un modelo trivial cuando el
+ * dominio asi lo amerita; es complementaria al ancla primaria (cuyo SD raiz
+ * es denso) para mostrar dos extremos de tamaño.
+ *
+ * Refs: SSOT opm-iso-19450-es.md §3.55, §3.69, §3 vinculos transformantes.
+ */
+export function crearComprarPan(): FixtureDemo {
+  let modelo = crearModelo("Comprar Pan");
+
+  modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 90, y: 90 }, "Cliente"));
+  modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 270, y: 90 }, "Dinero"));
+  modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 460, y: 90 }, "Panadero"));
+  modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 640, y: 90 }, "Panaderia"));
+  modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 360, y: 230 }, "Comprar Pan"));
+  modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 360, y: 380 }, "Pan"));
+
+  const cliente = entidadPorNombre(modelo, "Cliente");
+  const dinero = entidadPorNombre(modelo, "Dinero");
+  const panadero = entidadPorNombre(modelo, "Panadero");
+  const panaderia = entidadPorNombre(modelo, "Panaderia");
+  const comprarPan = entidadPorNombre(modelo, "Comprar Pan");
+  const pan = entidadPorNombre(modelo, "Pan");
+
+  for (const id of [cliente, dinero, panadero, panaderia, comprarPan, pan]) {
+    modelo = must(cambiarEsencia(modelo, id, "fisica"));
+  }
+  modelo = must(cambiarAfiliacion(modelo, cliente, "ambiental"));
+  modelo = must(cambiarAfiliacion(modelo, panadero, "ambiental"));
+
+  modelo = must(crearEnlace(modelo, modelo.opdRaizId, cliente, comprarPan, "agente"));
+  modelo = must(crearEnlace(modelo, modelo.opdRaizId, panadero, comprarPan, "agente"));
+  modelo = must(crearEnlace(modelo, modelo.opdRaizId, panaderia, comprarPan, "instrumento"));
+  modelo = must(crearEnlace(modelo, modelo.opdRaizId, dinero, comprarPan, "consumo"));
+  modelo = must(crearEnlace(modelo, modelo.opdRaizId, comprarPan, pan, "resultado"));
+
+  return {
+    modelo,
+    proposito: "Transformar dinero en pan mediante un cliente y un panadero que operan en la panaderia.",
+    descripcion: "Ancla Beta1 secundaria liviana. SD unico, 5 enlaces (dos agentes, un instrumento, consumo, resultado). Sin descomposicion ni estados; util para validar el catalogo simple sobre un modelo plano.",
+    categoria: "ancla-real",
   };
 }
 
@@ -430,5 +642,16 @@ export function fixtureTodos(): FixtureDemo[] {
     crearSdAsyncInzoomed(),
     crearControlCalidad(),
     crearEjemploOrganizacional(),
+    crearPrestamoBibliotecario(),
+    crearComprarPan(),
   ];
+}
+
+/**
+ * Filtra fixtures por categoria. Helper publico para consumidores del catalogo
+ * simple (UI catalogo Beta1, scripts de eval). No introduce ordenamiento ni
+ * permisos: deja la decision visual al consumidor.
+ */
+export function fixturesPorCategoria(categoria: CategoriaFixture): FixtureDemo[] {
+  return fixtureTodos().filter((f) => (f.categoria ?? "demo-pedagogica") === categoria);
 }

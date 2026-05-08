@@ -6,7 +6,7 @@
 
 **OPDs:** SD, SD1
 **Entidades:** 11
-**Enlaces:** 12
+**Enlaces:** 24
 **Estados:** 0
 
 ## OPL-ES
@@ -44,10 +44,18 @@ Validar Entrega es un proceso fisico.
 Analizar Necesidad consume Necesidad.
 Validar Entrega produce Servicio.
 Validar Entrega produce Aprendizaje.
-Persona manipula Entregar Valor.
-Entregar Valor usa Agente IA.
-Entregar Valor usa Organizacion.
-Entregar Valor afecta Cliente.
+Persona manipula Analizar Necesidad.
+Persona manipula Disenar Solucion.
+Persona manipula Validar Entrega.
+Analizar Necesidad usa Agente IA.
+Disenar Solucion usa Agente IA.
+Validar Entrega usa Agente IA.
+Analizar Necesidad usa Organizacion.
+Disenar Solucion usa Organizacion.
+Validar Entrega usa Organizacion.
+Analizar Necesidad afecta Cliente.
+Disenar Solucion afecta Cliente.
+Validar Entrega afecta Cliente.
 Analizar Necesidad invoca Disenar Solucion.
 Disenar Solucion invoca Validar Entrega.
 ```

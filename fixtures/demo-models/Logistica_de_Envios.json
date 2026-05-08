@@ -32,9 +32,10 @@
         "nombre": "Procesar Envio",
         "esencia": "fisica",
         "afiliacion": "sistemica",
-        "refinamiento": {
-          "tipo": "descomposicion",
-          "opdId": "opd-19"
+        "refinamientos": {
+          "descomposicion": {
+            "opdId": "opd-19"
+          }
         }
       },
       "o-9": {
@@ -67,7 +68,7 @@
       }
     },
     "estados": {},
-    "nextSeq": 41,
+    "nextSeq": 51,
     "opds": {
       "opd-1": {
         "id": "opd-1",
@@ -238,15 +239,9 @@
             "opdId": "opd-19",
             "vertices": []
           },
-          "ae-35": {
-            "id": "ae-35",
-            "enlaceId": "e-15",
-            "opdId": "opd-19",
-            "vertices": []
-          },
           "ae-36": {
             "id": "ae-36",
-            "enlaceId": "e-17",
+            "enlaceId": "e-35",
             "opdId": "opd-19",
             "vertices": []
           },
@@ -259,6 +254,36 @@
           "ae-40": {
             "id": "ae-40",
             "enlaceId": "e-39",
+            "opdId": "opd-19",
+            "vertices": []
+          },
+          "ae-42": {
+            "id": "ae-42",
+            "enlaceId": "e-41",
+            "opdId": "opd-19",
+            "vertices": []
+          },
+          "ae-44": {
+            "id": "ae-44",
+            "enlaceId": "e-43",
+            "opdId": "opd-19",
+            "vertices": []
+          },
+          "ae-46": {
+            "id": "ae-46",
+            "enlaceId": "e-45",
+            "opdId": "opd-19",
+            "vertices": []
+          },
+          "ae-48": {
+            "id": "ae-48",
+            "enlaceId": "e-47",
+            "opdId": "opd-19",
+            "vertices": []
+          },
+          "ae-50": {
+            "id": "ae-50",
+            "enlaceId": "e-49",
             "opdId": "opd-19",
             "vertices": []
           }
@@ -356,8 +381,122 @@
           "origen": "automatico"
         }
       },
+      "e-35": {
+        "id": "e-35",
+        "tipo": "agente",
+        "origenId": {
+          "kind": "entidad",
+          "id": "o-3"
+        },
+        "destinoId": {
+          "kind": "entidad",
+          "id": "p-25"
+        },
+        "etiqueta": "",
+        "derivado": {
+          "tipo": "enlace-externo-refinamiento",
+          "refinamientoId": "p-7",
+          "enlacePadreId": "e-15",
+          "origen": "automatico"
+        }
+      },
       "e-37": {
         "id": "e-37",
+        "tipo": "agente",
+        "origenId": {
+          "kind": "entidad",
+          "id": "o-3"
+        },
+        "destinoId": {
+          "kind": "entidad",
+          "id": "p-27"
+        },
+        "etiqueta": "",
+        "derivado": {
+          "tipo": "enlace-externo-refinamiento",
+          "refinamientoId": "p-7",
+          "enlacePadreId": "e-15",
+          "origen": "automatico"
+        }
+      },
+      "e-39": {
+        "id": "e-39",
+        "tipo": "agente",
+        "origenId": {
+          "kind": "entidad",
+          "id": "o-3"
+        },
+        "destinoId": {
+          "kind": "entidad",
+          "id": "p-29"
+        },
+        "etiqueta": "",
+        "derivado": {
+          "tipo": "enlace-externo-refinamiento",
+          "refinamientoId": "p-7",
+          "enlacePadreId": "e-15",
+          "origen": "automatico"
+        }
+      },
+      "e-41": {
+        "id": "e-41",
+        "tipo": "instrumento",
+        "origenId": {
+          "kind": "entidad",
+          "id": "o-5"
+        },
+        "destinoId": {
+          "kind": "entidad",
+          "id": "p-25"
+        },
+        "etiqueta": "",
+        "derivado": {
+          "tipo": "enlace-externo-refinamiento",
+          "refinamientoId": "p-7",
+          "enlacePadreId": "e-17",
+          "origen": "automatico"
+        }
+      },
+      "e-43": {
+        "id": "e-43",
+        "tipo": "instrumento",
+        "origenId": {
+          "kind": "entidad",
+          "id": "o-5"
+        },
+        "destinoId": {
+          "kind": "entidad",
+          "id": "p-27"
+        },
+        "etiqueta": "",
+        "derivado": {
+          "tipo": "enlace-externo-refinamiento",
+          "refinamientoId": "p-7",
+          "enlacePadreId": "e-17",
+          "origen": "automatico"
+        }
+      },
+      "e-45": {
+        "id": "e-45",
+        "tipo": "instrumento",
+        "origenId": {
+          "kind": "entidad",
+          "id": "o-5"
+        },
+        "destinoId": {
+          "kind": "entidad",
+          "id": "p-29"
+        },
+        "etiqueta": "",
+        "derivado": {
+          "tipo": "enlace-externo-refinamiento",
+          "refinamientoId": "p-7",
+          "enlacePadreId": "e-17",
+          "origen": "automatico"
+        }
+      },
+      "e-47": {
+        "id": "e-47",
         "tipo": "invocacion",
         "origenId": {
           "kind": "entidad",
@@ -369,8 +508,8 @@
         },
         "etiqueta": ""
       },
-      "e-39": {
-        "id": "e-39",
+      "e-49": {
+        "id": "e-49",
         "tipo": "invocacion",
         "origenId": {
           "kind": "entidad",

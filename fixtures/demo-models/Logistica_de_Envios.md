@@ -6,7 +6,7 @@
 
 **OPDs:** SD, SD1
 **Entidades:** 8
-**Enlaces:** 8
+**Enlaces:** 14
 **Estados:** 0
 
 ## OPL-ES
@@ -34,8 +34,12 @@ Preparar Paquete es un proceso fisico.
 Enviar Paquete es un proceso fisico.
 Recibir Pedido consume Pedido.
 Enviar Paquete produce Entrega.
-Operador Logistico manipula Procesar Envio.
-Procesar Envio usa Sistema Logistico.
+Operador Logistico manipula Recibir Pedido.
+Operador Logistico manipula Preparar Paquete.
+Operador Logistico manipula Enviar Paquete.
+Recibir Pedido usa Sistema Logistico.
+Preparar Paquete usa Sistema Logistico.
+Enviar Paquete usa Sistema Logistico.
 Recibir Pedido invoca Preparar Paquete.
 Preparar Paquete invoca Enviar Paquete.
 ```

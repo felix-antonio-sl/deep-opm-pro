@@ -1,0 +1,217 @@
+{
+  "formato": "deep-opm-pro.modelo.v0",
+  "modelo": {
+    "id": "modelo-1",
+    "nombre": "Comprar Pan",
+    "opdRaizId": "opd-1",
+    "entidades": {
+      "o-1": {
+        "id": "o-1",
+        "tipo": "objeto",
+        "nombre": "Cliente",
+        "esencia": "fisica",
+        "afiliacion": "ambiental"
+      },
+      "o-3": {
+        "id": "o-3",
+        "tipo": "objeto",
+        "nombre": "Dinero",
+        "esencia": "fisica",
+        "afiliacion": "sistemica"
+      },
+      "o-5": {
+        "id": "o-5",
+        "tipo": "objeto",
+        "nombre": "Panadero",
+        "esencia": "fisica",
+        "afiliacion": "ambiental"
+      },
+      "o-7": {
+        "id": "o-7",
+        "tipo": "objeto",
+        "nombre": "Panaderia",
+        "esencia": "fisica",
+        "afiliacion": "sistemica"
+      },
+      "p-9": {
+        "id": "p-9",
+        "tipo": "proceso",
+        "nombre": "Comprar Pan",
+        "esencia": "fisica",
+        "afiliacion": "sistemica"
+      },
+      "o-11": {
+        "id": "o-11",
+        "tipo": "objeto",
+        "nombre": "Pan",
+        "esencia": "fisica",
+        "afiliacion": "sistemica"
+      }
+    },
+    "estados": {},
+    "nextSeq": 23,
+    "opds": {
+      "opd-1": {
+        "id": "opd-1",
+        "nombre": "SD",
+        "padreId": null,
+        "apariencias": {
+          "a-2": {
+            "id": "a-2",
+            "entidadId": "o-1",
+            "opdId": "opd-1",
+            "x": 90,
+            "y": 90,
+            "width": 135,
+            "height": 60
+          },
+          "a-4": {
+            "id": "a-4",
+            "entidadId": "o-3",
+            "opdId": "opd-1",
+            "x": 270,
+            "y": 90,
+            "width": 135,
+            "height": 60
+          },
+          "a-6": {
+            "id": "a-6",
+            "entidadId": "o-5",
+            "opdId": "opd-1",
+            "x": 460,
+            "y": 90,
+            "width": 135,
+            "height": 60
+          },
+          "a-8": {
+            "id": "a-8",
+            "entidadId": "o-7",
+            "opdId": "opd-1",
+            "x": 640,
+            "y": 90,
+            "width": 135,
+            "height": 60
+          },
+          "a-10": {
+            "id": "a-10",
+            "entidadId": "p-9",
+            "opdId": "opd-1",
+            "x": 360,
+            "y": 230,
+            "width": 135,
+            "height": 60
+          },
+          "a-12": {
+            "id": "a-12",
+            "entidadId": "o-11",
+            "opdId": "opd-1",
+            "x": 360,
+            "y": 380,
+            "width": 135,
+            "height": 60
+          }
+        },
+        "enlaces": {
+          "ae-14": {
+            "id": "ae-14",
+            "enlaceId": "e-13",
+            "opdId": "opd-1",
+            "vertices": []
+          },
+          "ae-16": {
+            "id": "ae-16",
+            "enlaceId": "e-15",
+            "opdId": "opd-1",
+            "vertices": []
+          },
+          "ae-18": {
+            "id": "ae-18",
+            "enlaceId": "e-17",
+            "opdId": "opd-1",
+            "vertices": []
+          },
+          "ae-20": {
+            "id": "ae-20",
+            "enlaceId": "e-19",
+            "opdId": "opd-1",
+            "vertices": []
+          },
+          "ae-22": {
+            "id": "ae-22",
+            "enlaceId": "e-21",
+            "opdId": "opd-1",
+            "vertices": []
+          }
+        }
+      }
+    },
+    "enlaces": {
+      "e-13": {
+        "id": "e-13",
+        "tipo": "agente",
+        "origenId": {
+          "kind": "entidad",
+          "id": "o-1"
+        },
+        "destinoId": {
+          "kind": "entidad",
+          "id": "p-9"
+        },
+        "etiqueta": ""
+      },
+      "e-15": {
+        "id": "e-15",
+        "tipo": "agente",
+        "origenId": {
+          "kind": "entidad",
+          "id": "o-5"
+        },
+        "destinoId": {
+          "kind": "entidad",
+          "id": "p-9"
+        },
+        "etiqueta": ""
+      },
+      "e-17": {
+        "id": "e-17",
+        "tipo": "instrumento",
+        "origenId": {
+          "kind": "entidad",
+          "id": "o-7"
+        },
+        "destinoId": {
+          "kind": "entidad",
+          "id": "p-9"
+        },
+        "etiqueta": ""
+      },
+      "e-19": {
+        "id": "e-19",
+        "tipo": "consumo",
+        "origenId": {
+          "kind": "entidad",
+          "id": "o-3"
+        },
+        "destinoId": {
+          "kind": "entidad",
+          "id": "p-9"
+        },
+        "etiqueta": ""
+      },
+      "e-21": {
+        "id": "e-21",
+        "tipo": "resultado",
+        "origenId": {
+          "kind": "entidad",
+          "id": "p-9"
+        },
+        "destinoId": {
+          "kind": "entidad",
+          "id": "o-11"
+        },
+        "etiqueta": ""
+      }
+    },
+    "abanicos": {}
+  }
+}

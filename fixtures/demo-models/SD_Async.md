@@ -6,7 +6,7 @@
 
 **OPDs:** SD, SD1
 **Entidades:** 9
-**Enlaces:** 10
+**Enlaces:** 19
 **Estados:** 0
 
 ## OPL-ES
@@ -37,10 +37,16 @@ First Processing es un proceso fisico.
 Second Processing es un proceso fisico.
 Third Processing es un proceso fisico.
 System Name exhibe Main System Doing.
-System Handler manipula Main System Doing.
+System Handler manipula First Processing.
+System Handler manipula Second Processing.
+System Handler manipula Third Processing.
 First Processing consume Main Input.
-Main System Doing usa System Name.
-Main System Doing usa System Tool Set.
+First Processing usa System Name.
+Second Processing usa System Name.
+Third Processing usa System Name.
+First Processing usa System Tool Set.
+Second Processing usa System Tool Set.
+Third Processing usa System Tool Set.
 Third Processing produce Main Output.
 First Processing invoca Second Processing.
 Second Processing invoca Third Processing.
