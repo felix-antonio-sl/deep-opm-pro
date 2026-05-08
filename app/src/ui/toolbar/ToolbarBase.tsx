@@ -9,6 +9,7 @@ import verFileIcon from "../../../../assets/svg/verFile.svg";
 import { normalizarGridConfig } from "../../canvas/grid";
 import { listarFixtures } from "../../store/runtime";
 import { useOpmStore } from "../../store";
+import { ChipPersistencia } from "../ChipPersistencia";
 import { useConfirmarSiDirty } from "../ConfirmacionContext";
 import { DialogoGuardarPlantilla } from "../DialogoGuardarPlantilla";
 import { MenuContextualEnlace } from "../MenuContextualEnlace";
@@ -77,7 +78,7 @@ export function ToolbarBase({ children }: ToolbarBaseProps) {
   const autosalvado = useOpmStore((s) => s.autosalvado);
   const readOnly = useOpmStore((s) => s.readOnly);
   const iniciarAutosalvado = useOpmStore((s) => s.iniciarAutosalvado);
-  const dirty = useOpmStore((s) => s.dirty);
+  // Ronda 19 L5: `dirty` ya no se lee aqui; ChipPersistencia lo consume.
   const modoCreacion = useOpmStore((s) => s.modoCreacion);
   const confirmarSiDirty = useConfirmarSiDirty();
   const abrirDialogoPlantillas = useOpmStore((s) => s.abrirDialogoPlantillas);
@@ -144,7 +145,10 @@ export function ToolbarBase({ children }: ToolbarBaseProps) {
 
   const entidadSeleccionada = seleccionId ? modelo.entidades[seleccionId] : undefined;
   const puedeCrearAtributo = entidadSeleccionada?.tipo === "objeto";
-  const tituloModelo = modeloPersistidoId ? modelo.nombre : `${modelo.nombre} (No guardado)`;
+  // Ronda 19 L5: el sufijo "(No guardado)" se reemplaza por <ChipPersistencia />
+  // que comunica el estado de almacenamiento de forma estructurada (variante,
+  // versiones, tiempo desde último save). El título queda limpio.
+  const tituloModelo = modelo.nombre;
   const resumenPersistido = modeloPersistidoId ? modelosGuardados.find((item) => item.id === modeloPersistidoId) : undefined;
   const totalVersiones = resumenPersistido?.versiones?.length ?? 0;
   const demos = useMemo(() => listarFixtures(), []);
@@ -231,7 +235,8 @@ export function ToolbarBase({ children }: ToolbarBaseProps) {
         {/* P0-2: MenuPrincipal vive ahora en App.tsx para evitar
             duplicacion en el DOM. El boton aqui solo gatilla el store. */}
       </div>
-      <span style={style.title}>{tituloModelo}{dirty && modeloPersistidoId ? " (No guardado)" : ""}</span>
+      <span style={style.title}>{tituloModelo}</span>
+      <ChipPersistencia />
       {resumenPersistido?.archivado ? <span style={style.archiveBadge}>ARCH</span> : null}
       {modeloPersistidoId && totalVersiones > 0 ? (
         <button type="button" style={style.versionButton} onClick={() => abrirDialogoVersiones(modeloPersistidoId)} title={`${totalVersiones} versiones guardadas`}>
