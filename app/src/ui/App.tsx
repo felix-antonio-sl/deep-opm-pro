@@ -19,6 +19,7 @@ import { CapturadorBugs } from "./CapturadorBugs";
 import { configurarContextoAtajos, escucharGlobal, registrarAtajo } from "./atajosTeclado";
 import { ConfirmacionProvider } from "./ConfirmacionContext";
 import { DivisorPanel } from "./divisorPanel";
+import { EstadoVacioOpm } from "./EstadoVacioOpm";
 import { Inspector } from "./Inspector";
 import { MenuPrincipal } from "./MenuPrincipal";
 import { PanelAvisos } from "./PanelAvisos";
@@ -110,6 +111,11 @@ export function App() {
                   onAbrirInspector={() => setInspectorAbierto(true)}
                   onToggleInspector={() => setInspectorAbierto((abierto) => !abierto)}
                 />
+                {/* L1 ronda 21: bloque inicio compacto sobre canvas vacio o
+                    nudge "Conectar como resultado" tras 2 entidades. El
+                    componente decide internamente si renderiza algo segun
+                    apariencias del OPD activo. */}
+                <EstadoVacioOpm />
               </>
             )}
           </div>

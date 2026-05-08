@@ -195,3 +195,17 @@ export const typography = {
 } as const;
 
 export const tokens = { colors, spacing, radii, shadows, typography } as const;
+
+/* L1 ronda 21 — empty state OPM
+ * `EstadoVacioOpm` reusa tokens existentes para evitar fragmentacion del
+ * sistema de chrome y respetar JOYAS §1 (cero hex literales nuevos). El
+ * bloque inicio compacto se ancla en:
+ *   colors.fondoChrome / colors.bordeIntermedio / shadows.card  → tarjeta base
+ *   colors.acentoUi / colors.acentoUiSuave                       → boton primario y nudge
+ *   colors.bordeControl / colors.textoControl                    → boton secundario asistente
+ *   colors.infoBordeSuave / shadows.popover / radii.pill         → nudge "conectar como resultado"
+ *   typography.sizes.lg/md/sm + weights.semibold/medium          → titulo, subtitulo, botones
+ *   spacing.xs/sm/md/lg + radii.control/lg/pill                  → ritmo y radios canonicos
+ * No se introducen colores nuevos: si en el futuro se necesita una variante
+ * propia, agregarla aqui (no inline) y dejar comentada la cita SSOT. */
+
