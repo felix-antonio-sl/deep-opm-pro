@@ -226,6 +226,20 @@ export type ResultadoBusquedaSalto =
   | { tipo: "estado"; estadoId: Id; entidadId: Id; opdId: Id; aparienciaId: Id }
   | { tipo: "enlace"; enlaceId: Id; opdId: Id };
 
+/**
+ * L1 ronda 20: tabs por intención del Inspector de entidad. Particionan el
+ * muro plano actual en 5 capas semánticas (informe UI/UX 2026-05-07 §P1
+ * inspector líneas 98-114). Default `semantica` en cada selección.
+ */
+export type TabInspectorEntidad = "semantica" | "enlaces" | "refinamiento" | "apariciones" | "estilo";
+
+/**
+ * L1 ronda 20: tabs por intención del Inspector de enlace. Espejan la
+ * partición de entidad pero con 3 dimensiones simétricas. Default
+ * `propiedades`.
+ */
+export type TabInspectorEnlace = "propiedades" | "extremos" | "estilo";
+
 export interface OpmStore {
   modelo: Modelo;
   opdActivoId: Id;
@@ -249,6 +263,17 @@ export interface OpmStore {
   filtroOplPorSeleccion: boolean;
   hoverOplRef: OplReferencia | null;
   busquedaOpl: string;
+  /**
+   * L1 ronda 20: tab activo del Inspector cuando hay entidad seleccionada.
+   * Persistencia por sesión via store (no localStorage). Si la entidad cambia
+   * de tipo y el tab no aplica, cae a `semantica`. Default `semantica`.
+   */
+  tabInspectorEntidadActivo: TabInspectorEntidad;
+  /**
+   * L1 ronda 20: tab activo del Inspector cuando hay enlace seleccionado.
+   * Default `propiedades`.
+   */
+  tabInspectorEnlaceActivo: TabInspectorEnlace;
   mensaje: string | null;
   dirty: boolean;
   puedeDeshacer: boolean;
@@ -375,6 +400,10 @@ export interface OpmStore {
   fijarFiltroOplPorSeleccion: (activo: boolean) => void;
   fijarHoverOpl: (ref: OplReferencia | null) => void;
   fijarBusquedaOpl: (texto: string) => void;
+  /** L1 ronda 20: cambia el tab activo del Inspector de entidad. */
+  cambiarTabInspectorEntidad: (tab: TabInspectorEntidad) => void;
+  /** L1 ronda 20: cambia el tab activo del Inspector de enlace. */
+  cambiarTabInspectorEnlace: (tab: TabInspectorEnlace) => void;
   buscarEnPanelOpl: (texto: string) => void;
   alternarNumeracionOpl: () => void;
   cambiarPosicionOpl: (posicion?: "inferior" | "lateral-derecho") => void;

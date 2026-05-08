@@ -230,4 +230,115 @@ export const inspectorStyles = {
     fontSize: "12px",
     fontWeight: 700,
   },
+  // L1 ronda 20 — Tabs del Inspector (5 entidad / 3 enlace).
+  // Decisión bloqueada §10 brief: solo texto (sin iconos), peso 700 al activo.
+  // Divisor: gap mayor entre tabs y borde inferior 1px sutil sobre la fila
+  // (recomendado en §10) en vez de línea sólida entre tabs.
+  tabsRow: {
+    display: "flex",
+    flexWrap: "wrap",
+    gap: `${tokens.inspectorTabs.gap}px`,
+    marginBottom: `${tokens.inspectorTabs.marginBottom}px`,
+    paddingBottom: `${tokens.inspectorTabs.paddingY}px`,
+    borderBottom: `1px solid ${tokens.inspectorTabs.separadorBorde}`,
+  },
+  tab: {
+    flex: "0 0 auto",
+    padding: `${tokens.inspectorTabs.paddingY}px ${tokens.inspectorTabs.paddingX}px`,
+    border: `1px solid ${tokens.inspectorTabs.borderInactive}`,
+    borderRadius: tokens.radii.sm,
+    background: tokens.inspectorTabs.fondoInactive,
+    color: tokens.inspectorTabs.textInactive,
+    cursor: "pointer",
+    fontSize: `${tokens.inspectorTabs.fontSize}px`,
+    fontWeight: tokens.inspectorTabs.weightInactive,
+    lineHeight: 1.2,
+  },
+  tabActive: {
+    flex: "0 0 auto",
+    padding: `${tokens.inspectorTabs.paddingY}px ${tokens.inspectorTabs.paddingX}px`,
+    border: `1px solid ${tokens.inspectorTabs.borderActive}`,
+    borderRadius: tokens.radii.sm,
+    background: tokens.inspectorTabs.fondoActive,
+    color: tokens.inspectorTabs.textActive,
+    cursor: "pointer",
+    fontSize: `${tokens.inspectorTabs.fontSize}px`,
+    fontWeight: tokens.inspectorTabs.weightActive,
+    lineHeight: 1.2,
+  },
+  tabPanel: {
+    display: "grid",
+    gap: `${tokens.inspectorTabs.panelGap}px`,
+  },
+  // Hint compacto del banner cobertura cuando aparece en tab Semántica.
+  // Sustituye al banner inline original; sigue siendo hint visual idéntico
+  // pero más conciso y clickeable hacia el tab Apariciones.
+  coberturaHint: {
+    margin: `0 0 ${tokens.spacing.sm}px`,
+    padding: `${tokens.spacing.xs}px ${tokens.spacing.sm}px`,
+    border: `1px solid ${tokens.colors.infoBordeSuave}`,
+    borderRadius: tokens.radii.sm,
+    background: tokens.colors.infoFondoClaro,
+    color: tokens.colors.infoTextoOscuro,
+    cursor: "pointer",
+    font: "inherit",
+    fontSize: `${tokens.typography.sizes.xs}px`,
+    fontWeight: tokens.typography.weights.bold,
+    textAlign: "left",
+    width: "100%",
+  },
+  // L1 ronda 20 — Tab Apariciones: lista plana de OPDs (decisión §10 brief).
+  // Items clickeables que navegan al OPD donde aparece la entidad; el ítem
+  // del OPD activo se marca con `aparicionItemActivo` y `disabled`.
+  aparicionesList: {
+    display: "grid",
+    gap: `${tokens.spacing.xs}px`,
+  },
+  aparicionItem: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "stretch",
+    gap: `${tokens.spacing.xs}px`,
+    padding: `${tokens.spacing.sm}px ${tokens.spacing.md}px`,
+    border: `1px solid ${tokens.colors.bordeChrome}`,
+    borderRadius: tokens.radii.sm,
+    background: tokens.colors.fondoCard,
+    color: tokens.colors.textoPrimario,
+    cursor: "pointer",
+    fontSize: `${tokens.typography.sizes.sm}px`,
+    fontWeight: tokens.typography.weights.semibold,
+    textAlign: "left",
+  },
+  aparicionItemActivo: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "stretch",
+    gap: `${tokens.spacing.xs}px`,
+    padding: `${tokens.spacing.sm}px ${tokens.spacing.md}px`,
+    border: `1px solid ${tokens.colors.chromeNeutral}`,
+    borderRadius: tokens.radii.sm,
+    background: tokens.colors.chromeNeutralSuave,
+    color: tokens.colors.textoPrimario,
+    cursor: "default",
+    fontSize: `${tokens.typography.sizes.sm}px`,
+    fontWeight: tokens.typography.weights.bold,
+    textAlign: "left",
+  },
+  aparicionOpdNombre: {
+    color: tokens.colors.textoPrimario,
+    fontSize: `${tokens.typography.sizes.sm}px`,
+    fontWeight: tokens.typography.weights.bold,
+  },
+  aparicionMeta: {
+    color: tokens.colors.textoSecundario,
+    fontSize: `${tokens.typography.sizes.xs}px`,
+    fontWeight: tokens.typography.weights.semibold,
+    textTransform: "uppercase",
+    letterSpacing: "0.04em",
+  },
+  aparicionEmpty: {
+    margin: 0,
+    color: tokens.colors.textoTerciario,
+    fontSize: `${tokens.typography.sizes.sm}px`,
+  },
 } satisfies Record<string, preact.JSX.CSSProperties>;

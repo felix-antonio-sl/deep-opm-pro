@@ -243,6 +243,9 @@ export const createUiPanelSlice: CrearSlice<UiPanelSlice> = (set, get) => ({
   // Default cerrado para ambos (decision §10 brief).
   bibliotecaCosaAbierta: false,
   bibliotecaDockAbierto: false,
+  // L1 ronda 20: tabs Inspector. Defaults `semantica` y `propiedades`.
+  tabInspectorEntidadActivo: "semantica",
+  tabInspectorEnlaceActivo: "propiedades",
 
   fijarModoOrdenArbol(modo) {
     const { modelo } = get();
@@ -532,5 +535,15 @@ export const createUiPanelSlice: CrearSlice<UiPanelSlice> = (set, get) => ({
     });
     activarPestanaNueva(set, get, pestana, "Modelo creado desde asistente");
     set({ asistente: null, menuPrincipalAbierto: false });
-  }
+  },
+
+  // ── L1 ronda 20: tabs por intención del Inspector ────────────────
+
+  cambiarTabInspectorEntidad(tab) {
+    set({ tabInspectorEntidadActivo: tab });
+  },
+
+  cambiarTabInspectorEnlace(tab) {
+    set({ tabInspectorEnlaceActivo: tab });
+  },
 });

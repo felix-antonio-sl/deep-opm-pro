@@ -5,7 +5,9 @@ import { entidadDeExtremo, nombreExtremo } from "../modelo/extremos";
 import { validarMultiplicidad } from "../modelo/operaciones";
 import { useOpmStore, store } from "../store";
 import type { Enlace, Id, Modelo, Modificador } from "../modelo/tipos";
+import type { TabInspectorEnlace } from "../store/tipos";
 import { inspectorStyles as style } from "./inspectorStyles";
+import { InspectorTabs, type InspectorTabDef } from "./inspector/InspectorTabs";
 import { SeccionAbanico } from "./inspectorEnlace/SeccionAbanico";
 import { SeccionEstilo } from "./inspectorEnlace/SeccionEstilo";
 import { SeccionEstiloEnlace } from "./inspectorEnlace/SeccionEstiloEnlace";
@@ -21,6 +23,17 @@ interface Props {
 }
 
 /**
+ * L1 ronda 20: tabs por intención del Inspector de enlace. 3 tabs simétricos
+ * a la partición de entidad: Propiedades / Extremos / Estilo. Default
+ * `propiedades`.
+ */
+const TABS_ENLACE: ReadonlyArray<InspectorTabDef<TabInspectorEnlace>> = [
+  { id: "propiedades", label: "Propiedades", testid: "inspector-enlace-tab-propiedades" },
+  { id: "extremos", label: "Extremos", testid: "inspector-enlace-tab-extremos" },
+  { id: "estilo", label: "Estilo", testid: "inspector-enlace-tab-estilo" },
+];
+
+/**
  * Barrel publico del inspector de enlace. Mantiene acciones Zustand exactas y
  * delega secciones alineadas con SSOT: multiplicidad, rutas y abanicos.
  *
@@ -29,10 +42,17 @@ interface Props {
  * validarMultiplicidad, ajustarMultiplicidadSeleccionada). El acuerdo
  * formal se documenta en `app/e2e/15-superficie-contextual.spec.ts`
  * bajo el describe.skip "Contrato TablaEnlaces Beta1".
+ *
+ * L1 ronda 20: el contenido se particiona en 3 tabs por intención
+ * (Propiedades / Extremos / Estilo). El tab activo persiste en
+ * `store.uiPanel.tabInspectorEnlaceActivo`. Cero cambios en la lógica de
+ * cada `Seccion*`; solo se reorganizan en su tab.
  */
 export function InspectorEnlace({ enlace }: Props) {
   const modelo = useOpmStore((s) => s.modelo);
   const opdActivoId = useOpmStore((s) => s.opdActivoId);
+  const tabActivo = useOpmStore((s) => s.tabInspectorEnlaceActivo);
+  const cambiarTab = useOpmStore((s) => s.cambiarTabInspectorEnlace);
   const cambiarOpdActivo = useOpmStore((s) => s.cambiarOpdActivo);
   const ajustarMultiplicidad = useOpmStore((s) => s.ajustarMultiplicidadSeleccionada);
   const apuntarExtremo = useOpmStore((s) => s.apuntarExtremoEnlaceSeleccionado);
@@ -83,6 +103,9 @@ export function InspectorEnlace({ enlace }: Props) {
     setRutaEtiqueta(enlace.rutaEtiqueta ?? "");
   }, [enlace.id, enlace.probabilidad, enlace.demora, enlace.etiqueta, enlace.rutaEtiqueta]);
   useEffect(() => setEndpointSeleccionado(endpointActual), [enlace.id, endpointActual]);
+  useEffect(() => {
+    if (!TABS_ENLACE.some((t) => t.id === tabActivo)) cambiarTab("propiedades");
+  }, [tabActivo, cambiarTab]);
 
   const cambiarMultiplicidad = (lado: "origen" | "destino", valor: string) => {
     if (lado === "origen") setMultiplicidadOrigen(valor);
@@ -144,46 +167,84 @@ export function InspectorEnlace({ enlace }: Props) {
           Ir al OPD donde aparece este enlace ({modelo.opds[opdDestinoNavegacion]?.nombre ?? opdDestinoNavegacion})
         </button>
       ) : null}
-      <SeccionEtiquetaEnlace enlace={enlace} etiqueta={etiqueta} onEtiqueta={cambiarEtiqueta} />
-      <SeccionEstilo
-        enlace={enlace}
-        hayPortapapeles={!!enlaceEstiloPortapapeles}
-        onAbrirDialogo={() => setDialogoEstiloAbierto(true)}
-        onCopiar={copiarEstiloAlPortapapeles}
-        onPegar={pegarEstiloDesdePortapapeles}
-        onReset={resetEstiloEnlaceAccion}
-        onAplicar={aplicarEstiloEnlaceAccion}
+      <InspectorTabs
+        tabs={TABS_ENLACE}
+        activo={tabActivo}
+        onCambiar={cambiarTab}
+        ariaLabel="Inspector enlace"
+        panelIdPrefix="inspector-panel-enlace"
       />
+      <div
+        role="tabpanel"
+        id={`inspector-panel-enlace-${tabActivo}`}
+        data-testid={`inspector-panel-enlace-${tabActivo}`}
+        style={style.tabPanel}
+      >
+        {tabActivo === "propiedades" ? (
+          <>
+            <SeccionEtiquetaEnlace enlace={enlace} etiqueta={etiqueta} onEtiqueta={cambiarEtiqueta} />
+            <SeccionMultiplicidad
+              enlace={enlace}
+              multiplicidadOrigen={multiplicidadOrigen}
+              multiplicidadDestino={multiplicidadDestino}
+              probabilidad={probabilidad}
+              demora={demora}
+              onMultiplicidad={cambiarMultiplicidad}
+              onModificador={cambiarModificador}
+              onSubtipoModificador={aplicarSubtipoModificador}
+              onProbabilidad={cambiarProbabilidad}
+              onDemora={cambiarDemora}
+            />
+          </>
+        ) : null}
+        {tabActivo === "extremos" ? (
+          <>
+            <SeccionExtremos modelo={modelo} enlace={enlace} onApuntarExtremo={apuntarExtremo} onAbrirMoverPuerto={() => setDialogoMoverPuertoAbierto(true)} />
+            <SeccionRuta modelo={modelo} enlace={enlace} rutaEtiqueta={rutaEtiqueta} onRutaEtiqueta={cambiarRutaEtiqueta} />
+            <SeccionReanclaje
+              modelo={modelo}
+              opdActivoId={opdActivoId}
+              enlace={enlace}
+              endpointSeleccionado={endpointSeleccionado}
+              onEndpointSeleccionado={setEndpointSeleccionado}
+              onAplicar={reanclarEnlaceExternoDerivado}
+              onAutomatico={volverEnlaceExternoDerivadoAAutomatico}
+            />
+            {enlace.tipo === "efecto" ? <button type="button" style={style.secondaryButton} onClick={splitEffect} title="Convierte el efecto en consumo + objeto intermedio + resultado">Split en par</button> : null}
+            <SeccionAbanico abanico={abanico} onAlternarOperador={alternarOperadorAbanico} onQuitarRama={quitarRamaDeAbanico} onDisolver={disolverAbanico} />
+          </>
+        ) : null}
+        {tabActivo === "estilo" ? (
+          <>
+            <SeccionEstilo
+              enlace={enlace}
+              hayPortapapeles={!!enlaceEstiloPortapapeles}
+              onAbrirDialogo={() => setDialogoEstiloAbierto(true)}
+              onCopiar={copiarEstiloAlPortapapeles}
+              onPegar={pegarEstiloDesdePortapapeles}
+              onReset={resetEstiloEnlaceAccion}
+              onAplicar={aplicarEstiloEnlaceAccion}
+            />
+            <SeccionEstiloEnlace
+              enlace={enlace}
+              modelo={modelo}
+              seleccionados={seleccionados}
+              enlaceEstiloPortapapeles={enlaceEstiloPortapapeles}
+              onAplicarEstilo={aplicarEstiloEnlaceAccion}
+              onReset={resetEstiloEnlaceAccion}
+              onCopiar={copiarEstiloAlPortapapeles}
+              onPegar={pegarEstiloDesdePortapapeles}
+              onAplicarSeleccion={aplicarEstiloASeleccion}
+            />
+          </>
+        ) : null}
+      </div>
       <DialogoEstiloEnlace
         abierto={dialogoEstiloAbierto}
         enlace={enlace}
         onCerrar={() => setDialogoEstiloAbierto(false)}
         onAplicar={aplicarEstiloEnlaceAccion}
       />
-      <SeccionEstiloEnlace
-        enlace={enlace}
-        modelo={modelo}
-        seleccionados={seleccionados}
-        enlaceEstiloPortapapeles={enlaceEstiloPortapapeles}
-        onAplicarEstilo={aplicarEstiloEnlaceAccion}
-        onReset={resetEstiloEnlaceAccion}
-        onCopiar={copiarEstiloAlPortapapeles}
-        onPegar={pegarEstiloDesdePortapapeles}
-        onAplicarSeleccion={aplicarEstiloASeleccion}
-      />
-      <SeccionMultiplicidad
-        enlace={enlace}
-        multiplicidadOrigen={multiplicidadOrigen}
-        multiplicidadDestino={multiplicidadDestino}
-        probabilidad={probabilidad}
-        demora={demora}
-        onMultiplicidad={cambiarMultiplicidad}
-        onModificador={cambiarModificador}
-        onSubtipoModificador={aplicarSubtipoModificador}
-        onProbabilidad={cambiarProbabilidad}
-        onDemora={cambiarDemora}
-      />
-      <SeccionExtremos modelo={modelo} enlace={enlace} onApuntarExtremo={apuntarExtremo} onAbrirMoverPuerto={() => setDialogoMoverPuertoAbierto(true)} />
       <DialogoMoverPuerto
         open={dialogoMoverPuertoAbierto}
         modelo={modelo}
@@ -199,18 +260,6 @@ export function InspectorEnlace({ enlace }: Props) {
           setDialogoMoverPuertoAbierto(false);
         }}
       />
-      <SeccionRuta modelo={modelo} enlace={enlace} rutaEtiqueta={rutaEtiqueta} onRutaEtiqueta={cambiarRutaEtiqueta} />
-      <SeccionReanclaje
-        modelo={modelo}
-        opdActivoId={opdActivoId}
-        enlace={enlace}
-        endpointSeleccionado={endpointSeleccionado}
-        onEndpointSeleccionado={setEndpointSeleccionado}
-        onAplicar={reanclarEnlaceExternoDerivado}
-        onAutomatico={volverEnlaceExternoDerivadoAAutomatico}
-      />
-      {enlace.tipo === "efecto" ? <button type="button" style={style.secondaryButton} onClick={splitEffect} title="Convierte el efecto en consumo + objeto intermedio + resultado">Split en par</button> : null}
-      <SeccionAbanico abanico={abanico} onAlternarOperador={alternarOperadorAbanico} onQuitarRama={quitarRamaDeAbanico} onDisolver={disolverAbanico} />
       <button type="button" style={style.dangerButton} onClick={eliminar}>Eliminar enlace</button>
       <button type="button" style={style.oplEditButton} onClick={() => store.getState().abrirInspectorEnlaceDesdeOpl(enlace.id)} title="Editar este enlace desde el panel OPL-ES">
         Editar OPL

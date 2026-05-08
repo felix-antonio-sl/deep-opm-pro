@@ -334,6 +334,11 @@ export type UiPanelSlice = Slice<
   | "toggleBibliotecaDock"
   | "abrirBibliotecaDock"
   | "cerrarBibliotecaDock"
+  // L1 ronda 20: tabs por intención del Inspector
+  | "tabInspectorEntidadActivo"
+  | "tabInspectorEnlaceActivo"
+  | "cambiarTabInspectorEntidad"
+  | "cambiarTabInspectorEnlace"
 >;
 
 export type MapaSlice = Slice<
