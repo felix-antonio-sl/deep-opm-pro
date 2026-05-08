@@ -653,10 +653,18 @@ export interface OpmStore {
   anchoPanelArbol: number;
   nombresArbolVisibles: boolean;
   cheatsheetAtajosAbierto: boolean;
+  /**
+   * L2 ronda 21: vista activa del modo revisión mobile.
+   * Solo se consume cuando `resolverBreakpoint(viewport.width) === "mobile"`.
+   * Persiste en sesión (no se serializa al modelo). Default: "canvas".
+   */
+  vistaMobileActiva: "canvas" | "opds" | "opl" | "issues";
   fijarAnchoPanelArbol: (px: number) => void;
   toggleNombresArbolVisibles: () => void;
   abrirCheatsheetAtajos: () => void;
   cerrarCheatsheetAtajos: () => void;
+  /** L2 ronda 21: cambia la vista activa del modo revisión mobile. */
+  cambiarVistaMobile: (vista: "canvas" | "opds" | "opl" | "issues") => void;
   navegarOpdArriba: () => void;
   navegarOpdAbajo: () => void;
   navegarOpdIzquierda: () => void;

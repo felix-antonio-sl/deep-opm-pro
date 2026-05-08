@@ -286,4 +286,22 @@ export const editorOplHonesto = {
  * No se introducen colores nuevos: si en el futuro se necesita una variante
  * propia, agregarla aqui (no inline) y dejar comentada la cita SSOT. */
 
-export const tokens = { colors, spacing, radii, shadows, typography, bibliotecaDock, inspectorTabs, editorOplHonesto } as const;
+/* L2 ronda 21: tokens del modo revisión mobile (tabs inferiores). */
+export const mobileNav = {
+  altoBarra: 56,
+  altoTab: 56,
+  iconoTamano: 20,
+  etiquetaSize: typography.sizes.xs,
+  etiquetaPesoActivo: typography.weights.semibold,
+  etiquetaPesoInactivo: typography.weights.medium,
+  fondoBarra: colors.fondoChrome,
+  bordeBarra: colors.bordeIntermedio,
+  textoTabActivo: colors.acentoUi,
+  textoTabInactivo: colors.textoSecundario,
+  fondoTabActivo: colors.acentoUiSuave,
+  fondoTabInactivo: "transparent",
+  fondoAvisoEdicion: colors.fondoMuted,
+  textoAvisoEdicion: colors.textoSecundario,
+} as const;
+
+export const tokens = { colors, spacing, radii, shadows, typography, bibliotecaDock, inspectorTabs, editorOplHonesto, mobileNav } as const;
