@@ -1,6 +1,7 @@
 import { dia, shapes } from "jointjs";
 import { useEffect, useRef, useState } from "preact/hooks";
 import { normalizarGridConfig } from "../../canvas/grid";
+import type { Apariencia, Enlace, ExtremoEnlace, Modelo, Opd } from "../../modelo/tipos";
 import { useOpmStore } from "../../store";
 import { RenombradoInline } from "../../ui/RenombradoInline";
 import { recalcularOverlaysAbanicoDesdeLinkViews } from "./abanicoDragSync";
@@ -39,6 +40,7 @@ interface JointAdapter {
 
 export function JointCanvas() {
   const paperHostRef = useRef<HTMLDivElement>(null);
+  const viewportRef = useRef<HTMLDivElement>(null);
   const adapterRef = useRef<JointAdapter | null>(null);
   const sincronizandoRef = useRef(false);
   const rubberBandRef = useRef(false);
@@ -341,6 +343,32 @@ export function JointCanvas() {
     });
   }, []);
 
+  // [Ronda 16 L2] Cuando la selección llega desde fuera del canvas (búsqueda
+  // intra-modelo, navegación OPL), si la apariencia o el enlace seleccionado
+  // queda fuera del viewport scrolleable, lo centramos. Solo actúa si el
+  // elemento NO está ya visible — preserva el scroll natural cuando el usuario
+  // selecciona algo dentro del viewport.
+  useEffect(() => {
+    const viewport = viewportRef.current;
+    const adapter = adapterRef.current;
+    if (!viewport || !adapter) return;
+    const opd = modelo.opds[opdActivoId];
+    if (!opd) return;
+    let target: { x: number; y: number; width: number; height: number } | null = null;
+    if (enlaceSeleccionId) {
+      const aparienciaEnlace = Object.values(opd.enlaces).find((ap) => ap.enlaceId === enlaceSeleccionId);
+      if (aparienciaEnlace) {
+        const enlace = modelo.enlaces[enlaceSeleccionId];
+        if (enlace) target = bboxAproximadoEnlace(modelo, opd, enlace);
+      }
+    } else if (seleccionId) {
+      const apariencia = Object.values(opd.apariencias).find((ap) => ap.entidadId === seleccionId);
+      if (apariencia) target = apariencia;
+    }
+    if (!target) return;
+    centrarSiFueraDeViewport(viewport, target);
+  }, [seleccionId, enlaceSeleccionId, opdActivoId, modelo]);
+
   const renombrado = renombradoInline
     ? {
         entidad: modelo.entidades[renombradoInline.entidadId],
@@ -349,7 +377,7 @@ export function JointCanvas() {
     : null;
 
   return (
-    <div role="img" aria-label="OPD activo" data-atajos-contexto="canvas" style={style.viewport}>
+    <div ref={viewportRef} role="img" aria-label="OPD activo" data-atajos-contexto="canvas" style={style.viewport}>
       <div ref={paperHostRef} style={style.paperHost}>
         {renombrado?.entidad && renombrado.apariencia ? (
           <RenombradoInline
@@ -367,6 +395,65 @@ export function JointCanvas() {
       </div>
     </div>
   );
+}
+
+/**
+ * [Ronda 16 L2] BBox aproximado de un enlace en un OPD. Usa el bbox unión
+ * de las apariencias de sus extremos (entidad o estado, vía entidad padre).
+ * No consulta JointJS; basta con la geometría del modelo para decidir si
+ * el enlace está fuera del viewport y centrarlo.
+ */
+function bboxAproximadoEnlace(
+  modelo: Modelo,
+  opd: Opd,
+  enlace: Enlace,
+): { x: number; y: number; width: number; height: number } | null {
+  const aparienciaExtremo = (extremo: ExtremoEnlace): Apariencia | null => {
+    const entidadId = extremo.kind === "entidad"
+      ? extremo.id
+      : modelo.estados[extremo.id]?.entidadId;
+    if (!entidadId) return null;
+    return Object.values(opd.apariencias).find((ap) => ap.entidadId === entidadId) ?? null;
+  };
+  const origen = aparienciaExtremo(enlace.origenId);
+  const destino = aparienciaExtremo(enlace.destinoId);
+  const apariencias = [origen, destino].filter((a): a is Apariencia => a !== null);
+  if (apariencias.length === 0) return null;
+  const minX = Math.min(...apariencias.map((a) => a.x));
+  const minY = Math.min(...apariencias.map((a) => a.y));
+  const maxX = Math.max(...apariencias.map((a) => a.x + a.width));
+  const maxY = Math.max(...apariencias.map((a) => a.y + a.height));
+  return { x: minX, y: minY, width: maxX - minX, height: maxY - minY };
+}
+
+/**
+ * [Ronda 16 L2] Centra el viewport sobre `target` si y solo si el target no
+ * está completamente visible. Coordenadas de `target` están en el espacio del
+ * paper, que coincide 1:1 con `paperHost` (zoom no aplicado en este nivel).
+ */
+function centrarSiFueraDeViewport(
+  viewport: HTMLDivElement,
+  target: { x: number; y: number; width: number; height: number },
+): void {
+  const margin = 40;
+  const targetLeft = target.x - margin;
+  const targetTop = target.y - margin;
+  const targetRight = target.x + target.width + margin;
+  const targetBottom = target.y + target.height + margin;
+  const visibleLeft = viewport.scrollLeft;
+  const visibleTop = viewport.scrollTop;
+  const visibleRight = visibleLeft + viewport.clientWidth;
+  const visibleBottom = visibleTop + viewport.clientHeight;
+  const fueraHorizontal = targetLeft < visibleLeft || targetRight > visibleRight;
+  const fueraVertical = targetTop < visibleTop || targetBottom > visibleBottom;
+  if (!fueraHorizontal && !fueraVertical) return;
+  const centroX = target.x + target.width / 2;
+  const centroY = target.y + target.height / 2;
+  viewport.scrollTo({
+    left: Math.max(0, centroX - viewport.clientWidth / 2),
+    top: Math.max(0, centroY - viewport.clientHeight / 2),
+    behavior: "smooth",
+  });
 }
 
 const style = {

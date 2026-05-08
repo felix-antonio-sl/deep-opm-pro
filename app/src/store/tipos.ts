@@ -213,6 +213,19 @@ export interface ModoEnlace {
   origenId: Id;
 }
 
+/** [Ronda 16 L2] Filtros disponibles en `DialogoBuscarCosas`. */
+export type BusquedaCosasFiltro = "todos" | "objetos" | "procesos" | "estados" | "enlaces";
+
+/**
+ * [Ronda 16 L2] Resultado de un click en `DialogoBuscarCosas`. Discriminado
+ * por tipo para que `saltarAResultadoBusqueda` pueda seleccionar entidad,
+ * estado (como apariencia de su entidad padre) o enlace en el OPD destino.
+ */
+export type ResultadoBusquedaSalto =
+  | { tipo: "entidad"; entidadId: Id; opdId: Id; aparienciaId: Id }
+  | { tipo: "estado"; estadoId: Id; entidadId: Id; opdId: Id; aparienciaId: Id }
+  | { tipo: "enlace"; enlaceId: Id; opdId: Id };
+
 export interface OpmStore {
   modelo: Modelo;
   opdActivoId: Id;
@@ -282,7 +295,7 @@ export interface OpmStore {
   // ── Búsqueda intra-modelo (L4) ──
   busquedaCosasAbierta: boolean;
   busquedaCosasQuery: string;
-  busquedaCosasFiltro: "todos" | "procesos" | "objetos";
+  busquedaCosasFiltro: BusquedaCosasFiltro;
   // ── Autosalvado (L4) ──
   autosalvado: AutosalvadoEstado;
   // ── Asistente nuevo modelo (L3) ──
@@ -517,8 +530,8 @@ export interface OpmStore {
   abrirBusquedaCosas: () => void;
   cerrarBusquedaCosas: () => void;
   fijarBusquedaCosasQuery: (q: string) => void;
-  fijarBusquedaCosasFiltro: (filtro: "todos" | "procesos" | "objetos") => void;
-  saltarAResultadoBusqueda: (entidadId: Id, opdId: Id) => void;
+  fijarBusquedaCosasFiltro: (filtro: BusquedaCosasFiltro) => void;
+  saltarAResultadoBusqueda: (resultado: ResultadoBusquedaSalto) => void;
   // ── Autosalvado (L4) ──
   iniciarAutosalvado: () => void;
   detenerAutosalvado: () => void;

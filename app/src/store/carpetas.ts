@@ -362,19 +362,49 @@ export const createCarpetasSlice: CrearSlice<CarpetasSlice> = (set, get) => ({
     set({ busquedaCosasFiltro: filtro });
   },
 
-  saltarAResultadoBusqueda(entidadId, opdId) {
-    const { modelo, opdActivoId } = get();
-    if (!modelo.opds[opdId]) {
-      set({ mensaje: `OPD destino no existe: ${opdId}` });
+  saltarAResultadoBusqueda(resultado) {
+    const { modelo } = get();
+    if (!modelo.opds[resultado.opdId]) {
+      set({ mensaje: `OPD destino no existe: ${resultado.opdId}` });
       return;
     }
-    set({
-      opdActivoId: opdId,
-      seleccionId: entidadId,
-      enlaceSeleccionId: null,
-      modoEnlace: null,
-      busquedaCosasAbierta: false,
-      mensaje: null,
-    });
+    // [Ronda 16 L2] Selección polimorfa por tipo:
+    // - entidad/estado seleccionan la apariencia visible (entidad lógica),
+    //   asegurando halo + selección compartida con OPL/Inspector.
+    // - enlace selecciona el enlace lógico vía `enlaceSeleccionId`.
+    // El halo temporal (`idsResaltadosTemporales`) refuerza la afordancia
+    // de "saltó hasta aquí" durante 3s, igual que el patrón de plantillas.
+    const idsHalo: Id[] = [];
+    if (resultado.tipo === "entidad" || resultado.tipo === "estado") {
+      idsHalo.push(resultado.aparienciaId);
+      set({
+        opdActivoId: resultado.opdId,
+        seleccionId: resultado.entidadId,
+        seleccionados: [resultado.entidadId],
+        modoSeleccion: "simple",
+        enlaceSeleccionId: null,
+        modoEnlace: null,
+        busquedaCosasAbierta: false,
+        mensaje: null,
+      });
+    } else {
+      const enlace = modelo.enlaces[resultado.enlaceId];
+      if (!enlace) {
+        set({ mensaje: `Enlace no existe: ${resultado.enlaceId}` });
+        return;
+      }
+      idsHalo.push(resultado.enlaceId);
+      set({
+        opdActivoId: resultado.opdId,
+        seleccionId: null,
+        seleccionados: [resultado.enlaceId],
+        modoSeleccion: "simple",
+        enlaceSeleccionId: resultado.enlaceId,
+        modoEnlace: null,
+        busquedaCosasAbierta: false,
+        mensaje: null,
+      });
+    }
+    if (idsHalo.length > 0) get().resaltarTemporalmente(idsHalo, 3000);
   }
 });
