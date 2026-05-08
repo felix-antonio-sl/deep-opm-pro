@@ -20,6 +20,7 @@ import { configurarContextoAtajos, escucharGlobal, registrarAtajo } from "./ataj
 import { ConfirmacionProvider } from "./ConfirmacionContext";
 import { DivisorPanel } from "./divisorPanel";
 import { Inspector } from "./Inspector";
+import { MenuPrincipal } from "./MenuPrincipal";
 import { PanelAvisos } from "./PanelAvisos";
 import { PanelMetodologia } from "./PanelMetodologia";
 import { PanelOpl } from "./PanelOpl";
@@ -85,6 +86,7 @@ export function App() {
     <ConfirmacionProvider>
       <main style={layout.page}>
         <Toolbar />
+        <MenuPrincipal />
         <BarraPestanas />
         <section style={workbenchStyle(anchoPanelArbol, oplLateral, oplMinimizado, inspectorAbierto)}>
           <div data-testid="tree-pane" style={layout.treePane}>
