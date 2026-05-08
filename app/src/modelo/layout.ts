@@ -85,7 +85,10 @@ export function esContornoRefinamiento(apariencia: { width: number; height: numb
   return apariencia.width > CANON.dims.cosaWidth || apariencia.height > CANON.dims.cosaHeight;
 }
 
-export function dentroDeApariencia(apariencia: Apariencia, contorno: Apariencia): boolean {
+export function dentroDeApariencia(
+  apariencia: { x: number; y: number; width: number; height: number },
+  contorno: { x: number; y: number; width: number; height: number },
+): boolean {
   return (
     apariencia.x >= contorno.x &&
     apariencia.y >= contorno.y &&
