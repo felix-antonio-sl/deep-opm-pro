@@ -2,12 +2,14 @@ import { useEffect, useState } from "preact/hooks";
 import { autoInvocacionDeProceso } from "../modelo/autoinvocacion";
 import { esAtributoDerivado, estadosDeEntidad } from "../modelo/operaciones";
 import { filasPlegadoParcial, modoPlegadoApariencia, partesDePlegado } from "../modelo/plegado";
-import type { Entidad, Id, Modelo, OrdenPartesPlegado } from "../modelo/tipos";
+import type { Entidad, Id, OrdenPartesPlegado } from "../modelo/tipos";
 import type { TabInspectorEntidad } from "../store/tipos";
 import { store, useOpmStore } from "../store";
 import { inspectorStyles as style } from "./inspectorStyles";
+import { coberturaApariencias } from "./inspector/aparicionesUtils";
 import { InspectorTabs, type InspectorTabDef } from "./inspector/InspectorTabs";
 import { SeccionAlias } from "./inspector/SeccionAlias";
+import { SeccionApariciones } from "./inspector/SeccionApariciones";
 import { SeccionAtributo } from "./inspector/SeccionAtributo";
 import { SeccionDescripcion } from "./inspector/SeccionDescripcion";
 import { SeccionEsenciaAfiliacion } from "./inspector/SeccionEsenciaAfiliacion";
@@ -51,6 +53,7 @@ export function InspectorEntidad({ entidad }: Props) {
   const opdActivoId = useOpmStore((s) => s.opdActivoId);
   const tabActivo = useOpmStore((s) => s.tabInspectorEntidadActivo);
   const cambiarTab = useOpmStore((s) => s.cambiarTabInspectorEntidad);
+  const cambiarOpdActivo = useOpmStore((s) => s.cambiarOpdActivo);
   const renombrar = useOpmStore((s) => s.renombrarSeleccionada);
   const fijarEsencia = useOpmStore((s) => s.fijarEsenciaSeleccionada);
   const fijarAfiliacion = useOpmStore((s) => s.fijarAfiliacionSeleccionada);
@@ -118,7 +121,7 @@ export function InspectorEntidad({ entidad }: Props) {
     }
   };
 
-  const cobertura = coberturaAparienciasInline(modelo, entidad.id);
+  const cobertura = coberturaApariencias(modelo, entidad.id);
   // L1 ronda 20: si la entidad cambia y el tab actual no aplica, caer a
   // default. En este slice los 5 tabs aplican a objeto y proceso por igual,
   // pero los tabs `apariciones` y `enlaces` pueden no tener contenido
@@ -217,9 +220,12 @@ export function InspectorEntidad({ entidad }: Props) {
           />
         ) : null}
         {tabActivo === "apariciones" ? (
-          <p data-testid="inspector-panel-apariciones-placeholder" style={style.empty}>
-            El listado cross-OPD de apariciones se entrega en el siguiente commit (L1 ronda 20).
-          </p>
+          <SeccionApariciones
+            modelo={modelo}
+            entidad={entidad}
+            opdActivoId={opdActivoId}
+            onNavegar={cambiarOpdActivo}
+          />
         ) : null}
         {tabActivo === "estilo" ? (
           <PanelEstilo
@@ -483,31 +489,6 @@ function PanelEstilo(props: PanelEstiloProps) {
       onCambiarAplicarASeleccion={props.onCambiarAplicarABatch}
     />
   );
-}
-
-/**
- * Indica cuantas apariencias tiene la entidad y en cuantos OPDs distintos.
- * Hace explicito el contrato apariencia != entidad descrito en la auditoria
- * IFML §10.2: la edicion mediante Inspector se proyecta sobre todas las
- * apariencias, no solo la activa.
- *
- * Esta versión inline será extraída a `inspector/aparicionesUtils.ts` en el
- * commit que introduce el tab Apariciones (commit 2 de la línea L1 ronda 20).
- */
-function coberturaAparienciasInline(modelo: Modelo, entidadId: Id): { totalApariencias: number; opdsConEntidad: number } {
-  let totalApariencias = 0;
-  let opdsConEntidad = 0;
-  for (const opd of Object.values(modelo.opds)) {
-    let aparicionesEnOpd = 0;
-    for (const apariencia of Object.values(opd.apariencias)) {
-      if (apariencia.entidadId === entidadId) aparicionesEnOpd += 1;
-    }
-    if (aparicionesEnOpd > 0) {
-      totalApariencias += aparicionesEnOpd;
-      opdsConEntidad += 1;
-    }
-  }
-  return { totalApariencias, opdsConEntidad };
 }
 
 function renombrarEstadosCreados(estados: readonly { id: Id; nombre: string }[], nombres: readonly string[]): void {

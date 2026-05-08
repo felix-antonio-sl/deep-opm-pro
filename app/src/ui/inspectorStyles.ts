@@ -287,4 +287,58 @@ export const inspectorStyles = {
     textAlign: "left",
     width: "100%",
   },
+  // L1 ronda 20 — Tab Apariciones: lista plana de OPDs (decisión §10 brief).
+  // Items clickeables que navegan al OPD donde aparece la entidad; el ítem
+  // del OPD activo se marca con `aparicionItemActivo` y `disabled`.
+  aparicionesList: {
+    display: "grid",
+    gap: `${tokens.spacing.xs}px`,
+  },
+  aparicionItem: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "stretch",
+    gap: `${tokens.spacing.xs}px`,
+    padding: `${tokens.spacing.sm}px ${tokens.spacing.md}px`,
+    border: `1px solid ${tokens.colors.bordeChrome}`,
+    borderRadius: tokens.radii.sm,
+    background: tokens.colors.fondoCard,
+    color: tokens.colors.textoPrimario,
+    cursor: "pointer",
+    fontSize: `${tokens.typography.sizes.sm}px`,
+    fontWeight: tokens.typography.weights.semibold,
+    textAlign: "left",
+  },
+  aparicionItemActivo: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "stretch",
+    gap: `${tokens.spacing.xs}px`,
+    padding: `${tokens.spacing.sm}px ${tokens.spacing.md}px`,
+    border: `1px solid ${tokens.colors.chromeNeutral}`,
+    borderRadius: tokens.radii.sm,
+    background: tokens.colors.chromeNeutralSuave,
+    color: tokens.colors.textoPrimario,
+    cursor: "default",
+    fontSize: `${tokens.typography.sizes.sm}px`,
+    fontWeight: tokens.typography.weights.bold,
+    textAlign: "left",
+  },
+  aparicionOpdNombre: {
+    color: tokens.colors.textoPrimario,
+    fontSize: `${tokens.typography.sizes.sm}px`,
+    fontWeight: tokens.typography.weights.bold,
+  },
+  aparicionMeta: {
+    color: tokens.colors.textoSecundario,
+    fontSize: `${tokens.typography.sizes.xs}px`,
+    fontWeight: tokens.typography.weights.semibold,
+    textTransform: "uppercase",
+    letterSpacing: "0.04em",
+  },
+  aparicionEmpty: {
+    margin: 0,
+    color: tokens.colors.textoTerciario,
+    fontSize: `${tokens.typography.sizes.sm}px`,
+  },
 } satisfies Record<string, preact.JSX.CSSProperties>;
