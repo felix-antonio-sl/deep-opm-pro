@@ -194,4 +194,26 @@ export const typography = {
   weightHeavy: 800,
 } as const;
 
-export const tokens = { colors, spacing, radii, shadows, typography } as const;
+/* L1 ronda 20 — Tabs del Inspector: alias semánticos sobre tokens existentes
+ * para que la chrome del tab sea legible sin inventar paleta nueva. Solo
+ * referencian colores/espaciados/radios ya canónicos; cero hex literal. */
+export const inspectorTabs = {
+  gap: spacing.xs,
+  paddingY: spacing.xs,
+  paddingX: spacing.sm,
+  marginBottom: spacing.md,
+  fontSize: typography.sizes.xs,
+  weightInactive: typography.weights.semibold,
+  weightActive: typography.weights.bold,
+  textInactive: colors.textoSecundario,
+  textActive: colors.textoPrimario,
+  textHover: colors.textoPrimario,
+  borderActive: colors.chromeNeutral,
+  borderInactive: "transparent",
+  fondoActive: colors.chromeNeutralSuave,
+  fondoInactive: "transparent",
+  separadorBorde: colors.bordeSuave,
+  panelGap: spacing.sm,
+} as const;
+
+export const tokens = { colors, spacing, radii, shadows, typography, inspectorTabs } as const;

@@ -325,6 +325,11 @@ export type UiPanelSlice = Slice<
   | "etapaAnterior"
   | "cancelarAsistente"
   | "confirmarAsistente"
+  // L1 ronda 20: tabs por intención del Inspector
+  | "tabInspectorEntidadActivo"
+  | "tabInspectorEnlaceActivo"
+  | "cambiarTabInspectorEntidad"
+  | "cambiarTabInspectorEnlace"
 >;
 
 export type MapaSlice = Slice<
