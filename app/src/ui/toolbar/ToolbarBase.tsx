@@ -12,6 +12,9 @@ import { useOpmStore } from "../../store";
 import { ChipPersistencia } from "../ChipPersistencia";
 import { useConfirmarSiDirty } from "../ConfirmacionContext";
 import { DialogoGuardarPlantilla } from "../DialogoGuardarPlantilla";
+// L2 ronda 21: la toolbar primaria de modelado pesado se oculta en mobile
+// y se compacta en tablet. Decisión por viewport delegada a `layoutResponsive`.
+import { useBreakpoint } from "../layoutResponsive";
 import { MenuContextualEnlace } from "../MenuContextualEnlace";
 import { MenuContextualEntidad } from "../MenuContextualEntidad";
 import { ModalConfiguracionGrid } from "../ModalConfiguracionGrid";
@@ -106,6 +109,11 @@ export function ToolbarBase({ children, modelarSlot, conectarSlot, validarSlot, 
   const [nombreNuevaCosa, setNombreNuevaCosa] = useState("");
   const [menuContextual, setMenuContextual] = useState<null | { enlaceId: Id; x: number; y: number }>(null);
   const [menuEntidad, setMenuEntidad] = useState<null | { aparienciaId: Id; entidadId: Id; x: number; y: number }>(null);
+  // L2 ronda 21: viewport-aware toolbar. Mobile oculta clusters de modelado
+  // pesado (Modelar/Conectar/Vista/Validar) y conserva sólo Modelo + Ayuda.
+  // Tablet conserva todo pero cabrá mejor por la toolbar overflow existente.
+  const breakpoint = useBreakpoint();
+  const esMobile = breakpoint === "mobile";
 
   useEffect(() => iniciarAutosalvado(), [iniciarAutosalvado]);
   useEffect(() => {
@@ -256,16 +264,24 @@ export function ToolbarBase({ children, modelarSlot, conectarSlot, validarSlot, 
         ) : null}
         <button style={puedeDeshacer ? style.button : style.disabledButton} type="button" onClick={deshacer} disabled={!puedeDeshacer} aria-label="Deshacer" title="Deshacer · Ctrl+Z">↶</button>
         <button style={puedeRehacer ? style.button : style.disabledButton} type="button" onClick={rehacer} disabled={!puedeRehacer} aria-label="Rehacer" title="Rehacer · Ctrl+Shift+Z">↷</button>
-        <button style={style.button} type="button" onClick={handleNuevoModelo} title="Nuevo modelo · descarta el actual si pides confirmación">Nuevo</button>
-        <select style={style.demoSelect} aria-label="Cargar modelo de ejemplo" value="" onChange={handleSeleccionDemo}>
-          <option value="" disabled>Demo</option>
-          {demos.map((d) => <option key={d.modelo.nombre} value={d.modelo.nombre} title={d.proposito}>{d.modelo.nombre}</option>)}
-        </select>
-        <button style={style.button} type="button" onClick={guardarLocal} title="Guardar (Ctrl+S)">{readOnly ? <img src={lockIcon} alt="" style={style.lockIcon} /> : null}Guardar</button>
-        {readOnly ? <span style={style.readOnlyBadge} data-testid="indicador-readonly">Solo lectura</span> : null}
-        <button style={style.button} type="button" onClick={() => confirmarSiDirty(abrirCargarModelo)} title="Cargar modelo guardado">Cargar</button>
+        {/* L2 ronda 21: en mobile sólo mantenemos chip + menú + undo/redo. Las
+            acciones Nuevo/Demo/Guardar/Cargar quedan accesibles desde
+            MenuPrincipal (botón ☰) y reducen overflow horizontal. */}
+        {esMobile ? null : (
+          <>
+            <button style={style.button} type="button" onClick={handleNuevoModelo} title="Nuevo modelo · descarta el actual si pides confirmación">Nuevo</button>
+            <select style={style.demoSelect} aria-label="Cargar modelo de ejemplo" value="" onChange={handleSeleccionDemo}>
+              <option value="" disabled>Demo</option>
+              {demos.map((d) => <option key={d.modelo.nombre} value={d.modelo.nombre} title={d.proposito}>{d.modelo.nombre}</option>)}
+            </select>
+            <button style={style.button} type="button" onClick={guardarLocal} title="Guardar (Ctrl+S)">{readOnly ? <img src={lockIcon} alt="" style={style.lockIcon} /> : null}Guardar</button>
+            {readOnly ? <span style={style.readOnlyBadge} data-testid="indicador-readonly">Solo lectura</span> : null}
+            <button style={style.button} type="button" onClick={() => confirmarSiDirty(abrirCargarModelo)} title="Cargar modelo guardado">Cargar</button>
+          </>
+        )}
       </div>
-      <div style={style.actions}>
+      {esMobile ? null : (
+      <div style={style.actions} data-testid="toolbar-actions-pesadas">
         <span style={style.divider} />
         <div role="group" aria-label="Modelar" style={style.cluster} data-slot="cluster-modelar" data-cluster="modelar">
           <span style={style.clusterLabel}>Modelar</span>
@@ -314,6 +330,7 @@ export function ToolbarBase({ children, modelarSlot, conectarSlot, validarSlot, 
           <ToolbarMas items={masItems} />
         </div>
       </div>
+      )}
       <ModalConfiguracionGrid abierto={gridModalAbierto} config={gridConfig} onCerrar={() => setGridModalAbierto(false)} onGuardar={fijarGridConfig} />
       <ModelessToolbarLayer
         nuevaCosa={nuevaCosaPendiente ? { entidadId: nuevaCosaPendiente.entidadId, nombre: nuevaCosaPendiente.nombre } : null}

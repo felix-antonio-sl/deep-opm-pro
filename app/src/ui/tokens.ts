@@ -194,4 +194,22 @@ export const typography = {
   weightHeavy: 800,
 } as const;
 
-export const tokens = { colors, spacing, radii, shadows, typography } as const;
+/* L2 ronda 21: tokens del modo revisión mobile (tabs inferiores). */
+export const mobileNav = {
+  altoBarra: 56,
+  altoTab: 56,
+  iconoTamano: 20,
+  etiquetaSize: typography.sizes.xs,
+  etiquetaPesoActivo: typography.weights.semibold,
+  etiquetaPesoInactivo: typography.weights.medium,
+  fondoBarra: colors.fondoChrome,
+  bordeBarra: colors.bordeIntermedio,
+  textoTabActivo: colors.acentoUi,
+  textoTabInactivo: colors.textoSecundario,
+  fondoTabActivo: colors.acentoUiSuave,
+  fondoTabInactivo: "transparent",
+  fondoAvisoEdicion: colors.fondoMuted,
+  textoAvisoEdicion: colors.textoSecundario,
+} as const;
+
+export const tokens = { colors, spacing, radii, shadows, typography, mobileNav } as const;

@@ -238,6 +238,10 @@ export const createUiPanelSlice: CrearSlice<UiPanelSlice> = (set, get) => ({
   anchoPanelArbol: limitarAnchoPanelArbol(preferenciasUiIniciales.anchoPanelArbol),
   nombresArbolVisibles: preferenciasUiIniciales.nombresArbolVisibles ?? true,
   cheatsheetAtajosAbierto: false,
+  // L2 ronda 21: vista activa del modo revisión mobile. Solo se consume cuando
+  // el breakpoint es "mobile". Default "canvas" porque ese es el primer valor
+  // de revisión: ver el OPD activo antes de navegar tree/OPL/issues.
+  vistaMobileActiva: "canvas",
   asistente: null,
 
   fijarModoOrdenArbol(modo) {
@@ -456,6 +460,15 @@ export const createUiPanelSlice: CrearSlice<UiPanelSlice> = (set, get) => ({
     }
     // Marcar como cancelado; el UI muestra confirmacion.
     set({ asistente: { ...actual, cancelado: true } });
+  },
+
+  /**
+   * L2 ronda 21: cambia la vista activa del modo revisión mobile.
+   * No-op funcional en desktop/tablet (App.tsx solo lo consume cuando el
+   * breakpoint es "mobile"), pero la acción es segura de invocar siempre.
+   */
+  cambiarVistaMobile(vista) {
+    set({ vistaMobileActiva: vista });
   },
 
   confirmarAsistente() {

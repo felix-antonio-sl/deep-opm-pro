@@ -20,10 +20,15 @@ import { configurarContextoAtajos, escucharGlobal, registrarAtajo } from "./ataj
 import { ConfirmacionProvider } from "./ConfirmacionContext";
 import { DivisorPanel } from "./divisorPanel";
 import { Inspector } from "./Inspector";
+// L2 ronda 21: viewport-aware layout — el grid desktop coexiste con el modo
+// revisión mobile (tabs inferiores) y tablet (drawers). Ver `layoutResponsive`.
+import { useBreakpoint } from "./layoutResponsive";
 import { MenuPrincipal } from "./MenuPrincipal";
+import { ModoRevisionMobile, AvisoEditarEnEscritorio } from "./ModoRevisionMobile";
 import { PanelAvisos } from "./PanelAvisos";
 import { PanelMetodologia } from "./PanelMetodologia";
 import { PanelOpl } from "./PanelOpl";
+import { tokens } from "./tokens";
 import { Toolbar } from "./Toolbar";
 
 const AsistenteNuevoModelo = lazy(() => import("./AsistenteNuevoModelo").then((m) => ({ default: m.AsistenteNuevoModelo })));
@@ -64,10 +69,17 @@ export function App() {
   const gestionArbolAbierta = useOpmStore((s) => s.gestionArbolAbierta);
   const cheatsheetAtajosAbierto = useOpmStore((s) => s.cheatsheetAtajosAbierto);
   const cerrarCheatsheetAtajos = useOpmStore((s) => s.cerrarCheatsheetAtajos);
+  // L2 ronda 21: vista activa solo se consume cuando el breakpoint es mobile.
+  const vistaMobileActiva = useOpmStore((s) => s.vistaMobileActiva);
   const [inspectorAbierto, setInspectorAbierto] = useState(true);
   const oplLateral = (preferenciasOpl?.oplPosicion ?? "inferior") === "lateral-derecho";
   const oplMinimizado = preferenciasOpl?.oplMinimizado ?? false;
   const timelineDisponible = tieneTimelineDisponible(modelo, opdActivoId);
+  // L2 ronda 21: branch por viewport. Desktop preserva el grid canónico de 4
+  // columnas; tablet conserva grid pero más estrecho; mobile delega a tabs.
+  const breakpoint = useBreakpoint();
+  const esMobile = breakpoint === "mobile";
+  const esTablet = breakpoint === "tablet";
 
   useEffect(() => {
     const limpiarContexto = configurarContextoAtajos({
@@ -84,60 +96,114 @@ export function App() {
 
   return (
     <ConfirmacionProvider>
-      <main style={layout.page}>
+      <main style={pageStyle(esMobile)} data-breakpoint={breakpoint}>
         <Toolbar />
         <MenuPrincipal />
         <BarraPestanas />
-        <section style={workbenchStyle(anchoPanelArbol, oplLateral, oplMinimizado, inspectorAbierto)}>
-          <div data-testid="tree-pane" style={layout.treePane}>
-            <ArbolOpd />
-          </div>
-          <DivisorPanel
-            orientacion="vertical"
-            anchoInicial={anchoPanelArbol}
-            onAnchoChange={fijarAnchoPanelArbol}
-          />
-          <div data-testid="canvas-pane" style={layout.canvasPane}>
-            {vistaMapaActiva ? (
-              <Suspense fallback={null}>
-                <MapaSistema />
-              </Suspense>
-            ) : (
-              <>
-                <JointCanvas />
-                <BarraHerramientasElemento
-                  inspectorAbierto={inspectorAbierto}
-                  onAbrirInspector={() => setInspectorAbierto(true)}
-                  onToggleInspector={() => setInspectorAbierto((abierto) => !abierto)}
-                />
-              </>
-            )}
-          </div>
-          <div data-testid="inspector-pane" style={inspectorPaneStyle(inspectorAbierto)}>
-            <div style={layout.inspectorContent}>
-              <Inspector />
-              {timelineDisponible ? (
-                <div style={layout.timelineInInspector}>
-                  <Suspense fallback={<div style={layout.timelineFallback} />}>
-                    <Timeline />
+        {esMobile ? (
+          <section
+            data-testid="mobile-revision-section"
+            style={layout.mobileSection}
+          >
+            <div data-testid="canvas-pane" style={layout.canvasPaneMobile}>
+              {vistaMapaActiva ? (
+                <Suspense fallback={null}>
+                  <MapaSistema />
+                </Suspense>
+              ) : (
+                <>
+                  <JointCanvas />
+                  <BarraHerramientasElemento
+                    inspectorAbierto={false}
+                    onAbrirInspector={() => setInspectorAbierto(true)}
+                    onToggleInspector={() => setInspectorAbierto((abierto) => !abierto)}
+                  />
+                </>
+              )}
+            </div>
+            {vistaMobileActiva !== "canvas" ? (
+              <div
+                role="tabpanel"
+                id={`mobile-pane-${vistaMobileActiva}`}
+                aria-label={`Vista ${vistaMobileActiva}`}
+                data-testid={`mobile-pane-${vistaMobileActiva}`}
+                style={layout.mobileOverlayPane}
+              >
+                {vistaMobileActiva === "opds" ? (
+                  <div data-testid="tree-pane" style={layout.mobilePanelContent}>
+                    <ArbolOpd />
+                  </div>
+                ) : null}
+                {vistaMobileActiva === "opl" ? (
+                  <div data-testid="opl-pane" style={layout.mobilePanelContent}>
+                    <PanelOpl />
+                  </div>
+                ) : null}
+                {vistaMobileActiva === "issues" ? (
+                  <div data-testid="inspector-pane" style={layout.mobileIssuesContent}>
+                    <PanelAvisos />
+                    <PanelMetodologia />
+                    <AvisoEditarEnEscritorio />
+                  </div>
+                ) : null}
+              </div>
+            ) : null}
+            <ModoRevisionMobile />
+          </section>
+        ) : (
+          <>
+            <section style={workbenchStyle(anchoPanelArbol, oplLateral, oplMinimizado, inspectorAbierto, esTablet)}>
+              <div data-testid="tree-pane" style={layout.treePane}>
+                <ArbolOpd />
+              </div>
+              <DivisorPanel
+                orientacion="vertical"
+                anchoInicial={anchoPanelArbol}
+                onAnchoChange={fijarAnchoPanelArbol}
+              />
+              <div data-testid="canvas-pane" style={layout.canvasPane}>
+                {vistaMapaActiva ? (
+                  <Suspense fallback={null}>
+                    <MapaSistema />
                   </Suspense>
+                ) : (
+                  <>
+                    <JointCanvas />
+                    <BarraHerramientasElemento
+                      inspectorAbierto={inspectorAbierto}
+                      onAbrirInspector={() => setInspectorAbierto(true)}
+                      onToggleInspector={() => setInspectorAbierto((abierto) => !abierto)}
+                    />
+                  </>
+                )}
+              </div>
+              <div data-testid="inspector-pane" style={inspectorPaneStyle(inspectorAbierto)}>
+                <div style={layout.inspectorContent}>
+                  <Inspector />
+                  {timelineDisponible ? (
+                    <div style={layout.timelineInInspector}>
+                      <Suspense fallback={<div style={layout.timelineFallback} />}>
+                        <Timeline />
+                      </Suspense>
+                    </div>
+                  ) : null}
+                </div>
+                <PanelAvisos />
+                <PanelMetodologia />
+              </div>
+              {oplLateral ? (
+                <div data-testid="opl-pane" style={layout.oplPane}>
+                  <PanelOpl />
                 </div>
               ) : null}
-            </div>
-            <PanelAvisos />
-            <PanelMetodologia />
-          </div>
-          {oplLateral ? (
-            <div data-testid="opl-pane" style={layout.oplPane}>
-              <PanelOpl />
-            </div>
-          ) : null}
-        </section>
-        {!oplLateral ? (
-          <div data-testid="opl-pane" style={oplInferiorStyle(oplMinimizado)}>
-            <PanelOpl />
-          </div>
-        ) : null}
+            </section>
+            {!oplLateral ? (
+              <div data-testid="opl-pane" style={oplInferiorStyle(oplMinimizado)}>
+                <PanelOpl />
+              </div>
+            ) : null}
+          </>
+        )}
         {dialogoGuardarComoAbierto ? <Suspense fallback={null}><DialogoGuardarComo /></Suspense> : null}
         {dialogoCargarModeloAbierto ? <Suspense fallback={null}><DialogoCargarModelo /></Suspense> : null}
         {dialogoBuscarGlobalAbierto ? <Suspense fallback={null}><DialogoBuscarGlobal /></Suspense> : null}
@@ -271,6 +337,16 @@ const layout = {
     height: "100%",
     background: "#f5f7fb",
   },
+  // L2 ronda 21: en mobile la grilla es Toolbar+BarraPestanas+Section donde la
+  // section contiene canvas+overlay+tabs como flex columna. Sin OPL inferior.
+  pageMobile: {
+    display: "grid",
+    gridTemplateRows: "48px 37px minmax(0, 1fr)",
+    width: "100%",
+    height: "100%",
+    background: "#f5f7fb",
+    overflowX: "hidden",
+  },
   workbench: {
     display: "grid",
     gridTemplateColumns: "240px 6px minmax(0, 1fr) 300px",
@@ -327,20 +403,77 @@ const layout = {
     overflow: "hidden",
     borderLeft: "1px solid #d9e0ea",
   },
+  // L2 ronda 21: capas mobile.
+  mobileSection: {
+    display: "flex",
+    flexDirection: "column",
+    minWidth: 0,
+    minHeight: 0,
+    overflow: "hidden",
+    position: "relative",
+  },
+  canvasPaneMobile: {
+    flex: "1 1 0",
+    minWidth: 0,
+    minHeight: 0,
+    overflow: "hidden",
+    position: "relative",
+  },
+  // El overlay flota sobre el canvas: el canvas sigue montado pero queda
+  // tapado por el panel activo (OPDs/OPL/Issues). Esto evita perder estado
+  // de JointJS al cambiar de tab y permite volver al canvas instantáneamente.
+  mobileOverlayPane: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    // 56px = altura de la barra de tabs (tokens.mobileNav.altoBarra).
+    bottom: `${tokens.mobileNav.altoBarra}px`,
+    background: tokens.colors.fondoChrome,
+    overflow: "auto",
+    zIndex: 10,
+  },
+  mobilePanelContent: {
+    minWidth: 0,
+    minHeight: "100%",
+    height: "100%",
+    overflow: "auto",
+  },
+  mobileIssuesContent: {
+    display: "flex",
+    flexDirection: "column",
+    minWidth: 0,
+    minHeight: "100%",
+    overflow: "auto",
+  },
 } satisfies Record<string, preact.JSX.CSSProperties>;
 
-function workbenchStyle(anchoPanelArbol: number, oplLateral: boolean, oplMinimizado: boolean, inspectorAbierto: boolean): preact.JSX.CSSProperties {
-  const anchoInspector = inspectorAbierto ? "300px" : "0px";
+function pageStyle(esMobile: boolean): preact.JSX.CSSProperties {
+  return esMobile ? layout.pageMobile : layout.page;
+}
+
+function workbenchStyle(
+  anchoPanelArbol: number,
+  oplLateral: boolean,
+  oplMinimizado: boolean,
+  inspectorAbierto: boolean,
+  esTablet = false,
+): preact.JSX.CSSProperties {
+  // L2 ronda 21: en tablet (640-1024px) recortamos tree e inspector para
+  // que el canvas conserve espacio útil sin reabrir el flujo desktop. Los
+  // smokes desktop (≥1024) caen en la rama original.
+  const anchoTreeBase = esTablet ? Math.min(anchoPanelArbol, 200) : anchoPanelArbol;
+  const anchoInspectorBase = inspectorAbierto ? (esTablet ? "240px" : "300px") : "0px";
   if (!oplLateral) {
     return {
       ...layout.workbench,
-      gridTemplateColumns: `${anchoPanelArbol}px 6px minmax(0, 1fr) ${anchoInspector}`,
+      gridTemplateColumns: `${anchoTreeBase}px 6px minmax(0, 1fr) ${anchoInspectorBase}`,
       gridTemplateAreas: `"tree divisor canvas inspector"`,
     };
   }
   return {
     ...layout.workbench,
-    gridTemplateColumns: `${anchoPanelArbol}px 6px minmax(0, 1fr) ${anchoInspector} ${oplMinimizado ? "44px" : "320px"}`,
+    gridTemplateColumns: `${anchoTreeBase}px 6px minmax(0, 1fr) ${anchoInspectorBase} ${oplMinimizado ? "44px" : "320px"}`,
     gridTemplateAreas: `"tree divisor canvas inspector opl"`,
   };
 }
