@@ -11,6 +11,8 @@ import {
   clickLinkPorIndice,
   clickLinkPorTipo,
   desplegarComoAgregacion,
+  irATabExtremos,
+  irATabEstiloEnlace,
   guardarComoActual,
   cargarPrimerModelo,
   assertWorkbenchLayout,
@@ -229,6 +231,8 @@ test("edita rutas en ramas de abanico hacia estados y sincroniza OPL y JSON", as
   await expect(svgText(page, "exitoso")).toBeVisible();
 
   await clickLinkPorIndice(page, 0);
+  // Ronda 20 L1: SeccionRuta vive en el tab `Extremos` del Inspector enlace.
+  await irATabExtremos(page);
   await page.getByTestId("ruta-etiqueta-input").fill("fallido");
   await expect(svgText(page, "fallido")).toBeVisible();
 
@@ -268,6 +272,8 @@ test("split de efecto convierte enlace en consumo + resultado intermedio", async
 
   // Seleccionar el enlace de efecto y splittearlo.
   await clickCentroLink(page);
+  // Ronda 20 L1: Split en par vive en el tab `Extremos` del Inspector enlace.
+  await irATabExtremos(page);
   await page.getByRole("button", { name: "Split en par" }).click();
 
   // Tras el split: 3 entidades (Sistema, Actualizar, "Sistema modificado") y 2 enlaces.
@@ -372,6 +378,8 @@ test("L4 dialogo de estilo de enlace persiste color grosor y copia estilo", asyn
   await elementoPorTexto(page, "Procesar").click();
   await clickLinkPorTipo(page, "Consumo");
 
+  // Ronda 20 L1: SeccionEstilo del enlace vive en el tab `Estilo`.
+  await irATabEstiloEnlace(page);
   await page.getByTestId("abrir-dialogo-estilo-enlace").click();
   const dialogo = page.getByTestId("dialogo-estilo-enlace");
   await expect(dialogo).toBeVisible();

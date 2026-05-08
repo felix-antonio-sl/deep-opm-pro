@@ -11,6 +11,7 @@ import {
   clickLinkPorIndice,
   clickLinkPorTipo,
   desplegarComoAgregacion,
+  irATabExtremos,
   guardarComoActual,
   cargarPrimerModelo,
   assertWorkbenchLayout,
@@ -180,6 +181,8 @@ test("L4 biblioteca lista cosas y menu contextual borra enlace", async ({ page }
   await elementoPorTexto(page, "Procesar").click();
   await expect(page.locator(".joint-link")).toHaveCount(1);
   await clickLinkPorTipo(page, "Consumo");
+  // Ronda 20 L1: SeccionExtremos vive en el tab `Extremos` del Inspector enlace.
+  await irATabExtremos(page);
   await expect(page.getByTestId("reanclar-extremo-btn")).toBeVisible();
 
   const punto = await puntoMedioPath(page.locator(".joint-link [joint-selector=wrapper]").first());
