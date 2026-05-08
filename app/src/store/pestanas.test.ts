@@ -1,6 +1,38 @@
 import { describe, expect, test } from "bun:test";
 import { crearObjeto } from "../modelo/operaciones";
-import { crearPestanaNueva, abrirPestana, cambiarActiva, cerrarPestana, reordenarPestanas } from "./pestanas";
+import { crearPestanaDesdeModelo, crearPestanaNueva, abrirPestana, cambiarActiva, cerrarPestana, etiquetaPestana, reordenarPestanas } from "./pestanas";
+import type { Modelo } from "../modelo/tipos";
+
+const modeloFalso = (nombre: string): Modelo => ({
+  id: `m-${nombre}`,
+  nombre,
+  entidades: {},
+  enlaces: {},
+  estados: {},
+  opds: { "opd-1": { id: "opd-1", nombre: "SD", padreId: null, refinadorId: null, apariencias: {}, aparienciasEnlaces: {} } },
+  opdRaizId: "opd-1",
+  metadatos: {},
+} as unknown as Modelo);
+
+describe("etiquetaPestana - identidad UNIFICADA P0-1", () => {
+  test("modelo persistido devuelve nombre limpio sin sufijo", () => {
+    expect(etiquetaPestana({ nombre: "Cafetera Domestica", modeloId: "modelo-1" })).toBe("Cafetera Domestica");
+  });
+
+  test("modelo no persistido con nombre real lleva sufijo (No guardado)", () => {
+    expect(etiquetaPestana({ nombre: "OnStar System", modeloId: null })).toBe("OnStar System (No guardado)");
+  });
+
+  test("modelo no persistido sin nombre cae en placeholder canonico", () => {
+    expect(etiquetaPestana({ nombre: "", modeloId: null })).toBe("Modelo (No guardado)");
+    expect(etiquetaPestana({ nombre: "  ", modeloId: null })).toBe("Modelo (No guardado)");
+    expect(etiquetaPestana({ nombre: undefined, modeloId: null })).toBe("Modelo (No guardado)");
+  });
+
+  test("modelo persistido sin nombre cae en placeholder Modelo (sin sufijo)", () => {
+    expect(etiquetaPestana({ nombre: "", modeloId: "modelo-1" })).toBe("Modelo");
+  });
+});
 
 describe("slice de pestanas de sesion", () => {
   test("crearPestanaNueva retorna pestana no guardada con modelo vacio", () => {
@@ -11,6 +43,32 @@ describe("slice de pestanas de sesion", () => {
     expect(pestana.cargadoDesde).toBe("nuevo");
     expect(pestana.dirty).toBe(false);
     expect(Object.values(pestana.modelo.entidades)).toHaveLength(0);
+  });
+
+  test("crearPestanaDesdeModelo importado preserva nombre real con sufijo (No guardado)", () => {
+    // P0-1 regresion: antes los imports y fixtures quedaban con etiqueta
+    // "Modelo (No guardado)" aunque el modelo tuviera nombre real.
+    const pestana = crearPestanaDesdeModelo(modeloFalso("OnStar System"), {
+      modeloId: null,
+      nombre: "OnStar System",
+      cargadoDesde: "importado",
+      dirty: false,
+    });
+
+    expect(pestana.etiqueta).toBe("OnStar System (No guardado)");
+    expect(pestana.modeloId).toBeNull();
+    expect(pestana.cargadoDesde).toBe("importado");
+  });
+
+  test("crearPestanaDesdeModelo persistido omite el sufijo (No guardado)", () => {
+    const pestana = crearPestanaDesdeModelo(modeloFalso("Cafetera Domestica"), {
+      modeloId: "modelo-1",
+      nombre: "Cafetera Domestica",
+      cargadoDesde: "persistido",
+      dirty: false,
+    });
+
+    expect(pestana.etiqueta).toBe("Cafetera Domestica");
   });
 
   test("abrirPestana agrega y deja la nueva como activa", () => {

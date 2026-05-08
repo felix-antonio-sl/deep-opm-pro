@@ -7,10 +7,32 @@ export interface EstadoPestanas {
   activa: PestanaId;
 }
 
+/**
+ * Identidad UNIFICADA del modelo en pestaña. Fuente única para etiqueta de
+ * pestaña, header y otras superficies que muestren "qué modelo estás
+ * editando". Cubre H1/P0-1 del informe UI/UX 2026-05-07: al cargar fixture
+ * o importar JSON, la etiqueta se sincroniza con el nombre real, no se
+ * queda como "Modelo (No guardado)".
+ *
+ * Reglas:
+ * - Persistido (modeloId !== null) → `nombre` (sin sufijo).
+ * - No persistido con nombre real → `nombre (No guardado)`.
+ * - No persistido sin nombre → `Modelo (No guardado)`.
+ *
+ * Caller decide si añadir marcador de "dirty" (asterisco u otro signo) por
+ * encima de esto; aquí no añadimos sufijo dirty para evitar duplicar el
+ * "(No guardado)" cuando el modelo persistido tiene cambios.
+ */
+export function etiquetaPestana(opts: { nombre: string | undefined; modeloId: Id | null }): string {
+  const nombre = (opts.nombre ?? "").trim();
+  if (opts.modeloId) return nombre || "Modelo";
+  return nombre ? `${nombre} (No guardado)` : "Modelo (No guardado)";
+}
+
 export function crearPestanaNueva(opts: { etiqueta?: string; modelo?: Modelo } = {}): Pestana {
   const modelo = clonarModelo(opts.modelo ?? crearModelo("Modelo"));
   return crearPestanaBase(modelo, {
-    etiqueta: opts.etiqueta ?? "Modelo (No guardado)",
+    etiqueta: opts.etiqueta ?? etiquetaPestana({ nombre: modelo.nombre, modeloId: null }),
     modeloId: null,
     cargadoDesde: "nuevo",
     dirty: false,
@@ -22,7 +44,7 @@ export function crearPestanaDesdeModelo(
   opts: { modeloId: Id | null; nombre: string; cargadoDesde?: OrigenPestana; dirty?: boolean; descripcion?: string },
 ): Pestana {
   const base = {
-    etiqueta: opts.modeloId ? (opts.nombre.trim() || "Modelo (No guardado)") : "Modelo (No guardado)",
+    etiqueta: etiquetaPestana({ nombre: opts.nombre, modeloId: opts.modeloId }),
     modeloId: opts.modeloId,
     cargadoDesde: opts.cargadoDesde ?? (opts.modeloId ? "persistido" : "importado"),
     dirty: opts.dirty ?? false,
@@ -80,12 +102,26 @@ export function actualizarEtiquetaPestana(estado: EstadoPestanas, id: PestanaId,
   };
 }
 
+/**
+ * Reconcilia la etiqueta de una pestaña con el estado actual del modelo
+ * (nombre + persistencia). Útil cuando el nombre del modelo cambia tras
+ * importar JSON, cargar fixture, renombrar o guardar.
+ */
+export function reconciliarEtiquetaPestana(pestana: Pestana, modelo: Modelo, modeloId: Id | null): Pestana {
+  const etiqueta = etiquetaPestana({ nombre: modelo.nombre, modeloId });
+  if (pestana.etiqueta === etiqueta) return pestana;
+  return { ...pestana, etiqueta };
+}
+
 export function duplicarPestana(estado: EstadoPestanas, id: PestanaId): Resultado<EstadoPestanas> {
   const origen = estado.pestanas.find((pestana) => pestana.id === id);
   if (!origen) return fallo("Pestana no existe");
+  // P0-1: la copia toma el nombre real del modelo origen, no un placeholder.
+  // Resulta en "Cafetera Domestica (No guardado)" en vez de "Modelo (No
+  // guardado)" — el operador sabe qué duplicó.
   const copia = crearPestanaDesdeModelo(origen.modelo, {
     modeloId: null,
-    nombre: "Modelo (No guardado)",
+    nombre: origen.modelo.nombre,
     cargadoDesde: origen.cargadoDesde,
     dirty: true,
   });
@@ -176,9 +212,12 @@ export const createPestanasSlice: CrearSlice<PestanasSlice> = (set, get) => ({
       set({ mensaje: resultado.error });
       return;
     }
+    // P0-1: identidad de modelo unificada. La pestaña adopta el nombre real
+    // del JSON importado (no "Modelo (No guardado)") para que header,
+    // pestana y selector cuenten la misma historia desde el primer paint.
     const pestana = crearPestanaDesdeModelo(resultado.value, {
       modeloId: null,
-      nombre: "Modelo (No guardado)",
+      nombre: resultado.value.nombre,
       cargadoDesde: "importado",
       dirty: false,
     });

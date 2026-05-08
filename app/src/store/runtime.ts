@@ -35,6 +35,7 @@ import {
 } from "../canvas/operacionesBatch";
 import { normalizarGridConfig } from "../canvas/grid";
 import type { StoreApi } from "zustand/vanilla";
+import { etiquetaPestana } from "./pestanas";
 import { RUNTIME_EFFECTS_DEFAULT, type RuntimeEffects } from "./runtimeEffects";
 import type { OpmStore } from "./tipos";
 
@@ -120,6 +121,11 @@ export function activarEstadoPestanas(set: SetStore, estado: { pestanas: Pestana
 export function sincronizarPestanaActivaEnLista(state: OpmStore): Pestana[] {
   return state.pestanasAbiertas.map((pestana) => {
     if (pestana.id !== state.pestanaActivaId) return pestana;
+    // P0-1: la etiqueta de la pestaña activa siempre refleja la identidad
+    // unificada del modelo (helper `etiquetaPestana`). Antes la etiqueta de
+    // pestañas no persistidas quedaba estancada en "Modelo (No guardado)"
+    // aunque el modelo tuviera nombre real (fixture, import).
+    const etiqueta = etiquetaPestana({ nombre: state.modelo.nombre, modeloId: state.modeloPersistidoId });
     return {
       ...pestana,
       modelo: clonarModeloRuntime(state.modelo),
@@ -130,7 +136,7 @@ export function sincronizarPestanaActivaEnLista(state: OpmStore): Pestana[] {
       vistaMapaActivaPestana: state.vistaMapaActiva,
       modeloId: state.modeloPersistidoId,
       descripcionModeloLocal: state.descripcionModeloLocal,
-      etiqueta: state.modeloPersistidoId ? (state.modelo.nombre || "Modelo (No guardado)") : pestana.etiqueta,
+      etiqueta,
       ...(state.dirty && pestana.snapshotJson === undefined ? {} : { snapshotJson: state.dirty ? pestana.snapshotJson : exportarModelo(state.modelo) }),
     };
   });
@@ -316,6 +322,11 @@ export function estadoModelo(modelo: Modelo, extra: Partial<OpmStore> = {}): Par
           if (pestana.id !== actual.pestanaActivaId) return pestana;
           const modeloId = extra.modeloPersistidoId !== undefined ? extra.modeloPersistidoId : actual.modeloPersistidoId;
           const descripcion = extra.descripcionModeloLocal !== undefined ? extra.descripcionModeloLocal : actual.descripcionModeloLocal;
+          // P0-1: la etiqueta se reconcilia desde modelo.nombre + persistencia
+          // en CADA actualización del estado del modelo, no solo cuando hay
+          // modeloId. Antes, fixtures/imports quedaban con el placeholder
+          // "Modelo (No guardado)" hasta el primer guardado.
+          const etiqueta = etiquetaPestana({ nombre: modelo.nombre, modeloId });
           return {
             ...pestana,
             modelo: clonarModeloRuntime(modelo),
@@ -324,7 +335,7 @@ export function estadoModelo(modelo: Modelo, extra: Partial<OpmStore> = {}): Par
             cursorUndo: undoStack.length,
             modeloId,
             descripcionModeloLocal: descripcion,
-            etiqueta: modeloId ? (modelo.nombre || "Modelo (No guardado)") : pestana.etiqueta,
+            etiqueta,
             ...(dirty && pestana.snapshotJson === undefined ? {} : { snapshotJson: dirty ? pestana.snapshotJson : exportarModelo(modelo) }),
           };
         })
