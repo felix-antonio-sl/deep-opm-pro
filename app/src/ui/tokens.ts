@@ -194,7 +194,6 @@ export const typography = {
   weightHeavy: 800,
 } as const;
 
-<<<<<<< HEAD
 /* L3 ronda 20 — Biblioteca dock acoplable junto al árbol OPD.
  * Geometria del dock: alto inicial dentro del tree-pane (px) y limites
  * para el redimensionamiento via DivisorPanel horizontal. Citas brief
