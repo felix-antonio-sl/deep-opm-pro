@@ -1,5 +1,6 @@
 // [JOYAS §1-3] Chrome UI consume tokens centralizados; canvas semántico invariante.
-import { useEffect, useState } from "preact/hooks";
+import { useEffect, useMemo, useState } from "preact/hooks";
+import { verificarMetodologia } from "../modelo/checkers";
 import { useOpmStore } from "../store";
 import { registrarAtajo } from "./atajosTeclado";
 import { MenuContextualArbol } from "./MenuContextualArbol";
@@ -27,6 +28,7 @@ export function ArbolOpd() {
   const modoOrdenArbol = useOpmStore((s) => s.modoOrdenArbol);
   const fijarModoOrdenArbol = useOpmStore((s) => s.fijarModoOrdenArbol);
   const cambiarOpdActivo = useOpmStore((s) => s.cambiarOpdActivo);
+  const seleccionarEntidad = useOpmStore((s) => s.seleccionarEntidad);
   const eliminarOpdDesdeArbol = useOpmStore((s) => s.eliminarOpdDesdeArbol);
   const moverHermano = useOpmStore((s) => s.moverHermano);
   const moverOpdEnGestion = useOpmStore((s) => s.moverOpdEnGestion);
@@ -46,6 +48,7 @@ export function ArbolOpd() {
   const [menuContextual, setMenuContextual] = useState<{ opdId: Id; x: number; y: number } | null>(null);
   const [opdCortadoId, setOpdCortadoId] = useState<Id | null>(null);
   const arboles = construirArbol(modelo);
+  const avisosMetodologicos = useMemo(() => verificarMetodologia(modelo), [modelo]);
   const estaExpandidoNodo = (id: Id) => !colapsado.has(id);
   const nodosVisibles = aplanarNodosVisibles(arboles, estaExpandidoNodo).filter((n) => n.visible);
   const nodosFoco = nodosVisibles.map(({ nodo }) => nodo);
@@ -125,6 +128,14 @@ export function ArbolOpd() {
     const idx = targetOpds.findIndex((opd) => opd.id === targetOpdId);
     if (idx >= 0) moverHermano(targetPadreId, draggedId, idx);
   };
+  const navegarARefinador = (opdId: Id, refinadorId: Id) => {
+    const opdPadreId = modelo.opds[opdId]?.padreId;
+    const destino = opdPadreId && tieneAparienciaEntidad(modelo, opdPadreId, refinadorId)
+      ? opdPadreId
+      : Object.values(modelo.opds).find((opd) => tieneAparienciaEntidad(modelo, opd.id, refinadorId))?.id;
+    if (destino) cambiarOpdActivo(destino);
+    seleccionarEntidad(refinadorId);
+  };
 
   return (
     <aside style={style.panel} aria-label="Árbol OPD" data-atajos-contexto="panel-arbol" tabIndex={-1}>
@@ -132,22 +143,18 @@ export function ArbolOpd() {
         <span>OPDs</span>
         <div style={style.headerActions}>
           <button type="button" style={style.modeBtn} title={modoOrdenArbol === "manual" ? "Orden manual: arrastra OPDs para reordenar" : "Orden automático (según canvas)"} onClick={() => fijarModoOrdenArbol(modoOrdenArbol === "manual" ? "automatico" : "manual")}>
-            {modoOrdenArbol === "manual" ? "Ord: Manual" : "Ord: Auto"}
+            {modoOrdenArbol === "manual" ? "Orden manual" : "Orden automático"}
           </button>
-          <button type="button" style={style.smallActionBtn} title={nombresArbolVisibles ? "Ocultar nombres OPD" : "Mostrar nombres OPD"} aria-label="Alternar etiquetas OPD" aria-pressed={!nombresArbolVisibles} onClick={() => toggleNombresArbolVisibles()}>
-            {nombresArbolVisibles ? "Nom" : "Cod"}
+          <button type="button" style={style.labelActionBtn} title={nombresArbolVisibles ? "Mostrar códigos" : "Mostrar nombres"} aria-label={nombresArbolVisibles ? "Mostrar códigos" : "Mostrar nombres"} aria-pressed={!nombresArbolVisibles} onClick={() => toggleNombresArbolVisibles()}>
+            {nombresArbolVisibles ? "Mostrar códigos" : "Mostrar nombres"}
           </button>
           {totalConHijos > 0 ? (
             <button type="button" style={style.smallActionBtn} title={colapsarTodo ? "Expandir todo" : "Colapsar todo"} onClick={colapsarTodo ? expandirTodo : colapsarTodoAccion}>
               {colapsarTodo ? "▸" : "▾"}
             </button>
           ) : null}
-          <button type="button" style={style.smallActionBtn} title="Gestión del árbol OPD" aria-label="Abrir gestión del árbol OPD" onClick={abrirGestionArbol}>
-            <svg width="12" height="12" viewBox="0 0 16 16" aria-hidden="true" focusable="false">
-              <circle cx="3" cy="8" r="1.5" fill="currentColor"/>
-              <circle cx="8" cy="8" r="1.5" fill="currentColor"/>
-              <circle cx="13" cy="8" r="1.5" fill="currentColor"/>
-            </svg>
+          <button type="button" style={style.moreActionBtn} title="Más opciones" aria-label="Más opciones" onClick={abrirGestionArbol}>
+            Más opciones
           </button>
         </div>
       </div>
@@ -161,6 +168,7 @@ export function ArbolOpd() {
               key={nodo.opd.id}
               nodo={nodo}
               modelo={modelo}
+              avisos={avisosMetodologicos}
               activo={nodo.opd.id === opdActivoId}
               nombresArbolVisibles={nombresArbolVisibles}
               estaExpandido={estaExpandidoNodo(nodo.opd.id)}
@@ -172,6 +180,7 @@ export function ArbolOpd() {
               onRenombrandoChange={setRenombrando}
               onRenombrarSubmit={renombrarSubmit}
               onEliminar={eliminarOpdDesdeArbol}
+              onNavegarRefinador={navegarARefinador}
               onKeyDown={(event, opdId) => manejarTeclaNodoArbol(event, opdId, { cambiarOpdActivo, navegarOpdArriba, navegarOpdAbajo, navegarOpdIzquierda, navegarOpdDerecha })}
               onContextMenu={(event, opdId) => {
                 event.preventDefault();
@@ -267,7 +276,7 @@ function enfocarNodoArbol(opdId: Id): void {
 
 function MapaSistemaItem(props: { activo: boolean; onAbrir: () => void }) {
   return (
-    <div role="treeitem" tabIndex={0} aria-level={1} data-opd-id="__mapa__" title="Mapa del sistema" style={{ ...style.nodeMapa, ...(props.activo ? style.nodeActive : {}) }} onClick={props.onAbrir} onKeyDown={(event) => {
+    <div role="treeitem" tabIndex={0} aria-level={1} data-opd-id="__mapa__" aria-label="Mapa del sistema" title="Mapa del sistema" style={{ ...style.nodeMapa, ...(props.activo ? style.nodeActive : {}) }} onClick={props.onAbrir} onKeyDown={(event) => {
       if (event.key === "Enter" || event.key === " ") {
         event.preventDefault();
         props.onAbrir();
@@ -289,6 +298,10 @@ function toggleId(prev: Set<Id>, id: Id): Set<Id> {
   return next;
 }
 
+function tieneAparienciaEntidad(modelo: { opds: Record<Id, { apariencias: Record<Id, { entidadId: Id }> }> }, opdId: Id, entidadId: Id): boolean {
+  return Object.values(modelo.opds[opdId]?.apariencias ?? {}).some((apariencia) => apariencia.entidadId === entidadId);
+}
+
 const style = {
   panel: {
     minWidth: 0,
@@ -299,16 +312,17 @@ const style = {
     gridTemplateRows: "42px minmax(0, 1fr)",
   },
   header: {
-    display: "flex",
+    display: "grid",
+    gridTemplateColumns: "auto minmax(0, 1fr)",
     alignItems: "center",
-    justifyContent: "space-between",
+    gap: "8px",
     padding: "0 8px",
     borderBottom: `1px solid ${tokens.colors.bordeChrome}`,
     color: tokens.colors.textoPrimario,
     fontSize: "13px",
     fontWeight: 700,
   },
-  headerActions: { display: "flex", alignItems: "center", gap: "4px" },
+  headerActions: { display: "flex", alignItems: "center", justifyContent: "flex-end", gap: "4px", minWidth: 0, overflowX: "auto" },
   modeBtn: {
     padding: "2px 6px",
     borderRadius: tokens.radii.sm,
@@ -318,6 +332,37 @@ const style = {
     fontSize: "10px",
     fontWeight: 600,
     color: tokens.colors.textoSecundario,
+    whiteSpace: "nowrap",
+  },
+  labelActionBtn: {
+    minHeight: "22px",
+    borderRadius: tokens.radii.sm,
+    border: `1px solid ${tokens.colors.bordeControl}`,
+    background: tokens.colors.fondoChrome,
+    cursor: "pointer",
+    fontSize: "10px",
+    fontWeight: 600,
+    color: tokens.colors.textoSecundario,
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: "2px 6px",
+    whiteSpace: "nowrap",
+  },
+  moreActionBtn: {
+    minHeight: "22px",
+    borderRadius: tokens.radii.sm,
+    border: `1px solid ${tokens.colors.bordeControl}`,
+    background: tokens.colors.fondoChrome,
+    cursor: "pointer",
+    fontSize: "10px",
+    fontWeight: 600,
+    color: tokens.colors.textoSecundario,
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: "2px 6px",
+    whiteSpace: "nowrap",
   },
   smallActionBtn: {
     width: "22px",

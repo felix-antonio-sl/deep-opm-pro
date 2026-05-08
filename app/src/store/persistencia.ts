@@ -179,6 +179,7 @@ import {
   crearPestanaDesdeModelo,
   crearPestanaNueva,
   duplicarPestana as duplicarPestanaEstado,
+  etiquetaPestana,
   reordenarPestanas as reordenarPestanasEstado,
 } from "./pestanas";
 import {
@@ -234,7 +235,26 @@ export const createPersistenciaSlice: CrearSlice<PersistenciaSlice> = (set, get)
       return;
     }
     resetHistorial(resultado.value);
+    const estado = get();
+    const snapshotJson = exportarModelo(resultado.value);
+    const pestanasAbiertas = estado.pestanasAbiertas.map((pestana) => {
+      if (pestana.id !== estado.pestanaActivaId) return pestana;
+      return {
+        ...pestana,
+        modelo: clonarModelo(resultado.value),
+        modeloId: null,
+        cargadoDesde: "importado" as const,
+        dirty: false,
+        historialUndo: [],
+        cursorUndo: 0,
+        seleccionadosPestana: [],
+        descripcionModeloLocal: "",
+        etiqueta: etiquetaPestana({ nombre: resultado.value.nombre, modeloId: null }),
+        snapshotJson,
+      };
+    });
     set(estadoModelo(resultado.value, {
+      pestanasAbiertas,
       opdActivoId: resultado.value.opdRaizId,
       seleccionId: null,
       enlaceSeleccionId: null,

@@ -18,6 +18,7 @@ import {
   setPaperDimensions,
 } from "./handlers/helpers";
 import { aplicarHoverOpl, cablearHoverOpl } from "./handlers/hoverOpl";
+import { aplicarFeedbackModoEnlace, cablearModoEnlace } from "./handlers/modoEnlace";
 import { cablearRubberBand } from "./handlers/rubberBand";
 import { cablearResize } from "./handlers/resize";
 import { cablearSeleccion } from "./handlers/seleccion";
@@ -85,6 +86,8 @@ export function JointCanvas() {
   const actualizarVerticesEnlaceRef = useRef(actualizarVerticesEnlace);
   const crearEntidadEnCanvas = useOpmStore((s) => s.crearEntidadEnCanvas);
   const crearEntidadEnCanvasRef = useRef(crearEntidadEnCanvas);
+  const crearEnlaceEntreEntidades = useOpmStore((s) => s.crearEnlaceEntreEntidades);
+  const crearEnlaceEntreEntidadesRef = useRef(crearEnlaceEntreEntidades);
   const fijarHoverOpl = useOpmStore((s) => s.fijarHoverOpl);
   const fijarHoverOplRef = useRef(fijarHoverOpl);
   const setSeleccion = useOpmStore((s) => s.setSeleccion);
@@ -135,6 +138,7 @@ export function JointCanvas() {
     extraerParteDePlegadoRef.current = extraerParteDePlegado;
     actualizarVerticesEnlaceRef.current = actualizarVerticesEnlace;
     crearEntidadEnCanvasRef.current = crearEntidadEnCanvas;
+    crearEnlaceEntreEntidadesRef.current = crearEnlaceEntreEntidades;
     fijarHoverOplRef.current = fijarHoverOpl;
     setSeleccionRef.current = setSeleccion;
     agregarASeleccionRef.current = agregarASeleccion;
@@ -143,7 +147,7 @@ export function JointCanvas() {
     redimensionarAparienciaEnCanvasRef.current = redimensionarAparienciaEnCanvas;
     reordenarSubprocesoEnTimelineRef.current = reordenarSubprocesoEnTimeline;
     renombrarEntidadDesdeOplRef.current = renombrarEntidadDesdeOpl;
-  }, [actualizarVerticesEnlace, agregarASeleccion, alternarModoImagenEntidad, abrirModalImagen, cambiarModoPlegadoApariencia, crearEntidadEnCanvas, extraerParteDePlegado, fijarHoverOpl, moverApariencia, redimensionarAparienciaEnCanvas, reordenarSubprocesoEnTimeline, renombrarEntidadDesdeOpl, seleccionarEnlace, seleccionarEntidad, seleccionarEstadoComoExtremo, seleccionarPartePlegada, setSeleccion, toggleSeleccion, vaciarSeleccion]);
+  }, [actualizarVerticesEnlace, agregarASeleccion, alternarModoImagenEntidad, abrirModalImagen, cambiarModoPlegadoApariencia, crearEnlaceEntreEntidades, crearEntidadEnCanvas, extraerParteDePlegado, fijarHoverOpl, moverApariencia, redimensionarAparienciaEnCanvas, reordenarSubprocesoEnTimeline, renombrarEntidadDesdeOpl, seleccionarEnlace, seleccionarEntidad, seleccionarEstadoComoExtremo, seleccionarPartePlegada, setSeleccion, toggleSeleccion, vaciarSeleccion]);
 
   // Setup del paper + cableado de handlers (mount inicial).
   useEffect(() => {
@@ -268,6 +272,14 @@ export function JointCanvas() {
       redimensionarAparienciaRef: redimensionarAparienciaEnCanvasRef,
     }));
 
+    cleanups.push(cablearModoEnlace({
+      paper,
+      modeloRef,
+      opdActivoIdRef,
+      modoEnlaceRef,
+      crearEnlaceEntreEntidadesRef,
+    }));
+
     cleanups.push(cablearHoverOpl({
       paper,
       fijarHoverOplRef,
@@ -320,7 +332,14 @@ export function JointCanvas() {
     sincronizandoRef.current = false;
     instalarHerramientasEnlaceSeleccionado(adapter, enlaceSeleccionId);
     aplicarHoverOpl(adapter.graph, modelo, hoverOplRef, enlaceSeleccionId);
-  }, [enlaceSeleccionId, modelo, opdActivoId, seleccionId, seleccionados, uiAliasVisibles, uiDescripcionesVisibles, uiModoImagenGlobal]);
+    aplicarFeedbackModoEnlace(adapter.paper, modelo, opdActivoId, modoEnlace);
+  }, [enlaceSeleccionId, modelo, modoEnlace, opdActivoId, seleccionId, seleccionados, uiAliasVisibles, uiDescripcionesVisibles, uiModoImagenGlobal]);
+
+  useEffect(() => {
+    const adapter = adapterRef.current;
+    if (!adapter) return;
+    aplicarFeedbackModoEnlace(adapter.paper, modelo, opdActivoId, modoEnlace);
+  }, [modelo, modoEnlace, opdActivoId]);
 
   useEffect(() => {
     const adapter = adapterRef.current;

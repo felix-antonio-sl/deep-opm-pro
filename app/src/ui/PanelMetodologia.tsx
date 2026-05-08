@@ -31,10 +31,15 @@ import type {
   CodigoChecker,
   Modelo,
   NavegacionAviso,
-  SeveridadAviso,
 } from "../modelo/tipos";
 import type { Aviso } from "../modelo/validaciones";
 import { useOpmStore } from "../store";
+import {
+  agruparPorSeveridad,
+  resumenSeveridades,
+  resumenSeveridadesTexto,
+  type SeveridadIssue,
+} from "./panelMetodologiaIssues";
 import { tokens } from "./tokens";
 
 interface SeveridadMeta {
@@ -45,27 +50,27 @@ interface SeveridadMeta {
   borde: string;
 }
 
-const SEVERIDAD: Record<SeveridadAviso, SeveridadMeta> = {
-  advertencia: {
-    etiqueta: "Advertencia",
-    icono: "⚠",
+const SEVERIDAD_ISSUE: Record<SeveridadIssue, SeveridadMeta> = {
+  bloqueo: {
+    etiqueta: "Bloqueo",
+    icono: "!",
+    color: tokens.colors.errorTexto,
+    fondo: tokens.colors.errorFondoIntenso,
+    borde: tokens.colors.errorBordeSuave,
+  },
+  mejora: {
+    etiqueta: "Mejora",
+    icono: "!",
     color: tokens.colors.alertaTexto,
     fondo: tokens.colors.advertenciaFondo,
     borde: tokens.colors.advertenciaBorde,
   },
-  sugerencia: {
-    etiqueta: "Sugerencia",
-    icono: "ℹ",
+  estilo: {
+    etiqueta: "Estilo",
+    icono: "i",
     color: tokens.colors.textoSlate,
     fondo: tokens.colors.fondoElevado,
     borde: tokens.colors.bordeSlate,
-  },
-  info: {
-    etiqueta: "Info",
-    icono: "ℹ",
-    color: tokens.colors.azulInfo,
-    fondo: tokens.colors.infoFondoAlterno,
-    borde: tokens.colors.infoBordeSuave,
   },
 };
 
@@ -79,6 +84,8 @@ export function PanelMetodologia() {
   // aunque el modelo no haya cambiado. Para Beta1 no perdemos memoizacion util
   // (avisos es O(entidades+enlaces), barato), pero conservamos un loop verde.
   const avisos = useMemo(() => verificarMetodologia(modelo), [modelo, revision]);
+  const grupos = useMemo(() => agruparPorSeveridad(avisos), [avisos]);
+  const resumen = useMemo(() => resumenSeveridades(avisos), [avisos]);
 
   return (
     <aside
@@ -118,77 +125,150 @@ export function PanelMetodologia() {
       </div>
       {colapsado ? null : (
         <div id="panel-metodologia-cuerpo" style={style.cuerpo}>
+          <div data-testid="panel-metodologia-resumen" style={style.resumen}>
+            {resumenSeveridadesTexto(resumen)}
+          </div>
           {avisos.length === 0 ? (
             <div data-testid="panel-metodologia-vacio" style={style.empty}>
               <span style={style.emptyDot} aria-hidden="true" />
               <span>Modelo metodológicamente válido</span>
             </div>
           ) : (
-            <div role="list" style={style.list}>
-              {avisos.map((aviso, index) => {
-                const meta = SEVERIDAD[aviso.severidad];
-                const detalleAbierto = detalleCodigo === aviso.codigo;
-                return (
-                  <article
-                    key={`${aviso.codigo}-${aviso.entidadId ?? aviso.opdId ?? index}`}
-                    role="listitem"
-                    data-testid={`aviso-${aviso.codigo}`}
-                    data-severidad={aviso.severidad}
-                    style={filaStyle(meta)}
-                  >
-                    <button
-                      type="button"
-                      data-testid={`aviso-navegar-${aviso.codigo}`}
-                      style={filaNavegar(meta)}
-                      title="Ir al elemento del aviso"
-                      onClick={() => navegarAvisoMetodologico(aviso, navegarAviso)}
-                    >
-                      <span aria-label={meta.etiqueta} title={meta.etiqueta} style={iconoStyle(meta)}>
-                        {meta.icono}
-                      </span>
-                      <span style={style.rowMain}>
-                        <span style={style.codigo}>{etiquetaCodigo(aviso.codigo)}</span>
-                        <span style={style.mensaje}>{aviso.mensaje}</span>
-                        <span style={style.target}>{etiquetaDestino(modelo, aviso)}</span>
-                      </span>
-                    </button>
-                    <div style={style.rowActions}>
-                      <button
-                        type="button"
-                        data-testid={`aviso-cita-${aviso.codigo}`}
-                        style={style.cita}
-                        title={`Cita SSOT: ${aviso.ssotRef ?? aviso.rationale ?? ""}`}
-                        onClick={() => setDetalleCodigo(detalleAbierto ? null : aviso.codigo)}
-                      >
-                        {aviso.ssotRef ? cortarCita(aviso.ssotRef) : "SSOT"}
-                      </button>
-                    </div>
-                    {detalleAbierto ? (
-                      <div data-testid={`aviso-detalle-${aviso.codigo}`} style={style.detalle}>
-                        <div style={style.detalleSsot}>
-                          <span style={style.detalleSsotLabel}>SSOT</span>
-                          <span>{aviso.ssotRef ?? "—"}</span>
-                        </div>
-                        {aviso.rationale ? (
-                          <div style={style.detalleRationale}>{aviso.rationale}</div>
-                        ) : null}
-                        {aviso.accionesSugeridas && aviso.accionesSugeridas.length > 0 ? (
-                          <ul style={style.detalleAcciones}>
-                            {aviso.accionesSugeridas.map((accion, idx) => (
-                              <li key={idx} style={style.detalleAccionItem}>{accion}</li>
-                            ))}
-                          </ul>
-                        ) : null}
-                      </div>
-                    ) : null}
-                  </article>
-                );
-              })}
+            <div style={style.secciones}>
+              <SeccionIssues
+                titulo="Bloqueos estructurales"
+                severidad="bloqueo"
+                avisos={grupos.bloqueo}
+                abierta={grupos.bloqueo.length > 0}
+                modelo={modelo}
+                navegarAviso={navegarAviso}
+                detalleCodigo={detalleCodigo}
+                setDetalleCodigo={setDetalleCodigo}
+              />
+              <SeccionIssues
+                titulo="Mejoras metodologicas"
+                severidad="mejora"
+                avisos={grupos.mejora}
+                abierta={grupos.mejora.length > 0 && grupos.bloqueo.length === 0}
+                modelo={modelo}
+                navegarAviso={navegarAviso}
+                detalleCodigo={detalleCodigo}
+                setDetalleCodigo={setDetalleCodigo}
+              />
+              <SeccionIssues
+                titulo="Estilo/legibilidad"
+                severidad="estilo"
+                avisos={grupos.estilo}
+                abierta={false}
+                modelo={modelo}
+                navegarAviso={navegarAviso}
+                detalleCodigo={detalleCodigo}
+                setDetalleCodigo={setDetalleCodigo}
+              />
             </div>
           )}
         </div>
       )}
     </aside>
+  );
+}
+
+interface SeccionIssuesProps {
+  titulo: string;
+  severidad: SeveridadIssue;
+  avisos: AvisoMetodologico[];
+  abierta: boolean;
+  modelo: Modelo;
+  navegarAviso: (aviso: Aviso) => void;
+  detalleCodigo: CodigoChecker | null;
+  setDetalleCodigo: (codigo: CodigoChecker | null) => void;
+}
+
+function SeccionIssues(props: SeccionIssuesProps) {
+  const meta = SEVERIDAD_ISSUE[props.severidad];
+  return (
+    <details
+      open={props.abierta}
+      data-testid={`panel-metodologia-seccion-${props.severidad}`}
+      style={style.seccion}
+    >
+      <summary style={summaryStyle(meta)}>
+        <span style={style.summaryTitle}>{props.titulo}</span>
+        <span data-testid={`panel-metodologia-conteo-${props.severidad}`} style={style.summaryCount}>
+          {props.avisos.length}
+        </span>
+      </summary>
+      {props.avisos.length === 0 ? (
+        <div style={style.sectionEmpty}>Sin issues en este grupo</div>
+      ) : (
+        <div role="list" style={style.list}>
+          {props.avisos.map((aviso, index) => {
+            const detalleAbierto = props.detalleCodigo === aviso.codigo;
+            return (
+              <article
+                key={`${aviso.codigo}-${aviso.entidadId ?? aviso.opdId ?? index}`}
+                role="listitem"
+                data-testid={`aviso-${aviso.codigo}`}
+                data-severidad={aviso.severidad}
+                data-issue-severidad={props.severidad}
+                style={filaStyle(meta)}
+              >
+                <button
+                  type="button"
+                  data-testid={`aviso-navegar-${aviso.codigo}`}
+                  style={filaNavegar(meta)}
+                  title="Ir al elemento del aviso"
+                  onClick={() => navegarAvisoMetodologico(aviso, props.navegarAviso)}
+                >
+                  <span aria-label={meta.etiqueta} title={meta.etiqueta} style={iconoStyle(meta)}>
+                    {meta.icono}
+                  </span>
+                  <span style={style.rowMain}>
+                    <span style={style.codigo}>{etiquetaCodigo(aviso.codigo)}</span>
+                    <span style={style.mensaje}>{aviso.mensaje}</span>
+                    <span style={style.issueContext}>
+                      <span style={style.issueContextStrong}>Regla:</span> {aviso.ssotRef ? cortarCita(aviso.ssotRef) : "SSOT"}
+                      {aviso.rationale ? <> · <span style={style.issueContextStrong}>Razón:</span> {aviso.rationale}</> : null}
+                      {primeraAccion(aviso) ? <> · <span style={style.issueContextStrong}>Acción:</span> {primeraAccion(aviso)}</> : null}
+                    </span>
+                    <span style={style.target}>{etiquetaDestino(props.modelo, aviso)}</span>
+                  </span>
+                </button>
+                <div style={style.rowActions}>
+                  <button
+                    type="button"
+                    data-testid={`aviso-cita-${aviso.codigo}`}
+                    style={style.cita}
+                    title={`Cita SSOT: ${aviso.ssotRef ?? aviso.rationale ?? ""}`}
+                    onClick={() => props.setDetalleCodigo(detalleAbierto ? null : aviso.codigo)}
+                  >
+                    {aviso.ssotRef ? cortarCita(aviso.ssotRef) : "SSOT"}
+                  </button>
+                </div>
+                {detalleAbierto ? (
+                  <div data-testid={`aviso-detalle-${aviso.codigo}`} style={style.detalle}>
+                    <div style={style.detalleSsot}>
+                      <span style={style.detalleSsotLabel}>SSOT</span>
+                      <span>{aviso.ssotRef ?? "—"}</span>
+                    </div>
+                    {aviso.rationale ? (
+                      <div style={style.detalleRationale}>{aviso.rationale}</div>
+                    ) : null}
+                    {aviso.accionesSugeridas && aviso.accionesSugeridas.length > 0 ? (
+                      <ul style={style.detalleAcciones}>
+                        {aviso.accionesSugeridas.map((accion, idx) => (
+                          <li key={idx} style={style.detalleAccionItem}>{accion}</li>
+                        ))}
+                      </ul>
+                    ) : null}
+                  </div>
+                ) : null}
+              </article>
+            );
+          })}
+        </div>
+      )}
+    </details>
   );
 }
 
@@ -207,6 +287,10 @@ function navegarAvisoMetodologico(aviso: AvisoMetodologico, navegar: (aviso: Avi
   };
   if (destino.opdId) adaptador.opdId = destino.opdId;
   navegar(adaptador);
+}
+
+function primeraAccion(aviso: AvisoMetodologico): string {
+  return aviso.accionesSugeridas?.[0] ?? "";
 }
 
 function resolverDestino(aviso: AvisoMetodologico): NavegacionAviso | null {
@@ -270,6 +354,15 @@ function iconoStyle(meta: SeveridadMeta): preact.JSX.CSSProperties {
   return {
     ...style.icon,
     color: meta.color,
+  };
+}
+
+function summaryStyle(meta: SeveridadMeta): preact.JSX.CSSProperties {
+  return {
+    ...style.summary,
+    color: meta.color,
+    borderColor: meta.borde,
+    background: meta.fondo,
   };
 }
 
@@ -360,6 +453,15 @@ const style = {
     flexDirection: "column",
     overflow: "hidden",
   },
+  resumen: {
+    flex: "0 0 auto",
+    padding: "7px 12px",
+    borderBottom: `1px solid ${tokens.colors.bordeChrome}`,
+    color: tokens.colors.textoSlate,
+    fontSize: "11px",
+    fontWeight: 700,
+    lineHeight: 1.25,
+  },
   empty: {
     display: "flex",
     alignItems: "center",
@@ -377,13 +479,65 @@ const style = {
     flex: "0 0 auto",
   },
   list: {
-    overflow: "auto",
+    overflow: "visible",
     minHeight: 0,
-    flex: "1 1 auto",
-    padding: "8px",
+    padding: "6px",
     display: "grid",
     alignContent: "start",
     gap: "6px",
+  },
+  secciones: {
+    overflow: "auto",
+    minHeight: 0,
+    flex: "1 1 auto",
+    padding: "7px",
+    display: "grid",
+    alignContent: "start",
+    gap: "7px",
+  },
+  seccion: {
+    minWidth: 0,
+    border: `1px solid ${tokens.colors.bordeChrome}`,
+    borderRadius: tokens.radii.sm,
+    background: tokens.colors.fondoChrome,
+    overflow: "hidden",
+  },
+  summary: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: "8px",
+    padding: "6px 8px",
+    borderBottom: "1px solid",
+    cursor: "pointer",
+    fontSize: "12px",
+    fontWeight: 800,
+    listStyle: "none",
+  },
+  summaryTitle: {
+    minWidth: 0,
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+    whiteSpace: "nowrap",
+  },
+  summaryCount: {
+    minWidth: "22px",
+    height: "18px",
+    borderRadius: "9px",
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    background: tokens.colors.fondoChrome,
+    border: `1px solid ${tokens.colors.bordeChrome}`,
+    color: tokens.colors.textoPrimario,
+    fontSize: "11px",
+    fontWeight: 800,
+  },
+  sectionEmpty: {
+    padding: "8px",
+    color: tokens.colors.textoTerciario,
+    fontSize: "11px",
+    fontWeight: 700,
   },
   row: {
     display: "grid",
@@ -453,6 +607,19 @@ const style = {
     overflow: "hidden",
     textOverflow: "ellipsis",
     whiteSpace: "nowrap",
+  },
+  issueContext: {
+    color: tokens.colors.textoSlate,
+    fontSize: "11px",
+    fontWeight: 600,
+    lineHeight: 1.3,
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+    whiteSpace: "nowrap",
+  },
+  issueContextStrong: {
+    color: tokens.colors.textoSecundario,
+    fontWeight: 800,
   },
   cita: {
     border: `1px solid ${tokens.colors.bordeSlate}`,

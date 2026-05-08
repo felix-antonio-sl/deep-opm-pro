@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test";
 import {
   cerrarPantallaInicioSiVisible,
+  elementoPorTexto,
   exportadoActual,
   jsonEditor,
 } from "./_smoke-helpers";
@@ -51,10 +52,11 @@ test.describe("beta1 catalogo + ancla", () => {
     await expect(page.locator(".joint-paper svg")).toHaveCount(1);
     expect(await page.locator(".joint-element").count()).toBeGreaterThanOrEqual(3);
 
-    // Texto del SD raiz visible: el panel OPL refleja al menos el proceso transformante.
-    await expect(page.getByText("Procesar Prestamo").first()).toBeVisible();
-    await expect(page.getByText("Bibliotecario").first()).toBeVisible();
-    await expect(page.getByText("Libro").first()).toBeVisible();
+    // Texto del SD raiz visible en canvas. El árbol OPD también contiene esos
+    // nombres, pero puede estar fuera del viewport por la nueva navegación primaria.
+    await expect(elementoPorTexto(page, "Procesar Prestamo")).toBeVisible();
+    await expect(elementoPorTexto(page, "Bibliotecario")).toBeVisible();
+    await expect(elementoPorTexto(page, "Libro")).toBeVisible();
 
     expect(pageErrors).toEqual([]);
   });
@@ -66,7 +68,7 @@ test.describe("beta1 catalogo + ancla", () => {
     await page.goto("/");
     await cerrarPantallaInicioSiVisible(page);
     await page.getByLabel("Cargar modelo de ejemplo").selectOption("Prestamo Bibliotecario");
-    await expect(page.getByText("Procesar Prestamo").first()).toBeVisible();
+    await expect(elementoPorTexto(page, "Procesar Prestamo")).toBeVisible();
 
     // Snapshot inicial via Exportar.
     const exportadoOriginal = await exportadoActual(page);

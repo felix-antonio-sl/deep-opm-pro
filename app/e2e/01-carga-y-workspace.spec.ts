@@ -244,11 +244,11 @@ test("asiste importacion JSON con archivo, preview, confirmacion y error legible
   await expect(dialogo).toBeVisible();
   await dialogo.getByRole("button", { name: "Descartar" }).click();
   await expect(elementoPorTexto(page, "Objeto Raiz")).toHaveCount(1);
-  // P0-1 (informe UI/UX 2026-05-07): tras importar JSON, header Y pestana
-  // cuentan la misma historia de identidad. count=2 es el contrato unificado.
-  // Antes el test esperaba count=1 porque la pestana se quedaba como
-  // "Modelo (No guardado)" — esa inconsistencia era el bug.
-  await expect(page.getByText("Modelo multi OPD (No guardado)")).toHaveCount(2);
+  // P0-1 + ronda19 L5: header y pestana cuentan la misma identidad, y el
+  // estado "sin guardar" vive en ChipPersistencia, no como sufijo del titulo.
+  await expect(page.getByText("Modelo multi OPD", { exact: true })).toHaveCount(1);
+  await expect(page.getByRole("tab", { name: /Modelo multi OPD/ })).toHaveCount(1);
+  await expect(page.getByTestId("chip-persistencia")).toContainText("Importado");
 
   await jsonEditor(page).fill("{");
   await expect(page.getByRole("alert")).toHaveText("JSON inválido");

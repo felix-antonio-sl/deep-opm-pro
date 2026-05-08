@@ -431,6 +431,20 @@ test("L1 toolbar split conserva root y controles por modo", async ({ page }) => 
   await page.goto("/");
   await cerrarPantallaInicioSiVisible(page);
   await expect(page.getByTestId("toolbar-root")).toBeVisible();
+  for (const cluster of ["Modelo", "Modelar", "Conectar", "Vista", "Validar", "Ayuda"]) {
+    await expect(page.getByRole("group", { name: cluster })).toBeVisible();
+  }
+  await expect(page.locator('[data-slot="cluster-modelo"]')).toBeVisible();
+  await expect(page.locator('[data-slot="cluster-modelar"]')).toBeVisible();
+  await expect(page.locator('[data-slot="cluster-conectar"]')).toBeVisible();
+  await expect(page.locator('[data-slot="cluster-vista"]')).toBeVisible();
+  await expect(page.locator('[data-slot="cluster-validar"]')).toBeVisible();
+  await expect(page.locator('[data-slot="cluster-ayuda"]')).toBeVisible();
+  await expect(page.getByRole("group", { name: "Modelar" }).getByRole("button", { name: "Objeto", exact: true })).toBeVisible();
+  await expect(page.getByRole("group", { name: "Conectar" }).getByTestId("abrir-menu-tipo-enlace")).toBeDisabled();
+  await expect(page.getByRole("group", { name: "Vista" }).getByTestId("toggle-grid")).toBeVisible();
+  await expect(page.getByRole("group", { name: "Validar" }).getByRole("button", { name: "Mapa", exact: true })).toBeVisible();
+  await expect(page.getByRole("group", { name: "Ayuda" }).getByTestId("toolbar-mas-trigger")).toBeVisible();
   await expect(page.getByTestId("abrir-menu-tipo-enlace")).toBeDisabled();
 
   await page.getByRole("button", { name: "Objeto", exact: true }).click();

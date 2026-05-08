@@ -13,7 +13,8 @@ Mostrar un **chip persistente** junto al título del modelo que comunique de for
    - `Fixture · sin guardar` (cargado de fixture, no persistido)
    - `Nuevo · sin guardar` (recién creado)
 3. Tooltip en el chip muestra detalle completo y acción `Guardar como`.
-4. Chip se monta dentro del cluster `Modelo` de la toolbar (slot `data-slot="cluster-modelo"` que L1 expone).
+4. El chip no reemplaza exportar, descartar ni versionar: los referencia como estado/atajo contextual cuando existan y mantiene esas acciones en el cluster `Modelo` de ronda19 L1.
+5. Chip se monta dentro del cluster `Modelo` de la toolbar (slot `data-slot="cluster-modelo"` que L1 expone).
 
 **Pendientes explícitos fuera de slice**:
 - No reemplazar el modal `Guardar como` ni el flujo de versiones.
@@ -120,6 +121,7 @@ Click para "Guardar como" o nuevo versión
   - `<ChipPersistencia />` renderiza la variante correcta para distintos store states (preact-testing-library).
 - Smoke (~1 test nuevo):
   - `chip persistencia muestra "Importado · sin guardar" tras importar JSON, y "Local · v1 · clean" tras guardar`.
+  - `chip persistencia conserva comprensión tras exportar/descartar`: exportar no cambia dirty; descartar vuelve al estado persistido o fixture correspondiente.
 
 ## 8. Verificación
 
@@ -136,6 +138,8 @@ Audit visual:
 - Importar JSON: chip dice "Importado · sin guardar".
 - Guardar como: chip cambia a "Local · v1 · guardado hace 0s".
 - Editar y esperar autosalvado: chip cambia a "Local · v1 · guardado hace 2s".
+- Exportar: chip no cambia indebidamente a local/clean.
+- Descartar cambios: chip vuelve a `Local · vN · guardado...` o `Fixture/Importado · sin guardar`, según origen.
 - Cumplir criterio §P2 informe UX: ver estado de almacenamiento sin abrir modal.
 
 ## 9. Decisiones bloqueadas (no reabrir)

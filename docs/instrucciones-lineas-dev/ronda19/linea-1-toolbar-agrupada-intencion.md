@@ -69,7 +69,7 @@ export const toolbarStyle = {
 ```tsx
 // ToolbarBase orquesta los clusters principales
 <div role="group" aria-label="Modelo" style={style.cluster} data-cluster="modelo">
-  {/* ☰, título modelo, chip persistencia (slot), versiones */}
+  {/* ☰, título modelo, chip persistencia (slot), nuevo/abrir/importar/guardar/exportar/descartar/versiones */}
 </div>
 <span style={style.divider} />
 <div role="group" aria-label="Modelar" style={style.cluster} data-cluster="modelar">
@@ -105,6 +105,12 @@ export const toolbarStyle = {
 | `abrir-biblioteca-cosa` | banda intermedia | Conectar | sí |
 | `abrir-menu-tipo-enlace` | banda intermedia | Conectar | sí |
 | Tipo de enlace `<select>` | banda intermedia | Conectar | sí |
+| Guardar / Guardar como | menú o banda actual | Modelo | sí |
+| Importar / Exportar | menú o banda actual | Modelo | sí |
+| Descartar cambios / Nuevo modelo | menú principal o secundario | Modelo | sí |
+| Versiones guardadas | junto al título actual | Modelo | sí |
+
+El cluster `Modelo` debe dejar claro el contrato de administración del informe: guardar, importar, exportar, descartar y versionar no son acciones de modelado semántico ni de vista; viven juntas y con labels accesibles únicos.
 
 ## 7. Tests obligatorios
 
@@ -128,6 +134,7 @@ bun run build                           # < 320 KB
 Audit visual: `test-vivo-iterativo-opmkv` con criterios:
 - 6 clusters visualmente distinguibles a 1280x720.
 - Dividers visibles entre clusters.
+- Cluster `Modelo` contiene o expone claramente guardar/importar/exportar/descartar/versiones, sin duplicar labels accesibles.
 - Ningún testid existente roto.
 - Comparación lado a lado con `18-toolbar-baseline-onstar-panels.png`.
 

@@ -31,9 +31,13 @@ type GlobalJointAdapter = { graph?: { getCell?: (id: string) => { prop?: (name: 
  */
 interface ToolbarBaseProps {
   children?: preact.ComponentChildren;
+  modelarSlot?: preact.ComponentChildren;
+  conectarSlot?: preact.ComponentChildren;
+  validarSlot?: preact.ComponentChildren;
+  statusSlot?: preact.ComponentChildren;
 }
 
-export function ToolbarBase({ children }: ToolbarBaseProps) {
+export function ToolbarBase({ children, modelarSlot, conectarSlot, validarSlot, statusSlot }: ToolbarBaseProps) {
   // P0-2 (informe UI/UX 2026-05-07): MenuPrincipal se monta UNA sola vez en
   // App.tsx. Antes ToolbarBase tambien tenia su propia instancia lazy y se
   // duplicaba en el DOM (`role="menu"` aparecia dos veces, rompiendo
@@ -75,7 +79,6 @@ export function ToolbarBase({ children }: ToolbarBaseProps) {
   const pegarEstiloEnlaceDesdePortapapeles = useOpmStore((s) => s.pegarEstiloEnlaceDesdePortapapeles);
   const borrarEnlacesEnLote = useOpmStore((s) => s.borrarEnlacesEnLote);
   const conectarSeleccionAlTodo = useOpmStore((s) => s.conectarSeleccionAlTodo);
-  const autosalvado = useOpmStore((s) => s.autosalvado);
   const readOnly = useOpmStore((s) => s.readOnly);
   const iniciarAutosalvado = useOpmStore((s) => s.iniciarAutosalvado);
   // Ronda 19 L5: `dirty` ya no se lee aqui; ChipPersistencia lo consume.
@@ -90,7 +93,12 @@ export function ToolbarBase({ children }: ToolbarBaseProps) {
   const fijarModoImagenGlobal = useOpmStore((s) => s.fijarModoImagenGlobal);
   const abrirModalImagen = useOpmStore((s) => s.abrirModalImagen);
   const gridConfig = useOpmStore((s) => normalizarGridConfig(s.gridConfig ?? s.indice.preferenciasUi?.gridConfig));
+  const toggleGrid = useOpmStore((s) => s.toggleGrid);
   const fijarGridConfig = useOpmStore((s) => s.fijarGridConfig);
+  const aplicarLayoutSugerido = useOpmStore((s) => s.aplicarLayoutSugerido);
+  const vistaMapaActiva = useOpmStore((s) => s.vistaMapaActiva);
+  const abrirVistaMapa = useOpmStore((s) => s.abrirVistaMapa);
+  const cerrarVistaMapa = useOpmStore((s) => s.cerrarVistaMapa);
   const alinearSeleccion = useOpmStore((s) => s.alinearSeleccion);
   const distribuirSeleccion = useOpmStore((s) => s.distribuirSeleccion);
   const alinearSeleccionEnlaces = useOpmStore((s) => s.alinearSeleccionEnlaces);
@@ -230,40 +238,24 @@ export function ToolbarBase({ children }: ToolbarBaseProps) {
 
   return (
     <>
-      <div style={style.menuWrapper}>
-        <button type="button" aria-haspopup="menu" aria-expanded={menuPrincipalAbierto} aria-label="Menú principal" title="Menú principal" style={style.iconButton} onClick={handleToggleMenuPrincipal}>☰</button>
-        {/* P0-2: MenuPrincipal vive ahora en App.tsx para evitar
-            duplicacion en el DOM. El boton aqui solo gatilla el store. */}
-      </div>
-      <span style={style.title}>{tituloModelo}</span>
-      <ChipPersistencia />
-      {resumenPersistido?.archivado ? <span style={style.archiveBadge}>ARCH</span> : null}
-      {modeloPersistidoId && totalVersiones > 0 ? (
-        <button type="button" style={style.versionButton} onClick={() => abrirDialogoVersiones(modeloPersistidoId)} title={`${totalVersiones} versiones guardadas`}>
-          <img src={verFileIcon} alt="" style={style.versionIcon} />{totalVersiones}
-        </button>
-      ) : null}
-      <div style={style.actions}>
-        <span style={style.divider} />
-        {/* Cluster Crear */}
-        <button style={style.button} type="button" onClick={crearObjeto} draggable onDragStart={dragToolbar("objeto")} data-testid="toolbar-drag-objeto" title="Crear objeto · arrastra al canvas o clic para insertar">Objeto</button>
-        <button style={style.button} type="button" onClick={crearProceso} draggable onDragStart={dragToolbar("proceso")} data-testid="toolbar-drag-proceso" title="Crear proceso · arrastra al canvas o clic para insertar">Proceso</button>
-        <button style={puedeCrearAtributo ? style.iconTextButton : style.disabledButton} type="button" disabled={!puedeCrearAtributo} draggable={puedeCrearAtributo} onDragStart={dragAtributoNumerico} onClick={() => crearAtributoNumerico({ nombre: "Valor [u]", tipoSlot: "float" })} title={puedeCrearAtributo ? "Crear atributo numérico en el objeto seleccionado" : "Selecciona un objeto"} data-testid="toolbar-crear-atributo-numerico">
-          <img src={objectDragIcon} alt="" style={style.smallIcon} />+ Atributo
-        </button>
-        {/* Crear varios objetos/procesos: en banda con drag soportado.
-            Decisión P3: 8+ smokes hacen `dragTo(canvas)` directamente sobre los
-            testIds, y el menú ⋯ Más no soporta drag desde sus items. Mantener
-            en cluster Crear preserva la API de smokes y la affordance de
-            arrastre originaria. */}
-        <button style={modoCreacion === "objeto" ? style.activeButton : style.button} type="button" aria-pressed={modoCreacion === "objeto"} className={modoCreacion === "objeto" ? "boton-toolbar-activo" : undefined} draggable onDragStart={dragToolbar("objeto")} onClick={() => fijarModoCreacion(modoCreacion === "objeto" ? null : "objeto")} title={modoCreacion === "objeto" ? "Creación continua de objetos activa · clic para desactivar" : "Crear objetos en serie · cada clic en canvas inserta un objeto"} data-testid="toolbar-modo-creacion-objeto">Crear varios objetos</button>
-        <button style={modoCreacion === "proceso" ? style.activeButton : style.button} type="button" aria-pressed={modoCreacion === "proceso"} className={modoCreacion === "proceso" ? "boton-toolbar-activo" : undefined} draggable onDragStart={dragToolbar("proceso")} onClick={() => fijarModoCreacion(modoCreacion === "proceso" ? null : "proceso")} title={modoCreacion === "proceso" ? "Creación continua de procesos activa · clic para desactivar" : "Crear procesos en serie · cada clic en canvas inserta un proceso"} data-testid="toolbar-modo-creacion-proceso">Crear varios procesos</button>
-        <span style={style.divider} />
-        {/* Cluster Historia */}
+      <div role="group" aria-label="Modelo" style={style.cluster} data-slot="cluster-modelo" data-cluster="modelo">
+        <span style={style.clusterLabel}>Modelo</span>
+        <div style={style.menuWrapper}>
+          <button type="button" aria-haspopup="menu" aria-expanded={menuPrincipalAbierto} aria-label="Menú principal" title="Menú principal" style={style.iconButton} onClick={handleToggleMenuPrincipal}>☰</button>
+          {/* P0-2: MenuPrincipal vive ahora en App.tsx para evitar
+              duplicacion en el DOM. El boton aqui solo gatilla el store. */}
+        </div>
+        <span style={style.title}>{tituloModelo}</span>
+        {/* Ronda 19 L5: slot estable para chip de persistencia en cluster Modelo. */}
+        <ChipPersistencia />
+        {resumenPersistido?.archivado ? <span style={style.archiveBadge}>ARCH</span> : null}
+        {modeloPersistidoId && totalVersiones > 0 ? (
+          <button type="button" style={style.versionButton} onClick={() => abrirDialogoVersiones(modeloPersistidoId)} title={`${totalVersiones} versiones guardadas`}>
+            <img src={verFileIcon} alt="" style={style.versionIcon} />{totalVersiones}
+          </button>
+        ) : null}
         <button style={puedeDeshacer ? style.button : style.disabledButton} type="button" onClick={deshacer} disabled={!puedeDeshacer} aria-label="Deshacer" title="Deshacer · Ctrl+Z">↶</button>
         <button style={puedeRehacer ? style.button : style.disabledButton} type="button" onClick={rehacer} disabled={!puedeRehacer} aria-label="Rehacer" title="Rehacer · Ctrl+Shift+Z">↷</button>
-        <span style={style.divider} />
-        {/* Cluster Modelo */}
         <button style={style.button} type="button" onClick={handleNuevoModelo} title="Nuevo modelo · descarta el actual si pides confirmación">Nuevo</button>
         <select style={style.demoSelect} aria-label="Cargar modelo de ejemplo" value="" onChange={handleSeleccionDemo}>
           <option value="" disabled>Demo</option>
@@ -272,10 +264,55 @@ export function ToolbarBase({ children }: ToolbarBaseProps) {
         <button style={style.button} type="button" onClick={guardarLocal} title="Guardar (Ctrl+S)">{readOnly ? <img src={lockIcon} alt="" style={style.lockIcon} /> : null}Guardar</button>
         {readOnly ? <span style={style.readOnlyBadge} data-testid="indicador-readonly">Solo lectura</span> : null}
         <button style={style.button} type="button" onClick={() => confirmarSiDirty(abrirCargarModelo)} title="Cargar modelo guardado">Cargar</button>
+      </div>
+      <div style={style.actions}>
         <span style={style.divider} />
-        {/* Children: clusters Enlace + Vista (los aporta ToolbarCreacion) */}
-        {children}
-        <ToolbarMas items={masItems} />
+        <div role="group" aria-label="Modelar" style={style.cluster} data-slot="cluster-modelar" data-cluster="modelar">
+          <span style={style.clusterLabel}>Modelar</span>
+          <button style={style.button} type="button" onClick={crearObjeto} draggable onDragStart={dragToolbar("objeto")} data-testid="toolbar-drag-objeto" title="Crear objeto · arrastra al canvas o clic para insertar">Objeto</button>
+          <button style={style.button} type="button" onClick={crearProceso} draggable onDragStart={dragToolbar("proceso")} data-testid="toolbar-drag-proceso" title="Crear proceso · arrastra al canvas o clic para insertar">Proceso</button>
+          <button style={puedeCrearAtributo ? style.iconTextButton : style.disabledButton} type="button" disabled={!puedeCrearAtributo} draggable={puedeCrearAtributo} onDragStart={dragAtributoNumerico} onClick={() => crearAtributoNumerico({ nombre: "Valor [u]", tipoSlot: "float" })} title={puedeCrearAtributo ? "Crear atributo numérico en el objeto seleccionado" : "Selecciona un objeto"} data-testid="toolbar-crear-atributo-numerico">
+            <img src={objectDragIcon} alt="" style={style.smallIcon} />+ Atributo
+          </button>
+          {/* Crear varios objetos/procesos: en banda con drag soportado.
+              Decisión P3: 8+ smokes hacen `dragTo(canvas)` directamente sobre los
+              testIds, y el menú ⋯ Más no soporta drag desde sus items. Mantener
+              en cluster Modelar preserva la API de smokes y la affordance de
+              arrastre originaria. */}
+          <button style={modoCreacion === "objeto" ? style.activeButton : style.button} type="button" aria-pressed={modoCreacion === "objeto"} className={modoCreacion === "objeto" ? "boton-toolbar-activo" : undefined} draggable onDragStart={dragToolbar("objeto")} onClick={() => fijarModoCreacion(modoCreacion === "objeto" ? null : "objeto")} title={modoCreacion === "objeto" ? "Creación continua de objetos activa · clic para desactivar" : "Crear objetos en serie · cada clic en canvas inserta un objeto"} data-testid="toolbar-modo-creacion-objeto">Crear varios objetos</button>
+          <button style={modoCreacion === "proceso" ? style.activeButton : style.button} type="button" aria-pressed={modoCreacion === "proceso"} className={modoCreacion === "proceso" ? "boton-toolbar-activo" : undefined} draggable onDragStart={dragToolbar("proceso")} onClick={() => fijarModoCreacion(modoCreacion === "proceso" ? null : "proceso")} title={modoCreacion === "proceso" ? "Creación continua de procesos activa · clic para desactivar" : "Crear procesos en serie · cada clic en canvas inserta un proceso"} data-testid="toolbar-modo-creacion-proceso">Crear varios procesos</button>
+          {modelarSlot ?? null}
+        </div>
+        <span style={style.divider} />
+        <div role="group" aria-label="Conectar" style={style.cluster} data-slot="cluster-conectar" data-cluster="conectar">
+          <span style={style.clusterLabel}>Conectar</span>
+          {conectarSlot ?? children}
+        </div>
+        <span style={style.divider} />
+        <div role="group" aria-label="Vista" style={style.cluster} data-slot="cluster-vista" data-cluster="vista">
+          <span style={style.clusterLabel}>Vista</span>
+          <button style={gridConfig.activa ? style.activeButton : style.button} type="button" onClick={toggleGrid} aria-pressed={gridConfig.activa} data-testid="toggle-grid" title={gridConfig.activa ? "Grid activa · clic para ocultar" : "Mostrar grid del canvas"}>Grid</button>
+          {/* Ronda 18 P3: `Config grid` se mantiene en banda. Decisión documentada
+              en commit: 3 smokes (08, 11) hacen `getByTestId("config-grid").click()`
+              directamente sin abrir el menú ⋯ Más, así que el en-banda es
+              load-bearing. El menú "Más" lo espeja con `toolbar-mas-config-grid`. */}
+          <button style={style.secondaryButton} type="button" onClick={() => setGridModalAbierto(true)} data-testid="config-grid" title="Configurar paso, color y snap del grid">Config grid</button>
+          {/* Ronda 15 L4: layout sugerido como accion explicita. No persiste */}
+          {/* automaticamente al cargar; cada clic crea una entrada undo atomica. */}
+          <button style={style.button} type="button" onClick={aplicarLayoutSugerido} data-testid="toolbar-aplicar-layout" title="Auto-layout · reorganiza apariencias del OPD activo en niveles top-down. Undoable con Ctrl+Z.">Auto-layout</button>
+        </div>
+        <span style={style.divider} />
+        <div role="group" aria-label="Validar" style={style.cluster} data-slot="cluster-validar" data-cluster="validar">
+          <span style={style.clusterLabel}>Validar</span>
+          <button style={vistaMapaActiva ? style.activeButton : style.button} type="button" onClick={vistaMapaActiva ? cerrarVistaMapa : abrirVistaMapa} aria-pressed={vistaMapaActiva} title={vistaMapaActiva ? "Cerrar mapa" : "Abrir mapa"}>Mapa</button>
+          {validarSlot ?? null}
+          {statusSlot ?? null}
+        </div>
+        <span style={style.divider} />
+        <div role="group" aria-label="Ayuda" style={style.cluster} data-slot="cluster-ayuda" data-cluster="ayuda">
+          <span style={style.clusterLabel}>Ayuda</span>
+          <ToolbarMas items={masItems} />
+        </div>
       </div>
       <ModalConfiguracionGrid abierto={gridModalAbierto} config={gridConfig} onCerrar={() => setGridModalAbierto(false)} onGuardar={fijarGridConfig} />
       <ModelessToolbarLayer

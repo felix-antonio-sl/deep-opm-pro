@@ -36,23 +36,31 @@ export function Toolbar() {
   return (
     <div data-testid="toolbar-root" style={style.bar}>
       <Suspense fallback={null}>
-        <ToolbarBase>
-          <ToolbarCreacion />
-          <ToolbarSeleccion />
-          {cantidadSeleccion >= 2 ? <ToolbarMultiseleccion /> : null}
-          {vistaMapaActiva ? <ToolbarMapaSistema /> : null}
-          {mensaje ? <span style={style.status}>{mensaje}</span> : null}
-          {autosalvado.activo ? (
-            <span
-              style={autosalvado.salvando ? style.autosaveSaving : style.autosaveIdle}
-              title={autosalvado.ultimo
-                ? `Autosalvado activo · Último: ${new Date(autosalvado.ultimo).toLocaleTimeString("es-CL", { hour: "2-digit", minute: "2-digit" })}`
-                : "Autosalvado activo"}
-            >
-              {autosalvado.salvando ? "●" : "○"} Auto
-            </span>
-          ) : null}
-        </ToolbarBase>
+        <ToolbarBase
+          modelarSlot={(
+            <>
+              <ToolbarSeleccion />
+              {cantidadSeleccion >= 2 ? <ToolbarMultiseleccion /> : null}
+            </>
+          )}
+          conectarSlot={<ToolbarCreacion />}
+          validarSlot={vistaMapaActiva ? <ToolbarMapaSistema /> : null}
+          statusSlot={(
+            <>
+              {mensaje ? <span style={style.status}>{mensaje}</span> : null}
+              {autosalvado.activo ? (
+                <span
+                  style={autosalvado.salvando ? style.autosaveSaving : style.autosaveIdle}
+                  title={autosalvado.ultimo
+                    ? `Autosalvado activo · Último: ${new Date(autosalvado.ultimo).toLocaleTimeString("es-CL", { hour: "2-digit", minute: "2-digit" })}`
+                    : "Autosalvado activo"}
+                >
+                  {autosalvado.salvando ? "●" : "○"} Auto
+                </span>
+              ) : null}
+            </>
+          )}
+        />
       </Suspense>
     </div>
   );

@@ -196,6 +196,7 @@ function registrarAtajosAplicacion(): Array<() => void> {
     if (state.modalDuracionAbierto) return state.cerrarModalDuracion();
     if (state.busquedaCosasAbierta) return state.cerrarBusquedaCosas();
     if (state.menuPrincipalAbierto) return state.cerrarMenuPrincipal();
+    if (state.modoEnlace) return state.cancelarEnlace();
     return state.vaciarSeleccion();
   };
   return [
