@@ -92,6 +92,16 @@ export function ToolbarCreacion() {
       if (!(target instanceof Node)) return;
       if (menuTiposRef.current?.contains(target)) return;
       if (triggerTiposRef.current?.contains(target)) return;
+      // P0-6 (informe UI/UX 2026-05-07): "Tipos validos" promete preview OPL
+      // al seleccionar dos cosas. El gesto de seleccion ocurre en el canvas
+      // — si el listener cerraba el menu en ese pointerdown, el usuario
+      // perdia la promesa. Solucion: clicks dentro del canvas no cierran
+      // el menu; solo updatean la seleccion y el menu se actualiza.
+      // Cualquier click fuera del canvas y fuera del menu/trigger SI cierra.
+      if (target instanceof Element) {
+        const canvasPane = target.closest('[data-testid="canvas-pane"]');
+        if (canvasPane) return;
+      }
       setMenuTiposAbierto(false);
     }
     window.addEventListener("keydown", onKeyDown, { capture: true });

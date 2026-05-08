@@ -595,7 +595,13 @@ export function accionesCanvas(set: SetStore, get: GetStore): Partial<ModeloSlic
       // Ronda 15 L4: layout sugerido aplicable bajo accion explicita.
       // Undoable atomicamente porque commitModelo crea una sola entrada en
       // el ledger; deshacer revierte el batch entero. No persiste al cargar.
-      const { modelo, opdActivoId, seleccionados } = get();
+      //
+      // P0-5 (informe UI/UX 2026-05-07): incrementa solicitudFitToken para
+      // que el canvas haga fit-to-view tras el reordenamiento. Antes el
+      // autolayout dejaba elementos fuera del viewport y la accion se
+      // sentia incompleta. El fit es secundario al commit (no se confirma
+      // si el commit falla) y se observa en JointCanvas via useEffect.
+      const { modelo, opdActivoId, seleccionados, solicitudFitToken } = get();
       const resultado = aplicarLayoutSugeridoOp(modelo, opdActivoId);
       if (!resultado.ok) {
         set({ mensaje: resultado.error });
@@ -605,7 +611,11 @@ export function accionesCanvas(set: SetStore, get: GetStore): Partial<ModeloSlic
         set({ mensaje: "Layout ya esta aplicado" });
         return;
       }
-      commitModelo(set, modelo, resultado.value, { seleccionados: [...seleccionados], mensaje: "Layout sugerido aplicado" });
+      commitModelo(set, modelo, resultado.value, {
+        seleccionados: [...seleccionados],
+        mensaje: "Layout sugerido aplicado",
+        solicitudFitToken: solicitudFitToken + 1,
+      });
     },
 
     reordenarSubprocesoEnTimeline(opdId, aparienciaId, nuevaY) {

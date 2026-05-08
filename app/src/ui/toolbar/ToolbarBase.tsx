@@ -21,7 +21,6 @@ import { dragAtributoNumerico, dragToolbar, etiquetaModoGlobal, siguienteModoGlo
 const DialogoPlantillas = lazy(() => import("../DialogoPlantillas").then((m) => ({ default: m.DialogoPlantillas })));
 const DialogoTraerConectados = lazy(() => import("../DialogoTraerConectados").then((m) => ({ default: m.DialogoTraerConectados })));
 
-type MenuPrincipalComponent = () => preact.JSX.Element;
 type PantallaInicioComponent = () => preact.JSX.Element | null;
 type GlobalJointAdapter = { graph?: { getCell?: (id: string) => { prop?: (name: string) => unknown } | undefined } };
 
@@ -34,7 +33,11 @@ interface ToolbarBaseProps {
 }
 
 export function ToolbarBase({ children }: ToolbarBaseProps) {
-  const [MenuPrincipalLazy, setMenuPrincipalLazy] = useState<MenuPrincipalComponent | null>(null);
+  // P0-2 (informe UI/UX 2026-05-07): MenuPrincipal se monta UNA sola vez en
+  // App.tsx. Antes ToolbarBase tambien tenia su propia instancia lazy y se
+  // duplicaba en el DOM (`role="menu"` aparecia dos veces, rompiendo
+  // accesibilidad y smokes). El boton ☰ aqui solo abre/cierra via store;
+  // el render lo hace App.tsx. Bug P0 introducido por hotfix `4f7dc66`.
   const [PantallaInicioLazy, setPantallaInicioLazy] = useState<PantallaInicioComponent | null>(null);
   const nuevoModelo = useOpmStore((s) => s.nuevoModelo);
   const abrirMenuPrincipal = useOpmStore((s) => s.abrirMenuPrincipal);
@@ -96,10 +99,6 @@ export function ToolbarBase({ children }: ToolbarBaseProps) {
   const [menuEntidad, setMenuEntidad] = useState<null | { aparienciaId: Id; entidadId: Id; x: number; y: number }>(null);
 
   useEffect(() => iniciarAutosalvado(), [iniciarAutosalvado]);
-  useEffect(() => {
-    if (!menuPrincipalAbierto || MenuPrincipalLazy) return;
-    void import("../MenuPrincipal").then((modulo) => setMenuPrincipalLazy(() => modulo.MenuPrincipal));
-  }, [MenuPrincipalLazy, menuPrincipalAbierto]);
   useEffect(() => {
     if (PantallaInicioLazy) return;
     void import("../PantallaInicio").then((modulo) => setPantallaInicioLazy(() => modulo.PantallaInicio));
@@ -229,7 +228,8 @@ export function ToolbarBase({ children }: ToolbarBaseProps) {
     <>
       <div style={style.menuWrapper}>
         <button type="button" aria-haspopup="menu" aria-expanded={menuPrincipalAbierto} aria-label="Menú principal" title="Menú principal" style={style.iconButton} onClick={handleToggleMenuPrincipal}>☰</button>
-        {MenuPrincipalLazy ? <MenuPrincipalLazy /> : null}
+        {/* P0-2: MenuPrincipal vive ahora en App.tsx para evitar
+            duplicacion en el DOM. El boton aqui solo gatilla el store. */}
       </div>
       <span style={style.title}>{tituloModelo}{dirty && modeloPersistidoId ? " (No guardado)" : ""}</span>
       {resumenPersistido?.archivado ? <span style={style.archiveBadge}>ARCH</span> : null}

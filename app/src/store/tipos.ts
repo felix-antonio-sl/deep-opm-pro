@@ -257,6 +257,15 @@ export interface OpmStore {
   modeloPersistidoId: Id | null;
   descripcionModeloLocal: string;
   menuPrincipalAbierto: boolean;
+  /**
+   * P0-2 (informe UI/UX 2026-05-07): el menu "⋯ Mas" de la toolbar y el
+   * MenuPrincipal lateral son mutuamente excluyentes. Antes coexistian y
+   * se solapaban visualmente. Estado global porque el cierre se gatilla
+   * desde acciones del store (`abrirMenuPrincipal`, etc.) y desde el
+   * propio ToolbarMas. Default `false`. Solo un menu primario abierto a
+   * la vez.
+   */
+  toolbarMasAbierto: boolean;
   dialogoGuardarComoAbierto: boolean;
   dialogoCargarModeloAbierto: boolean;
   pantallaInicioCerrada: boolean;
@@ -277,6 +286,16 @@ export interface OpmStore {
   uiAliasVisibles: boolean;
   uiDescripcionesVisibles: boolean;
   gridConfig?: GridConfig;
+  /**
+   * P0-5 (informe UI/UX 2026-05-07): contador monotonicamente creciente
+   * que el canvas observa para gatillar fit-to-view. Cada incremento
+   * solicita un encuadre del OPD activo. Acciones que dejan el canvas
+   * en estado "ordenado pero potencialmente fuera de viewport" — como
+   * `aplicarLayoutSugerido` — incrementan este token al confirmar exito.
+   * El canvas (JointCanvas) reacciona en useEffect y llama
+   * `fitCanvasAPantalla`. Compatibilidad SSR: el flag es solo runtime.
+   */
+  solicitudFitToken: number;
   /**
    * Flag de solo-lectura. Cuando es `true`, todas las acciones que mutan
    * el modelo se abortan en `commitModelo` con mensaje "Modelo en solo
@@ -307,6 +326,9 @@ export interface OpmStore {
   limpiarMensaje: () => void;
   abrirMenuPrincipal: () => void;
   cerrarMenuPrincipal: () => void;
+  /** P0-2: setea el estado global del menu ⋯ Mas. Si se abre, fuerza el
+   * cierre del MenuPrincipal lateral. */
+  fijarToolbarMasAbierto: (abierto: boolean) => void;
   abrirGuardarComo: () => void;
   cerrarGuardarComo: () => void;
   guardarComoLocal: (input: { nombre: string; descripcion?: string; crearVersionAlGuardar?: boolean }) => void;

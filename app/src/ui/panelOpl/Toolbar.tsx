@@ -64,15 +64,23 @@ export function ToolbarOpl(props: ToolbarOplProps) {
       >
         123
       </button>
+      {/* P0-3 (informe UI/UX 2026-05-07): "AI Text" no esta disponible — al
+          hacer click muestra un toast "Proximamente". El boton ocupa espacio
+          como si estuviera listo, asi que se marca claramente como beta
+          visualmente. Mantiene el handler para que `panel-opl-ai-text` siga
+          gatillando el toast (smoke 03-opl-panel:297) y aria-label/title
+          aclaran el estado a tecnologias asistivas. NO uso aria-disabled
+          porque queremos que el click siga funcionando (mostrar toast). */}
       <button
         type="button"
         data-testid="panel-opl-ai-text"
-        style={style.iconButton}
-        title="AI Text"
+        style={{ ...style.iconButton, ...style.iconButtonBeta }}
+        title="AI Text · proximamente (beta)"
         aria-label="AI Text"
+        data-beta="true"
         onClick={props.onPlaceholderAi}
       >
-        AI
+        AI<span style={style.betaTag}>beta</span>
       </button>
       <button
         type="button"
@@ -170,6 +178,29 @@ const style = {
     borderColor: tokens.colors.chromeNeutral,
     background: tokens.colors.fondoLineaTiempo,
     color: tokens.colors.textoPrimario,
+  },
+  iconButtonBeta: {
+    // P0-3: marca visual de "no disponible aun". El handler sigue activo
+    // (muestra toast "Proximamente"), pero el chrome aclara el estado.
+    opacity: 0.55,
+    background: tokens.colors.fondoNeutral,
+    color: tokens.colors.textoTerciario,
+    cursor: "help",
+    minWidth: 56,
+    display: "inline-flex",
+    alignItems: "center",
+    gap: 4,
+  },
+  betaTag: {
+    fontSize: tokens.typography.sizes.xs,
+    fontWeight: tokens.typography.weights.semibold,
+    padding: "0 4px",
+    borderRadius: 999,
+    background: tokens.colors.chromeNeutralSuave,
+    color: tokens.colors.chromeNeutral,
+    textTransform: "uppercase",
+    letterSpacing: "0.04em",
+    lineHeight: 1.5,
   },
   searchInput: {
     flex: "1",

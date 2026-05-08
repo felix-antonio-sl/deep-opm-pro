@@ -20,6 +20,7 @@
  */
 import { createPortal } from "preact/compat";
 import { useEffect, useId, useLayoutEffect, useRef, useState } from "preact/hooks";
+import { useOpmStore } from "../../store";
 import { tokens } from "../tokens";
 import { toolbarStyle as style } from "./toolbarStyles";
 
@@ -57,7 +58,17 @@ export function ToolbarMas({
   triggerLabel = "Más",
   testId = "toolbar-mas-trigger",
 }: ToolbarMasProps) {
-  const [abierto, setAbierto] = useState(false);
+  // P0-2 (informe UI/UX 2026-05-07): el estado del menu ⋯ Mas es global
+  // para evitar coexistencia con MenuPrincipal lateral. `fijarToolbarMasAbierto`
+  // sincroniza tanto este flag como `menuPrincipalAbierto: false` cuando se
+  // abre. Cuando MenuPrincipal se abre, este flag se cierra automaticamente
+  // por la action `abrirMenuPrincipal`.
+  const abierto = useOpmStore((s) => s.toolbarMasAbierto);
+  const fijarAbierto = useOpmStore((s) => s.fijarToolbarMasAbierto);
+  const setAbierto = (siguiente: boolean | ((actual: boolean) => boolean)) => {
+    const valor = typeof siguiente === "function" ? siguiente(abierto) : siguiente;
+    fijarAbierto(valor);
+  };
   const [anclaje, setAnclaje] = useState<{ top: number; right: number } | null>(null);
   const triggerRef = useRef<HTMLButtonElement | null>(null);
   const menuRef = useRef<HTMLDivElement | null>(null);

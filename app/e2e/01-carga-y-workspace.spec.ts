@@ -244,7 +244,11 @@ test("asiste importacion JSON con archivo, preview, confirmacion y error legible
   await expect(dialogo).toBeVisible();
   await dialogo.getByRole("button", { name: "Descartar" }).click();
   await expect(elementoPorTexto(page, "Objeto Raiz")).toHaveCount(1);
-  await expect(page.getByText("Modelo multi OPD (No guardado)")).toHaveCount(1);
+  // P0-1 (informe UI/UX 2026-05-07): tras importar JSON, header Y pestana
+  // cuentan la misma historia de identidad. count=2 es el contrato unificado.
+  // Antes el test esperaba count=1 porque la pestana se quedaba como
+  // "Modelo (No guardado)" — esa inconsistencia era el bug.
+  await expect(page.getByText("Modelo multi OPD (No guardado)")).toHaveCount(2);
 
   await jsonEditor(page).fill("{");
   await expect(page.getByRole("alert")).toHaveText("JSON inválido");

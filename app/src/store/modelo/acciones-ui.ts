@@ -60,8 +60,11 @@ export function accionesUI(set: SetStore, get: GetStore): Partial<ModeloSlice> {
     },
 
     abrirMenuPrincipal() {
+      // P0-2: cerrar el menu ⋯ Mas si estaba abierto. Solo un menu primario
+      // visible a la vez para evitar solapamientos.
       set({
         menuPrincipalAbierto: true,
+        toolbarMasAbierto: false,
         modelosGuardados: listarModelosGuardadosSeguro(),
         mensaje: null,
       });
@@ -69,6 +72,15 @@ export function accionesUI(set: SetStore, get: GetStore): Partial<ModeloSlice> {
 
     cerrarMenuPrincipal() {
       set({ menuPrincipalAbierto: false });
+    },
+
+    fijarToolbarMasAbierto(abierto: boolean) {
+      // P0-2: si se abre el menu ⋯ Mas, cerrar MenuPrincipal lateral.
+      if (abierto) {
+        set({ toolbarMasAbierto: true, menuPrincipalAbierto: false });
+        return;
+      }
+      set({ toolbarMasAbierto: false });
     },
 
     abrirGuardarComo() {

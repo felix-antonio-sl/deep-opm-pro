@@ -22,7 +22,7 @@ import { cablearRubberBand } from "./handlers/rubberBand";
 import { cablearResize } from "./handlers/resize";
 import { cablearSeleccion } from "./handlers/seleccion";
 import { instalarHerramientasEnlaceSeleccionado } from "./handlers/toolsEnlace";
-import { cablearZoomFit, cablearZoomWheel } from "./handlers/zoom";
+import { cablearZoomFit, cablearZoomWheel, fitCanvasAPantalla } from "./handlers/zoom";
 
 /**
  * Orquestador del canvas JointJS. Monta el paper con su configuración
@@ -342,6 +342,24 @@ export function JointCanvas() {
       paperRef: { get current() { return adapterRef.current?.paper ?? null; } },
     });
   }, []);
+
+  // P0-5: cuando una accion del store solicita fit-to-view (auto-layout,
+  // por ejemplo), el contador `solicitudFitToken` se incrementa. Este
+  // efecto observa el cambio y hace fit. Se hace en microtask para que
+  // primero termine la sincronizacion modelo->paper (effect anterior con
+  // [modelo] en deps), y asi el bbox tenga el contenido recien proyectado.
+  // El primer paint (token=0) NO dispara fit porque el efecto se monta
+  // con el valor inicial; solo los incrementos posteriores provocan fit.
+  const solicitudFitToken = useOpmStore((s) => s.solicitudFitToken);
+  const tokenInicialRef = useRef(solicitudFitToken);
+  useEffect(() => {
+    if (solicitudFitToken === tokenInicialRef.current) return;
+    const id = requestAnimationFrame(() => {
+      const paper = adapterRef.current?.paper;
+      fitCanvasAPantalla(paper ?? undefined);
+    });
+    return () => cancelAnimationFrame(id);
+  }, [solicitudFitToken]);
 
   // [Ronda 16 L2] Cuando la selección llega desde fuera del canvas (búsqueda
   // intra-modelo, navegación OPL), si la apariencia o el enlace seleccionado

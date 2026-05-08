@@ -90,12 +90,21 @@ export function CapturadorBugs() {
       <button
         type="button"
         aria-label="Capturar bug"
-        title="Capturar bug"
+        title="Capturar bug · feedback al equipo"
         data-testid="bug-capture-open"
         style={style.fab}
         onClick={abrir}
       >
-        <span aria-hidden="true" style={style.fabIcon}>!</span>
+        {/* P0-4 (informe UI/UX 2026-05-07): FAB en color chrome neutral
+            (azul accent), no rojo de error metodologico. El rojo queda
+            reservado a severidad de issues OPM. Cambia tambien el simbolo
+            de "!" (alerta) a un icono de bocadillo de feedback inline SVG,
+            congruente con la semantica "este es un canal de feedback".
+            aria-label se mantiene "Capturar bug" para preservar smokes
+            (regla 5.5 ronda 18: smokes intactos > reorganizacion). */}
+        <svg aria-hidden="true" focusable="false" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={style.fabIcon}>
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+        </svg>
       </button>
 
       <Dialogo
@@ -252,6 +261,9 @@ function formatearBytes(bytes: number): string {
 
 const style = {
   fab: {
+    // P0-4: chrome neutral en vez de rojo error. El rojo queda reservado a
+    // severidad de issues metodologicos en validacion OPM. Acentos UI
+    // (azul `acentoUi`) para distinguir feedback como herramienta auxiliar.
     position: "fixed",
     right: tokens.spacing.lg,
     bottom: tokens.spacing.lg,
@@ -260,18 +272,18 @@ const style = {
     height: 42,
     display: "grid",
     placeItems: "center",
-    border: `1px solid ${tokens.colors.errorBorde}`,
+    border: `1px solid ${tokens.colors.bordeControl}`,
     borderRadius: tokens.radii.full,
-    background: tokens.colors.errorBase,
-    color: tokens.colors.fondoChrome,
+    background: tokens.colors.fondoChrome,
+    color: tokens.colors.acentoUi,
     boxShadow: tokens.shadows.flotante,
     fontFamily: tokens.typography.familyChrome,
     cursor: "pointer",
   },
   fabIcon: {
-    fontSize: tokens.typography.sizes.xl,
-    fontWeight: tokens.typography.weights.heavy,
-    lineHeight: 1,
+    width: 20,
+    height: 20,
+    color: "currentColor",
   },
   body: {
     display: "grid",
