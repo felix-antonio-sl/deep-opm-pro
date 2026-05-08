@@ -37,6 +37,7 @@ export interface CablearSeleccionArgs {
   seleccionarPartePlegadaRef: { current: (aparienciaId: string, parteEntidadId: string) => void };
   seleccionarEstadoComoExtremoRef: { current: (estadoId: string) => void };
   seleccionarEnlaceRef: { current: (id: string) => void };
+  cambiarOpdActivoRef: { current: (id: string) => void };
   cambiarModoPlegadoAparienciaRef: { current: (aparienciaId: string, modo: ModoPlegado) => void };
   alternarModoImagenEntidadRef: { current: (entidadId: string) => void };
   abrirModalImagenRef: { current: (entidadId: string) => void };
@@ -59,6 +60,7 @@ export function cablearSeleccion(args: CablearSeleccionArgs): () => void {
     seleccionarPartePlegadaRef,
     seleccionarEstadoComoExtremoRef,
     seleccionarEnlaceRef,
+    cambiarOpdActivoRef,
     cambiarModoPlegadoAparienciaRef,
     alternarModoImagenEntidadRef,
     abrirModalImagenRef,
@@ -148,6 +150,13 @@ export function cablearSeleccion(args: CablearSeleccionArgs): () => void {
     if (meta?.kind !== "entidad") return;
     const selector = jointSelector(evt.target);
     if (parteEntidadDesdeSelector(meta, selector) || estadoDesdeSelector(meta, selector)) return;
+    const opdRefinadoId = opdRefinadoPorDobleClick(modeloRef.current, meta);
+    if (opdRefinadoId) {
+      evt.stopPropagation();
+      seleccionarEntidadRef.current(meta.entidadId);
+      cambiarOpdActivoRef.current(opdRefinadoId);
+      return;
+    }
     if (!esSubprocesoInternoTimeline(modeloRef.current, meta)) return;
     evt.stopPropagation();
     abrirRenombradoInlineRef.current({ aparienciaId: meta.aparienciaId, entidadId: meta.entidadId });
@@ -237,6 +246,17 @@ export function cablearSeleccion(args: CablearSeleccionArgs): () => void {
     paperEl.removeEventListener("dragover", onDragOver);
     paperEl.removeEventListener("drop", onDrop);
   };
+}
+
+export function opdRefinadoPorDobleClick(modelo: Modelo, meta: OpmJointMetadata): string | null {
+  if (meta.kind !== "entidad") return null;
+  const entidad = modelo.entidades[meta.entidadId];
+  if (!entidad) return null;
+  const descomposicion = obtenerRefinamiento(entidad, "descomposicion")?.opdId;
+  if (descomposicion && modelo.opds[descomposicion]) return descomposicion;
+  const despliegue = obtenerRefinamiento(entidad, "despliegue")?.opdId;
+  if (despliegue && modelo.opds[despliegue]) return despliegue;
+  return null;
 }
 
 function esSubprocesoInternoTimeline(modelo: Modelo, meta: OpmJointMetadata): meta is Extract<OpmJointMetadata, { kind: "entidad" }> {

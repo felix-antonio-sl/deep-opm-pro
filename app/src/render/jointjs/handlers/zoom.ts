@@ -55,16 +55,37 @@ export function zoomCanvasEnCursor(paper: dia.Paper, event: WheelEvent): void {
   const paperConZoom = paper as unknown as {
     scale(): { sx?: number; sy?: number };
     scale(sx: number, sy: number, ox?: number, oy?: number): void;
+    scaleUniformAtPoint?: (scale: number, point: { x: number; y: number }) => void;
     clientToLocalPoint?: (x: number, y: number) => { x: number; y: number };
   };
   const escalaActual = paperConZoom.scale().sx ?? paperConZoom.scale().sy ?? 1;
-  const siguiente = limitarZoom(escalaActual * (event.deltaY < 0 ? 1.1 : 0.9));
+  const siguiente = calcularSiguienteZoom(escalaActual, event);
   const punto = paperConZoom.clientToLocalPoint?.(event.clientX, event.clientY);
   if (punto) {
+    if (typeof paperConZoom.scaleUniformAtPoint === "function") {
+      paperConZoom.scaleUniformAtPoint(siguiente, punto);
+      return;
+    }
     paperConZoom.scale(siguiente, siguiente, punto.x, punto.y);
     return;
   }
   paperConZoom.scale(siguiente, siguiente);
+}
+
+export function calcularSiguienteZoom(escalaActual: number, event: Pick<WheelEvent, "deltaY" | "deltaMode">): number {
+  const deltaPixeles = normalizarWheelDelta(event);
+  const factor = limitarFactorZoom(Math.exp(-deltaPixeles * 0.00016));
+  return limitarZoom(escalaActual * factor);
+}
+
+function normalizarWheelDelta(event: Pick<WheelEvent, "deltaY" | "deltaMode">): number {
+  if (event.deltaMode === 1) return event.deltaY * 16;
+  if (event.deltaMode === 2) return event.deltaY * 800;
+  return event.deltaY;
+}
+
+function limitarFactorZoom(factor: number): number {
+  return Math.max(0.99, Math.min(1.01, factor));
 }
 
 function limitarZoom(valor: number): number {

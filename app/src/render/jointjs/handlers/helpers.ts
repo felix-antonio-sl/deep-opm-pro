@@ -9,10 +9,10 @@ import type { OpmJointMetadata } from "../proyeccion";
  *       selectionConfiguration.ts:5-65 (patrón disjunto por evento).
  */
 
-export const CANVAS_BASE = { width: 1800, height: 1200 } as const;
-export const CANVAS_PADDING = 240;
-export const ZOOM_MIN = 0.25;
-export const ZOOM_MAX = 2;
+export const CANVAS_BASE = { width: 4200, height: 3000 } as const;
+export const CANVAS_PADDING = 900;
+export const ZOOM_MIN = 0.5;
+export const ZOOM_MAX = 1.6;
 
 export function metadata(cell: dia.Cell): OpmJointMetadata | null {
   const value = cell.prop("opm") as OpmJointMetadata | undefined;
