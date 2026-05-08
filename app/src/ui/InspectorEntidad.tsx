@@ -3,7 +3,7 @@ import { autoInvocacionDeProceso } from "../modelo/autoinvocacion";
 import { esAtributoDerivado, estadosDeEntidad } from "../modelo/operaciones";
 import { filasPlegadoParcial, modoPlegadoApariencia, partesDePlegado } from "../modelo/plegado";
 import type { Entidad, Id, Modelo, OrdenPartesPlegado } from "../modelo/tipos";
-import { useOpmStore } from "../store";
+import { store, useOpmStore } from "../store";
 import { inspectorStyles as style } from "./inspectorStyles";
 import { SeccionAlias } from "./inspector/SeccionAlias";
 import { SeccionAtributo } from "./inspector/SeccionAtributo";
@@ -81,6 +81,20 @@ export function InspectorEntidad({ entidad }: Props) {
   const estados = entidad.tipo === "objeto" ? estadosDeEntidad(modelo, entidad.id) : [];
   const atributoDerivado = entidad.tipo === "objeto" && esAtributoDerivado(modelo, entidad.id);
   const autoInvocacion = entidad.tipo === "proceso" ? autoInvocacionDeProceso(modelo, opdActivoId, entidad.id) : undefined;
+  const crearEstadosConNombres = (nombres: string[]) => {
+    if (nombres.length === 2) {
+      agregarEstados();
+      const creados = estadosDeEntidad(store.getState().modelo, entidad.id).slice(0, 2);
+      renombrarEstadosCreados(creados, nombres);
+      return;
+    }
+    if (nombres.length === 1) {
+      const previos = new Set(estados.map((estado) => estado.id));
+      agregarEstado();
+      const creado = estadosDeEntidad(store.getState().modelo, entidad.id).find((estado) => !previos.has(estado.id));
+      if (creado) renombrarEstadosCreados([creado], nombres);
+    }
+  };
 
   const cobertura = coberturaApariencias(modelo, entidad.id);
 
@@ -155,11 +169,11 @@ export function InspectorEntidad({ entidad }: Props) {
       {entidad.tipo === "objeto" ? (
         <SeccionLayoutEstados
           modelo={modelo}
+          entidad={entidad}
           entidadId={entidad.id}
           estados={estados}
           layout={entidad.layoutEstados ?? "horizontal"}
-          onAgregarEstados={agregarEstados}
-          onAgregarEstado={agregarEstado}
+          onCrearEstadosConNombres={crearEstadosConNombres}
           onEliminar={eliminarEstado}
           onQuitarEstados={quitarEstados}
           onRenombrar={renombrarEstado}
@@ -210,6 +224,22 @@ function coberturaApariencias(modelo: Modelo, entidadId: Id): { totalApariencias
     }
   }
   return { totalApariencias, opdsConEntidad };
+}
+
+function renombrarEstadosCreados(estados: readonly { id: Id; nombre: string }[], nombres: readonly string[]): void {
+  const deseados = new Map(estados.map((estado, index) => [estado.id, nombres[index] ?? estado.nombre]));
+  const nombresDeseados = new Set(Array.from(deseados.values()).map((nombre) => nombre.trim().toLocaleLowerCase("es")));
+  estados.forEach((estado, index) => {
+    const deseadoPropio = deseados.get(estado.id)?.trim().toLocaleLowerCase("es");
+    const nombreActual = estado.nombre.trim().toLocaleLowerCase("es");
+    if (deseadoPropio !== nombreActual && nombresDeseados.has(nombreActual)) {
+      store.getState().renombrarEstadoSeleccionado(estado.id, `estado-temporal-${index + 1}`);
+    }
+  });
+  estados.forEach((estado, index) => {
+    const nombre = nombres[index];
+    if (nombre) store.getState().renombrarEstadoSeleccionado(estado.id, nombre);
+  });
 }
 
 const advancedStyles = {

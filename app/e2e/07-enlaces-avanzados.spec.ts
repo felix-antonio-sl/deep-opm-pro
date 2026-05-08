@@ -136,10 +136,14 @@ test("gestiona estados M0 de objeto con capsulas internas y OPL", async ({ page 
   const seccionEstados = page.locator('section[aria-label="Estados"]');
   await expect(seccionEstados).toBeVisible();
   await page.getByRole("button", { name: "Agregar estados" }).click();
+  await page.getByLabel("Nombre estado 1").fill("pendiente");
+  await page.getByLabel("Nombre estado 2").fill("cerrado");
+  await expect(page.getByTestId("modal-crear-estados-preview")).toContainText("Pedido");
+  await expect(page.getByTestId("modal-crear-estados-preview")).toContainText("pendiente");
+  await expect(page.getByTestId("modal-crear-estados-preview")).toContainText("cerrado");
+  await page.getByTestId("modal-crear-estados-confirmar").click();
 
-  await expect(seccionEstados.getByLabel("Nombre estado estado1")).toBeVisible();
-  await seccionEstados.getByLabel("Nombre estado estado1").fill("pendiente");
-  await seccionEstados.getByLabel("Nombre estado estado2").fill("cerrado");
+  await expect(seccionEstados.getByLabel("Nombre estado pendiente")).toBeVisible();
   await seccionEstados.getByRole("button", { name: "Inicial" }).nth(0).click();
   await seccionEstados.getByRole("button", { name: "Final" }).nth(1).click();
 

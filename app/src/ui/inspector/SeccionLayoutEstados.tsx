@@ -1,8 +1,10 @@
 // [JOYAS §1-3] Chrome UI consume tokens centralizados; canvas semántico invariante.
 import addStatesIcon from "../../../../assets/svg/addStates.svg";
+import { useState } from "preact/hooks";
 import { estadoTieneEnlaces } from "../../modelo/estadosDesignaciones";
-import type { DesignacionEstado, Estado, LayoutEstados, Modelo } from "../../modelo/tipos";
+import type { DesignacionEstado, Entidad, Estado, LayoutEstados, Modelo } from "../../modelo/tipos";
 import { inspectorStyles as style } from "../inspectorStyles";
+import { ModalCrearEstados, type ModoCrearEstados } from "./ModalCrearEstados";
 import { SeccionDesignaciones } from "./SeccionDesignaciones";
 import { SeccionDuracion } from "./SeccionDuracion";
 import { tokens } from "../tokens";
@@ -14,11 +16,11 @@ import { tokens } from "../tokens";
 
 interface Props {
   modelo: Modelo;
+  entidad: Entidad;
   entidadId: string;
   estados: Estado[];
   layout: LayoutEstados;
-  onAgregarEstados: () => void;
-  onAgregarEstado: () => void;
+  onCrearEstadosConNombres: (nombres: string[]) => void;
   onEliminar: (estadoId: string) => void;
   onQuitarEstados: () => void;
   onRenombrar: (estadoId: string, nombre: string) => void;
@@ -31,15 +33,29 @@ interface Props {
 }
 
 export function SeccionLayoutEstados(props: Props) {
+  const [modoCrearEstados, setModoCrearEstados] = useState<ModoCrearEstados | null>(null);
   const visibles = props.estados.filter((estado) => !estado.suprimido);
+  const abrirModalCrearEstados = props.estados.length === 0
+    ? () => setModoCrearEstados("iniciales")
+    : () => setModoCrearEstados("adicional");
+  const confirmarCrearEstados = (nombres: string[]) => {
+    props.onCrearEstadosConNombres(nombres);
+    setModoCrearEstados(null);
+  };
   return (
     <section style={stateStyles.section} aria-label="Estados" data-testid="inspector-seccion-estados">
       <div style={stateStyles.header}>
         <span style={style.label}>Estados</span>
         {props.estados.length > 0 ? (
-          <button type="button" style={stateStyles.smallButtonIcon} onClick={props.onAgregarEstado} title="Agregar nuevo estado">
+          <button
+            type="button"
+            style={stateStyles.smallButtonIcon}
+            onClick={abrirModalCrearEstados}
+            title="Agregar estado con nombre real"
+            data-testid="abrir-modal-crear-estados-adicional"
+          >
             <img src={addStatesIcon} alt="" aria-hidden="true" style={stateStyles.iconSmall} />
-            Agregar estado
+            Agregar estado nuevo
           </button>
         ) : null}
       </div>
@@ -53,7 +69,13 @@ export function SeccionLayoutEstados(props: Props) {
         </label>
       ) : null}
       {props.estados.length === 0 ? (
-        <button type="button" style={stateStyles.primaryIcon} onClick={props.onAgregarEstados} title="Crea simultáneamente estado1 y estado2">
+        <button
+          type="button"
+          style={stateStyles.primaryIcon}
+          onClick={abrirModalCrearEstados}
+          title="Crear estados con nombres reales"
+          data-testid="abrir-modal-crear-estados"
+        >
           <img src={addStatesIcon} alt="" aria-hidden="true" style={stateStyles.iconLarge} />
           Agregar estados
         </button>
@@ -77,6 +99,15 @@ export function SeccionLayoutEstados(props: Props) {
           <button type="button" style={style.secondaryButton} onClick={props.onQuitarEstados}>Quitar estados</button>
         </div>
       )}
+      {modoCrearEstados ? (
+        <ModalCrearEstados
+          entidad={props.entidad}
+          estadosExistentes={props.estados}
+          modo={modoCrearEstados}
+          onConfirmar={confirmarCrearEstados}
+          onCancelar={() => setModoCrearEstados(null)}
+        />
+      ) : null}
     </section>
   );
 }

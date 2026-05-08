@@ -279,6 +279,9 @@ test("accion agregar estado desde barra flotante participa en undo", async ({ pa
   await page.getByRole("button", { name: "Objeto", exact: true }).click();
   await elementoPorTexto(page, "Objeto").click();
   await page.getByRole("button", { name: "Agregar estados" }).click();
+  await page.getByLabel("Nombre estado 1").fill("abierto");
+  await page.getByLabel("Nombre estado 2").fill("cerrado");
+  await page.getByTestId("modal-crear-estados-confirmar").click();
   await page.getByTestId("barra-agregar-estado").click();
 
   await page.getByRole("button", { name: "Exportar", exact: true }).click();
