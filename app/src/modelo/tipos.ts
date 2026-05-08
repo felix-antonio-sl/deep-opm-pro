@@ -62,7 +62,7 @@ export type { Opd } from "./tipos/opd";
 
 export type { VersionResumen, Modelo } from "./tipos/modelo";
 
-export type { SeveridadAviso, CodigoChecker, AvisoMetodologico } from "./tipos/avisos";
+export type { SeveridadAviso, CodigoChecker, AvisoMetodologico, NavegacionAviso } from "./tipos/avisos";
 
 export type { OrigenPestana, HistorialEntrada, Pestana } from "./tipos/pestana";
 

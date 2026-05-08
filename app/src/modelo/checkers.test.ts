@@ -1,10 +1,13 @@
 import { describe, expect, test } from "bun:test";
 import {
   checkInzoomContenido,
+  checkInzoomNombresPlaceholderHijos,
+  checkObjetoAmbientalSinContornoDiscontinuo,
   checkObjetoNombreSingular,
   checkProcesoNombreFormaVerbal,
   checkProcesoSistemicoConectado,
   checkProcesoTransforma,
+  checkSdSinProcesoPrincipal,
   checkUnfoldContenido,
   verificarMetodologia,
 } from "./checkers";
@@ -18,6 +21,7 @@ import {
   crearProceso,
   descomponerProceso,
   desplegarObjeto,
+  renombrarEntidad,
 } from "./operaciones";
 import type { Id, Modelo, Resultado } from "./tipos";
 
@@ -326,5 +330,161 @@ describe("verificarMetodologia", () => {
     const modelo = modeloTransformador("Procesar").modelo;
     verificarMetodologia(modelo);
     expect(JSON.stringify(modelo)).not.toContain("AvisoMetodologico");
+  });
+
+  test("ronda 16 L3: cada aviso emitido lleva ssotRef no vacio", () => {
+    let modelo = crearModelo("ssot");
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 80, y: 80 }, "Datos"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 260, y: 160 }, "Proceso"));
+    const avisos = verificarMetodologia(modelo);
+    expect(avisos.length).toBeGreaterThan(0);
+    expect(avisos.every((aviso) => typeof aviso.ssotRef === "string" && aviso.ssotRef.trim().length > 0)).toBe(true);
+    // todas las refs apuntan a metodologia-opm-es.md o glosario, no inventadas.
+    expect(avisos.every((aviso) => /metodologia-opm-es|Glos|opm-iso-19450|opm-visual/.test(aviso.ssotRef ?? ""))).toBe(true);
+  });
+
+  test("ronda 16 L3: cada aviso lleva accionesSugeridas no vacias para corrigibilidad", () => {
+    let modelo = crearModelo("acciones");
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 80, y: 80 }, "Datos"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 260, y: 160 }, "Proceso"));
+    const avisos = verificarMetodologia(modelo);
+    expect(avisos.every((aviso) => Array.isArray(aviso.accionesSugeridas) && aviso.accionesSugeridas.length > 0)).toBe(true);
+  });
+});
+
+describe("checkSdSinProcesoPrincipal", () => {
+  test("avisa SD con solo objetos (sin proceso sistemico)", () => {
+    let modelo = crearModelo("Solo objetos");
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 80, y: 80 }, "Cliente"));
+    const avisos = checkSdSinProcesoPrincipal(modelo);
+    expect(avisos.map((aviso) => aviso.codigo)).toContain("SD_SIN_PROCESO_PRINCIPAL");
+    expect(avisos[0]?.opdId).toBe(modelo.opdRaizId);
+    expect(avisos[0]?.navegarA).toEqual({ tipo: "opd", id: modelo.opdRaizId });
+  });
+
+  test("acepta SD con proceso sistemico", () => {
+    expect(checkSdSinProcesoPrincipal(modeloTransformador("Procesar").modelo)).toHaveLength(0);
+  });
+
+  test("acepta SD vacio (modelador todavia no empezo)", () => {
+    const modelo = crearModelo("Vacio");
+    expect(checkSdSinProcesoPrincipal(modelo)).toHaveLength(0);
+  });
+
+  test("avisa cuando todos los procesos son ambientales", () => {
+    let modelo = crearModelo("Solo ambientales");
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 80, y: 80 }, "Externo"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 260, y: 160 }, "Auditar"));
+    const auditar = entidadPorNombre(modelo, "Auditar");
+    modelo = must(cambiarAfiliacion(modelo, auditar, "ambiental"));
+    expect(checkSdSinProcesoPrincipal(modelo).map((aviso) => aviso.codigo)).toContain("SD_SIN_PROCESO_PRINCIPAL");
+  });
+});
+
+describe("checkInzoomNombresPlaceholderHijos", () => {
+  test("avisa cuando hijos del refinamiento mantienen nombres placeholder", () => {
+    const base = modeloTransformador("Procesar Pedido");
+    const descompuesto = must(descomponerProceso(base.modelo, base.modelo.opdRaizId, base.procesoId));
+    // descomponer crea placeholders Proceso/Proceso_2; los dejamos sin renombrar.
+    const avisos = checkInzoomNombresPlaceholderHijos(descompuesto.modelo);
+    expect(avisos.length).toBeGreaterThan(0);
+    expect(avisos.every((aviso) => aviso.codigo === "INZOOM_NOMBRES_PLACEHOLDER_HIJOS")).toBe(true);
+    expect(avisos[0]?.opdId).toBeDefined();
+    expect(avisos[0]?.severidad).toBe("sugerencia");
+  });
+
+  test("no avisa si todos los hijos fueron renombrados con vocabulario de dominio", () => {
+    const base = modeloTransformador("Procesar Pedido");
+    const descompuesto = must(descomponerProceso(base.modelo, base.modelo.opdRaizId, base.procesoId));
+    const opdHijoId = descompuesto.modelo.entidades[base.procesoId]?.refinamientos?.descomposicion?.opdId;
+    if (!opdHijoId) throw new Error("Sin OPD hijo");
+    const opdHijo = descompuesto.modelo.opds[opdHijoId];
+    if (!opdHijo) throw new Error("OPD hijo no existe");
+    let modelo = descompuesto.modelo;
+    // Renombrar cada hijo placeholder ("Procesar Pedido 1", etc.) a nombre de dominio.
+    const verbos = ["Recibir Pedido", "Validar Inventario", "Despachar"];
+    let counter = 0;
+    for (const apariencia of Object.values(opdHijo.apariencias)) {
+      if (apariencia.entidadId === base.procesoId) continue;
+      const hijo = modelo.entidades[apariencia.entidadId];
+      if (!hijo) continue;
+      const nombreNuevo = verbos[counter] ?? `Operacion ${counter + 1}`;
+      counter += 1;
+      modelo = must(renombrarEntidad(modelo, hijo.id, nombreNuevo));
+    }
+    expect(checkInzoomNombresPlaceholderHijos(modelo)).toHaveLength(0);
+  });
+});
+
+describe("checkObjetoAmbientalSinContornoDiscontinuo", () => {
+  test("avisa objeto ambiental consumido por proceso sistemico", () => {
+    let modelo = crearModelo("Ambiental incongruente");
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 80, y: 80 }, "Externo"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 260, y: 160 }, "Procesar"));
+    const externo = entidadPorNombre(modelo, "Externo");
+    const procesar = entidadPorNombre(modelo, "Procesar");
+    modelo = must(cambiarAfiliacion(modelo, externo, "ambiental"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, externo, procesar, "consumo"));
+    const avisos = checkObjetoAmbientalSinContornoDiscontinuo(modelo);
+    expect(avisos.map((aviso) => aviso.codigo)).toContain("OBJETO_AMBIENTAL_SIN_CONTORNO_DISCONTINUO");
+    expect(avisos[0]?.entidadId).toBe(externo);
+  });
+
+  test("acepta objeto ambiental conectado solo via agente", () => {
+    let modelo = crearModelo("Ambiental coherente");
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 80, y: 80 }, "Cliente"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 260, y: 160 }, "Procesar"));
+    const cliente = entidadPorNombre(modelo, "Cliente");
+    const procesar = entidadPorNombre(modelo, "Procesar");
+    modelo = must(cambiarAfiliacion(modelo, cliente, "ambiental"));
+    modelo = must(cambiarEsencia(modelo, cliente, "fisica"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, cliente, procesar, "agente"));
+    expect(checkObjetoAmbientalSinContornoDiscontinuo(modelo)).toHaveLength(0);
+  });
+
+  test("acepta objeto sistemico transformado por proceso sistemico", () => {
+    const modelo = modeloTransformador("Procesar").modelo;
+    expect(checkObjetoAmbientalSinContornoDiscontinuo(modelo)).toHaveLength(0);
+  });
+
+  test("acepta objeto ambiental transformado solo por proceso ambiental", () => {
+    let modelo = crearModelo("Ambiental por ambiental");
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 80, y: 80 }, "Lluvia"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 260, y: 160 }, "Llover"));
+    const lluvia = entidadPorNombre(modelo, "Lluvia");
+    const llover = entidadPorNombre(modelo, "Llover");
+    modelo = must(cambiarAfiliacion(modelo, lluvia, "ambiental"));
+    modelo = must(cambiarAfiliacion(modelo, llover, "ambiental"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, llover, lluvia, "resultado"));
+    expect(checkObjetoAmbientalSinContornoDiscontinuo(modelo)).toHaveLength(0);
+  });
+});
+
+describe("ronda 16 L3: navegarA emitido por checkers", () => {
+  test("INZOOM_CONTENIDO_INSUFICIENTE navega al OPD hijo cuando existe", () => {
+    const base = modeloTransformador("Procesar Pedido");
+    const descompuesto = must(descomponerProceso(base.modelo, base.modelo.opdRaizId, base.procesoId));
+    const modelo = dejarCosasEnRefinamiento(descompuesto.modelo, base.procesoId, 1);
+    const avisos = checkInzoomContenido(modelo);
+    expect(avisos[0]?.navegarA?.tipo).toBe("opd");
+    const opdHijoId = modelo.entidades[base.procesoId]?.refinamientos?.descomposicion?.opdId;
+    expect(avisos[0]?.navegarA?.id).toBe(opdHijoId ?? "");
+  });
+
+  test("UNFOLD_CONTENIDO_INSUFICIENTE navega al OPD hijo cuando existe", () => {
+    let modelo = modeloConObjeto("Sistema");
+    const sistema = entidadPorNombre(modelo, "Sistema");
+    modelo = must(desplegarObjeto(modelo, modelo.opdRaizId, sistema, "agregacion")).modelo;
+    modelo = dejarEnlacesEnRefinamiento(modelo, sistema, 1);
+    const avisos = checkUnfoldContenido(modelo);
+    expect(avisos[0]?.navegarA?.tipo).toBe("opd");
+  });
+
+  test("PROCESO_NOMBRE_FORMA_VERBAL navega a la entidad", () => {
+    const avisos = checkProcesoNombreFormaVerbal(modeloConProceso("Sistema"));
+    expect(avisos[0]?.entidadId).toBeDefined();
+    // PROCESO_NOMBRE_FORMA_VERBAL no setea navegarA explicito; el panel
+    // resuelve con entidadId. Ese es el contrato esperado.
+    expect(avisos[0]?.navegarA).toBeUndefined();
   });
 });

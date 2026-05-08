@@ -1,10 +1,23 @@
 /**
- * Verificacion metodologica OPM.
+ * Verificacion metodologica OPM. Avisos accionables, blandos.
  *
- * Citas SSOT: [Met §metodologia] [Met §inzoom] [Met §unfold]
- * [Glos 3.55 Object] [Glos 3.69 Process] [Glos 3.x reglas].
+ * Citas SSOT canonicas (todas a `metodologia-opm-es.md`):
+ *   §6.1   Identificacion del Proceso Principal
+ *   §6.4   Funcion Principal
+ *   §6.9   Objetos Ambientales (contorno discontinuo)
+ *   §6.11  Verificacion del SD
+ *   §7.1   Refinamiento Sincrono / Inzoom (refinamiento no trivial)
+ *   §7.2   Refinamiento Asincrono / Unfold (refinamiento no trivial)
+ *   §7.3   Refinamiento de Objetos
+ *   §7.6   Verificacion de SD1
+ * Plus glosario: [Glos 3.55 Object] [Glos 3.69 Process].
  *
- * Referencias semanticas OPCloud verificadas:
+ * Ronda 16 L3 (Beta1): cada aviso debe llevar `ssotRef` (cita corta visible
+ * en el panel) y, cuando aplica, `accionesSugeridas` legibles. Esta funcion
+ * no decide la presentacion: solo emite datos puros consumibles por
+ * `PanelMetodologia`.
+ *
+ * Referencias semanticas OPCloud verificadas (no autoridad):
  * opm-extracted/src/app/dialogs/methodological-checking-dialog/checkers/ing-checker.ts
  * opm-extracted/src/app/dialogs/methodological-checking-dialog/checkers/object-name-as-singular-checker.ts
  * opm-extracted/src/app/dialogs/methodological-checking-dialog/checkers/inzoomed-content-checker.ts
@@ -12,7 +25,8 @@
  * opm-extracted/src/app/dialogs/methodological-checking-dialog/checkers/transforming-process-checker.ts
  * opm-extracted/src/app/dialogs/methodological-checking-dialog/checkers/systemic-processes-main-function-checker.ts
  *
- * Destilacion semantica, no copia 1:1: se adapta a Modelo/Entidad/Enlace propios.
+ * Destilacion semantica, no copia 1:1: SSOT prevalece sobre OPCloud cuando hay
+ * conflicto.
  */
 
 import { naturalezaDeEnlace } from "./constantes";
@@ -22,12 +36,28 @@ import type { AvisoMetodologico, CodigoChecker, Entidad, Id, Modelo, TipoEnlace,
 
 const TRANSFORMADORES = new Set<TipoEnlace>(["consumo", "resultado", "efecto"]);
 const INVARIABLES_SINGULAR = new Set(["analisis", "sintesis", "crisis", "tesis", "hipotesis", "virus", "gas"]);
+/**
+ * Patron de placeholders auto-generados.
+ * Casos cubiertos:
+ *   - Hotfix unicidad (`e5a0613`): "Objeto", "Objeto_2", "Proceso", "Proceso_3".
+ *   - Descomposicion sembrada (`subcosasInicialesInzoom`): "Procesar Pedido 1",
+ *     "Procesar Pedido 2", ... — sufijo numerico simple sobre el nombre del padre.
+ *
+ * Es heuristico por diseno: la SSOT §7.1 pide vocabulario de dominio, pero la
+ * forma exacta del placeholder es decision de implementacion. Mantener el
+ * patron acotado: solo nombres "creados por defecto y no tocados".
+ */
+const PLACEHOLDER_NOMBRE_RE = /^(?:Objeto|Proceso)(?:_\d+)?$/;
+const PLACEHOLDER_SUFIJO_NUMERICO_RE = /\s\d+$/;
 
 export function verificarMetodologia(modelo: Modelo): AvisoMetodologico[] {
   return [
+    ...checkSdSinProcesoPrincipal(modelo),
     ...checkProcesoNombreFormaVerbal(modelo),
     ...checkObjetoNombreSingular(modelo),
+    ...checkObjetoAmbientalSinContornoDiscontinuo(modelo),
     ...checkInzoomContenido(modelo),
+    ...checkInzoomNombresPlaceholderHijos(modelo),
     ...checkUnfoldContenido(modelo),
     ...checkProcesoTransforma(modelo),
     ...checkProcesoSistemicoConectado(modelo),
@@ -40,7 +70,12 @@ export function checkProcesoNombreFormaVerbal(modelo: Modelo): AvisoMetodologico
     .map((proceso) => aviso("PROCESO_NOMBRE_FORMA_VERBAL", proceso, {
       severidad: "sugerencia",
       mensaje: `El proceso "${proceso.nombre}" no parece nombrado como accion.`,
-      rationale: "[Glos 3.69 Process] El nombre del proceso debe expresar accion o transformacion identificable.",
+      rationale: "El nombre del proceso debe expresar accion o transformacion identificable.",
+      ssotRef: "metodologia-opm-es.md §6.1 / [Glos 3.69 Process]",
+      accionesSugeridas: [
+        "Renombra usando una forma verbal o un sustantivo deverbal (ej. 'Procesar Pedido', 'Recoleccion').",
+        "Si la cosa describe una clase de objeto, conviertela en objeto en vez de proceso.",
+      ],
     }));
 }
 
@@ -50,7 +85,43 @@ export function checkObjetoNombreSingular(modelo: Modelo): AvisoMetodologico[] {
     .map((objeto) => aviso("OBJETO_NOMBRE_SINGULAR", objeto, {
       severidad: "sugerencia",
       mensaje: `El objeto "${objeto.nombre}" parece estar en plural; usa singular, conjunto o grupo si corresponde.`,
-      rationale: "[Glos 3.55 Object] Un objeto representa una cosa persistente; el nombre canonico se mantiene singular.",
+      rationale: "Un objeto representa una cosa persistente; el nombre canonico se mantiene singular.",
+      ssotRef: "metodologia-opm-es.md §6.2 / [Glos 3.55 Object]",
+      accionesSugeridas: [
+        "Renombra al singular ('Cliente').",
+        "Si necesitas multiplicidad, usa 'Conjunto', 'Grupo' o anota la multiplicidad en el enlace.",
+      ],
+    }));
+}
+
+export function checkObjetoAmbientalSinContornoDiscontinuo(modelo: Modelo): AvisoMetodologico[] {
+  /**
+   * SSOT §6.9: "Los objetos ambientales DEBEN representarse con contorno
+   * discontinuo." En el modelo deep-opm-pro la convencion canonica es:
+   * objeto ambiental + esencia "fisica" (contorno solido en render). Si la
+   * esencia es informacional, el render usa contorno discontinuo (rasgo
+   * informacional), pero el modelador puede haber dejado un objeto ambiental
+   * marcado como esencia fisica + contorno solido por descuido.
+   *
+   * Aviso emitido cuando: afiliacion=ambiental && (no hay enlace que justifique
+   * pertenencia al sistema). Aqui usamos un proxy operacional simple: el
+   * objeto ambiental no debe estar consumido/resultado por procesos sistemicos
+   * (eso lo convierte de facto en sistemico). El render se encarga del
+   * contorno discontinuo; este aviso solo dispara cuando hay incoherencia
+   * semantica entre afiliacion y rol procedural.
+   */
+  return objetos(modelo)
+    .filter((objeto) => objeto.afiliacion === "ambiental")
+    .filter((objeto) => objetoAmbientalEsTransformadoPorSistemico(modelo, objeto))
+    .map((objeto) => aviso("OBJETO_AMBIENTAL_SIN_CONTORNO_DISCONTINUO", objeto, {
+      severidad: "advertencia",
+      mensaje: `El objeto ambiental "${objeto.nombre}" es transformado por procesos sistemicos: revisa si en realidad pertenece al sistema.`,
+      rationale: "Un objeto ambiental no deberia ser consumido, producido ni afectado por la funcion del sistema; revisa la afiliacion o reclasificalo como sistemico.",
+      ssotRef: "metodologia-opm-es.md §6.9 / opm-visual-es §contorno discontinuo",
+      accionesSugeridas: [
+        "Cambia la afiliacion a sistemica si es parte del sistema modelado.",
+        "Si pertenece al entorno, reemplaza el enlace transformador por exhibicion/efecto/agente segun corresponda.",
+      ],
     }));
 }
 
@@ -58,21 +129,69 @@ export function checkInzoomContenido(modelo: Modelo): AvisoMetodologico[] {
   return Object.values(modelo.entidades)
     .filter((entidad) => obtenerRefinamiento(entidad, "descomposicion") !== undefined)
     .filter((entidad) => cantidadCosasEnOpdHijo(modelo, entidad, "descomposicion") < 2)
-    .map((entidad) => aviso("INZOOM_CONTENIDO_INSUFICIENTE", entidad, {
+    .map((entidad) => avisoConOpdRefinamiento(modelo, "INZOOM_CONTENIDO_INSUFICIENTE", entidad, "descomposicion", {
       severidad: "advertencia",
       mensaje: `La descomposicion de "${entidad.nombre}" contiene menos de dos cosas.`,
-      rationale: "[Met §inzoom] Una cosa descompuesta debe agregar al menos dos refinadores internos.",
+      rationale: "Una cosa descompuesta debe agregar al menos dos refinadores internos para que el inzoom aporte informacion.",
+      ssotRef: "metodologia-opm-es.md §7.1 (Refinamiento no trivial)",
+      accionesSugeridas: [
+        "Agrega al menos un subproceso/parte mas dentro del OPD hijo.",
+        "Si no puedes identificar otro refinador, posterga la descomposicion hasta tener al menos dos.",
+      ],
     }));
+}
+
+export function checkInzoomNombresPlaceholderHijos(modelo: Modelo): AvisoMetodologico[] {
+  return Object.values(modelo.entidades)
+    .filter((entidad) => obtenerRefinamiento(entidad, "descomposicion") !== undefined)
+    .flatMap((entidad) => {
+      const opdId = obtenerRefinamiento(entidad, "descomposicion")?.opdId;
+      const opd = opdId ? modelo.opds[opdId] : undefined;
+      if (!opd) return [] as AvisoMetodologico[];
+      const placeholders = new Set<Id>();
+      for (const apariencia of Object.values(opd.apariencias)) {
+        if (apariencia.entidadId === entidad.id) continue;
+        const hijo = modelo.entidades[apariencia.entidadId];
+        if (hijo && esNombrePlaceholderHijoInzoom(hijo.nombre, entidad.nombre)) placeholders.add(hijo.id);
+      }
+      if (placeholders.size === 0) return [];
+      return [...placeholders].map((hijoId) => {
+        const hijo = modelo.entidades[hijoId];
+        if (!hijo) return null;
+        return aviso("INZOOM_NOMBRES_PLACEHOLDER_HIJOS", hijo, {
+          severidad: "sugerencia",
+          mensaje: `El refinador "${hijo.nombre}" del OPD "${opd?.nombre ?? opdId}" mantiene un nombre placeholder; renombralo con vocabulario de dominio.`,
+          rationale: "La elaboracion progresiva de SD1 indica renombrar los subprocesos/partes con nombres significativos antes de avanzar.",
+          ssotRef: "metodologia-opm-es.md §7.1 (Elaboracion progresiva)",
+          opdId: opd?.id,
+          accionesSugeridas: [
+            `Abre el OPD "${opd?.nombre ?? "hijo"}" y renombra "${hijo.nombre}" con vocabulario de dominio.`,
+          ],
+        });
+      }).filter((item): item is AvisoMetodologico => item !== null);
+    });
+}
+
+function esNombrePlaceholderHijoInzoom(nombreHijo: string, nombrePadre: string): boolean {
+  if (PLACEHOLDER_NOMBRE_RE.test(nombreHijo)) return true;
+  // "<padre> N" sembrado por descomponerProceso/desplegar.
+  if (nombreHijo.startsWith(`${nombrePadre} `) && PLACEHOLDER_SUFIJO_NUMERICO_RE.test(nombreHijo)) return true;
+  return false;
 }
 
 export function checkUnfoldContenido(modelo: Modelo): AvisoMetodologico[] {
   return Object.values(modelo.entidades)
     .filter((entidad) => obtenerRefinamiento(entidad, "despliegue") !== undefined)
     .filter((entidad) => cantidadRefinadoresEstructurales(modelo, entidad) < 2)
-    .map((entidad) => aviso("UNFOLD_CONTENIDO_INSUFICIENTE", entidad, {
+    .map((entidad) => avisoConOpdRefinamiento(modelo, "UNFOLD_CONTENIDO_INSUFICIENTE", entidad, "despliegue", {
       severidad: "advertencia",
       mensaje: `El despliegue de "${entidad.nombre}" contiene menos de dos refinadores estructurales.`,
-      rationale: "[Met §unfold] Un despliegue debe revelar al menos dos refinadores para agregar informacion.",
+      rationale: "Un despliegue debe revelar al menos dos refinadores para agregar informacion al modelo.",
+      ssotRef: "metodologia-opm-es.md §7.2 (Refinamiento no trivial)",
+      accionesSugeridas: [
+        "Agrega un refinador estructural mas en el OPD hijo (otra parte/exhibicion/especializacion/instancia).",
+        "Si solo hay uno, considera plegar el despliegue.",
+      ],
     }));
 }
 
@@ -82,7 +201,12 @@ export function checkProcesoTransforma(modelo: Modelo): AvisoMetodologico[] {
     .map((proceso) => aviso("PROCESO_NO_TRANSFORMA", proceso, {
       severidad: "advertencia",
       mensaje: `El proceso "${proceso.nombre}" no consume, produce ni afecta ningun objeto.`,
-      rationale: "[Glos 3.x reglas] Un proceso debe transformar al menos un objeto mediante consumo, resultado o efecto.",
+      rationale: "Un proceso debe transformar al menos un objeto mediante consumo, resultado o efecto, directamente o via un subproceso.",
+      ssotRef: "metodologia-opm-es.md §7.6 / opm-iso-19450 V-115",
+      accionesSugeridas: [
+        "Conecta el proceso con al menos un objeto via consumo, resultado o efecto.",
+        "Si el proceso es solo orquestador, descomponlo y deja el rol transformador en un subproceso.",
+      ],
     }));
 }
 
@@ -95,8 +219,44 @@ export function checkProcesoSistemicoConectado(modelo: Modelo): AvisoMetodologic
     .map((proceso) => aviso("PROCESO_SISTEMICO_DESCONECTADO", proceso, {
       severidad: "advertencia",
       mensaje: `El proceso sistemico "${proceso.nombre}" no esta conectado a la funcion principal del SD.`,
-      rationale: "[Met §metodologia] [Glos 3.x sistemico] Todo proceso sistemico debe integrarse a la funcion principal por refinamiento o enlaces estructurales.",
+      rationale: "Todo proceso sistemico debe integrarse a la funcion principal por refinamiento o enlaces estructurales.",
+      ssotRef: "metodologia-opm-es.md §6.4 (Funcion Principal)",
+      accionesSugeridas: [
+        "Conecta el proceso a la cadena que parte de la funcion principal.",
+        "Reclasifica como ambiental si no aporta a la funcion del sistema.",
+      ],
     }));
+}
+
+export function checkSdSinProcesoPrincipal(modelo: Modelo): AvisoMetodologico[] {
+  /**
+   * SSOT §6.1 / §6.11: el SD (OPD raiz) DEBE tener al menos un proceso
+   * sistemico que actue como funcion principal. Sin proceso principal el
+   * modelo no cumple el contrato de proposito.
+   */
+  const sd = modelo.opds[modelo.opdRaizId];
+  if (!sd) return [];
+  const tieneProcesoSistemico = Object.values(sd.apariencias).some((apariencia) => {
+    const entidad = modelo.entidades[apariencia.entidadId];
+    return entidad?.tipo === "proceso" && entidad.afiliacion === "sistemica";
+  });
+  // Solo emite si hay al menos una entidad: un SD totalmente vacio no
+  // arrastra avisos (el modelador todavia no empezo).
+  if (tieneProcesoSistemico) return [];
+  if (Object.keys(sd.apariencias).length === 0) return [];
+  return [{
+    codigo: "SD_SIN_PROCESO_PRINCIPAL",
+    severidad: "advertencia",
+    opdId: sd.id,
+    mensaje: `El SD "${sd.nombre}" no tiene proceso sistemico; sin proceso principal el modelo no expresa la funcion del sistema.`,
+    rationale: "El SD debe contener el proceso principal del sistema (sistemico, transformador), que define su proposito.",
+    ssotRef: "metodologia-opm-es.md §6.1 / §6.11",
+    navegarA: { tipo: "opd", id: sd.id },
+    accionesSugeridas: [
+      "Agrega un proceso sistemico al SD que represente la funcion principal del sistema.",
+      "Conectalo al beneficiario via efecto o consumo/resultado segun corresponda.",
+    ],
+  }];
 }
 
 function procesos(modelo: Modelo): Entidad[] {
@@ -110,13 +270,52 @@ function objetos(modelo: Modelo): Entidad[] {
 function aviso(
   codigo: CodigoChecker,
   entidad: Entidad,
-  base: Pick<AvisoMetodologico, "severidad" | "mensaje" | "rationale">,
+  base: Pick<AvisoMetodologico, "severidad" | "mensaje" | "rationale" | "ssotRef" | "accionesSugeridas" | "opdId">,
 ): AvisoMetodologico {
   return {
     codigo,
     entidadId: entidad.id,
     ...base,
   };
+}
+
+/**
+ * Helper para checkers de inzoom/unfold: anota como `opdId` el OPD hijo del
+ * refinamiento (no el OPD donde aparece la entidad refinada). Esto lleva el
+ * click de navegacion al lugar donde el modelador debe agregar contenido.
+ */
+function avisoConOpdRefinamiento(
+  modelo: Modelo,
+  codigo: CodigoChecker,
+  entidad: Entidad,
+  tipo: TipoRefinamiento,
+  base: Pick<AvisoMetodologico, "severidad" | "mensaje" | "rationale" | "ssotRef" | "accionesSugeridas">,
+): AvisoMetodologico {
+  const opdHijoId = obtenerRefinamiento(entidad, tipo)?.opdId;
+  const opdHijoExiste = Boolean(opdHijoId && modelo.opds[opdHijoId]);
+  const navegarA: AvisoMetodologico["navegarA"] = opdHijoExiste && opdHijoId
+    ? { tipo: "opd", id: opdHijoId }
+    : { tipo: "entidad", id: entidad.id };
+  const item: AvisoMetodologico = {
+    codigo,
+    entidadId: entidad.id,
+    navegarA,
+    ...base,
+  };
+  if (opdHijoExiste && opdHijoId) item.opdId = opdHijoId;
+  return item;
+}
+
+function objetoAmbientalEsTransformadoPorSistemico(modelo: Modelo, objeto: Entidad): boolean {
+  return Object.values(modelo.enlaces).some((enlace) => {
+    if (!TRANSFORMADORES.has(enlace.tipo)) return false;
+    const tocaObjeto = extremoApuntaAEntidad(enlace.origenId, objeto.id) || extremoApuntaAEntidad(enlace.destinoId, objeto.id);
+    if (!tocaObjeto) return false;
+    const otra = entidadDeExtremo(modelo, enlace.origenId)?.id === objeto.id
+      ? entidadDeExtremo(modelo, enlace.destinoId)
+      : entidadDeExtremo(modelo, enlace.origenId);
+    return otra?.tipo === "proceso" && otra.afiliacion === "sistemica";
+  });
 }
 
 function esFormaVerbalValida(nombre: string): boolean {
