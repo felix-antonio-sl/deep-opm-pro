@@ -553,6 +553,8 @@ export interface OpmStore {
   fijarFiltroTablaEnlaces: (tipo: TipoEnlace | "todos") => void;
   fijarOrdenTablaEnlaces: (columna: string) => void;
   navegarAEnlaceDesdeTabla: (enlaceId: Id) => void;
+  irAExtremoEnlaceTabla: (enlaceId: Id, lado: "origen" | "destino") => void;
+  eliminarEnlaceDesdeTabla: (enlaceId: Id) => void;
   // ── L5: Mapa del sistema ─────────────────────────────────────────
   vistaMapaActiva: boolean;
   descriptorMapaCache: import("../render/jointjs/mapaSistema").DescriptorMapa | null;

@@ -222,6 +222,8 @@ export type EnlacesSlice = Slice<
   | "fijarFiltroTablaEnlaces"
   | "fijarOrdenTablaEnlaces"
   | "navegarAEnlaceDesdeTabla"
+  | "irAExtremoEnlaceTabla"
+  | "eliminarEnlaceDesdeTabla"
 >;
 
 export type WorkspaceModSlice = Slice<

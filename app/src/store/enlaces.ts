@@ -412,5 +412,74 @@ export const createEnlacesSlice: CrearSlice<EnlacesSlice> = (set, get) => ({
       }
     }
     set({ mensaje: "Enlace sin apariencia en ningún OPD" });
+  },
+
+  /**
+   * Beta1 (ronda 16 L1): "Ir a origen" / "Ir a destino" desde TablaEnlaces.
+   * Cambia opdActivoId al primer OPD donde la entidad portadora del extremo
+   * tiene apariencia (si el extremo es estado, se busca por la entidad
+   * portadora del estado — mismo contrato que el panel OPL describe).
+   * Cierra la tabla y deja la entidad seleccionada.
+   */
+  irAExtremoEnlaceTabla(enlaceId, lado) {
+    const { modelo } = get();
+    const enlace = modelo.enlaces[enlaceId];
+    if (!enlace) {
+      set({ mensaje: `Enlace no existe: ${enlaceId}` });
+      return;
+    }
+    const extremo = lado === "origen" ? enlace.origenId : enlace.destinoId;
+    const entidadId = extremo.kind === "entidad"
+      ? extremo.id
+      : (modelo.estados[extremo.id]?.entidadId ?? null);
+    if (!entidadId || !modelo.entidades[entidadId]) {
+      set({ mensaje: `No se pudo resolver el extremo ${lado} del enlace` });
+      return;
+    }
+    // Encontrar el primer OPD donde la entidad portadora aparece
+    for (const opdId of Object.keys(modelo.opds)) {
+      const opd = modelo.opds[opdId];
+      if (!opd) continue;
+      const apariencia = Object.values(opd.apariencias).find((a) => a.entidadId === entidadId);
+      if (!apariencia) continue;
+      set({
+        opdActivoId: opdId,
+        seleccionId: entidadId,
+        seleccionados: [entidadId],
+        modoSeleccion: "simple",
+        enlaceSeleccionId: null,
+        modoEnlace: null,
+        tablaEnlacesAbierta: false,
+        mensaje: null,
+      });
+      return;
+    }
+    set({ mensaje: `Extremo ${lado} sin apariencia en ningún OPD` });
+  },
+
+  /**
+   * Beta1 (ronda 16 L1): eliminar enlace desde TablaEnlaces. Reusa
+   * eliminarEnlace cross-OPD; mantiene la tabla abierta para edición continua
+   * y emite mensaje informativo (la fila desaparece tras el commit).
+   */
+  eliminarEnlaceDesdeTabla(enlaceId) {
+    const { modelo } = get();
+    if (!modelo.enlaces[enlaceId]) {
+      set({ mensaje: `Enlace no existe: ${enlaceId}` });
+      return;
+    }
+    const resultado = eliminarEnlace(modelo, enlaceId);
+    if (!resultado.ok) {
+      set({ mensaje: resultado.error });
+      return;
+    }
+    commitModelo(set, modelo, resultado.value, {
+      seleccionId: null,
+      seleccionados: [],
+      modoSeleccion: "simple",
+      enlaceSeleccionId: null,
+      modoEnlace: null,
+      mensaje: "Enlace eliminado",
+    });
   }
 });
