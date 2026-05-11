@@ -48,12 +48,24 @@ test("modo simulación: entrar, paso, correr, reiniciar, salir", async ({ page }
   await expect(primeraVez).toContainText(/Recibir|Atender/);
   const primerProceso = (await primeraVez.textContent())?.replace(/^▶\s*/, "").trim() ?? "";
 
+  // Halo verde dasheado sobre el proceso activo en el canvas (overlay visual).
+  // El cell tiene id `sim-proceso-<aparienciaId>` y stroke #16a34a en JointJS.
+  const haloProceso = await page.evaluate(() => {
+    return document.querySelectorAll('[model-id^="sim-proceso-"]').length;
+  });
+  expect(haloProceso).toBe(1);
+
   // Ejecutar Paso → avanza a Paso 2/2 con el OTRO proceso activo.
   await page.getByTestId("barra-simulacion-paso").click();
   await expect(page.getByTestId("barra-simulacion-progreso")).toContainText(/Paso\s+2\/2/);
   const segundo = primerProceso === "Recibir" ? "Atender" : "Recibir";
   await expect(page.getByTestId("barra-simulacion-proceso-activo")).toContainText(segundo);
   await expect(page.getByTestId("barra-simulacion-trace")).toBeVisible();
+  // El halo sigue apareciendo (sobre el nuevo proceso activo).
+  const haloPasoDos = await page.evaluate(() => {
+    return document.querySelectorAll('[model-id^="sim-proceso-"]').length;
+  });
+  expect(haloPasoDos).toBe(1);
 
   // Correr → completa los pasos restantes.
   await page.getByTestId("barra-simulacion-correr").click();

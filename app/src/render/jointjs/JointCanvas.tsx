@@ -64,6 +64,8 @@ export function JointCanvas() {
   const uiAliasVisibles = useOpmStore((s) => s.uiAliasVisibles);
   const uiDescripcionesVisibles = useOpmStore((s) => s.uiDescripcionesVisibles);
   const uiModoImagenGlobal = useOpmStore((s) => s.uiModoImagenGlobal);
+  // L2 r17: marca visual de proceso activo + estados current en modo simulación.
+  const contextoSimulacion = useOpmStore((s) => s.contextoSimulacion);
   const seleccionarEntidad = useOpmStore((s) => s.seleccionarEntidad);
   const seleccionarEntidadRef = useRef(seleccionarEntidad);
   const seleccionarPartePlegada = useOpmStore((s) => s.seleccionarPartePlegada);
@@ -313,11 +315,25 @@ export function JointCanvas() {
   useEffect(() => {
     const adapter = adapterRef.current;
     if (!adapter) return;
-    const cells = proyectarModeloAJointCells(modelo, opdActivoId, seleccionId, enlaceSeleccionId, null, seleccionados, {
-      aliasVisibles: uiAliasVisibles,
-      descripcionesVisibles: uiDescripcionesVisibles,
-      modoImagenGlobal: uiModoImagenGlobal,
-    });
+    const procesoActivoId = contextoSimulacion && contextoSimulacion.pasoActual < contextoSimulacion.plan.length
+      ? contextoSimulacion.plan[contextoSimulacion.pasoActual]?.procesoId ?? null
+      : null;
+    const cells = proyectarModeloAJointCells(
+      modelo,
+      opdActivoId,
+      seleccionId,
+      enlaceSeleccionId,
+      null,
+      seleccionados,
+      {
+        aliasVisibles: uiAliasVisibles,
+        descripcionesVisibles: uiDescripcionesVisibles,
+        modoImagenGlobal: uiModoImagenGlobal,
+      },
+      contextoSimulacion
+        ? { procesoActivoId, estadosCurrent: contextoSimulacion.estadosCurrent }
+        : null,
+    );
     sincronizandoRef.current = true;
     adapter.graph.resetCells(cells as dia.Cell.JSON[]);
     setPaperDimensions(adapter.paper, dimensionesPaper(cells));
@@ -337,7 +353,7 @@ export function JointCanvas() {
     instalarHerramientasEnlaceSeleccionado(adapter, enlaceSeleccionId);
     aplicarHoverOpl(adapter.graph, modelo, hoverOplRef, enlaceSeleccionId);
     aplicarFeedbackModoEnlace(adapter.paper, modelo, opdActivoId, modoEnlace);
-  }, [enlaceSeleccionId, modelo, modoEnlace, opdActivoId, seleccionId, seleccionados, uiAliasVisibles, uiDescripcionesVisibles, uiModoImagenGlobal]);
+  }, [enlaceSeleccionId, modelo, modoEnlace, opdActivoId, seleccionId, seleccionados, uiAliasVisibles, uiDescripcionesVisibles, uiModoImagenGlobal, contextoSimulacion]);
 
   useEffect(() => {
     const adapter = adapterRef.current;

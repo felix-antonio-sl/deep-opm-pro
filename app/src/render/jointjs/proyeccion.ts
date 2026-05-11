@@ -7,7 +7,13 @@ import { proyectarBusesAgregacion, type EnlaceConEndpointVisual } from "./agrega
 import { proyectarAutoInvocacion } from "./autoinvocacionLoop";
 import { proyectarEntidad } from "./composers/entidad";
 import { proyectarEnlace, proyectarProxyExtraccion, proyectarRefinamientoEstructural, resolverEndpointVisual } from "./composers/enlace";
-import { proyectarHaloSeleccion, refResaltaEnlace, refResaltaEntidad } from "./composers/halos";
+import {
+  proyectarHaloSeleccion,
+  proyectarHaloSimulacionEstadoCurrent,
+  proyectarHaloSimulacionProceso,
+  refResaltaEnlace,
+  refResaltaEntidad,
+} from "./composers/halos";
 import { proyectarImagenesEntidad } from "./composers/imagenOverlay";
 import { normalizarOpcionesProyeccion, opcionesProyeccionDesdeEntornoLegacy } from "./proyeccionOpciones";
 import type { JointCellJson, OpcionesProyeccion } from "./proyeccionTipos";
@@ -34,6 +40,11 @@ const TIPOS_REFINAMIENTO_ESTRUCTURAL: readonly TipoEnlace[] = [
  * Math.round(enlace.probabilidad * 100) etiquetaTextoModificador.
  */
 
+export interface OpcionesSimulacionRender {
+  procesoActivoId: Id | null;
+  estadosCurrent: Record<Id, Id>;
+}
+
 export function proyectarModeloAJointCells(
   modelo: Modelo,
   opdId: Id,
@@ -42,6 +53,7 @@ export function proyectarModeloAJointCells(
   hoverOplRef: OplReferencia | null = null,
   seleccionados: readonly Id[] = [],
   opciones: OpcionesProyeccion = opcionesProyeccionDesdeEntornoLegacy(),
+  simulacion: OpcionesSimulacionRender | null = null,
 ): JointCellJson[] {
   const opd = modelo.opds[opdId];
   if (!opd) return [];
@@ -133,5 +145,22 @@ export function proyectarModeloAJointCells(
       })
     : [];
 
-  return [...busCells, ...enlaces, ...proxies, ...overlaysAbanico, ...elementos, ...imagenes, ...halos];
+  const halosSimulacion = simulacion
+    ? apariencias.flatMap((apariencia) => {
+        const entidad = modelo.entidades[apariencia.entidadId];
+        if (!entidad) return [];
+        const cells: JointCellJson[] = [];
+        if (simulacion.procesoActivoId && entidad.id === simulacion.procesoActivoId && entidad.tipo === "proceso") {
+          cells.push(proyectarHaloSimulacionProceso(opdId, apariencia, entidad));
+        }
+        const currentId = simulacion.estadosCurrent[entidad.id];
+        if (currentId && entidad.tipo === "objeto") {
+          const estado = modelo.estados[currentId];
+          if (estado) cells.push(proyectarHaloSimulacionEstadoCurrent(opdId, apariencia, entidad, estado));
+        }
+        return cells;
+      })
+    : [];
+
+  return [...busCells, ...enlaces, ...proxies, ...overlaysAbanico, ...elementos, ...imagenes, ...halos, ...halosSimulacion];
 }
