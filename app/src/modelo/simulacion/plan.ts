@@ -52,12 +52,16 @@ export function planificarSimulacion(modelo: Modelo, opdId: Id): PasoSimulacion[
 
 /**
  * Estado current inicial del modelo: tomar estados con designación `current`;
- * si un objeto no tiene `current`, caer a `default` o `inicial` en ese orden.
+ * si un objeto no tiene `current`, caer a `default`, luego `inicial`, y
+ * finalmente al primer estado por orden estable (los modelos casuales no
+ * siempre designan `inicial` y la simulación necesita un current observable
+ * para que se vea avance visual desde el primer paso).
  */
 export function estadosCurrentIniciales(modelo: Modelo): Record<Id, Id> {
   const resultado: Record<Id, Id> = {};
   const fallbackDefault: Record<Id, Id> = {};
   const fallbackInicial: Record<Id, Id> = {};
+  const primerEstadoPorEntidad: Record<Id, string> = {};
 
   for (const estado of Object.values(modelo.estados)) {
     if (estado.suprimido) continue;
@@ -68,12 +72,19 @@ export function estadosCurrentIniciales(modelo: Modelo): Record<Id, Id> {
     } else if (tieneDesignacion(estado, "inicial")) {
       fallbackInicial[estado.entidadId] = estado.id;
     }
+    const previo = primerEstadoPorEntidad[estado.entidadId];
+    if (!previo || estado.id.localeCompare(previo) < 0) {
+      primerEstadoPorEntidad[estado.entidadId] = estado.id;
+    }
   }
 
   for (const [entidadId, estadoId] of Object.entries(fallbackDefault)) {
     if (!(entidadId in resultado)) resultado[entidadId] = estadoId;
   }
   for (const [entidadId, estadoId] of Object.entries(fallbackInicial)) {
+    if (!(entidadId in resultado)) resultado[entidadId] = estadoId;
+  }
+  for (const [entidadId, estadoId] of Object.entries(primerEstadoPorEntidad)) {
     if (!(entidadId in resultado)) resultado[entidadId] = estadoId;
   }
   return resultado;

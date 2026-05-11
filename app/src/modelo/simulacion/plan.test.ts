@@ -168,13 +168,24 @@ describe("estadosCurrentIniciales", () => {
     expect(current[pedidoId]).toBe(pendienteId);
   });
 
-  test("sin designaciones, el objeto no aparece en current", () => {
+  test("sin designaciones, el current cae al primer estado por orden estable", () => {
     let modelo = crearModelo("SinDesig");
     modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 100, y: 100 }, "Libre"));
     const libreId = entidadId(modelo, "Libre");
-    must(crearEstadosIniciales(modelo, libreId));
+    const estadosCreados = must(crearEstadosIniciales(modelo, libreId));
+    modelo = estadosCreados.modelo;
+    const [primeroId] = estadosCreados.estadoIds;
 
     const current = estadosCurrentIniciales(modelo);
-    expect(current[libreId]).toBeUndefined();
+    expect(current[libreId]).toBe(primeroId);
+  });
+
+  test("objeto sin estados no aparece en current", () => {
+    let modelo = crearModelo("SinEstados");
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 100, y: 100 }, "Plano"));
+    const planoId = entidadId(modelo, "Plano");
+
+    const current = estadosCurrentIniciales(modelo);
+    expect(current[planoId]).toBeUndefined();
   });
 });
