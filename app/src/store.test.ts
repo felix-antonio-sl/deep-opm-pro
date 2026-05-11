@@ -1626,6 +1626,51 @@ describe("store HU-11.012 etiqueta enlace estructural", () => {
   });
 });
 
+describe("store reset tabs Inspector al cambiar selección", () => {
+  test("cambiar entidad seleccionada resetea tabInspectorEntidadActivo a semantica", () => {
+    store.getState().cargarDemo();
+    const ids = Object.keys(store.getState().modelo.entidades);
+    expect(ids.length).toBeGreaterThanOrEqual(2);
+    const idA = ids[0]!;
+    const idB = ids[1]!;
+
+    store.getState().setSeleccion([idA]);
+    store.getState().cambiarTabInspectorEntidad("refinamiento");
+    expect(store.getState().tabInspectorEntidadActivo).toBe("refinamiento");
+
+    store.getState().setSeleccion([idB]);
+    expect(store.getState().tabInspectorEntidadActivo).toBe("semantica");
+  });
+
+  test("cambiar enlace seleccionado resetea tabInspectorEnlaceActivo a propiedades", () => {
+    store.getState().cargarDemo();
+    const enlaceIds = Object.keys(store.getState().modelo.enlaces);
+    if (enlaceIds.length < 2) return;
+    const e0 = enlaceIds[0]!;
+    const e1 = enlaceIds[1]!;
+
+    store.getState().seleccionarEnlace(e0);
+    store.getState().cambiarTabInspectorEnlace("extremos");
+    expect(store.getState().tabInspectorEnlaceActivo).toBe("extremos");
+
+    store.getState().seleccionarEnlace(e1);
+    expect(store.getState().tabInspectorEnlaceActivo).toBe("propiedades");
+  });
+
+  test("cambio tab manual dentro de la misma entidad persiste (no se resetea)", () => {
+    store.getState().cargarDemo();
+    const idA = Object.keys(store.getState().modelo.entidades)[0]!;
+
+    store.getState().setSeleccion([idA]);
+    store.getState().cambiarTabInspectorEntidad("apariciones");
+    expect(store.getState().tabInspectorEntidadActivo).toBe("apariciones");
+
+    // Re-seleccionar la misma entidad NO debe disparar reset porque seleccionId no cambia:
+    store.getState().setSeleccion([idA]);
+    expect(store.getState().tabInspectorEntidadActivo).toBe("apariciones");
+  });
+});
+
 function undoStackLength(): number {
   const estado = store.getState();
   const pestana = estado.pestanasAbiertas.find((p) => p.id === estado.pestanaActivaId);

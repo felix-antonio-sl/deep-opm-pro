@@ -314,6 +314,8 @@ test("despliega proceso desde inspector y navega al OPD hijo", async ({ page }) 
 
   await page.locator('[role="treeitem"][data-opd-id="opd-1"]').click();
   await elementoPorTexto(page, "Proceso").click();
+  // Reset de tab al cambiar selección: volver a Refinamiento para ver "Mostrar despliegue".
+  await irATabRefinamiento(page);
   await expect(page.getByRole("button", { name: "Mostrar despliegue" })).toBeVisible();
 
   await page.screenshot({ path: "test-results/opm-process-unfold-opd-hijo.png", fullPage: true });
@@ -349,6 +351,8 @@ test("ronda 15.2: una entidad acepta descomposicion + despliegue simultaneos y e
   // Volver a la raíz y verificar que el inspector ofrece ambos: "Abrir descomposición" y "Mostrar despliegue".
   await page.locator('[role="treeitem"][data-opd-id="opd-1"]').click();
   await elementoPorTexto(page, "Proceso").click();
+  // Reset de tab al cambiar selección: re-navegar a Refinamiento.
+  await irATabRefinamiento(page);
   await expect(page.getByRole("button", { name: "Abrir descomposición" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Mostrar despliegue" })).toBeVisible();
 
