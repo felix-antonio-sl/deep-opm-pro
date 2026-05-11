@@ -689,6 +689,18 @@ export interface OpmStore {
   etapaAnterior: () => void;
   cancelarAsistente: () => void;
   confirmarAsistente: () => void;
+  // ── Beta2 / Ronda 17 L2: modo simulación conceptual ──────────────
+  /** Contexto activo de simulación; `null` cuando no estamos en modo. */
+  contextoSimulacion: import("../modelo/simulacion/tipos").ContextoSimulacion | null;
+  /** Snapshot del `readOnly` previo a entrar en modo simulación. Permite
+   *  restaurar el flag al salir sin perder el modo solo-lectura del modelo. */
+  readOnlyPrevSimulacion: boolean | null;
+  iniciarModoSimulacion: () => void;
+  salirModoSimulacion: () => void;
+  ejecutarPasoSimulacion: () => void;
+  ejecutarCorridaSimulacion: () => void;
+  reiniciarSimulacionActual: () => void;
+  asignarValorRuntimeSimulacion: (entidadId: Id, valor: import("../modelo/tipos").ValorConcreto) => void;
 }
 
 
@@ -705,6 +717,7 @@ export type {
   PersistenciaSlice,
   PestanasSlice,
   SeleccionSlice,
+  SimulacionSlice,
   UiPanelSlice,
   WorkspaceModSlice,
 } from "./sliceTypes";

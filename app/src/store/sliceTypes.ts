@@ -407,6 +407,17 @@ export type PestanasSlice = Slice<
   | "renombrarPestana"
 >;
 
+export type SimulacionSlice = Slice<
+  | "contextoSimulacion"
+  | "readOnlyPrevSimulacion"
+  | "iniciarModoSimulacion"
+  | "salirModoSimulacion"
+  | "ejecutarPasoSimulacion"
+  | "ejecutarCorridaSimulacion"
+  | "reiniciarSimulacionActual"
+  | "asignarValorRuntimeSimulacion"
+>;
+
 export type OpmStoreSlices =
   & ModeloSlice
   & SeleccionSlice
@@ -416,7 +427,8 @@ export type OpmStoreSlices =
   & UiPanelSlice
   & MapaSlice
   & PersistenciaSlice
-  & PestanasSlice;
+  & PestanasSlice
+  & SimulacionSlice;
 
 type AssertNever<T extends never> = T;
 

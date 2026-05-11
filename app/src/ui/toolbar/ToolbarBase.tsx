@@ -102,6 +102,8 @@ export function ToolbarBase({ children, modelarSlot, conectarSlot, validarSlot, 
   const vistaMapaActiva = useOpmStore((s) => s.vistaMapaActiva);
   const abrirVistaMapa = useOpmStore((s) => s.abrirVistaMapa);
   const cerrarVistaMapa = useOpmStore((s) => s.cerrarVistaMapa);
+  // L2 r17: botón Simulación entra al modo (BarraSimulacion reemplaza Toolbar).
+  const iniciarModoSimulacion = useOpmStore((s) => s.iniciarModoSimulacion);
   const alinearSeleccion = useOpmStore((s) => s.alinearSeleccion);
   const distribuirSeleccion = useOpmStore((s) => s.distribuirSeleccion);
   const alinearSeleccionEnlaces = useOpmStore((s) => s.alinearSeleccionEnlaces);
@@ -326,6 +328,15 @@ export function ToolbarBase({ children, modelarSlot, conectarSlot, validarSlot, 
         <div role="group" aria-label="Validar" style={style.cluster} data-slot="cluster-validar" data-cluster="validar">
           <span style={style.clusterLabel}>Validar</span>
           <button style={vistaMapaActiva ? style.activeButton : style.button} type="button" onClick={vistaMapaActiva ? cerrarVistaMapa : abrirVistaMapa} aria-pressed={vistaMapaActiva} title={vistaMapaActiva ? "Cerrar mapa" : "Abrir mapa"}>Mapa</button>
+          <button
+            style={style.button}
+            type="button"
+            onClick={iniciarModoSimulacion}
+            title="Entrar a modo simulación conceptual"
+            data-testid="toolbar-simulacion"
+          >
+            Simulación
+          </button>
           {validarSlot ?? null}
           {statusSlot ?? null}
         </div>

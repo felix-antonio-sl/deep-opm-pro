@@ -30,6 +30,7 @@ import { ModoRevisionMobile, AvisoEditarEnEscritorio } from "./ModoRevisionMobil
 import { PanelAvisos } from "./PanelAvisos";
 import { PanelMetodologia } from "./PanelMetodologia";
 import { PanelOpl } from "./PanelOpl";
+import { BarraSimulacion } from "./simulacion/BarraSimulacion";
 import { tokens } from "./tokens";
 import { Toolbar } from "./Toolbar";
 
@@ -111,10 +112,13 @@ export function App() {
     };
   }, []);
 
+  // L2 r17: en modo simulación, BarraSimulacion reemplaza la Toolbar de edición.
+  const modoSimulacionActivo = useOpmStore((s) => s.contextoSimulacion !== null);
+
   return (
     <ConfirmacionProvider>
       <main style={pageStyle(esMobile)} data-breakpoint={breakpoint}>
-        <Toolbar />
+        {modoSimulacionActivo ? <BarraSimulacion /> : <Toolbar />}
         <MenuPrincipal />
         <BarraPestanas />
         {esMobile ? (

@@ -7,6 +7,7 @@ import { createModeloSlice, modeloInicial } from "./store/modelo";
 import { createPersistenciaSlice } from "./store/persistencia";
 import { createSeleccionSlice } from "./store/seleccion";
 import { createPestanasSlice } from "./store/pestanas";
+import { createSimulacionSlice } from "./store/simulacion";
 import { createUiPanelSlice } from "./store/uiPanel";
 import { createWorkspaceModSlice } from "./store/workspaceMod";
 import { conectarRuntimeStore, inicializarSnapshot } from "./store/runtime";
@@ -24,6 +25,7 @@ export const store = createStore<OpmStore>((set, get) => ({
   ...createMapaSlice(set, get),
   ...createPersistenciaSlice(set, get),
   ...createPestanasSlice(set, get),
+  ...createSimulacionSlice(set, get),
 } as OpmStore));
 
 conectarRuntimeStore(store);
