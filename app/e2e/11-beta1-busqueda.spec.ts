@@ -118,15 +118,23 @@ test("ronda 16 L2: busqueda de estados y etiqueta de enlace", async ({ page }) =
   await page.getByRole("img", { name: "OPD activo" }).click({ position: { x: 5, y: 5 } });
   await page.keyboard.press("Control+f");
 
+  // Espera el input focuseado antes de fill (DialogoBuscarCosas dispara
+  // setTimeout(focus, 50ms) que puede racear con fill rápido bajo carga).
+  const inputBuscarA = page.getByTestId("dialogo-buscar-cosas-input");
+  await expect(inputBuscarA).toBeVisible();
+  await expect(inputBuscarA).toBeFocused();
+
   // Buscar estado "pendiente".
-  await page.getByTestId("dialogo-buscar-cosas-input").fill("pendiente");
+  await inputBuscarA.fill("pendiente");
+  await expect(page.getByTestId("dialogo-buscar-cosas-contador")).toContainText(/aparici/);
   const filaEstado = page.getByTestId("dialogo-buscar-cosas-fila").first();
   await expect(filaEstado).toContainText("pendiente");
   await expect(filaEstado).toContainText("Estado");
   await expect(filaEstado).toContainText("Pedido");
 
   // Cambiar a busqueda por etiqueta de enlace.
-  await page.getByTestId("dialogo-buscar-cosas-input").fill("transicion");
+  await inputBuscarA.fill("transicion");
+  await expect(page.getByTestId("dialogo-buscar-cosas-contador")).toContainText(/aparici/);
   const filaEnlace = page.getByTestId("dialogo-buscar-cosas-fila").first();
   await expect(filaEnlace).toContainText("transicion-aprobada");
   await expect(filaEnlace).toContainText("Enlace");
@@ -136,7 +144,7 @@ test("ronda 16 L2: busqueda de estados y etiqueta de enlace", async ({ page }) =
   await expect(page.getByTestId("dialogo-buscar-cosas-fila")).toHaveCount(1);
 
   // Filtrar a solo estados con la query "pendiente" da el estado.
-  await page.getByTestId("dialogo-buscar-cosas-input").fill("pendiente");
+  await inputBuscarA.fill("pendiente");
   await page.getByTestId("dialogo-buscar-cosas-filtro").selectOption("estados");
   await expect(page.getByTestId("dialogo-buscar-cosas-fila")).toHaveCount(1);
 
@@ -159,7 +167,13 @@ test("ronda 16 L2: salto a enlace selecciona enlace y dispara halo temporal", as
   await page.getByRole("img", { name: "OPD activo" }).click({ position: { x: 5, y: 5 } });
   await page.keyboard.press("Control+f");
 
-  await page.getByTestId("dialogo-buscar-cosas-input").fill("salida-OK");
+  // Espera input focuseado antes de fill (ver nota en test :106).
+  const inputBuscarB = page.getByTestId("dialogo-buscar-cosas-input");
+  await expect(inputBuscarB).toBeVisible();
+  await expect(inputBuscarB).toBeFocused();
+
+  await inputBuscarB.fill("salida-OK");
+  await expect(page.getByTestId("dialogo-buscar-cosas-contador")).toContainText(/aparici/);
   await page.getByTestId("dialogo-buscar-cosas-fila").first().click();
 
   // Halo temporal: `idsResaltadosTemporales` se llena durante 3s.
