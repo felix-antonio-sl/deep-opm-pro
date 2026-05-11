@@ -1,4 +1,4 @@
-import type { Id } from "../tipos";
+import type { Id, ValorConcreto } from "../tipos";
 
 /**
  * Tipos del kernel de simulación conceptual (Beta2 / Ronda 17 L1).
@@ -39,6 +39,14 @@ export interface PasoSimulacion {
   transicionesPlanificadas: TransicionEstadoSim[];
 }
 
+/** Un cambio de valor runtime sobre un atributo durante un paso (Beta2 L3). */
+export interface CambioValorRuntime {
+  entidadId: Id;
+  /** Valor previo runtime; `undefined` si el atributo no tenía valor. */
+  antes: ValorConcreto | undefined;
+  despues: ValorConcreto;
+}
+
 /** Una entrada del trace tras ejecutar un paso. */
 export interface EntradaTraceSim {
   /** 1-indexed. */
@@ -46,8 +54,10 @@ export interface EntradaTraceSim {
   procesoId: Id;
   procesoNombre: string;
   transicionesAplicadas: TransicionEstadoSim[];
+  /** Cambios de valor runtime aplicados (asignación atributo→atributo, L3). */
+  cambiosValor: CambioValorRuntime[];
   /** Texto canónico cuando el paso no pudo aplicar todas las transiciones
-   *  planificadas. Razón corta legible. */
+   *  planificadas o cambios de valor. Razón corta legible. */
   diagnostico?: string;
 }
 
@@ -63,5 +73,9 @@ export interface ContextoSimulacion {
   estado: EstadoSimulacion;
   /** Estado current por entidadId derivado de designaciones + transiciones. */
   estadosCurrent: Record<Id, Id>;
+  /** Valores runtime por entidadId (atributos con valorSlot). Separados del
+   *  modelo persistente: las mutaciones de simulación NUNCA tocan
+   *  `Entidad.valorSlot.valor` original. */
+  valoresRuntime: Record<Id, ValorConcreto>;
   trace: EntradaTraceSim[];
 }

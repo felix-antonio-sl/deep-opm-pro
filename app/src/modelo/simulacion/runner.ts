@@ -1,6 +1,7 @@
 import type { Id, Modelo } from "../tipos";
 import { estadosCurrentIniciales, planificarSimulacion } from "./plan";
 import type { ContextoSimulacion, EntradaTraceSim, TransicionEstadoSim } from "./tipos";
+import { aplicarCambiosValor, iniciarValoresRuntime } from "./valores";
 
 /**
  * Inicia una simulación conceptual sobre un OPD. No muta el modelo.
@@ -15,6 +16,7 @@ export function iniciarSimulacion(modelo: Modelo, opdId: Id): ContextoSimulacion
     pasoActual: 0,
     estado: plan.length === 0 ? "completado" : "preparado",
     estadosCurrent: estadosCurrentIniciales(modelo),
+    valoresRuntime: iniciarValoresRuntime(modelo),
     trace: [],
   };
 }
@@ -58,11 +60,19 @@ export function ejecutarPaso(modelo: Modelo, contexto: ContextoSimulacion): Cont
     transicionesAplicadas.push(transicion);
   }
 
+  const { valoresNuevos, cambios: cambiosValor, motivos: motivosValor } = aplicarCambiosValor(
+    modelo,
+    contexto.valoresRuntime,
+    paso,
+  );
+  motivosBloqueo.push(...motivosValor);
+
   const entrada: EntradaTraceSim = {
     numero: contexto.pasoActual + 1,
     procesoId: paso.procesoId,
     procesoNombre: paso.procesoNombre,
     transicionesAplicadas,
+    cambiosValor,
   };
   if (motivosBloqueo.length > 0) {
     entrada.diagnostico = `No simulable: ${motivosBloqueo.join("; ")}`;
@@ -74,6 +84,7 @@ export function ejecutarPaso(modelo: Modelo, contexto: ContextoSimulacion): Cont
     pasoActual: nuevoPaso,
     estado: nuevoPaso >= contexto.plan.length ? "completado" : "ejecutando",
     estadosCurrent,
+    valoresRuntime: valoresNuevos,
     trace: [...contexto.trace, entrada],
   };
 }
