@@ -1,0 +1,167 @@
+import { tieneDesignacion } from "../estadosDesignaciones";
+import type { Enlace, ExtremoEnlace, Id, Modelo } from "../tipos";
+import type { PasoSimulacion, TransicionEstadoSim } from "./tipos";
+
+/**
+ * Planifica una simulación conceptual sobre un OPD.
+ *
+ * Reglas:
+ *   - Solo procesos del OPD entran al plan (HU-B0.005).
+ *   - Orden canónico por `apariencia.y` ascendente (HU-B0.013); desempate
+ *     alfabético es-CL para determinismo.
+ *   - Cada proceso colecciona sus enlaces entrada/salida (apariencias del OPD).
+ *   - Transiciones de estado se infieren de pares consumo↔resultado sobre
+ *     estados del mismo objeto (HU-B0.027).
+ */
+export function planificarSimulacion(modelo: Modelo, opdId: Id): PasoSimulacion[] {
+  const opd = modelo.opds[opdId];
+  if (!opd) return [];
+
+  const pasos: PasoSimulacion[] = [];
+  for (const apariencia of Object.values(opd.apariencias)) {
+    const entidad = modelo.entidades[apariencia.entidadId];
+    if (!entidad || entidad.tipo !== "proceso") continue;
+
+    const enlacesEntradaIds: Id[] = [];
+    const enlacesSalidaIds: Id[] = [];
+
+    for (const aparienciaEnlace of Object.values(opd.enlaces)) {
+      const enlace = modelo.enlaces[aparienciaEnlace.enlaceId];
+      if (!enlace) continue;
+      if (extremoAfectaA(enlace.destinoId, modelo, entidad.id)) enlacesEntradaIds.push(enlace.id);
+      if (extremoAfectaA(enlace.origenId, modelo, entidad.id)) enlacesSalidaIds.push(enlace.id);
+    }
+
+    const transicionesPlanificadas = inferirTransiciones(modelo, enlacesEntradaIds, enlacesSalidaIds);
+
+    pasos.push({
+      procesoId: entidad.id,
+      procesoNombre: entidad.nombre,
+      ordenY: apariencia.y,
+      enlacesEntradaIds,
+      enlacesSalidaIds,
+      transicionesPlanificadas,
+    });
+  }
+
+  return pasos.sort((a, b) => {
+    if (a.ordenY !== b.ordenY) return a.ordenY - b.ordenY;
+    return a.procesoNombre.localeCompare(b.procesoNombre, "es-CL");
+  });
+}
+
+/**
+ * Estado current inicial del modelo: tomar estados con designación `current`;
+ * si un objeto no tiene `current`, caer a `default` o `inicial` en ese orden.
+ */
+export function estadosCurrentIniciales(modelo: Modelo): Record<Id, Id> {
+  const resultado: Record<Id, Id> = {};
+  const fallbackDefault: Record<Id, Id> = {};
+  const fallbackInicial: Record<Id, Id> = {};
+
+  for (const estado of Object.values(modelo.estados)) {
+    if (estado.suprimido) continue;
+    if (tieneDesignacion(estado, "current")) {
+      resultado[estado.entidadId] = estado.id;
+    } else if (tieneDesignacion(estado, "default")) {
+      fallbackDefault[estado.entidadId] = estado.id;
+    } else if (tieneDesignacion(estado, "inicial")) {
+      fallbackInicial[estado.entidadId] = estado.id;
+    }
+  }
+
+  for (const [entidadId, estadoId] of Object.entries(fallbackDefault)) {
+    if (!(entidadId in resultado)) resultado[entidadId] = estadoId;
+  }
+  for (const [entidadId, estadoId] of Object.entries(fallbackInicial)) {
+    if (!(entidadId in resultado)) resultado[entidadId] = estadoId;
+  }
+  return resultado;
+}
+
+function extremoAfectaA(extremo: ExtremoEnlace, modelo: Modelo, entidadId: Id): boolean {
+  if (extremo.kind === "entidad") return extremo.id === entidadId;
+  const estado = modelo.estados[extremo.id];
+  return estado?.entidadId === entidadId;
+}
+
+/**
+ * Infiere transiciones de estado emparejando consumo↔resultado sobre estados
+ * del mismo objeto.
+ *
+ *   - Si un enlace entrada parte de un Estado y existe un enlace salida hacia
+ *     un Estado del mismo objeto: transición estadoAntes → estadoDespues.
+ *   - Si solo hay consumo de estado (sin salida emparejable): estadoDespues=null
+ *     (terminación de estado).
+ *   - Si solo hay resultado a estado (sin consumo emparejable): estadoAntes=null
+ *     (creación de estado).
+ *
+ * Se ignoran enlaces estructurales (agregación/exhibición/etc.) y los
+ * tipos procedurales agente/instrumento/invocación: estos no transicionan
+ * estado en Beta2 inicial.
+ */
+function inferirTransiciones(
+  modelo: Modelo,
+  enlacesEntradaIds: Id[],
+  enlacesSalidaIds: Id[],
+): TransicionEstadoSim[] {
+  const entradasEstado = enlacesEntradaIds
+    .map((id) => modelo.enlaces[id])
+    .filter((e): e is Enlace => Boolean(e))
+    .filter((e) => e.tipo === "consumo" || e.tipo === "efecto")
+    .filter((e) => e.origenId.kind === "estado");
+
+  const salidasEstado = enlacesSalidaIds
+    .map((id) => modelo.enlaces[id])
+    .filter((e): e is Enlace => Boolean(e))
+    .filter((e) => e.tipo === "resultado" || e.tipo === "efecto")
+    .filter((e) => e.destinoId.kind === "estado");
+
+  const transiciones: TransicionEstadoSim[] = [];
+  const consumidos = new Set<string>();
+  const producidos = new Set<string>();
+
+  for (const consumo of entradasEstado) {
+    const estadoAntes = modelo.estados[consumo.origenId.id];
+    if (!estadoAntes) continue;
+    const entidadId = estadoAntes.entidadId;
+
+    const resultado = salidasEstado.find((s) => {
+      const estadoDespues = modelo.estados[s.destinoId.id];
+      return estadoDespues?.entidadId === entidadId;
+    });
+
+    if (resultado) {
+      const estadoDespues = modelo.estados[resultado.destinoId.id];
+      if (estadoDespues) {
+        transiciones.push({
+          entidadId,
+          estadoAntesId: estadoAntes.id,
+          estadoDespuesId: estadoDespues.id,
+        });
+        consumidos.add(consumo.id);
+        producidos.add(resultado.id);
+      }
+    } else {
+      transiciones.push({
+        entidadId,
+        estadoAntesId: estadoAntes.id,
+        estadoDespuesId: null,
+      });
+      consumidos.add(consumo.id);
+    }
+  }
+
+  for (const salida of salidasEstado) {
+    if (producidos.has(salida.id)) continue;
+    const estadoDespues = modelo.estados[salida.destinoId.id];
+    if (!estadoDespues) continue;
+    transiciones.push({
+      entidadId: estadoDespues.entidadId,
+      estadoAntesId: null,
+      estadoDespuesId: estadoDespues.id,
+    });
+  }
+
+  return transiciones;
+}
