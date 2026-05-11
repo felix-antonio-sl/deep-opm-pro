@@ -1,5 +1,5 @@
 import { CANON } from "./constantes";
-import { contenedorRefinamiento } from "./layout";
+import { contenedorRefinamiento, encajarAparienciaEnContorno } from "./layout";
 import { crearObjeto, crearProceso } from "./operaciones";
 import type { Afiliacion, Apariencia, Id, Modelo, Posicion, Resultado, TipoEntidad } from "./tipos";
 
@@ -26,8 +26,8 @@ export function crearCosaEnPosicion(
   if (!entidadId) return fallo("No se pudo identificar la cosa creada");
   const apariencia = aparienciaDeEntidad(resultado.value, opdId, entidadId);
   if (!apariencia) return fallo("No se pudo identificar la apariencia creada");
-  const interna = contorno ? posicionDentroDeContorno(posicion, contorno) : false;
-  const modeloAjustado = contorno && interna
+  const interna = contorno !== null;
+  const modeloAjustado = contorno
     ? ajustarCreacionInterna(resultado.value, opdId, apariencia, contorno, afiliacionInterna(modelo, contorno, opciones.afiliacion))
     : resultado.value;
 
@@ -53,18 +53,6 @@ function esCosaCanonica(apariencia: Apariencia): boolean {
   return apariencia.width === CANON.dims.cosaWidth && apariencia.height === CANON.dims.cosaHeight;
 }
 
-function posicionDentroDeContorno(
-  posicion: Posicion,
-  contorno: { x: number; y: number; width: number; height: number },
-): boolean {
-  return (
-    posicion.x >= contorno.x &&
-    posicion.y >= contorno.y &&
-    posicion.x <= contorno.x + contorno.width &&
-    posicion.y <= contorno.y + contorno.height
-  );
-}
-
 function ajustarCreacionInterna(
   modelo: Modelo,
   opdId: Id,
@@ -72,8 +60,7 @@ function ajustarCreacionInterna(
   contorno: { x: number; y: number; width: number; height: number },
   afiliacion: Afiliacion | undefined,
 ): Modelo {
-  const clampX = Math.max(contorno.x + 4, Math.min(contorno.x + contorno.width - apariencia.width - 4, apariencia.x));
-  const clampY = Math.max(contorno.y + 28, Math.min(contorno.y + contorno.height - apariencia.height - 8, apariencia.y));
+  const posicion = encajarAparienciaEnContorno(apariencia, contorno);
   return {
     ...modelo,
     entidades: afiliacion
@@ -93,8 +80,8 @@ function ajustarCreacionInterna(
           ...modelo.opds[opdId]!.apariencias,
           [apariencia.id]: {
             ...apariencia,
-            x: clampX,
-            y: clampY,
+            x: posicion.x,
+            y: posicion.y,
           },
         },
       },

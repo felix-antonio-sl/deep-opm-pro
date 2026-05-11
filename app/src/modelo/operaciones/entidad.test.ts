@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { crearModelo, crearObjeto } from "../operaciones";
+import { crearModelo, crearObjeto, descomponerProceso } from "../operaciones";
 import type { Modelo, Resultado } from "../tipos";
 import {
   asignarValorAtributo,
@@ -32,6 +32,30 @@ describe("operaciones/entidad valor numérico", () => {
     });
     expect(modelo.opds[modelo.opdRaizId]?.apariencias[creado.value.aparienciaId]?.entidadId).toBe(creado.value.atributoId);
     expect(Object.values(modelo.opds[modelo.opdRaizId]?.enlaces ?? {}).some((item) => item.enlaceId === creado.value.enlaceId)).toBe(true);
+  });
+
+  test("crearAtributoEnObjeto en in-zoom nace dentro del contorno", () => {
+    let modelo = modeloConObjeto();
+    const padreId = entidadPorNombre(modelo, "Sistema");
+    const descompuesto = descomponerProceso(modelo, modelo.opdRaizId, padreId);
+    expect(descompuesto.ok).toBe(true);
+    if (!descompuesto.ok) return;
+    modelo = descompuesto.value.modelo;
+
+    const creado = crearAtributoEnObjeto(modelo, descompuesto.value.opdId, padreId, "Temperatura");
+
+    expect(creado.ok).toBe(true);
+    if (!creado.ok) return;
+    const opd = creado.value.modelo.opds[descompuesto.value.opdId];
+    const contorno = Object.values(opd?.apariencias ?? {}).find((apariencia) => apariencia.entidadId === padreId);
+    const atributo = opd?.apariencias[creado.value.aparienciaId];
+    expect(contorno).toBeDefined();
+    expect(atributo).toBeDefined();
+    if (!contorno || !atributo) return;
+    expect(atributo.x).toBeGreaterThanOrEqual(contorno.x);
+    expect(atributo.y).toBeGreaterThanOrEqual(contorno.y);
+    expect(atributo.x + atributo.width).toBeLessThanOrEqual(contorno.x + contorno.width);
+    expect(atributo.y + atributo.height).toBeLessThanOrEqual(contorno.y + contorno.height);
   });
 
   test("renombrarEntidad parsea nombre [unidad] de forma idempotente", () => {

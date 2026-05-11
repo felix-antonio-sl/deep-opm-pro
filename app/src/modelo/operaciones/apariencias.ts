@@ -1,4 +1,4 @@
-import { contenedorRefinamiento } from "../layout";
+import { contenedorRefinamiento, encajarAparienciaEnContorno } from "../layout";
 import { CANON } from "../constantes";
 import { formatearNombreCompuesto } from "../objetoMetadata";
 import type { Apariencia, Id, Modelo, Posicion, Resultado } from "../tipos";
@@ -60,15 +60,10 @@ export function moverAparienciaPorId(modelo: Modelo, opdId: Id, aparienciaId: Id
     // interior). Padding coherente con restrictTranslate del paper. Las
     // apariencias proxy de externos NO se clampean (caen en la rama "else"
     // de abajo) porque por diseno viven fuera del bbox del contorno.
-    const minX = contorno.x + 4;
-    const maxX = contorno.x + contorno.width - apariencia.width - 4;
-    const minY = contorno.y + 28;
-    const maxY = contorno.y + contorno.height - apariencia.height - 8;
-    const clampX = Math.max(minX, Math.min(maxX, posicion.x));
-    const clampY = Math.max(minY, Math.min(maxY, posicion.y));
+    const encajada = encajarAparienciaEnContorno({ ...apariencia, ...posicion }, contorno);
     nuevasApariencias = {
       ...opd.apariencias,
-      [apariencia.id]: { ...apariencia, x: clampX, y: clampY },
+      [apariencia.id]: { ...apariencia, x: encajada.x, y: encajada.y },
     };
   } else {
     // OPD raiz o sin refinable: comportamiento sin restriccion.

@@ -3,7 +3,7 @@
 // arquitecturales con calculo de posiciones; permite testear el layout
 // sin levantar el ciclo completo de zustand.
 import { CANON } from "./constantes";
-import { refinaA } from "./refinamientos";
+import { obtenerRefinamiento } from "./refinamientos";
 import type { Apariencia, Id, Modelo, Posicion, TipoEntidad } from "./tipos";
 
 export interface ContornoRefinable {
@@ -21,6 +21,9 @@ const MARGEN_INTERNO = 36;
 const PADDING_OFFSET = 68;
 const PADDING_INFERIOR = 24;
 const MARGEN_SOLAPE = 18;
+const CONTORNO_PAD_X = 4;
+const CONTORNO_PAD_TOP = 28;
+const CONTORNO_PAD_BOTTOM = 8;
 
 const COLUMNAS_LIBRES_PROCESO = [300, 80, 520, 740];
 const COLUMNAS_LIBRES_OBJETO = [80, 300, 520, 740];
@@ -70,7 +73,7 @@ export function contenedorRefinamiento(modelo: Modelo, opdId: Id): ContornoRefin
   if (!opd?.padreId) return null;
   return Object.values(opd.apariencias).find((apariencia) => {
     const entidad = modelo.entidades[apariencia.entidadId];
-    return entidad ? refinaA(entidad, opdId) !== null : false;
+    return entidad ? obtenerRefinamiento(entidad, "descomposicion")?.opdId === opdId : false;
   }) ?? null;
 }
 
@@ -95,4 +98,18 @@ export function dentroDeApariencia(
     apariencia.x + apariencia.width <= contorno.x + contorno.width &&
     apariencia.y + apariencia.height <= contorno.y + contorno.height
   );
+}
+
+export function encajarAparienciaEnContorno(
+  apariencia: { x: number; y: number; width: number; height: number },
+  contorno: { x: number; y: number; width: number; height: number },
+): Posicion {
+  const minX = contorno.x + CONTORNO_PAD_X;
+  const maxX = contorno.x + contorno.width - apariencia.width - CONTORNO_PAD_X;
+  const minY = contorno.y + CONTORNO_PAD_TOP;
+  const maxY = contorno.y + contorno.height - apariencia.height - CONTORNO_PAD_BOTTOM;
+  return {
+    x: Math.round(Math.max(minX, Math.min(maxX, apariencia.x))),
+    y: Math.round(Math.max(minY, Math.min(maxY, apariencia.y))),
+  };
 }

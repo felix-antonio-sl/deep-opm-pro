@@ -9,8 +9,6 @@ import {
   cambiarEsencia,
   cambiarTipoValorAtributo,
   crearAtributoEnObjeto,
-  crearObjeto,
-  crearProceso,
   redimensionarApariencia,
   renombrarEntidad,
   volverAAutoTamano,
@@ -28,7 +26,7 @@ import {
 } from "../../modelo/objetoMetadata";
 import type { Apariencia, Id, LayoutEstados, Modelo, ModoImagenEntidad, TipoValorSlot } from "../../modelo/tipos";
 import { fijarOpcionesProyeccionGlobal } from "../../render/jointjs/proyeccion";
-import { commitModelo, entidadNueva, type GetStore, type SetStore } from "../runtime";
+import { commitModelo, type GetStore, type SetStore } from "../runtime";
 import type { ModeloSlice } from "../tipos";
 
 /**
@@ -41,19 +39,19 @@ export function accionesEntidad(set: SetStore, get: GetStore): Partial<ModeloSli
   return {
     crearObjetoDemo() {
       const { modelo, opdActivoId } = get();
-      const resultado = crearObjeto(modelo, opdActivoId, posicionLibre(modelo, opdActivoId, "objeto"));
+      const resultado = crearCosaEnPosicion(modelo, opdActivoId, "objeto", posicionLibre(modelo, opdActivoId, "objeto"));
       if (resultado.ok) {
-        const nueva = entidadNueva(modelo, resultado.value);
-        commitModelo(set, modelo, resultado.value, { seleccionId: nueva, seleccionados: nueva ? [nueva] : [], modoSeleccion: "simple", enlaceSeleccionId: null, mensaje: null });
+        const nueva = resultado.value.entidadId;
+        commitModelo(set, modelo, resultado.value.modelo, { seleccionId: nueva, seleccionados: [nueva], modoSeleccion: "simple", enlaceSeleccionId: null, mensaje: null });
       }
     },
 
     crearProcesoDemo() {
       const { modelo, opdActivoId } = get();
-      const resultado = crearProceso(modelo, opdActivoId, posicionLibre(modelo, opdActivoId, "proceso"));
+      const resultado = crearCosaEnPosicion(modelo, opdActivoId, "proceso", posicionLibre(modelo, opdActivoId, "proceso"));
       if (resultado.ok) {
-        const nueva = entidadNueva(modelo, resultado.value);
-        commitModelo(set, modelo, resultado.value, { seleccionId: nueva, seleccionados: nueva ? [nueva] : [], modoSeleccion: "simple", enlaceSeleccionId: null, mensaje: null });
+        const nueva = resultado.value.entidadId;
+        commitModelo(set, modelo, resultado.value.modelo, { seleccionId: nueva, seleccionados: [nueva], modoSeleccion: "simple", enlaceSeleccionId: null, mensaje: null });
       }
     },
 

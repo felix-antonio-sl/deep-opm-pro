@@ -8,7 +8,7 @@ import {
   posicionLibre,
   solapa,
 } from "./layout";
-import { crearModelo, crearObjeto, crearProceso, descomponerProceso } from "./operaciones";
+import { crearModelo, crearObjeto, crearProceso, descomponerProceso, desplegarObjeto } from "./operaciones";
 import type { Apariencia, Modelo, Resultado } from "./tipos";
 
 describe("modelo/layout", () => {
@@ -46,6 +46,18 @@ describe("modelo/layout", () => {
     const apariencia = Object.values(modelo.opds[descomposicion.opdId]?.apariencias ?? {})
       .find((item) => item.entidadId === procesoId);
     expect(contorno?.x).toBe(apariencia?.x);
+  });
+
+  test("contenedorRefinamiento no trata despliegue estructural como contorno", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 80, y: 90 }, "Todo"));
+    const objetoId = Object.values(modelo.entidades).find((entidad) => entidad.nombre === "Todo")?.id;
+    expect(objetoId).toBeDefined();
+    if (!objetoId) return;
+    const despliegue = must(desplegarObjeto(modelo, modelo.opdRaizId, objetoId, "agregacion"));
+    modelo = despliegue.modelo;
+
+    expect(contenedorRefinamiento(modelo, despliegue.opdId)).toBeNull();
   });
 
   test("columnasDentroDe centra procesos y alinea objetos al borde izquierdo", () => {

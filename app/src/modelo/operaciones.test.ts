@@ -1112,6 +1112,28 @@ describe("operaciones de modelo", () => {
     expect(apariencasMovidas[externoProxy.id]?.y).toBe(externoProxy.y);
   });
 
+  test("mover hijos de despliegue estructural no los clampea sobre el padre", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 80, y: 90 }, "Todo"));
+    const todo = entidadPorNombre(modelo, "Todo");
+    const desplegado = must(desplegarObjeto(modelo, modelo.opdRaizId, todo.id, "agregacion"));
+    modelo = desplegado.modelo;
+    const opdHijo = modelo.opds[desplegado.opdId];
+    expect(opdHijo).toBeDefined();
+    if (!opdHijo) return;
+
+    const hijo = Object.values(opdHijo.apariencias).find((apariencia) => apariencia.entidadId !== todo.id);
+    expect(hijo).toBeDefined();
+    if (!hijo) return;
+
+    const posicionLibre = { x: 620, y: 420 };
+    const movido = must(moverAparienciaPorId(modelo, desplegado.opdId, hijo.id, posicionLibre));
+    const hijoMovido = movido.opds[desplegado.opdId]?.apariencias[hijo.id];
+
+    expect(hijoMovido?.x).toBe(posicionLibre.x);
+    expect(hijoMovido?.y).toBe(posicionLibre.y);
+  });
+
   test("distribuye agente e instrumento externos a todos los subprocesos del refinamiento", () => {
     let modelo = crearModelo();
     modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 40 }, "Driver"));
