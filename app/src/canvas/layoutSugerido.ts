@@ -210,13 +210,33 @@ function layoutConContorno(
   const referenciaIds = new Set<Id>([contorno.entidadId, ...embedded.map((a) => a.entidadId)]);
   const { entradas, salidas } = clasificarExternosPorDireccion(modelo, opdId, referenciaIds, externos);
 
-  const xIzq = Math.max(0, contornoX - CANON.dims.cosaWidth - INZOOM.margenExterno);
-  const xDer = contornoX + contornoWidth + INZOOM.margenExterno;
+  // BUG-densos-HODOM (inzoom denso real): cuando hay >6 externos por lado,
+  // apilarlos en UNA columna produce un OPD desproporcionadamente alto (caso
+  // observado: 15 entradas × 60 + 14 × 32 = 1348 px de alto, externos
+  // mezclados visualmente con embedded). Particionamos en multi-columna
+  // simetrica con `gapInternoHorizontal=50` cuando se excede el umbral.
+  const columnasIzq = Math.max(1, Math.ceil(entradas.length / DENSIDAD.umbralNivelDenso));
+  const columnasDer = Math.max(1, Math.ceil(salidas.length / DENSIDAD.umbralNivelDenso));
+  const anchoIzqTotal = columnasIzq * CANON.dims.cosaWidth + (columnasIzq - 1) * INZOOM.gapInternoHorizontal;
+  const anchoDerTotal = columnasDer * CANON.dims.cosaWidth + (columnasDer - 1) * INZOOM.gapInternoHorizontal;
+  // El contorno se posiciona despues de anchoIzqTotal + margen para que las
+  // columnas izq no caigan en x<0 y queden visibles a la izquierda.
+  const xIzq = INZOOM.margenExterno;
+  const contornoXFinal = Math.max(contornoX, xIzq + anchoIzqTotal + INZOOM.margenExterno);
+  const xDer = contornoXFinal + contornoWidth + INZOOM.margenExterno;
+  // Si recolocamos el contorno, sobreescribimos la posicion ya emitida.
+  if (contornoXFinal !== contornoX) {
+    const idx = posiciones.findIndex((p) => p.aparienciaId === contorno.id);
+    if (idx >= 0) posiciones[idx] = { ...posiciones[idx]!, x: contornoXFinal };
+    // Recentrar embedded sobre el contorno desplazado.
+    const dx = contornoXFinal - contornoX;
+    for (const p of posiciones) {
+      if (p.aparienciaId !== contorno.id) p.x = Math.round(p.x + dx);
+    }
+  }
 
-  // Distribucion vertical: centra el bloque de cada columna alrededor del
-  // centro vertical del contorno para no apilar todos arriba.
-  posicionarColumna(entradas, xIzq, contornoY, contornoHeight, INZOOM.gapExterno, posiciones);
-  posicionarColumna(salidas, xDer, contornoY, contornoHeight, INZOOM.gapExterno, posiciones);
+  posicionarColumnaDensa(entradas, xIzq, columnasIzq, contornoY, contornoHeight, posiciones);
+  posicionarColumnaDensa(salidas, xDer, columnasDer, contornoY, contornoHeight, posiciones);
 
   return posiciones;
 }
@@ -236,6 +256,42 @@ function posicionarColumna(
   for (const apariencia of lista) {
     acumulador.push({ aparienciaId: apariencia.id, x: Math.round(x), y: Math.round(yCursor) });
     yCursor += apariencia.height + gap;
+  }
+}
+
+/**
+ * Variante multi-columna de `posicionarColumna`. Reparte la lista en
+ * `columnas` columnas verticales con `gap=INZOOM.gapExterno` vertical y
+ * `INZOOM.gapInternoHorizontal` horizontal. Cada columna se centra
+ * verticalmente alrededor del contorno. Cuando `columnas === 1` el
+ * comportamiento es identico a `posicionarColumna`.
+ *
+ * BUG-densos-HODOM: necesario cuando un inzoom real tiene >6 externos por
+ * lado (caso observado: 15 entradas) y la columna unica produce un OPD
+ * desproporcionadamente alto.
+ */
+function posicionarColumnaDensa(
+  lista: Apariencia[],
+  xInicio: number,
+  columnas: number,
+  contornoY: number,
+  contornoHeight: number,
+  acumulador: PosicionSugerida[],
+): void {
+  if (lista.length === 0) return;
+  const filasPorColumna = Math.ceil(lista.length / columnas);
+  for (let col = 0; col < columnas; col++) {
+    const inicio = col * filasPorColumna;
+    const fin = Math.min(lista.length, inicio + filasPorColumna);
+    const grupo = lista.slice(inicio, fin);
+    if (grupo.length === 0) continue;
+    const x = xInicio + col * (CANON.dims.cosaWidth + INZOOM.gapInternoHorizontal);
+    const alturaTotal = grupo.reduce((sum, a) => sum + a.height, 0) + INZOOM.gapExterno * (grupo.length - 1);
+    let yCursor = Math.max(contornoY, contornoY + (contornoHeight - alturaTotal) / 2);
+    for (const apariencia of grupo) {
+      acumulador.push({ aparienciaId: apariencia.id, x: Math.round(x), y: Math.round(yCursor) });
+      yCursor += apariencia.height + INZOOM.gapExterno;
+    }
   }
 }
 

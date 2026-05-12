@@ -169,6 +169,27 @@ describe("layoutSugerido", () => {
     expect(contorno.width).toBeGreaterThanOrEqual(405);
     expect(contorno.height).toBeLessThan(885);
   });
+
+  test("externos densos por lado se reparten en multi-columna (BUG-densos-HODOM)", () => {
+    // Caso real: SD-1 del modelo HODOM tiene 15 externos entrantes en un solo
+    // lado del inzoom. Antes del fix, `posicionarColumna` los apilaba en una
+    // sola columna produciendo un OPD de >1300 px de alto. Tras el fix se
+    // parten en multi-columna (>=3 columnas para >=12 elementos, umbral 6),
+    // y el contorno se desplaza horizontalmente para hacer espacio.
+    const modelo = modeloOpdInzoomExternosDensos();
+    const aplicado = aplicarLayoutSugerido(modelo, "opd-2");
+    expect(aplicado.ok).toBe(true);
+    if (!aplicado.ok) return;
+    const aps = Object.values(aplicado.value.opds["opd-2"]!.apariencias);
+    const minY = Math.min(...aps.map((a) => a.y));
+    const maxY = Math.max(...aps.map((a) => a.y + a.height));
+    const altoTotal = maxY - minY;
+    expect(altoTotal).toBeLessThan(900);
+    // Las 15 entradas deben distribuirse en al menos 3 columnas distintas.
+    const entradas = aps.filter((a) => a.id.startsWith("a-ext-in"));
+    const columnasEntradas = new Set(entradas.map((a) => a.x));
+    expect(columnasEntradas.size).toBeGreaterThanOrEqual(3);
+  });
 });
 
 function modeloPipeline(): Modelo {
@@ -505,6 +526,31 @@ function modeloOpdInzoomDenso(): Modelo {
       width: 135,
       height: 60,
     };
+  }
+  return modelo;
+}
+
+function modeloOpdInzoomExternosDensos(): Modelo {
+  // Variante del inzoom canonico con 15 externos entrantes (uno por enlace
+  // consumo hacia el contorno) que reproduce la patologia HODOM-SD1.
+  const modelo = modeloOpdInzoomDescomposicion();
+  const opd2 = modelo.opds["opd-2"]!;
+  for (let i = 1; i <= 15; i++) {
+    const entidadId = `o-ext-in-${i}`;
+    const aparienciaId = `a-ext-in-${i}`;
+    const enlaceId = `e-ext-in-${i}`;
+    modelo.entidades[entidadId] = { id: entidadId, tipo: "objeto", nombre: `Externo ${i}`, esencia: "fisica", afiliacion: "ambiental" };
+    opd2.apariencias[aparienciaId] = {
+      id: aparienciaId,
+      entidadId,
+      opdId: "opd-2",
+      x: 24,
+      y: 80 + (i - 1) * 90,
+      width: 135,
+      height: 60,
+    };
+    modelo.enlaces[enlaceId] = { id: enlaceId, tipo: "consumo", origenId: { kind: "entidad", id: entidadId }, destinoId: { kind: "entidad", id: "p-padre" }, etiqueta: "" };
+    opd2.enlaces[`ae-${enlaceId}`] = { id: `ae-${enlaceId}`, enlaceId, opdId: "opd-2", vertices: [] };
   }
   return modelo;
 }
