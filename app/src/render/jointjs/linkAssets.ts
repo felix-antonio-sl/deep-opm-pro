@@ -30,10 +30,13 @@ export const LINK_ASSETS = {
     resultado: {
       source: "assets/svg/links/procedural/result.svg",
       path: "M35.132 24L39.428 20.0881L42.8196 17L38.4208 18.3005L17.5956 24.4573L14.0684 25.5L17.5956 26.5427L38.4208 32.6995L42.8196 34L39.428 30.9116L35.132 27L67.65 27V24L35.132 24ZM32.1382 26.9788L35.0293 29.6113L21.1228 25.5L35.0293 21.3887L32.1382 24.0212L30.5142 25.5L32.1382 26.9788Z",
-      // P3-1 ronda 4: resultado debe distinguirse de consumo y efecto (SSOT
-      // §3.1). Punta cerrada rellena clasica P → O en vez del swallowtail
-      // compartido. Mantiene direccion: vertice apunta al destino (objeto).
-      marker: { type: "path", d: "M0,-6 L12,0 L0,6 Z", fill: "#586D8C", stroke: "#586D8C", strokeWidth: 2 },
+      // BUG-4c1753: el operador prefiere la convencion OPCloud (JOYAS §5)
+      // donde resultado, consumo y efecto comparten el swallowtail blanco.
+      // SSOT §3.1 los distingue formalmente; en operacion practica OPCloud
+      // (sandbox real) los unifica y el equipo opera contra esa convencion.
+      // La diferenciacion P3-1 introducia una punta cerrada que visualmente
+      // se confundia con triangulos agregadores estructurales.
+      marker: { type: "path", d: "M0,0 L23,8 L12,0 L23,-8 L0,0", fill: "white", stroke: "#586D8C", strokeWidth: 2 },
     },
     efecto: {
       source: "assets/svg/links/procedural/effect.svg",
