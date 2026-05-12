@@ -30,6 +30,8 @@ const TIPOS_REFINAMIENTO_ESTRUCTURAL: readonly TipoEnlace[] = [
   "clasificacion",
 ] as const;
 
+const UMBRAL_JUMPOVER_DENSO = 35;
+
 /*
  * Compatibilidad temporal del detector HU v2 hasta L6b. Evidencia real vive
  * en composers/* y esta cubierta por tests: strokeDasharray drop-shadow;
@@ -63,6 +65,7 @@ export function proyectarModeloAJointCells(
   const seleccionMultiple = new Set(seleccionados);
 
   const apariencias = Object.values(opd.apariencias);
+  const usarJumpover = Object.keys(opd.enlaces).length <= UMBRAL_JUMPOVER_DENSO;
   const aparienciaPorEntidad = new Map(apariencias.map((apariencia) => [apariencia.entidadId, apariencia]));
   const elementos = apariencias.flatMap((apariencia) => {
     const entidad = modeloRender.entidades[apariencia.entidadId];
@@ -136,7 +139,7 @@ export function proyectarModeloAJointCells(
     const enlaceResaltado = enlace.id === seleccionEnlaceId || seleccionMultiple.has(enlace.id) || refResaltaEnlace(enlace, hoverOplRef);
     return TIPOS_REFINAMIENTO_ESTRUCTURAL.includes(enlace.tipo) && !origen.proxy && !destino.proxy
       ? proyectarRefinamientoEstructural(opdId, enlace, aparienciaEnlace.id, origen, destino, enlaceResaltado)
-      : [proyectarEnlace(opdId, enlace, aparienciaEnlace.id, origen, destino, aparienciaEnlace.vertices, enlaceResaltado, enlacesEnAbanico.has(enlace.id))];
+      : [proyectarEnlace(opdId, enlace, aparienciaEnlace.id, origen, destino, aparienciaEnlace.vertices, enlaceResaltado, enlacesEnAbanico.has(enlace.id), { usarJumpover })];
   });
 
   const halos = seleccionMultiple.size > 1

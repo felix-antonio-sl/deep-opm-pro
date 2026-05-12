@@ -14,17 +14,17 @@ export function ordenarEnlacesEstructuralesConectados(paper: dia.Paper, graph: d
     })
     .map((link) => ({ link, side: ladoConectado(link, element.id) }))
     .filter((item): item is { link: dia.Link; side: "source" | "target" } => item.side !== null)
-    .filter((item) => typeof endpoint(item.link, item.side).port === "string");
+    .filter((item) => endpoint(item.link, item.side).anchor !== undefined);
 
   if (links.length < 2 || links.length > MAX_LINKS_SORT) return;
   if (contarCruces(paper, links.map((item) => item.link)) === 0) return;
 
-  const originales = links.map((item) => endpoint(item.link, item.side).port as string);
+  const originales = links.map((item) => endpoint(item.link, item.side).anchor);
   for (const perm of permutaciones(originales)) {
-    aplicarPuertos(links, perm);
+    aplicarAnchors(links, perm);
     if (contarCruces(paper, links.map((item) => item.link)) === 0) return;
   }
-  aplicarPuertos(links, originales);
+  aplicarAnchors(links, originales);
 }
 
 export function ordenarTodosLosEnlacesEstructurales(paper: dia.Paper, graph: dia.Graph): void {
@@ -35,10 +35,10 @@ export function ordenarTodosLosEnlacesEstructurales(paper: dia.Paper, graph: dia
   }
 }
 
-function aplicarPuertos(links: Array<{ link: dia.Link; side: "source" | "target" }>, ports: string[]): void {
+function aplicarAnchors(links: Array<{ link: dia.Link; side: "source" | "target" }>, anchors: Array<dia.Link.EndJSON["anchor"]>): void {
   links.forEach((item, index) => {
     const actual = endpoint(item.link, item.side);
-    item.link.prop(item.side, { ...actual, port: ports[index] });
+    item.link.prop(item.side, { ...actual, anchor: anchors[index] });
   });
 }
 

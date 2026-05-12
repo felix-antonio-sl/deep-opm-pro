@@ -106,6 +106,7 @@ export function proyectarEnlace(
   vertices: Posicion[],
   seleccionada: boolean,
   enAbanico = false,
+  opciones: { usarJumpover?: boolean } = {},
 ): JointCellJson {
   const verticesRender = verticesEnlace(enlace.tipo, origen.apariencia, destino.apariencia, vertices);
   const estiloE = enlace.estilo;
@@ -124,11 +125,15 @@ export function proyectarEnlace(
   const router = !enAbanico && enlace.tipo !== "invocacion" && esEstructural
     ? routerManhattan()
     : undefined;
-  // OPCloud usa `jumpover` global para todos los OpmDefaultLink (saltos sobre
-  // cruces). Aplicamos lo mismo: jumpover preserva legibilidad sin importar
-  // el router. Solo enlaces en abanico mantienen `straight` (sus paths van
-  // explicitamente al dock del puerto, jumpover crearia saltos artificiales).
-  const connector = enAbanico ? { name: "straight" } : connectorJumpover();
+  // OPCloud usa `jumpover` en OpmDefaultLink, pero en OPDs densos el arco de
+  // cada cruce termina pareciendo enlace adicional. Conservamos jumpover en
+  // modelos chicos/medianos y degradamos a conector recto cuando la proyeccion
+  // detecta alta densidad.
+  const connector = enAbanico
+    ? connectorRecto()
+    : opciones.usarJumpover === false
+      ? connectorRecto()
+      : connectorJumpover();
   // Los enlaces con ports dinámicos deben quedar sobre las entidades para
   // conservar hit-testing del wrapper transparente; el path visible ya corta
   // en el borde del port, así que no atraviesa el cuerpo de la entidad.
@@ -500,6 +505,10 @@ export function routerManhattan(): Record<string, unknown> {
 // markers swallowtail (23x17) cuando estan cerca de un cruce.
 export function connectorJumpover(): Record<string, unknown> {
   return { name: "jumpover", args: { type: "arc", size: 8 } };
+}
+
+export function connectorRecto(): Record<string, unknown> {
+  return { name: "straight" };
 }
 
 export function verticesEnlace(tipo: TipoEnlace, origen: Apariencia, destino: Apariencia, vertices: Posicion[]): Posicion[] {

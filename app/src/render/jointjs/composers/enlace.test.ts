@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import type { Apariencia, Enlace } from "../../../modelo/tipos";
 import { LINK_ASSETS } from "../linkAssets";
-import { connectorJumpover, endpointJoint, etiquetasMultiplicidad, proyectarEnlace, routerManhattan, verticesInvocacion } from "./enlace";
+import { connectorJumpover, connectorRecto, endpointJoint, etiquetasMultiplicidad, proyectarEnlace, routerManhattan, verticesInvocacion } from "./enlace";
 
 describe("composer enlace", () => {
   test("proyecta enlace con multiplicidad, estilo y metadata OPM", () => {
@@ -50,11 +50,17 @@ describe("composer enlace", () => {
     expect(cell.connector).toEqual({ name: "straight" });
   });
 
+  test("modelo denso puede desactivar jumpover para evitar ruido visual", () => {
+    const cell = proyectarEnlace("opd-1", enlaceBase, "ae-denso", { apariencia: origen }, { apariencia: destino }, [], false, false, { usarJumpover: false });
+    expect(cell.connector).toEqual({ name: "straight" });
+  });
+
   test("mantiene helpers de labels, router e invocacion", () => {
     // OPCloud canon: distancia 0.9 para multiplicidad destino (fraccion path).
     expect(etiquetasMultiplicidad({ ...enlaceBase, multiplicidadDestino: "0..N" })[0]?.position).toMatchObject({ distance: 0.9, offset: -12 });
     expect(routerManhattan()).toEqual({ name: "manhattan", args: { padding: 5, step: 11 } });
     expect(connectorJumpover()).toEqual({ name: "jumpover", args: { type: "arc", size: 8 } });
+    expect(connectorRecto()).toEqual({ name: "straight" });
     expect(verticesInvocacion(origen, destino)).toHaveLength(3);
   });
 
