@@ -5,12 +5,18 @@ export const LINK_ASSETS = {
     agente: {
       source: "assets/svg/links/procedural/agent.svg",
       path: "M57.5 34C61.6421 34 65 30.6421 65 26.5C65 22.3579 61.6421 19 57.5 19C53.697 19 50.5549 21.8306 50.066 25.5H13V28.5H50.2697C51.1449 31.6711 54.0505 34 57.5 34Z",
-      marker: { type: "circle", r: 5, cx: 5, fill: "#586D8C", stroke: "#586D8C" },
+      // P3-2 ronda 4: lollipop canonico (SSOT §1.5, V-190). Stick visible
+      // de 7px desde el extremo del enlace conectado a un circulo de radio 5.
+      // Agente = circulo relleno con color del enlace.
+      marker: { type: "path", d: "M0,0 L-7,0 M-7,0 a5,5 0 1,1 -10,0 a5,5 0 1,1 10,0 Z", fill: "#586D8C", stroke: "#586D8C", strokeWidth: 2 },
     },
     instrumento: {
       source: "assets/svg/links/procedural/instrument.svg",
       path: "M63 26.5C63 28.9854 60.9852 31 58.5 31C56.0148 31 54 28.9854 54 26.5C54 24.0146 56.0148 22 58.5 22C60.9852 22 63 24.0146 63 26.5ZM66 26.5C66 30.6421 62.6421 34 58.5 34C55.0505 34 52.1449 31.6711 51.2697 28.5H14V25.5H51.066C51.5549 21.8306 54.697 19 58.5 19C62.6421 19 66 22.3579 66 26.5Z",
-      marker: { type: "circle", r: 5, cx: 5, fill: "white", stroke: "#586D8C", strokeWidth: 2 },
+      // P3-2 ronda 4: lollipop canonico (SSOT §1.5, V-190). Instrumento =
+      // mismo stick + circulo, pero circulo blanco con borde para distinguirlo
+      // visualmente de agente (semantica diferente, geometria idem).
+      marker: { type: "path", d: "M0,0 L-7,0 M-7,0 a5,5 0 1,1 -10,0 a5,5 0 1,1 10,0 Z", fill: "white", stroke: "#586D8C", strokeWidth: 2 },
     },
     consumo: {
       source: "assets/svg/links/procedural/consumption.svg",
@@ -20,7 +26,10 @@ export const LINK_ASSETS = {
     resultado: {
       source: "assets/svg/links/procedural/result.svg",
       path: "M35.132 24L39.428 20.0881L42.8196 17L38.4208 18.3005L17.5956 24.4573L14.0684 25.5L17.5956 26.5427L38.4208 32.6995L42.8196 34L39.428 30.9116L35.132 27L67.65 27V24L35.132 24ZM32.1382 26.9788L35.0293 29.6113L21.1228 25.5L35.0293 21.3887L32.1382 24.0212L30.5142 25.5L32.1382 26.9788Z",
-      marker: { type: "path", d: "M0,0 L23,8 L12,0 L23,-8 L0,0", fill: "white", stroke: "#586D8C", strokeWidth: 2 },
+      // P3-1 ronda 4: resultado debe distinguirse de consumo y efecto (SSOT
+      // §3.1). Punta cerrada rellena clasica P → O en vez del swallowtail
+      // compartido. Mantiene direccion: vertice apunta al destino (objeto).
+      marker: { type: "path", d: "M0,-6 L12,0 L0,6 Z", fill: "#586D8C", stroke: "#586D8C", strokeWidth: 2 },
     },
     efecto: {
       source: "assets/svg/links/procedural/effect.svg",

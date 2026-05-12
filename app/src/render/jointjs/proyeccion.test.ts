@@ -171,10 +171,11 @@ describe("proyeccion JointJS", () => {
     expect((cellEnlace?.target as { id?: string } | undefined)?.id).toBe(aparienciaPorEntidad.get(entidadIdDeExtremo(modelo, enlace.destinoId) ?? ""));
     const line = ((cellEnlace?.attrs as Attrs | undefined)?.line as Attrs | undefined);
     expect(line?.sourceMarker).toBeNull();
-    expect((line?.targetMarker as Attrs | undefined)?.type).toBe("circle");
-    expect((line?.targetMarker as Attrs | undefined)?.r).toBe(LINK_ASSETS.procedural.agente.marker.r);
+    // P3-2 ronda 4: agente usa path lollipop (stick + circulo) en vez de
+    // circle simple. Mantiene fill color enlace (semantica agente=lleno).
+    expect((line?.targetMarker as Attrs | undefined)?.type).toBe("path");
+    expect((line?.targetMarker as Attrs | undefined)?.d).toBe(LINK_ASSETS.procedural.agente.marker.d);
     expect((line?.targetMarker as Attrs | undefined)?.fill).toBe("#586D8C");
-    expect((line?.targetMarker as Attrs | undefined)?.cx).toBe(5);
     expect(cellEnlace?.opm).toMatchObject({
       kind: "enlace",
       enlaceId: enlace.id,
