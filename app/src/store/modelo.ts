@@ -33,6 +33,7 @@ export const createModeloSlice: CrearSlice<ModeloSlice> = (set, get) => ({
   opdActivoId: modeloInicial.opdRaizId,
   mensaje: null,
   dirty: false,
+  dirtyModelo: false,
   puedeDeshacer: false,
   puedeRehacer: false,
   plantillasGuardadas: [],

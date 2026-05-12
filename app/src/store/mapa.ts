@@ -230,14 +230,22 @@ export const createMapaSlice: CrearSlice<MapaSlice> = (set, get) => ({
   mapaPanelEstadisticasAbierto: false,
 
   abrirVistaMapa() {
-    const { modelo, modeloPersistidoId, indice } = get();
-    const descriptor = construirDescriptorMapa(modelo);
-    const preferencias = leerPreferenciasMapa(indice, modeloPersistidoId);
+    const { modelo, modeloPersistidoId, indice, contextoSimulacion, readOnlyPrevSimulacion } = get();
+    // P0-2 ronda 4: Mapa y Simulacion son mutuamente excluyentes.
+    // Si hay simulacion activa, restauramos readOnly y la limpiamos.
+    // Cancelamos tambien modoEnlace y modoCreacion (no aplican en vista mapa).
     set({
       vistaMapaActiva: true,
-      descriptorMapaCache: descriptor,
-      ...preferencias,
+      descriptorMapaCache: construirDescriptorMapa(modelo),
+      ...leerPreferenciasMapa(indice, modeloPersistidoId),
       mensaje: null,
+      modoEnlace: null,
+      modoCreacion: null,
+      ...(contextoSimulacion !== null ? {
+        contextoSimulacion: null,
+        readOnly: readOnlyPrevSimulacion ?? false,
+        readOnlyPrevSimulacion: null,
+      } : {}),
     });
   },
 

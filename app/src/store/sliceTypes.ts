@@ -12,6 +12,7 @@ export type ModeloSlice = Slice<
   | "opdActivoId"
   | "mensaje"
   | "dirty"
+  | "dirtyModelo"
   | "puedeDeshacer"
   | "puedeRehacer"
   | "plantillasGuardadas"

@@ -328,6 +328,7 @@ export const createPersistenciaSlice: CrearSlice<PersistenciaSlice> = (set, get)
     set(estadoModelo(modelo, {
       mensaje: "Modelo guardado exitosamente",
       dirty: false,
+      dirtyModelo: false,
       modeloPersistidoId: guardado.value.id,
       descripcionModeloLocal: guardado.value.descripcion,
       modelosGuardados: listarModelosGuardadosSeguro(),

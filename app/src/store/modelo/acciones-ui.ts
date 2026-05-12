@@ -162,6 +162,7 @@ export function accionesUI(set: SetStore, get: GetStore): Partial<ModeloSlice> {
         modoEnlace: null,
         mensaje: "Modelo guardado exitosamente",
         dirty: false,
+        dirtyModelo: false,
         modeloPersistidoId: guardado.value.id,
         descripcionModeloLocal: guardado.value.descripcion,
         modelosGuardados: listarModelosGuardadosSeguro(),
@@ -228,6 +229,7 @@ export function accionesUI(set: SetStore, get: GetStore): Partial<ModeloSlice> {
         modoEnlace: null,
         mensaje: "Modelo guardado exitosamente",
         dirty: false,
+        dirtyModelo: false,
         modeloPersistidoId: guardado.value.id,
         descripcionModeloLocal: guardado.value.descripcion,
         modelosGuardados: listarModelosGuardadosSeguro(),
@@ -398,6 +400,7 @@ export function accionesUI(set: SetStore, get: GetStore): Partial<ModeloSlice> {
         workspaceLocal: workspaceDesdeModelo(modeloRenombrado, modeloPersistidoId, descripcionModeloLocal, carpetaActualId),
         mensaje: "Modelo renombrado",
         dirty: false,
+        dirtyModelo: false,
       }));
     },
 

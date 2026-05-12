@@ -31,14 +31,14 @@ interface ProviderProps {
 }
 
 export function ConfirmacionProvider({ children }: ProviderProps) {
-  // Subscripcion a dirty para que el provider re-renderice cuando cambie y
-  // las decisiones de descartar/guardar se evaluen contra el ultimo estado.
-  useOpmStore((s) => s.dirty);
+  // P0 ronda 4: dirtyModelo solo se activa con cambios semanticos.
+  // Layout puro (auto-layout, drag) no bloquea la carga de otro modelo.
+  useOpmStore((s) => s.dirtyModelo);
   const guardarLocal = useOpmStore((s) => s.guardarLocal);
   const [pendiente, setPendiente] = useState<ConfirmacionPendiente | null>(null);
 
   const confirmarSiDirty: ConfirmarSiDirty = (accion) => {
-    if (!store.getState().dirty) {
+    if (!store.getState().dirtyModelo) {
       accion();
       return;
     }
@@ -46,7 +46,7 @@ export function ConfirmacionProvider({ children }: ProviderProps) {
   };
 
   const confirmarCierreDirty: ConfirmarCierreDirty = (accion, opciones) => {
-    const dirty = opciones?.dirty ?? store.getState().dirty;
+    const dirty = opciones?.dirty ?? store.getState().dirtyModelo;
     if (!dirty) {
       accion();
       return;

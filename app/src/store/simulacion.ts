@@ -26,9 +26,15 @@ export const createSimulacionSlice: CrearSlice<SimulacionSlice> = (set, get) => 
       contextoSimulacion: contexto,
       readOnlyPrevSimulacion: readOnly,
       readOnly: true,
+      // P0-2 ronda 4: Mapa y Simulacion son mutuamente excluyentes.
+      // Al entrar a simulacion, cerramos mapa y modos de edicion.
+      vistaMapaActiva: false,
+      descriptorMapaCache: null,
+      modoEnlace: null,
+      modoCreacion: null,
       mensaje: contexto.plan.length === 0
-        ? "Modo simulación: el OPD activo no tiene procesos."
-        : `Modo simulación: ${contexto.plan.length} ${contexto.plan.length === 1 ? "paso" : "pasos"} planificados.`,
+        ? "Modo simulacion: el OPD activo no tiene procesos."
+        : `Modo simulacion: ${contexto.plan.length} ${contexto.plan.length === 1 ? "paso" : "pasos"} planificados.`,
     });
   },
 

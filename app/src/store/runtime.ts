@@ -296,6 +296,11 @@ export function commitModelo(
   undoStack = [...undoStack, previo].slice(-UNDO_LIMIT);
   redoStack = [];
   const extraFinal: Partial<OpmStore> = { ...extra };
+  // P0 ronda 4: dirtyModelo por defecto true (cambio semantico). Si el
+  // callsite paso dirtyModelo explicitamente (ej. layout puro), se respeta.
+  if (!("dirtyModelo" in extraFinal)) {
+    extraFinal.dirtyModelo = true;
+  }
   const estadoActual = obtenerEstadoStore();
   if (
     estadoActual.vistaMapaActiva &&
@@ -325,6 +330,9 @@ export function listarModelosGuardadosSeguro(): ResumenModeloPersistido[] {
 
 export function estadoModelo(modelo: Modelo, extra: Partial<OpmStore> = {}): Partial<OpmStore> {
   const dirty = extra.dirty ?? (exportarModelo(modelo) !== snapshotGuardado);
+  // P0 ronda 4: dirtyModelo solo se activa con cambios semanticos.
+  // Layout puro (drag, nudge, auto-layout) conserva el valor actual.
+  const dirtyModelo = extra.dirtyModelo ?? true;
   const actual = estadoActual();
   const pestanasAbiertas = extra.pestanasAbiertas ?? (
     actual?.pestanasAbiertas
@@ -354,6 +362,7 @@ export function estadoModelo(modelo: Modelo, extra: Partial<OpmStore> = {}): Par
   return {
     modelo,
     dirty,
+    dirtyModelo,
     puedeDeshacer: undoStack.length > 0,
     puedeRehacer: redoStack.length > 0,
     ...(pestanasAbiertas ? { pestanasAbiertas } : {}),

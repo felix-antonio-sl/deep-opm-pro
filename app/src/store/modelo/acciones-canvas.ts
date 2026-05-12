@@ -541,17 +541,17 @@ export function accionesCanvas(set: SetStore, get: GetStore): Partial<ModeloSlic
     },
 
     moverEntidad(id, x, y) {
-      const { modelo, opdActivoId } = get();
+      const { modelo, opdActivoId, dirtyModelo } = get();
       const pos = cuantizarDesdeEstado(get(), x, y);
       const resultado = moverAparienciaEntidad(modelo, opdActivoId, id, pos);
-      if (resultado.ok) commitModelo(set, modelo, resultado.value);
+      if (resultado.ok) commitModelo(set, modelo, resultado.value, { dirtyModelo });
     },
 
     moverApariencia(aparienciaId, x, y) {
-      const { modelo, opdActivoId } = get();
+      const { modelo, opdActivoId, dirtyModelo } = get();
       const pos = cuantizarDesdeEstado(get(), x, y);
       const resultado = moverAparienciaPorId(modelo, opdActivoId, aparienciaId, pos);
-      if (resultado.ok) commitModelo(set, modelo, resultado.value);
+      if (resultado.ok) commitModelo(set, modelo, resultado.value, { dirtyModelo });
     },
 
     toggleGrid() {
@@ -601,7 +601,8 @@ export function accionesCanvas(set: SetStore, get: GetStore): Partial<ModeloSlic
       // autolayout dejaba elementos fuera del viewport y la accion se
       // sentia incompleta. El fit es secundario al commit (no se confirma
       // si el commit falla) y se observa en JointCanvas via useEffect.
-      const { modelo, opdActivoId, seleccionados, solicitudFitToken } = get();
+      // P0 ronda 4: dirtyModelo se conserva (layoutSolo), no bloquea carga.
+      const { modelo, opdActivoId, seleccionados, solicitudFitToken, dirtyModelo } = get();
       const resultado = aplicarLayoutSugeridoOp(modelo, opdActivoId);
       if (!resultado.ok) {
         set({ mensaje: resultado.error });
@@ -615,11 +616,12 @@ export function accionesCanvas(set: SetStore, get: GetStore): Partial<ModeloSlic
         seleccionados: [...seleccionados],
         mensaje: "Layout sugerido aplicado",
         solicitudFitToken: solicitudFitToken + 1,
+        dirtyModelo,
       });
     },
 
     reordenarSubprocesoEnTimeline(opdId, aparienciaId, nuevaY) {
-      const { modelo } = get();
+      const { modelo, dirtyModelo } = get();
       const validado = validarSubprocesoTimeline(modelo, opdId, aparienciaId);
       if (!validado.ok) {
         set({ mensaje: validado.error });
@@ -641,13 +643,14 @@ export function accionesCanvas(set: SetStore, get: GetStore): Partial<ModeloSlic
         enlaceSeleccionId: null,
         modoEnlace: null,
         mensaje: null,
+        dirtyModelo,
       });
     },
 
     actualizarVerticesEnlace(aparienciaEnlaceId, vertices) {
-      const { modelo, opdActivoId } = get();
+      const { modelo, opdActivoId, dirtyModelo } = get();
       const resultado = actualizarVerticesEnlaceOp(modelo, opdActivoId, aparienciaEnlaceId, vertices);
-      if (resultado.ok) commitModelo(set, modelo, resultado.value);
+      if (resultado.ok) commitModelo(set, modelo, resultado.value, { dirtyModelo });
     },
 
     insertarPlantillaEnOpdActivo(plantillaId) {

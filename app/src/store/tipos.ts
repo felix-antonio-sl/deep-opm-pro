@@ -276,6 +276,13 @@ export interface OpmStore {
   tabInspectorEnlaceActivo: TabInspectorEnlace;
   mensaje: string | null;
   dirty: boolean;
+  /**
+   * P0 ronda 4: dirtyModelo distingue mutacion semantica (entidades,
+   * enlaces, nombres) de cambios visuales/layout (auto-layout, drag,
+   * nudge, alineacion). Solo dirtyModelo bloquea carga de otro modelo.
+   * dirty sigue reflejando cualquier cambio para undo/redo y chip.
+   */
+  dirtyModelo: boolean;
   puedeDeshacer: boolean;
   puedeRehacer: boolean;
   modelosGuardados: ResumenModeloPersistido[];
