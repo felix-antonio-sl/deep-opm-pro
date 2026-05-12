@@ -36,10 +36,16 @@ export function BibliotecaCosa({ modelo, opdActivoId, onCerrar, onNavegarOpd, mo
   const procesos = cosasPorTipo(modelo, "proceso");
   return (
     <aside style={modo === "dock" ? style.panelDock : style.panel} data-testid="biblioteca-cosa" aria-label="Biblioteca de cosas">
-      <div style={style.header}>
-        <strong>Biblioteca</strong>
-        <button type="button" style={style.closeButton} onClick={onCerrar} aria-label="Cerrar biblioteca">x</button>
-      </div>
+      {/* P1-1 ronda 4: en modo dock, el contenedor padre BibliotecaDock provee */}
+      {/* su propia cabecera y boton de cierre (`biblioteca-dock-cerrar`). */}
+      {/* Suprimimos esta cabecera interna para evitar la duplicacion visual */}
+      {/* descrita en la auditoria UX ronda 4. */}
+      {modo === "overlay" ? (
+        <div style={style.header}>
+          <strong>Biblioteca</strong>
+          <button type="button" style={style.closeButton} onClick={onCerrar} aria-label="Cerrar biblioteca">x</button>
+        </div>
+      ) : null}
       <GrupoBiblioteca titulo="Objetos" items={objetos} modelo={modelo} opdActivoId={opdActivoId} onNavegarOpd={onNavegarOpd} />
       <GrupoBiblioteca titulo="Procesos" items={procesos} modelo={modelo} opdActivoId={opdActivoId} onNavegarOpd={onNavegarOpd} />
     </aside>
