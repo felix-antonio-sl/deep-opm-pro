@@ -1,4 +1,4 @@
-import { CANON } from "../../../modelo/constantes";
+import { CANON, naturalezaDeEnlace } from "../../../modelo/constantes";
 import { etiquetaEnlaceNormalizada } from "../../../modelo/etiquetasEnlace";
 import { entidadIdDeExtremo } from "../../../modelo/extremos";
 import { modoPlegadoApariencia, partesDePlegado } from "../../../modelo/plegado";
@@ -111,14 +111,23 @@ export function proyectarEnlace(
   const colorEnlace = estiloE?.color ?? CANON.colores.enlace;
   const grosorEnlace = estiloE?.strokeWidth ?? CANON.dims.enlaceVisible;
   const dashOverride = estiloE?.dashArray !== undefined ? estiloE.dashArray || undefined : undefined;
-  const router = enlace.tipo === "invocacion" || enAbanico ? undefined : routerManhattan();
-  // Ronda 15 L4: enlaces procedurales con routerManhattan usan connector
-  // 'jumpover' para que los cruces se dibujen como puentes (mejora real de
-  // legibilidad). Invocacion y enlaces en abanico mantienen 'straight' porque
-  // sus vertices/dock-points son explicitos. Refinamientos estructurales
-  // (agregacion/exhibicion/...) tambien quedan 'straight' (cruzan triangulos
-  // centrales, jumpover introduciria saltos artificiales).
-  const connector = router ? connectorJumpover() : { name: "straight" };
+  // OPCloud (reverse-engineering opm-extracted): router selectivo.
+  // - Procedurales (consumo, resultado, efecto, agente, instrumento, invocacion)
+  //   van RECTOS, sin router (`OpmDefaultLink` shared.ts:2450-2458).
+  // - Estructurales (agregacion, exhibicion, generalizacion, clasificacion) y
+  //   sus enlaces hacia el triangulo van con `manhattan` (shared.ts:3575-3583,
+  //   3639-3648). Aqui aplicamos manhattan tambien a estructurales aunque la
+  //   topologia triangular se maneja con composers especificos.
+  // - Invocacion y abanico siguen sin router (sus vertices son explicitos).
+  const esEstructural = naturalezaDeEnlace(enlace.tipo) === "estructural";
+  const router = !enAbanico && enlace.tipo !== "invocacion" && esEstructural
+    ? routerManhattan()
+    : undefined;
+  // OPCloud usa `jumpover` global para todos los OpmDefaultLink (saltos sobre
+  // cruces). Aplicamos lo mismo: jumpover preserva legibilidad sin importar
+  // el router. Solo enlaces en abanico mantienen `straight` (sus paths van
+  // explicitamente al dock del puerto, jumpover crearia saltos artificiales).
+  const connector = enAbanico ? { name: "straight" } : connectorJumpover();
   // BUG-1fc4d2: cuando el enlace toca un estado, el path debe quedar por
   // encima del bbox del padre (z=10) para que la flecha no se vea cortada
   // por el contorno del Objeto contenedor. Resto de enlaces conservan z=1
@@ -218,12 +227,20 @@ export function extremoEstado(id: Id, selector: string): Record<string, unknown>
 }
 
 export function etiquetasMultiplicidad(enlace: Enlace): Array<Record<string, unknown>> {
+  // OPCloud canon (shared.ts:4513-4515, 5821, 5560): multiplicidad de origen
+  // en `distance: 0.1` (procedural) / `0.2` (structural), destino en `0.9`.
+  // Esto es FRACCION del path (0..1), no pixeles. La version previa usaba
+  // `distance: ±18` interpretado como pixels desde extremo, que para enlaces
+  // cortos colapsaba sobre el cuerpo de la entidad.
   const labels: Array<Record<string, unknown>> = [];
+  const esEstructural = naturalezaDeEnlace(enlace.tipo) === "estructural";
+  const distOrigen = esEstructural ? 0.2 : 0.1;
+  const distDestino = 0.9;
   if (enlace.multiplicidadOrigen) {
-    labels.push(etiquetaMultiplicidad(enlace.multiplicidadOrigen, 18));
+    labels.push(etiquetaMultiplicidad(enlace.multiplicidadOrigen, distOrigen));
   }
   if (enlace.multiplicidadDestino) {
-    labels.push(etiquetaMultiplicidad(enlace.multiplicidadDestino, -18));
+    labels.push(etiquetaMultiplicidad(enlace.multiplicidadDestino, distDestino));
   }
   return labels;
 }

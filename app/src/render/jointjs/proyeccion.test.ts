@@ -236,10 +236,12 @@ describe("proyeccion JointJS", () => {
 
     expect(labels).toHaveLength(2);
     expect(labels?.[0]?.attrs?.label).toMatchObject({ text: "2", fontFamily: "Arial", fontSize: 12, fill: "#1f2937" });
-    expect(labels?.[0]?.position).toMatchObject({ distance: 18, offset: -12 });
+    // OPCloud canon: distancia es FRACCION del path (0..1), no pixeles.
+    // Procedural origen 0.1, destino 0.9.
+    expect(labels?.[0]?.position).toMatchObject({ distance: 0.1, offset: -12 });
     expect(labels?.[0]?.position?.args?.keepGradient).toBe(false);
     expect(labels?.[1]?.attrs?.label).toMatchObject({ text: "1..N", fontFamily: "Arial", fontSize: 12, fill: "#1f2937" });
-    expect(labels?.[1]?.position).toMatchObject({ distance: -18, offset: -12 });
+    expect(labels?.[1]?.position).toMatchObject({ distance: 0.9, offset: -12 });
     expect(labels?.[1]?.position?.args?.keepGradient).toBe(false);
   });
 

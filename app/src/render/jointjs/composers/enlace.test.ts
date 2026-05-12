@@ -30,7 +30,8 @@ describe("composer enlace", () => {
     expect(cell.connector).toEqual({ name: "jumpover", args: { type: "arc", size: 8 } });
   });
 
-  test("invocacion conserva connector straight (vertices manuales en zigzag)", () => {
+  test("invocacion conserva connector jumpover (vertices manuales en zigzag)", () => {
+    // Post-OPCloud-replica: connector jumpover GLOBAL (excepto en abanico).
     const enlaceInvocacion: Enlace = {
       id: "en-inv",
       tipo: "invocacion",
@@ -40,7 +41,7 @@ describe("composer enlace", () => {
     };
     const cell = proyectarEnlace("opd-1", enlaceInvocacion, "ae-inv", { apariencia: origen }, { apariencia: destino }, [], false);
     expect(cell.router).toBeUndefined();
-    expect(cell.connector).toEqual({ name: "straight" });
+    expect(cell.connector).toEqual({ name: "jumpover", args: { type: "arc", size: 8 } });
   });
 
   test("enlace en abanico mantiene connector straight (dock-point explicito)", () => {
@@ -50,7 +51,8 @@ describe("composer enlace", () => {
   });
 
   test("mantiene helpers de labels, router e invocacion", () => {
-    expect(etiquetasMultiplicidad({ ...enlaceBase, multiplicidadDestino: "0..N" })[0]?.position).toMatchObject({ distance: -18, offset: -12 });
+    // OPCloud canon: distancia 0.9 para multiplicidad destino (fraccion path).
+    expect(etiquetasMultiplicidad({ ...enlaceBase, multiplicidadDestino: "0..N" })[0]?.position).toMatchObject({ distance: 0.9, offset: -12 });
     expect(routerManhattan()).toEqual({ name: "manhattan", args: { padding: 5, step: 11 } });
     expect(connectorJumpover()).toEqual({ name: "jumpover", args: { type: "arc", size: 8 } });
     expect(verticesInvocacion(origen, destino)).toHaveLength(3);
