@@ -206,7 +206,7 @@ import {
 } from "../canvas/operacionesBatch";
 import type { CrearSlice, UiPanelSlice } from "./tipos";
 import {
-  ANCHO_PANEL_ARBOL_DEFAULT, ANCHO_PANEL_ARBOL_MAX, ANCHO_PANEL_ARBOL_MIN, PORTAPAPELES_WORKSPACE_TTL_MS, PREF_MOSTRAR_ARCHIVADOS_KEY, PREF_MOSTRAR_VERSIONES_KEY, activarEstadoPestanas, activarPestanaNueva, aparienciaSeleccionadaActiva, commitModelo, confirmarEliminacionOpd, crearDemo, crearIdModeloLocal, entidadNueva, enlaceNuevo, escribirIndiceWorkspace, escribirPreferenciaBooleana, estadoModelo, estadoSeleccionDesdeIds, generarHtmlOpl, hermanosOrdenados, leerIndiceWorkspace, leerPreferenciaBooleana, leerPreferenciasMapa, limitar, limitarAnchoPanelArbol, listarModelosGuardadosSeguro, mapaWorkspaceDesdeEstado, marcarSnapshotJson, marcarSnapshotModelo, modelosRecientesDeIndice, obtenerAutosalvadoControl, obtenerEstadoStore, opdActivoSeguro, opdDestinoDeAviso, persistirPreferenciasMapa, fijarAutosalvadoControl, resetHistorial, setEstadoStore, sincronizarIndiceConModelosGuardados, actualizarPreferenciasUi, validarSubprocesoTimeline,
+  ANCHO_PANEL_ARBOL_DEFAULT, ANCHO_PANEL_ARBOL_MAX, ANCHO_PANEL_ARBOL_MIN, PORTAPAPELES_WORKSPACE_TTL_MS, PREF_MOSTRAR_ARCHIVADOS_KEY, PREF_MOSTRAR_VERSIONES_KEY, activarEstadoPestanas, activarPestanaNueva, aparienciaSeleccionadaActiva, commitModelo, confirmarEliminacionOpd, crearDemo, crearIdModeloLocal, entidadNueva, enlaceNuevo, escribirIndiceWorkspace, escribirPreferenciaBooleana, estadoModelo, estadoSeleccionDesdeIds, generarHtmlOpl, hermanosOrdenados, leerIndiceWorkspace, leerPreferenciaBooleana, leerPreferenciasMapa, limitar, limitarAnchoPanelArbol, limitarAnchoPanelInspector, listarModelosGuardadosSeguro, mapaWorkspaceDesdeEstado, marcarSnapshotJson, marcarSnapshotModelo, modelosRecientesDeIndice, obtenerAutosalvadoControl, obtenerEstadoStore, opdActivoSeguro, opdDestinoDeAviso, persistirPreferenciasMapa, fijarAutosalvadoControl, resetHistorial, setEstadoStore, sincronizarIndiceConModelosGuardados, actualizarPreferenciasUi, validarSubprocesoTimeline,
   pestanaReemplazable,
   deshacerRuntime,
   rehacerRuntime,
@@ -236,6 +236,7 @@ export const createUiPanelSlice: CrearSlice<UiPanelSlice> = (set, get) => ({
   gestionArbolAbierta: false,
   busquedaOpdGestion: "",
   anchoPanelArbol: limitarAnchoPanelArbol(preferenciasUiIniciales.anchoPanelArbol),
+  anchoPanelInspector: limitarAnchoPanelInspector(preferenciasUiIniciales.anchoPanelInspector),
   nombresArbolVisibles: preferenciasUiIniciales.nombresArbolVisibles ?? true,
   cheatsheetAtajosAbierto: false,
   // L2 ronda 21: vista activa del modo revisión mobile. Solo se consume cuando
@@ -361,6 +362,15 @@ export const createUiPanelSlice: CrearSlice<UiPanelSlice> = (set, get) => ({
 	    const indice = actualizarPreferenciasUi(get().indice, { anchoPanelArbol });
 	    escribirIndiceWorkspace(indice);
 	    set({ indice, anchoPanelArbol });
+	  },
+
+	  // BUG-20260511T225343Z-696858: setter espejo a `fijarAnchoPanelArbol` que
+	  // clamp [240, 560] y persiste en `indice.preferenciasUi.anchoPanelInspector`.
+	  fijarAnchoPanelInspector(px) {
+	    const anchoPanelInspector = limitarAnchoPanelInspector(px);
+	    const indice = actualizarPreferenciasUi(get().indice, { anchoPanelInspector });
+	    escribirIndiceWorkspace(indice);
+	    set({ indice, anchoPanelInspector });
 	  },
 
 	  toggleNombresArbolVisibles() {

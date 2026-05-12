@@ -29,6 +29,11 @@ export interface UiPortapapelesVisual {
 // Preferencias de UI del workspace. No pertenecen al JSON OPM canonico.
 export interface PreferenciasUiUsuario {
   anchoPanelArbol?: number;
+  /**
+   * BUG-20260511T225343Z-696858: ancho del panel Inspector derecho (px).
+   * Espejo de `anchoPanelArbol` con su propio clamp [240, 560] y default 300.
+   */
+  anchoPanelInspector?: number;
   nombresArbolVisibles?: boolean;
   arbolOrden?: "automatico" | "manual";
   arbolExpandidoPersistente?: Id[];

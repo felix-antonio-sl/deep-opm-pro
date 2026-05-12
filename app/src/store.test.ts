@@ -1351,12 +1351,19 @@ describe("mapa del sistema", () => {
     store.getState().fijarAnchoPanelArbol(999);
     expect(store.getState().anchoPanelArbol).toBe(600);
 
+    // BUG-20260511T225343Z-696858: clamp [240, 560] espejo del árbol.
+    store.getState().fijarAnchoPanelInspector(999);
+    expect(store.getState().anchoPanelInspector).toBe(560);
+    store.getState().fijarAnchoPanelInspector(10);
+    expect(store.getState().anchoPanelInspector).toBe(240);
+
     store.getState().toggleNombresArbolVisibles();
     expect(store.getState().nombresArbolVisibles).toBe(false);
 
     const indice = JSON.parse(localStorage.getItem("deep-opm-pro:persistencia:workspace") ?? "{}");
     expect(indice.preferenciasUi).toEqual({
       anchoPanelArbol: 600,
+      anchoPanelInspector: 240,
       nombresArbolVisibles: false,
     });
     expect(exportarModelo(store.getState().modelo)).not.toContain("preferenciasUi");

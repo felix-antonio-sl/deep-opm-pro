@@ -13,6 +13,22 @@ export interface DivisorPanelProps {
   anchoMin?: number;
   anchoMax?: number;
   onAnchoChange: (px: number) => void;
+  /**
+   * BUG-20260511T225343Z-696858: cuando el divisor está a la izquierda del
+   * pane que dimensiona (caso árbol/canvas), arrastrar a la derecha agranda
+   * → delta natural. Cuando el divisor está a la derecha del pane (caso
+   * canvas/inspector), arrastrar a la izquierda agranda el inspector → hay
+   * que invertir el signo del delta.
+   */
+  invertirDelta?: boolean;
+  /** Ancho al que vuelve el panel cuando se hace doble clic. */
+  resetValue?: number;
+  /** Permite reusar el divisor con testids distintos sin duplicar el componente. */
+  testId?: string;
+  /** Tooltip accesible del separator. */
+  title?: string;
+  /** `gridArea` específico (override del default "divisor" para colocar en otro slot). */
+  gridArea?: string;
 }
 
 export function DivisorPanel({
@@ -21,6 +37,11 @@ export function DivisorPanel({
   anchoMin = ANCHO_PANEL_ARBOL_MIN,
   anchoMax = ANCHO_PANEL_ARBOL_MAX,
   onAnchoChange,
+  invertirDelta = false,
+  resetValue = ANCHO_PANEL_ARBOL_RESET,
+  testId = "divisor-panel-arbol",
+  title = orientacion === "vertical" ? "Ajustar ancho del árbol" : "Ajustar alto del panel",
+  gridArea,
 }: DivisorPanelProps) {
   const inicioRef = useRef<{ x: number; y: number; ancho: number } | null>(null);
 
@@ -34,7 +55,8 @@ export function DivisorPanel({
   const mover = (event: PointerEvent) => {
     const inicio = inicioRef.current;
     if (!inicio) return;
-    const delta = orientacion === "vertical" ? event.clientX - inicio.x : event.clientY - inicio.y;
+    const deltaBase = orientacion === "vertical" ? event.clientX - inicio.x : event.clientY - inicio.y;
+    const delta = invertirDelta ? -deltaBase : deltaBase;
     onAnchoChange(limitarAnchoPanel(inicio.ancho + delta, anchoMin, anchoMax));
   };
 
@@ -50,11 +72,11 @@ export function DivisorPanel({
       aria-valuemin={anchoMin}
       aria-valuemax={anchoMax}
       aria-valuenow={anchoInicial}
-      data-testid="divisor-panel-arbol"
-      title="Ajustar ancho del árbol"
-      style={orientacion === "vertical" ? style.vertical : style.horizontal}
+      data-testid={testId}
+      title={title}
+      style={orientacion === "vertical" ? styleVertical(gridArea) : style.horizontal}
       onPointerDown={(event) => iniciarDrag(event as unknown as PointerEvent)}
-      onDblClick={() => onAnchoChange(ANCHO_PANEL_ARBOL_RESET)}
+      onDblClick={() => onAnchoChange(resetValue)}
     >
       <span aria-hidden="true" style={orientacion === "vertical" ? style.controlVertical : style.controlHorizontal} />
     </div>
@@ -70,9 +92,9 @@ export function limitarAnchoPanel(
   return Math.max(min, Math.min(max, Math.round(valor)));
 }
 
-const style = {
-  vertical: {
-    gridArea: "divisor",
+function styleVertical(gridArea: string | undefined): preact.JSX.CSSProperties {
+  return {
+    gridArea: gridArea ?? "divisor",
     width: "6px",
     minWidth: "6px",
     cursor: "col-resize",
@@ -83,7 +105,10 @@ const style = {
     alignItems: "stretch",
     justifyContent: "center",
     zIndex: 2,
-  },
+  };
+}
+
+const style = {
   horizontal: {
     height: "6px",
     minHeight: "6px",
