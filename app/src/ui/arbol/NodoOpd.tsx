@@ -86,6 +86,7 @@ export function NodoOpd(props: NodoOpdProps) {
     <div
       role="treeitem"
       tabIndex={0}
+      class="nodo-opd"
       aria-level={props.nodo.nivel + 2}
       aria-selected={props.activo}
       aria-expanded={tieneHijos ? props.estaExpandido : undefined}
@@ -177,6 +178,7 @@ export function NodoOpd(props: NodoOpdProps) {
       {badges.tieneIssues ? <span style={style.issueDot} aria-label="Tiene avisos" title="Tiene avisos metodológicos" /> : <span style={style.issueSpacer} />}
       <button
         type="button"
+        class="nodo-opd-actions"
         aria-label={`Eliminar OPD ${nombre}`}
         title={tituloEliminar}
         disabled={esRaiz}
@@ -188,7 +190,7 @@ export function NodoOpd(props: NodoOpdProps) {
       >
         <img src={deleteIconUrl} alt="" aria-hidden="true" style={style.deleteIcon} />
       </button>
-      <div style={style.inlineActions}>
+      <div class="nodo-opd-actions" style={style.inlineActions}>
         <button
           type="button"
           style={style.openButton}

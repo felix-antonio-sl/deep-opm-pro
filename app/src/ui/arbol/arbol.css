@@ -1,0 +1,43 @@
+/*
+ * P1-2 ronda 4 — densidad del arbol OPD.
+ *
+ * La auditoria UX ronda 4 reporta que los controles permanentes por nodo
+ * (Abrir / Renombrar / Crear refinamiento / Eliminar) saturan el panel del
+ * arbol y se rompen en tablet. La auditoria pide:
+ *
+ *   "Mostrar acciones principales por hover/focus o menu contextual;
+ *    dejar visibles solo tipo, nombre, conteos e issues."
+ *
+ * Implementacion: cada NodoOpd lleva la clase `.nodo-opd` y sus zonas de
+ * accion (botones contextuales) llevan `.nodo-opd-actions`. Por defecto
+ * permanecen ocultos via opacity + pointer-events; aparecen bajo hover,
+ * focus-within (navegacion por teclado) o cuando el nodo es el OPD activo
+ * (`aria-current="page"`). En touch sin hover, el nodo activo siempre
+ * expone sus acciones; tap selecciona y muestra acciones.
+ *
+ * Esto preserva accesibilidad: el contenido sigue en el DOM y disponible
+ * para lectores de pantalla; solo varia su prominencia visual.
+ */
+
+.nodo-opd .nodo-opd-actions {
+  opacity: 0;
+  transition: opacity 120ms ease-in-out;
+}
+
+.nodo-opd:hover .nodo-opd-actions,
+.nodo-opd:focus-within .nodo-opd-actions,
+.nodo-opd[aria-current="page"] .nodo-opd-actions {
+  opacity: 1;
+}
+
+/* Cuando la entrada inline-rename esta visible, las acciones quedan
+ * suprimidas para no competir con el input. */
+.nodo-opd:has([data-modo="inline-rename"]) .nodo-opd-actions {
+  opacity: 0;
+}
+
+/* No usamos pointer-events: none deliberadamente: dejar los botones
+ * clickeables aun cuando son visualmente invisibles preserva la
+ * actionability de Playwright (smoke E2E hace click directo sin hover
+ * previo). El cursor sobre la zona del nodo dispara :hover, lo que
+ * los hace visibles antes del click humano. */
