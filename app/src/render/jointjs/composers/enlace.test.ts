@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import type { Apariencia, Enlace } from "../../../modelo/tipos";
 import { LINK_ASSETS } from "../linkAssets";
-import { connectorJumpover, etiquetasMultiplicidad, proyectarEnlace, routerManhattan, verticesInvocacion } from "./enlace";
+import { connectorJumpover, endpointJoint, etiquetasMultiplicidad, proyectarEnlace, routerManhattan, verticesInvocacion } from "./enlace";
 
 describe("composer enlace", () => {
   test("proyecta enlace con multiplicidad, estilo y metadata OPM", () => {
@@ -56,6 +56,14 @@ describe("composer enlace", () => {
     expect(routerManhattan()).toEqual({ name: "manhattan", args: { padding: 5, step: 11 } });
     expect(connectorJumpover()).toEqual({ name: "jumpover", args: { type: "arc", size: 8 } });
     expect(verticesInvocacion(origen, destino)).toHaveLength(3);
+  });
+
+  test("endpointJoint conecta a port dinamico cuando existe", () => {
+    const endpoint = endpointJoint({
+      apariencia: { ...origen, id: "ap-1" },
+      portId: "port-e-1-origen",
+    });
+    expect(endpoint).toEqual({ id: "ap-1", port: "port-e-1-origen" });
   });
 });
 

@@ -24,6 +24,8 @@ import { cablearResize } from "./handlers/resize";
 import { cablearSeleccion } from "./handlers/seleccion";
 import { instalarHerramientasEnlaceSeleccionado } from "./handlers/toolsEnlace";
 import { cablearZoomFit, cablearZoomWheel, fitCanvasAPantalla } from "./handlers/zoom";
+import { aplicarRuteoOpcloudEnlaces } from "./opcloudRouting";
+import { ordenarTodosLosEnlacesEstructurales } from "./sortStructuralLinks";
 
 /**
  * Orquestador del canvas JointJS. Monta el paper con su configuración
@@ -334,6 +336,8 @@ export function JointCanvas() {
     adapter.graph.resetCells(cells as dia.Cell.JSON[]);
     setPaperDimensions(adapter.paper, dimensionesPaper(cells));
     embedirContorno(adapter.graph);
+    aplicarRuteoOpcloudEnlaces(adapter.graph);
+    ordenarTodosLosEnlacesEstructurales(adapter.paper, adapter.graph);
     // Reposiciona overlays-abanico desde los LinkView ya renderizados (paper
     // async:false garantiza que los views existen tras resetCells). El path
     // del cold render era una aproximacion geometrica; aqui lo reemplazamos

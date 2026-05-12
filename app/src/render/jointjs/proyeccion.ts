@@ -1,5 +1,6 @@
 import { esAutoInvocacion } from "../../modelo/autoinvocacion";
 import { entidadIdDeExtremo } from "../../modelo/extremos";
+import { sincronizarPuertosEnlaces } from "../../modelo/operaciones";
 import type { Apariencia, Enlace, ExtremoEnlace, Id, Modelo, Posicion, TipoEnlace } from "../../modelo/tipos";
 import type { OplReferencia } from "../../opl/interaccion";
 import { proyectarOverlayAbanicoCanonico } from "./abanicoOverlay";
@@ -55,7 +56,8 @@ export function proyectarModeloAJointCells(
   opciones: OpcionesProyeccion = opcionesProyeccionDesdeEntornoLegacy(),
   simulacion: OpcionesSimulacionRender | null = null,
 ): JointCellJson[] {
-  const opd = modelo.opds[opdId];
+  const modeloRender = sincronizarPuertosEnlaces(modelo, opdId);
+  const opd = modeloRender.opds[opdId];
   if (!opd) return [];
   const opcionesRender = normalizarOpcionesProyeccion(opciones);
   const seleccionMultiple = new Set(seleccionados);
@@ -63,21 +65,21 @@ export function proyectarModeloAJointCells(
   const apariencias = Object.values(opd.apariencias);
   const aparienciaPorEntidad = new Map(apariencias.map((apariencia) => [apariencia.entidadId, apariencia]));
   const elementos = apariencias.flatMap((apariencia) => {
-    const entidad = modelo.entidades[apariencia.entidadId];
-    return entidad ? [proyectarEntidad(modelo, opdId, apariencia, entidad, entidad.id === seleccionEntidadId || seleccionMultiple.has(entidad.id), refResaltaEntidad(modelo, entidad, hoverOplRef), opcionesRender)] : [];
+    const entidad = modeloRender.entidades[apariencia.entidadId];
+    return entidad ? [proyectarEntidad(modeloRender, opdId, apariencia, entidad, entidad.id === seleccionEntidadId || seleccionMultiple.has(entidad.id), refResaltaEntidad(modeloRender, entidad, hoverOplRef), opcionesRender)] : [];
   });
   const imagenes = apariencias.flatMap((apariencia) => {
-    const entidad = modelo.entidades[apariencia.entidadId];
-    return entidad ? proyectarImagenesEntidad(modelo, opdId, apariencia, entidad, opcionesRender.modoImagenGlobal) : [];
+    const entidad = modeloRender.entidades[apariencia.entidadId];
+    return entidad ? proyectarImagenesEntidad(modeloRender, opdId, apariencia, entidad, opcionesRender.modoImagenGlobal) : [];
   });
   const proxies = apariencias.flatMap((apariencia) => proyectarProxyExtraccion(opdId, opd, apariencia));
-  const overlaysAbanico = Object.values(modelo.abanicos ?? {})
+  const overlaysAbanico = Object.values(modeloRender.abanicos ?? {})
     .filter((abanico) => abanico.opdId === opdId)
     .flatMap((abanico) => {
       const aparienciaPuerto = aparienciaPorEntidad.get(abanico.puertoEntidadId);
       if (!aparienciaPuerto) return [];
       return proyectarOverlayAbanicoCanonico({
-        modelo,
+        modelo: modeloRender,
         opd,
         abanico,
         aparienciaPuerto,
@@ -89,15 +91,15 @@ export function proyectarModeloAJointCells(
   // el OpmDefaultLink de OpCloud (shared.ts:2450-2457) cuyos enlaces
   // procedurales no setean router y caen al default 'normal'.
   const enlacesEnAbanico = new Set<Id>(
-    Object.values(modelo.abanicos ?? {})
+    Object.values(modeloRender.abanicos ?? {})
       .filter((abanico) => abanico.opdId === opdId)
       .flatMap((abanico) => abanico.enlaceIds),
   );
   const enlacesConEndpoint = Object.values(opd.enlaces).flatMap((aparienciaEnlace): EnlaceConEndpointVisual[] => {
-    const enlace = modelo.enlaces[aparienciaEnlace.enlaceId];
+    const enlace = modeloRender.enlaces[aparienciaEnlace.enlaceId];
     if (!enlace) return [];
-    const origen = resolverEndpointVisual(modelo, opd, aparienciaPorEntidad, enlace.origenId);
-    const destino = resolverEndpointVisual(modelo, opd, aparienciaPorEntidad, enlace.destinoId);
+    const origen = resolverEndpointVisual(modeloRender, opd, aparienciaPorEntidad, enlace.origenId);
+    const destino = resolverEndpointVisual(modeloRender, opd, aparienciaPorEntidad, enlace.destinoId);
     if (!origen || !destino) return [];
     // BUG-1fc4d2: enlaces a estado (selectorEstado) tampoco entran al bus de
     // agregacion — agregacion no puede conectar a estados (regla OPM) y aun
@@ -106,20 +108,20 @@ export function proyectarModeloAJointCells(
     return [{ enlace, aparienciaEnlaceId: aparienciaEnlace.id, origen, destino }];
   });
   const { busCells, enlacesConsumidos } = proyectarBusesAgregacion({
-    modelo,
+    modelo: modeloRender,
     opdId,
     enlaces: enlacesConEndpoint,
     seleccionados: new Set([
       ...(seleccionEnlaceId ? [seleccionEnlaceId] : []),
-      ...seleccionados.filter((id) => modelo.enlaces[id]),
+      ...seleccionados.filter((id) => modeloRender.enlaces[id]),
       ...(hoverOplRef?.tipo === "enlace" ? [hoverOplRef.id] : []),
     ]),
   });
   const enlaces = Object.values(opd.enlaces).flatMap((aparienciaEnlace) => {
-    const enlace = modelo.enlaces[aparienciaEnlace.enlaceId];
+    const enlace = modeloRender.enlaces[aparienciaEnlace.enlaceId];
     if (!enlace || enlacesConsumidos.has(enlace.id)) return [];
-    const origen = resolverEndpointVisual(modelo, opd, aparienciaPorEntidad, enlace.origenId);
-    const destino = resolverEndpointVisual(modelo, opd, aparienciaPorEntidad, enlace.destinoId);
+    const origen = resolverEndpointVisual(modeloRender, opd, aparienciaPorEntidad, enlace.origenId);
+    const destino = resolverEndpointVisual(modeloRender, opd, aparienciaPorEntidad, enlace.destinoId);
     if (!origen || !destino) return [];
     if (esAutoInvocacion(enlace) && origen.apariencia.id === destino.apariencia.id) {
       return proyectarAutoInvocacion({
@@ -133,13 +135,13 @@ export function proyectarModeloAJointCells(
     if (origen.apariencia.id === destino.apariencia.id) return [];
     const enlaceResaltado = enlace.id === seleccionEnlaceId || seleccionMultiple.has(enlace.id) || refResaltaEnlace(enlace, hoverOplRef);
     return TIPOS_REFINAMIENTO_ESTRUCTURAL.includes(enlace.tipo) && !origen.proxy && !destino.proxy
-      ? proyectarRefinamientoEstructural(opdId, enlace, aparienciaEnlace.id, origen.apariencia, destino.apariencia, enlaceResaltado)
+      ? proyectarRefinamientoEstructural(opdId, enlace, aparienciaEnlace.id, origen, destino, enlaceResaltado)
       : [proyectarEnlace(opdId, enlace, aparienciaEnlace.id, origen, destino, aparienciaEnlace.vertices, enlaceResaltado, enlacesEnAbanico.has(enlace.id))];
   });
 
   const halos = seleccionMultiple.size > 1
     ? apariencias.flatMap((apariencia) => {
-        const entidad = modelo.entidades[apariencia.entidadId];
+        const entidad = modeloRender.entidades[apariencia.entidadId];
         if (!entidad || !seleccionMultiple.has(entidad.id)) return [];
         return [proyectarHaloSeleccion(opdId, apariencia, entidad)];
       })
@@ -147,7 +149,7 @@ export function proyectarModeloAJointCells(
 
   const halosSimulacion = simulacion
     ? apariencias.flatMap((apariencia) => {
-        const entidad = modelo.entidades[apariencia.entidadId];
+        const entidad = modeloRender.entidades[apariencia.entidadId];
         if (!entidad) return [];
         const cells: JointCellJson[] = [];
         if (simulacion.procesoActivoId && entidad.id === simulacion.procesoActivoId && entidad.tipo === "proceso") {
@@ -155,7 +157,7 @@ export function proyectarModeloAJointCells(
         }
         const currentId = simulacion.estadosCurrent[entidad.id];
         if (currentId && entidad.tipo === "objeto") {
-          const estado = modelo.estados[currentId];
+          const estado = modeloRender.estados[currentId];
           if (estado) cells.push(proyectarHaloSimulacionEstadoCurrent(opdId, apariencia, entidad, estado));
         }
         return cells;

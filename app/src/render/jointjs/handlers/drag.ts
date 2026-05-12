@@ -7,6 +7,7 @@ import {
   recalcularOverlayDesdeLinkView,
 } from "../abanicoDragSync";
 import type { OpmJointMetadata } from "../proyeccion";
+import { ordenarEnlacesEstructuralesConectados } from "../sortStructuralLinks";
 import { cellViewModel, graphEvents, jointSelector, metadata, paperOff, parteEntidadDesdeSelector } from "./helpers";
 
 /**
@@ -55,6 +56,7 @@ export function cablearDrag(args: CablearDragArgs): () => void {
     if (meta?.kind !== "entidad") return;
     const posicion = (model as dia.Element).position();
     moverAparienciaRef.current(meta.aparienciaId, Math.round(posicion.x), Math.round(posicion.y));
+    ordenarEnlacesEstructuralesConectados(paper, graph, model as dia.Element);
   };
 
   const onElementPointerdblclick = (elementView: dia.ElementView, evt: dia.Event) => {

@@ -67,6 +67,8 @@ export {
   alternarModoTamano,
 } from "./operaciones/apariencias";
 
+export { sincronizarPuertosEnlaces, sincronizarPuertosTodosLosOpd, calcularPuertoRelativo } from "./operaciones/ports";
+
 export {
   eliminarEntidad,
   eliminarEnlace,

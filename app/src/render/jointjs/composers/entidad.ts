@@ -110,6 +110,7 @@ export function proyectarEntidad(
         attrs: attrsConResizeHandles(renderBase.attrs, size),
       }
     : renderBase;
+  const ports = portsEntidad(apariencia, entidad.tipo);
 
   return {
     id: apariencia.id,
@@ -117,6 +118,7 @@ export function proyectarEntidad(
     position: { x: apariencia.x, y: apariencia.y },
     size,
     ...render,
+    ...(ports ? { ports } : {}),
     opm: {
       kind: "entidad",
       opdId,
@@ -128,6 +130,72 @@ export function proyectarEntidad(
     },
     z: contornoRefinamiento ? 0 : 10,
   };
+}
+
+function portsEntidad(apariencia: Apariencia, tipo: Entidad["tipo"]): Record<string, unknown> | undefined {
+  const ports = apariencia.ports ? Object.entries(apariencia.ports) : [];
+  if (ports.length === 0) return undefined;
+  if (tipo === "proceso") {
+    return {
+      groups: Object.fromEntries(ports.map(([id, port]) => [id, {
+        ...grupoPuertoBase(),
+        position: (_ports: unknown[], elBBox: { width: number; height: number }) => [puntoPuertoElipse(port.x, port.y, elBBox)],
+      }])),
+      items: ports.map(([id]) => ({ id, group: id })),
+    };
+  }
+  return {
+    groups: {
+      aaa: {
+        ...grupoPuertoBase(),
+        position: "absolute",
+      },
+    },
+    items: ports.map(([id, port]) => ({
+      id,
+      group: "aaa",
+      args: {
+        x: tipo === "objeto" ? `${port.x * 100}%` : port.x,
+        y: tipo === "objeto" ? `${port.y * 100}%` : port.y,
+      },
+      position: {
+        args: {
+          x: tipo === "objeto" ? `${port.x * 100}%` : port.x,
+          y: tipo === "objeto" ? `${port.y * 100}%` : port.y,
+        },
+      },
+    })),
+  };
+}
+
+function grupoPuertoBase(): Record<string, unknown> {
+  return {
+    markup: [{ tagName: "rect", selector: "portBody" }],
+    attrs: {
+      portBody: {
+        width: 8,
+        height: 8,
+        x: -4,
+        y: -4,
+        fill: "transparent",
+        stroke: "transparent",
+        magnet: true,
+      },
+    },
+  };
+}
+
+function puntoPuertoElipse(refX: number, refY: number, elBBox: { width: number; height: number }): { x: number; y: number; angle: number } {
+  const rx = elBBox.width / 2;
+  const ry = elBBox.height / 2;
+  const cx = rx;
+  const cy = ry;
+  const dx = refX * elBBox.width - cx;
+  const dy = refY * elBBox.height - cy;
+  const denom = Math.sqrt((dx * dx) / (rx * rx || 1) + (dy * dy) / (ry * ry || 1));
+  if (denom === 0) return { x: cx + rx, y: cy, angle: 0 };
+  const t = 1 / denom;
+  return { x: cx + dx * t, y: cy + dy * t, angle: 0 };
 }
 
 function markupBase(bodyTag: "rect" | "ellipse"): Array<Record<string, unknown>> {

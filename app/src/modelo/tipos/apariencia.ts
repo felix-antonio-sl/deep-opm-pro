@@ -24,6 +24,12 @@ export interface EstiloApariencia {
   textAnchor?: "start" | "middle" | "end";
 }
 
+export interface PuertoApariencia {
+  /** Coordenadas relativas 0..1 dentro del bbox de la apariencia. */
+  x: number;
+  y: number;
+}
+
 export interface Apariencia {
   id: Id;
   entidadId: Id;
@@ -37,4 +43,6 @@ export interface Apariencia {
   modoPlegado?: ModoPlegado;
   ordenPartes?: OrdenPartesPlegado;
   parteExtraidaDe?: { padreAparienciaId: Id; parteEntidadId: Id };
+  /** Ports dinámicos OPCloud-style usados como puntos de conexión por enlace. */
+  ports?: Record<Id, PuertoApariencia>;
 }

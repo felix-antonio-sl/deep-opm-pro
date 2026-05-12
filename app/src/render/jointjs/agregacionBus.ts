@@ -8,8 +8,8 @@ import type { JointCellJson, OpmJointMetadata } from "./proyeccion";
 export interface EnlaceConEndpointVisual {
   enlace: Enlace;
   aparienciaEnlaceId: Id;
-  origen: { apariencia: Apariencia };
-  destino: { apariencia: Apariencia };
+  origen: { apariencia: Apariencia; portId?: Id };
+  destino: { apariencia: Apariencia; portId?: Id };
 }
 
 export function proyectarBusesAgregacion(args: {
@@ -113,15 +113,15 @@ function proyectarGrupoAgregacion(
     {
       id: `${grupoId}-refinable`,
       type: "standard.Link",
-      source: extremo(grupo.todo.id),
+      source: extremo(grupo.todo.id, portTodo(primeraRama, grupo.ladoTodo)),
       target: topTriangle,
       router: routerManhattan(),
       connector: { name: "straight" },
       attrs: attrsLinea(algunaSeleccionada),
       opm: metaBus,
-      z: 1,
+      z: 11,
     },
-    ...partes.map(({ rama, parte }, index) => ramaAgregacion(opdId, grupoId, rama, parte, bottomTriangle, seleccionados.has(rama.enlace.id), index)),
+    ...partes.map(({ rama, parte }, index) => ramaAgregacion(opdId, grupoId, grupo.ladoTodo, rama, parte, bottomTriangle, seleccionados.has(rama.enlace.id), index)),
     marcadorAgregacion(`${grupoId}-triangulo`, triangleCenter, triangleSize, algunaSeleccionada, metaBus),
   ];
 }
@@ -129,6 +129,7 @@ function proyectarGrupoAgregacion(
 function ramaAgregacion(
   opdId: Id,
   grupoId: Id,
+  ladoTodo: "origen" | "destino",
   rama: EnlaceConEndpointVisual,
   parte: Apariencia,
   source: Posicion,
@@ -140,7 +141,7 @@ function ramaAgregacion(
     id: `${grupoId}-${rama.aparienciaEnlaceId}-rama`,
     type: "standard.Link",
     source,
-    target: extremo(parte.id),
+    target: extremo(parte.id, portParte(rama, ladoTodo)),
     router: routerManhattan(),
     connector: { name: "straight" },
     labels: etiqueta ? [etiquetaRama(etiqueta)] : [],
@@ -152,7 +153,7 @@ function ramaAgregacion(
       aparienciaEnlaceId: rama.aparienciaEnlaceId,
       tipo: "agregacion",
     },
-    z: 1 + index * 0.001,
+    z: 11 + index * 0.001,
   };
 }
 
@@ -180,7 +181,7 @@ function marcadorAgregacion(
       label: { text: "", display: "none" },
     },
     opm: meta,
-    z: 2,
+    z: 12,
   };
 }
 
@@ -227,12 +228,21 @@ function attrsLinea(seleccionada: boolean): Record<string, unknown> {
   };
 }
 
-function extremo(id: Id): Record<string, unknown> {
+function extremo(id: Id, portId?: Id): Record<string, unknown> {
+  if (portId) return { id, port: portId };
   return {
     id,
     anchor: { name: "midSide", args: { rotate: true } },
     connectionPoint: { name: "boundary", args: { offset: 1 } },
   };
+}
+
+function portTodo(rama: EnlaceConEndpointVisual, ladoTodo: "origen" | "destino"): Id | undefined {
+  return ladoTodo === "origen" ? rama.origen.portId : rama.destino.portId;
+}
+
+function portParte(rama: EnlaceConEndpointVisual, ladoTodo: "origen" | "destino"): Id | undefined {
+  return ladoTodo === "origen" ? rama.destino.portId : rama.origen.portId;
 }
 
 function centro(apariencia: Apariencia): Posicion {

@@ -37,6 +37,8 @@ export interface EnlaceEstilo {
 export interface ExtremoEnlace {
   kind: ExtremoKind;
   id: Id;
+  /** Port dinámico de la apariencia visible cuando el extremo es entidad. */
+  portId?: Id;
 }
 
 export interface DerivacionEnlace {

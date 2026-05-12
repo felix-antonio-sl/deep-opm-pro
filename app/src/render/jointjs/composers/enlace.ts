@@ -27,6 +27,7 @@ export interface EndpointVisual {
   apariencia: Apariencia;
   proxy?: { entidadId: Id; nombre: string };
   selectorEstado?: string;
+  portId?: Id;
   /**
    * Mantenido como compat para callers historicos (busesAgregacion). No se
    * popula en el flujo a-estado porque los enlaces a estado nunca pueden
@@ -49,7 +50,7 @@ export function resolverEndpointVisual(
       const target = selectorCapsulaEstado(modelo, directa, extremo.id);
       return target ? { apariencia: directa, selectorEstado: target.selector } : { apariencia: directa };
     }
-    return { apariencia: directa };
+    return extremo.portId ? { apariencia: directa, portId: extremo.portId } : { apariencia: directa };
   }
   for (const apariencia of Object.values(opd.apariencias)) {
     if (modoPlegadoApariencia(apariencia) !== "parcial") continue;
@@ -128,10 +129,10 @@ export function proyectarEnlace(
   // el router. Solo enlaces en abanico mantienen `straight` (sus paths van
   // explicitamente al dock del puerto, jumpover crearia saltos artificiales).
   const connector = enAbanico ? { name: "straight" } : connectorJumpover();
-  // BUG-1fc4d2: cuando el enlace toca un estado, el path debe quedar por
-  // encima del bbox del padre (z=10) para que la flecha no se vea cortada
-  // por el contorno del Objeto contenedor. Resto de enlaces conservan z=1
-  // (debajo de los cells de entidad, layout natural JointJS).
+  // Los enlaces con ports dinámicos deben quedar sobre las entidades para
+  // conservar hit-testing del wrapper transparente; el path visible ya corta
+  // en el borde del port, así que no atraviesa el cuerpo de la entidad.
+  // BUG-1fc4d2: si toca estado, mantenemos z más alto que el padre.
   const tocaEstado = !!origen.selectorEstado || !!destino.selectorEstado;
   return {
     id: aparienciaEnlaceId,
@@ -163,7 +164,7 @@ export function proyectarEnlace(
       aparienciaEnlaceId,
       tipo: enlace.tipo,
     },
-    z: tocaEstado ? 20 : 1,
+    z: tocaEstado ? 20 : 11,
   };
 }
 
@@ -204,7 +205,7 @@ export function etiquetaProxyParte(text: string, distance: number): Record<strin
 export function endpointJoint(endpoint: EndpointVisual): Record<string, unknown> {
   if (endpoint.selectorEstado) return extremoEstado(endpoint.apariencia.id, endpoint.selectorEstado);
   if (endpoint.punto) return { x: endpoint.punto.x, y: endpoint.punto.y };
-  return extremo(endpoint.apariencia.id);
+  return extremo(endpoint.apariencia.id, endpoint.portId);
 }
 
 /**
@@ -409,13 +410,13 @@ export function proyectarRefinamientoEstructural(
   opdId: Id,
   enlace: Enlace,
   aparienciaEnlaceId: Id,
-  origen: Apariencia,
-  destino: Apariencia,
+  origen: EndpointVisual,
+  destino: EndpointVisual,
   seleccionada: boolean,
 ): JointCellJson[] {
   const triangleSize = 30;
-  const source = centro(origen);
-  const target = centro(destino);
+  const source = centro(origen.apariencia);
+  const target = centro(destino.apariencia);
   const center = {
     x: (source.x + target.x) / 2,
     y: (source.y + target.y) / 2,
@@ -435,23 +436,23 @@ export function proyectarRefinamientoEstructural(
     {
       id: `${aparienciaEnlaceId}-refinable`,
       type: "standard.Link",
-      source: extremo(origen.id),
+      source: extremo(origen.apariencia.id, origen.portId),
       target: topTriangle,
       connector: { name: "straight" },
       attrs: lineAttrs,
       opm: meta,
-      z: 1,
+      z: 11,
     },
     {
       id: `${aparienciaEnlaceId}-refinador`,
       type: "standard.Link",
       source: bottomTriangle,
-      target: extremo(destino.id),
+      target: extremo(destino.apariencia.id, destino.portId),
       connector: { name: "straight" },
       labels: etiquetaEnlace(enlace),
       attrs: lineAttrs,
       opm: meta,
-      z: 1,
+      z: 11,
     },
     ...marcadoresEstructurales(enlace.tipo, triangleId, center, triangleSize, seleccionada, meta),
   ];
@@ -472,7 +473,8 @@ export function attrsLinea(seleccionada: boolean): Record<string, unknown> {
   };
 }
 
-export function extremo(id: Id): Record<string, unknown> {
+export function extremo(id: Id, portId?: Id): Record<string, unknown> {
+  if (portId) return { id, port: portId };
   return {
     id,
     anchor: { name: "midSide", args: { rotate: true } },

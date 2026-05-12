@@ -40,6 +40,7 @@ export type {
   OrdenPartesPlegado,
   LayoutEstados,
   EstiloApariencia,
+  PuertoApariencia,
   Apariencia,
 } from "./tipos/apariencia";
 
