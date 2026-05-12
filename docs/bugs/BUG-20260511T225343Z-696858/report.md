@@ -1,0 +1,34 @@
+# BUG-20260511T225343Z-696858
+
+**Creado**: 2026-05-11T22:53:43.533Z
+
+## Texto
+
+me gustaría desplazar el grosor del panel lateral derecho
+
+## Screenshots
+
+- [screenshots/01-cleanshot-2026-05-11-at-18.53.24.jpg](screenshots/01-cleanshot-2026-05-11-at-18.53.24.jpg)
+
+## Contexto
+
+```json
+{
+  "modeloId": "modelo-1",
+  "modeloNombre": "Modelo",
+  "opdActivoId": "opd-1",
+  "opdActivoNombre": "SD",
+  "seleccionEntidadId": null,
+  "seleccionEnlaceId": null,
+  "pestanaActivaId": "pestana-mp1ss9vc-dxf0ng1p",
+  "vistaMapaActiva": false,
+  "url": "http://138.201.53.205:5173/",
+  "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36",
+  "viewport": {
+    "width": 2133,
+    "height": 1070,
+    "devicePixelRatio": 0.8999999761581421
+  },
+  "capturedAt": "2026-05-11T22:53:20.458Z"
+}
+```
