@@ -128,6 +128,47 @@ describe("layoutSugerido", () => {
     expect(porId.get("a-padre")?.y).toBeLessThan(porId.get("a-parte1")?.y ?? 0);
     expect(porId.get("a-padre")?.y).toBeLessThan(porId.get("a-parte2")?.y ?? 0);
   });
+
+  test("layered compacto parte niveles densos en filas internas sin solapes", () => {
+    const modelo = modeloSdMuyDenso();
+    const posiciones = calcularLayoutSugerido(modelo, "opd-1");
+    const porId = new Map(posiciones.map((p) => [p.aparienciaId, p]));
+    const fuentes = Array.from({ length: 9 }, (_, i) => porId.get(`a-o-${i + 1}`)!);
+    const filas = new Map<number, typeof fuentes>();
+    for (const fuente of fuentes) {
+      const fila = filas.get(fuente.y) ?? [];
+      fila.push(fuente);
+      filas.set(fuente.y, fila);
+    }
+
+    expect(filas.size).toBeGreaterThan(1);
+    for (const fila of filas.values()) {
+      fila.sort((a, b) => a.x - b.x);
+      for (let i = 1; i < fila.length; i++) {
+        expect(fila[i]!.x).toBeGreaterThanOrEqual(fila[i - 1]!.x + 135 + 50);
+      }
+    }
+
+    const proceso = porId.get("a-proc")!;
+    const ultimaFilaY = Math.max(...fuentes.map((f) => f.y));
+    expect(proceso.y).toBeGreaterThan(ultimaFilaY + 60);
+    expect(dimensionesLayoutSugerido(modelo, "opd-1").width).toBeLessThan(900);
+  });
+
+  test("inzoom denso usa grilla contenida y evita contorno vertical excesivo", () => {
+    const modelo = modeloOpdInzoomDenso();
+    const posiciones = calcularLayoutSugerido(modelo, "opd-2");
+    const porId = new Map(posiciones.map((p) => [p.aparienciaId, p]));
+    const contorno = porId.get("a-contorno")!;
+    const subs = Array.from({ length: 8 }, (_, i) => porId.get(`a-sub${i + 1}`)!);
+    const xs = new Set(subs.map((s) => s.x));
+    const ys = new Set(subs.map((s) => s.y));
+
+    expect(xs.size).toBeGreaterThan(1);
+    expect(ys.size).toBeGreaterThan(1);
+    expect(contorno.width).toBeGreaterThanOrEqual(405);
+    expect(contorno.height).toBeLessThan(885);
+  });
 });
 
 function modeloPipeline(): Modelo {
@@ -408,4 +449,62 @@ function modeloSoloEstructural(): Modelo {
       },
     },
   };
+}
+
+function modeloSdMuyDenso(): Modelo {
+  const entidades: Modelo["entidades"] = {
+    "p-proc": { id: "p-proc", tipo: "proceso", nombre: "Procesar", esencia: "informacional", afiliacion: "sistemica" },
+  };
+  const apariencias: Modelo["opds"][string]["apariencias"] = {
+    "a-proc": { id: "a-proc", entidadId: "p-proc", opdId: "opd-1", x: 999, y: 999, width: 135, height: 60 },
+  };
+  const enlaces: Modelo["enlaces"] = {};
+  const enlacesOpd: Modelo["opds"][string]["enlaces"] = {};
+  for (let i = 1; i <= 9; i++) {
+    const entidadId = `o-${i}`;
+    const aparienciaId = `a-o-${i}`;
+    const enlaceId = `e-${i}`;
+    entidades[entidadId] = { id: entidadId, tipo: "objeto", nombre: `Entrada ${i}`, esencia: "informacional", afiliacion: "sistemica" };
+    apariencias[aparienciaId] = { id: aparienciaId, entidadId, opdId: "opd-1", x: 999, y: 999, width: 135, height: 60 };
+    enlaces[enlaceId] = { id: enlaceId, tipo: "consumo", origenId: { kind: "entidad", id: entidadId }, destinoId: { kind: "entidad", id: "p-proc" }, etiqueta: "" };
+    enlacesOpd[`ae-${i}`] = { id: `ae-${i}`, enlaceId, opdId: "opd-1", vertices: [] };
+  }
+  return {
+    id: "modelo-denso",
+    nombre: "Denso",
+    opdRaizId: "opd-1",
+    nextSeq: 20,
+    entidades,
+    estados: {},
+    enlaces,
+    abanicos: {},
+    opds: {
+      "opd-1": {
+        id: "opd-1",
+        nombre: "SD",
+        padreId: null,
+        apariencias,
+        enlaces: enlacesOpd,
+      },
+    },
+  };
+}
+
+function modeloOpdInzoomDenso(): Modelo {
+  const modelo = modeloOpdInzoomDescomposicion();
+  for (let i = 4; i <= 8; i++) {
+    const entidadId = `p-sub${i}`;
+    const aparienciaId = `a-sub${i}`;
+    modelo.entidades[entidadId] = { id: entidadId, tipo: "proceso", nombre: `Sub${i}`, esencia: "fisica", afiliacion: "sistemica" };
+    modelo.opds["opd-2"]!.apariencias[aparienciaId] = {
+      id: aparienciaId,
+      entidadId,
+      opdId: "opd-2",
+      x: 285,
+      y: 370 + (i - 3) * 90,
+      width: 135,
+      height: 60,
+    };
+  }
+  return modelo;
 }

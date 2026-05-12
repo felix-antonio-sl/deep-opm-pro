@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import type { dia } from "jointjs";
-import { calcularSiguienteZoom, zoomCanvasEnCursor } from "./zoom";
+import { calcularSiguienteZoom, fitCanvasAPantalla, zoomCanvasEnCursor } from "./zoom";
 
 describe("handlers/zoom", () => {
   test("limita cada wheel a un cambio suave aunque deltaY sea grande", () => {
@@ -34,6 +34,39 @@ describe("handlers/zoom", () => {
     zoomCanvasEnCursor(paper, { ...eventoWheel(-100), clientX: 10, clientY: 20 } as WheelEvent);
 
     expect(llamadas).toEqual([[1.01, 1.01, 42, 24]]);
+  });
+
+  test("fit usa transformToFitContent contra el viewport visible y refresca vistas", () => {
+    const llamadas: unknown[] = [];
+    let wakeUps = 0;
+    let viewportChecks = 0;
+    const paper = {
+      transformToFitContent: (options: unknown) => llamadas.push(options),
+      wakeUp: () => { wakeUps += 1; },
+      checkViewport: () => { viewportChecks += 1; },
+    } as unknown as dia.Paper;
+    const viewport = {
+      clientWidth: 900,
+      clientHeight: 600,
+      scrollLeft: 120,
+      scrollTop: 80,
+    } as HTMLElement;
+
+    fitCanvasAPantalla(paper, viewport);
+
+    expect(llamadas).toHaveLength(1);
+    expect(llamadas[0]).toMatchObject({
+      padding: 40,
+      minScale: 0.5,
+      maxScale: 1.6,
+      preserveAspectRatio: true,
+      useModelGeometry: true,
+      horizontalAlign: "middle",
+      verticalAlign: "middle",
+      fittingBBox: { x: 120, y: 80, width: 900, height: 600 },
+    });
+    expect(wakeUps).toBe(1);
+    expect(viewportChecks).toBe(1);
   });
 });
 

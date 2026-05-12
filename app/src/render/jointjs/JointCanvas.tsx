@@ -364,9 +364,10 @@ export function JointCanvas() {
   }, [enlaceSeleccionId, hoverOplRef, modelo]);
 
   useEffect(() => {
-    return cablearZoomFit({
-      get current() { return adapterRef.current?.paper ?? null; },
-    });
+    return cablearZoomFit(
+      { get current() { return adapterRef.current?.paper ?? null; } },
+      { get current() { return viewportRef.current; } },
+    );
   }, []);
 
   useEffect(() => {
@@ -391,7 +392,7 @@ export function JointCanvas() {
     if (solicitudFitToken === tokenInicialRef.current) return;
     const id = requestAnimationFrame(() => {
       const paper = adapterRef.current?.paper;
-      fitCanvasAPantalla(paper ?? undefined);
+      fitCanvasAPantalla(paper ?? undefined, viewportRef.current);
     });
     return () => cancelAnimationFrame(id);
   }, [solicitudFitToken]);

@@ -75,6 +75,22 @@ const INZOOM = {
   margenExterno: 24,
   /** Separacion vertical entre externos apilados en cada columna. */
   gapExterno: 32,
+  /** Separacion horizontal entre subthings cuando un inzoom denso usa grilla. */
+  gapInternoHorizontal: 50,
+  /** Aire lateral minimo dentro del contorno inzoom denso. */
+  paddingLateralDenso: 45,
+} as const;
+
+const DENSIDAD = {
+  /** Bajo este umbral se conserva el layout historico de una sola fila. */
+  umbralNivelDenso: 6,
+  /** Tope prudente para no crear bandas demasiado anchas. */
+  maxColumnasNivel: 6,
+  /** OPCloud arrangeObjects usa 50/45; aqui lo usamos como piso de compactacion. */
+  gapHorizontalMin: 50,
+  gapFilaMin: 45,
+  gapFilaFactor: 0.55,
+  maxColumnasInzoom: 4,
 } as const;
 
 export function calcularLayoutSugerido(
@@ -127,9 +143,29 @@ function layoutConContorno(
   // Dimensiones canonicas del contorno (estilo OpmVisualThing.inzoom):
   //   width = cosaWidth * 3
   //   height = (cosaHeight + gapInterno) * max(N, minSubthings) + paddingSuperior + paddingInferior
+  const grillaEmbedded = calcularGrillaDensa(embedded, {
+    umbral: DENSIDAD.umbralNivelDenso,
+    maxColumnas: DENSIDAD.maxColumnasInzoom,
+  });
+  const columnasEmbedded = grillaEmbedded.columnas;
+  const filasEmbedded = grillaEmbedded.filas;
+  const inzoomDenso = filasEmbedded.length > 1;
+  const filasVisualesEmbedded = inzoomDenso ? filasEmbedded : embedded.map((child) => [child]);
+  const filasDimension = filasEmbedded.length > 0 ? filasEmbedded.length : INZOOM.minSubthings;
   const subthings = Math.max(INZOOM.minSubthings, embedded.length);
-  const contornoWidth = CANON.dims.cosaWidth * INZOOM.multAncho;
-  const contornoHeight = (CANON.dims.cosaHeight + INZOOM.gapInterno) * subthings + INZOOM.paddingSuperior + INZOOM.paddingInferior;
+  const anchoCanonico = CANON.dims.cosaWidth * INZOOM.multAncho;
+  const anchoDenso = inzoomDenso
+    ? columnasEmbedded * CANON.dims.cosaWidth
+      + (columnasEmbedded - 1) * INZOOM.gapInternoHorizontal
+      + INZOOM.paddingLateralDenso * 2
+    : anchoCanonico;
+  const contornoWidth = Math.max(anchoCanonico, anchoDenso);
+  const contornoHeight = inzoomDenso
+    ? filasDimension * CANON.dims.cosaHeight
+      + Math.max(0, filasDimension - 1) * INZOOM.gapInterno
+      + INZOOM.paddingSuperior
+      + INZOOM.paddingInferior
+    : (CANON.dims.cosaHeight + INZOOM.gapInterno) * subthings + INZOOM.paddingSuperior + INZOOM.paddingInferior;
 
   // Origen del contorno: respeta la posicion previa si era razonable; si no,
   // colapsa al canonico (150, 90) heredado de descomposicion.ts.
@@ -144,14 +180,22 @@ function layoutConContorno(
     height: contornoHeight,
   });
 
-  // Embedded children: vertical column, centrados horizontal, yOffset=100.
+  // Embedded children: OPCloud usa columna vertical para el caso normal
+  // (`beautifyInzoomSubThings`). En densidad alta mantenemos contencion y
+  // padding canonico, pero partimos en filas internas para evitar contornos
+  // desproporcionadamente altos.
   const childCenterX = contornoX + contornoWidth / 2;
   let yCursor = contornoY + INZOOM.paddingSuperior;
-  for (const child of embedded) {
-    const x = Math.round(childCenterX - child.width / 2);
-    const y = Math.round(yCursor);
-    posiciones.push({ aparienciaId: child.id, x, y });
-    yCursor += child.height + INZOOM.gapInterno;
+  for (const fila of filasVisualesEmbedded) {
+    const anchoFila = anchoFilaApariencias(fila, INZOOM.gapInternoHorizontal);
+    let xCursor = childCenterX - anchoFila / 2;
+    let altoFila = 0;
+    for (const child of fila) {
+      posiciones.push({ aparienciaId: child.id, x: Math.round(xCursor), y: Math.round(yCursor) });
+      xCursor += child.width + INZOOM.gapInternoHorizontal;
+      altoFila = Math.max(altoFila, child.height);
+    }
+    yCursor += altoFila + INZOOM.gapInterno;
   }
 
   // Externos: clasifica por direccion del enlace en el OPD activo.
@@ -344,42 +388,115 @@ function layoutLayered(
     for (const id of huerfanas) nivelPorEntidad.set(id, nivelMaximo);
   }
 
-  // Agrupa apariencias por nivel; orden intra-nivel: procesos al centro,
-  // objetos a izquierda y derecha alternados (mejor lectura SD).
+  // Agrupa apariencias por nivel. Primero aplica el orden OPM local; luego
+  // reordena cada banda por baricentro de vecinos entrantes para reducir
+  // cruces cuando un nivel es denso (patron Sugiyama simple, sin dependencia).
   const aparienciasPorNivel = new Map<number, Apariencia[]>();
   for (const apariencia of apariencias) {
     const nivel = nivelPorEntidad.get(apariencia.entidadId) ?? 0;
     if (!aparienciasPorNivel.has(nivel)) aparienciasPorNivel.set(nivel, []);
     aparienciasPorNivel.get(nivel)!.push(apariencia);
   }
-  for (const lista of aparienciasPorNivel.values()) {
+  const nivelesOrdenados = [...aparienciasPorNivel.keys()].sort((a, b) => a - b);
+  const ordenPorEntidad = new Map<Id, number>();
+  for (const nivel of nivelesOrdenados) {
+    const lista = aparienciasPorNivel.get(nivel)!;
     lista.sort((a, b) => ordenIntraNivel(modelo, a, b));
+    if (nivel > 0) {
+      lista.sort((a, b) => {
+        const ba = baricentroEntrantes(a.entidadId, aristas, ordenPorEntidad);
+        const bb = baricentroEntrantes(b.entidadId, aristas, ordenPorEntidad);
+        if (ba !== bb) return ba - bb;
+        return ordenIntraNivel(modelo, a, b);
+      });
+    }
+    lista.forEach((apariencia, index) => ordenPorEntidad.set(apariencia.entidadId, index));
   }
 
-  // Calcula ancho de cada nivel para centrar todos alrededor del centro X
-  // del nivel mas ancho. Esto evita el efecto "todos pegados a la izquierda"
-  // y produce simetria visual estilo SD canonico.
+  // Calcula ancho de cada nivel para centrar todos alrededor del centro X del
+  // nivel mas ancho. Los niveles densos se parten en filas internas: conserva
+  // el ranking top-down OPM, pero evita una unica banda de decenas de cosas.
   let anchoMaximo = 0;
-  const anchoPorNivel = new Map<number, number>();
-  for (const [nivel, lista] of aparienciasPorNivel) {
-    const ancho = lista.reduce((sum, a) => sum + a.width, 0) + gapH * Math.max(0, lista.length - 1);
-    anchoPorNivel.set(nivel, ancho);
+  const bandas = new Map<number, { filas: Apariencia[][]; ancho: number; alto: number; gapH: number; gapFila: number }>();
+  for (const nivel of nivelesOrdenados) {
+    const lista = aparienciasPorNivel.get(nivel)!;
+    const gapHDenso = Math.max(DENSIDAD.gapHorizontalMin, gapH);
+    const gapFila = Math.max(DENSIDAD.gapFilaMin, Math.round(gapV * DENSIDAD.gapFilaFactor));
+    const filas = calcularGrillaDensa(lista, {
+      umbral: DENSIDAD.umbralNivelDenso,
+      maxColumnas: DENSIDAD.maxColumnasNivel,
+    }).filas;
+    const gapUsado = filas.length > 1 ? gapHDenso : gapH;
+    const ancho = filas.reduce((max, fila) => Math.max(max, anchoFilaApariencias(fila, gapUsado)), 0);
+    const alto = altoFilasApariencias(filas, gapFila);
+    bandas.set(nivel, { filas, ancho, alto, gapH: gapUsado, gapFila });
     if (ancho > anchoMaximo) anchoMaximo = ancho;
   }
   const centroX = origenX + anchoMaximo / 2;
 
   const posiciones: PosicionSugerida[] = [];
-  for (const [nivel, lista] of [...aparienciasPorNivel.entries()].sort((a, b) => a[0] - b[0])) {
-    const y = origenY + nivel * gapV;
-    const ancho = anchoPorNivel.get(nivel) ?? 0;
-    let x = centroX - ancho / 2;
-    for (const apariencia of lista) {
-      posiciones.push({ aparienciaId: apariencia.id, x: Math.round(x), y: Math.round(y) });
-      x += apariencia.width + gapH;
+  let yNivel = origenY;
+  for (const nivel of nivelesOrdenados) {
+    const banda = bandas.get(nivel);
+    if (!banda) continue;
+    let yFila = yNivel;
+    for (const fila of banda.filas) {
+      const anchoFila = anchoFilaApariencias(fila, banda.gapH);
+      let x = centroX - anchoFila / 2;
+      let altoFila = 0;
+      for (const apariencia of fila) {
+        posiciones.push({ aparienciaId: apariencia.id, x: Math.round(x), y: Math.round(yFila) });
+        x += apariencia.width + banda.gapH;
+        altoFila = Math.max(altoFila, apariencia.height);
+      }
+      yFila += altoFila + banda.gapFila;
     }
+    yNivel += banda.filas.length > 1 ? banda.alto + gapV : gapV;
   }
 
   return posiciones;
+}
+
+function baricentroEntrantes(
+  entidadId: Id,
+  aristas: Array<{ origen: Id; destino: Id; tipo: TipoEnlace }>,
+  ordenPorEntidad: Map<Id, number>,
+): number {
+  let total = 0;
+  let n = 0;
+  for (const arista of aristas) {
+    if (arista.destino !== entidadId) continue;
+    const orden = ordenPorEntidad.get(arista.origen);
+    if (orden === undefined) continue;
+    total += orden;
+    n += 1;
+  }
+  return n > 0 ? total / n : Number.POSITIVE_INFINITY;
+}
+
+function calcularGrillaDensa(
+  apariencias: Apariencia[],
+  opciones: { umbral: number; maxColumnas: number },
+): { columnas: number; filas: Apariencia[][] } {
+  if (apariencias.length === 0) return { columnas: 0, filas: [] };
+  if (apariencias.length < opciones.umbral) return { columnas: apariencias.length, filas: [apariencias] };
+  const columnas = Math.min(opciones.maxColumnas, apariencias.length, Math.max(1, Math.ceil(Math.sqrt(apariencias.length))));
+  const filas: Apariencia[][] = [];
+  for (let i = 0; i < apariencias.length; i += columnas) {
+    filas.push(apariencias.slice(i, i + columnas));
+  }
+  return { columnas, filas };
+}
+
+function anchoFilaApariencias(fila: Apariencia[], gap: number): number {
+  return fila.reduce((sum, a) => sum + a.width, 0) + gap * Math.max(0, fila.length - 1);
+}
+
+function altoFilasApariencias(filas: Apariencia[][], gapFila: number): number {
+  return filas.reduce((sum, fila, index) => {
+    const altoFila = fila.reduce((max, a) => Math.max(max, a.height), 0);
+    return sum + altoFila + (index > 0 ? gapFila : 0);
+  }, 0);
 }
 
 /**

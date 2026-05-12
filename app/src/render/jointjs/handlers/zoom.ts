@@ -24,18 +24,32 @@ export function cablearZoomWheel(args: {
   return () => args.host.removeEventListener("wheel", manejarWheel);
 }
 
-export function cablearZoomFit(paperRef: { current: dia.Paper | null | undefined }): () => void {
+export function cablearZoomFit(
+  paperRef: { current: dia.Paper | null | undefined },
+  viewportRef?: { current: HTMLElement | null | undefined },
+): () => void {
   return registrarAtajo({
     combo: "Ctrl+0",
     ctx: "canvas",
     categoria: "vista",
     descripcion: "Ajustar OPD activo a pantalla",
-    handler: () => fitCanvasAPantalla(paperRef.current ?? undefined),
+    handler: () => fitCanvasAPantalla(paperRef.current ?? undefined, viewportRef?.current),
   });
 }
 
-export function fitCanvasAPantalla(paper: dia.Paper | undefined): void {
+export function fitCanvasAPantalla(paper: dia.Paper | undefined, viewport?: HTMLElement | null): void {
+  if (!paper) return;
   const paperConFit = paper as unknown as {
+    transformToFitContent?: (options: {
+      padding: number;
+      minScale: number;
+      maxScale: number;
+      preserveAspectRatio: boolean;
+      useModelGeometry: boolean;
+      horizontalAlign: "left" | "middle" | "right";
+      verticalAlign: "top" | "middle" | "bottom";
+      fittingBBox?: { x: number; y: number; width: number; height: number };
+    }) => void;
     scaleContentToFit?: (options: {
       padding: number;
       minScale: number;
@@ -43,12 +57,36 @@ export function fitCanvasAPantalla(paper: dia.Paper | undefined): void {
       preserveAspectRatio: boolean;
     }) => void;
   } | undefined;
-  paperConFit?.scaleContentToFit?.({
+  if (!paperConFit) return;
+  const fittingBBox = viewport && viewport.clientWidth > 0 && viewport.clientHeight > 0
+    ? {
+        x: viewport.scrollLeft,
+        y: viewport.scrollTop,
+        width: viewport.clientWidth,
+        height: viewport.clientHeight,
+      }
+    : undefined;
+  if (typeof paperConFit.transformToFitContent === "function") {
+    paperConFit.transformToFitContent({
+      padding: 40,
+      minScale: ZOOM_MIN,
+      maxScale: ZOOM_MAX,
+      preserveAspectRatio: true,
+      useModelGeometry: true,
+      horizontalAlign: "middle",
+      verticalAlign: "middle",
+      ...(fittingBBox ? { fittingBBox } : {}),
+    });
+    refrescarVisibilidadPaper(paper);
+    return;
+  }
+  paperConFit.scaleContentToFit?.({
     padding: 40,
     minScale: ZOOM_MIN,
     maxScale: ZOOM_MAX,
     preserveAspectRatio: true,
   });
+  refrescarVisibilidadPaper(paper);
 }
 
 export function zoomCanvasEnCursor(paper: dia.Paper, event: WheelEvent): void {
@@ -64,12 +102,15 @@ export function zoomCanvasEnCursor(paper: dia.Paper, event: WheelEvent): void {
   if (punto) {
     if (typeof paperConZoom.scaleUniformAtPoint === "function") {
       paperConZoom.scaleUniformAtPoint(siguiente, punto);
+      refrescarVisibilidadPaper(paper);
       return;
     }
     paperConZoom.scale(siguiente, siguiente, punto.x, punto.y);
+    refrescarVisibilidadPaper(paper);
     return;
   }
   paperConZoom.scale(siguiente, siguiente);
+  refrescarVisibilidadPaper(paper);
 }
 
 export function calcularSiguienteZoom(escalaActual: number, event: Pick<WheelEvent, "deltaY" | "deltaMode">): number {
@@ -90,4 +131,13 @@ function limitarFactorZoom(factor: number): number {
 
 function limitarZoom(valor: number): number {
   return Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, valor));
+}
+
+function refrescarVisibilidadPaper(paper: dia.Paper): void {
+  const paperConRender = paper as unknown as {
+    wakeUp?: () => void;
+    checkViewport?: () => void;
+  };
+  paperConRender.wakeUp?.();
+  paperConRender.checkViewport?.();
 }
