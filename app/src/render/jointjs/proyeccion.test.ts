@@ -254,7 +254,7 @@ describe("proyeccion JointJS", () => {
     let cellEnlace = proyectarModeloAJointCells(modelo, modelo.opdRaizId, null, null)
       .find((cell) => cell.type === "standard.Link");
     let labels = cellEnlace?.labels as Array<{ attrs?: { label?: { text?: unknown } } }> | undefined;
-    expect(labels?.some((label) => label.attrs?.label?.text === "E")).toBe(true);
+    expect(labels?.some((label) => label.attrs?.label?.text === "e")).toBe(true);
     expect(labels?.some((label) => label.attrs?.label?.text === "70%")).toBe(true);
 
     modelo = modeloConEnlace("invocacion");
@@ -266,7 +266,7 @@ describe("proyeccion JointJS", () => {
     cellEnlace = proyectarModeloAJointCells(modelo, modelo.opdRaizId, null, null)
       .find((cell) => cell.type === "standard.Link");
     labels = cellEnlace?.labels as Array<{ attrs?: { label?: { text?: unknown } } }> | undefined;
-    expect(labels?.some((label) => label.attrs?.label?.text === "C")).toBe(true);
+    expect(labels?.some((label) => label.attrs?.label?.text === "c")).toBe(true);
     expect(labels?.some((label) => label.attrs?.label?.text === "1s")).toBe(true);
   });
 
@@ -289,7 +289,7 @@ describe("proyeccion JointJS", () => {
     const labels = cellEnlace?.labels as Array<{ attrs?: { label?: { text?: unknown; fontSize?: unknown; fontFamily?: unknown; fill?: unknown } }; position?: { distance?: unknown; offset?: unknown } }> | undefined;
 
     expect(labels?.some((label) => label.attrs?.label?.text === "1")).toBe(true);
-    expect(labels?.some((label) => label.attrs?.label?.text === "C")).toBe(true);
+    expect(labels?.some((label) => label.attrs?.label?.text === "c")).toBe(true);
     const ruta = labels?.find((label) => label.attrs?.label?.text === "exitoso");
     expect(ruta?.attrs?.label).toMatchObject({ fontFamily: "Arial", fontSize: 12, fill: "#475467" });
     expect(ruta?.position).toMatchObject({ distance: 0.33, offset: -24 });

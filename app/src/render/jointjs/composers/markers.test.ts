@@ -17,11 +17,12 @@ describe("composer markers", () => {
     expect(marker).not.toBe(LINK_ASSETS.procedural.consumo.marker);
   });
 
-  test("resuelve badges canonicos C/E/no desde subtipo o modificador base", () => {
-    expect(textoSubtipoModificador({ id: "e1", tipo: "consumo", origenId: { kind: "entidad", id: "o1" }, destinoId: { kind: "entidad", id: "p1" }, etiqueta: "", modificador: "condicion" })).toBe("C");
-    expect(textoSubtipoModificador({ id: "e2", tipo: "consumo", origenId: { kind: "entidad", id: "o1" }, destinoId: { kind: "entidad", id: "p1" }, etiqueta: "", modificador: "evento", subtipoModificador: "E" })).toBe("E");
+  test("resuelve badges canonicos c/e/no desde subtipo o modificador base", () => {
+    // SSOT §4.1/§4.2: marca canonica `c`/`e` MINUSCULA, `no` -> `¬`.
+    expect(textoSubtipoModificador({ id: "e1", tipo: "consumo", origenId: { kind: "entidad", id: "o1" }, destinoId: { kind: "entidad", id: "p1" }, etiqueta: "", modificador: "condicion" })).toBe("c");
+    expect(textoSubtipoModificador({ id: "e2", tipo: "consumo", origenId: { kind: "entidad", id: "o1" }, destinoId: { kind: "entidad", id: "p1" }, etiqueta: "", modificador: "evento", subtipoModificador: "E" })).toBe("e");
     expect(textoSubtipoModificador({ id: "e3", tipo: "consumo", origenId: { kind: "entidad", id: "o1" }, destinoId: { kind: "entidad", id: "p1" }, etiqueta: "", modificador: "no" })).toBe("¬");
-    const badge = etiquetaBadgeModificadorCanonico("C", 0);
-    expect(badge).toMatchObject({ attrs: { label: { text: "C" } }, position: { distance: 0, offset: -20 } });
+    const badge = etiquetaBadgeModificadorCanonico("c", 0);
+    expect(badge).toMatchObject({ attrs: { label: { text: "c" } }, position: { distance: 0, offset: -20 } });
   });
 });

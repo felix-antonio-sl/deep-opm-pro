@@ -28,7 +28,7 @@ export function SeccionEstiloEnlace(props: Props) {
       </div>
       <ColorPickerEnlace label="Color" value={props.enlace.estilo?.color} onChange={(color) => props.onAplicarEstilo(props.enlace.id, { color })} />
       <SliderGrosor label="Grosor" value={props.enlace.estilo?.strokeWidth ?? 2} min={1} max={6} onChange={(strokeWidth) => props.onAplicarEstilo(props.enlace.id, { strokeWidth })} />
-      <SelectorPatron label="Patrón" value={props.enlace.estilo?.dashArray ?? "ambiental"} onChange={(value) => props.onAplicarEstilo(props.enlace.id, { dashArray: value === "ambiental" ? "" : value })} />
+      <SelectorPatron label="Patrón" value={props.enlace.estilo?.dashArray ?? "continuo"} onChange={(value) => props.onAplicarEstilo(props.enlace.id, { dashArray: value === "continuo" ? "" : value })} />
       {props.seleccionados.length >= 2 && props.seleccionados.every((id) => props.modelo.enlaces[id]) ? (
         <button type="button" style={style.secondaryButton} onClick={() => props.enlace.estilo ? props.onAplicarSeleccion(props.enlace.estilo) : undefined} disabled={!props.enlace.estilo}>
           Aplicar a selección
@@ -73,7 +73,7 @@ function SelectorPatron(props: { label: string; value: string; onChange: (v: str
     <div style={sliderRowStyle}>
       <span style={sliderLabelStyle}>{props.label}</span>
       <select style={style.input} value={props.value} onChange={(event) => props.onChange(event.currentTarget.value)}>
-        <option value="ambiental">Ambiental (sólido)</option>
+        <option value="continuo">Continuo</option>
         <option value="4 4">Discontinuo</option>
         <option value="2 4">Punteado</option>
         <option value="6 4 2 4">Mixto</option>

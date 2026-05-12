@@ -33,9 +33,14 @@ export function proyectarEntidad(
   const tienePartes = partes.length > 0;
   const modoParcial = modoPlegadoApariencia(apariencia) === "parcial" && tienePartes;
   const filasParciales = modoParcial ? filasPlegadoConNesting({ modelo, opdId, padreAparienciaId: apariencia.id }) : [];
-  const estadosVisibles = entidad.tipo === "objeto" && !modoParcial
-    ? estadosDeEntidad(modelo, entidad.id).filter((estado) => !estado.suprimido)
-    : [];
+  const estadosTotales = entidad.tipo === "objeto" && !modoParcial ? estadosDeEntidad(modelo, entidad.id) : [];
+  const estadosVisibles = estadosTotales.filter((estado) => !estado.suprimido);
+  // SSOT §1.8 / V-192: cuando un objeto tiene estados suprimidos no
+  // visibles en el OPD activo, el canon canonico exige un indicador
+  // textual `...` en esquina inferior derecha como gramatica auxiliar
+  // de "hay mas, no se muestra todo". Implementado abajo via
+  // metadatos.suppressedBadge para reusar la infraestructura de badges.
+  const tieneEstadosSuprimidos = estadosTotales.length > estadosVisibles.length;
   const nombreRender = formatearNombreCompuesto(entidad, { aliasVisible: opciones.aliasVisibles !== false });
   const refinada = tieneRefinamiento(entidad);
   // BUG-372334: distinguir descomposicion (inzoom: partes EMBEBIDAS dentro del
@@ -62,7 +67,13 @@ export function proyectarEntidad(
     // Atributos opcionales: solo presentes cuando aplican; pasar undefined a JointJS
     // serializa el string literal "undefined" en el SVG.
     ...(entidad.afiliacion === "ambiental" ? { strokeDasharray: "8 4" } : {}),
-    ...(entidad.esencia === "fisica" ? { filter: "drop-shadow(1px 2px 2px rgb(0 0 0 / 0.25))" } : {}),
+    // SSOT V-124/V-127, JOYAS §8: la sombra de esencia "fisica" es un canal
+    // semantico OPM (no decoracion UI). Usamos el filtro `dropShadow` de
+    // JointJS que se serializa a `<feDropShadow>` SVG nativo en `<defs>`, en
+    // vez del shorthand CSS `filter: "drop-shadow(...)"`. Esto preserva la
+    // sombra como propiedad recuperable del canon-diagrama y evita colision
+    // perceptual con filtros CSS UI (ver halo de modo enlace, N11).
+    ...(entidad.esencia === "fisica" ? { filter: { name: "dropShadow", args: { dx: 1, dy: 2, blur: 2, color: "rgba(0,0,0,0.25)" } } } : {}),
     cursor: "pointer",
   };
   const attrsBase = {
@@ -82,7 +93,7 @@ export function proyectarEntidad(
       pointerEvents: "none",
     },
   };
-  const metadatos = metadatosEntidad(entidad, opciones, tienePartes);
+  const metadatos = metadatosEntidad(entidad, opciones, tienePartes, tieneEstadosSuprimidos);
   const renderBase = modoParcial
     ? { markup: markupPlegadoParcial(bodyTag, filasParciales), attrs: attrsPlegadoParcial(attrsBase, size, filasParciales) }
     : estadosVisibles.length > 0
@@ -193,17 +204,19 @@ interface MetadatosEntidadRender {
   foldBadge: boolean;
   descripcion?: string;
   url?: string;
+  suppressedBadge: boolean;
   tieneMetadatos: boolean;
 }
 
-export function metadatosEntidad(entidad: Entidad, opciones: OpcionesProyeccion, tienePartes: boolean): MetadatosEntidadRender {
+export function metadatosEntidad(entidad: Entidad, opciones: OpcionesProyeccion, tienePartes: boolean, tieneEstadosSuprimidos = false): MetadatosEntidadRender {
   const descripcion = opciones.descripcionesVisibles !== false ? entidad.descripcion?.trim() : undefined;
   const url = entidad.urls?.[0]?.url;
   return {
     foldBadge: tienePartes,
     ...(descripcion ? { descripcion } : {}),
     ...(url ? { url } : {}),
-    tieneMetadatos: tienePartes || !!descripcion || !!url,
+    suppressedBadge: tieneEstadosSuprimidos,
+    tieneMetadatos: tienePartes || !!descripcion || !!url || tieneEstadosSuprimidos,
   };
 }
 
@@ -218,6 +231,7 @@ export function markupConBadge(bodyTag: "rect" | "ellipse", metadatos: Metadatos
       selector: "urlLink",
       children: [{ tagName: "text", selector: "urlBadge" }],
     }] : []),
+    ...(metadatos.suppressedBadge ? [{ tagName: "text", selector: "suppressedBadge" }] : []),
   ];
 }
 
@@ -244,6 +258,7 @@ export function markupConEstados(
       selector: "urlLink",
       children: [{ tagName: "text", selector: "urlBadge" }],
     }] : []),
+    ...(metadatos.suppressedBadge ? [{ tagName: "text", selector: "suppressedBadge" }] : []),
   ];
 }
 
@@ -434,6 +449,23 @@ export function aplicarMetadatosAttrs(
       textVerticalAnchor: "middle",
       cursor: "pointer",
       title: "Plegado parcial",
+    };
+  }
+  if (metadatos.suppressedBadge) {
+    // SSOT §1.8 / V-192: "..." en esquina inferior derecha del objeto
+    // como indicador canonico de estados suprimidos en el OPD activo.
+    attrs.suppressedBadge = {
+      text: "…",
+      x: size.width - 14,
+      y: size.height - 8,
+      fill: CANON.colores.enlace,
+      fontFamily: CANON.dims.fontFamily,
+      fontSize: 14,
+      fontWeight: 700,
+      textAnchor: "middle",
+      textVerticalAnchor: "middle",
+      pointerEvents: "none",
+      title: "Tiene estados suprimidos en este OPD",
     };
   }
 }

@@ -164,12 +164,22 @@ export function markerAttrs(marker: Record<string, unknown>): Record<string, unk
 export function textoSubtipoModificador(enlace: Enlace): string | null {
   const subtipo = enlace.subtipoModificador ?? subtipoDesdeModificador(enlace);
   if (!subtipo) return null;
-  return subtipo === "no" ? "¬" : subtipo;
+  // SSOT §4.1/§4.2: marca canonica `c` o `e` MINUSCULA (no mayuscula);
+  // `no` se renderiza como negacion logica `¬`. Preservamos el tipo del
+  // modelo (`"C"|"E"|"no"`) y solo transformamos para presentacion visual.
+  if (subtipo === "no") return "¬";
+  if (subtipo === "C") return "c";
+  if (subtipo === "E") return "e";
+  return subtipo;
 }
 
 export function etiquetaBadgeModificadorCanonico(text: string, distance: number): Record<string, unknown> {
-  const color = text === "¬" ? "#b42318" : CANON.colores.enlace;
-  const fill = text === "C" ? "#fff7cc" : text === "E" ? "#e7f6ff" : "#fff1f0";
+  // SSOT §4 + V-210/V-211: la marca textual `c`/`e`/`¬` es semantica; no
+  // requiere canal cromatico propio. Unificamos a stroke/label = color de
+  // enlace y fill = relleno canonico. Antes el badge usaba amarillo/cyan/
+  // rosa + stroke rojo para `¬`, que colisionaba con la paleta de error.
+  const color = CANON.colores.enlace;
+  const fill = CANON.colores.relleno;
   return {
     markup: [
       { tagName: "rect", selector: "badge" },

@@ -99,9 +99,10 @@ test("renderiza modificadores evento/condicion y demora de invocacion", async ({
   await page.getByRole("button", { name: "Importar" }).click();
 
   await expect(page.locator(".joint-link")).toHaveCount(3);
-  await expect(svgText(page, "E")).toBeVisible();
+  // SSOT §4.1/§4.2: marcas canonicas `c`/`e` MINUSCULAS para condicion/evento.
+  await expect(svgText(page, "e")).toBeVisible();
   await expect(svgText(page, "70%")).toBeVisible();
-  await expect(svgText(page, "C")).toBeVisible();
+  await expect(svgText(page, "c")).toBeVisible();
   await expect(svgText(page, "1s")).toBeVisible();
   await expect(page.getByText("Orden inicia Aprobar, que consume Orden (probabilidad: 70%).")).toBeVisible();
   await expect(page.getByText("Aprobar invoca Validar despues de 1s.")).toBeVisible();

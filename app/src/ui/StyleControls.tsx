@@ -5,7 +5,10 @@ import { inspectorStyles as inspector } from "./inspectorStyles";
 import { tokens } from "./tokens";
 
 export const COLORS_UI = [tokens.colors.chromeNeutral, tokens.colors.canvas.objeto, tokens.colors.canvas.proceso, tokens.colors.canvas.texto, tokens.colors.errorBase, tokens.colors.naranja, tokens.colors.violeta, tokens.colors.negro] as const;
-export const DASH_PATTERNS_UI = ["ambiental", "4 4", "2 4", "6 4 2 4"] as const;
+// SSOT V-2/V-71: "ambiental" en OPM = afiliacion con contorno DISCONTINUO.
+// Aqui "continuo" es solo sentinel UI para `dashArray=""` (linea solida).
+// No tiene relacion con afiliacion ambiental del modelo.
+export const DASH_PATTERNS_UI = ["continuo", "4 4", "2 4", "6 4 2 4"] as const;
 
 interface Props {
   estilo: EstiloApariencia | undefined;
