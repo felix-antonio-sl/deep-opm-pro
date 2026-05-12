@@ -20,6 +20,25 @@ describe("puertos dinámicos OPCloud-style", () => {
     expect(origen.ports?.[enlace.origenId.portId!]).toEqual({ x: 1, y: 0.5 });
     expect(destino.ports?.[enlace.destinoId.portId!]).toEqual({ x: 0, y: 0.5 });
   });
+
+  test("acumula y separa puertos cuando varios enlaces llegan al mismo borde", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 220, y: 20 }, "Entrada A"));
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 220, y: 120 }, "Entrada B"));
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 220, y: 220 }, "Entrada C"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 220, y: 420 }, "Procesar"));
+
+    for (const nombre of ["Entrada A", "Entrada B", "Entrada C"]) {
+      modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidad(modelo, nombre), entidad(modelo, "Procesar"), "consumo"));
+    }
+    modelo = sincronizarPuertosEnlaces(modelo, modelo.opdRaizId);
+
+    const destino = apariencia(modelo, "Procesar");
+    const portsDestino = Object.values(destino.ports ?? {});
+    expect(portsDestino).toHaveLength(3);
+    expect(new Set(portsDestino.map((port) => `${port.x.toFixed(4)}:${port.y.toFixed(4)}`)).size).toBe(3);
+    expect(Math.min(...portsDestino.map((port) => port.y))).toBe(0);
+  });
 });
 
 function entidad(modelo: Modelo, nombre: string): string {
