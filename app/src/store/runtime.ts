@@ -331,8 +331,16 @@ export function listarModelosGuardadosSeguro(): ResumenModeloPersistido[] {
 export function estadoModelo(modelo: Modelo, extra: Partial<OpmStore> = {}): Partial<OpmStore> {
   const dirty = extra.dirty ?? (exportarModelo(modelo) !== snapshotGuardado);
   // P0 ronda 4: dirtyModelo solo se activa con cambios semanticos.
-  // Layout puro (drag, nudge, auto-layout) conserva el valor actual.
-  const dirtyModelo = extra.dirtyModelo ?? true;
+  // Layout puro (drag, nudge, auto-layout) conserva el valor actual via
+  // extra.dirtyModelo explicito. commitModelo setea extra.dirtyModelo=true
+  // por defecto para mutaciones semanticas. Para cargas y modelos nuevos
+  // (cargarDemo, nuevoModelo, cargarLocal, cargarFixture) que llaman
+  // estadoModelo tras resetHistorial, el modelo recien cargado no es dirty
+  // ni semantica ni visualmente: derivamos dirtyModelo de dirty (false).
+  // BUG-20260512T044458Z-d4931c: el fallback previo `?? true` dejaba un
+  // modelo recien cargado como dirtyModelo=true y disparaba el modal de
+  // "Hay cambios sin guardar" en cualquier accion confirmarSiDirty posterior.
+  const dirtyModelo = extra.dirtyModelo ?? dirty;
   const actual = estadoActual();
   const pestanasAbiertas = extra.pestanasAbiertas ?? (
     actual?.pestanasAbiertas
