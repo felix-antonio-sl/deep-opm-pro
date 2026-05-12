@@ -241,6 +241,9 @@ export const createMapaSlice: CrearSlice<MapaSlice> = (set, get) => ({
       mensaje: null,
       modoEnlace: null,
       modoCreacion: null,
+      // P1-5 ronda 4: editor inline (`nuevaCosaPendiente`) no debe sobrevivir
+      // un cambio de contexto. Cualquier modo que no sea Modelar lo descarta.
+      nuevaCosaPendiente: null,
       ...(contextoSimulacion !== null ? {
         contextoSimulacion: null,
         readOnly: readOnlyPrevSimulacion ?? false,

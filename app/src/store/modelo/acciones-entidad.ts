@@ -158,9 +158,12 @@ export function accionesEntidad(set: SetStore, get: GetStore): Partial<ModeloSli
     },
 
     fijarModoCreacion(tipo) {
+      // P1-5 ronda 4: activar sticky o cancelar todo descarta el editor inline.
+      // El badge "Modo sticky" debe ser la unica senal de modo activa.
       set({
         modoCreacion: tipo,
         modoEnlace: null,
+        nuevaCosaPendiente: null,
         mensaje: tipo ? `Haz clic en el canvas para crear ${tipo === "objeto" ? "un objeto" : "un proceso"}` : null,
       });
     },

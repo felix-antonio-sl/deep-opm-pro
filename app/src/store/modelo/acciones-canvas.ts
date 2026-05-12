@@ -64,15 +64,21 @@ import { aplicarLayoutSugerido as aplicarLayoutSugeridoOp } from "../../canvas/l
 export function accionesCanvas(set: SetStore, get: GetStore): Partial<ModeloSlice> {
   return {
     seleccionarEntidad(id) {
-      const { modelo, modoEnlace, opdActivoId } = get();
+      const { modelo, modoEnlace, opdActivoId, nuevaCosaPendiente } = get();
+      // P1-5 ronda 4: si el editor inline esta vivo sobre otra entidad,
+      // se descarta al cambiar la seleccion. Si seleccionamos la misma
+      // entidad pendiente, se preserva (mismo contexto).
+      const limpiezaPendiente = nuevaCosaPendiente && nuevaCosaPendiente.entidadId !== id
+        ? { nuevaCosaPendiente: null }
+        : {};
       if (!modoEnlace) {
-        set({ seleccionId: id, seleccionados: [id], modoSeleccion: "simple", enlaceSeleccionId: null, mensaje: null });
+        set({ seleccionId: id, seleccionados: [id], modoSeleccion: "simple", enlaceSeleccionId: null, mensaje: null, ...limpiezaPendiente });
         return;
       }
 
       const resultado = crearEnlaceConExtremoPlegado(modelo, opdActivoId, modoEnlace.origenId, id, modoEnlace.tipo);
       if (!resultado.ok) {
-        set({ seleccionId: id, seleccionados: [id], modoSeleccion: "simple", enlaceSeleccionId: null, mensaje: resultado.error });
+        set({ seleccionId: id, seleccionados: [id], modoSeleccion: "simple", enlaceSeleccionId: null, mensaje: resultado.error, ...limpiezaPendiente });
         return;
       }
       let modeloFinal = resultado.value;
@@ -88,24 +94,29 @@ export function accionesCanvas(set: SetStore, get: GetStore): Partial<ModeloSlic
         enlaceSeleccionId: null,
         modoEnlace: null,
         mensaje: null,
+        // P1-5: al crearse el enlace, salimos del editor inline.
+        nuevaCosaPendiente: null,
       });
     },
 
     seleccionarEstadoComoExtremo(estadoId) {
-      const { modelo, modoEnlace, opdActivoId } = get();
+      const { modelo, modoEnlace, opdActivoId, nuevaCosaPendiente } = get();
       const estado = modelo.estados[estadoId];
       if (!estado) {
         set({ mensaje: `Estado no existe: ${estadoId}` });
         return;
       }
+      const limpiezaPendiente = nuevaCosaPendiente && nuevaCosaPendiente.entidadId !== estado.entidadId
+        ? { nuevaCosaPendiente: null }
+        : {};
       if (!modoEnlace) {
-        set({ seleccionId: estado.entidadId, seleccionados: [estado.entidadId], modoSeleccion: "simple", enlaceSeleccionId: null, mensaje: null });
+        set({ seleccionId: estado.entidadId, seleccionados: [estado.entidadId], modoSeleccion: "simple", enlaceSeleccionId: null, mensaje: null, ...limpiezaPendiente });
         return;
       }
 
       const resultado = crearEnlaceConExtremoPlegado(modelo, opdActivoId, modoEnlace.origenId, extremoEstado(estadoId), modoEnlace.tipo);
       if (!resultado.ok) {
-        set({ seleccionId: estado.entidadId, seleccionados: [estado.entidadId], modoSeleccion: "simple", enlaceSeleccionId: null, mensaje: resultado.error });
+        set({ seleccionId: estado.entidadId, seleccionados: [estado.entidadId], modoSeleccion: "simple", enlaceSeleccionId: null, mensaje: resultado.error, ...limpiezaPendiente });
         return;
       }
       let modeloFinal = resultado.value;
@@ -121,6 +132,7 @@ export function accionesCanvas(set: SetStore, get: GetStore): Partial<ModeloSlic
         enlaceSeleccionId: null,
         modoEnlace: null,
         mensaje: null,
+        nuevaCosaPendiente: null,
       });
     },
 
@@ -131,17 +143,25 @@ export function accionesCanvas(set: SetStore, get: GetStore): Partial<ModeloSlic
         set({ mensaje: `Enlace no existe: ${id}` });
         return;
       }
-      set({ seleccionId: null, seleccionados: [id], modoSeleccion: "simple", enlaceSeleccionId: id, modoEnlace: null, mensaje: null });
+      // P1-5 ronda 4: al pasar a contexto enlace, el editor inline de
+      // cualquier entidad se descarta (contextos disjuntos).
+      set({ seleccionId: null, seleccionados: [id], modoSeleccion: "simple", enlaceSeleccionId: id, modoEnlace: null, mensaje: null, nuevaCosaPendiente: null });
     },
 
     seleccionarDesdeOpl(ref) {
-      const { modelo } = get();
+      const { modelo, nuevaCosaPendiente } = get();
+      // P1-5 ronda 4: navegacion desde OPL es cambio de contexto explicito
+      // pedido por el usuario; el editor inline no debe sobrevivir.
+      const entidadDestino = ref.tipo === "entidad" ? ref.id : ref.tipo === "estado" ? modelo.estados[ref.id]?.entidadId : null;
+      const limpiezaPendiente = nuevaCosaPendiente && nuevaCosaPendiente.entidadId !== entidadDestino
+        ? { nuevaCosaPendiente: null }
+        : {};
       if (ref.tipo === "enlace") {
         if (!modelo.enlaces[ref.id]) {
           set({ mensaje: `Enlace no existe: ${ref.id}` });
           return;
         }
-        set({ seleccionId: null, seleccionados: [ref.id], modoSeleccion: "simple", enlaceSeleccionId: ref.id, modoEnlace: null, mensaje: null });
+        set({ seleccionId: null, seleccionados: [ref.id], modoSeleccion: "simple", enlaceSeleccionId: ref.id, modoEnlace: null, mensaje: null, nuevaCosaPendiente: null });
         return;
       }
       if (ref.tipo === "estado") {
@@ -150,14 +170,14 @@ export function accionesCanvas(set: SetStore, get: GetStore): Partial<ModeloSlic
           set({ mensaje: `Estado no existe: ${ref.id}` });
           return;
         }
-        set({ seleccionId: estado.entidadId, seleccionados: [estado.entidadId], modoSeleccion: "simple", enlaceSeleccionId: null, modoEnlace: null, mensaje: null });
+        set({ seleccionId: estado.entidadId, seleccionados: [estado.entidadId], modoSeleccion: "simple", enlaceSeleccionId: null, modoEnlace: null, mensaje: null, ...limpiezaPendiente });
         return;
       }
       if (!modelo.entidades[ref.id]) {
         set({ mensaje: `Entidad no existe: ${ref.id}` });
         return;
       }
-      set({ seleccionId: ref.id, seleccionados: [ref.id], modoSeleccion: "simple", enlaceSeleccionId: null, modoEnlace: null, mensaje: null });
+      set({ seleccionId: ref.id, seleccionados: [ref.id], modoSeleccion: "simple", enlaceSeleccionId: null, modoEnlace: null, mensaje: null, ...limpiezaPendiente });
     },
 
     renombrarEntidadDesdeOpl(entidadId, nombre) {

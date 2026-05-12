@@ -223,7 +223,8 @@ export function accionesOpd(set: SetStore, get: GetStore): Partial<ModeloSlice> 
         set({ mensaje: null });
         return;
       }
-      set({ opdActivoId: id, seleccionId: null, seleccionados: [], modoSeleccion: "simple", enlaceSeleccionId: null, modoEnlace: null, modoCreacion: null, hoverOplRef: null, mensaje: null });
+      // P1-5 ronda 4: navegar entre OPDs es cambio de contexto; descartar editor inline.
+      set({ opdActivoId: id, seleccionId: null, seleccionados: [], modoSeleccion: "simple", enlaceSeleccionId: null, modoEnlace: null, modoCreacion: null, nuevaCosaPendiente: null, hoverOplRef: null, mensaje: null });
     },
 
     navegarAviso(aviso) {
@@ -236,6 +237,7 @@ export function accionesOpd(set: SetStore, get: GetStore): Partial<ModeloSlice> 
           seleccionId: aviso.elementoId,
           enlaceSeleccionId: null,
           modoEnlace: null,
+          nuevaCosaPendiente: null,
           mensaje: null,
         });
         return;
@@ -247,6 +249,7 @@ export function accionesOpd(set: SetStore, get: GetStore): Partial<ModeloSlice> 
           seleccionId: null,
           enlaceSeleccionId: aviso.elementoId,
           modoEnlace: null,
+          nuevaCosaPendiente: null,
           mensaje: null,
         });
         return;
@@ -260,6 +263,7 @@ export function accionesOpd(set: SetStore, get: GetStore): Partial<ModeloSlice> 
             seleccionId: null,
             enlaceSeleccionId: null,
             modoEnlace: null,
+            nuevaCosaPendiente: null,
             mensaje: null,
           });
           return;

@@ -43,7 +43,9 @@ export function accionesEnlace(set: SetStore, get: GetStore): Partial<ModeloSlic
         set({ mensaje: "Selecciona primero la entidad origen del enlace" });
         return;
       }
-      set({ modoEnlace: { tipo, origenId }, modoCreacion: null, mensaje: "Selecciona la entidad destino" });
+      // P1-5 ronda 4: activar modoEnlace cambia el contexto a "conectar";
+      // cualquier editor inline previo se descarta.
+      set({ modoEnlace: { tipo, origenId }, modoCreacion: null, nuevaCosaPendiente: null, mensaje: "Selecciona la entidad destino" });
     },
 
     crearEnlaceEntreEntidades(origenId, destinoId, tipo) {
@@ -66,6 +68,8 @@ export function accionesEnlace(set: SetStore, get: GetStore): Partial<ModeloSlic
         enlaceSeleccionId: enlaceCreadoId,
         modoEnlace: null,
         mensaje: null,
+        // P1-5: crear enlace cambia contexto al enlace; cerramos editor inline.
+        nuevaCosaPendiente: null,
       });
     },
 

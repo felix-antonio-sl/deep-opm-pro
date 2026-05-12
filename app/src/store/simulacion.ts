@@ -32,6 +32,8 @@ export const createSimulacionSlice: CrearSlice<SimulacionSlice> = (set, get) => 
       descriptorMapaCache: null,
       modoEnlace: null,
       modoCreacion: null,
+      // P1-5 ronda 4: descartar editor inline al cambiar de modo.
+      nuevaCosaPendiente: null,
       mensaje: contexto.plan.length === 0
         ? "Modo simulacion: el OPD activo no tiene procesos."
         : `Modo simulacion: ${contexto.plan.length} ${contexto.plan.length === 1 ? "paso" : "pasos"} planificados.`,
