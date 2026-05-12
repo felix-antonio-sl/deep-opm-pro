@@ -57,8 +57,19 @@ export function ToolbarCreacion() {
   const menuTiposAbiertoRef = useRef(false);
   menuTiposAbiertoRef.current = menuTiposAbierto;
 
-  const origenMenuTipo = useMemo(() => seleccionId ?? seleccionados.find((id) => !!modelo.entidades[id]) ?? null, [modelo.entidades, seleccionId, seleccionados]);
-  const destinoMenuTipo = useMemo(() => seleccionados.find((id) => id !== origenMenuTipo && !!modelo.entidades[id]) ?? null, [modelo.entidades, origenMenuTipo, seleccionados]);
+  // P1-4 ronda 4: si modoEnlace esta activo, el origen viene de
+  // `modoEnlace.origenId` (canon SSOT del modo conectar). El destino sigue
+  // siendo la segunda entidad seleccionada o el `seleccionId` cuando este
+  // difiere del origen. Esto permite que el popover guie progresivamente:
+  // "origen elegido, selecciona destino" en vez de "selecciona dos cosas".
+  const origenMenuTipo = useMemo(() => {
+    if (modoEnlace && modelo.entidades[modoEnlace.origenId]) return modoEnlace.origenId;
+    return seleccionId ?? seleccionados.find((id) => !!modelo.entidades[id]) ?? null;
+  }, [modelo.entidades, modoEnlace, seleccionId, seleccionados]);
+  const destinoMenuTipo = useMemo(() => {
+    if (modoEnlace && seleccionId && seleccionId !== origenMenuTipo && modelo.entidades[seleccionId]) return seleccionId;
+    return seleccionados.find((id) => id !== origenMenuTipo && !!modelo.entidades[id]) ?? null;
+  }, [modelo.entidades, modoEnlace, origenMenuTipo, seleccionId, seleccionados]);
   const selectorEnlaceDeshabilitado = !origenMenuTipo && !modoEnlace;
   const estiloBotonTipos = selectorEnlaceDeshabilitado
     ? style.disabledButton

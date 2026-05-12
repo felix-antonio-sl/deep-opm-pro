@@ -43,10 +43,28 @@ export function MenuTipoEnlace({ modelo, origenId, destinoId, direccion, onDirec
           <button type="button" style={direccion === "entrante" ? style.segmentActive : style.segment} onClick={() => onDireccion("entrante")}>Entrada</button>
         </div>
       </div>
-      {!origen || !destino ? (
-        <p style={style.empty}>Selecciona dos cosas para ver firmas y preview OPL.</p>
+      {!origen ? (
+        <p style={style.empty} data-testid="menu-tipo-enlace-estado-sin-origen">Selecciona la entidad origen del enlace.</p>
+      ) : !destino ? (
+        <div style={style.estado} data-testid="menu-tipo-enlace-estado-sin-destino">
+          <p style={style.estadoLinea}>
+            <span style={style.estadoEtiqueta}>Origen</span>
+            <strong style={style.estadoNombre}>{origen.nombre}</strong>
+          </p>
+          <p style={style.estadoHint}>Haz clic sobre la entidad destino en el canvas para ver tipos válidos y preview OPL.</p>
+        </div>
       ) : opciones.length === 0 ? (
-        <p style={style.empty}>No hay tipos válidos para esta firma.</p>
+        <div style={style.estado} data-testid="menu-tipo-enlace-estado-sin-tipos">
+          <p style={style.estadoLinea}>
+            <span style={style.estadoEtiqueta}>Origen</span>
+            <strong style={style.estadoNombre}>{origen.nombre}</strong>
+          </p>
+          <p style={style.estadoLinea}>
+            <span style={style.estadoEtiqueta}>Destino</span>
+            <strong style={style.estadoNombre}>{destino.nombre}</strong>
+          </p>
+          <p style={style.estadoHint}>No hay tipos válidos para esta firma. Prueba invertir la dirección o cambiar la selección.</p>
+        </div>
       ) : (
         <div style={style.list}>
           {opciones.map((opcion) => (
@@ -153,4 +171,10 @@ const style = {
   previewBox: { display: "grid", gap: "3px", padding: "8px", border: `1px solid ${tokens.colors.infoBordeSuave}`, borderRadius: tokens.radii.md, background: tokens.colors.azulMuySuave, color: tokens.colors.textoPrimario, fontSize: "12px" },
   previewLabel: { color: tokens.colors.infoTextoOscuro, fontSize: "10px", fontWeight: 800, textTransform: "uppercase", letterSpacing: 0 },
   empty: { margin: 0, color: tokens.colors.textoTerciario, fontSize: "12px" },
+  // P1-4 ronda 4: estado vivo del popover cuando hay seleccion parcial.
+  estado: { display: "grid", gap: "6px", padding: "8px", border: `1px solid ${tokens.colors.infoBordeSuave}`, borderRadius: tokens.radii.md, background: tokens.colors.azulMuySuave, color: tokens.colors.textoPrimario, fontSize: "12px" },
+  estadoLinea: { display: "flex", gap: "8px", alignItems: "baseline", margin: 0 },
+  estadoEtiqueta: { color: tokens.colors.infoTextoOscuro, fontSize: "10px", fontWeight: 800, textTransform: "uppercase", letterSpacing: 0, flex: "0 0 48px" },
+  estadoNombre: { color: tokens.colors.textoPrimario, fontSize: "13px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", minWidth: 0 },
+  estadoHint: { margin: "4px 0 0", color: tokens.colors.textoTerciario, fontSize: "11px", lineHeight: 1.3 },
 } satisfies Record<string, preact.JSX.CSSProperties>;
