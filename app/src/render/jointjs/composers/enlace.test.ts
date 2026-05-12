@@ -25,6 +25,7 @@ describe("composer enlace", () => {
     expect(line.strokeDasharray).toBe("2 2");
     expect(line.targetMarker).toEqual(LINK_ASSETS.procedural.consumo.marker);
     expect(cell.opm).toMatchObject({ kind: "enlace", enlaceId: "en-1", aparienciaEnlaceId: "ae-1", tipo: "consumo" });
+    expect(cell.z).toBeLessThan(10);
     // Ronda 15 L4: enlaces procedurales con routerManhattan deben usar
     // jumpover para que cruces se dibujen como puentes.
     expect(cell.connector).toEqual({ name: "jumpover", args: { type: "arc", size: 8 } });

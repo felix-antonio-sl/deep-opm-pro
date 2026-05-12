@@ -42,6 +42,7 @@ export function refrescarEnlacesExternosDerivados(modelo: Modelo, opdId: Id): Re
   const primero = subprocesos[0];
   const ultimo = subprocesos[subprocesos.length - 1];
   if (!primero || !ultimo) return ok(modelo);
+  if (!tieneDerivadosAutomaticosVisibles(modelo, opdId, contorno.entidad.id)) return ok(modelo);
 
   const limpio = limpiarEnlacesDerivadosAutomaticos(modelo, opdId, contorno.entidad.id);
   return proyectarEnlacesExternosEnRefinamiento(limpio, opdId, {
@@ -180,6 +181,17 @@ function proyeccionesEnlaceExterno(
 
 function aparienciaEnlaceExiste(apariencias: Record<Id, AparienciaEnlace>, enlaceId: Id): boolean {
   return Object.values(apariencias).some((apariencia) => apariencia.enlaceId === enlaceId);
+}
+
+function tieneDerivadosAutomaticosVisibles(modelo: Modelo, opdId: Id, refinamientoId: Id): boolean {
+  const opd = modelo.opds[opdId];
+  if (!opd) return false;
+  return Object.values(opd.enlaces).some((apariencia) => {
+    const enlace = modelo.enlaces[apariencia.enlaceId];
+    return enlace?.derivado?.tipo === "enlace-externo-refinamiento" &&
+      enlace.derivado.refinamientoId === refinamientoId &&
+      enlace.derivado.origen !== "manual";
+  });
 }
 
 function enlaceDerivadoExiste(

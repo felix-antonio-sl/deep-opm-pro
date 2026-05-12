@@ -5,6 +5,8 @@ import { etiquetaEnlaceNormalizada } from "../../modelo/etiquetasEnlace";
 import { LINK_ASSETS } from "./linkAssets";
 import type { JointCellJson, OpmJointMetadata } from "./proyeccion";
 
+const Z_ENLACE_BUS = 4;
+
 export interface EnlaceConEndpointVisual {
   enlace: Enlace;
   aparienciaEnlaceId: Id;
@@ -119,7 +121,7 @@ function proyectarGrupoAgregacion(
       connector: { name: "straight" },
       attrs: attrsLinea(algunaSeleccionada),
       opm: metaBus,
-      z: 11,
+      z: Z_ENLACE_BUS,
     },
     ...partes.map(({ rama, parte }, index) => ramaAgregacion(opdId, grupoId, grupo.ladoTodo, rama, parte, bottomTriangle, seleccionados.has(rama.enlace.id), index)),
     marcadorAgregacion(`${grupoId}-triangulo`, triangleCenter, triangleSize, algunaSeleccionada, metaBus),
@@ -153,7 +155,7 @@ function ramaAgregacion(
       aparienciaEnlaceId: rama.aparienciaEnlaceId,
       tipo: "agregacion",
     },
-    z: 11 + index * 0.001,
+    z: Z_ENLACE_BUS + index * 0.001,
   };
 }
 

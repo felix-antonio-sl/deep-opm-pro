@@ -949,6 +949,29 @@ describe("operaciones de modelo", () => {
     expect(enlacesHijo.some((enlace) => enlace.tipo === "consumo" && extremoApuntaAEntidad(enlace.destinoId, primeroOriginal.id))).toBe(false);
   });
 
+  test("mover en OPD hijo importado no materializa derivados externos ausentes", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 100 }, "Entrada"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 260, y: 120 }, "Procesar"));
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 520, y: 100 }, "Salida"));
+    const entrada = entidadPorNombre(modelo, "Entrada");
+    const procesar = entidadPorNombre(modelo, "Procesar");
+    const salida = entidadPorNombre(modelo, "Salida");
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entrada.id, procesar.id, "consumo"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, procesar.id, salida.id, "resultado"));
+    const descompuesto = must(descomponerProceso(modelo, modelo.opdRaizId, procesar.id));
+    modelo = quitarDerivadosAutomaticosDeOpd(descompuesto.modelo, descompuesto.opdId);
+
+    const antes = enlacesDelOpd(modelo, descompuesto.opdId);
+    expect(antes).toHaveLength(0);
+
+    const subproceso = entidadPorNombre(modelo, "Procesar 1");
+    modelo = must(moverApariencia(modelo, descompuesto.opdId, subproceso.id, { x: 285, y: 420 }));
+
+    expect(enlacesDelOpd(modelo, descompuesto.opdId)).toHaveLength(0);
+    expect(Object.values(modelo.enlaces).filter((enlace) => !enlace.derivado)).toHaveLength(2);
+  });
+
   test("reancla consumo externo derivado al subproceso elegido y marca origen manual", () => {
     let modelo = crearModelo();
     modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 100 }, "Entrada"));
@@ -1306,6 +1329,28 @@ function enlacesDelOpd(modelo: Modelo, opdId: string): Enlace[] {
   return Object.values(modelo.opds[opdId]?.enlaces ?? {})
     .map((apariencia) => modelo.enlaces[apariencia.enlaceId])
     .filter((enlace): enlace is Enlace => enlace !== undefined);
+}
+
+function quitarDerivadosAutomaticosDeOpd(modelo: Modelo, opdId: string): Modelo {
+  const opd = modelo.opds[opdId];
+  if (!opd) return modelo;
+  const derivados = new Set(
+    Object.values(opd.enlaces)
+      .map((apariencia) => modelo.enlaces[apariencia.enlaceId])
+      .filter((enlace): enlace is Enlace => enlace?.derivado?.origen === "automatico")
+      .map((enlace) => enlace.id),
+  );
+  return {
+    ...modelo,
+    enlaces: Object.fromEntries(Object.entries(modelo.enlaces).filter(([id]) => !derivados.has(id))),
+    opds: {
+      ...modelo.opds,
+      [opdId]: {
+        ...opd,
+        enlaces: Object.fromEntries(Object.entries(opd.enlaces).filter(([, apariencia]) => !derivados.has(apariencia.enlaceId))),
+      },
+    },
+  };
 }
 
 function enlaceDerivadoEnOpd(modelo: Modelo, opdId: string, tipo: TipoEnlace): { aparienciaId: string; enlace: Enlace } {

@@ -48,7 +48,7 @@ export function cablearDrag(args: CablearDragArgs): () => void {
     extraerParteDePlegadoRef,
     abrirRenombradoInlineRef,
   } = args;
-  const enlacesAtenuados = new Set<dia.Link>();
+  const enlacesAtenuados = new Map<dia.Link, unknown>();
   const documento = typeof document === "undefined" ? null : document;
   const onRestaurarEnlacesAtenuados = () => {
     restaurarEnlacesAtenuados(enlacesAtenuados);
@@ -61,7 +61,7 @@ export function cablearDrag(args: CablearDragArgs): () => void {
     if (meta?.kind !== "entidad") return;
     onRestaurarEnlacesAtenuados();
     quitarToolsPaper(paper);
-    atenuarEnlacesConectados(model as dia.Element, graph, enlacesAtenuados);
+    enfocarEnlacesDuranteDrag(model as dia.Element, graph, enlacesAtenuados);
   };
 
   const onElementPointerup = (elementView: dia.ElementView) => {
@@ -138,7 +138,7 @@ export function cablearDrag(args: CablearDragArgs): () => void {
     if (meta?.kind !== "entidad") return;
     const modeloActual = modeloRef.current;
     const opdActual = opdActivoIdRef.current;
-    atenuarEnlacesConectados(cell as dia.Element, graph, enlacesAtenuados);
+    enfocarEnlacesDuranteDrag(cell as dia.Element, graph, enlacesAtenuados);
     const afectados = abanicosAfectadosPorEntidad(modeloActual, opdActual, meta.entidadId);
     for (const abanico of afectados) {
       recalcularOverlayDesdeLinkView(paper, graph, modeloActual, abanico);
@@ -159,22 +159,24 @@ export function cablearDrag(args: CablearDragArgs): () => void {
   };
 }
 
-function atenuarEnlaceDuranteDrag(link: dia.Link): void {
-  link.attr("line/opacity", 0.18);
-}
-
-function atenuarEnlacesConectados(element: dia.Element, graph: dia.Graph, destino: Set<dia.Link>): void {
-  for (const link of graph.getConnectedLinks(element)) {
+function enfocarEnlacesDuranteDrag(element: dia.Element, graph: dia.Graph, destino: Map<dia.Link, unknown>): void {
+  if (destino.size > 0) return;
+  const conectados = new Set<dia.Link>();
+  for (const link of graph.getConnectedLinks(element, { deep: true, includeEnclosed: true })) {
     const linkMeta = metadata(link);
-    if (linkMeta?.kind !== "enlace" || destino.has(link)) continue;
-    atenuarEnlaceDuranteDrag(link);
-    destino.add(link);
+    if (linkMeta?.kind === "enlace") conectados.add(link);
+  }
+  for (const link of graph.getLinks()) {
+    const linkMeta = metadata(link);
+    if (linkMeta?.kind !== "enlace") continue;
+    destino.set(link, link.attr("line/opacity"));
+    link.attr("line/opacity", conectados.has(link) ? 0.18 : 0.045);
   }
 }
 
-function restaurarEnlacesAtenuados(links: Set<dia.Link>): void {
-  for (const link of links) {
-    link.attr("line/opacity", 1);
+function restaurarEnlacesAtenuados(links: Map<dia.Link, unknown>): void {
+  for (const [link, opacity] of links) {
+    link.attr("line/opacity", opacity ?? 1);
   }
   links.clear();
 }

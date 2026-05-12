@@ -8,6 +8,9 @@ import type { JointCellJson, OpmJointMetadata } from "../proyeccionTipos";
 import { selectorCapsulaEstado } from "./estados";
 import { etiquetaBadgeModificadorCanonico, marcadorDestino, marcadorFuente, marcadoresEstructurales, textoSubtipoModificador } from "./markers";
 
+const Z_ENLACE = 4;
+const Z_ENLACE_ESTADO = 20;
+
 /**
  * Composer de enlaces OPM: endpoints, etiquetas, rutas, vertices,
  * refinamientos estructurales sinteticos y proxies de plegado.
@@ -134,10 +137,10 @@ export function proyectarEnlace(
     : opciones.usarJumpover === false
       ? connectorRecto()
       : connectorJumpover();
-  // Los enlaces con ports dinámicos deben quedar sobre las entidades para
-  // conservar hit-testing del wrapper transparente; el path visible ya corta
-  // en el borde del port, así que no atraviesa el cuerpo de la entidad.
-  // BUG-1fc4d2: si toca estado, mantenemos z más alto que el padre.
+  // Los enlaces normales quedan bajo las entidades: evita que el wrapper
+  // transparente robe el drag de una cosa cuando una ruta cruza su cuerpo.
+  // BUG-1fc4d2: si toca estado, mantenemos z más alto que el padre para que
+  // la conexión con la cápsula interna siga visible y operable.
   const tocaEstado = !!origen.selectorEstado || !!destino.selectorEstado;
   return {
     id: aparienciaEnlaceId,
@@ -169,7 +172,7 @@ export function proyectarEnlace(
       aparienciaEnlaceId,
       tipo: enlace.tipo,
     },
-    z: tocaEstado ? 20 : 11,
+    z: tocaEstado ? Z_ENLACE_ESTADO : Z_ENLACE,
   };
 }
 
@@ -446,7 +449,7 @@ export function proyectarRefinamientoEstructural(
       connector: { name: "straight" },
       attrs: lineAttrs,
       opm: meta,
-      z: 11,
+      z: Z_ENLACE,
     },
     {
       id: `${aparienciaEnlaceId}-refinador`,
@@ -457,7 +460,7 @@ export function proyectarRefinamientoEstructural(
       labels: etiquetaEnlace(enlace),
       attrs: lineAttrs,
       opm: meta,
-      z: 11,
+      z: Z_ENLACE,
     },
     ...marcadoresEstructurales(enlace.tipo, triangleId, center, triangleSize, seleccionada, meta),
   ];
