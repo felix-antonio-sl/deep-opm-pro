@@ -2,8 +2,31 @@
 
 **Creado**: 2026-05-12T04:44:58Z
 **Detectado por**: smoke browser shard 1/4, agente Claude
-**Commit responsable probable**: `d4931c7` (`fix(ux): P0 dirty-state + P0-2 modos mutuamente excluyentes`)
+**Commit responsable**: `d4931c7` (`fix(ux): P0 dirty-state + P0-2 modos mutuamente excluyentes`)
 **Severidad**: alta — bloquea flujo "Cargar modelo tras Guardar como" en smoke E2E
+**Estado**: **CERRADO** en `2cb02b5` (`fix(persistencia): dirtyModelo por defecto deriva de dirty, no true`)
+
+## Causa raiz confirmada
+
+`app/src/store/runtime.ts:332` — fallback `const dirtyModelo = extra.dirtyModelo ?? true`. Cualquier callsite que llama `estadoModelo` sin pasar `dirtyModelo` explicito (cargarDemo, nuevoModelo, cargarLocal, cargarFixture, cargarEjemploOrganizacional, etc.) dejaba el modelo recien cargado con `dirtyModelo=true`, pese a que `dirty=false` por snapshot recien reseteado.
+
+`ConfirmacionContext.confirmarSiDirty` post-P0-1 lee `dirtyModelo`. Resultado: el flujo "Nuevo" → "Cargar" disparaba el modal "Hay cambios sin guardar" en lugar de abrir el dialogo "Cargar modelo".
+
+## Fix aplicado
+
+`const dirtyModelo = extra.dirtyModelo ?? dirty`. Cuando el modelo se acaba de cargar (snapshot igualado), `dirty=false`, asi `dirtyModelo=false`. `commitModelo` sigue marcando `dirtyModelo=true` explicito en mutaciones semanticas; layout puro pasa el valor previo.
+
+## Verificacion post-fix
+
+- `bun run typecheck` → clean
+- `bun run test` → 1177 pass / 0 fail / 4338 expect
+- `bun run lint` → clean
+- `bun run build` → 348.13 KB / 90.82 KB gzip
+- `bun run browser:smoke` (4 shards) → **172 pass / 0 fail** (recupera los 4 specs perdidos)
+
+---
+
+## Sintoma (preservado para historico)
 
 ## Sintoma
 
