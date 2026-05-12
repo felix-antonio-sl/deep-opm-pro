@@ -1,0 +1,5 @@
+[test]
+root = "./app/src"
+
+jsx = "react-jsx"
+jsxImportSource = "preact"
