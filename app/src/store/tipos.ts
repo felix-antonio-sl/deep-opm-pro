@@ -651,6 +651,12 @@ export interface OpmStore {
   renombrarOpdDesdeArbol: (opdId: Id, nombre: string) => void;
   // ── L5: Atajos / árbol ───────────────────────────────────────────
   anchoPanelArbol: number;
+  /**
+   * BUG-20260511T225343Z-696858: ancho del panel Inspector derecho.
+   * Persistencia espejo a `anchoPanelArbol` (en `indice.preferenciasUi`).
+   * Clamp en `limitarAnchoPanelInspector` [240, 560] con default 300.
+   */
+  anchoPanelInspector: number;
   nombresArbolVisibles: boolean;
   cheatsheetAtajosAbierto: boolean;
   /**
@@ -660,6 +666,8 @@ export interface OpmStore {
    */
   vistaMobileActiva: "canvas" | "opds" | "opl" | "issues";
   fijarAnchoPanelArbol: (px: number) => void;
+  /** BUG-20260511T225343Z-696858: setea ancho Inspector con clamp + persistencia. */
+  fijarAnchoPanelInspector: (px: number) => void;
   toggleNombresArbolVisibles: () => void;
   abrirCheatsheetAtajos: () => void;
   cerrarCheatsheetAtajos: () => void;

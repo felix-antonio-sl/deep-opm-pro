@@ -12,6 +12,7 @@ import { obtenerRefinamiento } from "../modelo/refinamientos";
 import type { Id, Modelo } from "../modelo/tipos";
 import { JointCanvas } from "../render/jointjs/JointCanvas";
 import { store, useOpmStore } from "../store";
+import { ANCHO_PANEL_INSPECTOR_DEFAULT, ANCHO_PANEL_INSPECTOR_MAX, ANCHO_PANEL_INSPECTOR_MIN } from "../store/runtime";
 import { ArbolOpd } from "./ArbolOpd";
 import { BarraHerramientasElemento } from "./BarraHerramientasElemento";
 import { BarraPestanas } from "./BarraPestanas";
@@ -54,10 +55,13 @@ const ModalUrlsObjeto = lazy(() => import("./ModalUrlsObjeto").then((m) => ({ de
 export function App() {
   const vistaMapaActiva = useOpmStore((s) => s.vistaMapaActiva);
   const anchoPanelArbol = useOpmStore((s) => s.anchoPanelArbol);
+  // BUG-20260511T225343Z-696858: ancho Inspector reactivo (no localStorage).
+  const anchoPanelInspector = useOpmStore((s) => s.anchoPanelInspector);
   const preferenciasOpl = useOpmStore((s) => s.indice.preferenciasUi);
   const modelo = useOpmStore((s) => s.modelo);
   const opdActivoId = useOpmStore((s) => s.opdActivoId);
   const fijarAnchoPanelArbol = useOpmStore((s) => s.fijarAnchoPanelArbol);
+  const fijarAnchoPanelInspector = useOpmStore((s) => s.fijarAnchoPanelInspector);
   const asistenteAbierto = useOpmStore((s) => s.asistente !== null);
   const dialogoGuardarComoAbierto = useOpmStore((s) => s.dialogoGuardarComoAbierto);
   const dialogoCargarModeloAbierto = useOpmStore((s) => s.dialogoCargarModeloAbierto);
@@ -95,6 +99,9 @@ export function App() {
   const breakpoint = useBreakpoint();
   const esMobile = breakpoint === "mobile";
   const esTablet = breakpoint === "tablet";
+  // BUG-20260511T225343Z-696858: en tablet acotamos al default para que el
+  // canvas conserve espacio útil. Desktop respeta el valor del store.
+  const anchoInspectorLayout = anchoPanelInspectorLayout(anchoPanelInspector, esTablet);
   // El dock convive con el árbol OPD solo cuando hay espacio horizontal real
   // y no estamos en mobile/tablet (mobile mantiene overlay legacy si se abre).
   const dockVisible = bibliotecaDockAbierto && esDesktopBiblio && !esMobile && !esTablet;
@@ -173,7 +180,7 @@ export function App() {
           </section>
         ) : (
           <>
-        <section style={workbenchStyle(anchoPanelArbol, oplLateral, oplMinimizado, inspectorAbierto, esTablet)}>
+        <section style={workbenchStyle(anchoPanelArbol, anchoInspectorLayout, oplLateral, oplMinimizado, inspectorAbierto, esTablet)}>
           <div data-testid="tree-pane" style={treePaneStyle(dockVisible, altoDock)}>
             <div style={layout.treePaneArbol}>
               <ArbolOpd />
@@ -224,6 +231,26 @@ export function App() {
               </>
             )}
           </div>
+          {/* BUG-20260511T225343Z-696858: divisor entre canvas e inspector.
+              Solo visible cuando el Inspector está abierto. `invertirDelta` =
+              true porque el inspector está a la derecha (arrastrar a la
+              izquierda agranda). Doble clic resetea a 300 px. En mobile NO
+              se monta (rama esMobile). En tablet `anchoInspectorLayout` ya
+              recorta el valor visible. */}
+          {inspectorAbierto ? (
+            <DivisorPanel
+              orientacion="vertical"
+              anchoInicial={anchoInspectorLayout}
+              anchoMin={ANCHO_PANEL_INSPECTOR_MIN}
+              anchoMax={esTablet ? ANCHO_PANEL_INSPECTOR_DEFAULT : ANCHO_PANEL_INSPECTOR_MAX}
+              invertirDelta
+              resetValue={ANCHO_PANEL_INSPECTOR_DEFAULT}
+              testId="divisor-panel-inspector"
+              title="Ajustar ancho del inspector"
+              gridArea="divisorInspector"
+              onAnchoChange={fijarAnchoPanelInspector}
+            />
+          ) : null}
           <div data-testid="inspector-pane" style={inspectorPaneStyle(inspectorAbierto)}>
             <div style={layout.inspectorContent}>
               <Inspector />
@@ -389,8 +416,12 @@ const layout = {
   },
   workbench: {
     display: "grid",
-    gridTemplateColumns: "240px 6px minmax(0, 1fr) 300px",
-    gridTemplateAreas: `"tree divisor canvas inspector"`,
+    // BUG-20260511T225343Z-696858: nueva columna `divisorInspector` 6px entre
+    // canvas e inspector. `workbenchStyle` reemplaza `gridTemplateColumns` y
+    // `gridTemplateAreas` por las versiones reactivas; este default sólo se
+    // aplica si `workbenchStyle` se omite (no debería ocurrir, defensa).
+    gridTemplateColumns: "240px 6px minmax(0, 1fr) 6px 300px",
+    gridTemplateAreas: `"tree divisor canvas divisorInspector inspector"`,
     minHeight: 0,
     minWidth: 0,
     overflow: "hidden",
@@ -513,6 +544,7 @@ function pageStyle(esMobile: boolean): preact.JSX.CSSProperties {
 
 function workbenchStyle(
   anchoPanelArbol: number,
+  anchoPanelInspector: number,
   oplLateral: boolean,
   oplMinimizado: boolean,
   inspectorAbierto: boolean,
@@ -522,19 +554,32 @@ function workbenchStyle(
   // que el canvas conserve espacio útil sin reabrir el flujo desktop. Los
   // smokes desktop (≥1024) caen en la rama original.
   const anchoTreeBase = esTablet ? Math.min(anchoPanelArbol, 200) : anchoPanelArbol;
-  const anchoInspector = inspectorAbierto ? (esTablet ? "240px" : "300px") : "0px";
+  // BUG-20260511T225343Z-696858: el ancho dinámico viene del store via
+  // `anchoInspectorLayout`. Cuando el inspector se colapsa, tanto el divisor
+  // como el inspector tienen ancho 0.
+  const anchoInspector = inspectorAbierto ? `${anchoPanelInspector}px` : "0px";
+  const anchoDivisorInspector = inspectorAbierto ? "6px" : "0px";
   if (!oplLateral) {
     return {
       ...layout.workbench,
-      gridTemplateColumns: `${anchoTreeBase}px 6px minmax(0, 1fr) ${anchoInspector}`,
-      gridTemplateAreas: `"tree divisor canvas inspector"`,
+      gridTemplateColumns: `${anchoTreeBase}px 6px minmax(0, 1fr) ${anchoDivisorInspector} ${anchoInspector}`,
+      gridTemplateAreas: `"tree divisor canvas divisorInspector inspector"`,
     };
   }
   return {
     ...layout.workbench,
-    gridTemplateColumns: `${anchoTreeBase}px 6px minmax(0, 1fr) ${anchoInspector} ${oplMinimizado ? "44px" : "320px"}`,
-    gridTemplateAreas: `"tree divisor canvas inspector opl"`,
+    gridTemplateColumns: `${anchoTreeBase}px 6px minmax(0, 1fr) ${anchoDivisorInspector} ${anchoInspector} ${oplMinimizado ? "44px" : "320px"}`,
+    gridTemplateAreas: `"tree divisor canvas divisorInspector inspector opl"`,
   };
+}
+
+/**
+ * BUG-20260511T225343Z-696858: en tablet recortamos el ancho del inspector
+ * al default (300) para no comer canvas; el valor del store se preserva tal
+ * cual para cuando vuelva a desktop. Pure helper para hacerlo testeable.
+ */
+function anchoPanelInspectorLayout(anchoPanelInspector: number, esTablet: boolean): number {
+  return esTablet ? Math.min(anchoPanelInspector, ANCHO_PANEL_INSPECTOR_DEFAULT) : anchoPanelInspector;
 }
 
 /**

@@ -47,6 +47,11 @@ export const PORTAPAPELES_WORKSPACE_TTL_MS = 5 * 60 * 1000;
 export const ANCHO_PANEL_ARBOL_DEFAULT = 240;
 export const ANCHO_PANEL_ARBOL_MIN = 160;
 export const ANCHO_PANEL_ARBOL_MAX = 600;
+// BUG-20260511T225343Z-696858: inspector derecho resizable via DivisorPanel.
+// Defaults proporcionales a anchoPanelArbol (240/160/600 → 300/240/560).
+export const ANCHO_PANEL_INSPECTOR_DEFAULT = 300;
+export const ANCHO_PANEL_INSPECTOR_MIN = 240;
+export const ANCHO_PANEL_INSPECTOR_MAX = 560;
 
 let snapshotGuardado = "";
 let undoStack: Modelo[] = [];
@@ -187,6 +192,11 @@ export function limitar(valor: number, minimo: number, maximo: number): number {
 export function limitarAnchoPanelArbol(valor: number | undefined): number {
   if (!Number.isFinite(valor)) return ANCHO_PANEL_ARBOL_DEFAULT;
   return limitar(Math.round(valor as number), ANCHO_PANEL_ARBOL_MIN, ANCHO_PANEL_ARBOL_MAX);
+}
+
+export function limitarAnchoPanelInspector(valor: number | undefined): number {
+  if (!Number.isFinite(valor)) return ANCHO_PANEL_INSPECTOR_DEFAULT;
+  return limitar(Math.round(valor as number), ANCHO_PANEL_INSPECTOR_MIN, ANCHO_PANEL_INSPECTOR_MAX);
 }
 
 export function actualizarPreferenciasUi(
@@ -533,6 +543,7 @@ export function esRecord(value: unknown): value is Record<string, unknown> {
 export function esPreferenciasUi(value: unknown): value is NonNullable<WorkspaceIndice["preferenciasUi"]> {
   if (!esRecord(value)) return false;
   if (value.anchoPanelArbol !== undefined && typeof value.anchoPanelArbol !== "number") return false;
+  if (value.anchoPanelInspector !== undefined && typeof value.anchoPanelInspector !== "number") return false;
   if (value.nombresArbolVisibles !== undefined && typeof value.nombresArbolVisibles !== "boolean") return false;
   if (value.cheatsheetVisible !== undefined && typeof value.cheatsheetVisible !== "boolean") return false;
   if (value.gridConfig !== undefined) {
