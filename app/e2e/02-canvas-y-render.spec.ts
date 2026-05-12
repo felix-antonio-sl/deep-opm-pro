@@ -468,7 +468,8 @@ test("L1 toolbar split conserva root y controles por modo", async ({ page }) => 
   await expect(page.getByTestId("abrir-menu-tipo-enlace")).toBeEnabled();
 
   await page.getByTestId("toolbar-modo-creacion-objeto").click();
-  await expect(page.getByTestId("indicador-modo-sticky")).toContainText("Objeto");
+  // P1 sticky ronda 4: badge canonico unifica "Modo sticky: X" + estado enlace.
+  await expect(page.getByTestId("indicador-modo-canonico")).toContainText("Insertando: Objeto");
 
   expect(pageErrors).toEqual([]);
 });

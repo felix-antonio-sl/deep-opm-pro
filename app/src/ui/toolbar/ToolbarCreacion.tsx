@@ -147,10 +147,21 @@ export function ToolbarCreacion() {
         Tipos válidos
       </button>
       <button style={bibliotecaAbierta ? style.activeButton : style.button} type="button" onClick={toggleBibliotecaCosa} data-testid="abrir-biblioteca-cosa" title="Biblioteca de cosas · arrastra al canvas para reusar">Biblioteca</button>
-      {modoCreacion ? (
+      {/* P1 sticky ronda 4: barra de modo canonica unica. Reemplaza el badge */}
+      {/* "Modo sticky" + chip de modoEnlace dispersos por una sola etiqueta */}
+      {/* que dice inequivocamente que pasaria si el usuario hace click en */}
+      {/* canvas. P0-2 garantiza que modoEnlace, modoCreacion, vistaMapaActiva */}
+      {/* y contextoSimulacion son mutuamente excluyentes. */}
+      {modoEnlace ? (
+        <span style={style.stickyBadge} data-testid="indicador-modo-canonico" data-modo="conectar">
+          Conectando: {TIPOS_ENLACE.find((item) => item.tipo === modoEnlace.tipo)?.label ?? modoEnlace.tipo}
+        </span>
+      ) : modoCreacion ? (
         <>
-          <span style={style.stickyBadge} data-testid="indicador-modo-sticky">Modo sticky: {modoCreacion === "objeto" ? "Objeto" : "Proceso"}</span>
-          <button style={style.secondaryButton} type="button" onClick={handleCancelarCreacion} title="Salir del modo creación sticky">Cancelar creación</button>
+          <span style={style.stickyBadge} data-testid="indicador-modo-canonico" data-modo={`insertar-${modoCreacion}`}>
+            Insertando: {modoCreacion === "objeto" ? "Objeto" : "Proceso"}
+          </span>
+          <button style={style.secondaryButton} type="button" onClick={handleCancelarCreacion} title="Salir del modo creación sticky">Cancelar</button>
         </>
       ) : null}
       {bibliotecaAbierta ? <BibliotecaCosa modelo={modelo} opdActivoId={opdActivoId} onCerrar={cerrarBibliotecaCosa} onNavegarOpd={cambiarOpdActivo} /> : null}
