@@ -294,7 +294,16 @@ function layoutLayered(
   }
 
   // BFS por niveles: arranca con todas las raices conectadas.
+  // BUG-cuelgue-autolayout: el grafo puede contener ciclos validos en OPM
+  // (invocacion en feedback loop). Cuando un ciclo recibe alimentacion desde
+  // una raiz externa, la regla `candidato > nivelExistente` reencola
+  // perpetuamente los nodos del ciclo. Acotamos a un numero finito de
+  // re-procesados por nodo (bound Bellman-Ford = numero de nodos): tras N
+  // visitas un nodo deja de propagar, el ciclo se aplana y el BFS termina.
+  // El nivel resultante sigue siendo la longest-path mas larga descubierta.
   const nivelPorEntidad = new Map<Id, number>();
+  const visitasPorEntidad = new Map<Id, number>();
+  const limiteVisitas = apariencias.length;
   const cola: Id[] = [];
   for (const apariencia of apariencias) {
     const entradas = entradasPorEntidad.get(apariencia.entidadId) ?? 0;
@@ -306,6 +315,9 @@ function layoutLayered(
   }
   while (cola.length > 0) {
     const actual = cola.shift()!;
+    const visitas = visitasPorEntidad.get(actual) ?? 0;
+    if (visitas >= limiteVisitas) continue;
+    visitasPorEntidad.set(actual, visitas + 1);
     const nivelActual = nivelPorEntidad.get(actual) ?? 0;
     const vecinos = salidasPorEntidad.get(actual) ?? [];
     for (const vecino of vecinos) {

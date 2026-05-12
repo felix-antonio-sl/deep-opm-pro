@@ -59,6 +59,19 @@ describe("layoutSugerido", () => {
     expect(posiciones.every((p) => p.y >= 80)).toBe(true);
   });
 
+  test("ciclo con raiz alimentadora no cuelga BFS (bound Bellman-Ford)", () => {
+    // Caso reproducible del cuelgue de autolayout en modelo importado:
+    // raiz C → A, y A ↔ B forman ciclo via invocacion. Antes del fix, el
+    // BFS reencolaba A y B perpetuamente porque siempre encontraba un
+    // path mas largo. El test garantiza terminacion en <100ms.
+    const modelo = modeloCicloConRaiz();
+    const inicio = Date.now();
+    const posiciones = calcularLayoutSugerido(modelo, "opd-1");
+    const duracion = Date.now() - inicio;
+    expect(duracion).toBeLessThan(100);
+    expect(posiciones).toHaveLength(3);
+  });
+
   test("OPD con contorno aplica patron inzoom OPCloud: embedded apilados centrados, externos en columnas izq/der", () => {
     const modelo = modeloOpdInzoomDescomposicion();
     const posiciones = calcularLayoutSugerido(modelo, "opd-2");
@@ -200,6 +213,46 @@ function modeloCiclo(): Modelo {
           "a-b": { id: "a-b", entidadId: "p-b", opdId: "opd-1", x: 999, y: 999, width: 135, height: 60 },
         },
         enlaces: {
+          "ae-ab": { id: "ae-ab", enlaceId: "e-ab", opdId: "opd-1", vertices: [] },
+          "ae-ba": { id: "ae-ba", enlaceId: "e-ba", opdId: "opd-1", vertices: [] },
+        },
+      },
+    },
+  };
+}
+
+function modeloCicloConRaiz(): Modelo {
+  // Raiz C que alimenta A; A <-> B ciclo via invocacion.
+  // Sin el bound Bellman-Ford, BFS encola A y B infinitamente.
+  return {
+    id: "ciclo-raiz",
+    nombre: "CicloConRaiz",
+    opdRaizId: "opd-1",
+    nextSeq: 7,
+    entidades: {
+      "p-a": { id: "p-a", tipo: "proceso", nombre: "A", esencia: "informacional", afiliacion: "sistemica" },
+      "p-b": { id: "p-b", tipo: "proceso", nombre: "B", esencia: "informacional", afiliacion: "sistemica" },
+      "p-c": { id: "p-c", tipo: "proceso", nombre: "C", esencia: "informacional", afiliacion: "sistemica" },
+    },
+    estados: {},
+    enlaces: {
+      "e-ca": { id: "e-ca", tipo: "invocacion", origenId: { kind: "entidad", id: "p-c" }, destinoId: { kind: "entidad", id: "p-a" }, etiqueta: "" },
+      "e-ab": { id: "e-ab", tipo: "invocacion", origenId: { kind: "entidad", id: "p-a" }, destinoId: { kind: "entidad", id: "p-b" }, etiqueta: "" },
+      "e-ba": { id: "e-ba", tipo: "invocacion", origenId: { kind: "entidad", id: "p-b" }, destinoId: { kind: "entidad", id: "p-a" }, etiqueta: "" },
+    },
+    abanicos: {},
+    opds: {
+      "opd-1": {
+        id: "opd-1",
+        nombre: "SD",
+        padreId: null,
+        apariencias: {
+          "a-a": { id: "a-a", entidadId: "p-a", opdId: "opd-1", x: 999, y: 999, width: 135, height: 60 },
+          "a-b": { id: "a-b", entidadId: "p-b", opdId: "opd-1", x: 999, y: 999, width: 135, height: 60 },
+          "a-c": { id: "a-c", entidadId: "p-c", opdId: "opd-1", x: 999, y: 999, width: 135, height: 60 },
+        },
+        enlaces: {
+          "ae-ca": { id: "ae-ca", enlaceId: "e-ca", opdId: "opd-1", vertices: [] },
           "ae-ab": { id: "ae-ab", enlaceId: "e-ab", opdId: "opd-1", vertices: [] },
           "ae-ba": { id: "ae-ba", enlaceId: "e-ba", opdId: "opd-1", vertices: [] },
         },
