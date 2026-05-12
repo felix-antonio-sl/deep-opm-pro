@@ -231,14 +231,20 @@ export function etiquetasMultiplicidad(enlace: Enlace): Array<Record<string, unk
 export function etiquetasModificador(enlace: Enlace): Array<Record<string, unknown>> {
   const labels: Array<Record<string, unknown>> = [];
   const subtipo = textoSubtipoModificador(enlace);
+  // BUG-63cc7f: antes el badge se colocaba en `distance: 0` (extremo origen
+  // del path) y caia sobre el cuerpo de la entidad origen, no sobre el
+  // enlace. SSOT §4.1/§4.2 prescribe "marca sobre el enlace cerca del
+  // proceso"; sin lograr resolver cual extremo es proceso sin inspeccionar
+  // tipo+direccion, usamos `0.5` (medio del enlace) que SIEMPRE queda sobre
+  // la linea, no sobre los cuerpos, y se mueve consistente con el enlace.
   if (subtipo) {
-    labels.push(etiquetaBadgeModificadorCanonico(subtipo, 0));
+    labels.push(etiquetaBadgeModificadorCanonico(subtipo, 0.5));
   }
   if (enlace.modificador === "evento" && enlace.probabilidad !== undefined) {
-    labels.push(etiquetaTextoModificador(`${Math.round(enlace.probabilidad * 100)}%`, 0, 22));
+    labels.push(etiquetaTextoModificador(`${Math.round(enlace.probabilidad * 100)}%`, 0.5, 22));
   }
   if (enlace.tipo === "invocacion" && enlace.demora) {
-    labels.push(etiquetaTextoModificador(enlace.demora, 0, -28));
+    labels.push(etiquetaTextoModificador(enlace.demora, 0.5, -28));
   }
   return labels;
 }
