@@ -7,7 +7,8 @@ describe("composer markers", () => {
     expect(marcadorDestino("agente")).toEqual(LINK_ASSETS.procedural.agente.marker);
     expect(marcadorDestino("instrumento")).toEqual(LINK_ASSETS.procedural.instrumento.marker);
     expect(marcadorFuente("efecto")).toEqual(LINK_ASSETS.procedural.efecto.marker);
-    expect(marcadorFuente("invocacion")).toEqual(LINK_ASSETS.procedural.invocacion.marker);
+    expect(marcadorDestino("invocacion")).toEqual(LINK_ASSETS.procedural.invocacion.marker);
+    expect(marcadorFuente("invocacion")).toBeNull();
   });
 
   test("clona attrs de marker sin mutar el asset base", () => {

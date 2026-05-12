@@ -1,11 +1,11 @@
-# HANDOFF — Cierre Inspector resizable + 4 bugs nuevos sin atender
+# HANDOFF — Pasada visual canvas + Inspector resizable
 
 **Fecha**: 2026-05-12
 **Repositorio**: `deep-opm-pro`
 **Rama**: `main`
-**HEAD**: `<commit de cierre>` (este commit). Base previa `7982e91` (`fix(modelo): encajar creaciones inzoom en contorno`, commit local del operador del 2026-05-11/12).
-**Origin previo al cierre**: 3 commits adelante de `origin/main`.
-**Corte**: cierre de continuidad post-Beta2 que (a) entrega Inspector lateral derecho resizable cerrando BUG-696858, (b) descarta la "regresión 3 smokes" como flake de contención de worktrees, (c) cancela L5 Beta1 (HODOM-HSC) y R17 L4 sin trabajo conservado en main, y (d) captura 4 bugs nuevos no atendidos del 2026-05-11 noche.
+**Base previa**: `c05c2a5` (pusheado a `origin/main` antes de esta pasada). Base funcional anterior `7982e91` (`fix(modelo): encajar creaciones inzoom en contorno`, commit local del operador del 2026-05-11/12).
+**Origin**: push controlado de esta pasada sobre `main`.
+**Corte**: cierre de continuidad post-Beta2 que (a) entrega Inspector lateral derecho resizable cerrando BUG-696858, (b) descarta la "regresión 3 smokes" como flake de contención de worktrees, (c) cancela L5 Beta1 (HODOM-HSC) y R17 L4 sin trabajo conservado en main, y (d) atiende los 4 bugs visuales capturados el 2026-05-11 noche.
 
 ## Política De Handoff Único
 
@@ -26,18 +26,40 @@ Autoridad semántica:
 
 ## Estado Ejecutivo
 
-`main @ <commit de cierre>`, 3 commits adelante de `origin/main` antes del push del cierre. Trabajo nuevo desde el HANDOFF anterior (`aa1b8ef`):
+Base remota anterior `main @ c05c2a5`, pusheada a `origin/main`. Trabajo consolidado desde el HANDOFF anterior (`aa1b8ef`):
 
 1. **Halo visual modo simulación** (`27654b0` halo verde proceso activo + dorado estados current; `c11d88c` fallback al primer estado como current cuando no hay designación) — pulido visual Beta2 L2.
 2. **Fix encaje inzoom** (`7982e91` `fix(modelo): encajar creaciones inzoom en contorno`) — commit local del operador del 2026-05-11/12.
 3. **Inspector resizable** (`404bc49` merge en este corte): `DivisorPanel` invertible aplicado al pane derecho. Estado `anchoPanelInspector` en `indice.preferenciasUi` (espejo de `anchoPanelArbol`), con min 240 / max 560 / inicial 300. Smoke nuevo `23-inspector-resize.spec.ts` (drag, persistencia, dblclick reset). Cierra **BUG-20260511T225343Z-696858**.
 
-Loop verde sobre `main @ <commit de cierre>`:
+Loop verde sobre `main @ c05c2a5`:
 
 - `bun run check` → **1166 unit / 0 fail / 4306 expect()** / 113 archivos
 - `bun run lint` → clean
 - `bun run build` → `index.js` **348.56 KB / 90.94 KB gzip** (vendor JointJS lazy 470 KB sin cambio). Sigue 3.56 KB sobre cap fix-up r20 (345 KB), dentro del orden de magnitud aceptado.
 - `bun run browser:smoke` → **172 passed / 0 fail / 0 skip** (+1 sobre 171 HANDOFF, el `23-inspector-resize`).
+
+### Pasada visual 2026-05-12
+
+Cambios aplicados sobre `main @ c05c2a5` para atacar la pasada coordinada de bugs visuales 365788 + 02b906 + 1c2cc0 + 029d2b:
+
+- **365788 invocación inversa**: `invocacion` usa marker en `targetMarker`, alineado con OPCloud `InvocationLink` (`opm-extracted/src/app/models/DrawnPart/Links/InvocationLink.ts`), no en `sourceMarker`.
+- **02b906 drag aglomera hijos refinados**: el drag del canvas ya no desvía subprocesos internos al reordenador de timeline; persiste la posición JointJS real vía `moverApariencia`.
+- **1c2cc0 autolayout aglomera refinamientos estructurales**: `layoutLayered` usa enlaces estructurales para ranking cuando no hay flujo procedural, evitando dejar padre e hijos en una sola banda plana.
+- **029d2b maraña de líneas**: las ramas de refinamiento estructural se proyectan rectas hacia/desde el triángulo, sin `routerManhattan`, reduciendo codos y cruces artificiales.
+
+Verificación de esta pasada:
+
+- `bun run typecheck` → clean
+- `bun run test` → **1166 pass / 0 fail / 4310 expect()**
+- `bun run lint` → clean
+- `bun run build` → `index-Bbtw-h6I.js` **348.13 KB / 90.82 KB gzip**
+- `bun run browser:smoke -- --shard=1/4` → 56 passed
+- `bun run browser:smoke -- --shard=2/4` → 49 passed
+- `bun run browser:smoke -- --shard=3/4` → 25 passed
+- `bun run browser:smoke -- --shard=4/4` → 42 passed
+
+Total smoke shardificado: **172 passed / 0 fail**. `pgrep -af vite` quedó limpio al cierre. Artefactos regenerables creados por la verificación (`app/dist`, `app/test-results`) fueron eliminados.
 
 ### "Regresión 3 smokes" descartada como flake
 
@@ -85,9 +107,9 @@ Decisión: persistencia en `indice.preferenciasUi` (que sí escribe a localStora
 - **Ronda 15.2** schema dual ortogonal de refinamiento.
 - Hotfixes pre-betas + fixes 2026-05-08 (menú principal, toolbar Más portal, autolayout OPCloud, enlaces a estados id+selector).
 
-## Bugs Capturados Nuevos Sin Atender (2026-05-11 noche)
+## Bugs Visuales 2026-05-11 Atendidos
 
-El operador capturó **4 bugs** entre 23:00 y 23:32 del 2026-05-11 que NO se atendieron en esta sesión. Sus reportes viven untracked en `docs/bugs/` y se commitean en este corte como evidencia.
+El operador capturó **4 bugs** entre 23:00 y 23:32 del 2026-05-11. En `main @ c05c2a5` seguían pendientes; esta pasada los atiende como corrección visual coordinada. Sus reportes viven en `docs/bugs/` como evidencia.
 
 | ID | Hora | Texto del operador |
 |---|---|---|
@@ -96,13 +118,7 @@ El operador capturó **4 bugs** entre 23:00 y 23:32 del 2026-05-11 que NO se ate
 | `BUG-20260511T232603Z-1c2cc0` | 23:26 | "y esto pasa cuando aplico autolayout a un padre y sus hijos derivados de enlaces estructurales" |
 | `BUG-20260511T233234Z-029d2b` | 23:32 | "mira que maraña de líneas. esto no esta bien. necesito que lo mejores" |
 
-Hipótesis preliminares (NO investigadas en esta sesión):
-
-- **365788** sugiere inversión de dirección en composer del enlace `invocacion` o en la operación de creación. Verificar `composers/enlace.ts` y `modelo/operaciones/enlace*.ts` para `invocacion`.
-- **02b906 + 1c2cc0** parecen el mismo síntoma: drag o autolayout sobre padre con descomposición/despliegue colapsa hijos sobre el bbox del padre. Posible regresión post-`7982e91` (`fix(modelo): encajar creaciones inzoom en contorno`), o efecto del clamp HU-12.020 (`moverAparienciaPorId` re-encierra apariencias dentro del bbox del contorno) que el rediseño del autolayout 2026-05-08 evitó vía batch directo. Verificar handlers de drag en `JointCanvas.tsx` y `aplicarLayoutSugerido`.
-- **029d2b** es queja general sobre routing de enlaces (probablemente complementario a 02b906/1c2cc0).
-
-Acción sugerida próximo corte: agrupar 365788 + 02b906 + 1c2cc0 + 029d2b como pasada coordinada de fix-up visual del canvas (similar al ciclo del 2026-05-08).
+Estado: atendidos por la pasada visual 2026-05-12. Queda revisión humana in-vivo si el operador quiere comparar directamente contra las capturas.
 
 ## Bugs Reales Pendientes (preservado HANDOFF anterior)
 
@@ -120,21 +136,27 @@ Acción sugerida próximo corte: agrupar 365788 + 02b906 + 1c2cc0 + 029d2b como 
 
 ## Verificación Final Conocida
 
-`main @ <commit de cierre>`:
+Pasada visual 2026-05-12 sobre `main`:
 
 ```bash
-cd app && bun run check
-# 1166 unit pass / 0 fail / 4306 expect() / 113 archivos
+cd app && bun run typecheck
+# clean
+
+cd app && bun run test
+# 1166 unit pass / 0 fail / 4310 expect() / 113 archivos
 
 cd app && bun run lint
 # clean
 
 cd app && bun run build
-# index-Csc_2OHN.js 348.56 KB / 90.94 KB gzip
+# index-Bbtw-h6I.js 348.13 KB / 90.82 KB gzip
 # vendor-jointjs-Cfe4rKV_.js 470.77 KB / 129.72 KB gzip (lazy)
 
-cd app && bun run browser:smoke
-# 172 passed / 0 failed / 0 skipped
+cd app && bun run browser:smoke -- --shard=1/4
+cd app && bun run browser:smoke -- --shard=2/4
+cd app && bun run browser:smoke -- --shard=3/4
+cd app && bun run browser:smoke -- --shard=4/4
+# 172 passed / 0 failed total
 ```
 
 Dev server público: `http://138.201.53.205:5173/` (puerto 5173 abierto en ufw, host 0.0.0.0). Verificar `pgrep -af vite` antes de levantar — esta sesión detectó un Vite zombie de worktree borrado interceptando el puerto, causando falsos `Process from config.webServer was not able to start`.
@@ -151,15 +173,15 @@ Los 3 commits del agente quedaron en reflog del worktree borrado (`worktree-agen
 
 Brief intacto en `docs/instrucciones-lineas-dev/ronda17/linea-4-eval-beta2-dominio-ancla.md`. Depende del cierre de L5 Beta1.
 
-### Bugs nuevos del 2026-05-11 noche — sin atender
+### Bugs visuales del 2026-05-11 noche — atendidos
 
-Cuatro reportes en `docs/bugs/` commiteados en este corte como evidencia. Ver §"Bugs Capturados Nuevos Sin Atender".
+Cuatro reportes en `docs/bugs/` atendidos por la pasada visual 2026-05-12. Ver §"Bugs Visuales 2026-05-11 Atendidos".
 
 ### Deuda viva no bloqueante
 
 | Item | Origen | Sugerencia |
 |---|---|---|
-| Bundle `index.js` 348.56 KB > cap fix-up 345 KB | Convergencia r20+r21+r17+Inspector resizable | Optimización menor; tree-shake o lazy split adicional. |
+| Bundle `index.js` 348.13 KB > cap fix-up 345 KB | Convergencia r20+r21+r17+Inspector resizable + pasada visual | Optimización menor; tree-shake o lazy split adicional. |
 | BarraSimulacion marca proceso activo solo textual | Ronda 17 L2 Beta2-min | **Cerrada parcialmente** por `27654b0` halo verde sobre proceso + dorado sobre estados current. Queda revisión visual final. |
 | `linkPickerLabel` huérfano en `toolbarStyles.ts` | Ronda 18 P3 | Limpieza no aditiva en próxima micro-ronda. |
 | `mask-image` affordance scroll horizontal Toolbar | Ronda 15 L1/L2 | Polish post-Fase 1. |
@@ -172,11 +194,11 @@ Cuatro reportes en `docs/bugs/` commiteados en este corte como evidencia. Ver §
 
 ### Riesgos
 
-1. **3 commits ahead de `origin/main`** antes del push del cierre. Push se hace en este corte (operador-controlado).
+1. **`main` parte de `origin/main` en `c05c2a5`**; esta pasada se empuja controladamente como commit atómico de canvas visual.
 2. **Loop verde 100%** — cualquier nueva regresión será visible.
 3. **Vite zombie de worktrees borrados** puede interceptar :5173 — verificar con `pgrep -af vite` antes de levantar dev o smoke.
 4. **L5 Beta1 sigue sin dominio ancla cerrado** — R17 L4 sigue dependiendo de esto.
-5. **4 bugs visuales del 2026-05-11 noche pendientes**, especialmente 02b906 y 1c2cc0 que sugieren regresión en drag/autolayout sobre padres con descomposición/despliegue.
+5. **4 bugs visuales del 2026-05-11 noche atendidos**, pendientes solo de revisión visual humana si el operador quiere validar contra las capturas originales.
 6. **Schema dual de refinamiento**: consumers nuevos usan helpers (`obtenerRefinamiento` / `refinaA` / `refinamientosDe` / `fijarRefinamiento`), nunca `entidad.refinamiento` directo.
 7. **Inspector tabs**: smokes con acciones cross-selección deben re-navegar al tab antes de buscar elementos.
 8. **Inspector ancho**: callsites nuevos usan `anchoPanelInspector` + `fijarAnchoPanelInspector`. No localStorage directo.
@@ -185,10 +207,10 @@ Cuatro reportes en `docs/bugs/` commiteados en este corte como evidencia. Ver §
 
 ## Próximos Pasos Operativos
 
-1. **Investigar y cerrar los 4 bugs del 2026-05-11 noche** (365788 invocación inverso · 02b906 drag aglomeración · 1c2cc0 autolayout aglomeración · 029d2b maraña de líneas) — sugerido como pasada coordinada de fix-up visual del canvas, similar al ciclo del 2026-05-08.
-2. **Conducir L5 Beta1 con HODOM-HSC** una vez resueltos los bugs visuales — el modelado en vivo va a tropezar con ellos.
+1. **Revisión visual in-vivo opcional** de la pasada 365788/02b906/1c2cc0/029d2b contra las capturas originales.
+2. **Conducir L5 Beta1 con HODOM-HSC** tras aprobar la pasada visual — el modelado en vivo dependía de estos fixes.
 3. **Ronda 17 L4** una vez Beta1 cerrada.
-4. **Optimización bundle** 348.56 → ≤ 345 KB (deuda menor).
+4. **Optimización bundle** 348.13 → ≤ 345 KB (deuda menor).
 5. **Mantener loop verde** antes de cualquier commit nuevo:
    - `cd app && bun run check`
    - `cd app && bun run lint`
@@ -197,4 +219,4 @@ Cuatro reportes en `docs/bugs/` commiteados en este corte como evidencia. Ver §
 
 ## Prompt De Continuación Breve
 
-Usa `docs/HANDOFF.md` como memoria única. Estado: `main @ <commit de cierre>`, recién pusheado a `origin/main`. Loop verde 100%: 1166 unit / 172 smoke / build `index.js` 348.56 KB. Inspector lateral derecho ahora resizable vía `DivisorPanel` (BUG-696858 cerrado). "Regresión 3 smokes" descartada como flake de contención de worktrees. **Pendiente alta prioridad**: 4 bugs visuales capturados 2026-05-11 noche (365788 enlace invocación inverso · 02b906 drag aglomera hijos refinados · 1c2cc0 autolayout aglomera · 029d2b maraña de líneas) — recomendado como pasada coordinada antes de retomar L5 Beta1 HODOM-HSC. **L5 Beta1 cancelado sin trabajo en main**; alcance acordado preservado: "Solo unidad HODOM núcleo" + conducción "Tú decides, yo modelo". 26 decisiones vigentes; la nueva es D26 (ancho Inspector resizable persistente en `preferenciasUi`).
+Usa `docs/HANDOFF.md` como memoria única. Estado: pasada visual canvas 2026-05-12 aplicada sobre `main` y empujada tras `c05c2a5`: 365788/02b906/1c2cc0/029d2b atendidos con marker de invocación en destino, drag canvas sin desvío a timeline, autolayout estructural cuando no hay flujo procedural y refinamientos estructurales sin Manhattan. Verificación: 1166 unit / 172 smoke shardificado / build `index.js` 348.13 KB. Inspector lateral derecho resizable vía `DivisorPanel` (BUG-696858 cerrado, D26: ancho en `preferenciasUi.anchoPanelInspector`). L5 Beta1 HODOM-HSC sigue sin trabajo en main; alcance preservado: "Solo unidad HODOM núcleo" + conducción "Tú decides, yo modelo". Antes de levantar dev server o smoke: `pgrep -af vite`.

@@ -132,9 +132,6 @@ export function marcadorFuente(tipo: TipoEnlace): Record<string, unknown> | null
   if (tipo === "efecto") {
     return markerAttrs(LINK_ASSETS.procedural.efecto.marker);
   }
-  if (tipo === "invocacion") {
-    return markerAttrs(LINK_ASSETS.procedural.invocacion.marker);
-  }
   return null;
 }
 
@@ -153,6 +150,9 @@ export function marcadorDestino(tipo: TipoEnlace): Record<string, unknown> | nul
   }
   if (tipo === "efecto") {
     return markerAttrs(LINK_ASSETS.procedural.efecto.marker);
+  }
+  if (tipo === "invocacion") {
+    return markerAttrs(LINK_ASSETS.procedural.invocacion.marker);
   }
   return null;
 }

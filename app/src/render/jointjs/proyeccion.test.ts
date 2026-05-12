@@ -305,8 +305,8 @@ describe("proyeccion JointJS", () => {
     expect(vertices?.[2]?.y).toBe(vertices?.[1]?.y);
     expect(cellEnlace?.router).toBeUndefined();
     const line = ((cellEnlace?.attrs as Attrs | undefined)?.line as Attrs | undefined);
-    expect((line?.sourceMarker as Attrs | undefined)?.points).toBe(LINK_ASSETS.procedural.invocacion.marker.points);
-    expect(line?.targetMarker).toBeNull();
+    expect(line?.sourceMarker).toBeNull();
+    expect((line?.targetMarker as Attrs | undefined)?.points).toBe(LINK_ASSETS.procedural.invocacion.marker.points);
   });
 
   test("proyecta auto-invocacion como loop visible con demora", () => {
@@ -430,6 +430,8 @@ describe("proyeccion JointJS", () => {
     const markerPosition = grande?.position as { x?: number; y?: number } | undefined;
     expect(links[0]?.target).toEqual({ x: (markerPosition?.x ?? 0) + 15, y: markerPosition?.y });
     expect(links[1]?.source).toEqual({ x: (markerPosition?.x ?? 0) + 15, y: (markerPosition?.y ?? 0) + 30 });
+    expect(links[0]?.router).toBeUndefined();
+    expect(links[1]?.router).toBeUndefined();
 
     const bodyGrande = (grande?.attrs as Attrs | undefined)?.body as Attrs | undefined;
     const bodyPequeno = (pequeno?.attrs as Attrs | undefined)?.body as Attrs | undefined;

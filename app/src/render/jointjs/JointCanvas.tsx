@@ -104,8 +104,6 @@ export function JointCanvas() {
   const vaciarSeleccionRef = useRef(vaciarSeleccion);
   const redimensionarAparienciaEnCanvas = useOpmStore((s) => s.redimensionarAparienciaEnCanvas);
   const redimensionarAparienciaEnCanvasRef = useRef(redimensionarAparienciaEnCanvas);
-  const reordenarSubprocesoEnTimeline = useOpmStore((s) => s.reordenarSubprocesoEnTimeline);
-  const reordenarSubprocesoEnTimelineRef = useRef(reordenarSubprocesoEnTimeline);
   const renombrarEntidadDesdeOpl = useOpmStore((s) => s.renombrarEntidadDesdeOpl);
   const renombrarEntidadDesdeOplRef = useRef(renombrarEntidadDesdeOpl);
   const [renombradoInline, setRenombradoInline] = useState<null | { aparienciaId: string; entidadId: string }>(null);
@@ -150,9 +148,8 @@ export function JointCanvas() {
     toggleSeleccionRef.current = toggleSeleccion;
     vaciarSeleccionRef.current = vaciarSeleccion;
     redimensionarAparienciaEnCanvasRef.current = redimensionarAparienciaEnCanvas;
-    reordenarSubprocesoEnTimelineRef.current = reordenarSubprocesoEnTimeline;
     renombrarEntidadDesdeOplRef.current = renombrarEntidadDesdeOpl;
-  }, [actualizarVerticesEnlace, agregarASeleccion, alternarModoImagenEntidad, abrirModalImagen, cambiarModoPlegadoApariencia, cambiarOpdActivo, crearEnlaceEntreEntidades, crearEntidadEnCanvas, extraerParteDePlegado, fijarHoverOpl, moverApariencia, redimensionarAparienciaEnCanvas, reordenarSubprocesoEnTimeline, renombrarEntidadDesdeOpl, seleccionarEnlace, seleccionarEntidad, seleccionarEstadoComoExtremo, seleccionarPartePlegada, setSeleccion, toggleSeleccion, vaciarSeleccion]);
+  }, [actualizarVerticesEnlace, agregarASeleccion, alternarModoImagenEntidad, abrirModalImagen, cambiarModoPlegadoApariencia, cambiarOpdActivo, crearEnlaceEntreEntidades, crearEntidadEnCanvas, extraerParteDePlegado, fijarHoverOpl, moverApariencia, redimensionarAparienciaEnCanvas, renombrarEntidadDesdeOpl, seleccionarEnlace, seleccionarEntidad, seleccionarEstadoComoExtremo, seleccionarPartePlegada, setSeleccion, toggleSeleccion, vaciarSeleccion]);
 
   // Setup del paper + cableado de handlers (mount inicial).
   useEffect(() => {
@@ -267,7 +264,6 @@ export function JointCanvas() {
       modeloRef,
       opdActivoIdRef,
       moverAparienciaRef,
-      reordenarSubprocesoEnTimelineRef,
       actualizarVerticesEnlaceRef,
       extraerParteDePlegadoRef,
       abrirRenombradoInlineRef,

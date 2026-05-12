@@ -108,13 +108,12 @@ describe("layoutSugerido", () => {
     expect(Math.abs(centroProc - centroBandaSuperior)).toBeLessThanOrEqual(1);
   });
 
-  test("layered ignora enlaces estructurales para el ranking BFS", () => {
+  test("layered usa enlaces estructurales cuando no hay flujo procedural", () => {
     const modelo = modeloSoloEstructural();
     const posiciones = calcularLayoutSugerido(modelo, "opd-1");
-    // Sin enlaces procedurales, BFS no encuentra raices. Todos quedan en
-    // ultimo nivel (huerfanas) en la misma banda Y.
-    const ys = new Set(posiciones.map((p) => p.y));
-    expect(ys.size).toBe(1);
+    const porId = new Map(posiciones.map((p) => [p.aparienciaId, p]));
+    expect(porId.get("a-padre")?.y).toBeLessThan(porId.get("a-parte1")?.y ?? 0);
+    expect(porId.get("a-padre")?.y).toBeLessThan(porId.get("a-parte2")?.y ?? 0);
   });
 });
 

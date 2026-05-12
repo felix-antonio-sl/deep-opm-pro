@@ -264,19 +264,23 @@ function layoutLayered(
   const aparienciaPorEntidad = new Map<Id, Apariencia>();
   for (const apariencia of apariencias) aparienciaPorEntidad.set(apariencia.entidadId, apariencia);
 
-  // Grafo dirigido entidad->entidad solo con enlaces procedurales del OPD.
-  // Estructurales se descartan: su orden top-down no aplica al SD.
-  const aristas: Array<{ origen: Id; destino: Id; tipo: TipoEnlace }> = [];
+  // Grafo dirigido entidad->entidad. Los enlaces procedurales mandan en SD;
+  // si el OPD solo tiene refinamientos estructurales, esos enlaces si deben
+  // ordenar padre -> refinadores para evitar que autolayout los aglomere en
+  // una banda plana.
+  const procedurales: Array<{ origen: Id; destino: Id; tipo: TipoEnlace }> = [];
+  const estructurales: Array<{ origen: Id; destino: Id; tipo: TipoEnlace }> = [];
   for (const aparienciaEnlace of Object.values(opd.enlaces)) {
     const enlace = modelo.enlaces[aparienciaEnlace.enlaceId];
     if (!enlace) continue;
-    if (naturalezaDeEnlace(enlace.tipo) !== "procedural") continue;
     const origen = entidadIdDeExtremo(modelo, enlace.origenId);
     const destino = entidadIdDeExtremo(modelo, enlace.destinoId);
     if (!origen || !destino || origen === destino) continue;
     if (!aparienciaPorEntidad.has(origen) || !aparienciaPorEntidad.has(destino)) continue;
-    aristas.push({ origen, destino, tipo: enlace.tipo });
+    if (naturalezaDeEnlace(enlace.tipo) === "procedural") procedurales.push({ origen, destino, tipo: enlace.tipo });
+    else estructurales.push({ origen, destino, tipo: enlace.tipo });
   }
+  const aristas = procedurales.length > 0 ? procedurales : estructurales;
 
   const entradasPorEntidad = new Map<Id, number>();
   const salidasPorEntidad = new Map<Id, Id[]>();
