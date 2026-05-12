@@ -127,12 +127,32 @@ function layoutConContorno(
 ): PosicionSugerida[] {
   const posiciones: PosicionSugerida[] = [];
 
-  // Particiona apariencias en embedded vs externos via bbox del contorno.
+  // Particiona apariencias en embedded vs externos.
+  //
+  // BUG-densos-HODOM: el JSON real puede traer apariencias de SUBPROCESOS
+  // con coordenadas fuera del bbox del contorno (modelo editado externamente
+  // o con autolayout antiguo). La heuristica geometrica `dentroDeApariencia`
+  // los clasificaba como externos, mezclando subprocesos con E/S.
+  //
+  // Heuristica canonica OPM: el OPD del refinamiento de un proceso descompone
+  // ese proceso en SUBPROCESOS. Los subprocesos son del MISMO tipo que el
+  // contorno (proceso). Los objetos en el OPD son E/S externos. (Para
+  // refinamiento de objeto via despliegue, los objetos son las subpartes;
+  // las apariencias del contorno objeto -> embedded son objetos).
+  //
+  // Combinamos OR: embedded si dentro del bbox O del mismo tipo que el
+  // contorno. Esto recupera subprocesos mal posicionados sin perder externos
+  // del tipo opuesto.
+  const contornoEntidad = modelo.entidades[contorno.entidadId];
+  const tipoContorno = contornoEntidad?.tipo;
   const embedded: Apariencia[] = [];
   const externos: Apariencia[] = [];
   for (const apariencia of apariencias) {
     if (apariencia.id === contorno.id) continue;
-    if (dentroDeApariencia(apariencia, contorno)) embedded.push(apariencia);
+    const ent = modelo.entidades[apariencia.entidadId];
+    const esGeometricamente = dentroDeApariencia(apariencia, contorno);
+    const esSemanticamente = tipoContorno !== undefined && ent?.tipo === tipoContorno;
+    if (esGeometricamente || esSemanticamente) embedded.push(apariencia);
     else externos.push(apariencia);
   }
 
@@ -143,29 +163,34 @@ function layoutConContorno(
   // Dimensiones canonicas del contorno (estilo OpmVisualThing.inzoom):
   //   width = cosaWidth * 3
   //   height = (cosaHeight + gapInterno) * max(N, minSubthings) + paddingSuperior + paddingInferior
+  //
+  // BUG-densos-HODOM: el modelo real tiene embedded con anchos personalizados
+  // (240/280/320 px), no `CANON.dims.cosaWidth=135`. Usamos las dimensiones
+  // REALES de cada embedded para que el contorno los acoja, no las canonicas.
   const grillaEmbedded = calcularGrillaDensa(embedded, {
     umbral: DENSIDAD.umbralNivelDenso,
     maxColumnas: DENSIDAD.maxColumnasInzoom,
   });
-  const columnasEmbedded = grillaEmbedded.columnas;
   const filasEmbedded = grillaEmbedded.filas;
   const inzoomDenso = filasEmbedded.length > 1;
   const filasVisualesEmbedded = inzoomDenso ? filasEmbedded : embedded.map((child) => [child]);
-  const filasDimension = filasEmbedded.length > 0 ? filasEmbedded.length : INZOOM.minSubthings;
   const subthings = Math.max(INZOOM.minSubthings, embedded.length);
   const anchoCanonico = CANON.dims.cosaWidth * INZOOM.multAncho;
-  const anchoDenso = inzoomDenso
-    ? columnasEmbedded * CANON.dims.cosaWidth
-      + (columnasEmbedded - 1) * INZOOM.gapInternoHorizontal
-      + INZOOM.paddingLateralDenso * 2
-    : anchoCanonico;
-  const contornoWidth = Math.max(anchoCanonico, anchoDenso);
-  const contornoHeight = inzoomDenso
-    ? filasDimension * CANON.dims.cosaHeight
-      + Math.max(0, filasDimension - 1) * INZOOM.gapInterno
-      + INZOOM.paddingSuperior
-      + INZOOM.paddingInferior
-    : (CANON.dims.cosaHeight + INZOOM.gapInterno) * subthings + INZOOM.paddingSuperior + INZOOM.paddingInferior;
+  // Ancho real necesario: la fila mas ancha de embedded + padding lateral.
+  const anchoMaxFila = filasVisualesEmbedded.reduce(
+    (max, fila) => Math.max(max, anchoFilaApariencias(fila, INZOOM.gapInternoHorizontal)),
+    0,
+  );
+  const anchoEmbeddedConPadding = anchoMaxFila + 2 * INZOOM.paddingLateralDenso;
+  const contornoWidth = Math.max(anchoCanonico, anchoEmbeddedConPadding);
+  // Alto real necesario: suma de alturas maximas por fila + gaps + padding.
+  const altoEmbedded = filasVisualesEmbedded.reduce((sum, fila, i) => {
+    const altoFila = fila.reduce((m, a) => Math.max(m, a.height), 0);
+    return sum + altoFila + (i > 0 ? INZOOM.gapInterno : 0);
+  }, 0);
+  const altoCanonico = (CANON.dims.cosaHeight + INZOOM.gapInterno) * subthings + INZOOM.paddingSuperior + INZOOM.paddingInferior;
+  const altoEmbeddedConPadding = altoEmbedded + INZOOM.paddingSuperior + INZOOM.paddingInferior;
+  const contornoHeight = inzoomDenso ? altoEmbeddedConPadding : altoCanonico;
 
   // Origen del contorno: respeta la posicion previa si era razonable; si no,
   // colapsa al canonico (150, 90) heredado de descomposicion.ts.
@@ -210,17 +235,17 @@ function layoutConContorno(
   const referenciaIds = new Set<Id>([contorno.entidadId, ...embedded.map((a) => a.entidadId)]);
   const { entradas, salidas } = clasificarExternosPorDireccion(modelo, opdId, referenciaIds, externos);
 
-  // BUG-densos-HODOM (inzoom denso real): cuando hay >6 externos por lado,
-  // apilarlos en UNA columna produce un OPD desproporcionadamente alto (caso
-  // observado: 15 entradas × 60 + 14 × 32 = 1348 px de alto, externos
-  // mezclados visualmente con embedded). Particionamos en multi-columna
-  // simetrica con `gapInternoHorizontal=50` cuando se excede el umbral.
+  // BUG-densos-HODOM: usamos anchos REALES de los externos para multi-columna.
+  // `cosaWidth=135` canonico no aplica cuando los externos miden 240-320 px.
+  // `columnasN = ceil(N / umbral)` con umbral 6 da: 1-6→1col, 7-12→2col, 13-18→3col.
   const columnasIzq = Math.max(1, Math.ceil(entradas.length / DENSIDAD.umbralNivelDenso));
   const columnasDer = Math.max(1, Math.ceil(salidas.length / DENSIDAD.umbralNivelDenso));
-  const anchoIzqTotal = columnasIzq * CANON.dims.cosaWidth + (columnasIzq - 1) * INZOOM.gapInternoHorizontal;
-  const anchoDerTotal = columnasDer * CANON.dims.cosaWidth + (columnasDer - 1) * INZOOM.gapInternoHorizontal;
-  // El contorno se posiciona despues de anchoIzqTotal + margen para que las
-  // columnas izq no caigan en x<0 y queden visibles a la izquierda.
+  const anchoMaxEntrada = anchoMaxApariencia(entradas, CANON.dims.cosaWidth);
+  const anchoMaxSalida = anchoMaxApariencia(salidas, CANON.dims.cosaWidth);
+  const anchoIzqTotal = columnasIzq * anchoMaxEntrada + (columnasIzq - 1) * INZOOM.gapInternoHorizontal;
+  const _anchoDerTotal = columnasDer * anchoMaxSalida + (columnasDer - 1) * INZOOM.gapInternoHorizontal;
+  // El contorno se desplaza horizontalmente para hacer espacio a la columna
+  // izquierda completa: `xIzq + anchoIzqTotal + margenExterno`.
   const xIzq = INZOOM.margenExterno;
   const contornoXFinal = Math.max(contornoX, xIzq + anchoIzqTotal + INZOOM.margenExterno);
   const xDer = contornoXFinal + contornoWidth + INZOOM.margenExterno;
@@ -268,7 +293,9 @@ function posicionarColumna(
  *
  * BUG-densos-HODOM: necesario cuando un inzoom real tiene >6 externos por
  * lado (caso observado: 15 entradas) y la columna unica produce un OPD
- * desproporcionadamente alto.
+ * desproporcionadamente alto. Usa el ancho REAL maximo entre los elementos
+ * de cada columna (no `CANON.dims.cosaWidth=135`), porque los externos
+ * suelen medir 240-320 px en modelos reales.
  */
 function posicionarColumnaDensa(
   lista: Apariencia[],
@@ -279,13 +306,14 @@ function posicionarColumnaDensa(
   acumulador: PosicionSugerida[],
 ): void {
   if (lista.length === 0) return;
+  const anchoCol = anchoMaxApariencia(lista, CANON.dims.cosaWidth);
   const filasPorColumna = Math.ceil(lista.length / columnas);
   for (let col = 0; col < columnas; col++) {
     const inicio = col * filasPorColumna;
     const fin = Math.min(lista.length, inicio + filasPorColumna);
     const grupo = lista.slice(inicio, fin);
     if (grupo.length === 0) continue;
-    const x = xInicio + col * (CANON.dims.cosaWidth + INZOOM.gapInternoHorizontal);
+    const x = xInicio + col * (anchoCol + INZOOM.gapInternoHorizontal);
     const alturaTotal = grupo.reduce((sum, a) => sum + a.height, 0) + INZOOM.gapExterno * (grupo.length - 1);
     let yCursor = Math.max(contornoY, contornoY + (contornoHeight - alturaTotal) / 2);
     for (const apariencia of grupo) {
@@ -293,6 +321,10 @@ function posicionarColumnaDensa(
       yCursor += apariencia.height + INZOOM.gapExterno;
     }
   }
+}
+
+function anchoMaxApariencia(lista: Apariencia[], fallback: number): number {
+  return lista.reduce((max, a) => Math.max(max, a.width), fallback);
 }
 
 function clasificarExternosPorDireccion(
