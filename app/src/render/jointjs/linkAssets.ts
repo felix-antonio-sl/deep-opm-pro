@@ -5,18 +5,22 @@ export const LINK_ASSETS = {
     agente: {
       source: "assets/svg/links/procedural/agent.svg",
       path: "M57.5 34C61.6421 34 65 30.6421 65 26.5C65 22.3579 61.6421 19 57.5 19C53.697 19 50.5549 21.8306 50.066 25.5H13V28.5H50.2697C51.1449 31.6711 54.0505 34 57.5 34Z",
-      // P3-2 ronda 4: lollipop canonico (SSOT §1.5, V-190). Stick visible
-      // de 7px desde el extremo del enlace conectado a un circulo de radio 5.
-      // Agente = circulo relleno con color del enlace.
-      marker: { type: "path", d: "M0,0 L-7,0 M-7,0 a5,5 0 1,1 -10,0 a5,5 0 1,1 10,0 Z", fill: "#586D8C", stroke: "#586D8C", strokeWidth: 2 },
+      // P3-2 ronda 4: lollipop canonico (SSOT §1.5, V-190). Coordenadas
+      // POSITIVAS: en JointJS targetMarker el sistema de coordenadas tiene
+      // (0,0) en el endpoint del enlace y X POSITIVO hacia el origen (mismo
+      // patron que swallowtail del consumo). BUG-81916b: la primera version
+      // uso coordenadas negativas y los markers quedaban fuera del area
+      // renderizada por JointJS. Stick visible de 7px + circulo radio 5
+      // centrado en (12,0). Agente = circulo relleno con color del enlace.
+      marker: { type: "path", d: "M0,0 L7,0 M12,0 m-5,0 a5,5 0 1,0 10,0 a5,5 0 1,0 -10,0", fill: "#586D8C", stroke: "#586D8C", strokeWidth: 2 },
     },
     instrumento: {
       source: "assets/svg/links/procedural/instrument.svg",
       path: "M63 26.5C63 28.9854 60.9852 31 58.5 31C56.0148 31 54 28.9854 54 26.5C54 24.0146 56.0148 22 58.5 22C60.9852 22 63 24.0146 63 26.5ZM66 26.5C66 30.6421 62.6421 34 58.5 34C55.0505 34 52.1449 31.6711 51.2697 28.5H14V25.5H51.066C51.5549 21.8306 54.697 19 58.5 19C62.6421 19 66 22.3579 66 26.5Z",
-      // P3-2 ronda 4: lollipop canonico (SSOT §1.5, V-190). Instrumento =
-      // mismo stick + circulo, pero circulo blanco con borde para distinguirlo
-      // visualmente de agente (semantica diferente, geometria idem).
-      marker: { type: "path", d: "M0,0 L-7,0 M-7,0 a5,5 0 1,1 -10,0 a5,5 0 1,1 10,0 Z", fill: "white", stroke: "#586D8C", strokeWidth: 2 },
+      // P3-2 ronda 4: instrumento = lollipop con circulo blanco con borde
+      // (semantica diferente de agente, geometria idem). Coordenadas positivas
+      // (ver agente).
+      marker: { type: "path", d: "M0,0 L7,0 M12,0 m-5,0 a5,5 0 1,0 10,0 a5,5 0 1,0 -10,0", fill: "white", stroke: "#586D8C", strokeWidth: 2 },
     },
     consumo: {
       source: "assets/svg/links/procedural/consumption.svg",

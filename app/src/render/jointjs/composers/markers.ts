@@ -176,10 +176,12 @@ export function textoSubtipoModificador(enlace: Enlace): string | null {
 export function etiquetaBadgeModificadorCanonico(text: string, distance: number): Record<string, unknown> {
   // SSOT §4 + V-210/V-211: la marca textual `c`/`e`/`¬` es semantica; no
   // requiere canal cromatico propio. Unificamos a stroke/label = color de
-  // enlace y fill = relleno canonico. Antes el badge usaba amarillo/cyan/
-  // rosa + stroke rojo para `¬`, que colisionaba con la paleta de error.
+  // enlace y fill blanco puro (separable del fondo del canvas sin canal
+  // cromatico). Antes el badge usaba amarillo/cyan/rosa + stroke rojo
+  // para `¬` (BUG-81916b: el primer fix usaba `CANON.colores.relleno`
+  // = #fdffff y se confundia con el canvas).
   const color = CANON.colores.enlace;
-  const fill = CANON.colores.relleno;
+  const fill = "#ffffff";
   return {
     markup: [
       { tagName: "rect", selector: "badge" },
