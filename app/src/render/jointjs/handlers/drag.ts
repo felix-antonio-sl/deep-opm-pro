@@ -48,25 +48,16 @@ export function cablearDrag(args: CablearDragArgs): () => void {
     extraerParteDePlegadoRef,
     abrirRenombradoInlineRef,
   } = args;
-  const enlacesAtenuados = new Map<dia.Link, unknown>();
-  const documento = typeof document === "undefined" ? null : document;
-  const onRestaurarEnlacesAtenuados = () => {
-    restaurarEnlacesAtenuados(enlacesAtenuados);
-  };
-
   const onElementPointerdown = (elementView: dia.ElementView) => {
     if (sincronizandoRef.current) return;
     const model = cellViewModel(elementView);
     const meta = metadata(model);
     if (meta?.kind !== "entidad") return;
-    onRestaurarEnlacesAtenuados();
     quitarToolsPaper(paper);
-    enfocarEnlacesDuranteDrag(model as dia.Element, graph, enlacesAtenuados);
   };
 
   const onElementPointerup = (elementView: dia.ElementView) => {
     if (sincronizandoRef.current) return;
-    onRestaurarEnlacesAtenuados();
     const model = cellViewModel(elementView);
     const meta = metadata(model);
     if (meta?.kind !== "entidad") return;
@@ -103,10 +94,8 @@ export function cablearDrag(args: CablearDragArgs): () => void {
 
   paper.on("element:pointerdown", onElementPointerdown);
   paper.on("element:pointerup", onElementPointerup);
-  paper.on("blank:pointerup", onRestaurarEnlacesAtenuados);
   paper.on("element:pointerdblclick", onElementPointerdblclick);
   paper.on("element:pointerclick", onElementPointerclickRenombrado);
-  documento?.addEventListener("pointerup", onRestaurarEnlacesAtenuados, true);
 
   graphEvents(graph).on("change:vertices", (cell: dia.Cell) => {
     if (sincronizandoRef.current || !cell.isLink()) return;
@@ -138,7 +127,6 @@ export function cablearDrag(args: CablearDragArgs): () => void {
     if (meta?.kind !== "entidad") return;
     const modeloActual = modeloRef.current;
     const opdActual = opdActivoIdRef.current;
-    enfocarEnlacesDuranteDrag(cell as dia.Element, graph, enlacesAtenuados);
     const afectados = abanicosAfectadosPorEntidad(modeloActual, opdActual, meta.entidadId);
     for (const abanico of afectados) {
       recalcularOverlayDesdeLinkView(paper, graph, modeloActual, abanico);
@@ -146,39 +134,14 @@ export function cablearDrag(args: CablearDragArgs): () => void {
   });
 
   return () => {
-    onRestaurarEnlacesAtenuados();
     paperOff(paper, "element:pointerdown", onElementPointerdown as (...args: never[]) => void);
     paperOff(paper, "element:pointerup", onElementPointerup as (...args: never[]) => void);
-    paperOff(paper, "blank:pointerup", onRestaurarEnlacesAtenuados as (...args: never[]) => void);
     paperOff(paper, "element:pointerdblclick", onElementPointerdblclick as (...args: never[]) => void);
     paperOff(paper, "element:pointerclick", onElementPointerclickRenombrado as (...args: never[]) => void);
-    documento?.removeEventListener("pointerup", onRestaurarEnlacesAtenuados, true);
     // graphEvents listeners no se desinstalan explicitamente porque el graph
     // se destruye junto con el paper en el cleanup del componente; los
     // closures quedan recolectables.
   };
-}
-
-function enfocarEnlacesDuranteDrag(element: dia.Element, graph: dia.Graph, destino: Map<dia.Link, unknown>): void {
-  if (destino.size > 0) return;
-  const conectados = new Set<dia.Link>();
-  for (const link of graph.getConnectedLinks(element, { deep: true, includeEnclosed: true })) {
-    const linkMeta = metadata(link);
-    if (linkMeta?.kind === "enlace") conectados.add(link);
-  }
-  for (const link of graph.getLinks()) {
-    const linkMeta = metadata(link);
-    if (linkMeta?.kind !== "enlace") continue;
-    destino.set(link, link.attr("line/opacity"));
-    link.attr("line/opacity", conectados.has(link) ? 0.18 : 0.045);
-  }
-}
-
-function restaurarEnlacesAtenuados(links: Map<dia.Link, unknown>): void {
-  for (const [link, opacity] of links) {
-    link.attr("line/opacity", opacity ?? 1);
-  }
-  links.clear();
 }
 
 function quitarToolsPaper(paper: dia.Paper): void {
