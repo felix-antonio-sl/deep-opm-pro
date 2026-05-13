@@ -26,6 +26,32 @@ describe("validarEntidades", () => {
     expect(resultado.value["e-1"]?.imagen).toEqual({ url: "https://example.com/foto.webp", modo: "imagen-texto" });
   });
 
+  test("preserva valorSlot y parametros de simulacion de atributo", () => {
+    const resultado = validarEntidades({
+      "e-1": {
+        id: "e-1",
+        tipo: "objeto",
+        nombre: "Temperatura",
+        esencia: "informacional",
+        afiliacion: "sistemica",
+        esAtributo: true,
+        valorSlot: { tipo: "float", placeholder: "value", valor: 25.5 },
+        simulacion: {
+          simulable: true,
+          configuracion: { modo: "numerica", distribucion: "uniform", uniformMin: 20, uniformMax: 30 },
+        },
+      },
+    });
+
+    expect(resultado.ok).toBe(true);
+    if (!resultado.ok) return;
+    expect(resultado.value["e-1"]?.valorSlot?.valor).toBe(25.5);
+    expect(resultado.value["e-1"]?.simulacion).toEqual({
+      simulable: true,
+      configuracion: { modo: "numerica", distribucion: "uniform", uniformMin: 20, uniformMax: 30 },
+    });
+  });
+
   test("rechaza entidad sin nombre", () => {
     const resultado = validarEntidades({
       "e-1": { id: "e-1", tipo: "objeto", esencia: "fisica", afiliacion: "sistemica" },

@@ -30,6 +30,7 @@ export {
   crearAtributoEnObjeto,
   asignarValorAtributo,
   cambiarTipoValorAtributo,
+  configurarSimulacionAtributo,
   esAtributoDerivado,
 } from "./operaciones/entidad";
 export type { CrearAtributoOpciones, AtributoCreado } from "./operaciones/entidad";

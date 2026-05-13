@@ -8,6 +8,7 @@ import {
   cambiarAfiliacion,
   cambiarEsencia,
   cambiarTipoValorAtributo,
+  configurarSimulacionAtributo,
   crearAtributoEnObjeto,
   redimensionarApariencia,
   renombrarEntidad,
@@ -24,7 +25,7 @@ import {
   quitarImagen,
   reordenarUrls,
 } from "../../modelo/objetoMetadata";
-import type { Apariencia, Id, LayoutEstados, Modelo, ModoImagenEntidad, TipoValorSlot } from "../../modelo/tipos";
+import type { Apariencia, Id, LayoutEstados, Modelo, ModoImagenEntidad, ParametrosSimulacionEntidad, TipoValorSlot } from "../../modelo/tipos";
 import { fijarOpcionesProyeccionGlobal } from "../../render/jointjs/proyeccion";
 import { commitModelo, type GetStore, type SetStore } from "../runtime";
 import type { ModeloSlice } from "../tipos";
@@ -221,6 +222,17 @@ export function accionesEntidad(set: SetStore, get: GetStore): Partial<ModeloSli
 	      const { modelo, seleccionId } = get();
 	      if (!seleccionId) return;
 	      const resultado = cambiarTipoValorAtributo(modelo, seleccionId, tipo);
+	      if (!resultado.ok) {
+	        set({ mensaje: resultado.error });
+	        return;
+	      }
+	      commitModelo(set, modelo, resultado.value, { seleccionId, seleccionados: [seleccionId], enlaceSeleccionId: null, modoEnlace: null, mensaje: null });
+	    },
+
+	    configurarSimulacionAtributoSeleccionado(parametros: ParametrosSimulacionEntidad | undefined) {
+	      const { modelo, seleccionId } = get();
+	      if (!seleccionId) return;
+	      const resultado = configurarSimulacionAtributo(modelo, seleccionId, parametros);
 	      if (!resultado.ok) {
 	        set({ mensaje: resultado.error });
 	        return;

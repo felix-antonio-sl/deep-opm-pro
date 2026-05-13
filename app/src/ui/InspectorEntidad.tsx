@@ -94,6 +94,7 @@ export function InspectorEntidad({ entidad }: Props) {
   const editarDescripcionEntidad = useOpmStore((s) => s.editarDescripcionEntidad);
   const asignarValorAtributo = useOpmStore((s) => s.asignarValorAtributoSeleccionado);
   const cambiarTipoValorAtributo = useOpmStore((s) => s.cambiarTipoValorAtributoSeleccionado);
+  const configurarSimulacionAtributo = useOpmStore((s) => s.configurarSimulacionAtributoSeleccionado);
   const fijarLayoutEstadosEntidad = useOpmStore((s) => s.fijarLayoutEstadosEntidad);
   const eliminar = useOpmStore((s) => s.eliminarSeleccion);
   const seleccionados = useOpmStore((s) => s.seleccionados);
@@ -169,6 +170,7 @@ export function InspectorEntidad({ entidad }: Props) {
             onUnidad={(value) => editarUnidadEntidad(entidad.id, value)}
             onTipoAtributo={cambiarTipoValorAtributo}
             onValorAtributo={asignarValorAtributo}
+            onSimulacionAtributo={configurarSimulacionAtributo}
             onAbrirUrls={abrirModalUrls}
             onAbrirImagen={abrirModalImagen}
             onQuitarImagen={quitarImagenEntidad}
@@ -276,6 +278,7 @@ interface PanelSemanticaProps {
   onUnidad: (value: string) => void;
   onTipoAtributo: (tipo: import("../modelo/tipos").TipoValorSlot) => void;
   onValorAtributo: (valor: import("../modelo/tipos").ValorConcreto) => void;
+  onSimulacionAtributo: (parametros: import("../modelo/tipos").ParametrosSimulacionEntidad | undefined) => void;
   onAbrirUrls: (entidadId: Id) => void;
   onAbrirImagen: (entidadId: Id) => void;
   onQuitarImagen: (entidadId: Id) => void;
@@ -333,6 +336,7 @@ function PanelSemantica(props: PanelSemanticaProps) {
           onUnidad={props.onUnidad}
           onTipo={props.onTipoAtributo}
           onValor={props.onValorAtributo}
+          onSimulacion={props.onSimulacionAtributo}
         />
       ) : null}
       <SeccionEsenciaAfiliacion

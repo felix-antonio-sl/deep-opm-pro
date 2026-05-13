@@ -3,6 +3,8 @@ import { crearModelo, crearObjeto, descomponerProceso } from "../operaciones";
 import type { Modelo, Resultado } from "../tipos";
 import {
   asignarValorAtributo,
+  cambiarTipoValorAtributo,
+  configurarSimulacionAtributo,
   crearAtributoEnObjeto,
   esAtributoDerivado,
   renombrarEntidad,
@@ -103,6 +105,36 @@ describe("operaciones/entidad valor numérico", () => {
     modelo.entidades[creado.value.atributoId] = legacy;
 
     expect(esAtributoDerivado(modelo, creado.value.atributoId)).toBe(true);
+  });
+
+  test("configurarSimulacionAtributo persiste parametros válidos y permite apagarlos", () => {
+    let modelo = modeloConObjeto();
+    const padreId = entidadPorNombre(modelo, "Sistema");
+    const creado = must(crearAtributoEnObjeto(modelo, modelo.opdRaizId, padreId, "Temperatura", { tipoSlot: "float" }));
+    modelo = creado.modelo;
+
+    modelo = must(configurarSimulacionAtributo(modelo, creado.atributoId, {
+      simulable: true,
+      configuracion: { modo: "numerica", distribucion: "uniform", uniformMin: 1, uniformMax: 2 },
+    }));
+    expect(modelo.entidades[creado.atributoId]?.simulacion?.simulable).toBe(true);
+
+    modelo = must(configurarSimulacionAtributo(modelo, creado.atributoId, undefined));
+    expect(modelo.entidades[creado.atributoId]?.simulacion).toBeUndefined();
+  });
+
+  test("cambiarTipoValorAtributo limpia simulacion incompatible", () => {
+    let modelo = modeloConObjeto();
+    const padreId = entidadPorNombre(modelo, "Sistema");
+    const creado = must(crearAtributoEnObjeto(modelo, modelo.opdRaizId, padreId, "Temperatura", { tipoSlot: "float" }));
+    modelo = must(configurarSimulacionAtributo(creado.modelo, creado.atributoId, {
+      simulable: true,
+      configuracion: { modo: "numerica", distribucion: "uniform", uniformMin: 1, uniformMax: 2 },
+    }));
+
+    modelo = must(cambiarTipoValorAtributo(modelo, creado.atributoId, "string"));
+    expect(modelo.entidades[creado.atributoId]?.valorSlot?.tipo).toBe("string");
+    expect(modelo.entidades[creado.atributoId]?.simulacion).toBeUndefined();
   });
 });
 

@@ -70,6 +70,28 @@ describe("iniciarValoresRuntime", () => {
     const valores = iniciarValoresRuntime(modelo);
     expect(valores[objetoId]).toBeUndefined();
   });
+
+  test("atributo simulable muestrea runtime sin mutar valor persistente", () => {
+    const { modelo: base, lecturaId } = modeloPropagacionAtributos();
+    const lectura = base.entidades[lecturaId]!;
+    const modelo: Modelo = {
+      ...base,
+      entidades: {
+        ...base.entidades,
+        [lecturaId]: {
+          ...lectura,
+          simulacion: {
+            simulable: true,
+            configuracion: { modo: "numerica", distribucion: "uniform", uniformMin: 10, uniformMax: 20 },
+          },
+        },
+      },
+    };
+
+    const valores = iniciarValoresRuntime(modelo, () => 0.5);
+    expect(valores[lecturaId]).toBe(15);
+    expect(modelo.entidades[lecturaId]?.valorSlot?.valor).toBe(25);
+  });
 });
 
 describe("aplicarCambiosValor — propagación atributo→atributo", () => {

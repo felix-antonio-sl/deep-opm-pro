@@ -10,12 +10,14 @@ import type {
   Esencia,
   Id,
   Modelo,
+  ParametrosSimulacionEntidad,
   Opd,
   Resultado,
   TipoValorSlot,
   ValorConcreto,
   ValorSlot,
 } from "../tipos";
+import { normalizarParametrosSimulacion } from "../simulacion/parametros";
 import { placeholderValorSlot, validarValorSlot } from "../validadores/valorSlot";
 import { fallo, ok, siguienteId } from "./helpers";
 
@@ -203,11 +205,47 @@ export function cambiarTipoValorAtributo(modelo: Modelo, entidadId: Id, tipo: Ti
   if (!entidad) return fallo(`Entidad no existe: ${entidadId}`);
   if (!esAtributoDerivado(modelo, entidadId)) return fallo("La entidad no es atributo");
   const valorSlot: ValorSlot = { tipo, placeholder: placeholderValorSlot() };
+  const { simulacion: _simulacion, ...entidadBase } = entidad;
   return ok({
     ...modelo,
     entidades: {
       ...modelo.entidades,
-      [entidadId]: { ...entidad, esAtributo: true, valorSlot },
+      [entidadId]: { ...entidadBase, esAtributo: true, valorSlot },
+    },
+  });
+}
+
+export function configurarSimulacionAtributo(
+  modelo: Modelo,
+  entidadId: Id,
+  parametros: ParametrosSimulacionEntidad | undefined,
+): Resultado<Modelo> {
+  const entidad = modelo.entidades[entidadId];
+  if (!entidad) return fallo(`Entidad no existe: ${entidadId}`);
+  if (!esAtributoDerivado(modelo, entidadId) || !entidad.valorSlot) {
+    return fallo("La entidad no tiene slot de valor de atributo");
+  }
+  const { simulacion: _simulacion, ...entidadBase } = entidad;
+  if (!parametros || !parametros.simulable) {
+    return ok({
+      ...modelo,
+      entidades: {
+        ...modelo.entidades,
+        [entidadId]: entidadBase,
+      },
+    });
+  }
+  const normalizado = normalizarParametrosSimulacion(parametros, entidad.valorSlot.tipo);
+  if (!normalizado.ok) return normalizado;
+  return ok({
+    ...modelo,
+    entidades: {
+      ...modelo.entidades,
+      [entidadId]: {
+        ...entidadBase,
+        esAtributo: true,
+        simulacion: normalizado.value,
+      },
     },
   });
 }

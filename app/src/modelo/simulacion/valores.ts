@@ -1,18 +1,27 @@
 import type { Enlace, Id, Modelo, ValorConcreto } from "../tipos";
 import { validarValorSlot } from "../validadores/valorSlot";
+import { muestrearValorEntidad, type RngSimulacion } from "./parametros";
 import type { CambioValorRuntime, PasoSimulacion } from "./tipos";
 
 /**
  * Estado inicial de valores runtime: copia `entidad.valorSlot.valor` de cada
- * atributo. Solo se consideran entidades con `valorSlot` definido (atributos
- * EPICA-17). Los valores runtime viven separados del modelo: la simulación
- * NO muta `entidad.valorSlot.valor`.
+ * atributo y, si `entidad.simulacion.simulable` está activo, muestrea un valor
+ * OPCloud-like para el runtime. Los valores runtime viven separados del modelo:
+ * la simulación NO muta `entidad.valorSlot.valor`.
  */
-export function iniciarValoresRuntime(modelo: Modelo): Record<Id, ValorConcreto> {
+export function iniciarValoresRuntime(modelo: Modelo, rng: RngSimulacion = Math.random): Record<Id, ValorConcreto> {
   const valores: Record<Id, ValorConcreto> = {};
   for (const entidad of Object.values(modelo.entidades)) {
     if (entidad.valorSlot?.valor !== undefined) {
       valores[entidad.id] = entidad.valorSlot.valor;
+    }
+    if (entidad.esAtributo && entidad.valorSlot && entidad.simulacion?.simulable) {
+      const muestreado = muestrearValorEntidad(entidad, rng);
+      if (muestreado.ok && muestreado.value !== undefined) {
+        valores[entidad.id] = muestreado.value;
+      } else {
+        delete valores[entidad.id];
+      }
     }
   }
   return valores;

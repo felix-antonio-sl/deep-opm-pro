@@ -24,11 +24,17 @@ export type {
 	  ModoImagenEntidad,
 	  TipoValorSlot,
 	  ValorConcreto,
+	  DistribucionSimulacion,
 	  RefinamientoEntidad,
 	  SlotRefinamiento,
 	  UrlObjetoTipada,
 	  ImagenEntidad,
 	  ValorSlot,
+	  FilaTextualSimulacion,
+	  ConfiguracionSimulacionNumerica,
+	  ConfiguracionSimulacionTextual,
+	  ConfiguracionSimulacionEntidad,
+	  ParametrosSimulacionEntidad,
 	  Entidad,
 	} from "./tipos/entidad";
 

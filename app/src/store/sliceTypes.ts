@@ -95,6 +95,7 @@ export type ModeloSlice = Slice<
   | "crearAtributoEnObjetoSeleccionado"
   | "asignarValorAtributoSeleccionado"
   | "cambiarTipoValorAtributoSeleccionado"
+  | "configurarSimulacionAtributoSeleccionado"
   | "fijarEsenciaSeleccionada"
   | "fijarAfiliacionSeleccionada"
   | "redimensionarSeleccionada"

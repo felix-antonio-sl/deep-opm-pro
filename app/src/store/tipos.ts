@@ -155,7 +155,7 @@ import {
 } from "../persistencia/autosalvado";
 import { exportarModelo, hidratarModelo } from "../serializacion/json";
 import type { Aviso } from "../modelo/validaciones";
-import type { Afiliacion, Apariencia, DesignacionEstado, DuracionTemporal, EnlaceEstilo, Esencia, EstiloApariencia, ExtremoEnlace, Id, ImagenEntidad, LayoutEstados, Modelo, Modificador, ModoDespliegueObjeto, ModoImagenEntidad, ModoPlegado, Opd, OperadorAbanico, OrdenPartesPlegado, Pestana, PestanaId, PlantillaIndice, Posicion, SubtipoModificador, TipoEnlace, TipoEntidad, TipoValorSlot, UrlObjetoTipada, UiPortapapelesVisual, ValorConcreto, VersionResumen } from "../modelo/tipos";
+import type { Afiliacion, Apariencia, DesignacionEstado, DuracionTemporal, EnlaceEstilo, Esencia, EstiloApariencia, ExtremoEnlace, Id, ImagenEntidad, LayoutEstados, Modelo, Modificador, ModoDespliegueObjeto, ModoImagenEntidad, ModoPlegado, Opd, OperadorAbanico, OrdenPartesPlegado, ParametrosSimulacionEntidad, Pestana, PestanaId, PlantillaIndice, Posicion, SubtipoModificador, TipoEnlace, TipoEntidad, TipoValorSlot, UrlObjetoTipada, UiPortapapelesVisual, ValorConcreto, VersionResumen } from "../modelo/tipos";
 import { mismaReferencia, type OplReferencia } from "../opl/interaccion";
 import { datosAsistenteVacio, sembrarModeloDesdeAsistente, validarDatosAsistente, type DatosAsistente, type EtapaAsistente } from "../modelo/creacionWizard";
 import { generarOpl } from "../opl/generar";
@@ -434,6 +434,7 @@ export interface OpmStore {
 	  crearAtributoEnObjetoSeleccionado: (input?: { nombre?: string; tipoSlot?: TipoValorSlot; unidad?: string }) => void;
 	  asignarValorAtributoSeleccionado: (valor: ValorConcreto) => void;
 	  cambiarTipoValorAtributoSeleccionado: (tipo: TipoValorSlot) => void;
+	  configurarSimulacionAtributoSeleccionado: (parametros: ParametrosSimulacionEntidad | undefined) => void;
 	  fijarEsenciaSeleccionada: (esencia: Esencia) => void;
   fijarAfiliacionSeleccionada: (afiliacion: Afiliacion) => void;
   redimensionarSeleccionada: (width: number, height: number) => void;

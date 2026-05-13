@@ -1,12 +1,16 @@
 import { validarModoImagen, validarUrlImagen } from "../modelo/imagenObjeto";
 import { validarAlias, validarImagenEntidad, validarTipoUrlObjeto, validarUnidad, validarUrl } from "../modelo/objetoMetadata";
+import { normalizarParametrosSimulacion } from "../modelo/simulacion/parametros";
 import type {
   Entidad,
   Id,
   ImagenEntidad,
   Resultado,
+  TipoValorSlot,
   UrlObjetoTipada,
+  ValorSlot,
 } from "../modelo/tipos";
+import { validarValorSlot } from "../modelo/validadores/valorSlot";
 import { fallo, ok, esAfiliacion, esEsencia, esRecord, esTipoEntidad } from "./validarHelpers";
 import { validarRefinamientos } from "./validarOpds";
 
@@ -45,6 +49,22 @@ export function validarEntidades(value: Record<string, unknown>): Resultado<Reco
 
 export function camposEntidadAvanzada(entidadId: Id, raw: Record<string, unknown>): Resultado<Partial<Entidad>> {
   const campos: Partial<Entidad> = {};
+  if (raw.esAtributo !== undefined) {
+    if (raw.esAtributo !== true) return fallo(`Entidad inválida: ${entidadId}.esAtributo`);
+    campos.esAtributo = true;
+  }
+  if (raw.valorSlot !== undefined) {
+    const valorSlot = validarValorSlotSerializado(entidadId, raw.valorSlot);
+    if (!valorSlot.ok) return valorSlot;
+    campos.valorSlot = valorSlot.value;
+    if (campos.valorSlot) campos.esAtributo = true;
+  }
+  if (raw.simulacion !== undefined) {
+    if (!campos.valorSlot) return fallo(`Entidad inválida: ${entidadId}.simulacion requiere valorSlot`);
+    const simulacion = normalizarParametrosSimulacion(raw.simulacion, campos.valorSlot.tipo);
+    if (!simulacion.ok) return fallo(`Entidad inválida: ${entidadId}.simulacion: ${simulacion.error}`);
+    campos.simulacion = simulacion.value;
+  }
   if (raw.alias !== undefined) {
     if (typeof raw.alias !== "string") return fallo(`Entidad inválida: ${entidadId}.alias`);
     const validado = validarAlias(raw.alias);
@@ -84,4 +104,25 @@ export function camposEntidadAvanzada(entidadId: Id, raw: Record<string, unknown
   if (raw.layoutEstados === "horizontal" || raw.layoutEstados === "vertical") campos.layoutEstados = raw.layoutEstados;
   if (raw.layoutEstados !== undefined && raw.layoutEstados !== "horizontal" && raw.layoutEstados !== "vertical") return fallo(`Entidad inválida: ${entidadId}.layoutEstados`);
   return ok(campos);
+}
+
+function validarValorSlotSerializado(entidadId: Id, value: unknown): Resultado<ValorSlot> {
+  if (!esRecord(value)) return fallo(`Entidad inválida: ${entidadId}.valorSlot`);
+  if (!esTipoValorSlot(value.tipo) || value.placeholder !== "value") {
+    return fallo(`Entidad inválida: ${entidadId}.valorSlot`);
+  }
+  const slot: ValorSlot = { tipo: value.tipo, placeholder: "value" };
+  if (value.valor !== undefined) {
+    if (typeof value.valor !== "number" && typeof value.valor !== "string") {
+      return fallo(`Entidad inválida: ${entidadId}.valorSlot.valor`);
+    }
+    const validado = validarValorSlot(value.tipo, value.valor);
+    if (!validado.ok) return fallo(`Entidad inválida: ${entidadId}.valorSlot.valor`);
+    slot.valor = validado.value;
+  }
+  return ok(slot);
+}
+
+function esTipoValorSlot(value: unknown): value is TipoValorSlot {
+  return value === "integer" || value === "float" || value === "char" || value === "string";
 }

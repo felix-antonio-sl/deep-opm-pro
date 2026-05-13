@@ -20,6 +20,7 @@ export type TipoUrlObjeto = "imagen" | "video" | "articulo" | "texto" | "oslc";
 export type ModoImagenEntidad = "imagen" | "texto" | "imagen-texto";
 export type TipoValorSlot = "integer" | "float" | "char" | "string";
 export type ValorConcreto = number | string;
+export type DistribucionSimulacion = "uniform" | "normal" | "bernoulli" | "geometric" | "poisson" | "exponential" | "binomial";
 
 /**
  * Slot indexado por TipoRefinamiento dentro del producto parcial
@@ -64,6 +65,44 @@ export interface ValorSlot {
   valor?: ValorConcreto;
 }
 
+export interface FilaTextualSimulacion {
+  texto: string;
+  porcentaje: number;
+}
+
+export interface ConfiguracionSimulacionNumerica {
+  modo: "numerica";
+  distribucion: DistribucionSimulacion;
+  entero?: boolean;
+  rangoMin?: number;
+  rangoMax?: number;
+  uniformMin?: number;
+  uniformMax?: number;
+  normalMu?: number;
+  normalSigma?: number;
+  probabilidad?: number;
+  binomialN?: number;
+  binomialP?: number;
+  lambda?: number;
+}
+
+export interface ConfiguracionSimulacionTextual {
+  modo: "textual";
+  valores: FilaTextualSimulacion[];
+}
+
+export type ConfiguracionSimulacionEntidad = ConfiguracionSimulacionNumerica | ConfiguracionSimulacionTextual;
+
+/**
+ * Parametros persistentes de simulacion para atributos con slot de valor.
+ * Deriva del `SimulationModule` de OPCloud: flag `simulated`, modo numerico
+ * o textual, distribucion probabilistica y arreglo textual ponderado.
+ */
+export interface ParametrosSimulacionEntidad {
+  simulable: boolean;
+  configuracion?: ConfiguracionSimulacionEntidad;
+}
+
 export interface Entidad {
   id: Id;
   tipo: TipoEntidad;
@@ -82,6 +121,7 @@ export interface Entidad {
   unidad?: string;
   esAtributo?: boolean;
   valorSlot?: ValorSlot;
+  simulacion?: ParametrosSimulacionEntidad;
   descripcion?: string;
   urls?: UrlObjetoTipada[];
   imagen?: ImagenEntidad;
