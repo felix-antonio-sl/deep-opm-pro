@@ -10,6 +10,7 @@ import { proyectarEntidad } from "./composers/entidad";
 import { proyectarEnlace, proyectarProxyExtraccion, proyectarRefinamientoEstructural, resolverEndpointVisual } from "./composers/enlace";
 import {
   proyectarHaloSeleccion,
+  proyectarHaloSimulacionEntidadInvolucrada,
   proyectarHaloSimulacionEstadoCurrent,
   proyectarHaloSimulacionProceso,
   refResaltaEnlace,
@@ -46,6 +47,8 @@ const UMBRAL_JUMPOVER_DENSO = 35;
 export interface OpcionesSimulacionRender {
   procesoActivoId: Id | null;
   estadosCurrent: Record<Id, Id>;
+  entidadesInvolucradasIds?: readonly Id[];
+  enlacesInvolucradosIds?: readonly Id[];
 }
 
 export function proyectarModeloAJointCells(
@@ -63,6 +66,8 @@ export function proyectarModeloAJointCells(
   if (!opd) return [];
   const opcionesRender = normalizarOpcionesProyeccion(opciones);
   const seleccionMultiple = new Set(seleccionados);
+  const entidadesInvolucradasSim = new Set(simulacion?.entidadesInvolucradasIds ?? []);
+  const enlacesInvolucradosSim = new Set(simulacion?.enlacesInvolucradosIds ?? []);
 
   const apariencias = Object.values(opd.apariencias);
   const usarJumpover = Object.keys(opd.enlaces).length <= UMBRAL_JUMPOVER_DENSO;
@@ -137,9 +142,10 @@ export function proyectarModeloAJointCells(
     }
     if (origen.apariencia.id === destino.apariencia.id) return [];
     const enlaceResaltado = enlace.id === seleccionEnlaceId || seleccionMultiple.has(enlace.id) || refResaltaEnlace(enlace, hoverOplRef);
+    const enlaceActivoRuntime = enlacesInvolucradosSim.has(enlace.id);
     return TIPOS_REFINAMIENTO_ESTRUCTURAL.includes(enlace.tipo) && !origen.proxy && !destino.proxy
       ? proyectarRefinamientoEstructural(opdId, enlace, aparienciaEnlace.id, origen, destino, enlaceResaltado)
-      : [proyectarEnlace(opdId, enlace, aparienciaEnlace.id, origen, destino, aparienciaEnlace.vertices, enlaceResaltado, enlacesEnAbanico.has(enlace.id), { usarJumpover })];
+      : [proyectarEnlace(opdId, enlace, aparienciaEnlace.id, origen, destino, aparienciaEnlace.vertices, enlaceResaltado, enlacesEnAbanico.has(enlace.id), { usarJumpover, activaSimulacion: enlaceActivoRuntime })];
   });
 
   const halos = seleccionMultiple.size > 1
@@ -155,13 +161,16 @@ export function proyectarModeloAJointCells(
         const entidad = modeloRender.entidades[apariencia.entidadId];
         if (!entidad) return [];
         const cells: JointCellJson[] = [];
+        if (entidadesInvolucradasSim.has(entidad.id) && entidad.id !== simulacion.procesoActivoId) {
+          cells.push(proyectarHaloSimulacionEntidadInvolucrada(opdId, apariencia, entidad));
+        }
         if (simulacion.procesoActivoId && entidad.id === simulacion.procesoActivoId && entidad.tipo === "proceso") {
           cells.push(proyectarHaloSimulacionProceso(opdId, apariencia, entidad));
         }
         const currentId = simulacion.estadosCurrent[entidad.id];
         if (currentId && entidad.tipo === "objeto") {
           const estado = modeloRender.estados[currentId];
-          if (estado) cells.push(proyectarHaloSimulacionEstadoCurrent(opdId, apariencia, entidad, estado));
+          if (estado) cells.push(proyectarHaloSimulacionEstadoCurrent(modeloRender, opdId, apariencia, entidad, estado));
         }
         return cells;
       })

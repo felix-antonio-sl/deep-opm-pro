@@ -109,7 +109,7 @@ export function proyectarEnlace(
   vertices: Posicion[],
   seleccionada: boolean,
   enAbanico = false,
-  opciones: { usarJumpover?: boolean } = {},
+  opciones: { usarJumpover?: boolean; activaSimulacion?: boolean } = {},
 ): JointCellJson {
   const verticesRender = verticesEnlace(enlace.tipo, origen.apariencia, destino.apariencia, vertices);
   const estiloE = enlace.estilo;
@@ -142,6 +142,7 @@ export function proyectarEnlace(
   // BUG-1fc4d2: si toca estado, mantenemos z más alto que el padre para que
   // la conexión con la cápsula interna siga visible y operable.
   const tocaEstado = !!origen.selectorEstado || !!destino.selectorEstado;
+  const activoRuntime = opciones.activaSimulacion === true;
   return {
     id: aparienciaEnlaceId,
     type: "standard.Link",
@@ -150,16 +151,27 @@ export function proyectarEnlace(
     vertices: verticesRender,
     router,
     connector,
-    labels: [...etiquetasMultiplicidad(enlace), ...etiquetasModificador(enlace), ...etiquetaEnlace(enlace), ...etiquetasRuta(enlace), ...etiquetasProxyParte(origen, destino)],
+    labels: [
+      ...etiquetasMultiplicidad(enlace),
+      ...etiquetasModificador(enlace),
+      ...etiquetaEnlace(enlace),
+      ...etiquetasRuta(enlace),
+      ...etiquetasProxyParte(origen, destino),
+      ...(activoRuntime ? [etiquetaTokenSimulacion()] : []),
+    ],
     attrs: {
       wrapper: {
-        stroke: seleccionada ? "rgba(61, 168, 255, 0.35)" : "transparent",
+        stroke: seleccionada
+          ? "rgba(61, 168, 255, 0.35)"
+          : activoRuntime
+            ? "rgba(59, 195, 255, 0.22)"
+            : "transparent",
         strokeWidth: CANON.dims.enlaceHitArea,
         cursor: "pointer",
       },
       line: {
-        stroke: colorEnlace,
-        strokeWidth: seleccionada ? grosorEnlace + 2 : grosorEnlace,
+        stroke: activoRuntime ? "#0f766e" : colorEnlace,
+        strokeWidth: seleccionada ? grosorEnlace + 2 : activoRuntime ? grosorEnlace + 1.5 : grosorEnlace,
         ...(dashOverride !== undefined ? { strokeDasharray: dashOverride } : {}),
         sourceMarker: marcadorFuente(enlace.tipo),
         targetMarker: marcadorDestino(enlace.tipo),
@@ -173,6 +185,30 @@ export function proyectarEnlace(
       tipo: enlace.tipo,
     },
     z: tocaEstado ? Z_ENLACE_ESTADO : Z_ENLACE,
+  };
+}
+
+export function etiquetaTokenSimulacion(): Record<string, unknown> {
+  return {
+    markup: [{ tagName: "circle", selector: "token" }],
+    attrs: {
+      token: {
+        r: 5,
+        fill: "#3BC3FF",
+        stroke: "#0f766e",
+        strokeWidth: 1.5,
+        pointerEvents: "none",
+      },
+    },
+    position: {
+      distance: 0.5,
+      offset: 0,
+      angle: 0,
+      args: {
+        keepGradient: false,
+        ensureLegibility: false,
+      },
+    },
   };
 }
 

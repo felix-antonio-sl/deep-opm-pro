@@ -1,4 +1,5 @@
 import { tieneDesignacion } from "../estadosDesignaciones";
+import { obtenerRefinamiento } from "../refinamientos";
 import type { Enlace, ExtremoEnlace, Id, Modelo } from "../tipos";
 import type { PasoSimulacion, TransicionEstadoSim } from "./tipos";
 
@@ -14,13 +15,27 @@ import type { PasoSimulacion, TransicionEstadoSim } from "./tipos";
  *     estados del mismo objeto (HU-B0.027).
  */
 export function planificarSimulacion(modelo: Modelo, opdId: Id): PasoSimulacion[] {
+  return planificarOpd(modelo, opdId, 0, undefined, new Set());
+}
+
+function planificarOpd(
+  modelo: Modelo,
+  opdId: Id,
+  profundidad: number,
+  procesoPadreId: Id | undefined,
+  visitados: Set<Id>,
+): PasoSimulacion[] {
   const opd = modelo.opds[opdId];
   if (!opd) return [];
+  if (visitados.has(opdId)) return [];
+  const visitadosHijos = new Set(visitados);
+  visitadosHijos.add(opdId);
 
   const pasos: PasoSimulacion[] = [];
   for (const apariencia of Object.values(opd.apariencias)) {
     const entidad = modelo.entidades[apariencia.entidadId];
     if (!entidad || entidad.tipo !== "proceso") continue;
+    if (apariencia.contextoRefinamiento?.rol === "contorno" || apariencia.contextoRefinamiento?.rol === "externo") continue;
 
     const enlacesEntradaIds: Id[] = [];
     const enlacesSalidaIds: Id[] = [];
@@ -33,20 +48,33 @@ export function planificarSimulacion(modelo: Modelo, opdId: Id): PasoSimulacion[
     }
 
     const transicionesPlanificadas = inferirTransiciones(modelo, enlacesEntradaIds, enlacesSalidaIds);
+    const opdHijoId = obtenerRefinamiento(entidad, "descomposicion")?.opdId;
+    const opdHijo = opdHijoId && opdHijoId !== opdId ? modelo.opds[opdHijoId] : undefined;
 
     pasos.push({
+      opdId,
+      opdNombre: opd.nombre,
+      profundidad,
+      ...(procesoPadreId ? { procesoPadreId } : {}),
       procesoId: entidad.id,
       procesoNombre: entidad.nombre,
       ordenY: apariencia.y,
+      ...(opdHijo ? { opdHijoId: opdHijo.id, opdHijoNombre: opdHijo.nombre } : {}),
       enlacesEntradaIds,
       enlacesSalidaIds,
       transicionesPlanificadas,
     });
   }
 
-  return pasos.sort((a, b) => {
+  const ordenados = pasos.sort((a, b) => {
     if (a.ordenY !== b.ordenY) return a.ordenY - b.ordenY;
     return a.procesoNombre.localeCompare(b.procesoNombre, "es-CL");
+  });
+  return ordenados.flatMap((paso) => {
+    const hijo = paso.opdHijoId && modelo.opds[paso.opdHijoId]
+      ? planificarOpd(modelo, paso.opdHijoId, profundidad + 1, paso.procesoId, visitadosHijos)
+      : [];
+    return [paso, ...hijo];
   });
 }
 

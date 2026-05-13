@@ -7,7 +7,7 @@ import {
   crearModelo,
   crearObjeto,
   crearProceso,
-  estadosDeEntidad,
+  descomponerProceso,
 } from "../operaciones";
 import type { Modelo, Resultado } from "../tipos";
 import { estadosCurrentIniciales, planificarSimulacion } from "./plan";
@@ -51,6 +51,24 @@ describe("planificarSimulacion — orden por Y", () => {
     const plan = planificarSimulacion(modelo, modelo.opdRaizId);
     expect(plan).toHaveLength(1);
     expect(plan[0]?.procesoNombre).toBe("Procesar");
+  });
+});
+
+describe("planificarSimulacion — descomposicion OPD", () => {
+  test("expande in-zoom sincronicamente despues del proceso padre", () => {
+    let modelo = crearModelo("Inzoom");
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 120, y: 100 }, "Atender"));
+    const atenderId = entidadId(modelo, "Atender");
+    const descompuesto = must(descomponerProceso(modelo, modelo.opdRaizId, atenderId));
+    modelo = descompuesto.modelo;
+
+    const plan = planificarSimulacion(modelo, modelo.opdRaizId);
+
+    expect(plan.map((p) => p.procesoNombre)).toEqual(["Atender", "Atender 1", "Atender 2", "Atender 3"]);
+    expect(plan[0]?.opdId).toBe(modelo.opdRaizId);
+    expect(plan[0]?.opdHijoId).toBe(descompuesto.opdId);
+    expect(plan.slice(1).map((p) => p.opdId)).toEqual([descompuesto.opdId, descompuesto.opdId, descompuesto.opdId]);
+    expect(plan.slice(1).every((p) => p.procesoPadreId === atenderId && p.profundidad === 1)).toBe(true);
   });
 });
 

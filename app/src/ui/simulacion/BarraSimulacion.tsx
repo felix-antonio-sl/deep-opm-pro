@@ -48,6 +48,12 @@ export function BarraSimulacion(): JSX.Element | null {
             ▶ {pasoActual.procesoNombre}
           </span>
         ) : null}
+        {pasoActual && !completado ? (
+          <span style={style.opd} data-testid="barra-simulacion-opd">
+            Diagrama {pasoActual.opdNombre}
+            {pasoActual.opdHijoNombre ? ` > ${pasoActual.opdHijoNombre}` : ""}
+          </span>
+        ) : null}
       </div>
       <div style={style.cluster}>
         <button
@@ -92,6 +98,7 @@ export function BarraSimulacion(): JSX.Element | null {
             <li key={entrada.numero} style={style.traceItem}>
               <span style={style.traceNumero}>#{entrada.numero}</span>
               <span style={style.traceProceso}>{entrada.procesoNombre}</span>
+              <span style={style.traceDetalle}>{entrada.opdNombre}</span>
               {entrada.transicionesAplicadas.length > 0 ? (
                 <span style={style.traceDetalle}>
                   {entrada.transicionesAplicadas.length} transición{entrada.transicionesAplicadas.length === 1 ? "" : "es"}
@@ -153,6 +160,14 @@ const style: Record<string, JSX.CSSProperties> = {
     padding: `2px ${tokens.spacing.sm}px`,
     background: tokens.colors.acentoUiSuave,
     border: `1px solid ${tokens.colors.acentoUi}`,
+    borderRadius: tokens.radii.sm,
+  },
+  opd: {
+    fontSize: tokens.typography.sizes.sm,
+    color: tokens.colors.textoSecundario,
+    padding: `2px ${tokens.spacing.sm}px`,
+    background: tokens.colors.fondoCard,
+    border: `1px solid ${tokens.colors.bordeSuave}`,
     borderRadius: tokens.radii.sm,
   },
   boton: {

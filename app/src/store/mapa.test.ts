@@ -1,4 +1,7 @@
 import { describe, expect, test } from "bun:test";
+import { crearModelo, crearProceso, descomponerProceso } from "../modelo/operaciones";
+import type { Resultado } from "../modelo/tipos";
+import { exportarModelo } from "../serializacion/json";
 import { store } from "../store";
 
 describe("slice mapa", () => {
@@ -82,6 +85,25 @@ describe("slice simulacion (P0-2 exclusion mutua)", () => {
     store.getState().iniciarModoSimulacion();
     expect(store.getState().modoEnlace).toBeNull();
     expect(store.getState().modoCreacion).toBeNull();
+  });
+
+  test("ejecutarPasoSimulacion navega al OPD hijo al entrar en descomposicion", () => {
+    store.getState().salirModoSimulacion();
+    store.getState().cerrarVistaMapa();
+    let modelo = crearModelo("Inzoom navegable");
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 100, y: 100 }, "Atender"));
+    const procesoId = Object.values(modelo.entidades)[0]?.id;
+    if (!procesoId) throw new Error("La prueba esperaba proceso");
+    const descompuesto = must(descomponerProceso(modelo, modelo.opdRaizId, procesoId));
+    modelo = descompuesto.modelo;
+    store.getState().importarJson(exportarModelo(modelo));
+
+    store.getState().iniciarModoSimulacion();
+    expect(store.getState().opdActivoId).toBe(modelo.opdRaizId);
+
+    store.getState().ejecutarPasoSimulacion();
+    expect(store.getState().opdActivoId).toBe(descompuesto.opdId);
+    expect(store.getState().contextoSimulacion?.plan[store.getState().contextoSimulacion?.pasoActual ?? 0]?.opdId).toBe(descompuesto.opdId);
   });
 });
 
@@ -183,3 +205,8 @@ describe("slice P1-5 ronda 4: nuevaCosaPendiente se descarta en cambios de conte
     expect(store.getState().nuevaCosaPendiente).toBeNull();
   });
 });
+
+function must<T>(resultado: Resultado<T>): T {
+  if (!resultado.ok) throw new Error(resultado.error);
+  return resultado.value;
+}

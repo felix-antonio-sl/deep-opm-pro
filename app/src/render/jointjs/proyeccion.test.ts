@@ -115,6 +115,49 @@ describe("proyeccion JointJS", () => {
     expect(line?.strokeWidth).toBe(4);
   });
 
+  test("proyecta foco de simulacion en proceso, objetos involucrados, estado current y token de enlace", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 40 }, "Pedido"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 240, y: 130 }, "Aprobar"));
+    const pedidoId = entidadPorNombre(modelo, "Pedido");
+    const aprobarId = entidadPorNombre(modelo, "Aprobar");
+    const estados = must(crearEstadosIniciales(modelo, pedidoId));
+    modelo = estados.modelo;
+    const [pendienteId, aprobadoId] = estados.estadoIds;
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, extremoEstado(pendienteId), aprobarId, "consumo"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, aprobarId, extremoEstado(aprobadoId), "resultado"));
+    const enlaceIds = Object.keys(modelo.enlaces);
+
+    const cells = proyectarModeloAJointCells(
+      modelo,
+      modelo.opdRaizId,
+      null,
+      null,
+      null,
+      [],
+      {},
+      {
+        procesoActivoId: aprobarId,
+        estadosCurrent: { [pedidoId]: pendienteId },
+        entidadesInvolucradasIds: [pedidoId, aprobarId],
+        enlacesInvolucradosIds: enlaceIds,
+      },
+    );
+
+    const procesoHalo = cells.find((item) => item.opm.kind === "simulacion-halo" && item.opm.tipo === "proceso-activo");
+    const objetoHalo = cells.find((item) => item.opm.kind === "simulacion-halo" && item.opm.tipo === "entidad-involucrada" && item.opm.targetId === pedidoId);
+    const currentPin = cells.find((item) => item.opm.kind === "simulacion-halo" && item.opm.tipo === "estado-current");
+    const enlaceActivo = cells.find((item) => item.opm.kind === "enlace" && item.opm.enlaceId === enlaceIds[0]);
+    const line = (enlaceActivo?.attrs as Attrs | undefined)?.line as Attrs | undefined;
+    const labels = enlaceActivo?.labels as Array<{ markup?: Array<{ selector?: string }> }> | undefined;
+
+    expect(procesoHalo).toBeDefined();
+    expect(objetoHalo).toBeDefined();
+    expect(currentPin?.type).toBe("standard.Path");
+    expect(line?.stroke).toBe("#0f766e");
+    expect(labels?.some((label) => label.markup?.some((node) => node.selector === "token"))).toBe(true);
+  });
+
   test("aplica overrides de fill y borde en attrs JointJS de la cosa", () => {
     let modelo = crearModelo();
     modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 20, y: 30 }, "Validar"));

@@ -1,5 +1,8 @@
 import { ejecutarCorrida, ejecutarPaso, iniciarSimulacion, reiniciarSimulacion } from "../modelo/simulacion/runner";
+import type { ContextoSimulacion } from "../modelo/simulacion/tipos";
+import type { Id } from "../modelo/tipos";
 import type { CrearSlice, SimulacionSlice } from "./sliceTypes";
+import type { OpmStore } from "./tipos";
 
 /**
  * Slice de simulación (Beta2 / Ronda 17 L2).
@@ -26,6 +29,7 @@ export const createSimulacionSlice: CrearSlice<SimulacionSlice> = (set, get) => 
       contextoSimulacion: contexto,
       readOnlyPrevSimulacion: readOnly,
       readOnly: true,
+      opdActivoId: contexto.plan[0]?.opdId ?? opdActivoId,
       // P0-2 ronda 4: Mapa y Simulacion son mutuamente excluyentes.
       // Al entrar a simulacion, cerramos mapa y modos de edicion.
       vistaMapaActiva: false,
@@ -52,25 +56,44 @@ export const createSimulacionSlice: CrearSlice<SimulacionSlice> = (set, get) => 
   },
 
   ejecutarPasoSimulacion() {
-    const { contextoSimulacion, modelo } = get();
+    const { contextoSimulacion, modelo, opdActivoId } = get();
     if (!contextoSimulacion) return;
     if (contextoSimulacion.estado === "completado") return;
+    const pasoPrevio = contextoSimulacion.plan[contextoSimulacion.pasoActual];
     const siguiente = ejecutarPaso(modelo, contextoSimulacion);
-    set({ contextoSimulacion: siguiente });
+    const destino = opdParaMostrar(siguiente, opdActivoId);
+    const patch: Partial<OpmStore> = { contextoSimulacion: siguiente };
+    if (destino !== opdActivoId) {
+      Object.assign(patch, patchNavegacionSimulacion(destino));
+    }
+    const pasoSiguiente = siguiente.plan[siguiente.pasoActual];
+    if (pasoPrevio && pasoSiguiente && pasoPrevio.opdId !== pasoSiguiente.opdId) {
+      patch.mensaje = `Simulación: ${pasoSiguiente.opdNombre}`;
+    }
+    set(patch);
   },
 
   ejecutarCorridaSimulacion() {
-    const { contextoSimulacion, modelo } = get();
+    const { contextoSimulacion, modelo, opdActivoId } = get();
     if (!contextoSimulacion) return;
     const final = ejecutarCorrida(modelo, contextoSimulacion);
-    set({ contextoSimulacion: final });
+    const ultimo = final.plan[final.plan.length - 1];
+    const destino = ultimo?.opdId ?? opdActivoId;
+    set({
+      contextoSimulacion: final,
+      ...(destino !== opdActivoId ? patchNavegacionSimulacion(destino) : {}),
+    });
   },
 
   reiniciarSimulacionActual() {
-    const { contextoSimulacion, modelo } = get();
+    const { contextoSimulacion, modelo, opdActivoId } = get();
     if (!contextoSimulacion) return;
     const ctx = reiniciarSimulacion(modelo, contextoSimulacion);
-    set({ contextoSimulacion: ctx });
+    const destino = ctx.plan[0]?.opdId ?? ctx.opdId;
+    set({
+      contextoSimulacion: ctx,
+      ...(destino !== opdActivoId ? patchNavegacionSimulacion(destino) : {}),
+    });
   },
 
   asignarValorRuntimeSimulacion(entidadId, valor) {
@@ -84,3 +107,21 @@ export const createSimulacionSlice: CrearSlice<SimulacionSlice> = (set, get) => 
     });
   },
 });
+
+function opdParaMostrar(contexto: ContextoSimulacion, fallback: Id): Id {
+  return contexto.plan[contexto.pasoActual]?.opdId ?? fallback;
+}
+
+function patchNavegacionSimulacion(opdActivoId: Id): Partial<OpmStore> {
+  return {
+    opdActivoId,
+    seleccionId: null,
+    seleccionados: [],
+    modoSeleccion: "simple",
+    enlaceSeleccionId: null,
+    modoEnlace: null,
+    modoCreacion: null,
+    nuevaCosaPendiente: null,
+    hoverOplRef: null,
+  };
+}

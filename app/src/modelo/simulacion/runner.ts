@@ -69,6 +69,8 @@ export function ejecutarPaso(modelo: Modelo, contexto: ContextoSimulacion): Cont
 
   const entrada: EntradaTraceSim = {
     numero: contexto.pasoActual + 1,
+    opdId: paso.opdId,
+    opdNombre: paso.opdNombre,
     procesoId: paso.procesoId,
     procesoNombre: paso.procesoNombre,
     transicionesAplicadas,

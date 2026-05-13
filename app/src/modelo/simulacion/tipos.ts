@@ -27,10 +27,22 @@ export interface TransicionEstadoSim {
 
 /** Un paso ejecutable del plan de simulación. */
 export interface PasoSimulacion {
+  /** OPD donde vive visualmente este paso. La simulacion puede cambiar de OPD
+   *  al entrar en una descomposicion/in-zoom. */
+  opdId: Id;
+  opdNombre: string;
+  /** Profundidad en el arbol OPD desde el OPD donde se inicio la corrida. */
+  profundidad: number;
+  /** Proceso que invoco este OPD por descomposicion, si aplica. */
+  procesoPadreId?: Id;
   procesoId: Id;
   procesoNombre: string;
   /** Coordenada Y del proceso en el OPD: ordenador canónico (HU-B0.013). */
   ordenY: number;
+  /** Si el proceso activo tiene descomposicion, el proximo nivel se ejecuta
+   *  sincronicamente despues de marcar el proceso padre. */
+  opdHijoId?: Id;
+  opdHijoNombre?: string;
   enlacesEntradaIds: Id[];
   enlacesSalidaIds: Id[];
   /** Transiciones de estado inferidas estáticamente del modelo. La ejecución
@@ -51,6 +63,8 @@ export interface CambioValorRuntime {
 export interface EntradaTraceSim {
   /** 1-indexed. */
   numero: number;
+  opdId: Id;
+  opdNombre: string;
   procesoId: Id;
   procesoNombre: string;
   transicionesAplicadas: TransicionEstadoSim[];

@@ -54,7 +54,7 @@ export type OpmJointMetadata =
       kind: "simulacion-halo";
       opdId: Id;
       targetId: Id;
-      tipo: "proceso-activo" | "estado-current";
+      tipo: "proceso-activo" | "estado-current" | "entidad-involucrada";
     };
 
 export interface JointCellJson {

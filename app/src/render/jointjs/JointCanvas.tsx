@@ -1,6 +1,7 @@
 import { dia, shapes } from "jointjs";
 import { useEffect, useRef, useState } from "preact/hooks";
 import { normalizarGridConfig } from "../../canvas/grid";
+import { focoPasoActualSimulacion } from "../../modelo/simulacion/foco";
 import type { Apariencia, Enlace, ExtremoEnlace, Modelo, Opd } from "../../modelo/tipos";
 import { useOpmStore } from "../../store";
 import { RenombradoInline } from "../../ui/RenombradoInline";
@@ -313,9 +314,7 @@ export function JointCanvas() {
   useEffect(() => {
     const adapter = adapterRef.current;
     if (!adapter) return;
-    const procesoActivoId = contextoSimulacion && contextoSimulacion.pasoActual < contextoSimulacion.plan.length
-      ? contextoSimulacion.plan[contextoSimulacion.pasoActual]?.procesoId ?? null
-      : null;
+    const focoSimulacion = focoPasoActualSimulacion(modelo, contextoSimulacion);
     const cells = proyectarModeloAJointCells(
       modelo,
       opdActivoId,
@@ -329,7 +328,12 @@ export function JointCanvas() {
         modoImagenGlobal: uiModoImagenGlobal,
       },
       contextoSimulacion
-        ? { procesoActivoId, estadosCurrent: contextoSimulacion.estadosCurrent }
+        ? {
+            procesoActivoId: focoSimulacion.paso?.opdId === opdActivoId ? focoSimulacion.procesoActivoId : null,
+            estadosCurrent: contextoSimulacion.estadosCurrent,
+            entidadesInvolucradasIds: focoSimulacion.paso?.opdId === opdActivoId ? focoSimulacion.entidadesInvolucradasIds : [],
+            enlacesInvolucradosIds: focoSimulacion.paso?.opdId === opdActivoId ? focoSimulacion.enlacesInvolucradosIds : [],
+          }
         : null,
     );
     sincronizandoRef.current = true;
