@@ -1,4 +1,5 @@
 import { crearCosaEnPosicion } from "../modelo/creacionInterna";
+import { naturalezaDeEnlace } from "../modelo/constantes";
 import { extremoEstado } from "../modelo/extremos";
 import {
   designarCurrent,
@@ -44,7 +45,9 @@ import {
   reanclarEnlaceExternoDerivado as reanclarEnlaceExternoDerivadoOp,
   renombrarEntidad,
   renombrarEstado,
+  separarGrupoEstructural,
   splitEffectEnPar,
+  volverGrupoEstructuralAutomatico,
   volverEnlaceExternoDerivadoAAutomatico as volverEnlaceExternoDerivadoAAutomaticoOp,
 } from "../modelo/operaciones";
 import {
@@ -348,6 +351,56 @@ export const createEnlacesSlice: CrearSlice<EnlacesSlice> = (set, get) => ({
     commitModelo(set, modelo, resultado.value.modelo, { seleccionId: null, enlaceSeleccionId: enlaceId, modoEnlace: null, mensaje: resultado.value.advertencia ?? null });
   },
 
+  separarGrupoEstructuralSeleccionado() {
+    const { modelo, enlaceSeleccionId, seleccionados } = get();
+    if (!enlaceSeleccionId) {
+      set({ mensaje: "Selecciona un enlace estructural" });
+      return;
+    }
+    const base = modelo.enlaces[enlaceSeleccionId];
+    if (!base || naturalezaDeEnlace(base.tipo) !== "estructural") {
+      set({ mensaje: "Selecciona un enlace estructural fundamental" });
+      return;
+    }
+    const ids = enlacesEstructuralesCompatibles(modelo, enlaceSeleccionId, seleccionados);
+    const resultado = separarGrupoEstructural(modelo, ids);
+    if (!resultado.ok) {
+      set({ mensaje: resultado.error });
+      return;
+    }
+    commitModelo(set, modelo, resultado.value, {
+      seleccionId: null,
+      enlaceSeleccionId,
+      modoEnlace: null,
+      mensaje: ids.length > 1 ? `Grupo estructural separado (${ids.length} enlaces)` : "Enlace estructural separado del grupo",
+    });
+  },
+
+  volverGrupoEstructuralAutomaticoSeleccionado() {
+    const { modelo, enlaceSeleccionId, seleccionados } = get();
+    if (!enlaceSeleccionId) {
+      set({ mensaje: "Selecciona un enlace estructural" });
+      return;
+    }
+    const base = modelo.enlaces[enlaceSeleccionId];
+    if (!base || naturalezaDeEnlace(base.tipo) !== "estructural") {
+      set({ mensaje: "Selecciona un enlace estructural fundamental" });
+      return;
+    }
+    const ids = enlacesEstructuralesCompatibles(modelo, enlaceSeleccionId, seleccionados);
+    const resultado = volverGrupoEstructuralAutomatico(modelo, ids);
+    if (!resultado.ok) {
+      set({ mensaje: resultado.error });
+      return;
+    }
+    commitModelo(set, modelo, resultado.value, {
+      seleccionId: null,
+      enlaceSeleccionId,
+      modoEnlace: null,
+      mensaje: ids.length > 1 ? `Grupo estructural automático (${ids.length} enlaces)` : "Enlace estructural vuelve al grupo automático",
+    });
+  },
+
   borrarEnlacesEnLote(enlaceIds) {
     const { modelo } = get();
     if (enlaceIds.length === 0) return;
@@ -483,3 +536,17 @@ export const createEnlacesSlice: CrearSlice<EnlacesSlice> = (set, get) => ({
     });
   }
 });
+
+function enlacesEstructuralesCompatibles(modelo: Modelo, enlaceSeleccionId: Id, seleccionados: readonly Id[]): Id[] {
+  const base = modelo.enlaces[enlaceSeleccionId];
+  if (!base || base.origenId.kind !== "entidad") return [];
+  const ids = [enlaceSeleccionId, ...seleccionados.filter((id) => id !== enlaceSeleccionId && !!modelo.enlaces[id])];
+  return [...new Set(ids)].filter((id) => {
+    const enlace = modelo.enlaces[id];
+    return !!enlace &&
+      enlace.tipo === base.tipo &&
+      naturalezaDeEnlace(enlace.tipo) === "estructural" &&
+      enlace.origenId.kind === "entidad" &&
+      enlace.origenId.id === base.origenId.id;
+  });
+}

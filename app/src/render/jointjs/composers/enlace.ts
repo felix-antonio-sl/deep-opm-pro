@@ -32,9 +32,9 @@ export interface EndpointVisual {
   selectorEstado?: string;
   portId?: Id;
   /**
-   * Mantenido como compat para callers historicos (busesAgregacion). No se
+   * Mantenido como compat para callers historicos (buses estructurales). No se
    * popula en el flujo a-estado porque los enlaces a estado nunca pueden
-   * formar parte de un bus de agregacion (regla OPM).
+   * formar parte de un bus estructural fundamental (regla OPM).
    */
   punto?: Posicion;
 }

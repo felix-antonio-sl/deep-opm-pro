@@ -77,12 +77,17 @@ export function normalizarEntidad(entidad: Entidad): Entidad {
 export function normalizarEnlace(enlace: Enlace): Enlace {
   const rutaEtiqueta = rutaEtiquetaNormalizada(enlace.rutaEtiqueta);
   const estilo = normalizarEstiloEnlace(enlace.estilo);
+  const grupoEstructuralId = typeof enlace.grupoEstructuralId === "string" && enlace.grupoEstructuralId.trim()
+    ? enlace.grupoEstructuralId.trim()
+    : undefined;
+  const { rutaEtiqueta: _rutaEtiqueta, estilo: _estilo, grupoEstructuralId: _grupoEstructuralId, ...base } = enlace;
   return {
-    ...enlace,
+    ...base,
     origenId: normalizarExtremo(enlace.origenId),
     destinoId: normalizarExtremo(enlace.destinoId),
     ...(rutaEtiqueta ? { rutaEtiqueta } : {}),
     ...(estilo ? { estilo } : {}),
+    ...(grupoEstructuralId ? { grupoEstructuralId } : {}),
   };
 }
 

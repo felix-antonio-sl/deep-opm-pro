@@ -581,6 +581,22 @@ describe("serializacion JSON", () => {
     expect(hidratado.value.enlaces[enlaceId]?.rutaEtiqueta).toBe("exitoso");
   });
 
+  test("preserva grupoEstructuralId en estructurales y lo normaliza", () => {
+    let modelo = crearModelo("Grupos estructurales");
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 10, y: 20 }, "Todo"));
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 240, y: 20 }, "Parte"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidadPorNombre(modelo, "Todo"), entidadPorNombre(modelo, "Parte"), "agregacion"));
+    const enlaceId = Object.keys(modelo.enlaces)[0];
+    if (!enlaceId) throw new Error("La prueba esperaba enlace");
+    modelo = { ...modelo, enlaces: { ...modelo.enlaces, [enlaceId]: { ...modelo.enlaces[enlaceId]!, grupoEstructuralId: " grupo-a " } } };
+
+    const hidratado = hidratarModelo(exportarModelo(modelo));
+
+    expect(hidratado.ok).toBe(true);
+    if (!hidratado.ok) return;
+    expect(hidratado.value.enlaces[enlaceId]?.grupoEstructuralId).toBe("grupo-a");
+  });
+
   test("hidratar rutaEtiqueta vacia la ignora y tipo no string falla", () => {
     const { modelo, enlaceId } = modeloConRutaManual("   ");
     const hidratado = hidratarModelo(exportarModelo(modelo));

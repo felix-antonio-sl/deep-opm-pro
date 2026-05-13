@@ -528,10 +528,44 @@ describe("proyeccion JointJS", () => {
     expect(links).toHaveLength(3);
     const triangulos = cells.filter((cell) => cell.type === "standard.Polygon");
     expect(triangulos).toHaveLength(1);
-    expect(String(triangulos[0]?.id)).toContain("ag-bus");
+    expect(String(triangulos[0]?.id)).toContain("struct-bus");
     const ramas = links.filter((cell) => String(cell.id).includes("-rama"));
     expect(ramas).toHaveLength(2);
     expect(new Set(ramas.map((cell) => cell.opm.kind === "enlace" ? cell.opm.enlaceId : ""))).toEqual(new Set(Object.keys(modelo.enlaces)));
+  });
+
+  test("fusiona estructurales del mismo tipo y refinable, no solo agregacion", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 90 }, "Animal"));
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 260, y: 20 }, "Perro"));
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 260, y: 170 }, "Gato"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidadPorNombre(modelo, "Animal"), entidadPorNombre(modelo, "Perro"), "generalizacion"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidadPorNombre(modelo, "Animal"), entidadPorNombre(modelo, "Gato"), "generalizacion"));
+
+    const cells = proyectarModeloAJointCells(modelo, modelo.opdRaizId, null, null);
+
+    expect(cells.filter((cell) => cell.type === "standard.Link")).toHaveLength(3);
+    expect(cells.filter((cell) => cell.type === "standard.Polygon")).toHaveLength(1);
+    expect(cells.filter((cell) => String(cell.id).includes("-rama"))).toHaveLength(2);
+  });
+
+  test("grupoEstructuralId separa ramas del agrupamiento automatico", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 120 }, "Animal"));
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 260, y: 20 }, "Perro"));
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 260, y: 150 }, "Gato"));
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 260, y: 280 }, "Ave"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidadPorNombre(modelo, "Animal"), entidadPorNombre(modelo, "Perro"), "generalizacion"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidadPorNombre(modelo, "Animal"), entidadPorNombre(modelo, "Gato"), "generalizacion"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidadPorNombre(modelo, "Animal"), entidadPorNombre(modelo, "Ave"), "generalizacion"));
+    const separadoId = Object.keys(modelo.enlaces)[2]!;
+    modelo = { ...modelo, enlaces: { ...modelo.enlaces, [separadoId]: { ...modelo.enlaces[separadoId]!, grupoEstructuralId: "grupo-ave" } } };
+
+    const cells = proyectarModeloAJointCells(modelo, modelo.opdRaizId, null, null);
+
+    expect(cells.filter((cell) => cell.type === "standard.Link")).toHaveLength(5);
+    expect(cells.filter((cell) => cell.type === "standard.Polygon")).toHaveLength(2);
+    expect(cells.filter((cell) => String(cell.id).includes("-rama"))).toHaveLength(2);
   });
 
   test("una sola agregacion conserva render simple sin bus", () => {
@@ -544,7 +578,7 @@ describe("proyeccion JointJS", () => {
 
     expect(cells.filter((cell) => cell.type === "standard.Link")).toHaveLength(2);
     expect(cells.filter((cell) => cell.type === "standard.Polygon")).toHaveLength(1);
-    expect(cells.some((cell) => String(cell.id).includes("ag-bus"))).toBe(false);
+    expect(cells.some((cell) => String(cell.id).includes("struct-bus"))).toBe(false);
   });
 
   test("proyecta etiqueta de enlace como tag italico", () => {

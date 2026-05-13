@@ -62,6 +62,8 @@ export interface Enlace {
   probabilidad?: number;
   demora?: string;
   rutaEtiqueta?: string;
+  /** Separa o asocia manualmente ramas de una relación estructural fundamental. */
+  grupoEstructuralId?: Id;
   derivado?: DerivacionEnlace;
 }
 

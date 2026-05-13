@@ -52,6 +52,8 @@ export {
   validarMultiplicidad,
   ajustarMultiplicidad,
   moverPuertoEnlace,
+  separarGrupoEstructural,
+  volverGrupoEstructuralAutomatico,
   reanclarEnlaceExternoDerivado,
   volverEnlaceExternoDerivadoAAutomatico,
 } from "./operaciones/enlaces";

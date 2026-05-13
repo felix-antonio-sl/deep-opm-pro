@@ -1,9 +1,9 @@
-import { CANON } from "../../modelo/constantes";
+import { CANON, naturalezaDeEnlace } from "../../modelo/constantes";
 import { entidadIdDeExtremo } from "../../modelo/extremos";
-import type { Apariencia, Enlace, Id, Modelo, Posicion } from "../../modelo/tipos";
+import type { Apariencia, Enlace, Id, Modelo, Posicion, TipoEnlace } from "../../modelo/tipos";
 import { etiquetaEnlaceNormalizada } from "../../modelo/etiquetasEnlace";
-import { LINK_ASSETS } from "./linkAssets";
 import type { JointCellJson, OpmJointMetadata } from "./proyeccion";
+import { marcadoresEstructurales } from "./composers/markers";
 
 const Z_ENLACE_BUS = 4;
 
@@ -14,33 +14,35 @@ export interface EnlaceConEndpointVisual {
   destino: { apariencia: Apariencia; portId?: Id };
 }
 
-export function proyectarBusesAgregacion(args: {
+export function proyectarBusesEstructurales(args: {
   modelo: Modelo;
   opdId: Id;
   enlaces: EnlaceConEndpointVisual[];
   seleccionados: Set<Id>;
 }): { busCells: JointCellJson[]; enlacesConsumidos: Set<Id> } {
-  const grupos = gruposAgregacion(args);
-  const busCells = grupos.flatMap((grupo) => proyectarGrupoAgregacion(args.opdId, grupo, args.seleccionados));
+  const grupos = gruposEstructurales(args);
+  const busCells = grupos.flatMap((grupo) => proyectarGrupoEstructural(args.opdId, grupo, args.seleccionados));
   const enlacesConsumidos = new Set(grupos.flatMap((grupo) => grupo.ramas.map((rama) => rama.enlace.id)));
   return { busCells, enlacesConsumidos };
 }
 
-interface GrupoAgregacion {
-  todoId: Id;
-  ladoTodo: "origen" | "destino";
-  todo: Apariencia;
+interface GrupoEstructural {
+  tipo: TipoEnlace;
+  refinableId: Id;
+  grupoId: Id;
+  ladoRefinable: "origen" | "destino";
+  refinable: Apariencia;
   ramas: EnlaceConEndpointVisual[];
 }
 
-function gruposAgregacion(args: {
+function gruposEstructurales(args: {
   modelo: Modelo;
   enlaces: EnlaceConEndpointVisual[];
-}): GrupoAgregacion[] {
-  const candidatas = args.enlaces.filter((item) => item.enlace.tipo === "agregacion");
-  const porOrigen = agruparPorTodo(args.modelo, candidatas, "origen");
+}): GrupoEstructural[] {
+  const candidatas = args.enlaces.filter((item) => naturalezaDeEnlace(item.enlace.tipo) === "estructural");
+  const porOrigen = agruparPorRefinable(args.modelo, candidatas, "origen");
   const consumidos = new Set<Id>();
-  const grupos: GrupoAgregacion[] = [];
+  const grupos: GrupoEstructural[] = [];
 
   for (const grupo of porOrigen) {
     if (grupo.ramas.length < 2) continue;
@@ -48,7 +50,7 @@ function gruposAgregacion(args: {
     for (const rama of grupo.ramas) consumidos.add(rama.enlace.id);
   }
 
-  for (const grupo of agruparPorTodo(args.modelo, candidatas.filter((item) => !consumidos.has(item.enlace.id)), "destino")) {
+  for (const grupo of agruparPorRefinable(args.modelo, candidatas.filter((item) => !consumidos.has(item.enlace.id)), "destino")) {
     if (grupo.ramas.length < 2) continue;
     grupos.push(grupo);
   }
@@ -56,66 +58,77 @@ function gruposAgregacion(args: {
   return grupos;
 }
 
-function agruparPorTodo(
+function agruparPorRefinable(
   modelo: Modelo,
   enlaces: EnlaceConEndpointVisual[],
-  ladoTodo: "origen" | "destino",
-): GrupoAgregacion[] {
+  ladoRefinable: "origen" | "destino",
+): GrupoEstructural[] {
   const grupos = new Map<Id, EnlaceConEndpointVisual[]>();
   for (const item of enlaces) {
-    const extremo = ladoTodo === "origen" ? item.enlace.origenId : item.enlace.destinoId;
-    const todoId = entidadIdDeExtremo(modelo, extremo);
-    if (!todoId) continue;
-    const actuales = grupos.get(todoId) ?? [];
+    const extremo = ladoRefinable === "origen" ? item.enlace.origenId : item.enlace.destinoId;
+    const refinableId = entidadIdDeExtremo(modelo, extremo);
+    if (!refinableId) continue;
+    const grupoId = item.enlace.grupoEstructuralId ?? "auto";
+    const key = `${item.enlace.tipo}:${refinableId}:${grupoId}`;
+    const actuales = grupos.get(key) ?? [];
     actuales.push(item);
-    grupos.set(todoId, actuales);
+    grupos.set(key, actuales);
   }
-  return Array.from(grupos.entries()).flatMap(([todoId, ramas]) => {
+  return Array.from(grupos.entries()).flatMap(([key, ramas]) => {
     const primera = ramas[0];
     if (!primera) return [];
-    const todo = ladoTodo === "origen" ? primera.origen.apariencia : primera.destino.apariencia;
-    return [{ todoId, ladoTodo, todo, ramas }];
+    const refinable = ladoRefinable === "origen" ? primera.origen.apariencia : primera.destino.apariencia;
+    const refinableId = ladoRefinable === "origen" ? entidadIdDeExtremo(modelo, primera.enlace.origenId) : entidadIdDeExtremo(modelo, primera.enlace.destinoId);
+    if (!refinableId) return [];
+    return [{
+      tipo: primera.enlace.tipo,
+      refinableId,
+      grupoId: sanitizarId(key),
+      ladoRefinable,
+      refinable,
+      ramas,
+    }];
   });
 }
 
-function proyectarGrupoAgregacion(
+function proyectarGrupoEstructural(
   opdId: Id,
-  grupo: GrupoAgregacion,
+  grupo: GrupoEstructural,
   seleccionados: Set<Id>,
 ): JointCellJson[] {
   const triangleSize = 30;
-  const partes = grupo.ramas
+  const refinadores = grupo.ramas
     .map((rama) => ({
       rama,
-      parte: grupo.ladoTodo === "origen" ? rama.destino.apariencia : rama.origen.apariencia,
+      refinador: grupo.ladoRefinable === "origen" ? rama.destino.apariencia : rama.origen.apariencia,
     }))
-    .sort((a, b) => centro(a.parte).y - centro(b.parte).y || centro(a.parte).x - centro(b.parte).x || a.rama.enlace.id.localeCompare(b.rama.enlace.id));
-  const todoCentro = centro(grupo.todo);
-  const partesCentro = partes.map((item) => centro(item.parte));
-  const promedioPartes = promedio(partesCentro);
+    .sort((a, b) => centro(a.refinador).y - centro(b.refinador).y || centro(a.refinador).x - centro(b.refinador).x || a.rama.enlace.id.localeCompare(b.rama.enlace.id));
+  const refinableCentro = centro(grupo.refinable);
+  const refinadoresCentro = refinadores.map((item) => centro(item.refinador));
+  const promedioRefinadores = promedio(refinadoresCentro);
   const triangleCenter = {
-    x: Math.round((todoCentro.x + promedioPartes.x) / 2),
-    y: Math.round((todoCentro.y + promedioPartes.y) / 2),
+    x: Math.round((refinableCentro.x + promedioRefinadores.x) / 2),
+    y: Math.round((refinableCentro.y + promedioRefinadores.y) / 2),
   };
   const topTriangle = { x: triangleCenter.x, y: triangleCenter.y - triangleSize / 2 };
   const bottomTriangle = { x: triangleCenter.x, y: triangleCenter.y + triangleSize / 2 };
-  const grupoId = `ag-bus-${opdId}-${grupo.todoId}-${grupo.ladoTodo}`;
-  const algunaSeleccionada = partes.some(({ rama }) => seleccionados.has(rama.enlace.id));
-  const primeraRama = partes[0]?.rama;
+  const grupoId = `struct-bus-${opdId}-${grupo.tipo}-${grupo.refinableId}-${grupo.grupoId}-${grupo.ladoRefinable}`;
+  const algunaSeleccionada = refinadores.some(({ rama }) => seleccionados.has(rama.enlace.id));
+  const primeraRama = refinadores[0]?.rama;
   if (!primeraRama) return [];
   const metaBus: OpmJointMetadata = {
     kind: "enlace",
     opdId,
     enlaceId: primeraRama.enlace.id,
     aparienciaEnlaceId: primeraRama.aparienciaEnlaceId,
-    tipo: "agregacion",
+    tipo: grupo.tipo,
   };
 
   return [
     {
       id: `${grupoId}-refinable`,
       type: "standard.Link",
-      source: extremo(grupo.todo.id, portTodo(primeraRama, grupo.ladoTodo)),
+      source: extremo(grupo.refinable.id, portRefinable(primeraRama, grupo.ladoRefinable)),
       target: topTriangle,
       router: routerManhattan(),
       connector: { name: "straight" },
@@ -123,17 +136,17 @@ function proyectarGrupoAgregacion(
       opm: metaBus,
       z: Z_ENLACE_BUS,
     },
-    ...partes.map(({ rama, parte }, index) => ramaAgregacion(opdId, grupoId, grupo.ladoTodo, rama, parte, bottomTriangle, seleccionados.has(rama.enlace.id), index)),
-    marcadorAgregacion(`${grupoId}-triangulo`, triangleCenter, triangleSize, algunaSeleccionada, metaBus),
+    ...refinadores.map(({ rama, refinador }, index) => ramaEstructural(opdId, grupoId, grupo.ladoRefinable, rama, refinador, bottomTriangle, seleccionados.has(rama.enlace.id), index)),
+    ...marcadoresEstructurales(grupo.tipo, `${grupoId}-triangulo`, triangleCenter, triangleSize, algunaSeleccionada, metaBus).map((cell) => ({ ...cell, z: 12 })),
   ];
 }
 
-function ramaAgregacion(
+function ramaEstructural(
   opdId: Id,
   grupoId: Id,
-  ladoTodo: "origen" | "destino",
+  ladoRefinable: "origen" | "destino",
   rama: EnlaceConEndpointVisual,
-  parte: Apariencia,
+  refinador: Apariencia,
   source: Posicion,
   seleccionada: boolean,
   index: number,
@@ -143,7 +156,7 @@ function ramaAgregacion(
     id: `${grupoId}-${rama.aparienciaEnlaceId}-rama`,
     type: "standard.Link",
     source,
-    target: extremo(parte.id, portParte(rama, ladoTodo)),
+    target: extremo(refinador.id, portRefinador(rama, ladoRefinable)),
     router: routerManhattan(),
     connector: { name: "straight" },
     labels: etiqueta ? [etiquetaRama(etiqueta)] : [],
@@ -153,37 +166,9 @@ function ramaAgregacion(
       opdId,
       enlaceId: rama.enlace.id,
       aparienciaEnlaceId: rama.aparienciaEnlaceId,
-      tipo: "agregacion",
+      tipo: rama.enlace.tipo,
     },
     z: Z_ENLACE_BUS + index * 0.001,
-  };
-}
-
-function marcadorAgregacion(
-  id: Id,
-  center: Posicion,
-  size: number,
-  seleccionada: boolean,
-  meta: OpmJointMetadata,
-): JointCellJson {
-  return {
-    id,
-    type: "standard.Polygon",
-    position: { x: center.x - size / 2, y: center.y - size / 2 },
-    size: { width: size, height: size },
-    angle: 0,
-    attrs: {
-      body: {
-        refPoints: LINK_ASSETS.structural.agregacion.markerPoints,
-        fill: CANON.colores.enlace,
-        stroke: CANON.colores.enlace,
-        strokeWidth: seleccionada ? CANON.dims.enlaceVisible + 2 : CANON.dims.enlaceVisible,
-        cursor: "pointer",
-      },
-      label: { text: "", display: "none" },
-    },
-    opm: meta,
-    z: 12,
   };
 }
 
@@ -239,12 +224,12 @@ function extremo(id: Id, portId?: Id): Record<string, unknown> {
   };
 }
 
-function portTodo(rama: EnlaceConEndpointVisual, ladoTodo: "origen" | "destino"): Id | undefined {
-  return ladoTodo === "origen" ? rama.origen.portId : rama.destino.portId;
+function portRefinable(rama: EnlaceConEndpointVisual, ladoRefinable: "origen" | "destino"): Id | undefined {
+  return ladoRefinable === "origen" ? rama.origen.portId : rama.destino.portId;
 }
 
-function portParte(rama: EnlaceConEndpointVisual, ladoTodo: "origen" | "destino"): Id | undefined {
-  return ladoTodo === "origen" ? rama.destino.portId : rama.origen.portId;
+function portRefinador(rama: EnlaceConEndpointVisual, ladoRefinable: "origen" | "destino"): Id | undefined {
+  return ladoRefinable === "origen" ? rama.destino.portId : rama.origen.portId;
 }
 
 function centro(apariencia: Apariencia): Posicion {
@@ -258,6 +243,10 @@ function promedio(puntos: Posicion[]): Posicion {
   if (puntos.length === 0) return { x: 0, y: 0 };
   const total = puntos.reduce((acc, punto) => ({ x: acc.x + punto.x, y: acc.y + punto.y }), { x: 0, y: 0 });
   return { x: total.x / puntos.length, y: total.y / puntos.length };
+}
+
+function sanitizarId(id: string): Id {
+  return id.replace(/[^a-zA-Z0-9_-]/g, "_");
 }
 
 function routerManhattan(): Record<string, unknown> {

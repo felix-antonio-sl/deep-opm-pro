@@ -1,5 +1,6 @@
 import { useEffect, useState } from "preact/hooks";
 import { abanicoDeEnlace } from "../modelo/abanicos";
+import { naturalezaDeEnlace } from "../modelo/constantes";
 import { etiquetaEnlaceNormalizada, validarEtiquetaEnlace } from "../modelo/etiquetasEnlace";
 import { entidadDeExtremo, nombreExtremo } from "../modelo/extremos";
 import { validarMultiplicidad } from "../modelo/operaciones";
@@ -70,6 +71,8 @@ export function InspectorEnlace({ enlace }: Props) {
   const moverPuerto = useOpmStore((s) => s.moverPuertoEnlaceSeleccionado);
   const renombrarEtiquetaEnlace = useOpmStore((s) => s.renombrarEtiquetaEnlaceSeleccionado);
   const definirRutaEtiqueta = useOpmStore((s) => s.definirRutaEtiquetaSeleccionada);
+  const separarGrupoEstructural = useOpmStore((s) => s.separarGrupoEstructuralSeleccionado);
+  const volverGrupoEstructuralAutomatico = useOpmStore((s) => s.volverGrupoEstructuralAutomaticoSeleccionado);
   const eliminar = useOpmStore((s) => s.eliminarSeleccion);
   const aplicarEstiloEnlaceAccion = useOpmStore((s) => s.aplicarEstiloEnlaceAccion);
   const resetEstiloEnlaceAccion = useOpmStore((s) => s.resetEstiloEnlaceAccion);
@@ -200,6 +203,11 @@ export function InspectorEnlace({ enlace }: Props) {
                 vive en Propiedades. Smokes 02-canvas-y-render lo asumen visible al
                 seleccionar el enlace. */}
             <SeccionAbanico abanico={abanico} onAlternarOperador={alternarOperadorAbanico} onQuitarRama={quitarRamaDeAbanico} onDisolver={disolverAbanico} />
+            <SeccionGrupoEstructural
+              enlace={enlace}
+              onSeparar={separarGrupoEstructural}
+              onAutomatico={volverGrupoEstructuralAutomatico}
+            />
           </>
         ) : null}
         {tabActivo === "extremos" ? (
@@ -289,6 +297,40 @@ function opdsConEnlace(modelo: Modelo, enlaceId: Id): Id[] {
     }
   }
   return ids;
+}
+
+function SeccionGrupoEstructural(props: {
+  enlace: Enlace;
+  onSeparar: () => void;
+  onAutomatico: () => void;
+}) {
+  if (naturalezaDeEnlace(props.enlace.tipo) !== "estructural") return null;
+  const separado = !!props.enlace.grupoEstructuralId;
+  return (
+    <div style={style.field}>
+      <span style={style.label}>Grupo estructural</span>
+      <button
+        type="button"
+        data-testid="separar-grupo-estructural"
+        style={style.secondaryButton}
+        onClick={props.onSeparar}
+        title="Separa el enlace seleccionado, o la selección compatible, en un grupo estructural manual"
+      >
+        Separar grupo
+      </button>
+      {separado ? (
+        <button
+          type="button"
+          data-testid="grupo-estructural-automatico"
+          style={style.secondaryButton}
+          onClick={props.onAutomatico}
+          title="Devuelve este enlace al agrupamiento automático por tipo y refinable"
+        >
+          Usar grupo automático
+        </button>
+      ) : null}
+    </div>
+  );
 }
 
 const enlaceStyles = {

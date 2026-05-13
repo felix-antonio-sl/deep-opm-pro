@@ -471,6 +471,29 @@ describe("store undo/redo y dirty state", () => {
     expect(store.getState().modelo.enlaces[enlaceId]?.etiqueta).toBe("");
   });
 
+  test("separar grupo estructural seleccionado entra al historial y puede volver a automatico", () => {
+    let modelo = crearModelo("Store grupo estructural");
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 80 }, "Todo"));
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 220, y: 20 }, "Parte A"));
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 220, y: 140 }, "Parte B"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidadPorNombre(modelo, "Todo"), entidadPorNombre(modelo, "Parte A"), "agregacion"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidadPorNombre(modelo, "Todo"), entidadPorNombre(modelo, "Parte B"), "agregacion"));
+    store.getState().importarJson(exportarModelo(modelo));
+    const enlaceId = Object.keys(modelo.enlaces)[0];
+    if (!enlaceId) throw new Error("La prueba esperaba enlace");
+
+    store.getState().seleccionarEnlace(enlaceId);
+    store.getState().separarGrupoEstructuralSeleccionado();
+
+    const grupoId = store.getState().modelo.enlaces[enlaceId]?.grupoEstructuralId;
+    expect(grupoId).toMatch(/^ge-/);
+    expect(store.getState().enlaceSeleccionId).toBe(enlaceId);
+    expect(store.getState().puedeDeshacer).toBe(true);
+
+    store.getState().volverGrupoEstructuralAutomaticoSeleccionado();
+    expect(store.getState().modelo.enlaces[enlaceId]?.grupoEstructuralId).toBeUndefined();
+  });
+
   test("accion de store crea auto-invocacion y selecciona el enlace", () => {
     store.getState().crearProcesoDemo();
     const procesoId = primeraEntidadId();

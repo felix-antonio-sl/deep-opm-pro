@@ -515,6 +515,8 @@ export interface OpmStore {
   moverPuertoEnlaceSeleccionado: (lado: "origen" | "destino", extremo: ExtremoEnlace, opcionRemover?: boolean) => void;
   renombrarEtiquetaEnlaceSeleccionado: (etiqueta: string) => void;
   definirRutaEtiquetaSeleccionada: (etiqueta: string | undefined) => void;
+  separarGrupoEstructuralSeleccionado: () => void;
+  volverGrupoEstructuralAutomaticoSeleccionado: () => void;
   eliminarSeleccion: () => void;
   setSeleccion: (ids: Id[]) => void;
   agregarASeleccion: (id: Id) => void;

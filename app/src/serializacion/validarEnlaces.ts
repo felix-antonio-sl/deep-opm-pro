@@ -1,3 +1,4 @@
+import { naturalezaDeEnlace } from "../modelo/constantes";
 import { entidadDeExtremo, entidadIdDeExtremo, extremoEntidad, normalizarExtremo } from "../modelo/extremos";
 import { esColorEstilo } from "../modelo/estilos";
 import { esModificador, esSubtipoModificador, validarMetadatosEnlace } from "../modelo/modificadores";
@@ -81,6 +82,11 @@ export function validarEnlaces(
     }
     const rutaEtiqueta = validarRutaEtiquetaOpcional(id, raw.rutaEtiqueta);
     if (!rutaEtiqueta.ok) return rutaEtiqueta;
+    const grupoEstructuralId = validarGrupoEstructuralIdOpcional(id, raw.grupoEstructuralId);
+    if (!grupoEstructuralId.ok) return grupoEstructuralId;
+    if (grupoEstructuralId.value && naturalezaDeEnlace(raw.tipo) !== "estructural") {
+      return fallo(`Enlace inválido: ${id}.grupoEstructuralId`);
+    }
     const estilo = validarEstiloEnlaceOpcional(id, raw.estilo);
     if (!estilo.ok) return estilo;
     const enlace: Enlace = {
@@ -97,6 +103,7 @@ export function validarEnlaces(
       ...(raw.probabilidad !== undefined ? { probabilidad: raw.probabilidad } : {}),
       ...(raw.demora ? { demora: raw.demora } : {}),
       ...(rutaEtiqueta.value ? { rutaEtiqueta: rutaEtiqueta.value } : {}),
+      ...(grupoEstructuralId.value ? { grupoEstructuralId: grupoEstructuralId.value } : {}),
       ...(derivado.value ? { derivado: derivado.value } : {}),
     };
     const metadatos = validarMetadatosEnlace(enlace);
@@ -104,6 +111,13 @@ export function validarEnlaces(
     enlaces[id] = enlace;
   }
   return ok(enlaces);
+}
+
+export function validarGrupoEstructuralIdOpcional(enlaceId: Id, value: unknown): Resultado<string | undefined> {
+  if (value === undefined) return ok(undefined);
+  if (typeof value !== "string") return fallo(`Enlace inválido: ${enlaceId}.grupoEstructuralId`);
+  const normalizado = value.trim();
+  return ok(normalizado || undefined);
 }
 
 export function validarRutaEtiquetaOpcional(enlaceId: Id, value: unknown): Resultado<string | undefined> {

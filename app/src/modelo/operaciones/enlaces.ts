@@ -16,6 +16,7 @@ import type {
   Resultado,
   TipoEnlace,
 } from "../tipos";
+import { naturalezaDeEnlace } from "../constantes";
 import { fallo, ok, siguienteId, validarFirmaEnlace } from "./helpers";
 import {
   procesoDescompuestoEnOpd,
@@ -171,6 +172,48 @@ export function moverPuertoEnlace(
 ): Resultado<Modelo> {
   if (opcionRemover) return eliminarEnlace(modelo, enlaceId);
   return apuntarExtremoEnlace(modelo, enlaceId, lado, extremo);
+}
+
+export function separarGrupoEstructural(modelo: Modelo, enlaceIds: Id[]): Resultado<Modelo> {
+  const ids = [...new Set(enlaceIds)];
+  if (ids.length === 0) return fallo("Selecciona al menos un enlace estructural");
+  for (const enlaceId of ids) {
+    const enlace = modelo.enlaces[enlaceId];
+    if (!enlace) return fallo(`Enlace no existe: ${enlaceId}`);
+    if (naturalezaDeEnlace(enlace.tipo) !== "estructural") {
+      return fallo("Sólo los enlaces estructurales fundamentales pueden separarse en grupos");
+    }
+  }
+  const grupoEstructuralId = siguienteId(modelo, "ge");
+  const enlaces = { ...modelo.enlaces };
+  let cambio = false;
+  for (const enlaceId of ids) {
+    const enlace = enlaces[enlaceId]!;
+    if (enlace.grupoEstructuralId === grupoEstructuralId) continue;
+    enlaces[enlaceId] = { ...enlace, grupoEstructuralId };
+    cambio = true;
+  }
+  return ok(cambio ? { ...modelo, nextSeq: modelo.nextSeq + 1, enlaces } : modelo);
+}
+
+export function volverGrupoEstructuralAutomatico(modelo: Modelo, enlaceIds: Id[]): Resultado<Modelo> {
+  const ids = [...new Set(enlaceIds)];
+  if (ids.length === 0) return fallo("Selecciona al menos un enlace estructural");
+  const enlaces = { ...modelo.enlaces };
+  let cambio = false;
+  for (const enlaceId of ids) {
+    const enlace = enlaces[enlaceId];
+    if (!enlace) return fallo(`Enlace no existe: ${enlaceId}`);
+    if (naturalezaDeEnlace(enlace.tipo) !== "estructural") {
+      return fallo("Sólo los enlaces estructurales fundamentales tienen grupo automático");
+    }
+    if (!enlace.grupoEstructuralId) continue;
+    const actualizado = { ...enlace };
+    delete actualizado.grupoEstructuralId;
+    enlaces[enlaceId] = actualizado;
+    cambio = true;
+  }
+  return ok(cambio ? { ...modelo, enlaces } : modelo);
 }
 
 export function eliminarEnlacesBatch(modelo: Modelo, enlaceIds: Id[]): Resultado<Modelo> {

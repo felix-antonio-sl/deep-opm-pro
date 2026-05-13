@@ -218,6 +218,8 @@ export type EnlacesSlice = Slice<
   | "insertarVerticeAccion"
   | "reposicionarVerticeAccion"
   | "reanclarExtremoAccion"
+  | "separarGrupoEstructuralSeleccionado"
+  | "volverGrupoEstructuralAutomaticoSeleccionado"
   | "borrarEnlacesEnLote"
   | "abrirTablaEnlaces"
   | "cerrarTablaEnlaces"

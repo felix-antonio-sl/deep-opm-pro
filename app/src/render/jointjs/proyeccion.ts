@@ -4,7 +4,7 @@ import { sincronizarPuertosEnlaces } from "../../modelo/operaciones";
 import type { Apariencia, Enlace, ExtremoEnlace, Id, Modelo, Posicion, TipoEnlace } from "../../modelo/tipos";
 import type { OplReferencia } from "../../opl/interaccion";
 import { proyectarOverlayAbanicoCanonico } from "./abanicoOverlay";
-import { proyectarBusesAgregacion, type EnlaceConEndpointVisual } from "./agregacionBus";
+import { proyectarBusesEstructurales, type EnlaceConEndpointVisual } from "./agregacionBus";
 import { proyectarAutoInvocacion } from "./autoinvocacionLoop";
 import { proyectarEntidad } from "./composers/entidad";
 import { proyectarEnlace, proyectarProxyExtraccion, proyectarRefinamientoEstructural, resolverEndpointVisual } from "./composers/enlace";
@@ -110,7 +110,7 @@ export function proyectarModeloAJointCells(
     if (origen.proxy || destino.proxy || origen.punto || destino.punto || origen.selectorEstado || destino.selectorEstado) return [];
     return [{ enlace, aparienciaEnlaceId: aparienciaEnlace.id, origen, destino }];
   });
-  const { busCells, enlacesConsumidos } = proyectarBusesAgregacion({
+  const { busCells, enlacesConsumidos } = proyectarBusesEstructurales({
     modelo: modeloRender,
     opdId,
     enlaces: enlacesConEndpoint,
