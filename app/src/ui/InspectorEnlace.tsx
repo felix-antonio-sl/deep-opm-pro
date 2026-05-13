@@ -3,7 +3,7 @@ import { abanicoDeEnlace } from "../modelo/abanicos";
 import { naturalezaDeEnlace } from "../modelo/constantes";
 import { etiquetaEnlaceNormalizada, validarEtiquetaEnlace } from "../modelo/etiquetasEnlace";
 import { entidadDeExtremo, entidadIdDeExtremo, nombreExtremo } from "../modelo/extremos";
-import { validarMultiplicidad } from "../modelo/operaciones";
+import { relacionesEstructuralesFaltantes, validarMultiplicidad } from "../modelo/operaciones";
 import { useOpmStore, store } from "../store";
 import type { Enlace, Entidad, Id, Modelo, Modificador, TipoEnlace } from "../modelo/tipos";
 import type { TabInspectorEnlace } from "../store/tipos";
@@ -76,6 +76,8 @@ export function InspectorEnlace({ enlace }: Props) {
   const fijarOrdenGrupoEstructural = useOpmStore((s) => s.fijarOrdenGrupoEstructuralSeleccionado);
   const separarGrupoEstructural = useOpmStore((s) => s.separarGrupoEstructuralSeleccionado);
   const volverGrupoEstructuralAutomatico = useOpmStore((s) => s.volverGrupoEstructuralAutomaticoSeleccionado);
+  const traerRelacionesEstructuralesFaltantes = useOpmStore((s) => s.traerRelacionesEstructuralesFaltantesSeleccionadas);
+  const plegarGrupoEstructural = useOpmStore((s) => s.plegarGrupoEstructuralSeleccionado);
   const eliminar = useOpmStore((s) => s.eliminarSeleccion);
   const aplicarEstiloEnlaceAccion = useOpmStore((s) => s.aplicarEstiloEnlaceAccion);
   const resetEstiloEnlaceAccion = useOpmStore((s) => s.resetEstiloEnlaceAccion);
@@ -208,12 +210,15 @@ export function InspectorEnlace({ enlace }: Props) {
             <SeccionAbanico abanico={abanico} onAlternarOperador={alternarOperadorAbanico} onQuitarRama={quitarRamaDeAbanico} onDisolver={disolverAbanico} />
             <SeccionGrupoEstructural
               modelo={modelo}
+              opdId={opdActivoId}
               enlace={enlace}
               seleccionados={seleccionados}
               onTipo={cambiarTipoGrupoEstructural}
               onOrdenado={fijarOrdenGrupoEstructural}
               onSeparar={separarGrupoEstructural}
               onAutomatico={volverGrupoEstructuralAutomatico}
+              onTraerFaltantes={traerRelacionesEstructuralesFaltantes}
+              onPlegar={plegarGrupoEstructural}
             />
           </>
         ) : null}
@@ -308,17 +313,21 @@ function opdsConEnlace(modelo: Modelo, enlaceId: Id): Id[] {
 
 function SeccionGrupoEstructural(props: {
   modelo: Modelo;
+  opdId: Id;
   enlace: Enlace;
   seleccionados: readonly Id[];
   onTipo: (tipo: TipoEnlace) => void;
   onOrdenado: (ordenado: boolean) => void;
   onSeparar: () => void;
   onAutomatico: () => void;
+  onTraerFaltantes: () => void;
+  onPlegar: () => void;
 }) {
   if (naturalezaDeEnlace(props.enlace.tipo) !== "estructural") return null;
   const separado = !!props.enlace.grupoEstructuralId;
   const grupo = grupoEstructuralInspector(props.modelo, props.enlace, props.seleccionados);
   const ordenado = grupo.refinable?.orderedFundamentalTypes?.includes(props.enlace.tipo) ?? false;
+  const faltantes = relacionesEstructuralesFaltantes(props.modelo, props.opdId, grupo.ids).faltantes;
   return (
     <div style={style.field}>
       <span style={style.label}>Grupo estructural</span>
@@ -348,7 +357,26 @@ function SeccionGrupoEstructural(props: {
       </label>
       <span style={enlaceStyles.help}>
         {grupo.ids.length > 1 ? `${grupo.ids.length} ramas asociadas al símbolo.` : "Una rama estructural asociada al símbolo."}
+        {faltantes > 0 ? ` ${faltantes} relación(es) plegada(s) disponibles.` : ""}
       </span>
+      <button
+        type="button"
+        data-testid="traer-faltantes-grupo-estructural"
+        style={style.secondaryButton}
+        onClick={props.onTraerFaltantes}
+        title="Trae al OPD activo las relaciones estructurales del mismo refinable que existen en otros OPDs"
+      >
+        Traer faltantes
+      </button>
+      <button
+        type="button"
+        data-testid="plegar-grupo-estructural"
+        style={style.secondaryButton}
+        onClick={props.onPlegar}
+        title="Oculta las ramas visibles bajo el refinable usando el plegado parcial"
+      >
+        Semiplegar grupo
+      </button>
       <button
         type="button"
         data-testid="separar-grupo-estructural"

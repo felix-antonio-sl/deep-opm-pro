@@ -48,6 +48,8 @@ import {
   renombrarEstado,
   separarGrupoEstructural,
   fijarOrdenGrupoEstructural,
+  traerRelacionesEstructuralesFaltantes,
+  plegarGrupoEstructural,
   splitEffectEnPar,
   volverGrupoEstructuralAutomatico,
   volverEnlaceExternoDerivadoAAutomatico as volverEnlaceExternoDerivadoAAutomaticoOp,
@@ -444,6 +446,52 @@ export const createEnlacesSlice: CrearSlice<EnlacesSlice> = (set, get) => ({
       enlaceSeleccionId,
       modoEnlace: null,
       mensaje: ids.length > 1 ? `Grupo estructural automático (${ids.length} enlaces)` : "Enlace estructural vuelve al grupo automático",
+    });
+  },
+
+  traerRelacionesEstructuralesFaltantesSeleccionadas() {
+    const { modelo, opdActivoId, enlaceSeleccionId, seleccionados } = get();
+    if (!enlaceSeleccionId) {
+      set({ mensaje: "Selecciona un enlace estructural" });
+      return;
+    }
+    const ids = enlacesEstructuralesCompatibles(modelo, enlaceSeleccionId, seleccionados);
+    const resultado = traerRelacionesEstructuralesFaltantes(modelo, opdActivoId, ids);
+    if (!resultado.ok) {
+      set({ mensaje: resultado.error });
+      return;
+    }
+    commitModelo(set, modelo, resultado.value.modelo, {
+      seleccionId: null,
+      seleccionados: ids,
+      modoSeleccion: ids.length > 1 ? "multi" : "simple",
+      enlaceSeleccionId,
+      modoEnlace: null,
+      mensaje: resultado.value.agregadas > 0
+        ? `Relaciones estructurales traídas: ${resultado.value.agregadas}`
+        : "No hay relaciones estructurales faltantes",
+    });
+  },
+
+  plegarGrupoEstructuralSeleccionado() {
+    const { modelo, opdActivoId, enlaceSeleccionId, seleccionados } = get();
+    if (!enlaceSeleccionId) {
+      set({ mensaje: "Selecciona un enlace estructural" });
+      return;
+    }
+    const ids = enlacesEstructuralesCompatibles(modelo, enlaceSeleccionId, seleccionados);
+    const resultado = plegarGrupoEstructural(modelo, opdActivoId, ids);
+    if (!resultado.ok) {
+      set({ mensaje: resultado.error });
+      return;
+    }
+    commitModelo(set, modelo, resultado.value, {
+      seleccionId: null,
+      seleccionados: ids,
+      modoSeleccion: ids.length > 1 ? "multi" : "simple",
+      enlaceSeleccionId,
+      modoEnlace: null,
+      mensaje: ids.length > 1 ? `Grupo estructural semiplegado (${ids.length} enlaces)` : "Enlace estructural semiplegado",
     });
   },
 

@@ -29,6 +29,7 @@ Implementado en la app:
 - **Símbolo estructural persistente/editable**: `AparienciaEnlace.symbolPos` conserva el centro del triángulo estructural al estilo OPCloud/OPX (`symbolPos` en `OPXStructuralParams`). Draggear el triángulo actualiza el JSON; en buses se sincroniza la posición en todas las ramas agrupadas.
 - **Anclas persistentes del símbolo estructural**: `AparienciaEnlace.symbolAnchors` conserva offsets relativos al centro del triángulo (`refinable` y `refinador`). El renderer usa ports JointJS con layout `absolute`, de modo que el triángulo sigue arrastrando sus enlaces en vivo. En buses estructurales OPCloud-style, las ramas del mismo grupo comparten el puerto `out`; la separación visual se expresa creando un `grupoEstructuralId` distinto.
 - **Ciclo interactivo base del símbolo estructural**: click sobre el triángulo de bus selecciona el grupo estructural; el Inspector permite cambiar el tipo fundamental (`agregacion`/`exhibicion`/`generalizacion`/`clasificacion`), separar/volver a automático y marcar `ordered` como `orderedFundamentalTypes` en la entidad refinable, emulando el patrón OPCloud de `orderedFundamentalTypes`.
+- **Ciclo de faltantes/semifolding**: el Inspector de enlace estructural expone `Traer faltantes` y `Semiplegar grupo`. La operación `traerRelacionesEstructuralesFaltantes()` materializa en el OPD activo refinadores/enlaces estructurales existentes en otros OPDs del mismo refinable; `plegarGrupoEstructural()` oculta las ramas visibles bajo el refinable usando el plegado parcial existente, equivalente MVP al `semiFolded` operacional de OPCloud.
 
 Validación de esta ronda:
 
@@ -38,10 +39,10 @@ Validación de esta ronda:
 - `bun run lint`
 - `bun run browser:smoke`: 173 pass / 0 fail
 
-Pendientes reales después de A/B/C/D/E/G/H-base:
+Pendientes reales después de A/B/C/D/E/G/H-base/I-base:
 
 - Ajuste avanzado de vertices superiores de OPCloud alrededor del símbolo estructural persistido: ya existe la base de anclas/ports; falta editar manualmente esos offsets y propagar heurísticas OPCloud más finas para modelos muy densos.
-- Ciclo interactivo completo del triángulo estructural: relaciones faltantes y fold/semi-fold.
+- Ciclo interactivo completo del triángulo estructural: faltan fold completo, remove semifolding y relaciones faltantes derivadas desde inzoom procedural.
 - Labels avanzados OPCloud: wrapping por segmento visible, posición persistida, requirements, rate/time/path/tags/backtags.
 - Familias avanzadas fuera del MVP actual: exception links de tiempo, tagged/bidirectional links y metadatos avanzados de requisitos.
 

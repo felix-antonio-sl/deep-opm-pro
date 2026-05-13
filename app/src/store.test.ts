@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, test } from "bun:test";
 import { extremoApuntaAEntidad, extremoEntidad, extremoEstado } from "./modelo/extremos";
-import { crearEnlace, crearEstadosIniciales, crearModelo, crearObjeto, crearProceso, descomponerProceso, estadosDeEntidad } from "./modelo/operaciones";
+import { crearEnlace, crearEstadosIniciales, crearModelo, crearObjeto, crearProceso, descomponerProceso, desplegarObjeto, estadosDeEntidad } from "./modelo/operaciones";
 import type { Modelo } from "./modelo/tipos";
 import { exportarModelo } from "./serializacion/json";
 import { store } from "./store";
@@ -550,6 +550,45 @@ describe("store undo/redo y dirty state", () => {
 
     store.getState().volverGrupoEstructuralAutomaticoSeleccionado();
     expect(store.getState().modelo.enlaces[enlaceId]?.grupoEstructuralId).toBeUndefined();
+  });
+
+  test("grupo estructural seleccionado trae faltantes y puede semiplegarse", () => {
+    let modelo = crearModelo("Store faltantes estructurales");
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 80, y: 90 }, "Todo"));
+    const todoId = entidadPorNombre(modelo, "Todo");
+    const despliegue = must(desplegarObjeto(modelo, modelo.opdRaizId, todoId));
+    modelo = despliegue.modelo;
+    const enlaceBaseId = Object.values(modelo.opds[despliegue.opdId]?.enlaces ?? {})[0]?.enlaceId;
+    if (!enlaceBaseId) throw new Error("La prueba esperaba enlace estructural");
+    const parteId = modelo.enlaces[enlaceBaseId]?.destinoId.id;
+    if (!parteId) throw new Error("La prueba esperaba parte estructural");
+    modelo = {
+      ...modelo,
+      opds: {
+        ...modelo.opds,
+        [modelo.opdRaizId]: {
+          ...modelo.opds[modelo.opdRaizId]!,
+          apariencias: {
+            ...modelo.opds[modelo.opdRaizId]!.apariencias,
+            "a-root-parte": { id: "a-root-parte", entidadId: parteId, opdId: modelo.opdRaizId, x: 320, y: 90, width: 135, height: 60 },
+          },
+          enlaces: {
+            ...modelo.opds[modelo.opdRaizId]!.enlaces,
+            "ae-root-parte": { id: "ae-root-parte", enlaceId: enlaceBaseId, opdId: modelo.opdRaizId, vertices: [] },
+          },
+        },
+      },
+    };
+    store.getState().importarJson(exportarModelo(modelo));
+    store.getState().seleccionarEnlace(enlaceBaseId);
+
+    store.getState().traerRelacionesEstructuralesFaltantesSeleccionadas();
+    expect(Object.keys(store.getState().modelo.opds[modelo.opdRaizId]?.enlaces ?? {})).toHaveLength(3);
+
+    store.getState().plegarGrupoEstructuralSeleccionado();
+    expect(Object.keys(store.getState().modelo.opds[modelo.opdRaizId]?.enlaces ?? {})).toHaveLength(0);
+    const padre = Object.values(store.getState().modelo.opds[modelo.opdRaizId]?.apariencias ?? {}).find((apariencia) => apariencia.entidadId === todoId);
+    expect(padre?.modoPlegado).toBe("parcial");
   });
 
   test("accion de store crea auto-invocacion y selecciona el enlace", () => {

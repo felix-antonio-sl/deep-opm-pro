@@ -226,6 +226,8 @@ export type EnlacesSlice = Slice<
   | "fijarOrdenGrupoEstructuralSeleccionado"
   | "separarGrupoEstructuralSeleccionado"
   | "volverGrupoEstructuralAutomaticoSeleccionado"
+  | "traerRelacionesEstructuralesFaltantesSeleccionadas"
+  | "plegarGrupoEstructuralSeleccionado"
   | "borrarEnlacesEnLote"
   | "abrirTablaEnlaces"
   | "cerrarTablaEnlaces"

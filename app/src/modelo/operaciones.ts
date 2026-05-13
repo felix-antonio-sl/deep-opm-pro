@@ -57,10 +57,13 @@ export {
   volverGrupoEstructuralAutomatico,
   cambiarTipoGrupoEstructural,
   fijarOrdenGrupoEstructural,
+  relacionesEstructuralesFaltantes,
+  traerRelacionesEstructuralesFaltantes,
+  plegarGrupoEstructural,
   reanclarEnlaceExternoDerivado,
   volverEnlaceExternoDerivadoAAutomatico,
 } from "./operaciones/enlaces";
-export type { LadoMultiplicidadEnlace, LadoExtremoEnlace } from "./operaciones/enlaces";
+export type { LadoMultiplicidadEnlace, LadoExtremoEnlace, RelacionesEstructuralesFaltantes } from "./operaciones/enlaces";
 
 export {
   moverApariencia,

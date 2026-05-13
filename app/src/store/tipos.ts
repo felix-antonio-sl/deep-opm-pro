@@ -524,6 +524,8 @@ export interface OpmStore {
   fijarOrdenGrupoEstructuralSeleccionado: (ordenado: boolean) => void;
   separarGrupoEstructuralSeleccionado: () => void;
   volverGrupoEstructuralAutomaticoSeleccionado: () => void;
+  traerRelacionesEstructuralesFaltantesSeleccionadas: () => void;
+  plegarGrupoEstructuralSeleccionado: () => void;
   eliminarSeleccion: () => void;
   setSeleccion: (ids: Id[]) => void;
   agregarASeleccion: (id: Id) => void;

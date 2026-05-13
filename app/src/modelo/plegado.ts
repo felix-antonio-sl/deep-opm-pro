@@ -1,4 +1,4 @@
-import { CANON } from "./constantes";
+import { CANON, naturalezaDeEnlace } from "./constantes";
 import {
   entidadDeExtremo,
   entidadIdDeExtremo,
@@ -363,9 +363,9 @@ function partesDeDespliegue(modelo: Modelo, entidad: Entidad, opd: Opd): PartePl
     .flatMap((aparienciaEnlace) => {
       const enlace = modelo.enlaces[aparienciaEnlace.enlaceId];
       const destinoId = enlace ? entidadIdDeExtremo(modelo, enlace.destinoId) : null;
-      if (enlace?.tipo !== "agregacion" || !extremoApuntaAEntidad(enlace.origenId, entidad.id) || !destinoId || !visibles.has(destinoId)) return [];
+      if (!enlace || naturalezaDeEnlace(enlace.tipo) !== "estructural" || !extremoApuntaAEntidad(enlace.origenId, entidad.id) || !destinoId || !visibles.has(destinoId)) return [];
       const parte = modelo.entidades[destinoId];
-      return parte?.tipo === "objeto" ? [{ entidadId: parte.id, nombre: parte.nombre }] : [];
+      return parte ? [{ entidadId: parte.id, nombre: parte.nombre }] : [];
     });
 }
 

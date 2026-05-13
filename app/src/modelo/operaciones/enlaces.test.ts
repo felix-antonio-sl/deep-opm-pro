@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { extremoEntidad } from "../extremos";
-import { cambiarTipoGrupoEstructural, crearEnlace, crearModelo, crearObjeto, crearProceso, fijarOrdenGrupoEstructural, moverPuertoEnlace } from "../operaciones";
+import { cambiarTipoGrupoEstructural, crearEnlace, crearModelo, crearObjeto, crearProceso, desplegarObjeto, fijarOrdenGrupoEstructural, moverPuertoEnlace, plegarGrupoEstructural, relacionesEstructuralesFaltantes, traerRelacionesEstructuralesFaltantes } from "../operaciones";
+import { filasPlegadoParcial } from "../plegado";
 import type { Modelo, Resultado } from "../tipos";
 import { copiarEstiloEnlace, eliminarEnlacesBatch } from "./enlaces";
 
@@ -73,6 +74,45 @@ describe("operaciones/enlaces", () => {
 
     modelo = must(fijarOrdenGrupoEstructural(modelo, ids, false));
     expect(modelo.entidades[todoId]?.orderedFundamentalTypes).toBeUndefined();
+  });
+
+  test("traerRelacionesEstructuralesFaltantes materializa refinadores del despliegue en el OPD activo", () => {
+    let modelo = crearModelo("Traer faltantes");
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 80, y: 90 }, "Todo"));
+    const todoId = entidad(modelo, "Todo");
+    const despliegue = must(desplegarObjeto(modelo, modelo.opdRaizId, todoId));
+    modelo = despliegue.modelo;
+    const enlaceBaseId = Object.values(modelo.opds[despliegue.opdId]?.enlaces ?? {})[0]?.enlaceId;
+    if (!enlaceBaseId) throw new Error("La prueba esperaba enlace estructural en despliegue");
+
+    expect(relacionesEstructuralesFaltantes(modelo, modelo.opdRaizId, [enlaceBaseId]).faltantes).toBe(3);
+    const resultado = must(traerRelacionesEstructuralesFaltantes(modelo, modelo.opdRaizId, [enlaceBaseId]));
+    modelo = resultado.modelo;
+
+    expect(resultado.agregadas).toBe(3);
+    expect(Object.keys(modelo.opds[modelo.opdRaizId]?.enlaces ?? {})).toHaveLength(3);
+    expect(Object.values(modelo.opds[modelo.opdRaizId]?.apariencias ?? {})
+      .filter((apariencia) => apariencia.entidadId !== todoId)).toHaveLength(3);
+  });
+
+  test("plegarGrupoEstructural semipliega refinadores visibles bajo el refinable", () => {
+    let modelo = crearModelo("Semifolding");
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 80, y: 90 }, "Todo"));
+    const todoId = entidad(modelo, "Todo");
+    const despliegue = must(desplegarObjeto(modelo, modelo.opdRaizId, todoId));
+    modelo = despliegue.modelo;
+    const enlaceBaseId = Object.values(modelo.opds[despliegue.opdId]?.enlaces ?? {})[0]?.enlaceId;
+    if (!enlaceBaseId) throw new Error("La prueba esperaba enlace estructural en despliegue");
+    modelo = must(traerRelacionesEstructuralesFaltantes(modelo, modelo.opdRaizId, [enlaceBaseId])).modelo;
+    const padre = Object.values(modelo.opds[modelo.opdRaizId]?.apariencias ?? {}).find((apariencia) => apariencia.entidadId === todoId);
+    if (!padre) throw new Error("La prueba esperaba apariencia padre");
+
+    modelo = must(plegarGrupoEstructural(modelo, modelo.opdRaizId, [enlaceBaseId]));
+
+    expect(Object.keys(modelo.opds[modelo.opdRaizId]?.enlaces ?? {})).toHaveLength(0);
+    expect(Object.values(modelo.opds[modelo.opdRaizId]?.apariencias ?? {}).map((apariencia) => apariencia.entidadId)).toEqual([todoId]);
+    expect(modelo.opds[modelo.opdRaizId]?.apariencias[padre.id]?.modoPlegado).toBe("parcial");
+    expect(filasPlegadoParcial(modelo, modelo.opdRaizId, padre.id)).toHaveLength(3);
   });
 });
 
