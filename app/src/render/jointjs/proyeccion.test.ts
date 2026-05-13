@@ -759,7 +759,7 @@ describe("proyeccion JointJS", () => {
       id: aparienciaPedido.id,
       selector: "stateCapsule0",
       anchor: { name: "midSide" },
-      connectionPoint: { name: "boundary", args: { offset: 1 } },
+      connectionPoint: { name: "boundary", args: { offset: 0, sticky: true } },
     });
     expect((enlaceCell?.target as { id?: string } | undefined)?.id).toBe(aparienciaAprobar.id);
     // BUG-1fc4d2: enlaces que tocan estado se proyectan en z=20 para quedar

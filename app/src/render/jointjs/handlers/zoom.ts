@@ -115,7 +115,7 @@ export function zoomCanvasEnCursor(paper: dia.Paper, event: WheelEvent): void {
 
 export function calcularSiguienteZoom(escalaActual: number, event: Pick<WheelEvent, "deltaY" | "deltaMode">): number {
   const deltaPixeles = normalizarWheelDelta(event);
-  const factor = limitarFactorZoom(Math.exp(-deltaPixeles * 0.00016));
+  const factor = limitarFactorZoom(Math.exp(-deltaPixeles * 0.00008));
   return limitarZoom(escalaActual * factor);
 }
 
@@ -126,7 +126,7 @@ function normalizarWheelDelta(event: Pick<WheelEvent, "deltaY" | "deltaMode">): 
 }
 
 function limitarFactorZoom(factor: number): number {
-  return Math.max(0.99, Math.min(1.01, factor));
+  return Math.max(0.995, Math.min(1.005, factor));
 }
 
 function limitarZoom(valor: number): number {

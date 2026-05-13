@@ -70,7 +70,11 @@ describe("composer enlace", () => {
       apariencia: { ...origen, id: "ap-1" },
       portId: "port-e-1-origen",
     });
-    expect(endpoint).toEqual({ id: "ap-1", port: "port-e-1-origen" });
+    expect(endpoint).toEqual({
+      id: "ap-1",
+      port: "port-e-1-origen",
+      connectionPoint: { name: "anchor" },
+    });
   });
 });
 

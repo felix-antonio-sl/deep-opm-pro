@@ -4,15 +4,15 @@ import { calcularSiguienteZoom, fitCanvasAPantalla, zoomCanvasEnCursor } from ".
 
 describe("handlers/zoom", () => {
   test("limita cada wheel a un cambio suave aunque deltaY sea grande", () => {
-    expect(calcularSiguienteZoom(1, eventoWheel(100))).toBeCloseTo(0.99, 5);
-    expect(calcularSiguienteZoom(1, eventoWheel(-100))).toBeCloseTo(1.01, 5);
-    expect(calcularSiguienteZoom(1, eventoWheel(5000))).toBeCloseTo(0.99, 5);
-    expect(calcularSiguienteZoom(1, eventoWheel(-5000))).toBeCloseTo(1.01, 5);
+    expect(calcularSiguienteZoom(1, eventoWheel(100))).toBeCloseTo(0.995, 5);
+    expect(calcularSiguienteZoom(1, eventoWheel(-100))).toBeCloseTo(1.005, 5);
+    expect(calcularSiguienteZoom(1, eventoWheel(5000))).toBeCloseTo(0.995, 5);
+    expect(calcularSiguienteZoom(1, eventoWheel(-5000))).toBeCloseTo(1.005, 5);
   });
 
   test("trackpad con deltas pequenos produce cambios subporcentuales", () => {
-    expect(calcularSiguienteZoom(1, eventoWheel(1))).toBeCloseTo(0.99984, 5);
-    expect(calcularSiguienteZoom(1, eventoWheel(-1))).toBeCloseTo(1.00016, 5);
+    expect(calcularSiguienteZoom(1, eventoWheel(1))).toBeCloseTo(0.99992, 5);
+    expect(calcularSiguienteZoom(1, eventoWheel(-1))).toBeCloseTo(1.00008, 5);
   });
 
   test("respeta limites absolutos de zoom", () => {
@@ -33,7 +33,7 @@ describe("handlers/zoom", () => {
 
     zoomCanvasEnCursor(paper, { ...eventoWheel(-100), clientX: 10, clientY: 20 } as WheelEvent);
 
-    expect(llamadas).toEqual([[1.01, 1.01, 42, 24]]);
+    expect(llamadas).toEqual([[1.005, 1.005, 42, 24]]);
   });
 
   test("fit usa transformToFitContent contra el viewport visible y refresca vistas", () => {

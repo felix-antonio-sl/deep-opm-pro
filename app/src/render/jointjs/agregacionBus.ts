@@ -216,11 +216,11 @@ function attrsLinea(seleccionada: boolean): Record<string, unknown> {
 }
 
 function extremo(id: Id, portId?: Id): Record<string, unknown> {
-  if (portId) return { id, port: portId };
+  if (portId) return { id, port: portId, connectionPoint: { name: "anchor" } };
   return {
     id,
     anchor: { name: "midSide", args: { rotate: true } },
-    connectionPoint: { name: "boundary", args: { offset: 1 } },
+    connectionPoint: { name: "boundary", args: { offset: 0, sticky: true } },
   };
 }
 

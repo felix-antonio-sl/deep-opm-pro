@@ -9,8 +9,8 @@ import type { OpmJointMetadata } from "../proyeccion";
  *       selectionConfiguration.ts:5-65 (patrón disjunto por evento).
  */
 
-export const CANVAS_BASE = { width: 4200, height: 3000 } as const;
-export const CANVAS_PADDING = 900;
+export const CANVAS_BASE = { width: 7200, height: 5200 } as const;
+export const CANVAS_PADDING = 1800;
 export const ZOOM_MIN = 0.5;
 export const ZOOM_MAX = 1.6;
 
