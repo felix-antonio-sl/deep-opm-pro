@@ -414,6 +414,29 @@ describe("store undo/redo y dirty state", () => {
     expect(store.getState().modelo.enlaces[enlaceId]?.origenId.portId).toBeUndefined();
   });
 
+  test("actualizarPosicionSimboloEstructural persiste bus estructural en un solo undo", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 90 }, "Todo"));
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 260, y: 20 }, "Parte A"));
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 260, y: 170 }, "Parte B"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidadPorNombre(modelo, "Todo"), entidadPorNombre(modelo, "Parte A"), "agregacion"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidadPorNombre(modelo, "Todo"), entidadPorNombre(modelo, "Parte B"), "agregacion"));
+    store.getState().importarJson(exportarModelo(modelo));
+
+    const aparienciaEnlaceIds = Object.keys(store.getState().modelo.opds[store.getState().opdActivoId]!.enlaces);
+    store.getState().actualizarPosicionSimboloEstructural(aparienciaEnlaceIds, { x: 190, y: 210 });
+
+    const enlaces = store.getState().modelo.opds[store.getState().opdActivoId]!.enlaces;
+    expect(aparienciaEnlaceIds.map((id) => enlaces[id]?.symbolPos)).toEqual([
+      { x: 190, y: 210 },
+      { x: 190, y: 210 },
+    ]);
+
+    store.getState().deshacer();
+    const restaurados = store.getState().modelo.opds[store.getState().opdActivoId]!.enlaces;
+    expect(aparienciaEnlaceIds.map((id) => restaurados[id]?.symbolPos)).toEqual([undefined, undefined]);
+  });
+
   test("ajustar multiplicidad seleccionada entra al historial y rechaza sintaxis invalida", () => {
     store.getState().crearObjetoDemo();
     store.getState().crearProcesoDemo();

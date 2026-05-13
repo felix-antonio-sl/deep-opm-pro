@@ -20,7 +20,8 @@ export type OpmJointMetadata =
       aparienciaEnlaceId: Id;
       tipo: TipoEnlace;
       enlaceIds?: Id[];
-      rolEstructural?: "refinable" | "rama";
+      aparienciaEnlaceIds?: Id[];
+      rolEstructural?: "refinable" | "rama" | "simbolo";
       ladoRefinable?: "origen" | "destino";
     }
   | {

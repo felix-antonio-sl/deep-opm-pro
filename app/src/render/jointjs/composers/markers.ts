@@ -20,6 +20,7 @@ export function marcadoresEstructurales(
   const position = { x: center.x - size / 2, y: center.y - size / 2 };
   const strokeWidth = seleccionada ? CANON.dims.enlaceVisible + 2 : CANON.dims.enlaceVisible;
   const stroke = CANON.colores.enlace;
+  const cursor = meta.kind === "enlace" && meta.rolEstructural === "simbolo" ? "move" : "pointer";
 
   if (tipo === "exhibicion") {
     // Canon OpCloud (shared.ts ExhibitionLink.getTriangleSVG): outer triangulo
@@ -31,7 +32,7 @@ export function marcadoresEstructurales(
         fill: "white",
         stroke,
         strokeWidth,
-        cursor: "pointer",
+        cursor,
       }, meta),
       {
         id: `${triangleId}-pequeno`,
@@ -45,7 +46,7 @@ export function marcadoresEstructurales(
             fill: stroke,
             stroke,
             strokeWidth: innerStrokeWidth,
-            cursor: "pointer",
+            pointerEvents: "none",
           },
           label: { text: "", display: "none" },
         },
@@ -62,7 +63,7 @@ export function marcadoresEstructurales(
         fill: LINK_ASSETS.structural.generalizacion.markerFill,
         stroke,
         strokeWidth,
-        cursor: "pointer",
+        cursor,
       }, meta),
     ];
   }
@@ -75,7 +76,7 @@ export function marcadoresEstructurales(
         fill: LINK_ASSETS.structural.clasificacion.markerFill,
         stroke,
         strokeWidth,
-        cursor: "pointer",
+        cursor,
       }, meta),
       {
         id: `${triangleId}-dot`,
@@ -83,7 +84,7 @@ export function marcadoresEstructurales(
         position: { x: position.x + dot.cx - dot.r, y: position.y + dot.cy - dot.r },
         size: { width: dot.r * 2, height: dot.r * 2 },
         attrs: {
-          body: { fill: stroke, stroke, cursor: "pointer" },
+          body: { fill: stroke, stroke, pointerEvents: "none" },
           label: { text: "", display: "none" },
         },
         opm: meta,
@@ -99,7 +100,7 @@ export function marcadoresEstructurales(
       fill: stroke,
       stroke,
       strokeWidth,
-      cursor: "pointer",
+      cursor,
     }, meta),
   ];
 }

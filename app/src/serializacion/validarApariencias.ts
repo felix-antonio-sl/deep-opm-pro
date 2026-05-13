@@ -177,9 +177,23 @@ export function validarAparienciasEnlace(opdId: Id, value: Record<string, unknow
     if (!Array.isArray(raw.vertices)) return fallo(`Apariencia de enlace inválida: ${id}.vertices`);
     const vertices = validarVertices(id, raw.vertices);
     if (!vertices.ok) return vertices;
-    apariencias[id] = { id, enlaceId: raw.enlaceId, opdId, vertices: vertices.value };
+    const symbolPos = raw.symbolPos === undefined ? ok(undefined) : validarPosicion(`${id}.symbolPos`, raw.symbolPos);
+    if (!symbolPos.ok) return symbolPos;
+    apariencias[id] = {
+      id,
+      enlaceId: raw.enlaceId,
+      opdId,
+      vertices: vertices.value,
+      ...(symbolPos.value ? { symbolPos: symbolPos.value } : {}),
+    };
   }
   return ok(apariencias);
+}
+
+function validarPosicion(contexto: string, raw: unknown): Resultado<{ x: number; y: number }> {
+  if (!esRecord(raw)) return fallo(`Posición inválida: ${contexto}`);
+  if (!esNumeroFinito(raw.x) || !esNumeroFinito(raw.y)) return fallo(`Posición inválida: ${contexto}`);
+  return ok({ x: raw.x, y: raw.y });
 }
 
 export function validarVertices(aparienciaId: Id, value: unknown[]): Resultado<Array<{ x: number; y: number }>> {

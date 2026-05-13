@@ -380,6 +380,20 @@ test("renderiza agregacion como triangulo estructural", async ({ page }) => {
   await expect(page.getByText("Enlace Agregacion")).toBeVisible();
   await expect(page.locator('[data-tool-name="vertices"]')).toHaveCount(0);
   await expect(page.locator('[data-tool-name="segments"]')).toHaveCount(0);
+
+  const triangulo = page.locator(".joint-element polygon").first();
+  const box = await triangulo.boundingBox();
+  if (!box) throw new Error("No se pudo ubicar triangulo estructural");
+  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(box.x + box.width / 2 + 52, box.y + box.height / 2 + 44, { steps: 8 });
+  await page.mouse.up();
+
+  const exportado = await exportadoActual(page);
+  const aparienciaEnlace = Object.values(exportado.modelo.opds[exportado.modelo.opdRaizId]?.enlaces ?? {})[0];
+  expect(aparienciaEnlace?.symbolPos).toBeDefined();
+  expect(aparienciaEnlace?.symbolPos?.x).toBeGreaterThan(0);
+  expect(aparienciaEnlace?.symbolPos?.y).toBeGreaterThan(0);
   await page.screenshot({ path: "test-results/opm-agregacion-triangulo.png", fullPage: true });
 
   expect(pageErrors).toEqual([]);

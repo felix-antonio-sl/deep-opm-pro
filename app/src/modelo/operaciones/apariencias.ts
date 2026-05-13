@@ -209,6 +209,49 @@ export function actualizarVerticesEnlace(
   });
 }
 
+export function actualizarPosicionSimboloEstructural(
+  modelo: Modelo,
+  opdId: Id,
+  aparienciaEnlaceIds: readonly Id[],
+  posicion: Posicion,
+): Resultado<Modelo> {
+  const opd = modelo.opds[opdId];
+  if (!opd) return fallo(`OPD no existe: ${opdId}`);
+  if (!Number.isFinite(posicion.x) || !Number.isFinite(posicion.y)) {
+    return fallo("Posición de símbolo estructural inválida");
+  }
+
+  let enlaces = opd.enlaces;
+  let cambio = false;
+  const ids = Array.from(new Set(aparienciaEnlaceIds));
+  for (const aparienciaEnlaceId of ids) {
+    const apariencia = enlaces[aparienciaEnlaceId];
+    if (!apariencia) continue;
+    const symbolPos = { x: Math.round(posicion.x), y: Math.round(posicion.y) };
+    if (apariencia.symbolPos?.x === symbolPos.x && apariencia.symbolPos.y === symbolPos.y) continue;
+    enlaces = {
+      ...enlaces,
+      [aparienciaEnlaceId]: {
+        ...apariencia,
+        symbolPos,
+      },
+    };
+    cambio = true;
+  }
+
+  if (!cambio) return ok(modelo);
+  return ok({
+    ...modelo,
+    opds: {
+      ...modelo.opds,
+      [opdId]: {
+        ...opd,
+        enlaces,
+      },
+    },
+  });
+}
+
 function mismosVertices(a: Posicion[], b: Posicion[]): boolean {
   return a.length === b.length && a.every((vertice, index) => vertice.x === b[index]?.x && vertice.y === b[index]?.y);
 }

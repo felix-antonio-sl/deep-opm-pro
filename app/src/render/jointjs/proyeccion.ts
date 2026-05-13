@@ -113,7 +113,13 @@ export function proyectarModeloAJointCells(
     // agregacion — agregacion no puede conectar a estados (regla OPM) y aun
     // si por error apareciera, el bus opera por endpoint cell-padre.
     if (origen.proxy || destino.proxy || origen.punto || destino.punto || origen.selectorEstado || destino.selectorEstado) return [];
-    return [{ enlace, aparienciaEnlaceId: aparienciaEnlace.id, origen, destino }];
+    return [{
+      enlace,
+      aparienciaEnlaceId: aparienciaEnlace.id,
+      ...(aparienciaEnlace.symbolPos ? { symbolPos: aparienciaEnlace.symbolPos } : {}),
+      origen,
+      destino,
+    }];
   });
   const { busCells, enlacesConsumidos } = proyectarBusesEstructurales({
     modelo: modeloRender,
@@ -144,7 +150,7 @@ export function proyectarModeloAJointCells(
     const enlaceResaltado = enlace.id === seleccionEnlaceId || seleccionMultiple.has(enlace.id) || refResaltaEnlace(enlace, hoverOplRef);
     const enlaceActivoRuntime = enlacesInvolucradosSim.has(enlace.id);
     return TIPOS_REFINAMIENTO_ESTRUCTURAL.includes(enlace.tipo) && !origen.proxy && !destino.proxy
-      ? proyectarRefinamientoEstructural(opdId, enlace, aparienciaEnlace.id, origen, destino, enlaceResaltado)
+      ? proyectarRefinamientoEstructural(opdId, enlace, aparienciaEnlace.id, origen, destino, enlaceResaltado, aparienciaEnlace.symbolPos)
       : [proyectarEnlace(opdId, enlace, aparienciaEnlace.id, origen, destino, aparienciaEnlace.vertices, enlaceResaltado, enlacesEnAbanico.has(enlace.id), { usarJumpover, activaSimulacion: enlaceActivoRuntime })];
   });
 

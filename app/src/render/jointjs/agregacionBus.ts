@@ -11,6 +11,7 @@ const Z_ENLACE_BUS = 4;
 export interface EnlaceConEndpointVisual {
   enlace: Enlace;
   aparienciaEnlaceId: Id;
+  symbolPos?: Posicion;
   origen: { apariencia: Apariencia; portId?: Id };
   destino: { apariencia: Apariencia; portId?: Id };
 }
@@ -107,7 +108,7 @@ function proyectarGrupoEstructural(
   const refinableCentro = centro(grupo.refinable);
   const refinadoresCentro = refinadores.map((item) => centro(item.refinador));
   const promedioRefinadores = promedio(refinadoresCentro);
-  const triangleCenter = {
+  const triangleCenter = symbolPosGrupo(refinadores.map((item) => item.rama.symbolPos)) ?? {
     x: Math.round((refinableCentro.x + promedioRefinadores.x) / 2),
     y: Math.round((refinableCentro.y + promedioRefinadores.y) / 2),
   };
@@ -116,15 +117,22 @@ function proyectarGrupoEstructural(
   const algunaSeleccionada = refinadores.some(({ rama }) => seleccionados.has(rama.enlace.id));
   const primeraRama = refinadores[0]?.rama;
   if (!primeraRama) return [];
-  const metaBus: OpmJointMetadata = {
+  const aparienciaEnlaceIds = grupo.ramas.map((rama) => rama.aparienciaEnlaceId);
+  const enlaceIds = grupo.ramas.map((rama) => rama.enlace.id);
+  const metaRefinable: OpmJointMetadata = {
     kind: "enlace",
     opdId,
     enlaceId: primeraRama.enlace.id,
     aparienciaEnlaceId: primeraRama.aparienciaEnlaceId,
     tipo: grupo.tipo,
-    enlaceIds: grupo.ramas.map((rama) => rama.enlace.id),
+    enlaceIds,
+    aparienciaEnlaceIds,
     rolEstructural: "refinable",
     ladoRefinable: grupo.ladoRefinable,
+  };
+  const metaSimbolo: OpmJointMetadata = {
+    ...metaRefinable,
+    rolEstructural: "simbolo",
   };
 
   return [
@@ -136,11 +144,11 @@ function proyectarGrupoEstructural(
       router: routerManhattan(),
       connector: { name: "straight" },
       attrs: attrsLinea(algunaSeleccionada),
-      opm: metaBus,
+      opm: metaRefinable,
       z: Z_ENLACE_BUS,
     },
     ...refinadores.map(({ rama, refinador }, index) => ramaEstructural(opdId, grupoId, triangleId, grupo.ladoRefinable, rama, refinador, seleccionados.has(rama.enlace.id), index)),
-    ...marcadoresEstructurales(grupo.tipo, triangleId, triangleCenter, triangleSize, algunaSeleccionada, metaBus).map((cell) => ({ ...cell, z: 12 })),
+    ...marcadoresEstructurales(grupo.tipo, triangleId, triangleCenter, triangleSize, algunaSeleccionada, metaSimbolo).map((cell) => ({ ...cell, z: 12 })),
   ];
 }
 
@@ -171,6 +179,7 @@ function ramaEstructural(
       aparienciaEnlaceId: rama.aparienciaEnlaceId,
       tipo: rama.enlace.tipo,
       enlaceIds: [rama.enlace.id],
+      aparienciaEnlaceIds: [rama.aparienciaEnlaceId],
       rolEstructural: "rama",
       ladoRefinable,
     },
@@ -249,6 +258,15 @@ function promedio(puntos: Posicion[]): Posicion {
   if (puntos.length === 0) return { x: 0, y: 0 };
   const total = puntos.reduce((acc, punto) => ({ x: acc.x + punto.x, y: acc.y + punto.y }), { x: 0, y: 0 });
   return { x: total.x / puntos.length, y: total.y / puntos.length };
+}
+
+function symbolPosGrupo(puntos: Array<Posicion | undefined>): Posicion | null {
+  const validos = puntos.filter((punto): punto is Posicion => !!punto && Number.isFinite(punto.x) && Number.isFinite(punto.y));
+  if (validos.length === 0) return null;
+  return {
+    x: Math.round(validos.reduce((total, punto) => total + punto.x, 0) / validos.length),
+    y: Math.round(validos.reduce((total, punto) => total + punto.y, 0) / validos.length),
+  };
 }
 
 function sanitizarId(id: string): Id {

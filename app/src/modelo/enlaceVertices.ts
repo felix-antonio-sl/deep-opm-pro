@@ -141,6 +141,7 @@ function actualizarApariencia(
             enlaceId: apariencia.enlaceId,
             opdId: apariencia.opdId,
             vertices,
+            ...(apariencia.symbolPos ? { symbolPos: apariencia.symbolPos } : {}),
           } satisfies AparienciaEnlace,
         },
       },

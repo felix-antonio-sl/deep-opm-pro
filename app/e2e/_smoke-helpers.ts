@@ -933,7 +933,7 @@ export interface ExportadoModelo {
           estilo?: { fill?: string; borderColor?: string };
           parteExtraidaDe?: { padreAparienciaId: string; parteEntidadId: string };
         }>;
-        enlaces: Record<string, { enlaceId: string; vertices: Array<{ x: number; y: number }> }>;
+        enlaces: Record<string, { enlaceId: string; vertices: Array<{ x: number; y: number }>; symbolPos?: { x: number; y: number } }>;
       }
     >;
   };

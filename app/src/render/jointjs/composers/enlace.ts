@@ -457,11 +457,12 @@ export function proyectarRefinamientoEstructural(
   origen: EndpointVisual,
   destino: EndpointVisual,
   seleccionada: boolean,
+  symbolPos?: Posicion,
 ): JointCellJson[] {
   const triangleSize = 30;
   const source = centro(origen.apariencia);
   const target = centro(destino.apariencia);
-  const center = {
+  const center = symbolPos && Number.isFinite(symbolPos.x) && Number.isFinite(symbolPos.y) ? symbolPos : {
     x: (source.x + target.x) / 2,
     y: (source.y + target.y) / 2,
   };
@@ -472,18 +473,22 @@ export function proyectarRefinamientoEstructural(
     enlaceId: enlace.id,
     aparienciaEnlaceId,
     tipo: enlace.tipo,
+    enlaceIds: [enlace.id],
+    aparienciaEnlaceIds: [aparienciaEnlaceId],
   };
   const metaRefinable: OpmJointMetadata = {
     ...meta,
-    enlaceIds: [enlace.id],
     rolEstructural: "refinable",
     ladoRefinable: "origen",
   };
   const metaRefinador: OpmJointMetadata = {
     ...meta,
-    enlaceIds: [enlace.id],
     rolEstructural: "rama",
     ladoRefinable: "origen",
+  };
+  const metaSimbolo: OpmJointMetadata = {
+    ...meta,
+    rolEstructural: "simbolo",
   };
   const lineAttrs = attrsLinea(seleccionada);
   return [
@@ -508,7 +513,7 @@ export function proyectarRefinamientoEstructural(
       opm: metaRefinador,
       z: Z_ENLACE,
     },
-    ...marcadoresEstructurales(enlace.tipo, triangleId, center, triangleSize, seleccionada, meta),
+    ...marcadoresEstructurales(enlace.tipo, triangleId, center, triangleSize, seleccionada, metaSimbolo),
   ];
 }
 

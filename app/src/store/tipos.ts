@@ -491,6 +491,7 @@ export interface OpmStore {
   moverEntidad: (id: Id, x: number, y: number) => void;
   moverApariencia: (aparienciaId: Id, x: number, y: number) => void;
   moverAparienciaConPuertos: (aparienciaId: Id, x: number, y: number, ajustes: AjustePuertoEnlace[]) => void;
+  actualizarPosicionSimboloEstructural: (aparienciaEnlaceIds: Id[], posicion: { x: number; y: number }) => void;
   toggleGrid: () => void;
   fijarGridConfig: (patch: Partial<GridConfig>) => void;
   alinearSeleccion: (eje: EjeAlineacion) => void;

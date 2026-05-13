@@ -72,4 +72,6 @@ export interface AparienciaEnlace {
   enlaceId: Id;
   opdId: Id;
   vertices: Array<{ x: number; y: number }>;
+  /** Centro persistido del símbolo estructural OPCloud (triángulo/bus). */
+  symbolPos?: { x: number; y: number };
 }

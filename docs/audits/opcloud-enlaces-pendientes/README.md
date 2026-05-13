@@ -26,6 +26,7 @@ Implementado en la app:
 - **Unificación de enlaces con estados**: resultados desde un proceso hacia estados del mismo objeto comparten puerto de origen; consumos/agentes/instrumentos desde estados del mismo objeto hacia un proceso comparten puerto de destino, siguiendo `uniteResults`, `uniteConsumptions` y `uniteAgentsAndInstruments`.
 - **Sort post-drag compatible con ports**: `app/src/render/jointjs/sortStructuralLinks.ts` mantiene compatibilidad con anchors OPCloud y ahora también permuta endpoints conectados por `port`.
 - **`beautifyConnectedLinks` post-drag**: `app/src/render/jointjs/beautifyConnectedLinks.ts` lee `sourceAnchor/targetAnchor` reales desde `LinkView`, persiste puertos con `actualizarPuertosEnlacesDesdePuntos()` y combina movimiento+puertos en un solo undo visual. En buses estructurales, el tramo común se expande a todos los enlaces semánticos del grupo para no embellecer solo la primera rama visual.
+- **Símbolo estructural persistente/editable**: `AparienciaEnlace.symbolPos` conserva el centro del triángulo estructural al estilo OPCloud/OPX (`symbolPos` en `OPXStructuralParams`). Draggear el triángulo actualiza el JSON; en buses se sincroniza la posición en todas las ramas agrupadas.
 
 Validación de esta ronda:
 
@@ -34,9 +35,9 @@ Validación de esta ronda:
 - `bun run build`
 - `bun run browser:smoke`: 173 pass / 0 fail
 
-Pendientes reales después de A/B/C/D:
+Pendientes reales después de A/B/C/D/E:
 
-- Posición persistente y editable del símbolo estructural (`symbolPos`, vertices superiores y anchors visuales de OPCloud).
+- Ajuste avanzado de vertices superiores y anchors visuales de OPCloud alrededor del símbolo estructural persistido.
 - Ciclo interactivo completo del triángulo estructural: cambiar tipo, relaciones faltantes, ordered, fold/semi-fold.
 - Labels avanzados OPCloud: wrapping por segmento visible, posición persistida, requirements, rate/time/path/tags/backtags.
 - Familias avanzadas fuera del MVP actual: exception links de tiempo, tagged/bidirectional links y metadatos avanzados de requisitos.
@@ -407,13 +408,13 @@ El roadmap A/B/C original queda así:
 | B | **#1 Puertos dinámicos** | Implementado + ampliado | Incluye ranuras estructurales y unificación de enlaces con estados. |
 | C | **#2 sortStructuralLinks** | Implementado base | Permuta anchors y ports; queda pendiente persistir decisiones visuales si se requiere. |
 
-La siguiente ruta de alto impacto ya no es A/B/C/D, sino **E/F/G**:
+La siguiente ruta de alto impacto ya no es A/B/C/D/E, sino **F/G/H**:
 
 | # | Pendiente | Impacto | Costo |
 |---|---|---|---|
-| E | símbolo estructural persistente/editable | Alto | M/L |
 | F | labels OPCloud avanzados | Medio/alto | M |
 | G | ciclo interactivo completo del triángulo estructural | Medio/alto | L |
+| H | vertices superiores/anchors visuales persistidos alrededor del símbolo | Medio | M |
 
 ## Notas operativas
 
@@ -439,6 +440,7 @@ Lo que YA está hecho:
 - grouping/separación estructural por `grupoEstructuralId`
 - sort estructural post-drag compatible con anchors y ports
 - `beautifyConnectedLinks` post-drag desde anchors reales de `LinkView`
+- `symbolPos` persistido y editable para triángulos estructurales simples y buses
 - unificación OPCloud-style de enlaces procedurales con estados
 - `7a9d65e` — layoutConContorno con anchos reales + heurística semántica (HODOM SD-1: 0 solapamientos)
 - `f93112e` — externos densos en multi-columna

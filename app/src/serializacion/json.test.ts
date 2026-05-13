@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 import { extremoApuntaAEntidad, extremoEntidad, extremoEstado } from "../modelo/extremos";
 import { aplicarModificador, definirDemora, definirProbabilidad } from "../modelo/modificadores";
 import { aplicarEstiloApariencia } from "../modelo/estilos";
-import { ajustarMultiplicidad, crearEnlace, crearEstadosIniciales, crearModelo, crearObjeto, crearProceso, designarEstadoFinal, designarEstadoInicial, descomponerProceso, desplegarObjeto, reanclarEnlaceExternoDerivado, sincronizarPuertosEnlaces } from "../modelo/operaciones";
+import { actualizarPosicionSimboloEstructural, ajustarMultiplicidad, crearEnlace, crearEstadosIniciales, crearModelo, crearObjeto, crearProceso, designarEstadoFinal, designarEstadoInicial, descomponerProceso, desplegarObjeto, reanclarEnlaceExternoDerivado, sincronizarPuertosEnlaces } from "../modelo/operaciones";
 import { cambiarModoPlegado, extraerParteDePlegado, partesExtraidasEn } from "../modelo/plegado";
 import { definirRutaEtiqueta } from "../modelo/rutas";
 import type { Apariencia, Modelo, ModoDespliegueObjeto, RefinamientoEntidad, TipoEnlace } from "../modelo/tipos";
@@ -38,6 +38,21 @@ describe("serializacion JSON", () => {
     expect(legacy.ok).toBe(true);
     if (!legacy.ok) return;
     expect(legacy.value.descripcion).toBeUndefined();
+  });
+
+  test("preserva symbolPos de apariencias de enlace estructural", () => {
+    let modelo = crearModelo("Simbolo estructural");
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 20 }, "Todo"));
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 240, y: 120 }, "Parte"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidadPorNombre(modelo, "Todo"), entidadPorNombre(modelo, "Parte"), "agregacion"));
+    const aparienciaEnlaceId = Object.keys(modelo.opds[modelo.opdRaizId]!.enlaces)[0]!;
+    modelo = must(actualizarPosicionSimboloEstructural(modelo, modelo.opdRaizId, [aparienciaEnlaceId], { x: 180, y: 230 }));
+
+    const hidratado = hidratarModelo(exportarModelo(modelo));
+
+    expect(hidratado.ok).toBe(true);
+    if (!hidratado.ok) return;
+    expect(hidratado.value.opds[modelo.opdRaizId]?.enlaces[aparienciaEnlaceId]?.symbolPos).toEqual({ x: 180, y: 230 });
   });
 
   test("preserva estados y designaciones en round-trip", () => {

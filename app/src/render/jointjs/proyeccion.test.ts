@@ -559,6 +559,37 @@ describe("proyeccion JointJS", () => {
     expect(((triangulo?.attrs as Attrs | undefined)?.body as Attrs | undefined)?.strokeWidth).toBe(4);
   });
 
+  test("proyecta triangulo estructural simple desde symbolPos persistido", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 30 }, "Whole"));
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 220, y: 130 }, "Part"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidadPorNombre(modelo, "Whole"), entidadPorNombre(modelo, "Part"), "agregacion"));
+    const aparienciaEnlaceId = Object.keys(modelo.opds[modelo.opdRaizId]!.enlaces)[0]!;
+    modelo = {
+      ...modelo,
+      opds: {
+        ...modelo.opds,
+        [modelo.opdRaizId]: {
+          ...modelo.opds[modelo.opdRaizId]!,
+          enlaces: {
+            ...modelo.opds[modelo.opdRaizId]!.enlaces,
+            [aparienciaEnlaceId]: {
+              ...modelo.opds[modelo.opdRaizId]!.enlaces[aparienciaEnlaceId]!,
+              symbolPos: { x: 180, y: 260 },
+            },
+          },
+        },
+      },
+    };
+
+    const triangulo = proyectarModeloAJointCells(modelo, modelo.opdRaizId, null, null)
+      .find((cell) => cell.type === "standard.Polygon");
+
+    expect(triangulo?.position).toEqual({ x: 165, y: 245 });
+    expect(triangulo?.opm.kind === "enlace" ? triangulo.opm.rolEstructural : null).toBe("simbolo");
+    expect(triangulo?.opm.kind === "enlace" ? triangulo.opm.aparienciaEnlaceIds : null).toEqual([aparienciaEnlaceId]);
+  });
+
   test("fusiona dos agregaciones del mismo todo en bus con triangulo unico", () => {
     let modelo = crearModelo();
     modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 90 }, "Todo"));
@@ -582,6 +613,34 @@ describe("proyeccion JointJS", () => {
     expect((refinable?.target as { id?: unknown; port?: unknown }).id).toBe(triangulos[0]?.id);
     expect((refinable?.target as { id?: unknown; port?: unknown }).port).toBe("in");
     expect(new Set(ramas.map((cell) => cell.opm.kind === "enlace" ? cell.opm.enlaceId : ""))).toEqual(new Set(Object.keys(modelo.enlaces)));
+  });
+
+  test("bus estructural usa symbolPos persistido y expone todas sus apariencias", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 90 }, "Todo"));
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 260, y: 20 }, "Parte A"));
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 260, y: 170 }, "Parte B"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidadPorNombre(modelo, "Todo"), entidadPorNombre(modelo, "Parte A"), "agregacion"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidadPorNombre(modelo, "Todo"), entidadPorNombre(modelo, "Parte B"), "agregacion"));
+    const aparienciaEnlaceIds = Object.keys(modelo.opds[modelo.opdRaizId]!.enlaces);
+    modelo = {
+      ...modelo,
+      opds: {
+        ...modelo.opds,
+        [modelo.opdRaizId]: {
+          ...modelo.opds[modelo.opdRaizId]!,
+          enlaces: Object.fromEntries(Object.entries(modelo.opds[modelo.opdRaizId]!.enlaces)
+            .map(([id, apariencia]) => [id, { ...apariencia, symbolPos: { x: 210, y: 220 } }])),
+        },
+      },
+    };
+
+    const triangulo = proyectarModeloAJointCells(modelo, modelo.opdRaizId, null, null)
+      .find((cell) => cell.type === "standard.Polygon");
+
+    expect(triangulo?.position).toEqual({ x: 195, y: 205 });
+    expect(triangulo?.opm.kind === "enlace" ? triangulo.opm.aparienciaEnlaceIds : null).toEqual(aparienciaEnlaceIds);
+    expect(triangulo?.opm.kind === "enlace" ? triangulo.opm.enlaceIds : null).toEqual(Object.keys(modelo.enlaces));
   });
 
   test("fusiona estructurales del mismo tipo y refinable, no solo agregacion", () => {

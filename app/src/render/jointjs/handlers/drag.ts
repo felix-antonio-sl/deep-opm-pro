@@ -33,6 +33,7 @@ export interface CablearDragArgs {
   modeloRef: { current: Modelo };
   opdActivoIdRef: { current: string };
   moverAparienciaConPuertosRef: { current: (aparienciaId: string, x: number, y: number, ajustes: AjustePuertoEnlace[]) => void };
+  actualizarPosicionSimboloEstructuralRef: { current: (aparienciaEnlaceIds: string[], posicion: { x: number; y: number }) => void };
   actualizarVerticesEnlaceRef: { current: (aparienciaEnlaceId: string, vertices: { x: number; y: number }[]) => void };
   extraerParteDePlegadoRef: { current: (aparienciaId: string, parteEntidadId: string) => void };
   abrirRenombradoInlineRef: { current: (input: { aparienciaId: string; entidadId: string }) => void };
@@ -46,6 +47,7 @@ export function cablearDrag(args: CablearDragArgs): () => void {
     modeloRef,
     opdActivoIdRef,
     moverAparienciaConPuertosRef,
+    actualizarPosicionSimboloEstructuralRef,
     actualizarVerticesEnlaceRef,
     extraerParteDePlegadoRef,
     abrirRenombradoInlineRef,
@@ -62,6 +64,17 @@ export function cablearDrag(args: CablearDragArgs): () => void {
     if (sincronizandoRef.current) return;
     const model = cellViewModel(elementView);
     const meta = metadata(model);
+    if (meta?.kind === "enlace" && meta.rolEstructural === "simbolo") {
+      const element = model as dia.Element;
+      const posicion = element.position();
+      const size = element.size();
+      const aparienciaEnlaceIds = meta.aparienciaEnlaceIds?.length ? meta.aparienciaEnlaceIds : [meta.aparienciaEnlaceId];
+      actualizarPosicionSimboloEstructuralRef.current(aparienciaEnlaceIds, {
+        x: Math.round(posicion.x + size.width / 2),
+        y: Math.round(posicion.y + size.height / 2),
+      });
+      return;
+    }
     if (meta?.kind !== "entidad") return;
     const posicion = (model as dia.Element).position();
     ordenarEnlacesEstructuralesConectados(paper, graph, model as dia.Element);
