@@ -3,6 +3,12 @@ import type { Enlace, Id, Posicion, SubtipoModificador, TipoEnlace } from "../..
 import { LINK_ASSETS } from "../linkAssets";
 import type { JointCellJson, OpmJointMetadata } from "../proyeccionTipos";
 
+export interface PuertoSimboloEstructural {
+  id: Id;
+  dx: number;
+  dy: number;
+}
+
 /**
  * Composer de markers OPM desde assets canonicos. Mantiene separada la
  * traduccion de marker primitive respecto de la composicion de enlaces.
@@ -15,6 +21,7 @@ export function marcadoresEstructurales(
   size: number,
   seleccionada: boolean,
   meta: OpmJointMetadata,
+  puertos: PuertoSimboloEstructural[] = puertosTrianguloDefault(),
 ): JointCellJson[] {
   const angle = 0;
   const position = { x: center.x - size / 2, y: center.y - size / 2 };
@@ -33,7 +40,7 @@ export function marcadoresEstructurales(
         stroke,
         strokeWidth,
         cursor,
-      }, meta),
+      }, meta, puertos),
       {
         id: `${triangleId}-pequeno`,
         type: "standard.Polygon",
@@ -64,7 +71,7 @@ export function marcadoresEstructurales(
         stroke,
         strokeWidth,
         cursor,
-      }, meta),
+      }, meta, puertos),
     ];
   }
 
@@ -77,7 +84,7 @@ export function marcadoresEstructurales(
         stroke,
         strokeWidth,
         cursor,
-      }, meta),
+      }, meta, puertos),
       {
         id: `${triangleId}-dot`,
         type: "standard.Circle",
@@ -101,7 +108,7 @@ export function marcadoresEstructurales(
       stroke,
       strokeWidth,
       cursor,
-    }, meta),
+    }, meta, puertos),
   ];
 }
 
@@ -113,6 +120,7 @@ export function polyShapeCell(
   angle: number,
   bodyAttrs: Record<string, unknown>,
   meta: OpmJointMetadata,
+  puertos: PuertoSimboloEstructural[] = puertosTrianguloDefault(),
 ): JointCellJson {
   return {
     id,
@@ -124,13 +132,20 @@ export function polyShapeCell(
       body: bodyAttrs,
       label: { text: "", display: "none" },
     },
-    ports: puertosTrianguloEstructural(),
+    ports: puertosTrianguloEstructural(puertos),
     opm: meta,
     z: 2,
   };
 }
 
-function puertosTrianguloEstructural(): Record<string, unknown> {
+function puertosTrianguloDefault(): PuertoSimboloEstructural[] {
+  return [
+    { id: "in", dx: 0, dy: -15 },
+    { id: "out", dx: 0, dy: 15 },
+  ];
+}
+
+function puertosTrianguloEstructural(puertos: PuertoSimboloEstructural[]): Record<string, unknown> {
   const attrs = {
     portBody: {
       r: 0,
@@ -142,21 +157,26 @@ function puertosTrianguloEstructural(): Record<string, unknown> {
   const markup = [{ tagName: "circle", selector: "portBody" }];
   return {
     groups: {
-      in: {
-        position: { name: "top" },
-        attrs,
-        markup,
-      },
-      out: {
-        position: { name: "bottom" },
+      symbolAnchor: {
+        position: "absolute",
         attrs,
         markup,
       },
     },
-    items: [
-      { id: "in", group: "in" },
-      { id: "out", group: "out" },
-    ],
+    items: puertos.map((puerto) => ({
+      id: puerto.id,
+      group: "symbolAnchor",
+      args: {
+        x: 15 + puerto.dx,
+        y: 15 + puerto.dy,
+      },
+      position: {
+        args: {
+          x: 15 + puerto.dx,
+          y: 15 + puerto.dy,
+        },
+      },
+    })),
   };
 }
 

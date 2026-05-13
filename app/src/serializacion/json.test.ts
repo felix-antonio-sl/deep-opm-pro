@@ -40,19 +40,28 @@ describe("serializacion JSON", () => {
     expect(legacy.value.descripcion).toBeUndefined();
   });
 
-  test("preserva symbolPos de apariencias de enlace estructural", () => {
+  test("preserva symbolPos y symbolAnchors de apariencias de enlace estructural", () => {
     let modelo = crearModelo("Simbolo estructural");
     modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 20 }, "Todo"));
     modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 240, y: 120 }, "Parte"));
     modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidadPorNombre(modelo, "Todo"), entidadPorNombre(modelo, "Parte"), "agregacion"));
     const aparienciaEnlaceId = Object.keys(modelo.opds[modelo.opdRaizId]!.enlaces)[0]!;
-    modelo = must(actualizarPosicionSimboloEstructural(modelo, modelo.opdRaizId, [aparienciaEnlaceId], { x: 180, y: 230 }));
+    modelo = must(actualizarPosicionSimboloEstructural(modelo, modelo.opdRaizId, [aparienciaEnlaceId], { x: 180, y: 230 }, {
+      [aparienciaEnlaceId]: {
+        refinable: { dx: 0, dy: -15 },
+        refinador: { dx: 6, dy: 15 },
+      },
+    }));
 
     const hidratado = hidratarModelo(exportarModelo(modelo));
 
     expect(hidratado.ok).toBe(true);
     if (!hidratado.ok) return;
     expect(hidratado.value.opds[modelo.opdRaizId]?.enlaces[aparienciaEnlaceId]?.symbolPos).toEqual({ x: 180, y: 230 });
+    expect(hidratado.value.opds[modelo.opdRaizId]?.enlaces[aparienciaEnlaceId]?.symbolAnchors).toEqual({
+      refinable: { dx: 0, dy: -15 },
+      refinador: { dx: 6, dy: 15 },
+    });
   });
 
   test("preserva orderedFundamentalTypes de entidad refinable", () => {

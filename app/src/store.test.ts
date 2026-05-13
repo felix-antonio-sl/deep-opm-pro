@@ -431,10 +431,19 @@ describe("store undo/redo y dirty state", () => {
       { x: 190, y: 210 },
       { x: 190, y: 210 },
     ]);
+    expect(aparienciaEnlaceIds.map((id) => enlaces[id]?.symbolAnchors?.refinable)).toEqual([
+      { dx: 0, dy: -15 },
+      { dx: 0, dy: -15 },
+    ]);
+    expect(aparienciaEnlaceIds.map((id) => enlaces[id]?.symbolAnchors?.refinador)).toEqual([
+      { dx: 0, dy: 15 },
+      { dx: 0, dy: 15 },
+    ]);
 
     store.getState().deshacer();
     const restaurados = store.getState().modelo.opds[store.getState().opdActivoId]!.enlaces;
     expect(aparienciaEnlaceIds.map((id) => restaurados[id]?.symbolPos)).toEqual([undefined, undefined]);
+    expect(aparienciaEnlaceIds.map((id) => restaurados[id]?.symbolAnchors)).toEqual([undefined, undefined]);
   });
 
   test("ajustar multiplicidad seleccionada entra al historial y rechaza sintaxis invalida", () => {

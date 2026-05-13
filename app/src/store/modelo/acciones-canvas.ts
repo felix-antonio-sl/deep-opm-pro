@@ -22,6 +22,7 @@ import {
   renombrarEstado,
 } from "../../modelo/operaciones";
 import { renombrarEtiquetaEnlace } from "../../modelo/etiquetasEnlace";
+import { anclajesSimboloPorDefecto } from "../../modelo/simboloEstructural";
 import { mismaReferencia } from "../../opl/interaccion";
 import { generarOpl } from "../../opl/generar";
 import { aplicarPatchesOpl, planificarEdicionOplLibre } from "../../opl/parser";
@@ -715,7 +716,8 @@ export function accionesCanvas(set: SetStore, get: GetStore): Partial<ModeloSlic
     actualizarPosicionSimboloEstructural(aparienciaEnlaceIds, posicion) {
       const { modelo, opdActivoId, dirtyModelo } = get();
       const pos = cuantizarDesdeEstado(get(), posicion.x, posicion.y);
-      const resultado = actualizarPosicionSimboloEstructuralOp(modelo, opdActivoId, aparienciaEnlaceIds, pos);
+      const anclajes = anclajesSimboloPorDefecto(modelo, opdActivoId, aparienciaEnlaceIds);
+      const resultado = actualizarPosicionSimboloEstructuralOp(modelo, opdActivoId, aparienciaEnlaceIds, pos, anclajes);
       if (resultado.ok) commitModelo(set, modelo, resultado.value, { dirtyModelo });
       else set({ mensaje: resultado.error });
     },

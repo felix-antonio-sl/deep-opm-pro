@@ -608,7 +608,9 @@ describe("proyeccion JointJS", () => {
     const ramas = links.filter((cell) => String(cell.id).includes("-rama"));
     expect(ramas).toHaveLength(2);
     expect(ramas.every((cell) => (cell.source as { id?: unknown; port?: unknown }).id === triangulos[0]?.id)).toBe(true);
-    expect(ramas.every((cell) => (cell.source as { id?: unknown; port?: unknown }).port === "out")).toBe(true);
+    const puertosRama = ramas.map((cell) => (cell.source as { port?: unknown }).port);
+    expect(puertosRama).toEqual(["out", "out"]);
+    expect(itemsPuertosTriangulo(triangulos[0]).sort()).toEqual(["in", "out"]);
     const refinable = links.find((cell) => String(cell.id).endsWith("-refinable"));
     expect((refinable?.target as { id?: unknown; port?: unknown }).id).toBe(triangulos[0]?.id);
     expect((refinable?.target as { id?: unknown; port?: unknown }).port).toBe("in");
@@ -646,6 +648,13 @@ describe("proyeccion JointJS", () => {
     modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidadPorNombre(modelo, "Todo"), entidadPorNombre(modelo, "Parte A"), "agregacion"));
     modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidadPorNombre(modelo, "Todo"), entidadPorNombre(modelo, "Parte B"), "agregacion"));
     const aparienciaEnlaceIds = Object.keys(modelo.opds[modelo.opdRaizId]!.enlaces);
+    const anclajes = Object.fromEntries(aparienciaEnlaceIds.map((id, index) => [
+      id,
+      {
+        refinable: { dx: 0, dy: -14 },
+        refinador: { dx: index === 0 ? -8 : 10, dy: 15 },
+      },
+    ]));
     modelo = {
       ...modelo,
       opds: {
@@ -653,17 +662,30 @@ describe("proyeccion JointJS", () => {
         [modelo.opdRaizId]: {
           ...modelo.opds[modelo.opdRaizId]!,
           enlaces: Object.fromEntries(Object.entries(modelo.opds[modelo.opdRaizId]!.enlaces)
-            .map(([id, apariencia]) => [id, { ...apariencia, symbolPos: { x: 210, y: 220 } }])),
+            .map(([id, apariencia]) => {
+              const symbolAnchors = anclajes[id];
+              return [id, symbolAnchors
+                ? { ...apariencia, symbolPos: { x: 210, y: 220 }, symbolAnchors }
+                : { ...apariencia, symbolPos: { x: 210, y: 220 } }];
+            })),
         },
       },
     };
 
-    const triangulo = proyectarModeloAJointCells(modelo, modelo.opdRaizId, null, null)
+    const cells = proyectarModeloAJointCells(modelo, modelo.opdRaizId, null, null);
+    const triangulo = cells
       .find((cell) => cell.type === "standard.Polygon");
+    const ramas = cells.filter((cell) => cell.type === "standard.Link" && String(cell.id).includes("-rama"));
 
     expect(triangulo?.position).toEqual({ x: 195, y: 205 });
     expect(triangulo?.opm.kind === "enlace" ? triangulo.opm.aparienciaEnlaceIds : null).toEqual(aparienciaEnlaceIds);
     expect(triangulo?.opm.kind === "enlace" ? triangulo.opm.enlaceIds : null).toEqual(Object.keys(modelo.enlaces));
+    expect(posicionPuertoTriangulo(triangulo, "in")).toEqual({ x: 15, y: 1 });
+    expect(posicionPuertoTriangulo(triangulo, "out")).toEqual({ x: 16, y: 30 });
+    for (const rama of ramas) {
+      const port = String((rama.source as { port?: unknown }).port);
+      expect(port).toBe("out");
+    }
   });
 
   test("fusiona estructurales del mismo tipo y refinable, no solo agregacion", () => {
@@ -1118,6 +1140,12 @@ function extremoTrianguloEsperado(id: string, port: "in" | "out"): Record<string
 function itemsPuertosTriangulo(cell: unknown): string[] {
   const ports = (cell as { ports?: unknown } | undefined)?.ports as { items?: Array<{ id?: string }> } | undefined;
   return (ports?.items ?? []).flatMap((item) => item.id ? [item.id] : []);
+}
+
+function posicionPuertoTriangulo(cell: unknown, id: string): { x?: unknown; y?: unknown } | undefined {
+  const ports = (cell as { ports?: unknown } | undefined)?.ports as { items?: Array<{ id?: string; args?: { x?: unknown; y?: unknown }; position?: { args?: { x?: unknown; y?: unknown } } }> } | undefined;
+  const item = (ports?.items ?? []).find((puerto) => puerto.id === id);
+  return item?.args;
 }
 
 function must<T>(resultado: Resultado<T>): T {

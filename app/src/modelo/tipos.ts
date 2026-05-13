@@ -62,6 +62,8 @@ export type {
   ExtremoEnlace,
   DerivacionEnlace,
   Enlace,
+  AnclajeSimboloEstructural,
+  AnclajesSimboloEstructural,
   AparienciaEnlace,
 } from "./tipos/enlace";
 

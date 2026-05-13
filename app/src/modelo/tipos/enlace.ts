@@ -67,6 +67,20 @@ export interface Enlace {
   derivado?: DerivacionEnlace;
 }
 
+export interface AnclajeSimboloEstructural {
+  /** Offset horizontal relativo al centro del simbolo estructural. */
+  dx: number;
+  /** Offset vertical relativo al centro del simbolo estructural. */
+  dy: number;
+}
+
+export interface AnclajesSimboloEstructural {
+  /** Puerto del tramo comun que llega desde la cosa refinable. */
+  refinable?: AnclajeSimboloEstructural;
+  /** Puerto de salida hacia la cosa refinadora de esta rama. */
+  refinador?: AnclajeSimboloEstructural;
+}
+
 export interface AparienciaEnlace {
   id: Id;
   enlaceId: Id;
@@ -74,4 +88,6 @@ export interface AparienciaEnlace {
   vertices: Array<{ x: number; y: number }>;
   /** Centro persistido del símbolo estructural OPCloud (triángulo/bus). */
   symbolPos?: { x: number; y: number };
+  /** Offsets persistidos de los puertos del símbolo, relativos a symbolPos. */
+  symbolAnchors?: AnclajesSimboloEstructural;
 }

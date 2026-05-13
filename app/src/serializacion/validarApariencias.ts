@@ -1,5 +1,7 @@
 import { esColorEstilo, normalizarEstiloApariencia } from "../modelo/estilos";
 import type {
+  AnclajeSimboloEstructural,
+  AnclajesSimboloEstructural,
   Apariencia,
   AparienciaEnlace,
   Entidad,
@@ -179,15 +181,39 @@ export function validarAparienciasEnlace(opdId: Id, value: Record<string, unknow
     if (!vertices.ok) return vertices;
     const symbolPos = raw.symbolPos === undefined ? ok(undefined) : validarPosicion(`${id}.symbolPos`, raw.symbolPos);
     if (!symbolPos.ok) return symbolPos;
+    const symbolAnchors = validarAnclajesSimbolo(`${id}.symbolAnchors`, raw.symbolAnchors);
+    if (!symbolAnchors.ok) return symbolAnchors;
     apariencias[id] = {
       id,
       enlaceId: raw.enlaceId,
       opdId,
       vertices: vertices.value,
       ...(symbolPos.value ? { symbolPos: symbolPos.value } : {}),
+      ...(symbolAnchors.value ? { symbolAnchors: symbolAnchors.value } : {}),
     };
   }
   return ok(apariencias);
+}
+
+function validarAnclajesSimbolo(contexto: string, raw: unknown): Resultado<AnclajesSimboloEstructural | undefined> {
+  if (raw === undefined) return ok(undefined);
+  if (!esRecord(raw)) return fallo(`Anclajes de símbolo inválidos: ${contexto}`);
+  const refinable = validarAnclajeSimbolo(`${contexto}.refinable`, raw.refinable);
+  if (!refinable.ok) return refinable;
+  const refinador = validarAnclajeSimbolo(`${contexto}.refinador`, raw.refinador);
+  if (!refinador.ok) return refinador;
+  if (!refinable.value && !refinador.value) return ok(undefined);
+  return ok({
+    ...(refinable.value ? { refinable: refinable.value } : {}),
+    ...(refinador.value ? { refinador: refinador.value } : {}),
+  });
+}
+
+function validarAnclajeSimbolo(contexto: string, raw: unknown): Resultado<AnclajeSimboloEstructural | undefined> {
+  if (raw === undefined) return ok(undefined);
+  if (!esRecord(raw)) return fallo(`Anclaje de símbolo inválido: ${contexto}`);
+  if (!esNumeroFinito(raw.dx) || !esNumeroFinito(raw.dy)) return fallo(`Anclaje de símbolo inválido: ${contexto}`);
+  return ok({ dx: raw.dx, dy: raw.dy });
 }
 
 function validarPosicion(contexto: string, raw: unknown): Resultado<{ x: number; y: number }> {

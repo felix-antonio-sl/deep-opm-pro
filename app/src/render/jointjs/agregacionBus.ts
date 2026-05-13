@@ -1,9 +1,10 @@
 import { CANON, naturalezaDeEnlace } from "../../modelo/constantes";
 import { entidadIdDeExtremo } from "../../modelo/extremos";
-import type { Apariencia, Enlace, Id, Modelo, Posicion, TipoEnlace } from "../../modelo/tipos";
+import { anclajeRefinableSimbolo, anclajeRefinadorSimbolo, normalizarAnclajeSimbolo } from "../../modelo/simboloEstructural";
+import type { AnclajeSimboloEstructural, AnclajesSimboloEstructural, Apariencia, Enlace, Id, Modelo, Posicion, TipoEnlace } from "../../modelo/tipos";
 import { etiquetaEnlaceNormalizada } from "../../modelo/etiquetasEnlace";
 import type { JointCellJson, OpmJointMetadata } from "./proyeccion";
-import { marcadoresEstructurales } from "./composers/markers";
+import { marcadoresEstructurales, type PuertoSimboloEstructural } from "./composers/markers";
 import { etiquetaOrdenEstructural, extremoTriangulo } from "./composers/enlace";
 
 const Z_ENLACE_BUS = 4;
@@ -12,6 +13,7 @@ export interface EnlaceConEndpointVisual {
   enlace: Enlace;
   aparienciaEnlaceId: Id;
   symbolPos?: Posicion;
+  symbolAnchors?: AnclajesSimboloEstructural;
   origen: { apariencia: Apariencia; portId?: Id };
   destino: { apariencia: Apariencia; portId?: Id };
 }
@@ -120,6 +122,7 @@ function proyectarGrupoEstructural(
   if (!primeraRama) return [];
   const aparienciaEnlaceIds = grupo.ramas.map((rama) => rama.aparienciaEnlaceId);
   const enlaceIds = grupo.ramas.map((rama) => rama.enlace.id);
+  const puertosSimbolo = puertosSimboloGrupo(refinadores);
   const metaRefinable: OpmJointMetadata = {
     kind: "enlace",
     opdId,
@@ -151,7 +154,7 @@ function proyectarGrupoEstructural(
       z: Z_ENLACE_BUS,
     },
     ...refinadores.map(({ rama, refinador }, index) => ramaEstructural(opdId, grupoId, triangleId, grupo.ladoRefinable, rama, refinador, seleccionados.has(rama.enlace.id), index)),
-    ...marcadoresEstructurales(grupo.tipo, triangleId, triangleCenter, triangleSize, algunaSeleccionada, metaSimbolo).map((cell) => ({ ...cell, z: 12 })),
+    ...marcadoresEstructurales(grupo.tipo, triangleId, triangleCenter, triangleSize, algunaSeleccionada, metaSimbolo, puertosSimbolo).map((cell) => ({ ...cell, z: 12 })),
   ];
 }
 
@@ -187,6 +190,37 @@ function ramaEstructural(
       ladoRefinable,
     },
     z: Z_ENLACE_BUS + index * 0.001,
+  };
+}
+
+function puertosSimboloGrupo(refinadores: Array<{ rama: EnlaceConEndpointVisual; refinador: Apariencia }>): PuertoSimboloEstructural[] {
+  const refinable = anclajeRefinableGrupo(refinadores);
+  const refinador = anclajeRefinadorGrupo(refinadores);
+  return [
+    { id: "in", ...refinable },
+    { id: "out", ...refinador },
+  ];
+}
+
+function anclajeRefinableGrupo(refinadores: Array<{ rama: EnlaceConEndpointVisual }>): AnclajeSimboloEstructural {
+  const validos = refinadores
+    .map(({ rama }) => normalizarAnclajeSimbolo(rama.symbolAnchors?.refinable))
+    .filter((anclaje): anclaje is AnclajeSimboloEstructural => !!anclaje);
+  if (validos.length === 0) return anclajeRefinableSimbolo();
+  return {
+    dx: Math.round(validos.reduce((total, anclaje) => total + anclaje.dx, 0) / validos.length),
+    dy: Math.round(validos.reduce((total, anclaje) => total + anclaje.dy, 0) / validos.length),
+  };
+}
+
+function anclajeRefinadorGrupo(refinadores: Array<{ rama: EnlaceConEndpointVisual }>): AnclajeSimboloEstructural {
+  const validos = refinadores
+    .map(({ rama }) => normalizarAnclajeSimbolo(rama.symbolAnchors?.refinador))
+    .filter((anclaje): anclaje is AnclajeSimboloEstructural => !!anclaje);
+  if (validos.length === 0) return anclajeRefinadorSimbolo(0, 1);
+  return {
+    dx: Math.round(validos.reduce((total, anclaje) => total + anclaje.dx, 0) / validos.length),
+    dy: Math.round(validos.reduce((total, anclaje) => total + anclaje.dy, 0) / validos.length),
   };
 }
 

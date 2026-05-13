@@ -1,7 +1,8 @@
 import { contenedorRefinamiento, encajarAparienciaEnContorno } from "../layout";
 import { CANON } from "../constantes";
 import { formatearNombreCompuesto } from "../objetoMetadata";
-import type { Apariencia, Id, Modelo, Posicion, Resultado } from "../tipos";
+import { mismosAnclajesSimbolo, normalizarAnclajesSimbolo } from "../simboloEstructural";
+import type { AnclajesSimboloEstructural, Apariencia, Id, Modelo, Posicion, Resultado } from "../tipos";
 import { RESIZE_MIN, clampValor } from "../../canvas/grid";
 import { aparienciaEsExternaDeRefinamiento } from "../contextoRefinamiento";
 import { fallo, ok } from "./helpers";
@@ -214,6 +215,7 @@ export function actualizarPosicionSimboloEstructural(
   opdId: Id,
   aparienciaEnlaceIds: readonly Id[],
   posicion: Posicion,
+  anclajesPorApariencia: Partial<Record<Id, AnclajesSimboloEstructural>> = {},
 ): Resultado<Modelo> {
   const opd = modelo.opds[opdId];
   if (!opd) return fallo(`OPD no existe: ${opdId}`);
@@ -228,12 +230,16 @@ export function actualizarPosicionSimboloEstructural(
     const apariencia = enlaces[aparienciaEnlaceId];
     if (!apariencia) continue;
     const symbolPos = { x: Math.round(posicion.x), y: Math.round(posicion.y) };
-    if (apariencia.symbolPos?.x === symbolPos.x && apariencia.symbolPos.y === symbolPos.y) continue;
+    const symbolAnchors = normalizarAnclajesSimbolo(anclajesPorApariencia[aparienciaEnlaceId]);
+    const mismaPosicion = apariencia.symbolPos?.x === symbolPos.x && apariencia.symbolPos.y === symbolPos.y;
+    const mismosAnclajes = symbolAnchors === undefined || mismosAnclajesSimbolo(apariencia.symbolAnchors, symbolAnchors);
+    if (mismaPosicion && mismosAnclajes) continue;
     enlaces = {
       ...enlaces,
       [aparienciaEnlaceId]: {
         ...apariencia,
         symbolPos,
+        ...(symbolAnchors ? { symbolAnchors } : {}),
       },
     };
     cambio = true;

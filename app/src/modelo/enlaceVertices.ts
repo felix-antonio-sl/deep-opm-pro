@@ -142,6 +142,7 @@ function actualizarApariencia(
             opdId: apariencia.opdId,
             vertices,
             ...(apariencia.symbolPos ? { symbolPos: apariencia.symbolPos } : {}),
+            ...(apariencia.symbolAnchors ? { symbolAnchors: apariencia.symbolAnchors } : {}),
           } satisfies AparienciaEnlace,
         },
       },

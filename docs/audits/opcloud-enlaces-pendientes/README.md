@@ -27,6 +27,7 @@ Implementado en la app:
 - **Sort post-drag compatible con ports**: `app/src/render/jointjs/sortStructuralLinks.ts` mantiene compatibilidad con anchors OPCloud y ahora también permuta endpoints conectados por `port`.
 - **`beautifyConnectedLinks` post-drag**: `app/src/render/jointjs/beautifyConnectedLinks.ts` lee `sourceAnchor/targetAnchor` reales desde `LinkView`, persiste puertos con `actualizarPuertosEnlacesDesdePuntos()` y combina movimiento+puertos en un solo undo visual. En buses estructurales, el tramo común se expande a todos los enlaces semánticos del grupo para no embellecer solo la primera rama visual.
 - **Símbolo estructural persistente/editable**: `AparienciaEnlace.symbolPos` conserva el centro del triángulo estructural al estilo OPCloud/OPX (`symbolPos` en `OPXStructuralParams`). Draggear el triángulo actualiza el JSON; en buses se sincroniza la posición en todas las ramas agrupadas.
+- **Anclas persistentes del símbolo estructural**: `AparienciaEnlace.symbolAnchors` conserva offsets relativos al centro del triángulo (`refinable` y `refinador`). El renderer usa ports JointJS con layout `absolute`, de modo que el triángulo sigue arrastrando sus enlaces en vivo. En buses estructurales OPCloud-style, las ramas del mismo grupo comparten el puerto `out`; la separación visual se expresa creando un `grupoEstructuralId` distinto.
 - **Ciclo interactivo base del símbolo estructural**: click sobre el triángulo de bus selecciona el grupo estructural; el Inspector permite cambiar el tipo fundamental (`agregacion`/`exhibicion`/`generalizacion`/`clasificacion`), separar/volver a automático y marcar `ordered` como `orderedFundamentalTypes` en la entidad refinable, emulando el patrón OPCloud de `orderedFundamentalTypes`.
 
 Validación de esta ronda:
@@ -37,9 +38,9 @@ Validación de esta ronda:
 - `bun run lint`
 - `bun run browser:smoke`: 173 pass / 0 fail
 
-Pendientes reales después de A/B/C/D/E/G-base:
+Pendientes reales después de A/B/C/D/E/G/H-base:
 
-- Ajuste avanzado de vertices superiores y anchors visuales de OPCloud alrededor del símbolo estructural persistido.
+- Ajuste avanzado de vertices superiores de OPCloud alrededor del símbolo estructural persistido: ya existe la base de anclas/ports; falta editar manualmente esos offsets y propagar heurísticas OPCloud más finas para modelos muy densos.
 - Ciclo interactivo completo del triángulo estructural: relaciones faltantes y fold/semi-fold.
 - Labels avanzados OPCloud: wrapping por segmento visible, posición persistida, requirements, rate/time/path/tags/backtags.
 - Familias avanzadas fuera del MVP actual: exception links de tiempo, tagged/bidirectional links y metadatos avanzados de requisitos.

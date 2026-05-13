@@ -117,6 +117,7 @@ export function proyectarModeloAJointCells(
       enlace,
       aparienciaEnlaceId: aparienciaEnlace.id,
       ...(aparienciaEnlace.symbolPos ? { symbolPos: aparienciaEnlace.symbolPos } : {}),
+      ...(aparienciaEnlace.symbolAnchors ? { symbolAnchors: aparienciaEnlace.symbolAnchors } : {}),
       origen,
       destino,
     }];
@@ -154,7 +155,7 @@ export function proyectarModeloAJointCells(
       ? modeloRender.entidades[refinableId]?.orderedFundamentalTypes?.includes(enlace.tipo) ?? false
       : false;
     return TIPOS_REFINAMIENTO_ESTRUCTURAL.includes(enlace.tipo) && !origen.proxy && !destino.proxy
-      ? proyectarRefinamientoEstructural(opdId, enlace, aparienciaEnlace.id, origen, destino, enlaceResaltado, aparienciaEnlace.symbolPos, ordenado)
+      ? proyectarRefinamientoEstructural(opdId, enlace, aparienciaEnlace.id, origen, destino, enlaceResaltado, aparienciaEnlace.symbolPos, ordenado, aparienciaEnlace.symbolAnchors)
       : [proyectarEnlace(opdId, enlace, aparienciaEnlace.id, origen, destino, aparienciaEnlace.vertices, enlaceResaltado, enlacesEnAbanico.has(enlace.id), { usarJumpover, activaSimulacion: enlaceActivoRuntime })];
   });
 

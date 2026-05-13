@@ -2,7 +2,8 @@ import { CANON, naturalezaDeEnlace } from "../../../modelo/constantes";
 import { etiquetaEnlaceNormalizada } from "../../../modelo/etiquetasEnlace";
 import { entidadIdDeExtremo } from "../../../modelo/extremos";
 import { modoPlegadoApariencia, partesDePlegado } from "../../../modelo/plegado";
-import type { Apariencia, Enlace, ExtremoEnlace, Id, Modelo, Posicion, TipoEnlace } from "../../../modelo/tipos";
+import { anclajeRefinableSimbolo, anclajeRefinadorSimbolo, anclajeSimboloConFallback } from "../../../modelo/simboloEstructural";
+import type { AnclajesSimboloEstructural, Apariencia, Enlace, ExtremoEnlace, Id, Modelo, Posicion, TipoEnlace } from "../../../modelo/tipos";
 import { etiquetasRuta } from "../rutaLabels";
 import type { JointCellJson, OpmJointMetadata } from "../proyeccionTipos";
 import { selectorCapsulaEstado } from "./estados";
@@ -486,6 +487,7 @@ export function proyectarRefinamientoEstructural(
   seleccionada: boolean,
   symbolPos?: Posicion,
   ordenado = false,
+  symbolAnchors?: AnclajesSimboloEstructural,
 ): JointCellJson[] {
   const triangleSize = 30;
   const source = centro(origen.apariencia);
@@ -519,6 +521,8 @@ export function proyectarRefinamientoEstructural(
     rolEstructural: "simbolo",
   };
   const lineAttrs = attrsLinea(seleccionada);
+  const puertoRefinable = anclajeSimboloConFallback(symbolAnchors?.refinable, anclajeRefinableSimbolo());
+  const puertoRefinador = anclajeSimboloConFallback(symbolAnchors?.refinador, anclajeRefinadorSimbolo(0, 1));
   return [
     {
       id: `${aparienciaEnlaceId}-refinable`,
@@ -542,8 +546,18 @@ export function proyectarRefinamientoEstructural(
       opm: metaRefinador,
       z: Z_ENLACE,
     },
-    ...marcadoresEstructurales(enlace.tipo, triangleId, center, triangleSize, seleccionada, metaSimbolo),
+    ...elevarMarcadorEstructural(marcadoresEstructurales(enlace.tipo, triangleId, center, triangleSize, seleccionada, metaSimbolo, [
+      { id: "in", ...puertoRefinable },
+      { id: "out", ...puertoRefinador },
+    ]), triangleId),
   ];
+}
+
+function elevarMarcadorEstructural(cells: JointCellJson[], triangleId: Id): JointCellJson[] {
+  return cells.map((cell) => ({
+    ...cell,
+    z: String(cell.id) === String(triangleId) ? 12 : 13,
+  }));
 }
 
 export function attrsLinea(seleccionada: boolean): Record<string, unknown> {
@@ -570,7 +584,7 @@ export function extremo(id: Id, portId?: Id): Record<string, unknown> {
   };
 }
 
-export function extremoTriangulo(id: Id, port: "in" | "out"): Record<string, unknown> {
+export function extremoTriangulo(id: Id, port: Id): Record<string, unknown> {
   return { id, port, connectionPoint: { name: "anchor" } };
 }
 
