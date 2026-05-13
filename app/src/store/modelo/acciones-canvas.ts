@@ -14,6 +14,7 @@ import {
 } from "../../modelo/plegado";
 import {
   actualizarVerticesEnlace as actualizarVerticesEnlaceOp,
+  actualizarPuertosEnlacesDesdePuntos,
   moverApariencia as moverAparienciaEntidad,
   moverAparienciaPorId,
   renombrarEntidad,
@@ -572,6 +573,22 @@ export function accionesCanvas(set: SetStore, get: GetStore): Partial<ModeloSlic
       const pos = cuantizarDesdeEstado(get(), x, y);
       const resultado = moverAparienciaPorId(modelo, opdActivoId, aparienciaId, pos);
       if (resultado.ok) commitModelo(set, modelo, resultado.value, { dirtyModelo });
+    },
+
+    moverAparienciaConPuertos(aparienciaId, x, y, ajustes) {
+      const { modelo, opdActivoId, dirtyModelo } = get();
+      const pos = cuantizarDesdeEstado(get(), x, y);
+      const movido = moverAparienciaPorId(modelo, opdActivoId, aparienciaId, pos);
+      if (!movido.ok) {
+        set({ mensaje: movido.error });
+        return;
+      }
+      const embellecido = actualizarPuertosEnlacesDesdePuntos(movido.value, opdActivoId, ajustes);
+      if (!embellecido.ok) {
+        set({ mensaje: embellecido.error });
+        return;
+      }
+      commitModelo(set, modelo, embellecido.value, { dirtyModelo });
     },
 
     toggleGrid() {

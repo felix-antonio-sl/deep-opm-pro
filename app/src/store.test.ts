@@ -388,6 +388,32 @@ describe("store undo/redo y dirty state", () => {
       .some((item) => item.entidadId === seleccionId)).toBe(false);
   });
 
+  test("moverAparienciaConPuertos mueve y embellece puertos en un solo undo", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 20 }, "Entrada"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 220, y: 20 }, "Procesar"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidadPorNombre(modelo, "Entrada"), entidadPorNombre(modelo, "Procesar"), "consumo"));
+    store.getState().importarJson(exportarModelo(modelo));
+
+    const aparienciaEntrada = aparienciaIdPorEntidad(store.getState().modelo, entidadPorNombre(store.getState().modelo, "Entrada"));
+    const enlaceId = Object.keys(store.getState().modelo.enlaces)[0]!;
+    store.getState().moverAparienciaConPuertos(aparienciaEntrada, 40, 60, [{
+      enlaceId,
+      lado: "origen",
+      puntoOpuesto: { x: 87.5, y: 20 },
+    }]);
+
+    const movido = store.getState().modelo.opds[store.getState().opdActivoId]!.apariencias[aparienciaEntrada]!;
+    const enlace = store.getState().modelo.enlaces[enlaceId]!;
+    expect({ x: movido.x, y: movido.y }).toEqual({ x: 40, y: 60 });
+    expect(movido.ports?.[enlace.origenId.portId!]).toEqual({ x: (87.5 - 40) / 135, y: 0 });
+
+    store.getState().deshacer();
+    const restaurado = store.getState().modelo.opds[store.getState().opdActivoId]!.apariencias[aparienciaEntrada]!;
+    expect({ x: restaurado.x, y: restaurado.y }).toEqual({ x: 20, y: 20 });
+    expect(store.getState().modelo.enlaces[enlaceId]?.origenId.portId).toBeUndefined();
+  });
+
   test("ajustar multiplicidad seleccionada entra al historial y rechaza sintaxis invalida", () => {
     store.getState().crearObjetoDemo();
     store.getState().crearProcesoDemo();
@@ -1163,6 +1189,13 @@ function entidadPorNombre(modelo: Modelo, nombre: string): string {
   const entidad = Object.values(modelo.entidades).find((item) => item.nombre === nombre);
   if (!entidad) throw new Error(`Entidad no encontrada: ${nombre}`);
   return entidad.id;
+}
+
+function aparienciaIdPorEntidad(modelo: Modelo, entidadId: string): string {
+  const opd = modelo.opds[modelo.opdRaizId];
+  const apariencia = Object.values(opd?.apariencias ?? {}).find((item) => item.entidadId === entidadId);
+  if (!apariencia) throw new Error(`Apariencia no encontrada: ${entidadId}`);
+  return apariencia.id;
 }
 
 function must<T>(resultado: { ok: true; value: T } | { ok: false; error: string }): T {

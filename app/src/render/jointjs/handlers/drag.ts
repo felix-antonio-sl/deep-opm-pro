@@ -2,10 +2,12 @@ import type { dia } from "jointjs";
 import { extremoEntidad } from "../../../modelo/extremos";
 import { obtenerRefinamiento } from "../../../modelo/refinamientos";
 import type { Modelo } from "../../../modelo/tipos";
+import type { AjustePuertoEnlace } from "../../../modelo/operaciones";
 import {
   abanicosAfectadosPorEntidad,
   recalcularOverlayDesdeLinkView,
 } from "../abanicoDragSync";
+import { ajustesPuertosConectadosDesdeLinkViews } from "../beautifyConnectedLinks";
 import type { OpmJointMetadata } from "../proyeccion";
 import { ordenarEnlacesEstructuralesConectados } from "../sortStructuralLinks";
 import { cellViewModel, graphEvents, jointSelector, metadata, paperOff, parteEntidadDesdeSelector } from "./helpers";
@@ -30,7 +32,7 @@ export interface CablearDragArgs {
   sincronizandoRef: { current: boolean };
   modeloRef: { current: Modelo };
   opdActivoIdRef: { current: string };
-  moverAparienciaRef: { current: (aparienciaId: string, x: number, y: number) => void };
+  moverAparienciaConPuertosRef: { current: (aparienciaId: string, x: number, y: number, ajustes: AjustePuertoEnlace[]) => void };
   actualizarVerticesEnlaceRef: { current: (aparienciaEnlaceId: string, vertices: { x: number; y: number }[]) => void };
   extraerParteDePlegadoRef: { current: (aparienciaId: string, parteEntidadId: string) => void };
   abrirRenombradoInlineRef: { current: (input: { aparienciaId: string; entidadId: string }) => void };
@@ -43,7 +45,7 @@ export function cablearDrag(args: CablearDragArgs): () => void {
     sincronizandoRef,
     modeloRef,
     opdActivoIdRef,
-    moverAparienciaRef,
+    moverAparienciaConPuertosRef,
     actualizarVerticesEnlaceRef,
     extraerParteDePlegadoRef,
     abrirRenombradoInlineRef,
@@ -62,8 +64,9 @@ export function cablearDrag(args: CablearDragArgs): () => void {
     const meta = metadata(model);
     if (meta?.kind !== "entidad") return;
     const posicion = (model as dia.Element).position();
-    moverAparienciaRef.current(meta.aparienciaId, Math.round(posicion.x), Math.round(posicion.y));
     ordenarEnlacesEstructuralesConectados(paper, graph, model as dia.Element);
+    const ajustes = ajustesPuertosConectadosDesdeLinkViews(paper, graph, model as dia.Element);
+    moverAparienciaConPuertosRef.current(meta.aparienciaId, Math.round(posicion.x), Math.round(posicion.y), ajustes);
   };
 
   const onElementPointerdblclick = (elementView: dia.ElementView, evt: dia.Event) => {

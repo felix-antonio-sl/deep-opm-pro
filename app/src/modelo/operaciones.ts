@@ -70,7 +70,13 @@ export {
   alternarModoTamano,
 } from "./operaciones/apariencias";
 
-export { sincronizarPuertosEnlaces, sincronizarPuertosTodosLosOpd, calcularPuertoRelativo } from "./operaciones/ports";
+export {
+  actualizarPuertosEnlacesDesdePuntos,
+  sincronizarPuertosEnlaces,
+  sincronizarPuertosTodosLosOpd,
+  calcularPuertoRelativo,
+} from "./operaciones/ports";
+export type { AjustePuertoEnlace, LadoPuertoEnlace } from "./operaciones/ports";
 
 export {
   eliminarEntidad,

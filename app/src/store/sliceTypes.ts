@@ -150,6 +150,7 @@ export type ModeloSlice = Slice<
   | "toggleDescripcionesVisibles"
   | "moverEntidad"
   | "moverApariencia"
+  | "moverAparienciaConPuertos"
   | "toggleGrid"
   | "fijarGridConfig"
   | "alinearSeleccion"

@@ -633,8 +633,8 @@ test("reancla consumo derivado y conserva el ancla manual al reordenar", async (
     .filter((enlace) => enlace?.tipo === "consumo");
   expect(consumos).toHaveLength(1);
   expect(consumos[0]).toEqual(expect.objectContaining({
-    origenId: extremoEntidad(entrada.id),
-    destinoId: extremoEntidad(segundo.id),
+    origenId: expect.objectContaining(extremoEntidad(entrada.id)),
+    destinoId: expect.objectContaining(extremoEntidad(segundo.id)),
     derivado: expect.objectContaining({ origen: "manual" }),
   }));
 
@@ -707,8 +707,8 @@ test("L3 descomposicion avanzada: inspector reasigna, inline renombra, paralelo 
     .map((apariencia) => exportado.modelo.enlaces[apariencia.enlaceId])
     .find((enlace) => enlace?.tipo === "consumo");
   expect(enlaceManual).toEqual(expect.objectContaining({
-    origenId: extremoEntidad(entrada.id),
-    destinoId: extremoEntidad(validado.id),
+    origenId: expect.objectContaining(extremoEntidad(entrada.id)),
+    destinoId: expect.objectContaining(extremoEntidad(validado.id)),
     derivado: expect.objectContaining({ origen: "manual" }),
   }));
   const aparienciasHijo = Object.values(exportado.modelo.opds[opdHijoId]?.apariencias ?? {});

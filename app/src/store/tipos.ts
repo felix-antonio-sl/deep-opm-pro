@@ -46,6 +46,7 @@ import {
   renombrarEstado,
   splitEffectEnPar,
   volverEnlaceExternoDerivadoAAutomatico as volverEnlaceExternoDerivadoAAutomaticoOp,
+  type AjustePuertoEnlace,
 } from "../modelo/operaciones";
 import {
   agregarUrl,
@@ -489,6 +490,7 @@ export interface OpmStore {
   toggleDescripcionesVisibles: () => void;
   moverEntidad: (id: Id, x: number, y: number) => void;
   moverApariencia: (aparienciaId: Id, x: number, y: number) => void;
+  moverAparienciaConPuertos: (aparienciaId: Id, x: number, y: number, ajustes: AjustePuertoEnlace[]) => void;
   toggleGrid: () => void;
   fijarGridConfig: (patch: Partial<GridConfig>) => void;
   alinearSeleccion: (eje: EjeAlineacion) => void;

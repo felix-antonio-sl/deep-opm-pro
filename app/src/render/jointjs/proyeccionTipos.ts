@@ -19,6 +19,9 @@ export type OpmJointMetadata =
       enlaceId: Id;
       aparienciaEnlaceId: Id;
       tipo: TipoEnlace;
+      enlaceIds?: Id[];
+      rolEstructural?: "refinable" | "rama";
+      ladoRefinable?: "origen" | "destino";
     }
   | {
       kind: "proxy-plegado";

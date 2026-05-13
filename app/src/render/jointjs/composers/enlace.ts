@@ -473,6 +473,18 @@ export function proyectarRefinamientoEstructural(
     aparienciaEnlaceId,
     tipo: enlace.tipo,
   };
+  const metaRefinable: OpmJointMetadata = {
+    ...meta,
+    enlaceIds: [enlace.id],
+    rolEstructural: "refinable",
+    ladoRefinable: "origen",
+  };
+  const metaRefinador: OpmJointMetadata = {
+    ...meta,
+    enlaceIds: [enlace.id],
+    rolEstructural: "rama",
+    ladoRefinable: "origen",
+  };
   const lineAttrs = attrsLinea(seleccionada);
   return [
     {
@@ -482,7 +494,7 @@ export function proyectarRefinamientoEstructural(
       target: extremoTriangulo(triangleId, "in"),
       connector: { name: "straight" },
       attrs: lineAttrs,
-      opm: meta,
+      opm: metaRefinable,
       z: Z_ENLACE,
     },
     {
@@ -493,7 +505,7 @@ export function proyectarRefinamientoEstructural(
       connector: { name: "straight" },
       labels: etiquetaEnlace(enlace),
       attrs: lineAttrs,
-      opm: meta,
+      opm: metaRefinador,
       z: Z_ENLACE,
     },
     ...marcadoresEstructurales(enlace.tipo, triangleId, center, triangleSize, seleccionada, meta),

@@ -1,6 +1,14 @@
 import { describe, expect, test } from "bun:test";
 import { extremoEstado } from "./extremos";
-import { crearEnlace, crearEstadosIniciales, crearModelo, crearObjeto, crearProceso, sincronizarPuertosEnlaces } from "./operaciones";
+import {
+  actualizarPuertosEnlacesDesdePuntos,
+  crearEnlace,
+  crearEstadosIniciales,
+  crearModelo,
+  crearObjeto,
+  crearProceso,
+  sincronizarPuertosEnlaces,
+} from "./operaciones";
 import type { Modelo, Resultado } from "./tipos";
 
 describe("puertos dinámicos OPCloud-style", () => {
@@ -95,6 +103,29 @@ describe("puertos dinámicos OPCloud-style", () => {
     expect(new Set(portIds).size).toBe(1);
     const proceso = apariencia(modelo, "Procesar");
     expect(proceso.ports?.[portIds[0]!]).toEqual({ x: 0, y: 1 });
+  });
+
+  test("beautifyConnectedLinks persiste puerto desde punto opuesto real y sincronizacion no lo pisa", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 20 }, "Entrada"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 220, y: 20 }, "Procesar"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidad(modelo, "Entrada"), entidad(modelo, "Procesar"), "consumo"));
+    modelo = sincronizarPuertosEnlaces(modelo, modelo.opdRaizId);
+
+    const enlaceId = Object.keys(modelo.enlaces)[0]!;
+    const ajustado = actualizarPuertosEnlacesDesdePuntos(modelo, modelo.opdRaizId, [{
+      enlaceId,
+      lado: "origen",
+      puntoOpuesto: { x: 87.5, y: 20 },
+    }]);
+    modelo = must(ajustado);
+
+    const enlace = modelo.enlaces[enlaceId]!;
+    const portId = enlace.origenId.portId!;
+    expect(apariencia(modelo, "Entrada").ports?.[portId]).toEqual({ x: 0.5, y: 0 });
+
+    const resincronizado = sincronizarPuertosEnlaces(modelo, modelo.opdRaizId);
+    expect(apariencia(resincronizado, "Entrada").ports?.[portId]).toEqual({ x: 0.5, y: 0 });
   });
 });
 

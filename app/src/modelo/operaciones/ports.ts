@@ -1,9 +1,17 @@
 import { naturalezaDeEnlace } from "../constantes";
 import { entidadIdDeExtremo } from "../extremos";
-import type { Apariencia, Enlace, Id, Modelo, Posicion, PuertoApariencia } from "../tipos";
+import type { Apariencia, Enlace, Id, Modelo, Posicion, PuertoApariencia, Resultado } from "../tipos";
+import { fallo, ok } from "./helpers";
 
-type LadoExtremo = "origen" | "destino";
+export type LadoPuertoEnlace = "origen" | "destino";
+type LadoExtremo = LadoPuertoEnlace;
 type RanurasPorExtremo = Map<string, number>;
+
+export interface AjustePuertoEnlace {
+  enlaceId: Id;
+  lado: LadoPuertoEnlace;
+  puntoOpuesto: Posicion;
+}
 
 interface OpcionesPuertoExtremo {
   desplazamientoRanura?: number;
@@ -120,6 +128,10 @@ function sincronizarExtremo(
     return { enlace, apariencia, portId: puertoDeterminista(enlace.id, lado) };
   }
   const portId = opciones.portId ?? extremo.portId ?? puertoDeterminista(enlace.id, lado);
+  const actual = apariencia.ports?.[portId];
+  if (extremo.portId === portId && actual) {
+    return { enlace, apariencia, portId };
+  }
   const puerto = calcularPuertoRelativo(
     apariencia,
     opciones.puntoOpuesto ?? puntoOpuesto,
@@ -128,11 +140,67 @@ function sincronizarExtremo(
   const siguienteExtremo = extremo.portId === portId ? extremo : { ...extremo, portId };
   const siguienteEnlace = siguienteExtremo === extremo ? enlace : { ...enlace, [campo]: siguienteExtremo };
   const ports = apariencia.ports ?? {};
-  const actual = ports[portId];
-  const siguienteApariencia = actual && mismoPuerto(actual, puerto)
+  const siguienteApariencia = ports[portId] && mismoPuerto(ports[portId], puerto)
     ? apariencia
     : { ...apariencia, ports: { ...ports, [portId]: puerto } };
   return { enlace: siguienteEnlace, apariencia: siguienteApariencia, portId };
+}
+
+export function actualizarPuertosEnlacesDesdePuntos(
+  modelo: Modelo,
+  opdId: Id,
+  ajustes: readonly AjustePuertoEnlace[],
+): Resultado<Modelo> {
+  const opd = modelo.opds[opdId];
+  if (!opd) return fallo(`OPD no existe: ${opdId}`);
+  if (ajustes.length === 0) return ok(modelo);
+
+  const aparienciaPorEntidad = new Map<Id, Apariencia>();
+  for (const apariencia of Object.values(opd.apariencias)) {
+    aparienciaPorEntidad.set(apariencia.entidadId, apariencia);
+  }
+
+  let enlaces = modelo.enlaces;
+  let apariencias = opd.apariencias;
+
+  for (const ajuste of ajustes) {
+    const enlace = enlaces[ajuste.enlaceId];
+    if (!enlace) continue;
+    const campo = ajuste.lado === "origen" ? "origenId" : "destinoId";
+    const extremo = enlace[campo];
+    if (extremo.kind !== "entidad") continue;
+    const entidadId = entidadIdDeExtremo(modelo, extremo);
+    const apariencia = entidadId ? aparienciaPorEntidad.get(entidadId) : undefined;
+    if (!apariencia) continue;
+
+    const portId = extremo.portId ?? puertoDeterminista(enlace.id, ajuste.lado);
+    const puerto = calcularPuertoRelativo(apariencia, ajuste.puntoOpuesto);
+    const ports = apariencia.ports ?? {};
+    const siguienteExtremo = extremo.portId === portId ? extremo : { ...extremo, portId };
+    const siguienteEnlace = siguienteExtremo === extremo ? enlace : { ...enlace, [campo]: siguienteExtremo };
+    const siguienteApariencia = ports[portId] && mismoPuerto(ports[portId], puerto)
+      ? apariencia
+      : { ...apariencia, ports: { ...ports, [portId]: puerto } };
+
+    if (siguienteEnlace !== enlace) enlaces = { ...enlaces, [enlace.id]: siguienteEnlace };
+    if (siguienteApariencia !== apariencia) {
+      apariencias = { ...apariencias, [apariencia.id]: siguienteApariencia };
+      aparienciaPorEntidad.set(apariencia.entidadId, siguienteApariencia);
+    }
+  }
+
+  if (enlaces === modelo.enlaces && apariencias === opd.apariencias) return ok(modelo);
+  return ok({
+    ...modelo,
+    enlaces,
+    opds: {
+      ...modelo.opds,
+      [opdId]: {
+        ...opd,
+        apariencias,
+      },
+    },
+  });
 }
 
 export function calcularPuertoRelativo(

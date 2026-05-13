@@ -122,6 +122,9 @@ function proyectarGrupoEstructural(
     enlaceId: primeraRama.enlace.id,
     aparienciaEnlaceId: primeraRama.aparienciaEnlaceId,
     tipo: grupo.tipo,
+    enlaceIds: grupo.ramas.map((rama) => rama.enlace.id),
+    rolEstructural: "refinable",
+    ladoRefinable: grupo.ladoRefinable,
   };
 
   return [
@@ -167,6 +170,9 @@ function ramaEstructural(
       enlaceId: rama.enlace.id,
       aparienciaEnlaceId: rama.aparienciaEnlaceId,
       tipo: rama.enlace.tipo,
+      enlaceIds: [rama.enlace.id],
+      rolEstructural: "rama",
+      ladoRefinable,
     },
     z: Z_ENLACE_BUS + index * 0.001,
   };
