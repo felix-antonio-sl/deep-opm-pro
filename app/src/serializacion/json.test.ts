@@ -55,6 +55,28 @@ describe("serializacion JSON", () => {
     expect(hidratado.value.opds[modelo.opdRaizId]?.enlaces[aparienciaEnlaceId]?.symbolPos).toEqual({ x: 180, y: 230 });
   });
 
+  test("preserva orderedFundamentalTypes de entidad refinable", () => {
+    let modelo = crearModelo("Orden estructural");
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 20 }, "Todo"));
+    const todoId = entidadPorNombre(modelo, "Todo");
+    modelo = {
+      ...modelo,
+      entidades: {
+        ...modelo.entidades,
+        [todoId]: {
+          ...modelo.entidades[todoId]!,
+          orderedFundamentalTypes: ["agregacion", "exhibicion"],
+        },
+      },
+    };
+
+    const hidratado = hidratarModelo(exportarModelo(modelo));
+
+    expect(hidratado.ok).toBe(true);
+    if (!hidratado.ok) return;
+    expect(hidratado.value.entidades[todoId]?.orderedFundamentalTypes).toEqual(["agregacion", "exhibicion"]);
+  });
+
   test("preserva estados y designaciones en round-trip", () => {
     let modelo = crearModelo("Estados");
     modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 10, y: 20 }, "Semaforo"));

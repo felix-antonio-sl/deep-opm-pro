@@ -55,6 +55,8 @@ export {
   moverPuertoEnlace,
   separarGrupoEstructural,
   volverGrupoEstructuralAutomatico,
+  cambiarTipoGrupoEstructural,
+  fijarOrdenGrupoEstructural,
   reanclarEnlaceExternoDerivado,
   volverEnlaceExternoDerivadoAAutomatico,
 } from "./operaciones/enlaces";

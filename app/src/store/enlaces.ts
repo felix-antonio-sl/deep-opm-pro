@@ -1,6 +1,6 @@
 import { crearCosaEnPosicion } from "../modelo/creacionInterna";
 import { naturalezaDeEnlace } from "../modelo/constantes";
-import { extremoEstado } from "../modelo/extremos";
+import { entidadIdDeExtremo, extremoEstado } from "../modelo/extremos";
 import {
   designarCurrent,
   designarDefault,
@@ -27,6 +27,7 @@ import {
   cambiarEsencia,
   agregarEstado,
   crearEnlace,
+  cambiarTipoGrupoEstructural,
   crearEstadosIniciales,
   crearModelo,
   crearObjeto,
@@ -46,6 +47,7 @@ import {
   renombrarEntidad,
   renombrarEstado,
   separarGrupoEstructural,
+  fijarOrdenGrupoEstructural,
   splitEffectEnPar,
   volverGrupoEstructuralAutomatico,
   volverEnlaceExternoDerivadoAAutomatico as volverEnlaceExternoDerivadoAAutomaticoOp,
@@ -351,6 +353,50 @@ export const createEnlacesSlice: CrearSlice<EnlacesSlice> = (set, get) => ({
     commitModelo(set, modelo, resultado.value.modelo, { seleccionId: null, enlaceSeleccionId: enlaceId, modoEnlace: null, mensaje: resultado.value.advertencia ?? null });
   },
 
+  cambiarTipoGrupoEstructuralSeleccionado(tipo) {
+    const { modelo, enlaceSeleccionId, seleccionados } = get();
+    if (!enlaceSeleccionId) {
+      set({ mensaje: "Selecciona un enlace estructural" });
+      return;
+    }
+    const ids = enlacesEstructuralesCompatibles(modelo, enlaceSeleccionId, seleccionados);
+    const resultado = cambiarTipoGrupoEstructural(modelo, ids, tipo);
+    if (!resultado.ok) {
+      set({ mensaje: resultado.error });
+      return;
+    }
+    commitModelo(set, modelo, resultado.value, {
+      seleccionId: null,
+      seleccionados: ids,
+      modoSeleccion: ids.length > 1 ? "multi" : "simple",
+      enlaceSeleccionId,
+      modoEnlace: null,
+      mensaje: ids.length > 1 ? `Grupo estructural cambiado a ${tipo}` : `Enlace estructural cambiado a ${tipo}`,
+    });
+  },
+
+  fijarOrdenGrupoEstructuralSeleccionado(ordenado) {
+    const { modelo, enlaceSeleccionId, seleccionados } = get();
+    if (!enlaceSeleccionId) {
+      set({ mensaje: "Selecciona un enlace estructural" });
+      return;
+    }
+    const ids = enlacesEstructuralesCompatibles(modelo, enlaceSeleccionId, seleccionados);
+    const resultado = fijarOrdenGrupoEstructural(modelo, ids, ordenado);
+    if (!resultado.ok) {
+      set({ mensaje: resultado.error });
+      return;
+    }
+    commitModelo(set, modelo, resultado.value, {
+      seleccionId: null,
+      seleccionados: ids,
+      modoSeleccion: ids.length > 1 ? "multi" : "simple",
+      enlaceSeleccionId,
+      modoEnlace: null,
+      mensaje: ordenado ? "Grupo estructural ordenado" : "Grupo estructural sin orden explícito",
+    });
+  },
+
   separarGrupoEstructuralSeleccionado() {
     const { modelo, enlaceSeleccionId, seleccionados } = get();
     if (!enlaceSeleccionId) {
@@ -539,14 +585,17 @@ export const createEnlacesSlice: CrearSlice<EnlacesSlice> = (set, get) => ({
 
 function enlacesEstructuralesCompatibles(modelo: Modelo, enlaceSeleccionId: Id, seleccionados: readonly Id[]): Id[] {
   const base = modelo.enlaces[enlaceSeleccionId];
-  if (!base || base.origenId.kind !== "entidad") return [];
+  if (!base) return [];
+  const baseOrigen = entidadIdDeExtremo(modelo, base.origenId);
+  const baseDestino = entidadIdDeExtremo(modelo, base.destinoId);
   const ids = [enlaceSeleccionId, ...seleccionados.filter((id) => id !== enlaceSeleccionId && !!modelo.enlaces[id])];
   return [...new Set(ids)].filter((id) => {
     const enlace = modelo.enlaces[id];
+    const origen = enlace ? entidadIdDeExtremo(modelo, enlace.origenId) : null;
+    const destino = enlace ? entidadIdDeExtremo(modelo, enlace.destinoId) : null;
     return !!enlace &&
       enlace.tipo === base.tipo &&
       naturalezaDeEnlace(enlace.tipo) === "estructural" &&
-      enlace.origenId.kind === "entidad" &&
-      enlace.origenId.id === base.origenId.id;
+      ((!!baseOrigen && origen === baseOrigen) || (!!baseDestino && destino === baseDestino));
   });
 }

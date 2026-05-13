@@ -901,6 +901,7 @@ export interface ExportadoModelo {
         despliegue?: { opdId: string; modo?: string };
       };
       imagen?: { url: string; modo: string };
+      orderedFundamentalTypes?: string[];
     }>;
     estados: Record<string, { id: string; entidadId: string; nombre: string; esInicial?: boolean; esFinal?: boolean }>;
     enlaces: Record<string, {

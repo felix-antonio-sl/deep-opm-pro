@@ -403,6 +403,7 @@ export interface OpmStore {
   seleccionarEntidad: (id: Id) => void;
   seleccionarEstadoComoExtremo: (estadoId: Id) => void;
   seleccionarEnlace: (id: Id) => void;
+  seleccionarGrupoEstructural: (enlaceId: Id, enlaceIds: Id[]) => void;
   seleccionarDesdeOpl: (ref: OplReferencia) => void;
   renombrarEntidadDesdeOpl: (entidadId: Id, nombre: string) => void;
   fijarFiltroOplPorSeleccion: (activo: boolean) => void;
@@ -519,6 +520,8 @@ export interface OpmStore {
   moverPuertoEnlaceSeleccionado: (lado: "origen" | "destino", extremo: ExtremoEnlace, opcionRemover?: boolean) => void;
   renombrarEtiquetaEnlaceSeleccionado: (etiqueta: string) => void;
   definirRutaEtiquetaSeleccionada: (etiqueta: string | undefined) => void;
+  cambiarTipoGrupoEstructuralSeleccionado: (tipo: TipoEnlace) => void;
+  fijarOrdenGrupoEstructuralSeleccionado: (ordenado: boolean) => void;
   separarGrupoEstructuralSeleccionado: () => void;
   volverGrupoEstructuralAutomaticoSeleccionado: () => void;
   eliminarSeleccion: () => void;

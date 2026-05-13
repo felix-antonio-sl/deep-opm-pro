@@ -380,6 +380,9 @@ test("renderiza agregacion como triangulo estructural", async ({ page }) => {
   await expect(page.getByText("Enlace Agregacion")).toBeVisible();
   await expect(page.locator('[data-tool-name="vertices"]')).toHaveCount(0);
   await expect(page.locator('[data-tool-name="segments"]')).toHaveCount(0);
+  await page.getByTestId("tipo-grupo-estructural").selectOption("exhibicion");
+  await page.getByTestId("orden-grupo-estructural").check();
+  await expect(page.getByText("Enlace Exhibicion")).toBeVisible();
 
   const triangulo = page.locator(".joint-element polygon").first();
   const box = await triangulo.boundingBox();
@@ -391,6 +394,10 @@ test("renderiza agregacion como triangulo estructural", async ({ page }) => {
 
   const exportado = await exportadoActual(page);
   const aparienciaEnlace = Object.values(exportado.modelo.opds[exportado.modelo.opdRaizId]?.enlaces ?? {})[0];
+  const enlace = Object.values(exportado.modelo.enlaces)[0];
+  const refinable = Object.values(exportado.modelo.entidades).find((entidad) => entidad.nombre === "Objeto");
+  expect(enlace?.tipo).toBe("exhibicion");
+  expect(refinable?.orderedFundamentalTypes).toEqual(["exhibicion"]);
   expect(aparienciaEnlace?.symbolPos).toBeDefined();
   expect(aparienciaEnlace?.symbolPos?.x).toBeGreaterThan(0);
   expect(aparienciaEnlace?.symbolPos?.y).toBeGreaterThan(0);

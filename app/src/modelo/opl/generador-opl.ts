@@ -82,7 +82,7 @@ function generarSentenciasOpd(modelo: Modelo, opd: Opd): string[] {
   const procedurales = enlacesEnOpd.filter((el) => naturalezaDeEnlace(el.tipo) === "procedural");
 
   for (const el of estructurales) {
-    const s = sentenciaEstructural(el);
+    const s = sentenciaEstructural(modelo, el);
     if (s) sentencias.push(s);
   }
 
@@ -141,19 +141,26 @@ function esenciaOpl(esencia: Esencia): string {
   return esencia === "fisica" ? "fisico" : "informatico";
 }
 
-function sentenciaEstructural(el: OplEnlace): string | null {
+function sentenciaEstructural(modelo: Modelo, el: OplEnlace): string | null {
+  const sufijoOrdenado = estructuralOrdenado(modelo, el) ? " en esa secuencia" : "";
   switch (el.tipo) {
     case "agregacion":
-      return `${el.orig.nombre} consta de ${el.dest.nombre}.`;
+      return `${el.orig.nombre} consta de ${el.dest.nombre}${sufijoOrdenado}.`;
     case "exhibicion":
-      return `${el.orig.nombre} exhibe ${el.dest.nombre}.`;
+      return `${el.orig.nombre} exhibe ${el.dest.nombre}${sufijoOrdenado}.`;
     case "generalizacion":
-      return `${el.orig.nombre} es de tipo ${el.dest.nombre}.`;
+      return `${el.orig.nombre} es de tipo ${el.dest.nombre}${sufijoOrdenado}.`;
     case "clasificacion":
-      return `${el.orig.nombre} tiene como instancia ${el.dest.nombre}.`;
+      return `${el.orig.nombre} tiene como instancia ${el.dest.nombre}${sufijoOrdenado}.`;
     default:
       return null;
   }
+}
+
+function estructuralOrdenado(modelo: Modelo, el: OplEnlace): boolean {
+  if (naturalezaDeEnlace(el.tipo) !== "estructural") return false;
+  const refinableId = el.origenId.kind === "entidad" ? el.origenId.id : null;
+  return !!refinableId && (modelo.entidades[refinableId]?.orderedFundamentalTypes?.includes(el.tipo) ?? false);
 }
 
 function sentenciaProcedural(modelo: Modelo, el: OplEnlace): string | null {

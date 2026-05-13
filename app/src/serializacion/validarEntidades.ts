@@ -6,10 +6,12 @@ import type {
   Id,
   ImagenEntidad,
   Resultado,
+  TipoEnlace,
   TipoValorSlot,
   UrlObjetoTipada,
   ValorSlot,
 } from "../modelo/tipos";
+import { naturalezaDeEnlace } from "../modelo/constantes";
 import { validarValorSlot } from "../modelo/validadores/valorSlot";
 import { fallo, ok, esAfiliacion, esEsencia, esRecord, esTipoEntidad } from "./validarHelpers";
 import { validarRefinamientos } from "./validarOpds";
@@ -103,7 +105,30 @@ export function camposEntidadAvanzada(entidadId: Id, raw: Record<string, unknown
   }
   if (raw.layoutEstados === "horizontal" || raw.layoutEstados === "vertical") campos.layoutEstados = raw.layoutEstados;
   if (raw.layoutEstados !== undefined && raw.layoutEstados !== "horizontal" && raw.layoutEstados !== "vertical") return fallo(`Entidad inválida: ${entidadId}.layoutEstados`);
+  if (raw.orderedFundamentalTypes !== undefined) {
+    const ordered = validarOrderedFundamentalTypes(entidadId, raw.orderedFundamentalTypes);
+    if (!ordered.ok) return ordered;
+    if (ordered.value.length > 0) campos.orderedFundamentalTypes = ordered.value;
+  }
   return ok(campos);
+}
+
+function validarOrderedFundamentalTypes(entidadId: Id, value: unknown): Resultado<TipoEnlace[]> {
+  if (!Array.isArray(value)) return fallo(`Entidad inválida: ${entidadId}.orderedFundamentalTypes`);
+  const tipos: TipoEnlace[] = [];
+  for (const item of value) {
+    if (
+      item !== "agregacion" &&
+      item !== "exhibicion" &&
+      item !== "generalizacion" &&
+      item !== "clasificacion"
+    ) {
+      return fallo(`Entidad inválida: ${entidadId}.orderedFundamentalTypes`);
+    }
+    if (naturalezaDeEnlace(item) !== "estructural") return fallo(`Entidad inválida: ${entidadId}.orderedFundamentalTypes`);
+    if (!tipos.includes(item)) tipos.push(item);
+  }
+  return ok(tipos);
 }
 
 function validarValorSlotSerializado(entidadId: Id, value: unknown): Resultado<ValorSlot> {

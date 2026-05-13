@@ -1,5 +1,6 @@
 import type { LayoutEstados } from "./apariencia";
 import type { Id } from "./comunes";
+import type { TipoEnlace } from "./enlace";
 
 /**
  * Tipos del dominio Entidad (Object/Process en SSOT OPM) y su metadata.
@@ -126,4 +127,10 @@ export interface Entidad {
   urls?: UrlObjetoTipada[];
   imagen?: ImagenEntidad;
   layoutEstados?: LayoutEstados;
+  /**
+   * Tipos estructurales fundamentales marcados como ordenados para esta cosa
+   * refinable. Emula `orderedFundamentalTypes` de OPCloud: el orden pertenece
+   * al refinable lógico y al tipo de relación, no a una rama aislada.
+   */
+  orderedFundamentalTypes?: TipoEnlace[];
 }

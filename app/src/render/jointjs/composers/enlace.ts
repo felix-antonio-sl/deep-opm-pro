@@ -419,6 +419,33 @@ export function etiquetaTextoEnlace(text: string): Record<string, unknown> {
   };
 }
 
+export function etiquetaOrdenEstructural(): Record<string, unknown> {
+  return {
+    markup: [{ tagName: "text", selector: "label" }],
+    attrs: {
+      label: {
+        text: "ordered",
+        fill: "#1f2937",
+        fontFamily: CANON.dims.fontFamily,
+        fontSize: 11,
+        fontWeight: 700,
+        textAnchor: "middle",
+        textVerticalAnchor: "middle",
+        pointerEvents: "none",
+      },
+    },
+    position: {
+      distance: 0.5,
+      offset: -20,
+      angle: 0,
+      args: {
+        keepGradient: false,
+        ensureLegibility: true,
+      },
+    },
+  };
+}
+
 export function etiquetaMultiplicidad(text: string, distance: number): Record<string, unknown> {
   return {
     markup: [{ tagName: "text", selector: "label" }],
@@ -458,6 +485,7 @@ export function proyectarRefinamientoEstructural(
   destino: EndpointVisual,
   seleccionada: boolean,
   symbolPos?: Posicion,
+  ordenado = false,
 ): JointCellJson[] {
   const triangleSize = 30;
   const source = centro(origen.apariencia);
@@ -498,6 +526,7 @@ export function proyectarRefinamientoEstructural(
       source: extremo(origen.apariencia.id, origen.portId),
       target: extremoTriangulo(triangleId, "in"),
       connector: { name: "straight" },
+      labels: ordenado ? [etiquetaOrdenEstructural()] : [],
       attrs: lineAttrs,
       opm: metaRefinable,
       z: Z_ENLACE,

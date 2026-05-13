@@ -4,7 +4,7 @@ import type { Apariencia, Enlace, Id, Modelo, Posicion, TipoEnlace } from "../..
 import { etiquetaEnlaceNormalizada } from "../../modelo/etiquetasEnlace";
 import type { JointCellJson, OpmJointMetadata } from "./proyeccion";
 import { marcadoresEstructurales } from "./composers/markers";
-import { extremoTriangulo } from "./composers/enlace";
+import { etiquetaOrdenEstructural, extremoTriangulo } from "./composers/enlace";
 
 const Z_ENLACE_BUS = 4;
 
@@ -23,7 +23,7 @@ export function proyectarBusesEstructurales(args: {
   seleccionados: Set<Id>;
 }): { busCells: JointCellJson[]; enlacesConsumidos: Set<Id> } {
   const grupos = gruposEstructurales(args);
-  const busCells = grupos.flatMap((grupo) => proyectarGrupoEstructural(args.opdId, grupo, args.seleccionados));
+  const busCells = grupos.flatMap((grupo) => proyectarGrupoEstructural(args.modelo, args.opdId, grupo, args.seleccionados));
   const enlacesConsumidos = new Set(grupos.flatMap((grupo) => grupo.ramas.map((rama) => rama.enlace.id)));
   return { busCells, enlacesConsumidos };
 }
@@ -94,6 +94,7 @@ function agruparPorRefinable(
 }
 
 function proyectarGrupoEstructural(
+  modelo: Modelo,
   opdId: Id,
   grupo: GrupoEstructural,
   seleccionados: Set<Id>,
@@ -134,6 +135,7 @@ function proyectarGrupoEstructural(
     ...metaRefinable,
     rolEstructural: "simbolo",
   };
+  const ordenado = modelo.entidades[grupo.refinableId]?.orderedFundamentalTypes?.includes(grupo.tipo) ?? false;
 
   return [
     {
@@ -143,6 +145,7 @@ function proyectarGrupoEstructural(
       target: extremoTriangulo(triangleId, "in"),
       router: routerManhattan(),
       connector: { name: "straight" },
+      labels: ordenado ? [etiquetaOrdenEstructural()] : [],
       attrs: attrsLinea(algunaSeleccionada),
       opm: metaRefinable,
       z: Z_ENLACE_BUS,

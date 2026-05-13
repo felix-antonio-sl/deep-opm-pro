@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { extremoEntidad } from "../extremos";
-import { crearEnlace, crearModelo, crearObjeto, crearProceso, moverPuertoEnlace } from "../operaciones";
+import { cambiarTipoGrupoEstructural, crearEnlace, crearModelo, crearObjeto, crearProceso, fijarOrdenGrupoEstructural, moverPuertoEnlace } from "../operaciones";
 import type { Modelo, Resultado } from "../tipos";
 import { copiarEstiloEnlace, eliminarEnlacesBatch } from "./enlaces";
 
@@ -53,6 +53,27 @@ describe("operaciones/enlaces", () => {
     expect(estilo).toEqual({ color: "#1d4ed8", strokeWidth: 2, dashArray: "4 4" });
     expect(estilo).not.toBe(modelo.enlaces[enlaceId]?.estilo);
   });
+
+  test("cambiarTipoGrupoEstructural actualiza un grupo estructural compatible", () => {
+    let modelo = modeloEstructural();
+    const ids = Object.keys(modelo.enlaces);
+
+    modelo = must(cambiarTipoGrupoEstructural(modelo, ids, "generalizacion"));
+
+    expect(ids.map((id) => modelo.enlaces[id]?.tipo)).toEqual(["generalizacion", "generalizacion"]);
+  });
+
+  test("fijarOrdenGrupoEstructural persiste orderedFundamentalTypes en el refinable", () => {
+    let modelo = modeloEstructural();
+    const ids = Object.keys(modelo.enlaces);
+    const todoId = entidad(modelo, "Todo");
+
+    modelo = must(fijarOrdenGrupoEstructural(modelo, ids, true));
+    expect(modelo.entidades[todoId]?.orderedFundamentalTypes).toEqual(["agregacion"]);
+
+    modelo = must(fijarOrdenGrupoEstructural(modelo, ids, false));
+    expect(modelo.entidades[todoId]?.orderedFundamentalTypes).toBeUndefined();
+  });
 });
 
 function modeloBase(): Modelo {
@@ -61,6 +82,16 @@ function modeloBase(): Modelo {
   modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 220, y: 80 }, "Procesar"));
   modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 420, y: 80 }, "Validar"));
   modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidad(modelo, "Entrada"), entidad(modelo, "Procesar"), "consumo"));
+  return modelo;
+}
+
+function modeloEstructural(): Modelo {
+  let modelo = crearModelo("Grupo estructural");
+  modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 90 }, "Todo"));
+  modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 240, y: 20 }, "Parte A"));
+  modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 240, y: 160 }, "Parte B"));
+  modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidad(modelo, "Todo"), entidad(modelo, "Parte A"), "agregacion"));
+  modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidad(modelo, "Todo"), entidad(modelo, "Parte B"), "agregacion"));
   return modelo;
 }
 

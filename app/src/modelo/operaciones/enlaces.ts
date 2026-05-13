@@ -1,5 +1,6 @@
 import {
   entidadDeExtremo,
+  entidadIdDeExtremo,
   extremoApuntaAEntidad,
   extremoEntidad,
   extremoVisibleEnOpd,
@@ -37,6 +38,8 @@ import { eliminarEnlace } from "./eliminacion";
 export type LadoMultiplicidadEnlace = "origen" | "destino";
 
 export type LadoExtremoEnlace = "origen" | "destino";
+
+const TIPOS_ESTRUCTURALES = ["agregacion", "exhibicion", "generalizacion", "clasificacion"] as const satisfies readonly TipoEnlace[];
 
 const MULTIPLICIDAD_CANONICA_RE = /^\d+$|^\*$|^\d+\.\.\d+$|^\d+\.\.N$/;
 
@@ -216,6 +219,68 @@ export function volverGrupoEstructuralAutomatico(modelo: Modelo, enlaceIds: Id[]
   return ok(cambio ? { ...modelo, enlaces } : modelo);
 }
 
+export function cambiarTipoGrupoEstructural(
+  modelo: Modelo,
+  enlaceIds: Id[],
+  tipo: TipoEnlace,
+): Resultado<Modelo> {
+  if (!esTipoEstructural(tipo)) return fallo("El grupo estructural requiere un tipo fundamental");
+  const ids = [...new Set(enlaceIds)];
+  if (ids.length === 0) return fallo("Selecciona al menos un enlace estructural");
+  const enlaces = { ...modelo.enlaces };
+  let cambio = false;
+  for (const enlaceId of ids) {
+    const enlace = enlaces[enlaceId];
+    if (!enlace) return fallo(`Enlace no existe: ${enlaceId}`);
+    if (naturalezaDeEnlace(enlace.tipo) !== "estructural") {
+      return fallo("Sólo los enlaces estructurales fundamentales pueden cambiar tipo en grupo");
+    }
+    const origen = entidadDeExtremo(modelo, enlace.origenId);
+    const destino = entidadDeExtremo(modelo, enlace.destinoId);
+    if (!origen || !destino) return fallo("Extremo de enlace inválido");
+    const firma = validarFirmaEnlace(tipo, origen, destino, {
+      origen: enlace.origenId,
+      destino: enlace.destinoId,
+    });
+    if (!firma.ok) return fallo(firma.error);
+    if (enlace.tipo === tipo) continue;
+    enlaces[enlaceId] = { ...enlace, tipo };
+    cambio = true;
+  }
+  return ok(cambio ? { ...modelo, enlaces } : modelo);
+}
+
+export function fijarOrdenGrupoEstructural(
+  modelo: Modelo,
+  enlaceIds: Id[],
+  ordenado: boolean,
+): Resultado<Modelo> {
+  const ids = [...new Set(enlaceIds)];
+  if (ids.length === 0) return fallo("Selecciona al menos un enlace estructural");
+  const tipo = tipoEstructuralComun(modelo, ids);
+  if (!tipo) return fallo("El grupo debe compartir un tipo estructural");
+  const refinableId = refinableComun(modelo, ids);
+  if (!refinableId) return fallo("El grupo estructural no tiene refinable común");
+  const refinable = modelo.entidades[refinableId];
+  if (!refinable) return fallo(`Entidad no existe: ${refinableId}`);
+  const actuales = refinable.orderedFundamentalTypes ?? [];
+  const yaOrdenado = actuales.includes(tipo);
+  if (yaOrdenado === ordenado) return ok(modelo);
+  const siguientes = ordenado
+    ? [...actuales, tipo]
+    : actuales.filter((actual) => actual !== tipo);
+  const entidadActualizada = { ...refinable };
+  if (siguientes.length > 0) entidadActualizada.orderedFundamentalTypes = siguientes;
+  else delete entidadActualizada.orderedFundamentalTypes;
+  return ok({
+    ...modelo,
+    entidades: {
+      ...modelo.entidades,
+      [refinableId]: entidadActualizada,
+    },
+  });
+}
+
 export function eliminarEnlacesBatch(modelo: Modelo, enlaceIds: Id[]): Resultado<Modelo> {
   let siguiente = modelo;
   for (const enlaceId of enlaceIds) {
@@ -348,5 +413,36 @@ function ladoReanclableDerivado(enlace: Enlace, enlacePadre: Enlace, refinamient
     extremoApuntaAEntidad(enlacePadre.origenId, refinamientoId) &&
     mismoExtremo(enlace.destinoId, enlacePadre.destinoId)
   ) return "origen";
+  return null;
+}
+
+function esTipoEstructural(tipo: TipoEnlace): boolean {
+  return (TIPOS_ESTRUCTURALES as readonly TipoEnlace[]).includes(tipo);
+}
+
+function tipoEstructuralComun(modelo: Modelo, enlaceIds: Id[]): TipoEnlace | null {
+  let tipo: TipoEnlace | null = null;
+  for (const enlaceId of enlaceIds) {
+    const enlace = modelo.enlaces[enlaceId];
+    if (!enlace || naturalezaDeEnlace(enlace.tipo) !== "estructural") return null;
+    if (!tipo) tipo = enlace.tipo;
+    else if (tipo !== enlace.tipo) return null;
+  }
+  return tipo;
+}
+
+function refinableComun(modelo: Modelo, enlaceIds: Id[]): Id | null {
+  const origenes = new Set<Id>();
+  const destinos = new Set<Id>();
+  for (const enlaceId of enlaceIds) {
+    const enlace = modelo.enlaces[enlaceId];
+    if (!enlace) return null;
+    const origen = entidadIdDeExtremo(modelo, enlace.origenId);
+    const destino = entidadIdDeExtremo(modelo, enlace.destinoId);
+    if (origen) origenes.add(origen);
+    if (destino) destinos.add(destino);
+  }
+  if (origenes.size === 1) return [...origenes][0] ?? null;
+  if (destinos.size === 1) return [...destinos][0] ?? null;
   return null;
 }

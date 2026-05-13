@@ -615,6 +615,29 @@ describe("proyeccion JointJS", () => {
     expect(new Set(ramas.map((cell) => cell.opm.kind === "enlace" ? cell.opm.enlaceId : ""))).toEqual(new Set(Object.keys(modelo.enlaces)));
   });
 
+  test("bus estructural ordenado muestra label ordered en tramo refinable", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 90 }, "Todo"));
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 260, y: 20 }, "Parte A"));
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 260, y: 170 }, "Parte B"));
+    const todoId = entidadPorNombre(modelo, "Todo");
+    modelo = {
+      ...modelo,
+      entidades: {
+        ...modelo.entidades,
+        [todoId]: { ...modelo.entidades[todoId]!, orderedFundamentalTypes: ["agregacion"] },
+      },
+    };
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, todoId, entidadPorNombre(modelo, "Parte A"), "agregacion"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, todoId, entidadPorNombre(modelo, "Parte B"), "agregacion"));
+
+    const refinable = proyectarModeloAJointCells(modelo, modelo.opdRaizId, null, null)
+      .find((cell) => cell.type === "standard.Link" && String(cell.id).endsWith("-refinable"));
+    const labels = refinable?.labels as Array<{ attrs?: { label?: { text?: unknown } } }> | undefined;
+
+    expect(labels?.[0]?.attrs?.label?.text).toBe("ordered");
+  });
+
   test("bus estructural usa symbolPos persistido y expone todas sus apariencias", () => {
     let modelo = crearModelo();
     modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 90 }, "Todo"));

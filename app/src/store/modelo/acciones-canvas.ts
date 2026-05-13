@@ -150,6 +150,27 @@ export function accionesCanvas(set: SetStore, get: GetStore): Partial<ModeloSlic
       set({ seleccionId: null, seleccionados: [id], modoSeleccion: "simple", enlaceSeleccionId: id, modoEnlace: null, mensaje: null, nuevaCosaPendiente: null });
     },
 
+    seleccionarGrupoEstructural(id, enlaceIds) {
+      const { modelo } = get();
+      const enlace = modelo.enlaces[id];
+      if (!enlace) {
+        set({ mensaje: `Enlace no existe: ${id}` });
+        return;
+      }
+      const ids = [id, ...enlaceIds].filter((enlaceId, index, todos) => (
+        todos.indexOf(enlaceId) === index && !!modelo.enlaces[enlaceId]
+      ));
+      set({
+        seleccionId: null,
+        seleccionados: ids.length > 0 ? ids : [id],
+        modoSeleccion: ids.length > 1 ? "multi" : "simple",
+        enlaceSeleccionId: id,
+        modoEnlace: null,
+        mensaje: null,
+        nuevaCosaPendiente: null,
+      });
+    },
+
     seleccionarDesdeOpl(ref) {
       const { modelo, nuevaCosaPendiente } = get();
       // P1-5 ronda 4: navegacion desde OPL es cambio de contexto explicito

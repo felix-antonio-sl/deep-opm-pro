@@ -149,8 +149,12 @@ export function proyectarModeloAJointCells(
     if (origen.apariencia.id === destino.apariencia.id) return [];
     const enlaceResaltado = enlace.id === seleccionEnlaceId || seleccionMultiple.has(enlace.id) || refResaltaEnlace(enlace, hoverOplRef);
     const enlaceActivoRuntime = enlacesInvolucradosSim.has(enlace.id);
+    const refinableId = entidadIdDeExtremo(modeloRender, enlace.origenId);
+    const ordenado = refinableId
+      ? modeloRender.entidades[refinableId]?.orderedFundamentalTypes?.includes(enlace.tipo) ?? false
+      : false;
     return TIPOS_REFINAMIENTO_ESTRUCTURAL.includes(enlace.tipo) && !origen.proxy && !destino.proxy
-      ? proyectarRefinamientoEstructural(opdId, enlace, aparienciaEnlace.id, origen, destino, enlaceResaltado, aparienciaEnlace.symbolPos)
+      ? proyectarRefinamientoEstructural(opdId, enlace, aparienciaEnlace.id, origen, destino, enlaceResaltado, aparienciaEnlace.symbolPos, ordenado)
       : [proyectarEnlace(opdId, enlace, aparienciaEnlace.id, origen, destino, aparienciaEnlace.vertices, enlaceResaltado, enlacesEnAbanico.has(enlace.id), { usarJumpover, activaSimulacion: enlaceActivoRuntime })];
   });
 

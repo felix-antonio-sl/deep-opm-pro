@@ -77,6 +77,8 @@ export function JointCanvas() {
   const seleccionarEstadoComoExtremoRef = useRef(seleccionarEstadoComoExtremo);
   const seleccionarEnlace = useOpmStore((s) => s.seleccionarEnlace);
   const seleccionarEnlaceRef = useRef(seleccionarEnlace);
+  const seleccionarGrupoEstructural = useOpmStore((s) => s.seleccionarGrupoEstructural);
+  const seleccionarGrupoEstructuralRef = useRef(seleccionarGrupoEstructural);
   const cambiarOpdActivo = useOpmStore((s) => s.cambiarOpdActivo);
   const cambiarOpdActivoRef = useRef(cambiarOpdActivo);
   const moverAparienciaConPuertos = useOpmStore((s) => s.moverAparienciaConPuertos);
@@ -138,6 +140,7 @@ export function JointCanvas() {
     seleccionarPartePlegadaRef.current = seleccionarPartePlegada;
     seleccionarEstadoComoExtremoRef.current = seleccionarEstadoComoExtremo;
     seleccionarEnlaceRef.current = seleccionarEnlace;
+    seleccionarGrupoEstructuralRef.current = seleccionarGrupoEstructural;
     cambiarOpdActivoRef.current = cambiarOpdActivo;
     moverAparienciaConPuertosRef.current = moverAparienciaConPuertos;
     actualizarPosicionSimboloEstructuralRef.current = actualizarPosicionSimboloEstructural;
@@ -155,7 +158,7 @@ export function JointCanvas() {
     vaciarSeleccionRef.current = vaciarSeleccion;
     redimensionarAparienciaEnCanvasRef.current = redimensionarAparienciaEnCanvas;
     renombrarEntidadDesdeOplRef.current = renombrarEntidadDesdeOpl;
-  }, [actualizarPosicionSimboloEstructural, actualizarVerticesEnlace, agregarASeleccion, alternarModoImagenEntidad, abrirModalImagen, cambiarModoPlegadoApariencia, cambiarOpdActivo, crearEnlaceEntreEntidades, crearEntidadEnCanvas, extraerParteDePlegado, fijarHoverOpl, moverAparienciaConPuertos, redimensionarAparienciaEnCanvas, renombrarEntidadDesdeOpl, seleccionarEnlace, seleccionarEntidad, seleccionarEstadoComoExtremo, seleccionarPartePlegada, setSeleccion, toggleSeleccion, vaciarSeleccion]);
+  }, [actualizarPosicionSimboloEstructural, actualizarVerticesEnlace, agregarASeleccion, alternarModoImagenEntidad, abrirModalImagen, cambiarModoPlegadoApariencia, cambiarOpdActivo, crearEnlaceEntreEntidades, crearEntidadEnCanvas, extraerParteDePlegado, fijarHoverOpl, moverAparienciaConPuertos, redimensionarAparienciaEnCanvas, renombrarEntidadDesdeOpl, seleccionarEnlace, seleccionarEntidad, seleccionarEstadoComoExtremo, seleccionarGrupoEstructural, seleccionarPartePlegada, setSeleccion, toggleSeleccion, vaciarSeleccion]);
 
   // Setup del paper + cableado de handlers (mount inicial).
   useEffect(() => {
@@ -239,6 +242,7 @@ export function JointCanvas() {
       seleccionarPartePlegadaRef,
       seleccionarEstadoComoExtremoRef,
       seleccionarEnlaceRef,
+      seleccionarGrupoEstructuralRef,
       cambiarOpdActivoRef,
       cambiarModoPlegadoAparienciaRef,
       alternarModoImagenEntidadRef,

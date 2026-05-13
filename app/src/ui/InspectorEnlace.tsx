@@ -2,10 +2,10 @@ import { useEffect, useState } from "preact/hooks";
 import { abanicoDeEnlace } from "../modelo/abanicos";
 import { naturalezaDeEnlace } from "../modelo/constantes";
 import { etiquetaEnlaceNormalizada, validarEtiquetaEnlace } from "../modelo/etiquetasEnlace";
-import { entidadDeExtremo, nombreExtremo } from "../modelo/extremos";
+import { entidadDeExtremo, entidadIdDeExtremo, nombreExtremo } from "../modelo/extremos";
 import { validarMultiplicidad } from "../modelo/operaciones";
 import { useOpmStore, store } from "../store";
-import type { Enlace, Id, Modelo, Modificador } from "../modelo/tipos";
+import type { Enlace, Entidad, Id, Modelo, Modificador, TipoEnlace } from "../modelo/tipos";
 import type { TabInspectorEnlace } from "../store/tipos";
 import { inspectorStyles as style } from "./inspectorStyles";
 import { InspectorTabs, type InspectorTabDef } from "./inspector/InspectorTabs";
@@ -18,6 +18,7 @@ import { SeccionReanclaje, contextoReanclaje } from "./inspectorEnlace/SeccionRe
 import { SeccionRuta } from "./inspectorEnlace/SeccionRuta";
 import { DialogoEstiloEnlace } from "./DialogoEstiloEnlace";
 import { DialogoMoverPuerto } from "./DialogoMoverPuerto";
+import { tokens } from "./tokens";
 
 interface Props {
   enlace: Enlace;
@@ -71,6 +72,8 @@ export function InspectorEnlace({ enlace }: Props) {
   const moverPuerto = useOpmStore((s) => s.moverPuertoEnlaceSeleccionado);
   const renombrarEtiquetaEnlace = useOpmStore((s) => s.renombrarEtiquetaEnlaceSeleccionado);
   const definirRutaEtiqueta = useOpmStore((s) => s.definirRutaEtiquetaSeleccionada);
+  const cambiarTipoGrupoEstructural = useOpmStore((s) => s.cambiarTipoGrupoEstructuralSeleccionado);
+  const fijarOrdenGrupoEstructural = useOpmStore((s) => s.fijarOrdenGrupoEstructuralSeleccionado);
   const separarGrupoEstructural = useOpmStore((s) => s.separarGrupoEstructuralSeleccionado);
   const volverGrupoEstructuralAutomatico = useOpmStore((s) => s.volverGrupoEstructuralAutomaticoSeleccionado);
   const eliminar = useOpmStore((s) => s.eliminarSeleccion);
@@ -204,7 +207,11 @@ export function InspectorEnlace({ enlace }: Props) {
                 seleccionar el enlace. */}
             <SeccionAbanico abanico={abanico} onAlternarOperador={alternarOperadorAbanico} onQuitarRama={quitarRamaDeAbanico} onDisolver={disolverAbanico} />
             <SeccionGrupoEstructural
+              modelo={modelo}
               enlace={enlace}
+              seleccionados={seleccionados}
+              onTipo={cambiarTipoGrupoEstructural}
+              onOrdenado={fijarOrdenGrupoEstructural}
               onSeparar={separarGrupoEstructural}
               onAutomatico={volverGrupoEstructuralAutomatico}
             />
@@ -300,15 +307,48 @@ function opdsConEnlace(modelo: Modelo, enlaceId: Id): Id[] {
 }
 
 function SeccionGrupoEstructural(props: {
+  modelo: Modelo;
   enlace: Enlace;
+  seleccionados: readonly Id[];
+  onTipo: (tipo: TipoEnlace) => void;
+  onOrdenado: (ordenado: boolean) => void;
   onSeparar: () => void;
   onAutomatico: () => void;
 }) {
   if (naturalezaDeEnlace(props.enlace.tipo) !== "estructural") return null;
   const separado = !!props.enlace.grupoEstructuralId;
+  const grupo = grupoEstructuralInspector(props.modelo, props.enlace, props.seleccionados);
+  const ordenado = grupo.refinable?.orderedFundamentalTypes?.includes(props.enlace.tipo) ?? false;
   return (
     <div style={style.field}>
       <span style={style.label}>Grupo estructural</span>
+      <label style={style.label}>
+        Tipo
+        <select
+          aria-label="Tipo estructural"
+          data-testid="tipo-grupo-estructural"
+          style={style.input}
+          value={props.enlace.tipo}
+          onChange={(event) => props.onTipo(event.currentTarget.value as TipoEnlace)}
+        >
+          <option value="agregacion">Agregación</option>
+          <option value="exhibicion">Exhibición</option>
+          <option value="generalizacion">Generalización</option>
+          <option value="clasificacion">Clasificación</option>
+        </select>
+      </label>
+      <label style={enlaceStyles.checkRow}>
+        <input
+          type="checkbox"
+          data-testid="orden-grupo-estructural"
+          checked={ordenado}
+          onChange={(event) => props.onOrdenado(event.currentTarget.checked)}
+        />
+        <span>Ordenado</span>
+      </label>
+      <span style={enlaceStyles.help}>
+        {grupo.ids.length > 1 ? `${grupo.ids.length} ramas asociadas al símbolo.` : "Una rama estructural asociada al símbolo."}
+      </span>
       <button
         type="button"
         data-testid="separar-grupo-estructural"
@@ -333,6 +373,25 @@ function SeccionGrupoEstructural(props: {
   );
 }
 
+const TIPOS_ESTRUCTURALES: readonly TipoEnlace[] = ["agregacion", "exhibicion", "generalizacion", "clasificacion"];
+
+function grupoEstructuralInspector(modelo: Modelo, enlace: Enlace, seleccionados: readonly Id[]): { ids: Id[]; refinable?: Entidad } {
+  const baseOrigen = entidadIdDeExtremo(modelo, enlace.origenId);
+  const baseDestino = entidadIdDeExtremo(modelo, enlace.destinoId);
+  const ids = [enlace.id, ...seleccionados.filter((id) => id !== enlace.id)]
+    .filter((id, index, todos) => todos.indexOf(id) === index)
+    .filter((id) => {
+      const actual = modelo.enlaces[id];
+      if (!actual || actual.tipo !== enlace.tipo || !TIPOS_ESTRUCTURALES.includes(actual.tipo)) return false;
+      const origen = entidadIdDeExtremo(modelo, actual.origenId);
+      const destino = entidadIdDeExtremo(modelo, actual.destinoId);
+      return (!!baseOrigen && origen === baseOrigen) || (!!baseDestino && destino === baseDestino);
+    });
+  const refinableId = ids.length > 1 && baseOrigen ? baseOrigen : (baseOrigen ?? baseDestino ?? undefined);
+  const refinable = refinableId ? modelo.entidades[refinableId] : undefined;
+  return refinable ? { ids, refinable } : { ids };
+}
+
 const enlaceStyles = {
   irOpd: {
     width: "100%",
@@ -347,5 +406,18 @@ const enlaceStyles = {
     fontSize: "11px",
     fontWeight: 700,
     textAlign: "left",
+  },
+  checkRow: {
+    display: "flex",
+    alignItems: "center",
+    gap: "8px",
+    fontSize: "12px",
+    fontWeight: 700,
+    color: tokens.colors.textoPrimario,
+  },
+  help: {
+    color: tokens.colors.textoSecundario,
+    fontSize: "11px",
+    lineHeight: 1.35,
   },
 } satisfies Record<string, preact.JSX.CSSProperties>;

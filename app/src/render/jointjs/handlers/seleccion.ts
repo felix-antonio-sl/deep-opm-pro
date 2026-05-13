@@ -37,6 +37,7 @@ export interface CablearSeleccionArgs {
   seleccionarPartePlegadaRef: { current: (aparienciaId: string, parteEntidadId: string) => void };
   seleccionarEstadoComoExtremoRef: { current: (estadoId: string) => void };
   seleccionarEnlaceRef: { current: (id: string) => void };
+  seleccionarGrupoEstructuralRef: { current: (id: string, ids: string[]) => void };
   cambiarOpdActivoRef: { current: (id: string) => void };
   cambiarModoPlegadoAparienciaRef: { current: (aparienciaId: string, modo: ModoPlegado) => void };
   alternarModoImagenEntidadRef: { current: (entidadId: string) => void };
@@ -60,6 +61,7 @@ export function cablearSeleccion(args: CablearSeleccionArgs): () => void {
     seleccionarPartePlegadaRef,
     seleccionarEstadoComoExtremoRef,
     seleccionarEnlaceRef,
+    seleccionarGrupoEstructuralRef,
     cambiarOpdActivoRef,
     cambiarModoPlegadoAparienciaRef,
     alternarModoImagenEntidadRef,
@@ -120,6 +122,10 @@ export function cablearSeleccion(args: CablearSeleccionArgs): () => void {
         else agregarASeleccionRef.current(meta.enlaceId);
         return;
       }
+      if (meta.rolEstructural === "simbolo" && meta.enlaceIds && meta.enlaceIds.length > 1) {
+        seleccionarGrupoEstructuralRef.current(meta.enlaceId, meta.enlaceIds);
+        return;
+      }
       seleccionarEnlaceRef.current(meta.enlaceId);
     }
   };
@@ -178,6 +184,10 @@ export function cablearSeleccion(args: CablearSeleccionArgs): () => void {
       if (multiEvento(evt)) {
         if (ctrlEvento(evt)) toggleSeleccionRef.current(meta.enlaceId);
         else agregarASeleccionRef.current(meta.enlaceId);
+        return;
+      }
+      if (meta.rolEstructural === "simbolo" && meta.enlaceIds && meta.enlaceIds.length > 1) {
+        seleccionarGrupoEstructuralRef.current(meta.enlaceId, meta.enlaceIds);
         return;
       }
       seleccionarEnlaceRef.current(meta.enlaceId);
