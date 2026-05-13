@@ -6,6 +6,10 @@ import type { OpmJointMetadata } from "./proyeccionTipos";
 const MAX_LINKS_SORT = 7;
 const SAMPLE_STEP = 12;
 
+type TerminalOrdenable =
+  | { kind: "anchor"; anchor: dia.Link.EndJSON["anchor"] }
+  | { kind: "port"; port: string | number; connectionPoint?: dia.Link.EndJSON["connectionPoint"] };
+
 export function ordenarEnlacesEstructuralesConectados(paper: dia.Paper, graph: dia.Graph, element: dia.Element): void {
   const links = graph.getConnectedLinks(element)
     .filter((link) => {
@@ -14,17 +18,21 @@ export function ordenarEnlacesEstructuralesConectados(paper: dia.Paper, graph: d
     })
     .map((link) => ({ link, side: ladoConectado(link, element.id) }))
     .filter((item): item is { link: dia.Link; side: "source" | "target" } => item.side !== null)
-    .filter((item) => endpoint(item.link, item.side).anchor !== undefined);
+    .filter((item) => terminalOrdenable(endpoint(item.link, item.side)) !== null);
 
   if (links.length < 2 || links.length > MAX_LINKS_SORT) return;
+  const originales = links.flatMap((item) => {
+    const terminal = terminalOrdenable(endpoint(item.link, item.side));
+    return terminal ? [terminal] : [];
+  });
+  if (originales.length !== links.length || !terminalesCompatibles(originales)) return;
   if (contarCruces(paper, links.map((item) => item.link)) === 0) return;
 
-  const originales = links.map((item) => endpoint(item.link, item.side).anchor);
   for (const perm of permutaciones(originales)) {
-    aplicarAnchors(links, perm);
+    aplicarTerminales(links, perm);
     if (contarCruces(paper, links.map((item) => item.link)) === 0) return;
   }
-  aplicarAnchors(links, originales);
+  aplicarTerminales(links, originales);
 }
 
 export function ordenarTodosLosEnlacesEstructurales(paper: dia.Paper, graph: dia.Graph): void {
@@ -35,11 +43,39 @@ export function ordenarTodosLosEnlacesEstructurales(paper: dia.Paper, graph: dia
   }
 }
 
-function aplicarAnchors(links: Array<{ link: dia.Link; side: "source" | "target" }>, anchors: Array<dia.Link.EndJSON["anchor"]>): void {
+function aplicarTerminales(links: Array<{ link: dia.Link; side: "source" | "target" }>, terminales: TerminalOrdenable[]): void {
   links.forEach((item, index) => {
     const actual = endpoint(item.link, item.side);
-    item.link.prop(item.side, { ...actual, anchor: anchors[index] });
+    const terminal = terminales[index];
+    if (!terminal) return;
+    if (terminal.kind === "anchor") {
+      const siguiente = { ...actual, anchor: terminal.anchor };
+      delete siguiente.port;
+      item.link.prop(item.side, siguiente);
+      return;
+    }
+    const siguiente = {
+      ...actual,
+      port: terminal.port,
+      connectionPoint: terminal.connectionPoint ?? actual.connectionPoint ?? { name: "anchor" },
+    };
+    delete siguiente.anchor;
+    item.link.prop(item.side, siguiente);
   });
+}
+
+function terminalOrdenable(endpointJson: dia.Link.EndJSON): TerminalOrdenable | null {
+  if (endpointJson.anchor !== undefined) return { kind: "anchor", anchor: endpointJson.anchor };
+  const port = endpointJson.port;
+  if (typeof port === "string" || typeof port === "number") {
+    return { kind: "port", port, connectionPoint: endpointJson.connectionPoint };
+  }
+  return null;
+}
+
+function terminalesCompatibles(terminales: TerminalOrdenable[]): boolean {
+  const primera = terminales[0];
+  return !!primera && terminales.every((terminal) => terminal.kind === primera.kind);
 }
 
 function contarCruces(paper: dia.Paper, links: dia.Link[]): number {

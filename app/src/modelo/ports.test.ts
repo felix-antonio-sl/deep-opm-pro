@@ -1,5 +1,6 @@
 import { describe, expect, test } from "bun:test";
-import { crearEnlace, crearModelo, crearObjeto, crearProceso, sincronizarPuertosEnlaces } from "./operaciones";
+import { extremoEstado } from "./extremos";
+import { crearEnlace, crearEstadosIniciales, crearModelo, crearObjeto, crearProceso, sincronizarPuertosEnlaces } from "./operaciones";
 import type { Modelo, Resultado } from "./tipos";
 
 describe("puertos dinámicos OPCloud-style", () => {
@@ -38,6 +39,62 @@ describe("puertos dinámicos OPCloud-style", () => {
     expect(portsDestino).toHaveLength(3);
     expect(new Set(portsDestino.map((port) => `${port.x.toFixed(4)}:${port.y.toFixed(4)}`)).size).toBe(1);
     expect(portsDestino[0]).toEqual({ x: 0.5, y: 0 });
+  });
+
+  test("separa enlaces estructurales con ranuras OPCloud sobre el mismo extremo", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 20 }, "Todo"));
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 220, y: 20 }, "Parte A"));
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 220, y: 20 }, "Parte B"));
+
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidad(modelo, "Todo"), entidad(modelo, "Parte A"), "agregacion"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidad(modelo, "Todo"), entidad(modelo, "Parte B"), "agregacion"));
+    modelo = sincronizarPuertosEnlaces(modelo, modelo.opdRaizId);
+
+    const todo = apariencia(modelo, "Todo");
+    const puertosOrigen = Object.values(modelo.enlaces)
+      .map((enlace) => enlace.origenId.portId ? todo.ports?.[enlace.origenId.portId] : undefined)
+      .filter((puerto): puerto is { x: number; y: number } => !!puerto);
+
+    expect(puertosOrigen).toHaveLength(2);
+    expect(puertosOrigen[0]).toEqual({ x: 1, y: 0.5 });
+    expect(puertosOrigen[1]).toEqual({ x: 1, y: 0.6 });
+  });
+
+  test("unifica resultados desde un proceso hacia estados del mismo objeto", () => {
+    let modelo = crearModelo();
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 20, y: 20 }, "Procesar"));
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 220, y: 20 }, "Pedido"));
+    const pedidoId = entidad(modelo, "Pedido");
+    const estados = must(crearEstadosIniciales(modelo, pedidoId));
+    modelo = estados.modelo;
+
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidad(modelo, "Procesar"), extremoEstado(estados.estadoIds[0]), "resultado"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidad(modelo, "Procesar"), extremoEstado(estados.estadoIds[1]), "resultado"));
+    modelo = sincronizarPuertosEnlaces(modelo, modelo.opdRaizId);
+
+    const portIds = Object.values(modelo.enlaces).map((enlace) => enlace.origenId.portId);
+    expect(new Set(portIds).size).toBe(1);
+    const proceso = apariencia(modelo, "Procesar");
+    expect(proceso.ports?.[portIds[0]!]).toEqual({ x: 1, y: 1 });
+  });
+
+  test("unifica consumos desde estados del mismo objeto hacia un proceso", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 20 }, "Pedido"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 220, y: 20 }, "Procesar"));
+    const pedidoId = entidad(modelo, "Pedido");
+    const estados = must(crearEstadosIniciales(modelo, pedidoId));
+    modelo = estados.modelo;
+
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, extremoEstado(estados.estadoIds[0]), entidad(modelo, "Procesar"), "consumo"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, extremoEstado(estados.estadoIds[1]), entidad(modelo, "Procesar"), "consumo"));
+    modelo = sincronizarPuertosEnlaces(modelo, modelo.opdRaizId);
+
+    const portIds = Object.values(modelo.enlaces).map((enlace) => enlace.destinoId.portId);
+    expect(new Set(portIds).size).toBe(1);
+    const proceso = apariencia(modelo, "Procesar");
+    expect(proceso.ports?.[portIds[0]!]).toEqual({ x: 0, y: 1 });
   });
 });
 

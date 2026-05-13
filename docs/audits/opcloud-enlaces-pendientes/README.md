@@ -1,8 +1,8 @@
 # Pendientes de emulación OPCloud para enlaces
 
-**Fecha**: 2026-05-12
+**Fecha**: 2026-05-13
 **Autor**: agente Claude + operador
-**Estado**: documento vivo de roadmap; abordar en próxima sesión.
+**Estado**: documento vivo de roadmap; A/B/C del roadmap original ya tienen implementación base. Quedan brechas avanzadas OPCloud.
 
 ## Contexto
 
@@ -14,7 +14,32 @@ En esta sesión cerramos la primera tanda de mejoras al manejo de enlaces alinea
 
 Validado contra modelo HODOM real (`/home/felix/projects/hd-hsc-os/docs/models/opm-hodom-bundle-v1.1.json`, 28 apariencias, 59 enlaces). Loop verde 100% en cada paso (1182 unit / 172 smoke).
 
-Reverse-engineering completo de `opm-extracted/` (código descompilado OPCloud) reveló **3 mecanismos canónicos faltantes** que producen maraña visual en modelos densos. Este documento los detalla a profundidad para abordarlos en sesión siguiente sin re-investigar.
+Reverse-engineering completo de `opm-extracted/` (código descompilado OPCloud) reveló **3 mecanismos canónicos faltantes** que producen maraña visual en modelos densos. Este documento los detalla para no re-investigar y registra qué parte ya fue llevada a nuestra arquitectura.
+
+## Estado 2026-05-13
+
+Implementado en la app:
+
+- **Router Manhattan con obstáculos**: `app/src/render/jointjs/opcloudRouting.ts` aplica `manhattan` post-mount con `padding: 5`, `step: 11`, `startDirections/endDirections` para tramos de triángulo e `isPointObstacle` sobre entidades/triángulos.
+- **Puertos dinámicos OPCloud-style**: `app/src/modelo/operaciones/ports.ts` materializa `portId` por extremo, conserva ports en JSON y limpia ports no usados.
+- **Ranuras estructurales OPCloud-style**: los enlaces estructurales conectados a la misma apariencia usan la secuencia `0, +10%, -10%, ...` adaptada a puertos relativos. Esto emula `getStructuralLinkConnectionPointDelta()` sin introducir anchors persistidos ajenos a nuestra arquitectura.
+- **Unificación de enlaces con estados**: resultados desde un proceso hacia estados del mismo objeto comparten puerto de origen; consumos/agentes/instrumentos desde estados del mismo objeto hacia un proceso comparten puerto de destino, siguiendo `uniteResults`, `uniteConsumptions` y `uniteAgentsAndInstruments`.
+- **Sort post-drag compatible con ports**: `app/src/render/jointjs/sortStructuralLinks.ts` mantiene compatibilidad con anchors OPCloud y ahora también permuta endpoints conectados por `port`.
+
+Validación de esta ronda:
+
+- `bun run typecheck`
+- `bun run test`: 1219 pass / 0 fail
+- `bun run build`
+- `bun run browser:smoke`: 173 pass / 0 fail
+
+Pendientes reales después de A/B/C:
+
+- `beautifyConnectedLinks` completo desde geometría real de `LinkView`, no solo centro-opuesto determinístico.
+- Posición persistente y editable del símbolo estructural (`symbolPos`, vertices superiores y anchors visuales de OPCloud).
+- Ciclo interactivo completo del triángulo estructural: cambiar tipo, relaciones faltantes, ordered, fold/semi-fold.
+- Labels avanzados OPCloud: wrapping por segmento visible, posición persistida, requirements, rate/time/path/tags/backtags.
+- Familias avanzadas fuera del MVP actual: exception links de tiempo, tagged/bidirectional links y metadatos avanzados de requisitos.
 
 ## Pendiente #1 — Puertos dinámicos (`findClosestEmptyPort`)
 
@@ -372,18 +397,23 @@ for (const link of graph.getLinks()) {
 
 ---
 
-## Roadmap propuesto
+## Estado del roadmap original
 
-Orden de implementación recomendado por **impacto vs costo**:
+El roadmap A/B/C original queda así:
 
-| # | Pendiente | Impacto | Costo | Bloqueado por |
-|---|---|---|---|---|
-| A | **#3 isPointObstacle** | Medio (estructurales no atraviesan entidades) | S (1 archivo, ~40 líneas) | — |
-| B | **#1 Puertos dinámicos** | **Alto** (resuelve convergencia en multi-enlace) | M (4-5 archivos, ~150 líneas + tests) | — |
-| C | **#2 sortStructuralLinks** | Medio (descruza tras drag) | M (3 archivos, ~80 líneas + helper geometría) | requiere #1 para anchors explícitos |
+| # | Pendiente | Estado | Nota |
+|---|---|---|---|
+| A | **#3 isPointObstacle** | Implementado | Adaptado como post-mount en JointJS OSS. |
+| B | **#1 Puertos dinámicos** | Implementado + ampliado | Incluye ranuras estructurales y unificación de enlaces con estados. |
+| C | **#2 sortStructuralLinks** | Implementado base | Permuta anchors y ports; queda pendiente persistir decisiones visuales si se requiere. |
 
-Ruta corta (1 sesión): **A + B**. Sale con la mejor mejora visible en HODOM.
-Ruta completa: **A + B + C**. Cierra el ciclo completo de emulación OPCloud.
+La siguiente ruta de alto impacto ya no es A/B/C, sino **D/E/F**:
+
+| # | Pendiente | Impacto | Costo |
+|---|---|---|---|
+| D | `beautifyConnectedLinks` desde `LinkView` real | Alto | M |
+| E | símbolo estructural persistente/editable | Alto | M/L |
+| F | labels OPCloud avanzados | Medio/alto | M |
 
 ## Notas operativas
 
@@ -395,16 +425,20 @@ Ruta completa: **A + B + C**. Cierra el ciclo completo de emulación OPCloud.
   - `opm-extracted/src/app/configuration/rappidEnviromentFunctionality/shared.ts` (router, connector, labels, fundamentales)
   - `opm-extracted/src/app/models/DrawnPart/Links/*.ts` (markers específicos)
 
-## Estado actual de main (al cierre 2026-05-12)
+## Estado técnico validado
 
-HEAD: `6b1030b fix(visual): manejo de enlaces alineado con OPCloud (router selectivo + jumpover global + labels canonicos)`
+Loop verde de referencia:
+- typecheck/build clean
+- 1219 unit / 0 fail
+- 173 smoke / 0 fail
 
-Loop verde:
-- typecheck/lint/build clean
-- 1182 unit / 0 fail
-- 172 smoke / 0 fail
-
-Lo que YA está hecho (commits previos):
+Lo que YA está hecho:
+- router Manhattan OPCloud con obstáculos y direcciones de triángulo
+- puertos dinámicos y preservación JSON de `ports`/`portId`
+- triángulos estructurales con puertos `in`/`out`
+- grouping/separación estructural por `grupoEstructuralId`
+- sort estructural post-drag compatible con anchors y ports
+- unificación OPCloud-style de enlaces procedurales con estados
 - `7a9d65e` — layoutConContorno con anchos reales + heurística semántica (HODOM SD-1: 0 solapamientos)
 - `f93112e` — externos densos en multi-columna
 - `c064537` — bound Bellman-Ford en BFS (autolayout no cuelga con ciclos)
