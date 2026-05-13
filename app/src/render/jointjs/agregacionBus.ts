@@ -4,6 +4,7 @@ import type { Apariencia, Enlace, Id, Modelo, Posicion, TipoEnlace } from "../..
 import { etiquetaEnlaceNormalizada } from "../../modelo/etiquetasEnlace";
 import type { JointCellJson, OpmJointMetadata } from "./proyeccion";
 import { marcadoresEstructurales } from "./composers/markers";
+import { extremoTriangulo } from "./composers/enlace";
 
 const Z_ENLACE_BUS = 4;
 
@@ -110,9 +111,8 @@ function proyectarGrupoEstructural(
     x: Math.round((refinableCentro.x + promedioRefinadores.x) / 2),
     y: Math.round((refinableCentro.y + promedioRefinadores.y) / 2),
   };
-  const topTriangle = { x: triangleCenter.x, y: triangleCenter.y - triangleSize / 2 };
-  const bottomTriangle = { x: triangleCenter.x, y: triangleCenter.y + triangleSize / 2 };
   const grupoId = `struct-bus-${opdId}-${grupo.tipo}-${grupo.refinableId}-${grupo.grupoId}-${grupo.ladoRefinable}`;
+  const triangleId = `${grupoId}-triangulo`;
   const algunaSeleccionada = refinadores.some(({ rama }) => seleccionados.has(rama.enlace.id));
   const primeraRama = refinadores[0]?.rama;
   if (!primeraRama) return [];
@@ -129,25 +129,25 @@ function proyectarGrupoEstructural(
       id: `${grupoId}-refinable`,
       type: "standard.Link",
       source: extremo(grupo.refinable.id, portRefinable(primeraRama, grupo.ladoRefinable)),
-      target: topTriangle,
+      target: extremoTriangulo(triangleId, "in"),
       router: routerManhattan(),
       connector: { name: "straight" },
       attrs: attrsLinea(algunaSeleccionada),
       opm: metaBus,
       z: Z_ENLACE_BUS,
     },
-    ...refinadores.map(({ rama, refinador }, index) => ramaEstructural(opdId, grupoId, grupo.ladoRefinable, rama, refinador, bottomTriangle, seleccionados.has(rama.enlace.id), index)),
-    ...marcadoresEstructurales(grupo.tipo, `${grupoId}-triangulo`, triangleCenter, triangleSize, algunaSeleccionada, metaBus).map((cell) => ({ ...cell, z: 12 })),
+    ...refinadores.map(({ rama, refinador }, index) => ramaEstructural(opdId, grupoId, triangleId, grupo.ladoRefinable, rama, refinador, seleccionados.has(rama.enlace.id), index)),
+    ...marcadoresEstructurales(grupo.tipo, triangleId, triangleCenter, triangleSize, algunaSeleccionada, metaBus).map((cell) => ({ ...cell, z: 12 })),
   ];
 }
 
 function ramaEstructural(
   opdId: Id,
   grupoId: Id,
+  triangleId: Id,
   ladoRefinable: "origen" | "destino",
   rama: EnlaceConEndpointVisual,
   refinador: Apariencia,
-  source: Posicion,
   seleccionada: boolean,
   index: number,
 ): JointCellJson {
@@ -155,7 +155,7 @@ function ramaEstructural(
   return {
     id: `${grupoId}-${rama.aparienciaEnlaceId}-rama`,
     type: "standard.Link",
-    source,
+    source: extremoTriangulo(triangleId, "out"),
     target: extremo(refinador.id, portRefinador(rama, ladoRefinable)),
     router: routerManhattan(),
     connector: { name: "straight" },

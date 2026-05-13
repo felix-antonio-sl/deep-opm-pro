@@ -7,6 +7,7 @@ import type {
   ModoPlegado,
   ModoTamano,
   OrdenPartesPlegado,
+  PuertoApariencia,
   Resultado,
 } from "../modelo/tipos";
 import { fallo, ok, esNumeroFinito, esNumeroPositivo, esRecord } from "./validarHelpers";
@@ -49,6 +50,8 @@ export function validarApariencias(
     if (!parteExtraidaDe.ok) return parteExtraidaDe;
     const contextoRefinamiento = validarContextoRefinamientoApariencia(id, raw.contextoRefinamiento);
     if (!contextoRefinamiento.ok) return contextoRefinamiento;
+    const ports = validarPuertosApariencia(id, raw.ports);
+    if (!ports.ok) return ports;
     apariencias[id] = {
       id,
       entidadId: raw.entidadId,
@@ -63,9 +66,26 @@ export function validarApariencias(
       ...(ordenPartes.value ? { ordenPartes: ordenPartes.value } : {}),
       ...(parteExtraidaDe.value ? { parteExtraidaDe: parteExtraidaDe.value } : {}),
       ...(contextoRefinamiento.value ? { contextoRefinamiento: contextoRefinamiento.value } : {}),
+      ...(ports.value ? { ports: ports.value } : {}),
     };
   }
   return ok(apariencias);
+}
+
+export function validarPuertosApariencia(
+  aparienciaId: Id,
+  value: unknown,
+): Resultado<Record<Id, PuertoApariencia> | undefined> {
+  if (value === undefined) return ok(undefined);
+  if (!esRecord(value)) return fallo(`Apariencia inválida: ${aparienciaId}.ports`);
+  const ports: Record<Id, PuertoApariencia> = {};
+  for (const [portId, raw] of Object.entries(value)) {
+    if (!esRecord(raw)) return fallo(`Apariencia inválida: ${aparienciaId}.ports.${portId}`);
+    if (!esNumeroFinito(raw.x) || raw.x < 0 || raw.x > 1) return fallo(`Apariencia inválida: ${aparienciaId}.ports.${portId}.x`);
+    if (!esNumeroFinito(raw.y) || raw.y < 0 || raw.y > 1) return fallo(`Apariencia inválida: ${aparienciaId}.ports.${portId}.y`);
+    ports[portId] = { x: raw.x, y: raw.y };
+  }
+  return ok(Object.keys(ports).length > 0 ? ports : undefined);
 }
 
 export function validarEstiloApariencia(

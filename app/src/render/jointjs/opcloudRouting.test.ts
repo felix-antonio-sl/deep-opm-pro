@@ -31,6 +31,18 @@ describe("ruteo OPCloud de enlaces", () => {
     expect((refinable.prop("router") as { args: { endDirections?: string[] } }).args.endDirections).toEqual(["top"]);
     expect((refinador.prop("router") as { args: { startDirections?: string[] } }).args.startDirections).toEqual(["bottom"]);
   });
+
+  test("infere direcciones desde endpoints conectados a puertos in/out del triangulo", () => {
+    const graph = new dia.Graph({}, { cellNamespace: shapes });
+    const refinable = linkEstructural("ae-1-refinable", { id: "origen" }, { id: "ae-1-triangulo", port: "in" });
+    const refinador = linkEstructural("ae-1-refinador", { id: "ae-1-triangulo", port: "out" }, { id: "destino" });
+    graph.addCells([refinable, refinador]);
+
+    aplicarRuteoOpcloudEnlaces(graph);
+
+    expect((refinable.prop("router") as { args: { endDirections?: string[] } }).args.endDirections).toEqual(["top"]);
+    expect((refinador.prop("router") as { args: { startDirections?: string[] } }).args.startDirections).toEqual(["bottom"]);
+  });
 });
 
 function linkEstructural(id: string, source: dia.Link.EndJSON, target: dia.Link.EndJSON): dia.Link {

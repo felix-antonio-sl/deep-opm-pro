@@ -159,10 +159,14 @@ export function validarExtremoEnlace(
   if (!esRecord(value)) return fallo(`Enlace inválido: ${enlaceId}.${campo}`);
   if (!esExtremoKind(value.kind)) return fallo(`Enlace inválido: ${enlaceId}.${campo}.kind`);
   if (typeof value.id !== "string") return fallo(`Enlace inválido: ${enlaceId}.${campo}.id`);
+  if (value.portId !== undefined && typeof value.portId !== "string") {
+    return fallo(`Enlace inválido: ${enlaceId}.${campo}.portId`);
+  }
   const extremo = normalizarExtremo({ kind: value.kind, id: value.id });
   if (extremo.kind === "entidad" && !entidades[extremo.id]) return fallo(`Enlace inválido: ${enlaceId}.${campo}.id`);
   if (extremo.kind === "estado" && !estados[extremo.id]) return fallo(`Enlace inválido: ${enlaceId}.${campo}.id`);
-  return ok(extremo);
+  if (extremo.kind === "estado" && value.portId !== undefined) return fallo(`Enlace inválido: ${enlaceId}.${campo}.portId`);
+  return ok(value.portId ? { ...extremo, portId: value.portId } : extremo);
 }
 
 export function validarMultiplicidadOpcional(

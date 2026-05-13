@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 import { extremoApuntaAEntidad, extremoEntidad, extremoEstado } from "../modelo/extremos";
 import { aplicarModificador, definirDemora, definirProbabilidad } from "../modelo/modificadores";
 import { aplicarEstiloApariencia } from "../modelo/estilos";
-import { ajustarMultiplicidad, crearEnlace, crearEstadosIniciales, crearModelo, crearObjeto, crearProceso, designarEstadoFinal, designarEstadoInicial, descomponerProceso, desplegarObjeto, reanclarEnlaceExternoDerivado } from "../modelo/operaciones";
+import { ajustarMultiplicidad, crearEnlace, crearEstadosIniciales, crearModelo, crearObjeto, crearProceso, designarEstadoFinal, designarEstadoInicial, descomponerProceso, desplegarObjeto, reanclarEnlaceExternoDerivado, sincronizarPuertosEnlaces } from "../modelo/operaciones";
 import { cambiarModoPlegado, extraerParteDePlegado, partesExtraidasEn } from "../modelo/plegado";
 import { definirRutaEtiqueta } from "../modelo/rutas";
 import type { Apariencia, Modelo, ModoDespliegueObjeto, RefinamientoEntidad, TipoEnlace } from "../modelo/tipos";
@@ -597,6 +597,27 @@ describe("serializacion JSON", () => {
     expect(hidratado.value.enlaces[enlaceId]?.grupoEstructuralId).toBe("grupo-a");
   });
 
+  test("preserva ports y portId dinamicos de enlaces en round-trip", () => {
+    let modelo = crearModelo("Puertos dinamicos");
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 80 }, "Entrada"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 260, y: 80 }, "Procesar"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidadPorNombre(modelo, "Entrada"), entidadPorNombre(modelo, "Procesar"), "consumo"));
+    modelo = sincronizarPuertosEnlaces(modelo, modelo.opdRaizId);
+    const enlaceId = Object.keys(modelo.enlaces)[0];
+    if (!enlaceId) throw new Error("La prueba esperaba enlace");
+
+    const hidratado = hidratarModelo(exportarModelo(modelo));
+
+    expect(hidratado.ok).toBe(true);
+    if (!hidratado.ok) return;
+    expect(hidratado.value.enlaces[enlaceId]?.origenId.portId).toBe(modelo.enlaces[enlaceId]?.origenId.portId);
+    expect(hidratado.value.enlaces[enlaceId]?.destinoId.portId).toBe(modelo.enlaces[enlaceId]?.destinoId.portId);
+    const entrada = aparienciaPorNombre(hidratado.value, "Entrada");
+    const procesar = aparienciaPorNombre(hidratado.value, "Procesar");
+    expect(entrada.ports?.[hidratado.value.enlaces[enlaceId]?.origenId.portId ?? ""]).toEqual({ x: 1, y: 0.5 });
+    expect(procesar.ports?.[hidratado.value.enlaces[enlaceId]?.destinoId.portId ?? ""]).toEqual({ x: 0, y: 0.5 });
+  });
+
   test("hidratar rutaEtiqueta vacia la ignora y tipo no string falla", () => {
     const { modelo, enlaceId } = modeloConRutaManual("   ");
     const hidratado = hidratarModelo(exportarModelo(modelo));
@@ -1004,6 +1025,10 @@ function aparienciaDeEntidad(modelo: Modelo, opdId: string, entidadId: string): 
   expect(apariencia).toBeDefined();
   if (!apariencia) throw new Error(`Apariencia no encontrada: ${entidadId}`);
   return apariencia;
+}
+
+function aparienciaPorNombre(modelo: Modelo, nombre: string): Apariencia {
+  return aparienciaDeEntidad(modelo, modelo.opdRaizId, entidadPorNombre(modelo, nombre));
 }
 
 function sinModoPlegado(apariencia: Apariencia): Omit<Apariencia, "modoPlegado"> {

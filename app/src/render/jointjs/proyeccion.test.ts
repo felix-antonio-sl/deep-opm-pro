@@ -474,10 +474,12 @@ describe("proyeccion JointJS", () => {
     expect(pequeno).toBeDefined();
 
     const markerPosition = grande?.position as { x?: number; y?: number } | undefined;
-    expect(links[0]?.target).toEqual({ x: (markerPosition?.x ?? 0) + 15, y: markerPosition?.y });
-    expect(links[1]?.source).toEqual({ x: (markerPosition?.x ?? 0) + 15, y: (markerPosition?.y ?? 0) + 30 });
+    expect(markerPosition).toBeDefined();
+    expect(links[0]?.target).toEqual(extremoTrianguloEsperado(String(grande?.id), "in"));
+    expect(links[1]?.source).toEqual(extremoTrianguloEsperado(String(grande?.id), "out"));
     expect(links[0]?.router).toBeUndefined();
     expect(links[1]?.router).toBeUndefined();
+    expect(itemsPuertosTriangulo(grande)).toEqual(["in", "out"]);
 
     const bodyGrande = (grande?.attrs as Attrs | undefined)?.body as Attrs | undefined;
     const bodyPequeno = (pequeno?.attrs as Attrs | undefined)?.body as Attrs | undefined;
@@ -548,9 +550,9 @@ describe("proyeccion JointJS", () => {
     expect(links).toHaveLength(2);
     const triangulo = cells.find((cell) => cell.type === "standard.Polygon");
     expect(triangulo).toBeDefined();
-    const trianglePosition = triangulo?.position as { x?: number; y?: number } | undefined;
-    expect(links[0]?.target).toEqual({ x: (trianglePosition?.x ?? 0) + 15, y: trianglePosition?.y });
-    expect(links[1]?.source).toEqual({ x: (trianglePosition?.x ?? 0) + 15, y: (trianglePosition?.y ?? 0) + 30 });
+    expect(links[0]?.target).toEqual(extremoTrianguloEsperado(String(triangulo?.id), "in"));
+    expect(links[1]?.source).toEqual(extremoTrianguloEsperado(String(triangulo?.id), "out"));
+    expect(itemsPuertosTriangulo(triangulo)).toEqual(["in", "out"]);
     expect(triangulo?.angle).toBe(0);
     expect(((triangulo?.attrs as Attrs | undefined)?.body as Attrs | undefined)?.refPoints).toBe(LINK_ASSETS.structural.agregacion.markerPoints);
     expect(((triangulo?.attrs as Attrs | undefined)?.body as Attrs | undefined)?.fill).toBe("#586D8C");
@@ -574,6 +576,11 @@ describe("proyeccion JointJS", () => {
     expect(String(triangulos[0]?.id)).toContain("struct-bus");
     const ramas = links.filter((cell) => String(cell.id).includes("-rama"));
     expect(ramas).toHaveLength(2);
+    expect(ramas.every((cell) => (cell.source as { id?: unknown; port?: unknown }).id === triangulos[0]?.id)).toBe(true);
+    expect(ramas.every((cell) => (cell.source as { id?: unknown; port?: unknown }).port === "out")).toBe(true);
+    const refinable = links.find((cell) => String(cell.id).endsWith("-refinable"));
+    expect((refinable?.target as { id?: unknown; port?: unknown }).id).toBe(triangulos[0]?.id);
+    expect((refinable?.target as { id?: unknown; port?: unknown }).port).toBe("in");
     expect(new Set(ramas.map((cell) => cell.opm.kind === "enlace" ? cell.opm.enlaceId : ""))).toEqual(new Set(Object.keys(modelo.enlaces)));
   });
 
@@ -1020,6 +1027,15 @@ function aparienciaDeEntidad(modelo: Modelo, opdId: string, entidadId: string): 
   expect(apariencia).toBeDefined();
   if (!apariencia) throw new Error(`Apariencia no encontrada: ${entidadId}`);
   return apariencia;
+}
+
+function extremoTrianguloEsperado(id: string, port: "in" | "out"): Record<string, unknown> {
+  return { id, port, connectionPoint: { name: "anchor" } };
+}
+
+function itemsPuertosTriangulo(cell: unknown): string[] {
+  const ports = (cell as { ports?: unknown } | undefined)?.ports as { items?: Array<{ id?: string }> } | undefined;
+  return (ports?.items ?? []).flatMap((item) => item.id ? [item.id] : []);
 }
 
 function must<T>(resultado: Resultado<T>): T {

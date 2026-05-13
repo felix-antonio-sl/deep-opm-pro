@@ -5,6 +5,7 @@ import {
   validarAparienciasEnlace,
   validarEstiloApariencia,
   validarModoTamano,
+  validarPuertosApariencia,
   validarVertices,
 } from "./validarApariencias";
 
@@ -94,5 +95,29 @@ describe("validarApariencias", () => {
     const resultado = validarEstiloApariencia("a-1", { fill: "red" });
 
     expect(resultado.ok).toBe(false);
+  });
+
+  test("preserva puertos dinamicos OPCloud-style y valida rango relativo", () => {
+    const resultado = validarApariencias("opd-1", {
+      "a-1": {
+        id: "a-1",
+        entidadId: "e-1",
+        opdId: "opd-1",
+        x: 1,
+        y: 2,
+        width: 135,
+        height: 60,
+        ports: {
+          "port-e-1-origen": { x: 1, y: 0.5 },
+        },
+      },
+    }, entidades);
+
+    expect(resultado.ok).toBe(true);
+    if (!resultado.ok) return;
+    expect(resultado.value["a-1"]?.ports).toEqual({
+      "port-e-1-origen": { x: 1, y: 0.5 },
+    });
+    expect(validarPuertosApariencia("a-1", { "p-1": { x: 1.2, y: 0.5 } }).ok).toBe(false);
   });
 });

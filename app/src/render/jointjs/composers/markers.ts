@@ -123,8 +123,39 @@ export function polyShapeCell(
       body: bodyAttrs,
       label: { text: "", display: "none" },
     },
+    ports: puertosTrianguloEstructural(),
     opm: meta,
     z: 2,
+  };
+}
+
+function puertosTrianguloEstructural(): Record<string, unknown> {
+  const attrs = {
+    portBody: {
+      r: 0,
+      fill: "transparent",
+      stroke: "transparent",
+      magnet: true,
+    },
+  };
+  const markup = [{ tagName: "circle", selector: "portBody" }];
+  return {
+    groups: {
+      in: {
+        position: { name: "top" },
+        attrs,
+        markup,
+      },
+      out: {
+        position: { name: "bottom" },
+        attrs,
+        markup,
+      },
+    },
+    items: [
+      { id: "in", group: "in" },
+      { id: "out", group: "out" },
+    ],
   };
 }
 

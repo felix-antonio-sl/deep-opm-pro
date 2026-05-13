@@ -465,8 +465,6 @@ export function proyectarRefinamientoEstructural(
     x: (source.x + target.x) / 2,
     y: (source.y + target.y) / 2,
   };
-  const topTriangle = { x: center.x, y: center.y - triangleSize / 2 };
-  const bottomTriangle = { x: center.x, y: center.y + triangleSize / 2 };
   const triangleId = `${aparienciaEnlaceId}-triangulo`;
   const meta: OpmJointMetadata = {
     kind: "enlace",
@@ -481,7 +479,7 @@ export function proyectarRefinamientoEstructural(
       id: `${aparienciaEnlaceId}-refinable`,
       type: "standard.Link",
       source: extremo(origen.apariencia.id, origen.portId),
-      target: topTriangle,
+      target: extremoTriangulo(triangleId, "in"),
       connector: { name: "straight" },
       attrs: lineAttrs,
       opm: meta,
@@ -490,7 +488,7 @@ export function proyectarRefinamientoEstructural(
     {
       id: `${aparienciaEnlaceId}-refinador`,
       type: "standard.Link",
-      source: bottomTriangle,
+      source: extremoTriangulo(triangleId, "out"),
       target: extremo(destino.apariencia.id, destino.portId),
       connector: { name: "straight" },
       labels: etiquetaEnlace(enlace),
@@ -524,6 +522,10 @@ export function extremo(id: Id, portId?: Id): Record<string, unknown> {
     anchor: { name: "midSide", args: { rotate: true } },
     connectionPoint: boundarySinSeparacion(),
   };
+}
+
+export function extremoTriangulo(id: Id, port: "in" | "out"): Record<string, unknown> {
+  return { id, port, connectionPoint: { name: "anchor" } };
 }
 
 export function boundarySinSeparacion(): Record<string, unknown> {
