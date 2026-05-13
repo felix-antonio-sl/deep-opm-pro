@@ -379,6 +379,7 @@ export function JointCanvas() {
     if (!host) return;
     return cablearZoomWheel({
       host,
+      viewport: viewportRef.current,
       paperRef: { get current() { return adapterRef.current?.paper ?? null; } },
     });
   }, []);
