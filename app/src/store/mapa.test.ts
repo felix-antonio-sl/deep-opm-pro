@@ -105,6 +105,49 @@ describe("slice simulacion (P0-2 exclusion mutua)", () => {
     expect(store.getState().opdActivoId).toBe(descompuesto.opdId);
     expect(store.getState().contextoSimulacion?.plan[store.getState().contextoSimulacion?.pasoActual ?? 0]?.opdId).toBe(descompuesto.opdId);
   });
+
+  test("auto avance se pausa al completar, correr, reiniciar y salir", () => {
+    store.getState().salirModoSimulacion();
+    store.getState().cerrarVistaMapa();
+    let modelo = crearModelo("Auto avance");
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 100, y: 100 }, "Preparar"));
+    store.getState().importarJson(exportarModelo(modelo));
+
+    store.getState().iniciarModoSimulacion();
+    expect(store.getState().autoAvanceSimulacionActivo).toBe(false);
+
+    store.getState().iniciarAutoAvanceSimulacion();
+    expect(store.getState().autoAvanceSimulacionActivo).toBe(true);
+    store.getState().ejecutarPasoSimulacion();
+    expect(store.getState().contextoSimulacion?.estado).toBe("completado");
+    expect(store.getState().autoAvanceSimulacionActivo).toBe(false);
+
+    store.getState().reiniciarSimulacionActual();
+    store.getState().iniciarAutoAvanceSimulacion();
+    store.getState().ejecutarCorridaSimulacion();
+    expect(store.getState().autoAvanceSimulacionActivo).toBe(false);
+
+    store.getState().reiniciarSimulacionActual();
+    store.getState().iniciarAutoAvanceSimulacion();
+    store.getState().reiniciarSimulacionActual();
+    expect(store.getState().autoAvanceSimulacionActivo).toBe(false);
+
+    store.getState().iniciarAutoAvanceSimulacion();
+    store.getState().salirModoSimulacion();
+    expect(store.getState().contextoSimulacion).toBeNull();
+    expect(store.getState().autoAvanceSimulacionActivo).toBe(false);
+  });
+
+  test("velocidad de simulacion se normaliza como razon discreta", () => {
+    store.getState().fijarVelocidadSimulacion(Number.NaN);
+    expect(store.getState().velocidadSimulacion).toBe(1);
+    store.getState().fijarVelocidadSimulacion(0.4);
+    expect(store.getState().velocidadSimulacion).toBe(0.5);
+    store.getState().fijarVelocidadSimulacion(1.2);
+    expect(store.getState().velocidadSimulacion).toBe(1);
+    store.getState().fijarVelocidadSimulacion(3);
+    expect(store.getState().velocidadSimulacion).toBe(2);
+  });
 });
 
 describe("slice P1-5 ronda 4: nuevaCosaPendiente se descarta en cambios de contexto", () => {

@@ -713,11 +713,18 @@ export interface OpmStore {
   /** Snapshot del `readOnly` previo a entrar en modo simulación. Permite
    *  restaurar el flag al salir sin perder el modo solo-lectura del modelo. */
   readOnlyPrevSimulacion: boolean | null;
+  /** Equivalente local a `Executing && !ExecutingPause` de OPCloud. */
+  autoAvanceSimulacionActivo: boolean;
+  /** Razón de velocidad de tokens/simulacion, inspirada en `tokenRuntimeRatio`. */
+  velocidadSimulacion: number;
   iniciarModoSimulacion: () => void;
   salirModoSimulacion: () => void;
   ejecutarPasoSimulacion: () => void;
   ejecutarCorridaSimulacion: () => void;
   reiniciarSimulacionActual: () => void;
+  iniciarAutoAvanceSimulacion: () => void;
+  pausarAutoAvanceSimulacion: () => void;
+  fijarVelocidadSimulacion: (velocidad: number) => void;
   asignarValorRuntimeSimulacion: (entidadId: Id, valor: import("../modelo/tipos").ValorConcreto) => void;
 }
 

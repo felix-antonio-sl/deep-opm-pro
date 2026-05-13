@@ -1,5 +1,6 @@
 // [JOYAS §1-3] Chrome consume tokens centralizados; sin colores nuevos.
 import type { JSX } from "preact";
+import { useEffect } from "preact/hooks";
 import { useOpmStore } from "../../store";
 import { tokens } from "../tokens";
 
@@ -10,20 +11,26 @@ import { tokens } from "../tokens";
  * `contextoSimulacion !== null`. Slice mínimo:
  *   - Indicador "Modo simulación" + opdActivo.
  *   - Próximo paso ("▶ {procesoNombre}") o estado del contexto.
- *   - Controles: Paso, Correr, Reiniciar, Salir.
+ *   - Controles: Play/Pausa, velocidad, Paso, Correr, Reiniciar, Salir.
  *   - Panel trace compacto: últimos pasos ejecutados.
- *
- * Decisión documentada: la marca de proceso activo es **textual en la barra**
- * (no overlay sobre canvas) para Beta2-min. La integración visual con
- * JointJS queda diferida como deuda menor; el slice mínimo del brief se
- * cumple porque la información es accesible y distinguible del refinamiento.
  */
 export function BarraSimulacion(): JSX.Element | null {
   const contexto = useOpmStore((s) => s.contextoSimulacion);
+  const autoAvance = useOpmStore((s) => s.autoAvanceSimulacionActivo);
+  const velocidadSimulacion = useOpmStore((s) => s.velocidadSimulacion);
   const ejecutarPaso = useOpmStore((s) => s.ejecutarPasoSimulacion);
   const ejecutarCorrida = useOpmStore((s) => s.ejecutarCorridaSimulacion);
   const reiniciar = useOpmStore((s) => s.reiniciarSimulacionActual);
+  const iniciarAutoAvance = useOpmStore((s) => s.iniciarAutoAvanceSimulacion);
+  const pausarAutoAvance = useOpmStore((s) => s.pausarAutoAvanceSimulacion);
+  const fijarVelocidad = useOpmStore((s) => s.fijarVelocidadSimulacion);
   const salir = useOpmStore((s) => s.salirModoSimulacion);
+
+  useEffect(() => {
+    if (!contexto || !autoAvance || contexto.estado === "completado" || contexto.plan.length === 0) return;
+    const timeoutId = window.setTimeout(ejecutarPaso, intervaloAutoAvanceMs(velocidadSimulacion));
+    return () => window.clearTimeout(timeoutId);
+  }, [autoAvance, contexto?.estado, contexto?.modeloId, contexto?.pasoActual, contexto?.plan.length, ejecutarPaso, velocidadSimulacion]);
 
   if (!contexto) return null;
 
@@ -41,7 +48,7 @@ export function BarraSimulacion(): JSX.Element | null {
             ? "Sin procesos en este OPD"
             : completado
               ? `Completado · ${ejecutados}/${totalPasos}`
-              : `Paso ${ejecutados + 1}/${totalPasos}`}
+              : `Paso ${ejecutados + 1}/${totalPasos}${autoAvance ? ` · auto ${velocidadSimulacion}x` : ""}`}
         </span>
         {pasoActual && !completado ? (
           <span style={style.activo} data-testid="barra-simulacion-proceso-activo">
@@ -58,9 +65,36 @@ export function BarraSimulacion(): JSX.Element | null {
       <div style={style.cluster}>
         <button
           type="button"
-          style={style.botonPrimario}
-          onClick={ejecutarPaso}
+          style={autoAvance ? style.botonPausa : style.botonPrimario}
+          onClick={autoAvance ? pausarAutoAvance : iniciarAutoAvance}
           disabled={totalPasos === 0 || completado}
+          data-testid="barra-simulacion-auto"
+          aria-pressed={autoAvance}
+        >
+          {autoAvance ? "Pausa" : "Play"}
+        </button>
+        <label style={style.velocidadControl}>
+          <span style={style.velocidadTexto}>Velocidad</span>
+          <select
+            value={String(velocidadSimulacion)}
+            onChange={(event) => {
+              const target = event.currentTarget as HTMLSelectElement;
+              fijarVelocidad(Number(target.value));
+            }}
+            disabled={totalPasos === 0}
+            style={style.velocidadSelect}
+            data-testid="barra-simulacion-velocidad"
+          >
+            <option value="0.5">0.5x</option>
+            <option value="1">1x</option>
+            <option value="2">2x</option>
+          </select>
+        </label>
+        <button
+          type="button"
+          style={style.boton}
+          onClick={ejecutarPaso}
+          disabled={totalPasos === 0 || completado || autoAvance}
           data-testid="barra-simulacion-paso"
         >
           Paso
@@ -69,7 +103,7 @@ export function BarraSimulacion(): JSX.Element | null {
           type="button"
           style={style.boton}
           onClick={ejecutarCorrida}
-          disabled={totalPasos === 0 || completado}
+          disabled={totalPasos === 0 || completado || autoAvance}
           data-testid="barra-simulacion-correr"
         >
           Correr
@@ -78,7 +112,7 @@ export function BarraSimulacion(): JSX.Element | null {
           type="button"
           style={style.boton}
           onClick={reiniciar}
-          disabled={totalPasos === 0}
+          disabled={totalPasos === 0 || autoAvance}
           data-testid="barra-simulacion-reiniciar"
         >
           Reiniciar
@@ -120,6 +154,10 @@ export function BarraSimulacion(): JSX.Element | null {
       ) : null}
     </div>
   );
+}
+
+function intervaloAutoAvanceMs(velocidad: number): number {
+  return Math.round(900 / velocidad);
 }
 
 const style: Record<string, JSX.CSSProperties> = {
@@ -188,6 +226,40 @@ const style: Record<string, JSX.CSSProperties> = {
     color: tokens.colors.fondoChrome,
     border: `1px solid ${tokens.colors.acentoUi}`,
     borderRadius: tokens.radii.control,
+    cursor: "pointer",
+  },
+  botonPausa: {
+    height: 28,
+    padding: `0 ${tokens.spacing.md}px`,
+    fontSize: tokens.typography.sizes.sm,
+    fontWeight: tokens.typography.weights.semibold,
+    background: tokens.colors.advertenciaFondo,
+    color: tokens.colors.alertaTexto,
+    border: `1px solid ${tokens.colors.advertenciaBorde}`,
+    borderRadius: tokens.radii.control,
+    cursor: "pointer",
+  },
+  velocidadControl: {
+    display: "inline-flex",
+    alignItems: "center",
+    gap: 4,
+    height: 28,
+    padding: `0 ${tokens.spacing.xs}px 0 ${tokens.spacing.sm}px`,
+    fontSize: tokens.typography.sizes.sm,
+    color: tokens.colors.textoSecundario,
+    background: tokens.colors.fondoChrome,
+    border: `1px solid ${tokens.colors.bordeControl}`,
+    borderRadius: tokens.radii.control,
+  },
+  velocidadTexto: {
+    lineHeight: "26px",
+  },
+  velocidadSelect: {
+    height: 24,
+    border: "none",
+    background: "transparent",
+    color: tokens.colors.textoPrimario,
+    fontSize: tokens.typography.sizes.sm,
     cursor: "pointer",
   },
   botonSalir: {

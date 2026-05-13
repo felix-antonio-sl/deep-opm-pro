@@ -5,12 +5,10 @@
  *   - Botón "Simulación" (cluster Validar) entra al modo.
  *   - BarraSimulacion reemplaza la Toolbar de edición (sin botón "Objeto").
  *   - Paso ejecuta el siguiente proceso del plan y avanza el contador.
+ *   - Play ejecuta avance automático con velocidad seleccionable y pausa implícita al completar.
  *   - Correr ejecuta todos los pasos restantes; queda Completado.
  *   - Reiniciar vuelve al paso 1/N.
  *   - Salir vuelve a la Toolbar de edición.
- *
- * Decisión Beta2-min documentada: marca de proceso activo es **textual**
- * en BarraSimulacion (no overlay sobre canvas JointJS).
  */
 import { expect, test } from "@playwright/test";
 import { cerrarPantallaInicioSiVisible } from "./_smoke-helpers";
@@ -102,6 +100,33 @@ test("modo simulación: OPD sin procesos muestra mensaje y controles deshabilita
 
   await page.getByTestId("barra-simulacion-salir").click();
   await expect(page.getByTestId("toolbar-root")).toBeVisible();
+
+  expect(pageErrors).toEqual([]);
+});
+
+test("modo simulación: play avanza automaticamente hasta completar", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await cerrarPantallaInicioSiVisible(page);
+
+  await page.getByRole("button", { name: "Proceso", exact: true }).click();
+  await page.getByLabel("Nombre").fill("Preparar");
+  await page.keyboard.press("Enter");
+  await page.getByRole("button", { name: "Proceso", exact: true }).click();
+  await page.getByLabel("Nombre").fill("Resolver");
+  await page.keyboard.press("Enter");
+
+  await page.getByTestId("toolbar-simulacion").click();
+  await page.getByTestId("barra-simulacion-velocidad").selectOption("2");
+  await page.getByTestId("barra-simulacion-auto").click();
+
+  await expect(page.getByTestId("barra-simulacion-auto")).toContainText("Pausa");
+  await expect(page.getByTestId("barra-simulacion-paso")).toBeDisabled();
+  await expect(page.getByTestId("barra-simulacion-correr")).toBeDisabled();
+  await expect(page.getByTestId("barra-simulacion-progreso")).toContainText(/Completado\s+·\s+2\/2/, { timeout: 3000 });
+  await expect(page.getByTestId("barra-simulacion-auto")).toBeDisabled();
 
   expect(pageErrors).toEqual([]);
 });

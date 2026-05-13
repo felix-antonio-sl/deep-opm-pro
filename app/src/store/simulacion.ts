@@ -20,6 +20,8 @@ import type { OpmStore } from "./tipos";
 export const createSimulacionSlice: CrearSlice<SimulacionSlice> = (set, get) => ({
   contextoSimulacion: null,
   readOnlyPrevSimulacion: null,
+  autoAvanceSimulacionActivo: false,
+  velocidadSimulacion: 1,
 
   iniciarModoSimulacion() {
     const { modelo, opdActivoId, contextoSimulacion, readOnly } = get();
@@ -28,6 +30,7 @@ export const createSimulacionSlice: CrearSlice<SimulacionSlice> = (set, get) => 
     set({
       contextoSimulacion: contexto,
       readOnlyPrevSimulacion: readOnly,
+      autoAvanceSimulacionActivo: false,
       readOnly: true,
       opdActivoId: contexto.plan[0]?.opdId ?? opdActivoId,
       // P0-2 ronda 4: Mapa y Simulacion son mutuamente excluyentes.
@@ -51,6 +54,7 @@ export const createSimulacionSlice: CrearSlice<SimulacionSlice> = (set, get) => 
       contextoSimulacion: null,
       readOnly: readOnlyPrevSimulacion ?? false,
       readOnlyPrevSimulacion: null,
+      autoAvanceSimulacionActivo: false,
       mensaje: "Modo simulación cerrado.",
     });
   },
@@ -58,11 +62,17 @@ export const createSimulacionSlice: CrearSlice<SimulacionSlice> = (set, get) => 
   ejecutarPasoSimulacion() {
     const { contextoSimulacion, modelo, opdActivoId } = get();
     if (!contextoSimulacion) return;
-    if (contextoSimulacion.estado === "completado") return;
+    if (contextoSimulacion.estado === "completado") {
+      if (get().autoAvanceSimulacionActivo) set({ autoAvanceSimulacionActivo: false });
+      return;
+    }
     const pasoPrevio = contextoSimulacion.plan[contextoSimulacion.pasoActual];
     const siguiente = ejecutarPaso(modelo, contextoSimulacion);
     const destino = opdParaMostrar(siguiente, opdActivoId);
     const patch: Partial<OpmStore> = { contextoSimulacion: siguiente };
+    if (siguiente.estado === "completado") {
+      patch.autoAvanceSimulacionActivo = false;
+    }
     if (destino !== opdActivoId) {
       Object.assign(patch, patchNavegacionSimulacion(destino));
     }
@@ -81,6 +91,7 @@ export const createSimulacionSlice: CrearSlice<SimulacionSlice> = (set, get) => 
     const destino = ultimo?.opdId ?? opdActivoId;
     set({
       contextoSimulacion: final,
+      autoAvanceSimulacionActivo: false,
       ...(destino !== opdActivoId ? patchNavegacionSimulacion(destino) : {}),
     });
   },
@@ -92,8 +103,30 @@ export const createSimulacionSlice: CrearSlice<SimulacionSlice> = (set, get) => 
     const destino = ctx.plan[0]?.opdId ?? ctx.opdId;
     set({
       contextoSimulacion: ctx,
+      autoAvanceSimulacionActivo: false,
       ...(destino !== opdActivoId ? patchNavegacionSimulacion(destino) : {}),
     });
+  },
+
+  iniciarAutoAvanceSimulacion() {
+    const { contextoSimulacion } = get();
+    if (!contextoSimulacion || contextoSimulacion.plan.length === 0 || contextoSimulacion.estado === "completado") return;
+    set({
+      autoAvanceSimulacionActivo: true,
+      mensaje: "Simulación automática iniciada.",
+    });
+  },
+
+  pausarAutoAvanceSimulacion() {
+    if (!get().autoAvanceSimulacionActivo) return;
+    set({
+      autoAvanceSimulacionActivo: false,
+      mensaje: "Simulación pausada.",
+    });
+  },
+
+  fijarVelocidadSimulacion(velocidad) {
+    set({ velocidadSimulacion: normalizarVelocidadSimulacion(velocidad) });
   },
 
   asignarValorRuntimeSimulacion(entidadId, valor) {
@@ -107,6 +140,13 @@ export const createSimulacionSlice: CrearSlice<SimulacionSlice> = (set, get) => 
     });
   },
 });
+
+function normalizarVelocidadSimulacion(velocidad: number): number {
+  if (!Number.isFinite(velocidad)) return 1;
+  if (velocidad <= 0.75) return 0.5;
+  if (velocidad < 1.5) return 1;
+  return 2;
+}
 
 function opdParaMostrar(contexto: ContextoSimulacion, fallback: Id): Id {
   return contexto.plan[contexto.pasoActual]?.opdId ?? fallback;
