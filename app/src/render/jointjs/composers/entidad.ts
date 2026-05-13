@@ -1,4 +1,5 @@
 import { CANON } from "../../../modelo/constantes";
+import { rolAparienciaEnRefinamiento } from "../../../modelo/contextoRefinamiento";
 import { designacionesEstado } from "../../../modelo/estadosDesignaciones";
 import { formatearNombreCompuesto } from "../../../modelo/objetoMetadata";
 import { estadosDeEntidad } from "../../../modelo/operaciones";
@@ -124,7 +125,7 @@ export function proyectarEntidad(
       opdId,
       entidadId: entidad.id,
       aparienciaId: apariencia.id,
-      rol: rolApariencia(modelo, opdId, entidad, contornoRefinamiento),
+      rol: rolApariencia(modelo, opdId, apariencia, contornoRefinamiento),
       ...(estadosVisibles.length > 0 ? { estadosInteractivos: targetsEstado(estadosVisibles) } : {}),
       ...(modoParcial ? { partesPlegadas: selectoresPartesPlegadas(filasParciales) } : {}),
     },
@@ -249,17 +250,8 @@ function attrsConResizeHandles(
   return attrs;
 }
 
-export function rolApariencia(modelo: Modelo, opdId: Id, entidad: Entidad, esContorno: boolean): RolApariencia {
-  if (esContorno) return "contorno";
-  for (const otroOpdId of Object.keys(modelo.opds)) {
-    if (otroOpdId === opdId) continue;
-    const otroOpd = modelo.opds[otroOpdId];
-    if (!otroOpd) continue;
-    for (const ap of Object.values(otroOpd.apariencias)) {
-      if (ap.entidadId === entidad.id) return "externo";
-    }
-  }
-  return "interno";
+export function rolApariencia(modelo: Modelo, opdId: Id, apariencia: Apariencia, esContorno: boolean): RolApariencia {
+  return rolAparienciaEnRefinamiento(modelo, opdId, apariencia, esContorno);
 }
 
 export function refYEtiquetaEntidad(contornoRefinamiento: boolean, modoParcial: boolean, tieneEstados: boolean): string {

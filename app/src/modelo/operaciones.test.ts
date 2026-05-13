@@ -1115,6 +1115,25 @@ describe("operaciones de modelo", () => {
     expect(externoProxy).toBeDefined();
     expect(internos.length).toBeGreaterThan(0);
     if (!contorno || !externoProxy) return;
+    expect(contorno.contextoRefinamiento).toMatchObject({
+      tipo: "descomposicion",
+      refinableEntidadId: padreId,
+      rol: "contorno",
+    });
+    expect(externoProxy.contextoRefinamiento).toMatchObject({
+      tipo: "descomposicion",
+      refinableEntidadId: padreId,
+      rol: "externo",
+      contenedorAparienciaId: contorno.id,
+    });
+    for (const interno of internos) {
+      expect(interno.contextoRefinamiento).toMatchObject({
+        tipo: "descomposicion",
+        refinableEntidadId: padreId,
+        rol: "interno",
+        contenedorAparienciaId: contorno.id,
+      });
+    }
 
     const movido = must(moverAparienciaPorId(modelo, opdHijoId, contorno.id, {
       x: contorno.x + 250,

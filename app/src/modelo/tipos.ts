@@ -41,6 +41,8 @@ export type {
   LayoutEstados,
   EstiloApariencia,
   PuertoApariencia,
+  RolContextoRefinamiento,
+  ContextoRefinamientoApariencia,
   Apariencia,
 } from "./tipos/apariencia";
 

@@ -1,4 +1,9 @@
 import { CANON } from "../../constantes";
+import {
+  contextoContornoDescomposicion,
+  contextoExternoDescomposicion,
+  contextoInternoDescomposicion,
+} from "../../contextoRefinamiento";
 import { extremoApuntaAEntidad } from "../../extremos";
 import { fijarRefinamiento, obtenerRefinamiento } from "../../refinamientos";
 import type {
@@ -72,8 +77,9 @@ export function descomponerProceso(modelo: Modelo, opdPadreId: Id, procesoId: Id
     y: 90,
     width: INZOOM.contornoWidth,
     height: INZOOM.contornoHeight,
+    contextoRefinamiento: contextoContornoDescomposicion(procesoId),
   };
-  const aparienciasExternas = aparienciasExtremosExternos(modelo, opdPadre, procesoId, opdHijoId, nextSeq);
+  const aparienciasExternas = aparienciasExtremosExternos(modelo, opdPadre, procesoId, opdHijoId, aparienciaHijoId, nextSeq);
   nextSeq = aparienciasExternas.nextSeq;
   const subprocesos = subcosasInicialesInzoom(modelo, proceso, aparienciaHijo, opdHijoId, nextSeq);
   nextSeq = subprocesos.nextSeq;
@@ -124,6 +130,7 @@ function aparienciasExtremosExternos(
   opdPadre: Opd,
   procesoId: Id,
   opdHijoId: Id,
+  contenedorAparienciaId: Id,
   nextSeqInicial: number,
 ): { apariencias: Record<Id, Apariencia>; nextSeq: number } {
   const externos = enlacesExternosDeEntidad(modelo, opdPadre, procesoId);
@@ -148,6 +155,7 @@ function aparienciasExtremosExternos(
       opdId: opdHijoId,
       x: entrada ? 24 : 610,
       y: 112 + fila * 92,
+      contextoRefinamiento: contextoExternoDescomposicion(procesoId, contenedorAparienciaId, [enlace.id]),
     };
   }
 
@@ -193,6 +201,7 @@ function subcosasInicialesInzoom(
       y,
       width: CANON.dims.cosaWidth,
       height: CANON.dims.cosaHeight,
+      contextoRefinamiento: contextoInternoDescomposicion(proceso.id, contorno.id),
     };
     y += CANON.dims.cosaHeight + INZOOM.separacionVertical;
   }

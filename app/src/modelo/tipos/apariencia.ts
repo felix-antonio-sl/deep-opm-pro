@@ -12,6 +12,15 @@ export type ModoPlegado = "completo" | "parcial" | "plegado" | "desplegado";
 export type OrdenPartesPlegado = "alfabetico" | "creacion";
 export type LayoutEstados = "horizontal" | "vertical";
 export type ModoTamano = "auto" | "manual";
+export type RolContextoRefinamiento = "contorno" | "interno" | "externo";
+
+export interface ContextoRefinamientoApariencia {
+  tipo: "descomposicion";
+  refinableEntidadId: Id;
+  rol: RolContextoRefinamiento;
+  contenedorAparienciaId?: Id;
+  enlacesPadreIds?: Id[];
+}
 
 export interface EstiloApariencia {
   fill?: string;
@@ -43,6 +52,7 @@ export interface Apariencia {
   modoPlegado?: ModoPlegado;
   ordenPartes?: OrdenPartesPlegado;
   parteExtraidaDe?: { padreAparienciaId: Id; parteEntidadId: Id };
+  contextoRefinamiento?: ContextoRefinamientoApariencia;
   /** Ports dinámicos OPCloud-style usados como puntos de conexión por enlace. */
   ports?: Record<Id, PuertoApariencia>;
 }

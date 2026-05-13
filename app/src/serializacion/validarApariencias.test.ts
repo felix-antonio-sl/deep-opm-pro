@@ -35,6 +35,37 @@ describe("validarApariencias", () => {
     expect(validarModoTamano("a-1", undefined).ok).toBe(true);
   });
 
+  test("preserva contexto de refinamiento de apariencia", () => {
+    const resultado = validarApariencias("opd-1", {
+      "a-1": {
+        id: "a-1",
+        entidadId: "e-1",
+        opdId: "opd-1",
+        x: 1,
+        y: 2,
+        width: 135,
+        height: 60,
+        contextoRefinamiento: {
+          tipo: "descomposicion",
+          refinableEntidadId: "p-1",
+          rol: "externo",
+          contenedorAparienciaId: "a-contorno",
+          enlacesPadreIds: ["e-padre"],
+        },
+      },
+    }, entidades);
+
+    expect(resultado.ok).toBe(true);
+    if (!resultado.ok) return;
+    expect(resultado.value["a-1"]?.contextoRefinamiento).toEqual({
+      tipo: "descomposicion",
+      refinableEntidadId: "p-1",
+      rol: "externo",
+      contenedorAparienciaId: "a-contorno",
+      enlacesPadreIds: ["e-padre"],
+    });
+  });
+
   test("acepta vertices validos", () => {
     const resultado = validarVertices("ae-1", [{ x: 1, y: 2 }, { x: 3, y: 4 }]);
 

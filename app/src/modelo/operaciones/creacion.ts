@@ -1,4 +1,6 @@
 import { CANON } from "../constantes";
+import { contextoInternoDescomposicion } from "../contextoRefinamiento";
+import { contenedorRefinamiento } from "../layout";
 import type { Apariencia, Entidad, Id, Modelo, Opd, Posicion, Resultado, TipoEntidad } from "../tipos";
 import { nombreEntidadDisponible, nombreUnicoEntidad } from "./entidad";
 import { fallo, ok, siguienteId } from "./helpers";
@@ -62,6 +64,7 @@ function crearEntidad(
 
   const entidadId = siguienteId(modelo, tipo === "objeto" ? "o" : "p");
   const aparienciaId = siguienteId({ ...modelo, nextSeq: modelo.nextSeq + 1 }, "a");
+  const contorno = contenedorRefinamiento(modelo, opdId);
   const entidad: Entidad = {
     id: entidadId,
     tipo,
@@ -77,6 +80,7 @@ function crearEntidad(
     y: posicion.y,
     width: CANON.dims.cosaWidth,
     height: CANON.dims.cosaHeight,
+    ...(contorno ? { contextoRefinamiento: contextoInternoDescomposicion(contorno.entidadId, contorno.id) } : {}),
   };
 
   const nextOpd: Opd = {

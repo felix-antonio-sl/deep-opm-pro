@@ -15,6 +15,7 @@
  */
 
 import { naturalezaDeEnlace } from "./constantes";
+import { aparienciaEsExternaDeRefinamiento } from "./contextoRefinamiento";
 import { entidadDeExtremo, entidadIdDeExtremo, extremoApuntaAEntidad, extremoKey, nombreExtremo } from "./extremos";
 import { imagenIncluyeBitmap } from "./imagenObjeto";
 import { estadosDeEntidad } from "./operaciones";
@@ -76,7 +77,7 @@ export function validarAmbientalDentroContorno(modelo: Modelo, opdActivoId: Id =
       if (apariencia.entidadId === contexto.padre.id) continue;
       const entidad = modelo.entidades[apariencia.entidadId];
       if (entidad?.afiliacion !== "ambiental") continue;
-      if (aparienciaEsProxyExterna(modelo, opd.id, apariencia)) continue;
+      if (aparienciaEsExternaDeRefinamiento(modelo, opd.id, apariencia)) continue;
       if (dentroDe(apariencia, contexto.contorno)) continue;
       avisos.push({
         reglaId: "ambiental-dentro-contorno",
@@ -448,16 +449,6 @@ function dentroDe(apariencia: Apariencia, contorno: Apariencia): boolean {
     apariencia.x + apariencia.width <= contorno.x + contorno.width &&
     apariencia.y + apariencia.height <= contorno.y + contorno.height
   );
-}
-
-function aparienciaEsProxyExterna(modelo: Modelo, opdId: Id, apariencia: Apariencia): boolean {
-  for (const otroOpdId of Object.keys(modelo.opds)) {
-    if (otroOpdId === opdId) continue;
-    const otroOpd = modelo.opds[otroOpdId];
-    if (!otroOpd) continue;
-    if (Object.values(otroOpd.apariencias).some((ap) => ap.entidadId === apariencia.entidadId)) return true;
-  }
-  return false;
 }
 
 function etiquetaTipo(tipo: TipoEnlace): string {

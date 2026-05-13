@@ -265,6 +265,7 @@ function esSubprocesoInternoTimeline(modelo: Modelo, meta: OpmJointMetadata): me
   if (entidad?.tipo !== "proceso") return false;
   const opd = modelo.opds[meta.opdId];
   if (!opd) return false;
+  if (meta.rol === "interno") return true;
   const contorno = Object.values(opd.apariencias).find((apariencia) => {
     const refinable = modelo.entidades[apariencia.entidadId];
     return refinable?.tipo === "proceso" && obtenerRefinamiento(refinable, "descomposicion")?.opdId === opd.id;

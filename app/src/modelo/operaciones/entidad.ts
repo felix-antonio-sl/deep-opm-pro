@@ -1,4 +1,5 @@
 import { CANON } from "../constantes";
+import { contextoInternoDescomposicion } from "../contextoRefinamiento";
 import { contenedorRefinamiento, encajarAparienciaEnContorno } from "../layout";
 import type {
   Afiliacion,
@@ -138,7 +139,12 @@ export function crearAtributoEnObjeto(
   };
   const contorno = contenedorRefinamiento(modelo, opdId);
   const posicionAtributo = contorno ? encajarAparienciaEnContorno(aparienciaBase, contorno) : aparienciaBase;
-  const apariencia: Apariencia = { ...aparienciaBase, x: posicionAtributo.x, y: posicionAtributo.y };
+  const apariencia: Apariencia = {
+    ...aparienciaBase,
+    x: posicionAtributo.x,
+    y: posicionAtributo.y,
+    ...(contorno ? { contextoRefinamiento: contextoInternoDescomposicion(contorno.entidadId, contorno.id) } : {}),
+  };
   const enlace: Enlace = {
     id: enlaceId,
     tipo: "exhibicion",

@@ -3,6 +3,7 @@ import { CANON } from "../constantes";
 import { formatearNombreCompuesto } from "../objetoMetadata";
 import type { Apariencia, Id, Modelo, Posicion, Resultado } from "../tipos";
 import { RESIZE_MIN, clampValor } from "../../canvas/grid";
+import { aparienciaEsExternaDeRefinamiento } from "../contextoRefinamiento";
 import { fallo, ok } from "./helpers";
 import { refrescarEnlacesExternosDerivados } from "./refinamiento";
 
@@ -37,12 +38,9 @@ export function moverAparienciaPorId(modelo: Modelo, opdId: Id, aparienciaId: Id
   if (esContorno) {
     // Mover contorno arrastra a las apariencias internas (creadas dentro de
     // este OPD: subprocesos, partes refinadoras, objetos internos). Las
-    // apariencias proxy de externos (entidades que tambien tienen apariencia
-    // en otro OPD, tipicamente el padre) son anclas del contexto y deben
-    // mantener su posicion absoluta. La distincion se basa en el modelo:
-    // una apariencia es proxy si la entidad existe en otro OPD; no se usa
-    // heuristica geometrica que falla cuando el contorno se desplaza sobre
-    // los proxies (HU-12.008 contenedor envolvente; HU-12.010 externos).
+    // apariencias proxy de externos son anclas del contexto y deben mantener
+    // su posicion absoluta. La distincion vive en Apariencia.contextoRefinamiento,
+    // con fallback legacy para modelos previos.
     const dx = posicion.x - apariencia.x;
     const dy = posicion.y - apariencia.y;
     nuevasApariencias = {};
@@ -51,11 +49,11 @@ export function moverAparienciaPorId(modelo: Modelo, opdId: Id, aparienciaId: Id
         nuevasApariencias[id] = { ...ap, x: posicion.x, y: posicion.y };
         continue;
       }
-      nuevasApariencias[id] = aparienciaEsProxyExterna(modelo, opdId, ap)
+      nuevasApariencias[id] = aparienciaEsExternaDeRefinamiento(modelo, opdId, ap)
         ? ap
         : { ...ap, x: ap.x + dx, y: ap.y + dy };
     }
-  } else if (contorno && !aparienciaEsProxyExterna(modelo, opdId, apariencia)) {
+  } else if (contorno && !aparienciaEsExternaDeRefinamiento(modelo, opdId, apariencia)) {
     // Apariencia interna: clamp al bbox del contorno (HU-12.020 restriccion
     // interior). Padding coherente con restrictTranslate del paper. Las
     // apariencias proxy de externos NO se clampean (caen en la rama "else"
@@ -209,18 +207,6 @@ export function actualizarVerticesEnlace(
       },
     },
   });
-}
-
-function aparienciaEsProxyExterna(modelo: Modelo, opdId: Id, apariencia: Apariencia): boolean {
-  for (const otroOpdId of Object.keys(modelo.opds)) {
-    if (otroOpdId === opdId) continue;
-    const otroOpd = modelo.opds[otroOpdId];
-    if (!otroOpd) continue;
-    for (const ap of Object.values(otroOpd.apariencias)) {
-      if (ap.entidadId === apariencia.entidadId) return true;
-    }
-  }
-  return false;
 }
 
 function mismosVertices(a: Posicion[], b: Posicion[]): boolean {

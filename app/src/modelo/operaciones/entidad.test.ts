@@ -56,6 +56,12 @@ describe("operaciones/entidad valor numérico", () => {
     expect(atributo.y).toBeGreaterThanOrEqual(contorno.y);
     expect(atributo.x + atributo.width).toBeLessThanOrEqual(contorno.x + contorno.width);
     expect(atributo.y + atributo.height).toBeLessThanOrEqual(contorno.y + contorno.height);
+    expect(atributo.contextoRefinamiento).toMatchObject({
+      tipo: "descomposicion",
+      refinableEntidadId: padreId,
+      rol: "interno",
+      contenedorAparienciaId: contorno.id,
+    });
   });
 
   test("renombrarEntidad parsea nombre [unidad] de forma idempotente", () => {

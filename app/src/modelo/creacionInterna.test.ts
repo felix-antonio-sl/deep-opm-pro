@@ -62,6 +62,12 @@ describe("creacion interna por posicion", () => {
       id: creado.aparienciaId,
       entidadId: creado.entidadId,
       opdId: base.opdHijoId,
+      contextoRefinamiento: {
+        tipo: "descomposicion",
+        refinableEntidadId: contorno.entidadId,
+        rol: "interno",
+        contenedorAparienciaId: contorno.id,
+      },
     });
     expect(hidratado.value.entidades[creado.entidadId]?.tipo).toBe("objeto");
   });

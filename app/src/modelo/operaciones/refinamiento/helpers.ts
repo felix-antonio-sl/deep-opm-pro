@@ -2,6 +2,7 @@ import {
   entidadIdDeExtremo,
   extremoApuntaAEntidad,
 } from "../../extremos";
+import { aparienciaEsInternaDeRefinamiento } from "../../contextoRefinamiento";
 import {
   obtenerRefinamiento,
   quitarRefinamiento as quitarRefinamientoSlot,
@@ -99,7 +100,7 @@ export function entidadesInternasOrdenadasDeRefinamiento(modelo: Modelo, opd: Op
       const entidad = modelo.entidades[apariencia.entidadId];
       return entidad && (!tipo || entidad.tipo === tipo);
     })
-    .filter((apariencia) => dentroDe(apariencia, contorno))
+    .filter((apariencia) => aparienciaEsInternaDeRefinamiento(modelo, opd.id, apariencia, contorno))
     .sort((a, b) => compararOrdenTemporal(a, b));
 }
 

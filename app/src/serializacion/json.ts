@@ -22,6 +22,7 @@ const CLAVES_DETECTOR_SERIALIZACION_JSON = [
   `kind === "estado"`,
   "vertices",
   "modoPlegado",
+  "contextoRefinamiento",
   "apariencias",
   "rutaEtiqueta",
   "subtipoModificador",

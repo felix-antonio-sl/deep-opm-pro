@@ -1,4 +1,5 @@
 import { CANON } from "./constantes";
+import { contextoInternoDescomposicion } from "./contextoRefinamiento";
 import { contenedorRefinamiento, encajarAparienciaEnContorno } from "./layout";
 import { crearObjeto, crearProceso } from "./operaciones";
 import type { Afiliacion, Apariencia, Id, Modelo, Posicion, Resultado, TipoEntidad } from "./tipos";
@@ -57,7 +58,7 @@ function ajustarCreacionInterna(
   modelo: Modelo,
   opdId: Id,
   apariencia: Apariencia,
-  contorno: { x: number; y: number; width: number; height: number },
+  contorno: { id: Id; entidadId: Id; x: number; y: number; width: number; height: number },
   afiliacion: Afiliacion | undefined,
 ): Modelo {
   const posicion = encajarAparienciaEnContorno(apariencia, contorno);
@@ -82,6 +83,7 @@ function ajustarCreacionInterna(
             ...apariencia,
             x: posicion.x,
             y: posicion.y,
+            contextoRefinamiento: contextoInternoDescomposicion(contorno.entidadId, contorno.id),
           },
         },
       },

@@ -47,6 +47,8 @@ export function validarApariencias(
     if (!ordenPartes.ok) return ordenPartes;
     const parteExtraidaDe = validarParteExtraidaDe(id, raw.parteExtraidaDe);
     if (!parteExtraidaDe.ok) return parteExtraidaDe;
+    const contextoRefinamiento = validarContextoRefinamientoApariencia(id, raw.contextoRefinamiento);
+    if (!contextoRefinamiento.ok) return contextoRefinamiento;
     apariencias[id] = {
       id,
       entidadId: raw.entidadId,
@@ -60,6 +62,7 @@ export function validarApariencias(
       modoPlegado: modoPlegado.value,
       ...(ordenPartes.value ? { ordenPartes: ordenPartes.value } : {}),
       ...(parteExtraidaDe.value ? { parteExtraidaDe: parteExtraidaDe.value } : {}),
+      ...(contextoRefinamiento.value ? { contextoRefinamiento: contextoRefinamiento.value } : {}),
     };
   }
   return ok(apariencias);
@@ -91,6 +94,38 @@ export function validarParteExtraidaDe(
   return ok({
     padreAparienciaId: value.padreAparienciaId,
     parteEntidadId: value.parteEntidadId,
+  });
+}
+
+export function validarContextoRefinamientoApariencia(
+  aparienciaId: Id,
+  value: unknown,
+): Resultado<Apariencia["contextoRefinamiento"] | undefined> {
+  if (value === undefined) return ok(undefined);
+  if (!esRecord(value)) return fallo(`Apariencia inválida: ${aparienciaId}.contextoRefinamiento`);
+  if (value.tipo !== "descomposicion") return fallo(`Apariencia inválida: ${aparienciaId}.contextoRefinamiento.tipo`);
+  if (typeof value.refinableEntidadId !== "string") {
+    return fallo(`Apariencia inválida: ${aparienciaId}.contextoRefinamiento.refinableEntidadId`);
+  }
+  if (value.rol !== "contorno" && value.rol !== "interno" && value.rol !== "externo") {
+    return fallo(`Apariencia inválida: ${aparienciaId}.contextoRefinamiento.rol`);
+  }
+  if (value.contenedorAparienciaId !== undefined && typeof value.contenedorAparienciaId !== "string") {
+    return fallo(`Apariencia inválida: ${aparienciaId}.contextoRefinamiento.contenedorAparienciaId`);
+  }
+  let enlacesPadreIds: Id[] | undefined;
+  if (value.enlacesPadreIds !== undefined) {
+    if (!Array.isArray(value.enlacesPadreIds) || value.enlacesPadreIds.some((id) => typeof id !== "string")) {
+      return fallo(`Apariencia inválida: ${aparienciaId}.contextoRefinamiento.enlacesPadreIds`);
+    }
+    enlacesPadreIds = [...value.enlacesPadreIds] as Id[];
+  }
+  return ok({
+    tipo: "descomposicion",
+    refinableEntidadId: value.refinableEntidadId,
+    rol: value.rol,
+    ...(value.contenedorAparienciaId ? { contenedorAparienciaId: value.contenedorAparienciaId } : {}),
+    ...(enlacesPadreIds ? { enlacesPadreIds } : {}),
   });
 }
 
