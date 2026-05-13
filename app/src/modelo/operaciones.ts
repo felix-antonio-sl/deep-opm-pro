@@ -60,10 +60,12 @@ export {
   relacionesEstructuralesFaltantes,
   traerRelacionesEstructuralesFaltantes,
   plegarGrupoEstructural,
+  relacionesSemiplegadasEstructurales,
+  quitarSemiplegadoEstructural,
   reanclarEnlaceExternoDerivado,
   volverEnlaceExternoDerivadoAAutomatico,
 } from "./operaciones/enlaces";
-export type { LadoMultiplicidadEnlace, LadoExtremoEnlace, RelacionesEstructuralesFaltantes } from "./operaciones/enlaces";
+export type { LadoMultiplicidadEnlace, LadoExtremoEnlace, RelacionesEstructuralesFaltantes, RelacionesSemiplegadasEstructurales } from "./operaciones/enlaces";
 
 export {
   moverApariencia,

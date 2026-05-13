@@ -29,20 +29,20 @@ Implementado en la app:
 - **Símbolo estructural persistente/editable**: `AparienciaEnlace.symbolPos` conserva el centro del triángulo estructural al estilo OPCloud/OPX (`symbolPos` en `OPXStructuralParams`). Draggear el triángulo actualiza el JSON; en buses se sincroniza la posición en todas las ramas agrupadas.
 - **Anclas persistentes del símbolo estructural**: `AparienciaEnlace.symbolAnchors` conserva offsets relativos al centro del triángulo (`refinable` y `refinador`). El renderer usa ports JointJS con layout `absolute`, de modo que el triángulo sigue arrastrando sus enlaces en vivo. En buses estructurales OPCloud-style, las ramas del mismo grupo comparten el puerto `out`; la separación visual se expresa creando un `grupoEstructuralId` distinto.
 - **Ciclo interactivo base del símbolo estructural**: click sobre el triángulo de bus selecciona el grupo estructural; el Inspector permite cambiar el tipo fundamental (`agregacion`/`exhibicion`/`generalizacion`/`clasificacion`), separar/volver a automático y marcar `ordered` como `orderedFundamentalTypes` en la entidad refinable, emulando el patrón OPCloud de `orderedFundamentalTypes`.
-- **Ciclo de faltantes/semifolding**: el Inspector de enlace estructural expone `Traer faltantes` y `Semiplegar grupo`. La operación `traerRelacionesEstructuralesFaltantes()` materializa en el OPD activo refinadores/enlaces estructurales existentes en otros OPDs del mismo refinable; `plegarGrupoEstructural()` oculta las ramas visibles bajo el refinable usando el plegado parcial existente, equivalente MVP al `semiFolded` operacional de OPCloud.
+- **Ciclo de faltantes/semifolding**: el Inspector de enlace estructural expone `Traer faltantes` y `Semiplegar grupo`. La operación `traerRelacionesEstructuralesFaltantes()` materializa en el OPD activo refinadores/enlaces estructurales existentes en otros OPDs del mismo refinable; `plegarGrupoEstructural()` oculta las ramas visibles bajo el refinable usando el plegado parcial existente, equivalente MVP al `semiFolded` operacional de OPCloud. El Inspector de entidad ahora expone `Quitar semiplegado estructural` cuando detecta relaciones fundamentales ocultas, equivalente al remove/fold-out de `semiFolded`.
 
 Validación de esta ronda:
 
 - `bun run typecheck`
-- `bun run test`: 1231 pass / 0 fail
+- `bun run test`: 1235 pass / 0 fail
 - `bun run build`
 - `bun run lint`
 - `bun run browser:smoke`: 173 pass / 0 fail
 
-Pendientes reales después de A/B/C/D/E/G/H-base/I-base:
+Pendientes reales después de A/B/C/D/E/G/H-base/I-base/I-remove:
 
 - Ajuste avanzado de vertices superiores de OPCloud alrededor del símbolo estructural persistido: ya existe la base de anclas/ports; falta editar manualmente esos offsets y propagar heurísticas OPCloud más finas para modelos muy densos.
-- Ciclo interactivo completo del triángulo estructural: faltan fold completo, remove semifolding y relaciones faltantes derivadas desde inzoom procedural.
+- Ciclo interactivo completo del triángulo estructural: falta fold completo y relaciones faltantes derivadas desde inzoom procedural.
 - Labels avanzados OPCloud: wrapping por segmento visible, posición persistida, requirements, rate/time/path/tags/backtags.
 - Familias avanzadas fuera del MVP actual: exception links de tiempo, tagged/bidirectional links y metadatos avanzados de requisitos.
 
@@ -417,7 +417,7 @@ La siguiente ruta de alto impacto ya no es A/B/C/D/E, sino **F/G/H**. G tiene im
 | # | Pendiente | Impacto | Costo |
 |---|---|---|---|
 | F | labels OPCloud avanzados | Medio/alto | M |
-| G | ciclo interactivo completo del triángulo estructural | Medio/alto | En curso: tipo/ordered/grupo listo; faltan fold/semi-fold y relaciones faltantes |
+| G | ciclo interactivo completo del triángulo estructural | Medio/alto | En curso: tipo/ordered/grupo, faltantes, semiplegado y remove/fold-out listos; faltan fold completo y faltantes desde inzoom procedural |
 | H | vertices superiores/anchors visuales persistidos alrededor del símbolo | Medio | M |
 
 ## Notas operativas
@@ -435,7 +435,7 @@ La siguiente ruta de alto impacto ya no es A/B/C/D/E, sino **F/G/H**. G tiene im
 Loop verde de referencia:
 - typecheck/build clean
 - lint clean
-- 1231 unit / 0 fail
+- 1235 unit / 0 fail
 - 173 smoke / 0 fail
 
 Lo que YA está hecho:
@@ -447,6 +447,7 @@ Lo que YA está hecho:
 - `beautifyConnectedLinks` post-drag desde anchors reales de `LinkView`
 - `symbolPos` persistido y editable para triángulos estructurales simples y buses
 - selector de grupo estructural desde el triángulo + cambio de tipo + `orderedFundamentalTypes`
+- ciclo OPCloud-style de faltantes, semiplegado y quitar semiplegado estructural
 - unificación OPCloud-style de enlaces procedurales con estados
 - `7a9d65e` — layoutConContorno con anchos reales + heurística semántica (HODOM SD-1: 0 solapamientos)
 - `f93112e` — externos densos en multi-columna

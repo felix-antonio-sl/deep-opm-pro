@@ -289,6 +289,12 @@ export interface RelacionesEstructuralesFaltantes {
   faltantes: number;
 }
 
+export interface RelacionesSemiplegadasEstructurales {
+  refinableId: Id;
+  enlaceIds: Id[];
+  faltantes: number;
+}
+
 export function relacionesEstructuralesFaltantes(
   modelo: Modelo,
   opdId: Id,
@@ -322,52 +328,11 @@ export function traerRelacionesEstructuralesFaltantes(
     .filter((enlace) => !visibles.has(enlace.id)));
   if (candidatos.length === 0) return ok({ modelo, agregadas: 0 });
 
-  let nextSeq = modelo.nextSeq;
-  const enlacesActualizados = { ...modelo.enlaces };
-  const aparienciasActualizadas = { ...opd.apariencias };
-  const aparienciasEnlaceActualizadas = { ...opd.enlaces };
-  const existentesRefinadores = refinadoresVisiblesDelGrupo(modelo, opd, contexto.value);
-
-  candidatos.forEach((enlace, index) => {
-    const refinadorId = entidadRefinadorDeEnlace(modelo, enlace, contexto.value);
-    if (!refinadorId) return;
-    if (contexto.value.grupoEstructuralId && enlace.grupoEstructuralId !== contexto.value.grupoEstructuralId) {
-      enlacesActualizados[enlace.id] = { ...enlace, grupoEstructuralId: contexto.value.grupoEstructuralId };
-    }
-    if (!aparienciaDeEntidad({ ...opd, apariencias: aparienciasActualizadas }, refinadorId)) {
-      const referencia = aparienciaReferenciaEntidad(modelo, refinadorId);
-      const aparienciaId = siguienteId({ ...modelo, nextSeq }, "a");
-      nextSeq += 1;
-      aparienciasActualizadas[aparienciaId] = {
-        id: aparienciaId,
-        entidadId: refinadorId,
-        opdId,
-        ...posicionRefinadorTraido(refinable, referencia, existentesRefinadores.length + index, contexto.value.ladoRefinable),
-      };
-    }
-    const aparienciaEnlaceId = siguienteId({ ...modelo, nextSeq }, "ae");
-    nextSeq += 1;
-    aparienciasEnlaceActualizadas[aparienciaEnlaceId] = { id: aparienciaEnlaceId, enlaceId: enlace.id, opdId, vertices: [] };
-  });
-
-  aparienciasActualizadas[refinable.id] = modoCompleto(refinable);
-
-  return ok({
-    modelo: {
-      ...modelo,
-      nextSeq,
-      enlaces: enlacesActualizados,
-      opds: {
-        ...modelo.opds,
-        [opdId]: {
-          ...opd,
-          apariencias: aparienciasActualizadas,
-          enlaces: aparienciasEnlaceActualizadas,
-        },
-      },
-    },
-    agregadas: candidatos.length,
-  });
+  return ok(materializarEnlacesEstructuralesEnOpd(modelo, opdId, opd, refinable, candidatos, {
+    ladoRefinable: contexto.value.ladoRefinable,
+    existentesRefinadores: refinadoresVisiblesDelGrupo(modelo, opd, contexto.value),
+    ...(contexto.value.grupoEstructuralId ? { grupoEstructuralId: contexto.value.grupoEstructuralId } : {}),
+  }));
 }
 
 export function plegarGrupoEstructural(
@@ -411,6 +376,42 @@ export function plegarGrupoEstructural(
       },
     },
   });
+}
+
+export function relacionesSemiplegadasEstructurales(
+  modelo: Modelo,
+  opdId: Id,
+  refinableId: Id,
+): RelacionesSemiplegadasEstructurales {
+  const opd = modelo.opds[opdId];
+  const refinable = opd ? aparienciaDeEntidad(opd, refinableId) : undefined;
+  if (!opd || !refinable || refinable.modoPlegado !== "parcial") {
+    return { refinableId, enlaceIds: [], faltantes: 0 };
+  }
+  const visibles = new Set(Object.values(opd.enlaces).map((apariencia) => apariencia.enlaceId));
+  const enlaceIds = candidatosSemiplegadosEstructurales(modelo, refinableId, visibles).map((enlace) => enlace.id);
+  return { refinableId, enlaceIds, faltantes: enlaceIds.length };
+}
+
+export function quitarSemiplegadoEstructural(
+  modelo: Modelo,
+  opdId: Id,
+  refinableId: Id,
+): Resultado<{ modelo: Modelo; agregadas: number }> {
+  const opd = modelo.opds[opdId];
+  if (!opd) return fallo(`OPD no existe: ${opdId}`);
+  const refinable = aparienciaDeEntidad(opd, refinableId);
+  if (!refinable) return fallo("El refinable debe estar visible en el OPD activo");
+  if (refinable.modoPlegado !== "parcial") return fallo("La entidad no está en semiplegado estructural");
+
+  const visibles = new Set(Object.values(opd.enlaces).map((apariencia) => apariencia.enlaceId));
+  const candidatos = candidatosSemiplegadosEstructurales(modelo, refinableId, visibles);
+  if (candidatos.length === 0) return ok({ modelo, agregadas: 0 });
+
+  return ok(materializarEnlacesEstructuralesEnOpd(modelo, opdId, opd, refinable, candidatos, {
+    ladoRefinable: "origen",
+    existentesRefinadores: [],
+  }));
 }
 
 export function eliminarEnlacesBatch(modelo: Modelo, enlaceIds: Id[]): Resultado<Modelo> {
@@ -626,7 +627,11 @@ function candidatosEstructuralesDelGrupo(modelo: Modelo, contexto: ContextoGrupo
 }
 
 function entidadRefinadorDeEnlace(modelo: Modelo, enlace: Enlace, contexto: ContextoGrupoEstructural): Id | null {
-  const extremo = contexto.ladoRefinable === "origen" ? enlace.destinoId : enlace.origenId;
+  return entidadRefinadorPorLado(modelo, enlace, contexto.ladoRefinable);
+}
+
+function entidadRefinadorPorLado(modelo: Modelo, enlace: Enlace, ladoRefinable: "origen" | "destino"): Id | null {
+  const extremo = ladoRefinable === "origen" ? enlace.destinoId : enlace.origenId;
   return entidadIdDeExtremo(modelo, extremo);
 }
 
@@ -659,6 +664,76 @@ function ordenarEnlacesPorReferencia(modelo: Modelo, enlaces: Enlace[]): Enlace[
       || (refA?.x ?? 0) - (refB?.x ?? 0)
       || a.id.localeCompare(b.id);
   });
+}
+
+function candidatosSemiplegadosEstructurales(modelo: Modelo, refinableId: Id, visibles: Set<Id>): Enlace[] {
+  return ordenarEnlacesPorReferencia(modelo, Object.values(modelo.enlaces).filter((enlace) => {
+    if (naturalezaDeEnlace(enlace.tipo) !== "estructural") return false;
+    if (entidadIdDeExtremo(modelo, enlace.origenId) !== refinableId) return false;
+    if (visibles.has(enlace.id)) return false;
+    return entidadIdDeExtremo(modelo, enlace.destinoId) !== null;
+  }));
+}
+
+function materializarEnlacesEstructuralesEnOpd(
+  modelo: Modelo,
+  opdId: Id,
+  opd: Opd,
+  refinable: Apariencia,
+  enlaces: Enlace[],
+  opciones: {
+    ladoRefinable: "origen" | "destino";
+    grupoEstructuralId?: Id;
+    existentesRefinadores: Apariencia[];
+  },
+): { modelo: Modelo; agregadas: number } {
+  let nextSeq = modelo.nextSeq;
+  let agregadas = 0;
+  const enlacesActualizados = { ...modelo.enlaces };
+  const aparienciasActualizadas = { ...opd.apariencias };
+  const aparienciasEnlaceActualizadas = { ...opd.enlaces };
+
+  enlaces.forEach((enlace, index) => {
+    const refinadorId = entidadRefinadorPorLado(modelo, enlace, opciones.ladoRefinable);
+    if (!refinadorId) return;
+    if (opciones.grupoEstructuralId && enlace.grupoEstructuralId !== opciones.grupoEstructuralId) {
+      enlacesActualizados[enlace.id] = { ...enlace, grupoEstructuralId: opciones.grupoEstructuralId };
+    }
+    if (!aparienciaDeEntidad({ ...opd, apariencias: aparienciasActualizadas }, refinadorId)) {
+      const referencia = aparienciaReferenciaEntidad(modelo, refinadorId);
+      const aparienciaId = siguienteId({ ...modelo, nextSeq }, "a");
+      nextSeq += 1;
+      aparienciasActualizadas[aparienciaId] = {
+        id: aparienciaId,
+        entidadId: refinadorId,
+        opdId,
+        ...posicionRefinadorTraido(refinable, referencia, opciones.existentesRefinadores.length + index, opciones.ladoRefinable),
+      };
+    }
+    const aparienciaEnlaceId = siguienteId({ ...modelo, nextSeq }, "ae");
+    nextSeq += 1;
+    aparienciasEnlaceActualizadas[aparienciaEnlaceId] = { id: aparienciaEnlaceId, enlaceId: enlace.id, opdId, vertices: [] };
+    agregadas += 1;
+  });
+
+  aparienciasActualizadas[refinable.id] = modoCompleto(refinable);
+
+  return {
+    modelo: {
+      ...modelo,
+      nextSeq,
+      enlaces: enlacesActualizados,
+      opds: {
+        ...modelo.opds,
+        [opdId]: {
+          ...opd,
+          apariencias: aparienciasActualizadas,
+          enlaces: aparienciasEnlaceActualizadas,
+        },
+      },
+    },
+    agregadas,
+  };
 }
 
 function posicionRefinadorTraido(

@@ -589,6 +589,12 @@ describe("store undo/redo y dirty state", () => {
     expect(Object.keys(store.getState().modelo.opds[modelo.opdRaizId]?.enlaces ?? {})).toHaveLength(0);
     const padre = Object.values(store.getState().modelo.opds[modelo.opdRaizId]?.apariencias ?? {}).find((apariencia) => apariencia.entidadId === todoId);
     expect(padre?.modoPlegado).toBe("parcial");
+
+    store.getState().seleccionarEntidad(todoId);
+    store.getState().quitarSemiplegadoEstructuralSeleccionado();
+    expect(Object.keys(store.getState().modelo.opds[modelo.opdRaizId]?.enlaces ?? {})).toHaveLength(3);
+    const padreExpandido = Object.values(store.getState().modelo.opds[modelo.opdRaizId]?.apariencias ?? {}).find((apariencia) => apariencia.entidadId === todoId);
+    expect(padreExpandido?.modoPlegado).toBeUndefined();
   });
 
   test("accion de store crea auto-invocacion y selecciona el enlace", () => {

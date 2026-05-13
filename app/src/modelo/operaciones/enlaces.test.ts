@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { extremoEntidad } from "../extremos";
-import { cambiarTipoGrupoEstructural, crearEnlace, crearModelo, crearObjeto, crearProceso, desplegarObjeto, fijarOrdenGrupoEstructural, moverPuertoEnlace, plegarGrupoEstructural, relacionesEstructuralesFaltantes, traerRelacionesEstructuralesFaltantes } from "../operaciones";
+import { cambiarTipoGrupoEstructural, crearEnlace, crearModelo, crearObjeto, crearProceso, desplegarObjeto, fijarOrdenGrupoEstructural, moverPuertoEnlace, plegarGrupoEstructural, quitarSemiplegadoEstructural, relacionesEstructuralesFaltantes, relacionesSemiplegadasEstructurales, traerRelacionesEstructuralesFaltantes } from "../operaciones";
 import { filasPlegadoParcial } from "../plegado";
 import type { Modelo, Resultado } from "../tipos";
 import { copiarEstiloEnlace, eliminarEnlacesBatch } from "./enlaces";
@@ -113,6 +113,30 @@ describe("operaciones/enlaces", () => {
     expect(Object.values(modelo.opds[modelo.opdRaizId]?.apariencias ?? {}).map((apariencia) => apariencia.entidadId)).toEqual([todoId]);
     expect(modelo.opds[modelo.opdRaizId]?.apariencias[padre.id]?.modoPlegado).toBe("parcial");
     expect(filasPlegadoParcial(modelo, modelo.opdRaizId, padre.id)).toHaveLength(3);
+  });
+
+  test("quitarSemiplegadoEstructural revierte el semiplegado y rematerializa enlaces", () => {
+    let modelo = crearModelo("Quitar semifolding");
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 80, y: 90 }, "Todo"));
+    const todoId = entidad(modelo, "Todo");
+    const despliegue = must(desplegarObjeto(modelo, modelo.opdRaizId, todoId));
+    modelo = despliegue.modelo;
+    const enlaceBaseId = Object.values(modelo.opds[despliegue.opdId]?.enlaces ?? {})[0]?.enlaceId;
+    if (!enlaceBaseId) throw new Error("La prueba esperaba enlace estructural en despliegue");
+    modelo = must(traerRelacionesEstructuralesFaltantes(modelo, modelo.opdRaizId, [enlaceBaseId])).modelo;
+    modelo = must(plegarGrupoEstructural(modelo, modelo.opdRaizId, [enlaceBaseId]));
+
+    expect(relacionesSemiplegadasEstructurales(modelo, modelo.opdRaizId, todoId).faltantes).toBe(3);
+    const resultado = must(quitarSemiplegadoEstructural(modelo, modelo.opdRaizId, todoId));
+    modelo = resultado.modelo;
+
+    expect(resultado.agregadas).toBe(3);
+    expect(Object.keys(modelo.opds[modelo.opdRaizId]?.enlaces ?? {})).toHaveLength(3);
+    expect(Object.values(modelo.opds[modelo.opdRaizId]?.apariencias ?? {})
+      .filter((apariencia) => apariencia.entidadId !== todoId)).toHaveLength(3);
+    const padre = Object.values(modelo.opds[modelo.opdRaizId]?.apariencias ?? {}).find((apariencia) => apariencia.entidadId === todoId);
+    expect(padre?.modoPlegado).toBeUndefined();
+    expect(relacionesSemiplegadasEstructurales(modelo, modelo.opdRaizId, todoId).faltantes).toBe(0);
   });
 });
 

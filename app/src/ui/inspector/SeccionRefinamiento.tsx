@@ -29,6 +29,7 @@ interface Props {
   modoPlegado: string;
   ordenPartes?: OrdenPartesPlegado | undefined;
   filasParciales: FilaPlegadoParcial[];
+  semiplegadasEstructurales: number;
   padreAparienciaId?: string | undefined;
   parteExtraidaDe?: unknown | undefined;
   modelo: Modelo;
@@ -43,6 +44,7 @@ interface Props {
   onExtraer: (padreAparienciaId: string, parteEntidadId: string) => void;
   onExtraerTodas: () => void;
   onReinsertarParte: () => void;
+  onQuitarSemiplegadoEstructural: () => void;
 }
 
 export function SeccionRefinamiento(props: Props) {
@@ -64,6 +66,20 @@ export function SeccionRefinamiento(props: Props) {
         </>
       ) : null}
       {props.parteExtraidaDe ? <button type="button" style={style.secondaryButton} onClick={props.onReinsertarParte} title="Reinsertar esta parte en la lista compacta del padre">Reinsertar al padre</button> : null}
+      {props.semiplegadasEstructurales > 0 ? (
+        <section style={partialStyles.section} aria-label="Semiplegado estructural">
+          <span style={partialStyles.note}>{`${props.semiplegadasEstructurales} relación(es) estructural(es) ocultas bajo esta cosa.`}</span>
+          <button
+            type="button"
+            data-testid="quitar-semiplegado-estructural-btn"
+            style={style.secondaryButton}
+            onClick={props.onQuitarSemiplegadoEstructural}
+            title="Vuelve a materializar en este OPD las relaciones estructurales semiplegadas, siguiendo el patrón remove semi-folding de OPCloud"
+          >
+            Quitar semiplegado estructural
+          </button>
+        </section>
+      ) : null}
       {props.padreAparienciaId && props.filasParciales.length > 0 ? <PartesCompactas filas={props.filasParciales} padreAparienciaId={props.padreAparienciaId} onExtraer={props.onExtraer} onExtraerTodas={props.onExtraerTodas} /> : null}
     </>
   );
@@ -216,6 +232,7 @@ const partialStyles = {
   name: { minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: tokens.colors.textoPrimario, fontSize: "12px", fontWeight: 700 },
   nameExtracted: { minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: tokens.colors.textoTerciario, fontSize: "12px", fontWeight: 700, fontStyle: "italic", textDecoration: "line-through" },
   counter: { padding: "8px", color: tokens.colors.textoTerciario, fontSize: "12px", fontStyle: "italic" },
+  note: { color: tokens.colors.textoTerciario, fontSize: "12px", lineHeight: 1.35 },
   button: { minHeight: "28px", padding: "0 8px", border: `1px solid ${tokens.colors.bordeControl}`, borderRadius: tokens.radii.sm, background: tokens.colors.fondoCard, color: tokens.colors.textoSecundario, cursor: "pointer", fontSize: "12px", fontWeight: 700 },
   buttonDisabled: { minHeight: "28px", padding: "0 8px", border: `1px solid ${tokens.colors.bordeIntermedio}`, borderRadius: tokens.radii.sm, background: tokens.colors.fondoNeutral, color: tokens.colors.textoDeshabilitado, cursor: "not-allowed", fontSize: "12px", fontWeight: 700 },
 } satisfies Record<string, preact.JSX.CSSProperties>;

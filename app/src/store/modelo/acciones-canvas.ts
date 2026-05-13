@@ -18,6 +18,7 @@ import {
   actualizarPuertosEnlacesDesdePuntos,
   moverApariencia as moverAparienciaEntidad,
   moverAparienciaPorId,
+  quitarSemiplegadoEstructural,
   renombrarEntidad,
   renombrarEstado,
 } from "../../modelo/operaciones";
@@ -581,6 +582,27 @@ export function accionesCanvas(set: SetStore, get: GetStore): Partial<ModeloSlic
         enlaceSeleccionId: null,
         modoEnlace: null,
         mensaje: null,
+      });
+    },
+
+    quitarSemiplegadoEstructuralSeleccionado() {
+      const { modelo, opdActivoId, seleccionId } = get();
+      if (!seleccionId) {
+        set({ mensaje: "Selecciona una entidad semiplegada" });
+        return;
+      }
+      const resultado = quitarSemiplegadoEstructural(modelo, opdActivoId, seleccionId);
+      if (!resultado.ok) {
+        set({ mensaje: resultado.error });
+        return;
+      }
+      commitModelo(set, modelo, resultado.value.modelo, {
+        seleccionId,
+        enlaceSeleccionId: null,
+        modoEnlace: null,
+        mensaje: resultado.value.agregadas > 0
+          ? `Semiplegado estructural quitado: ${resultado.value.agregadas} relaciones`
+          : "No hay relaciones estructurales semiplegadas",
       });
     },
 
