@@ -64,6 +64,8 @@ export type {
   Enlace,
   AnclajeSimboloEstructural,
   AnclajesSimboloEstructural,
+  OffsetLabelEnlace,
+  PosicionLabelEnlace,
   AparienciaEnlace,
 } from "./tipos/enlace";
 

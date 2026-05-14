@@ -163,6 +163,7 @@ export type ModeloSlice = Slice<
   | "aplicarLayoutSugerido"
   | "reordenarSubprocesoEnTimeline"
   | "actualizarVerticesEnlace"
+  | "actualizarPosicionLabelEnlace"
   | "traerConectadosSeleccionado"
   | "traerEnlacesEntreSeleccionadas"
   | "ocultarAparienciaSeleccionada"

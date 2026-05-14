@@ -1,17 +1,18 @@
 import { CANON } from "../../modelo/constantes";
 import { rutaEtiquetaNormalizada } from "../../modelo/rutas";
 import type { Enlace } from "../../modelo/tipos";
+import { aplicarLayoutLabel, LABEL_KEY_RUTA, type LayoutLabelsEnlace } from "./labelLayout";
 import { labelTextWrap } from "./labelText";
 
-export function etiquetasRuta(enlace: Enlace): Array<Record<string, unknown>> {
+export function etiquetasRuta(enlace: Enlace, labelPositions?: LayoutLabelsEnlace, wrapWidth?: number): Array<Record<string, unknown>> {
   const text = rutaEtiquetaNormalizada(enlace.rutaEtiqueta);
   if (!text) return [];
-  return [{
+  return [aplicarLayoutLabel({
     markup: [{ tagName: "text", selector: "label" }],
     attrs: {
       label: {
         text,
-        ...labelTextWrap(text),
+        ...labelTextWrap(text, wrapWidth),
         fill: "#475467",
         fontFamily: CANON.dims.fontFamily,
         fontSize: 12,
@@ -30,5 +31,5 @@ export function etiquetasRuta(enlace: Enlace): Array<Record<string, unknown>> {
         ensureLegibility: true,
       },
     },
-  }];
+  }, LABEL_KEY_RUTA, labelPositions)];
 }

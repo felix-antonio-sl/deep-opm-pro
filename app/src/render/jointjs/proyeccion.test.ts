@@ -773,7 +773,7 @@ describe("proyeccion JointJS", () => {
     expect(labels?.[0]?.attrs?.label).toMatchObject({ text: "componente critico", fontStyle: "italic" });
   });
 
-  test("envuelve labels largos de enlace con textWrap JointJS", () => {
+  test("envuelve labels largos de enlace con ancho de tramo visible JointJS", () => {
     let modelo = crearModelo();
     modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 30 }, "Todo"));
     modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 220, y: 130 }, "Parte"));
@@ -787,7 +787,43 @@ describe("proyeccion JointJS", () => {
       .flatMap((cell) => (cell.labels as Array<{ attrs?: { label?: { text?: unknown; textWrap?: unknown } } }> | undefined) ?? [])
       .find((item) => item.attrs?.label?.text === textoLargo);
 
-    expect(label?.attrs?.label?.textWrap).toMatchObject({ width: 132, height: null });
+    const wrap = label?.attrs?.label?.textWrap as { width?: number; height?: unknown } | undefined;
+    expect(wrap?.height).toBeNull();
+    expect(wrap?.width).toBeGreaterThanOrEqual(40);
+    expect(wrap?.width).toBeLessThan(132);
+  });
+
+  test("aplica posicion persistida de label de enlace", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 30 }, "Origen"));
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 260, y: 130 }, "Destino"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidadPorNombre(modelo, "Origen"), entidadPorNombre(modelo, "Destino"), "agregacion", "ruta alternativa"));
+    const aparienciaId = Object.keys(modelo.opds[modelo.opdRaizId]?.enlaces ?? {})[0];
+    if (!aparienciaId) throw new Error("La prueba esperaba apariencia de enlace");
+    modelo = {
+      ...modelo,
+      opds: {
+        ...modelo.opds,
+        [modelo.opdRaizId]: {
+          ...modelo.opds[modelo.opdRaizId]!,
+          enlaces: {
+            ...modelo.opds[modelo.opdRaizId]!.enlaces,
+            [aparienciaId]: {
+              ...modelo.opds[modelo.opdRaizId]!.enlaces[aparienciaId]!,
+              labelPositions: {
+                etiqueta: { distance: 0.72, offset: 34 },
+              },
+            },
+          },
+        },
+      },
+    };
+
+    const label = proyectarModeloAJointCells(modelo, modelo.opdRaizId, null, null)
+      .flatMap((cell) => (cell.labels as Array<{ opmLabelKey?: string; position?: unknown }> | undefined) ?? [])
+      .find((item) => item.opmLabelKey === "etiqueta");
+
+    expect(label?.position).toMatchObject({ distance: 0.72, offset: 34 });
   });
 
   test("proyecta proceso descompuesto con contorno grueso", () => {

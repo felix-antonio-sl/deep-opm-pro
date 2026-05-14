@@ -1,5 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import {
+  actualizarPosicionLabelEnlace,
   actualizarVerticesEnlace,
   ajustarMultiplicidad,
   cambiarAfiliacion,
@@ -362,6 +363,28 @@ describe("operaciones de modelo", () => {
       { x: 100, y: 20 },
       { x: 140, y: 80 },
     ]);
+  });
+
+  test("persiste posicion manual de label de enlace", () => {
+    let modelo = modeloConEntidades();
+    const whole = entidadPorNombre(modelo, "Whole");
+    const part = entidadPorNombre(modelo, "Part");
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, whole.id, part.id, "agregacion"));
+    const aparienciaEnlace = Object.values(modelo.opds[modelo.opdRaizId]?.enlaces ?? {})[0];
+    expect(aparienciaEnlace).toBeDefined();
+    if (!aparienciaEnlace) return;
+
+    const actualizado = actualizarPosicionLabelEnlace(modelo, modelo.opdRaizId, aparienciaEnlace.id, "etiqueta", {
+      distance: 0.72349,
+      offset: { x: 10.1234, y: -4.9876 },
+    });
+
+    expect(actualizado.ok).toBe(true);
+    if (!actualizado.ok) return;
+    expect(actualizado.value.opds[modelo.opdRaizId]?.enlaces[aparienciaEnlace.id]?.labelPositions?.etiqueta).toEqual({
+      distance: 0.723,
+      offset: { x: 10.123, y: -4.988 },
+    });
   });
 
   test("valida sintaxis canonica de multiplicidad", () => {

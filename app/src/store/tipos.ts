@@ -503,6 +503,7 @@ export interface OpmStore {
   aplicarLayoutSugerido: () => void;
   reordenarSubprocesoEnTimeline: (opdId: Id, aparienciaId: Id, nuevaY: number) => void;
   actualizarVerticesEnlace: (aparienciaEnlaceId: Id, vertices: Array<{ x: number; y: number }>) => void;
+  actualizarPosicionLabelEnlace: (aparienciaEnlaceId: Id, labelKey: string, posicion: { distance: number; offset?: number | { x: number; y: number }; angle?: number }) => void;
   traerConectadosSeleccionado: (familias?: readonly FamiliaTraerConectados[]) => void;
   traerEnlacesEntreSeleccionadas: () => void;
   ocultarAparienciaSeleccionada: () => void;

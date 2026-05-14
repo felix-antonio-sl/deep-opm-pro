@@ -13,6 +13,7 @@ import {
   reinsertarParteEnPlegado as reinsertarParteEnPlegadoOp,
 } from "../../modelo/plegado";
 import {
+  actualizarPosicionLabelEnlace as actualizarPosicionLabelEnlaceOp,
   actualizarPosicionSimboloEstructural as actualizarPosicionSimboloEstructuralOp,
   actualizarVerticesEnlace as actualizarVerticesEnlaceOp,
   actualizarPuertosEnlacesDesdePuntos,
@@ -777,6 +778,13 @@ export function accionesCanvas(set: SetStore, get: GetStore): Partial<ModeloSlic
       const { modelo, opdActivoId, dirtyModelo } = get();
       const resultado = actualizarVerticesEnlaceOp(modelo, opdActivoId, aparienciaEnlaceId, vertices);
       if (resultado.ok) commitModelo(set, modelo, resultado.value, { dirtyModelo });
+    },
+
+    actualizarPosicionLabelEnlace(aparienciaEnlaceId, labelKey, posicion) {
+      const { modelo, opdActivoId, dirtyModelo } = get();
+      const resultado = actualizarPosicionLabelEnlaceOp(modelo, opdActivoId, aparienciaEnlaceId, labelKey, posicion);
+      if (resultado.ok) commitModelo(set, modelo, resultado.value, { dirtyModelo });
+      else set({ mensaje: resultado.error });
     },
 
     actualizarPosicionSimboloEstructural(aparienciaEnlaceIds, posicion) {

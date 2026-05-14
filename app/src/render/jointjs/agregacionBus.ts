@@ -6,6 +6,7 @@ import { etiquetaEnlaceNormalizada } from "../../modelo/etiquetasEnlace";
 import type { JointCellJson, OpmJointMetadata } from "./proyeccion";
 import { marcadoresEstructurales, type PuertoSimboloEstructural } from "./composers/markers";
 import { etiquetaOrdenEstructural, extremoTriangulo } from "./composers/enlace";
+import { aplicarLayoutLabel, anchoWrapEntreApariencias, LABEL_KEY_ETIQUETA, LABEL_KEY_ORDEN, type LayoutLabelsEnlace } from "./labelLayout";
 import { labelTextWrap } from "./labelText";
 
 const Z_ENLACE_BUS = 4;
@@ -22,6 +23,7 @@ export interface EnlaceConEndpointVisual {
   aparienciaEnlaceId: Id;
   symbolPos?: Posicion;
   symbolAnchors?: AnclajesSimboloEstructural;
+  labelPositions?: LayoutLabelsEnlace;
   origen: { apariencia: Apariencia; portId?: Id };
   destino: { apariencia: Apariencia; portId?: Id };
 }
@@ -163,12 +165,12 @@ function proyectarGrupoEstructural(
       target: extremoTriangulo(triangleId, "in"),
       router: routerManhattan(),
       connector: { name: "straight" },
-      labels: ordenado ? [etiquetaOrdenEstructural()] : [],
+      labels: ordenado ? [aplicarLayoutLabel(etiquetaOrdenEstructural(), LABEL_KEY_ORDEN, primeraRama.labelPositions)] : [],
       attrs: attrsLinea(algunaSeleccionada),
       opm: metaRefinable,
       z: Z_ENLACE_BUS,
     },
-    ...refinadores.map(({ rama, refinador }, index) => ramaEstructural(opdId, grupoId, triangleId, grupo.ladoRefinable, rama, refinador, seleccionados.has(rama.enlace.id), index)),
+    ...refinadores.map(({ rama, refinador }, index) => ramaEstructural(opdId, grupoId, triangleId, triangleCenter, grupo.ladoRefinable, rama, refinador, seleccionados.has(rama.enlace.id), index)),
     ...marcadoresEstructurales(grupo.tipo, triangleId, triangleCenter, triangleSize, algunaSeleccionada, metaSimbolo, puertosSimbolo).map((cell) => ({ ...cell, z: 12 })),
   ];
 }
@@ -177,6 +179,7 @@ function ramaEstructural(
   opdId: Id,
   grupoId: Id,
   triangleId: Id,
+  triangleCenter: Posicion,
   ladoRefinable: "origen" | "destino",
   rama: EnlaceConEndpointVisual,
   refinador: Apariencia,
@@ -184,6 +187,14 @@ function ramaEstructural(
   index: number,
 ): JointCellJson {
   const etiqueta = etiquetaEnlaceNormalizada(rama.enlace.etiqueta);
+  const wrapWidth = anchoWrapEntreApariencias(etiqueta, refinador, {
+    id: triangleId,
+    entidadId: triangleId,
+    x: triangleCenter.x - 15,
+    y: triangleCenter.y - 15,
+    width: 30,
+    height: 30,
+  } as Apariencia);
   return {
     id: `${grupoId}-${rama.aparienciaEnlaceId}-rama`,
     type: "standard.Link",
@@ -191,7 +202,7 @@ function ramaEstructural(
     target: extremo(refinador.id, portRefinador(rama, ladoRefinable)),
     router: routerManhattan(),
     connector: { name: "straight" },
-    labels: etiqueta ? [etiquetaRama(etiqueta)] : [],
+    labels: etiqueta ? [aplicarLayoutLabel(etiquetaRama(etiqueta, wrapWidth), LABEL_KEY_ETIQUETA, rama.labelPositions)] : [],
     attrs: attrsLinea(seleccionada),
     opm: {
       kind: "enlace",
@@ -239,13 +250,13 @@ function anclajeRefinadorGrupo(refinadores: Array<{ rama: EnlaceConEndpointVisua
   };
 }
 
-function etiquetaRama(text: string): Record<string, unknown> {
+function etiquetaRama(text: string, wrapWidth?: number): Record<string, unknown> {
   return {
     markup: [{ tagName: "text", selector: "label" }],
     attrs: {
       label: {
         text,
-        ...labelTextWrap(text),
+        ...labelTextWrap(text, wrapWidth),
         fill: "#475467",
         fontFamily: CANON.dims.fontFamily,
         fontSize: 12,

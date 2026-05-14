@@ -2,7 +2,7 @@ import { contenedorRefinamiento, encajarAparienciaEnContorno } from "../layout";
 import { CANON } from "../constantes";
 import { formatearNombreCompuesto } from "../objetoMetadata";
 import { mismosAnclajesSimbolo, normalizarAnclajesSimbolo } from "../simboloEstructural";
-import type { AnclajesSimboloEstructural, Apariencia, Id, Modelo, Posicion, Resultado } from "../tipos";
+import type { AnclajesSimboloEstructural, Apariencia, Id, Modelo, Posicion, PosicionLabelEnlace, Resultado } from "../tipos";
 import { RESIZE_MIN, clampValor } from "../../canvas/grid";
 import { aparienciaEsExternaDeRefinamiento } from "../contextoRefinamiento";
 import { fallo, ok } from "./helpers";
@@ -210,6 +210,45 @@ export function actualizarVerticesEnlace(
   });
 }
 
+export function actualizarPosicionLabelEnlace(
+  modelo: Modelo,
+  opdId: Id,
+  aparienciaEnlaceId: Id,
+  labelKey: string,
+  posicion: PosicionLabelEnlace,
+): Resultado<Modelo> {
+  const opd = modelo.opds[opdId];
+  if (!opd) return fallo(`OPD no existe: ${opdId}`);
+  const apariencia = opd.enlaces[aparienciaEnlaceId];
+  if (!apariencia) return fallo(`Apariencia de enlace no existe: ${aparienciaEnlaceId}`);
+  const key = labelKey.trim();
+  if (!key) return fallo("Label de enlace inválido");
+  const normalizada = normalizarPosicionLabel(posicion);
+  if (!normalizada) return fallo("Posición de label inválida");
+  const previas = apariencia.labelPositions ?? {};
+  if (mismaPosicionLabel(previas[key], normalizada)) return ok(modelo);
+
+  return ok({
+    ...modelo,
+    opds: {
+      ...modelo.opds,
+      [opdId]: {
+        ...opd,
+        enlaces: {
+          ...opd.enlaces,
+          [aparienciaEnlaceId]: {
+            ...apariencia,
+            labelPositions: {
+              ...previas,
+              [key]: normalizada,
+            },
+          },
+        },
+      },
+    },
+  });
+}
+
 export function actualizarPosicionSimboloEstructural(
   modelo: Modelo,
   opdId: Id,
@@ -260,6 +299,43 @@ export function actualizarPosicionSimboloEstructural(
 
 function mismosVertices(a: Posicion[], b: Posicion[]): boolean {
   return a.length === b.length && a.every((vertice, index) => vertice.x === b[index]?.x && vertice.y === b[index]?.y);
+}
+
+function normalizarPosicionLabel(posicion: PosicionLabelEnlace): PosicionLabelEnlace | null {
+  if (!Number.isFinite(posicion.distance)) return null;
+  const normalizada: PosicionLabelEnlace = {
+    distance: redondearLabel(posicion.distance),
+  };
+  if (typeof posicion.offset === "number") {
+    if (!Number.isFinite(posicion.offset)) return null;
+    normalizada.offset = redondearLabel(posicion.offset);
+  } else if (posicion.offset) {
+    if (!Number.isFinite(posicion.offset.x) || !Number.isFinite(posicion.offset.y)) return null;
+    normalizada.offset = {
+      x: redondearLabel(posicion.offset.x),
+      y: redondearLabel(posicion.offset.y),
+    };
+  }
+  if (posicion.angle !== undefined) {
+    if (!Number.isFinite(posicion.angle)) return null;
+    normalizada.angle = redondearLabel(posicion.angle);
+  }
+  return normalizada;
+}
+
+function mismaPosicionLabel(a: PosicionLabelEnlace | undefined, b: PosicionLabelEnlace): boolean {
+  if (!a) return false;
+  return a.distance === b.distance && mismoOffsetLabel(a.offset, b.offset) && a.angle === b.angle;
+}
+
+function mismoOffsetLabel(a: PosicionLabelEnlace["offset"], b: PosicionLabelEnlace["offset"]): boolean {
+  if (a === undefined || b === undefined) return a === b;
+  if (typeof a === "number" || typeof b === "number") return a === b;
+  return a.x === b.x && a.y === b.y;
+}
+
+function redondearLabel(valor: number): number {
+  return Math.round(valor * 1000) / 1000;
 }
 
 function tamanoAjustadoAlTexto(texto: string): { width: number; height: number } {

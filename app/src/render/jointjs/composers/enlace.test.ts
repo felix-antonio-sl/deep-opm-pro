@@ -15,7 +15,7 @@ describe("composer enlace", () => {
       estilo: { color: "#3BC3FF", strokeWidth: 3, dashArray: "2 2" },
     };
 
-    const cell = proyectarEnlace("opd-1", enlace, "ae-1", { apariencia: origen }, { apariencia: destino }, [{ x: 50, y: 60 }], true);
+    const cell = proyectarEnlace("opd-1", enlace, "ae-1", { apariencia: origen }, { apariencia: destino }, [{ x: 50, y: 60 }], undefined, true);
     const line = (cell.attrs as Record<string, Record<string, unknown>>).line;
     if (!line) throw new Error("Linea no encontrada");
 
@@ -40,19 +40,19 @@ describe("composer enlace", () => {
       destinoId: { kind: "entidad", id: "destino" },
       etiqueta: "",
     };
-    const cell = proyectarEnlace("opd-1", enlaceInvocacion, "ae-inv", { apariencia: origen }, { apariencia: destino }, [], false);
+    const cell = proyectarEnlace("opd-1", enlaceInvocacion, "ae-inv", { apariencia: origen }, { apariencia: destino }, [], undefined, false);
     expect(cell.router).toBeUndefined();
     expect(cell.connector).toEqual({ name: "jumpover", args: { type: "arc", size: 8 } });
   });
 
   test("enlace en abanico mantiene connector straight (dock-point explicito)", () => {
-    const cell = proyectarEnlace("opd-1", enlaceBase, "ae-aba", { apariencia: origen }, { apariencia: destino }, [], false, true);
+    const cell = proyectarEnlace("opd-1", enlaceBase, "ae-aba", { apariencia: origen }, { apariencia: destino }, [], undefined, false, true);
     expect(cell.router).toBeUndefined();
     expect(cell.connector).toEqual({ name: "straight" });
   });
 
   test("modelo denso puede desactivar jumpover para evitar ruido visual", () => {
-    const cell = proyectarEnlace("opd-1", enlaceBase, "ae-denso", { apariencia: origen }, { apariencia: destino }, [], false, false, { usarJumpover: false });
+    const cell = proyectarEnlace("opd-1", enlaceBase, "ae-denso", { apariencia: origen }, { apariencia: destino }, [], undefined, false, false, { usarJumpover: false });
     expect(cell.connector).toEqual({ name: "straight" });
   });
 

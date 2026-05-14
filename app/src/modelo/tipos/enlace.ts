@@ -81,6 +81,16 @@ export interface AnclajesSimboloEstructural {
   refinador?: AnclajeSimboloEstructural;
 }
 
+export type OffsetLabelEnlace = number | { x: number; y: number };
+
+export interface PosicionLabelEnlace {
+  /** Distancia JointJS sobre el path: 0..1 relativo o px si JointJS lo produce. */
+  distance: number;
+  /** Offset JointJS preservado tras arrastre manual del label. */
+  offset?: OffsetLabelEnlace;
+  angle?: number;
+}
+
 export interface AparienciaEnlace {
   id: Id;
   enlaceId: Id;
@@ -90,4 +100,6 @@ export interface AparienciaEnlace {
   symbolPos?: { x: number; y: number };
   /** Offsets persistidos de los puertos del símbolo, relativos a symbolPos. */
   symbolAnchors?: AnclajesSimboloEstructural;
+  /** Posiciones persistidas por rol visual de label, al estilo labels() OPCloud. */
+  labelPositions?: Record<string, PosicionLabelEnlace>;
 }

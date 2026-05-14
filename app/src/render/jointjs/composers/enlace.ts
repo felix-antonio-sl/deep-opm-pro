@@ -5,6 +5,20 @@ import { modoPlegadoApariencia, partesDePlegado } from "../../../modelo/plegado"
 import { anclajeRefinableSimbolo, anclajeRefinadorSimbolo, anclajeSimboloConFallback } from "../../../modelo/simboloEstructural";
 import type { AnclajesSimboloEstructural, Apariencia, Enlace, ExtremoEnlace, Id, Modelo, Posicion, TipoEnlace } from "../../../modelo/tipos";
 import { etiquetasRuta } from "../rutaLabels";
+import {
+  aplicarLayoutLabel,
+  anchoWrapEntreApariencias,
+  LABEL_KEY_DEMORA,
+  LABEL_KEY_ETIQUETA,
+  LABEL_KEY_MODIFICADOR,
+  LABEL_KEY_MULTIPLICIDAD_DESTINO,
+  LABEL_KEY_MULTIPLICIDAD_ORIGEN,
+  LABEL_KEY_ORDEN,
+  LABEL_KEY_PROBABILIDAD,
+  LABEL_KEY_PROXY_DESTINO,
+  LABEL_KEY_PROXY_ORIGEN,
+  type LayoutLabelsEnlace,
+} from "../labelLayout";
 import { labelTextWrap } from "../labelText";
 import type { JointCellJson, OpmJointMetadata } from "../proyeccionTipos";
 import { selectorCapsulaEstado } from "./estados";
@@ -109,11 +123,13 @@ export function proyectarEnlace(
   origen: EndpointVisual,
   destino: EndpointVisual,
   vertices: Posicion[],
+  labelPositions: LayoutLabelsEnlace,
   seleccionada: boolean,
   enAbanico = false,
   opciones: { usarJumpover?: boolean; activaSimulacion?: boolean } = {},
 ): JointCellJson {
   const verticesRender = verticesEnlace(enlace.tipo, origen.apariencia, destino.apariencia, vertices);
+  const wrapWidth = anchoWrapEntreApariencias(etiquetaEnlaceNormalizada(enlace.etiqueta) || enlace.rutaEtiqueta || "", origen.apariencia, destino.apariencia);
   const estiloE = enlace.estilo;
   const colorEnlace = estiloE?.color ?? CANON.colores.enlace;
   const grosorEnlace = estiloE?.strokeWidth ?? CANON.dims.enlaceVisible;
@@ -154,11 +170,11 @@ export function proyectarEnlace(
     router,
     connector,
     labels: [
-      ...etiquetasMultiplicidad(enlace),
-      ...etiquetasModificador(enlace),
-      ...etiquetaEnlace(enlace),
-      ...etiquetasRuta(enlace),
-      ...etiquetasProxyParte(origen, destino),
+      ...etiquetasMultiplicidad(enlace, labelPositions),
+      ...etiquetasModificador(enlace, labelPositions, wrapWidth),
+      ...etiquetaEnlace(enlace, labelPositions, wrapWidth),
+      ...etiquetasRuta(enlace, labelPositions, wrapWidth),
+      ...etiquetasProxyParte(origen, destino, labelPositions, wrapWidth),
       ...(activoRuntime ? [etiquetaTokenSimulacion()] : []),
     ],
     attrs: {
@@ -214,20 +230,25 @@ export function etiquetaTokenSimulacion(): Record<string, unknown> {
   };
 }
 
-export function etiquetasProxyParte(origen: EndpointVisual, destino: EndpointVisual): Array<Record<string, unknown>> {
+export function etiquetasProxyParte(
+  origen: EndpointVisual,
+  destino: EndpointVisual,
+  labelPositions?: LayoutLabelsEnlace,
+  wrapWidth?: number,
+): Array<Record<string, unknown>> {
   const labels: Array<Record<string, unknown>> = [];
-  if (origen.proxy) labels.push(etiquetaProxyParte(origen.proxy.nombre, 28));
-  if (destino.proxy) labels.push(etiquetaProxyParte(destino.proxy.nombre, -28));
+  if (origen.proxy) labels.push(aplicarLayoutLabel(etiquetaProxyParte(origen.proxy.nombre, 28, wrapWidth), LABEL_KEY_PROXY_ORIGEN, labelPositions));
+  if (destino.proxy) labels.push(aplicarLayoutLabel(etiquetaProxyParte(destino.proxy.nombre, -28, wrapWidth), LABEL_KEY_PROXY_DESTINO, labelPositions));
   return labels;
 }
 
-export function etiquetaProxyParte(text: string, distance: number): Record<string, unknown> {
+export function etiquetaProxyParte(text: string, distance: number, wrapWidth?: number): Record<string, unknown> {
   return {
     markup: [{ tagName: "text", selector: "label" }],
     attrs: {
       label: {
         text,
-        ...labelTextWrap(text),
+        ...labelTextWrap(text, wrapWidth),
         fill: "#475467",
         fontFamily: CANON.dims.fontFamily,
         fontSize: 12,
@@ -274,7 +295,7 @@ export function extremoEstado(id: Id, selector: string): Record<string, unknown>
   };
 }
 
-export function etiquetasMultiplicidad(enlace: Enlace): Array<Record<string, unknown>> {
+export function etiquetasMultiplicidad(enlace: Enlace, labelPositions?: LayoutLabelsEnlace): Array<Record<string, unknown>> {
   // OPCloud canon (shared.ts:4513-4515, 5821, 5560): multiplicidad de origen
   // en `distance: 0.1` (procedural) / `0.2` (structural), destino en `0.9`.
   // Esto es FRACCION del path (0..1), no pixeles. La version previa usaba
@@ -285,15 +306,15 @@ export function etiquetasMultiplicidad(enlace: Enlace): Array<Record<string, unk
   const distOrigen = esEstructural ? 0.2 : 0.1;
   const distDestino = 0.9;
   if (enlace.multiplicidadOrigen) {
-    labels.push(etiquetaMultiplicidad(enlace.multiplicidadOrigen, distOrigen));
+    labels.push(aplicarLayoutLabel(etiquetaMultiplicidad(enlace.multiplicidadOrigen, distOrigen), LABEL_KEY_MULTIPLICIDAD_ORIGEN, labelPositions));
   }
   if (enlace.multiplicidadDestino) {
-    labels.push(etiquetaMultiplicidad(enlace.multiplicidadDestino, distDestino));
+    labels.push(aplicarLayoutLabel(etiquetaMultiplicidad(enlace.multiplicidadDestino, distDestino), LABEL_KEY_MULTIPLICIDAD_DESTINO, labelPositions));
   }
   return labels;
 }
 
-export function etiquetasModificador(enlace: Enlace): Array<Record<string, unknown>> {
+export function etiquetasModificador(enlace: Enlace, labelPositions?: LayoutLabelsEnlace, wrapWidth?: number): Array<Record<string, unknown>> {
   const labels: Array<Record<string, unknown>> = [];
   const subtipo = textoSubtipoModificador(enlace);
   // BUG-63cc7f: antes el badge se colocaba en `distance: 0` (extremo origen
@@ -303,13 +324,13 @@ export function etiquetasModificador(enlace: Enlace): Array<Record<string, unkno
   // tipo+direccion, usamos `0.5` (medio del enlace) que SIEMPRE queda sobre
   // la linea, no sobre los cuerpos, y se mueve consistente con el enlace.
   if (subtipo) {
-    labels.push(etiquetaBadgeModificadorCanonico(subtipo, 0.5));
+    labels.push(aplicarLayoutLabel(etiquetaBadgeModificadorCanonico(subtipo, 0.5), LABEL_KEY_MODIFICADOR, labelPositions));
   }
   if (enlace.modificador === "evento" && enlace.probabilidad !== undefined) {
-    labels.push(etiquetaTextoModificador(`${Math.round(enlace.probabilidad * 100)}%`, 0.5, 22));
+    labels.push(aplicarLayoutLabel(etiquetaTextoModificador(`${Math.round(enlace.probabilidad * 100)}%`, 0.5, 22, wrapWidth), LABEL_KEY_PROBABILIDAD, labelPositions));
   }
   if (enlace.tipo === "invocacion" && enlace.demora) {
-    labels.push(etiquetaTextoModificador(enlace.demora, 0.5, -28));
+    labels.push(aplicarLayoutLabel(etiquetaTextoModificador(enlace.demora, 0.5, -28, wrapWidth), LABEL_KEY_DEMORA, labelPositions));
   }
   return labels;
 }
@@ -362,13 +383,13 @@ export function etiquetaBadgeModificador(text: string, distance: number): Record
   };
 }
 
-export function etiquetaTextoModificador(text: string, distance: number, offset: number): Record<string, unknown> {
+export function etiquetaTextoModificador(text: string, distance: number, offset: number, wrapWidth?: number): Record<string, unknown> {
   return {
     markup: [{ tagName: "text", selector: "label" }],
     attrs: {
       label: {
         text,
-        ...labelTextWrap(text),
+        ...labelTextWrap(text, wrapWidth),
         fill: "#475467",
         fontFamily: CANON.dims.fontFamily,
         fontSize: 11,
@@ -390,18 +411,18 @@ export function etiquetaTextoModificador(text: string, distance: number, offset:
   };
 }
 
-export function etiquetaEnlace(enlace: Enlace): Array<Record<string, unknown>> {
+export function etiquetaEnlace(enlace: Enlace, labelPositions?: LayoutLabelsEnlace, wrapWidth?: number): Array<Record<string, unknown>> {
   const etiqueta = etiquetaEnlaceNormalizada(enlace.etiqueta);
-  return etiqueta ? [etiquetaTextoEnlace(etiqueta)] : [];
+  return etiqueta ? [aplicarLayoutLabel(etiquetaTextoEnlace(etiqueta, wrapWidth), LABEL_KEY_ETIQUETA, labelPositions)] : [];
 }
 
-export function etiquetaTextoEnlace(text: string): Record<string, unknown> {
+export function etiquetaTextoEnlace(text: string, wrapWidth?: number): Record<string, unknown> {
   return {
     markup: [{ tagName: "text", selector: "label" }],
     attrs: {
       label: {
         text,
-        ...labelTextWrap(text),
+        ...labelTextWrap(text, wrapWidth),
         fill: "#475467",
         fontFamily: CANON.dims.fontFamily,
         fontSize: 12,
@@ -492,6 +513,7 @@ export function proyectarRefinamientoEstructural(
   symbolPos?: Posicion,
   ordenado = false,
   symbolAnchors?: AnclajesSimboloEstructural,
+  labelPositions?: LayoutLabelsEnlace,
 ): JointCellJson[] {
   const triangleSize = 30;
   const source = centro(origen.apariencia);
@@ -527,6 +549,7 @@ export function proyectarRefinamientoEstructural(
   const lineAttrs = attrsLinea(seleccionada);
   const puertoRefinable = anclajeSimboloConFallback(symbolAnchors?.refinable, anclajeRefinableSimbolo());
   const puertoRefinador = anclajeSimboloConFallback(symbolAnchors?.refinador, anclajeRefinadorSimbolo(0, 1));
+  const wrapWidth = anchoWrapEntreApariencias(etiquetaEnlaceNormalizada(enlace.etiqueta), origen.apariencia, destino.apariencia);
   return [
     {
       id: `${aparienciaEnlaceId}-refinable`,
@@ -534,7 +557,7 @@ export function proyectarRefinamientoEstructural(
       source: extremo(origen.apariencia.id, origen.portId),
       target: extremoTriangulo(triangleId, "in"),
       connector: { name: "straight" },
-      labels: ordenado ? [etiquetaOrdenEstructural()] : [],
+      labels: ordenado ? [aplicarLayoutLabel(etiquetaOrdenEstructural(), LABEL_KEY_ORDEN, labelPositions)] : [],
       attrs: lineAttrs,
       opm: metaRefinable,
       z: Z_ENLACE,
@@ -545,7 +568,7 @@ export function proyectarRefinamientoEstructural(
       source: extremoTriangulo(triangleId, "out"),
       target: extremo(destino.apariencia.id, destino.portId),
       connector: { name: "straight" },
-      labels: etiquetaEnlace(enlace),
+      labels: etiquetaEnlace(enlace, labelPositions, wrapWidth),
       attrs: lineAttrs,
       opm: metaRefinador,
       z: Z_ENLACE,

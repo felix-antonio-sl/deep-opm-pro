@@ -8,6 +8,7 @@ import {
   recalcularOverlayDesdeLinkView,
 } from "../abanicoDragSync";
 import { ajustesPuertosConectadosDesdeLinkViews } from "../beautifyConnectedLinks";
+import { labelKeyDesdeJoint, posicionLabelDesdeJoint } from "../labelLayout";
 import type { OpmJointMetadata } from "../proyeccion";
 import { ordenarEnlacesEstructuralesConectados } from "../sortStructuralLinks";
 import { cellViewModel, graphEvents, jointSelector, metadata, paperOff, parteEntidadDesdeSelector } from "./helpers";
@@ -34,6 +35,7 @@ export interface CablearDragArgs {
   opdActivoIdRef: { current: string };
   moverAparienciaConPuertosRef: { current: (aparienciaId: string, x: number, y: number, ajustes: AjustePuertoEnlace[]) => void };
   actualizarPosicionSimboloEstructuralRef: { current: (aparienciaEnlaceIds: string[], posicion: { x: number; y: number }) => void };
+  actualizarPosicionLabelEnlaceRef: { current: (aparienciaEnlaceId: string, labelKey: string, posicion: { distance: number; offset?: number | { x: number; y: number }; angle?: number }) => void };
   actualizarVerticesEnlaceRef: { current: (aparienciaEnlaceId: string, vertices: { x: number; y: number }[]) => void };
   extraerParteDePlegadoRef: { current: (aparienciaId: string, parteEntidadId: string) => void };
   abrirRenombradoInlineRef: { current: (input: { aparienciaId: string; entidadId: string }) => void };
@@ -48,6 +50,7 @@ export function cablearDrag(args: CablearDragArgs): () => void {
     opdActivoIdRef,
     moverAparienciaConPuertosRef,
     actualizarPosicionSimboloEstructuralRef,
+    actualizarPosicionLabelEnlaceRef,
     actualizarVerticesEnlaceRef,
     extraerParteDePlegadoRef,
     abrirRenombradoInlineRef,
@@ -121,6 +124,21 @@ export function cablearDrag(args: CablearDragArgs): () => void {
       meta.aparienciaEnlaceId,
       (cell as dia.Link).vertices().map((vertice: { x: number; y: number }) => ({ x: vertice.x, y: vertice.y })),
     );
+  });
+
+  graphEvents(graph).on("change:labels", (cell: dia.Cell) => {
+    if (sincronizandoRef.current || !cell.isLink()) return;
+    const meta = metadata(cell);
+    if (meta?.kind !== "enlace") return;
+    const aparienciaEnlaceIds = meta.aparienciaEnlaceIds?.length ? meta.aparienciaEnlaceIds : [meta.aparienciaEnlaceId];
+    for (const label of (cell as dia.Link).labels() as unknown[]) {
+      const key = labelKeyDesdeJoint(label);
+      const posicion = posicionLabelDesdeJoint(label);
+      if (!key || !posicion) continue;
+      for (const aparienciaEnlaceId of aparienciaEnlaceIds) {
+        actualizarPosicionLabelEnlaceRef.current(aparienciaEnlaceId, key, posicion);
+      }
+    }
   });
 
   graphEvents(graph).on("change:source", (cell: dia.Cell) => {

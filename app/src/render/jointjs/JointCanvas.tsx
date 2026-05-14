@@ -95,6 +95,8 @@ export function JointCanvas() {
   const extraerParteDePlegadoRef = useRef(extraerParteDePlegado);
   const actualizarVerticesEnlace = useOpmStore((s) => s.actualizarVerticesEnlace);
   const actualizarVerticesEnlaceRef = useRef(actualizarVerticesEnlace);
+  const actualizarPosicionLabelEnlace = useOpmStore((s) => s.actualizarPosicionLabelEnlace);
+  const actualizarPosicionLabelEnlaceRef = useRef(actualizarPosicionLabelEnlace);
   const crearEntidadEnCanvas = useOpmStore((s) => s.crearEntidadEnCanvas);
   const crearEntidadEnCanvasRef = useRef(crearEntidadEnCanvas);
   const crearEnlaceEntreEntidades = useOpmStore((s) => s.crearEnlaceEntreEntidades);
@@ -149,6 +151,7 @@ export function JointCanvas() {
     abrirModalImagenRef.current = abrirModalImagen;
     extraerParteDePlegadoRef.current = extraerParteDePlegado;
     actualizarVerticesEnlaceRef.current = actualizarVerticesEnlace;
+    actualizarPosicionLabelEnlaceRef.current = actualizarPosicionLabelEnlace;
     crearEntidadEnCanvasRef.current = crearEntidadEnCanvas;
     crearEnlaceEntreEntidadesRef.current = crearEnlaceEntreEntidades;
     fijarHoverOplRef.current = fijarHoverOpl;
@@ -158,7 +161,7 @@ export function JointCanvas() {
     vaciarSeleccionRef.current = vaciarSeleccion;
     redimensionarAparienciaEnCanvasRef.current = redimensionarAparienciaEnCanvas;
     renombrarEntidadDesdeOplRef.current = renombrarEntidadDesdeOpl;
-  }, [actualizarPosicionSimboloEstructural, actualizarVerticesEnlace, agregarASeleccion, alternarModoImagenEntidad, abrirModalImagen, cambiarModoPlegadoApariencia, cambiarOpdActivo, crearEnlaceEntreEntidades, crearEntidadEnCanvas, extraerParteDePlegado, fijarHoverOpl, moverAparienciaConPuertos, redimensionarAparienciaEnCanvas, renombrarEntidadDesdeOpl, seleccionarEnlace, seleccionarEntidad, seleccionarEstadoComoExtremo, seleccionarGrupoEstructural, seleccionarPartePlegada, setSeleccion, toggleSeleccion, vaciarSeleccion]);
+  }, [actualizarPosicionLabelEnlace, actualizarPosicionSimboloEstructural, actualizarVerticesEnlace, agregarASeleccion, alternarModoImagenEntidad, abrirModalImagen, cambiarModoPlegadoApariencia, cambiarOpdActivo, crearEnlaceEntreEntidades, crearEntidadEnCanvas, extraerParteDePlegado, fijarHoverOpl, moverAparienciaConPuertos, redimensionarAparienciaEnCanvas, renombrarEntidadDesdeOpl, seleccionarEnlace, seleccionarEntidad, seleccionarEstadoComoExtremo, seleccionarGrupoEstructural, seleccionarPartePlegada, setSeleccion, toggleSeleccion, vaciarSeleccion]);
 
   // Setup del paper + cableado de handlers (mount inicial).
   useEffect(() => {
@@ -177,6 +180,7 @@ export function JointCanvas() {
       gridSize: 10,
       drawGrid: true,
       background: { color: "#eef3f8" },
+      snapLabels: true,
       linkPinning: false,
       // Confina children embedded al bbox del padre durante el drag visual
       // (HU-12.020). Sin esto, los subprocesos internos pueden salir del
@@ -206,10 +210,14 @@ export function JointCanvas() {
         const model = cellViewModel(cellView);
         if (model.isLink()) {
           const meta = metadata(model);
-          const editable = meta?.kind === "enlace" && meta.enlaceId === enlaceSeleccionIdRef.current && meta.tipo !== "agregacion";
+          const enlaceSeleccionado = enlaceSeleccionIdRef.current;
+          const seleccionado = meta?.kind === "enlace" && !!enlaceSeleccionado
+            ? meta.enlaceId === enlaceSeleccionado || meta.enlaceIds?.includes(enlaceSeleccionado) === true
+            : false;
+          const editable = meta?.kind === "enlace" ? seleccionado && meta.tipo !== "agregacion" : false;
           return {
             arrowheadMove: false,
-            labelMove: false,
+            labelMove: seleccionado,
             linkMove: false,
             useLinkTools: editable,
             vertexAdd: editable,
@@ -276,6 +284,7 @@ export function JointCanvas() {
       opdActivoIdRef,
       moverAparienciaConPuertosRef,
       actualizarPosicionSimboloEstructuralRef,
+      actualizarPosicionLabelEnlaceRef,
       actualizarVerticesEnlaceRef,
       extraerParteDePlegadoRef,
       abrirRenombradoInlineRef,

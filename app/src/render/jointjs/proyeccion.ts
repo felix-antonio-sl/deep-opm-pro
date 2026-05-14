@@ -118,6 +118,7 @@ export function proyectarModeloAJointCells(
       aparienciaEnlaceId: aparienciaEnlace.id,
       ...(aparienciaEnlace.symbolPos ? { symbolPos: aparienciaEnlace.symbolPos } : {}),
       ...(aparienciaEnlace.symbolAnchors ? { symbolAnchors: aparienciaEnlace.symbolAnchors } : {}),
+      ...(aparienciaEnlace.labelPositions ? { labelPositions: aparienciaEnlace.labelPositions } : {}),
       origen,
       destino,
     }];
@@ -157,9 +158,9 @@ export function proyectarModeloAJointCells(
       : false;
     if (TIPOS_REFINAMIENTO_ESTRUCTURAL.includes(enlace.tipo) && !origen.proxy && !destino.proxy) {
       const symbolPos = symbolPosEstructural(aparienciaEnlace.symbolPos, origen.apariencia, destino.apariencia, reservasSimbolosEstructurales);
-      return proyectarRefinamientoEstructural(opdId, enlace, aparienciaEnlace.id, origen, destino, enlaceResaltado, symbolPos, ordenado, aparienciaEnlace.symbolAnchors);
+      return proyectarRefinamientoEstructural(opdId, enlace, aparienciaEnlace.id, origen, destino, enlaceResaltado, symbolPos, ordenado, aparienciaEnlace.symbolAnchors, aparienciaEnlace.labelPositions);
     }
-    return [proyectarEnlace(opdId, enlace, aparienciaEnlace.id, origen, destino, aparienciaEnlace.vertices, enlaceResaltado, enlacesEnAbanico.has(enlace.id), { usarJumpover, activaSimulacion: enlaceActivoRuntime })];
+    return [proyectarEnlace(opdId, enlace, aparienciaEnlace.id, origen, destino, aparienciaEnlace.vertices, aparienciaEnlace.labelPositions, enlaceResaltado, enlacesEnAbanico.has(enlace.id), { usarJumpover, activaSimulacion: enlaceActivoRuntime })];
   });
 
   const halos = seleccionMultiple.size > 1
