@@ -6,7 +6,7 @@ import { entidadDeExtremo, entidadIdDeExtremo, nombreExtremo } from "../modelo/e
 import { relacionesEstructuralesFaltantes, validarMultiplicidad } from "../modelo/operaciones";
 import { anclajeRefinableSimbolo, anclajeRefinadorSimbolo, limitarAnclajeSimbolo, normalizarAnclajeSimbolo } from "../modelo/simboloEstructural";
 import { useOpmStore, store } from "../store";
-import type { AnclajeSimboloEstructural, AnclajesSimboloEstructural, AparienciaEnlace, Enlace, Entidad, Id, Modelo, Modificador, TipoEnlace } from "../modelo/tipos";
+import type { AnclajeSimboloEstructural, AnclajesSimboloEstructural, AparienciaEnlace, Enlace, Entidad, Id, Modelo, Modificador, TipoEnlace, UnidadTiempo } from "../modelo/tipos";
 import type { TabInspectorEnlace } from "../store/tipos";
 import { inspectorStyles as style } from "./inspectorStyles";
 import { InspectorTabs, type InspectorTabDef } from "./inspector/InspectorTabs";
@@ -74,6 +74,7 @@ export function InspectorEnlace({ enlace }: Props) {
   const definirBackwardTag = useOpmStore((s) => s.definirBackwardTagSeleccionado);
   const definirRequisitosEnlace = useOpmStore((s) => s.definirRequisitosEnlaceSeleccionado);
   const definirTasaEnlace = useOpmStore((s) => s.definirTasaEnlaceSeleccionada);
+  const definirTiempoExcepcionEnlace = useOpmStore((s) => s.definirTiempoExcepcionEnlaceSeleccionado);
   const moverPuerto = useOpmStore((s) => s.moverPuertoEnlaceSeleccionado);
   const renombrarEtiquetaEnlace = useOpmStore((s) => s.renombrarEtiquetaEnlaceSeleccionado);
   const definirRutaEtiqueta = useOpmStore((s) => s.definirRutaEtiquetaSeleccionada);
@@ -109,6 +110,10 @@ export function InspectorEnlace({ enlace }: Props) {
   const [mostrarRequisitos, setMostrarRequisitos] = useState(enlace.mostrarRequisitos ?? false);
   const [tasa, setTasa] = useState(enlace.tasa ?? "");
   const [unidadesTasa, setUnidadesTasa] = useState(enlace.unidadesTasa ?? "");
+  const [tiempoMinimo, setTiempoMinimo] = useState(enlace.tiempoMinimo ?? "");
+  const [unidadTiempoMinimo, setUnidadTiempoMinimo] = useState<UnidadTiempo | "">((enlace.unidadTiempoMinimo as UnidadTiempo | undefined) ?? "");
+  const [tiempoMaximo, setTiempoMaximo] = useState(enlace.tiempoMaximo ?? "");
+  const [unidadTiempoMaximo, setUnidadTiempoMaximo] = useState<UnidadTiempo | "">((enlace.unidadTiempoMaximo as UnidadTiempo | undefined) ?? "");
   const [endpointSeleccionado, setEndpointSeleccionado] = useState(endpointActual);
   const [dialogoMoverPuertoAbierto, setDialogoMoverPuertoAbierto] = useState(false);
   const [dialogoEstiloAbierto, setDialogoEstiloAbierto] = useState(false);
@@ -127,7 +132,11 @@ export function InspectorEnlace({ enlace }: Props) {
     setMostrarRequisitos(enlace.mostrarRequisitos ?? false);
     setTasa(enlace.tasa ?? "");
     setUnidadesTasa(enlace.unidadesTasa ?? "");
-  }, [enlace.id, enlace.probabilidad, enlace.demora, enlace.etiqueta, enlace.rutaEtiqueta, enlace.backwardTag, enlace.requisitos, enlace.mostrarRequisitos, enlace.tasa, enlace.unidadesTasa]);
+    setTiempoMinimo(enlace.tiempoMinimo ?? "");
+    setUnidadTiempoMinimo((enlace.unidadTiempoMinimo as UnidadTiempo | undefined) ?? "");
+    setTiempoMaximo(enlace.tiempoMaximo ?? "");
+    setUnidadTiempoMaximo((enlace.unidadTiempoMaximo as UnidadTiempo | undefined) ?? "");
+  }, [enlace.id, enlace.probabilidad, enlace.demora, enlace.etiqueta, enlace.rutaEtiqueta, enlace.backwardTag, enlace.requisitos, enlace.mostrarRequisitos, enlace.tasa, enlace.unidadesTasa, enlace.tiempoMinimo, enlace.unidadTiempoMinimo, enlace.tiempoMaximo, enlace.unidadTiempoMaximo]);
   useEffect(() => setEndpointSeleccionado(endpointActual), [enlace.id, endpointActual]);
   useEffect(() => {
     if (!TABS_ENLACE.some((t) => t.id === tabActivo)) cambiarTab("propiedades");
@@ -179,6 +188,23 @@ export function InspectorEnlace({ enlace }: Props) {
     setTasa(valor);
     setUnidadesTasa(unidades);
     definirTasaEnlace(valor.trim() === "" ? undefined : valor, unidades.trim() === "" ? undefined : unidades);
+  };
+  const cambiarTiempoExcepcion = (valores: {
+    tiempoMinimo: string;
+    unidadTiempoMinimo: UnidadTiempo | "";
+    tiempoMaximo: string;
+    unidadTiempoMaximo: UnidadTiempo | "";
+  }) => {
+    setTiempoMinimo(valores.tiempoMinimo);
+    setUnidadTiempoMinimo(valores.unidadTiempoMinimo);
+    setTiempoMaximo(valores.tiempoMaximo);
+    setUnidadTiempoMaximo(valores.unidadTiempoMaximo);
+    definirTiempoExcepcionEnlace({
+      tiempoMinimo: valores.tiempoMinimo.trim() === "" ? undefined : valores.tiempoMinimo,
+      unidadTiempoMinimo: valores.unidadTiempoMinimo || undefined,
+      tiempoMaximo: valores.tiempoMaximo.trim() === "" ? undefined : valores.tiempoMaximo,
+      unidadTiempoMaximo: valores.unidadTiempoMaximo || undefined,
+    });
   };
 
   const opdsDelEnlace = opdsConEnlace(modelo, enlace.id);
@@ -242,9 +268,14 @@ export function InspectorEnlace({ enlace }: Props) {
               mostrarRequisitos={mostrarRequisitos}
               tasa={tasa}
               unidadesTasa={unidadesTasa}
+              tiempoMinimo={tiempoMinimo}
+              unidadTiempoMinimo={unidadTiempoMinimo}
+              tiempoMaximo={tiempoMaximo}
+              unidadTiempoMaximo={unidadTiempoMaximo}
               onBackwardTag={cambiarBackwardTag}
               onRequisitos={cambiarRequisitos}
               onTasa={cambiarTasa}
+              onTiempoExcepcion={cambiarTiempoExcepcion}
             />
             {/* Ronda 20 L1 ajuste post-merge: el operador del Abanico es propiedad
                 lógica del enlace (igual que multiplicidad/modificador), por lo que

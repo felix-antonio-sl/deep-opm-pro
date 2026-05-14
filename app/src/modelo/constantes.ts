@@ -1,5 +1,10 @@
 import type { TipoEnlace } from "./tipos";
 
+export type TipoEnlaceExcepcionTemporal = Extract<
+  TipoEnlace,
+  "excepcionSobretiempo" | "excepcionSubtiempo" | "excepcionSubSobretiempo"
+>;
+
 export const CANON = {
   colores: {
     objeto: "#70E483",
@@ -44,4 +49,18 @@ export function esEnlaceEstructuralEtiquetado(tipo: TipoEnlace): boolean {
 
 export function enlaceAdmiteTasa(tipo: TipoEnlace): boolean {
   return tipo === "consumo" || tipo === "resultado" || tipo === "efecto";
+}
+
+export function esEnlaceExcepcionTemporal(tipo: TipoEnlace): tipo is TipoEnlaceExcepcionTemporal {
+  return tipo === "excepcionSobretiempo" ||
+    tipo === "excepcionSubtiempo" ||
+    tipo === "excepcionSubSobretiempo";
+}
+
+export function enlaceAdmiteTiempoMaximo(tipo: TipoEnlace): boolean {
+  return tipo === "excepcionSobretiempo" || tipo === "excepcionSubSobretiempo";
+}
+
+export function enlaceAdmiteTiempoMinimo(tipo: TipoEnlace): boolean {
+  return tipo === "excepcionSubtiempo" || tipo === "excepcionSubSobretiempo";
 }

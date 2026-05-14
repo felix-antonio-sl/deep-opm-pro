@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 import { extremoApuntaAEntidad, extremoEntidad, extremoEstado } from "../modelo/extremos";
 import { aplicarModificador, definirDemora, definirProbabilidad } from "../modelo/modificadores";
 import { aplicarEstiloApariencia } from "../modelo/estilos";
-import { actualizarPosicionSimboloEstructural, ajustarMultiplicidad, crearEnlace, crearEstadosIniciales, crearModelo, crearObjeto, crearProceso, definirBackwardTag, definirRequisitosEnlace, definirTasaEnlace, designarEstadoFinal, designarEstadoInicial, descomponerProceso, desplegarObjeto, reanclarEnlaceExternoDerivado, sincronizarPuertosEnlaces } from "../modelo/operaciones";
+import { actualizarPosicionSimboloEstructural, ajustarMultiplicidad, crearEnlace, crearEstadosIniciales, crearModelo, crearObjeto, crearProceso, definirBackwardTag, definirRequisitosEnlace, definirTasaEnlace, definirTiempoExcepcionEnlace, designarEstadoFinal, designarEstadoInicial, descomponerProceso, desplegarObjeto, reanclarEnlaceExternoDerivado, sincronizarPuertosEnlaces } from "../modelo/operaciones";
 import { renombrarEtiquetaEnlace } from "../modelo/etiquetasEnlace";
 import { cambiarModoPlegado, extraerParteDePlegado, partesExtraidasEn } from "../modelo/plegado";
 import { definirRutaEtiqueta } from "../modelo/rutas";
@@ -649,6 +649,7 @@ describe("serializacion JSON", () => {
     modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 10, y: 20 }, "Sistema"));
     modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 240, y: 20 }, "Requisito"));
     modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 470, y: 20 }, "Procesar"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 700, y: 20 }, "Manejar Excepcion"));
     modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidadPorNombre(modelo, "Sistema"), entidadPorNombre(modelo, "Requisito"), "etiquetadoBidireccional"));
     const taggedId = Object.keys(modelo.enlaces)[0];
     if (!taggedId) throw new Error("La prueba esperaba enlace tagged");
@@ -660,6 +661,16 @@ describe("serializacion JSON", () => {
     const consumoId = Object.values(modelo.enlaces).find((enlace) => enlace.tipo === "consumo")?.id;
     if (!consumoId) throw new Error("La prueba esperaba enlace consumo");
     modelo = must(definirTasaEnlace(modelo, consumoId, " 2 ", " kg/h "));
+
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidadPorNombre(modelo, "Procesar"), entidadPorNombre(modelo, "Manejar Excepcion"), "excepcionSubSobretiempo"));
+    const excepcionId = Object.values(modelo.enlaces).find((enlace) => enlace.tipo === "excepcionSubSobretiempo")?.id;
+    if (!excepcionId) throw new Error("La prueba esperaba enlace excepcion temporal");
+    modelo = must(definirTiempoExcepcionEnlace(modelo, excepcionId, {
+      tiempoMinimo: " 5 ",
+      unidadTiempoMinimo: "s",
+      tiempoMaximo: " 30 ",
+      unidadTiempoMaximo: "s",
+    }));
 
     const hidratado = hidratarModelo(exportarModelo(modelo));
 
@@ -674,6 +685,12 @@ describe("serializacion JSON", () => {
     expect(hidratado.value.enlaces[consumoId]).toMatchObject({
       tasa: "2",
       unidadesTasa: "kg/h",
+    });
+    expect(hidratado.value.enlaces[excepcionId]).toMatchObject({
+      tiempoMinimo: "5",
+      unidadTiempoMinimo: "s",
+      tiempoMaximo: "30",
+      unidadTiempoMaximo: "s",
     });
   });
 
@@ -699,6 +716,14 @@ describe("serializacion JSON", () => {
     expect(hidratarModelo(JSON.stringify(documento)).ok).toBe(false);
 
     delete enlace.unidadesTasa;
+    enlace.tiempoMaximo = "10";
+    expect(hidratarModelo(JSON.stringify(documento)).ok).toBe(false);
+
+    delete enlace.tiempoMaximo;
+    enlace.unidadTiempoMaximo = "s";
+    expect(hidratarModelo(JSON.stringify(documento)).ok).toBe(false);
+
+    delete enlace.unidadTiempoMaximo;
     enlace.grupoEstructuralId = "grupo-a";
     expect(hidratarModelo(JSON.stringify(documento)).ok).toBe(false);
   });

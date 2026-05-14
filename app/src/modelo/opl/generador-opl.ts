@@ -198,6 +198,12 @@ function sentenciaProcedural(modelo: Modelo, el: OplEnlace): string | null {
       return `${el.dest.nombre} usa ${el.orig.nombre}.`;
     case "invocacion":
       return `${el.orig.nombre} invoca ${el.dest.nombre}.`;
+    case "excepcionSobretiempo":
+      return `${el.dest.nombre} ocurre si duración de ${el.orig.nombre} excede su duración máxima.`;
+    case "excepcionSubtiempo":
+      return `${el.dest.nombre} ocurre si duración de ${el.orig.nombre} es menor que su duración mínima.`;
+    case "excepcionSubSobretiempo":
+      return `${el.dest.nombre} ocurre si duración de ${el.orig.nombre} es menor que su duración mínima o excede su duración máxima.`;
     default:
       return null;
   }

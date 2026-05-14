@@ -21,15 +21,19 @@ describe("slice enlaces", () => {
     modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 80 }, "Sistema"));
     modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 260, y: 80 }, "Requisito"));
     modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 500, y: 80 }, "Procesar"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 740, y: 80 }, "Manejar Excepcion"));
     const sistemaId = Object.values(modelo.entidades).find((entidad) => entidad.nombre === "Sistema")?.id;
     const requisitoId = Object.values(modelo.entidades).find((entidad) => entidad.nombre === "Requisito")?.id;
     const procesarId = Object.values(modelo.entidades).find((entidad) => entidad.nombre === "Procesar")?.id;
-    if (!sistemaId || !requisitoId || !procesarId) throw new Error("La prueba esperaba entidades");
+    const manejarId = Object.values(modelo.entidades).find((entidad) => entidad.nombre === "Manejar Excepcion")?.id;
+    if (!sistemaId || !requisitoId || !procesarId || !manejarId) throw new Error("La prueba esperaba entidades");
     modelo = must(crearEnlace(modelo, modelo.opdRaizId, sistemaId, requisitoId, "etiquetadoBidireccional"));
     modelo = must(crearEnlace(modelo, modelo.opdRaizId, sistemaId, procesarId, "consumo"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, procesarId, manejarId, "excepcionSubSobretiempo"));
     const taggedId = Object.values(modelo.enlaces).find((enlace) => enlace.tipo === "etiquetadoBidireccional")?.id;
     const consumoId = Object.values(modelo.enlaces).find((enlace) => enlace.tipo === "consumo")?.id;
-    if (!taggedId || !consumoId) throw new Error("La prueba esperaba enlaces");
+    const excepcionId = Object.values(modelo.enlaces).find((enlace) => enlace.tipo === "excepcionSubSobretiempo")?.id;
+    if (!taggedId || !consumoId || !excepcionId) throw new Error("La prueba esperaba enlaces");
     store.getState().importarJson(exportarModelo(modelo));
 
     store.getState().seleccionarEnlace(taggedId);
@@ -47,6 +51,18 @@ describe("slice enlaces", () => {
     store.getState().definirTasaEnlaceSeleccionada(" 2 ", " kg/h ");
     expect(store.getState().modelo.enlaces[consumoId]?.tasa).toBe("2");
     expect(store.getState().modelo.enlaces[consumoId]?.unidadesTasa).toBe("kg/h");
+
+    store.getState().seleccionarEnlace(excepcionId);
+    store.getState().definirTiempoExcepcionEnlaceSeleccionado({
+      tiempoMinimo: " 5 ",
+      unidadTiempoMinimo: "s",
+      tiempoMaximo: " 30 ",
+      unidadTiempoMaximo: "s",
+    });
+    expect(store.getState().modelo.enlaces[excepcionId]?.tiempoMinimo).toBe("5");
+    expect(store.getState().modelo.enlaces[excepcionId]?.unidadTiempoMinimo).toBe("s");
+    expect(store.getState().modelo.enlaces[excepcionId]?.tiempoMaximo).toBe("30");
+    expect(store.getState().modelo.enlaces[excepcionId]?.unidadTiempoMaximo).toBe("s");
   });
 
   test("mover simbolo estructural conserva anclas manuales", () => {

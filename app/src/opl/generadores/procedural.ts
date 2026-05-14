@@ -1,4 +1,5 @@
 import { esAutoInvocacion } from "../../modelo/autoinvocacion";
+import { enlaceAdmiteTiempoMaximo, enlaceAdmiteTiempoMinimo } from "../../modelo/constantes";
 import { etiquetaEnlaceNormalizada } from "../../modelo/etiquetasEnlace";
 import { entidadDeExtremo, entidadIdDeExtremo, estadoDeExtremo } from "../../modelo/extremos";
 import { rutaEtiquetaNormalizada } from "../../modelo/rutas";
@@ -171,9 +172,32 @@ export function oracionEnlaceSinEtiqueta(modelo: Modelo, enlace: Enlace): string
       return oracionEfecto(modelo, enlace, origen, destino);
     case "invocacion":
       return `${origenOpl} ${verbo("invoca", "invocan", origenPlural)} ${destinoOpl}${enlace.demora ? ` despues de ${enlace.demora}` : ""}.`;
+    case "excepcionSobretiempo":
+      return `${destinoOpl} ocurre si duración de ${origenOpl} excede ${formatoTiempoMaximo(enlace)}.`;
+    case "excepcionSubtiempo":
+      return `${destinoOpl} ocurre si duración de ${origenOpl} es menor que ${formatoTiempoMinimo(enlace)}.`;
+    case "excepcionSubSobretiempo":
+      return `${destinoOpl} ocurre si duración de ${origenOpl} es menor que ${formatoTiempoMinimo(enlace)} o excede ${formatoTiempoMaximo(enlace)}.`;
     default:
       return null;
   }
+}
+
+function formatoTiempoMinimo(enlace: Enlace): string {
+  if (!enlaceAdmiteTiempoMinimo(enlace.tipo)) return "su duración mínima";
+  return formatoTiempo(enlace.tiempoMinimo, enlace.unidadTiempoMinimo, "su duración mínima");
+}
+
+function formatoTiempoMaximo(enlace: Enlace): string {
+  if (!enlaceAdmiteTiempoMaximo(enlace.tipo)) return "su duración máxima";
+  return formatoTiempo(enlace.tiempoMaximo, enlace.unidadTiempoMaximo, "su duración máxima");
+}
+
+function formatoTiempo(valor: string | undefined, unidad: string | undefined, fallback: string): string {
+  const limpio = valor?.trim();
+  if (!limpio) return fallback;
+  const unidadLimpia = unidad?.trim();
+  return unidadLimpia ? `${limpio} ${unidadLimpia}` : limpio;
 }
 
 function oracionTagged(modelo: Modelo, enlace: Enlace): string | null {

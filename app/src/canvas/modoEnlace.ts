@@ -56,7 +56,12 @@ export function colorHaloPorTipo(tipo: TipoEnlace): string {
   if (tipo === "agregacion" || tipo === "exhibicion" || tipo === "generalizacion" || tipo === "clasificacion") {
     return tokens.colors.canvas.enlace;
   }
-  if (tipo === "resultado" || tipo === "efecto" || tipo === "invocacion") return tokens.colors.canvas.proceso;
+  if (tipo === "resultado" ||
+    tipo === "efecto" ||
+    tipo === "invocacion" ||
+    tipo === "excepcionSobretiempo" ||
+    tipo === "excepcionSubtiempo" ||
+    tipo === "excepcionSubSobretiempo") return tokens.colors.canvas.proceso;
   if (tipo === "agente" || tipo === "instrumento" || tipo === "consumo") return tokens.colors.canvas.objeto;
   return tokens.colors.acentoUi;
 }

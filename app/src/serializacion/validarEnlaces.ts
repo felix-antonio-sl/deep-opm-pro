@@ -1,4 +1,4 @@
-import { enlaceAdmiteTasa, esEnlaceEstructuralFundamental } from "../modelo/constantes";
+import { enlaceAdmiteTasa, enlaceAdmiteTiempoMaximo, enlaceAdmiteTiempoMinimo, esEnlaceEstructuralFundamental } from "../modelo/constantes";
 import { entidadDeExtremo, entidadIdDeExtremo, extremoEntidad, normalizarExtremo } from "../modelo/extremos";
 import { esColorEstilo } from "../modelo/estilos";
 import { esModificador, esSubtipoModificador, validarMetadatosEnlace } from "../modelo/modificadores";
@@ -102,6 +102,26 @@ export function validarEnlaces(
     if (unidadesTasa.value && !tasa.value) {
       return fallo(`Enlace inválido: ${id}.unidadesTasa`);
     }
+    const tiempoMinimo = validarTextoOpcional(id, "tiempoMinimo", raw.tiempoMinimo);
+    if (!tiempoMinimo.ok) return tiempoMinimo;
+    const unidadTiempoMinimo = validarTextoOpcional(id, "unidadTiempoMinimo", raw.unidadTiempoMinimo);
+    if (!unidadTiempoMinimo.ok) return unidadTiempoMinimo;
+    if ((tiempoMinimo.value || unidadTiempoMinimo.value) && !enlaceAdmiteTiempoMinimo(raw.tipo)) {
+      return fallo(`Enlace inválido: ${id}.tiempoMinimo`);
+    }
+    if (unidadTiempoMinimo.value && !tiempoMinimo.value) {
+      return fallo(`Enlace inválido: ${id}.unidadTiempoMinimo`);
+    }
+    const tiempoMaximo = validarTextoOpcional(id, "tiempoMaximo", raw.tiempoMaximo);
+    if (!tiempoMaximo.ok) return tiempoMaximo;
+    const unidadTiempoMaximo = validarTextoOpcional(id, "unidadTiempoMaximo", raw.unidadTiempoMaximo);
+    if (!unidadTiempoMaximo.ok) return unidadTiempoMaximo;
+    if ((tiempoMaximo.value || unidadTiempoMaximo.value) && !enlaceAdmiteTiempoMaximo(raw.tipo)) {
+      return fallo(`Enlace inválido: ${id}.tiempoMaximo`);
+    }
+    if (unidadTiempoMaximo.value && !tiempoMaximo.value) {
+      return fallo(`Enlace inválido: ${id}.unidadTiempoMaximo`);
+    }
     const grupoEstructuralId = validarGrupoEstructuralIdOpcional(id, raw.grupoEstructuralId);
     if (!grupoEstructuralId.ok) return grupoEstructuralId;
     if (grupoEstructuralId.value && !esEnlaceEstructuralFundamental(raw.tipo)) {
@@ -128,6 +148,10 @@ export function validarEnlaces(
       ...(requisitos.value && raw.mostrarRequisitos === true ? { mostrarRequisitos: true } : {}),
       ...(tasa.value ? { tasa: tasa.value } : {}),
       ...(tasa.value && unidadesTasa.value ? { unidadesTasa: unidadesTasa.value } : {}),
+      ...(tiempoMinimo.value ? { tiempoMinimo: tiempoMinimo.value } : {}),
+      ...(tiempoMinimo.value && unidadTiempoMinimo.value ? { unidadTiempoMinimo: unidadTiempoMinimo.value } : {}),
+      ...(tiempoMaximo.value ? { tiempoMaximo: tiempoMaximo.value } : {}),
+      ...(tiempoMaximo.value && unidadTiempoMaximo.value ? { unidadTiempoMaximo: unidadTiempoMaximo.value } : {}),
       ...(grupoEstructuralId.value ? { grupoEstructuralId: grupoEstructuralId.value } : {}),
       ...(derivado.value ? { derivado: derivado.value } : {}),
     };
@@ -151,7 +175,11 @@ export function validarRutaEtiquetaOpcional(enlaceId: Id, value: unknown): Resul
   return ok(rutaEtiquetaNormalizada(value));
 }
 
-export function validarTextoOpcional(enlaceId: Id, campo: "backwardTag" | "requisitos" | "tasa" | "unidadesTasa", value: unknown): Resultado<string | undefined> {
+export function validarTextoOpcional(
+  enlaceId: Id,
+  campo: "backwardTag" | "requisitos" | "tasa" | "unidadesTasa" | "tiempoMinimo" | "unidadTiempoMinimo" | "tiempoMaximo" | "unidadTiempoMaximo",
+  value: unknown,
+): Resultado<string | undefined> {
   if (value === undefined) return ok(undefined);
   if (typeof value !== "string") return fallo(`Enlace inválido: ${enlaceId}.${campo}`);
   const normalizado = value.trim();

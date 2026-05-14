@@ -186,6 +186,7 @@ export type ModeloSlice = Slice<
   | "definirBackwardTagSeleccionado"
   | "definirRequisitosEnlaceSeleccionado"
   | "definirTasaEnlaceSeleccionada"
+  | "definirTiempoExcepcionEnlaceSeleccionado"
   | "moverPuertoEnlaceSeleccionado"
   | "renombrarEtiquetaEnlaceSeleccionado"
   | "definirRutaEtiquetaSeleccionada"

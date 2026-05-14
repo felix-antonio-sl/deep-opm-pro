@@ -5,7 +5,7 @@ import { renombrarEtiquetaEnlace } from "../../modelo/etiquetasEnlace";
 import { entidadIdDeExtremo, extremoEstado } from "../../modelo/extremos";
 import { aplicarEstiloApariencia } from "../../modelo/estilos";
 import { aplicarModificador, definirDemora, definirProbabilidad } from "../../modelo/modificadores";
-import { ajustarMultiplicidad, cambiarAfiliacion, cambiarEsencia, crearEnlace, crearEstadosIniciales, crearModelo, crearObjeto, crearProceso, definirBackwardTag, definirRequisitosEnlace, definirTasaEnlace, designarEstadoFinal, designarEstadoInicial, descomponerProceso, desplegarObjeto, estadosDeEntidad, plegarCompletoGrupoEstructural, renombrarEstado } from "../../modelo/operaciones";
+import { ajustarMultiplicidad, cambiarAfiliacion, cambiarEsencia, crearEnlace, crearEstadosIniciales, crearModelo, crearObjeto, crearProceso, definirBackwardTag, definirRequisitosEnlace, definirTasaEnlace, definirTiempoExcepcionEnlace, designarEstadoFinal, designarEstadoInicial, descomponerProceso, desplegarObjeto, estadosDeEntidad, plegarCompletoGrupoEstructural, renombrarEstado } from "../../modelo/operaciones";
 import { editarAlias, editarDescripcion } from "../../modelo/objetoMetadata";
 import { cambiarModoPlegado, crearEnlaceConExtremoPlegado, extraerParteDePlegado, reinsertarParteEnPlegado } from "../../modelo/plegado";
 import { definirRutaEtiqueta } from "../../modelo/rutas";
@@ -245,6 +245,9 @@ describe("proyeccion JointJS", () => {
       { tipo: "instrumento", marker: LINK_ASSETS.procedural.instrumento.marker },
       { tipo: "consumo", marker: LINK_ASSETS.procedural.consumo.marker },
       { tipo: "resultado", marker: LINK_ASSETS.procedural.resultado.marker },
+      { tipo: "excepcionSobretiempo", marker: LINK_ASSETS.procedural.excepcionSobretiempo.marker },
+      { tipo: "excepcionSubtiempo", marker: LINK_ASSETS.procedural.excepcionSubtiempo.marker },
+      { tipo: "excepcionSubSobretiempo", marker: LINK_ASSETS.procedural.excepcionSubSobretiempo.marker },
     ];
 
     for (const caso of casos) {
@@ -257,6 +260,8 @@ describe("proyeccion JointJS", () => {
       if (caso.marker.type === "circle") {
         expect(targetMarker?.r).toBe(caso.marker.r);
       } else if (caso.marker.type === "polygon") {
+        expect(targetMarker?.points).toBe(caso.marker.points);
+      } else if (caso.marker.type === "polyline") {
         expect(targetMarker?.points).toBe(caso.marker.points);
       } else {
         expect(targetMarker?.d).toBe(caso.marker.d);
@@ -342,6 +347,28 @@ describe("proyeccion JointJS", () => {
     expect(tasa?.position).toMatchObject({ distance: 0.55, offset: 10 });
     expect(requisitos?.attrs?.label?.text).toBe("Satisfied: REQ-1");
     expect(requisitos?.position).toMatchObject({ distance: 0.5, offset: -30 });
+  });
+
+  test("proyecta umbrales temporales de excepcion como labels independientes", () => {
+    let modelo = modeloConEnlace("excepcionSubSobretiempo");
+    const enlaceId = Object.keys(modelo.enlaces)[0];
+    if (!enlaceId) throw new Error("La prueba esperaba excepcion temporal");
+    modelo = must(definirTiempoExcepcionEnlace(modelo, enlaceId, {
+      tiempoMinimo: "5",
+      unidadTiempoMinimo: "s",
+      tiempoMaximo: "30",
+      unidadTiempoMaximo: "s",
+    }));
+
+    const cellEnlace = proyectarModeloAJointCells(modelo, modelo.opdRaizId, null, null).find((cell) => cell.type === "standard.Link");
+    const labels = cellEnlace?.labels as Array<{ opmLabelKey?: string; attrs?: { label?: Attrs }; position?: { distance?: unknown; offset?: unknown } }> | undefined;
+    const minimo = labels?.find((label) => label.opmLabelKey === "tiempo:minimo");
+    const maximo = labels?.find((label) => label.opmLabelKey === "tiempo:maximo");
+
+    expect(minimo?.attrs?.label?.text).toBe("Min: 5 s");
+    expect(minimo?.position).toMatchObject({ distance: 0.35, offset: 18 });
+    expect(maximo?.attrs?.label?.text).toBe("Max: 30 s");
+    expect(maximo?.position).toMatchObject({ distance: 0.65, offset: 18 });
   });
 
   test("proyecta etiquetas de multiplicidad cerca de origen y destino", () => {
@@ -1305,7 +1332,7 @@ function modeloConEnlace(tipo: TipoEnlace): Modelo {
   if (tipo === "resultado") {
     return must(crearEnlace(modelo, modelo.opdRaizId, proceso, objeto, tipo));
   }
-  if (tipo === "invocacion") {
+  if (tipo === "invocacion" || tipo === "excepcionSobretiempo" || tipo === "excepcionSubtiempo" || tipo === "excepcionSubSobretiempo") {
     modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 420, y: 130 }, "Proceso 2"));
     return must(crearEnlace(modelo, modelo.opdRaizId, proceso, entidadPorNombre(modelo, "Proceso 2"), tipo));
   }

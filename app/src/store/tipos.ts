@@ -156,7 +156,7 @@ import {
 } from "../persistencia/autosalvado";
 import { exportarModelo, hidratarModelo } from "../serializacion/json";
 import type { Aviso } from "../modelo/validaciones";
-import type { Afiliacion, AnclajesSimboloEstructural, Apariencia, DesignacionEstado, DuracionTemporal, EnlaceEstilo, Esencia, EstiloApariencia, ExtremoEnlace, Id, ImagenEntidad, LayoutEstados, Modelo, Modificador, ModoDespliegueObjeto, ModoImagenEntidad, ModoPlegado, Opd, OperadorAbanico, OrdenPartesPlegado, ParametrosSimulacionEntidad, Pestana, PestanaId, PlantillaIndice, Posicion, SubtipoModificador, TipoEnlace, TipoEntidad, TipoValorSlot, UrlObjetoTipada, UiPortapapelesVisual, ValorConcreto, VersionResumen } from "../modelo/tipos";
+import type { Afiliacion, AnclajesSimboloEstructural, Apariencia, DesignacionEstado, DuracionTemporal, EnlaceEstilo, Esencia, EstiloApariencia, ExtremoEnlace, Id, ImagenEntidad, LayoutEstados, Modelo, Modificador, ModoDespliegueObjeto, ModoImagenEntidad, ModoPlegado, Opd, OperadorAbanico, OrdenPartesPlegado, ParametrosSimulacionEntidad, Pestana, PestanaId, PlantillaIndice, Posicion, SubtipoModificador, TipoEnlace, TipoEntidad, TipoValorSlot, UnidadTiempo, UrlObjetoTipada, UiPortapapelesVisual, ValorConcreto, VersionResumen } from "../modelo/tipos";
 import { mismaReferencia, type OplReferencia } from "../opl/interaccion";
 import { datosAsistenteVacio, sembrarModeloDesdeAsistente, validarDatosAsistente, type DatosAsistente, type EtapaAsistente } from "../modelo/creacionWizard";
 import { generarOpl } from "../opl/generar";
@@ -526,6 +526,12 @@ export interface OpmStore {
   definirBackwardTagSeleccionado: (tag: string | undefined) => void;
   definirRequisitosEnlaceSeleccionado: (requisitos: string | undefined, mostrar: boolean) => void;
   definirTasaEnlaceSeleccionada: (tasa: string | undefined, unidadesTasa: string | undefined) => void;
+  definirTiempoExcepcionEnlaceSeleccionado: (valores: {
+    tiempoMinimo?: string | undefined;
+    unidadTiempoMinimo?: UnidadTiempo | undefined;
+    tiempoMaximo?: string | undefined;
+    unidadTiempoMaximo?: UnidadTiempo | undefined;
+  }) => void;
   moverPuertoEnlaceSeleccionado: (lado: "origen" | "destino", extremo: ExtremoEnlace, opcionRemover?: boolean) => void;
   renombrarEtiquetaEnlaceSeleccionado: (etiqueta: string) => void;
   definirRutaEtiquetaSeleccionada: (etiqueta: string | undefined) => void;

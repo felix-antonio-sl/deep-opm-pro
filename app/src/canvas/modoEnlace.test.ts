@@ -41,6 +41,9 @@ describe("modo enlace canvas", () => {
       { tipo: "resultado", origen: procesar, destino: salida },
       { tipo: "efecto", origen: procesar, destino: salida },
       { tipo: "invocacion", origen: procesar, destino: subproceso },
+      { tipo: "excepcionSobretiempo", origen: procesar, destino: subproceso },
+      { tipo: "excepcionSubtiempo", origen: procesar, destino: subproceso },
+      { tipo: "excepcionSubSobretiempo", origen: procesar, destino: subproceso },
     ];
 
     for (const caso of casos) {
@@ -52,6 +55,7 @@ describe("modo enlace canvas", () => {
     expect(colorHaloPorTipo("agregacion")).toMatch(/^#[0-9a-fA-F]{6}$/);
     expect(colorHaloPorTipo("resultado")).toMatch(/^#[0-9a-fA-F]{6}$/);
     expect(colorHaloPorTipo("agente")).toMatch(/^#[0-9a-fA-F]{6}$/);
+    expect(colorHaloPorTipo("excepcionSobretiempo")).toMatch(/^#[0-9a-fA-F]{6}$/);
   });
 });
 

@@ -15,6 +15,7 @@ import {
   definirBackwardTag,
   definirRequisitosEnlace,
   definirTasaEnlace,
+  definirTiempoExcepcionEnlace,
   designarEstadoFinal,
   designarEstadoInicial,
   descomponerProceso,
@@ -102,6 +103,9 @@ describe("operaciones de modelo", () => {
       ["resultado", "Proceso", "Part"],
       ["efecto", "Part", "Proceso"],
       ["invocacion", "Proceso", "Subproceso"],
+      ["excepcionSobretiempo", "Proceso", "Subproceso"],
+      ["excepcionSubtiempo", "Proceso", "Subproceso"],
+      ["excepcionSubSobretiempo", "Proceso", "Subproceso"],
     ];
 
     for (const [tipo, origenNombre, destinoNombre] of casos) {
@@ -122,6 +126,7 @@ describe("operaciones de modelo", () => {
     modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 0, y: 0 }, "Sistema"));
     modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 220, y: 0 }, "Requisito"));
     modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 440, y: 0 }, "Procesar"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 660, y: 0 }, "Manejar Excepcion"));
     modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidadPorNombre(modelo, "Sistema").id, entidadPorNombre(modelo, "Requisito").id, "etiquetadoBidireccional"));
     const taggedId = Object.keys(modelo.enlaces)[0];
     if (!taggedId) throw new Error("La prueba esperaba enlace etiquetado");
@@ -142,6 +147,14 @@ describe("operaciones de modelo", () => {
     modelo = must(definirTasaEnlace(modelo, consumoId, " 2 ", " kg/h "));
     expect(modelo.enlaces[consumoId]?.tasa).toBe("2");
     expect(modelo.enlaces[consumoId]?.unidadesTasa).toBe("kg/h");
+
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidadPorNombre(modelo, "Procesar").id, entidadPorNombre(modelo, "Manejar Excepcion").id, "excepcionSobretiempo"));
+    const sobretiempoId = Object.values(modelo.enlaces).find((enlace) => enlace.tipo === "excepcionSobretiempo")?.id;
+    if (!sobretiempoId) throw new Error("La prueba esperaba enlace de excepcion temporal");
+    modelo = must(definirTiempoExcepcionEnlace(modelo, sobretiempoId, { tiempoMaximo: " 30 ", unidadTiempoMaximo: "s" }));
+    expect(modelo.enlaces[sobretiempoId]?.tiempoMaximo).toBe("30");
+    expect(modelo.enlaces[sobretiempoId]?.unidadTiempoMaximo).toBe("s");
+    expect(definirTiempoExcepcionEnlace(modelo, consumoId, { tiempoMaximo: "10", unidadTiempoMaximo: "s" }).ok).toBe(false);
   });
 
   test("firma etiquetada bidireccional rechaza estado solo en destino", () => {

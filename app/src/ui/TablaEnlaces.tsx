@@ -179,6 +179,9 @@ function TablaEnlacesContenido(props: ContenidoProps) {
               <option value="resultado">Resultado</option>
               <option value="efecto">Efecto</option>
               <option value="invocacion">Invocación</option>
+              <option value="excepcionSobretiempo">Excepción sobretiempo</option>
+              <option value="excepcionSubtiempo">Excepción subtiempo</option>
+              <option value="excepcionSubSobretiempo">Excepción sub/sobretiempo</option>
             </select>
           </label>
         </div>

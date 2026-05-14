@@ -1,3 +1,4 @@
+import { esEnlaceExcepcionTemporal } from "../../constantes";
 import {
   entidadDeExtremo,
   extremoApuntaAEntidad,
@@ -162,10 +163,13 @@ function proyeccionesEnlaceExterno(
     return [{ origenId: enlace.origenId, destinoId: extremoEntidad(subprocesos.primeroId) }];
   }
   if (
-    (enlace.tipo === "resultado" || enlace.tipo === "invocacion") &&
+    (enlace.tipo === "resultado" || enlace.tipo === "invocacion" || esEnlaceExcepcionTemporal(enlace.tipo)) &&
     extremoApuntaAEntidad(enlace.origenId, procesoRefinadoId)
   ) {
     return [{ origenId: extremoEntidad(subprocesos.ultimoId), destinoId: enlace.destinoId }];
+  }
+  if (esEnlaceExcepcionTemporal(enlace.tipo) && extremoApuntaAEntidad(enlace.destinoId, procesoRefinadoId)) {
+    return [{ origenId: enlace.origenId, destinoId: extremoEntidad(subprocesos.primeroId) }];
   }
   if ((enlace.tipo === "agente" || enlace.tipo === "instrumento") && extremoApuntaAEntidad(enlace.destinoId, procesoRefinadoId)) {
     return todos.map((subprocesoId) => ({ origenId: enlace.origenId, destinoId: extremoEntidad(subprocesoId) }));

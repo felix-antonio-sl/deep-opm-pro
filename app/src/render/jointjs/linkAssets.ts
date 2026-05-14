@@ -49,6 +49,18 @@ export const LINK_ASSETS = {
       arrowPath: "M25.6034 24.7689L33.172 17.7049L7.44819 25.5L33.172 33.2951L25.6034 26.2311L24.8201 25.5L25.6034 24.7689Z",
       marker: { type: "polygon", points: "0,0 23,8 12,0 23,-8 0,0 ", fill: "white", stroke: "#586D8C", strokeWidth: 2 },
     },
+    excepcionSobretiempo: {
+      source: "assets/svg/links/procedural/overtimeexception.svg",
+      marker: { type: "polyline", points: "4,10 13,-10", fill: "none", stroke: "#586D8C", strokeWidth: 2 },
+    },
+    excepcionSubtiempo: {
+      source: "assets/svg/links/procedural/underTime.svg",
+      marker: { type: "polyline", points: "4,10 13,-10 8.5,0 17,0 13,10 22,-10", fill: "none", stroke: "#586D8C", strokeWidth: 2 },
+    },
+    excepcionSubSobretiempo: {
+      source: "assets/svg/links/procedural/underOver.svg",
+      marker: { type: "polyline", points: "4,10 13,-10 8.5,0 17,0 13,10 22,-10 17.5,0 32,0 28,10 37,-10", fill: "none", stroke: "#586D8C", strokeWidth: 2 },
+    },
     etiquetado: {
       source: "assets/svg/links/procedural/unidirectionalRelation.svg",
       marker: { type: "polyline", points: "0,0 20,-10 0,0 20,10", fill: "none", stroke: "#586D8C", strokeWidth: 2 },

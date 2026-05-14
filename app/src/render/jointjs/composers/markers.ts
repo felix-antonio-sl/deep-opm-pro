@@ -217,6 +217,15 @@ export function marcadorDestino(tipo: TipoEnlace): Record<string, unknown> | nul
   if (tipo === "invocacion") {
     return markerAttrs(LINK_ASSETS.procedural.invocacion.marker);
   }
+  if (tipo === "excepcionSobretiempo") {
+    return markerAttrs(LINK_ASSETS.procedural.excepcionSobretiempo.marker);
+  }
+  if (tipo === "excepcionSubtiempo") {
+    return markerAttrs(LINK_ASSETS.procedural.excepcionSubtiempo.marker);
+  }
+  if (tipo === "excepcionSubSobretiempo") {
+    return markerAttrs(LINK_ASSETS.procedural.excepcionSubSobretiempo.marker);
+  }
   if (tipo === "etiquetado") {
     return markerAttrs(LINK_ASSETS.procedural.etiquetado.marker);
   }

@@ -1,4 +1,4 @@
-import { CANON, enlaceAdmiteTasa, esEnlaceEstructuralEtiquetado, esEnlaceEstructuralFundamental, naturalezaDeEnlace } from "../../../modelo/constantes";
+import { CANON, enlaceAdmiteTasa, enlaceAdmiteTiempoMaximo, enlaceAdmiteTiempoMinimo, esEnlaceEstructuralEtiquetado, esEnlaceEstructuralFundamental, naturalezaDeEnlace } from "../../../modelo/constantes";
 import { etiquetaEnlaceNormalizada } from "../../../modelo/etiquetasEnlace";
 import { entidadIdDeExtremo } from "../../../modelo/extremos";
 import { modoPlegadoApariencia, partesDePlegado } from "../../../modelo/plegado";
@@ -20,6 +20,8 @@ import {
   LABEL_KEY_PROXY_ORIGEN,
   LABEL_KEY_REQUISITOS,
   LABEL_KEY_TASA,
+  LABEL_KEY_TIEMPO_MAXIMO,
+  LABEL_KEY_TIEMPO_MINIMO,
   type LayoutLabelsEnlace,
 } from "../labelLayout";
 import { labelTextWrap } from "../labelText";
@@ -446,10 +448,29 @@ export function etiquetasOpcloudAvanzadas(enlace: Enlace, labelPositions?: Layou
     const text = `Rate = ${enlace.tasa.trim()}${unidades ? ` [${unidades}]` : ""}`;
     labels.push(aplicarLayoutLabel(etiquetaTextoModificador(text, 0.55, 10, wrapWidth), LABEL_KEY_TASA, labelPositions));
   }
+  if (enlaceAdmiteTiempoMinimo(enlace.tipo) && enlace.tiempoMinimo?.trim()) {
+    labels.push(aplicarLayoutLabel(
+      etiquetaTextoModificador(textoTiempo("Min", enlace.tiempoMinimo, enlace.unidadTiempoMinimo), enlaceAdmiteTiempoMaximo(enlace.tipo) ? 0.35 : 0.5, 18, wrapWidth),
+      LABEL_KEY_TIEMPO_MINIMO,
+      labelPositions,
+    ));
+  }
+  if (enlaceAdmiteTiempoMaximo(enlace.tipo) && enlace.tiempoMaximo?.trim()) {
+    labels.push(aplicarLayoutLabel(
+      etiquetaTextoModificador(textoTiempo("Max", enlace.tiempoMaximo, enlace.unidadTiempoMaximo), enlaceAdmiteTiempoMinimo(enlace.tipo) ? 0.65 : 0.5, 18, wrapWidth),
+      LABEL_KEY_TIEMPO_MAXIMO,
+      labelPositions,
+    ));
+  }
   if (enlace.mostrarRequisitos && enlace.requisitos?.trim()) {
     labels.push(aplicarLayoutLabel(etiquetaTextoTagged(`Satisfied: ${enlace.requisitos.trim()}`, 0.5, -30, wrapWidth), LABEL_KEY_REQUISITOS, labelPositions));
   }
   return labels;
+}
+
+function textoTiempo(prefijo: "Min" | "Max", valor: string, unidad?: string): string {
+  const unidadNormalizada = unidad?.trim();
+  return `${prefijo}: ${valor.trim()}${unidadNormalizada ? ` ${unidadNormalizada}` : ""}`;
 }
 
 export function etiquetaTextoTagged(text: string, distance: number, offset: number, wrapWidth?: number): Record<string, unknown> {

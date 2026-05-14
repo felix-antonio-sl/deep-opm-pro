@@ -113,7 +113,15 @@ function InputMult(props: { label: string; value: string; error: boolean; onInpu
 }
 
 export function enlaceProcedural(tipo: Enlace["tipo"]): boolean {
-  return tipo === "agente" || tipo === "instrumento" || tipo === "consumo" || tipo === "resultado" || tipo === "efecto" || tipo === "invocacion";
+  return tipo === "agente" ||
+    tipo === "instrumento" ||
+    tipo === "consumo" ||
+    tipo === "resultado" ||
+    tipo === "efecto" ||
+    tipo === "invocacion" ||
+    tipo === "excepcionSobretiempo" ||
+    tipo === "excepcionSubtiempo" ||
+    tipo === "excepcionSubSobretiempo";
 }
 
 export function probabilidadValida(value: string): boolean {

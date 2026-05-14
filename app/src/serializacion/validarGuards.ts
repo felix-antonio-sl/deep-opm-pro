@@ -49,7 +49,10 @@ export function esTipoEnlace(value: unknown): value is TipoEnlace {
     value === "consumo" ||
     value === "resultado" ||
     value === "efecto" ||
-    value === "invocacion"
+    value === "invocacion" ||
+    value === "excepcionSobretiempo" ||
+    value === "excepcionSubtiempo" ||
+    value === "excepcionSubSobretiempo"
   );
 }
 

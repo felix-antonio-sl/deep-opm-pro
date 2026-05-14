@@ -1,4 +1,4 @@
-import { enlaceAdmiteTasa, naturalezaDeEnlace } from "./constantes";
+import { enlaceAdmiteTasa, enlaceAdmiteTiempoMaximo, enlaceAdmiteTiempoMinimo, naturalezaDeEnlace } from "./constantes";
 import { crearEnlace } from "./operaciones";
 import type { Enlace, Id, Modelo, Modificador, Resultado, SubtipoModificador } from "./tipos";
 
@@ -156,6 +156,22 @@ export function validarMetadatosEnlace(enlace: Enlace): Resultado<true> {
   if (enlace.unidadesTasa !== undefined) {
     if (!enlace.tasa) return fallo("Las unidades de tasa requieren tasa");
     if (enlace.unidadesTasa.trim().length === 0) return fallo("Las unidades de tasa no pueden estar vacias");
+  }
+  if (enlace.tiempoMinimo !== undefined) {
+    if (!enlaceAdmiteTiempoMinimo(enlace.tipo)) return fallo("El tiempo minimo solo aplica a excepciones por subtiempo");
+    if (enlace.tiempoMinimo.trim().length === 0) return fallo("El tiempo minimo no puede estar vacio");
+  }
+  if (enlace.unidadTiempoMinimo !== undefined) {
+    if (!enlace.tiempoMinimo) return fallo("La unidad minima requiere tiempo minimo");
+    if (enlace.unidadTiempoMinimo.trim().length === 0) return fallo("La unidad minima no puede estar vacia");
+  }
+  if (enlace.tiempoMaximo !== undefined) {
+    if (!enlaceAdmiteTiempoMaximo(enlace.tipo)) return fallo("El tiempo maximo solo aplica a excepciones por sobretiempo");
+    if (enlace.tiempoMaximo.trim().length === 0) return fallo("El tiempo maximo no puede estar vacio");
+  }
+  if (enlace.unidadTiempoMaximo !== undefined) {
+    if (!enlace.tiempoMaximo) return fallo("La unidad maxima requiere tiempo maximo");
+    if (enlace.unidadTiempoMaximo.trim().length === 0) return fallo("La unidad maxima no puede estar vacia");
   }
   return ok(true);
 }

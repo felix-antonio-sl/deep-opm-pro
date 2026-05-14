@@ -66,6 +66,9 @@ const TODOS_LOS_TIPOS_ENLACE: Record<TipoEnlace, true> = {
   resultado: true,
   efecto: true,
   invocacion: true,
+  excepcionSobretiempo: true,
+  excepcionSubtiempo: true,
+  excepcionSubSobretiempo: true,
 };
 
 const TODOS_LOS_MODOS_DESPLIEGUE: Record<ModoDespliegueObjeto, true> = {
@@ -324,7 +327,10 @@ function configuracionPara(tipo: TipoEnlace): [EntidadDeTest, EntidadDeTest] {
       { tipo: "proceso", esencia: "informacional", nombre: "Cambio" },
     ];
   }
-  if (tipo === "invocacion") {
+  if (tipo === "invocacion" ||
+    tipo === "excepcionSobretiempo" ||
+    tipo === "excepcionSubtiempo" ||
+    tipo === "excepcionSubSobretiempo") {
     return [
       { tipo: "proceso", esencia: "informacional", nombre: "Disparador" },
       { tipo: "proceso", esencia: "informacional", nombre: "Disparado" },

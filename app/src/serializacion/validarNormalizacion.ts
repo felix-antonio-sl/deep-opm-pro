@@ -81,6 +81,10 @@ export function normalizarEnlace(enlace: Enlace): Enlace {
   const requisitos = textoOpcional(enlace.requisitos);
   const tasa = textoOpcional(enlace.tasa);
   const unidadesTasa = tasa ? textoOpcional(enlace.unidadesTasa) : undefined;
+  const tiempoMinimo = textoOpcional(enlace.tiempoMinimo);
+  const unidadTiempoMinimo = tiempoMinimo ? textoOpcional(enlace.unidadTiempoMinimo) : undefined;
+  const tiempoMaximo = textoOpcional(enlace.tiempoMaximo);
+  const unidadTiempoMaximo = tiempoMaximo ? textoOpcional(enlace.unidadTiempoMaximo) : undefined;
   const grupoEstructuralId = typeof enlace.grupoEstructuralId === "string" && enlace.grupoEstructuralId.trim()
     ? enlace.grupoEstructuralId.trim()
     : undefined;
@@ -93,6 +97,10 @@ export function normalizarEnlace(enlace: Enlace): Enlace {
     mostrarRequisitos: _mostrarRequisitos,
     tasa: _tasa,
     unidadesTasa: _unidadesTasa,
+    tiempoMinimo: _tiempoMinimo,
+    unidadTiempoMinimo: _unidadTiempoMinimo,
+    tiempoMaximo: _tiempoMaximo,
+    unidadTiempoMaximo: _unidadTiempoMaximo,
     ...base
   } = enlace;
   return {
@@ -105,6 +113,10 @@ export function normalizarEnlace(enlace: Enlace): Enlace {
     ...(requisitos && enlace.mostrarRequisitos ? { mostrarRequisitos: true } : {}),
     ...(tasa ? { tasa } : {}),
     ...(tasa && unidadesTasa ? { unidadesTasa } : {}),
+    ...(tiempoMinimo ? { tiempoMinimo } : {}),
+    ...(tiempoMinimo && unidadTiempoMinimo ? { unidadTiempoMinimo } : {}),
+    ...(tiempoMaximo ? { tiempoMaximo } : {}),
+    ...(tiempoMaximo && unidadTiempoMaximo ? { unidadTiempoMaximo } : {}),
     ...(estilo ? { estilo } : {}),
     ...(grupoEstructuralId ? { grupoEstructuralId } : {}),
   };

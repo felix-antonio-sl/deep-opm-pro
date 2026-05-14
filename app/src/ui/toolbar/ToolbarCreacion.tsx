@@ -32,6 +32,9 @@ export const TIPOS_ENLACE: Array<{ tipo: TipoEnlace; label: string }> = [
   { tipo: "resultado", label: "Resultado" },
   { tipo: "efecto", label: "Efecto" },
   { tipo: "invocacion", label: "Invocación" },
+  { tipo: "excepcionSobretiempo", label: "Excepción sobretiempo" },
+  { tipo: "excepcionSubtiempo", label: "Excepción subtiempo" },
+  { tipo: "excepcionSubSobretiempo", label: "Excepción sub/sobretiempo" },
 ];
 
 export function ToolbarCreacion() {

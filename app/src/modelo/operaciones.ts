@@ -117,4 +117,5 @@ export {
   definirBackwardTag,
   definirRequisitosEnlace,
   definirTasaEnlace,
+  definirTiempoExcepcionEnlace,
 } from "./enlaceMetadatos";

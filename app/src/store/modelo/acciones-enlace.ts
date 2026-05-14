@@ -22,6 +22,7 @@ import {
   definirBackwardTag,
   definirRequisitosEnlace,
   definirTasaEnlace,
+  definirTiempoExcepcionEnlace,
   moverPuertoEnlace as moverPuertoEnlaceOp,
   reanclarEnlaceExternoDerivado as reanclarEnlaceExternoDerivadoOp,
   splitEffectEnPar,
@@ -367,6 +368,22 @@ export function accionesEnlace(set: SetStore, get: GetStore): Partial<ModeloSlic
       const { modelo, enlaceSeleccionId } = get();
       if (!enlaceSeleccionId) return;
       const resultado = definirTasaEnlace(modelo, enlaceSeleccionId, tasa, unidadesTasa);
+      if (!resultado.ok) {
+        set({ mensaje: resultado.error });
+        return;
+      }
+      commitModelo(set, modelo, resultado.value, {
+        seleccionId: null,
+        enlaceSeleccionId,
+        modoEnlace: null,
+        mensaje: null,
+      });
+    },
+
+    definirTiempoExcepcionEnlaceSeleccionado(valores) {
+      const { modelo, enlaceSeleccionId } = get();
+      if (!enlaceSeleccionId) return;
+      const resultado = definirTiempoExcepcionEnlace(modelo, enlaceSeleccionId, valores);
       if (!resultado.ok) {
         set({ mensaje: resultado.error });
         return;

@@ -23,7 +23,10 @@ export type TipoEnlace =
   | "consumo"
   | "resultado"
   | "efecto"
-  | "invocacion";
+  | "invocacion"
+  | "excepcionSobretiempo"
+  | "excepcionSubtiempo"
+  | "excepcionSubSobretiempo";
 
 export type DerivacionOrigen = "automatico" | "manual";
 export type ExtremoKind = "entidad" | "estado";
@@ -74,6 +77,14 @@ export interface Enlace {
   tasa?: string;
   /** Unidades de tasa, usualmente `unidad/tiempo` (OPCloud rateUnits). */
   unidadesTasa?: string;
+  /** Umbral máximo que dispara excepción por sobretiempo (OPCloud timeMax). */
+  tiempoMaximo?: string;
+  /** Unidad del umbral máximo (OPCloud timeMaxVal). */
+  unidadTiempoMaximo?: string;
+  /** Umbral mínimo que dispara excepción por subtiempo (OPCloud timeMin). */
+  tiempoMinimo?: string;
+  /** Unidad del umbral mínimo (OPCloud timeMinVal). */
+  unidadTiempoMinimo?: string;
   /** Separa o asocia manualmente ramas de una relación estructural fundamental. */
   grupoEstructuralId?: Id;
   derivado?: DerivacionEnlace;

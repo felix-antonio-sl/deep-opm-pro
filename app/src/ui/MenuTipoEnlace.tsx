@@ -19,6 +19,9 @@ const TIPOS_MENU: Array<{ tipo: TipoEnlace; label: string }> = [
   { tipo: "resultado", label: "Resultado" },
   { tipo: "efecto", label: "Efecto" },
   { tipo: "invocacion", label: "Invocación" },
+  { tipo: "excepcionSobretiempo", label: "Excepción sobretiempo" },
+  { tipo: "excepcionSubtiempo", label: "Excepción subtiempo" },
+  { tipo: "excepcionSubSobretiempo", label: "Excepción sub/sobretiempo" },
 ];
 
 interface Props {
@@ -125,6 +128,9 @@ function iconoTipo(tipo: TipoEnlace): string {
   if (tipo === "consumo") return "Co";
   if (tipo === "resultado") return "R";
   if (tipo === "efecto") return "Ef";
+  if (tipo === "excepcionSobretiempo") return "/";
+  if (tipo === "excepcionSubtiempo") return "//";
+  if (tipo === "excepcionSubSobretiempo") return "///";
   return "Iv";
 }
 
@@ -137,6 +143,9 @@ function previewOpl(tipo: TipoEnlace, origen: Entidad, destino: Entidad): string
   if (tipo === "agente") return `${o} maneja ${d}.`;
   if (tipo === "instrumento") return `${d} requiere ${o}.`;
   if (tipo === "invocacion") return `${o} invoca ${d}.`;
+  if (tipo === "excepcionSobretiempo") return `${d} ocurre si duración de ${o} excede su duración máxima.`;
+  if (tipo === "excepcionSubtiempo") return `${d} ocurre si duración de ${o} es menor que su duración mínima.`;
+  if (tipo === "excepcionSubSobretiempo") return `${d} ocurre si duración de ${o} sale de su rango.`;
   if (tipo === "agregacion") return `${o} consta de ${d}.`;
   if (tipo === "exhibicion") return `${o} exhibe ${d}.`;
   if (tipo === "generalizacion") return `${d} es ${o}.`;

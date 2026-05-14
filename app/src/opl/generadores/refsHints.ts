@@ -140,6 +140,9 @@ const verbosPorTipo: Record<TipoEnlace, string[]> = {
   resultado: ["genera", "generan", "cambia"],
   efecto: ["afecta", "afectan"],
   invocacion: ["invoca", "invocan", "se invoca"],
+  excepcionSobretiempo: ["ocurre si duración", "excede"],
+  excepcionSubtiempo: ["ocurre si duración", "es menor"],
+  excepcionSubSobretiempo: ["ocurre si duración", "excede", "es menor"],
   etiquetado: ["se relaciona"],
   etiquetadoBidireccional: ["se relacionan"],
 };

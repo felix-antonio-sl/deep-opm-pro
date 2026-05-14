@@ -42,6 +42,9 @@ const PROCEDURALES = new Set<TipoEnlace>([
   "resultado",
   "efecto",
   "invocacion",
+  "excepcionSobretiempo",
+  "excepcionSubtiempo",
+  "excepcionSubSobretiempo",
 ]);
 
 export function validarModelo(modelo: Modelo, opdActivoId: Id): Aviso[] {
@@ -263,6 +266,9 @@ function reglaProcesoSinEntradaNiSalida(modelo: Modelo, opdActivoId: Id): Aviso[
     "agente",
     "instrumento",
     "invocacion",
+    "excepcionSobretiempo",
+    "excepcionSubtiempo",
+    "excepcionSubSobretiempo",
   ]);
 
   for (const proceso of Object.values(modelo.entidades)) {

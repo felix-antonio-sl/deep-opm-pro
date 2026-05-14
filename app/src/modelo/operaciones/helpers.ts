@@ -1,4 +1,4 @@
-import { esEnlaceEstructuralFundamental } from "../constantes";
+import { esEnlaceEstructuralFundamental, esEnlaceExcepcionTemporal } from "../constantes";
 import { extremoEntidad } from "../extremos";
 import type { Entidad, ExtremoEnlace, Id, Modelo, Opd, Resultado, TipoEnlace } from "../tipos";
 
@@ -94,6 +94,12 @@ export function validarFirmaEnlace(
     return origen.tipo === "proceso" && destino.tipo === "proceso"
       ? ok(true)
       : fallo("Invocación requiere Proceso -> Proceso");
+  }
+  if (esEnlaceExcepcionTemporal(tipo)) {
+    if (tieneEstado) return fallo("Los enlaces de excepción temporal conectan Proceso -> Proceso, sin extremos Estado [opm-visual-es §4.4]");
+    return origen.tipo === "proceso" && destino.tipo === "proceso"
+      ? ok(true)
+      : fallo("Excepción temporal requiere Proceso fuente -> Proceso de manejo [opm-iso-19450-es §Enlaces de excepción]");
   }
   return fallo(`Tipo de enlace no soportado: ${tipo satisfies never}`);
 }

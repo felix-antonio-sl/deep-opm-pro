@@ -4,7 +4,7 @@ import { crearAutoInvocacion } from "../modelo/autoinvocacion";
 import { renombrarEtiquetaEnlace } from "../modelo/etiquetasEnlace";
 import { aplicarEstiloApariencia } from "../modelo/estilos";
 import { aplicarModificador, definirDemora, definirProbabilidad } from "../modelo/modificadores";
-import { ajustarMultiplicidad, cambiarEsencia, crearEnlace, crearEstadosIniciales, crearModelo, crearObjeto, crearProceso, definirBackwardTag, designarEstadoFinal, designarEstadoInicial, descomponerProceso, agregarEstado, desplegarObjeto, estadosDeEntidad, moverApariencia, renombrarEstado } from "../modelo/operaciones";
+import { ajustarMultiplicidad, cambiarEsencia, crearEnlace, crearEstadosIniciales, crearModelo, crearObjeto, crearProceso, definirBackwardTag, definirTiempoExcepcionEnlace, designarEstadoFinal, designarEstadoInicial, descomponerProceso, agregarEstado, desplegarObjeto, estadosDeEntidad, moverApariencia, renombrarEstado } from "../modelo/operaciones";
 import { cambiarModoPlegado } from "../modelo/plegado";
 import { definirRutaEtiqueta } from "../modelo/rutas";
 import type { Apariencia, Modelo, Resultado } from "../modelo/tipos";
@@ -161,6 +161,23 @@ describe("OPL-ES — tipos de enlace canonicos", () => {
     modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidad(modelo, "Preparar"), entidad(modelo, "Servir"), "invocacion"));
 
     expect(generarOpl(modelo)).toContain("*Preparar* invoca *Servir*.");
+  });
+
+  test("excepciones temporales emiten OPL canonico de sobretiempo y subtiempo", () => {
+    let modelo = crearModelo();
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 0, y: 0 }, "Preparar"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 200, y: 0 }, "Manejar Demora"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 400, y: 0 }, "Manejar Omision"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidad(modelo, "Preparar"), entidad(modelo, "Manejar Demora"), "excepcionSobretiempo"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidad(modelo, "Preparar"), entidad(modelo, "Manejar Omision"), "excepcionSubtiempo"));
+    const sobre = Object.values(modelo.enlaces).find((enlace) => enlace.tipo === "excepcionSobretiempo")?.id;
+    const sub = Object.values(modelo.enlaces).find((enlace) => enlace.tipo === "excepcionSubtiempo")?.id;
+    if (!sobre || !sub) throw new Error("La prueba esperaba enlaces de excepcion temporal");
+    modelo = must(definirTiempoExcepcionEnlace(modelo, sobre, { tiempoMaximo: "30", unidadTiempoMaximo: "s" }));
+    modelo = must(definirTiempoExcepcionEnlace(modelo, sub, { tiempoMinimo: "5", unidadTiempoMinimo: "s" }));
+
+    expect(generarOpl(modelo)).toContain("*Manejar Demora* ocurre si duración de *Preparar* excede 30 s.");
+    expect(generarOpl(modelo)).toContain("*Manejar Omision* ocurre si duración de *Preparar* es menor que 5 s.");
   });
 
   test("modificador evento emite inicia y probabilidad", () => {

@@ -2,7 +2,7 @@
 
 **Fecha**: 2026-05-14
 **Autor**: agente Claude + operador
-**Estado**: documento vivo de roadmap; A/B/C del roadmap original y el bloque de labels/tagged OPCloud ya tienen implementación base. Quedan brechas avanzadas puntuales.
+**Estado**: documento vivo de roadmap; A/B/C del roadmap original, labels/tagged OPCloud y exception/time links ya tienen implementación base. Quedan brechas avanzadas puntuales.
 
 ## Contexto
 
@@ -40,21 +40,20 @@ Implementado en la app:
 - **Enlaces estructurales etiquetados OPCloud**: se agregaron `etiquetado` y `etiquetadoBidireccional` al kernel, UI, OPL, JSON y renderer. Siguen siendo estructurales para la SSOT, pero no fundamentales: no usan triángulo/bus, no entran a `sortStructuralLinks` ni a controles de grupo estructural. El unidireccional usa open arrow; el bidireccional usa harpoon en ambos extremos y replica la orientación horizontal de `BiDirectionalTaggedLink.fixArrowDirection()`.
 - **Labels/metadatos avanzados OPCloud**: `tag`, `backwardTag`, `requirements/showRequirementsLabel` y `rate/rateUnits` quedaron modelados como `etiqueta`, `backwardTag`, `requisitos/mostrarRequisitos`, `tasa/unidadesTasa`. Los labels se renderizan con posiciones observadas en OPCloud (`tag` 0.5/-20 o 0.8/-10, `backwardTag` 0.2/10, `Satisfied` 0.5/-30, `Rate` 0.55/10) y respetan `AparienciaEnlace.labelPositions`.
 - **Validación estricta de metadatos**: `backwardTag` sólo aplica a `etiquetadoBidireccional`; `tasa/unidadesTasa` sólo a consumo/resultado/efecto; `grupoEstructuralId` se restringe a estructurales fundamentales. Esto evita que tagged links se mezclen con la maquinaria de triángulos.
+- **Exception/time links OPCloud**: se agregaron `excepcionSobretiempo`, `excepcionSubtiempo` y `excepcionSubSobretiempo` como procedurales estrictos `Proceso -> Proceso`, con markers canónicos `/`, `//` y combinado desde `assets/svg/links/procedural/`, metadatos `tiempoMinimo/Maximo + unidad`, labels `Min`/`Max`, OPL SSOT y validación JSON estricta.
 
-Validación de esta ronda:
+Última validación de esta ronda:
 
 - `bun run typecheck`
-- `bun run test`: 1264 pass / 0 fail
+- `bun run test`: 1266 pass / 0 fail
 - `bun run build`
-- `bun run lint`
-- `bun run browser:smoke`: 173 pass / 0 fail (segunda corrida completa; una primera corrida tuvo un flake aislado de búsqueda que pasó al rerun)
-- Sonda HODOM: `/home/felix/projects/hd-hsc-os/docs/models/opm-hodom-bundle-v1.1.json` hidrata y proyecta los OPDs densos sin errores (`opd-sd1`: 28 apariencias, 59 enlaces, 97 cells, 5 triángulos estructurales).
+- `bun run browser:smoke`: 173 pass / 0 fail
 
-Pendientes reales después de A/B/C/D/E/G/H-base/I-base/I-remove/J-inzoom/K-fold-completo/L-triangle-layout/L-label-wrap/M-label-position/N-symbol-anchor-editor/O-auto-symbol-anchors/P-tagged-labels:
+Pendientes reales después de A/B/C/D/E/G/H-base/I-base/I-remove/J-inzoom/K-fold-completo/L-triangle-layout/L-label-wrap/M-label-position/N-symbol-anchor-editor/O-auto-symbol-anchors/P-tagged-labels/Q-exception-time-links:
 
-- Exception links de tiempo (`Overtime`, `Undertime`, `OvertimeUndertime`) y su OPL/render.
 - Sincronización de forked tagged links unidireccionales: OPCloud agrupa enlaces con mismo source+tag y limpia/propaga labels; nuestra app aún no emula ese comportamiento.
-- Smoke UI específico para crear/editar tagged y bidirectional desde la interfaz. La cobertura unit/render/store/serialización ya existe.
+- Smoke UI específico para crear/editar tagged, bidirectional y exception/time desde la interfaz. La cobertura unit/render/store/serialización ya existe.
+- Handler ambiental de excepciones temporales: la SSOT visual indica handler ambiental; hoy validamos `Proceso -> Proceso` y dejamos la afiliación ambiental como decisión del operador.
 - Import/export OPX real de los metadatos nuevos, cuando exista contrato productivo.
 
 ## Pendiente #1 — Puertos dinámicos (`findClosestEmptyPort`)
@@ -423,13 +422,14 @@ El roadmap A/B/C original queda así:
 | B | **#1 Puertos dinámicos** | Implementado + ampliado | Incluye ranuras estructurales y unificación de enlaces con estados. |
 | C | **#2 sortStructuralLinks** | Implementado base | Permuta anchors y ports; queda pendiente persistir decisiones visuales si se requiere. |
 
-La siguiente ruta de alto impacto ya no es A/B/C/D/E, sino **F/G/H**. G tiene implementación base.
+La siguiente ruta de alto impacto ya no es A/B/C/D/E, sino las brechas avanzadas de sincronización y validación visual específica.
 
 | # | Pendiente | Impacto | Costo |
 |---|---|---|---|
-| F | labels OPCloud avanzados | Medio/alto | M |
-| G | ciclo interactivo completo del triángulo estructural | Medio/alto | En curso: tipo/ordered/grupo, faltantes, semiplegado y remove/fold-out listos; faltan fold completo y faltantes desde inzoom procedural |
-| H | vertices superiores/anchors visuales persistidos alrededor del símbolo | Medio | M |
+| R | forked tagged links OPCloud | Medio | M |
+| S | smoke UI específico tagged/bidirectional/exception-time | Medio | S |
+| T | handler ambiental sugerido/validado para exception-time | Medio | S/M |
+| U | OPX import/export para metadatos nuevos | Alto | L |
 
 ## Notas operativas
 
@@ -445,8 +445,7 @@ La siguiente ruta de alto impacto ya no es A/B/C/D/E, sino **F/G/H**. G tiene im
 
 Loop verde de referencia:
 - typecheck/build clean
-- lint clean
-- 1235 unit / 0 fail
+- 1266 unit / 0 fail
 - 173 smoke / 0 fail
 
 Lo que YA está hecho:
@@ -460,6 +459,8 @@ Lo que YA está hecho:
 - selector de grupo estructural desde el triángulo + cambio de tipo + `orderedFundamentalTypes`
 - ciclo OPCloud-style de faltantes, semiplegado y quitar semiplegado estructural
 - unificación OPCloud-style de enlaces procedurales con estados
+- tagged/bidirectional OPCloud (`etiquetado`, `etiquetadoBidireccional`) con labels/metadatos avanzados
+- exception/time OPCloud (`excepcionSobretiempo`, `excepcionSubtiempo`, `excepcionSubSobretiempo`) con markers, tiempos, OPL, JSON, Inspector y labels `Min`/`Max`
 - `7a9d65e` — layoutConContorno con anchos reales + heurística semántica (HODOM SD-1: 0 solapamientos)
 - `f93112e` — externos densos en multi-columna
 - `c064537` — bound Bellman-Ford en BFS (autolayout no cuelga con ciclos)
