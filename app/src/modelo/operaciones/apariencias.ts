@@ -297,6 +297,44 @@ export function actualizarPosicionSimboloEstructural(
   });
 }
 
+export function actualizarAnclajesSimboloEstructural(
+  modelo: Modelo,
+  opdId: Id,
+  anclajesPorApariencia: Partial<Record<Id, AnclajesSimboloEstructural>>,
+): Resultado<Modelo> {
+  const opd = modelo.opds[opdId];
+  if (!opd) return fallo(`OPD no existe: ${opdId}`);
+
+  let enlaces = opd.enlaces;
+  let cambio = false;
+  for (const [aparienciaEnlaceId, anclajes] of Object.entries(anclajesPorApariencia)) {
+    const apariencia = enlaces[aparienciaEnlaceId];
+    if (!apariencia) continue;
+    const symbolAnchors = normalizarAnclajesSimbolo(anclajes);
+    if (!symbolAnchors || mismosAnclajesSimbolo(apariencia.symbolAnchors, symbolAnchors)) continue;
+    enlaces = {
+      ...enlaces,
+      [aparienciaEnlaceId]: {
+        ...apariencia,
+        symbolAnchors,
+      },
+    };
+    cambio = true;
+  }
+
+  if (!cambio) return ok(modelo);
+  return ok({
+    ...modelo,
+    opds: {
+      ...modelo.opds,
+      [opdId]: {
+        ...opd,
+        enlaces,
+      },
+    },
+  });
+}
+
 function mismosVertices(a: Posicion[], b: Posicion[]): boolean {
   return a.length === b.length && a.every((vertice, index) => vertice.x === b[index]?.x && vertice.y === b[index]?.y);
 }

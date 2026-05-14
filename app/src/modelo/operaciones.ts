@@ -83,6 +83,7 @@ export type {
 export {
   moverApariencia,
   moverAparienciaPorId,
+  actualizarAnclajesSimboloEstructural,
   actualizarVerticesEnlace,
   actualizarPosicionLabelEnlace,
   actualizarPosicionSimboloEstructural,

@@ -156,6 +156,7 @@ export type ModeloSlice = Slice<
   | "moverApariencia"
   | "moverAparienciaConPuertos"
   | "actualizarPosicionSimboloEstructural"
+  | "actualizarAnclajesSimboloEstructural"
   | "toggleGrid"
   | "fijarGridConfig"
   | "alinearSeleccion"

@@ -16,7 +16,7 @@ Validado contra modelo HODOM real (`/home/felix/projects/hd-hsc-os/docs/models/o
 
 Reverse-engineering completo de `opm-extracted/` (código descompilado OPCloud) reveló **3 mecanismos canónicos faltantes** que producen maraña visual en modelos densos. Este documento los detalla para no re-investigar y registra qué parte ya fue llevada a nuestra arquitectura.
 
-## Estado 2026-05-13
+## Estado 2026-05-14
 
 Implementado en la app:
 
@@ -35,18 +35,19 @@ Implementado en la app:
 - **Distribución avanzada del triángulo estructural**: la proyección reserva posiciones de triángulos estructurales y separa automáticamente símbolos que caerían superpuestos, siguiendo el patrón OPCloud `TriangleClass.checkFOrOverLapping()` pero sin mutar el modelo cuando la posición no fue persistida por el operador. Esto hace que grupos manuales (`grupoEstructuralId`) separados se vean realmente separados aun cuando su centro geométrico inicial coincide con el bus automático.
 - **Wrapping de labels largos**: labels de ruta, etiquetas de enlace y labels de ramas estructurales usan `textWrap` de JointJS para no invadir líneas/triángulos en textos largos. Es el primer tramo de labels avanzados; todavía no incluye posición persistida ni requirements/rate/time/tags.
 - **Labels OPCloud-style con posición persistida**: `AparienciaEnlace.labelPositions` guarda `distance/offset/angle` por rol visual (`etiqueta`, `ruta`, multiplicidades, modificadores, probabilidad, demora, orden, proxies). `JointCanvas` habilita `labelMove` sólo para el enlace seleccionado y usa `snapLabels: true`; `handlers/drag.ts` escucha `change:labels` y persiste el movimiento. El wrapping ahora estima ancho por tramo visible entre contornos, siguiendo la intención de `setLabelsOLinks()` de OPCloud sin copiar su implementación Rappid. Decisión explícita: no usar `labelsLayer: true`, porque en JointJS OSS agrega nodos `.joint-link` adicionales y rompe el contrato DOM de enlaces reales.
+- **Editor fino de anclas del símbolo estructural**: `AparienciaEnlace.symbolAnchors` ahora se edita desde dos superficies coherentes: handles JointJS sobre los puertos `in/out` del triángulo seleccionado (`elementTools.Control`) y controles numéricos/slots en el Inspector. La operación `actualizarAnclajesSimboloEstructural()` persiste offsets relativos al centro sin mover `symbolPos`; mover el triángulo conserva anclas manuales existentes. Se mantiene el patrón OPCloud de símbolo como nodo intermedio manipulable, pero adaptado a JointJS OSS con ports `absolute`.
 
 Validación de esta ronda:
 
 - `bun run typecheck`
-- `bun run test`: 1245 pass / 0 fail
+- `bun run test`: 1248 pass / 0 fail
 - `bun run build`
 - `bun run lint`
 - `bun run browser:smoke`: 173 pass / 0 fail
 
-Pendientes reales después de A/B/C/D/E/G/H-base/I-base/I-remove/J-inzoom/K-fold-completo/L-triangle-layout/L-label-wrap/M-label-position:
+Pendientes reales después de A/B/C/D/E/G/H-base/I-base/I-remove/J-inzoom/K-fold-completo/L-triangle-layout/L-label-wrap/M-label-position/N-symbol-anchor-editor:
 
-- Ajuste avanzado de vertices superiores de OPCloud alrededor del símbolo estructural persistido: ya existe la base de anclas/ports y separación de símbolos superpuestos; falta editar manualmente esos offsets y propagar heurísticas OPCloud más finas para modelos muy densos.
+- Heurísticas automáticas avanzadas de vertices superiores de OPCloud alrededor del símbolo estructural persistido: ya existe la base de anclas/ports, editor manual y separación de símbolos superpuestos; falta inferencia automática más fina para modelos muy densos.
 - Labels avanzados OPCloud restantes: requirements, rate/time completos, tags/backtags y familias tagged/bidirectional. `path/ruta`, probabilidad, demora, multiplicidades y etiquetas estructurales ya tienen rol visual y posición persistible.
 - Familias avanzadas fuera del MVP actual: exception links de tiempo, tagged/bidirectional links y metadatos avanzados de requisitos.
 

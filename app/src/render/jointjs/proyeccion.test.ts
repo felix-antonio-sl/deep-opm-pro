@@ -688,6 +688,24 @@ describe("proyeccion JointJS", () => {
     }
   });
 
+  test("simbolo estructural seleccionado expone handles de anclas", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 90 }, "Todo"));
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 260, y: 20 }, "Parte A"));
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 260, y: 170 }, "Parte B"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidadPorNombre(modelo, "Todo"), entidadPorNombre(modelo, "Parte A"), "agregacion"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidadPorNombre(modelo, "Todo"), entidadPorNombre(modelo, "Parte B"), "agregacion"));
+    const enlaceSeleccionadoId = Object.keys(modelo.enlaces)[0]!;
+
+    const triangulo = proyectarModeloAJointCells(modelo, modelo.opdRaizId, null, enlaceSeleccionadoId)
+      .find((cell) => cell.type === "standard.Polygon");
+    const portBody = attrsPuertoTriangulo(triangulo);
+
+    expect(portBody?.r).toBe(4);
+    expect(portBody?.stroke).toBe("#3BC3FF");
+    expect(portBody?.cursor).toBe("grab");
+  });
+
   test("fusiona estructurales del mismo tipo y refinable, no solo agregacion", () => {
     let modelo = crearModelo();
     modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 90 }, "Animal"));
@@ -1249,6 +1267,11 @@ function posicionPuertoTriangulo(cell: unknown, id: string): { x?: unknown; y?: 
   const ports = (cell as { ports?: unknown } | undefined)?.ports as { items?: Array<{ id?: string; args?: { x?: unknown; y?: unknown }; position?: { args?: { x?: unknown; y?: unknown } } }> } | undefined;
   const item = (ports?.items ?? []).find((puerto) => puerto.id === id);
   return item?.args;
+}
+
+function attrsPuertoTriangulo(cell: unknown): { r?: unknown; stroke?: unknown; cursor?: unknown } | undefined {
+  const ports = (cell as { ports?: unknown } | undefined)?.ports as { groups?: { symbolAnchor?: { attrs?: { portBody?: { r?: unknown; stroke?: unknown; cursor?: unknown } } } } } | undefined;
+  return ports?.groups?.symbolAnchor?.attrs?.portBody;
 }
 
 function must<T>(resultado: Resultado<T>): T {

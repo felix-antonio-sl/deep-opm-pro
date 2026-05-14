@@ -4,8 +4,9 @@ import { naturalezaDeEnlace } from "../modelo/constantes";
 import { etiquetaEnlaceNormalizada, validarEtiquetaEnlace } from "../modelo/etiquetasEnlace";
 import { entidadDeExtremo, entidadIdDeExtremo, nombreExtremo } from "../modelo/extremos";
 import { relacionesEstructuralesFaltantes, validarMultiplicidad } from "../modelo/operaciones";
+import { anclajeRefinableSimbolo, anclajeRefinadorSimbolo, limitarAnclajeSimbolo, normalizarAnclajeSimbolo } from "../modelo/simboloEstructural";
 import { useOpmStore, store } from "../store";
-import type { Enlace, Entidad, Id, Modelo, Modificador, TipoEnlace } from "../modelo/tipos";
+import type { AnclajeSimboloEstructural, AnclajesSimboloEstructural, AparienciaEnlace, Enlace, Entidad, Id, Modelo, Modificador, TipoEnlace } from "../modelo/tipos";
 import type { TabInspectorEnlace } from "../store/tipos";
 import { inspectorStyles as style } from "./inspectorStyles";
 import { InspectorTabs, type InspectorTabDef } from "./inspector/InspectorTabs";
@@ -74,6 +75,7 @@ export function InspectorEnlace({ enlace }: Props) {
   const definirRutaEtiqueta = useOpmStore((s) => s.definirRutaEtiquetaSeleccionada);
   const cambiarTipoGrupoEstructural = useOpmStore((s) => s.cambiarTipoGrupoEstructuralSeleccionado);
   const fijarOrdenGrupoEstructural = useOpmStore((s) => s.fijarOrdenGrupoEstructuralSeleccionado);
+  const actualizarAnclajesSimboloEstructural = useOpmStore((s) => s.actualizarAnclajesSimboloEstructural);
   const separarGrupoEstructural = useOpmStore((s) => s.separarGrupoEstructuralSeleccionado);
   const volverGrupoEstructuralAutomatico = useOpmStore((s) => s.volverGrupoEstructuralAutomaticoSeleccionado);
   const traerRelacionesEstructuralesFaltantes = useOpmStore((s) => s.traerRelacionesEstructuralesFaltantesSeleccionadas);
@@ -216,6 +218,7 @@ export function InspectorEnlace({ enlace }: Props) {
               seleccionados={seleccionados}
               onTipo={cambiarTipoGrupoEstructural}
               onOrdenado={fijarOrdenGrupoEstructural}
+              onAnclajes={actualizarAnclajesSimboloEstructural}
               onSeparar={separarGrupoEstructural}
               onAutomatico={volverGrupoEstructuralAutomatico}
               onTraerFaltantes={traerRelacionesEstructuralesFaltantes}
@@ -320,6 +323,7 @@ function SeccionGrupoEstructural(props: {
   seleccionados: readonly Id[];
   onTipo: (tipo: TipoEnlace) => void;
   onOrdenado: (ordenado: boolean) => void;
+  onAnclajes: (aparienciaEnlaceIds: Id[], anclajes: AnclajesSimboloEstructural) => void;
   onSeparar: () => void;
   onAutomatico: () => void;
   onTraerFaltantes: () => void;
@@ -331,6 +335,33 @@ function SeccionGrupoEstructural(props: {
   const grupo = grupoEstructuralInspector(props.modelo, props.enlace, props.seleccionados);
   const ordenado = grupo.refinable?.orderedFundamentalTypes?.includes(props.enlace.tipo) ?? false;
   const faltantes = relacionesEstructuralesFaltantes(props.modelo, props.opdId, grupo.ids).faltantes;
+  const aparienciasGrupo = aparienciasEnlaceGrupo(props.modelo, props.opdId, grupo.ids);
+  const aparienciaEnlaceIds = aparienciasGrupo.map((apariencia) => apariencia.id);
+  const anclajes = anclajesGrupo(aparienciasGrupo);
+  const editarAnclaje = (rol: keyof AnclajesSimboloEstructural, eje: keyof AnclajeSimboloEstructural, valor: string) => {
+    const numero = Number(valor);
+    if (!Number.isFinite(numero) || aparienciaEnlaceIds.length === 0) return;
+    const actual = anclajes[rol] ?? anclajeDefault(rol);
+    props.onAnclajes(aparienciaEnlaceIds, {
+      ...anclajes,
+      [rol]: limitarAnclajeSimbolo({ ...actual, [eje]: numero }),
+    });
+  };
+  const desplazar = (rol: keyof AnclajesSimboloEstructural, dx: number) => {
+    if (aparienciaEnlaceIds.length === 0) return;
+    const actual = anclajes[rol] ?? anclajeDefault(rol);
+    props.onAnclajes(aparienciaEnlaceIds, {
+      ...anclajes,
+      [rol]: limitarAnclajeSimbolo({ ...actual, dx }),
+    });
+  };
+  const resetearAnclajes = () => {
+    if (aparienciaEnlaceIds.length === 0) return;
+    props.onAnclajes(aparienciaEnlaceIds, {
+      refinable: anclajeRefinableSimbolo(),
+      refinador: anclajeRefinadorSimbolo(0, 1),
+    });
+  };
   return (
     <div style={style.field}>
       <span style={style.label}>Grupo estructural</span>
@@ -362,6 +393,38 @@ function SeccionGrupoEstructural(props: {
         {grupo.ids.length > 1 ? `${grupo.ids.length} ramas asociadas al símbolo.` : "Una rama estructural asociada al símbolo."}
         {faltantes > 0 ? ` ${faltantes} relación(es) plegada(s) disponibles.` : ""}
       </span>
+      <div style={enlaceStyles.anclasPanel}>
+        <span style={style.label}>Anclas del símbolo</span>
+        <FilaAnclaje
+          label="Entrada"
+          anclaje={anclajes.refinable}
+          disabled={aparienciaEnlaceIds.length === 0}
+          onDx={(valor) => editarAnclaje("refinable", "dx", valor)}
+          onDy={(valor) => editarAnclaje("refinable", "dy", valor)}
+          onIzquierda={() => desplazar("refinable", -10)}
+          onCentro={() => desplazar("refinable", 0)}
+          onDerecha={() => desplazar("refinable", 10)}
+        />
+        <FilaAnclaje
+          label="Salida"
+          anclaje={anclajes.refinador}
+          disabled={aparienciaEnlaceIds.length === 0}
+          onDx={(valor) => editarAnclaje("refinador", "dx", valor)}
+          onDy={(valor) => editarAnclaje("refinador", "dy", valor)}
+          onIzquierda={() => desplazar("refinador", -10)}
+          onCentro={() => desplazar("refinador", 0)}
+          onDerecha={() => desplazar("refinador", 10)}
+        />
+        <button
+          type="button"
+          data-testid="reset-anclas-simbolo-estructural"
+          style={style.secondaryButton}
+          disabled={aparienciaEnlaceIds.length === 0}
+          onClick={resetearAnclajes}
+        >
+          Reset anclas
+        </button>
+      </div>
       <button
         type="button"
         data-testid="traer-faltantes-grupo-estructural"
@@ -413,6 +476,56 @@ function SeccionGrupoEstructural(props: {
   );
 }
 
+function FilaAnclaje(props: {
+  label: string;
+  anclaje: AnclajeSimboloEstructural;
+  disabled: boolean;
+  onDx: (valor: string) => void;
+  onDy: (valor: string) => void;
+  onIzquierda: () => void;
+  onCentro: () => void;
+  onDerecha: () => void;
+}) {
+  return (
+    <div style={enlaceStyles.anclaFila}>
+      <span style={enlaceStyles.anclaLabel}>{props.label}</span>
+      <label style={enlaceStyles.anclaInputLabel}>
+        dx
+        <input
+          type="number"
+          min={-15}
+          max={15}
+          step={1}
+          data-testid={`ancla-${props.label.toLowerCase()}-dx`}
+          style={enlaceStyles.anclaInput}
+          value={props.anclaje.dx}
+          disabled={props.disabled}
+          onChange={(event) => props.onDx(event.currentTarget.value)}
+        />
+      </label>
+      <label style={enlaceStyles.anclaInputLabel}>
+        dy
+        <input
+          type="number"
+          min={-15}
+          max={15}
+          step={1}
+          data-testid={`ancla-${props.label.toLowerCase()}-dy`}
+          style={enlaceStyles.anclaInput}
+          value={props.anclaje.dy}
+          disabled={props.disabled}
+          onChange={(event) => props.onDy(event.currentTarget.value)}
+        />
+      </label>
+      <div style={enlaceStyles.anclaSlots}>
+        <button type="button" style={enlaceStyles.slotButton} disabled={props.disabled} onClick={props.onIzquierda}>-10</button>
+        <button type="button" style={enlaceStyles.slotButton} disabled={props.disabled} onClick={props.onCentro}>0</button>
+        <button type="button" style={enlaceStyles.slotButton} disabled={props.disabled} onClick={props.onDerecha}>+10</button>
+      </div>
+    </div>
+  );
+}
+
 const TIPOS_ESTRUCTURALES: readonly TipoEnlace[] = ["agregacion", "exhibicion", "generalizacion", "clasificacion"];
 
 function grupoEstructuralInspector(modelo: Modelo, enlace: Enlace, seleccionados: readonly Id[]): { ids: Id[]; refinable?: Entidad } {
@@ -430,6 +543,42 @@ function grupoEstructuralInspector(modelo: Modelo, enlace: Enlace, seleccionados
   const refinableId = ids.length > 1 && baseOrigen ? baseOrigen : (baseOrigen ?? baseDestino ?? undefined);
   const refinable = refinableId ? modelo.entidades[refinableId] : undefined;
   return refinable ? { ids, refinable } : { ids };
+}
+
+function aparienciasEnlaceGrupo(modelo: Modelo, opdId: Id, enlaceIds: readonly Id[]): AparienciaEnlace[] {
+  const opd = modelo.opds[opdId];
+  if (!opd) return [];
+  const ids = new Set(enlaceIds);
+  return Object.values(opd.enlaces).filter((apariencia) => ids.has(apariencia.enlaceId));
+}
+
+function anclajesGrupo(apariencias: readonly AparienciaEnlace[]): Required<AnclajesSimboloEstructural> {
+  return {
+    refinable: promedioAnclaje(
+      apariencias.map((apariencia) => normalizarAnclajeSimbolo(apariencia.symbolAnchors?.refinable)),
+      anclajeRefinableSimbolo(),
+    ),
+    refinador: promedioAnclaje(
+      apariencias.map((apariencia) => normalizarAnclajeSimbolo(apariencia.symbolAnchors?.refinador)),
+      anclajeRefinadorSimbolo(0, 1),
+    ),
+  };
+}
+
+function promedioAnclaje(
+  anclajes: Array<AnclajeSimboloEstructural | null>,
+  fallback: AnclajeSimboloEstructural,
+): AnclajeSimboloEstructural {
+  const validos = anclajes.filter((anclaje): anclaje is AnclajeSimboloEstructural => !!anclaje);
+  if (validos.length === 0) return fallback;
+  return limitarAnclajeSimbolo({
+    dx: validos.reduce((total, anclaje) => total + anclaje.dx, 0) / validos.length,
+    dy: validos.reduce((total, anclaje) => total + anclaje.dy, 0) / validos.length,
+  });
+}
+
+function anclajeDefault(rol: keyof AnclajesSimboloEstructural): AnclajeSimboloEstructural {
+  return rol === "refinable" ? anclajeRefinableSimbolo() : anclajeRefinadorSimbolo(0, 1);
 }
 
 const enlaceStyles = {
@@ -459,5 +608,56 @@ const enlaceStyles = {
     color: tokens.colors.textoSecundario,
     fontSize: "11px",
     lineHeight: 1.35,
+  },
+  anclasPanel: {
+    display: "grid",
+    gap: "8px",
+    padding: "8px",
+    border: `1px solid ${tokens.colors.bordeSuave}`,
+    borderRadius: "6px",
+    background: tokens.colors.fondoElevado,
+  },
+  anclaFila: {
+    display: "grid",
+    gridTemplateColumns: "52px minmax(54px, 1fr) minmax(54px, 1fr)",
+    gap: "6px",
+    alignItems: "center",
+  },
+  anclaLabel: {
+    fontSize: "11px",
+    fontWeight: 700,
+    color: tokens.colors.textoPrimario,
+  },
+  anclaInputLabel: {
+    display: "grid",
+    gap: "2px",
+    fontSize: "10px",
+    fontWeight: 700,
+    color: tokens.colors.textoSecundario,
+  },
+  anclaInput: {
+    minWidth: 0,
+    height: "26px",
+    padding: "3px 5px",
+    border: `1px solid ${tokens.colors.bordeControl}`,
+    borderRadius: "4px",
+    fontSize: "11px",
+  },
+  anclaSlots: {
+    gridColumn: "2 / 4",
+    display: "grid",
+    gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+    gap: "4px",
+  },
+  slotButton: {
+    minHeight: "24px",
+    padding: "2px 4px",
+    border: `1px solid ${tokens.colors.bordeControl}`,
+    borderRadius: "4px",
+    background: tokens.colors.fondoChrome,
+    color: tokens.colors.textoPrimario,
+    cursor: "pointer",
+    fontSize: "11px",
+    fontWeight: 700,
   },
 } satisfies Record<string, preact.JSX.CSSProperties>;

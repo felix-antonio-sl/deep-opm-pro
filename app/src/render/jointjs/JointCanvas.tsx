@@ -24,6 +24,7 @@ import { cablearRubberBand } from "./handlers/rubberBand";
 import { cablearResize } from "./handlers/resize";
 import { cablearSeleccion } from "./handlers/seleccion";
 import { instalarHerramientasEnlaceSeleccionado } from "./handlers/toolsEnlace";
+import { instalarHerramientasSimboloEstructuralSeleccionado } from "./handlers/toolsSimboloEstructural";
 import { cablearZoomFit, cablearZoomWheel, fitCanvasAPantalla } from "./handlers/zoom";
 import { aplicarRuteoOpcloudEnlaces } from "./opcloudRouting";
 import { ordenarTodosLosEnlacesEstructurales } from "./sortStructuralLinks";
@@ -85,6 +86,8 @@ export function JointCanvas() {
   const moverAparienciaConPuertosRef = useRef(moverAparienciaConPuertos);
   const actualizarPosicionSimboloEstructural = useOpmStore((s) => s.actualizarPosicionSimboloEstructural);
   const actualizarPosicionSimboloEstructuralRef = useRef(actualizarPosicionSimboloEstructural);
+  const actualizarAnclajesSimboloEstructural = useOpmStore((s) => s.actualizarAnclajesSimboloEstructural);
+  const actualizarAnclajesSimboloEstructuralRef = useRef(actualizarAnclajesSimboloEstructural);
   const cambiarModoPlegadoApariencia = useOpmStore((s) => s.cambiarModoPlegadoApariencia);
   const cambiarModoPlegadoAparienciaRef = useRef(cambiarModoPlegadoApariencia);
   const alternarModoImagenEntidad = useOpmStore((s) => s.alternarModoImagenEntidad);
@@ -146,6 +149,7 @@ export function JointCanvas() {
     cambiarOpdActivoRef.current = cambiarOpdActivo;
     moverAparienciaConPuertosRef.current = moverAparienciaConPuertos;
     actualizarPosicionSimboloEstructuralRef.current = actualizarPosicionSimboloEstructural;
+    actualizarAnclajesSimboloEstructuralRef.current = actualizarAnclajesSimboloEstructural;
     cambiarModoPlegadoAparienciaRef.current = cambiarModoPlegadoApariencia;
     alternarModoImagenEntidadRef.current = alternarModoImagenEntidad;
     abrirModalImagenRef.current = abrirModalImagen;
@@ -161,7 +165,7 @@ export function JointCanvas() {
     vaciarSeleccionRef.current = vaciarSeleccion;
     redimensionarAparienciaEnCanvasRef.current = redimensionarAparienciaEnCanvas;
     renombrarEntidadDesdeOplRef.current = renombrarEntidadDesdeOpl;
-  }, [actualizarPosicionLabelEnlace, actualizarPosicionSimboloEstructural, actualizarVerticesEnlace, agregarASeleccion, alternarModoImagenEntidad, abrirModalImagen, cambiarModoPlegadoApariencia, cambiarOpdActivo, crearEnlaceEntreEntidades, crearEntidadEnCanvas, extraerParteDePlegado, fijarHoverOpl, moverAparienciaConPuertos, redimensionarAparienciaEnCanvas, renombrarEntidadDesdeOpl, seleccionarEnlace, seleccionarEntidad, seleccionarEstadoComoExtremo, seleccionarGrupoEstructural, seleccionarPartePlegada, setSeleccion, toggleSeleccion, vaciarSeleccion]);
+  }, [actualizarAnclajesSimboloEstructural, actualizarPosicionLabelEnlace, actualizarPosicionSimboloEstructural, actualizarVerticesEnlace, agregarASeleccion, alternarModoImagenEntidad, abrirModalImagen, cambiarModoPlegadoApariencia, cambiarOpdActivo, crearEnlaceEntreEntidades, crearEntidadEnCanvas, extraerParteDePlegado, fijarHoverOpl, moverAparienciaConPuertos, redimensionarAparienciaEnCanvas, renombrarEntidadDesdeOpl, seleccionarEnlace, seleccionarEntidad, seleccionarEstadoComoExtremo, seleccionarGrupoEstructural, seleccionarPartePlegada, setSeleccion, toggleSeleccion, vaciarSeleccion]);
 
   // Setup del paper + cableado de handlers (mount inicial).
   useEffect(() => {
@@ -373,6 +377,13 @@ export function JointCanvas() {
     });
     sincronizandoRef.current = false;
     instalarHerramientasEnlaceSeleccionado(adapter, enlaceSeleccionId);
+    instalarHerramientasSimboloEstructuralSeleccionado(
+      adapter,
+      enlaceSeleccionId,
+      (aparienciaEnlaceIds, _posicion, anclajes) => {
+        actualizarAnclajesSimboloEstructuralRef.current(aparienciaEnlaceIds, anclajes);
+      },
+    );
     aplicarHoverOpl(adapter.graph, modelo, hoverOplRef, enlaceSeleccionId);
     aplicarFeedbackModoEnlace(adapter.paper, modelo, opdActivoId, modoEnlace);
   }, [enlaceSeleccionId, modelo, modoEnlace, opdActivoId, seleccionId, seleccionados, uiAliasVisibles, uiDescripcionesVisibles, uiModoImagenGlobal, contextoSimulacion]);

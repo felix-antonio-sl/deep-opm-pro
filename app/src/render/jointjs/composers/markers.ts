@@ -40,7 +40,7 @@ export function marcadoresEstructurales(
         stroke,
         strokeWidth,
         cursor,
-      }, meta, puertos),
+      }, meta, puertos, seleccionada),
       {
         id: `${triangleId}-pequeno`,
         type: "standard.Polygon",
@@ -71,7 +71,7 @@ export function marcadoresEstructurales(
         stroke,
         strokeWidth,
         cursor,
-      }, meta, puertos),
+      }, meta, puertos, seleccionada),
     ];
   }
 
@@ -84,7 +84,7 @@ export function marcadoresEstructurales(
         stroke,
         strokeWidth,
         cursor,
-      }, meta, puertos),
+      }, meta, puertos, seleccionada),
       {
         id: `${triangleId}-dot`,
         type: "standard.Circle",
@@ -108,7 +108,7 @@ export function marcadoresEstructurales(
       stroke,
       strokeWidth,
       cursor,
-    }, meta, puertos),
+    }, meta, puertos, seleccionada),
   ];
 }
 
@@ -121,6 +121,7 @@ export function polyShapeCell(
   bodyAttrs: Record<string, unknown>,
   meta: OpmJointMetadata,
   puertos: PuertoSimboloEstructural[] = puertosTrianguloDefault(),
+  mostrarPuertos = false,
 ): JointCellJson {
   return {
     id,
@@ -132,7 +133,7 @@ export function polyShapeCell(
       body: bodyAttrs,
       label: { text: "", display: "none" },
     },
-    ports: puertosTrianguloEstructural(puertos),
+    ports: puertosTrianguloEstructural(puertos, mostrarPuertos),
     opm: meta,
     z: 2,
   };
@@ -145,13 +146,15 @@ function puertosTrianguloDefault(): PuertoSimboloEstructural[] {
   ];
 }
 
-function puertosTrianguloEstructural(puertos: PuertoSimboloEstructural[]): Record<string, unknown> {
+function puertosTrianguloEstructural(puertos: PuertoSimboloEstructural[], mostrarPuertos: boolean): Record<string, unknown> {
   const attrs = {
     portBody: {
-      r: 0,
-      fill: "transparent",
-      stroke: "transparent",
+      r: mostrarPuertos ? 4 : 0,
+      fill: mostrarPuertos ? "#ffffff" : "transparent",
+      stroke: mostrarPuertos ? "#3BC3FF" : "transparent",
+      strokeWidth: mostrarPuertos ? 1.5 : 0,
       magnet: true,
+      cursor: mostrarPuertos ? "grab" : "pointer",
     },
   };
   const markup = [{ tagName: "circle", selector: "portBody" }];

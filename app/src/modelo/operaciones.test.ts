@@ -1,5 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import {
+  actualizarAnclajesSimboloEstructural,
   actualizarPosicionLabelEnlace,
   actualizarVerticesEnlace,
   ajustarMultiplicidad,
@@ -363,6 +364,31 @@ describe("operaciones de modelo", () => {
       { x: 100, y: 20 },
       { x: 140, y: 80 },
     ]);
+  });
+
+  test("persiste anclas manuales de simbolo estructural sin mover el centro", () => {
+    let modelo = modeloConEntidades();
+    const whole = entidadPorNombre(modelo, "Whole");
+    const part = entidadPorNombre(modelo, "Part");
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, whole.id, part.id, "agregacion"));
+    const aparienciaEnlace = Object.values(modelo.opds[modelo.opdRaizId]?.enlaces ?? {})[0];
+    expect(aparienciaEnlace).toBeDefined();
+    if (!aparienciaEnlace) return;
+
+    const actualizado = actualizarAnclajesSimboloEstructural(modelo, modelo.opdRaizId, {
+      [aparienciaEnlace.id]: {
+        refinable: { dx: -10, dy: -15 },
+        refinador: { dx: 8, dy: 15 },
+      },
+    });
+
+    expect(actualizado.ok).toBe(true);
+    if (!actualizado.ok) return;
+    expect(actualizado.value.opds[modelo.opdRaizId]?.enlaces[aparienciaEnlace.id]?.symbolPos).toBeUndefined();
+    expect(actualizado.value.opds[modelo.opdRaizId]?.enlaces[aparienciaEnlace.id]?.symbolAnchors).toEqual({
+      refinable: { dx: -10, dy: -15 },
+      refinador: { dx: 8, dy: 15 },
+    });
   });
 
   test("persiste posicion manual de label de enlace", () => {

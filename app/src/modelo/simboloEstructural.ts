@@ -2,7 +2,7 @@ import { naturalezaDeEnlace } from "./constantes";
 import { entidadIdDeExtremo } from "./extremos";
 import type { AnclajeSimboloEstructural, AnclajesSimboloEstructural, Apariencia, Enlace, Id, Modelo, Posicion } from "./tipos";
 
-const MITAD_SIMBOLO_ESTRUCTURAL = 15;
+export const MITAD_SIMBOLO_ESTRUCTURAL = 15;
 
 interface RamaSimbolo {
   aparienciaEnlaceId: Id;
@@ -35,6 +35,13 @@ export function normalizarAnclajeSimbolo(
 ): AnclajeSimboloEstructural | null {
   if (!anclaje || !Number.isFinite(anclaje.dx) || !Number.isFinite(anclaje.dy)) return null;
   return { dx: Math.round(anclaje.dx), dy: Math.round(anclaje.dy) };
+}
+
+export function limitarAnclajeSimbolo(anclaje: AnclajeSimboloEstructural): AnclajeSimboloEstructural {
+  return {
+    dx: limitarOffset(anclaje.dx),
+    dy: limitarOffset(anclaje.dy),
+  };
 }
 
 export function normalizarAnclajesSimbolo(
@@ -134,4 +141,9 @@ function mismoAnclaje(
 ): boolean {
   if (!a && !b) return true;
   return !!a && !!b && a.dx === b.dx && a.dy === b.dy;
+}
+
+function limitarOffset(valor: number): number {
+  if (!Number.isFinite(valor)) return 0;
+  return Math.max(-MITAD_SIMBOLO_ESTRUCTURAL, Math.min(MITAD_SIMBOLO_ESTRUCTURAL, Math.round(valor)));
 }
