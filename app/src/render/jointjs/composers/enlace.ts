@@ -5,6 +5,7 @@ import { modoPlegadoApariencia, partesDePlegado } from "../../../modelo/plegado"
 import { anclajeRefinableSimbolo, anclajeRefinadorSimbolo, anclajeSimboloConFallback } from "../../../modelo/simboloEstructural";
 import type { AnclajesSimboloEstructural, Apariencia, Enlace, ExtremoEnlace, Id, Modelo, Posicion, TipoEnlace } from "../../../modelo/tipos";
 import { etiquetasRuta } from "../rutaLabels";
+import { labelTextWrap } from "../labelText";
 import type { JointCellJson, OpmJointMetadata } from "../proyeccionTipos";
 import { selectorCapsulaEstado } from "./estados";
 import { etiquetaBadgeModificadorCanonico, marcadorDestino, marcadorFuente, marcadoresEstructurales, textoSubtipoModificador } from "./markers";
@@ -226,6 +227,7 @@ export function etiquetaProxyParte(text: string, distance: number): Record<strin
     attrs: {
       label: {
         text,
+        ...labelTextWrap(text),
         fill: "#475467",
         fontFamily: CANON.dims.fontFamily,
         fontSize: 12,
@@ -366,6 +368,7 @@ export function etiquetaTextoModificador(text: string, distance: number, offset:
     attrs: {
       label: {
         text,
+        ...labelTextWrap(text),
         fill: "#475467",
         fontFamily: CANON.dims.fontFamily,
         fontSize: 11,
@@ -398,6 +401,7 @@ export function etiquetaTextoEnlace(text: string): Record<string, unknown> {
     attrs: {
       label: {
         text,
+        ...labelTextWrap(text),
         fill: "#475467",
         fontFamily: CANON.dims.fontFamily,
         fontSize: 12,

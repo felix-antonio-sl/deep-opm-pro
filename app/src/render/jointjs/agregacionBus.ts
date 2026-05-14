@@ -6,8 +6,16 @@ import { etiquetaEnlaceNormalizada } from "../../modelo/etiquetasEnlace";
 import type { JointCellJson, OpmJointMetadata } from "./proyeccion";
 import { marcadoresEstructurales, type PuertoSimboloEstructural } from "./composers/markers";
 import { etiquetaOrdenEstructural, extremoTriangulo } from "./composers/enlace";
+import { labelTextWrap } from "./labelText";
 
 const Z_ENLACE_BUS = 4;
+const DISTANCIA_MIN_SIMBOLO = 44;
+const DESPLAZAMIENTO_SOLAPE_SIMBOLO = 50;
+
+export interface ReservaSimboloEstructural {
+  centro: Posicion;
+  persistida?: boolean;
+}
 
 export interface EnlaceConEndpointVisual {
   enlace: Enlace;
@@ -25,7 +33,8 @@ export function proyectarBusesEstructurales(args: {
   seleccionados: Set<Id>;
 }): { busCells: JointCellJson[]; enlacesConsumidos: Set<Id> } {
   const grupos = gruposEstructurales(args);
-  const busCells = grupos.flatMap((grupo) => proyectarGrupoEstructural(args.modelo, args.opdId, grupo, args.seleccionados));
+  const reservas: ReservaSimboloEstructural[] = [];
+  const busCells = grupos.flatMap((grupo) => proyectarGrupoEstructural(args.modelo, args.opdId, grupo, args.seleccionados, reservas));
   const enlacesConsumidos = new Set(grupos.flatMap((grupo) => grupo.ramas.map((rama) => rama.enlace.id)));
   return { busCells, enlacesConsumidos };
 }
@@ -100,6 +109,7 @@ function proyectarGrupoEstructural(
   opdId: Id,
   grupo: GrupoEstructural,
   seleccionados: Set<Id>,
+  reservas: ReservaSimboloEstructural[],
 ): JointCellJson[] {
   const triangleSize = 30;
   const refinadores = grupo.ramas
@@ -107,14 +117,19 @@ function proyectarGrupoEstructural(
       rama,
       refinador: grupo.ladoRefinable === "origen" ? rama.destino.apariencia : rama.origen.apariencia,
     }))
-    .sort((a, b) => centro(a.refinador).y - centro(b.refinador).y || centro(a.refinador).x - centro(b.refinador).x || a.rama.enlace.id.localeCompare(b.rama.enlace.id));
-  const refinableCentro = centro(grupo.refinable);
-  const refinadoresCentro = refinadores.map((item) => centro(item.refinador));
+    .sort((a, b) => centroApariencia(a.refinador).y - centroApariencia(b.refinador).y || centroApariencia(a.refinador).x - centroApariencia(b.refinador).x || a.rama.enlace.id.localeCompare(b.rama.enlace.id));
+  const refinableCentro = centroApariencia(grupo.refinable);
+  const refinadoresCentro = refinadores.map((item) => centroApariencia(item.refinador));
   const promedioRefinadores = promedio(refinadoresCentro);
-  const triangleCenter = symbolPosGrupo(refinadores.map((item) => item.rama.symbolPos)) ?? {
+  const symbolPosPersistido = symbolPosGrupo(refinadores.map((item) => item.rama.symbolPos));
+  const centroBase = symbolPosPersistido ?? {
     x: Math.round((refinableCentro.x + promedioRefinadores.x) / 2),
     y: Math.round((refinableCentro.y + promedioRefinadores.y) / 2),
   };
+  const triangleCenter = symbolPosPersistido
+    ? centroBase
+    : separarCentroSimboloEstructural(centroBase, reservas, refinableCentro);
+  reservas.push({ centro: triangleCenter, ...(symbolPosPersistido ? { persistida: true } : {}) });
   const grupoId = `struct-bus-${opdId}-${grupo.tipo}-${grupo.refinableId}-${grupo.grupoId}-${grupo.ladoRefinable}`;
   const triangleId = `${grupoId}-triangulo`;
   const algunaSeleccionada = refinadores.some(({ rama }) => seleccionados.has(rama.enlace.id));
@@ -230,6 +245,7 @@ function etiquetaRama(text: string): Record<string, unknown> {
     attrs: {
       label: {
         text,
+        ...labelTextWrap(text),
         fill: "#475467",
         fontFamily: CANON.dims.fontFamily,
         fontSize: 12,
@@ -284,11 +300,40 @@ function portRefinador(rama: EnlaceConEndpointVisual, ladoRefinable: "origen" | 
   return ladoRefinable === "origen" ? rama.destino.portId : rama.origen.portId;
 }
 
-function centro(apariencia: Apariencia): Posicion {
+export function centroApariencia(apariencia: Apariencia): Posicion {
   return {
     x: apariencia.x + apariencia.width / 2,
     y: apariencia.y + apariencia.height / 2,
   };
+}
+
+export function separarCentroSimboloEstructural(
+  base: Posicion,
+  reservas: readonly ReservaSimboloEstructural[],
+  refinableCentro: Posicion,
+): Posicion {
+  const centroBase = { x: Math.round(base.x), y: Math.round(base.y) };
+  if (!colisionaConReservas(centroBase, reservas)) return centroBase;
+
+  const direccionPreferida = refinableCentro.x <= centroBase.x ? 1 : -1;
+  for (let intento = 1; intento <= 12; intento += 1) {
+    const carril = Math.ceil(intento / 2);
+    const direccion = intento % 2 === 1 ? direccionPreferida : -direccionPreferida;
+    const candidato = {
+      x: centroBase.x + direccion * DESPLAZAMIENTO_SOLAPE_SIMBOLO * carril,
+      y: centroBase.y,
+    };
+    if (!colisionaConReservas(candidato, reservas)) return candidato;
+  }
+
+  return {
+    x: centroBase.x + direccionPreferida * DESPLAZAMIENTO_SOLAPE_SIMBOLO,
+    y: centroBase.y + DESPLAZAMIENTO_SOLAPE_SIMBOLO,
+  };
+}
+
+function colisionaConReservas(centro: Posicion, reservas: readonly ReservaSimboloEstructural[]): boolean {
+  return reservas.some((reserva) => Math.abs(reserva.centro.x - centro.x) < DISTANCIA_MIN_SIMBOLO && Math.abs(reserva.centro.y - centro.y) < DISTANCIA_MIN_SIMBOLO);
 }
 
 function promedio(puntos: Posicion[]): Posicion {

@@ -4,7 +4,7 @@ import { sincronizarPuertosEnlaces } from "../../modelo/operaciones";
 import type { Apariencia, Enlace, ExtremoEnlace, Id, Modelo, Posicion, TipoEnlace } from "../../modelo/tipos";
 import type { OplReferencia } from "../../opl/interaccion";
 import { proyectarOverlayAbanicoCanonico } from "./abanicoOverlay";
-import { proyectarBusesEstructurales, type EnlaceConEndpointVisual } from "./agregacionBus";
+import { centroApariencia, proyectarBusesEstructurales, separarCentroSimboloEstructural, type EnlaceConEndpointVisual, type ReservaSimboloEstructural } from "./agregacionBus";
 import { proyectarAutoInvocacion } from "./autoinvocacionLoop";
 import { proyectarEntidad } from "./composers/entidad";
 import { proyectarEnlace, proyectarProxyExtraccion, proyectarRefinamientoEstructural, resolverEndpointVisual } from "./composers/enlace";
@@ -132,6 +132,7 @@ export function proyectarModeloAJointCells(
       ...(hoverOplRef?.tipo === "enlace" ? [hoverOplRef.id] : []),
     ]),
   });
+  const reservasSimbolosEstructurales = reservasDesdeTriangulos(busCells);
   const enlaces = Object.values(opd.enlaces).flatMap((aparienciaEnlace) => {
     const enlace = modeloRender.enlaces[aparienciaEnlace.enlaceId];
     if (!enlace || enlacesConsumidos.has(enlace.id)) return [];
@@ -154,9 +155,11 @@ export function proyectarModeloAJointCells(
     const ordenado = refinableId
       ? modeloRender.entidades[refinableId]?.orderedFundamentalTypes?.includes(enlace.tipo) ?? false
       : false;
-    return TIPOS_REFINAMIENTO_ESTRUCTURAL.includes(enlace.tipo) && !origen.proxy && !destino.proxy
-      ? proyectarRefinamientoEstructural(opdId, enlace, aparienciaEnlace.id, origen, destino, enlaceResaltado, aparienciaEnlace.symbolPos, ordenado, aparienciaEnlace.symbolAnchors)
-      : [proyectarEnlace(opdId, enlace, aparienciaEnlace.id, origen, destino, aparienciaEnlace.vertices, enlaceResaltado, enlacesEnAbanico.has(enlace.id), { usarJumpover, activaSimulacion: enlaceActivoRuntime })];
+    if (TIPOS_REFINAMIENTO_ESTRUCTURAL.includes(enlace.tipo) && !origen.proxy && !destino.proxy) {
+      const symbolPos = symbolPosEstructural(aparienciaEnlace.symbolPos, origen.apariencia, destino.apariencia, reservasSimbolosEstructurales);
+      return proyectarRefinamientoEstructural(opdId, enlace, aparienciaEnlace.id, origen, destino, enlaceResaltado, symbolPos, ordenado, aparienciaEnlace.symbolAnchors);
+    }
+    return [proyectarEnlace(opdId, enlace, aparienciaEnlace.id, origen, destino, aparienciaEnlace.vertices, enlaceResaltado, enlacesEnAbanico.has(enlace.id), { usarJumpover, activaSimulacion: enlaceActivoRuntime })];
   });
 
   const halos = seleccionMultiple.size > 1
@@ -188,4 +191,47 @@ export function proyectarModeloAJointCells(
     : [];
 
   return [...busCells, ...enlaces, ...proxies, ...overlaysAbanico, ...elementos, ...imagenes, ...halos, ...halosSimulacion];
+}
+
+function symbolPosEstructural(
+  persistida: Posicion | undefined,
+  origen: Apariencia,
+  destino: Apariencia,
+  reservas: ReservaSimboloEstructural[],
+): Posicion {
+  if (persistida && Number.isFinite(persistida.x) && Number.isFinite(persistida.y)) {
+    const centro = { x: Math.round(persistida.x), y: Math.round(persistida.y) };
+    reservas.push({ centro, persistida: true });
+    return centro;
+  }
+  const origenCentro = centroApariencia(origen);
+  const destinoCentro = centroApariencia(destino);
+  const base = {
+    x: Math.round((origenCentro.x + destinoCentro.x) / 2),
+    y: Math.round((origenCentro.y + destinoCentro.y) / 2),
+  };
+  const centro = separarCentroSimboloEstructural(base, reservas, origenCentro);
+  reservas.push({ centro });
+  return centro;
+}
+
+function reservasDesdeTriangulos(cells: JointCellJson[]): ReservaSimboloEstructural[] {
+  return cells.flatMap((cell) => {
+    if (cell.type !== "standard.Polygon") return [];
+    if (!String(cell.id).endsWith("-triangulo")) return [];
+    const meta = cell.opm;
+    if (meta.kind !== "enlace" || meta.rolEstructural !== "simbolo") return [];
+    const position = cell.position as { x?: unknown; y?: unknown } | undefined;
+    const size = cell.size as { width?: unknown; height?: unknown } | undefined;
+    if (typeof position?.x !== "number" || typeof position.y !== "number") return [];
+    const width = typeof size?.width === "number" ? size.width : 30;
+    const height = typeof size?.height === "number" ? size.height : 30;
+    return [{
+      centro: {
+        x: Math.round(position.x + width / 2),
+        y: Math.round(position.y + height / 2),
+      },
+      persistida: true,
+    }];
+  });
 }

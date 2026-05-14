@@ -722,6 +722,28 @@ describe("proyeccion JointJS", () => {
     expect(cells.filter((cell) => String(cell.id).includes("-rama"))).toHaveLength(2);
   });
 
+  test("separa triangulo manual cuando caeria sobre el bus estructural automatico", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 90 }, "Todo"));
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 260, y: 20 }, "Parte A"));
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 260, y: 190 }, "Parte B"));
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 260, y: 105 }, "Parte C"));
+    const todoId = entidadPorNombre(modelo, "Todo");
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, todoId, entidadPorNombre(modelo, "Parte A"), "agregacion"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, todoId, entidadPorNombre(modelo, "Parte B"), "agregacion"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, todoId, entidadPorNombre(modelo, "Parte C"), "agregacion"));
+    const separadoId = Object.keys(modelo.enlaces)[2]!;
+    modelo = { ...modelo, enlaces: { ...modelo.enlaces, [separadoId]: { ...modelo.enlaces[separadoId]!, grupoEstructuralId: "grupo-c" } } };
+
+    const triangulos = proyectarModeloAJointCells(modelo, modelo.opdRaizId, null, null)
+      .filter((cell) => cell.type === "standard.Polygon" && cell.opm.kind === "enlace" && cell.opm.rolEstructural === "simbolo");
+    const centros = triangulos.map((cell) => centroTriangulo(cell));
+
+    expect(centros).toHaveLength(2);
+    expect(Math.abs(centros[0]!.x - centros[1]!.x)).toBeGreaterThanOrEqual(45);
+    expect(Math.abs(centros[0]!.y - centros[1]!.y)).toBeLessThanOrEqual(1);
+  });
+
   test("una sola agregacion conserva render simple sin bus", () => {
     let modelo = crearModelo();
     modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 30 }, "Todo"));
@@ -749,6 +771,23 @@ describe("proyeccion JointJS", () => {
     const labels = enlaceConEtiqueta?.labels as Array<{ attrs?: { label?: { text?: unknown; fontStyle?: unknown } } }> | undefined;
 
     expect(labels?.[0]?.attrs?.label).toMatchObject({ text: "componente critico", fontStyle: "italic" });
+  });
+
+  test("envuelve labels largos de enlace con textWrap JointJS", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 30 }, "Todo"));
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 220, y: 130 }, "Parte"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidadPorNombre(modelo, "Todo"), entidadPorNombre(modelo, "Parte"), "agregacion"));
+    const enlaceId = Object.keys(modelo.enlaces)[0];
+    if (!enlaceId) throw new Error("La prueba esperaba enlace");
+    const textoLargo = "componente estructural longitudinal critico";
+    modelo = must(renombrarEtiquetaEnlace(modelo, enlaceId, textoLargo));
+
+    const label = proyectarModeloAJointCells(modelo, modelo.opdRaizId, null, null)
+      .flatMap((cell) => (cell.labels as Array<{ attrs?: { label?: { text?: unknown; textWrap?: unknown } } }> | undefined) ?? [])
+      .find((item) => item.attrs?.label?.text === textoLargo);
+
+    expect(label?.attrs?.label?.textWrap).toMatchObject({ width: 132, height: null });
   });
 
   test("proyecta proceso descompuesto con contorno grueso", () => {
@@ -1064,6 +1103,15 @@ function modeloConAliasYDescripcion(): Modelo {
   const entidadId = entidadPorNombre(modelo, "Solicitud");
   modelo = must(editarAlias(modelo, entidadId, "sol"));
   return must(editarDescripcion(modelo, entidadId, "Descripcion visible"));
+}
+
+function centroTriangulo(cell: ReturnType<typeof proyectarModeloAJointCells>[number]): { x: number; y: number } {
+  const position = cell.position as { x?: number; y?: number } | undefined;
+  const size = cell.size as { width?: number; height?: number } | undefined;
+  return {
+    x: (position?.x ?? 0) + (size?.width ?? 30) / 2,
+    y: (position?.y ?? 0) + (size?.height ?? 30) / 2,
+  };
 }
 
 function cellDeEntidad(cells: ReturnType<typeof proyectarModeloAJointCells>, entidadId: string) {

@@ -32,19 +32,21 @@ Implementado en la app:
 - **Ciclo de faltantes/semifolding**: el Inspector de enlace estructural expone `Traer faltantes` y `Semiplegar grupo`. La operación `traerRelacionesEstructuralesFaltantes()` materializa en el OPD activo refinadores/enlaces estructurales existentes en otros OPDs del mismo refinable; `plegarGrupoEstructural()` oculta las ramas visibles bajo el refinable usando el plegado parcial existente, equivalente MVP al `semiFolded` operacional de OPCloud. El Inspector de entidad ahora expone `Quitar semiplegado estructural` cuando detecta relaciones fundamentales ocultas, equivalente al remove/fold-out de `semiFolded`.
 - **Agregaciones faltantes derivadas desde in-zoom**: `agregacionesInzoomFaltantes()` y `traerAgregacionesInzoomFaltantes()` emulan `foldInAllFundamentalRelations()` / `bringMissingFundamentals(Aggregation)` de OPCloud para hijos internos de descomposición. Si el operador selecciona un grupo estructural existente, las agregaciones creadas heredan `grupoEstructuralId`; si selecciona la cosa refinable, el Inspector de Refinamiento muestra `Traer agregaciones de in-zoom`.
 - **Fold completo estructural**: `plegarCompletoGrupoEstructural()` usa el slot existente `Apariencia.modoPlegado = "plegado"` para ocultar ramas/refinadores sin mostrar filas internas. El Inspector de enlace agrega `Plegar completo`; el Inspector de entidad agrega `Quitar plegado estructural`; el renderer JointJS muestra un badge compacto `▸` con conteo de relaciones ocultas. Es la adaptación local del concepto OPCloud `OpmSemifoldedFundamental`: misma semántica de fold-out, pero sin crear una shape lógica extra fuera de nuestra arquitectura.
+- **Distribución avanzada del triángulo estructural**: la proyección reserva posiciones de triángulos estructurales y separa automáticamente símbolos que caerían superpuestos, siguiendo el patrón OPCloud `TriangleClass.checkFOrOverLapping()` pero sin mutar el modelo cuando la posición no fue persistida por el operador. Esto hace que grupos manuales (`grupoEstructuralId`) separados se vean realmente separados aun cuando su centro geométrico inicial coincide con el bus automático.
+- **Wrapping de labels largos**: labels de ruta, etiquetas de enlace y labels de ramas estructurales usan `textWrap` de JointJS para no invadir líneas/triángulos en textos largos. Es el primer tramo de labels avanzados; todavía no incluye posición persistida ni requirements/rate/time/tags.
 
 Validación de esta ronda:
 
 - `bun run typecheck`
-- `bun run test`: 1241 pass / 0 fail
+- `bun run test`: 1243 pass / 0 fail
 - `bun run build`
 - `bun run lint`
 - `bun run browser:smoke`: 173 pass / 0 fail
 
-Pendientes reales después de A/B/C/D/E/G/H-base/I-base/I-remove/J-inzoom/K-fold-completo:
+Pendientes reales después de A/B/C/D/E/G/H-base/I-base/I-remove/J-inzoom/K-fold-completo/L-triangle-layout/L-label-wrap:
 
-- Ajuste avanzado de vertices superiores de OPCloud alrededor del símbolo estructural persistido: ya existe la base de anclas/ports; falta editar manualmente esos offsets y propagar heurísticas OPCloud más finas para modelos muy densos.
-- Labels avanzados OPCloud: wrapping por segmento visible, posición persistida, requirements, rate/time/path/tags/backtags.
+- Ajuste avanzado de vertices superiores de OPCloud alrededor del símbolo estructural persistido: ya existe la base de anclas/ports y separación de símbolos superpuestos; falta editar manualmente esos offsets y propagar heurísticas OPCloud más finas para modelos muy densos.
+- Labels avanzados OPCloud: wrapping básico ya existe; faltan wrapping por segmento visible, posición persistida, requirements, rate/time/path/tags/backtags.
 - Familias avanzadas fuera del MVP actual: exception links de tiempo, tagged/bidirectional links y metadatos avanzados de requisitos.
 
 ## Pendiente #1 — Puertos dinámicos (`findClosestEmptyPort`)
