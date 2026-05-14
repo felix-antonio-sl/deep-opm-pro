@@ -590,6 +590,19 @@ describe("proyeccion JointJS", () => {
     expect(triangulo?.opm.kind === "enlace" ? triangulo.opm.aparienciaEnlaceIds : null).toEqual([aparienciaEnlaceId]);
   });
 
+  test("simbolo estructural simple infiere anclas hacia refinable y refinador", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 80 }, "Todo"));
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 260, y: 80 }, "Parte"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidadPorNombre(modelo, "Todo"), entidadPorNombre(modelo, "Parte"), "agregacion"));
+
+    const triangulo = proyectarModeloAJointCells(modelo, modelo.opdRaizId, null, null)
+      .find((cell) => cell.type === "standard.Polygon");
+
+    expect(posicionPuertoTriangulo(triangulo, "in")).toEqual({ x: 0, y: 15 });
+    expect(posicionPuertoTriangulo(triangulo, "out")).toEqual({ x: 30, y: 15 });
+  });
+
   test("fusiona dos agregaciones del mismo todo en bus con triangulo unico", () => {
     let modelo = crearModelo();
     modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 90 }, "Todo"));
@@ -615,6 +628,21 @@ describe("proyeccion JointJS", () => {
     expect((refinable?.target as { id?: unknown; port?: unknown }).id).toBe(triangulos[0]?.id);
     expect((refinable?.target as { id?: unknown; port?: unknown }).port).toBe("in");
     expect(new Set(ramas.map((cell) => cell.opm.kind === "enlace" ? cell.opm.enlaceId : ""))).toEqual(new Set(Object.keys(modelo.enlaces)));
+  });
+
+  test("bus estructural infiere anclas laterales cuando refinadores estan al costado", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 90 }, "Todo"));
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 260, y: 20 }, "Parte A"));
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 260, y: 170 }, "Parte B"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidadPorNombre(modelo, "Todo"), entidadPorNombre(modelo, "Parte A"), "agregacion"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidadPorNombre(modelo, "Todo"), entidadPorNombre(modelo, "Parte B"), "agregacion"));
+
+    const triangulo = proyectarModeloAJointCells(modelo, modelo.opdRaizId, null, null)
+      .find((cell) => cell.type === "standard.Polygon");
+
+    expect(posicionPuertoTriangulo(triangulo, "in")).toEqual({ x: 0, y: 15 });
+    expect(posicionPuertoTriangulo(triangulo, "out")).toEqual({ x: 30, y: 15 });
   });
 
   test("bus estructural ordenado muestra label ordered en tramo refinable", () => {

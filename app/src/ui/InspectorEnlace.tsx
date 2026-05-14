@@ -76,6 +76,7 @@ export function InspectorEnlace({ enlace }: Props) {
   const cambiarTipoGrupoEstructural = useOpmStore((s) => s.cambiarTipoGrupoEstructuralSeleccionado);
   const fijarOrdenGrupoEstructural = useOpmStore((s) => s.fijarOrdenGrupoEstructuralSeleccionado);
   const actualizarAnclajesSimboloEstructural = useOpmStore((s) => s.actualizarAnclajesSimboloEstructural);
+  const resetearAnclajesSimboloEstructural = useOpmStore((s) => s.resetearAnclajesSimboloEstructural);
   const separarGrupoEstructural = useOpmStore((s) => s.separarGrupoEstructuralSeleccionado);
   const volverGrupoEstructuralAutomatico = useOpmStore((s) => s.volverGrupoEstructuralAutomaticoSeleccionado);
   const traerRelacionesEstructuralesFaltantes = useOpmStore((s) => s.traerRelacionesEstructuralesFaltantesSeleccionadas);
@@ -219,6 +220,7 @@ export function InspectorEnlace({ enlace }: Props) {
               onTipo={cambiarTipoGrupoEstructural}
               onOrdenado={fijarOrdenGrupoEstructural}
               onAnclajes={actualizarAnclajesSimboloEstructural}
+              onResetAnclajes={resetearAnclajesSimboloEstructural}
               onSeparar={separarGrupoEstructural}
               onAutomatico={volverGrupoEstructuralAutomatico}
               onTraerFaltantes={traerRelacionesEstructuralesFaltantes}
@@ -324,6 +326,7 @@ function SeccionGrupoEstructural(props: {
   onTipo: (tipo: TipoEnlace) => void;
   onOrdenado: (ordenado: boolean) => void;
   onAnclajes: (aparienciaEnlaceIds: Id[], anclajes: AnclajesSimboloEstructural) => void;
+  onResetAnclajes: (aparienciaEnlaceIds: Id[]) => void;
   onSeparar: () => void;
   onAutomatico: () => void;
   onTraerFaltantes: () => void;
@@ -357,10 +360,7 @@ function SeccionGrupoEstructural(props: {
   };
   const resetearAnclajes = () => {
     if (aparienciaEnlaceIds.length === 0) return;
-    props.onAnclajes(aparienciaEnlaceIds, {
-      refinable: anclajeRefinableSimbolo(),
-      refinador: anclajeRefinadorSimbolo(0, 1),
-    });
+    props.onResetAnclajes(aparienciaEnlaceIds);
   };
   return (
     <div style={style.field}>
@@ -422,7 +422,7 @@ function SeccionGrupoEstructural(props: {
           disabled={aparienciaEnlaceIds.length === 0}
           onClick={resetearAnclajes}
         >
-          Reset anclas
+          Auto anclas
         </button>
       </div>
       <button

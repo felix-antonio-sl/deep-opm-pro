@@ -335,6 +335,38 @@ export function actualizarAnclajesSimboloEstructural(
   });
 }
 
+export function resetearAnclajesSimboloEstructural(
+  modelo: Modelo,
+  opdId: Id,
+  aparienciaEnlaceIds: readonly Id[],
+): Resultado<Modelo> {
+  const opd = modelo.opds[opdId];
+  if (!opd) return fallo(`OPD no existe: ${opdId}`);
+
+  let enlaces = opd.enlaces;
+  let cambio = false;
+  for (const aparienciaEnlaceId of new Set(aparienciaEnlaceIds)) {
+    const apariencia = enlaces[aparienciaEnlaceId];
+    if (!apariencia?.symbolAnchors) continue;
+    const siguiente = { ...apariencia };
+    delete siguiente.symbolAnchors;
+    enlaces = { ...enlaces, [aparienciaEnlaceId]: siguiente };
+    cambio = true;
+  }
+
+  if (!cambio) return ok(modelo);
+  return ok({
+    ...modelo,
+    opds: {
+      ...modelo.opds,
+      [opdId]: {
+        ...opd,
+        enlaces,
+      },
+    },
+  });
+}
+
 function mismosVertices(a: Posicion[], b: Posicion[]): boolean {
   return a.length === b.length && a.every((vertice, index) => vertice.x === b[index]?.x && vertice.y === b[index]?.y);
 }

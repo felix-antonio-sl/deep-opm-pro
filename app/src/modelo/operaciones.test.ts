@@ -29,6 +29,7 @@ import {
   reanclarEnlaceExternoDerivado,
   renombrarEntidad,
   renombrarEstado,
+  resetearAnclajesSimboloEstructural,
   splitEffectEnPar,
   volverEnlaceExternoDerivadoAAutomatico,
   validarFirmaEnlace,
@@ -389,6 +390,31 @@ describe("operaciones de modelo", () => {
       refinable: { dx: -10, dy: -15 },
       refinador: { dx: 8, dy: 15 },
     });
+  });
+
+  test("resetear anclas de simbolo estructural vuelve a modo automatico", () => {
+    let modelo = modeloConEntidades();
+    const whole = entidadPorNombre(modelo, "Whole");
+    const part = entidadPorNombre(modelo, "Part");
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, whole.id, part.id, "agregacion"));
+    const aparienciaEnlace = Object.values(modelo.opds[modelo.opdRaizId]?.enlaces ?? {})[0];
+    expect(aparienciaEnlace).toBeDefined();
+    if (!aparienciaEnlace) return;
+
+    const conAnclas = actualizarAnclajesSimboloEstructural(modelo, modelo.opdRaizId, {
+      [aparienciaEnlace.id]: {
+        refinable: { dx: -10, dy: -15 },
+        refinador: { dx: 8, dy: 15 },
+      },
+    });
+    expect(conAnclas.ok).toBe(true);
+    if (!conAnclas.ok) return;
+
+    const reseteado = resetearAnclajesSimboloEstructural(conAnclas.value, modelo.opdRaizId, [aparienciaEnlace.id]);
+
+    expect(reseteado.ok).toBe(true);
+    if (!reseteado.ok) return;
+    expect(reseteado.value.opds[modelo.opdRaizId]?.enlaces[aparienciaEnlace.id]?.symbolAnchors).toBeUndefined();
   });
 
   test("persiste posicion manual de label de enlace", () => {

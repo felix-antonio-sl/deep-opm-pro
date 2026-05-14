@@ -40,6 +40,47 @@ describe("slice enlaces", () => {
       refinador: { dx: 8, dy: 15 },
     });
   });
+
+  test("mover simbolo estructural sin anclas manuales no persiste defaults", () => {
+    let modelo = crearModelo("Anclas automaticas");
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 80 }, "Todo"));
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 260, y: 80 }, "Parte"));
+    const todoId = Object.values(modelo.entidades).find((entidad) => entidad.nombre === "Todo")?.id;
+    const parteId = Object.values(modelo.entidades).find((entidad) => entidad.nombre === "Parte")?.id;
+    expect(todoId).toBeDefined();
+    expect(parteId).toBeDefined();
+    if (!todoId || !parteId) return;
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, todoId, parteId, "agregacion"));
+    const aparienciaEnlaceId = Object.keys(modelo.opds[modelo.opdRaizId]?.enlaces ?? {})[0]!;
+    store.getState().importarJson(exportarModelo(modelo));
+
+    store.getState().actualizarPosicionSimboloEstructural([aparienciaEnlaceId], { x: 210, y: 160 });
+
+    expect(store.getState().modelo.opds[modelo.opdRaizId]?.enlaces[aparienciaEnlaceId]?.symbolPos).toEqual({ x: 210, y: 160 });
+    expect(store.getState().modelo.opds[modelo.opdRaizId]?.enlaces[aparienciaEnlaceId]?.symbolAnchors).toBeUndefined();
+  });
+
+  test("resetear anclas de simbolo estructural elimina override manual", () => {
+    let modelo = crearModelo("Reset anclas estructurales");
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 80 }, "Todo"));
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 260, y: 80 }, "Parte"));
+    const todoId = Object.values(modelo.entidades).find((entidad) => entidad.nombre === "Todo")?.id;
+    const parteId = Object.values(modelo.entidades).find((entidad) => entidad.nombre === "Parte")?.id;
+    expect(todoId).toBeDefined();
+    expect(parteId).toBeDefined();
+    if (!todoId || !parteId) return;
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, todoId, parteId, "agregacion"));
+    const aparienciaEnlaceId = Object.keys(modelo.opds[modelo.opdRaizId]?.enlaces ?? {})[0]!;
+    store.getState().importarJson(exportarModelo(modelo));
+
+    store.getState().actualizarAnclajesSimboloEstructural([aparienciaEnlaceId], {
+      refinable: { dx: -10, dy: -15 },
+      refinador: { dx: 8, dy: 15 },
+    });
+    store.getState().resetearAnclajesSimboloEstructural([aparienciaEnlaceId]);
+
+    expect(store.getState().modelo.opds[modelo.opdRaizId]?.enlaces[aparienciaEnlaceId]?.symbolAnchors).toBeUndefined();
+  });
 });
 
 function must<T>(resultado: { ok: true; value: T } | { ok: false; error: string }): T {

@@ -497,6 +497,7 @@ export interface OpmStore {
   moverAparienciaConPuertos: (aparienciaId: Id, x: number, y: number, ajustes: AjustePuertoEnlace[]) => void;
   actualizarPosicionSimboloEstructural: (aparienciaEnlaceIds: Id[], posicion: { x: number; y: number }, anclajesPorApariencia?: Partial<Record<Id, AnclajesSimboloEstructural>>) => void;
   actualizarAnclajesSimboloEstructural: (aparienciaEnlaceIds: Id[], anclajes: AnclajesSimboloEstructural) => void;
+  resetearAnclajesSimboloEstructural: (aparienciaEnlaceIds: Id[]) => void;
   toggleGrid: () => void;
   fijarGridConfig: (patch: Partial<GridConfig>) => void;
   alinearSeleccion: (eje: EjeAlineacion) => void;

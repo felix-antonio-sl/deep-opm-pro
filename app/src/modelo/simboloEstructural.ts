@@ -44,6 +44,23 @@ export function limitarAnclajeSimbolo(anclaje: AnclajeSimboloEstructural): Ancla
   };
 }
 
+export function anclajeSimboloHaciaPunto(
+  centroSimbolo: Posicion,
+  objetivo: Posicion | undefined,
+  fallback: AnclajeSimboloEstructural,
+): AnclajeSimboloEstructural {
+  if (!objetivo || !Number.isFinite(objetivo.x) || !Number.isFinite(objetivo.y)) return { ...fallback };
+  const dx = objetivo.x - centroSimbolo.x;
+  const dy = objetivo.y - centroSimbolo.y;
+  const dominante = Math.max(Math.abs(dx), Math.abs(dy));
+  if (dominante < 0.0001) return { ...fallback };
+  const escala = MITAD_SIMBOLO_ESTRUCTURAL / dominante;
+  return limitarAnclajeSimbolo({
+    dx: dx * escala,
+    dy: dy * escala,
+  });
+}
+
 export function normalizarAnclajesSimbolo(
   anclajes: AnclajesSimboloEstructural | undefined,
 ): AnclajesSimboloEstructural | undefined {

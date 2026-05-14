@@ -84,6 +84,7 @@ export {
   moverApariencia,
   moverAparienciaPorId,
   actualizarAnclajesSimboloEstructural,
+  resetearAnclajesSimboloEstructural,
   actualizarVerticesEnlace,
   actualizarPosicionLabelEnlace,
   actualizarPosicionSimboloEstructural,

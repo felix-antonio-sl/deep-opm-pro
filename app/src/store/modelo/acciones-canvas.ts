@@ -24,11 +24,10 @@ import {
   quitarSemiplegadoEstructural,
   renombrarEntidad,
   renombrarEstado,
+  resetearAnclajesSimboloEstructural as resetearAnclajesSimboloEstructuralOp,
   traerAgregacionesInzoomFaltantes,
 } from "../../modelo/operaciones";
 import { renombrarEtiquetaEnlace } from "../../modelo/etiquetasEnlace";
-import type { AnclajesSimboloEstructural, Id, Modelo } from "../../modelo/tipos";
-import { anclajesSimboloPorDefecto } from "../../modelo/simboloEstructural";
 import { mismaReferencia } from "../../opl/interaccion";
 import { generarOpl } from "../../opl/generar";
 import { aplicarPatchesOpl, planificarEdicionOplLibre } from "../../opl/parser";
@@ -792,7 +791,7 @@ export function accionesCanvas(set: SetStore, get: GetStore): Partial<ModeloSlic
     actualizarPosicionSimboloEstructural(aparienciaEnlaceIds, posicion, anclajesPorApariencia) {
       const { modelo, opdActivoId, dirtyModelo } = get();
       const pos = cuantizarDesdeEstado(get(), posicion.x, posicion.y);
-      const anclajes = anclajesPorApariencia ?? anclajesSimboloPreservandoManuales(modelo, opdActivoId, aparienciaEnlaceIds);
+      const anclajes = anclajesPorApariencia ?? {};
       const resultado = actualizarPosicionSimboloEstructuralOp(modelo, opdActivoId, aparienciaEnlaceIds, pos, anclajes);
       if (resultado.ok) commitModelo(set, modelo, resultado.value, { dirtyModelo });
       else set({ mensaje: resultado.error });
@@ -804,6 +803,13 @@ export function accionesCanvas(set: SetStore, get: GetStore): Partial<ModeloSlic
         Array.from(new Set(aparienciaEnlaceIds)).map((id) => [id, anclajes]),
       );
       const resultado = actualizarAnclajesSimboloEstructuralOp(modelo, opdActivoId, anclajesPorApariencia);
+      if (resultado.ok) commitModelo(set, modelo, resultado.value, { dirtyModelo });
+      else set({ mensaje: resultado.error });
+    },
+
+    resetearAnclajesSimboloEstructural(aparienciaEnlaceIds) {
+      const { modelo, opdActivoId, dirtyModelo } = get();
+      const resultado = resetearAnclajesSimboloEstructuralOp(modelo, opdActivoId, aparienciaEnlaceIds);
       if (resultado.ok) commitModelo(set, modelo, resultado.value, { dirtyModelo });
       else set({ mensaje: resultado.error });
     },
@@ -928,21 +934,6 @@ function gridConfigDesdeEstado(estado: ReturnType<GetStore>): GridConfig {
 
 function cuantizarDesdeEstado(estado: ReturnType<GetStore>, x: number, y: number): { x: number; y: number } {
   return cuantizarPosicion(x, y, gridConfigDesdeEstado(estado));
-}
-
-function anclajesSimboloPreservandoManuales(
-  modelo: Modelo,
-  opdId: Id,
-  aparienciaEnlaceIds: readonly Id[],
-): Partial<Record<Id, AnclajesSimboloEstructural>> {
-  const defaults = anclajesSimboloPorDefecto(modelo, opdId, aparienciaEnlaceIds);
-  const opd = modelo.opds[opdId];
-  if (!opd) return defaults;
-  return Object.fromEntries(Array.from(new Set(aparienciaEnlaceIds)).flatMap((id) => {
-    const existentes = opd.enlaces[id]?.symbolAnchors;
-    const anclajes = existentes ?? defaults[id];
-    return anclajes ? [[id, anclajes]] : [];
-  }));
 }
 
 function aparienciaSeleccionadaParaTraer(
