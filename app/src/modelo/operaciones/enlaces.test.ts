@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { extremoEntidad } from "../extremos";
-import { agregacionesInzoomFaltantes, cambiarTipoGrupoEstructural, crearEnlace, crearModelo, crearObjeto, crearProceso, desplegarObjeto, descomponerProceso, fijarOrdenGrupoEstructural, moverPuertoEnlace, plegarGrupoEstructural, quitarSemiplegadoEstructural, relacionesEstructuralesFaltantes, relacionesSemiplegadasEstructurales, traerAgregacionesInzoomFaltantes, traerRelacionesEstructuralesFaltantes } from "../operaciones";
+import { agregacionesInzoomFaltantes, cambiarTipoGrupoEstructural, crearEnlace, crearModelo, crearObjeto, crearProceso, desplegarObjeto, descomponerProceso, fijarOrdenGrupoEstructural, moverPuertoEnlace, plegarCompletoGrupoEstructural, plegarGrupoEstructural, quitarPlegadoCompletoEstructural, quitarSemiplegadoEstructural, relacionesEstructuralesFaltantes, relacionesPlegadasEstructurales, relacionesSemiplegadasEstructurales, traerAgregacionesInzoomFaltantes, traerRelacionesEstructuralesFaltantes } from "../operaciones";
 import { filasPlegadoParcial } from "../plegado";
 import type { Modelo, Resultado } from "../tipos";
 import { copiarEstiloEnlace, eliminarEnlacesBatch } from "./enlaces";
@@ -200,6 +200,30 @@ describe("operaciones/enlaces", () => {
     const padre = Object.values(modelo.opds[modelo.opdRaizId]?.apariencias ?? {}).find((apariencia) => apariencia.entidadId === todoId);
     expect(padre?.modoPlegado).toBeUndefined();
     expect(relacionesSemiplegadasEstructurales(modelo, modelo.opdRaizId, todoId).faltantes).toBe(0);
+  });
+
+  test("plegarCompletoGrupoEstructural oculta el grupo sin filas parciales y permite desplegarlo", () => {
+    let modelo = modeloEstructural();
+    const todoId = entidad(modelo, "Todo");
+    const ids = Object.keys(modelo.enlaces);
+    if (ids.length !== 2) throw new Error("La prueba esperaba dos enlaces estructurales");
+
+    modelo = must(plegarCompletoGrupoEstructural(modelo, modelo.opdRaizId, ids));
+
+    expect(Object.keys(modelo.opds[modelo.opdRaizId]?.enlaces ?? {})).toHaveLength(0);
+    const padre = Object.values(modelo.opds[modelo.opdRaizId]?.apariencias ?? {}).find((apariencia) => apariencia.entidadId === todoId);
+    expect(padre?.modoPlegado).toBe("plegado");
+    expect(relacionesPlegadasEstructurales(modelo, modelo.opdRaizId, todoId).faltantes).toBe(2);
+    expect(filasPlegadoParcial(modelo, modelo.opdRaizId, padre?.id ?? "")).toHaveLength(0);
+
+    const resultado = must(quitarPlegadoCompletoEstructural(modelo, modelo.opdRaizId, todoId));
+    modelo = resultado.modelo;
+
+    expect(resultado.agregadas).toBe(2);
+    expect(Object.keys(modelo.opds[modelo.opdRaizId]?.enlaces ?? {})).toHaveLength(2);
+    const padreExpandido = Object.values(modelo.opds[modelo.opdRaizId]?.apariencias ?? {}).find((apariencia) => apariencia.entidadId === todoId);
+    expect(padreExpandido?.modoPlegado).toBeUndefined();
+    expect(relacionesPlegadasEstructurales(modelo, modelo.opdRaizId, todoId).faltantes).toBe(0);
   });
 });
 

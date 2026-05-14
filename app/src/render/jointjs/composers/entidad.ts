@@ -2,7 +2,7 @@ import { CANON } from "../../../modelo/constantes";
 import { rolAparienciaEnRefinamiento } from "../../../modelo/contextoRefinamiento";
 import { designacionesEstado } from "../../../modelo/estadosDesignaciones";
 import { formatearNombreCompuesto } from "../../../modelo/objetoMetadata";
-import { estadosDeEntidad } from "../../../modelo/operaciones";
+import { estadosDeEntidad, relacionesEstructuralesOcultas } from "../../../modelo/operaciones";
 import { modoPlegadoApariencia, partesDePlegado } from "../../../modelo/plegado";
 import { obtenerRefinamiento, tieneRefinamiento } from "../../../modelo/refinamientos";
 import type { Apariencia, Entidad, Estado, Id, Modelo } from "../../../modelo/tipos";
@@ -32,7 +32,11 @@ export function proyectarEntidad(
   const fill = resaltada ? "#E1E6EB" : fillBase;
   const partes = partesDePlegado(modelo, entidad.id);
   const tienePartes = partes.length > 0;
-  const modoParcial = modoPlegadoApariencia(apariencia) === "parcial" && tienePartes;
+  const modoPlegado = modoPlegadoApariencia(apariencia);
+  const modoParcial = modoPlegado === "parcial" && tienePartes;
+  const estructuralesOcultas = modoPlegado === "parcial" || modoPlegado === "plegado"
+    ? relacionesEstructuralesOcultas(modelo, opdId, entidad.id).faltantes
+    : 0;
   const filasParciales = modoParcial ? filasPlegadoConNesting({ modelo, opdId, padreAparienciaId: apariencia.id }) : [];
   const estadosTotales = entidad.tipo === "objeto" && !modoParcial ? estadosDeEntidad(modelo, entidad.id) : [];
   const estadosVisibles = estadosTotales.filter((estado) => !estado.suprimido);
@@ -94,7 +98,16 @@ export function proyectarEntidad(
       pointerEvents: "none",
     },
   };
-  const metadatos = metadatosEntidad(entidad, opciones, tienePartes, tieneEstadosSuprimidos);
+  const metadatos = metadatosEntidad(
+    entidad,
+    opciones,
+    tienePartes || estructuralesOcultas > 0,
+    tieneEstadosSuprimidos,
+    modoPlegado === "plegado" ? "▸" : "▾",
+    estructuralesOcultas > 0
+      ? `${estructuralesOcultas} relación(es) estructural(es) plegadas`
+      : "Plegado parcial",
+  );
   const renderBase = modoParcial
     ? { markup: markupPlegadoParcial(bodyTag, filasParciales), attrs: attrsPlegadoParcial(attrsBase, size, filasParciales) }
     : estadosVisibles.length > 0
@@ -262,17 +275,28 @@ export function refYEtiquetaEntidad(contornoRefinamiento: boolean, modoParcial: 
 
 interface MetadatosEntidadRender {
   foldBadge: boolean;
+  foldBadgeText: string;
+  foldBadgeTitle: string;
   descripcion?: string;
   url?: string;
   suppressedBadge: boolean;
   tieneMetadatos: boolean;
 }
 
-export function metadatosEntidad(entidad: Entidad, opciones: OpcionesProyeccion, tienePartes: boolean, tieneEstadosSuprimidos = false): MetadatosEntidadRender {
+export function metadatosEntidad(
+  entidad: Entidad,
+  opciones: OpcionesProyeccion,
+  tienePartes: boolean,
+  tieneEstadosSuprimidos = false,
+  foldBadgeText = "▾",
+  foldBadgeTitle = "Plegado parcial",
+): MetadatosEntidadRender {
   const descripcion = opciones.descripcionesVisibles !== false ? entidad.descripcion?.trim() : undefined;
   const url = entidad.urls?.[0]?.url;
   return {
     foldBadge: tienePartes,
+    foldBadgeText,
+    foldBadgeTitle,
     ...(descripcion ? { descripcion } : {}),
     ...(url ? { url } : {}),
     suppressedBadge: tieneEstadosSuprimidos,
@@ -332,7 +356,7 @@ export function attrsConBadge(
   };
   if (metadatos.foldBadge) {
     attrs.foldBadge = {
-      text: "▾",
+      text: metadatos.foldBadgeText,
       x: size.width - 14,
       y: 17,
       fill: CANON.colores.enlace,
@@ -342,7 +366,7 @@ export function attrsConBadge(
       textAnchor: "middle",
       textVerticalAnchor: "middle",
       cursor: "pointer",
-      title: "Plegado parcial",
+      title: metadatos.foldBadgeTitle,
     };
   }
   aplicarMetadatosAttrs(attrs, size, metadatos);
@@ -498,7 +522,7 @@ export function aplicarMetadatosAttrs(
   }
   if (metadatos.foldBadge && !attrs.foldBadge) {
     attrs.foldBadge = {
-      text: "▾",
+      text: metadatos.foldBadgeText,
       x: size.width - 14,
       y: 17,
       fill: CANON.colores.enlace,
@@ -508,7 +532,7 @@ export function aplicarMetadatosAttrs(
       textAnchor: "middle",
       textVerticalAnchor: "middle",
       cursor: "pointer",
-      title: "Plegado parcial",
+      title: metadatos.foldBadgeTitle,
     };
   }
   if (metadatos.suppressedBadge) {

@@ -612,6 +612,34 @@ describe("store undo/redo y dirty state", () => {
     expect(store.getState().mensaje).toBe("Agregaciones de in-zoom traídas: 3");
   });
 
+  test("grupo estructural seleccionado puede plegarse completo y desplegarse desde entidad", () => {
+    let modelo = crearModelo("Store plegado completo estructural");
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 80, y: 90 }, "Todo"));
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 320, y: 40 }, "Parte A"));
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 320, y: 160 }, "Parte B"));
+    const todoId = entidadPorNombre(modelo, "Todo");
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, todoId, entidadPorNombre(modelo, "Parte A"), "agregacion"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, todoId, entidadPorNombre(modelo, "Parte B"), "agregacion"));
+    const enlaceId = Object.keys(modelo.enlaces)[0];
+    if (!enlaceId) throw new Error("La prueba esperaba enlace estructural");
+    store.getState().importarJson(exportarModelo(modelo));
+    store.getState().seleccionarEnlace(enlaceId);
+
+    store.getState().plegarCompletoGrupoEstructuralSeleccionado();
+
+    expect(Object.keys(store.getState().modelo.opds[modelo.opdRaizId]?.enlaces ?? {})).toHaveLength(0);
+    const padre = Object.values(store.getState().modelo.opds[modelo.opdRaizId]?.apariencias ?? {}).find((apariencia) => apariencia.entidadId === todoId);
+    expect(padre?.modoPlegado).toBe("plegado");
+    expect(store.getState().mensaje).toBe("Enlace estructural plegado");
+
+    store.getState().seleccionarEntidad(todoId);
+    store.getState().quitarPlegadoCompletoEstructuralSeleccionado();
+
+    expect(Object.keys(store.getState().modelo.opds[modelo.opdRaizId]?.enlaces ?? {})).toHaveLength(2);
+    const padreExpandido = Object.values(store.getState().modelo.opds[modelo.opdRaizId]?.apariencias ?? {}).find((apariencia) => apariencia.entidadId === todoId);
+    expect(padreExpandido?.modoPlegado).toBeUndefined();
+  });
+
   test("accion de store crea auto-invocacion y selecciona el enlace", () => {
     store.getState().crearProcesoDemo();
     const procesoId = primeraEntidadId();

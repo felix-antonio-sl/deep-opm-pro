@@ -78,6 +78,7 @@ export function InspectorEnlace({ enlace }: Props) {
   const volverGrupoEstructuralAutomatico = useOpmStore((s) => s.volverGrupoEstructuralAutomaticoSeleccionado);
   const traerRelacionesEstructuralesFaltantes = useOpmStore((s) => s.traerRelacionesEstructuralesFaltantesSeleccionadas);
   const plegarGrupoEstructural = useOpmStore((s) => s.plegarGrupoEstructuralSeleccionado);
+  const plegarCompletoGrupoEstructural = useOpmStore((s) => s.plegarCompletoGrupoEstructuralSeleccionado);
   const eliminar = useOpmStore((s) => s.eliminarSeleccion);
   const aplicarEstiloEnlaceAccion = useOpmStore((s) => s.aplicarEstiloEnlaceAccion);
   const resetEstiloEnlaceAccion = useOpmStore((s) => s.resetEstiloEnlaceAccion);
@@ -219,6 +220,7 @@ export function InspectorEnlace({ enlace }: Props) {
               onAutomatico={volverGrupoEstructuralAutomatico}
               onTraerFaltantes={traerRelacionesEstructuralesFaltantes}
               onPlegar={plegarGrupoEstructural}
+              onPlegarCompleto={plegarCompletoGrupoEstructural}
             />
           </>
         ) : null}
@@ -322,6 +324,7 @@ function SeccionGrupoEstructural(props: {
   onAutomatico: () => void;
   onTraerFaltantes: () => void;
   onPlegar: () => void;
+  onPlegarCompleto: () => void;
 }) {
   if (naturalezaDeEnlace(props.enlace.tipo) !== "estructural") return null;
   const separado = !!props.enlace.grupoEstructuralId;
@@ -376,6 +379,15 @@ function SeccionGrupoEstructural(props: {
         title="Oculta las ramas visibles bajo el refinable usando el plegado parcial"
       >
         Semiplegar grupo
+      </button>
+      <button
+        type="button"
+        data-testid="plegar-completo-grupo-estructural"
+        style={style.secondaryButton}
+        onClick={props.onPlegarCompleto}
+        title="Oculta las ramas visibles bajo el refinable sin mostrar filas internas"
+      >
+        Plegar completo
       </button>
       <button
         type="button"

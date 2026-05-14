@@ -456,6 +456,7 @@ export interface OpmStore {
   extraerTodasLasPartesSeleccionadas: () => void;
   reinsertarParteExtraidaSeleccionada: () => void;
   quitarSemiplegadoEstructuralSeleccionado: () => void;
+  quitarPlegadoCompletoEstructuralSeleccionado: () => void;
   traerAgregacionesInzoomFaltantesSeleccionadas: () => void;
   agregarEstadosObjeto: () => void;
   agregarEstadoObjeto: () => void;
@@ -528,6 +529,7 @@ export interface OpmStore {
   volverGrupoEstructuralAutomaticoSeleccionado: () => void;
   traerRelacionesEstructuralesFaltantesSeleccionadas: () => void;
   plegarGrupoEstructuralSeleccionado: () => void;
+  plegarCompletoGrupoEstructuralSeleccionado: () => void;
   eliminarSeleccion: () => void;
   setSeleccion: (ids: Id[]) => void;
   agregarASeleccion: (id: Id) => void;

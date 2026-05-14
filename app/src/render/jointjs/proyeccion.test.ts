@@ -5,7 +5,7 @@ import { renombrarEtiquetaEnlace } from "../../modelo/etiquetasEnlace";
 import { entidadIdDeExtremo, extremoEstado } from "../../modelo/extremos";
 import { aplicarEstiloApariencia } from "../../modelo/estilos";
 import { aplicarModificador, definirDemora, definirProbabilidad } from "../../modelo/modificadores";
-import { ajustarMultiplicidad, cambiarAfiliacion, cambiarEsencia, crearEnlace, crearEstadosIniciales, crearModelo, crearObjeto, crearProceso, designarEstadoFinal, designarEstadoInicial, descomponerProceso, desplegarObjeto, estadosDeEntidad, renombrarEstado } from "../../modelo/operaciones";
+import { ajustarMultiplicidad, cambiarAfiliacion, cambiarEsencia, crearEnlace, crearEstadosIniciales, crearModelo, crearObjeto, crearProceso, designarEstadoFinal, designarEstadoInicial, descomponerProceso, desplegarObjeto, estadosDeEntidad, plegarCompletoGrupoEstructural, renombrarEstado } from "../../modelo/operaciones";
 import { editarAlias, editarDescripcion } from "../../modelo/objetoMetadata";
 import { cambiarModoPlegado, crearEnlaceConExtremoPlegado, extraerParteDePlegado, reinsertarParteEnPlegado } from "../../modelo/plegado";
 import { definirRutaEtiqueta } from "../../modelo/rutas";
@@ -805,6 +805,25 @@ describe("proyeccion JointJS", () => {
 
     expect((attrs?.foldBadge as Attrs | undefined)?.text).toBe("▾");
     expect((cell?.markup as Array<Attrs> | undefined)?.some((item) => item.selector === "foldBadge")).toBe(true);
+  });
+
+  test("proyecta plegado estructural completo como badge compacto sin filas", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 80, y: 90 }, "Todo"));
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 300, y: 40 }, "Parte A"));
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 300, y: 160 }, "Parte B"));
+    const todoId = entidadPorNombre(modelo, "Todo");
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, todoId, entidadPorNombre(modelo, "Parte A"), "agregacion"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, todoId, entidadPorNombre(modelo, "Parte B"), "agregacion"));
+    modelo = must(plegarCompletoGrupoEstructural(modelo, modelo.opdRaizId, Object.keys(modelo.enlaces)));
+
+    const cell = proyectarModeloAJointCells(modelo, modelo.opdRaizId, null, null)
+      .find((item) => item.opm.kind === "entidad" && item.opm.entidadId === todoId);
+    const attrs = cell?.attrs as Attrs | undefined;
+
+    expect((attrs?.foldBadge as Attrs | undefined)?.text).toBe("▸");
+    expect((attrs?.foldBadge as Attrs | undefined)?.title).toContain("2 relación");
+    expect(cell?.opm.kind === "entidad" ? cell.opm.partesPlegadas : undefined).toBeUndefined();
   });
 
   test("proyecta plegado parcial como filas internas sin agregar celdas de partes al OPD padre", () => {

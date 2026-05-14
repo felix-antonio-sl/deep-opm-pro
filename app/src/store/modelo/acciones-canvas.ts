@@ -18,6 +18,7 @@ import {
   actualizarPuertosEnlacesDesdePuntos,
   moverApariencia as moverAparienciaEntidad,
   moverAparienciaPorId,
+  quitarPlegadoCompletoEstructural,
   quitarSemiplegadoEstructural,
   renombrarEntidad,
   renombrarEstado,
@@ -604,6 +605,27 @@ export function accionesCanvas(set: SetStore, get: GetStore): Partial<ModeloSlic
         mensaje: resultado.value.agregadas > 0
           ? `Semiplegado estructural quitado: ${resultado.value.agregadas} relaciones`
           : "No hay relaciones estructurales semiplegadas",
+      });
+    },
+
+    quitarPlegadoCompletoEstructuralSeleccionado() {
+      const { modelo, opdActivoId, seleccionId } = get();
+      if (!seleccionId) {
+        set({ mensaje: "Selecciona una entidad con plegado estructural" });
+        return;
+      }
+      const resultado = quitarPlegadoCompletoEstructural(modelo, opdActivoId, seleccionId);
+      if (!resultado.ok) {
+        set({ mensaje: resultado.error });
+        return;
+      }
+      commitModelo(set, modelo, resultado.value.modelo, {
+        seleccionId,
+        enlaceSeleccionId: null,
+        modoEnlace: null,
+        mensaje: resultado.value.agregadas > 0
+          ? `Plegado estructural quitado: ${resultado.value.agregadas} relaciones`
+          : "No hay relaciones estructurales plegadas",
       });
     },
 

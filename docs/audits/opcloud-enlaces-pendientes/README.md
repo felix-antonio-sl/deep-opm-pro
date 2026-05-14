@@ -1,6 +1,6 @@
 # Pendientes de emulación OPCloud para enlaces
 
-**Fecha**: 2026-05-13
+**Fecha**: 2026-05-14
 **Autor**: agente Claude + operador
 **Estado**: documento vivo de roadmap; A/B/C del roadmap original ya tienen implementación base. Quedan brechas avanzadas OPCloud.
 
@@ -31,19 +31,19 @@ Implementado en la app:
 - **Ciclo interactivo base del símbolo estructural**: click sobre el triángulo de bus selecciona el grupo estructural; el Inspector permite cambiar el tipo fundamental (`agregacion`/`exhibicion`/`generalizacion`/`clasificacion`), separar/volver a automático y marcar `ordered` como `orderedFundamentalTypes` en la entidad refinable, emulando el patrón OPCloud de `orderedFundamentalTypes`.
 - **Ciclo de faltantes/semifolding**: el Inspector de enlace estructural expone `Traer faltantes` y `Semiplegar grupo`. La operación `traerRelacionesEstructuralesFaltantes()` materializa en el OPD activo refinadores/enlaces estructurales existentes en otros OPDs del mismo refinable; `plegarGrupoEstructural()` oculta las ramas visibles bajo el refinable usando el plegado parcial existente, equivalente MVP al `semiFolded` operacional de OPCloud. El Inspector de entidad ahora expone `Quitar semiplegado estructural` cuando detecta relaciones fundamentales ocultas, equivalente al remove/fold-out de `semiFolded`.
 - **Agregaciones faltantes derivadas desde in-zoom**: `agregacionesInzoomFaltantes()` y `traerAgregacionesInzoomFaltantes()` emulan `foldInAllFundamentalRelations()` / `bringMissingFundamentals(Aggregation)` de OPCloud para hijos internos de descomposición. Si el operador selecciona un grupo estructural existente, las agregaciones creadas heredan `grupoEstructuralId`; si selecciona la cosa refinable, el Inspector de Refinamiento muestra `Traer agregaciones de in-zoom`.
+- **Fold completo estructural**: `plegarCompletoGrupoEstructural()` usa el slot existente `Apariencia.modoPlegado = "plegado"` para ocultar ramas/refinadores sin mostrar filas internas. El Inspector de enlace agrega `Plegar completo`; el Inspector de entidad agrega `Quitar plegado estructural`; el renderer JointJS muestra un badge compacto `▸` con conteo de relaciones ocultas. Es la adaptación local del concepto OPCloud `OpmSemifoldedFundamental`: misma semántica de fold-out, pero sin crear una shape lógica extra fuera de nuestra arquitectura.
 
 Validación de esta ronda:
 
 - `bun run typecheck`
-- `bun run test`: 1238 pass / 0 fail
+- `bun run test`: 1241 pass / 0 fail
 - `bun run build`
 - `bun run lint`
 - `bun run browser:smoke`: 173 pass / 0 fail
 
-Pendientes reales después de A/B/C/D/E/G/H-base/I-base/I-remove/J-inzoom:
+Pendientes reales después de A/B/C/D/E/G/H-base/I-base/I-remove/J-inzoom/K-fold-completo:
 
 - Ajuste avanzado de vertices superiores de OPCloud alrededor del símbolo estructural persistido: ya existe la base de anclas/ports; falta editar manualmente esos offsets y propagar heurísticas OPCloud más finas para modelos muy densos.
-- Ciclo interactivo completo del triángulo estructural: falta fold completo.
 - Labels avanzados OPCloud: wrapping por segmento visible, posición persistida, requirements, rate/time/path/tags/backtags.
 - Familias avanzadas fuera del MVP actual: exception links de tiempo, tagged/bidirectional links y metadatos avanzados de requisitos.
 

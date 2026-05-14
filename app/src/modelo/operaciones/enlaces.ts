@@ -14,6 +14,7 @@ import type {
   Enlace,
   EnlaceEstilo,
   Id,
+  ModoPlegado,
   Modelo,
   Opd,
   Resultado,
@@ -296,6 +297,8 @@ export interface RelacionesSemiplegadasEstructurales {
   faltantes: number;
 }
 
+export type RelacionesPlegadasEstructurales = RelacionesSemiplegadasEstructurales;
+
 export interface AgregacionesInzoomFaltantes {
   refinableId: Id;
   entidadIds: Id[];
@@ -392,6 +395,23 @@ export function plegarGrupoEstructural(
   opdId: Id,
   enlaceIds: Id[],
 ): Resultado<Modelo> {
+  return plegarGrupoEstructuralConModo(modelo, opdId, enlaceIds, "parcial");
+}
+
+export function plegarCompletoGrupoEstructural(
+  modelo: Modelo,
+  opdId: Id,
+  enlaceIds: Id[],
+): Resultado<Modelo> {
+  return plegarGrupoEstructuralConModo(modelo, opdId, enlaceIds, "plegado");
+}
+
+function plegarGrupoEstructuralConModo(
+  modelo: Modelo,
+  opdId: Id,
+  enlaceIds: Id[],
+  modoPlegado: Extract<ModoPlegado, "parcial" | "plegado">,
+): Resultado<Modelo> {
   const contexto = contextoGrupoEstructural(modelo, enlaceIds);
   if (!contexto.ok) return contexto;
   const opd = modelo.opds[opdId];
@@ -415,7 +435,7 @@ export function plegarGrupoEstructural(
       if (!refinadoresGrupo.has(apariencia.entidadId)) return true;
       return endpointsRestantes.has(apariencia.entidadId);
     })
-    .map(([id, apariencia]) => [id, id === refinable.id ? { ...apariencia, modoPlegado: "parcial" as const } : apariencia]));
+    .map(([id, apariencia]) => [id, id === refinable.id ? { ...apariencia, modoPlegado } : apariencia]));
 
   return ok({
     ...modelo,
@@ -430,6 +450,21 @@ export function plegarGrupoEstructural(
   });
 }
 
+export function relacionesEstructuralesOcultas(
+  modelo: Modelo,
+  opdId: Id,
+  refinableId: Id,
+): RelacionesSemiplegadasEstructurales {
+  const opd = modelo.opds[opdId];
+  const refinable = opd ? aparienciaDeEntidad(opd, refinableId) : undefined;
+  if (!opd || !refinable) {
+    return { refinableId, enlaceIds: [], faltantes: 0 };
+  }
+  const visibles = new Set(Object.values(opd.enlaces).map((apariencia) => apariencia.enlaceId));
+  const enlaceIds = candidatosSemiplegadosEstructurales(modelo, refinableId, visibles).map((enlace) => enlace.id);
+  return { refinableId, enlaceIds, faltantes: enlaceIds.length };
+}
+
 export function relacionesSemiplegadasEstructurales(
   modelo: Modelo,
   opdId: Id,
@@ -440,9 +475,20 @@ export function relacionesSemiplegadasEstructurales(
   if (!opd || !refinable || refinable.modoPlegado !== "parcial") {
     return { refinableId, enlaceIds: [], faltantes: 0 };
   }
-  const visibles = new Set(Object.values(opd.enlaces).map((apariencia) => apariencia.enlaceId));
-  const enlaceIds = candidatosSemiplegadosEstructurales(modelo, refinableId, visibles).map((enlace) => enlace.id);
-  return { refinableId, enlaceIds, faltantes: enlaceIds.length };
+  return relacionesEstructuralesOcultas(modelo, opdId, refinableId);
+}
+
+export function relacionesPlegadasEstructurales(
+  modelo: Modelo,
+  opdId: Id,
+  refinableId: Id,
+): RelacionesPlegadasEstructurales {
+  const opd = modelo.opds[opdId];
+  const refinable = opd ? aparienciaDeEntidad(opd, refinableId) : undefined;
+  if (!opd || !refinable || refinable.modoPlegado !== "plegado") {
+    return { refinableId, enlaceIds: [], faltantes: 0 };
+  }
+  return relacionesEstructuralesOcultas(modelo, opdId, refinableId);
 }
 
 export function quitarSemiplegadoEstructural(
@@ -450,11 +496,29 @@ export function quitarSemiplegadoEstructural(
   opdId: Id,
   refinableId: Id,
 ): Resultado<{ modelo: Modelo; agregadas: number }> {
+  return quitarPlegadoEstructuralConModo(modelo, opdId, refinableId, "parcial", "La entidad no está en semiplegado estructural");
+}
+
+export function quitarPlegadoCompletoEstructural(
+  modelo: Modelo,
+  opdId: Id,
+  refinableId: Id,
+): Resultado<{ modelo: Modelo; agregadas: number }> {
+  return quitarPlegadoEstructuralConModo(modelo, opdId, refinableId, "plegado", "La entidad no está en plegado estructural completo");
+}
+
+function quitarPlegadoEstructuralConModo(
+  modelo: Modelo,
+  opdId: Id,
+  refinableId: Id,
+  modoEsperado: Extract<ModoPlegado, "parcial" | "plegado">,
+  mensajeModoInvalido: string,
+): Resultado<{ modelo: Modelo; agregadas: number }> {
   const opd = modelo.opds[opdId];
   if (!opd) return fallo(`OPD no existe: ${opdId}`);
   const refinable = aparienciaDeEntidad(opd, refinableId);
   if (!refinable) return fallo("El refinable debe estar visible en el OPD activo");
-  if (refinable.modoPlegado !== "parcial") return fallo("La entidad no está en semiplegado estructural");
+  if (refinable.modoPlegado !== modoEsperado) return fallo(mensajeModoInvalido);
 
   const visibles = new Set(Object.values(opd.enlaces).map((apariencia) => apariencia.enlaceId));
   const candidatos = candidatosSemiplegadosEstructurales(modelo, refinableId, visibles);
@@ -890,7 +954,7 @@ function posicionRefinadorTraido(
 }
 
 function modoCompleto(apariencia: Apariencia): Apariencia {
-  if (apariencia.modoPlegado !== "parcial") return apariencia;
+  if (!apariencia.modoPlegado || apariencia.modoPlegado === "completo") return apariencia;
   const actualizada = { ...apariencia };
   delete actualizada.modoPlegado;
   return actualizada;

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "preact/hooks";
 import { autoInvocacionDeProceso } from "../modelo/autoinvocacion";
-import { agregacionesInzoomFaltantes, esAtributoDerivado, estadosDeEntidad, relacionesSemiplegadasEstructurales } from "../modelo/operaciones";
+import { agregacionesInzoomFaltantes, esAtributoDerivado, estadosDeEntidad, relacionesPlegadasEstructurales, relacionesSemiplegadasEstructurales } from "../modelo/operaciones";
 import { filasPlegadoParcial, modoPlegadoApariencia, partesDePlegado } from "../modelo/plegado";
 import type { Entidad, Id, OrdenPartesPlegado } from "../modelo/tipos";
 import type { TabInspectorEntidad } from "../store/tipos";
@@ -77,6 +77,7 @@ export function InspectorEntidad({ entidad }: Props) {
   const extraerTodasLasPartes = useOpmStore((s) => s.extraerTodasLasPartesSeleccionadas);
   const reinsertarParte = useOpmStore((s) => s.reinsertarParteExtraidaSeleccionada);
   const quitarSemiplegadoEstructural = useOpmStore((s) => s.quitarSemiplegadoEstructuralSeleccionado);
+  const quitarPlegadoCompletoEstructural = useOpmStore((s) => s.quitarPlegadoCompletoEstructuralSeleccionado);
   const traerAgregacionesInzoom = useOpmStore((s) => s.traerAgregacionesInzoomFaltantesSeleccionadas);
   const agregarEstados = useOpmStore((s) => s.agregarEstadosObjeto);
   const agregarEstado = useOpmStore((s) => s.agregarEstadoObjeto);
@@ -108,6 +109,9 @@ export function InspectorEntidad({ entidad }: Props) {
   const filasParciales = aparienciaActiva && modoPlegado === "parcial" ? filasPlegadoParcial(modelo, opdActivoId, aparienciaActiva.id) : [];
   const semiplegadasEstructurales = aparienciaActiva && modoPlegado === "parcial"
     ? relacionesSemiplegadasEstructurales(modelo, opdActivoId, entidad.id).faltantes
+    : 0;
+  const plegadasEstructurales = aparienciaActiva && modoPlegado === "plegado"
+    ? relacionesPlegadasEstructurales(modelo, opdActivoId, entidad.id).faltantes
     : 0;
   const agregacionesInzoomPendientes = aparienciaActiva
     ? agregacionesInzoomFaltantes(modelo, opdActivoId, entidad.id).faltantes
@@ -209,6 +213,7 @@ export function InspectorEntidad({ entidad }: Props) {
             ordenPartes={aparienciaActiva?.ordenPartes}
             filasParciales={filasParciales}
             semiplegadasEstructurales={semiplegadasEstructurales}
+            plegadasEstructurales={plegadasEstructurales}
             agregacionesInzoomFaltantes={agregacionesInzoomPendientes}
             padreAparienciaId={aparienciaActiva?.id}
             parteExtraidaDe={aparienciaActiva?.parteExtraidaDe}
@@ -225,6 +230,7 @@ export function InspectorEntidad({ entidad }: Props) {
             onExtraerTodas={extraerTodasLasPartes}
             onReinsertarParte={reinsertarParte}
             onQuitarSemiplegadoEstructural={quitarSemiplegadoEstructural}
+            onQuitarPlegadoCompletoEstructural={quitarPlegadoCompletoEstructural}
             onTraerAgregacionesInzoomFaltantes={traerAgregacionesInzoom}
             onRedimensionar={redimensionarSeleccionada}
             onAjustarTexto={ajustarSeleccionadaAlTexto}
@@ -417,6 +423,7 @@ interface PanelRefinamientoProps {
   ordenPartes?: OrdenPartesPlegado | undefined;
   filasParciales: import("../modelo/plegado").FilaPlegadoParcial[];
   semiplegadasEstructurales: number;
+  plegadasEstructurales: number;
   agregacionesInzoomFaltantes: number;
   padreAparienciaId?: Id | undefined;
   parteExtraidaDe?: { padreAparienciaId: Id; parteEntidadId: Id } | undefined;
@@ -434,6 +441,7 @@ interface PanelRefinamientoProps {
   onExtraerTodas: () => void;
   onReinsertarParte: () => void;
   onQuitarSemiplegadoEstructural: () => void;
+  onQuitarPlegadoCompletoEstructural: () => void;
   onTraerAgregacionesInzoomFaltantes: () => void;
   onRedimensionar: (width: number, height: number) => void;
   onAjustarTexto: () => void;
@@ -462,6 +470,7 @@ function PanelRefinamiento(props: PanelRefinamientoProps) {
         ordenPartes={props.ordenPartes}
         filasParciales={props.filasParciales}
         semiplegadasEstructurales={props.semiplegadasEstructurales}
+        plegadasEstructurales={props.plegadasEstructurales}
         agregacionesInzoomFaltantes={props.agregacionesInzoomFaltantes}
         padreAparienciaId={props.padreAparienciaId}
         parteExtraidaDe={props.parteExtraidaDe}
@@ -477,6 +486,7 @@ function PanelRefinamiento(props: PanelRefinamientoProps) {
         onExtraerTodas={props.onExtraerTodas}
         onReinsertarParte={props.onReinsertarParte}
         onQuitarSemiplegadoEstructural={props.onQuitarSemiplegadoEstructural}
+        onQuitarPlegadoCompletoEstructural={props.onQuitarPlegadoCompletoEstructural}
         onTraerAgregacionesInzoomFaltantes={props.onTraerAgregacionesInzoomFaltantes}
       />
     </>

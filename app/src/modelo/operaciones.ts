@@ -62,8 +62,12 @@ export {
   agregacionesInzoomFaltantes,
   traerAgregacionesInzoomFaltantes,
   plegarGrupoEstructural,
+  plegarCompletoGrupoEstructural,
+  relacionesEstructuralesOcultas,
   relacionesSemiplegadasEstructurales,
+  relacionesPlegadasEstructurales,
   quitarSemiplegadoEstructural,
+  quitarPlegadoCompletoEstructural,
   reanclarEnlaceExternoDerivado,
   volverEnlaceExternoDerivadoAAutomatico,
 } from "./operaciones/enlaces";
@@ -72,6 +76,7 @@ export type {
   LadoExtremoEnlace,
   RelacionesEstructuralesFaltantes,
   RelacionesSemiplegadasEstructurales,
+  RelacionesPlegadasEstructurales,
   AgregacionesInzoomFaltantes,
 } from "./operaciones/enlaces";
 

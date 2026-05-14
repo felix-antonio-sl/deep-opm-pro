@@ -30,6 +30,7 @@ interface Props {
   ordenPartes?: OrdenPartesPlegado | undefined;
   filasParciales: FilaPlegadoParcial[];
   semiplegadasEstructurales: number;
+  plegadasEstructurales: number;
   agregacionesInzoomFaltantes: number;
   padreAparienciaId?: string | undefined;
   parteExtraidaDe?: unknown | undefined;
@@ -46,6 +47,7 @@ interface Props {
   onExtraerTodas: () => void;
   onReinsertarParte: () => void;
   onQuitarSemiplegadoEstructural: () => void;
+  onQuitarPlegadoCompletoEstructural: () => void;
   onTraerAgregacionesInzoomFaltantes: () => void;
 }
 
@@ -79,6 +81,20 @@ export function SeccionRefinamiento(props: Props) {
             title="Vuelve a materializar en este OPD las relaciones estructurales semiplegadas, siguiendo el patrón remove semi-folding de OPCloud"
           >
             Quitar semiplegado estructural
+          </button>
+        </section>
+      ) : null}
+      {props.plegadasEstructurales > 0 ? (
+        <section style={partialStyles.section} aria-label="Plegado estructural completo">
+          <span style={partialStyles.note}>{`${props.plegadasEstructurales} relación(es) estructural(es) plegadas bajo esta cosa.`}</span>
+          <button
+            type="button"
+            data-testid="quitar-plegado-completo-estructural-btn"
+            style={style.secondaryButton}
+            onClick={props.onQuitarPlegadoCompletoEstructural}
+            title="Vuelve a materializar en este OPD las relaciones estructurales completamente plegadas"
+          >
+            Quitar plegado estructural
           </button>
         </section>
       ) : null}
