@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { extremoEntidad } from "../extremos";
-import { cambiarTipoGrupoEstructural, crearEnlace, crearModelo, crearObjeto, crearProceso, desplegarObjeto, fijarOrdenGrupoEstructural, moverPuertoEnlace, plegarGrupoEstructural, quitarSemiplegadoEstructural, relacionesEstructuralesFaltantes, relacionesSemiplegadasEstructurales, traerRelacionesEstructuralesFaltantes } from "../operaciones";
+import { agregacionesInzoomFaltantes, cambiarTipoGrupoEstructural, crearEnlace, crearModelo, crearObjeto, crearProceso, desplegarObjeto, descomponerProceso, fijarOrdenGrupoEstructural, moverPuertoEnlace, plegarGrupoEstructural, quitarSemiplegadoEstructural, relacionesEstructuralesFaltantes, relacionesSemiplegadasEstructurales, traerAgregacionesInzoomFaltantes, traerRelacionesEstructuralesFaltantes } from "../operaciones";
 import { filasPlegadoParcial } from "../plegado";
 import type { Modelo, Resultado } from "../tipos";
 import { copiarEstiloEnlace, eliminarEnlacesBatch } from "./enlaces";
@@ -95,6 +95,69 @@ describe("operaciones/enlaces", () => {
       .filter((apariencia) => apariencia.entidadId !== todoId)).toHaveLength(3);
   });
 
+  test("traerAgregacionesInzoomFaltantes materializa agregaciones inferidas desde in-zoom", () => {
+    let modelo = crearModelo("Agregaciones in-zoom");
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 80, y: 90 }, "Todo"));
+    const todoId = entidad(modelo, "Todo");
+    const descomposicion = must(descomponerProceso(modelo, modelo.opdRaizId, todoId));
+    modelo = descomposicion.modelo;
+
+    expect(agregacionesInzoomFaltantes(modelo, modelo.opdRaizId, todoId).faltantes).toBe(3);
+    const resultado = must(traerAgregacionesInzoomFaltantes(modelo, modelo.opdRaizId, todoId));
+    modelo = resultado.modelo;
+
+    expect(resultado.creadas).toBe(3);
+    expect(resultado.agregadas).toBe(3);
+    expect(Object.values(modelo.enlaces).filter((enlace) => enlace.tipo === "agregacion")).toHaveLength(3);
+    expect(Object.keys(modelo.opds[modelo.opdRaizId]?.enlaces ?? {})).toHaveLength(3);
+    expect(agregacionesInzoomFaltantes(modelo, modelo.opdRaizId, todoId).faltantes).toBe(0);
+  });
+
+  test("traerRelacionesEstructuralesFaltantes crea agregaciones in-zoom dentro del grupo seleccionado", () => {
+    let modelo = crearModelo("Agregaciones in-zoom por grupo");
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 80, y: 90 }, "Todo"));
+    const todoId = entidad(modelo, "Todo");
+    const descomposicion = must(descomponerProceso(modelo, modelo.opdRaizId, todoId));
+    modelo = descomposicion.modelo;
+    const internas = entidadesInternasDeInzoom(modelo, descomposicion.opdId, todoId);
+    const primera = internas[0];
+    if (!primera) throw new Error("La prueba esperaba refinadores internos");
+    const opdRaiz = modelo.opds[modelo.opdRaizId];
+    const aparienciaReferencia = Object.values(modelo.opds[descomposicion.opdId]?.apariencias ?? {})
+      .find((apariencia) => apariencia.entidadId === primera);
+    if (!opdRaiz || !aparienciaReferencia) throw new Error("La prueba esperaba apariencias base");
+    modelo = {
+      ...modelo,
+      opds: {
+        ...modelo.opds,
+        [modelo.opdRaizId]: {
+          ...opdRaiz,
+          apariencias: {
+            ...opdRaiz.apariencias,
+            "a-visible-inzoom-test": {
+              ...aparienciaReferencia,
+              id: "a-visible-inzoom-test",
+              opdId: modelo.opdRaizId,
+              x: 320,
+              y: 90,
+            },
+          },
+        },
+      },
+    };
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, todoId, primera, "agregacion"));
+    const enlaceBaseId = Object.values(modelo.opds[modelo.opdRaizId]?.enlaces ?? {})[0]?.enlaceId;
+    if (!enlaceBaseId) throw new Error("La prueba esperaba enlace base");
+
+    expect(relacionesEstructuralesFaltantes(modelo, modelo.opdRaizId, [enlaceBaseId]).faltantes).toBe(2);
+    const resultado = must(traerRelacionesEstructuralesFaltantes(modelo, modelo.opdRaizId, [enlaceBaseId]));
+    modelo = resultado.modelo;
+
+    expect(resultado.agregadas).toBe(2);
+    expect(Object.values(modelo.enlaces).filter((enlace) => enlace.tipo === "agregacion")).toHaveLength(3);
+    expect(Object.keys(modelo.opds[modelo.opdRaizId]?.enlaces ?? {})).toHaveLength(3);
+  });
+
   test("plegarGrupoEstructural semipliega refinadores visibles bajo el refinable", () => {
     let modelo = crearModelo("Semifolding");
     modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 80, y: 90 }, "Todo"));
@@ -163,6 +226,18 @@ function entidad(modelo: Modelo, nombre: string): string {
   const item = Object.values(modelo.entidades).find((entidadActual) => entidadActual.nombre === nombre);
   if (!item) throw new Error(`Entidad no encontrada: ${nombre}`);
   return item.id;
+}
+
+function entidadesInternasDeInzoom(modelo: Modelo, opdId: string, refinableId: string): string[] {
+  return Object.values(modelo.opds[opdId]?.apariencias ?? {})
+    .filter((apariencia) => {
+      const contexto = apariencia.contextoRefinamiento;
+      return contexto?.tipo === "descomposicion"
+        && contexto.rol === "interno"
+        && contexto.refinableEntidadId === refinableId;
+    })
+    .sort((a, b) => a.y - b.y || a.x - b.x || a.id.localeCompare(b.id))
+    .map((apariencia) => apariencia.entidadId);
 }
 
 function must<T>(resultado: Resultado<T>): T {

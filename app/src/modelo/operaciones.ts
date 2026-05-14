@@ -59,13 +59,21 @@ export {
   fijarOrdenGrupoEstructural,
   relacionesEstructuralesFaltantes,
   traerRelacionesEstructuralesFaltantes,
+  agregacionesInzoomFaltantes,
+  traerAgregacionesInzoomFaltantes,
   plegarGrupoEstructural,
   relacionesSemiplegadasEstructurales,
   quitarSemiplegadoEstructural,
   reanclarEnlaceExternoDerivado,
   volverEnlaceExternoDerivadoAAutomatico,
 } from "./operaciones/enlaces";
-export type { LadoMultiplicidadEnlace, LadoExtremoEnlace, RelacionesEstructuralesFaltantes, RelacionesSemiplegadasEstructurales } from "./operaciones/enlaces";
+export type {
+  LadoMultiplicidadEnlace,
+  LadoExtremoEnlace,
+  RelacionesEstructuralesFaltantes,
+  RelacionesSemiplegadasEstructurales,
+  AgregacionesInzoomFaltantes,
+} from "./operaciones/enlaces";
 
 export {
   moverApariencia,

@@ -116,6 +116,7 @@ export type ModeloSlice = Slice<
   | "extraerTodasLasPartesSeleccionadas"
   | "reinsertarParteExtraidaSeleccionada"
   | "quitarSemiplegadoEstructuralSeleccionado"
+  | "traerAgregacionesInzoomFaltantesSeleccionadas"
   | "agregarEstadosObjeto"
   | "agregarEstadoObjeto"
   | "eliminarEstado"

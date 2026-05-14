@@ -30,19 +30,20 @@ Implementado en la app:
 - **Anclas persistentes del símbolo estructural**: `AparienciaEnlace.symbolAnchors` conserva offsets relativos al centro del triángulo (`refinable` y `refinador`). El renderer usa ports JointJS con layout `absolute`, de modo que el triángulo sigue arrastrando sus enlaces en vivo. En buses estructurales OPCloud-style, las ramas del mismo grupo comparten el puerto `out`; la separación visual se expresa creando un `grupoEstructuralId` distinto.
 - **Ciclo interactivo base del símbolo estructural**: click sobre el triángulo de bus selecciona el grupo estructural; el Inspector permite cambiar el tipo fundamental (`agregacion`/`exhibicion`/`generalizacion`/`clasificacion`), separar/volver a automático y marcar `ordered` como `orderedFundamentalTypes` en la entidad refinable, emulando el patrón OPCloud de `orderedFundamentalTypes`.
 - **Ciclo de faltantes/semifolding**: el Inspector de enlace estructural expone `Traer faltantes` y `Semiplegar grupo`. La operación `traerRelacionesEstructuralesFaltantes()` materializa en el OPD activo refinadores/enlaces estructurales existentes en otros OPDs del mismo refinable; `plegarGrupoEstructural()` oculta las ramas visibles bajo el refinable usando el plegado parcial existente, equivalente MVP al `semiFolded` operacional de OPCloud. El Inspector de entidad ahora expone `Quitar semiplegado estructural` cuando detecta relaciones fundamentales ocultas, equivalente al remove/fold-out de `semiFolded`.
+- **Agregaciones faltantes derivadas desde in-zoom**: `agregacionesInzoomFaltantes()` y `traerAgregacionesInzoomFaltantes()` emulan `foldInAllFundamentalRelations()` / `bringMissingFundamentals(Aggregation)` de OPCloud para hijos internos de descomposición. Si el operador selecciona un grupo estructural existente, las agregaciones creadas heredan `grupoEstructuralId`; si selecciona la cosa refinable, el Inspector de Refinamiento muestra `Traer agregaciones de in-zoom`.
 
 Validación de esta ronda:
 
 - `bun run typecheck`
-- `bun run test`: 1235 pass / 0 fail
+- `bun run test`: 1238 pass / 0 fail
 - `bun run build`
 - `bun run lint`
 - `bun run browser:smoke`: 173 pass / 0 fail
 
-Pendientes reales después de A/B/C/D/E/G/H-base/I-base/I-remove:
+Pendientes reales después de A/B/C/D/E/G/H-base/I-base/I-remove/J-inzoom:
 
 - Ajuste avanzado de vertices superiores de OPCloud alrededor del símbolo estructural persistido: ya existe la base de anclas/ports; falta editar manualmente esos offsets y propagar heurísticas OPCloud más finas para modelos muy densos.
-- Ciclo interactivo completo del triángulo estructural: falta fold completo y relaciones faltantes derivadas desde inzoom procedural.
+- Ciclo interactivo completo del triángulo estructural: falta fold completo.
 - Labels avanzados OPCloud: wrapping por segmento visible, posición persistida, requirements, rate/time/path/tags/backtags.
 - Familias avanzadas fuera del MVP actual: exception links de tiempo, tagged/bidirectional links y metadatos avanzados de requisitos.
 

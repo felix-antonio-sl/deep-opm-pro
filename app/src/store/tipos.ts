@@ -456,6 +456,7 @@ export interface OpmStore {
   extraerTodasLasPartesSeleccionadas: () => void;
   reinsertarParteExtraidaSeleccionada: () => void;
   quitarSemiplegadoEstructuralSeleccionado: () => void;
+  traerAgregacionesInzoomFaltantesSeleccionadas: () => void;
   agregarEstadosObjeto: () => void;
   agregarEstadoObjeto: () => void;
   eliminarEstado: (estadoId: Id) => void;

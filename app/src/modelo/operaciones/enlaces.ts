@@ -27,6 +27,7 @@ import {
   subprocesosOrdenadosDeRefinamiento,
 } from "./refinamiento";
 import { eliminarEnlace } from "./eliminacion";
+import { obtenerRefinamiento } from "../refinamientos";
 
 /**
  * Operaciones de enlaces: crear con firma validada, apuntar extremo (mover
@@ -295,6 +296,12 @@ export interface RelacionesSemiplegadasEstructurales {
   faltantes: number;
 }
 
+export interface AgregacionesInzoomFaltantes {
+  refinableId: Id;
+  entidadIds: Id[];
+  faltantes: number;
+}
+
 export function relacionesEstructuralesFaltantes(
   modelo: Modelo,
   opdId: Id,
@@ -308,7 +315,14 @@ export function relacionesEstructuralesFaltantes(
   const faltantes = candidatosEstructuralesDelGrupo(modelo, contexto.value, true)
     .filter((enlace) => !visibles.has(enlace.id))
     .map((enlace) => enlace.id);
-  return { refinableId: contexto.value.refinableId, enlaceIds: faltantes, faltantes: faltantes.length };
+  const derivadasInzoom = contexto.value.tipo === "agregacion"
+    ? candidatosAgregacionInzoom(modelo, opdId, contexto.value.refinableId).length
+    : 0;
+  return {
+    refinableId: contexto.value.refinableId,
+    enlaceIds: faltantes,
+    faltantes: faltantes.length + derivadasInzoom,
+  };
 }
 
 export function traerRelacionesEstructuralesFaltantes(
@@ -323,16 +337,54 @@ export function traerRelacionesEstructuralesFaltantes(
   const refinable = aparienciaDeEntidad(opd, contexto.value.refinableId);
   if (!refinable) return fallo("El refinable debe estar visible en el OPD activo");
 
-  const visibles = new Set(Object.values(opd.enlaces).map((apariencia) => apariencia.enlaceId));
-  const candidatos = ordenarEnlacesPorReferencia(modelo, candidatosEstructuralesDelGrupo(modelo, contexto.value, true)
-    .filter((enlace) => !visibles.has(enlace.id)));
-  if (candidatos.length === 0) return ok({ modelo, agregadas: 0 });
+  let modeloBase = modelo;
+  if (contexto.value.tipo === "agregacion") {
+    modeloBase = crearAgregacionesInzoomFaltantes(modeloBase, opdId, contexto.value.refinableId, contexto.value.grupoEstructuralId).modelo;
+  }
 
-  return ok(materializarEnlacesEstructuralesEnOpd(modelo, opdId, opd, refinable, candidatos, {
+  const opdBase = modeloBase.opds[opdId] ?? opd;
+  const refinableBase = aparienciaDeEntidad(opdBase, contexto.value.refinableId) ?? refinable;
+  const visibles = new Set(Object.values(opdBase.enlaces).map((apariencia) => apariencia.enlaceId));
+  const candidatos = ordenarEnlacesPorReferencia(modeloBase, candidatosEstructuralesDelGrupo(modeloBase, contexto.value, true)
+    .filter((enlace) => !visibles.has(enlace.id)));
+  if (candidatos.length === 0) return ok({ modelo: modeloBase, agregadas: 0 });
+
+  return ok(materializarEnlacesEstructuralesEnOpd(modeloBase, opdId, opdBase, refinableBase, candidatos, {
     ladoRefinable: contexto.value.ladoRefinable,
-    existentesRefinadores: refinadoresVisiblesDelGrupo(modelo, opd, contexto.value),
+    existentesRefinadores: refinadoresVisiblesDelGrupo(modeloBase, opdBase, contexto.value),
     ...(contexto.value.grupoEstructuralId ? { grupoEstructuralId: contexto.value.grupoEstructuralId } : {}),
   }));
+}
+
+export function agregacionesInzoomFaltantes(
+  modelo: Modelo,
+  opdId: Id,
+  refinableId: Id,
+): AgregacionesInzoomFaltantes {
+  const entidadIds = candidatosAgregacionInzoom(modelo, opdId, refinableId);
+  return { refinableId, entidadIds, faltantes: entidadIds.length };
+}
+
+export function traerAgregacionesInzoomFaltantes(
+  modelo: Modelo,
+  opdId: Id,
+  refinableId: Id,
+): Resultado<{ modelo: Modelo; creadas: number; agregadas: number }> {
+  const opd = modelo.opds[opdId];
+  if (!opd) return fallo(`OPD no existe: ${opdId}`);
+  const refinable = aparienciaDeEntidad(opd, refinableId);
+  if (!refinable) return fallo("El refinable debe estar visible en el OPD activo");
+
+  const creadas = crearAgregacionesInzoomFaltantes(modelo, opdId, refinableId);
+  if (creadas.enlaces.length === 0) return ok({ modelo, creadas: 0, agregadas: 0 });
+
+  const opdBase = creadas.modelo.opds[opdId] ?? opd;
+  const refinableBase = aparienciaDeEntidad(opdBase, refinableId) ?? refinable;
+  const materializadas = materializarEnlacesEstructuralesEnOpd(creadas.modelo, opdId, opdBase, refinableBase, creadas.enlaces, {
+    ladoRefinable: "origen",
+    existentesRefinadores: refinadoresVisiblesPorTipo(creadas.modelo, opdBase, refinableId, "agregacion"),
+  });
+  return ok({ modelo: materializadas.modelo, creadas: creadas.enlaces.length, agregadas: materializadas.agregadas });
 }
 
 export function plegarGrupoEstructural(
@@ -626,6 +678,77 @@ function candidatosEstructuralesDelGrupo(modelo: Modelo, contexto: ContextoGrupo
   });
 }
 
+function candidatosAgregacionInzoom(modelo: Modelo, opdId: Id, refinableId: Id): Id[] {
+  const opd = modelo.opds[opdId];
+  const refinable = modelo.entidades[refinableId];
+  if (!opd || !refinable || !aparienciaDeEntidad(opd, refinableId)) return [];
+  const slot = obtenerRefinamiento(refinable, "descomposicion");
+  const opdInzoom = slot ? modelo.opds[slot.opdId] : undefined;
+  if (!opdInzoom) return [];
+
+  const yaAgregadas = new Set(Object.values(modelo.enlaces)
+    .filter((enlace) => enlace.tipo === "agregacion" && entidadIdDeExtremo(modelo, enlace.origenId) === refinableId)
+    .flatMap((enlace) => {
+      const destinoId = entidadIdDeExtremo(modelo, enlace.destinoId);
+      return destinoId ? [destinoId] : [];
+    }));
+  const vistas = new Set<Id>();
+  return Object.values(opdInzoom.apariencias)
+    .filter((apariencia) => {
+      const contexto = apariencia.contextoRefinamiento;
+      if (contexto?.tipo !== "descomposicion" || contexto.rol !== "interno") return false;
+      if (contexto.refinableEntidadId !== refinableId) return false;
+      if (yaAgregadas.has(apariencia.entidadId) || vistas.has(apariencia.entidadId)) return false;
+      const entidad = modelo.entidades[apariencia.entidadId];
+      if (!entidad || entidad.tipo !== refinable.tipo) return false;
+      vistas.add(apariencia.entidadId);
+      return true;
+    })
+    .sort((a, b) => a.y - b.y || a.x - b.x || a.id.localeCompare(b.id))
+    .map((apariencia) => apariencia.entidadId);
+}
+
+function crearAgregacionesInzoomFaltantes(
+  modelo: Modelo,
+  opdId: Id,
+  refinableId: Id,
+  grupoEstructuralId?: Id,
+): { modelo: Modelo; enlaces: Enlace[] } {
+  const refinable = modelo.entidades[refinableId];
+  if (!refinable) return { modelo, enlaces: [] };
+  const entidadIds = candidatosAgregacionInzoom(modelo, opdId, refinableId);
+  if (entidadIds.length === 0) return { modelo, enlaces: [] };
+
+  let nextSeq = modelo.nextSeq;
+  const enlacesActualizados = { ...modelo.enlaces };
+  const creadas: Enlace[] = [];
+  for (const entidadId of entidadIds) {
+    const destino = modelo.entidades[entidadId];
+    if (!destino) continue;
+    const origenExtremo = extremoEntidad(refinableId);
+    const destinoExtremo = extremoEntidad(entidadId);
+    const firma = validarFirmaEnlace("agregacion", refinable, destino, {
+      origen: origenExtremo,
+      destino: destinoExtremo,
+    });
+    if (!firma.ok) continue;
+    const id = siguienteId({ ...modelo, nextSeq }, "e");
+    nextSeq += 1;
+    const enlace: Enlace = {
+      id,
+      tipo: "agregacion",
+      origenId: origenExtremo,
+      destinoId: destinoExtremo,
+      etiqueta: "",
+      ...(grupoEstructuralId ? { grupoEstructuralId } : {}),
+    };
+    enlacesActualizados[id] = enlace;
+    creadas.push(enlace);
+  }
+  if (creadas.length === 0) return { modelo, enlaces: [] };
+  return { modelo: { ...modelo, nextSeq, enlaces: enlacesActualizados }, enlaces: creadas };
+}
+
 function entidadRefinadorDeEnlace(modelo: Modelo, enlace: Enlace, contexto: ContextoGrupoEstructural): Id | null {
   return entidadRefinadorPorLado(modelo, enlace, contexto.ladoRefinable);
 }
@@ -652,6 +775,16 @@ function refinadoresVisiblesDelGrupo(modelo: Modelo, opd: Opd, contexto: Context
     .flatMap((enlace) => {
       const refinador = entidadRefinadorDeEnlace(modelo, enlace, contexto);
       return refinador ? [refinador] : [];
+    }));
+  return Object.values(opd.apariencias).filter((apariencia) => ids.has(apariencia.entidadId));
+}
+
+function refinadoresVisiblesPorTipo(modelo: Modelo, opd: Opd, refinableId: Id, tipo: TipoEnlace): Apariencia[] {
+  const ids = new Set(Object.values(modelo.enlaces)
+    .filter((enlace) => enlace.tipo === tipo && entidadIdDeExtremo(modelo, enlace.origenId) === refinableId)
+    .flatMap((enlace) => {
+      const destinoId = entidadIdDeExtremo(modelo, enlace.destinoId);
+      return destinoId ? [destinoId] : [];
     }));
   return Object.values(opd.apariencias).filter((apariencia) => ids.has(apariencia.entidadId));
 }

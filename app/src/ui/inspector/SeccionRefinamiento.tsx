@@ -30,6 +30,7 @@ interface Props {
   ordenPartes?: OrdenPartesPlegado | undefined;
   filasParciales: FilaPlegadoParcial[];
   semiplegadasEstructurales: number;
+  agregacionesInzoomFaltantes: number;
   padreAparienciaId?: string | undefined;
   parteExtraidaDe?: unknown | undefined;
   modelo: Modelo;
@@ -45,6 +46,7 @@ interface Props {
   onExtraerTodas: () => void;
   onReinsertarParte: () => void;
   onQuitarSemiplegadoEstructural: () => void;
+  onTraerAgregacionesInzoomFaltantes: () => void;
 }
 
 export function SeccionRefinamiento(props: Props) {
@@ -77,6 +79,20 @@ export function SeccionRefinamiento(props: Props) {
             title="Vuelve a materializar en este OPD las relaciones estructurales semiplegadas, siguiendo el patrón remove semi-folding de OPCloud"
           >
             Quitar semiplegado estructural
+          </button>
+        </section>
+      ) : null}
+      {props.agregacionesInzoomFaltantes > 0 ? (
+        <section style={partialStyles.section} aria-label="Agregaciones de in-zoom">
+          <span style={partialStyles.note}>{`${props.agregacionesInzoomFaltantes} agregación(es) derivables desde el in-zoom.`}</span>
+          <button
+            type="button"
+            data-testid="traer-agregaciones-inzoom-btn"
+            style={style.secondaryButton}
+            onClick={props.onTraerAgregacionesInzoomFaltantes}
+            title="Materializa en este OPD las agregaciones fundamentales inferidas desde los hijos internos del in-zoom"
+          >
+            Traer agregaciones de in-zoom
           </button>
         </section>
       ) : null}

@@ -21,6 +21,7 @@ import {
   quitarSemiplegadoEstructural,
   renombrarEntidad,
   renombrarEstado,
+  traerAgregacionesInzoomFaltantes,
 } from "../../modelo/operaciones";
 import { renombrarEtiquetaEnlace } from "../../modelo/etiquetasEnlace";
 import { anclajesSimboloPorDefecto } from "../../modelo/simboloEstructural";
@@ -603,6 +604,27 @@ export function accionesCanvas(set: SetStore, get: GetStore): Partial<ModeloSlic
         mensaje: resultado.value.agregadas > 0
           ? `Semiplegado estructural quitado: ${resultado.value.agregadas} relaciones`
           : "No hay relaciones estructurales semiplegadas",
+      });
+    },
+
+    traerAgregacionesInzoomFaltantesSeleccionadas() {
+      const { modelo, opdActivoId, seleccionId } = get();
+      if (!seleccionId) {
+        set({ mensaje: "Selecciona una entidad con in-zoom" });
+        return;
+      }
+      const resultado = traerAgregacionesInzoomFaltantes(modelo, opdActivoId, seleccionId);
+      if (!resultado.ok) {
+        set({ mensaje: resultado.error });
+        return;
+      }
+      commitModelo(set, modelo, resultado.value.modelo, {
+        seleccionId,
+        enlaceSeleccionId: null,
+        modoEnlace: null,
+        mensaje: resultado.value.agregadas > 0
+          ? `Agregaciones de in-zoom traídas: ${resultado.value.agregadas}`
+          : "No hay agregaciones de in-zoom faltantes",
       });
     },
 

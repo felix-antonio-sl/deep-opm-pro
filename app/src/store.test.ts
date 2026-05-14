@@ -597,6 +597,21 @@ describe("store undo/redo y dirty state", () => {
     expect(padreExpandido?.modoPlegado).toBeUndefined();
   });
 
+  test("entidad seleccionada trae agregaciones faltantes derivadas desde in-zoom", () => {
+    let modelo = crearModelo("Store agregaciones in-zoom");
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 80, y: 90 }, "Todo"));
+    const todoId = entidadPorNombre(modelo, "Todo");
+    modelo = must(descomponerProceso(modelo, modelo.opdRaizId, todoId)).modelo;
+    store.getState().importarJson(exportarModelo(modelo));
+    store.getState().seleccionarEntidad(todoId);
+
+    store.getState().traerAgregacionesInzoomFaltantesSeleccionadas();
+
+    expect(Object.values(store.getState().modelo.enlaces).filter((enlace) => enlace.tipo === "agregacion")).toHaveLength(3);
+    expect(Object.keys(store.getState().modelo.opds[modelo.opdRaizId]?.enlaces ?? {})).toHaveLength(3);
+    expect(store.getState().mensaje).toBe("Agregaciones de in-zoom traídas: 3");
+  });
+
   test("accion de store crea auto-invocacion y selecciona el enlace", () => {
     store.getState().crearProcesoDemo();
     const procesoId = primeraEntidadId();
