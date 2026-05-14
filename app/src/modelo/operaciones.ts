@@ -112,3 +112,9 @@ export {
 // validarFirmaEnlace vive en helpers.ts (compartido entre refinamiento y enlaces)
 // pero se re-exporta como API pública preservando la firma original.
 export { validarFirmaEnlace } from "./operaciones/helpers";
+
+export {
+  definirBackwardTag,
+  definirRequisitosEnlace,
+  definirTasaEnlace,
+} from "./enlaceMetadatos";

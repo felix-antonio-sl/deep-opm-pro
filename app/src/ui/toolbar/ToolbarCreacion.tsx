@@ -24,6 +24,8 @@ export const TIPOS_ENLACE: Array<{ tipo: TipoEnlace; label: string }> = [
   { tipo: "exhibicion", label: "Exhibición" },
   { tipo: "generalizacion", label: "Generalización" },
   { tipo: "clasificacion", label: "Clasificación" },
+  { tipo: "etiquetado", label: "Etiquetado" },
+  { tipo: "etiquetadoBidireccional", label: "Etiquetado bidireccional" },
   { tipo: "agente", label: "Agente" },
   { tipo: "instrumento", label: "Instrumento" },
   { tipo: "consumo", label: "Consumo" },

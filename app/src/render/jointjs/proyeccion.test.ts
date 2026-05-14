@@ -5,7 +5,7 @@ import { renombrarEtiquetaEnlace } from "../../modelo/etiquetasEnlace";
 import { entidadIdDeExtremo, extremoEstado } from "../../modelo/extremos";
 import { aplicarEstiloApariencia } from "../../modelo/estilos";
 import { aplicarModificador, definirDemora, definirProbabilidad } from "../../modelo/modificadores";
-import { ajustarMultiplicidad, cambiarAfiliacion, cambiarEsencia, crearEnlace, crearEstadosIniciales, crearModelo, crearObjeto, crearProceso, designarEstadoFinal, designarEstadoInicial, descomponerProceso, desplegarObjeto, estadosDeEntidad, plegarCompletoGrupoEstructural, renombrarEstado } from "../../modelo/operaciones";
+import { ajustarMultiplicidad, cambiarAfiliacion, cambiarEsencia, crearEnlace, crearEstadosIniciales, crearModelo, crearObjeto, crearProceso, definirBackwardTag, definirRequisitosEnlace, definirTasaEnlace, designarEstadoFinal, designarEstadoInicial, descomponerProceso, desplegarObjeto, estadosDeEntidad, plegarCompletoGrupoEstructural, renombrarEstado } from "../../modelo/operaciones";
 import { editarAlias, editarDescripcion } from "../../modelo/objetoMetadata";
 import { cambiarModoPlegado, crearEnlaceConExtremoPlegado, extraerParteDePlegado, reinsertarParteEnPlegado } from "../../modelo/plegado";
 import { definirRutaEtiqueta } from "../../modelo/rutas";
@@ -264,6 +264,84 @@ describe("proyeccion JointJS", () => {
       expect(targetMarker?.fill).toBe(caso.marker.fill);
       expect(targetMarker?.stroke).toBe(caso.marker.stroke);
     }
+  });
+
+  test("proyecta enlace etiquetado unidireccional con marker abierto OPCloud y tag no italico", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 30 }, "Sistema"));
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 260, y: 130 }, "Requisito"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidadPorNombre(modelo, "Sistema"), entidadPorNombre(modelo, "Requisito"), "etiquetado"));
+    const enlaceId = Object.keys(modelo.enlaces)[0];
+    if (!enlaceId) throw new Error("La prueba esperaba enlace");
+    modelo = must(renombrarEtiquetaEnlace(modelo, enlaceId, "satisface"));
+
+    const cellEnlace = proyectarModeloAJointCells(modelo, modelo.opdRaizId, null, null).find((cell) => cell.type === "standard.Link");
+    const line = ((cellEnlace?.attrs as Attrs | undefined)?.line as Attrs | undefined);
+    const labels = cellEnlace?.labels as Array<{ opmLabelKey?: string; attrs?: { label?: Attrs }; position?: { distance?: unknown; offset?: unknown } }> | undefined;
+    const tag = labels?.find((label) => label.opmLabelKey === "etiqueta");
+
+    expect((line?.targetMarker as Attrs | undefined)?.points).toBe(LINK_ASSETS.procedural.etiquetado.marker.points);
+    expect(line?.sourceMarker).toBeNull();
+    expect(cellEnlace?.router).toBeUndefined();
+    expect(tag?.attrs?.label).toMatchObject({ text: "satisface", fontWeight: 700 });
+    expect(tag?.attrs?.label?.fontStyle).toBeUndefined();
+    expect(tag?.position).toMatchObject({ distance: 0.5, offset: -20 });
+  });
+
+  test("proyecta enlace etiquetado bidireccional con harpoon y labels forward/backward", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 30 }, "Todo"));
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 260, y: 130 }, "Parte"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidadPorNombre(modelo, "Todo"), entidadPorNombre(modelo, "Parte"), "etiquetadoBidireccional"));
+    const enlaceId = Object.keys(modelo.enlaces)[0];
+    if (!enlaceId) throw new Error("La prueba esperaba enlace");
+    modelo = must(renombrarEtiquetaEnlace(modelo, enlaceId, "contiene"));
+    modelo = must(definirBackwardTag(modelo, enlaceId, "pertenece a"));
+
+    const cellEnlace = proyectarModeloAJointCells(modelo, modelo.opdRaizId, null, null).find((cell) => cell.type === "standard.Link");
+    const line = ((cellEnlace?.attrs as Attrs | undefined)?.line as Attrs | undefined);
+    const labels = cellEnlace?.labels as Array<{ opmLabelKey?: string; attrs?: { label?: Attrs }; position?: { distance?: unknown; offset?: unknown } }> | undefined;
+    const forward = labels?.find((label) => label.opmLabelKey === "etiqueta");
+    const backward = labels?.find((label) => label.opmLabelKey === "backwardTag");
+
+    expect((line?.sourceMarker as Attrs | undefined)?.points).toBe("0.5,0 20,10");
+    expect((line?.targetMarker as Attrs | undefined)?.points).toBe("0.5,0 20,10");
+    expect(cellEnlace?.router).toBeUndefined();
+    expect(forward?.attrs?.label?.text).toBe("contiene");
+    expect(forward?.position).toMatchObject({ distance: 0.8, offset: -10 });
+    expect(backward?.attrs?.label?.text).toBe("pertenece a");
+    expect(backward?.position).toMatchObject({ distance: 0.2, offset: 10 });
+  });
+
+  test("invierte harpoon bidireccional cuando el destino queda a la izquierda", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 320, y: 30 }, "Derecha"));
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 130 }, "Izquierda"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidadPorNombre(modelo, "Derecha"), entidadPorNombre(modelo, "Izquierda"), "etiquetadoBidireccional"));
+
+    const cellEnlace = proyectarModeloAJointCells(modelo, modelo.opdRaizId, null, null).find((cell) => cell.type === "standard.Link");
+    const line = ((cellEnlace?.attrs as Attrs | undefined)?.line as Attrs | undefined);
+
+    expect((line?.sourceMarker as Attrs | undefined)?.points).toBe("0.5,0 20,-10");
+    expect((line?.targetMarker as Attrs | undefined)?.points).toBe("0.5,0 20,-10");
+  });
+
+  test("proyecta tasa y requisitos con posiciones OPCloud", () => {
+    let modelo = modeloConEnlace("consumo");
+    const consumoId = Object.keys(modelo.enlaces)[0];
+    if (!consumoId) throw new Error("La prueba esperaba consumo");
+    modelo = must(definirTasaEnlace(modelo, consumoId, "2", "kg/h"));
+    modelo = must(definirRequisitosEnlace(modelo, consumoId, "REQ-1", true));
+
+    const cellEnlace = proyectarModeloAJointCells(modelo, modelo.opdRaizId, null, null).find((cell) => cell.type === "standard.Link");
+    const labels = cellEnlace?.labels as Array<{ opmLabelKey?: string; attrs?: { label?: Attrs }; position?: { distance?: unknown; offset?: unknown } }> | undefined;
+    const tasa = labels?.find((label) => label.opmLabelKey === "tasa");
+    const requisitos = labels?.find((label) => label.opmLabelKey === "requisitos");
+
+    expect(tasa?.attrs?.label?.text).toBe("Rate = 2 [kg/h]");
+    expect(tasa?.position).toMatchObject({ distance: 0.55, offset: 10 });
+    expect(requisitos?.attrs?.label?.text).toBe("Satisfied: REQ-1");
+    expect(requisitos?.position).toMatchObject({ distance: 0.5, offset: -30 });
   });
 
   test("proyecta etiquetas de multiplicidad cerca de origen y destino", () => {

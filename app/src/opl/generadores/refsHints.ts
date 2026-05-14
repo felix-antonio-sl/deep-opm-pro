@@ -140,6 +140,8 @@ const verbosPorTipo: Record<TipoEnlace, string[]> = {
   resultado: ["genera", "generan", "cambia"],
   efecto: ["afecta", "afectan"],
   invocacion: ["invoca", "invocan", "se invoca"],
+  etiquetado: ["se relaciona"],
+  etiquetadoBidireccional: ["se relacionan"],
 };
 
 export function nombreOpl(entidad: Entidad): string {

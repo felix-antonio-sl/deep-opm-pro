@@ -1,5 +1,5 @@
 import type { dia } from "jointjs";
-import { naturalezaDeEnlace } from "../../modelo/constantes";
+import { esEnlaceEstructuralFundamental } from "../../modelo/constantes";
 import type { TipoEnlace } from "../../modelo/tipos";
 import type { OpmJointMetadata } from "./proyeccionTipos";
 
@@ -14,7 +14,7 @@ export function ordenarEnlacesEstructuralesConectados(paper: dia.Paper, graph: d
   const links = graph.getConnectedLinks(element)
     .filter((link) => {
       const meta = link.prop("opm") as OpmJointMetadata | undefined;
-      return meta?.kind === "enlace" && naturalezaDeEnlace(meta.tipo as TipoEnlace) === "estructural";
+      return meta?.kind === "enlace" && esEnlaceEstructuralFundamental(meta.tipo as TipoEnlace);
     })
     .map((link) => ({ link, side: ladoConectado(link, element.id) }))
     .filter((item): item is { link: dia.Link; side: "source" | "target" } => item.side !== null)

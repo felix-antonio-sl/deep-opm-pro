@@ -77,18 +77,41 @@ export function normalizarEntidad(entidad: Entidad): Entidad {
 export function normalizarEnlace(enlace: Enlace): Enlace {
   const rutaEtiqueta = rutaEtiquetaNormalizada(enlace.rutaEtiqueta);
   const estilo = normalizarEstiloEnlace(enlace.estilo);
+  const backwardTag = textoOpcional(enlace.backwardTag);
+  const requisitos = textoOpcional(enlace.requisitos);
+  const tasa = textoOpcional(enlace.tasa);
+  const unidadesTasa = tasa ? textoOpcional(enlace.unidadesTasa) : undefined;
   const grupoEstructuralId = typeof enlace.grupoEstructuralId === "string" && enlace.grupoEstructuralId.trim()
     ? enlace.grupoEstructuralId.trim()
     : undefined;
-  const { rutaEtiqueta: _rutaEtiqueta, estilo: _estilo, grupoEstructuralId: _grupoEstructuralId, ...base } = enlace;
+  const {
+    rutaEtiqueta: _rutaEtiqueta,
+    estilo: _estilo,
+    grupoEstructuralId: _grupoEstructuralId,
+    backwardTag: _backwardTag,
+    requisitos: _requisitos,
+    mostrarRequisitos: _mostrarRequisitos,
+    tasa: _tasa,
+    unidadesTasa: _unidadesTasa,
+    ...base
+  } = enlace;
   return {
     ...base,
     origenId: normalizarExtremo(enlace.origenId),
     destinoId: normalizarExtremo(enlace.destinoId),
     ...(rutaEtiqueta ? { rutaEtiqueta } : {}),
+    ...(backwardTag ? { backwardTag } : {}),
+    ...(requisitos ? { requisitos } : {}),
+    ...(requisitos && enlace.mostrarRequisitos ? { mostrarRequisitos: true } : {}),
+    ...(tasa ? { tasa } : {}),
+    ...(tasa && unidadesTasa ? { unidadesTasa } : {}),
     ...(estilo ? { estilo } : {}),
     ...(grupoEstructuralId ? { grupoEstructuralId } : {}),
   };
+}
+
+function textoOpcional(value: unknown): string | undefined {
+  return typeof value === "string" && value.trim() ? value.trim() : undefined;
 }
 
 export function normalizarEstiloEnlace(value: unknown): Enlace["estilo"] {

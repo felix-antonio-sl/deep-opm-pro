@@ -113,6 +113,9 @@ function transicionesEstadoBase(modelo: Modelo, opd: Opd) {
 }
 
 export function oracionEnlace(modelo: Modelo, enlace: Enlace): string | null {
+  if (enlace.tipo === "etiquetado" || enlace.tipo === "etiquetadoBidireccional") {
+    return oracionTagged(modelo, enlace);
+  }
   return conEtiquetaEnlace(enlace, oracionEnlaceSinEtiqueta(modelo, enlace));
 }
 
@@ -123,6 +126,10 @@ export function oracionEnlaceSinEtiqueta(modelo: Modelo, enlace: Enlace): string
 
   if (["agregacion", "exhibicion", "generalizacion", "clasificacion"].includes(enlace.tipo)) {
     return oracionEnlaceEstructural(modelo, enlace);
+  }
+
+  if (enlace.tipo === "etiquetado" || enlace.tipo === "etiquetadoBidireccional") {
+    return oracionTagged(modelo, enlace);
   }
 
   const origenOpl = nombreOplExtremo(modelo, enlace.origenId, enlace.multiplicidadOrigen);
@@ -167,6 +174,19 @@ export function oracionEnlaceSinEtiqueta(modelo: Modelo, enlace: Enlace): string
     default:
       return null;
   }
+}
+
+function oracionTagged(modelo: Modelo, enlace: Enlace): string | null {
+  const origenOpl = nombreOplExtremo(modelo, enlace.origenId, enlace.multiplicidadOrigen);
+  const destinoOpl = nombreOplExtremo(modelo, enlace.destinoId, enlace.multiplicidadDestino);
+  const tag = etiquetaEnlaceNormalizada(enlace.etiqueta);
+  const backwardTag = enlace.backwardTag?.trim();
+  if (enlace.tipo === "etiquetado") {
+    return tag ? `${origenOpl} ${tag} ${destinoOpl}.` : `${origenOpl} se relaciona con ${destinoOpl}.`;
+  }
+  if (tag && backwardTag) return `${origenOpl} ${tag} ${destinoOpl}, y ${destinoOpl} ${backwardTag} ${origenOpl}.`;
+  if (tag) return `${origenOpl} y ${destinoOpl} son ${tag}.`;
+  return `${origenOpl} y ${destinoOpl} se relacionan.`;
 }
 
 function conEtiquetaEnlace(enlace: Enlace, linea: string | null): string | null {

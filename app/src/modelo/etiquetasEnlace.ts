@@ -31,7 +31,8 @@ export function validarEtiquetaEnlace(enlace: Enlace, etiqueta: string): Resulta
 }
 
 export function enlaceRequiereEtiqueta(enlace: Enlace): boolean {
-  return (enlace.tipo as string) === "etiquetado";
+  void enlace;
+  return false;
 }
 
 function ok<T>(value: T): Resultado<T> {

@@ -16,6 +16,8 @@ export type TipoEnlace =
   | "exhibicion"
   | "generalizacion"
   | "clasificacion"
+  | "etiquetado"
+  | "etiquetadoBidireccional"
   | "agente"
   | "instrumento"
   | "consumo"
@@ -62,6 +64,16 @@ export interface Enlace {
   probabilidad?: number;
   demora?: string;
   rutaEtiqueta?: string;
+  /** Etiqueta inversa de enlace estructural etiquetado bidireccional (OPCloud backwardTag). */
+  backwardTag?: string;
+  /** Conjunto de requisitos satisfechos por el enlace (OPCloud requirements). */
+  requisitos?: string;
+  /** Si true, proyecta el label OPCloud `Satisfied: ...` sobre el enlace. */
+  mostrarRequisitos?: boolean;
+  /** Tasa de transformación en enlaces consumo/resultado/efecto (OPCloud rate). */
+  tasa?: string;
+  /** Unidades de tasa, usualmente `unidad/tiempo` (OPCloud rateUnits). */
+  unidadesTasa?: string;
   /** Separa o asocia manualmente ramas de una relación estructural fundamental. */
   grupoEstructuralId?: Id;
   derivado?: DerivacionEnlace;

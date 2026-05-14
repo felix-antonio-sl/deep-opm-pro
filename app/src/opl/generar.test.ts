@@ -4,7 +4,7 @@ import { crearAutoInvocacion } from "../modelo/autoinvocacion";
 import { renombrarEtiquetaEnlace } from "../modelo/etiquetasEnlace";
 import { aplicarEstiloApariencia } from "../modelo/estilos";
 import { aplicarModificador, definirDemora, definirProbabilidad } from "../modelo/modificadores";
-import { ajustarMultiplicidad, cambiarEsencia, crearEnlace, crearEstadosIniciales, crearModelo, crearObjeto, crearProceso, designarEstadoFinal, designarEstadoInicial, descomponerProceso, agregarEstado, desplegarObjeto, estadosDeEntidad, moverApariencia, renombrarEstado } from "../modelo/operaciones";
+import { ajustarMultiplicidad, cambiarEsencia, crearEnlace, crearEstadosIniciales, crearModelo, crearObjeto, crearProceso, definirBackwardTag, designarEstadoFinal, designarEstadoInicial, descomponerProceso, agregarEstado, desplegarObjeto, estadosDeEntidad, moverApariencia, renombrarEstado } from "../modelo/operaciones";
 import { cambiarModoPlegado } from "../modelo/plegado";
 import { definirRutaEtiqueta } from "../modelo/rutas";
 import type { Apariencia, Modelo, Resultado } from "../modelo/tipos";
@@ -41,6 +41,33 @@ describe("OPL-ES — tipos de enlace canonicos", () => {
     modelo = must(renombrarEtiquetaEnlace(modelo, enlaceId, "componente critico"));
 
     expect(generarOpl(modelo)).toContain("**Todo** consta de **Parte**. [etiqueta: componente critico]");
+  });
+
+  test("etiquetado estructural unidireccional usa tag como verbo y default OPCloud", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 0, y: 0 }, "Sistema"));
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 180, y: 0 }, "Requisito"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidad(modelo, "Sistema"), entidad(modelo, "Requisito"), "etiquetado"));
+    const enlaceId = Object.keys(modelo.enlaces)[0];
+    if (!enlaceId) throw new Error("La prueba esperaba enlace");
+
+    expect(generarOpl(modelo)).toContain("**Sistema** se relaciona con **Requisito**.");
+
+    modelo = must(renombrarEtiquetaEnlace(modelo, enlaceId, "satisface"));
+    expect(generarOpl(modelo)).toContain("**Sistema** satisface **Requisito**.");
+  });
+
+  test("etiquetado estructural bidireccional emite forward y backward tag", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 0, y: 0 }, "Todo"));
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 180, y: 0 }, "Parte"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidad(modelo, "Todo"), entidad(modelo, "Parte"), "etiquetadoBidireccional"));
+    const enlaceId = Object.keys(modelo.enlaces)[0];
+    if (!enlaceId) throw new Error("La prueba esperaba enlace");
+    modelo = must(renombrarEtiquetaEnlace(modelo, enlaceId, "contiene"));
+    modelo = must(definirBackwardTag(modelo, enlaceId, "pertenece a"));
+
+    expect(generarOpl(modelo)).toContain("**Todo** contiene **Parte**, y **Parte** pertenece a **Todo**.");
   });
 
   test("estilo de apariencia no cambia OPL", () => {

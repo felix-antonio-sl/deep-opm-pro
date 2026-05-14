@@ -1,4 +1,4 @@
-import { naturalezaDeEnlace } from "../modelo/constantes";
+import { enlaceAdmiteTasa, esEnlaceEstructuralFundamental } from "../modelo/constantes";
 import { entidadDeExtremo, entidadIdDeExtremo, extremoEntidad, normalizarExtremo } from "../modelo/extremos";
 import { esColorEstilo } from "../modelo/estilos";
 import { esModificador, esSubtipoModificador, validarMetadatosEnlace } from "../modelo/modificadores";
@@ -82,9 +82,29 @@ export function validarEnlaces(
     }
     const rutaEtiqueta = validarRutaEtiquetaOpcional(id, raw.rutaEtiqueta);
     if (!rutaEtiqueta.ok) return rutaEtiqueta;
+    const backwardTag = validarTextoOpcional(id, "backwardTag", raw.backwardTag);
+    if (!backwardTag.ok) return backwardTag;
+    if (backwardTag.value && raw.tipo !== "etiquetadoBidireccional") {
+      return fallo(`Enlace inválido: ${id}.backwardTag`);
+    }
+    const requisitos = validarTextoOpcional(id, "requisitos", raw.requisitos);
+    if (!requisitos.ok) return requisitos;
+    if (raw.mostrarRequisitos !== undefined && typeof raw.mostrarRequisitos !== "boolean") {
+      return fallo(`Enlace inválido: ${id}.mostrarRequisitos`);
+    }
+    const tasa = validarTextoOpcional(id, "tasa", raw.tasa);
+    if (!tasa.ok) return tasa;
+    const unidadesTasa = validarTextoOpcional(id, "unidadesTasa", raw.unidadesTasa);
+    if (!unidadesTasa.ok) return unidadesTasa;
+    if ((tasa.value || unidadesTasa.value) && !enlaceAdmiteTasa(raw.tipo)) {
+      return fallo(`Enlace inválido: ${id}.tasa`);
+    }
+    if (unidadesTasa.value && !tasa.value) {
+      return fallo(`Enlace inválido: ${id}.unidadesTasa`);
+    }
     const grupoEstructuralId = validarGrupoEstructuralIdOpcional(id, raw.grupoEstructuralId);
     if (!grupoEstructuralId.ok) return grupoEstructuralId;
-    if (grupoEstructuralId.value && naturalezaDeEnlace(raw.tipo) !== "estructural") {
+    if (grupoEstructuralId.value && !esEnlaceEstructuralFundamental(raw.tipo)) {
       return fallo(`Enlace inválido: ${id}.grupoEstructuralId`);
     }
     const estilo = validarEstiloEnlaceOpcional(id, raw.estilo);
@@ -103,6 +123,11 @@ export function validarEnlaces(
       ...(raw.probabilidad !== undefined ? { probabilidad: raw.probabilidad } : {}),
       ...(raw.demora ? { demora: raw.demora } : {}),
       ...(rutaEtiqueta.value ? { rutaEtiqueta: rutaEtiqueta.value } : {}),
+      ...(backwardTag.value ? { backwardTag: backwardTag.value } : {}),
+      ...(requisitos.value ? { requisitos: requisitos.value } : {}),
+      ...(requisitos.value && raw.mostrarRequisitos === true ? { mostrarRequisitos: true } : {}),
+      ...(tasa.value ? { tasa: tasa.value } : {}),
+      ...(tasa.value && unidadesTasa.value ? { unidadesTasa: unidadesTasa.value } : {}),
       ...(grupoEstructuralId.value ? { grupoEstructuralId: grupoEstructuralId.value } : {}),
       ...(derivado.value ? { derivado: derivado.value } : {}),
     };
@@ -124,6 +149,13 @@ export function validarRutaEtiquetaOpcional(enlaceId: Id, value: unknown): Resul
   if (value === undefined) return ok(undefined);
   if (typeof value !== "string") return fallo(`Enlace inválido: ${enlaceId}.rutaEtiqueta`);
   return ok(rutaEtiquetaNormalizada(value));
+}
+
+export function validarTextoOpcional(enlaceId: Id, campo: "backwardTag" | "requisitos" | "tasa" | "unidadesTasa", value: unknown): Resultado<string | undefined> {
+  if (value === undefined) return ok(undefined);
+  if (typeof value !== "string") return fallo(`Enlace inválido: ${enlaceId}.${campo}`);
+  const normalizado = value.trim();
+  return ok(normalizado || undefined);
 }
 
 export function validarEstiloEnlaceOpcional(enlaceId: Id, value: unknown): Resultado<Enlace["estilo"]> {

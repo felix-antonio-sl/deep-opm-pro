@@ -12,6 +12,9 @@ import {
   crearModelo,
   crearObjeto,
   crearProceso,
+  definirBackwardTag,
+  definirRequisitosEnlace,
+  definirTasaEnlace,
   designarEstadoFinal,
   designarEstadoInicial,
   descomponerProceso,
@@ -112,6 +115,53 @@ describe("operaciones de modelo", () => {
     const whole = entidadPorNombre(modelo, "Whole");
     const self = crearEnlace(modelo, modelo.opdRaizId, whole.id, whole.id, "agregacion");
     expect(self.ok).toBe(false);
+  });
+
+  test("gestiona metadatos OPCloud de enlaces etiquetados, requisitos y tasa", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 0, y: 0 }, "Sistema"));
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 220, y: 0 }, "Requisito"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 440, y: 0 }, "Procesar"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidadPorNombre(modelo, "Sistema").id, entidadPorNombre(modelo, "Requisito").id, "etiquetadoBidireccional"));
+    const taggedId = Object.keys(modelo.enlaces)[0];
+    if (!taggedId) throw new Error("La prueba esperaba enlace etiquetado");
+
+    modelo = must(definirBackwardTag(modelo, taggedId, " pertenece a "));
+    modelo = must(definirRequisitosEnlace(modelo, taggedId, " REQ-1 ", true));
+    expect(modelo.enlaces[taggedId]?.backwardTag).toBe("pertenece a");
+    expect(modelo.enlaces[taggedId]?.requisitos).toBe("REQ-1");
+    expect(modelo.enlaces[taggedId]?.mostrarRequisitos).toBe(true);
+
+    modelo = must(definirBackwardTag(modelo, taggedId, " "));
+    expect(modelo.enlaces[taggedId]?.backwardTag).toBeUndefined();
+    expect(definirTasaEnlace(modelo, taggedId, "2", "kg/h").ok).toBe(false);
+
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidadPorNombre(modelo, "Sistema").id, entidadPorNombre(modelo, "Procesar").id, "consumo"));
+    const consumoId = Object.values(modelo.enlaces).find((enlace) => enlace.tipo === "consumo")?.id;
+    if (!consumoId) throw new Error("La prueba esperaba enlace consumo");
+    modelo = must(definirTasaEnlace(modelo, consumoId, " 2 ", " kg/h "));
+    expect(modelo.enlaces[consumoId]?.tasa).toBe("2");
+    expect(modelo.enlaces[consumoId]?.unidadesTasa).toBe("kg/h");
+  });
+
+  test("firma etiquetada bidireccional rechaza estado solo en destino", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 0, y: 0 }, "Objeto A"));
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 220, y: 0 }, "Objeto B"));
+    modelo = must(crearEstadosIniciales(modelo, entidadPorNombre(modelo, "Objeto B").id)).modelo;
+    const origen = entidadPorNombre(modelo, "Objeto A");
+    const destino = entidadPorNombre(modelo, "Objeto B");
+    const estadoDestino = estadosDeEntidad(modelo, destino.id)[0];
+    if (!estadoDestino) throw new Error("La prueba esperaba estado destino");
+
+    expect(validarFirmaEnlace("etiquetado", origen, destino, {
+      origen: extremoEntidad(origen.id),
+      destino: extremoEstado(estadoDestino.id),
+    }).ok).toBe(true);
+    expect(validarFirmaEnlace("etiquetadoBidireccional", origen, destino, {
+      origen: extremoEntidad(origen.id),
+      destino: extremoEstado(estadoDestino.id),
+    }).ok).toBe(false);
   });
 
   test("renombra entidad con nombre no vacio", () => {

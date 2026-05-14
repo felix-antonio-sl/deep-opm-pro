@@ -1,4 +1,4 @@
-import { CANON, naturalezaDeEnlace } from "../../modelo/constantes";
+import { CANON, esEnlaceEstructuralFundamental } from "../../modelo/constantes";
 import { entidadIdDeExtremo } from "../../modelo/extremos";
 import { anclajeRefinableSimbolo, anclajeRefinadorSimbolo, anclajeSimboloHaciaPunto, normalizarAnclajeSimbolo } from "../../modelo/simboloEstructural";
 import type { AnclajeSimboloEstructural, AnclajesSimboloEstructural, Apariencia, Enlace, Id, Modelo, Posicion, TipoEnlace } from "../../modelo/tipos";
@@ -54,7 +54,7 @@ function gruposEstructurales(args: {
   modelo: Modelo;
   enlaces: EnlaceConEndpointVisual[];
 }): GrupoEstructural[] {
-  const candidatas = args.enlaces.filter((item) => naturalezaDeEnlace(item.enlace.tipo) === "estructural");
+  const candidatas = args.enlaces.filter((item) => esEnlaceEstructuralFundamental(item.enlace.tipo));
   const porOrigen = agruparPorRefinable(args.modelo, candidatas, "origen");
   const consumidos = new Set<Id>();
   const grupos: GrupoEstructural[] = [];

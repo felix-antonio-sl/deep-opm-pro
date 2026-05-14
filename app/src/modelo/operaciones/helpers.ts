@@ -1,4 +1,4 @@
-import { naturalezaDeEnlace } from "../constantes";
+import { esEnlaceEstructuralFundamental } from "../constantes";
 import { extremoEntidad } from "../extremos";
 import type { Entidad, ExtremoEnlace, Id, Modelo, Opd, Resultado, TipoEnlace } from "../tipos";
 
@@ -36,8 +36,16 @@ export function validarFirmaEnlace(
   const origenExtremo = extremos.origen ?? extremoEntidad(origen.id);
   const destinoExtremo = extremos.destino ?? extremoEntidad(destino.id);
   const tieneEstado = origenExtremo.kind === "estado" || destinoExtremo.kind === "estado";
-  if (tieneEstado && naturalezaDeEnlace(tipo) === "estructural") {
+  if (tieneEstado && esEnlaceEstructuralFundamental(tipo)) {
     return fallo("Los enlaces estructurales no aceptan extremos Estado [V-237][V-239]");
+  }
+  if (tipo === "etiquetado") {
+    return ok(true);
+  }
+  if (tipo === "etiquetadoBidireccional") {
+    return destinoExtremo.kind === "estado" && origenExtremo.kind !== "estado"
+      ? fallo("El etiquetado bidireccional no admite estado solo en destino [V-30]")
+      : ok(true);
   }
   if (tipo === "agregacion") {
     return origen.tipo === destino.tipo

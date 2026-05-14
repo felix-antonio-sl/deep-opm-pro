@@ -42,6 +42,8 @@ export function esTipoEnlace(value: unknown): value is TipoEnlace {
     value === "exhibicion" ||
     value === "generalizacion" ||
     value === "clasificacion" ||
+    value === "etiquetado" ||
+    value === "etiquetadoBidireccional" ||
     value === "agente" ||
     value === "instrumento" ||
     value === "consumo" ||

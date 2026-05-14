@@ -1,4 +1,4 @@
-import { CANON, naturalezaDeEnlace } from "../../../modelo/constantes";
+import { CANON, enlaceAdmiteTasa, esEnlaceEstructuralEtiquetado, esEnlaceEstructuralFundamental, naturalezaDeEnlace } from "../../../modelo/constantes";
 import { etiquetaEnlaceNormalizada } from "../../../modelo/etiquetasEnlace";
 import { entidadIdDeExtremo } from "../../../modelo/extremos";
 import { modoPlegadoApariencia, partesDePlegado } from "../../../modelo/plegado";
@@ -10,6 +10,7 @@ import {
   anchoWrapEntreApariencias,
   LABEL_KEY_DEMORA,
   LABEL_KEY_ETIQUETA,
+  LABEL_KEY_BACKWARD_TAG,
   LABEL_KEY_MODIFICADOR,
   LABEL_KEY_MULTIPLICIDAD_DESTINO,
   LABEL_KEY_MULTIPLICIDAD_ORIGEN,
@@ -17,12 +18,14 @@ import {
   LABEL_KEY_PROBABILIDAD,
   LABEL_KEY_PROXY_DESTINO,
   LABEL_KEY_PROXY_ORIGEN,
+  LABEL_KEY_REQUISITOS,
+  LABEL_KEY_TASA,
   type LayoutLabelsEnlace,
 } from "../labelLayout";
 import { labelTextWrap } from "../labelText";
 import type { JointCellJson, OpmJointMetadata } from "../proyeccionTipos";
 import { selectorCapsulaEstado } from "./estados";
-import { etiquetaBadgeModificadorCanonico, marcadorDestino, marcadorFuente, marcadoresEstructurales, textoSubtipoModificador } from "./markers";
+import { etiquetaBadgeModificadorCanonico, marcadorDestino, marcadorFuente, marcadoresEstructurales, marcadorTaggedBidireccional, textoSubtipoModificador } from "./markers";
 
 const Z_ENLACE = 4;
 const Z_ENLACE_ESTADO = 20;
@@ -142,8 +145,8 @@ export function proyectarEnlace(
   //   3639-3648). Aqui aplicamos manhattan tambien a estructurales aunque la
   //   topologia triangular se maneja con composers especificos.
   // - Invocacion y abanico siguen sin router (sus vertices son explicitos).
-  const esEstructural = naturalezaDeEnlace(enlace.tipo) === "estructural";
-  const router = !enAbanico && enlace.tipo !== "invocacion" && esEstructural
+  const esEstructuralFundamental = esEnlaceEstructuralFundamental(enlace.tipo);
+  const router = !enAbanico && enlace.tipo !== "invocacion" && esEstructuralFundamental
     ? routerManhattan()
     : undefined;
   // OPCloud usa `jumpover` en OpmDefaultLink, pero en OPDs densos el arco de
@@ -161,6 +164,9 @@ export function proyectarEnlace(
   // la conexión con la cápsula interna siga visible y operable.
   const tocaEstado = !!origen.selectorEstado || !!destino.selectorEstado;
   const activoRuntime = opciones.activaSimulacion === true;
+  const marcadorBidireccional = enlace.tipo === "etiquetadoBidireccional"
+    ? marcadorTaggedBidireccional(deltaXEntreApariencias(origen.apariencia, destino.apariencia))
+    : null;
   return {
     id: aparienciaEnlaceId,
     type: "standard.Link",
@@ -172,8 +178,10 @@ export function proyectarEnlace(
     labels: [
       ...etiquetasMultiplicidad(enlace, labelPositions),
       ...etiquetasModificador(enlace, labelPositions, wrapWidth),
-      ...etiquetaEnlace(enlace, labelPositions, wrapWidth),
+      ...etiquetasTagged(enlace, labelPositions, wrapWidth),
+      ...(esEnlaceEstructuralEtiquetado(enlace.tipo) ? [] : etiquetaEnlace(enlace, labelPositions, wrapWidth)),
       ...etiquetasRuta(enlace, labelPositions, wrapWidth),
+      ...etiquetasOpcloudAvanzadas(enlace, labelPositions, wrapWidth),
       ...etiquetasProxyParte(origen, destino, labelPositions, wrapWidth),
       ...(activoRuntime ? [etiquetaTokenSimulacion()] : []),
     ],
@@ -191,8 +199,8 @@ export function proyectarEnlace(
         stroke: activoRuntime ? "#0f766e" : colorEnlace,
         strokeWidth: seleccionada ? grosorEnlace + 2 : activoRuntime ? grosorEnlace + 1.5 : grosorEnlace,
         ...(dashOverride !== undefined ? { strokeDasharray: dashOverride } : {}),
-        sourceMarker: marcadorFuente(enlace.tipo),
-        targetMarker: marcadorDestino(enlace.tipo),
+        sourceMarker: marcadorBidireccional ?? marcadorFuente(enlace.tipo),
+        targetMarker: marcadorBidireccional ?? marcadorDestino(enlace.tipo),
       },
     },
     opm: {
@@ -204,6 +212,10 @@ export function proyectarEnlace(
     },
     z: tocaEstado ? Z_ENLACE_ESTADO : Z_ENLACE,
   };
+}
+
+function deltaXEntreApariencias(origen: Apariencia, destino: Apariencia): number {
+  return destino.x + destino.width / 2 - (origen.x + origen.width / 2);
 }
 
 export function etiquetaTokenSimulacion(): Record<string, unknown> {
@@ -393,6 +405,63 @@ export function etiquetaTextoModificador(text: string, distance: number, offset:
         fill: "#475467",
         fontFamily: CANON.dims.fontFamily,
         fontSize: 11,
+        fontWeight: 700,
+        textAnchor: "middle",
+        textVerticalAnchor: "middle",
+        pointerEvents: "none",
+      },
+    },
+    position: {
+      distance,
+      offset,
+      angle: 0,
+      args: {
+        keepGradient: false,
+        ensureLegibility: true,
+      },
+    },
+  };
+}
+
+export function etiquetasTagged(enlace: Enlace, labelPositions?: LayoutLabelsEnlace, wrapWidth?: number): Array<Record<string, unknown>> {
+  if (enlace.tipo === "etiquetado") {
+    const tag = etiquetaEnlaceNormalizada(enlace.etiqueta);
+    return tag ? [aplicarLayoutLabel(etiquetaTextoTagged(tag, 0.5, -20, wrapWidth), LABEL_KEY_ETIQUETA, labelPositions)] : [];
+  }
+  if (enlace.tipo === "etiquetadoBidireccional") {
+    const labels: Array<Record<string, unknown>> = [];
+    const tag = etiquetaEnlaceNormalizada(enlace.etiqueta);
+    const backwardTag = enlace.backwardTag?.trim();
+    if (tag) labels.push(aplicarLayoutLabel(etiquetaTextoTagged(tag, 0.8, -10, wrapWidth), LABEL_KEY_ETIQUETA, labelPositions));
+    if (backwardTag) labels.push(aplicarLayoutLabel(etiquetaTextoTagged(backwardTag, 0.2, 10, wrapWidth), LABEL_KEY_BACKWARD_TAG, labelPositions));
+    return labels;
+  }
+  return [];
+}
+
+export function etiquetasOpcloudAvanzadas(enlace: Enlace, labelPositions?: LayoutLabelsEnlace, wrapWidth?: number): Array<Record<string, unknown>> {
+  const labels: Array<Record<string, unknown>> = [];
+  if (enlaceAdmiteTasa(enlace.tipo) && enlace.tasa?.trim()) {
+    const unidades = enlace.unidadesTasa?.trim();
+    const text = `Rate = ${enlace.tasa.trim()}${unidades ? ` [${unidades}]` : ""}`;
+    labels.push(aplicarLayoutLabel(etiquetaTextoModificador(text, 0.55, 10, wrapWidth), LABEL_KEY_TASA, labelPositions));
+  }
+  if (enlace.mostrarRequisitos && enlace.requisitos?.trim()) {
+    labels.push(aplicarLayoutLabel(etiquetaTextoTagged(`Satisfied: ${enlace.requisitos.trim()}`, 0.5, -30, wrapWidth), LABEL_KEY_REQUISITOS, labelPositions));
+  }
+  return labels;
+}
+
+export function etiquetaTextoTagged(text: string, distance: number, offset: number, wrapWidth?: number): Record<string, unknown> {
+  return {
+    markup: [{ tagName: "text", selector: "label" }],
+    attrs: {
+      label: {
+        text,
+        ...labelTextWrap(text, wrapWidth),
+        fill: "#111827",
+        fontFamily: CANON.dims.fontFamily,
+        fontSize: 12,
         fontWeight: 700,
         textAnchor: "middle",
         textVerticalAnchor: "middle",

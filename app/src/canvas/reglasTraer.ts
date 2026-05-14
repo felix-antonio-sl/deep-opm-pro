@@ -25,9 +25,7 @@ export const FAMILIAS_TRAER_DEFAULT: FamiliaTraerConectados[] = [...FAMILIAS_TRA
 const TIPOS_POR_FAMILIA: Record<FamiliaTraerConectados, readonly TipoEnlace[]> = {
   "procedural-habilitador": ["agente", "instrumento"],
   "procedural-transformador": ["consumo", "efecto", "resultado"],
-  // El kernel actual no define unidireccional/bidireccional tagged. La familia
-  // queda como contrato UI no-op hasta que esos tipos existan en TipoEnlace.
-  direccional: [],
+  direccional: ["etiquetado", "etiquetadoBidireccional"],
   estructural: ["agregacion", "exhibicion", "generalizacion", "clasificacion"],
 };
 

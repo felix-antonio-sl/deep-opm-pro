@@ -58,6 +58,8 @@ const TODOS_LOS_TIPOS_ENLACE: Record<TipoEnlace, true> = {
   exhibicion: true,
   generalizacion: true,
   clasificacion: true,
+  etiquetado: true,
+  etiquetadoBidireccional: true,
   agente: true,
   instrumento: true,
   consumo: true,

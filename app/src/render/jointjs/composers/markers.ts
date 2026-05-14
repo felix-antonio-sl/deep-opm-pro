@@ -187,7 +187,15 @@ export function marcadorFuente(tipo: TipoEnlace): Record<string, unknown> | null
   if (tipo === "efecto") {
     return markerAttrs(LINK_ASSETS.procedural.efecto.marker);
   }
+  if (tipo === "etiquetadoBidireccional") {
+    return markerAttrs(LINK_ASSETS.procedural.etiquetadoBidireccional.marker);
+  }
   return null;
+}
+
+export function marcadorTaggedBidireccional(deltaX: number): Record<string, unknown> {
+  const points = deltaX >= 0 ? "0.5,0 20,10" : "0.5,0 20,-10";
+  return markerAttrs({ ...LINK_ASSETS.procedural.etiquetadoBidireccional.marker, points });
 }
 
 export function marcadorDestino(tipo: TipoEnlace): Record<string, unknown> | null {
@@ -208,6 +216,12 @@ export function marcadorDestino(tipo: TipoEnlace): Record<string, unknown> | nul
   }
   if (tipo === "invocacion") {
     return markerAttrs(LINK_ASSETS.procedural.invocacion.marker);
+  }
+  if (tipo === "etiquetado") {
+    return markerAttrs(LINK_ASSETS.procedural.etiquetado.marker);
+  }
+  if (tipo === "etiquetadoBidireccional") {
+    return markerAttrs(LINK_ASSETS.procedural.etiquetadoBidireccional.marker);
   }
   return null;
 }

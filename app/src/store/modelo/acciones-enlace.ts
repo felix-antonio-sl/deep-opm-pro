@@ -19,6 +19,9 @@ import {
   ajustarMultiplicidad,
   apuntarExtremoEnlace,
   crearEnlace,
+  definirBackwardTag,
+  definirRequisitosEnlace,
+  definirTasaEnlace,
   moverPuertoEnlace as moverPuertoEnlaceOp,
   reanclarEnlaceExternoDerivado as reanclarEnlaceExternoDerivadoOp,
   splitEffectEnPar,
@@ -316,6 +319,54 @@ export function accionesEnlace(set: SetStore, get: GetStore): Partial<ModeloSlic
       const { modelo, enlaceSeleccionId } = get();
       if (!enlaceSeleccionId) return;
       const resultado = definirDemora(modelo, enlaceSeleccionId, demora);
+      if (!resultado.ok) {
+        set({ mensaje: resultado.error });
+        return;
+      }
+      commitModelo(set, modelo, resultado.value, {
+        seleccionId: null,
+        enlaceSeleccionId,
+        modoEnlace: null,
+        mensaje: null,
+      });
+    },
+
+    definirBackwardTagSeleccionado(tag) {
+      const { modelo, enlaceSeleccionId } = get();
+      if (!enlaceSeleccionId) return;
+      const resultado = definirBackwardTag(modelo, enlaceSeleccionId, tag);
+      if (!resultado.ok) {
+        set({ mensaje: resultado.error });
+        return;
+      }
+      commitModelo(set, modelo, resultado.value, {
+        seleccionId: null,
+        enlaceSeleccionId,
+        modoEnlace: null,
+        mensaje: null,
+      });
+    },
+
+    definirRequisitosEnlaceSeleccionado(requisitos, mostrar) {
+      const { modelo, enlaceSeleccionId } = get();
+      if (!enlaceSeleccionId) return;
+      const resultado = definirRequisitosEnlace(modelo, enlaceSeleccionId, requisitos, mostrar);
+      if (!resultado.ok) {
+        set({ mensaje: resultado.error });
+        return;
+      }
+      commitModelo(set, modelo, resultado.value, {
+        seleccionId: null,
+        enlaceSeleccionId,
+        modoEnlace: null,
+        mensaje: null,
+      });
+    },
+
+    definirTasaEnlaceSeleccionada(tasa, unidadesTasa) {
+      const { modelo, enlaceSeleccionId } = get();
+      if (!enlaceSeleccionId) return;
+      const resultado = definirTasaEnlace(modelo, enlaceSeleccionId, tasa, unidadesTasa);
       if (!resultado.ok) {
         set({ mensaje: resultado.error });
         return;

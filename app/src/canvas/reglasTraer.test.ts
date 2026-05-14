@@ -8,7 +8,7 @@ describe("reglasTraer", () => {
     expect(tiposDeFamilia("procedural-habilitador")).toEqual(["agente", "instrumento"]);
     expect(tiposDeFamilia("procedural-transformador")).toEqual(["consumo", "efecto", "resultado"]);
     expect(tiposDeFamilia("estructural")).toEqual(["agregacion", "exhibicion", "generalizacion", "clasificacion"]);
-    expect(tiposDeFamilia("direccional")).toEqual([]);
+    expect(tiposDeFamilia("direccional")).toEqual(["etiquetado", "etiquetadoBidireccional"]);
   });
 
   test("retorna entidades y enlace cuando la familia coincide", () => {
@@ -27,9 +27,10 @@ describe("reglasTraer", () => {
     expect(reglaTraerPorFamilias(modelo, enlace, ["estructural"])).toEqual({ entidades: [], enlaces: [] });
   });
 
-  test("familiaDeTipoEnlace conserva no-op para direccional ausente", () => {
+  test("familiaDeTipoEnlace mapea tipos etiquetados a familia direccional", () => {
     expect(familiaDeTipoEnlace("resultado")).toBe("procedural-transformador");
     expect(familiaDeTipoEnlace("agregacion")).toBe("estructural");
+    expect(familiaDeTipoEnlace("etiquetado")).toBe("direccional");
     expect(familiaDeTipoEnlace("invocacion")).toBeNull();
   });
 });

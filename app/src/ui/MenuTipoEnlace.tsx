@@ -11,6 +11,8 @@ const TIPOS_MENU: Array<{ tipo: TipoEnlace; label: string }> = [
   { tipo: "exhibicion", label: "Exhibición" },
   { tipo: "generalizacion", label: "Generalización" },
   { tipo: "clasificacion", label: "Clasificación" },
+  { tipo: "etiquetado", label: "Etiquetado" },
+  { tipo: "etiquetadoBidireccional", label: "Etiquetado bidireccional" },
   { tipo: "agente", label: "Agente" },
   { tipo: "instrumento", label: "Instrumento" },
   { tipo: "consumo", label: "Consumo" },
@@ -116,6 +118,8 @@ function iconoTipo(tipo: TipoEnlace): string {
   if (tipo === "exhibicion") return "E";
   if (tipo === "generalizacion") return "G";
   if (tipo === "clasificacion") return "C";
+  if (tipo === "etiquetado") return "Et";
+  if (tipo === "etiquetadoBidireccional") return "Et2";
   if (tipo === "agente") return "Ag";
   if (tipo === "instrumento") return "In";
   if (tipo === "consumo") return "Co";
@@ -136,6 +140,8 @@ function previewOpl(tipo: TipoEnlace, origen: Entidad, destino: Entidad): string
   if (tipo === "agregacion") return `${o} consta de ${d}.`;
   if (tipo === "exhibicion") return `${o} exhibe ${d}.`;
   if (tipo === "generalizacion") return `${d} es ${o}.`;
+  if (tipo === "etiquetado") return `${o} se relaciona con ${d}.`;
+  if (tipo === "etiquetadoBidireccional") return `${o} y ${d} se relacionan.`;
   return `${d} es una instancia de ${o}.`;
 }
 

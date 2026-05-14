@@ -171,6 +171,8 @@ function TablaEnlacesContenido(props: ContenidoProps) {
               <option value="exhibicion">Exhibición</option>
               <option value="generalizacion">Generalización</option>
               <option value="clasificacion">Clasificación</option>
+              <option value="etiquetado">Etiquetado</option>
+              <option value="etiquetadoBidireccional">Etiquetado bidireccional</option>
               <option value="agente">Agente</option>
               <option value="instrumento">Instrumento</option>
               <option value="consumo">Consumo</option>

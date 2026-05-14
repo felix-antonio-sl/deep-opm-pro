@@ -35,7 +35,10 @@ export function calcularEstadisticas(modelo: Modelo): EstadisticasModelo {
         enlace.tipo === "generalizacion" ||
         enlace.tipo === "clasificacion"
       ).length,
-      etiquetado: 0,
+      etiquetado: enlaces.filter((enlace) =>
+        enlace.tipo === "etiquetado" ||
+        enlace.tipo === "etiquetadoBidireccional"
+      ).length,
       procedural: enlaces.filter((enlace) =>
         enlace.tipo === "agente" ||
         enlace.tipo === "instrumento" ||

@@ -523,6 +523,9 @@ export interface OpmStore {
   quitarModificadorEnlaceSeleccionado: () => void;
   definirProbabilidadEventoSeleccionada: (probabilidad: number | undefined) => void;
   definirDemoraInvocacionSeleccionada: (demora: string | undefined) => void;
+  definirBackwardTagSeleccionado: (tag: string | undefined) => void;
+  definirRequisitosEnlaceSeleccionado: (requisitos: string | undefined, mostrar: boolean) => void;
+  definirTasaEnlaceSeleccionada: (tasa: string | undefined, unidadesTasa: string | undefined) => void;
   moverPuertoEnlaceSeleccionado: (lado: "origen" | "destino", extremo: ExtremoEnlace, opcionRemover?: boolean) => void;
   renombrarEtiquetaEnlaceSeleccionado: (etiqueta: string) => void;
   definirRutaEtiquetaSeleccionada: (etiqueta: string | undefined) => void;

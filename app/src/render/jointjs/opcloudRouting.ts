@@ -1,5 +1,5 @@
 import type { dia } from "jointjs";
-import { naturalezaDeEnlace } from "../../modelo/constantes";
+import { esEnlaceEstructuralFundamental } from "../../modelo/constantes";
 import type { TipoEnlace } from "../../modelo/tipos";
 import type { OpmJointMetadata } from "./proyeccionTipos";
 
@@ -56,7 +56,7 @@ function direccionesPorLink(link: dia.Link): { startDirections?: string[]; endDi
 }
 
 function esEstructural(tipo: TipoEnlace): boolean {
-  return naturalezaDeEnlace(tipo) === "estructural";
+  return esEnlaceEstructuralFundamental(tipo);
 }
 
 function esTrianguloEstructural(cell: dia.Cell): boolean {

@@ -1,9 +1,9 @@
-# HANDOFF — Enlaces OPCloud y anclas automáticas
+# HANDOFF — Enlaces OPCloud avanzados
 
 **Fecha**: 2026-05-14
 **Repositorio**: `deep-opm-pro`
 **Rama**: `main`
-**Corte**: heurística automática de anclas para símbolos estructurales, manteniendo edición manual, `symbolPos` persistible y la arquitectura JointJS OSS.
+**Corte**: soporte de enlaces estructurales etiquetados OPCloud (`tag/backwardTag`), labels `requirements`/`rate`, OPL/JSON/UI/render alineados con SSOT y JointJS OSS.
 
 ## Política De Handoff Único
 
@@ -13,46 +13,52 @@
 
 - SSOT OPM: `/home/felix/kora/artifacts/knowledge/fxsl/opm/opm-ssot-es/`.
 - Roadmap vivo de enlaces: `docs/audits/opcloud-enlaces-pendientes/README.md`.
-- OPCloud operacional: `opm-extracted/src/app/configuration/rappidEnviromentFunctionality/shared.ts` (`OpmFundamentalLink`, `TriangleClass`) y `opm-extracted/src/app/models/DrawnPart/OpmEntity.ts`.
-- JointJS OSS consultado: `https://docs.jointjs.com/api/layout/Port/` (`absolute` ports), `https://docs.jointjs.com/learn/features/ports/` (`portProp`/ports como puntos de conexión), `https://docs.jointjs.com/api/elementTools/Control/` (handles draggeables).
+- OPCloud operacional:
+  - `opm-extracted/src/app/models/LogicalPart/OpmTaggedRelation.ts`
+  - `opm-extracted/src/app/models/DrawnPart/Links/UnidirectionalTaggedLink.ts`
+  - `opm-extracted/src/app/configuration/rappidEnviromentFunctionality/shared.ts` (`BiDirectionalTaggedLink`, `updateTagLabel`, `updateBackwardTagLabel`, `updateRequirementsLabel`).
+- JointJS OSS consultado:
+  - `https://docs.jointjs.com/learn/features/labels/`
+  - `https://docs.jointjs.com/learn/features/diagram-basics/links/`
 
 ## Estado Actual
 
-Quedó implementado el bloque recomendado del handoff anterior:
+Quedó implementado el siguiente bloque del roadmap:
 
-- **Anclas automáticas por dirección**: si una apariencia de enlace estructural no tiene `symbolAnchors`, el renderer ubica el puerto `in` del triángulo hacia el refinable y el puerto `out` hacia el refinador o promedio de refinadores. En layouts laterales evita segmentos top/bottom innecesarios; en layouts verticales conserva el resultado OPCloud-style.
-- **Sin serializar defaults falsos**: mover el triángulo persiste `symbolPos`, pero ya no crea `symbolAnchors` top/bottom por defecto. Las anclas sólo entran al JSON cuando el operador las ajusta explícitamente.
-- **Reset realmente automático**: el Inspector cambió el reset a `Auto anclas`, que elimina `symbolAnchors` y devuelve el grupo al modo inferido.
-- **Manual sigue ganando**: `symbolAnchors` persistidos por handles o por Inspector se respetan y sobreviven al drag del triángulo.
-- **HODOM denso validado por sonda**: el bundle `/home/felix/projects/hd-hsc-os/docs/models/opm-hodom-bundle-v1.1.json` hidrata y proyecta todos sus OPDs; `opd-sd1` proyectó 28 apariencias, 59 enlaces, 97 cells y 5 triángulos sin error.
+- **Familias tagged OPCloud**: nuevos `TipoEnlace` `etiquetado` y `etiquetadoBidireccional`, expuestos en toolbar, menú de tipos válidos, tabla de enlaces y reglas de traer conectados.
+- **Semántica SSOT**: los tagged son estructurales, pero no fundamentales. No entran a bus/triángulo, sort structural, router manhattan ni controles de grupo estructural. Los fundamentales siguen siendo `agregacion`, `exhibicion`, `generalizacion`, `clasificacion`.
+- **Firmas con estados**: `etiquetado` admite entidad/estado; `etiquetadoBidireccional` bloquea el caso SSOT inválido de estado sólo en destino.
+- **Markers OPCloud**: unidireccional usa open arrow `0,0 20,-10 0,0 20,10`; bidireccional usa harpoon en ambos extremos y cambia orientación horizontal como `fixArrowDirection()` de OPCloud.
+- **Labels OPCloud**: forward tag, backward tag, `Satisfied: ...` y `Rate = ... [units]` se proyectan con posiciones/offsets observados en OPCloud y heredan `labelPositions` persistibles.
+- **Metadatos de enlace**: `backwardTag`, `requisitos`, `mostrarRequisitos`, `tasa`, `unidadesTasa` tienen operaciones puras, acciones Zustand, Inspector y validación JSON.
+- **OPL tagged**: unidireccional sin tag emite `se relaciona con`; con tag usa el tag como verbo. Bidireccional emite forward/backward cuando ambos existen y default `se relacionan` si no hay tags.
+- **Serialización estricta**: JSON normaliza strings, conserva metadatos válidos y rechaza `backwardTag` fuera de bidireccional, `tasa/unidadesTasa` fuera de consumo/resultado/efecto y `grupoEstructuralId` fuera de estructurales fundamentales.
 
 ## Artefactos Modificados
 
-- Modelo/operaciones/store: `app/src/modelo/simboloEstructural.ts`, `app/src/modelo/operaciones/apariencias.ts`, `app/src/modelo/operaciones.ts`, `app/src/store/modelo/acciones-canvas.ts`, `app/src/store/tipos.ts`, `app/src/store/sliceTypes.ts`.
-- Renderer JointJS: `app/src/render/jointjs/composers/enlace.ts`, `app/src/render/jointjs/agregacionBus.ts`.
-- UI: `app/src/ui/InspectorEnlace.tsx`.
-- Tests: `app/src/modelo/operaciones.test.ts`, `app/src/store.test.ts`, `app/src/store/enlaces.test.ts`, `app/src/render/jointjs/proyeccion.test.ts`.
-- Documentación/memoria: `docs/audits/opcloud-enlaces-pendientes/README.md` y memoria externa `project_opcloud_enlaces_pendientes.md`.
+- Modelo/operaciones: `app/src/modelo/tipos/enlace.ts`, `app/src/modelo/constantes.ts`, `app/src/modelo/enlaceMetadatos.ts`, `app/src/modelo/operaciones/helpers.ts`, `app/src/modelo/operaciones.ts`, `app/src/modelo/modificadores.ts`, `app/src/modelo/etiquetasEnlace.ts`.
+- Render JointJS: `app/src/render/jointjs/composers/enlace.ts`, `app/src/render/jointjs/composers/markers.ts`, `app/src/render/jointjs/linkAssets.ts`, `app/src/render/jointjs/labelLayout.ts`, `app/src/render/jointjs/{agregacionBus,opcloudRouting,sortStructuralLinks}.ts`, `app/src/render/jointjs/mapa/estadisticas.ts`.
+- UI/store: `app/src/ui/InspectorEnlace.tsx`, `app/src/ui/inspectorEnlace/SeccionMetadatosOpcloud.tsx`, `app/src/ui/MenuTipoEnlace.tsx`, `app/src/ui/TablaEnlaces.tsx`, `app/src/ui/toolbar/ToolbarCreacion.tsx`, `app/src/store/{tipos,sliceTypes}.ts`, `app/src/store/modelo/acciones-enlace.ts`.
+- OPL/serialización/canvas: `app/src/opl/generadores/{procedural,refsHints}.ts`, `app/src/serializacion/{json,validarGuards,validarEnlaces,validarNormalizacion}.ts`, `app/src/canvas/reglasTraer.ts`.
+- Tests: `app/src/completitud.test.ts`, `app/src/modelo/operaciones.test.ts`, `app/src/opl/generar.test.ts`, `app/src/serializacion/json.test.ts`, `app/src/render/jointjs/proyeccion.test.ts`, `app/src/store/enlaces.test.ts`, `app/src/canvas/reglasTraer.test.ts`.
 
 ## Verificación Final
 
 Ejecutado en `app/`:
 
 ```bash
-bun run lint
-# clean
-
 bun run typecheck
 # clean
 
 bun run test
-# 1253 pass / 0 fail / 4735 expect() / 118 files
+# 1264 pass / 0 fail / 4818 expect() / 118 files
 
 bun run build
 # clean
 
 bun run browser:smoke
-# 173 pass / 0 fail
+# primera corrida: 172 pass / 1 flake en busqueda; rerun aislado clean
+# segunda corrida completa: 173 pass / 0 fail
 ```
 
 Antes del smoke se limpió Vite con:
@@ -61,21 +67,22 @@ Antes del smoke se limpió Vite con:
 pgrep -af vite | grep -v eval | awk '{print $1}' | xargs -r kill
 ```
 
-Artefactos regenerables `app/dist` y `app/test-results` deben quedar fuera de git.
+Dev server vigente para revisión manual: `http://138.201.53.205:5173/`.
 
 ## Pendientes
 
-- Labels avanzados OPCloud: requirements, rate/time completos, tags/backtags y familias tagged/bidirectional.
-- Exception links de tiempo (`Overtime`/`Undertime`) y metadatos avanzados de requisitos.
-- Validación visual humana in-vivo con HODOM denso en `http://138.201.53.205:5173/`, especialmente grupos estructurales separados y anclas automáticas/manuales.
+- **Exception/time links OPCloud**: `Overtime`, `Undertime`, `OvertimeUndertime` y su semántica visual/OPL.
+- **Forked tagged links**: OPCloud sincroniza enlaces unidireccionales con mismo source+tag; todavía no emulamos ese comportamiento de fork.
+- **Import/export OPX real**: los campos nuevos están en JSON local, pero no hay mapeo OPX productivo.
+- **Smoke específico tagged**: conviene agregar una prueba browser que cree tagged/bidirectional desde UI y verifique Inspector + OPL + JSON, aunque la cobertura unit/render ya existe.
 
 ## Supuestos Y Riesgos
 
-- La inferencia automática vive en render y no muta modelo. Esto preserva compatibilidad JSON, pero significa que el mismo modelo puede renderizar mejor tras cambios de heurística sin diff de datos.
-- OPCloud usa puertos `top`/`bottom` para el triángulo y desplaza triángulos solapados; la ancla direccional es una extensión local deliberada sobre ports `absolute` de JointJS OSS.
-- El botón `Auto anclas` elimina sólo `symbolAnchors`; no toca `symbolPos`, `labelPositions` ni grupos estructurales.
-- No se usa `labelsLayer`; conservar esa decisión salvo que se resuelva explícitamente la duplicación DOM observada.
+- `requirements` se modela como metadato visual de enlace, no como semántica formal de verificación de requisitos.
+- `rate` queda restringido a consumo/resultado/efecto porque OPCloud lo expone en popup procedural y la SSOT no lo define para tagged/fundamental.
+- Los tagged son estructurales para OPL/SSOT, pero visualmente no usan triángulo ni bus. Esto sigue el patrón OPCloud de `OpmTaggedLink`.
+- No se usa `labelsLayer`; conservar esa decisión salvo que se resuelva explícitamente la duplicación DOM observada en JointJS OSS.
 
 ## Prompt De Continuación
 
-Retomar desde `docs/HANDOFF.md` y `docs/audits/opcloud-enlaces-pendientes/README.md`. Siguiente bloque recomendado: labels OPCloud avanzados (`requirements`, `rate/time`, `tags/backtags`, tagged/bidirectional), empezando por inventariar campos reales en `opm-extracted` y decidir el mínimo modelo/UI/OPL sin introducir campos muertos. Mantener `labelPositions`, `symbolAnchors` y la decisión de no usar `labelsLayer`.
+Retomar desde `docs/HANDOFF.md` y `docs/audits/opcloud-enlaces-pendientes/README.md`. Siguiente bloque recomendado: exception/time links OPCloud y, en paralelo, smoke UI para tagged/bidirectional. Mantener el principio: revisar `opm-extracted` primero, respetar SSOT para semántica y adaptar a nuestra arquitectura Preact/Zustand/JointJS OSS sin copiar Rappid.

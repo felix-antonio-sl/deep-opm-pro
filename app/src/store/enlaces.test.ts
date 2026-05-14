@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { crearEnlace, crearModelo, crearObjeto } from "../modelo/operaciones";
+import { crearEnlace, crearModelo, crearObjeto, crearProceso } from "../modelo/operaciones";
 import { exportarModelo } from "../serializacion/json";
 import { store } from "../store";
 
@@ -14,6 +14,39 @@ describe("slice enlaces", () => {
 
     store.getState().cancelarEnlace();
     expect(store.getState().modoEnlace).toBeNull();
+  });
+
+  test("acciones seleccionadas editan metadatos OPCloud de enlace", () => {
+    let modelo = crearModelo("Store metadatos enlace");
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 80 }, "Sistema"));
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 260, y: 80 }, "Requisito"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 500, y: 80 }, "Procesar"));
+    const sistemaId = Object.values(modelo.entidades).find((entidad) => entidad.nombre === "Sistema")?.id;
+    const requisitoId = Object.values(modelo.entidades).find((entidad) => entidad.nombre === "Requisito")?.id;
+    const procesarId = Object.values(modelo.entidades).find((entidad) => entidad.nombre === "Procesar")?.id;
+    if (!sistemaId || !requisitoId || !procesarId) throw new Error("La prueba esperaba entidades");
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, sistemaId, requisitoId, "etiquetadoBidireccional"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, sistemaId, procesarId, "consumo"));
+    const taggedId = Object.values(modelo.enlaces).find((enlace) => enlace.tipo === "etiquetadoBidireccional")?.id;
+    const consumoId = Object.values(modelo.enlaces).find((enlace) => enlace.tipo === "consumo")?.id;
+    if (!taggedId || !consumoId) throw new Error("La prueba esperaba enlaces");
+    store.getState().importarJson(exportarModelo(modelo));
+
+    store.getState().seleccionarEnlace(taggedId);
+    store.getState().definirBackwardTagSeleccionado(" pertenece a ");
+    store.getState().definirRequisitosEnlaceSeleccionado(" REQ-1 ", true);
+    store.getState().definirTasaEnlaceSeleccionada("2", "kg/h");
+
+    expect(store.getState().modelo.enlaces[taggedId]?.backwardTag).toBe("pertenece a");
+    expect(store.getState().modelo.enlaces[taggedId]?.requisitos).toBe("REQ-1");
+    expect(store.getState().modelo.enlaces[taggedId]?.mostrarRequisitos).toBe(true);
+    expect(store.getState().modelo.enlaces[taggedId]?.tasa).toBeUndefined();
+    expect(store.getState().mensaje).toContain("tasa");
+
+    store.getState().seleccionarEnlace(consumoId);
+    store.getState().definirTasaEnlaceSeleccionada(" 2 ", " kg/h ");
+    expect(store.getState().modelo.enlaces[consumoId]?.tasa).toBe("2");
+    expect(store.getState().modelo.enlaces[consumoId]?.unidadesTasa).toBe("kg/h");
   });
 
   test("mover simbolo estructural conserva anclas manuales", () => {

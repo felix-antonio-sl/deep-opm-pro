@@ -2,7 +2,8 @@ import { describe, expect, test } from "bun:test";
 import { extremoApuntaAEntidad, extremoEntidad, extremoEstado } from "../modelo/extremos";
 import { aplicarModificador, definirDemora, definirProbabilidad } from "../modelo/modificadores";
 import { aplicarEstiloApariencia } from "../modelo/estilos";
-import { actualizarPosicionSimboloEstructural, ajustarMultiplicidad, crearEnlace, crearEstadosIniciales, crearModelo, crearObjeto, crearProceso, designarEstadoFinal, designarEstadoInicial, descomponerProceso, desplegarObjeto, reanclarEnlaceExternoDerivado, sincronizarPuertosEnlaces } from "../modelo/operaciones";
+import { actualizarPosicionSimboloEstructural, ajustarMultiplicidad, crearEnlace, crearEstadosIniciales, crearModelo, crearObjeto, crearProceso, definirBackwardTag, definirRequisitosEnlace, definirTasaEnlace, designarEstadoFinal, designarEstadoInicial, descomponerProceso, desplegarObjeto, reanclarEnlaceExternoDerivado, sincronizarPuertosEnlaces } from "../modelo/operaciones";
+import { renombrarEtiquetaEnlace } from "../modelo/etiquetasEnlace";
 import { cambiarModoPlegado, extraerParteDePlegado, partesExtraidasEn } from "../modelo/plegado";
 import { definirRutaEtiqueta } from "../modelo/rutas";
 import type { Apariencia, Modelo, ModoDespliegueObjeto, RefinamientoEntidad, TipoEnlace } from "../modelo/tipos";
@@ -641,6 +642,65 @@ describe("serializacion JSON", () => {
     expect(hidratado.ok).toBe(true);
     if (!hidratado.ok) return;
     expect(hidratado.value.enlaces[enlaceId]?.grupoEstructuralId).toBe("grupo-a");
+  });
+
+  test("preserva metadatos OPCloud de enlaces etiquetados y tasa en round-trip", () => {
+    let modelo = crearModelo("Metadatos OPCloud enlaces");
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 10, y: 20 }, "Sistema"));
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 240, y: 20 }, "Requisito"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 470, y: 20 }, "Procesar"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidadPorNombre(modelo, "Sistema"), entidadPorNombre(modelo, "Requisito"), "etiquetadoBidireccional"));
+    const taggedId = Object.keys(modelo.enlaces)[0];
+    if (!taggedId) throw new Error("La prueba esperaba enlace tagged");
+    modelo = must(renombrarEtiquetaEnlace(modelo, taggedId, " satisface "));
+    modelo = must(definirBackwardTag(modelo, taggedId, " es satisfecho por "));
+    modelo = must(definirRequisitosEnlace(modelo, taggedId, " REQ-1 ", true));
+
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidadPorNombre(modelo, "Sistema"), entidadPorNombre(modelo, "Procesar"), "consumo"));
+    const consumoId = Object.values(modelo.enlaces).find((enlace) => enlace.tipo === "consumo")?.id;
+    if (!consumoId) throw new Error("La prueba esperaba enlace consumo");
+    modelo = must(definirTasaEnlace(modelo, consumoId, " 2 ", " kg/h "));
+
+    const hidratado = hidratarModelo(exportarModelo(modelo));
+
+    expect(hidratado.ok).toBe(true);
+    if (!hidratado.ok) return;
+    expect(hidratado.value.enlaces[taggedId]).toMatchObject({
+      etiqueta: "satisface",
+      backwardTag: "es satisfecho por",
+      requisitos: "REQ-1",
+      mostrarRequisitos: true,
+    });
+    expect(hidratado.value.enlaces[consumoId]).toMatchObject({
+      tasa: "2",
+      unidadesTasa: "kg/h",
+    });
+  });
+
+  test("rechaza metadatos OPCloud de enlace fuera de familia", () => {
+    let modelo = crearModelo("Metadatos OPCloud invalidos");
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 10, y: 20 }, "Sistema"));
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 240, y: 20 }, "Requisito"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidadPorNombre(modelo, "Sistema"), entidadPorNombre(modelo, "Requisito"), "etiquetado"));
+    const enlaceId = Object.keys(modelo.enlaces)[0];
+    if (!enlaceId) throw new Error("La prueba esperaba enlace");
+    const documento = JSON.parse(exportarModelo(modelo));
+    const enlace = documento.modelo.enlaces[enlaceId] as Record<string, unknown>;
+
+    enlace.backwardTag = "inverso";
+    expect(hidratarModelo(JSON.stringify(documento)).ok).toBe(false);
+
+    delete enlace.backwardTag;
+    enlace.tasa = "2";
+    expect(hidratarModelo(JSON.stringify(documento)).ok).toBe(false);
+
+    delete enlace.tasa;
+    enlace.unidadesTasa = "kg/h";
+    expect(hidratarModelo(JSON.stringify(documento)).ok).toBe(false);
+
+    delete enlace.unidadesTasa;
+    enlace.grupoEstructuralId = "grupo-a";
+    expect(hidratarModelo(JSON.stringify(documento)).ok).toBe(false);
   });
 
   test("preserva ports y portId dinamicos de enlaces en round-trip", () => {

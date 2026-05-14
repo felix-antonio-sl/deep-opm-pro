@@ -1,6 +1,6 @@
 import { useEffect, useState } from "preact/hooks";
 import { abanicoDeEnlace } from "../modelo/abanicos";
-import { naturalezaDeEnlace } from "../modelo/constantes";
+import { esEnlaceEstructuralFundamental } from "../modelo/constantes";
 import { etiquetaEnlaceNormalizada, validarEtiquetaEnlace } from "../modelo/etiquetasEnlace";
 import { entidadDeExtremo, entidadIdDeExtremo, nombreExtremo } from "../modelo/extremos";
 import { relacionesEstructuralesFaltantes, validarMultiplicidad } from "../modelo/operaciones";
@@ -15,6 +15,7 @@ import { SeccionEstilo } from "./inspectorEnlace/SeccionEstilo";
 import { SeccionEstiloEnlace } from "./inspectorEnlace/SeccionEstiloEnlace";
 import { SeccionExtremos } from "./inspectorEnlace/SeccionExtremos";
 import { SeccionEtiquetaEnlace, SeccionMultiplicidad, probabilidadValida } from "./inspectorEnlace/SeccionMultiplicidad";
+import { SeccionMetadatosOpcloud } from "./inspectorEnlace/SeccionMetadatosOpcloud";
 import { SeccionReanclaje, contextoReanclaje } from "./inspectorEnlace/SeccionReanclaje";
 import { SeccionRuta } from "./inspectorEnlace/SeccionRuta";
 import { DialogoEstiloEnlace } from "./DialogoEstiloEnlace";
@@ -70,6 +71,9 @@ export function InspectorEnlace({ enlace }: Props) {
   const quitarModificador = useOpmStore((s) => s.quitarModificadorEnlaceSeleccionado);
   const definirProbabilidadEvento = useOpmStore((s) => s.definirProbabilidadEventoSeleccionada);
   const definirDemoraInvocacion = useOpmStore((s) => s.definirDemoraInvocacionSeleccionada);
+  const definirBackwardTag = useOpmStore((s) => s.definirBackwardTagSeleccionado);
+  const definirRequisitosEnlace = useOpmStore((s) => s.definirRequisitosEnlaceSeleccionado);
+  const definirTasaEnlace = useOpmStore((s) => s.definirTasaEnlaceSeleccionada);
   const moverPuerto = useOpmStore((s) => s.moverPuertoEnlaceSeleccionado);
   const renombrarEtiquetaEnlace = useOpmStore((s) => s.renombrarEtiquetaEnlaceSeleccionado);
   const definirRutaEtiqueta = useOpmStore((s) => s.definirRutaEtiquetaSeleccionada);
@@ -100,6 +104,11 @@ export function InspectorEnlace({ enlace }: Props) {
   const [demora, setDemora] = useState(enlace.demora ?? "");
   const [etiqueta, setEtiqueta] = useState(enlace.etiqueta);
   const [rutaEtiqueta, setRutaEtiqueta] = useState(enlace.rutaEtiqueta ?? "");
+  const [backwardTag, setBackwardTag] = useState(enlace.backwardTag ?? "");
+  const [requisitos, setRequisitos] = useState(enlace.requisitos ?? "");
+  const [mostrarRequisitos, setMostrarRequisitos] = useState(enlace.mostrarRequisitos ?? false);
+  const [tasa, setTasa] = useState(enlace.tasa ?? "");
+  const [unidadesTasa, setUnidadesTasa] = useState(enlace.unidadesTasa ?? "");
   const [endpointSeleccionado, setEndpointSeleccionado] = useState(endpointActual);
   const [dialogoMoverPuertoAbierto, setDialogoMoverPuertoAbierto] = useState(false);
   const [dialogoEstiloAbierto, setDialogoEstiloAbierto] = useState(false);
@@ -113,7 +122,12 @@ export function InspectorEnlace({ enlace }: Props) {
     setDemora(enlace.demora ?? "");
     setEtiqueta(enlace.etiqueta);
     setRutaEtiqueta(enlace.rutaEtiqueta ?? "");
-  }, [enlace.id, enlace.probabilidad, enlace.demora, enlace.etiqueta, enlace.rutaEtiqueta]);
+    setBackwardTag(enlace.backwardTag ?? "");
+    setRequisitos(enlace.requisitos ?? "");
+    setMostrarRequisitos(enlace.mostrarRequisitos ?? false);
+    setTasa(enlace.tasa ?? "");
+    setUnidadesTasa(enlace.unidadesTasa ?? "");
+  }, [enlace.id, enlace.probabilidad, enlace.demora, enlace.etiqueta, enlace.rutaEtiqueta, enlace.backwardTag, enlace.requisitos, enlace.mostrarRequisitos, enlace.tasa, enlace.unidadesTasa]);
   useEffect(() => setEndpointSeleccionado(endpointActual), [enlace.id, endpointActual]);
   useEffect(() => {
     if (!TABS_ENLACE.some((t) => t.id === tabActivo)) cambiarTab("propiedades");
@@ -151,6 +165,20 @@ export function InspectorEnlace({ enlace }: Props) {
   const cambiarRutaEtiqueta = (valor: string) => {
     setRutaEtiqueta(valor);
     definirRutaEtiqueta(valor.trim() === "" ? undefined : valor);
+  };
+  const cambiarBackwardTag = (valor: string) => {
+    setBackwardTag(valor);
+    definirBackwardTag(valor.trim() === "" ? undefined : valor);
+  };
+  const cambiarRequisitos = (valor: string, mostrar: boolean) => {
+    setRequisitos(valor);
+    setMostrarRequisitos(valor.trim().length > 0 ? mostrar : false);
+    definirRequisitosEnlace(valor.trim() === "" ? undefined : valor, valor.trim().length > 0 && mostrar);
+  };
+  const cambiarTasa = (valor: string, unidades: string) => {
+    setTasa(valor);
+    setUnidadesTasa(unidades);
+    definirTasaEnlace(valor.trim() === "" ? undefined : valor, unidades.trim() === "" ? undefined : unidades);
   };
 
   const opdsDelEnlace = opdsConEnlace(modelo, enlace.id);
@@ -206,6 +234,17 @@ export function InspectorEnlace({ enlace }: Props) {
               onSubtipoModificador={aplicarSubtipoModificador}
               onProbabilidad={cambiarProbabilidad}
               onDemora={cambiarDemora}
+            />
+            <SeccionMetadatosOpcloud
+              enlace={enlace}
+              backwardTag={backwardTag}
+              requisitos={requisitos}
+              mostrarRequisitos={mostrarRequisitos}
+              tasa={tasa}
+              unidadesTasa={unidadesTasa}
+              onBackwardTag={cambiarBackwardTag}
+              onRequisitos={cambiarRequisitos}
+              onTasa={cambiarTasa}
             />
             {/* Ronda 20 L1 ajuste post-merge: el operador del Abanico es propiedad
                 lógica del enlace (igual que multiplicidad/modificador), por lo que
@@ -333,7 +372,7 @@ function SeccionGrupoEstructural(props: {
   onPlegar: () => void;
   onPlegarCompleto: () => void;
 }) {
-  if (naturalezaDeEnlace(props.enlace.tipo) !== "estructural") return null;
+  if (!esEnlaceEstructuralFundamental(props.enlace.tipo)) return null;
   const separado = !!props.enlace.grupoEstructuralId;
   const grupo = grupoEstructuralInspector(props.modelo, props.enlace, props.seleccionados);
   const ordenado = grupo.refinable?.orderedFundamentalTypes?.includes(props.enlace.tipo) ?? false;

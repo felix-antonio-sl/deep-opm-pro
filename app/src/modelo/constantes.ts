@@ -22,10 +22,26 @@ export const CANON = {
 export type NaturalezaEnlace = "estructural" | "procedural";
 
 export function naturalezaDeEnlace(tipo: TipoEnlace): NaturalezaEnlace {
+  return esEnlaceEstructural(tipo)
+    ? "estructural"
+    : "procedural";
+}
+
+export function esEnlaceEstructural(tipo: TipoEnlace): boolean {
+  return esEnlaceEstructuralFundamental(tipo) || esEnlaceEstructuralEtiquetado(tipo);
+}
+
+export function esEnlaceEstructuralFundamental(tipo: TipoEnlace): boolean {
   return tipo === "agregacion" ||
     tipo === "exhibicion" ||
     tipo === "generalizacion" ||
-    tipo === "clasificacion"
-    ? "estructural"
-    : "procedural";
+    tipo === "clasificacion";
+}
+
+export function esEnlaceEstructuralEtiquetado(tipo: TipoEnlace): boolean {
+  return tipo === "etiquetado" || tipo === "etiquetadoBidireccional";
+}
+
+export function enlaceAdmiteTasa(tipo: TipoEnlace): boolean {
+  return tipo === "consumo" || tipo === "resultado" || tipo === "efecto";
 }

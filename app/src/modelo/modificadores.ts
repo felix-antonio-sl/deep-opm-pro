@@ -1,4 +1,4 @@
-import { naturalezaDeEnlace } from "./constantes";
+import { enlaceAdmiteTasa, naturalezaDeEnlace } from "./constantes";
 import { crearEnlace } from "./operaciones";
 import type { Enlace, Id, Modelo, Modificador, Resultado, SubtipoModificador } from "./tipos";
 
@@ -142,6 +142,20 @@ export function validarMetadatosEnlace(enlace: Enlace): Resultado<true> {
   if (enlace.demora !== undefined) {
     if (enlace.tipo !== "invocacion") return fallo("La demora solo aplica a enlaces de invocacion [V-240]");
     if (enlace.demora.trim().length === 0) return fallo("La demora no puede estar vacia");
+  }
+  if (enlace.backwardTag !== undefined && enlace.tipo !== "etiquetadoBidireccional") {
+    return fallo("backwardTag solo aplica a enlace etiquetado bidireccional");
+  }
+  if (enlace.mostrarRequisitos !== undefined && typeof enlace.mostrarRequisitos !== "boolean") {
+    return fallo("mostrarRequisitos debe ser booleano");
+  }
+  if (enlace.tasa !== undefined) {
+    if (!enlaceAdmiteTasa(enlace.tipo)) return fallo("La tasa solo aplica a consumo, resultado o efecto");
+    if (enlace.tasa.trim().length === 0) return fallo("La tasa no puede estar vacia");
+  }
+  if (enlace.unidadesTasa !== undefined) {
+    if (!enlace.tasa) return fallo("Las unidades de tasa requieren tasa");
+    if (enlace.unidadesTasa.trim().length === 0) return fallo("Las unidades de tasa no pueden estar vacias");
   }
   return ok(true);
 }
