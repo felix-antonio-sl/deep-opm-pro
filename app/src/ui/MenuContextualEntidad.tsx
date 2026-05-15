@@ -1,6 +1,12 @@
 // [JOYAS §1-3] Chrome UI consume tokens centralizados; canvas semántico invariante.
 import deleteIcon from "../../../assets/svg/delete.svg";
-import type { Id } from "../modelo/tipos";
+import type { Entidad, Id } from "../modelo/tipos";
+import {
+  accionesContextualesEntidad,
+  accionesParaSuperficie,
+  type AccionContextual,
+  type AccionContextualId,
+} from "../store/acciones-contextuales";
 import { tokens } from "./tokens";
 
 /**
@@ -14,36 +20,104 @@ import { tokens } from "./tokens";
 
 interface Props {
   aparienciaId: Id;
+  entidad: Entidad | null;
+  enlaceEstiloId: Id | null;
+  hayEstiloEnPortapapeles: boolean;
+  inspectorAbierto: boolean;
   x: number;
   y: number;
   multi: boolean;
   onCerrar: () => void;
-  onTraer: (aparienciaId: Id) => void;
-  onTraerDefault: (aparienciaId: Id) => void;
-  onTraerEnlaces: () => void;
-  onOcultar: (aparienciaId: Id) => void;
+  onAccion: (accionId: AccionContextualId) => void;
 }
 
 export function MenuContextualEntidad(props: Props) {
+  const acciones = ordenarAccionesMenuEntidad(
+    accionesParaSuperficie(
+      accionesContextualesEntidad({
+        entidad: props.entidad,
+        enlaceEstiloId: props.enlaceEstiloId,
+        hayEstiloEnPortapapeles: props.hayEstiloEnPortapapeles,
+        inspectorAbierto: props.inspectorAbierto,
+        multi: props.multi,
+      }),
+      "menu-contextual",
+    ),
+  );
+
   return (
-    <div style={{ ...style.menu, left: props.x, top: props.y }} role="menu" data-testid="menu-contextual-entidad">
-      <button type="button" role="menuitem" style={style.item} onClick={() => props.onTraer(props.aparienciaId)}>Traer conectados...</button>
-      <button type="button" role="menuitem" style={style.item} onClick={() => props.onTraerDefault(props.aparienciaId)}>Traer conectados</button>
-      {props.multi ? (
-        <button type="button" role="menuitem" style={style.item} onClick={props.onTraerEnlaces}>Traer enlaces entre seleccionadas</button>
-      ) : null}
-      <button
-        type="button"
-        role="menuitem"
-        style={style.danger}
-        title="Ocultar del OPD actual; no borra la entidad del modelo"
-        onClick={() => props.onOcultar(props.aparienciaId)}
-      >
-        <img src={deleteIcon} alt="" aria-hidden="true" style={style.dangerIcon} />
-        Ocultar de este OPD
-      </button>
+    <div
+      style={{ ...style.menu, left: props.x, top: props.y }}
+      role="menu"
+      aria-label={props.entidad ? `Acciones de ${props.entidad.nombre}` : "Acciones de apariencia"}
+      data-apariencia-id={props.aparienciaId}
+      data-testid="menu-contextual-entidad"
+    >
+      {acciones.flatMap((accion, index) => {
+        const anterior = acciones[index - 1];
+        const separador = anterior && grupoAccionMenuEntidad(anterior.id) !== grupoAccionMenuEntidad(accion.id);
+        return [
+          separador ? <div key={`${accion.id}-separador`} role="separator" style={style.separator} /> : null,
+          <button
+            key={accion.id}
+            type="button"
+            role="menuitem"
+            aria-keyshortcuts={accion.atajo}
+            data-testid={accion.testId}
+            disabled={!accion.enabled}
+            style={estiloItem(accion)}
+            title={accion.label}
+            onClick={(event) => {
+              event.stopPropagation();
+              if (!accion.enabled) return;
+              props.onAccion(accion.id);
+              props.onCerrar();
+            }}
+          >
+            {accion.destructiva ? <img src={deleteIcon} alt="" aria-hidden="true" style={style.dangerIcon} /> : null}
+            <span style={style.itemLabel}>{accion.label}</span>
+            {accion.atajo ? <span style={style.shortcut}>{accion.atajo}</span> : null}
+          </button>,
+        ];
+      })}
     </div>
   );
+}
+
+const ORDEN_MENU_ENTIDAD: readonly AccionContextualId[] = [
+  "inzoom",
+  "unfold",
+  "agregar-estado",
+  "editar-imagen",
+  "editar-alias",
+  "copiar-estilo",
+  "pegar-estilo",
+  "traer-conectados",
+  "traer-conectados-default",
+  "traer-enlaces",
+  "ocultar-apariencia",
+];
+
+export function ordenarAccionesMenuEntidad(acciones: readonly AccionContextual[]): AccionContextual[] {
+  return [...acciones].sort((a, b) => indiceOrdenMenuEntidad(a.id) - indiceOrdenMenuEntidad(b.id));
+}
+
+export function grupoAccionMenuEntidad(id: AccionContextualId): "refinamiento" | "edicion" | "apariencia" | "enlaces" | "peligro" {
+  if (id === "inzoom" || id === "unfold") return "refinamiento";
+  if (id === "agregar-estado" || id === "editar-alias" || id === "editar-imagen") return "edicion";
+  if (id === "copiar-estilo" || id === "pegar-estilo") return "apariencia";
+  if (id === "ocultar-apariencia") return "peligro";
+  return "enlaces";
+}
+
+function indiceOrdenMenuEntidad(id: AccionContextualId): number {
+  const indice = ORDEN_MENU_ENTIDAD.indexOf(id);
+  return indice === -1 ? Number.MAX_SAFE_INTEGER : indice;
+}
+
+function estiloItem(accion: AccionContextual): preact.JSX.CSSProperties {
+  if (accion.destructiva) return accion.enabled ? style.danger : style.dangerDisabled;
+  return accion.enabled ? style.item : style.itemDisabled;
 }
 
 const baseItem = {
@@ -57,6 +131,10 @@ const baseItem = {
   cursor: "pointer",
   fontSize: "13px",
   fontWeight: 600,
+  display: "grid",
+  gridTemplateColumns: "minmax(0, 1fr) auto",
+  alignItems: "center",
+  gap: "12px",
 } satisfies preact.JSX.CSSProperties;
 
 const style = {
@@ -71,6 +149,11 @@ const style = {
     boxShadow: tokens.shadows.menuContextual,
   },
   item: baseItem,
-  danger: { ...baseItem, color: tokens.colors.errorTexto, display: "inline-flex", alignItems: "center", gap: "8px" },
+  itemDisabled: { ...baseItem, color: tokens.colors.textoTerciario, cursor: "not-allowed", opacity: 0.58 },
+  danger: { ...baseItem, color: tokens.colors.errorTexto, gridTemplateColumns: "14px minmax(0, 1fr) auto", gap: "8px" },
+  dangerDisabled: { ...baseItem, color: tokens.colors.textoTerciario, cursor: "not-allowed", opacity: 0.58, gridTemplateColumns: "14px minmax(0, 1fr) auto", gap: "8px" },
+  itemLabel: { overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" },
+  shortcut: { color: tokens.colors.textoTerciario, fontSize: "11px", fontWeight: 600, justifySelf: "end" },
+  separator: { height: "1px", margin: "5px 4px", background: tokens.colors.bordeSuave },
   dangerIcon: { width: "14px", height: "14px", display: "block", flex: "0 0 auto" },
 } satisfies Record<string, preact.JSX.CSSProperties>;

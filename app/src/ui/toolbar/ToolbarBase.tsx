@@ -7,8 +7,12 @@ import lockIcon from "../../../../assets/svg/lock.svg";
 import objectDragIcon from "../../../../assets/svg/objectDrag.svg";
 import verFileIcon from "../../../../assets/svg/verFile.svg";
 import { normalizarGridConfig } from "../../canvas/grid";
+import { estadosDeEntidad } from "../../modelo/operaciones/estados";
+import type { Entidad, Id, TipoEnlace } from "../../modelo/tipos";
 import { listarFixtures } from "../../store/runtime";
 import { useOpmStore } from "../../store";
+import type { AccionContextualId } from "../../store/acciones-contextuales";
+import { primerEnlaceVisualDeEntidad } from "../BarraHerramientasElemento";
 import { ChipPersistencia } from "../ChipPersistencia";
 import { useConfirmarSiDirty } from "../ConfirmacionContext";
 import { DialogoGuardarPlantilla } from "../DialogoGuardarPlantilla";
@@ -18,7 +22,6 @@ import { useBreakpoint } from "../layoutResponsive";
 import { MenuContextualEnlace } from "../MenuContextualEnlace";
 import { MenuContextualEntidad } from "../MenuContextualEntidad";
 import { ModalConfiguracionGrid } from "../ModalConfiguracionGrid";
-import type { Id, TipoEnlace } from "../../modelo/tipos";
 import { ToolbarMas, type ToolbarMasItem } from "./ToolbarMas";
 import { dragAtributoNumerico, dragToolbar, etiquetaModoGlobal, siguienteModoGlobal, toolbarStyle as style } from "./toolbarStyles";
 
@@ -66,6 +69,7 @@ export function ToolbarBase({ children, modelarSlot, conectarSlot, validarSlot, 
   const puedeDeshacer = useOpmStore((s) => s.puedeDeshacer);
   const puedeRehacer = useOpmStore((s) => s.puedeRehacer);
   const modelo = useOpmStore((s) => s.modelo);
+  const opdActivoId = useOpmStore((s) => s.opdActivoId);
   const seleccionId = useOpmStore((s) => s.seleccionId);
   const seleccionados = useOpmStore((s) => s.seleccionados);
   const renombrarSeleccionada = useOpmStore((s) => s.renombrarSeleccionada);
@@ -80,6 +84,11 @@ export function ToolbarBase({ children, modelarSlot, conectarSlot, validarSlot, 
   const ocultarAparienciaSeleccionada = useOpmStore((s) => s.ocultarAparienciaSeleccionada);
   const copiarEstiloEnlaceAlPortapapeles = useOpmStore((s) => s.copiarEstiloEnlaceAlPortapapeles);
   const pegarEstiloEnlaceDesdePortapapeles = useOpmStore((s) => s.pegarEstiloEnlaceDesdePortapapeles);
+  const enlaceEstiloPortapapeles = useOpmStore((s) => s.enlaceEstiloPortapapeles);
+  const agregarEstadoObjeto = useOpmStore((s) => s.agregarEstadoObjeto);
+  const agregarEstadosObjeto = useOpmStore((s) => s.agregarEstadosObjeto);
+  const descomponerSeleccionada = useOpmStore((s) => s.descomponerSeleccionada);
+  const desplegarSeleccionada = useOpmStore((s) => s.desplegarSeleccionada);
   const borrarEnlacesEnLote = useOpmStore((s) => s.borrarEnlacesEnLote);
   const conectarSeleccionAlTodo = useOpmStore((s) => s.conectarSeleccionAlTodo);
   const readOnly = useOpmStore((s) => s.readOnly);
@@ -173,6 +182,10 @@ export function ToolbarBase({ children, modelarSlot, conectarSlot, validarSlot, 
   const todoMultiSeleccion = seleccionados.length >= 2 ? seleccionados[seleccionados.length - 1] : null;
   const puedeEditarImagen = entidadSeleccionada?.tipo === "objeto";
   const hayMultiSeleccion = seleccionados.length >= 2;
+  const entidadMenuContextual = menuEntidad ? modelo.entidades[menuEntidad.entidadId] ?? null : null;
+  const enlaceEstiloMenuContextualId = entidadMenuContextual
+    ? primerEnlaceVisualDeEntidad(modelo, opdActivoId, entidadMenuContextual.id)
+    : null;
   const masItems = construirItemsMenuMas({
     puedeEditarImagen,
     hayMultiSeleccion,
@@ -238,6 +251,49 @@ export function ToolbarBase({ children, modelarSlot, conectarSlot, validarSlot, 
   }
   function handleOcultarEntidad() {
     ocultarAparienciaSeleccionada();
+    setMenuEntidad(null);
+  }
+  function handleAccionMenuEntidad(accionId: AccionContextualId) {
+    switch (accionId) {
+      case "copiar-estilo":
+        if (enlaceEstiloMenuContextualId) copiarEstiloEnlaceAlPortapapeles(enlaceEstiloMenuContextualId);
+        break;
+      case "pegar-estilo":
+        if (enlaceEstiloMenuContextualId) pegarEstiloEnlaceDesdePortapapeles(enlaceEstiloMenuContextualId);
+        break;
+      case "agregar-estado":
+        if (entidadMenuContextual?.tipo === "objeto") {
+          if (estadosDeEntidad(modelo, entidadMenuContextual.id).length < 2) agregarEstadosObjeto();
+          else agregarEstadoObjeto();
+        }
+        break;
+      case "inzoom":
+        descomponerSeleccionada();
+        break;
+      case "unfold":
+        desplegarSeleccionada();
+        break;
+      case "editar-alias":
+        enfocarSeccionInspector("inspector-seccion-alias");
+        break;
+      case "editar-imagen":
+        if (entidadMenuContextual?.tipo === "objeto") abrirModalImagen(entidadMenuContextual.id);
+        break;
+      case "traer-conectados":
+        handleTraerEntidad();
+        return;
+      case "traer-conectados-default":
+        handleTraerEntidadDefault();
+        return;
+      case "traer-enlaces":
+        handleTraerEnlacesEntidad();
+        return;
+      case "ocultar-apariencia":
+        handleOcultarEntidad();
+        return;
+      case "mas-opciones":
+        break;
+    }
     setMenuEntidad(null);
   }
   function handleConectarMultiContextual(tipo: TipoEnlace) {
@@ -357,16 +413,16 @@ export function ToolbarBase({ children, modelarSlot, conectarSlot, validarSlot, 
         menuContextual={menuContextual}
         setMenuContextual={setMenuContextual}
         menuEntidad={menuEntidad}
+        entidadMenuContextual={entidadMenuContextual}
+        enlaceEstiloMenuContextualId={enlaceEstiloMenuContextualId}
+        hayEstiloEnPortapapeles={!!enlaceEstiloPortapapeles}
         setMenuEntidad={setMenuEntidad}
         onEstiloEnlace={handleEstiloEnlace}
         onCopiarEstilo={handleCopiarEstiloEnlace}
         onPegarEstilo={handlePegarEstiloEnlace}
         onEliminarEnlace={handleEliminarEnlace}
         multi={seleccionados.length >= 2}
-        onTraer={handleTraerEntidad}
-        onTraerDefault={handleTraerEntidadDefault}
-        onTraerEnlaces={handleTraerEnlacesEntidad}
-        onOcultar={handleOcultarEntidad}
+        onAccionMenuEntidad={handleAccionMenuEntidad}
         {...(todoMultiSeleccion ? { onConectarMultiAlTodo: handleConectarMultiContextual } : {})}
       />
       <Suspense fallback={null}><DialogoTraerConectados /><DialogoPlantillas /></Suspense>
@@ -385,6 +441,9 @@ function ModelessToolbarLayer(props: {
   menuContextual: { enlaceId: Id; x: number; y: number } | null;
   setMenuContextual: (value: null | { enlaceId: Id; x: number; y: number }) => void;
   menuEntidad: { aparienciaId: Id; entidadId: Id; x: number; y: number } | null;
+  entidadMenuContextual: Entidad | null;
+  enlaceEstiloMenuContextualId: Id | null;
+  hayEstiloEnPortapapeles: boolean;
   setMenuEntidad: (value: null | { aparienciaId: Id; entidadId: Id; x: number; y: number }) => void;
   onEstiloEnlace: (id: Id) => void;
   onCopiarEstilo: (id: Id) => void;
@@ -392,10 +451,7 @@ function ModelessToolbarLayer(props: {
   onEliminarEnlace: (id: Id) => void;
   onConectarMultiAlTodo?: (tipo: TipoEnlace) => void;
   multi: boolean;
-  onTraer: () => void;
-  onTraerDefault: () => void;
-  onTraerEnlaces: () => void;
-  onOcultar: () => void;
+  onAccionMenuEntidad: (accionId: AccionContextualId) => void;
 }) {
   return (
     <>
@@ -412,10 +468,30 @@ function ModelessToolbarLayer(props: {
         <MenuContextualEnlace enlaceId={props.menuContextual.enlaceId} x={props.menuContextual.x} y={props.menuContextual.y} onCerrar={() => props.setMenuContextual(null)} onEstilo={props.onEstiloEnlace} onCopiarEstilo={props.onCopiarEstilo} onPegarEstilo={props.onPegarEstilo} onEliminar={props.onEliminarEnlace} onConectarMultiAlTodo={props.onConectarMultiAlTodo} />
       ) : null}
       {props.menuEntidad ? (
-        <MenuContextualEntidad aparienciaId={props.menuEntidad.aparienciaId} x={props.menuEntidad.x} y={props.menuEntidad.y} multi={props.multi} onCerrar={() => props.setMenuEntidad(null)} onTraer={props.onTraer} onTraerDefault={props.onTraerDefault} onTraerEnlaces={props.onTraerEnlaces} onOcultar={props.onOcultar} />
+        <MenuContextualEntidad
+          aparienciaId={props.menuEntidad.aparienciaId}
+          entidad={props.entidadMenuContextual}
+          enlaceEstiloId={props.enlaceEstiloMenuContextualId}
+          hayEstiloEnPortapapeles={props.hayEstiloEnPortapapeles}
+          inspectorAbierto
+          x={props.menuEntidad.x}
+          y={props.menuEntidad.y}
+          multi={props.multi}
+          onCerrar={() => props.setMenuEntidad(null)}
+          onAccion={props.onAccionMenuEntidad}
+        />
       ) : null}
     </>
   );
+}
+
+function enfocarSeccionInspector(testId: string): void {
+  window.setTimeout(() => {
+    const seccion = document.querySelector<HTMLElement>(`[data-testid="${testId}"]`);
+    const foco = seccion?.querySelector<HTMLElement>("input, textarea, button, select");
+    foco?.focus();
+    seccion?.scrollIntoView({ block: "nearest" });
+  }, 0);
 }
 
 type ParametrosItemsMas = {
@@ -566,4 +642,3 @@ function ToggleBibliotecaDock() {
     </button>
   );
 }
-
