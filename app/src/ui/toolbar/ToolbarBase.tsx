@@ -7,7 +7,6 @@ import lockIcon from "../../../../assets/svg/lock.svg";
 import objectDragIcon from "../../../../assets/svg/objectDrag.svg";
 import verFileIcon from "../../../../assets/svg/verFile.svg";
 import { normalizarGridConfig } from "../../canvas/grid";
-import { estadosDeEntidad } from "../../modelo/operaciones/estados";
 import type { Entidad, Id, TipoEnlace } from "../../modelo/tipos";
 import { listarFixtures } from "../../store/runtime";
 import { useOpmStore } from "../../store";
@@ -16,6 +15,7 @@ import { primerEnlaceVisualDeEntidad } from "../BarraHerramientasElemento";
 import { ChipPersistencia } from "../ChipPersistencia";
 import { useConfirmarSiDirty } from "../ConfirmacionContext";
 import { DialogoGuardarPlantilla } from "../DialogoGuardarPlantilla";
+import { ejecutarAccionContextualEntidad } from "../ejecutarAccionContextual";
 // L2 ronda 21: la toolbar primaria de modelado pesado se oculta en mobile
 // y se compacta en tablet. Decisión por viewport delegada a `layoutResponsive`.
 import { useBreakpoint } from "../layoutResponsive";
@@ -63,6 +63,7 @@ export function ToolbarBase({ children, modelarSlot, conectarSlot, validarSlot, 
   const deshacer = useOpmStore((s) => s.deshacer);
   const rehacer = useOpmStore((s) => s.rehacer);
   const menuPrincipalAbierto = useOpmStore((s) => s.menuPrincipalAbierto);
+  const abrirDialogoComandos = useOpmStore((s) => s.abrirDialogoComandos);
   const modeloPersistidoId = useOpmStore((s) => s.modeloPersistidoId);
   const modelosGuardados = useOpmStore((s) => s.modelosGuardados);
   const abrirDialogoVersiones = useOpmStore((s) => s.abrirDialogoVersiones);
@@ -78,17 +79,9 @@ export function ToolbarBase({ children, modelarSlot, conectarSlot, validarSlot, 
   const descartarNuevaCosaPendiente = useOpmStore((s) => s.descartarNuevaCosaPendiente);
   const seleccionarEntidad = useOpmStore((s) => s.seleccionarEntidad);
   const seleccionarEnlace = useOpmStore((s) => s.seleccionarEnlace);
-  const abrirDialogoTraerConectados = useOpmStore((s) => s.abrirDialogoTraerConectados);
-  const traerConectadosSeleccionado = useOpmStore((s) => s.traerConectadosSeleccionado);
-  const traerEnlacesEntreSeleccionadas = useOpmStore((s) => s.traerEnlacesEntreSeleccionadas);
-  const ocultarAparienciaSeleccionada = useOpmStore((s) => s.ocultarAparienciaSeleccionada);
   const copiarEstiloEnlaceAlPortapapeles = useOpmStore((s) => s.copiarEstiloEnlaceAlPortapapeles);
   const pegarEstiloEnlaceDesdePortapapeles = useOpmStore((s) => s.pegarEstiloEnlaceDesdePortapapeles);
   const enlaceEstiloPortapapeles = useOpmStore((s) => s.enlaceEstiloPortapapeles);
-  const agregarEstadoObjeto = useOpmStore((s) => s.agregarEstadoObjeto);
-  const agregarEstadosObjeto = useOpmStore((s) => s.agregarEstadosObjeto);
-  const descomponerSeleccionada = useOpmStore((s) => s.descomponerSeleccionada);
-  const desplegarSeleccionada = useOpmStore((s) => s.desplegarSeleccionada);
   const borrarEnlacesEnLote = useOpmStore((s) => s.borrarEnlacesEnLote);
   const conectarSeleccionAlTodo = useOpmStore((s) => s.conectarSeleccionAlTodo);
   const readOnly = useOpmStore((s) => s.readOnly);
@@ -237,63 +230,10 @@ export function ToolbarBase({ children, modelarSlot, conectarSlot, validarSlot, 
     borrarEnlacesEnLote([id]);
     setMenuContextual(null);
   }
-  function handleTraerEntidad() {
-    abrirDialogoTraerConectados();
-    setMenuEntidad(null);
-  }
-  function handleTraerEntidadDefault() {
-    traerConectadosSeleccionado();
-    setMenuEntidad(null);
-  }
-  function handleTraerEnlacesEntidad() {
-    traerEnlacesEntreSeleccionadas();
-    setMenuEntidad(null);
-  }
-  function handleOcultarEntidad() {
-    ocultarAparienciaSeleccionada();
-    setMenuEntidad(null);
-  }
   function handleAccionMenuEntidad(accionId: AccionContextualId) {
-    switch (accionId) {
-      case "copiar-estilo":
-        if (enlaceEstiloMenuContextualId) copiarEstiloEnlaceAlPortapapeles(enlaceEstiloMenuContextualId);
-        break;
-      case "pegar-estilo":
-        if (enlaceEstiloMenuContextualId) pegarEstiloEnlaceDesdePortapapeles(enlaceEstiloMenuContextualId);
-        break;
-      case "agregar-estado":
-        if (entidadMenuContextual?.tipo === "objeto") {
-          if (estadosDeEntidad(modelo, entidadMenuContextual.id).length < 2) agregarEstadosObjeto();
-          else agregarEstadoObjeto();
-        }
-        break;
-      case "inzoom":
-        descomponerSeleccionada();
-        break;
-      case "unfold":
-        desplegarSeleccionada();
-        break;
-      case "editar-alias":
-        enfocarSeccionInspector("inspector-seccion-alias");
-        break;
-      case "editar-imagen":
-        if (entidadMenuContextual?.tipo === "objeto") abrirModalImagen(entidadMenuContextual.id);
-        break;
-      case "traer-conectados":
-        handleTraerEntidad();
-        return;
-      case "traer-conectados-default":
-        handleTraerEntidadDefault();
-        return;
-      case "traer-enlaces":
-        handleTraerEnlacesEntidad();
-        return;
-      case "ocultar-apariencia":
-        handleOcultarEntidad();
-        return;
-      case "mas-opciones":
-        break;
-    }
+    ejecutarAccionContextualEntidad(accionId, {
+      onEditarAlias: () => enfocarSeccionInspector("inspector-seccion-alias"),
+    });
     setMenuEntidad(null);
   }
   function handleConectarMultiContextual(tipo: TipoEnlace) {
@@ -399,6 +339,15 @@ export function ToolbarBase({ children, modelarSlot, conectarSlot, validarSlot, 
         <span style={style.divider} />
         <div role="group" aria-label="Ayuda" style={style.cluster} data-slot="cluster-ayuda" data-cluster="ayuda">
           <span style={style.clusterLabel}>Ayuda</span>
+          <button
+            type="button"
+            style={style.iconTextButton}
+            onClick={abrirDialogoComandos}
+            title="Buscar comandos · Ctrl+K"
+            data-testid="toolbar-command-palette"
+          >
+            ⌕
+          </button>
           <ToolbarMas items={masItems} />
         </div>
       </div>

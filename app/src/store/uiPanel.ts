@@ -225,6 +225,7 @@ export const createUiPanelSlice: CrearSlice<UiPanelSlice> = (set, get) => ({
   dialogoGuardarComoAbierto: false,
   dialogoCargarModeloAbierto: false,
   dialogoImportarExportarJsonAbierto: false,
+  dialogoComandosAbierto: false,
   uiAliasVisibles: true,
   uiDescripcionesVisibles: true,
   solicitudFitToken: 0,
@@ -387,6 +388,14 @@ export const createUiPanelSlice: CrearSlice<UiPanelSlice> = (set, get) => ({
 
 	  cerrarCheatsheetAtajos() {
 	    set({ cheatsheetAtajosAbierto: false });
+	  },
+
+	  abrirDialogoComandos() {
+	    set({ dialogoComandosAbierto: true, menuPrincipalAbierto: false, toolbarMasAbierto: false });
+	  },
+
+	  cerrarDialogoComandos() {
+	    set({ dialogoComandosAbierto: false });
 	  },
 
 	  // ── L3 ronda 20: Biblioteca overlay legacy + dock acoplable ──

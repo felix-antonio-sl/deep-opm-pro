@@ -36,6 +36,7 @@ import { Toolbar } from "./Toolbar";
 
 const AsistenteNuevoModelo = lazy(() => import("./AsistenteNuevoModelo").then((m) => ({ default: m.AsistenteNuevoModelo })));
 const CheatsheetAtajos = lazy(() => import("./CheatsheetAtajos").then((m) => ({ default: m.CheatsheetAtajos })));
+const CommandPalette = lazy(() => import("./CommandPalette").then((m) => ({ default: m.CommandPalette })));
 const DialogoArchivados = lazy(() => import("./DialogoArchivados").then((m) => ({ default: m.DialogoArchivados })));
 const DialogoBuscarCosas = lazy(() => import("./DialogoBuscarCosas").then((m) => ({ default: m.DialogoBuscarCosas })));
 const DialogoBuscarGlobal = lazy(() => import("./DialogoBuscarGlobal").then((m) => ({ default: m.DialogoBuscarGlobal })));
@@ -78,6 +79,8 @@ export function App() {
   const gestionArbolAbierta = useOpmStore((s) => s.gestionArbolAbierta);
   const cheatsheetAtajosAbierto = useOpmStore((s) => s.cheatsheetAtajosAbierto);
   const cerrarCheatsheetAtajos = useOpmStore((s) => s.cerrarCheatsheetAtajos);
+  const dialogoComandosAbierto = useOpmStore((s) => s.dialogoComandosAbierto);
+  const cerrarDialogoComandos = useOpmStore((s) => s.cerrarDialogoComandos);
   // L2 ronda 21: vista activa solo se consume cuando el breakpoint es mobile.
   const vistaMobileActiva = useOpmStore((s) => s.vistaMobileActiva);
   const [inspectorAbierto, setInspectorAbierto] = useState(true);
@@ -302,6 +305,11 @@ export function App() {
             <CheatsheetAtajos abierto={cheatsheetAtajosAbierto} onCerrar={cerrarCheatsheetAtajos} />
           </Suspense>
         ) : null}
+        {dialogoComandosAbierto ? (
+          <Suspense fallback={null}>
+            <CommandPalette abierto={dialogoComandosAbierto} onCerrar={cerrarDialogoComandos} />
+          </Suspense>
+        ) : null}
         <CapturadorBugs />
       </main>
     </ConfirmacionProvider>
@@ -331,6 +339,7 @@ function registrarAtajosAplicacion(): Array<() => void> {
     // primero en el orden LIFO porque es el modal recién montado por la
     // Action `crearEntidadEnCanvas`.
     if (state.nuevaCosaPendiente) return state.descartarNuevaCosaPendiente();
+    if (state.dialogoComandosAbierto) return state.cerrarDialogoComandos();
     if (state.cheatsheetAtajosAbierto) return state.cerrarCheatsheetAtajos();
     if (state.gestionArbolAbierta) return state.cerrarGestionArbol();
     if (state.dialogoGuardarComoAbierto) return state.cerrarGuardarComo();
@@ -349,6 +358,7 @@ function registrarAtajosAplicacion(): Array<() => void> {
   };
   return [
     registrarAtajo({ combo: "Ctrl+S", ctx: "global", categoria: "archivo", descripcion: "Guardar modelo", handler: () => s().guardarLocal() }),
+    registrarAtajo({ combo: "Ctrl+K", ctx: "global", categoria: "navegacion", descripcion: "Buscar comandos", handler: () => s().abrirDialogoComandos() }),
     registrarAtajo({ combo: "Ctrl+F", ctx: "canvas", categoria: "navegacion", descripcion: "Buscar cosas en el modelo", handler: () => s().abrirBusquedaCosas() }),
     registrarAtajo({ combo: "Ctrl+Shift+F", ctx: "global", categoria: "navegacion", descripcion: "Buscar en el workspace", handler: () => s().abrirDialogoBuscarGlobal() }),
     registrarAtajo({ combo: "Ctrl+D", ctx: "global", categoria: "navegacion", descripcion: "Abrir gestión del árbol OPD", handler: () => s().abrirGestionArbol() }),
@@ -377,6 +387,7 @@ function registrarAtajosAplicacion(): Array<() => void> {
     registrarAtajo({ combo: "Ctrl+ArrowDown", ctx: "global", categoria: "navegacion", descripcion: "Ir al OPD hermano siguiente", handler: () => s().navegarOpdAbajo() }),
     registrarAtajo({ combo: "Ctrl+ArrowLeft", ctx: "global", categoria: "navegacion", descripcion: "Ir al OPD padre", handler: () => s().navegarOpdIzquierda() }),
     registrarAtajo({ combo: "Ctrl+ArrowRight", ctx: "global", categoria: "navegacion", descripcion: "Ir al primer OPD hijo", handler: () => s().navegarOpdDerecha() }),
+    registrarAtajo({ combo: "Shift+I", ctx: "canvas", categoria: "edicion", descripcion: "Crear inzoom de la cosa seleccionada", handler: () => s().descomponerSeleccionada() }),
     registrarAtajo({ combo: "Shift+U", ctx: "canvas", categoria: "edicion", descripcion: "Desplegar selección", handler: () => s().desplegarSeleccionada() }),
     registrarAtajo({ combo: "Ctrl+Shift+C", ctx: "canvas", categoria: "edicion", descripcion: "Copiar formato de enlace seleccionado", handler: copiarEstiloEnlace }),
     registrarAtajo({ combo: "Ctrl+T", ctx: "global", categoria: "navegacion", descripcion: "Abrir pestaña nueva", handler: () => s().abrirPestanaNueva?.() }),

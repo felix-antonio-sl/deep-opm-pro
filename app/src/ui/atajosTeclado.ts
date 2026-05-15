@@ -17,7 +17,9 @@ export interface RegistroAtajo {
   combo: Combo;
   handler: (e: KeyboardEvent) => void;
   ctx: ContextoAtajo;
+  etiqueta?: string;
   descripcion: string;
+  descripcionLarga?: string;
   categoria: CategoriaAtajo;
   preventDefault?: boolean;
 }
