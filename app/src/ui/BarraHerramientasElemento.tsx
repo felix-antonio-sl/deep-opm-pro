@@ -4,6 +4,7 @@ import type { Entidad, Id, Modelo } from "../modelo/tipos";
 import { useOpmStore } from "../store";
 import {
   accionesContextualesEntidad,
+  accionesParaSuperficie,
   type AccionContextual,
   type AccionContextualId,
 } from "../store/acciones-contextuales";
@@ -82,8 +83,6 @@ interface AccionBarra {
 }
 
 type AccionBarraId =
-  | "copiar-estilo"
-  | "pegar-estilo"
   | "agregar-estado"
   | "inzoom"
   | "unfold"
@@ -91,16 +90,16 @@ type AccionBarraId =
   | "editar-imagen"
   | "mas-opciones";
 
-const ACCIONES_BARRA_IDS = new Set<AccionContextualId>([
-  "copiar-estilo",
-  "pegar-estilo",
-  "agregar-estado",
+const ORDEN_ACCIONES_BARRA: readonly AccionBarraId[] = [
   "inzoom",
   "unfold",
-  "editar-alias",
+  "agregar-estado",
   "editar-imagen",
+  "editar-alias",
   "mas-opciones",
-]);
+];
+
+const ACCIONES_BARRA_IDS = new Set<AccionContextualId>(ORDEN_ACCIONES_BARRA);
 
 const ICONOS_ACCION_BARRA: Partial<Record<AccionBarraId, preact.JSX.Element>> = {
   "agregar-estado": ICONO_AGREGAR_ESTADO,
@@ -123,8 +122,6 @@ export function BarraHerramientasElemento({ inspectorAbierto, onToggleInspector,
   const enlaceSeleccionId = useOpmStore((s) => s.enlaceSeleccionId);
   const seleccionados = useOpmStore((s) => s.seleccionados);
   const enlaceEstiloPortapapeles = useOpmStore((s) => s.enlaceEstiloPortapapeles);
-  const copiarEstiloEnlace = useOpmStore((s) => s.copiarEstiloEnlaceAlPortapapeles);
-  const pegarEstiloEnlace = useOpmStore((s) => s.pegarEstiloEnlaceDesdePortapapeles);
   const agregarEstadoSmart = useOpmStore((s) => s.agregarEstadoSmart);
   const descomponer = useOpmStore((s) => s.descomponerSeleccionada);
   const desplegar = useOpmStore((s) => s.desplegarSeleccionada);
@@ -176,14 +173,6 @@ export function BarraHerramientasElemento({ inspectorAbierto, onToggleInspector,
 
   if (!entidad || !posicion) return null;
 
-  const handleCopiarEstilo = () => {
-    if (!enlaceEstiloId) return;
-    copiarEstiloEnlace(enlaceEstiloId);
-  };
-  const handlePegarEstilo = () => {
-    if (!enlaceEstiloId) return;
-    pegarEstiloEnlace(enlaceEstiloId);
-  };
   const handleAgregarEstado = () => {
     if (entidad.tipo !== "objeto") return;
     agregarEstadoSmart();
@@ -208,8 +197,6 @@ export function BarraHerramientasElemento({ inspectorAbierto, onToggleInspector,
   };
 
   const handlers: Record<AccionBarraId, () => void> = {
-    "copiar-estilo": handleCopiarEstilo,
-    "pegar-estilo": handlePegarEstilo,
     "agregar-estado": handleAgregarEstado,
     inzoom: handleInzoom,
     unfold: handleUnfold,
@@ -292,15 +279,22 @@ export function accionesPilotoBarra(
   hayEstiloEnPortapapeles: boolean,
   inspectorAbierto: boolean,
 ): AccionBarra[] {
-  return accionesContextualesEntidad({
+  const acciones = accionesContextualesEntidad({
     entidad,
     enlaceEstiloId,
     hayEstiloEnPortapapeles,
     inspectorAbierto,
     multi: false,
-  })
-    .filter(esAccionBarra)
-    .map(decorarAccionBarra);
+  });
+  const porId = new Map(
+    accionesParaSuperficie(acciones, "barra-flotante")
+      .filter(esAccionBarra)
+      .map((accion) => [accion.id, accion] as const),
+  );
+  return ORDEN_ACCIONES_BARRA.flatMap((id) => {
+    const accion = porId.get(id);
+    return accion ? [decorarAccionBarra(accion)] : [];
+  });
 }
 
 function esAccionBarra(accion: AccionContextual): accion is AccionContextual & { id: AccionBarraId } {

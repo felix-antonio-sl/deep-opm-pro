@@ -10,19 +10,27 @@ function ids(acciones: readonly { id: string }[]): string[] {
 }
 
 describe("accionesContextualesEntidad", () => {
-  test("preserva en barra las reglas de visibilidad para estilo de enlace", () => {
+  test("deja copiar/pegar estilo fuera de barra y disponible en menú/paleta", () => {
     const acciones = accionesContextualesEntidad({
       entidad: objeto,
-      enlaceEstiloId: null,
+      enlaceEstiloId: "enlace-1",
       hayEstiloEnPortapapeles: true,
       inspectorAbierto: true,
       multi: false,
     });
+    const barra = ids(accionesParaSuperficie(acciones, "barra-flotante"));
+    const menu = ids(accionesParaSuperficie(acciones, "menu-contextual"));
+    const palette = ids(accionesParaSuperficie(acciones, "command-palette"));
 
-    expect(acciones.find((accion) => accion.id === "copiar-estilo")?.visible).toBe(false);
-    expect(acciones.find((accion) => accion.id === "pegar-estilo")?.visible).toBe(false);
-    expect(ids(accionesParaSuperficie(acciones, "barra-flotante"))).not.toContain("copiar-estilo");
-    expect(ids(accionesParaSuperficie(acciones, "barra-flotante"))).toContain("mas-opciones");
+    expect(acciones.find((accion) => accion.id === "copiar-estilo")?.visible).toBe(true);
+    expect(acciones.find((accion) => accion.id === "pegar-estilo")?.visible).toBe(true);
+    expect(barra).not.toContain("copiar-estilo");
+    expect(barra).not.toContain("pegar-estilo");
+    expect(barra).toContain("mas-opciones");
+    expect(menu).toContain("copiar-estilo");
+    expect(menu).toContain("pegar-estilo");
+    expect(palette).toContain("copiar-estilo");
+    expect(palette).toContain("pegar-estilo");
   });
 
   test("expone menu contextual sin controles propios de barra", () => {

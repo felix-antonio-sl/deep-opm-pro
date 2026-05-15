@@ -145,12 +145,24 @@ describe("enlace visual relacionado", () => {
 });
 
 describe("accionesPilotoBarra", () => {
-  test("expone ocho botones para objeto: siete acciones piloto mas mas opciones", () => {
-    expect(accionesPilotoBarra(objeto, "enlace-1", true, true).filter((accion) => accion.visible)).toHaveLength(8);
+  test("expone seis primarias para objeto en orden IFML", () => {
+    expect(accionesPilotoBarra(objeto, "enlace-1", true, true).filter((accion) => accion.visible).map((accion) => accion.id)).toEqual([
+      "inzoom",
+      "unfold",
+      "agregar-estado",
+      "editar-imagen",
+      "editar-alias",
+      "mas-opciones",
+    ]);
   });
 
-  test("expone seis botones visibles para proceso", () => {
-    expect(accionesPilotoBarra(proceso, "enlace-1", true, true).filter((accion) => accion.visible)).toHaveLength(6);
+  test("expone cuatro primarias para proceso", () => {
+    expect(accionesPilotoBarra(proceso, "enlace-1", true, true).filter((accion) => accion.visible).map((accion) => accion.id)).toEqual([
+      "inzoom",
+      "unfold",
+      "editar-alias",
+      "mas-opciones",
+    ]);
   });
 
   test("expone unfold para objeto y proceso", () => {
@@ -158,30 +170,15 @@ describe("accionesPilotoBarra", () => {
     expect(accionesPilotoBarra(proceso, null, false, true).find((accion) => accion.id === "unfold")?.enabled).toBe(true);
   });
 
-  test("habilita copiar estilo si hay enlace relacionado", () => {
-    expect(accionesPilotoBarra(objeto, "enlace-1", false, true).find((accion) => accion.id === "copiar-estilo")?.enabled).toBe(true);
-  });
-
-  test("deshabilita copiar estilo sin enlace relacionado", () => {
-    expect(accionesPilotoBarra(objeto, null, false, true).find((accion) => accion.id === "copiar-estilo")?.enabled).toBe(false);
-  });
-
-  test("habilita pegar estilo solo con enlace y portapapeles", () => {
-    expect(accionesPilotoBarra(objeto, "enlace-1", true, true).find((accion) => accion.id === "pegar-estilo")?.enabled).toBe(true);
-  });
-
-  test("deshabilita pegar estilo sin portapapeles", () => {
-    expect(accionesPilotoBarra(objeto, "enlace-1", false, true).find((accion) => accion.id === "pegar-estilo")?.enabled).toBe(false);
-  });
-
   test("oculta agregar estado para proceso", () => {
-    expect(accionesPilotoBarra(proceso, null, false, true).find((accion) => accion.id === "agregar-estado")?.visible).toBe(false);
+    expect(accionesPilotoBarra(proceso, null, false, true).map((accion) => accion.id as string)).not.toContain("agregar-estado");
   });
 
-  test("BUG-d78ae2: oculta copiar/pegar-estilo cuando no hay enlace operable", () => {
-    const acciones = accionesPilotoBarra(objeto, null, true, true);
-    expect(acciones.find((accion) => accion.id === "copiar-estilo")?.visible).toBe(false);
-    expect(acciones.find((accion) => accion.id === "pegar-estilo")?.visible).toBe(false);
+  test("mantiene copiar/pegar estilo fuera de primarias aunque haya enlace operable", () => {
+    const acciones = accionesPilotoBarra(objeto, "enlace-1", true, true);
+    const idsAcciones = acciones.map((accion) => accion.id as string);
+    expect(idsAcciones).not.toContain("copiar-estilo");
+    expect(idsAcciones).not.toContain("pegar-estilo");
   });
 
   test("cambia el label de mas opciones segun estado del Inspector", () => {
