@@ -29,12 +29,12 @@ test("L3 panel metodologia muestra aviso, cita SSOT y permite revalidar", async 
   await page.getByRole("button", { name: "Proceso", exact: true }).click();
   await page.getByRole("button", { name: "Objeto", exact: true }).click();
 
-  const panel = page.getByTestId("panel-metodologia");
+  const panel = page.getByTestId("panel-diagnostico");
   await expect(panel).toBeVisible();
+  await page.getByTestId("panel-diagnostico-toggle").click();
 
   // Hay al menos un aviso — el contador NO debe ser cero.
-  const total = page.getByTestId("panel-metodologia-total");
-  await expect(total).not.toHaveText("0");
+  await expect(panel.locator("header").getByText(/^[1-9]\d* issues$/)).toBeVisible();
 
   // El aviso de PROCESO_NOMBRE_FORMA_VERBAL aparece y trae cita SSOT
   // visible en el boton de cita.
@@ -42,7 +42,7 @@ test("L3 panel metodologia muestra aviso, cita SSOT y permite revalidar", async 
   await expect(aviso).toBeVisible();
   const cita = page.getByTestId("aviso-cita-PROCESO_NOMBRE_FORMA_VERBAL");
   await expect(cita).toBeVisible();
-  await expect(cita).toContainText(/metodologia-opm-es|Glos/);
+  await expect(cita).toHaveAttribute("title", /metodologia-opm-es|Glos/);
 
   // Click en cita expande detalle con SSOT, rationale y acciones sugeridas.
   await cita.click();
@@ -52,7 +52,7 @@ test("L3 panel metodologia muestra aviso, cita SSOT y permite revalidar", async 
   await expect(detalle).toContainText(/[Aa]ccion|[Rr]enombra/);
 
   // Boton Revalidar dispara recalculo.
-  const revalidar = page.getByTestId("panel-metodologia-revalidar");
+  const revalidar = page.getByTestId("panel-diagnostico-revalidar");
   await expect(revalidar).toBeVisible();
   const revisionAntes = await panel.getAttribute("data-revision");
   await revalidar.click();
@@ -72,6 +72,7 @@ test("L3 click en aviso navega al elemento y deja seleccion visible", async ({ p
   // Modelo: un solo proceso con nombre no verbal (placeholder "Proceso"
   // ya viola PROCESO_NOMBRE_FORMA_VERBAL por construccion).
   await page.getByRole("button", { name: "Proceso", exact: true }).click();
+  await page.getByTestId("panel-diagnostico-toggle").click();
   await expect(page.getByTestId("aviso-PROCESO_NOMBRE_FORMA_VERBAL")).toBeVisible();
 
   // Deselecciono via Escape para que la navegacion del aviso sea verificable.
@@ -99,6 +100,7 @@ test("L3 aviso se resuelve tras corregir el nombre del proceso", async ({ page }
 
   // Crear proceso con placeholder "Proceso" -> dispara aviso de forma verbal.
   await page.getByRole("button", { name: "Proceso", exact: true }).click();
+  await page.getByTestId("panel-diagnostico-toggle").click();
   await expect(page.getByTestId("aviso-PROCESO_NOMBRE_FORMA_VERBAL")).toBeVisible();
 
   // El proceso recien creado queda seleccionado; el inspector ofrece edicion
@@ -123,11 +125,12 @@ test("L3 panel metodologia marca SD sin proceso principal con cita §6.1/§6.11"
 
   // Crear solo un objeto (placeholder "Objeto") en el SD: no hay proceso sistemico.
   await page.getByRole("button", { name: "Objeto", exact: true }).click();
+  await page.getByTestId("panel-diagnostico-toggle").click();
 
   const aviso = page.getByTestId("aviso-SD_SIN_PROCESO_PRINCIPAL");
   await expect(aviso).toBeVisible();
   // Cita visible apunta a §6.1 / §6.11.
-  await expect(page.getByTestId("aviso-cita-SD_SIN_PROCESO_PRINCIPAL")).toContainText(/§6.1|§6.11|metodologia-opm-es/);
+  await expect(page.getByTestId("aviso-cita-SD_SIN_PROCESO_PRINCIPAL")).toHaveAttribute("title", /§6.1|§6.11|metodologia-opm-es/);
 
   expect(pageErrors).toEqual([]);
 });

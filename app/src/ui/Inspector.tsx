@@ -2,7 +2,6 @@ import { useOpmStore } from "../store";
 import { inspectorStyles as style } from "./inspectorStyles";
 import { InspectorEnlace } from "./InspectorEnlace";
 import { InspectorEntidad } from "./InspectorEntidad";
-import { PersistenciaJson } from "./PersistenciaJson";
 
 /**
  * Inspector raiz: ViewContainer XOR (entidad | enlace | vacio).
@@ -14,6 +13,7 @@ export function Inspector() {
   const modelo = useOpmStore((s) => s.modelo);
   const seleccionId = useOpmStore((s) => s.seleccionId);
   const enlaceSeleccionId = useOpmStore((s) => s.enlaceSeleccionId);
+  const abrirImportarExportarJson = useOpmStore((s) => s.abrirDialogoImportarExportarJson);
   const entidad = seleccionId ? modelo.entidades[seleccionId] : undefined;
   const enlace = enlaceSeleccionId ? modelo.enlaces[enlaceSeleccionId] : undefined;
   const modo: "entidad" | "enlace" | "vacio" = entidad ? "entidad" : enlace ? "enlace" : "vacio";
@@ -30,25 +30,12 @@ export function Inspector() {
         ? <InspectorEntidad entidad={entidad} />
         : enlace
           ? <InspectorEnlace enlace={enlace} />
-          : <InspectorVacio />}
-      {modo === "vacio" ? (
-        // <details open>: cumple la jerarquía visual de la pasada P1 (la persistencia es
-        // afordancia colapsable bajo el call-to-action). Arranca abierto para no romper
-        // smoke browser que toca textarea/Importar/Exportar tras `goto("/")` sin selección.
-        // El operador puede colapsarla con un click en el summary; el brief sección 10
-        // permite expandido por defecto como alternativa documentada.
-        <details open style={style.vacioPersistenciaWrapper}>
-          <summary style={style.vacioPersistenciaSummary}>Importar / Exportar JSON</summary>
-          <PersistenciaJson />
-        </details>
-      ) : (
-        <PersistenciaJson />
-      )}
+          : <InspectorVacio onAbrirImportarExportarJson={abrirImportarExportarJson} />}
     </aside>
   );
 }
 
-function InspectorVacio() {
+function InspectorVacio({ onAbrirImportarExportarJson }: { onAbrirImportarExportarJson: () => void }) {
   return (
     <div style={style.vacioContainer} data-testid="inspector-vacio">
       <h3 style={style.vacioTitle}>Sin selección</h3>
@@ -63,6 +50,9 @@ function InspectorVacio() {
           <li><kbd>Cargar</kbd> → abre modelos guardados.</li>
         </ul>
       </div>
+      <button type="button" style={style.secondaryButton} onClick={onAbrirImportarExportarJson}>
+        JSON del modelo
+      </button>
     </div>
   );
 }

@@ -301,6 +301,7 @@ export interface OpmStore {
   toolbarMasAbierto: boolean;
   dialogoGuardarComoAbierto: boolean;
   dialogoCargarModeloAbierto: boolean;
+  dialogoImportarExportarJsonAbierto: boolean;
   pantallaInicioCerrada: boolean;
   dialogoRenombrarModeloAbierto: boolean;
   dialogoTraerConectadosAbierto: boolean;
@@ -368,6 +369,8 @@ export interface OpmStore {
   guardarComoLocalConDescripcion: (input: { nombre: string; descripcion?: string; crearVersionAlGuardar?: boolean }) => void;
   abrirCargarModelo: () => void;
   cerrarCargarModelo: () => void;
+  abrirDialogoImportarExportarJson: () => void;
+  cerrarDialogoImportarExportarJson: () => void;
   cargarLocalDesdeDialogo: (id: Id) => void;
   cerrarPantallaInicio: () => void;
   abrirRenombrarModelo: () => void;

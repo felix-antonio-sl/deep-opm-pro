@@ -28,6 +28,7 @@ import {
 import type { Apariencia, Id, LayoutEstados, Modelo, ModoImagenEntidad, ParametrosSimulacionEntidad, TipoValorSlot } from "../../modelo/tipos";
 import { fijarOpcionesProyeccionGlobal } from "../../render/jointjs/proyeccion";
 import { commitModelo, type GetStore, type SetStore } from "../runtime";
+import { addFlash } from "../feedback";
 import type { ModeloSlice } from "../tipos";
 
 /**
@@ -44,6 +45,7 @@ export function accionesEntidad(set: SetStore, get: GetStore): Partial<ModeloSli
       if (resultado.ok) {
         const nueva = resultado.value.entidadId;
         commitModelo(set, modelo, resultado.value.modelo, { seleccionId: nueva, seleccionados: [nueva], modoSeleccion: "simple", enlaceSeleccionId: null, mensaje: null });
+        addFlash("✓ Objeto creado");
       }
     },
 
@@ -53,6 +55,7 @@ export function accionesEntidad(set: SetStore, get: GetStore): Partial<ModeloSli
       if (resultado.ok) {
         const nueva = resultado.value.entidadId;
         commitModelo(set, modelo, resultado.value.modelo, { seleccionId: nueva, seleccionados: [nueva], modoSeleccion: "simple", enlaceSeleccionId: null, mensaje: null });
+        addFlash("✓ Proceso creado");
       }
     },
 
@@ -77,6 +80,7 @@ export function accionesEntidad(set: SetStore, get: GetStore): Partial<ModeloSli
         // "modal nombre cosa". Reemplaza el SystemEvent global previo.
         nuevaCosaPendiente: { entidadId: resultado.value.entidadId, aparienciaId: resultado.value.aparienciaId, nombre },
       });
+      addFlash(`✓ ${tipo === "objeto" ? "Objeto" : "Proceso"} creado`);
     },
 
     confirmarNombreNuevaCosa(nombre) {
@@ -156,6 +160,7 @@ export function accionesEntidad(set: SetStore, get: GetStore): Partial<ModeloSli
         modoEnlace: null,
         mensaje: null,
       });
+      addFlash("✓ Apariencia creada");
     },
 
     fijarModoCreacion(tipo) {

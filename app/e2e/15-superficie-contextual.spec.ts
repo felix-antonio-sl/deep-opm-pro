@@ -12,7 +12,7 @@
  */
 
 import { expect, test } from "@playwright/test";
-import { cerrarPantallaInicioSiVisible, clickLinkPorTipo, elementoPorTexto } from "./_smoke-helpers";
+import { cerrarPantallaInicioSiVisible, clickLinkPorTipo, elementoPorTexto, exportadoActual } from "./_smoke-helpers";
 
 test("seleccionar una cosa enciende barra contextual e Inspector con la misma referencia", async ({ page }) => {
   const pageErrors: string[] = [];
@@ -95,7 +95,7 @@ test("inzoom desde barra contextual navega al OPD hijo y arbol expone el descend
   expect(pageErrors).toEqual([]);
 });
 
-test("PanelMetodologia y PanelAvisos se pueden colapsar sin perder informacion critica", async ({ page }) => {
+test("PanelDiagnostico se expande y colapsa sin perder informacion critica", async ({ page }) => {
   const pageErrors: string[] = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
@@ -104,30 +104,22 @@ test("PanelMetodologia y PanelAvisos se pueden colapsar sin perder informacion c
   // Modelo minimo: aseguro que ambos paneles se monten.
   await page.getByRole("button", { name: "Objeto", exact: true }).click();
 
-  const metodologia = page.getByTestId("panel-metodologia");
-  const avisos = page.getByTestId("panel-avisos");
-  await expect(metodologia).toBeVisible();
-  await expect(avisos).toBeVisible();
+  const diagnostico = page.getByTestId("panel-diagnostico");
+  await expect(diagnostico).toBeVisible();
 
   // El contador se mantiene visible incluso cuando el panel esta colapsado.
-  const contadorMetodologia = page.getByTestId("panel-metodologia-total");
-  await expect(contadorMetodologia).toBeVisible();
+  await expect(diagnostico).toContainText(/issues/);
 
-  // Toggle colapsa Metodologia: el cuerpo desaparece pero el contador sigue.
-  await page.getByTestId("panel-metodologia-toggle").click();
-  await expect(metodologia).toHaveAttribute("data-colapsado", "true");
-  await expect(contadorMetodologia).toBeVisible();
-  // Re-expandir restaura.
-  await page.getByTestId("panel-metodologia-toggle").click();
-  await expect(metodologia).toHaveAttribute("data-colapsado", "false");
+  // Toggle expande Diagnostico: el cuerpo aparece con agrupacion unica.
+  await page.getByTestId("panel-diagnostico-toggle").click();
+  await expect(diagnostico).toHaveAttribute("data-expandido", "true");
+  await expect(diagnostico).toContainText("Mejoras");
 
-  // Mismo contrato para Verificacion metodologica.
-  await page.getByTestId("panel-avisos-toggle").click();
-  await expect(avisos).toHaveAttribute("data-colapsado", "true");
+  // Colapsar preserva el Inspector y deja el contador visible.
+  await page.getByTestId("panel-diagnostico-toggle").click();
+  await expect(diagnostico).toHaveAttribute("data-expandido", "false");
   // Inspector debe seguir disponible (no oculto por avisos).
   await expect(page.getByTestId("inspector")).toBeVisible();
-  await page.getByTestId("panel-avisos-toggle").click();
-  await expect(avisos).toHaveAttribute("data-colapsado", "false");
 
   expect(pageErrors).toEqual([]);
 });
@@ -289,9 +281,7 @@ test.describe("Contrato TablaEnlaces Beta1", () => {
 
     // El JSON ahora refleja contiene + 0..N (no 'abc').
     await page.getByTestId("tabla-enlaces-cerrar").click();
-    await page.getByRole("button", { name: "Exportar", exact: true }).click();
-    const exportadoJson = await page.locator('textarea[spellcheck="false"]').first().inputValue();
-    const exportado = JSON.parse(exportadoJson);
+    const exportado = await exportadoActual(page);
     const enlace = Object.values(exportado.modelo.enlaces)[0] as Record<string, unknown>;
     expect(enlace.etiqueta).toBe("contiene");
     expect(enlace.multiplicidadDestino).toBe("0..N");

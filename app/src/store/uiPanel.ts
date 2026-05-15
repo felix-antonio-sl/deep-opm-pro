@@ -224,6 +224,7 @@ export const createUiPanelSlice: CrearSlice<UiPanelSlice> = (set, get) => ({
   toolbarMasAbierto: false,
   dialogoGuardarComoAbierto: false,
   dialogoCargarModeloAbierto: false,
+  dialogoImportarExportarJsonAbierto: false,
   uiAliasVisibles: true,
   uiDescripcionesVisibles: true,
   solicitudFitToken: 0,

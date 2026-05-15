@@ -30,6 +30,7 @@ import {
 } from "../../modelo/operaciones";
 import { definirRutaEtiqueta } from "../../modelo/rutas";
 import { commitModelo, enlaceNuevo, type GetStore, type SetStore } from "../runtime";
+import { addFlash } from "../feedback";
 import type { ModeloSlice } from "../tipos";
 
 /**
@@ -75,6 +76,7 @@ export function accionesEnlace(set: SetStore, get: GetStore): Partial<ModeloSlic
         // P1-5: crear enlace cambia contexto al enlace; cerramos editor inline.
         nuevaCosaPendiente: null,
       });
+      addFlash("✓ Enlace creado");
     },
 
     cancelarEnlace() {

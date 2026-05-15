@@ -27,6 +27,7 @@ import { instalarHerramientasEnlaceSeleccionado } from "./handlers/toolsEnlace";
 import { instalarHerramientasSimboloEstructuralSeleccionado } from "./handlers/toolsSimboloEstructural";
 import { cablearZoomFit, cablearZoomWheel, fitCanvasAPantalla } from "./handlers/zoom";
 import { aplicarRuteoOpcloudEnlaces } from "./opcloudRouting";
+import { OverlayLayer } from "./overlayCanvas/OverlayLayer";
 import { ordenarTodosLosEnlacesEstructurales } from "./sortStructuralLinks";
 
 /**
@@ -47,6 +48,7 @@ export function JointCanvas() {
   const paperHostRef = useRef<HTMLDivElement>(null);
   const viewportRef = useRef<HTMLDivElement>(null);
   const adapterRef = useRef<JointAdapter | null>(null);
+  const [adapterState, setAdapterState] = useState<JointAdapter | null>(null);
   const sincronizandoRef = useRef(false);
   const rubberBandRef = useRef(false);
   const suprimirBlankClickRef = useRef(false);
@@ -313,12 +315,14 @@ export function JointCanvas() {
     }));
 
     adapterRef.current = { graph, paper };
+    setAdapterState({ graph, paper });
     // Hook de debug: permite que la sonda in-vivo (scripts/in-vivo-test.mjs)
     // mida posiciones reales del graph y endpoints reales del paper. Sin
     // efecto en runtime; solo es accesible desde DevTools/Playwright.
     (globalThis as { __opmJointAdapter?: JointAdapter }).__opmJointAdapter = { graph, paper };
     return () => {
       adapterRef.current = null;
+      setAdapterState(null);
       delete (globalThis as { __opmJointAdapter?: JointAdapter }).__opmJointAdapter;
       cleanups.forEach((fn) => fn());
       paperView(paper).remove();
@@ -471,6 +475,7 @@ export function JointCanvas() {
   return (
     <div ref={viewportRef} role="img" aria-label="OPD activo" data-atajos-contexto="canvas" style={style.viewport}>
       <div ref={paperHostRef} style={style.paperHost}>
+        <OverlayLayer paper={adapterState?.paper ?? null} />
         {renombrado?.entidad && renombrado.apariencia ? (
           <RenombradoInline
             nombre={renombrado.entidad.nombre}

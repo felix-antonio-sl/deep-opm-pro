@@ -86,8 +86,9 @@ export function modeloTraerConectadosSmoke() {
 
 export async function cerrarPantallaInicioSiVisible(page: import("@playwright/test").Page): Promise<void> {
   const pantalla = page.getByTestId("pantalla-inicio");
+  await pantalla.waitFor({ state: "visible", timeout: 750 }).catch(() => undefined);
   if (await pantalla.count() === 0) return;
-  await pantalla.getByRole("button", { name: "Nuevo", exact: true }).click();
+  await pantalla.getByRole("button", { name: /Empezar vacío|Nuevo/ }).click();
   await expect(pantalla).toHaveCount(0);
 }
 
@@ -287,11 +288,40 @@ export function svgText(page: Page, text: string) {
 }
 
 export function jsonEditor(page: Page) {
-  return page.locator('textarea[spellcheck="false"]').first();
+  const handle = {
+    async fill(value: string): Promise<void> {
+      await abrirDialogoJson(page);
+      await textareaJson(page).fill(value);
+    },
+    async inputValue(): Promise<string> {
+      const dialogo = await abrirDialogoJson(page);
+      await dialogo.getByRole("button", { name: "Exportar", exact: true }).click();
+      const value = await textareaJson(page).inputValue();
+      await dialogo.getByRole("button", { name: "Cerrar", exact: true }).click();
+      await expect(dialogo).toHaveCount(0);
+      return value;
+    },
+    first() {
+      return handle;
+    },
+  };
+  return handle;
+}
+
+async function abrirDialogoJson(page: Page) {
+  const dialogo = page.getByTestId("dialogo-importar-exportar-json");
+  if (await dialogo.isVisible().catch(() => false)) return dialogo;
+  await page.getByLabel("Menú principal").click();
+  await page.getByRole("menu", { name: "Menú principal" }).getByRole("menuitem", { name: "Importar/Exportar JSON..." }).click();
+  await expect(dialogo).toBeVisible();
+  return dialogo;
+}
+
+function textareaJson(page: Page) {
+  return page.getByTestId("dialogo-importar-exportar-json").locator('textarea[spellcheck="false"]').first();
 }
 
 export async function exportadoActual(page: Page): Promise<ExportadoModelo> {
-  await page.getByRole("button", { name: "Exportar", exact: true }).click();
   return JSON.parse(await jsonEditor(page).inputValue()) as ExportadoModelo;
 }
 

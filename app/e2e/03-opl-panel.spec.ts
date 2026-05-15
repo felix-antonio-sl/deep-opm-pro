@@ -225,29 +225,28 @@ test("panel OPL minimiza y restaura desde barra colapsada", async ({ page }) => 
   expect(pageErrors).toEqual([]);
 });
 
-test("panel OPL se mueve a lateral derecho y persiste al recargar", async ({ page }) => {
+test("panel OPL queda fijado abajo y persiste al recargar", async ({ page }) => {
   const pageErrors: string[] = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
   await cerrarPantallaInicioSiVisible(page);
   await page.getByRole("button", { name: "Objeto", exact: true }).click();
-  await page.getByTestId("panel-opl-posicion").click();
 
-  const oplLateral = page.getByTestId("opl-pane");
-  const inspector = page.getByTestId("inspector-pane");
-  await expect(oplLateral).toBeVisible();
-  let oplBox = await oplLateral.boundingBox();
-  let inspectorBox = await inspector.boundingBox();
-  if (!oplBox || !inspectorBox) throw new Error("No se pudo medir layout lateral OPL");
-  expect(oplBox.x).toBeGreaterThan(inspectorBox.x);
-  expect(oplBox.height).toBeGreaterThan(300);
+  const oplInferior = page.getByTestId("opl-pane");
+  const canvas = page.getByTestId("canvas-pane");
+  await expect(oplInferior).toBeVisible();
+  let oplBox = await oplInferior.boundingBox();
+  let canvasBox = await canvas.boundingBox();
+  if (!oplBox || !canvasBox) throw new Error("No se pudo medir layout inferior OPL");
+  expect(oplBox.y).toBeGreaterThan(canvasBox.y);
+  expect(oplBox.width).toBeGreaterThan(canvasBox.width);
 
   await page.reload();
   oplBox = await page.getByTestId("opl-pane").boundingBox();
-  inspectorBox = await page.getByTestId("inspector-pane").boundingBox();
-  if (!oplBox || !inspectorBox) throw new Error("No se pudo medir layout lateral OPL tras recarga");
-  expect(oplBox.x).toBeGreaterThan(inspectorBox.x);
+  canvasBox = await page.getByTestId("canvas-pane").boundingBox();
+  if (!oplBox || !canvasBox) throw new Error("No se pudo medir layout inferior OPL tras recarga");
+  expect(oplBox.y).toBeGreaterThan(canvasBox.y);
 
   expect(pageErrors).toEqual([]);
 });
@@ -288,7 +287,6 @@ test("panel OPL selecciona enlace especifico en oracion multi-enlace", async ({ 
   const lineaMultiEnlace = page.locator('[data-testid="opl-line"]').filter({ hasText: "al menos uno de" });
   await lineaMultiEnlace.getByText("Entrada B").click();
   await page.getByRole("button", { name: "Eliminar enlace" }).click();
-  await page.getByRole("button", { name: "Exportar", exact: true }).click();
   const exportado = JSON.parse(await jsonEditor(page).inputValue()) as ExportadoModelo;
   expect(exportado.modelo.enlaces["e-consumo-a"]).toBeDefined();
   expect(exportado.modelo.enlaces["e-consumo-b"]).toBeUndefined();

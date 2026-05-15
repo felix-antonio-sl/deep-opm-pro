@@ -258,6 +258,19 @@ export function accionesUI(set: SetStore, get: GetStore): Partial<ModeloSlice> {
       set({ dialogoCargarModeloAbierto: false });
     },
 
+    abrirDialogoImportarExportarJson() {
+      set({
+        menuPrincipalAbierto: false,
+        dialogoImportarExportarJsonAbierto: true,
+        modelosGuardados: listarModelosGuardadosSeguro(),
+        mensaje: null,
+      });
+    },
+
+    cerrarDialogoImportarExportarJson() {
+      set({ dialogoImportarExportarJsonAbierto: false });
+    },
+
     cargarLocalDesdeDialogo(id) {
       get().cargarLocal(id);
       if (obtenerEstadoStore().modeloPersistidoId === id) {

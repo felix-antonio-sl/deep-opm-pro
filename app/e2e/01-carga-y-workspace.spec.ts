@@ -65,16 +65,18 @@ test("carga demo OPM en canvas JointJS y mantiene OPL visible", async ({ page })
   expect(pageErrors).toEqual([]);
 });
 
-test("L3 panel metodologia marca Cafetera Domestica como valida", async ({ page }) => {
+test("L3 panel diagnostico marca Cafetera Domestica como valida", async ({ page }) => {
   const pageErrors: string[] = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
   await page.getByLabel("Cargar modelo de ejemplo").selectOption("Cafetera Domestica");
 
-  await expect(page.getByTestId("panel-metodologia")).toBeVisible();
-  await expect(page.getByTestId("panel-metodologia-total")).toHaveText("0");
-  await expect(page.getByTestId("panel-metodologia-vacio")).toContainText("Modelo metodológicamente válido");
+  const panel = page.getByTestId("panel-diagnostico");
+  await expect(panel).toBeVisible();
+  await expect(panel).toContainText("0 issues");
+  await page.getByTestId("panel-diagnostico-toggle").click();
+  await expect(panel).toContainText("Modelo sin issues metodológicos");
   expect(pageErrors).toEqual([]);
 });
 
@@ -225,6 +227,7 @@ test("asiste importacion JSON con archivo, preview, confirmacion y error legible
   await page.getByRole("button", { name: "Objeto", exact: true }).click();
   await expect(elementoPorTexto(page, "Objeto")).toHaveCount(1);
 
+  await jsonEditor(page).fill("");
   await page.getByLabel("Archivo JSON").setInputFiles({
     name: "multi-opd.json",
     mimeType: "application/json",

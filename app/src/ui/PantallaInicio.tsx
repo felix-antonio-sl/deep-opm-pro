@@ -11,6 +11,7 @@ import { useConfirmarSiDirty } from "./ConfirmacionContext";
 import { tokens } from "./tokens";
 
 export function PantallaInicio() {
+  const modelo = useOpmStore((s) => s.modelo);
   const modeloPersistidoId = useOpmStore((s) => s.modeloPersistidoId);
   const pantallaInicioCerrada = useOpmStore((s) => s.pantallaInicioCerrada);
   const modelos = useOpmStore((s) => s.modelosGuardados);
@@ -19,25 +20,28 @@ export function PantallaInicio() {
   const nuevoModelo = useOpmStore((s) => s.nuevoModelo);
   const cargarFixtureDemo = useOpmStore((s) => s.cargarFixtureDemo);
   const cerrarPantallaInicio = useOpmStore((s) => s.cerrarPantallaInicio);
+  const iniciarAsistente = useOpmStore((s) => s.iniciarAsistente);
   const confirmarSiDirty = useConfirmarSiDirty();
   const [query, setQuery] = useState("");
   const [demoSeleccionado, setDemoSeleccionado] = useState("");
 
   const demos = useMemo(() => listarFixtures(), []);
+  const modeloTieneContenido = useMemo(() => Object.values(modelo.opds).some((opd) => (
+    Object.keys(opd.apariencias).length > 0 || Object.keys(opd.enlaces).length > 0
+  )), [modelo.opds]);
 
   useEffect(() => {
     listar();
   }, [listar]);
 
-  const hayRecientes = modelos.some((modelo) => !modelo.archivado);
-  const visible = !modeloPersistidoId && !pantallaInicioCerrada && hayRecientes;
+  const visible = !modeloPersistidoId && !pantallaInicioCerrada && !modeloTieneContenido;
   const recientes = useMemo(() => {
     const q = query.trim().toLocaleLowerCase("es-CL");
     return [...modelos]
       .filter((modelo) => !modelo.archivado)
       .filter((modelo) => !q || modelo.nombre.toLocaleLowerCase("es-CL").includes(q))
       .sort((a, b) => fechaUso(b).localeCompare(fechaUso(a)))
-      .slice(0, 12);
+      .slice(0, 5);
   }, [modelos, query]);
 
   if (!visible) return null;
@@ -47,13 +51,20 @@ export function PantallaInicio() {
     cerrarPantallaInicio();
     nuevoModelo();
   };
+  const ejecutarAsistente = () => {
+    cerrarPantallaInicio();
+    iniciarAsistente();
+  };
 
   return (
     <div data-testid="pantalla-inicio" style={style.overlay}>
       <div style={style.telon} />
-      <section style={style.panel} aria-label="Modelos recientes">
+      <section style={style.panel} aria-label="Bienvenida deep-opm-pro">
         <div style={style.header}>
-          <h2 style={style.title}>Modelos recientes</h2>
+          <div>
+            <h2 style={style.title}>deep-opm-pro</h2>
+            <p style={style.subtitle}>Modelador de sistemas en OPM/ISO 19450</p>
+          </div>
           <input
             type="search"
             aria-label="Buscar modelos recientes"
@@ -64,33 +75,48 @@ export function PantallaInicio() {
           />
         </div>
         <div style={style.actions}>
-          <button type="button" style={style.primaryButton} onClick={ejecutarNuevo}>Nuevo</button>
-          <select
-            aria-label="Cargar modelo de ejemplo"
-            value={demoSeleccionado}
-            style={style.demoSelect}
-            onChange={(e) => {
-              const nombre = e.currentTarget.value;
-              if (!nombre) return;
-              setDemoSeleccionado("");
-              confirmarSiDirty(() => {
-                cerrarPantallaInicio();
-                cargarFixtureDemo(nombre);
-              });
-            }}
-          >
-            <option value="" disabled>Ejemplos...</option>
-            {demos.map((d) => (
-              <option key={d.modelo.nombre} value={d.modelo.nombre} title={d.proposito}>
-                {d.modelo.nombre}
-              </option>
-            ))}
-          </select>
+          <button type="button" style={style.actionCard} onClick={ejecutarNuevo}>
+            <span style={style.actionIcon}>+</span>
+            <strong>Empezar vacío</strong>
+          </button>
+          <label style={style.actionCardLabel}>
+            <span style={style.actionIcon}>▸</span>
+            <strong>Abrir ejemplo...</strong>
+            <select
+              aria-label="Elegir ejemplo de bienvenida"
+              value={demoSeleccionado}
+              style={style.demoSelect}
+              onChange={(e) => {
+                const nombre = e.currentTarget.value;
+                if (!nombre) return;
+                setDemoSeleccionado("");
+                confirmarSiDirty(() => {
+                  cerrarPantallaInicio();
+                  cargarFixtureDemo(nombre);
+                });
+              }}
+            >
+              <option value="" disabled>Elegir ejemplo</option>
+              {demos.map((d) => (
+                <option key={d.modelo.nombre} value={d.modelo.nombre} title={d.proposito}>
+                  {d.modelo.nombre}
+                </option>
+              ))}
+            </select>
+          </label>
+          <button type="button" style={style.actionCard} onClick={ejecutarAsistente}>
+            <span style={style.actionIcon}>✦</span>
+            <strong>Asistente guiado</strong>
+          </button>
         </div>
+        <h3 style={style.sectionTitle}>Recientes</h3>
         <div style={style.grid}>
           {recientes.map((modelo) => <TileReciente key={modelo.id} modelo={modelo} onAbrir={abrir} />)}
         </div>
         {recientes.length === 0 ? <div style={style.empty}>No hay modelos recientes.</div> : null}
+        <div style={style.glosa}>
+          <strong>Cosa</strong> - objeto o proceso del sistema que modelas. <strong>OPD</strong> - diagrama donde dibujas cosas y enlaces. <strong>Apariencia</strong> - cómo aparece una cosa en un OPD. <strong>Enlace</strong> - relación entre dos cosas.
+        </div>
       </section>
     </div>
   );
@@ -131,19 +157,20 @@ const style = {
     zIndex: 850,
     display: "grid",
     placeItems: "center",
-    pointerEvents: "auto",
+    pointerEvents: "none",
   },
   telon: {
     position: "absolute",
     inset: 0,
     background: "rgba(15, 23, 42, 0.48)",
+    pointerEvents: "none",
   },
   panel: {
     position: "relative",
     width: "min(1120px, calc(100vw - 48px))",
     maxHeight: "min(720px, calc(100vh - 72px))",
     display: "grid",
-    gridTemplateRows: "auto auto minmax(0, 1fr) auto",
+    gridTemplateRows: "auto auto auto minmax(0, 1fr) auto auto",
     gap: "12px",
     padding: "18px",
     border: `1px solid ${tokens.colors.bordeControl}`,
@@ -151,14 +178,20 @@ const style = {
     background: tokens.colors.fondoChrome,
     boxShadow: tokens.shadows.inicio,
     overflow: "hidden",
+    pointerEvents: "auto",
   },
   header: { display: "flex", alignItems: "center", gap: "12px" },
   title: { margin: 0, color: tokens.colors.textoPrimario, fontSize: "20px", fontWeight: 800 },
+  subtitle: { margin: "4px 0 0", color: tokens.colors.textoSecundario, fontSize: "13px", fontWeight: 700 },
   search: { marginLeft: "auto", width: "min(360px, 45vw)", height: "34px", border: `1px solid ${tokens.colors.bordeInput}`, borderRadius: tokens.radii.sm, padding: "0 10px", fontSize: "13px" },
-  actions: { display: "flex", flexWrap: "wrap", gap: "8px" },
+  actions: { display: "grid", gridTemplateColumns: "repeat(3, minmax(140px, 1fr))", gap: "10px" },
+  actionCard: { minHeight: "120px", display: "grid", placeItems: "center", gap: "8px", border: `1px solid ${tokens.colors.bordeControl}`, borderRadius: tokens.radii.lg, background: tokens.colors.fondoCard, color: tokens.colors.textoPrimario, cursor: "pointer", fontSize: "14px", fontWeight: 800 },
+  actionCardLabel: { minHeight: "120px", display: "grid", placeItems: "center", gap: "8px", border: `1px solid ${tokens.colors.bordeControl}`, borderRadius: tokens.radii.lg, background: tokens.colors.fondoCard, color: tokens.colors.textoPrimario, cursor: "pointer", fontSize: "14px", fontWeight: 800, textAlign: "center" },
+  actionIcon: { fontSize: "24px", color: tokens.colors.chromeNeutral, fontWeight: 900 },
+  sectionTitle: { margin: "2px 0 0", color: tokens.colors.textoSecundario, fontSize: "12px", fontWeight: 800, textTransform: "uppercase", letterSpacing: 0 },
   primaryButton: { height: "34px", padding: "0 14px", border: `1px solid ${tokens.colors.chromeNeutral}`, borderRadius: tokens.radii.sm, background: tokens.colors.chromeNeutral, color: tokens.colors.fondoChrome, cursor: "pointer", fontSize: "13px", fontWeight: 700 },
   secondaryButton: { height: "34px", padding: "0 14px", border: `1px solid ${tokens.colors.bordeControl}`, borderRadius: tokens.radii.sm, background: tokens.colors.fondoChrome, color: tokens.colors.textoSecundario, cursor: "pointer", fontSize: "13px", fontWeight: 700 },
-  demoSelect: { height: "34px", padding: "0 8px", border: `1px solid ${tokens.colors.bordeControl}`, borderRadius: tokens.radii.sm, background: tokens.colors.fondoChrome, color: tokens.colors.textoSecundario, cursor: "pointer", fontSize: "13px", fontWeight: 700, maxWidth: "220px" },
+  demoSelect: { height: "32px", padding: "0 8px", border: `1px solid ${tokens.colors.bordeControl}`, borderRadius: tokens.radii.sm, background: tokens.colors.fondoChrome, color: tokens.colors.textoSecundario, cursor: "pointer", fontSize: "12px", fontWeight: 700, maxWidth: "220px" },
   grid: { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: "10px", overflow: "auto", minHeight: 0 },
   tile: { position: "relative", minHeight: "140px", display: "grid", gridTemplateRows: "24px auto auto 18px", gap: "4px", padding: "10px", border: `1px solid ${tokens.colors.bordeIntermedio}`, borderRadius: tokens.radii.md, background: tokens.colors.fondoCard, color: tokens.colors.textoPrimario, textAlign: "left", cursor: "pointer" },
   tileIcon: { width: "24px", height: "24px" },
@@ -169,4 +202,5 @@ const style = {
   glyphIcon: { width: "14px", height: "14px" },
   glyphText: { color: tokens.colors.chromeNeutral, fontSize: "14px", fontWeight: 800, lineHeight: 1 },
   empty: { padding: "18px", border: `1px dashed ${tokens.colors.bordeControl}`, borderRadius: tokens.radii.sm, color: tokens.colors.textoTerciario, fontSize: "13px", fontWeight: 700, textAlign: "center" },
+  glosa: { padding: "10px 12px", border: `1px solid ${tokens.colors.infoBordeSuave}`, borderRadius: tokens.radii.md, background: tokens.colors.infoFondoAlterno, color: tokens.colors.textoSecundario, fontSize: "12px", lineHeight: 1.45 },
 } satisfies Record<string, preact.JSX.CSSProperties>;

@@ -74,7 +74,6 @@ test("workbench Beta1: lista, filtra, edita multiplicidad y elimina enlace cross
 
   // Verifico via JSON: el enlace agente desaparecio del modelo y la mult quedo persistida.
   await page.getByTestId("tabla-enlaces-cerrar").click();
-  await page.getByRole("button", { name: "Exportar", exact: true }).click();
   const json = await jsonEditor(page).inputValue();
   const exportado = JSON.parse(json);
   const enlaces = Object.values(exportado.modelo.enlaces) as Array<Record<string, unknown>>;
@@ -130,7 +129,6 @@ test("workbench Beta1: edicion de etiqueta persiste y la fila refleja el cambio 
 
   // Verifico via JSON.
   await page.getByTestId("tabla-enlaces-cerrar").click();
-  await page.getByRole("button", { name: "Exportar", exact: true }).click();
   const exportado = JSON.parse(await jsonEditor(page).inputValue());
   const agente = (Object.values(exportado.modelo.enlaces) as Array<Record<string, unknown>>)
     .find((e) => e.tipo === "agente");

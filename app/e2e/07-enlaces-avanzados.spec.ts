@@ -79,7 +79,6 @@ test("crea enlace, edita vertices y elimina desde celdas JointJS", async ({ page
   await page.mouse.down();
   await page.mouse.move(segmentBox.x + segmentBox.width / 2, segmentBox.y + segmentBox.height / 2 + 70, { steps: 8 });
   await page.mouse.up();
-  await page.getByRole("button", { name: "Exportar", exact: true }).click();
   const jsonConVertice = await jsonEditor(page).inputValue();
   const exportadoConVertice = JSON.parse(jsonConVertice) as ExportadoModelo;
   const vertices = Object.values(exportadoConVertice.modelo.opds[exportadoConVertice.modelo.opdRaizId]?.enlaces ?? {})[0]?.vertices;
@@ -116,8 +115,6 @@ test("asigna multiplicidad de enlace y sincroniza canvas, OPL y JSON", async ({ 
 
   await expect(page.locator(".joint-link text").filter({ hasText: /^2$/ })).toHaveCount(1);
   await expect(page.getByText("Procesar consume 2 Recursos.")).toBeVisible();
-
-  await page.getByRole("button", { name: "Exportar", exact: true }).click();
   const json = await jsonEditor(page).inputValue();
   const exportado = JSON.parse(json) as ExportadoModelo;
   const enlace = Object.values(exportado.modelo.enlaces)[0];
@@ -153,8 +150,6 @@ test("gestiona estados M0 de objeto con capsulas internas y OPL", async ({ page 
   await expect(elementoPorTexto(page, "pendiente")).toHaveCount(1);
   await expect(elementoPorTexto(page, "cerrado")).toHaveCount(1);
   await expect(page.getByText(/Pedido puede ser .*pendiente.*cerrado/)).toBeVisible();
-
-  await page.getByRole("button", { name: "Exportar", exact: true }).click();
   const json = await jsonEditor(page).inputValue();
   const exportado = JSON.parse(json) as ExportadoModelo;
   const pedido = Object.values(exportado.modelo.entidades).find((entidad) => entidad.nombre === "Pedido");
@@ -184,8 +179,6 @@ test("apunta enlaces procedurales a estados y emite transicion OPL TS3", async (
   await expect(page.getByText(/Aprobar\s+cambia\s+Pedido\s+de `pendiente` a `aprobado`\./)).toBeVisible();
   await expect(page.getByText(/Aprobar\s+cambia\s+Pedido\s+de `pendiente`\./)).toHaveCount(0);
   await expect(page.getByText(/Aprobar\s+cambia\s+Pedido\s+a `aprobado`\./)).toHaveCount(0);
-
-  await page.getByRole("button", { name: "Exportar", exact: true }).click();
   const exportado = JSON.parse(await jsonEditor(page).inputValue()) as ExportadoModelo;
   expect(exportado.modelo.enlaces["e-consumo"]?.origenId).toEqual(extremoEstado("s-pendiente"));
   expect(exportado.modelo.enlaces["e-resultado"]?.destinoId).toEqual(extremoEstado("s-aprobado"));
@@ -209,8 +202,6 @@ test("crea resultado hacia capsula de estado por gesto directo y preserva TS3", 
 
   await expect(page.locator(".joint-link")).toHaveCount(2);
   await expect(page.getByText(/Aprobar\s+cambia\s+Pedido\s+de `pendiente` a `aprobado`\./)).toBeVisible();
-
-  await page.getByRole("button", { name: "Exportar", exact: true }).click();
   const exportado = JSON.parse(await jsonEditor(page).inputValue()) as ExportadoModelo;
   const resultado = Object.values(exportado.modelo.enlaces).find((enlace) => enlace.tipo === "resultado");
   expect(resultado?.destinoId).toEqual(extremoEstado("s-aprobado"));
@@ -239,8 +230,6 @@ test("edita rutas en ramas de abanico hacia estados y sincroniza OPL y JSON", as
   await expect(page.getByText(/Por ruta exitoso/)).toBeVisible();
   await expect(page.getByText(/Por ruta fallido/)).toBeVisible();
   await expect(page.getByText(/genera\s+Pedido\s+en `(aprobado|rechazado)`\./).first()).toBeVisible();
-
-  await page.getByRole("button", { name: "Exportar", exact: true }).click();
   const exportado = JSON.parse(await jsonEditor(page).inputValue()) as ExportadoModelo;
   expect(Object.values(exportado.modelo.enlaces).map((enlace) => enlace.rutaEtiqueta).sort()).toEqual(["exitoso", "fallido"]);
   expect(exportado.modelo.abanicos?.["ab-rutas"]?.enlaceIds).toEqual(["e-exitoso", "e-fallido"]);
@@ -282,7 +271,6 @@ test("split de efecto convierte enlace en consumo + resultado intermedio", async
   await expect(elementoPorTexto(page, "Sistema modificado")).toHaveCount(1);
 
   // El JSON exportado refleja consumo + resultado y NO efecto.
-  await page.getByRole("button", { name: "Exportar", exact: true }).click();
   const json = await jsonEditor(page).first().inputValue();
   expect(json).toContain('"consumo"');
   expect(json).toContain('"resultado"');
@@ -307,8 +295,6 @@ test("fusiona agregaciones en bus unico y renombra etiqueta de enlace", async ({
 
   await expect(svgText(page, "componente critico")).toBeVisible();
   await expect(page.getByText("Todo consta de Parte A. [etiqueta: componente critico]")).toBeVisible();
-
-  await page.getByRole("button", { name: "Exportar", exact: true }).click();
   const json = await jsonEditor(page).inputValue();
   const exportado = JSON.parse(json) as ExportadoModelo;
   expect(Object.values(exportado.modelo.enlaces).some((enlace) => enlace.etiqueta === "componente critico")).toBe(true);

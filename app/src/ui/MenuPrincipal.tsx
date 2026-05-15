@@ -41,6 +41,7 @@ export function MenuPrincipal() {
   const abrirTablaEnlaces = useOpmStore((s) => s.abrirTablaEnlaces);
   const abrirDialogoPlantillas = useOpmStore((s) => s.abrirDialogoPlantillas);
   const abrirDialogoGuardarPlantilla = useOpmStore((s) => s.abrirDialogoGuardarPlantilla);
+  const abrirDialogoImportarExportarJson = useOpmStore((s) => s.abrirDialogoImportarExportarJson);
   const abrirCheatsheetAtajos = useOpmStore((s) => s.abrirCheatsheetAtajos);
   const seleccionId = useOpmStore((s) => s.seleccionId);
   const modelo = useOpmStore((s) => s.modelo);
@@ -139,6 +140,9 @@ export function MenuPrincipal() {
         })}
       >
         Exportar JSON
+      </button>
+      <button type="button" role="menuitem" style={style.item} onClick={() => ejecutar(abrirDialogoImportarExportarJson)}>
+        Importar/Exportar JSON...
       </button>
       <div
         role="menuitem"

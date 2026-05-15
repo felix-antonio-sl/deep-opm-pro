@@ -47,6 +47,7 @@ import {
   type GetStore,
   type SetStore,
 } from "../runtime";
+import { addFlash } from "../feedback";
 import type { ModeloSlice } from "../tipos";
 import {
   alinearPorEje,
@@ -105,6 +106,7 @@ export function accionesCanvas(set: SetStore, get: GetStore): Partial<ModeloSlic
         // P1-5: al crearse el enlace, salimos del editor inline.
         nuevaCosaPendiente: null,
       });
+      addFlash("✓ Enlace creado");
     },
 
     seleccionarEstadoComoExtremo(estadoId) {
@@ -142,6 +144,7 @@ export function accionesCanvas(set: SetStore, get: GetStore): Partial<ModeloSlic
         mensaje: null,
         nuevaCosaPendiente: null,
       });
+      addFlash("✓ Enlace creado");
     },
 
     seleccionarEnlace(id) {
@@ -424,6 +427,7 @@ export function accionesCanvas(set: SetStore, get: GetStore): Partial<ModeloSlic
         modoEnlace: null,
         mensaje: null,
       });
+      addFlash("✓ Plegado actualizado");
     },
 
     fijarModoPlegadoApariencia(aparienciaId, modo) {
@@ -746,6 +750,7 @@ export function accionesCanvas(set: SetStore, get: GetStore): Partial<ModeloSlic
         solicitudFitToken: solicitudFitToken + 1,
         dirtyModelo,
       });
+      addFlash("✓ Layout aplicado");
     },
 
     reordenarSubprocesoEnTimeline(opdId, aparienciaId, nuevaY) {

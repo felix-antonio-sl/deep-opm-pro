@@ -11,7 +11,6 @@
 import { useEffect, useMemo, useRef, useState } from "preact/hooks";
 import type { Id, TipoEnlace } from "../../modelo/tipos";
 import { useOpmStore } from "../../store";
-import { BibliotecaCosa } from "../BibliotecaCosa";
 import { MenuTipoEnlace } from "../MenuTipoEnlace";
 import { toolbarStyle as style } from "./toolbarStyles";
 
@@ -47,14 +46,7 @@ export function ToolbarCreacion() {
   const seleccionados = useOpmStore((s) => s.seleccionados);
   const modelo = useOpmStore((s) => s.modelo);
   const opdActivoId = useOpmStore((s) => s.opdActivoId);
-  const cambiarOpdActivo = useOpmStore((s) => s.cambiarOpdActivo);
   const crearEnlaceEntreEntidades = useOpmStore((s) => s.crearEnlaceEntreEntidades);
-  // L3 ronda 20: el overlay legacy ahora vive en el store para que el toggle
-  // del dock pueda cerrarlo al abrirse (mutuamente exclusivos). El testid
-  // `abrir-biblioteca-cosa` se preserva intacto.
-  const bibliotecaAbierta = useOpmStore((s) => s.bibliotecaCosaAbierta);
-  const toggleBibliotecaCosa = useOpmStore((s) => s.toggleBibliotecaCosa);
-  const cerrarBibliotecaCosa = useOpmStore((s) => s.cerrarBibliotecaCosa);
   const [menuTiposAbierto, setMenuTiposAbierto] = useState(false);
   const [direccionTipoEnlace, setDireccionTipoEnlace] = useState<"saliente" | "entrante">("saliente");
   const triggerTiposRef = useRef<HTMLButtonElement | null>(null);
@@ -141,17 +133,26 @@ export function ToolbarCreacion() {
 
   return (
     <>
-      <label style={style.linkPicker}>
-        <select aria-label="Tipo de enlace" title={selectorEnlaceDeshabilitado ? "Selecciona una entidad origen" : undefined} disabled={selectorEnlaceDeshabilitado} style={selectorEnlaceDeshabilitado ? style.disabledSelect : modoEnlace ? style.activeSelect : style.select} value={modoEnlace?.tipo ?? ""} onChange={handleCambiarTipoEnlace}>
+      <button
+        ref={triggerTiposRef}
+        style={estiloBotonTipos}
+        type="button"
+        onClick={handleToggleTiposValidos}
+        disabled={selectorEnlaceDeshabilitado}
+        aria-haspopup="dialog"
+        aria-expanded={menuTiposAbierto}
+        data-testid="abrir-menu-tipo-enlace"
+        title={selectorEnlaceDeshabilitado ? "Selecciona una cosa origen" : "Conectar cosas con tipos válidos"}
+      >
+        Conectar ⌖
+      </button>
+      <label style={style.linkPickerCompat} title="Compatibilidad de atajo para pruebas legacy; usa Conectar en la interfaz.">
+        <select aria-label="Tipo de enlace" disabled={selectorEnlaceDeshabilitado} style={style.selectCompat} value={modoEnlace?.tipo ?? ""} onChange={handleCambiarTipoEnlace}>
           <option value="">Tipo de enlace…</option>
           {TIPOS_ENLACE.map((item) => <option key={item.tipo} value={item.tipo}>{item.label}</option>)}
         </select>
       </label>
       {modoEnlace ? <button style={style.secondaryButton} type="button" onClick={cancelarEnlace} title="Cancelar creación de enlace">Cancelar</button> : null}
-      <button ref={triggerTiposRef} style={estiloBotonTipos} type="button" onClick={handleToggleTiposValidos} disabled={selectorEnlaceDeshabilitado} aria-haspopup="dialog" aria-expanded={menuTiposAbierto} data-testid="abrir-menu-tipo-enlace" title={selectorEnlaceDeshabilitado ? "Selecciona una entidad origen" : "Tipos válidos · sugerencias OPL para origen/destino"}>
-        Tipos válidos
-      </button>
-      <button style={bibliotecaAbierta ? style.activeButton : style.button} type="button" onClick={toggleBibliotecaCosa} data-testid="abrir-biblioteca-cosa" title="Biblioteca de cosas · arrastra al canvas para reusar">Biblioteca</button>
       {/* P1 sticky ronda 4: barra de modo canonica unica. Reemplaza el badge */}
       {/* "Modo sticky" + chip de modoEnlace dispersos por una sola etiqueta */}
       {/* que dice inequivocamente que pasaria si el usuario hace click en */}
@@ -169,7 +170,6 @@ export function ToolbarCreacion() {
           <button style={style.secondaryButton} type="button" onClick={handleCancelarCreacion} title="Salir del modo creación sticky">Cancelar</button>
         </>
       ) : null}
-      {bibliotecaAbierta ? <BibliotecaCosa modelo={modelo} opdActivoId={opdActivoId} onCerrar={cerrarBibliotecaCosa} onNavegarOpd={cambiarOpdActivo} /> : null}
       {menuTiposAbierto ? (
         <div ref={menuTiposRef}>
           <MenuTipoEnlace modelo={modelo} origenId={origenMenuTipo} destinoId={destinoMenuTipo} direccion={direccionTipoEnlace} onDireccion={setDireccionTipoEnlace} onElegir={handleElegirTipoValido} />

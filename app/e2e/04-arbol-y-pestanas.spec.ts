@@ -73,7 +73,6 @@ test("navega OPDs desde el arbol lateral", async ({ page }) => {
   await expect(page.getByText("Proceso Hijo").first()).toBeVisible();
 
   await page.getByRole("button", { name: "Objeto", exact: true }).click();
-  await page.getByRole("button", { name: "Exportar", exact: true }).click();
   const json = await jsonEditor(page).inputValue();
   const exportado = JSON.parse(json) as ExportadoModelo;
   expect(Object.values(exportado.modelo.opds["opd-1"]?.apariencias ?? {})).toHaveLength(1);

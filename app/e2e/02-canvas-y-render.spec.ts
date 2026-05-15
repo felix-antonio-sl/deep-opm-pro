@@ -124,8 +124,6 @@ test("aplica subtipo NO desde inspector y emite badge negado", async ({ page }) 
 
   await expect(svgText(page, "¬")).toBeVisible();
   await expect(page.getByText("Aprobar no consume Orden.")).toBeVisible();
-
-  await page.getByRole("button", { name: "Exportar", exact: true }).click();
   const exportado = JSON.parse(await jsonEditor(page).inputValue()) as ExportadoModelo;
   const enlace = Object.values(exportado.modelo.enlaces)[0];
   expect(enlace?.modificador).toBe("no");
@@ -151,7 +149,6 @@ test("mover puerto desde dialogo cambia extremo destino del enlace", async ({ pa
   await page.getByRole("dialog", { name: "Mover Puerto" }).getByRole("button", { name: "Mover", exact: true }).click();
 
   await expect(page.getByText("Puerto movido")).toBeVisible();
-  await page.getByRole("button", { name: "Exportar", exact: true }).click();
   const exportado = JSON.parse(await jsonEditor(page).inputValue()) as ExportadoModelo;
   expect(Object.values(exportado.modelo.enlaces)[0]?.destinoId).toEqual({ kind: "entidad", id: "p-validar" });
   expect(pageErrors).toEqual([]);
@@ -165,8 +162,10 @@ test("dos consumos al mismo objeto emiten advertencia", async ({ page }) => {
   await jsonEditor(page).fill(JSON.stringify(modeloConsumoDuplicado(), null, 2));
   await page.getByRole("button", { name: "Importar" }).click();
 
-  await expect(page.getByTestId("panel-avisos")).toContainText("consumo-doble-mismo-objeto");
-  await expect(page.getByTestId("panel-avisos")).toContainText("Procesar consume Entrada más de una vez");
+  const diagnostico = page.getByTestId("panel-diagnostico");
+  await page.getByTestId("panel-diagnostico-toggle").click();
+  await expect(diagnostico).toContainText("consumo-doble-mismo-objeto");
+  await expect(diagnostico).toContainText("Procesar consume Entrada más de una vez");
   expect(pageErrors).toEqual([]);
 });
 
@@ -185,8 +184,6 @@ test("crea auto-invocacion desde Inspector con demora default", async ({ page })
   await expect(page.locator(".joint-link")).toHaveCount(2);
   await expect(svgText(page, "1s")).toBeVisible();
   await expect(page.getByText("Proceso se invoca a sí mismo despues de 1s.")).toBeVisible();
-
-  await page.getByRole("button", { name: "Exportar", exact: true }).click();
   const json = await jsonEditor(page).inputValue();
   const exportado = JSON.parse(json) as ExportadoModelo;
   const proceso = Object.values(exportado.modelo.entidades).find((entidad) => entidad.nombre === "Proceso");
@@ -217,8 +214,6 @@ test("arrastra una cosa JointJS y persiste su apariencia", async ({ page }) => {
   await page.mouse.down();
   await page.mouse.move(objectBox.x + objectBox.width / 2 + 120, objectBox.y + objectBox.height / 2 + 70, { steps: 8 });
   await page.mouse.up();
-
-  await page.getByRole("button", { name: "Exportar", exact: true }).click();
   const jsonDespuesDeDrag = await jsonEditor(page).inputValue();
   const exportadoDespuesDeDrag = JSON.parse(jsonDespuesDeDrag) as ExportadoModelo;
   const objetoMovido = Object.values(exportadoDespuesDeDrag.modelo.entidades).find((entidad) => entidad.nombre === "Objeto");

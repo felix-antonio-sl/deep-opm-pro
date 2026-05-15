@@ -8,7 +8,11 @@ import { tokens } from "./tokens";
 
 type VistaPreviaImportacion = { ok: true; texto: string } | { ok: false; error: string };
 
-export function PersistenciaJson() {
+interface PersistenciaJsonProps {
+  onImported?: () => void;
+}
+
+export function PersistenciaJson({ onImported }: PersistenciaJsonProps) {
   const exportarJson = useOpmStore((s) => s.exportarJson);
   const importarJson = useOpmStore((s) => s.importarJson);
   const modelosGuardados = useOpmStore((s) => s.modelosGuardados);
@@ -58,6 +62,7 @@ export function PersistenciaJson() {
     confirmarSiDirty(() => {
       importarJson(texto);
       setErrorImportacion(null);
+      onImported?.();
     });
   };
 

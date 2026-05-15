@@ -28,8 +28,7 @@ import { Inspector } from "./Inspector";
 import { useBreakpoint } from "./layoutResponsive";
 import { MenuPrincipal } from "./MenuPrincipal";
 import { ModoRevisionMobile, AvisoEditarEnEscritorio } from "./ModoRevisionMobile";
-import { PanelAvisos } from "./PanelAvisos";
-import { PanelMetodologia } from "./PanelMetodologia";
+import { PanelDiagnostico } from "./PanelDiagnostico";
 import { PanelOpl } from "./PanelOpl";
 import { BarraSimulacion } from "./simulacion/BarraSimulacion";
 import { tokens } from "./tokens";
@@ -42,6 +41,7 @@ const DialogoBuscarCosas = lazy(() => import("./DialogoBuscarCosas").then((m) =>
 const DialogoBuscarGlobal = lazy(() => import("./DialogoBuscarGlobal").then((m) => ({ default: m.DialogoBuscarGlobal })));
 const DialogoCargarModelo = lazy(() => import("./DialogoCargarModelo").then((m) => ({ default: m.DialogoCargarModelo })));
 const DialogoGuardarComo = lazy(() => import("./DialogoGuardarComo").then((m) => ({ default: m.DialogoGuardarComo })));
+const DialogoImportarExportarJson = lazy(() => import("./DialogoImportarExportarJson").then((m) => ({ default: m.DialogoImportarExportarJson })));
 const DialogoVersiones = lazy(() => import("./DialogoVersiones").then((m) => ({ default: m.DialogoVersiones })));
 // Ronda 13 L1 T2.6: lazy splits para recuperar objetivo historico de chunk principal <=195 kB.
 const MapaSistema = lazy(() => import("./MapaSistema").then((m) => ({ default: m.MapaSistema })));
@@ -64,6 +64,8 @@ export function App() {
   const fijarAnchoPanelInspector = useOpmStore((s) => s.fijarAnchoPanelInspector);
   const asistenteAbierto = useOpmStore((s) => s.asistente !== null);
   const dialogoGuardarComoAbierto = useOpmStore((s) => s.dialogoGuardarComoAbierto);
+  const dialogoImportarExportarJsonAbierto = useOpmStore((s) => s.dialogoImportarExportarJsonAbierto);
+  const cerrarDialogoImportarExportarJson = useOpmStore((s) => s.cerrarDialogoImportarExportarJson);
   const dialogoCargarModeloAbierto = useOpmStore((s) => s.dialogoCargarModeloAbierto);
   const dialogoBuscarGlobalAbierto = useOpmStore((s) => s.dialogoBuscarGlobalAbierto);
   const busquedaCosasAbierta = useOpmStore((s) => s.busquedaCosasAbierta);
@@ -79,7 +81,7 @@ export function App() {
   // L2 ronda 21: vista activa solo se consume cuando el breakpoint es mobile.
   const vistaMobileActiva = useOpmStore((s) => s.vistaMobileActiva);
   const [inspectorAbierto, setInspectorAbierto] = useState(true);
-  const oplLateral = (preferenciasOpl?.oplPosicion ?? "inferior") === "lateral-derecho";
+  const oplLateral = false;
   const oplMinimizado = preferenciasOpl?.oplMinimizado ?? false;
   const timelineDisponible = tieneTimelineDisponible(modelo, opdActivoId);
   // L3 ronda 20: biblioteca dock acoplable bajo el arbol OPD.
@@ -169,8 +171,7 @@ export function App() {
                 ) : null}
                 {vistaMobileActiva === "issues" ? (
                   <div data-testid="inspector-pane" style={layout.mobileIssuesContent}>
-                    <PanelAvisos />
-                    <PanelMetodologia />
+                    <PanelDiagnostico />
                     <AvisoEditarEnEscritorio />
                   </div>
                 ) : null}
@@ -262,8 +263,6 @@ export function App() {
                 </div>
               ) : null}
             </div>
-            <PanelAvisos />
-            <PanelMetodologia />
           </div>
           {oplLateral ? (
             <div data-testid="opl-pane" style={layout.oplPane}>
@@ -272,13 +271,21 @@ export function App() {
           ) : null}
         </section>
         {!oplLateral ? (
-          <div data-testid="opl-pane" style={oplInferiorStyle(oplMinimizado)}>
-            <PanelOpl />
-          </div>
+          <>
+            <div data-testid="opl-pane" style={oplInferiorStyle(oplMinimizado)}>
+              <PanelOpl />
+            </div>
+            <PanelDiagnostico />
+          </>
         ) : null}
           </>
         )}
         {dialogoGuardarComoAbierto ? <Suspense fallback={null}><DialogoGuardarComo /></Suspense> : null}
+        {dialogoImportarExportarJsonAbierto ? (
+          <Suspense fallback={null}>
+            <DialogoImportarExportarJson open={dialogoImportarExportarJsonAbierto} onCerrar={cerrarDialogoImportarExportarJson} />
+          </Suspense>
+        ) : null}
         {dialogoCargarModeloAbierto ? <Suspense fallback={null}><DialogoCargarModelo /></Suspense> : null}
         {dialogoBuscarGlobalAbierto ? <Suspense fallback={null}><DialogoBuscarGlobal /></Suspense> : null}
         {busquedaCosasAbierta ? <Suspense fallback={null}><DialogoBuscarCosas /></Suspense> : null}
@@ -327,6 +334,7 @@ function registrarAtajosAplicacion(): Array<() => void> {
     if (state.cheatsheetAtajosAbierto) return state.cerrarCheatsheetAtajos();
     if (state.gestionArbolAbierta) return state.cerrarGestionArbol();
     if (state.dialogoGuardarComoAbierto) return state.cerrarGuardarComo();
+    if (state.dialogoImportarExportarJsonAbierto) return state.cerrarDialogoImportarExportarJson();
     if (state.dialogoCargarModeloAbierto) return state.cerrarCargarModelo();
     if (state.dialogoBuscarGlobalAbierto) return state.cerrarDialogoBuscarGlobal();
     if (state.dialogoVersionesAbierto) return state.cerrarDialogoVersiones();
@@ -409,7 +417,7 @@ function tieneTimelineDisponible(modelo: Modelo, opdId: Id): boolean {
 const layout = {
   page: {
     display: "grid",
-    gridTemplateRows: "48px 37px minmax(0, 1fr) auto",
+    gridTemplateRows: "48px 37px minmax(0, 1fr) auto auto",
     width: "100%",
     height: "100%",
     background: "#f5f7fb",

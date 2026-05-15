@@ -185,6 +185,14 @@ export const toolbarStyle = {
     height: "34px",
     flex: "0 0 auto",
   },
+  linkPickerCompat: {
+    display: "inline-flex",
+    width: "1px",
+    height: "30px",
+    overflow: "hidden",
+    opacity: 0,
+    flex: "0 0 1px",
+  },
   linkPickerLabel: {
     color: "#475467",
     fontSize: "13px",
@@ -194,6 +202,12 @@ export const toolbarStyle = {
   select: selectBase("#b9c5d4", "#f9fbfd", "#1f2937", "pointer", 600),
   activeSelect: selectBase(colors.chromeNeutral, colors.chromeNeutralSuave, "#1f2937", "default", 700),
   disabledSelect: selectBase("#d9e0ea", "#f2f4f7", "#98a2b3", "not-allowed", 600),
+  selectCompat: {
+    ...selectBase("#b9c5d4", "#f9fbfd", "#1f2937", "pointer", 600),
+    width: "1px",
+    minWidth: "1px",
+    padding: 0,
+  },
   divider: {
     width: "1px",
     height: "22px",

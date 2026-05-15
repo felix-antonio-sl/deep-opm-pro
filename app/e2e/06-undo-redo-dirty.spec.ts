@@ -119,14 +119,15 @@ test("marca dirty state y navega cambios con deshacer y rehacer", async ({ page 
   expect(pageErrors).toEqual([]);
 });
 
-test("L3 panel metodologia muestra aviso al crear proceso con nombre no verbal", async ({ page }) => {
+test("L3 panel diagnostico muestra aviso al crear proceso con nombre no verbal", async ({ page }) => {
   const pageErrors: string[] = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
   await page.getByRole("button", { name: "Proceso", exact: true }).click();
 
-  await expect(page.getByTestId("panel-metodologia")).toBeVisible();
+  await expect(page.getByTestId("panel-diagnostico")).toBeVisible();
+  await page.getByTestId("panel-diagnostico-toggle").click();
   await expect(page.getByTestId("aviso-PROCESO_NOMBRE_FORMA_VERBAL")).toContainText("Proceso");
   expect(pageErrors).toEqual([]);
 });
@@ -284,13 +285,10 @@ test("accion agregar estado desde barra flotante participa en undo", async ({ pa
   await page.getByLabel("Nombre estado 2").fill("cerrado");
   await page.getByTestId("modal-crear-estados-confirmar").click();
   await page.getByTestId("barra-agregar-estado").click();
-
-  await page.getByRole("button", { name: "Exportar", exact: true }).click();
   const conEstado = JSON.parse(await jsonEditor(page).inputValue()) as ExportadoModelo;
   expect(Object.keys(conEstado.modelo.estados)).toHaveLength(3);
 
   await page.keyboard.press("Control+Z");
-  await page.getByRole("button", { name: "Exportar", exact: true }).click();
   const sinEstado = JSON.parse(await jsonEditor(page).inputValue()) as ExportadoModelo;
   expect(Object.keys(sinEstado.modelo.estados)).toHaveLength(2);
   expect(pageErrors).toEqual([]);
@@ -351,7 +349,6 @@ test("extraer todas las partes plegadas crea apariencias en un solo undo", async
   await page.getByTestId("extraer-todas-partes-btn").click();
 
   await expect(page.locator(".joint-element")).toHaveCount(4);
-  await page.getByRole("button", { name: "Exportar", exact: true }).click();
   let exportado = JSON.parse(await jsonEditor(page).inputValue()) as ExportadoModelo;
   const objeto = Object.values(exportado.modelo.entidades).find((entidad) => entidad.nombre === "Objeto");
   if (!objeto) throw new Error("No se exporto Objeto");
@@ -360,7 +357,6 @@ test("extraer todas las partes plegadas crea apariencias en un solo undo", async
   expect(extraidas).toHaveLength(3);
 
   await page.keyboard.press("Control+Z");
-  await page.getByRole("button", { name: "Exportar", exact: true }).click();
   exportado = JSON.parse(await jsonEditor(page).inputValue()) as ExportadoModelo;
   expect(Object.values(exportado.modelo.opds[exportado.modelo.opdRaizId]?.apariencias ?? {})
     .filter((apariencia) => apariencia.parteExtraidaDe)).toHaveLength(0);

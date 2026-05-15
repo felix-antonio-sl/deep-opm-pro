@@ -35,7 +35,6 @@ export function PanelOpl() {
   const fijarHoverOpl = useOpmStore((s) => s.fijarHoverOpl);
   const buscarEnPanelOpl = useOpmStore((s) => s.buscarEnPanelOpl);
   const alternarNumeracionOpl = useOpmStore((s) => s.alternarNumeracionOpl);
-  const cambiarPosicionOpl = useOpmStore((s) => s.cambiarPosicionOpl);
   const minimizarOpl = useOpmStore((s) => s.minimizarOpl);
   const restaurarOpl = useOpmStore((s) => s.restaurarOpl);
   const alternarBloqueOplContraido = useOpmStore((s) => s.alternarBloqueOplContraido);
@@ -47,7 +46,7 @@ export function PanelOpl() {
   const [textoLibre, setTextoLibre] = useState("");
   const contenedorRef = useRef<HTMLElement | null>(null);
   const numeracionVisible = preferenciasOpl?.oplNumeracionVisible ?? true;
-  const posicion = preferenciasOpl?.oplPosicion ?? "inferior";
+  const posicion = "inferior";
   const minimizado = preferenciasOpl?.oplMinimizado ?? false;
   const bloquesColapsados = useMemo(
     () => new Set(Object.keys(preferenciasOpl?.oplBloquesContraidos ?? {})),
@@ -142,7 +141,6 @@ export function PanelOpl() {
         posicion={posicion}
         onMinimizar={minimizarOpl}
         onToggleNumeracion={alternarNumeracionOpl}
-        onTogglePosicion={() => cambiarPosicionOpl()}
         onPlaceholderAi={mostrarPlaceholderAiOpl}
         onBuscar={buscarEnPanelOpl}
         onCopiar={copiarOplActualAlPortapapeles}

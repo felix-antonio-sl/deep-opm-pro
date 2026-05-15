@@ -65,8 +65,6 @@ test("descompone proceso y navega al OPD hijo", async ({ page }) => {
   await expect(nodoHijo).toHaveAttribute("aria-current", "page");
   await expect(page.locator(".joint-element")).toHaveCount(4);
   await expect(page.getByTestId("bloque-opl-opd-1").getByText("Proceso se descompone en Proceso 1, Proceso 2 y Proceso 3 en esa secuencia.")).toBeVisible();
-
-  await page.getByRole("button", { name: "Exportar", exact: true }).click();
   const json = await jsonEditor(page).inputValue();
   const exportado = JSON.parse(json) as ExportadoModelo;
   const proceso = Object.values(exportado.modelo.entidades).find((entidad) => entidad.nombre === "Proceso");
@@ -97,7 +95,6 @@ test("descompone proceso y navega al OPD hijo", async ({ page }) => {
   await expect(page.locator('[role="treeitem"]').filter({ hasText: "SD1: Proceso descompuesto" })).toHaveCount(0);
   await expect(page.locator('[role="treeitem"][data-opd-id="opd-1"]')).toHaveAttribute("aria-current", "page");
   await expect(page.getByText("Proceso se descompone en Proceso 1, Proceso 2 y Proceso 3 en esa secuencia.")).toHaveCount(0);
-  await page.getByRole("button", { name: "Exportar", exact: true }).click();
   const jsonSinDescomposicion = await jsonEditor(page).inputValue();
   const exportadoSinDescomposicion = JSON.parse(jsonSinDescomposicion) as ExportadoModelo;
   const procesoSinDescomposicion = Object.values(exportadoSinDescomposicion.modelo.entidades).find((entidad) => entidad.nombre === "Proceso");
@@ -122,8 +119,6 @@ test("descompone objeto desde barra contextual y navega al OPD hijo", async ({ p
   await expect(nodoHijo).toHaveAttribute("aria-current", "page");
   await expect(page.locator(".joint-element")).toHaveCount(4);
   await expect(page.getByTestId("bloque-opl-opd-1").getByText("Objeto se descompone en Objeto 1, Objeto 2 y Objeto 3 en esa secuencia.")).toBeVisible();
-
-  await page.getByRole("button", { name: "Exportar", exact: true }).click();
   const exportado = JSON.parse(await jsonEditor(page).inputValue()) as ExportadoModelo;
   const objeto = Object.values(exportado.modelo.entidades).find((entidad) => entidad.nombre === "Objeto");
   const componentes = Object.values(exportado.modelo.entidades).filter((entidad) => /^Objeto [1-3]$/.test(entidad.nombre));
@@ -201,7 +196,6 @@ test("crea objeto interno por click dentro del contenedor refinado", async ({ pa
 
   await expect(elementoPorTexto(page, "Objeto")).toHaveCount(1);
   await expect(page.getByText(/interior|exterior/i)).toHaveCount(0);
-  await page.getByRole("button", { name: "Exportar", exact: true }).click();
   const exportado = JSON.parse(await jsonEditor(page).inputValue()) as ExportadoModelo;
   const proceso = Object.values(exportado.modelo.entidades).find((entidad) => entidad.nombre === "Proceso");
   const objeto = Object.values(exportado.modelo.entidades).find((entidad) => entidad.nombre === "Objeto");
@@ -239,8 +233,6 @@ test("despliega objeto y navega al OPD hijo", async ({ page }) => {
   await expect(nodoHijo).toHaveAttribute("aria-current", "page");
   await expect(page.locator(".joint-element")).toHaveCount(5);
   await expect(page.getByTestId("bloque-opl-opd-1").getByText("Objeto se despliega en Objeto parte 1, Objeto parte 2 y Objeto parte 3.")).toBeVisible();
-
-  await page.getByRole("button", { name: "Exportar", exact: true }).click();
   const json = await jsonEditor(page).inputValue();
   const exportado = JSON.parse(json) as ExportadoModelo;
   const objeto = Object.values(exportado.modelo.entidades).find((entidad) => entidad.nombre === "Objeto");
@@ -255,7 +247,6 @@ test("despliega objeto y navega al OPD hijo", async ({ page }) => {
 
   await page.getByRole("button", { name: "Quitar despliegue" }).click();
   await expect(page.locator('[role="treeitem"]').filter({ hasText: "SD1: Objeto desplegado" })).toHaveCount(0);
-  await page.getByRole("button", { name: "Exportar", exact: true }).click();
   const jsonSinDespliegue = await jsonEditor(page).inputValue();
   const exportadoSinDespliegue = JSON.parse(jsonSinDespliegue) as ExportadoModelo;
   const objetoSinDespliegue = Object.values(exportadoSinDespliegue.modelo.entidades).find((entidad) => entidad.nombre === "Objeto");
@@ -284,8 +275,6 @@ test("despliega proceso desde inspector y navega al OPD hijo", async ({ page }) 
   await expect(nodoHijo).toHaveAttribute("aria-current", "page");
   await expect(page.locator(".joint-element")).toHaveCount(5);
   await expect(page.getByTestId("bloque-opl-opd-1").getByText("Proceso se despliega en Proceso parte 1, Proceso parte 2 y Proceso parte 3.")).toBeVisible();
-
-  await page.getByRole("button", { name: "Exportar", exact: true }).click();
   const exportado = JSON.parse(await jsonEditor(page).inputValue()) as ExportadoModelo;
   const proceso = Object.values(exportado.modelo.entidades).find((entidad) => entidad.nombre === "Proceso");
   const partes = Object.values(exportado.modelo.entidades).filter((entidad) => /^Proceso parte [1-3]$/.test(entidad.nombre));
@@ -357,7 +346,6 @@ test("ronda 15.2: una entidad acepta descomposicion + despliegue simultaneos y e
   await expect(page.getByRole("button", { name: "Mostrar despliegue" })).toBeVisible();
 
   // El JSON exportado preserva ambos slots ortogonales.
-  await page.getByRole("button", { name: "Exportar", exact: true }).click();
   const exportado = JSON.parse(await jsonEditor(page).inputValue()) as ExportadoModelo;
   const proceso = Object.values(exportado.modelo.entidades).find((entidad) => entidad.nombre === "Proceso");
   expect(proceso?.refinamientos?.descomposicion?.opdId).toBeTruthy();
@@ -390,8 +378,6 @@ test("activa plegado parcial desde Inspector y persiste la vista compacta", asyn
   await expect(elementoPorTexto(page, "Objeto parte 2")).toHaveCount(1);
   await expect(elementoPorTexto(page, "Objeto parte 3")).toHaveCount(1);
   await expect(page.getByRole("button", { name: "Plegado completo" })).toBeVisible();
-
-  await page.getByRole("button", { name: "Exportar", exact: true }).click();
   const json = await jsonEditor(page).inputValue();
   const exportado = JSON.parse(json) as ExportadoModelo;
   const objeto = Object.values(exportado.modelo.entidades).find((entidad) => entidad.nombre === "Objeto");
@@ -430,8 +416,6 @@ test("edita estilo visual de cosa, persiste local y resetea defaults", async ({ 
 
   await expect(page.locator('.joint-element rect[joint-selector="body"]')).toHaveAttribute("fill", "#fef3c7");
   await expect(page.locator('.joint-element rect[joint-selector="body"]')).toHaveAttribute("stroke", "#3bc3ff");
-
-  await page.getByRole("button", { name: "Exportar", exact: true }).click();
   let json = await jsonEditor(page).inputValue();
   let exportado = JSON.parse(json) as ExportadoModelo;
   let objeto = Object.values(exportado.modelo.entidades).find((entidad) => entidad.nombre === "Objeto");
@@ -453,8 +437,6 @@ test("edita estilo visual de cosa, persiste local y resetea defaults", async ({ 
   // para texto del rotulo. El test apunta al de apariencia (Reset Style).
   await page.getByTitle("Reset Style").click();
   await expect(page.locator('.joint-element rect[joint-selector="body"]')).toHaveAttribute("fill", "#fdffff");
-
-  await page.getByRole("button", { name: "Exportar", exact: true }).click();
   json = await jsonEditor(page).inputValue();
   exportado = JSON.parse(json) as ExportadoModelo;
   objeto = Object.values(exportado.modelo.entidades).find((entidad) => entidad.nombre === "Objeto");
@@ -491,7 +473,6 @@ test("crea enlace desde fila plegada sin extraer la parte", async ({ page }) => 
 
   await expect(page.locator(".joint-link")).toHaveCount(1);
   await expect(page.getByText(/Mover\s+requiere\s+Objeto parte 1\./)).toBeVisible();
-  await page.getByRole("button", { name: "Exportar", exact: true }).click();
   const exportado = JSON.parse(await jsonEditor(page).inputValue()) as ExportadoModelo;
   const objeto = Object.values(exportado.modelo.entidades).find((entidad) => entidad.nombre === "Objeto");
   const parte = Object.values(exportado.modelo.entidades).find((entidad) => entidad.nombre === "Objeto parte 1");
@@ -564,8 +545,6 @@ test("redistribuye consumo al primer subproceso y resultado al ultimo", async ({
   await expect(elementoPorTexto(page, "Salida")).toHaveCount(1);
   await expect(page.getByText(/Procesar 1\s+consume\s+Entrada/)).toBeVisible();
   await expect(page.getByText(/Procesar 3\s+genera\s+Salida/)).toBeVisible();
-
-  await page.getByRole("button", { name: "Exportar", exact: true }).click();
   const json = await jsonEditor(page).inputValue();
   const exportado = JSON.parse(json) as ExportadoModelo;
   const procesar = Object.values(exportado.modelo.entidades).find((entidad) => entidad.nombre === "Procesar");
@@ -620,7 +599,6 @@ test("reancla consumo derivado y conserva el ancla manual al reordenar", async (
   await page.mouse.up();
 
   await expect(page.getByText(/Procesar 2\s+consume\s+Entrada/)).toBeVisible();
-  await page.getByRole("button", { name: "Exportar", exact: true }).click();
   const json = await jsonEditor(page).inputValue();
   const exportado = JSON.parse(json) as ExportadoModelo;
   const procesar = Object.values(exportado.modelo.entidades).find((entidad) => entidad.nombre === "Procesar");
@@ -694,8 +672,6 @@ test("L3 descomposicion avanzada: inspector reasigna, inline renombra, paralelo 
   // volvemos explícitamente para seleccionar el botón "Ambiental".
   await page.getByTestId("inspector-tab-semantica").click();
   await page.getByRole("button", { name: "Ambiental" }).click();
-
-  await page.getByRole("button", { name: "Exportar", exact: true }).click();
   const exportado = JSON.parse(await jsonEditor(page).inputValue()) as ExportadoModelo;
   const procesar = Object.values(exportado.modelo.entidades).find((entidad) => entidad.nombre === "Procesar");
   const entrada = Object.values(exportado.modelo.entidades).find((entidad) => entidad.nombre === "Entrada");

@@ -169,12 +169,12 @@ test("L4 biblioteca lista cosas y menu contextual borra enlace", async ({ page }
   await page.getByLabel("Nombre").fill("Entrada");
   await page.getByRole("button", { name: "Proceso", exact: true }).click();
   await page.getByLabel("Nombre").fill("Procesar");
-  await page.getByTestId("abrir-biblioteca-cosa").click();
-  await expect(page.getByTestId("biblioteca-cosa")).toBeVisible();
-  await expect(page.getByTestId("biblioteca-cosa").getByText("Entrada")).toBeVisible();
-  await expect(page.getByTestId("biblioteca-cosa").getByText("Procesar")).toBeVisible();
-  await page.getByLabel("Cerrar biblioteca").click();
-  await expect(page.getByTestId("biblioteca-cosa")).toHaveCount(0);
+  await page.getByTestId("toggle-biblioteca-dock").click();
+  await expect(page.getByTestId("biblioteca-dock")).toBeVisible();
+  await expect(page.getByTestId("biblioteca-dock").getByText("Entrada")).toBeVisible();
+  await expect(page.getByTestId("biblioteca-dock").getByText("Procesar")).toBeVisible();
+  await page.getByLabel("Cerrar biblioteca dock").click();
+  await expect(page.getByTestId("biblioteca-dock")).toHaveCount(0);
 
   await elementoPorTexto(page, "Entrada").click();
   await page.getByLabel("Tipo de enlace").selectOption("consumo");
