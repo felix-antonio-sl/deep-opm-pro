@@ -1,4 +1,4 @@
-// Orquestador del wizard AsistenteNuevoModelo (12 etapas).
+// Orquestador del wizard AsistenteNuevoModelo (12 etapas, IFML DE-WIZ).
 //
 // SSOT: metodologia-opm-es.md §6.
 // Lee asistente del store, despacha siguienteEtapa/etapaAnterior/cancelar/
@@ -100,6 +100,7 @@ export function AsistenteNuevoModelo() {
   };
 
   const esOpcional = ETAPAS_OPCIONALES.includes(etapa);
+  const muestraAtras = debeMostrarAtrasWizard(etapa);
 
   const handleKeyDown = (e: KeyboardEvent) => {
     if (e.key === "Escape") {
@@ -117,7 +118,15 @@ export function AsistenteNuevoModelo() {
       tabIndex={-1}
       ref={(el: HTMLElement | null) => el?.focus()}
     >
-      <div style={S.modal} role="dialog" aria-modal="true" aria-label="Asistente nuevo modelo">
+      <div
+        style={S.modal}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Asistente nuevo modelo"
+        data-ifml-pattern="DE-WIZ"
+        data-ifml-back="real"
+        data-ifml-cache="store.asistente.datos"
+      >
         <div style={S.header}>
           <span style={S.etapaLabel}>Etapa {etapa + 1} de {TOTAL_ETAPAS}</span>
           <div style={S.progressBar}>
@@ -224,9 +233,9 @@ export function AsistenteNuevoModelo() {
         {!cancelado && (
           <div style={S.footer}>
             <div>
-              {etapa > ETAPA_BIENVENIDA && etapa < ETAPA_CONFIRMAR && (
+              {muestraAtras && etapa < ETAPA_CONFIRMAR && (
                 <button type="button" style={S.btn(false)} onClick={handleAnterior}>
-                  Anterior
+                  Atrás
                 </button>
               )}
             </div>
@@ -249,7 +258,7 @@ export function AsistenteNuevoModelo() {
               {etapa === ETAPA_CONFIRMAR && (
                 <>
                   <button type="button" style={S.btn(false)} onClick={handleAnterior}>
-                    Anterior
+                    Atrás
                   </button>
                   <button type="button" style={S.btn(true)} onClick={handleConfirmar}>
                     Confirmar y crear modelo
@@ -262,6 +271,10 @@ export function AsistenteNuevoModelo() {
       </div>
     </div>
   );
+}
+
+export function debeMostrarAtrasWizard(etapa: EtapaAsistente): boolean {
+  return etapa > ETAPA_BIENVENIDA;
 }
 
 function construirCosasAmbientales(datos: Partial<DatosAsistente>): string[] {
