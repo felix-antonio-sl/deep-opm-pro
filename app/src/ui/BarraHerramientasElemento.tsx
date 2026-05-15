@@ -3,6 +3,11 @@ import { useEffect, useMemo, useState } from "preact/hooks";
 import { estadosDeEntidad } from "../modelo/operaciones/estados";
 import type { Entidad, Id, Modelo } from "../modelo/tipos";
 import { useOpmStore } from "../store";
+import {
+  accionesContextualesEntidad,
+  type AccionContextual,
+  type AccionContextualId,
+} from "../store/acciones-contextuales";
 import { colors } from "./tokens";
 
 /**
@@ -86,6 +91,24 @@ type AccionBarraId =
   | "editar-alias"
   | "editar-imagen"
   | "mas-opciones";
+
+const ACCIONES_BARRA_IDS = new Set<AccionContextualId>([
+  "copiar-estilo",
+  "pegar-estilo",
+  "agregar-estado",
+  "inzoom",
+  "unfold",
+  "editar-alias",
+  "editar-imagen",
+  "mas-opciones",
+]);
+
+const ICONOS_ACCION_BARRA: Partial<Record<AccionBarraId, preact.JSX.Element>> = {
+  "agregar-estado": ICONO_AGREGAR_ESTADO,
+  inzoom: ICONO_INZOOM,
+  unfold: ICONO_UNFOLD,
+  "editar-alias": ICONO_EDITAR_ALIAS,
+};
 
 const ALTO_BARRA = 44;
 const ANCHO_BOTON = 34;
@@ -275,39 +298,31 @@ export function accionesPilotoBarra(
   hayEstiloEnPortapapeles: boolean,
   inspectorAbierto: boolean,
 ): AccionBarra[] {
-  const esObjeto = entidad?.tipo === "objeto";
-  const esCosa = !!entidad;
-  return [
-    // BUG-d78ae2: ocultar copiar/pegar-estilo cuando no hay enlace operable.
-    // El label "Copiar"/"Pegar" sobre barra de entidad confunde con copia de
-    // entidad; en realidad operan sobre el primer enlace visual de la entidad
-    // en el OPD activo. Sin enlace operable no aplican y se esconden.
-    accion("copiar-estilo", "Copiar estilo", "barra-copiar-estilo", !!enlaceEstiloId, { texto: "Copiar", visible: !!enlaceEstiloId }),
-    accion("pegar-estilo", "Pegar estilo", "barra-pegar-estilo", !!enlaceEstiloId && hayEstiloEnPortapapeles, { texto: "Pegar", visible: !!enlaceEstiloId }),
-    accion("agregar-estado", "Agregar estado", "barra-agregar-estado", !!esObjeto, { icon: ICONO_AGREGAR_ESTADO, visible: !!esObjeto }),
-    accion("inzoom", "Inzoom (descomposición)", "barra-inzoom", esCosa, { icon: ICONO_INZOOM }),
-    accion("unfold", "Unfold (despliegue)", "barra-unfold", esCosa, { icon: ICONO_UNFOLD }),
-    accion("editar-alias", "Editar alias", "barra-editar-alias", !!esObjeto, { icon: ICONO_EDITAR_ALIAS }),
-    accion("editar-imagen", "Editar imagen", "barra-editar-imagen", !!esObjeto, { texto: "Img", visible: !!esObjeto }),
-    accion("mas-opciones", inspectorAbierto ? "Cerrar Inspector lateral" : "Abrir Inspector lateral", "barra-mas-opciones", !!entidad, { texto: "···" }),
-  ];
+  return accionesContextualesEntidad({
+    entidad,
+    enlaceEstiloId,
+    hayEstiloEnPortapapeles,
+    inspectorAbierto,
+    multi: false,
+  })
+    .filter(esAccionBarra)
+    .map(decorarAccionBarra);
 }
 
-function accion(
-  id: AccionBarraId,
-  label: string,
-  testId: string,
-  enabled: boolean,
-  extra: { icon?: preact.JSX.Element; texto?: string; visible?: boolean } = {},
-): AccionBarra {
+function esAccionBarra(accion: AccionContextual): accion is AccionContextual & { id: AccionBarraId } {
+  return ACCIONES_BARRA_IDS.has(accion.id);
+}
+
+function decorarAccionBarra(accion: AccionContextual & { id: AccionBarraId }): AccionBarra {
+  const icon = ICONOS_ACCION_BARRA[accion.id];
   return {
-    id,
-    label,
-    testId,
-    enabled,
-    visible: extra.visible ?? true,
-    ...(extra.icon ? { icon: extra.icon } : {}),
-    ...(extra.texto ? { texto: extra.texto } : {}),
+    id: accion.id,
+    label: accion.label,
+    testId: accion.testId,
+    enabled: accion.enabled,
+    visible: accion.visible,
+    ...(icon ? { icon } : {}),
+    ...(accion.texto ? { texto: accion.texto } : {}),
   };
 }
 
