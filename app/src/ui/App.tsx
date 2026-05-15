@@ -2,7 +2,7 @@
  * Workbench raíz OPM.
  *
  * Citas SSOT L1/L3: [JOYAS §1-3], [V-0c], [Met §metodologia].
- * PanelMetodologia se monta como
+ * PanelDiagnostico se monta como
  * ViewComponent derivado por DataFlow puro, no Action ni side-effect.
  */
 

@@ -5,6 +5,7 @@ import type { AvisoMetodologico, CodigoChecker, Modelo, NavegacionAviso } from "
 import type { Aviso, SeveridadAviso } from "../modelo/validaciones";
 import { validarModelo } from "../modelo/validaciones";
 import { useOpmStore } from "../store";
+import { clasificarSeveridad } from "./panelMetodologiaIssues";
 import { tokens } from "./tokens";
 
 type SeveridadDiagnostico = "bloqueo" | "mejora" | "estilo";
@@ -191,7 +192,7 @@ function mapearAvisosMetodologia(
     return {
       id: `met-${aviso.codigo}-${aviso.entidadId ?? aviso.opdId ?? index}`,
       testIdCodigo: aviso.codigo,
-      severidad: aviso.severidad === "advertencia" ? "mejora" : "estilo",
+      severidad: clasificarSeveridad(aviso),
       codigo: etiquetaCodigo(aviso.codigo),
       mensaje: aviso.mensaje,
       destino: etiquetaDestinoMetodologico(modelo, aviso),

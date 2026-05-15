@@ -15,7 +15,7 @@
  * Ronda 16 L3 (Beta1): cada aviso debe llevar `ssotRef` (cita corta visible
  * en el panel) y, cuando aplica, `accionesSugeridas` legibles. Esta funcion
  * no decide la presentacion: solo emite datos puros consumibles por
- * `PanelMetodologia`.
+ * `PanelDiagnostico`.
  *
  * Referencias semanticas OPCloud verificadas (no autoridad):
  * opm-extracted/src/app/dialogs/methodological-checking-dialog/checkers/ing-checker.ts

@@ -5,7 +5,7 @@
  *  - seleccionar cosa actualiza barra contextual e Inspector;
  *  - seleccionar enlace actualiza Inspector y Panel OPL;
  *  - refinamiento navega/expone OPD hijo;
- *  - PanelMetodologia/PanelAvisos no ocultan informacion critica.
+ *  - PanelDiagnostico no oculta informacion critica.
  *
  * Mantiene la asuncion del workbench (canvas + inspector + opl + arbol)
  * sin tocar render/canvas (territorio L4) ni Toolbar (territorio L2).
