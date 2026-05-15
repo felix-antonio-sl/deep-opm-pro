@@ -417,7 +417,7 @@ function tieneTimelineDisponible(modelo: Modelo, opdId: Id): boolean {
 const layout = {
   page: {
     display: "grid",
-    gridTemplateRows: "48px 37px minmax(0, 1fr) auto auto",
+    gridTemplateRows: "48px 32px minmax(0, 1fr) auto auto",
     width: "100%",
     height: "100%",
     background: "#f5f7fb",
@@ -496,7 +496,7 @@ const layout = {
   // section contiene canvas+overlay+tabs como flex columna. Sin OPL inferior.
   pageMobile: {
     display: "grid",
-    gridTemplateRows: "48px 37px minmax(0, 1fr)",
+    gridTemplateRows: "48px 32px minmax(0, 1fr)",
     width: "100%",
     height: "100%",
     background: "#f5f7fb",

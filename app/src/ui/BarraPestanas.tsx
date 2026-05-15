@@ -2,6 +2,7 @@
 import { useState } from "preact/hooks";
 import { useOpmStore } from "../store";
 import type { Pestana } from "../modelo/tipos";
+import { Breadcrumb } from "./Breadcrumb";
 import { useConfirmarCierreDirty } from "./ConfirmacionContext";
 import { tokens } from "./tokens";
 
@@ -60,71 +61,90 @@ export function BarraPestanas() {
 
   return (
     <div data-testid="barra-pestanas" style={style.barra}>
-      <div role="tablist" aria-label="Modelos abiertos" style={style.lista}>
-        {pestanas.map((pestana) => {
-          const activaActual = pestana.id === activa;
-          return (
-            <div
-              key={pestana.id}
-              role="tab"
-              aria-selected={activaActual}
-              data-testid={`pestana-${pestana.id}`}
-              draggable
-              onDragStart={(event) => {
-                setArrastrandoId(pestana.id);
-                event.dataTransfer?.setData(MIME_PESTANA, pestana.id);
-                if (event.dataTransfer) event.dataTransfer.effectAllowed = "move";
-              }}
-              onDragOver={(event) => event.preventDefault()}
-              onDrop={(event) => soltarSobre(event, pestana.id)}
-              style={{
-                ...style.pestana,
-                ...(activaActual ? style.pestanaActiva : {}),
-                ...(pestana.dirty ? style.pestanaDirty : {}),
-              }}
-              onClick={() => activarConConfirmacion(pestana)}
-            >
-              <span style={style.etiqueta} title={pestana.etiqueta}>
-                {pestana.etiqueta}{pestana.dirty ? " *" : ""}
-              </span>
-              {pestanas.length > 1 ? (
-                <button
-                  type="button"
-                  aria-label="Cerrar pestana"
-                  data-testid={`cerrar-pestana-${pestana.id}`}
-                  style={style.cerrar}
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    cerrarConConfirmacion(pestana);
-                  }}
-                >
-                  x
-                </button>
-              ) : null}
-            </div>
-          );
-        })}
+      <div style={style.breadcrumbSlot}>
+        <Breadcrumb />
       </div>
-      <button
-        type="button"
-        aria-label="Nueva pestana"
-        data-testid="nueva-pestana-btn"
-        style={style.nueva}
-        onClick={abrirPestanaNueva}
-      >
-        +
-      </button>
+      <div style={style.tabsSlot}>
+        <div role="tablist" aria-label="Modelos abiertos" style={style.lista}>
+          {pestanas.map((pestana) => {
+            const activaActual = pestana.id === activa;
+            return (
+              <div
+                key={pestana.id}
+                role="tab"
+                aria-selected={activaActual}
+                data-testid={`pestana-${pestana.id}`}
+                draggable
+                onDragStart={(event) => {
+                  setArrastrandoId(pestana.id);
+                  event.dataTransfer?.setData(MIME_PESTANA, pestana.id);
+                  if (event.dataTransfer) event.dataTransfer.effectAllowed = "move";
+                }}
+                onDragOver={(event) => event.preventDefault()}
+                onDrop={(event) => soltarSobre(event, pestana.id)}
+                style={{
+                  ...style.pestana,
+                  ...(activaActual ? style.pestanaActiva : {}),
+                  ...(pestana.dirty ? style.pestanaDirty : {}),
+                }}
+                onClick={() => activarConConfirmacion(pestana)}
+              >
+                <span style={style.etiqueta} title={pestana.etiqueta}>
+                  {pestana.etiqueta}{pestana.dirty ? " *" : ""}
+                </span>
+                {pestanas.length > 1 ? (
+                  <button
+                    type="button"
+                    aria-label="Cerrar pestana"
+                    data-testid={`cerrar-pestana-${pestana.id}`}
+                    style={style.cerrar}
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      cerrarConConfirmacion(pestana);
+                    }}
+                  >
+                    x
+                  </button>
+                ) : null}
+              </div>
+            );
+          })}
+        </div>
+        <button
+          type="button"
+          aria-label="Nueva pestana"
+          data-testid="nueva-pestana-btn"
+          style={style.nueva}
+          onClick={abrirPestanaNueva}
+        >
+          +
+        </button>
+      </div>
     </div>
   );
 }
 
 const style = {
   barra: {
-    display: "flex",
+    display: "grid",
+    gridTemplateColumns: "minmax(180px, 42%) minmax(0, 1fr)",
     alignItems: "stretch",
     minWidth: 0,
+    height: 32,
     borderBottom: `1px solid ${tokens.colors.bordeIntermedio}`,
     background: tokens.colors.fondoIcono,
+  },
+  breadcrumbSlot: {
+    minWidth: 0,
+    minHeight: 0,
+    overflow: "hidden",
+  },
+  tabsSlot: {
+    minWidth: 0,
+    minHeight: 0,
+    display: "flex",
+    alignItems: "stretch",
+    overflow: "hidden",
   },
   lista: {
     display: "flex",
@@ -135,7 +155,7 @@ const style = {
   pestana: {
     minWidth: 120,
     maxWidth: 220,
-    height: 36,
+    height: 32,
     display: "flex",
     alignItems: "center",
     gap: 6,
@@ -178,8 +198,8 @@ const style = {
     padding: 0,
   },
   nueva: {
-    width: 38,
-    height: 36,
+    width: 36,
+    height: 32,
     border: 0,
     borderLeft: `1px solid ${tokens.colors.bordeIntermedio}`,
     background: tokens.colors.fondoChrome,
