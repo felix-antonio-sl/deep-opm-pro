@@ -358,12 +358,8 @@ export type UiPanelSlice = Slice<
   | "etapaAnterior"
   | "cancelarAsistente"
   | "confirmarAsistente"
-  // L3 ronda 20: biblioteca overlay legacy + dock acoplable
-  | "bibliotecaCosaAbierta"
+  // L3 ronda 20 / ronda 22 S.2: biblioteca dock acoplable
   | "bibliotecaDockAbierto"
-  | "toggleBibliotecaCosa"
-  | "abrirBibliotecaCosa"
-  | "cerrarBibliotecaCosa"
   | "toggleBibliotecaDock"
   | "abrirBibliotecaDock"
   | "cerrarBibliotecaDock"

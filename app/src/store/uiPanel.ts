@@ -246,9 +246,7 @@ export const createUiPanelSlice: CrearSlice<UiPanelSlice> = (set, get) => ({
   // de revisión: ver el OPD activo antes de navegar tree/OPL/issues.
   vistaMobileActiva: "canvas",
   asistente: null,
-  // L3 ronda 20: biblioteca overlay legacy y dock acoplable.
-  // Default cerrado para ambos (decision §10 brief).
-  bibliotecaCosaAbierta: false,
+  // L3 ronda 20 / ronda 22 S.2: biblioteca dock acoplable.
   bibliotecaDockAbierto: false,
   // L1 ronda 20: tabs Inspector. Defaults `semantica` y `propiedades`.
   tabInspectorEntidadActivo: "semantica",
@@ -398,30 +396,15 @@ export const createUiPanelSlice: CrearSlice<UiPanelSlice> = (set, get) => ({
 	    set({ dialogoComandosAbierto: false });
 	  },
 
-	  // ── L3 ronda 20: Biblioteca overlay legacy + dock acoplable ──
-	  // Overlay y dock son mutuamente exclusivos: abrir uno cierra el otro
-	  // para evitar duplicación visual del catálogo. Decisión §6 del brief.
-
-	  toggleBibliotecaCosa() {
-	    const abierta = !get().bibliotecaCosaAbierta;
-	    set({ bibliotecaCosaAbierta: abierta, bibliotecaDockAbierto: abierta ? false : get().bibliotecaDockAbierto });
-	  },
-
-	  abrirBibliotecaCosa() {
-	    set({ bibliotecaCosaAbierta: true, bibliotecaDockAbierto: false });
-	  },
-
-	  cerrarBibliotecaCosa() {
-	    set({ bibliotecaCosaAbierta: false });
-	  },
+	  // ── L3 ronda 20 / ronda 22 S.2: Biblioteca dock acoplable ──
 
 	  toggleBibliotecaDock() {
 	    const abierto = !get().bibliotecaDockAbierto;
-	    set({ bibliotecaDockAbierto: abierto, bibliotecaCosaAbierta: abierto ? false : get().bibliotecaCosaAbierta });
+	    set({ bibliotecaDockAbierto: abierto });
 	  },
 
 	  abrirBibliotecaDock() {
-	    set({ bibliotecaDockAbierto: true, bibliotecaCosaAbierta: false });
+	    set({ bibliotecaDockAbierto: true });
 	  },
 
 	  cerrarBibliotecaDock() {

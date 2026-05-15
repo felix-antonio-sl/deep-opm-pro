@@ -5,7 +5,7 @@
  * - Búsqueda persistente por nombre.
  * - Filtro tipo (radio: Todos / Objetos / Procesos).
  * - Filtro "Solo OPD activo" (checkbox).
- * - Lista plana con drag-to-canvas heredado de `<BibliotecaCosa modo="dock" />`.
+ * - Lista plana con drag-to-canvas.
  *
  * El componente no persiste filtros: se reinician al desmontar (cierre del
  * dock). Decisión §9 del brief.
@@ -15,13 +15,13 @@
  */
 import { useMemo, useState } from "preact/hooks";
 import type { Id, Modelo, TipoEntidad } from "../../modelo/tipos";
-import { BibliotecaCosa } from "../BibliotecaCosa";
 import { tokens } from "../tokens";
 import {
   FILTROS_DEFAULT,
   filtrarEntidades,
   type FiltrosBiblioteca,
 } from "./filtrosBiblioteca";
+import { ListaBibliotecaCosas } from "./ListaBibliotecaCosas";
 
 interface Props {
   modelo: Modelo;
@@ -38,8 +38,8 @@ export function BibliotecaDock({ modelo, opdActivoId, onCerrar, onNavegarOpd }: 
     [modelo, opdActivoId, filtros],
   );
 
-  // Modelo proyectado: solo entidades visibles tras filtros, para que
-  // <BibliotecaCosa modo="dock" /> reuse su renderizado de items con drag.
+  // Modelo proyectado: solo entidades visibles tras filtros, para que la lista
+  // dockable conserve apariciones/OPDs sin reimplementar el filtro por grupo.
   const modeloFiltrado = useMemo<Modelo>(() => {
     const idsVisibles = new Set(items.map((item) => item.entidad.id));
     const entidades = Object.fromEntries(
@@ -131,12 +131,10 @@ export function BibliotecaDock({ modelo, opdActivoId, onCerrar, onNavegarOpd }: 
         {items.length === 0 ? (
           <p style={style.empty} data-testid="biblioteca-dock-empty">Sin resultados.</p>
         ) : (
-          <BibliotecaCosa
+          <ListaBibliotecaCosas
             modelo={modeloFiltrado}
             opdActivoId={opdActivoId}
-            onCerrar={onCerrar}
             onNavegarOpd={onNavegarOpd}
-            modo="dock"
           />
         )}
       </div>
