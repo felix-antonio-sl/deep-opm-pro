@@ -1,4 +1,3 @@
-import { estadosDeEntidad } from "../modelo/operaciones/estados";
 import { store } from "../store";
 import type { AccionContextualId } from "../store/acciones-contextuales";
 import { primerEnlaceVisualDeEntidad } from "./BarraHerramientasElemento";
@@ -26,8 +25,7 @@ export function ejecutarAccionContextualEntidad(
       return true;
     case "agregar-estado":
       if (entidad?.tipo !== "objeto") return false;
-      if (estadosDeEntidad(state.modelo, entidad.id).length < 2) state.agregarEstadosObjeto();
-      else state.agregarEstadoObjeto();
+      state.agregarEstadoSmart();
       return true;
     case "inzoom":
       if (!entidad) return false;

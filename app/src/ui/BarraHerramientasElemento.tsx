@@ -1,6 +1,5 @@
 import type { dia } from "jointjs";
 import { useEffect, useMemo, useState } from "preact/hooks";
-import { estadosDeEntidad } from "../modelo/operaciones/estados";
 import type { Entidad, Id, Modelo } from "../modelo/tipos";
 import { useOpmStore } from "../store";
 import {
@@ -126,8 +125,7 @@ export function BarraHerramientasElemento({ inspectorAbierto, onToggleInspector,
   const enlaceEstiloPortapapeles = useOpmStore((s) => s.enlaceEstiloPortapapeles);
   const copiarEstiloEnlace = useOpmStore((s) => s.copiarEstiloEnlaceAlPortapapeles);
   const pegarEstiloEnlace = useOpmStore((s) => s.pegarEstiloEnlaceDesdePortapapeles);
-  const agregarEstado = useOpmStore((s) => s.agregarEstadoObjeto);
-  const agregarEstadosIniciales = useOpmStore((s) => s.agregarEstadosObjeto);
+  const agregarEstadoSmart = useOpmStore((s) => s.agregarEstadoSmart);
   const descomponer = useOpmStore((s) => s.descomponerSeleccionada);
   const desplegar = useOpmStore((s) => s.desplegarSeleccionada);
   const abrirModalImagen = useOpmStore((s) => s.abrirModalImagen);
@@ -188,11 +186,7 @@ export function BarraHerramientasElemento({ inspectorAbierto, onToggleInspector,
   };
   const handleAgregarEstado = () => {
     if (entidad.tipo !== "objeto") return;
-    // agregarEstado (singular) requiere >=2 estados existentes. Si el objeto
-    // aun no tiene estados, sembrar los dos iniciales en su lugar; el siguiente
-    // click ya agrega un tercero.
-    if (estadosDeEntidad(modelo, entidad.id).length < 2) agregarEstadosIniciales();
-    else agregarEstado();
+    agregarEstadoSmart();
   };
   const handleInzoom = () => {
     descomponer();

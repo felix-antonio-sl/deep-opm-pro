@@ -464,6 +464,7 @@ export interface OpmStore {
   traerAgregacionesInzoomFaltantesSeleccionadas: () => void;
   agregarEstadosObjeto: () => void;
   agregarEstadoObjeto: () => void;
+  agregarEstadoSmart: () => void;
   eliminarEstado: (estadoId: Id) => void;
   quitarEstadosObjetoSeleccionado: () => void;
   renombrarEstadoSeleccionado: (estadoId: Id, nombre: string) => void;

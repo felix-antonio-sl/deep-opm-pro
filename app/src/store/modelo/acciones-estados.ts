@@ -15,6 +15,7 @@ import {
   quitarEstadosObjeto,
   renombrarEstado,
 } from "../../modelo/operaciones";
+import { estadosDeEntidad } from "../../modelo/operaciones/estados";
 import type { DesignacionEstado, Id, Modelo } from "../../modelo/tipos";
 import { commitModelo, type GetStore, type SetStore } from "../runtime";
 import type { ModeloSlice } from "../tipos";
@@ -61,6 +62,27 @@ export function accionesEstados(set: SetStore, get: GetStore): Partial<ModeloSli
         enlaceSeleccionId: null,
         modoEnlace: null,
         mensaje: null,
+      });
+    },
+
+    agregarEstadoSmart() {
+      const { modelo, seleccionId } = get();
+      if (!seleccionId) {
+        set({ mensaje: "Selecciona un objeto para agregar un estado" });
+        return;
+      }
+      const resultado = estadosDeEntidad(modelo, seleccionId).length < 2
+        ? crearEstadosIniciales(modelo, seleccionId)
+        : agregarEstado(modelo, seleccionId);
+      if (!resultado.ok) {
+        set({ mensaje: resultado.error });
+        return;
+      }
+      commitModelo(set, modelo, resultado.value.modelo, {
+        seleccionId,
+        enlaceSeleccionId: null,
+        modoEnlace: null,
+        mensaje: "creado" in resultado.value && resultado.value.creado ? "Estados iniciales agregados" : null,
       });
     },
 

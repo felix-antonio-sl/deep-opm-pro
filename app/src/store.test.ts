@@ -774,6 +774,19 @@ describe("store undo/redo y dirty state", () => {
     expect(estadosObjeto(objetoId)).toHaveLength(2);
   });
 
+  test("agregarEstadoSmart crea estados iniciales y luego agrega estado incremental", () => {
+    store.getState().crearObjetoDemo();
+    const objetoId = primeraEntidadId();
+    store.getState().seleccionarEntidad(objetoId);
+
+    store.getState().agregarEstadoSmart();
+    expect(estadosObjeto(objetoId).map((estado) => estado.nombre)).toEqual(["estado1", "estado2"]);
+
+    store.getState().agregarEstadoSmart();
+    expect(estadosObjeto(objetoId)).toHaveLength(3);
+    expect(store.getState().puedeDeshacer).toBe(true);
+  });
+
   test("descomponer seleccionada crea OPD hijo, navega y conserva undo", () => {
     store.getState().crearProcesoDemo();
     const procesoId = primeraEntidadId();

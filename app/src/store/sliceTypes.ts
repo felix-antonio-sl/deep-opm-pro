@@ -122,6 +122,7 @@ export type ModeloSlice = Slice<
   | "traerAgregacionesInzoomFaltantesSeleccionadas"
   | "agregarEstadosObjeto"
   | "agregarEstadoObjeto"
+  | "agregarEstadoSmart"
   | "eliminarEstado"
   | "quitarEstadosObjetoSeleccionado"
   | "renombrarEstadoSeleccionado"
