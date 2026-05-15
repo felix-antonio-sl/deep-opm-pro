@@ -1,9 +1,9 @@
-# HANDOFF — Enlaces OPCloud avanzados
+# HANDOFF — Estado operativo del modelador OPM
 
-**Fecha**: 2026-05-14
+**Fecha**: 2026-05-15
 **Repositorio**: `deep-opm-pro`
 **Rama**: `main`
-**Corte**: enlaces de excepción temporal OPCloud (`Overtime`, `Undertime`, `OvertimeUndertime`) integrados al kernel, UI, OPL, JSON y renderer JointJS OSS.
+**Corte**: UX/IFML del workbench integrada y refinamiento cross-OPD sincronizado; quedan pendientes avanzados de enlaces OPCloud.
 
 ## Política De Handoff Único
 
@@ -22,6 +22,34 @@
   - `https://docs.jointjs.com/learn/features/diagram-basics/links/`
 
 ## Estado Actual
+
+### Actualizacion 2026-05-15
+
+La rama `main` quedo sincronizada con `origin/main` tras dos cortes atomicos:
+
+- `bb03ed0 feat(ux): refactor ifml workbench chrome`
+  - Refactor de la superficie del workbench segun `docs/instrucciones-lineas-dev/ronda22/refactor-ux-ifml.md`.
+  - Se separo feedback visual efimero del estado semantico del modelo mediante `app/src/store/feedback.ts` y overlays JointJS/Preact en `app/src/render/jointjs/overlayCanvas/`.
+  - `PanelDiagnostico` y `DialogoImportarExportarJson` quedaron con estructura mas explicita, estados accesibles y contratos browser cubiertos.
+- `da241a0 fix(refinamiento): sincroniza enlaces externos en OPD hijo`
+  - Crear/eliminar enlaces externos en el OPD padre sincroniza las representaciones hijas de refinamiento.
+  - Las apariencias proxy automaticas en OPDs hijos se materializan y limpian sin borrar overrides manuales.
+  - La proyeccion de refinamiento mantiene coherencia entre enlaces padre, derivados y endpoints externos.
+
+Verificacion final de ambos cortes:
+
+```bash
+cd app && bun run typecheck
+cd app && bun run test
+cd app && bun run build
+cd app && bun run browser:smoke
+```
+
+Resultado del ultimo cierre: `1268 pass` unitarios, build limpio y `173 passed` en Playwright smoke.
+
+Workspace deliberadamente no consolidado: existen artefactos no trackeados en `docs/audits/`, `docs/bugs/` y `docs/instrucciones-lineas-dev/ronda22/`; no forman parte del corte productivo hasta que el operador decida promoverlos.
+
+### Corte 2026-05-14 — Enlaces OPCloud avanzados
 
 Quedó implementado el siguiente bloque del roadmap:
 
