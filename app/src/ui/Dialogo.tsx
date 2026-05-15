@@ -32,6 +32,7 @@ const FOCUSABLE_SELECTOR = [
 ].join(", ");
 
 export type DialogoSize = "sm" | "md" | "lg" | "xl";
+export type DialogoIfmlStereotype = "Modal" | "Modeless";
 
 const ANCHO_POR_TAMANO: Record<DialogoSize, string> = {
   sm: "min(360px, calc(100vw - 32px))",
@@ -49,6 +50,11 @@ interface DialogoProps {
   initialFocusRef?: RefObject<HTMLElement>;
   size?: DialogoSize;
   /**
+   * IFML V9: estereotipo explicito del dialogo. Default `true` preserva el
+   * contrato historico de overlay modal con portal, foco contenido y Escape.
+   */
+  modal?: boolean;
+  /**
    * `data-testid` opcional aplicado al elemento `<section role="dialog">`.
    * Permite que smokes existentes (p. ej. `08-mvp-alpha-residual.spec.ts`)
    * sigan usando `getByTestId(...)` para alcanzar tanto el body como las
@@ -62,6 +68,8 @@ export function Dialogo(props: DialogoProps) {
   const dialogRef = useRef<HTMLElement>(null);
   const titleId = useRef(`dialogo-${Math.random().toString(36).slice(2)}`);
   const tamano: DialogoSize = props.size ?? "md";
+  const modal = props.modal ?? true;
+  const stereotype = estereotipoDialogo(modal);
   const dialogStyle = useMemo(
     () => ({ ...style.dialog, width: ANCHO_POR_TAMANO[tamano] }),
     [tamano],
@@ -109,11 +117,13 @@ export function Dialogo(props: DialogoProps) {
       <section
         ref={dialogRef}
         role="dialog"
-        aria-modal="true"
+        aria-modal={modal ? "true" : "false"}
         aria-labelledby={titleId.current}
         tabIndex={-1}
         style={dialogStyle}
         data-testid={props.testId}
+        data-ifml-stereotype={stereotype}
+        data-ifml-modal={modal ? "true" : "false"}
       >
         <h2 id={titleId.current} style={style.title}>{props.title}</h2>
         <div style={style.body}>{props.children}</div>
@@ -126,6 +136,10 @@ export function Dialogo(props: DialogoProps) {
   // Inspiración: `cdk-overlay-pane` de Angular CDK, usado por OPCloud
   // (`MatDialog.open(..., { panelClass: "choose-link-dialog", ... })`).
   return createPortal(overlay, document.body);
+}
+
+export function estereotipoDialogo(modal = true): DialogoIfmlStereotype {
+  return modal ? "Modal" : "Modeless";
 }
 
 function primerFoco(dialog: HTMLElement | null): HTMLElement | null {
