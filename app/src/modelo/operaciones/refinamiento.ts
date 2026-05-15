@@ -5,8 +5,9 @@
  *   apariencias proxy externas, subprocesos iniciales in-zoom.
  * - despliegue.ts: desplegarObjeto, quitarDespliegueObjeto, UNFOLD, partes
  *   iniciales, enlaces estructurales por modo (agregacion/exhibicion/...).
- * - proyeccion.ts: refrescarEnlacesExternosDerivados,
- *   redistribuirEnlacesExternosSiPrimerSubproceso, proyectarEnlacesExternosEnRefinamiento.
+ * - proyeccion.ts: politica de representacion de OPD hijo,
+ *   refrescarEnlacesExternosDerivados, sincronizarRepresentacionRefinamiento,
+ *   redistribuirEnlacesExternosSiPrimerSubproceso.
  * - helpers.ts: quitarRefinamientoEntidad, subprocesosOrdenadosDeRefinamiento,
  *   procesoDescompuestoEnOpd + utilidades privadas.
  *
@@ -26,6 +27,8 @@ export type { DespliegueObjeto } from "./refinamiento/despliegue";
 export {
   refrescarEnlacesExternosDerivados,
   redistribuirEnlacesExternosSiPrimerSubproceso,
+  sincronizarRepresentacionRefinamiento,
+  sincronizarRepresentacionesHijasDeOpd,
 } from "./refinamiento/proyeccion";
 
 export {

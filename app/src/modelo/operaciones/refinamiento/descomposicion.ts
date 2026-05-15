@@ -1,10 +1,8 @@
 import { CANON } from "../../constantes";
 import {
   contextoContornoDescomposicion,
-  contextoExternoDescomposicion,
   contextoInternoDescomposicion,
 } from "../../contextoRefinamiento";
-import { extremoApuntaAEntidad } from "../../extremos";
 import { fijarRefinamiento, obtenerRefinamiento } from "../../refinamientos";
 import type {
   Apariencia,
@@ -17,11 +15,10 @@ import type {
 } from "../../tipos";
 import { entidadVisibleEnOpd, fallo, ok, siguienteId } from "../helpers";
 import {
-  enlacesExternosDeEntidad,
   quitarRefinamientoEntidad,
   siguienteNombreOpdHijo,
 } from "./helpers";
-import { proyectarEnlacesExternosEnRefinamiento } from "./proyeccion";
+import { sincronizarRepresentacionRefinamiento } from "./proyeccion";
 
 /**
  * Operaciones de descomposición/in-zoom de cosa OPM.
@@ -79,8 +76,6 @@ export function descomponerProceso(modelo: Modelo, opdPadreId: Id, procesoId: Id
     height: INZOOM.contornoHeight,
     contextoRefinamiento: contextoContornoDescomposicion(procesoId),
   };
-  const aparienciasExternas = aparienciasExtremosExternos(modelo, opdPadre, procesoId, opdHijoId, aparienciaHijoId, nextSeq);
-  nextSeq = aparienciasExternas.nextSeq;
   const subprocesos = subcosasInicialesInzoom(modelo, proceso, aparienciaHijo, opdHijoId, nextSeq);
   nextSeq = subprocesos.nextSeq;
   const opdHijo: Opd = {
@@ -89,7 +84,6 @@ export function descomponerProceso(modelo: Modelo, opdPadreId: Id, procesoId: Id
     padreId: opdPadreId,
     apariencias: {
       [aparienciaHijoId]: aparienciaHijo,
-      ...aparienciasExternas.apariencias,
       ...subprocesos.apariencias,
     },
     enlaces: {},
@@ -107,10 +101,12 @@ export function descomponerProceso(modelo: Modelo, opdPadreId: Id, procesoId: Id
       [opdHijoId]: opdHijo,
     },
   };
-  const siguiente = proyectarEnlacesExternosEnRefinamiento(base, opdHijoId, {
-    primeroId: subprocesos.primeroId,
-    ultimoId: subprocesos.ultimoId,
-    todosIds: subprocesos.entidadIds,
+  const siguiente = sincronizarRepresentacionRefinamiento(base, opdHijoId, {
+    subprocesos: {
+      primeroId: subprocesos.primeroId,
+      ultimoId: subprocesos.ultimoId,
+      todosIds: subprocesos.entidadIds,
+    },
   });
   if (!siguiente.ok) return fallo(siguiente.error);
 
@@ -123,43 +119,6 @@ export function quitarDescomposicionProceso(modelo: Modelo, procesoId: Id): Resu
   if (!obtenerRefinamiento(proceso, "descomposicion")) return fallo("La entidad no tiene descomposición");
 
   return quitarRefinamientoEntidad(modelo, procesoId, "descomposicion");
-}
-
-function aparienciasExtremosExternos(
-  modelo: Modelo,
-  opdPadre: Opd,
-  procesoId: Id,
-  opdHijoId: Id,
-  contenedorAparienciaId: Id,
-  nextSeqInicial: number,
-): { apariencias: Record<Id, Apariencia>; nextSeq: number } {
-  const externos = enlacesExternosDeEntidad(modelo, opdPadre, procesoId);
-  const existentes = new Set<Id>([procesoId]);
-  const apariencias: Record<Id, Apariencia> = {};
-  let nextSeq = nextSeqInicial;
-  let entradas = 0;
-  let salidas = 0;
-
-  for (const { enlace, externoId, aparienciaPadre } of externos) {
-    if (existentes.has(externoId)) continue;
-    existentes.add(externoId);
-    const id = siguienteId({ ...modelo, nextSeq }, "a");
-    nextSeq += 1;
-    const entrada = extremoApuntaAEntidad(enlace.destinoId, procesoId);
-    const fila = entrada ? entradas : salidas;
-    if (entrada) entradas += 1;
-    else salidas += 1;
-    apariencias[id] = {
-      ...aparienciaPadre,
-      id,
-      opdId: opdHijoId,
-      x: entrada ? 24 : 610,
-      y: 112 + fila * 92,
-      contextoRefinamiento: contextoExternoDescomposicion(procesoId, contenedorAparienciaId, [enlace.id]),
-    };
-  }
-
-  return { apariencias, nextSeq };
 }
 
 function subcosasInicialesInzoom(

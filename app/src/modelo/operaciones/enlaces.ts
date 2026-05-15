@@ -25,6 +25,7 @@ import { fallo, ok, siguienteId, validarFirmaEnlace } from "./helpers";
 import {
   procesoDescompuestoEnOpd,
   refrescarEnlacesExternosDerivados,
+  sincronizarRepresentacionesHijasDeOpd,
   subprocesosOrdenadosDeRefinamiento,
 } from "./refinamiento";
 import { eliminarEnlace } from "./eliminacion";
@@ -111,7 +112,7 @@ export function crearEnlace(
   const enlace: Enlace = { id: enlaceId, tipo, origenId: origenExtremo, destinoId: destinoExtremo, etiqueta };
   const apariencia: AparienciaEnlace = { id: aparienciaId, enlaceId, opdId, vertices: [] };
 
-  return ok({
+  const base: Modelo = {
     ...modelo,
     nextSeq: modelo.nextSeq + 2,
     enlaces: { ...modelo.enlaces, [enlaceId]: enlace },
@@ -122,7 +123,15 @@ export function crearEnlace(
         enlaces: { ...opd.enlaces, [aparienciaId]: apariencia },
       },
     },
-  });
+  };
+
+  const origenEntidadId = entidadIdDeExtremo(base, origenExtremo);
+  const destinoEntidadId = entidadIdDeExtremo(base, destinoExtremo);
+  return sincronizarRepresentacionesHijasDeOpd(
+    base,
+    opdId,
+    [origenEntidadId, destinoEntidadId].filter((id): id is Id => !!id),
+  );
 }
 
 export function apuntarExtremoEnlace(

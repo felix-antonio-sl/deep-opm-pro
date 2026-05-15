@@ -1059,6 +1059,57 @@ describe("operaciones de modelo", () => {
     expect(Object.values(modelo.opds[modelo.opdRaizId]?.enlaces ?? {})).toHaveLength(2);
   });
 
+  test("sincroniza representacion del hijo al crear enlace externo despues de descomponer", () => {
+    let modelo = crearModelo();
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 260, y: 120 }, "Procesar"));
+    const procesar = entidadPorNombre(modelo, "Procesar");
+    const descompuesto = must(descomponerProceso(modelo, modelo.opdRaizId, procesar.id));
+    modelo = descompuesto.modelo;
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 100 }, "Entrada"));
+    const entrada = entidadPorNombre(modelo, "Entrada");
+
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entrada.id, procesar.id, "consumo"));
+
+    const opdHijo = modelo.opds[descompuesto.opdId];
+    expect(opdHijo).toBeDefined();
+    if (!opdHijo) return;
+    const primero = entidadPorNombre(modelo, "Procesar 1");
+    const enlacePadre = Object.values(modelo.enlaces).find((enlace) => enlace.tipo === "consumo" && !enlace.derivado);
+    expect(enlacePadre).toBeDefined();
+    if (!enlacePadre) return;
+    expect(Object.values(opdHijo.apariencias).some((apariencia) => apariencia.entidadId === entrada.id)).toBe(true);
+    expect(Object.values(opdHijo.enlaces).some((apariencia) => apariencia.enlaceId === enlacePadre.id)).toBe(false);
+    expect(enlacesDelOpd(modelo, descompuesto.opdId)).toContainEqual(expect.objectContaining({
+      tipo: "consumo",
+      origenId: extremoEntidad(entrada.id),
+      destinoId: extremoEntidad(primero.id),
+      derivado: expect.objectContaining({ enlacePadreId: enlacePadre.id, origen: "automatico" }),
+    }));
+  });
+
+  test("sincroniza representacion del hijo al eliminar enlace externo padre", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 100 }, "Entrada"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 260, y: 120 }, "Procesar"));
+    const entrada = entidadPorNombre(modelo, "Entrada");
+    const procesar = entidadPorNombre(modelo, "Procesar");
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entrada.id, procesar.id, "consumo"));
+    const enlacePadre = Object.values(modelo.enlaces).find((enlace) => enlace.tipo === "consumo" && !enlace.derivado);
+    expect(enlacePadre).toBeDefined();
+    if (!enlacePadre) return;
+    const descompuesto = must(descomponerProceso(modelo, modelo.opdRaizId, procesar.id));
+    modelo = descompuesto.modelo;
+    expect(Object.values(modelo.opds[descompuesto.opdId]?.apariencias ?? {}).some((apariencia) => apariencia.entidadId === entrada.id)).toBe(true);
+
+    modelo = must(eliminarEnlace(modelo, enlacePadre.id));
+
+    const opdHijo = modelo.opds[descompuesto.opdId];
+    expect(opdHijo).toBeDefined();
+    if (!opdHijo) return;
+    expect(enlacesDelOpd(modelo, descompuesto.opdId)).toHaveLength(0);
+    expect(Object.values(opdHijo.apariencias).some((apariencia) => apariencia.entidadId === entrada.id)).toBe(false);
+  });
+
   test("recalcula derivados externos al reordenar subprocesos por Y", () => {
     let modelo = crearModelo();
     modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 100 }, "Entrada"));

@@ -14,7 +14,7 @@ import type {
   Resultado,
 } from "../tipos";
 import { entidadVisibleEnOpd, fallo, ok, siguienteId } from "./helpers";
-import { quitarRefinamientoEntidad } from "./refinamiento";
+import { quitarRefinamientoEntidad, sincronizarRepresentacionesHijasDeOpd } from "./refinamiento";
 
 /**
  * Operaciones de eliminación: eliminar entidad (cascada de enlaces + estados +
@@ -80,7 +80,15 @@ export function eliminarEntidad(modelo: Modelo, entidadId: Id): Resultado<Modelo
 }
 
 export function eliminarEnlace(modelo: Modelo, enlaceId: Id): Resultado<Modelo> {
-  if (!modelo.enlaces[enlaceId]) return fallo(`Enlace no existe: ${enlaceId}`);
+  const enlaceOriginal = modelo.enlaces[enlaceId];
+  if (!enlaceOriginal) return fallo(`Enlace no existe: ${enlaceId}`);
+  const opdsPadreAfectados = Object.values(modelo.opds)
+    .filter((opd) => Object.values(opd.enlaces).some((apariencia) => apariencia.enlaceId === enlaceId))
+    .map((opd) => opd.id);
+  const entidadIdsAfectadas = [
+    entidadIdDeExtremo(modelo, enlaceOriginal.origenId),
+    entidadIdDeExtremo(modelo, enlaceOriginal.destinoId),
+  ].filter((id): id is Id => !!id);
   const enlacesEliminados = new Set(
     Object.values(modelo.enlaces)
       .filter((enlace) => enlace.id === enlaceId || enlace.derivado?.enlacePadreId === enlaceId)
@@ -101,7 +109,14 @@ export function eliminarEnlace(modelo: Modelo, enlaceId: Id): Resultado<Modelo> 
     ]),
   );
 
-  return ok({ ...modelo, enlaces, opds });
+  let actualizado: Modelo = { ...modelo, enlaces, opds };
+  for (const opdPadreId of opdsPadreAfectados) {
+    const sincronizado = sincronizarRepresentacionesHijasDeOpd(actualizado, opdPadreId, entidadIdsAfectadas);
+    if (!sincronizado.ok) return sincronizado;
+    actualizado = sincronizado.value;
+  }
+
+  return ok(actualizado);
 }
 
 /**
