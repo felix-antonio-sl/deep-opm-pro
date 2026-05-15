@@ -6,6 +6,7 @@ import { filtrarLineasPorReferencia, lineaTocaReferencia, type OplReferencia } f
 import { planificarEdicionOplLibre, type PrevisualizacionOplReverse } from "../opl/parser";
 import { useOpmStore } from "../store";
 import { Bloques } from "./panelOpl/Bloques";
+import { atributosIfmlPanelOpl } from "./panelOpl/dataFlow";
 import { EditorOplHonesto } from "./panelOpl/EditorOplHonesto";
 import type { EdicionOpl } from "./panelOpl/RenderToken";
 import { editorOplStyles } from "./panelOpl/styles";
@@ -13,8 +14,9 @@ import { ToolbarOpl } from "./panelOpl/Toolbar";
 import { tokens } from "./tokens";
 
 /**
- * Barrel publico del panel OPL-ES. Conserva lecturas amplias del store y baja
- * props a leaves de render, alineado con OPL como lente derivada del modelo.
+ * Barrel publico del panel OPL-ES. IFML: PanelOpl es el detail OPL del
+ * multidetail `Canvas -> {Inspector, OPL, ArbolOpd}` (`CN-MMD`), alimentado
+ * por DataFlow puro desde seleccion/modelo y sin Action local sobre el canvas.
  */
 export function PanelOpl() {
   const modelo = useOpmStore((s) => s.modelo);
@@ -92,7 +94,7 @@ export function PanelOpl() {
 
   if (vistaMapaActiva) {
     return (
-      <aside style={style.panel} aria-label="Panel OPL-ES">
+      <aside style={style.panel} aria-label="Panel OPL-ES" {...atributosIfmlPanelOpl("no-disponible-mapa")}>
         <div style={style.toolbarSpacer} />
         <span style={style.empty}>Vista mapa: OPL no disponible</span>
       </aside>
@@ -106,7 +108,12 @@ export function PanelOpl() {
     // semibold + contador en tabular-nums + restaurar atenuado para que el
     // rail quede legible a 1280x720 sin truncar.
     return (
-      <aside style={style.panelMinimizado} aria-label="Panel OPL-ES" data-testid="panel-opl-minimizado">
+      <aside
+        style={style.panelMinimizado}
+        aria-label="Panel OPL-ES"
+        data-testid="panel-opl-minimizado"
+        {...atributosIfmlPanelOpl("minimizado")}
+      >
         <button
           type="button"
           data-testid="panel-opl-restaurar"
@@ -132,6 +139,7 @@ export function PanelOpl() {
       aria-label="Panel OPL-ES"
       data-testid="panel-opl"
       data-atajos-contexto="panel-opl"
+      {...atributosIfmlPanelOpl("activo")}
     >
       <ToolbarOpl
         totalOraciones={lineas.length}
