@@ -17,7 +17,7 @@ import {
  *   2) cargar el ancla -> exportar JSON -> reimportar JSON observa los mismos
  *      conteos (entidades, OPDs, enlaces, estados), cubriendo el criterio §174.6
  *      del HANDOFF ("guarda y carga sin perdida") sobre la superficie de
- *      persistencia existente (PersistenciaJson en Inspector vacio).
+ *      persistencia existente (DialogoImportarExportarJson desde Inspector vacio).
  *
  * Politica viva: tokens-only para chrome (no se introduce UI nueva); este
  * smoke no debe colisionar con L1/L2/L3 (no toca TablaEnlaces, busqueda,

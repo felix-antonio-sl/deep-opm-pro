@@ -1,3 +1,8 @@
+/**
+ * DialogoImportarExportarJson «Modal».
+ * S.4 ronda 22: `PersistenciaJson` vive solo dentro de este Dialogo; el
+ * Inspector vacio conserva un CTA y ya no monta un `<details>` permanente.
+ */
 import { Dialogo } from "./Dialogo";
 import { PersistenciaJson } from "./PersistenciaJson";
 

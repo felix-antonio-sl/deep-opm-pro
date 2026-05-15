@@ -53,24 +53,6 @@ export const inspectorStyles = {
     lineHeight: 1.6,
     fontSize: tokens.typography.sizes.md,
   },
-  // P1 — wrapper <details> que envuelve <PersistenciaJson /> en modo vacío.
-  vacioPersistenciaWrapper: {
-    marginTop: tokens.spacing.lg,
-    border: `1px solid ${tokens.colors.bordeChrome}`,
-    borderRadius: tokens.radii.md,
-    background: tokens.colors.fondoCard,
-    padding: `${tokens.spacing.sm}px ${tokens.spacing.md}px ${tokens.spacing.md}px`,
-  },
-  vacioPersistenciaSummary: {
-    color: tokens.colors.textoSecundario,
-    fontSize: tokens.typography.sizes.xs,
-    fontWeight: tokens.typography.weights.semibold,
-    textTransform: "uppercase",
-    letterSpacing: "0.04em",
-    cursor: "pointer",
-    listStylePosition: "inside",
-    paddingBottom: tokens.spacing.xs,
-  },
   header: {
     display: "flex",
     alignItems: "center",
