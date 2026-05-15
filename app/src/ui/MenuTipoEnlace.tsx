@@ -6,7 +6,7 @@ import { tokens } from "./tokens";
 
 type DireccionFiltro = "saliente" | "entrante";
 
-const TIPOS_MENU: Array<{ tipo: TipoEnlace; label: string }> = [
+export const TIPOS_ENLACE_MENU: Array<{ tipo: TipoEnlace; label: string }> = [
   { tipo: "agregacion", label: "Agregación" },
   { tipo: "exhibicion", label: "Exhibición" },
   { tipo: "generalizacion", label: "Generalización" },
@@ -31,13 +31,15 @@ interface Props {
   direccion: DireccionFiltro;
   onDireccion: (direccion: DireccionFiltro) => void;
   onElegir: (tipo: TipoEnlace, origenId: Id, destinoId: Id) => void;
+  onElegirPendiente?: (tipo: TipoEnlace) => void;
 }
 
-export function MenuTipoEnlace({ modelo, origenId, destinoId, direccion, onDireccion, onElegir }: Props) {
+export function MenuTipoEnlace({ modelo, origenId, destinoId, direccion, onDireccion, onElegir, onElegirPendiente }: Props) {
   const [tipoPreview, setTipoPreview] = useState<TipoEnlace | null>(null);
   const origen = origenId ? modelo.entidades[origenId] : undefined;
   const destino = destinoId ? modelo.entidades[destinoId] : undefined;
   const opciones = origen && destino ? tiposValidos(modelo, origen, destino, direccion) : [];
+  const opcionesPendientes = origen && !destino ? tiposPendientes(modelo, origen) : [];
   const opcionPreview = opciones.find((opcion) => opcion.tipo === tipoPreview) ?? opciones[0] ?? null;
   return (
     <div style={style.panel} data-testid="menu-tipo-enlace">
@@ -56,7 +58,26 @@ export function MenuTipoEnlace({ modelo, origenId, destinoId, direccion, onDirec
             <span style={style.estadoEtiqueta}>Origen</span>
             <strong style={style.estadoNombre}>{origen.nombre}</strong>
           </p>
-          <p style={style.estadoHint}>Haz clic sobre la entidad destino en el canvas para ver tipos válidos y preview OPL.</p>
+          <p style={style.estadoHint}>Elige un tipo para entrar en modo Conectar, o selecciona otra cosa para filtrar por firma y preview OPL.</p>
+          {onElegirPendiente && opcionesPendientes.length > 0 ? (
+            <div style={style.list}>
+              {opcionesPendientes.map((opcion) => (
+                <button
+                  key={opcion.tipo}
+                  type="button"
+                  style={style.item}
+                  data-testid={`menu-tipo-enlace-${opcion.tipo}`}
+                  onClick={() => onElegirPendiente(opcion.tipo)}
+                >
+                  <span style={style.icon}>{iconoTipo(opcion.tipo)}</span>
+                  <span style={style.itemText}>
+                    <strong>{etiquetaTipo(opcion.tipo)}</strong>
+                    <small style={style.preview}>Luego selecciona la entidad o estado destino.</small>
+                  </span>
+                </button>
+              ))}
+            </div>
+          ) : null}
         </div>
       ) : opciones.length === 0 ? (
         <div style={style.estado} data-testid="menu-tipo-enlace-estado-sin-tipos">
@@ -105,15 +126,22 @@ function tiposValidos(modelo: Modelo, origen: Entidad, destino: Entidad, direcci
   const par = direccion === "saliente"
     ? { origen, destino }
     : { origen: destino, destino: origen };
-  return TIPOS_MENU.flatMap(({ tipo }) => {
+  return TIPOS_ENLACE_MENU.flatMap(({ tipo }) => {
     const firma = validarFirmaEnlace(tipo, par.origen, par.destino);
     if (!firma.ok) return [];
     return [{ tipo, origen: par.origen, destino: par.destino }];
   });
 }
 
+function tiposPendientes(modelo: Modelo, origen: Entidad) {
+  const destinos = Object.values(modelo.entidades).filter((entidad) => entidad.id !== origen.id);
+  return TIPOS_ENLACE_MENU.filter(({ tipo }) => (
+    destinos.some((destino) => validarFirmaEnlace(tipo, origen, destino).ok)
+  ));
+}
+
 function etiquetaTipo(tipo: TipoEnlace): string {
-  return TIPOS_MENU.find((item) => item.tipo === tipo)?.label ?? tipo;
+  return TIPOS_ENLACE_MENU.find((item) => item.tipo === tipo)?.label ?? tipo;
 }
 
 function iconoTipo(tipo: TipoEnlace): string {

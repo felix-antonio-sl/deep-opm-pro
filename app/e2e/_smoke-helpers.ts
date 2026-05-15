@@ -147,6 +147,15 @@ export async function clickLinkPorTipo(page: import("@playwright/test").Page, ti
   throw new Error(`No se pudo seleccionar enlace ${tipo}`);
 }
 
+export async function elegirTipoEnlaceDesdeMenu(page: import("@playwright/test").Page, tipo: string): Promise<void> {
+  const trigger = page.getByTestId("abrir-menu-tipo-enlace");
+  await expect(trigger).toBeEnabled();
+  await trigger.click();
+  const opcion = page.getByTestId(`menu-tipo-enlace-${tipo}`);
+  await expect(opcion).toBeVisible();
+  await opcion.click();
+}
+
 /**
  * L1 ronda 20: el Inspector se reorganiza en tabs por intención. Las acciones
  * de refinamiento (Descomponer, Desplegar, Plegado parcial, Auto-invocación,
@@ -201,7 +210,7 @@ export async function guardarComoActual(page: import("@playwright/test").Page, n
   if (descripcion) await dialogo.getByLabel("Descripción").fill(descripcion);
   await dialogo.getByRole("button", { name: "Guardar" }).click();
   await expect(dialogo).toHaveCount(0);
-  await expect(page.getByText("Modelo guardado exitosamente")).toBeVisible();
+  await expect(page.getByTestId("chip-persistencia")).toHaveAttribute("data-variante", "local-clean");
 }
 
 export async function cargarPrimerModelo(page: import("@playwright/test").Page): Promise<void> {

@@ -8,6 +8,7 @@ import {
   rectDeLocator,
   clickCabeceraElemento,
   clickCentroLink,
+  elegirTipoEnlaceDesdeMenu,
   clickLinkPorIndice,
   clickLinkPorTipo,
   desplegarComoAgregacion,
@@ -317,7 +318,7 @@ test("undo edita vertices y restaura ruta previa", async ({ page }) => {
   await page.getByRole("button", { name: "Objeto", exact: true }).click();
   await page.getByRole("button", { name: "Proceso", exact: true }).click();
   await elementoPorTexto(page, "Objeto").click();
-  await page.getByLabel("Tipo de enlace").selectOption("instrumento");
+  await elegirTipoEnlaceDesdeMenu(page, "instrumento");
   await clickCabeceraElemento(page, "Proceso");
   await clickCentroLink(page);
 

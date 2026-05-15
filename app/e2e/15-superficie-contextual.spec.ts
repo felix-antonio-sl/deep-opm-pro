@@ -12,7 +12,7 @@
  */
 
 import { expect, test } from "@playwright/test";
-import { cerrarPantallaInicioSiVisible, clickLinkPorTipo, elementoPorTexto, exportadoActual } from "./_smoke-helpers";
+import { cerrarPantallaInicioSiVisible, clickLinkPorTipo, elegirTipoEnlaceDesdeMenu, elementoPorTexto, exportadoActual } from "./_smoke-helpers";
 
 test("seleccionar una cosa enciende barra contextual e Inspector con la misma referencia", async ({ page }) => {
   const pageErrors: string[] = [];
@@ -49,7 +49,7 @@ test("seleccionar un enlace conmuta Inspector a modo enlace y resalta su oracion
   await page.getByRole("button", { name: "Proceso", exact: true }).click();
   await page.getByLabel("Nombre").fill("Procesar");
   await elementoPorTexto(page, "Entrada").click();
-  await page.getByLabel("Tipo de enlace").selectOption("consumo");
+  await elegirTipoEnlaceDesdeMenu(page, "consumo");
   await elementoPorTexto(page, "Procesar").click();
 
   // Hay 1 enlace ya creado; selecciono el enlace clickeando su wrapper SVG.
@@ -183,7 +183,7 @@ test.describe("Contrato TablaEnlaces Beta1", () => {
     await page.getByRole("button", { name: "Proceso", exact: true }).click();
     await page.getByLabel("Nombre").fill("Procesar");
     await elementoPorTexto(page, "Entrada").click();
-    await page.getByLabel("Tipo de enlace").selectOption("consumo");
+    await elegirTipoEnlaceDesdeMenu(page, "consumo");
     await elementoPorTexto(page, "Procesar").click();
 
     await page.getByLabel("Menú principal").click();
@@ -217,7 +217,7 @@ test.describe("Contrato TablaEnlaces Beta1", () => {
     await page.getByRole("button", { name: "Proceso", exact: true }).click();
     await page.getByLabel("Nombre").fill("Procesar");
     await elementoPorTexto(page, "Entrada").click();
-    await page.getByLabel("Tipo de enlace").selectOption("consumo");
+    await elegirTipoEnlaceDesdeMenu(page, "consumo");
     await elementoPorTexto(page, "Procesar").click();
 
     // Selecciono el enlace en canvas y luego abro la tabla.
@@ -244,7 +244,7 @@ test.describe("Contrato TablaEnlaces Beta1", () => {
     await page.getByRole("button", { name: "Objeto", exact: true }).click();
     await page.getByLabel("Nombre").fill("Pedido");
     await elementoPorTexto(page, "Cliente").click();
-    await page.getByLabel("Tipo de enlace").selectOption("agregacion");
+    await elegirTipoEnlaceDesdeMenu(page, "agregacion");
     await elementoPorTexto(page, "Pedido").click();
 
     await page.getByLabel("Menú principal").click();
@@ -301,7 +301,7 @@ test.describe("Contrato TablaEnlaces Beta1", () => {
     await page.getByRole("button", { name: "Proceso", exact: true }).click();
     await page.getByLabel("Nombre").fill("Procesar");
     await elementoPorTexto(page, "Entrada").click();
-    await page.getByLabel("Tipo de enlace").selectOption("consumo");
+    await elegirTipoEnlaceDesdeMenu(page, "consumo");
     await elementoPorTexto(page, "Procesar").click();
 
     await page.getByLabel("Menú principal").click();

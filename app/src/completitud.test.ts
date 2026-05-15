@@ -49,7 +49,7 @@ import { LINK_ASSETS } from "./render/jointjs/linkAssets";
 import { proyectarModeloAJointCells } from "./render/jointjs/proyeccion";
 import { exportarModelo, hidratarModelo } from "./serializacion/json";
 import { OPCIONES_DESPLIEGUE_OBJETO } from "./ui/InspectorEntidad";
-import { TIPOS_ENLACE } from "./ui/Toolbar";
+import { TIPOS_ENLACE_MENU } from "./ui/MenuTipoEnlace";
 
 // Records que TS exige completos. Si se agrega un miembro al union en
 // modelo/tipos.ts, este archivo deja de compilar hasta cubrirlo.
@@ -114,22 +114,22 @@ const EXTREMOS_ENLACE_LISTA = Object.keys(TODOS_LOS_EXTREMOS_ENLACE) as ExtremoK
 const MODIFICADORES_LISTA = Object.keys(TODOS_LOS_MODIFICADORES) as Modificador[];
 const ORDENES_PARTES_LISTA = Object.keys(TODOS_LOS_ORDENES_PARTES) as OrdenPartesPlegado[];
 
-describe("completitud / Toolbar dropdown de TipoEnlace", () => {
-  test("TIPOS_ENLACE expone todos los TipoEnlace canonicos", () => {
-    const tiposEnDropdown = new Set(TIPOS_ENLACE.map((entry) => entry.tipo));
+describe("completitud / MenuTipoEnlace", () => {
+  test("TIPOS_ENLACE_MENU expone todos los TipoEnlace canonicos", () => {
+    const tiposEnMenu = new Set(TIPOS_ENLACE_MENU.map((entry) => entry.tipo));
     for (const tipo of TIPOS_ENLACE_LISTA) {
-      expect(tiposEnDropdown.has(tipo)).toBe(true);
+      expect(tiposEnMenu.has(tipo)).toBe(true);
     }
   });
 
-  test("TIPOS_ENLACE no contiene duplicados ni tipos desconocidos", () => {
-    const tiposEnDropdown = TIPOS_ENLACE.map((entry) => entry.tipo);
-    expect(new Set(tiposEnDropdown).size).toBe(tiposEnDropdown.length);
-    expect(tiposEnDropdown.length).toBe(TIPOS_ENLACE_LISTA.length);
+  test("TIPOS_ENLACE_MENU no contiene duplicados ni tipos desconocidos", () => {
+    const tiposEnMenu = TIPOS_ENLACE_MENU.map((entry) => entry.tipo);
+    expect(new Set(tiposEnMenu).size).toBe(tiposEnMenu.length);
+    expect(tiposEnMenu.length).toBe(TIPOS_ENLACE_LISTA.length);
   });
 
-  test("cada entrada de TIPOS_ENLACE tiene label no vacio", () => {
-    for (const entry of TIPOS_ENLACE) {
+  test("cada entrada de TIPOS_ENLACE_MENU tiene label no vacio", () => {
+    for (const entry of TIPOS_ENLACE_MENU) {
       expect(entry.label.length).toBeGreaterThan(0);
     }
   });

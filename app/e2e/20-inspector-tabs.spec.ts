@@ -17,7 +17,7 @@
  */
 
 import { expect, test } from "@playwright/test";
-import { cerrarPantallaInicioSiVisible, clickLinkPorTipo, elementoPorTexto } from "./_smoke-helpers";
+import { cerrarPantallaInicioSiVisible, clickLinkPorTipo, elegirTipoEnlaceDesdeMenu, elementoPorTexto } from "./_smoke-helpers";
 
 test("entidad muestra 5 tabs con default Semántica y descripción visible sin scroll", async ({ page }) => {
   const pageErrors: string[] = [];
@@ -144,7 +144,7 @@ test("inspector de enlace expone 3 tabs simétricos con default Propiedades", as
   await page.getByRole("button", { name: "Proceso", exact: true }).click();
   await page.getByLabel("Nombre").fill("Procesar");
   await elementoPorTexto(page, "Entrada").click();
-  await page.getByLabel("Tipo de enlace").selectOption("consumo");
+  await elegirTipoEnlaceDesdeMenu(page, "consumo");
   await elementoPorTexto(page, "Procesar").click();
   await clickLinkPorTipo(page, "Consumo");
 

@@ -4,13 +4,11 @@
 import { Suspense } from "preact/compat";
 import { useOpmStore } from "../store";
 import { ToolbarBase } from "./toolbar/ToolbarBase";
-import { ToolbarCreacion, TIPOS_ENLACE } from "./toolbar/ToolbarCreacion";
+import { ToolbarCreacion } from "./toolbar/ToolbarCreacion";
 import { ToolbarMapaSistema } from "./toolbar/ToolbarMapaSistema";
 import { ToolbarMultiseleccion } from "./toolbar/ToolbarMultiseleccion";
 import { ToolbarSeleccion } from "./toolbar/ToolbarSeleccion";
 import { toolbarStyle as style } from "./toolbar/toolbarStyles";
-
-export { TIPOS_ENLACE };
 
 /**
  * Toolbar ronda 13 L1: orquestador por modo del editor.

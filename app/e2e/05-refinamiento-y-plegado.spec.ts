@@ -8,6 +8,7 @@ import {
   rectDeLocator,
   clickCabeceraElemento,
   clickCentroLink,
+  elegirTipoEnlaceDesdeMenu,
   clickLinkPorIndice,
   clickLinkPorTipo,
   desplegarComoAgregacion,
@@ -468,7 +469,7 @@ test("crea enlace desde fila plegada sin extraer la parte", async ({ page }) => 
   await expect(elementoPorTexto(page, "Objeto parte 1")).toHaveCount(1);
 
   await elementoPorTexto(page, "Objeto parte 1").click();
-  await page.getByLabel("Tipo de enlace").selectOption("instrumento");
+  await elegirTipoEnlaceDesdeMenu(page, "instrumento");
   await elementoPorTexto(page, "Mover").click();
 
   await expect(page.locator(".joint-link")).toHaveCount(1);
@@ -527,10 +528,10 @@ test("redistribuye consumo al primer subproceso y resultado al ultimo", async ({
   await page.getByLabel("Nombre").fill("Salida");
 
   await elementoPorTexto(page, "Entrada").click();
-  await page.getByLabel("Tipo de enlace").selectOption("consumo");
+  await elegirTipoEnlaceDesdeMenu(page, "consumo");
   await clickCabeceraElemento(page, "Procesar");
   await elementoPorTexto(page, "Procesar").click();
-  await page.getByLabel("Tipo de enlace").selectOption("resultado");
+  await elegirTipoEnlaceDesdeMenu(page, "resultado");
   await elementoPorTexto(page, "Salida").click();
   await expect(page.locator(".joint-link")).toHaveCount(2);
 
@@ -575,7 +576,7 @@ test("reancla consumo derivado y conserva el ancla manual al reordenar", async (
   await page.getByRole("button", { name: "Proceso", exact: true }).click();
   await page.getByLabel("Nombre").fill("Procesar");
   await elementoPorTexto(page, "Entrada").click();
-  await page.getByLabel("Tipo de enlace").selectOption("consumo");
+  await elegirTipoEnlaceDesdeMenu(page, "consumo");
   await elementoPorTexto(page, "Procesar").click();
   await elementoPorTexto(page, "Procesar").click();
   // Ronda 20 L1: Descomponer vive en el tab `Refinamiento`.
@@ -630,7 +631,7 @@ test("L3 descomposicion avanzada: inspector reasigna, inline renombra, paralelo 
   await page.getByRole("button", { name: "Proceso", exact: true }).click();
   await page.getByLabel("Nombre").fill("Procesar");
   await elementoPorTexto(page, "Entrada").click();
-  await page.getByLabel("Tipo de enlace").selectOption("consumo");
+  await elegirTipoEnlaceDesdeMenu(page, "consumo");
   await elementoPorTexto(page, "Procesar").click();
   await elementoPorTexto(page, "Procesar").click();
   // Ronda 20 L1: Descomponer vive en el tab `Refinamiento`.

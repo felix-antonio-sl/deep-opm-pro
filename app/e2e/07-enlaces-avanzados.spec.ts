@@ -8,6 +8,7 @@ import {
   rectDeLocator,
   clickCabeceraElemento,
   clickCentroLink,
+  elegirTipoEnlaceDesdeMenu,
   clickLinkPorIndice,
   clickLinkPorTipo,
   desplegarComoAgregacion,
@@ -53,16 +54,16 @@ test("crea enlace, edita vertices y elimina desde celdas JointJS", async ({ page
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
-  const tipoEnlace = page.getByLabel("Tipo de enlace");
-  await expect(tipoEnlace).toBeDisabled();
+  const abrirMenuTipo = page.getByTestId("abrir-menu-tipo-enlace");
+  await expect(abrirMenuTipo).toBeDisabled();
   await page.getByRole("button", { name: "Objeto", exact: true }).click();
   await page.getByRole("button", { name: "Proceso", exact: true }).click();
 
   await expect(page.locator(".joint-element")).toHaveCount(2);
 
   await elementoPorTexto(page, "Objeto").click();
-  await expect(tipoEnlace).toBeEnabled();
-  await tipoEnlace.selectOption("instrumento");
+  await expect(abrirMenuTipo).toBeEnabled();
+  await elegirTipoEnlaceDesdeMenu(page, "instrumento");
   await elementoPorTexto(page, "Proceso").click();
 
   await expect(page.locator(".joint-link")).toHaveCount(1);
@@ -105,7 +106,7 @@ test("asigna multiplicidad de enlace y sincroniza canvas, OPL y JSON", async ({ 
   await page.getByLabel("Nombre").fill("Procesar");
 
   await elementoPorTexto(page, "Recurso").click();
-  await page.getByLabel("Tipo de enlace").selectOption("consumo");
+  await elegirTipoEnlaceDesdeMenu(page, "consumo");
   await elementoPorTexto(page, "Procesar").click();
   await expect(page.locator(".joint-link")).toHaveCount(1);
 
@@ -197,7 +198,7 @@ test("crea resultado hacia capsula de estado por gesto directo y preserva TS3", 
   await expect(page.locator('[joint-selector^="stateCapsule"]')).toHaveCount(2);
   await expect(page.locator(".joint-link")).toHaveCount(1);
   await elementoPorTexto(page, "Aprobar").click();
-  await page.getByLabel("Tipo de enlace").selectOption("resultado");
+  await elegirTipoEnlaceDesdeMenu(page, "resultado");
   await page.locator('[joint-selector^="stateLabel"]').filter({ hasText: "aprobado" }).click();
 
   await expect(page.locator(".joint-link")).toHaveCount(2);
@@ -252,7 +253,7 @@ test("split de efecto convierte enlace en consumo + resultado intermedio", async
   const sistema = page.locator(".joint-element").filter({ hasText: "Sistema" }).first();
   const actualizar = page.locator(".joint-element").filter({ hasText: "Actualizar" }).first();
   await sistema.click();
-  await page.getByLabel("Tipo de enlace").selectOption("efecto");
+  await elegirTipoEnlaceDesdeMenu(page, "efecto");
   await clickCabeceraElemento(page, "Actualizar");
 
   // Hay 2 entidades + 1 efecto.
@@ -360,7 +361,7 @@ test("L4 dialogo de estilo de enlace persiste color grosor y copia estilo", asyn
   await page.getByRole("button", { name: "Proceso", exact: true }).click();
   await page.getByLabel("Nombre").fill("Procesar");
   await elementoPorTexto(page, "Entrada").click();
-  await page.getByLabel("Tipo de enlace").selectOption("consumo");
+  await elegirTipoEnlaceDesdeMenu(page, "consumo");
   await elementoPorTexto(page, "Procesar").click();
   await clickLinkPorTipo(page, "Consumo");
 

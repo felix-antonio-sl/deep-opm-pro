@@ -8,6 +8,7 @@ import {
   rectDeLocator,
   clickCabeceraElemento,
   clickCentroLink,
+  elegirTipoEnlaceDesdeMenu,
   clickLinkPorIndice,
   clickLinkPorTipo,
   desplegarComoAgregacion,
@@ -366,7 +367,7 @@ test("renderiza agregacion como triangulo estructural", async ({ page }) => {
   });
   await expect(objetos).toHaveCount(2);
   await objetos.nth(0).click();
-  await page.getByLabel("Tipo de enlace").selectOption("agregacion");
+  await elegirTipoEnlaceDesdeMenu(page, "agregacion");
   await objetos.nth(1).click();
 
   await expect(page.locator(".joint-link")).toHaveCount(2);

@@ -178,36 +178,6 @@ export const toolbarStyle = {
     fontSize: "13px",
     whiteSpace: "nowrap",
   },
-  linkPicker: {
-    display: "inline-flex",
-    alignItems: "center",
-    gap: "6px",
-    height: "34px",
-    flex: "0 0 auto",
-  },
-  linkPickerCompat: {
-    display: "inline-flex",
-    width: "1px",
-    height: "30px",
-    overflow: "hidden",
-    opacity: 0,
-    flex: "0 0 1px",
-  },
-  linkPickerLabel: {
-    color: "#475467",
-    fontSize: "13px",
-    fontWeight: 700,
-    whiteSpace: "nowrap",
-  },
-  select: selectBase("#b9c5d4", "#f9fbfd", "#1f2937", "pointer", 600),
-  activeSelect: selectBase(colors.chromeNeutral, colors.chromeNeutralSuave, "#1f2937", "default", 700),
-  disabledSelect: selectBase("#d9e0ea", "#f2f4f7", "#98a2b3", "not-allowed", 600),
-  selectCompat: {
-    ...selectBase("#b9c5d4", "#f9fbfd", "#1f2937", "pointer", 600),
-    width: "1px",
-    minWidth: "1px",
-    padding: 0,
-  },
   divider: {
     width: "1px",
     height: "22px",
@@ -330,25 +300,5 @@ function botonBase(): preact.JSX.CSSProperties {
     fontSize: `${typography.sizes.md}px`,
     fontWeight: typography.weights.semibold,
     whiteSpace: "nowrap",
-  };
-}
-
-function selectBase(
-  border: string,
-  background: string,
-  color: string,
-  cursor: preact.JSX.CSSProperties["cursor"],
-  fontWeight: number,
-): preact.JSX.CSSProperties {
-  return {
-    height: "34px",
-    width: "148px",
-    border: `1px solid ${border}`,
-    borderRadius: "4px",
-    background,
-    color,
-    cursor,
-    fontSize: "13px",
-    fontWeight,
   };
 }

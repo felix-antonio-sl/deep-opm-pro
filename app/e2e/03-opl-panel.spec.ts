@@ -8,6 +8,7 @@ import {
   rectDeLocator,
   clickCabeceraElemento,
   clickCentroLink,
+  elegirTipoEnlaceDesdeMenu,
   clickLinkPorIndice,
   clickLinkPorTipo,
   desplegarComoAgregacion,
@@ -58,7 +59,7 @@ test("sincroniza OPL interactivo con canvas y renombrado inverso", async ({ page
   await page.getByLabel("Nombre").fill("Procesar");
 
   await elementoPorTexto(page, "Entrada").click();
-  await page.getByLabel("Tipo de enlace").selectOption("consumo");
+  await elegirTipoEnlaceDesdeMenu(page, "consumo");
   await clickCabeceraElemento(page, "Procesar");
 
   const panel = page.getByLabel("Panel OPL-ES");
@@ -144,7 +145,7 @@ test("panel OPL busca texto y filtra lineas", async ({ page }) => {
   await page.getByRole("button", { name: "Proceso", exact: true }).click();
   await page.getByLabel("Nombre").fill("Procesar");
   await elementoPorTexto(page, "Entrada").click();
-  await page.getByLabel("Tipo de enlace").selectOption("consumo");
+  await elegirTipoEnlaceDesdeMenu(page, "consumo");
   await elementoPorTexto(page, "Procesar").click();
 
   const panel = page.getByLabel("Panel OPL-ES");

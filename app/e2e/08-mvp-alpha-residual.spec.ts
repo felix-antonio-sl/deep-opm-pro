@@ -8,6 +8,7 @@ import {
   rectDeLocator,
   clickCabeceraElemento,
   clickCentroLink,
+  elegirTipoEnlaceDesdeMenu,
   clickLinkPorIndice,
   clickLinkPorTipo,
   desplegarComoAgregacion,
@@ -177,7 +178,7 @@ test("L4 biblioteca lista cosas y menu contextual borra enlace", async ({ page }
   await expect(page.getByTestId("biblioteca-dock")).toHaveCount(0);
 
   await elementoPorTexto(page, "Entrada").click();
-  await page.getByLabel("Tipo de enlace").selectOption("consumo");
+  await elegirTipoEnlaceDesdeMenu(page, "consumo");
   await elementoPorTexto(page, "Procesar").click();
   await expect(page.locator(".joint-link")).toHaveCount(1);
   await clickLinkPorTipo(page, "Consumo");
