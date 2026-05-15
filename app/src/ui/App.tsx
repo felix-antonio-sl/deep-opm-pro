@@ -28,6 +28,7 @@ import { Inspector } from "./Inspector";
 // revisión mobile (tabs inferiores) y tablet (drawers). Ver `layoutResponsive`.
 import { useBreakpoint } from "./layoutResponsive";
 import { MenuPrincipal } from "./MenuPrincipal";
+import { MensajeFlashBridge } from "./MensajeFlashBridge";
 import { ModoRevisionMobile, AvisoEditarEnEscritorio } from "./ModoRevisionMobile";
 import { PanelDiagnostico } from "./PanelDiagnostico";
 import { PanelOpl } from "./PanelOpl";
@@ -140,6 +141,7 @@ export function App() {
         data-viewpoint={contextoWorkbench.viewPoint}
         data-viewpoint-default={contextoWorkbench.viewPointDefault ? "true" : "false"}
       >
+        <MensajeFlashBridge />
         {contextoWorkbench.modo === "simulacion" ? <BarraSimulacion /> : <Toolbar />}
         <MenuPrincipal />
         <BarraPestanas />

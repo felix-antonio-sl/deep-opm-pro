@@ -2,7 +2,6 @@
  * ViewContainer Toolbar: orquestador delgado por modo editor. [JOYAS §1-3], [V-0c], IFML H-2/H-5/H-10/H-12.
  */
 import { Suspense } from "preact/compat";
-import { useEffect } from "preact/hooks";
 import { useOpmStore } from "../store";
 import { ToolbarBase } from "./toolbar/ToolbarBase";
 import { ToolbarCreacion, TIPOS_ENLACE } from "./toolbar/ToolbarCreacion";
@@ -19,19 +18,9 @@ export { TIPOS_ENLACE };
  */
 export function Toolbar() {
   const seleccionados = useOpmStore((s) => s.seleccionados);
-  const modoEnlace = useOpmStore((s) => s.modoEnlace);
-  const modoCreacion = useOpmStore((s) => s.modoCreacion);
   const vistaMapaActiva = useOpmStore((s) => s.vistaMapaActiva);
-  const mensaje = useOpmStore((s) => s.mensaje);
-  const limpiarMensaje = useOpmStore((s) => s.limpiarMensaje);
   const autosalvado = useOpmStore((s) => s.autosalvado);
   const cantidadSeleccion = seleccionados.length;
-
-  useEffect(() => {
-    if (!mensaje || modoEnlace || modoCreacion) return undefined;
-    const timeout = window.setTimeout(limpiarMensaje, 4_500);
-    return () => window.clearTimeout(timeout);
-  }, [limpiarMensaje, mensaje, modoCreacion, modoEnlace]);
 
   return (
     <div data-testid="toolbar-root" style={style.bar}>
@@ -47,7 +36,6 @@ export function Toolbar() {
           validarSlot={vistaMapaActiva ? <ToolbarMapaSistema /> : null}
           statusSlot={(
             <>
-              {mensaje ? <span style={style.status}>{mensaje}</span> : null}
               {autosalvado.activo ? (
                 <span
                   style={autosalvado.salvando ? style.autosaveSaving : style.autosaveIdle}

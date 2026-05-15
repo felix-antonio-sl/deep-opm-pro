@@ -215,11 +215,6 @@ export const toolbarStyle = {
     margin: `0 ${spacing.xs}px`,
     background: colors.bordeChrome,
   },
-  status: {
-    color: "#475467",
-    fontSize: "13px",
-    whiteSpace: "nowrap",
-  },
   autosaveIdle: {
     color: colors.textoTerciario,
     fontSize: "12px",

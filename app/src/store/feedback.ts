@@ -23,7 +23,15 @@ let secuenciaOverlay = 0;
 export const feedbackStore = createStore<FeedbackState>((set, get) => ({
   overlays: [],
   addOverlay(overlay) {
-    set({ overlays: [...get().overlays.filter((item) => item.id !== overlay.id), overlay] });
+    set({
+      overlays: [
+        ...get().overlays.filter((item) => (
+          item.id !== overlay.id
+          && !(item.tipo === "flash" && overlay.tipo === "flash" && item.mensaje === overlay.mensaje)
+        )),
+        overlay,
+      ],
+    });
   },
   removeOverlay(id) {
     set({ overlays: get().overlays.filter((item) => item.id !== id) });
