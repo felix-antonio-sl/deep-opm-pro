@@ -20,6 +20,7 @@ import { BibliotecaDock } from "./biblioteca/BibliotecaDock";
 import { CapturadorBugs } from "./CapturadorBugs";
 import { configurarContextoAtajos, escucharGlobal, registrarAtajo } from "./atajosTeclado";
 import { ConfirmacionProvider } from "./ConfirmacionContext";
+import { resolverContextoWorkbench } from "./contextoWorkbench";
 import { DivisorPanel } from "./divisorPanel";
 import { EstadoVacioOpm } from "./EstadoVacioOpm";
 import { Inspector } from "./Inspector";
@@ -126,11 +127,20 @@ export function App() {
 
   // L2 r17: en modo simulación, BarraSimulacion reemplaza la Toolbar de edición.
   const modoSimulacionActivo = useOpmStore((s) => s.contextoSimulacion !== null);
+  const contextoWorkbench = resolverContextoWorkbench({ breakpoint, vistaMapaActiva, modoSimulacionActivo });
+  const esViewPointMapa = contextoWorkbench.modo === "mapa";
 
   return (
     <ConfirmacionProvider>
-      <main style={pageStyle(esMobile)} data-breakpoint={breakpoint}>
-        {modoSimulacionActivo ? <BarraSimulacion /> : <Toolbar />}
+      <main
+        style={pageStyle(esMobile)}
+        data-breakpoint={breakpoint}
+        data-context-device={contextoWorkbench.device}
+        data-context-modo={contextoWorkbench.modo}
+        data-viewpoint={contextoWorkbench.viewPoint}
+        data-viewpoint-default={contextoWorkbench.viewPointDefault ? "true" : "false"}
+      >
+        {contextoWorkbench.modo === "simulacion" ? <BarraSimulacion /> : <Toolbar />}
         <MenuPrincipal />
         <BarraPestanas />
         {esMobile ? (
@@ -139,7 +149,7 @@ export function App() {
             style={layout.mobileSection}
           >
             <div data-testid="canvas-pane" style={layout.canvasPaneMobile}>
-              {vistaMapaActiva ? (
+              {esViewPointMapa ? (
                 <Suspense fallback={null}>
                   <MapaSistema />
                 </Suspense>
@@ -215,7 +225,7 @@ export function App() {
             onAnchoChange={fijarAnchoPanelArbol}
           />
           <div data-testid="canvas-pane" style={layout.canvasPane}>
-            {vistaMapaActiva ? (
+            {esViewPointMapa ? (
               <Suspense fallback={null}>
                 <MapaSistema />
               </Suspense>
