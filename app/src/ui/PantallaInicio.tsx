@@ -10,6 +10,13 @@ import { useOpmStore } from "../store";
 import { useConfirmarSiDirty } from "./ConfirmacionContext";
 import { tokens } from "./tokens";
 
+export const GLOSA_BIENVENIDA_OPM = [
+  { termino: "Cosa", definicion: "objeto o proceso del sistema que modelas." },
+  { termino: "OPD", definicion: "diagrama donde dibujas cosas y enlaces." },
+  { termino: "Apariencia", definicion: "cómo aparece una cosa en un OPD; la misma cosa puede aparecer en varios OPDs." },
+  { termino: "Enlace", definicion: "relación entre dos cosas." },
+] as const;
+
 export function PantallaInicio() {
   const modelo = useOpmStore((s) => s.modelo);
   const modeloPersistidoId = useOpmStore((s) => s.modeloPersistidoId);
@@ -59,7 +66,12 @@ export function PantallaInicio() {
   return (
     <div data-testid="pantalla-inicio" style={style.overlay}>
       <div style={style.telon} />
-      <section style={style.panel} aria-label="Bienvenida deep-opm-pro">
+      <section
+        style={style.panel}
+        aria-label="Bienvenida deep-opm-pro"
+        data-ifml-viewpoint="Bienvenida"
+        data-ifml-pattern="CN-DEF"
+      >
         <div style={style.header}>
           <div>
             <h2 style={style.title}>deep-opm-pro</h2>
@@ -114,9 +126,17 @@ export function PantallaInicio() {
           {recientes.map((modelo) => <TileReciente key={modelo.id} modelo={modelo} onAbrir={abrir} />)}
         </div>
         {recientes.length === 0 ? <div style={style.empty}>No hay modelos recientes.</div> : null}
-        <div style={style.glosa}>
-          <strong>Cosa</strong> - objeto o proceso del sistema que modelas. <strong>OPD</strong> - diagrama donde dibujas cosas y enlaces. <strong>Apariencia</strong> - cómo aparece una cosa en un OPD. <strong>Enlace</strong> - relación entre dos cosas.
-        </div>
+        <dl style={style.glosa} aria-label="Glosa OPM de bienvenida">
+          {GLOSA_BIENVENIDA_OPM.map((item) => (
+            <div key={item.termino} style={style.glosaItem}>
+              <dt style={style.glosaTermino}>{item.termino}</dt>
+              <dd style={style.glosaDefinicion}>
+                <span aria-hidden="true" style={style.glosaSeparador}>—</span>
+                {item.definicion}
+              </dd>
+            </div>
+          ))}
+        </dl>
       </section>
     </div>
   );
@@ -202,5 +222,9 @@ const style = {
   glyphIcon: { width: "14px", height: "14px" },
   glyphText: { color: tokens.colors.chromeNeutral, fontSize: "14px", fontWeight: 800, lineHeight: 1 },
   empty: { padding: "18px", border: `1px dashed ${tokens.colors.bordeControl}`, borderRadius: tokens.radii.sm, color: tokens.colors.textoTerciario, fontSize: "13px", fontWeight: 700, textAlign: "center" },
-  glosa: { padding: "10px 12px", border: `1px solid ${tokens.colors.infoBordeSuave}`, borderRadius: tokens.radii.md, background: tokens.colors.infoFondoAlterno, color: tokens.colors.textoSecundario, fontSize: "12px", lineHeight: 1.45 },
+  glosa: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(210px, 1fr))", gap: "8px 12px", margin: 0, padding: "10px 12px", border: `1px solid ${tokens.colors.infoBordeSuave}`, borderRadius: tokens.radii.md, background: tokens.colors.infoFondoAlterno, color: tokens.colors.textoSecundario, fontSize: "12px", lineHeight: 1.45 },
+  glosaItem: { display: "grid", gridTemplateColumns: "auto minmax(0, 1fr)", alignItems: "start", columnGap: "6px", minWidth: 0 },
+  glosaTermino: { margin: 0, color: tokens.colors.textoPrimario, fontWeight: 800, whiteSpace: "nowrap" },
+  glosaDefinicion: { display: "flex", gap: "6px", minWidth: 0, margin: 0, overflowWrap: "anywhere" },
+  glosaSeparador: { color: tokens.colors.textoTerciario, fontWeight: 800 },
 } satisfies Record<string, preact.JSX.CSSProperties>;
