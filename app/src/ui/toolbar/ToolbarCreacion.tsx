@@ -7,6 +7,7 @@
 import { useEffect, useMemo, useRef, useState } from "preact/hooks";
 import type { Id, TipoEnlace } from "../../modelo/tipos";
 import { useOpmStore } from "../../store";
+import type { ModoEnlace } from "../../store/tipos";
 import { MenuTipoEnlace, TIPOS_ENLACE_MENU } from "../MenuTipoEnlace";
 import { toolbarStyle as style } from "./toolbarStyles";
 
@@ -15,6 +16,13 @@ import { toolbarStyle as style } from "./toolbarStyles";
  * IFML H-10/V7: MenuTipoEnlace es la superficie primaria; no hay select legacy.
  */
 export const TIPOS_ENLACE: Array<{ tipo: TipoEnlace; label: string }> = TIPOS_ENLACE_MENU;
+export const LIMITE_CONEXIONES_MANUALES_NUDGE_ANCHOR = 5;
+
+interface EstadoNudgeConexionAnchor {
+  modoEnlace: Pick<ModoEnlace, "fase"> | null;
+  cerrado: boolean;
+  conexionesManuales: number;
+}
 
 export function ToolbarCreacion() {
   const elegirTipoEnlace = useOpmStore((s) => s.elegirTipoEnlace);
@@ -30,6 +38,8 @@ export function ToolbarCreacion() {
   const crearEnlaceEntreEntidades = useOpmStore((s) => s.crearEnlaceEntreEntidades);
   const [menuTiposAbierto, setMenuTiposAbierto] = useState(false);
   const [direccionTipoEnlace, setDireccionTipoEnlace] = useState<"saliente" | "entrante">("saliente");
+  const [nudgeAnchorCerrado, setNudgeAnchorCerrado] = useState(() => leerFlagSesion(KEY_NUDGE_ANCHOR_CERRADO));
+  const [conexionesManualesSesion, setConexionesManualesSesion] = useState(() => leerNumeroSesion(KEY_NUDGE_ANCHOR_MANUALES));
   const triggerTiposRef = useRef<HTMLButtonElement | null>(null);
   const menuTiposRef = useRef<HTMLDivElement | null>(null);
   const menuTiposAbiertoRef = useRef(false);
@@ -59,6 +69,11 @@ export function ToolbarCreacion() {
   useEffect(() => {
     if (selectorEnlaceDeshabilitado) setMenuTiposAbierto(false);
   }, [selectorEnlaceDeshabilitado]);
+
+  useEffect(() => {
+    if (modoEnlace?.fase !== "drag-from-anchor" || nudgeAnchorCerrado) return;
+    cerrarNudgeConexionAnchor();
+  }, [modoEnlace?.fase, nudgeAnchorCerrado]);
 
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
@@ -105,12 +120,34 @@ export function ToolbarCreacion() {
     setMenuTiposAbierto(false);
   }
   function handleElegirTipoPendiente(tipo: TipoEnlace) {
+    registrarConexionManualNudge();
     elegirTipoEnlace(tipo);
     setMenuTiposAbierto(false);
+  }
+  function cerrarNudgeConexionAnchor() {
+    setNudgeAnchorCerrado(true);
+    escribirFlagSesion(KEY_NUDGE_ANCHOR_CERRADO, true);
+  }
+  function registrarConexionManualNudge() {
+    setConexionesManualesSesion((actual) => {
+      const siguiente = Math.min(actual + 1, LIMITE_CONEXIONES_MANUALES_NUDGE_ANCHOR);
+      escribirNumeroSesion(KEY_NUDGE_ANCHOR_MANUALES, siguiente);
+      if (siguiente >= LIMITE_CONEXIONES_MANUALES_NUDGE_ANCHOR) {
+        setNudgeAnchorCerrado(true);
+        escribirFlagSesion(KEY_NUDGE_ANCHOR_CERRADO, true);
+      }
+      return siguiente;
+    });
   }
   function handleCancelarCreacion() {
     fijarModoCreacion(null);
   }
+
+  const mostrarNudgeAnchor = debeMostrarNudgeConexionAnchor({
+    modoEnlace,
+    cerrado: nudgeAnchorCerrado,
+    conexionesManuales: conexionesManualesSesion,
+  });
 
   return (
     <>
@@ -134,9 +171,16 @@ export function ToolbarCreacion() {
       {/* canvas. P0-2 garantiza que modoEnlace, modoCreacion, vistaMapaActiva */}
       {/* y contextoSimulacion son mutuamente excluyentes. */}
       {modoEnlace ? (
-        <span style={style.stickyBadge} data-testid="indicador-modo-canonico" data-modo="conectar">
-          Conectando: {TIPOS_ENLACE.find((item) => item.tipo === modoEnlace.tipo)?.label ?? modoEnlace.tipo} · selecciona destino · Esc cancela
-        </span>
+        <>
+          <span style={style.stickyBadge} data-testid="indicador-modo-canonico" data-modo="conectar">
+            Conectando: {TIPOS_ENLACE.find((item) => item.tipo === modoEnlace.tipo)?.label ?? modoEnlace.tipo} · selecciona destino · Esc cancela
+          </span>
+          {mostrarNudgeAnchor ? (
+            <span role="note" style={style.anchorNudge} data-testid="nudge-conexion-anchor">
+              Tip: arrastra desde un anchor ◉ para conectar sin entrar al modo.
+            </span>
+          ) : null}
+        </>
       ) : modoCreacion ? (
         <>
           <span style={style.stickyBadge} data-testid="indicador-modo-canonico" data-modo={`insertar-${modoCreacion}`}>
@@ -160,4 +204,49 @@ export function ToolbarCreacion() {
       ) : null}
     </>
   );
+}
+
+const KEY_NUDGE_ANCHOR_CERRADO = "deep-opm-pro:ui:nudge-anchor-cerrado";
+const KEY_NUDGE_ANCHOR_MANUALES = "deep-opm-pro:ui:nudge-anchor-manuales";
+
+export function debeMostrarNudgeConexionAnchor(input: EstadoNudgeConexionAnchor): boolean {
+  if (!input.modoEnlace) return false;
+  if (input.cerrado) return false;
+  if (input.conexionesManuales >= LIMITE_CONEXIONES_MANUALES_NUDGE_ANCHOR) return false;
+  return (input.modoEnlace.fase ?? "boton") === "boton";
+}
+
+function leerFlagSesion(key: string): boolean {
+  try {
+    return globalThis.sessionStorage?.getItem(key) === "1";
+  } catch {
+    return false;
+  }
+}
+
+function escribirFlagSesion(key: string, value: boolean): void {
+  try {
+    if (value) globalThis.sessionStorage?.setItem(key, "1");
+    else globalThis.sessionStorage?.removeItem(key);
+  } catch {
+    // sessionStorage puede no estar disponible en pruebas/headless restrictivos.
+  }
+}
+
+function leerNumeroSesion(key: string): number {
+  try {
+    const raw = globalThis.sessionStorage?.getItem(key);
+    const parsed = raw ? Number.parseInt(raw, 10) : 0;
+    return Number.isFinite(parsed) && parsed > 0 ? parsed : 0;
+  } catch {
+    return 0;
+  }
+}
+
+function escribirNumeroSesion(key: string, value: number): void {
+  try {
+    globalThis.sessionStorage?.setItem(key, String(value));
+  } catch {
+    // sessionStorage puede no estar disponible en pruebas/headless restrictivos.
+  }
 }

@@ -37,6 +37,24 @@ test("drag desde anchor abre MenuTipoEnlace anclado y confirma conexion", async 
   expect(pageErrors).toEqual([]);
 });
 
+test("camino Conectar por boton muestra tip de anchor antes de elegir destino", async ({ page }) => {
+  await page.addInitScript(() => {
+    sessionStorage.removeItem("deep-opm-pro:ui:nudge-anchor-cerrado");
+    sessionStorage.removeItem("deep-opm-pro:ui:nudge-anchor-manuales");
+  });
+  await page.goto("/");
+  await cerrarPantallaInicioSiVisible(page);
+  await jsonEditor(page).fill(JSON.stringify(modeloConexionAnchor(), null, 2));
+  await page.getByRole("button", { name: "Importar", exact: true }).click();
+  await elementoPorTexto(page, "Entrada").locator('[joint-selector="body"]').click();
+
+  await page.getByTestId("abrir-menu-tipo-enlace").click();
+  await page.getByTestId("menu-tipo-enlace-consumo").click();
+
+  await expect(page.getByTestId("indicador-modo-canonico")).toHaveAttribute("data-modo", "conectar");
+  await expect(page.getByTestId("nudge-conexion-anchor")).toContainText("Tip: arrastra desde un anchor ◉");
+});
+
 function modeloConexionAnchor() {
   return {
     formato: "deep-opm-pro.modelo.v0",

@@ -51,7 +51,7 @@ export function accionesEnlace(set: SetStore, get: GetStore): Partial<ModeloSlic
       }
       // P1-5 ronda 4: activar modoEnlace cambia el contexto a "conectar";
       // cualquier editor inline previo se descarta.
-      set({ modoEnlace: { tipo, origenId }, modoCreacion: null, nuevaCosaPendiente: null, mensaje: "Selecciona la entidad destino" });
+      set({ modoEnlace: { tipo, origenId, fase: "boton" }, modoCreacion: null, nuevaCosaPendiente: null, mensaje: "Selecciona la entidad destino" });
     },
 
     iniciarConexionDesdeApariencia(aparienciaId, anchor) {

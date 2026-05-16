@@ -10,7 +10,7 @@ describe("slice enlaces", () => {
 
     store.getState().seleccionarEntidad(id);
     store.getState().elegirTipoEnlace("instrumento");
-    expect(store.getState().modoEnlace).toEqual({ tipo: "instrumento", origenId: id });
+    expect(store.getState().modoEnlace).toEqual({ tipo: "instrumento", origenId: id, fase: "boton" });
 
     store.getState().cancelarEnlace();
     expect(store.getState().modoEnlace).toBeNull();
