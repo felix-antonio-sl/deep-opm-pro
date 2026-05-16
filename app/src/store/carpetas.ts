@@ -219,7 +219,6 @@ export const createCarpetasSlice: CrearSlice<CarpetasSlice> = (set, get) => ({
   mostrarArchivados: leerPreferenciaBooleana(PREF_MOSTRAR_ARCHIVADOS_KEY, false),
   mostrarVersiones: leerPreferenciaBooleana(PREF_MOSTRAR_VERSIONES_KEY, false),
   dialogoVersionesAbierto: null,
-  dialogoArchivadosAbierto: false,
   dialogoBuscarGlobalAbierto: false,
   busquedaGlobal: { query: "", resultados: [], enProgreso: false },
   busquedaCosasAbierta: false,
@@ -294,14 +293,6 @@ export const createCarpetasSlice: CrearSlice<CarpetasSlice> = (set, get) => ({
       modelosGuardados: listarModelosGuardadosSeguro(),
       mensaje: "Versión eliminada",
     });
-  },
-
-  abrirDialogoArchivados() {
-    set({ dialogoArchivadosAbierto: true, menuPrincipalAbierto: false, modelosGuardados: listarModelosGuardadosSeguro() });
-  },
-
-  cerrarDialogoArchivados() {
-    set({ dialogoArchivadosAbierto: false });
   },
 
   abrirDialogoBuscarGlobal() {

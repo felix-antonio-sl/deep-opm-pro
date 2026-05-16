@@ -433,7 +433,7 @@ test("L1 botones Deshacer Rehacer siguen operando desde ToolbarBase", async ({ p
 // Ronda 12.1 L2 — HU-30.037 cobertura Esc en diálogos legados.
 // El componente `Dialogo.tsx` ya captura Esc en fase de captura
 // (líneas 32-44, ronda 12). Estos smokes verifican que los diálogos
-// instanciados en MenuPrincipal (Versiones, Archivados, BuscarGlobal)
+// instanciados en MenuPrincipal (Versiones, Cargar modelo, BuscarGlobal)
 // efectivamente cierran sin persistir el modelo cuando el operador presiona
 // Esc. Anclaje SSOT: [Met §6 etapas SD persistencia].
 // Bloque pegable al final de `app/e2e/opm-smoke.spec.ts` (sin tocar tests

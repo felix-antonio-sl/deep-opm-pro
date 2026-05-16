@@ -373,7 +373,7 @@ export interface OpmStore {
   cerrarGuardarComo: () => void;
   guardarComoLocal: (input: { nombre: string; descripcion?: string; crearVersionAlGuardar?: boolean }) => void;
   guardarComoLocalConDescripcion: (input: { nombre: string; descripcion?: string; crearVersionAlGuardar?: boolean }) => void;
-  abrirCargarModelo: () => void;
+  abrirCargarModelo: (opciones?: { mostrarArchivados?: boolean }) => void;
   cerrarCargarModelo: () => void;
   abrirDialogoImportarExportarJson: () => void;
   cerrarDialogoImportarExportarJson: () => void;
@@ -592,7 +592,6 @@ export interface OpmStore {
   mostrarArchivados: boolean;
   mostrarVersiones: boolean;
   dialogoVersionesAbierto: { modeloId: Id } | null;
-  dialogoArchivadosAbierto: boolean;
   dialogoBuscarGlobalAbierto: boolean;
   busquedaGlobal: BusquedaGlobalEstado;
   cortarModelo: (modeloId: Id) => void;
@@ -612,8 +611,6 @@ export interface OpmStore {
   cerrarDialogoVersiones: () => void;
   restaurarVersionComoCopia: (modeloId: Id, versionId: Id) => Promise<void>;
   eliminarVersionPorId: (modeloId: Id, versionId: Id) => void;
-  abrirDialogoArchivados: () => void;
-  cerrarDialogoArchivados: () => void;
   abrirDialogoBuscarGlobal: () => void;
   cerrarDialogoBuscarGlobal: () => void;
   fijarBusquedaGlobalQuery: (q: string) => void;

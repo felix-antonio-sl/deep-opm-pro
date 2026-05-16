@@ -23,7 +23,6 @@ export function MenuPrincipal() {
   const abrirCargarModelo = useOpmStore((s) => s.abrirCargarModelo);
   const abrirBusquedaCosas = useOpmStore((s) => s.abrirBusquedaCosas);
   const abrirBusquedaGlobal = useOpmStore((s) => s.abrirDialogoBuscarGlobal);
-  const abrirArchivados = useOpmStore((s) => s.abrirDialogoArchivados);
   const abrirVersiones = useOpmStore((s) => s.abrirDialogoVersiones);
   const modeloPersistidoId = useOpmStore((s) => s.modeloPersistidoId);
   const dialogoRenombrarModeloAbierto = useOpmStore((s) => s.dialogoRenombrarModeloAbierto);
@@ -104,7 +103,7 @@ export function MenuPrincipal() {
       <MenuSection title="Más">
         <MenuItem label="Guardar como plantilla..." icon={templateIcon} onClick={() => ejecutar(abrirDialogoGuardarPlantilla)} />
         <MenuItem label="Plantillas..." icon={templateIcon} onClick={() => ejecutar(abrirDialogoPlantillas)} />
-        <MenuItem label="Archivados" onClick={() => ejecutar(abrirArchivados)} />
+        <MenuItem label="Cargar archivados..." onClick={() => ejecutar(() => confirmarSiDirty(() => abrirCargarModelo({ mostrarArchivados: true })))} />
         <MenuItem label={mostrarArchivados ? "Ocultar archivados" : "Mostrar archivados"} onClick={() => ejecutar(toggleMostrarArchivados)} />
         <MenuItem label={mostrarVersiones ? "Ocultar glifos de versiones" : "Mostrar glifos de versiones"} onClick={() => ejecutar(toggleMostrarVersiones)} />
         {modeloPersistidoId ? (

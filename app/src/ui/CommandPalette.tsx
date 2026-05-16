@@ -54,7 +54,6 @@ export function CommandPalette({ abierto, onCerrar }: Props) {
   const abrirRenombrarModelo = useOpmStore((s) => s.abrirRenombrarModelo);
   const abrirDialogoGuardarPlantilla = useOpmStore((s) => s.abrirDialogoGuardarPlantilla);
   const abrirDialogoPlantillas = useOpmStore((s) => s.abrirDialogoPlantillas);
-  const abrirDialogoArchivados = useOpmStore((s) => s.abrirDialogoArchivados);
   const abrirDialogoVersiones = useOpmStore((s) => s.abrirDialogoVersiones);
   const modeloPersistidoId = useOpmStore((s) => s.modeloPersistidoId);
   const abrirVistaMapa = useOpmStore((s) => s.abrirVistaMapa);
@@ -86,11 +85,11 @@ export function CommandPalette({ abierto, onCerrar }: Props) {
   const accionesMenu = construirAccionesMenuCommandPalette({
     nuevoModelo: () => confirmarSiDirty(nuevoModelo),
     abrirCargarModelo: () => confirmarSiDirty(abrirCargarModelo),
+    abrirCargarArchivados: () => confirmarSiDirty(() => abrirCargarModelo({ mostrarArchivados: true })),
     abrirGuardarComo,
     abrirRenombrarModelo,
     abrirDialogoGuardarPlantilla,
     abrirDialogoPlantillas,
-    abrirDialogoArchivados,
     abrirDialogoVersiones: modeloPersistidoId ? () => abrirDialogoVersiones(modeloPersistidoId) : null,
     modeloPersistidoId,
     toggleMapaSistema: vistaMapaActiva ? cerrarVistaMapa : abrirVistaMapa,
@@ -291,11 +290,11 @@ export function construirItemsCommandPalette(
 interface AccionesMenuCommandPaletteDeps {
   nuevoModelo: () => void;
   abrirCargarModelo: () => void;
+  abrirCargarArchivados: () => void;
   abrirGuardarComo: () => void;
   abrirRenombrarModelo: () => void;
   abrirDialogoGuardarPlantilla: () => void;
   abrirDialogoPlantillas: () => void;
-  abrirDialogoArchivados: () => void;
   abrirDialogoVersiones: (() => void) | null;
   modeloPersistidoId: string | null;
   toggleMapaSistema: () => void;
@@ -318,7 +317,7 @@ function construirAccionesMenuCommandPalette(deps: AccionesMenuCommandPaletteDep
     { id: "renombrar-modelo", label: "Renombrar modelo", descripcion: "Cambiar el nombre del modelo actual", categoria: "archivo", enabled: !!deps.modeloPersistidoId, run: deps.abrirRenombrarModelo },
     { id: "guardar-plantilla", label: "Guardar como plantilla", descripcion: "Crear una plantilla privada desde la selección", categoria: "archivo", run: deps.abrirDialogoGuardarPlantilla },
     { id: "plantillas", label: "Plantillas", descripcion: "Abrir el catálogo de plantillas privadas", categoria: "archivo", run: deps.abrirDialogoPlantillas },
-    { id: "archivados", label: "Archivados", descripcion: "Abrir modelos archivados del workspace", categoria: "archivo", run: deps.abrirDialogoArchivados },
+    { id: "cargar-archivados", label: "Cargar archivados", descripcion: "Abrir Cargar modelo con archivados visibles", categoria: "archivo", run: deps.abrirCargarArchivados },
     { id: "versiones-modelo", label: "Versiones del modelo", descripcion: "Abrir el historial de versiones del modelo", categoria: "archivo", enabled: !!deps.abrirDialogoVersiones, run: deps.abrirDialogoVersiones ?? (() => {}) },
     { id: "importar-exportar-json", label: "Importar/Exportar JSON", descripcion: "Abrir el modal de persistencia JSON", categoria: "archivo", run: deps.abrirDialogoImportarExportarJson },
     { id: "exportar-json", label: "Exportar JSON al portapapeles", descripcion: "Copiar el JSON OPM actual al portapapeles", categoria: "archivo", run: deps.exportarJson },

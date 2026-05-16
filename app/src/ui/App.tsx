@@ -40,7 +40,6 @@ import { Toolbar } from "./Toolbar";
 const AsistenteNuevoModelo = lazy(() => import("./AsistenteNuevoModelo").then((m) => ({ default: m.AsistenteNuevoModelo })));
 const CheatsheetAtajos = lazy(() => import("./CheatsheetAtajos").then((m) => ({ default: m.CheatsheetAtajos })));
 const CommandPalette = lazy(() => import("./CommandPalette").then((m) => ({ default: m.CommandPalette })));
-const DialogoArchivados = lazy(() => import("./DialogoArchivados").then((m) => ({ default: m.DialogoArchivados })));
 const DialogoBuscarCosas = lazy(() => import("./DialogoBuscarCosas").then((m) => ({ default: m.DialogoBuscarCosas })));
 const DialogoBuscarGlobal = lazy(() => import("./DialogoBuscarGlobal").then((m) => ({ default: m.DialogoBuscarGlobal })));
 const DialogoCargarModelo = lazy(() => import("./DialogoCargarModelo").then((m) => ({ default: m.DialogoCargarModelo })));
@@ -74,7 +73,6 @@ export function App() {
   const dialogoBuscarGlobalAbierto = useOpmStore((s) => s.dialogoBuscarGlobalAbierto);
   const busquedaCosasAbierta = useOpmStore((s) => s.busquedaCosasAbierta);
   const dialogoVersionesAbierto = useOpmStore((s) => s.dialogoVersionesAbierto !== null);
-  const dialogoArchivadosAbierto = useOpmStore((s) => s.dialogoArchivadosAbierto);
   const modalUrlsAbierto = useOpmStore((s) => s.modalUrlsAbierto !== null);
   const modalImagenAbierto = useOpmStore((s) => s.modalImagenAbierto !== null);
   const modalDuracionAbierto = useOpmStore((s) => s.modalDuracionAbierto !== null);
@@ -311,7 +309,6 @@ export function App() {
         {dialogoBuscarGlobalAbierto ? <Suspense fallback={null}><DialogoBuscarGlobal /></Suspense> : null}
         {busquedaCosasAbierta ? <Suspense fallback={null}><DialogoBuscarCosas /></Suspense> : null}
         {dialogoVersionesAbierto ? <Suspense fallback={null}><DialogoVersiones /></Suspense> : null}
-        {dialogoArchivadosAbierto ? <Suspense fallback={null}><DialogoArchivados /></Suspense> : null}
         {tablaEnlacesAbierta ? <Suspense fallback={null}><TablaEnlaces /></Suspense> : null}
         {gestionArbolAbierta ? <Suspense fallback={null}><GestionArbolOpd /></Suspense> : null}
         {asistenteAbierto ? <Suspense fallback={null}><AsistenteNuevoModelo /></Suspense> : null}
@@ -365,7 +362,6 @@ function registrarAtajosAplicacion(): Array<() => void> {
     if (state.dialogoCargarModeloAbierto) return state.cerrarCargarModelo();
     if (state.dialogoBuscarGlobalAbierto) return state.cerrarDialogoBuscarGlobal();
     if (state.dialogoVersionesAbierto) return state.cerrarDialogoVersiones();
-    if (state.dialogoArchivadosAbierto) return state.cerrarDialogoArchivados();
     if (state.modalImagenAbierto) return state.cerrarModalImagen();
     if (state.modalUrlsAbierto) return state.cerrarModalUrls();
     if (state.modalDuracionAbierto) return state.cerrarModalDuracion();

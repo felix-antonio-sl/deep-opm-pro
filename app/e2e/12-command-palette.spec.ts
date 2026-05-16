@@ -46,3 +46,24 @@ test("Escape cierra Command Palette sin ejecutar accion", async ({ page }) => {
 
   expect(pageErrors).toEqual([]);
 });
+
+test("Command Palette abre Cargar modelo con archivados visibles", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await cerrarPantallaInicioSiVisible(page);
+
+  await page.keyboard.press("Control+k");
+  const palette = page.getByTestId("command-palette");
+  await expect(palette).toBeVisible();
+  await palette.getByRole("combobox").fill("cargar archivados");
+  await expect(page.getByTestId("command-palette-item-menu-cargar-archivados")).toBeVisible();
+
+  await page.keyboard.press("Enter");
+  const dialogo = page.getByRole("dialog", { name: "Cargar modelo" });
+  await expect(dialogo).toBeVisible();
+  await expect(dialogo.getByLabel("Mostrar archivados")).toBeChecked();
+
+  expect(pageErrors).toEqual([]);
+});

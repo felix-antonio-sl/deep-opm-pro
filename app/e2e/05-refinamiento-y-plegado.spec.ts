@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Locator, type Page } from "@playwright/test";
 import {
   elementoPorTexto,
   escapeRegExp,
@@ -651,7 +651,7 @@ test("L3 descomposicion avanzada: inspector reasigna, inline renombra, paralelo 
 
   const proceso2ParaRename = elementoPorTexto(page, "Procesar 2");
   await expect(proceso2ParaRename).toBeVisible();
-  await proceso2ParaRename.dblclick({ force: true });
+  await abrirRenombradoInline(page, proceso2ParaRename);
   await expect(page.getByTestId("renombrado-inline")).toBeVisible();
   await page.getByTestId("renombrado-inline").fill("Validar Entrada");
   await page.keyboard.press("Enter");
@@ -702,6 +702,18 @@ test("L3 descomposicion avanzada: inspector reasigna, inline renombra, paralelo 
   await page.screenshot({ path: "test-results/opm-l3-descomposicion-avanzada.png", fullPage: true });
   expect(pageErrors).toEqual([]);
 });
+
+async function abrirRenombradoInline(page: Page, target: Locator): Promise<void> {
+  const input = page.getByTestId("renombrado-inline");
+  for (let intento = 0; intento < 3; intento += 1) {
+    await expect(target).toBeVisible();
+    const rect = await rectDeLocator(target);
+    await page.mouse.dblclick(rect.x + rect.width / 2, rect.y + Math.min(14, rect.height / 3));
+    await input.waitFor({ state: "visible", timeout: 1000 }).catch(() => undefined);
+    if (await input.isVisible().catch(() => false)) return;
+  }
+  await expect(input).toBeVisible();
+}
 
 test("HU-10.021: desplegar objeto crea OPD hijo y entrada en árbol jerárquico", async ({ page }) => {
   const pageErrors: string[] = [];

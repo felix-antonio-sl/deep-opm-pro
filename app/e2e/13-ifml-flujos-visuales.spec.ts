@@ -81,7 +81,7 @@ test.describe("Ronda 15 L3 IFML flow nueva-cosa", () => {
 
     // Escape sobre el input: descartarNuevaCosaPendiente, no
     // confirmarNombreNuevaCosa. El stack legacy de modales NO se ve afectado
-    // (HU-30.037: dialogos archivados/buscar global responden a sus propios
+    // (HU-30.037: dialogos de carga/buscar global responden a sus propios
     // Esc; aquí Esc sobre el input no debe propagarse a vaciarSeleccion).
     await input.press("Escape");
     await expect(modal).toHaveCount(0);
@@ -93,7 +93,7 @@ test.describe("Ronda 15 L3 IFML flow nueva-cosa", () => {
     expect(pageErrors).toEqual([]);
   });
 
-  test("HU-30.037 no regresa: Esc en DialogoArchivados sigue siendo independiente del flujo nueva-cosa", async ({ page }) => {
+  test("HU-30.037 no regresa: Esc sigue siendo independiente del flujo nueva-cosa", async ({ page }) => {
     const pageErrors: string[] = [];
     page.on("pageerror", (error) => pageErrors.push(error.message));
 

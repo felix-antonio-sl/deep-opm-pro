@@ -708,7 +708,7 @@ test("HU-30.020: clic sobre tile selecciona y botón Cargar del diálogo carga m
   expect(pageErrors).toEqual([]);
 });
 
-test("HU-30.037: Esc cancela DialogoArchivados sin persistir cambios al modelo", async ({ page }) => {
+test("HU-30.037: Esc cancela Cargar modelo con archivados sin persistir cambios", async ({ page }) => {
   const pageErrors: string[] = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
@@ -720,10 +720,11 @@ test("HU-30.037: Esc cancela DialogoArchivados sin persistir cambios al modelo",
 
   await page.getByLabel("Menú principal").click();
   const menu = page.getByRole("menu", { name: "Menú principal" });
-  await menu.getByRole("menuitem", { name: "Archivados", exact: true }).click();
+  await menu.getByRole("menuitem", { name: "Cargar archivados..." }).click();
 
-  const dialogo = page.getByRole("dialog", { name: "Modelos archivados" });
+  const dialogo = page.getByRole("dialog", { name: "Cargar modelo" });
   await expect(dialogo).toBeVisible();
+  await expect(dialogo.getByLabel("Mostrar archivados")).toBeChecked();
 
   await page.keyboard.press("Escape");
   await expect(dialogo).toHaveCount(0);

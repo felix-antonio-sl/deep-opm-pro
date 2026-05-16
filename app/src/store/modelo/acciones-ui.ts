@@ -18,6 +18,7 @@ import { exportarModelo, hidratarModelo } from "../../serializacion/json";
 import {
   activarPestanaNueva,
   escribirIndiceWorkspace,
+  escribirPreferenciaBooleana,
   estadoModelo,
   leerIndiceWorkspace,
   listarModelosGuardadosSeguro,
@@ -28,6 +29,7 @@ import {
   opdActivoSeguro,
   pestanaReemplazable,
   resetHistorial,
+  PREF_MOSTRAR_ARCHIVADOS_KEY,
   sincronizarIndiceConModelosGuardados,
   type GetStore,
   type SetStore,
@@ -240,9 +242,13 @@ export function accionesUI(set: SetStore, get: GetStore): Partial<ModeloSlice> {
       }));
     },
 
-    abrirCargarModelo() {
+    abrirCargarModelo(opciones) {
       const modelosGuardados = listarModelosGuardadosSeguro();
       const indiceSinc = sincronizarIndiceConModelosGuardados(modelosGuardados, leerIndiceWorkspace());
+      const activarArchivados = opciones?.mostrarArchivados === true;
+      if (activarArchivados && !get().mostrarArchivados) {
+        escribirPreferenciaBooleana(PREF_MOSTRAR_ARCHIVADOS_KEY, true);
+      }
       set({
         menuPrincipalAbierto: false,
         dialogoCargarModeloAbierto: true,
@@ -251,6 +257,7 @@ export function accionesUI(set: SetStore, get: GetStore): Partial<ModeloSlice> {
         carpetaActualId: null,
         modelosRecientes: modelosRecientesDeIndice(indiceSinc, modelosGuardados),
         mensaje: null,
+        ...(activarArchivados ? { mostrarArchivados: true } : {}),
       });
     },
 
