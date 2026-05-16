@@ -85,7 +85,8 @@ test("alinear selección: tres cosas quedan alineadas a la izquierda", async ({ 
   await page.getByRole("button", { name: "Objeto", exact: true }).click();
   await page.getByRole("button", { name: "Objeto", exact: true }).click();
   await page.keyboard.press("Control+a");
-  await page.getByTestId("alinear-cosas").selectOption("izq");
+  await page.getByTestId("toolbar-mas-trigger").click();
+  await page.getByTestId("toolbar-mas-alinear-izq").click();
 
   const exportado = await exportadoActual(page);
   const xs = Object.values(exportado.modelo.opds[exportado.modelo.opdRaizId]?.apariencias ?? {}).map((ap) => ap.x);

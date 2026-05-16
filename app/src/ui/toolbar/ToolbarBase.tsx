@@ -83,7 +83,9 @@ export function ToolbarBase({ children, modelarSlot, conectarSlot, validarSlot, 
   const pegarEstiloEnlaceDesdePortapapeles = useOpmStore((s) => s.pegarEstiloEnlaceDesdePortapapeles);
   const enlaceEstiloPortapapeles = useOpmStore((s) => s.enlaceEstiloPortapapeles);
   const borrarEnlacesEnLote = useOpmStore((s) => s.borrarEnlacesEnLote);
+  const eliminarSeleccion = useOpmStore((s) => s.eliminarSeleccion);
   const conectarSeleccionAlTodo = useOpmStore((s) => s.conectarSeleccionAlTodo);
+  const traerEnlacesEntreSeleccionadas = useOpmStore((s) => s.traerEnlacesEntreSeleccionadas);
   const readOnly = useOpmStore((s) => s.readOnly);
   const iniciarAutosalvado = useOpmStore((s) => s.iniciarAutosalvado);
   // Ronda 19 L5: `dirty` ya no se lee aqui; ChipPersistencia lo consume.
@@ -191,6 +193,9 @@ export function ToolbarBase({ children, modelarSlot, conectarSlot, validarSlot, 
     onSiguienteModoImagen: () => fijarModoImagenGlobal(siguienteModoGlobal(uiModoImagenGlobal)),
     onEditarImagen: () => { if (seleccionId) abrirModalImagen(seleccionId); },
     onConfigGrid: () => setGridModalAbierto(true),
+    onEliminarSeleccion: eliminarSeleccion,
+    onConectarSeleccionComoPartes: () => { if (todoMultiSeleccion) conectarSeleccionAlTodo(todoMultiSeleccion, "agregacion"); },
+    onTraerEnlacesEntreSeleccionadas: traerEnlacesEntreSeleccionadas,
     onAlinearCosa: alinearSeleccion,
     onDistribuirCosa: distribuirSeleccion,
     onAlinearEnlaces: alinearSeleccionEnlaces,
@@ -455,6 +460,9 @@ type ParametrosItemsMas = {
   onSiguienteModoImagen: () => void;
   onEditarImagen: () => void;
   onConfigGrid: () => void;
+  onEliminarSeleccion: () => void;
+  onConectarSeleccionComoPartes: () => void;
+  onTraerEnlacesEntreSeleccionadas: () => void;
   onAlinearCosa: (eje: "izq" | "centro" | "der" | "sup" | "medio" | "inf") => void;
   onDistribuirCosa: (orientacion: "horizontal" | "vertical") => void;
   onAlinearEnlaces: (direccion: "izquierda" | "derecha" | "arriba" | "abajo") => void;
@@ -521,20 +529,45 @@ function construirItemsMenuMas(p: ParametrosItemsMas): ToolbarMasItem[] {
 
   // Alineación y distribución (visible cuando hay multi-seleccion).
   if (p.hayMultiSeleccion) {
+    items.push({ kind: "separador", id: "sep-multiseleccion", label: "Selección múltiple" });
+    items.push({
+      kind: "accion",
+      id: "eliminar-seleccion",
+      label: "Eliminar selección",
+      title: "Eliminar selección · Delete",
+      onClick: p.onEliminarSeleccion,
+      testId: "toolbar-mas-eliminar-seleccion",
+    });
+    items.push({
+      kind: "accion",
+      id: "agregar-como-partes",
+      label: "Agregar como partes",
+      title: "Crea enlaces de agregación desde las cosas seleccionadas hacia la última seleccionada",
+      onClick: p.onConectarSeleccionComoPartes,
+      testId: "toolbar-mas-agregar-como-partes",
+    });
+    items.push({
+      kind: "accion",
+      id: "traer-enlaces",
+      label: "Traer enlaces entre seleccionadas",
+      title: "Traer enlaces existentes entre las cosas seleccionadas",
+      onClick: p.onTraerEnlacesEntreSeleccionadas,
+      testId: "toolbar-mas-traer-enlaces",
+    });
     items.push({ kind: "separador", id: "sep-alinear", label: "Alinear cosas" });
-    items.push({ kind: "accion", id: "alinear-izq", label: "Alinear izquierda", onClick: () => p.onAlinearCosa("izq") });
-    items.push({ kind: "accion", id: "alinear-centro", label: "Alinear centro horizontal", onClick: () => p.onAlinearCosa("centro") });
-    items.push({ kind: "accion", id: "alinear-der", label: "Alinear derecha", onClick: () => p.onAlinearCosa("der") });
-    items.push({ kind: "accion", id: "alinear-sup", label: "Alinear arriba", onClick: () => p.onAlinearCosa("sup") });
-    items.push({ kind: "accion", id: "alinear-medio", label: "Alinear medio vertical", onClick: () => p.onAlinearCosa("medio") });
-    items.push({ kind: "accion", id: "alinear-inf", label: "Alinear abajo", onClick: () => p.onAlinearCosa("inf") });
+    items.push({ kind: "accion", id: "alinear-izq", label: "Alinear izquierda", onClick: () => p.onAlinearCosa("izq"), testId: "toolbar-mas-alinear-izq" });
+    items.push({ kind: "accion", id: "alinear-centro", label: "Alinear centro horizontal", onClick: () => p.onAlinearCosa("centro"), testId: "toolbar-mas-alinear-centro" });
+    items.push({ kind: "accion", id: "alinear-der", label: "Alinear derecha", onClick: () => p.onAlinearCosa("der"), testId: "toolbar-mas-alinear-der" });
+    items.push({ kind: "accion", id: "alinear-sup", label: "Alinear arriba", onClick: () => p.onAlinearCosa("sup"), testId: "toolbar-mas-alinear-sup" });
+    items.push({ kind: "accion", id: "alinear-medio", label: "Alinear medio vertical", onClick: () => p.onAlinearCosa("medio"), testId: "toolbar-mas-alinear-medio" });
+    items.push({ kind: "accion", id: "alinear-inf", label: "Alinear abajo", onClick: () => p.onAlinearCosa("inf"), testId: "toolbar-mas-alinear-inf" });
     items.push({ kind: "separador", id: "sep-distribuir", label: "Distribuir y enlaces" });
-    items.push({ kind: "accion", id: "distribuir-h", label: "Distribuir horizontal", onClick: () => p.onDistribuirCosa("horizontal") });
-    items.push({ kind: "accion", id: "distribuir-v", label: "Distribuir vertical", onClick: () => p.onDistribuirCosa("vertical") });
-    items.push({ kind: "accion", id: "alinear-enl-izq", label: "Alinear enlaces a izquierda", onClick: () => p.onAlinearEnlaces("izquierda") });
-    items.push({ kind: "accion", id: "alinear-enl-der", label: "Alinear enlaces a derecha", onClick: () => p.onAlinearEnlaces("derecha") });
-    items.push({ kind: "accion", id: "alinear-enl-arr", label: "Alinear enlaces arriba", onClick: () => p.onAlinearEnlaces("arriba") });
-    items.push({ kind: "accion", id: "alinear-enl-aba", label: "Alinear enlaces abajo", onClick: () => p.onAlinearEnlaces("abajo") });
+    items.push({ kind: "accion", id: "distribuir-h", label: "Distribuir horizontal", onClick: () => p.onDistribuirCosa("horizontal"), testId: "toolbar-mas-distribuir-h" });
+    items.push({ kind: "accion", id: "distribuir-v", label: "Distribuir vertical", onClick: () => p.onDistribuirCosa("vertical"), testId: "toolbar-mas-distribuir-v" });
+    items.push({ kind: "accion", id: "alinear-enl-izq", label: "Alinear enlaces a izquierda", onClick: () => p.onAlinearEnlaces("izquierda"), testId: "toolbar-mas-alinear-enl-izq" });
+    items.push({ kind: "accion", id: "alinear-enl-der", label: "Alinear enlaces a derecha", onClick: () => p.onAlinearEnlaces("derecha"), testId: "toolbar-mas-alinear-enl-der" });
+    items.push({ kind: "accion", id: "alinear-enl-arr", label: "Alinear enlaces arriba", onClick: () => p.onAlinearEnlaces("arriba"), testId: "toolbar-mas-alinear-enl-arr" });
+    items.push({ kind: "accion", id: "alinear-enl-aba", label: "Alinear enlaces abajo", onClick: () => p.onAlinearEnlaces("abajo"), testId: "toolbar-mas-alinear-enl-aba" });
   }
 
   // ToolbarMapaSistema mantiene sus controles secundarios (Auto-refresh,

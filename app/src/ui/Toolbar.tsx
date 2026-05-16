@@ -6,7 +6,6 @@ import { useOpmStore } from "../store";
 import { ToolbarBase } from "./toolbar/ToolbarBase";
 import { ToolbarCreacion } from "./toolbar/ToolbarCreacion";
 import { ToolbarMapaSistema } from "./toolbar/ToolbarMapaSistema";
-import { ToolbarMultiseleccion } from "./toolbar/ToolbarMultiseleccion";
 import { toolbarStyle as style } from "./toolbar/toolbarStyles";
 
 /**
@@ -14,16 +13,13 @@ import { toolbarStyle as style } from "./toolbar/toolbarStyles";
  * SSOT: [JOYAS §1-3], [V-0c]/[V-63]; contrato T2.1 opcion B + IFML H-2/H-5/H-10/H-12.
  */
 export function Toolbar() {
-  const seleccionados = useOpmStore((s) => s.seleccionados);
   const vistaMapaActiva = useOpmStore((s) => s.vistaMapaActiva);
   const autosalvado = useOpmStore((s) => s.autosalvado);
-  const cantidadSeleccion = seleccionados.length;
 
   return (
     <div data-testid="toolbar-root" style={style.bar}>
       <Suspense fallback={null}>
         <ToolbarBase
-          modelarSlot={cantidadSeleccion >= 2 ? <ToolbarMultiseleccion /> : null}
           conectarSlot={<ToolbarCreacion />}
           validarSlot={vistaMapaActiva ? <ToolbarMapaSistema /> : null}
           statusSlot={(
