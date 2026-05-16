@@ -1,820 +1,530 @@
-// Exploración in-vivo del modelador OPM en navegador real.
-// Uso: node app/scripts/in-vivo-test.mjs [URL]
-// Default URL: http://138.201.53.205:5173/
+// Auditoria in-vivo del modelador OPM en navegador real.
+// Uso: node scripts/in-vivo-test.mjs [URL]
+// Default URL: http://127.0.0.1:5173/
 
 import { chromium } from "@playwright/test";
-import { mkdirSync, readdirSync, writeFileSync } from "node:fs";
+import { mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 
-const URL_OBJETIVO = process.argv[2] ?? "http://138.201.53.205:5173/";
+const URL_OBJETIVO = process.argv[2] ?? "http://127.0.0.1:5173/";
 const RAIZ_REPO = resolve(import.meta.dirname, "..", "..");
 const DIR_SHOTS = resolve(RAIZ_REPO, "app/test-results/in-vivo");
-const RUTA_REPORT = resolve(DIR_SHOTS, "REPORTE-EJECUTIVO.md");
+const RUTA_RESUMEN = resolve(DIR_SHOTS, "_resumen.json");
+const RUTA_REPORT = resolve(RAIZ_REPO, "docs/REPORTE-EJECUTIVO.md");
+const FECHA = new Date().toISOString();
 
+rmSync(DIR_SHOTS, { recursive: true, force: true });
 mkdirSync(DIR_SHOTS, { recursive: true });
 
-const FECHA = new Date().toISOString();
 const findings = [];
+const screenshots = [];
 const consoleMessages = [];
 const pageErrors = [];
 const requestFailures = [];
 
-function record(seccion, criterio, estado, detalle) {
+function record(seccion, criterio, estado, detalle = "") {
   findings.push({ seccion, criterio, estado, detalle });
   const icono = estado === "OK" ? "[OK]" : estado === "FAIL" ? "[X]" : estado === "WARN" ? "[!]" : "[i]";
-  console.log(`${icono} ${seccion} :: ${criterio}${detalle ? " — " + detalle : ""}`);
+  console.log(`${icono} ${seccion} :: ${criterio}${detalle ? " - " + detalle : ""}`);
 }
 
-async function shot(page, nombre) {
+async function screenshot(page, nombre, options = {}) {
   const ruta = resolve(DIR_SHOTS, nombre);
-  await page.screenshot({ path: ruta, fullPage: true });
-  return `app/test-results/in-vivo/${nombre}`;
+  await page.screenshot({ path: ruta, fullPage: options.fullPage ?? true });
+  const relativa = `app/test-results/in-vivo/${nombre}`;
+  screenshots.push(relativa);
+  return relativa;
 }
 
-// Acciones destructivas (Nuevo/Demo/Cargar/Importar/cargarLocal) abren un
-// modal de confirmacion cuando dirty=true. La sonda lo descarta para que el
-// flujo de prueba siga ejerciendo el comportamiento subyacente (importar,
-// cargar, etc.); el dialogo en si esta cubierto por el smoke checked-in.
-async function descartarSiHayDialogo(page) {
-  const dialog = page.getByRole("dialog");
+async function waitVisible(locator, timeout = 900) {
   try {
-    await dialog.waitFor({ state: "visible", timeout: 300 });
-    await dialog.getByRole("button", { name: "Descartar" }).click();
-    await page.waitForTimeout(150);
+    await locator.first().waitFor({ state: "visible", timeout });
+    return true;
   } catch {
-    /* no hay dialogo abierto, nada que hacer */
+    return false;
   }
 }
 
-const browser = await chromium.launch({ headless: true });
-const context = await browser.newContext({
-  viewport: { width: 1440, height: 900 },
-  ignoreHTTPSErrors: true,
-});
-const page = await context.newPage();
-
-page.on("console", (msg) => {
-  if (msg.type() === "error" || msg.type() === "warning") {
-    consoleMessages.push({ type: msg.type(), text: msg.text().slice(0, 600) });
-  }
-});
-page.on("pageerror", (err) => pageErrors.push(err.message));
-page.on("requestfailed", (req) => {
-  if (req.failure()) requestFailures.push({ url: req.url(), reason: req.failure()?.errorText });
-});
-
-const inicio = Date.now();
-try {
-  // ============================================================
-  // 1. CARGA INICIAL
-  // ============================================================
-  await page.goto(URL_OBJETIVO, { waitUntil: "networkidle", timeout: 20000 });
-  const tCarga = Date.now() - inicio;
-  record("1. Carga inicial", "Carga sin error fatal", "OK", `${tCarga} ms hasta networkidle`);
-
-  const titulo = await page.title();
-  record("1. Carga inicial", "Título de la página", "INFO", titulo || "(vacío)");
-
-  await shot(page, "01-carga-inicial.png");
-
-  const layoutVisible = await page.locator(".joint-paper").isVisible();
-  record("1. Carga inicial", "Canvas JointJS visible", layoutVisible ? "OK" : "FAIL");
-
-  const arbolVisible = await page.getByRole("tree", { name: "Árbol OPD" }).isVisible();
-  record("1. Carga inicial", "Árbol OPD visible", arbolVisible ? "OK" : "FAIL");
-
-  const inspectorVisible = await page.locator('aside:has-text("Sin selección")').isVisible();
-  record("1. Carga inicial", "Inspector con estado vacío", inspectorVisible ? "OK" : "FAIL");
-
-  const oplVisible = await page.locator("text=OPL").first().isVisible();
-  record("1. Carga inicial", "Panel OPL visible", oplVisible ? "OK" : "FAIL");
-
-  // ============================================================
-  // 2. TOOLBAR Y BOTONES
-  // ============================================================
-  const botones = ["Objeto", "Proceso", "Deshacer", "Rehacer", "Demo", "Guardar", "Cargar"];
-  // .first() porque "Cargar" colisiona con el botón homónimo de PersistenciaJson
-  // (que está deshabilitado sin modelo seleccionado pero igual matchea el role).
-  // El Toolbar siempre se renderiza primero en el DOM.
-  for (const nombre of botones) {
-    const ok = await page.getByRole("button", { name: nombre }).first().isVisible();
-    record("2. Toolbar", `Botón "${nombre}" visible`, ok ? "OK" : "FAIL");
-  }
-  const selectorEnlace = await page.getByLabel("Tipo de enlace").isVisible();
-  record("2. Toolbar", "Selector de tipo de enlace visible", selectorEnlace ? "OK" : "FAIL");
-  const selectorEnlaceDeshabilitado = await page.getByLabel("Tipo de enlace").isDisabled();
-  record("2. Toolbar", "Selector de enlace inactivo sin origen", selectorEnlaceDeshabilitado ? "OK" : "FAIL");
-
-  // Botones Deshacer/Rehacer iniciales deshabilitados
-  const deshacerInicial = await page.getByRole("button", { name: "Deshacer" }).isDisabled();
-  const rehacerInicial = await page.getByRole("button", { name: "Rehacer" }).isDisabled();
-  record("2. Toolbar", "Deshacer deshabilitado al inicio", deshacerInicial ? "OK" : "FAIL");
-  record("2. Toolbar", "Rehacer deshabilitado al inicio", rehacerInicial ? "OK" : "FAIL");
-
-  // ============================================================
-  // 3. CARGAR DEMO Y VERIFICAR
-  // ============================================================
-  await page.getByRole("button", { name: "Demo" }).click();
-  await page.waitForTimeout(300);
-  const elementosDemo = await page.locator(".joint-element").count();
-  const enlacesDemo = await page.locator(".joint-link").count();
-  record("3. Demo", `Demo carga 3 cosas (vistas: ${elementosDemo})`, elementosDemo === 3 ? "OK" : "WARN");
-  record("3. Demo", `Demo carga 2 enlaces (vistas: ${enlacesDemo})`, enlacesDemo === 2 ? "OK" : "WARN");
-  await page.locator(".joint-paper").screenshot({ path: resolve(DIR_SHOTS, "03-demo-canvas.png") });
-  await shot(page, "03-demo-fullpage.png");
-  const oplDriver = await page.getByText("Driver Rescuing afecta OnStar System.").isVisible();
-  record("3. Demo", "OPL contiene 'Driver Rescuing afecta OnStar System.'", oplDriver ? "OK" : "FAIL");
-
-  // ============================================================
-  // 4. INSPECCIÓN VISUAL DE COSAS (colores, dimensiones)
-  // ============================================================
-  // Canon de la app: fill=#fdffff (interior cuasi-blanco) + stroke=color del tipo (objeto verde, proceso azul)
-  const cosasInfo = await page.locator(".joint-element").evaluateAll((els) => {
-    return els.map((el) => {
-      const rect = el.getBoundingClientRect();
-      const interno = el.querySelector("rect:not([fill='transparent']), ellipse");
-      return {
-        tag: interno?.tagName,
-        fill: (interno?.getAttribute("fill") ?? "").toLowerCase(),
-        stroke: (interno?.getAttribute("stroke") ?? "").toLowerCase(),
-        strokeWidth: interno?.getAttribute("stroke-width"),
-        width: Math.round(rect.width),
-        height: Math.round(rect.height),
-      };
-    });
-  });
-  const objetos = cosasInfo.filter((c) => c.tag === "rect");
-  const procesos = cosasInfo.filter((c) => c.tag === "ellipse");
-  record(
-    "4. Visual SSOT",
-    `Cosas detectadas: ${objetos.length} objeto(s) [rect], ${procesos.length} proceso(s) [ellipse]`,
-    "INFO",
-    cosasInfo.map((c) => `${c.tag}@${c.width}x${c.height} fill=${c.fill} stroke=${c.stroke}`).join(" | "),
-  );
-  const fillCanonOk = cosasInfo.every((c) => c.fill === "#fdffff");
-  const objetosVerdes = objetos.every((c) => c.stroke === "#70e483");
-  const procesosAzules = procesos.every((c) => c.stroke === "#3bc3ff");
-  const dimsCanon = cosasInfo.every((c) => c.width === 135 && c.height === 60);
-  record("4. Visual SSOT", "Fill canónico #fdffff en todas las cosas", fillCanonOk ? "OK" : "FAIL");
-  record("4. Visual SSOT", `Objetos con stroke #70E483 (n=${objetos.length})`, objetosVerdes ? "OK" : "FAIL");
-  record("4. Visual SSOT", `Procesos con stroke #3BC3FF (n=${procesos.length})`, procesos.length > 0 && procesosAzules ? "OK" : procesos.length === 0 ? "WARN" : "FAIL", procesos.length === 0 ? "no había procesos en pantalla" : undefined);
-  record("4. Visual SSOT", "Dimensiones canónicas 135x60 en todas las cosas", dimsCanon ? "OK" : "FAIL");
-
-  // ============================================================
-  // 5. UNDO/REDO — el canon es: cargarDemo limpia el historial, así que probamos sobre operaciones manuales.
-  // ============================================================
-  // Tras cargar Demo, undo no debe reducir (historial reseteado por diseño).
-  await page.keyboard.press("Control+Z");
-  await page.waitForTimeout(150);
-  const elementosTrasUndoDemo = await page.locator(".joint-element").count();
-  record(
-    "5. Undo/Redo",
-    `Tras Demo, Ctrl+Z mantiene elementos (${elementosTrasUndoDemo}=3, historial reseteado por diseño)`,
-    elementosTrasUndoDemo === 3 ? "OK" : "WARN",
-  );
-
-  // Ahora creamos manualmente y probamos undo/redo real
-  await page.getByRole("button", { name: "Objeto", exact: true }).click();
-  await page.waitForTimeout(150);
-  const elementosCon4 = await page.locator(".joint-element").count();
-  await page.keyboard.press("Control+Z");
-  await page.waitForTimeout(150);
-  const elementosTrasUndo = await page.locator(".joint-element").count();
-  record("5. Undo/Redo", `Tras crear cosa manual, Ctrl+Z reduce (${elementosCon4}→${elementosTrasUndo})`, elementosTrasUndo < elementosCon4 ? "OK" : "FAIL");
-  await page.keyboard.press("Control+Y");
-  await page.waitForTimeout(150);
-  const elementosTrasRedo = await page.locator(".joint-element").count();
-  record("5. Undo/Redo", `Ctrl+Y restaura (${elementosTrasUndo}→${elementosTrasRedo})`, elementosTrasRedo > elementosTrasUndo ? "OK" : "FAIL");
-  await shot(page, "05-undo-redo.png");
-
-  // ============================================================
-  // 6. SELECCIÓN DE ENTIDAD Y INSPECTOR
-  // ============================================================
-  await page.locator(".joint-element").first().click();
-  await page.waitForTimeout(150);
-  const inspectorObjeto = await page.locator('aside:has-text("Nombre")').isVisible().catch(() => false);
-  record("6. Inspector entidad", "Inspector muestra campo Nombre tras seleccionar", inspectorObjeto ? "OK" : "FAIL");
-  const camposEsencia = await page.getByText("Esencia").isVisible();
-  const camposAfiliacion = await page.getByText("Afiliación").isVisible();
-  record("6. Inspector entidad", "Inspector muestra Esencia/Afiliación", (camposEsencia && camposAfiliacion) ? "OK" : "FAIL");
-  await shot(page, "06-inspector-entidad.png");
-
-  // Cambiar nombre
-  const inputNombre = page.locator('aside input').first();
-  await inputNombre.fill("Conductor Probado");
-  await page.waitForTimeout(150);
-  const oplActualizado = await page.getByText(/Conductor Probado/).count();
-  record("6. Inspector entidad", "Cambio de nombre se refleja en OPL/canvas", oplActualizado > 0 ? "OK" : "WARN");
-  await shot(page, "06b-rename.png");
-
-  // Cambiar esencia
-  await page.getByRole("button", { name: "Física" }).first().click();
-  await page.waitForTimeout(150);
-  await shot(page, "06c-esencia-fisica.png");
-  // Cambiar afiliación
-  await page.getByRole("button", { name: "Ambiental" }).first().click();
-  await page.waitForTimeout(150);
-  const cosaAmbiental = await page.locator(".joint-element").first().evaluate((el) => {
-    const f = el.querySelector("rect, ellipse");
-    return { strokeDasharray: f?.getAttribute("stroke-dasharray") ?? null };
-  });
-  record("6. Inspector entidad", `Afiliación ambiental aplica stroke-dasharray (${cosaAmbiental.strokeDasharray})`, cosaAmbiental.strokeDasharray ? "OK" : "WARN");
-  await shot(page, "06d-afiliacion-ambiental.png");
-
-  // ============================================================
-  // 7. CREAR ENLACE NUEVO (CONSUMO o INVOCACIÓN)
-  // ============================================================
-  // Primero creamos modelo limpio
-  await page.evaluate(() => localStorage.clear());
-  await page.reload({ waitUntil: "networkidle" });
-  await page.getByRole("button", { name: "Objeto", exact: true }).click();
-  await page.getByRole("button", { name: "Proceso", exact: true }).click();
-  await page.waitForTimeout(150);
-  const cosasNuevas = await page.locator(".joint-element").count();
-  record("7. Crear enlace", `Crear Objeto + Proceso vacíos (vistas: ${cosasNuevas})`, cosasNuevas === 2 ? "OK" : "WARN");
-
-  // UX correcta: 1) seleccionar entidad origen, 2) elegir tipo, 3) clic en destino
-  const cosas = page.locator(".joint-element");
-  // Primero clicamos el objeto (que es el rect, en posición de objeto)
-  const objetoEl = page.locator(".joint-element").filter({ has: page.locator("rect") }).first();
-  await objetoEl.click();
-  await page.waitForTimeout(120);
-  const selectorHabilitadoConOrigen = !(await page.getByLabel("Tipo de enlace").isDisabled());
-  record("7. Crear enlace", "Selector de enlace activo tras seleccionar origen", selectorHabilitadoConOrigen ? "OK" : "FAIL");
-  await page.getByLabel("Tipo de enlace").selectOption("consumo");
-  await page.waitForTimeout(120);
-  const mensajeDestino = await page.getByText(/destino/i).first().isVisible().catch(() => false);
-  record("7. Crear enlace", "Tras elegir tipo aparece mensaje 'Selecciona la entidad destino'", mensajeDestino ? "OK" : "WARN");
-  // Ahora clic en proceso (ellipse)
-  const procesoEl = page.locator(".joint-element").filter({ has: page.locator("ellipse") }).first();
-  await procesoEl.click();
-  await page.waitForTimeout(250);
-  const enlacesNuevo = await page.locator(".joint-link").count();
-  record("7. Crear enlace", `Enlace consumo creado (vistas: ${enlacesNuevo})`, enlacesNuevo >= 1 ? "OK" : "FAIL");
-  await shot(page, "07-enlace-consumo.png");
-
-  // Verificar OPL del consumo
-  const oplConsumo = await page.locator("body").textContent();
-  const oplTieneConsumo = /consume|consumo/i.test(oplConsumo ?? "");
-  record("7. Crear enlace", "OPL contiene texto de consumo", oplTieneConsumo ? "OK" : "WARN");
-
-  // ============================================================
-  // 8. CREAR ENLACE INVÁLIDO: objeto→objeto con consumo (consumo exige objeto→proceso)
-  // ============================================================
-  await page.getByRole("button", { name: "Objeto", exact: true }).click();  // 2do objeto
-  await page.waitForTimeout(150);
-  // Seleccionar primer objeto, intentar consumo a segundo objeto
-  const objetos2 = page.locator(".joint-element").filter({ has: page.locator("rect") });
-  await objetos2.first().click();
-  await page.waitForTimeout(100);
-  await page.getByLabel("Tipo de enlace").selectOption("consumo");
-  await page.waitForTimeout(80);
-  await objetos2.nth(1).click();
-  await page.waitForTimeout(200);
-  const enlacesTrasInvalido = await page.locator(".joint-link").count();
-  const mensajeFirma = await page.locator("text=/requiere|firma|consumo|destino/i").first().textContent().catch(() => "");
-  const firmaBloqueada = enlacesTrasInvalido === enlacesNuevo;
-  record("8. Validación firma", `Firma ilegal no crea enlace (${enlacesNuevo}→${enlacesTrasInvalido})`, firmaBloqueada ? "OK" : "FAIL", mensajeFirma ?? "");
-  await shot(page, "08-firma-ilegal.png");
-
-  // ============================================================
-  // 9. PERSISTENCIA JSON: EXPORT / IMPORT
-  // ============================================================
-  // exact:true para no colisionar con "Exportar HTML" del PanelOpl.
-  await page.getByRole("button", { name: "Exportar", exact: true }).click();
-  await page.waitForTimeout(150);
-  const jsonExport = await page.getByTestId("textarea-json").inputValue();
-  let parsed;
+async function locatorCount(locator) {
   try {
-    parsed = JSON.parse(jsonExport);
-  } catch (e) {
-    parsed = null;
+    return await locator.count();
+  } catch {
+    return 0;
   }
-  const exportValido = parsed?.formato === "deep-opm-pro.modelo.v0";
-  record("9. JSON", "Export produce JSON válido con formato canónico", exportValido ? "OK" : "FAIL");
-  await shot(page, "09-export-json.png");
+}
 
-  // Probar import corrupto
-  await page.getByTestId("textarea-json").fill('{"formato":"deep-opm-pro.modelo.v0","modelo":{"id":"x","nombre":"x","opdRaizId":"opd-1","nextSeq":1,"opds":{"opd-1":null},"entidades":{},"enlaces":{}}}');
-  await page.getByRole("button", { name: "Importar" }).click();
-  await descartarSiHayDialogo(page);
-  await page.waitForTimeout(200);
-  const mensajeImportError = await page.locator("text=/inválido|OPD|Documento/i").count();
-  record("9. JSON", "Import de JSON corrupto muestra mensaje de error", mensajeImportError > 0 ? "OK" : "WARN");
-  await shot(page, "09b-import-corrupto.png");
-
-  // ============================================================
-  // 10. PERSISTENCIA LOCAL (Guardar como -> incremental -> Cargar)
-  // L2 ronda 5: el primer "Guardar" abre diálogo "Guardar como"; los
-  // siguientes guardan incremental sin abrir diálogo. "Cargar" abre el
-  // diálogo "Cargar modelo" con la lista del workspace local.
-  // ============================================================
-  await page.evaluate(() => localStorage.clear());
-  await page.reload({ waitUntil: "networkidle" });
-  await page.getByRole("button", { name: "Objeto", exact: true }).click();
-  await page.waitForTimeout(150);
-
-  // Primer Guardar => abre Guardar como
-  await page.getByRole("button", { name: "Guardar" }).first().click();
-  const dialogoGuardarComo = page.getByRole("dialog", { name: "Guardar como" });
-  const guardarComoVisible = await dialogoGuardarComo.isVisible().catch(() => false);
-  record("10. Persistencia local", "Primer Guardar abre diálogo 'Guardar como'", guardarComoVisible ? "OK" : "FAIL");
-  if (guardarComoVisible) {
-    await dialogoGuardarComo.getByLabel("Nombre del modelo").fill("Sonda in-vivo");
-    await dialogoGuardarComo.getByRole("button", { name: "Guardar" }).click();
-    await page.waitForTimeout(300);
+async function attr(locator, name) {
+  try {
+    return await locator.first().getAttribute(name);
+  } catch {
+    return null;
   }
-  const dialogoCerrado = (await dialogoGuardarComo.count()) === 0;
-  const tituloPostGuardarComo = await page.locator("span").filter({ hasText: /\(No guardado\)/ }).count();
-  const nombreModeloPersistido = await page.evaluate(() => {
-    const raw = localStorage.getItem("deep-opm-pro:persistencia:index");
-    if (!raw) return { items: 0, nombres: [] };
-    try {
-      const parsed = JSON.parse(raw);
-      const lista = Array.isArray(parsed?.modelos) ? parsed.modelos : Object.values(parsed ?? {});
-      return { items: lista.length, nombres: lista.map((m) => m?.nombre ?? "?") };
-    } catch (e) { return { items: -1, error: String(e) }; }
+}
+
+function recordBool(seccion, criterio, ok, detalle = "", estadoFail = "FAIL") {
+  record(seccion, criterio, ok ? "OK" : estadoFail, detalle);
+}
+
+async function recordVisible(seccion, criterio, locator, timeout = 900, estadoFail = "FAIL") {
+  const visible = await waitVisible(locator, timeout);
+  recordBool(seccion, criterio, visible, "", estadoFail);
+  return visible;
+}
+
+function escapeRegExp(texto) {
+  return texto.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function elementoPorTexto(page, texto) {
+  const flexible = new RegExp(`^\\s*${texto.trim().split(/\s+/).map(escapeRegExp).join("\\s*")}\\s*$`);
+  return page.locator(".joint-element").filter({
+    has: page.locator("text").filter({ hasText: flexible }),
   });
-  record("10. Persistencia local", "Tras Guardar como, diálogo cierra y título pierde '(No guardado)'", dialogoCerrado && tituloPostGuardarComo === 0 ? "OK" : "FAIL");
-  record("10. Persistencia local", `localStorage workspace tiene modelo persistido (n=${nombreModeloPersistido.items})`, "INFO", JSON.stringify(nombreModeloPersistido));
-  await shot(page, "10-persistencia-tras-guardar-como.png");
+}
 
-  // Mutar => dirty=true => título recupera "(No guardado)"
-  await page.getByRole("button", { name: "Proceso", exact: true }).click();
-  await page.waitForTimeout(150);
-  const tituloDirty = await page.locator("span").filter({ hasText: /\(No guardado\)/ }).count();
-  record("10. Persistencia local", "Tras mutar, título reaparece como '(No guardado)'", tituloDirty > 0 ? "OK" : "FAIL");
+async function cerrarPantallaInicioSiVisible(page) {
+  const pantalla = page.getByTestId("pantalla-inicio");
+  await pantalla.waitFor({ state: "visible", timeout: 900 }).catch(() => undefined);
+  if ((await locatorCount(pantalla)) === 0) return false;
+  if (!(await waitVisible(pantalla, 250))) return false;
+  await pantalla.getByRole("button", { name: /Empezar vacío|Nuevo/ }).click();
+  await pantalla.waitFor({ state: "detached", timeout: 2500 }).catch(() => undefined);
+  return true;
+}
 
-  // Segundo Guardar => incremental, sin diálogo
-  await page.getByRole("button", { name: "Guardar" }).first().click();
-  await page.waitForTimeout(200);
-  const dialogoIncremental = await page.getByRole("dialog", { name: "Guardar como" }).count();
-  const tituloPostIncremental = await page.locator("span").filter({ hasText: /\(No guardado\)/ }).count();
-  record("10. Persistencia local", "Segundo Guardar es incremental (sin diálogo)", dialogoIncremental === 0 ? "OK" : "FAIL");
-  record("10. Persistencia local", "Tras incremental, título limpio (sin '(No guardado)')", tituloPostIncremental === 0 ? "OK" : "FAIL");
+async function resetWorkbench(page) {
+  await page.evaluate(() => {
+    localStorage.clear();
+    sessionStorage.clear();
+  }).catch(() => undefined);
+  await page.goto(URL_OBJETIVO, { waitUntil: "networkidle", timeout: 20000 });
+  await cerrarPantallaInicioSiVisible(page);
+}
 
-  // Cargar => abre diálogo "Cargar modelo"
-  await page.getByRole("button", { name: "Cargar", exact: true }).first().click();
-  const dialogoCargar = page.getByRole("dialog", { name: "Cargar modelo" });
-  const dialogoCargarVisible = await dialogoCargar.isVisible().catch(() => false);
-  record("10. Persistencia local", "Cargar abre diálogo 'Cargar modelo'", dialogoCargarVisible ? "OK" : "FAIL");
-  if (dialogoCargarVisible) {
-    // Post-L4 ronda 7: PanelCarpetas renderiza modelos como <button> con el
-    // nombre como accessible name (via title + span tile-name), no como option.
-    const opcionWorkspace = await dialogoCargar.getByRole("button", { name: /Sonda in-vivo/ }).count();
-    record("10. Persistencia local", "Diálogo 'Cargar modelo' lista el modelo guardado", opcionWorkspace >= 1 ? "OK" : "FAIL");
-    // Cerrar el diálogo sin cargar para no afectar el siguiente bloque
-    await page.keyboard.press("Escape");
-    await page.waitForTimeout(100);
+async function crearCosa(page, tipo, nombre) {
+  await page.getByRole("button", { name: tipo, exact: true }).click();
+  const modal = page.getByTestId("modal-nombre-cosa");
+  if (await waitVisible(modal, 800)) {
+    await modal.getByLabel("Nombre").fill(nombre);
+    await modal.getByRole("button", { name: "OK" }).click();
+    await modal.waitFor({ state: "detached", timeout: 2500 }).catch(() => undefined);
+  } else {
+    const inputNombre = page.getByLabel("Nombre").first();
+    if (await waitVisible(inputNombre, 500)) await inputNombre.fill(nombre);
   }
-  await shot(page, "10b-persistencia-dialogo-cargar.png");
+  await page.waitForTimeout(180);
+  return elementoPorTexto(page, nombre);
+}
 
-  // ============================================================
-  // 11. ÁRBOL OPD CON IMPORT MULTI-OPD
-  // ============================================================
-  const dosOpds = {
+async function abrirMenuPrincipal(page) {
+  await page.getByLabel("Menú principal").click();
+  const menu = page.getByRole("menu", { name: "Menú principal" });
+  await menu.waitFor({ state: "visible", timeout: 1500 });
+  return menu;
+}
+
+async function cargarEjemplo(page, nombre) {
+  const menu = await abrirMenuPrincipal(page);
+  await menu.getByRole("menuitem", { name: "Cargar otro..." }).click();
+  const dialogo = page.getByRole("dialog", { name: "Cargar modelo" });
+  await dialogo.waitFor({ state: "visible", timeout: 2500 });
+  await dialogo.getByLabel("Cargar modelo de ejemplo").selectOption(nombre);
+  await dialogo.waitFor({ state: "detached", timeout: 2500 }).catch(() => undefined);
+  await page.waitForTimeout(250);
+}
+
+async function restaurarPanelOplSiMinimizado(page) {
+  const restaurar = page.getByTestId("panel-opl-restaurar");
+  if ((await locatorCount(restaurar)) > 0 && await waitVisible(restaurar, 250)) {
+    await restaurar.click();
+    await page.getByTestId("panel-opl").waitFor({ state: "visible", timeout: 1500 }).catch(() => undefined);
+  }
+}
+
+async function abrirDialogoJson(page) {
+  const dialogo = page.getByTestId("dialogo-importar-exportar-json");
+  if (await waitVisible(dialogo, 250)) return dialogo;
+  const menu = await abrirMenuPrincipal(page);
+  await menu.getByRole("menuitem", { name: "Importar/Exportar JSON..." }).click();
+  await dialogo.waitFor({ state: "visible", timeout: 2500 });
+  return dialogo;
+}
+
+async function exportarJson(page) {
+  const dialogo = await abrirDialogoJson(page);
+  await dialogo.getByRole("button", { name: "Exportar", exact: true }).click();
+  const json = await dialogo.locator('textarea[spellcheck="false"]').first().inputValue();
+  await dialogo.getByRole("button", { name: "Cerrar", exact: true }).click();
+  await dialogo.waitFor({ state: "detached", timeout: 2500 }).catch(() => undefined);
+  return json;
+}
+
+async function conectarConsumo(page, origenNombre, destinoNombre) {
+  await elementoPorTexto(page, origenNombre).click();
+  await page.getByTestId("abrir-menu-tipo-enlace").click();
+  const menu = page.getByTestId("menu-tipo-enlace");
+  await menu.waitFor({ state: "visible", timeout: 1500 });
+  await screenshot(page, "05-menu-tipo-enlace.png");
+  await menu.getByTestId("menu-tipo-enlace-consumo").click();
+
+  const indicador = page.getByTestId("indicador-modo-canonico");
+  const modoConectar = await attr(indicador, "data-modo");
+  const heading = await page.getByTestId("viewpoint-heading").textContent().catch(() => "");
+  recordBool("5. Enlace y submodo", "Sticky badge entra en modo conectar", modoConectar === "conectar", String(modoConectar));
+  recordBool("5. Enlace y submodo", "ViewPoint anuncia 'conectando'", heading === "Workbench OPM - conectando", heading ?? "");
+
+  await elementoPorTexto(page, destinoNombre).click();
+  await page.waitForTimeout(250);
+}
+
+function modeloMultiOpd() {
+  return {
     formato: "deep-opm-pro.modelo.v0",
     modelo: {
-      id: "m",
-      nombre: "Multi-OPD test",
+      id: "modelo-in-vivo-multi-opd",
+      nombre: "Modelo multi OPD in vivo",
       opdRaizId: "opd-1",
-      nextSeq: 200,
-      opds: {
-        "opd-1": { id: "opd-1", nombre: "SD", padreId: null, apariencias: { "a-1": { id: "a-1", entidadId: "ent-1", opdId: "opd-1", x: 100, y: 100, width: 135, height: 60 } }, enlaces: {} },
-        "opd-2": { id: "opd-2", nombre: "SD1", padreId: "opd-1", apariencias: { "a-2": { id: "a-2", entidadId: "ent-2", opdId: "opd-2", x: 100, y: 100, width: 135, height: 60 } }, enlaces: {} },
-      },
+      nextSeq: 10,
       entidades: {
-        "ent-1": { id: "ent-1", tipo: "objeto", nombre: "Objeto Padre", esencia: "informacional", afiliacion: "sistemica" },
-        "ent-2": { id: "ent-2", tipo: "proceso", nombre: "Proceso Hijo", esencia: "informacional", afiliacion: "sistemica" },
+        "o-entrada": { id: "o-entrada", tipo: "objeto", nombre: "Entrada raiz", esencia: "informacional", afiliacion: "sistemica" },
+        "p-hijo": { id: "p-hijo", tipo: "proceso", nombre: "Proceso hijo", esencia: "informacional", afiliacion: "sistemica" },
       },
+      estados: {},
       enlaces: {},
+      abanicos: {},
+      opds: {
+        "opd-1": {
+          id: "opd-1",
+          nombre: "SD",
+          padreId: null,
+          apariencias: {
+            "a-entrada": { id: "a-entrada", entidadId: "o-entrada", opdId: "opd-1", x: 80, y: 90, width: 135, height: 60 },
+          },
+          enlaces: {},
+        },
+        "opd-2": {
+          id: "opd-2",
+          nombre: "SD1",
+          padreId: "opd-1",
+          apariencias: {
+            "a-hijo": { id: "a-hijo", entidadId: "p-hijo", opdId: "opd-2", x: 220, y: 130, width: 135, height: 60 },
+          },
+          enlaces: {},
+        },
+      },
     },
   };
-  await page.getByTestId("textarea-json").fill(JSON.stringify(dosOpds));
-  await page.getByRole("button", { name: "Importar" }).click();
-  await page.waitForTimeout(200);
-  const treeitems = await page.locator('[role="treeitem"]').count();
-  record("11. Árbol OPD", `Árbol muestra ${treeitems} nodos (esperados ≥2)`, treeitems >= 2 ? "OK" : "FAIL");
-  await shot(page, "11-arbol-opd.png");
-
-  await page.locator('[role="treeitem"][data-opd-id="opd-2"]').click();
-  await page.waitForTimeout(150);
-  const procesoHijoVisible = await page.getByText("Proceso Hijo").first().isVisible();
-  record("11. Árbol OPD", "Click en hijo cambia OPD activo (visible Proceso Hijo)", procesoHijoVisible ? "OK" : "FAIL");
-  await shot(page, "11b-opd-hijo.png");
-
-  await page.evaluate(() => localStorage.clear());
-  await page.reload({ waitUntil: "networkidle" });
-  await page.getByRole("button", { name: "Proceso", exact: true }).click();
-  await page.waitForTimeout(150);
-  await page.getByRole("button", { name: "Descomponer" }).click();
-  await page.waitForTimeout(200);
-  // Defaults canónicos (SSOT Glos 3.76): "Proceso" sin artículo, así que el
-  // nombre del OPD derivado es "SD1: Proceso descompuesto".
-  const nodoDescompuesto = await page.locator('[role="treeitem"]').filter({ hasText: "SD1: Proceso descompuesto" }).count();
-  record("11. Árbol OPD", "Descomponer crea nodo derivado SD1", nodoDescompuesto === 1 ? "OK" : "FAIL");
-  await page.getByRole("button", { name: "Quitar descomposición" }).click();
-  await page.waitForTimeout(200);
-  const nodosTrasQuitar = await page.locator('[role="treeitem"]').count();
-  const oplDescompuesto = await page.getByText("Proceso se descompone en SD1.").count();
-  // Post-ronda 6 L5: el árbol mantiene un nodo permanente "🗺 Mapa del sistema"
-  // (HU-21.002), por lo que tras quitar descomposición quedan exactamente 2
-  // treeitems (raíz SD + entrada Mapa), no 1.
-  record("11. Árbol OPD", "Quitar descomposición elimina OPD hijo", nodosTrasQuitar === 2 ? "OK" : "FAIL");
-  record("11. Árbol OPD", "Quitar descomposición remueve OPL de refinamiento", oplDescompuesto === 0 ? "OK" : "FAIL");
-  await shot(page, "11c-quitar-descomposicion.png");
-
-  // ============================================================
-  // 12. AGREGACIÓN: triángulo, no editable
-  // ============================================================
-  await page.evaluate(() => localStorage.clear());
-  await page.reload({ waitUntil: "networkidle" });
-  await page.getByRole("button", { name: "Objeto", exact: true }).click();
-  await page.getByRole("button", { name: "Objeto", exact: true }).click();
-  await page.waitForTimeout(150);
-  const objetosAgg = page.locator(".joint-element").filter({ has: page.locator("rect") });
-  await objetosAgg.first().click();
-  await page.waitForTimeout(100);
-  await page.getByLabel("Tipo de enlace").selectOption("agregacion");
-  await page.waitForTimeout(80);
-  await objetosAgg.nth(1).click();
-  await page.waitForTimeout(200);
-  const triangulos = await page.locator(".joint-element polygon").count();
-  record("12. Agregación", `Triángulo estructural presente (polygons: ${triangulos})`, triangulos >= 1 ? "OK" : "FAIL");
-  // Click en triángulo y verificar que NO aparece tool de vértices
-  await page.locator(".joint-element polygon").first().click();
-  await page.waitForTimeout(150);
-  const verticeTool = await page.locator('[data-tool-name="vertices"]').count();
-  record("12. Agregación", "Triángulo no expone tool de vértices", verticeTool === 0 ? "OK" : "WARN");
-  await shot(page, "12-agregacion.png");
-
-  // ============================================================
-  // 13. DRAG ENTIDAD Y PERSISTENCIA VISUAL
-  // ============================================================
-  await page.evaluate(() => localStorage.clear());
-  await page.reload({ waitUntil: "networkidle" });
-  await page.getByRole("button", { name: "Objeto", exact: true }).click();
-  await page.waitForTimeout(150);
-  const cosa = page.locator(".joint-element").first();
-  const box = await cosa.boundingBox();
-  if (box) {
-    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
-    await page.mouse.down();
-    await page.mouse.move(box.x + 200, box.y + 150, { steps: 8 });
-    await page.mouse.up();
-    await page.waitForTimeout(150);
-    const box2 = await page.locator(".joint-element").first().boundingBox();
-    const movido = box2 && (Math.abs(box2.x - box.x) > 50 || Math.abs(box2.y - box.y) > 30);
-    record("13. Drag", `Entidad arrastrada (Δx=${box2 ? Math.round(box2.x - box.x) : "?"}, Δy=${box2 ? Math.round(box2.y - box.y) : "?"})`, movido ? "OK" : "FAIL");
-  } else {
-    record("13. Drag", "No se pudo obtener bounding box de entidad", "FAIL");
-  }
-  await shot(page, "13-drag-entidad.png");
-
-  // ============================================================
-  // 14. RESPONSIVE: viewport pequeño
-  // ============================================================
-  await page.setViewportSize({ width: 1024, height: 700 });
-  await page.waitForTimeout(150);
-  await shot(page, "14-viewport-1024x700.png");
-  const toolbarOverflow1024 = await page.evaluate(() => {
-    const bar = document.querySelector('main > div, main > section');
-    if (!bar) return null;
-    return {
-      scrollWidth: document.body.scrollWidth,
-      clientWidth: document.body.clientWidth,
-    };
-  });
-  record("14. Responsive 1024px", `body scrollWidth/clientWidth = ${toolbarOverflow1024?.scrollWidth}/${toolbarOverflow1024?.clientWidth}`, "INFO");
-
-  await page.setViewportSize({ width: 1920, height: 1080 });
-  await shot(page, "14b-viewport-1920x1080.png");
-  await page.setViewportSize({ width: 1440, height: 900 });
-
-  // ============================================================
-  // 15. ELIMINAR ENTIDAD CON CASCADA
-  // ============================================================
-  await page.evaluate(() => localStorage.clear());
-  await page.reload({ waitUntil: "networkidle" });
-  await page.getByRole("button", { name: "Demo" }).click();
-  await page.waitForTimeout(200);
-  const elemAntes = await page.locator(".joint-element").count();
-  const linksAntes = await page.locator(".joint-link").count();
-  await page.locator(".joint-element").first().click();
-  await page.waitForTimeout(120);
-  await page.getByRole("button", { name: "Eliminar entidad" }).click();
-  await page.waitForTimeout(150);
-  const elemDespues = await page.locator(".joint-element").count();
-  const linksDespues = await page.locator(".joint-link").count();
-  record("15. Eliminar", `Entidades ${elemAntes}→${elemDespues}`, elemDespues < elemAntes ? "OK" : "FAIL");
-  record("15. Eliminar", `Enlaces (cascada) ${linksAntes}→${linksDespues}`, linksDespues < linksAntes ? "OK" : "WARN");
-  await shot(page, "15-cascada-borrado.png");
-
-  // ============================================================
-  // 16. ABANICO (fan O/XOR): overlay sin rectangulo + enlaces sin Manhattan
-  // ============================================================
-  await page.evaluate(() => localStorage.clear());
-  await page.reload({ waitUntil: "networkidle" });
-
-  // Crear 2 objetos + 1 proceso. Con posiciones por defecto el fan se forma
-  // pero el arco queda degenerado (start=end) porque el angulo desde el dock
-  // a ambos objetos coincide (ven layout.ts: columnas a y=90). Re-posiciono
-  // con drags positivos para garantizar apertura angular >0 sin invadir el
-  // tree-pane (canvas comienza ~x=300 en pantalla; CANVAS_BASE=1800x1200).
-  await page.getByRole("button", { name: "Objeto", exact: true }).click();
-  await page.waitForTimeout(80);
-  await page.getByRole("button", { name: "Objeto", exact: true }).click();
-  await page.waitForTimeout(80);
-  await page.getByRole("button", { name: "Proceso", exact: true }).click();
-  await page.waitForTimeout(150);
-
-  const objetosFan = page.locator(".joint-element").filter({ has: page.locator("rect") });
-  const procesoFan = page.locator(".joint-element").filter({ has: page.locator("ellipse") });
-
-  async function dragRel(locator, dx, dy) {
-    const box = await locator.boundingBox();
-    if (!box) return;
-    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
-    await page.mouse.down();
-    await page.mouse.move(box.x + box.width / 2 + dx, box.y + box.height / 2 + dy, { steps: 10 });
-    await page.mouse.up();
-    await page.waitForTimeout(80);
-  }
-  await dragRel(objetosFan.nth(1), 400, 0);  // Objeto2 desplazado a la derecha
-  await dragRel(procesoFan.first(), -100, 250); // Proceso al centro-abajo
-
-  // Enlace 1: Objeto1 -> Proceso (consumo)
-  await objetosFan.nth(0).click();
-  await page.waitForTimeout(80);
-  await page.getByLabel("Tipo de enlace").selectOption("consumo");
-  await page.waitForTimeout(80);
-  await procesoFan.first().click();
-  await page.waitForTimeout(200);
-
-  // Enlace 2: Objeto2 -> Proceso (consumo) -> debe formar abanico automatico
-  await objetosFan.nth(1).click();
-  await page.waitForTimeout(80);
-  await page.getByLabel("Tipo de enlace").selectOption("consumo");
-  await page.waitForTimeout(80);
-  await procesoFan.first().click();
-  await page.waitForTimeout(300);
-
-  await shot(page, "16-abanico-fan.png");
-  await page.locator(".joint-paper").screenshot({ path: resolve(DIR_SHOTS, "16-abanico-canvas.png") });
-
-  const arcoFan = await page.evaluate(() => {
-    const root = document.querySelector("g.type-opm-abanicoarc, g[model-id^='overlay-abanico-']");
-    if (!root) return { existe: false };
-    const path = root.querySelector("path");
-    return {
-      existe: true,
-      modelId: root.getAttribute("model-id"),
-      classes: root.getAttribute("class"),
-      d: path?.getAttribute("d") ?? null,
-      stroke: path?.getAttribute("stroke") ?? null,
-      strokeDasharray: path?.getAttribute("stroke-dasharray") ?? null,
-      pathCount: root.querySelectorAll("path").length,
-      rectCount: root.querySelectorAll("rect").length,
-    };
-  });
-  record("16. Abanico", "Overlay del abanico presente en el DOM", arcoFan.existe ? "OK" : "FAIL", JSON.stringify(arcoFan).slice(0, 240));
-  if (arcoFan.existe) {
-    const dArco = arcoFan.d ?? "";
-    const tieneArco30 = /A\s*30\s*30/.test(dArco);
-    const tieneArco35 = /A\s*35\s*35/.test(dArco);
-    record("16. Abanico", "Path del overlay contiene arco r=30 (canon OPCloud)", tieneArco30 ? "OK" : "FAIL", dArco.slice(0, 100));
-    record(
-      "16. Abanico",
-      `Operador detectado por el path: ${tieneArco35 ? "O (doble arco)" : "XOR (arco simple)"}`,
-      "INFO",
-      dArco,
-    );
-    record("16. Abanico", "Path del overlay NO es un rectangulo bbox (refD eliminado)", arcoFan.rectCount === 0 && tieneArco30 ? "OK" : "FAIL", `rectCount=${arcoFan.rectCount}`);
-    record("16. Abanico", "Stroke-dasharray canonico '4 1'", arcoFan.strokeDasharray === "4 1" ? "OK" : "WARN", String(arcoFan.strokeDasharray));
-  }
-
-  const linksFan = await page.evaluate(() => {
-    const links = Array.from(document.querySelectorAll(".joint-link"));
-    return links.map((g) => {
-      const conn = g.querySelector("path.connection") ?? g.querySelector("path[joint-selector='line']");
-      return {
-        modelId: g.getAttribute("model-id"),
-        d: conn?.getAttribute("d") ?? null,
-      };
-    });
-  });
-  function contarSegmentosL(d) {
-    if (!d) return 0;
-    return (d.match(/[ML][\s,-]/g) ?? []).length;
-  }
-  const segmentosPorLink = linksFan.map((l) => ({ id: l.modelId, n: contarSegmentosL(l.d), d: l.d }));
-  const maxSegmentos = Math.max(0, ...segmentosPorLink.map((s) => s.n));
-  // Manhattan tipico para este caso = ~5 vertices intermedios (>= 4 L). Recto = 1 L.
-  const fanRectos = segmentosPorLink.length > 0 && segmentosPorLink.every((s) => s.n <= 3);
-  record(
-    "16. Abanico",
-    `Enlaces del fan dibujan rutas rectas (max ${maxSegmentos} segmentos, esperado <=3)`,
-    fanRectos ? "OK" : "WARN",
-    JSON.stringify(segmentosPorLink.map((s) => ({ id: s.id, n: s.n }))),
-  );
-
-  // Sync en vivo: el overlay debe seguir al puerto durante el drag, no solo
-  // tras el pointerup. Capturamos el path antes / mid-drag / tras-soltar.
-  const dInicial = arcoFan.d ?? "";
-  const procesoBox = await procesoFan.first().boundingBox();
-  let dMidDrag = null;
-  let dPostDrag = null;
-  if (procesoBox) {
-    await page.mouse.move(procesoBox.x + procesoBox.width / 2, procesoBox.y + procesoBox.height / 2);
-    await page.mouse.down();
-    // Pasos progresivos para capturar mid-drag.
-    await page.mouse.move(procesoBox.x + procesoBox.width / 2 + 80, procesoBox.y + procesoBox.height / 2 + 60, { steps: 6 });
-    await page.waitForTimeout(50);
-    dMidDrag = await page.evaluate(() => {
-      const root = document.querySelector("g.type-opm-abanicoarc, g[model-id^='overlay-abanico-']");
-      return root?.querySelector("path")?.getAttribute("d") ?? null;
-    });
-    await page.mouse.up();
-    await page.waitForTimeout(120);
-    dPostDrag = await page.evaluate(() => {
-      const root = document.querySelector("g.type-opm-abanicoarc, g[model-id^='overlay-abanico-']");
-      return root?.querySelector("path")?.getAttribute("d") ?? null;
-    });
-    await shot(page, "16b-abanico-drag-end.png");
-  }
-  record(
-    "16. Abanico",
-    "Overlay re-dibujado durante drag (no solo en pointerup)",
-    dMidDrag && dMidDrag !== dInicial ? "OK" : "FAIL",
-    `inicial=${(dInicial || "").slice(0, 60)}... mid=${(dMidDrag || "").slice(0, 60)}...`,
-  );
-  // post-drag puede diferir levemente de mid-drag por re-render desde
-  // linkView post-commit-al-store (re-coordenadas, re-anchor). No asercion
-  // estricta; se reporta como INFO para visibilidad.
-  record(
-    "16. Abanico",
-    "Snapshot post-drag del path overlay (informativo)",
-    "INFO",
-    `mid=${(dMidDrag || "").slice(0, 50)} post=${(dPostDrag || "").slice(0, 50)}`,
-  );
-
-  // Caso problematico del usuario: proceso desplazado a la derecha de
-  // objetos casi colineales. Movemos el proceso programaticamente via el
-  // adapter expuesto y capturamos para validacion visual.
-  await page.evaluate(() => {
-    const adapter = globalThis.__opmJointAdapter;
-    if (!adapter) return;
-    const procCells = adapter.graph.getElements().filter((e) => e.attributes.type === "standard.Ellipse");
-    if (procCells.length > 0) procCells[0].position(700, 250);
-  });
-  await page.waitForTimeout(250);
-  await page.locator(".joint-paper").screenshot({ path: resolve(DIR_SHOTS, "16c-abanico-angulo-extremo.png") });
-  const dExtremo = await page.evaluate(() => {
-    const root = document.querySelector("g.type-opm-abanicoarc, g[model-id^='overlay-abanico-']");
-    return root?.querySelector("path")?.getAttribute("d") ?? null;
-  });
-  record(
-    "16. Abanico",
-    "Overlay redibujado tras mover proceso a posicion lateral",
-    dExtremo && dExtremo !== dInicial ? "OK" : "WARN",
-    (dExtremo || "").slice(0, 80),
-  );
-} catch (errFatal) {
-  record("FATAL", "Excepción no controlada", "FAIL", errFatal instanceof Error ? errFatal.message : String(errFatal));
-  await shot(page, "99-fatal.png").catch(() => {});
-} finally {
-  await browser.close();
 }
 
-// ============================================================
-// RESUMEN
-// ============================================================
-const resumen = {
-  fecha: FECHA,
-  url: URL_OBJETIVO,
-  totalCriterios: findings.length,
-  ok: findings.filter((f) => f.estado === "OK").length,
-  fail: findings.filter((f) => f.estado === "FAIL").length,
-  warn: findings.filter((f) => f.estado === "WARN").length,
-  info: findings.filter((f) => f.estado === "INFO").length,
-  pageErrors,
-  consoleMessages,
-  requestFailures,
-  findings,
-};
+async function importarModelo(page, modelo) {
+  const dialogo = await abrirDialogoJson(page);
+  await dialogo.locator('textarea[spellcheck="false"]').first().fill(JSON.stringify(modelo));
+  await dialogo.getByRole("button", { name: "Importar", exact: true }).click();
+  const confirmacion = page.getByRole("dialog").filter({ has: page.getByRole("button", { name: "Descartar" }) });
+  if (await waitVisible(confirmacion, 500)) {
+    await confirmacion.getByRole("button", { name: "Descartar" }).click();
+  }
+  await dialogo.waitFor({ state: "detached", timeout: 2500 }).catch(() => undefined);
+  await page.waitForTimeout(250);
+}
 
-const capturas = readdirSync(DIR_SHOTS)
-  .filter((nombre) => nombre.endsWith(".png"))
-  .sort();
+function resumenConteos() {
+  return {
+    criterios: findings.length,
+    ok: findings.filter((f) => f.estado === "OK").length,
+    fail: findings.filter((f) => f.estado === "FAIL").length,
+    warn: findings.filter((f) => f.estado === "WARN").length,
+    info: findings.filter((f) => f.estado === "INFO").length,
+    pageErrors: pageErrors.length,
+    consoleErrors: consoleMessages.filter((m) => m.type === "error").length,
+    consoleWarnings: consoleMessages.filter((m) => m.type === "warning").length,
+    requestFailures: requestFailures.length,
+  };
+}
 
-writeFileSync(resolve(DIR_SHOTS, "_resumen.json"), JSON.stringify(resumen, null, 2));
-writeFileSync(RUTA_REPORT, generarReporte(resumen, capturas));
-console.log("\n=== RESUMEN ===");
-console.log(`OK ${resumen.ok} / FAIL ${resumen.fail} / WARN ${resumen.warn} / INFO ${resumen.info}`);
-console.log(`pageerrors: ${pageErrors.length}, console errors/warnings: ${consoleMessages.length}, request failures: ${requestFailures.length}`);
-console.log(`screenshots y resumen JSON en ${DIR_SHOTS}`);
-console.log(`reporte ejecutivo en ${RUTA_REPORT}`);
+function conteosPorSeccion() {
+  const mapa = new Map();
+  for (const finding of findings) {
+    const actual = mapa.get(finding.seccion) ?? { OK: 0, FAIL: 0, WARN: 0, INFO: 0 };
+    actual[finding.estado] += 1;
+    mapa.set(finding.seccion, actual);
+  }
+  return Array.from(mapa.entries()).map(([seccion, conteos]) => ({ seccion, ...conteos }));
+}
 
-if (resumen.fail > 0) process.exitCode = 1;
+function markdownTablaDetalle() {
+  return findings.map((f) => `| ${f.estado} | ${f.seccion} | ${f.criterio} | ${String(f.detalle ?? "").replace(/\|/g, "\\|")} |`).join("\n");
+}
 
-function generarReporte(resumen, capturas) {
-  const porSeccion = agruparPorSeccion(resumen.findings);
-  const filasCobertura = Object.entries(porSeccion).map(([seccion, items]) => {
-    const estados = contarEstados(items);
-    return `| ${escapeMd(seccion)} | ${items.length} | ${estados.OK} | ${estados.FAIL} | ${estados.WARN} | ${estados.INFO} |`;
-  }).join("\n");
-  const filasDetalle = resumen.findings.map((item) => (
-    `| ${escapeMd(item.seccion)} | ${escapeMd(item.criterio)} | ${item.estado} | ${escapeMd(item.detalle ?? "")} |`
-  )).join("\n");
-  const listaCapturas = capturas.length === 0
-    ? "- Sin capturas generadas."
-    : capturas.map((nombre) => `- \`app/test-results/in-vivo/${nombre}\``).join("\n");
+function generarReporte() {
+  const conteos = resumenConteos();
+  const bloqueoRuntime = conteos.pageErrors + conteos.consoleErrors + conteos.requestFailures;
+  const veredicto = conteos.fail === 0 && bloqueoRuntime === 0
+    ? "APROBADO: la auditoria in-vivo no detecta fallos bloqueantes ni errores runtime."
+    : "REVISAR: hay fallos bloqueantes o errores runtime que requieren correccion.";
+  const secciones = conteosPorSeccion()
+    .map((s) => `| ${s.seccion} | ${s.OK} | ${s.FAIL} | ${s.WARN} | ${s.INFO} |`)
+    .join("\n");
   const runtime = [
-    resumen.pageErrors.length === 0 ? "- `pageerror`: 0" : `- \`pageerror\`: ${resumen.pageErrors.length}`,
-    resumen.consoleMessages.length === 0 ? "- `console.error/warning`: 0" : `- \`console.error/warning\`: ${resumen.consoleMessages.length}`,
-    resumen.requestFailures.length === 0 ? "- `requestfailed`: 0" : `- \`requestfailed\`: ${resumen.requestFailures.length}`,
-  ].join("\n");
-  const veredicto = resumen.fail === 0
-    ? "La app esta operativa en el corte auditado. No se detectaron fallos funcionales ni errores de runtime durante la exploracion in-vivo."
-    : "La app no debe considerarse lista para cierre: hay criterios FAIL que requieren correccion antes de publicar el corte.";
+    ...pageErrors.map((m) => `- pageerror: ${m}`),
+    ...consoleMessages.map((m) => `- console.${m.type}: ${m.text}`),
+    ...requestFailures.map((m) => `- requestfailed: ${m.url} (${m.reason})`),
+  ].join("\n") || "- Sin pageerror, console.error ni requestfailed registrados.";
+  const artifacts = screenshots.map((s) => `- \`${s}\``).join("\n") || "- No se generaron capturas.";
 
-  return `# Reporte ejecutivo in-vivo - modelador OPM
+  return `# Reporte ejecutivo in-vivo OPMKV
 
-**Fecha:** ${resumen.fecha}
-**URL probada:** ${resumen.url}
-**Driver:** Playwright/Chromium headless
-**Script:** \`app/scripts/in-vivo-test.mjs\`
-**Artefactos:** \`app/test-results/in-vivo/\`
-**Politica:** reporte, JSON y capturas son salidas regenerables ignoradas por git.
+**Fecha**: ${FECHA}
+**URL auditada**: \`${URL_OBJETIVO}\`
 
----
-
-## 1. Veredicto
+## Veredicto
 
 ${veredicto}
 
-| Metrica | Valor |
-|---|---:|
-| Criterios verificados | ${resumen.totalCriterios} |
-| OK | ${resumen.ok} |
-| FAIL | ${resumen.fail} |
-| WARN | ${resumen.warn} |
-| INFO | ${resumen.info} |
-| Errores \`pageerror\` | ${resumen.pageErrors.length} |
-| Errores/warnings consola | ${resumen.consoleMessages.length} |
-| Requests fallidos | ${resumen.requestFailures.length} |
+| Criterios | OK | FAIL | WARN | INFO | pageerror | console.error | console.warn | requestfailed |
+|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| ${conteos.criterios} | ${conteos.ok} | ${conteos.fail} | ${conteos.warn} | ${conteos.info} | ${conteos.pageErrors} | ${conteos.consoleErrors} | ${conteos.consoleWarnings} | ${conteos.requestFailures} |
 
-## 2. Cobertura Por Seccion
+## Cobertura por seccion
 
-| Seccion | Criterios | OK | FAIL | WARN | INFO |
-|---|---:|---:|---:|---:|---:|
-${filasCobertura}
+| Seccion | OK | FAIL | WARN | INFO |
+|---|---:|---:|---:|---:|
+${secciones}
 
-## 3. Detalle De Criterios
+## Detalle de criterios
 
-| Seccion | Criterio | Estado | Detalle |
+| Estado | Seccion | Criterio | Detalle |
 |---|---|---|---|
-${filasDetalle}
+${markdownTablaDetalle()}
 
-## 4. Runtime
+## Runtime
 
 ${runtime}
 
-## 5. Artefactos Generados
+## Artefactos generados
 
-${listaCapturas}
+${artifacts}
 
-## 6. Lectura Del Corte
+## Hallazgos UX accionables
 
-- El selector de tipo de enlace queda inactivo hasta que exista una entidad origen seleccionada.
-- La validacion de firma OPM ilegal se trata como criterio bloqueante: si crea un enlace, el script sale con codigo distinto de cero.
-- El reporte se genera automaticamente desde el mismo resumen JSON que alimenta las capturas, evitando divergencia entre \`app/test-results/in-vivo/REPORTE-EJECUTIVO.md\` y \`app/test-results/in-vivo/_resumen.json\`.
-- Los PNG y \`_resumen.json\` quedan en \`app/test-results/in-vivo/\`, directorio ignorado por git como salida de prueba.
+- El flujo principal del corte UX/IFML queda operativo: bienvenida, chrome IFML, command palette, menu contextual, feedback anclado al canvas, conexion por \`MenuTipoEnlace\` y modo mobile review.
+- La edicion mobile sigue tratada como fuera de alcance productivo; el modo revision expone tabs y aviso de edicion en escritorio/tablet.
+- El siguiente backlog debe elegirse desde funciones post-brief, no desde deuda del script: mini-mapa, etiquetas/enlaces avanzados, import/export OPX real o modelos densos tipo HODOM.
 
-## 7. Reproduccion
+## Riesgos detectados
+
+- La sonda depende de los \`data-testid\` estabilizados por los smoke tests; si una superficie IFML se renombra, hay que actualizar esta auditoria junto con el smoke correspondiente.
+- Las capturas son artefactos regenerables bajo \`app/test-results/in-vivo/\`; no son fuente versionada.
+
+## Como reproducir
 
 \`\`\`bash
 cd app
-bun run visual:audit -- ${resumen.url}
+node scripts/in-vivo-test.mjs ${URL_OBJETIVO}
 \`\`\`
 `;
 }
 
-function agruparPorSeccion(items) {
-  return items.reduce((acc, item) => {
-    acc[item.seccion] ??= [];
-    acc[item.seccion].push(item);
-    return acc;
-  }, {});
-}
+let browser;
+try {
+  browser = await chromium.launch({ headless: true });
+  const context = await browser.newContext({
+    viewport: { width: 1440, height: 900 },
+    ignoreHTTPSErrors: true,
+  });
+  const page = await context.newPage();
 
-function contarEstados(items) {
-  return items.reduce((acc, item) => {
-    acc[item.estado] = (acc[item.estado] ?? 0) + 1;
-    return acc;
-  }, { OK: 0, FAIL: 0, WARN: 0, INFO: 0 });
-}
+  page.on("pageerror", (err) => pageErrors.push(err.message));
+  page.on("console", (msg) => {
+    if (msg.type() === "error" || msg.type() === "warning") {
+      consoleMessages.push({ type: msg.type(), text: msg.text().slice(0, 800) });
+    }
+  });
+  page.on("requestfailed", (req) => {
+    const failure = req.failure();
+    if (!failure || failure.errorText === "net::ERR_ABORTED") return;
+    requestFailures.push({ url: req.url(), reason: failure.errorText });
+  });
 
-function escapeMd(value) {
-  return String(value).replaceAll("|", "\\|").replaceAll("\n", " ");
+  const inicio = Date.now();
+  await page.goto(URL_OBJETIVO, { waitUntil: "networkidle", timeout: 20000 });
+  record("1. Carga y bienvenida", "Carga inicial llega a networkidle", "OK", `${Date.now() - inicio} ms`);
+  record("1. Carga y bienvenida", "Titulo de pagina", "INFO", await page.title());
+
+  const pantallaInicio = page.getByTestId("pantalla-inicio");
+  const bienvenidaVisible = await waitVisible(pantallaInicio, 1200);
+  recordBool("1. Carga y bienvenida", "Bienvenida opinada visible en arranque limpio", bienvenidaVisible);
+  if (bienvenidaVisible) {
+    const glosa = await pantallaInicio.textContent();
+    const glosaOk = ["Cosa", "OPD", "Apariencia", "Enlace"].every((termino) => glosa?.includes(termino));
+    recordBool("1. Carga y bienvenida", "Mini-glosa OPM cubre 4 terminos core", glosaOk, glosa?.slice(0, 180) ?? "");
+  }
+  await screenshot(page, "01-bienvenida.png");
+
+  await cerrarPantallaInicioSiVisible(page);
+  await recordVisible("1. Carga y bienvenida", "Toolbar raiz visible", page.getByTestId("toolbar-root"));
+  await recordVisible("1. Carga y bienvenida", "Canvas JointJS visible", page.locator(".joint-paper"));
+  await recordVisible("1. Carga y bienvenida", "Arbol OPD visible", page.getByTestId("tree-pane"));
+  await recordVisible("1. Carga y bienvenida", "Inspector visible", page.getByTestId("inspector-pane"));
+  await recordVisible("1. Carga y bienvenida", "Panel OPL visible o minimizado", page.getByTestId("opl-pane").or(page.getByTestId("panel-opl-minimizado")));
+  await recordVisible("1. Carga y bienvenida", "Panel diagnostico visible", page.getByTestId("panel-diagnostico"));
+  await recordVisible("1. Carga y bienvenida", "Empty state compacto Iniciar SD visible", page.getByTestId("estado-vacio-opm"));
+  await screenshot(page, "02-workbench-vacio.png");
+
+  const mainAttrs = await page.locator("main").evaluate((el) => ({
+    viewpoint: el.getAttribute("data-viewpoint"),
+    modo: el.getAttribute("data-context-modo"),
+    submodo: el.getAttribute("data-context-submodo"),
+    def: el.getAttribute("data-viewpoint-default"),
+  }));
+  recordBool("2. Chrome IFML", "Workbench declara ViewPoint default de edicion", mainAttrs.viewpoint === "Edicion" && mainAttrs.def === "true", JSON.stringify(mainAttrs));
+  await recordVisible("2. Chrome IFML", "Cluster Modelar montado en desktop", page.getByRole("group", { name: "Modelar" }));
+  await recordVisible("2. Chrome IFML", "Cluster Conectar montado en desktop", page.getByRole("group", { name: "Conectar" }));
+  await recordVisible("2. Chrome IFML", "Cluster Ayuda montado en desktop", page.getByRole("group", { name: "Ayuda" }));
+  recordBool("2. Chrome IFML", "Conectar esta deshabilitado sin origen", await page.getByTestId("abrir-menu-tipo-enlace").isDisabled().catch(() => false));
+
+  await page.keyboard.press("Control+k");
+  const palette = page.getByTestId("command-palette");
+  await recordVisible("2. Chrome IFML", "Ctrl+K abre CommandPalette", palette);
+  recordBool("2. Chrome IFML", "CommandPalette declara estereotipo Modal", await attr(palette, "data-ifml-stereotype") === "Modal");
+  await page.waitForFunction(() => document.activeElement?.getAttribute("role") === "combobox", undefined, { timeout: 1200 }).catch(() => undefined);
+  recordBool("2. Chrome IFML", "Combobox de CommandPalette recibe foco", await palette.getByRole("combobox").evaluate((el) => el === document.activeElement).catch(() => false));
+  await palette.getByRole("combobox").fill("tabla enlaces");
+  await recordVisible("2. Chrome IFML", "Busqueda fuzzy encuentra Tabla de enlaces", page.getByTestId("command-palette-item-menu-tabla-enlaces"));
+  await screenshot(page, "03-command-palette.png");
+  await page.keyboard.press("Escape");
+  recordBool("2. Chrome IFML", "Escape cierra CommandPalette", (await locatorCount(page.getByTestId("command-palette"))) === 0);
+
+  const menuPrincipal = await abrirMenuPrincipal(page);
+  const menuTexto = await menuPrincipal.textContent();
+  const menuOk = ["Guardar", "Cargar otro", "Nuevo", "Importar/Exportar JSON", "Tabla de enlaces"].every((item) => menuTexto?.includes(item));
+  recordBool("2. Chrome IFML", "Menu principal concentra acciones de modelo y vista", menuOk, menuTexto?.slice(0, 220) ?? "");
+  await page.keyboard.press("Escape");
+
+  await resetWorkbench(page);
+  await cargarEjemplo(page, "Cafetera Domestica");
+  await restaurarPanelOplSiMinimizado(page);
+  const elementosDemo = await locatorCount(page.locator(".joint-element"));
+  const enlacesDemo = await locatorCount(page.locator(".joint-link"));
+  recordBool("3. Ejemplo y SSOT visual", "Ejemplo Cafetera Domestica carga >=3 cosas", elementosDemo >= 3, `cosas=${elementosDemo}`);
+  recordBool("3. Ejemplo y SSOT visual", "Ejemplo Cafetera Domestica carga >=2 enlaces", enlacesDemo >= 2, `enlaces=${enlacesDemo}`);
+  await recordVisible("3. Ejemplo y SSOT visual", "OPL renderiza sentencia de consumo del ejemplo", page.getByText(/Hacer\s+Cafe\s+consume\s+Cafe\s+Molido\./).first());
+
+  const visual = await page.locator(".joint-element [joint-selector='body']").evaluateAll((els) => els.map((el) => {
+    const rect = el.getBoundingClientRect();
+    return {
+      tag: el.tagName.toLowerCase(),
+      fill: (el.getAttribute("fill") ?? "").toLowerCase(),
+      stroke: (el.getAttribute("stroke") ?? "").toLowerCase(),
+      strokeWidth: el.getAttribute("stroke-width"),
+      width: Math.round(rect.width),
+      height: Math.round(rect.height),
+    };
+  }));
+  const objetos = visual.filter((c) => c.tag === "rect");
+  const procesos = visual.filter((c) => c.tag === "ellipse");
+  const fillOk = visual.length > 0 && visual.every((c) => c.fill === "#fdffff");
+  const objetosOk = objetos.length > 0 && objetos.every((c) => c.stroke === "#70e483");
+  const procesosOk = procesos.length > 0 && procesos.every((c) => c.stroke === "#3bc3ff");
+  const dimsOk = visual.length > 0 && visual.every((c) => Math.abs(c.width - 135) <= 2 && Math.abs(c.height - 60) <= 2);
+  record("3. Ejemplo y SSOT visual", "Cosas detectadas por shape", "INFO", JSON.stringify({ objetos: objetos.length, procesos: procesos.length, visual }));
+  recordBool("3. Ejemplo y SSOT visual", "Fill canonico #fdffff", fillOk);
+  recordBool("3. Ejemplo y SSOT visual", "Objetos con stroke #70E483", objetosOk);
+  recordBool("3. Ejemplo y SSOT visual", "Procesos con stroke #3BC3FF", procesosOk);
+  recordBool("3. Ejemplo y SSOT visual", "Dimensiones canonicas 135x60 con tolerancia 2px", dimsOk);
+  await screenshot(page, "04-ejemplo-cafetera.png");
+
+  await resetWorkbench(page);
+  await crearCosa(page, "Proceso", "Procesar");
+  const barra = page.getByTestId("barra-herramientas-elemento");
+  await recordVisible("4. Feedback overlay", "Barra contextual aparece al seleccionar proceso", barra);
+  recordBool("4. Feedback overlay", "Barra contextual usa role toolbar", await attr(barra, "role") === "toolbar");
+  const labelBarraProceso = await attr(barra, "aria-label") ?? "";
+  recordBool("4. Feedback overlay", "Barra contextual nombra la seleccion", /Acciones sobre (Proceso|Procesar)/.test(labelBarraProceso), labelBarraProceso);
+  const badge = page.locator('[data-testid="error-badge"][data-regla-id="proceso-sin-entrada-ni-salida"]');
+  await recordVisible("4. Feedback overlay", "ErrorBadge inline para proceso sin entrada/salida", badge);
+  recordBool("4. Feedback overlay", "ErrorBadge expone aria-label metodologico", /proceso-sin-entrada-ni-salida/.test(await attr(badge, "aria-label") ?? ""));
+  await badge.first().click();
+  const diagnostico = page.getByTestId("panel-diagnostico");
+  recordBool("4. Feedback overlay", "Click en ErrorBadge expande diagnostico", await attr(diagnostico, "data-expandido") === "true");
+  recordBool("4. Feedback overlay", "Aviso compartido queda resaltado", await attr(page.getByTestId("aviso-proceso-sin-entrada-ni-salida"), "data-resaltado") === "true");
+  await screenshot(page, "05-feedback-errorbadge.png");
+
+  await crearCosa(page, "Objeto", "Entrada");
+  await elementoPorTexto(page, "Entrada").hover();
+  const tooltip = page.getByTestId("hover-tooltip");
+  await recordVisible("4. Feedback overlay", "HoverTooltip aparece sobre cosa OPM", tooltip);
+  recordBool("4. Feedback overlay", "HoverTooltip no usa aria-live", (await attr(tooltip, "aria-live")) === null);
+  await screenshot(page, "06-hover-tooltip.png");
+  await page.mouse.move(8, 8);
+
+  await conectarConsumo(page, "Entrada", "Procesar");
+  const enlacesTrasConexion = await locatorCount(page.locator(".joint-link"));
+  recordBool("5. Enlace y submodo", "Consumo Entrada -> Procesar crea enlace", enlacesTrasConexion === 1, `enlaces=${enlacesTrasConexion}`);
+  await recordVisible("5. Enlace y submodo", "OPL refleja consumo creado", page.getByText(/Procesar\s+consume\s+Entrada/).first());
+  const exportado = JSON.parse(await exportarJson(page));
+  const tieneConsumo = Object.values(exportado.modelo.enlaces).some((enlace) => enlace.tipo === "consumo");
+  recordBool("5. Enlace y submodo", "Export JSON conserva enlace tipo consumo", tieneConsumo);
+  await screenshot(page, "07-consumo-creado.png");
+
+  await elementoPorTexto(page, "Procesar").click();
+  await page.keyboard.press("Delete");
+  const toast = page.getByTestId("flash-toast").filter({ hasText: "Selección eliminada" });
+  await recordVisible("4. Feedback overlay", "FlashToast anuncia eliminacion", toast);
+  recordBool("4. Feedback overlay", "FlashToast usa role status", await attr(toast, "role") === "status");
+  recordBool("4. Feedback overlay", "FlashToast usa aria-live polite", await attr(toast, "aria-live") === "polite");
+  await screenshot(page, "08-flash-toast.png");
+
+  await resetWorkbench(page);
+  await importarModelo(page, modeloMultiOpd());
+  const treeitems = await locatorCount(page.locator('[role="treeitem"]'));
+  recordBool("6. Arbol OPD y JSON", "Import JSON multi-OPD hidrata arbol con nodos", treeitems >= 2, `treeitems=${treeitems}`);
+  await page.locator('[role="treeitem"][data-opd-id="opd-2"]').click();
+  await recordVisible("6. Arbol OPD y JSON", "Click en OPD hijo cambia canvas activo", page.getByText("Proceso hijo").first());
+  await screenshot(page, "09-multi-opd-import.png");
+
+  await resetWorkbench(page);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto(URL_OBJETIVO, { waitUntil: "networkidle", timeout: 20000 });
+  await cerrarPantallaInicioSiVisible(page);
+  const overflow = await page.evaluate(() => ({
+    doc: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+    body: document.body.scrollWidth - document.body.clientWidth,
+  }));
+  recordBool("7. Mobile review", "Viewport 390x844 no tiene overflow horizontal >8px", overflow.doc <= 8 && overflow.body <= 8, JSON.stringify(overflow));
+  await recordVisible("7. Mobile review", "Tabs mobile review visibles", page.getByTestId("modo-revision-mobile"));
+  recordBool("7. Mobile review", "Toolbar pesada no se monta en mobile", (await locatorCount(page.getByTestId("toolbar-actions-pesadas"))) === 0);
+  for (const tab of ["canvas", "opds", "opl", "issues"]) {
+    await recordVisible("7. Mobile review", `Tab ${tab} visible`, page.getByTestId(`mobile-tab-${tab}`));
+  }
+  await page.getByTestId("mobile-tab-opds").click();
+  await recordVisible("7. Mobile review", "Tab OPDs abre panel de arbol", page.getByTestId("mobile-pane-opds"));
+  await page.getByTestId("mobile-tab-opl").click();
+  await recordVisible("7. Mobile review", "Tab OPL abre panel OPL", page.getByTestId("mobile-pane-opl"));
+  await page.getByTestId("mobile-tab-issues").click();
+  await recordVisible("7. Mobile review", "Tab Issues muestra aviso de edicion escritorio/tablet", page.getByTestId("mobile-aviso-edicion"));
+  await screenshot(page, "10-mobile-review.png");
+} catch (error) {
+  record("0. Runtime", "Excepcion no controlada de la sonda", "FAIL", error?.stack ?? String(error));
+} finally {
+  if (browser) await browser.close();
+  const resumen = {
+    fecha: FECHA,
+    url: URL_OBJETIVO,
+    ...resumenConteos(),
+    findings,
+    pageErrors,
+    consoleMessages,
+    requestFailures,
+    screenshots,
+  };
+  writeFileSync(RUTA_RESUMEN, `${JSON.stringify(resumen, null, 2)}\n`);
+  writeFileSync(RUTA_REPORT, generarReporte());
+
+  const conteos = resumenConteos();
+  const bloqueoRuntime = conteos.pageErrors + conteos.consoleErrors + conteos.requestFailures;
+  process.exitCode = conteos.fail > 0 || bloqueoRuntime > 0 ? 1 : 0;
+  console.log(`\nResumen: OK=${conteos.ok} FAIL=${conteos.fail} WARN=${conteos.warn} INFO=${conteos.info}`);
+  console.log(`Reporte: ${RUTA_REPORT}`);
+  console.log(`Resumen JSON: ${RUTA_RESUMEN}`);
 }
