@@ -21,7 +21,7 @@ import { CapturadorBugs } from "./CapturadorBugs";
 import { configurarContextoAtajos, escucharGlobal, registrarAtajo } from "./atajosTeclado";
 import { modeloTieneContenidoVisible } from "./bienvenida";
 import { ConfirmacionProvider } from "./ConfirmacionContext";
-import { resolverContextoWorkbench } from "./contextoWorkbench";
+import { resolverContextoWorkbench } from "./contexto";
 import { DivisorPanel } from "./divisorPanel";
 import { EstadoVacioOpm } from "./EstadoVacioOpm";
 import { Inspector } from "./Inspector";
