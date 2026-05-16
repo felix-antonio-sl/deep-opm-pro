@@ -14,8 +14,11 @@ import {
   desplegarComoAgregacion,
   irATabExtremos,
   guardarComoActual,
+  abrirDialogoCargarModelo,
+  abrirMenuPrincipal,
   cargarModeloEjemplo,
   cargarPrimerModelo,
+  crearModeloNuevoDesdeMenu,
   assertWorkbenchLayout,
   assertCanvasScrollable,
   estadoBeforeUnload,
@@ -581,7 +584,7 @@ function modeloPlantillaSmoke() {
   };
 }
 
-test("L3 UX: tooltips sistemáticos en Toolbar (Deshacer, Cargar, Nuevo)", async ({ page }) => {
+test("L3 UX: toolbar CN-CIM&B conserva tooltips primarios y mueve archivo al menú", async ({ page }) => {
   const pageErrors: string[] = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
@@ -591,11 +594,14 @@ test("L3 UX: tooltips sistemáticos en Toolbar (Deshacer, Cargar, Nuevo)", async
   const botonDeshacer = page.getByRole("button", { name: "Deshacer", exact: true });
   await expect(botonDeshacer).toHaveAttribute("title", /Deshacer.*Ctrl\+Z/);
 
-  const botonCargar = page.getByRole("button", { name: "Cargar", exact: true }).first();
-  await expect(botonCargar).toHaveAttribute("title", /Cargar modelo/);
+  const botonObjeto = page.getByRole("button", { name: "Objeto", exact: true });
+  await expect(botonObjeto).toHaveAttribute("title", /Crear objeto.*Shift\+clic/);
 
-  const botonNuevo = page.getByRole("button", { name: "Nuevo", exact: true });
-  await expect(botonNuevo).toHaveAttribute("title", /Nuevo modelo/);
+  await expect(page.getByRole("button", { name: "Nuevo", exact: true })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Cargar", exact: true })).toHaveCount(0);
+  const menu = await abrirMenuPrincipal(page);
+  await expect(menu.getByRole("menuitem", { name: "Nuevo", exact: true })).toBeVisible();
+  await expect(menu.getByRole("menuitem", { name: "Cargar otro...", exact: true })).toBeVisible();
 
   expect(pageErrors).toEqual([]);
 });
@@ -663,12 +669,10 @@ test("HU-30.019: doble clic sobre tile en DialogoCargarModelo carga modelo y cie
   }
   await guardarComoActual(page, "Doble clic", "Para HU-30019");
 
-  await page.getByRole("button", { name: "Nuevo", exact: true }).click();
+  await crearModeloNuevoDesdeMenu(page);
   await expect(elementoPorTexto(page, "Cargable doble clic")).toHaveCount(0);
 
-  await page.getByRole("button", { name: "Cargar", exact: true }).first().click();
-  const dialogo = page.getByRole("dialog", { name: "Cargar modelo" });
-  await expect(dialogo).toBeVisible();
+  const dialogo = await abrirDialogoCargarModelo(page);
   const tile = dialogo.getByTestId("modelo-tile-cargar").filter({ hasText: "Doble clic" }).first();
   await expect(tile).toBeVisible();
   await tile.dblclick();
@@ -695,12 +699,10 @@ test("HU-30.020: clic sobre tile selecciona y botón Cargar del diálogo carga m
   }
   await guardarComoActual(page, "Click boton", "Para HU-30020");
 
-  await page.getByRole("button", { name: "Nuevo", exact: true }).click();
+  await crearModeloNuevoDesdeMenu(page);
   await expect(elementoPorTexto(page, "Cargable boton")).toHaveCount(0);
 
-  await page.getByRole("button", { name: "Cargar", exact: true }).first().click();
-  const dialogo = page.getByRole("dialog", { name: "Cargar modelo" });
-  await expect(dialogo).toBeVisible();
+  const dialogo = await abrirDialogoCargarModelo(page);
   const tile = dialogo.getByTestId("modelo-tile-cargar").filter({ hasText: "Click boton" }).first();
   await tile.click();
   await dialogo.getByRole("button", { name: "Cargar", exact: true }).click();

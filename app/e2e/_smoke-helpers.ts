@@ -231,6 +231,22 @@ export async function guardarComoActual(page: import("@playwright/test").Page, n
   await expect(page.getByTestId("chip-persistencia")).toHaveAttribute("data-variante", "local-clean");
 }
 
+export async function abrirMenuPrincipal(page: import("@playwright/test").Page): Promise<import("@playwright/test").Locator> {
+  await page.getByLabel("Menú principal").click();
+  const menu = page.getByRole("menu", { name: "Menú principal" });
+  await expect(menu).toBeVisible();
+  return menu;
+}
+
+export async function ejecutarMenuPrincipal(page: import("@playwright/test").Page, label: string): Promise<void> {
+  const menu = await abrirMenuPrincipal(page);
+  await menu.getByRole("menuitem", { name: label, exact: true }).click();
+}
+
+export async function crearModeloNuevoDesdeMenu(page: import("@playwright/test").Page): Promise<void> {
+  await ejecutarMenuPrincipal(page, "Nuevo");
+}
+
 export async function cargarModeloEjemplo(page: import("@playwright/test").Page, nombre: string): Promise<void> {
   const dialogo = await abrirDialogoCargarModelo(page);
   const selectorEjemplos = dialogo.getByLabel("Cargar modelo de ejemplo");
@@ -240,7 +256,7 @@ export async function cargarModeloEjemplo(page: import("@playwright/test").Page,
 }
 
 export async function abrirDialogoCargarModelo(page: import("@playwright/test").Page): Promise<import("@playwright/test").Locator> {
-  await page.getByRole("button", { name: "Cargar", exact: true }).first().click();
+  await ejecutarMenuPrincipal(page, "Cargar otro...");
   const dialogo = page.getByRole("dialog", { name: "Cargar modelo" });
   await expect(dialogo).toBeVisible();
   return dialogo;

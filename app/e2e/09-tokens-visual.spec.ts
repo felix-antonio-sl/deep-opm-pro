@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { abrirDialogoCargarModelo } from "./_smoke-helpers";
 
 // [JOYAS §1-3] Snapshot smoke L2: tokens visuales para toolbar/inspector/dialogo.
 
@@ -21,8 +22,7 @@ test("L2 snapshot visual de dialogo tras migrar tokens", async ({ page }) => {
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
-  await page.getByRole("button", { name: "Cargar", exact: true }).first().click();
-  const dialogo = page.getByRole("dialog", { name: "Cargar modelo" });
+  const dialogo = await abrirDialogoCargarModelo(page);
 
   await expect(dialogo).toBeVisible();
   await dialogo.screenshot({ path: "test-results/l2-tokens-dialogo.png" });

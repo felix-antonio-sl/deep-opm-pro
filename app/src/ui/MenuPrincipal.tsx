@@ -63,7 +63,7 @@ export function MenuPrincipal() {
       <div aria-hidden="true" style={style.menuTitle}>Mi modelo</div>
 
       <MenuSection title="Modelo">
-        <MenuItem label="Nuevo" shortcut="Ctrl+N" onClick={() => ejecutar(nuevoModelo)} />
+        <MenuItem label="Nuevo" shortcut="Ctrl+N" onClick={() => ejecutar(() => confirmarSiDirty(nuevoModelo))} />
         <MenuItem label="Abrir como pestaña" shortcut="Ctrl+T" onClick={() => ejecutar(abrirPestanaNueva)} />
         <MenuItem label="Asistente guiado" onClick={() => ejecutar(iniciarAsistente)} />
         <MenuItem label="Guardar" shortcut="Ctrl+S" onClick={() => ejecutar(guardarLocal)} />

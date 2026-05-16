@@ -18,6 +18,7 @@ import {
   irATabEstiloEntidad,
   guardarComoActual,
   cargarPrimerModelo,
+  crearModeloNuevoDesdeMenu,
   assertWorkbenchLayout,
   assertCanvasScrollable,
   estadoBeforeUnload,
@@ -396,7 +397,7 @@ test("activa plegado parcial desde Inspector y persiste la vista compacta", asyn
   expect(Object.values(exportado.modelo.opds[objeto.refinamientos.despliegue.opdId]?.apariencias ?? {})).toHaveLength(4);
 
   await guardarComoActual(page, "Plegado parcial local");
-  await page.getByRole("button", { name: "Nuevo", exact: true }).click();
+  await crearModeloNuevoDesdeMenu(page);
   await cargarPrimerModelo(page);
   await expect(elementoPorTexto(page, "Objeto parte 1")).toHaveCount(1);
   await clickCabeceraElemento(page, "Objeto");
@@ -433,7 +434,7 @@ test("edita estilo visual de cosa, persiste local y resetea defaults", async ({ 
   expect(apariencia?.estilo).toEqual({ fill: "#fef3c7", borderColor: "#3bc3ff" });
 
   await guardarComoActual(page, "Estilo visual local");
-  await page.getByRole("button", { name: "Nuevo", exact: true }).click();
+  await crearModeloNuevoDesdeMenu(page);
   await cargarPrimerModelo(page);
   await expect(page.locator('.joint-element rect[joint-selector="body"]')).toHaveAttribute("fill", "#fef3c7");
   await expect(page.locator('.joint-element rect[joint-selector="body"]')).toHaveAttribute("stroke", "#3bc3ff");

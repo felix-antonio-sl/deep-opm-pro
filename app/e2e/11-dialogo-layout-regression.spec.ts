@@ -21,7 +21,7 @@
  */
 
 import { expect, test, type Page, type Locator } from "@playwright/test";
-import { cargarModeloEjemplo, cerrarPantallaInicioSiVisible } from "./_smoke-helpers";
+import { abrirDialogoCargarModelo, cargarModeloEjemplo, cerrarPantallaInicioSiVisible } from "./_smoke-helpers";
 
 interface Rect { x: number; y: number; width: number; height: number }
 
@@ -59,10 +59,7 @@ test("[L1] DialogoCargarModelo pinta sobre canvas+grid e interactua", async ({ p
   await cargarModeloEjemplo(page, "Cafetera Domestica");
   await expect(page.locator(".joint-paper svg")).toHaveCount(1);
 
-  await page.getByRole("button", { name: "Cargar", exact: true }).first().click();
-
-  const dialogo = page.getByRole("dialog", { name: "Cargar modelo" });
-  await expect(dialogo).toBeVisible();
+  const dialogo = await abrirDialogoCargarModelo(page);
 
   const bbox = await rectOf(dialogo);
   expect(bbox.width).toBeGreaterThan(200);
@@ -165,8 +162,7 @@ test("[L1] Dialogo se monta fuera del subarbol del workbench (portal a body)", a
   await cargarModeloEjemplo(page, "Cafetera Domestica");
   await expect(page.locator(".joint-paper svg")).toHaveCount(1);
 
-  await page.getByRole("button", { name: "Cargar", exact: true }).first().click();
-  await expect(page.getByRole("dialog", { name: "Cargar modelo" })).toBeVisible();
+  await abrirDialogoCargarModelo(page);
 
   // Estructura de portal: el role="dialog" no puede ser descendiente de
   // <main> ni de la barra de herramientas. Si en el futuro algun ancestro

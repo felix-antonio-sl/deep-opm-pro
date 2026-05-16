@@ -10,7 +10,6 @@ import { useOpmStore } from "../../store";
 import type { AccionContextualId } from "../../store/acciones-contextuales";
 import { primerEnlaceVisualDeEntidad } from "../BarraHerramientasElemento";
 import { ChipPersistencia } from "../ChipPersistencia";
-import { useConfirmarSiDirty } from "../ConfirmacionContext";
 import { ejecutarAccionContextualEntidad } from "../ejecutarAccionContextual";
 // L2 ronda 21: la toolbar primaria de modelado pesado se oculta en mobile
 // y se compacta en tablet. Decisión por viewport delegada a `layoutResponsive`.
@@ -45,15 +44,12 @@ export function ToolbarBase({ children, modelarSlot, conectarSlot, mapaSlot, sta
   // accesibilidad y smokes). El boton ☰ aqui solo abre/cierra via store;
   // el render lo hace App.tsx. Bug P0 introducido por hotfix `4f7dc66`.
   const [PantallaInicioLazy, setPantallaInicioLazy] = useState<PantallaInicioComponent | null>(null);
-  const nuevoModelo = useOpmStore((s) => s.nuevoModelo);
   const abrirMenuPrincipal = useOpmStore((s) => s.abrirMenuPrincipal);
   const cerrarMenuPrincipal = useOpmStore((s) => s.cerrarMenuPrincipal);
   const crearObjeto = useOpmStore((s) => s.crearObjetoDemo);
   const crearProceso = useOpmStore((s) => s.crearProcesoDemo);
   const crearAtributoNumerico = useOpmStore((s) => s.crearAtributoEnObjetoSeleccionado);
   const fijarModoCreacion = useOpmStore((s) => s.fijarModoCreacion);
-  const guardarLocal = useOpmStore((s) => s.guardarLocal);
-  const abrirCargarModelo = useOpmStore((s) => s.abrirCargarModelo);
   const deshacer = useOpmStore((s) => s.deshacer);
   const rehacer = useOpmStore((s) => s.rehacer);
   const menuPrincipalAbierto = useOpmStore((s) => s.menuPrincipalAbierto);
@@ -80,7 +76,6 @@ export function ToolbarBase({ children, modelarSlot, conectarSlot, mapaSlot, sta
   const iniciarAutosalvado = useOpmStore((s) => s.iniciarAutosalvado);
   // Ronda 19 L5: `dirty` ya no se lee aqui; ChipPersistencia lo consume.
   const modoCreacion = useOpmStore((s) => s.modoCreacion);
-  const confirmarSiDirty = useConfirmarSiDirty();
   const abrirDialogoPlantillas = useOpmStore((s) => s.abrirDialogoPlantillas);
   const uiAliasVisibles = useOpmStore((s) => s.uiAliasVisibles);
   const uiDescripcionesVisibles = useOpmStore((s) => s.uiDescripcionesVisibles);
@@ -197,9 +192,6 @@ export function ToolbarBase({ children, modelarSlot, conectarSlot, mapaSlot, sta
     if (menuPrincipalAbierto) cerrarMenuPrincipal();
     else abrirMenuPrincipal();
   }
-  function handleNuevoModelo() {
-    confirmarSiDirty(nuevoModelo);
-  }
   function handleCrearObjeto(event: MouseEvent) {
     if (event.shiftKey) {
       fijarModoCreacion(modoCreacion === "objeto" ? null : "objeto");
@@ -263,15 +255,6 @@ export function ToolbarBase({ children, modelarSlot, conectarSlot, mapaSlot, sta
         {statusSlot ?? null}
         <button style={puedeDeshacer ? style.button : style.disabledButton} type="button" onClick={deshacer} disabled={!puedeDeshacer} aria-label="Deshacer" title="Deshacer · Ctrl+Z">↶</button>
         <button style={puedeRehacer ? style.button : style.disabledButton} type="button" onClick={rehacer} disabled={!puedeRehacer} aria-label="Rehacer" title="Rehacer · Ctrl+Shift+Z">↷</button>
-        {/* L2 ronda 21: en mobile sólo mantenemos chip + menú + undo/redo. Las
-            acciones de archivo quedan accesibles desde MenuPrincipal. */}
-        {esMobile ? null : (
-          <>
-            <button style={style.button} type="button" onClick={handleNuevoModelo} title="Nuevo modelo · descarta el actual si pides confirmación">Nuevo</button>
-            <button style={style.button} type="button" onClick={guardarLocal} title="Guardar (Ctrl+S)">Guardar</button>
-            <button style={style.button} type="button" onClick={() => confirmarSiDirty(abrirCargarModelo)} title="Cargar modelo guardado">Cargar</button>
-          </>
-        )}
       </div>
       {esMobile ? null : (
       <div style={style.actions} data-testid="toolbar-actions-pesadas">

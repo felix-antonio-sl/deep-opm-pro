@@ -13,8 +13,10 @@ import {
   clickLinkPorTipo,
   desplegarComoAgregacion,
   guardarComoActual,
+  abrirDialogoCargarModelo,
   cargarModeloEjemplo,
   cargarPrimerModelo,
+  crearModeloNuevoDesdeMenu,
   assertWorkbenchLayout,
   assertCanvasScrollable,
   estadoBeforeUnload,
@@ -124,11 +126,9 @@ test("workspace local abre menu, guarda como, guarda incremental y carga desde d
   await expect(page.getByRole("dialog", { name: "Guardar como" })).toHaveCount(0);
   await expect(page.getByText("Modelo guardado exitosamente")).toBeVisible();
 
-  await page.getByRole("button", { name: "Nuevo", exact: true }).click();
+  await crearModeloNuevoDesdeMenu(page);
   await expect(page.locator(".joint-element")).toHaveCount(0);
-  await page.getByRole("button", { name: "Cargar", exact: true }).first().click();
-  const dialogoCargar = page.getByRole("dialog", { name: "Cargar modelo" });
-  await expect(dialogoCargar).toBeVisible();
+  const dialogoCargar = await abrirDialogoCargarModelo(page);
   // Post L4 ronda6: cada modelo en "Recientes" es un boton con data-testid="reciente-modelo".
   const tileWorkspaceL2 = dialogoCargar.getByTestId("reciente-modelo").filter({ hasText: /Workspace L2/ });
   await expect(tileWorkspaceL2).toBeVisible();
@@ -144,9 +144,7 @@ test("HU-30.021 dialogo cargar abre ejemplo organizacional canonico", async ({ p
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
-  await page.getByRole("button", { name: "Cargar", exact: true }).first().click();
-  const dialogo = page.getByRole("dialog", { name: "Cargar modelo" });
-  await expect(dialogo).toBeVisible();
+  const dialogo = await abrirDialogoCargarModelo(page);
   const selectorEjemplos = dialogo.getByLabel("Cargar modelo de ejemplo");
   await expect(selectorEjemplos.locator("option").filter({ hasText: /^Ejemplo organizacional$/ })).toHaveCount(1);
   await selectorEjemplos.selectOption("Ejemplo organizacional");
@@ -165,10 +163,8 @@ test("L2 dialogo cargar busca descripcion, selecciona tile y carga", async ({ pa
   await page.goto("/");
   await page.getByRole("button", { name: "Objeto", exact: true }).click();
   await guardarComoActual(page, "Busqueda L2", "descripcion persistencia l2");
-  await page.getByRole("button", { name: "Nuevo", exact: true }).click();
-  await page.getByRole("button", { name: "Cargar", exact: true }).first().click();
-  const dialogo = page.getByRole("dialog", { name: "Cargar modelo" });
-  await expect(dialogo).toBeVisible();
+  await crearModeloNuevoDesdeMenu(page);
+  const dialogo = await abrirDialogoCargarModelo(page);
   await dialogo.getByLabel("Buscar modelos por nombre").fill("persistencia");
 
   const tile = dialogo.getByTestId("modelo-tile-cargar").filter({ hasText: /Busqueda L2/ });
@@ -206,9 +202,7 @@ test("workspace L4 mueve modelos y busca global con guard", async ({ page }) => 
   await expect(dialogoBuscar.getByTestId(/resultado-busqueda-global-/)).toContainText("Workspace L4 Busqueda");
   await dialogoBuscar.getByRole("button", { name: "Cerrar" }).click();
 
-  await page.getByRole("button", { name: "Cargar", exact: true }).first().click();
-  const dialogoCargar = page.getByRole("dialog", { name: "Cargar modelo" });
-  await expect(dialogoCargar).toBeVisible();
+  const dialogoCargar = await abrirDialogoCargarModelo(page);
   await dialogoCargar.getByRole("button", { name: "+ Nueva carpeta" }).click();
   await dialogoCargar.getByPlaceholder("Nombre de carpeta").fill("Destino L4");
   await page.keyboard.press("Enter");

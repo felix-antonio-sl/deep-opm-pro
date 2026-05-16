@@ -15,6 +15,7 @@ import {
   irATabRefinamiento,
   guardarComoActual,
   cargarPrimerModelo,
+  crearModeloNuevoDesdeMenu,
   restaurarPanelOplSiMinimizado,
   assertWorkbenchLayout,
   assertCanvasScrollable,
@@ -110,7 +111,7 @@ test("marca dirty state y navega cambios con deshacer y rehacer", async ({ page 
   await expect(page.getByTestId("chip-persistencia")).toHaveAttribute("data-variante", "local-clean");
   await expect(deshacer).toBeEnabled();
 
-  await page.getByRole("button", { name: "Nuevo", exact: true }).click();
+  await crearModeloNuevoDesdeMenu(page);
   await expect(page.locator(".joint-element")).toHaveCount(0);
   await expect(deshacer).toBeDisabled();
   await cargarPrimerModelo(page);
@@ -150,7 +151,7 @@ test("confirma cambios sin guardar antes de crear un modelo nuevo", async ({ pag
   await expect(elementoPorTexto(page, "Objeto")).toHaveCount(1);
 
   const dialogo = page.getByRole("dialog", { name: "Hay cambios sin guardar" });
-  await page.getByRole("button", { name: "Nuevo", exact: true }).click();
+  await crearModeloNuevoDesdeMenu(page);
   await expect(dialogo).toBeVisible();
   await expect(dialogo.getByRole("button", { name: "Guardar" })).toBeFocused();
 
@@ -158,13 +159,13 @@ test("confirma cambios sin guardar antes de crear un modelo nuevo", async ({ pag
   await expect(dialogo).toHaveCount(0);
   await expect(elementoPorTexto(page, "Objeto")).toHaveCount(1);
 
-  await page.getByRole("button", { name: "Nuevo", exact: true }).click();
+  await crearModeloNuevoDesdeMenu(page);
   await expect(dialogo).toBeVisible();
   await page.keyboard.press("Escape");
   await expect(dialogo).toHaveCount(0);
   await expect(elementoPorTexto(page, "Objeto")).toHaveCount(1);
 
-  await page.getByRole("button", { name: "Nuevo", exact: true }).click();
+  await crearModeloNuevoDesdeMenu(page);
   await expect(dialogo).toBeVisible();
   await dialogo.getByRole("button", { name: "Descartar" }).click();
   await expect(dialogo).toHaveCount(0);
@@ -183,7 +184,7 @@ test("no abre confirmacion cuando Nuevo se ejecuta tras guardar", async ({ page 
   await guardarComoActual(page, "Modelo sin confirmacion");
   await expect(page.getByTestId("chip-persistencia")).toHaveAttribute("data-variante", "local-clean");
 
-  await page.getByRole("button", { name: "Nuevo", exact: true }).click();
+  await crearModeloNuevoDesdeMenu(page);
   await expect(page.getByRole("dialog", { name: "Hay cambios sin guardar" })).toHaveCount(0);
   await expect(page.locator(".joint-element")).toHaveCount(0);
 

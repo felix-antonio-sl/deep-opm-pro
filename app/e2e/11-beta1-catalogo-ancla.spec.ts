@@ -3,6 +3,7 @@ import {
   abrirDialogoCargarModelo,
   cargarModeloEjemplo,
   cerrarPantallaInicioSiVisible,
+  crearModeloNuevoDesdeMenu,
   elementoPorTexto,
   exportadoActual,
   jsonEditor,
@@ -92,7 +93,7 @@ test.describe("beta1 catalogo + ancla", () => {
     expect(jsonOriginal.length).toBeGreaterThan(0);
 
     // Crear modelo nuevo limpia el canvas y la dirty-flag para reimportar sin guard.
-    await page.getByRole("button", { name: "Nuevo", exact: true }).click();
+    await crearModeloNuevoDesdeMenu(page);
     await expect(page.locator(".joint-element")).toHaveCount(0);
 
     // Reimportar el JSON capturado.
