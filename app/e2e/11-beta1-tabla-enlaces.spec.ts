@@ -12,15 +12,43 @@
  * `15-superficie-contextual.spec.ts` describe "Contrato TablaEnlaces Beta1".
  */
 
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 import { cerrarPantallaInicioSiVisible, jsonEditor, modeloEjemploOrganizacionalSmoke, modeloMarkersCanonicos } from "./_smoke-helpers";
 
-async function abrirTablaPorMenu(page: import("@playwright/test").Page): Promise<void> {
+async function abrirTablaPorMenu(page: Page): Promise<void> {
   await page.getByLabel("Menú principal").click();
   await page.getByRole("menu", { name: "Menú principal" })
     .getByRole("menuitem", { name: "Tabla de enlaces" })
     .click();
   await expect(page.getByTestId("tabla-enlaces")).toBeVisible();
+}
+
+async function snapshotFocoCanvas(page: Page): Promise<Array<{ kind: string; enlaceId?: string; targetId?: string; strokeWidth: number | null; wrapperStroke?: string }>> {
+  return page.evaluate(() => {
+    type CellProbe = {
+      id: string | number;
+      prop: (path: string) => unknown;
+      get: (path: string) => unknown;
+    };
+    type AdapterProbe = { graph: { getCells: () => CellProbe[] } };
+    type OpmProbe = { kind?: string; enlaceId?: string; targetId?: string };
+    type AttrsProbe = { line?: { strokeWidth?: unknown }; wrapper?: { stroke?: unknown } };
+
+    const adapter = (window as unknown as { __opmJointAdapter?: AdapterProbe }).__opmJointAdapter;
+    if (!adapter) return [];
+    return adapter.graph.getCells().map((cell) => {
+      const opm = cell.prop("opm") as OpmProbe | undefined;
+      const attrs = cell.get("attrs") as AttrsProbe | undefined;
+      const strokeWidth = attrs?.line?.strokeWidth;
+      return {
+        kind: opm?.kind ?? "",
+        enlaceId: opm?.enlaceId,
+        targetId: opm?.targetId,
+        strokeWidth: typeof strokeWidth === "number" ? strokeWidth : null,
+        wrapperStroke: typeof attrs?.wrapper?.stroke === "string" ? attrs.wrapper.stroke : undefined,
+      };
+    });
+  });
 }
 
 test("workbench Beta1: lista, filtra, edita multiplicidad y elimina enlace cross-OPD", async ({ page }) => {
@@ -146,6 +174,44 @@ test("workbench denso: busca enlaces y filtra por familia sin perder contexto", 
 
   await page.getByTestId("tabla-enlaces-buscar").fill("SD");
   await expect(page.getByTestId("tabla-enlaces-fila")).toHaveCount(4);
+
+  expect(pageErrors).toEqual([]);
+});
+
+test("workbench denso: resalta filas filtradas en el canvas sin cerrar tabla", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  const modelo = modeloMarkersCanonicos();
+  modelo.modelo.enlaces["e-agent"].etiqueta = "rol clinico";
+  await jsonEditor(page).fill(JSON.stringify(modelo, null, 2));
+  await page.getByRole("button", { name: "Importar" }).click();
+  await abrirTablaPorMenu(page);
+
+  await page.getByTestId("tabla-enlaces-familia-procedural").click();
+  await page.getByTestId("tabla-enlaces-buscar").fill("rol clinico");
+  await expect(page.getByTestId("tabla-enlaces-fila")).toHaveCount(1);
+
+  await page.getByTestId("tabla-enlaces-enfocar-filtrados").click();
+
+  await expect(page.getByTestId("tabla-enlaces")).toBeVisible();
+  await expect(page.getByTestId("tabla-enlaces-foco-status")).toContainText("1 enlace resaltado");
+  await expect.poll(async () => {
+    const cells = await snapshotFocoCanvas(page);
+    const enlaces = cells.filter((cell) => cell.kind === "enlace" && cell.enlaceId === "e-agent");
+    return {
+      enlaceResaltado: enlaces.some((cell) => cell.wrapperStroke !== undefined && cell.wrapperStroke !== "transparent"),
+      halos: cells
+        .filter((cell) => cell.kind === "selection-halo")
+        .map((cell) => cell.targetId)
+        .filter((id): id is string => typeof id === "string")
+        .sort(),
+    };
+  }).toEqual({
+    enlaceResaltado: true,
+    halos: ["o-agent", "p-agent"],
+  });
 
   expect(pageErrors).toEqual([]);
 });

@@ -74,6 +74,7 @@ export function JointCanvas() {
   const opdActivoIdRef = useRef(opdActivoId);
   const seleccionId = useOpmStore((s) => s.seleccionId);
   const seleccionados = useOpmStore((s) => s.seleccionados);
+  const idsResaltadosTemporales = useOpmStore((s) => s.idsResaltadosTemporales);
   const seleccionadosRef = useRef(seleccionados);
   const enlaceSeleccionId = useOpmStore((s) => s.enlaceSeleccionId);
   const enlaceSeleccionIdRef = useRef(enlaceSeleccionId);
@@ -408,13 +409,16 @@ export function JointCanvas() {
     const adapter = adapterRef.current;
     if (!adapter) return;
     const focoSimulacion = focoPasoActualSimulacion(modelo, contextoSimulacion);
+    const seleccionadosRender = idsResaltadosTemporales.length > 0
+      ? Array.from(new Set([...seleccionados, ...idsResaltadosTemporales]))
+      : seleccionados;
     const cells = proyectarModeloAJointCells(
       modelo,
       opdActivoId,
       seleccionId,
       enlaceSeleccionId,
       null,
-      seleccionados,
+      seleccionadosRender,
       {
         aliasVisibles: uiAliasVisibles,
         descripcionesVisibles: uiDescripcionesVisibles,
@@ -458,7 +462,7 @@ export function JointCanvas() {
     );
     aplicarHoverOpl(adapter.graph, modelo, hoverOplRef, enlaceSeleccionId);
     aplicarFeedbackModoEnlace(adapter.paper, modelo, opdActivoId, modoEnlace);
-  }, [enlaceSeleccionId, modelo, opdActivoId, seleccionId, seleccionados, uiAliasVisibles, uiDescripcionesVisibles, uiModoImagenGlobal, contextoSimulacion]);
+  }, [enlaceSeleccionId, idsResaltadosTemporales, modelo, opdActivoId, seleccionId, seleccionados, uiAliasVisibles, uiDescripcionesVisibles, uiModoImagenGlobal, contextoSimulacion]);
 
   useEffect(() => {
     const adapter = adapterRef.current;

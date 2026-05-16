@@ -5,6 +5,7 @@
 import { useEffect, useMemo, useRef, useState } from "preact/hooks";
 import { useOpmStore, store } from "../store";
 import { etiquetaEnlaceNormalizada, validarEtiquetaEnlace } from "../modelo/etiquetasEnlace";
+import { entidadIdDeExtremo } from "../modelo/extremos";
 import { validarMultiplicidad } from "../modelo/operaciones";
 import type { Enlace, Id, Modelo, TipoEnlace } from "../modelo/tipos";
 import { naturalezaDeEnlace } from "../modelo/constantes";
@@ -21,9 +22,11 @@ interface FilaEnlace {
   multDestino: string;
   opds: string;
   opdsCount: number;
+  opdIds: Id[];
 }
 
 type FiltroFamiliaEnlace = "todos" | "procedural" | "estructural";
+type FocoTabla = { filas: number; visibles: number; opdNombre: string };
 
 const COLUMNAS: ReadonlyArray<{ clave: keyof FilaEnlace; label: string; sortable: boolean }> = [
   { clave: "tipo", label: "Tipo", sortable: true },
@@ -39,6 +42,7 @@ export function TablaEnlaces() {
   const abierta = useOpmStore((s) => s.tablaEnlacesAbierta);
   const cerrar = useOpmStore((s) => s.cerrarTablaEnlaces);
   const modelo = useOpmStore((s) => s.modelo);
+  const opdActivoId = useOpmStore((s) => s.opdActivoId);
   const filtroTipo = useOpmStore((s) => s.tablaEnlacesFiltroTipo);
   const fijarFiltro = useOpmStore((s) => s.fijarFiltroTablaEnlaces);
   const ordenColumna = useOpmStore((s) => s.tablaEnlacesOrdenColumna);
@@ -47,6 +51,8 @@ export function TablaEnlaces() {
   const navegar = useOpmStore((s) => s.navegarAEnlaceDesdeTabla);
   const irAExtremo = useOpmStore((s) => s.irAExtremoEnlaceTabla);
   const eliminarEnlaceTabla = useOpmStore((s) => s.eliminarEnlaceDesdeTabla);
+  const cambiarOpdActivo = useOpmStore((s) => s.cambiarOpdActivo);
+  const resaltarTemporalmente = useOpmStore((s) => s.resaltarTemporalmente);
   const enlaceSeleccionId = useOpmStore((s) => s.enlaceSeleccionId);
 
   if (!abierta) return null;
@@ -54,6 +60,7 @@ export function TablaEnlaces() {
   return (
     <TablaEnlacesContenido
       modelo={modelo}
+      opdActivoId={opdActivoId}
       filtroTipo={filtroTipo}
       ordenColumna={ordenColumna}
       ordenDireccion={ordenDireccion}
@@ -64,12 +71,15 @@ export function TablaEnlaces() {
       onNavegar={navegar}
       onIrAExtremo={irAExtremo}
       onEliminarEnlace={eliminarEnlaceTabla}
+      onCambiarOpdActivo={cambiarOpdActivo}
+      onResaltarTemporalmente={resaltarTemporalmente}
     />
   );
 }
 
 interface ContenidoProps {
   modelo: Modelo;
+  opdActivoId: Id;
   filtroTipo: TipoEnlace | "todos";
   ordenColumna: string | null;
   ordenDireccion: "asc" | "desc";
@@ -80,11 +90,14 @@ interface ContenidoProps {
   onNavegar: (id: Id) => void;
   onIrAExtremo: (id: Id, lado: "origen" | "destino") => void;
   onEliminarEnlace: (id: Id) => void;
+  onCambiarOpdActivo: (id: Id) => void;
+  onResaltarTemporalmente: (ids: Id[], ms?: number) => void;
 }
 
 function TablaEnlacesContenido(props: ContenidoProps) {
   const {
     modelo,
+    opdActivoId,
     filtroTipo,
     ordenColumna,
     ordenDireccion,
@@ -95,12 +108,15 @@ function TablaEnlacesContenido(props: ContenidoProps) {
     onNavegar,
     onIrAExtremo,
     onEliminarEnlace,
+    onCambiarOpdActivo,
+    onResaltarTemporalmente,
   } = props;
 
   // Confirmación de borrado por fila (toggle); se resetea al cerrar/cambiar selección.
   const [confirmandoEliminar, setConfirmandoEliminar] = useState<Id | null>(null);
   const [query, setQuery] = useState("");
   const [filtroFamilia, setFiltroFamilia] = useState<FiltroFamiliaEnlace>("todos");
+  const [focoTabla, setFocoTabla] = useState<FocoTabla | null>(null);
   // Ref a la fila seleccionada para scrollIntoView automático.
   const filaSeleccionadaRef = useRef<HTMLTableRowElement | null>(null);
 
@@ -131,6 +147,26 @@ function TablaEnlacesContenido(props: ContenidoProps) {
   const totalEnlaces = filasBase.length;
   const conteoFamilias = useMemo(() => contarFamilias(filasBase), [filasBase]);
   const filtrosActivos = query.trim() || filtroTipo !== "todos" || filtroFamilia !== "todos";
+  const visiblesEnOpdActivo = useMemo(() => contarFilasEnOpd(filas, opdActivoId), [filas, opdActivoId]);
+  const opdActivoNombre = modelo.opds[opdActivoId]?.nombre ?? opdActivoId;
+  const puedeEnfocar = filas.length > 0;
+
+  const enfocarFiltrados = () => {
+    if (!puedeEnfocar) return;
+    const opdObjetivoId = elegirOpdObjetivo(filas, opdActivoId);
+    if (opdObjetivoId !== opdActivoId) onCambiarOpdActivo(opdObjetivoId);
+    const ids = idsSubgrafoDesdeFilas(modelo, filas);
+    onResaltarTemporalmente(ids, 4500);
+    setFocoTabla({
+      filas: filas.length,
+      visibles: contarFilasEnOpd(filas, opdObjetivoId),
+      opdNombre: modelo.opds[opdObjetivoId]?.nombre ?? opdObjetivoId,
+    });
+  };
+
+  useEffect(() => {
+    setFocoTabla(null);
+  }, [filtroFamilia, filtroTipo, modelo.id, query]);
 
   // Reset de confirmación de borrado cuando cambia la selección externa.
   useEffect(() => {
@@ -265,9 +301,25 @@ function TablaEnlacesContenido(props: ContenidoProps) {
                 Limpiar
               </button>
             ) : null}
+            <button
+              type="button"
+              style={puedeEnfocar ? focusFiltersButtonStyle : focusFiltersButtonDisabledStyle}
+              data-testid="tabla-enlaces-enfocar-filtrados"
+              aria-label="Resaltar enlaces filtrados en el canvas"
+              disabled={!puedeEnfocar}
+              onClick={enfocarFiltrados}
+              title="Resalta los enlaces filtrados y sus extremos sin cerrar la tabla"
+            >
+              Resaltar filtrados
+            </button>
           </div>
           <div style={summaryStyle} role="status" aria-live="polite" data-testid="tabla-enlaces-contador">
-            {filas.length} de {totalEnlaces} enlaces · {conteoFamilias.procedural} procedurales · {conteoFamilias.estructural} estructurales
+            {filas.length} de {totalEnlaces} enlaces · {conteoFamilias.procedural} procedurales · {conteoFamilias.estructural} estructurales · {visiblesEnOpdActivo} visibles en {opdActivoNombre}
+            {focoTabla ? (
+              <span style={focusStatusStyle} data-testid="tabla-enlaces-foco-status">
+                {" "}· {focoTabla.filas} {focoTabla.filas === 1 ? "enlace resaltado" : "enlaces resaltados"} · {focoTabla.visibles} visibles en {focoTabla.opdNombre}
+              </span>
+            ) : null}
           </div>
         </div>
 
@@ -620,9 +672,11 @@ function CeldaMultiplicidad({ enlaceId, valorActual, lado }: CeldaMultiplicidadP
 
 function construirFila(modelo: Modelo, enlace: Enlace): FilaEnlace {
   const opdsConApariencia: string[] = [];
+  const opdIds: Id[] = [];
   for (const opd of Object.values(modelo.opds)) {
     if (Object.values(opd.enlaces).some((apariencia) => apariencia.enlaceId === enlace.id)) {
       opdsConApariencia.push(opd.nombre);
+      opdIds.push(opd.id);
     }
   }
   return {
@@ -636,6 +690,7 @@ function construirFila(modelo: Modelo, enlace: Enlace): FilaEnlace {
     multDestino: enlace.multiplicidadDestino ?? "",
     opds: opdsConApariencia.join(", "),
     opdsCount: opdsConApariencia.length,
+    opdIds,
   };
 }
 
@@ -680,6 +735,29 @@ function contarFamilias(filas: FilaEnlace[]): Record<"procedural" | "estructural
     },
     { procedural: 0, estructural: 0 },
   );
+}
+
+function contarFilasEnOpd(filas: readonly FilaEnlace[], opdId: Id): number {
+  return filas.filter((fila) => fila.opdIds.includes(opdId)).length;
+}
+
+function elegirOpdObjetivo(filas: readonly FilaEnlace[], opdActivoId: Id): Id {
+  if (contarFilasEnOpd(filas, opdActivoId) > 0) return opdActivoId;
+  return filas.find((fila) => fila.opdIds.length > 0)?.opdIds[0] ?? opdActivoId;
+}
+
+function idsSubgrafoDesdeFilas(modelo: Modelo, filas: readonly FilaEnlace[]): Id[] {
+  const ids = new Set<Id>();
+  for (const fila of filas) {
+    const enlace = modelo.enlaces[fila.enlaceId];
+    if (!enlace) continue;
+    ids.add(enlace.id);
+    const origenId = entidadIdDeExtremo(modelo, enlace.origenId);
+    const destinoId = entidadIdDeExtremo(modelo, enlace.destinoId);
+    if (origenId) ids.add(origenId);
+    if (destinoId) ids.add(destinoId);
+  }
+  return Array.from(ids);
 }
 
 function capitalizar(texto: string): string {
@@ -842,11 +920,33 @@ const clearFiltersStyle: preact.JSX.CSSProperties = {
   fontWeight: tokens.typography.weights.semibold,
 };
 
+const focusFiltersButtonStyle: preact.JSX.CSSProperties = {
+  minHeight: "32px",
+  padding: "0 10px",
+  border: `1px solid ${tokens.colors.infoBordeSuave}`,
+  borderRadius: tokens.radii.sm,
+  background: tokens.colors.infoFondoClaro,
+  color: tokens.colors.azulProfundo,
+  cursor: "pointer",
+  fontSize: `${tokens.typography.sizes.sm}px`,
+  fontWeight: tokens.typography.weights.bold,
+};
+
+const focusFiltersButtonDisabledStyle: preact.JSX.CSSProperties = {
+  ...focusFiltersButtonStyle,
+  opacity: 0.45,
+  cursor: "not-allowed",
+};
+
 const summaryStyle: preact.JSX.CSSProperties = {
   marginTop: "8px",
   color: tokens.colors.textoTerciario,
   fontSize: `${tokens.typography.sizes.xs}px`,
   fontWeight: tokens.typography.weights.semibold,
+};
+
+const focusStatusStyle: preact.JSX.CSSProperties = {
+  color: tokens.colors.azulProfundo,
 };
 
 const tableContainerStyle: preact.JSX.CSSProperties = {
