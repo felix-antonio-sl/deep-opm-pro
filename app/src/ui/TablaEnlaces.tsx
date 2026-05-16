@@ -5,9 +5,8 @@
 import { useEffect, useMemo, useRef, useState } from "preact/hooks";
 import { useOpmStore, store } from "../store";
 import { etiquetaEnlaceNormalizada, validarEtiquetaEnlace } from "../modelo/etiquetasEnlace";
-import { entidadIdDeExtremo } from "../modelo/extremos";
 import { validarMultiplicidad } from "../modelo/operaciones";
-import type { Enlace, Id, Modelo, TipoEnlace } from "../modelo/tipos";
+import type { Enlace, ExtremoEnlace, Id, Modelo, TipoEnlace } from "../modelo/tipos";
 import { naturalezaDeEnlace } from "../modelo/constantes";
 import { tokens } from "./tokens";
 
@@ -752,12 +751,17 @@ function idsSubgrafoDesdeFilas(modelo: Modelo, filas: readonly FilaEnlace[]): Id
     const enlace = modelo.enlaces[fila.enlaceId];
     if (!enlace) continue;
     ids.add(enlace.id);
-    const origenId = entidadIdDeExtremo(modelo, enlace.origenId);
-    const destinoId = entidadIdDeExtremo(modelo, enlace.destinoId);
+    const origenId = idFocoDeExtremo(modelo, enlace.origenId);
+    const destinoId = idFocoDeExtremo(modelo, enlace.destinoId);
     if (origenId) ids.add(origenId);
     if (destinoId) ids.add(destinoId);
   }
   return Array.from(ids);
+}
+
+function idFocoDeExtremo(modelo: Modelo, extremo: ExtremoEnlace): Id | null {
+  if (extremo.kind === "estado") return modelo.estados[extremo.id] ? extremo.id : null;
+  return modelo.entidades[extremo.id] ? extremo.id : null;
 }
 
 function capitalizar(texto: string): string {

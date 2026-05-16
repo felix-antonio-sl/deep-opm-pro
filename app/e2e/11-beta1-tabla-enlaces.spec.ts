@@ -13,7 +13,7 @@
  */
 
 import { expect, test, type Page } from "@playwright/test";
-import { cerrarPantallaInicioSiVisible, jsonEditor, modeloEjemploOrganizacionalSmoke, modeloMarkersCanonicos } from "./_smoke-helpers";
+import { cerrarPantallaInicioSiVisible, jsonEditor, modeloEjemploOrganizacionalSmoke, modeloMarkersCanonicos, modeloTransicionEstados } from "./_smoke-helpers";
 
 async function abrirTablaPorMenu(page: Page): Promise<void> {
   await page.getByLabel("Menú principal").click();
@@ -23,7 +23,7 @@ async function abrirTablaPorMenu(page: Page): Promise<void> {
   await expect(page.getByTestId("tabla-enlaces")).toBeVisible();
 }
 
-async function snapshotFocoCanvas(page: Page): Promise<Array<{ kind: string; enlaceId?: string; targetId?: string; strokeWidth: number | null; wrapperStroke?: string }>> {
+async function snapshotFocoCanvas(page: Page): Promise<Array<{ kind: string; enlaceId?: string; targetId?: string; targetKind?: string; strokeWidth: number | null; wrapperStroke?: string }>> {
   return page.evaluate(() => {
     type CellProbe = {
       id: string | number;
@@ -31,7 +31,7 @@ async function snapshotFocoCanvas(page: Page): Promise<Array<{ kind: string; enl
       get: (path: string) => unknown;
     };
     type AdapterProbe = { graph: { getCells: () => CellProbe[] } };
-    type OpmProbe = { kind?: string; enlaceId?: string; targetId?: string };
+    type OpmProbe = { kind?: string; enlaceId?: string; targetId?: string; targetKind?: string };
     type AttrsProbe = { line?: { strokeWidth?: unknown }; wrapper?: { stroke?: unknown } };
 
     const adapter = (window as unknown as { __opmJointAdapter?: AdapterProbe }).__opmJointAdapter;
@@ -44,6 +44,7 @@ async function snapshotFocoCanvas(page: Page): Promise<Array<{ kind: string; enl
         kind: opm?.kind ?? "",
         enlaceId: opm?.enlaceId,
         targetId: opm?.targetId,
+        targetKind: opm?.targetKind,
         strokeWidth: typeof strokeWidth === "number" ? strokeWidth : null,
         wrapperStroke: typeof attrs?.wrapper?.stroke === "string" ? attrs.wrapper.stroke : undefined,
       };
@@ -211,6 +212,44 @@ test("workbench denso: resalta filas filtradas en el canvas sin cerrar tabla", a
   }).toEqual({
     enlaceResaltado: true,
     halos: ["o-agent", "p-agent"],
+  });
+
+  expect(pageErrors).toEqual([]);
+});
+
+test("workbench denso: resalta extremo de estado filtrado sobre la capsula OPM", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  const modelo = modeloTransicionEstados();
+  modelo.modelo.enlaces["e-consumo"].etiqueta = "entrada-pendiente";
+  await jsonEditor(page).fill(JSON.stringify(modelo, null, 2));
+  await page.getByRole("button", { name: "Importar" }).click();
+  await abrirTablaPorMenu(page);
+
+  await page.getByTestId("tabla-enlaces-buscar").fill("entrada-pendiente");
+  await expect(page.getByTestId("tabla-enlaces-fila")).toHaveCount(1);
+
+  await page.getByTestId("tabla-enlaces-enfocar-filtrados").click();
+
+  await expect(page.getByTestId("tabla-enlaces")).toBeVisible();
+  await expect(page.getByTestId("tabla-enlaces-foco-status")).toContainText("1 enlace resaltado");
+  await expect.poll(async () => {
+    const cells = await snapshotFocoCanvas(page);
+    const enlaces = cells.filter((cell) => cell.kind === "enlace" && cell.enlaceId === "e-consumo");
+    const halos = cells.filter((cell) => cell.kind === "selection-halo");
+    return {
+      enlaceResaltado: enlaces.some((cell) => cell.wrapperStroke !== undefined && cell.wrapperStroke !== "transparent"),
+      haloEstado: halos.some((cell) => cell.targetId === "s-pendiente" && cell.targetKind === "estado"),
+      haloObjetoPedido: halos.some((cell) => cell.targetId === "o-pedido"),
+      haloProceso: halos.some((cell) => cell.targetId === "p-aprobar"),
+    };
+  }).toEqual({
+    enlaceResaltado: true,
+    haloEstado: true,
+    haloObjetoPedido: false,
+    haloProceso: true,
   });
 
   expect(pageErrors).toEqual([]);

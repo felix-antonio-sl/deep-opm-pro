@@ -1,7 +1,7 @@
 import { esAutoInvocacion } from "../../modelo/autoinvocacion";
 import { entidadIdDeExtremo } from "../../modelo/extremos";
 import { sincronizarPuertosEnlaces } from "../../modelo/operaciones";
-import type { Apariencia, Enlace, ExtremoEnlace, Id, Modelo, Posicion, TipoEnlace } from "../../modelo/tipos";
+import type { Apariencia, Enlace, Estado, ExtremoEnlace, Id, Modelo, Posicion, TipoEnlace } from "../../modelo/tipos";
 import type { OplReferencia } from "../../opl/interaccion";
 import { proyectarOverlayAbanicoCanonico } from "./abanicoOverlay";
 import { centroApariencia, proyectarBusesEstructurales, separarCentroSimboloEstructural, type EnlaceConEndpointVisual, type ReservaSimboloEstructural } from "./agregacionBus";
@@ -10,6 +10,7 @@ import { proyectarEntidad } from "./composers/entidad";
 import { proyectarEnlace, proyectarProxyExtraccion, proyectarRefinamientoEstructural, resolverEndpointVisual } from "./composers/enlace";
 import {
   proyectarHaloSeleccion,
+  proyectarHaloSeleccionEstado,
   proyectarHaloSimulacionEntidadInvolucrada,
   proyectarHaloSimulacionEstadoCurrent,
   proyectarHaloSimulacionProceso,
@@ -70,6 +71,16 @@ export function proyectarModeloAJointCells(
   const enlacesInvolucradosSim = new Set(simulacion?.enlacesInvolucradosIds ?? []);
 
   const apariencias = Object.values(opd.apariencias);
+  const estadosSeleccionadosPorEntidad = new Map<Id, Estado[]>();
+  for (const estado of Object.values(modeloRender.estados)) {
+    if (!seleccionMultiple.has(estado.id)) continue;
+    const seleccionadosEntidad = estadosSeleccionadosPorEntidad.get(estado.entidadId);
+    if (seleccionadosEntidad) {
+      seleccionadosEntidad.push(estado);
+    } else {
+      estadosSeleccionadosPorEntidad.set(estado.entidadId, [estado]);
+    }
+  }
   const usarJumpover = Object.keys(opd.enlaces).length <= UMBRAL_JUMPOVER_DENSO;
   const aparienciaPorEntidad = new Map(apariencias.map((apariencia) => [apariencia.entidadId, apariencia]));
   const elementos = apariencias.flatMap((apariencia) => {
@@ -166,8 +177,23 @@ export function proyectarModeloAJointCells(
   const halos = seleccionMultiple.size > 1
     ? apariencias.flatMap((apariencia) => {
         const entidad = modeloRender.entidades[apariencia.entidadId];
-        if (!entidad || !seleccionMultiple.has(entidad.id)) return [];
-        return [proyectarHaloSeleccion(opdId, apariencia, entidad)];
+        if (!entidad) return [];
+        const cells: JointCellJson[] = [];
+        if (seleccionMultiple.has(entidad.id)) cells.push(proyectarHaloSeleccion(opdId, apariencia, entidad));
+
+        let necesitaFallbackEntidad = false;
+        for (const estado of estadosSeleccionadosPorEntidad.get(entidad.id) ?? []) {
+          const halo = proyectarHaloSeleccionEstado(modeloRender, opdId, apariencia, estado);
+          if (halo) {
+            cells.push(halo);
+          } else {
+            necesitaFallbackEntidad = true;
+          }
+        }
+        if (necesitaFallbackEntidad && !seleccionMultiple.has(entidad.id)) {
+          cells.push(proyectarHaloSeleccion(opdId, apariencia, entidad));
+        }
+        return cells;
       })
     : [];
 

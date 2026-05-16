@@ -1,7 +1,7 @@
 import type { Apariencia, Enlace, Entidad, Id, Modelo, Estado } from "../../../modelo/tipos";
 import type { OplReferencia } from "../../../opl/interaccion";
 import type { JointCellJson } from "../proyeccionTipos";
-import { puntoCapsulaEstado } from "./estados";
+import { puntoCapsulaEstado, rectCapsulaEstado } from "./estados";
 
 /**
  * Composer de halos transitorios de seleccion y hover OPL. No serializa
@@ -45,6 +45,44 @@ export function proyectarHaloSeleccion(opdId: Id, apariencia: Apariencia, entida
       targetId: entidad.id,
     },
     z: 30,
+  };
+}
+
+export function proyectarHaloSeleccionEstado(
+  modelo: Modelo,
+  opdId: Id,
+  apariencia: Apariencia,
+  estado: Estado,
+): JointCellJson | null {
+  const rect = rectCapsulaEstado(modelo, apariencia, estado.id);
+  if (!rect) return null;
+
+  const pad = 3;
+  const width = rect.width + pad * 2;
+  const height = rect.height + pad * 2;
+  return {
+    id: `seleccion-estado-${apariencia.id}-${estado.id}`,
+    type: "standard.Rectangle",
+    position: { x: rect.x - pad, y: rect.y - pad },
+    size: { width, height },
+    attrs: {
+      body: {
+        fill: "transparent",
+        stroke: "#3DA8FF",
+        strokeWidth: 2,
+        rx: 10,
+        ry: 10,
+        pointerEvents: "none",
+      },
+      label: { text: "", display: "none" },
+    },
+    opm: {
+      kind: "selection-halo",
+      opdId,
+      targetId: estado.id,
+      targetKind: "estado",
+    },
+    z: 37,
   };
 }
 

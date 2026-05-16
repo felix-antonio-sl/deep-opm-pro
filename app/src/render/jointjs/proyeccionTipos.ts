@@ -53,6 +53,7 @@ export type OpmJointMetadata =
       kind: "selection-halo";
       opdId: Id;
       targetId: Id;
+      targetKind?: "entidad" | "estado";
     }
   | {
       kind: "simulacion-halo";

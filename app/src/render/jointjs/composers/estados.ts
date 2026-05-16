@@ -32,7 +32,14 @@ interface EndpointVisual {
   punto?: Posicion;
 }
 
-export function puntoCapsulaEstado(modelo: Modelo, apariencia: Apariencia, estadoId: Id): Posicion | null {
+export interface RectCapsulaEstado {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
+export function rectCapsulaEstado(modelo: Modelo, apariencia: Apariencia, estadoId: Id): RectCapsulaEstado | null {
   const estado = modelo.estados[estadoId];
   const entidad = estado ? modelo.entidades[estado.entidadId] : undefined;
   if (!estado || !entidad) return null;
@@ -49,18 +56,29 @@ export function puntoCapsulaEstado(modelo: Modelo, apariencia: Apariencia, estad
     : anchos.reduce((total, ancho) => total + ancho, 0) + Math.max(0, anchos.length - 1) * ESTADOS.gap;
   const xInicial = (size.width - anchoTotal) / 2;
   const x = vertical
-    ? xInicial + anchoActual / 2
-    : xInicial + anchos.slice(0, index).reduce((total, ancho) => total + ancho + ESTADOS.gap, 0) + anchoActual / 2;
+    ? xInicial
+    : xInicial + anchos.slice(0, index).reduce((total, ancho) => total + ancho + ESTADOS.gap, 0);
   const altoTotal = vertical
     ? estados.length * ESTADOS.capsuleHeight + Math.max(0, estados.length - 1) * ESTADOS.gap
     : ESTADOS.capsuleHeight;
-  const yBase = size.height - ESTADOS.paddingBottom - altoTotal + ESTADOS.capsuleHeight / 2;
+  const yBase = size.height - ESTADOS.paddingBottom - altoTotal;
   const y = vertical
     ? yBase + index * (ESTADOS.capsuleHeight + ESTADOS.gap)
     : yBase;
   return {
     x: apariencia.x + x,
     y: apariencia.y + y,
+    width: anchoActual,
+    height: ESTADOS.capsuleHeight,
+  };
+}
+
+export function puntoCapsulaEstado(modelo: Modelo, apariencia: Apariencia, estadoId: Id): Posicion | null {
+  const rect = rectCapsulaEstado(modelo, apariencia, estadoId);
+  if (!rect) return null;
+  return {
+    x: rect.x + rect.width / 2,
+    y: rect.y + rect.height / 2,
   };
 }
 
@@ -98,4 +116,3 @@ export const ESTADOS = {
   fontSize: 12,
   regionHeight: 34,
 } as const;
-

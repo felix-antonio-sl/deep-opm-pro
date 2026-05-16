@@ -1166,6 +1166,62 @@ describe("proyeccion JointJS", () => {
     expect(enlaceCell?.z).toBe(20);
   });
 
+  test("proyecta foco temporal de extremo Estado sobre la capsula, no sobre todo el objeto", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 80, y: 90 }, "Pedido"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 260, y: 90 }, "Aprobar"));
+    const pedidoId = entidadPorNombre(modelo, "Pedido");
+    const aprobarId = entidadPorNombre(modelo, "Aprobar");
+    modelo = must(crearEstadosIniciales(modelo, pedidoId)).modelo;
+    const [pendiente] = estadosDeEntidad(modelo, pedidoId);
+    if (!pendiente) throw new Error("La prueba esperaba un estado");
+    modelo = must(renombrarEstado(modelo, pendiente.id, "pendiente"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, extremoEstado(pendiente.id), aprobarId, "consumo"));
+    const enlace = Object.values(modelo.enlaces).find((item) => item.tipo === "consumo");
+    if (!enlace) throw new Error("La prueba esperaba un enlace de consumo");
+
+    const cells = proyectarModeloAJointCells(modelo, modelo.opdRaizId, null, null, null, [enlace.id, pendiente.id]);
+    const haloEstado = cells.find((item) => item.opm.kind === "selection-halo" && item.opm.targetId === pendiente.id);
+    const haloObjeto = cells.find((item) => item.opm.kind === "selection-halo" && item.opm.targetId === pedidoId);
+
+    expect(haloEstado?.opm).toMatchObject({
+      kind: "selection-halo",
+      opdId: modelo.opdRaizId,
+      targetId: pendiente.id,
+      targetKind: "estado",
+    });
+    expect(haloEstado?.type).toBe("standard.Rectangle");
+    expect((haloEstado?.position as { y?: number } | undefined)?.y).toBe(157);
+    expect((haloEstado?.size as { height?: number } | undefined)?.height).toBe(30);
+    expect(haloEstado?.z).toBeGreaterThan(30);
+    expect(haloObjeto).toBeUndefined();
+  });
+
+  test("degrada foco temporal de estado plegado al objeto contenedor", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 80, y: 90 }, "Pedido"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 260, y: 90 }, "Aprobar"));
+    const pedidoId = entidadPorNombre(modelo, "Pedido");
+    const aprobarId = entidadPorNombre(modelo, "Aprobar");
+    modelo = must(crearEstadosIniciales(modelo, pedidoId)).modelo;
+    modelo = must(desplegarObjeto(modelo, modelo.opdRaizId, pedidoId)).modelo;
+    const [pendiente] = estadosDeEntidad(modelo, pedidoId);
+    if (!pendiente) throw new Error("La prueba esperaba un estado");
+    modelo = must(renombrarEstado(modelo, pendiente.id, "pendiente"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, extremoEstado(pendiente.id), aprobarId, "consumo"));
+    const apariencia = aparienciaDeEntidad(modelo, modelo.opdRaizId, pedidoId);
+    modelo = must(cambiarModoPlegado(modelo, modelo.opdRaizId, apariencia.id, "parcial"));
+    const enlace = Object.values(modelo.enlaces).find((item) => item.tipo === "consumo");
+    if (!enlace) throw new Error("La prueba esperaba un enlace de consumo");
+
+    const cells = proyectarModeloAJointCells(modelo, modelo.opdRaizId, null, null, null, [enlace.id, pendiente.id]);
+    const haloEstado = cells.find((item) => item.opm.kind === "selection-halo" && item.opm.targetId === pendiente.id);
+    const haloObjeto = cells.find((item) => item.opm.kind === "selection-halo" && item.opm.targetId === pedidoId);
+
+    expect(haloEstado).toBeUndefined();
+    expect(haloObjeto?.opm).toEqual({ kind: "selection-halo", opdId: modelo.opdRaizId, targetId: pedidoId });
+  });
+
   test("plegado parcial oculta capsulas de estado y conserva filas de partes", () => {
     let modelo = crearModelo();
     modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 80, y: 90 }, "Vehiculo"));
