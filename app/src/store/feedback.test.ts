@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, test } from "bun:test";
-import { addFlash, clearHoverTooltip, feedbackStore, setHoverTooltip, sincronizarBadgesDesdeAvisos } from "./feedback";
+import { addFlash, clearHoverTooltip, feedbackStore, idHoverTooltip, setHoverTooltip, sincronizarBadgesDesdeAvisos } from "./feedback";
 
 describe("feedbackStore", () => {
   beforeEach(() => {
@@ -79,12 +79,17 @@ describe("feedbackStore", () => {
     let overlays = feedbackStore.getState().overlays;
     expect(overlays.filter((overlay) => overlay.tipo === "flash")).toHaveLength(1);
     expect(overlays.filter((overlay) => overlay.tipo === "hover-tooltip")).toEqual([
-      expect.objectContaining({ anchorCellId: "a-2", contenido: "Proceso OPM" }),
+      expect.objectContaining({ id: "hover-tooltip-a-2", anchorCellId: "a-2", contenido: "Proceso OPM" }),
     ]);
 
     clearHoverTooltip();
     overlays = feedbackStore.getState().overlays;
     expect(overlays.filter((overlay) => overlay.tipo === "flash")).toHaveLength(1);
     expect(overlays.filter((overlay) => overlay.tipo === "hover-tooltip")).toHaveLength(0);
+  });
+
+  test("idHoverTooltip genera ids DOM estables para aria-describedby", () => {
+    expect(idHoverTooltip("ap-obj")).toBe("hover-tooltip-ap-obj");
+    expect(idHoverTooltip("ap/obj 1")).toBe("hover-tooltip-ap_obj_1");
   });
 });

@@ -153,6 +153,21 @@ test("L3 HoverTooltip describe cell OPM sin aria-live", async ({ page }) => {
   await page.mouse.move(10, 10);
   await expect(tooltip).toHaveCount(0);
 
+  const objeto = elementoPorTexto(page, "Objeto");
+  await objeto.focus();
+  await expect(tooltip).toBeVisible();
+  await expect(tooltip).toContainText("Objeto OPM");
+  const describedBy = await objeto.getAttribute("aria-describedby");
+  expect(describedBy).toMatch(/^hover-tooltip-/);
+  await expect(tooltip).toHaveAttribute("id", describedBy ?? "");
+
+  await page.evaluate(() => {
+    const active = document.activeElement as (Element & { blur?: () => void }) | null;
+    active?.blur?.();
+  });
+  await expect(objeto).not.toHaveAttribute("aria-describedby", /.+/);
+  await expect(tooltip).toHaveCount(0);
+
   expect(pageErrors).toEqual([]);
 });
 

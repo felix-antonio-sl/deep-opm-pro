@@ -14,6 +14,7 @@ export function HoverTooltip({ overlay, paper }: Props) {
 
   return (
     <div
+      id={overlay.id}
       role="tooltip"
       data-testid="hover-tooltip"
       data-anchor-cell-id={overlay.anchorCellId}

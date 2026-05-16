@@ -98,7 +98,7 @@ export const feedbackStore = createStore<FeedbackState>((set, get) => ({
     set({
       overlays: [
         ...get().overlays.filter((overlay) => overlay.tipo !== "hover-tooltip"),
-        { id: `hover-${cellId}`, tipo: "hover-tooltip", anchorCellId: cellId, contenido },
+        { id: idHoverTooltip(cellId), tipo: "hover-tooltip", anchorCellId: cellId, contenido },
       ],
     });
   },
@@ -151,6 +151,10 @@ export function useFeedbackStore<T>(selector: (state: FeedbackState) => T): T {
 
 function idInlineError(reglaId: string, cellId: string): string {
   return `inline-${reglaId}-${cellId}`;
+}
+
+export function idHoverTooltip(cellId: string): string {
+  return `hover-tooltip-${cellId.replace(/[^A-Za-z0-9_-]/g, "_")}`;
 }
 
 function deduplicarInlineErrors(overlays: Array<Extract<FeedbackOverlay, { tipo: "inline-error" }>>): Array<Extract<FeedbackOverlay, { tipo: "inline-error" }>> {
