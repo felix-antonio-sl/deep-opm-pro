@@ -12,6 +12,7 @@ import { EditorOplHonesto } from "./panelOpl/EditorOplHonesto";
 import type { EdicionOpl } from "./panelOpl/RenderToken";
 import { editorOplStyles } from "./panelOpl/styles";
 import { ToolbarOpl } from "./panelOpl/Toolbar";
+import { scrollBehaviorPreferido } from "./motion";
 import { tokens } from "./tokens";
 
 /**
@@ -89,7 +90,7 @@ export function PanelOpl() {
     const primera = visibles.find((linea) => lineaTocaReferencia(linea, seleccionRef));
     if (!primera) return;
     const node = contenedor.querySelector<HTMLElement>(`[data-opl-ordinal="${primera.ordinal}"]`);
-    node?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+    node?.scrollIntoView({ block: "nearest", behavior: scrollBehaviorPreferido() });
   }, [seleccionRef?.tipo, seleccionRef?.id, editorLibre, minimizado, vistaMapaActiva, lineas.length]);
 
   if (vistaMapaActiva) {

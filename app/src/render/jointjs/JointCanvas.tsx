@@ -6,6 +6,7 @@ import type { Apariencia, Enlace, ExtremoEnlace, Modelo, Opd } from "../../model
 import { useOpmStore } from "../../store";
 import { clearHoverTooltip, idHoverTooltip, setHoverTooltip, sincronizarBadgesDesdeAvisos } from "../../store/feedback";
 import { MenuTipoEnlace } from "../../ui/MenuTipoEnlace";
+import { scrollBehaviorPreferido } from "../../ui/motion";
 import { RenombradoInline } from "../../ui/RenombradoInline";
 import { recalcularOverlaysAbanicoDesdeLinkViews } from "./abanicoDragSync";
 import { opmShapes } from "./customShapes";
@@ -652,7 +653,7 @@ function centrarSiFueraDeViewport(
   viewport.scrollTo({
     left: Math.max(0, centroX - viewport.clientWidth / 2),
     top: Math.max(0, centroY - viewport.clientHeight / 2),
-    behavior: "smooth",
+    behavior: scrollBehaviorPreferido(),
   });
 }
 

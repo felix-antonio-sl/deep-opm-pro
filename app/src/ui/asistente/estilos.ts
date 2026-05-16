@@ -1,4 +1,5 @@
 // [JOYAS §1-3] Chrome UI consume tokens centralizados; canvas semántico invariante.
+import { transitionPreferida } from "../motion";
 import { tokens } from "../tokens";
 /**
  * Estilos compartidos del wizard AsistenteNuevoModelo (Preact CSS-in-JS).
@@ -44,7 +45,7 @@ export const S = {
     height: "100%",
     borderRadius: tokens.radii.xs,
     background: tokens.colors.canvas.proceso,
-    transition: "width 0.3s ease",
+    transition: transitionPreferida("width 0.3s ease"),
   }) satisfies preact.JSX.CSSProperties,
   etapaLabel: {
     fontSize: "13px",

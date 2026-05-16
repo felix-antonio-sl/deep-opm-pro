@@ -24,6 +24,12 @@
   transition: opacity 120ms ease-in-out;
 }
 
+@media (prefers-reduced-motion: reduce) {
+  .nodo-opd .nodo-opd-actions {
+    transition: none;
+  }
+}
+
 .nodo-opd:hover .nodo-opd-actions,
 .nodo-opd:focus-within .nodo-opd-actions,
 .nodo-opd[aria-current="page"] .nodo-opd-actions {
