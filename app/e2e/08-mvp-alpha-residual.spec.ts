@@ -14,6 +14,7 @@ import {
   desplegarComoAgregacion,
   irATabExtremos,
   guardarComoActual,
+  cargarModeloEjemplo,
   cargarPrimerModelo,
   assertWorkbenchLayout,
   assertCanvasScrollable,
@@ -126,7 +127,7 @@ test("L4 arrastra cosa desde Toolbar al canvas y respeta posicion de drop", asyn
   await page.goto("/");
   await cerrarPantallaInicioSiVisible(page);
   const canvas = page.getByRole("img", { name: "OPD activo" });
-  await page.getByTestId("toolbar-modo-creacion-objeto").dragTo(canvas, { targetPosition: { x: 320, y: 190 } });
+  await page.getByTestId("toolbar-drag-objeto").dragTo(canvas, { targetPosition: { x: 320, y: 190 } });
 
   await expect(elementoPorTexto(page, "Objeto")).toHaveCount(1);
   await expect(page.getByTestId("modal-nombre-cosa")).toBeVisible();
@@ -606,7 +607,7 @@ test("HU-10.003: drag Objeto al canvas abre modal-nombre-cosa y Enter persiste e
   await page.goto("/");
   await cerrarPantallaInicioSiVisible(page);
   const canvas = page.getByRole("img", { name: "OPD activo" });
-  await page.getByTestId("toolbar-modo-creacion-objeto").dragTo(canvas, { targetPosition: { x: 320, y: 190 } });
+  await page.getByTestId("toolbar-drag-objeto").dragTo(canvas, { targetPosition: { x: 320, y: 190 } });
 
   const modal = page.getByTestId("modal-nombre-cosa");
   await expect(modal).toBeVisible();
@@ -628,7 +629,7 @@ test("HU-10.003: modal-nombre-cosa expone el form con input controlado para nomb
   await page.goto("/");
   await cerrarPantallaInicioSiVisible(page);
   const canvas = page.getByRole("img", { name: "OPD activo" });
-  await page.getByTestId("toolbar-modo-creacion-objeto").dragTo(canvas, { targetPosition: { x: 320, y: 190 } });
+  await page.getByTestId("toolbar-drag-objeto").dragTo(canvas, { targetPosition: { x: 320, y: 190 } });
 
   const modal = page.getByTestId("modal-nombre-cosa");
   await expect(modal).toBeVisible();
@@ -653,7 +654,7 @@ test("HU-30.019: doble clic sobre tile en DialogoCargarModelo carga modelo y cie
   await page.goto("/");
   await cerrarPantallaInicioSiVisible(page);
   const canvas = page.getByRole("img", { name: "OPD activo" });
-  await page.getByTestId("toolbar-modo-creacion-objeto").dragTo(canvas, { targetPosition: { x: 320, y: 190 } });
+  await page.getByTestId("toolbar-drag-objeto").dragTo(canvas, { targetPosition: { x: 320, y: 190 } });
   const modalNombre = page.getByTestId("modal-nombre-cosa");
   if (await modalNombre.count()) {
     await modalNombre.getByLabel("Nombre").fill("Cargable doble clic");
@@ -685,7 +686,7 @@ test("HU-30.020: clic sobre tile selecciona y botón Cargar del diálogo carga m
   await page.goto("/");
   await cerrarPantallaInicioSiVisible(page);
   const canvas = page.getByRole("img", { name: "OPD activo" });
-  await page.getByTestId("toolbar-modo-creacion-objeto").dragTo(canvas, { targetPosition: { x: 320, y: 190 } });
+  await page.getByTestId("toolbar-drag-objeto").dragTo(canvas, { targetPosition: { x: 320, y: 190 } });
   const modalNombre = page.getByTestId("modal-nombre-cosa");
   if (await modalNombre.count()) {
     await modalNombre.getByLabel("Nombre").fill("Cargable boton");
@@ -716,7 +717,7 @@ test("HU-30.037: Esc cancela Cargar modelo con archivados sin persistir cambios"
 
   await page.goto("/");
   await cerrarPantallaInicioSiVisible(page);
-  await page.getByLabel("Cargar modelo de ejemplo").selectOption("Cafetera Domestica");
+  await cargarModeloEjemplo(page, "Cafetera Domestica");
 
   const exportadoAntes = await exportadoActual(page);
 
@@ -743,7 +744,7 @@ test("HU-30.037: Esc cancela Configuración sin persistir cambios al modelo", as
 
   await page.goto("/");
   await cerrarPantallaInicioSiVisible(page);
-  await page.getByLabel("Cargar modelo de ejemplo").selectOption("Cafetera Domestica");
+  await cargarModeloEjemplo(page, "Cafetera Domestica");
 
   const exportadoAntes = await exportadoActual(page);
 
@@ -771,7 +772,7 @@ test("HU-30.037: Esc cancela DialogoBuscarGlobal sin persistir cambios al modelo
 
   await page.goto("/");
   await cerrarPantallaInicioSiVisible(page);
-  await page.getByLabel("Cargar modelo de ejemplo").selectOption("Cafetera Domestica");
+  await cargarModeloEjemplo(page, "Cafetera Domestica");
 
   const exportadoAntes = await exportadoActual(page);
 
@@ -795,7 +796,7 @@ test("HU-30.037: Esc cancela DialogoVersiones sin persistir cambios al modelo", 
 
   await page.goto("/");
   await cerrarPantallaInicioSiVisible(page);
-  await page.getByLabel("Cargar modelo de ejemplo").selectOption("Cafetera Domestica");
+  await cargarModeloEjemplo(page, "Cafetera Domestica");
 
   // Persistir el modelo: el diálogo de versiones requiere `modeloPersistidoId`.
   await page.getByLabel("Menú principal").click();

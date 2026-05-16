@@ -13,6 +13,7 @@ import {
   clickLinkPorTipo,
   desplegarComoAgregacion,
   guardarComoActual,
+  cargarModeloEjemplo,
   cargarPrimerModelo,
   assertWorkbenchLayout,
   assertCanvasScrollable,
@@ -54,7 +55,7 @@ test("carga demo OPM en canvas JointJS y mantiene OPL visible", async ({ page })
   await page.goto("/");
   await expect(page.getByRole("img", { name: "OPD activo" })).toBeVisible();
 
-  await page.getByLabel("Cargar modelo de ejemplo").selectOption("Cafetera Domestica");
+  await cargarModeloEjemplo(page, "Cafetera Domestica");
 
   await expect(page.locator(".joint-paper svg")).toHaveCount(1);
   expect(await page.locator(".joint-element").count()).toBeGreaterThanOrEqual(3);
@@ -72,7 +73,7 @@ test("L3 panel diagnostico marca Cafetera Domestica como valida", async ({ page 
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
-  await page.getByLabel("Cargar modelo de ejemplo").selectOption("Cafetera Domestica");
+  await cargarModeloEjemplo(page, "Cafetera Domestica");
 
   const panel = page.getByTestId("panel-diagnostico");
   await expect(panel).toBeVisible();
@@ -87,7 +88,7 @@ test("workspace local abre menu, guarda como, guarda incremental y carga desde d
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
-  await expect(page.getByText("Modelo (No guardado)").first()).toBeVisible();
+  await expect(page.getByTestId("chip-persistencia")).toHaveAttribute("data-variante", "nuevo");
   await expect(page.getByRole("treeitem", { name: /SD/ })).toBeVisible();
   await expect(page.locator(".joint-element")).toHaveCount(0);
   await expect(page.getByTestId("panel-opl-minimizado")).toBeVisible();
@@ -250,9 +251,9 @@ test("asiste importacion JSON con archivo, preview, confirmacion y error legible
   await expect(dialogo).toBeVisible();
   await dialogo.getByRole("button", { name: "Descartar" }).click();
   await expect(elementoPorTexto(page, "Objeto Raiz")).toHaveCount(1);
-  // P0-1 + ronda19 L5: header y pestana cuentan la misma identidad, y el
-  // estado "sin guardar" vive en ChipPersistencia, no como sufijo del titulo.
-  await expect(page.getByText("Modelo multi OPD", { exact: true })).toHaveCount(1);
+  // Ronda 22 §7.1: el header ya no duplica el titulo del modelo; la identidad
+  // vive en la pestaña y el estado de persistencia en ChipPersistencia.
+  await expect(page.getByTestId("toolbar-root").getByText("Modelo multi OPD", { exact: true })).toHaveCount(0);
   await expect(page.getByRole("tab", { name: /Modelo multi OPD/ })).toHaveCount(1);
   await expect(page.getByTestId("chip-persistencia")).toContainText("Importado");
 

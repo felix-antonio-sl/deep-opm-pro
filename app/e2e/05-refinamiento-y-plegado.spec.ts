@@ -194,7 +194,7 @@ test("crea objeto interno por click dentro del contenedor refinado", async ({ pa
   await ejecutarAccionCommandPalette(page, "inzoom", "accion-inzoom");
   await expect(page.locator('[role="treeitem"]').filter({ hasText: "SD1: Proceso descompuesto" })).toHaveAttribute("aria-current", "page");
 
-  await page.getByTestId("toolbar-modo-creacion-objeto").click();
+  await page.getByTestId("toolbar-drag-objeto").click({ modifiers: ["Shift"] });
   const contorno = await rectDeLocator(elementoPorTexto(page, "Proceso"));
   await page.mouse.click(contorno.x + 48, contorno.y + 118);
 

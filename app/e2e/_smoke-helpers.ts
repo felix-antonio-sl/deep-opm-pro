@@ -231,10 +231,23 @@ export async function guardarComoActual(page: import("@playwright/test").Page, n
   await expect(page.getByTestId("chip-persistencia")).toHaveAttribute("data-variante", "local-clean");
 }
 
-export async function cargarPrimerModelo(page: import("@playwright/test").Page): Promise<void> {
+export async function cargarModeloEjemplo(page: import("@playwright/test").Page, nombre: string): Promise<void> {
+  const dialogo = await abrirDialogoCargarModelo(page);
+  const selectorEjemplos = dialogo.getByLabel("Cargar modelo de ejemplo");
+  await expect(selectorEjemplos).toBeVisible();
+  await selectorEjemplos.selectOption(nombre);
+  await expect(dialogo).toHaveCount(0);
+}
+
+export async function abrirDialogoCargarModelo(page: import("@playwright/test").Page): Promise<import("@playwright/test").Locator> {
   await page.getByRole("button", { name: "Cargar", exact: true }).first().click();
   const dialogo = page.getByRole("dialog", { name: "Cargar modelo" });
   await expect(dialogo).toBeVisible();
+  return dialogo;
+}
+
+export async function cargarPrimerModelo(page: import("@playwright/test").Page): Promise<void> {
+  const dialogo = await abrirDialogoCargarModelo(page);
   // El panel "Recientes" expone botones con data-testid="reciente-modelo";
   // un solo click sobre el primer item abre el modelo en modo carga.
   await dialogo.getByTestId("reciente-modelo").first().click();

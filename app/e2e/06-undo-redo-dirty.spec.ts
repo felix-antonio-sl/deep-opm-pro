@@ -57,36 +57,36 @@ test("marca dirty state y navega cambios con deshacer y rehacer", async ({ page 
 
   const deshacer = page.getByRole("button", { name: "Deshacer" });
   const rehacer = page.getByRole("button", { name: "Rehacer" });
-  await expect(page.getByText("Modelo (No guardado)").first()).toBeVisible();
+  await expect(page.getByTestId("chip-persistencia")).toHaveAttribute("data-variante", "nuevo");
   await expect(deshacer).toBeDisabled();
   await expect(rehacer).toBeDisabled();
 
   await page.getByRole("button", { name: "Objeto", exact: true }).click();
-  await expect(page.getByText("Modelo (No guardado)").first()).toBeVisible();
+  await expect(page.getByTestId("chip-persistencia")).toHaveAttribute("data-variante", "nuevo");
   await expect(page.locator(".joint-element")).toHaveCount(1);
   await expect(deshacer).toBeEnabled();
   await expect(rehacer).toBeDisabled();
 
   await page.keyboard.press("Control+Z");
-  await expect(page.getByText("Modelo (No guardado)").first()).toBeVisible();
+  await expect(page.getByTestId("chip-persistencia")).toHaveAttribute("data-variante", "nuevo");
   await expect(page.locator(".joint-element")).toHaveCount(0);
   await expect(deshacer).toBeDisabled();
   await expect(rehacer).toBeEnabled();
 
   await page.keyboard.press("Control+Shift+Z");
-  await expect(page.getByText("Modelo (No guardado)").first()).toBeVisible();
+  await expect(page.getByTestId("chip-persistencia")).toHaveAttribute("data-variante", "nuevo");
   await expect(page.locator(".joint-element")).toHaveCount(1);
   await expect(deshacer).toBeEnabled();
   await expect(rehacer).toBeDisabled();
 
   await deshacer.click();
-  await expect(page.getByText("Modelo (No guardado)").first()).toBeVisible();
+  await expect(page.getByTestId("chip-persistencia")).toHaveAttribute("data-variante", "nuevo");
   await expect(page.locator(".joint-element")).toHaveCount(0);
   await expect(deshacer).toBeDisabled();
   await expect(rehacer).toBeEnabled();
 
   await rehacer.click();
-  await expect(page.getByText("Modelo (No guardado)").first()).toBeVisible();
+  await expect(page.getByTestId("chip-persistencia")).toHaveAttribute("data-variante", "nuevo");
   await expect(page.locator(".joint-element")).toHaveCount(1);
   await expect(deshacer).toBeEnabled();
   await expect(rehacer).toBeDisabled();
@@ -107,7 +107,7 @@ test("marca dirty state y navega cambios con deshacer y rehacer", async ({ page 
 
   await page.screenshot({ path: "test-results/opm-dirty-undo-redo.png", fullPage: true });
   await guardarComoActual(page, "Renombrado local");
-  await expect(page.getByText("Modelo (No guardado)").first()).toHaveCount(0);
+  await expect(page.getByTestId("chip-persistencia")).toHaveAttribute("data-variante", "local-clean");
   await expect(deshacer).toBeEnabled();
 
   await page.getByRole("button", { name: "Nuevo", exact: true }).click();
@@ -115,7 +115,7 @@ test("marca dirty state y navega cambios con deshacer y rehacer", async ({ page 
   await expect(deshacer).toBeDisabled();
   await cargarPrimerModelo(page);
   await expect(elementoPorTexto(page, "Renombrado")).toHaveCount(1);
-  await expect(page.getByText("Modelo (No guardado)").first()).toHaveCount(0);
+  await expect(page.getByTestId("chip-persistencia")).toHaveAttribute("data-variante", "local-clean");
   await expect(deshacer).toBeDisabled();
 
   expect(pageErrors).toEqual([]);
@@ -169,7 +169,7 @@ test("confirma cambios sin guardar antes de crear un modelo nuevo", async ({ pag
   await dialogo.getByRole("button", { name: "Descartar" }).click();
   await expect(dialogo).toHaveCount(0);
   await expect(page.locator(".joint-element")).toHaveCount(0);
-  await expect(page.getByText("Modelo (No guardado)").first()).toBeVisible();
+  await expect(page.getByTestId("chip-persistencia")).toHaveAttribute("data-variante", "nuevo");
 
   expect(pageErrors).toEqual([]);
 });
@@ -181,7 +181,7 @@ test("no abre confirmacion cuando Nuevo se ejecuta tras guardar", async ({ page 
   await page.goto("/");
   await page.getByRole("button", { name: "Objeto", exact: true }).click();
   await guardarComoActual(page, "Modelo sin confirmacion");
-  await expect(page.getByText("Modelo (No guardado)").first()).toHaveCount(0);
+  await expect(page.getByTestId("chip-persistencia")).toHaveAttribute("data-variante", "local-clean");
 
   await page.getByRole("button", { name: "Nuevo", exact: true }).click();
   await expect(page.getByRole("dialog", { name: "Hay cambios sin guardar" })).toHaveCount(0);
@@ -391,7 +391,7 @@ test("HU-SHARED-002: deshacer revierte creación de cosa con un solo Ctrl+Z (ato
   await page.goto("/");
   await cerrarPantallaInicioSiVisible(page);
   const canvas = page.getByRole("img", { name: "OPD activo" });
-  await page.getByTestId("toolbar-modo-creacion-objeto").dragTo(canvas, { targetPosition: { x: 320, y: 190 } });
+  await page.getByTestId("toolbar-drag-objeto").dragTo(canvas, { targetPosition: { x: 320, y: 190 } });
   const modal = page.getByTestId("modal-nombre-cosa");
   if (await modal.count()) {
     await modal.getByLabel("Nombre").fill("Cosa undo");

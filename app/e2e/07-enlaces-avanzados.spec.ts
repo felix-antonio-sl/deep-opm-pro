@@ -15,6 +15,7 @@ import {
   irATabExtremos,
   irATabEstiloEnlace,
   guardarComoActual,
+  cargarModeloEjemplo,
   cargarPrimerModelo,
   restaurarPanelOplSiMinimizado,
   assertWorkbenchLayout,
@@ -392,7 +393,7 @@ test("L3 UX: DialogoTraerConectados muestra conteo por familia", async ({ page }
 
   await page.goto("/");
   await cerrarPantallaInicioSiVisible(page);
-  await page.getByLabel("Cargar modelo de ejemplo").selectOption("Cafetera Domestica");
+  await cargarModeloEjemplo(page, "Cafetera Domestica");
 
   await elementoPorTexto(page, "Hacer Cafe").first().click();
   await abrirTraerConectadosDesdeMenuEntidad(page, "Hacer Cafe");

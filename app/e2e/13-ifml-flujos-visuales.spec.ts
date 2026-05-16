@@ -47,7 +47,7 @@ test.describe("Ronda 15 L3 IFML flow nueva-cosa", () => {
 
     // Ejecutar el flujo IFML real: drop en canvas -> Action -> NavigationFlow
     const canvas = page.getByRole("img", { name: "OPD activo" });
-    await page.getByTestId("toolbar-modo-creacion-objeto").dragTo(canvas, { targetPosition: { x: 320, y: 190 } });
+    await page.getByTestId("toolbar-drag-objeto").dragTo(canvas, { targetPosition: { x: 320, y: 190 } });
 
     const modal = page.getByTestId("modal-nombre-cosa");
     await expect(modal).toBeVisible();
@@ -71,7 +71,7 @@ test.describe("Ronda 15 L3 IFML flow nueva-cosa", () => {
     await cerrarPantallaInicioSiVisible(page);
 
     const canvas = page.getByRole("img", { name: "OPD activo" });
-    await page.getByTestId("toolbar-modo-creacion-objeto").dragTo(canvas, { targetPosition: { x: 320, y: 190 } });
+    await page.getByTestId("toolbar-drag-objeto").dragTo(canvas, { targetPosition: { x: 320, y: 190 } });
 
     const modal = page.getByTestId("modal-nombre-cosa");
     await expect(modal).toBeVisible();
@@ -105,7 +105,7 @@ test.describe("Ronda 15 L3 IFML flow nueva-cosa", () => {
 
     // Crear una entidad sin renombrar: descartar pendiente.
     const canvas = page.getByRole("img", { name: "OPD activo" });
-    await page.getByTestId("toolbar-modo-creacion-objeto").dragTo(canvas, { targetPosition: { x: 320, y: 190 } });
+    await page.getByTestId("toolbar-drag-objeto").dragTo(canvas, { targetPosition: { x: 320, y: 190 } });
     const modal = page.getByTestId("modal-nombre-cosa");
     await expect(modal).toBeVisible();
     const input = modal.getByLabel("Nombre");

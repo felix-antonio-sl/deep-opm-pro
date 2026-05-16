@@ -2,13 +2,10 @@
  * ViewContainer ToolbarBase: chrome estable del modelador. [JOYAS §1-3], [V-0c], IFML H-2/H-5/H-12.
  */
 import { lazy, Suspense } from "preact/compat";
-import { useEffect, useMemo, useState } from "preact/hooks";
-import lockIcon from "../../../../assets/svg/lock.svg";
+import { useEffect, useState } from "preact/hooks";
 import objectDragIcon from "../../../../assets/svg/objectDrag.svg";
-import verFileIcon from "../../../../assets/svg/verFile.svg";
 import { normalizarGridConfig } from "../../canvas/grid";
 import type { Entidad, Id, TipoEnlace } from "../../modelo/tipos";
-import { listarFixtures } from "../../store/runtime";
 import { useOpmStore } from "../../store";
 import type { AccionContextualId } from "../../store/acciones-contextuales";
 import { primerEnlaceVisualDeEntidad } from "../BarraHerramientasElemento";
@@ -55,16 +52,12 @@ export function ToolbarBase({ children, modelarSlot, conectarSlot, mapaSlot, sta
   const crearProceso = useOpmStore((s) => s.crearProcesoDemo);
   const crearAtributoNumerico = useOpmStore((s) => s.crearAtributoEnObjetoSeleccionado);
   const fijarModoCreacion = useOpmStore((s) => s.fijarModoCreacion);
-  const cargarFixtureDemo = useOpmStore((s) => s.cargarFixtureDemo);
   const guardarLocal = useOpmStore((s) => s.guardarLocal);
   const abrirCargarModelo = useOpmStore((s) => s.abrirCargarModelo);
   const deshacer = useOpmStore((s) => s.deshacer);
   const rehacer = useOpmStore((s) => s.rehacer);
   const menuPrincipalAbierto = useOpmStore((s) => s.menuPrincipalAbierto);
   const abrirDialogoComandos = useOpmStore((s) => s.abrirDialogoComandos);
-  const modeloPersistidoId = useOpmStore((s) => s.modeloPersistidoId);
-  const modelosGuardados = useOpmStore((s) => s.modelosGuardados);
-  const abrirDialogoVersiones = useOpmStore((s) => s.abrirDialogoVersiones);
   const puedeDeshacer = useOpmStore((s) => s.puedeDeshacer);
   const puedeRehacer = useOpmStore((s) => s.puedeRehacer);
   const modelo = useOpmStore((s) => s.modelo);
@@ -84,7 +77,6 @@ export function ToolbarBase({ children, modelarSlot, conectarSlot, mapaSlot, sta
   const eliminarSeleccion = useOpmStore((s) => s.eliminarSeleccion);
   const conectarSeleccionAlTodo = useOpmStore((s) => s.conectarSeleccionAlTodo);
   const traerEnlacesEntreSeleccionadas = useOpmStore((s) => s.traerEnlacesEntreSeleccionadas);
-  const readOnly = useOpmStore((s) => s.readOnly);
   const iniciarAutosalvado = useOpmStore((s) => s.iniciarAutosalvado);
   // Ronda 19 L5: `dirty` ya no se lee aqui; ChipPersistencia lo consume.
   const modoCreacion = useOpmStore((s) => s.modoCreacion);
@@ -166,13 +158,6 @@ export function ToolbarBase({ children, modelarSlot, conectarSlot, mapaSlot, sta
 
   const entidadSeleccionada = seleccionId ? modelo.entidades[seleccionId] : undefined;
   const puedeCrearAtributo = entidadSeleccionada?.tipo === "objeto";
-  // Ronda 19 L5: el sufijo "(No guardado)" se reemplaza por <ChipPersistencia />
-  // que comunica el estado de almacenamiento de forma estructurada (variante,
-  // versiones, tiempo desde último save). El título queda limpio.
-  const tituloModelo = modelo.nombre;
-  const resumenPersistido = modeloPersistidoId ? modelosGuardados.find((item) => item.id === modeloPersistidoId) : undefined;
-  const totalVersiones = resumenPersistido?.versiones?.length ?? 0;
-  const demos = useMemo(() => listarFixtures(), []);
   const todoMultiSeleccion = seleccionados.length >= 2 ? seleccionados[seleccionados.length - 1] : null;
   const puedeEditarImagen = entidadSeleccionada?.tipo === "objeto";
   const hayMultiSeleccion = seleccionados.length >= 2;
@@ -215,9 +200,19 @@ export function ToolbarBase({ children, modelarSlot, conectarSlot, mapaSlot, sta
   function handleNuevoModelo() {
     confirmarSiDirty(nuevoModelo);
   }
-  function handleSeleccionDemo(event: Event) {
-    const nombre = (event.currentTarget as HTMLSelectElement).value;
-    if (nombre) confirmarSiDirty(() => cargarFixtureDemo(nombre));
+  function handleCrearObjeto(event: MouseEvent) {
+    if (event.shiftKey) {
+      fijarModoCreacion(modoCreacion === "objeto" ? null : "objeto");
+      return;
+    }
+    crearObjeto();
+  }
+  function handleCrearProceso(event: MouseEvent) {
+    if (event.shiftKey) {
+      fijarModoCreacion(modoCreacion === "proceso" ? null : "proceso");
+      return;
+    }
+    crearProceso();
   }
   function handleGuardarNombreNuevaCosa(event: Event) {
     event.preventDefault();
@@ -263,30 +258,17 @@ export function ToolbarBase({ children, modelarSlot, conectarSlot, mapaSlot, sta
           {/* P0-2: MenuPrincipal vive ahora en App.tsx para evitar
               duplicacion en el DOM. El boton aqui solo gatilla el store. */}
         </div>
-        <span style={style.title}>{tituloModelo}</span>
         {/* Ronda 19 L5: slot estable para chip de persistencia en cluster Modelo. */}
         <ChipPersistencia />
         {statusSlot ?? null}
-        {resumenPersistido?.archivado ? <span style={style.archiveBadge}>ARCH</span> : null}
-        {modeloPersistidoId && totalVersiones > 0 ? (
-          <button type="button" style={style.versionButton} onClick={() => abrirDialogoVersiones(modeloPersistidoId)} title={`${totalVersiones} versiones guardadas`}>
-            <img src={verFileIcon} alt="" style={style.versionIcon} />{totalVersiones}
-          </button>
-        ) : null}
         <button style={puedeDeshacer ? style.button : style.disabledButton} type="button" onClick={deshacer} disabled={!puedeDeshacer} aria-label="Deshacer" title="Deshacer · Ctrl+Z">↶</button>
         <button style={puedeRehacer ? style.button : style.disabledButton} type="button" onClick={rehacer} disabled={!puedeRehacer} aria-label="Rehacer" title="Rehacer · Ctrl+Shift+Z">↷</button>
         {/* L2 ronda 21: en mobile sólo mantenemos chip + menú + undo/redo. Las
-            acciones Nuevo/Demo/Guardar/Cargar quedan accesibles desde
-            MenuPrincipal (botón ☰) y reducen overflow horizontal. */}
+            acciones de archivo quedan accesibles desde MenuPrincipal. */}
         {esMobile ? null : (
           <>
             <button style={style.button} type="button" onClick={handleNuevoModelo} title="Nuevo modelo · descarta el actual si pides confirmación">Nuevo</button>
-            <select style={style.demoSelect} aria-label="Cargar modelo de ejemplo" value="" onChange={handleSeleccionDemo}>
-              <option value="" disabled>Demo</option>
-              {demos.map((d) => <option key={d.modelo.nombre} value={d.modelo.nombre} title={d.proposito}>{d.modelo.nombre}</option>)}
-            </select>
-            <button style={style.button} type="button" onClick={guardarLocal} title="Guardar (Ctrl+S)">{readOnly ? <img src={lockIcon} alt="" style={style.lockIcon} /> : null}Guardar</button>
-            {readOnly ? <span style={style.readOnlyBadge} data-testid="indicador-readonly">Solo lectura</span> : null}
+            <button style={style.button} type="button" onClick={guardarLocal} title="Guardar (Ctrl+S)">Guardar</button>
             <button style={style.button} type="button" onClick={() => confirmarSiDirty(abrirCargarModelo)} title="Cargar modelo guardado">Cargar</button>
           </>
         )}
@@ -296,18 +278,11 @@ export function ToolbarBase({ children, modelarSlot, conectarSlot, mapaSlot, sta
         <span style={style.divider} />
         <div role="group" aria-label="Modelar" style={style.cluster} data-slot="cluster-modelar" data-cluster="modelar">
           <span style={style.clusterLabel}>Modelar</span>
-          <button style={style.button} type="button" onClick={crearObjeto} draggable onDragStart={dragToolbar("objeto")} data-testid="toolbar-drag-objeto" title="Crear objeto · arrastra al canvas o clic para insertar">Objeto</button>
-          <button style={style.button} type="button" onClick={crearProceso} draggable onDragStart={dragToolbar("proceso")} data-testid="toolbar-drag-proceso" title="Crear proceso · arrastra al canvas o clic para insertar">Proceso</button>
+          <button style={modoCreacion === "objeto" ? style.activeButton : style.button} type="button" aria-pressed={modoCreacion === "objeto"} className={modoCreacion === "objeto" ? "boton-toolbar-activo" : undefined} onClick={handleCrearObjeto} draggable onDragStart={dragToolbar("objeto")} data-testid="toolbar-drag-objeto" title={modoCreacion === "objeto" ? "Inserción continua de objetos activa · Shift+clic para salir" : "Crear objeto · arrastra al canvas, clic para insertar o Shift+clic para inserción continua"}>Objeto</button>
+          <button style={modoCreacion === "proceso" ? style.activeButton : style.button} type="button" aria-pressed={modoCreacion === "proceso"} className={modoCreacion === "proceso" ? "boton-toolbar-activo" : undefined} onClick={handleCrearProceso} draggable onDragStart={dragToolbar("proceso")} data-testid="toolbar-drag-proceso" title={modoCreacion === "proceso" ? "Inserción continua de procesos activa · Shift+clic para salir" : "Crear proceso · arrastra al canvas, clic para insertar o Shift+clic para inserción continua"}>Proceso</button>
           <button style={puedeCrearAtributo ? style.iconTextButton : style.disabledButton} type="button" disabled={!puedeCrearAtributo} draggable={puedeCrearAtributo} onDragStart={dragAtributoNumerico} onClick={() => crearAtributoNumerico({ nombre: "Valor [u]", tipoSlot: "float" })} title={puedeCrearAtributo ? "Crear atributo numérico en el objeto seleccionado" : "Selecciona un objeto"} data-testid="toolbar-crear-atributo-numerico">
             <img src={objectDragIcon} alt="" style={style.smallIcon} />+ Atributo
           </button>
-          {/* Crear varios objetos/procesos: en banda con drag soportado.
-              Decisión P3: 8+ smokes hacen `dragTo(canvas)` directamente sobre los
-              testIds, y el menú ⋯ Más no soporta drag desde sus items. Mantener
-              en cluster Modelar preserva la API de smokes y la affordance de
-              arrastre originaria. */}
-          <button style={modoCreacion === "objeto" ? style.activeButton : style.button} type="button" aria-pressed={modoCreacion === "objeto"} className={modoCreacion === "objeto" ? "boton-toolbar-activo" : undefined} draggable onDragStart={dragToolbar("objeto")} onClick={() => fijarModoCreacion(modoCreacion === "objeto" ? null : "objeto")} title={modoCreacion === "objeto" ? "Creación continua de objetos activa · clic para desactivar" : "Crear objetos en serie · cada clic en canvas inserta un objeto"} data-testid="toolbar-modo-creacion-objeto">Crear varios objetos</button>
-          <button style={modoCreacion === "proceso" ? style.activeButton : style.button} type="button" aria-pressed={modoCreacion === "proceso"} className={modoCreacion === "proceso" ? "boton-toolbar-activo" : undefined} draggable onDragStart={dragToolbar("proceso")} onClick={() => fijarModoCreacion(modoCreacion === "proceso" ? null : "proceso")} title={modoCreacion === "proceso" ? "Creación continua de procesos activa · clic para desactivar" : "Crear procesos en serie · cada clic en canvas inserta un proceso"} data-testid="toolbar-modo-creacion-proceso">Crear varios procesos</button>
           {modelarSlot ?? null}
         </div>
         <span style={style.divider} />

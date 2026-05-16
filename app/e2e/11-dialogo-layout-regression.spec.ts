@@ -21,7 +21,7 @@
  */
 
 import { expect, test, type Page, type Locator } from "@playwright/test";
-import { cerrarPantallaInicioSiVisible } from "./_smoke-helpers";
+import { cargarModeloEjemplo, cerrarPantallaInicioSiVisible } from "./_smoke-helpers";
 
 interface Rect { x: number; y: number; width: number; height: number }
 
@@ -56,7 +56,7 @@ test("[L1] DialogoCargarModelo pinta sobre canvas+grid e interactua", async ({ p
 
   await page.goto("/");
   await cerrarPantallaInicioSiVisible(page);
-  await page.getByLabel("Cargar modelo de ejemplo").selectOption("Cafetera Domestica");
+  await cargarModeloEjemplo(page, "Cafetera Domestica");
   await expect(page.locator(".joint-paper svg")).toHaveCount(1);
 
   await page.getByRole("button", { name: "Cargar", exact: true }).first().click();
@@ -87,7 +87,7 @@ test("[L1] DialogoConfiguracion pinta sobre canvas SVG y acepta edicion sin clic
 
   await page.goto("/");
   await cerrarPantallaInicioSiVisible(page);
-  await page.getByLabel("Cargar modelo de ejemplo").selectOption("Cafetera Domestica");
+  await cargarModeloEjemplo(page, "Cafetera Domestica");
   await expect(page.locator(".joint-paper svg")).toHaveCount(1);
 
   await abrirConfigGridDesdeMas(page);
@@ -129,7 +129,7 @@ test("[L1] DialogoConfiguracion expone aria-labelledby y Esc captura", async ({ 
 
   await page.goto("/");
   await cerrarPantallaInicioSiVisible(page);
-  await page.getByLabel("Cargar modelo de ejemplo").selectOption("Cafetera Domestica");
+  await cargarModeloEjemplo(page, "Cafetera Domestica");
   await expect(page.locator(".joint-paper svg")).toHaveCount(1);
 
   await abrirConfigGridDesdeMas(page);
@@ -162,7 +162,7 @@ test("[L1] Dialogo se monta fuera del subarbol del workbench (portal a body)", a
 
   await page.goto("/");
   await cerrarPantallaInicioSiVisible(page);
-  await page.getByLabel("Cargar modelo de ejemplo").selectOption("Cafetera Domestica");
+  await cargarModeloEjemplo(page, "Cafetera Domestica");
   await expect(page.locator(".joint-paper svg")).toHaveCount(1);
 
   await page.getByRole("button", { name: "Cargar", exact: true }).first().click();

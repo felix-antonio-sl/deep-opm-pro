@@ -1,5 +1,7 @@
 import { expect, test } from "@playwright/test";
 import {
+  abrirDialogoCargarModelo,
+  cargarModeloEjemplo,
   cerrarPantallaInicioSiVisible,
   elementoPorTexto,
   exportadoActual,
@@ -30,7 +32,8 @@ test.describe("beta1 catalogo + ancla", () => {
     page.on("pageerror", (error) => pageErrors.push(error.message));
 
     await page.goto("/");
-    const selector = page.getByLabel("Cargar modelo de ejemplo");
+    const dialogo = await abrirDialogoCargarModelo(page);
+    const selector = dialogo.getByLabel("Cargar modelo de ejemplo");
     await expect(selector).toBeVisible();
 
     const optPrestamo = selector.locator("option").filter({ hasText: /^Prestamo Bibliotecario$/ });
@@ -46,7 +49,7 @@ test.describe("beta1 catalogo + ancla", () => {
     page.on("pageerror", (error) => pageErrors.push(error.message));
 
     await page.goto("/");
-    await page.getByLabel("Cargar modelo de ejemplo").selectOption("Prestamo Bibliotecario");
+    await cargarModeloEjemplo(page, "Prestamo Bibliotecario");
 
     // El canvas dibuja el SD raiz: al menos el proceso central + biblioteca + libro visibles.
     await expect(page.locator(".joint-paper svg")).toHaveCount(1);
@@ -67,7 +70,7 @@ test.describe("beta1 catalogo + ancla", () => {
 
     await page.goto("/");
     await cerrarPantallaInicioSiVisible(page);
-    await page.getByLabel("Cargar modelo de ejemplo").selectOption("Prestamo Bibliotecario");
+    await cargarModeloEjemplo(page, "Prestamo Bibliotecario");
     await expect(elementoPorTexto(page, "Procesar Prestamo")).toBeVisible();
 
     // Snapshot inicial via Exportar.
