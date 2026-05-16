@@ -127,7 +127,15 @@ export function App() {
 
   // L2 r17: en modo simulación, BarraSimulacion reemplaza la Toolbar de edición.
   const modoSimulacionActivo = useOpmStore((s) => s.contextoSimulacion !== null);
-  const contextoWorkbench = resolverContextoWorkbench({ breakpoint, vistaMapaActiva, modoSimulacionActivo });
+  const modoEnlaceActivo = useOpmStore((s) => s.modoEnlace !== null);
+  const modoCreacionActivo = useOpmStore((s) => s.modoCreacion !== null);
+  const contextoWorkbench = resolverContextoWorkbench({
+    breakpoint,
+    vistaMapaActiva,
+    modoSimulacionActivo,
+    modoEnlaceActivo,
+    modoCreacionActivo,
+  });
   const esViewPointMapa = contextoWorkbench.modo === "mapa";
 
   return (
@@ -137,6 +145,7 @@ export function App() {
         data-breakpoint={breakpoint}
         data-context-device={contextoWorkbench.device}
         data-context-modo={contextoWorkbench.modo}
+        data-context-submodo={contextoWorkbench.subModo ?? "ninguno"}
         data-viewpoint={contextoWorkbench.viewPoint}
         data-viewpoint-default={contextoWorkbench.viewPointDefault ? "true" : "false"}
       >

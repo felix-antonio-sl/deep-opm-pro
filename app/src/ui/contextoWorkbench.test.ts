@@ -2,6 +2,7 @@ import { describe, expect, test } from "bun:test";
 import {
   resolverContextDeviceWorkbench,
   resolverContextModoWorkbench,
+  resolverContextSubModoWorkbench,
   resolverContextoWorkbench,
   resolverViewPointWorkbench,
 } from "./contextoWorkbench";
@@ -28,6 +29,47 @@ describe("resolverContextModoWorkbench — Context.Modo IFML", () => {
   });
 });
 
+describe("resolverContextSubModoWorkbench — Context.Modo.subModo IFML", () => {
+  test("declara null cuando edicion no tiene gesto modal", () => {
+    expect(resolverContextSubModoWorkbench({
+      vistaMapaActiva: false,
+      modoSimulacionActivo: false,
+      modoEnlaceActivo: false,
+      modoCreacionActivo: false,
+    })).toBeNull();
+  });
+
+  test("declara conectando e insertando solo dentro de edicion", () => {
+    expect(resolverContextSubModoWorkbench({
+      vistaMapaActiva: false,
+      modoSimulacionActivo: false,
+      modoEnlaceActivo: true,
+      modoCreacionActivo: false,
+    })).toBe("conectando");
+    expect(resolverContextSubModoWorkbench({
+      vistaMapaActiva: false,
+      modoSimulacionActivo: false,
+      modoEnlaceActivo: false,
+      modoCreacionActivo: true,
+    })).toBe("insertando");
+  });
+
+  test("mapa y simulacion anulan submodo de edicion", () => {
+    expect(resolverContextSubModoWorkbench({
+      vistaMapaActiva: true,
+      modoSimulacionActivo: false,
+      modoEnlaceActivo: true,
+      modoCreacionActivo: true,
+    })).toBeNull();
+    expect(resolverContextSubModoWorkbench({
+      vistaMapaActiva: false,
+      modoSimulacionActivo: true,
+      modoEnlaceActivo: true,
+      modoCreacionActivo: true,
+    })).toBeNull();
+  });
+});
+
 describe("resolverViewPointWorkbench — ViewPoint efectivo", () => {
   test("mobile sustituye la composicion aunque el modo sea alternativo", () => {
     expect(resolverViewPointWorkbench({ device: "mobile", modo: "edicion" })).toBe("Mobile");
@@ -46,6 +88,7 @@ describe("resolverContextoWorkbench — contrato integrado", () => {
     expect(resolverContextoWorkbench({ breakpoint: "desktop", vistaMapaActiva: false, modoSimulacionActivo: false })).toEqual({
       device: "desktop",
       modo: "edicion",
+      subModo: null,
       viewPoint: "Edicion",
       viewPointDefault: true,
     });
