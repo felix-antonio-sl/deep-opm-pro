@@ -92,6 +92,14 @@ export async function cerrarPantallaInicioSiVisible(page: import("@playwright/te
   await expect(pantalla).toHaveCount(0);
 }
 
+export async function restaurarPanelOplSiMinimizado(page: import("@playwright/test").Page): Promise<void> {
+  const restaurar = page.getByTestId("panel-opl-restaurar");
+  if (await restaurar.count() > 0) {
+    await restaurar.click();
+    await expect(page.getByTestId("panel-opl-minimizado")).toHaveCount(0);
+  }
+}
+
 export async function crearAtributoNumericoSmoke(page: import("@playwright/test").Page): Promise<void> {
   await cerrarPantallaInicioSiVisible(page);
   await page.getByRole("button", { name: "Objeto", exact: true }).click();

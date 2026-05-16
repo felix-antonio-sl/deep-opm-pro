@@ -1,5 +1,6 @@
 // [JOYAS §1-3] Chrome UI consume tokens centralizados; canvas semántico invariante.
 import { useEffect, useMemo, useRef, useState } from "preact/hooks";
+import type { Id } from "../modelo/tipos/comunes";
 import { agruparOracionesPorOpd, ordenarOpdsParaOpl } from "../opl/bloquesJerarquicos";
 import { generarOplInteractivo } from "../opl/generar";
 import { filtrarLineasPorReferencia, lineaTocaReferencia, type OplReferencia } from "../opl/interaccion";
@@ -48,7 +49,7 @@ export function PanelOpl() {
   const [textoLibre, setTextoLibre] = useState("");
   const contenedorRef = useRef<HTMLElement | null>(null);
   const numeracionVisible = preferenciasOpl?.oplNumeracionVisible ?? true;
-  const minimizado = preferenciasOpl?.oplMinimizado ?? false;
+  const minimizado = panelOplMinimizadoEfectivo(preferenciasOpl?.oplMinimizado, seleccionId, enlaceSeleccionId);
   const bloquesColapsados = useMemo(
     () => new Set(Object.keys(preferenciasOpl?.oplBloquesContraidos ?? {})),
     [preferenciasOpl?.oplBloquesContraidos],
@@ -203,6 +204,16 @@ export function PanelOpl() {
       )}
     </aside>
   );
+}
+
+export function panelOplMinimizadoEfectivo(
+  preferencia: boolean | undefined,
+  seleccionId: Id | null,
+  enlaceSeleccionId: Id | null,
+): boolean {
+  if (preferencia === true) return true;
+  if (seleccionId || enlaceSeleccionId) return false;
+  return preferencia ?? true;
 }
 
 const style = {

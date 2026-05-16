@@ -4,6 +4,7 @@ import {
   escapeRegExp,
   modeloTraerConectadosSmoke,
   cerrarPantallaInicioSiVisible,
+  restaurarPanelOplSiMinimizado,
   crearAtributoNumericoSmoke,
   rectDeLocator,
   clickCabeceraElemento,
@@ -107,6 +108,7 @@ test("panel OPL aplica edicion libre con preview y propaga al canvas", async ({ 
   await page.getByTestId("panel-opl-editor-aplicar").click();
 
   await expect(elementoPorTexto(page, "Cliente")).toHaveCount(1);
+  await restaurarPanelOplSiMinimizado(page);
   await expect(page.getByLabel("Panel OPL-ES").getByText("Cliente es un objeto físico y ambiental.")).toBeVisible();
   await expect(page.getByText("OPL aplicado: 3 cambios")).toBeVisible();
   expect(pageErrors).toEqual([]);
@@ -119,6 +121,7 @@ test("OPL agrupa oraciones por OPD y permite colapsar bloques", async ({ page })
   await page.goto("/");
   await jsonEditor(page).fill(JSON.stringify(modeloDosOpds(), null, 2));
   await page.getByRole("button", { name: "Importar" }).click();
+  await restaurarPanelOplSiMinimizado(page);
 
   const bloqueRaiz = page.getByTestId("bloque-opl-opd-1");
   const bloqueHijo = page.getByTestId("bloque-opl-opd-2");
@@ -260,6 +263,7 @@ test("panel OPL indenta y contrae bloques jerarquicos desde preferencias", async
   await cerrarPantallaInicioSiVisible(page);
   await jsonEditor(page).fill(JSON.stringify(modeloDosOpds(), null, 2));
   await page.getByRole("button", { name: "Importar" }).click();
+  await restaurarPanelOplSiMinimizado(page);
 
   const bloqueRaiz = page.getByTestId("bloque-opl-opd-1");
   const bloqueHijo = page.getByTestId("bloque-opl-opd-2");
@@ -284,6 +288,7 @@ test("panel OPL selecciona enlace especifico en oracion multi-enlace", async ({ 
   await cerrarPantallaInicioSiVisible(page);
   await jsonEditor(page).fill(JSON.stringify(modeloAbanicoLogico(), null, 2));
   await page.getByRole("button", { name: "Importar" }).click();
+  await restaurarPanelOplSiMinimizado(page);
 
   const lineaMultiEnlace = page.locator('[data-testid="opl-line"]').filter({ hasText: "al menos uno de" });
   await lineaMultiEnlace.getByText("Entrada B").click();
@@ -301,6 +306,7 @@ test("panel OPL muestra placeholder de AI Text sin ejecutar funcionalidad", asyn
 
   await page.goto("/");
   await cerrarPantallaInicioSiVisible(page);
+  await restaurarPanelOplSiMinimizado(page);
   await page.getByTestId("panel-opl-ai-text").click();
   await expect(page.getByText("Próximamente: oraciones generadas por LLM")).toBeVisible();
 

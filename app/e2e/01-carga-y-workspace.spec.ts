@@ -4,6 +4,7 @@ import {
   escapeRegExp,
   modeloTraerConectadosSmoke,
   cerrarPantallaInicioSiVisible,
+  restaurarPanelOplSiMinimizado,
   crearAtributoNumericoSmoke,
   rectDeLocator,
   clickCabeceraElemento,
@@ -59,6 +60,7 @@ test("carga demo OPM en canvas JointJS y mantiene OPL visible", async ({ page })
   expect(await page.locator(".joint-element").count()).toBeGreaterThanOrEqual(3);
   expect(await page.locator(".joint-link").count()).toBeGreaterThanOrEqual(2);
   await expect(page.getByText("Hacer Cafe").first()).toBeVisible();
+  await restaurarPanelOplSiMinimizado(page);
   await expect(page.getByText("Hacer Cafe consume Cafe Molido.")).toBeVisible();
 
   await page.screenshot({ path: "test-results/opm-demo-jointjs.png", fullPage: true });
@@ -88,7 +90,8 @@ test("workspace local abre menu, guarda como, guarda incremental y carga desde d
   await expect(page.getByText("Modelo (No guardado)").first()).toBeVisible();
   await expect(page.getByRole("treeitem", { name: /SD/ })).toBeVisible();
   await expect(page.locator(".joint-element")).toHaveCount(0);
-  await expect(page.getByText("Sin OPL todavía.")).toBeVisible();
+  await expect(page.getByTestId("panel-opl-minimizado")).toBeVisible();
+  await expect(page.getByTestId("panel-opl-restaurar")).toContainText("OPL · 0 oraciones · Restaurar");
 
   await page.getByLabel("Menú principal").click();
   const menu = page.getByRole("menu", { name: "Menú principal" });

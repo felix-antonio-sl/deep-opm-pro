@@ -32,7 +32,7 @@ import { MenuPrincipal } from "./MenuPrincipal";
 import { MensajeFlashBridge } from "./MensajeFlashBridge";
 import { ModoRevisionMobile, AvisoEditarEnEscritorio } from "./ModoRevisionMobile";
 import { PanelDiagnostico } from "./PanelDiagnostico";
-import { PanelOpl } from "./PanelOpl";
+import { PanelOpl, panelOplMinimizadoEfectivo } from "./PanelOpl";
 import { BarraSimulacion } from "./simulacion/BarraSimulacion";
 import { tokens } from "./tokens";
 import { Toolbar } from "./Toolbar";
@@ -86,10 +86,12 @@ export function App() {
   const cerrarDialogoComandos = useOpmStore((s) => s.cerrarDialogoComandos);
   const modeloPersistidoId = useOpmStore((s) => s.modeloPersistidoId);
   const pantallaInicioCerrada = useOpmStore((s) => s.pantallaInicioCerrada);
+  const seleccionIdOpl = useOpmStore((s) => s.seleccionId);
+  const enlaceSeleccionIdOpl = useOpmStore((s) => s.enlaceSeleccionId);
   // L2 ronda 21: vista activa solo se consume cuando el breakpoint es mobile.
   const vistaMobileActiva = useOpmStore((s) => s.vistaMobileActiva);
   const [inspectorAbierto, setInspectorAbierto] = useState(true);
-  const oplMinimizado = preferenciasOpl?.oplMinimizado ?? false;
+  const oplMinimizado = panelOplMinimizadoEfectivo(preferenciasOpl?.oplMinimizado, seleccionIdOpl, enlaceSeleccionIdOpl);
   const timelineDisponible = tieneTimelineDisponible(modelo, opdActivoId);
   // L3 ronda 20: biblioteca dock acoplable bajo el arbol OPD.
   const bibliotecaDockAbierto = useOpmStore((s) => s.bibliotecaDockAbierto);
