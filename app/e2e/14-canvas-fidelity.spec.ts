@@ -7,7 +7,7 @@
  * 3. Connector jumpover activo en enlaces procedurales con routerManhattan.
  * 4. Sugerir layout es undoable y no rompe seleccion ni undo stack.
  */
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 import {
   cerrarPantallaInicioSiVisible,
   exportadoActual,
@@ -77,8 +77,7 @@ test("aplicar layout sugerido reorganiza apariencias y es undoable atomicamente"
   const aparienciasInicial = exportadoInicial.modelo.opds["opd-1"]?.apariencias ?? {};
   expect(Object.keys(aparienciasInicial).length).toBeGreaterThan(0);
 
-  // Click sobre el boton "Sugerir layout" en ToolbarCreacion.
-  await page.getByTestId("toolbar-aplicar-layout").click();
+  await clickToolbarMasItem(page, "toolbar-mas-auto-layout");
 
   const exportadoLayout = await exportadoActual(page);
   const aparienciasLayout = exportadoLayout.modelo.opds["opd-1"]?.apariencias ?? {};
@@ -114,10 +113,15 @@ test("aplicar layout en OPD vacio no rompe ni cambia el ledger", async ({ page }
   await cerrarPantallaInicioSiVisible(page);
 
   // No hay apariencias todavia. Click no debe romper.
-  await page.getByTestId("toolbar-aplicar-layout").click();
+  await clickToolbarMasItem(page, "toolbar-mas-auto-layout");
   // Mensaje "Layout ya esta aplicado" puede o no aparecer; lo importante
   // es que no haya pageerror ni alteracion del estado.
   await expect(page.locator(".joint-element")).toHaveCount(0);
 
   expect(pageErrors).toEqual([]);
 });
+
+async function clickToolbarMasItem(page: Page, testId: string): Promise<void> {
+  await page.getByTestId("toolbar-mas-trigger").click();
+  await page.getByTestId(testId).click();
+}

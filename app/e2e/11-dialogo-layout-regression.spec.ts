@@ -46,6 +46,11 @@ async function elementoEnPunto(page: Page, x: number, y: number): Promise<{ insi
   }, { x, y });
 }
 
+async function abrirConfigGridDesdeMas(page: Page): Promise<void> {
+  await page.getByTestId("toolbar-mas-trigger").click();
+  await page.getByTestId("toolbar-mas-config-grid").click();
+}
+
 test("[L1] DialogoCargarModelo pinta sobre canvas+grid e interactua", async ({ page }) => {
   const pageErrors: string[] = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));
@@ -86,11 +91,7 @@ test("[L1] ModalConfiguracionGrid pinta sobre canvas SVG y acepta edicion sin cl
   await page.getByLabel("Cargar modelo de ejemplo").selectOption("Cafetera Domestica");
   await expect(page.locator(".joint-paper svg")).toHaveCount(1);
 
-  // El boton Config grid puede vivir mas alla del overflow horizontal del
-  // toolbar; lo traemos a la vista antes de clickear.
-  const configBtn = page.getByTestId("config-grid");
-  await configBtn.scrollIntoViewIfNeeded();
-  await configBtn.click();
+  await abrirConfigGridDesdeMas(page);
   const modal = page.getByRole("dialog", { name: "Cuadrícula" }).or(page.getByTestId("modal-config-grid"));
   await expect(modal.first()).toBeVisible();
   const bbox = await rectOf(modal.first());
@@ -132,9 +133,7 @@ test("[L1] ModalConfiguracionGrid migrado a Dialogo expone aria-labelledby y Esc
   await page.getByLabel("Cargar modelo de ejemplo").selectOption("Cafetera Domestica");
   await expect(page.locator(".joint-paper svg")).toHaveCount(1);
 
-  const configBtn = page.getByTestId("config-grid");
-  await configBtn.scrollIntoViewIfNeeded();
-  await configBtn.click();
+  await abrirConfigGridDesdeMas(page);
 
   const modal = page.getByRole("dialog", { name: "Cuadrícula" });
   await expect(modal).toBeVisible();

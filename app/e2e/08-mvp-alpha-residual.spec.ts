@@ -53,10 +53,12 @@ test("grid: toggle, configuración y snap al mover cosa", async ({ page }) => {
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
-  await page.getByTestId("toggle-grid").click();
-  await expect(page.getByTestId("toggle-grid")).toHaveAttribute("aria-pressed", "false");
-  await page.getByTestId("toggle-grid").click();
-  await page.getByTestId("config-grid").click();
+  await clickToolbarMasItem(page, "toolbar-mas-toggle-grid");
+  await page.getByTestId("toolbar-mas-trigger").click();
+  await expect(page.getByTestId("toolbar-mas-toggle-grid")).toHaveAttribute("aria-pressed", "false");
+  await page.keyboard.press("Escape");
+  await clickToolbarMasItem(page, "toolbar-mas-toggle-grid");
+  await clickToolbarMasItem(page, "toolbar-mas-config-grid");
   const dialog = page.getByTestId("modal-config-grid");
   await expect(dialog).toBeVisible();
   await dialog.getByLabel("Paso").fill("20");
@@ -171,7 +173,7 @@ test("L4 biblioteca lista cosas y menu contextual borra enlace", async ({ page }
   await page.getByLabel("Nombre").fill("Entrada");
   await page.getByRole("button", { name: "Proceso", exact: true }).click();
   await page.getByLabel("Nombre").fill("Procesar");
-  await page.getByTestId("toggle-biblioteca-dock").click();
+  await clickToolbarMasItem(page, "toolbar-mas-biblioteca-dock");
   await expect(page.getByTestId("biblioteca-dock")).toBeVisible();
   await expect(page.getByTestId("biblioteca-dock").getByText("Entrada")).toBeVisible();
   await expect(page.getByTestId("biblioteca-dock").getByText("Procesar")).toBeVisible();
@@ -271,14 +273,17 @@ async function routeImagenSmoke(page: Page): Promise<void> {
 }
 
 async function clickModoImagenGlobalDesdeMas(page: Page): Promise<void> {
-  await page.getByTestId("toolbar-mas-trigger").click();
-  await page.getByTestId("toolbar-mas-modo-imagen-global").click();
+  await clickToolbarMasItem(page, "toolbar-mas-modo-imagen-global");
   await expect(page.getByTestId("toolbar-mas-menu")).toHaveCount(0);
 }
 
 async function abrirPlantillasDesdeMas(page: Page): Promise<void> {
+  await clickToolbarMasItem(page, "toolbar-mas-plantillas");
+}
+
+async function clickToolbarMasItem(page: Page, testId: string): Promise<void> {
   await page.getByTestId("toolbar-mas-trigger").click();
-  await page.getByTestId("toolbar-mas-plantillas").click();
+  await page.getByTestId(testId).click();
 }
 
 function modeloConImagenes() {

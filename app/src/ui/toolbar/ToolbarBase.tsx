@@ -103,6 +103,8 @@ export function ToolbarBase({ children, modelarSlot, conectarSlot, validarSlot, 
   const toggleGrid = useOpmStore((s) => s.toggleGrid);
   const fijarGridConfig = useOpmStore((s) => s.fijarGridConfig);
   const aplicarLayoutSugerido = useOpmStore((s) => s.aplicarLayoutSugerido);
+  const bibliotecaDockAbierto = useOpmStore((s) => s.bibliotecaDockAbierto);
+  const toggleBibliotecaDock = useOpmStore((s) => s.toggleBibliotecaDock);
   const vistaMapaActiva = useOpmStore((s) => s.vistaMapaActiva);
   const abrirVistaMapa = useOpmStore((s) => s.abrirVistaMapa);
   const cerrarVistaMapa = useOpmStore((s) => s.cerrarVistaMapa);
@@ -116,7 +118,7 @@ export function ToolbarBase({ children, modelarSlot, conectarSlot, validarSlot, 
   const [menuContextual, setMenuContextual] = useState<null | { enlaceId: Id; x: number; y: number }>(null);
   const [menuEntidad, setMenuEntidad] = useState<null | { aparienciaId: Id; entidadId: Id; x: number; y: number }>(null);
   // L2 ronda 21: viewport-aware toolbar. Mobile oculta clusters de modelado
-  // pesado (Modelar/Conectar/Vista/Validar) y conserva sólo Modelo + Ayuda.
+  // pesado (Modelar/Conectar/Validar) y conserva sólo Modelo + Ayuda.
   // Tablet conserva todo pero cabrá mejor por la toolbar overflow existente.
   const breakpoint = useBreakpoint();
   const esMobile = breakpoint === "mobile";
@@ -192,7 +194,12 @@ export function ToolbarBase({ children, modelarSlot, conectarSlot, validarSlot, 
     onToggleDescripciones: toggleDescripcionesVisibles,
     onSiguienteModoImagen: () => fijarModoImagenGlobal(siguienteModoGlobal(uiModoImagenGlobal)),
     onEditarImagen: () => { if (seleccionId) abrirModalImagen(seleccionId); },
+    gridActiva: gridConfig.activa,
+    bibliotecaDockAbierto,
+    onToggleGrid: toggleGrid,
     onConfigGrid: () => setGridModalAbierto(true),
+    onAplicarLayout: aplicarLayoutSugerido,
+    onToggleBibliotecaDock: toggleBibliotecaDock,
     onEliminarSeleccion: eliminarSeleccion,
     onConectarSeleccionComoPartes: () => { if (todoMultiSeleccion) conectarSeleccionAlTodo(todoMultiSeleccion, "agregacion"); },
     onTraerEnlacesEntreSeleccionadas: traerEnlacesEntreSeleccionadas,
@@ -306,24 +313,6 @@ export function ToolbarBase({ children, modelarSlot, conectarSlot, validarSlot, 
         <div role="group" aria-label="Conectar" style={style.cluster} data-slot="cluster-conectar" data-cluster="conectar">
           <span style={style.clusterLabel}>Conectar</span>
           {conectarSlot ?? children}
-        </div>
-        <span style={style.divider} />
-        <div role="group" aria-label="Vista" style={style.cluster} data-slot="cluster-vista" data-cluster="vista">
-          <span style={style.clusterLabel}>Vista</span>
-          <button style={gridConfig.activa ? style.activeButton : style.button} type="button" onClick={toggleGrid} aria-pressed={gridConfig.activa} data-testid="toggle-grid" title={gridConfig.activa ? "Grid activa · clic para ocultar" : "Mostrar grid del canvas"}>Grid</button>
-          {/* Ronda 18 P3: `Config grid` se mantiene en banda. Decisión documentada
-              en commit: 3 smokes (08, 11) hacen `getByTestId("config-grid").click()`
-              directamente sin abrir el menú ⋯ Más, así que el en-banda es
-              load-bearing. El menú "Más" lo espeja con `toolbar-mas-config-grid`. */}
-          <button style={style.secondaryButton} type="button" onClick={() => setGridModalAbierto(true)} data-testid="config-grid" title="Configurar paso, color y snap del grid">Config grid</button>
-          {/* Ronda 15 L4: layout sugerido como accion explicita. No persiste */}
-          {/* automaticamente al cargar; cada clic crea una entrada undo atomica. */}
-          <button style={style.button} type="button" onClick={aplicarLayoutSugerido} data-testid="toolbar-aplicar-layout" title="Auto-layout · reorganiza apariencias del OPD activo en niveles top-down. Undoable con Ctrl+Z.">Auto-layout</button>
-          {/* L3 ronda 20: toggle del dock biblioteca. El testid del overlay legacy
-              (`abrir-biblioteca-cosa`) vive en cluster Conectar via ToolbarCreacion;
-              este toggle es nuevo (`toggle-biblioteca-dock`) y abre el panel
-              acoplable bajo el árbol OPD. Atajo Ctrl+B. */}
-          <ToggleBibliotecaDock />
         </div>
         <span style={style.divider} />
         <div role="group" aria-label="Validar" style={style.cluster} data-slot="cluster-validar" data-cluster="validar">
@@ -454,12 +443,17 @@ type ParametrosItemsMas = {
   uiAliasVisibles: boolean;
   uiDescripcionesVisibles: boolean;
   uiModoImagenGlobal: import("../../modelo/tipos").ModoImagenEntidad | null;
+  gridActiva: boolean;
+  bibliotecaDockAbierto: boolean;
   onAbrirPlantillas: () => void;
   onToggleAlias: () => void;
   onToggleDescripciones: () => void;
   onSiguienteModoImagen: () => void;
   onEditarImagen: () => void;
+  onToggleGrid: () => void;
   onConfigGrid: () => void;
+  onAplicarLayout: () => void;
+  onToggleBibliotecaDock: () => void;
   onEliminarSeleccion: () => void;
   onConectarSeleccionComoPartes: () => void;
   onTraerEnlacesEntreSeleccionadas: () => void;
@@ -520,11 +514,37 @@ function construirItemsMenuMas(p: ParametrosItemsMas): ToolbarMasItem[] {
   });
   items.push({
     kind: "accion",
+    id: "toggle-grid",
+    label: p.gridActiva ? "Ocultar grid" : "Mostrar grid",
+    activo: p.gridActiva,
+    title: p.gridActiva ? "Grid activa · clic para ocultar" : "Mostrar grid del canvas",
+    onClick: p.onToggleGrid,
+    testId: "toolbar-mas-toggle-grid",
+  });
+  items.push({
+    kind: "accion",
     id: "config-grid",
     label: "Configurar grid…",
     title: "Configurar paso, color y snap del grid",
     onClick: p.onConfigGrid,
     testId: "toolbar-mas-config-grid",
+  });
+  items.push({
+    kind: "accion",
+    id: "auto-layout",
+    label: "Auto-layout",
+    title: "Reorganiza apariencias del OPD activo en niveles top-down. Undoable con Ctrl+Z.",
+    onClick: p.onAplicarLayout,
+    testId: "toolbar-mas-auto-layout",
+  });
+  items.push({
+    kind: "accion",
+    id: "biblioteca-dock",
+    label: p.bibliotecaDockAbierto ? "Cerrar biblioteca dock" : "Abrir biblioteca dock",
+    activo: p.bibliotecaDockAbierto,
+    title: p.bibliotecaDockAbierto ? "Cerrar biblioteca dock (Ctrl+B)" : "Abrir biblioteca dock acoplada al árbol (Ctrl+B)",
+    onClick: p.onToggleBibliotecaDock,
+    testId: "toolbar-mas-biblioteca-dock",
   });
 
   // Alineación y distribución (visible cuando hay multi-seleccion).
@@ -570,9 +590,6 @@ function construirItemsMenuMas(p: ParametrosItemsMas): ToolbarMasItem[] {
     items.push({ kind: "accion", id: "alinear-enl-aba", label: "Alinear enlaces abajo", onClick: () => p.onAlinearEnlaces("abajo"), testId: "toolbar-mas-alinear-enl-aba" });
   }
 
-  // ToolbarMapaSistema mantiene sus controles secundarios (Auto-refresh,
-  // Estadisticas) en banda porque ese archivo queda fuera del scope L2.
-
   // Suprime separadores ociosos (no aporta accion despues).
   return purgarSeparadoresVacios(items);
 }
@@ -600,27 +617,4 @@ function metadataEntidadDesdeContextMenu(event: MouseEvent): { aparienciaId: Id;
   const meta = adapter?.graph?.getCell?.(modelId)?.prop?.("opm") as { kind?: string; aparienciaId?: Id; entidadId?: Id } | undefined;
   if (meta?.kind !== "entidad" || !meta.aparienciaId || !meta.entidadId) return null;
   return { aparienciaId: meta.aparienciaId, entidadId: meta.entidadId };
-}
-
-/**
- * L3 ronda 20: toggle del dock biblioteca dentro del cluster Vista.
- * Subscriptor delgado para evitar re-renders innecesarios del resto de
- * ToolbarBase. Atajo Ctrl+B (registrado en App.tsx). El testid del
- * overlay legacy `abrir-biblioteca-cosa` vive en ToolbarCreacion.
- */
-function ToggleBibliotecaDock() {
-  const abierto = useOpmStore((s) => s.bibliotecaDockAbierto);
-  const toggle = useOpmStore((s) => s.toggleBibliotecaDock);
-  return (
-    <button
-      type="button"
-      style={abierto ? style.activeButton : style.button}
-      onClick={toggle}
-      aria-pressed={abierto}
-      data-testid="toggle-biblioteca-dock"
-      title={abierto ? "Cerrar biblioteca dock (Ctrl+B)" : "Abrir biblioteca dock acoplada al árbol (Ctrl+B)"}
-    >
-      Biblioteca dock
-    </button>
-  );
 }

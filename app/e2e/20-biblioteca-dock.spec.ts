@@ -8,7 +8,7 @@
  * modelo salvo en mobile. Debe poder quedar visible mientras se navega
  * el canvas".
  */
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 import { jsonEditor } from "./_smoke-helpers";
 
 function modeloBibliotecaSmoke() {
@@ -114,14 +114,13 @@ test.describe("biblioteca dock", () => {
     await expect(page.getByTestId("canvas-pane")).toBeVisible();
     await expect(page.getByTestId("inspector-pane")).toBeVisible();
 
-    // El boton del cluster Vista refleja estado activo.
-    const toggleBtn = page.getByTestId("toggle-biblioteca-dock");
-    await expect(toggleBtn).toHaveAttribute("aria-pressed", "true");
+    // La acción vive en ⋯ Más y refleja estado activo.
+    await esperarEstadoBibliotecaDockEnMas(page, "true");
 
     // Cerrar via Ctrl+B nuevamente.
     await page.keyboard.press("Control+b");
     await expect(page.getByTestId("biblioteca-dock")).toHaveCount(0);
-    await expect(toggleBtn).toHaveAttribute("aria-pressed", "false");
+    await esperarEstadoBibliotecaDockEnMas(page, "false");
 
     expect(pageErrors).toEqual([]);
   });
@@ -135,7 +134,7 @@ test.describe("biblioteca dock", () => {
     await jsonEditor(page).fill(JSON.stringify(modeloBibliotecaSmoke(), null, 2));
     await page.getByRole("button", { name: "Importar" }).click();
 
-    await page.getByTestId("toggle-biblioteca-dock").click();
+    await clickToolbarMasItem(page, "toolbar-mas-biblioteca-dock");
     await expect(page.getByTestId("biblioteca-dock")).toBeVisible();
 
     // Sin filtro: 5 entidades.
@@ -162,7 +161,7 @@ test.describe("biblioteca dock", () => {
     await jsonEditor(page).fill(JSON.stringify(modeloBibliotecaSmoke(), null, 2));
     await page.getByRole("button", { name: "Importar" }).click();
 
-    await page.getByTestId("toggle-biblioteca-dock").click();
+    await clickToolbarMasItem(page, "toolbar-mas-biblioteca-dock");
     await expect(page.getByTestId("biblioteca-dock")).toBeVisible();
 
     // Default: chip "Todos" activo, contador 5.
@@ -187,3 +186,14 @@ test.describe("biblioteca dock", () => {
     expect(pageErrors).toEqual([]);
   });
 });
+
+async function clickToolbarMasItem(page: Page, testId: string): Promise<void> {
+  await page.getByTestId("toolbar-mas-trigger").click();
+  await page.getByTestId(testId).click();
+}
+
+async function esperarEstadoBibliotecaDockEnMas(page: Page, estado: "true" | "false"): Promise<void> {
+  await page.getByTestId("toolbar-mas-trigger").click();
+  await expect(page.getByTestId("toolbar-mas-biblioteca-dock")).toHaveAttribute("aria-pressed", estado);
+  await page.keyboard.press("Escape");
+}
