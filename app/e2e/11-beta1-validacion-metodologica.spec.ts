@@ -14,7 +14,7 @@
  */
 
 import { expect, test } from "@playwright/test";
-import { cerrarPantallaInicioSiVisible } from "./_smoke-helpers";
+import { cerrarPantallaInicioSiVisible, elementoPorTexto } from "./_smoke-helpers";
 
 test("L3 panel metodologia muestra aviso, cita SSOT y permite revalidar", async ({ page }) => {
   const pageErrors: string[] = [];
@@ -131,6 +131,27 @@ test("L3 badge del arbol abre el mismo aviso diagnostico", async ({ page }) => {
   await expect(panel).toHaveAttribute("data-expandido", "true");
   await expect(page.getByTestId("aviso-proceso-sin-entrada-ni-salida")).toBeVisible();
   await expect(page.getByTestId("aviso-proceso-sin-entrada-ni-salida")).toHaveAttribute("data-resaltado", "true");
+
+  expect(pageErrors).toEqual([]);
+});
+
+test("L3 HoverTooltip describe cell OPM sin aria-live", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await cerrarPantallaInicioSiVisible(page);
+
+  await page.getByRole("button", { name: "Objeto", exact: true }).click();
+  await elementoPorTexto(page, "Objeto").hover();
+
+  const tooltip = page.getByTestId("hover-tooltip");
+  await expect(tooltip).toBeVisible();
+  await expect(tooltip).toContainText("Objeto OPM");
+  await expect(tooltip).not.toHaveAttribute("aria-live", /.+/);
+
+  await page.mouse.move(10, 10);
+  await expect(tooltip).toHaveCount(0);
 
   expect(pageErrors).toEqual([]);
 });

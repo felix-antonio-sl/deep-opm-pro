@@ -17,6 +17,12 @@ export type FeedbackOverlay =
       severidad: "error" | "advertencia" | "info";
       mensaje: string;
       citaSSOT: string;
+    }
+  | {
+      id: string;
+      tipo: "hover-tooltip";
+      anchorCellId: string;
+      contenido: string;
     };
 
 export interface FeedbackAviso {
@@ -34,6 +40,8 @@ export interface FeedbackState {
   clearAll: () => void;
   addInlineError: (cellId: string, mensaje: string, aviso: Omit<FeedbackAviso, "anchorCellId" | "mensaje">) => string;
   addFlash: (mensaje: string, ttl?: number) => string;
+  setHoverTooltip: (cellId: string, contenido: string) => void;
+  clearHoverTooltip: () => void;
   sincronizarBadgesDesdeAvisos: (avisos: readonly FeedbackAviso[]) => void;
 }
 
@@ -86,6 +94,17 @@ export const feedbackStore = createStore<FeedbackState>((set, get) => ({
     globalThis.setTimeout?.(() => get().removeOverlay(id), ttl);
     return id;
   },
+  setHoverTooltip(cellId, contenido) {
+    set({
+      overlays: [
+        ...get().overlays.filter((overlay) => overlay.tipo !== "hover-tooltip"),
+        { id: `hover-${cellId}`, tipo: "hover-tooltip", anchorCellId: cellId, contenido },
+      ],
+    });
+  },
+  clearHoverTooltip() {
+    set({ overlays: get().overlays.filter((overlay) => overlay.tipo !== "hover-tooltip") });
+  },
   sincronizarBadgesDesdeAvisos(avisos) {
     const inlineErrors = avisos.map((aviso) => ({
       id: idInlineError(aviso.reglaId, aviso.anchorCellId),
@@ -107,6 +126,14 @@ export const feedbackStore = createStore<FeedbackState>((set, get) => ({
 
 export function addFlash(mensaje: string, ttl?: number): string {
   return feedbackStore.getState().addFlash(mensaje, ttl);
+}
+
+export function setHoverTooltip(cellId: string, contenido: string): void {
+  feedbackStore.getState().setHoverTooltip(cellId, contenido);
+}
+
+export function clearHoverTooltip(): void {
+  feedbackStore.getState().clearHoverTooltip();
 }
 
 export function sincronizarBadgesDesdeAvisos(avisos: readonly FeedbackAviso[]): void {

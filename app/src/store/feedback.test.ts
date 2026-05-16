@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, test } from "bun:test";
-import { addFlash, feedbackStore, sincronizarBadgesDesdeAvisos } from "./feedback";
+import { addFlash, clearHoverTooltip, feedbackStore, setHoverTooltip, sincronizarBadgesDesdeAvisos } from "./feedback";
 
 describe("feedbackStore", () => {
   beforeEach(() => {
@@ -14,7 +14,9 @@ describe("feedbackStore", () => {
     expect(primero).not.toBe(segundo);
     expect(overlays).toHaveLength(1);
     expect(overlays[0]?.id).toBe(segundo);
-    expect(overlays[0]?.mensaje).toBe("Modelo guardado exitosamente");
+    expect(overlays[0]?.tipo).toBe("flash");
+    if (overlays[0]?.tipo !== "flash") throw new Error("Overlay esperado: flash");
+    expect(overlays[0].mensaje).toBe("Modelo guardado exitosamente");
   });
 
   test("respeta TTL de FlashToast", () => {
@@ -67,5 +69,22 @@ describe("feedbackStore", () => {
     overlays = feedbackStore.getState().overlays;
     expect(overlays.filter((overlay) => overlay.tipo === "flash")).toHaveLength(1);
     expect(overlays.filter((overlay) => overlay.tipo === "inline-error")).toHaveLength(0);
+  });
+
+  test("mantiene un solo HoverTooltip y permite limpiarlo sin tocar otros overlays", () => {
+    addFlash("Modelo guardado exitosamente", 10_000);
+    setHoverTooltip("a-1", "Objeto OPM");
+    setHoverTooltip("a-2", "Proceso OPM");
+
+    let overlays = feedbackStore.getState().overlays;
+    expect(overlays.filter((overlay) => overlay.tipo === "flash")).toHaveLength(1);
+    expect(overlays.filter((overlay) => overlay.tipo === "hover-tooltip")).toEqual([
+      expect.objectContaining({ anchorCellId: "a-2", contenido: "Proceso OPM" }),
+    ]);
+
+    clearHoverTooltip();
+    overlays = feedbackStore.getState().overlays;
+    expect(overlays.filter((overlay) => overlay.tipo === "flash")).toHaveLength(1);
+    expect(overlays.filter((overlay) => overlay.tipo === "hover-tooltip")).toHaveLength(0);
   });
 });

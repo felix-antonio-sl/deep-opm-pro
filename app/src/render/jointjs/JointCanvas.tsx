@@ -4,7 +4,7 @@ import { normalizarGridConfig } from "../../canvas/grid";
 import { focoPasoActualSimulacion } from "../../modelo/simulacion/foco";
 import type { Apariencia, Enlace, ExtremoEnlace, Modelo, Opd } from "../../modelo/tipos";
 import { useOpmStore } from "../../store";
-import { sincronizarBadgesDesdeAvisos } from "../../store/feedback";
+import { clearHoverTooltip, setHoverTooltip, sincronizarBadgesDesdeAvisos } from "../../store/feedback";
 import { RenombradoInline } from "../../ui/RenombradoInline";
 import { recalcularOverlaysAbanicoDesdeLinkViews } from "./abanicoDragSync";
 import { opmShapes } from "./customShapes";
@@ -16,6 +16,7 @@ import {
   cellViewModel,
   dimensionesPaper,
   metadata,
+  paperOff,
   paperView,
   setPaperDimensions,
 } from "./handlers/helpers";
@@ -29,6 +30,7 @@ import { instalarHerramientasSimboloEstructuralSeleccionado } from "./handlers/t
 import { cablearZoomFit, cablearZoomWheel, fitCanvasAPantalla } from "./handlers/zoom";
 import { aplicarRuteoOpcloudEnlaces } from "./opcloudRouting";
 import { construirAvisosFeedbackCanvas } from "./overlayCanvas/avisos";
+import { contenidoHoverTooltip } from "./overlayCanvas/hoverTooltipContent";
 import { OverlayLayer } from "./overlayCanvas/OverlayLayer";
 import { ordenarTodosLosEnlacesEstructurales } from "./sortStructuralLinks";
 
@@ -321,6 +323,7 @@ export function JointCanvas() {
       paper,
       fijarHoverOplRef,
     }));
+    cleanups.push(cablearHoverTooltipCanvas(paper, modeloRef));
 
     adapterRef.current = { graph, paper };
     setAdapterState({ graph, paper });
@@ -559,6 +562,37 @@ function centrarSiFueraDeViewport(
     top: Math.max(0, centroY - viewport.clientHeight / 2),
     behavior: "smooth",
   });
+}
+
+function cablearHoverTooltipCanvas(paper: dia.Paper, modeloRef: { current: Modelo }): () => void {
+  let timer: ReturnType<typeof setTimeout> | null = null;
+  const cancelar = () => {
+    if (timer) clearTimeout(timer);
+    timer = null;
+    clearHoverTooltip();
+  };
+  const mostrar = (cellView: dia.CellView) => {
+    if (timer) clearTimeout(timer);
+    const cell = cellViewModel(cellView);
+    const contenido = contenidoHoverTooltip(modeloRef.current, metadata(cell));
+    if (!contenido) {
+      clearHoverTooltip();
+      return;
+    }
+    timer = setTimeout(() => {
+      setHoverTooltip(String(cell.id), contenido);
+      timer = null;
+    }, 250);
+  };
+
+  paper.on("cell:mouseover", mostrar);
+  paper.on("cell:mouseout blank:mouseover", cancelar);
+  return () => {
+    if (timer) clearTimeout(timer);
+    paperOff(paper, "cell:mouseover", mostrar as (...args: never[]) => void);
+    paperOff(paper, "cell:mouseout blank:mouseover", cancelar as (...args: never[]) => void);
+    clearHoverTooltip();
+  };
 }
 
 const style = {
