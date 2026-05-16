@@ -113,6 +113,28 @@ test("L3 ErrorBadge inline abre y resalta el aviso compartido", async ({ page })
   expect(pageErrors).toEqual([]);
 });
 
+test("L3 badge del arbol abre el mismo aviso diagnostico", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await cerrarPantallaInicioSiVisible(page);
+
+  await page.getByRole("button", { name: "Proceso", exact: true }).click();
+
+  const badgeArbol = page.locator('[data-testid^="tree-issue-badge-"]').first();
+  await expect(badgeArbol).toBeVisible();
+  await expect(badgeArbol).toHaveAttribute("aria-label", /errores|advertencias/);
+  await badgeArbol.click();
+
+  const panel = page.getByTestId("panel-diagnostico");
+  await expect(panel).toHaveAttribute("data-expandido", "true");
+  await expect(page.getByTestId("aviso-proceso-sin-entrada-ni-salida")).toBeVisible();
+  await expect(page.getByTestId("aviso-proceso-sin-entrada-ni-salida")).toHaveAttribute("data-resaltado", "true");
+
+  expect(pageErrors).toEqual([]);
+});
+
 test("L3 aviso se resuelve tras corregir el nombre del proceso", async ({ page }) => {
   const pageErrors: string[] = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));

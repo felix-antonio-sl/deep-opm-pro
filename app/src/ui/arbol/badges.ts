@@ -4,6 +4,9 @@ import type { Id, Modelo, TipoRefinamiento } from "../../modelo/tipos";
 export type TipoBadgeOpd = "raiz" | "inzoom" | "unfold";
 
 export interface AvisoOpdLike {
+  reglaId?: string;
+  codigo?: string;
+  severidad?: "error" | "advertencia" | "info" | "sugerencia";
   opdId?: Id;
   elementoTipo?: "entidad" | "enlace" | "opd";
   elementoId?: Id;
@@ -16,6 +19,9 @@ export interface BadgesNodoOpd {
   cuentaProcesos: number;
   cuentaEnlaces: number;
   tieneIssues: boolean;
+  errores: number;
+  advertencias: number;
+  primerAvisoCodigo: string | null;
   refinadorId: Id | null;
 }
 
@@ -25,12 +31,13 @@ export function calcularBadges(modelo: Modelo, opdId: Id, avisos: readonly Aviso
   const tipo = tipoBadge(modelo, opdId, refinador?.tipo);
 
   if (!opd) {
+    const avisosNodo = avisosEnOpd(modelo, opdId, avisos);
     return {
       tipo,
       cuentaObjetos: 0,
       cuentaProcesos: 0,
       cuentaEnlaces: 0,
-      tieneIssues: tieneAvisosEnOpd(modelo, opdId, avisos),
+      ...resumenAvisos(avisosNodo),
       refinadorId: refinador?.entidadId ?? null,
     };
   }
@@ -43,12 +50,13 @@ export function calcularBadges(modelo: Modelo, opdId: Id, avisos: readonly Aviso
     if (entidad?.tipo === "proceso") cuentaProcesos += 1;
   }
 
+  const avisosNodo = avisosEnOpd(modelo, opdId, avisos);
   return {
     tipo,
     cuentaObjetos,
     cuentaProcesos,
     cuentaEnlaces: Object.keys(opd.enlaces).length,
-    tieneIssues: tieneAvisosEnOpd(modelo, opdId, avisos),
+    ...resumenAvisos(avisosNodo),
     refinadorId: refinador?.entidadId ?? null,
   };
 }
@@ -72,8 +80,21 @@ function refinadorDeOpd(modelo: Modelo, opdId: Id): { entidadId: Id; tipo: TipoR
   return null;
 }
 
-function tieneAvisosEnOpd(modelo: Modelo, opdId: Id, avisos: readonly AvisoOpdLike[]): boolean {
-  return avisos.some((aviso) => avisoAfectaOpd(modelo, opdId, aviso));
+function avisosEnOpd(modelo: Modelo, opdId: Id, avisos: readonly AvisoOpdLike[]): AvisoOpdLike[] {
+  return avisos.filter((aviso) => avisoAfectaOpd(modelo, opdId, aviso));
+}
+
+function resumenAvisos(avisos: readonly AvisoOpdLike[]): Pick<BadgesNodoOpd, "tieneIssues" | "errores" | "advertencias" | "primerAvisoCodigo"> {
+  return {
+    tieneIssues: avisos.length > 0,
+    errores: avisos.filter((aviso) => aviso.severidad === "error").length,
+    advertencias: avisos.filter((aviso) => aviso.severidad !== "error").length,
+    primerAvisoCodigo: codigoAviso(avisos[0]),
+  };
+}
+
+function codigoAviso(aviso: AvisoOpdLike | undefined): string | null {
+  return aviso?.reglaId ?? aviso?.codigo ?? null;
 }
 
 function avisoAfectaOpd(modelo: Modelo, opdId: Id, aviso: AvisoOpdLike): boolean {

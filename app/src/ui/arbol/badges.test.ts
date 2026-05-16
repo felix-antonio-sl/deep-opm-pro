@@ -61,6 +61,21 @@ describe("badges del arbol OPD", () => {
     expect(calcularBadges(modelo, modelo.opdRaizId, [{ navegarA: { tipo: "opd", id: modelo.opdRaizId } }]).tieneIssues).toBe(true);
   });
 
+  test("calcularBadges resume severidad y primer codigo accionable", () => {
+    const modelo = crearModelo("Issues severidad");
+    const badges = calcularBadges(modelo, modelo.opdRaizId, [
+      { opdId: modelo.opdRaizId, reglaId: "proceso-sin-entrada-ni-salida", severidad: "advertencia" },
+      { opdId: modelo.opdRaizId, codigo: "SD_SIN_PROCESO_PRINCIPAL", severidad: "error" },
+    ]);
+
+    expect(badges).toMatchObject({
+      tieneIssues: true,
+      errores: 1,
+      advertencias: 1,
+      primerAvisoCodigo: "proceso-sin-entrada-ni-salida",
+    });
+  });
+
   test("calcularBadges detecta issues de entidad y enlace materializados en el OPD", () => {
     let modelo = crearModelo("Issues entidad enlace");
     modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 20 }, "Entrada"));

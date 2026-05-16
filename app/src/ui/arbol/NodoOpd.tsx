@@ -56,6 +56,7 @@ interface NodoOpdProps {
   onRenombrarSubmit: () => void;
   onEliminar: (opdId: Id) => void;
   onNavegarRefinador: (opdId: Id, refinadorId: Id) => void;
+  onIssueBadgeClick: (opdId: Id, codigo: string | null) => void;
   onKeyDown: (event: KeyboardEvent, opdId: Id) => void;
   onContextMenu: (event: MouseEvent, opdId: Id) => void;
   onDragStart: (event: DragEvent, opdId: Id) => void;
@@ -175,7 +176,21 @@ export function NodoOpd(props: NodoOpdProps) {
       >
         {badges.cuentaObjetos}o · {badges.cuentaProcesos}p · {badges.cuentaEnlaces}e
       </span>
-      {badges.tieneIssues ? <span style={style.issueDot} aria-label="Tiene avisos" title="Tiene avisos metodológicos" /> : <span style={style.issueSpacer} />}
+      {badges.tieneIssues ? (
+        <button
+          type="button"
+          data-testid={`tree-issue-badge-${props.nodo.opd.id}`}
+          style={badges.errores > 0 ? style.issueBadgeError : style.issueBadgeWarning}
+          aria-label={ariaLabelIssues(nombre, badges)}
+          title={ariaLabelIssues(nombre, badges)}
+          onClick={(event) => {
+            event.stopPropagation();
+            props.onIssueBadgeClick(props.nodo.opd.id, badges.primerAvisoCodigo);
+          }}
+        >
+          !
+        </button>
+      ) : <span style={style.issueSpacer} />}
       <button
         type="button"
         class="nodo-opd-actions"
@@ -235,8 +250,12 @@ export function NodoOpd(props: NodoOpdProps) {
 function ariaLabelNodo(nombre: string, badges: BadgesNodoOpd): string {
   const tipo = labelTipoBadge(badges.tipo);
   const conteos = `${badges.cuentaObjetos} objetos, ${badges.cuentaProcesos} procesos, ${badges.cuentaEnlaces} enlaces`;
-  const issues = badges.tieneIssues ? ", tiene avisos" : "";
+  const issues = badges.tieneIssues ? `, ${badges.errores} errores y ${badges.advertencias} advertencias` : "";
   return `${nombre}, ${tipo}, ${conteos}${issues}`;
+}
+
+function ariaLabelIssues(nombre: string, badges: BadgesNodoOpd): string {
+  return `${nombre}: ${badges.errores} errores y ${badges.advertencias} advertencias`;
 }
 
 export function nombreNodo(modelo: Modelo, opd: Opd): string {
@@ -259,7 +278,7 @@ const style = {
     width: "100%",
     minHeight: "34px",
     display: "grid",
-    gridTemplateColumns: "16px 18px 48px minmax(0, 1fr) 10px 26px",
+    gridTemplateColumns: "16px 18px 48px minmax(0, 1fr) 16px 26px",
     alignItems: "center", gap: "4px", paddingTop: "4px", paddingBottom: "4px",
     border: "1px solid transparent", borderRadius: tokens.radii.sm, background: "transparent",
     color: tokens.colors.textoSecundario, cursor: "pointer", fontSize: "13px", fontWeight: 600, textAlign: "left",
@@ -308,15 +327,37 @@ const style = {
     padding: "0 5px",
     whiteSpace: "nowrap",
   },
-  issueDot: {
-    width: "8px",
-    height: "8px",
+  issueBadgeWarning: {
+    width: "16px",
+    height: "16px",
     borderRadius: tokens.radii.full,
-    background: tokens.colors.errorRojo,
-    border: `1px solid ${tokens.colors.errorBordeSuave}`,
-    display: "inline-block",
+    background: tokens.colors.advertenciaFondo,
+    border: `1px solid ${tokens.colors.advertenciaBorde}`,
+    color: tokens.colors.alertaTexto,
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 0,
+    cursor: "pointer",
+    fontSize: "10px",
+    fontWeight: 900,
   },
-  issueSpacer: { width: "8px", height: "8px" },
+  issueBadgeError: {
+    width: "16px",
+    height: "16px",
+    borderRadius: tokens.radii.full,
+    background: tokens.colors.errorFondoIntenso,
+    border: `1px solid ${tokens.colors.errorBordeSuave}`,
+    color: tokens.colors.errorTexto,
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 0,
+    cursor: "pointer",
+    fontSize: "10px",
+    fontWeight: 900,
+  },
+  issueSpacer: { width: "16px", height: "16px" },
   expandBtn: compactoBoton("16px", "16px", "pointer", 1, { fontSize: "9px", color: tokens.colors.textoTerciario, marginRight: "0" }),
   expandSpacer: { width: "16px", height: "16px" },
   logicalIcon: { width: "16px", height: "12px", display: "block" },

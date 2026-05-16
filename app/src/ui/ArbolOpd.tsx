@@ -1,7 +1,9 @@
 // [JOYAS §1-3] Chrome UI consume tokens centralizados; canvas semántico invariante.
 import { useEffect, useMemo, useState } from "preact/hooks";
 import { verificarMetodologia } from "../modelo/checkers";
+import { validarModelo } from "../modelo/validaciones";
 import { useOpmStore } from "../store";
+import { EVENTO_ABRIR_AVISO_DIAGNOSTICO } from "../store/feedback";
 import { registrarAtajo } from "./atajosTeclado";
 import { MenuContextualArbol } from "./MenuContextualArbol";
 import { aplanarNodosVisibles, atajoPanelArbolDesdeEvento, manejarTeclaNodoArbol, siguienteFocoArbol } from "./arbol/handlersTeclado";
@@ -48,7 +50,10 @@ export function ArbolOpd() {
   const [menuContextual, setMenuContextual] = useState<{ opdId: Id; x: number; y: number } | null>(null);
   const [opdCortadoId, setOpdCortadoId] = useState<Id | null>(null);
   const arboles = construirArbol(modelo);
-  const avisosMetodologicos = useMemo(() => verificarMetodologia(modelo), [modelo]);
+  const avisosArbol = useMemo(() => [
+    ...Object.keys(modelo.opds).flatMap((opdId) => validarModelo(modelo, opdId)),
+    ...verificarMetodologia(modelo),
+  ], [modelo]);
   const estaExpandidoNodo = (id: Id) => !colapsado.has(id);
   const nodosVisibles = aplanarNodosVisibles(arboles, estaExpandidoNodo).filter((n) => n.visible);
   const nodosFoco = nodosVisibles.map(({ nodo }) => nodo);
@@ -136,6 +141,15 @@ export function ArbolOpd() {
     if (destino) cambiarOpdActivo(destino);
     seleccionarEntidad(refinadorId);
   };
+  const abrirAvisoDesdeArbol = (opdId: Id, codigo: string | null) => {
+    cambiarOpdActivo(opdId);
+    if (!codigo) return;
+    queueMicrotask(() => {
+      window.dispatchEvent(new CustomEvent(EVENTO_ABRIR_AVISO_DIAGNOSTICO, {
+        detail: { reglaId: codigo },
+      }));
+    });
+  };
 
   return (
     <aside style={style.panel} aria-label="Árbol OPD" data-atajos-contexto="panel-arbol" tabIndex={-1}>
@@ -168,7 +182,7 @@ export function ArbolOpd() {
               key={nodo.opd.id}
               nodo={nodo}
               modelo={modelo}
-              avisos={avisosMetodologicos}
+              avisos={avisosArbol}
               activo={nodo.opd.id === opdActivoId}
               nombresArbolVisibles={nombresArbolVisibles}
               estaExpandido={estaExpandidoNodo(nodo.opd.id)}
@@ -181,6 +195,7 @@ export function ArbolOpd() {
               onRenombrarSubmit={renombrarSubmit}
               onEliminar={eliminarOpdDesdeArbol}
               onNavegarRefinador={navegarARefinador}
+              onIssueBadgeClick={abrirAvisoDesdeArbol}
               onKeyDown={(event, opdId) => manejarTeclaNodoArbol(event, opdId, { cambiarOpdActivo, navegarOpdArriba, navegarOpdAbajo, navegarOpdIzquierda, navegarOpdDerecha })}
               onContextMenu={(event, opdId) => {
                 event.preventDefault();
