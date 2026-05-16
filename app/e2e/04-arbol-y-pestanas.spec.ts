@@ -1,4 +1,4 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 import {
   elementoPorTexto,
   escapeRegExp,
@@ -11,6 +11,7 @@ import {
   clickLinkPorIndice,
   clickLinkPorTipo,
   desplegarComoAgregacion,
+  ejecutarAccionCommandPalette,
   irATabRefinamiento,
   guardarComoActual,
   cargarPrimerModelo,
@@ -151,18 +152,18 @@ test("mapa del sistema: abre, muestra thumbnails, doble clic navega", async ({ p
   await page.goto("/");
   // Crear modelo con jerarquía: SD > SD1 (descompone proceso) — flujo determinista
   await page.getByRole("button", { name: "Proceso", exact: true }).click();
-  // Asegurar que el proceso esta seleccionado para que "Descomponer" funcione
+  // Asegurar que el proceso esta seleccionado para que Inzoom funcione.
   await elementoPorTexto(page, "Proceso").click();
-  // Ronda 20 L1: el botón Descomponer vive en el tab `Refinamiento` del Inspector.
+  // Ronda 22: Inzoom vive en el catalogo contextual.
   await irATabRefinamiento(page);
-  await page.getByRole("button", { name: "Descomponer", exact: true }).click();
+  await ejecutarAccionCommandPalette(page, "inzoom", "accion-inzoom");
 
   // Esperar a que SD1 aparezca en el arbol; con el arbol expandido por
   // default, el nodo descompuesto es visible inmediatamente.
   await expect(page.locator('[role="treeitem"]').filter({ hasText: "SD1:" })).toHaveCount(1);
   await elementoPorTexto(page, "Proceso 1").click();
   await irATabRefinamiento(page);
-  await page.getByRole("button", { name: "Descomponer", exact: true }).click();
+  await ejecutarAccionCommandPalette(page, "inzoom", "accion-inzoom");
   await expect(page.locator('[role="treeitem"]').filter({ hasText: "SD1.1:" })).toHaveCount(1);
   // Verificar al menos 3 treeitems (Mapa + SD raiz + SD1)
   const treeItems = page.getByRole("treeitem");
@@ -238,13 +239,13 @@ test("arbol OPD: renombrado inline y expandir/colapsar funcionan", async ({ page
 
   // L1 ronda 7: la barra creativa permanece sticky tras crear (HU-11.001).
   // Liberar el modo y seleccionar el proceso recién creado para que el
-  // Inspector exponga "Descomponer".
+  // el catálogo contextual ejecute Inzoom sobre la seleccion.
   await page.keyboard.press("Escape");
   await canvasPane.locator(".joint-element").first().click();
 
-  // Descomponer para crear SD1 (ronda 20 L1: vive en tab Refinamiento).
+  // Inzoom para crear SD1.
   await irATabRefinamiento(page);
-  await page.getByRole("button", { name: "Descomponer", exact: true }).click();
+  await ejecutarAccionCommandPalette(page, "inzoom", "accion-inzoom");
 
   // Verificar que el árbol tiene nodos expandibles
   const treePane = page.getByTestId("tree-pane");

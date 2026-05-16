@@ -59,8 +59,6 @@ export function InspectorEntidad({ entidad }: Props) {
   const renombrar = useOpmStore((s) => s.renombrarSeleccionada);
   const fijarEsencia = useOpmStore((s) => s.fijarEsenciaSeleccionada);
   const fijarAfiliacion = useOpmStore((s) => s.fijarAfiliacionSeleccionada);
-  const descomponer = useOpmStore((s) => s.descomponerSeleccionada);
-  const desplegar = useOpmStore((s) => s.desplegarSeleccionada);
   const reasignarEnlaceExternoManual = useOpmStore((s) => s.reasignarEnlaceExternoManual);
   const crearAutoInvocacion = useOpmStore((s) => s.crearAutoInvocacionSeleccionada);
   const cambiarModoPlegado = useOpmStore((s) => s.cambiarModoPlegadoSeleccionado);
@@ -216,9 +214,6 @@ export function InspectorEntidad({ entidad }: Props) {
             agregacionesInzoomFaltantes={agregacionesInzoomPendientes}
             padreAparienciaId={aparienciaActiva?.id}
             parteExtraidaDe={aparienciaActiva?.parteExtraidaDe}
-            aparienciaActivaPresente={!!aparienciaActiva}
-            onDescomponer={descomponer}
-            onDesplegar={desplegar}
             onReasignarEnlaceExterno={reasignarEnlaceExternoManual}
             onCrearAutoInvocacion={crearAutoInvocacion}
             onCambiarModoPlegado={() => cambiarModoPlegado(modoPlegado === "parcial" ? "completo" : "parcial")}
@@ -397,10 +392,7 @@ interface PanelRefinamientoProps {
   agregacionesInzoomFaltantes: number;
   padreAparienciaId?: Id | undefined;
   parteExtraidaDe?: { padreAparienciaId: Id; parteEntidadId: Id } | undefined;
-  aparienciaActivaPresente: boolean;
   apariencia: import("../modelo/tipos").Apariencia | undefined;
-  onDescomponer: () => void;
-  onDesplegar: (modo?: import("../modelo/tipos").ModoDespliegueObjeto) => void;
   onReasignarEnlaceExterno: (opdId: Id, aparienciaEnlaceId: Id, nuevoSubprocesoId: Id) => void;
   onCrearAutoInvocacion: () => void;
   onCambiarModoPlegado: () => void;
@@ -442,8 +434,6 @@ function PanelRefinamiento(props: PanelRefinamientoProps) {
         agregacionesInzoomFaltantes={props.agregacionesInzoomFaltantes}
         padreAparienciaId={props.padreAparienciaId}
         parteExtraidaDe={props.parteExtraidaDe}
-        onDescomponer={props.onDescomponer}
-        onDesplegar={props.onDesplegar}
         onReasignarEnlaceExterno={props.onReasignarEnlaceExterno}
         onCrearAutoInvocacion={props.onCrearAutoInvocacion}
         onCambiarModoPlegado={props.onCambiarModoPlegado}

@@ -1,7 +1,5 @@
 // [JOYAS §1-3] Chrome UI consume tokens centralizados; canvas semántico invariante.
 import { useEffect, useState } from "preact/hooks";
-import inzoomIcon from "../../../../assets/svg/inzoom.svg";
-import unfoldIcon from "../../../../assets/svg/unfold.svg";
 import type { FilaPlegadoParcial } from "../../modelo/plegado";
 import { obtenerRefinamiento } from "../../modelo/refinamientos";
 import type { Enlace, Entidad, Id, Modelo, ModoDespliegueObjeto, OrdenPartesPlegado } from "../../modelo/tipos";
@@ -35,8 +33,6 @@ interface Props {
   padreAparienciaId?: string | undefined;
   parteExtraidaDe?: unknown | undefined;
   modelo: Modelo;
-  onDescomponer: () => void;
-  onDesplegar: (modo?: ModoDespliegueObjeto) => void;
   onReasignarEnlaceExterno: (opdId: Id, aparienciaEnlaceId: Id, nuevoSubprocesoId: Id) => void;
   onCrearAutoInvocacion: () => void;
   onCambiarModoPlegado: () => void;
@@ -117,25 +113,24 @@ export function SeccionRefinamiento(props: Props) {
 
 function RefinamientoThing(props: Props) {
   // Ronda 15.2: descomposicion y despliegue son ortogonales. Cada slot
-  // muestra sus controles independientemente del otro.
+  // muestra estado independientemente del otro. Las acciones Inzoom/Unfold
+  // viven en el catalogo contextual segun el brief UX/IFML §7.5.
   const descomposicion = obtenerRefinamiento(props.entidad, "descomposicion");
   const descompuesta = descomposicion !== undefined;
-  const desplegada = obtenerRefinamiento(props.entidad, "despliegue") !== undefined;
+  const despliegue = obtenerRefinamiento(props.entidad, "despliegue");
   return (
     <>
-      <button type="button" style={refinamientoStyles.iconButton} onClick={props.onDescomponer} title="Crear o abrir el OPD hijo de descomposición">
-        <img src={inzoomIcon} alt="" aria-hidden="true" style={refinamientoStyles.icon} />
-        {descompuesta ? "Abrir descomposición" : "Descomponer"}
-      </button>
-      {descomposicion ? (
-        <EstadoRefinamiento
-          testId="refinamiento-estado-descomposicion"
-          label="Inzoom"
-          opdNombre={nombreOpd(props.modelo, descomposicion.opdId)}
-        />
-      ) : null}
+      <EstadoRefinamiento
+        testId="refinamiento-estado-descomposicion"
+        label="Inzoom"
+        opdNombre={descomposicion ? nombreOpd(props.modelo, descomposicion.opdId) : undefined}
+      />
       {props.entidad.tipo === "proceso" && descompuesta ? <ReasignacionExternos modelo={props.modelo} entidad={props.entidad} onReasignar={props.onReasignarEnlaceExterno} /> : null}
-      <RefinamientoDespliegue {...props} desplegada={desplegada} />
+      <EstadoRefinamiento
+        testId="refinamiento-estado-despliegue"
+        label="Despliegue"
+        opdNombre={despliegue ? nombreOpd(props.modelo, despliegue.opdId) : undefined}
+      />
       {props.entidad.tipo === "proceso" ? (
         <button type="button" style={props.autoInvocacion ? style.secondaryButton : style.primaryButton} onClick={props.onCrearAutoInvocacion} disabled={!!props.autoInvocacion} title={props.autoInvocacion ? "El proceso ya tiene auto-invocación en este OPD" : "Crear auto-invocación con demora de 1s"}>
           {props.autoInvocacion ? "Auto-invocación existente" : "Auto-invocación"}
@@ -199,53 +194,16 @@ function ReasignacionExternoRow(props: { opdId: Id; enlace: Enlace; reanclaje: C
   );
 }
 
-function RefinamientoDespliegue(props: Props & { desplegada: boolean }) {
-  const despliegue = obtenerRefinamiento(props.entidad, "despliegue");
-  return (
-    <>
-      {props.desplegada ? (
-        <button type="button" style={refinamientoStyles.iconButton} onClick={() => props.onDesplegar()} title="Abrir el OPD hijo de despliegue">
-          <img src={unfoldIcon} alt="" aria-hidden="true" style={refinamientoStyles.icon} />
-          Mostrar despliegue
-        </button>
-      ) : (
-        <DesplegarComo onSelect={props.onDesplegar} />
-      )}
-      {despliegue ? (
-        <EstadoRefinamiento
-          testId="refinamiento-estado-despliegue"
-          label="Despliegue"
-          opdNombre={nombreOpd(props.modelo, despliegue.opdId)}
-        />
-      ) : null}
-    </>
-  );
-}
-
-function EstadoRefinamiento(props: { testId: string; label: string; opdNombre: string }) {
+function EstadoRefinamiento(props: { testId: string; label: string; opdNombre?: string | undefined }) {
   return (
     <span data-testid={props.testId} style={partialStyles.note}>
-      {`${props.label}: ${props.opdNombre}`}
+      {props.opdNombre ? `${props.label}: ${props.opdNombre}` : `${props.label}: sin OPD hijo`}
     </span>
   );
 }
 
 function nombreOpd(modelo: Modelo, opdId: Id): string {
   return modelo.opds[opdId]?.nombre ?? opdId;
-}
-
-function DesplegarComo(props: { onSelect: (modo: ModoDespliegueObjeto) => void }) {
-  return (
-    <details style={style.menu}>
-      <summary style={style.menuSummary}>
-        <img src={unfoldIcon} alt="" aria-hidden="true" style={refinamientoStyles.iconInline} />
-        Desplegar como...
-      </summary>
-      <div style={style.menuItems}>
-        {OPCIONES_DESPLIEGUE_OBJETO.map((opcion) => <button key={opcion.modo} type="button" style={style.menuButton} onClick={() => props.onSelect(opcion.modo)}>{opcion.label}</button>)}
-      </div>
-    </details>
-  );
 }
 
 function PartesCompactas(props: { filas: FilaPlegadoParcial[]; padreAparienciaId: string; onExtraer: (padreAparienciaId: string, parteEntidadId: string) => void; onExtraerTodas: () => void }) {
@@ -291,25 +249,6 @@ const partialStyles = {
   note: { color: tokens.colors.textoTerciario, fontSize: "12px", lineHeight: 1.35 },
   button: { minHeight: "28px", padding: "0 8px", border: `1px solid ${tokens.colors.bordeControl}`, borderRadius: tokens.radii.sm, background: tokens.colors.fondoCard, color: tokens.colors.textoSecundario, cursor: "pointer", fontSize: "12px", fontWeight: 700 },
   buttonDisabled: { minHeight: "28px", padding: "0 8px", border: `1px solid ${tokens.colors.bordeIntermedio}`, borderRadius: tokens.radii.sm, background: tokens.colors.fondoNeutral, color: tokens.colors.textoDeshabilitado, cursor: "not-allowed", fontSize: "12px", fontWeight: 700 },
-} satisfies Record<string, preact.JSX.CSSProperties>;
-
-const refinamientoStyles = {
-  iconButton: {
-    minHeight: "32px",
-    padding: "6px 10px",
-    border: `1px solid ${tokens.colors.acentoSecundario}`,
-    borderRadius: tokens.radii.sm,
-    background: tokens.colors.acentoSecundario,
-    color: tokens.colors.fondoChrome,
-    cursor: "pointer",
-    fontSize: "12px",
-    fontWeight: 700,
-    display: "inline-flex",
-    alignItems: "center",
-    gap: "6px",
-  },
-  icon: { width: "16px", height: "16px", display: "block", filter: "brightness(0) invert(1)" },
-  iconInline: { width: "14px", height: "14px", verticalAlign: "-2px", marginRight: "4px" },
 } satisfies Record<string, preact.JSX.CSSProperties>;
 
 const reassignStyles = {

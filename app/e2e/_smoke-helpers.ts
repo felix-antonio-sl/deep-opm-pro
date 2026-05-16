@@ -158,11 +158,11 @@ export async function elegirTipoEnlaceDesdeMenu(page: import("@playwright/test")
 
 /**
  * L1 ronda 20: el Inspector se reorganiza en tabs por intención. Las acciones
- * de refinamiento (Descomponer, Desplegar, Plegado parcial, Auto-invocación,
- * Quitar descomposición, Mostrar despliegue, Reasignar enlaces externos,
- * Extraer todas las partes, etc.) viven ahora en el tab `Refinamiento`, que
- * NO es default. Estos helpers garantizan que el tab esté activo antes de
- * buscar el control esperado. El tab activo persiste por sesión vía store,
+ * de refinamiento operativo (Plegado parcial, Auto-invocación, Reasignar
+ * enlaces externos, Extraer todas las partes, etc.) viven ahora en el tab
+ * `Refinamiento`, que NO es default. Inzoom/Unfold/Quitar viven en el
+ * catalogo contextual. Estos helpers garantizan que el tab esté activo antes
+ * de buscar el control esperado. El tab activo persiste por sesión vía store,
  * así que llamar al helper varias veces es idempotente.
  */
 export async function irATabRefinamiento(page: import("@playwright/test").Page): Promise<void> {
@@ -195,11 +195,21 @@ export async function irATabEstiloEnlace(page: import("@playwright/test").Page):
   await tab.click();
 }
 
+export async function ejecutarAccionCommandPalette(page: import("@playwright/test").Page, query: string, itemId: string): Promise<void> {
+  await page.evaluate(() => {
+    if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
+  });
+  await page.keyboard.press("Control+k");
+  const palette = page.getByTestId("command-palette");
+  await expect(palette).toBeVisible();
+  await palette.getByRole("combobox").fill(query);
+  await expect(page.getByTestId(`command-palette-item-${itemId}`)).toBeVisible();
+  await page.keyboard.press("Enter");
+  await expect(page.getByTestId("command-palette")).toHaveCount(0);
+}
+
 export async function desplegarComoAgregacion(page: import("@playwright/test").Page): Promise<void> {
-  // Tab `Refinamiento` no es default; navegar antes de buscar "Desplegar como...".
-  await irATabRefinamiento(page);
-  await page.getByText("Desplegar como...").click();
-  await page.getByRole("button", { name: "Como partes (agregación)" }).click();
+  await ejecutarAccionCommandPalette(page, "unfold", "accion-unfold");
 }
 
 export async function guardarComoActual(page: import("@playwright/test").Page, nombre: string, descripcion = ""): Promise<void> {

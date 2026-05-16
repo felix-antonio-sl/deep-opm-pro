@@ -1,4 +1,4 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 import {
   elementoPorTexto,
   escapeRegExp,
@@ -12,6 +12,7 @@ import {
   clickLinkPorIndice,
   clickLinkPorTipo,
   desplegarComoAgregacion,
+  ejecutarAccionCommandPalette,
   irATabRefinamiento,
   irATabExtremos,
   irATabEstiloEntidad,
@@ -56,11 +57,12 @@ test("descompone proceso y navega al OPD hijo", async ({ page }) => {
 
   await page.goto("/");
   await page.getByRole("button", { name: "Proceso", exact: true }).click();
-  // Ronda 20 L1: Descomponer vive en el tab `Refinamiento` (no default).
+  // Ronda 22: Inzoom vive en el catálogo contextual; Refinamiento muestra estado.
   await irATabRefinamiento(page);
-  await expect(page.getByRole("button", { name: "Descomponer" })).toBeVisible();
+  await expect(page.getByTestId("refinamiento-estado-descomposicion")).toContainText("Inzoom: sin OPD hijo");
+  await expect(page.getByRole("button", { name: "Descomponer" })).toHaveCount(0);
 
-  await page.getByRole("button", { name: "Descomponer" }).click();
+  await ejecutarAccionCommandPalette(page, "inzoom", "accion-inzoom");
 
   const nodoHijo = page.locator('[role="treeitem"]').filter({ hasText: "SD1: Proceso descompuesto" });
   await expect(nodoHijo).toHaveAttribute("aria-current", "page");
@@ -152,15 +154,15 @@ test("elimina desde arbol solo OPDs hoja y deshacer restaura", async ({ page }) 
 
   await page.goto("/");
   await page.getByRole("button", { name: "Proceso", exact: true }).click();
-  // Ronda 20 L1: Descomponer vive en el tab `Refinamiento`.
+  // Ronda 22: Inzoom vive en el catalogo contextual.
   await irATabRefinamiento(page);
-  await page.getByRole("button", { name: "Descomponer" }).click();
+  await ejecutarAccionCommandPalette(page, "inzoom", "accion-inzoom");
   const nodoPadre = page.locator('[role="treeitem"]').filter({ hasText: "SD1: Proceso descompuesto" });
   await expect(nodoPadre).toHaveAttribute("aria-current", "page");
 
   await elementoPorTexto(page, "Proceso 1").click();
   await irATabRefinamiento(page);
-  await page.getByRole("button", { name: "Descomponer" }).click();
+  await ejecutarAccionCommandPalette(page, "inzoom", "accion-inzoom");
   const nodoHoja = page.locator('[role="treeitem"]').filter({ hasText: "SD1.1: Proceso 1 descompuesto" });
   await expect(nodoHoja).toHaveAttribute("aria-current", "page");
 
@@ -187,9 +189,9 @@ test("crea objeto interno por click dentro del contenedor refinado", async ({ pa
 
   await page.goto("/");
   await page.getByRole("button", { name: "Proceso", exact: true }).click();
-  // Ronda 20 L1: Descomponer vive en el tab `Refinamiento`.
+  // Ronda 22: Inzoom vive en el catalogo contextual.
   await irATabRefinamiento(page);
-  await page.getByRole("button", { name: "Descomponer" }).click();
+  await ejecutarAccionCommandPalette(page, "inzoom", "accion-inzoom");
   await expect(page.locator('[role="treeitem"]').filter({ hasText: "SD1: Proceso descompuesto" })).toHaveAttribute("aria-current", "page");
 
   await page.getByTestId("toolbar-modo-creacion-objeto").click();
@@ -225,9 +227,10 @@ test("despliega objeto y navega al OPD hijo", async ({ page }) => {
   await page.goto("/");
   await cerrarPantallaInicioSiVisible(page);
   await page.getByRole("button", { name: "Objeto", exact: true }).click();
-  // Ronda 20 L1: el menú "Desplegar como..." vive en el tab `Refinamiento`.
+  // Ronda 22: Unfold vive en el catálogo contextual; Refinamiento muestra estado.
   await irATabRefinamiento(page);
-  await expect(page.getByText("Desplegar como...")).toBeVisible();
+  await expect(page.getByTestId("refinamiento-estado-despliegue")).toContainText("Despliegue: sin OPD hijo");
+  await expect(page.getByText("Desplegar como...")).toHaveCount(0);
 
   await desplegarComoAgregacion(page);
 
@@ -268,9 +271,10 @@ test("despliega proceso desde inspector y navega al OPD hijo", async ({ page }) 
   await page.goto("/");
   await cerrarPantallaInicioSiVisible(page);
   await page.getByRole("button", { name: "Proceso", exact: true }).click();
-  // Ronda 20 L1: el menú "Desplegar como..." vive en el tab `Refinamiento`.
+  // Ronda 22: Unfold vive en el catálogo contextual; Refinamiento muestra estado.
   await irATabRefinamiento(page);
-  await expect(page.getByText("Desplegar como...")).toBeVisible();
+  await expect(page.getByTestId("refinamiento-estado-despliegue")).toContainText("Despliegue: sin OPD hijo");
+  await expect(page.getByText("Desplegar como...")).toHaveCount(0);
 
   await desplegarComoAgregacion(page);
 
@@ -306,9 +310,10 @@ test("despliega proceso desde inspector y navega al OPD hijo", async ({ page }) 
 
   await page.locator('[role="treeitem"][data-opd-id="opd-1"]').click();
   await elementoPorTexto(page, "Proceso").click();
-  // Reset de tab al cambiar selección: volver a Refinamiento para ver "Mostrar despliegue".
+  // Reset de tab al cambiar selección: volver a Refinamiento para ver estado del despliegue.
   await irATabRefinamiento(page);
-  await expect(page.getByRole("button", { name: "Mostrar despliegue" })).toBeVisible();
+  await expect(page.getByTestId("refinamiento-estado-despliegue")).toContainText("Despliegue: SD1");
+  await expect(page.getByRole("button", { name: "Mostrar despliegue" })).toHaveCount(0);
 
   await page.screenshot({ path: "test-results/opm-process-unfold-opd-hijo.png", fullPage: true });
   expect(pageErrors).toEqual([]);
@@ -321,17 +326,15 @@ test("ronda 15.2: una entidad acepta descomposicion + despliegue simultaneos y e
   await page.goto("/");
   await cerrarPantallaInicioSiVisible(page);
   await page.getByRole("button", { name: "Proceso", exact: true }).click();
-  // Descomponer (in-zoom). Ronda 20 L1: vive en tab `Refinamiento`.
+  // Inzoom vive en el catálogo contextual.
   await irATabRefinamiento(page);
-  await page.getByRole("button", { name: "Descomponer" }).click();
+  await ejecutarAccionCommandPalette(page, "inzoom", "accion-inzoom");
   const nodoInzoom = page.locator('[role="treeitem"]').filter({ hasText: "SD1: Proceso descompuesto" });
   await expect(nodoInzoom).toHaveAttribute("aria-current", "page");
   // Volver a la raíz para desplegar
   await page.locator('[role="treeitem"][data-opd-id="opd-1"]').click();
   await elementoPorTexto(page, "Proceso").click();
-  // Desplegar (unfold) sin remover la descomposicion previa. desplegarComoAgregacion
-  // ya navega al tab Refinamiento, pero el botón "Mostrar despliegue"/"Abrir descomposición"
-  // se valida abajo y requiere que el tab siga activo.
+  // Desplegar (unfold) sin remover la descomposicion previa.
   await desplegarComoAgregacion(page);
   const nodoUnfold = page.locator('[role="treeitem"]').filter({ hasText: "SD2: Proceso desplegado" });
   await expect(nodoUnfold).toHaveAttribute("aria-current", "page");
@@ -340,13 +343,15 @@ test("ronda 15.2: una entidad acepta descomposicion + despliegue simultaneos y e
   await expect(nodoInzoom).toHaveCount(1);
   await expect(nodoUnfold).toHaveCount(1);
 
-  // Volver a la raíz y verificar que el inspector ofrece ambos: "Abrir descomposición" y "Mostrar despliegue".
+  // Volver a la raíz y verificar que el inspector muestra ambos estados sin acciones imperativas.
   await page.locator('[role="treeitem"][data-opd-id="opd-1"]').click();
   await elementoPorTexto(page, "Proceso").click();
   // Reset de tab al cambiar selección: re-navegar a Refinamiento.
   await irATabRefinamiento(page);
-  await expect(page.getByRole("button", { name: "Abrir descomposición" })).toBeVisible();
-  await expect(page.getByRole("button", { name: "Mostrar despliegue" })).toBeVisible();
+  await expect(page.getByTestId("refinamiento-estado-descomposicion")).toContainText("Inzoom: SD1");
+  await expect(page.getByTestId("refinamiento-estado-despliegue")).toContainText("Despliegue: SD2");
+  await expect(page.getByRole("button", { name: "Abrir descomposición" })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Mostrar despliegue" })).toHaveCount(0);
 
   // El JSON exportado preserva ambos slots ortogonales.
   const exportado = JSON.parse(await jsonEditor(page).inputValue()) as ExportadoModelo;
@@ -500,12 +505,12 @@ test("mantiene canvas e inspector en columnas separadas tras recalculos", async 
 
   await page.goto("/");
   await page.getByRole("button", { name: "Proceso", exact: true }).click();
-  // Ronda 20 L1: Descomponer vive en el tab `Refinamiento`.
+  // Ronda 22: Inzoom vive en el catalogo contextual.
   await irATabRefinamiento(page);
-  await page.getByRole("button", { name: "Descomponer" }).click();
+  await ejecutarAccionCommandPalette(page, "inzoom", "accion-inzoom");
   await elementoPorTexto(page, "Proceso 1").click();
   await irATabRefinamiento(page);
-  await page.getByRole("button", { name: "Descomponer" }).click();
+  await ejecutarAccionCommandPalette(page, "inzoom", "accion-inzoom");
   await expect(page.locator('[role="treeitem"]').filter({ hasText: "SD1.1:" })).toHaveAttribute("aria-current", "page");
 
   await page.waitForTimeout(4000);
@@ -538,9 +543,9 @@ test("redistribuye consumo al primer subproceso y resultado al ultimo", async ({
   await expect(page.locator(".joint-link")).toHaveCount(2);
 
   await elementoPorTexto(page, "Procesar").click();
-  // Ronda 20 L1: Descomponer vive en el tab `Refinamiento`.
+  // Ronda 22: Inzoom vive en el catalogo contextual.
   await irATabRefinamiento(page);
-  await page.getByRole("button", { name: "Descomponer" }).click();
+  await ejecutarAccionCommandPalette(page, "inzoom", "accion-inzoom");
   await expect(page.locator('[role="treeitem"]').filter({ hasText: "SD1: Procesar descompuesto" })).toHaveAttribute("aria-current", "page");
   await expect(page.locator(".joint-element")).toHaveCount(6);
   await expect(page.locator(".joint-link")).toHaveCount(2);
@@ -581,9 +586,9 @@ test("reancla consumo derivado y conserva el ancla manual al reordenar", async (
   await elegirTipoEnlaceDesdeMenu(page, "consumo");
   await elementoPorTexto(page, "Procesar").click();
   await elementoPorTexto(page, "Procesar").click();
-  // Ronda 20 L1: Descomponer vive en el tab `Refinamiento`.
+  // Ronda 22: Inzoom vive en el catalogo contextual.
   await irATabRefinamiento(page);
-  await page.getByRole("button", { name: "Descomponer" }).click();
+  await ejecutarAccionCommandPalette(page, "inzoom", "accion-inzoom");
   await expect(page.locator('[role="treeitem"]').filter({ hasText: "SD1: Procesar descompuesto" })).toHaveAttribute("aria-current", "page");
 
   await expect(page.getByText("Enlaces externos derivados")).toBeVisible();
@@ -632,9 +637,9 @@ test("L3 descomposicion avanzada: inspector reasigna, inline renombra, paralelo 
   await elegirTipoEnlaceDesdeMenu(page, "consumo");
   await elementoPorTexto(page, "Procesar").click();
   await elementoPorTexto(page, "Procesar").click();
-  // Ronda 20 L1: Descomponer vive en el tab `Refinamiento`.
+  // Ronda 22: Inzoom vive en el catalogo contextual.
   await irATabRefinamiento(page);
-  await page.getByRole("button", { name: "Descomponer" }).click();
+  await ejecutarAccionCommandPalette(page, "inzoom", "accion-inzoom");
   await expect(page.locator('[role="treeitem"]').filter({ hasText: "SD1: Procesar descompuesto" })).toHaveAttribute("aria-current", "page");
 
   await clickCabeceraElemento(page, "Procesar");
@@ -720,13 +725,3 @@ test("HU-10.021: desplegar objeto crea OPD hijo y entrada en árbol jerárquico"
 
   expect(pageErrors).toEqual([]);
 });
-
-async function ejecutarAccionCommandPalette(page: Page, query: string, itemId: string): Promise<void> {
-  await page.keyboard.press("Control+k");
-  const palette = page.getByTestId("command-palette");
-  await expect(palette).toBeVisible();
-  await palette.getByRole("combobox").fill(query);
-  await expect(page.getByTestId(`command-palette-item-${itemId}`)).toBeVisible();
-  await page.keyboard.press("Enter");
-  await expect(page.getByTestId("command-palette")).toHaveCount(0);
-}

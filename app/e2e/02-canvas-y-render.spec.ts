@@ -1,4 +1,4 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 import {
   elementoPorTexto,
   escapeRegExp,
@@ -12,6 +12,7 @@ import {
   clickLinkPorIndice,
   clickLinkPorTipo,
   desplegarComoAgregacion,
+  ejecutarAccionCommandPalette,
   irATabExtremos,
   irATabRefinamiento,
   guardarComoActual,
@@ -295,9 +296,9 @@ test("arrastra subproceso embebido dentro del macroproceso contenedor", async ({
 
   await page.goto("/");
   await page.getByRole("button", { name: "Proceso", exact: true }).click();
-  // Ronda 20 L1: Descomponer vive en el tab `Refinamiento` del Inspector.
+  // Ronda 22: Inzoom vive en el catalogo contextual.
   await irATabRefinamiento(page);
-  await page.getByRole("button", { name: "Descomponer" }).click();
+  await ejecutarAccionCommandPalette(page, "inzoom", "accion-inzoom");
 
   await expect(page.locator('[role="treeitem"]').filter({ hasText: "SD1: Proceso descompuesto" })).toHaveAttribute("aria-current", "page");
   await expect(page.locator(".joint-element")).toHaveCount(4);

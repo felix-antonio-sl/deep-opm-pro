@@ -7,7 +7,7 @@
  *    Enlaces, Refinamiento, Apariciones, Estilo);
  *  - el tab default es Semántica y la primera vista contiene descripción +
  *    esencia/afiliación sin necesidad de scroll excesivo;
- *  - cambiar de tab Refinamiento muestra los controles de in-zoom/unfold y
+ *  - cambiar de tab Refinamiento muestra estado de in-zoom/unfold y
  *    oculta los controles semánticos;
  *  - el tab Apariciones lista los OPDs donde aparece la entidad y permite
  *    navegar cross-OPD con un click;
@@ -17,7 +17,7 @@
  */
 
 import { expect, test } from "@playwright/test";
-import { cerrarPantallaInicioSiVisible, clickLinkPorTipo, elegirTipoEnlaceDesdeMenu, elementoPorTexto } from "./_smoke-helpers";
+import { cerrarPantallaInicioSiVisible, clickLinkPorTipo, ejecutarAccionCommandPalette, elegirTipoEnlaceDesdeMenu, elementoPorTexto } from "./_smoke-helpers";
 
 test("entidad muestra 5 tabs con default Semántica y descripción visible sin scroll", async ({ page }) => {
   const pageErrors: string[] = [];
@@ -56,7 +56,7 @@ test("entidad muestra 5 tabs con default Semántica y descripción visible sin s
   expect(pageErrors).toEqual([]);
 });
 
-test("click en tab Refinamiento muestra controles de in-zoom y oculta los semánticos", async ({ page }) => {
+test("click en tab Refinamiento muestra estado de in-zoom y oculta los semánticos", async ({ page }) => {
   const pageErrors: string[] = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
@@ -69,9 +69,10 @@ test("click en tab Refinamiento muestra controles de in-zoom y oculta los semán
   await expect(page.getByTestId("inspector-tab-refinamiento")).toHaveAttribute("aria-selected", "true");
   await expect(page.getByTestId("inspector-tab-semantica")).toHaveAttribute("aria-selected", "false");
 
-  // Panel Refinamiento muestra el botón Descomponer (control canónico de in-zoom).
+  // Panel Refinamiento muestra estado informativo; las acciones viven en Ctrl+K/barra/menu.
   await expect(page.getByTestId("inspector-panel-refinamiento")).toBeVisible();
-  await expect(page.getByRole("button", { name: "Descomponer" })).toBeVisible();
+  await expect(page.getByTestId("refinamiento-estado-descomposicion")).toContainText("Inzoom: sin OPD hijo");
+  await expect(page.getByRole("button", { name: "Descomponer" })).toHaveCount(0);
   // Las secciones semánticas (descripción) ya no están montadas en el DOM.
   await expect(page.getByTestId("inspector-seccion-descripcion")).toHaveCount(0);
 
@@ -85,10 +86,10 @@ test("tab Apariciones lista OPDs y navega cross-OPD con un click", async ({ page
   await page.goto("/");
   await cerrarPantallaInicioSiVisible(page);
   await page.getByRole("button", { name: "Proceso", exact: true }).click();
-  // Descomponer crea OPD hijo; el proceso aparece en el contorno del OPD hijo.
-  // Ronda 20 L1: Descomponer vive en el tab `Refinamiento` (no default).
+  // Inzoom crea OPD hijo; el proceso aparece en el contorno del OPD hijo.
+  // Ronda 22: la accion vive en el catalogo contextual.
   await page.getByTestId("inspector-tab-refinamiento").click();
-  await page.getByRole("button", { name: "Descomponer", exact: true }).click();
+  await ejecutarAccionCommandPalette(page, "inzoom", "accion-inzoom");
   // Tras la descomposición el OPD activo es el hijo (SD1). Volvemos a la raíz.
   await page.locator('[role="treeitem"][data-opd-id="opd-1"]').click();
 
