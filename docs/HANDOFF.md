@@ -3,8 +3,8 @@
 **Fecha**: 2026-05-16
 **Repositorio**: `deep-opm-pro`
 **Rama**: `main`
-**HEAD versionado**: `08b3753 test(ux): actualiza auditoria in vivo`
-**Corte**: UX/IFML ronda 22 cerrado con auditoría in-vivo reproducible; sin FAIL/WARN ni errores runtime en el corte auditado.
+**HEAD versionado**: `96d5097 feat(ux): filtra tabla de enlaces densa`
+**Corte**: Primer corte post-brief HODOM denso: tabla de enlaces apta para inspeccionar modelos grandes con búsqueda textual y filtro por familia.
 
 ## Política De Handoff Único
 
@@ -19,6 +19,45 @@
 - JointJS OSS: usar documentación oficial viva cuando se toque JointJS.
 
 ## Estado Actual
+
+### Post-Brief HODOM Denso — 2026-05-16
+
+La rama `main` quedó sincronizada con `origin/main` tras `96d5097`, que mejora `TablaEnlaces` para operar sobre modelos densos:
+
+- Búsqueda textual por origen, destino, etiqueta, tipo, familia y OPD.
+- Filtro por familia `Procedurales` / `Estructurales` / `Todos`.
+- Contador accesible `filtrados/total` con desglose procedurales/estructurales.
+- Botón de limpieza de filtros.
+- Smoke específico sobre modelo mixto de 10 enlaces para cubrir búsqueda + familia sin romper edición, eliminación ni navegación existente.
+
+Prueba directa con HODOM v1.1 real:
+
+```bash
+# Cargado por browser contra http://127.0.0.1:5173/
+# TablaEnlaces: 113 filas
+# Contador: 113 de 113 enlaces · 83 procedurales · 30 estructurales
+# Filtro estructural: 30 filas
+# Búsqueda "Paciente": 19 filas
+# pageErrors: []
+```
+
+Validación del corte:
+
+```bash
+cd app && bun run typecheck
+cd app && bun run browser:smoke -- e2e/11-beta1-tabla-enlaces.spec.ts
+# 4 passed
+cd app && bun run lint
+cd app && bun run test
+# 1371 pass / 0 fail
+cd app && bun run build
+cd app && bun run browser:smoke
+# 191 passed / 0 fail
+cd app && node scripts/in-vivo-test.mjs http://127.0.0.1:5173/
+# OK=57 FAIL=0 WARN=0 INFO=2
+```
+
+### UX/IFML Ronda 22 — 2026-05-16
 
 La rama `main` quedó sincronizada con `origin/main` tras el commit `08b3753`, que reemplaza la sonda in-vivo obsoleta por una auditoría alineada a la UI actual:
 
@@ -73,6 +112,7 @@ bun -e 'import { readFileSync } from "node:fs"; import { hidratarModelo } from "
 
 ## Commits Relevantes Del Cierre UX/IFML
 
+- `96d5097 feat(ux): filtra tabla de enlaces densa`
 - `08b3753 test(ux): actualiza auditoria in vivo`
 - `de67395 refactor(a11y): unifica fuente de avisos`
 - `84a96f2 test(a11y): cubre ciclo de feedback`
@@ -99,11 +139,11 @@ También pueden existir salidas regenerables ignoradas:
 
 ## Pendientes Post-Brief
 
-El brief UX/IFML queda cerrado para el corte auditado. Lo que sigue ya es selección de backlog nuevo:
+El brief UX/IFML queda cerrado para el corte auditado. El primer corte de modelos densos ya mejoró `TablaEnlaces`; lo que sigue debe seguir usando HODOM como pressure test real:
 
 - **Mini-mapa / mapa del sistema más operativo**: navegación visual para modelos densos.
 - **Import/export OPX real**: interoperabilidad más allá del JSON local.
-- **Modelos densos HODOM**: ergonomía de navegación, filtrado y performance perceptual con 5 OPDs y 113 enlaces.
+- **Modelos densos HODOM**: profundizar navegación por subgrafo, filtros de canvas y performance perceptual con 5 OPDs y 113 enlaces.
 - **Enlaces OPCloud avanzados**: forked tagged links, smoke UI específico para tagged/bidirectional + exception/time.
 - **Comentarios/notas**: EPICA-42 sigue fuera del modo mobile review productivo; hoy se comunica como no disponible.
 
@@ -111,4 +151,4 @@ El brief UX/IFML queda cerrado para el corte auditado. Lo que sigue ya es selecc
 
 Retomar desde este `docs/HANDOFF.md`. Usar el script versionado `app/scripts/in-vivo-test.mjs` como baseline antes y después del próximo corte visual/UX. Si el siguiente bloque toca JointJS, consultar primero `opm-extracted/`, `docs/JOYAS.md`, assets SVG canónicos y documentación oficial de JointJS OSS.
 
-Siguiente bloque recomendado: elegir un post-brief con alto valor de uso real. La opción más productiva ahora es **modelos densos HODOM + navegación/filtrado**, porque ya existe modelo real validado y fuerza a mejorar el workbench con presión de uso, no con UI abstracta.
+Siguiente bloque recomendado: seguir con **HODOM denso**, ahora en navegación canvas/subgrafo. La tabla ya filtra 113 enlaces; falta que esa selección pueda traducirse en foco visual sobre el canvas o en una vista de subgrafo sin inundar el OPD.
