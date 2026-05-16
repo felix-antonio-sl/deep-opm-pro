@@ -55,7 +55,7 @@ export const colors = {
   exitoTexto: "#147a4a",
   exitoFondo: "#ecfdf3",
   alertaAmbar: "#f59e0b",
-  alertaTexto: "#dc6803",
+  alertaTexto: "#b45309",
   advertenciaFondo: "#fff8eb",
   advertenciaBorde: "#fedf89",
   errorRojo: "#dc2626",

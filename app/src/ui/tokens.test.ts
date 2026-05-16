@@ -58,4 +58,45 @@ describe("tokens.colors — paleta UI mínima [JOYAS §1]", () => {
     expect(typography.sizes.lg).toBe(14);
     expect(typography.weights.semibold).toBe(600);
   });
+
+  test("pares de texto activo cumplen WCAG AA 4.5:1", () => {
+    const pares = [
+      ["texto primario", colors.textoPrimario, colors.fondoChrome],
+      ["texto secundario", colors.textoSecundario, colors.fondoCard],
+      ["texto slate", colors.textoSlate, colors.fondoElevado],
+      ["success", colors.exitoTexto, colors.exitoFondo],
+      ["warning", colors.alertaTexto, colors.advertenciaFondo],
+      ["error", colors.errorTexto, colors.errorFondoIntenso],
+      ["info", colors.infoTextoOscuro, colors.infoFondo],
+      ["objeto chrome", colors.verdeObjetoOscuro, colors.objetoFondo],
+      ["opl", colors.verdeOpl, colors.oplFondo],
+    ] as const;
+
+    for (const [nombre, foreground, background] of pares) {
+      expect(contraste(foreground, background), nombre).toBeGreaterThanOrEqual(4.5);
+    }
+  });
 });
+
+function contraste(foreground: string, background: string): number {
+  const valores = [luminancia(foreground), luminancia(background)].sort((a, b) => b - a);
+  const mayor = valores[0] ?? 0;
+  const menor = valores[1] ?? 0;
+  return (mayor + 0.05) / (menor + 0.05);
+}
+
+function luminancia(hex: string): number {
+  const [r, g, b] = rgb(hex).map((value) => {
+    const normalizado = value / 255;
+    return normalizado <= 0.03928
+      ? normalizado / 12.92
+      : ((normalizado + 0.055) / 1.055) ** 2.4;
+  });
+  return 0.2126 * (r ?? 0) + 0.7152 * (g ?? 0) + 0.0722 * (b ?? 0);
+}
+
+function rgb(hex: string): [number, number, number] {
+  const value = hex.replace("#", "");
+  if (!/^[0-9a-f]{6}$/i.test(value)) throw new Error(`Color hex inválido: ${hex}`);
+  return [0, 2, 4].map((index) => Number.parseInt(value.slice(index, index + 2), 16)) as [number, number, number];
+}
