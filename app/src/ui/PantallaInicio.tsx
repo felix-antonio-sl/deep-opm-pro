@@ -7,6 +7,7 @@ import type { Id } from "../modelo/tipos";
 import type { ResumenModeloPersistido } from "../persistencia/local";
 import { listarFixtures } from "../store/runtime";
 import { useOpmStore } from "../store";
+import { modeloTieneContenidoVisible } from "./bienvenida";
 import { useConfirmarSiDirty } from "./ConfirmacionContext";
 import { tokens } from "./tokens";
 
@@ -33,9 +34,7 @@ export function PantallaInicio() {
   const [demoSeleccionado, setDemoSeleccionado] = useState("");
 
   const demos = useMemo(() => listarFixtures(), []);
-  const modeloTieneContenido = useMemo(() => Object.values(modelo.opds).some((opd) => (
-    Object.keys(opd.apariencias).length > 0 || Object.keys(opd.enlaces).length > 0
-  )), [modelo.opds]);
+  const modeloTieneContenido = useMemo(() => modeloTieneContenidoVisible(modelo), [modelo]);
 
   useEffect(() => {
     listar();

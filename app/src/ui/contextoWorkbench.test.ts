@@ -71,6 +71,11 @@ describe("resolverContextSubModoWorkbench — Context.Modo.subModo IFML", () => 
 });
 
 describe("resolverViewPointWorkbench — ViewPoint efectivo", () => {
+  test("Bienvenida prevalece como ViewPoint de boot sin modelo cargado", () => {
+    expect(resolverViewPointWorkbench({ device: "desktop", modo: "edicion", bienvenidaActiva: true })).toBe("Bienvenida");
+    expect(resolverViewPointWorkbench({ device: "mobile", modo: "edicion", bienvenidaActiva: true })).toBe("Bienvenida");
+  });
+
   test("mobile sustituye la composicion aunque el modo sea alternativo", () => {
     expect(resolverViewPointWorkbench({ device: "mobile", modo: "edicion" })).toBe("Mobile");
     expect(resolverViewPointWorkbench({ device: "mobile", modo: "mapa" })).toBe("Mobile");
@@ -97,5 +102,20 @@ describe("resolverContextoWorkbench — contrato integrado", () => {
   test("declara Mapa y Simulacion como ViewPoint no default", () => {
     expect(resolverContextoWorkbench({ breakpoint: "desktop", vistaMapaActiva: true, modoSimulacionActivo: false }).viewPointDefault).toBe(false);
     expect(resolverContextoWorkbench({ breakpoint: "desktop", vistaMapaActiva: false, modoSimulacionActivo: true }).viewPointDefault).toBe(false);
+  });
+
+  test("declara Bienvenida como ViewPoint no default antes de Edicion", () => {
+    expect(resolverContextoWorkbench({
+      breakpoint: "desktop",
+      vistaMapaActiva: false,
+      modoSimulacionActivo: false,
+      bienvenidaActiva: true,
+    })).toEqual({
+      device: "desktop",
+      modo: "edicion",
+      subModo: null,
+      viewPoint: "Bienvenida",
+      viewPointDefault: false,
+    });
   });
 });

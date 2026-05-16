@@ -19,6 +19,7 @@ import { BarraPestanas } from "./BarraPestanas";
 import { BibliotecaDock } from "./biblioteca/BibliotecaDock";
 import { CapturadorBugs } from "./CapturadorBugs";
 import { configurarContextoAtajos, escucharGlobal, registrarAtajo } from "./atajosTeclado";
+import { modeloTieneContenidoVisible } from "./bienvenida";
 import { ConfirmacionProvider } from "./ConfirmacionContext";
 import { resolverContextoWorkbench } from "./contextoWorkbench";
 import { DivisorPanel } from "./divisorPanel";
@@ -83,6 +84,8 @@ export function App() {
   const cerrarCheatsheetAtajos = useOpmStore((s) => s.cerrarCheatsheetAtajos);
   const dialogoComandosAbierto = useOpmStore((s) => s.dialogoComandosAbierto);
   const cerrarDialogoComandos = useOpmStore((s) => s.cerrarDialogoComandos);
+  const modeloPersistidoId = useOpmStore((s) => s.modeloPersistidoId);
+  const pantallaInicioCerrada = useOpmStore((s) => s.pantallaInicioCerrada);
   // L2 ronda 21: vista activa solo se consume cuando el breakpoint es mobile.
   const vistaMobileActiva = useOpmStore((s) => s.vistaMobileActiva);
   const [inspectorAbierto, setInspectorAbierto] = useState(true);
@@ -129,12 +132,14 @@ export function App() {
   const modoSimulacionActivo = useOpmStore((s) => s.contextoSimulacion !== null);
   const modoEnlaceActivo = useOpmStore((s) => s.modoEnlace !== null);
   const modoCreacionActivo = useOpmStore((s) => s.modoCreacion !== null);
+  const bienvenidaActiva = !modeloPersistidoId && !pantallaInicioCerrada && !modeloTieneContenidoVisible(modelo);
   const contextoWorkbench = resolverContextoWorkbench({
     breakpoint,
     vistaMapaActiva,
     modoSimulacionActivo,
     modoEnlaceActivo,
     modoCreacionActivo,
+    bienvenidaActiva,
   });
   const esViewPointMapa = contextoWorkbench.modo === "mapa";
 
