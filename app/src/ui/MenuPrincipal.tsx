@@ -63,13 +63,13 @@ export function MenuPrincipal() {
       <div aria-hidden="true" style={style.menuTitle}>Mi modelo</div>
 
       <MenuSection title="Modelo">
+        <MenuItem label="Guardar" shortcut="Ctrl+S" onClick={() => ejecutar(guardarLocal)} />
+        <MenuItem label="Cargar otro..." shortcut="Ctrl+O" onClick={() => ejecutar(() => confirmarSiDirty(abrirCargarModelo))} />
         <MenuItem label="Nuevo" shortcut="Ctrl+N" onClick={() => ejecutar(() => confirmarSiDirty(nuevoModelo))} />
         <MenuItem label="Abrir como pestaña" shortcut="Ctrl+T" onClick={() => ejecutar(abrirPestanaNueva)} />
-        <MenuItem label="Asistente guiado" onClick={() => ejecutar(iniciarAsistente)} />
-        <MenuItem label="Guardar" shortcut="Ctrl+S" onClick={() => ejecutar(guardarLocal)} />
+        <MenuItem label="Renombrar..." onClick={() => ejecutar(abrirDialogoConfiguracion)} />
         <MenuItem label="Guardar como" onClick={() => ejecutar(abrirGuardarComo)} />
-        <MenuItem label="Cargar otro..." shortcut="Ctrl+O" onClick={() => ejecutar(() => confirmarSiDirty(abrirCargarModelo))} />
-        <MenuItem label="Configuración..." onClick={() => ejecutar(abrirDialogoConfiguracion)} />
+        <MenuItem label="Asistente guiado" onClick={() => ejecutar(iniciarAsistente)} />
       </MenuSection>
 
       <MenuSection title="Buscar">
@@ -94,6 +94,7 @@ export function MenuPrincipal() {
       <MenuSection title="Más">
         <MenuItem label="Guardar como plantilla..." icon={templateIcon} onClick={() => ejecutar(abrirDialogoGuardarPlantilla)} />
         <MenuItem label="Plantillas..." icon={templateIcon} onClick={() => ejecutar(abrirDialogoPlantillas)} />
+        <MenuItem label="Configuración..." onClick={() => ejecutar(abrirDialogoConfiguracion)} />
         <MenuItem label="Cargar archivados..." onClick={() => ejecutar(() => confirmarSiDirty(() => abrirCargarModelo({ mostrarArchivados: true })))} />
         <MenuItem label={mostrarArchivados ? "Ocultar archivados" : "Mostrar archivados"} onClick={() => ejecutar(toggleMostrarArchivados)} />
         <MenuItem label={mostrarVersiones ? "Ocultar glifos de versiones" : "Mostrar glifos de versiones"} onClick={() => ejecutar(toggleMostrarVersiones)} />

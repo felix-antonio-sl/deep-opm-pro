@@ -120,3 +120,28 @@ test("acciones movidas al menu Mas siguen invocables (plantillas, configuracion,
 
   expect(pageErrors).toEqual([]);
 });
+
+test("MenuPrincipal separa archivo, renombrado y configuracion segun §7.9", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await cerrarPantallaInicioSiVisible(page);
+
+  await page.getByLabel("Menú principal").click();
+  const menu = page.getByRole("menu", { name: "Menú principal" });
+  await expect(menu).toBeVisible();
+  await expect(menu.getByRole("menuitem", { name: "Guardar", exact: true })).toBeVisible();
+  await expect(menu.getByRole("menuitem", { name: "Cargar otro...", exact: true })).toBeVisible();
+  await expect(menu.getByRole("menuitem", { name: "Nuevo", exact: true })).toBeVisible();
+  await expect(menu.getByRole("menuitem", { name: "Abrir como pestaña", exact: true })).toBeVisible();
+  await expect(menu.getByRole("menuitem", { name: "Renombrar...", exact: true })).toBeVisible();
+  await expect(menu.getByRole("menuitem", { name: "Configuración...", exact: true })).toBeVisible();
+
+  await menu.getByRole("menuitem", { name: "Renombrar...", exact: true }).click();
+  const dialogoConfig = page.getByRole("dialog", { name: "Configuración" });
+  await expect(dialogoConfig).toBeVisible();
+  await expect(dialogoConfig.getByLabel("Nombre del modelo")).toBeVisible();
+
+  expect(pageErrors).toEqual([]);
+});
