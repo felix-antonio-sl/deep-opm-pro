@@ -282,10 +282,10 @@ export function siguienteModoGlobal(modo: ModoImagenEntidad | null): ModoImagenE
 }
 
 export function etiquetaModoGlobal(modo: ModoImagenEntidad | null): string {
-  if (modo === "imagen-texto") return "Img+Txt";
-  if (modo === "imagen") return "Img";
-  if (modo === "texto") return "Texto";
-  return "Respeta";
+  if (modo === "imagen-texto") return "imagen + nombre";
+  if (modo === "imagen") return "solo imagen";
+  if (modo === "texto") return "solo nombre";
+  return "por cosa";
 }
 
 function botonBase(): preact.JSX.CSSProperties {

@@ -107,7 +107,7 @@ test("acciones movidas al menu Mas siguen invocables (plantillas, config grid, m
   await expect(modalGrid).toHaveCount(0);
 
   // 3) Cambiar modo imagen global desde el menu Más.
-  // Estado inicial: "Respeta" (uiModoImagenGlobal === null).
+  // Estado inicial: "por cosa" (uiModoImagenGlobal === null).
   await page.getByTestId("toolbar-mas-trigger").click();
   const itemModoImagen = page.getByTestId("toolbar-mas-modo-imagen-global");
   await expect(itemModoImagen).toBeVisible();
@@ -115,7 +115,7 @@ test("acciones movidas al menu Mas siguen invocables (plantillas, config grid, m
   // Tras el click el menu se cierra; al reabrir, el item refleja el cambio.
   await expect(page.getByTestId("toolbar-mas-menu")).toHaveCount(0);
   await page.getByTestId("toolbar-mas-trigger").click();
-  await expect(page.getByTestId("toolbar-mas-modo-imagen-global")).toContainText("Img+Txt");
+  await expect(page.getByTestId("toolbar-mas-modo-imagen-global")).toContainText("imagen + nombre");
   await page.keyboard.press("Escape");
 
   expect(pageErrors).toEqual([]);

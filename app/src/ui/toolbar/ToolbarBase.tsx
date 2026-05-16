@@ -486,9 +486,9 @@ function construirItemsMenuMas(p: ParametrosItemsMas): ToolbarMasItem[] {
   items.push({
     kind: "accion",
     id: "modo-imagen-global",
-    label: `Imagen global: ${etiquetaModoGlobal(p.uiModoImagenGlobal)}`,
+    label: `Imagen: ${etiquetaModoGlobal(p.uiModoImagenGlobal)}`,
     activo: p.uiModoImagenGlobal !== null,
-    title: `Modo imagen global · ciclo Respeta → Img+Txt → Img → Texto. Actual: ${etiquetaModoGlobal(p.uiModoImagenGlobal)}`,
+    title: `Modo imagen · ciclo por cosa → imagen + nombre → solo imagen → solo nombre. Actual: ${etiquetaModoGlobal(p.uiModoImagenGlobal)}`,
     onClick: p.onSiguienteModoImagen,
     testId: "toolbar-mas-modo-imagen-global",
   });
