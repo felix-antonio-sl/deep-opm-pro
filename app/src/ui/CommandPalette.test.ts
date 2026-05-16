@@ -73,4 +73,17 @@ describe("CommandPalette", () => {
     expect(filtrarItemsCommandPalette(items, "refinamiento").map((item) => item.label)).toContain("Inzoom (descomposición)");
     expect(filtrarItemsCommandPalette(items, "tabla enlaces").map((item) => item.label)).toContain("Tabla de enlaces");
   });
+
+  test("ordena por frecuencia de uso desc y luego por nombre", () => {
+    const items = construirItemsCommandPalette(atajos, acciones, accionesMenu, {
+      "menu-tabla-enlaces": 3,
+      "accion-inzoom": 1,
+    });
+
+    expect(items.map((item) => item.id).slice(0, 2)).toEqual(["menu-tabla-enlaces", "accion-inzoom"]);
+    expect(items.filter((item) => item.frecuenciaUso === 0).map((item) => item.label)).toEqual([
+      "Guardar modelo",
+      "Traer conectados de la cosa seleccionada",
+    ]);
+  });
 });

@@ -25,6 +25,7 @@ export interface CommandPaletteItem {
   registroIndex?: number;
   accionId?: AccionContextualId;
   menuActionId?: string;
+  frecuenciaUso: number;
 }
 
 export interface CommandPaletteMenuAction {
@@ -67,6 +68,8 @@ export function CommandPalette({ abierto, onCerrar }: Props) {
   const abrirDialogoImportarExportarJson = useOpmStore((s) => s.abrirDialogoImportarExportarJson);
   const abrirCheatsheetAtajos = useOpmStore((s) => s.abrirCheatsheetAtajos);
   const exportarJson = useOpmStore((s) => s.exportarJson);
+  const frecuenciaUso = useOpmStore((s) => s.frecuenciaUsoCommandPalette);
+  const registrarUsoCommandPalette = useOpmStore((s) => s.registrarUsoCommandPalette);
 
   const entidad = seleccionId ? modelo.entidades[seleccionId] ?? null : null;
   const enlaceEstiloId = entidad ? primerEnlaceVisualDeEntidad(modelo, opdActivoId, entidad.id) : null;
@@ -106,7 +109,7 @@ export function CommandPalette({ abierto, onCerrar }: Props) {
   });
   const registros = listarAtajos();
   const items = filtrarItemsCommandPalette(
-    construirItemsCommandPalette(registros, accionesContextuales, accionesMenu),
+    construirItemsCommandPalette(registros, accionesContextuales, accionesMenu, frecuenciaUso),
     query,
   ).slice(0, 60);
   const itemActivo = items[activo] ?? items[0] ?? null;
@@ -126,6 +129,7 @@ export function CommandPalette({ abierto, onCerrar }: Props) {
 
   const ejecutar = (item: CommandPaletteItem | null) => {
     if (!item) return;
+    registrarUsoCommandPalette(item.id);
     if (item.tipo === "atajo") {
       const registro = item.registroIndex !== undefined ? registros[item.registroIndex] : undefined;
       registro?.handler(new KeyboardEvent("keydown"));
@@ -230,12 +234,14 @@ export function construirItemsCommandPalette(
   registros: readonly RegistroAtajo[],
   acciones: readonly AccionContextual[],
   accionesMenu: readonly CommandPaletteMenuAction[] = [],
+  frecuenciaUso: Readonly<Record<string, number>> = {},
 ): CommandPaletteItem[] {
   const itemsAtajos = registros.map((registro, index) => {
     const label = registro.etiqueta ?? registro.descripcion;
     const descripcion = registro.descripcionLarga ?? registro.descripcion;
+    const id = `atajo-${index}-${normalizarTextoBusqueda(registro.ctx)}-${normalizarTextoBusqueda(registro.combo)}`;
     return {
-      id: `atajo-${index}-${normalizarTextoBusqueda(registro.ctx)}-${normalizarTextoBusqueda(registro.combo)}`,
+      id,
       tipo: "atajo" as const,
       label,
       descripcion,
@@ -243,33 +249,42 @@ export function construirItemsCommandPalette(
       atajo: registro.combo,
       registroIndex: index,
       textoBusqueda: textoBusqueda([label, descripcion, registro.categoria, registro.combo, registro.ctx]),
+      frecuenciaUso: frecuenciaUso[id] ?? 0,
     };
   });
-  const itemsAcciones = acciones.map((accion) => ({
-    id: `accion-${accion.id}`,
-    tipo: "accion-contextual" as const,
-    label: accion.label,
-    descripcion: accion.label,
-    categoria: accion.categoria,
-    ...(accion.atajo ? { atajo: accion.atajo } : {}),
-    accionId: accion.id,
-    textoBusqueda: textoBusqueda([accion.label, accion.categoria, accion.atajo ?? ""]),
-  }));
-  const itemsMenu = accionesMenu
-    .filter((accion) => accion.enabled !== false)
-    .map((accion) => ({
-      id: `menu-${accion.id}`,
-      tipo: "accion-menu" as const,
+  const itemsAcciones = acciones.map((accion) => {
+    const id = `accion-${accion.id}`;
+    return {
+      id,
+      tipo: "accion-contextual" as const,
       label: accion.label,
-      descripcion: accion.descripcion,
+      descripcion: accion.label,
       categoria: accion.categoria,
       ...(accion.atajo ? { atajo: accion.atajo } : {}),
-      menuActionId: accion.id,
-      textoBusqueda: textoBusqueda([accion.label, accion.descripcion, accion.categoria, accion.atajo ?? ""]),
-    }));
+      accionId: accion.id,
+      textoBusqueda: textoBusqueda([accion.label, accion.categoria, accion.atajo ?? ""]),
+      frecuenciaUso: frecuenciaUso[id] ?? 0,
+    };
+  });
+  const itemsMenu = accionesMenu
+    .filter((accion) => accion.enabled !== false)
+    .map((accion) => {
+      const id = `menu-${accion.id}`;
+      return {
+        id,
+        tipo: "accion-menu" as const,
+        label: accion.label,
+        descripcion: accion.descripcion,
+        categoria: accion.categoria,
+        ...(accion.atajo ? { atajo: accion.atajo } : {}),
+        menuActionId: accion.id,
+        textoBusqueda: textoBusqueda([accion.label, accion.descripcion, accion.categoria, accion.atajo ?? ""]),
+        frecuenciaUso: frecuenciaUso[id] ?? 0,
+      };
+    });
   return [...itemsAcciones, ...itemsAtajos, ...itemsMenu].sort((a, b) => {
-    const categoria = a.categoria.localeCompare(b.categoria, "es");
-    return categoria === 0 ? a.label.localeCompare(b.label, "es") : categoria;
+    const frecuencia = b.frecuenciaUso - a.frecuenciaUso;
+    return frecuencia === 0 ? a.label.localeCompare(b.label, "es") : frecuencia;
   });
 }
 

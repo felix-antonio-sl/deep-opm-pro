@@ -303,6 +303,7 @@ export interface OpmStore {
   dialogoCargarModeloAbierto: boolean;
   dialogoImportarExportarJsonAbierto: boolean;
   dialogoComandosAbierto: boolean;
+  frecuenciaUsoCommandPalette: Record<string, number>;
   pantallaInicioCerrada: boolean;
   dialogoRenombrarModeloAbierto: boolean;
   dialogoTraerConectadosAbierto: boolean;
@@ -711,6 +712,7 @@ export interface OpmStore {
   cerrarCheatsheetAtajos: () => void;
   abrirDialogoComandos: () => void;
   cerrarDialogoComandos: () => void;
+  registrarUsoCommandPalette: (itemId: string) => void;
   /** L2 ronda 21: cambia la vista activa del modo revisión mobile. */
   cambiarVistaMobile: (vista: "canvas" | "opds" | "opl" | "issues") => void;
   navegarOpdArriba: () => void;

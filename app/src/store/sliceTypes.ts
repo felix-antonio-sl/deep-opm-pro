@@ -449,6 +449,11 @@ export type SimulacionSlice = Slice<
   | "asignarValorRuntimeSimulacion"
 >;
 
+export type AtajosSlice = Slice<
+  | "frecuenciaUsoCommandPalette"
+  | "registrarUsoCommandPalette"
+>;
+
 export type OpmStoreSlices =
   & ModeloSlice
   & SeleccionSlice
@@ -459,7 +464,8 @@ export type OpmStoreSlices =
   & MapaSlice
   & PersistenciaSlice
   & PestanasSlice
-  & SimulacionSlice;
+  & SimulacionSlice
+  & AtajosSlice;
 
 type AssertNever<T extends never> = T;
 

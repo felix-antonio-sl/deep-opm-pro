@@ -1,5 +1,6 @@
 import { useEffect, useState } from "preact/hooks";
 import { createStore } from "zustand/vanilla";
+import { createAtajosSlice } from "./store/atajos";
 import { createCarpetasSlice } from "./store/carpetas";
 import { createEnlacesSlice } from "./store/enlaces";
 import { createMapaSlice } from "./store/mapa";
@@ -26,6 +27,7 @@ export const store = createStore<OpmStore>((set, get) => ({
   ...createPersistenciaSlice(set, get),
   ...createPestanasSlice(set, get),
   ...createSimulacionSlice(set, get),
+  ...createAtajosSlice(set, get),
 } as OpmStore));
 
 conectarRuntimeStore(store);
