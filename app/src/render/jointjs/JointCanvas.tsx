@@ -5,6 +5,7 @@ import { focoPasoActualSimulacion } from "../../modelo/simulacion/foco";
 import type { Apariencia, Enlace, ExtremoEnlace, Modelo, Opd } from "../../modelo/tipos";
 import { useOpmStore } from "../../store";
 import { clearHoverTooltip, setHoverTooltip, sincronizarBadgesDesdeAvisos } from "../../store/feedback";
+import { MenuTipoEnlace } from "../../ui/MenuTipoEnlace";
 import { RenombradoInline } from "../../ui/RenombradoInline";
 import { recalcularOverlaysAbanicoDesdeLinkViews } from "./abanicoDragSync";
 import { opmShapes } from "./customShapes";
@@ -21,7 +22,7 @@ import {
   setPaperDimensions,
 } from "./handlers/helpers";
 import { aplicarHoverOpl, cablearHoverOpl } from "./handlers/hoverOpl";
-import { aplicarFeedbackModoEnlace, cablearModoEnlace } from "./handlers/modoEnlace";
+import { aplicarFeedbackModoEnlace, cablearModoEnlace, type MenuTipoEnlaceCanvasInput } from "./handlers/modoEnlace";
 import { cablearRubberBand } from "./handlers/rubberBand";
 import { cablearResize } from "./handlers/resize";
 import { cablearSeleccion } from "./handlers/seleccion";
@@ -110,6 +111,10 @@ export function JointCanvas() {
   const crearEntidadEnCanvasRef = useRef(crearEntidadEnCanvas);
   const crearEnlaceEntreEntidades = useOpmStore((s) => s.crearEnlaceEntreEntidades);
   const crearEnlaceEntreEntidadesRef = useRef(crearEnlaceEntreEntidades);
+  const iniciarConexionDesdeApariencia = useOpmStore((s) => s.iniciarConexionDesdeApariencia);
+  const iniciarConexionDesdeAparienciaRef = useRef(iniciarConexionDesdeApariencia);
+  const cancelarEnlace = useOpmStore((s) => s.cancelarEnlace);
+  const cancelarEnlaceRef = useRef(cancelarEnlace);
   const fijarHoverOpl = useOpmStore((s) => s.fijarHoverOpl);
   const fijarHoverOplRef = useRef(fijarHoverOpl);
   const setSeleccion = useOpmStore((s) => s.setSeleccion);
@@ -126,6 +131,13 @@ export function JointCanvas() {
   const renombrarEntidadDesdeOplRef = useRef(renombrarEntidadDesdeOpl);
   const [renombradoInline, setRenombradoInline] = useState<null | { aparienciaId: string; entidadId: string }>(null);
   const abrirRenombradoInlineRef = useRef((input: { aparienciaId: string; entidadId: string }) => setRenombradoInline(input));
+  const [menuTipoEnlaceCanvas, setMenuTipoEnlaceCanvas] = useState<null | (MenuTipoEnlaceCanvasInput & { left: number; top: number })>(null);
+  const [direccionTipoEnlaceCanvas, setDireccionTipoEnlaceCanvas] = useState<"saliente" | "entrante">("saliente");
+  const menuTipoEnlaceCanvasRef = useRef<HTMLDivElement | null>(null);
+  const abrirMenuTipoEnlaceCanvasRef = useRef((input: MenuTipoEnlaceCanvasInput) => {
+    setDireccionTipoEnlaceCanvas("saliente");
+    setMenuTipoEnlaceCanvas({ ...input, ...posicionMenuTipoEnlace(input.clientX, input.clientY) });
+  });
   const gridConfig = useOpmStore((s) => normalizarGridConfig(s.gridConfig ?? s.indice.preferenciasUi?.gridConfig));
 
   useEffect(() => {
@@ -170,6 +182,8 @@ export function JointCanvas() {
     actualizarPosicionLabelEnlaceRef.current = actualizarPosicionLabelEnlace;
     crearEntidadEnCanvasRef.current = crearEntidadEnCanvas;
     crearEnlaceEntreEntidadesRef.current = crearEnlaceEntreEntidades;
+    iniciarConexionDesdeAparienciaRef.current = iniciarConexionDesdeApariencia;
+    cancelarEnlaceRef.current = cancelarEnlace;
     fijarHoverOplRef.current = fijarHoverOpl;
     setSeleccionRef.current = setSeleccion;
     agregarASeleccionRef.current = agregarASeleccion;
@@ -177,7 +191,36 @@ export function JointCanvas() {
     vaciarSeleccionRef.current = vaciarSeleccion;
     redimensionarAparienciaEnCanvasRef.current = redimensionarAparienciaEnCanvas;
     renombrarEntidadDesdeOplRef.current = renombrarEntidadDesdeOpl;
-  }, [actualizarAnclajesSimboloEstructural, actualizarPosicionLabelEnlace, actualizarPosicionSimboloEstructural, actualizarVerticesEnlace, agregarASeleccion, alternarModoImagenEntidad, abrirModalImagen, cambiarModoPlegadoApariencia, cambiarOpdActivo, crearEnlaceEntreEntidades, crearEntidadEnCanvas, extraerParteDePlegado, fijarHoverOpl, moverAparienciaConPuertos, redimensionarAparienciaEnCanvas, renombrarEntidadDesdeOpl, seleccionarEnlace, seleccionarEntidad, seleccionarEstadoComoExtremo, seleccionarGrupoEstructural, seleccionarPartePlegada, setSeleccion, toggleSeleccion, vaciarSeleccion]);
+  }, [actualizarAnclajesSimboloEstructural, actualizarPosicionLabelEnlace, actualizarPosicionSimboloEstructural, actualizarVerticesEnlace, agregarASeleccion, alternarModoImagenEntidad, abrirModalImagen, cancelarEnlace, cambiarModoPlegadoApariencia, cambiarOpdActivo, crearEnlaceEntreEntidades, crearEntidadEnCanvas, extraerParteDePlegado, fijarHoverOpl, iniciarConexionDesdeApariencia, moverAparienciaConPuertos, redimensionarAparienciaEnCanvas, renombrarEntidadDesdeOpl, seleccionarEnlace, seleccionarEntidad, seleccionarEstadoComoExtremo, seleccionarGrupoEstructural, seleccionarPartePlegada, setSeleccion, toggleSeleccion, vaciarSeleccion]);
+
+  useEffect(() => {
+    abrirMenuTipoEnlaceCanvasRef.current = (input: MenuTipoEnlaceCanvasInput) => {
+      setDireccionTipoEnlaceCanvas("saliente");
+      setMenuTipoEnlaceCanvas({ ...input, ...posicionMenuTipoEnlace(input.clientX, input.clientY) });
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!menuTipoEnlaceCanvas) return;
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key !== "Escape") return;
+      event.preventDefault();
+      setMenuTipoEnlaceCanvas(null);
+      cancelarEnlaceRef.current();
+    }
+    function onPointerDown(event: PointerEvent) {
+      const target = event.target;
+      if (target instanceof Node && menuTipoEnlaceCanvasRef.current?.contains(target)) return;
+      setMenuTipoEnlaceCanvas(null);
+      cancelarEnlaceRef.current();
+    }
+    window.addEventListener("keydown", onKeyDown, { capture: true });
+    window.addEventListener("pointerdown", onPointerDown, { capture: true });
+    return () => {
+      window.removeEventListener("keydown", onKeyDown, { capture: true });
+      window.removeEventListener("pointerdown", onPointerDown, { capture: true });
+    };
+  }, [menuTipoEnlaceCanvas]);
 
   // Setup del paper + cableado de handlers (mount inicial).
   useEffect(() => {
@@ -316,7 +359,10 @@ export function JointCanvas() {
       modeloRef,
       opdActivoIdRef,
       modoEnlaceRef,
+      iniciarConexionDesdeAparienciaRef,
       crearEnlaceEntreEntidadesRef,
+      cancelarEnlaceRef,
+      abrirMenuTipoEnlaceCanvasRef,
     }));
 
     cleanups.push(cablearHoverOpl({
@@ -401,7 +447,7 @@ export function JointCanvas() {
     );
     aplicarHoverOpl(adapter.graph, modelo, hoverOplRef, enlaceSeleccionId);
     aplicarFeedbackModoEnlace(adapter.paper, modelo, opdActivoId, modoEnlace);
-  }, [enlaceSeleccionId, modelo, modoEnlace, opdActivoId, seleccionId, seleccionados, uiAliasVisibles, uiDescripcionesVisibles, uiModoImagenGlobal, contextoSimulacion]);
+  }, [enlaceSeleccionId, modelo, opdActivoId, seleccionId, seleccionados, uiAliasVisibles, uiDescripcionesVisibles, uiModoImagenGlobal, contextoSimulacion]);
 
   useEffect(() => {
     const adapter = adapterRef.current;
@@ -500,9 +546,44 @@ export function JointCanvas() {
             onCancelar={() => setRenombradoInline(null)}
           />
         ) : null}
+        {menuTipoEnlaceCanvas ? (
+          <div ref={menuTipoEnlaceCanvasRef}>
+            <MenuTipoEnlace
+              modelo={modelo}
+              origenId={menuTipoEnlaceCanvas.origenId}
+              destinoId={menuTipoEnlaceCanvas.destinoId}
+              direccion={direccionTipoEnlaceCanvas}
+              onDireccion={setDireccionTipoEnlaceCanvas}
+              onElegir={(tipo, origenId, destinoId) => {
+                crearEnlaceEntreEntidadesRef.current(origenId, destinoId, tipo);
+                setMenuTipoEnlaceCanvas(null);
+              }}
+              anchor={{ left: menuTipoEnlaceCanvas.left, top: menuTipoEnlaceCanvas.top }}
+              titulo={tituloMenuConexion(modelo, menuTipoEnlaceCanvas.origenId, menuTipoEnlaceCanvas.destinoId)}
+            />
+          </div>
+        ) : null}
       </div>
     </div>
   );
+}
+
+function posicionMenuTipoEnlace(clientX: number, clientY: number): { left: number; top: number } {
+  const width = 320;
+  const height = 360;
+  const margin = 12;
+  const maxLeft = Math.max(margin, window.innerWidth - width - margin);
+  const maxTop = Math.max(margin, window.innerHeight - height - margin);
+  return {
+    left: Math.min(maxLeft, Math.max(margin, clientX + 10)),
+    top: Math.min(maxTop, Math.max(margin, clientY + 10)),
+  };
+}
+
+function tituloMenuConexion(modelo: Modelo, origenId: string, destinoId: string): string {
+  const origen = modelo.entidades[origenId]?.nombre ?? "Origen";
+  const destino = modelo.entidades[destinoId]?.nombre ?? "Destino";
+  return `Conectar ${origen} -> ${destino}`;
 }
 
 /**

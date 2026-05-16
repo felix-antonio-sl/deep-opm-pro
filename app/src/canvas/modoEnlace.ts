@@ -2,6 +2,27 @@ import { validarFirmaEnlace } from "../modelo/operaciones";
 import type { Apariencia, Entidad, Id, Modelo, TipoEnlace } from "../modelo/tipos";
 import { tokens } from "../ui/tokens";
 
+export const ANCHORS_CONEXION = ["N", "E", "S", "O"] as const;
+export type AnchorConexion = (typeof ANCHORS_CONEXION)[number];
+
+const PRIORIDAD_TIPO_INICIAL: TipoEnlace[] = [
+  "consumo",
+  "resultado",
+  "agente",
+  "instrumento",
+  "efecto",
+  "invocacion",
+  "agregacion",
+  "exhibicion",
+  "generalizacion",
+  "clasificacion",
+  "etiquetado",
+  "etiquetadoBidireccional",
+  "excepcionSobretiempo",
+  "excepcionSubtiempo",
+  "excepcionSubSobretiempo",
+];
+
 export interface DestinoEvaluado {
   apariencia: Apariencia;
   entidad: Entidad;
@@ -64,4 +85,27 @@ export function colorHaloPorTipo(tipo: TipoEnlace): string {
     tipo === "excepcionSubSobretiempo") return tokens.colors.canvas.proceso;
   if (tipo === "agente" || tipo === "instrumento" || tipo === "consumo") return tokens.colors.canvas.objeto;
   return tokens.colors.acentoUi;
+}
+
+export function esAnchorConexion(valor: string | null | undefined): valor is AnchorConexion {
+  return ANCHORS_CONEXION.includes(valor as AnchorConexion);
+}
+
+export function anchorConexionDesdeSelector(selector: string | null): AnchorConexion | null {
+  if (!selector?.startsWith("connect-anchor-")) return null;
+  const anchor = selector.slice("connect-anchor-".length).toUpperCase();
+  return esAnchorConexion(anchor) ? anchor : null;
+}
+
+export function tipoInicialConexionDesdeEntidad(modelo: Modelo, opdId: Id, origenId: Id): TipoEnlace {
+  const origen = modelo.entidades[origenId];
+  const opd = modelo.opds[opdId];
+  if (!origen || !opd) return "etiquetado";
+  const destinos = Object.values(opd.apariencias)
+    .map((apariencia) => modelo.entidades[apariencia.entidadId])
+    .filter((entidad): entidad is Entidad => !!entidad && entidad.id !== origenId);
+  for (const tipo of PRIORIDAD_TIPO_INICIAL) {
+    if (destinos.some((destino) => validarFirmaEnlace(tipo, origen, destino).ok)) return tipo;
+  }
+  return "etiquetado";
 }

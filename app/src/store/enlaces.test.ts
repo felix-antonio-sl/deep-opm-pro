@@ -16,6 +16,23 @@ describe("slice enlaces", () => {
     expect(store.getState().modoEnlace).toBeNull();
   });
 
+  test("iniciarConexionDesdeApariencia registra fase drag-from-anchor", () => {
+    store.getState().cargarDemo();
+    const opdId = store.getState().opdActivoId;
+    const apariencia = Object.values(store.getState().modelo.opds[opdId]?.apariencias ?? {})[0]!;
+    const entidad = store.getState().modelo.entidades[apariencia.entidadId]!;
+
+    store.getState().iniciarConexionDesdeApariencia(apariencia.id, "E");
+
+    expect(store.getState().modoEnlace).toMatchObject({
+      origenId: entidad.id,
+      origenAparienciaId: apariencia.id,
+      anchor: "E",
+      fase: "drag-from-anchor",
+    });
+    expect(store.getState().mensaje).toBe("Arrastra hacia la cosa destino");
+  });
+
   test("acciones seleccionadas editan metadatos OPCloud de enlace", () => {
     let modelo = crearModelo("Store metadatos enlace");
     modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 80 }, "Sistema"));

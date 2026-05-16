@@ -1,7 +1,13 @@
 import { describe, expect, test } from "bun:test";
 import { cambiarEsencia, crearModelo, crearObjeto, crearProceso } from "../modelo/operaciones";
 import type { Id, Modelo, TipoEnlace } from "../modelo/tipos";
-import { colorHaloPorTipo, entidadDestinoValida, evaluarDestinos } from "./modoEnlace";
+import {
+  anchorConexionDesdeSelector,
+  colorHaloPorTipo,
+  entidadDestinoValida,
+  evaluarDestinos,
+  tipoInicialConexionDesdeEntidad,
+} from "./modoEnlace";
 
 describe("modo enlace canvas", () => {
   test("evaluarDestinos marca destino valido e invalido para consumo", () => {
@@ -56,6 +62,21 @@ describe("modo enlace canvas", () => {
     expect(colorHaloPorTipo("resultado")).toMatch(/^#[0-9a-fA-F]{6}$/);
     expect(colorHaloPorTipo("agente")).toMatch(/^#[0-9a-fA-F]{6}$/);
     expect(colorHaloPorTipo("excepcionSobretiempo")).toMatch(/^#[0-9a-fA-F]{6}$/);
+  });
+
+  test("anchorConexionDesdeSelector normaliza los 4 anchors cardinales", () => {
+    expect(anchorConexionDesdeSelector("connect-anchor-n")).toBe("N");
+    expect(anchorConexionDesdeSelector("connect-anchor-E")).toBe("E");
+    expect(anchorConexionDesdeSelector("connect-anchor-s")).toBe("S");
+    expect(anchorConexionDesdeSelector("connect-anchor-o")).toBe("O");
+    expect(anchorConexionDesdeSelector("resize-n")).toBeNull();
+  });
+
+  test("tipoInicialConexionDesdeEntidad elige feedback semantico para drag-from-anchor", () => {
+    const { modelo, entrada, procesar } = modeloBase();
+
+    expect(tipoInicialConexionDesdeEntidad(modelo, modelo.opdRaizId, entrada)).toBe("consumo");
+    expect(tipoInicialConexionDesdeEntidad(modelo, modelo.opdRaizId, procesar)).toBe("resultado");
   });
 });
 

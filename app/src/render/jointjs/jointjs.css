@@ -8,3 +8,14 @@
 .joint-paper .joint-tools .tool-options {
   color: #1f2937;
 }
+
+.joint-paper .joint-element [joint-selector^="connect-anchor-"] {
+  transition: opacity 120ms ease;
+}
+
+.joint-paper .joint-element:hover [joint-selector^="connect-anchor-"],
+.joint-paper .joint-element[data-opm-modo-enlace="origen"] [joint-selector^="connect-anchor-"],
+.joint-paper .joint-element [joint-selector^="connect-anchor-"]:hover {
+  opacity: 1;
+  pointer-events: visiblePainted;
+}

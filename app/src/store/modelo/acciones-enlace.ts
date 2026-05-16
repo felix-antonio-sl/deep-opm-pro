@@ -6,6 +6,7 @@ import {
   quitarRamaDeAbanico as quitarRamaDeAbanicoOp,
 } from "../../modelo/abanicos";
 import { crearAutoInvocacion } from "../../modelo/autoinvocacion";
+import { tipoInicialConexionDesdeEntidad } from "../../canvas/modoEnlace";
 import { renombrarEtiquetaEnlace } from "../../modelo/etiquetasEnlace";
 import { extremoEntidad } from "../../modelo/extremos";
 import {
@@ -51,6 +52,33 @@ export function accionesEnlace(set: SetStore, get: GetStore): Partial<ModeloSlic
       // P1-5 ronda 4: activar modoEnlace cambia el contexto a "conectar";
       // cualquier editor inline previo se descarta.
       set({ modoEnlace: { tipo, origenId }, modoCreacion: null, nuevaCosaPendiente: null, mensaje: "Selecciona la entidad destino" });
+    },
+
+    iniciarConexionDesdeApariencia(aparienciaId, anchor) {
+      const { modelo, opdActivoId } = get();
+      const apariencia = modelo.opds[opdActivoId]?.apariencias[aparienciaId];
+      if (!apariencia) {
+        set({ mensaje: "Apariencia origen no encontrada para conectar" });
+        return;
+      }
+      const entidad = modelo.entidades[apariencia.entidadId];
+      if (!entidad) {
+        set({ mensaje: "Entidad origen no encontrada para conectar" });
+        return;
+      }
+      const tipo = tipoInicialConexionDesdeEntidad(modelo, opdActivoId, entidad.id);
+      set({
+        modoEnlace: {
+          tipo,
+          origenId: entidad.id,
+          fase: "drag-from-anchor",
+          origenAparienciaId: apariencia.id,
+          anchor,
+        },
+        modoCreacion: null,
+        nuevaCosaPendiente: null,
+        mensaje: "Arrastra hacia la cosa destino",
+      });
     },
 
     crearEnlaceEntreEntidades(origenId, destinoId, tipo) {

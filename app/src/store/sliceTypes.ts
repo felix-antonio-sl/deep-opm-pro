@@ -91,6 +91,7 @@ export type ModeloSlice = Slice<
   | "deshacer"
   | "rehacer"
   | "elegirTipoEnlace"
+  | "iniciarConexionDesdeApariencia"
   | "crearEnlaceEntreEntidades"
   | "cancelarEnlace"
   | "renombrarSeleccionada"

@@ -32,9 +32,11 @@ interface Props {
   onDireccion: (direccion: DireccionFiltro) => void;
   onElegir: (tipo: TipoEnlace, origenId: Id, destinoId: Id) => void;
   onElegirPendiente?: (tipo: TipoEnlace) => void;
+  anchor?: { left: number; top: number };
+  titulo?: string;
 }
 
-export function MenuTipoEnlace({ modelo, origenId, destinoId, direccion, onDireccion, onElegir, onElegirPendiente }: Props) {
+export function MenuTipoEnlace({ modelo, origenId, destinoId, direccion, onDireccion, onElegir, onElegirPendiente, anchor, titulo }: Props) {
   const [tipoPreview, setTipoPreview] = useState<TipoEnlace | null>(null);
   const origen = origenId ? modelo.entidades[origenId] : undefined;
   const destino = destinoId ? modelo.entidades[destinoId] : undefined;
@@ -42,9 +44,9 @@ export function MenuTipoEnlace({ modelo, origenId, destinoId, direccion, onDirec
   const opcionesPendientes = origen && !destino ? tiposPendientes(modelo, origen) : [];
   const opcionPreview = opciones.find((opcion) => opcion.tipo === tipoPreview) ?? opciones[0] ?? null;
   return (
-    <div style={style.panel} data-testid="menu-tipo-enlace">
+    <div style={anchor ? { ...style.panel, left: `${anchor.left}px`, top: `${anchor.top}px` } : style.panel} data-testid="menu-tipo-enlace">
       <div style={style.header}>
-        <strong>Tipos válidos</strong>
+        <strong>{titulo ?? "Tipos válidos"}</strong>
         <div style={style.segmented} role="group" aria-label="Dirección de enlace">
           <button type="button" style={direccion === "saliente" ? style.segmentActive : style.segment} onClick={() => onDireccion("saliente")}>Salida</button>
           <button type="button" style={direccion === "entrante" ? style.segmentActive : style.segment} onClick={() => onDireccion("entrante")}>Entrada</button>

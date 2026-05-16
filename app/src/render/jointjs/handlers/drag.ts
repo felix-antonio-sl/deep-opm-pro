@@ -57,6 +57,7 @@ export function cablearDrag(args: CablearDragArgs): () => void {
   } = args;
   const onElementPointerdown = (elementView: dia.ElementView) => {
     if (sincronizandoRef.current) return;
+    if (dragAnchorActivo(paper)) return;
     const model = cellViewModel(elementView);
     const meta = metadata(model);
     if (meta?.kind !== "entidad") return;
@@ -65,6 +66,7 @@ export function cablearDrag(args: CablearDragArgs): () => void {
 
   const onElementPointerup = (elementView: dia.ElementView) => {
     if (sincronizandoRef.current) return;
+    if (dragAnchorActivo(paper)) return;
     const model = cellViewModel(elementView);
     const meta = metadata(model);
     if (meta?.kind === "enlace" && meta.rolEstructural === "simbolo") {
@@ -176,6 +178,10 @@ export function cablearDrag(args: CablearDragArgs): () => void {
     // se destruye junto con el paper en el cleanup del componente; los
     // closures quedan recolectables.
   };
+}
+
+function dragAnchorActivo(paper: dia.Paper): boolean {
+  return (paper as unknown as { el: HTMLElement }).el.getAttribute("data-opm-anchor-drag") === "true";
 }
 
 function quitarToolsPaper(paper: dia.Paper): void {

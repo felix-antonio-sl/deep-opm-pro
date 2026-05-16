@@ -173,6 +173,7 @@ import {
 } from "../render/jointjs/mapaSistema";
 import { fijarOpcionesProyeccionGlobal } from "../render/jointjs/proyeccion";
 import type { EjeAlineacion, OrientacionDistribucion } from "../canvas/operacionesBatch";
+import type { AnchorConexion } from "../canvas/modoEnlace";
 import type { FamiliaTraerConectados } from "../canvas/reglasTraer";
 import type { GridConfig } from "../canvas/grid";
 import {
@@ -212,6 +213,9 @@ import {
 export interface ModoEnlace {
   tipo: TipoEnlace;
   origenId: Id;
+  fase?: "boton" | "drag-from-anchor";
+  origenAparienciaId?: Id;
+  anchor?: AnchorConexion;
 }
 
 /** [Ronda 16 L2] Filtros disponibles en `DialogoBuscarCosas`. */
@@ -434,6 +438,7 @@ export interface OpmStore {
   deshacer: () => void;
   rehacer: () => void;
   elegirTipoEnlace: (tipo: TipoEnlace) => void;
+  iniciarConexionDesdeApariencia: (aparienciaId: Id, anchor: AnchorConexion) => void;
   crearEnlaceEntreEntidades: (origenId: Id, destinoId: Id, tipo: TipoEnlace) => void;
   cancelarEnlace: () => void;
 	  renombrarSeleccionada: (nombre: string) => void;

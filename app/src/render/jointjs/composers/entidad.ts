@@ -117,13 +117,18 @@ export function proyectarEntidad(
         : metadatos.tieneMetadatos
           ? { markup: markupConBadge(bodyTag, metadatos), attrs: attrsConBadge(attrsBase, size, metadatos) }
           : { attrs: attrsBase };
+  const renderConAnchors = {
+    ...renderBase,
+    markup: markupConConnectAnchors(renderBase.markup ?? markupBase(bodyTag)),
+    attrs: attrsConConnectAnchors(renderBase.attrs, size, seleccionada),
+  };
   const render = seleccionada
     ? {
-        ...renderBase,
-        markup: markupConResizeHandles(renderBase.markup ?? markupBase(bodyTag)),
-        attrs: attrsConResizeHandles(renderBase.attrs, size),
+        ...renderConAnchors,
+        markup: markupConResizeHandles(renderConAnchors.markup),
+        attrs: attrsConResizeHandles(renderConAnchors.attrs, size),
       }
-    : renderBase;
+    : renderConAnchors;
   const ports = portsEntidad(apariencia, entidad.tipo);
 
   return {
@@ -302,6 +307,44 @@ export function metadatosEntidad(
     suppressedBadge: tieneEstadosSuprimidos,
     tieneMetadatos: tienePartes || !!descripcion || !!url || tieneEstadosSuprimidos,
   };
+}
+
+function markupConConnectAnchors(markup: Array<Record<string, unknown>>): Array<Record<string, unknown>> {
+  return [
+    ...markup,
+    ...["n", "e", "s", "o"].map((anchor) => ({
+      tagName: "circle",
+      selector: `connect-anchor-${anchor}`,
+    })),
+  ];
+}
+
+function attrsConConnectAnchors(
+  attrsBase: Record<string, unknown>,
+  size: { width: number; height: number },
+  visible: boolean,
+): Record<string, unknown> {
+  const points: Record<string, { cx: number; cy: number }> = {
+    "connect-anchor-n": { cx: size.width / 2, cy: 0 },
+    "connect-anchor-e": { cx: size.width, cy: size.height / 2 },
+    "connect-anchor-s": { cx: size.width / 2, cy: size.height },
+    "connect-anchor-o": { cx: 0, cy: size.height / 2 },
+  };
+  const anchors = Object.fromEntries(Object.entries(points).map(([selector, point]) => [
+    selector,
+    {
+      ...point,
+      r: 5,
+      fill: "#ffffff",
+      stroke: CANON.colores.enlace,
+      strokeWidth: 2,
+      cursor: "crosshair",
+      opacity: visible ? 1 : 0,
+      pointerEvents: visible ? "visiblePainted" : "none",
+      "data-opm-connect-anchor": selector.replace("connect-anchor-", "").toUpperCase(),
+    },
+  ]));
+  return { ...attrsBase, ...anchors };
 }
 
 export function markupConBadge(bodyTag: "rect" | "ellipse", metadatos: MetadatosEntidadRender): Array<Record<string, unknown>> {
