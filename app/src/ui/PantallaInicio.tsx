@@ -17,6 +17,7 @@ export const GLOSA_BIENVENIDA_OPM = [
   { termino: "Apariencia", definicion: "cómo aparece una cosa en un OPD; la misma cosa puede aparecer en varios OPDs." },
   { termino: "Enlace", definicion: "relación entre dos cosas." },
 ] as const;
+export const DIMENSION_ACCION_BIENVENIDA_PX = 160;
 
 export function PantallaInicio() {
   const modelo = useOpmStore((s) => s.modelo);
@@ -196,16 +197,16 @@ const style = {
     borderRadius: tokens.radii.lg,
     background: tokens.colors.fondoChrome,
     boxShadow: tokens.shadows.inicio,
-    overflow: "hidden",
+    overflow: "auto",
     pointerEvents: "auto",
   },
   header: { display: "flex", alignItems: "center", gap: "12px" },
   title: { margin: 0, color: tokens.colors.textoPrimario, fontSize: "20px", fontWeight: 800 },
   subtitle: { margin: "4px 0 0", color: tokens.colors.textoSecundario, fontSize: "13px", fontWeight: 700 },
   search: { marginLeft: "auto", width: "min(360px, 45vw)", height: "34px", border: `1px solid ${tokens.colors.bordeInput}`, borderRadius: tokens.radii.sm, padding: "0 10px", fontSize: "13px" },
-  actions: { display: "grid", gridTemplateColumns: "repeat(3, minmax(140px, 1fr))", gap: "10px" },
-  actionCard: { minHeight: "120px", display: "grid", placeItems: "center", gap: "8px", border: `1px solid ${tokens.colors.bordeControl}`, borderRadius: tokens.radii.lg, background: tokens.colors.fondoCard, color: tokens.colors.textoPrimario, cursor: "pointer", fontSize: "14px", fontWeight: 800 },
-  actionCardLabel: { minHeight: "120px", display: "grid", placeItems: "center", gap: "8px", border: `1px solid ${tokens.colors.bordeControl}`, borderRadius: tokens.radii.lg, background: tokens.colors.fondoCard, color: tokens.colors.textoPrimario, cursor: "pointer", fontSize: "14px", fontWeight: 800, textAlign: "center" },
+  actions: { display: "grid", gridTemplateColumns: `repeat(auto-fit, minmax(${DIMENSION_ACCION_BIENVENIDA_PX}px, 1fr))`, gap: "10px" },
+  actionCard: { minHeight: `${DIMENSION_ACCION_BIENVENIDA_PX}px`, display: "grid", placeItems: "center", gap: "8px", border: `1px solid ${tokens.colors.bordeControl}`, borderRadius: tokens.radii.lg, background: tokens.colors.fondoCard, color: tokens.colors.textoPrimario, cursor: "pointer", fontSize: "14px", fontWeight: 800 },
+  actionCardLabel: { minHeight: `${DIMENSION_ACCION_BIENVENIDA_PX}px`, display: "grid", placeItems: "center", gap: "8px", border: `1px solid ${tokens.colors.bordeControl}`, borderRadius: tokens.radii.lg, background: tokens.colors.fondoCard, color: tokens.colors.textoPrimario, cursor: "pointer", fontSize: "14px", fontWeight: 800, textAlign: "center" },
   actionIcon: { fontSize: "24px", color: tokens.colors.chromeNeutral, fontWeight: 900 },
   sectionTitle: { margin: "2px 0 0", color: tokens.colors.textoSecundario, fontSize: "12px", fontWeight: 800, textTransform: "uppercase", letterSpacing: 0 },
   primaryButton: { height: "34px", padding: "0 14px", border: `1px solid ${tokens.colors.chromeNeutral}`, borderRadius: tokens.radii.sm, background: tokens.colors.chromeNeutral, color: tokens.colors.fondoChrome, cursor: "pointer", fontSize: "13px", fontWeight: 700 },

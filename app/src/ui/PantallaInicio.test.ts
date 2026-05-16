@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { GLOSA_BIENVENIDA_OPM } from "./PantallaInicio";
+import { DIMENSION_ACCION_BIENVENIDA_PX, GLOSA_BIENVENIDA_OPM } from "./PantallaInicio";
 
 describe("GLOSA_BIENVENIDA_OPM", () => {
   test("mantiene los cuatro términos OPM core del boot CN-DEF", () => {
@@ -18,5 +18,11 @@ describe("GLOSA_BIENVENIDA_OPM", () => {
       { termino: "Apariencia", definicion: "cómo aparece una cosa en un OPD; la misma cosa puede aparecer en varios OPDs." },
       { termino: "Enlace", definicion: "relación entre dos cosas." },
     ]);
+  });
+});
+
+describe("acciones de bienvenida", () => {
+  test("mantiene botones grandes segun brief CN-DEF", () => {
+    expect(DIMENSION_ACCION_BIENVENIDA_PX).toBeGreaterThanOrEqual(160);
   });
 });
