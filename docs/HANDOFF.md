@@ -1,114 +1,114 @@
 # HANDOFF — Estado operativo del modelador OPM
 
-**Fecha**: 2026-05-15
+**Fecha**: 2026-05-16
 **Repositorio**: `deep-opm-pro`
 **Rama**: `main`
-**Corte**: UX/IFML del workbench integrada y refinamiento cross-OPD sincronizado; quedan pendientes avanzados de enlaces OPCloud.
+**HEAD versionado**: `08b3753 test(ux): actualiza auditoria in vivo`
+**Corte**: UX/IFML ronda 22 cerrado con auditoría in-vivo reproducible; sin FAIL/WARN ni errores runtime en el corte auditado.
 
 ## Política De Handoff Único
 
-`docs/HANDOFF.md` es la única memoria de traspaso vigente del proyecto. Este archivo reemplaza y consolida el handoff anterior.
+`docs/HANDOFF.md` es la única memoria de traspaso vigente del proyecto. No crear handoffs paralelos. Los reportes/capturas regenerables viven ignorados por git; la memoria versionada queda aquí.
 
 ## Fuentes Normativas Y Técnicas
 
+- Brief activo del corte: `docs/instrucciones-lineas-dev/ronda22/refactor-ux-ifml.md`.
 - SSOT OPM: `/home/felix/kora/artifacts/knowledge/fxsl/opm/opm-ssot-es/`.
-- Roadmap vivo de enlaces: `docs/audits/opcloud-enlaces-pendientes/README.md`.
-- OPCloud operacional:
-  - `opm-extracted/src/app/models/DrawnPart/Links/OvertimeExceptionLink.ts`
-  - `opm-extracted/src/app/models/DrawnPart/Links/UndertimeExceptionLink.ts`
-  - `opm-extracted/src/app/models/DrawnPart/Links/OvertimeUndertimeExceptionLink.ts`
-  - `opm-extracted/src/app/configuration/rappidEnviromentFunctionality/shared.ts` (`timeMin`, `timeMax`, `timeMinVal`, `timeMaxVal`).
-- JointJS OSS consultado:
-  - `https://docs.jointjs.com/learn/features/diagram-basics/links/`
+- Evidencia OPCloud preferente: `opm-extracted/` antes de `decompiled/`.
+- Canon visual local: `docs/JOYAS.md` y `assets/svg/`.
+- JointJS OSS: usar documentación oficial viva cuando se toque JointJS.
 
 ## Estado Actual
 
-### Actualizacion 2026-05-15
+La rama `main` quedó sincronizada con `origin/main` tras el commit `08b3753`, que reemplaza la sonda in-vivo obsoleta por una auditoría alineada a la UI actual:
 
-La rama `main` quedo sincronizada con `origin/main` tras dos cortes atomicos:
+- Carga/bienvenida y mini-glosa OPM.
+- Chrome IFML desktop: `ViewPoint` default, clusters `Modelar`/`Conectar`/`Ayuda`, menú principal y `CommandPalette`.
+- Ejemplo canónico `Cafetera Domestica`: JointJS, OPL y SSOT visual (`#fdffff`, `#70E483`, `#3BC3FF`, 135x60).
+- Overlay feedback: `BarraHerramientasElemento`, `ErrorBadge`, `HoverTooltip`, `FlashToast`.
+- Conexión por `MenuTipoEnlace` y submodo accesible `conectando`.
+- Import JSON multi-OPD y navegación del árbol.
+- Mobile review 390x844: tabs `Canvas`/`OPDs`/`OPL`/`Issues`, sin overflow horizontal.
 
-- `bb03ed0 feat(ux): refactor ifml workbench chrome`
-  - Refactor de la superficie del workbench segun `docs/instrucciones-lineas-dev/ronda22/refactor-ux-ifml.md`.
-  - Se separo feedback visual efimero del estado semantico del modelo mediante `app/src/store/feedback.ts` y overlays JointJS/Preact en `app/src/render/jointjs/overlayCanvas/`.
-  - `PanelDiagnostico` y `DialogoImportarExportarJson` quedaron con estructura mas explicita, estados accesibles y contratos browser cubiertos.
-- `da241a0 fix(refinamiento): sincroniza enlaces externos en OPD hijo`
-  - Crear/eliminar enlaces externos en el OPD padre sincroniza las representaciones hijas de refinamiento.
-  - Las apariencias proxy automaticas en OPDs hijos se materializan y limpian sin borrar overrides manuales.
-  - La proyeccion de refinamiento mantiene coherencia entre enlaces padre, derivados y endpoints externos.
+Resultado de la última auditoría:
 
-Verificacion final de ambos cortes:
+```bash
+cd app
+node scripts/in-vivo-test.mjs http://127.0.0.1:5173/
+# OK=57 FAIL=0 WARN=0 INFO=2
+# pageerror=0 console.error=0 console.warn=0 requestfailed=0
+```
+
+El script genera `docs/REPORTE-EJECUTIVO.md` y `app/test-results/in-vivo/`, ambos ignorados por git según `.gitignore`.
+
+## Validación Reciente
+
+Ejecutado sobre el estado actual:
+
+```bash
+node --check app/scripts/in-vivo-test.mjs
+cd app && node scripts/in-vivo-test.mjs http://127.0.0.1:5173/
+cd app && bun run lint
+```
+
+El cierre de código inmediatamente anterior (`de67395`) ya había quedado verificado con:
 
 ```bash
 cd app && bun run typecheck
 cd app && bun run test
+# 1371 pass / 0 fail
 cd app && bun run build
 cd app && bun run browser:smoke
+# 190 passed / 0 fail
 ```
 
-Resultado del ultimo cierre: `1268 pass` unitarios, build limpio y `173 passed` en Playwright smoke.
-
-Workspace deliberadamente no consolidado: existen artefactos no trackeados en `docs/audits/`, `docs/bugs/` y `docs/instrucciones-lineas-dev/ronda22/`; no forman parte del corte productivo hasta que el operador decida promoverlos.
-
-### Corte 2026-05-14 — Enlaces OPCloud avanzados
-
-Quedó implementado el siguiente bloque del roadmap:
-
-- **Exception/time links OPCloud**: nuevos `TipoEnlace` `excepcionSobretiempo`, `excepcionSubtiempo` y `excepcionSubSobretiempo`.
-- **Semántica SSOT**: las excepciones temporales son enlaces procedurales estrictos `Proceso -> Proceso`. No admiten estados como extremos.
-- **Markers OPCloud**: se usan los SVG canónicos de `assets/svg/links/procedural/` y las geometrías observadas en OPCloud para `/`, `//` y el marcador combinado.
-- **Metadatos temporales**: `tiempoMinimo`, `unidadTiempoMinimo`, `tiempoMaximo`, `unidadTiempoMaximo` se validan según el tipo de excepción. Las unidades no se aceptan sin valor asociado.
-- **Labels visuales**: los umbrales se proyectan como labels independientes (`Min`, `Max`) sobre el enlace. Para el combinado se distribuyen a 0.35/0.65 del path para evitar solapamiento.
-- **OPL**: se generan las frases SSOT para excepción por sobretiempo, subtiempo y rango min/max; cuando falta un umbral se emite texto conservador sin inventar duración.
-- **Serialización estricta**: JSON conserva y normaliza campos temporales válidos y rechaza metadatos temporales en enlaces no temporales.
-- **UI/store**: toolbar, menú de tipos, tabla de enlaces, Inspector y acción Zustand exponen creación/edición de excepción temporal.
-- **Refinamiento**: enlaces externos de excepción desde procesos refinados se proyectan desde el último subproceso; enlaces hacia handler refinado se proyectan al primer subproceso, coherente con el patrón procedural existente.
-
-## Artefactos Modificados
-
-- Modelo/operaciones: `app/src/modelo/tipos/enlace.ts`, `app/src/modelo/constantes.ts`, `app/src/modelo/enlaceMetadatos.ts`, `app/src/modelo/operaciones/helpers.ts`, `app/src/modelo/operaciones.ts`, `app/src/modelo/modificadores.ts`, `app/src/modelo/validaciones.ts`.
-- Render JointJS: `app/src/render/jointjs/linkAssets.ts`, `app/src/render/jointjs/composers/markers.ts`, `app/src/render/jointjs/composers/enlace.ts`, `app/src/render/jointjs/labelLayout.ts`.
-- UI/store: `app/src/ui/InspectorEnlace.tsx`, `app/src/ui/inspectorEnlace/SeccionMetadatosOpcloud.tsx`, `app/src/ui/inspectorEnlace/SeccionMultiplicidad.tsx`, `app/src/ui/MenuTipoEnlace.tsx`, `app/src/ui/TablaEnlaces.tsx`, `app/src/ui/toolbar/ToolbarCreacion.tsx`, `app/src/store/{tipos,sliceTypes}.ts`, `app/src/store/modelo/acciones-enlace.ts`.
-- OPL/serialización/canvas: `app/src/opl/generadores/{procedural,refsHints}.ts`, `app/src/modelo/opl/generador-opl.ts`, `app/src/serializacion/{json,validarGuards,validarEnlaces,validarNormalizacion}.ts`, `app/src/canvas/modoEnlace.ts`, `app/src/modelo/operaciones/refinamiento/proyeccion.ts`.
-- Tests: `app/src/completitud.test.ts`, `app/src/modelo/operaciones.test.ts`, `app/src/opl/generar.test.ts`, `app/src/serializacion/json.test.ts`, `app/src/render/jointjs/proyeccion.test.ts`, `app/src/store/enlaces.test.ts`, `app/src/canvas/modoEnlace.test.ts`.
-
-## Verificación Final
-
-Ejecutado en `app/`:
+Validación HODOM v1.1 realizada sobre el mismo corte funcional:
 
 ```bash
-bun run typecheck
-# clean
-
-bun run test
-# 1266 pass / 0 fail / 4897 expect() / 118 files
-
-bun run build
-# clean
-
-bun run browser:smoke
-# 173 pass / 0 fail
+cd app
+bun -e 'import { readFileSync } from "node:fs"; import { hidratarModelo } from "./src/serializacion/json"; import { proyectarModeloAJointCells } from "./src/render/jointjs/proyeccion"; const raw = readFileSync("/home/felix/projects/hd-hsc-os/docs/models/opm-hodom-bundle-v1.1.json", "utf8"); const hidratado = hidratarModelo(raw); if (!hidratado.ok) throw new Error(hidratado.error); const modelo = hidratado.value; const proyecciones = Object.keys(modelo.opds).map((opdId) => ({ opdId, cells: proyectarModeloAJointCells(modelo, opdId, null, null).length })); console.log(JSON.stringify({ entidades: Object.keys(modelo.entidades).length, enlaces: Object.keys(modelo.enlaces).length, opds: Object.keys(modelo.opds).length, proyecciones }, null, 2));'
+# entidades=46 enlaces=113 opds=5
+# opd-sd0=43 cells, opd-sd1=97, opd-sd1-2=38, opd-eq-salud-hd=19, opd-cap-op-hd=15
 ```
 
-Antes del smoke se limpió Vite con:
+## Commits Relevantes Del Cierre UX/IFML
 
-```bash
-pgrep -af vite | grep -v eval | awk '{print $1}' | xargs -r kill
-```
+- `08b3753 test(ux): actualiza auditoria in vivo`
+- `de67395 refactor(a11y): unifica fuente de avisos`
+- `84a96f2 test(a11y): cubre ciclo de feedback`
+- `5ac1319 fix(a11y): ajusta contraste de warning`
+- `d9b85c1 fix(a11y): respeta reduced motion`
+- `38762ea fix(a11y): describe hover tooltip al foco`
+- `15d9077 fix(a11y): anuncia cambios de viewpoint`
+- `f5486db fix(a11y): navega tabs del inspector con flechas`
+- `f10ce76 refactor(ifml): tipa eventos de acciones contextuales`
+- `76b1911 feat(a11y): permite conectar por teclado`
+- `d7c2c1d feat(ux): guia conexion por anchors`
+- `97abbb8 feat(ifml): declara contexto canonico del workbench`
+- `976ef1d refactor(ux): ordena menu principal por intencion`
 
-## Pendientes
+## Workspace No Consolidado
 
-- **Forked tagged links**: OPCloud sincroniza enlaces unidireccionales con mismo source+tag; todavía no emulamos ese comportamiento de fork.
-- **Smoke UI específico**: agregar prueba browser que cree/edite tagged/bidirectional y exception/time desde UI y verifique Inspector + OPL + JSON.
-- **Proceso ambiental handler**: la SSOT visual indica handler ambiental para excepción temporal; la app valida `Proceso -> Proceso`, pero aún no fuerza ni sugiere afiliación ambiental.
-- **Duración de proceso como dato formal**: los umbrales viven en el enlace como OPCloud; queda pendiente decidir si el proceso fuente debe tener duración semántica propia.
-- **Import/export OPX real**: los campos nuevos están en JSON local, pero no hay mapeo OPX productivo.
+Hay artefactos no trackeados en `docs/audits/`, `docs/bugs/` y `docs/instrucciones-lineas-dev/ronda22/`. Son insumos/artefactos de trabajo previos; no promoverlos sin una decisión explícita de alcance.
 
-## Supuestos Y Riesgos
+También pueden existir salidas regenerables ignoradas:
 
-- Los links de excepción temporal son procedurales operacionales: participan en conectividad de procesos, pero no en buses estructurales ni en sort de fundamentales.
-- Los labels `Min`/`Max` son una adaptación local basada en metadatos OPCloud y OPL SSOT; OPCloud persiste los tiempos pero no siempre los muestra como label visible en la misma superficie.
-- El tipo combinado conserva ambos umbrales en un solo enlace para seguir `OvertimeUndertimeExceptionLink`; separar en dos enlaces queda como decisión del operador, no como normalización automática.
+- `docs/REPORTE-EJECUTIVO.md`
+- `app/test-results/in-vivo/`
+- `app/dist/`
+
+## Pendientes Post-Brief
+
+El brief UX/IFML queda cerrado para el corte auditado. Lo que sigue ya es selección de backlog nuevo:
+
+- **Mini-mapa / mapa del sistema más operativo**: navegación visual para modelos densos.
+- **Import/export OPX real**: interoperabilidad más allá del JSON local.
+- **Modelos densos HODOM**: ergonomía de navegación, filtrado y performance perceptual con 5 OPDs y 113 enlaces.
+- **Enlaces OPCloud avanzados**: forked tagged links, smoke UI específico para tagged/bidirectional + exception/time.
+- **Comentarios/notas**: EPICA-42 sigue fuera del modo mobile review productivo; hoy se comunica como no disponible.
 
 ## Prompt De Continuación
 
-Retomar desde `docs/HANDOFF.md` y `docs/audits/opcloud-enlaces-pendientes/README.md`. Siguiente bloque recomendado: sincronización OPCloud de forked tagged links y smoke UI específico para tagged/bidirectional + exception/time. Mantener el principio: revisar `opm-extracted` primero, respetar SSOT para semántica y adaptar a nuestra arquitectura Preact/Zustand/JointJS OSS sin copiar Rappid.
+Retomar desde este `docs/HANDOFF.md`. Usar el script versionado `app/scripts/in-vivo-test.mjs` como baseline antes y después del próximo corte visual/UX. Si el siguiente bloque toca JointJS, consultar primero `opm-extracted/`, `docs/JOYAS.md`, assets SVG canónicos y documentación oficial de JointJS OSS.
+
+Siguiente bloque recomendado: elegir un post-brief con alto valor de uso real. La opción más productiva ahora es **modelos densos HODOM + navegación/filtrado**, porque ya existe modelo real validado y fuerza a mejorar el workbench con presión de uso, no con UI abstracta.
