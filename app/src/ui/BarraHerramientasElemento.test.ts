@@ -1,15 +1,23 @@
 import { describe, expect, test } from "bun:test";
 import type { Entidad, Modelo } from "../modelo/tipos";
 import {
+  accionesBarraEnlace,
+  accionesBarraMulti,
   accionesPilotoBarra,
+  anchoEstimadoAccionesBarra,
   anchoEstimadoBarra,
+  anchoEstimadoControlesBarra,
+  aparienciaActivaDeEnlace,
   aparienciaActivaDeEntidad,
+  cellIdActivoDeSeleccion,
   endpointPerteneceAEntidad,
   entidadSeleccionUnica,
+  enlaceSeleccionUnico,
   limitar,
   posicionarBarraConColisiones,
   primerEnlaceVisualDeEntidad,
   rectRelativoAContenedor,
+  resolverContextoBarra,
 } from "./BarraHerramientasElemento";
 
 const objeto: Entidad = { id: "obj-1", tipo: "objeto", nombre: "Objeto", esencia: "informacional", afiliacion: "sistemica" };
@@ -100,6 +108,20 @@ describe("entidadSeleccionUnica", () => {
   });
 });
 
+describe("enlaceSeleccionUnico", () => {
+  test("retorna el enlace cuando hay un solo enlace seleccionado", () => {
+    expect(enlaceSeleccionUnico(modeloBase(), "enlace-1", ["enlace-1"])?.id).toBe("enlace-1");
+  });
+
+  test("oculta la barra de enlace con multiseleccion", () => {
+    expect(enlaceSeleccionUnico(modeloBase(), "enlace-1", ["enlace-1", "obj-1"])).toBeNull();
+  });
+
+  test("oculta la barra de enlace si el id no existe", () => {
+    expect(enlaceSeleccionUnico(modeloBase(), "missing", ["missing"])).toBeNull();
+  });
+});
+
 describe("aparienciaActivaDeEntidad", () => {
   test("resuelve la apariencia de la entidad en el OPD activo", () => {
     expect(aparienciaActivaDeEntidad(modeloBase(), "opd-1", "obj-1")?.id).toBe("ap-obj");
@@ -115,6 +137,57 @@ describe("aparienciaActivaDeEntidad", () => {
 
   test("no confunde apariencia de proceso con objeto", () => {
     expect(aparienciaActivaDeEntidad(modeloBase(), "opd-1", "proc-1")?.id).toBe("ap-proc");
+  });
+});
+
+describe("aparienciaActivaDeEnlace", () => {
+  test("resuelve la apariencia de enlace en el OPD activo", () => {
+    expect(aparienciaActivaDeEnlace(modeloBase(), "opd-1", "enlace-1")?.id).toBe("ae-1");
+  });
+
+  test("retorna null si el enlace no está visible en el OPD", () => {
+    expect(aparienciaActivaDeEnlace(modeloBase(), "opd-vacio", "enlace-1")).toBeNull();
+  });
+});
+
+describe("resolverContextoBarra", () => {
+  test("resuelve contexto de entidad con apariencia activa", () => {
+    expect(resolverContextoBarra(modeloBase(), "opd-1", "obj-1", null, ["obj-1"])).toMatchObject({
+      tipo: "entidad",
+      nombre: "Objeto",
+      anchorCellIds: ["ap-obj"],
+      enlaceEstiloId: "enlace-1",
+    });
+  });
+
+  test("resuelve contexto de enlace con apariencia activa", () => {
+    expect(resolverContextoBarra(modeloBase(), "opd-1", null, "enlace-1", ["enlace-1"])).toMatchObject({
+      tipo: "enlace",
+      nombre: "enlace consumo",
+      anchorCellIds: ["ae-1"],
+      enlaceEstiloId: "enlace-1",
+    });
+  });
+
+  test("resuelve contexto multi con celdas visibles de entidades y enlaces", () => {
+    expect(resolverContextoBarra(modeloBase(), "opd-1", null, null, ["obj-1", "proc-1", "enlace-1"])).toMatchObject({
+      tipo: "multi",
+      nombre: "3 seleccionadas",
+      anchorCellIds: ["ap-obj", "ap-proc", "ae-1"],
+      enlaceEstiloId: null,
+    });
+  });
+});
+
+describe("cellIdActivoDeSeleccion", () => {
+  test("resuelve celdas visibles por id logico", () => {
+    expect(cellIdActivoDeSeleccion(modeloBase(), "opd-1", "obj-1")).toBe("ap-obj");
+    expect(cellIdActivoDeSeleccion(modeloBase(), "opd-1", "enlace-1")).toBe("ae-1");
+  });
+
+  test("retorna null para ids no visibles", () => {
+    expect(cellIdActivoDeSeleccion(modeloBase(), "opd-vacio", "obj-1")).toBeNull();
+    expect(cellIdActivoDeSeleccion(modeloBase(), "opd-1", "missing")).toBeNull();
   });
 });
 
@@ -157,12 +230,14 @@ describe("accionesPilotoBarra", () => {
   });
 
   test("expone cuatro primarias para proceso", () => {
-    expect(accionesPilotoBarra(proceso, "enlace-1", true, true).filter((accion) => accion.visible).map((accion) => accion.id)).toEqual([
+    const acciones = accionesPilotoBarra(proceso, "enlace-1", true, true).filter((accion) => accion.visible);
+    expect(acciones.map((accion) => accion.id)).toEqual([
       "inzoom",
       "unfold",
       "editar-alias",
       "mas-opciones",
     ]);
+    expect(acciones.find((accion) => accion.id === "editar-alias")?.enabled).toBe(true);
   });
 
   test("expone unfold para objeto y proceso", () => {
@@ -187,9 +262,54 @@ describe("accionesPilotoBarra", () => {
   });
 });
 
+describe("accionesBarraEnlace", () => {
+  test("expone primarias de enlace en orden IFML", () => {
+    const enlace = modeloBase().enlaces["enlace-1"] ?? null;
+    expect(accionesBarraEnlace(enlace, true, false).filter((accion) => accion.visible).map((accion) => accion.id)).toEqual([
+      "cambiar-tipo-enlace",
+      "copiar-estilo",
+      "pegar-estilo",
+      "mas-opciones",
+    ]);
+  });
+
+  test("mantiene pegar formato visible pero deshabilitado sin portapapeles", () => {
+    const enlace = modeloBase().enlaces["enlace-1"] ?? null;
+    const pegar = accionesBarraEnlace(enlace, false, false).find((accion) => accion.id === "pegar-estilo");
+    expect(pegar?.visible).toBe(true);
+    expect(pegar?.enabled).toBe(false);
+  });
+});
+
+describe("accionesBarraMulti", () => {
+  test("expone primarias de multiseleccion en orden IFML", () => {
+    expect(accionesBarraMulti(3, false).filter((accion) => accion.visible).map((accion) => accion.id)).toEqual([
+      "eliminar-seleccion",
+      "agregar-como-partes",
+      "traer-enlaces",
+      "alinear-seleccion",
+      "distribuir-seleccion",
+      "mas-opciones",
+    ]);
+  });
+
+  test("oculta primarias multi si no hay cardinalidad suficiente", () => {
+    expect(accionesBarraMulti(1, false)).toEqual([]);
+  });
+});
+
 describe("posicionamiento", () => {
   test("estima ancho a partir de botones, padding y gaps", () => {
     expect(anchoEstimadoBarra(7)).toBe(274);
+  });
+
+  test("estima ancho real con botones de texto", () => {
+    const enlace = modeloBase().enlaces["enlace-1"] ?? null;
+    expect(anchoEstimadoAccionesBarra(accionesBarraEnlace(enlace, true, false))).toBe(286);
+  });
+
+  test("estima ancho con resumen de multiseleccion", () => {
+    expect(anchoEstimadoControlesBarra(accionesBarraMulti(3, false), true)).toBe(566);
   });
 
   test("retorna cero para barra sin botones", () => {

@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import type { Entidad } from "../modelo/tipos";
+import type { Enlace, Entidad } from "../modelo/tipos";
 import { accionesContextualesEntidad, accionesParaSuperficie } from "./acciones-contextuales";
 
 const objeto: Entidad = { id: "obj-1", tipo: "objeto", nombre: "Objeto", esencia: "informacional", afiliacion: "sistemica" };
@@ -11,6 +11,13 @@ const objetoRefinado: Entidad = {
   },
 };
 const proceso: Entidad = { id: "proc-1", tipo: "proceso", nombre: "Proceso", esencia: "informacional", afiliacion: "sistemica" };
+const enlace: Enlace = {
+  id: "enlace-1",
+  tipo: "consumo",
+  origenId: { kind: "entidad", id: proceso.id },
+  destinoId: { kind: "entidad", id: objeto.id },
+  etiqueta: "",
+};
 
 function ids(acciones: readonly { id: string }[]): string[] {
   return acciones.map((accion) => accion.id);
@@ -38,6 +45,22 @@ describe("accionesContextualesEntidad", () => {
     expect(menu).toContain("pegar-estilo");
     expect(palette).toContain("copiar-estilo");
     expect(palette).toContain("pegar-estilo");
+  });
+
+  test("expone acciones primarias de enlace en barra", () => {
+    const acciones = accionesContextualesEntidad({
+      entidad: null,
+      enlace,
+      enlaceEstiloId: enlace.id,
+      hayEstiloEnPortapapeles: true,
+      inspectorAbierto: false,
+      multi: false,
+    });
+    const barra = ids(accionesParaSuperficie(acciones, "barra-flotante"));
+    const palette = ids(accionesParaSuperficie(acciones, "command-palette"));
+
+    expect(barra).toEqual(["cambiar-tipo-enlace", "copiar-estilo", "pegar-estilo", "mas-opciones"]);
+    expect(palette).toContain("cambiar-tipo-enlace");
   });
 
   test("expone menu contextual sin controles propios de barra", () => {
@@ -86,11 +109,17 @@ describe("accionesContextualesEntidad", () => {
       multi: true,
     });
     const menu = ids(accionesParaSuperficie(acciones, "menu-contextual"));
+    const barra = ids(accionesParaSuperficie(acciones, "barra-flotante"));
 
     expect(menu).toContain("traer-enlaces");
+    expect(barra).toContain("traer-enlaces");
+    expect(barra).toContain("eliminar-seleccion");
+    expect(barra).toContain("agregar-como-partes");
+    expect(barra).toContain("alinear-seleccion");
+    expect(barra).toContain("distribuir-seleccion");
   });
 
-  test("oculta acciones exclusivas de objeto para procesos y conserva alias deshabilitado", () => {
+  test("oculta acciones exclusivas de objeto para procesos y conserva alias habilitado", () => {
     const acciones = accionesContextualesEntidad({
       entidad: proceso,
       enlaceEstiloId: "enlace-1",
@@ -104,6 +133,6 @@ describe("accionesContextualesEntidad", () => {
     expect(palette).not.toContain("editar-imagen");
     expect(palette).toContain("unfold");
     expect(palette).toContain("editar-alias");
-    expect(acciones.find((accion) => accion.id === "editar-alias")?.enabled).toBe(false);
+    expect(acciones.find((accion) => accion.id === "editar-alias")?.enabled).toBe(true);
   });
 });

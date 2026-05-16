@@ -1,8 +1,9 @@
-import type { Entidad, Id } from "../modelo/tipos";
+import type { Enlace, Entidad, Id } from "../modelo/tipos";
 
 export type SuperficieAccionContextual = "barra-flotante" | "menu-contextual" | "command-palette";
 
 export type AccionContextualId =
+  | "cambiar-tipo-enlace"
   | "copiar-estilo"
   | "pegar-estilo"
   | "agregar-estado"
@@ -12,6 +13,10 @@ export type AccionContextualId =
   | "quitar-despliegue"
   | "editar-alias"
   | "editar-imagen"
+  | "eliminar-seleccion"
+  | "agregar-como-partes"
+  | "alinear-seleccion"
+  | "distribuir-seleccion"
   | "mas-opciones"
   | "traer-conectados"
   | "traer-conectados-default"
@@ -33,10 +38,12 @@ export interface AccionContextual {
 
 export interface ContextoAccionesEntidad {
   entidad: Entidad | null;
+  enlace?: Enlace | null;
   enlaceEstiloId: Id | null;
   hayEstiloEnPortapapeles: boolean;
   inspectorAbierto: boolean;
   multi: boolean;
+  seleccionadosCount?: number;
 }
 
 /**
@@ -50,21 +57,31 @@ export interface ContextoAccionesEntidad {
 export function accionesContextualesEntidad(ctx: ContextoAccionesEntidad): AccionContextual[] {
   const esObjeto = ctx.entidad?.tipo === "objeto";
   const esCosa = !!ctx.entidad;
-  const tieneEnlaceOperable = !!ctx.enlaceEstiloId;
+  const esEnlace = !!ctx.enlace;
+  const esMulti = ctx.multi || (ctx.seleccionadosCount ?? 0) >= 2;
+  const tieneEnlaceOperable = !!ctx.enlace || !!ctx.enlaceEstiloId;
   const tieneDescomposicion = !!ctx.entidad?.refinamientos?.descomposicion;
   const tieneDespliegue = !!ctx.entidad?.refinamientos?.despliegue;
+  const superficiesEstiloEnlace: readonly SuperficieAccionContextual[] = esEnlace
+    ? ["barra-flotante", "menu-contextual", "command-palette"]
+    : ["menu-contextual", "command-palette"];
 
   return [
+    accion("cambiar-tipo-enlace", "Cambiar tipo de enlace", "barra-cambiar-tipo-enlace", "enlaces", esEnlace, {
+      texto: "Tipo ▾",
+      visible: esEnlace,
+      superficies: ["barra-flotante", "command-palette"],
+    }),
     accion("copiar-estilo", "Copiar estilo", "barra-copiar-estilo", "apariencia", tieneEnlaceOperable, {
       texto: "Copiar",
       visible: tieneEnlaceOperable,
-      superficies: ["menu-contextual", "command-palette"],
+      superficies: superficiesEstiloEnlace,
       atajo: "Ctrl+Alt+C",
     }),
     accion("pegar-estilo", "Pegar estilo", "barra-pegar-estilo", "apariencia", tieneEnlaceOperable && ctx.hayEstiloEnPortapapeles, {
       texto: "Pegar",
       visible: tieneEnlaceOperable,
-      superficies: ["menu-contextual", "command-palette"],
+      superficies: superficiesEstiloEnlace,
       atajo: "Ctrl+Alt+V",
     }),
     accion("agregar-estado", "Agregar estado", "barra-agregar-estado", "edicion", !!esObjeto, {
@@ -72,10 +89,12 @@ export function accionesContextualesEntidad(ctx: ContextoAccionesEntidad): Accio
       superficies: ["barra-flotante", "menu-contextual", "command-palette"],
     }),
     accion("inzoom", "Inzoom (descomposición)", "barra-inzoom", "refinamiento", esCosa, {
+      visible: esCosa,
       superficies: ["barra-flotante", "menu-contextual", "command-palette"],
       atajo: "Shift+I",
     }),
     accion("unfold", "Unfold (despliegue)", "barra-unfold", "refinamiento", esCosa, {
+      visible: esCosa,
       superficies: ["barra-flotante", "menu-contextual", "command-palette"],
       atajo: "Shift+U",
     }),
@@ -89,7 +108,7 @@ export function accionesContextualesEntidad(ctx: ContextoAccionesEntidad): Accio
       superficies: ["menu-contextual", "command-palette"],
       destructiva: true,
     }),
-    accion("editar-alias", "Editar alias", "barra-editar-alias", "edicion", !!esObjeto, {
+    accion("editar-alias", "Editar alias", "barra-editar-alias", "edicion", esCosa, {
       visible: esCosa,
       superficies: ["barra-flotante", "menu-contextual", "command-palette"],
     }),
@@ -98,22 +117,48 @@ export function accionesContextualesEntidad(ctx: ContextoAccionesEntidad): Accio
       visible: !!esObjeto,
       superficies: ["barra-flotante", "menu-contextual", "command-palette"],
     }),
-    accion("mas-opciones", ctx.inspectorAbierto ? "Cerrar Inspector lateral" : "Abrir Inspector lateral", "barra-mas-opciones", "navegacion", esCosa, {
+    accion("eliminar-seleccion", "Eliminar selección", "barra-eliminar-seleccion", "peligro", esMulti, {
+      texto: "Eliminar",
+      visible: esMulti,
+      superficies: ["barra-flotante", "command-palette"],
+      destructiva: true,
+      atajo: "Delete",
+    }),
+    accion("agregar-como-partes", "Agregar como partes", "barra-agregar-como-partes", "enlaces", esMulti, {
+      texto: "Partes",
+      visible: esMulti,
+      superficies: ["barra-flotante", "command-palette"],
+      atajo: "Ctrl+Alt+T",
+    }),
+    accion("alinear-seleccion", "Alinear selección", "barra-alinear-seleccion", "apariencia", esMulti, {
+      texto: "Alinear ▾",
+      visible: esMulti,
+      superficies: ["barra-flotante", "command-palette"],
+    }),
+    accion("distribuir-seleccion", "Distribuir selección", "barra-distribuir-seleccion", "apariencia", esMulti, {
+      texto: "Distribuir ▾",
+      visible: esMulti,
+      superficies: ["barra-flotante", "command-palette"],
+    }),
+    accion("mas-opciones", ctx.inspectorAbierto ? "Cerrar Inspector lateral" : "Abrir Inspector lateral", "barra-mas-opciones", "navegacion", esCosa || esEnlace || esMulti, {
       texto: "···",
       superficies: ["barra-flotante"],
     }),
     accion("traer-conectados", "Traer conectados...", "accion-traer-conectados", "enlaces", esCosa, {
+      visible: esCosa,
       superficies: ["menu-contextual", "command-palette"],
       atajo: "Ctrl+Shift+T",
     }),
     accion("traer-conectados-default", "Traer conectados", "accion-traer-conectados-default", "enlaces", esCosa, {
+      visible: esCosa,
       superficies: ["menu-contextual", "command-palette"],
     }),
     accion("traer-enlaces", "Traer enlaces entre seleccionadas", "accion-traer-enlaces", "enlaces", ctx.multi, {
       visible: ctx.multi,
-      superficies: ["menu-contextual", "command-palette"],
+      superficies: ["barra-flotante", "menu-contextual", "command-palette"],
     }),
     accion("ocultar-apariencia", "Ocultar de este OPD", "accion-ocultar-apariencia", "peligro", esCosa, {
+      visible: esCosa,
       superficies: ["menu-contextual", "command-palette"],
       destructiva: true,
       atajo: "Ctrl+H",

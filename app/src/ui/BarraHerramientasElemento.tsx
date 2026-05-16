@@ -1,6 +1,6 @@
 import type { dia } from "jointjs";
 import { useEffect, useMemo, useState } from "preact/hooks";
-import type { Entidad, Id, Modelo } from "../modelo/tipos";
+import type { Enlace, Entidad, Id, Modelo } from "../modelo/tipos";
 import { useOpmStore } from "../store";
 import {
   accionesContextualesEntidad,
@@ -78,16 +78,25 @@ interface AccionBarra {
   testId: string;
   visible: boolean;
   enabled: boolean;
+  wide?: boolean;
   icon?: preact.JSX.Element;
   texto?: string;
 }
 
 type AccionBarraId =
+  | "cambiar-tipo-enlace"
+  | "copiar-estilo"
+  | "pegar-estilo"
   | "agregar-estado"
   | "inzoom"
   | "unfold"
   | "editar-alias"
   | "editar-imagen"
+  | "eliminar-seleccion"
+  | "agregar-como-partes"
+  | "traer-enlaces"
+  | "alinear-seleccion"
+  | "distribuir-seleccion"
   | "mas-opciones";
 
 const ORDEN_ACCIONES_BARRA: readonly AccionBarraId[] = [
@@ -99,7 +108,25 @@ const ORDEN_ACCIONES_BARRA: readonly AccionBarraId[] = [
   "mas-opciones",
 ];
 
+const ORDEN_ACCIONES_BARRA_ENLACE: readonly AccionBarraId[] = [
+  "cambiar-tipo-enlace",
+  "copiar-estilo",
+  "pegar-estilo",
+  "mas-opciones",
+];
+
+const ORDEN_ACCIONES_BARRA_MULTI: readonly AccionBarraId[] = [
+  "eliminar-seleccion",
+  "agregar-como-partes",
+  "traer-enlaces",
+  "alinear-seleccion",
+  "distribuir-seleccion",
+  "mas-opciones",
+];
+
 const ACCIONES_BARRA_IDS = new Set<AccionContextualId>(ORDEN_ACCIONES_BARRA);
+for (const id of ORDEN_ACCIONES_BARRA_ENLACE) ACCIONES_BARRA_IDS.add(id);
+for (const id of ORDEN_ACCIONES_BARRA_MULTI) ACCIONES_BARRA_IDS.add(id);
 
 const ICONOS_ACCION_BARRA: Partial<Record<AccionBarraId, preact.JSX.Element>> = {
   "agregar-estado": ICONO_AGREGAR_ESTADO,
@@ -110,10 +137,12 @@ const ICONOS_ACCION_BARRA: Partial<Record<AccionBarraId, preact.JSX.Element>> = 
 
 const ALTO_BARRA = 44;
 const ANCHO_BOTON = 34;
+const ANCHO_BOTON_TEXTO = 76;
 const GAP_BOTONES = 4;
 const PADDING_BARRA = 6;
 const OFFSET_ANCHOR = 8;
 const PADDING_VIEWPORT = 8;
+const ANCHO_RESUMEN_MULTI = 116;
 
 export function BarraHerramientasElemento({ inspectorAbierto, onToggleInspector, onAbrirInspector }: Props) {
   const modelo = useOpmStore((s) => s.modelo);
@@ -126,26 +155,40 @@ export function BarraHerramientasElemento({ inspectorAbierto, onToggleInspector,
   const descomponer = useOpmStore((s) => s.descomponerSeleccionada);
   const desplegar = useOpmStore((s) => s.desplegarSeleccionada);
   const abrirModalImagen = useOpmStore((s) => s.abrirModalImagen);
+  const copiarEstiloEnlaceAlPortapapeles = useOpmStore((s) => s.copiarEstiloEnlaceAlPortapapeles);
+  const pegarEstiloEnlaceDesdePortapapeles = useOpmStore((s) => s.pegarEstiloEnlaceDesdePortapapeles);
+  const eliminarSeleccion = useOpmStore((s) => s.eliminarSeleccion);
+  const conectarSeleccionAlTodo = useOpmStore((s) => s.conectarSeleccionAlTodo);
+  const traerEnlacesEntreSeleccionadas = useOpmStore((s) => s.traerEnlacesEntreSeleccionadas);
+  const alinearSeleccion = useOpmStore((s) => s.alinearSeleccion);
+  const distribuirSeleccion = useOpmStore((s) => s.distribuirSeleccion);
   const [posicion, setPosicion] = useState<PosicionBarra | null>(null);
 
-  const entidad = entidadSeleccionUnica(modelo, seleccionId, enlaceSeleccionId, seleccionados);
-  const apariencia = entidad ? aparienciaActivaDeEntidad(modelo, opdActivoId, entidad.id) : null;
-  const enlaceEstiloId = entidad ? primerEnlaceVisualDeEntidad(modelo, opdActivoId, entidad.id) : null;
-  const acciones = useMemo(
-    () => accionesPilotoBarra(entidad, enlaceEstiloId, !!enlaceEstiloPortapapeles, inspectorAbierto),
-    [enlaceEstiloPortapapeles, enlaceEstiloId, entidad, inspectorAbierto],
+  const contextoSeleccion = useMemo(
+    () => resolverContextoBarra(modelo, opdActivoId, seleccionId, enlaceSeleccionId, seleccionados),
+    [enlaceSeleccionId, modelo, opdActivoId, seleccionId, seleccionados],
   );
-  const accionesVisibles = acciones.filter((accion) => accion.visible);
+  const entidad = contextoSeleccion?.tipo === "entidad" ? contextoSeleccion.entidad : null;
+  const enlace = contextoSeleccion?.tipo === "enlace" ? contextoSeleccion.enlace : null;
+  const acciones = useMemo(
+    () => accionesParaContextoBarra(contextoSeleccion, !!enlaceEstiloPortapapeles, inspectorAbierto),
+    [enlaceEstiloPortapapeles, contextoSeleccion, inspectorAbierto],
+  );
+  const accionesVisibles = useMemo(() => acciones.filter((accion) => accion.visible), [acciones]);
+  const anchoBarraAcciones = useMemo(
+    () => anchoEstimadoControlesBarra(accionesVisibles, contextoSeleccion?.tipo === "multi"),
+    [accionesVisibles, contextoSeleccion?.tipo],
+  );
 
   useEffect(() => {
-    if (!apariencia || accionesVisibles.length === 0) {
+    if (!contextoSeleccion || accionesVisibles.length === 0) {
       setPosicion(null);
       return;
     }
     let cancelado = false;
     const actualizarPosicion = () => {
       if (cancelado) return;
-      const bbox = bboxAparienciaJoint(apariencia.id);
+      const bbox = bboxCellsJoint(contextoSeleccion.anchorCellIds);
       const contenedor = contenedorCanvas();
       if (!bbox || !contenedor) {
         setPosicion(null);
@@ -155,7 +198,7 @@ export function BarraHerramientasElemento({ inspectorAbierto, onToggleInspector,
       setPosicion(posicionarBarraConColisiones(base, {
         width: contenedor.width,
         height: contenedor.height,
-      }, anchoEstimadoBarra(accionesVisibles.length)));
+      }, anchoBarraAcciones));
     };
     const onFrame = () => requestAnimationFrame(actualizarPosicion);
     actualizarPosicion();
@@ -169,11 +212,12 @@ export function BarraHerramientasElemento({ inspectorAbierto, onToggleInspector,
       window.removeEventListener("scroll", onFrame, true);
       pane?.removeEventListener("wheel", onFrame);
     };
-  }, [accionesVisibles.length, apariencia, modelo, opdActivoId]);
+  }, [accionesVisibles.length, anchoBarraAcciones, contextoSeleccion, modelo, opdActivoId]);
 
-  if (!entidad || !posicion) return null;
+  if (!contextoSeleccion || !posicion) return null;
 
   const handleAgregarEstado = () => {
+    if (!entidad) return;
     if (entidad.tipo !== "objeto") return;
     agregarEstadoSmart();
   };
@@ -184,30 +228,69 @@ export function BarraHerramientasElemento({ inspectorAbierto, onToggleInspector,
     desplegar();
   };
   const handleEditarAlias = () => {
-    if (entidad.tipo !== "objeto") return;
+    if (!entidad) return;
     onAbrirInspector();
     enfocarSeccionInspector("inspector-seccion-alias");
   };
   const handleEditarImagen = () => {
+    if (!entidad) return;
     if (entidad.tipo !== "objeto") return;
     abrirModalImagen(entidad.id);
   };
   const handleMasOpciones = () => {
     onToggleInspector();
   };
+  const handleCambiarTipoEnlace = () => {
+    if (!enlace) return;
+    onAbrirInspector();
+    enfocarSeccionInspector("inspector-enlace-tab-propiedades");
+  };
+  const handleCopiarEstilo = () => {
+    if (!enlace) return;
+    copiarEstiloEnlaceAlPortapapeles(enlace.id);
+  };
+  const handlePegarEstilo = () => {
+    if (!enlace) return;
+    pegarEstiloEnlaceDesdePortapapeles(enlace.id);
+  };
+  const handleEliminarSeleccion = () => {
+    eliminarSeleccion();
+  };
+  const handleAgregarComoPartes = () => {
+    if (seleccionados.length < 2) return;
+    const todo = seleccionados[seleccionados.length - 1];
+    if (todo) conectarSeleccionAlTodo(todo, "agregacion");
+  };
+  const handleTraerEnlaces = () => {
+    traerEnlacesEntreSeleccionadas();
+  };
+  const handleAlinearSeleccion = () => {
+    alinearSeleccion("izq");
+  };
+  const handleDistribuirSeleccion = () => {
+    distribuirSeleccion("horizontal");
+  };
 
   const handlers: Record<AccionBarraId, () => void> = {
+    "cambiar-tipo-enlace": handleCambiarTipoEnlace,
+    "copiar-estilo": handleCopiarEstilo,
+    "pegar-estilo": handlePegarEstilo,
     "agregar-estado": handleAgregarEstado,
     inzoom: handleInzoom,
     unfold: handleUnfold,
     "editar-alias": handleEditarAlias,
     "editar-imagen": handleEditarImagen,
+    "eliminar-seleccion": handleEliminarSeleccion,
+    "agregar-como-partes": handleAgregarComoPartes,
+    "traer-enlaces": handleTraerEnlaces,
+    "alinear-seleccion": handleAlinearSeleccion,
+    "distribuir-seleccion": handleDistribuirSeleccion,
     "mas-opciones": handleMasOpciones,
   };
 
   return (
     <div
-      aria-label={`Barra de acciones de ${entidad.nombre}`}
+      aria-label={`Barra de acciones de ${contextoSeleccion.nombre}`}
       data-placement={posicion.placement}
       data-testid="barra-herramientas-elemento"
       style={{
@@ -216,6 +299,11 @@ export function BarraHerramientasElemento({ inspectorAbierto, onToggleInspector,
         top: `${posicion.y}px`,
       }}
     >
+      {contextoSeleccion.tipo === "multi" ? (
+        <span data-testid="barra-resumen-multiseleccion" style={styles.resumenMulti}>
+          {contextoSeleccion.cantidad} seleccionadas
+        </span>
+      ) : null}
       {accionesVisibles.map((accion) => (
         <button
           key={accion.id}
@@ -225,7 +313,7 @@ export function BarraHerramientasElemento({ inspectorAbierto, onToggleInspector,
           data-testid={accion.testId}
           disabled={!accion.enabled}
           onClick={handlers[accion.id]}
-          style={accion.enabled ? styles.boton : styles.botonDeshabilitado}
+          style={estiloBotonAccion(accion)}
           title={accion.label}
         >
           {accion.icon ? accion.icon : <span aria-hidden="true">{accion.texto}</span>}
@@ -247,10 +335,101 @@ export function entidadSeleccionUnica(
   return modelo.entidades[seleccionId] ?? null;
 }
 
+export type ContextoBarraSeleccion =
+  | {
+      tipo: "entidad";
+      entidad: Entidad;
+      nombre: string;
+      anchorCellIds: readonly Id[];
+      enlaceEstiloId: Id | null;
+    }
+  | {
+      tipo: "enlace";
+      enlace: Enlace;
+      nombre: string;
+      anchorCellIds: readonly Id[];
+      enlaceEstiloId: Id;
+    }
+  | {
+      tipo: "multi";
+      cantidad: number;
+      nombre: string;
+      anchorCellIds: readonly Id[];
+      enlaceEstiloId: null;
+    };
+
+export function resolverContextoBarra(
+  modelo: Modelo,
+  opdActivoId: Id,
+  seleccionId: Id | null,
+  enlaceSeleccionId: Id | null,
+  seleccionados: readonly Id[],
+): ContextoBarraSeleccion | null {
+  if (seleccionados.length >= 2) {
+    const anchorCellIds = seleccionados.flatMap((id) => {
+      const cellId = cellIdActivoDeSeleccion(modelo, opdActivoId, id);
+      return cellId ? [cellId] : [];
+    });
+    if (anchorCellIds.length === 0) return null;
+    return {
+      tipo: "multi",
+      cantidad: seleccionados.length,
+      nombre: `${seleccionados.length} seleccionadas`,
+      anchorCellIds,
+      enlaceEstiloId: null,
+    };
+  }
+  const entidad = entidadSeleccionUnica(modelo, seleccionId, enlaceSeleccionId, seleccionados);
+  if (entidad) {
+    const apariencia = aparienciaActivaDeEntidad(modelo, opdActivoId, entidad.id);
+    if (!apariencia) return null;
+    return {
+      tipo: "entidad",
+      entidad,
+      nombre: entidad.nombre,
+      anchorCellIds: [apariencia.id],
+      enlaceEstiloId: primerEnlaceVisualDeEntidad(modelo, opdActivoId, entidad.id),
+    };
+  }
+  const enlace = enlaceSeleccionUnico(modelo, enlaceSeleccionId, seleccionados);
+  if (!enlace) return null;
+  const apariencia = aparienciaActivaDeEnlace(modelo, opdActivoId, enlace.id);
+  if (!apariencia) return null;
+  return {
+    tipo: "enlace",
+    enlace,
+    nombre: `enlace ${enlace.tipo}`,
+    anchorCellIds: [apariencia.id],
+    enlaceEstiloId: enlace.id,
+  };
+}
+
+export function cellIdActivoDeSeleccion(modelo: Modelo, opdActivoId: Id, id: Id): Id | null {
+  if (modelo.entidades[id]) return aparienciaActivaDeEntidad(modelo, opdActivoId, id)?.id ?? null;
+  if (modelo.enlaces[id]) return aparienciaActivaDeEnlace(modelo, opdActivoId, id)?.id ?? null;
+  return null;
+}
+
+export function enlaceSeleccionUnico(
+  modelo: Modelo,
+  enlaceSeleccionId: Id | null,
+  seleccionados: readonly Id[],
+): Enlace | null {
+  if (!enlaceSeleccionId) return null;
+  if (seleccionados.length !== 1 || seleccionados[0] !== enlaceSeleccionId) return null;
+  return modelo.enlaces[enlaceSeleccionId] ?? null;
+}
+
 export function aparienciaActivaDeEntidad(modelo: Modelo, opdActivoId: Id, entidadId: Id) {
   const opd = modelo.opds[opdActivoId];
   if (!opd) return null;
   return Object.values(opd.apariencias).find((apariencia) => apariencia.entidadId === entidadId) ?? null;
+}
+
+export function aparienciaActivaDeEnlace(modelo: Modelo, opdActivoId: Id, enlaceId: Id) {
+  const opd = modelo.opds[opdActivoId];
+  if (!opd) return null;
+  return Object.values(opd.enlaces).find((apariencia) => apariencia.enlaceId === enlaceId) ?? null;
 }
 
 export function endpointPerteneceAEntidad(modelo: Modelo, entidadId: Id, extremo: { kind: string; id: Id }): boolean {
@@ -286,12 +465,60 @@ export function accionesPilotoBarra(
     inspectorAbierto,
     multi: false,
   });
+  return accionesBarraOrdenadas(acciones, ORDEN_ACCIONES_BARRA);
+}
+
+export function accionesBarraEnlace(
+  enlace: Enlace | null,
+  hayEstiloEnPortapapeles: boolean,
+  inspectorAbierto: boolean,
+): AccionBarra[] {
+  const acciones = accionesContextualesEntidad({
+    entidad: null,
+    enlace,
+    enlaceEstiloId: enlace?.id ?? null,
+    hayEstiloEnPortapapeles,
+    inspectorAbierto,
+    multi: false,
+  });
+  return accionesBarraOrdenadas(acciones, ORDEN_ACCIONES_BARRA_ENLACE);
+}
+
+function accionesParaContextoBarra(
+  contexto: ContextoBarraSeleccion | null,
+  hayEstiloEnPortapapeles: boolean,
+  inspectorAbierto: boolean,
+): AccionBarra[] {
+  if (!contexto) return [];
+  if (contexto.tipo === "enlace") return accionesBarraEnlace(contexto.enlace, hayEstiloEnPortapapeles, inspectorAbierto);
+  if (contexto.tipo === "multi") return accionesBarraMulti(contexto.cantidad, inspectorAbierto);
+  return accionesPilotoBarra(contexto.entidad, contexto.enlaceEstiloId, hayEstiloEnPortapapeles, inspectorAbierto);
+}
+
+export function accionesBarraMulti(cantidad: number, inspectorAbierto: boolean): AccionBarra[] {
+  if (cantidad < 2) return [];
+  const acciones = accionesContextualesEntidad({
+    entidad: null,
+    enlace: null,
+    enlaceEstiloId: null,
+    hayEstiloEnPortapapeles: false,
+    inspectorAbierto,
+    multi: cantidad >= 2,
+    seleccionadosCount: cantidad,
+  });
+  return accionesBarraOrdenadas(acciones, ORDEN_ACCIONES_BARRA_MULTI);
+}
+
+function accionesBarraOrdenadas(
+  acciones: readonly AccionContextual[],
+  orden: readonly AccionBarraId[],
+): AccionBarra[] {
   const porId = new Map(
     accionesParaSuperficie(acciones, "barra-flotante")
       .filter(esAccionBarra)
       .map((accion) => [accion.id, accion] as const),
   );
-  return ORDEN_ACCIONES_BARRA.flatMap((id) => {
+  return orden.flatMap((id) => {
     const accion = porId.get(id);
     return accion ? [decorarAccionBarra(accion)] : [];
   });
@@ -309,6 +536,14 @@ function decorarAccionBarra(accion: AccionContextual & { id: AccionBarraId }): A
     testId: accion.testId,
     enabled: accion.enabled,
     visible: accion.visible,
+    wide: accion.id === "cambiar-tipo-enlace" ||
+      accion.id === "copiar-estilo" ||
+      accion.id === "pegar-estilo" ||
+      accion.id === "eliminar-seleccion" ||
+      accion.id === "agregar-como-partes" ||
+      accion.id === "traer-enlaces" ||
+      accion.id === "alinear-seleccion" ||
+      accion.id === "distribuir-seleccion",
     ...(icon ? { icon } : {}),
     ...(accion.texto ? { texto: accion.texto } : {}),
   };
@@ -317,6 +552,18 @@ function decorarAccionBarra(accion: AccionContextual & { id: AccionBarraId }): A
 export function anchoEstimadoBarra(cantidadBotones: number): number {
   if (cantidadBotones <= 0) return 0;
   return PADDING_BARRA * 2 + cantidadBotones * ANCHO_BOTON + (cantidadBotones - 1) * GAP_BOTONES;
+}
+
+export function anchoEstimadoAccionesBarra(acciones: readonly AccionBarra[]): number {
+  if (acciones.length <= 0) return 0;
+  const botones = acciones.reduce((total, accion) => total + (accion.wide ? ANCHO_BOTON_TEXTO : ANCHO_BOTON), 0);
+  return PADDING_BARRA * 2 + botones + (acciones.length - 1) * GAP_BOTONES;
+}
+
+export function anchoEstimadoControlesBarra(acciones: readonly AccionBarra[], conResumenMulti: boolean): number {
+  const anchoAcciones = anchoEstimadoAccionesBarra(acciones);
+  if (!conResumenMulti || acciones.length === 0) return anchoAcciones;
+  return anchoAcciones + ANCHO_RESUMEN_MULTI + GAP_BOTONES;
 }
 
 export function posicionarBarraConColisiones(
@@ -352,13 +599,27 @@ export function limitar(valor: number, minimo: number, maximo: number): number {
   return Math.min(Math.max(valor, minimo), maximo);
 }
 
-function bboxAparienciaJoint(aparienciaId: Id): AnchorRect | null {
+function bboxCellsJoint(cellIds: readonly Id[]): AnchorRect | null {
   const adapter = (globalThis as { __opmJointAdapter?: { graph: dia.Graph; paper: dia.Paper } }).__opmJointAdapter;
-  const cell = adapter?.graph.getCell(aparienciaId);
-  if (!adapter || !cell) return null;
-  const view = adapter.paper.findViewByModel(cell);
-  const el = (view as unknown as { el?: Element } | undefined)?.el;
-  return el?.getBoundingClientRect() ?? null;
+  if (!adapter) return null;
+  const rects = cellIds.flatMap((cellId) => {
+    const cell = adapter.graph.getCell(cellId);
+    if (!cell) return [];
+    const view = adapter.paper.findViewByModel(cell);
+    const el = (view as unknown as { el?: Element } | undefined)?.el;
+    const rect = el?.getBoundingClientRect();
+    return rect ? [rect] : [];
+  });
+  return unirRects(rects);
+}
+
+function unirRects(rects: readonly AnchorRect[]): AnchorRect | null {
+  if (rects.length === 0) return null;
+  const left = Math.min(...rects.map((rect) => rect.left));
+  const top = Math.min(...rects.map((rect) => rect.top));
+  const right = Math.max(...rects.map((rect) => rect.right));
+  const bottom = Math.max(...rects.map((rect) => rect.bottom));
+  return { left, top, right, bottom, width: right - left, height: bottom - top };
 }
 
 function contenedorCanvas(): AnchorRect | null {
@@ -424,4 +685,22 @@ const styles = {
     cursor: "not-allowed",
     opacity: 0.52,
   },
+  resumenMulti: {
+    width: `${ANCHO_RESUMEN_MULTI}px`,
+    minWidth: `${ANCHO_RESUMEN_MULTI}px`,
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    color: colors.textoPrimario,
+    fontFamily: "Arial, sans-serif",
+    fontSize: "12px",
+    fontWeight: 700,
+    lineHeight: 1,
+    whiteSpace: "nowrap",
+  },
 } satisfies Record<string, preact.JSX.CSSProperties>;
+
+function estiloBotonAccion(accion: AccionBarra): preact.JSX.CSSProperties {
+  const base = accion.enabled ? styles.boton : styles.botonDeshabilitado;
+  return accion.wide ? { ...base, width: `${ANCHO_BOTON_TEXTO}px`, minWidth: `${ANCHO_BOTON_TEXTO}px` } : base;
+}

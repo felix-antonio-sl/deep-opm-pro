@@ -65,9 +65,12 @@ test("seleccionar un enlace conmuta Inspector a modo enlace y resalta su oracion
   await expect(panel).toBeVisible();
   await expect(panel.getByText(/Procesar\s+consume\s+Entrada/)).toBeVisible();
 
-  // Cuando hay seleccion la barra contextual de cosa NO debe estar visible:
-  // BarraHerramientasElemento es solo para entidades, no para enlaces.
-  await expect(page.getByTestId("barra-herramientas-elemento")).toHaveCount(0);
+  // La barra contextual también cubre enlace único con acciones primarias de enlace.
+  const barra = page.getByTestId("barra-herramientas-elemento");
+  await expect(barra).toBeVisible();
+  await expect(page.getByTestId("barra-cambiar-tipo-enlace")).toBeVisible();
+  await expect(page.getByTestId("barra-copiar-estilo")).toBeVisible();
+  await expect(page.getByTestId("barra-pegar-estilo")).toBeVisible();
 
   expect(pageErrors).toEqual([]);
 });
@@ -91,6 +94,28 @@ test("inzoom desde barra contextual navega al OPD hijo y arbol expone el descend
 
   // El Inspector permanece en modo entidad (la cosa refinada sigue seleccionada).
   await expect(page.getByTestId("inspector")).toHaveAttribute("data-modo-inspector", "entidad");
+
+  expect(pageErrors).toEqual([]);
+});
+
+test("multiseleccion expone barra contextual con acciones de lote", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await cerrarPantallaInicioSiVisible(page);
+  await page.getByRole("button", { name: "Objeto", exact: true }).click();
+  await page.getByRole("button", { name: "Proceso", exact: true }).click();
+  await page.keyboard.press("Control+a");
+
+  const barra = page.getByTestId("barra-herramientas-elemento");
+  await expect(barra).toBeVisible();
+  await expect(page.getByTestId("barra-resumen-multiseleccion")).toContainText("2 seleccionadas");
+  await expect(page.getByTestId("barra-eliminar-seleccion")).toBeVisible();
+  await expect(page.getByTestId("barra-agregar-como-partes")).toBeVisible();
+  await expect(page.getByTestId("accion-traer-enlaces")).toBeVisible();
+  await expect(page.getByTestId("barra-alinear-seleccion")).toBeVisible();
+  await expect(page.getByTestId("barra-distribuir-seleccion")).toBeVisible();
 
   expect(pageErrors).toEqual([]);
 });

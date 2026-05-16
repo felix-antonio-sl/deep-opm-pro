@@ -15,6 +15,8 @@ export function ejecutarAccionContextualEntidad(
   const enlaceEstiloId = entidad ? primerEnlaceVisualDeEntidad(state.modelo, state.opdActivoId, entidad.id) : null;
 
   switch (accionId) {
+    case "cambiar-tipo-enlace":
+      return false;
     case "copiar-estilo":
       if (!enlaceEstiloId) return false;
       state.copiarEstiloEnlaceAlPortapapeles(enlaceEstiloId);
@@ -50,6 +52,25 @@ export function ejecutarAccionContextualEntidad(
     case "editar-imagen":
       if (entidad?.tipo !== "objeto") return false;
       state.abrirModalImagen(entidad.id);
+      return true;
+    case "eliminar-seleccion":
+      if (state.seleccionados.length === 0 && !state.seleccionId && !state.enlaceSeleccionId) return false;
+      state.eliminarSeleccion();
+      return true;
+    case "agregar-como-partes": {
+      if (state.seleccionados.length < 2) return false;
+      const todo = state.seleccionados[state.seleccionados.length - 1];
+      if (!todo) return false;
+      state.conectarSeleccionAlTodo(todo, "agregacion");
+      return true;
+    }
+    case "alinear-seleccion":
+      if (state.seleccionados.length < 2) return false;
+      state.alinearSeleccion("izq");
+      return true;
+    case "distribuir-seleccion":
+      if (state.seleccionados.length < 2) return false;
+      state.distribuirSeleccion("horizontal");
       return true;
     case "traer-conectados":
       if (!entidad) return false;
