@@ -16,8 +16,11 @@ import {
   limitar,
   posicionarBarraConColisiones,
   primerEnlaceVisualDeEntidad,
+  rectOverlayAViewport,
   rectRelativoAContenedor,
+  rectVisibleEnViewport,
   resolverContextoBarra,
+  unirBboxesOverlay,
 } from "./BarraHerramientasElemento";
 
 const objeto: Entidad = { id: "obj-1", tipo: "objeto", nombre: "Objeto", esencia: "informacional", afiliacion: "sistemica" };
@@ -347,6 +350,29 @@ describe("posicionamiento", () => {
       { left: 160, top: 100, right: 295, bottom: 160, width: 135, height: 60 },
       { left: 40, top: 20, right: 840, bottom: 620, width: 800, height: 600 },
     )).toEqual({ left: 120, top: 80, right: 255, bottom: 140, width: 135, height: 60 });
+  });
+
+  test("une bboxes overlay y las convierte contra scroll del viewport", () => {
+    const bbox = unirBboxesOverlay([
+      { x: 100, y: 80, width: 30, height: 20 },
+      { x: 150, y: 120, width: 40, height: 30 },
+    ]);
+    expect(bbox).toEqual({ x: 100, y: 80, width: 90, height: 70 });
+    expect(rectOverlayAViewport(bbox!, { scrollLeft: 60, scrollTop: 20 } as HTMLElement)).toEqual({
+      left: 40,
+      top: 60,
+      right: 130,
+      bottom: 130,
+      width: 90,
+      height: 70,
+    });
+  });
+
+  test("detecta si el bbox overlay queda fuera del viewport scrolleado", () => {
+    const viewport = { scrollLeft: 100, scrollTop: 100, clientWidth: 200, clientHeight: 160 } as HTMLElement;
+    expect(rectVisibleEnViewport({ x: 120, y: 120, width: 40, height: 40 }, viewport)).toBe(true);
+    expect(rectVisibleEnViewport({ x: 10, y: 120, width: 40, height: 40 }, viewport)).toBe(false);
+    expect(rectVisibleEnViewport({ x: 120, y: 280, width: 40, height: 40 }, viewport)).toBe(false);
   });
 
   test("limitar acota por minimo y maximo", () => {

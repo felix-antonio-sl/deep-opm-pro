@@ -1,6 +1,7 @@
 import type { dia } from "jointjs";
 import { useEffect, useMemo, useState } from "preact/hooks";
 import type { Enlace, Entidad, Id, Modelo } from "../modelo/tipos";
+import { leerBBoxCell, useBboxTracker, type OverlayBBox } from "../render/jointjs/overlayCanvas/useBboxTracker";
 import { useOpmStore } from "../store";
 import {
   accionesContextualesEntidad,
@@ -163,6 +164,7 @@ export function BarraHerramientasElemento({ inspectorAbierto, onToggleInspector,
   const alinearSeleccion = useOpmStore((s) => s.alinearSeleccion);
   const distribuirSeleccion = useOpmStore((s) => s.distribuirSeleccion);
   const [posicion, setPosicion] = useState<PosicionBarra | null>(null);
+  const paper = useCanvasPaper();
 
   const contextoSeleccion = useMemo(
     () => resolverContextoBarra(modelo, opdActivoId, seleccionId, enlaceSeleccionId, seleccionados),
@@ -179,40 +181,40 @@ export function BarraHerramientasElemento({ inspectorAbierto, onToggleInspector,
     () => anchoEstimadoControlesBarra(accionesVisibles, contextoSeleccion?.tipo === "multi"),
     [accionesVisibles, contextoSeleccion?.tipo],
   );
+  const primaryCellId = contextoSeleccion?.anchorCellIds[0] ?? null;
+  const primaryBBox = useBboxTracker(paper, primaryCellId);
 
   useEffect(() => {
-    if (!contextoSeleccion || accionesVisibles.length === 0) {
+    if (!paper || !contextoSeleccion || !primaryBBox || accionesVisibles.length === 0) {
       setPosicion(null);
       return;
     }
     let cancelado = false;
     const actualizarPosicion = () => {
       if (cancelado) return;
-      const bbox = bboxCellsJoint(contextoSeleccion.anchorCellIds);
-      const contenedor = contenedorCanvas();
-      if (!bbox || !contenedor) {
+      const bbox = leerBboxOverlayCells(paper, contextoSeleccion.anchorCellIds);
+      const viewport = viewportDePaper(paper);
+      if (!bbox || !viewport || !rectVisibleEnViewport(bbox, viewport)) {
         setPosicion(null);
         return;
       }
-      const base = rectRelativoAContenedor(bbox, contenedor);
+      const base = rectOverlayAViewport(bbox, viewport);
       setPosicion(posicionarBarraConColisiones(base, {
-        width: contenedor.width,
-        height: contenedor.height,
+        width: viewport.clientWidth,
+        height: viewport.clientHeight,
       }, anchoBarraAcciones));
     };
     const onFrame = () => requestAnimationFrame(actualizarPosicion);
     actualizarPosicion();
     window.addEventListener("resize", onFrame);
-    window.addEventListener("scroll", onFrame, true);
-    const pane = document.querySelector<HTMLElement>('[data-testid="canvas-pane"]');
-    pane?.addEventListener("wheel", onFrame, { passive: true });
+    const viewport = viewportDePaper(paper);
+    viewport?.addEventListener("scroll", onFrame, { passive: true });
     return () => {
       cancelado = true;
       window.removeEventListener("resize", onFrame);
-      window.removeEventListener("scroll", onFrame, true);
-      pane?.removeEventListener("wheel", onFrame);
+      viewport?.removeEventListener("scroll", onFrame);
     };
-  }, [accionesVisibles.length, anchoBarraAcciones, contextoSeleccion, modelo, opdActivoId]);
+  }, [accionesVisibles.length, anchoBarraAcciones, contextoSeleccion, modelo, opdActivoId, paper, primaryBBox]);
 
   if (!contextoSeleccion || !posicion) return null;
 
@@ -599,31 +601,76 @@ export function limitar(valor: number, minimo: number, maximo: number): number {
   return Math.min(Math.max(valor, minimo), maximo);
 }
 
-function bboxCellsJoint(cellIds: readonly Id[]): AnchorRect | null {
-  const adapter = (globalThis as { __opmJointAdapter?: { graph: dia.Graph; paper: dia.Paper } }).__opmJointAdapter;
-  if (!adapter) return null;
-  const rects = cellIds.flatMap((cellId) => {
-    const cell = adapter.graph.getCell(cellId);
-    if (!cell) return [];
-    const view = adapter.paper.findViewByModel(cell);
-    const el = (view as unknown as { el?: Element } | undefined)?.el;
-    const rect = el?.getBoundingClientRect();
-    return rect ? [rect] : [];
-  });
-  return unirRects(rects);
+export function leerBboxOverlayCells(paper: dia.Paper, cellIds: readonly Id[]): OverlayBBox | null {
+  return unirBboxesOverlay(cellIds.flatMap((cellId) => {
+    const bbox = leerBBoxCell(paper, cellId);
+    return bbox ? [bbox] : [];
+  }));
 }
 
-function unirRects(rects: readonly AnchorRect[]): AnchorRect | null {
+export function unirBboxesOverlay(rects: readonly OverlayBBox[]): OverlayBBox | null {
   if (rects.length === 0) return null;
-  const left = Math.min(...rects.map((rect) => rect.left));
-  const top = Math.min(...rects.map((rect) => rect.top));
-  const right = Math.max(...rects.map((rect) => rect.right));
-  const bottom = Math.max(...rects.map((rect) => rect.bottom));
-  return { left, top, right, bottom, width: right - left, height: bottom - top };
+  const x = Math.min(...rects.map((rect) => rect.x));
+  const y = Math.min(...rects.map((rect) => rect.y));
+  const right = Math.max(...rects.map((rect) => rect.x + rect.width));
+  const bottom = Math.max(...rects.map((rect) => rect.y + rect.height));
+  return { x, y, width: right - x, height: bottom - y };
 }
 
-function contenedorCanvas(): AnchorRect | null {
-  return document.querySelector('[data-testid="canvas-pane"]')?.getBoundingClientRect() ?? null;
+export function rectOverlayAViewport(rect: OverlayBBox, viewport: Pick<HTMLElement, "scrollLeft" | "scrollTop">): AnchorRect {
+  const left = rect.x - viewport.scrollLeft;
+  const top = rect.y - viewport.scrollTop;
+  return {
+    left,
+    top,
+    right: left + rect.width,
+    bottom: top + rect.height,
+    width: rect.width,
+    height: rect.height,
+  };
+}
+
+export function rectVisibleEnViewport(rect: OverlayBBox, viewport: Pick<HTMLElement, "scrollLeft" | "scrollTop" | "clientWidth" | "clientHeight">): boolean {
+  const left = rect.x;
+  const top = rect.y;
+  const right = rect.x + rect.width;
+  const bottom = rect.y + rect.height;
+  const visibleLeft = viewport.scrollLeft;
+  const visibleTop = viewport.scrollTop;
+  const visibleRight = visibleLeft + viewport.clientWidth;
+  const visibleBottom = visibleTop + viewport.clientHeight;
+  return right > visibleLeft && left < visibleRight && bottom > visibleTop && top < visibleBottom;
+}
+
+function viewportDePaper(paper: dia.Paper): HTMLElement | null {
+  const el = (paper as unknown as { el?: Element }).el;
+  return el?.closest<HTMLElement>('[role="img"][aria-label="OPD activo"]') ?? null;
+}
+
+function useCanvasPaper(): dia.Paper | null {
+  const [paper, setPaper] = useState<dia.Paper | null>(() => paperGlobal());
+
+  useEffect(() => {
+    let frame = 0;
+    let cancelado = false;
+    const actualizar = () => {
+      if (cancelado) return;
+      const siguiente = paperGlobal();
+      setPaper((actual) => actual === siguiente ? actual : siguiente);
+      if (!siguiente) frame = requestAnimationFrame(actualizar);
+    };
+    actualizar();
+    return () => {
+      cancelado = true;
+      cancelAnimationFrame(frame);
+    };
+  }, []);
+
+  return paper;
+}
+
+function paperGlobal(): dia.Paper | null {
+  return (globalThis as { __opmJointAdapter?: { paper: dia.Paper } }).__opmJointAdapter?.paper ?? null;
 }
 
 function enfocarSeccionInspector(testId: string): void {
