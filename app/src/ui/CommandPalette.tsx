@@ -51,7 +51,7 @@ export function CommandPalette({ abierto, onCerrar }: Props) {
   const nuevoModelo = useOpmStore((s) => s.nuevoModelo);
   const abrirCargarModelo = useOpmStore((s) => s.abrirCargarModelo);
   const abrirGuardarComo = useOpmStore((s) => s.abrirGuardarComo);
-  const abrirRenombrarModelo = useOpmStore((s) => s.abrirRenombrarModelo);
+  const abrirDialogoConfiguracion = useOpmStore((s) => s.abrirDialogoConfiguracion);
   const abrirDialogoGuardarPlantilla = useOpmStore((s) => s.abrirDialogoGuardarPlantilla);
   const abrirDialogoPlantillas = useOpmStore((s) => s.abrirDialogoPlantillas);
   const abrirDialogoVersiones = useOpmStore((s) => s.abrirDialogoVersiones);
@@ -87,7 +87,7 @@ export function CommandPalette({ abierto, onCerrar }: Props) {
     abrirCargarModelo: () => confirmarSiDirty(abrirCargarModelo),
     abrirCargarArchivados: () => confirmarSiDirty(() => abrirCargarModelo({ mostrarArchivados: true })),
     abrirGuardarComo,
-    abrirRenombrarModelo,
+    abrirDialogoConfiguracion,
     abrirDialogoGuardarPlantilla,
     abrirDialogoPlantillas,
     abrirDialogoVersiones: modeloPersistidoId ? () => abrirDialogoVersiones(modeloPersistidoId) : null,
@@ -292,7 +292,7 @@ interface AccionesMenuCommandPaletteDeps {
   abrirCargarModelo: () => void;
   abrirCargarArchivados: () => void;
   abrirGuardarComo: () => void;
-  abrirRenombrarModelo: () => void;
+  abrirDialogoConfiguracion: () => void;
   abrirDialogoGuardarPlantilla: () => void;
   abrirDialogoPlantillas: () => void;
   abrirDialogoVersiones: (() => void) | null;
@@ -314,7 +314,7 @@ function construirAccionesMenuCommandPalette(deps: AccionesMenuCommandPaletteDep
     { id: "nuevo-modelo", label: "Nuevo modelo", descripcion: "Crear un modelo vacío", categoria: "archivo", run: deps.nuevoModelo },
     { id: "cargar-modelo", label: "Cargar modelo", descripcion: "Abrir un modelo guardado del workspace", categoria: "archivo", run: deps.abrirCargarModelo },
     { id: "guardar-como", label: "Guardar como", descripcion: "Guardar una copia editable del modelo", categoria: "archivo", run: deps.abrirGuardarComo },
-    { id: "renombrar-modelo", label: "Renombrar modelo", descripcion: "Cambiar el nombre del modelo actual", categoria: "archivo", enabled: !!deps.modeloPersistidoId, run: deps.abrirRenombrarModelo },
+    { id: "configuracion", label: "Configuración", descripcion: "Renombrar modelo y ajustar cuadrícula", categoria: "archivo", run: deps.abrirDialogoConfiguracion },
     { id: "guardar-plantilla", label: "Guardar como plantilla", descripcion: "Crear una plantilla privada desde la selección", categoria: "archivo", run: deps.abrirDialogoGuardarPlantilla },
     { id: "plantillas", label: "Plantillas", descripcion: "Abrir el catálogo de plantillas privadas", categoria: "archivo", run: deps.abrirDialogoPlantillas },
     { id: "cargar-archivados", label: "Cargar archivados", descripcion: "Abrir Cargar modelo con archivados visibles", categoria: "archivo", run: deps.abrirCargarArchivados },

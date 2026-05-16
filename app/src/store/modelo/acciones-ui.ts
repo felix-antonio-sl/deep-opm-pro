@@ -52,7 +52,7 @@ const EJEMPLO_ORGANIZACIONAL_URL = new URL("../../../examples/ejemplo-organizaci
 export function accionesUI(set: SetStore, get: GetStore): Partial<ModeloSlice> {
   return {
     pantallaInicioCerrada: false,
-    dialogoRenombrarModeloAbierto: false,
+    dialogoConfiguracionAbierto: false,
     dialogoTraerConectadosAbierto: false,
     dialogoPlantillasAbierto: false,
     dialogoGuardarPlantillaAbierto: false,
@@ -289,16 +289,12 @@ export function accionesUI(set: SetStore, get: GetStore): Partial<ModeloSlice> {
       set({ pantallaInicioCerrada: true });
     },
 
-    abrirRenombrarModelo() {
-      if (!get().modeloPersistidoId) {
-        set({ mensaje: "Guarda el modelo antes de renombrarlo" });
-        return;
-      }
-      set({ dialogoRenombrarModeloAbierto: true, menuPrincipalAbierto: false, mensaje: null });
+    abrirDialogoConfiguracion() {
+      set({ dialogoConfiguracionAbierto: true, menuPrincipalAbierto: false, mensaje: null });
     },
 
-    cerrarRenombrarModelo() {
-      set({ dialogoRenombrarModeloAbierto: false });
+    cerrarDialogoConfiguracion() {
+      set({ dialogoConfiguracionAbierto: false });
     },
 
     abrirDialogoTraerConectados() {
@@ -414,7 +410,7 @@ export function accionesUI(set: SetStore, get: GetStore): Partial<ModeloSlice> {
       };
       escribirIndiceWorkspace(indice);
       set(estadoModelo(modeloRenombrado, {
-        dialogoRenombrarModeloAbierto: false,
+        dialogoConfiguracionAbierto: false,
         modelosGuardados: listarModelosGuardadosSeguro(),
         indice,
         workspaceLocal: workspaceDesdeModelo(modeloRenombrado, modeloPersistidoId, descripcionModeloLocal, carpetaActualId),

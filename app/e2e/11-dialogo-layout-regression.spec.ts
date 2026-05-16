@@ -13,9 +13,8 @@
  *  1. Un `Dialogo` ancho con grid interno (`DialogoCargarModelo`) pinta
  *     encima del canvas (paint visible + interaccion real con un control
  *     interno).
- *  2. Un modal pequeno (`ModalConfiguracionGrid`) renderizado como hijo
- *     del primer row del `<main>` grid pinta y permite editar inputs sin
- *     que el SVG del paper intercepte clicks.
+ *  2. `DialogoConfiguracion` pinta y permite editar inputs sin que el SVG
+ *     del paper intercepte clicks.
  *  3. El modal vive fuera del subarbol del workbench (portal al body) para
  *     volverlo robusto frente a transform/filter/contain en cualquier
  *     ancestro del workbench (regla canonica OPCloud `cdk-overlay-pane`).
@@ -82,7 +81,7 @@ test("[L1] DialogoCargarModelo pinta sobre canvas+grid e interactua", async ({ p
   expect(pageErrors).toEqual([]);
 });
 
-test("[L1] ModalConfiguracionGrid pinta sobre canvas SVG y acepta edicion sin clicks robados", async ({ page }) => {
+test("[L1] DialogoConfiguracion pinta sobre canvas SVG y acepta edicion sin clicks robados", async ({ page }) => {
   const pageErrors: string[] = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
@@ -92,7 +91,7 @@ test("[L1] ModalConfiguracionGrid pinta sobre canvas SVG y acepta edicion sin cl
   await expect(page.locator(".joint-paper svg")).toHaveCount(1);
 
   await abrirConfigGridDesdeMas(page);
-  const modal = page.getByRole("dialog", { name: "Cuadrícula" }).or(page.getByTestId("modal-config-grid"));
+  const modal = page.getByRole("dialog", { name: "Configuración" }).or(page.getByTestId("modal-config-grid"));
   await expect(modal.first()).toBeVisible();
   const bbox = await rectOf(modal.first());
   expect(bbox.width).toBeGreaterThan(200);
@@ -118,7 +117,7 @@ test("[L1] ModalConfiguracionGrid pinta sobre canvas SVG y acepta edicion sin cl
   expect(pageErrors).toEqual([]);
 });
 
-test("[L1] ModalConfiguracionGrid migrado a Dialogo expone aria-labelledby y Esc captura", async ({ page }) => {
+test("[L1] DialogoConfiguracion expone aria-labelledby y Esc captura", async ({ page }) => {
   // Regresion: antes de la migracion (revert 789eb0e) este modal usaba un
   // wrapper propio sin focus trap, sin captura Esc con
   // stopImmediatePropagation y solo `aria-label` en lugar de
@@ -135,16 +134,16 @@ test("[L1] ModalConfiguracionGrid migrado a Dialogo expone aria-labelledby y Esc
 
   await abrirConfigGridDesdeMas(page);
 
-  const modal = page.getByRole("dialog", { name: "Cuadrícula" });
+  const modal = page.getByRole("dialog", { name: "Configuración" });
   await expect(modal).toBeVisible();
 
-  // aria-labelledby valido: apunta a un id que es el heading "Cuadrícula".
+  // aria-labelledby valido: apunta a un id que es el heading "Configuración".
   const aria = await modal.evaluate((dialog) => {
     const labelledby = dialog.getAttribute("aria-labelledby");
     if (!labelledby) return { ok: false, motivo: "sin aria-labelledby" };
     const heading = document.getElementById(labelledby);
     if (!heading) return { ok: false, motivo: `id ${labelledby} no existe` };
-    return { ok: heading.textContent?.trim() === "Cuadrícula", motivo: heading.textContent?.trim() ?? "(vacio)" };
+    return { ok: heading.textContent?.trim() === "Configuración", motivo: heading.textContent?.trim() ?? "(vacio)" };
   });
   expect(aria.ok, `aria-labelledby invalido: ${aria.motivo}`).toBe(true);
 

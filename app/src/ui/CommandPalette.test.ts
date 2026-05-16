@@ -42,9 +42,9 @@ const accionesMenu: CommandPaletteMenuAction[] = [
     run: () => {},
   },
   {
-    id: "renombrar-modelo",
-    label: "Renombrar modelo",
-    descripcion: "Cambiar el nombre del modelo actual",
+    id: "versiones-modelo",
+    label: "Versiones del modelo",
+    descripcion: "Abrir el historial de versiones del modelo",
     categoria: "archivo",
     enabled: false,
     run: () => {},
@@ -62,7 +62,7 @@ describe("CommandPalette", () => {
     expect(items.some((item) => item.tipo === "atajo" && item.label === "Guardar modelo")).toBe(true);
     expect(items.some((item) => item.tipo === "accion-contextual" && item.accionId === "inzoom")).toBe(true);
     expect(items.some((item) => item.tipo === "accion-menu" && item.menuActionId === "tabla-enlaces")).toBe(true);
-    expect(items.some((item) => item.menuActionId === "renombrar-modelo")).toBe(false);
+    expect(items.some((item) => item.menuActionId === "versiones-modelo")).toBe(false);
   });
 
   test("filtra por terminos de label, categoria o atajo", () => {

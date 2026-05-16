@@ -735,6 +735,34 @@ test("HU-30.037: Esc cancela Cargar modelo con archivados sin persistir cambios"
   expect(pageErrors).toEqual([]);
 });
 
+test("HU-30.037: Esc cancela Configuración sin persistir cambios al modelo", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await cerrarPantallaInicioSiVisible(page);
+  await page.getByLabel("Cargar modelo de ejemplo").selectOption("Cafetera Domestica");
+
+  const exportadoAntes = await exportadoActual(page);
+
+  await page.getByLabel("Menú principal").click();
+  const menu = page.getByRole("menu", { name: "Menú principal" });
+  await menu.getByRole("menuitem", { name: "Configuración..." }).click();
+
+  const dialogo = page.getByRole("dialog", { name: "Configuración" });
+  await expect(dialogo).toBeVisible();
+  await dialogo.getByLabel("Nombre del modelo").fill("Cambio no persistido");
+  await dialogo.getByLabel("Paso").fill("40");
+
+  await page.keyboard.press("Escape");
+  await expect(dialogo).toHaveCount(0);
+
+  const exportadoDespues = await exportadoActual(page);
+  expect(exportadoDespues).toEqual(exportadoAntes);
+
+  expect(pageErrors).toEqual([]);
+});
+
 test("HU-30.037: Esc cancela DialogoBuscarGlobal sin persistir cambios al modelo", async ({ page }) => {
   const pageErrors: string[] = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));

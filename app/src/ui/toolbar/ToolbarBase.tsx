@@ -20,7 +20,6 @@ import { ejecutarAccionContextualEntidad } from "../ejecutarAccionContextual";
 import { useBreakpoint } from "../layoutResponsive";
 import { MenuContextualEnlace } from "../MenuContextualEnlace";
 import { MenuContextualEntidad } from "../MenuContextualEntidad";
-import { ModalConfiguracionGrid } from "../ModalConfiguracionGrid";
 import { ToolbarMas, type ToolbarMasItem } from "./ToolbarMas";
 import { dragAtributoNumerico, dragToolbar, etiquetaModoGlobal, siguienteModoGlobal, toolbarStyle as style } from "./toolbarStyles";
 
@@ -100,7 +99,7 @@ export function ToolbarBase({ children, modelarSlot, conectarSlot, mapaSlot, sta
   const abrirModalImagen = useOpmStore((s) => s.abrirModalImagen);
   const gridConfig = useOpmStore((s) => normalizarGridConfig(s.gridConfig ?? s.indice.preferenciasUi?.gridConfig));
   const toggleGrid = useOpmStore((s) => s.toggleGrid);
-  const fijarGridConfig = useOpmStore((s) => s.fijarGridConfig);
+  const abrirDialogoConfiguracion = useOpmStore((s) => s.abrirDialogoConfiguracion);
   const aplicarLayoutSugerido = useOpmStore((s) => s.aplicarLayoutSugerido);
   const bibliotecaDockAbierto = useOpmStore((s) => s.bibliotecaDockAbierto);
   const toggleBibliotecaDock = useOpmStore((s) => s.toggleBibliotecaDock);
@@ -112,7 +111,6 @@ export function ToolbarBase({ children, modelarSlot, conectarSlot, mapaSlot, sta
   const alinearSeleccion = useOpmStore((s) => s.alinearSeleccion);
   const distribuirSeleccion = useOpmStore((s) => s.distribuirSeleccion);
   const alinearSeleccionEnlaces = useOpmStore((s) => s.alinearSeleccionEnlaces);
-  const [gridModalAbierto, setGridModalAbierto] = useState(false);
   const [nombreNuevaCosa, setNombreNuevaCosa] = useState("");
   const [menuContextual, setMenuContextual] = useState<null | { enlaceId: Id; x: number; y: number }>(null);
   const [menuEntidad, setMenuEntidad] = useState<null | { aparienciaId: Id; entidadId: Id; x: number; y: number }>(null);
@@ -196,7 +194,7 @@ export function ToolbarBase({ children, modelarSlot, conectarSlot, mapaSlot, sta
     gridActiva: gridConfig.activa,
     bibliotecaDockAbierto,
     onToggleGrid: toggleGrid,
-    onConfigGrid: () => setGridModalAbierto(true),
+    onConfigGrid: abrirDialogoConfiguracion,
     onAplicarLayout: aplicarLayoutSugerido,
     onToggleBibliotecaDock: toggleBibliotecaDock,
     vistaMapaActiva,
@@ -342,7 +340,6 @@ export function ToolbarBase({ children, modelarSlot, conectarSlot, mapaSlot, sta
         </div>
       </div>
       )}
-      <ModalConfiguracionGrid abierto={gridModalAbierto} config={gridConfig} onCerrar={() => setGridModalAbierto(false)} onGuardar={fijarGridConfig} />
       <ModelessToolbarLayer
         nuevaCosa={nuevaCosaPendiente ? { entidadId: nuevaCosaPendiente.entidadId, nombre: nuevaCosaPendiente.nombre } : null}
         nombreNuevaCosa={nombreNuevaCosa}

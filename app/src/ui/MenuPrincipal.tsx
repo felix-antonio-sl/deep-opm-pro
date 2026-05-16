@@ -1,12 +1,11 @@
 // [JOYAS §1-3] Chrome UI consume tokens centralizados; canvas semántico invariante.
 import modelWizardIcon from "../../../assets/svg/toolbar/modelWizard.svg";
 import templateIcon from "../../../assets/svg/template.svg";
-import { useEffect, useMemo, useState } from "preact/hooks";
+import { useMemo, useState } from "preact/hooks";
 import { normalizarGridConfig } from "../canvas/grid";
 import { listarFixtures } from "../store/runtime";
 import { useOpmStore } from "../store";
 import { useConfirmarSiDirty } from "./ConfirmacionContext";
-import { Dialogo } from "./Dialogo";
 import { tokens } from "./tokens";
 
 /**
@@ -25,10 +24,7 @@ export function MenuPrincipal() {
   const abrirBusquedaGlobal = useOpmStore((s) => s.abrirDialogoBuscarGlobal);
   const abrirVersiones = useOpmStore((s) => s.abrirDialogoVersiones);
   const modeloPersistidoId = useOpmStore((s) => s.modeloPersistidoId);
-  const dialogoRenombrarModeloAbierto = useOpmStore((s) => s.dialogoRenombrarModeloAbierto);
-  const abrirRenombrarModelo = useOpmStore((s) => s.abrirRenombrarModelo);
-  const cerrarRenombrarModelo = useOpmStore((s) => s.cerrarRenombrarModelo);
-  const renombrarModeloActual = useOpmStore((s) => s.renombrarModeloActual);
+  const abrirDialogoConfiguracion = useOpmStore((s) => s.abrirDialogoConfiguracion);
   const mostrarArchivados = useOpmStore((s) => s.mostrarArchivados);
   const mostrarVersiones = useOpmStore((s) => s.mostrarVersiones);
   const toggleMostrarArchivados = useOpmStore((s) => s.toggleMostrarArchivados);
@@ -53,13 +49,8 @@ export function MenuPrincipal() {
   const abrirModalUrls = useOpmStore((s) => s.abrirModalUrls);
   const confirmarSiDirty = useConfirmarSiDirty();
   const iniciarAsistente = useOpmStore((s) => s.iniciarAsistente);
-  const [nombreRenombrar, setNombreRenombrar] = useState(modelo.nombre);
   const [mostrarSubmenuDemos, setMostrarSubmenuDemos] = useState(false);
   const demos = useMemo(() => listarFixtures(), []);
-
-  useEffect(() => {
-    if (dialogoRenombrarModeloAbierto) setNombreRenombrar(modelo.nombre);
-  }, [dialogoRenombrarModeloAbierto, modelo.nombre]);
 
   const ejecutar = (accion: () => void) => {
     cerrar();
@@ -78,7 +69,7 @@ export function MenuPrincipal() {
         <MenuItem label="Guardar" shortcut="Ctrl+S" onClick={() => ejecutar(guardarLocal)} />
         <MenuItem label="Guardar como" onClick={() => ejecutar(abrirGuardarComo)} />
         <MenuItem label="Cargar otro..." shortcut="Ctrl+O" onClick={() => ejecutar(() => confirmarSiDirty(abrirCargarModelo))} />
-        <MenuItem label="Renombrar..." disabled={!modeloPersistidoId} onClick={() => ejecutar(abrirRenombrarModelo)} />
+        <MenuItem label="Configuración..." onClick={() => ejecutar(abrirDialogoConfiguracion)} />
       </MenuSection>
 
       <MenuSection title="Buscar">
@@ -152,31 +143,6 @@ export function MenuPrincipal() {
         <span>Workspace local</span>
       </div>
     </div> : null}
-    <Dialogo
-      open={dialogoRenombrarModeloAbierto}
-      title="Renombrar modelo"
-      onCancel={cerrarRenombrarModelo}
-      actions={(
-        <>
-          <button type="button" style={style.secondaryButton} onClick={cerrarRenombrarModelo}>Cancelar</button>
-          <button type="button" style={nombreRenombrar.trim() ? style.primaryButton : style.disabledButton} disabled={!nombreRenombrar.trim()} onClick={() => renombrarModeloActual(nombreRenombrar)}>Renombrar</button>
-        </>
-      )}
-    >
-      <label style={style.label}>
-        <span>Nombre del modelo</span>
-        <input
-          aria-label="Nombre del modelo"
-          style={style.input}
-          value={nombreRenombrar}
-          onInput={(event) => setNombreRenombrar(event.currentTarget.value)}
-          onKeyDown={(event) => {
-            if (event.key === "Enter" && nombreRenombrar.trim()) renombrarModeloActual(nombreRenombrar);
-          }}
-          autoFocus
-        />
-      </label>
-    </Dialogo>
     </>
   );
 }
@@ -327,25 +293,6 @@ const style = {
     fontSize: "11px",
     fontWeight: 800,
   },
-  label: {
-    display: "grid",
-    gap: "6px",
-    minWidth: "min(420px, calc(100vw - 80px))",
-    color: tokens.colors.textoSecundario,
-    fontSize: "13px",
-    fontWeight: 700,
-  },
-  input: {
-    height: "34px",
-    border: `1px solid ${tokens.colors.bordeInput}`,
-    borderRadius: tokens.radii.sm,
-    padding: "0 10px",
-    color: tokens.colors.textoPrimario,
-    fontSize: "13px",
-  },
-  primaryButton: { height: "34px", padding: "0 14px", border: `1px solid ${tokens.colors.chromeNeutral}`, borderRadius: tokens.radii.sm, background: tokens.colors.chromeNeutral, color: tokens.colors.fondoChrome, cursor: "pointer", fontSize: "13px", fontWeight: 700 },
-  secondaryButton: { height: "34px", padding: "0 14px", border: `1px solid ${tokens.colors.bordeControl}`, borderRadius: tokens.radii.sm, background: tokens.colors.fondoChrome, color: tokens.colors.textoSecundario, cursor: "pointer", fontSize: "13px", fontWeight: 700 },
-  disabledButton: { height: "34px", padding: "0 14px", border: `1px solid ${tokens.colors.bordeIntermedio}`, borderRadius: tokens.radii.sm, background: tokens.colors.fondoDeshabilitado, color: tokens.colors.textoDeshabilitado, fontSize: "13px", fontWeight: 700 },
   footer: {
     display: "flex",
     alignItems: "center",
@@ -356,11 +303,6 @@ const style = {
     color: tokens.colors.textoTerciario,
     fontSize: "12px",
     fontWeight: 700,
-  },
-  divider: {
-    height: "1px",
-    margin: "2px 0",
-    background: tokens.colors.bordeChrome,
   },
   submenu: {
     position: "absolute",

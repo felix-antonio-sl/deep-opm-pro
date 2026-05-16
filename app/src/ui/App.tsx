@@ -43,6 +43,7 @@ const CommandPalette = lazy(() => import("./CommandPalette").then((m) => ({ defa
 const DialogoBuscarCosas = lazy(() => import("./DialogoBuscarCosas").then((m) => ({ default: m.DialogoBuscarCosas })));
 const DialogoBuscarGlobal = lazy(() => import("./DialogoBuscarGlobal").then((m) => ({ default: m.DialogoBuscarGlobal })));
 const DialogoCargarModelo = lazy(() => import("./DialogoCargarModelo").then((m) => ({ default: m.DialogoCargarModelo })));
+const DialogoConfiguracion = lazy(() => import("./DialogoConfiguracion").then((m) => ({ default: m.DialogoConfiguracion })));
 const DialogoGuardarComo = lazy(() => import("./DialogoGuardarComo").then((m) => ({ default: m.DialogoGuardarComo })));
 const DialogoImportarExportarJson = lazy(() => import("./DialogoImportarExportarJson").then((m) => ({ default: m.DialogoImportarExportarJson })));
 const DialogoVersiones = lazy(() => import("./DialogoVersiones").then((m) => ({ default: m.DialogoVersiones })));
@@ -67,6 +68,7 @@ export function App() {
   const fijarAnchoPanelInspector = useOpmStore((s) => s.fijarAnchoPanelInspector);
   const asistenteAbierto = useOpmStore((s) => s.asistente !== null);
   const dialogoGuardarComoAbierto = useOpmStore((s) => s.dialogoGuardarComoAbierto);
+  const dialogoConfiguracionAbierto = useOpmStore((s) => s.dialogoConfiguracionAbierto);
   const dialogoImportarExportarJsonAbierto = useOpmStore((s) => s.dialogoImportarExportarJsonAbierto);
   const cerrarDialogoImportarExportarJson = useOpmStore((s) => s.cerrarDialogoImportarExportarJson);
   const dialogoCargarModeloAbierto = useOpmStore((s) => s.dialogoCargarModeloAbierto);
@@ -300,6 +302,7 @@ export function App() {
           </>
         )}
         {dialogoGuardarComoAbierto ? <Suspense fallback={null}><DialogoGuardarComo /></Suspense> : null}
+        {dialogoConfiguracionAbierto ? <Suspense fallback={null}><DialogoConfiguracion /></Suspense> : null}
         {dialogoImportarExportarJsonAbierto ? (
           <Suspense fallback={null}>
             <DialogoImportarExportarJson open={dialogoImportarExportarJsonAbierto} onCerrar={cerrarDialogoImportarExportarJson} />
@@ -358,6 +361,7 @@ function registrarAtajosAplicacion(): Array<() => void> {
     if (state.cheatsheetAtajosAbierto) return state.cerrarCheatsheetAtajos();
     if (state.gestionArbolAbierta) return state.cerrarGestionArbol();
     if (state.dialogoGuardarComoAbierto) return state.cerrarGuardarComo();
+    if (state.dialogoConfiguracionAbierto) return state.cerrarDialogoConfiguracion();
     if (state.dialogoImportarExportarJsonAbierto) return state.cerrarDialogoImportarExportarJson();
     if (state.dialogoCargarModeloAbierto) return state.cerrarCargarModelo();
     if (state.dialogoBuscarGlobalAbierto) return state.cerrarDialogoBuscarGlobal();

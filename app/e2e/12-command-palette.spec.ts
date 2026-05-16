@@ -67,3 +67,25 @@ test("Command Palette abre Cargar modelo con archivados visibles", async ({ page
 
   expect(pageErrors).toEqual([]);
 });
+
+test("Command Palette abre Configuración consolidada", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await cerrarPantallaInicioSiVisible(page);
+
+  await page.keyboard.press("Control+k");
+  const palette = page.getByTestId("command-palette");
+  await expect(palette).toBeVisible();
+  await palette.getByRole("combobox").fill("configuracion");
+  await expect(page.getByTestId("command-palette-item-menu-configuracion")).toBeVisible();
+
+  await page.keyboard.press("Enter");
+  const dialogo = page.getByRole("dialog", { name: "Configuración" });
+  await expect(dialogo).toBeVisible();
+  await expect(dialogo.getByLabel("Nombre del modelo")).toBeVisible();
+  await expect(dialogo.getByLabel("Paso")).toBeVisible();
+
+  expect(pageErrors).toEqual([]);
+});

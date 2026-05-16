@@ -84,7 +84,7 @@ test("⋯ Más abre menu accesible, Escape cierra y se navega por teclado", asyn
   expect(pageErrors).toEqual([]);
 });
 
-test("acciones movidas al menu Mas siguen invocables (plantillas, config grid, modo imagen)", async ({ page }) => {
+test("acciones movidas al menu Mas siguen invocables (plantillas, configuracion, modo imagen)", async ({ page }) => {
   const pageErrors: string[] = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
@@ -98,7 +98,7 @@ test("acciones movidas al menu Mas siguen invocables (plantillas, config grid, m
   await expect(page.getByRole("dialog", { name: /[Pp]lantillas/ })).toBeVisible();
   await page.keyboard.press("Escape");
 
-  // 2) Abrir Config grid desde el menu Más.
+  // 2) Abrir Configuración desde el menu Más.
   await page.getByTestId("toolbar-mas-trigger").click();
   await page.getByTestId("toolbar-mas-config-grid").click();
   const modalGrid = page.getByTestId("modal-config-grid");
