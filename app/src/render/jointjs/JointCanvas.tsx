@@ -22,7 +22,12 @@ import {
   setPaperDimensions,
 } from "./handlers/helpers";
 import { aplicarHoverOpl, cablearHoverOpl } from "./handlers/hoverOpl";
-import { aplicarFeedbackModoEnlace, cablearModoEnlace, type MenuTipoEnlaceCanvasInput } from "./handlers/modoEnlace";
+import {
+  aplicarA11yConexionTeclado,
+  aplicarFeedbackModoEnlace,
+  cablearModoEnlace,
+  type MenuTipoEnlaceCanvasInput,
+} from "./handlers/modoEnlace";
 import { cablearRubberBand } from "./handlers/rubberBand";
 import { cablearResize } from "./handlers/resize";
 import { cablearSeleccion } from "./handlers/seleccion";
@@ -111,6 +116,8 @@ export function JointCanvas() {
   const crearEntidadEnCanvasRef = useRef(crearEntidadEnCanvas);
   const crearEnlaceEntreEntidades = useOpmStore((s) => s.crearEnlaceEntreEntidades);
   const crearEnlaceEntreEntidadesRef = useRef(crearEnlaceEntreEntidades);
+  const elegirTipoEnlace = useOpmStore((s) => s.elegirTipoEnlace);
+  const elegirTipoEnlaceRef = useRef(elegirTipoEnlace);
   const iniciarConexionDesdeApariencia = useOpmStore((s) => s.iniciarConexionDesdeApariencia);
   const iniciarConexionDesdeAparienciaRef = useRef(iniciarConexionDesdeApariencia);
   const cancelarEnlace = useOpmStore((s) => s.cancelarEnlace);
@@ -182,6 +189,7 @@ export function JointCanvas() {
     actualizarPosicionLabelEnlaceRef.current = actualizarPosicionLabelEnlace;
     crearEntidadEnCanvasRef.current = crearEntidadEnCanvas;
     crearEnlaceEntreEntidadesRef.current = crearEnlaceEntreEntidades;
+    elegirTipoEnlaceRef.current = elegirTipoEnlace;
     iniciarConexionDesdeAparienciaRef.current = iniciarConexionDesdeApariencia;
     cancelarEnlaceRef.current = cancelarEnlace;
     fijarHoverOplRef.current = fijarHoverOpl;
@@ -191,7 +199,7 @@ export function JointCanvas() {
     vaciarSeleccionRef.current = vaciarSeleccion;
     redimensionarAparienciaEnCanvasRef.current = redimensionarAparienciaEnCanvas;
     renombrarEntidadDesdeOplRef.current = renombrarEntidadDesdeOpl;
-  }, [actualizarAnclajesSimboloEstructural, actualizarPosicionLabelEnlace, actualizarPosicionSimboloEstructural, actualizarVerticesEnlace, agregarASeleccion, alternarModoImagenEntidad, abrirModalImagen, cancelarEnlace, cambiarModoPlegadoApariencia, cambiarOpdActivo, crearEnlaceEntreEntidades, crearEntidadEnCanvas, extraerParteDePlegado, fijarHoverOpl, iniciarConexionDesdeApariencia, moverAparienciaConPuertos, redimensionarAparienciaEnCanvas, renombrarEntidadDesdeOpl, seleccionarEnlace, seleccionarEntidad, seleccionarEstadoComoExtremo, seleccionarGrupoEstructural, seleccionarPartePlegada, setSeleccion, toggleSeleccion, vaciarSeleccion]);
+  }, [actualizarAnclajesSimboloEstructural, actualizarPosicionLabelEnlace, actualizarPosicionSimboloEstructural, actualizarVerticesEnlace, agregarASeleccion, alternarModoImagenEntidad, abrirModalImagen, cancelarEnlace, cambiarModoPlegadoApariencia, cambiarOpdActivo, crearEnlaceEntreEntidades, crearEntidadEnCanvas, elegirTipoEnlace, extraerParteDePlegado, fijarHoverOpl, iniciarConexionDesdeApariencia, moverAparienciaConPuertos, redimensionarAparienciaEnCanvas, renombrarEntidadDesdeOpl, seleccionarEnlace, seleccionarEntidad, seleccionarEstadoComoExtremo, seleccionarGrupoEstructural, seleccionarPartePlegada, setSeleccion, toggleSeleccion, vaciarSeleccion]);
 
   useEffect(() => {
     abrirMenuTipoEnlaceCanvasRef.current = (input: MenuTipoEnlaceCanvasInput) => {
@@ -360,6 +368,7 @@ export function JointCanvas() {
       opdActivoIdRef,
       modoEnlaceRef,
       iniciarConexionDesdeAparienciaRef,
+      elegirTipoEnlaceRef,
       crearEnlaceEntreEntidadesRef,
       cancelarEnlaceRef,
       abrirMenuTipoEnlaceCanvasRef,
@@ -425,6 +434,7 @@ export function JointCanvas() {
     embedirContorno(adapter.graph);
     aplicarRuteoOpcloudEnlaces(adapter.graph);
     ordenarTodosLosEnlacesEstructurales(adapter.paper, adapter.graph);
+    aplicarA11yConexionTeclado(adapter.paper, modelo);
     // Reposiciona overlays-abanico desde los LinkView ya renderizados (paper
     // async:false garantiza que los views existen tras resetCells). El path
     // del cold render era una aproximacion geometrica; aqui lo reemplazamos
@@ -560,6 +570,7 @@ export function JointCanvas() {
               }}
               anchor={{ left: menuTipoEnlaceCanvas.left, top: menuTipoEnlaceCanvas.top }}
               titulo={tituloMenuConexion(modelo, menuTipoEnlaceCanvas.origenId, menuTipoEnlaceCanvas.destinoId)}
+              autoFocusFirstOption={menuTipoEnlaceCanvas.autoFocusFirstOption === true}
             />
           </div>
         ) : null}

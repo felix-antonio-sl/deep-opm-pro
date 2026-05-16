@@ -42,9 +42,9 @@ import type { ModeloSlice } from "../tipos";
  */
 export function accionesEnlace(set: SetStore, get: GetStore): Partial<ModeloSlice> {
   return {
-    elegirTipoEnlace(tipo) {
+    elegirTipoEnlace(tipo, origenExplicitoId) {
       const { modelo, seleccionId, modoEnlace } = get();
-      const origenId = modoEnlace?.origenId ?? seleccionId;
+      const origenId = origenExplicitoId ?? modoEnlace?.origenId ?? seleccionId;
       if (!origenId || !modelo.entidades[origenId]) {
         set({ mensaje: "Selecciona primero la cosa origen del enlace" });
         return;

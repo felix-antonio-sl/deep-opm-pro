@@ -1,5 +1,12 @@
 import { shapes, type dia } from "jointjs";
-import { anchorConexionDesdeSelector, colorHaloPorTipo, entidadDestinoValida, evaluarDestinos, type AnchorConexion } from "../../../canvas/modoEnlace";
+import {
+  anchorConexionDesdeSelector,
+  colorHaloPorTipo,
+  entidadDestinoValida,
+  evaluarDestinos,
+  tipoInicialConexionDesdeEntidad,
+  type AnchorConexion,
+} from "../../../canvas/modoEnlace";
 import type { Id, Modelo, TipoEnlace } from "../../../modelo/tipos";
 import type { ModoEnlace } from "../../../store/tipos";
 import { cellViewModel, jointSelector, metadata, paperOff, posicionCanvasDesdeEvento } from "./helpers";
@@ -10,6 +17,7 @@ interface CablearModoEnlaceArgs {
   opdActivoIdRef: { current: Id };
   modoEnlaceRef: { current: ModoEnlace | null };
   iniciarConexionDesdeAparienciaRef: { current: (aparienciaId: Id, anchor: AnchorConexion) => void };
+  elegirTipoEnlaceRef: { current: (tipo: TipoEnlace, origenId?: Id) => void };
   crearEnlaceEntreEntidadesRef: { current: (origenId: Id, destinoId: Id, tipo: TipoEnlace) => void };
   cancelarEnlaceRef: { current: () => void };
   abrirMenuTipoEnlaceCanvasRef: { current: (input: MenuTipoEnlaceCanvasInput) => void };
@@ -21,6 +29,7 @@ export interface MenuTipoEnlaceCanvasInput {
   anchor: AnchorConexion;
   clientX: number;
   clientY: number;
+  autoFocusFirstOption?: boolean;
 }
 
 export function aplicarFeedbackModoEnlace(
@@ -58,6 +67,7 @@ export function cablearModoEnlace(args: CablearModoEnlaceArgs): () => void {
     opdActivoIdRef,
     modoEnlaceRef,
     iniciarConexionDesdeAparienciaRef,
+    elegirTipoEnlaceRef,
     crearEnlaceEntreEntidadesRef,
     cancelarEnlaceRef,
     abrirMenuTipoEnlaceCanvasRef,
@@ -128,6 +138,47 @@ export function cablearModoEnlace(args: CablearModoEnlaceArgs): () => void {
   const onBlankPointerup = (evt: dia.Event) => {
     finalizarDragDesdeAnchor(null, evt);
   };
+  const onKeyDown = (evt: KeyboardEvent) => {
+    if (evt.key === "Tab") {
+      const modo = modoEnlaceRef.current;
+      if (!modo) return;
+      const view = cellViewDesdeEvento(paper, evt);
+      if (!view) return;
+      const meta = metadata(cellViewModel(view));
+      if (meta?.kind !== "entidad") return;
+      if (!focalizarSiguienteDestinoValido(paper, modeloRef.current, opdActivoIdRef.current, modo, meta.entidadId, evt.shiftKey)) return;
+      evt.preventDefault();
+      evt.stopPropagation();
+      return;
+    }
+    if (evt.key !== "Enter" && evt.key !== " ") return;
+    const view = cellViewDesdeEvento(paper, evt);
+    if (!view) return;
+    const meta = metadata(cellViewModel(view));
+    if (meta?.kind !== "entidad") return;
+    evt.preventDefault();
+    evt.stopPropagation();
+
+    const modo = modoEnlaceRef.current;
+    if (!modo) {
+      elegirTipoEnlaceRef.current(
+        tipoInicialConexionDesdeEntidad(modeloRef.current, opdActivoIdRef.current, meta.entidadId),
+        meta.entidadId,
+      );
+      return;
+    }
+    if (meta.entidadId === modo.origenId) return;
+    if (!entidadDestinoValida(modeloRef.current, opdActivoIdRef.current, modo.origenId, meta.entidadId, modo.tipo)) return;
+    const punto = centroClienteDeView(view);
+    abrirMenuTipoEnlaceCanvasRef.current({
+      origenId: modo.origenId,
+      destinoId: meta.entidadId,
+      anchor: "E",
+      clientX: punto.clientX,
+      clientY: punto.clientY,
+      autoFocusFirstOption: true,
+    });
+  };
 
   const finalizarDragDesdeAnchor = (elementView: dia.ElementView | null, evt: dia.Event): boolean => {
     const dragAnchor = dragDesdeAnchor;
@@ -161,6 +212,7 @@ export function cablearModoEnlace(args: CablearModoEnlaceArgs): () => void {
   paper.on("blank:pointermove", onBlankPointermove);
   paper.on("element:pointerup", onElementPointerup);
   paper.on("blank:pointerup", onBlankPointerup);
+  (paper as unknown as { el: HTMLElement }).el.addEventListener("keydown", onKeyDown);
   return () => {
     removerGhost(dragDesdeAnchor?.ghost);
     marcarDragAnchorActivo(paper, false);
@@ -171,7 +223,31 @@ export function cablearModoEnlace(args: CablearModoEnlaceArgs): () => void {
     paperOff(paper, "blank:pointermove", onBlankPointermove as (...args: never[]) => void);
     paperOff(paper, "element:pointerup", onElementPointerup as (...args: never[]) => void);
     paperOff(paper, "blank:pointerup", onBlankPointerup as (...args: never[]) => void);
+    (paper as unknown as { el: HTMLElement }).el.removeEventListener("keydown", onKeyDown);
   };
+}
+
+export function aplicarA11yConexionTeclado(paper: dia.Paper, modelo: Modelo): void {
+  const graph = (paper as unknown as { model: dia.Graph }).model;
+  const cells = (graph as unknown as { getCells(): dia.Cell[] }).getCells();
+  const paperConVista = paper as unknown as { findViewByModel(cell: dia.Cell): dia.CellView | undefined };
+  for (const cell of cells) {
+    const meta = metadata(cell);
+    if (meta?.kind !== "entidad") continue;
+    const entidad = modelo.entidades[meta.entidadId];
+    const view = paperConVista.findViewByModel(cell);
+    const el = (view as unknown as { el?: Element } | undefined)?.el;
+    if (!entidad || !el) continue;
+    el.setAttribute("tabindex", "0");
+    el.setAttribute("role", "button");
+    el.setAttribute("focusable", "true");
+    el.setAttribute("data-opm-keyboard-connect", "true");
+    el.setAttribute("aria-label", labelA11yConexionEntidad(entidad.nombre, entidad.tipo));
+  }
+}
+
+export function labelA11yConexionEntidad(nombre: string, tipo: string): string {
+  return `${tipo === "proceso" ? "Proceso" : "Objeto"} ${nombre}. Enter para seleccionar o conectar.`;
 }
 
 export function puntoAnchorDesdeBBox(
@@ -231,6 +307,69 @@ function marcarDragAnchorActivo(paper: dia.Paper, activo: boolean): void {
 
 function metadataDestinoDesdeView(elementView: dia.ElementView | null): ReturnType<typeof metadata> {
   return elementView ? metadata(cellViewModel(elementView)) : null;
+}
+
+function cellViewDesdeEvento(paper: dia.Paper, evt: KeyboardEvent): dia.CellView | null {
+  const target = evt.target instanceof Element ? evt.target.closest(".joint-cell") : null;
+  if (!target) return null;
+  const paperConBusqueda = paper as unknown as { findView?: (element: Element) => dia.CellView | undefined };
+  return paperConBusqueda.findView?.(target) ?? null;
+}
+
+function centroClienteDeView(view: dia.CellView): { clientX: number; clientY: number } {
+  const el = (view as unknown as { el?: Element }).el;
+  const rect = el?.getBoundingClientRect();
+  if (!rect) return { clientX: 0, clientY: 0 };
+  return {
+    clientX: rect.left + rect.width / 2,
+    clientY: rect.top + rect.height / 2,
+  };
+}
+
+function focalizarSiguienteDestinoValido(
+  paper: dia.Paper,
+  modelo: Modelo,
+  opdId: Id,
+  modo: ModoEnlace,
+  actualId: Id,
+  reversa: boolean,
+): boolean {
+  const vistas = vistasEntidadOrdenadas(paper);
+  if (vistas.length === 0) return false;
+  const actualIndex = vistas.findIndex(({ meta }) => meta.entidadId === actualId);
+  if (actualIndex < 0) return false;
+  for (let offset = 1; offset <= vistas.length; offset += 1) {
+    const index = reversa
+      ? (actualIndex - offset + vistas.length) % vistas.length
+      : (actualIndex + offset) % vistas.length;
+    const candidato = vistas[index];
+    if (!candidato || candidato.meta.entidadId === modo.origenId) continue;
+    if (!entidadDestinoValida(modelo, opdId, modo.origenId, candidato.meta.entidadId, modo.tipo)) continue;
+    focoView(candidato.view);
+    return true;
+  }
+  return false;
+}
+
+function vistasEntidadOrdenadas(paper: dia.Paper): Array<{ meta: Extract<NonNullable<ReturnType<typeof metadata>>, { kind: "entidad" }>; view: dia.CellView }> {
+  const graph = (paper as unknown as { model: dia.Graph }).model;
+  const cells = (graph as unknown as { getCells(): dia.Cell[] }).getCells();
+  const paperConVista = paper as unknown as { findViewByModel(cell: dia.Cell): dia.CellView | undefined };
+  const vistas: Array<{ meta: Extract<NonNullable<ReturnType<typeof metadata>>, { kind: "entidad" }>; view: dia.CellView }> = [];
+  for (const cell of cells) {
+    const meta = metadata(cell);
+    if (meta?.kind !== "entidad") continue;
+    const view = paperConVista.findViewByModel(cell);
+    if (view) vistas.push({ meta, view });
+  }
+  return vistas;
+}
+
+function focoView(view: dia.CellView): void {
+  const el = (view as unknown as { el?: Element }).el;
+  if (el && "focus" in el && typeof el.focus === "function") {
+    el.focus();
+  }
 }
 
 function metadataDestinoEnPunto(

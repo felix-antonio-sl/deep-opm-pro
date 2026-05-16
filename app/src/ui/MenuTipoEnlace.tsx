@@ -1,5 +1,5 @@
 // [JOYAS §1-3] Chrome UI consume tokens centralizados; canvas semántico invariante.
-import { useState } from "preact/hooks";
+import { useEffect, useRef, useState } from "preact/hooks";
 import { validarFirmaEnlace } from "../modelo/operaciones";
 import type { Entidad, Id, Modelo, TipoEnlace } from "../modelo/tipos";
 import { tokens } from "./tokens";
@@ -34,23 +34,43 @@ interface Props {
   onElegirPendiente?: (tipo: TipoEnlace) => void;
   anchor?: { left: number; top: number };
   titulo?: string;
+  autoFocusFirstOption?: boolean;
 }
 
-export function MenuTipoEnlace({ modelo, origenId, destinoId, direccion, onDireccion, onElegir, onElegirPendiente, anchor, titulo }: Props) {
+export function MenuTipoEnlace({ modelo, origenId, destinoId, direccion, onDireccion, onElegir, onElegirPendiente, anchor, titulo, autoFocusFirstOption }: Props) {
   const [tipoPreview, setTipoPreview] = useState<TipoEnlace | null>(null);
+  const panelRef = useRef<HTMLDivElement | null>(null);
   const origen = origenId ? modelo.entidades[origenId] : undefined;
   const destino = destinoId ? modelo.entidades[destinoId] : undefined;
   const opciones = origen && destino ? tiposValidos(modelo, origen, destino, direccion) : [];
   const opcionesPendientes = origen && !destino ? tiposPendientes(modelo, origen) : [];
   const opcionPreview = opciones.find((opcion) => opcion.tipo === tipoPreview) ?? opciones[0] ?? null;
   const totalNoAplican = origen && destino ? TIPOS_ENLACE_MENU.length - opciones.length : 0;
+
+  useEffect(() => {
+    const panel = panelRef.current;
+    if (!panel) return;
+    panel.addEventListener("keydown", navegarOpcionesMenu, true);
+    return () => panel.removeEventListener("keydown", navegarOpcionesMenu, true);
+  }, []);
+
+  useEffect(() => {
+    if (!autoFocusFirstOption) return;
+    const frame = requestAnimationFrame(() => {
+      botonesOpcion(panelRef.current)[0]?.focus();
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [autoFocusFirstOption, direccion, origenId, destinoId]);
+
   return (
     <div
+      ref={panelRef}
       style={anchor ? { ...style.panel, left: `${anchor.left}px`, top: `${anchor.top}px` } : style.panel}
       data-testid="menu-tipo-enlace"
       data-ifml-stereotype="Modeless"
       data-ifml-modal="false"
       data-ifml-pattern="DE-DLKP"
+      data-atajos-local="true"
     >
       <div style={style.header}>
         <strong>{titulo ?? tituloPorDefecto(origen, destino)}</strong>
@@ -76,6 +96,7 @@ export function MenuTipoEnlace({ modelo, origenId, destinoId, direccion, onDirec
                   type="button"
                   style={style.item}
                   data-testid={`menu-tipo-enlace-${opcion.tipo}`}
+                  data-menu-tipo-enlace-option="true"
                   onClick={() => onElegirPendiente(opcion.tipo)}
                 >
                   <span style={style.icon}>{iconoTipo(opcion.tipo)}</span>
@@ -113,6 +134,7 @@ export function MenuTipoEnlace({ modelo, origenId, destinoId, direccion, onDirec
               type="button"
               style={opcionPreview?.tipo === opcion.tipo ? style.itemActive : style.item}
               data-testid={`menu-tipo-enlace-${opcion.tipo}`}
+              data-menu-tipo-enlace-option="true"
               onPointerEnter={() => setTipoPreview(opcion.tipo)}
               onFocus={() => setTipoPreview(opcion.tipo)}
               onClick={() => onElegir(opcion.tipo, opcion.origen.id, opcion.destino.id)}
@@ -134,6 +156,33 @@ export function MenuTipoEnlace({ modelo, origenId, destinoId, direccion, onDirec
       )}
     </div>
   );
+}
+
+function navegarOpcionesMenu(event: KeyboardEvent): void {
+  const keys = ["ArrowDown", "ArrowUp", "Home", "End"];
+  if (!keys.includes(event.key)) return;
+  const target = event.target instanceof HTMLElement ? event.target : null;
+  const panel = target?.closest<HTMLElement>('[data-testid="menu-tipo-enlace"]')
+    ?? (event.currentTarget instanceof HTMLElement ? event.currentTarget : null);
+  const opciones = botonesOpcion(panel);
+  if (opciones.length === 0) return;
+  event.preventDefault();
+  event.stopPropagation();
+  const activo = document.activeElement instanceof HTMLButtonElement ? opciones.indexOf(document.activeElement) : -1;
+  const siguiente = indiceSiguienteOpcion(event.key, activo, opciones.length);
+  opciones[siguiente]?.focus();
+}
+
+function botonesOpcion(panel: HTMLElement | null): HTMLButtonElement[] {
+  if (!panel) return [];
+  return Array.from(panel.querySelectorAll<HTMLButtonElement>('button[data-menu-tipo-enlace-option="true"]'));
+}
+
+function indiceSiguienteOpcion(key: string, actual: number, total: number): number {
+  if (key === "Home") return 0;
+  if (key === "End") return total - 1;
+  if (key === "ArrowUp") return actual <= 0 ? total - 1 : actual - 1;
+  return actual < 0 || actual >= total - 1 ? 0 : actual + 1;
 }
 
 function tituloPorDefecto(origen: Entidad | undefined, destino: Entidad | undefined): string {

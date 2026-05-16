@@ -16,6 +16,17 @@ describe("slice enlaces", () => {
     expect(store.getState().modoEnlace).toBeNull();
   });
 
+  test("elegirTipoEnlace acepta origen explicito sin depender de seleccion", () => {
+    store.getState().cargarDemo();
+    const [seleccionId, origenExplicitoId] = Object.keys(store.getState().modelo.entidades);
+    if (!seleccionId || !origenExplicitoId) throw new Error("La prueba esperaba al menos dos entidades");
+
+    store.getState().seleccionarEntidad(seleccionId);
+    store.getState().elegirTipoEnlace("instrumento", origenExplicitoId);
+
+    expect(store.getState().modoEnlace).toEqual({ tipo: "instrumento", origenId: origenExplicitoId, fase: "boton" });
+  });
+
   test("iniciarConexionDesdeApariencia registra fase drag-from-anchor", () => {
     store.getState().cargarDemo();
     const opdId = store.getState().opdActivoId;

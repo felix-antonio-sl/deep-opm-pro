@@ -98,6 +98,7 @@ function manejarKeydown(e: KeyboardEvent): void {
   // Enter, Tab focus trap). El registry global se hace a un lado para no
   // robar el evento via stopImmediatePropagation.
   if (e.target instanceof Element && e.target.closest('[role="dialog"][aria-modal="true"]')) return;
+  if (e.target instanceof Element && e.target.closest("[data-atajos-local='true']")) return;
 
   const combo = comboDesdeEvento(e);
   const ctx = contextoDesdeEvento(e);

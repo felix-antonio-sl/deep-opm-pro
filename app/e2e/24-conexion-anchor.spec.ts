@@ -55,6 +55,46 @@ test("camino Conectar por boton muestra tip de anchor antes de elegir destino", 
   await expect(page.getByTestId("nudge-conexion-anchor")).toContainText("Tip: arrastra desde un anchor ◉");
 });
 
+test("teclado conecta foco origen y destino mediante MenuTipoEnlace", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await cerrarPantallaInicioSiVisible(page);
+  await jsonEditor(page).fill(JSON.stringify(modeloConexionAnchor(), null, 2));
+  await page.getByRole("button", { name: "Importar", exact: true }).click();
+
+  const entrada = elementoPorTexto(page, "Entrada");
+  const procesar = elementoPorTexto(page, "Procesar");
+  await expect(entrada).toHaveAttribute("data-opm-keyboard-connect", "true");
+  await expect(procesar).toHaveAttribute("data-opm-keyboard-connect", "true");
+
+  await entrada.focus();
+  await page.keyboard.press("Enter");
+  await expect(page.getByTestId("indicador-modo-canonico")).toHaveAttribute("data-modo", "conectar");
+
+  await page.keyboard.press("Tab");
+  await expect.poll(() => page.evaluate(() => document.activeElement?.getAttribute("aria-label") ?? "")).toContain("Proceso Procesar");
+  await page.keyboard.press("Enter");
+
+  const menu = page.getByTestId("menu-tipo-enlace");
+  await expect(menu).toBeVisible();
+  await expect(menu.getByText("Conectar Entrada → Procesar")).toBeVisible();
+  await expect.poll(() => page.evaluate(() => document.activeElement?.getAttribute("data-testid") ?? "")).toBe("menu-tipo-enlace-exhibicion");
+
+  await page.keyboard.press("ArrowDown");
+  await page.keyboard.press("ArrowDown");
+  await page.keyboard.press("ArrowDown");
+  await page.keyboard.press("ArrowDown");
+  await expect.poll(() => page.evaluate(() => document.activeElement?.getAttribute("data-testid") ?? "")).toBe("menu-tipo-enlace-consumo");
+  await page.keyboard.press("Enter");
+
+  await expect(page.locator(".joint-link")).toHaveCount(1);
+  const exportado = await exportadoActual(page);
+  expect(Object.values(exportado.modelo.enlaces).some((enlace) => enlace.tipo === "consumo")).toBe(true);
+  expect(pageErrors).toEqual([]);
+});
+
 function modeloConexionAnchor() {
   return {
     formato: "deep-opm-pro.modelo.v0",

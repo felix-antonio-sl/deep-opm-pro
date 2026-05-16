@@ -437,7 +437,7 @@ export interface OpmStore {
   navegarAviso: (aviso: Aviso) => void;
   deshacer: () => void;
   rehacer: () => void;
-  elegirTipoEnlace: (tipo: TipoEnlace) => void;
+  elegirTipoEnlace: (tipo: TipoEnlace, origenId?: Id) => void;
   iniciarConexionDesdeApariencia: (aparienciaId: Id, anchor: AnchorConexion) => void;
   crearEnlaceEntreEntidades: (origenId: Id, destinoId: Id, tipo: TipoEnlace) => void;
   cancelarEnlace: () => void;

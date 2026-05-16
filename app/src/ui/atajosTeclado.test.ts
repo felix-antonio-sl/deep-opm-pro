@@ -110,6 +110,26 @@ describe("registry central de atajos", () => {
     expect(llamados).toEqual(["mapa"]);
   });
 
+  test("cede flechas a superficies con atajos locales", () => {
+    const llamados: string[] = [];
+    registrarAtajo({
+      combo: "ArrowDown",
+      ctx: "canvas",
+      categoria: "edicion",
+      descripcion: "Mover selección",
+      handler: () => llamados.push("canvas"),
+    });
+    escucharGlobal();
+    const target = new Element() as Element & { closest: (selector: string) => Element | null };
+    target.closest = (selector: string) => selector === "[data-atajos-local='true']" ? target : null;
+
+    const evento = eventoTecla("ArrowDown", { target });
+    despachar(evento);
+
+    expect(llamados).toEqual([]);
+    expect(evento.defaultPrevented).toBe(false);
+  });
+
   test("formatea combos para plataforma Mac sin remapear la definicion", () => {
     Object.defineProperty(globalThis.navigator, "platform", {
       configurable: true,
