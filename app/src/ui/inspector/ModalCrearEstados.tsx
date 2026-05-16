@@ -112,7 +112,7 @@ export function ModalCrearEstados(props: Props) {
           </label>
         ) : null}
         <div style={style.previewBlock} data-testid="modal-crear-estados-preview" aria-live="polite">
-          <span style={style.previewLabel}>Preview OPL</span>
+          <span style={style.previewLabel}>Previsualización OPL</span>
           <p style={preview.esValido ? style.previewText : style.previewEmpty}>
             {preview.esValido ? preview.texto : "(escribe nombres válidos para ver la oración OPL)"}
           </p>

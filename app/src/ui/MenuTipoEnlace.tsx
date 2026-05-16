@@ -43,24 +43,25 @@ export function MenuTipoEnlace({ modelo, origenId, destinoId, direccion, onDirec
   const opciones = origen && destino ? tiposValidos(modelo, origen, destino, direccion) : [];
   const opcionesPendientes = origen && !destino ? tiposPendientes(modelo, origen) : [];
   const opcionPreview = opciones.find((opcion) => opcion.tipo === tipoPreview) ?? opciones[0] ?? null;
+  const totalNoAplican = origen && destino ? TIPOS_ENLACE_MENU.length - opciones.length : 0;
   return (
     <div style={anchor ? { ...style.panel, left: `${anchor.left}px`, top: `${anchor.top}px` } : style.panel} data-testid="menu-tipo-enlace">
       <div style={style.header}>
-        <strong>{titulo ?? "Tipos válidos"}</strong>
+        <strong>{titulo ?? tituloPorDefecto(origen, destino)}</strong>
         <div style={style.segmented} role="group" aria-label="Dirección de enlace">
           <button type="button" style={direccion === "saliente" ? style.segmentActive : style.segment} onClick={() => onDireccion("saliente")}>Salida</button>
           <button type="button" style={direccion === "entrante" ? style.segmentActive : style.segment} onClick={() => onDireccion("entrante")}>Entrada</button>
         </div>
       </div>
       {!origen ? (
-        <p style={style.empty} data-testid="menu-tipo-enlace-estado-sin-origen">Selecciona la entidad origen del enlace.</p>
+        <p style={style.empty} data-testid="menu-tipo-enlace-estado-sin-origen">Selecciona la cosa origen del enlace.</p>
       ) : !destino ? (
         <div style={style.estado} data-testid="menu-tipo-enlace-estado-sin-destino">
           <p style={style.estadoLinea}>
             <span style={style.estadoEtiqueta}>Origen</span>
             <strong style={style.estadoNombre}>{origen.nombre}</strong>
           </p>
-          <p style={style.estadoHint}>Elige un tipo para entrar en modo Conectar, o selecciona otra cosa para filtrar por firma y preview OPL.</p>
+          <p style={style.estadoHint}>Elige un tipo para entrar en modo Conectar, o selecciona otra cosa para filtrar por firma y previsualizar OPL.</p>
           {onElegirPendiente && opcionesPendientes.length > 0 ? (
             <div style={style.list}>
               {opcionesPendientes.map((opcion) => (
@@ -74,7 +75,7 @@ export function MenuTipoEnlace({ modelo, origenId, destinoId, direccion, onDirec
                   <span style={style.icon}>{iconoTipo(opcion.tipo)}</span>
                   <span style={style.itemText}>
                     <strong>{etiquetaTipo(opcion.tipo)}</strong>
-                    <small style={style.preview}>Luego selecciona la entidad o estado destino.</small>
+                    <small style={style.preview}>Luego selecciona la cosa o estado destino.</small>
                   </span>
                 </button>
               ))}
@@ -95,6 +96,11 @@ export function MenuTipoEnlace({ modelo, origenId, destinoId, direccion, onDirec
         </div>
       ) : (
         <div style={style.list}>
+          {totalNoAplican > 0 ? (
+            <p style={style.filteredHint} data-testid="menu-tipo-enlace-filtrado">
+              {totalNoAplican} {totalNoAplican === 1 ? "tipo no aplica" : "tipos no aplican"} entre {origen.tipo} y {destino.tipo}
+            </p>
+          ) : null}
           {opciones.map((opcion) => (
             <button
               key={opcion.tipo}
@@ -114,7 +120,7 @@ export function MenuTipoEnlace({ modelo, origenId, destinoId, direccion, onDirec
           ))}
           {opcionPreview ? (
             <div style={style.previewBox} data-testid="menu-tipo-enlace-preview-opl">
-              <span style={style.previewLabel}>Preview OPL</span>
+              <span style={style.previewLabel}>Previsualización OPL</span>
               <strong>{previewOpl(opcionPreview.tipo, opcionPreview.origen, opcionPreview.destino)}</strong>
             </div>
           ) : null}
@@ -122,6 +128,12 @@ export function MenuTipoEnlace({ modelo, origenId, destinoId, direccion, onDirec
       )}
     </div>
   );
+}
+
+function tituloPorDefecto(origen: Entidad | undefined, destino: Entidad | undefined): string {
+  if (origen && destino) return `Conectar ${origen.nombre} → ${destino.nombre}`;
+  if (origen) return `Conectar ${origen.nombre} → destino`;
+  return "Conectar cosas";
 }
 
 function tiposValidos(modelo: Modelo, origen: Entidad, destino: Entidad, direccion: DireccionFiltro) {
@@ -213,6 +225,7 @@ const style = {
   icon: { display: "grid", placeItems: "center", flex: "0 0 28px", width: "28px", height: "28px", borderRadius: tokens.radii.sm, background: tokens.colors.fondoIcono, color: tokens.colors.textoControl, fontSize: "11px", fontWeight: 800 },
   itemText: { display: "grid", gap: "2px", minWidth: 0, color: tokens.colors.textoPrimario, fontSize: "13px" },
   preview: { color: tokens.colors.textoTerciario, fontSize: "11px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" },
+  filteredHint: { margin: "0 0 2px", color: tokens.colors.textoTerciario, fontSize: "12px", fontWeight: 700 },
   previewBox: { display: "grid", gap: "3px", padding: "8px", border: `1px solid ${tokens.colors.infoBordeSuave}`, borderRadius: tokens.radii.md, background: tokens.colors.azulMuySuave, color: tokens.colors.textoPrimario, fontSize: "12px" },
   previewLabel: { color: tokens.colors.infoTextoOscuro, fontSize: "10px", fontWeight: 800, textTransform: "uppercase", letterSpacing: 0 },
   empty: { margin: 0, color: tokens.colors.textoTerciario, fontSize: "12px" },

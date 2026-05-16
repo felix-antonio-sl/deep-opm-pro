@@ -80,7 +80,7 @@ export function MenuPrincipal() {
       <MenuSection title="Vista">
         <MenuItem label="Mapa del sistema" shortcut={vistaMapaActiva ? "Activo" : undefined} onClick={() => ejecutar(vistaMapaActiva ? cerrarVistaMapa : abrirVistaMapa)} />
         <MenuItem label="Simulación conceptual" onClick={() => ejecutar(iniciarModoSimulacion)} />
-        <MenuItem label={gridConfig.activa ? "Ocultar grid del canvas" : "Mostrar grid del canvas"} onClick={() => ejecutar(toggleGrid)} />
+        <MenuItem label={gridConfig.activa ? "Ocultar cuadrícula del canvas" : "Mostrar cuadrícula del canvas"} onClick={() => ejecutar(toggleGrid)} />
         <MenuItem label="Auto-layout" onClick={() => ejecutar(aplicarLayoutSugerido)} />
         {vistaMapaActiva ? (
           <>

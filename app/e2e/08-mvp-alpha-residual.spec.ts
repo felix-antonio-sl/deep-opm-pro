@@ -138,7 +138,7 @@ test("L4 arrastra cosa desde Toolbar al canvas y respeta posicion de drop", asyn
   expect(pageErrors).toEqual([]);
 });
 
-test("L4 menu de tipos validos muestra previews OPL y filtra por direccion", async ({ page }) => {
+test("L4 menu de tipos validos muestra previsualización OPL y filtra por direccion", async ({ page }) => {
   const pageErrors: string[] = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
@@ -154,6 +154,7 @@ test("L4 menu de tipos validos muestra previews OPL y filtra por direccion", asy
 
   const menu = page.getByTestId("menu-tipo-enlace");
   await expect(menu).toBeVisible();
+  await expect(menu.getByTestId("menu-tipo-enlace-filtrado")).toContainText(/tipos? no aplica/);
   await expect(menu.getByText(/consume/)).toBeVisible();
   await expect(menu.getByTestId("menu-tipo-enlace-consumo")).toBeVisible();
   await menu.getByRole("button", { name: "Entrada", exact: true }).click();

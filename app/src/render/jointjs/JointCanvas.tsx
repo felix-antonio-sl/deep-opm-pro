@@ -583,7 +583,7 @@ function posicionMenuTipoEnlace(clientX: number, clientY: number): { left: numbe
 function tituloMenuConexion(modelo: Modelo, origenId: string, destinoId: string): string {
   const origen = modelo.entidades[origenId]?.nombre ?? "Origen";
   const destino = modelo.entidades[destinoId]?.nombre ?? "Destino";
-  return `Conectar ${origen} -> ${destino}`;
+  return `Conectar ${origen} → ${destino}`;
 }
 
 /**

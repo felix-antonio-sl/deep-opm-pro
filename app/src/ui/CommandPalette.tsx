@@ -323,7 +323,7 @@ function construirAccionesMenuCommandPalette(deps: AccionesMenuCommandPaletteDep
     { id: "exportar-json", label: "Exportar JSON al portapapeles", descripcion: "Copiar el JSON OPM actual al portapapeles", categoria: "archivo", run: deps.exportarJson },
     { id: "mapa-sistema", label: deps.vistaMapaActiva ? "Cerrar mapa del sistema" : "Mapa del sistema", descripcion: "Alternar la vista de mapa del sistema", categoria: "vista", run: deps.toggleMapaSistema },
     { id: "simulacion-conceptual", label: "Simulación conceptual", descripcion: "Entrar al modo de simulación del modelo", categoria: "vista", run: deps.iniciarModoSimulacion },
-    { id: "grid-canvas", label: deps.gridActiva ? "Ocultar grid del canvas" : "Mostrar grid del canvas", descripcion: "Alternar la grilla visual del canvas", categoria: "vista", run: deps.toggleGrid },
+    { id: "grid-canvas", label: deps.gridActiva ? "Ocultar cuadrícula del canvas" : "Mostrar cuadrícula del canvas", descripcion: "Alternar la cuadrícula visual del canvas", categoria: "vista", run: deps.toggleGrid },
     { id: "auto-layout", label: "Auto-layout", descripcion: "Aplicar layout sugerido al OPD activo", categoria: "vista", run: deps.aplicarLayoutSugerido },
     { id: "tabla-enlaces", label: "Tabla de enlaces", descripcion: "Abrir la tabla de enlaces del modelo", categoria: "vista", run: deps.abrirTablaEnlaces },
     { id: "atajos-teclado", label: "Atajos de teclado", descripcion: "Mostrar la referencia de atajos registrados", categoria: "navegacion", run: deps.abrirCheatsheetAtajos },

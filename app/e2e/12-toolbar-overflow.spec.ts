@@ -101,10 +101,10 @@ test("acciones movidas al menu Mas siguen invocables (plantillas, configuracion,
   // 2) Abrir Configuración desde el menu Más.
   await page.getByTestId("toolbar-mas-trigger").click();
   await page.getByTestId("toolbar-mas-config-grid").click();
-  const modalGrid = page.getByTestId("modal-config-grid");
-  await expect(modalGrid).toBeVisible();
-  await modalGrid.getByRole("button", { name: "Cancelar" }).click();
-  await expect(modalGrid).toHaveCount(0);
+  const dialogoConfig = page.getByTestId("modal-config-grid");
+  await expect(dialogoConfig).toBeVisible();
+  await dialogoConfig.getByRole("button", { name: "Cancelar" }).click();
+  await expect(dialogoConfig).toHaveCount(0);
 
   // 3) Cambiar modo imagen global desde el menu Más.
   // Estado inicial: "por cosa" (uiModoImagenGlobal === null).

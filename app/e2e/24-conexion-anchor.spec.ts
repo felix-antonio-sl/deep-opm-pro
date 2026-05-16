@@ -28,7 +28,7 @@ test("drag desde anchor abre MenuTipoEnlace anclado y confirma conexion", async 
 
   const menu = page.getByTestId("menu-tipo-enlace");
   await expect(menu).toBeVisible();
-  await expect(menu.getByText("Conectar Entrada -> Procesar")).toBeVisible();
+  await expect(menu.getByText("Conectar Entrada → Procesar")).toBeVisible();
   await menu.getByTestId("menu-tipo-enlace-consumo").click();
 
   await expect(page.locator(".joint-link")).toHaveCount(1);

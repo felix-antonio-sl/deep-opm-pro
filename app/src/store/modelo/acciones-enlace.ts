@@ -46,7 +46,7 @@ export function accionesEnlace(set: SetStore, get: GetStore): Partial<ModeloSlic
       const { modelo, seleccionId, modoEnlace } = get();
       const origenId = modoEnlace?.origenId ?? seleccionId;
       if (!origenId || !modelo.entidades[origenId]) {
-        set({ mensaje: "Selecciona primero la entidad origen del enlace" });
+        set({ mensaje: "Selecciona primero la cosa origen del enlace" });
         return;
       }
       // P1-5 ronda 4: activar modoEnlace cambia el contexto a "conectar";

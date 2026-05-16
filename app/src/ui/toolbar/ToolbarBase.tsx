@@ -510,17 +510,17 @@ function construirItemsMenuMas(p: ParametrosItemsMas): ToolbarMasItem[] {
   items.push({
     kind: "accion",
     id: "toggle-grid",
-    label: p.gridActiva ? "Ocultar grid" : "Mostrar grid",
+    label: p.gridActiva ? "Ocultar cuadrícula" : "Mostrar cuadrícula",
     activo: p.gridActiva,
-    title: p.gridActiva ? "Grid activa · clic para ocultar" : "Mostrar grid del canvas",
+    title: p.gridActiva ? "Cuadrícula activa · clic para ocultar" : "Mostrar cuadrícula del canvas",
     onClick: p.onToggleGrid,
     testId: "toolbar-mas-toggle-grid",
   });
   items.push({
     kind: "accion",
     id: "config-grid",
-    label: "Configurar grid…",
-    title: "Configurar paso, color y snap del grid",
+    label: "Configuración…",
+    title: "Renombrar modelo y ajustar cuadrícula",
     onClick: p.onConfigGrid,
     testId: "toolbar-mas-config-grid",
   });

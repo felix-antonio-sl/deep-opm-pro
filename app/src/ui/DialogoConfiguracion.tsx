@@ -75,7 +75,7 @@ export function DialogoConfiguracion() {
           <h3 id="config-grid-title" style={style.sectionTitle}>Cuadrícula</h3>
           <label style={style.checkbox}>
             <input type="checkbox" checked={gridLocal.activa} onChange={(event) => actualizarGrid({ activa: event.currentTarget.checked })} />
-            <span>Mostrar grid</span>
+            <span>Mostrar cuadrícula</span>
           </label>
           <label style={style.field}>
             <span style={style.label}>Paso</span>

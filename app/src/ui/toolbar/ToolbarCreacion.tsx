@@ -76,7 +76,7 @@ export function ToolbarCreacion() {
       if (!(target instanceof Node)) return;
       if (menuTiposRef.current?.contains(target)) return;
       if (triggerTiposRef.current?.contains(target)) return;
-      // P0-6 (informe UI/UX 2026-05-07): "Tipos validos" promete preview OPL
+      // P0-6 (informe UI/UX 2026-05-07): el menu promete previsualizacion OPL
       // al seleccionar dos cosas. El gesto de seleccion ocurre en el canvas
       // — si el listener cerraba el menu en ese pointerdown, el usuario
       // perdia la promesa. Solucion: clicks dentro del canvas no cierran
