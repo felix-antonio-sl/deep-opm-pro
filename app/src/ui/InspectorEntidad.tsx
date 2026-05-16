@@ -99,7 +99,6 @@ export function InspectorEntidad({ entidad }: Props) {
   const cambiarTipoValorAtributo = useOpmStore((s) => s.cambiarTipoValorAtributoSeleccionado);
   const configurarSimulacionAtributo = useOpmStore((s) => s.configurarSimulacionAtributoSeleccionado);
   const fijarLayoutEstadosEntidad = useOpmStore((s) => s.fijarLayoutEstadosEntidad);
-  const eliminar = useOpmStore((s) => s.eliminarSeleccion);
   const seleccionados = useOpmStore((s) => s.seleccionados);
   const aplicarEstiloASeleccion = useOpmStore((s) => s.aplicarEstiloASeleccion);
   const [aplicarABatch, setAplicarABatch] = useState(false);
@@ -276,7 +275,6 @@ export function InspectorEntidad({ entidad }: Props) {
         sigue presente en tab Semántica.
       */}
       {entidad.tipo !== "objeto" && tabActivo === "semantica" ? <div data-testid="inspector-entidad-acciones" /> : null}
-      <button type="button" style={style.dangerButton} onClick={eliminar}>Eliminar entidad</button>
     </>
   );
 }

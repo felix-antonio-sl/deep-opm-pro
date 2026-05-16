@@ -99,7 +99,7 @@ test("marca dirty state y navega cambios con deshacer y rehacer", async ({ page 
   await expect(elementoPorTexto(page, "Renombrado")).toHaveCount(1);
 
   await elementoPorTexto(page, "Renombrado").click();
-  await page.getByRole("button", { name: "Eliminar entidad" }).click();
+  await page.keyboard.press("Delete");
   await expect(page.locator(".joint-element")).toHaveCount(0);
   await deshacer.click();
   await expect(elementoPorTexto(page, "Renombrado")).toHaveCount(1);
@@ -226,7 +226,7 @@ test("undo elimina entidad y restaura modelo previo", async ({ page }) => {
   await page.goto("/");
   await page.getByRole("button", { name: "Objeto", exact: true }).click();
   await elementoPorTexto(page, "Objeto").click();
-  await page.getByRole("button", { name: "Eliminar entidad" }).click();
+  await page.keyboard.press("Delete");
   await expect(page.locator(".joint-element")).toHaveCount(0);
 
   await page.keyboard.press("Control+Z");
