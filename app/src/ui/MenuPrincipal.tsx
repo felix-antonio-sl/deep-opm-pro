@@ -2,6 +2,7 @@
 import modelWizardIcon from "../../../assets/svg/toolbar/modelWizard.svg";
 import templateIcon from "../../../assets/svg/template.svg";
 import { useEffect, useMemo, useState } from "preact/hooks";
+import { normalizarGridConfig } from "../canvas/grid";
 import { listarFixtures } from "../store/runtime";
 import { useOpmStore } from "../store";
 import { useConfirmarSiDirty } from "./ConfirmacionContext";
@@ -36,8 +37,13 @@ export function MenuPrincipal() {
   const cargarFixtureDemo = useOpmStore((s) => s.cargarFixtureDemo);
   const exportarJson = useOpmStore((s) => s.exportarJson);
   const abrirVistaMapa = useOpmStore((s) => s.abrirVistaMapa);
+  const cerrarVistaMapa = useOpmStore((s) => s.cerrarVistaMapa);
   const vistaMapaActiva = useOpmStore((s) => s.vistaMapaActiva);
   const toggleMapaPanelEstadisticas = useOpmStore((s) => s.toggleMapaPanelEstadisticas);
+  const gridConfig = useOpmStore((s) => normalizarGridConfig(s.gridConfig ?? s.indice.preferenciasUi?.gridConfig));
+  const toggleGrid = useOpmStore((s) => s.toggleGrid);
+  const aplicarLayoutSugerido = useOpmStore((s) => s.aplicarLayoutSugerido);
+  const iniciarModoSimulacion = useOpmStore((s) => s.iniciarModoSimulacion);
   const abrirTablaEnlaces = useOpmStore((s) => s.abrirTablaEnlaces);
   const abrirDialogoPlantillas = useOpmStore((s) => s.abrirDialogoPlantillas);
   const abrirDialogoGuardarPlantilla = useOpmStore((s) => s.abrirDialogoGuardarPlantilla);
@@ -64,120 +70,84 @@ export function MenuPrincipal() {
   return (
     <>
     {abierto ? <div role="menu" aria-label="Menú principal" style={style.menu}>
-      <button type="button" role="menuitem" style={style.item} onClick={() => ejecutar(nuevoModelo)}>
-        Nuevo
-      </button>
-      <button type="button" role="menuitem" style={style.item} onClick={() => ejecutar(abrirPestanaNueva)}>
-        Nuevo modelo en pestana
-      </button>
-      <button type="button" role="menuitem" style={style.item} onClick={() => ejecutar(iniciarAsistente)}>
-        Nuevo modelo por asistente
-      </button>
-      <button type="button" role="menuitem" style={style.item} onClick={() => ejecutar(guardarLocal)}>
-        Guardar
-      </button>
-      <button type="button" role="menuitem" style={style.item} onClick={() => ejecutar(abrirGuardarComo)}>
-        Guardar como
-      </button>
-      <button type="button" role="menuitem" style={style.itemWithIcon} onClick={() => ejecutar(abrirDialogoGuardarPlantilla)}>
-        <img src={templateIcon} alt="" style={style.itemIcon} />
-        <span>Guardar como plantilla...</span>
-      </button>
-      <button type="button" role="menuitem" style={style.itemWithIcon} onClick={() => ejecutar(abrirDialogoPlantillas)}>
-        <img src={templateIcon} alt="" style={style.itemIcon} />
-        <span>Plantillas...</span>
-      </button>
-      <button type="button" role="menuitem" style={modeloPersistidoId ? style.item : style.itemDisabled} disabled={!modeloPersistidoId} onClick={() => ejecutar(abrirRenombrarModelo)}>
-        Renombrar...
-      </button>
-      <button type="button" role="menuitem" style={style.item} onClick={() => ejecutar(() => confirmarSiDirty(abrirCargarModelo))}>
-        Cargar
-      </button>
-      <div aria-hidden="true" style={style.divider} />
-      <button type="button" role="menuitem" style={style.item} onClick={() => ejecutar(abrirBusquedaCosas)}>
-        Buscar cosas (Ctrl+F)
-      </button>
-      <button type="button" role="menuitem" style={style.item} onClick={() => ejecutar(abrirBusquedaGlobal)}>
-        Buscar global (Ctrl+Shift+F)
-      </button>
-      <button type="button" role="menuitem" style={style.item} onClick={() => ejecutar(abrirArchivados)}>
-        Archivados
-      </button>
-      <button type="button" role="menuitem" style={style.item} onClick={() => ejecutar(toggleMostrarArchivados)}>
-        {mostrarArchivados ? "Ocultar archivados" : "Mostrar archivados"}
-      </button>
-      <button type="button" role="menuitem" style={style.item} onClick={() => ejecutar(toggleMostrarVersiones)}>
-        {mostrarVersiones ? "Ocultar glifos de versiones" : "Mostrar glifos de versiones"}
-      </button>
-      {modeloPersistidoId ? (
-        <button type="button" role="menuitem" style={style.item} onClick={() => ejecutar(() => abrirVersiones(modeloPersistidoId))}>
-          Versiones del modelo
-        </button>
-      ) : null}
-      <button type="button" role="menuitem" style={style.item} onClick={() => ejecutar(() => abrirVistaMapa())}>
-        Mapa del sistema
-      </button>
-      {vistaMapaActiva ? (
-        <>
-          <button type="button" role="menuitem" style={style.item} onClick={() => ejecutar(() => solicitarExportMapa("png"))}>
-            Exportar mapa como PNG
-          </button>
-          <button type="button" role="menuitem" style={style.item} onClick={() => ejecutar(() => solicitarExportMapa("svg"))}>
-            Exportar mapa como SVG
-          </button>
-          <button type="button" role="menuitem" style={style.item} onClick={() => ejecutar(toggleMapaPanelEstadisticas)}>
-            Estadísticas del modelo
-          </button>
-        </>
-      ) : null}
-      <button
-        type="button"
-        role="menuitem"
-        style={style.item}
-        onClick={() => ejecutar(() => {
-          const json = exportarJson();
-          void globalThis.navigator?.clipboard?.writeText(json);
-        })}
-      >
-        Exportar JSON
-      </button>
-      <button type="button" role="menuitem" style={style.item} onClick={() => ejecutar(abrirDialogoImportarExportarJson)}>
-        Importar/Exportar JSON...
-      </button>
-      <div
-        role="menuitem"
-        style={{ ...style.item, position: "relative" }}
-        onMouseEnter={() => setMostrarSubmenuDemos(true)}
-        onMouseLeave={() => setMostrarSubmenuDemos(false)}
-      >
-        Ejemplos ▸
-        {mostrarSubmenuDemos ? (
-          <div style={style.submenu}>
-            {demos.map((d) => (
-              <button
-                key={d.modelo.nombre}
-                type="button"
-                style={style.submenuItem}
-                title={d.proposito}
-                onClick={() => ejecutar(() => confirmarSiDirty(() => cargarFixtureDemo(d.modelo.nombre)))}
-              >
-                {d.modelo.nombre}
-              </button>
-            ))}
-          </div>
+      <div aria-hidden="true" style={style.menuTitle}>Mi modelo</div>
+
+      <MenuSection title="Modelo">
+        <MenuItem label="Nuevo" onClick={() => ejecutar(nuevoModelo)} />
+        <MenuItem label="Nuevo modelo en pestana" onClick={() => ejecutar(abrirPestanaNueva)} />
+        <MenuItem label="Nuevo modelo por asistente" onClick={() => ejecutar(iniciarAsistente)} />
+        <MenuItem label="Guardar" shortcut="Ctrl+S" onClick={() => ejecutar(guardarLocal)} />
+        <MenuItem label="Guardar como" onClick={() => ejecutar(abrirGuardarComo)} />
+        <MenuItem label="Cargar" onClick={() => ejecutar(() => confirmarSiDirty(abrirCargarModelo))} />
+        <MenuItem label="Renombrar..." disabled={!modeloPersistidoId} onClick={() => ejecutar(abrirRenombrarModelo)} />
+      </MenuSection>
+
+      <MenuSection title="Buscar">
+        <MenuItem label="Buscar cosas" shortcut="Ctrl+F" onClick={() => ejecutar(abrirBusquedaCosas)} />
+        <MenuItem label="Buscar global" shortcut="Ctrl+Shift+F" onClick={() => ejecutar(abrirBusquedaGlobal)} />
+      </MenuSection>
+
+      <MenuSection title="Vista">
+        <MenuItem label="Mapa del sistema" shortcut={vistaMapaActiva ? "Activo" : undefined} onClick={() => ejecutar(vistaMapaActiva ? cerrarVistaMapa : abrirVistaMapa)} />
+        <MenuItem label="Simulación conceptual" onClick={() => ejecutar(iniciarModoSimulacion)} />
+        <MenuItem label={gridConfig.activa ? "Ocultar grid" : "Mostrar grid"} onClick={() => ejecutar(toggleGrid)} />
+        <MenuItem label="Auto-layout" onClick={() => ejecutar(aplicarLayoutSugerido)} />
+        {vistaMapaActiva ? (
+          <>
+            <MenuItem label="Exportar mapa como PNG" onClick={() => ejecutar(() => solicitarExportMapa("png"))} />
+            <MenuItem label="Exportar mapa como SVG" onClick={() => ejecutar(() => solicitarExportMapa("svg"))} />
+            <MenuItem label="Estadísticas del modelo" onClick={() => ejecutar(toggleMapaPanelEstadisticas)} />
+          </>
         ) : null}
-      </div>
-      <button type="button" role="menuitem" style={style.item} onClick={() => ejecutar(abrirTablaEnlaces)}>
-        Tabla de enlaces
-      </button>
-      {seleccionId && modelo.entidades[seleccionId]?.tipo === "objeto" ? (
-        <button type="button" role="menuitem" style={style.item} onClick={() => ejecutar(() => abrirModalUrls(seleccionId))}>
-          URLs del objeto
-        </button>
-      ) : null}
-      <button type="button" role="menuitem" style={style.item} onClick={() => ejecutar(abrirCheatsheetAtajos)}>
-        Atajos de teclado...
-      </button>
+      </MenuSection>
+
+      <MenuSection title="Más">
+        <MenuItem label="Guardar como plantilla..." icon={templateIcon} onClick={() => ejecutar(abrirDialogoGuardarPlantilla)} />
+        <MenuItem label="Plantillas..." icon={templateIcon} onClick={() => ejecutar(abrirDialogoPlantillas)} />
+        <MenuItem label="Archivados" onClick={() => ejecutar(abrirArchivados)} />
+        <MenuItem label={mostrarArchivados ? "Ocultar archivados" : "Mostrar archivados"} onClick={() => ejecutar(toggleMostrarArchivados)} />
+        <MenuItem label={mostrarVersiones ? "Ocultar glifos de versiones" : "Mostrar glifos de versiones"} onClick={() => ejecutar(toggleMostrarVersiones)} />
+        {modeloPersistidoId ? (
+          <MenuItem label="Versiones del modelo" onClick={() => ejecutar(() => abrirVersiones(modeloPersistidoId))} />
+        ) : null}
+        <MenuItem
+          label="Exportar JSON"
+          onClick={() => ejecutar(() => {
+            const json = exportarJson();
+            void globalThis.navigator?.clipboard?.writeText(json);
+          })}
+        />
+        <MenuItem label="Importar/Exportar JSON..." onClick={() => ejecutar(abrirDialogoImportarExportarJson)} />
+        <div
+          role="none"
+          style={style.submenuWrapper}
+          onMouseEnter={() => setMostrarSubmenuDemos(true)}
+          onMouseLeave={() => setMostrarSubmenuDemos(false)}
+        >
+          <MenuItem label="Ejemplos" shortcut="›" expanded={mostrarSubmenuDemos} />
+          {mostrarSubmenuDemos ? (
+            <div role="menu" aria-label="Ejemplos" style={style.submenu}>
+              {demos.map((d) => (
+                <button
+                  key={d.modelo.nombre}
+                  type="button"
+                  role="menuitem"
+                  style={style.submenuItem}
+                  title={d.proposito}
+                  onClick={() => ejecutar(() => confirmarSiDirty(() => cargarFixtureDemo(d.modelo.nombre)))}
+                >
+                  {d.modelo.nombre}
+                </button>
+              ))}
+            </div>
+          ) : null}
+        </div>
+        <MenuItem label="Tabla de enlaces" onClick={() => ejecutar(abrirTablaEnlaces)} />
+        {seleccionId && modelo.entidades[seleccionId]?.tipo === "objeto" ? (
+          <MenuItem label="URLs del objeto" onClick={() => ejecutar(() => abrirModalUrls(seleccionId))} />
+        ) : null}
+        <MenuItem label="Atajos de teclado..." onClick={() => ejecutar(abrirCheatsheetAtajos)} />
+      </MenuSection>
       <div aria-hidden="true" style={style.footer}>
         <img src={modelWizardIcon} alt="" style={style.icon} />
         <span>Workspace local</span>
@@ -212,6 +182,50 @@ export function MenuPrincipal() {
   );
 }
 
+interface MenuSectionProps {
+  title: string;
+  children: preact.ComponentChildren;
+}
+
+function MenuSection({ title, children }: MenuSectionProps) {
+  return (
+    <section role="none" style={style.section}>
+      <div aria-hidden="true" style={style.sectionTitle}>{title}</div>
+      <div role="none" style={style.sectionBody}>{children}</div>
+    </section>
+  );
+}
+
+interface MenuItemProps {
+  label: string;
+  shortcut?: string | undefined;
+  icon?: string | undefined;
+  disabled?: boolean;
+  expanded?: boolean | undefined;
+  onClick?: () => void;
+}
+
+function MenuItem({ label, shortcut, icon, disabled = false, expanded, onClick }: MenuItemProps) {
+  return (
+    <button
+      type="button"
+      role="menuitem"
+      aria-label={label}
+      aria-haspopup={expanded === undefined ? undefined : "menu"}
+      aria-expanded={expanded}
+      style={disabled ? style.itemDisabled : style.item}
+      disabled={disabled}
+      onClick={disabled ? undefined : onClick}
+    >
+      <span style={style.itemContent}>
+        {icon ? <img src={icon} alt="" style={style.itemIcon} /> : null}
+        <span style={style.itemLabel}>{label}</span>
+      </span>
+      {shortcut ? <span aria-hidden="true" style={style.shortcut}>{shortcut}</span> : null}
+    </button>
+  );
+}
+
 function solicitarExportMapa(formato: "png" | "svg"): void {
   window.dispatchEvent(new CustomEvent("deep-opm-pro:exportar-mapa", { detail: { formato } }));
 }
@@ -222,14 +236,40 @@ const style = {
     top: "40px",
     left: 0,
     zIndex: 900,
-    width: "210px",
-    padding: "6px",
+    width: "292px",
+    maxHeight: "calc(100vh - 56px)",
+    overflowY: "auto",
+    padding: "8px",
     border: `1px solid ${tokens.colors.bordeControl}`,
     borderRadius: tokens.radii.md,
     background: tokens.colors.fondoChrome,
     boxShadow: tokens.shadows.menuPrincipal,
     display: "grid",
-    gap: "2px",
+    gap: "8px",
+  },
+  menuTitle: {
+    padding: "2px 8px 0",
+    color: tokens.colors.textoPrimario,
+    fontSize: "13px",
+    fontWeight: 800,
+  },
+  section: {
+    display: "grid",
+    gap: "4px",
+    paddingTop: "6px",
+    borderTop: `1px solid ${tokens.colors.bordeChrome}`,
+  },
+  sectionTitle: {
+    padding: "0 8px",
+    color: tokens.colors.textoTerciario,
+    fontSize: "11px",
+    fontWeight: 800,
+    textTransform: "uppercase",
+    letterSpacing: 0,
+  },
+  sectionBody: {
+    display: "grid",
+    gap: "1px",
   },
   item: {
     width: "100%",
@@ -243,6 +283,10 @@ const style = {
     fontSize: "13px",
     fontWeight: 700,
     textAlign: "left",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: "10px",
   },
   itemDisabled: {
     width: "100%",
@@ -256,27 +300,33 @@ const style = {
     fontSize: "13px",
     fontWeight: 700,
     textAlign: "left",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: "10px",
   },
-  itemWithIcon: {
-    width: "100%",
-    minHeight: "34px",
-    padding: "0 10px",
-    border: "1px solid transparent",
-    borderRadius: tokens.radii.sm,
-    background: "transparent",
-    color: tokens.colors.textoPrimario,
-    cursor: "pointer",
-    fontSize: "13px",
-    fontWeight: 700,
-    textAlign: "left",
+  itemContent: {
+    minWidth: 0,
     display: "flex",
     alignItems: "center",
     gap: "8px",
+  },
+  itemLabel: {
+    minWidth: 0,
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+    whiteSpace: "nowrap",
   },
   itemIcon: {
     width: "18px",
     height: "18px",
     flexShrink: 0,
+  },
+  shortcut: {
+    flexShrink: 0,
+    color: tokens.colors.textoTerciario,
+    fontSize: "11px",
+    fontWeight: 800,
   },
   label: {
     display: "grid",
@@ -324,6 +374,9 @@ const style = {
     borderRadius: tokens.radii.md,
     background: tokens.colors.fondoChrome,
     boxShadow: tokens.shadows.menuLigero,
+  },
+  submenuWrapper: {
+    position: "relative",
   },
   submenuItem: {
     display: "block",
