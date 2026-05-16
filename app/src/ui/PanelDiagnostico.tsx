@@ -1,10 +1,11 @@
-import { useMemo, useState } from "preact/hooks";
+import { useEffect, useMemo, useState } from "preact/hooks";
 import { nombreExtremo } from "../modelo/extremos";
 import { verificarMetodologia } from "../modelo/checkers";
 import type { AvisoMetodologico, CodigoChecker, Modelo, NavegacionAviso } from "../modelo/tipos";
 import type { Aviso, SeveridadAviso } from "../modelo/validaciones";
 import { validarModelo } from "../modelo/validaciones";
 import { useOpmStore } from "../store";
+import { EVENTO_ABRIR_AVISO_DIAGNOSTICO } from "../store/feedback";
 import { clasificarSeveridad } from "./panelMetodologiaIssues";
 import { tokens } from "./tokens";
 
@@ -53,6 +54,7 @@ export function PanelDiagnostico() {
   const [expandido, setExpandido] = useState(false);
   const [revision, setRevision] = useState(0);
   const [citaActiva, setCitaActiva] = useState<{ codigo: string; cita: string } | null>(null);
+  const [codigoResaltado, setCodigoResaltado] = useState<string | null>(null);
 
   const issues = useMemo(() => [
     ...mapearAvisosValidacion(modelo, opdActivoId, navegarAviso),
@@ -64,6 +66,21 @@ export function PanelDiagnostico() {
     mejora: issues.filter((issue) => issue.severidad === "mejora"),
     estilo: issues.filter((issue) => issue.severidad === "estilo"),
   };
+
+  useEffect(() => {
+    const abrirAviso = (event: Event) => {
+      const detail = (event as CustomEvent<{ reglaId?: string }>).detail;
+      if (!detail?.reglaId) return;
+      setExpandido(true);
+      setCodigoResaltado(detail.reglaId);
+      requestAnimationFrame(() => {
+        document.querySelector<HTMLElement>(`[data-aviso-codigo="${detail.reglaId}"]`)?.scrollIntoView({ block: "nearest" });
+      });
+      window.setTimeout(() => setCodigoResaltado((actual) => (actual === detail.reglaId ? null : actual)), 2_400);
+    };
+    window.addEventListener(EVENTO_ABRIR_AVISO_DIAGNOSTICO, abrirAviso);
+    return () => window.removeEventListener(EVENTO_ABRIR_AVISO_DIAGNOSTICO, abrirAviso);
+  }, []);
 
   return (
     <aside
@@ -110,9 +127,9 @@ export function PanelDiagnostico() {
             <div style={style.empty}>Modelo sin issues metodológicos</div>
           ) : (
             <div style={style.secciones}>
-              <Seccion titulo={META.bloqueo.titulo} meta={META.bloqueo} issues={grupos.bloqueo} onCita={setCitaActiva} />
-              <Seccion titulo={META.mejora.titulo} meta={META.mejora} issues={grupos.mejora} onCita={setCitaActiva} />
-              <Seccion titulo={META.estilo.titulo} meta={META.estilo} issues={grupos.estilo} onCita={setCitaActiva} />
+              <Seccion titulo={META.bloqueo.titulo} meta={META.bloqueo} issues={grupos.bloqueo} codigoResaltado={codigoResaltado} onCita={setCitaActiva} />
+              <Seccion titulo={META.mejora.titulo} meta={META.mejora} issues={grupos.mejora} codigoResaltado={codigoResaltado} onCita={setCitaActiva} />
+              <Seccion titulo={META.estilo.titulo} meta={META.estilo} issues={grupos.estilo} codigoResaltado={codigoResaltado} onCita={setCitaActiva} />
             </div>
           )}
         </div>
@@ -125,6 +142,7 @@ function Seccion(props: {
   titulo: string;
   meta: DiagnosticoMeta;
   issues: DiagnosticoIssue[];
+  codigoResaltado: string | null;
   onCita: (detalle: { codigo: string; cita: string }) => void;
 }) {
   return (
@@ -135,7 +153,14 @@ function Seccion(props: {
       {props.issues.length === 0 ? <p style={style.seccionEmpty}>Sin issues en este grupo</p> : null}
       <div role="list" style={style.list}>
         {props.issues.map((issue) => (
-          <article key={issue.id} data-testid={`aviso-${issue.testIdCodigo}`} role="listitem" style={filaStyle(props.meta)}>
+          <article
+            key={issue.id}
+            data-testid={`aviso-${issue.testIdCodigo}`}
+            data-aviso-codigo={issue.testIdCodigo}
+            data-resaltado={props.codigoResaltado === issue.testIdCodigo ? "true" : "false"}
+            role="listitem"
+            style={{ ...filaStyle(props.meta), ...(props.codigoResaltado === issue.testIdCodigo ? style.filaResaltada : {}) }}
+          >
             <button
               type="button"
               data-testid={`aviso-navegar-${issue.testIdCodigo}`}
@@ -389,6 +414,11 @@ const style = {
     borderRadius: tokens.radii.sm,
     padding: 6,
     minWidth: 0,
+  },
+  filaResaltada: {
+    outline: `2px solid ${tokens.colors.acentoUi}`,
+    outlineOffset: "1px",
+    boxShadow: tokens.shadows.popover,
   },
   rowMain: {
     display: "flex",

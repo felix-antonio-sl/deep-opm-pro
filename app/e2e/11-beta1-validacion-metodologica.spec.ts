@@ -91,6 +91,28 @@ test("L3 click en aviso navega al elemento y deja seleccion visible", async ({ p
   expect(pageErrors).toEqual([]);
 });
 
+test("L3 ErrorBadge inline abre y resalta el aviso compartido", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await cerrarPantallaInicioSiVisible(page);
+
+  await page.getByRole("button", { name: "Proceso", exact: true }).click();
+
+  const badge = page.locator('[data-testid="error-badge"][data-regla-id="proceso-sin-entrada-ni-salida"]');
+  await expect(badge).toHaveCount(1);
+  await expect(badge.first()).toHaveAttribute("aria-label", /proceso-sin-entrada-ni-salida/);
+
+  await badge.first().click();
+  const panel = page.getByTestId("panel-diagnostico");
+  await expect(panel).toHaveAttribute("data-expandido", "true");
+  await expect(page.getByTestId("aviso-proceso-sin-entrada-ni-salida")).toBeVisible();
+  await expect(page.getByTestId("aviso-proceso-sin-entrada-ni-salida")).toHaveAttribute("data-resaltado", "true");
+
+  expect(pageErrors).toEqual([]);
+});
+
 test("L3 aviso se resuelve tras corregir el nombre del proceso", async ({ page }) => {
   const pageErrors: string[] = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));

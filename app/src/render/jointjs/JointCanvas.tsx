@@ -4,6 +4,7 @@ import { normalizarGridConfig } from "../../canvas/grid";
 import { focoPasoActualSimulacion } from "../../modelo/simulacion/foco";
 import type { Apariencia, Enlace, ExtremoEnlace, Modelo, Opd } from "../../modelo/tipos";
 import { useOpmStore } from "../../store";
+import { sincronizarBadgesDesdeAvisos } from "../../store/feedback";
 import { RenombradoInline } from "../../ui/RenombradoInline";
 import { recalcularOverlaysAbanicoDesdeLinkViews } from "./abanicoDragSync";
 import { opmShapes } from "./customShapes";
@@ -27,6 +28,7 @@ import { instalarHerramientasEnlaceSeleccionado } from "./handlers/toolsEnlace";
 import { instalarHerramientasSimboloEstructuralSeleccionado } from "./handlers/toolsSimboloEstructural";
 import { cablearZoomFit, cablearZoomWheel, fitCanvasAPantalla } from "./handlers/zoom";
 import { aplicarRuteoOpcloudEnlaces } from "./opcloudRouting";
+import { construirAvisosFeedbackCanvas } from "./overlayCanvas/avisos";
 import { OverlayLayer } from "./overlayCanvas/OverlayLayer";
 import { ordenarTodosLosEnlacesEstructurales } from "./sortStructuralLinks";
 
@@ -141,6 +143,12 @@ export function JointCanvas() {
     modeloRef.current = modelo;
     opdActivoIdRef.current = opdActivoId;
   }, [modelo, opdActivoId]);
+
+  useEffect(() => {
+    sincronizarBadgesDesdeAvisos(construirAvisosFeedbackCanvas(modelo, opdActivoId));
+  }, [modelo, opdActivoId]);
+
+  useEffect(() => () => sincronizarBadgesDesdeAvisos([]), []);
 
   useEffect(() => {
     seleccionarEntidadRef.current = seleccionarEntidad;

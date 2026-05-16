@@ -8,17 +8,38 @@ export type FeedbackOverlay =
       mensaje: string;
       ttl: number;
       creadoEn: number;
+    }
+  | {
+      id: string;
+      tipo: "inline-error";
+      anchorCellId: string;
+      reglaId: string;
+      severidad: "error" | "advertencia" | "info";
+      mensaje: string;
+      citaSSOT: string;
     };
 
-interface FeedbackState {
+export interface FeedbackAviso {
+  anchorCellId: string;
+  reglaId: string;
+  severidad: "error" | "advertencia" | "info";
+  mensaje: string;
+  citaSSOT: string;
+}
+
+export interface FeedbackState {
   overlays: FeedbackOverlay[];
   addOverlay: (overlay: FeedbackOverlay) => void;
   removeOverlay: (id: string) => void;
   clearAll: () => void;
+  addInlineError: (cellId: string, mensaje: string, aviso: Omit<FeedbackAviso, "anchorCellId" | "mensaje">) => string;
   addFlash: (mensaje: string, ttl?: number) => string;
+  sincronizarBadgesDesdeAvisos: (avisos: readonly FeedbackAviso[]) => void;
 }
 
 let secuenciaOverlay = 0;
+
+export const EVENTO_ABRIR_AVISO_DIAGNOSTICO = "opm:diagnostico:abrir-aviso";
 
 export const feedbackStore = createStore<FeedbackState>((set, get) => ({
   overlays: [],
@@ -39,6 +60,19 @@ export const feedbackStore = createStore<FeedbackState>((set, get) => ({
   clearAll() {
     set({ overlays: [] });
   },
+  addInlineError(cellId, mensaje, aviso) {
+    const id = idInlineError(aviso.reglaId, cellId);
+    get().addOverlay({
+      id,
+      tipo: "inline-error",
+      anchorCellId: cellId,
+      reglaId: aviso.reglaId,
+      severidad: aviso.severidad,
+      mensaje,
+      citaSSOT: aviso.citaSSOT,
+    });
+    return id;
+  },
   addFlash(mensaje, ttl = 2_000) {
     const id = `flash-${Date.now()}-${secuenciaOverlay += 1}`;
     const overlay: FeedbackOverlay = {
@@ -52,10 +86,31 @@ export const feedbackStore = createStore<FeedbackState>((set, get) => ({
     globalThis.setTimeout?.(() => get().removeOverlay(id), ttl);
     return id;
   },
+  sincronizarBadgesDesdeAvisos(avisos) {
+    const inlineErrors = avisos.map((aviso) => ({
+      id: idInlineError(aviso.reglaId, aviso.anchorCellId),
+      tipo: "inline-error" as const,
+      anchorCellId: aviso.anchorCellId,
+      reglaId: aviso.reglaId,
+      severidad: aviso.severidad,
+      mensaje: aviso.mensaje,
+      citaSSOT: aviso.citaSSOT,
+    }));
+    set({
+      overlays: [
+        ...get().overlays.filter((overlay) => overlay.tipo !== "inline-error"),
+        ...deduplicarInlineErrors(inlineErrors),
+      ],
+    });
+  },
 }));
 
 export function addFlash(mensaje: string, ttl?: number): string {
   return feedbackStore.getState().addFlash(mensaje, ttl);
+}
+
+export function sincronizarBadgesDesdeAvisos(avisos: readonly FeedbackAviso[]): void {
+  feedbackStore.getState().sincronizarBadgesDesdeAvisos(avisos);
 }
 
 export function useFeedbackStore<T>(selector: (state: FeedbackState) => T): T {
@@ -65,4 +120,12 @@ export function useFeedbackStore<T>(selector: (state: FeedbackState) => T): T {
     setSelected((current) => (Object.is(current, next) ? current : next));
   }), [selector]);
   return selected;
+}
+
+function idInlineError(reglaId: string, cellId: string): string {
+  return `inline-${reglaId}-${cellId}`;
+}
+
+function deduplicarInlineErrors(overlays: Array<Extract<FeedbackOverlay, { tipo: "inline-error" }>>): Array<Extract<FeedbackOverlay, { tipo: "inline-error" }>> {
+  return Array.from(new Map(overlays.map((overlay) => [overlay.id, overlay])).values());
 }

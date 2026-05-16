@@ -24,12 +24,12 @@ export function useBboxTracker(paper: dia.Paper | null, cellId: string | null): 
     };
 
     update();
-    paper.on("render:done scale translate resize", update);
+    paper.on("render:done scale translate transform resize", update);
     const graph = graphDePaper(paper);
     if (graph) graphEvents(graph).on("change:position change:size change:vertices change:source change:target reset add remove", update);
     return () => {
       cancelAnimationFrame(frame);
-      paperEvents(paper).off("render:done scale translate resize", update);
+      paperEvents(paper).off("render:done scale translate transform resize", update);
       if (graph) graphEvents(graph).off("change:position change:size change:vertices change:source change:target reset add remove", update);
     };
   }, [cellId, paper]);
@@ -45,6 +45,27 @@ export function leerBBoxCell(paper: dia.Paper, cellId: string): OverlayBBox | nu
   paper.requireView(cell);
   const bbox = view.getBBox() as g.Rect | undefined;
   if (!bbox) return null;
+  const rect = rectLocalAPaper(paper, bbox);
+  return {
+    x: rect.x,
+    y: rect.y,
+    width: rect.width,
+    height: rect.height,
+  };
+}
+
+function rectLocalAPaper(paper: dia.Paper, bbox: g.Rect): OverlayBBox {
+  const paperConTransform = paper as unknown as {
+    localToPaperRect?: (rect: { x: number; y: number; width: number; height: number }) => OverlayBBox;
+  };
+  if (typeof paperConTransform.localToPaperRect === "function") {
+    return paperConTransform.localToPaperRect({
+      x: bbox.x,
+      y: bbox.y,
+      width: bbox.width,
+      height: bbox.height,
+    });
+  }
   return {
     x: bbox.x,
     y: bbox.y,
