@@ -3,8 +3,8 @@
 **Fecha**: 2026-05-16
 **Repositorio**: `deep-opm-pro`
 **Rama**: `main`
-**Último corte funcional**: `daa3bc3 feat(ux): enfoca enlaces filtrados en canvas`
-**Corte**: Segundo corte post-brief HODOM denso: la tabla de enlaces ya opera como lente de búsqueda/familia y puede enfocar sus filas filtradas en el canvas.
+**Último corte funcional**: `993e1f9 feat(ux): enfoca extremos de estado filtrados`
+**Corte**: Tercer corte post-brief HODOM denso: la tabla de enlaces enfoca subgrafos filtrados respetando extremos OPM reales, incluidos estados visibles como cápsulas.
 
 ## Política De Handoff Único
 
@@ -19,6 +19,32 @@
 - JointJS OSS: usar documentación oficial viva cuando se toque JointJS.
 
 ## Estado Actual
+
+### Post-Brief HODOM Denso — Foco De Estados OPM — 2026-05-16
+
+La rama `main` queda preparada para sincronizarse con `origin/main` tras `993e1f9`, que corrige la precisión OPM del foco temporal iniciado en `daa3bc3`:
+
+- `TablaEnlaces` ya no degrada extremos `estado` a la entidad contenedora al construir `idsResaltadosTemporales`; conserva el `estado.id` cuando el enlace apunta a una cápsula.
+- La proyección JointJS agrega halo `selection-halo` con `targetKind: "estado"` sobre la cápsula interna visible, usando geometría compartida `rectCapsulaEstado`.
+- Si el estado no está visible por plegado parcial o supresión, el foco degrada al objeto contenedor para evitar selecciones invisibles.
+- Los halos de entidad existentes quedan estables: metadata previa sin `targetKind` para no romper consumidores actuales.
+- E2E nuevo cubre el flujo real: filtro en tabla sobre enlace `s-pendiente -> Aprobar`, botón `Resaltar filtrados`, enlace resaltado, halo en `s-pendiente`, sin halo falso en `o-pedido`.
+
+Validación del corte:
+
+```bash
+cd app && bun run typecheck
+cd app && bun test src/render/jointjs/proyeccion.test.ts src/render/jointjs/composers/halos.test.ts
+# 59 pass / 0 fail
+cd app && bun run browser:smoke -- e2e/11-beta1-tabla-enlaces.spec.ts
+# 6 passed
+cd app && bun run lint
+cd app && bun run test
+# 1373 pass / 0 fail
+cd app && bun run build
+cd app && bun run browser:smoke
+# 193 passed / 0 fail
+```
 
 ### Post-Brief HODOM Denso — 2026-05-16
 
@@ -83,26 +109,31 @@ El script genera `docs/REPORTE-EJECUTIVO.md` y `app/test-results/in-vivo/`, ambo
 
 ## Validación Reciente
 
-Ejecutado sobre el estado actual:
-
-```bash
-node --check app/scripts/in-vivo-test.mjs
-cd app && node scripts/in-vivo-test.mjs http://127.0.0.1:5173/
-cd app && bun run lint
-```
-
-El cierre de código inmediatamente anterior (`de67395`) ya había quedado verificado con:
+Ejecutado sobre el estado actual (`993e1f9`):
 
 ```bash
 cd app && bun run typecheck
+cd app && bun test src/render/jointjs/proyeccion.test.ts src/render/jointjs/composers/halos.test.ts
+cd app && bun run browser:smoke -- e2e/11-beta1-tabla-enlaces.spec.ts
+cd app && bun run lint
 cd app && bun run test
-# 1371 pass / 0 fail
 cd app && bun run build
 cd app && bun run browser:smoke
-# 190 passed / 0 fail
 ```
 
-Validación HODOM v1.1 realizada sobre el mismo corte funcional:
+Resultado:
+
+```text
+59 focused pass / 0 fail
+6 TablaEnlaces smoke passed
+1373 unit pass / 0 fail
+build OK
+193 browser smoke passed / 0 fail
+```
+
+Última auditoría in-vivo completa sigue siendo la de `08b3753`/`63dd213`; este corte no cambió el script in-vivo ni la superficie global de chrome.
+
+Validación HODOM v1.1 realizada sobre el corte funcional previo de foco canvas:
 
 ```bash
 cd app
@@ -113,6 +144,8 @@ bun -e 'import { readFileSync } from "node:fs"; import { hidratarModelo } from "
 
 ## Commits Relevantes Del Cierre UX/IFML
 
+- `993e1f9 feat(ux): enfoca extremos de estado filtrados`
+- `63dd213 docs: registra foco hodom en canvas`
 - `96d5097 feat(ux): filtra tabla de enlaces densa`
 - `daa3bc3 feat(ux): enfoca enlaces filtrados en canvas`
 - `08b3753 test(ux): actualiza auditoria in vivo`
@@ -141,7 +174,7 @@ También pueden existir salidas regenerables ignoradas:
 
 ## Pendientes Post-Brief
 
-El brief UX/IFML queda cerrado para el corte auditado. Los dos primeros cortes de modelos densos ya mejoraron `TablaEnlaces` y conectaron sus filtros con foco visual en canvas; lo que sigue debe seguir usando HODOM como pressure test real:
+El brief UX/IFML queda cerrado para el corte auditado. Los tres cortes de modelos densos ya mejoraron `TablaEnlaces`, conectaron sus filtros con foco visual en canvas y corrigieron el foco de extremos `estado`; lo que sigue debe seguir usando HODOM como pressure test real:
 
 - **Mini-mapa / mapa del sistema más operativo**: navegación visual para modelos densos.
 - **Import/export OPX real**: interoperabilidad más allá del JSON local.
