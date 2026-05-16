@@ -7,7 +7,6 @@ import { ToolbarBase } from "./toolbar/ToolbarBase";
 import { ToolbarCreacion } from "./toolbar/ToolbarCreacion";
 import { ToolbarMapaSistema } from "./toolbar/ToolbarMapaSistema";
 import { ToolbarMultiseleccion } from "./toolbar/ToolbarMultiseleccion";
-import { ToolbarSeleccion } from "./toolbar/ToolbarSeleccion";
 import { toolbarStyle as style } from "./toolbar/toolbarStyles";
 
 /**
@@ -24,12 +23,7 @@ export function Toolbar() {
     <div data-testid="toolbar-root" style={style.bar}>
       <Suspense fallback={null}>
         <ToolbarBase
-          modelarSlot={(
-            <>
-              <ToolbarSeleccion />
-              {cantidadSeleccion >= 2 ? <ToolbarMultiseleccion /> : null}
-            </>
-          )}
+          modelarSlot={cantidadSeleccion >= 2 ? <ToolbarMultiseleccion /> : null}
           conectarSlot={<ToolbarCreacion />}
           validarSlot={vistaMapaActiva ? <ToolbarMapaSistema /> : null}
           statusSlot={(

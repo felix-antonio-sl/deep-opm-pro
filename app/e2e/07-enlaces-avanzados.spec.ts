@@ -304,7 +304,7 @@ test("fusiona agregaciones en bus unico y renombra etiqueta de enlace", async ({
   expect(pageErrors).toEqual([]);
 });
 
-test("HU-1B.001/.002/.003 traer conectados hidrata vecinos directos desde Toolbar", async ({ page }) => {
+test("HU-1B.001/.002/.003 traer conectados hidrata vecinos directos desde menu contextual", async ({ page }) => {
   const pageErrors: string[] = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
@@ -316,7 +316,7 @@ test("HU-1B.001/.002/.003 traer conectados hidrata vecinos directos desde Toolba
   await expect(page.locator(".joint-element")).toHaveCount(1);
 
   await elementoPorTexto(page, "Procesar").click();
-  await page.getByTestId("toolbar-traer-conectados").click();
+  await abrirTraerConectadosDesdeMenuEntidad(page, "Procesar");
   const dialogo = page.getByRole("dialog", { name: "Traer conectados" });
   await expect(dialogo).toBeVisible();
   await dialogo.getByRole("button", { name: "Traer" }).click();
@@ -339,7 +339,7 @@ test("HU-1B.015 ocultar apariencia no borra entidad logical", async ({ page }) =
   await page.getByRole("button", { name: "Importar" }).click();
   await page.locator('[role="treeitem"][data-opd-id="opd-traer"]').click();
   await elementoPorTexto(page, "Procesar").click();
-  await page.getByTestId("toolbar-traer-conectados").click();
+  await abrirTraerConectadosDesdeMenuEntidad(page, "Procesar");
   await page.getByRole("dialog", { name: "Traer conectados" }).getByRole("button", { name: "Traer" }).click();
 
   await elementoPorTexto(page, "Resultado").click();
@@ -392,7 +392,7 @@ test("L3 UX: DialogoTraerConectados muestra conteo por familia", async ({ page }
   await page.getByLabel("Cargar modelo de ejemplo").selectOption("Cafetera Domestica");
 
   await elementoPorTexto(page, "Hacer Cafe").first().click();
-  await page.getByTestId("toolbar-traer-conectados").click();
+  await abrirTraerConectadosDesdeMenuEntidad(page, "Hacer Cafe");
   await expect(page.getByTestId("dialogo-traer-conectados")).toBeVisible();
 
   for (const familia of ["procedural-habilitador", "procedural-transformador", "direccional", "estructural"]) {
@@ -408,6 +408,18 @@ test("L3 UX: DialogoTraerConectados muestra conteo por familia", async ({ page }
 
   expect(pageErrors).toEqual([]);
 });
+
+async function abrirTraerConectadosDesdeMenuEntidad(page: Page, nombreEntidad: string): Promise<void> {
+  const entidad = elementoPorTexto(page, nombreEntidad).first();
+  await expect(entidad).toBeVisible();
+  const box = await entidad.boundingBox();
+  if (!box) throw new Error(`No se pudo medir la entidad ${nombreEntidad}`);
+
+  await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2, { button: "right" });
+  const menu = page.getByTestId("menu-contextual-entidad");
+  await expect(menu).toBeVisible();
+  await menu.getByTestId("accion-traer-conectados").click();
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Ronda 12.1 L1 — Cierre fino HU semánticas residuales MVP-α

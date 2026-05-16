@@ -201,7 +201,8 @@ test("imagenes: agrega URL a objeto, renderiza overlay e insignia y alterna modo
 
   await page.goto("/");
   await page.getByRole("button", { name: "Objeto", exact: true }).click();
-  await page.locator('button[title="Editar imagen del objeto seleccionado"]').click();
+  await expect(page.getByTestId("barra-editar-imagen")).toBeVisible();
+  await page.getByTestId("barra-editar-imagen").click();
   const dialog = page.getByRole("dialog", { name: "Imagen de Objeto" });
   await expect(dialog).toBeVisible();
   await dialog.getByLabel("URL de imagen").fill("https://example.com/smoke.png");
@@ -247,11 +248,13 @@ test("imagenes: toggle global modo texto oculta bitmaps del OPD activo", async (
   await page.getByRole("button", { name: "Importar" }).click();
   await expect(page.locator('.joint-element image[joint-selector="imagen"]')).toHaveCount(2);
 
-  await page.getByTestId("toolbar-modo-imagen-global").click();
-  await page.getByTestId("toolbar-modo-imagen-global").click();
-  await page.getByTestId("toolbar-modo-imagen-global").click();
+  await clickModoImagenGlobalDesdeMas(page);
+  await clickModoImagenGlobalDesdeMas(page);
+  await clickModoImagenGlobalDesdeMas(page);
 
-  await expect(page.getByTestId("toolbar-modo-imagen-global")).toHaveText("Texto");
+  await page.getByTestId("toolbar-mas-trigger").click();
+  await expect(page.getByTestId("toolbar-mas-modo-imagen-global")).toContainText("Texto");
+  await page.keyboard.press("Escape");
   await expect(page.locator('.joint-element image[joint-selector="imagen"]')).toHaveCount(0);
   expect(pageErrors).toEqual([]);
 });
@@ -264,6 +267,17 @@ async function routeImagenSmoke(page: Page): Promise<void> {
       body: Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/p9sAAAAASUVORK5CYII=", "base64"),
     });
   });
+}
+
+async function clickModoImagenGlobalDesdeMas(page: Page): Promise<void> {
+  await page.getByTestId("toolbar-mas-trigger").click();
+  await page.getByTestId("toolbar-mas-modo-imagen-global").click();
+  await expect(page.getByTestId("toolbar-mas-menu")).toHaveCount(0);
+}
+
+async function abrirPlantillasDesdeMas(page: Page): Promise<void> {
+  await page.getByTestId("toolbar-mas-trigger").click();
+  await page.getByTestId("toolbar-mas-plantillas").click();
 }
 
 function modeloConImagenes() {
@@ -390,7 +404,7 @@ test("HU-33.001/.002/.003: guarda plantilla privada y aparece en catálogo", asy
   await page.getByTestId("guardar-plantilla-confirmar").click();
   await expect(guardar).toHaveCount(0);
 
-  await page.getByTestId("toolbar-plantillas").click();
+  await abrirPlantillasDesdeMas(page);
   const dialogo = page.getByTestId("dialogo-plantillas");
   await expect(dialogo).toBeVisible();
   await expect(dialogo.getByText("Mis plantillas")).toBeVisible();
@@ -416,7 +430,7 @@ test("HU-33.006/.007/.008/.009/.018: inserta plantilla con sufijo, sub-OPD y eti
     await page.getByLabel("Nombre").fill("Sensor");
   }
 
-  await page.getByTestId("toolbar-plantillas").click();
+  await abrirPlantillasDesdeMas(page);
   const dialogo = page.getByTestId("dialogo-plantillas");
   await expect(dialogo.getByText("Plantilla inserción")).toBeVisible();
   await dialogo.getByTestId("insertar-plantilla").click();
@@ -441,7 +455,7 @@ test("HU-33.010: insertar plantilla enfoca temporalmente los ids nuevos", async 
   await page.goto("/");
   await cerrarPantallaInicioSiVisible(page);
   await instalarPlantillaSmoke(page, "plantilla-halo", modeloPlantillaSmoke());
-  await page.getByTestId("toolbar-plantillas").click();
+  await abrirPlantillasDesdeMas(page);
   await page.getByTestId("insertar-plantilla").click();
 
   await expect(page.locator(".joint-element").filter({ has: page.locator('[stroke="#3DA8FF"]') }).first()).toBeVisible();
@@ -463,7 +477,7 @@ test("HU-33.022/.015: cancelar guardado no persiste y catálogo vacío muestra m
   await page.keyboard.press("Escape");
   await expect(page.getByTestId("dialogo-guardar-plantilla")).toHaveCount(0);
 
-  await page.getByTestId("toolbar-plantillas").click();
+  await abrirPlantillasDesdeMas(page);
   await expect(page.getByTestId("plantillas-vacio")).toContainText("Sin plantillas");
   expect(pageErrors).toEqual([]);
 });

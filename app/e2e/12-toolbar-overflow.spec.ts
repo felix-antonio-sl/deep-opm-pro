@@ -114,9 +114,11 @@ test("acciones movidas al menu Mas siguen invocables (plantillas, config grid, m
   const itemModoImagen = page.getByTestId("toolbar-mas-modo-imagen-global");
   await expect(itemModoImagen).toBeVisible();
   await itemModoImagen.click();
-  // Tras el click el menu se cierra; el control en banda refleja el cambio.
+  // Tras el click el menu se cierra; al reabrir, el item refleja el cambio.
   await expect(page.getByTestId("toolbar-mas-menu")).toHaveCount(0);
-  await expect(page.getByTestId("toolbar-modo-imagen-global")).toHaveText("Img+Txt");
+  await page.getByTestId("toolbar-mas-trigger").click();
+  await expect(page.getByTestId("toolbar-mas-modo-imagen-global")).toContainText("Img+Txt");
+  await page.keyboard.press("Escape");
 
   expect(pageErrors).toEqual([]);
 });
