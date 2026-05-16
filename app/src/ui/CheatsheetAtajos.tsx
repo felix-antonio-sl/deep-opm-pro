@@ -20,7 +20,15 @@ export function CheatsheetAtajos({ abierto, onCerrar }: CheatsheetAtajosProps) {
   const registros = listarAtajos();
 
   return (
-    <div role="dialog" aria-modal="true" aria-label="Atajos de teclado" data-testid="cheatsheet-atajos" style={style.backdrop}>
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-label="Atajos de teclado"
+      data-testid="cheatsheet-atajos"
+      data-ifml-stereotype="Modal"
+      data-ifml-modal="true"
+      style={style.backdrop}
+    >
       <section style={style.modal}>
         <header style={style.header}>
           <h2 style={style.title}>Atajos de teclado</h2>

@@ -369,6 +369,7 @@ function registrarAtajosAplicacion(): Array<() => void> {
     if (state.modalImagenAbierto) return state.cerrarModalImagen();
     if (state.modalUrlsAbierto) return state.cerrarModalUrls();
     if (state.modalDuracionAbierto) return state.cerrarModalDuracion();
+    if (state.asistente) return state.cancelarAsistente();
     if (state.busquedaCosasAbierta) return state.cerrarBusquedaCosas();
     if (state.menuPrincipalAbierto) return state.cerrarMenuPrincipal();
     if (state.modoEnlace) return state.cancelarEnlace();

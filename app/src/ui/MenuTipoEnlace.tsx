@@ -45,7 +45,13 @@ export function MenuTipoEnlace({ modelo, origenId, destinoId, direccion, onDirec
   const opcionPreview = opciones.find((opcion) => opcion.tipo === tipoPreview) ?? opciones[0] ?? null;
   const totalNoAplican = origen && destino ? TIPOS_ENLACE_MENU.length - opciones.length : 0;
   return (
-    <div style={anchor ? { ...style.panel, left: `${anchor.left}px`, top: `${anchor.top}px` } : style.panel} data-testid="menu-tipo-enlace">
+    <div
+      style={anchor ? { ...style.panel, left: `${anchor.left}px`, top: `${anchor.top}px` } : style.panel}
+      data-testid="menu-tipo-enlace"
+      data-ifml-stereotype="Modeless"
+      data-ifml-modal="false"
+      data-ifml-pattern="DE-DLKP"
+    >
       <div style={style.header}>
         <strong>{titulo ?? tituloPorDefecto(origen, destino)}</strong>
         <div style={style.segmented} role="group" aria-label="Dirección de enlace">

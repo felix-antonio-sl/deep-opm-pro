@@ -123,6 +123,8 @@ export function AsistenteNuevoModelo() {
         role="dialog"
         aria-modal="true"
         aria-label="Asistente nuevo modelo"
+        data-ifml-stereotype="Modal"
+        data-ifml-modal="true"
         data-ifml-pattern="DE-WIZ"
         data-ifml-back="real"
         data-ifml-cache="store.asistente.datos"

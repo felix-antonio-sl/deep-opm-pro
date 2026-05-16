@@ -372,6 +372,7 @@ test("L4 dialogo de estilo de enlace persiste color grosor y copia estilo", asyn
   await page.getByTestId("abrir-dialogo-estilo-enlace").click();
   const dialogo = page.getByTestId("dialogo-estilo-enlace");
   await expect(dialogo).toBeVisible();
+  await expect(dialogo).toHaveAttribute("data-ifml-stereotype", "Modal");
   await dialogo.getByRole("button", { name: "Color #d92d20" }).click();
   await dialogo.getByRole("button", { name: "3px" }).click();
   await dialogo.getByRole("button", { name: "Discontinua" }).click();

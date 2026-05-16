@@ -21,7 +21,15 @@ export function DialogoEstiloEnlace({ abierto, enlace, onCerrar, onAplicar }: Pr
   if (!abierto) return null;
   const estilo = enlace.estilo ?? {};
   return (
-    <div style={style.backdrop} role="dialog" aria-modal="true" aria-label="Propiedades visuales del enlace" data-testid="dialogo-estilo-enlace">
+    <div
+      style={style.backdrop}
+      role="dialog"
+      aria-modal="true"
+      aria-label="Propiedades visuales del enlace"
+      data-testid="dialogo-estilo-enlace"
+      data-ifml-stereotype="Modal"
+      data-ifml-modal="true"
+    >
       <div style={style.modal}>
         <div style={style.header}>
           <h2 style={style.title}>Estilo de enlace</h2>

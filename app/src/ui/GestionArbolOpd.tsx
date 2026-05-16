@@ -73,7 +73,10 @@ export function GestionArbolOpd() {
         style={style.modal}
         onClick={(e) => e.stopPropagation()}
         role="dialog"
+        aria-modal="true"
         aria-label="Gestión del árbol OPD"
+        data-ifml-stereotype="Modal"
+        data-ifml-modal="true"
       >
         <div style={style.header}>
           <span style={style.title}>Gestión del árbol OPD</span>

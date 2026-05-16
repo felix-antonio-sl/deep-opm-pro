@@ -42,6 +42,12 @@ test("estado vacio OPM expone inicio compacto sobre canvas vacio", async ({ page
   const canvasPane = page.getByTestId("canvas-pane");
   await expect(canvasPane).toContainText("Iniciar SD");
 
+  await page.getByTestId("estado-vacio-abrir-asistente").click();
+  const asistente = page.getByRole("dialog", { name: "Asistente nuevo modelo" });
+  await expect(asistente).toHaveAttribute("data-ifml-stereotype", "Modal");
+  await page.keyboard.press("Escape");
+  await expect(asistente).toHaveCount(0);
+
   expect(pageErrors).toEqual([]);
 });
 

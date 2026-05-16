@@ -111,7 +111,9 @@ test("arbol OPD atajos panel: F2 renombra y Ctrl+D abre gestion", async ({ page 
 
   await nodoRaiz.focus();
   await page.keyboard.press("Control+d");
-  await expect(page.getByRole("dialog", { name: "Gestión del árbol OPD" })).toBeVisible();
+  const gestion = page.getByRole("dialog", { name: "Gestión del árbol OPD" });
+  await expect(gestion).toBeVisible();
+  await expect(gestion).toHaveAttribute("data-ifml-stereotype", "Modal");
 
   expect(pageErrors).toEqual([]);
 });

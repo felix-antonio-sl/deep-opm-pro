@@ -141,7 +141,15 @@ function TablaEnlacesContenido(props: ContenidoProps) {
   }, [onCerrar]);
 
   return (
-    <div role="dialog" aria-label="Tabla de enlaces" data-testid="tabla-enlaces" style={overlayStyle}>
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-label="Tabla de enlaces"
+      data-testid="tabla-enlaces"
+      data-ifml-stereotype="Modal"
+      data-ifml-modal="true"
+      style={overlayStyle}
+    >
       <div style={panelStyle}>
         <div style={headerStyle}>
           <h2 style={titleStyle}>Tabla de Enlaces ({filas.length})</h2>

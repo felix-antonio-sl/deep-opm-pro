@@ -154,6 +154,7 @@ test("L4 menu de tipos validos muestra previsualización OPL y filtra por direcc
 
   const menu = page.getByTestId("menu-tipo-enlace");
   await expect(menu).toBeVisible();
+  await expect(menu).toHaveAttribute("data-ifml-stereotype", "Modeless");
   await expect(menu.getByTestId("menu-tipo-enlace-filtrado")).toContainText(/tipos? no aplica/);
   await expect(menu.getByText(/consume/)).toBeVisible();
   await expect(menu.getByTestId("menu-tipo-enlace-consumo")).toBeVisible();

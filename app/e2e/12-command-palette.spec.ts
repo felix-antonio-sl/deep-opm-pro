@@ -18,6 +18,7 @@ test("Ctrl+K abre palette, busca accion de menu y Enter la ejecuta", async ({ pa
   await page.keyboard.press("Control+k");
   const palette = page.getByTestId("command-palette");
   await expect(palette).toBeVisible();
+  await expect(palette).toHaveAttribute("data-ifml-stereotype", "Modal");
   await expect(palette.getByRole("combobox")).toBeFocused();
 
   await palette.getByRole("combobox").fill("tabla enlaces");
@@ -25,7 +26,9 @@ test("Ctrl+K abre palette, busca accion de menu y Enter la ejecuta", async ({ pa
 
   await page.keyboard.press("Enter");
   await expect(page.getByTestId("command-palette")).toHaveCount(0);
-  await expect(page.getByTestId("tabla-enlaces")).toBeVisible();
+  const tabla = page.getByTestId("tabla-enlaces");
+  await expect(tabla).toBeVisible();
+  await expect(tabla).toHaveAttribute("data-ifml-stereotype", "Modal");
 
   expect(pageErrors).toEqual([]);
 });
@@ -86,6 +89,27 @@ test("Command Palette abre Configuración consolidada", async ({ page }) => {
   await expect(dialogo).toBeVisible();
   await expect(dialogo.getByLabel("Nombre del modelo")).toBeVisible();
   await expect(dialogo.getByLabel("Paso")).toBeVisible();
+
+  expect(pageErrors).toEqual([]);
+});
+
+test("Command Palette abre cheatsheet con estereotipo modal IFML", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await cerrarPantallaInicioSiVisible(page);
+
+  await page.keyboard.press("Control+k");
+  const palette = page.getByTestId("command-palette");
+  await expect(palette).toBeVisible();
+  await palette.getByRole("combobox").fill("atajos teclado");
+  await expect(page.getByTestId("command-palette-item-menu-atajos-teclado")).toBeVisible();
+
+  await page.keyboard.press("Enter");
+  const cheatsheet = page.getByTestId("cheatsheet-atajos");
+  await expect(cheatsheet).toBeVisible();
+  await expect(cheatsheet).toHaveAttribute("data-ifml-stereotype", "Modal");
 
   expect(pageErrors).toEqual([]);
 });

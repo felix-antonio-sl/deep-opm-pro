@@ -174,6 +174,8 @@ export function CommandPalette({ abierto, onCerrar }: Props) {
       aria-modal="true"
       aria-label="Comandos"
       data-testid="command-palette"
+      data-ifml-stereotype="Modal"
+      data-ifml-modal="true"
       style={style.backdrop}
       onMouseDown={(event) => {
         if (event.currentTarget === event.target) onCerrar();
