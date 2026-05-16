@@ -3,8 +3,8 @@
 **Fecha**: 2026-05-16
 **Repositorio**: `deep-opm-pro`
 **Rama**: `main`
-**HEAD versionado**: `96d5097 feat(ux): filtra tabla de enlaces densa`
-**Corte**: Primer corte post-brief HODOM denso: tabla de enlaces apta para inspeccionar modelos grandes con búsqueda textual y filtro por familia.
+**Último corte funcional**: `daa3bc3 feat(ux): enfoca enlaces filtrados en canvas`
+**Corte**: Segundo corte post-brief HODOM denso: la tabla de enlaces ya opera como lente de búsqueda/familia y puede enfocar sus filas filtradas en el canvas.
 
 ## Política De Handoff Único
 
@@ -22,22 +22,23 @@
 
 ### Post-Brief HODOM Denso — 2026-05-16
 
-La rama `main` quedó sincronizada con `origin/main` tras `96d5097`, que mejora `TablaEnlaces` para operar sobre modelos densos:
+La rama `main` queda preparada para sincronizarse con `origin/main` tras `daa3bc3`, que conecta `TablaEnlaces` con foco visual en el canvas:
 
 - Búsqueda textual por origen, destino, etiqueta, tipo, familia y OPD.
 - Filtro por familia `Procedurales` / `Estructurales` / `Todos`.
-- Contador accesible `filtrados/total` con desglose procedurales/estructurales.
+- Contador accesible `filtrados/total` con desglose procedurales/estructurales y visibles en el OPD activo.
 - Botón de limpieza de filtros.
-- Smoke específico sobre modelo mixto de 10 enlaces para cubrir búsqueda + familia sin romper edición, eliminación ni navegación existente.
+- Botón `Resaltar filtrados` que no cierra la tabla, cambia al primer OPD relevante si el filtro no tiene enlaces visibles en el OPD actual y resalta enlaces + extremos como subgrafo temporal.
+- `idsResaltadosTemporales` vuelve a participar en la proyección JointJS, sin contaminar la selección real del store.
+- Smokes específicos sobre modelo mixto de 10 enlaces para cubrir búsqueda + familia + foco visual sin romper edición, eliminación ni navegación existente.
 
 Prueba directa con HODOM v1.1 real:
 
 ```bash
 # Cargado por browser contra http://127.0.0.1:5173/
-# TablaEnlaces: 113 filas
-# Contador: 113 de 113 enlaces · 83 procedurales · 30 estructurales
-# Filtro estructural: 30 filas
-# Búsqueda "Paciente": 19 filas
+# Contador inicial: 113 de 113 enlaces · 83 procedurales · 30 estructurales · 21 visibles en SD-0 — Establecimiento HODOM
+# Búsqueda "Paciente": 19 enlaces resaltados · 7 visibles en SD-0 — Establecimiento HODOM
+# Foco canvas: 5 enlaces con wrapper resaltado + 4 halos de extremos
 # pageErrors: []
 ```
 
@@ -46,13 +47,13 @@ Validación del corte:
 ```bash
 cd app && bun run typecheck
 cd app && bun run browser:smoke -- e2e/11-beta1-tabla-enlaces.spec.ts
-# 4 passed
+# 5 passed
 cd app && bun run lint
 cd app && bun run test
 # 1371 pass / 0 fail
 cd app && bun run build
 cd app && bun run browser:smoke
-# 191 passed / 0 fail
+# 192 passed / 0 fail
 cd app && node scripts/in-vivo-test.mjs http://127.0.0.1:5173/
 # OK=57 FAIL=0 WARN=0 INFO=2
 ```
@@ -113,6 +114,7 @@ bun -e 'import { readFileSync } from "node:fs"; import { hidratarModelo } from "
 ## Commits Relevantes Del Cierre UX/IFML
 
 - `96d5097 feat(ux): filtra tabla de enlaces densa`
+- `daa3bc3 feat(ux): enfoca enlaces filtrados en canvas`
 - `08b3753 test(ux): actualiza auditoria in vivo`
 - `de67395 refactor(a11y): unifica fuente de avisos`
 - `84a96f2 test(a11y): cubre ciclo de feedback`
@@ -139,11 +141,11 @@ También pueden existir salidas regenerables ignoradas:
 
 ## Pendientes Post-Brief
 
-El brief UX/IFML queda cerrado para el corte auditado. El primer corte de modelos densos ya mejoró `TablaEnlaces`; lo que sigue debe seguir usando HODOM como pressure test real:
+El brief UX/IFML queda cerrado para el corte auditado. Los dos primeros cortes de modelos densos ya mejoraron `TablaEnlaces` y conectaron sus filtros con foco visual en canvas; lo que sigue debe seguir usando HODOM como pressure test real:
 
 - **Mini-mapa / mapa del sistema más operativo**: navegación visual para modelos densos.
 - **Import/export OPX real**: interoperabilidad más allá del JSON local.
-- **Modelos densos HODOM**: profundizar navegación por subgrafo, filtros de canvas y performance perceptual con 5 OPDs y 113 enlaces.
+- **Modelos densos HODOM**: profundizar filtros de canvas, mini-mapa y performance perceptual con 5 OPDs y 113 enlaces.
 - **Enlaces OPCloud avanzados**: forked tagged links, smoke UI específico para tagged/bidirectional + exception/time.
 - **Comentarios/notas**: EPICA-42 sigue fuera del modo mobile review productivo; hoy se comunica como no disponible.
 
@@ -151,4 +153,4 @@ El brief UX/IFML queda cerrado para el corte auditado. El primer corte de modelo
 
 Retomar desde este `docs/HANDOFF.md`. Usar el script versionado `app/scripts/in-vivo-test.mjs` como baseline antes y después del próximo corte visual/UX. Si el siguiente bloque toca JointJS, consultar primero `opm-extracted/`, `docs/JOYAS.md`, assets SVG canónicos y documentación oficial de JointJS OSS.
 
-Siguiente bloque recomendado: seguir con **HODOM denso**, ahora en navegación canvas/subgrafo. La tabla ya filtra 113 enlaces; falta que esa selección pueda traducirse en foco visual sobre el canvas o en una vista de subgrafo sin inundar el OPD.
+Siguiente bloque recomendado: seguir con **HODOM denso**, ahora en mini-mapa/filtros de canvas por familia/OPD. La tabla ya filtra 113 enlaces y enfoca subgrafos visibles; falta una navegación global que permita cambiar entre OPDs densos sin depender solo del árbol.
