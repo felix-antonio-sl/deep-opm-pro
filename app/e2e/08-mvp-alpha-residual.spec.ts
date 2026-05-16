@@ -484,7 +484,12 @@ test("HU-33.022/.015: cancelar guardado no persiste y catálogo vacío muestra m
   await expect(page.getByTestId("dialogo-guardar-plantilla")).toHaveCount(0);
 
   await abrirPlantillasDesdeMas(page);
-  await expect(page.getByTestId("plantillas-vacio")).toContainText("Sin plantillas");
+  const catalogo = page.getByTestId("dialogo-plantillas");
+  await expect(catalogo.getByTestId("plantillas-vacio")).toContainText("Sin plantillas");
+  await catalogo.getByTestId("plantillas-vacio-cta").click();
+  await expect(page.getByTestId("dialogo-guardar-plantilla")).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(catalogo).toBeVisible();
   expect(pageErrors).toEqual([]);
 });
 

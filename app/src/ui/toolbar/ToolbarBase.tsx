@@ -14,7 +14,6 @@ import type { AccionContextualId } from "../../store/acciones-contextuales";
 import { primerEnlaceVisualDeEntidad } from "../BarraHerramientasElemento";
 import { ChipPersistencia } from "../ChipPersistencia";
 import { useConfirmarSiDirty } from "../ConfirmacionContext";
-import { DialogoGuardarPlantilla } from "../DialogoGuardarPlantilla";
 import { ejecutarAccionContextualEntidad } from "../ejecutarAccionContextual";
 // L2 ronda 21: la toolbar primaria de modelado pesado se oculta en mobile
 // y se compacta en tablet. Decisión por viewport delegada a `layoutResponsive`.
@@ -366,7 +365,6 @@ export function ToolbarBase({ children, modelarSlot, conectarSlot, mapaSlot, sta
         {...(todoMultiSeleccion ? { onConectarMultiAlTodo: handleConectarMultiContextual } : {})}
       />
       <Suspense fallback={null}><DialogoTraerConectados /><DialogoPlantillas /></Suspense>
-      <DialogoGuardarPlantilla />
       {PantallaInicioLazy ? <PantallaInicioLazy /> : null}
     </>
   );
