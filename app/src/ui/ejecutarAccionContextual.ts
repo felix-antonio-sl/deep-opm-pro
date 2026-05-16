@@ -35,6 +35,14 @@ export function ejecutarAccionContextualEntidad(
       if (!entidad) return false;
       state.desplegarSeleccionada();
       return true;
+    case "quitar-descomposicion":
+      if (!entidad?.refinamientos?.descomposicion) return false;
+      state.quitarDescomposicionSeleccionada();
+      return true;
+    case "quitar-despliegue":
+      if (!entidad?.refinamientos?.despliegue) return false;
+      state.quitarDespliegueSeleccionado();
+      return true;
     case "editar-alias":
       if (!entidad) return false;
       opciones.onEditarAlias?.();

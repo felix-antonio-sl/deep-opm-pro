@@ -95,6 +95,8 @@ const ORDEN_MENU_ENTIDAD: readonly AccionContextualId[] = [
   "traer-conectados",
   "traer-conectados-default",
   "traer-enlaces",
+  "quitar-descomposicion",
+  "quitar-despliegue",
   "ocultar-apariencia",
 ];
 
@@ -106,7 +108,7 @@ export function grupoAccionMenuEntidad(id: AccionContextualId): "refinamiento" |
   if (id === "inzoom" || id === "unfold") return "refinamiento";
   if (id === "agregar-estado" || id === "editar-alias" || id === "editar-imagen") return "edicion";
   if (id === "copiar-estilo" || id === "pegar-estilo") return "apariencia";
-  if (id === "ocultar-apariencia") return "peligro";
+  if (id === "ocultar-apariencia" || id === "quitar-descomposicion" || id === "quitar-despliegue") return "peligro";
   return "enlaces";
 }
 

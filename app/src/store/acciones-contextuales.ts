@@ -8,6 +8,8 @@ export type AccionContextualId =
   | "agregar-estado"
   | "inzoom"
   | "unfold"
+  | "quitar-descomposicion"
+  | "quitar-despliegue"
   | "editar-alias"
   | "editar-imagen"
   | "mas-opciones"
@@ -49,6 +51,8 @@ export function accionesContextualesEntidad(ctx: ContextoAccionesEntidad): Accio
   const esObjeto = ctx.entidad?.tipo === "objeto";
   const esCosa = !!ctx.entidad;
   const tieneEnlaceOperable = !!ctx.enlaceEstiloId;
+  const tieneDescomposicion = !!ctx.entidad?.refinamientos?.descomposicion;
+  const tieneDespliegue = !!ctx.entidad?.refinamientos?.despliegue;
 
   return [
     accion("copiar-estilo", "Copiar estilo", "barra-copiar-estilo", "apariencia", tieneEnlaceOperable, {
@@ -74,6 +78,16 @@ export function accionesContextualesEntidad(ctx: ContextoAccionesEntidad): Accio
     accion("unfold", "Unfold (despliegue)", "barra-unfold", "refinamiento", esCosa, {
       superficies: ["barra-flotante", "menu-contextual", "command-palette"],
       atajo: "Shift+U",
+    }),
+    accion("quitar-descomposicion", "Quitar inzoom", "accion-quitar-descomposicion", "refinamiento", tieneDescomposicion, {
+      visible: tieneDescomposicion,
+      superficies: ["menu-contextual", "command-palette"],
+      destructiva: true,
+    }),
+    accion("quitar-despliegue", "Quitar despliegue", "accion-quitar-despliegue", "refinamiento", tieneDespliegue, {
+      visible: tieneDespliegue,
+      superficies: ["menu-contextual", "command-palette"],
+      destructiva: true,
     }),
     accion("editar-alias", "Editar alias", "barra-editar-alias", "edicion", !!esObjeto, {
       visible: esCosa,

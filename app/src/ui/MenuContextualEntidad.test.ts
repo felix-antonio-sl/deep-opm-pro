@@ -23,6 +23,7 @@ describe("MenuContextualEntidad", () => {
       accion("editar-alias", "edicion"),
       accion("unfold", "refinamiento"),
       accion("traer-conectados", "enlaces"),
+      accion("quitar-descomposicion", "refinamiento"),
     ]);
 
     expect(acciones.map((item) => item.id)).toEqual([
@@ -31,6 +32,7 @@ describe("MenuContextualEntidad", () => {
       "editar-alias",
       "copiar-estilo",
       "traer-conectados",
+      "quitar-descomposicion",
       "ocultar-apariencia",
     ]);
   });
@@ -40,6 +42,8 @@ describe("MenuContextualEntidad", () => {
     expect(grupoAccionMenuEntidad("agregar-estado")).toBe("edicion");
     expect(grupoAccionMenuEntidad("copiar-estilo")).toBe("apariencia");
     expect(grupoAccionMenuEntidad("traer-conectados")).toBe("enlaces");
+    expect(grupoAccionMenuEntidad("quitar-descomposicion")).toBe("peligro");
+    expect(grupoAccionMenuEntidad("quitar-despliegue")).toBe("peligro");
     expect(grupoAccionMenuEntidad("ocultar-apariencia")).toBe("peligro");
   });
 });
