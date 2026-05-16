@@ -33,11 +33,21 @@ interface Props<T extends string> {
 }
 
 export function InspectorTabs<T extends string>({ tabs, activo, onCambiar, ariaLabel, panelIdPrefix = "inspector-panel" }: Props<T>) {
+  const handleKeyDown = (event: KeyboardEvent, tabId: T) => {
+    const siguiente = resolverTabPorTecla(tabs, tabId, event.key);
+    if (!siguiente) return;
+    event.preventDefault();
+    if (siguiente !== activo) onCambiar(siguiente);
+    const tablist = event.currentTarget instanceof HTMLElement ? event.currentTarget.parentElement : null;
+    focalizarTab(tablist, siguiente);
+  };
+
   return (
     <div
       role="tablist"
       aria-label={ariaLabel}
       data-testid="inspector-tabs"
+      data-atajos-local="true"
       style={style.tabsRow}
     >
       {tabs.map((tab) => {
@@ -50,8 +60,10 @@ export function InspectorTabs<T extends string>({ tabs, activo, onCambiar, ariaL
             aria-selected={seleccionado}
             aria-controls={`${panelIdPrefix}-${tab.id}`}
             data-testid={tab.testid}
+            data-inspector-tab-id={tab.id}
             tabIndex={seleccionado ? 0 : -1}
             style={seleccionado ? style.tabActive : style.tab}
+            onKeyDown={(event) => handleKeyDown(event, tab.id)}
             onClick={() => {
               if (!seleccionado) onCambiar(tab.id);
             }}
@@ -62,4 +74,28 @@ export function InspectorTabs<T extends string>({ tabs, activo, onCambiar, ariaL
       })}
     </div>
   );
+}
+
+export function resolverTabPorTecla<T extends string>(
+  tabs: ReadonlyArray<InspectorTabDef<T>>,
+  activo: T,
+  key: string,
+): T | null {
+  if (tabs.length === 0) return null;
+  const actual = tabs.findIndex((tab) => tab.id === activo);
+  if (actual < 0) return null;
+  if (key === "Home") return tabs[0]?.id ?? null;
+  if (key === "End") return tabs[tabs.length - 1]?.id ?? null;
+  if (key === "ArrowRight" || key === "ArrowDown") return tabs[(actual + 1) % tabs.length]?.id ?? null;
+  if (key === "ArrowLeft" || key === "ArrowUp") return tabs[(actual - 1 + tabs.length) % tabs.length]?.id ?? null;
+  return null;
+}
+
+function focalizarTab<T extends string>(tablist: Element | null, tabId: T): void {
+  const moverFoco = () => {
+    const target = Array.from(tablist?.querySelectorAll<HTMLButtonElement>("[data-inspector-tab-id]") ?? [])
+      .find((button) => button.getAttribute("data-inspector-tab-id") === tabId);
+    target?.focus();
+  };
+  requestAnimationFrame(moverFoco);
 }

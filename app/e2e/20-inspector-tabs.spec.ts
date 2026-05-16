@@ -79,6 +79,35 @@ test("click en tab Refinamiento muestra estado de in-zoom y oculta los semántic
   expect(pageErrors).toEqual([]);
 });
 
+test("tabs del inspector navegan por teclado con flechas", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await cerrarPantallaInicioSiVisible(page);
+  await page.getByRole("button", { name: "Proceso", exact: true }).click();
+
+  const semantica = page.getByTestId("inspector-tab-semantica");
+  const enlaces = page.getByTestId("inspector-tab-enlaces");
+  const apariciones = page.getByTestId("inspector-tab-apariciones");
+  const estilo = page.getByTestId("inspector-tab-estilo");
+
+  await semantica.focus();
+  await page.keyboard.press("ArrowRight");
+  await expect(enlaces).toHaveAttribute("aria-selected", "true");
+  await expect(enlaces).toBeFocused();
+
+  await page.keyboard.press("End");
+  await expect(estilo).toHaveAttribute("aria-selected", "true");
+  await expect(estilo).toBeFocused();
+
+  await page.keyboard.press("ArrowLeft");
+  await expect(apariciones).toHaveAttribute("aria-selected", "true");
+  await expect(apariciones).toBeFocused();
+
+  expect(pageErrors).toEqual([]);
+});
+
 test("tab Apariciones lista OPDs y navega cross-OPD con un click", async ({ page }) => {
   const pageErrors: string[] = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));

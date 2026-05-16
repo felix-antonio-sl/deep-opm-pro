@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, test } from "bun:test";
 import { store } from "../../store";
 import type { TabInspectorEntidad, TabInspectorEnlace } from "../../store/tipos";
-import { InspectorTabs, type InspectorTabDef } from "./InspectorTabs";
+import { InspectorTabs, resolverTabPorTecla, type InspectorTabDef } from "./InspectorTabs";
 
 const TABS_ENTIDAD: ReadonlyArray<InspectorTabDef<TabInspectorEntidad>> = [
   { id: "semantica", label: "Semántica", testid: "inspector-tab-semantica" },
@@ -113,5 +113,13 @@ describe("InspectorTabs contrato sobre el array de tabs", () => {
     const testids = TABS_ENLACE.map((t) => t.testid);
     expect(testids.every((id) => id.startsWith("inspector-enlace-tab-"))).toBe(true);
     expect(new Set(testids).size).toBe(testids.length);
+  });
+
+  test("resolverTabPorTecla soporta navegación roving con flechas y extremos", () => {
+    expect(resolverTabPorTecla(TABS_ENTIDAD, "semantica", "ArrowRight")).toBe("enlaces");
+    expect(resolverTabPorTecla(TABS_ENTIDAD, "semantica", "ArrowLeft")).toBe("estilo");
+    expect(resolverTabPorTecla(TABS_ENTIDAD, "refinamiento", "Home")).toBe("semantica");
+    expect(resolverTabPorTecla(TABS_ENTIDAD, "refinamiento", "End")).toBe("estilo");
+    expect(resolverTabPorTecla(TABS_ENTIDAD, "refinamiento", "Enter")).toBeNull();
   });
 });
