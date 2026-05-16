@@ -39,7 +39,6 @@ export interface PreferenciasUiUsuario {
   arbolExpandidoPersistente?: Id[];
   cheatsheetVisible?: boolean;
   gridConfig?: GridConfig;
-  oplPosicion?: "inferior" | "lateral-derecho";
   oplNumeracionVisible?: boolean;
   oplMinimizado?: boolean;
   oplBloquesContraidos?: Record<Id, true>;

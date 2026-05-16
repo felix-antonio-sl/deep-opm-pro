@@ -419,7 +419,6 @@ export interface OpmStore {
   cambiarTabInspectorEnlace: (tab: TabInspectorEnlace) => void;
   buscarEnPanelOpl: (texto: string) => void;
   alternarNumeracionOpl: () => void;
-  cambiarPosicionOpl: (posicion?: "inferior" | "lateral-derecho") => void;
   minimizarOpl: () => void;
   restaurarOpl: () => void;
   alternarBloqueOplContraido: (opdId: Id) => void;

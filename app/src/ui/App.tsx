@@ -86,7 +86,6 @@ export function App() {
   // L2 ronda 21: vista activa solo se consume cuando el breakpoint es mobile.
   const vistaMobileActiva = useOpmStore((s) => s.vistaMobileActiva);
   const [inspectorAbierto, setInspectorAbierto] = useState(true);
-  const oplLateral = false;
   const oplMinimizado = preferenciasOpl?.oplMinimizado ?? false;
   const timelineDisponible = tieneTimelineDisponible(modelo, opdActivoId);
   // L3 ronda 20: biblioteca dock acoplable bajo el arbol OPD.
@@ -196,7 +195,7 @@ export function App() {
           </section>
         ) : (
           <>
-        <section style={workbenchStyle(anchoPanelArbol, anchoInspectorLayout, oplLateral, oplMinimizado, inspectorAbierto, esTablet)}>
+        <section style={workbenchStyle(anchoPanelArbol, anchoInspectorLayout, inspectorAbierto, esTablet)}>
           <div data-testid="tree-pane" style={treePaneStyle(dockVisible, altoDock)}>
             <div style={layout.treePaneArbol}>
               <ArbolOpd />
@@ -279,20 +278,11 @@ export function App() {
               ) : null}
             </div>
           </div>
-          {oplLateral ? (
-            <div data-testid="opl-pane" style={layout.oplPane}>
-              <PanelOpl />
-            </div>
-          ) : null}
         </section>
-        {!oplLateral ? (
-          <>
-            <div data-testid="opl-pane" style={oplInferiorStyle(oplMinimizado)}>
-              <PanelOpl />
-            </div>
-            <PanelDiagnostico />
-          </>
-        ) : null}
+        <div data-testid="opl-pane" style={oplInferiorStyle(oplMinimizado)}>
+          <PanelOpl />
+        </div>
+        <PanelDiagnostico />
           </>
         )}
         {dialogoGuardarComoAbierto ? <Suspense fallback={null}><DialogoGuardarComo /></Suspense> : null}
@@ -508,13 +498,6 @@ const layout = {
     height: "220px",
     borderTop: "1px solid #d9e0ea",
   },
-  oplPane: {
-    gridArea: "opl",
-    minWidth: 0,
-    minHeight: 0,
-    overflow: "hidden",
-    borderLeft: "1px solid #d9e0ea",
-  },
   // L2 ronda 21: en mobile la grilla es Toolbar+BarraPestanas+Section donde la
   // section contiene canvas+overlay+tabs como flex columna. Sin OPL inferior.
   pageMobile: {
@@ -576,8 +559,6 @@ function pageStyle(esMobile: boolean): preact.JSX.CSSProperties {
 function workbenchStyle(
   anchoPanelArbol: number,
   anchoPanelInspector: number,
-  oplLateral: boolean,
-  oplMinimizado: boolean,
   inspectorAbierto: boolean,
   esTablet = false,
 ): preact.JSX.CSSProperties {
@@ -590,17 +571,10 @@ function workbenchStyle(
   // como el inspector tienen ancho 0.
   const anchoInspector = inspectorAbierto ? `${anchoPanelInspector}px` : "0px";
   const anchoDivisorInspector = inspectorAbierto ? "6px" : "0px";
-  if (!oplLateral) {
-    return {
-      ...layout.workbench,
-      gridTemplateColumns: `${anchoTreeBase}px 6px minmax(0, 1fr) ${anchoDivisorInspector} ${anchoInspector}`,
-      gridTemplateAreas: `"tree divisor canvas divisorInspector inspector"`,
-    };
-  }
   return {
     ...layout.workbench,
-    gridTemplateColumns: `${anchoTreeBase}px 6px minmax(0, 1fr) ${anchoDivisorInspector} ${anchoInspector} ${oplMinimizado ? "44px" : "320px"}`,
-    gridTemplateAreas: `"tree divisor canvas divisorInspector inspector opl"`,
+    gridTemplateColumns: `${anchoTreeBase}px 6px minmax(0, 1fr) ${anchoDivisorInspector} ${anchoInspector}`,
+    gridTemplateAreas: `"tree divisor canvas divisorInspector inspector"`,
   };
 }
 

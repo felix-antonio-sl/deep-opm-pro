@@ -77,7 +77,6 @@ export type ModeloSlice = Slice<
   | "fijarBusquedaOpl"
   | "buscarEnPanelOpl"
   | "alternarNumeracionOpl"
-  | "cambiarPosicionOpl"
   | "minimizarOpl"
   | "restaurarOpl"
   | "alternarBloqueOplContraido"

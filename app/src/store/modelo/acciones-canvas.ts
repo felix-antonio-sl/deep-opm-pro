@@ -253,15 +253,6 @@ export function accionesCanvas(set: SetStore, get: GetStore): Partial<ModeloSlic
       set({ indice });
     },
 
-    cambiarPosicionOpl(posicion) {
-      const estado = get();
-      const actual = estado.indice.preferenciasUi?.oplPosicion ?? "inferior";
-      const oplPosicion = posicion ?? (actual === "inferior" ? "lateral-derecho" : "inferior");
-      const indice = actualizarPreferenciasUi(estado.indice, { oplPosicion });
-      escribirIndiceWorkspace(indice);
-      set({ indice });
-    },
-
     minimizarOpl() {
       const estado = get();
       const indice = actualizarPreferenciasUi(estado.indice, { oplMinimizado: true });

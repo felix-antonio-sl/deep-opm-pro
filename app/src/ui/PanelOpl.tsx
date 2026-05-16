@@ -48,7 +48,6 @@ export function PanelOpl() {
   const [textoLibre, setTextoLibre] = useState("");
   const contenedorRef = useRef<HTMLElement | null>(null);
   const numeracionVisible = preferenciasOpl?.oplNumeracionVisible ?? true;
-  const posicion = "inferior";
   const minimizado = preferenciasOpl?.oplMinimizado ?? false;
   const bloquesColapsados = useMemo(
     () => new Set(Object.keys(preferenciasOpl?.oplBloquesContraidos ?? {})),
@@ -146,7 +145,6 @@ export function PanelOpl() {
         busquedaOpl={busquedaOpl}
         filtroActivo={filtroActivo}
         numeracionVisible={numeracionVisible}
-        posicion={posicion}
         onMinimizar={minimizarOpl}
         onToggleNumeracion={alternarNumeracionOpl}
         onPlaceholderAi={mostrarPlaceholderAiOpl}

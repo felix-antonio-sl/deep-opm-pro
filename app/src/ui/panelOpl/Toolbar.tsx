@@ -5,7 +5,6 @@ interface ToolbarOplProps {
   busquedaOpl: string;
   filtroActivo: boolean;
   numeracionVisible: boolean;
-  posicion: "inferior" | "lateral-derecho";
   onMinimizar: () => void;
   onToggleNumeracion: () => void;
   onPlaceholderAi: () => void;
