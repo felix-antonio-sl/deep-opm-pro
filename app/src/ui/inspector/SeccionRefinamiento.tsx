@@ -37,8 +37,6 @@ interface Props {
   modelo: Modelo;
   onDescomponer: () => void;
   onDesplegar: (modo?: ModoDespliegueObjeto) => void;
-  onQuitarDescomposicion: () => void;
-  onQuitarDespliegue: () => void;
   onReasignarEnlaceExterno: (opdId: Id, aparienciaEnlaceId: Id, nuevoSubprocesoId: Id) => void;
   onCrearAutoInvocacion: () => void;
   onCambiarModoPlegado: () => void;
@@ -120,7 +118,8 @@ export function SeccionRefinamiento(props: Props) {
 function RefinamientoThing(props: Props) {
   // Ronda 15.2: descomposicion y despliegue son ortogonales. Cada slot
   // muestra sus controles independientemente del otro.
-  const descompuesta = obtenerRefinamiento(props.entidad, "descomposicion") !== undefined;
+  const descomposicion = obtenerRefinamiento(props.entidad, "descomposicion");
+  const descompuesta = descomposicion !== undefined;
   const desplegada = obtenerRefinamiento(props.entidad, "despliegue") !== undefined;
   return (
     <>
@@ -128,7 +127,13 @@ function RefinamientoThing(props: Props) {
         <img src={inzoomIcon} alt="" aria-hidden="true" style={refinamientoStyles.icon} />
         {descompuesta ? "Abrir descomposición" : "Descomponer"}
       </button>
-      {descompuesta ? <button type="button" style={style.secondaryButton} onClick={props.onQuitarDescomposicion} title="Eliminar el OPD hijo de descomposición">Quitar descomposición</button> : null}
+      {descomposicion ? (
+        <EstadoRefinamiento
+          testId="refinamiento-estado-descomposicion"
+          label="Inzoom"
+          opdNombre={nombreOpd(props.modelo, descomposicion.opdId)}
+        />
+      ) : null}
       {props.entidad.tipo === "proceso" && descompuesta ? <ReasignacionExternos modelo={props.modelo} entidad={props.entidad} onReasignar={props.onReasignarEnlaceExterno} /> : null}
       <RefinamientoDespliegue {...props} desplegada={desplegada} />
       {props.entidad.tipo === "proceso" ? (
@@ -195,6 +200,7 @@ function ReasignacionExternoRow(props: { opdId: Id; enlace: Enlace; reanclaje: C
 }
 
 function RefinamientoDespliegue(props: Props & { desplegada: boolean }) {
+  const despliegue = obtenerRefinamiento(props.entidad, "despliegue");
   return (
     <>
       {props.desplegada ? (
@@ -205,9 +211,27 @@ function RefinamientoDespliegue(props: Props & { desplegada: boolean }) {
       ) : (
         <DesplegarComo onSelect={props.onDesplegar} />
       )}
-      {props.desplegada ? <button type="button" style={style.secondaryButton} onClick={props.onQuitarDespliegue} title="Eliminar el OPD hijo de despliegue y sus refinadores locales">Quitar despliegue</button> : null}
+      {despliegue ? (
+        <EstadoRefinamiento
+          testId="refinamiento-estado-despliegue"
+          label="Despliegue"
+          opdNombre={nombreOpd(props.modelo, despliegue.opdId)}
+        />
+      ) : null}
     </>
   );
+}
+
+function EstadoRefinamiento(props: { testId: string; label: string; opdNombre: string }) {
+  return (
+    <span data-testid={props.testId} style={partialStyles.note}>
+      {`${props.label}: ${props.opdNombre}`}
+    </span>
+  );
+}
+
+function nombreOpd(modelo: Modelo, opdId: Id): string {
+  return modelo.opds[opdId]?.nombre ?? opdId;
 }
 
 function DesplegarComo(props: { onSelect: (modo: ModoDespliegueObjeto) => void }) {

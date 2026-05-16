@@ -92,7 +92,8 @@ test("descompone proceso y navega al OPD hijo", async ({ page }) => {
   await page.screenshot({ path: "test-results/opm-descomposicion-opd-hijo.png", fullPage: true });
   await assertWorkbenchLayout(page);
 
-  await page.getByRole("button", { name: "Quitar descomposición" }).click();
+  await expect(page.getByRole("button", { name: "Quitar descomposición" })).toHaveCount(0);
+  await ejecutarAccionCommandPalette(page, "quitar inzoom", "accion-quitar-descomposicion");
   await expect(page.locator('[role="treeitem"]').filter({ hasText: "SD1: Proceso descompuesto" })).toHaveCount(0);
   await expect(page.locator('[role="treeitem"][data-opd-id="opd-1"]')).toHaveAttribute("aria-current", "page");
   await expect(page.getByText("Proceso se descompone en Proceso 1, Proceso 2 y Proceso 3 en esa secuencia.")).toHaveCount(0);
@@ -246,7 +247,8 @@ test("despliega objeto y navega al OPD hijo", async ({ page }) => {
   expect(exportado.modelo.opds[opdHijoId]?.padreId).toBe(exportado.modelo.opdRaizId);
   expect(Object.values(exportado.modelo.enlaces).filter((enlace) => enlace.tipo === "agregacion" && extremoApuntaAEntidad(enlace.origenId, objeto.id))).toHaveLength(3);
 
-  await page.getByRole("button", { name: "Quitar despliegue" }).click();
+  await expect(page.getByRole("button", { name: "Quitar despliegue" })).toHaveCount(0);
+  await ejecutarAccionCommandPalette(page, "quitar despliegue", "accion-quitar-despliegue");
   await expect(page.locator('[role="treeitem"]').filter({ hasText: "SD1: Objeto desplegado" })).toHaveCount(0);
   const jsonSinDespliegue = await jsonEditor(page).inputValue();
   const exportadoSinDespliegue = JSON.parse(jsonSinDespliegue) as ExportadoModelo;
@@ -584,13 +586,9 @@ test("reancla consumo derivado y conserva el ancla manual al reordenar", async (
   await page.getByRole("button", { name: "Descomponer" }).click();
   await expect(page.locator('[role="treeitem"]').filter({ hasText: "SD1: Procesar descompuesto" })).toHaveAttribute("aria-current", "page");
 
-  await clickLinkPorTipo(page, "Consumo");
-  // Ronda 20 L1: SeccionReanclaje vive en el tab `Extremos` del Inspector enlace.
-  await irATabExtremos(page);
-  await expect(page.getByText("Reanclar a subproceso")).toBeVisible();
-  await page.getByTestId("reanclar-subproceso-select").selectOption({ label: "Procesar 2 (2)" });
-  await page.getByRole("button", { name: "Aplicar" }).click();
-  await expect(page.getByText("Derivado (manual)")).toBeVisible();
+  await expect(page.getByText("Enlaces externos derivados")).toBeVisible();
+  await page.getByTestId(/refinamiento-reasignar-/).selectOption({ label: "Procesar 2 (2)" });
+  await page.getByRole("button", { name: "Reasignar" }).click();
 
   const proceso2 = await elementoPorTexto(page, "Procesar 2").boundingBox();
   if (!proceso2) throw new Error("No se pudo ubicar Procesar 2");
@@ -722,3 +720,13 @@ test("HU-10.021: desplegar objeto crea OPD hijo y entrada en árbol jerárquico"
 
   expect(pageErrors).toEqual([]);
 });
+
+async function ejecutarAccionCommandPalette(page: Page, query: string, itemId: string): Promise<void> {
+  await page.keyboard.press("Control+k");
+  const palette = page.getByTestId("command-palette");
+  await expect(palette).toBeVisible();
+  await palette.getByRole("combobox").fill(query);
+  await expect(page.getByTestId(`command-palette-item-${itemId}`)).toBeVisible();
+  await page.keyboard.press("Enter");
+  await expect(page.getByTestId("command-palette")).toHaveCount(0);
+}

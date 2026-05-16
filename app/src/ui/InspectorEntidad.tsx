@@ -61,8 +61,6 @@ export function InspectorEntidad({ entidad }: Props) {
   const fijarAfiliacion = useOpmStore((s) => s.fijarAfiliacionSeleccionada);
   const descomponer = useOpmStore((s) => s.descomponerSeleccionada);
   const desplegar = useOpmStore((s) => s.desplegarSeleccionada);
-  const quitarDescomposicion = useOpmStore((s) => s.quitarDescomposicionSeleccionada);
-  const quitarDespliegue = useOpmStore((s) => s.quitarDespliegueSeleccionado);
   const reasignarEnlaceExternoManual = useOpmStore((s) => s.reasignarEnlaceExternoManual);
   const crearAutoInvocacion = useOpmStore((s) => s.crearAutoInvocacionSeleccionada);
   const cambiarModoPlegado = useOpmStore((s) => s.cambiarModoPlegadoSeleccionado);
@@ -221,8 +219,6 @@ export function InspectorEntidad({ entidad }: Props) {
             aparienciaActivaPresente={!!aparienciaActiva}
             onDescomponer={descomponer}
             onDesplegar={desplegar}
-            onQuitarDescomposicion={quitarDescomposicion}
-            onQuitarDespliegue={quitarDespliegue}
             onReasignarEnlaceExterno={reasignarEnlaceExternoManual}
             onCrearAutoInvocacion={crearAutoInvocacion}
             onCambiarModoPlegado={() => cambiarModoPlegado(modoPlegado === "parcial" ? "completo" : "parcial")}
@@ -405,8 +401,6 @@ interface PanelRefinamientoProps {
   apariencia: import("../modelo/tipos").Apariencia | undefined;
   onDescomponer: () => void;
   onDesplegar: (modo?: import("../modelo/tipos").ModoDespliegueObjeto) => void;
-  onQuitarDescomposicion: () => void;
-  onQuitarDespliegue: () => void;
   onReasignarEnlaceExterno: (opdId: Id, aparienciaEnlaceId: Id, nuevoSubprocesoId: Id) => void;
   onCrearAutoInvocacion: () => void;
   onCambiarModoPlegado: () => void;
@@ -450,8 +444,6 @@ function PanelRefinamiento(props: PanelRefinamientoProps) {
         parteExtraidaDe={props.parteExtraidaDe}
         onDescomponer={props.onDescomponer}
         onDesplegar={props.onDesplegar}
-        onQuitarDescomposicion={props.onQuitarDescomposicion}
-        onQuitarDespliegue={props.onQuitarDespliegue}
         onReasignarEnlaceExterno={props.onReasignarEnlaceExterno}
         onCrearAutoInvocacion={props.onCrearAutoInvocacion}
         onCambiarModoPlegado={props.onCambiarModoPlegado}
