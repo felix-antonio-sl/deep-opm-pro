@@ -171,6 +171,46 @@ test("L3 HoverTooltip describe cell OPM sin aria-live", async ({ page }) => {
   expect(pageErrors).toEqual([]);
 });
 
+test("L3 ciclo de feedback completo cubre barra, badge, toast y tooltip", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await cerrarPantallaInicioSiVisible(page);
+
+  await page.getByRole("button", { name: "Proceso", exact: true }).click();
+
+  const barra = page.getByTestId("barra-herramientas-elemento");
+  await expect(barra).toBeVisible();
+  await expect(barra).toHaveAttribute("role", "toolbar");
+  await expect(barra).toHaveAttribute("aria-label", /Acciones sobre Proceso/);
+
+  const badge = page.locator('[data-testid="error-badge"][data-regla-id="proceso-sin-entrada-ni-salida"]');
+  await expect(badge).toHaveCount(1);
+  await badge.first().click();
+
+  const panel = page.getByTestId("panel-diagnostico");
+  await expect(panel).toHaveAttribute("data-expandido", "true");
+  await expect(page.getByTestId("aviso-proceso-sin-entrada-ni-salida")).toHaveAttribute("data-resaltado", "true");
+
+  await elementoPorTexto(page, "Proceso").click();
+  await page.keyboard.press("Delete");
+  const toastEliminar = page.getByTestId("flash-toast").filter({ hasText: "Selección eliminada" });
+  await expect(toastEliminar).toBeVisible();
+  await expect(toastEliminar).toHaveAttribute("role", "status");
+  await expect(toastEliminar).toHaveAttribute("aria-live", "polite");
+
+  await page.getByRole("button", { name: "Objeto", exact: true }).click();
+  await elementoPorTexto(page, "Objeto").hover();
+
+  const tooltip = page.getByTestId("hover-tooltip");
+  await expect(tooltip).toBeVisible();
+  await expect(tooltip).toContainText("Objeto OPM");
+  await expect(tooltip).not.toHaveAttribute("aria-live", /.+/);
+
+  expect(pageErrors).toEqual([]);
+});
+
 test("L3 aviso se resuelve tras corregir el nombre del proceso", async ({ page }) => {
   const pageErrors: string[] = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));
