@@ -4,7 +4,9 @@ import { accionesContextualesEntidad, accionesParaSuperficie } from "../store/ac
 import { useOpmStore } from "../store";
 import { formatearCombo, listarAtajos, type RegistroAtajo } from "./atajosTeclado";
 import { primerEnlaceVisualDeEntidad } from "./BarraHerramientasElemento";
+import { useConfirmarSiDirty } from "./ConfirmacionContext";
 import { ejecutarAccionContextualEntidad } from "./ejecutarAccionContextual";
+import { normalizarGridConfig } from "../canvas/grid";
 import { tokens } from "./tokens";
 
 interface Props {
@@ -14,7 +16,7 @@ interface Props {
 
 export interface CommandPaletteItem {
   id: string;
-  tipo: "atajo" | "accion-contextual";
+  tipo: "atajo" | "accion-contextual" | "accion-menu";
   label: string;
   descripcion: string;
   categoria: string;
@@ -22,6 +24,17 @@ export interface CommandPaletteItem {
   atajo?: string;
   registroIndex?: number;
   accionId?: AccionContextualId;
+  menuActionId?: string;
+}
+
+export interface CommandPaletteMenuAction {
+  id: string;
+  label: string;
+  descripcion: string;
+  categoria: string;
+  atajo?: string;
+  enabled?: boolean;
+  run: () => void;
 }
 
 export function CommandPalette({ abierto, onCerrar }: Props) {
@@ -33,6 +46,27 @@ export function CommandPalette({ abierto, onCerrar }: Props) {
   const seleccionId = useOpmStore((s) => s.seleccionId);
   const enlaceEstiloPortapapeles = useOpmStore((s) => s.enlaceEstiloPortapapeles);
   const seleccionados = useOpmStore((s) => s.seleccionados);
+  const confirmarSiDirty = useConfirmarSiDirty();
+  const nuevoModelo = useOpmStore((s) => s.nuevoModelo);
+  const abrirCargarModelo = useOpmStore((s) => s.abrirCargarModelo);
+  const abrirGuardarComo = useOpmStore((s) => s.abrirGuardarComo);
+  const abrirRenombrarModelo = useOpmStore((s) => s.abrirRenombrarModelo);
+  const abrirDialogoGuardarPlantilla = useOpmStore((s) => s.abrirDialogoGuardarPlantilla);
+  const abrirDialogoPlantillas = useOpmStore((s) => s.abrirDialogoPlantillas);
+  const abrirDialogoArchivados = useOpmStore((s) => s.abrirDialogoArchivados);
+  const abrirDialogoVersiones = useOpmStore((s) => s.abrirDialogoVersiones);
+  const modeloPersistidoId = useOpmStore((s) => s.modeloPersistidoId);
+  const abrirVistaMapa = useOpmStore((s) => s.abrirVistaMapa);
+  const cerrarVistaMapa = useOpmStore((s) => s.cerrarVistaMapa);
+  const vistaMapaActiva = useOpmStore((s) => s.vistaMapaActiva);
+  const gridConfig = useOpmStore((s) => normalizarGridConfig(s.gridConfig ?? s.indice.preferenciasUi?.gridConfig));
+  const toggleGrid = useOpmStore((s) => s.toggleGrid);
+  const aplicarLayoutSugerido = useOpmStore((s) => s.aplicarLayoutSugerido);
+  const iniciarModoSimulacion = useOpmStore((s) => s.iniciarModoSimulacion);
+  const abrirTablaEnlaces = useOpmStore((s) => s.abrirTablaEnlaces);
+  const abrirDialogoImportarExportarJson = useOpmStore((s) => s.abrirDialogoImportarExportarJson);
+  const abrirCheatsheetAtajos = useOpmStore((s) => s.abrirCheatsheetAtajos);
+  const exportarJson = useOpmStore((s) => s.exportarJson);
 
   const entidad = seleccionId ? modelo.entidades[seleccionId] ?? null : null;
   const enlaceEstiloId = entidad ? primerEnlaceVisualDeEntidad(modelo, opdActivoId, entidad.id) : null;
@@ -46,9 +80,33 @@ export function CommandPalette({ abierto, onCerrar }: Props) {
     }),
     "command-palette",
   ).filter((accion) => accion.enabled);
+  const accionesMenu = construirAccionesMenuCommandPalette({
+    nuevoModelo: () => confirmarSiDirty(nuevoModelo),
+    abrirCargarModelo: () => confirmarSiDirty(abrirCargarModelo),
+    abrirGuardarComo,
+    abrirRenombrarModelo,
+    abrirDialogoGuardarPlantilla,
+    abrirDialogoPlantillas,
+    abrirDialogoArchivados,
+    abrirDialogoVersiones: modeloPersistidoId ? () => abrirDialogoVersiones(modeloPersistidoId) : null,
+    modeloPersistidoId,
+    toggleMapaSistema: vistaMapaActiva ? cerrarVistaMapa : abrirVistaMapa,
+    vistaMapaActiva,
+    toggleGrid,
+    gridActiva: gridConfig.activa,
+    aplicarLayoutSugerido,
+    iniciarModoSimulacion,
+    abrirTablaEnlaces,
+    abrirDialogoImportarExportarJson,
+    abrirCheatsheetAtajos,
+    exportarJson: () => {
+      const json = exportarJson();
+      void globalThis.navigator?.clipboard?.writeText(json);
+    },
+  });
   const registros = listarAtajos();
   const items = filtrarItemsCommandPalette(
-    construirItemsCommandPalette(registros, accionesContextuales),
+    construirItemsCommandPalette(registros, accionesContextuales, accionesMenu),
     query,
   ).slice(0, 60);
   const itemActivo = items[activo] ?? items[0] ?? null;
@@ -75,6 +133,8 @@ export function CommandPalette({ abierto, onCerrar }: Props) {
       ejecutarAccionContextualEntidad(item.accionId, {
         onEditarAlias: () => enfocarSeccionInspector("inspector-seccion-alias"),
       });
+    } else if (item.menuActionId) {
+      accionesMenu.find((accion) => accion.id === item.menuActionId)?.run();
     }
     onCerrar();
   };
@@ -169,6 +229,7 @@ export function CommandPalette({ abierto, onCerrar }: Props) {
 export function construirItemsCommandPalette(
   registros: readonly RegistroAtajo[],
   acciones: readonly AccionContextual[],
+  accionesMenu: readonly CommandPaletteMenuAction[] = [],
 ): CommandPaletteItem[] {
   const itemsAtajos = registros.map((registro, index) => {
     const label = registro.etiqueta ?? registro.descripcion;
@@ -194,10 +255,65 @@ export function construirItemsCommandPalette(
     accionId: accion.id,
     textoBusqueda: textoBusqueda([accion.label, accion.categoria, accion.atajo ?? ""]),
   }));
-  return [...itemsAcciones, ...itemsAtajos].sort((a, b) => {
+  const itemsMenu = accionesMenu
+    .filter((accion) => accion.enabled !== false)
+    .map((accion) => ({
+      id: `menu-${accion.id}`,
+      tipo: "accion-menu" as const,
+      label: accion.label,
+      descripcion: accion.descripcion,
+      categoria: accion.categoria,
+      ...(accion.atajo ? { atajo: accion.atajo } : {}),
+      menuActionId: accion.id,
+      textoBusqueda: textoBusqueda([accion.label, accion.descripcion, accion.categoria, accion.atajo ?? ""]),
+    }));
+  return [...itemsAcciones, ...itemsAtajos, ...itemsMenu].sort((a, b) => {
     const categoria = a.categoria.localeCompare(b.categoria, "es");
     return categoria === 0 ? a.label.localeCompare(b.label, "es") : categoria;
   });
+}
+
+interface AccionesMenuCommandPaletteDeps {
+  nuevoModelo: () => void;
+  abrirCargarModelo: () => void;
+  abrirGuardarComo: () => void;
+  abrirRenombrarModelo: () => void;
+  abrirDialogoGuardarPlantilla: () => void;
+  abrirDialogoPlantillas: () => void;
+  abrirDialogoArchivados: () => void;
+  abrirDialogoVersiones: (() => void) | null;
+  modeloPersistidoId: string | null;
+  toggleMapaSistema: () => void;
+  vistaMapaActiva: boolean;
+  toggleGrid: () => void;
+  gridActiva: boolean;
+  aplicarLayoutSugerido: () => void;
+  iniciarModoSimulacion: () => void;
+  abrirTablaEnlaces: () => void;
+  abrirDialogoImportarExportarJson: () => void;
+  abrirCheatsheetAtajos: () => void;
+  exportarJson: () => void;
+}
+
+function construirAccionesMenuCommandPalette(deps: AccionesMenuCommandPaletteDeps): CommandPaletteMenuAction[] {
+  return [
+    { id: "nuevo-modelo", label: "Nuevo modelo", descripcion: "Crear un modelo vacío", categoria: "archivo", run: deps.nuevoModelo },
+    { id: "cargar-modelo", label: "Cargar modelo", descripcion: "Abrir un modelo guardado del workspace", categoria: "archivo", run: deps.abrirCargarModelo },
+    { id: "guardar-como", label: "Guardar como", descripcion: "Guardar una copia editable del modelo", categoria: "archivo", run: deps.abrirGuardarComo },
+    { id: "renombrar-modelo", label: "Renombrar modelo", descripcion: "Cambiar el nombre del modelo actual", categoria: "archivo", enabled: !!deps.modeloPersistidoId, run: deps.abrirRenombrarModelo },
+    { id: "guardar-plantilla", label: "Guardar como plantilla", descripcion: "Crear una plantilla privada desde la selección", categoria: "archivo", run: deps.abrirDialogoGuardarPlantilla },
+    { id: "plantillas", label: "Plantillas", descripcion: "Abrir el catálogo de plantillas privadas", categoria: "archivo", run: deps.abrirDialogoPlantillas },
+    { id: "archivados", label: "Archivados", descripcion: "Abrir modelos archivados del workspace", categoria: "archivo", run: deps.abrirDialogoArchivados },
+    { id: "versiones-modelo", label: "Versiones del modelo", descripcion: "Abrir el historial de versiones del modelo", categoria: "archivo", enabled: !!deps.abrirDialogoVersiones, run: deps.abrirDialogoVersiones ?? (() => {}) },
+    { id: "importar-exportar-json", label: "Importar/Exportar JSON", descripcion: "Abrir el modal de persistencia JSON", categoria: "archivo", run: deps.abrirDialogoImportarExportarJson },
+    { id: "exportar-json", label: "Exportar JSON al portapapeles", descripcion: "Copiar el JSON OPM actual al portapapeles", categoria: "archivo", run: deps.exportarJson },
+    { id: "mapa-sistema", label: deps.vistaMapaActiva ? "Cerrar mapa del sistema" : "Mapa del sistema", descripcion: "Alternar la vista de mapa del sistema", categoria: "vista", run: deps.toggleMapaSistema },
+    { id: "simulacion-conceptual", label: "Simulación conceptual", descripcion: "Entrar al modo de simulación del modelo", categoria: "vista", run: deps.iniciarModoSimulacion },
+    { id: "grid-canvas", label: deps.gridActiva ? "Ocultar grid del canvas" : "Mostrar grid del canvas", descripcion: "Alternar la grilla visual del canvas", categoria: "vista", run: deps.toggleGrid },
+    { id: "auto-layout", label: "Auto-layout", descripcion: "Aplicar layout sugerido al OPD activo", categoria: "vista", run: deps.aplicarLayoutSugerido },
+    { id: "tabla-enlaces", label: "Tabla de enlaces", descripcion: "Abrir la tabla de enlaces del modelo", categoria: "vista", run: deps.abrirTablaEnlaces },
+    { id: "atajos-teclado", label: "Atajos de teclado", descripcion: "Mostrar la referencia de atajos registrados", categoria: "navegacion", run: deps.abrirCheatsheetAtajos },
+  ];
 }
 
 export function filtrarItemsCommandPalette(items: readonly CommandPaletteItem[], query: string): CommandPaletteItem[] {
