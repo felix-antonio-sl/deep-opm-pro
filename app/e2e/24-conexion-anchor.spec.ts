@@ -72,6 +72,9 @@ test("teclado conecta foco origen y destino mediante MenuTipoEnlace", async ({ p
   await entrada.focus();
   await page.keyboard.press("Enter");
   await expect(page.getByTestId("indicador-modo-canonico")).toHaveAttribute("data-modo", "conectar");
+  await expect(page.getByTestId("indicador-modo-canonico")).toHaveAttribute("role", "status");
+  await expect(page.getByTestId("indicador-modo-canonico")).toHaveAttribute("aria-live", "polite");
+  await expect(page.getByTestId("viewpoint-heading")).toHaveText("Workbench OPM - conectando");
 
   await page.keyboard.press("Tab");
   await expect.poll(() => page.evaluate(() => document.activeElement?.getAttribute("aria-label") ?? "")).toContain("Proceso Procesar");

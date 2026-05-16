@@ -22,6 +22,7 @@ import { configurarContextoAtajos, escucharGlobal, registrarAtajo } from "./ataj
 import { modeloTieneContenidoVisible } from "./bienvenida";
 import { ConfirmacionProvider } from "./ConfirmacionContext";
 import { resolverContextoWorkbench } from "./contexto";
+import { tituloViewPointWorkbench } from "./contextoWorkbench";
 import { DivisorPanel } from "./divisorPanel";
 import { EstadoVacioOpm } from "./EstadoVacioOpm";
 import { Inspector } from "./Inspector";
@@ -157,6 +158,9 @@ export function App() {
         data-viewpoint-default={contextoWorkbench.viewPointDefault ? "true" : "false"}
       >
         <MensajeFlashBridge />
+        <h1 data-testid="viewpoint-heading" style={layout.srOnly}>
+          {tituloViewPointWorkbench(contextoWorkbench)}
+        </h1>
         {contextoWorkbench.modo === "simulacion" ? <BarraSimulacion /> : <Toolbar />}
         <MenuPrincipal />
         <BarraPestanas />
@@ -574,6 +578,17 @@ const layout = {
     minWidth: 0,
     minHeight: "100%",
     overflow: "auto",
+  },
+  srOnly: {
+    position: "absolute",
+    width: "1px",
+    height: "1px",
+    padding: 0,
+    margin: "-1px",
+    overflow: "hidden",
+    clip: "rect(0 0 0 0)",
+    whiteSpace: "nowrap",
+    border: 0,
   },
 } satisfies Record<string, preact.JSX.CSSProperties>;
 

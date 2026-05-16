@@ -172,7 +172,7 @@ export function ToolbarCreacion() {
       {/* y contextoSimulacion son mutuamente excluyentes. */}
       {modoEnlace ? (
         <>
-          <span style={style.stickyBadge} data-testid="indicador-modo-canonico" data-modo="conectar">
+          <span role="status" aria-live="polite" style={style.stickyBadge} data-testid="indicador-modo-canonico" data-modo="conectar">
             Conectando: {TIPOS_ENLACE.find((item) => item.tipo === modoEnlace.tipo)?.label ?? modoEnlace.tipo} · selecciona destino · Esc cancela
           </span>
           {mostrarNudgeAnchor ? (
@@ -183,7 +183,7 @@ export function ToolbarCreacion() {
         </>
       ) : modoCreacion ? (
         <>
-          <span style={style.stickyBadge} data-testid="indicador-modo-canonico" data-modo={`insertar-${modoCreacion}`}>
+          <span role="status" aria-live="polite" style={style.stickyBadge} data-testid="indicador-modo-canonico" data-modo={`insertar-${modoCreacion}`}>
             Insertando {modoCreacion === "objeto" ? "objetos" : "procesos"} · Esc para salir
           </span>
           <button style={style.secondaryButton} type="button" onClick={handleCancelarCreacion} title="Salir del modo creación sticky">Cancelar</button>

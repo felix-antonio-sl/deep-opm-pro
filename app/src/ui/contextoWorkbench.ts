@@ -81,3 +81,13 @@ export function resolverContextoWorkbench(input: ResolverContextoWorkbenchInput)
     viewPointDefault: viewPoint === "Edicion",
   };
 }
+
+export function tituloViewPointWorkbench(contexto: Pick<ContextoWorkbench, "viewPoint" | "subModo">): string {
+  if (contexto.viewPoint === "Bienvenida") return "Bienvenida deep-opm-pro";
+  if (contexto.viewPoint === "Mobile") return "Revisión mobile OPM";
+  if (contexto.viewPoint === "Mapa") return "Mapa del sistema OPM";
+  if (contexto.viewPoint === "Simulacion") return "Simulación conceptual OPM";
+  if (contexto.subModo === "conectando") return "Workbench OPM - conectando";
+  if (contexto.subModo === "insertando") return "Workbench OPM - inserción continua";
+  return "Workbench OPM - edición";
+}

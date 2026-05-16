@@ -5,6 +5,7 @@ import {
   resolverContextSubModoWorkbench,
   resolverContextoWorkbench,
   resolverViewPointWorkbench,
+  tituloViewPointWorkbench,
 } from "./contextoWorkbench";
 
 describe("resolverContextDeviceWorkbench — Context.Device IFML", () => {
@@ -117,5 +118,17 @@ describe("resolverContextoWorkbench — contrato integrado", () => {
       viewPoint: "Bienvenida",
       viewPointDefault: false,
     });
+  });
+});
+
+describe("tituloViewPointWorkbench — heading accesible del ViewPoint", () => {
+  test("nombra los ViewPoints top-level y submodos de edicion", () => {
+    expect(tituloViewPointWorkbench({ viewPoint: "Edicion", subModo: null })).toBe("Workbench OPM - edición");
+    expect(tituloViewPointWorkbench({ viewPoint: "Edicion", subModo: "conectando" })).toBe("Workbench OPM - conectando");
+    expect(tituloViewPointWorkbench({ viewPoint: "Edicion", subModo: "insertando" })).toBe("Workbench OPM - inserción continua");
+    expect(tituloViewPointWorkbench({ viewPoint: "Mapa", subModo: null })).toBe("Mapa del sistema OPM");
+    expect(tituloViewPointWorkbench({ viewPoint: "Simulacion", subModo: null })).toBe("Simulación conceptual OPM");
+    expect(tituloViewPointWorkbench({ viewPoint: "Mobile", subModo: null })).toBe("Revisión mobile OPM");
+    expect(tituloViewPointWorkbench({ viewPoint: "Bienvenida", subModo: null })).toBe("Bienvenida deep-opm-pro");
   });
 });
