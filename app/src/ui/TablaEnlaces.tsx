@@ -15,12 +15,15 @@ interface FilaEnlace {
   origen: string;
   destino: string;
   tipo: TipoEnlace;
+  familia: "estructural" | "procedural";
   etiqueta: string;
   multOrigen: string;
   multDestino: string;
   opds: string;
   opdsCount: number;
 }
+
+type FiltroFamiliaEnlace = "todos" | "procedural" | "estructural";
 
 const COLUMNAS: ReadonlyArray<{ clave: keyof FilaEnlace; label: string; sortable: boolean }> = [
   { clave: "tipo", label: "Tipo", sortable: true },
@@ -96,14 +99,24 @@ function TablaEnlacesContenido(props: ContenidoProps) {
 
   // Confirmación de borrado por fila (toggle); se resetea al cerrar/cambiar selección.
   const [confirmandoEliminar, setConfirmandoEliminar] = useState<Id | null>(null);
+  const [query, setQuery] = useState("");
+  const [filtroFamilia, setFiltroFamilia] = useState<FiltroFamiliaEnlace>("todos");
   // Ref a la fila seleccionada para scrollIntoView automático.
   const filaSeleccionadaRef = useRef<HTMLTableRowElement | null>(null);
 
   // Construir filas del modelo entero (cross-OPD).
+  const filasBase: FilaEnlace[] = useMemo(
+    () => Object.values(modelo.enlaces).map((enlace) => construirFila(modelo, enlace)),
+    [modelo],
+  );
   const filas: FilaEnlace[] = useMemo(() => {
-    const lista = Object.values(modelo.enlaces)
-      .filter((enlace) => filtroTipo === "todos" || enlace.tipo === filtroTipo)
-      .map((enlace) => construirFila(modelo, enlace));
+    const q = normalizarBusqueda(query);
+    const lista = filasBase.filter((fila) => {
+      if (filtroTipo !== "todos" && fila.tipo !== filtroTipo) return false;
+      if (filtroFamilia !== "todos" && fila.familia !== filtroFamilia) return false;
+      if (!q) return true;
+      return textoBusquedaFila(fila).includes(q);
+    });
     if (ordenColumna) {
       lista.sort((a, b) => {
         const aVal = String((a as unknown as Record<string, unknown>)[ordenColumna] ?? "");
@@ -113,7 +126,11 @@ function TablaEnlacesContenido(props: ContenidoProps) {
       });
     }
     return lista;
-  }, [modelo, filtroTipo, ordenColumna, ordenDireccion]);
+  }, [filasBase, filtroFamilia, filtroTipo, ordenColumna, ordenDireccion, query]);
+
+  const totalEnlaces = filasBase.length;
+  const conteoFamilias = useMemo(() => contarFamilias(filasBase), [filasBase]);
+  const filtrosActivos = query.trim() || filtroTipo !== "todos" || filtroFamilia !== "todos";
 
   // Reset de confirmación de borrado cuando cambia la selección externa.
   useEffect(() => {
@@ -152,7 +169,7 @@ function TablaEnlacesContenido(props: ContenidoProps) {
     >
       <div style={panelStyle}>
         <div style={headerStyle}>
-          <h2 style={titleStyle}>Tabla de Enlaces ({filas.length})</h2>
+          <h2 style={titleStyle}>Tabla de Enlaces ({filas.length}/{totalEnlaces})</h2>
           <button
             type="button"
             style={closeButtonStyle}
@@ -165,33 +182,93 @@ function TablaEnlacesContenido(props: ContenidoProps) {
         </div>
 
         <div style={toolbarStyle}>
-          <label style={filterLabelStyle}>
-            Filtrar:
-            <select
-              style={filterSelectStyle}
-              value={filtroTipo}
-              onChange={(e) => onFiltro(e.currentTarget.value as TipoEnlace | "todos")}
-              data-testid="tabla-enlaces-filtro"
-              aria-label="Filtrar por tipo de enlace"
-            >
-              <option value="todos">Todos</option>
-              <option value="agregacion">Agregación</option>
-              <option value="exhibicion">Exhibición</option>
-              <option value="generalizacion">Generalización</option>
-              <option value="clasificacion">Clasificación</option>
-              <option value="etiquetado">Etiquetado</option>
-              <option value="etiquetadoBidireccional">Etiquetado bidireccional</option>
-              <option value="agente">Agente</option>
-              <option value="instrumento">Instrumento</option>
-              <option value="consumo">Consumo</option>
-              <option value="resultado">Resultado</option>
-              <option value="efecto">Efecto</option>
-              <option value="invocacion">Invocación</option>
-              <option value="excepcionSobretiempo">Excepción sobretiempo</option>
-              <option value="excepcionSubtiempo">Excepción subtiempo</option>
-              <option value="excepcionSubSobretiempo">Excepción sub/sobretiempo</option>
-            </select>
-          </label>
+          <div style={toolbarRowStyle}>
+            <label style={searchLabelStyle}>
+              <span style={labelTextStyle}>Buscar</span>
+              <input
+                type="search"
+                style={searchInputStyle}
+                value={query}
+                onInput={(e) => setQuery(e.currentTarget.value)}
+                placeholder="Origen, destino, etiqueta, tipo u OPD..."
+                aria-label="Buscar enlaces por origen, destino, etiqueta, tipo u OPD"
+                data-testid="tabla-enlaces-buscar"
+              />
+            </label>
+            <label style={filterLabelStyle}>
+              Tipo
+              <select
+                style={filterSelectStyle}
+                value={filtroTipo}
+                onChange={(e) => onFiltro(e.currentTarget.value as TipoEnlace | "todos")}
+                data-testid="tabla-enlaces-filtro"
+                aria-label="Filtrar por tipo de enlace"
+              >
+                <option value="todos">Todos</option>
+                <option value="agregacion">Agregación</option>
+                <option value="exhibicion">Exhibición</option>
+                <option value="generalizacion">Generalización</option>
+                <option value="clasificacion">Clasificación</option>
+                <option value="etiquetado">Etiquetado</option>
+                <option value="etiquetadoBidireccional">Etiquetado bidireccional</option>
+                <option value="agente">Agente</option>
+                <option value="instrumento">Instrumento</option>
+                <option value="consumo">Consumo</option>
+                <option value="resultado">Resultado</option>
+                <option value="efecto">Efecto</option>
+                <option value="invocacion">Invocación</option>
+                <option value="excepcionSobretiempo">Excepción sobretiempo</option>
+                <option value="excepcionSubtiempo">Excepción subtiempo</option>
+                <option value="excepcionSubSobretiempo">Excepción sub/sobretiempo</option>
+              </select>
+            </label>
+            <div role="group" aria-label="Filtrar por familia de enlace" style={familiaGroupStyle}>
+              <button
+                type="button"
+                style={filtroFamilia === "todos" ? familiaButtonActiveStyle : familiaButtonStyle}
+                aria-pressed={filtroFamilia === "todos"}
+                data-testid="tabla-enlaces-familia-todos"
+                onClick={() => setFiltroFamilia("todos")}
+              >
+                Todos {totalEnlaces}
+              </button>
+              <button
+                type="button"
+                style={filtroFamilia === "procedural" ? familiaButtonActiveStyle : familiaButtonStyle}
+                aria-pressed={filtroFamilia === "procedural"}
+                data-testid="tabla-enlaces-familia-procedural"
+                onClick={() => setFiltroFamilia("procedural")}
+              >
+                Procedurales {conteoFamilias.procedural}
+              </button>
+              <button
+                type="button"
+                style={filtroFamilia === "estructural" ? familiaButtonActiveStyle : familiaButtonStyle}
+                aria-pressed={filtroFamilia === "estructural"}
+                data-testid="tabla-enlaces-familia-estructural"
+                onClick={() => setFiltroFamilia("estructural")}
+              >
+                Estructurales {conteoFamilias.estructural}
+              </button>
+            </div>
+            {filtrosActivos ? (
+              <button
+                type="button"
+                style={clearFiltersStyle}
+                data-testid="tabla-enlaces-limpiar-filtros"
+                onClick={() => {
+                  setQuery("");
+                  setFiltroFamilia("todos");
+                  onFiltro("todos");
+                }}
+              >
+                Limpiar
+              </button>
+            ) : null}
+          </div>
+          <div style={summaryStyle} role="status" aria-live="polite" data-testid="tabla-enlaces-contador">
+            {filas.length} de {totalEnlaces} enlaces · {conteoFamilias.procedural} procedurales · {conteoFamilias.estructural} estructurales
+          </div>
         </div>
 
         <div style={tableContainerStyle}>
@@ -553,6 +630,7 @@ function construirFila(modelo: Modelo, enlace: Enlace): FilaEnlace {
     origen: nombreExtremo(modelo, enlace.origenId.id),
     destino: nombreExtremo(modelo, enlace.destinoId.id),
     tipo: enlace.tipo,
+    familia: naturalezaDeEnlace(enlace.tipo),
     etiqueta: enlace.etiqueta,
     multOrigen: enlace.multiplicidadOrigen ?? "",
     multDestino: enlace.multiplicidadDestino ?? "",
@@ -570,6 +648,38 @@ function nombreExtremo(modelo: Modelo, extremoId: string): string {
     return portadora ? `${portadora.nombre}.${estado.nombre}` : estado.nombre;
   }
   return extremoId;
+}
+
+function textoBusquedaFila(fila: FilaEnlace): string {
+  return normalizarBusqueda([
+    fila.tipo,
+    fila.familia,
+    capitalizar(fila.tipo),
+    fila.origen,
+    fila.destino,
+    fila.etiqueta,
+    fila.multOrigen,
+    fila.multDestino,
+    fila.opds,
+  ].join(" "));
+}
+
+function normalizarBusqueda(texto: string): string {
+  return texto
+    .trim()
+    .toLocaleLowerCase("es-CL")
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "");
+}
+
+function contarFamilias(filas: FilaEnlace[]): Record<"procedural" | "estructural", number> {
+  return filas.reduce(
+    (acc, fila) => {
+      acc[fila.familia] += 1;
+      return acc;
+    },
+    { procedural: 0, estructural: 0 },
+  );
 }
 
 function capitalizar(texto: string): string {
@@ -637,6 +747,42 @@ const toolbarStyle: preact.JSX.CSSProperties = {
   background: tokens.colors.fondoTabla,
 };
 
+const toolbarRowStyle: preact.JSX.CSSProperties = {
+  display: "flex",
+  alignItems: "center",
+  gap: "12px",
+  flexWrap: "wrap",
+};
+
+const searchLabelStyle: preact.JSX.CSSProperties = {
+  flex: "1 1 280px",
+  minWidth: "240px",
+  display: "grid",
+  gap: "4px",
+  fontSize: `${tokens.typography.sizes.sm}px`,
+  fontWeight: tokens.typography.weights.semibold,
+  color: tokens.colors.textoSecundario,
+};
+
+const labelTextStyle: preact.JSX.CSSProperties = {
+  fontSize: `${tokens.typography.sizes.xs}px`,
+  color: tokens.colors.textoTerciario,
+  fontWeight: tokens.typography.weights.bold,
+  textTransform: "uppercase",
+};
+
+const searchInputStyle: preact.JSX.CSSProperties = {
+  width: "100%",
+  minHeight: "32px",
+  padding: "0 10px",
+  border: `1px solid ${tokens.colors.bordeControl}`,
+  borderRadius: tokens.radii.sm,
+  background: tokens.colors.fondoChrome,
+  color: tokens.colors.textoPrimario,
+  fontSize: `${tokens.typography.sizes.md}px`,
+  outlineColor: tokens.colors.chromeNeutral,
+};
+
 const filterLabelStyle: preact.JSX.CSSProperties = {
   display: "flex",
   alignItems: "center",
@@ -653,6 +799,54 @@ const filterSelectStyle: preact.JSX.CSSProperties = {
   borderRadius: tokens.radii.sm,
   fontSize: `${tokens.typography.sizes.md}px`,
   outlineColor: tokens.colors.chromeNeutral,
+};
+
+const familiaGroupStyle: preact.JSX.CSSProperties = {
+  display: "inline-flex",
+  alignItems: "center",
+  gap: "4px",
+  padding: "3px",
+  border: `1px solid ${tokens.colors.bordeControl}`,
+  borderRadius: tokens.radii.md,
+  background: tokens.colors.fondoChrome,
+};
+
+const familiaButtonStyle: preact.JSX.CSSProperties = {
+  minHeight: "28px",
+  padding: "0 9px",
+  border: "1px solid transparent",
+  borderRadius: tokens.radii.sm,
+  background: "transparent",
+  color: tokens.colors.textoSecundario,
+  cursor: "pointer",
+  fontSize: `${tokens.typography.sizes.xs}px`,
+  fontWeight: tokens.typography.weights.semibold,
+};
+
+const familiaButtonActiveStyle: preact.JSX.CSSProperties = {
+  ...familiaButtonStyle,
+  border: `1px solid ${tokens.colors.infoBordeSuave}`,
+  background: tokens.colors.infoFondoClaro,
+  color: tokens.colors.azulProfundo,
+};
+
+const clearFiltersStyle: preact.JSX.CSSProperties = {
+  minHeight: "32px",
+  padding: "0 10px",
+  border: `1px solid ${tokens.colors.bordeControl}`,
+  borderRadius: tokens.radii.sm,
+  background: tokens.colors.fondoCard,
+  color: tokens.colors.textoSecundario,
+  cursor: "pointer",
+  fontSize: `${tokens.typography.sizes.sm}px`,
+  fontWeight: tokens.typography.weights.semibold,
+};
+
+const summaryStyle: preact.JSX.CSSProperties = {
+  marginTop: "8px",
+  color: tokens.colors.textoTerciario,
+  fontSize: `${tokens.typography.sizes.xs}px`,
+  fontWeight: tokens.typography.weights.semibold,
 };
 
 const tableContainerStyle: preact.JSX.CSSProperties = {

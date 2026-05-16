@@ -13,7 +13,7 @@
  */
 
 import { expect, test } from "@playwright/test";
-import { cerrarPantallaInicioSiVisible, jsonEditor, modeloEjemploOrganizacionalSmoke } from "./_smoke-helpers";
+import { cerrarPantallaInicioSiVisible, jsonEditor, modeloEjemploOrganizacionalSmoke, modeloMarkersCanonicos } from "./_smoke-helpers";
 
 async function abrirTablaPorMenu(page: import("@playwright/test").Page): Promise<void> {
   await page.getByLabel("Menú principal").click();
@@ -105,6 +105,47 @@ test("workbench Beta1: ordenamiento por columna alterna ascendente/descendente",
   await expect(colTipo).toHaveAttribute("aria-sort", "ascending");
   await expect(page.getByTestId("tabla-enlaces-fila").first()
     .getByTestId("tabla-enlaces-celda-tipo")).toHaveText("Agente");
+
+  expect(pageErrors).toEqual([]);
+});
+
+test("workbench denso: busca enlaces y filtra por familia sin perder contexto", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  const modelo = modeloMarkersCanonicos();
+  modelo.modelo.enlaces["e-agent"].etiqueta = "rol clinico";
+  await jsonEditor(page).fill(JSON.stringify(modelo, null, 2));
+  await page.getByRole("button", { name: "Importar" }).click();
+  await abrirTablaPorMenu(page);
+
+  await expect(page.getByTestId("tabla-enlaces-fila")).toHaveCount(10);
+  await expect(page.getByTestId("tabla-enlaces-contador")).toContainText("10 de 10 enlaces");
+  await expect(page.getByTestId("tabla-enlaces-contador")).toContainText("6 procedurales");
+  await expect(page.getByTestId("tabla-enlaces-contador")).toContainText("4 estructurales");
+
+  await page.getByTestId("tabla-enlaces-familia-procedural").click();
+  await expect(page.getByTestId("tabla-enlaces-fila")).toHaveCount(6);
+  await expect(page.getByTestId("tabla-enlaces-familia-procedural")).toHaveAttribute("aria-pressed", "true");
+
+  await page.getByTestId("tabla-enlaces-buscar").fill("rol clinico");
+  await expect(page.getByTestId("tabla-enlaces-fila")).toHaveCount(1);
+  await expect(page.getByTestId("tabla-enlaces-fila").first()).toContainText("Agente");
+
+  await page.getByTestId("tabla-enlaces-limpiar-filtros").click();
+  await expect(page.getByTestId("tabla-enlaces-fila")).toHaveCount(10);
+  await expect(page.getByTestId("tabla-enlaces-familia-todos")).toHaveAttribute("aria-pressed", "true");
+
+  await page.getByTestId("tabla-enlaces-familia-estructural").click();
+  await expect(page.getByTestId("tabla-enlaces-fila")).toHaveCount(4);
+  await page.getByTestId("tabla-enlaces-buscar").fill("Caracteristica");
+  await expect(page.getByTestId("tabla-enlaces-fila")).toHaveCount(1);
+  await expect(page.getByTestId("tabla-enlaces-fila").first()
+    .getByTestId("tabla-enlaces-celda-tipo")).toHaveText("Exhibicion");
+
+  await page.getByTestId("tabla-enlaces-buscar").fill("SD");
+  await expect(page.getByTestId("tabla-enlaces-fila")).toHaveCount(4);
 
   expect(pageErrors).toEqual([]);
 });
