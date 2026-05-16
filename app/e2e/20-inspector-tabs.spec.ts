@@ -133,6 +133,41 @@ test("tab Apariciones lista OPDs y navega cross-OPD con un click", async ({ page
   expect(pageErrors).toEqual([]);
 });
 
+test("tab Enlaces lista in/out y navega al inspector del enlace", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await cerrarPantallaInicioSiVisible(page);
+  await page.getByRole("button", { name: "Objeto", exact: true }).click();
+  await page.getByLabel("Nombre").fill("Entrada");
+  await page.getByRole("button", { name: "Proceso", exact: true }).click();
+  await page.getByLabel("Nombre").fill("Procesar");
+  await elementoPorTexto(page, "Entrada").click();
+  await elegirTipoEnlaceDesdeMenu(page, "consumo");
+  await elementoPorTexto(page, "Procesar").click();
+
+  await elementoPorTexto(page, "Entrada").click();
+  await page.getByTestId("inspector-tab-enlaces").click();
+  await expect(page.getByTestId("inspector-tab-enlaces")).toHaveAttribute("aria-selected", "true");
+
+  const salientes = page.getByTestId("inspector-enlaces-salientes");
+  await expect(salientes).toContainText("Salientes (1)");
+  await expect(salientes).toContainText("consumo");
+  await expect(salientes).toContainText("Procesar");
+  await expect(salientes).toContainText("SD");
+
+  const fila = page.locator('[data-testid^="inspector-enlaces-fila-"]').first();
+  await expect(fila).toHaveAttribute("data-ifml-event", "SelectEvent");
+  await expect(fila).toHaveAttribute("data-ifml-flow", "NavigationFlow");
+  await fila.click();
+
+  await expect(page.getByTestId("inspector")).toHaveAttribute("data-modo-inspector", "enlace");
+  await expect(page.getByTestId("inspector-enlace-tab-propiedades")).toHaveAttribute("aria-selected", "true");
+
+  expect(pageErrors).toEqual([]);
+});
+
 test("inspector de enlace expone 3 tabs simétricos con default Propiedades", async ({ page }) => {
   const pageErrors: string[] = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));

@@ -13,6 +13,7 @@ import { SeccionApariciones } from "./inspector/SeccionApariciones";
 import { SeccionAtributo } from "./inspector/SeccionAtributo";
 import { SeccionDescripcion } from "./inspector/SeccionDescripcion";
 import { SeccionEsenciaAfiliacion } from "./inspector/SeccionEsenciaAfiliacion";
+import { SeccionEnlaces } from "./inspector/SeccionEnlaces";
 import { SeccionImagen } from "./inspector/SeccionImagen";
 import { SeccionLayoutEstados } from "./inspector/SeccionLayoutEstados";
 import { SeccionRefinamiento, OPCIONES_DESPLIEGUE_OBJETO } from "./inspector/SeccionRefinamiento";
@@ -54,6 +55,7 @@ export function InspectorEntidad({ entidad }: Props) {
   const tabActivo = useOpmStore((s) => s.tabInspectorEntidadActivo);
   const cambiarTab = useOpmStore((s) => s.cambiarTabInspectorEntidad);
   const cambiarOpdActivo = useOpmStore((s) => s.cambiarOpdActivo);
+  const navegarAEnlace = useOpmStore((s) => s.navegarAEnlaceDesdeTabla);
   const renombrar = useOpmStore((s) => s.renombrarSeleccionada);
   const fijarEsencia = useOpmStore((s) => s.fijarEsenciaSeleccionada);
   const fijarAfiliacion = useOpmStore((s) => s.fijarAfiliacionSeleccionada);
@@ -200,7 +202,7 @@ export function InspectorEntidad({ entidad }: Props) {
           />
         ) : null}
         {tabActivo === "enlaces" ? (
-          <PanelEnlaces cobertura={cobertura} />
+          <SeccionEnlaces modelo={modelo} entidad={entidad} onNavegarEnlace={navegarAEnlace} />
         ) : null}
         {tabActivo === "refinamiento" ? (
           <PanelRefinamiento
@@ -381,32 +383,6 @@ function PanelSemantica(props: PanelSemanticaProps) {
         />
       ) : null}
     </>
-  );
-}
-
-// ── Panel: Enlaces ─────────────────────────────────────────────────────────
-
-interface PanelEnlacesProps {
-  cobertura: { totalApariencias: number; opdsConEntidad: number };
-}
-
-function PanelEnlaces({ cobertura }: PanelEnlacesProps) {
-  // Slice mínimo: el panel Enlaces es por ahora un placeholder honesto que
-  // muestra cobertura cross-OPD y delega al canvas la selección de enlaces.
-  // Iteración futura (ver brief §1): listar enlaces in/out con su tipo y
-  // contraparte. Mantenemos el panel presente para que el tab "Enlaces"
-  // siempre tenga afordancia legible, evitando un tab vacío.
-  return (
-    <div data-testid="inspector-panel-enlaces-contenido">
-      <p style={style.empty}>
-        Selecciona un enlace en el canvas o en el panel OPL para inspeccionarlo y editarlo.
-      </p>
-      {cobertura.opdsConEntidad >= 2 ? (
-        <p style={style.empty}>
-          {`Esta cosa participa en enlaces visibles en ${cobertura.opdsConEntidad} OPDs distintos.`}
-        </p>
-      ) : null}
-    </div>
   );
 }
 
