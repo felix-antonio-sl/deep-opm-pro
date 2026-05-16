@@ -36,6 +36,14 @@ export interface AccionContextual {
   destructiva?: boolean;
 }
 
+export type ActionEventKind = "normal" | "exceptional";
+
+export interface ActionEvent {
+  actionId: AccionContextualId;
+  kind: ActionEventKind;
+  reason?: string;
+}
+
 export interface ContextoAccionesEntidad {
   entidad: Entidad | null;
   enlace?: Enlace | null;

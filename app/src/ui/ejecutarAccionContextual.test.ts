@@ -11,7 +11,10 @@ describe("ejecutarAccionContextualEntidad", () => {
     store.getState().importarJson(exportarModelo(modelo));
     store.getState().seleccionarEntidad(entidadId);
 
-    expect(ejecutarAccionContextualEntidad("quitar-descomposicion")).toBe(true);
+    expect(ejecutarAccionContextualEntidad("quitar-descomposicion")).toEqual({
+      actionId: "quitar-descomposicion",
+      kind: "normal",
+    });
 
     expect(store.getState().modelo.entidades[entidadId]?.refinamientos?.descomposicion).toBeUndefined();
   });
@@ -21,9 +24,22 @@ describe("ejecutarAccionContextualEntidad", () => {
     store.getState().importarJson(exportarModelo(modelo));
     store.getState().seleccionarEntidad(entidadId);
 
-    expect(ejecutarAccionContextualEntidad("quitar-despliegue")).toBe(true);
+    expect(ejecutarAccionContextualEntidad("quitar-despliegue")).toEqual({
+      actionId: "quitar-despliegue",
+      kind: "normal",
+    });
 
     expect(store.getState().modelo.entidades[entidadId]?.refinamientos?.despliegue).toBeUndefined();
+  });
+
+  test("devuelve ActionEvent exceptional cuando la accion no aplica", () => {
+    const modelo = crearModelo("Contextual sin seleccion");
+    store.getState().importarJson(exportarModelo(modelo));
+
+    expect(ejecutarAccionContextualEntidad("agregar-estado")).toMatchObject({
+      actionId: "agregar-estado",
+      kind: "exceptional",
+    });
   });
 });
 
