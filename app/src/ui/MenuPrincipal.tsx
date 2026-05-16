@@ -73,24 +73,24 @@ export function MenuPrincipal() {
       <div aria-hidden="true" style={style.menuTitle}>Mi modelo</div>
 
       <MenuSection title="Modelo">
-        <MenuItem label="Nuevo" onClick={() => ejecutar(nuevoModelo)} />
-        <MenuItem label="Nuevo modelo en pestana" onClick={() => ejecutar(abrirPestanaNueva)} />
-        <MenuItem label="Nuevo modelo por asistente" onClick={() => ejecutar(iniciarAsistente)} />
+        <MenuItem label="Nuevo" shortcut="Ctrl+N" onClick={() => ejecutar(nuevoModelo)} />
+        <MenuItem label="Abrir como pestaña" shortcut="Ctrl+T" onClick={() => ejecutar(abrirPestanaNueva)} />
+        <MenuItem label="Asistente guiado" onClick={() => ejecutar(iniciarAsistente)} />
         <MenuItem label="Guardar" shortcut="Ctrl+S" onClick={() => ejecutar(guardarLocal)} />
         <MenuItem label="Guardar como" onClick={() => ejecutar(abrirGuardarComo)} />
-        <MenuItem label="Cargar" onClick={() => ejecutar(() => confirmarSiDirty(abrirCargarModelo))} />
+        <MenuItem label="Cargar otro..." shortcut="Ctrl+O" onClick={() => ejecutar(() => confirmarSiDirty(abrirCargarModelo))} />
         <MenuItem label="Renombrar..." disabled={!modeloPersistidoId} onClick={() => ejecutar(abrirRenombrarModelo)} />
       </MenuSection>
 
       <MenuSection title="Buscar">
-        <MenuItem label="Buscar cosas" shortcut="Ctrl+F" onClick={() => ejecutar(abrirBusquedaCosas)} />
-        <MenuItem label="Buscar global" shortcut="Ctrl+Shift+F" onClick={() => ejecutar(abrirBusquedaGlobal)} />
+        <MenuItem label="Buscar en el modelo" shortcut="Ctrl+F" onClick={() => ejecutar(abrirBusquedaCosas)} />
+        <MenuItem label="Buscar en todo el workspace" shortcut="Ctrl+Shift+F" onClick={() => ejecutar(abrirBusquedaGlobal)} />
       </MenuSection>
 
       <MenuSection title="Vista">
         <MenuItem label="Mapa del sistema" shortcut={vistaMapaActiva ? "Activo" : undefined} onClick={() => ejecutar(vistaMapaActiva ? cerrarVistaMapa : abrirVistaMapa)} />
         <MenuItem label="Simulación conceptual" onClick={() => ejecutar(iniciarModoSimulacion)} />
-        <MenuItem label={gridConfig.activa ? "Ocultar grid" : "Mostrar grid"} onClick={() => ejecutar(toggleGrid)} />
+        <MenuItem label={gridConfig.activa ? "Ocultar grid del canvas" : "Mostrar grid del canvas"} onClick={() => ejecutar(toggleGrid)} />
         <MenuItem label="Auto-layout" onClick={() => ejecutar(aplicarLayoutSugerido)} />
         {vistaMapaActiva ? (
           <>
