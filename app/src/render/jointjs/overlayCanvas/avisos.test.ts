@@ -30,6 +30,20 @@ describe("avisos feedback canvas", () => {
       severidad: "error",
     }));
   });
+
+  test("mantiene ErrorBadge para validacion anclable desde la fuente comun", () => {
+    const modelo = modeloCon({
+      entidades: [entidad("p-proceso", "proceso", "Proceso", "informacional")],
+    });
+
+    const avisos = construirAvisosFeedbackCanvas(modelo, modelo.opdRaizId);
+
+    expect(avisos).toContainEqual(expect.objectContaining({
+      anchorCellId: "a-p-proceso",
+      reglaId: "proceso-sin-entrada-ni-salida",
+    }));
+    expect(avisos.some((aviso) => aviso.reglaId === "PROCESO_NOMBRE_FORMA_VERBAL")).toBe(false);
+  });
 });
 
 function modeloCon(input: { entidades: Entidad[]; enlaces?: Enlace[] }): Modelo {

@@ -1,19 +1,21 @@
-import { validarModelo } from "../../../modelo/validaciones";
+import { listarAvisosDiagnostico } from "../../../modelo/diagnostico";
 import type { Id, Modelo } from "../../../modelo/tipos";
 import type { FeedbackAviso } from "../../../store/feedback";
 
 export function construirAvisosFeedbackCanvas(modelo: Modelo, opdActivoId: Id): FeedbackAviso[] {
-  return validarModelo(modelo, opdActivoId).flatMap((aviso) => {
-    const anchorCellId = anchorCellIdParaAviso(modelo, opdActivoId, aviso.elementoTipo, aviso.elementoId);
-    if (!anchorCellId) return [];
-    return [{
-      anchorCellId,
-      reglaId: aviso.reglaId,
-      severidad: aviso.severidad,
-      mensaje: aviso.mensaje,
-      citaSSOT: aviso.citaSSOT,
-    }];
-  });
+  return listarAvisosDiagnostico(modelo, { tipo: "opd", opdId: opdActivoId })
+    .filter((aviso) => aviso.origen === "validacion")
+    .flatMap((aviso) => {
+      const anchorCellId = anchorCellIdParaAviso(modelo, opdActivoId, aviso.elementoTipo, aviso.elementoId);
+      if (!anchorCellId) return [];
+      return [{
+        anchorCellId,
+        reglaId: aviso.reglaId,
+        severidad: aviso.severidad,
+        mensaje: aviso.mensaje,
+        citaSSOT: aviso.citaSSOT,
+      }];
+    });
 }
 
 export function anchorCellIdParaAviso(

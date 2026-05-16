@@ -1,9 +1,7 @@
 import { useEffect, useMemo, useState } from "preact/hooks";
-import { nombreExtremo } from "../modelo/extremos";
-import { verificarMetodologia } from "../modelo/checkers";
-import type { AvisoMetodologico, CodigoChecker, Modelo, NavegacionAviso } from "../modelo/tipos";
-import type { Aviso, SeveridadAviso } from "../modelo/validaciones";
-import { validarModelo } from "../modelo/validaciones";
+import { listarAvisosDiagnostico, type AvisoDiagnostico } from "../modelo/diagnostico";
+import type { CodigoChecker } from "../modelo/tipos";
+import type { SeveridadAviso } from "../modelo/validaciones";
 import { useOpmStore } from "../store";
 import { EVENTO_ABRIR_AVISO_DIAGNOSTICO } from "../store/feedback";
 import { clasificarSeveridad } from "./panelMetodologiaIssues";
@@ -56,10 +54,16 @@ export function PanelDiagnostico() {
   const [citaActiva, setCitaActiva] = useState<{ codigo: string; cita: string } | null>(null);
   const [codigoResaltado, setCodigoResaltado] = useState<string | null>(null);
 
-  const issues = useMemo(() => [
-    ...mapearAvisosValidacion(modelo, opdActivoId, navegarAviso),
-    ...mapearAvisosMetodologia(modelo, navegarAviso),
-  ], [modelo, navegarAviso, opdActivoId, revision]);
+  const issues = useMemo(() => listarAvisosDiagnostico(modelo, { tipo: "opd", opdId: opdActivoId }).map((aviso) => ({
+    id: aviso.id,
+    testIdCodigo: aviso.testIdCodigo,
+    severidad: severidadDiagnostico(aviso),
+    codigo: aviso.codigoVisible,
+    mensaje: aviso.mensaje,
+    destino: aviso.destino,
+    cita: aviso.cita,
+    navegar: () => { if (aviso.avisoNavegable) navegarAviso(aviso.avisoNavegable); },
+  })), [modelo, navegarAviso, opdActivoId, revision]);
 
   const grupos = {
     bloqueo: issues.filter((issue) => issue.severidad === "bloqueo"),
@@ -191,104 +195,15 @@ function Seccion(props: {
   );
 }
 
-function mapearAvisosValidacion(
-  modelo: Modelo,
-  opdActivoId: string,
-  navegarAviso: (aviso: Aviso) => void,
-): DiagnosticoIssue[] {
-  return validarModelo(modelo, opdActivoId).map((aviso, index) => ({
-    id: `val-${aviso.reglaId}-${aviso.elementoId ?? aviso.opdId ?? index}`,
-    testIdCodigo: aviso.reglaId,
-    severidad: severidadDesdeAviso(aviso.severidad),
-    codigo: aviso.reglaId,
-    mensaje: aviso.mensaje,
-    destino: etiquetaElemento(modelo, aviso),
-    cita: aviso.citaSSOT,
-    navegar: () => navegarAviso(aviso),
-  }));
-}
-
-function mapearAvisosMetodologia(
-  modelo: Modelo,
-  navegarAviso: (aviso: Aviso) => void,
-): DiagnosticoIssue[] {
-  return verificarMetodologia(modelo).map((aviso, index) => {
-    const adaptado = adaptarAvisoMetodologico(aviso);
-    return {
-      id: `met-${aviso.codigo}-${aviso.entidadId ?? aviso.opdId ?? index}`,
-      testIdCodigo: aviso.codigo,
-      severidad: clasificarSeveridad(aviso),
-      codigo: etiquetaCodigo(aviso.codigo),
-      mensaje: aviso.mensaje,
-      destino: etiquetaDestinoMetodologico(modelo, aviso),
-      cita: detalleCitaMetodologica(aviso),
-      navegar: () => { if (adaptado) navegarAviso(adaptado); },
-    };
-  });
-}
-
-function detalleCitaMetodologica(aviso: AvisoMetodologico): string {
-  return [
-    aviso.ssotRef,
-    aviso.rationale,
-    ...(aviso.accionesSugeridas ?? []).map((accion) => `Accion: ${accion}`),
-  ].filter(Boolean).join(" · ") || "SSOT OPM";
-}
-
-function adaptarAvisoMetodologico(aviso: AvisoMetodologico): Aviso | null {
-  const destino = resolverDestino(aviso);
-  if (!destino) return null;
-  const adaptado: Aviso = {
-    reglaId: aviso.codigo,
-    severidad: aviso.severidad === "sugerencia" ? "info" : aviso.severidad,
-    mensaje: aviso.mensaje,
-    citaSSOT: aviso.ssotRef ?? "",
-    elementoTipo: destino.tipo === "opd" ? "opd" : "entidad",
-    elementoId: destino.id,
-  };
-  if (destino.opdId) adaptado.opdId = destino.opdId;
-  return adaptado;
-}
-
-function resolverDestino(aviso: AvisoMetodologico): NavegacionAviso | null {
-  if (aviso.navegarA) return aviso.navegarA;
-  if (aviso.entidadId) {
-    const destino: NavegacionAviso = { tipo: "entidad", id: aviso.entidadId };
-    if (aviso.opdId) destino.opdId = aviso.opdId;
-    return destino;
-  }
-  if (aviso.opdId) return { tipo: "opd", id: aviso.opdId };
-  return null;
+function severidadDiagnostico(aviso: AvisoDiagnostico): SeveridadDiagnostico {
+  if (aviso.origen === "metodologia") return clasificarSeveridad({ codigo: aviso.codigo as CodigoChecker });
+  return severidadDesdeAviso(aviso.severidad);
 }
 
 function severidadDesdeAviso(severidad: SeveridadAviso): SeveridadDiagnostico {
   if (severidad === "error") return "bloqueo";
   if (severidad === "advertencia") return "mejora";
   return "estilo";
-}
-
-function etiquetaElemento(modelo: Modelo, aviso: Aviso): string {
-  if (aviso.elementoTipo === "entidad" && aviso.elementoId) {
-    const entidad = modelo.entidades[aviso.elementoId];
-    return entidad ? `${entidad.nombre} · ${entidad.id}` : aviso.elementoId;
-  }
-  if (aviso.elementoTipo === "enlace" && aviso.elementoId) {
-    const enlace = modelo.enlaces[aviso.elementoId];
-    if (!enlace) return aviso.elementoId;
-    return `${nombreExtremo(modelo, enlace.origenId)} -> ${nombreExtremo(modelo, enlace.destinoId)} · ${enlace.id}`;
-  }
-  if (aviso.elementoTipo === "opd" && aviso.elementoId) return modelo.opds[aviso.elementoId]?.nombre ?? aviso.elementoId;
-  return "Modelo";
-}
-
-function etiquetaDestinoMetodologico(modelo: Modelo, aviso: AvisoMetodologico): string {
-  if (aviso.entidadId) return modelo.entidades[aviso.entidadId]?.nombre ?? aviso.entidadId;
-  if (aviso.opdId) return modelo.opds[aviso.opdId]?.nombre ?? aviso.opdId;
-  return "Modelo";
-}
-
-function etiquetaCodigo(codigo: CodigoChecker): string {
-  return codigo.toLowerCase().replaceAll("_", " ");
 }
 
 function contadorStyle(issues: DiagnosticoIssue[]): preact.JSX.CSSProperties {

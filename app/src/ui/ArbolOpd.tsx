@@ -1,7 +1,6 @@
 // [JOYAS §1-3] Chrome UI consume tokens centralizados; canvas semántico invariante.
 import { useEffect, useMemo, useState } from "preact/hooks";
-import { verificarMetodologia } from "../modelo/checkers";
-import { validarModelo } from "../modelo/validaciones";
+import { listarAvisosDiagnostico } from "../modelo/diagnostico";
 import { useOpmStore } from "../store";
 import { EVENTO_ABRIR_AVISO_DIAGNOSTICO } from "../store/feedback";
 import { registrarAtajo } from "./atajosTeclado";
@@ -50,10 +49,7 @@ export function ArbolOpd() {
   const [menuContextual, setMenuContextual] = useState<{ opdId: Id; x: number; y: number } | null>(null);
   const [opdCortadoId, setOpdCortadoId] = useState<Id | null>(null);
   const arboles = construirArbol(modelo);
-  const avisosArbol = useMemo(() => [
-    ...Object.keys(modelo.opds).flatMap((opdId) => validarModelo(modelo, opdId)),
-    ...verificarMetodologia(modelo),
-  ], [modelo]);
+  const avisosArbol = useMemo(() => listarAvisosDiagnostico(modelo, { tipo: "modelo" }), [modelo]);
   const estaExpandidoNodo = (id: Id) => !colapsado.has(id);
   const nodosVisibles = aplanarNodosVisibles(arboles, estaExpandidoNodo).filter((n) => n.visible);
   const nodosFoco = nodosVisibles.map(({ nodo }) => nodo);
