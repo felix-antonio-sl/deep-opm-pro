@@ -16,6 +16,7 @@ import {
   irATabEstiloEnlace,
   guardarComoActual,
   cargarPrimerModelo,
+  restaurarPanelOplSiMinimizado,
   assertWorkbenchLayout,
   assertCanvasScrollable,
   estadoBeforeUnload,
@@ -177,6 +178,7 @@ test("apunta enlaces procedurales a estados y emite transicion OPL TS3", async (
 
   await expect(page.locator('[joint-selector^="stateCapsule"]')).toHaveCount(2);
   await expect(page.locator(".joint-link")).toHaveCount(2);
+  await restaurarPanelOplSiMinimizado(page);
   await expect(page.getByText(/Aprobar\s+cambia\s+Pedido\s+de `pendiente` a `aprobado`\./)).toBeVisible();
   await expect(page.getByText(/Aprobar\s+cambia\s+Pedido\s+de `pendiente`\./)).toHaveCount(0);
   await expect(page.getByText(/Aprobar\s+cambia\s+Pedido\s+a `aprobado`\./)).toHaveCount(0);

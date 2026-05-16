@@ -9,6 +9,8 @@ import {
   anchoEstimadoControlesBarra,
   aparienciaActivaDeEnlace,
   aparienciaActivaDeEntidad,
+  ariaLabelBarra,
+  atajoAria,
   cellIdActivoDeSeleccion,
   endpointPerteneceAEntidad,
   entidadSeleccionUnica,
@@ -20,6 +22,7 @@ import {
   rectRelativoAContenedor,
   rectVisibleEnViewport,
   resolverContextoBarra,
+  textoLiveBarra,
   unirBboxesOverlay,
 } from "./BarraHerramientasElemento";
 
@@ -179,6 +182,29 @@ describe("resolverContextoBarra", () => {
       anchorCellIds: ["ap-obj", "ap-proc", "ae-1"],
       enlaceEstiloId: null,
     });
+  });
+});
+
+describe("a11y de barra contextual", () => {
+  test("describe una cosa seleccionada con label canonico y anuncio live", () => {
+    const contexto = resolverContextoBarra(modeloBase(), "opd-1", "obj-1", null, ["obj-1"]);
+    expect(contexto).not.toBeNull();
+    expect(ariaLabelBarra(contexto!)).toBe("Acciones sobre Objeto");
+    expect(textoLiveBarra(contexto!)).toBe("Cosa seleccionada: Objeto");
+  });
+
+  test("anuncia cardinalidad de multiseleccion", () => {
+    const contexto = resolverContextoBarra(modeloBase(), "opd-1", null, null, ["obj-1", "proc-1", "enlace-1"]);
+    expect(contexto).not.toBeNull();
+    expect(ariaLabelBarra(contexto!)).toBe("Acciones sobre selección múltiple: 3 cosas");
+    expect(textoLiveBarra(contexto!)).toBe("Selección múltiple: 3 cosas");
+  });
+
+  test("normaliza atajos visibles a aria-keyshortcuts", () => {
+    expect(atajoAria("Ctrl+Alt+T")).toBe("Control+Alt+T");
+    expect(atajoAria("Shift+I")).toBe("Shift+I");
+    expect(atajoAria("⌫")).toBe("Delete");
+    expect(atajoAria(undefined)).toBeUndefined();
   });
 });
 

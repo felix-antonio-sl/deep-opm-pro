@@ -256,7 +256,7 @@ test("imagenes: toggle global modo texto oculta bitmaps del OPD activo", async (
   await clickModoImagenGlobalDesdeMas(page);
 
   await page.getByTestId("toolbar-mas-trigger").click();
-  await expect(page.getByTestId("toolbar-mas-modo-imagen-global")).toContainText("Texto");
+  await expect(page.getByTestId("toolbar-mas-modo-imagen-global")).toContainText("solo nombre");
   await page.keyboard.press("Escape");
   await expect(page.locator('.joint-element image[joint-selector="imagen"]')).toHaveCount(0);
   expect(pageErrors).toEqual([]);

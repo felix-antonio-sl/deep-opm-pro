@@ -82,6 +82,7 @@ interface AccionBarra {
   wide?: boolean;
   icon?: preact.JSX.Element;
   texto?: string;
+  atajo?: string;
 }
 
 type AccionBarraId =
@@ -292,15 +293,19 @@ export function BarraHerramientasElemento({ inspectorAbierto, onToggleInspector,
 
   return (
     <div
-      aria-label={`Barra de acciones de ${contextoSeleccion.nombre}`}
+      aria-label={ariaLabelBarra(contextoSeleccion)}
       data-placement={posicion.placement}
       data-testid="barra-herramientas-elemento"
+      role="toolbar"
       style={{
         ...styles.barra,
         left: `${posicion.x}px`,
         top: `${posicion.y}px`,
       }}
     >
+      <span aria-live="polite" data-testid="barra-live-region" style={styles.srOnly}>
+        {textoLiveBarra(contextoSeleccion)}
+      </span>
       {contextoSeleccion.tipo === "multi" ? (
         <span data-testid="barra-resumen-multiseleccion" style={styles.resumenMulti}>
           {contextoSeleccion.cantidad} seleccionadas
@@ -311,12 +316,13 @@ export function BarraHerramientasElemento({ inspectorAbierto, onToggleInspector,
           key={accion.id}
           type="button"
           aria-label={accion.label}
+          aria-keyshortcuts={atajoAria(accion.atajo)}
           aria-pressed={accion.id === "mas-opciones" ? inspectorAbierto : undefined}
           data-testid={accion.testId}
           disabled={!accion.enabled}
           onClick={handlers[accion.id]}
           style={estiloBotonAccion(accion)}
-          title={accion.label}
+          title={tituloAccionBarra(accion)}
         >
           {accion.icon ? accion.icon : <span aria-hidden="true">{accion.texto}</span>}
         </button>
@@ -538,6 +544,7 @@ function decorarAccionBarra(accion: AccionContextual & { id: AccionBarraId }): A
     testId: accion.testId,
     enabled: accion.enabled,
     visible: accion.visible,
+    ...(accion.atajo ? { atajo: accion.atajo } : {}),
     wide: accion.id === "cambiar-tipo-enlace" ||
       accion.id === "copiar-estilo" ||
       accion.id === "pegar-estilo" ||
@@ -549,6 +556,31 @@ function decorarAccionBarra(accion: AccionContextual & { id: AccionBarraId }): A
     ...(icon ? { icon } : {}),
     ...(accion.texto ? { texto: accion.texto } : {}),
   };
+}
+
+export function ariaLabelBarra(contexto: ContextoBarraSeleccion): string {
+  if (contexto.tipo === "multi") return `Acciones sobre selección múltiple: ${contexto.cantidad} cosas`;
+  return `Acciones sobre ${contexto.nombre}`;
+}
+
+export function textoLiveBarra(contexto: ContextoBarraSeleccion): string {
+  if (contexto.tipo === "multi") return `Selección múltiple: ${contexto.cantidad} cosas`;
+  if (contexto.tipo === "enlace") return `Enlace seleccionado: ${contexto.enlace.tipo}`;
+  return `Cosa seleccionada: ${contexto.nombre}`;
+}
+
+export function atajoAria(atajo: string | undefined): string | undefined {
+  if (!atajo) return undefined;
+  return atajo
+    .replaceAll("Ctrl", "Control")
+    .replaceAll("⌘", "Meta")
+    .replaceAll("⇧", "Shift")
+    .replaceAll("⌥", "Alt")
+    .replaceAll("⌫", "Delete");
+}
+
+function tituloAccionBarra(accion: AccionBarra): string {
+  return accion.atajo ? `${accion.label} (${accion.atajo})` : accion.label;
 }
 
 export function anchoEstimadoBarra(cantidadBotones: number): number {
@@ -744,6 +776,17 @@ const styles = {
     fontWeight: 700,
     lineHeight: 1,
     whiteSpace: "nowrap",
+  },
+  srOnly: {
+    position: "absolute",
+    width: "1px",
+    height: "1px",
+    padding: 0,
+    margin: "-1px",
+    overflow: "hidden",
+    clip: "rect(0 0 0 0)",
+    whiteSpace: "nowrap",
+    border: 0,
   },
 } satisfies Record<string, preact.JSX.CSSProperties>;
 

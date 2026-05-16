@@ -72,13 +72,13 @@ export function accionesContextualesEntidad(ctx: ContextoAccionesEntidad): Accio
       visible: esEnlace,
       superficies: ["barra-flotante", "command-palette"],
     }),
-    accion("copiar-estilo", "Copiar estilo", "barra-copiar-estilo", "apariencia", tieneEnlaceOperable, {
+    accion("copiar-estilo", "Copiar formato", "barra-copiar-estilo", "apariencia", tieneEnlaceOperable, {
       texto: "Copiar",
       visible: tieneEnlaceOperable,
       superficies: superficiesEstiloEnlace,
       atajo: "Ctrl+Alt+C",
     }),
-    accion("pegar-estilo", "Pegar estilo", "barra-pegar-estilo", "apariencia", tieneEnlaceOperable && ctx.hayEstiloEnPortapapeles, {
+    accion("pegar-estilo", "Pegar formato", "barra-pegar-estilo", "apariencia", tieneEnlaceOperable && ctx.hayEstiloEnPortapapeles, {
       texto: "Pegar",
       visible: tieneEnlaceOperable,
       superficies: superficiesEstiloEnlace,

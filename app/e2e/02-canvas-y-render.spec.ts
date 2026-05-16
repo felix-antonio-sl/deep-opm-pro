@@ -17,6 +17,7 @@ import {
   irATabRefinamiento,
   guardarComoActual,
   cargarPrimerModelo,
+  restaurarPanelOplSiMinimizado,
   assertWorkbenchLayout,
   assertCanvasScrollable,
   estadoBeforeUnload,
@@ -106,6 +107,7 @@ test("renderiza modificadores evento/condicion y demora de invocacion", async ({
   await expect(svgText(page, "70%")).toBeVisible();
   await expect(svgText(page, "c")).toBeVisible();
   await expect(svgText(page, "1s")).toBeVisible();
+  await restaurarPanelOplSiMinimizado(page);
   await expect(page.getByText("Orden inicia Aprobar, que consume Orden (probabilidad: 70%).")).toBeVisible();
   await expect(page.getByText("Aprobar invoca Validar despues de 1s.")).toBeVisible();
 

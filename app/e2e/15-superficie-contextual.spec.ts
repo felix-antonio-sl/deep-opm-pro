@@ -30,10 +30,13 @@ test("seleccionar una cosa enciende barra contextual e Inspector con la misma re
   // Barra contextual flotante refleja la misma seleccion.
   const barra = page.getByTestId("barra-herramientas-elemento");
   await expect(barra).toBeVisible();
-  await expect(barra).toHaveAttribute("aria-label", /Barra de acciones de Objeto/);
+  await expect(barra).toHaveAttribute("role", "toolbar");
+  await expect(barra).toHaveAttribute("aria-label", /Acciones sobre Objeto/);
+  await expect(page.getByTestId("barra-live-region")).toContainText("Cosa seleccionada: Objeto");
 
   // El boton inzoom existe y dispara descomposicion (conexion barra -> Inspector via store).
   await expect(page.getByTestId("barra-inzoom")).toBeVisible();
+  await expect(page.getByTestId("barra-inzoom")).toHaveAttribute("aria-keyshortcuts", "Shift+I");
 
   expect(pageErrors).toEqual([]);
 });
@@ -68,8 +71,10 @@ test("seleccionar un enlace conmuta Inspector a modo enlace y resalta su oracion
   // La barra contextual también cubre enlace único con acciones primarias de enlace.
   const barra = page.getByTestId("barra-herramientas-elemento");
   await expect(barra).toBeVisible();
+  await expect(barra).toHaveAttribute("role", "toolbar");
   await expect(page.getByTestId("barra-cambiar-tipo-enlace")).toBeVisible();
   await expect(page.getByTestId("barra-copiar-estilo")).toBeVisible();
+  await expect(page.getByTestId("barra-copiar-estilo")).toHaveAttribute("aria-keyshortcuts", "Control+Alt+C");
   await expect(page.getByTestId("barra-pegar-estilo")).toBeVisible();
 
   expect(pageErrors).toEqual([]);
@@ -110,8 +115,11 @@ test("multiseleccion expone barra contextual con acciones de lote", async ({ pag
 
   const barra = page.getByTestId("barra-herramientas-elemento");
   await expect(barra).toBeVisible();
+  await expect(barra).toHaveAttribute("role", "toolbar");
+  await expect(barra).toHaveAttribute("aria-label", /Acciones sobre selección múltiple: 2 cosas/);
   await expect(page.getByTestId("barra-resumen-multiseleccion")).toContainText("2 seleccionadas");
   await expect(page.getByTestId("barra-eliminar-seleccion")).toBeVisible();
+  await expect(page.getByTestId("barra-eliminar-seleccion")).toHaveAttribute("aria-keyshortcuts", "Delete");
   await expect(page.getByTestId("barra-agregar-como-partes")).toBeVisible();
   await expect(page.getByTestId("accion-traer-enlaces")).toBeVisible();
   await expect(page.getByTestId("barra-alinear-seleccion")).toBeVisible();
@@ -345,7 +353,7 @@ test.describe("Contrato TablaEnlaces Beta1", () => {
     await expect(page.getByLabel("Nombre")).toHaveValue("Entrada");
     // La barra contextual flotante etiqueta la entidad portadora del origen.
     await expect(page.getByTestId("barra-herramientas-elemento"))
-      .toHaveAttribute("aria-label", /Barra de acciones de Entrada/);
+      .toHaveAttribute("aria-label", /Acciones sobre Entrada/);
 
     // Reabrir tabla y ahora ir al destino.
     await page.getByLabel("Menú principal").click();

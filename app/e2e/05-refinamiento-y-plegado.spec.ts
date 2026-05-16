@@ -649,9 +649,9 @@ test("L3 descomposicion avanzada: inspector reasigna, inline renombra, paralelo 
   await page.getByTestId(/refinamiento-reasignar-/).selectOption({ label: "Procesar 2 (2)" });
   await page.getByRole("button", { name: "Reasignar" }).click();
 
-  const proceso2ParaRename = await elementoPorTexto(page, "Procesar 2").boundingBox();
-  if (!proceso2ParaRename) throw new Error("No se pudo ubicar Procesar 2 para renombrado");
-  await page.mouse.dblclick(proceso2ParaRename.x + proceso2ParaRename.width / 2, proceso2ParaRename.y + proceso2ParaRename.height / 2);
+  const proceso2ParaRename = elementoPorTexto(page, "Procesar 2");
+  await expect(proceso2ParaRename).toBeVisible();
+  await proceso2ParaRename.dblclick({ force: true });
   await expect(page.getByTestId("renombrado-inline")).toBeVisible();
   await page.getByTestId("renombrado-inline").fill("Validar Entrada");
   await page.keyboard.press("Enter");

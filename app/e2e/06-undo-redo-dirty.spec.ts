@@ -15,6 +15,7 @@ import {
   irATabRefinamiento,
   guardarComoActual,
   cargarPrimerModelo,
+  restaurarPanelOplSiMinimizado,
   assertWorkbenchLayout,
   assertCanvasScrollable,
   estadoBeforeUnload,
@@ -302,9 +303,11 @@ test("undo cambia esencia y restaura valor previo", async ({ page }) => {
   await page.goto("/");
   await page.getByRole("button", { name: "Objeto", exact: true }).click();
   await page.getByRole("button", { name: "Física" }).click();
+  await restaurarPanelOplSiMinimizado(page);
   await expect(page.getByText("Objeto es un objeto físico y sistémico.")).toBeVisible();
 
   await page.keyboard.press("Control+Z");
+  await restaurarPanelOplSiMinimizado(page);
   await expect(page.getByText("Objeto es un objeto informacional y sistémico.")).toBeVisible();
 
   expect(pageErrors).toEqual([]);
