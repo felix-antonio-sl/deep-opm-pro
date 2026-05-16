@@ -40,11 +40,9 @@ test("toolbar inicial expone <= 25 controles visibles, sin overflow horizontal",
     return { buttons: buttons.length, selects: selects.length, total: buttons.length + selects.length };
   });
 
-  // Ronda 20 L3 sumó el toggle "Biblioteca dock" en el cluster Vista (25→26).
-  // Ronda 17 L2 sumó el botón "Simulación" en el cluster Validar (26→27).
-  // La cota se relaja de forma controlada respetando el contrato del informe
-  // UI/UX (ningún cluster sobrepasa lo razonable).
-  expect(totales.total).toBeLessThanOrEqual(27);
+  // Ronda 22: Vista y Validar salen de la banda principal y pasan a ⋯ Más.
+  // La cota vuelve al objetivo original del brief.
+  expect(totales.total).toBeLessThanOrEqual(25);
 
   // No hay overflow horizontal: scrollWidth no debe exceder al clientWidth con
   // tolerancia minima (rounding subpixel) en viewport desktop estandar.

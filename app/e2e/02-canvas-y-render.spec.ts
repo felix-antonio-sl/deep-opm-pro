@@ -457,24 +457,25 @@ test("L1 toolbar split conserva root y controles por modo", async ({ page }) => 
   await page.goto("/");
   await cerrarPantallaInicioSiVisible(page);
   await expect(page.getByTestId("toolbar-root")).toBeVisible();
-  for (const cluster of ["Modelo", "Modelar", "Conectar", "Validar", "Ayuda"]) {
+  for (const cluster of ["Modelo", "Modelar", "Conectar", "Ayuda"]) {
     await expect(page.getByRole("group", { name: cluster })).toBeVisible();
   }
   await expect(page.locator('[data-slot="cluster-modelo"]')).toBeVisible();
   await expect(page.locator('[data-slot="cluster-modelar"]')).toBeVisible();
   await expect(page.locator('[data-slot="cluster-conectar"]')).toBeVisible();
   await expect(page.locator('[data-slot="cluster-vista"]')).toHaveCount(0);
-  await expect(page.locator('[data-slot="cluster-validar"]')).toBeVisible();
+  await expect(page.locator('[data-slot="cluster-validar"]')).toHaveCount(0);
   await expect(page.locator('[data-slot="cluster-ayuda"]')).toBeVisible();
   await expect(page.getByRole("group", { name: "Modelar" }).getByRole("button", { name: "Objeto", exact: true })).toBeVisible();
   await expect(page.getByRole("group", { name: "Conectar" }).getByTestId("abrir-menu-tipo-enlace")).toBeDisabled();
-  await expect(page.getByRole("group", { name: "Validar" }).getByRole("button", { name: "Mapa", exact: true })).toBeVisible();
   await expect(page.getByRole("group", { name: "Ayuda" }).getByTestId("toolbar-mas-trigger")).toBeVisible();
   await page.getByTestId("toolbar-mas-trigger").click();
   await expect(page.getByTestId("toolbar-mas-toggle-grid")).toBeVisible();
   await expect(page.getByTestId("toolbar-mas-config-grid")).toBeVisible();
   await expect(page.getByTestId("toolbar-mas-auto-layout")).toBeVisible();
   await expect(page.getByTestId("toolbar-mas-biblioteca-dock")).toBeVisible();
+  await expect(page.getByTestId("toolbar-mas-mapa")).toBeVisible();
+  await expect(page.getByTestId("toolbar-mas-simulacion")).toBeVisible();
   await page.keyboard.press("Escape");
   await expect(page.getByTestId("abrir-menu-tipo-enlace")).toBeDisabled();
 

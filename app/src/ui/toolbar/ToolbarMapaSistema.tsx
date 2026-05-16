@@ -12,7 +12,6 @@ export function ToolbarMapaSistema() {
 
   return (
     <>
-      <span style={style.divider} />
       <button style={style.button} type="button" onClick={refrescarVistaMapa} data-testid="refrescar-mapa" title="Refrescar miniaturas y conexiones del mapa">Refrescar mapa</button>
       <button style={mapaAutoRefresh ? style.activeButton : style.button} type="button" onClick={toggleMapaAutoRefresh} aria-pressed={mapaAutoRefresh} title={mapaAutoRefresh ? "Auto-refresh del mapa activo" : "Activar auto-refresh del mapa"}>Auto-refresh</button>
       <button style={style.button} type="button" onClick={toggleMapaPanelEstadisticas} title="Mostrar/ocultar panel de estadísticas del mapa">Estadísticas</button>

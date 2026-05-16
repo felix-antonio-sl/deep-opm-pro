@@ -2,7 +2,7 @@
  * Smoke E2E ronda 17 L2 — Modo simulación conceptual (Beta2).
  *
  * Cubre el slice mínimo del brief r17-L2 §6:
- *   - Botón "Simulación" (cluster Validar) entra al modo.
+ *   - Acción "Simulación" desde ⋯ Más entra al modo.
  *   - BarraSimulacion reemplaza la Toolbar de edición (sin botón "Objeto").
  *   - Paso ejecuta el siguiente proceso del plan y avanza el contador.
  *   - Play ejecuta avance automático con velocidad seleccionable y pausa implícita al completar.
@@ -10,7 +10,7 @@
  *   - Reiniciar vuelve al paso 1/N.
  *   - Salir vuelve a la Toolbar de edición.
  */
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 import { cerrarPantallaInicioSiVisible } from "./_smoke-helpers";
 
 test("modo simulación: entrar, paso, correr, reiniciar, salir", async ({ page }) => {
@@ -33,7 +33,7 @@ test("modo simulación: entrar, paso, correr, reiniciar, salir", async ({ page }
   await expect(page.getByTestId("barra-simulacion")).toHaveCount(0);
 
   // Entrar al modo simulación.
-  await page.getByTestId("toolbar-simulacion").click();
+  await entrarSimulacionDesdeMas(page);
   await expect(page.getByTestId("barra-simulacion")).toBeVisible();
   // Toolbar de edición desaparece (BarraSimulacion la reemplaza).
   await expect(page.getByTestId("toolbar-root")).toHaveCount(0);
@@ -92,7 +92,7 @@ test("modo simulación: OPD sin procesos muestra mensaje y controles deshabilita
   await page.goto("/");
   await cerrarPantallaInicioSiVisible(page);
 
-  await page.getByTestId("toolbar-simulacion").click();
+  await entrarSimulacionDesdeMas(page);
   await expect(page.getByTestId("barra-simulacion")).toBeVisible();
   await expect(page.getByTestId("barra-simulacion-progreso")).toContainText("Sin procesos en este OPD");
   await expect(page.getByTestId("barra-simulacion-paso")).toBeDisabled();
@@ -118,7 +118,7 @@ test("modo simulación: play avanza automaticamente hasta completar", async ({ p
   await page.getByLabel("Nombre").fill("Resolver");
   await page.keyboard.press("Enter");
 
-  await page.getByTestId("toolbar-simulacion").click();
+  await entrarSimulacionDesdeMas(page);
   await page.getByTestId("barra-simulacion-velocidad").selectOption("2");
   await page.getByTestId("barra-simulacion-auto").click();
 
@@ -130,3 +130,8 @@ test("modo simulación: play avanza automaticamente hasta completar", async ({ p
 
   expect(pageErrors).toEqual([]);
 });
+
+async function entrarSimulacionDesdeMas(page: Page): Promise<void> {
+  await page.getByTestId("toolbar-mas-trigger").click();
+  await page.getByTestId("toolbar-mas-simulacion").click();
+}

@@ -39,11 +39,11 @@ interface ToolbarBaseProps {
   children?: preact.ComponentChildren;
   modelarSlot?: preact.ComponentChildren;
   conectarSlot?: preact.ComponentChildren;
-  validarSlot?: preact.ComponentChildren;
+  mapaSlot?: preact.ComponentChildren;
   statusSlot?: preact.ComponentChildren;
 }
 
-export function ToolbarBase({ children, modelarSlot, conectarSlot, validarSlot, statusSlot }: ToolbarBaseProps) {
+export function ToolbarBase({ children, modelarSlot, conectarSlot, mapaSlot, statusSlot }: ToolbarBaseProps) {
   // P0-2 (informe UI/UX 2026-05-07): MenuPrincipal se monta UNA sola vez en
   // App.tsx. Antes ToolbarBase tambien tenia su propia instancia lazy y se
   // duplicaba en el DOM (`role="menu"` aparecia dos veces, rompiendo
@@ -108,7 +108,7 @@ export function ToolbarBase({ children, modelarSlot, conectarSlot, validarSlot, 
   const vistaMapaActiva = useOpmStore((s) => s.vistaMapaActiva);
   const abrirVistaMapa = useOpmStore((s) => s.abrirVistaMapa);
   const cerrarVistaMapa = useOpmStore((s) => s.cerrarVistaMapa);
-  // L2 r17: botón Simulación entra al modo (BarraSimulacion reemplaza Toolbar).
+  // L2 r17: el comando Simulación entra al modo (BarraSimulacion reemplaza Toolbar).
   const iniciarModoSimulacion = useOpmStore((s) => s.iniciarModoSimulacion);
   const alinearSeleccion = useOpmStore((s) => s.alinearSeleccion);
   const distribuirSeleccion = useOpmStore((s) => s.distribuirSeleccion);
@@ -200,6 +200,9 @@ export function ToolbarBase({ children, modelarSlot, conectarSlot, validarSlot, 
     onConfigGrid: () => setGridModalAbierto(true),
     onAplicarLayout: aplicarLayoutSugerido,
     onToggleBibliotecaDock: toggleBibliotecaDock,
+    vistaMapaActiva,
+    onToggleMapa: vistaMapaActiva ? cerrarVistaMapa : abrirVistaMapa,
+    onIniciarSimulacion: iniciarModoSimulacion,
     onEliminarSeleccion: eliminarSeleccion,
     onConectarSeleccionComoPartes: () => { if (todoMultiSeleccion) conectarSeleccionAlTodo(todoMultiSeleccion, "agregacion"); },
     onTraerEnlacesEntreSeleccionadas: traerEnlacesEntreSeleccionadas,
@@ -266,6 +269,7 @@ export function ToolbarBase({ children, modelarSlot, conectarSlot, validarSlot, 
         <span style={style.title}>{tituloModelo}</span>
         {/* Ronda 19 L5: slot estable para chip de persistencia en cluster Modelo. */}
         <ChipPersistencia />
+        {statusSlot ?? null}
         {resumenPersistido?.archivado ? <span style={style.archiveBadge}>ARCH</span> : null}
         {modeloPersistidoId && totalVersiones > 0 ? (
           <button type="button" style={style.versionButton} onClick={() => abrirDialogoVersiones(modeloPersistidoId)} title={`${totalVersiones} versiones guardadas`}>
@@ -315,22 +319,15 @@ export function ToolbarBase({ children, modelarSlot, conectarSlot, validarSlot, 
           {conectarSlot ?? children}
         </div>
         <span style={style.divider} />
-        <div role="group" aria-label="Validar" style={style.cluster} data-slot="cluster-validar" data-cluster="validar">
-          <span style={style.clusterLabel}>Validar</span>
-          <button style={vistaMapaActiva ? style.activeButton : style.button} type="button" onClick={vistaMapaActiva ? cerrarVistaMapa : abrirVistaMapa} aria-pressed={vistaMapaActiva} title={vistaMapaActiva ? "Cerrar mapa" : "Abrir mapa"}>Mapa</button>
-          <button
-            style={style.button}
-            type="button"
-            onClick={iniciarModoSimulacion}
-            title="Entrar a modo simulación conceptual"
-            data-testid="toolbar-simulacion"
-          >
-            Simulación
-          </button>
-          {validarSlot ?? null}
-          {statusSlot ?? null}
-        </div>
-        <span style={style.divider} />
+        {mapaSlot ? (
+          <>
+            <div role="group" aria-label="Mapa del sistema" style={style.cluster} data-slot="cluster-mapa-sistema" data-cluster="mapa">
+              <span style={style.clusterLabel}>Mapa</span>
+              {mapaSlot}
+            </div>
+            <span style={style.divider} />
+          </>
+        ) : null}
         <div role="group" aria-label="Ayuda" style={style.cluster} data-slot="cluster-ayuda" data-cluster="ayuda">
           <span style={style.clusterLabel}>Ayuda</span>
           <button
@@ -445,6 +442,7 @@ type ParametrosItemsMas = {
   uiModoImagenGlobal: import("../../modelo/tipos").ModoImagenEntidad | null;
   gridActiva: boolean;
   bibliotecaDockAbierto: boolean;
+  vistaMapaActiva: boolean;
   onAbrirPlantillas: () => void;
   onToggleAlias: () => void;
   onToggleDescripciones: () => void;
@@ -454,6 +452,8 @@ type ParametrosItemsMas = {
   onConfigGrid: () => void;
   onAplicarLayout: () => void;
   onToggleBibliotecaDock: () => void;
+  onToggleMapa: () => void;
+  onIniciarSimulacion: () => void;
   onEliminarSeleccion: () => void;
   onConectarSeleccionComoPartes: () => void;
   onTraerEnlacesEntreSeleccionadas: () => void;
@@ -545,6 +545,23 @@ function construirItemsMenuMas(p: ParametrosItemsMas): ToolbarMasItem[] {
     title: p.bibliotecaDockAbierto ? "Cerrar biblioteca dock (Ctrl+B)" : "Abrir biblioteca dock acoplada al árbol (Ctrl+B)",
     onClick: p.onToggleBibliotecaDock,
     testId: "toolbar-mas-biblioteca-dock",
+  });
+  items.push({
+    kind: "accion",
+    id: "mapa-sistema",
+    label: p.vistaMapaActiva ? "Cerrar mapa del sistema" : "Abrir mapa del sistema",
+    activo: p.vistaMapaActiva,
+    title: p.vistaMapaActiva ? "Volver al canvas de edición" : "Abrir mapa del sistema",
+    onClick: p.onToggleMapa,
+    testId: "toolbar-mas-mapa",
+  });
+  items.push({
+    kind: "accion",
+    id: "simulacion",
+    label: "Simulación conceptual",
+    title: "Entrar a modo simulación conceptual",
+    onClick: p.onIniciarSimulacion,
+    testId: "toolbar-mas-simulacion",
   });
 
   // Alineación y distribución (visible cuando hay multi-seleccion).

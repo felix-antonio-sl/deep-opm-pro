@@ -21,7 +21,7 @@ export function Toolbar() {
       <Suspense fallback={null}>
         <ToolbarBase
           conectarSlot={<ToolbarCreacion />}
-          validarSlot={vistaMapaActiva ? <ToolbarMapaSistema /> : null}
+          mapaSlot={vistaMapaActiva ? <ToolbarMapaSistema /> : null}
           statusSlot={(
             <>
               {autosalvado.activo ? (
