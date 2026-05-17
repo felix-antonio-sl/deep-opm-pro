@@ -8,7 +8,7 @@
 // la accion via useConfirmarSiDirty() que devuelve sólo la funcion.
 import { createContext } from "preact";
 import { useContext, useState } from "preact/hooks";
-import { store, useOpmStore } from "../store";
+import { useZustandPersistencePort } from "../app/ports/zustandPersistencePort";
 import { DialogoConfirmacion } from "./DialogoConfirmacion";
 
 type ConfirmarSiDirty = (accion: () => void) => void;
@@ -31,27 +31,26 @@ interface ProviderProps {
 }
 
 export function ConfirmacionProvider({ children }: ProviderProps) {
-  // P0 ronda 4: dirtyModelo solo se activa con cambios semanticos.
-  // Layout puro (auto-layout, drag) no bloquea la carga de otro modelo.
-  useOpmStore((s) => s.dirtyModelo);
-  const guardarLocal = useOpmStore((s) => s.guardarLocal);
+  const persistencia = useZustandPersistencePort();
   const [pendiente, setPendiente] = useState<ConfirmacionPendiente | null>(null);
 
   const confirmarSiDirty: ConfirmarSiDirty = (accion) => {
-    if (!store.getState().dirtyModelo) {
+    // P0 ronda 4: dirtyModelo solo se activa con cambios semanticos.
+    // Layout puro (auto-layout, drag) no bloquea la carga de otro modelo.
+    if (!persistencia.hayDirtyModelo()) {
       accion();
       return;
     }
-    setPendiente({ accion, onGuardar: guardarLocal });
+    setPendiente({ accion, onGuardar: persistencia.guardarLocal });
   };
 
   const confirmarCierreDirty: ConfirmarCierreDirty = (accion, opciones) => {
-    const dirty = opciones?.dirty ?? store.getState().dirtyModelo;
+    const dirty = opciones?.dirty ?? persistencia.hayDirtyModelo();
     if (!dirty) {
       accion();
       return;
     }
-    setPendiente({ accion, onGuardar: opciones?.onGuardar ?? guardarLocal });
+    setPendiente({ accion, onGuardar: opciones?.onGuardar ?? persistencia.guardarLocal });
   };
 
   const cancelar = () => setPendiente(null);
@@ -63,7 +62,7 @@ export function ConfirmacionProvider({ children }: ProviderProps) {
   const guardarYContinuar = () => {
     if (!pendiente) return;
     pendiente.onGuardar();
-    if (!store.getState().dirty) {
+    if (!persistencia.hayDirty()) {
       const accion = pendiente.accion;
       setPendiente(null);
       accion();
