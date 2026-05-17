@@ -307,8 +307,9 @@ test("arrastra subproceso embebido dentro del macroproceso contenedor", async ({
 
   const ellipses = await page.locator(".joint-element").evaluateAll((els) =>
     els.map((el) => {
-      const r = el.getBoundingClientRect();
-      const tieneEllipse = !!el.querySelector("ellipse");
+      const body = el.querySelector<SVGGraphicsElement>('[joint-selector="body"]');
+      const r = (body ?? el).getBoundingClientRect();
+      const tieneEllipse = body?.tagName.toLowerCase() === "ellipse";
       const modelId = el.getAttribute("model-id") ?? "";
       return { modelId, tieneEllipse, x: r.x, y: r.y, width: r.width, height: r.height };
     }),
@@ -319,8 +320,10 @@ test("arrastra subproceso embebido dentro del macroproceso contenedor", async ({
   expect(subsIni).toHaveLength(3);
 
   const target = subsIni[1];
-  const cx = target.x + target.width / 2;
-  const cy = target.y + target.height / 2;
+  // Usar un punto interior no centrado evita pisar anchors cardinales de
+  // conexion que se activan por hover cuando este test corre despues de otros.
+  const cx = target.x + target.width * 0.35;
+  const cy = target.y + target.height * 0.55;
   await page.mouse.move(cx, cy);
   await page.mouse.down();
   await page.mouse.move(cx + 200, cy, { steps: 12 });
@@ -328,8 +331,9 @@ test("arrastra subproceso embebido dentro del macroproceso contenedor", async ({
 
   const ellipsesFin = await page.locator(".joint-element").evaluateAll((els) =>
     els.map((el) => {
-      const r = el.getBoundingClientRect();
-      const tieneEllipse = !!el.querySelector("ellipse");
+      const body = el.querySelector<SVGGraphicsElement>('[joint-selector="body"]');
+      const r = (body ?? el).getBoundingClientRect();
+      const tieneEllipse = body?.tagName.toLowerCase() === "ellipse";
       const modelId = el.getAttribute("model-id") ?? "";
       return { modelId, tieneEllipse, x: r.x, y: r.y, width: r.width };
     }),
