@@ -1,8 +1,8 @@
-import { useOpmStore } from "../../store";
 import { useZustandAutosavePort } from "../ports/zustandAutosavePort";
 import { useZustandHistoryPort } from "../ports/zustandHistoryPort";
 import { useZustandLinkContextActionsPort } from "../ports/zustandLinkContextActionsPort";
 import { useZustandModelCreationPort } from "../ports/zustandModelCreationPort";
+import { useZustandOpdNavigationPort } from "../ports/zustandOpdNavigationPort";
 import { useZustandSelectionBatchActionsPort } from "../ports/zustandSelectionBatchActionsPort";
 import { useZustandSelectionPort } from "../ports/zustandSelectionPort";
 import { useZustandToolbarChromePort } from "../ports/zustandToolbarChromePort";
@@ -62,8 +62,7 @@ export function useToolbarBaseViewModel() {
     borrarEnlacesEnLote,
   } = useZustandLinkContextActionsPort();
   const { iniciarAutosalvado } = useZustandAutosavePort();
-  const modelo = useOpmStore((s) => s.modelo);
-  const opdActivoId = useOpmStore((s) => s.opdActivoId);
+  const { modelo, opdActivoId } = useZustandOpdNavigationPort();
 
   const toggleVistaMapa = () => {
     if (vistaMapaActiva) cerrarVistaMapa();
