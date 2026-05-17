@@ -1,7 +1,11 @@
 import { useOpmStore } from "../../store";
+import { useZustandMapViewPort } from "../ports/zustandMapViewPort";
+import { useZustandOpdNavigationPort } from "../ports/zustandOpdNavigationPort";
 import { useZustandSystemMapControlsPort } from "../ports/zustandSystemMapControlsPort";
 
 export function useMapaSistemaViewModel() {
+  const { modelo } = useZustandOpdNavigationPort();
+  const { cerrarVistaMapa } = useZustandMapViewPort();
   const {
     refrescarVistaMapa,
     mapaAutoRefresh,
@@ -11,9 +15,7 @@ export function useMapaSistemaViewModel() {
   const descriptorBase = useOpmStore((s) => s.descriptorMapaCache);
   const descriptor = useOpmStore((s) => s.descriptorMapaFiltrado());
   const estadisticas = useOpmStore((s) => s.estadisticasModelo());
-  const modelo = useOpmStore((s) => s.modelo);
   const saltarAOpdDesdeMapa = useOpmStore((s) => s.saltarAOpdDesdeMapa);
-  const cerrarVistaMapa = useOpmStore((s) => s.cerrarVistaMapa);
   const mapaZoom = useOpmStore((s) => s.mapaZoom);
   const mapaPanX = useOpmStore((s) => s.mapaPanX);
   const mapaPanY = useOpmStore((s) => s.mapaPanY);
