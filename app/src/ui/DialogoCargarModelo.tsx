@@ -6,10 +6,9 @@ import regFileIcon from "../../../assets/svg/regFile.svg";
 import verFileIcon from "../../../assets/svg/verFile.svg";
 import type { Id } from "../modelo/tipos";
 import type { ResumenModeloPersistido } from "../persistencia/local";
-import type { CarpetaIndice } from "../persistencia/workspace";
-import { rutaDeCarpeta, listarHijosDeCarpeta } from "../persistencia/workspace";
+import { useZustandPersistencePort } from "../app/ports/zustandPersistencePort";
+import { useZustandWorkspacePort } from "../app/ports/zustandWorkspacePort";
 import { listarFixtures } from "../store/runtime";
-import { useOpmStore } from "../store";
 import { Dialogo } from "./Dialogo";
 import { useConfirmarSiDirty } from "./ConfirmacionContext";
 import { PanelCarpetas, type VistaModo } from "./PanelCarpetas";
@@ -20,73 +19,36 @@ import { tokens } from "./tokens";
  * Los ejemplos se leen desde `fixtureTodos()` como catálogo único.
  */
 export function DialogoCargarModelo() {
-  const open = useOpmStore((s) => s.dialogoCargarModeloAbierto);
-  const cerrar = useOpmStore((s) => s.cerrarCargarModelo);
-  const modelos = useOpmStore((s) => s.modelosGuardados);
-  const indice = useOpmStore((s) => s.indice);
-  const carpetaActualId = useOpmStore((s) => s.carpetaActualId);
-  const listar = useOpmStore((s) => s.listarModelosGuardados);
-  const cargar = useOpmStore((s) => s.cargarLocal);
-  const cargarFixtureDemo = useOpmStore((s) => s.cargarFixtureDemo);
-  const abrirPestanaConModelo = useOpmStore((s) => s.abrirPestanaConModelo);
-  const abrirCarpeta = useOpmStore((s) => s.abrirCarpeta);
-  const crearCarpeta = useOpmStore((s) => s.crearCarpetaEnActual);
-  const renombrarCarpeta = useOpmStore((s) => s.renombrarCarpetaEnIndice);
-  const eliminarCarpeta = useOpmStore((s) => s.eliminarCarpetaEnIndice);
-  const cortarModelo = useOpmStore((s) => s.cortarModelo);
-  const cortarCarpeta = useOpmStore((s) => s.cortarCarpeta);
-  const pegarEn = useOpmStore((s) => s.pegarEn);
-  const moverModeloDirecto = useOpmStore((s) => s.moverModeloDirecto);
-  const moverCarpetaDirecto = useOpmStore((s) => s.moverCarpetaDirecto);
-  const archivarModelo = useOpmStore((s) => s.archivarModeloPorId);
-  const restaurarModelo = useOpmStore((s) => s.restaurarModeloPorId);
-  const archivarCarpeta = useOpmStore((s) => s.archivarCarpetaPorId);
-  const restaurarCarpeta = useOpmStore((s) => s.restaurarCarpetaPorId);
-  const abrirVersiones = useOpmStore((s) => s.abrirDialogoVersiones);
-  const portapapeles = useOpmStore((s) => s.portapapelesWorkspace);
-  const cancelarPortapapeles = useOpmStore((s) => s.cancelarPortapapelesWorkspace);
-  const mostrarArchivados = useOpmStore((s) => s.mostrarArchivados);
-  const mostrarVersiones = useOpmStore((s) => s.mostrarVersiones);
-  const toggleMostrarArchivados = useOpmStore((s) => s.toggleMostrarArchivados);
-  const toggleMostrarVersiones = useOpmStore((s) => s.toggleMostrarVersiones);
+  const persistencia = useZustandPersistencePort();
+  const workspace = useZustandWorkspacePort();
   const confirmarSiDirty = useConfirmarSiDirty();
   const [modo, setModo] = useState<VistaModo>(() => leerVistaCargar());
   const [seleccionadoId, setSeleccionadoId] = useState<Id | null>(null);
   const [orden, setOrden] = useState<OrdenCargar>(() => leerOrdenCargar());
   const [query, setQuery] = useState("");
-  const [breadcrumb, setBreadcrumb] = useState<CarpetaIndice[]>([]);
   const [demoSeleccionado, setDemoSeleccionado] = useState("");
   const demos = useMemo(() => listarFixtures(), []);
 
   useEffect(() => {
-    if (!open) return;
-	    listar();
+    if (!persistencia.dialogoCargarModeloAbierto) return;
+	    persistencia.listarModelosGuardados();
 	    setQuery("");
 	    setSeleccionadoId(null);
-	  }, [listar, open]);
+	  }, [persistencia.dialogoCargarModeloAbierto, persistencia.listarModelosGuardados]);
 
-  useEffect(() => {
-    setBreadcrumb(rutaDeCarpeta(indice, carpetaActualId));
-  }, [indice, carpetaActualId]);
+  const breadcrumb = useMemo(
+    () => workspace.rutaCarpetaActual(),
+    [workspace.indice, workspace.carpetaActualId],
+  );
 
   // Filtrar modelos por carpeta actual
   const hijos = useMemo(() => {
-    const raw = listarHijosDeCarpeta(indice, carpetaActualId, { incluirArchivados: mostrarArchivados });
-    const modelosFiltrados = raw.modelos
-      .map((m) => {
-        const guardado = modelos.find((gm) => gm.id === m.id);
-        return guardado ? { ...guardado, archivado: guardado.archivado || m.archivado, archivadoEn: guardado.archivadoEn ?? m.archivadoEn, versiones: guardado.versiones ?? m.versiones } : undefined;
-      })
-      .filter((m) => m !== undefined);
-    return {
-      carpetas: raw.carpetas,
-      modelos: modelosFiltrados as typeof modelos,
-    };
-  }, [indice, carpetaActualId, modelos, mostrarArchivados]);
+    return workspace.listarHijosActuales({ incluirArchivados: workspace.mostrarArchivados });
+  }, [workspace.indice, workspace.carpetaActualId, workspace.modelosGuardados, workspace.mostrarArchivados]);
 
   const navegarBreadcrumb = useCallback((carpetaId: Id | null, _segmentIndex: number) => {
-    abrirCarpeta(carpetaId);
-  }, [abrirCarpeta]);
+    workspace.abrirCarpeta(carpetaId);
+  }, [workspace.abrirCarpeta]);
   const modelosCatalogo = useMemo(() => ordenarModelos(
     hijos.modelos.filter((modelo) => coincideBusqueda(modelo, query)),
     orden,
@@ -107,24 +69,24 @@ export function DialogoCargarModelo() {
   }, []);
   const abrirSeleccionado = useCallback((modeloId: Id | null) => {
     if (!modeloId) return;
-    confirmarSiDirty(() => cargar(modeloId));
-  }, [cargar, confirmarSiDirty]);
+    confirmarSiDirty(() => persistencia.cargarLocal(modeloId));
+  }, [confirmarSiDirty, persistencia.cargarLocal]);
   const cargarEjemplo = useCallback((accion: () => void) => {
     confirmarSiDirty(() => {
-      cerrar();
+      persistencia.cerrarCargarModelo();
       accion();
     });
-  }, [cerrar, confirmarSiDirty]);
+  }, [confirmarSiDirty, persistencia.cerrarCargarModelo]);
 
   return (
     <Dialogo
-      open={open}
+      open={persistencia.dialogoCargarModeloAbierto}
       title="Cargar modelo"
-      onCancel={cerrar}
+      onCancel={persistencia.cerrarCargarModelo}
       size="lg"
 	      actions={(
 	        <>
-	          <button type="button" style={style.secondaryButton} onClick={cerrar}>Cancelar</button>
+	          <button type="button" style={style.secondaryButton} onClick={persistencia.cerrarCargarModelo}>Cancelar</button>
 	          <button type="button" style={seleccionado ? style.primaryButton : style.disabledButton} disabled={!seleccionado} onClick={() => abrirSeleccionado(seleccionado?.id ?? null)}>Cargar</button>
 	        </>
 	      )}
@@ -140,7 +102,7 @@ export function DialogoCargarModelo() {
               if (!nombre) return;
               setDemoSeleccionado("");
               cargarEjemplo(() => {
-                cargarFixtureDemo(nombre);
+                persistencia.cargarFixtureDemo(nombre);
               });
             }}
           >
@@ -154,11 +116,11 @@ export function DialogoCargarModelo() {
         </div>
 	        <div style={style.flagsBar}>
           <label style={style.flag}>
-            <input type="checkbox" checked={mostrarArchivados} onChange={toggleMostrarArchivados} />
+            <input type="checkbox" checked={workspace.mostrarArchivados} onChange={workspace.toggleMostrarArchivados} />
             Mostrar archivados
           </label>
           <label style={style.flag}>
-            <input type="checkbox" checked={mostrarVersiones} onChange={toggleMostrarVersiones} />
+            <input type="checkbox" checked={workspace.mostrarVersiones} onChange={workspace.toggleMostrarVersiones} />
             Mostrar versiones
 	          </label>
 	        </div>
@@ -180,7 +142,7 @@ export function DialogoCargarModelo() {
 	              modelos={modelosCatalogo}
 	              seleccionadoId={seleccionadoId}
 	              orden={orden}
-	              mostrarVersiones={mostrarVersiones}
+	              mostrarVersiones={workspace.mostrarVersiones}
 	              onOrden={alternarOrden}
 	              onSeleccionar={setSeleccionadoId}
 	              onAbrir={abrirSeleccionado}
@@ -192,7 +154,7 @@ export function DialogoCargarModelo() {
 	                  key={modelo.id}
 	                  modelo={modelo}
 	                  seleccionado={modelo.id === seleccionadoId}
-	                  mostrarVersiones={mostrarVersiones}
+	                  mostrarVersiones={workspace.mostrarVersiones}
 	                  onSeleccionar={setSeleccionadoId}
 	                  onAbrir={abrirSeleccionado}
 	                />
@@ -206,33 +168,33 @@ export function DialogoCargarModelo() {
 	          <PanelCarpetas
 	          hijos={hijos}
           breadcrumb={breadcrumb}
-          carpetaActualId={carpetaActualId}
+          carpetaActualId={workspace.carpetaActualId}
           vista={modo}
           query={query}
           onQueryChange={setQuery}
           onVistaChange={setModo}
-          onAbrirCarpeta={(cId) => abrirCarpeta(cId)}
+          onAbrirCarpeta={(cId) => workspace.abrirCarpeta(cId)}
           onNavegarBreadcrumb={navegarBreadcrumb}
-          onCrearCarpeta={crearCarpeta}
-          onRenombrarCarpeta={renombrarCarpeta}
-          onEliminarCarpeta={(cId) => { void eliminarCarpeta(cId, { cascada: false }); }}
+          onCrearCarpeta={workspace.crearCarpetaEnActual}
+          onRenombrarCarpeta={workspace.renombrarCarpetaEnIndice}
+          onEliminarCarpeta={(cId) => { void workspace.eliminarCarpetaEnIndice(cId, { cascada: false }); }}
 	          onAbrirModelo={(mId) => {
 	            setSeleccionadoId(mId);
 	          }}
-          onAbrirModeloEnPestana={(mId) => abrirPestanaConModelo(mId)}
-          onCortarModelo={cortarModelo}
-          onCortarCarpeta={cortarCarpeta}
-          onPegarEn={pegarEn}
-          onMoverModelo={moverModeloDirecto}
-          onMoverCarpeta={moverCarpetaDirecto}
-          onArchivarModelo={(mId) => { void archivarModelo(mId); }}
-          onRestaurarModelo={(mId) => { void restaurarModelo(mId); }}
-          onArchivarCarpeta={archivarCarpeta}
-          onRestaurarCarpeta={restaurarCarpeta}
-	          onAbrirVersiones={abrirVersiones}
-          portapapeles={portapapeles}
-          onCancelarPortapapeles={cancelarPortapapeles}
-          mostrarVersiones={mostrarVersiones}
+          onAbrirModeloEnPestana={(mId) => workspace.abrirPestanaConModelo(mId)}
+          onCortarModelo={workspace.cortarModelo}
+          onCortarCarpeta={workspace.cortarCarpeta}
+          onPegarEn={workspace.pegarEn}
+          onMoverModelo={workspace.moverModeloDirecto}
+          onMoverCarpeta={workspace.moverCarpetaDirecto}
+          onArchivarModelo={(mId) => { void workspace.archivarModeloPorId(mId); }}
+          onRestaurarModelo={(mId) => { void workspace.restaurarModeloPorId(mId); }}
+          onArchivarCarpeta={workspace.archivarCarpetaPorId}
+          onRestaurarCarpeta={workspace.restaurarCarpetaPorId}
+	          onAbrirVersiones={workspace.abrirDialogoVersiones}
+          portapapeles={workspace.portapapelesWorkspace}
+          onCancelarPortapapeles={workspace.cancelarPortapapelesWorkspace}
+          mostrarVersiones={workspace.mostrarVersiones}
           recientes={[]}
           modoOperacion="carga"
 	          />
