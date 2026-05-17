@@ -1,5 +1,4 @@
-import { normalizarGridConfig } from "../../canvas/grid";
-import { useOpmStore } from "../../store";
+import { useZustandCanvasSessionPort } from "../ports/zustandCanvasSessionPort";
 import { useZustandModelCommandPort } from "../ports/zustandModelCommandPort";
 import { useZustandSelectionPort } from "../ports/zustandSelectionPort";
 
@@ -38,20 +37,22 @@ export function useJointCanvasViewModel() {
     toggleSeleccion,
     vaciarSeleccion,
   } = useZustandSelectionPort();
-  const modoEnlace = useOpmStore((s) => s.modoEnlace);
-  const modoCreacion = useOpmStore((s) => s.modoCreacion);
-  const modelo = useOpmStore((s) => s.modelo);
-  const opdActivoId = useOpmStore((s) => s.opdActivoId);
-  const hoverOplRef = useOpmStore((s) => s.hoverOplRef);
-  const uiAliasVisibles = useOpmStore((s) => s.uiAliasVisibles);
-  const uiDescripcionesVisibles = useOpmStore((s) => s.uiDescripcionesVisibles);
-  const uiModoImagenGlobal = useOpmStore((s) => s.uiModoImagenGlobal);
-  const contextoSimulacion = useOpmStore((s) => s.contextoSimulacion);
-  const alternarModoImagenEntidad = useOpmStore((s) => s.alternarModoImagenEntidad);
-  const abrirModalImagen = useOpmStore((s) => s.abrirModalImagen);
-  const fijarHoverOpl = useOpmStore((s) => s.fijarHoverOpl);
-  const gridConfig = useOpmStore((s) => normalizarGridConfig(s.gridConfig ?? s.indice.preferenciasUi?.gridConfig));
-  const solicitudFitToken = useOpmStore((s) => s.solicitudFitToken);
+  const {
+    modoEnlace,
+    modoCreacion,
+    modelo,
+    opdActivoId,
+    hoverOplRef,
+    uiAliasVisibles,
+    uiDescripcionesVisibles,
+    uiModoImagenGlobal,
+    contextoSimulacion,
+    alternarModoImagenEntidad,
+    abrirModalImagen,
+    fijarHoverOpl,
+    gridConfig,
+    solicitudFitToken,
+  } = useZustandCanvasSessionPort();
 
   return {
     modoEnlace,
