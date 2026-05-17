@@ -1,6 +1,6 @@
-import type { Id, Modelo, Opd } from "../../../modelo/tipos";
-import { ordenarHermanos } from "../../../modelo/opdReorden";
-import { refinaA } from "../../../modelo/refinamientos";
+import type { Id, Modelo, Opd } from "../../modelo/tipos";
+import { ordenarHermanos } from "../../modelo/opdReorden";
+import { refinaA } from "../../modelo/refinamientos";
 import {
   NODE_GAP_X,
   NODE_GAP_Y,

@@ -1,4 +1,4 @@
-import type { DescriptorMapa, EstiloResaltadoMapa, JointCellJson } from "./tipos";
+import type { DescriptorMapa, EstiloResaltadoMapa, JointCellJson } from "../../../canvas/mapa/tipos";
 
 /**
  * Proyección JointJS del meta-grafo.

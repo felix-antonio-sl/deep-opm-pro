@@ -1,4 +1,4 @@
-import type { Id } from "../../../modelo/tipos";
+import type { Id } from "../../modelo/tipos";
 import {
   clonarDescriptor,
   descriptorConNodos,

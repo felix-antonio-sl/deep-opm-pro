@@ -1,6 +1,6 @@
 // [JOYAS §1-3] Chrome UI consume tokens centralizados; canvas semántico invariante.
 import type { Id } from "../modelo/tipos";
-import type { CriterioResaltado, DescriptorMapa } from "../render/jointjs/mapaSistema";
+import type { CriterioResaltado, DescriptorMapa } from "../canvas/mapaSistema";
 import { tokens } from "./tokens";
 
 interface Props {

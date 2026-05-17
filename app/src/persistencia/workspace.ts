@@ -1,5 +1,5 @@
 import type { Id, Modelo, PlantillaIndice, PreferenciasUiUsuario, Resultado, VersionResumen } from "../modelo/tipos";
-import type { CriterioResaltado } from "../render/jointjs/mapaSistema";
+import type { CriterioResaltado } from "../canvas/mapaSistema";
 import type { ResumenModeloPersistido } from "./local";
 
 // ── Tipos de jerarquía ──────────────────────────────────────────────

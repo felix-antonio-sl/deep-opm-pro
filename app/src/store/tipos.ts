@@ -170,7 +170,7 @@ import {
   type CriterioResaltado,
   type DescriptorMapa,
   type EstadisticasModelo,
-} from "../render/jointjs/mapaSistema";
+} from "../canvas/mapaSistema";
 import { fijarOpcionesProyeccionGlobal } from "../render/jointjs/proyeccion";
 import type { EjeAlineacion, OrientacionDistribucion } from "../canvas/operacionesBatch";
 import type { AnchorConexion, ModoEnlace } from "../canvas/modoEnlace";
@@ -642,7 +642,7 @@ export interface OpmStore {
   eliminarEnlaceDesdeTabla: (enlaceId: Id) => void;
   // ── L5: Mapa del sistema ─────────────────────────────────────────
   vistaMapaActiva: boolean;
-  descriptorMapaCache: import("../render/jointjs/mapaSistema").DescriptorMapa | null;
+  descriptorMapaCache: import("../canvas/mapaSistema").DescriptorMapa | null;
   mapaProfundidadMaxima: number | null;
   mapaSubarbolRaizId: Id | null;
   mapaCriterioResaltado: CriterioResaltado;

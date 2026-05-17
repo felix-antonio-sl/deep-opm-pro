@@ -2,7 +2,7 @@ import { crearAutosalvado, type AutosalvadoControl } from "../persistencia/autos
 import { exportarModelo, hidratarModelo } from "../serializacion/json";
 import type { Aviso } from "../modelo/validaciones";
 import type { Apariencia, Id, Modelo, Opd, Pestana, PestanaId } from "../modelo/tipos";
-import { construirDescriptorMapa, type CriterioResaltado } from "../render/jointjs/mapaSistema";
+import { construirDescriptorMapa, type CriterioResaltado } from "../canvas/mapaSistema";
 import { dentroDeApariencia } from "../modelo/layout";
 import { obtenerRefinamiento } from "../modelo/refinamientos";
 import { sincronizarAbanicos } from "../modelo/abanicos";

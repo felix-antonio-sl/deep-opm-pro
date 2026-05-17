@@ -1,4 +1,4 @@
-import type { Modelo } from "../../../modelo/tipos";
+import type { Modelo } from "../../modelo/tipos";
 import { construirDescriptorMapa } from "./descriptor";
 import type { EstadisticasModelo } from "./tipos";
 

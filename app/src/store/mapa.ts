@@ -169,7 +169,7 @@ import {
   type CriterioResaltado,
   type DescriptorMapa,
   type EstadisticasModelo,
-} from "../render/jointjs/mapaSistema";
+} from "../canvas/mapaSistema";
 import { fijarOpcionesProyeccionGlobal } from "../render/jointjs/proyeccion";
 import {
   abrirPestana as abrirPestanaEstado,

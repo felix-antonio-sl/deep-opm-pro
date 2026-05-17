@@ -1,16 +1,9 @@
 /**
- * Barrel del mapa del sistema: re-exporta firmas públicas desde sub-archivos
- * por dominio (ronda 9.5):
- * - tipos.ts: NodoMapa, AristaMapa, DescriptorMapa, EstiloResaltadoMapa,
- *   CriterioResaltado, EstadisticasModelo, JointCellJson + helpers de descriptor.
- * - descriptor.ts: construirDescriptorMapa.
- * - proyeccion.ts: proyectarMapaSistemaAJointCells.
- * - filtros.ts: filtrarPorProfundidad, filtrarPorSubarbol.
- * - marcadores.ts: resaltarPorTipo, aplicarMarcadores.
- * - estadisticas.ts: calcularEstadisticas.
+ * Adapter del mapa del sistema para JointJS.
  *
- * Consumidores externos (~10 archivos en app/src/store/, app/src/ui/, app/src/persistencia/)
- * siguen importando desde "render/jointjs/mapaSistema" sin cambio.
+ * La frontera pura vive en canvas/mapaSistema; este barrel conserva la
+ * proyeccion JointJS y re-exporta el contrato de descriptor para los
+ * consumidores visuales que construyen cells.
  *
  * Refs: HU-21.* mapa del sistema, docs/instrucciones-lineas-dev/ronda9.5/.
  */
@@ -23,14 +16,14 @@ export type {
   EstiloResaltadoMapa,
   JointCellJson,
   NodoMapa,
-} from "./mapa/tipos";
+} from "../../canvas/mapaSistema";
 
-export { construirDescriptorMapa } from "./mapa/descriptor";
+export { construirDescriptorMapa } from "../../canvas/mapaSistema";
 
 export { proyectarMapaSistemaAJointCells } from "./mapa/proyeccion";
 
-export { filtrarPorProfundidad, filtrarPorSubarbol } from "./mapa/filtros";
+export { filtrarPorProfundidad, filtrarPorSubarbol } from "../../canvas/mapaSistema";
 
-export { aplicarMarcadores, resaltarPorTipo } from "./mapa/marcadores";
+export { aplicarMarcadores, resaltarPorTipo } from "../../canvas/mapaSistema";
 
-export { calcularEstadisticas } from "./mapa/estadisticas";
+export { calcularEstadisticas } from "../../canvas/mapaSistema";
