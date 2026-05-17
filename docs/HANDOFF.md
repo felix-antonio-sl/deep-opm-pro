@@ -3,8 +3,8 @@
 **Fecha**: 2026-05-17
 **Repositorio**: `deep-opm-pro`
 **Rama**: `main`
-**Último corte funcional**: `b810701 refactor(app): introduce puerto de historial versiones`
-**Corte**: Refactorizacion total, Corte 2 avanzado: UI depende de viewmodels y los viewmodels de mayor trafico se estan descomponiendo en puertos de aplicacion pequenos sobre Zustand.
+**Último corte funcional**: `24fc92c refactor(app): introduce puertos de inspector entidad`
+**Corte**: Refactorizacion total, Corte 2 cerrado: todos los viewmodels UI de aplicacion dependen de puertos de aplicacion, no de Zustand directo.
 
 ## Política De Handoff Único
 
@@ -215,6 +215,37 @@ Avance posterior al cierre de Corte 1:
   - Nuevo `VersionHistoryPort` para dialogo de versiones, creacion manual, restauracion, eliminacion y toggle de visibilidad.
   - `dialogoVersionesViewModel` queda sin dependencia directa a `useOpmStore`.
   - Validado con typecheck, build, unitarios de versiones/persistencia y smoke residual completa.
+- `277f1bc refactor(app): introduce puerto de timeline`
+  - Nuevo `TimelinePort`; `timelineViewModel` reutiliza `OpdNavigationPort` y `SelectionPort`.
+  - Validado con typecheck y build.
+- `5dbe3f2 refactor(app): introduce puerto de traer conectados`
+  - Nuevo `BringConnectedDialogPort`; el viewmodel reutiliza navegacion OPD y seleccion para conteos.
+  - Validado con typecheck, build, `operacionesBatch.test.ts` y smoke `e2e/07-enlaces-avanzados.spec.ts`.
+- `5810c17 refactor(app): introduce puertos de busqueda`
+  - `SearchDialogsPort` queda como opener; nuevos subpuertos para busqueda intra-modelo y global.
+  - `busquedaCosasViewModel` y `busquedaGlobalViewModel` quedan sin dependencia directa al store.
+  - Validado con typecheck, build, unitarios de workspace/busqueda y 33 smokes de busqueda/workspace/residual.
+- `7d00655 refactor(app): introduce puerto de gestion arbol opd`
+  - Nuevo `OpdTreeManagementPort`; `gestionArbolOpdViewModel` queda aislado del puerto ancho del arbol lateral.
+  - Validado con typecheck, build, unitarios OPD/arbol y smoke `e2e/04-arbol-y-pestanas.spec.ts`.
+- `d312f46 refactor(app): introduce puerto de contexto bugs`
+  - Nuevo `BugCaptureContextPort` con helper puro para contexto store+navegador.
+  - `capturadorBugsViewModel` queda sin dependencia directa a `useOpmStore`.
+  - Validado con typecheck, build, unitario del shape y smoke `e2e/10-capturador-bugs.spec.ts`.
+- `f52b7cf refactor(app): introduce puertos de mapa sistema`
+  - Nuevos puertos de datos, viewport y filtros del mapa; `mapaSistemaViewModel` queda sin store directo.
+  - Validado con typecheck, build, unitarios de mapa y smokes de arbol/mapa/toolbar.
+- `7c54039 refactor(app): introduce puerto de asistente modelo`
+  - Nuevo `NewModelAssistantPort`; las mutaciones imperativas del wizard salen del viewmodel.
+  - Validado con typecheck, build, unitarios de asistente/estado vacio y smoke `e2e/21-estado-vacio-opm.spec.ts`.
+- `881d931 refactor(app): introduce puertos de app shell`
+  - Nuevos puertos shell-only para workbench/layout/modos y overlays.
+  - `appShellViewModel` queda sin dependencia directa a `useOpmStore`.
+  - Validado con typecheck, build, unitarios focales y 32 smokes de canvas/arbol/toolbar/mobile.
+- `24fc92c refactor(app): introduce puertos de inspector entidad`
+  - Nuevos subpuertos para shell, semantica, metadata, estilo, refinamiento y estados del inspector de entidad.
+  - `inspectorEntidadViewModel` queda sin dependencia directa a `useOpmStore`; el caso `crearEstadosConNombres` conserva la lectura post-mutacion en el adapter.
+  - Validado con typecheck, build, 28 unitarios focales y 62 smokes de canvas/inspector/refinamiento/enlaces.
 
 Estado arquitectonico del ultimo corte:
 
@@ -223,14 +254,14 @@ Estado arquitectonico del ultimo corte:
 - `toolbarViewModel` queda sin dependencia directa a `useOpmStore`; consume `AutosavePort` y `MapViewPort`.
 - `toolbarCreacionViewModel` queda sin dependencia directa a `useOpmStore`; se compone por `ModelCommandPort`, `ModelCreationPort`, `OpdNavigationPort`, `SelectionPort` e `InteractionModePort`.
 - `toolbarMapaSistemaViewModel` queda sin dependencia directa a `useOpmStore`; consume `SystemMapControlsPort`.
-- `menuPrincipalViewModel`, `barraPestanasViewModel`, `inspectorViewModel`, `toolbarMasViewModel`, `pantallaInicioViewModel`, `estadoVacioOpmViewModel`, `mensajeFlashViewModel`, `modoRevisionMobileViewModel`, `dialogoConfiguracionViewModel`, `dialogoPlantillasViewModel`, `dialogoVersionesViewModel` y los viewmodels de modales de metadata quedan sin dependencia directa a `useOpmStore`.
-- `mapaSistemaViewModel` sigue con selectors directos para estado especifico de mapa (descriptor, zoom/pan, filtros y salto OPD), pero reutiliza `SystemMapControlsPort`, `OpdNavigationPort` y `MapViewPort` donde ya existen fronteras nombrables.
+- `menuPrincipalViewModel`, `barraPestanasViewModel`, `inspectorViewModel`, `toolbarMasViewModel`, `pantallaInicioViewModel`, `estadoVacioOpmViewModel`, `mensajeFlashViewModel`, `modoRevisionMobileViewModel`, `dialogoConfiguracionViewModel`, `dialogoPlantillasViewModel`, `dialogoVersionesViewModel`, `timelineViewModel`, `dialogoTraerConectadosViewModel`, `busquedaCosasViewModel`, `busquedaGlobalViewModel`, `gestionArbolOpdViewModel`, `capturadorBugsViewModel`, `mapaSistemaViewModel`, `asistenteNuevoModeloViewModel`, `appShellViewModel`, `inspectorEntidadViewModel` y los viewmodels de modales de metadata quedan sin dependencia directa a `useOpmStore`.
+- `rg "useOpmStore|from \"../../store\"|from '../../store'" app/src/app/viewmodels -n` no reporta resultados.
 - No se introdujo segundo store, estado duplicado ni DI global.
 
-Estado pendiente observado tras `b810701`:
+Estado pendiente observado tras `24fc92c`:
 
-- `rg "useOpmStore" app/src/app/viewmodels -l` reporta 10 viewmodels directos: `appShellViewModel`, `asistenteNuevoModeloViewModel`, `busquedaCosasViewModel`, `busquedaGlobalViewModel`, `capturadorBugsViewModel`, `dialogoTraerConectadosViewModel`, `gestionArbolOpdViewModel`, `inspectorEntidadViewModel`, `mapaSistemaViewModel` y `timelineViewModel`.
-- Siguiente orden recomendado: cerrar primero busquedas/timeline/dialogo traer conectados/gestion arbol con puertos pequenos; despues `mapaSistemaViewModel` por filtros/viewport; dejar `appShellViewModel`, `asistenteNuevoModeloViewModel` e `inspectorEntidadViewModel` para slices mayores y tests dedicados.
+- `rg "useOpmStore" app/src/app/viewmodels -l` reporta 0 viewmodels directos.
+- Siguiente orden recomendado del plan normativo: entrar a Corte 3 con `JointCanvas`/render y handlers como adapters hacia puertos/eventos, manteniendo proyeccion pura testeable; no iniciar otro refactor UI cosmetico.
 
 Regla operativa nueva: antes de migrar otro viewmodel, preferir reutilizar un puerto existente. Crear un puerto nuevo solo si representa una capacidad nombrable y reusable, no una coleccion accidental de selectors.
 
