@@ -19,45 +19,23 @@
  *  - Tokens-only para chrome (cero hex literales). [JOYAS §1].
  */
 
-import { useMemo } from "preact/hooks";
-import { posicionLibre } from "../modelo/layout";
-import { validarFirmaEnlace } from "../modelo/operaciones";
-import type { Apariencia, Entidad, Id, Modelo, TipoEntidad } from "../modelo/tipos";
-import { useOpmStore } from "../store";
+import { useEstadoVacioOpmViewModel } from "../app/viewmodels/estadoVacioOpmViewModel";
 import { colors, radii, shadows, spacing, typography } from "./tokens";
 
+export { sugerirEnlaceResultado } from "../app/viewmodels/estadoVacioOpmViewModel";
+
 export function EstadoVacioOpm() {
-  const modelo = useOpmStore((s) => s.modelo);
-  const opdActivoId = useOpmStore((s) => s.opdActivoId);
-  const readOnly = useOpmStore((s) => s.readOnly);
-  const crearEntidadEnCanvas = useOpmStore((s) => s.crearEntidadEnCanvas);
-  const crearEnlaceEntreEntidades = useOpmStore((s) => s.crearEnlaceEntreEntidades);
-  const iniciarAsistente = useOpmStore((s) => s.iniciarAsistente);
+  const vm = useEstadoVacioOpmViewModel();
 
-  const apariencias = useMemo(
-    () => Object.values(modelo.opds[opdActivoId]?.apariencias ?? {}) as Apariencia[],
-    [modelo.opds, opdActivoId],
-  );
-  const enlacesEnOpd = useMemo(
-    () => Object.values(modelo.opds[opdActivoId]?.enlaces ?? {}),
-    [modelo.opds, opdActivoId],
-  );
-  const entidadesVisibles = useMemo(
-    () => apariencias
-      .map((apariencia) => modelo.entidades[apariencia.entidadId])
-      .filter((entidad): entidad is Entidad => !!entidad),
-    [apariencias, modelo.entidades],
-  );
-
-  if (readOnly) return null;
+  if (vm.readOnly) return null;
   // El empty state desaparece al existir la primera apariencia (brief §1.5).
-  if (apariencias.length === 0) {
+  if (vm.estaVacio) {
     return (
       <BloqueInicioVacio
-        onCrearProceso={() => handleCrearCentrado(crearEntidadEnCanvas, modelo, opdActivoId, "proceso")}
-        onCrearObjeto={() => handleCrearCentrado(crearEntidadEnCanvas, modelo, opdActivoId, "objeto")}
-        onCrearAgenteInstrumento={() => handleCrearCentrado(crearEntidadEnCanvas, modelo, opdActivoId, "objeto")}
-        onAbrirAsistente={iniciarAsistente}
+        onCrearProceso={vm.crearProceso}
+        onCrearObjeto={vm.crearObjeto}
+        onCrearAgenteInstrumento={vm.crearAgenteInstrumento}
+        onAbrirAsistente={vm.iniciarAsistente}
       />
     );
   }
@@ -66,64 +44,16 @@ export function EstadoVacioOpm() {
   // proceso + 1 objeto, 0 enlaces y firma legal (proceso -> objeto). Si la
   // firma no es legal o ya hay enlaces, no se muestra (el usuario ya tiene
   // el menu "Tipos validos" en la toolbar como fallback explicito).
-  const sugerenciaResultado = sugerirEnlaceResultado(entidadesVisibles, enlacesEnOpd.length);
-  if (sugerenciaResultado) {
+  if (vm.sugerenciaResultado) {
     return (
       <NudgeConectarResultado
-        nombreProceso={sugerenciaResultado.proceso.nombre}
-        nombreObjeto={sugerenciaResultado.objeto.nombre}
-        onConectar={() => crearEnlaceEntreEntidades(
-          sugerenciaResultado.proceso.id,
-          sugerenciaResultado.objeto.id,
-          "resultado",
-        )}
+        nombreProceso={vm.sugerenciaResultado.proceso.nombre}
+        nombreObjeto={vm.sugerenciaResultado.objeto.nombre}
+        onConectar={vm.conectarResultado}
       />
     );
   }
   return null;
-}
-
-interface SugerenciaEnlace {
-  proceso: Entidad;
-  objeto: Entidad;
-}
-
-/**
- * Determina si conviene ofrecer "Conectar como resultado" en el OPD activo.
- *
- * Reglas (cerradas):
- *  - Exactamente 2 entidades visibles (no mas: arriba de eso el estado vacio
- *    cumplio su rol y el usuario tiene toolbar/contextual).
- *  - Una proceso, una objeto.
- *  - 0 enlaces aun.
- *  - Firma legal validarFirmaEnlace("resultado", proceso, objeto).
- */
-export function sugerirEnlaceResultado(
-  entidadesVisibles: readonly Entidad[],
-  cantidadEnlaces: number,
-): SugerenciaEnlace | null {
-  if (entidadesVisibles.length !== 2) return null;
-  if (cantidadEnlaces > 0) return null;
-  const proceso = entidadesVisibles.find((entidad) => entidad.tipo === "proceso");
-  const objeto = entidadesVisibles.find((entidad) => entidad.tipo === "objeto");
-  if (!proceso || !objeto) return null;
-  const firma = validarFirmaEnlace("resultado", proceso, objeto);
-  if (!firma.ok) return null;
-  return { proceso, objeto };
-}
-
-function handleCrearCentrado(
-  crearEntidadEnCanvas: (tipo: TipoEntidad, posicion: { x: number; y: number }) => void,
-  modelo: Modelo,
-  opdActivoId: Id,
-  tipo: TipoEntidad,
-): void {
-  // Reutilizamos `posicionLibre` (la misma que usan crearObjetoDemo/
-  // crearProcesoDemo) para conservar el layout canonico. La accion
-  // `crearEntidadEnCanvas` activa `nuevaCosaPendiente`, que monta el
-  // modal de nombre (sub-ViewContainer existente). NO inventamos flujo.
-  const posicion = posicionLibre(modelo, opdActivoId, tipo);
-  crearEntidadEnCanvas(tipo, posicion);
 }
 
 interface BloqueInicioProps {
