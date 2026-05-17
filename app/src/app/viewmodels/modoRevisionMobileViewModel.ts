@@ -1,8 +1,10 @@
-import { useOpmStore } from "../../store";
+import { useZustandMobileReviewPort } from "../ports/zustandMobileReviewPort";
 
 export function useModoRevisionMobileViewModel() {
-  const vistaActiva = useOpmStore((s) => s.vistaMobileActiva);
-  const cambiarVista = useOpmStore((s) => s.cambiarVistaMobile);
+  const {
+    vistaMobileActiva: vistaActiva,
+    cambiarVistaMobile: cambiarVista,
+  } = useZustandMobileReviewPort();
 
   return {
     vistaActiva,
