@@ -3,7 +3,7 @@
 **Fecha**: 2026-05-17
 **Repositorio**: `deep-opm-pro`
 **Rama**: `main`
-**Último corte funcional**: `e329b31 refactor(app): introduce puerto de editabilidad`
+**Último corte funcional**: `b810701 refactor(app): introduce puerto de historial versiones`
 **Corte**: Refactorizacion total, Corte 2 avanzado: UI depende de viewmodels y los viewmodels de mayor trafico se estan descomponiendo en puertos de aplicacion pequenos sobre Zustand.
 
 ## Política De Handoff Único
@@ -207,6 +207,14 @@ Avance posterior al cierre de Corte 1:
   - Nuevo `EditabilityPort` para `readOnly`.
   - `estadoVacioOpmViewModel` reutiliza `OpdNavigationPort`, `ModelCommandPort`, `ModelBootstrapPort` y `EditabilityPort`.
   - Validado con typecheck, build, unitarios focales de estados y smoke `e2e/21-estado-vacio-opm.spec.ts`.
+- `a936dc2 refactor(app): amplia puerto de plantillas`
+  - `TemplateDialogsPort` cubre catalogo, guardado e insercion de plantillas.
+  - `dialogoPlantillasViewModel` queda sin dependencia directa a `useOpmStore`.
+  - Validado con typecheck, build, unitarios de plantillas/batch y smokes residuales/toolbar.
+- `b810701 refactor(app): introduce puerto de historial versiones`
+  - Nuevo `VersionHistoryPort` para dialogo de versiones, creacion manual, restauracion, eliminacion y toggle de visibilidad.
+  - `dialogoVersionesViewModel` queda sin dependencia directa a `useOpmStore`.
+  - Validado con typecheck, build, unitarios de versiones/persistencia y smoke residual completa.
 
 Estado arquitectonico del ultimo corte:
 
@@ -215,14 +223,14 @@ Estado arquitectonico del ultimo corte:
 - `toolbarViewModel` queda sin dependencia directa a `useOpmStore`; consume `AutosavePort` y `MapViewPort`.
 - `toolbarCreacionViewModel` queda sin dependencia directa a `useOpmStore`; se compone por `ModelCommandPort`, `ModelCreationPort`, `OpdNavigationPort`, `SelectionPort` e `InteractionModePort`.
 - `toolbarMapaSistemaViewModel` queda sin dependencia directa a `useOpmStore`; consume `SystemMapControlsPort`.
-- `menuPrincipalViewModel`, `barraPestanasViewModel`, `inspectorViewModel`, `toolbarMasViewModel`, `pantallaInicioViewModel`, `estadoVacioOpmViewModel`, `mensajeFlashViewModel`, `modoRevisionMobileViewModel`, `dialogoConfiguracionViewModel` y los viewmodels de modales de metadata quedan sin dependencia directa a `useOpmStore`.
+- `menuPrincipalViewModel`, `barraPestanasViewModel`, `inspectorViewModel`, `toolbarMasViewModel`, `pantallaInicioViewModel`, `estadoVacioOpmViewModel`, `mensajeFlashViewModel`, `modoRevisionMobileViewModel`, `dialogoConfiguracionViewModel`, `dialogoPlantillasViewModel`, `dialogoVersionesViewModel` y los viewmodels de modales de metadata quedan sin dependencia directa a `useOpmStore`.
 - `mapaSistemaViewModel` sigue con selectors directos para estado especifico de mapa (descriptor, zoom/pan, filtros y salto OPD), pero reutiliza `SystemMapControlsPort`, `OpdNavigationPort` y `MapViewPort` donde ya existen fronteras nombrables.
 - No se introdujo segundo store, estado duplicado ni DI global.
 
-Estado pendiente observado tras `e329b31`:
+Estado pendiente observado tras `b810701`:
 
-- `rg "useOpmStore" app/src/app/viewmodels -l` reporta 12 viewmodels directos: `appShellViewModel`, `asistenteNuevoModeloViewModel`, `busquedaCosasViewModel`, `busquedaGlobalViewModel`, `capturadorBugsViewModel`, `dialogoPlantillasViewModel`, `dialogoTraerConectadosViewModel`, `dialogoVersionesViewModel`, `gestionArbolOpdViewModel`, `inspectorEntidadViewModel`, `mapaSistemaViewModel` y `timelineViewModel`.
-- Siguiente orden recomendado: cerrar primero dialogos/busquedas/timeline/gestion arbol con puertos pequenos; despues `mapaSistemaViewModel` por filtros/viewport; dejar `appShellViewModel` e `inspectorEntidadViewModel` para slices mayores y tests dedicados.
+- `rg "useOpmStore" app/src/app/viewmodels -l` reporta 10 viewmodels directos: `appShellViewModel`, `asistenteNuevoModeloViewModel`, `busquedaCosasViewModel`, `busquedaGlobalViewModel`, `capturadorBugsViewModel`, `dialogoTraerConectadosViewModel`, `gestionArbolOpdViewModel`, `inspectorEntidadViewModel`, `mapaSistemaViewModel` y `timelineViewModel`.
+- Siguiente orden recomendado: cerrar primero busquedas/timeline/dialogo traer conectados/gestion arbol con puertos pequenos; despues `mapaSistemaViewModel` por filtros/viewport; dejar `appShellViewModel`, `asistenteNuevoModeloViewModel` e `inspectorEntidadViewModel` para slices mayores y tests dedicados.
 
 Regla operativa nueva: antes de migrar otro viewmodel, preferir reutilizar un puerto existente. Crear un puerto nuevo solo si representa una capacidad nombrable y reusable, no una coleccion accidental de selectors.
 
