@@ -1,10 +1,9 @@
-import { useMemo } from "preact/hooks";
-import { normalizarGridConfig } from "../../canvas/grid";
 import { useOpmStore } from "../../store";
 import { useZustandHistoryPort } from "../ports/zustandHistoryPort";
 import { useZustandModelCreationPort } from "../ports/zustandModelCreationPort";
 import { useZustandSelectionPort } from "../ports/zustandSelectionPort";
 import { useZustandToolbarChromePort } from "../ports/zustandToolbarChromePort";
+import { useZustandWorkbenchViewControlsPort } from "../ports/zustandWorkbenchViewControlsPort";
 
 export function useToolbarBaseViewModel() {
   const {
@@ -25,6 +24,26 @@ export function useToolbarBaseViewModel() {
     descartarNuevaCosaPendiente,
   } = useZustandModelCreationPort();
   const { seleccionId, seleccionados, seleccionarEntidad, seleccionarEnlace } = useZustandSelectionPort();
+  const {
+    abrirDialogoPlantillas,
+    uiAliasVisibles,
+    uiDescripcionesVisibles,
+    toggleAliasVisibles,
+    toggleDescripcionesVisibles,
+    uiModoImagenGlobal,
+    fijarModoImagenGlobal,
+    abrirModalImagen,
+    gridConfig,
+    toggleGrid,
+    abrirDialogoConfiguracion,
+    aplicarLayoutSugerido,
+    bibliotecaDockAbierto,
+    toggleBibliotecaDock,
+    vistaMapaActiva,
+    abrirVistaMapa,
+    cerrarVistaMapa,
+    iniciarModoSimulacion,
+  } = useZustandWorkbenchViewControlsPort();
   const modelo = useOpmStore((s) => s.modelo);
   const opdActivoId = useOpmStore((s) => s.opdActivoId);
   const copiarEstiloEnlaceAlPortapapeles = useOpmStore((s) => s.copiarEstiloEnlaceAlPortapapeles);
@@ -35,25 +54,6 @@ export function useToolbarBaseViewModel() {
   const conectarSeleccionAlTodo = useOpmStore((s) => s.conectarSeleccionAlTodo);
   const traerEnlacesEntreSeleccionadas = useOpmStore((s) => s.traerEnlacesEntreSeleccionadas);
   const iniciarAutosalvado = useOpmStore((s) => s.iniciarAutosalvado);
-  const abrirDialogoPlantillas = useOpmStore((s) => s.abrirDialogoPlantillas);
-  const uiAliasVisibles = useOpmStore((s) => s.uiAliasVisibles);
-  const uiDescripcionesVisibles = useOpmStore((s) => s.uiDescripcionesVisibles);
-  const toggleAliasVisibles = useOpmStore((s) => s.toggleAliasVisibles);
-  const toggleDescripcionesVisibles = useOpmStore((s) => s.toggleDescripcionesVisibles);
-  const uiModoImagenGlobal = useOpmStore((s) => s.uiModoImagenGlobal);
-  const fijarModoImagenGlobal = useOpmStore((s) => s.fijarModoImagenGlobal);
-  const abrirModalImagen = useOpmStore((s) => s.abrirModalImagen);
-  const gridConfigBase = useOpmStore((s) => s.gridConfig ?? s.indice.preferenciasUi?.gridConfig);
-  const gridConfig = useMemo(() => normalizarGridConfig(gridConfigBase), [gridConfigBase]);
-  const toggleGrid = useOpmStore((s) => s.toggleGrid);
-  const abrirDialogoConfiguracion = useOpmStore((s) => s.abrirDialogoConfiguracion);
-  const aplicarLayoutSugerido = useOpmStore((s) => s.aplicarLayoutSugerido);
-  const bibliotecaDockAbierto = useOpmStore((s) => s.bibliotecaDockAbierto);
-  const toggleBibliotecaDock = useOpmStore((s) => s.toggleBibliotecaDock);
-  const vistaMapaActiva = useOpmStore((s) => s.vistaMapaActiva);
-  const abrirVistaMapa = useOpmStore((s) => s.abrirVistaMapa);
-  const cerrarVistaMapa = useOpmStore((s) => s.cerrarVistaMapa);
-  const iniciarModoSimulacion = useOpmStore((s) => s.iniciarModoSimulacion);
   const alinearSeleccion = useOpmStore((s) => s.alinearSeleccion);
   const distribuirSeleccion = useOpmStore((s) => s.distribuirSeleccion);
   const alinearSeleccionEnlaces = useOpmStore((s) => s.alinearSeleccionEnlaces);
