@@ -1,18 +1,21 @@
 import { useMemo } from "preact/hooks";
 import type { PlantillaIndice } from "../../modelo/tipos";
-import { useOpmStore } from "../../store";
+import { useZustandSessionMessagePort } from "../ports/zustandSessionMessagePort";
+import { useZustandTemplateDialogsPort } from "../ports/zustandTemplateDialogsPort";
 
 export function useDialogoPlantillasViewModel(queryFiltrada: string) {
-  const catalogoAbierto = useOpmStore((s) => s.dialogoPlantillasAbierto);
-  const guardarAbierto = useOpmStore((s) => s.dialogoGuardarPlantillaAbierto);
-  const modeloNombre = useOpmStore((s) => s.modelo.nombre);
-  const mensaje = useOpmStore((s) => s.mensaje);
-  const cerrar = useOpmStore((s) => s.cerrarDialogoPlantillas);
-  const abrirGuardar = useOpmStore((s) => s.abrirDialogoGuardarPlantilla);
-  const cerrarGuardar = useOpmStore((s) => s.cerrarDialogoGuardarPlantilla);
-  const guardar = useOpmStore((s) => s.guardarComoPlantillaConfirmar);
-  const insertar = useOpmStore((s) => s.insertarPlantillaEnOpdActivo);
-  const plantillas = useOpmStore((s) => s.plantillasGuardadas);
+  const {
+    catalogoAbierto,
+    guardarAbierto,
+    modeloNombre,
+    plantillas,
+    cerrar,
+    abrirDialogoGuardarPlantilla: abrirGuardar,
+    cerrarGuardar,
+    guardar,
+    insertar,
+  } = useZustandTemplateDialogsPort();
+  const { mensaje } = useZustandSessionMessagePort();
   const filtradas = useMemo(() => filtrarPlantillas(plantillas, queryFiltrada), [plantillas, queryFiltrada]);
 
   return {
