@@ -2,80 +2,66 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "preact/hooks";
 import folderIcon from "../../../assets/svg/folder.svg";
 import type { Id } from "../modelo/tipos";
-import type { CarpetaIndice } from "../persistencia/workspace";
-import { rutaDeCarpeta, listarHijosDeCarpeta, validarNombreModeloLocal } from "../persistencia/workspace";
-import { useOpmStore } from "../store";
+import { useZustandPersistencePort } from "../app/ports/zustandPersistencePort";
+import { useZustandWorkspacePort } from "../app/ports/zustandWorkspacePort";
 import { Dialogo } from "./Dialogo";
 import { PanelCarpetas, type VistaModo } from "./PanelCarpetas";
 import { tokens } from "./tokens";
 
 export function DialogoGuardarComo() {
-  const open = useOpmStore((s) => s.dialogoGuardarComoAbierto);
-  const cerrar = useOpmStore((s) => s.cerrarGuardarComo);
-  const guardarComoLocal = useOpmStore((s) => s.guardarComoLocalConDescripcion);
-  const workspace = useOpmStore((s) => s.workspaceLocal);
-  const modelosGuardados = useOpmStore((s) => s.modelosGuardados);
-  const indice = useOpmStore((s) => s.indice);
-  const carpetaActualId = useOpmStore((s) => s.carpetaActualId);
-  const abrirCarpeta = useOpmStore((s) => s.abrirCarpeta);
-  const crearCarpeta = useOpmStore((s) => s.crearCarpetaEnActual);
-  const renombrarCarpeta = useOpmStore((s) => s.renombrarCarpetaEnIndice);
-  const eliminarCarpeta = useOpmStore((s) => s.eliminarCarpetaEnIndice);
-  const mostrarVersiones = useOpmStore((s) => s.mostrarVersiones);
+  const persistencia = useZustandPersistencePort();
+  const workspace = useZustandWorkspacePort();
   const inputRef = useRef<HTMLInputElement>(null);
-  const [nombre, setNombre] = useState(workspace.nombre);
-  const [descripcion, setDescripcion] = useState(workspace.descripcion);
+  const [nombre, setNombre] = useState(workspace.workspaceLocal.nombre);
+  const [descripcion, setDescripcion] = useState(workspace.workspaceLocal.descripcion);
   const [crearVersionAlGuardar, setCrearVersionAlGuardar] = useState(false);
   const [modo, setModo] = useState<VistaModo>("lista");
   const [query, setQuery] = useState("");
 
   useEffect(() => {
-    if (!open) return;
-    setNombre(workspace.nombre);
-    setDescripcion(workspace.descripcion);
+    if (!persistencia.dialogoGuardarComoAbierto) return;
+    setNombre(workspace.workspaceLocal.nombre);
+    setDescripcion(workspace.workspaceLocal.descripcion);
     setCrearVersionAlGuardar(false);
     setQuery("");
-  }, [open, workspace.descripcion, workspace.nombre]);
+  }, [
+    persistencia.dialogoGuardarComoAbierto,
+    workspace.workspaceLocal.descripcion,
+    workspace.workspaceLocal.nombre,
+  ]);
 
   const breadcrumb = useMemo(
-    () => rutaDeCarpeta(indice, carpetaActualId),
-    [indice, carpetaActualId],
+    () => workspace.rutaCarpetaActual(),
+    [workspace.indice, workspace.carpetaActualId],
   );
 
   const hijos = useMemo(() => {
-    const raw = listarHijosDeCarpeta(indice, carpetaActualId);
-    const modelosFiltrados = raw.modelos
-      .map((m) => modelosGuardados.find((gm) => gm.id === m.id))
-      .filter((m) => m !== undefined);
-    return {
-      carpetas: raw.carpetas,
-      modelos: modelosFiltrados as typeof modelosGuardados,
-    };
-  }, [indice, carpetaActualId, modelosGuardados]);
+    return workspace.listarHijosActuales();
+  }, [workspace.indice, workspace.carpetaActualId, workspace.modelosGuardados]);
 
   const validacion = useMemo(
-    () => validarNombreModeloLocal(nombre, modelosGuardados),
-    [modelosGuardados, nombre],
+    () => workspace.validarNombreModelo(nombre),
+    [workspace.modelosGuardados, nombre],
   );
 
   const navegarBreadcrumb = useCallback((carpetaId: Id | null, _segmentIndex: number) => {
-    abrirCarpeta(carpetaId);
-  }, [abrirCarpeta]);
+    workspace.abrirCarpeta(carpetaId);
+  }, [workspace]);
 
   return (
     <Dialogo
-      open={open}
+      open={persistencia.dialogoGuardarComoAbierto}
       title="Guardar como"
-      onCancel={cerrar}
+      onCancel={persistencia.cerrarGuardarComo}
       initialFocusRef={inputRef}
       actions={(
         <>
-          <button type="button" style={style.secondaryButton} onClick={cerrar}>Cancelar</button>
+          <button type="button" style={style.secondaryButton} onClick={persistencia.cerrarGuardarComo}>Cancelar</button>
           <button
             type="button"
             style={validacion.ok ? style.primaryButton : style.disabledButton}
             disabled={!validacion.ok}
-            onClick={() => guardarComoLocal({ nombre, descripcion, crearVersionAlGuardar })}
+            onClick={() => persistencia.guardarComoLocalConDescripcion({ nombre, descripcion, crearVersionAlGuardar })}
           >
             Guardar
           </button>
@@ -100,18 +86,18 @@ export function DialogoGuardarComo() {
             <PanelCarpetas
               hijos={hijos}
               breadcrumb={breadcrumb}
-              carpetaActualId={carpetaActualId}
+              carpetaActualId={workspace.carpetaActualId}
               vista={modo}
               query={query}
               onQueryChange={setQuery}
               onVistaChange={setModo}
-              onAbrirCarpeta={(cId) => abrirCarpeta(cId)}
+              onAbrirCarpeta={(cId) => workspace.abrirCarpeta(cId)}
               onNavegarBreadcrumb={navegarBreadcrumb}
-              onCrearCarpeta={crearCarpeta}
-              onRenombrarCarpeta={renombrarCarpeta}
-              onEliminarCarpeta={(cId) => { void eliminarCarpeta(cId, { cascada: false }); }}
+              onCrearCarpeta={workspace.crearCarpetaEnActual}
+              onRenombrarCarpeta={workspace.renombrarCarpetaEnIndice}
+              onEliminarCarpeta={(cId) => { void workspace.eliminarCarpetaEnIndice(cId, { cascada: false }); }}
               onAbrirModelo={() => {}} // En modo selector, no se abren modelos
-              mostrarVersiones={mostrarVersiones}
+              mostrarVersiones={workspace.mostrarVersiones}
               recientes={[]}
               modoOperacion="selector"
             />
