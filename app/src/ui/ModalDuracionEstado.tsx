@@ -1,18 +1,13 @@
 // [JOYAS §1-3] Chrome UI consume tokens centralizados; canvas semántico invariante.
 import { useEffect, useState } from "preact/hooks";
+import { useModalDuracionEstadoViewModel } from "../app/viewmodels/modalDuracionEstadoViewModel";
 import { UNIDADES_TIEMPO } from "../modelo/objetoDuracion";
-import { useOpmStore } from "../store";
 import type { UnidadTiempo } from "../modelo/tipos";
 import { Dialogo } from "./Dialogo";
 import { tokens } from "./tokens";
 
 export function ModalDuracionEstado() {
-  const abierto = useOpmStore((s) => s.modalDuracionAbierto);
-  const modelo = useOpmStore((s) => s.modelo);
-  const cerrar = useOpmStore((s) => s.cerrarModalDuracion);
-  const fijar = useOpmStore((s) => s.fijarDuracionEstado);
-  const quitar = useOpmStore((s) => s.quitarDuracionEstado);
-  const estado = abierto ? modelo.estados[abierto] : undefined;
+  const { abierto, estado, cerrar, fijar, quitar } = useModalDuracionEstadoViewModel();
   const [unidad, setUnidad] = useState<UnidadTiempo>("s");
   const [min, setMin] = useState("0");
   const [nominal, setNominal] = useState("1");
