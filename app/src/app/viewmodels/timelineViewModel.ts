@@ -1,7 +1,9 @@
 import { useMemo } from "preact/hooks";
 import { obtenerRefinamiento } from "../../modelo/refinamientos";
 import type { Apariencia, Entidad, Id, Modelo, Opd } from "../../modelo/tipos";
-import { useOpmStore } from "../../store";
+import { useZustandOpdNavigationPort } from "../ports/zustandOpdNavigationPort";
+import { useZustandSelectionPort } from "../ports/zustandSelectionPort";
+import { useZustandTimelinePort } from "../ports/zustandTimelinePort";
 
 export interface TimelineContext {
   opd: Opd;
@@ -16,11 +18,9 @@ export interface TimelineRow {
 }
 
 export function useTimelineViewModel() {
-  const modelo = useOpmStore((s) => s.modelo);
-  const opdActivoId = useOpmStore((s) => s.opdActivoId);
-  const seleccionId = useOpmStore((s) => s.seleccionId);
-  const seleccionarEntidad = useOpmStore((s) => s.seleccionarEntidad);
-  const reordenarSubprocesoEnTimeline = useOpmStore((s) => s.reordenarSubprocesoEnTimeline);
+  const { modelo, opdActivoId } = useZustandOpdNavigationPort();
+  const { seleccionId, seleccionarEntidad } = useZustandSelectionPort();
+  const { reordenarSubprocesoEnTimeline } = useZustandTimelinePort();
   const contexto = useMemo(() => contextoTimeline(modelo, opdActivoId), [modelo, opdActivoId]);
 
   return {
