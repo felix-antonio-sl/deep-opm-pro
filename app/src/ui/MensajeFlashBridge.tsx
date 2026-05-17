@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "preact/hooks";
 import { addFlash } from "../app/ports/zustandFeedbackPort";
-import { useOpmStore } from "../store";
+import { useMensajeFlashViewModel } from "../app/viewmodels/mensajeFlashViewModel";
 
 export const TTL_MENSAJE_FLASH_MS = 4_500;
 
@@ -10,8 +10,7 @@ export function normalizarMensajeFlash(mensaje: string | null): string | null {
 }
 
 export function MensajeFlashBridge() {
-  const mensaje = useOpmStore((s) => s.mensaje);
-  const limpiarMensaje = useOpmStore((s) => s.limpiarMensaje);
+  const { mensaje, limpiarMensaje } = useMensajeFlashViewModel();
   const ultimoPublicadoRef = useRef<string | null>(null);
 
   useEffect(() => {
