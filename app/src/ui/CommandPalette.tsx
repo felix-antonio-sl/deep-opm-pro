@@ -1,12 +1,11 @@
 import { useEffect, useRef, useState } from "preact/hooks";
+import { useCommandPaletteViewModel } from "../app/viewmodels/commandPaletteViewModel";
 import type { AccionContextual, AccionContextualId } from "../store/acciones-contextuales";
 import { accionesContextualesEntidad, accionesParaSuperficie } from "../store/acciones-contextuales";
-import { useOpmStore } from "../store";
 import { formatearCombo, listarAtajos, type RegistroAtajo } from "./atajosTeclado";
 import { primerEnlaceVisualDeEntidad } from "./BarraHerramientasElemento";
 import { useConfirmarSiDirty } from "./ConfirmacionContext";
 import { ejecutarAccionContextualEntidad } from "./ejecutarAccionContextual";
-import { normalizarGridConfig } from "../canvas/grid";
 import { tokens } from "./tokens";
 
 interface Props {
@@ -42,33 +41,34 @@ export function CommandPalette({ abierto, onCerrar }: Props) {
   const [query, setQuery] = useState("");
   const [activo, setActivo] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
-  const modelo = useOpmStore((s) => s.modelo);
-  const opdActivoId = useOpmStore((s) => s.opdActivoId);
-  const seleccionId = useOpmStore((s) => s.seleccionId);
-  const enlaceEstiloPortapapeles = useOpmStore((s) => s.enlaceEstiloPortapapeles);
-  const seleccionados = useOpmStore((s) => s.seleccionados);
   const confirmarSiDirty = useConfirmarSiDirty();
-  const nuevoModelo = useOpmStore((s) => s.nuevoModelo);
-  const abrirCargarModelo = useOpmStore((s) => s.abrirCargarModelo);
-  const abrirGuardarComo = useOpmStore((s) => s.abrirGuardarComo);
-  const abrirDialogoConfiguracion = useOpmStore((s) => s.abrirDialogoConfiguracion);
-  const abrirDialogoGuardarPlantilla = useOpmStore((s) => s.abrirDialogoGuardarPlantilla);
-  const abrirDialogoPlantillas = useOpmStore((s) => s.abrirDialogoPlantillas);
-  const abrirDialogoVersiones = useOpmStore((s) => s.abrirDialogoVersiones);
-  const modeloPersistidoId = useOpmStore((s) => s.modeloPersistidoId);
-  const abrirVistaMapa = useOpmStore((s) => s.abrirVistaMapa);
-  const cerrarVistaMapa = useOpmStore((s) => s.cerrarVistaMapa);
-  const vistaMapaActiva = useOpmStore((s) => s.vistaMapaActiva);
-  const gridConfig = useOpmStore((s) => normalizarGridConfig(s.gridConfig ?? s.indice.preferenciasUi?.gridConfig));
-  const toggleGrid = useOpmStore((s) => s.toggleGrid);
-  const aplicarLayoutSugerido = useOpmStore((s) => s.aplicarLayoutSugerido);
-  const iniciarModoSimulacion = useOpmStore((s) => s.iniciarModoSimulacion);
-  const abrirTablaEnlaces = useOpmStore((s) => s.abrirTablaEnlaces);
-  const abrirDialogoImportarExportarJson = useOpmStore((s) => s.abrirDialogoImportarExportarJson);
-  const abrirCheatsheetAtajos = useOpmStore((s) => s.abrirCheatsheetAtajos);
-  const exportarJson = useOpmStore((s) => s.exportarJson);
-  const frecuenciaUso = useOpmStore((s) => s.frecuenciaUsoCommandPalette);
-  const registrarUsoCommandPalette = useOpmStore((s) => s.registrarUsoCommandPalette);
+  const {
+    modelo,
+    opdActivoId,
+    seleccionId,
+    enlaceEstiloPortapapeles,
+    seleccionados,
+    nuevoModelo,
+    abrirCargarModelo,
+    abrirGuardarComo,
+    abrirDialogoConfiguracion,
+    abrirDialogoGuardarPlantilla,
+    abrirDialogoPlantillas,
+    abrirDialogoVersiones,
+    modeloPersistidoId,
+    vistaMapaActiva,
+    gridConfig,
+    toggleGrid,
+    aplicarLayoutSugerido,
+    iniciarModoSimulacion,
+    abrirTablaEnlaces,
+    abrirDialogoImportarExportarJson,
+    abrirCheatsheetAtajos,
+    frecuenciaUso,
+    registrarUsoCommandPalette,
+    toggleMapaSistema,
+    exportarJsonAlPortapapeles,
+  } = useCommandPaletteViewModel();
 
   const entidad = seleccionId ? modelo.entidades[seleccionId] ?? null : null;
   const enlaceEstiloId = entidad ? primerEnlaceVisualDeEntidad(modelo, opdActivoId, entidad.id) : null;
@@ -92,7 +92,7 @@ export function CommandPalette({ abierto, onCerrar }: Props) {
     abrirDialogoPlantillas,
     abrirDialogoVersiones: modeloPersistidoId ? () => abrirDialogoVersiones(modeloPersistidoId) : null,
     modeloPersistidoId,
-    toggleMapaSistema: vistaMapaActiva ? cerrarVistaMapa : abrirVistaMapa,
+    toggleMapaSistema,
     vistaMapaActiva,
     toggleGrid,
     gridActiva: gridConfig.activa,
@@ -101,10 +101,7 @@ export function CommandPalette({ abierto, onCerrar }: Props) {
     abrirTablaEnlaces,
     abrirDialogoImportarExportarJson,
     abrirCheatsheetAtajos,
-    exportarJson: () => {
-      const json = exportarJson();
-      void globalThis.navigator?.clipboard?.writeText(json);
-    },
+    exportarJson: exportarJsonAlPortapapeles,
   });
   const registros = listarAtajos();
   const items = filtrarItemsCommandPalette(
