@@ -1,6 +1,6 @@
 {
   "schema": "deep-opm-pro.hu-progress-evidence.v1",
-  "updated": "2026-05-07",
+  "updated": "2026-05-16",
   "source": "Auditoria automatica local contra app/src, app/e2e, app/scripts y assets/svg/links.",
   "statusDefinitions": {
     "cubierto": "La HU tiene implementacion usable y evidencia local directa en codigo, tests o smoke.",
@@ -728,13 +728,13 @@
   ],
   "knownGaps": [],
   "autoAudit": {
-    "generatedAt": "2026-05-07T21:08:49.278Z",
+    "generatedAt": "2026-05-16T20:25:38.868Z",
     "mode": "sync-real",
     "rulesEvaluated": 102,
-    "rulesMatched": 102,
-    "rulesUnmatched": 0,
+    "rulesMatched": 79,
+    "rulesUnmatched": 23,
     "sourceFiles": {
-      "count": 406,
+      "count": 529,
       "roots": [
         "app/src",
         "app/e2e",
@@ -766,10 +766,10 @@
       "ids": [
         "HU-SHARED-007"
       ],
-      "estado": "cubierto",
+      "estado": "pendiente",
       "confianza": "alta-auto",
       "fuente": "auto",
-      "nota": "Auto ronda 14 alpha-lock: OPL-ES forward + reverse editable cubierto con parser SSOT, diagnosticos, preview de patches, aplicacion undoable al store y smoke UI. El reverse acepta oraciones canonicas, no borra por ausencia y diagnostica familias fuera de kernel.",
+      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
       "evidencia": [
         "app/src/opl/generar.ts",
         "app/src/opl/generadores/procedural.ts",
@@ -784,6 +784,10 @@
         "app/src/opl/parser/parser.test.ts",
         "app/e2e/03-opl-panel.spec.ts",
         "app/src/completitud.test.ts"
+      ],
+      "brechas": [
+        "app/src/ui/PanelOpl.tsx: falta panel-opl-editor-libre",
+        "app/src/ui/PanelOpl.tsx: falta panel-opl-editor-aplicar"
       ]
     },
     {
@@ -827,16 +831,20 @@
         "HU-10.007",
         "HU-11.025"
       ],
-      "estado": "cubierto",
+      "estado": "pendiente",
       "confianza": "alta-auto",
       "fuente": "auto",
-      "nota": "Auto: flujo origen-tipo-destino crea enlaces con validacion de firma respetando handles de resize; los puertos visuales emergen al iniciar el enlace.",
+      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
       "evidencia": [
         "app/src/ui/Toolbar.tsx",
         "app/src/ui/toolbar/ToolbarCreacion.tsx",
         "app/src/store/modelo/acciones-enlace.ts",
         "app/src/modelo/operaciones/helpers.ts",
         "app/src/modelo/operaciones/enlaces.ts"
+      ],
+      "brechas": [
+        "app/src/ui/Toolbar.tsx: falta TIPOS_ENLACE",
+        "app/src/store/modelo/acciones-enlace.ts: falta elegirTipoEnlace(tipo)"
       ]
     },
     {
@@ -925,10 +933,10 @@
         "HU-30.014",
         "HU-30.017"
       ],
-      "estado": "cubierto",
+      "estado": "pendiente",
       "confianza": "alta-auto",
       "fuente": "auto",
-      "nota": "Auto: guardar/cargar local, nuevo modelo y Ctrl+S estan implementados sobre persistencia local.",
+      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
       "evidencia": [
         "app/src/ui/toolbar/ToolbarBase.tsx",
         "app/src/ui/App.tsx",
@@ -936,6 +944,11 @@
         "app/src/store/modelo/acciones-ui.ts",
         "app/src/persistencia/local.ts",
         "app/src/persistencia/local.test.ts"
+      ],
+      "brechas": [
+        "app/src/ui/toolbar/ToolbarBase.tsx: falta Guardar (Ctrl+S)",
+        "app/src/ui/toolbar/ToolbarBase.tsx: falta Cargar",
+        "app/src/ui/toolbar/ToolbarBase.tsx: falta Nuevo"
       ]
     },
     {
@@ -1004,13 +1017,16 @@
       "ids": [
         "HU-12.002"
       ],
-      "estado": "parcial",
-      "confianza": "media-auto",
+      "estado": "pendiente",
+      "confianza": "alta-auto",
       "fuente": "auto",
-      "nota": "Auto: inspector permite descomponer/desplegar desde la entidad seleccionada; faltan menus canonicos y algunos gestos.",
+      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
       "evidencia": [
         "app/src/ui/inspector/SeccionRefinamiento.tsx",
         "app/src/store/modelo/acciones-opd.ts"
+      ],
+      "brechas": [
+        "app/src/ui/inspector/SeccionRefinamiento.tsx: falta alguno de Descomponer | Desplegar"
       ]
     },
     {
@@ -1046,14 +1062,17 @@
         "HU-13.006",
         "HU-13.019"
       ],
-      "estado": "parcial",
+      "estado": "pendiente",
       "confianza": "alta-auto",
       "fuente": "auto",
-      "nota": "Auto: inspector y kernel manejan estados de objeto; faltan gestos contextuales y toolbar canonica de estados.",
+      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
       "evidencia": [
         "app/src/modelo/operaciones/estados.ts",
         "app/src/ui/InspectorEntidad.tsx",
         "app/src/render/jointjs/proyeccion.ts"
+      ],
+      "brechas": [
+        "app/src/ui/InspectorEntidad.tsx: falta onAgregarEstado"
       ]
     },
     {
@@ -1127,14 +1146,16 @@
         "HU-1C.015",
         "HU-1C.019"
       ],
-      "estado": "cubierto",
+      "estado": "pendiente",
       "confianza": "alta-auto",
       "fuente": "auto",
-      "nota": "Auto: validador emite avisos con severidad/cita y panel visible consume validarModelo.",
+      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
       "evidencia": [
         "app/src/modelo/validaciones.ts",
-        "app/src/ui/PanelAvisos.tsx",
         "app/src/modelo/validaciones.test.ts"
+      ],
+      "brechas": [
+        "app/src/ui/PanelAvisos.tsx: archivo no encontrado"
       ]
     },
     {
@@ -1144,14 +1165,16 @@
         "HU-1C.017",
         "HU-1C.018"
       ],
-      "estado": "parcial",
-      "confianza": "media-auto",
+      "estado": "pendiente",
+      "confianza": "alta-auto",
       "fuente": "auto",
-      "nota": "Auto: panel de avisos existe y permite seleccionar elementos; faltan todos los patrones de navegacion/correccion asistida.",
+      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
       "evidencia": [
-        "app/src/ui/PanelAvisos.tsx",
         "app/src/store/modelo/acciones-opd.ts",
         "app/src/store/modelo/acciones-canvas.ts"
+      ],
+      "brechas": [
+        "app/src/ui/PanelAvisos.tsx: archivo no encontrado"
       ]
     },
     {
@@ -1220,14 +1243,18 @@
         "HU-17.028",
         "HU-17.029"
       ],
-      "estado": "parcial",
-      "confianza": "media-auto",
+      "estado": "pendiente",
+      "confianza": "alta-auto",
       "fuente": "auto",
-      "nota": "Auto: despliegue y multiples apariencias estan modelados para OPDs; faltan propiedades completas de apariencia equivalentes a OPCloud.",
+      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
       "evidencia": [
         "app/src/modelo/operaciones/refinamiento/despliegue.ts",
         "app/src/ui/inspector/SeccionRefinamiento.tsx",
         "app/src/serializacion/json.ts"
+      ],
+      "brechas": [
+        "app/src/ui/inspector/SeccionRefinamiento.tsx: falta Desplegar",
+        "app/src/ui/inspector/SeccionRefinamiento.tsx: falta DesplegarComo"
       ]
     },
     {
@@ -1480,29 +1507,35 @@
         "HU-34.007",
         "HU-34.008"
       ],
-      "estado": "cubierto",
+      "estado": "pendiente",
       "confianza": "alta-auto",
       "fuente": "auto",
-      "nota": "Auto: Nuevo crea pestana con SD vacio, titulo (No guardado) y panel OPL/biblioteca vacios.",
+      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
       "evidencia": [
         "app/src/ui/MenuPrincipal.tsx",
         "app/src/store/modelo/acciones-ui.ts",
         "app/src/store/modelo.ts",
         "app/src/ui/toolbar/ToolbarBase.tsx"
+      ],
+      "brechas": [
+        "app/src/ui/toolbar/ToolbarBase.tsx: falta alguno de No guardado"
       ]
     },
     {
       "ids": [
         "HU-1C.004"
       ],
-      "estado": "cubierto",
+      "estado": "pendiente",
       "confianza": "alta-auto",
       "fuente": "auto",
-      "nota": "Auto: click dentro del bbox de un contenedor refinado crea cosa hija sin advertencia interior/exterior.",
+      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
       "evidencia": [
         "app/src/modelo/creacionInterna.ts",
         "app/src/store/modelo/acciones-entidad.ts",
         "app/src/modelo/creacionInterna.test.ts"
+      ],
+      "brechas": [
+        "app/src/modelo/creacionInterna.ts: falta posicionDentroDeContorno"
       ]
     },
     {
@@ -1527,15 +1560,19 @@
         "HU-11.004",
         "HU-11.014"
       ],
-      "estado": "cubierto",
+      "estado": "pendiente",
       "confianza": "alta-auto",
       "fuente": "auto",
-      "nota": "Auto: bus de agregacion derivado en render con triangulo unico + ramas y etiquetas editables que aparecen como sufijo OPL.",
+      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
       "evidencia": [
         "app/src/render/jointjs/agregacionBus.ts",
         "app/src/modelo/etiquetasEnlace.ts",
         "app/src/ui/InspectorEnlace.tsx",
         "app/src/opl/generar.ts"
+      ],
+      "brechas": [
+        "app/src/render/jointjs/agregacionBus.ts: falta proyectarBusesAgregacion",
+        "app/src/render/jointjs/agregacionBus.ts: falta marcadorAgregacion"
       ]
     },
     {
@@ -1662,17 +1699,19 @@
         "HU-35.005",
         "HU-30.029"
       ],
-      "estado": "cubierto",
+      "estado": "pendiente",
       "confianza": "alta-auto",
       "fuente": "auto",
-      "nota": "Auto: workspace single-user cierra cortar/pegar y drag-drop de modelos/carpetas, busqueda global, versiones manuales y archivado.",
+      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
       "evidencia": [
         "app/src/persistencia/movimientoModelos.ts",
         "app/src/persistencia/versiones.ts",
         "app/src/persistencia/workspace.ts",
         "app/src/ui/DialogoBuscarGlobal.tsx",
-        "app/src/ui/DialogoVersiones.tsx",
-        "app/src/ui/DialogoArchivados.tsx"
+        "app/src/ui/DialogoVersiones.tsx"
+      ],
+      "brechas": [
+        "app/src/ui/DialogoArchivados.tsx: archivo no encontrado"
       ]
     },
     {
@@ -1736,20 +1775,24 @@
         "HU-1A.012",
         "HU-1A.014"
       ],
-      "estado": "cubierto",
+      "estado": "pendiente",
       "confianza": "alta-auto",
       "fuente": "auto",
-      "nota": "Auto ronda 10 L1: grid configurable persistido en PreferenciasUiUsuario.gridConfig, drawGrid nativo de JointJS y cuantizacion de movimiento al paso.",
+      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
       "evidencia": [
         "app/src/canvas/grid.ts",
         "app/src/render/jointjs/composers/grid.ts",
         "app/src/modelo/tipos/ui.ts",
         "app/src/store/modelo/acciones-canvas.ts",
         "app/src/ui/toolbar/ToolbarCreacion.tsx",
-        "app/src/ui/ModalConfiguracionGrid.tsx",
         "app/src/canvas/grid.test.ts",
         "app/src/render/jointjs/composers/grid.test.ts",
         "app/e2e/_smoke-helpers.ts"
+      ],
+      "brechas": [
+        "app/src/ui/toolbar/ToolbarCreacion.tsx: falta toggle-grid",
+        "app/src/ui/toolbar/ToolbarCreacion.tsx: falta config-grid",
+        "app/src/ui/ModalConfiguracionGrid.tsx: archivo no encontrado"
       ]
     },
     {
@@ -1758,16 +1801,18 @@
         "HU-1A.018",
         "HU-11.008"
       ],
-      "estado": "cubierto",
+      "estado": "pendiente",
       "confianza": "alta-auto",
       "fuente": "auto",
-      "nota": "Auto ronda 10 L1: alineacion por eje y distribucion uniforme expuestas en Toolbar y ejecutadas como operaciones batch con un solo undo.",
+      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
       "evidencia": [
         "app/src/canvas/operacionesBatch.ts",
         "app/src/store/modelo/acciones-canvas.ts",
-        "app/src/ui/toolbar/ToolbarMultiseleccion.tsx",
         "app/src/canvas/operacionesBatch.test.ts",
         "app/e2e/_smoke-helpers.ts"
+      ],
+      "brechas": [
+        "app/src/ui/toolbar/ToolbarMultiseleccion.tsx: archivo no encontrado"
       ]
     },
     {
@@ -1858,10 +1903,10 @@
         "HU-12.016",
         "HU-12.017"
       ],
-      "estado": "cubierto",
+      "estado": "pendiente",
       "confianza": "alta-auto",
       "fuente": "auto",
-      "nota": "Auto ronda 10 L3: orden temporal por Y se reordena con drag vertical y agruparSubprocesosParalelos detecta concurrencia con tolerancia ≤4px emitiendo OPL paralelo.",
+      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
       "evidencia": [
         "app/src/modelo/operaciones/refinamiento/helpers.ts",
         "app/src/render/jointjs/handlers/drag.ts",
@@ -1869,6 +1914,10 @@
         "app/src/opl/generadores/refinamiento.ts",
         "app/src/opl/generadores/refinamiento.test.ts",
         "app/e2e/_smoke-helpers.ts"
+      ],
+      "brechas": [
+        "app/src/render/jointjs/handlers/drag.ts: falta reordenarSubprocesoEnTimeline",
+        "app/src/render/jointjs/handlers/drag.ts: falta esDragVertical"
       ]
     },
     {
@@ -1960,15 +2009,17 @@
       "ids": [
         "HU-19.011"
       ],
-      "estado": "cubierto",
+      "estado": "pendiente",
       "confianza": "alta-auto",
       "fuente": "auto",
-      "nota": "Auto ronda 10 L4: modo global de visualizacion se fija desde Toolbar y propaga a la proyeccion para forzar imagen/texto/imagen-texto en todo el OPD activo.",
+      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
       "evidencia": [
         "app/src/store/modelo/acciones-ui.ts",
         "app/src/render/jointjs/proyeccion.ts",
-        "app/src/render/jointjs/composers/imagenOverlay.ts",
-        "app/src/ui/toolbar/ToolbarSeleccion.tsx"
+        "app/src/render/jointjs/composers/imagenOverlay.ts"
+      ],
+      "brechas": [
+        "app/src/ui/toolbar/ToolbarSeleccion.tsx: archivo no encontrado"
       ]
     },
     {
@@ -2053,16 +2104,19 @@
         "HU-12.018",
         "HU-12.022"
       ],
-      "estado": "cubierto",
+      "estado": "pendiente",
       "confianza": "alta-auto",
       "fuente": "auto",
-      "nota": "Auto ronda 10 L3: objetos internos se crean dentro del contorno y pueden conectarse con subprocesos internos via firma de enlace y validacion de pertenencia.",
+      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
       "evidencia": [
         "app/src/modelo/creacionInterna.ts",
         "app/src/modelo/operaciones/refinamiento/helpers.ts",
         "app/src/modelo/validaciones.ts",
         "app/src/modelo/creacionInterna.test.ts",
         "app/e2e/_smoke-helpers.ts"
+      ],
+      "brechas": [
+        "app/src/modelo/creacionInterna.ts: falta posicionDentroDeContorno"
       ]
     },
     {
@@ -2209,13 +2263,15 @@
         "HU-30.026",
         "HU-30.027"
       ],
-      "estado": "cubierto",
+      "estado": "pendiente",
       "confianza": "alta-auto",
       "fuente": "auto",
-      "nota": "Auto ronda 11 L2: archivados con toggle visible, auto-archivar 90d y restaurar.",
+      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
       "evidencia": [
-        "app/src/ui/DialogoArchivados.tsx",
         "app/src/persistencia/workspace.ts"
+      ],
+      "brechas": [
+        "app/src/ui/DialogoArchivados.tsx: archivo no encontrado"
       ]
     },
     {
@@ -2242,13 +2298,16 @@
         "HU-50.006",
         "HU-50.028"
       ],
-      "estado": "cubierto",
+      "estado": "pendiente",
       "confianza": "alta-auto",
       "fuente": "auto",
-      "nota": "Auto ronda 11 L3: panel OPL Toolbar nuevo con 123 numeracion, posicion lateral, minimizar/restaurar, AI Text placeholder.",
+      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
       "evidencia": [
         "app/src/ui/panelOpl/Toolbar.tsx",
         "app/src/modelo/tipos/ui.ts"
+      ],
+      "brechas": [
+        "app/src/ui/panelOpl/Toolbar.tsx: falta panel-opl-posicion"
       ]
     },
     {
@@ -2303,12 +2362,13 @@
         "HU-10.017",
         "HU-10.018"
       ],
-      "estado": "cubierto",
+      "estado": "pendiente",
       "confianza": "alta-auto",
       "fuente": "auto",
-      "nota": "Auto ronda 11 L4: BibliotecaCosa lateral lista entidades agrupadas y permite drag-drop al canvas + navegacion a OPDs donde aparece.",
-      "evidencia": [
-        "app/src/ui/BibliotecaCosa.tsx"
+      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
+      "evidencia": [],
+      "brechas": [
+        "app/src/ui/BibliotecaCosa.tsx: archivo no encontrado"
       ]
     },
     {
@@ -2425,27 +2485,32 @@
       "ids": [
         "HU-11.001"
       ],
-      "estado": "cubierto",
+      "estado": "pendiente",
       "confianza": "alta-auto",
       "fuente": "auto",
-      "nota": "Auto ronda 12 L1: indicador de modo sticky en Toolbar (data-testid indicador-modo-sticky).",
+      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
       "evidencia": [
         "app/src/ui/toolbar/ToolbarCreacion.tsx"
+      ],
+      "brechas": [
+        "app/src/ui/toolbar/ToolbarCreacion.tsx: falta indicador-modo-sticky"
       ]
     },
     {
       "ids": [
         "HU-11.007"
       ],
-      "estado": "cubierto",
+      "estado": "pendiente",
       "confianza": "alta-auto",
       "fuente": "auto",
-      "nota": "Auto ronda 12 L1: ATAJO_CONECTAR_MULTI_AL_TODO Ctrl+Alt+T reusa conectarSeleccionAlTodo (slice store/seleccion.ts) con undo atomico.",
+      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
       "evidencia": [
         "app/src/ui/atajosTeclado.ts",
         "app/src/store/seleccion.ts",
-        "app/src/ui/toolbar/ToolbarMultiseleccion.tsx",
         "app/src/store.test.ts"
+      ],
+      "brechas": [
+        "app/src/ui/toolbar/ToolbarMultiseleccion.tsx: archivo no encontrado"
       ]
     },
     {
@@ -2551,20 +2616,22 @@
         "HU-33.018",
         "HU-33.022"
       ],
-      "estado": "cubierto",
+      "estado": "pendiente",
       "confianza": "alta-auto",
       "fuente": "auto",
-      "nota": "Auto ronda 12 L4: plantillas privadas EPICA-33 con persistencia separada, insercion atomica con IDs nuevos, sub-OPDs, sufijo, foco temporal y catalogo.",
+      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
       "evidencia": [
         "app/src/modelo/tipos/plantilla.ts",
         "app/src/persistencia/plantillas.ts",
         "app/src/canvas/operacionesBatch.ts",
         "app/src/store/modelo.ts",
         "app/src/ui/DialogoPlantillas.tsx",
-        "app/src/ui/DialogoGuardarPlantilla.tsx",
         "app/src/ui/MenuPrincipal.tsx",
         "app/src/persistencia/plantillas.test.ts",
         "app/src/canvas/operacionesBatch.test.ts"
+      ],
+      "brechas": [
+        "app/src/ui/DialogoGuardarPlantilla.tsx: archivo no encontrado"
       ]
     },
     {
