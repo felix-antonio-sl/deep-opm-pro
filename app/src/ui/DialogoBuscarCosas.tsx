@@ -1,8 +1,6 @@
 // [JOYAS §1-3] Chrome UI consume tokens centralizados; canvas semántico invariante.
-import { useEffect, useMemo, useRef } from "preact/hooks";
-import type { Apariencia, Id, Modelo, TipoEntidad } from "../modelo/tipos";
-import type { BusquedaCosasFiltro, ResultadoBusquedaSalto } from "../store/tipos";
-import { useOpmStore } from "../store";
+import { useEffect, useRef } from "preact/hooks";
+import { useDialogoBuscarCosasViewModel, type BusquedaCosasFiltro, type ResultadoTipo } from "../app/viewmodels/busquedaCosasViewModel";
 import { Dialogo } from "./Dialogo";
 import { tokens } from "./tokens";
 
@@ -26,23 +24,6 @@ import { tokens } from "./tokens";
  * inspira el patrón visual.
  */
 
-type ResultadoTipo = "objeto" | "proceso" | "estado" | "enlace";
-
-interface ResultadoBusqueda {
-  /** Clave única para `key=` y testid. */
-  clave: string;
-  /** Tipo a mostrar en la fila. */
-  tipo: ResultadoTipo;
-  /** Etiqueta principal (nombre canónico). */
-  etiqueta: string;
-  /** Etiqueta secundaria (entidad padre cuando aplica, vacía si no). */
-  contexto: string;
-  /** Nombre del OPD destino. */
-  opdNombre: string;
-  /** Payload para `saltarAResultadoBusqueda`. */
-  salto: ResultadoBusquedaSalto;
-}
-
 const ETIQUETA_TIPO: Record<ResultadoTipo, string> = {
   objeto: "Objeto",
   proceso: "Proceso",
@@ -51,14 +32,7 @@ const ETIQUETA_TIPO: Record<ResultadoTipo, string> = {
 };
 
 export function DialogoBuscarCosas() {
-  const abierto = useOpmStore((s) => s.busquedaCosasAbierta);
-  const query = useOpmStore((s) => s.busquedaCosasQuery);
-  const filtro = useOpmStore((s) => s.busquedaCosasFiltro);
-  const modelo = useOpmStore((s) => s.modelo);
-  const cerrar = useOpmStore((s) => s.cerrarBusquedaCosas);
-  const fijarQuery = useOpmStore((s) => s.fijarBusquedaCosasQuery);
-  const fijarFiltro = useOpmStore((s) => s.fijarBusquedaCosasFiltro);
-  const saltar = useOpmStore((s) => s.saltarAResultadoBusqueda);
+  const { abierto, query, filtro, resultados, cerrar, fijarQuery, fijarFiltro, saltar } = useDialogoBuscarCosasViewModel();
   const inputRef = useRef<HTMLInputElement>(null);
 
   // Foco al abrir; el `Dialogo` base ya maneja Escape y trap de tab.
@@ -67,11 +41,6 @@ export function DialogoBuscarCosas() {
       window.setTimeout(() => inputRef.current?.focus(), 50);
     }
   }, [abierto]);
-
-  const resultados = useMemo<ResultadoBusqueda[]>(
-    () => calcularResultados(modelo, query, filtro),
-    [modelo, query, filtro],
-  );
 
   return (
     <Dialogo
@@ -168,123 +137,6 @@ export function DialogoBuscarCosas() {
       </div>
     </Dialogo>
   );
-}
-
-/* ────────────────────────────────────────────────────────────────────────── */
-/* Lógica de búsqueda                                                          */
-/* ────────────────────────────────────────────────────────────────────────── */
-
-/**
- * Calcula apariciones que matchean `query` bajo el filtro `filtro`.
- * Pure: solo lee `modelo`. Sin caché global; si la performance fuera un
- * problema observable, indexar derivados (no introducir índice persistente).
- */
-function calcularResultados(
-  modelo: Modelo,
-  query: string,
-  filtro: BusquedaCosasFiltro,
-): ResultadoBusqueda[] {
-  const q = query.trim().toLocaleLowerCase("es-CL");
-  if (!q) return [];
-
-  const resultados: ResultadoBusqueda[] = [];
-  const incluyeObjetos = filtro === "todos" || filtro === "objetos";
-  const incluyeProcesos = filtro === "todos" || filtro === "procesos";
-  const incluyeEstados = filtro === "todos" || filtro === "estados";
-  const incluyeEnlaces = filtro === "todos" || filtro === "enlaces";
-
-  // Apariciones de entidades (una fila por OPD donde aparece).
-  if (incluyeObjetos || incluyeProcesos) {
-    for (const entidad of Object.values(modelo.entidades)) {
-      if (entidad.tipo === "objeto" && !incluyeObjetos) continue;
-      if (entidad.tipo === "proceso" && !incluyeProcesos) continue;
-      if (!entidad.nombre.toLocaleLowerCase("es-CL").includes(q)) continue;
-
-      for (const opd of Object.values(modelo.opds)) {
-        const apariencia = aparienciaDeEntidadEnOpd(opd.apariencias, entidad.id);
-        if (!apariencia) continue;
-        resultados.push({
-          clave: `entidad:${entidad.id}:${opd.id}`,
-          tipo: entidad.tipo as "objeto" | "proceso",
-          etiqueta: entidad.nombre,
-          contexto: "",
-          opdNombre: opd.nombre,
-          salto: {
-            tipo: "entidad",
-            entidadId: entidad.id,
-            opdId: opd.id,
-            aparienciaId: apariencia.id,
-          },
-        });
-      }
-    }
-  }
-
-  // Apariciones de estados (en OPDs donde la entidad padre tiene apariencia).
-  if (incluyeEstados) {
-    for (const estado of Object.values(modelo.estados)) {
-      if (!estado.nombre.toLocaleLowerCase("es-CL").includes(q)) continue;
-      const entidad = modelo.entidades[estado.entidadId];
-      if (!entidad) continue;
-      for (const opd of Object.values(modelo.opds)) {
-        const apariencia = aparienciaDeEntidadEnOpd(opd.apariencias, entidad.id);
-        if (!apariencia) continue;
-        resultados.push({
-          clave: `estado:${estado.id}:${opd.id}`,
-          tipo: "estado",
-          etiqueta: estado.nombre,
-          contexto: entidad.nombre,
-          opdNombre: opd.nombre,
-          salto: {
-            tipo: "estado",
-            estadoId: estado.id,
-            entidadId: entidad.id,
-            opdId: opd.id,
-            aparienciaId: apariencia.id,
-          },
-        });
-      }
-    }
-  }
-
-  // Etiquetas de enlace (una fila por OPD donde el enlace tiene apariencia).
-  if (incluyeEnlaces) {
-    for (const enlace of Object.values(modelo.enlaces)) {
-      const etiqueta = enlace.etiqueta?.trim() ?? "";
-      if (!etiqueta) continue;
-      if (!etiqueta.toLocaleLowerCase("es-CL").includes(q)) continue;
-      for (const opd of Object.values(modelo.opds)) {
-        const aparece = Object.values(opd.enlaces).some((ap) => ap.enlaceId === enlace.id);
-        if (!aparece) continue;
-        resultados.push({
-          clave: `enlace:${enlace.id}:${opd.id}`,
-          tipo: "enlace",
-          etiqueta,
-          contexto: enlace.tipo,
-          opdNombre: opd.nombre,
-          salto: { tipo: "enlace", enlaceId: enlace.id, opdId: opd.id },
-        });
-      }
-    }
-  }
-
-  return resultados.sort(ordenarResultados);
-}
-
-function aparienciaDeEntidadEnOpd(
-  apariencias: Record<Id, Apariencia>,
-  entidadId: Id,
-): Apariencia | undefined {
-  return Object.values(apariencias).find((ap) => ap.entidadId === entidadId);
-}
-
-function ordenarResultados(a: ResultadoBusqueda, b: ResultadoBusqueda): number {
-  // Procesos primero, luego objetos, luego estados, luego enlaces.
-  const orden: Record<ResultadoTipo, number> = { proceso: 0, objeto: 1, estado: 2, enlace: 3 };
-  if (orden[a.tipo] !== orden[b.tipo]) return orden[a.tipo] - orden[b.tipo];
-  const cmp = a.etiqueta.localeCompare(b.etiqueta, "es-CL");
-  if (cmp !== 0) return cmp;
-  return a.opdNombre.localeCompare(b.opdNombre, "es-CL");
 }
 
 function colorIndicador(tipo: ResultadoTipo): string {
