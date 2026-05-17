@@ -1,9 +1,10 @@
 import { dia, shapes } from "jointjs";
 import { useEffect, useRef, useState } from "preact/hooks";
+import { clearHoverTooltip, setHoverTooltip, sincronizarBadgesDesdeAvisos } from "../../app/ports/zustandFeedbackPort";
+import { idHoverTooltip } from "../../app/ports/feedbackPort";
 import { useJointCanvasViewModel } from "../../app/viewmodels/jointCanvasViewModel";
 import { focoPasoActualSimulacion } from "../../modelo/simulacion/foco";
 import type { Apariencia, Enlace, ExtremoEnlace, Modelo, Opd } from "../../modelo/tipos";
-import { clearHoverTooltip, idHoverTooltip, setHoverTooltip, sincronizarBadgesDesdeAvisos } from "../../store/feedback";
 import { MenuTipoEnlace } from "../../ui/MenuTipoEnlace";
 import { scrollBehaviorPreferido } from "../../ui/motion";
 import { RenombradoInline } from "../../ui/RenombradoInline";

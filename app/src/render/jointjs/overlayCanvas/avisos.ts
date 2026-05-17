@@ -1,6 +1,6 @@
 import { listarAvisosDiagnostico } from "../../../modelo/diagnostico";
 import type { Id, Modelo } from "../../../modelo/tipos";
-import type { FeedbackAviso } from "../../../store/feedback";
+import type { FeedbackAviso } from "../../../app/ports/feedbackPort";
 
 export function construirAvisosFeedbackCanvas(modelo: Modelo, opdActivoId: Id): FeedbackAviso[] {
   return listarAvisosDiagnostico(modelo, { tipo: "opd", opdId: opdActivoId })

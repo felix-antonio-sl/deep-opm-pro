@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "preact/hooks";
-import { addFlash } from "../store/feedback";
+import { addFlash } from "../app/ports/zustandFeedbackPort";
 import { useOpmStore } from "../store";
 
 export const TTL_MENSAJE_FLASH_MS = 4_500;

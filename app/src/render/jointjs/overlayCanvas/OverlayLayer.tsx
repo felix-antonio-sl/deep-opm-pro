@@ -1,5 +1,5 @@
 import type { dia } from "jointjs";
-import { useFeedbackStore } from "../../../store/feedback";
+import { useZustandFeedbackOverlays } from "../../../app/ports/zustandFeedbackPort";
 import { ErrorBadge } from "./ErrorBadge";
 import { FlashToast } from "./FlashToast";
 import { HoverTooltip } from "./HoverTooltip";
@@ -9,7 +9,7 @@ interface Props {
 }
 
 export function OverlayLayer({ paper }: Props) {
-  const overlays = useFeedbackStore((s) => s.overlays);
+  const overlays = useZustandFeedbackOverlays();
   const flashes = overlays.filter((overlay) => overlay.tipo === "flash");
   const inlineErrors = overlays.filter((overlay) => overlay.tipo === "inline-error");
   const tooltips = overlays.filter((overlay) => overlay.tipo === "hover-tooltip");

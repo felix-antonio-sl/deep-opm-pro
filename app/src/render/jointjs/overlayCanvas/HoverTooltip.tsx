@@ -1,5 +1,5 @@
 import type { dia } from "jointjs";
-import type { FeedbackOverlay } from "../../../store/feedback";
+import type { FeedbackOverlay } from "../../../app/ports/feedbackPort";
 import { tokens } from "../../../ui/tokens";
 import { useBboxTracker } from "./useBboxTracker";
 

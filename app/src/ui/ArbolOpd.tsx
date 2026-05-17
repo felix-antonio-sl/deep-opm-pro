@@ -2,7 +2,7 @@
 import { useEffect, useMemo, useState } from "preact/hooks";
 import { listarAvisosDiagnostico } from "../modelo/diagnostico";
 import { useOpmStore } from "../store";
-import { EVENTO_ABRIR_AVISO_DIAGNOSTICO } from "../store/feedback";
+import { EVENTO_ABRIR_AVISO_DIAGNOSTICO } from "../app/ports/feedbackPort";
 import { registrarAtajo } from "./atajosTeclado";
 import { MenuContextualArbol } from "./MenuContextualArbol";
 import { aplanarNodosVisibles, atajoPanelArbolDesdeEvento, manejarTeclaNodoArbol, siguienteFocoArbol } from "./arbol/handlersTeclado";

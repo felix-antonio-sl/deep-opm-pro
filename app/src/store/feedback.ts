@@ -1,37 +1,9 @@
-import { useEffect, useState } from "preact/hooks";
 import { createStore } from "zustand/vanilla";
+import { idHoverTooltip } from "../app/ports/feedbackPort";
+import type { FeedbackAviso, FeedbackOverlay } from "../app/ports/feedbackPort";
 
-export type FeedbackOverlay =
-  | {
-      id: string;
-      tipo: "flash";
-      mensaje: string;
-      ttl: number;
-      creadoEn: number;
-    }
-  | {
-      id: string;
-      tipo: "inline-error";
-      anchorCellId: string;
-      reglaId: string;
-      severidad: "error" | "advertencia" | "info";
-      mensaje: string;
-      citaSSOT: string;
-    }
-  | {
-      id: string;
-      tipo: "hover-tooltip";
-      anchorCellId: string;
-      contenido: string;
-    };
-
-export interface FeedbackAviso {
-  anchorCellId: string;
-  reglaId: string;
-  severidad: "error" | "advertencia" | "info";
-  mensaje: string;
-  citaSSOT: string;
-}
+export { EVENTO_ABRIR_AVISO_DIAGNOSTICO, idHoverTooltip } from "../app/ports/feedbackPort";
+export type { FeedbackAviso, FeedbackOverlay } from "../app/ports/feedbackPort";
 
 export interface FeedbackState {
   overlays: FeedbackOverlay[];
@@ -46,8 +18,6 @@ export interface FeedbackState {
 }
 
 let secuenciaOverlay = 0;
-
-export const EVENTO_ABRIR_AVISO_DIAGNOSTICO = "opm:diagnostico:abrir-aviso";
 
 export const feedbackStore = createStore<FeedbackState>((set, get) => ({
   overlays: [],
@@ -140,21 +110,8 @@ export function sincronizarBadgesDesdeAvisos(avisos: readonly FeedbackAviso[]): 
   feedbackStore.getState().sincronizarBadgesDesdeAvisos(avisos);
 }
 
-export function useFeedbackStore<T>(selector: (state: FeedbackState) => T): T {
-  const [selected, setSelected] = useState(() => selector(feedbackStore.getState()));
-  useEffect(() => feedbackStore.subscribe((state) => {
-    const next = selector(state);
-    setSelected((current) => (Object.is(current, next) ? current : next));
-  }), [selector]);
-  return selected;
-}
-
 function idInlineError(reglaId: string, cellId: string): string {
   return `inline-${reglaId}-${cellId}`;
-}
-
-export function idHoverTooltip(cellId: string): string {
-  return `hover-tooltip-${cellId.replace(/[^A-Za-z0-9_-]/g, "_")}`;
 }
 
 function deduplicarInlineErrors(overlays: Array<Extract<FeedbackOverlay, { tipo: "inline-error" }>>): Array<Extract<FeedbackOverlay, { tipo: "inline-error" }>> {

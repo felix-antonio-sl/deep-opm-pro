@@ -3,7 +3,7 @@ import { useZustandDiagnosticsPort } from "../app/ports/zustandDiagnosticsPort";
 import type { AvisoDiagnostico } from "../modelo/diagnostico";
 import type { CodigoChecker } from "../modelo/tipos";
 import type { SeveridadAviso } from "../modelo/validaciones";
-import { EVENTO_ABRIR_AVISO_DIAGNOSTICO } from "../store/feedback";
+import { EVENTO_ABRIR_AVISO_DIAGNOSTICO } from "../app/ports/feedbackPort";
 import { clasificarSeveridad } from "./panelMetodologiaIssues";
 import { tokens } from "./tokens";
 

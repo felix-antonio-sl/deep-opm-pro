@@ -1,5 +1,5 @@
 import type { dia } from "jointjs";
-import { EVENTO_ABRIR_AVISO_DIAGNOSTICO, type FeedbackOverlay } from "../../../store/feedback";
+import { EVENTO_ABRIR_AVISO_DIAGNOSTICO, type FeedbackOverlay } from "../../../app/ports/feedbackPort";
 import { tokens } from "../../../ui/tokens";
 import { useBboxTracker } from "./useBboxTracker";
 
