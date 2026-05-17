@@ -5,9 +5,9 @@
  * viven en ToolbarBase para exponer la intención como group propio.
  */
 import { useEffect, useMemo, useRef, useState } from "preact/hooks";
+import type { ModoEnlace } from "../../canvas/modoEnlace";
 import type { Id, TipoEnlace } from "../../modelo/tipos";
 import { useOpmStore } from "../../store";
-import type { ModoEnlace } from "../../store/tipos";
 import { MenuTipoEnlace, TIPOS_ENLACE_MENU } from "../MenuTipoEnlace";
 import { toolbarStyle as style } from "./toolbarStyles";
 

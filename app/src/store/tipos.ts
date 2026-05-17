@@ -173,7 +173,8 @@ import {
 } from "../render/jointjs/mapaSistema";
 import { fijarOpcionesProyeccionGlobal } from "../render/jointjs/proyeccion";
 import type { EjeAlineacion, OrientacionDistribucion } from "../canvas/operacionesBatch";
-import type { AnchorConexion } from "../canvas/modoEnlace";
+import type { AnchorConexion, ModoEnlace } from "../canvas/modoEnlace";
+export type { ModoEnlace } from "../canvas/modoEnlace";
 import type { FamiliaTraerConectados } from "../canvas/reglasTraer";
 import type { GridConfig } from "../canvas/grid";
 import {
@@ -209,14 +210,6 @@ import {
   nudgeEnlaces,
   pegarSeleccion,
 } from "../canvas/operacionesBatch";
-
-export interface ModoEnlace {
-  tipo: TipoEnlace;
-  origenId: Id;
-  fase?: "boton" | "drag-from-anchor";
-  origenAparienciaId?: Id;
-  anchor?: AnchorConexion;
-}
 
 /** [Ronda 16 L2] Filtros disponibles en `DialogoBuscarCosas`. */
 export type BusquedaCosasFiltro = "todos" | "objetos" | "procesos" | "estados" | "enlaces";

@@ -6,9 +6,9 @@ import {
   evaluarDestinos,
   tipoInicialConexionDesdeEntidad,
   type AnchorConexion,
+  type ModoEnlace,
 } from "../../../canvas/modoEnlace";
 import type { Id, Modelo, TipoEnlace } from "../../../modelo/tipos";
-import type { ModoEnlace } from "../../../store/tipos";
 import { cellViewModel, jointSelector, metadata, paperOff, posicionCanvasDesdeEvento } from "./helpers";
 
 interface CablearModoEnlaceArgs {

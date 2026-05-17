@@ -5,6 +5,14 @@ import { tokens } from "../ui/tokens";
 export const ANCHORS_CONEXION = ["N", "E", "S", "O"] as const;
 export type AnchorConexion = (typeof ANCHORS_CONEXION)[number];
 
+export interface ModoEnlace {
+  tipo: TipoEnlace;
+  origenId: Id;
+  fase?: "boton" | "drag-from-anchor";
+  origenAparienciaId?: Id;
+  anchor?: AnchorConexion;
+}
+
 const PRIORIDAD_TIPO_INICIAL: TipoEnlace[] = [
   "consumo",
   "resultado",
