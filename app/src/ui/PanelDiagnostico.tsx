@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from "preact/hooks";
-import { listarAvisosDiagnostico, type AvisoDiagnostico } from "../modelo/diagnostico";
+import { useZustandDiagnosticsPort } from "../app/ports/zustandDiagnosticsPort";
+import type { AvisoDiagnostico } from "../modelo/diagnostico";
 import type { CodigoChecker } from "../modelo/tipos";
 import type { SeveridadAviso } from "../modelo/validaciones";
-import { useOpmStore } from "../store";
 import { EVENTO_ABRIR_AVISO_DIAGNOSTICO } from "../store/feedback";
 import { clasificarSeveridad } from "./panelMetodologiaIssues";
 import { tokens } from "./tokens";
@@ -46,15 +46,13 @@ const META: Record<SeveridadDiagnostico, { titulo: string; icono: string; color:
 type DiagnosticoMeta = (typeof META)[SeveridadDiagnostico];
 
 export function PanelDiagnostico() {
-  const modelo = useOpmStore((s) => s.modelo);
-  const opdActivoId = useOpmStore((s) => s.opdActivoId);
-  const navegarAviso = useOpmStore((s) => s.navegarAviso);
   const [expandido, setExpandido] = useState(false);
   const [revision, setRevision] = useState(0);
+  const { avisos, navegarAviso } = useZustandDiagnosticsPort(revision);
   const [citaActiva, setCitaActiva] = useState<{ codigo: string; cita: string } | null>(null);
   const [codigoResaltado, setCodigoResaltado] = useState<string | null>(null);
 
-  const issues = useMemo(() => listarAvisosDiagnostico(modelo, { tipo: "opd", opdId: opdActivoId }).map((aviso) => ({
+  const issues = useMemo(() => avisos.map((aviso) => ({
     id: aviso.id,
     testIdCodigo: aviso.testIdCodigo,
     severidad: severidadDiagnostico(aviso),
@@ -63,7 +61,7 @@ export function PanelDiagnostico() {
     destino: aviso.destino,
     cita: aviso.cita,
     navegar: () => { if (aviso.avisoNavegable) navegarAviso(aviso.avisoNavegable); },
-  })), [modelo, navegarAviso, opdActivoId, revision]);
+  })), [avisos, navegarAviso]);
 
   const grupos = {
     bloqueo: issues.filter((issue) => issue.severidad === "bloqueo"),
