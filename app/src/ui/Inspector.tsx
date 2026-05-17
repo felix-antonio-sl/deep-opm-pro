@@ -1,4 +1,4 @@
-import { useOpmStore } from "../store";
+import { useInspectorViewModel } from "../app/viewmodels/inspectorViewModel";
 import { inspectorStyles as style } from "./inspectorStyles";
 import { InspectorEnlace } from "./InspectorEnlace";
 import { InspectorEntidad } from "./InspectorEntidad";
@@ -10,13 +10,7 @@ import { InspectorEntidad } from "./InspectorEntidad";
  * Selecciones cruzadas con Panel OPL pasan por seleccionarDesdeOpl/abrirInspectorEnlaceDesdeOpl.
  */
 export function Inspector() {
-  const modelo = useOpmStore((s) => s.modelo);
-  const seleccionId = useOpmStore((s) => s.seleccionId);
-  const enlaceSeleccionId = useOpmStore((s) => s.enlaceSeleccionId);
-  const abrirImportarExportarJson = useOpmStore((s) => s.abrirDialogoImportarExportarJson);
-  const entidad = seleccionId ? modelo.entidades[seleccionId] : undefined;
-  const enlace = enlaceSeleccionId ? modelo.enlaces[enlaceSeleccionId] : undefined;
-  const modo: "entidad" | "enlace" | "vacio" = entidad ? "entidad" : enlace ? "enlace" : "vacio";
+  const { modo, entidad, enlace, abrirImportarExportarJson } = useInspectorViewModel();
 
   return (
     <aside
