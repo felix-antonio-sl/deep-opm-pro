@@ -3,8 +3,8 @@
 **Fecha**: 2026-05-17
 **Repositorio**: `deep-opm-pro`
 **Rama**: `main`
-**Último corte funcional**: `24fc92c refactor(app): introduce puertos de inspector entidad`
-**Corte**: Refactorizacion total, Corte 2 cerrado: todos los viewmodels UI de aplicacion dependen de puertos de aplicacion, no de Zustand directo.
+**Último corte funcional**: `e407292 refactor(render): extrae handler de tooltip canvas`
+**Corte**: Refactorizacion total, Corte 3 cerrado: JointJS queda tratado como adapter de render/interaccion con frontera de aplicacion explicita.
 
 ## Política De Handoff Único
 
@@ -12,13 +12,50 @@
 
 ## Fuentes Normativas Y Técnicas
 
-- Brief activo del corte: `docs/instrucciones-lineas-dev/ronda22/refactor-ux-ifml.md`.
+- Plan normativo activo: `docs/roadmap/refactorizacion-total-plan-normativo.md`.
+- Brief UX/IFML historico: `docs/instrucciones-lineas-dev/ronda22/refactor-ux-ifml.md`.
 - SSOT OPM: `/home/felix/kora/artifacts/knowledge/fxsl/opm/opm-ssot-es/`.
 - Evidencia OPCloud preferente: `opm-extracted/` antes de `decompiled/`.
 - Canon visual local: `docs/JOYAS.md` y `assets/svg/`.
 - JointJS OSS: usar documentación oficial viva cuando se toque JointJS.
 
 ## Estado Actual
+
+### Refactorizacion Total — Corte 3 JointJS Como Adapter Cerrado — 2026-05-17
+
+La rama `main` queda sincronizada con `origin/main` tras `e407292`.
+
+Resultado arquitectonico:
+
+- `JointCanvas` ya no crea directamente `dia.Graph`/`dia.Paper`; delega montaje, destruccion, debug hook, namespace y grid en `app/src/render/jointjs/jointCanvasAdapter.ts`.
+- `CanvasInteractionPort` explicita la frontera que el renderer consume desde sesion, seleccion y comandos de modelo, sin duplicar estado ni crear otro store.
+- La sincronizacion de cells proyectadas (`resetCells` + dimensiones de paper) vive en el adapter; `proyectarModeloAJointCells` permanece puro.
+- El handler de tooltip de hover/foco sale de `JointCanvas` a `handlers/hoverTooltip.ts`, manteniendo el componente como orquestador.
+- No se cambio JointJS, geometria canonica, markers, metadata OPM, OPL, formato de persistencia ni UX visible.
+
+Commits atomicos del corte:
+
+- `fdc8e0a refactor(render): extrae adapter de canvas jointjs`
+- `dd7fd37 refactor(app): introduce puerto de interaccion canvas`
+- `9e6b841 refactor(render): mueve sync de cells al adapter jointjs`
+- `e407292 refactor(render): extrae handler de tooltip canvas`
+
+Validacion de cierre:
+
+```bash
+cd app && bun run check
+# typecheck OK; 1379 pass / 0 fail
+cd app && bun run build
+# build OK
+cd app && bun run browser:smoke -- e2e/02-canvas-y-render.spec.ts e2e/11-beta1-tabla-enlaces.spec.ts
+# 23 passed
+```
+
+Documentacion JointJS OSS consultada para el corte:
+
+- `https://docs.jointjs.com/learn/features/diagram-basics/paper/`
+- `https://docs.jointjs.com/api/dia/Graph/`
+- `https://docs.jointjs.com/4.0/learn/features/customizing-shapes/cell-namespaces/`
 
 ### Refactorizacion Total — Corte 1 ViewModels UI Cerrado — 2026-05-17
 
@@ -354,25 +391,24 @@ El script genera `docs/REPORTE-EJECUTIVO.md` y `app/test-results/in-vivo/`, ambo
 
 ## Validación Reciente
 
-Ejecutado sobre el estado actual (`9020873`):
+Ejecutado sobre el estado actual (`e407292`):
 
 ```bash
-cd app && bun run typecheck
+cd app && bun run check
 cd app && bun run build
-cd app && bun run test
-cd app && bun run browser:smoke -- e2e/02-canvas-y-render.spec.ts e2e/08-mvp-alpha-residual.spec.ts --workers=1
+cd app && bun run browser:smoke -- e2e/02-canvas-y-render.spec.ts e2e/11-beta1-tabla-enlaces.spec.ts
 ```
 
 Resultado:
 
 ```text
-typecheck OK
+typecheck OK via check
+1379 unit tests passed / 0 fail
 build OK
-1375 unit tests passed / 0 fail
-39 browser smoke passed / 0 fail
+23 browser smoke passed / 0 fail
 ```
 
-Última auditoría in-vivo completa sigue siendo la de `08b3753`/`63dd213`; estos cortes no cambiaron el script in-vivo ni la semantica OPM, solo la frontera viewmodel -> puertos sobre Zustand.
+Última auditoría in-vivo completa sigue siendo la de `08b3753`/`63dd213`; este corte no cambió el script in-vivo ni la semantica OPM, solo la frontera JointJS/app/render.
 
 Validación HODOM v1.1 realizada sobre el corte funcional previo de foco canvas:
 
@@ -419,10 +455,10 @@ El brief UX/IFML queda cerrado para el corte auditado. Los cortes de modelos den
 
 Pendiente inmediato de refactorizacion:
 
-- Continuar Corte 2: puertos de aplicacion sobre store existente.
-- Consolidar contratos en `app/src/app/ports/` sin duplicar estado ni introducir dependency injection pesada.
-- Migrar gradualmente viewmodels grandes para que dependan de puertos pequenos y no del store completo.
-- Mantener `OpmStore` como fachada compatible mientras se reduce su contrato efectivo.
+- Continuar Corte 4: persistencia y workspace como infraestructura.
+- Introducir `PersistencePort`/`WorkspacePort` solo donde reduzcan acoplamiento real, sin cambiar formato exportado ni claves localStorage.
+- Mantener `OpmStore` como fachada compatible mientras se separan persistencia, workspace y comandos de modelado.
+- Seguir usando smokes focales y `bun run check` como cierre de loop por corte.
 
 Pendientes funcionales a retomar despues o como pressure tests:
 
@@ -436,4 +472,4 @@ Pendientes funcionales a retomar despues o como pressure tests:
 
 Retomar desde este `docs/HANDOFF.md` y el plan `docs/roadmap/refactorizacion-total-plan-normativo.md`.
 
-Siguiente bloque recomendado: continuar **Corte 2 - Puertos de aplicacion sobre store existente**. Objetivo pragmatico: cerrar los selectores directos restantes de `toolbarBaseViewModel` con un puerto pequeno de autosalvado y decidir si `modelo/opdActivoId` deben salir a un puerto de lectura compartido o mantenerse hasta que otro viewmodel lo necesite. Luego avanzar sobre `barraHerramientasElementoViewModel` separando refinamiento/estado/imagen en puertos nombrables. Validar siempre con typecheck, unit dirigido, build, suite completa cuando el cambio toque toolbar/canvas, y smoke relevante. Si el siguiente bloque toca JointJS, consultar primero `opm-extracted/`, `docs/JOYAS.md`, assets SVG canónicos y documentación oficial de JointJS OSS.
+Siguiente bloque recomendado: iniciar **Corte 4 - Persistencia Y Workspace Como Infraestructura**. Objetivo pragmatico: separar persistencia local, workspace y busqueda/global-openers del store sin cambiar formato JSON, claves locales ni UX visible. Validar siempre con typecheck, unit dirigido, build, suite completa cuando el cambio toque persistencia/workspace, y smokes `e2e/06-undo-redo-dirty.spec.ts` + `e2e/01-carga-y-workspace.spec.ts`.
