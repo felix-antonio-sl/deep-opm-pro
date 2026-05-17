@@ -1,4 +1,5 @@
 import { useOpmStore } from "../../store";
+import { useZustandLinkContextActionsPort } from "../ports/zustandLinkContextActionsPort";
 import { useZustandSelectionBatchActionsPort } from "../ports/zustandSelectionBatchActionsPort";
 
 export function useBarraHerramientasElementoViewModel() {
@@ -7,13 +8,15 @@ export function useBarraHerramientasElementoViewModel() {
   const seleccionId = useOpmStore((s) => s.seleccionId);
   const enlaceSeleccionId = useOpmStore((s) => s.enlaceSeleccionId);
   const seleccionados = useOpmStore((s) => s.seleccionados);
-  const enlaceEstiloPortapapeles = useOpmStore((s) => s.enlaceEstiloPortapapeles);
   const agregarEstadoSmart = useOpmStore((s) => s.agregarEstadoSmart);
   const descomponer = useOpmStore((s) => s.descomponerSeleccionada);
   const desplegar = useOpmStore((s) => s.desplegarSeleccionada);
   const abrirModalImagen = useOpmStore((s) => s.abrirModalImagen);
-  const copiarEstiloEnlaceAlPortapapeles = useOpmStore((s) => s.copiarEstiloEnlaceAlPortapapeles);
-  const pegarEstiloEnlaceDesdePortapapeles = useOpmStore((s) => s.pegarEstiloEnlaceDesdePortapapeles);
+  const {
+    enlaceEstiloPortapapeles,
+    copiarEstiloEnlaceAlPortapapeles,
+    pegarEstiloEnlaceDesdePortapapeles,
+  } = useZustandLinkContextActionsPort();
   const {
     eliminarSeleccion,
     conectarSeleccionAlTodo,

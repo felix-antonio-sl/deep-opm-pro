@@ -1,5 +1,6 @@
 import { useOpmStore } from "../../store";
 import { useZustandHistoryPort } from "../ports/zustandHistoryPort";
+import { useZustandLinkContextActionsPort } from "../ports/zustandLinkContextActionsPort";
 import { useZustandModelCreationPort } from "../ports/zustandModelCreationPort";
 import { useZustandSelectionBatchActionsPort } from "../ports/zustandSelectionBatchActionsPort";
 import { useZustandSelectionPort } from "../ports/zustandSelectionPort";
@@ -53,12 +54,14 @@ export function useToolbarBaseViewModel() {
     distribuirSeleccion,
     alinearSeleccionEnlaces,
   } = useZustandSelectionBatchActionsPort();
+  const {
+    copiarEstiloEnlaceAlPortapapeles,
+    pegarEstiloEnlaceDesdePortapapeles,
+    enlaceEstiloPortapapeles,
+    borrarEnlacesEnLote,
+  } = useZustandLinkContextActionsPort();
   const modelo = useOpmStore((s) => s.modelo);
   const opdActivoId = useOpmStore((s) => s.opdActivoId);
-  const copiarEstiloEnlaceAlPortapapeles = useOpmStore((s) => s.copiarEstiloEnlaceAlPortapapeles);
-  const pegarEstiloEnlaceDesdePortapapeles = useOpmStore((s) => s.pegarEstiloEnlaceDesdePortapapeles);
-  const enlaceEstiloPortapapeles = useOpmStore((s) => s.enlaceEstiloPortapapeles);
-  const borrarEnlacesEnLote = useOpmStore((s) => s.borrarEnlacesEnLote);
   const iniciarAutosalvado = useOpmStore((s) => s.iniciarAutosalvado);
 
   const toggleVistaMapa = () => {
