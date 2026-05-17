@@ -1,13 +1,12 @@
 import { useOpmStore } from "../../store";
 import { useZustandLinkContextActionsPort } from "../ports/zustandLinkContextActionsPort";
+import { useZustandOpdNavigationPort } from "../ports/zustandOpdNavigationPort";
 import { useZustandSelectionBatchActionsPort } from "../ports/zustandSelectionBatchActionsPort";
+import { useZustandSelectionPort } from "../ports/zustandSelectionPort";
 
 export function useBarraHerramientasElementoViewModel() {
-  const modelo = useOpmStore((s) => s.modelo);
-  const opdActivoId = useOpmStore((s) => s.opdActivoId);
-  const seleccionId = useOpmStore((s) => s.seleccionId);
-  const enlaceSeleccionId = useOpmStore((s) => s.enlaceSeleccionId);
-  const seleccionados = useOpmStore((s) => s.seleccionados);
+  const { modelo, opdActivoId } = useZustandOpdNavigationPort();
+  const { seleccionId, enlaceSeleccionId, seleccionados } = useZustandSelectionPort();
   const agregarEstadoSmart = useOpmStore((s) => s.agregarEstadoSmart);
   const descomponer = useOpmStore((s) => s.descomponerSeleccionada);
   const desplegar = useOpmStore((s) => s.desplegarSeleccionada);
