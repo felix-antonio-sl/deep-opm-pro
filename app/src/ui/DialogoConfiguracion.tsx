@@ -1,7 +1,7 @@
 // [JOYAS §1-3] Chrome UI consume tokens centralizados; canvas semántico invariante.
 import { useEffect, useState } from "preact/hooks";
+import { useDialogoConfiguracionViewModel } from "../app/viewmodels/dialogoConfiguracionViewModel";
 import { normalizarGridConfig, type GridConfig } from "../canvas/grid";
-import { useOpmStore } from "../store";
 import { Dialogo } from "./Dialogo";
 import { tokens } from "./tokens";
 
@@ -11,21 +11,15 @@ import { tokens } from "./tokens";
  * renombrado de modelo + cuadrícula del canvas. No toca `app/src/modelo/`.
  */
 export function DialogoConfiguracion() {
-  const abierto = useOpmStore((s) => s.dialogoConfiguracionAbierto);
-  const cerrar = useOpmStore((s) => s.cerrarDialogoConfiguracion);
-  const modelo = useOpmStore((s) => s.modelo);
-  const modeloPersistidoId = useOpmStore((s) => s.modeloPersistidoId);
-  const renombrarModeloActual = useOpmStore((s) => s.renombrarModeloActual);
-  const gridConfig = useOpmStore((s) => normalizarGridConfig(s.gridConfig ?? s.indice.preferenciasUi?.gridConfig));
-  const fijarGridConfig = useOpmStore((s) => s.fijarGridConfig);
-  const [nombre, setNombre] = useState(modelo.nombre);
+  const { abierto, cerrar, modeloNombre, modeloPersistidoId, renombrarModeloActual, gridConfig, fijarGridConfig } = useDialogoConfiguracionViewModel();
+  const [nombre, setNombre] = useState(modeloNombre);
   const [gridLocal, setGridLocal] = useState<GridConfig>(() => normalizarGridConfig(gridConfig));
 
   useEffect(() => {
     if (!abierto) return;
-    setNombre(modelo.nombre);
+    setNombre(modeloNombre);
     setGridLocal(normalizarGridConfig(gridConfig));
-  }, [abierto, gridConfig, modelo.nombre]);
+  }, [abierto, gridConfig, modeloNombre]);
 
   const actualizarGrid = (patch: Partial<GridConfig>) => {
     setGridLocal((actual) => normalizarGridConfig({ ...actual, ...patch }));
@@ -33,7 +27,7 @@ export function DialogoConfiguracion() {
   const guardar = () => {
     fijarGridConfig(gridLocal);
     const nombreLimpio = nombre.trim();
-    if (nombreLimpio && nombreLimpio !== modelo.nombre) {
+    if (nombreLimpio && nombreLimpio !== modeloNombre) {
       renombrarModeloActual(nombreLimpio);
       return;
     }
