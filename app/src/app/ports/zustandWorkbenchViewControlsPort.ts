@@ -19,9 +19,6 @@ export function useZustandWorkbenchViewControlsPort(): WorkbenchViewControlsPort
   const aplicarLayoutSugerido = useOpmStore((s) => s.aplicarLayoutSugerido);
   const bibliotecaDockAbierto = useOpmStore((s) => s.bibliotecaDockAbierto);
   const toggleBibliotecaDock = useOpmStore((s) => s.toggleBibliotecaDock);
-  const vistaMapaActiva = useOpmStore((s) => s.vistaMapaActiva);
-  const abrirVistaMapa = useOpmStore((s) => s.abrirVistaMapa);
-  const cerrarVistaMapa = useOpmStore((s) => s.cerrarVistaMapa);
   const iniciarModoSimulacion = useOpmStore((s) => s.iniciarModoSimulacion);
 
   return {
@@ -39,9 +36,6 @@ export function useZustandWorkbenchViewControlsPort(): WorkbenchViewControlsPort
     aplicarLayoutSugerido,
     bibliotecaDockAbierto,
     toggleBibliotecaDock,
-    vistaMapaActiva,
-    abrirVistaMapa,
-    cerrarVistaMapa,
     iniciarModoSimulacion,
   };
 }

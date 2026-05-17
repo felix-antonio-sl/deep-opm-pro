@@ -1,6 +1,7 @@
 import { useZustandAutosavePort } from "../ports/zustandAutosavePort";
 import { useZustandHistoryPort } from "../ports/zustandHistoryPort";
 import { useZustandLinkContextActionsPort } from "../ports/zustandLinkContextActionsPort";
+import { useZustandMapViewPort } from "../ports/zustandMapViewPort";
 import { useZustandModelCreationPort } from "../ports/zustandModelCreationPort";
 import { useZustandOpdNavigationPort } from "../ports/zustandOpdNavigationPort";
 import { useZustandSelectionBatchActionsPort } from "../ports/zustandSelectionBatchActionsPort";
@@ -42,11 +43,9 @@ export function useToolbarBaseViewModel() {
     aplicarLayoutSugerido,
     bibliotecaDockAbierto,
     toggleBibliotecaDock,
-    vistaMapaActiva,
-    abrirVistaMapa,
-    cerrarVistaMapa,
     iniciarModoSimulacion,
   } = useZustandWorkbenchViewControlsPort();
+  const { vistaMapaActiva, abrirVistaMapa, cerrarVistaMapa } = useZustandMapViewPort();
   const {
     eliminarSeleccion,
     conectarSeleccionAlTodo,

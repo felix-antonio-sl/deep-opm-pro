@@ -16,8 +16,5 @@ export interface WorkbenchViewControlsPort {
   aplicarLayoutSugerido: OpmStore["aplicarLayoutSugerido"];
   bibliotecaDockAbierto: OpmStore["bibliotecaDockAbierto"];
   toggleBibliotecaDock: OpmStore["toggleBibliotecaDock"];
-  vistaMapaActiva: OpmStore["vistaMapaActiva"];
-  abrirVistaMapa: OpmStore["abrirVistaMapa"];
-  cerrarVistaMapa: OpmStore["cerrarVistaMapa"];
   iniciarModoSimulacion: OpmStore["iniciarModoSimulacion"];
 }
