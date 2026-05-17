@@ -1,11 +1,13 @@
-import { useOpmStore } from "../../store";
+import { useZustandEntityMetadataModalPort } from "../ports/zustandEntityMetadataModalPort";
 
 export function useModalUrlsObjetoViewModel() {
-  const abierto = useOpmStore((s) => s.modalUrlsAbierto);
-  const modelo = useOpmStore((s) => s.modelo);
-  const cerrar = useOpmStore((s) => s.cerrarModalUrls);
-  const agregar = useOpmStore((s) => s.agregarUrlAEntidad);
-  const eliminar = useOpmStore((s) => s.eliminarUrlDeEntidad);
+  const {
+    modelo,
+    modalUrlsAbierto: abierto,
+    cerrarModalUrls: cerrar,
+    agregarUrlAEntidad: agregar,
+    eliminarUrlDeEntidad: eliminar,
+  } = useZustandEntityMetadataModalPort();
   const entidad = abierto ? modelo.entidades[abierto] : undefined;
 
   return {

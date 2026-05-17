@@ -1,11 +1,13 @@
-import { useOpmStore } from "../../store";
+import { useZustandStateDurationModalPort } from "../ports/zustandStateDurationModalPort";
 
 export function useModalDuracionEstadoViewModel() {
-  const abierto = useOpmStore((s) => s.modalDuracionAbierto);
-  const modelo = useOpmStore((s) => s.modelo);
-  const cerrar = useOpmStore((s) => s.cerrarModalDuracion);
-  const fijar = useOpmStore((s) => s.fijarDuracionEstado);
-  const quitar = useOpmStore((s) => s.quitarDuracionEstado);
+  const {
+    modelo,
+    modalDuracionAbierto: abierto,
+    cerrarModalDuracion: cerrar,
+    fijarDuracionEstado: fijar,
+    quitarDuracionEstado: quitar,
+  } = useZustandStateDurationModalPort();
   const estado = abierto ? modelo.estados[abierto] : undefined;
 
   return {

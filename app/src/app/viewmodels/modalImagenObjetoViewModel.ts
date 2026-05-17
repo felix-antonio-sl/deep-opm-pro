@@ -1,11 +1,13 @@
-import { useOpmStore } from "../../store";
+import { useZustandEntityMetadataModalPort } from "../ports/zustandEntityMetadataModalPort";
 
 export function useModalImagenObjetoViewModel() {
-  const abierto = useOpmStore((s) => s.modalImagenAbierto);
-  const modelo = useOpmStore((s) => s.modelo);
-  const cerrar = useOpmStore((s) => s.cerrarModalImagen);
-  const editar = useOpmStore((s) => s.editarImagenEntidad);
-  const quitar = useOpmStore((s) => s.quitarImagenEntidad);
+  const {
+    modelo,
+    modalImagenAbierto: abierto,
+    cerrarModalImagen: cerrar,
+    editarImagenEntidad: editar,
+    quitarImagenEntidad: quitar,
+  } = useZustandEntityMetadataModalPort();
   const entidad = abierto ? modelo.entidades[abierto] : undefined;
 
   return {
