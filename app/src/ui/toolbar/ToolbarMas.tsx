@@ -20,7 +20,7 @@
  */
 import { createPortal } from "preact/compat";
 import { useEffect, useId, useLayoutEffect, useRef, useState } from "preact/hooks";
-import { useOpmStore } from "../../store";
+import { useToolbarMasViewModel } from "../../app/viewmodels/toolbarMasViewModel";
 import { tokens } from "../tokens";
 import { toolbarStyle as style } from "./toolbarStyles";
 
@@ -63,8 +63,7 @@ export function ToolbarMas({
   // sincroniza tanto este flag como `menuPrincipalAbierto: false` cuando se
   // abre. Cuando MenuPrincipal se abre, este flag se cierra automaticamente
   // por la action `abrirMenuPrincipal`.
-  const abierto = useOpmStore((s) => s.toolbarMasAbierto);
-  const fijarAbierto = useOpmStore((s) => s.fijarToolbarMasAbierto);
+  const { abierto, fijarAbierto } = useToolbarMasViewModel();
   const setAbierto = (siguiente: boolean | ((actual: boolean) => boolean)) => {
     const valor = typeof siguiente === "function" ? siguiente(abierto) : siguiente;
     fijarAbierto(valor);
