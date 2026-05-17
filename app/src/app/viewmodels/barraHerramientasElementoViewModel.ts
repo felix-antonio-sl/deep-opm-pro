@@ -1,4 +1,5 @@
 import { useOpmStore } from "../../store";
+import { useZustandSelectionBatchActionsPort } from "../ports/zustandSelectionBatchActionsPort";
 
 export function useBarraHerramientasElementoViewModel() {
   const modelo = useOpmStore((s) => s.modelo);
@@ -13,11 +14,13 @@ export function useBarraHerramientasElementoViewModel() {
   const abrirModalImagen = useOpmStore((s) => s.abrirModalImagen);
   const copiarEstiloEnlaceAlPortapapeles = useOpmStore((s) => s.copiarEstiloEnlaceAlPortapapeles);
   const pegarEstiloEnlaceDesdePortapapeles = useOpmStore((s) => s.pegarEstiloEnlaceDesdePortapapeles);
-  const eliminarSeleccion = useOpmStore((s) => s.eliminarSeleccion);
-  const conectarSeleccionAlTodo = useOpmStore((s) => s.conectarSeleccionAlTodo);
-  const traerEnlacesEntreSeleccionadas = useOpmStore((s) => s.traerEnlacesEntreSeleccionadas);
-  const alinearSeleccion = useOpmStore((s) => s.alinearSeleccion);
-  const distribuirSeleccion = useOpmStore((s) => s.distribuirSeleccion);
+  const {
+    eliminarSeleccion,
+    conectarSeleccionAlTodo,
+    traerEnlacesEntreSeleccionadas,
+    alinearSeleccion,
+    distribuirSeleccion,
+  } = useZustandSelectionBatchActionsPort();
 
   return {
     modelo,

@@ -1,6 +1,7 @@
 import { useOpmStore } from "../../store";
 import { useZustandHistoryPort } from "../ports/zustandHistoryPort";
 import { useZustandModelCreationPort } from "../ports/zustandModelCreationPort";
+import { useZustandSelectionBatchActionsPort } from "../ports/zustandSelectionBatchActionsPort";
 import { useZustandSelectionPort } from "../ports/zustandSelectionPort";
 import { useZustandToolbarChromePort } from "../ports/zustandToolbarChromePort";
 import { useZustandWorkbenchViewControlsPort } from "../ports/zustandWorkbenchViewControlsPort";
@@ -44,19 +45,21 @@ export function useToolbarBaseViewModel() {
     cerrarVistaMapa,
     iniciarModoSimulacion,
   } = useZustandWorkbenchViewControlsPort();
+  const {
+    eliminarSeleccion,
+    conectarSeleccionAlTodo,
+    traerEnlacesEntreSeleccionadas,
+    alinearSeleccion,
+    distribuirSeleccion,
+    alinearSeleccionEnlaces,
+  } = useZustandSelectionBatchActionsPort();
   const modelo = useOpmStore((s) => s.modelo);
   const opdActivoId = useOpmStore((s) => s.opdActivoId);
   const copiarEstiloEnlaceAlPortapapeles = useOpmStore((s) => s.copiarEstiloEnlaceAlPortapapeles);
   const pegarEstiloEnlaceDesdePortapapeles = useOpmStore((s) => s.pegarEstiloEnlaceDesdePortapapeles);
   const enlaceEstiloPortapapeles = useOpmStore((s) => s.enlaceEstiloPortapapeles);
   const borrarEnlacesEnLote = useOpmStore((s) => s.borrarEnlacesEnLote);
-  const eliminarSeleccion = useOpmStore((s) => s.eliminarSeleccion);
-  const conectarSeleccionAlTodo = useOpmStore((s) => s.conectarSeleccionAlTodo);
-  const traerEnlacesEntreSeleccionadas = useOpmStore((s) => s.traerEnlacesEntreSeleccionadas);
   const iniciarAutosalvado = useOpmStore((s) => s.iniciarAutosalvado);
-  const alinearSeleccion = useOpmStore((s) => s.alinearSeleccion);
-  const distribuirSeleccion = useOpmStore((s) => s.distribuirSeleccion);
-  const alinearSeleccionEnlaces = useOpmStore((s) => s.alinearSeleccionEnlaces);
 
   const toggleVistaMapa = () => {
     if (vistaMapaActiva) cerrarVistaMapa();
