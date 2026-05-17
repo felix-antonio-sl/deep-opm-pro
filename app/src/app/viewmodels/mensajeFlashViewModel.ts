@@ -1,8 +1,7 @@
-import { useOpmStore } from "../../store";
+import { useZustandSessionMessagePort } from "../ports/zustandSessionMessagePort";
 
 export function useMensajeFlashViewModel() {
-  const mensaje = useOpmStore((s) => s.mensaje);
-  const limpiarMensaje = useOpmStore((s) => s.limpiarMensaje);
+  const { mensaje, limpiarMensaje } = useZustandSessionMessagePort();
 
   return {
     mensaje,
