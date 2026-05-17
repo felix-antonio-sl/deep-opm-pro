@@ -1,13 +1,15 @@
-import { useOpmStore } from "../../store";
+import { useZustandSessionTabsPort } from "../ports/zustandSessionTabsPort";
 
 export function useBarraPestanasViewModel() {
-  const pestanas = useOpmStore((s) => s.pestanasAbiertas);
-  const activa = useOpmStore((s) => s.pestanaActivaId);
-  const abrirPestanaNueva = useOpmStore((s) => s.abrirPestanaNueva);
-  const cambiarPestanaActiva = useOpmStore((s) => s.cambiarPestanaActiva);
-  const cerrarPestana = useOpmStore((s) => s.cerrarPestana);
-  const reordenarPestanas = useOpmStore((s) => s.reordenarPestanas);
-  const guardarLocal = useOpmStore((s) => s.guardarLocal);
+  const {
+    pestanas,
+    activa,
+    abrirPestanaNueva,
+    cambiarPestanaActiva,
+    cerrarPestana,
+    reordenarPestanas,
+    guardarLocal,
+  } = useZustandSessionTabsPort();
 
   return {
     pestanas,
