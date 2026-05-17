@@ -13,7 +13,6 @@ import {
   type WorkspaceIndice,
 } from "../../persistencia/workspace";
 import { crearVersion } from "../../persistencia/versiones";
-import { fijarOpcionesProyeccionGlobal } from "../../render/jointjs/proyeccion";
 import { exportarModelo, hidratarModelo } from "../../serializacion/json";
 import {
   activarPestanaNueva,
@@ -503,8 +502,7 @@ export function accionesUI(set: SetStore, get: GetStore): Partial<ModeloSlice> {
     },
 
     fijarModoImagenGlobal(modo) {
-      const { uiAliasVisibles, uiDescripcionesVisibles, modelo } = get();
-      fijarOpcionesProyeccionGlobal({ aliasVisibles: uiAliasVisibles, descripcionesVisibles: uiDescripcionesVisibles, modoImagenGlobal: modo });
+      const { modelo } = get();
       set({ uiModoImagenGlobal: modo, modelo: { ...modelo } });
     },
 

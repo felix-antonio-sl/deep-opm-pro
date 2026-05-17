@@ -178,7 +178,6 @@ import {
   type DescriptorMapa,
   type EstadisticasModelo,
 } from "../canvas/mapaSistema";
-import { fijarOpcionesProyeccionGlobal } from "../render/jointjs/proyeccion";
 import {
   abrirPestana as abrirPestanaEstado,
   cambiarActiva as cambiarPestanaActivaEstado,

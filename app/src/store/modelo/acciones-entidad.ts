@@ -26,7 +26,6 @@ import {
   reordenarUrls,
 } from "../../modelo/objetoMetadata";
 import type { Apariencia, Id, LayoutEstados, Modelo, ModoImagenEntidad, ParametrosSimulacionEntidad, TipoValorSlot } from "../../modelo/tipos";
-import { fijarOpcionesProyeccionGlobal } from "../../render/jointjs/proyeccion";
 import { commitModelo, type GetStore, type SetStore } from "../runtime";
 import { addFlash } from "../feedback";
 import type { ModeloSlice } from "../tipos";
@@ -464,16 +463,14 @@ export function accionesEntidad(set: SetStore, get: GetStore): Partial<ModeloSli
     },
 
     toggleAliasVisibles() {
-      const { uiAliasVisibles, uiDescripcionesVisibles, uiModoImagenGlobal, modelo } = get();
+      const { uiAliasVisibles, modelo } = get();
       const aliasVisibles = !uiAliasVisibles;
-      fijarOpcionesProyeccionGlobal({ aliasVisibles, descripcionesVisibles: uiDescripcionesVisibles, modoImagenGlobal: uiModoImagenGlobal });
       set({ uiAliasVisibles: aliasVisibles, modelo: { ...modelo } });
     },
 
     toggleDescripcionesVisibles() {
-      const { uiAliasVisibles, uiDescripcionesVisibles, uiModoImagenGlobal, modelo } = get();
+      const { uiDescripcionesVisibles, modelo } = get();
       const descripcionesVisibles = !uiDescripcionesVisibles;
-      fijarOpcionesProyeccionGlobal({ aliasVisibles: uiAliasVisibles, descripcionesVisibles, modoImagenGlobal: uiModoImagenGlobal });
       set({ uiDescripcionesVisibles: descripcionesVisibles, modelo: { ...modelo } });
     },
   };

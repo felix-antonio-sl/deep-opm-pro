@@ -171,7 +171,6 @@ import {
   type DescriptorMapa,
   type EstadisticasModelo,
 } from "../canvas/mapaSistema";
-import { fijarOpcionesProyeccionGlobal } from "../render/jointjs/proyeccion";
 import type { EjeAlineacion, OrientacionDistribucion } from "../canvas/operacionesBatch";
 import type { AnchorConexion, ModoEnlace } from "../canvas/modoEnlace";
 export type { ModoEnlace } from "../canvas/modoEnlace";
