@@ -2,6 +2,7 @@ import { useMemo } from "preact/hooks";
 import { normalizarGridConfig } from "../../canvas/grid";
 import { useOpmStore } from "../../store";
 import { useZustandHistoryPort } from "../ports/zustandHistoryPort";
+import { useZustandModelCreationPort } from "../ports/zustandModelCreationPort";
 import { useZustandToolbarChromePort } from "../ports/zustandToolbarChromePort";
 
 export function useToolbarBaseViewModel() {
@@ -12,17 +13,20 @@ export function useToolbarBaseViewModel() {
     abrirDialogoComandos,
   } = useZustandToolbarChromePort();
   const { deshacer, rehacer, puedeDeshacer, puedeRehacer } = useZustandHistoryPort();
-  const crearObjeto = useOpmStore((s) => s.crearObjetoDemo);
-  const crearProceso = useOpmStore((s) => s.crearProcesoDemo);
-  const crearAtributoNumerico = useOpmStore((s) => s.crearAtributoEnObjetoSeleccionado);
-  const fijarModoCreacion = useOpmStore((s) => s.fijarModoCreacion);
+  const {
+    crearObjeto,
+    crearProceso,
+    crearAtributoNumerico,
+    fijarModoCreacion,
+    modoCreacion,
+    nuevaCosaPendiente,
+    confirmarNombreNuevaCosa,
+    descartarNuevaCosaPendiente,
+  } = useZustandModelCreationPort();
   const modelo = useOpmStore((s) => s.modelo);
   const opdActivoId = useOpmStore((s) => s.opdActivoId);
   const seleccionId = useOpmStore((s) => s.seleccionId);
   const seleccionados = useOpmStore((s) => s.seleccionados);
-  const nuevaCosaPendiente = useOpmStore((s) => s.nuevaCosaPendiente);
-  const confirmarNombreNuevaCosa = useOpmStore((s) => s.confirmarNombreNuevaCosa);
-  const descartarNuevaCosaPendiente = useOpmStore((s) => s.descartarNuevaCosaPendiente);
   const seleccionarEntidad = useOpmStore((s) => s.seleccionarEntidad);
   const seleccionarEnlace = useOpmStore((s) => s.seleccionarEnlace);
   const copiarEstiloEnlaceAlPortapapeles = useOpmStore((s) => s.copiarEstiloEnlaceAlPortapapeles);
@@ -33,7 +37,6 @@ export function useToolbarBaseViewModel() {
   const conectarSeleccionAlTodo = useOpmStore((s) => s.conectarSeleccionAlTodo);
   const traerEnlacesEntreSeleccionadas = useOpmStore((s) => s.traerEnlacesEntreSeleccionadas);
   const iniciarAutosalvado = useOpmStore((s) => s.iniciarAutosalvado);
-  const modoCreacion = useOpmStore((s) => s.modoCreacion);
   const abrirDialogoPlantillas = useOpmStore((s) => s.abrirDialogoPlantillas);
   const uiAliasVisibles = useOpmStore((s) => s.uiAliasVisibles);
   const uiDescripcionesVisibles = useOpmStore((s) => s.uiDescripcionesVisibles);
