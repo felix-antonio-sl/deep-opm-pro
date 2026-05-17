@@ -3,8 +3,8 @@
 **Fecha**: 2026-05-17
 **Repositorio**: `deep-opm-pro`
 **Rama**: `main`
-**Último corte funcional**: `f908717 refactor(app): introduce puerto de arbol opd`
-**Corte**: Refactorizacion total, Corte 2 iniciado: UI ya depende de viewmodels, y los primeros viewmodels empiezan a depender de puertos de aplicacion pequenos sobre Zustand.
+**Último corte funcional**: `9020873 refactor(app): introduce puerto de acciones enlace`
+**Corte**: Refactorizacion total, Corte 2 avanzado: UI depende de viewmodels y los viewmodels de mayor trafico se estan descomponiendo en puertos de aplicacion pequenos sobre Zustand.
 
 ## Política De Handoff Único
 
@@ -102,6 +102,42 @@ Avance posterior al cierre de Corte 1:
   - Nuevo `OpdTreePort` para acciones/estado especificos del arbol OPD.
   - `arbolOpdViewModel` depende de `OpdNavigationPort` + `OpdTreePort`.
   - Validado con typecheck, build, `bun test src/store.test.ts -t "mapa del sistema"` y `e2e/04-arbol-y-pestanas.spec.ts`.
+- `938d78e refactor(app): introduce puerto de tabla enlaces`
+  - `tablaEnlacesViewModel` consume `LinksTablePort`.
+  - Validado con typecheck, build, suite unitaria completa y smokes de tabla/superficie contextual.
+- `0b40679 refactor(app): introduce puerto de inspector enlaces`
+  - `inspectorEnlaceViewModel` consume `LinkInspectorPort` dividido internamente por sesion, propiedades, endpoints, grupo estructural, estilo y eliminacion.
+  - Validado con typecheck, build, suite unitaria completa y smokes de canvas/enlaces/tabla.
+- `7b41642 refactor(app): introduce puerto de paleta comandos`
+  - `commandPaletteViewModel` consume `CommandPalettePort`.
+  - Validado con typecheck, build, `CommandPalette.test.ts` y smoke `e2e/12-command-palette.spec.ts`.
+- `450d85d refactor(app): introduce puertos de chrome e historial`
+  - `toolbarBaseViewModel` empieza a depender de `ToolbarChromePort` y `HistoryPort`.
+  - Validado con typecheck, build, suite unitaria completa y smokes de toolbar/command palette/undo-redo.
+- `f2b1b73 refactor(app): introduce puerto de creacion modelo`
+  - Nuevo `ModelCreationPort` para creacion de objeto/proceso/atributo y modal de nombre de cosa.
+  - Validado con typecheck, build, suite unitaria completa y smokes de canvas/toolbar/conexion.
+- `6b1ec89 refactor(app): usa puerto de seleccion en toolbar`
+  - `toolbarBaseViewModel` reutiliza `SelectionPort` para seleccion pasiva y acciones de seleccionar entidad/enlace.
+  - Validado con typecheck, suite unitaria completa y tests focales de seleccion.
+- `5722eba fix(ui): prioriza escape de dialogos modales`
+  - Corrige carrera de Escape entre `Dialogo`, registry global de atajos y `ToolbarMas`.
+  - Validado con typecheck, unitarios de atajos/dialogos/toolbar y smoke `HU-33.022`.
+- `915f45c refactor(app): introduce puerto de controles workbench`
+  - Nuevo `WorkbenchViewControlsPort` para alias/descripciones, modo imagen, grid, configuracion, layout sugerido, biblioteca dock, mapa y simulacion.
+  - Validado con typecheck, build, suite unitaria completa y 33 smokes seriales de workbench.
+- `5dc9acf refactor(app): introduce puerto de acciones batch seleccion`
+  - Nuevo `SelectionBatchActionsPort` compartido por toolbar base y barra contextual.
+  - Validado con typecheck, build, suite unitaria completa y 43 smokes de canvas/toolbar/residual.
+- `9020873 refactor(app): introduce puerto de acciones enlace`
+  - Nuevo `LinkContextActionsPort` compartido por toolbar base y barra contextual para copiar/pegar estilo, portapapeles de estilo y borrado contextual de enlaces.
+  - Validado con typecheck, build, suite unitaria completa y 39 smokes de canvas/residual.
+
+Estado arquitectonico del ultimo corte:
+
+- `toolbarBaseViewModel` queda con 3 selectores directos a `useOpmStore` (`modelo`, `opdActivoId`, `iniciarAutosalvado`) y el resto se compone por puertos.
+- `barraHerramientasElementoViewModel` queda con 9 selectores directos ligados a lectura de modelo/seleccion y comandos de refinamiento/imagen; ya reutiliza puertos para acciones batch y acciones de enlace.
+- No se introdujo segundo store, estado duplicado ni DI global.
 
 Regla operativa nueva: antes de migrar otro viewmodel, preferir reutilizar un puerto existente. Crear un puerto nuevo solo si representa una capacidad nombrable y reusable, no una coleccion accidental de selectors.
 
@@ -194,12 +230,13 @@ El script genera `docs/REPORTE-EJECUTIVO.md` y `app/test-results/in-vivo/`, ambo
 
 ## Validación Reciente
 
-Ejecutado sobre el estado actual (`f908717`):
+Ejecutado sobre el estado actual (`9020873`):
 
 ```bash
 cd app && bun run typecheck
 cd app && bun run build
-cd app && bun run browser:smoke -- e2e/04-arbol-y-pestanas.spec.ts
+cd app && bun run test
+cd app && bun run browser:smoke -- e2e/02-canvas-y-render.spec.ts e2e/08-mvp-alpha-residual.spec.ts --workers=1
 ```
 
 Resultado:
@@ -207,10 +244,11 @@ Resultado:
 ```text
 typecheck OK
 build OK
-6 browser smoke passed / 0 fail
+1375 unit tests passed / 0 fail
+39 browser smoke passed / 0 fail
 ```
 
-Última auditoría in-vivo completa sigue siendo la de `08b3753`/`63dd213`; este corte no cambió el script in-vivo ni la superficie global de chrome, solo la frontera UI -> viewmodel.
+Última auditoría in-vivo completa sigue siendo la de `08b3753`/`63dd213`; estos cortes no cambiaron el script in-vivo ni la semantica OPM, solo la frontera viewmodel -> puertos sobre Zustand.
 
 Validación HODOM v1.1 realizada sobre el corte funcional previo de foco canvas:
 
@@ -274,4 +312,4 @@ Pendientes funcionales a retomar despues o como pressure tests:
 
 Retomar desde este `docs/HANDOFF.md` y el plan `docs/roadmap/refactorizacion-total-plan-normativo.md`.
 
-Siguiente bloque recomendado: continuar **Corte 2 - Puertos de aplicacion sobre store existente**. Primer objetivo: migrar otro viewmodel grande a puertos existentes antes de crear contratos nuevos. Candidatos: `tablaEnlacesViewModel` hacia puertos de tabla/foco, `toolbarBaseViewModel` hacia puertos de chrome/seleccion, o `inspectorEntidadViewModel` hacia puertos de entidad/estados. Validar siempre con typecheck, unit dirigido y smoke relevante. Si el siguiente bloque toca JointJS, consultar primero `opm-extracted/`, `docs/JOYAS.md`, assets SVG canónicos y documentación oficial de JointJS OSS.
+Siguiente bloque recomendado: continuar **Corte 2 - Puertos de aplicacion sobre store existente**. Objetivo pragmatico: cerrar los selectores directos restantes de `toolbarBaseViewModel` con un puerto pequeno de autosalvado y decidir si `modelo/opdActivoId` deben salir a un puerto de lectura compartido o mantenerse hasta que otro viewmodel lo necesite. Luego avanzar sobre `barraHerramientasElementoViewModel` separando refinamiento/estado/imagen en puertos nombrables. Validar siempre con typecheck, unit dirigido, build, suite completa cuando el cambio toque toolbar/canvas, y smoke relevante. Si el siguiente bloque toca JointJS, consultar primero `opm-extracted/`, `docs/JOYAS.md`, assets SVG canónicos y documentación oficial de JointJS OSS.
