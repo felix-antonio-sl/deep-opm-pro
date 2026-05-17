@@ -1,10 +1,8 @@
 // [JOYAS §1-3] Chrome UI consume tokens centralizados; canvas semántico invariante.
 import modelWizardIcon from "../../../assets/svg/toolbar/modelWizard.svg";
 import templateIcon from "../../../assets/svg/template.svg";
-import { useMemo, useState } from "preact/hooks";
-import { normalizarGridConfig } from "../canvas/grid";
-import { listarFixtures } from "../store/runtime";
-import { useOpmStore } from "../store";
+import { useState } from "preact/hooks";
+import { useMenuPrincipalViewModel } from "../app/viewmodels/menuPrincipalViewModel";
 import { useConfirmarSiDirty } from "./ConfirmacionContext";
 import { tokens } from "./tokens";
 
@@ -13,44 +11,44 @@ import { tokens } from "./tokens";
  * [V-52]/[V-123]. Reusa assets/svg/template.svg canónico.
  */
 export function MenuPrincipal() {
-  const abierto = useOpmStore((s) => s.menuPrincipalAbierto);
-  const cerrar = useOpmStore((s) => s.cerrarMenuPrincipal);
-  const nuevoModelo = useOpmStore((s) => s.nuevoModelo);
-  const abrirPestanaNueva = useOpmStore((s) => s.abrirPestanaNueva);
-  const guardarLocal = useOpmStore((s) => s.guardarLocal);
-  const abrirGuardarComo = useOpmStore((s) => s.abrirGuardarComo);
-  const abrirCargarModelo = useOpmStore((s) => s.abrirCargarModelo);
-  const abrirBusquedaCosas = useOpmStore((s) => s.abrirBusquedaCosas);
-  const abrirBusquedaGlobal = useOpmStore((s) => s.abrirDialogoBuscarGlobal);
-  const abrirVersiones = useOpmStore((s) => s.abrirDialogoVersiones);
-  const modeloPersistidoId = useOpmStore((s) => s.modeloPersistidoId);
-  const abrirDialogoConfiguracion = useOpmStore((s) => s.abrirDialogoConfiguracion);
-  const mostrarArchivados = useOpmStore((s) => s.mostrarArchivados);
-  const mostrarVersiones = useOpmStore((s) => s.mostrarVersiones);
-  const toggleMostrarArchivados = useOpmStore((s) => s.toggleMostrarArchivados);
-  const toggleMostrarVersiones = useOpmStore((s) => s.toggleMostrarVersiones);
-  const cargarFixtureDemo = useOpmStore((s) => s.cargarFixtureDemo);
-  const exportarJson = useOpmStore((s) => s.exportarJson);
-  const abrirVistaMapa = useOpmStore((s) => s.abrirVistaMapa);
-  const cerrarVistaMapa = useOpmStore((s) => s.cerrarVistaMapa);
-  const vistaMapaActiva = useOpmStore((s) => s.vistaMapaActiva);
-  const toggleMapaPanelEstadisticas = useOpmStore((s) => s.toggleMapaPanelEstadisticas);
-  const gridConfig = useOpmStore((s) => normalizarGridConfig(s.gridConfig ?? s.indice.preferenciasUi?.gridConfig));
-  const toggleGrid = useOpmStore((s) => s.toggleGrid);
-  const aplicarLayoutSugerido = useOpmStore((s) => s.aplicarLayoutSugerido);
-  const iniciarModoSimulacion = useOpmStore((s) => s.iniciarModoSimulacion);
-  const abrirTablaEnlaces = useOpmStore((s) => s.abrirTablaEnlaces);
-  const abrirDialogoPlantillas = useOpmStore((s) => s.abrirDialogoPlantillas);
-  const abrirDialogoGuardarPlantilla = useOpmStore((s) => s.abrirDialogoGuardarPlantilla);
-  const abrirDialogoImportarExportarJson = useOpmStore((s) => s.abrirDialogoImportarExportarJson);
-  const abrirCheatsheetAtajos = useOpmStore((s) => s.abrirCheatsheetAtajos);
-  const seleccionId = useOpmStore((s) => s.seleccionId);
-  const modelo = useOpmStore((s) => s.modelo);
-  const abrirModalUrls = useOpmStore((s) => s.abrirModalUrls);
   const confirmarSiDirty = useConfirmarSiDirty();
-  const iniciarAsistente = useOpmStore((s) => s.iniciarAsistente);
+  const {
+    abierto,
+    cerrar,
+    nuevoModelo,
+    abrirPestanaNueva,
+    guardarLocal,
+    abrirGuardarComo,
+    abrirCargarModelo,
+    abrirBusquedaCosas,
+    abrirBusquedaGlobal,
+    abrirVersiones,
+    modeloPersistidoId,
+    abrirDialogoConfiguracion,
+    mostrarArchivados,
+    mostrarVersiones,
+    toggleMostrarArchivados,
+    toggleMostrarVersiones,
+    cargarFixtureDemo,
+    vistaMapaActiva,
+    toggleVistaMapa,
+    toggleMapaPanelEstadisticas,
+    gridConfig,
+    toggleGrid,
+    aplicarLayoutSugerido,
+    iniciarModoSimulacion,
+    abrirTablaEnlaces,
+    abrirDialogoPlantillas,
+    abrirDialogoGuardarPlantilla,
+    abrirDialogoImportarExportarJson,
+    abrirCheatsheetAtajos,
+    objetoSeleccionadoId,
+    abrirModalUrls,
+    iniciarAsistente,
+    demos,
+    copiarJsonAlPortapapeles,
+  } = useMenuPrincipalViewModel();
   const [mostrarSubmenuDemos, setMostrarSubmenuDemos] = useState(false);
-  const demos = useMemo(() => listarFixtures(), []);
 
   const ejecutar = (accion: () => void) => {
     cerrar();
@@ -78,7 +76,7 @@ export function MenuPrincipal() {
       </MenuSection>
 
       <MenuSection title="Vista">
-        <MenuItem label="Mapa del sistema" shortcut={vistaMapaActiva ? "Activo" : undefined} onClick={() => ejecutar(vistaMapaActiva ? cerrarVistaMapa : abrirVistaMapa)} />
+        <MenuItem label="Mapa del sistema" shortcut={vistaMapaActiva ? "Activo" : undefined} onClick={() => ejecutar(toggleVistaMapa)} />
         <MenuItem label="Simulación conceptual" onClick={() => ejecutar(iniciarModoSimulacion)} />
         <MenuItem label={gridConfig.activa ? "Ocultar cuadrícula del canvas" : "Mostrar cuadrícula del canvas"} onClick={() => ejecutar(toggleGrid)} />
         <MenuItem label="Auto-layout" onClick={() => ejecutar(aplicarLayoutSugerido)} />
@@ -101,13 +99,7 @@ export function MenuPrincipal() {
         {modeloPersistidoId ? (
           <MenuItem label="Versiones del modelo" onClick={() => ejecutar(() => abrirVersiones(modeloPersistidoId))} />
         ) : null}
-        <MenuItem
-          label="Exportar JSON"
-          onClick={() => ejecutar(() => {
-            const json = exportarJson();
-            void globalThis.navigator?.clipboard?.writeText(json);
-          })}
-        />
+        <MenuItem label="Exportar JSON" onClick={() => ejecutar(copiarJsonAlPortapapeles)} />
         <MenuItem label="Importar/Exportar JSON..." onClick={() => ejecutar(abrirDialogoImportarExportarJson)} />
         <div
           role="none"
@@ -134,8 +126,8 @@ export function MenuPrincipal() {
           ) : null}
         </div>
         <MenuItem label="Tabla de enlaces" onClick={() => ejecutar(abrirTablaEnlaces)} />
-        {seleccionId && modelo.entidades[seleccionId]?.tipo === "objeto" ? (
-          <MenuItem label="URLs del objeto" onClick={() => ejecutar(() => abrirModalUrls(seleccionId))} />
+        {objetoSeleccionadoId ? (
+          <MenuItem label="URLs del objeto" onClick={() => ejecutar(() => abrirModalUrls(objetoSeleccionadoId))} />
         ) : null}
         <MenuItem label="Atajos de teclado..." onClick={() => ejecutar(abrirCheatsheetAtajos)} />
       </MenuSection>
