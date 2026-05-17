@@ -2,7 +2,9 @@ import { useMemo } from "preact/hooks";
 import { FAMILIAS_TRAER, tiposDeFamilia, type FamiliaTraerConectados } from "../../canvas/reglasTraer";
 import { entidadIdDeExtremo } from "../../modelo/extremos";
 import type { Id, Modelo } from "../../modelo/tipos";
-import { useOpmStore } from "../../store";
+import { useZustandBringConnectedDialogPort } from "../ports/zustandBringConnectedDialogPort";
+import { useZustandOpdNavigationPort } from "../ports/zustandOpdNavigationPort";
+import { useZustandSelectionPort } from "../ports/zustandSelectionPort";
 
 export type ConteosFamiliaTraer = Record<FamiliaTraerConectados, number>;
 
@@ -37,13 +39,9 @@ function resolverEntidadFoco(modelo: Modelo, seleccionId: Id | null, seleccionad
 }
 
 export function useDialogoTraerConectadosViewModel() {
-  const abierto = useOpmStore((s) => s.dialogoTraerConectadosAbierto);
-  const cerrar = useOpmStore((s) => s.cerrarDialogoTraerConectados);
-  const traer = useOpmStore((s) => s.traerConectadosSeleccionado);
-  const ultima = useOpmStore((s) => s.indice.preferenciasUi?.traerConectadosUltimo);
-  const modelo = useOpmStore((s) => s.modelo);
-  const seleccionId = useOpmStore((s) => s.seleccionId);
-  const seleccionados = useOpmStore((s) => s.seleccionados);
+  const { abierto, cerrar, traer, ultima } = useZustandBringConnectedDialogPort();
+  const { modelo } = useZustandOpdNavigationPort();
+  const { seleccionId, seleccionados } = useZustandSelectionPort();
 
   const entidadFocoId = useMemo(
     () => resolverEntidadFoco(modelo, seleccionId, seleccionados),
