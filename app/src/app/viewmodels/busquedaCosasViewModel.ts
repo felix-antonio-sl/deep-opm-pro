@@ -1,7 +1,7 @@
 import { useMemo } from "preact/hooks";
 import type { Apariencia, Id, Modelo } from "../../modelo/tipos";
-import { useOpmStore } from "../../store";
 import type { BusquedaCosasFiltro, ResultadoBusquedaSalto } from "../../store/tipos";
+import { useZustandModelSearchDialogPort } from "../ports/zustandSearchDialogsPort";
 
 export type { BusquedaCosasFiltro };
 
@@ -136,14 +136,7 @@ function ordenarResultados(a: ResultadoBusqueda, b: ResultadoBusqueda): number {
 }
 
 export function useDialogoBuscarCosasViewModel() {
-  const abierto = useOpmStore((s) => s.busquedaCosasAbierta);
-  const query = useOpmStore((s) => s.busquedaCosasQuery);
-  const filtro = useOpmStore((s) => s.busquedaCosasFiltro);
-  const modelo = useOpmStore((s) => s.modelo);
-  const cerrar = useOpmStore((s) => s.cerrarBusquedaCosas);
-  const fijarQuery = useOpmStore((s) => s.fijarBusquedaCosasQuery);
-  const fijarFiltro = useOpmStore((s) => s.fijarBusquedaCosasFiltro);
-  const saltar = useOpmStore((s) => s.saltarAResultadoBusqueda);
+  const { abierto, query, filtro, modelo, cerrar, fijarQuery, fijarFiltro, saltar } = useZustandModelSearchDialogPort();
 
   const resultados = useMemo(
     () => calcularResultadosBusquedaCosas(modelo, query, filtro),
