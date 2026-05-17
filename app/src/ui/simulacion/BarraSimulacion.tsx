@@ -1,7 +1,7 @@
 // [JOYAS §1-3] Chrome consume tokens centralizados; sin colores nuevos.
 import type { JSX } from "preact";
 import { useEffect } from "preact/hooks";
-import { useOpmStore } from "../../store";
+import { useZustandSimulationPort } from "../../app/ports/zustandSimulationPort";
 import { tokens } from "../tokens";
 
 /**
@@ -15,16 +15,18 @@ import { tokens } from "../tokens";
  *   - Panel trace compacto: últimos pasos ejecutados.
  */
 export function BarraSimulacion(): JSX.Element | null {
-  const contexto = useOpmStore((s) => s.contextoSimulacion);
-  const autoAvance = useOpmStore((s) => s.autoAvanceSimulacionActivo);
-  const velocidadSimulacion = useOpmStore((s) => s.velocidadSimulacion);
-  const ejecutarPaso = useOpmStore((s) => s.ejecutarPasoSimulacion);
-  const ejecutarCorrida = useOpmStore((s) => s.ejecutarCorridaSimulacion);
-  const reiniciar = useOpmStore((s) => s.reiniciarSimulacionActual);
-  const iniciarAutoAvance = useOpmStore((s) => s.iniciarAutoAvanceSimulacion);
-  const pausarAutoAvance = useOpmStore((s) => s.pausarAutoAvanceSimulacion);
-  const fijarVelocidad = useOpmStore((s) => s.fijarVelocidadSimulacion);
-  const salir = useOpmStore((s) => s.salirModoSimulacion);
+  const {
+    contexto,
+    autoAvance,
+    velocidad: velocidadSimulacion,
+    ejecutarPaso,
+    ejecutarCorrida,
+    reiniciar,
+    iniciarAutoAvance,
+    pausarAutoAvance,
+    fijarVelocidad,
+    salir,
+  } = useZustandSimulationPort();
 
   useEffect(() => {
     if (!contexto || !autoAvance || contexto.estado === "completado" || contexto.plan.length === 0) return;
