@@ -1,18 +1,12 @@
 // [JOYAS §1-3] Chrome UI consume tokens centralizados; canvas semántico invariante.
 import { useEffect, useRef } from "preact/hooks";
-import { useOpmStore } from "../store";
+import { useBusquedaGlobalViewModel } from "../app/viewmodels/busquedaGlobalViewModel";
 import { Dialogo } from "./Dialogo";
 import { useConfirmarSiDirty } from "./ConfirmacionContext";
 import { tokens } from "./tokens";
 
 export function DialogoBuscarGlobal() {
-  const open = useOpmStore((s) => s.dialogoBuscarGlobalAbierto);
-  const cerrar = useOpmStore((s) => s.cerrarDialogoBuscarGlobal);
-  const query = useOpmStore((s) => s.busquedaGlobal.query);
-  const resultados = useOpmStore((s) => s.busquedaGlobal.resultados);
-  const fijarQuery = useOpmStore((s) => s.fijarBusquedaGlobalQuery);
-  const ejecutar = useOpmStore((s) => s.ejecutarBusquedaGlobal);
-  const abrirResultado = useOpmStore((s) => s.abrirResultadoBusquedaGlobal);
+  const { open, cerrar, query, resultados, fijarQuery, ejecutar, abrirResultado } = useBusquedaGlobalViewModel();
   const confirmarSiDirty = useConfirmarSiDirty();
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -105,4 +99,3 @@ const style = {
     fontWeight: 700,
   },
 } satisfies Record<string, preact.JSX.CSSProperties>;
-
