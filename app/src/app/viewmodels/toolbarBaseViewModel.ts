@@ -3,6 +3,7 @@ import { normalizarGridConfig } from "../../canvas/grid";
 import { useOpmStore } from "../../store";
 import { useZustandHistoryPort } from "../ports/zustandHistoryPort";
 import { useZustandModelCreationPort } from "../ports/zustandModelCreationPort";
+import { useZustandSelectionPort } from "../ports/zustandSelectionPort";
 import { useZustandToolbarChromePort } from "../ports/zustandToolbarChromePort";
 
 export function useToolbarBaseViewModel() {
@@ -23,12 +24,9 @@ export function useToolbarBaseViewModel() {
     confirmarNombreNuevaCosa,
     descartarNuevaCosaPendiente,
   } = useZustandModelCreationPort();
+  const { seleccionId, seleccionados, seleccionarEntidad, seleccionarEnlace } = useZustandSelectionPort();
   const modelo = useOpmStore((s) => s.modelo);
   const opdActivoId = useOpmStore((s) => s.opdActivoId);
-  const seleccionId = useOpmStore((s) => s.seleccionId);
-  const seleccionados = useOpmStore((s) => s.seleccionados);
-  const seleccionarEntidad = useOpmStore((s) => s.seleccionarEntidad);
-  const seleccionarEnlace = useOpmStore((s) => s.seleccionarEnlace);
   const copiarEstiloEnlaceAlPortapapeles = useOpmStore((s) => s.copiarEstiloEnlaceAlPortapapeles);
   const pegarEstiloEnlaceDesdePortapapeles = useOpmStore((s) => s.pegarEstiloEnlaceDesdePortapapeles);
   const enlaceEstiloPortapapeles = useOpmStore((s) => s.enlaceEstiloPortapapeles);
