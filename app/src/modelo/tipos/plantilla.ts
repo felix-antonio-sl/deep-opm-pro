@@ -1,5 +1,5 @@
-import type { ModeloPersistido } from "../../persistencia/local";
 import type { Id } from "./comunes";
+import type { VersionResumen } from "./modelo";
 
 /**
  * Tipos de plantillas privadas como artefactos reutilizables fuera del Modelo.
@@ -10,12 +10,29 @@ import type { Id } from "./comunes";
 
 export type AmbitoPlantilla = "privado" | "organizacional" | "global";
 
+export interface ContenidoPlantillaModelo {
+  id: Id;
+  nombre: string;
+  descripcion: string;
+  creadoEn: string;
+  actualizadoEn: string;
+  json: string;
+  carpetaId?: Id | null;
+  ultimaApertura?: string;
+  autosalvado?: boolean;
+  archivado?: boolean;
+  archivadoEn?: string;
+  archivadoAuto?: boolean;
+  versiones?: VersionResumen[];
+  crearVersionAlGuardar?: boolean;
+}
+
 export interface Plantilla {
   id: Id;
   nombre: string;
   descripcion?: string;
   ambito: AmbitoPlantilla;
-  contenido: ModeloPersistido;
+  contenido: ContenidoPlantillaModelo;
   creadoEn: string;
   actualizadoEn: string;
 }
