@@ -19,7 +19,10 @@ export interface PersistencePort {
   guardarComoLocalConDescripcion: OpmStore["guardarComoLocalConDescripcion"];
   listarModelosGuardados: OpmStore["listarModelosGuardados"];
   cargarLocal: OpmStore["cargarLocal"];
+  borrarLocal: OpmStore["borrarLocal"];
   cargarFixtureDemo: OpmStore["cargarFixtureDemo"];
+  exportarJson: OpmStore["exportarJson"];
+  importarJson: OpmStore["importarJson"];
   hayDirty: () => boolean;
   hayDirtyModelo: () => boolean;
 }

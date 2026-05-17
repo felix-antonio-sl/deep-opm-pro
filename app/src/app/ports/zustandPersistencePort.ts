@@ -20,7 +20,10 @@ export function useZustandPersistencePort(): PersistencePort {
   const guardarComoLocalConDescripcion = useOpmStore((s) => s.guardarComoLocalConDescripcion);
   const listarModelosGuardados = useOpmStore((s) => s.listarModelosGuardados);
   const cargarLocal = useOpmStore((s) => s.cargarLocal);
+  const borrarLocal = useOpmStore((s) => s.borrarLocal);
   const cargarFixtureDemo = useOpmStore((s) => s.cargarFixtureDemo);
+  const exportarJson = useOpmStore((s) => s.exportarJson);
+  const importarJson = useOpmStore((s) => s.importarJson);
   const pestanaActiva = pestanasAbiertas.find((p) => p.id === pestanaActivaId);
   const cargadoDesde = pestanaActiva?.cargadoDesde ?? "nuevo";
   const esFixture = !modeloPersistidoId && listarFixtures().some((fixture) => fixture.modelo.nombre === modeloNombre);
@@ -46,7 +49,10 @@ export function useZustandPersistencePort(): PersistencePort {
     guardarComoLocalConDescripcion,
     listarModelosGuardados,
     cargarLocal,
+    borrarLocal,
     cargarFixtureDemo,
+    exportarJson,
+    importarJson,
     hayDirty: () => store.getState().dirty,
     hayDirtyModelo: () => store.getState().dirtyModelo,
   };

@@ -1,6 +1,7 @@
 // [JOYAS §1-3] Chrome UI consume tokens centralizados; canvas semántico invariante.
 import { useEffect, useMemo, useState } from "preact/hooks";
-import { useOpmStore } from "../store";
+import { useZustandPersistencePort } from "../app/ports/zustandPersistencePort";
+import { useZustandWorkspacePort } from "../app/ports/zustandWorkspacePort";
 import { hidratarModelo } from "../serializacion/json";
 import type { Modelo } from "../modelo/tipos";
 import { useConfirmarSiDirty } from "./ConfirmacionContext";
@@ -13,32 +14,28 @@ interface PersistenciaJsonProps {
 }
 
 export function PersistenciaJson({ onImported }: PersistenciaJsonProps) {
-  const exportarJson = useOpmStore((s) => s.exportarJson);
-  const importarJson = useOpmStore((s) => s.importarJson);
-  const modelosGuardados = useOpmStore((s) => s.modelosGuardados);
-  const listarModelosGuardados = useOpmStore((s) => s.listarModelosGuardados);
-  const cargarLocal = useOpmStore((s) => s.cargarLocal);
-  const borrarLocal = useOpmStore((s) => s.borrarLocal);
+  const persistencia = useZustandPersistencePort();
+  const workspace = useZustandWorkspacePort();
   const [texto, setTexto] = useState("");
   const [archivoNombre, setArchivoNombre] = useState("");
   const [errorImportacion, setErrorImportacion] = useState<string | null>(null);
   const [arrastrando, setArrastrando] = useState(false);
   const [modeloSeleccionadoId, setModeloSeleccionadoId] = useState("");
-  const modeloSeleccionado = modeloSeleccionadoId || modelosGuardados[0]?.id || "";
+  const modeloSeleccionado = modeloSeleccionadoId || workspace.modelosGuardados[0]?.id || "";
   const vistaPrevia = useMemo(() => (texto.trim() ? obtenerVistaPreviaImportacion(texto) : null), [texto]);
   const mensajeError = errorImportacion ?? (vistaPrevia?.ok === false ? vistaPrevia.error : null);
   const confirmarSiDirty = useConfirmarSiDirty();
 
   useEffect(() => {
-    listarModelosGuardados();
-  }, [listarModelosGuardados]);
+    persistencia.listarModelosGuardados();
+  }, [persistencia.listarModelosGuardados]);
 
   useEffect(() => {
-    if (!modeloSeleccionadoId && modelosGuardados[0]?.id) setModeloSeleccionadoId(modelosGuardados[0].id);
-    if (modeloSeleccionadoId && !modelosGuardados.some((modelo) => modelo.id === modeloSeleccionadoId)) {
-      setModeloSeleccionadoId(modelosGuardados[0]?.id ?? "");
+    if (!modeloSeleccionadoId && workspace.modelosGuardados[0]?.id) setModeloSeleccionadoId(workspace.modelosGuardados[0].id);
+    if (modeloSeleccionadoId && !workspace.modelosGuardados.some((modelo) => modelo.id === modeloSeleccionadoId)) {
+      setModeloSeleccionadoId(workspace.modelosGuardados[0]?.id ?? "");
     }
-  }, [modeloSeleccionadoId, modelosGuardados]);
+  }, [modeloSeleccionadoId, workspace.modelosGuardados]);
 
   const manejarArchivo = async (file: File | null) => {
     if (!file) return;
@@ -60,7 +57,7 @@ export function PersistenciaJson({ onImported }: PersistenciaJsonProps) {
     }
     setErrorImportacion(null);
     confirmarSiDirty(() => {
-      importarJson(texto);
+      persistencia.importarJson(texto);
       setErrorImportacion(null);
       onImported?.();
     });
@@ -77,8 +74,8 @@ export function PersistenciaJson({ onImported }: PersistenciaJsonProps) {
             value={modeloSeleccionado}
             onChange={(event) => setModeloSeleccionadoId(event.currentTarget.value)}
           >
-            {modelosGuardados.length === 0 ? <option value="">Sin modelos</option> : null}
-            {modelosGuardados.map((modelo) => (
+            {workspace.modelosGuardados.length === 0 ? <option value="">Sin modelos</option> : null}
+            {workspace.modelosGuardados.map((modelo) => (
               <option key={modelo.id} value={modelo.id}>{modelo.nombre}</option>
             ))}
           </select>
@@ -86,11 +83,11 @@ export function PersistenciaJson({ onImported }: PersistenciaJsonProps) {
             type="button"
             style={modeloSeleccionado ? style.button : style.disabledButton}
             disabled={!modeloSeleccionado}
-            onClick={() => confirmarSiDirty(() => cargarLocal(modeloSeleccionado))}
+            onClick={() => confirmarSiDirty(() => persistencia.cargarLocal(modeloSeleccionado))}
           >
             Cargar
           </button>
-          <button type="button" style={modeloSeleccionado ? style.button : style.disabledButton} disabled={!modeloSeleccionado} onClick={() => borrarLocal(modeloSeleccionado)}>Borrar</button>
+          <button type="button" style={modeloSeleccionado ? style.button : style.disabledButton} disabled={!modeloSeleccionado} onClick={() => persistencia.borrarLocal(modeloSeleccionado)}>Borrar</button>
         </div>
       </div>
 
@@ -101,7 +98,7 @@ export function PersistenciaJson({ onImported }: PersistenciaJsonProps) {
             type="button"
             style={style.button}
             onClick={() => {
-              setTexto(exportarJson());
+              setTexto(persistencia.exportarJson());
               setArchivoNombre("");
               setErrorImportacion(null);
             }}
