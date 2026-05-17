@@ -1,8 +1,7 @@
 // [JOYAS §1-3] Chrome UI consume tokens centralizados; canvas semántico invariante.
-import { useEffect, useMemo, useRef, useState } from "preact/hooks";
+import { useEffect, useRef, useState } from "preact/hooks";
 import templateIcon from "../../../assets/svg/template.svg";
-import type { PlantillaIndice } from "../modelo/tipos";
-import { useOpmStore } from "../store";
+import { useDialogoPlantillasViewModel } from "../app/viewmodels/dialogoPlantillasViewModel";
 import { Dialogo } from "./Dialogo";
 import { Breadcrumb } from "./panelCarpetas/Breadcrumb";
 import { tokens } from "./tokens";
@@ -17,21 +16,22 @@ import { tokens } from "./tokens";
 const RAIZ_PLANTILLAS = [{ id: "plantillas-root", nombre: "Mis plantillas", padreId: null, creadoEn: 0 }];
 
 export function DialogoPlantillas() {
-  const catalogoAbierto = useOpmStore((s) => s.dialogoPlantillasAbierto);
-  const guardarAbierto = useOpmStore((s) => s.dialogoGuardarPlantillaAbierto);
-  const abierto = catalogoAbierto || guardarAbierto;
-  const modelo = useOpmStore((s) => s.modelo);
-  const mensaje = useOpmStore((s) => s.mensaje);
-  const cerrar = useOpmStore((s) => s.cerrarDialogoPlantillas);
-  const abrirGuardar = useOpmStore((s) => s.abrirDialogoGuardarPlantilla);
-  const cerrarGuardar = useOpmStore((s) => s.cerrarDialogoGuardarPlantilla);
-  const guardar = useOpmStore((s) => s.guardarComoPlantillaConfirmar);
-  const insertar = useOpmStore((s) => s.insertarPlantillaEnOpdActivo);
-  const plantillas = useOpmStore((s) => s.plantillasGuardadas);
   const inputGuardarRef = useRef<HTMLInputElement>(null);
   const [query, setQuery] = useState("");
   const [queryFiltrada, setQueryFiltrada] = useState("");
-  const [nombre, setNombre] = useState(modelo.nombre);
+  const {
+    abierto,
+    guardarAbierto,
+    modeloNombre,
+    mensaje,
+    cerrar,
+    abrirGuardar,
+    cerrarGuardar,
+    guardar,
+    insertar,
+    filtradas,
+  } = useDialogoPlantillasViewModel(queryFiltrada);
+  const [nombre, setNombre] = useState(modeloNombre);
   const [descripcion, setDescripcion] = useState("");
 
   useEffect(() => {
@@ -45,11 +45,10 @@ export function DialogoPlantillas() {
 
   useEffect(() => {
     if (!guardarAbierto) return;
-    setNombre(modelo.nombre);
+    setNombre(modeloNombre);
     setDescripcion("");
-  }, [guardarAbierto, modelo.nombre]);
+  }, [guardarAbierto, modeloNombre]);
 
-  const filtradas = useMemo(() => filtrarPlantillas(plantillas, queryFiltrada), [plantillas, queryFiltrada]);
   const confirmarGuardar = () => {
     if (!nombre.trim()) return;
     guardar({ nombre, descripcion, ambito: "privado" });
@@ -195,14 +194,6 @@ function FormularioGuardarPlantilla(props: {
       {props.mensaje ? <p style={style.error}>{props.mensaje}</p> : null}
     </div>
   );
-}
-
-function filtrarPlantillas(plantillas: PlantillaIndice[], query: string): PlantillaIndice[] {
-  if (!query) return plantillas;
-  return plantillas.filter((plantilla) => {
-    const texto = `${plantilla.nombre} ${plantilla.descripcion ?? ""}`.toLocaleLowerCase("es-CL");
-    return texto.includes(query);
-  });
 }
 
 function fechaCorta(value: string): string {
