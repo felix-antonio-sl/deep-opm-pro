@@ -17,7 +17,7 @@
  * se ve en cada momento.
  */
 
-import { useOpmStore } from "../store";
+import { useModoRevisionMobileViewModel } from "../app/viewmodels/modoRevisionMobileViewModel";
 import { tokens } from "./tokens";
 
 export type VistaMobile = "canvas" | "opds" | "opl" | "issues";
@@ -37,8 +37,7 @@ const TABS: ReadonlyArray<TabSpec> = [
 ];
 
 export function ModoRevisionMobile() {
-  const vistaActiva = useOpmStore((s) => s.vistaMobileActiva);
-  const cambiarVista = useOpmStore((s) => s.cambiarVistaMobile);
+  const { vistaActiva, cambiarVista } = useModoRevisionMobileViewModel();
 
   return (
     <nav
