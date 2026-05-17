@@ -1,4 +1,4 @@
-import { dia, shapes } from "jointjs";
+import type { dia } from "jointjs";
 import { useEffect, useRef, useState } from "preact/hooks";
 import { clearHoverTooltip, setHoverTooltip, sincronizarBadgesDesdeAvisos } from "../../app/ports/zustandFeedbackPort";
 import { idHoverTooltip } from "../../app/ports/feedbackPort";
@@ -9,9 +9,7 @@ import { MenuTipoEnlace } from "../../ui/MenuTipoEnlace";
 import { scrollBehaviorPreferido } from "../../ui/motion";
 import { RenombradoInline } from "../../ui/RenombradoInline";
 import { recalcularOverlaysAbanicoDesdeLinkViews } from "./abanicoDragSync";
-import { opmShapes } from "./customShapes";
 import { proyectarModeloAJointCells } from "./proyeccion";
-import { configurarGridPaper } from "./composers/grid";
 import { cablearDrag, embedirContorno } from "./handlers/drag";
 import {
   CANVAS_BASE,
@@ -19,7 +17,6 @@ import {
   dimensionesPaper,
   metadata,
   paperOff,
-  paperView,
   setPaperDimensions,
 } from "./handlers/helpers";
 import { aplicarHoverOpl, cablearHoverOpl } from "./handlers/hoverOpl";
@@ -40,6 +37,13 @@ import { construirAvisosFeedbackCanvas } from "./overlayCanvas/avisos";
 import { contenidoHoverTooltip } from "./overlayCanvas/hoverTooltipContent";
 import { OverlayLayer } from "./overlayCanvas/OverlayLayer";
 import { ordenarTodosLosEnlacesEstructurales } from "./sortStructuralLinks";
+import {
+  actualizarGridJointCanvasAdapter,
+  crearJointCanvasAdapter,
+  destruirJointCanvasAdapter,
+  exponerDebugJointCanvasAdapter,
+  type JointCanvasAdapter,
+} from "./jointCanvasAdapter";
 
 /**
  * Orquestador del canvas JointJS. Monta el paper con su configuración
@@ -50,16 +54,11 @@ import { ordenarTodosLosEnlacesEstructurales } from "./sortStructuralLinks";
  * sub-archivos por familia; este componente queda como orquestador delgado.
  */
 
-interface JointAdapter {
-  graph: dia.Graph;
-  paper: dia.Paper;
-}
-
 export function JointCanvas() {
   const paperHostRef = useRef<HTMLDivElement>(null);
   const viewportRef = useRef<HTMLDivElement>(null);
-  const adapterRef = useRef<JointAdapter | null>(null);
-  const [adapterState, setAdapterState] = useState<JointAdapter | null>(null);
+  const adapterRef = useRef<JointCanvasAdapter | null>(null);
+  const [adapterState, setAdapterState] = useState<JointCanvasAdapter | null>(null);
   const sincronizandoRef = useRef(false);
   const rubberBandRef = useRef(false);
   const suprimirBlankClickRef = useRef(false);
@@ -244,75 +243,14 @@ export function JointCanvas() {
   useEffect(() => {
     if (!paperHostRef.current) return;
 
-    const cellNamespace = { ...shapes, opm: opmShapes };
-    const graph = new dia.Graph({}, { cellNamespace });
-    const paper = new dia.Paper({
-      el: paperHostRef.current,
-      model: graph,
-      width: CANVAS_BASE.width,
-      height: CANVAS_BASE.height,
-      cellViewNamespace: cellNamespace,
-      async: false,
-      frozen: false,
-      gridSize: 10,
-      drawGrid: true,
-      background: { color: "#eef3f8" },
-      snapLabels: true,
-      linkPinning: false,
-      // Confina children embedded al bbox del padre durante el drag visual
-      // (HU-12.020). Sin esto, los subprocesos internos pueden salir del
-      // contorno y la kernel los snap-back al soltar, generando UX confuso.
-      restrictTranslate(elementView) {
-        const cell = cellViewModel(elementView as unknown as dia.CellView) as dia.Element;
-        const parentId = (cell as unknown as { get(prop: string): string | undefined }).get("parent");
-        if (!parentId) return false;
-        const parent = graph.getCell(parentId) as dia.Element | undefined;
-        if (!parent || parent.isLink()) return false;
-        const parentBBox = parent.getBBox();
-        // JointJS resta internamente el cellBBox al aplicar el rect
-        // (Element.mjs:130-131); aqui devolvemos el bbox interior del padre
-        // sin descontar cellBBox para evitar doble descuento que bloqueaba
-        // el drag horizontal/vertical de subprocesos embebidos.
-        const padX = 4;
-        const padTop = 28;
-        const padBottom = 8;
-        return {
-          x: parentBBox.x + padX,
-          y: parentBBox.y + padTop,
-          width: Math.max(0, parentBBox.width - 2 * padX),
-          height: Math.max(0, parentBBox.height - padTop - padBottom),
-        };
-      },
-      interactive(cellView) {
-        const model = cellViewModel(cellView);
-        if (model.isLink()) {
-          const meta = metadata(model);
-          const enlaceSeleccionado = enlaceSeleccionIdRef.current;
-          const seleccionado = meta?.kind === "enlace" && !!enlaceSeleccionado
-            ? meta.enlaceId === enlaceSeleccionado || meta.enlaceIds?.includes(enlaceSeleccionado) === true
-            : false;
-          const editable = meta?.kind === "enlace" ? seleccionado && meta.tipo !== "agregacion" : false;
-          return {
-            arrowheadMove: false,
-            labelMove: seleccionado,
-            linkMove: false,
-            useLinkTools: editable,
-            vertexAdd: editable,
-            vertexMove: editable,
-            vertexRemove: editable,
-          };
-        }
-        const meta = metadata(model);
-        const esSimboloEstructural = meta?.kind === "enlace" && meta.rolEstructural === "simbolo";
-        return {
-          addLinkFromMagnet: false,
-          elementMove: (meta?.kind === "entidad" || esSimboloEstructural) && !modoEnlaceRef.current && !modoCreacionRef.current,
-        };
-      },
+    const adapter = crearJointCanvasAdapter({
+      host: paperHostRef.current,
+      gridConfig,
+      enlaceSeleccionIdRef,
+      modoEnlaceRef,
+      modoCreacionRef,
     });
-
-    setPaperDimensions(paper, CANVAS_BASE);
-    configurarGridPaper(paper, gridConfig);
+    const { graph, paper } = adapter;
 
     const cleanups: Array<() => void> = [];
 
@@ -392,26 +330,25 @@ export function JointCanvas() {
     }));
     cleanups.push(cablearHoverTooltipCanvas(paper, modeloRef));
 
-    adapterRef.current = { graph, paper };
-    setAdapterState({ graph, paper });
+    adapterRef.current = adapter;
+    setAdapterState(adapter);
     // Hook de debug: permite que la sonda in-vivo (scripts/in-vivo-test.mjs)
     // mida posiciones reales del graph y endpoints reales del paper. Sin
     // efecto en runtime; solo es accesible desde DevTools/Playwright.
-    (globalThis as { __opmJointAdapter?: JointAdapter }).__opmJointAdapter = { graph, paper };
+    const limpiarDebugAdapter = exponerDebugJointCanvasAdapter(adapter);
     return () => {
       adapterRef.current = null;
       setAdapterState(null);
-      delete (globalThis as { __opmJointAdapter?: JointAdapter }).__opmJointAdapter;
+      limpiarDebugAdapter();
       cleanups.forEach((fn) => fn());
-      paperView(paper).remove();
-      graph.clear();
+      destruirJointCanvasAdapter(adapter);
     };
   }, []);
 
   useEffect(() => {
     const adapter = adapterRef.current;
     if (!adapter) return;
-    configurarGridPaper(adapter.paper, gridConfig);
+    actualizarGridJointCanvasAdapter(adapter, gridConfig);
   }, [gridConfig]);
 
   // Proyección modelo → cells.
