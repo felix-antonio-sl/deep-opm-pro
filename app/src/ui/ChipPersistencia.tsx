@@ -16,9 +16,8 @@
  *   - Click abre `Guardar como` (acción primaria del chip).
  *   - Tiempo relativo en es-CL: `hace X min`, `hace X s`, etc.
  */
+import { useZustandPersistencePort } from "../app/ports/zustandPersistencePort";
 import type { OrigenPestana } from "../modelo/tipos";
-import { useOpmStore } from "../store";
-import { listarFixtures } from "../store/runtime";
 import { tokens } from "./tokens";
 
 export type VarianteChipTipo =
@@ -193,22 +192,17 @@ function IconoVariante({ tipo }: IconoProps): preact.JSX.Element {
 }
 
 export function ChipPersistencia(): preact.JSX.Element {
-  const modeloPersistidoId = useOpmStore((s) => s.modeloPersistidoId);
-  const dirty = useOpmStore((s) => s.dirty);
-  const autosalvado = useOpmStore((s) => s.autosalvado);
-  const pestanasAbiertas = useOpmStore((s) => s.pestanasAbiertas);
-  const pestanaActivaId = useOpmStore((s) => s.pestanaActivaId);
-  const indice = useOpmStore((s) => s.indice);
-  const modeloNombre = useOpmStore((s) => s.modelo.nombre);
-  const abrirGuardarComo = useOpmStore((s) => s.abrirGuardarComo);
-
-  const pestanaActiva = pestanasAbiertas.find((p) => p.id === pestanaActivaId);
-  const cargadoDesde: OrigenPestana = pestanaActiva?.cargadoDesde ?? "nuevo";
-  const esFixture = !modeloPersistidoId && listarFixtures().some((fixture) => fixture.modelo.nombre === modeloNombre);
-  const versiones = modeloPersistidoId
-    ? indice.modelos.find((m) => m.id === modeloPersistidoId)?.versiones?.length ?? 0
-    : 0;
-  const tiempoRelativo = autosalvado.ultimo ? formatearTiempoRelativo(autosalvado.ultimo) : null;
+  const {
+    modeloPersistidoId,
+    dirty,
+    cargadoDesde,
+    esFixture,
+    versiones,
+    ultimoAutosalvado,
+    modeloNombre,
+    abrirGuardarComo,
+  } = useZustandPersistencePort();
+  const tiempoRelativo = ultimoAutosalvado ? formatearTiempoRelativo(ultimoAutosalvado) : null;
 
   const variante = clasificarVariante({
     modeloPersistidoId,
