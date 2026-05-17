@@ -1,12 +1,11 @@
 // [JOYAS §1-3] Chrome UI consume tokens centralizados; canvas semántico invariante.
-import { useEffect, useMemo, useState } from "preact/hooks";
+import { useMemo, useState } from "preact/hooks";
 import autosaveIcon from "../../../assets/svg/autosave.svg";
 import regFileIcon from "../../../assets/svg/regFile.svg";
 import verFileIcon from "../../../assets/svg/verFile.svg";
+import { fechaUsoPantallaInicio, usePantallaInicioViewModel } from "../app/viewmodels/pantallaInicioViewModel";
 import type { Id } from "../modelo/tipos";
 import type { ResumenModeloPersistido } from "../persistencia/local";
-import { listarFixtures } from "../store/runtime";
-import { useOpmStore } from "../store";
 import { modeloTieneContenidoVisible } from "./bienvenida";
 import { useConfirmarSiDirty } from "./ConfirmacionContext";
 import { tokens } from "./tokens";
@@ -20,36 +19,24 @@ export const GLOSA_BIENVENIDA_OPM = [
 export const DIMENSION_ACCION_BIENVENIDA_PX = 160;
 
 export function PantallaInicio() {
-  const modelo = useOpmStore((s) => s.modelo);
-  const modeloPersistidoId = useOpmStore((s) => s.modeloPersistidoId);
-  const pantallaInicioCerrada = useOpmStore((s) => s.pantallaInicioCerrada);
-  const modelos = useOpmStore((s) => s.modelosGuardados);
-  const listar = useOpmStore((s) => s.listarModelosGuardados);
-  const cargar = useOpmStore((s) => s.cargarLocal);
-  const nuevoModelo = useOpmStore((s) => s.nuevoModelo);
-  const cargarFixtureDemo = useOpmStore((s) => s.cargarFixtureDemo);
-  const cerrarPantallaInicio = useOpmStore((s) => s.cerrarPantallaInicio);
-  const iniciarAsistente = useOpmStore((s) => s.iniciarAsistente);
   const confirmarSiDirty = useConfirmarSiDirty();
   const [query, setQuery] = useState("");
   const [demoSeleccionado, setDemoSeleccionado] = useState("");
-
-  const demos = useMemo(() => listarFixtures(), []);
+  const {
+    modelo,
+    modeloPersistidoId,
+    pantallaInicioCerrada,
+    recientes,
+    demos,
+    cargar,
+    nuevoModelo,
+    cargarFixtureDemo,
+    cerrarPantallaInicio,
+    iniciarAsistente,
+  } = usePantallaInicioViewModel(query);
   const modeloTieneContenido = useMemo(() => modeloTieneContenidoVisible(modelo), [modelo]);
 
-  useEffect(() => {
-    listar();
-  }, [listar]);
-
   const visible = !modeloPersistidoId && !pantallaInicioCerrada && !modeloTieneContenido;
-  const recientes = useMemo(() => {
-    const q = query.trim().toLocaleLowerCase("es-CL");
-    return [...modelos]
-      .filter((modelo) => !modelo.archivado)
-      .filter((modelo) => !q || modelo.nombre.toLocaleLowerCase("es-CL").includes(q))
-      .sort((a, b) => fechaUso(b).localeCompare(fechaUso(a)))
-      .slice(0, 5);
-  }, [modelos, query]);
 
   if (!visible) return null;
 
@@ -156,7 +143,7 @@ function TileReciente(props: { modelo: ResumenModeloPersistido; onAbrir: (id: Id
       <img src={regFileIcon} alt="" style={style.tileIcon} />
       <strong style={style.tileName}>{props.modelo.nombre}</strong>
       <span style={style.tileDesc}>{props.modelo.descripcion || "Sin descripción"}</span>
-      <span style={style.tileDate}>{new Date(fechaUso(props.modelo)).toLocaleString("es-CL")}</span>
+      <span style={style.tileDate}>{new Date(fechaUsoPantallaInicio(props.modelo)).toLocaleString("es-CL")}</span>
       <span style={style.glyphs}>
         <span title="Editable" style={style.glyphText}>✎</span>
         {props.modelo.autosalvado ? <img src={autosaveIcon} alt="autosalvado" style={style.glyphIcon} title="Autosalvado" /> : null}
@@ -164,10 +151,6 @@ function TileReciente(props: { modelo: ResumenModeloPersistido; onAbrir: (id: Id
       </span>
     </button>
   );
-}
-
-function fechaUso(modelo: ResumenModeloPersistido): string {
-  return modelo.ultimaApertura ?? modelo.actualizadoEn ?? modelo.creadoEn;
 }
 
 const style = {
