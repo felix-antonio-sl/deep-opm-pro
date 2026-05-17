@@ -93,6 +93,7 @@ export function JointCanvas() {
     actualizarVerticesEnlace,
     actualizarPosicionLabelEnlace,
     crearEntidadEnCanvas,
+    crearAparienciaEntidadEnCanvas,
     crearEnlaceEntreEntidades,
     elegirTipoEnlace,
     iniciarConexionDesdeApariencia,
@@ -103,6 +104,7 @@ export function JointCanvas() {
     toggleSeleccion,
     vaciarSeleccion,
     redimensionarAparienciaEnCanvas,
+    reanclarExtremoAccion,
     renombrarEntidadDesdeOpl,
     gridConfig,
     solicitudFitToken,
@@ -130,6 +132,7 @@ export function JointCanvas() {
   const actualizarVerticesEnlaceRef = useRef(actualizarVerticesEnlace);
   const actualizarPosicionLabelEnlaceRef = useRef(actualizarPosicionLabelEnlace);
   const crearEntidadEnCanvasRef = useRef(crearEntidadEnCanvas);
+  const crearAparienciaEntidadEnCanvasRef = useRef(crearAparienciaEntidadEnCanvas);
   const crearEnlaceEntreEntidadesRef = useRef(crearEnlaceEntreEntidades);
   const elegirTipoEnlaceRef = useRef(elegirTipoEnlace);
   const iniciarConexionDesdeAparienciaRef = useRef(iniciarConexionDesdeApariencia);
@@ -140,6 +143,7 @@ export function JointCanvas() {
   const toggleSeleccionRef = useRef(toggleSeleccion);
   const vaciarSeleccionRef = useRef(vaciarSeleccion);
   const redimensionarAparienciaEnCanvasRef = useRef(redimensionarAparienciaEnCanvas);
+  const reanclarExtremoAccionRef = useRef(reanclarExtremoAccion);
   const renombrarEntidadDesdeOplRef = useRef(renombrarEntidadDesdeOpl);
   const [renombradoInline, setRenombradoInline] = useState<null | { aparienciaId: string; entidadId: string }>(null);
   const abrirRenombradoInlineRef = useRef((input: { aparienciaId: string; entidadId: string }) => setRenombradoInline(input));
@@ -191,6 +195,7 @@ export function JointCanvas() {
     actualizarVerticesEnlaceRef.current = actualizarVerticesEnlace;
     actualizarPosicionLabelEnlaceRef.current = actualizarPosicionLabelEnlace;
     crearEntidadEnCanvasRef.current = crearEntidadEnCanvas;
+    crearAparienciaEntidadEnCanvasRef.current = crearAparienciaEntidadEnCanvas;
     crearEnlaceEntreEntidadesRef.current = crearEnlaceEntreEntidades;
     elegirTipoEnlaceRef.current = elegirTipoEnlace;
     iniciarConexionDesdeAparienciaRef.current = iniciarConexionDesdeApariencia;
@@ -201,8 +206,9 @@ export function JointCanvas() {
     toggleSeleccionRef.current = toggleSeleccion;
     vaciarSeleccionRef.current = vaciarSeleccion;
     redimensionarAparienciaEnCanvasRef.current = redimensionarAparienciaEnCanvas;
+    reanclarExtremoAccionRef.current = reanclarExtremoAccion;
     renombrarEntidadDesdeOplRef.current = renombrarEntidadDesdeOpl;
-  }, [actualizarAnclajesSimboloEstructural, actualizarPosicionLabelEnlace, actualizarPosicionSimboloEstructural, actualizarVerticesEnlace, agregarASeleccion, alternarModoImagenEntidad, abrirModalImagen, cancelarEnlace, cambiarModoPlegadoApariencia, cambiarOpdActivo, crearEnlaceEntreEntidades, crearEntidadEnCanvas, elegirTipoEnlace, extraerParteDePlegado, fijarHoverOpl, iniciarConexionDesdeApariencia, moverAparienciaConPuertos, redimensionarAparienciaEnCanvas, renombrarEntidadDesdeOpl, seleccionarEnlace, seleccionarEntidad, seleccionarEstadoComoExtremo, seleccionarGrupoEstructural, seleccionarPartePlegada, setSeleccion, toggleSeleccion, vaciarSeleccion]);
+  }, [actualizarAnclajesSimboloEstructural, actualizarPosicionLabelEnlace, actualizarPosicionSimboloEstructural, actualizarVerticesEnlace, agregarASeleccion, alternarModoImagenEntidad, abrirModalImagen, cancelarEnlace, cambiarModoPlegadoApariencia, cambiarOpdActivo, crearAparienciaEntidadEnCanvas, crearEnlaceEntreEntidades, crearEntidadEnCanvas, elegirTipoEnlace, extraerParteDePlegado, fijarHoverOpl, iniciarConexionDesdeApariencia, moverAparienciaConPuertos, reanclarExtremoAccion, redimensionarAparienciaEnCanvas, renombrarEntidadDesdeOpl, seleccionarEnlace, seleccionarEntidad, seleccionarEstadoComoExtremo, seleccionarGrupoEstructural, seleccionarPartePlegada, setSeleccion, toggleSeleccion, vaciarSeleccion]);
 
   useEffect(() => {
     abrirMenuTipoEnlaceCanvasRef.current = (input: MenuTipoEnlaceCanvasInput) => {
@@ -329,6 +335,7 @@ export function JointCanvas() {
       toggleSeleccionRef,
       vaciarSeleccionRef,
       crearEntidadEnCanvasRef,
+      crearAparienciaEntidadEnCanvasRef,
       abrirRenombradoInlineRef,
     }));
 
@@ -356,6 +363,7 @@ export function JointCanvas() {
       actualizarPosicionSimboloEstructuralRef,
       actualizarPosicionLabelEnlaceRef,
       actualizarVerticesEnlaceRef,
+      reanclarExtremoAccionRef,
       extraerParteDePlegadoRef,
       abrirRenombradoInlineRef,
     }));

@@ -46,6 +46,7 @@ export interface CablearSeleccionArgs {
   toggleSeleccionRef: { current: (id: string) => void };
   vaciarSeleccionRef: { current: () => void };
   crearEntidadEnCanvasRef: { current: (tipo: TipoEntidad, posicion: { x: number; y: number }) => void };
+  crearAparienciaEntidadEnCanvasRef: { current: (entidadId: string, posicion: { x: number; y: number }) => void };
   abrirRenombradoInlineRef: { current: (input: { aparienciaId: string; entidadId: string }) => void };
 }
 
@@ -70,6 +71,7 @@ export function cablearSeleccion(args: CablearSeleccionArgs): () => void {
     toggleSeleccionRef,
     vaciarSeleccionRef,
     crearEntidadEnCanvasRef,
+    crearAparienciaEntidadEnCanvasRef,
     abrirRenombradoInlineRef,
   } = args;
 
@@ -230,9 +232,7 @@ export function cablearSeleccion(args: CablearSeleccionArgs): () => void {
       return;
     }
     if (entidadId) {
-      void import("../../../store").then(({ store }) => {
-        store.getState().crearAparienciaEntidadEnCanvas(entidadId, punto);
-      });
+      crearAparienciaEntidadEnCanvasRef.current(entidadId, punto);
     }
   };
 

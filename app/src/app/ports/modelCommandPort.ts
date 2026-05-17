@@ -10,10 +10,12 @@ export interface ModelCommandPort {
   actualizarVerticesEnlace: OpmStore["actualizarVerticesEnlace"];
   actualizarPosicionLabelEnlace: OpmStore["actualizarPosicionLabelEnlace"];
   crearEntidadEnCanvas: OpmStore["crearEntidadEnCanvas"];
+  crearAparienciaEntidadEnCanvas: OpmStore["crearAparienciaEntidadEnCanvas"];
   crearEnlaceEntreEntidades: OpmStore["crearEnlaceEntreEntidades"];
   elegirTipoEnlace: OpmStore["elegirTipoEnlace"];
   iniciarConexionDesdeApariencia: OpmStore["iniciarConexionDesdeApariencia"];
   cancelarEnlace: OpmStore["cancelarEnlace"];
   redimensionarAparienciaEnCanvas: OpmStore["redimensionarAparienciaEnCanvas"];
+  reanclarExtremoAccion: OpmStore["reanclarExtremoAccion"];
   renombrarEntidadDesdeOpl: OpmStore["renombrarEntidadDesdeOpl"];
 }

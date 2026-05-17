@@ -37,6 +37,7 @@ export interface CablearDragArgs {
   actualizarPosicionSimboloEstructuralRef: { current: (aparienciaEnlaceIds: string[], posicion: { x: number; y: number }) => void };
   actualizarPosicionLabelEnlaceRef: { current: (aparienciaEnlaceId: string, labelKey: string, posicion: { distance: number; offset?: number | { x: number; y: number }; angle?: number }) => void };
   actualizarVerticesEnlaceRef: { current: (aparienciaEnlaceId: string, vertices: { x: number; y: number }[]) => void };
+  reanclarExtremoAccionRef: { current: (enlaceId: string, lado: "origen" | "destino", nuevoExtremo: ReturnType<typeof extremoEntidad>) => void };
   extraerParteDePlegadoRef: { current: (aparienciaId: string, parteEntidadId: string) => void };
   abrirRenombradoInlineRef: { current: (input: { aparienciaId: string; entidadId: string }) => void };
 }
@@ -52,6 +53,7 @@ export function cablearDrag(args: CablearDragArgs): () => void {
     actualizarPosicionSimboloEstructuralRef,
     actualizarPosicionLabelEnlaceRef,
     actualizarVerticesEnlaceRef,
+    reanclarExtremoAccionRef,
     extraerParteDePlegadoRef,
     abrirRenombradoInlineRef,
   } = args;
@@ -144,11 +146,11 @@ export function cablearDrag(args: CablearDragArgs): () => void {
   });
 
   graphEvents(graph).on("change:source", (cell: dia.Cell) => {
-    persistirReanclajeArrowhead(cell, "origen", modeloRef.current, opdActivoIdRef.current);
+    persistirReanclajeArrowhead(cell, "origen", modeloRef.current, opdActivoIdRef.current, reanclarExtremoAccionRef.current);
   });
 
   graphEvents(graph).on("change:target", (cell: dia.Cell) => {
-    persistirReanclajeArrowhead(cell, "destino", modeloRef.current, opdActivoIdRef.current);
+    persistirReanclajeArrowhead(cell, "destino", modeloRef.current, opdActivoIdRef.current, reanclarExtremoAccionRef.current);
   });
 
   // Reposiciona los overlays de abanico EN VIVO mientras el usuario arrastra
@@ -193,6 +195,7 @@ function persistirReanclajeArrowhead(
   lado: "origen" | "destino",
   modelo: Modelo,
   opdId: string,
+  reanclarExtremoAccion: (enlaceId: string, lado: "origen" | "destino", nuevoExtremo: ReturnType<typeof extremoEntidad>) => void,
 ): void {
   if (!cell.isLink()) return;
   const meta = metadata(cell);
@@ -206,9 +209,7 @@ function persistirReanclajeArrowhead(
   const enlace = modelo.enlaces[meta.enlaceId];
   const actual = lado === "origen" ? enlace?.origenId : enlace?.destinoId;
   if (actual?.kind === "entidad" && actual.id === apariencia.entidadId) return;
-  void import("../../../store").then(({ store }) => {
-    store.getState().reanclarExtremoAccion(meta.enlaceId, lado, extremoEntidad(apariencia.entidadId));
-  });
+  reanclarExtremoAccion(meta.enlaceId, lado, extremoEntidad(apariencia.entidadId));
 }
 
 function esSubprocesoInternoTimeline(modelo: Modelo, meta: OpmJointMetadata): meta is Extract<OpmJointMetadata, { kind: "entidad" }> {

@@ -11,11 +11,13 @@ export function useZustandModelCommandPort(): ModelCommandPort {
   const actualizarVerticesEnlace = useOpmStore((s) => s.actualizarVerticesEnlace);
   const actualizarPosicionLabelEnlace = useOpmStore((s) => s.actualizarPosicionLabelEnlace);
   const crearEntidadEnCanvas = useOpmStore((s) => s.crearEntidadEnCanvas);
+  const crearAparienciaEntidadEnCanvas = useOpmStore((s) => s.crearAparienciaEntidadEnCanvas);
   const crearEnlaceEntreEntidades = useOpmStore((s) => s.crearEnlaceEntreEntidades);
   const elegirTipoEnlace = useOpmStore((s) => s.elegirTipoEnlace);
   const iniciarConexionDesdeApariencia = useOpmStore((s) => s.iniciarConexionDesdeApariencia);
   const cancelarEnlace = useOpmStore((s) => s.cancelarEnlace);
   const redimensionarAparienciaEnCanvas = useOpmStore((s) => s.redimensionarAparienciaEnCanvas);
+  const reanclarExtremoAccion = useOpmStore((s) => s.reanclarExtremoAccion);
   const renombrarEntidadDesdeOpl = useOpmStore((s) => s.renombrarEntidadDesdeOpl);
 
   return {
@@ -28,11 +30,13 @@ export function useZustandModelCommandPort(): ModelCommandPort {
     actualizarVerticesEnlace,
     actualizarPosicionLabelEnlace,
     crearEntidadEnCanvas,
+    crearAparienciaEntidadEnCanvas,
     crearEnlaceEntreEntidades,
     elegirTipoEnlace,
     iniciarConexionDesdeApariencia,
     cancelarEnlace,
     redimensionarAparienciaEnCanvas,
+    reanclarExtremoAccion,
     renombrarEntidadDesdeOpl,
   };
 }
