@@ -3,7 +3,7 @@
 **Fecha**: 2026-05-17
 **Repositorio**: `deep-opm-pro`
 **Rama**: `main`
-**Último corte funcional**: `9020873 refactor(app): introduce puerto de acciones enlace`
+**Último corte funcional**: `64b673b refactor(app): reutiliza puertos en toolbar creacion`
 **Corte**: Refactorizacion total, Corte 2 avanzado: UI depende de viewmodels y los viewmodels de mayor trafico se estan descomponiendo en puertos de aplicacion pequenos sobre Zustand.
 
 ## Política De Handoff Único
@@ -132,11 +132,34 @@ Avance posterior al cierre de Corte 1:
 - `9020873 refactor(app): introduce puerto de acciones enlace`
   - Nuevo `LinkContextActionsPort` compartido por toolbar base y barra contextual para copiar/pegar estilo, portapapeles de estilo y borrado contextual de enlaces.
   - Validado con typecheck, build, suite unitaria completa y 39 smokes de canvas/residual.
+- `ebad43c refactor(app): introduce puerto de autosalvado`
+  - Nuevo `AutosavePort` para estado y ciclo iniciar/detener autosalvado.
+  - `toolbarBaseViewModel` y `toolbarViewModel` dejan de leer autosalvado directo desde Zustand.
+  - Validado con typecheck, build, suite unitaria completa y 19 smokes de dirty/undo/toolbar.
+- `aff840c refactor(app): reutiliza puerto de navegacion opd en toolbar`
+  - `toolbarBaseViewModel` reutiliza `OpdNavigationPort` para `modelo` y `opdActivoId`.
+  - Validado con typecheck, build, unitarios focales y smoke `e2e/12-toolbar-overflow.spec.ts`.
+- `7774a55 refactor(app): introduce puerto de vista mapa`
+  - Nuevo `MapViewPort` para `vistaMapaActiva`, `abrirVistaMapa` y `cerrarVistaMapa`.
+  - `WorkbenchViewControlsPort` deja de mezclar responsabilidad de mapa.
+  - Validado con typecheck, build, suite unitaria completa y smokes de toolbar/arbol/mapa.
+- `4577949 refactor(app): reutiliza puertos en barra contextual`
+  - `barraHerramientasElementoViewModel` reutiliza `OpdNavigationPort` y `SelectionPort` para lectura de modelo/OPD/seleccion.
+  - Validado con typecheck, build, suite unitaria completa y 28 smokes de canvas/superficie contextual.
+- `fe3361f refactor(app): introduce puerto de acciones de elemento`
+  - Nuevo `SelectedElementActionsPort` para acciones de estado/refinamiento/imagen sobre el elemento seleccionado.
+  - `barraHerramientasElementoViewModel` queda sin dependencia directa a `useOpmStore`.
+  - Validado con typecheck, build, suite unitaria completa y 43 smokes de canvas/superficie/refinamiento.
+- `64b673b refactor(app): reutiliza puertos en toolbar creacion`
+  - `toolbarCreacionViewModel` reutiliza `ModelCreationPort` y `OpdNavigationPort` para modo de creacion y modelo.
+  - Validado con typecheck, build, suite unitaria completa y 20 smokes de conexion/canvas.
 
 Estado arquitectonico del ultimo corte:
 
-- `toolbarBaseViewModel` queda con 3 selectores directos a `useOpmStore` (`modelo`, `opdActivoId`, `iniciarAutosalvado`) y el resto se compone por puertos.
-- `barraHerramientasElementoViewModel` queda con 9 selectores directos ligados a lectura de modelo/seleccion y comandos de refinamiento/imagen; ya reutiliza puertos para acciones batch y acciones de enlace.
+- `toolbarBaseViewModel` queda sin dependencia directa a `useOpmStore`; se compone por puertos pequenos (`ToolbarChromePort`, `HistoryPort`, `ModelCreationPort`, `SelectionPort`, `WorkbenchViewControlsPort`, `LinkContextActionsPort`, `SelectionBatchActionsPort`, `AutosavePort`, `OpdNavigationPort`, `MapViewPort`).
+- `barraHerramientasElementoViewModel` queda sin dependencia directa a `useOpmStore`; se compone por `OpdNavigationPort`, `SelectionPort`, `SelectedElementActionsPort`, `SelectionBatchActionsPort` y `LinkContextActionsPort`.
+- `toolbarViewModel` queda sin dependencia directa a `useOpmStore`; consume `AutosavePort` y `MapViewPort`.
+- `toolbarCreacionViewModel` queda con 2 selectores directos (`modoEnlace`, `modoSeleccion`) pendientes de un puerto de modo de interaccion; el resto ya usa puertos existentes.
 - No se introdujo segundo store, estado duplicado ni DI global.
 
 Regla operativa nueva: antes de migrar otro viewmodel, preferir reutilizar un puerto existente. Crear un puerto nuevo solo si representa una capacidad nombrable y reusable, no una coleccion accidental de selectors.
