@@ -5,7 +5,7 @@ import { etiquetaEnlaceNormalizada, validarEtiquetaEnlace } from "../modelo/etiq
 import { entidadDeExtremo, entidadIdDeExtremo, nombreExtremo } from "../modelo/extremos";
 import { relacionesEstructuralesFaltantes, validarMultiplicidad } from "../modelo/operaciones";
 import { anclajeRefinableSimbolo, anclajeRefinadorSimbolo, limitarAnclajeSimbolo, normalizarAnclajeSimbolo } from "../modelo/simboloEstructural";
-import { useOpmStore, store } from "../store";
+import { useInspectorEnlaceViewModel } from "../app/viewmodels/inspectorEnlaceViewModel";
 import type { AnclajeSimboloEstructural, AnclajesSimboloEstructural, AparienciaEnlace, Enlace, Entidad, Id, Modelo, Modificador, TipoEnlace, UnidadTiempo } from "../modelo/tipos";
 import type { TabInspectorEnlace } from "../store/tipos";
 import { inspectorStyles as style } from "./inspectorStyles";
@@ -53,48 +53,51 @@ const TABS_ENLACE: ReadonlyArray<InspectorTabDef<TabInspectorEnlace>> = [
  * cada `Seccion*`; solo se reorganizan en su tab.
  */
 export function InspectorEnlace({ enlace }: Props) {
-  const modelo = useOpmStore((s) => s.modelo);
-  const opdActivoId = useOpmStore((s) => s.opdActivoId);
-  const tabActivo = useOpmStore((s) => s.tabInspectorEnlaceActivo);
-  const cambiarTab = useOpmStore((s) => s.cambiarTabInspectorEnlace);
-  const cambiarOpdActivo = useOpmStore((s) => s.cambiarOpdActivo);
-  const ajustarMultiplicidad = useOpmStore((s) => s.ajustarMultiplicidadSeleccionada);
-  const apuntarExtremo = useOpmStore((s) => s.apuntarExtremoEnlaceSeleccionado);
-  const reanclarEnlaceExternoDerivado = useOpmStore((s) => s.reanclarEnlaceExternoDerivado);
-  const volverEnlaceExternoDerivadoAAutomatico = useOpmStore((s) => s.volverEnlaceExternoDerivadoAAutomatico);
-  const splitEffect = useOpmStore((s) => s.splitEffectSeleccionado);
-  const alternarOperadorAbanico = useOpmStore((s) => s.alternarOperadorAbanicoSeleccionado);
-  const quitarRamaDeAbanico = useOpmStore((s) => s.quitarRamaDeAbanicoSeleccionado);
-  const disolverAbanico = useOpmStore((s) => s.disolverAbanicoSeleccionado);
-  const aplicarModificador = useOpmStore((s) => s.aplicarModificadorEnlaceSeleccionado);
-  const aplicarSubtipoModificador = useOpmStore((s) => s.aplicarSubtipoModificadorEnlaceSeleccionado);
-  const quitarModificador = useOpmStore((s) => s.quitarModificadorEnlaceSeleccionado);
-  const definirProbabilidadEvento = useOpmStore((s) => s.definirProbabilidadEventoSeleccionada);
-  const definirDemoraInvocacion = useOpmStore((s) => s.definirDemoraInvocacionSeleccionada);
-  const definirBackwardTag = useOpmStore((s) => s.definirBackwardTagSeleccionado);
-  const definirRequisitosEnlace = useOpmStore((s) => s.definirRequisitosEnlaceSeleccionado);
-  const definirTasaEnlace = useOpmStore((s) => s.definirTasaEnlaceSeleccionada);
-  const definirTiempoExcepcionEnlace = useOpmStore((s) => s.definirTiempoExcepcionEnlaceSeleccionado);
-  const moverPuerto = useOpmStore((s) => s.moverPuertoEnlaceSeleccionado);
-  const renombrarEtiquetaEnlace = useOpmStore((s) => s.renombrarEtiquetaEnlaceSeleccionado);
-  const definirRutaEtiqueta = useOpmStore((s) => s.definirRutaEtiquetaSeleccionada);
-  const cambiarTipoGrupoEstructural = useOpmStore((s) => s.cambiarTipoGrupoEstructuralSeleccionado);
-  const fijarOrdenGrupoEstructural = useOpmStore((s) => s.fijarOrdenGrupoEstructuralSeleccionado);
-  const actualizarAnclajesSimboloEstructural = useOpmStore((s) => s.actualizarAnclajesSimboloEstructural);
-  const resetearAnclajesSimboloEstructural = useOpmStore((s) => s.resetearAnclajesSimboloEstructural);
-  const separarGrupoEstructural = useOpmStore((s) => s.separarGrupoEstructuralSeleccionado);
-  const volverGrupoEstructuralAutomatico = useOpmStore((s) => s.volverGrupoEstructuralAutomaticoSeleccionado);
-  const traerRelacionesEstructuralesFaltantes = useOpmStore((s) => s.traerRelacionesEstructuralesFaltantesSeleccionadas);
-  const plegarGrupoEstructural = useOpmStore((s) => s.plegarGrupoEstructuralSeleccionado);
-  const plegarCompletoGrupoEstructural = useOpmStore((s) => s.plegarCompletoGrupoEstructuralSeleccionado);
-  const eliminar = useOpmStore((s) => s.eliminarSeleccion);
-  const aplicarEstiloEnlaceAccion = useOpmStore((s) => s.aplicarEstiloEnlaceAccion);
-  const resetEstiloEnlaceAccion = useOpmStore((s) => s.resetEstiloEnlaceAccion);
-  const copiarEstiloAlPortapapeles = useOpmStore((s) => s.copiarEstiloEnlaceAlPortapapeles);
-  const pegarEstiloDesdePortapapeles = useOpmStore((s) => s.pegarEstiloEnlaceDesdePortapapeles);
-  const enlaceEstiloPortapapeles = useOpmStore((s) => s.enlaceEstiloPortapapeles);
-  const seleccionados = useOpmStore((s) => s.seleccionados);
-  const aplicarEstiloASeleccion = useOpmStore((s) => s.aplicarEstiloASeleccion);
+  const {
+    modelo,
+    opdActivoId,
+    tabActivo,
+    cambiarTab,
+    cambiarOpdActivo,
+    ajustarMultiplicidad,
+    apuntarExtremo,
+    reanclarEnlaceExternoDerivado,
+    volverEnlaceExternoDerivadoAAutomatico,
+    splitEffect,
+    alternarOperadorAbanico,
+    quitarRamaDeAbanico,
+    disolverAbanico,
+    aplicarModificador,
+    aplicarSubtipoModificador,
+    quitarModificador,
+    definirProbabilidadEvento,
+    definirDemoraInvocacion,
+    definirBackwardTag,
+    definirRequisitosEnlace,
+    definirTasaEnlace,
+    definirTiempoExcepcionEnlace,
+    moverPuerto,
+    renombrarEtiquetaEnlace,
+    definirRutaEtiqueta,
+    cambiarTipoGrupoEstructural,
+    fijarOrdenGrupoEstructural,
+    actualizarAnclajesSimboloEstructural,
+    resetearAnclajesSimboloEstructural,
+    separarGrupoEstructural,
+    volverGrupoEstructuralAutomatico,
+    traerRelacionesEstructuralesFaltantes,
+    plegarGrupoEstructural,
+    plegarCompletoGrupoEstructural,
+    eliminar,
+    aplicarEstiloEnlaceAccion,
+    resetEstiloEnlaceAccion,
+    copiarEstiloAlPortapapeles,
+    pegarEstiloDesdePortapapeles,
+    enlaceEstiloPortapapeles,
+    seleccionados,
+    aplicarEstiloASeleccion,
+    abrirInspectorEnlaceDesdeOpl,
+  } = useInspectorEnlaceViewModel();
   const abanico = abanicoDeEnlace(modelo, enlace.id);
   const origen = entidadDeExtremo(modelo, enlace.origenId);
   const destino = entidadDeExtremo(modelo, enlace.destinoId);
@@ -362,7 +365,7 @@ export function InspectorEnlace({ enlace }: Props) {
         }}
       />
       <button type="button" style={style.dangerButton} onClick={eliminar}>Eliminar enlace</button>
-      <button type="button" style={style.oplEditButton} onClick={() => store.getState().abrirInspectorEnlaceDesdeOpl(enlace.id)} title="Editar este enlace desde el panel OPL-ES">
+      <button type="button" style={style.oplEditButton} onClick={() => abrirInspectorEnlaceDesdeOpl(enlace.id)} title="Editar este enlace desde el panel OPL-ES">
         Editar OPL
       </button>
     </>
