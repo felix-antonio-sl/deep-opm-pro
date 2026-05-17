@@ -3,7 +3,7 @@
 **Fecha**: 2026-05-17
 **Repositorio**: `deep-opm-pro`
 **Rama**: `main`
-**Último corte funcional**: `64b673b refactor(app): reutiliza puertos en toolbar creacion`
+**Último corte funcional**: `224c7c5 refactor(app): reutiliza puertos en mapa sistema`
 **Corte**: Refactorizacion total, Corte 2 avanzado: UI depende de viewmodels y los viewmodels de mayor trafico se estan descomponiendo en puertos de aplicacion pequenos sobre Zustand.
 
 ## Política De Handoff Único
@@ -153,13 +153,26 @@ Avance posterior al cierre de Corte 1:
 - `64b673b refactor(app): reutiliza puertos en toolbar creacion`
   - `toolbarCreacionViewModel` reutiliza `ModelCreationPort` y `OpdNavigationPort` para modo de creacion y modelo.
   - Validado con typecheck, build, suite unitaria completa y 20 smokes de conexion/canvas.
+- `7283f91 refactor(app): introduce puerto de modo interaccion`
+  - Nuevo `InteractionModePort` para `modoEnlace` y `modoSeleccion`.
+  - `toolbarCreacionViewModel` queda sin dependencia directa a `useOpmStore`.
+  - Validado con typecheck, build, suite unitaria completa y 20 smokes de conexion/canvas.
+- `fa9d140 refactor(app): introduce puerto de controles mapa`
+  - Nuevo `SystemMapControlsPort` para refresco de mapa, auto-refresh y panel de estadisticas.
+  - `toolbarMapaSistemaViewModel` queda sin dependencia directa a `useOpmStore`; `mapaSistemaViewModel` reutiliza el puerto para controles compartidos.
+  - Validado con typecheck, build, suite unitaria completa y smokes de arbol/mapa/toolbar.
+- `224c7c5 refactor(app): reutiliza puertos en mapa sistema`
+  - `mapaSistemaViewModel` reutiliza `OpdNavigationPort` para `modelo` y `MapViewPort` para cierre de mapa.
+  - Validado con typecheck, build, suite unitaria completa y smoke `e2e/04-arbol-y-pestanas.spec.ts`.
 
 Estado arquitectonico del ultimo corte:
 
 - `toolbarBaseViewModel` queda sin dependencia directa a `useOpmStore`; se compone por puertos pequenos (`ToolbarChromePort`, `HistoryPort`, `ModelCreationPort`, `SelectionPort`, `WorkbenchViewControlsPort`, `LinkContextActionsPort`, `SelectionBatchActionsPort`, `AutosavePort`, `OpdNavigationPort`, `MapViewPort`).
 - `barraHerramientasElementoViewModel` queda sin dependencia directa a `useOpmStore`; se compone por `OpdNavigationPort`, `SelectionPort`, `SelectedElementActionsPort`, `SelectionBatchActionsPort` y `LinkContextActionsPort`.
 - `toolbarViewModel` queda sin dependencia directa a `useOpmStore`; consume `AutosavePort` y `MapViewPort`.
-- `toolbarCreacionViewModel` queda con 2 selectores directos (`modoEnlace`, `modoSeleccion`) pendientes de un puerto de modo de interaccion; el resto ya usa puertos existentes.
+- `toolbarCreacionViewModel` queda sin dependencia directa a `useOpmStore`; se compone por `ModelCommandPort`, `ModelCreationPort`, `OpdNavigationPort`, `SelectionPort` e `InteractionModePort`.
+- `toolbarMapaSistemaViewModel` queda sin dependencia directa a `useOpmStore`; consume `SystemMapControlsPort`.
+- `mapaSistemaViewModel` sigue con selectors directos para estado especifico de mapa (descriptor, zoom/pan, filtros y salto OPD), pero reutiliza `SystemMapControlsPort`, `OpdNavigationPort` y `MapViewPort` donde ya existen fronteras nombrables.
 - No se introdujo segundo store, estado duplicado ni DI global.
 
 Regla operativa nueva: antes de migrar otro viewmodel, preferir reutilizar un puerto existente. Crear un puerto nuevo solo si representa una capacidad nombrable y reusable, no una coleccion accidental de selectors.
