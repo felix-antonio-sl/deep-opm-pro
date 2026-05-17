@@ -1,4 +1,5 @@
 import { useOpmStore } from "../../store";
+import { useZustandAutosavePort } from "../ports/zustandAutosavePort";
 import { useZustandHistoryPort } from "../ports/zustandHistoryPort";
 import { useZustandLinkContextActionsPort } from "../ports/zustandLinkContextActionsPort";
 import { useZustandModelCreationPort } from "../ports/zustandModelCreationPort";
@@ -60,9 +61,9 @@ export function useToolbarBaseViewModel() {
     enlaceEstiloPortapapeles,
     borrarEnlacesEnLote,
   } = useZustandLinkContextActionsPort();
+  const { iniciarAutosalvado } = useZustandAutosavePort();
   const modelo = useOpmStore((s) => s.modelo);
   const opdActivoId = useOpmStore((s) => s.opdActivoId);
-  const iniciarAutosalvado = useOpmStore((s) => s.iniciarAutosalvado);
 
   const toggleVistaMapa = () => {
     if (vistaMapaActiva) cerrarVistaMapa();

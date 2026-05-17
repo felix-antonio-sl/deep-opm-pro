@@ -1,8 +1,9 @@
 import { useOpmStore } from "../../store";
+import { useZustandAutosavePort } from "../ports/zustandAutosavePort";
 
 export function useToolbarViewModel() {
   const vistaMapaActiva = useOpmStore((s) => s.vistaMapaActiva);
-  const autosalvado = useOpmStore((s) => s.autosalvado);
+  const { autosalvado } = useZustandAutosavePort();
 
   return {
     vistaMapaActiva,
