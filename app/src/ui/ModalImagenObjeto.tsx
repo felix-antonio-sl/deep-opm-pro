@@ -1,8 +1,8 @@
 // [JOYAS §1-3] Chrome UI consume tokens centralizados; canvas semántico invariante.
 import { useEffect, useState } from "preact/hooks";
+import { useModalImagenObjetoViewModel } from "../app/viewmodels/modalImagenObjetoViewModel";
 import { precargarBitmap, registrarCacheImagen, validarUrlImagen } from "../modelo/imagenObjeto";
 import type { ImagenEntidad, ModoImagenEntidad } from "../modelo/tipos";
-import { useOpmStore } from "../store";
 import { Dialogo } from "./Dialogo";
 import { tokens } from "./tokens";
 
@@ -13,12 +13,7 @@ const MODOS: Array<{ value: ModoImagenEntidad; label: string }> = [
 ];
 
 export function ModalImagenObjeto() {
-  const abierto = useOpmStore((s) => s.modalImagenAbierto);
-  const modelo = useOpmStore((s) => s.modelo);
-  const cerrar = useOpmStore((s) => s.cerrarModalImagen);
-  const editar = useOpmStore((s) => s.editarImagenEntidad);
-  const quitar = useOpmStore((s) => s.quitarImagenEntidad);
-  const entidad = abierto ? modelo.entidades[abierto] : undefined;
+  const { abierto, entidad, cerrar, editar, quitar } = useModalImagenObjetoViewModel();
   const imagenActual = entidad?.imagen;
   const [url, setUrl] = useState("");
   const [modo, setModo] = useState<ModoImagenEntidad>("imagen-texto");
