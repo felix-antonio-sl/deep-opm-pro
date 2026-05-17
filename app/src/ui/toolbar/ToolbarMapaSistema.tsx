@@ -1,14 +1,11 @@
 /**
  * ViewContainer ToolbarMapaSistema: acciones de la vista de mapa. [JOYAS §1-3], [V-0c], T2.6.
  */
-import { useOpmStore } from "../../store";
+import { useToolbarMapaSistemaViewModel } from "../../app/viewmodels/toolbarMapaSistemaViewModel";
 import { toolbarStyle as style } from "./toolbarStyles";
 
 export function ToolbarMapaSistema() {
-  const refrescarVistaMapa = useOpmStore((s) => s.refrescarVistaMapa);
-  const mapaAutoRefresh = useOpmStore((s) => s.mapaAutoRefresh);
-  const toggleMapaAutoRefresh = useOpmStore((s) => s.toggleMapaAutoRefresh);
-  const toggleMapaPanelEstadisticas = useOpmStore((s) => s.toggleMapaPanelEstadisticas);
+  const { refrescarVistaMapa, mapaAutoRefresh, toggleMapaAutoRefresh, toggleMapaPanelEstadisticas } = useToolbarMapaSistemaViewModel();
 
   return (
     <>
