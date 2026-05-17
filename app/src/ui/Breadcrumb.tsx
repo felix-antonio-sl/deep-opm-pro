@@ -1,4 +1,4 @@
-import { useOpmStore } from "../store";
+import { useBreadcrumbViewModel } from "../app/viewmodels/breadcrumbViewModel";
 import type { Id, Modelo, Opd } from "../modelo/tipos";
 import { tokens } from "./tokens";
 
@@ -8,9 +8,7 @@ export interface SegmentoBreadcrumbOpd {
 }
 
 export function Breadcrumb() {
-  const modelo = useOpmStore((s) => s.modelo);
-  const opdActivoId = useOpmStore((s) => s.opdActivoId);
-  const cambiarOpdActivo = useOpmStore((s) => s.cambiarOpdActivo);
+  const { modelo, opdActivoId, cambiarOpdActivo } = useBreadcrumbViewModel();
   const segmentos = rutaBreadcrumbOpd(modelo, opdActivoId);
   const activo = segmentos[segmentos.length - 1]?.id ?? opdActivoId;
 
