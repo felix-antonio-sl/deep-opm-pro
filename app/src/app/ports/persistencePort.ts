@@ -13,6 +13,7 @@ export interface PersistencePort {
   ultimoAutosalvado: number | null;
   modeloNombre: OpmStore["modelo"]["nombre"];
   abrirGuardarComo: OpmStore["abrirGuardarComo"];
+  abrirCargarModelo: OpmStore["abrirCargarModelo"];
   cerrarGuardarComo: OpmStore["cerrarGuardarComo"];
   cerrarCargarModelo: OpmStore["cerrarCargarModelo"];
   guardarLocal: OpmStore["guardarLocal"];

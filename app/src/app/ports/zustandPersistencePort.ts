@@ -14,6 +14,7 @@ export function useZustandPersistencePort(): PersistencePort {
   const indice = useOpmStore((s) => s.indice);
   const modeloNombre = useOpmStore((s) => s.modelo.nombre);
   const abrirGuardarComo = useOpmStore((s) => s.abrirGuardarComo);
+  const abrirCargarModelo = useOpmStore((s) => s.abrirCargarModelo);
   const cerrarGuardarComo = useOpmStore((s) => s.cerrarGuardarComo);
   const cerrarCargarModelo = useOpmStore((s) => s.cerrarCargarModelo);
   const guardarLocal = useOpmStore((s) => s.guardarLocal);
@@ -43,6 +44,7 @@ export function useZustandPersistencePort(): PersistencePort {
     ultimoAutosalvado,
     modeloNombre,
     abrirGuardarComo,
+    abrirCargarModelo,
     cerrarGuardarComo,
     cerrarCargarModelo,
     guardarLocal,
