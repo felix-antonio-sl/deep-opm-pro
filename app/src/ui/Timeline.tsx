@@ -1,23 +1,10 @@
 // [JOYAS §1-3] Chrome UI consume tokens centralizados; canvas semántico invariante.
 import { useState } from "preact/hooks";
-import { obtenerRefinamiento } from "../modelo/refinamientos";
-import type { Apariencia, Entidad, Id, Modelo, Opd } from "../modelo/tipos";
-import { useOpmStore } from "../store";
+import { useTimelineViewModel, type TimelineRow } from "../app/viewmodels/timelineViewModel";
+import type { Apariencia, Id } from "../modelo/tipos";
 import { tokens } from "./tokens";
 
 type DropMode = "before" | "parallel" | "after";
-
-interface TimelineContext {
-  opd: Opd;
-  contorno: Apariencia;
-  rows: TimelineRow[];
-}
-
-interface TimelineRow {
-  apariencia: Apariencia;
-  entidad: Entidad;
-  parallelSize: number;
-}
 
 interface GrupoY {
   y: number;
@@ -28,12 +15,7 @@ const ROW_Y_STEP = 90;
 const NUDGE_Y = 10;
 
 export function Timeline() {
-  const modelo = useOpmStore((s) => s.modelo);
-  const opdActivoId = useOpmStore((s) => s.opdActivoId);
-  const seleccionId = useOpmStore((s) => s.seleccionId);
-  const seleccionarEntidad = useOpmStore((s) => s.seleccionarEntidad);
-  const reordenarSubprocesoEnTimeline = useOpmStore((s) => s.reordenarSubprocesoEnTimeline);
-  const contexto = contextoTimeline(modelo, opdActivoId);
+  const { contexto, seleccionId, seleccionarEntidad, reordenarSubprocesoEnTimeline } = useTimelineViewModel();
   const [draggedId, setDraggedId] = useState<Id | null>(null);
   const [dropHint, setDropHint] = useState<{ targetId: Id; mode: DropMode } | null>(null);
 
@@ -132,40 +114,6 @@ export function Timeline() {
   );
 }
 
-function contextoTimeline(modelo: Modelo, opdId: Id): TimelineContext | null {
-  const opd = modelo.opds[opdId];
-  if (!opd?.padreId) return null;
-  const padre = modelo.opds[opd.padreId];
-  if (!padre) return null;
-  const refinador = Object.values(modelo.entidades).find(
-    (entidad) => entidad.tipo === "proceso" && obtenerRefinamiento(entidad, "descomposicion")?.opdId === opd.id,
-  );
-  if (!refinador) return null;
-  if (!Object.values(padre.apariencias).some((apariencia) => apariencia.entidadId === refinador.id)) return null;
-  const contorno = Object.values(opd.apariencias).find((apariencia) => apariencia.entidadId === refinador.id);
-  if (!contorno) return null;
-
-  const baseRows = Object.values(opd.apariencias)
-    .flatMap((apariencia) => {
-      if (apariencia.entidadId === refinador.id || !dentroDe(apariencia, contorno)) return [];
-      const entidad = modelo.entidades[apariencia.entidadId];
-      return entidad?.tipo === "proceso" ? [{ apariencia, entidad }] : [];
-    })
-    .sort((a, b) => a.apariencia.y - b.apariencia.y || a.apariencia.x - b.apariencia.x || a.apariencia.id.localeCompare(b.apariencia.id));
-
-  const counts = new Map<number, number>();
-  for (const row of baseRows) counts.set(row.apariencia.y, (counts.get(row.apariencia.y) ?? 0) + 1);
-
-  return {
-    opd,
-    contorno,
-    rows: baseRows.map((row) => ({
-      ...row,
-      parallelSize: counts.get(row.apariencia.y) ?? 1,
-    })),
-  };
-}
-
 function calcularNuevaY(rows: TimelineRow[], draggedId: Id, targetId: Id, mode: DropMode): number | null {
   const target = rows.find((row) => row.apariencia.id === targetId);
   if (!target) return null;
@@ -224,15 +172,6 @@ function modoDrop(clientY: number, rect: DOMRect): DropMode {
   if (ratio < 0.34) return "before";
   if (ratio > 0.66) return "after";
   return "parallel";
-}
-
-function dentroDe(apariencia: Apariencia, contorno: Apariencia): boolean {
-  return (
-    apariencia.x >= contorno.x &&
-    apariencia.y >= contorno.y &&
-    apariencia.x + apariencia.width <= contorno.x + contorno.width &&
-    apariencia.y + apariencia.height <= contorno.y + contorno.height
-  );
 }
 
 function limitar(valor: number, min: number, max: number): number {
