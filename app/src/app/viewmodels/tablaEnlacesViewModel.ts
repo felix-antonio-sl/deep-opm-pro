@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "preact/hooks";
-import { store, useOpmStore } from "../../store";
 import { naturalezaDeEnlace } from "../../modelo/constantes";
 import type { Enlace, ExtremoEnlace, Id, Modelo, TipoEnlace } from "../../modelo/tipos";
+import { useZustandLinksTableEditPort, useZustandLinksTablePort } from "../ports/zustandLinksTablePort";
 
 export interface FilaEnlace {
   enlaceId: Id;
@@ -60,21 +60,23 @@ export interface TablaEnlacesViewModel {
 }
 
 export function useTablaEnlacesViewModel(): TablaEnlacesViewModel | null {
-  const abierta = useOpmStore((s) => s.tablaEnlacesAbierta);
-  const cerrar = useOpmStore((s) => s.cerrarTablaEnlaces);
-  const modelo = useOpmStore((s) => s.modelo);
-  const opdActivoId = useOpmStore((s) => s.opdActivoId);
-  const filtroTipo = useOpmStore((s) => s.tablaEnlacesFiltroTipo);
-  const fijarFiltroTipo = useOpmStore((s) => s.fijarFiltroTablaEnlaces);
-  const ordenColumna = useOpmStore((s) => s.tablaEnlacesOrdenColumna);
-  const ordenDireccion = useOpmStore((s) => s.tablaEnlacesOrdenDireccion);
-  const fijarOrden = useOpmStore((s) => s.fijarOrdenTablaEnlaces);
-  const navegar = useOpmStore((s) => s.navegarAEnlaceDesdeTabla);
-  const irAExtremo = useOpmStore((s) => s.irAExtremoEnlaceTabla);
-  const eliminarEnlace = useOpmStore((s) => s.eliminarEnlaceDesdeTabla);
-  const cambiarOpdActivo = useOpmStore((s) => s.cambiarOpdActivo);
-  const resaltarTemporalmente = useOpmStore((s) => s.resaltarTemporalmente);
-  const enlaceSeleccionId = useOpmStore((s) => s.enlaceSeleccionId);
+  const {
+    abierta,
+    cerrar,
+    modelo,
+    opdActivoId,
+    filtroTipo,
+    fijarFiltroTipo,
+    ordenColumna,
+    ordenDireccion,
+    fijarOrden,
+    navegar,
+    irAExtremo,
+    eliminarEnlace,
+    cambiarOpdActivo,
+    resaltarTemporalmente,
+    enlaceSeleccionId,
+  } = useZustandLinksTablePort();
 
   const [query, setQuery] = useState("");
   const [filtroFamilia, setFiltroFamilia] = useState<FiltroFamiliaEnlace>("todos");
@@ -174,18 +176,12 @@ export function useTablaEnlacesViewModel(): TablaEnlacesViewModel | null {
 }
 
 export function useRenombrarEtiquetaEnlaceTabla(): (enlace: Enlace, etiqueta: string) => void {
-  const renombrarEtiquetaEnlace = useOpmStore((s) => s.renombrarEtiquetaEnlaceSeleccionado);
-  return (enlace, etiqueta) => {
-    const st = store.getState();
-    if (st.enlaceSeleccionId !== enlace.id) {
-      st.seleccionarEnlace(enlace.id);
-    }
-    renombrarEtiquetaEnlace(etiqueta);
-  };
+  const { renombrarEtiqueta } = useZustandLinksTableEditPort();
+  return (enlace, etiqueta) => renombrarEtiqueta(enlace.id, etiqueta);
 }
 
 export function useFijarMultiplicidadEnlaceTabla(): (enlaceId: Id, lado: "origen" | "destino", valor: string) => void {
-  return useOpmStore((s) => s.fijarMultiplicidadEnlace);
+  return useZustandLinksTableEditPort().fijarMultiplicidad;
 }
 
 function construirFila(modelo: Modelo, enlace: Enlace): FilaEnlace {
