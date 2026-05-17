@@ -1,19 +1,23 @@
 import { useEffect, useMemo } from "preact/hooks";
 import type { ResumenModeloPersistido } from "../../persistencia/local";
-import { useOpmStore } from "../../store";
 import { listarFixtures } from "../../store/runtime";
+import { useZustandModelBootstrapPort } from "../ports/zustandModelBootstrapPort";
+import { useZustandOpdNavigationPort } from "../ports/zustandOpdNavigationPort";
+import { useZustandPersistencePort } from "../ports/zustandPersistencePort";
+import { useZustandWelcomeScreenPort } from "../ports/zustandWelcomeScreenPort";
+import { useZustandWorkspacePort } from "../ports/zustandWorkspacePort";
 
 export function usePantallaInicioViewModel(query: string) {
-  const modelo = useOpmStore((s) => s.modelo);
-  const modeloPersistidoId = useOpmStore((s) => s.modeloPersistidoId);
-  const pantallaInicioCerrada = useOpmStore((s) => s.pantallaInicioCerrada);
-  const modelos = useOpmStore((s) => s.modelosGuardados);
-  const listar = useOpmStore((s) => s.listarModelosGuardados);
-  const cargar = useOpmStore((s) => s.cargarLocal);
-  const nuevoModelo = useOpmStore((s) => s.nuevoModelo);
-  const cargarFixtureDemo = useOpmStore((s) => s.cargarFixtureDemo);
-  const cerrarPantallaInicio = useOpmStore((s) => s.cerrarPantallaInicio);
-  const iniciarAsistente = useOpmStore((s) => s.iniciarAsistente);
+  const { modelo } = useZustandOpdNavigationPort();
+  const {
+    modeloPersistidoId,
+    listarModelosGuardados: listar,
+    cargarLocal: cargar,
+    cargarFixtureDemo,
+  } = useZustandPersistencePort();
+  const { modelosGuardados: modelos } = useZustandWorkspacePort();
+  const { nuevoModelo, iniciarAsistente } = useZustandModelBootstrapPort();
+  const { pantallaInicioCerrada, cerrarPantallaInicio } = useZustandWelcomeScreenPort();
 
   const demos = useMemo(() => listarFixtures(), []);
   const recientes = useMemo(() => filtrarRecientesPantallaInicio(modelos, query), [modelos, query]);
