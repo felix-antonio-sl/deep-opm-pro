@@ -1,6 +1,6 @@
 // [JOYAS §1-3] Chrome UI consume tokens centralizados; canvas semántico invariante.
 import { useState } from "preact/hooks";
-import { useOpmStore } from "../store";
+import { useBarraPestanasViewModel } from "../app/viewmodels/barraPestanasViewModel";
 import type { Pestana } from "../modelo/tipos";
 import { Breadcrumb } from "./Breadcrumb";
 import { useConfirmarCierreDirty } from "./ConfirmacionContext";
@@ -9,13 +9,15 @@ import { tokens } from "./tokens";
 const MIME_PESTANA = "text/pestana-id";
 
 export function BarraPestanas() {
-  const pestanas = useOpmStore((s) => s.pestanasAbiertas);
-  const activa = useOpmStore((s) => s.pestanaActivaId);
-  const abrirPestanaNueva = useOpmStore((s) => s.abrirPestanaNueva);
-  const cambiarPestanaActiva = useOpmStore((s) => s.cambiarPestanaActiva);
-  const cerrarPestana = useOpmStore((s) => s.cerrarPestana);
-  const reordenarPestanas = useOpmStore((s) => s.reordenarPestanas);
-  const guardarLocal = useOpmStore((s) => s.guardarLocal);
+  const {
+    pestanas,
+    activa,
+    abrirPestanaNueva,
+    cambiarPestanaActiva,
+    cerrarPestana,
+    reordenarPestanas,
+    guardarLocal,
+  } = useBarraPestanasViewModel();
   const confirmarCierreDirty = useConfirmarCierreDirty();
   const [arrastrandoId, setArrastrandoId] = useState<string | null>(null);
 
