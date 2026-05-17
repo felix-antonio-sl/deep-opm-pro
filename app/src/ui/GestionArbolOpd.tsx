@@ -1,45 +1,14 @@
 // [JOYAS §1-3] Chrome UI consume tokens centralizados; canvas semántico invariante.
-import { useState, useMemo } from "preact/hooks";
-import { useOpmStore } from "../store";
-import type { Id, Modelo, Opd } from "../modelo/tipos";
+import { useState } from "preact/hooks";
+import { useGestionArbolOpdViewModel, type NodoGestionOpd } from "../app/viewmodels/gestionArbolOpdViewModel";
+import type { Id, Modelo } from "../modelo/tipos";
 import { tokens } from "./tokens";
 
-interface NodoGestion {
-  opd: Opd;
-  nivel: number;
-  hijos: NodoGestion[];
-}
-
 export function GestionArbolOpd() {
-  const abierta = useOpmStore((s) => s.gestionArbolAbierta);
-  const cerrar = useOpmStore((s) => s.cerrarGestionArbol);
-  const modelo = useOpmStore((s) => s.modelo);
-  const busqueda = useOpmStore((s) => s.busquedaOpdGestion);
-  const fijarBusqueda = useOpmStore((s) => s.fijarBusquedaOpdGestion);
-  const moverOpdEnGestion = useOpmStore((s) => s.moverOpdEnGestion);
-  const renombrarOpdDesdeArbol = useOpmStore((s) => s.renombrarOpdDesdeArbol);
+  const { abierta, cerrar, modelo, busqueda, fijarBusqueda, moverOpdEnGestion, renombrarOpdDesdeArbol, arbolFiltrado } = useGestionArbolOpdViewModel();
 
   const [cortadoId, setCortadoId] = useState<Id | null>(null);
   const [renombrando, setRenombrando] = useState<{ id: Id; valor: string } | null>(null);
-
-  const arbol = useMemo(() => construirArbolGestion(modelo), [modelo]);
-
-  // Filtrar por búsqueda
-  const filtrados = useMemo(() => {
-    if (!busqueda.trim()) return [arbol, true] as const;
-    const q = busqueda.toLowerCase();
-    const filtra = (nodo: NodoGestion): [NodoGestion | null, boolean] => {
-      const coincide = nodo.opd.nombre.toLowerCase().includes(q)
-        || /^SD(?:\d+(?:\.\d+)*)?/.exec(nodo.opd.nombre.trim())?.[0]?.toLowerCase().includes(q)
-        || false;
-      const hijos = nodo.hijos.map(filtra);
-      const hijosFiltrados = hijos.filter((h): h is [NodoGestion, boolean] => h[0] !== null);
-      const algunoCoincide = coincide || hijosFiltrados.some(([, c]) => c);
-      if (!algunoCoincide) return [null, false] as const;
-      return [{ ...nodo, hijos: hijosFiltrados.map(([n]) => n!) }, algunoCoincide] as const;
-    };
-    return filtra(arbol);
-  }, [arbol, busqueda]);
 
   if (!abierta) return null;
 
@@ -102,7 +71,7 @@ export function GestionArbolOpd() {
           )}
         </div>
         <div style={style.tree}>
-          {renderNodo(filtrados[0] as NodoGestion, {
+          {arbolFiltrado ? renderNodo(arbolFiltrado, {
             esRaiz: true,
             cortadoId,
             setCortadoId,
@@ -111,7 +80,7 @@ export function GestionArbolOpd() {
             setRenombrando,
             renombrarSubmit,
             modelo,
-          })}
+          }) : null}
         </div>
         <div style={style.footer}>
           <span style={style.footerHint}>Ctrl+D abre/cierra · Doble clic en nombre para renombrar</span>
@@ -119,31 +88,6 @@ export function GestionArbolOpd() {
       </div>
     </div>
   );
-}
-
-function construirArbolGestion(modelo: Modelo): NodoGestion {
-  const raiz = modelo.opds[modelo.opdRaizId];
-  if (!raiz) return { opd: { id: "", nombre: "", padreId: null, apariencias: {}, enlaces: {} }, nivel: 0, hijos: [] };
-
-  const hijosPorPadre = new Map<Id, Opd[]>();
-  for (const opd of Object.values(modelo.opds)) {
-    if (opd.id === raiz.id) continue;
-    const padre = opd.padreId && modelo.opds[opd.padreId] ? opd.padreId : modelo.opdRaizId;
-    const lista = hijosPorPadre.get(padre) ?? [];
-    lista.push(opd);
-    hijosPorPadre.set(padre, lista);
-  }
-
-  const visitados = new Set<Id>();
-  const crearNodo = (opd: Opd, nivel: number): NodoGestion => {
-    visitados.add(opd.id);
-    const hijos = (hijosPorPadre.get(opd.id) ?? [])
-      .filter((h) => !visitados.has(h.id))
-      .map((h) => crearNodo(h, nivel + 1));
-    return { opd, nivel, hijos };
-  };
-
-  return crearNodo(raiz, 0);
 }
 
 interface RenderOps {
@@ -157,7 +101,7 @@ interface RenderOps {
   modelo: Modelo;
 }
 
-function renderNodo(nodo: NodoGestion, ops: RenderOps): preact.VNode | null {
+function renderNodo(nodo: NodoGestionOpd, ops: RenderOps): preact.VNode | null {
   if (!nodo) return null;
   const { opd, nivel, hijos } = nodo;
   const esRaiz = opd.id === ops.modelo.opdRaizId;
