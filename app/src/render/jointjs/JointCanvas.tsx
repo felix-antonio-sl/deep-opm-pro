@@ -1,9 +1,8 @@
 import { dia, shapes } from "jointjs";
 import { useEffect, useRef, useState } from "preact/hooks";
-import { normalizarGridConfig } from "../../canvas/grid";
+import { useJointCanvasViewModel } from "../../app/viewmodels/jointCanvasViewModel";
 import { focoPasoActualSimulacion } from "../../modelo/simulacion/foco";
 import type { Apariencia, Enlace, ExtremoEnlace, Modelo, Opd } from "../../modelo/tipos";
-import { useOpmStore } from "../../store";
 import { clearHoverTooltip, idHoverTooltip, setHoverTooltip, sincronizarBadgesDesdeAvisos } from "../../store/feedback";
 import { MenuTipoEnlace } from "../../ui/MenuTipoEnlace";
 import { scrollBehaviorPreferido } from "../../ui/motion";
@@ -64,79 +63,83 @@ export function JointCanvas() {
   const rubberBandRef = useRef(false);
   const suprimirBlankClickRef = useRef(false);
 
-  const modoEnlace = useOpmStore((s) => s.modoEnlace);
+  const {
+    modoEnlace,
+    modoCreacion,
+    modelo,
+    opdActivoId,
+    seleccionId,
+    seleccionados,
+    idsResaltadosTemporales,
+    enlaceSeleccionId,
+    hoverOplRef,
+    uiAliasVisibles,
+    uiDescripcionesVisibles,
+    uiModoImagenGlobal,
+    contextoSimulacion,
+    seleccionarEntidad,
+    seleccionarPartePlegada,
+    seleccionarEstadoComoExtremo,
+    seleccionarEnlace,
+    seleccionarGrupoEstructural,
+    cambiarOpdActivo,
+    moverAparienciaConPuertos,
+    actualizarPosicionSimboloEstructural,
+    actualizarAnclajesSimboloEstructural,
+    cambiarModoPlegadoApariencia,
+    alternarModoImagenEntidad,
+    abrirModalImagen,
+    extraerParteDePlegado,
+    actualizarVerticesEnlace,
+    actualizarPosicionLabelEnlace,
+    crearEntidadEnCanvas,
+    crearEnlaceEntreEntidades,
+    elegirTipoEnlace,
+    iniciarConexionDesdeApariencia,
+    cancelarEnlace,
+    fijarHoverOpl,
+    setSeleccion,
+    agregarASeleccion,
+    toggleSeleccion,
+    vaciarSeleccion,
+    redimensionarAparienciaEnCanvas,
+    renombrarEntidadDesdeOpl,
+    gridConfig,
+    solicitudFitToken,
+  } = useJointCanvasViewModel();
+
   const modoEnlaceRef = useRef(modoEnlace);
-  const modoCreacion = useOpmStore((s) => s.modoCreacion);
   const modoCreacionRef = useRef(modoCreacion);
-  const modelo = useOpmStore((s) => s.modelo);
   const modeloRef = useRef(modelo);
-  const opdActivoId = useOpmStore((s) => s.opdActivoId);
   const opdActivoIdRef = useRef(opdActivoId);
-  const seleccionId = useOpmStore((s) => s.seleccionId);
-  const seleccionados = useOpmStore((s) => s.seleccionados);
-  const idsResaltadosTemporales = useOpmStore((s) => s.idsResaltadosTemporales);
   const seleccionadosRef = useRef(seleccionados);
-  const enlaceSeleccionId = useOpmStore((s) => s.enlaceSeleccionId);
   const enlaceSeleccionIdRef = useRef(enlaceSeleccionId);
-  const hoverOplRef = useOpmStore((s) => s.hoverOplRef);
-  const uiAliasVisibles = useOpmStore((s) => s.uiAliasVisibles);
-  const uiDescripcionesVisibles = useOpmStore((s) => s.uiDescripcionesVisibles);
-  const uiModoImagenGlobal = useOpmStore((s) => s.uiModoImagenGlobal);
-  // L2 r17: marca visual de proceso activo + estados current en modo simulación.
-  const contextoSimulacion = useOpmStore((s) => s.contextoSimulacion);
-  const seleccionarEntidad = useOpmStore((s) => s.seleccionarEntidad);
   const seleccionarEntidadRef = useRef(seleccionarEntidad);
-  const seleccionarPartePlegada = useOpmStore((s) => s.seleccionarPartePlegada);
   const seleccionarPartePlegadaRef = useRef(seleccionarPartePlegada);
-  const seleccionarEstadoComoExtremo = useOpmStore((s) => s.seleccionarEstadoComoExtremo);
   const seleccionarEstadoComoExtremoRef = useRef(seleccionarEstadoComoExtremo);
-  const seleccionarEnlace = useOpmStore((s) => s.seleccionarEnlace);
   const seleccionarEnlaceRef = useRef(seleccionarEnlace);
-  const seleccionarGrupoEstructural = useOpmStore((s) => s.seleccionarGrupoEstructural);
   const seleccionarGrupoEstructuralRef = useRef(seleccionarGrupoEstructural);
-  const cambiarOpdActivo = useOpmStore((s) => s.cambiarOpdActivo);
   const cambiarOpdActivoRef = useRef(cambiarOpdActivo);
-  const moverAparienciaConPuertos = useOpmStore((s) => s.moverAparienciaConPuertos);
   const moverAparienciaConPuertosRef = useRef(moverAparienciaConPuertos);
-  const actualizarPosicionSimboloEstructural = useOpmStore((s) => s.actualizarPosicionSimboloEstructural);
   const actualizarPosicionSimboloEstructuralRef = useRef(actualizarPosicionSimboloEstructural);
-  const actualizarAnclajesSimboloEstructural = useOpmStore((s) => s.actualizarAnclajesSimboloEstructural);
   const actualizarAnclajesSimboloEstructuralRef = useRef(actualizarAnclajesSimboloEstructural);
-  const cambiarModoPlegadoApariencia = useOpmStore((s) => s.cambiarModoPlegadoApariencia);
   const cambiarModoPlegadoAparienciaRef = useRef(cambiarModoPlegadoApariencia);
-  const alternarModoImagenEntidad = useOpmStore((s) => s.alternarModoImagenEntidad);
   const alternarModoImagenEntidadRef = useRef(alternarModoImagenEntidad);
-  const abrirModalImagen = useOpmStore((s) => s.abrirModalImagen);
   const abrirModalImagenRef = useRef(abrirModalImagen);
-  const extraerParteDePlegado = useOpmStore((s) => s.extraerParteDePlegado);
   const extraerParteDePlegadoRef = useRef(extraerParteDePlegado);
-  const actualizarVerticesEnlace = useOpmStore((s) => s.actualizarVerticesEnlace);
   const actualizarVerticesEnlaceRef = useRef(actualizarVerticesEnlace);
-  const actualizarPosicionLabelEnlace = useOpmStore((s) => s.actualizarPosicionLabelEnlace);
   const actualizarPosicionLabelEnlaceRef = useRef(actualizarPosicionLabelEnlace);
-  const crearEntidadEnCanvas = useOpmStore((s) => s.crearEntidadEnCanvas);
   const crearEntidadEnCanvasRef = useRef(crearEntidadEnCanvas);
-  const crearEnlaceEntreEntidades = useOpmStore((s) => s.crearEnlaceEntreEntidades);
   const crearEnlaceEntreEntidadesRef = useRef(crearEnlaceEntreEntidades);
-  const elegirTipoEnlace = useOpmStore((s) => s.elegirTipoEnlace);
   const elegirTipoEnlaceRef = useRef(elegirTipoEnlace);
-  const iniciarConexionDesdeApariencia = useOpmStore((s) => s.iniciarConexionDesdeApariencia);
   const iniciarConexionDesdeAparienciaRef = useRef(iniciarConexionDesdeApariencia);
-  const cancelarEnlace = useOpmStore((s) => s.cancelarEnlace);
   const cancelarEnlaceRef = useRef(cancelarEnlace);
-  const fijarHoverOpl = useOpmStore((s) => s.fijarHoverOpl);
   const fijarHoverOplRef = useRef(fijarHoverOpl);
-  const setSeleccion = useOpmStore((s) => s.setSeleccion);
   const setSeleccionRef = useRef(setSeleccion);
-  const agregarASeleccion = useOpmStore((s) => s.agregarASeleccion);
   const agregarASeleccionRef = useRef(agregarASeleccion);
-  const toggleSeleccion = useOpmStore((s) => s.toggleSeleccion);
   const toggleSeleccionRef = useRef(toggleSeleccion);
-  const vaciarSeleccion = useOpmStore((s) => s.vaciarSeleccion);
   const vaciarSeleccionRef = useRef(vaciarSeleccion);
-  const redimensionarAparienciaEnCanvas = useOpmStore((s) => s.redimensionarAparienciaEnCanvas);
   const redimensionarAparienciaEnCanvasRef = useRef(redimensionarAparienciaEnCanvas);
-  const renombrarEntidadDesdeOpl = useOpmStore((s) => s.renombrarEntidadDesdeOpl);
   const renombrarEntidadDesdeOplRef = useRef(renombrarEntidadDesdeOpl);
   const [renombradoInline, setRenombradoInline] = useState<null | { aparienciaId: string; entidadId: string }>(null);
   const abrirRenombradoInlineRef = useRef((input: { aparienciaId: string; entidadId: string }) => setRenombradoInline(input));
@@ -147,8 +150,6 @@ export function JointCanvas() {
     setDireccionTipoEnlaceCanvas("saliente");
     setMenuTipoEnlaceCanvas({ ...input, ...posicionMenuTipoEnlace(input.clientX, input.clientY) });
   });
-  const gridConfig = useOpmStore((s) => normalizarGridConfig(s.gridConfig ?? s.indice.preferenciasUi?.gridConfig));
-
   useEffect(() => {
     modoEnlaceRef.current = modoEnlace;
   }, [modoEnlace]);
@@ -500,7 +501,6 @@ export function JointCanvas() {
   // [modelo] en deps), y asi el bbox tenga el contenido recien proyectado.
   // El primer paint (token=0) NO dispara fit porque el efecto se monta
   // con el valor inicial; solo los incrementos posteriores provocan fit.
-  const solicitudFitToken = useOpmStore((s) => s.solicitudFitToken);
   const tokenInicialRef = useRef(solicitudFitToken);
   useEffect(() => {
     if (solicitudFitToken === tokenInicialRef.current) return;
