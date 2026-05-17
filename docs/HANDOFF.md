@@ -3,8 +3,8 @@
 **Fecha**: 2026-05-17
 **Repositorio**: `deep-opm-pro`
 **Rama**: `main`
-**Último corte funcional**: `495cc19 refactor(ui): extrae viewmodel de toolbar base`
-**Corte**: Refactorizacion total, Corte 1 cerrado: `app/src/ui` ya no importa `useOpmStore`; las superficies UI consumen `app/src/app/viewmodels/` como frontera temporal sobre Zustand.
+**Último corte funcional**: `f908717 refactor(app): introduce puerto de arbol opd`
+**Corte**: Refactorizacion total, Corte 2 iniciado: UI ya depende de viewmodels, y los primeros viewmodels empiezan a depender de puertos de aplicacion pequenos sobre Zustand.
 
 ## Política De Handoff Único
 
@@ -82,6 +82,28 @@ Siguiente corte normativo recomendado:
 - Entrar a Corte 2 del plan: puertos de aplicacion sobre el store existente.
 - No hacer otra ronda de viewmodels cosmeticos: el valor ahora esta en que viewmodels grandes dependan de puertos pequenos (`ModelCommandPort`, `SelectionPort`, `OplPort`, `PersistencePort`) en vez de `useOpmStore`.
 - Primer candidato pragmatico: consolidar `app/src/app/ports/` existente y migrar 1-2 viewmodels de alto trafico (`toolbarCreacionViewModel`, `jointCanvasViewModel` o `tablaEnlacesViewModel`) a puertos ya creados, sin segundo store global.
+
+### Refactorizacion Total — Corte 2 Puertos De Aplicacion Iniciado — 2026-05-17
+
+Avance posterior al cierre de Corte 1:
+
+- `ea7257a refactor(app): usa puertos en toolbar creacion`
+  - `toolbarCreacionViewModel` consume `ModelCommandPort` y `SelectionPort` para comandos de enlace y seleccion.
+  - Validado con typecheck, build, `ToolbarCreacion.test.ts` y `e2e/24-conexion-anchor.spec.ts`.
+- `1f58233 refactor(app): introduce puerto de sesion canvas`
+  - Nuevo `CanvasSessionPort` para estado de sesion/presentacion del canvas.
+  - `jointCanvasViewModel` queda compuesto por puertos de comandos, seleccion y sesion canvas.
+  - Validado con typecheck, build, `proyeccion.test.ts`, `halos.test.ts` y `e2e/02-canvas-y-render.spec.ts`.
+- `9ce1e7f refactor(app): introduce puerto de navegacion opd`
+  - Nuevo `OpdNavigationPort` para `modelo`, `opdActivoId` y `cambiarOpdActivo`.
+  - `breadcrumbViewModel` deja de depender directo del store.
+  - Validado con typecheck, build y `e2e/04-arbol-y-pestanas.spec.ts`.
+- `f908717 refactor(app): introduce puerto de arbol opd`
+  - Nuevo `OpdTreePort` para acciones/estado especificos del arbol OPD.
+  - `arbolOpdViewModel` depende de `OpdNavigationPort` + `OpdTreePort`.
+  - Validado con typecheck, build, `bun test src/store.test.ts -t "mapa del sistema"` y `e2e/04-arbol-y-pestanas.spec.ts`.
+
+Regla operativa nueva: antes de migrar otro viewmodel, preferir reutilizar un puerto existente. Crear un puerto nuevo solo si representa una capacidad nombrable y reusable, no una coleccion accidental de selectors.
 
 ### Post-Brief HODOM Denso — Foco De Estados OPM — 2026-05-16
 
@@ -172,12 +194,12 @@ El script genera `docs/REPORTE-EJECUTIVO.md` y `app/test-results/in-vivo/`, ambo
 
 ## Validación Reciente
 
-Ejecutado sobre el estado actual (`495cc19`):
+Ejecutado sobre el estado actual (`f908717`):
 
 ```bash
 cd app && bun run typecheck
 cd app && bun run build
-cd app && bun run browser:smoke -- e2e/12-toolbar-overflow.spec.ts e2e/02-canvas-y-render.spec.ts e2e/21-estado-vacio-opm.spec.ts
+cd app && bun run browser:smoke -- e2e/04-arbol-y-pestanas.spec.ts
 ```
 
 Resultado:
@@ -185,7 +207,7 @@ Resultado:
 ```text
 typecheck OK
 build OK
-25 browser smoke passed / 0 fail
+6 browser smoke passed / 0 fail
 ```
 
 Última auditoría in-vivo completa sigue siendo la de `08b3753`/`63dd213`; este corte no cambió el script in-vivo ni la superficie global de chrome, solo la frontera UI -> viewmodel.
@@ -235,7 +257,7 @@ El brief UX/IFML queda cerrado para el corte auditado. Los cortes de modelos den
 
 Pendiente inmediato de refactorizacion:
 
-- Corte 2: puertos de aplicacion sobre store existente.
+- Continuar Corte 2: puertos de aplicacion sobre store existente.
 - Consolidar contratos en `app/src/app/ports/` sin duplicar estado ni introducir dependency injection pesada.
 - Migrar gradualmente viewmodels grandes para que dependan de puertos pequenos y no del store completo.
 - Mantener `OpmStore` como fachada compatible mientras se reduce su contrato efectivo.
@@ -252,4 +274,4 @@ Pendientes funcionales a retomar despues o como pressure tests:
 
 Retomar desde este `docs/HANDOFF.md` y el plan `docs/roadmap/refactorizacion-total-plan-normativo.md`.
 
-Siguiente bloque recomendado: iniciar **Corte 2 - Puertos de aplicacion sobre store existente**. Primer objetivo: escoger un viewmodel grande y hacerlo depender de un puerto pequeno ya existente o consolidado en `app/src/app/ports/`, validando con typecheck, unit dirigido y smoke relevante. Si el siguiente bloque toca JointJS, consultar primero `opm-extracted/`, `docs/JOYAS.md`, assets SVG canónicos y documentación oficial de JointJS OSS.
+Siguiente bloque recomendado: continuar **Corte 2 - Puertos de aplicacion sobre store existente**. Primer objetivo: migrar otro viewmodel grande a puertos existentes antes de crear contratos nuevos. Candidatos: `tablaEnlacesViewModel` hacia puertos de tabla/foco, `toolbarBaseViewModel` hacia puertos de chrome/seleccion, o `inspectorEntidadViewModel` hacia puertos de entidad/estados. Validar siempre con typecheck, unit dirigido y smoke relevante. Si el siguiente bloque toca JointJS, consultar primero `opm-extracted/`, `docs/JOYAS.md`, assets SVG canónicos y documentación oficial de JointJS OSS.
