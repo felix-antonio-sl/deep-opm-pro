@@ -1,8 +1,7 @@
-import { useOpmStore } from "../../store";
+import { useZustandToolbarOverflowPort } from "../ports/zustandToolbarOverflowPort";
 
 export function useToolbarMasViewModel() {
-  const abierto = useOpmStore((s) => s.toolbarMasAbierto);
-  const fijarAbierto = useOpmStore((s) => s.fijarToolbarMasAbierto);
+  const { abierto, fijarAbierto } = useZustandToolbarOverflowPort();
 
   return {
     abierto,
