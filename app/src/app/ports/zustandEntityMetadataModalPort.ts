@@ -1,5 +1,5 @@
 import { useOpmStore } from "../../store";
-import type { EntityMetadataModalPort } from "./entityMetadataModalPort";
+import type { EntityMetadataModalPort, EntityMetadataOpenersPort } from "./entityMetadataModalPort";
 
 export function useZustandEntityMetadataModalPort(): EntityMetadataModalPort {
   const modelo = useOpmStore((s) => s.modelo);
@@ -22,5 +22,13 @@ export function useZustandEntityMetadataModalPort(): EntityMetadataModalPort {
     cerrarModalUrls,
     agregarUrlAEntidad,
     eliminarUrlDeEntidad,
+  };
+}
+
+export function useZustandEntityMetadataOpenersPort(): EntityMetadataOpenersPort {
+  const abrirModalUrls = useOpmStore((s) => s.abrirModalUrls);
+
+  return {
+    abrirModalUrls,
   };
 }

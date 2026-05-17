@@ -11,3 +11,7 @@ export interface EntityMetadataModalPort {
   agregarUrlAEntidad: OpmStore["agregarUrlAEntidad"];
   eliminarUrlDeEntidad: OpmStore["eliminarUrlDeEntidad"];
 }
+
+export interface EntityMetadataOpenersPort {
+  abrirModalUrls: OpmStore["abrirModalUrls"];
+}

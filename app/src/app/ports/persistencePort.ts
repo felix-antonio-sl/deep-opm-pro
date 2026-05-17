@@ -14,6 +14,7 @@ export interface PersistencePort {
   modeloNombre: OpmStore["modelo"]["nombre"];
   abrirGuardarComo: OpmStore["abrirGuardarComo"];
   abrirCargarModelo: OpmStore["abrirCargarModelo"];
+  abrirDialogoImportarExportarJson: OpmStore["abrirDialogoImportarExportarJson"];
   cerrarGuardarComo: OpmStore["cerrarGuardarComo"];
   cerrarCargarModelo: OpmStore["cerrarCargarModelo"];
   guardarLocal: OpmStore["guardarLocal"];

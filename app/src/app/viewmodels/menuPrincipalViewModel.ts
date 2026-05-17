@@ -1,12 +1,17 @@
 import { useMemo } from "preact/hooks";
 import { listarFixtures } from "../../store/runtime";
-import { useOpmStore } from "../../store";
+import { useZustandEntityMetadataOpenersPort } from "../ports/zustandEntityMetadataModalPort";
+import { useZustandHelpPort } from "../ports/zustandHelpPort";
+import { useZustandLinksTablePort } from "../ports/zustandLinksTablePort";
 import { useZustandMapViewPort } from "../ports/zustandMapViewPort";
+import { useZustandModelBootstrapPort } from "../ports/zustandModelBootstrapPort";
 import { useZustandOpdNavigationPort } from "../ports/zustandOpdNavigationPort";
 import { useZustandPersistencePort } from "../ports/zustandPersistencePort";
+import { useZustandSearchDialogsPort } from "../ports/zustandSearchDialogsPort";
 import { useZustandSelectionPort } from "../ports/zustandSelectionPort";
 import { useZustandSessionTabsPort } from "../ports/zustandSessionTabsPort";
 import { useZustandSystemMapControlsPort } from "../ports/zustandSystemMapControlsPort";
+import { useZustandTemplateDialogsPort } from "../ports/zustandTemplateDialogsPort";
 import { useZustandToolbarChromePort } from "../ports/zustandToolbarChromePort";
 import { useZustandWorkbenchViewControlsPort } from "../ports/zustandWorkbenchViewControlsPort";
 import { useZustandWorkspacePort } from "../ports/zustandWorkspacePort";
@@ -21,6 +26,7 @@ export function useMenuPrincipalViewModel() {
     guardarLocal,
     abrirGuardarComo,
     abrirCargarModelo,
+    abrirDialogoImportarExportarJson,
     modeloPersistidoId,
     cargarFixtureDemo,
     exportarJson,
@@ -48,16 +54,13 @@ export function useMenuPrincipalViewModel() {
   } = useZustandWorkbenchViewControlsPort();
   const { modelo } = useZustandOpdNavigationPort();
   const { seleccionId } = useZustandSelectionPort();
-  const nuevoModelo = useOpmStore((s) => s.nuevoModelo);
-  const abrirBusquedaCosas = useOpmStore((s) => s.abrirBusquedaCosas);
-  const abrirBusquedaGlobal = useOpmStore((s) => s.abrirDialogoBuscarGlobal);
-  const abrirTablaEnlaces = useOpmStore((s) => s.abrirTablaEnlaces);
-  const abrirDialogoGuardarPlantilla = useOpmStore((s) => s.abrirDialogoGuardarPlantilla);
-  const abrirDialogoImportarExportarJson = useOpmStore((s) => s.abrirDialogoImportarExportarJson);
-  const abrirCheatsheetAtajos = useOpmStore((s) => s.abrirCheatsheetAtajos);
+  const { nuevoModelo, iniciarAsistente } = useZustandModelBootstrapPort();
+  const { abrirBusquedaCosas, abrirBusquedaGlobal } = useZustandSearchDialogsPort();
+  const { abrir: abrirTablaEnlaces } = useZustandLinksTablePort();
+  const { abrirDialogoGuardarPlantilla } = useZustandTemplateDialogsPort();
+  const { abrirCheatsheetAtajos } = useZustandHelpPort();
   const objetoSeleccionadoId = seleccionId && modelo.entidades[seleccionId]?.tipo === "objeto" ? seleccionId : null;
-  const abrirModalUrls = useOpmStore((s) => s.abrirModalUrls);
-  const iniciarAsistente = useOpmStore((s) => s.iniciarAsistente);
+  const { abrirModalUrls } = useZustandEntityMetadataOpenersPort();
   const demos = useMemo(() => listarFixtures(), []);
 
   const toggleVistaMapa = () => {

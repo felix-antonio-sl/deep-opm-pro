@@ -2,6 +2,7 @@ import type { Id } from "../../modelo/tipos";
 import type { OpmStore } from "../../store";
 
 export interface LinksTablePort {
+  abrir: OpmStore["abrirTablaEnlaces"];
   abierta: OpmStore["tablaEnlacesAbierta"];
   cerrar: OpmStore["cerrarTablaEnlaces"];
   modelo: OpmStore["modelo"];

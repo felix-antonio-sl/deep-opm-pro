@@ -2,6 +2,7 @@ import { store, useOpmStore } from "../../store";
 import type { LinksTableEditPort, LinksTablePort } from "./linksTablePort";
 
 export function useZustandLinksTablePort(): LinksTablePort {
+  const abrir = useOpmStore((s) => s.abrirTablaEnlaces);
   const abierta = useOpmStore((s) => s.tablaEnlacesAbierta);
   const cerrar = useOpmStore((s) => s.cerrarTablaEnlaces);
   const modelo = useOpmStore((s) => s.modelo);
@@ -19,6 +20,7 @@ export function useZustandLinksTablePort(): LinksTablePort {
   const enlaceSeleccionId = useOpmStore((s) => s.enlaceSeleccionId);
 
   return {
+    abrir,
     abierta,
     cerrar,
     modelo,
