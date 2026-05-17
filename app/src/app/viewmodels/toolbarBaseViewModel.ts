@@ -1,20 +1,21 @@
 import { useMemo } from "preact/hooks";
 import { normalizarGridConfig } from "../../canvas/grid";
 import { useOpmStore } from "../../store";
+import { useZustandHistoryPort } from "../ports/zustandHistoryPort";
+import { useZustandToolbarChromePort } from "../ports/zustandToolbarChromePort";
 
 export function useToolbarBaseViewModel() {
-  const abrirMenuPrincipal = useOpmStore((s) => s.abrirMenuPrincipal);
-  const cerrarMenuPrincipal = useOpmStore((s) => s.cerrarMenuPrincipal);
+  const {
+    abrirMenuPrincipal,
+    cerrarMenuPrincipal,
+    menuPrincipalAbierto,
+    abrirDialogoComandos,
+  } = useZustandToolbarChromePort();
+  const { deshacer, rehacer, puedeDeshacer, puedeRehacer } = useZustandHistoryPort();
   const crearObjeto = useOpmStore((s) => s.crearObjetoDemo);
   const crearProceso = useOpmStore((s) => s.crearProcesoDemo);
   const crearAtributoNumerico = useOpmStore((s) => s.crearAtributoEnObjetoSeleccionado);
   const fijarModoCreacion = useOpmStore((s) => s.fijarModoCreacion);
-  const deshacer = useOpmStore((s) => s.deshacer);
-  const rehacer = useOpmStore((s) => s.rehacer);
-  const menuPrincipalAbierto = useOpmStore((s) => s.menuPrincipalAbierto);
-  const abrirDialogoComandos = useOpmStore((s) => s.abrirDialogoComandos);
-  const puedeDeshacer = useOpmStore((s) => s.puedeDeshacer);
-  const puedeRehacer = useOpmStore((s) => s.puedeRehacer);
   const modelo = useOpmStore((s) => s.modelo);
   const opdActivoId = useOpmStore((s) => s.opdActivoId);
   const seleccionId = useOpmStore((s) => s.seleccionId);
