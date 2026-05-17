@@ -2,7 +2,10 @@ import { useMemo } from "preact/hooks";
 import { posicionLibre } from "../../modelo/layout";
 import { validarFirmaEnlace } from "../../modelo/operaciones";
 import type { Apariencia, Entidad, Id, Modelo, TipoEntidad } from "../../modelo/tipos";
-import { useOpmStore } from "../../store";
+import { useZustandEditabilityPort } from "../ports/zustandEditabilityPort";
+import { useZustandModelBootstrapPort } from "../ports/zustandModelBootstrapPort";
+import { useZustandModelCommandPort } from "../ports/zustandModelCommandPort";
+import { useZustandOpdNavigationPort } from "../ports/zustandOpdNavigationPort";
 
 export interface SugerenciaEnlaceResultado {
   proceso: Entidad;
@@ -10,12 +13,10 @@ export interface SugerenciaEnlaceResultado {
 }
 
 export function useEstadoVacioOpmViewModel() {
-  const modelo = useOpmStore((s) => s.modelo);
-  const opdActivoId = useOpmStore((s) => s.opdActivoId);
-  const readOnly = useOpmStore((s) => s.readOnly);
-  const crearEntidadEnCanvas = useOpmStore((s) => s.crearEntidadEnCanvas);
-  const crearEnlaceEntreEntidades = useOpmStore((s) => s.crearEnlaceEntreEntidades);
-  const iniciarAsistente = useOpmStore((s) => s.iniciarAsistente);
+  const { modelo, opdActivoId } = useZustandOpdNavigationPort();
+  const { readOnly } = useZustandEditabilityPort();
+  const { crearEntidadEnCanvas, crearEnlaceEntreEntidades } = useZustandModelCommandPort();
+  const { iniciarAsistente } = useZustandModelBootstrapPort();
 
   const apariencias = useMemo(
     () => Object.values(modelo.opds[opdActivoId]?.apariencias ?? {}) as Apariencia[],
