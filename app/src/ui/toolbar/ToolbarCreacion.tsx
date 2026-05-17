@@ -4,10 +4,10 @@
  * Ronda 19 L1: queda acotado al cluster Conectar. Los controles de Vista
  * viven en ToolbarBase para exponer la intención como group propio.
  */
-import { useEffect, useMemo, useRef, useState } from "preact/hooks";
+import { useEffect, useRef, useState } from "preact/hooks";
+import { useToolbarCreacionViewModel } from "../../app/viewmodels/toolbarCreacionViewModel";
 import type { ModoEnlace } from "../../canvas/modoEnlace";
 import type { Id, TipoEnlace } from "../../modelo/tipos";
-import { useOpmStore } from "../../store";
 import { MenuTipoEnlace, TIPOS_ENLACE_MENU } from "../MenuTipoEnlace";
 import { toolbarStyle as style } from "./toolbarStyles";
 
@@ -25,17 +25,18 @@ interface EstadoNudgeConexionAnchor {
 }
 
 export function ToolbarCreacion() {
-  const elegirTipoEnlace = useOpmStore((s) => s.elegirTipoEnlace);
-  const cancelarEnlace = useOpmStore((s) => s.cancelarEnlace);
-  const modoEnlace = useOpmStore((s) => s.modoEnlace);
-  const modoCreacion = useOpmStore((s) => s.modoCreacion);
-  const fijarModoCreacion = useOpmStore((s) => s.fijarModoCreacion);
-  const seleccionId = useOpmStore((s) => s.seleccionId);
-  const seleccionados = useOpmStore((s) => s.seleccionados);
-  const modoSeleccion = useOpmStore((s) => s.modoSeleccion);
-  const modelo = useOpmStore((s) => s.modelo);
-  const opdActivoId = useOpmStore((s) => s.opdActivoId);
-  const crearEnlaceEntreEntidades = useOpmStore((s) => s.crearEnlaceEntreEntidades);
+  const {
+    elegirTipoEnlace,
+    cancelarEnlace,
+    modoEnlace,
+    modoCreacion,
+    fijarModoCreacion,
+    modelo,
+    crearEnlaceEntreEntidades,
+    origenMenuTipo,
+    destinoMenuTipo,
+    selectorEnlaceDeshabilitado,
+  } = useToolbarCreacionViewModel();
   const [menuTiposAbierto, setMenuTiposAbierto] = useState(false);
   const [direccionTipoEnlace, setDireccionTipoEnlace] = useState<"saliente" | "entrante">("saliente");
   const [nudgeAnchorCerrado, setNudgeAnchorCerrado] = useState(() => leerFlagSesion(KEY_NUDGE_ANCHOR_CERRADO));
@@ -45,21 +46,6 @@ export function ToolbarCreacion() {
   const menuTiposAbiertoRef = useRef(false);
   menuTiposAbiertoRef.current = menuTiposAbierto;
 
-  // P1-4 ronda 4: si modoEnlace esta activo, el origen viene de
-  // `modoEnlace.origenId` (canon SSOT del modo conectar). El destino sigue
-  // siendo la segunda entidad seleccionada o el `seleccionId` cuando este
-  // difiere del origen. Esto permite que el popover guie progresivamente:
-  // "origen elegido, selecciona destino" en vez de "selecciona dos cosas".
-  const origenMenuTipo = useMemo(() => {
-    if (modoEnlace && modelo.entidades[modoEnlace.origenId]) return modoEnlace.origenId;
-    return seleccionId ?? seleccionados.find((id) => !!modelo.entidades[id]) ?? null;
-  }, [modelo.entidades, modoEnlace, seleccionId, seleccionados]);
-  const destinoMenuTipo = useMemo(() => {
-    if (modoEnlace && seleccionId && seleccionId !== origenMenuTipo && modelo.entidades[seleccionId]) return seleccionId;
-    if (modoSeleccion !== "multi") return null;
-    return seleccionados.find((id) => id !== origenMenuTipo && !!modelo.entidades[id]) ?? null;
-  }, [modelo.entidades, modoEnlace, modoSeleccion, origenMenuTipo, seleccionId, seleccionados]);
-  const selectorEnlaceDeshabilitado = !origenMenuTipo && !modoEnlace;
   const estiloBotonTipos = selectorEnlaceDeshabilitado
     ? style.disabledButton
     : menuTiposAbierto
