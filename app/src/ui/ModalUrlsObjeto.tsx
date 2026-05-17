@@ -1,20 +1,15 @@
 // [JOYAS §1-3] Chrome UI consume tokens centralizados; canvas semántico invariante.
 import { useState } from "preact/hooks";
+import { useModalUrlsObjetoViewModel } from "../app/viewmodels/modalUrlsObjetoViewModel";
 import { TIPOS_URL_OBJETO } from "../modelo/objetoMetadata";
-import { useOpmStore } from "../store";
 import type { TipoUrlObjeto } from "../modelo/tipos";
 import { Dialogo } from "./Dialogo";
 import { tokens } from "./tokens";
 
 export function ModalUrlsObjeto() {
-  const abierto = useOpmStore((s) => s.modalUrlsAbierto);
-  const modelo = useOpmStore((s) => s.modelo);
-  const cerrar = useOpmStore((s) => s.cerrarModalUrls);
-  const agregar = useOpmStore((s) => s.agregarUrlAEntidad);
-  const eliminar = useOpmStore((s) => s.eliminarUrlDeEntidad);
+  const { abierto, entidad, cerrar, agregar, eliminar } = useModalUrlsObjetoViewModel();
   const [tipo, setTipo] = useState<TipoUrlObjeto>("articulo");
   const [url, setUrl] = useState("");
-  const entidad = abierto ? modelo.entidades[abierto] : undefined;
 
   return (
     <Dialogo
