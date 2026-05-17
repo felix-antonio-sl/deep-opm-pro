@@ -1,10 +1,12 @@
-import { useOpmStore } from "../../store";
+import { useZustandSystemMapControlsPort } from "../ports/zustandSystemMapControlsPort";
 
 export function useToolbarMapaSistemaViewModel() {
-  const refrescarVistaMapa = useOpmStore((s) => s.refrescarVistaMapa);
-  const mapaAutoRefresh = useOpmStore((s) => s.mapaAutoRefresh);
-  const toggleMapaAutoRefresh = useOpmStore((s) => s.toggleMapaAutoRefresh);
-  const toggleMapaPanelEstadisticas = useOpmStore((s) => s.toggleMapaPanelEstadisticas);
+  const {
+    refrescarVistaMapa,
+    mapaAutoRefresh,
+    toggleMapaAutoRefresh,
+    toggleMapaPanelEstadisticas,
+  } = useZustandSystemMapControlsPort();
 
   return {
     refrescarVistaMapa,
