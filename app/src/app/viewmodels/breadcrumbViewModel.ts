@@ -1,9 +1,7 @@
-import { useOpmStore } from "../../store";
+import { useZustandOpdNavigationPort } from "../ports/zustandOpdNavigationPort";
 
 export function useBreadcrumbViewModel() {
-  const modelo = useOpmStore((s) => s.modelo);
-  const opdActivoId = useOpmStore((s) => s.opdActivoId);
-  const cambiarOpdActivo = useOpmStore((s) => s.cambiarOpdActivo);
+  const { modelo, opdActivoId, cambiarOpdActivo } = useZustandOpdNavigationPort();
 
   return {
     modelo,
