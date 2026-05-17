@@ -8,10 +8,11 @@
 
 import { lazy, Suspense } from "preact/compat";
 import { useEffect, useState } from "preact/hooks";
+import { useAppShellViewModel } from "../app/viewmodels/appShellViewModel";
 import { obtenerRefinamiento } from "../modelo/refinamientos";
 import type { Id, Modelo } from "../modelo/tipos";
 import { JointCanvas } from "../render/jointjs/JointCanvas";
-import { store, useOpmStore } from "../store";
+import { store } from "../store";
 import { ANCHO_PANEL_INSPECTOR_DEFAULT, ANCHO_PANEL_INSPECTOR_MAX, ANCHO_PANEL_INSPECTOR_MIN } from "../store/runtime";
 import { ArbolOpd } from "./ArbolOpd";
 import { BarraHerramientasElemento } from "./BarraHerramientasElemento";
@@ -58,46 +59,48 @@ const ModalImagenObjeto = lazy(() => import("./ModalImagenObjeto").then((m) => (
 const ModalUrlsObjeto = lazy(() => import("./ModalUrlsObjeto").then((m) => ({ default: m.ModalUrlsObjeto })));
 
 export function App() {
-  const vistaMapaActiva = useOpmStore((s) => s.vistaMapaActiva);
-  const anchoPanelArbol = useOpmStore((s) => s.anchoPanelArbol);
-  // BUG-20260511T225343Z-696858: ancho Inspector reactivo (no localStorage).
-  const anchoPanelInspector = useOpmStore((s) => s.anchoPanelInspector);
-  const preferenciasOpl = useOpmStore((s) => s.indice.preferenciasUi);
-  const modelo = useOpmStore((s) => s.modelo);
-  const opdActivoId = useOpmStore((s) => s.opdActivoId);
-  const fijarAnchoPanelArbol = useOpmStore((s) => s.fijarAnchoPanelArbol);
-  const fijarAnchoPanelInspector = useOpmStore((s) => s.fijarAnchoPanelInspector);
-  const asistenteAbierto = useOpmStore((s) => s.asistente !== null);
-  const dialogoGuardarComoAbierto = useOpmStore((s) => s.dialogoGuardarComoAbierto);
-  const dialogoConfiguracionAbierto = useOpmStore((s) => s.dialogoConfiguracionAbierto);
-  const dialogoImportarExportarJsonAbierto = useOpmStore((s) => s.dialogoImportarExportarJsonAbierto);
-  const cerrarDialogoImportarExportarJson = useOpmStore((s) => s.cerrarDialogoImportarExportarJson);
-  const dialogoCargarModeloAbierto = useOpmStore((s) => s.dialogoCargarModeloAbierto);
-  const dialogoBuscarGlobalAbierto = useOpmStore((s) => s.dialogoBuscarGlobalAbierto);
-  const busquedaCosasAbierta = useOpmStore((s) => s.busquedaCosasAbierta);
-  const dialogoVersionesAbierto = useOpmStore((s) => s.dialogoVersionesAbierto !== null);
-  const modalUrlsAbierto = useOpmStore((s) => s.modalUrlsAbierto !== null);
-  const modalImagenAbierto = useOpmStore((s) => s.modalImagenAbierto !== null);
-  const modalDuracionAbierto = useOpmStore((s) => s.modalDuracionAbierto !== null);
-  const tablaEnlacesAbierta = useOpmStore((s) => s.tablaEnlacesAbierta);
-  const gestionArbolAbierta = useOpmStore((s) => s.gestionArbolAbierta);
-  const cheatsheetAtajosAbierto = useOpmStore((s) => s.cheatsheetAtajosAbierto);
-  const cerrarCheatsheetAtajos = useOpmStore((s) => s.cerrarCheatsheetAtajos);
-  const dialogoComandosAbierto = useOpmStore((s) => s.dialogoComandosAbierto);
-  const cerrarDialogoComandos = useOpmStore((s) => s.cerrarDialogoComandos);
-  const modeloPersistidoId = useOpmStore((s) => s.modeloPersistidoId);
-  const pantallaInicioCerrada = useOpmStore((s) => s.pantallaInicioCerrada);
-  const seleccionIdOpl = useOpmStore((s) => s.seleccionId);
-  const enlaceSeleccionIdOpl = useOpmStore((s) => s.enlaceSeleccionId);
-  // L2 ronda 21: vista activa solo se consume cuando el breakpoint es mobile.
-  const vistaMobileActiva = useOpmStore((s) => s.vistaMobileActiva);
+  const {
+    vistaMapaActiva,
+    anchoPanelArbol,
+    anchoPanelInspector,
+    preferenciasOpl,
+    modelo,
+    opdActivoId,
+    fijarAnchoPanelArbol,
+    fijarAnchoPanelInspector,
+    asistenteAbierto,
+    dialogoGuardarComoAbierto,
+    dialogoConfiguracionAbierto,
+    dialogoImportarExportarJsonAbierto,
+    cerrarDialogoImportarExportarJson,
+    dialogoCargarModeloAbierto,
+    dialogoBuscarGlobalAbierto,
+    busquedaCosasAbierta,
+    dialogoVersionesAbierto,
+    modalUrlsAbierto,
+    modalImagenAbierto,
+    modalDuracionAbierto,
+    tablaEnlacesAbierta,
+    gestionArbolAbierta,
+    cheatsheetAtajosAbierto,
+    cerrarCheatsheetAtajos,
+    dialogoComandosAbierto,
+    cerrarDialogoComandos,
+    modeloPersistidoId,
+    pantallaInicioCerrada,
+    seleccionIdOpl,
+    enlaceSeleccionIdOpl,
+    vistaMobileActiva,
+    bibliotecaDockAbierto,
+    cerrarBibliotecaDock,
+    cambiarOpdActivo,
+    modoSimulacionActivo,
+    modoEnlaceActivo,
+    modoCreacionActivo,
+  } = useAppShellViewModel();
   const [inspectorAbierto, setInspectorAbierto] = useState(true);
   const oplMinimizado = panelOplMinimizadoEfectivo(preferenciasOpl?.oplMinimizado, seleccionIdOpl, enlaceSeleccionIdOpl);
   const timelineDisponible = tieneTimelineDisponible(modelo, opdActivoId);
-  // L3 ronda 20: biblioteca dock acoplable bajo el arbol OPD.
-  const bibliotecaDockAbierto = useOpmStore((s) => s.bibliotecaDockAbierto);
-  const cerrarBibliotecaDock = useOpmStore((s) => s.cerrarBibliotecaDock);
-  const cambiarOpdActivo = useOpmStore((s) => s.cambiarOpdActivo);
   const [esDesktopBiblio, setEsDesktopBiblio] = useState(typeof window === "undefined" ? true : window.innerWidth >= tokens.bibliotecaDock.desktopMinPx);
   const [altoDock, setAltoDock] = useState<number>(tokens.bibliotecaDock.altoInicial);
   useEffect(() => {
@@ -131,10 +134,6 @@ export function App() {
     };
   }, []);
 
-  // L2 r17: en modo simulación, BarraSimulacion reemplaza la Toolbar de edición.
-  const modoSimulacionActivo = useOpmStore((s) => s.contextoSimulacion !== null);
-  const modoEnlaceActivo = useOpmStore((s) => s.modoEnlace !== null);
-  const modoCreacionActivo = useOpmStore((s) => s.modoCreacion !== null);
   const bienvenidaActiva = !modeloPersistidoId && !pantallaInicioCerrada && !modeloTieneContenidoVisible(modelo);
   const contextoWorkbench = resolverContextoWorkbench({
     breakpoint,
