@@ -1,17 +1,16 @@
 import { useMemo } from "preact/hooks";
 import { useOpmStore } from "../../store";
+import { useZustandModelCommandPort } from "../ports/zustandModelCommandPort";
+import { useZustandSelectionPort } from "../ports/zustandSelectionPort";
 
 export function useToolbarCreacionViewModel() {
-  const elegirTipoEnlace = useOpmStore((s) => s.elegirTipoEnlace);
-  const cancelarEnlace = useOpmStore((s) => s.cancelarEnlace);
+  const { elegirTipoEnlace, cancelarEnlace, crearEnlaceEntreEntidades } = useZustandModelCommandPort();
+  const { seleccionId, seleccionados } = useZustandSelectionPort();
   const modoEnlace = useOpmStore((s) => s.modoEnlace);
   const modoCreacion = useOpmStore((s) => s.modoCreacion);
   const fijarModoCreacion = useOpmStore((s) => s.fijarModoCreacion);
-  const seleccionId = useOpmStore((s) => s.seleccionId);
-  const seleccionados = useOpmStore((s) => s.seleccionados);
   const modoSeleccion = useOpmStore((s) => s.modoSeleccion);
   const modelo = useOpmStore((s) => s.modelo);
-  const crearEnlaceEntreEntidades = useOpmStore((s) => s.crearEnlaceEntreEntidades);
 
   // P1-4 ronda 4: si modoEnlace esta activo, el origen viene de
   // `modoEnlace.origenId` (canon SSOT del modo conectar). El destino sigue
