@@ -1,10 +1,10 @@
 # HANDOFF — Estado operativo del modelador OPM
 
-**Fecha**: 2026-05-16
+**Fecha**: 2026-05-17
 **Repositorio**: `deep-opm-pro`
 **Rama**: `main`
-**Último corte funcional**: `993e1f9 feat(ux): enfoca extremos de estado filtrados`
-**Corte**: Tercer corte post-brief HODOM denso: la tabla de enlaces enfoca subgrafos filtrados respetando extremos OPM reales, incluidos estados visibles como cápsulas.
+**Último corte funcional**: `495cc19 refactor(ui): extrae viewmodel de toolbar base`
+**Corte**: Refactorizacion total, Corte 1 cerrado: `app/src/ui` ya no importa `useOpmStore`; las superficies UI consumen `app/src/app/viewmodels/` como frontera temporal sobre Zustand.
 
 ## Política De Handoff Único
 
@@ -19,6 +19,69 @@
 - JointJS OSS: usar documentación oficial viva cuando se toque JointJS.
 
 ## Estado Actual
+
+### Refactorizacion Total — Corte 1 ViewModels UI Cerrado — 2026-05-17
+
+La rama `main` queda sincronizada con `origin/main` tras `495cc19`.
+
+Resultado arquitectonico:
+
+- `rg "useOpmStore" app/src/ui -l` no reporta archivos.
+- Los componentes UI siguen renderizando y gestionando interaccion visual, pero ya no leen Zustand directamente.
+- `app/src/app/viewmodels/` actua como fachada temporal sobre el store para pantallas, dialogos, toolbar, mapa, command palette, asistente, arbol, inspectors y chrome.
+- No se cambio semantica OPM, textos visibles, layout intencional ni formato de persistencia.
+- Se mantuvo JointJS como adapter visual; el corte no movio proyeccion ni geometria.
+
+Commits atomicos recientes de cierre:
+
+- `495cc19 refactor(ui): extrae viewmodel de toolbar base`
+- `3d67c08 refactor(ui): extrae viewmodel de barra contextual`
+- `4f1c273 refactor(ui): extrae viewmodel de command palette`
+- `b70fac1 refactor(ui): extrae viewmodel de mapa sistema`
+- `3907535 refactor(ui): extrae viewmodel de menu principal`
+- `7911635 refactor(ui): extrae viewmodel de asistente`
+- `cd002e3 refactor(ui): extrae viewmodel de capturador bugs`
+- `5662d9f refactor(ui): extrae viewmodel de arbol opd`
+- `6a6f843 refactor(ui): extrae viewmodel de toolbar creacion`
+- `951eb7b refactor(ui): extrae viewmodel de pantalla inicio`
+- `d278715 refactor(ui): extrae viewmodel de plantillas`
+- `c26c58b refactor(ui): extrae viewmodel de gestion opd`
+
+Validacion acumulada del cierre de Corte 1:
+
+```bash
+cd app && bun run typecheck
+cd app && bun run build
+cd app && bun test src/ui/BarraHerramientasElemento.test.ts
+cd app && bun test src/ui/CommandPalette.test.ts
+cd app && bun test src/render/jointjs/mapaSistema.test.ts
+cd app && bun test src/store/uiPanel.test.ts src/ui/toolbar/ToolbarCreacion.test.ts
+cd app && bun run browser:smoke -- e2e/15-superficie-contextual.spec.ts
+cd app && bun run browser:smoke -- e2e/12-command-palette.spec.ts
+cd app && bun run browser:smoke -- e2e/04-arbol-y-pestanas.spec.ts
+cd app && bun run browser:smoke -- e2e/12-toolbar-overflow.spec.ts e2e/02-canvas-y-render.spec.ts e2e/21-estado-vacio-opm.spec.ts
+```
+
+Resultados observados:
+
+```text
+typecheck OK
+build OK
+BarraHerramientasElemento: 53 pass / 0 fail
+CommandPalette: 4 pass / 0 fail
+mapaSistema: 13 pass / 0 fail
+uiPanel + ToolbarCreacion: 4 pass / 0 fail
+superficie contextual: 11 passed
+command palette: 5 passed
+arbol y pestanas: 6 passed
+toolbar + canvas + estado vacio: 25 passed
+```
+
+Siguiente corte normativo recomendado:
+
+- Entrar a Corte 2 del plan: puertos de aplicacion sobre el store existente.
+- No hacer otra ronda de viewmodels cosmeticos: el valor ahora esta en que viewmodels grandes dependan de puertos pequenos (`ModelCommandPort`, `SelectionPort`, `OplPort`, `PersistencePort`) en vez de `useOpmStore`.
+- Primer candidato pragmatico: consolidar `app/src/app/ports/` existente y migrar 1-2 viewmodels de alto trafico (`toolbarCreacionViewModel`, `jointCanvasViewModel` o `tablaEnlacesViewModel`) a puertos ya creados, sin segundo store global.
 
 ### Post-Brief HODOM Denso — Foco De Estados OPM — 2026-05-16
 
@@ -109,29 +172,23 @@ El script genera `docs/REPORTE-EJECUTIVO.md` y `app/test-results/in-vivo/`, ambo
 
 ## Validación Reciente
 
-Ejecutado sobre el estado actual (`993e1f9`):
+Ejecutado sobre el estado actual (`495cc19`):
 
 ```bash
 cd app && bun run typecheck
-cd app && bun test src/render/jointjs/proyeccion.test.ts src/render/jointjs/composers/halos.test.ts
-cd app && bun run browser:smoke -- e2e/11-beta1-tabla-enlaces.spec.ts
-cd app && bun run lint
-cd app && bun run test
 cd app && bun run build
-cd app && bun run browser:smoke
+cd app && bun run browser:smoke -- e2e/12-toolbar-overflow.spec.ts e2e/02-canvas-y-render.spec.ts e2e/21-estado-vacio-opm.spec.ts
 ```
 
 Resultado:
 
 ```text
-59 focused pass / 0 fail
-6 TablaEnlaces smoke passed
-1373 unit pass / 0 fail
+typecheck OK
 build OK
-193 browser smoke passed / 0 fail
+25 browser smoke passed / 0 fail
 ```
 
-Última auditoría in-vivo completa sigue siendo la de `08b3753`/`63dd213`; este corte no cambió el script in-vivo ni la superficie global de chrome.
+Última auditoría in-vivo completa sigue siendo la de `08b3753`/`63dd213`; este corte no cambió el script in-vivo ni la superficie global de chrome, solo la frontera UI -> viewmodel.
 
 Validación HODOM v1.1 realizada sobre el corte funcional previo de foco canvas:
 
@@ -172,9 +229,18 @@ También pueden existir salidas regenerables ignoradas:
 - `app/test-results/in-vivo/`
 - `app/dist/`
 
-## Pendientes Post-Brief
+## Pendientes Post-Brief Y Refactorizacion
 
-El brief UX/IFML queda cerrado para el corte auditado. Los tres cortes de modelos densos ya mejoraron `TablaEnlaces`, conectaron sus filtros con foco visual en canvas y corrigieron el foco de extremos `estado`; lo que sigue debe seguir usando HODOM como pressure test real:
+El brief UX/IFML queda cerrado para el corte auditado. Los cortes de modelos densos ya mejoraron `TablaEnlaces`, conectaron sus filtros con foco visual en canvas y corrigieron el foco de extremos `estado`.
+
+Pendiente inmediato de refactorizacion:
+
+- Corte 2: puertos de aplicacion sobre store existente.
+- Consolidar contratos en `app/src/app/ports/` sin duplicar estado ni introducir dependency injection pesada.
+- Migrar gradualmente viewmodels grandes para que dependan de puertos pequenos y no del store completo.
+- Mantener `OpmStore` como fachada compatible mientras se reduce su contrato efectivo.
+
+Pendientes funcionales a retomar despues o como pressure tests:
 
 - **Mini-mapa / mapa del sistema más operativo**: navegación visual para modelos densos.
 - **Import/export OPX real**: interoperabilidad más allá del JSON local.
@@ -184,6 +250,6 @@ El brief UX/IFML queda cerrado para el corte auditado. Los tres cortes de modelo
 
 ## Prompt De Continuación
 
-Retomar desde este `docs/HANDOFF.md`. Usar el script versionado `app/scripts/in-vivo-test.mjs` como baseline antes y después del próximo corte visual/UX. Si el siguiente bloque toca JointJS, consultar primero `opm-extracted/`, `docs/JOYAS.md`, assets SVG canónicos y documentación oficial de JointJS OSS.
+Retomar desde este `docs/HANDOFF.md` y el plan `docs/roadmap/refactorizacion-total-plan-normativo.md`.
 
-Siguiente bloque recomendado: seguir con **HODOM denso**, ahora en mini-mapa/filtros de canvas por familia/OPD. La tabla ya filtra 113 enlaces y enfoca subgrafos visibles; falta una navegación global que permita cambiar entre OPDs densos sin depender solo del árbol.
+Siguiente bloque recomendado: iniciar **Corte 2 - Puertos de aplicacion sobre store existente**. Primer objetivo: escoger un viewmodel grande y hacerlo depender de un puerto pequeno ya existente o consolidado en `app/src/app/ports/`, validando con typecheck, unit dirigido y smoke relevante. Si el siguiente bloque toca JointJS, consultar primero `opm-extracted/`, `docs/JOYAS.md`, assets SVG canónicos y documentación oficial de JointJS OSS.
