@@ -4,9 +4,8 @@
 import { lazy, Suspense } from "preact/compat";
 import { useEffect, useState } from "preact/hooks";
 import objectDragIcon from "../../../../assets/svg/objectDrag.svg";
-import { normalizarGridConfig } from "../../canvas/grid";
+import { useToolbarBaseViewModel } from "../../app/viewmodels/toolbarBaseViewModel";
 import type { Entidad, Id, TipoEnlace } from "../../modelo/tipos";
-import { useOpmStore } from "../../store";
 import type { AccionContextualId } from "../../store/acciones-contextuales";
 import { primerEnlaceVisualDeEntidad } from "../BarraHerramientasElemento";
 import { ChipPersistencia } from "../ChipPersistencia";
@@ -44,60 +43,59 @@ export function ToolbarBase({ children, modelarSlot, conectarSlot, mapaSlot, sta
   // accesibilidad y smokes). El boton ☰ aqui solo abre/cierra via store;
   // el render lo hace App.tsx. Bug P0 introducido por hotfix `4f7dc66`.
   const [PantallaInicioLazy, setPantallaInicioLazy] = useState<PantallaInicioComponent | null>(null);
-  const abrirMenuPrincipal = useOpmStore((s) => s.abrirMenuPrincipal);
-  const cerrarMenuPrincipal = useOpmStore((s) => s.cerrarMenuPrincipal);
-  const crearObjeto = useOpmStore((s) => s.crearObjetoDemo);
-  const crearProceso = useOpmStore((s) => s.crearProcesoDemo);
-  const crearAtributoNumerico = useOpmStore((s) => s.crearAtributoEnObjetoSeleccionado);
-  const fijarModoCreacion = useOpmStore((s) => s.fijarModoCreacion);
-  const deshacer = useOpmStore((s) => s.deshacer);
-  const rehacer = useOpmStore((s) => s.rehacer);
-  const menuPrincipalAbierto = useOpmStore((s) => s.menuPrincipalAbierto);
-  const abrirDialogoComandos = useOpmStore((s) => s.abrirDialogoComandos);
-  const puedeDeshacer = useOpmStore((s) => s.puedeDeshacer);
-  const puedeRehacer = useOpmStore((s) => s.puedeRehacer);
-  const modelo = useOpmStore((s) => s.modelo);
-  const opdActivoId = useOpmStore((s) => s.opdActivoId);
-  const seleccionId = useOpmStore((s) => s.seleccionId);
-  const seleccionados = useOpmStore((s) => s.seleccionados);
-  const renombrarSeleccionada = useOpmStore((s) => s.renombrarSeleccionada);
-  const nuevaCosaPendiente = useOpmStore((s) => s.nuevaCosaPendiente);
-  const confirmarNombreNuevaCosa = useOpmStore((s) => s.confirmarNombreNuevaCosa);
-  const descartarNuevaCosaPendiente = useOpmStore((s) => s.descartarNuevaCosaPendiente);
-  const seleccionarEntidad = useOpmStore((s) => s.seleccionarEntidad);
-  const seleccionarEnlace = useOpmStore((s) => s.seleccionarEnlace);
-  const copiarEstiloEnlaceAlPortapapeles = useOpmStore((s) => s.copiarEstiloEnlaceAlPortapapeles);
-  const pegarEstiloEnlaceDesdePortapapeles = useOpmStore((s) => s.pegarEstiloEnlaceDesdePortapapeles);
-  const enlaceEstiloPortapapeles = useOpmStore((s) => s.enlaceEstiloPortapapeles);
-  const borrarEnlacesEnLote = useOpmStore((s) => s.borrarEnlacesEnLote);
-  const eliminarSeleccion = useOpmStore((s) => s.eliminarSeleccion);
-  const conectarSeleccionAlTodo = useOpmStore((s) => s.conectarSeleccionAlTodo);
-  const traerEnlacesEntreSeleccionadas = useOpmStore((s) => s.traerEnlacesEntreSeleccionadas);
-  const iniciarAutosalvado = useOpmStore((s) => s.iniciarAutosalvado);
+  const {
+    abrirMenuPrincipal,
+    cerrarMenuPrincipal,
+    crearObjeto,
+    crearProceso,
+    crearAtributoNumerico,
+    fijarModoCreacion,
+    deshacer,
+    rehacer,
+    menuPrincipalAbierto,
+    abrirDialogoComandos,
+    puedeDeshacer,
+    puedeRehacer,
+    modelo,
+    opdActivoId,
+    seleccionId,
+    seleccionados,
+    nuevaCosaPendiente,
+    confirmarNombreNuevaCosa,
+    descartarNuevaCosaPendiente,
+    seleccionarEntidad,
+    seleccionarEnlace,
+    copiarEstiloEnlaceAlPortapapeles,
+    pegarEstiloEnlaceDesdePortapapeles,
+    enlaceEstiloPortapapeles,
+    borrarEnlacesEnLote,
+    eliminarSeleccion,
+    conectarSeleccionAlTodo,
+    traerEnlacesEntreSeleccionadas,
+    iniciarAutosalvado,
+    modoCreacion,
+    abrirDialogoPlantillas,
+    uiAliasVisibles,
+    uiDescripcionesVisibles,
+    toggleAliasVisibles,
+    toggleDescripcionesVisibles,
+    uiModoImagenGlobal,
+    fijarModoImagenGlobal,
+    abrirModalImagen,
+    gridConfig,
+    toggleGrid,
+    abrirDialogoConfiguracion,
+    aplicarLayoutSugerido,
+    bibliotecaDockAbierto,
+    toggleBibliotecaDock,
+    vistaMapaActiva,
+    toggleVistaMapa,
+    iniciarModoSimulacion,
+    alinearSeleccion,
+    distribuirSeleccion,
+    alinearSeleccionEnlaces,
+  } = useToolbarBaseViewModel();
   // Ronda 19 L5: `dirty` ya no se lee aqui; ChipPersistencia lo consume.
-  const modoCreacion = useOpmStore((s) => s.modoCreacion);
-  const abrirDialogoPlantillas = useOpmStore((s) => s.abrirDialogoPlantillas);
-  const uiAliasVisibles = useOpmStore((s) => s.uiAliasVisibles);
-  const uiDescripcionesVisibles = useOpmStore((s) => s.uiDescripcionesVisibles);
-  const toggleAliasVisibles = useOpmStore((s) => s.toggleAliasVisibles);
-  const toggleDescripcionesVisibles = useOpmStore((s) => s.toggleDescripcionesVisibles);
-  const uiModoImagenGlobal = useOpmStore((s) => s.uiModoImagenGlobal);
-  const fijarModoImagenGlobal = useOpmStore((s) => s.fijarModoImagenGlobal);
-  const abrirModalImagen = useOpmStore((s) => s.abrirModalImagen);
-  const gridConfig = useOpmStore((s) => normalizarGridConfig(s.gridConfig ?? s.indice.preferenciasUi?.gridConfig));
-  const toggleGrid = useOpmStore((s) => s.toggleGrid);
-  const abrirDialogoConfiguracion = useOpmStore((s) => s.abrirDialogoConfiguracion);
-  const aplicarLayoutSugerido = useOpmStore((s) => s.aplicarLayoutSugerido);
-  const bibliotecaDockAbierto = useOpmStore((s) => s.bibliotecaDockAbierto);
-  const toggleBibliotecaDock = useOpmStore((s) => s.toggleBibliotecaDock);
-  const vistaMapaActiva = useOpmStore((s) => s.vistaMapaActiva);
-  const abrirVistaMapa = useOpmStore((s) => s.abrirVistaMapa);
-  const cerrarVistaMapa = useOpmStore((s) => s.cerrarVistaMapa);
-  // L2 r17: el comando Simulación entra al modo (BarraSimulacion reemplaza Toolbar).
-  const iniciarModoSimulacion = useOpmStore((s) => s.iniciarModoSimulacion);
-  const alinearSeleccion = useOpmStore((s) => s.alinearSeleccion);
-  const distribuirSeleccion = useOpmStore((s) => s.distribuirSeleccion);
-  const alinearSeleccionEnlaces = useOpmStore((s) => s.alinearSeleccionEnlaces);
   const [nombreNuevaCosa, setNombreNuevaCosa] = useState("");
   const [menuContextual, setMenuContextual] = useState<null | { enlaceId: Id; x: number; y: number }>(null);
   const [menuEntidad, setMenuEntidad] = useState<null | { aparienciaId: Id; entidadId: Id; x: number; y: number }>(null);
@@ -178,7 +176,7 @@ export function ToolbarBase({ children, modelarSlot, conectarSlot, mapaSlot, sta
     onAplicarLayout: aplicarLayoutSugerido,
     onToggleBibliotecaDock: toggleBibliotecaDock,
     vistaMapaActiva,
-    onToggleMapa: vistaMapaActiva ? cerrarVistaMapa : abrirVistaMapa,
+    onToggleMapa: toggleVistaMapa,
     onIniciarSimulacion: iniciarModoSimulacion,
     onEliminarSeleccion: eliminarSeleccion,
     onConectarSeleccionComoPartes: () => { if (todoMultiSeleccion) conectarSeleccionAlTodo(todoMultiSeleccion, "agregacion"); },
