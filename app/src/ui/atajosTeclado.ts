@@ -97,7 +97,7 @@ function manejarKeydown(e: KeyboardEvent): void {
   // Cualquier diálogo modal abierto consume sus propios atajos (Escape,
   // Enter, Tab focus trap). El registry global se hace a un lado para no
   // robar el evento via stopImmediatePropagation.
-  if (e.target instanceof Element && e.target.closest('[role="dialog"][aria-modal="true"]')) return;
+  if (hayDialogoModalAbierto()) return;
   if (e.target instanceof Element && e.target.closest("[data-atajos-local='true']")) return;
 
   const combo = comboDesdeEvento(e);
@@ -111,6 +111,11 @@ function manejarKeydown(e: KeyboardEvent): void {
     e.stopImmediatePropagation();
   }
   candidato.handler(e);
+}
+
+function hayDialogoModalAbierto(): boolean {
+  if (typeof document.querySelector !== "function") return false;
+  return document.querySelector('[role="dialog"][aria-modal="true"]') !== null;
 }
 
 function registroAplicable(combo: Combo, ctx: ContextoAtajo, e: KeyboardEvent): RegistroAtajo | null {

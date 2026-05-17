@@ -86,6 +86,7 @@ export function ToolbarMas({
     function onKeyDown(event: KeyboardEvent) {
       if (event.key !== "Escape") return;
       if (!abiertoRef.current) return;
+      if (hayDialogoModalAbierto()) return;
       event.preventDefault();
       event.stopPropagation();
       event.stopImmediatePropagation();
@@ -228,6 +229,10 @@ export function ToolbarMas({
         : null}
     </div>
   );
+}
+
+function hayDialogoModalAbierto(): boolean {
+  return document.querySelector('[role="dialog"][aria-modal="true"]') !== null;
 }
 
 const masStyle = {

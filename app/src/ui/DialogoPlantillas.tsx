@@ -1,5 +1,5 @@
 // [JOYAS §1-3] Chrome UI consume tokens centralizados; canvas semántico invariante.
-import { useEffect, useRef, useState } from "preact/hooks";
+import { useCallback, useEffect, useRef, useState } from "preact/hooks";
 import templateIcon from "../../../assets/svg/template.svg";
 import { useDialogoPlantillasViewModel } from "../app/viewmodels/dialogoPlantillasViewModel";
 import { Dialogo } from "./Dialogo";
@@ -31,8 +31,11 @@ export function DialogoPlantillas() {
     insertar,
     filtradas,
   } = useDialogoPlantillasViewModel(queryFiltrada);
+  const guardarAbiertoRef = useRef(guardarAbierto);
   const [nombre, setNombre] = useState(modeloNombre);
   const [descripcion, setDescripcion] = useState("");
+
+  guardarAbiertoRef.current = guardarAbierto;
 
   useEffect(() => {
     const timeout = window.setTimeout(() => setQueryFiltrada(query.trim().toLocaleLowerCase("es-CL")), 200);
@@ -53,10 +56,10 @@ export function DialogoPlantillas() {
     if (!nombre.trim()) return;
     guardar({ nombre, descripcion, ambito: "privado" });
   };
-  const cerrarActivo = () => {
-    if (guardarAbierto) cerrarGuardar();
+  const cerrarActivo = useCallback(() => {
+    if (guardarAbiertoRef.current) cerrarGuardar();
     else cerrar();
-  };
+  }, [cerrar, cerrarGuardar]);
 
   return (
     <Dialogo
