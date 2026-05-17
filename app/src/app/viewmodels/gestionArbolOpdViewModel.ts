@@ -1,6 +1,6 @@
 import { useMemo } from "preact/hooks";
 import type { Id, Modelo, Opd } from "../../modelo/tipos";
-import { useOpmStore } from "../../store";
+import { useZustandOpdTreeManagementPort } from "../ports/zustandOpdTreeManagementPort";
 
 export interface NodoGestionOpd {
   opd: Opd;
@@ -9,13 +9,15 @@ export interface NodoGestionOpd {
 }
 
 export function useGestionArbolOpdViewModel() {
-  const abierta = useOpmStore((s) => s.gestionArbolAbierta);
-  const cerrar = useOpmStore((s) => s.cerrarGestionArbol);
-  const modelo = useOpmStore((s) => s.modelo);
-  const busqueda = useOpmStore((s) => s.busquedaOpdGestion);
-  const fijarBusqueda = useOpmStore((s) => s.fijarBusquedaOpdGestion);
-  const moverOpdEnGestion = useOpmStore((s) => s.moverOpdEnGestion);
-  const renombrarOpdDesdeArbol = useOpmStore((s) => s.renombrarOpdDesdeArbol);
+  const {
+    abierta,
+    cerrar,
+    modelo,
+    busqueda,
+    fijarBusqueda,
+    moverOpdEnGestion,
+    renombrarOpdDesdeArbol,
+  } = useZustandOpdTreeManagementPort();
 
   const arbol = useMemo(() => construirArbolGestion(modelo), [modelo]);
   const arbolFiltrado = useMemo(() => filtrarArbolGestion(arbol, busqueda), [arbol, busqueda]);
