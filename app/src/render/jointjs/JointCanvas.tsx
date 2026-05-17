@@ -14,10 +14,8 @@ import { cablearDrag, embedirContorno } from "./handlers/drag";
 import {
   CANVAS_BASE,
   cellViewModel,
-  dimensionesPaper,
   metadata,
   paperOff,
-  setPaperDimensions,
 } from "./handlers/helpers";
 import { aplicarHoverOpl, cablearHoverOpl } from "./handlers/hoverOpl";
 import {
@@ -42,6 +40,7 @@ import {
   crearJointCanvasAdapter,
   destruirJointCanvasAdapter,
   exponerDebugJointCanvasAdapter,
+  sincronizarCellsJointCanvasAdapter,
   type JointCanvasAdapter,
 } from "./jointCanvasAdapter";
 
@@ -381,24 +380,26 @@ export function JointCanvas() {
         : null,
     );
     sincronizandoRef.current = true;
-    adapter.graph.resetCells(cells as dia.Cell.JSON[]);
-    setPaperDimensions(adapter.paper, dimensionesPaper(cells));
-    embedirContorno(adapter.graph);
-    aplicarRuteoOpcloudEnlaces(adapter.graph);
-    ordenarTodosLosEnlacesEstructurales(adapter.paper, adapter.graph);
-    aplicarA11yConexionTeclado(adapter.paper, modelo);
-    // Reposiciona overlays-abanico desde los LinkView ya renderizados (paper
-    // async:false garantiza que los views existen tras resetCells). El path
-    // del cold render era una aproximacion geometrica; aqui lo reemplazamos
-    // por el calculo basado en sourcePoint/targetPoint/getPointAtLength
-    // reales, que coincide con donde JointJS dibuja los enlaces.
-    recalcularOverlaysAbanicoDesdeLinkViews({
-      paper: adapter.paper,
-      graph: adapter.graph,
-      modelo,
-      opdId: opdActivoId,
-    });
-    sincronizandoRef.current = false;
+    try {
+      sincronizarCellsJointCanvasAdapter(adapter, cells as dia.Cell.JSON[]);
+      embedirContorno(adapter.graph);
+      aplicarRuteoOpcloudEnlaces(adapter.graph);
+      ordenarTodosLosEnlacesEstructurales(adapter.paper, adapter.graph);
+      aplicarA11yConexionTeclado(adapter.paper, modelo);
+      // Reposiciona overlays-abanico desde los LinkView ya renderizados (paper
+      // async:false garantiza que los views existen tras resetCells). El path
+      // del cold render era una aproximacion geometrica; aqui lo reemplazamos
+      // por el calculo basado en sourcePoint/targetPoint/getPointAtLength
+      // reales, que coincide con donde JointJS dibuja los enlaces.
+      recalcularOverlaysAbanicoDesdeLinkViews({
+        paper: adapter.paper,
+        graph: adapter.graph,
+        modelo,
+        opdId: opdActivoId,
+      });
+    } finally {
+      sincronizandoRef.current = false;
+    }
     instalarHerramientasEnlaceSeleccionado(adapter, enlaceSeleccionId);
     instalarHerramientasSimboloEstructuralSeleccionado(
       adapter,

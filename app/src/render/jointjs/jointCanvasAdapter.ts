@@ -4,7 +4,7 @@ import type { ModoEnlace } from "../../canvas/modoEnlace";
 import type { TipoEntidad } from "../../modelo/tipos";
 import { configurarGridPaper } from "./composers/grid";
 import { opmShapes } from "./customShapes";
-import { CANVAS_BASE, cellViewModel, metadata, paperView, setPaperDimensions } from "./handlers/helpers";
+import { CANVAS_BASE, cellViewModel, dimensionesPaper, metadata, paperView, setPaperDimensions } from "./handlers/helpers";
 
 export interface JointCanvasAdapter {
   graph: dia.Graph;
@@ -103,6 +103,11 @@ export function crearJointCanvasAdapter(args: CrearJointCanvasAdapterArgs): Join
 
 export function actualizarGridJointCanvasAdapter(adapter: JointCanvasAdapter, gridConfig: GridConfig): void {
   configurarGridPaper(adapter.paper, gridConfig);
+}
+
+export function sincronizarCellsJointCanvasAdapter(adapter: JointCanvasAdapter, cells: dia.Cell.JSON[]): void {
+  adapter.graph.resetCells(cells);
+  setPaperDimensions(adapter.paper, dimensionesPaper(cells));
 }
 
 export function destruirJointCanvasAdapter(adapter: JointCanvasAdapter): void {
