@@ -1,7 +1,6 @@
 // [JOYAS §1-3] Chrome UI consume tokens centralizados; canvas semántico invariante.
 import { useEffect, useMemo, useState } from "preact/hooks";
-import { listarAvisosDiagnostico } from "../modelo/diagnostico";
-import { useOpmStore } from "../store";
+import { useArbolOpdViewModel } from "../app/viewmodels/arbolOpdViewModel";
 import { EVENTO_ABRIR_AVISO_DIAGNOSTICO } from "../app/ports/feedbackPort";
 import { registrarAtajo } from "./atajosTeclado";
 import { MenuContextualArbol } from "./MenuContextualArbol";
@@ -23,33 +22,35 @@ import { tokens } from "./tokens";
  * puros, preservando atajos centralizados y menu contextual existente.
  */
 export function ArbolOpd() {
-  const modelo = useOpmStore((s) => s.modelo);
-  const opdActivoId = useOpmStore((s) => s.opdActivoId);
-  const vistaMapaActiva = useOpmStore((s) => s.vistaMapaActiva);
-  const modoOrdenArbol = useOpmStore((s) => s.modoOrdenArbol);
-  const fijarModoOrdenArbol = useOpmStore((s) => s.fijarModoOrdenArbol);
-  const cambiarOpdActivo = useOpmStore((s) => s.cambiarOpdActivo);
-  const seleccionarEntidad = useOpmStore((s) => s.seleccionarEntidad);
-  const eliminarOpdDesdeArbol = useOpmStore((s) => s.eliminarOpdDesdeArbol);
-  const moverHermano = useOpmStore((s) => s.moverHermano);
-  const moverOpdEnGestion = useOpmStore((s) => s.moverOpdEnGestion);
-  const renombrarOpdDesdeArbol = useOpmStore((s) => s.renombrarOpdDesdeArbol);
-  const nombresArbolVisibles = useOpmStore((s) => s.nombresArbolVisibles);
-  const toggleNombresArbolVisibles = useOpmStore((s) => s.toggleNombresArbolVisibles);
-  const navegarOpdArriba = useOpmStore((s) => s.navegarOpdArriba);
-  const navegarOpdAbajo = useOpmStore((s) => s.navegarOpdAbajo);
-  const navegarOpdIzquierda = useOpmStore((s) => s.navegarOpdIzquierda);
-  const navegarOpdDerecha = useOpmStore((s) => s.navegarOpdDerecha);
-  const abrirVistaMapa = useOpmStore((s) => s.abrirVistaMapa);
-  const abrirGestionArbol = useOpmStore((s) => s.abrirGestionArbol);
+  const {
+    modelo,
+    opdActivoId,
+    vistaMapaActiva,
+    modoOrdenArbol,
+    fijarModoOrdenArbol,
+    cambiarOpdActivo,
+    seleccionarEntidad,
+    eliminarOpdDesdeArbol,
+    moverHermano,
+    moverOpdEnGestion,
+    renombrarOpdDesdeArbol,
+    nombresArbolVisibles,
+    toggleNombresArbolVisibles,
+    navegarOpdArriba,
+    navegarOpdAbajo,
+    navegarOpdIzquierda,
+    navegarOpdDerecha,
+    abrirVistaMapa,
+    abrirGestionArbol,
+    avisosArbol,
+  } = useArbolOpdViewModel();
   const [colapsado, setColapsado] = useState<Set<Id>>(new Set());
   const [renombrando, setRenombrando] = useState<{ id: Id; valor: string } | null>(null);
   const [dragOverId, setDragOverId] = useState<Id | null>(null);
   const [colapsarTodo, setColapsarTodo] = useState(false);
   const [menuContextual, setMenuContextual] = useState<{ opdId: Id; x: number; y: number } | null>(null);
   const [opdCortadoId, setOpdCortadoId] = useState<Id | null>(null);
-  const arboles = construirArbol(modelo);
-  const avisosArbol = useMemo(() => listarAvisosDiagnostico(modelo, { tipo: "modelo" }), [modelo]);
+  const arboles = useMemo(() => construirArbol(modelo), [modelo]);
   const estaExpandidoNodo = (id: Id) => !colapsado.has(id);
   const nodosVisibles = aplanarNodosVisibles(arboles, estaExpandidoNodo).filter((n) => n.visible);
   const nodosFoco = nodosVisibles.map(({ nodo }) => nodo);
