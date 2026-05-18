@@ -11,6 +11,15 @@ import { fixtureTodos, type FixtureDemo } from "../modelo/fixtures";
 import { listarModelosLocales, type ResumenModeloPersistido } from "../persistencia/local";
 import { indiceVacio, workspaceDesdeModelo, type MapaWorkspace, type WorkspaceIndice } from "../persistencia/workspace";
 import {
+  PREF_MOSTRAR_ARCHIVADOS_KEY as PREF_ARCHIVADOS_STORAGE_KEY,
+  PREF_MOSTRAR_VERSIONES_KEY as PREF_VERSIONES_STORAGE_KEY,
+  WORKSPACE_INDEX_KEY,
+  escribirIndiceWorkspaceEnStorage,
+  escribirPreferenciaBooleanaEnStorage,
+  leerIndiceWorkspaceDesdeStorage,
+  leerPreferenciaBooleanaDesdeStorage,
+} from "../persistencia/workspaceStorage";
+import {
   agregar as seleccionAgregar,
   quitar as seleccionQuitar,
   setSeleccion as seleccionSet,
@@ -33,16 +42,15 @@ import {
   nudgeEnlaces,
   pegarSeleccion,
 } from "../canvas/operacionesBatch";
-import { normalizarGridConfig } from "../canvas/grid";
 import type { StoreApi } from "zustand/vanilla";
 import { etiquetaPestana } from "./pestanas";
 import { RUNTIME_EFFECTS_DEFAULT, type RuntimeEffects } from "./runtimeEffects";
 import type { OpmStore } from "./tipos";
 
 export const UNDO_LIMIT = 100;
-export const WS_KEY = "deep-opm-pro:persistencia:workspace";
-export const PREF_MOSTRAR_ARCHIVADOS_KEY = "deep-opm-pro:ui:mostrar-archivados";
-export const PREF_MOSTRAR_VERSIONES_KEY = "deep-opm-pro:ui:mostrar-versiones";
+export const WS_KEY = WORKSPACE_INDEX_KEY;
+export const PREF_MOSTRAR_ARCHIVADOS_KEY = PREF_ARCHIVADOS_STORAGE_KEY;
+export const PREF_MOSTRAR_VERSIONES_KEY = PREF_VERSIONES_STORAGE_KEY;
 export const PORTAPAPELES_WORKSPACE_TTL_MS = 5 * 60 * 1000;
 export const ANCHO_PANEL_ARBOL_DEFAULT = 240;
 export const ANCHO_PANEL_ARBOL_MIN = 160;
@@ -486,26 +494,11 @@ export function must<T>(resultado: { ok: true; value: T } | { ok: false; error: 
 // ── Persistencia del WorkspaceIndice ────────────────────────────
 
 export function escribirIndiceWorkspace(indice: WorkspaceIndice): void {
-  try {
-    runtimeEffects.writeLocalStorage(WS_KEY, JSON.stringify(indice));
-  } catch { /* storage no disponible */ }
+  escribirIndiceWorkspaceEnStorage(runtimeEffects, indice);
 }
 
 export function leerIndiceWorkspace(): WorkspaceIndice {
-  try {
-    const raw = runtimeEffects.readLocalStorage(WS_KEY);
-    if (!raw) return indiceVacio();
-    const parsed = JSON.parse(raw);
-    if (!esRecord(parsed)) return indiceVacio();
-    return {
-      modelos: Array.isArray(parsed.modelos) ? parsed.modelos.map(normalizarModeloIndice).filter((m): m is WorkspaceIndice["modelos"][number] => m !== null) : [],
-      carpetas: Array.isArray(parsed.carpetas) ? parsed.carpetas.filter((c: unknown) => esRecord(c) && typeof c.id === "string") : [],
-      recientes: Array.isArray(parsed.recientes) ? parsed.recientes.filter((r: unknown) => typeof r === "string") : [],
-      ...(esPreferenciasUi(parsed.preferenciasUi) ? { preferenciasUi: parsed.preferenciasUi } : {}),
-    };
-  } catch {
-    return indiceVacio();
-  }
+  return leerIndiceWorkspaceDesdeStorage(runtimeEffects);
 }
 
 export function sincronizarIndiceConModelosGuardados(modelosGuardados: ResumenModeloPersistido[], indice: WorkspaceIndice): WorkspaceIndice {
@@ -529,45 +522,8 @@ export function sincronizarIndiceConModelosGuardados(modelosGuardados: ResumenMo
   return { ...indice, modelos, recientes: indice.recientes.filter((r) => idsGuardados.has(r)) };
 }
 
-export function normalizarModeloIndice(value: unknown): WorkspaceIndice["modelos"][number] | null {
-  if (!esRecord(value) || typeof value.id !== "string") return null;
-  return {
-    id: value.id,
-    carpetaId: typeof value.carpetaId === "string" || value.carpetaId === null ? value.carpetaId : null,
-    ...(typeof value.archivado === "boolean" ? { archivado: value.archivado } : {}),
-    ...(typeof value.archivadoEn === "string" ? { archivadoEn: value.archivadoEn } : {}),
-    ...(Array.isArray(value.versiones) ? { versiones: value.versiones as NonNullable<WorkspaceIndice["modelos"][number]["versiones"]> } : {}),
-    ...(esMapaWorkspace(value.mapa) ? { mapa: value.mapa } : {}),
-  };
-}
-
-export function esMapaWorkspace(value: unknown): value is MapaWorkspace {
-  if (!esRecord(value)) return false;
-  if (value.zoom !== undefined && typeof value.zoom !== "number") return false;
-  if (value.panX !== undefined && typeof value.panX !== "number") return false;
-  if (value.panY !== undefined && typeof value.panY !== "number") return false;
-  if (value.profundidadMaxima !== undefined && value.profundidadMaxima !== null && typeof value.profundidadMaxima !== "number") return false;
-  if (value.subarbolRaizId !== undefined && value.subarbolRaizId !== null && typeof value.subarbolRaizId !== "string") return false;
-  if (value.criterioResaltado !== undefined && !esCriterioResaltado(value.criterioResaltado)) return false;
-  if (value.autoRefresh !== undefined && typeof value.autoRefresh !== "boolean") return false;
-  return true;
-}
-
 export function esRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
-}
-
-export function esPreferenciasUi(value: unknown): value is NonNullable<WorkspaceIndice["preferenciasUi"]> {
-  if (!esRecord(value)) return false;
-  if (value.anchoPanelArbol !== undefined && typeof value.anchoPanelArbol !== "number") return false;
-  if (value.anchoPanelInspector !== undefined && typeof value.anchoPanelInspector !== "number") return false;
-  if (value.nombresArbolVisibles !== undefined && typeof value.nombresArbolVisibles !== "boolean") return false;
-  if (value.cheatsheetVisible !== undefined && typeof value.cheatsheetVisible !== "boolean") return false;
-  if (value.gridConfig !== undefined) {
-    if (!esRecord(value.gridConfig)) return false;
-    normalizarGridConfig(value.gridConfig);
-  }
-  return true;
 }
 
 export function modelosRecientesDeIndice(indice: WorkspaceIndice, guardados: ResumenModeloPersistido[]): ResumenModeloPersistido[] {
@@ -577,18 +533,11 @@ export function modelosRecientesDeIndice(indice: WorkspaceIndice, guardados: Res
 }
 
 export function leerPreferenciaBooleana(key: string, fallback: boolean): boolean {
-  try {
-    const raw = runtimeEffects.readLocalStorage(key);
-    if (raw === "true") return true;
-    if (raw === "false") return false;
-  } catch { /* storage no disponible */ }
-  return fallback;
+  return leerPreferenciaBooleanaDesdeStorage(runtimeEffects, key, fallback);
 }
 
 export function escribirPreferenciaBooleana(key: string, value: boolean): void {
-  try {
-    runtimeEffects.writeLocalStorage(key, value ? "true" : "false");
-  } catch { /* storage no disponible */ }
+  escribirPreferenciaBooleanaEnStorage(runtimeEffects, key, value);
 }
 
 export function crearIdModeloLocal(): Id {
