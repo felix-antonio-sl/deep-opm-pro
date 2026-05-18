@@ -1,7 +1,7 @@
 import type { AvisoDiagnostico } from "../../modelo/diagnostico";
-import type { OpmStore } from "../../store";
+import type { Aviso } from "../../modelo/validaciones";
 
 export interface DiagnosticsPort {
   avisos: AvisoDiagnostico[];
-  navegarAviso: OpmStore["navegarAviso"];
+  navegarAviso: (aviso: Aviso) => void;
 }
