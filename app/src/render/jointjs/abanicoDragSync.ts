@@ -124,15 +124,3 @@ export function recalcularOverlayDesdeLinkView(
   elem.resize(geometria.size.width, geometria.size.height);
   overlayCell.attr("body/d", geometria.d);
 }
-
-// Compat: el viejo helper se mantiene como alias porque el listener de
-// change:position ya lo importa por nombre.
-export function sincronizarOverlayAbanicoEnDrag(
-  graph: dia.Graph,
-  modelo: Modelo,
-  abanico: Abanico,
-  paper?: dia.Paper,
-): void {
-  if (!paper) return;
-  recalcularOverlayDesdeLinkView(paper, graph, modelo, abanico);
-}
