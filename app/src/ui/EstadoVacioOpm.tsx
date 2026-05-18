@@ -156,24 +156,27 @@ function NudgeConectarResultado({ nombreProceso, nombreObjeto, onConectar }: Nud
 const style = {
   bloque: {
     position: "absolute",
-    top: spacing.xl,
+    top: spacing.md,
     left: "50%",
     transform: "translateX(-50%)",
     display: "flex",
     flexDirection: "column",
     alignItems: "stretch",
-    gap: spacing.md,
-    padding: `${spacing.lg}px ${spacing.xl}px`,
+    gap: spacing.sm,
+    padding: `${spacing.md}px ${spacing.lg}px`,
     background: colors.fondoChrome,
     border: `1px solid ${colors.bordeSuave}`,
     borderRadius: radii.lg,
-    boxShadow: shadows.md,
+    boxShadow: shadows.sm,
     fontFamily: typography.familyChrome,
     fontSize: typography.sizes.md,
     color: colors.textoPrimario,
-    pointerEvents: "auto",
+    // Ronda 23 chrome: pass-through al canvas. El callout no debe interceptar
+    // drag/drop de la toolbar al canvas en y bajo, solo los botones internos
+    // reciben pointer events.
+    pointerEvents: "none",
     zIndex: 4,
-    maxWidth: 420,
+    maxWidth: 380,
   },
   titulo: {
     fontSize: typography.sizes.xl,
@@ -188,16 +191,17 @@ const style = {
     lineHeight: 1.45,
   },
   botonPrimario: {
-    padding: `${spacing.sm}px ${spacing.lg}px`,
+    padding: `${spacing.xs}px ${spacing.lg}px`,
     border: `1px solid ${colors.acentoUi}`,
     borderRadius: radii.md,
     background: colors.acentoUi,
     color: colors.fondoChrome,
     fontFamily: typography.familyChrome,
-    fontSize: typography.sizes.md,
+    fontSize: typography.sizes.sm,
     fontWeight: typography.weights.semibold,
     cursor: "pointer",
     minWidth: 0,
+    pointerEvents: "auto",
   },
   accionesSecundarias: {
     display: "flex",
@@ -216,6 +220,7 @@ const style = {
     fontWeight: typography.weights.medium,
     cursor: "pointer",
     minWidth: 0,
+    pointerEvents: "auto",
   },
   linkAsistente: {
     alignSelf: "flex-start",
@@ -230,6 +235,7 @@ const style = {
     cursor: "pointer",
     textDecoration: "underline",
     textUnderlineOffset: "3px",
+    pointerEvents: "auto",
   },
   nudge: {
     position: "absolute",
