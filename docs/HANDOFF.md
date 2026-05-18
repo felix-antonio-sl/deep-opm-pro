@@ -3,8 +3,8 @@
 **Fecha**: 2026-05-18
 **Repositorio**: `deep-opm-pro`
 **Rama**: `main`
-**Último corte funcional**: `3caef2b refactor(app): elimina snapshot imperativo en tabla enlaces`
-**Corte**: Refactorizacion total, Corte 9 cerrado: cascadas de efectos y fronteras residuales.
+**Último corte funcional**: `e125981 refactor(app): acota adaptadores zustand residuales`
+**Corte**: Refactorizacion total, Corte 10 cerrado: auditoria de proceso/refactor y remediacion de hallazgos.
 
 ## Política De Handoff Único
 
@@ -20,6 +20,56 @@
 - JointJS OSS: usar documentación oficial viva cuando se toque JointJS.
 
 ## Estado Actual
+
+### Refactorizacion Total — Corte 10 Auditoria De Proceso Cerrado — 2026-05-18
+
+La rama `main` queda con el gate de refactor endurecido contra falsos verdes de
+proceso. El ultimo commit funcional del corte es `e125981`.
+
+Resultado arquitectonico/proceso:
+
+- `gate:refactor` deja de depender de `cd .. && cd app`; ejecuta el dashboard HU
+  desde `app/` usando la ruta cwd-safe del script.
+- `lint` se amplia de `src/ui/` a `src/`, alineado con la refactorizacion real
+  que ya movio fronteras a `app`, `render`, `modelo`, `opl` y `store`.
+- `progress-dashboard.mjs` agrega `--dry-run` para auditar sin escribir ledger ni
+  reportes, y guarda una firma `sha256` de las fuentes auditadas.
+- `quality-ledger.mjs --check` compara la firma actual de
+  `app/src`, `app/e2e`, `app/scripts` y `assets/svg/links` contra
+  `hu-progress.json`; si el dashboard HU esta stale o sin firma, el gate falla.
+- El umbral de bundle queda expresado como baseline `124.62 kB gzip` + margen
+  `5 kB`, sin cambiar el limite operativo `129.62 kB gzip`.
+- `crearZustandContextualActionExecutionPort` deja de devolver todo `OpmStore`
+  por tipado estructural y entrega solo el snapshot declarado.
+- `zustandEntityInspectorPorts` conserva lecturas frescas post-mutacion donde
+  son necesarias, pero deja de invocar `store.getState()` para renombrar estados
+  cuando ya tiene la accion capturada por el adapter.
+- El plan normativo y el quality ledger quedan alineados con Corte 10.
+
+Commits atomicos del corte:
+
+- `e125981 refactor(app): acota adaptadores zustand residuales`
+- `bfbaa15 fix(quality): bloquea dashboard hu stale`
+
+Validacion de cierre:
+
+```bash
+cd app && bun run gate:refactor
+# typecheck OK; 1406 pass / 0 fail / 5260 expect; lint src/ OK; build OK; browser:smoke 193 passed
+# Dashboard HU: Total 24.8%; MVP-alpha 86.2%; 89/105 reglas auto; firma de fuentes vigente
+# Quality gate PASS: bundle 464.55 kB / 124.90 kB gzip; leyes 6/6; compat detectors 0
+```
+
+Deuda residual medida, fuera de Corte 10:
+
+- `JointCanvas` todavia renderiza chrome UI concreto y sincroniza feedback desde
+  render; requiere corte render/UI con pruebas visuales dedicadas.
+- Quedan puertos type-only acoplados a `OpmStore`; no migrar masivamente sin
+  agrupar por frontera y contrato verificable.
+- `zustandGlobalShortcutsPort`, `zustandNewModelAssistantPort` y algunos puertos
+  de persistencia/inspector conservan `store.getState()` por comandos compuestos
+  o lectura fresca deliberada.
+- `HU-50.004` permanece pendiente real: posicion lateral del panel OPL.
 
 ### Refactorizacion Total — Corte 9 Cascadas De Efectos Cerrado — 2026-05-18
 
@@ -45,7 +95,7 @@ Commits atomicos del corte:
 - `4a68304 refactor(app): aísla ejecución contextual del store`
 - `3caef2b refactor(app): elimina snapshot imperativo en tabla enlaces`
 - `e42616f fix(roadmap): actualiza evidencia de atajos movidos`
-- `docs(refactor): registra cierre corte cascadas` (este handoff)
+- `989d711 docs(refactor): registra cierre corte cascadas`
 
 Validacion de cierre:
 
@@ -719,14 +769,17 @@ También pueden existir salidas regenerables ignoradas:
 - `app/test-results/in-vivo/`
 - `app/dist/`
 
-## Pendientes Post-Corte 8
+## Pendientes Post-Corte 10
 
-El brief UX/IFML y la refactorizacion total 0-8 quedan cerrados para el corte auditado. Los cortes de modelos densos ya mejoraron `TablaEnlaces`, conectaron sus filtros con foco visual en canvas y corrigieron el foco de extremos `estado`.
+El brief UX/IFML y la refactorizacion total 0-10 quedan cerrados para los cortes
+auditados. Los cortes de modelos densos ya mejoraron `TablaEnlaces`, conectaron
+sus filtros con foco visual en canvas y corrigieron el foco de extremos
+`estado`; los cortes 8-10 cerraron consistencia, cascadas y proceso.
 
 Pendiente arquitectonico recomendado:
 
 - Abrir un plan normativo nuevo y acotado si se decide atacar deuda residual de frontera render/UI, comandos globales o puertos aun tipados desde `OpmStore`.
-- No llamar a ese trabajo "continuacion automatica" de Corte 8: debe declarar alcance, no objetivos y gates propios.
+- No llamar a ese trabajo "continuacion automatica" de Corte 10: debe declarar alcance, no objetivos y gates propios.
 - Mantener `OpmStore` como fachada compatible mientras los puertos restantes se vuelven contratos explicitos.
 - Seguir usando `bun run check`, `bun run lint`, `bun run build`, `bun run browser:smoke`, `progress-dashboard --sync-real` y `quality-ledger` como cierre de loop para cortes de refactor.
 

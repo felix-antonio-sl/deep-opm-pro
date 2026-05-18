@@ -3,7 +3,7 @@
 **Fecha:** 2026-05-17  
 **Repo:** `deep-opm-pro`  
 **Alcance:** `app/`, artefactos de validacion asociados y reportes de roadmap cuando midan avance.  
-**Estado:** cortes 0-7 ejecutados; Corte 8 agregado como auditoria de consistencia transversal y remediacion acotada.  
+**Estado:** cortes 0-9 ejecutados; Corte 10 agregado como auditoria de proceso/refactor y remediacion acotada de hallazgos.  
 **Autoridad superior:** `AGENTS.md`, `docs/HANDOFF.md`, `docs/JOYAS.md`, `opm-extracted/`, SSOT OPM local y HU vivas.
 
 ## 1. Proposito
@@ -662,6 +662,39 @@ Gate:
 cd app && bun run gate:refactor
 ```
 
+### Corte 10 - Auditoria De Proceso Y Remediacion De Hallazgos
+
+Objetivo:
+
+- Buscar problemas u oportunidades de mejora en el proceso completo de
+  refactorizacion y remediar solo hallazgos con bajo blast radius, manteniendo
+  la coherencia con este plan, el handoff unico y el quality ledger.
+
+Acciones permitidas:
+
+- Robustecer gates y reportes cuando exista riesgo de falso verde o evidencia
+  stale.
+- Eliminar fragilidad de comandos operativos sin cambiar el stack.
+- Ampliar cobertura de lint/gate si el refactor ya movio codigo fuera del
+  alcance auditado.
+- Reducir fugas de `OpmStore` en adaptadores puntuales cuando el contrato ya
+  existe y la correccion es local.
+- Registrar deuda residual separando remediaciones inmediatas de cortes que
+  requieren pruebas visuales o plan propio.
+
+No permitido:
+
+- Implementar HU nuevas para mejorar metricas.
+- Reescribir la frontera render/UI completa como cleanup incidental.
+- Migrar masivamente todos los puertos tipados contra `OpmStore`.
+- Cambiar umbrales de calidad para hacer pasar el corte.
+
+Gate:
+
+```bash
+cd app && bun run gate:refactor
+```
+
 ## 12. Definicion De Hecho
 
 Un corte esta hecho solo si cumple:
@@ -745,7 +778,7 @@ No se mide por:
 - porcentaje de codigo "limpio";
 - desaparicion inmediata del store global.
 
-## 17. Orden Recomendado De Ejecucion
+## 17. Orden Historico 0-7 Y Extensiones 8-10
 
 Orden normativo:
 
@@ -761,6 +794,10 @@ Orden normativo:
 10. Limpieza de compatibilidad.
 
 La razon de este orden es que empieza donde el retorno es alto y el riesgo es acotado: UI/store boundary. Luego ataca render, persistencia y store interno.
+
+Los cortes 8-10 fueron extensiones de consistencia, cascadas y proceso sobre el
+orden original. Cualquier trabajo posterior debe declararse como nuevo corte o
+plan acotado, no como continuacion implicita del orden 0-7.
 
 ## 18. Prohibiciones Especificas
 
