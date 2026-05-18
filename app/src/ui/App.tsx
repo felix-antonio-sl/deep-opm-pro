@@ -8,13 +8,14 @@
 
 import { lazy, Suspense } from "preact/compat";
 import { useEffect, useState } from "preact/hooks";
+import { registrarAtajosAplicacion } from "../app/ports/globalShortcutsPort";
+import { crearZustandGlobalShortcutsPort } from "../app/ports/zustandGlobalShortcutsPort";
 import { useAppShellViewModel } from "../app/viewmodels/appShellViewModel";
 import { panelOplMinimizadoEfectivo } from "../app/viewmodels/panelOplViewModel";
 import { obtenerRefinamiento } from "../modelo/refinamientos";
 import type { Id, Modelo } from "../modelo/tipos";
 import { JointCanvas } from "../render/jointjs/JointCanvas";
 import type { JointCanvasAdapter } from "../render/jointjs/jointCanvasAdapter";
-import { store } from "../store";
 import { ANCHO_PANEL_INSPECTOR_DEFAULT, ANCHO_PANEL_INSPECTOR_MAX, ANCHO_PANEL_INSPECTOR_MIN } from "../store/runtime";
 import { ArbolOpd } from "./ArbolOpd";
 import { BarraHerramientasElemento } from "./BarraHerramientasElemento";
@@ -126,11 +127,12 @@ export function App() {
   const dockVisible = bibliotecaDockAbierto && esDesktopBiblio && !esMobile && !esTablet;
 
   useEffect(() => {
+    const shortcutPort = crearZustandGlobalShortcutsPort();
     const limpiarContexto = configurarContextoAtajos({
-      vistaMapaActiva: () => store.getState().vistaMapaActiva,
+      vistaMapaActiva: shortcutPort.vistaMapaActiva,
     });
     const dejarDeEscuchar = escucharGlobal();
-    const desregistrar = registrarAtajosAplicacion();
+    const desregistrar = registrarAtajosAplicacion(shortcutPort, registrarAtajo);
     return () => {
       for (const off of desregistrar) off();
       dejarDeEscuchar();
@@ -341,112 +343,6 @@ export function App() {
     </ConfirmacionProvider>
     </CanvasAdapterContext.Provider>
   );
-}
-
-function registrarAtajosAplicacion(): Array<() => void> {
-  const s = () => store.getState();
-  const abrirTraerConectados = () => s().abrirDialogoTraerConectados();
-  const ocultarApariencia = () => s().ocultarAparienciaSeleccionada();
-  const copiarEstiloEnlace = () => {
-    const state = s();
-    if (state.enlaceSeleccionId) state.copiarEstiloEnlaceAlPortapapeles(state.enlaceSeleccionId);
-  };
-  const pegarEstiloEnlace = () => {
-    const state = s();
-    if (state.enlaceSeleccionId) state.pegarEstiloEnlaceDesdePortapapeles(state.enlaceSeleccionId);
-  };
-  const conectarMultiAlTodo = () => {
-    const state = s();
-    const todo = state.seleccionados.length >= 2 ? state.seleccionados[state.seleccionados.length - 1] : null;
-    if (todo) state.conectarSeleccionAlTodo(todo, "agregacion");
-  };
-  const cerrarModalSuperiorOVaciarSeleccion = () => {
-    const state = s();
-    // IFML H-3 / Ronda 15 L3: el sub-ViewContainer "modal-nombre-cosa" entra
-    // primero en el orden LIFO porque es el modal recién montado por la
-    // Action `crearEntidadEnCanvas`.
-    if (state.nuevaCosaPendiente) return state.descartarNuevaCosaPendiente();
-    if (state.dialogoComandosAbierto) return state.cerrarDialogoComandos();
-    if (state.cheatsheetAtajosAbierto) return state.cerrarCheatsheetAtajos();
-    if (state.gestionArbolAbierta) return state.cerrarGestionArbol();
-    if (state.dialogoGuardarComoAbierto) return state.cerrarGuardarComo();
-    if (state.dialogoConfiguracionAbierto) return state.cerrarDialogoConfiguracion();
-    if (state.dialogoImportarExportarJsonAbierto) return state.cerrarDialogoImportarExportarJson();
-    if (state.dialogoCargarModeloAbierto) return state.cerrarCargarModelo();
-    if (state.dialogoBuscarGlobalAbierto) return state.cerrarDialogoBuscarGlobal();
-    if (state.dialogoVersionesAbierto) return state.cerrarDialogoVersiones();
-    if (state.modalImagenAbierto) return state.cerrarModalImagen();
-    if (state.modalUrlsAbierto) return state.cerrarModalUrls();
-    if (state.modalDuracionAbierto) return state.cerrarModalDuracion();
-    if (state.asistente) return state.cancelarAsistente();
-    if (state.busquedaCosasAbierta) return state.cerrarBusquedaCosas();
-    if (state.menuPrincipalAbierto) return state.cerrarMenuPrincipal();
-    if (state.modoEnlace) return state.cancelarEnlace();
-    return state.vaciarSeleccion();
-  };
-  return [
-    registrarAtajo({ combo: "Ctrl+S", ctx: "global", categoria: "archivo", descripcion: "Guardar modelo", handler: () => s().guardarLocal() }),
-    registrarAtajo({ combo: "Ctrl+K", ctx: "global", categoria: "navegacion", descripcion: "Buscar comandos", handler: () => s().abrirDialogoComandos() }),
-    registrarAtajo({ combo: "Ctrl+F", ctx: "canvas", categoria: "navegacion", descripcion: "Buscar cosas en el modelo", handler: () => s().abrirBusquedaCosas() }),
-    registrarAtajo({ combo: "Ctrl+Shift+F", ctx: "global", categoria: "navegacion", descripcion: "Buscar en el workspace", handler: () => s().abrirDialogoBuscarGlobal() }),
-    registrarAtajo({ combo: "Ctrl+D", ctx: "global", categoria: "navegacion", descripcion: "Abrir gestión del árbol OPD", handler: () => s().abrirGestionArbol() }),
-    registrarAtajo({ combo: "Ctrl+Z", ctx: "global", categoria: "edicion", descripcion: "Deshacer", handler: () => s().deshacer() }),
-    registrarAtajo({ combo: "Ctrl+Y", ctx: "global", categoria: "edicion", descripcion: "Rehacer", handler: () => s().rehacer() }),
-    registrarAtajo({ combo: "Ctrl+Shift+Z", ctx: "global", categoria: "edicion", descripcion: "Rehacer", handler: () => s().rehacer() }),
-    registrarAtajo({ combo: "Ctrl+A", ctx: "canvas", categoria: "seleccion", descripcion: "Seleccionar todo en el OPD activo", handler: () => s().seleccionarTodoEnOpd() }),
-    registrarAtajo({ combo: "Ctrl+C", ctx: "canvas", categoria: "seleccion", descripcion: "Copiar selección visual", handler: () => s().copiarSeleccionAlBuffer() }),
-    registrarAtajo({ combo: "Ctrl+V", ctx: "canvas", categoria: "seleccion", descripcion: "Pegar selección visual", handler: () => s().pegarBufferEnOpdActivo() }),
-    registrarAtajo({ combo: "Delete", ctx: "canvas", categoria: "seleccion", descripcion: "Eliminar selección", handler: () => s().eliminarSeleccion() }),
-    registrarAtajo({ combo: "Ctrl+Shift+T", ctx: "canvas", categoria: "edicion", descripcion: "Traer conectados de la cosa seleccionada", handler: abrirTraerConectados }),
-    registrarAtajo({ combo: "Ctrl+H", ctx: "canvas", categoria: "vista", descripcion: "Ocultar apariencia seleccionada", handler: ocultarApariencia }),
-    registrarAtajo({ combo: "Ctrl+Alt+C", ctx: "canvas", categoria: "edicion", descripcion: "Copiar estilo del enlace seleccionado", handler: copiarEstiloEnlace }),
-    registrarAtajo({ combo: "Ctrl+Alt+V", ctx: "canvas", categoria: "edicion", descripcion: "Pegar estilo al enlace seleccionado", handler: pegarEstiloEnlace }),
-    registrarAtajo({
-      combo: "Ctrl+Alt+T",
-      ctx: "canvas",
-      categoria: "edicion",
-      etiqueta: "Agregar selección como partes...",
-      descripcion: "Agregar selección como partes...",
-      descripcionLarga: "Crea enlaces de agregación desde N-1 cosas hacia la última seleccionada",
-      handler: conectarMultiAlTodo,
-    }),
-    registrarAtajo({ combo: "Escape", ctx: "global", categoria: "seleccion", descripcion: "Cerrar modal superior o vaciar selección", handler: cerrarModalSuperiorOVaciarSeleccion }),
-    registrarAtajo({ combo: "ArrowUp", ctx: "canvas", categoria: "edicion", descripcion: "Mover selección 1 px hacia arriba", handler: () => s().nudgeSeleccion(0, -1) }),
-    registrarAtajo({ combo: "ArrowDown", ctx: "canvas", categoria: "edicion", descripcion: "Mover selección 1 px hacia abajo", handler: () => s().nudgeSeleccion(0, 1) }),
-    registrarAtajo({ combo: "ArrowLeft", ctx: "canvas", categoria: "edicion", descripcion: "Mover selección 1 px a la izquierda", handler: () => s().nudgeSeleccion(-1, 0) }),
-    registrarAtajo({ combo: "ArrowRight", ctx: "canvas", categoria: "edicion", descripcion: "Mover selección 1 px a la derecha", handler: () => s().nudgeSeleccion(1, 0) }),
-    registrarAtajo({ combo: "Shift+ArrowUp", ctx: "canvas", categoria: "edicion", descripcion: "Mover selección 10 px hacia arriba", handler: () => s().nudgeSeleccion(0, -10) }),
-    registrarAtajo({ combo: "Shift+ArrowDown", ctx: "canvas", categoria: "edicion", descripcion: "Mover selección 10 px hacia abajo", handler: () => s().nudgeSeleccion(0, 10) }),
-    registrarAtajo({ combo: "Shift+ArrowLeft", ctx: "canvas", categoria: "edicion", descripcion: "Mover selección 10 px a la izquierda", handler: () => s().nudgeSeleccion(-10, 0) }),
-    registrarAtajo({ combo: "Shift+ArrowRight", ctx: "canvas", categoria: "edicion", descripcion: "Mover selección 10 px a la derecha", handler: () => s().nudgeSeleccion(10, 0) }),
-    registrarAtajo({ combo: "Ctrl+ArrowUp", ctx: "global", categoria: "navegacion", descripcion: "Ir al OPD hermano anterior", handler: () => s().navegarOpdArriba() }),
-    registrarAtajo({ combo: "Ctrl+ArrowDown", ctx: "global", categoria: "navegacion", descripcion: "Ir al OPD hermano siguiente", handler: () => s().navegarOpdAbajo() }),
-    registrarAtajo({ combo: "Ctrl+ArrowLeft", ctx: "global", categoria: "navegacion", descripcion: "Ir al OPD padre", handler: () => s().navegarOpdIzquierda() }),
-    registrarAtajo({ combo: "Ctrl+ArrowRight", ctx: "global", categoria: "navegacion", descripcion: "Ir al primer OPD hijo", handler: () => s().navegarOpdDerecha() }),
-    registrarAtajo({ combo: "Shift+I", ctx: "canvas", categoria: "edicion", descripcion: "Crear inzoom de la cosa seleccionada", handler: () => s().descomponerSeleccionada() }),
-    registrarAtajo({ combo: "Shift+U", ctx: "canvas", categoria: "edicion", descripcion: "Desplegar selección", handler: () => s().desplegarSeleccionada() }),
-    registrarAtajo({ combo: "Ctrl+Shift+C", ctx: "canvas", categoria: "edicion", descripcion: "Copiar formato de enlace seleccionado", handler: copiarEstiloEnlace }),
-    registrarAtajo({ combo: "Ctrl+T", ctx: "global", categoria: "navegacion", descripcion: "Abrir pestaña nueva", handler: () => s().abrirPestanaNueva?.() }),
-    registrarAtajo({ combo: "Ctrl+W", ctx: "global", categoria: "navegacion", descripcion: "Cerrar pestaña activa", handler: () => {
-      const state = s();
-      state.cerrarPestana?.(state.pestanaActivaId);
-    } }),
-    registrarAtajo({ combo: "Ctrl+Tab", ctx: "global", categoria: "navegacion", descripcion: "Siguiente pestaña", handler: () => cambiarPestanaRelativa(1) }),
-    registrarAtajo({ combo: "Ctrl+Shift+Tab", ctx: "global", categoria: "navegacion", descripcion: "Pestaña anterior", handler: () => cambiarPestanaRelativa(-1) }),
-    // L3 ronda 20: Ctrl+B abre/cierra la biblioteca dock acoplada bajo el árbol OPD.
-    // Verificado en atajosTeclado: combo libre. Decisión §10 brief: usamos Ctrl+B.
-    registrarAtajo({ combo: "Ctrl+B", ctx: "global", categoria: "vista", descripcion: "Abrir/cerrar biblioteca dock", handler: () => s().toggleBibliotecaDock() }),
-  ];
-}
-
-function cambiarPestanaRelativa(delta: 1 | -1): void {
-  const state = store.getState();
-  const pestanas = state.pestanasAbiertas ?? [];
-  if (pestanas.length === 0) return;
-  const actual = pestanas.findIndex((pestana) => pestana.id === state.pestanaActivaId);
-  const siguiente = (actual + delta + pestanas.length) % pestanas.length;
-  const siguienteId = pestanas[siguiente]?.id;
-  if (siguienteId) state.cambiarPestanaActiva?.(siguienteId);
 }
 
 function tieneTimelineDisponible(modelo: Modelo, opdId: Id): boolean {
