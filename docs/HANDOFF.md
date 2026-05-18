@@ -1,10 +1,10 @@
 # HANDOFF — Estado operativo del modelador OPM
 
-**Fecha**: 2026-05-17
+**Fecha**: 2026-05-18
 **Repositorio**: `deep-opm-pro`
 **Rama**: `main`
-**Último corte funcional**: `e407292 refactor(render): extrae handler de tooltip canvas`
-**Corte**: Refactorizacion total, Corte 3 cerrado: JointJS queda tratado como adapter de render/interaccion con frontera de aplicacion explicita.
+**Último corte funcional**: `91d247a refactor(app): desacopla puertos de workspace del store`
+**Corte**: Refactorizacion total, Corte 4 cerrado: persistencia y workspace quedan tratados como infraestructura local con puertos y errores tipados, conservando `OpmStore` como fachada compatible.
 
 ## Política De Handoff Único
 
@@ -21,9 +21,49 @@
 
 ## Estado Actual
 
+### Refactorizacion Total — Corte 4 Persistencia Y Workspace Como Infraestructura Cerrado — 2026-05-18
+
+La rama `main` queda sincronizada con `origin/main` tras `91d247a`.
+
+Resultado arquitectonico:
+
+- `app/src/persistencia/workspaceStorage.ts` concentra lectura/escritura del índice workspace y preferencias UI booleanas, sin depender de `localStorage` global.
+- `PersistencePort` y `WorkspacePort` dejan de tiparse contra `OpmStore`; describen contratos explícitos para persistencia, workspace, carpetas, versiones y búsqueda.
+- `app/src/persistencia/versiones.ts` expone `ResultadoVersion<T>` con códigos (`storage_no_disponible`, `storage_escritura_fallida`, `storage_lectura_fallida`, `storage_borrado_fallido`, `version_no_encontrada`, `snapshot_no_encontrado`, `snapshot_corrupto`) y mantiene wrappers compatibles `crearVersion`, `restaurarVersion`, `eliminarVersion`.
+- Los callers de store para crear/restaurar/eliminar versiones consumen los resultados tipados sin `try/catch` genérico en el camino esperado.
+- Puertos adyacentes de workspace/persistencia (`VersionHistoryPort`, `SearchDialogsPort`, `CommandPalettePort`) dejan de depender de `OpmStore`.
+- No se cambio formato JSON exportado, claves `localStorage`, backend, UX visible, semantica OPM ni serialización.
+
+Commits atomicos del corte:
+
+- `36c8498 refactor(persistencia): extrae storage de workspace`
+- `6c09e9c refactor(app): tipa puerto de persistencia`
+- `1bee048 refactor(app): tipa puerto de workspace`
+- `261f76f refactor(persistencia): tipa resultados de versiones`
+- `91d247a refactor(app): desacopla puertos de workspace del store`
+
+Validacion de cierre:
+
+```bash
+cd app && bun run check
+# typecheck OK; 1390 pass / 0 fail
+cd app && bun run build
+# build OK
+cd app && bun test src/persistencia src/serializacion
+# 131 pass / 0 fail
+cd app && bun run browser:smoke -- e2e/06-undo-redo-dirty.spec.ts e2e/01-carga-y-workspace.spec.ts
+# 22 passed
+```
+
+Notas de frontera:
+
+- `OpmStore` sigue existiendo como fachada de sesión y compatibilidad; el corte no intenta borrar Zustand.
+- Persistencia local y versionado ya devuelven resultados tipados en la frontera nueva, pero flujos más grandes de guardar/cargar siguen orquestados desde slices por compatibilidad.
+- Quedan otros puertos de UI fuera del alcance de Corte 4 que todavía usan `OpmStore`; deben tratarse solo cuando un corte normativo lo exija.
+
 ### Refactorizacion Total — Corte 3 JointJS Como Adapter Cerrado — 2026-05-17
 
-La rama `main` queda sincronizada con `origin/main` tras `e407292`.
+La rama `main` quedo sincronizada con `origin/main` tras `5c5cde4`.
 
 Resultado arquitectonico:
 
@@ -39,6 +79,7 @@ Commits atomicos del corte:
 - `dd7fd37 refactor(app): introduce puerto de interaccion canvas`
 - `9e6b841 refactor(render): mueve sync de cells al adapter jointjs`
 - `e407292 refactor(render): extrae handler de tooltip canvas`
+- `5c5cde4 docs(refactor): registra cierre corte jointjs adapter`
 
 Validacion de cierre:
 
@@ -455,9 +496,10 @@ El brief UX/IFML queda cerrado para el corte auditado. Los cortes de modelos den
 
 Pendiente inmediato de refactorizacion:
 
-- Continuar Corte 4: persistencia y workspace como infraestructura.
-- Introducir `PersistencePort`/`WorkspacePort` solo donde reduzcan acoplamiento real, sin cambiar formato exportado ni claves localStorage.
-- Mantener `OpmStore` como fachada compatible mientras se separan persistencia, workspace y comandos de modelado.
+- Entrar a **Corte 5 - OPL Y Diagnostico Como Capacidades** del plan normativo.
+- Consolidar generacion OPL, filtros, edicion inversa y citas detras de `OplPort` sin cambiar texto OPL observable.
+- Introducir `DiagnosticsPort` solo si permite mover reglas/checkers fuera de UI sin duplicar calculos ni cambiar severidades visibles.
+- Mantener `OpmStore` como fachada compatible mientras los paneles migran a puertos pequenos.
 - Seguir usando smokes focales y `bun run check` como cierre de loop por corte.
 
 Pendientes funcionales a retomar despues o como pressure tests:
@@ -472,4 +514,4 @@ Pendientes funcionales a retomar despues o como pressure tests:
 
 Retomar desde este `docs/HANDOFF.md` y el plan `docs/roadmap/refactorizacion-total-plan-normativo.md`.
 
-Siguiente bloque recomendado: iniciar **Corte 4 - Persistencia Y Workspace Como Infraestructura**. Objetivo pragmatico: separar persistencia local, workspace y busqueda/global-openers del store sin cambiar formato JSON, claves locales ni UX visible. Validar siempre con typecheck, unit dirigido, build, suite completa cuando el cambio toque persistencia/workspace, y smokes `e2e/06-undo-redo-dirty.spec.ts` + `e2e/01-carga-y-workspace.spec.ts`.
+Siguiente bloque recomendado: iniciar **Corte 5 - OPL Y Diagnostico Como Capacidades**. Objetivo pragmatico: hacer que OPL y diagnostico sean servicios claros, no funciones dispersas entre UI/store. Validar con typecheck, unitarios de `src/opl`, `src/serializacion`/diagnostico tocado, build y smoke focal del panel OPL/diagnostico cuando haya superficie visible.
