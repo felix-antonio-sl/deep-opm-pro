@@ -9,6 +9,7 @@ import {
   type AccionContextual,
   type AccionContextualId,
 } from "../store/acciones-contextuales";
+import { useCanvasPaper } from "./CanvasAdapterContext";
 import { colors } from "./tokens";
 
 /**
@@ -679,32 +680,6 @@ export function rectVisibleEnViewport(rect: OverlayBBox, viewport: Pick<HTMLElem
 function viewportDePaper(paper: dia.Paper): HTMLElement | null {
   const el = (paper as unknown as { el?: Element }).el;
   return el?.closest<HTMLElement>('[role="img"][aria-label="OPD activo"]') ?? null;
-}
-
-function useCanvasPaper(): dia.Paper | null {
-  const [paper, setPaper] = useState<dia.Paper | null>(() => paperGlobal());
-
-  useEffect(() => {
-    let frame = 0;
-    let cancelado = false;
-    const actualizar = () => {
-      if (cancelado) return;
-      const siguiente = paperGlobal();
-      setPaper((actual) => actual === siguiente ? actual : siguiente);
-      if (!siguiente) frame = requestAnimationFrame(actualizar);
-    };
-    actualizar();
-    return () => {
-      cancelado = true;
-      cancelAnimationFrame(frame);
-    };
-  }, []);
-
-  return paper;
-}
-
-function paperGlobal(): dia.Paper | null {
-  return (globalThis as { __opmJointAdapter?: { paper: dia.Paper } }).__opmJointAdapter?.paper ?? null;
 }
 
 function enfocarSeccionInspector(testId: string): void {

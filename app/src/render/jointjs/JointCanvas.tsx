@@ -47,10 +47,15 @@ import {
  * sub-archivos por familia; este componente queda como orquestador delgado.
  */
 
-export function JointCanvas() {
+interface JointCanvasProps {
+  onAdapterChange?: (adapter: JointCanvasAdapter | null) => void;
+}
+
+export function JointCanvas({ onAdapterChange }: JointCanvasProps) {
   const paperHostRef = useRef<HTMLDivElement>(null);
   const viewportRef = useRef<HTMLDivElement>(null);
   const adapterRef = useRef<JointCanvasAdapter | null>(null);
+  const onAdapterChangeRef = useRef(onAdapterChange);
   const [adapterState, setAdapterState] = useState<JointCanvasAdapter | null>(null);
   const sincronizandoRef = useRef(false);
   const rubberBandRef = useRef(false);
@@ -102,6 +107,10 @@ export function JointCanvas() {
     gridConfig,
     solicitudFitToken,
   } = useJointCanvasViewModel();
+
+  useEffect(() => {
+    onAdapterChangeRef.current = onAdapterChange;
+  }, [onAdapterChange]);
 
   const modoEnlaceRef = useRef(modoEnlace);
   const modoCreacionRef = useRef(modoCreacion);
@@ -325,6 +334,7 @@ export function JointCanvas() {
 
     adapterRef.current = adapter;
     setAdapterState(adapter);
+    onAdapterChangeRef.current?.(adapter);
     // Hook de debug: permite que la sonda in-vivo (scripts/in-vivo-test.mjs)
     // mida posiciones reales del graph y endpoints reales del paper. Sin
     // efecto en runtime; solo es accesible desde DevTools/Playwright.
@@ -332,6 +342,7 @@ export function JointCanvas() {
     return () => {
       adapterRef.current = null;
       setAdapterState(null);
+      onAdapterChangeRef.current?.(null);
       limpiarDebugAdapter();
       cleanups.forEach((fn) => fn());
       destruirJointCanvasAdapter(adapter);

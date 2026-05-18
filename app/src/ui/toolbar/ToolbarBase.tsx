@@ -6,8 +6,10 @@ import { useEffect, useState } from "preact/hooks";
 import objectDragIcon from "../../../../assets/svg/objectDrag.svg";
 import { useToolbarBaseViewModel } from "../../app/viewmodels/toolbarBaseViewModel";
 import type { Entidad, Id, TipoEnlace } from "../../modelo/tipos";
+import type { JointCanvasAdapter } from "../../render/jointjs/jointCanvasAdapter";
 import type { AccionContextualId } from "../../store/acciones-contextuales";
 import { primerEnlaceVisualDeEntidad } from "../BarraHerramientasElemento";
+import { useCanvasAdapter } from "../CanvasAdapterContext";
 import { ChipPersistencia } from "../ChipPersistencia";
 import { ejecutarAccionContextualEntidad } from "../ejecutarAccionContextual";
 // L2 ronda 21: la toolbar primaria de modelado pesado se oculta en mobile
@@ -22,7 +24,6 @@ const DialogoPlantillas = lazy(() => import("../DialogoPlantillas").then((m) => 
 const DialogoTraerConectados = lazy(() => import("../DialogoTraerConectados").then((m) => ({ default: m.DialogoTraerConectados })));
 
 type PantallaInicioComponent = () => preact.JSX.Element | null;
-type GlobalJointAdapter = { graph?: { getCell?: (id: string) => { prop?: (name: string) => unknown } | undefined } };
 
 /**
  * ViewContainer ToolbarBase: chrome estable. [JOYAS §1-3], [V-0c], IFML H-2/H-5.
@@ -99,6 +100,7 @@ export function ToolbarBase({ children, modelarSlot, conectarSlot, mapaSlot, sta
   const [nombreNuevaCosa, setNombreNuevaCosa] = useState("");
   const [menuContextual, setMenuContextual] = useState<null | { enlaceId: Id; x: number; y: number }>(null);
   const [menuEntidad, setMenuEntidad] = useState<null | { aparienciaId: Id; entidadId: Id; x: number; y: number }>(null);
+  const canvasAdapter = useCanvasAdapter();
   // L2 ronda 21: viewport-aware toolbar. Mobile oculta clusters de modelado
   // pesado (Modelar/Conectar/Validar) y conserva sólo Modelo + Ayuda.
   // Tablet conserva todo pero cabrá mejor por la toolbar overflow existente.
@@ -133,7 +135,7 @@ export function ToolbarBase({ children, modelarSlot, conectarSlot, mapaSlot, sta
   }, []);
   useEffect(() => {
     const onMenuEntidad = (event: MouseEvent) => {
-      const meta = metadataEntidadDesdeContextMenu(event);
+      const meta = metadataEntidadDesdeContextMenu(event, canvasAdapter);
       if (!meta) return;
       event.preventDefault();
       seleccionarEntidad(meta.entidadId);
@@ -147,7 +149,7 @@ export function ToolbarBase({ children, modelarSlot, conectarSlot, mapaSlot, sta
       window.removeEventListener("contextmenu", onMenuEntidad, { capture: true });
       window.removeEventListener("click", cerrar);
     };
-  }, [seleccionarEntidad]);
+  }, [canvasAdapter, seleccionarEntidad]);
 
   const entidadSeleccionada = seleccionId ? modelo.entidades[seleccionId] : undefined;
   const puedeCrearAtributo = entidadSeleccionada?.tipo === "objeto";
@@ -576,13 +578,12 @@ function purgarSeparadoresVacios(items: ToolbarMasItem[]): ToolbarMasItem[] {
   return limpio;
 }
 
-function metadataEntidadDesdeContextMenu(event: MouseEvent): { aparienciaId: Id; entidadId: Id } | null {
+function metadataEntidadDesdeContextMenu(event: MouseEvent, adapter: JointCanvasAdapter | null): { aparienciaId: Id; entidadId: Id } | null {
   const target = event.target instanceof Element ? event.target : null;
   const cellEl = target?.closest?.(".joint-cell,[model-id],[data-model-id]");
   const modelId = cellEl?.getAttribute("model-id") ?? cellEl?.getAttribute("data-model-id");
   if (!modelId) return null;
-  const adapter = (globalThis as typeof globalThis & { __opmJointAdapter?: GlobalJointAdapter }).__opmJointAdapter;
-  const meta = adapter?.graph?.getCell?.(modelId)?.prop?.("opm") as { kind?: string; aparienciaId?: Id; entidadId?: Id } | undefined;
+  const meta = adapter?.graph.getCell(modelId)?.prop("opm") as { kind?: string; aparienciaId?: Id; entidadId?: Id } | undefined;
   if (meta?.kind !== "entidad" || !meta.aparienciaId || !meta.entidadId) return null;
   return { aparienciaId: meta.aparienciaId, entidadId: meta.entidadId };
 }

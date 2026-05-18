@@ -13,6 +13,7 @@ import { panelOplMinimizadoEfectivo } from "../app/viewmodels/panelOplViewModel"
 import { obtenerRefinamiento } from "../modelo/refinamientos";
 import type { Id, Modelo } from "../modelo/tipos";
 import { JointCanvas } from "../render/jointjs/JointCanvas";
+import type { JointCanvasAdapter } from "../render/jointjs/jointCanvasAdapter";
 import { store } from "../store";
 import { ANCHO_PANEL_INSPECTOR_DEFAULT, ANCHO_PANEL_INSPECTOR_MAX, ANCHO_PANEL_INSPECTOR_MIN } from "../store/runtime";
 import { ArbolOpd } from "./ArbolOpd";
@@ -22,6 +23,7 @@ import { BibliotecaDock } from "./biblioteca/BibliotecaDock";
 import { CapturadorBugs } from "./CapturadorBugs";
 import { configurarContextoAtajos, escucharGlobal, registrarAtajo } from "./atajosTeclado";
 import { modeloTieneContenidoVisible } from "./bienvenida";
+import { CanvasAdapterContext } from "./CanvasAdapterContext";
 import { ConfirmacionProvider } from "./ConfirmacionContext";
 import { resolverContextoWorkbench } from "./contexto";
 import { tituloViewPointWorkbench } from "./contextoWorkbench";
@@ -100,6 +102,7 @@ export function App() {
     modoCreacionActivo,
   } = useAppShellViewModel();
   const [inspectorAbierto, setInspectorAbierto] = useState(true);
+  const [canvasAdapter, setCanvasAdapter] = useState<JointCanvasAdapter | null>(null);
   const oplMinimizado = panelOplMinimizadoEfectivo(preferenciasOpl?.oplMinimizado, seleccionIdOpl, enlaceSeleccionIdOpl);
   const timelineDisponible = tieneTimelineDisponible(modelo, opdActivoId);
   const [esDesktopBiblio, setEsDesktopBiblio] = useState(typeof window === "undefined" ? true : window.innerWidth >= tokens.bibliotecaDock.desktopMinPx);
@@ -147,6 +150,7 @@ export function App() {
   const esViewPointMapa = contextoWorkbench.modo === "mapa";
 
   return (
+    <CanvasAdapterContext.Provider value={canvasAdapter}>
     <ConfirmacionProvider>
       <main
         style={pageStyle(esMobile)}
@@ -176,7 +180,7 @@ export function App() {
                 </Suspense>
               ) : (
                 <>
-                  <JointCanvas />
+                  <JointCanvas onAdapterChange={setCanvasAdapter} />
                   <BarraHerramientasElemento
                     inspectorAbierto={false}
                     onAbrirInspector={() => setInspectorAbierto(true)}
@@ -252,7 +256,7 @@ export function App() {
               </Suspense>
             ) : (
               <>
-                <JointCanvas />
+                <JointCanvas onAdapterChange={setCanvasAdapter} />
                 <BarraHerramientasElemento
                   inspectorAbierto={inspectorAbierto}
                   onAbrirInspector={() => setInspectorAbierto(true)}
@@ -335,6 +339,7 @@ export function App() {
         <CapturadorBugs />
       </main>
     </ConfirmacionProvider>
+    </CanvasAdapterContext.Provider>
   );
 }
 
