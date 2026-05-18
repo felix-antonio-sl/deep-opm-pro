@@ -3,8 +3,8 @@
 **Fecha**: 2026-05-18
 **Repositorio**: `deep-opm-pro`
 **Rama**: `main`
-**Último corte funcional**: `ca471db fix(build): elimina chunk circular manual`
-**Corte**: Refactorizacion total, Corte 8 cerrado: consistencia transversal entre plan, HU dashboard, quality ledger, build y handoff.
+**Último corte funcional**: `3caef2b refactor(app): elimina snapshot imperativo en tabla enlaces`
+**Corte**: Refactorizacion total, Corte 9 cerrado: cascadas de efectos y fronteras residuales.
 
 ## Política De Handoff Único
 
@@ -20,6 +20,48 @@
 - JointJS OSS: usar documentación oficial viva cuando se toque JointJS.
 
 ## Estado Actual
+
+### Refactorizacion Total — Corte 9 Cascadas De Efectos Cerrado — 2026-05-18
+
+La rama `main` queda lista para sincronizar con `origin/main` tras el cierre documental de este handoff. El ultimo commit funcional del corte es `3caef2b`.
+
+Resultado arquitectonico/proceso:
+
+- `quality-ledger.mjs` ahora tiene modo `--check` con umbrales de baseline: bundle principal <= 129.62 kB gzip, leyes canonicas 6/6, compat detectors 0, MVP-alpha >= 104 cubiertas + 1 parcial y 89/105 reglas auto. `app/package.json` agrega `quality:gate` y `gate:refactor`.
+- La dependencia productiva de UI sobre `globalThis.__opmJointAdapter` queda eliminada. `JointCanvas` publica el adapter por `CanvasAdapterContext`; el global queda solo como hook de debug/in-vivo.
+- `App.tsx` deja de importar el store y de registrar atajos con `store.getState()` directo. Los atajos viven en `globalShortcutsPort` con adaptador `zustandGlobalShortcutsPort`.
+- `ui/ejecutarAccionContextual.ts` deja de leer Zustand directamente; consume un puerto de ejecucion contextual con adaptador Zustand.
+- `zustandLinksTablePort` elimina el snapshot imperativo para renombrar etiquetas y usa selecciones/actions capturadas por el adapter.
+- Ocho puertos hoja dejan de tiparse contra `OpmStore`: `HelpPort`, `EditabilityPort`, `WelcomeScreenPort`, `ToolbarOverflowPort`, `MobileReviewPort`, `HistoryPort`, `SessionMessagePort` y `SystemMapViewportPort`.
+- El auditor HU actualiza evidencia de atajos y persistencia hacia `app/src/app/ports/globalShortcutsPort.ts`; los reportes `hu-progress.*` quedan regenerados sin caida de reglas.
+- El plan normativo agrega explicitamente `Corte 9 - Cascadas De Efectos Y Fronteras Residuales`.
+
+Commits atomicos del corte:
+
+- `d154147 fix(quality): convierte ledger en gate`
+- `c973cec refactor(render): expone adapter canvas por contexto`
+- `7b73b76 refactor(ports): explicita puertos hoja`
+- `800ed77 refactor(app): mueve atajos globales a puerto`
+- `4a68304 refactor(app): aísla ejecución contextual del store`
+- `3caef2b refactor(app): elimina snapshot imperativo en tabla enlaces`
+- `e42616f fix(roadmap): actualiza evidencia de atajos movidos`
+- `docs(refactor): registra cierre corte cascadas` (este handoff)
+
+Validacion de cierre:
+
+```bash
+cd app && bun run gate:refactor
+# typecheck OK; 1406 pass / 0 fail; lint OK; build OK; browser:smoke 193 passed
+# Dashboard HU: Total 24.8%; MVP-alpha 86.2%; 89/105 reglas auto
+# Quality gate PASS: bundle 463.61 kB / 124.75 kB gzip; leyes 6/6; compat detectors 0
+```
+
+Deuda residual medida, fuera de Corte 9:
+
+- `JointCanvas` todavia renderiza chrome UI concreto (`MenuTipoEnlace`, `RenombradoInline`) y sincroniza feedback desde render. La dependencia global quedo cerrada, pero la frontera render/UI completa requiere corte propio con pruebas visuales.
+- Quedan 33 puertos type-only bajo `app/src/app/ports/*Port.ts` acoplados a `OpmStore`; el primer lote seguro ya fue migrado, pero no se debe hacer migracion masiva sin agrupar por frontera.
+- Algunos adaptadores Zustand conservan `store.getState()` por lectura fresca deliberada o comandos compuestos (`zustandPersistencePort`, `zustandNewModelAssistantPort`, `zustandEntityInspectorPorts`). Requieren cortes focalizados.
+- `HU-50.004` permanece pendiente real: posicion lateral del panel OPL. No se implemento para no mezclar feature con refactor.
 
 ### Refactorizacion Total — Corte 8 Consistencia Transversal Cerrado — 2026-05-18
 

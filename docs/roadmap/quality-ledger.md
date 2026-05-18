@@ -1,7 +1,7 @@
 # Quality ledger law-first
 
 **Fecha:** 2026-05-18  
-**Corte:** refactorizacion total - Corte 8 consistencia  
+**Corte:** refactorizacion total - Corte 9 cascadas  
 **Rol:** contrato operativo de calidad posterior a los cortes 0-7. Complementa
 el dashboard HU; no lo reemplaza y no edita HU canonicas.
 
@@ -19,6 +19,7 @@ sustituyen una ley con nombre estable cuando el borde es critico.
 | Post L1/L2 local | Ejecutado por L3 el 2026-05-07 | 898 pass / 0 fail / 3525 expect, 90 archivos | No reejecutado en L3 | 233.48 kB / 62.79 kB gzip | `hu-progress.json` 2026-05-07T09:47:32.660Z: MVP-alpha 121/121, 102/102 reglas matched |
 | Refactorizacion Corte 7 | Cierre `0d454ae` | 1406 pass / 0 fail / 5260 expect, 152 archivos | 193 passed | 463.71 kB / 124.65 kB gzip | MVP-alpha 99/121 (83.4%), 81/102 reglas matched |
 | Corte 8 consistencia | Auditor HU vigente + chunk circular eliminado | 1406 pass / 0 fail / 5260 expect, 152 archivos | 193 passed | 463.44 kB / 124.62 kB gzip | MVP-alpha 104/121 + 1 parcial (86.2%), 89/105 reglas matched |
+| Corte 9 cascadas | `gate:refactor` + quality `--check` | 1406 pass / 0 fail / 5260 expect, 152 archivos | 193 passed | 463.61 kB / 124.75 kB gzip | MVP-alpha 104/121 + 1 parcial (86.2%), 89/105 reglas matched |
 
 Notas:
 

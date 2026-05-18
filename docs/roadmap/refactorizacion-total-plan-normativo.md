@@ -629,6 +629,39 @@ node docs/historias-usuario-v2/tools/progress-dashboard.mjs --sync-real
 cd app && bun run scripts/quality-ledger.mjs --markdown
 ```
 
+### Corte 9 - Cascadas De Efectos Y Fronteras Residuales
+
+Objetivo:
+
+- Cerrar efectos secundarios acumulados por los cortes 0-8 cuando ya existe
+  evidencia concreta de drift entre arquitectura, tooling, reportes y runtime.
+
+Acciones permitidas:
+
+- Convertir metricas informativas en gates reproducibles cuando ya exista un
+  baseline medido.
+- Corregir reglas HU que quedaron apuntando a superficies movidas durante la
+  refactorizacion.
+- Mover dependencias productivas sobre hooks globales de debug hacia puertos o
+  contextos explicitos.
+- Reducir acoplamiento directo a `OpmStore` solo en puertos hoja o comandos con
+  blast radius bajo y contrato verificable.
+- Registrar deuda residual cuando la correccion real implique rediseñar una
+  frontera completa.
+
+No permitido:
+
+- Implementar HU nuevas para recuperar metricas.
+- Migrar masivamente todos los puertos tipados contra `OpmStore`.
+- Eliminar el hook global de debug JointJS si aun lo usan las sondas in-vivo.
+- Reescribir render/UI completo o mover overlays sin pruebas visuales dedicadas.
+
+Gate:
+
+```bash
+cd app && bun run gate:refactor
+```
+
 ## 12. Definicion De Hecho
 
 Un corte esta hecho solo si cumple:
