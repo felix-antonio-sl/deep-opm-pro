@@ -42,18 +42,37 @@ describe("tokens.colors — paleta UI mínima [JOYAS §1]", () => {
     expect(spacing).toEqual({ xs: 4, sm: 8, md: 12, lg: 16, xl: 24, xxl: 32 });
   });
 
-  test("radii cubre la escala canónica requerida 4/6/8", () => {
-    expect(radii.sm).toBe(4);
-    expect(radii.md).toBe(6);
-    expect(radii.lg).toBe(8);
+  test("radii ronda 23 cubre la escala respiratoria 6/8/12/16", () => {
+    // chrome estética: subir radii del chrome (sm→6 / md→8 / lg→12 / xl→16)
+    // sin tocar xs (3), control (5), pill/full. El canvas (JOYAS §2) no
+    // consume radii — solo afecta cards, modales, inputs.
+    expect(radii.xs).toBe(3);
+    expect(radii.sm).toBe(6);
+    expect(radii.control).toBe(5);
+    expect(radii.md).toBe(8);
+    expect(radii.lg).toBe(12);
+    expect(radii.xl).toBe(16);
+    expect(radii.pill).toBe(999);
+    expect(radii.full).toBe(9999);
   });
 
-  test("shadow de diálogo centraliza el valor repetido T2.4", () => {
-    expect(shadows.dialogo).toBe("0 12px 30px rgba(15, 23, 42, 0.16)");
+  test("shadows ronda 23 expone escala xs/sm/md/lg y reasigna aliases", () => {
+    // chrome estética: 4-tiers respiratorios (alfa 4-6-8-10 %), aliases
+    // semánticos preservados pero apuntando a la escala nueva.
+    expect(shadows.xs).toBe("0 1px 2px rgba(15, 23, 42, 0.04)");
+    expect(shadows.sm).toBe("0 2px 6px rgba(15, 23, 42, 0.06)");
+    expect(shadows.md).toBe("0 8px 16px rgba(15, 23, 42, 0.08)");
+    expect(shadows.lg).toBe("0 16px 32px rgba(15, 23, 42, 0.10)");
+    expect(shadows.card).toBe(shadows.xs);
+    expect(shadows.popover).toBe(shadows.sm);
+    expect(shadows.dialogo).toBe(shadows.md);
+    expect(shadows.modal).toBe(shadows.lg);
   });
 
-  test("typography conserva Arial chrome y pesos observados", () => {
-    expect(typography.familyChrome).toBe("Arial, sans-serif");
+  test("typography ronda 23 usa system-ui chrome y conserva Arial canvas", () => {
+    expect(typography.familyChrome.startsWith('"Inter"')).toBe(true);
+    expect(typography.familyChrome).toContain("system-ui");
+    // [JOYAS §3] el canvas SVG sigue siendo Arial — contrato invariante.
     expect(typography.familyCanvas).toBe("Arial");
     expect(typography.sizes.lg).toBe(14);
     expect(typography.weights.semibold).toBe(600);

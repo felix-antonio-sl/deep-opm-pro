@@ -127,34 +127,55 @@ export const spacing = {
   xxl: 32,
 } as const;
 
+/*
+ * Radii — ronda 23 chrome estética:
+ *   sm 4→6 / md 6→8 / lg 8→12 / xl 10→16. xs/control/pill/full preservados.
+ *   El canvas (JOYAS §2) no consume radii de tokens, así que solo afecta
+ *   chrome (cards, modales, inputs).
+ */
 export const radii = {
   xs: 3,
-  sm: 4,
+  sm: 6,
   control: 5,
-  md: 6,
-  lg: 8,
-  xl: 10,
+  md: 8,
+  lg: 12,
+  xl: 16,
   pill: 999,
   full: 9999,
 } as const;
 
+/*
+ * Shadows — ronda 23 chrome estética: escala respiratoria 4-niveles
+ * (xs/sm/md/lg) basada en alfa 4-6-8-10 % sobre slate-900. Los aliases
+ * semánticos (`card`, `popover`, `menu`, `dialogo`, `modal`, etc.) se
+ * reasignan a esa escala para no romper consumidores. Antes: 12-28 %.
+ */
+const shadowXs = "0 1px 2px rgba(15, 23, 42, 0.04)";
+const shadowSm = "0 2px 6px rgba(15, 23, 42, 0.06)";
+const shadowMd = "0 8px 16px rgba(15, 23, 42, 0.08)";
+const shadowLg = "0 16px 32px rgba(15, 23, 42, 0.10)";
+
 export const shadows = {
-  card: "0 1px 3px rgba(15, 23, 42, 0.08)",
-  dialogo: "0 12px 30px rgba(15, 23, 42, 0.16)",
-  menu: "0 10px 26px rgba(15, 23, 42, 0.14)",
-  menuContextual: "0 12px 28px rgba(15, 23, 42, 0.18)",
-  popover: "0 6px 16px rgba(15, 23, 42, 0.12)",
-  flotante: "0 18px 42px rgba(16, 24, 40, 0.24)",
-  modal: "0 18px 44px rgba(15, 23, 42, 0.22)",
-  modalAmplio: "0 20px 48px rgba(16, 24, 40, 0.25)",
-  modalGrid: "0 18px 42px rgb(15 23 42 / 0.22)",
-  tabla: "0 20px 60px rgba(16, 24, 40, 0.25)",
-  asistente: "0 20px 60px rgba(16, 24, 40, 0.22)",
-  inicio: "0 24px 60px rgba(16, 24, 40, 0.28)",
-  menuPrincipal: "0 14px 32px rgba(16, 24, 40, 0.18)",
-  menuLigero: "0 8px 24px rgba(16, 24, 40, 0.18)",
-  menuArbol: "0 16px 32px rgba(16, 24, 40, 0.18)",
-  mapaPopup: "0 10px 24px rgba(16, 24, 40, 0.16)",
+  xs: shadowXs,
+  sm: shadowSm,
+  md: shadowMd,
+  lg: shadowLg,
+  card: shadowXs,
+  popover: shadowSm,
+  menu: shadowMd,
+  menuContextual: shadowMd,
+  menuPrincipal: shadowMd,
+  menuLigero: shadowSm,
+  menuArbol: shadowMd,
+  mapaPopup: shadowSm,
+  dialogo: shadowMd,
+  modal: shadowLg,
+  modalAmplio: shadowLg,
+  modalGrid: shadowLg,
+  flotante: shadowMd,
+  tabla: shadowLg,
+  asistente: shadowLg,
+  inicio: shadowLg,
   dropProceso: "0 0 0 2px rgba(59, 195, 255, 0.18)",
   seleccionadoInset: `0 0 0 2px ${colors.infoFondo} inset`,
   swatchActivo: `0 0 0 2px ${colors.fondoChrome}, 0 0 0 4px ${colors.chromeNeutral}`,
@@ -162,7 +183,13 @@ export const shadows = {
 } as const;
 
 export const typography = {
-  familyChrome: "Arial, sans-serif",
+  /*
+   * Fontstack chrome — ronda 23 chrome estética: system-ui stack moderno
+   * para superficie chrome (toolbars, modales, inspector). `familyCanvas`
+   * permanece en Arial: el canvas SVG es contrato JOYAS §3 invariante y no
+   * debe cambiar tipografía. Sin fuente externa: zero bundle delta.
+   */
+  familyChrome: '"Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif',
   familyCanvas: "Arial",
   sizes: {
     xxs: 10,

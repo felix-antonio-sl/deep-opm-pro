@@ -102,7 +102,8 @@ export const toolbarStyle = {
     background: colors.acentoUiSuave,
     color: "#1f2937",
     fontSize: "12px",
-    fontWeight: 800,
+    // ronda 23 chrome: 800→700, era demasiado denso para un status badge.
+    fontWeight: 700,
     whiteSpace: "nowrap",
   },
   anchorNudge: {
@@ -128,7 +129,8 @@ export const toolbarStyle = {
     background: "#eef2f6",
     color: "#344054",
     fontSize: "12px",
-    fontWeight: 800,
+    // ronda 23 chrome: 800→700, era demasiado denso para un status badge.
+    fontWeight: 700,
     whiteSpace: "nowrap",
   },
   lockIcon: {
