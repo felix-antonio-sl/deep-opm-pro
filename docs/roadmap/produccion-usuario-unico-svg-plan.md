@@ -3,7 +3,7 @@
 **Fecha:** 2026-05-18  
 **Repo:** `deep-opm-pro`  
 **Alcance:** habilitar una primera version usable en produccion privada para un unico usuario local, con export SVG del OPD activo.  
-**Estado:** Corte 0, Corte 1 y Corte 2 cerrados; Corte 3 pendiente.  
+**Estado:** Corte 0, Corte 1, Corte 2 y Corte 3 cerrados; Corte 4 pendiente.  
 **Autoridad superior:** `AGENTS.md`, `docs/HANDOFF.md`, `docs/JOYAS.md`, `opm-extracted/`, SSOT OPM local y HU vivas.
 
 ## 1. Objetivo
@@ -224,12 +224,81 @@ Alcance:
 Gate:
 
 ```bash
-cd app && bunx playwright test e2e/06-undo-redo-dirty.spec.ts e2e/11-beta1-catalogo-ancla.spec.ts
+cd app && bunx playwright test e2e/06-undo-redo-dirty.spec.ts e2e/11-beta1-catalogo-ancla.spec.ts e2e/25-produccion-backup.spec.ts
 ```
 
 Estado:
 
-- Pendiente.
+- Cerrado el 2026-05-18 en `acdeb32 feat(produccion): agrega backup json descargable`.
+
+Resultado:
+
+- `PersistenciaJson` agrega `Descargar JSON`, que descarga el modelo activo en
+  un archivo `.json` con nombre derivado del modelo y la fecha.
+- `25-produccion-backup.spec.ts` cubre backup portable: descarga JSON, crea un
+  modelo nuevo, reimporta el archivo descargado y compara conteos del modelo.
+- La persistencia local, dirty guard, round-trip JSON y autosalvado quedan
+  cubiertos por tests focales existentes y por el gate completo.
+
+#### Procedimiento Minimo De Backup Manual JSON
+
+Alcance: respaldo portable del modelo OPM activo para uso single-user local. No
+sustituye sincronizacion remota, backend, versionado externo ni recuperacion si
+se pierde el archivo descargado.
+
+Cuando respaldar:
+
+- al terminar una sesion de trabajo;
+- antes de cambios estructurales grandes;
+- antes de limpiar datos del navegador, cambiar de navegador, cambiar de
+  origen/puerto o actualizar el build;
+- antes de depender del modelo para trabajo real.
+
+Crear backup:
+
+1. Guardar el modelo localmente con `Ctrl+S` o `Menu principal > Guardar/Guardar como`.
+2. Abrir `Menu principal > Importar/Exportar JSON...`.
+3. Usar `Descargar JSON`.
+4. Guardar el archivo fuera del storage del navegador, con nombre legible y fecha.
+5. Verificar que el archivo pesa mas de 0 bytes y contiene `"formato": "deep-opm-pro.modelo.v0"`.
+
+Restaurar backup:
+
+1. Abrir la app.
+2. Abrir `Menu principal > Importar/Exportar JSON...`.
+3. Elegir o soltar el archivo `.json`.
+4. Confirmar que la vista previa muestra el nombre del modelo y conteos esperados.
+5. Pulsar `Importar`.
+6. Ejecutar inmediatamente `Guardar` o `Guardar como` para volver a persistirlo en el workspace local.
+7. Reabrir desde `Cargar otro...` y verificar que el modelo aparece y carga.
+
+Limitaciones:
+
+- `localStorage` no es respaldo: puede perderse al limpiar datos del navegador,
+  cambiar de perfil/origen, usar otro navegador o por cuotas del navegador.
+- El backup JSON cubre el modelo OPM serializado; no cubre capturas, reportes,
+  `app/dist`, configuracion del navegador ni rollback del build.
+- El autosalvado opera sobre modelos que ya tienen un primer `Guardar como`.
+  Un modelo nuevo o importado sin guardar depende del dirty guard y del backup
+  manual.
+
+Validacion ejecutada:
+
+```bash
+cd app && bun test src/persistencia/local.test.ts src/persistencia/autosalvado.test.ts src/store/persistencia.test.ts src/serializacion/json.test.ts
+# 79 pass / 0 fail
+
+cd app && bunx playwright test e2e/06-undo-redo-dirty.spec.ts e2e/11-beta1-catalogo-ancla.spec.ts e2e/25-produccion-backup.spec.ts
+# 19 passed
+
+cd app && bun run browser:preview
+# 1 passed
+
+cd app && bun run gate:refactor
+# typecheck OK; 1410 pass / 0 fail / 5266 expect; lint src/ OK; build OK; browser:smoke 196 passed
+# Dashboard HU: Total 24.8%; MVP-alpha 86.2%; 89/105 reglas auto; firma de fuentes vigente
+# Quality gate PASS: bundle 457.31 kB / 122.82 kB gzip; leyes 6/6; compat detectors 0
+```
 
 ### Corte 4 - Documentacion De Uso Productivo Privado
 

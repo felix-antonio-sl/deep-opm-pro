@@ -3,8 +3,8 @@
 **Fecha**: 2026-05-18
 **Repositorio**: `deep-opm-pro`
 **Rama**: `main`
-**Último corte funcional**: `1df6f8a test(produccion): valida preview estatico`
-**Corte**: Produccion single-user SVG, Corte 2 cerrado: operacion estatica y preview productivo.
+**Último corte funcional**: `acdeb32 feat(produccion): agrega backup json descargable`
+**Corte**: Produccion single-user SVG, Corte 3 cerrado: persistencia local y backup JSON operable.
 
 ## Política De Handoff Único
 
@@ -22,6 +22,54 @@
 - JointJS OSS: usar documentación oficial viva cuando se toque JointJS.
 
 ## Estado Actual
+
+### Produccion Single-User SVG — Corte 3 Backup JSON Operable Cerrado — 2026-05-18
+
+Se cerro el riesgo operativo principal del uso single-user local: el usuario ya
+puede generar un respaldo portable del modelo activo y restaurarlo sin depender
+solo de `localStorage`.
+
+Resultado:
+
+- `PersistenciaJson` expone `Descargar JSON` desde
+  `Menu principal > Importar/Exportar JSON...`.
+- La descarga usa nombre derivado del modelo y fecha (`modelo-YYYY-MM-DD.json`)
+  y conserva el formato serializado `deep-opm-pro.modelo.v0`.
+- `25-produccion-backup.spec.ts` cubre el flujo completo: importar modelo,
+  descargar backup, crear modelo nuevo, reimportar el archivo descargado y
+  comparar los conteos del modelo restaurado.
+- La persistencia local, dirty guard, round-trip JSON y autosalvado quedan
+  cubiertos por tests focales existentes y por el gate completo.
+- El procedimiento minimo de backup manual quedo documentado en
+  `docs/roadmap/produccion-usuario-unico-svg-plan.md`.
+
+Commit atomico:
+
+- `acdeb32 feat(produccion): agrega backup json descargable`
+
+Validacion:
+
+```bash
+cd app && bun test src/persistencia/local.test.ts src/persistencia/autosalvado.test.ts src/store/persistencia.test.ts src/serializacion/json.test.ts
+# 79 pass / 0 fail
+
+cd app && bunx playwright test e2e/06-undo-redo-dirty.spec.ts e2e/11-beta1-catalogo-ancla.spec.ts e2e/25-produccion-backup.spec.ts
+# 19 passed
+
+cd app && bun run browser:preview
+# 1 passed
+
+cd app && bun run gate:refactor
+# typecheck OK; 1410 pass / 0 fail / 5266 expect; lint src/ OK; build OK; browser:smoke 196 passed
+# Dashboard HU: Total 24.8%; MVP-alpha 86.2%; 89/105 reglas auto; firma de fuentes vigente
+# Quality gate PASS: bundle 457.31 kB / 122.82 kB gzip; leyes 6/6; compat detectors 0
+```
+
+Siguiente corte recomendado:
+
+- Corte 4 del plan: documentacion de uso productivo privado. Debe quedar como
+  guia operable breve: build, preview, backup JSON, export SVG, rollback y
+  limites conocidos para uso single-user.
 
 ### Produccion Single-User SVG — Corte 2 Operacion Estatica Cerrado — 2026-05-18
 
@@ -67,9 +115,8 @@ cd app && bun run gate:refactor
 
 Siguiente corte recomendado:
 
-- Corte 3 del plan: persistencia local y backup operable. Verificar
-  guardado/carga local, dirty guard y export/import JSON; documentar backup
-  manual porque localStorage no es respaldo suficiente.
+- Corte 4 del plan: documentacion de uso productivo privado, usando el backup
+  JSON operable ya cerrado en Corte 3.
 
 ### Render/UI Boundary — Corte 2 Chrome UI Slots Cerrado — 2026-05-18
 
@@ -122,7 +169,7 @@ minima. No incluye auth, backend, multiusuario, PDF ni ZIP de todos los OPDs.
 Resultado:
 
 - `docs/roadmap/produccion-usuario-unico-svg-plan.md` define cortes 0-5 para
-  habilitar v0 single-user. Corte 0, Corte 1 y Corte 2 quedan cerrados.
+  habilitar v0 single-user. Corte 0, Corte 1, Corte 2 y Corte 3 quedan cerrados.
 - El menu principal de la vista normal expone `Exportar OPD actual como SVG`;
   la vista de mapa conserva su export PNG/SVG existente.
 - La accion usa el `dia.Paper` vivo desde `CanvasAdapterContext` y serializa el
@@ -155,8 +202,8 @@ cd app && bun run gate:refactor
 
 Siguiente corte recomendado:
 
-- Corte 3 del plan: backup operable con descarga JSON, porque localStorage no es
-  respaldo productivo suficiente aunque sea aceptable como almacenamiento v0.
+- Corte 4 del plan: documentacion de uso productivo privado, con pasos de
+  build, preview, backup JSON, export SVG y rollback.
 
 ### Render/UI Boundary — Corte 1 Feedback Port Cerrado — 2026-05-18
 
