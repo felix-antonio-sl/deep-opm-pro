@@ -33,8 +33,8 @@ Resultado:
 
 - `Dockerfile` compila `app/` con Bun y sirve `app/dist` con Nginx en `8080`.
 - `docker-compose.yml` publica `opforja.sanixai.com` por Traefik.
-- La ruta queda protegida con `auth@docker`, porque esta SPA todavia no tiene
-  auth interna; `hdos-app` si la tiene.
+- La ruta queda protegida con `opforja-auth@docker`, porque esta SPA todavia no
+  tiene auth interna; `hdos-app` si la tiene.
 - `docs/deploy/opforja.md` documenta deploy, verificacion, backup y rollback.
 - Let's Encrypt emitio certificado para `CN = opforja.sanixai.com`.
 

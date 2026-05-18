@@ -329,8 +329,8 @@ Resultado:
 - `docker-compose.yml` replica el patron `hdos-app`: servicio conectado a red
   Docker externa `web`, labels Traefik, TLS con `myresolver` y restart policy
   `unless-stopped`.
-- A diferencia de `hdos-app`, el router `opforja` usa `auth@docker` porque esta
-  app todavia no tiene auth interna.
+- A diferencia de `hdos-app`, el router `opforja` usa `opforja-auth@docker`
+  porque esta app todavia no tiene auth interna.
 - `docs/deploy/opforja.md` deja comandos de deploy, verificacion, backup y
   rollback.
 
@@ -389,8 +389,8 @@ Estado:
 
 - **Riesgo:** sin auth no hay proteccion si se publica en internet.  
   **Decision:** `opforja.sanixai.com` queda publicado como deploy privado con
-  Basic Auth de Traefik (`auth@docker`). Si se requiere internet abierto, el
-  siguiente plan debe ser auth de aplicacion, no retirar la barrera.
+  Basic Auth de Traefik (`opforja-auth@docker`). Si se requiere internet
+  abierto, el siguiente plan debe ser auth de aplicacion, no retirar la barrera.
 
 ## 9. Criterio De Cierre
 

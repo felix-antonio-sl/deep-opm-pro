@@ -3,8 +3,8 @@
 **Dominio:** `https://opforja.sanixai.com`
 **Modo:** SPA estatica Vite servida por Nginx, publicada por Traefik en la red
 Docker externa `web`.
-**Acceso:** privado por Basic Auth de Traefik (`auth@docker`). No guardar
-credenciales en este repo.
+**Acceso:** privado por Basic Auth de Traefik (`opforja-auth@docker`). No
+guardar contrasenas en claro en este repo.
 
 ## Patrón Operativo
 
@@ -13,8 +13,8 @@ servicio conectado a red `web`, labels Traefik, TLS con
 `certresolver=myresolver` y contenedor reiniciable.
 
 Diferencia critica: `hdos-app` tiene auth de aplicacion; `deep-opm-pro` todavia
-no. Por eso `opforja` queda protegido con el middleware Traefik existente
-`auth@docker`.
+no. Por eso `opforja` queda protegido con un middleware Traefik propio,
+`opforja-auth@docker`, aislado del Basic Auth global del dashboard Traefik.
 
 ## Comandos
 
