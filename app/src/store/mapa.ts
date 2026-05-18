@@ -160,15 +160,7 @@ import { mismaReferencia, type OplReferencia } from "../opl/interaccion";
 import { datosAsistenteVacio, sembrarModeloDesdeAsistente, validarDatosAsistente, type DatosAsistente, type EtapaAsistente } from "../modelo/creacionWizard";
 import { generarOpl } from "../opl/generar";
 import {
-  aplicarMarcadores,
-  calcularEstadisticas,
   construirDescriptorMapa,
-  filtrarPorProfundidad,
-  filtrarPorSubarbol,
-  resaltarPorTipo,
-  type CriterioResaltado,
-  type DescriptorMapa,
-  type EstadisticasModelo,
 } from "../canvas/mapaSistema";
 import {
   abrirPestana as abrirPestanaEstado,
@@ -350,16 +342,4 @@ export const createMapaSlice: CrearSlice<MapaSlice> = (set, get) => ({
     });
   },
 
-  descriptorMapaFiltrado() {
-    const estado = get();
-    let descriptor = estado.descriptorMapaCache ?? construirDescriptorMapa(estado.modelo);
-    descriptor = filtrarPorSubarbol(descriptor, estado.mapaSubarbolRaizId);
-    descriptor = filtrarPorProfundidad(descriptor, estado.mapaProfundidadMaxima);
-    descriptor = resaltarPorTipo(descriptor, estado.mapaCriterioResaltado);
-    return aplicarMarcadores(descriptor, estado.opdActivoId, estado.mapaUltimoVisitadoOpdId);
-  },
-
-  estadisticasModelo() {
-    return calcularEstadisticas(get().modelo);
-  }
 });

@@ -212,8 +212,6 @@ export type MapaSlice = Slice<
   | "toggleMapaPanelFiltros"
   | "toggleMapaPanelEstadisticas"
   | "limpiarFiltrosMapa"
-  | "descriptorMapaFiltrado"
-  | "estadisticasModelo"
 >;
 
 export type PersistenciaSlice = Slice<

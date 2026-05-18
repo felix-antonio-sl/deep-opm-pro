@@ -161,15 +161,7 @@ import { mismaReferencia, type OplReferencia } from "../opl/interaccion";
 import { datosAsistenteVacio, sembrarModeloDesdeAsistente, validarDatosAsistente, type DatosAsistente, type EtapaAsistente } from "../modelo/creacionWizard";
 import { generarOpl } from "../opl/generar";
 import {
-  aplicarMarcadores,
-  calcularEstadisticas,
-  construirDescriptorMapa,
-  filtrarPorProfundidad,
-  filtrarPorSubarbol,
-  resaltarPorTipo,
   type CriterioResaltado,
-  type DescriptorMapa,
-  type EstadisticasModelo,
 } from "../canvas/mapaSistema";
 import type { EjeAlineacion, OrientacionDistribucion } from "../canvas/operacionesBatch";
 import type { AnchorConexion, ModoEnlace } from "../canvas/modoEnlace";
@@ -667,8 +659,6 @@ export interface OpmStore {
   toggleMapaPanelFiltros: () => void;
   toggleMapaPanelEstadisticas: () => void;
   limpiarFiltrosMapa: () => void;
-  descriptorMapaFiltrado: () => DescriptorMapa;
-  estadisticasModelo: () => EstadisticasModelo;
   // ── L5: Reordenamiento del árbol ─────────────────────────────────
   modoOrdenArbol: "manual" | "automatico";
   fijarModoOrdenArbol: (modo: "manual" | "automatico") => void;

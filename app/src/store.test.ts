@@ -4,6 +4,7 @@ import { crearEnlace, crearEstadosIniciales, crearModelo, crearObjeto, crearProc
 import type { Modelo } from "./modelo/tipos";
 import { exportarModelo } from "./serializacion/json";
 import { store } from "./store";
+import { descriptorMapaFiltrado } from "./store/mapaSelectors";
 
 describe("store undo/redo y dirty state", () => {
   beforeEach(() => {
@@ -1218,11 +1219,11 @@ describe("store mapa del sistema", () => {
 
   test("filtros del mapa reducen descriptor derivado sin tocar JSON OPM", () => {
     store.getState().abrirVistaMapa();
-    expect(store.getState().descriptorMapaFiltrado().nodos).toHaveLength(2);
+    expect(descriptorMapaFiltrado(store.getState()).nodos).toHaveLength(2);
 
     store.getState().fijarMapaProfundidad(1);
 
-    expect(store.getState().descriptorMapaFiltrado().nodos.map((n) => n.opdId)).toEqual([store.getState().modelo.opdRaizId]);
+    expect(descriptorMapaFiltrado(store.getState()).nodos.map((n) => n.opdId)).toEqual([store.getState().modelo.opdRaizId]);
     expect(exportarModelo(store.getState().modelo)).not.toContain("mapaProfundidadMaxima");
   });
 

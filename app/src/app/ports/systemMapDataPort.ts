@@ -1,8 +1,9 @@
-import type { OpmStore } from "../../store";
+import type { DescriptorMapa, EstadisticasModelo } from "../../canvas/mapaSistema";
+import type { Id } from "../../modelo/tipos";
 
 export interface SystemMapDataPort {
-  descriptorBase: OpmStore["descriptorMapaCache"];
-  descriptor: ReturnType<OpmStore["descriptorMapaFiltrado"]>;
-  estadisticas: ReturnType<OpmStore["estadisticasModelo"]>;
-  saltarAOpdDesdeMapa: OpmStore["saltarAOpdDesdeMapa"];
+  descriptorBase: DescriptorMapa | null;
+  descriptor: DescriptorMapa;
+  estadisticas: EstadisticasModelo;
+  saltarAOpdDesdeMapa: (opdId: Id) => void;
 }
