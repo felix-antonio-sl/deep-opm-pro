@@ -1,5 +1,5 @@
 import { useMemo } from "preact/hooks";
-import { listarAvisosDiagnostico } from "../../modelo/diagnostico";
+import { useZustandDiagnosticsQueryPort } from "../ports/zustandDiagnosticsPort";
 import { useZustandOpdNavigationPort } from "../ports/zustandOpdNavigationPort";
 import { useZustandOpdTreePort } from "../ports/zustandOpdTreePort";
 
@@ -23,7 +23,8 @@ export function useArbolOpdViewModel() {
     abrirVistaMapa,
     abrirGestionArbol,
   } = useZustandOpdTreePort();
-  const avisosArbol = useMemo(() => listarAvisosDiagnostico(modelo, { tipo: "modelo" }), [modelo]);
+  const { listarAvisos } = useZustandDiagnosticsQueryPort();
+  const avisosArbol = useMemo(() => listarAvisos({ tipo: "modelo" }), [listarAvisos]);
 
   return {
     modelo,
