@@ -1,16 +1,20 @@
 import { useInspectorViewModel } from "../app/viewmodels/inspectorViewModel";
+import type { ConteosModeloInspector } from "../app/viewmodels/inspectorViewModel";
 import { inspectorStyles as style } from "./inspectorStyles";
 import { InspectorEnlace } from "./InspectorEnlace";
 import { InspectorEntidad } from "./InspectorEntidad";
 
 /**
  * Inspector raiz: ViewContainer XOR (entidad | enlace | vacio).
- * Patron CN-DEF (auditoria IFML §6 H-6/O-7): el branch vacio exhibe call-to-action
- * y atajos. aria-live="polite" anuncia transiciones de seleccion como master-detail.
- * Selecciones cruzadas con Panel OPL pasan por seleccionarDesdeOpl/abrirInspectorEnlaceDesdeOpl.
+ * Patron CN-DEF (auditoria IFML §6 H-6/O-7): el branch vacio muestra
+ * identidad del modelo (titulo + conteos + acción primaria de
+ * renombrado). aria-live="polite" anuncia transiciones de seleccion como
+ * master-detail. Selecciones cruzadas con Panel OPL pasan por
+ * seleccionarDesdeOpl/abrirInspectorEnlaceDesdeOpl.
  */
 export function Inspector() {
-  const { modo, entidad, enlace, abrirImportarExportarJson } = useInspectorViewModel();
+  const { modo, entidad, enlace, modeloNombre, conteos, horaEditado, abrirDialogoConfiguracion } =
+    useInspectorViewModel();
 
   return (
     <aside
@@ -24,28 +28,49 @@ export function Inspector() {
         ? <InspectorEntidad entidad={entidad} />
         : enlace
           ? <InspectorEnlace enlace={enlace} />
-          : <InspectorVacio onAbrirImportarExportarJson={abrirImportarExportarJson} />}
+          : (
+            <InspectorVacio
+              modeloNombre={modeloNombre}
+              conteos={conteos}
+              horaEditado={horaEditado}
+              onRenombrar={abrirDialogoConfiguracion}
+            />
+          )}
     </aside>
   );
 }
 
-function InspectorVacio({ onAbrirImportarExportarJson }: { onAbrirImportarExportarJson: () => void }) {
+interface InspectorVacioProps {
+  modeloNombre: string;
+  conteos: ConteosModeloInspector;
+  horaEditado: string | null;
+  onRenombrar: () => void;
+}
+
+function InspectorVacio({ modeloNombre, conteos, horaEditado, onRenombrar }: InspectorVacioProps) {
+  const sufijoHora = horaEditado ? ` · editado ${horaEditado}` : "";
+  const lineaConteos = `${conteos.objetos} ${conteos.objetos === 1 ? "objeto" : "objetos"} · ${conteos.procesos} ${conteos.procesos === 1 ? "proceso" : "procesos"} · ${conteos.opds} ${conteos.opds === 1 ? "OPD" : "OPDs"}${sufijoHora}`;
   return (
     <div style={style.vacioContainer} data-testid="inspector-vacio">
-      <h3 style={style.vacioTitle}>Sin selección</h3>
-      <p style={style.vacioBody}>
-        Selecciona una cosa o un enlace en el canvas, el árbol OPD o el panel OPL para inspeccionar y editar.
+      <button
+        type="button"
+        data-testid="inspector-vacio-titulo"
+        style={style.vacioTituloBoton}
+        onClick={onRenombrar}
+        title="Renombrar modelo"
+      >
+        {modeloNombre || "Modelo"}
+      </button>
+      <p style={style.vacioConteos} data-testid="inspector-vacio-conteos">
+        {lineaConteos}
       </p>
-      <div style={style.vacioCard}>
-        <p style={style.vacioCaption}>Atajos para empezar</p>
-        <ul style={style.vacioList}>
-          <li>Toolbar <kbd>Objeto</kbd> o <kbd>Proceso</kbd> → inserta una cosa.</li>
-          <li><kbd>Demo</kbd> → carga un modelo de ejemplo.</li>
-          <li><kbd>Cargar</kbd> → abre modelos guardados.</li>
-        </ul>
-      </div>
-      <button type="button" style={style.secondaryButton} onClick={onAbrirImportarExportarJson}>
-        JSON del modelo
+      <button
+        type="button"
+        data-testid="inspector-vacio-renombrar"
+        style={style.secondaryButton}
+        onClick={onRenombrar}
+      >
+        Renombrar modelo
       </button>
     </div>
   );

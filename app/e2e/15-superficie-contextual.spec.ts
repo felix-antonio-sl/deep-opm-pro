@@ -385,7 +385,11 @@ test("Inspector vacio expone CTA y aria-live consistente al limpiar seleccion", 
   const inspector = page.getByTestId("inspector");
   await expect(inspector).toHaveAttribute("data-modo-inspector", "vacio");
   await expect(page.getByTestId("inspector-vacio")).toBeVisible();
-  await expect(page.getByTestId("inspector-vacio")).toContainText(/Selecciona una cosa o un enlace/);
+  // Corte 3.5: el branch vacio muestra identidad del modelo (titulo + conteos
+  // + accion Renombrar). El cliche "Selecciona una cosa o un enlace" fue
+  // eliminado como tutorial encubierto.
+  await expect(page.getByTestId("inspector-vacio-titulo")).toBeVisible();
+  await expect(page.getByTestId("inspector-vacio-renombrar")).toBeVisible();
 
   expect(pageErrors).toEqual([]);
 });

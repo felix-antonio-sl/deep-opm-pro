@@ -19,45 +19,33 @@ export const inspectorStyles = {
     color: tokens.colors.textoTerciario,
     fontSize: "13px",
   },
-  // P1 — Inspector vacío: jerarquía título / body / card "Atajos para empezar".
+  // Corte 3.5 — Inspector vacío: identidad del modelo (titulo editable
+  // inline + linea de conteos + accion secundaria "Renombrar modelo").
+  // Se elimina la tarjeta "ATAJOS PARA EMPEZAR" y el boton "JSON del modelo"
+  // que actuaban como tutorial/escape encubiertos.
   vacioContainer: {
+    display: "grid",
+    gap: `${tokens.spacing.sm}px`,
     color: tokens.colors.textoTerciario,
     fontSize: tokens.typography.sizes.md,
   },
-  vacioTitle: {
-    margin: `0 0 ${tokens.spacing.sm}px`,
+  vacioTituloBoton: {
+    margin: 0,
+    padding: `${tokens.spacing.xs}px 0`,
+    border: 0,
+    background: "transparent",
     color: tokens.colors.textoPrimario,
     fontSize: tokens.typography.sizes.lg,
     fontWeight: tokens.typography.weights.bold,
+    cursor: "pointer",
+    textAlign: "left",
+    width: "100%",
   },
-  vacioBody: {
-    margin: `0 0 ${tokens.spacing.md}px`,
-    color: tokens.colors.textoSecundario,
-    fontSize: tokens.typography.sizes.md,
-    lineHeight: 1.5,
-  },
-  vacioCard: {
-    padding: tokens.spacing.md,
-    border: `1px solid ${tokens.colors.bordeChrome}`,
-    borderRadius: tokens.radii.md,
-    background: tokens.colors.fondoCard,
-  },
-  vacioCaption: {
-    margin: `0 0 ${tokens.spacing.sm}px`,
-    color: tokens.colors.textoSecundario,
-    // ronda 23 chrome: caption "ATAJOS PARA EMPEZAR" en formato editorial
-    // más pequeño y espacioso. 11px → 10px (xxs) y letter-spacing 0.04 →
-    // 0.08em — los all-caps cortos respiran mejor en tamaño pequeño.
-    fontSize: tokens.typography.sizes.xxs,
-    fontWeight: tokens.typography.weights.semibold,
-    textTransform: "uppercase",
-    letterSpacing: "0.08em",
-  },
-  vacioList: {
+  vacioConteos: {
     margin: 0,
-    paddingLeft: tokens.spacing.lg,
-    lineHeight: 1.6,
-    fontSize: tokens.typography.sizes.md,
+    color: tokens.colors.textoSecundario,
+    fontSize: tokens.typography.sizes.sm,
+    lineHeight: 1.5,
   },
   header: {
     display: "flex",
