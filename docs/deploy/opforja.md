@@ -16,6 +16,14 @@ Diferencia critica: `hdos-app` tiene auth de aplicacion; `deep-opm-pro` todavia
 no. Por eso `opforja` queda protegido con un middleware Traefik propio,
 `opforja-auth@docker`, aislado del Basic Auth global del dashboard Traefik.
 
+## Acceso Operativo
+
+- Usuario Basic Auth: `fsanhuezal`.
+- Contrasena: entregada fuera del repositorio; `docker-compose.yml` conserva
+  solo el hash APR1 usado por Traefik.
+- Alcance: barrera perimetral de despliegue privado, no auth de aplicacion ni
+  identidad multiusuario.
+
 ## Comandos
 
 Desde la raiz del repo:
@@ -36,6 +44,15 @@ Verificar dominio publico:
 ```bash
 curl -I https://opforja.sanixai.com
 # Esperado: HTTP/2 401 con WWW-Authenticate: Basic realm="traefik"
+```
+
+Verificar acceso autenticado sin escribir la contrasena en el repo:
+
+```bash
+OPFORJA_USER=fsanhuezal OPFORJA_PASS='<secreto-local>' \
+  curl -sS -o /tmp/opforja.html -w '%{http_code} %{content_type} %{size_download}\n' \
+  -u "$OPFORJA_USER:$OPFORJA_PASS" https://opforja.sanixai.com/
+# Esperado: 200 text/html ...
 ```
 
 Verificar certificado:
@@ -87,7 +104,7 @@ docker compose down
 ## Limites
 
 - No hay auth de aplicacion, multiusuario, backend ni sincronizacion remota.
-- El acceso privado depende del middleware Traefik `auth@docker`.
+- El acceso privado depende del middleware Traefik `opforja-auth@docker`.
 - `localStorage` no es backup; el respaldo portable es el JSON descargado.
 - El endpoint `/healthz` verifica Nginx/contenedor, no integridad funcional de
   modelado.

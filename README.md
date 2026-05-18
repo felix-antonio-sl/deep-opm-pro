@@ -66,6 +66,19 @@ bun run visual:deep      # auditoria visual profunda; escribe app/test-results/
 futuras: scanner de Socket para Bun y edad minima de publicacion de 7 dias para
 nuevas resoluciones. La instalacion reproducible sigue anclada en `app/bun.lock`.
 
+## Produccion Privada
+
+La primera instancia privada vive en `https://opforja.sanixai.com`.
+
+- Despliegue: `docker compose up -d --build` desde la raiz del repo.
+- Hosting: Nginx estatico en contenedor, publicado por Traefik en la red Docker
+  externa `web`.
+- Acceso: Basic Auth dedicado `opforja-auth@docker`; usuario operativo
+  `fsanhuezal`; la contrasena no se versiona en claro.
+- Datos: los modelos viven en `localStorage` del navegador y deben respaldarse
+  con `Menu principal > Importar/Exportar JSON... > Descargar JSON`.
+- Guia operativa completa: `docs/deploy/opforja.md`.
+
 ## Regla De Autoridad
 
 La semantica OPM se resuelve contra la SSOT canonica:

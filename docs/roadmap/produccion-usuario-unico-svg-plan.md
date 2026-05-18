@@ -331,6 +331,8 @@ Resultado:
   `unless-stopped`.
 - A diferencia de `hdos-app`, el router `opforja` usa `opforja-auth@docker`
   porque esta app todavia no tiene auth interna.
+- El usuario operativo Basic Auth es `fsanhuezal`; la contrasena no se versiona
+  en claro y solo queda representada como hash APR1 en `docker-compose.yml`.
 - `docs/deploy/opforja.md` deja comandos de deploy, verificacion, backup y
   rollback.
 
@@ -351,6 +353,12 @@ docker exec opforja wget -qO- http://127.0.0.1:8080/healthz
 
 curl -I https://opforja.sanixai.com
 # HTTP/2 401; WWW-Authenticate: Basic realm="traefik"
+
+curl -sS -o /tmp/opforja-auth-ok.html -w '%{http_code} %{content_type} %{size_download}\n' -u 'fsanhuezal:<secreto-local>' https://opforja.sanixai.com/
+# 200 text/html 1373
+
+curl -sS -o /tmp/opforja-auth-bad.txt -w '%{http_code} %{content_type} %{size_download}\n' -u 'fsanhuezal:wrong' https://opforja.sanixai.com/
+# 401 text/plain 17
 ```
 
 ### Corte 5 - Gate Final De Release Local

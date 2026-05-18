@@ -4,6 +4,7 @@
 **Repositorio**: `deep-opm-pro`
 **Rama**: `main`
 **Último corte funcional**: `acdeb32 feat(produccion): agrega backup json descargable`
+**Último corte deploy**: `597859c chore(deploy): configura auth dedicado opforja`
 **Corte**: Produccion single-user SVG, Corte 4 cerrado: deploy privado opforja operable.
 
 ## Política De Handoff Único
@@ -35,6 +36,8 @@ Resultado:
 - `docker-compose.yml` publica `opforja.sanixai.com` por Traefik.
 - La ruta queda protegida con `opforja-auth@docker`, porque esta SPA todavia no
   tiene auth interna; `hdos-app` si la tiene.
+- El usuario operativo Basic Auth es `fsanhuezal`; la contrasena queda fuera de
+  la documentacion versionada y el compose mantiene solo el hash APR1.
 - `docs/deploy/opforja.md` documenta deploy, verificacion, backup y rollback.
 - Let's Encrypt emitio certificado para `CN = opforja.sanixai.com`.
 
@@ -58,6 +61,12 @@ docker exec opforja wget -qO- http://127.0.0.1:8080/healthz
 
 curl -I https://opforja.sanixai.com
 # HTTP/2 401; WWW-Authenticate: Basic realm="traefik"
+
+curl -sS -o /tmp/opforja-auth-ok.html -w '%{http_code} %{content_type} %{size_download}\n' -u 'fsanhuezal:<secreto-local>' https://opforja.sanixai.com/
+# 200 text/html 1373
+
+curl -sS -o /tmp/opforja-auth-bad.txt -w '%{http_code} %{content_type} %{size_download}\n' -u 'fsanhuezal:wrong' https://opforja.sanixai.com/
+# 401 text/plain 17
 
 printf '' | openssl s_client -servername opforja.sanixai.com -connect opforja.sanixai.com:443 2>/dev/null | openssl x509 -noout -subject -issuer -dates
 # subject=CN = opforja.sanixai.com; issuer=Let's Encrypt R13
