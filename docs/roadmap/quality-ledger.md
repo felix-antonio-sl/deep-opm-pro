@@ -1,7 +1,7 @@
 # Quality ledger law-first
 
 **Fecha:** 2026-05-18  
-**Corte:** refactorizacion total - Corte 9 cascadas  
+**Corte:** refactorizacion total - Corte 10 proceso/refactor  
 **Rol:** contrato operativo de calidad posterior a los cortes 0-7. Complementa
 el dashboard HU; no lo reemplaza y no edita HU canonicas.
 
@@ -20,6 +20,7 @@ sustituyen una ley con nombre estable cuando el borde es critico.
 | Refactorizacion Corte 7 | Cierre `0d454ae` | 1406 pass / 0 fail / 5260 expect, 152 archivos | 193 passed | 463.71 kB / 124.65 kB gzip | MVP-alpha 99/121 (83.4%), 81/102 reglas matched |
 | Corte 8 consistencia | Auditor HU vigente + chunk circular eliminado | 1406 pass / 0 fail / 5260 expect, 152 archivos | 193 passed | 463.44 kB / 124.62 kB gzip | MVP-alpha 104/121 + 1 parcial (86.2%), 89/105 reglas matched |
 | Corte 9 cascadas | `gate:refactor` + quality `--check` | 1406 pass / 0 fail / 5260 expect, 152 archivos | 193 passed | 463.61 kB / 124.75 kB gzip | MVP-alpha 104/121 + 1 parcial (86.2%), 89/105 reglas matched |
+| Corte 10 proceso | `gate:refactor` cwd-safe + firma HU anti-stale | 1406 pass / 0 fail / 5260 expect, 152 archivos | 193 passed | 464.55 kB / 124.90 kB gzip | MVP-alpha 104/121 + 1 parcial (86.2%), 89/105 reglas matched |
 
 Notas:
 
@@ -30,6 +31,10 @@ Notas:
   quedo cerrado en Corte 8 al consolidar esa frontera de empaquetado.
 - El smoke browser completo sigue siendo gate antes de cerrar cortes de
   consistencia/refactor, porque detecta regresiones de orquestacion modal y UI.
+- Desde Corte 10, `quality:gate` compara la firma de fuentes auditadas
+  (`app/src`, `app/e2e`, `app/scripts`, `assets/svg/links`) contra la firma
+  guardada por `progress-dashboard --sync-real`; si no coincide, el dashboard HU
+  se considera stale.
 
 ## Leyes activas
 
@@ -50,7 +55,7 @@ Notas:
 | Leyes canonicas | 6/6 activas: JSON, render metadata, refinement matrix, refinement removal, OPL safe lens, undo atomicity | No cerrar 14.2 ni Beta1 si una ley critica desaparece. |
 | Browser smoke | Suite completa verde antes de corte visual/producto | Reproducir y corregir antes de promocionar. |
 | Bundle principal | No crecer mas de +5 kB gzip sobre 124.62 kB gzip sin nota de deuda | Registrar razon, chunk afectado y plan de reduccion. |
-| Dashboard HU | No bajar de Corte 8: MVP-alpha 104/121 + 1 parcial (86.2%) y 89/105 reglas auto matched sin explicacion | Reejecutar dashboard y explicar regresion. |
+| Dashboard HU | No bajar de Corte 8: MVP-alpha 104/121 + 1 parcial (86.2%) y 89/105 reglas auto matched; firma de fuentes vigente | Reejecutar dashboard con `--sync-real` y explicar regresion si existe. |
 | `Compat detector` | 0 nuevos sin issue/deuda declarada | Convertir detector critico en ley o abrir deuda explicita. |
 
 ## Deuda aceptada
@@ -83,6 +88,8 @@ Lee:
 - `app/src/**/*.test.ts` para ids `law-*`;
 - `app/src`, `app/e2e` y `app/scripts` para comentarios `Compat detector`;
 - `docs/roadmap/hu-progress.json` para resumen HU y reglas auto.
+- `hu-progress.json:autoAudit.sourceFiles.signature` para bloquear dashboards
+  stale cuando el codigo auditado cambio sin regenerar.
 
 ## Gate operativo antes de Beta1
 

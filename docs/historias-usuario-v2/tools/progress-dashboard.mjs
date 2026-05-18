@@ -13,11 +13,15 @@
  * Modo automatico:
  *   node docs/historias-usuario-v2/tools/progress-dashboard.mjs --sync-real
  *
+ * Auditoria sin escrituras:
+ *   node docs/historias-usuario-v2/tools/progress-dashboard.mjs --sync-real --dry-run
+ *
  * En ese modo escanea app/src, app/e2e, app/scripts y assets/svg/links para
  * actualizar `autoEntries` dentro del ledger. Es conservador: solo marca una
  * HU cuando existen patrones concretos de codigo/test/render que la sostienen.
  */
 
+import { createHash } from "node:crypto";
 import { readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { dirname, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -52,6 +56,7 @@ const SIZE_WEIGHT = {
 function parseArgs(args) {
   return {
     syncReal: args.includes("--sync-real"),
+    dryRun: args.includes("--dry-run"),
   };
 }
 
@@ -75,7 +80,6 @@ if (OPTIONS.syncReal) {
       },
       autoEntries: auto.entries,
     };
-  writeFileSync(LEDGER_PATH, `${JSON.stringify(ledger, null, 2)}\n`);
 }
 const { items, diagnostics } = applyEvidence(parsed.items, ledger, parsed.diagnostics);
 const summaries = buildSummaries(items, ledger);
@@ -92,11 +96,18 @@ const dataset = {
   items,
 };
 
-writeFileSync(OUT_JSON, `${JSON.stringify(dataset, null, 2)}\n`);
-writeFileSync(OUT_MD, renderMarkdown(dataset));
-writeFileSync(OUT_HTML, renderHtml(dataset));
+const outputJson = `${JSON.stringify(dataset, null, 2)}\n`;
+const outputMarkdown = renderMarkdown(dataset);
+const outputHtml = renderHtml(dataset);
 
-printConsoleSummary(dataset);
+if (!OPTIONS.dryRun) {
+  if (OPTIONS.syncReal) writeFileSync(LEDGER_PATH, `${JSON.stringify(ledger, null, 2)}\n`);
+  writeFileSync(OUT_JSON, outputJson);
+  writeFileSync(OUT_MD, outputMarkdown);
+  writeFileSync(OUT_HTML, outputHtml);
+}
+
+printConsoleSummary(dataset, { dryRun: OPTIONS.dryRun, syncReal: OPTIONS.syncReal });
 
 function parseBacklog() {
   const files = [
@@ -307,6 +318,7 @@ function auditRealProgress(rawItems) {
     sourceFiles: {
       count: sourceIndex.files.size,
       roots: sourceIndex.roots,
+      signature: sourceSignature(sourceIndex.files),
     },
   };
 }
@@ -335,6 +347,17 @@ function walkSourceTree(path, files) {
   }
   if (!/\.(?:css|js|mjs|svg|ts|tsx)$/i.test(path)) return;
   files.set(pathFromRepo(path), readFileSync(path, "utf8"));
+}
+
+function sourceSignature(files) {
+  const hash = createHash("sha256");
+  for (const [file, text] of [...files.entries()].sort(([a], [b]) => a.localeCompare(b, "es"))) {
+    hash.update(file);
+    hash.update("\0");
+    hash.update(text);
+    hash.update("\0");
+  }
+  return `sha256:${hash.digest("hex")}`;
 }
 
 function evaluateRule(rule, sourceIndex) {
@@ -1859,6 +1882,9 @@ node docs/historias-usuario-v2/tools/progress-dashboard.mjs --sync-real
 
 # Regenerar reportes desde el ledger vigente sin reescanear codigo.
 node docs/historias-usuario-v2/tools/progress-dashboard.mjs
+
+# Auditar contra codigo real sin escribir ledger ni reportes.
+node docs/historias-usuario-v2/tools/progress-dashboard.mjs --sync-real --dry-run
 \`\`\`
 
 ## Resumen ejecutivo
@@ -2325,13 +2351,18 @@ function renderHtml(data) {
 `;
 }
 
-function printConsoleSummary(data) {
+function printConsoleSummary(data, options = {}) {
   const total = data.summaries.total;
   const alpha = data.summaries.alpha;
   console.log(`HU vivas: ${total.total}`);
   console.log(`Total: ${percent(total.avance)} ponderado (${total.cubierto} cubiertas, ${total.parcial} parciales, ${total.pendiente} pendientes, ${total.diferido} diferidas)`);
   console.log(`MVP-alpha: ${percent(alpha.avance)} ponderado (${alpha.cubierto} cubiertas, ${alpha.parcial} parciales, ${alpha.pendiente} pendientes)`);
-  console.log(`Generado: ${pathFromRepo(OUT_MD)}, ${pathFromRepo(OUT_HTML)}, ${pathFromRepo(OUT_JSON)}`);
+  if (options.dryRun) {
+    const ledgerScope = options.syncReal ? ` y ${pathFromRepo(LEDGER_PATH)}` : "";
+    console.log(`Dry-run: sin escrituras; evaluados ${pathFromRepo(OUT_MD)}, ${pathFromRepo(OUT_HTML)}, ${pathFromRepo(OUT_JSON)}${ledgerScope}`);
+  } else {
+    console.log(`Generado: ${pathFromRepo(OUT_MD)}, ${pathFromRepo(OUT_HTML)}, ${pathFromRepo(OUT_JSON)}`);
+  }
   if (data.diagnostics.length > 0) {
     console.log(`Diagnosticos: ${data.diagnostics.length} advertencias en ${pathFromRepo(OUT_JSON)}`);
   }

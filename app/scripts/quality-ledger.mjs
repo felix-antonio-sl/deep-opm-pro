@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { createHash } from "node:crypto";
 import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -13,8 +14,12 @@ const canonicalLaws = ["law-json-roundtrip", "law-render-stable-metadata", "law-
 const aliases = { "law-store-undo-atomicity": ["law-opl-apply-undo-atomicity"] };
 const rel = (file, root = repoRoot) => path.relative(root, file).replaceAll(path.sep, "/");
 const kb = (n) => Math.round((n / 1000) * 100) / 100;
+const bundleBaselineGzipKb = 124.62;
+const bundleAllowedGrowthGzipKb = 5;
 const thresholds = {
-  mainBundleMaxGzipKb: 129.62,
+  mainBundleMaxGzipKb: Number((bundleBaselineGzipKb + bundleAllowedGrowthGzipKb).toFixed(2)),
+  mainBundleBaselineGzipKb: bundleBaselineGzipKb,
+  mainBundleAllowedGrowthGzipKb: bundleAllowedGrowthGzipKb,
   activeCanonicalLawsMin: canonicalLaws.length,
   compatDetectorsMax: 0,
   alphaCoveredMin: 104,
@@ -75,16 +80,26 @@ const jsAssets = walk(distAssets, (item) => item.endsWith(".js")).map((file) => 
 }).sort((a, b) => b.rawKb - a.rawKb);
 const mainJs = jsAssets.find((asset) => /^dist\/assets\/index-.*\.js$/.test(asset.file)) ?? null;
 
+const currentHuSourceSnapshot = buildHuSourceSnapshot();
 let dashboard = null;
 const huProgressPath = path.join(repoRoot, "docs", "roadmap", "hu-progress.json");
 if (existsSync(huProgressPath)) {
   const progress = JSON.parse(readFileSync(huProgressPath, "utf8"));
   const autoAudit = progress.autoAudit;
   const alpha = progress.summaries?.alpha;
+  const reportedSourceFiles = autoAudit?.sourceFiles ?? null;
   dashboard = {
     generatedAt: progress.generatedAt,
-    autoAudit: autoAudit ? { rulesEvaluated: autoAudit.rulesEvaluated, rulesMatched: autoAudit.rulesMatched, rulesUnmatched: autoAudit.rulesUnmatched, sourceFiles: autoAudit.sourceFiles?.count } : null,
+    autoAudit: autoAudit ? { rulesEvaluated: autoAudit.rulesEvaluated, rulesMatched: autoAudit.rulesMatched, rulesUnmatched: autoAudit.rulesUnmatched, sourceFiles: reportedSourceFiles?.count } : null,
     alpha: alpha ? { total: alpha.total, covered: alpha.cubierto, partial: alpha.parcial, pending: alpha.pendiente, progress: Number((alpha.avance * 100).toFixed(1)) } : null,
+    sourceSnapshot: {
+      current: currentHuSourceSnapshot,
+      reported: reportedSourceFiles ? {
+        count: reportedSourceFiles.count,
+        roots: reportedSourceFiles.roots,
+        signature: reportedSourceFiles.signature ?? null,
+      } : null,
+    },
   };
 }
 
@@ -131,9 +146,33 @@ function gateFailures(metrics) {
     const auto = metrics.dashboard.autoAudit;
     if (auto.rulesEvaluated < thresholds.autoRulesEvaluatedMin) failures.push(`reglas auto evaluadas ${auto.rulesEvaluated}; minimo ${thresholds.autoRulesEvaluatedMin}`);
     if (auto.rulesMatched < thresholds.autoRulesMatchedMin) failures.push(`reglas auto matched ${auto.rulesMatched}; minimo ${thresholds.autoRulesMatchedMin}`);
+    const currentSignature = metrics.dashboard.sourceSnapshot?.current?.signature;
+    const reportedSignature = metrics.dashboard.sourceSnapshot?.reported?.signature;
+    if (!reportedSignature) {
+      failures.push("dashboard HU sin firma de fuentes; ejecuta node docs/historias-usuario-v2/tools/progress-dashboard.mjs --sync-real");
+    } else if (reportedSignature !== currentSignature) {
+      failures.push("dashboard HU stale; ejecuta node docs/historias-usuario-v2/tools/progress-dashboard.mjs --sync-real");
+    }
   }
 
   return failures;
+}
+
+function buildHuSourceSnapshot() {
+  const roots = ["app/src", "app/e2e", "app/scripts", "assets/svg/links"];
+  const files = roots.flatMap((root) => {
+    const absoluteRoot = path.join(repoRoot, root);
+    return walk(absoluteRoot, (item) => /\.(?:css|js|mjs|svg|ts|tsx)$/i.test(item))
+      .map((file) => ({ file: rel(file), text: readFileSync(file, "utf8") }));
+  }).sort((a, b) => a.file.localeCompare(b.file, "es"));
+  const hash = createHash("sha256");
+  for (const { file, text } of files) {
+    hash.update(file);
+    hash.update("\0");
+    hash.update(text);
+    hash.update("\0");
+  }
+  return { count: files.length, roots, signature: `sha256:${hash.digest("hex")}` };
 }
 
 const failures = check ? gateFailures(report) : [];
