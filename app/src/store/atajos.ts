@@ -1,18 +1,19 @@
 import type { CrearSlice } from "./sliceTypes";
 
 export const COMMAND_PALETTE_FRECUENCIA_KEY = "deep-opm-pro.command-palette.frecuenciaUso.v1";
+export const ATAJOS_SLICE_KEYS = ["frecuenciaUsoCommandPalette", "registrarUsoCommandPalette"] as const;
 
 interface StorageLike {
   getItem(key: string): string | null;
   setItem(key: string, value: string): void;
 }
 
-interface AtajosSliceState {
+export interface AtajosSlice {
   frecuenciaUsoCommandPalette: Record<string, number>;
   registrarUsoCommandPalette: (itemId: string) => void;
 }
 
-export const createAtajosSlice: CrearSlice<AtajosSliceState> = (set, get) => ({
+export const createAtajosSlice: CrearSlice<AtajosSlice> = (set, get) => ({
   frecuenciaUsoCommandPalette: leerFrecuenciaUsoCommandPalette(),
 
   registrarUsoCommandPalette(itemId) {

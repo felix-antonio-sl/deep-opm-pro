@@ -751,6 +751,7 @@ export interface OpmStore {
 
 
 export type {
+  AtajosSlice,
   CarpetasSlice,
   CrearSlice,
   EnlacesSlice,

@@ -1,10 +1,13 @@
 import { describe, expect, test } from "bun:test";
 import {
+  ATAJOS_SLICE_KEYS,
   COMMAND_PALETTE_FRECUENCIA_KEY,
+  createAtajosSlice,
   escribirFrecuenciaUsoCommandPalette,
   incrementarFrecuenciaUsoCommandPalette,
   leerFrecuenciaUsoCommandPalette,
 } from "./atajos";
+import type { OpmStore } from "./tipos";
 
 class FakeStorage {
   private values = new Map<string, string>();
@@ -19,6 +22,14 @@ class FakeStorage {
 }
 
 describe("frecuencia Command Palette", () => {
+  test("expone una capacidad de atajos con contrato propio", () => {
+    const slice = createAtajosSlice(() => undefined, () => ({
+      frecuenciaUsoCommandPalette: {},
+    } as OpmStore));
+
+    expect(Object.keys(slice).sort()).toEqual([...ATAJOS_SLICE_KEYS].sort());
+  });
+
   test("incrementa item existente sin mutar el mapa original", () => {
     const actual = { "accion-inzoom": 2 };
     const siguiente = incrementarFrecuenciaUsoCommandPalette(actual, "accion-inzoom");

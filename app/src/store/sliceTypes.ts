@@ -1,5 +1,7 @@
 import type { OpmStore } from "./tipos";
 import type { ModeloSliceKey } from "./modelo/contrato";
+import type { AtajosSlice } from "./atajos";
+export type { AtajosSlice } from "./atajos";
 
 type Slice<K extends keyof OpmStore> = Pick<OpmStore, K>;
 
@@ -260,11 +262,6 @@ export type SimulacionSlice = Slice<
   | "pausarAutoAvanceSimulacion"
   | "fijarVelocidadSimulacion"
   | "asignarValorRuntimeSimulacion"
->;
-
-export type AtajosSlice = Slice<
-  | "frecuenciaUsoCommandPalette"
-  | "registrarUsoCommandPalette"
 >;
 
 export type OpmStoreSlices =
