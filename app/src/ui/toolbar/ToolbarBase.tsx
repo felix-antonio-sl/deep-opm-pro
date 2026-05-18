@@ -263,9 +263,22 @@ export function ToolbarBase({ children, modelarSlot, conectarSlot, mapaSlot, sta
           <span style={style.clusterLabel}>Modelar</span>
           <button style={modoCreacion === "objeto" ? style.activeButton : style.button} type="button" aria-pressed={modoCreacion === "objeto"} className={modoCreacion === "objeto" ? "boton-toolbar-activo" : undefined} onClick={handleCrearObjeto} draggable onDragStart={dragToolbar("objeto")} data-testid="toolbar-drag-objeto" title={modoCreacion === "objeto" ? "Inserción continua de objetos activa · Shift+clic para salir" : "Crear objeto · arrastra al canvas, clic para insertar o Shift+clic para inserción continua"}>Objeto</button>
           <button style={modoCreacion === "proceso" ? style.activeButton : style.button} type="button" aria-pressed={modoCreacion === "proceso"} className={modoCreacion === "proceso" ? "boton-toolbar-activo" : undefined} onClick={handleCrearProceso} draggable onDragStart={dragToolbar("proceso")} data-testid="toolbar-drag-proceso" title={modoCreacion === "proceso" ? "Inserción continua de procesos activa · Shift+clic para salir" : "Crear proceso · arrastra al canvas, clic para insertar o Shift+clic para inserción continua"}>Proceso</button>
-          <button style={puedeCrearAtributo ? style.iconTextButton : style.disabledButton} type="button" disabled={!puedeCrearAtributo} draggable={puedeCrearAtributo} onDragStart={dragAtributoNumerico} onClick={() => crearAtributoNumerico({ nombre: "Valor [u]", tipoSlot: "float" })} title={puedeCrearAtributo ? "Crear atributo numérico en el objeto seleccionado" : "Selecciona un objeto"} data-testid="toolbar-crear-atributo-numerico">
-            <img src={objectDragIcon} alt="" style={style.smallIcon} />+ Atributo
-          </button>
+          {/* Corte 3.5 sustracción de chrome: "+ Atributo" aparece solo cuando
+              la selección es un objeto que admite atributo. Antes ocupaba
+              espacio permanente en estado deshabilitado. */}
+          {puedeCrearAtributo ? (
+            <button
+              style={style.iconTextButton}
+              type="button"
+              draggable
+              onDragStart={dragAtributoNumerico}
+              onClick={() => crearAtributoNumerico({ nombre: "Valor [u]", tipoSlot: "float" })}
+              title="Crear atributo numérico en el objeto seleccionado"
+              data-testid="toolbar-crear-atributo-numerico"
+            >
+              <img src={objectDragIcon} alt="" style={style.smallIcon} />+ Atributo
+            </button>
+          ) : null}
           {modelarSlot ?? null}
         </div>
         <span style={style.divider} />
@@ -285,14 +298,18 @@ export function ToolbarBase({ children, modelarSlot, conectarSlot, mapaSlot, sta
         ) : null}
         <div role="group" aria-label="Ayuda" style={style.cluster} data-slot="cluster-ayuda" data-cluster="ayuda">
           <span style={style.clusterLabel}>Ayuda</span>
+          {/* Corte 3.5 sustracción de chrome: el botón mostraba solo el
+              símbolo `⌕` (lupa). Ahora exhibe label "Buscar" para que su
+              propósito sea legible sin tooltip. */}
           <button
             type="button"
             style={style.iconTextButton}
             onClick={abrirDialogoComandos}
             title="Buscar comandos · Ctrl+K"
             data-testid="toolbar-command-palette"
+            aria-label="Buscar comandos"
           >
-            ⌕
+            ⌕ Buscar
           </button>
           <ToolbarMas items={masItems} />
         </div>

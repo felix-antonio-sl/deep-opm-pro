@@ -23,8 +23,7 @@ describe("calcularConteosModelo", () => {
   test("ignora entradas undefined sin reventar", () => {
     const entidades = {
       "o-1": { tipo: "objeto" as const },
-      // @ts-expect-error simulamos una entrada anómala para asegurar el guard
-      "bad": undefined,
+      "bad": undefined as unknown as { tipo: "objeto" },
     };
     expect(calcularConteosModelo(entidades, {})).toEqual({ objetos: 1, procesos: 0, opds: 0 });
   });
