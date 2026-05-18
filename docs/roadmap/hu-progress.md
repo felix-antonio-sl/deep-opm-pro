@@ -1,9 +1,9 @@
 # Auditoria de avance HU v2
 
-**Generado:** 2026-05-18T14:29:19.217Z
+**Generado:** 2026-05-18T14:31:03.858Z
 **Backlog:** `docs/historias-usuario-v2`
 **Ledger de evidencia:** `docs/roadmap/hu-progress-evidence.json`
-**Auditoria automatica:** 79/102 reglas matcheadas sobre 685 archivos fuente.
+**Auditoria automatica:** 81/102 reglas matcheadas sobre 685 archivos fuente.
 
 
 Regenerar desde la raiz del repo:
@@ -20,16 +20,16 @@ node docs/historias-usuario-v2/tools/progress-dashboard.mjs
 
 | Segmento | HU vivas | Cubiertas | Parciales | Pendientes | Diferidas | Avance ponderado |
 |---|---:|---:|---:|---:|---:|---:|
-| Total backlog | 1126 | 246 | 10 | 492 | 378 | 22.0% |
-| M0 | 130 | 87 | 3 | 40 | 0 | 70.9% |
-| MVP-alpha | 121 | 97 | 0 | 24 | 0 | 80.4% |
+| Total backlog | 1126 | 248 | 10 | 490 | 378 | 22.3% |
+| M0 | 130 | 89 | 3 | 38 | 0 | 73.9% |
+| MVP-alpha | 121 | 99 | 0 | 22 | 0 | 83.4% |
 | MVP-beta | 193 | 70 | 4 | 119 | 0 | 38.7% |
 
 ## Por corte
 
 | Corte | HU vivas | Cubiertas | Parciales | Pendientes | Diferidas | Avance ponderado |
 |---|---:|---:|---:|---:|---:|---:|
-| MVP-alpha | 121 | 97 | 0 | 24 | 0 | 80.4% |
+| MVP-alpha | 121 | 99 | 0 | 22 | 0 | 83.4% |
 | MVP-beta | 193 | 70 | 4 | 119 | 0 | 38.7% |
 | MVP-gamma | 434 | 79 | 6 | 349 | 0 | 16.7% |
 | MVP-delta | 378 | 0 | 0 | 0 | 378 | 0.0% |
@@ -39,7 +39,7 @@ node docs/historias-usuario-v2/tools/progress-dashboard.mjs
 
 | Prioridad | HU vivas | Cubiertas | Parciales | Pendientes | Diferidas | Avance ponderado |
 |---|---:|---:|---:|---:|---:|---:|
-| M0 | 130 | 87 | 3 | 40 | 0 | 70.9% |
+| M0 | 130 | 89 | 3 | 38 | 0 | 73.9% |
 | M1 | 161 | 84 | 2 | 69 | 6 | 52.6% |
 | S | 471 | 66 | 2 | 241 | 162 | 15.6% |
 | C | 247 | 9 | 3 | 134 | 101 | 3.9% |
@@ -51,7 +51,7 @@ node docs/historias-usuario-v2/tools/progress-dashboard.mjs
 | Epica | Titulo | HU vivas | Cubiertas | Parciales | Pendientes | Diferidas | Avance ponderado |
 |---|---|---:|---:|---:|---:|---:|---:|
 | 10 | Canvas — creación de cosas (proceso, objeto, enlace inicial, afiliación, esencia) | 17 | 14 | 0 | 3 | 0 | 81.6% |
-| 11 | Canvas — modelado básico (agregación, multi-selección, enlaces procedurales, propiedades, alineación, borrado) | 22 | 15 | 0 | 7 | 0 | 64.3% |
+| 11 | Canvas — modelado básico (agregación, multi-selección, enlaces procedurales, propiedades, alineación, borrado) | 22 | 16 | 0 | 6 | 0 | 67.9% |
 | 12 | Canvas — descomposición de procesos | 31 | 22 | 1 | 8 | 0 | 75.2% |
 | 13 | Canvas — estados (designaciones, par entrada-salida, supresión, layout interno) | 18 | 9 | 1 | 8 | 0 | 52.1% |
 | 14 | Canvas — estilado visual de cosas, texto y enlaces | 15 | 5 | 0 | 10 | 0 | 40.0% |
@@ -98,14 +98,12 @@ node docs/historias-usuario-v2/tools/progress-dashboard.mjs
 | C2 | Runtime ROS — integración con Robot Operating System | 28 | 0 | 0 | 0 | 28 | 0.0% |
 | D0 | Análisis — detección de conocimiento faltante (predicción de enlaces sobre el grafo del modelo) | 22 | 0 | 0 | 0 | 22 | 0.0% |
 | D1 | Análisis — calificación de informatividad del modelo (MFSP, INF, WINF, TWINF) | 16 | 0 | 0 | 0 | 16 | 0.0% |
-| SHARED | Patrones transversales | 9 | 5 | 2 | 2 | 0 | 64.6% |
+| SHARED | Patrones transversales | 9 | 6 | 2 | 1 | 0 | 81.3% |
 
 ## Pendientes M0 inmediatos
 
-- [HU-SHARED-007](../historias-usuario-v2/shared/HU-SHARED-007-eco-opl.md) — Eco OPL-ES sincronizado (M0, pendiente)
 - [HU-1C.004](../historias-usuario-v2/epicas/epica-1c-canvas-validaciones.md) — Crear cosa interna correcta directamente dentro del contenedor (M0, pendiente)
 - [HU-10.007](../historias-usuario-v2/epicas/epica-10-canvas-creacion-cosas.md) — Iniciar enlace desde borde de cosa (M0, pendiente)
-- [HU-11.001](../historias-usuario-v2/epicas/epica-11-canvas-modelado-basico.md) — Crear cosa y sus partes en secuencia sobre el mismo OPD (M0, pendiente)
 - [HU-11.004](../historias-usuario-v2/epicas/epica-11-canvas-modelado-basico.md) — Fusionar múltiples enlaces de agregación en bus vertical único (M0, pendiente)
 - [HU-11.014](../historias-usuario-v2/epicas/epica-11-canvas-modelado-basico.md) — Renombrar etiqueta del enlace [especializa HU-SHARED-004] (M0, pendiente)
 - [HU-11.024](../historias-usuario-v2/epicas/epica-11-canvas-modelado-basico.md) — Guardar modelo explícitamente y ver confirmación (M0, pendiente)

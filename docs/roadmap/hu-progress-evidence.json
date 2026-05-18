@@ -728,11 +728,11 @@
   ],
   "knownGaps": [],
   "autoAudit": {
-    "generatedAt": "2026-05-18T14:29:19.217Z",
+    "generatedAt": "2026-05-18T14:31:03.858Z",
     "mode": "sync-real",
     "rulesEvaluated": 102,
-    "rulesMatched": 79,
-    "rulesUnmatched": 23,
+    "rulesMatched": 81,
+    "rulesUnmatched": 21,
     "sourceFiles": {
       "count": 685,
       "roots": [
@@ -766,10 +766,10 @@
       "ids": [
         "HU-SHARED-007"
       ],
-      "estado": "pendiente",
+      "estado": "cubierto",
       "confianza": "alta-auto",
       "fuente": "auto",
-      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
+      "nota": "Auto ronda 14 alpha-lock: OPL-ES forward + reverse editable cubierto con parser SSOT, diagnosticos, preview de patches, aplicacion undoable al store y smoke UI. El reverse acepta oraciones canonicas, no borra por ausencia y diagnostica familias fuera de kernel.",
       "evidencia": [
         "app/src/opl/generar.ts",
         "app/src/opl/generadores/procedural.ts",
@@ -779,15 +779,12 @@
         "app/src/opl/parser/aplicar.ts",
         "app/src/store/modelo/acciones-canvas.ts",
         "app/src/ui/PanelOpl.tsx",
+        "app/src/ui/panelOpl/EditorOplHonesto.tsx",
         "app/src/ui/panelOpl/Bloques.tsx",
         "app/src/opl/generar.test.ts",
         "app/src/opl/parser/parser.test.ts",
         "app/e2e/03-opl-panel.spec.ts",
         "app/src/completitud.test.ts"
-      ],
-      "brechas": [
-        "app/src/ui/PanelOpl.tsx: falta panel-opl-editor-libre",
-        "app/src/ui/PanelOpl.tsx: falta panel-opl-editor-aplicar"
       ]
     },
     {
@@ -2485,15 +2482,12 @@
       "ids": [
         "HU-11.001"
       ],
-      "estado": "pendiente",
+      "estado": "cubierto",
       "confianza": "alta-auto",
       "fuente": "auto",
-      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
+      "nota": "Auto ronda 12 L1: indicador de modo canonico persistente en Toolbar (data-testid indicador-modo-canonico).",
       "evidencia": [
         "app/src/ui/toolbar/ToolbarCreacion.tsx"
-      ],
-      "brechas": [
-        "app/src/ui/toolbar/ToolbarCreacion.tsx: falta indicador-modo-sticky"
       ]
     },
     {

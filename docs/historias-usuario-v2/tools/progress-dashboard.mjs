@@ -405,7 +405,7 @@ function autoAuditRules() {
         { path: "app/src/opl/parser/aplicar.ts", all: ["aplicarPatchesOpl", "crearEnlace", "crearEstadosIniciales"] },
         { path: "app/src/store/modelo/acciones-canvas.ts", all: ["aplicarEdicionOplLibre", "commitModelo"] },
         { path: "app/src/ui/PanelOpl.tsx", any: ["generarOplInteractivo", "PanelOpl"] },
-        { path: "app/src/ui/PanelOpl.tsx", all: ["panel-opl-editor-libre", "panel-opl-editor-aplicar"] },
+        { path: "app/src/ui/panelOpl/EditorOplHonesto.tsx", all: ["panel-opl-editor-libre", "panel-opl-editor-aplicar"] },
         { path: "app/src/ui/panelOpl/Bloques.tsx", all: ["data-testid=\"opl-line\""] },
         { path: "app/src/opl/generar.test.ts", all: ["generarOpl", "expect"] },
         { path: "app/src/opl/parser/parser.test.ts", all: ["OPL reverse libre", "aplicarPatchesOpl"] },
@@ -1518,9 +1518,9 @@ function autoAuditRules() {
       ids: ["HU-11.001"],
       estado: "cubierto",
       confianza: "alta-auto",
-      nota: "Auto ronda 12 L1: indicador de modo sticky en Toolbar (data-testid indicador-modo-sticky).",
+      nota: "Auto ronda 12 L1: indicador de modo canonico persistente en Toolbar (data-testid indicador-modo-canonico).",
       requires: [
-        { path: "app/src/ui/toolbar/ToolbarCreacion.tsx", all: ["indicador-modo-sticky"] },
+        { path: "app/src/ui/toolbar/ToolbarCreacion.tsx", all: ["indicador-modo-canonico"] },
       ],
     },
     {

@@ -1,15 +1,15 @@
 {
   "schema": "deep-opm-pro.hu-progress-report.v1",
-  "generatedAt": "2026-05-18T14:29:19.217Z",
+  "generatedAt": "2026-05-18T14:31:03.858Z",
   "repoRoot": "/home/felix/projects/deep-opm-pro",
   "backlogRoot": "docs/historias-usuario-v2",
   "evidenceLedger": "docs/roadmap/hu-progress-evidence.json",
   "autoAudit": {
-    "generatedAt": "2026-05-18T14:29:19.217Z",
+    "generatedAt": "2026-05-18T14:31:03.858Z",
     "mode": "sync-real",
     "rulesEvaluated": 102,
-    "rulesMatched": 79,
-    "rulesUnmatched": 23,
+    "rulesMatched": 81,
+    "rulesUnmatched": 21,
     "sourceFiles": {
       "count": 685,
       "roots": [
@@ -43,14 +43,14 @@
   "summaries": {
     "total": {
       "total": 1126,
-      "cubierto": 246,
+      "cubierto": 248,
       "parcial": 10,
-      "pendiente": 492,
+      "pendiente": 490,
       "diferido": 378,
       "bloqueado": 0,
       "pesoTotal": 3004,
-      "pesoCubierto": 661,
-      "avance": 0.2200399467376831
+      "pesoCubierto": 671,
+      "avance": 0.22336884154460718
     },
     "inventario": {
       "totalParseadas": 1173,
@@ -60,25 +60,25 @@
     },
     "m0": {
       "total": 130,
-      "cubierto": 87,
+      "cubierto": 89,
       "parcial": 3,
-      "pendiente": 40,
+      "pendiente": 38,
       "diferido": 0,
       "bloqueado": 0,
       "pesoTotal": 333,
-      "pesoCubierto": 236,
-      "avance": 0.7087087087087087
+      "pesoCubierto": 246,
+      "avance": 0.7387387387387387
     },
     "alpha": {
       "total": 121,
-      "cubierto": 97,
+      "cubierto": 99,
       "parcial": 0,
-      "pendiente": 24,
+      "pendiente": 22,
       "diferido": 0,
       "bloqueado": 0,
       "pesoTotal": 326,
-      "pesoCubierto": 262,
-      "avance": 0.803680981595092
+      "pesoCubierto": 272,
+      "avance": 0.8343558282208589
     },
     "beta": {
       "total": 193,
@@ -94,14 +94,14 @@
     "byCut": {
       "alpha": {
         "total": 121,
-        "cubierto": 97,
+        "cubierto": 99,
         "parcial": 0,
-        "pendiente": 24,
+        "pendiente": 22,
         "diferido": 0,
         "bloqueado": 0,
         "pesoTotal": 326,
-        "pesoCubierto": 262,
-        "avance": 0.803680981595092
+        "pesoCubierto": 272,
+        "avance": 0.8343558282208589
       },
       "beta": {
         "total": 193,
@@ -151,14 +151,14 @@
     "byPriority": {
       "M0": {
         "total": 130,
-        "cubierto": 87,
+        "cubierto": 89,
         "parcial": 3,
-        "pendiente": 40,
+        "pendiente": 38,
         "diferido": 0,
         "bloqueado": 0,
         "pesoTotal": 333,
-        "pesoCubierto": 236,
-        "avance": 0.7087087087087087
+        "pesoCubierto": 246,
+        "avance": 0.7387387387387387
       },
       "M1": {
         "total": 161,
@@ -232,14 +232,14 @@
       "11": {
         "titulo": "Canvas — modelado básico (agregación, multi-selección, enlaces procedurales, propiedades, alineación, borrado)",
         "total": 22,
-        "cubierto": 15,
+        "cubierto": 16,
         "parcial": 0,
-        "pendiente": 7,
+        "pendiente": 6,
         "diferido": 0,
         "bloqueado": 0,
         "pesoTotal": 56,
-        "pesoCubierto": 36,
-        "avance": 0.6428571428571429
+        "pesoCubierto": 38,
+        "avance": 0.6785714285714286
       },
       "12": {
         "titulo": "Canvas — descomposición de procesos",
@@ -796,14 +796,14 @@
       "SHARED": {
         "titulo": "Patrones transversales",
         "total": 9,
-        "cubierto": 5,
+        "cubierto": 6,
         "parcial": 2,
-        "pendiente": 2,
+        "pendiente": 1,
         "diferido": 0,
         "bloqueado": 0,
         "pesoTotal": 48,
-        "pesoCubierto": 31,
-        "avance": 0.6458333333333334
+        "pesoCubierto": 39,
+        "avance": 0.8125
       }
     }
   },
@@ -1203,14 +1203,11 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/shared/HU-SHARED-007-eco-opl.md",
       "lineaInicio": 16,
       "corte": "alpha",
-      "estadoAvance": "pendiente",
+      "estadoAvance": "cubierto",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
-      "brechas": [
-        "app/src/ui/PanelOpl.tsx: falta panel-opl-editor-libre",
-        "app/src/ui/PanelOpl.tsx: falta panel-opl-editor-aplicar"
-      ],
+      "nota": "Auto ronda 14 alpha-lock: OPL-ES forward + reverse editable cubierto con parser SSOT, diagnosticos, preview de patches, aplicacion undoable al store y smoke UI. El reverse acepta oraciones canonicas, no borra por ausencia y diagnostica familias fuera de kernel.",
+      "brechas": [],
       "evidencia": [
         {
           "path": "app/src/opl/generar.ts",
@@ -1245,6 +1242,10 @@
           "hrefDashboard": "../../app/src/ui/PanelOpl.tsx"
         },
         {
+          "path": "app/src/ui/panelOpl/EditorOplHonesto.tsx",
+          "hrefDashboard": "../../app/src/ui/panelOpl/EditorOplHonesto.tsx"
+        },
+        {
           "path": "app/src/ui/panelOpl/Bloques.tsx",
           "hrefDashboard": "../../app/src/ui/panelOpl/Bloques.tsx"
         },
@@ -1266,8 +1267,8 @@
         }
       ],
       "peso": 8,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 8,
       "enlaceFuente": "../historias-usuario-v2/shared/HU-SHARED-007-eco-opl.md"
     },
     {
@@ -17744,13 +17745,11 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-11-canvas-modelado-basico.md",
       "lineaInicio": 55,
       "corte": "alpha",
-      "estadoAvance": "pendiente",
+      "estadoAvance": "cubierto",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
-      "brechas": [
-        "app/src/ui/toolbar/ToolbarCreacion.tsx: falta indicador-modo-sticky"
-      ],
+      "nota": "Auto ronda 12 L1: indicador de modo canonico persistente en Toolbar (data-testid indicador-modo-canonico).",
+      "brechas": [],
       "evidencia": [
         {
           "path": "app/src/ui/toolbar/ToolbarCreacion.tsx",
@@ -17758,8 +17757,8 @@
         }
       ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-11-canvas-modelado-basico.md"
     },
     {
