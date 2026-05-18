@@ -174,7 +174,9 @@ const style = {
   pestanaActiva: {
     background: tokens.colors.fondoChrome,
     color: tokens.colors.textoPrimario,
-    borderTop: `2px solid ${tokens.colors.chromeNeutral}`,
+    // ronda 23 chrome: acento UI en lugar de chrome neutro — la pestaña
+    // activa gana presencia sin sumar peso visual al resto de la barra.
+    borderTop: `2px solid ${tokens.colors.acentoUi}`,
   },
   pestanaDirty: {
     fontStyle: "italic",

@@ -1,0 +1,42 @@
+/*
+ * Toolbar — acentos ontológicos en hover/active.
+ *
+ * Ronda 23 chrome estética: los botones de creación Objeto/Proceso ganan un
+ * underline 2px del color semántico del canvas (#70E483 / #3BC3FF) solo en
+ * hover/active/focus. En reposo permanecen neutros para no competir con la
+ * jerarquía del chrome. Refuerza pedagógicamente la ontología OPM sin tocar
+ * la paleta semántica del canvas (JOYAS §1 invariante).
+ *
+ * Convención: data-testid es el anchor estable que ya expone ToolbarBase.
+ */
+
+[data-testid="toolbar-drag-objeto"],
+[data-testid="toolbar-drag-proceso"] {
+  position: relative;
+}
+
+[data-testid="toolbar-drag-objeto"]::after,
+[data-testid="toolbar-drag-proceso"]::after {
+  content: "";
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  bottom: 4px;
+  height: 2px;
+  border-radius: 2px;
+  background: transparent;
+  pointer-events: none;
+  transition: background 120ms ease-out;
+}
+
+[data-testid="toolbar-drag-objeto"]:hover::after,
+[data-testid="toolbar-drag-objeto"]:focus-visible::after,
+[data-testid="toolbar-drag-objeto"][aria-pressed="true"]::after {
+  background: #70E483;
+}
+
+[data-testid="toolbar-drag-proceso"]:hover::after,
+[data-testid="toolbar-drag-proceso"]:focus-visible::after,
+[data-testid="toolbar-drag-proceso"][aria-pressed="true"]::after {
+  background: #3BC3FF;
+}

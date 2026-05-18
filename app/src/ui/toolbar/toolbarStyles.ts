@@ -13,7 +13,8 @@ export const toolbarStyle = {
     display: "flex",
     alignItems: "center",
     gap: "8px",
-    padding: "7px 12px",
+    // ronda 23 chrome: padding 7×12 → 8×14 para densidad respiratoria.
+    padding: "8px 14px",
     background: "#ffffff",
     borderBottom: "1px solid #d9e0ea",
     overflow: "hidden",
@@ -87,9 +88,14 @@ export const toolbarStyle = {
   },
   disabledButton: {
     ...botonBase(),
-    border: "1px solid #d9e0ea",
-    background: "#f2f4f7",
-    color: "#98a2b3",
+    // ronda 23 chrome: la ausencia comunica mejor que la presencia apagada.
+    // Antes: borde + fondo + color desaturado (chrome "muerto"). Ahora:
+    // transparente con opacity 0.6 — el botón pertenece a la fila pero
+    // no compite por la atención visual.
+    border: "1px solid transparent",
+    background: "transparent",
+    color: colors.textoDeshabilitado,
+    opacity: 0.6,
     cursor: "default",
   },
   stickyBadge: {
@@ -305,8 +311,9 @@ export function etiquetaModoGlobal(modo: ModoImagenEntidad | null): string {
 
 function botonBase(): preact.JSX.CSSProperties {
   return {
-    height: "30px",
-    padding: `0 ${spacing.md}px`,
+    // ronda 23 chrome: 30→32px y padding lateral 14px para respiración.
+    height: "32px",
+    padding: "0 14px",
     border: `1px solid ${colors.bordeInput}`,
     borderRadius: "4px",
     background: colors.fondoCard,
