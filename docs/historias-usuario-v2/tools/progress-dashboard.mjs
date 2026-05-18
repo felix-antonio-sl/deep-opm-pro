@@ -511,7 +511,7 @@ function autoAuditRules() {
       nota: "Auto: guardar/cargar local, nuevo modelo y Ctrl+S estan implementados sobre persistencia local.",
       requires: [
         { path: "app/src/ui/toolbar/ToolbarBase.tsx", all: ["Guardar (Ctrl+S)", "Cargar", "Nuevo"] },
-        { path: "app/src/ui/App.tsx", all: ["Ctrl+S", "guardarLocal"] },
+        { path: "app/src/app/ports/globalShortcutsPort.ts", all: ["Ctrl+S", "guardarLocal"] },
         { path: "app/src/store/persistencia.ts", all: ["guardarLocal()", "cargarLocal(id)"] },
         { path: "app/src/store/modelo/acciones-ui.ts", all: ["nuevoModelo"] },
         { path: "app/src/persistencia/local.ts", all: ["localStorage", "guardarModeloLocal", "cargarModeloLocal"] },
@@ -968,7 +968,7 @@ function autoAuditRules() {
       nota: "Auto: registry central de atajos con contextos, menu contextual de arbol, divisor y zoom centralizado.",
       requires: [
         { path: "app/src/ui/atajosTeclado.ts", all: ["registrarAtajo", "escucharGlobal", "data-atajos-contexto"] },
-        { path: "app/src/ui/App.tsx", all: ["Ctrl+S", "Ctrl+Tab", "registrarAtajo"] },
+        { path: "app/src/app/ports/globalShortcutsPort.ts", all: ["Ctrl+S", "Ctrl+Tab", "registrarAtajo"] },
         { path: "app/src/ui/divisorPanel.tsx", all: ["limitarAnchoPanel", "onDblClick"] },
         { path: "app/src/ui/MenuContextualArbol.tsx", any: ["Renombrar", "Eliminar"] },
         { path: "app/src/render/jointjs/handlers/zoom.ts", any: ["wheel", "registrarAtajo"] },

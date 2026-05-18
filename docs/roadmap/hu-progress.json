@@ -1,17 +1,17 @@
 {
   "schema": "deep-opm-pro.hu-progress-report.v1",
-  "generatedAt": "2026-05-18T14:56:51.891Z",
+  "generatedAt": "2026-05-18T15:18:21.031Z",
   "repoRoot": "/home/felix/projects/deep-opm-pro",
   "backlogRoot": "docs/historias-usuario-v2",
   "evidenceLedger": "docs/roadmap/hu-progress-evidence.json",
   "autoAudit": {
-    "generatedAt": "2026-05-18T14:56:51.891Z",
+    "generatedAt": "2026-05-18T15:18:21.031Z",
     "mode": "sync-real",
     "rulesEvaluated": 105,
     "rulesMatched": 89,
     "rulesUnmatched": 16,
     "sourceFiles": {
-      "count": 683,
+      "count": 688,
       "roots": [
         "app/src",
         "app/e2e",
@@ -19051,8 +19051,8 @@
           "hrefDashboard": "../../app/src/ui/toolbar/ToolbarBase.tsx"
         },
         {
-          "path": "app/src/ui/App.tsx",
-          "hrefDashboard": "../../app/src/ui/App.tsx"
+          "path": "app/src/app/ports/globalShortcutsPort.ts",
+          "hrefDashboard": "../../app/src/app/ports/globalShortcutsPort.ts"
         },
         {
           "path": "app/src/store/persistencia.ts",
@@ -31565,8 +31565,8 @@
           "hrefDashboard": "../../app/src/ui/toolbar/ToolbarBase.tsx"
         },
         {
-          "path": "app/src/ui/App.tsx",
-          "hrefDashboard": "../../app/src/ui/App.tsx"
+          "path": "app/src/app/ports/globalShortcutsPort.ts",
+          "hrefDashboard": "../../app/src/app/ports/globalShortcutsPort.ts"
         },
         {
           "path": "app/src/store/persistencia.ts",
@@ -31625,8 +31625,8 @@
           "hrefDashboard": "../../app/src/ui/toolbar/ToolbarBase.tsx"
         },
         {
-          "path": "app/src/ui/App.tsx",
-          "hrefDashboard": "../../app/src/ui/App.tsx"
+          "path": "app/src/app/ports/globalShortcutsPort.ts",
+          "hrefDashboard": "../../app/src/app/ports/globalShortcutsPort.ts"
         },
         {
           "path": "app/src/store/persistencia.ts",
@@ -32162,8 +32162,8 @@
           "hrefDashboard": "../../app/src/ui/toolbar/ToolbarBase.tsx"
         },
         {
-          "path": "app/src/ui/App.tsx",
-          "hrefDashboard": "../../app/src/ui/App.tsx"
+          "path": "app/src/app/ports/globalShortcutsPort.ts",
+          "hrefDashboard": "../../app/src/app/ports/globalShortcutsPort.ts"
         },
         {
           "path": "app/src/store/persistencia.ts",
@@ -32319,8 +32319,8 @@
           "hrefDashboard": "../../app/src/ui/toolbar/ToolbarBase.tsx"
         },
         {
-          "path": "app/src/ui/App.tsx",
-          "hrefDashboard": "../../app/src/ui/App.tsx"
+          "path": "app/src/app/ports/globalShortcutsPort.ts",
+          "hrefDashboard": "../../app/src/app/ports/globalShortcutsPort.ts"
         },
         {
           "path": "app/src/store/persistencia.ts",
@@ -47834,8 +47834,8 @@
           "hrefDashboard": "../../app/src/ui/atajosTeclado.ts"
         },
         {
-          "path": "app/src/ui/App.tsx",
-          "hrefDashboard": "../../app/src/ui/App.tsx"
+          "path": "app/src/app/ports/globalShortcutsPort.ts",
+          "hrefDashboard": "../../app/src/app/ports/globalShortcutsPort.ts"
         },
         {
           "path": "app/src/ui/divisorPanel.tsx",
@@ -47889,8 +47889,8 @@
           "hrefDashboard": "../../app/src/ui/atajosTeclado.ts"
         },
         {
-          "path": "app/src/ui/App.tsx",
-          "hrefDashboard": "../../app/src/ui/App.tsx"
+          "path": "app/src/app/ports/globalShortcutsPort.ts",
+          "hrefDashboard": "../../app/src/app/ports/globalShortcutsPort.ts"
         },
         {
           "path": "app/src/ui/divisorPanel.tsx",
@@ -47944,8 +47944,8 @@
           "hrefDashboard": "../../app/src/ui/atajosTeclado.ts"
         },
         {
-          "path": "app/src/ui/App.tsx",
-          "hrefDashboard": "../../app/src/ui/App.tsx"
+          "path": "app/src/app/ports/globalShortcutsPort.ts",
+          "hrefDashboard": "../../app/src/app/ports/globalShortcutsPort.ts"
         },
         {
           "path": "app/src/ui/divisorPanel.tsx",
@@ -48000,8 +48000,8 @@
           "hrefDashboard": "../../app/src/ui/atajosTeclado.ts"
         },
         {
-          "path": "app/src/ui/App.tsx",
-          "hrefDashboard": "../../app/src/ui/App.tsx"
+          "path": "app/src/app/ports/globalShortcutsPort.ts",
+          "hrefDashboard": "../../app/src/app/ports/globalShortcutsPort.ts"
         },
         {
           "path": "app/src/ui/divisorPanel.tsx",
@@ -48055,8 +48055,8 @@
           "hrefDashboard": "../../app/src/ui/atajosTeclado.ts"
         },
         {
-          "path": "app/src/ui/App.tsx",
-          "hrefDashboard": "../../app/src/ui/App.tsx"
+          "path": "app/src/app/ports/globalShortcutsPort.ts",
+          "hrefDashboard": "../../app/src/app/ports/globalShortcutsPort.ts"
         },
         {
           "path": "app/src/ui/divisorPanel.tsx",
@@ -48111,8 +48111,8 @@
           "hrefDashboard": "../../app/src/ui/atajosTeclado.ts"
         },
         {
-          "path": "app/src/ui/App.tsx",
-          "hrefDashboard": "../../app/src/ui/App.tsx"
+          "path": "app/src/app/ports/globalShortcutsPort.ts",
+          "hrefDashboard": "../../app/src/app/ports/globalShortcutsPort.ts"
         },
         {
           "path": "app/src/ui/divisorPanel.tsx",
@@ -48166,8 +48166,8 @@
           "hrefDashboard": "../../app/src/ui/atajosTeclado.ts"
         },
         {
-          "path": "app/src/ui/App.tsx",
-          "hrefDashboard": "../../app/src/ui/App.tsx"
+          "path": "app/src/app/ports/globalShortcutsPort.ts",
+          "hrefDashboard": "../../app/src/app/ports/globalShortcutsPort.ts"
         },
         {
           "path": "app/src/ui/divisorPanel.tsx",
@@ -48221,8 +48221,8 @@
           "hrefDashboard": "../../app/src/ui/atajosTeclado.ts"
         },
         {
-          "path": "app/src/ui/App.tsx",
-          "hrefDashboard": "../../app/src/ui/App.tsx"
+          "path": "app/src/app/ports/globalShortcutsPort.ts",
+          "hrefDashboard": "../../app/src/app/ports/globalShortcutsPort.ts"
         },
         {
           "path": "app/src/ui/divisorPanel.tsx",
@@ -48276,8 +48276,8 @@
           "hrefDashboard": "../../app/src/ui/atajosTeclado.ts"
         },
         {
-          "path": "app/src/ui/App.tsx",
-          "hrefDashboard": "../../app/src/ui/App.tsx"
+          "path": "app/src/app/ports/globalShortcutsPort.ts",
+          "hrefDashboard": "../../app/src/app/ports/globalShortcutsPort.ts"
         },
         {
           "path": "app/src/ui/divisorPanel.tsx",
@@ -48331,8 +48331,8 @@
           "hrefDashboard": "../../app/src/ui/atajosTeclado.ts"
         },
         {
-          "path": "app/src/ui/App.tsx",
-          "hrefDashboard": "../../app/src/ui/App.tsx"
+          "path": "app/src/app/ports/globalShortcutsPort.ts",
+          "hrefDashboard": "../../app/src/app/ports/globalShortcutsPort.ts"
         },
         {
           "path": "app/src/ui/divisorPanel.tsx",
@@ -48386,8 +48386,8 @@
           "hrefDashboard": "../../app/src/ui/atajosTeclado.ts"
         },
         {
-          "path": "app/src/ui/App.tsx",
-          "hrefDashboard": "../../app/src/ui/App.tsx"
+          "path": "app/src/app/ports/globalShortcutsPort.ts",
+          "hrefDashboard": "../../app/src/app/ports/globalShortcutsPort.ts"
         },
         {
           "path": "app/src/ui/divisorPanel.tsx",
@@ -48441,8 +48441,8 @@
           "hrefDashboard": "../../app/src/ui/atajosTeclado.ts"
         },
         {
-          "path": "app/src/ui/App.tsx",
-          "hrefDashboard": "../../app/src/ui/App.tsx"
+          "path": "app/src/app/ports/globalShortcutsPort.ts",
+          "hrefDashboard": "../../app/src/app/ports/globalShortcutsPort.ts"
         },
         {
           "path": "app/src/ui/divisorPanel.tsx",
@@ -48496,8 +48496,8 @@
           "hrefDashboard": "../../app/src/ui/atajosTeclado.ts"
         },
         {
-          "path": "app/src/ui/App.tsx",
-          "hrefDashboard": "../../app/src/ui/App.tsx"
+          "path": "app/src/app/ports/globalShortcutsPort.ts",
+          "hrefDashboard": "../../app/src/app/ports/globalShortcutsPort.ts"
         },
         {
           "path": "app/src/ui/divisorPanel.tsx",
@@ -48551,8 +48551,8 @@
           "hrefDashboard": "../../app/src/ui/atajosTeclado.ts"
         },
         {
-          "path": "app/src/ui/App.tsx",
-          "hrefDashboard": "../../app/src/ui/App.tsx"
+          "path": "app/src/app/ports/globalShortcutsPort.ts",
+          "hrefDashboard": "../../app/src/app/ports/globalShortcutsPort.ts"
         },
         {
           "path": "app/src/ui/divisorPanel.tsx",
@@ -48606,8 +48606,8 @@
           "hrefDashboard": "../../app/src/ui/atajosTeclado.ts"
         },
         {
-          "path": "app/src/ui/App.tsx",
-          "hrefDashboard": "../../app/src/ui/App.tsx"
+          "path": "app/src/app/ports/globalShortcutsPort.ts",
+          "hrefDashboard": "../../app/src/app/ports/globalShortcutsPort.ts"
         },
         {
           "path": "app/src/ui/divisorPanel.tsx",
@@ -48658,8 +48658,8 @@
           "hrefDashboard": "../../app/src/ui/atajosTeclado.ts"
         },
         {
-          "path": "app/src/ui/App.tsx",
-          "hrefDashboard": "../../app/src/ui/App.tsx"
+          "path": "app/src/app/ports/globalShortcutsPort.ts",
+          "hrefDashboard": "../../app/src/app/ports/globalShortcutsPort.ts"
         },
         {
           "path": "app/src/ui/divisorPanel.tsx",
@@ -48710,8 +48710,8 @@
           "hrefDashboard": "../../app/src/ui/atajosTeclado.ts"
         },
         {
-          "path": "app/src/ui/App.tsx",
-          "hrefDashboard": "../../app/src/ui/App.tsx"
+          "path": "app/src/app/ports/globalShortcutsPort.ts",
+          "hrefDashboard": "../../app/src/app/ports/globalShortcutsPort.ts"
         },
         {
           "path": "app/src/ui/divisorPanel.tsx",
@@ -48801,8 +48801,8 @@
           "hrefDashboard": "../../app/src/ui/atajosTeclado.ts"
         },
         {
-          "path": "app/src/ui/App.tsx",
-          "hrefDashboard": "../../app/src/ui/App.tsx"
+          "path": "app/src/app/ports/globalShortcutsPort.ts",
+          "hrefDashboard": "../../app/src/app/ports/globalShortcutsPort.ts"
         },
         {
           "path": "app/src/ui/divisorPanel.tsx",
@@ -48854,8 +48854,8 @@
           "hrefDashboard": "../../app/src/ui/atajosTeclado.ts"
         },
         {
-          "path": "app/src/ui/App.tsx",
-          "hrefDashboard": "../../app/src/ui/App.tsx"
+          "path": "app/src/app/ports/globalShortcutsPort.ts",
+          "hrefDashboard": "../../app/src/app/ports/globalShortcutsPort.ts"
         },
         {
           "path": "app/src/ui/divisorPanel.tsx",
@@ -48922,8 +48922,8 @@
           "hrefDashboard": "../../app/src/ui/atajosTeclado.ts"
         },
         {
-          "path": "app/src/ui/App.tsx",
-          "hrefDashboard": "../../app/src/ui/App.tsx"
+          "path": "app/src/app/ports/globalShortcutsPort.ts",
+          "hrefDashboard": "../../app/src/app/ports/globalShortcutsPort.ts"
         },
         {
           "path": "app/src/ui/divisorPanel.tsx",

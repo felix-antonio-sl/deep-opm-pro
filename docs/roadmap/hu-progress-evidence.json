@@ -728,13 +728,13 @@
   ],
   "knownGaps": [],
   "autoAudit": {
-    "generatedAt": "2026-05-18T14:56:51.891Z",
+    "generatedAt": "2026-05-18T15:18:21.031Z",
     "mode": "sync-real",
     "rulesEvaluated": 105,
     "rulesMatched": 89,
     "rulesUnmatched": 16,
     "sourceFiles": {
-      "count": 683,
+      "count": 688,
       "roots": [
         "app/src",
         "app/e2e",
@@ -936,7 +936,7 @@
       "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
       "evidencia": [
         "app/src/ui/toolbar/ToolbarBase.tsx",
-        "app/src/ui/App.tsx",
+        "app/src/app/ports/globalShortcutsPort.ts",
         "app/src/store/persistencia.ts",
         "app/src/store/modelo/acciones-ui.ts",
         "app/src/persistencia/local.ts",
@@ -1676,7 +1676,7 @@
       "nota": "Auto: registry central de atajos con contextos, menu contextual de arbol, divisor y zoom centralizado.",
       "evidencia": [
         "app/src/ui/atajosTeclado.ts",
-        "app/src/ui/App.tsx",
+        "app/src/app/ports/globalShortcutsPort.ts",
         "app/src/ui/divisorPanel.tsx",
         "app/src/ui/MenuContextualArbol.tsx",
         "app/src/render/jointjs/handlers/zoom.ts"
