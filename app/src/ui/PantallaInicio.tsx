@@ -22,6 +22,7 @@ export function PantallaInicio() {
   const confirmarSiDirty = useConfirmarSiDirty();
   const [query, setQuery] = useState("");
   const [demoSeleccionado, setDemoSeleccionado] = useState("");
+  const [glosaAbierta, setGlosaAbierta] = useState(false);
   const {
     modelo,
     modeloPersistidoId,
@@ -86,6 +87,21 @@ export function PantallaInicio() {
             value={query}
             onInput={(event) => setQuery(event.currentTarget.value)}
           />
+          {/* Corte 3.5 sustracción de chrome: la glosa OPM ya no ocupa ~80px
+              verticales por defecto. Se ofrece como drawer plegable disparado
+              por este botón `?` en el header del overlay. */}
+          <button
+            type="button"
+            data-testid="pantalla-inicio-glosa-toggle"
+            aria-label="Glosa OPM"
+            aria-expanded={glosaAbierta}
+            aria-controls="pantalla-inicio-glosa"
+            title="Glosa de términos OPM"
+            style={glosaAbierta ? style.glosaToggleActivo : style.glosaToggle}
+            onClick={() => setGlosaAbierta((abierta) => !abierta)}
+          >
+            ?
+          </button>
         </div>
         <div style={style.actions}>
           {/*
@@ -134,17 +150,24 @@ export function PantallaInicio() {
           {recientes.map((modelo) => <TileReciente key={modelo.id} modelo={modelo} onAbrir={abrir} />)}
         </div>
         {recientes.length === 0 ? <div style={style.empty}>No hay modelos recientes.</div> : null}
-        <dl style={style.glosa} aria-label="Glosa OPM de bienvenida">
-          {GLOSA_BIENVENIDA_OPM.map((item) => (
-            <div key={item.termino} style={style.glosaItem}>
-              <dt style={style.glosaTermino}>{item.termino}</dt>
-              <dd style={style.glosaDefinicion}>
-                <span aria-hidden="true" style={style.glosaSeparador}>—</span>
-                {item.definicion}
-              </dd>
-            </div>
-          ))}
-        </dl>
+        {glosaAbierta ? (
+          <dl
+            id="pantalla-inicio-glosa"
+            data-testid="pantalla-inicio-glosa"
+            style={style.glosa}
+            aria-label="Glosa OPM de bienvenida"
+          >
+            {GLOSA_BIENVENIDA_OPM.map((item) => (
+              <div key={item.termino} style={style.glosaItem}>
+                <dt style={style.glosaTermino}>{item.termino}</dt>
+                <dd style={style.glosaDefinicion}>
+                  <span aria-hidden="true" style={style.glosaSeparador}>—</span>
+                  {item.definicion}
+                </dd>
+              </div>
+            ))}
+          </dl>
+        ) : null}
       </section>
     </div>
   );
@@ -194,7 +217,9 @@ const style = {
     width: "min(1120px, calc(100vw - 48px))",
     maxHeight: "min(720px, calc(100vh - 72px))",
     display: "grid",
-    gridTemplateRows: "auto auto auto minmax(0, 1fr) auto auto",
+    // Corte 3.5 sustracción de chrome: la glosa pasó a drawer plegable; el
+    // slot fijo final desaparece para recuperar ~80px verticales por defecto.
+    gridTemplateRows: "auto auto auto minmax(0, 1fr) auto",
     gap: "12px",
     padding: "18px",
     border: `1px solid ${tokens.colors.bordeControl}`,
@@ -208,6 +233,38 @@ const style = {
   title: { margin: 0, color: tokens.colors.textoPrimario, fontSize: "20px", fontWeight: 800 },
   subtitle: { margin: "4px 0 0", color: tokens.colors.textoSecundario, fontSize: "13px", fontWeight: 700 },
   search: { marginLeft: "auto", width: "min(360px, 45vw)", height: "34px", border: `1px solid ${tokens.colors.bordeInput}`, borderRadius: tokens.radii.sm, padding: "0 10px", fontSize: "13px" },
+  glosaToggle: {
+    width: "34px",
+    height: "34px",
+    flex: "0 0 auto",
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    border: `1px solid ${tokens.colors.bordeControl}`,
+    borderRadius: tokens.radii.sm,
+    background: tokens.colors.fondoChrome,
+    color: tokens.colors.textoSecundario,
+    cursor: "pointer",
+    fontSize: "16px",
+    fontWeight: tokens.typography.weights.bold,
+    lineHeight: 1,
+  },
+  glosaToggleActivo: {
+    width: "34px",
+    height: "34px",
+    flex: "0 0 auto",
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    border: `1px solid ${tokens.colors.acentoUi}`,
+    borderRadius: tokens.radii.sm,
+    background: tokens.colors.acentoUiSuave,
+    color: tokens.colors.acentoUi,
+    cursor: "pointer",
+    fontSize: "16px",
+    fontWeight: tokens.typography.weights.bold,
+    lineHeight: 1,
+  },
   // ronda 23 chrome: layout 2-col asimétrico. La primaria ocupa col-1 con
   // doble alto; las dos secundarias se apilan en col-2.
   actions: {
