@@ -3,8 +3,8 @@
 **Fecha**: 2026-05-18
 **Repositorio**: `deep-opm-pro`
 **Rama**: `main`
-**Último corte funcional**: `91d247a refactor(app): desacopla puertos de workspace del store`
-**Corte**: Refactorizacion total, Corte 4 cerrado: persistencia y workspace quedan tratados como infraestructura local con puertos y errores tipados, conservando `OpmStore` como fachada compatible.
+**Último corte funcional**: `cf43571 refactor(diagnostico): expone calculo por puerto`
+**Corte**: Refactorizacion total, Corte 5 cerrado: OPL y diagnostico quedan tratados como capacidades con derivaciones puras, puertos explicitos y UI como consumidora.
 
 ## Política De Handoff Único
 
@@ -20,6 +20,47 @@
 - JointJS OSS: usar documentación oficial viva cuando se toque JointJS.
 
 ## Estado Actual
+
+### Refactorizacion Total — Corte 5 OPL Y Diagnostico Como Capacidades Cerrado — 2026-05-18
+
+La rama `main` queda sincronizada con `origin/main` tras `cf43571`.
+
+Resultado arquitectonico:
+
+- `OplPort` y `DiagnosticsPort` dejan de tiparse contra `OpmStore`; exponen contratos explicitos basados en tipos de dominio.
+- `app/src/opl/panel.ts` concentra la derivacion del panel OPL: lineas, texto, bloques jerarquicos, filtros por seleccion/busqueda, referencia activa y preview del editor libre.
+- `PanelOpl` queda como consumidor del view-model; la generacion OPL, filtros e inverse editing ya no quedan dispersos dentro del componente.
+- `app/src/modelo/diagnosticoSeveridad.ts` concentra la clasificacion visible de severidades metodologicas (`bloqueo`, `mejora`, `estilo`) sin cambiar los codigos actuales.
+- `app/src/app/viewmodels/panelDiagnosticoViewModel.ts` deriva issues de diagnostico, grupos visibles y navegacion desde `AvisoDiagnostico`; `PanelDiagnostico` queda limitado a render y estado visual local.
+- `DiagnosticsPort` expone `listarAvisos(alcance)` y compone avisos del OPD activo; `arbolOpdViewModel` consume ese contrato en vez de importar directo el calculo de diagnostico.
+- `render/jointjs/overlayCanvas/avisos.ts` se mantiene usando la funcion pura `listarAvisosDiagnostico(modelo, alcance)` porque recibe `modelo` explicitamente y actua como utilidad de render; no se abrio radio innecesario.
+- No se cambiaron frases OPL, severidades/citas SSOT, formato JSON, reglas de validacion, comportamiento visible ni semantica OPM.
+
+Commits atomicos del corte:
+
+- `42f7bf9 refactor(app): tipa puertos opl diagnostico`
+- `9ea442f refactor(opl): extrae derivacion de panel`
+- `37a544c refactor(diagnostico): extrae derivacion de panel`
+- `cf43571 refactor(diagnostico): expone calculo por puerto`
+
+Validacion de cierre:
+
+```bash
+cd app && bun test src/opl src/modelo/checkers.test.ts src/modelo/validaciones.test.ts
+# 338 pass / 0 fail
+cd app && bun run browser:smoke -- e2e/03-opl-panel.spec.ts e2e/11-beta1-validacion-metodologica.spec.ts
+# 19 passed
+cd app && bun run check
+# typecheck OK; 1401 pass / 0 fail
+cd app && bun run build
+# build OK
+```
+
+Notas de frontera:
+
+- `OpmStore` sigue siendo fachada de sesion; el corte solo reduce el contrato consumido por OPL/diagnostico.
+- `panelMetodologiaIssues.ts` queda como re-export temporal para compatibilidad de imports existentes; la fuente nueva de severidad visible vive en `modelo/diagnosticoSeveridad.ts`.
+- El siguiente corte normativo recomendado es Corte 6: Store Por Capacidades Reales. Debe enfocarse en reagrupar slices/contratos efectivos, no en nuevas superficies UI.
 
 ### Refactorizacion Total — Corte 4 Persistencia Y Workspace Como Infraestructura Cerrado — 2026-05-18
 
