@@ -118,6 +118,19 @@ export function CommandPalette({ abierto, onCerrar }: Props) {
   }, [abierto]);
 
   useEffect(() => {
+    if (!abierto) return;
+    const cerrarConEscape = (event: KeyboardEvent) => {
+      if (event.key !== "Escape") return;
+      event.preventDefault();
+      event.stopPropagation();
+      event.stopImmediatePropagation();
+      onCerrar();
+    };
+    window.addEventListener("keydown", cerrarConEscape, true);
+    return () => window.removeEventListener("keydown", cerrarConEscape, true);
+  }, [abierto, onCerrar]);
+
+  useEffect(() => {
     if (activo >= items.length) setActivo(Math.max(0, items.length - 1));
   }, [activo, items.length]);
 
