@@ -1,9 +1,6 @@
 // [JOYAS §1-3] Chrome UI consume tokens centralizados; canvas semántico invariante.
 import { useEffect, useRef, useState } from "preact/hooks";
-import {
-  panelOplMinimizadoEfectivo,
-  usePanelOplViewModel,
-} from "../app/viewmodels/panelOplViewModel";
+import { usePanelOplViewModel } from "../app/viewmodels/panelOplViewModel";
 import { Bloques } from "./panelOpl/Bloques";
 import { atributosIfmlPanelOpl } from "./panelOpl/dataFlow";
 import { EditorOplHonesto } from "./panelOpl/EditorOplHonesto";

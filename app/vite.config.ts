@@ -15,11 +15,6 @@ const MAX_SCREENSHOTS = 12;
 
 export default defineConfig({
   plugins: [preact(), bugCapturePlugin()],
-  resolve: {
-    alias: {
-      "@app": new URL("./src", import.meta.url).pathname,
-    },
-  },
   build: {
     chunkSizeWarningLimit: 700,
     rollupOptions: {
@@ -45,21 +40,18 @@ export default defineConfig({
             modulo.includes("/src/render/jointjs/mapaExport")
           ) return "feature-mapa";
 
-          if (modulo.includes("/src/ui/AsistenteNuevoModelo")) return "feature-asistente";
+          if (modulo.includes("/src/ui/asistente/")) return "feature-asistente";
 
           if (
             modulo.includes("/src/ui/DialogoBuscarGlobal") ||
             modulo.includes("/src/ui/DialogoVersiones") ||
             modulo.includes("/src/ui/DialogoArchivados") ||
             modulo.includes("/src/ui/DialogoCargarModelo") ||
-            modulo.includes("/src/ui/DialogoGuardarComo")
-          ) return "feature-dialogos-pesados";
-
-          if (
+            modulo.includes("/src/ui/DialogoGuardarComo") ||
             modulo.includes("/src/ui/ModalUrlsObjeto") ||
             modulo.includes("/src/ui/ModalDuracionEstado") ||
             modulo.includes("/src/ui/CheatsheetAtajos")
-          ) return "feature-modales";
+          ) return "feature-dialogos-pesados";
 
           return undefined;
         },
