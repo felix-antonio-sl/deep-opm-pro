@@ -3,8 +3,8 @@
 **Fecha**: 2026-05-18
 **Repositorio**: `deep-opm-pro`
 **Rama**: `main`
-**Último corte funcional**: `45145da fix(ui): sincroniza mapa antes de pintar`
-**Corte**: Refactorizacion total, Corte 6 cerrado: `OpmStore` reduce su contrato efectivo mediante capacidades explicitas, selectores derivados y compatibilidad acotada.
+**Último corte funcional**: `eb2ccd3 fix(ui): estabiliza cierre escape de command palette`
+**Corte**: Refactorizacion total, Corte 7 cerrado: wrappers, aliases y compat detectors temporales retirados; auditor HU apunta a evidencias reales y quality ledger queda con 0 detectores de compatibilidad.
 
 ## Política De Handoff Único
 
@@ -20,6 +20,60 @@
 - JointJS OSS: usar documentación oficial viva cuando se toque JointJS.
 
 ## Estado Actual
+
+### Refactorizacion Total — Corte 7 Limpieza De Compatibilidad Temporal Cerrado — 2026-05-18
+
+La rama `main` queda lista para sincronizar con `origin/main` tras el cierre documental de este handoff. El ultimo commit funcional del corte es `eb2ccd3`.
+
+Resultado arquitectonico:
+
+- Se elimino el wrapper temporal `app/src/ui/panelMetodologiaIssues.ts`; la severidad visible vive directamente en `app/src/modelo/diagnosticoSeveridad.ts`.
+- Se retiro el alias legacy `sincronizarOverlayAbanicoEnDrag`; el contrato vigente es `sincronizarOverlayAbanicoConDrag`.
+- `OpmStore` ya no expone `designarEstadoInicial` ni `designarEstadoFinal`; la frontera vigente es `designarEstadoComo`. Las funciones puras de dominio se conservaron.
+- La auditoria HU dejo de depender de detectores sinteticos/legacy en `proyeccion.ts`, `store.ts`, wrappers UI y aliases de arbol; ahora apunta a composers, view-models o superficies reales.
+- Se eliminaron wrappers y re-exports muertos: `DialogoGestionArbol.tsx`, `AsistenteNuevoModelo.tsx` y el re-export test-only de `sugerirEnlaceResultado` en `EstadoVacioOpm.tsx`.
+- La proyeccion JointJS ya no lee configuracion global temporal (`globalThis.__deepOpm...`); usa defaults canonicos o opciones explicitas.
+- `render/jointjs/mapaSistema.ts` dejo de funcionar como barrel amplio de helpers canvas y expone solo la frontera JointJS/tipos esperada.
+- Se corrigio una carrera real del smoke: `CommandPalette` ahora captura `Escape` como modal aunque el input aun no haya recibido foco.
+- Se preservaron compatibilidades con consumidores reales: hidratar JSON legacy, `descomponerProceso`/`desplegarObjeto`, y `guardarComoLocal`/`guardarComoLocalConDescripcion`.
+
+Commits atomicos del corte:
+
+- `5951eba refactor(diagnostico): retira wrapper temporal de severidad`
+- `2a62de3 refactor(render): elimina alias legacy de abanico drag`
+- `1af1f52 refactor(store): elimina aliases deprecated de estados`
+- `7fd2e80 refactor(roadmap): reemplaza detector legacy de proyeccion`
+- `12be09a docs(roadmap): actualiza detectores hu legacy`
+- `ca40238 refactor(ui): elimina aliases legacy del arbol`
+- `5a51caf refactor(ui): elimina wrapper muerto de gestion arbol`
+- `cfb8aa9 refactor(ui): elimina reexport test-only de estado vacio`
+- `7fb204b refactor(ui): elimina wrapper legacy del asistente`
+- `4af17d3 refactor(render): elimina opciones globales legacy`
+- `212ce02 refactor(render): reduce barrel del mapa sistema`
+- `d9aa3d8 refactor(store): retira detector compat heredado`
+- `eb2ccd3 fix(ui): estabiliza cierre escape de command palette`
+
+Validacion de cierre:
+
+```bash
+cd app && bun run check
+# typecheck OK; 1406 pass / 0 fail
+cd app && bun run build
+# build OK; warning no bloqueante: circular chunk feature-dialogos-pesados <-> feature-modales
+cd app && bun run browser:smoke
+# 193 passed
+node docs/historias-usuario-v2/tools/progress-dashboard.mjs --sync-real
+# Total 22.3%; MVP-alpha 83.4%; 1 advertencia diagnostica por HU-13.005 duplicada
+cd app && bun run scripts/quality-ledger.mjs --markdown
+# Canonical laws 6/6; Compat detectors 0; Auto rules 81/102
+```
+
+Notas de frontera:
+
+- El plan normativo `docs/roadmap/refactorizacion-total-plan-normativo.md` define cortes 0-7; con este corte queda cubierto el ultimo corte operativo declarado.
+- La siguiente unidad recomendable no es "Corte 8" dentro del mismo plan, sino una auditoria de cierre contra los indicadores del plan y, si procede, un nuevo plan normativo acotado para deuda residual.
+- El warning de build sobre chunk circular queda registrado como deuda de empaquetado; no bloquea el corte porque no se introdujo en esta limpieza y el build produce artefactos validos.
+- Los directorios no versionados existentes bajo `docs/audits/`, `docs/bugs/` y `docs/instrucciones-lineas-dev/ronda22/` siguen fuera del corte.
 
 ### Refactorizacion Total — Corte 6 Store Por Capacidades Reales Cerrado — 2026-05-18
 

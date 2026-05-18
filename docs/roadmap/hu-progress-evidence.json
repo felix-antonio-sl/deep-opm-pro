@@ -728,7 +728,7 @@
   ],
   "knownGaps": [],
   "autoAudit": {
-    "generatedAt": "2026-05-18T14:35:10.033Z",
+    "generatedAt": "2026-05-18T14:42:12.701Z",
     "mode": "sync-real",
     "rulesEvaluated": 102,
     "rulesMatched": 81,
