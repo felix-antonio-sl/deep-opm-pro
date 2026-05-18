@@ -1,4 +1,4 @@
-import { store, useOpmStore } from "../../store";
+import { useOpmStore } from "../../store";
 import type { LinksTableEditPort, LinksTablePort } from "./linksTablePort";
 
 export function useZustandLinksTablePort(): LinksTablePort {
@@ -40,14 +40,15 @@ export function useZustandLinksTablePort(): LinksTablePort {
 }
 
 export function useZustandLinksTableEditPort(): LinksTableEditPort {
+  const enlaceSeleccionId = useOpmStore((s) => s.enlaceSeleccionId);
+  const seleccionarEnlace = useOpmStore((s) => s.seleccionarEnlace);
   const renombrarEtiquetaSeleccionada = useOpmStore((s) => s.renombrarEtiquetaEnlaceSeleccionado);
   const fijarMultiplicidad = useOpmStore((s) => s.fijarMultiplicidadEnlace);
 
   return {
     renombrarEtiqueta: (enlaceId, etiqueta) => {
-      const state = store.getState();
-      if (state.enlaceSeleccionId !== enlaceId) {
-        state.seleccionarEnlace(enlaceId);
+      if (enlaceSeleccionId !== enlaceId) {
+        seleccionarEnlace(enlaceId);
       }
       renombrarEtiquetaSeleccionada(etiqueta);
     },
