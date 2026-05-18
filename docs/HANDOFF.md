@@ -3,8 +3,8 @@
 **Fecha**: 2026-05-18
 **Repositorio**: `deep-opm-pro`
 **Rama**: `main`
-**Último corte funcional**: `e125981 refactor(app): acota adaptadores zustand residuales`
-**Corte**: Refactorizacion total, Corte 10 cerrado: auditoria de proceso/refactor y remediacion de hallazgos.
+**Último corte funcional**: `04a0474 refactor(render): pasa feedback canvas por puerto`
+**Corte**: Render/UI boundary, Corte 1 cerrado: feedback port.
 
 ## Política De Handoff Único
 
@@ -12,7 +12,8 @@
 
 ## Fuentes Normativas Y Técnicas
 
-- Plan normativo activo: `docs/roadmap/refactorizacion-total-plan-normativo.md`.
+- Plan normativo refactor total: `docs/roadmap/refactorizacion-total-plan-normativo.md`.
+- Plan activo render/UI: `docs/roadmap/render-ui-boundary-plan.md`.
 - Brief UX/IFML historico: `docs/instrucciones-lineas-dev/ronda22/refactor-ux-ifml.md`.
 - SSOT OPM: `/home/felix/kora/artifacts/knowledge/fxsl/opm/opm-ssot-es/`.
 - Evidencia OPCloud preferente: `opm-extracted/` antes de `decompiled/`.
@@ -20,6 +21,50 @@
 - JointJS OSS: usar documentación oficial viva cuando se toque JointJS.
 
 ## Estado Actual
+
+### Render/UI Boundary — Corte 1 Feedback Port Cerrado — 2026-05-18
+
+Se abrio un plan nuevo y acotado para la frontera `render/jointjs`/UI, sin
+convertirlo en Corte 11 automatico de la refactorizacion total.
+
+Resultado:
+
+- `docs/roadmap/render-ui-boundary-plan.md` define alcance, no objetivos, dos
+  cortes y gates. Corte 1 queda cerrado; Corte 2 (`MenuTipoEnlace` y
+  `RenombradoInline` como slots/chrome UI) queda pendiente.
+- `render/jointjs` ya no importa `zustandFeedbackPort` ni
+  `useZustandFeedbackOverlays`.
+- `JointCanvas` recibe `feedbackPort` y overlays por props; la suscripcion
+  Zustand queda en `app/src/ui/JointCanvasFeedbackBoundary.tsx`.
+- `hoverTooltip` usa un puerto minimo `setHoverTooltip/clearHoverTooltip`.
+- `OverlayLayer` recibe overlays ya resueltos, sin conocer Zustand.
+- `renderUiBoundary.test.ts` blinda que `render/jointjs` no vuelva a importar el
+  adapter concreto de feedback Zustand.
+
+Validacion:
+
+```bash
+cd app && bun test src/store/feedback.test.ts src/render/jointjs/overlayCanvas/avisos.test.ts src/render/jointjs/overlayCanvas/hoverTooltipContent.test.ts src/app/ports/diagnosticsPort.test.ts src/app/ports/canvasInteractionPort.test.ts src/render/jointjs/jointCanvasAdapter.test.ts src/render/jointjs/renderUiBoundary.test.ts
+# 16 pass / 0 fail
+
+cd app && bunx playwright test e2e/11-beta1-validacion-metodologica.spec.ts e2e/02-canvas-y-render.spec.ts e2e/11-beta1-tabla-enlaces.spec.ts --grep "panel metodologia|ErrorBadge inline|HoverTooltip|ciclo de feedback|renderiza todos los markers|renderiza modificadores|arrastra una cosa JointJS|lista, filtra|resalta filas filtradas|resalta extremo de estado|edicion de etiqueta"
+# 12 passed
+
+cd app && bun run gate:refactor
+# typecheck OK; 1407 pass / 0 fail / 5261 expect; lint src/ OK; build OK; browser:smoke 193 passed
+# Dashboard HU: Total 24.8%; MVP-alpha 86.2%; 89/105 reglas auto; firma de fuentes vigente
+# Quality gate PASS: bundle 465.17 kB / 125.23 kB gzip; leyes 6/6; compat detectors 0
+```
+
+Deuda residual:
+
+- `JointCanvas` todavia importa y monta chrome UI concreto:
+  `MenuTipoEnlace`, `RenombradoInline` y `scrollBehaviorPreferido`. Eso es Corte
+  2 del plan nuevo.
+- `render/jointjs/overlayCanvas/*` todavia usa `ui/tokens`; aceptado hasta el
+  corte de slots/chrome para no mezclar presentacion visual con feedback port.
+- `render/jointjs/handlers/zoom.ts` todavia importa `atajosTeclado`; queda como
+  deuda menor separada de Corte 1.
 
 ### Refactorizacion Total — Corte 10 Auditoria De Proceso Cerrado — 2026-05-18
 
@@ -62,8 +107,8 @@ cd app && bun run gate:refactor
 
 Deuda residual medida, fuera de Corte 10:
 
-- `JointCanvas` todavia renderiza chrome UI concreto y sincroniza feedback desde
-  render; requiere corte render/UI con pruebas visuales dedicadas.
+- `JointCanvas` todavia renderiza chrome UI concreto; el feedback desde render
+  quedo cerrado en Render/UI boundary Corte 1.
 - Quedan puertos type-only acoplados a `OpmStore`; no migrar masivamente sin
   agrupar por frontera y contrato verificable.
 - `zustandGlobalShortcutsPort`, `zustandNewModelAssistantPort` y algunos puertos

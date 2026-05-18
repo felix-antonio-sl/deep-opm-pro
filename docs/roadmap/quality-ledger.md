@@ -1,7 +1,7 @@
 # Quality ledger law-first
 
 **Fecha:** 2026-05-18  
-**Corte:** refactorizacion total - Corte 10 proceso/refactor  
+**Corte:** render/ui boundary - Corte 1 feedback port
 **Rol:** contrato operativo de calidad posterior a los cortes 0-7. Complementa
 el dashboard HU; no lo reemplaza y no edita HU canonicas.
 
@@ -21,6 +21,7 @@ sustituyen una ley con nombre estable cuando el borde es critico.
 | Corte 8 consistencia | Auditor HU vigente + chunk circular eliminado | 1406 pass / 0 fail / 5260 expect, 152 archivos | 193 passed | 463.44 kB / 124.62 kB gzip | MVP-alpha 104/121 + 1 parcial (86.2%), 89/105 reglas matched |
 | Corte 9 cascadas | `gate:refactor` + quality `--check` | 1406 pass / 0 fail / 5260 expect, 152 archivos | 193 passed | 463.61 kB / 124.75 kB gzip | MVP-alpha 104/121 + 1 parcial (86.2%), 89/105 reglas matched |
 | Corte 10 proceso | `gate:refactor` cwd-safe + firma HU anti-stale | 1406 pass / 0 fail / 5260 expect, 152 archivos | 193 passed | 464.55 kB / 124.90 kB gzip | MVP-alpha 104/121 + 1 parcial (86.2%), 89/105 reglas matched |
+| Render/UI boundary Corte 1 | Feedback port + test de frontera render sin Zustand | 1407 pass / 0 fail / 5261 expect, 153 archivos | 193 passed | 465.17 kB / 125.23 kB gzip | MVP-alpha 104/121 + 1 parcial (86.2%), 89/105 reglas matched |
 
 Notas:
 
