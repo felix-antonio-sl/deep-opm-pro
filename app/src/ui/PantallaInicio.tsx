@@ -1,5 +1,5 @@
 // [JOYAS §1-3] Chrome UI consume tokens centralizados; canvas semántico invariante.
-import { useMemo, useState } from "preact/hooks";
+import { useEffect, useMemo, useRef, useState } from "preact/hooks";
 import autosaveIcon from "../../../assets/svg/autosave.svg";
 import regFileIcon from "../../../assets/svg/regFile.svg";
 import verFileIcon from "../../../assets/svg/verFile.svg";
@@ -36,8 +36,22 @@ export function PantallaInicio() {
   } = usePantallaInicioViewModel(query);
   const modeloTieneContenido = useMemo(() => modeloTieneContenidoVisible(modelo), [modelo]);
 
-  const visible = !modeloPersistidoId && !pantallaInicioCerrada && !modeloTieneContenido;
+  const candidatoVisible = !modeloPersistidoId && !pantallaInicioCerrada && !modeloTieneContenido;
+  // Corte 3.5 sustracción de chrome: si hay al menos un reciente, abrir el
+  // último directo en vez de mostrar el overlay. Solo se evalúa con `query`
+  // vacío para no interferir con el filtro de búsqueda manual.
+  const autoabriobiertoRef = useRef(false);
+  const debeAutoabrirReciente = candidatoVisible && query.trim() === "" && recientes.length > 0;
+  useEffect(() => {
+    if (!debeAutoabrirReciente) return;
+    if (autoabriobiertoRef.current) return;
+    const ultimo = recientes[0];
+    if (!ultimo) return;
+    autoabriobiertoRef.current = true;
+    confirmarSiDirty(() => cargar(ultimo.id));
+  }, [debeAutoabrirReciente, recientes, cargar, confirmarSiDirty]);
 
+  const visible = candidatoVisible && !debeAutoabrirReciente;
   if (!visible) return null;
 
   const abrir = (id: Id) => confirmarSiDirty(() => cargar(id));
