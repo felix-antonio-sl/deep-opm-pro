@@ -39,7 +39,7 @@ import { BarraSimulacion } from "./simulacion/BarraSimulacion";
 import { tokens } from "./tokens";
 import { Toolbar } from "./Toolbar";
 
-const AsistenteNuevoModelo = lazy(() => import("./AsistenteNuevoModelo").then((m) => ({ default: m.AsistenteNuevoModelo })));
+const AsistenteNuevoModelo = lazy(() => import("./asistente/Asistente").then((m) => ({ default: m.AsistenteNuevoModelo })));
 const CheatsheetAtajos = lazy(() => import("./CheatsheetAtajos").then((m) => ({ default: m.CheatsheetAtajos })));
 const CommandPalette = lazy(() => import("./CommandPalette").then((m) => ({ default: m.CommandPalette })));
 const DialogoBuscarCosas = lazy(() => import("./DialogoBuscarCosas").then((m) => ({ default: m.DialogoBuscarCosas })));
