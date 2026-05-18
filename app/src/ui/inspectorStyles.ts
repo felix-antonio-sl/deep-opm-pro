@@ -10,7 +10,10 @@ export const inspectorStyles = {
     overflow: "auto",
     padding: "14px",
     background: tokens.colors.fondoChrome,
-    borderLeft: `1px solid ${tokens.colors.bordeIntermedio}`,
+    // ronda 23 chrome: bordeIntermedio → bordeSuave para una separación
+    // editorial menos competitiva con el canvas. El inspector va full-height
+    // contra el borde derecho, así que no aplica box-shadow (sería invisible).
+    borderLeft: `1px solid ${tokens.colors.bordeSuave}`,
   },
   empty: {
     color: tokens.colors.textoTerciario,
@@ -42,10 +45,13 @@ export const inspectorStyles = {
   vacioCaption: {
     margin: `0 0 ${tokens.spacing.sm}px`,
     color: tokens.colors.textoSecundario,
-    fontSize: tokens.typography.sizes.xs,
+    // ronda 23 chrome: caption "ATAJOS PARA EMPEZAR" en formato editorial
+    // más pequeño y espacioso. 11px → 10px (xxs) y letter-spacing 0.04 →
+    // 0.08em — los all-caps cortos respiran mejor en tamaño pequeño.
+    fontSize: tokens.typography.sizes.xxs,
     fontWeight: tokens.typography.weights.semibold,
     textTransform: "uppercase",
-    letterSpacing: "0.04em",
+    letterSpacing: "0.08em",
   },
   vacioList: {
     margin: 0,
@@ -111,25 +117,27 @@ export const inspectorStyles = {
     gridTemplateColumns: "1fr 1fr",
     gap: "6px",
   },
+  // ronda 23 chrome: radii sm→md (con los nuevos tokens queda 8px) y peso
+  // bajado a 500/600. El segmented era pesado para una elección binaria.
   segment: {
     height: "32px",
     border: `1px solid ${tokens.colors.bordeControl}`,
-    borderRadius: tokens.radii.sm,
+    borderRadius: tokens.radii.md,
     background: tokens.colors.fondoCard,
     color: tokens.colors.textoSecundario,
     cursor: "pointer",
     fontSize: "12px",
-    fontWeight: 600,
+    fontWeight: tokens.typography.weights.medium,
   },
   segmentActive: {
     height: "32px",
     border: `1px solid ${tokens.colors.chromeNeutral}`,
-    borderRadius: tokens.radii.sm,
+    borderRadius: tokens.radii.md,
     background: tokens.colors.chromeNeutralSuave,
     color: tokens.colors.textoPrimario,
     cursor: "pointer",
     fontSize: "12px",
-    fontWeight: 700,
+    fontWeight: tokens.typography.weights.semibold,
   },
   menu: {
     marginBottom: "10px",
@@ -216,37 +224,43 @@ export const inspectorStyles = {
   // Decisión bloqueada §10 brief: solo texto (sin iconos), peso 700 al activo.
   // Divisor: gap mayor entre tabs y borde inferior 1px sutil sobre la fila
   // (recomendado en §10) en vez de línea sólida entre tabs.
+  // ronda 23 chrome: tabs estilo editorial — bottom-border en lugar de
+  // background fill. Sin fondo activo: el peso visual viene del color del
+  // texto + del subrayado en acentoUi. Padding lateral generoso (spacing.md)
+  // para que el target sea cómodo. La fila no necesita borderBottom propio
+  // porque cada tab pinta su propio 2px (transparente en inactivos).
   tabsRow: {
     display: "flex",
     flexWrap: "wrap",
-    gap: `${tokens.inspectorTabs.gap}px`,
+    gap: `${tokens.spacing.sm}px`,
     marginBottom: `${tokens.inspectorTabs.marginBottom}px`,
-    paddingBottom: `${tokens.inspectorTabs.paddingY}px`,
-    borderBottom: `1px solid ${tokens.inspectorTabs.separadorBorde}`,
+    borderBottom: `1px solid ${tokens.colors.bordeSuave}`,
   },
   tab: {
     flex: "0 0 auto",
-    padding: `${tokens.inspectorTabs.paddingY}px ${tokens.inspectorTabs.paddingX}px`,
-    border: `1px solid ${tokens.inspectorTabs.borderInactive}`,
-    borderRadius: tokens.radii.sm,
-    background: tokens.inspectorTabs.fondoInactive,
+    padding: `${tokens.spacing.sm}px ${tokens.spacing.md}px`,
+    border: 0,
+    borderBottom: "2px solid transparent",
+    background: "transparent",
     color: tokens.inspectorTabs.textInactive,
     cursor: "pointer",
     fontSize: `${tokens.inspectorTabs.fontSize}px`,
-    fontWeight: tokens.inspectorTabs.weightInactive,
+    fontWeight: tokens.typography.weights.medium,
     lineHeight: 1.2,
+    marginBottom: "-1px",
   },
   tabActive: {
     flex: "0 0 auto",
-    padding: `${tokens.inspectorTabs.paddingY}px ${tokens.inspectorTabs.paddingX}px`,
-    border: `1px solid ${tokens.inspectorTabs.borderActive}`,
-    borderRadius: tokens.radii.sm,
-    background: tokens.inspectorTabs.fondoActive,
+    padding: `${tokens.spacing.sm}px ${tokens.spacing.md}px`,
+    border: 0,
+    borderBottom: `2px solid ${tokens.colors.acentoUi}`,
+    background: "transparent",
     color: tokens.inspectorTabs.textActive,
     cursor: "pointer",
     fontSize: `${tokens.inspectorTabs.fontSize}px`,
-    fontWeight: tokens.inspectorTabs.weightActive,
+    fontWeight: tokens.typography.weights.semibold,
     lineHeight: 1.2,
+    marginBottom: "-1px",
   },
   tabPanel: {
     display: "grid",
