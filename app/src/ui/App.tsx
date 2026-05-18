@@ -14,7 +14,6 @@ import { useAppShellViewModel } from "../app/viewmodels/appShellViewModel";
 import { panelOplMinimizadoEfectivo } from "../app/viewmodels/panelOplViewModel";
 import { obtenerRefinamiento } from "../modelo/refinamientos";
 import type { Id, Modelo } from "../modelo/tipos";
-import { JointCanvas } from "../render/jointjs/JointCanvas";
 import type { JointCanvasAdapter } from "../render/jointjs/jointCanvasAdapter";
 import { ANCHO_PANEL_INSPECTOR_DEFAULT, ANCHO_PANEL_INSPECTOR_MAX, ANCHO_PANEL_INSPECTOR_MIN } from "../store/runtime";
 import { ArbolOpd } from "./ArbolOpd";
@@ -31,6 +30,7 @@ import { tituloViewPointWorkbench } from "./contextoWorkbench";
 import { DivisorPanel } from "./divisorPanel";
 import { EstadoVacioOpm } from "./EstadoVacioOpm";
 import { Inspector } from "./Inspector";
+import { JointCanvasFeedbackBoundary } from "./JointCanvasFeedbackBoundary";
 // L2 ronda 21: viewport-aware layout — el grid desktop coexiste con el modo
 // revisión mobile (tabs inferiores) y tablet (drawers). Ver `layoutResponsive`.
 import { useBreakpoint } from "./layoutResponsive";
@@ -182,7 +182,7 @@ export function App() {
                 </Suspense>
               ) : (
                 <>
-                  <JointCanvas onAdapterChange={setCanvasAdapter} />
+                  <JointCanvasFeedbackBoundary onAdapterChange={setCanvasAdapter} />
                   <BarraHerramientasElemento
                     inspectorAbierto={false}
                     onAbrirInspector={() => setInspectorAbierto(true)}
@@ -258,7 +258,7 @@ export function App() {
               </Suspense>
             ) : (
               <>
-                <JointCanvas onAdapterChange={setCanvasAdapter} />
+                <JointCanvasFeedbackBoundary onAdapterChange={setCanvasAdapter} />
                 <BarraHerramientasElemento
                   inspectorAbierto={inspectorAbierto}
                   onAbrirInspector={() => setInspectorAbierto(true)}

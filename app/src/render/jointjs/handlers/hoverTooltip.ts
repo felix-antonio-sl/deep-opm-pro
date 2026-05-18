@@ -1,11 +1,16 @@
 import type { dia } from "jointjs";
-import { idHoverTooltip } from "../../../app/ports/feedbackPort";
-import { clearHoverTooltip, setHoverTooltip } from "../../../app/ports/zustandFeedbackPort";
+import { idHoverTooltip, type FeedbackPort } from "../../../app/ports/feedbackPort";
 import type { Modelo } from "../../../modelo/tipos";
 import { contenidoHoverTooltip } from "../overlayCanvas/hoverTooltipContent";
 import { cellViewModel, metadata, paperOff } from "./helpers";
 
-export function cablearHoverTooltipCanvas(paper: dia.Paper, modeloRef: { current: Modelo }): () => void {
+type HoverTooltipFeedbackPort = Pick<FeedbackPort, "setHoverTooltip" | "clearHoverTooltip">;
+
+export function cablearHoverTooltipCanvas(
+  paper: dia.Paper,
+  modeloRef: { current: Modelo },
+  feedback: HoverTooltipFeedbackPort,
+): () => void {
   let timer: ReturnType<typeof setTimeout> | null = null;
   let focoTooltip: { cellId: string; contenido: string; el: Element } | null = null;
   const cancelarTimer = () => {
@@ -19,20 +24,20 @@ export function cablearHoverTooltipCanvas(paper: dia.Paper, modeloRef: { current
   const cancelar = () => {
     cancelarTimer();
     if (focoTooltip) {
-      setHoverTooltip(focoTooltip.cellId, focoTooltip.contenido);
+      feedback.setHoverTooltip(focoTooltip.cellId, focoTooltip.contenido);
       return;
     }
-    clearHoverTooltip();
+    feedback.clearHoverTooltip();
   };
   const mostrar = (cellView: dia.CellView) => {
     cancelarTimer();
     const dato = datoHoverTooltip(cellView, modeloRef.current);
     if (!dato) {
-      if (!focoTooltip) clearHoverTooltip();
+      if (!focoTooltip) feedback.clearHoverTooltip();
       return;
     }
     timer = setTimeout(() => {
-      setHoverTooltip(dato.cellId, dato.contenido);
+      feedback.setHoverTooltip(dato.cellId, dato.contenido);
       timer = null;
     }, 250);
   };
@@ -44,17 +49,17 @@ export function cablearHoverTooltipCanvas(paper: dia.Paper, modeloRef: { current
     limpiarFoco();
     cancelarTimer();
     if (!dato || !el) {
-      clearHoverTooltip();
+      feedback.clearHoverTooltip();
       return;
     }
     el.setAttribute("aria-describedby", idHoverTooltip(dato.cellId));
     focoTooltip = { ...dato, el };
-    setHoverTooltip(dato.cellId, dato.contenido);
+    feedback.setHoverTooltip(dato.cellId, dato.contenido);
   };
   const ocultarFoco = () => {
     limpiarFoco();
     cancelarTimer();
-    clearHoverTooltip();
+    feedback.clearHoverTooltip();
   };
 
   paper.on("cell:mouseover", mostrar);
@@ -68,7 +73,7 @@ export function cablearHoverTooltipCanvas(paper: dia.Paper, modeloRef: { current
     paperOff(paper, "cell:mouseout blank:mouseover", cancelar as (...args: never[]) => void);
     (paper as unknown as { el: HTMLElement }).el.removeEventListener("focusin", mostrarFoco);
     (paper as unknown as { el: HTMLElement }).el.removeEventListener("focusout", ocultarFoco);
-    clearHoverTooltip();
+    feedback.clearHoverTooltip();
   };
 }
 

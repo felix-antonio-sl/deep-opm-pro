@@ -1,6 +1,6 @@
 import type { dia } from "jointjs";
 import { useEffect, useRef, useState } from "preact/hooks";
-import { sincronizarBadgesDesdeAvisos } from "../../app/ports/zustandFeedbackPort";
+import type { FeedbackOverlay, FeedbackPort } from "../../app/ports/feedbackPort";
 import { useJointCanvasViewModel } from "../../app/viewmodels/jointCanvasViewModel";
 import { focoPasoActualSimulacion } from "../../modelo/simulacion/foco";
 import type { Apariencia, Enlace, ExtremoEnlace, Modelo, Opd } from "../../modelo/tipos";
@@ -49,13 +49,16 @@ import {
 
 interface JointCanvasProps {
   onAdapterChange?: (adapter: JointCanvasAdapter | null) => void;
+  feedbackPort: Pick<FeedbackPort, "setHoverTooltip" | "clearHoverTooltip" | "sincronizarBadgesDesdeAvisos">;
+  feedbackOverlays: readonly FeedbackOverlay[];
 }
 
-export function JointCanvas({ onAdapterChange }: JointCanvasProps) {
+export function JointCanvas({ onAdapterChange, feedbackPort, feedbackOverlays }: JointCanvasProps) {
   const paperHostRef = useRef<HTMLDivElement>(null);
   const viewportRef = useRef<HTMLDivElement>(null);
   const adapterRef = useRef<JointCanvasAdapter | null>(null);
   const onAdapterChangeRef = useRef(onAdapterChange);
+  const feedbackPortRef = useRef(feedbackPort);
   const [adapterState, setAdapterState] = useState<JointCanvasAdapter | null>(null);
   const sincronizandoRef = useRef(false);
   const rubberBandRef = useRef(false);
@@ -111,6 +114,10 @@ export function JointCanvas({ onAdapterChange }: JointCanvasProps) {
   useEffect(() => {
     onAdapterChangeRef.current = onAdapterChange;
   }, [onAdapterChange]);
+
+  useEffect(() => {
+    feedbackPortRef.current = feedbackPort;
+  }, [feedbackPort]);
 
   const modoEnlaceRef = useRef(modoEnlace);
   const modoCreacionRef = useRef(modoCreacion);
@@ -175,10 +182,10 @@ export function JointCanvas({ onAdapterChange }: JointCanvasProps) {
   }, [modelo, opdActivoId]);
 
   useEffect(() => {
-    sincronizarBadgesDesdeAvisos(construirAvisosFeedbackCanvas(modelo, opdActivoId));
-  }, [modelo, opdActivoId]);
+    feedbackPort.sincronizarBadgesDesdeAvisos(construirAvisosFeedbackCanvas(modelo, opdActivoId));
+  }, [feedbackPort, modelo, opdActivoId]);
 
-  useEffect(() => () => sincronizarBadgesDesdeAvisos([]), []);
+  useEffect(() => () => feedbackPortRef.current.sincronizarBadgesDesdeAvisos([]), []);
 
   useEffect(() => {
     seleccionarEntidadRef.current = seleccionarEntidad;
@@ -330,7 +337,10 @@ export function JointCanvas({ onAdapterChange }: JointCanvasProps) {
       paper,
       fijarHoverOplRef,
     }));
-    cleanups.push(cablearHoverTooltipCanvas(paper, modeloRef));
+    cleanups.push(cablearHoverTooltipCanvas(paper, modeloRef, {
+      setHoverTooltip: (cellId, contenido) => feedbackPortRef.current.setHoverTooltip(cellId, contenido),
+      clearHoverTooltip: () => feedbackPortRef.current.clearHoverTooltip(),
+    }));
 
     adapterRef.current = adapter;
     setAdapterState(adapter);
@@ -499,7 +509,7 @@ export function JointCanvas({ onAdapterChange }: JointCanvasProps) {
   return (
     <div ref={viewportRef} role="img" aria-label="OPD activo" data-atajos-contexto="canvas" style={style.viewport}>
       <div ref={paperHostRef} style={style.paperHost}>
-        <OverlayLayer paper={adapterState?.paper ?? null} />
+        <OverlayLayer paper={adapterState?.paper ?? null} overlays={feedbackOverlays} />
         {renombrado?.entidad && renombrado.apariencia ? (
           <RenombradoInline
             nombre={renombrado.entidad.nombre}

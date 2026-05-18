@@ -728,20 +728,20 @@
   ],
   "knownGaps": [],
   "autoAudit": {
-    "generatedAt": "2026-05-18T15:33:45.039Z",
+    "generatedAt": "2026-05-18T16:12:38.685Z",
     "mode": "sync-real",
     "rulesEvaluated": 105,
     "rulesMatched": 89,
     "rulesUnmatched": 16,
     "sourceFiles": {
-      "count": 688,
+      "count": 690,
       "roots": [
         "app/src",
         "app/e2e",
         "app/scripts",
         "assets/svg/links"
       ],
-      "signature": "sha256:e9a045003733ac75abdb4f4ad2e5853013a4760662a93bd30839623fa0d6b0f8"
+      "signature": "sha256:9fda07efbaa86c6541edd8d364f29293107e1e940530ad4883f0aa6cb385d990"
     },
     "note": "autoEntries se regenera; cada regla escribe cobertura detectada o pendiente. entries manuales queda como respaldo solo para HU sin regla automatica."
   },
