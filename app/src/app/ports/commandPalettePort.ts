@@ -1,42 +1,42 @@
 import type { GridConfig } from "../../canvas/grid";
-import type { OpmStore } from "../../store";
+import type { EnlaceEstilo, Id, Modelo } from "../../modelo/tipos";
 
 export interface CommandPaletteContextPort {
-  modelo: OpmStore["modelo"];
-  opdActivoId: OpmStore["opdActivoId"];
-  seleccionId: OpmStore["seleccionId"];
-  enlaceEstiloPortapapeles: OpmStore["enlaceEstiloPortapapeles"];
-  seleccionados: OpmStore["seleccionados"];
+  modelo: Modelo;
+  opdActivoId: Id;
+  seleccionId: Id | null;
+  enlaceEstiloPortapapeles: EnlaceEstilo | null;
+  seleccionados: Id[];
 }
 
 export interface CommandPaletteWorkspacePort {
-  nuevoModelo: OpmStore["nuevoModelo"];
-  abrirCargarModelo: OpmStore["abrirCargarModelo"];
-  abrirGuardarComo: OpmStore["abrirGuardarComo"];
-  abrirDialogoConfiguracion: OpmStore["abrirDialogoConfiguracion"];
-  abrirDialogoGuardarPlantilla: OpmStore["abrirDialogoGuardarPlantilla"];
-  abrirDialogoPlantillas: OpmStore["abrirDialogoPlantillas"];
-  abrirDialogoVersiones: OpmStore["abrirDialogoVersiones"];
-  modeloPersistidoId: OpmStore["modeloPersistidoId"];
-  abrirDialogoImportarExportarJson: OpmStore["abrirDialogoImportarExportarJson"];
-  exportarJson: OpmStore["exportarJson"];
+  nuevoModelo: () => void;
+  abrirCargarModelo: (opciones?: { mostrarArchivados?: boolean }) => void;
+  abrirGuardarComo: () => void;
+  abrirDialogoConfiguracion: () => void;
+  abrirDialogoGuardarPlantilla: () => void;
+  abrirDialogoPlantillas: () => void;
+  abrirDialogoVersiones: (modeloId: Id) => void;
+  modeloPersistidoId: Id | null;
+  abrirDialogoImportarExportarJson: () => void;
+  exportarJson: () => string;
 }
 
 export interface CommandPaletteViewPort {
-  abrirVistaMapa: OpmStore["abrirVistaMapa"];
-  cerrarVistaMapa: OpmStore["cerrarVistaMapa"];
-  vistaMapaActiva: OpmStore["vistaMapaActiva"];
+  abrirVistaMapa: () => void;
+  cerrarVistaMapa: () => void;
+  vistaMapaActiva: boolean;
   gridConfigBase: Partial<GridConfig> | undefined;
-  toggleGrid: OpmStore["toggleGrid"];
-  aplicarLayoutSugerido: OpmStore["aplicarLayoutSugerido"];
-  iniciarModoSimulacion: OpmStore["iniciarModoSimulacion"];
-  abrirTablaEnlaces: OpmStore["abrirTablaEnlaces"];
-  abrirCheatsheetAtajos: OpmStore["abrirCheatsheetAtajos"];
+  toggleGrid: () => void;
+  aplicarLayoutSugerido: () => void;
+  iniciarModoSimulacion: () => void;
+  abrirTablaEnlaces: () => void;
+  abrirCheatsheetAtajos: () => void;
 }
 
 export interface CommandPaletteUsagePort {
-  frecuenciaUso: OpmStore["frecuenciaUsoCommandPalette"];
-  registrarUsoCommandPalette: OpmStore["registrarUsoCommandPalette"];
+  frecuenciaUso: Record<string, number>;
+  registrarUsoCommandPalette: (itemId: string) => void;
 }
 
 export interface CommandPalettePort extends
