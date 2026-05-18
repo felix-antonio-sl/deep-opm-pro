@@ -9,26 +9,17 @@ import {
   jsonEditor,
 } from "./_smoke-helpers";
 
-/**
- * Beta1 ronda 16 L4 — catalogo simple + ancla pedagogica.
- *
- * Verifica el slice minimo shippeable §6 del brief:
- *   1) el catalogo simple lista el ancla "Prestamo Bibliotecario" como entrada
- *      seleccionable (decision: distinguir demos pedagogicas vs anclas reales
- *      via campo `categoria` en `FixtureDemo`; este smoke ejerce la presencia
- *      sin asumir UI dedicada de filtro);
- *   2) cargar el ancla -> exportar JSON -> reimportar JSON observa los mismos
- *      conteos (entidades, OPDs, enlaces, estados), cubriendo el criterio §174.6
- *      del HANDOFF ("guarda y carga sin perdida") sobre la superficie de
- *      persistencia existente (DialogoImportarExportarJson desde Inspector vacio).
- *
- * Politica viva: tokens-only para chrome (no se introduce UI nueva); este
- * smoke no debe colisionar con L1/L2/L3 (no toca TablaEnlaces, busqueda,
- * checkers ni paneles de metodologia).
- */
+const CATALOGO_SANDBOX = [
+  "System Diagram",
+  "SD Sync",
+  "SD Async",
+  "OnStar System",
+  "OPM Structure Meta Model",
+  "Modelo Vacio",
+];
 
-test.describe("beta1 catalogo + ancla", () => {
-  test("catalogo lista anclas pedagogicas Beta1 (Prestamo Bibliotecario, Comprar Pan)", async ({ page }) => {
+test.describe("catalogo OPCloud sandbox", () => {
+  test("catalogo lista solo ejemplos OPCloud sandbox", async ({ page }) => {
     const pageErrors: string[] = [];
     page.on("pageerror", (error) => pageErrors.push(error.message));
 
@@ -37,44 +28,44 @@ test.describe("beta1 catalogo + ancla", () => {
     const selector = dialogo.getByLabel("Cargar modelo de ejemplo");
     await expect(selector).toBeVisible();
 
-    const optPrestamo = selector.locator("option").filter({ hasText: /^Prestamo Bibliotecario$/ });
-    const optPan = selector.locator("option").filter({ hasText: /^Comprar Pan$/ });
-    await expect(optPrestamo).toHaveCount(1);
-    await expect(optPan).toHaveCount(1);
+    const opciones = await selector.locator("option").evaluateAll((nodes) => (
+      nodes
+        .map((node) => (node.textContent ?? "").trim())
+        .filter((texto) => texto && texto !== "Ejemplos...")
+    ));
+    expect(opciones).toEqual(CATALOGO_SANDBOX);
+    for (const retirado of ["Cafetera Domestica", "Prestamo Bibliotecario", "Comprar Pan", "Ejemplo organizacional"]) {
+      expect(opciones).not.toContain(retirado);
+    }
 
     expect(pageErrors).toEqual([]);
   });
 
-  test("ancla Prestamo Bibliotecario se carga y expone OPL del SD raiz", async ({ page }) => {
+  test("OnStar System se carga y expone SD raiz observado", async ({ page }) => {
     const pageErrors: string[] = [];
     page.on("pageerror", (error) => pageErrors.push(error.message));
 
     await page.goto("/");
-    await cargarModeloEjemplo(page, "Prestamo Bibliotecario");
+    await cargarModeloEjemplo(page, "OnStar System");
 
-    // El canvas dibuja el SD raiz: al menos el proceso central + biblioteca + libro visibles.
     await expect(page.locator(".joint-paper svg")).toHaveCount(1);
     expect(await page.locator(".joint-element").count()).toBeGreaterThanOrEqual(3);
-
-    // Texto del SD raiz visible en canvas. El árbol OPD también contiene esos
-    // nombres, pero puede estar fuera del viewport por la nueva navegación primaria.
-    await expect(elementoPorTexto(page, "Procesar Prestamo")).toBeVisible();
-    await expect(elementoPorTexto(page, "Bibliotecario")).toBeVisible();
-    await expect(elementoPorTexto(page, "Libro")).toBeVisible();
+    await expect(elementoPorTexto(page, "Driver Rescuing")).toBeVisible();
+    await expect(elementoPorTexto(page, "OnStar System")).toBeVisible();
+    await expect(elementoPorTexto(page, "Driver")).toBeVisible();
 
     expect(pageErrors).toEqual([]);
   });
 
-  test("ancla Prestamo Bibliotecario hace round-trip exportar->reimportar sin perdida", async ({ page }) => {
+  test("OnStar System hace round-trip exportar->reimportar sin perdida", async ({ page }) => {
     const pageErrors: string[] = [];
     page.on("pageerror", (error) => pageErrors.push(error.message));
 
     await page.goto("/");
     await cerrarPantallaInicioSiVisible(page);
-    await cargarModeloEjemplo(page, "Prestamo Bibliotecario");
-    await expect(elementoPorTexto(page, "Procesar Prestamo")).toBeVisible();
+    await cargarModeloEjemplo(page, "OnStar System");
+    await expect(elementoPorTexto(page, "Driver Rescuing")).toBeVisible();
 
-    // Snapshot inicial via Exportar.
     const exportadoOriginal = await exportadoActual(page);
     const conteosOriginales = {
       entidades: Object.keys(exportadoOriginal.modelo.entidades).length,
@@ -82,29 +73,21 @@ test.describe("beta1 catalogo + ancla", () => {
       opds: Object.keys(exportadoOriginal.modelo.opds).length,
       estados: Object.keys(exportadoOriginal.modelo.estados ?? {}).length,
     };
-    // El ancla debe satisfacer el slice minimo: multi-OPD (>=3), estados (>=3),
-    // varios enlaces (>=6).
-    expect(conteosOriginales.opds).toBeGreaterThanOrEqual(3);
-    expect(conteosOriginales.estados).toBeGreaterThanOrEqual(3);
-    expect(conteosOriginales.enlaces).toBeGreaterThanOrEqual(6);
+    expect(conteosOriginales.opds).toBeGreaterThanOrEqual(2);
+    expect(conteosOriginales.estados).toBeGreaterThanOrEqual(4);
+    expect(conteosOriginales.enlaces).toBeGreaterThanOrEqual(10);
 
-    // Snapshot del JSON exportado (textarea-json contiene la cadena lista para reimportar).
     const jsonOriginal = await jsonEditor(page).inputValue();
     expect(jsonOriginal.length).toBeGreaterThan(0);
 
-    // Crear modelo nuevo limpia el canvas y la dirty-flag para reimportar sin guard.
     await crearModeloNuevoDesdeMenu(page);
     await expect(page.locator(".joint-element")).toHaveCount(0);
 
-    // Reimportar el JSON capturado.
     await jsonEditor(page).fill(jsonOriginal);
     await expect(page.getByTestId("import-preview")).toBeVisible();
     await page.getByRole("button", { name: "Importar", exact: true }).click();
+    await expect(page.getByText("Driver Rescuing").first()).toBeVisible();
 
-    // Tras reimportacion el canvas vuelve a tener el SD raiz del ancla.
-    await expect(page.getByText("Procesar Prestamo").first()).toBeVisible();
-
-    // Conteos round-trip via Exportar de nuevo.
     const exportadoTrasRT = await exportadoActual(page);
     const conteosTrasRT = {
       entidades: Object.keys(exportadoTrasRT.modelo.entidades).length,

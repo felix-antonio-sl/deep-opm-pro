@@ -44,7 +44,6 @@ export const MODELO_SLICE_CAPABILITIES = {
     "guardarComoPlantillaConfirmar",
     "insertarPlantillaEnOpdActivo",
     "resaltarTemporalmente",
-    "cargarEjemploOrganizacional",
     "nuevoModelo",
     "activarReadOnly",
   ],

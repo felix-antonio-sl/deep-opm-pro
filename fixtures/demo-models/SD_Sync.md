@@ -1,8 +1,8 @@
 # SD Sync
 
-**Propósito:** Ejercitar in-zoom sincronico con cadena de subprocesos, objeto temporal y atributo afectado.
+**Propósito:** Replicar el sandbox SD and SD1 synchronous process.
 
-**Descripción:** Equivalente kernel de fixtures/sd-sync: SD raiz con transformacion y SD1 con First/Second/Third/Last Processing, Temp Object y Main I/O Output.
+**Descripción:** SD raiz con atributo beneficiario y SD1 sincronico con First/Second/Third/Last Processing, Temp Object y Main I/O Output.
 
 **OPDs:** SD, SD1
 **Entidades:** 17
@@ -35,15 +35,15 @@ Main System Doing produce Main Output.
 
 SD1 del sistema SD Sync.
 Main System Doing es un proceso fisico.
-System Name es un objeto informatico.
-Beneficiary Relevant Attribute es un objeto informatico.
-System Handler es un objeto fisico.
-Main Input es un objeto informatico.
-System Tool Set es un objeto informatico.
-Main Output es un objeto informatico.
 First Processing es un proceso fisico.
 Second Processing es un proceso fisico.
 Third Processing es un proceso fisico.
+System Name es un objeto informatico.
+System Handler es un objeto fisico.
+System Tool Set es un objeto informatico.
+Main Input es un objeto informatico.
+Beneficiary Relevant Attribute es un objeto informatico.
+Main Output es un objeto informatico.
 Last Processing es un proceso fisico.
 SD1 Main Input es un objeto informatico.
 Main I/O Output es un objeto informatico.

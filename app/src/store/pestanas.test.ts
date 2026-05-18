@@ -19,7 +19,7 @@ describe("etiquetaPestana - identidad UNIFICADA P0-1", () => {
   // del modelo (o "Modelo" como placeholder). El estado dirty/persistido
   // vive exclusivamente en ChipPersistencia.
   test("modelo persistido devuelve nombre limpio", () => {
-    expect(etiquetaPestana({ nombre: "Cafetera Domestica", modeloId: "modelo-1" })).toBe("Cafetera Domestica");
+    expect(etiquetaPestana({ nombre: "System Diagram", modeloId: "modelo-1" })).toBe("System Diagram");
   });
 
   test("modelo no persistido con nombre real devuelve solo el nombre", () => {
@@ -62,14 +62,14 @@ describe("slice de pestanas de sesion", () => {
   });
 
   test("crearPestanaDesdeModelo persistido devuelve el nombre del modelo", () => {
-    const pestana = crearPestanaDesdeModelo(modeloFalso("Cafetera Domestica"), {
+    const pestana = crearPestanaDesdeModelo(modeloFalso("System Diagram"), {
       modeloId: "modelo-1",
-      nombre: "Cafetera Domestica",
+      nombre: "System Diagram",
       cargadoDesde: "persistido",
       dirty: false,
     });
 
-    expect(pestana.etiqueta).toBe("Cafetera Domestica");
+    expect(pestana.etiqueta).toBe("System Diagram");
   });
 
   test("abrirPestana agrega y deja la nueva como activa", () => {

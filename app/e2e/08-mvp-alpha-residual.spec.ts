@@ -30,7 +30,7 @@ import {
   aparienciaRaizPorNombre,
   verticesPrimerEnlace,
   modeloDosOpds,
-  modeloEjemploOrganizacionalSmoke,
+  modeloSmokeTablaEnlaces,
   modeloMarkersCanonicos,
   modeloModificadoresEnlace,
   modeloNoModificador,
@@ -719,7 +719,7 @@ test("HU-30.037: Esc cancela Cargar modelo con archivados sin persistir cambios"
 
   await page.goto("/");
   await cerrarPantallaInicioSiVisible(page);
-  await cargarModeloEjemplo(page, "Cafetera Domestica");
+  await cargarModeloEjemplo(page, "System Diagram");
 
   const exportadoAntes = await exportadoActual(page);
 
@@ -746,7 +746,7 @@ test("HU-30.037: Esc cancela Configuración sin persistir cambios al modelo", as
 
   await page.goto("/");
   await cerrarPantallaInicioSiVisible(page);
-  await cargarModeloEjemplo(page, "Cafetera Domestica");
+  await cargarModeloEjemplo(page, "System Diagram");
 
   const exportadoAntes = await exportadoActual(page);
 
@@ -774,7 +774,7 @@ test("HU-30.037: Esc cancela DialogoBuscarGlobal sin persistir cambios al modelo
 
   await page.goto("/");
   await cerrarPantallaInicioSiVisible(page);
-  await cargarModeloEjemplo(page, "Cafetera Domestica");
+  await cargarModeloEjemplo(page, "System Diagram");
 
   const exportadoAntes = await exportadoActual(page);
 
@@ -782,7 +782,7 @@ test("HU-30.037: Esc cancela DialogoBuscarGlobal sin persistir cambios al modelo
   const dialogo = page.getByRole("dialog", { name: "Buscar global" });
   await expect(dialogo).toBeVisible();
 
-  await dialogo.getByLabel("Buscar global").fill("Cafe");
+  await dialogo.getByLabel("Buscar global").fill("Main");
   await page.keyboard.press("Escape");
   await expect(dialogo).toHaveCount(0);
 
@@ -798,7 +798,7 @@ test("HU-30.037: Esc cancela DialogoVersiones sin persistir cambios al modelo", 
 
   await page.goto("/");
   await cerrarPantallaInicioSiVisible(page);
-  await cargarModeloEjemplo(page, "Cafetera Domestica");
+  await cargarModeloEjemplo(page, "System Diagram");
 
   // Persistir el modelo: el diálogo de versiones requiere `modeloPersistidoId`.
   await page.getByLabel("Menú principal").click();

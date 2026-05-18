@@ -1,8 +1,8 @@
 # OPM Structure Meta Model
 
-**Propósito:** Mostrar la estructura de OPM como modelo: OPD, OPL, constructos, cosas y enlaces.
+**Propósito:** Replicar el sandbox OPM Structure Meta Model.
 
-**Descripción:** Equivalente kernel reducido de fixtures/opm-meta-model. Incluye SD raiz y despliegues de OPD Construct, Thing y Link para ejercitar arbol OPD y enlaces estructurales.
+**Descripción:** Meta-modelo OPM observado en fixtures/opm-meta-model. Incluye SD raiz y despliegues de OPD Construct, Thing y Link para ejercitar arbol OPD y enlaces estructurales.
 
 **OPDs:** SD, SD1, SD2, SD3
 **Entidades:** 25

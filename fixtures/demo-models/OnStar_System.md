@@ -1,13 +1,13 @@
 # OnStar System
 
-**Propósito:** Rescatar a un conductor en peligro mediante el sistema OnStar y un asesor.
+**Propósito:** Replicar el sandbox OnStar System y conservar el ejemplo formativo del libro curado.
 
-**Descripción:** Ejemplo clasico OPM del estandar ISO 19450. Agregacion estructural (OnStar System consta de GPS, Cellular Network, VCIM, OnStar Console), agente (OnStar Advisor), instrumento (OnStar System) y efecto sobre Driver.
+**Descripción:** OnStar System es el unico ejemplo del libro curado elegido: el capitulo 8 desarrolla ACR/OnStar y el sandbox ya lo trae como fixture observado. Incluye SD raiz y SD1 Driver Rescuing con Call Making, Call Transmitting, Call Handling y Vehicle Location Calculating.
 
-**OPDs:** SD
-**Entidades:** 8
-**Enlaces:** 7
-**Estados:** 0
+**OPDs:** SD, SD1
+**Entidades:** 15
+**Enlaces:** 29
+**Estados:** 4
 
 ## OPL-ES
 
@@ -21,11 +21,58 @@ VCIM es un objeto fisico.
 OnStar Console es un objeto fisico.
 Driver Rescuing es un proceso fisico.
 OnStar Advisor es un objeto fisico.
+Driver puede estar en endangered o safe.
+Driver esta inicialmente en endangered.
+Driver esta terminalmente en safe.
 OnStar System consta de GPS.
 OnStar System consta de Cellular Network.
 OnStar System consta de VCIM.
 OnStar System consta de OnStar Console.
 OnStar Advisor manipula Driver Rescuing.
 Driver Rescuing usa OnStar System.
-Driver Rescuing afecta Driver.
+Driver Rescuing cambia Driver de endangered a safe.
+
+SD1 del sistema OnStar System.
+Driver Rescuing es un proceso fisico.
+Call Making es un proceso fisico.
+Call Transmitting es un proceso fisico.
+Call Handling es un proceso fisico.
+OnStar System es un objeto fisico.
+OnStar Advisor es un objeto fisico.
+Driver es un objeto fisico y ambiental.
+Cellular Network es un objeto fisico.
+GPS es un objeto fisico.
+OnStar Console es un objeto fisico.
+Vehicle Location Calculating es un proceso fisico.
+Danger Status es un objeto fisico.
+Vehicle Location es un objeto fisico.
+Call es un objeto fisico.
+Driver puede estar en endangered o safe.
+Driver esta inicialmente en endangered.
+Driver esta terminalmente en safe.
+Call puede estar en requested o online.
+Call esta inicialmente en requested.
+Call esta terminalmente en online.
+OnStar Advisor manipula Call Making.
+OnStar Advisor manipula Call Transmitting.
+OnStar Advisor manipula Call Handling.
+Call Making usa OnStar System.
+Call Transmitting usa OnStar System.
+Call Handling usa OnStar System.
+Call Making cambia Driver de endangered a safe.
+Call Transmitting cambia Driver de endangered a safe.
+Call Handling cambia Driver de endangered a safe.
+Driver manipula Call Making.
+Call Making produce Call.
+Call Transmitting consume Call.
+Call Transmitting usa Cellular Network.
+Call Making invoca Call Transmitting.
+Vehicle Location Calculating usa GPS.
+Vehicle Location Calculating produce Vehicle Location.
+Call Handling usa Vehicle Location.
+Call Handling consume Danger Status.
+Call Transmitting invoca Call Handling.
+OnStar Advisor manipula Call Handling.
+Call Handling usa OnStar Console.
+Call Handling cambia Driver de endangered a safe.
 ```

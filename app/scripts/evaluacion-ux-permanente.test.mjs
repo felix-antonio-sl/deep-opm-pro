@@ -36,10 +36,10 @@ describe("evaluacion UX permanente helpers", () => {
       strict: false,
       resultados: [{ criterio: "criterio | con pipe", estado: "OK", duracionMs: 10, screenshot: "shot.png", detalle: { a: 1 } }],
       runtime: { pageErrors: [], consoleErrors: [], consoleWarnings: [], requestFailures: [] },
-      fixtures: [{ id: "chico", nombre: "Comprar Pan" }],
+      fixtures: [{ id: "chico", nombre: "System Diagram" }],
     });
     expect(md).toContain("[png](shot.png)");
     expect(md).toContain("criterio \\| con pipe");
-    expect(md).toContain("- chico: Comprar Pan");
+    expect(md).toContain("- chico: System Diagram");
   });
 });

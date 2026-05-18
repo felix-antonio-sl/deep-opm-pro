@@ -12,7 +12,7 @@ import {
   cerrarPantallaInicioSiVisible,
   exportadoActual,
   jsonEditor,
-  modeloEjemploOrganizacionalSmoke,
+  modeloSmokeTablaEnlaces,
   modeloMarkersCanonicos,
 } from "./_smoke-helpers";
 
@@ -43,7 +43,7 @@ test("enlaces procedurales con routerManhattan usan connector jumpover", async (
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
-  await jsonEditor(page).fill(JSON.stringify(modeloEjemploOrganizacionalSmoke(), null, 2));
+  await jsonEditor(page).fill(JSON.stringify(modeloSmokeTablaEnlaces(), null, 2));
   await page.getByRole("button", { name: "Importar" }).click();
 
   await expect(page.locator(".joint-link")).toHaveCount(3);
@@ -56,8 +56,7 @@ test("enlaces procedurales con routerManhattan usan connector jumpover", async (
     if (!adapter) return [];
     return adapter.graph.getLinks().map((link) => link.get("connector"));
   });
-  // Al menos un enlace debe tener jumpover (los 3 procedurales de
-  // Ejemplo organizacional usan routerManhattan).
+  // Al menos un enlace debe tener jumpover (los procedurales sandbox usan routerManhattan).
   const conJumpover = connectors.filter((c) => (c as { name?: string })?.name === "jumpover");
   expect(conJumpover.length).toBeGreaterThan(0);
 
@@ -69,7 +68,7 @@ test("aplicar layout sugerido reorganiza apariencias y es undoable atomicamente"
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
-  await jsonEditor(page).fill(JSON.stringify(modeloEjemploOrganizacionalSmoke(), null, 2));
+  await jsonEditor(page).fill(JSON.stringify(modeloSmokeTablaEnlaces(), null, 2));
   await page.getByRole("button", { name: "Importar" }).click();
 
   // Posiciones iniciales del fixture (definidas en _smoke-helpers).

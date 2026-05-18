@@ -30,7 +30,7 @@ import {
   aparienciaRaizPorNombre,
   verticesPrimerEnlace,
   modeloDosOpds,
-  modeloEjemploOrganizacionalSmoke,
+  modeloSmokeTablaEnlaces,
   modeloMarkersCanonicos,
   modeloModificadoresEnlace,
   modeloNoModificador,

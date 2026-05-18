@@ -1,9 +1,9 @@
 import { fixtureTodos } from "../src/modelo/fixtures.ts";
 
 const PERFILES = [
-  { id: "chico", preferidos: ["Comprar Pan", "Cafetera Domestica"] },
-  { id: "mediano", preferidos: ["Ejemplo organizacional", "Logistica de Envios"] },
-  { id: "grande", preferidos: ["Prestamo Bibliotecario", "OnStar System"] },
+  { id: "chico", preferidos: ["Modelo Vacio", "System Diagram"] },
+  { id: "mediano", preferidos: ["System Diagram", "SD Async"] },
+  { id: "grande", preferidos: ["OnStar System", "OPM Structure Meta Model"] },
 ];
 
 export function fixturesUxRegresion() {

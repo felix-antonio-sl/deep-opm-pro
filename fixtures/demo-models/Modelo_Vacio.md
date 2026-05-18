@@ -2,7 +2,7 @@
 
 **Propósito:** Probar el estado inicial, canvas vacio, guardado y primer flujo de modelamiento.
 
-**Descripción:** Fixture minimo equivalente a fixtures/empty-model. Sirve para QA de onboarding, estado vacio y acciones iniciales.
+**Descripción:** Replica funcional del fixture OPCloud sandbox Empty Model.
 
 **OPDs:** SD
 **Entidades:** 0

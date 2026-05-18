@@ -37,7 +37,6 @@ import { crearPestanaNueva } from "../pestanas";
 import type { ModeloSlice } from "../tipos";
 
 let limpiarResaltadoPlantillaTimer: number | null = null;
-const EJEMPLO_ORGANIZACIONAL_URL = new URL("../../../examples/ejemplo-organizacional.json", import.meta.url);
 
 /**
  * Acciones de UI: limpiar mensaje, abrir/cerrar menú principal y diálogos
@@ -416,39 +415,6 @@ export function accionesUI(set: SetStore, get: GetStore): Partial<ModeloSlice> {
         mensaje: "Modelo renombrado",
         dirty: false,
         dirtyModelo: false,
-      }));
-    },
-
-    async cargarEjemploOrganizacional() {
-      const respuesta = await fetch(EJEMPLO_ORGANIZACIONAL_URL);
-      if (!respuesta.ok) {
-        set({ mensaje: "No se pudo cargar el ejemplo organizacional" });
-        return;
-      }
-      const hidratado = hidratarModelo(await respuesta.text());
-      if (!hidratado.ok) {
-        set({ mensaje: hidratado.error });
-        return;
-      }
-      const modelo = hidratado.value;
-      resetHistorial(modelo);
-      set(estadoModelo(modelo, {
-        opdActivoId: modelo.opdRaizId,
-        seleccionId: null,
-        seleccionados: [],
-        modoSeleccion: "simple",
-        enlaceSeleccionId: null,
-        modoEnlace: null,
-        modoCreacion: null,
-        modeloPersistidoId: null,
-        descripcionModeloLocal: "Ejemplo organizacional local",
-        carpetaActualId: null,
-        dialogoCargarModeloAbierto: false,
-        pantallaInicioCerrada: true,
-        workspaceLocal: workspaceDesdeModelo(modelo, null, "Ejemplo organizacional local"),
-        dirty: true,
-        readOnly: false,
-        mensaje: "Ejemplo organizacional cargado",
       }));
     },
 

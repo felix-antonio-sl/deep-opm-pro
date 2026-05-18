@@ -1,24 +1,24 @@
 {
   "schema": "deep-opm-pro.hu-progress-report.v1",
-  "generatedAt": "2026-05-18T17:11:07.672Z",
+  "generatedAt": "2026-05-18T20:02:40.782Z",
   "repoRoot": "/home/felix/projects/deep-opm-pro",
   "backlogRoot": "docs/historias-usuario-v2",
   "evidenceLedger": "docs/roadmap/hu-progress-evidence.json",
   "autoAudit": {
-    "generatedAt": "2026-05-18T17:11:07.672Z",
+    "generatedAt": "2026-05-18T20:02:40.782Z",
     "mode": "sync-real",
     "rulesEvaluated": 105,
     "rulesMatched": 89,
     "rulesUnmatched": 16,
     "sourceFiles": {
-      "count": 692,
+      "count": 694,
       "roots": [
         "app/src",
         "app/e2e",
         "app/scripts",
         "assets/svg/links"
       ],
-      "signature": "sha256:69199effc75a9d87fc380c3a4c8c1ca39503daa7ac161560ce9fc3b97d6c3833"
+      "signature": "sha256:32fe61b538d246b3664e7a5aeefae7033f0a05fe86fbc024612260b6b552a6f3"
     },
     "note": "autoEntries se regenera; cada regla escribe cobertura detectada o pendiente. entries manuales queda como respaldo solo para HU sin regla automatica."
   },
@@ -31863,12 +31863,12 @@
       "estadoAvance": "cubierto",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto ronda 12 L1 + BUG-20260507T170832Z-2dae09: ejemplo-organizacional cargable por URL como asset (app/examples/ejemplo-organizacional.json); catalogo unico via listarFixtures/cargarFixtureDemo en MenuPrincipal/DialogoCargarModelo/PantallaInicio, sin duplicar item especial. Preservacion exacta JSON local cubierta por test dedicado.",
+      "nota": "Auto 2026-05-18: catalogo de ejemplos reseteado a fixtures OPCloud sandbox via listarFixtures/cargarFixtureDemo en DialogoCargarModelo/PantallaInicio; sin asset paralelo app/examples ni demos sinteticas. Preservacion JSON local cubierta por test dedicado.",
       "brechas": [],
       "evidencia": [
         {
-          "path": "app/src/store/modelo/acciones-ui.ts",
-          "hrefDashboard": "../../app/src/store/modelo/acciones-ui.ts"
+          "path": "app/src/modelo/fixtures.ts",
+          "hrefDashboard": "../../app/src/modelo/fixtures.ts"
         },
         {
           "path": "app/src/ui/DialogoCargarModelo.tsx",
@@ -31883,8 +31883,12 @@
           "hrefDashboard": "../../app/src/persistencia/local.test.ts"
         },
         {
-          "path": "app/e2e/_smoke-helpers.ts",
-          "hrefDashboard": "../../app/e2e/_smoke-helpers.ts"
+          "path": "app/src/modelo/fixtures.test.ts",
+          "hrefDashboard": "../../app/src/modelo/fixtures.test.ts"
+        },
+        {
+          "path": "app/e2e/11-beta1-catalogo-ancla.spec.ts",
+          "hrefDashboard": "../../app/e2e/11-beta1-catalogo-ancla.spec.ts"
         }
       ],
       "peso": 8,
@@ -32522,12 +32526,12 @@
       "estadoAvance": "cubierto",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto ronda 12 L1 + BUG-20260507T170832Z-2dae09: ejemplo-organizacional cargable por URL como asset (app/examples/ejemplo-organizacional.json); catalogo unico via listarFixtures/cargarFixtureDemo en MenuPrincipal/DialogoCargarModelo/PantallaInicio, sin duplicar item especial. Preservacion exacta JSON local cubierta por test dedicado.",
+      "nota": "Auto 2026-05-18: catalogo de ejemplos reseteado a fixtures OPCloud sandbox via listarFixtures/cargarFixtureDemo en DialogoCargarModelo/PantallaInicio; sin asset paralelo app/examples ni demos sinteticas. Preservacion JSON local cubierta por test dedicado.",
       "brechas": [],
       "evidencia": [
         {
-          "path": "app/src/store/modelo/acciones-ui.ts",
-          "hrefDashboard": "../../app/src/store/modelo/acciones-ui.ts"
+          "path": "app/src/modelo/fixtures.ts",
+          "hrefDashboard": "../../app/src/modelo/fixtures.ts"
         },
         {
           "path": "app/src/ui/DialogoCargarModelo.tsx",
@@ -32542,8 +32546,12 @@
           "hrefDashboard": "../../app/src/persistencia/local.test.ts"
         },
         {
-          "path": "app/e2e/_smoke-helpers.ts",
-          "hrefDashboard": "../../app/e2e/_smoke-helpers.ts"
+          "path": "app/src/modelo/fixtures.test.ts",
+          "hrefDashboard": "../../app/src/modelo/fixtures.test.ts"
+        },
+        {
+          "path": "app/e2e/11-beta1-catalogo-ancla.spec.ts",
+          "hrefDashboard": "../../app/e2e/11-beta1-catalogo-ancla.spec.ts"
         }
       ],
       "peso": 4,

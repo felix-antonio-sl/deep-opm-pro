@@ -29,7 +29,7 @@ import {
   aparienciaRaizPorNombre,
   verticesPrimerEnlace,
   modeloDosOpds,
-  modeloEjemploOrganizacionalSmoke,
+  modeloSmokeTablaEnlaces,
   modeloMarkersCanonicos,
   modeloModificadoresEnlace,
   modeloNoModificador,
@@ -393,10 +393,10 @@ test("L3 UX: DialogoTraerConectados muestra conteo por familia", async ({ page }
 
   await page.goto("/");
   await cerrarPantallaInicioSiVisible(page);
-  await cargarModeloEjemplo(page, "Cafetera Domestica");
+  await cargarModeloEjemplo(page, "System Diagram");
 
-  await elementoPorTexto(page, "Hacer Cafe").first().click();
-  await abrirTraerConectadosDesdeMenuEntidad(page, "Hacer Cafe");
+  await elementoPorTexto(page, "Main System Doing").first().click();
+  await abrirTraerConectadosDesdeMenuEntidad(page, "Main System Doing");
   await expect(page.getByTestId("dialogo-traer-conectados")).toBeVisible();
 
   for (const familia of ["procedural-habilitador", "procedural-transformador", "direccional", "estructural"]) {

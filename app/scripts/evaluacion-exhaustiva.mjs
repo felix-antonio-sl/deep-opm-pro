@@ -173,9 +173,9 @@ async function dumpCanon(page) {
 }
 
 // ============================================================
-// RUTA 2: Cada uno de los 8 demos
+// RUTA 2: Cada uno de los 6 demos OPCloud sandbox
 // ============================================================
-const DEMOS = ["Cafetera Domestica", "OnStar System", "Diagnostico Clinico", "SD Generico", "Logistica de Envios", "SD Async", "Control de Calidad", "Ejemplo organizacional"];
+const DEMOS = ["System Diagram", "SD Sync", "SD Async", "OnStar System", "OPM Structure Meta Model", "Modelo Vacio"];
 {
   const { ctx, page } = await nuevoPage();
   await page.goto(URL, { waitUntil: "networkidle", timeout: 25000 });
@@ -191,9 +191,8 @@ const DEMOS = ["Cafetera Domestica", "OnStar System", "Diagnostico Clinico", "SD
     await shot(page, `02-demo-${i+1}-${slug}`);
     datosCanon[slug] = await dumpCanon(page);
     if (i === 0) {
-      // Para Cafetera, axe + perf
-      await medirPerf(page, "demo-cafetera");
-      await correrAxe(page, "demo-cafetera");
+      await medirPerf(page, "demo-system-diagram");
+      await correrAxe(page, "demo-system-diagram");
     }
   }
   await ctx.close();
@@ -216,15 +215,15 @@ const DEMOS = ["Cafetera Domestica", "OnStar System", "Diagnostico Clinico", "SD
   await shot(page, "03-toolbar-sin-seleccion");
 
   // Con entidad objeto
-  const persona = page.locator('text="Persona"').first();
-  if (await persona.isVisible()) {
-    await persona.click({ force: true });
+  const systemName = page.locator('text="System Name"').first();
+  if (await systemName.isVisible()) {
+    await systemName.click({ force: true });
     await page.waitForTimeout(300);
     await shot(page, "03-toolbar-con-objeto");
   }
 
   // Con entidad proceso
-  const proc = page.locator('text="Hacer Cafe"').first();
+  const proc = page.locator('text="Main System Doing"').first();
   if (await proc.isVisible()) {
     await proc.click({ force: true });
     await page.waitForTimeout(300);
@@ -256,15 +255,15 @@ const DEMOS = ["Cafetera Domestica", "OnStar System", "Diagnostico Clinico", "SD
   await shot(page, "04-inspector-sin-seleccion");
 
   // Inspector entidad
-  const persona = page.locator('text="Persona"').first();
-  await persona.click({ force: true });
+  const systemName = page.locator('text="System Name"').first();
+  await systemName.click({ force: true });
   await page.waitForTimeout(400);
   await shotFull(page, "04-inspector-entidad-fullpage");
   await medirPerf(page, "inspector-entidad");
   await correrAxe(page, "inspector-entidad");
 
   // Inspector proceso
-  const proc = page.locator('text="Hacer Cafe"').first();
+  const proc = page.locator('text="Main System Doing"').first();
   await proc.click({ force: true });
   await page.waitForTimeout(400);
   await shotFull(page, "04-inspector-proceso-fullpage");
@@ -296,7 +295,7 @@ const DEMOS = ["Cafetera Domestica", "OnStar System", "Diagnostico Clinico", "SD
   await page.selectOption('select', { index: 1 }).catch(()=>{});
   await page.waitForTimeout(900);
   // OPL con oraciones
-  await shot(page, "05-opl-cafetera");
+  await shot(page, "05-opl-system-diagram");
 
   // OPL minimizado
   const minBtn = page.locator('button[aria-label*="inimizar" i]').first();
@@ -315,7 +314,7 @@ const DEMOS = ["Cafetera Domestica", "OnStar System", "Diagnostico Clinico", "SD
   const filtro = page.locator('input[type="checkbox"]:near(:text("Filtrar por selección"))').first();
   if (await filtro.isVisible().catch(()=>false)) {
     await filtro.check();
-    const proc = page.locator('text="Hacer Cafe"').first();
+    const proc = page.locator('text="Main System Doing"').first();
     if (await proc.isVisible()) await proc.click({ force: true });
     await page.waitForTimeout(400);
     await shot(page, "05-opl-filtrado");
@@ -415,7 +414,7 @@ const DEMOS = ["Cafetera Domestica", "OnStar System", "Diagnostico Clinico", "SD
   await page.selectOption('select', { index: 1 }).catch(()=>{});
   await page.waitForTimeout(800);
 
-  const proc = page.locator('text="Hacer Cafe"').first();
+  const proc = page.locator('text="Main System Doing"').first();
   await proc.click({ force: true });
   await page.waitForTimeout(400);
 
@@ -447,19 +446,19 @@ const DEMOS = ["Cafetera Domestica", "OnStar System", "Diagnostico Clinico", "SD
   await page.reload({ waitUntil: "networkidle" });
   await page.waitForTimeout(700);
 
-  // Ejemplo organizacional puede tener atributos/estados
-  await page.selectOption('select', { index: 8 }).catch(()=>{});
+  // OnStar conserva estados y refinamiento desde el sandbox.
+  await page.selectOption('select', { index: 4 }).catch(()=>{});
   await page.waitForTimeout(900);
-  await shot(page, "09-ejemplo-organizacional");
-  datosCanon["ejemplo-organizacional"] = await dumpCanon(page);
+  await shot(page, "09-onstar-system");
+  datosCanon["onstar-system"] = await dumpCanon(page);
 
-  // Diagnostico clinico tiene mas variedad probable
+  // OPM Structure Meta Model cubre estructura densa.
   await page.evaluate(() => localStorage.clear());
   await page.reload({ waitUntil: "networkidle" });
   await page.waitForTimeout(700);
-  await page.selectOption('select', { index: 3 }).catch(()=>{});
+  await page.selectOption('select', { index: 5 }).catch(()=>{});
   await page.waitForTimeout(900);
-  await shot(page, "09-diagnostico-clinico");
+  await shot(page, "09-opm-structure-meta-model");
 
   await ctx.close();
 }

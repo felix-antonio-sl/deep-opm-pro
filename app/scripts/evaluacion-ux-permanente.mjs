@@ -431,7 +431,7 @@ async function main() {
 
     {
       const { context, page } = await nuevaPagina(browser, opts.url, { width: 390, height: 844 }, runtime);
-      await page.getByLabel("Cargar modelo de ejemplo").selectOption("Cafetera Domestica");
+      await page.getByLabel("Cargar modelo de ejemplo").selectOption("System Diagram");
       await page.waitForTimeout(500);
       await recorder.criterio(page, "mobile 390 OPD OPL issues seleccion", async () => {
         const tree = await page.getByTestId("tree-pane").count();

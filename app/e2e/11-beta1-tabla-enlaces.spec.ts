@@ -13,7 +13,7 @@
  */
 
 import { expect, test, type Page } from "@playwright/test";
-import { cerrarPantallaInicioSiVisible, jsonEditor, modeloEjemploOrganizacionalSmoke, modeloMarkersCanonicos, modeloTransicionEstados } from "./_smoke-helpers";
+import { cerrarPantallaInicioSiVisible, jsonEditor, modeloSmokeTablaEnlaces, modeloMarkersCanonicos, modeloTransicionEstados } from "./_smoke-helpers";
 
 async function abrirTablaPorMenu(page: Page): Promise<void> {
   await page.getByLabel("Menú principal").click();
@@ -57,7 +57,7 @@ test("workbench Beta1: lista, filtra, edita multiplicidad y elimina enlace cross
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
-  await jsonEditor(page).fill(JSON.stringify(modeloEjemploOrganizacionalSmoke(), null, 2));
+  await jsonEditor(page).fill(JSON.stringify(modeloSmokeTablaEnlaces(), null, 2));
   await page.getByRole("button", { name: "Importar" }).click();
 
   await abrirTablaPorMenu(page);
@@ -119,7 +119,7 @@ test("workbench Beta1: ordenamiento por columna alterna ascendente/descendente",
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
-  await jsonEditor(page).fill(JSON.stringify(modeloEjemploOrganizacionalSmoke(), null, 2));
+  await jsonEditor(page).fill(JSON.stringify(modeloSmokeTablaEnlaces(), null, 2));
   await page.getByRole("button", { name: "Importar" }).click();
   await abrirTablaPorMenu(page);
 
@@ -260,7 +260,7 @@ test("workbench Beta1: edicion de etiqueta persiste y la fila refleja el cambio 
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
-  await jsonEditor(page).fill(JSON.stringify(modeloEjemploOrganizacionalSmoke(), null, 2));
+  await jsonEditor(page).fill(JSON.stringify(modeloSmokeTablaEnlaces(), null, 2));
   await page.getByRole("button", { name: "Importar" }).click();
   await abrirTablaPorMenu(page);
 

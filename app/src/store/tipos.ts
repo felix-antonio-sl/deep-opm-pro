@@ -373,7 +373,6 @@ export interface OpmStore {
   guardarComoPlantillaConfirmar: (input: { nombre: string; descripcion?: string; ambito?: "privado" | "organizacional" | "global" }) => void;
   insertarPlantillaEnOpdActivo: (plantillaId: Id) => void;
   resaltarTemporalmente: (ids: Id[], ms?: number) => void;
-  cargarEjemploOrganizacional: () => void;
   nuevoModelo: () => void;
   crearObjetoDemo: () => void;
   crearProcesoDemo: () => void;

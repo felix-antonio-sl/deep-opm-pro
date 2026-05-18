@@ -111,7 +111,7 @@ export function duplicarPestana(estado: EstadoPestanas, id: PestanaId): Resultad
   const origen = estado.pestanas.find((pestana) => pestana.id === id);
   if (!origen) return fallo("Pestana no existe");
   // P0-1: la copia toma el nombre real del modelo origen, no un placeholder.
-  // Resulta en "Cafetera Domestica (No guardado)" en vez de "Modelo (No
+  // Resulta en "System Diagram (No guardado)" en vez de "Modelo (No
   // guardado)" — el operador sabe qué duplicó.
   const copia = crearPestanaDesdeModelo(origen.modelo, {
     modeloId: null,

@@ -971,7 +971,7 @@ La rama `main` quedó sincronizada con `origin/main` tras el commit `08b3753`, q
 
 - Carga/bienvenida y mini-glosa OPM.
 - Chrome IFML desktop: `ViewPoint` default, clusters `Modelar`/`Conectar`/`Ayuda`, menú principal y `CommandPalette`.
-- Ejemplo canónico `Cafetera Domestica`: JointJS, OPL y SSOT visual (`#fdffff`, `#70E483`, `#3BC3FF`, 135x60).
+- Catalogo de ejemplos reseteado a OPCloud sandbox: `System Diagram`, `SD Sync`, `SD Async`, `OnStar System`, `OPM Structure Meta Model`, `Modelo Vacio`. `OnStar System` es tambien el unico ejemplo del libro curado conservado por respaldo formativo.
 - Overlay feedback: `BarraHerramientasElemento`, `ErrorBadge`, `HoverTooltip`, `FlashToast`.
 - Conexión por `MenuTipoEnlace` y submodo accesible `conectando`.
 - Import JSON multi-OPD y navegación del árbol.

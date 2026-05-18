@@ -28,7 +28,7 @@ import {
   aparienciaRaizPorNombre,
   verticesPrimerEnlace,
   modeloDosOpds,
-  modeloEjemploOrganizacionalSmoke,
+  modeloSmokeTablaEnlaces,
   modeloMarkersCanonicos,
   modeloModificadoresEnlace,
   modeloNoModificador,
@@ -57,25 +57,25 @@ test("carga demo OPM en canvas JointJS y mantiene OPL visible", async ({ page })
   await page.goto("/");
   await expect(page.getByRole("img", { name: "OPD activo" })).toBeVisible();
 
-  await cargarModeloEjemplo(page, "Cafetera Domestica");
+  await cargarModeloEjemplo(page, "System Diagram");
 
   await expect(page.locator(".joint-paper svg")).toHaveCount(1);
   expect(await page.locator(".joint-element").count()).toBeGreaterThanOrEqual(3);
   expect(await page.locator(".joint-link").count()).toBeGreaterThanOrEqual(2);
-  await expect(page.getByText("Hacer Cafe").first()).toBeVisible();
+  await expect(elementoPorTexto(page, "Main System Doing")).toBeVisible();
   await restaurarPanelOplSiMinimizado(page);
-  await expect(page.getByText("Hacer Cafe consume Cafe Molido.")).toBeVisible();
+  await expect(page.getByText("Main System Doing consume Main Input.")).toBeVisible();
 
   await page.screenshot({ path: "test-results/opm-demo-jointjs.png", fullPage: true });
   expect(pageErrors).toEqual([]);
 });
 
-test("L3 panel diagnostico marca Cafetera Domestica como valida", async ({ page }) => {
+test("L3 panel diagnostico evalua System Diagram sandbox", async ({ page }) => {
   const pageErrors: string[] = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
-  await cargarModeloEjemplo(page, "Cafetera Domestica");
+  await cargarModeloEjemplo(page, "System Diagram");
 
   const panel = page.getByTestId("panel-diagnostico");
   await expect(panel).toBeVisible();
@@ -139,19 +139,19 @@ test("workspace local abre menu, guarda como, guarda incremental y carga desde d
   expect(pageErrors).toEqual([]);
 });
 
-test("HU-30.021 dialogo cargar abre ejemplo organizacional canonico", async ({ page }) => {
+test("HU-30.021 dialogo cargar abre ejemplo sandbox canonico", async ({ page }) => {
   const pageErrors: string[] = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
   const dialogo = await abrirDialogoCargarModelo(page);
   const selectorEjemplos = dialogo.getByLabel("Cargar modelo de ejemplo");
-  await expect(selectorEjemplos.locator("option").filter({ hasText: /^Ejemplo organizacional$/ })).toHaveCount(1);
-  await selectorEjemplos.selectOption("Ejemplo organizacional");
+  await expect(selectorEjemplos.locator("option").filter({ hasText: /^System Diagram$/ })).toHaveCount(1);
+  await selectorEjemplos.selectOption("System Diagram");
 
   await expect(dialogo).toHaveCount(0);
-  await expect(elementoPorTexto(page, "Cliente")).toHaveCount(1);
-  await expect(elementoPorTexto(page, "Entregar Valor")).toHaveCount(1);
+  await expect(elementoPorTexto(page, "System Name")).toHaveCount(1);
+  await expect(elementoPorTexto(page, "Main System Doing")).toHaveCount(1);
   expect(await page.locator(".joint-link").count()).toBeGreaterThanOrEqual(7);
   expect(pageErrors).toEqual([]);
 });

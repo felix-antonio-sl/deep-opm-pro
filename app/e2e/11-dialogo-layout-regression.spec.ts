@@ -56,7 +56,7 @@ test("[L1] DialogoCargarModelo pinta sobre canvas+grid e interactua", async ({ p
 
   await page.goto("/");
   await cerrarPantallaInicioSiVisible(page);
-  await cargarModeloEjemplo(page, "Cafetera Domestica");
+  await cargarModeloEjemplo(page, "System Diagram");
   await expect(page.locator(".joint-paper svg")).toHaveCount(1);
 
   const dialogo = await abrirDialogoCargarModelo(page);
@@ -84,7 +84,7 @@ test("[L1] DialogoConfiguracion pinta sobre canvas SVG y acepta edicion sin clic
 
   await page.goto("/");
   await cerrarPantallaInicioSiVisible(page);
-  await cargarModeloEjemplo(page, "Cafetera Domestica");
+  await cargarModeloEjemplo(page, "System Diagram");
   await expect(page.locator(".joint-paper svg")).toHaveCount(1);
 
   await abrirConfigGridDesdeMas(page);
@@ -126,7 +126,7 @@ test("[L1] DialogoConfiguracion expone aria-labelledby y Esc captura", async ({ 
 
   await page.goto("/");
   await cerrarPantallaInicioSiVisible(page);
-  await cargarModeloEjemplo(page, "Cafetera Domestica");
+  await cargarModeloEjemplo(page, "System Diagram");
   await expect(page.locator(".joint-paper svg")).toHaveCount(1);
 
   await abrirConfigGridDesdeMas(page);
@@ -159,7 +159,7 @@ test("[L1] Dialogo se monta fuera del subarbol del workbench (portal a body)", a
 
   await page.goto("/");
   await cerrarPantallaInicioSiVisible(page);
-  await cargarModeloEjemplo(page, "Cafetera Domestica");
+  await cargarModeloEjemplo(page, "System Diagram");
   await expect(page.locator(".joint-paper svg")).toHaveCount(1);
 
   await abrirDialogoCargarModelo(page);

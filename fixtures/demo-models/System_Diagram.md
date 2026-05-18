@@ -1,8 +1,8 @@
 # System Diagram
 
-**Propósito:** Representar un System Diagram canonico con input, output, handler, tool set y beneficiario.
+**Propósito:** Representar el System Diagram generico publicado en OPCloud sandbox.
 
-**Descripción:** Demo equivalente a fixtures/system-diagram: SD raiz con proceso central, consumo, resultado, agente, instrumentos y cambio de estado del atributo beneficiario.
+**Descripción:** Replica funcional de fixtures/system-diagram: proceso central, input, output, handler, tool set y atributo beneficiario con estados problematic/satisfactory.
 
 **OPDs:** SD
 **Entidades:** 8
@@ -18,15 +18,15 @@ System Handler es un objeto fisico.
 System Tool Set es un objeto informatico.
 Main Input es un objeto informatico.
 Beneficiary Group es un objeto fisico.
-Beneficiary Attribute es un objeto informatico.
+Beneficiary Relevant Attribute es un objeto informatico.
 Main System Doing es un proceso fisico.
 Main Output es un objeto informatico.
-Beneficiary Attribute puede estar en problematic o satisfactory.
-Beneficiary Attribute esta inicialmente en problematic.
-Beneficiary Attribute esta terminalmente en satisfactory.
+Beneficiary Relevant Attribute puede estar en problematic o satisfactory.
+Beneficiary Relevant Attribute esta inicialmente en problematic.
+Beneficiary Relevant Attribute esta terminalmente en satisfactory.
 System Name exhibe Main System Doing.
-Beneficiary Group exhibe Beneficiary Attribute.
-Main System Doing cambia Beneficiary Attribute de problematic a satisfactory.
+Beneficiary Group exhibe Beneficiary Relevant Attribute.
+Main System Doing cambia Beneficiary Relevant Attribute de problematic a satisfactory.
 System Handler manipula Main System Doing.
 Main System Doing consume Main Input.
 Main System Doing usa System Name.

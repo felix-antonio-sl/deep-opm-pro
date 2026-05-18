@@ -461,7 +461,7 @@ export function modeloDosOpds() {
   };
 }
 
-export function modeloEjemploOrganizacionalSmoke() {
+export function modeloSmokeTablaEnlaces() {
   const entidades = {
     "o-cliente": objeto("o-cliente", "Cliente", "fisica"),
     "o-solicitud": objeto("o-solicitud", "Solicitud"),
@@ -476,8 +476,8 @@ export function modeloEjemploOrganizacionalSmoke() {
   return {
     formato: "deep-opm-pro.modelo.v0",
     modelo: {
-      id: "modelo-ejemplo-organizacional-smoke",
-      nombre: "Ejemplo organizacional",
+      id: "modelo-smoke-tabla-enlaces",
+      nombre: "Modelo smoke tabla enlaces",
       opdRaizId: "opd-1",
       nextSeq: 20,
       entidades,

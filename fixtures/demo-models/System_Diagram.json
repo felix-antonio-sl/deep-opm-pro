@@ -43,7 +43,7 @@
       "o-11": {
         "id": "o-11",
         "tipo": "objeto",
-        "nombre": "Beneficiary Attribute",
+        "nombre": "Beneficiary Relevant Attribute",
         "esencia": "informacional",
         "afiliacion": "sistemica"
       },
@@ -314,7 +314,6 @@
         "etiqueta": ""
       }
     },
-    "abanicos": {},
-    "descripcion": "Equivalente kernel del fixture observacional fixtures/system-diagram."
+    "abanicos": {}
   }
 }

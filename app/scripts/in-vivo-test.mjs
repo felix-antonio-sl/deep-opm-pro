@@ -402,13 +402,13 @@ try {
   await page.keyboard.press("Escape");
 
   await resetWorkbench(page);
-  await cargarEjemplo(page, "Cafetera Domestica");
+  await cargarEjemplo(page, "System Diagram");
   await restaurarPanelOplSiMinimizado(page);
   const elementosDemo = await locatorCount(page.locator(".joint-element"));
   const enlacesDemo = await locatorCount(page.locator(".joint-link"));
-  recordBool("3. Ejemplo y SSOT visual", "Ejemplo Cafetera Domestica carga >=3 cosas", elementosDemo >= 3, `cosas=${elementosDemo}`);
-  recordBool("3. Ejemplo y SSOT visual", "Ejemplo Cafetera Domestica carga >=2 enlaces", enlacesDemo >= 2, `enlaces=${enlacesDemo}`);
-  await recordVisible("3. Ejemplo y SSOT visual", "OPL renderiza sentencia de consumo del ejemplo", page.getByText(/Hacer\s+Cafe\s+consume\s+Cafe\s+Molido\./).first());
+  recordBool("3. Ejemplo y SSOT visual", "Ejemplo System Diagram carga >=3 cosas", elementosDemo >= 3, `cosas=${elementosDemo}`);
+  recordBool("3. Ejemplo y SSOT visual", "Ejemplo System Diagram carga >=2 enlaces", enlacesDemo >= 2, `enlaces=${enlacesDemo}`);
+  await recordVisible("3. Ejemplo y SSOT visual", "OPL renderiza sentencia de consumo del ejemplo", page.getByText(/Main\s+System\s+Doing\s+consume\s+Main\s+Input\./).first());
 
   const visual = await page.locator(".joint-element [joint-selector='body']").evaluateAll((els) => els.map((el) => {
     const rect = el.getBoundingClientRect();

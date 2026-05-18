@@ -66,22 +66,22 @@
         "esencia": "informacional",
         "afiliacion": "sistemica"
       },
-      "p-43": {
-        "id": "p-43",
+      "p-37": {
+        "id": "p-37",
         "tipo": "proceso",
         "nombre": "First Processing",
         "esencia": "fisica",
         "afiliacion": "sistemica"
       },
-      "p-45": {
-        "id": "p-45",
+      "p-39": {
+        "id": "p-39",
         "tipo": "proceso",
         "nombre": "Second Processing",
         "esencia": "fisica",
         "afiliacion": "sistemica"
       },
-      "p-47": {
-        "id": "p-47",
+      "p-41": {
+        "id": "p-41",
         "tipo": "proceso",
         "nombre": "Third Processing",
         "esencia": "fisica",
@@ -287,88 +287,166 @@
             "x": 150,
             "y": 90,
             "width": 405,
-            "height": 435
+            "height": 435,
+            "contextoRefinamiento": {
+              "tipo": "descomposicion",
+              "refinableEntidadId": "p-13",
+              "rol": "contorno"
+            }
           },
-          "a-37": {
-            "id": "a-37",
+          "a-38": {
+            "id": "a-38",
+            "entidadId": "p-37",
+            "opdId": "opd-35",
+            "x": 285,
+            "y": 190,
+            "width": 135,
+            "height": 60,
+            "contextoRefinamiento": {
+              "tipo": "descomposicion",
+              "refinableEntidadId": "p-13",
+              "rol": "interno",
+              "contenedorAparienciaId": "a-36"
+            }
+          },
+          "a-40": {
+            "id": "a-40",
+            "entidadId": "p-39",
+            "opdId": "opd-35",
+            "x": 285,
+            "y": 280,
+            "width": 135,
+            "height": 60,
+            "contextoRefinamiento": {
+              "tipo": "descomposicion",
+              "refinableEntidadId": "p-13",
+              "rol": "interno",
+              "contenedorAparienciaId": "a-36"
+            }
+          },
+          "a-42": {
+            "id": "a-42",
+            "entidadId": "p-41",
+            "opdId": "opd-35",
+            "x": 285,
+            "y": 370,
+            "width": 135,
+            "height": 60,
+            "contextoRefinamiento": {
+              "tipo": "descomposicion",
+              "refinableEntidadId": "p-13",
+              "rol": "interno",
+              "contenedorAparienciaId": "a-36"
+            }
+          },
+          "a-43": {
+            "id": "a-43",
             "entidadId": "o-1",
             "opdId": "opd-35",
             "x": 24,
             "y": 112,
             "width": 135,
-            "height": 60
+            "height": 60,
+            "contextoRefinamiento": {
+              "tipo": "descomposicion",
+              "refinableEntidadId": "p-13",
+              "rol": "externo",
+              "contenedorAparienciaId": "a-36",
+              "enlacesPadreIds": [
+                "e-19",
+                "e-29"
+              ]
+            }
           },
-          "a-38": {
-            "id": "a-38",
-            "entidadId": "o-11",
-            "opdId": "opd-35",
-            "x": 610,
-            "y": 112,
-            "width": 135,
-            "height": 60
-          },
-          "a-39": {
-            "id": "a-39",
+          "a-44": {
+            "id": "a-44",
             "entidadId": "o-3",
             "opdId": "opd-35",
             "x": 24,
             "y": 204,
             "width": 135,
-            "height": 60
+            "height": 60,
+            "contextoRefinamiento": {
+              "tipo": "descomposicion",
+              "refinableEntidadId": "p-13",
+              "rol": "externo",
+              "contenedorAparienciaId": "a-36",
+              "enlacesPadreIds": [
+                "e-25"
+              ]
+            }
           },
-          "a-40": {
-            "id": "a-40",
-            "entidadId": "o-7",
+          "a-45": {
+            "id": "a-45",
+            "entidadId": "o-5",
             "opdId": "opd-35",
             "x": 24,
             "y": 296,
             "width": 135,
-            "height": 60
+            "height": 60,
+            "contextoRefinamiento": {
+              "tipo": "descomposicion",
+              "refinableEntidadId": "p-13",
+              "rol": "externo",
+              "contenedorAparienciaId": "a-36",
+              "enlacesPadreIds": [
+                "e-31"
+              ]
+            }
           },
-          "a-41": {
-            "id": "a-41",
-            "entidadId": "o-5",
+          "a-46": {
+            "id": "a-46",
+            "entidadId": "o-7",
             "opdId": "opd-35",
             "x": 24,
             "y": 388,
             "width": 135,
-            "height": 60
+            "height": 60,
+            "contextoRefinamiento": {
+              "tipo": "descomposicion",
+              "refinableEntidadId": "p-13",
+              "rol": "externo",
+              "contenedorAparienciaId": "a-36",
+              "enlacesPadreIds": [
+                "e-27"
+              ]
+            }
           },
-          "a-42": {
-            "id": "a-42",
+          "a-47": {
+            "id": "a-47",
+            "entidadId": "o-11",
+            "opdId": "opd-35",
+            "x": 610,
+            "y": 112,
+            "width": 135,
+            "height": 60,
+            "contextoRefinamiento": {
+              "tipo": "descomposicion",
+              "refinableEntidadId": "p-13",
+              "rol": "externo",
+              "contenedorAparienciaId": "a-36",
+              "enlacesPadreIds": [
+                "e-23"
+              ]
+            }
+          },
+          "a-48": {
+            "id": "a-48",
             "entidadId": "o-15",
             "opdId": "opd-35",
             "x": 610,
             "y": 204,
             "width": 135,
-            "height": 60
-          },
-          "a-44": {
-            "id": "a-44",
-            "entidadId": "p-43",
-            "opdId": "opd-35",
-            "x": 285,
-            "y": 190,
-            "width": 135,
-            "height": 60
-          },
-          "a-46": {
-            "id": "a-46",
-            "entidadId": "p-45",
-            "opdId": "opd-35",
-            "x": 285,
-            "y": 280,
-            "width": 135,
-            "height": 60
-          },
-          "a-48": {
-            "id": "a-48",
-            "entidadId": "p-47",
-            "opdId": "opd-35",
-            "x": 285,
-            "y": 370,
-            "width": 135,
-            "height": 60
+            "height": 60,
+            "contextoRefinamiento": {
+              "tipo": "descomposicion",
+              "refinableEntidadId": "p-13",
+              "rol": "externo",
+              "contenedorAparienciaId": "a-36",
+              "enlacesPadreIds": [
+                "e-33"
+              ]
+            }
           },
           "a-79": {
             "id": "a-79",
@@ -377,7 +455,13 @@
             "x": 720,
             "y": 250,
             "width": 135,
-            "height": 60
+            "height": 60,
+            "contextoRefinamiento": {
+              "tipo": "descomposicion",
+              "refinableEntidadId": "p-13",
+              "rol": "interno",
+              "contenedorAparienciaId": "a-36"
+            }
           },
           "a-81": {
             "id": "a-81",
@@ -386,7 +470,13 @@
             "x": 90,
             "y": 90,
             "width": 135,
-            "height": 60
+            "height": 60,
+            "contextoRefinamiento": {
+              "tipo": "descomposicion",
+              "refinableEntidadId": "p-13",
+              "rol": "interno",
+              "contenedorAparienciaId": "a-36"
+            }
           },
           "a-83": {
             "id": "a-83",
@@ -395,7 +485,13 @@
             "x": 570,
             "y": 90,
             "width": 135,
-            "height": 60
+            "height": 60,
+            "contextoRefinamiento": {
+              "tipo": "descomposicion",
+              "refinableEntidadId": "p-13",
+              "rol": "interno",
+              "contenedorAparienciaId": "a-36"
+            }
           },
           "a-85": {
             "id": "a-85",
@@ -404,7 +500,13 @@
             "x": 570,
             "y": 180,
             "width": 135,
-            "height": 60
+            "height": 60,
+            "contextoRefinamiento": {
+              "tipo": "descomposicion",
+              "refinableEntidadId": "p-13",
+              "rol": "interno",
+              "contenedorAparienciaId": "a-36"
+            }
           },
           "a-87": {
             "id": "a-87",
@@ -413,7 +515,13 @@
             "x": 430,
             "y": 370,
             "width": 135,
-            "height": 60
+            "height": 60,
+            "contextoRefinamiento": {
+              "tipo": "descomposicion",
+              "refinableEntidadId": "p-13",
+              "rol": "interno",
+              "contenedorAparienciaId": "a-36"
+            }
           },
           "a-89": {
             "id": "a-89",
@@ -422,7 +530,13 @@
             "x": 720,
             "y": 370,
             "width": 135,
-            "height": 60
+            "height": 60,
+            "contextoRefinamiento": {
+              "tipo": "descomposicion",
+              "refinableEntidadId": "p-13",
+              "rol": "interno",
+              "contenedorAparienciaId": "a-36"
+            }
           }
         },
         "enlaces": {
@@ -707,7 +821,7 @@
         "tipo": "efecto",
         "origenId": {
           "kind": "entidad",
-          "id": "p-43"
+          "id": "p-37"
         },
         "destinoId": {
           "kind": "entidad",
@@ -726,7 +840,7 @@
         "tipo": "efecto",
         "origenId": {
           "kind": "entidad",
-          "id": "p-45"
+          "id": "p-39"
         },
         "destinoId": {
           "kind": "entidad",
@@ -745,7 +859,7 @@
         "tipo": "efecto",
         "origenId": {
           "kind": "entidad",
-          "id": "p-47"
+          "id": "p-41"
         },
         "destinoId": {
           "kind": "entidad",
@@ -768,7 +882,7 @@
         },
         "destinoId": {
           "kind": "entidad",
-          "id": "p-43"
+          "id": "p-37"
         },
         "etiqueta": "",
         "derivado": {
@@ -787,7 +901,7 @@
         },
         "destinoId": {
           "kind": "entidad",
-          "id": "p-45"
+          "id": "p-39"
         },
         "etiqueta": "",
         "derivado": {
@@ -806,7 +920,7 @@
         },
         "destinoId": {
           "kind": "entidad",
-          "id": "p-47"
+          "id": "p-41"
         },
         "etiqueta": "",
         "derivado": {
@@ -825,7 +939,7 @@
         },
         "destinoId": {
           "kind": "entidad",
-          "id": "p-43"
+          "id": "p-37"
         },
         "etiqueta": "",
         "derivado": {
@@ -844,7 +958,7 @@
         },
         "destinoId": {
           "kind": "entidad",
-          "id": "p-43"
+          "id": "p-37"
         },
         "etiqueta": "",
         "derivado": {
@@ -863,7 +977,7 @@
         },
         "destinoId": {
           "kind": "entidad",
-          "id": "p-45"
+          "id": "p-39"
         },
         "etiqueta": "",
         "derivado": {
@@ -882,7 +996,7 @@
         },
         "destinoId": {
           "kind": "entidad",
-          "id": "p-47"
+          "id": "p-41"
         },
         "etiqueta": "",
         "derivado": {
@@ -901,7 +1015,7 @@
         },
         "destinoId": {
           "kind": "entidad",
-          "id": "p-43"
+          "id": "p-37"
         },
         "etiqueta": "",
         "derivado": {
@@ -920,7 +1034,7 @@
         },
         "destinoId": {
           "kind": "entidad",
-          "id": "p-45"
+          "id": "p-39"
         },
         "etiqueta": "",
         "derivado": {
@@ -939,7 +1053,7 @@
         },
         "destinoId": {
           "kind": "entidad",
-          "id": "p-47"
+          "id": "p-41"
         },
         "etiqueta": "",
         "derivado": {
@@ -954,7 +1068,7 @@
         "tipo": "resultado",
         "origenId": {
           "kind": "entidad",
-          "id": "p-47"
+          "id": "p-41"
         },
         "destinoId": {
           "kind": "entidad",
@@ -990,7 +1104,7 @@
         },
         "destinoId": {
           "kind": "entidad",
-          "id": "p-43"
+          "id": "p-37"
         },
         "etiqueta": ""
       },
@@ -999,7 +1113,7 @@
         "tipo": "efecto",
         "origenId": {
           "kind": "entidad",
-          "id": "p-43"
+          "id": "p-37"
         },
         "destinoId": {
           "kind": "entidad",
@@ -1012,7 +1126,7 @@
         "tipo": "resultado",
         "origenId": {
           "kind": "entidad",
-          "id": "p-43"
+          "id": "p-37"
         },
         "destinoId": {
           "kind": "entidad",
@@ -1029,7 +1143,7 @@
         },
         "destinoId": {
           "kind": "entidad",
-          "id": "p-45"
+          "id": "p-39"
         },
         "etiqueta": ""
       },
@@ -1038,7 +1152,7 @@
         "tipo": "efecto",
         "origenId": {
           "kind": "entidad",
-          "id": "p-45"
+          "id": "p-39"
         },
         "destinoId": {
           "kind": "entidad",
@@ -1051,7 +1165,7 @@
         "tipo": "efecto",
         "origenId": {
           "kind": "entidad",
-          "id": "p-47"
+          "id": "p-41"
         },
         "destinoId": {
           "kind": "entidad",
@@ -1064,7 +1178,7 @@
         "tipo": "efecto",
         "origenId": {
           "kind": "entidad",
-          "id": "p-47"
+          "id": "p-41"
         },
         "destinoId": {
           "kind": "entidad",
@@ -1103,11 +1217,11 @@
         "tipo": "invocacion",
         "origenId": {
           "kind": "entidad",
-          "id": "p-43"
+          "id": "p-37"
         },
         "destinoId": {
           "kind": "entidad",
-          "id": "p-45"
+          "id": "p-39"
         },
         "etiqueta": ""
       },
@@ -1116,11 +1230,11 @@
         "tipo": "invocacion",
         "origenId": {
           "kind": "entidad",
-          "id": "p-45"
+          "id": "p-39"
         },
         "destinoId": {
           "kind": "entidad",
-          "id": "p-47"
+          "id": "p-41"
         },
         "etiqueta": ""
       },
@@ -1129,7 +1243,7 @@
         "tipo": "invocacion",
         "origenId": {
           "kind": "entidad",
-          "id": "p-47"
+          "id": "p-41"
         },
         "destinoId": {
           "kind": "entidad",

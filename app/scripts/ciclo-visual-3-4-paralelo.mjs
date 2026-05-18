@@ -20,13 +20,13 @@ await page.goto(URL, { waitUntil: "networkidle", timeout: 25000 });
 await page.evaluate(() => localStorage.clear());
 await page.reload({ waitUntil: "networkidle" });
 await page.waitForTimeout(700);
-// Cargar demo Cafetera
+// Cargar demo sandbox System Diagram
 await page.selectOption('select', { index: 1 }).catch(()=>{});
 await page.waitForTimeout(900);
 
 // === MICROCICLO 3: Inspector + OPL ===
-// 3.1 Click en "Hacer Cafe" (proceso central)
-const proc = page.locator('text="Hacer Cafe"').first();
+// 3.1 Click en "Main System Doing" (proceso central)
+const proc = page.locator('text="Main System Doing"').first();
 if (await proc.isVisible()) {
   await proc.click({ force: true });
   await page.waitForTimeout(400);
@@ -82,8 +82,8 @@ if (oplBox && oplBox.w > 0 && oplBox.h > 0) {
 }
 
 // === MICROCICLO 4: Refinamiento + arbol OPD ===
-// 4.1 Doble click en proceso "Hacer Cafe" → in-zoom
-const procDC = page.locator('text="Hacer Cafe"').first();
+// 4.1 Doble click en proceso "Main System Doing" -> in-zoom
+const procDC = page.locator('text="Main System Doing"').first();
 if (await procDC.isVisible()) {
   await procDC.dblclick({ delay: 60, force: true });
   await page.waitForTimeout(800);

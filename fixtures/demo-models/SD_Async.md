@@ -1,8 +1,8 @@
 # SD Async
 
-**Propósito:** Procesamiento asincrono con descomposicion en 3 sub-procesos independientes.
+**Propósito:** Replicar el sandbox SD and SD1 asynchronous process.
 
-**Descripción:** SD con in-zooming asincrono: Main System Doing se descompone en First/Second/Third Processing. Sub-procesos invocados secuencialmente pero sin dependencia de estado (asincrono).
+**Descripción:** SD raiz con in-zoom de Main System Doing a First/Second/Third Processing, equivalente funcional de fixtures/sd-async.
 
 **OPDs:** SD, SD1
 **Entidades:** 9
@@ -28,14 +28,14 @@ Main System Doing produce Main Output.
 
 SD1 del sistema SD Async.
 Main System Doing es un proceso fisico.
-System Name es un objeto informatico.
-System Handler es un objeto fisico.
-Main Input es un objeto informatico.
-System Tool Set es un objeto informatico.
-Main Output es un objeto informatico.
 First Processing es un proceso fisico.
 Second Processing es un proceso fisico.
 Third Processing es un proceso fisico.
+System Name es un objeto informatico.
+System Handler es un objeto fisico.
+System Tool Set es un objeto informatico.
+Main Input es un objeto informatico.
+Main Output es un objeto informatico.
 System Name exhibe Main System Doing.
 System Handler manipula First Processing.
 System Handler manipula Second Processing.

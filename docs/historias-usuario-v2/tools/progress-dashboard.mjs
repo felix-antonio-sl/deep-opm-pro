@@ -1609,14 +1609,14 @@ function autoAuditRules() {
       ids: ["HU-30.021", "HU-30.008"],
       estado: "cubierto",
       confianza: "alta-auto",
-      nota: "Auto ronda 12 L1 + BUG-20260507T170832Z-2dae09: ejemplo-organizacional cargable por URL como asset (app/examples/ejemplo-organizacional.json); catalogo unico via listarFixtures/cargarFixtureDemo en MenuPrincipal/DialogoCargarModelo/PantallaInicio, sin duplicar item especial. Preservacion exacta JSON local cubierta por test dedicado.",
+      nota: "Auto 2026-05-18: catalogo de ejemplos reseteado a fixtures OPCloud sandbox via listarFixtures/cargarFixtureDemo en DialogoCargarModelo/PantallaInicio; sin asset paralelo app/examples ni demos sinteticas. Preservacion JSON local cubierta por test dedicado.",
       requires: [
-        { path: "app/src/store/modelo/acciones-ui.ts", any: ["ejemplo-organizacional.json"] },
+        { path: "app/src/modelo/fixtures.ts", all: ["System Diagram", "SD Sync", "SD Async", "OnStar System", "OPM Structure Meta Model", "Modelo Vacio"] },
         { path: "app/src/ui/DialogoCargarModelo.tsx", all: ["listarFixtures", "cargarFixtureDemo", "Cargar modelo de ejemplo"] },
-        { path: "app/e2e/01-carga-y-workspace.spec.ts", all: ["Ejemplo organizacional", "toHaveCount(1)", "selectOption(\"Ejemplo organizacional\")"] },
+        { path: "app/e2e/01-carga-y-workspace.spec.ts", all: ["System Diagram", "toHaveCount(1)", "selectOption(\"System Diagram\")"] },
         { path: "app/src/persistencia/local.test.ts", all: ["guardarModeloLocal", "cargarModeloLocal"] },
       ],
-      evidenciaExtra: ["app/examples/ejemplo-organizacional.json", "app/e2e/_smoke-helpers.ts"],
+      evidenciaExtra: ["app/src/modelo/fixtures.test.ts", "app/e2e/11-beta1-catalogo-ancla.spec.ts"],
     },
     {
       ids: ["HU-17.011", "HU-17.012", "HU-17.013", "HU-17.014", "HU-17.015", "HU-17.016", "HU-17.017"],
