@@ -136,49 +136,15 @@ export function accionesEstados(set: SetStore, get: GetStore): Partial<ModeloSli
     },
 
     designarEstadoInicial(estadoId) {
-      const { modelo, seleccionId } = get();
-      const resultado = designarInicial(modelo, estadoId);
-      if (!resultado.ok) {
-        set({ mensaje: resultado.error });
-        return;
-      }
-      commitModelo(set, modelo, resultado.value, {
-        seleccionId,
-        enlaceSeleccionId: null,
-        modoEnlace: null,
-        mensaje: null,
-      });
+      designarEstadoEnStore(set, get, estadoId, "inicial");
     },
 
     designarEstadoFinal(estadoId) {
-      const { modelo, seleccionId } = get();
-      const resultado = designarFinal(modelo, estadoId);
-      if (!resultado.ok) {
-        set({ mensaje: resultado.error });
-        return;
-      }
-      commitModelo(set, modelo, resultado.value, {
-        seleccionId,
-        enlaceSeleccionId: null,
-        modoEnlace: null,
-        mensaje: null,
-      });
+      designarEstadoEnStore(set, get, estadoId, "final");
     },
 
     designarEstadoComo(estadoId, designacion) {
-      const { modelo, seleccionId } = get();
-      const acciones: Record<DesignacionEstado, (m: Modelo, id: Id) => ReturnType<typeof designarInicial>> = {
-        inicial: designarInicial,
-        final: designarFinal,
-        default: designarDefault,
-        current: designarCurrent,
-      };
-      const resultado = acciones[designacion](modelo, estadoId);
-      if (!resultado.ok) {
-        set({ mensaje: resultado.error });
-        return;
-      }
-      commitModelo(set, modelo, resultado.value, { seleccionId, enlaceSeleccionId: null, modoEnlace: null, mensaje: null });
+      designarEstadoEnStore(set, get, estadoId, designacion);
     },
 
     quitarDesignacionEstado(estadoId, designacion) {
@@ -240,4 +206,25 @@ export function accionesEstados(set: SetStore, get: GetStore): Partial<ModeloSli
       commitModelo(set, modelo, resultado.value, { seleccionId, enlaceSeleccionId: null, modoEnlace: null, modalDuracionAbierto: null, mensaje: null });
     },
   };
+}
+
+function designarEstadoEnStore(
+  set: SetStore,
+  get: GetStore,
+  estadoId: Id,
+  designacion: DesignacionEstado,
+): void {
+  const { modelo, seleccionId } = get();
+  const acciones: Record<DesignacionEstado, (m: Modelo, id: Id) => ReturnType<typeof designarInicial>> = {
+    inicial: designarInicial,
+    final: designarFinal,
+    default: designarDefault,
+    current: designarCurrent,
+  };
+  const resultado = acciones[designacion](modelo, estadoId);
+  if (!resultado.ok) {
+    set({ mensaje: resultado.error });
+    return;
+  }
+  commitModelo(set, modelo, resultado.value, { seleccionId, enlaceSeleccionId: null, modoEnlace: null, mensaje: null });
 }

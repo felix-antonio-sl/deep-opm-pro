@@ -775,6 +775,30 @@ describe("store undo/redo y dirty state", () => {
     expect(estadosObjeto(objetoId)).toHaveLength(2);
   });
 
+  test("aliases de designacion de estado preservan contrato de designarEstadoComo", () => {
+    store.getState().crearObjetoDemo();
+    const objetoId = primeraEntidadId();
+    store.getState().seleccionarEntidad(objetoId);
+    store.getState().agregarEstadosObjeto();
+    const estadoId = estadosObjeto(objetoId)[0]?.id;
+    if (!estadoId) throw new Error("La prueba esperaba estado");
+    store.getState().importarJson(exportarModelo(store.getState().modelo));
+    const baseJson = exportarModelo(store.getState().modelo);
+
+    store.getState().designarEstadoInicial(estadoId);
+    const inicialAlias = exportarModelo(store.getState().modelo);
+    store.getState().importarJson(baseJson);
+    store.getState().designarEstadoComo(estadoId, "inicial");
+    expect(exportarModelo(store.getState().modelo)).toBe(inicialAlias);
+
+    store.getState().importarJson(baseJson);
+    store.getState().designarEstadoFinal(estadoId);
+    const finalAlias = exportarModelo(store.getState().modelo);
+    store.getState().importarJson(baseJson);
+    store.getState().designarEstadoComo(estadoId, "final");
+    expect(exportarModelo(store.getState().modelo)).toBe(finalAlias);
+  });
+
   test("agregarEstadoSmart crea estados iniciales y luego agrega estado incremental", () => {
     store.getState().crearObjetoDemo();
     const objetoId = primeraEntidadId();
