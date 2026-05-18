@@ -3,8 +3,8 @@
 **Fecha**: 2026-05-18
 **Repositorio**: `deep-opm-pro`
 **Rama**: `main`
-**Último corte funcional**: `cf43571 refactor(diagnostico): expone calculo por puerto`
-**Corte**: Refactorizacion total, Corte 5 cerrado: OPL y diagnostico quedan tratados como capacidades con derivaciones puras, puertos explicitos y UI como consumidora.
+**Último corte funcional**: `45145da fix(ui): sincroniza mapa antes de pintar`
+**Corte**: Refactorizacion total, Corte 6 cerrado: `OpmStore` reduce su contrato efectivo mediante capacidades explicitas, selectores derivados y compatibilidad acotada.
 
 ## Política De Handoff Único
 
@@ -20,6 +20,52 @@
 - JointJS OSS: usar documentación oficial viva cuando se toque JointJS.
 
 ## Estado Actual
+
+### Refactorizacion Total — Corte 6 Store Por Capacidades Reales Cerrado — 2026-05-18
+
+La rama `main` queda sincronizada con `origin/main` tras `45145da`.
+
+Resultado arquitectonico:
+
+- `ModeloSlice` deja de declararse como union literal extensa en `sliceTypes.ts`; el contrato vive en `app/src/store/modelo/contrato.ts` como capacidades nombradas (`MODELO_SLICE_CAPABILITIES`) y claves derivadas (`MODELO_SLICE_KEYS`).
+- `AtajosSlice` queda tipado como capacidad propia en `app/src/store/atajos.ts`, sin depender de `Pick<OpmStore, ...>`.
+- Las derivaciones de mapa (`descriptorMapaFiltrado`, `estadisticasModelo`) salen del store y viven como selectores puros en `app/src/store/mapaSelectors.ts`.
+- `SystemMapDataPort` deja de tiparse contra miembros de `OpmStore`; expone tipos explicitos de descriptor, estadisticas y navegacion.
+- `designarEstadoInicial` y `designarEstadoFinal` se conservan como aliases compatibles, pero quedan deprecated y delegan a `designarEstadoComo`.
+- `MapaSistema` sincroniza paper y cells con `useLayoutEffect` para no declarar la vista visible antes de instalar las celdas JointJS.
+- No se elimino compatibilidad usada por UI, no se cambio formato JSON, no se cambiaron reglas OPM/OPL y no se agregaron funcionalidades.
+
+Commits atomicos del corte:
+
+- `33ec412 refactor(store): explicita contrato de modelo por capacidades`
+- `ec0f469 refactor(store): tipa atajos como capacidad propia`
+- `e15ba55 refactor(store): mueve derivaciones de mapa a selectores`
+- `737002f refactor(store): centraliza designacion de estados`
+- `45145da fix(ui): sincroniza mapa antes de pintar`
+
+Validacion de cierre:
+
+```bash
+cd app && bun run check
+# typecheck OK; 1407 pass / 0 fail
+cd app && bun run build
+# build OK
+cd app && bun run browser:smoke
+# 193 passed
+cd app && bun test src/store/modelo/contrato.test.ts src/store/modelo.test.ts
+# 5 pass / 0 fail
+cd app && bun test src/store/atajos.test.ts src/ui/CommandPalette.test.ts
+# 9 pass / 0 fail
+cd app && bun test src/store/mapaSelectors.test.ts src/store/mapa.test.ts src/render/jointjs/mapaSistema.test.ts
+# 30 pass / 0 fail
+```
+
+Notas de frontera:
+
+- `OpmStore` sigue siendo fachada de sesion; el corte redujo contratos efectivos y dependencias tipadas, no intento borrar Zustand.
+- `guardarComoLocal` y `guardarComoLocalConDescripcion` no se colapsaron porque la auditoria encontro comportamiento divergente; tratarlos requiere corte propio o pruebas de migracion.
+- La compatibilidad de aliases de estado queda marcada para Corte 7 solo si no hay consumidores activos.
+- El siguiente corte normativo recomendado es Corte 7: Limpieza De Compatibilidad Temporal. Debe empezar por wrappers/aliases sin consumidores, con verificacion previa de call sites.
 
 ### Refactorizacion Total — Corte 5 OPL Y Diagnostico Como Capacidades Cerrado — 2026-05-18
 
