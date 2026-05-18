@@ -20,6 +20,11 @@ type BugCaptureResponse = {
 };
 
 export function CapturadorBugs() {
+  if (!bugCaptureHabilitado()) return null;
+  return <CapturadorBugsInteractivo />;
+}
+
+function CapturadorBugsInteractivo() {
   const breakpoint = useBreakpoint();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [abierto, setAbierto] = useState(false);
@@ -69,6 +74,9 @@ export function CapturadorBugs() {
         }),
       });
       const body = await response.json().catch(() => null) as Partial<BugCaptureResponse> & { error?: string } | null;
+      if (!response.ok && body === null) {
+        throw new Error("Capturador de bugs no disponible en despliegue estatico. Copia la descripcion y reportala fuera de la app.");
+      }
       if (!response.ok || !body?.id || !body.path || !body.directory) {
         throw new Error(body?.error ?? "No se pudo guardar el reporte en el servidor local.");
       }
@@ -198,6 +206,10 @@ export function CapturadorBugs() {
       </Dialogo>
     </>
   );
+}
+
+function bugCaptureHabilitado(): boolean {
+  return import.meta.env.DEV || import.meta.env.VITE_ENABLE_BUG_CAPTURE === "true";
 }
 
 function leerScreenshot(file: File): Promise<ScreenshotAdjunto> {

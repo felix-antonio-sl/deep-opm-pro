@@ -9,6 +9,7 @@
     "typecheck": "tsc --noEmit",
     "test": "bun test src",
     "browser:smoke": "playwright test",
+    "browser:preview": "playwright test --config playwright.preview.config.ts e2e/25-produccion-preview.preview.spec.ts",
     "check": "bun run typecheck && bun run test",
     "lint": "eslint src/",
     "quality:gate": "bun run scripts/quality-ledger.mjs --markdown --check",

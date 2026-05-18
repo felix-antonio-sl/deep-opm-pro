@@ -107,3 +107,21 @@ test("capturador de bugs acepta screenshot pegado directamente", async ({ page }
   expect(screenshots).toHaveLength(1);
   expect(screenshots[0]?.name).toBe("pegado-desde-clipboard.png");
 });
+
+test("capturador de bugs degrada cuando el endpoint no existe", async ({ page }) => {
+  await page.route("**/__deep-opm/bug-reports", async (route) => {
+    await route.fulfill({
+      status: 501,
+      contentType: "text/html",
+      body: "Unsupported method",
+    });
+  });
+
+  await page.goto("/");
+  await page.getByLabel("Capturar bug").click();
+  const dialog = page.getByRole("dialog", { name: "Capturar bug" });
+  await dialog.getByLabel("Descripción del bug").fill("Smoke de hosting estatico sin middleware local.");
+  await dialog.getByRole("button", { name: "Guardar reporte" }).click();
+
+  await expect(dialog.getByRole("alert")).toContainText("no disponible en despliegue estatico");
+});
