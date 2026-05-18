@@ -63,27 +63,28 @@ Validación:
 ```bash
 cd app && bun run gate:refactor
 # typecheck OK; check OK; lint src/ OK; build OK
-# browser:smoke: 195 passed / 1 failed
+# browser:smoke: 196 passed / 0 failed
+# Bundle 454.29 kB / 122.46 kB gzip; leyes 6/6; compat 0; Gate ledger PASS
 ```
 
-El smoke fallido `e2e/11-beta1-busqueda.spec.ts:63` (asserción literal de la
-string `"SD1"` en una fila de búsqueda) **no es regresión del Corte 3.5**.
-Es regresión del commit `2ef41b6 chore(ejemplos): reset catalogo a sandbox
-opcloud`, que reescribió `app/src/modelo/fixtures.ts` cambiando la
-convención de nombrar OPDs como `SD1` por nombres canónicos del sandbox
-opcloud. El helper `modeloDosOpds()` ya no produce un OPD llamado `SD1`.
-El fix queda fuera de scope de este corte y debe abordarse en un patch
-de sincronización tests ↔ fixtures.
+Nota sobre flake corregido: un primer paso del gate detectó el smoke
+`e2e/11-beta1-busqueda.spec.ts:63` como rojo. La causa fue una race
+condition pre-existente: el test hacía `.fill()` sobre el input del
+diálogo antes de que el `setTimeout(focus, 50ms)` interno de
+`DialogoBuscarCosas` corriera; con el dialog ya visible pero el
+componente aún no procesando inputs, la query escrita quedaba sin efecto
+y `apariciones` se mantenía en el estado vacio "Escribe para buscar".
+El helper `modeloDosOpds()` mantiene `nombre: "SD1"` para `opd-2`; el
+catálogo no cambió. Fix sin tocar fixtures: agregar
+`await expect(input).toBeVisible()` y `await expect(input).toBeFocused()`
+antes del `.fill()`, alineando el test con el patrón ya documentado en
+`:106` y `:157` del mismo archivo.
 
 Siguiente corte recomendado:
 
-- Sync tests ↔ fixtures: actualizar la aserción de
-  `e2e/11-beta1-busqueda.spec.ts:80` para no depender del literal `"SD1"`,
-  o restituir nombres canónicos en `modeloDosOpds()` si la convención
-  semántica del helper se quiere preservar. Es un patch acotado de un
-  archivo y desbloquea el gate verde.
-- Tras eso, retomar el Corte 4 del plan single-user SVG (documentación
-  productiva privada) contra la UI ya saneada por Corte 3.5.
+- Corte 4 del plan single-user SVG: documentación productiva privada
+  (build, preview, backup JSON, export SVG, rollback, límites) contra
+  la UI ya saneada por Corte 3.5.
 
 ### Deploy Privado Opforja Cerrado — 2026-05-18
 

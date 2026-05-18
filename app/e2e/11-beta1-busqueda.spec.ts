@@ -74,7 +74,15 @@ test("ronda 16 L2: salto desde busqueda cambia OPD + selecciona + sincroniza OPL
 
   await page.getByRole("img", { name: "OPD activo" }).click({ position: { x: 5, y: 5 } });
   await page.keyboard.press("Control+f");
-  await page.getByTestId("dialogo-buscar-cosas-input").fill("Proceso Hijo");
+
+  // Espera el input focuseado antes de fill (ver nota en test :106): el
+  // DialogoBuscarCosas dispara setTimeout(focus, 50ms) que racea con fill
+  // rápido y deja la query sin procesar — dialog abierto, query escrita,
+  // pero `apariciones` en estado vacio "Escribe para buscar".
+  const inputBuscar = page.getByTestId("dialogo-buscar-cosas-input");
+  await expect(inputBuscar).toBeVisible();
+  await expect(inputBuscar).toBeFocused();
+  await inputBuscar.fill("Proceso Hijo");
 
   const fila = page.getByTestId("dialogo-buscar-cosas-fila").first();
   await expect(fila).toContainText("SD1");
