@@ -921,7 +921,7 @@ function autoAuditRules() {
         { path: "app/src/modelo/objetoMetadata.ts", all: ["editarAlias", "editarUnidad", "editarDescripcion", "agregarUrl", "eliminarUrl", "parsearNombreCompuesto"] },
         { path: "app/src/modelo/tipos/entidad.ts", all: ["alias?:", "unidad?:", "descripcion?:", "urls?:", "UrlObjetoTipada"] },
         { path: "app/src/serializacion/validarEntidades.ts", any: ["validarEntidades", "alias", "urls"] },
-        { path: "app/src/render/jointjs/composers/entidad.ts", any: ["aliasVisibles", "__deepOpmUiAliasVisibles", "descripcionesVisibles"] },
+        { path: "app/src/render/jointjs/composers/entidad.ts", any: ["aliasVisibles", "descripcionesVisibles", "formatearNombreCompuesto"] },
         { path: "app/src/opl/generadores/refsHints.ts", any: ["entidad.alias", "tiene unidad", "se describe como"] },
         { path: "app/src/ui/inspector/SeccionAlias.tsx", any: ["editarAliasEntidad", "Alias"] },
         { path: "app/src/ui/inspector/SeccionUrls.tsx", any: ["URLs"] },

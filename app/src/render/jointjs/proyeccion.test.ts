@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, test } from "bun:test";
+import { describe, expect, test } from "bun:test";
 import { formarAbanico } from "../../modelo/abanicos";
 import { crearAutoInvocacion } from "../../modelo/autoinvocacion";
 import { renombrarEtiquetaEnlace } from "../../modelo/etiquetasEnlace";
@@ -11,11 +11,7 @@ import { cambiarModoPlegado, crearEnlaceConExtremoPlegado, extraerParteDePlegado
 import { definirRutaEtiqueta } from "../../modelo/rutas";
 import type { Apariencia, Modelo, Resultado, TipoEnlace } from "../../modelo/tipos";
 import { LINK_ASSETS } from "./linkAssets";
-import { fijarOpcionesProyeccionGlobal, OPCIONES_PROYECCION_DEFAULT, proyectarModeloAJointCells } from "./proyeccion";
-
-afterEach(() => {
-  fijarOpcionesProyeccionGlobal(OPCIONES_PROYECCION_DEFAULT);
-});
+import { proyectarModeloAJointCells } from "./proyeccion";
 
 describe("proyeccion JointJS", () => {
   test("opciones explicitas no leen ni heredan estado global", () => {
@@ -52,15 +48,19 @@ describe("proyeccion JointJS", () => {
     }
   });
 
-  test("default legacy conserva opciones globales de proyeccion", () => {
+  test("default canonico no lee ni hereda estado global", () => {
     const modelo = modeloConAliasYDescripcion();
     const entidadId = entidadPorNombre(modelo, "Solicitud");
-    fijarOpcionesProyeccionGlobal({ aliasVisibles: false, descripcionesVisibles: false, modoImagenGlobal: null });
+    const descriptores = capturarDescriptoresOpcionesGlobales();
+    instalarOpcionesGlobalesQueFallen();
+    try {
+      const cell = cellDeEntidad(proyectarModeloAJointCells(modelo, modelo.opdRaizId, null, null), entidadId);
 
-    const cell = cellDeEntidad(proyectarModeloAJointCells(modelo, modelo.opdRaizId, null, null), entidadId);
-
-    expect(textoEtiqueta(cell)).toBe("Solicitud");
-    expect((cell.markup as Array<Attrs> | undefined)?.some((item) => item.selector === "descBadge") ?? false).toBe(false);
+      expect(textoEtiqueta(cell)).toBe("Solicitud {sol}");
+      expect((cell.markup as Array<Attrs> | undefined)?.some((item) => item.selector === "descBadge")).toBe(true);
+    } finally {
+      restaurarDescriptoresOpcionesGlobales(descriptores);
+    }
   });
 
   test("proyecta apariencias como ids de celdas y mantiene metadata OPM", () => {

@@ -18,11 +18,11 @@ import {
   refResaltaEntidad,
 } from "./composers/halos";
 import { proyectarImagenesEntidad } from "./composers/imagenOverlay";
-import { normalizarOpcionesProyeccion, opcionesProyeccionDesdeEntornoLegacy } from "./proyeccionOpciones";
+import { normalizarOpcionesProyeccion, OPCIONES_PROYECCION_DEFAULT } from "./proyeccionOpciones";
 import type { JointCellJson, OpcionesProyeccion } from "./proyeccionTipos";
 
 export type { JointCellJson, OpcionesProyeccion, OpmJointMetadata, RolApariencia } from "./proyeccionTipos";
-export { fijarOpcionesProyeccionGlobal, normalizarOpcionesProyeccion, OPCIONES_PROYECCION_DEFAULT } from "./proyeccionOpciones";
+export { normalizarOpcionesProyeccion, OPCIONES_PROYECCION_DEFAULT } from "./proyeccionOpciones";
 export { proyectarProxyExtraccion } from "./composers/enlace";
 
 const TIPOS_REFINAMIENTO_ESTRUCTURAL: readonly TipoEnlace[] = [
@@ -48,7 +48,7 @@ export function proyectarModeloAJointCells(
   seleccionEnlaceId: Id | null,
   hoverOplRef: OplReferencia | null = null,
   seleccionados: readonly Id[] = [],
-  opciones: OpcionesProyeccion = opcionesProyeccionDesdeEntornoLegacy(),
+  opciones: OpcionesProyeccion = OPCIONES_PROYECCION_DEFAULT,
   simulacion: OpcionesSimulacionRender | null = null,
 ): JointCellJson[] {
   const modeloRender = sincronizarPuertosEnlaces(modelo, opdId);

@@ -451,19 +451,16 @@ KernelOp: Modelo -> Resultado<Modelo>
 
 ### F5. La proyeccion JointJS no es completamente pura por opciones globales
 
-Severidad: P2.
+Severidad: P2. Resuelto en Corte 7.
 
 Tipo de lectura: formal.
 
 Evidencia:
 
-- `proyectarModeloAJointCells` toma `opciones` con default
-  `opcionesProyeccionGlobal()` (`app/src/render/jointjs/proyeccion.ts:35`).
-- `opcionesProyeccionGlobal` lee `globalThis.__deepOpmUiAliasVisibles`,
-  `__deepOpmUiDescripcionesVisibles` y `__deepOpmUiModoImagenGlobal`
-  (`app/src/render/jointjs/proyeccion.ts:133`).
-- `fijarOpcionesProyeccionGlobal` escribe esos campos globales
-  (`app/src/render/jointjs/proyeccion.ts:146`).
+- Corte 7 retiro `opcionesProyeccionDesdeEntornoLegacy` y
+  `fijarOpcionesProyeccionGlobal`.
+- `proyectarModeloAJointCells` ahora usa defaults canonicos locales y
+  `JointCanvas` pasa opciones explicitas desde el estado UI.
 
 Problema categorial:
 
