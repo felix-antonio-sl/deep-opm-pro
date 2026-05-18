@@ -1,11 +1,11 @@
 import { describe, expect, test } from "bun:test";
-import type { AvisoMetodologico, CodigoChecker } from "../modelo/tipos";
+import type { AvisoMetodologico, CodigoChecker } from "./tipos";
 import {
   agruparPorSeveridad,
   clasificarSeveridad,
   resumenSeveridades,
   resumenSeveridadesTexto,
-} from "./panelMetodologiaIssues";
+} from "./diagnosticoSeveridad";
 
 const CODIGOS: CodigoChecker[] = [
   "SD_SIN_PROCESO_PRINCIPAL",
@@ -30,7 +30,7 @@ function aviso(codigo: CodigoChecker): AvisoMetodologico {
   };
 }
 
-describe("panelMetodologiaIssues · clasificarSeveridad", () => {
+describe("diagnosticoSeveridad · clasificarSeveridad", () => {
   for (const codigo of CODIGOS) {
     test(`${codigo} se clasifica como mejora metodologica`, () => {
       expect(clasificarSeveridad(aviso(codigo))).toBe("mejora");
@@ -38,7 +38,7 @@ describe("panelMetodologiaIssues · clasificarSeveridad", () => {
   }
 });
 
-describe("panelMetodologiaIssues · resumenSeveridades", () => {
+describe("diagnosticoSeveridad · resumenSeveridades", () => {
   test("cuenta lista vacia", () => {
     expect(resumenSeveridades([])).toEqual({ bloqueos: 0, mejoras: 0, estilo: 0 });
   });
