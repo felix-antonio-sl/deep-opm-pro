@@ -22,8 +22,6 @@
 import { useEstadoVacioOpmViewModel } from "../app/viewmodels/estadoVacioOpmViewModel";
 import { colors, radii, shadows, spacing, typography } from "./tokens";
 
-export { sugerirEnlaceResultado } from "../app/viewmodels/estadoVacioOpmViewModel";
-
 export function EstadoVacioOpm() {
   const vm = useEstadoVacioOpmViewModel();
 

@@ -14,7 +14,7 @@ import type { Entidad } from "../modelo/tipos";
 import { crearModelo } from "../modelo/operaciones";
 import { exportarModelo } from "../serializacion/json";
 import { store } from "../store";
-import { sugerirEnlaceResultado } from "./EstadoVacioOpm";
+import { sugerirEnlaceResultado } from "../app/viewmodels/estadoVacioOpmViewModel";
 
 describe("EstadoVacioOpm · sugerirEnlaceResultado", () => {
   test("retorna null cuando no hay 2 entidades", () => {
