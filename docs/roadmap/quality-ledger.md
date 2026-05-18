@@ -57,7 +57,7 @@ Notas:
 | Refinamiento single-slot | Aceptado por una iteracion para evitar migracion amplia | Decidir/migrar `inzoom? x unfold?` antes de fixtures/import cercanos a OPCloud. |
 | APIs legacy `descomponerProceso` / `desplegarObjeto` | Aceptado con leyes de Thing refinement | Renombrar o envolver con API canonica cuando baje blast radius. |
 | Nombre real `law-opl-apply-undo-atomicity` | Aceptado como evidencia de `law-store-undo-atomicity` | Renombrar test o agregar alias canonico cuando L1/L2 puedan tocar tests. |
-| `Compat detector` existente en `app/src/store.ts` | 1 comentario legacy aceptado como deuda heredada | Nuevos detectores deben tener deuda declarada o ley asociada. |
+| `Compat detector` existente en `app/src/store.ts` | Retirado en Corte 7; las reglas HU leen archivos reales | Nuevos detectores deben tener deuda declarada o ley asociada. |
 
 ## Lector reproducible
 

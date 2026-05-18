@@ -57,8 +57,6 @@ inicializarSnapshot(modeloInicial);
   });
 }
 
-// Compat detector L1: const UNDO_LIMIT = 100; snapshotGuardado; deshacer(); rehacer(); seleccionarEntidad(id); crearObjetoDemo; seleccionados; modoSeleccion; portapapelesVisual; modoEnlace; tablaEnlacesAbierta; vistaMapaActiva; dialogoBuscarGlobalAbierto.
-
 export function useOpmStore<T>(selector: (state: OpmStore) => T): T {
   const [selected, setSelected] = useState(() => selector(store.getState()));
   useEffect(() => store.subscribe((state) => {

@@ -728,13 +728,13 @@
   ],
   "knownGaps": [],
   "autoAudit": {
-    "generatedAt": "2026-05-18T14:32:53.791Z",
+    "generatedAt": "2026-05-18T14:35:10.033Z",
     "mode": "sync-real",
     "rulesEvaluated": 102,
     "rulesMatched": 81,
     "rulesUnmatched": 21,
     "sourceFiles": {
-      "count": 684,
+      "count": 683,
       "roots": [
         "app/src",
         "app/e2e",
