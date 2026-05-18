@@ -3,9 +3,9 @@
 **Fecha**: 2026-05-18
 **Repositorio**: `deep-opm-pro`
 **Rama**: `main`
-**Último corte funcional**: `acdeb32 feat(produccion): agrega backup json descargable`
+**Último corte funcional**: `c5b0727 refactor(toolbar): oculta + atributo deshabilitado y rotula buscar`
 **Último corte deploy**: `597859c chore(deploy): configura auth dedicado opforja`
-**Corte**: Produccion single-user SVG, Corte 4 cerrado: deploy privado opforja operable.
+**Corte**: Corte 3.5 sustracción de chrome cerrado sobre deploy opforja operable.
 
 ## Política De Handoff Único
 
@@ -23,6 +23,67 @@
 - JointJS OSS: usar documentación oficial viva cuando se toque JointJS.
 
 ## Estado Actual
+
+### Corte 3.5 Sustracción De Chrome Cerrado — 2026-05-18
+
+Se completó la sustracción de chrome detectada por la auditoría UX 360° del
+2026-05-18 (analisis inline contra los 15 principios `jobs-web-ux` y lectura
+categorial `cat-thinking`). Las 6 críticas quedan implementadas en commits
+atómicos sobre `main` local, sin push:
+
+- `347cb08 refactor(ui): elimina bloque centrado de estado vacio en canvas`.
+  El bloque "Iniciar SD" con sus 3 botones primarios + asistente sale del
+  canvas. `EstadoVacioOpm` retiene un `HintInicioVacio` discreto abajo
+  (microcopy literal: `Pulsa Objeto o Proceso arriba para empezar.`) y el
+  Nudge "Conectar como resultado" cuando la firma proceso→objeto aplica.
+- `ea26143 refactor(bienvenida): auto-abre ultimo reciente si existe`.
+  `PantallaInicio` solo se muestra cuando no hay recientes; con ≥1 reciente
+  y query vacío, autoabre el último directo, sin overlay.
+- `a256740 refactor(bienvenida): mueve glosa OPM a drawer plegable`. La
+  glosa OPM (Cosa/OPD/Apariencia/Enlace) sale del overlay por defecto y
+  queda accesible vía botón `?` en el header del panel inicio. Recupera
+  ~80 px verticales por default.
+- `b3048ec refactor(persistencia): unifica chip y elimina sufijos dirty
+  redundantes`. `ChipPersistencia` colapsa a 3 estados literales:
+  `Sin guardar · Ctrl+S`, `Guardando…`, `Guardado · HH:mm`. Elimina la
+  duplicación previa de estado dirty en el label de tab y en
+  `+ Nuevo · sin guardar`.
+- `cf3fafb refactor(inspector): rediseña branch vacio con identidad del
+  modelo`. `InspectorVacio` muestra nombre del modelo (editable inline al
+  click), línea de conteos `N objetos · M procesos · K OPDs · editado
+  HH:mm`, y única acción `Renombrar modelo`. Eliminado el bloque
+  "ATAJOS PARA EMPEZAR" y el botón gigante "JSON del modelo".
+- `c5b0727 refactor(toolbar): oculta + atributo deshabilitado y rotula
+  buscar`. "+ Atributo" solo se renderiza si la selección es un objeto
+  que admite atributo. El botón de búsqueda de comandos pasa de "⌕"
+  solo a "⌕ Buscar" con label legible.
+
+Validación:
+
+```bash
+cd app && bun run gate:refactor
+# typecheck OK; check OK; lint src/ OK; build OK
+# browser:smoke: 195 passed / 1 failed
+```
+
+El smoke fallido `e2e/11-beta1-busqueda.spec.ts:63` (asserción literal de la
+string `"SD1"` en una fila de búsqueda) **no es regresión del Corte 3.5**.
+Es regresión del commit `2ef41b6 chore(ejemplos): reset catalogo a sandbox
+opcloud`, que reescribió `app/src/modelo/fixtures.ts` cambiando la
+convención de nombrar OPDs como `SD1` por nombres canónicos del sandbox
+opcloud. El helper `modeloDosOpds()` ya no produce un OPD llamado `SD1`.
+El fix queda fuera de scope de este corte y debe abordarse en un patch
+de sincronización tests ↔ fixtures.
+
+Siguiente corte recomendado:
+
+- Sync tests ↔ fixtures: actualizar la aserción de
+  `e2e/11-beta1-busqueda.spec.ts:80` para no depender del literal `"SD1"`,
+  o restituir nombres canónicos en `modeloDosOpds()` si la convención
+  semántica del helper se quiere preservar. Es un patch acotado de un
+  archivo y desbloquea el gate verde.
+- Tras eso, retomar el Corte 4 del plan single-user SVG (documentación
+  productiva privada) contra la UI ya saneada por Corte 3.5.
 
 ### Deploy Privado Opforja Cerrado — 2026-05-18
 
