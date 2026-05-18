@@ -1,12 +1,10 @@
 import type { dia } from "jointjs";
+import type { ComponentChildren } from "preact";
 import { useEffect, useRef, useState } from "preact/hooks";
 import type { FeedbackOverlay, FeedbackPort } from "../../app/ports/feedbackPort";
 import { useJointCanvasViewModel } from "../../app/viewmodels/jointCanvasViewModel";
 import { focoPasoActualSimulacion } from "../../modelo/simulacion/foco";
-import type { Apariencia, Enlace, ExtremoEnlace, Modelo, Opd } from "../../modelo/tipos";
-import { MenuTipoEnlace } from "../../ui/MenuTipoEnlace";
-import { scrollBehaviorPreferido } from "../../ui/motion";
-import { RenombradoInline } from "../../ui/RenombradoInline";
+import type { Apariencia, Enlace, ExtremoEnlace, Id, Modelo, Opd, TipoEnlace } from "../../modelo/tipos";
 import { recalcularOverlaysAbanicoDesdeLinkViews } from "./abanicoDragSync";
 import { proyectarModeloAJointCells } from "./proyeccion";
 import { cablearDrag, embedirContorno } from "./handlers/drag";
@@ -51,9 +49,38 @@ interface JointCanvasProps {
   onAdapterChange?: (adapter: JointCanvasAdapter | null) => void;
   feedbackPort: Pick<FeedbackPort, "setHoverTooltip" | "clearHoverTooltip" | "sincronizarBadgesDesdeAvisos">;
   feedbackOverlays: readonly FeedbackOverlay[];
+  renderMenuTipoEnlace: (props: CanvasMenuTipoEnlaceSlotProps) => ComponentChildren;
+  renderRenombradoInline: (props: CanvasRenombradoInlineSlotProps) => ComponentChildren;
 }
 
-export function JointCanvas({ onAdapterChange, feedbackPort, feedbackOverlays }: JointCanvasProps) {
+export interface CanvasRenombradoInlineSlotProps {
+  nombre: string;
+  rect: { x: number; y: number; width: number; height: number };
+  onConfirmar: (nombre: string) => void;
+  onCancelar: () => void;
+}
+
+export interface CanvasMenuTipoEnlaceSlotProps {
+  modelo: Modelo;
+  origenId: Id;
+  destinoId: Id;
+  direccion: DireccionTipoEnlaceCanvas;
+  onDireccion: (direccion: DireccionTipoEnlaceCanvas) => void;
+  onElegir: (tipo: TipoEnlace, origenId: Id, destinoId: Id) => void;
+  anchor: { left: number; top: number };
+  titulo: string;
+  autoFocusFirstOption: boolean;
+}
+
+export type DireccionTipoEnlaceCanvas = "saliente" | "entrante";
+
+export function JointCanvas({
+  onAdapterChange,
+  feedbackPort,
+  feedbackOverlays,
+  renderMenuTipoEnlace,
+  renderRenombradoInline,
+}: JointCanvasProps) {
   const paperHostRef = useRef<HTMLDivElement>(null);
   const viewportRef = useRef<HTMLDivElement>(null);
   const adapterRef = useRef<JointCanvasAdapter | null>(null);
@@ -157,7 +184,7 @@ export function JointCanvas({ onAdapterChange, feedbackPort, feedbackOverlays }:
   const [renombradoInline, setRenombradoInline] = useState<null | { aparienciaId: string; entidadId: string }>(null);
   const abrirRenombradoInlineRef = useRef((input: { aparienciaId: string; entidadId: string }) => setRenombradoInline(input));
   const [menuTipoEnlaceCanvas, setMenuTipoEnlaceCanvas] = useState<null | (MenuTipoEnlaceCanvasInput & { left: number; top: number })>(null);
-  const [direccionTipoEnlaceCanvas, setDireccionTipoEnlaceCanvas] = useState<"saliente" | "entrante">("saliente");
+  const [direccionTipoEnlaceCanvas, setDireccionTipoEnlaceCanvas] = useState<DireccionTipoEnlaceCanvas>("saliente");
   const menuTipoEnlaceCanvasRef = useRef<HTMLDivElement | null>(null);
   const abrirMenuTipoEnlaceCanvasRef = useRef((input: MenuTipoEnlaceCanvasInput) => {
     setDireccionTipoEnlaceCanvas("saliente");
@@ -511,34 +538,34 @@ export function JointCanvas({ onAdapterChange, feedbackPort, feedbackOverlays }:
       <div ref={paperHostRef} style={style.paperHost}>
         <OverlayLayer paper={adapterState?.paper ?? null} overlays={feedbackOverlays} />
         {renombrado?.entidad && renombrado.apariencia ? (
-          <RenombradoInline
-            nombre={renombrado.entidad.nombre}
-            rect={renombrado.apariencia}
-            onConfirmar={(nombre) => {
+          renderRenombradoInline({
+            nombre: renombrado.entidad.nombre,
+            rect: renombrado.apariencia,
+            onConfirmar: (nombre) => {
               const entidad = renombrado.entidad;
               if (!entidad) return;
               renombrarEntidadDesdeOplRef.current(entidad.id, nombre);
               setRenombradoInline(null);
-            }}
-            onCancelar={() => setRenombradoInline(null)}
-          />
+            },
+            onCancelar: () => setRenombradoInline(null),
+          })
         ) : null}
         {menuTipoEnlaceCanvas ? (
           <div ref={menuTipoEnlaceCanvasRef}>
-            <MenuTipoEnlace
-              modelo={modelo}
-              origenId={menuTipoEnlaceCanvas.origenId}
-              destinoId={menuTipoEnlaceCanvas.destinoId}
-              direccion={direccionTipoEnlaceCanvas}
-              onDireccion={setDireccionTipoEnlaceCanvas}
-              onElegir={(tipo, origenId, destinoId) => {
+            {renderMenuTipoEnlace({
+              modelo,
+              origenId: menuTipoEnlaceCanvas.origenId,
+              destinoId: menuTipoEnlaceCanvas.destinoId,
+              direccion: direccionTipoEnlaceCanvas,
+              onDireccion: setDireccionTipoEnlaceCanvas,
+              onElegir: (tipo, origenId, destinoId) => {
                 crearEnlaceEntreEntidadesRef.current(origenId, destinoId, tipo);
                 setMenuTipoEnlaceCanvas(null);
-              }}
-              anchor={{ left: menuTipoEnlaceCanvas.left, top: menuTipoEnlaceCanvas.top }}
-              titulo={tituloMenuConexion(modelo, menuTipoEnlaceCanvas.origenId, menuTipoEnlaceCanvas.destinoId)}
-              autoFocusFirstOption={menuTipoEnlaceCanvas.autoFocusFirstOption === true}
-            />
+              },
+              anchor: { left: menuTipoEnlaceCanvas.left, top: menuTipoEnlaceCanvas.top },
+              titulo: tituloMenuConexion(modelo, menuTipoEnlaceCanvas.origenId, menuTipoEnlaceCanvas.destinoId),
+              autoFocusFirstOption: menuTipoEnlaceCanvas.autoFocusFirstOption === true,
+            })}
           </div>
         ) : null}
       </div>
@@ -619,8 +646,17 @@ function centrarSiFueraDeViewport(
   viewport.scrollTo({
     left: Math.max(0, centroX - viewport.clientWidth / 2),
     top: Math.max(0, centroY - viewport.clientHeight / 2),
-    behavior: scrollBehaviorPreferido(),
+    behavior: scrollBehaviorPreferidoCanvas(),
   });
+}
+
+function scrollBehaviorPreferidoCanvas(): ScrollBehavior {
+  if (typeof globalThis.matchMedia !== "function") return "smooth";
+  try {
+    return globalThis.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth";
+  } catch {
+    return "smooth";
+  }
 }
 
 const style = {

@@ -16,6 +16,19 @@ describe("frontera render/UI JointJS", () => {
 
     expect(offenders).toEqual([]);
   });
+
+  test("JointCanvas no importa chrome UI concreto", () => {
+    const offenders = sourceFiles(RENDER_JOINTJS_ROOT)
+      .filter((file) => {
+        const text = readFileSync(file, "utf8");
+        return text.includes("../../ui/MenuTipoEnlace")
+          || text.includes("../../ui/RenombradoInline")
+          || text.includes("../../ui/motion");
+      })
+      .map((file) => relative(RENDER_JOINTJS_ROOT, file).replaceAll("\\", "/"));
+
+    expect(offenders).toEqual([]);
+  });
 });
 
 function sourceFiles(dir: string): string[] {
