@@ -1,6 +1,6 @@
 {
   "schema": "deep-opm-pro.hu-progress-evidence.v1",
-  "updated": "2026-05-16",
+  "updated": "2026-05-18",
   "source": "Auditoria automatica local contra app/src, app/e2e, app/scripts y assets/svg/links.",
   "statusDefinitions": {
     "cubierto": "La HU tiene implementacion usable y evidencia local directa en codigo, tests o smoke.",
@@ -728,13 +728,13 @@
   ],
   "knownGaps": [],
   "autoAudit": {
-    "generatedAt": "2026-05-16T20:25:38.868Z",
+    "generatedAt": "2026-05-18T14:29:19.217Z",
     "mode": "sync-real",
     "rulesEvaluated": 102,
     "rulesMatched": 79,
     "rulesUnmatched": 23,
     "sourceFiles": {
-      "count": 529,
+      "count": 685,
       "roots": [
         "app/src",
         "app/e2e",
@@ -822,7 +822,7 @@
       "evidencia": [
         "app/src/modelo/operaciones/entidad.ts",
         "app/src/ui/InspectorEntidad.tsx",
-        "app/src/render/jointjs/proyeccion.ts",
+        "app/src/render/jointjs/composers/entidad.ts",
         "app/src/modelo/constantes.ts"
       ]
     },
@@ -902,7 +902,7 @@
       "evidencia": [
         "app/src/modelo/operaciones/enlaces.ts",
         "app/src/ui/InspectorEnlace.tsx",
-        "app/src/render/jointjs/proyeccion.ts",
+        "app/src/render/jointjs/composers/enlace.ts",
         "app/src/opl/generar.ts",
         "app/src/modelo/operaciones.test.ts",
         "app/src/render/jointjs/proyeccion.test.ts"
@@ -1049,7 +1049,7 @@
       "evidencia": [
         "app/src/modelo/operaciones/refinamiento/descomposicion.ts",
         "app/src/modelo/operaciones/refinamiento/proyeccion.ts",
-        "app/src/render/jointjs/proyeccion.ts",
+        "app/src/render/jointjs/composers/entidad.ts",
         "app/src/opl/generar.ts",
         "app/src/modelo/operaciones.test.ts"
       ]
@@ -1069,7 +1069,7 @@
       "evidencia": [
         "app/src/modelo/operaciones/estados.ts",
         "app/src/ui/InspectorEntidad.tsx",
-        "app/src/render/jointjs/proyeccion.ts"
+        "app/src/render/jointjs/composers/entidad.ts"
       ],
       "brechas": [
         "app/src/ui/InspectorEntidad.tsx: falta onAgregarEstado"
@@ -1206,7 +1206,7 @@
       "nota": "Auto: plegado parcial se proyecta, serializa y prueba con conteo resumido de partes.",
       "evidencia": [
         "app/src/modelo/plegado.ts",
-        "app/src/render/jointjs/proyeccion.ts",
+        "app/src/render/jointjs/composers/entidad.ts",
         "app/src/serializacion/json.ts",
         "app/src/modelo/plegado.test.ts"
       ]
@@ -1383,7 +1383,7 @@
       "evidencia": [
         "app/src/modelo/modificadores.ts",
         "app/src/serializacion/json.ts",
-        "app/src/render/jointjs/proyeccion.ts",
+        "app/src/render/jointjs/composers/enlace.ts",
         "app/e2e/_smoke-helpers.ts",
         "app/e2e/02-canvas-y-render.spec.ts",
         "app/src/store.test.ts",

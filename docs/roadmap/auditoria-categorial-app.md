@@ -554,8 +554,8 @@ Tipo de lectura: heuristica fuerte.
 
 Evidencia:
 
-- `proyeccion.ts` conserva un bloque de "compatibilidad temporal del detector HU"
-  con strings de evidencia (`app/src/render/jointjs/proyeccion.ts:24`).
+- El detector de proyeccion fue migrado a evidencias reales en composers durante
+  Corte 7; ya no requiere strings sinteticos en `proyeccion.ts`.
 - `serializacion/json.ts` conserva `CLAVES_DETECTOR_SERIALIZACION_JSON`
   (`app/src/serializacion/json.ts:13`).
 - La auditoria HU v2 previa instala invariantes sobre specs y migracion, pero no

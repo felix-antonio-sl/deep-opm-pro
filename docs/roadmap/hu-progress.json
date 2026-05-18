@@ -1,17 +1,17 @@
 {
   "schema": "deep-opm-pro.hu-progress-report.v1",
-  "generatedAt": "2026-05-16T20:25:38.868Z",
+  "generatedAt": "2026-05-18T14:29:19.217Z",
   "repoRoot": "/home/felix/projects/deep-opm-pro",
   "backlogRoot": "docs/historias-usuario-v2",
   "evidenceLedger": "docs/roadmap/hu-progress-evidence.json",
   "autoAudit": {
-    "generatedAt": "2026-05-16T20:25:38.868Z",
+    "generatedAt": "2026-05-18T14:29:19.217Z",
     "mode": "sync-real",
     "rulesEvaluated": 102,
     "rulesMatched": 79,
     "rulesUnmatched": 23,
     "sourceFiles": {
-      "count": 529,
+      "count": 685,
       "roots": [
         "app/src",
         "app/e2e",
@@ -16914,8 +16914,8 @@
           "hrefDashboard": "../../app/src/ui/InspectorEntidad.tsx"
         },
         {
-          "path": "app/src/render/jointjs/proyeccion.ts",
-          "hrefDashboard": "../../app/src/render/jointjs/proyeccion.ts"
+          "path": "app/src/render/jointjs/composers/entidad.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/composers/entidad.ts"
         },
         {
           "path": "app/src/modelo/constantes.ts",
@@ -17252,8 +17252,8 @@
           "hrefDashboard": "../../app/src/ui/InspectorEntidad.tsx"
         },
         {
-          "path": "app/src/render/jointjs/proyeccion.ts",
-          "hrefDashboard": "../../app/src/render/jointjs/proyeccion.ts"
+          "path": "app/src/render/jointjs/composers/entidad.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/composers/entidad.ts"
         },
         {
           "path": "app/src/modelo/constantes.ts",
@@ -17316,8 +17316,8 @@
           "hrefDashboard": "../../app/src/ui/InspectorEntidad.tsx"
         },
         {
-          "path": "app/src/render/jointjs/proyeccion.ts",
-          "hrefDashboard": "../../app/src/render/jointjs/proyeccion.ts"
+          "path": "app/src/render/jointjs/composers/entidad.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/composers/entidad.ts"
         },
         {
           "path": "app/src/modelo/constantes.ts",
@@ -17374,8 +17374,8 @@
           "hrefDashboard": "../../app/src/ui/InspectorEntidad.tsx"
         },
         {
-          "path": "app/src/render/jointjs/proyeccion.ts",
-          "hrefDashboard": "../../app/src/render/jointjs/proyeccion.ts"
+          "path": "app/src/render/jointjs/composers/entidad.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/composers/entidad.ts"
         },
         {
           "path": "app/src/modelo/constantes.ts",
@@ -17429,8 +17429,8 @@
           "hrefDashboard": "../../app/src/ui/InspectorEntidad.tsx"
         },
         {
-          "path": "app/src/render/jointjs/proyeccion.ts",
-          "hrefDashboard": "../../app/src/render/jointjs/proyeccion.ts"
+          "path": "app/src/render/jointjs/composers/entidad.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/composers/entidad.ts"
         },
         {
           "path": "app/src/modelo/constantes.ts",
@@ -18528,8 +18528,8 @@
           "hrefDashboard": "../../app/src/ui/InspectorEnlace.tsx"
         },
         {
-          "path": "app/src/render/jointjs/proyeccion.ts",
-          "hrefDashboard": "../../app/src/render/jointjs/proyeccion.ts"
+          "path": "app/src/render/jointjs/composers/enlace.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/composers/enlace.ts"
         },
         {
           "path": "app/src/opl/generar.ts",
@@ -19347,8 +19347,8 @@
           "hrefDashboard": "../../app/src/modelo/operaciones/refinamiento/proyeccion.ts"
         },
         {
-          "path": "app/src/render/jointjs/proyeccion.ts",
-          "hrefDashboard": "../../app/src/render/jointjs/proyeccion.ts"
+          "path": "app/src/render/jointjs/composers/entidad.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/composers/entidad.ts"
         },
         {
           "path": "app/src/opl/generar.ts",
@@ -19605,8 +19605,8 @@
           "hrefDashboard": "../../app/src/modelo/operaciones/refinamiento/proyeccion.ts"
         },
         {
-          "path": "app/src/render/jointjs/proyeccion.ts",
-          "hrefDashboard": "../../app/src/render/jointjs/proyeccion.ts"
+          "path": "app/src/render/jointjs/composers/entidad.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/composers/entidad.ts"
         },
         {
           "path": "app/src/opl/generar.ts",
@@ -19666,8 +19666,8 @@
           "hrefDashboard": "../../app/src/modelo/operaciones/refinamiento/proyeccion.ts"
         },
         {
-          "path": "app/src/render/jointjs/proyeccion.ts",
-          "hrefDashboard": "../../app/src/render/jointjs/proyeccion.ts"
+          "path": "app/src/render/jointjs/composers/entidad.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/composers/entidad.ts"
         },
         {
           "path": "app/src/opl/generar.ts",
@@ -19724,8 +19724,8 @@
           "hrefDashboard": "../../app/src/modelo/operaciones/refinamiento/proyeccion.ts"
         },
         {
-          "path": "app/src/render/jointjs/proyeccion.ts",
-          "hrefDashboard": "../../app/src/render/jointjs/proyeccion.ts"
+          "path": "app/src/render/jointjs/composers/entidad.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/composers/entidad.ts"
         },
         {
           "path": "app/src/opl/generar.ts",
@@ -19783,8 +19783,8 @@
           "hrefDashboard": "../../app/src/modelo/operaciones/refinamiento/proyeccion.ts"
         },
         {
-          "path": "app/src/render/jointjs/proyeccion.ts",
-          "hrefDashboard": "../../app/src/render/jointjs/proyeccion.ts"
+          "path": "app/src/render/jointjs/composers/entidad.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/composers/entidad.ts"
         },
         {
           "path": "app/src/opl/generar.ts",
@@ -19909,8 +19909,8 @@
           "hrefDashboard": "../../app/src/modelo/operaciones/refinamiento/proyeccion.ts"
         },
         {
-          "path": "app/src/render/jointjs/proyeccion.ts",
-          "hrefDashboard": "../../app/src/render/jointjs/proyeccion.ts"
+          "path": "app/src/render/jointjs/composers/entidad.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/composers/entidad.ts"
         },
         {
           "path": "app/src/opl/generar.ts",
@@ -20320,8 +20320,8 @@
           "hrefDashboard": "../../app/src/modelo/operaciones/refinamiento/proyeccion.ts"
         },
         {
-          "path": "app/src/render/jointjs/proyeccion.ts",
-          "hrefDashboard": "../../app/src/render/jointjs/proyeccion.ts"
+          "path": "app/src/render/jointjs/composers/entidad.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/composers/entidad.ts"
         },
         {
           "path": "app/src/opl/generar.ts",
@@ -20380,8 +20380,8 @@
           "hrefDashboard": "../../app/src/modelo/operaciones/refinamiento/proyeccion.ts"
         },
         {
-          "path": "app/src/render/jointjs/proyeccion.ts",
-          "hrefDashboard": "../../app/src/render/jointjs/proyeccion.ts"
+          "path": "app/src/render/jointjs/composers/entidad.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/composers/entidad.ts"
         },
         {
           "path": "app/src/opl/generar.ts",
@@ -20710,8 +20710,8 @@
           "hrefDashboard": "../../app/src/modelo/operaciones/refinamiento/proyeccion.ts"
         },
         {
-          "path": "app/src/render/jointjs/proyeccion.ts",
-          "hrefDashboard": "../../app/src/render/jointjs/proyeccion.ts"
+          "path": "app/src/render/jointjs/composers/entidad.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/composers/entidad.ts"
         },
         {
           "path": "app/src/opl/generar.ts",
@@ -20771,8 +20771,8 @@
           "hrefDashboard": "../../app/src/modelo/operaciones/refinamiento/proyeccion.ts"
         },
         {
-          "path": "app/src/render/jointjs/proyeccion.ts",
-          "hrefDashboard": "../../app/src/render/jointjs/proyeccion.ts"
+          "path": "app/src/render/jointjs/composers/entidad.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/composers/entidad.ts"
         },
         {
           "path": "app/src/opl/generar.ts",
@@ -21155,8 +21155,8 @@
           "hrefDashboard": "../../app/src/ui/InspectorEntidad.tsx"
         },
         {
-          "path": "app/src/render/jointjs/proyeccion.ts",
-          "hrefDashboard": "../../app/src/render/jointjs/proyeccion.ts"
+          "path": "app/src/render/jointjs/composers/entidad.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/composers/entidad.ts"
         }
       ],
       "peso": 4,
@@ -21207,8 +21207,8 @@
           "hrefDashboard": "../../app/src/ui/InspectorEntidad.tsx"
         },
         {
-          "path": "app/src/render/jointjs/proyeccion.ts",
-          "hrefDashboard": "../../app/src/render/jointjs/proyeccion.ts"
+          "path": "app/src/render/jointjs/composers/entidad.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/composers/entidad.ts"
         }
       ],
       "peso": 2,
@@ -21336,8 +21336,8 @@
           "hrefDashboard": "../../app/src/ui/InspectorEntidad.tsx"
         },
         {
-          "path": "app/src/render/jointjs/proyeccion.ts",
-          "hrefDashboard": "../../app/src/render/jointjs/proyeccion.ts"
+          "path": "app/src/render/jointjs/composers/entidad.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/composers/entidad.ts"
         }
       ],
       "peso": 2,
@@ -21429,8 +21429,8 @@
           "hrefDashboard": "../../app/src/ui/InspectorEntidad.tsx"
         },
         {
-          "path": "app/src/render/jointjs/proyeccion.ts",
-          "hrefDashboard": "../../app/src/render/jointjs/proyeccion.ts"
+          "path": "app/src/render/jointjs/composers/entidad.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/composers/entidad.ts"
         }
       ],
       "peso": 2,
@@ -22256,8 +22256,8 @@
           "hrefDashboard": "../../app/src/ui/InspectorEntidad.tsx"
         },
         {
-          "path": "app/src/render/jointjs/proyeccion.ts",
-          "hrefDashboard": "../../app/src/render/jointjs/proyeccion.ts"
+          "path": "app/src/render/jointjs/composers/entidad.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/composers/entidad.ts"
         }
       ],
       "peso": 4,
@@ -23090,8 +23090,8 @@
           "hrefDashboard": "../../app/src/ui/InspectorEnlace.tsx"
         },
         {
-          "path": "app/src/render/jointjs/proyeccion.ts",
-          "hrefDashboard": "../../app/src/render/jointjs/proyeccion.ts"
+          "path": "app/src/render/jointjs/composers/enlace.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/composers/enlace.ts"
         },
         {
           "path": "app/src/opl/generar.ts",
@@ -23152,8 +23152,8 @@
           "hrefDashboard": "../../app/src/ui/InspectorEnlace.tsx"
         },
         {
-          "path": "app/src/render/jointjs/proyeccion.ts",
-          "hrefDashboard": "../../app/src/render/jointjs/proyeccion.ts"
+          "path": "app/src/render/jointjs/composers/enlace.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/composers/enlace.ts"
         },
         {
           "path": "app/src/opl/generar.ts",
@@ -23216,8 +23216,8 @@
           "hrefDashboard": "../../app/src/ui/InspectorEnlace.tsx"
         },
         {
-          "path": "app/src/render/jointjs/proyeccion.ts",
-          "hrefDashboard": "../../app/src/render/jointjs/proyeccion.ts"
+          "path": "app/src/render/jointjs/composers/enlace.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/composers/enlace.ts"
         },
         {
           "path": "app/src/opl/generar.ts",
@@ -24205,8 +24205,8 @@
           "hrefDashboard": "../../app/src/serializacion/json.ts"
         },
         {
-          "path": "app/src/render/jointjs/proyeccion.ts",
-          "hrefDashboard": "../../app/src/render/jointjs/proyeccion.ts"
+          "path": "app/src/render/jointjs/composers/enlace.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/composers/enlace.ts"
         },
         {
           "path": "app/e2e/_smoke-helpers.ts",
@@ -27744,8 +27744,8 @@
           "hrefDashboard": "../../app/src/modelo/plegado.ts"
         },
         {
-          "path": "app/src/render/jointjs/proyeccion.ts",
-          "hrefDashboard": "../../app/src/render/jointjs/proyeccion.ts"
+          "path": "app/src/render/jointjs/composers/entidad.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/composers/entidad.ts"
         },
         {
           "path": "app/src/serializacion/json.ts",
@@ -27795,8 +27795,8 @@
           "hrefDashboard": "../../app/src/modelo/plegado.ts"
         },
         {
-          "path": "app/src/render/jointjs/proyeccion.ts",
-          "hrefDashboard": "../../app/src/render/jointjs/proyeccion.ts"
+          "path": "app/src/render/jointjs/composers/entidad.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/composers/entidad.ts"
         },
         {
           "path": "app/src/serializacion/json.ts",
@@ -28102,8 +28102,8 @@
           "hrefDashboard": "../../app/src/modelo/plegado.ts"
         },
         {
-          "path": "app/src/render/jointjs/proyeccion.ts",
-          "hrefDashboard": "../../app/src/render/jointjs/proyeccion.ts"
+          "path": "app/src/render/jointjs/composers/entidad.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/composers/entidad.ts"
         },
         {
           "path": "app/src/serializacion/json.ts",
@@ -28409,8 +28409,8 @@
           "hrefDashboard": "../../app/src/modelo/plegado.ts"
         },
         {
-          "path": "app/src/render/jointjs/proyeccion.ts",
-          "hrefDashboard": "../../app/src/render/jointjs/proyeccion.ts"
+          "path": "app/src/render/jointjs/composers/entidad.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/composers/entidad.ts"
         },
         {
           "path": "app/src/serializacion/json.ts",
@@ -28557,8 +28557,8 @@
           "hrefDashboard": "../../app/src/modelo/plegado.ts"
         },
         {
-          "path": "app/src/render/jointjs/proyeccion.ts",
-          "hrefDashboard": "../../app/src/render/jointjs/proyeccion.ts"
+          "path": "app/src/render/jointjs/composers/entidad.ts",
+          "hrefDashboard": "../../app/src/render/jointjs/composers/entidad.ts"
         },
         {
           "path": "app/src/serializacion/json.ts",

@@ -34,17 +34,6 @@ const TIPOS_REFINAMIENTO_ESTRUCTURAL: readonly TipoEnlace[] = [
 
 const UMBRAL_JUMPOVER_DENSO = 35;
 
-/*
- * Compatibilidad temporal del detector HU v2 hasta L6b. Evidencia real vive
- * en composers/* y esta cubierta por tests: strokeDasharray drop-shadow;
- * multiplicidadOrigen multiplicidadDestino; contornoRefinamiento
- * modoPlegadoApariencia; estadosVisibles markupConEstados attrsConEstados;
- * puntoCapsulaEstado extremo.kind === "estado"; filasPlegadoConNesting;
- * proxy-plegado partCounter textDecoration; proyectarOverlayAbanicoCanonico
- * abanico.operador; textoModificador etiquetaBadgeModificador ¬;
- * Math.round(enlace.probabilidad * 100) etiquetaTextoModificador.
- */
-
 export interface OpcionesSimulacionRender {
   procesoActivoId: Id | null;
   estadosCurrent: Record<Id, Id>;

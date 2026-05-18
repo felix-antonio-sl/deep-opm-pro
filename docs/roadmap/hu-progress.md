@@ -1,9 +1,9 @@
 # Auditoria de avance HU v2
 
-**Generado:** 2026-05-16T20:25:38.868Z
+**Generado:** 2026-05-18T14:29:19.217Z
 **Backlog:** `docs/historias-usuario-v2`
 **Ledger de evidencia:** `docs/roadmap/hu-progress-evidence.json`
-**Auditoria automatica:** 79/102 reglas matcheadas sobre 529 archivos fuente.
+**Auditoria automatica:** 79/102 reglas matcheadas sobre 685 archivos fuente.
 
 
 Regenerar desde la raiz del repo:

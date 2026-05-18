@@ -434,7 +434,7 @@ function autoAuditRules() {
       requires: [
         { path: "app/src/modelo/operaciones/entidad.ts", all: ["export function cambiarEsencia", "export function cambiarAfiliacion"] },
         { path: "app/src/ui/InspectorEntidad.tsx", all: ["fijarEsencia", "fijarAfiliacion"] },
-        { path: "app/src/render/jointjs/proyeccion.ts", all: ["strokeDasharray", "drop-shadow"] },
+        { path: "app/src/render/jointjs/composers/entidad.ts", all: ["strokeDasharray", "dropShadow"] },
         { path: "app/src/modelo/constantes.ts", all: ["#70E483", "#3BC3FF"] },
       ],
     },
@@ -487,7 +487,7 @@ function autoAuditRules() {
       requires: [
         { path: "app/src/modelo/operaciones/enlaces.ts", all: ["validarMultiplicidad", "ajustarMultiplicidad"] },
         { path: "app/src/ui/InspectorEnlace.tsx", all: ["multiplicidadOrigen", "multiplicidadDestino", "validarMultiplicidad"] },
-        { path: "app/src/render/jointjs/proyeccion.ts", all: ["multiplicidadOrigen", "multiplicidadDestino"] },
+        { path: "app/src/render/jointjs/composers/enlace.ts", all: ["multiplicidadOrigen", "multiplicidadDestino"] },
         { path: "app/src/opl/generar.ts", all: ["multiplicidadPlural", "nombreOplConMultiplicidad"] },
       ],
       evidenciaExtra: ["app/src/modelo/operaciones.test.ts", "app/src/render/jointjs/proyeccion.test.ts"],
@@ -577,7 +577,7 @@ function autoAuditRules() {
       requires: [
         { path: "app/src/modelo/operaciones/refinamiento/descomposicion.ts", all: ["descomponerProceso", "subcosasInicialesInzoom"] },
         { path: "app/src/modelo/operaciones/refinamiento/proyeccion.ts", all: ["refrescarEnlacesExternosDerivados"] },
-        { path: "app/src/render/jointjs/proyeccion.ts", all: ["contornoRefinamiento", "modoPlegadoApariencia"] },
+        { path: "app/src/render/jointjs/composers/entidad.ts", all: ["contornoRefinamiento", "modoPlegadoApariencia"] },
         { path: "app/src/opl/generar.ts", all: ["oracionRefinamiento", "se descompone"] },
         { path: "app/src/modelo/operaciones.test.ts", all: ["descompone proceso en OPD hijo", "subprocesos"] },
       ],
@@ -590,7 +590,7 @@ function autoAuditRules() {
       requires: [
         { path: "app/src/modelo/operaciones/estados.ts", all: ["crearEstadosIniciales", "agregarEstado", "renombrarEstado"] },
         { path: "app/src/ui/InspectorEntidad.tsx", all: ["Estados", "onAgregarEstado", "onRenombrar"] },
-        { path: "app/src/render/jointjs/proyeccion.ts", all: ["estadosVisibles", "markupConEstados", "attrsConEstados"] },
+        { path: "app/src/render/jointjs/composers/entidad.ts", all: ["estadosVisibles", "markupConEstados", "attrsConEstados"] },
       ],
     },
     {
@@ -675,7 +675,7 @@ function autoAuditRules() {
       nota: "Auto: plegado parcial se proyecta, serializa y prueba con conteo resumido de partes.",
       requires: [
         { path: "app/src/modelo/plegado.ts", all: ["partesDePlegado", "UMBRAL_PARTES_MAS", "filasPlegadoParcial"] },
-        { path: "app/src/render/jointjs/proyeccion.ts", all: ["filasPlegadoConNesting", "modoPlegadoApariencia"] },
+        { path: "app/src/render/jointjs/composers/entidad.ts", all: ["filasPlegadoConNesting", "modoPlegadoApariencia"] },
         { path: "app/src/serializacion/json.ts", all: ["modoPlegado"] },
         { path: "app/src/modelo/plegado.test.ts", all: ["filasPlegadoParcial", "contarPartesOcultas"] },
       ],
@@ -793,7 +793,7 @@ function autoAuditRules() {
       requires: [
         { path: "app/src/modelo/modificadores.ts", all: ["definirProbabilidad", "probabilidadValida", "modificador !== \"evento\""] },
         { path: "app/src/serializacion/json.ts", all: ["probabilidad", "validarMetadatosEnlace"] },
-        { path: "app/src/render/jointjs/proyeccion.ts", all: ["Math.round(enlace.probabilidad * 100)", "etiquetaTextoModificador"] },
+        { path: "app/src/render/jointjs/composers/enlace.ts", all: ["Math.round(enlace.probabilidad * 100)", "etiquetaTextoModificador"] },
         { path: "app/e2e/_smoke-helpers.ts", all: ["probabilidad: 0.7"] },
         { path: "app/e2e/02-canvas-y-render.spec.ts", all: ["70%"] },
       ],
