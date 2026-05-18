@@ -1,13 +1,15 @@
 /**
- * Unit tests EstadoVacioOpm — L1 ronda 21.
+ * Unit tests EstadoVacioOpm — Corte 3.5 sustracción de chrome.
  *
  * Cubre:
  *  1. `sugerirEnlaceResultado` aplica reglas de visibilidad del nudge.
- *  2. La accion canonica `crearEntidadEnCanvas` (que el componente invoca)
- *     produce apariencia 135x60 y deja el modelo dirty desde un OPD vacio.
+ *  2. La accion canonica `crearEntidadEnCanvas` (que la toolbar invoca tras
+ *     este corte) produce apariencia 135x60 y deja el modelo dirty desde un
+ *     OPD vacio.
  *
- * No se levanta DOM: bun test corre puro sin testing-library. El render se
- * verifica via E2E (`app/e2e/21-estado-vacio-opm.spec.ts`).
+ * El bloque centrado "Iniciar SD" con sus 3 botones primarios + asistente
+ * fue eliminado en el corte 3.5 — el render activo se valida via E2E
+ * (`app/e2e/21-estado-vacio-opm.spec.ts`).
  */
 import { beforeEach, describe, expect, test } from "bun:test";
 import type { Entidad } from "../modelo/tipos";

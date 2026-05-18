@@ -1,9 +1,7 @@
 import { useMemo } from "preact/hooks";
-import { posicionLibre } from "../../modelo/layout";
 import { validarFirmaEnlace } from "../../modelo/operaciones";
-import type { Apariencia, Entidad, Id, Modelo, TipoEntidad } from "../../modelo/tipos";
+import type { Apariencia, Entidad } from "../../modelo/tipos";
 import { useZustandEditabilityPort } from "../ports/zustandEditabilityPort";
-import { useZustandModelBootstrapPort } from "../ports/zustandModelBootstrapPort";
 import { useZustandModelCommandPort } from "../ports/zustandModelCommandPort";
 import { useZustandOpdNavigationPort } from "../ports/zustandOpdNavigationPort";
 
@@ -15,8 +13,7 @@ export interface SugerenciaEnlaceResultado {
 export function useEstadoVacioOpmViewModel() {
   const { modelo, opdActivoId } = useZustandOpdNavigationPort();
   const { readOnly } = useZustandEditabilityPort();
-  const { crearEntidadEnCanvas, crearEnlaceEntreEntidades } = useZustandModelCommandPort();
-  const { iniciarAsistente } = useZustandModelBootstrapPort();
+  const { crearEnlaceEntreEntidades } = useZustandModelCommandPort();
 
   const apariencias = useMemo(
     () => Object.values(modelo.opds[opdActivoId]?.apariencias ?? {}) as Apariencia[],
@@ -34,10 +31,6 @@ export function useEstadoVacioOpmViewModel() {
   );
   const sugerenciaResultado = sugerirEnlaceResultado(entidadesVisibles, enlacesEnOpd.length);
 
-  const crearEntidadCentrada = (tipo: TipoEntidad) => {
-    handleCrearCentrado(crearEntidadEnCanvas, modelo, opdActivoId, tipo);
-  };
-
   const conectarResultado = () => {
     if (!sugerenciaResultado) return;
     crearEnlaceEntreEntidades(
@@ -51,10 +44,6 @@ export function useEstadoVacioOpmViewModel() {
     readOnly,
     estaVacio: apariencias.length === 0,
     sugerenciaResultado,
-    crearProceso: () => crearEntidadCentrada("proceso"),
-    crearObjeto: () => crearEntidadCentrada("objeto"),
-    crearAgenteInstrumento: () => crearEntidadCentrada("objeto"),
-    iniciarAsistente,
     conectarResultado,
   };
 }
@@ -81,20 +70,6 @@ export function sugerirEnlaceResultado(
   const firma = validarFirmaEnlace("resultado", proceso, objeto);
   if (!firma.ok) return null;
   return { proceso, objeto };
-}
-
-function handleCrearCentrado(
-  crearEntidadEnCanvas: (tipo: TipoEntidad, posicion: { x: number; y: number }) => void,
-  modelo: Modelo,
-  opdActivoId: Id,
-  tipo: TipoEntidad,
-): void {
-  // Reutilizamos `posicionLibre` (la misma que usan crearObjetoDemo/
-  // crearProcesoDemo) para conservar el layout canonico. La accion
-  // `crearEntidadEnCanvas` activa `nuevaCosaPendiente`, que monta el
-  // modal de nombre (sub-ViewContainer existente). NO inventamos flujo.
-  const posicion = posicionLibre(modelo, opdActivoId, tipo);
-  crearEntidadEnCanvas(tipo, posicion);
 }
 
 export type EstadoVacioOpmViewModel = ReturnType<typeof useEstadoVacioOpmViewModel>;
