@@ -11,6 +11,8 @@
     "browser:smoke": "playwright test",
     "check": "bun run typecheck && bun run test",
     "lint": "eslint src/ui/",
+    "quality:gate": "bun run scripts/quality-ledger.mjs --markdown --check",
+    "gate:refactor": "bun run check && bun run lint && bun run build && bun run browser:smoke && cd .. && node docs/historias-usuario-v2/tools/progress-dashboard.mjs --sync-real && cd app && bun run quality:gate",
     "security:scan": "bun pm scan",
     "visual:audit": "node scripts/in-vivo-test.mjs",
     "visual:deep": "node scripts/in-vivo-deep-checks.mjs",

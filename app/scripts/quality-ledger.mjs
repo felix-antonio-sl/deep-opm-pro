@@ -8,10 +8,21 @@ const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const appRoot = path.resolve(scriptDir, "..");
 const repoRoot = path.resolve(appRoot, "..");
 const markdown = process.argv.includes("--markdown");
+const check = process.argv.includes("--check");
 const canonicalLaws = ["law-json-roundtrip", "law-render-stable-metadata", "law-refinement-thing-matrix", "law-refinement-removal", "law-opl-safe-lens", "law-store-undo-atomicity"];
 const aliases = { "law-store-undo-atomicity": ["law-opl-apply-undo-atomicity"] };
 const rel = (file, root = repoRoot) => path.relative(root, file).replaceAll(path.sep, "/");
 const kb = (n) => Math.round((n / 1000) * 100) / 100;
+const thresholds = {
+  mainBundleMaxGzipKb: 129.62,
+  activeCanonicalLawsMin: canonicalLaws.length,
+  compatDetectorsMax: 0,
+  alphaCoveredMin: 104,
+  alphaPartialMin: 1,
+  alphaProgressMin: 86.2,
+  autoRulesEvaluatedMin: 105,
+  autoRulesMatchedMin: 89,
+};
 
 function walk(dir, predicate = () => true) {
   if (!existsSync(dir)) return [];
@@ -80,11 +91,53 @@ if (existsSync(huProgressPath)) {
 const report = {
   schema: "deep-opm-pro.quality-ledger.metrics.v1",
   generatedAt: new Date().toISOString(),
+  thresholds,
   bundle: { distPresent: existsSync(distAssets), mainJs, jsAssets },
   laws: { canonicalTotal: canonicalLaws.length, activeCanonical: canonicalStatus.filter((item) => item.active).length, missingCanonical: canonicalStatus.filter((item) => !item.active).map((item) => item.id), canonicalStatus, rawLawIds: [...lawEvidence.keys()].sort() },
   compatDetectors: { total: compatEntries.length, entries: compatEntries },
   dashboard,
 };
+
+function gateFailures(metrics) {
+  const failures = [];
+  if (!metrics.bundle.distPresent) {
+    failures.push("dist no existe; ejecuta bun run build antes del gate");
+  } else if (!metrics.bundle.mainJs) {
+    failures.push("dist no contiene bundle principal index-*.js");
+  } else if (metrics.bundle.mainJs.gzipKb > thresholds.mainBundleMaxGzipKb) {
+    failures.push(`bundle principal ${metrics.bundle.mainJs.gzipKb} kB gzip supera ${thresholds.mainBundleMaxGzipKb} kB`);
+  }
+
+  if (metrics.laws.activeCanonical < thresholds.activeCanonicalLawsMin) {
+    failures.push(`leyes canonicas ${metrics.laws.activeCanonical}/${thresholds.activeCanonicalLawsMin}; faltan ${metrics.laws.missingCanonical.join(", ") || "sin detalle"}`);
+  }
+
+  if (metrics.compatDetectors.total > thresholds.compatDetectorsMax) {
+    failures.push(`compat detectors ${metrics.compatDetectors.total}; maximo permitido ${thresholds.compatDetectorsMax}`);
+  }
+
+  if (!metrics.dashboard?.alpha) {
+    failures.push("dashboard HU sin resumen MVP-alpha");
+  } else {
+    const alpha = metrics.dashboard.alpha;
+    if (alpha.covered < thresholds.alphaCoveredMin) failures.push(`MVP-alpha cubiertas ${alpha.covered}; minimo ${thresholds.alphaCoveredMin}`);
+    if (alpha.partial < thresholds.alphaPartialMin) failures.push(`MVP-alpha parciales ${alpha.partial}; minimo ${thresholds.alphaPartialMin}`);
+    if (alpha.progress < thresholds.alphaProgressMin) failures.push(`MVP-alpha avance ${alpha.progress}%; minimo ${thresholds.alphaProgressMin}%`);
+  }
+
+  if (!metrics.dashboard?.autoAudit) {
+    failures.push("dashboard HU sin auditor automatico");
+  } else {
+    const auto = metrics.dashboard.autoAudit;
+    if (auto.rulesEvaluated < thresholds.autoRulesEvaluatedMin) failures.push(`reglas auto evaluadas ${auto.rulesEvaluated}; minimo ${thresholds.autoRulesEvaluatedMin}`);
+    if (auto.rulesMatched < thresholds.autoRulesMatchedMin) failures.push(`reglas auto matched ${auto.rulesMatched}; minimo ${thresholds.autoRulesMatchedMin}`);
+  }
+
+  return failures;
+}
+
+const failures = check ? gateFailures(report) : [];
+report.gate = { checked: check, passed: !check || failures.length === 0, failures };
 
 if (markdown) {
   console.log("# Quality ledger metrics");
@@ -93,6 +146,12 @@ if (markdown) {
   console.log(`- Compat detectors: ${report.compatDetectors.total}`);
   if (dashboard?.alpha) console.log(`- MVP-alpha: ${dashboard.alpha.covered}/${dashboard.alpha.total} (${dashboard.alpha.progress}%)`);
   if (dashboard?.autoAudit) console.log(`- Auto rules: ${dashboard.autoAudit.rulesMatched}/${dashboard.autoAudit.rulesEvaluated} matched`);
+  if (check) {
+    console.log(`- Gate: ${report.gate.passed ? "PASS" : "FAIL"}`);
+    for (const failure of failures) console.log(`  - ${failure}`);
+  }
 } else {
   console.log(JSON.stringify(report, null, 2));
 }
+
+if (failures.length > 0) process.exitCode = 1;

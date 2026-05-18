@@ -65,12 +65,15 @@ Notas:
 
 ## Lector reproducible
 
-`app/scripts/quality-ledger.mjs` imprime metricas sin escribir archivos:
+`app/scripts/quality-ledger.mjs` imprime metricas sin escribir archivos y puede
+actuar como gate con `--check`:
 
 ```bash
 cd app
 bun run scripts/quality-ledger.mjs
 bun run scripts/quality-ledger.mjs --markdown
+bun run scripts/quality-ledger.mjs --markdown --check
+bun run quality:gate
 ```
 
 Lee:
@@ -84,9 +87,8 @@ Lee:
 
 Antes de promover Beta1, actualizar este ledger con:
 
-1. `bun run check`.
-2. `bun run lint`.
-3. `bun run build` y medicion del main bundle.
-4. `bun run browser:smoke`.
-5. `node docs/historias-usuario-v2/tools/progress-dashboard.mjs --sync-real`.
-6. Salida de `bun run scripts/quality-ledger.mjs`.
+1. `bun run gate:refactor`.
+2. Salida de `bun run scripts/quality-ledger.mjs --markdown --check`.
+
+`gate:refactor` ejecuta check, lint, build, smoke browser, dashboard HU con
+`--sync-real` y el gate del ledger contra los umbrales vigentes.
