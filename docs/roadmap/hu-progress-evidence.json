@@ -728,10 +728,10 @@
   ],
   "knownGaps": [],
   "autoAudit": {
-    "generatedAt": "2026-05-18T14:42:12.701Z",
+    "generatedAt": "2026-05-18T14:51:00.528Z",
     "mode": "sync-real",
-    "rulesEvaluated": 102,
-    "rulesMatched": 81,
+    "rulesEvaluated": 105,
+    "rulesMatched": 84,
     "rulesUnmatched": 21,
     "sourceFiles": {
       "count": 683,
@@ -2289,11 +2289,20 @@
     },
     {
       "ids": [
-        "HU-50.003",
-        "HU-50.004",
-        "HU-50.005",
-        "HU-50.006",
-        "HU-50.028"
+        "HU-50.003"
+      ],
+      "estado": "cubierto",
+      "confianza": "alta-auto",
+      "fuente": "auto",
+      "nota": "Auto Corte 8: toggle 123 del panel OPL detectado sin acoplarlo a la HU pendiente de posicion lateral.",
+      "evidencia": [
+        "app/src/ui/panelOpl/Toolbar.tsx",
+        "app/src/modelo/tipos/ui.ts"
+      ]
+    },
+    {
+      "ids": [
+        "HU-50.004"
       ],
       "estado": "pendiente",
       "confianza": "alta-auto",
@@ -2304,7 +2313,37 @@
         "app/src/modelo/tipos/ui.ts"
       ],
       "brechas": [
-        "app/src/ui/panelOpl/Toolbar.tsx: falta panel-opl-posicion"
+        "app/src/ui/panelOpl/Toolbar.tsx: falta panel-opl-posicion",
+        "app/src/modelo/tipos/ui.ts: falta oplPosicion"
+      ]
+    },
+    {
+      "ids": [
+        "HU-50.005",
+        "HU-50.006"
+      ],
+      "estado": "cubierto",
+      "confianza": "alta-auto",
+      "fuente": "auto",
+      "nota": "Auto Corte 8: minimizar/restaurar OPL se evidencia en ToolbarOpl, PanelOpl y preferencia UI, separado de la posicion lateral pendiente.",
+      "evidencia": [
+        "app/src/ui/panelOpl/Toolbar.tsx",
+        "app/src/ui/PanelOpl.tsx",
+        "app/src/modelo/tipos/ui.ts",
+        "app/e2e/03-opl-panel.spec.ts"
+      ]
+    },
+    {
+      "ids": [
+        "HU-50.028"
+      ],
+      "estado": "parcial",
+      "confianza": "media-auto",
+      "fuente": "auto",
+      "nota": "Auto Corte 8: existe boton AI Text placeholder con feedback, pero no productiza generacion AI de oraciones compuestas.",
+      "evidencia": [
+        "app/src/ui/panelOpl/Toolbar.tsx",
+        "app/e2e/03-opl-panel.spec.ts"
       ]
     },
     {

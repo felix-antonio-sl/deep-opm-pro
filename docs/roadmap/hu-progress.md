@@ -1,9 +1,9 @@
 # Auditoria de avance HU v2
 
-**Generado:** 2026-05-18T14:42:12.701Z
+**Generado:** 2026-05-18T14:51:00.528Z
 **Backlog:** `docs/historias-usuario-v2`
 **Ledger de evidencia:** `docs/roadmap/hu-progress-evidence.json`
-**Auditoria automatica:** 81/102 reglas matcheadas sobre 683 archivos fuente.
+**Auditoria automatica:** 84/105 reglas matcheadas sobre 683 archivos fuente.
 
 
 Regenerar desde la raiz del repo:
@@ -20,16 +20,16 @@ node docs/historias-usuario-v2/tools/progress-dashboard.mjs
 
 | Segmento | HU vivas | Cubiertas | Parciales | Pendientes | Diferidas | Avance ponderado |
 |---|---:|---:|---:|---:|---:|---:|
-| Total backlog | 1126 | 248 | 10 | 490 | 378 | 22.3% |
+| Total backlog | 1126 | 251 | 11 | 486 | 378 | 22.5% |
 | M0 | 130 | 89 | 3 | 38 | 0 | 73.9% |
-| MVP-alpha | 121 | 99 | 0 | 22 | 0 | 83.4% |
+| MVP-alpha | 121 | 102 | 1 | 18 | 0 | 85.3% |
 | MVP-beta | 193 | 70 | 4 | 119 | 0 | 38.7% |
 
 ## Por corte
 
 | Corte | HU vivas | Cubiertas | Parciales | Pendientes | Diferidas | Avance ponderado |
 |---|---:|---:|---:|---:|---:|---:|
-| MVP-alpha | 121 | 99 | 0 | 22 | 0 | 83.4% |
+| MVP-alpha | 121 | 102 | 1 | 18 | 0 | 85.3% |
 | MVP-beta | 193 | 70 | 4 | 119 | 0 | 38.7% |
 | MVP-gamma | 434 | 79 | 6 | 349 | 0 | 16.7% |
 | MVP-delta | 378 | 0 | 0 | 0 | 378 | 0.0% |
@@ -40,10 +40,10 @@ node docs/historias-usuario-v2/tools/progress-dashboard.mjs
 | Prioridad | HU vivas | Cubiertas | Parciales | Pendientes | Diferidas | Avance ponderado |
 |---|---:|---:|---:|---:|---:|---:|
 | M0 | 130 | 89 | 3 | 38 | 0 | 73.9% |
-| M1 | 161 | 84 | 2 | 69 | 6 | 52.6% |
+| M1 | 161 | 87 | 2 | 66 | 6 | 53.6% |
 | S | 471 | 66 | 2 | 241 | 162 | 15.6% |
 | C | 247 | 9 | 3 | 134 | 101 | 3.9% |
-| W | 117 | 0 | 0 | 8 | 109 | 0.0% |
+| W | 117 | 0 | 1 | 7 | 109 | 0.5% |
 | sin-prioridad | 0 | 0 | 0 | 0 | 0 | 0.0% |
 
 ## Por epica
@@ -71,7 +71,7 @@ node docs/historias-usuario-v2/tools/progress-dashboard.mjs
 | 40 | Colaboración — permisos de modelo, token de edición y auto-lectura desde carpeta | 25 | 0 | 0 | 0 | 25 | 0.0% |
 | 41 | Colaboración — chat del modelo | 17 | 0 | 0 | 0 | 17 | 0.0% |
 | 42 | Colaboración — notas adhesivas (anclaje, toggle, integración) | 22 | 0 | 0 | 22 | 0 | 0.0% |
-| 50 | Panel OPL-ES — lente bimodal, edición inversa y sincronización con el canvas | 21 | 16 | 0 | 5 | 0 | 81.8% |
+| 50 | Panel OPL-ES — lente bimodal, edición inversa y sincronización con el canvas | 21 | 19 | 1 | 1 | 0 | 92.7% |
 | 60 | Exportar a PDF — pipeline papel, opciones, selección de OPDs, integración Compartir | 35 | 0 | 0 | 35 | 0 | 0.0% |
 | 61 | Exportar SVG — exportar diagramas OPD como imágenes vectoriales | 26 | 0 | 0 | 26 | 0 | 0.0% |
 | 70 | Interoperabilidad — importación de modelos OPCAT 4.2 (.opx) | 25 | 0 | 0 | 25 | 0 | 0.0% |

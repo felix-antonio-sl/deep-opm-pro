@@ -1,14 +1,14 @@
 {
   "schema": "deep-opm-pro.hu-progress-report.v1",
-  "generatedAt": "2026-05-18T14:42:12.701Z",
+  "generatedAt": "2026-05-18T14:51:00.528Z",
   "repoRoot": "/home/felix/projects/deep-opm-pro",
   "backlogRoot": "docs/historias-usuario-v2",
   "evidenceLedger": "docs/roadmap/hu-progress-evidence.json",
   "autoAudit": {
-    "generatedAt": "2026-05-18T14:42:12.701Z",
+    "generatedAt": "2026-05-18T14:51:00.528Z",
     "mode": "sync-real",
-    "rulesEvaluated": 102,
-    "rulesMatched": 81,
+    "rulesEvaluated": 105,
+    "rulesMatched": 84,
     "rulesUnmatched": 21,
     "sourceFiles": {
       "count": 683,
@@ -43,14 +43,14 @@
   "summaries": {
     "total": {
       "total": 1126,
-      "cubierto": 248,
-      "parcial": 10,
-      "pendiente": 490,
+      "cubierto": 251,
+      "parcial": 11,
+      "pendiente": 486,
       "diferido": 378,
       "bloqueado": 0,
       "pesoTotal": 3004,
-      "pesoCubierto": 671,
-      "avance": 0.22336884154460718
+      "pesoCubierto": 677,
+      "avance": 0.22536617842876164
     },
     "inventario": {
       "totalParseadas": 1173,
@@ -71,14 +71,14 @@
     },
     "alpha": {
       "total": 121,
-      "cubierto": 99,
-      "parcial": 0,
-      "pendiente": 22,
+      "cubierto": 102,
+      "parcial": 1,
+      "pendiente": 18,
       "diferido": 0,
       "bloqueado": 0,
       "pesoTotal": 326,
-      "pesoCubierto": 272,
-      "avance": 0.8343558282208589
+      "pesoCubierto": 278,
+      "avance": 0.852760736196319
     },
     "beta": {
       "total": 193,
@@ -94,14 +94,14 @@
     "byCut": {
       "alpha": {
         "total": 121,
-        "cubierto": 99,
-        "parcial": 0,
-        "pendiente": 22,
+        "cubierto": 102,
+        "parcial": 1,
+        "pendiente": 18,
         "diferido": 0,
         "bloqueado": 0,
         "pesoTotal": 326,
-        "pesoCubierto": 272,
-        "avance": 0.8343558282208589
+        "pesoCubierto": 278,
+        "avance": 0.852760736196319
       },
       "beta": {
         "total": 193,
@@ -162,14 +162,14 @@
       },
       "M1": {
         "total": 161,
-        "cubierto": 84,
+        "cubierto": 87,
         "parcial": 2,
-        "pendiente": 69,
+        "pendiente": 66,
         "diferido": 6,
         "bloqueado": 0,
         "pesoTotal": 388,
-        "pesoCubierto": 204,
-        "avance": 0.5257731958762887
+        "pesoCubierto": 208,
+        "avance": 0.5360824742268041
       },
       "S": {
         "total": 471,
@@ -196,13 +196,13 @@
       "W": {
         "total": 117,
         "cubierto": 0,
-        "parcial": 0,
-        "pendiente": 8,
+        "parcial": 1,
+        "pendiente": 7,
         "diferido": 109,
         "bloqueado": 0,
         "pesoTotal": 375,
-        "pesoCubierto": 0,
-        "avance": 0
+        "pesoCubierto": 2,
+        "avance": 0.005333333333333333
       },
       "sin-prioridad": {
         "total": 0,
@@ -472,14 +472,14 @@
       "50": {
         "titulo": "Panel OPL-ES — lente bimodal, edición inversa y sincronización con el canvas",
         "total": 21,
-        "cubierto": 16,
-        "parcial": 0,
-        "pendiente": 5,
+        "cubierto": 19,
+        "parcial": 1,
+        "pendiente": 1,
         "diferido": 0,
         "bloqueado": 0,
         "pesoTotal": 55,
-        "pesoCubierto": 45,
-        "avance": 0.8181818181818182
+        "pesoCubierto": 51,
+        "avance": 0.9272727272727272
       },
       "60": {
         "titulo": "Exportar a PDF — pipeline papel, opciones, selección de OPDs, integración Compartir",
@@ -40607,13 +40607,11 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-50-opl-pane.md",
       "lineaInicio": 51,
       "corte": "alpha",
-      "estadoAvance": "pendiente",
+      "estadoAvance": "cubierto",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
-      "brechas": [
-        "app/src/ui/panelOpl/Toolbar.tsx: falta panel-opl-posicion"
-      ],
+      "nota": "Auto Corte 8: toggle 123 del panel OPL detectado sin acoplarlo a la HU pendiente de posicion lateral.",
+      "brechas": [],
       "evidencia": [
         {
           "path": "app/src/ui/panelOpl/Toolbar.tsx",
@@ -40625,8 +40623,8 @@
         }
       ],
       "peso": 1,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 1,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-50-opl-pane.md"
     },
     {
@@ -40657,7 +40655,8 @@
       "fuenteEvidencia": "auto",
       "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
       "brechas": [
-        "app/src/ui/panelOpl/Toolbar.tsx: falta panel-opl-posicion"
+        "app/src/ui/panelOpl/Toolbar.tsx: falta panel-opl-posicion",
+        "app/src/modelo/tipos/ui.ts: falta oplPosicion"
       ],
       "evidencia": [
         {
@@ -40696,26 +40695,32 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-50-opl-pane.md",
       "lineaInicio": 57,
       "corte": "alpha",
-      "estadoAvance": "pendiente",
+      "estadoAvance": "cubierto",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
-      "brechas": [
-        "app/src/ui/panelOpl/Toolbar.tsx: falta panel-opl-posicion"
-      ],
+      "nota": "Auto Corte 8: minimizar/restaurar OPL se evidencia en ToolbarOpl, PanelOpl y preferencia UI, separado de la posicion lateral pendiente.",
+      "brechas": [],
       "evidencia": [
         {
           "path": "app/src/ui/panelOpl/Toolbar.tsx",
           "hrefDashboard": "../../app/src/ui/panelOpl/Toolbar.tsx"
         },
         {
+          "path": "app/src/ui/PanelOpl.tsx",
+          "hrefDashboard": "../../app/src/ui/PanelOpl.tsx"
+        },
+        {
           "path": "app/src/modelo/tipos/ui.ts",
           "hrefDashboard": "../../app/src/modelo/tipos/ui.ts"
+        },
+        {
+          "path": "app/e2e/03-opl-panel.spec.ts",
+          "hrefDashboard": "../../app/e2e/03-opl-panel.spec.ts"
         }
       ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-50-opl-pane.md"
     },
     {
@@ -40740,26 +40745,32 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-50-opl-pane.md",
       "lineaInicio": 60,
       "corte": "alpha",
-      "estadoAvance": "pendiente",
+      "estadoAvance": "cubierto",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
-      "brechas": [
-        "app/src/ui/panelOpl/Toolbar.tsx: falta panel-opl-posicion"
-      ],
+      "nota": "Auto Corte 8: minimizar/restaurar OPL se evidencia en ToolbarOpl, PanelOpl y preferencia UI, separado de la posicion lateral pendiente.",
+      "brechas": [],
       "evidencia": [
         {
           "path": "app/src/ui/panelOpl/Toolbar.tsx",
           "hrefDashboard": "../../app/src/ui/panelOpl/Toolbar.tsx"
         },
         {
+          "path": "app/src/ui/PanelOpl.tsx",
+          "hrefDashboard": "../../app/src/ui/PanelOpl.tsx"
+        },
+        {
           "path": "app/src/modelo/tipos/ui.ts",
           "hrefDashboard": "../../app/src/modelo/tipos/ui.ts"
+        },
+        {
+          "path": "app/e2e/03-opl-panel.spec.ts",
+          "hrefDashboard": "../../app/e2e/03-opl-panel.spec.ts"
         }
       ],
       "peso": 1,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 1,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-50-opl-pane.md"
     },
     {
@@ -41748,26 +41759,24 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-50-opl-pane.md",
       "lineaInicio": 126,
       "corte": "alpha",
-      "estadoAvance": "pendiente",
-      "confianza": "alta-auto",
+      "estadoAvance": "parcial",
+      "confianza": "media-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
-      "brechas": [
-        "app/src/ui/panelOpl/Toolbar.tsx: falta panel-opl-posicion"
-      ],
+      "nota": "Auto Corte 8: existe boton AI Text placeholder con feedback, pero no productiza generacion AI de oraciones compuestas.",
+      "brechas": [],
       "evidencia": [
         {
           "path": "app/src/ui/panelOpl/Toolbar.tsx",
           "hrefDashboard": "../../app/src/ui/panelOpl/Toolbar.tsx"
         },
         {
-          "path": "app/src/modelo/tipos/ui.ts",
-          "hrefDashboard": "../../app/src/modelo/tipos/ui.ts"
+          "path": "app/e2e/03-opl-panel.spec.ts",
+          "hrefDashboard": "../../app/e2e/03-opl-panel.spec.ts"
         }
       ],
       "peso": 4,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 0.5,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-50-opl-pane.md"
     },
     {

@@ -1380,14 +1380,46 @@ function autoAuditRules() {
       ],
     },
     {
-      ids: ["HU-50.003", "HU-50.004", "HU-50.005", "HU-50.006", "HU-50.028"],
+      ids: ["HU-50.003"],
       estado: "cubierto",
       confianza: "alta-auto",
-      nota: "Auto ronda 11 L3: panel OPL Toolbar nuevo con 123 numeracion, posicion lateral, minimizar/restaurar, AI Text placeholder.",
+      nota: "Auto Corte 8: toggle 123 del panel OPL detectado sin acoplarlo a la HU pendiente de posicion lateral.",
       requires: [
-        { path: "app/src/ui/panelOpl/Toolbar.tsx", all: ["panel-opl-toggle-numeracion", "panel-opl-posicion", "panel-opl-minimizar", "panel-opl-ai-text"] },
-        { path: "app/src/modelo/tipos/ui.ts", any: ["oplPosicion", "oplNumeracionVisible", "oplMinimizado"] },
+        { path: "app/src/ui/panelOpl/Toolbar.tsx", all: ["panel-opl-toggle-numeracion"] },
+        { path: "app/src/modelo/tipos/ui.ts", all: ["oplNumeracionVisible"] },
       ],
+    },
+    {
+      ids: ["HU-50.004"],
+      estado: "cubierto",
+      confianza: "alta-auto",
+      nota: "Auto Corte 8: posicion lateral del panel OPL se mantiene como HU independiente; la implementacion actual solo fija la franja inferior.",
+      requires: [
+        { path: "app/src/ui/panelOpl/Toolbar.tsx", all: ["panel-opl-posicion"] },
+        { path: "app/src/modelo/tipos/ui.ts", all: ["oplPosicion"] },
+      ],
+    },
+    {
+      ids: ["HU-50.005", "HU-50.006"],
+      estado: "cubierto",
+      confianza: "alta-auto",
+      nota: "Auto Corte 8: minimizar/restaurar OPL se evidencia en ToolbarOpl, PanelOpl y preferencia UI, separado de la posicion lateral pendiente.",
+      requires: [
+        { path: "app/src/ui/panelOpl/Toolbar.tsx", all: ["panel-opl-minimizar"] },
+        { path: "app/src/ui/PanelOpl.tsx", all: ["panel-opl-minimizado", "panel-opl-restaurar"] },
+        { path: "app/src/modelo/tipos/ui.ts", all: ["oplMinimizado"] },
+      ],
+      evidenciaExtra: ["app/e2e/03-opl-panel.spec.ts"],
+    },
+    {
+      ids: ["HU-50.028"],
+      estado: "parcial",
+      confianza: "media-auto",
+      nota: "Auto Corte 8: existe boton AI Text placeholder con feedback, pero no productiza generacion AI de oraciones compuestas.",
+      requires: [
+        { path: "app/src/ui/panelOpl/Toolbar.tsx", all: ["panel-opl-ai-text", "Proximamente", "beta"] },
+      ],
+      evidenciaExtra: ["app/e2e/03-opl-panel.spec.ts"],
     },
     {
       ids: ["HU-50.021", "HU-50.026", "HU-50.027"],
