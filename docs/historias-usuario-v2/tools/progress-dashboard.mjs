@@ -1312,7 +1312,7 @@ function autoAuditRules() {
       confianza: "alta-auto",
       nota: "Auto ronda 11 L1: gestion modal Ctrl+D con busqueda y cortar/pegar de OPDs.",
       requires: [
-        { path: "app/src/ui/DialogoGestionArbol.tsx", any: ["DialogoGestionArbol", "gestionArbol"] },
+        { path: "app/src/ui/GestionArbolOpd.tsx", any: ["GestionArbolOpd", "gestionArbol"] },
         { path: "app/src/ui/ArbolOpd.tsx", any: ["Ctrl+D", "abrirGestionArbol"] },
         { path: "app/src/store/uiPanel.ts", any: ["gestionArbolAbierta", "abrirGestionArbol"] },
       ],

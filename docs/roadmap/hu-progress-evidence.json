@@ -728,13 +728,13 @@
   ],
   "knownGaps": [],
   "autoAudit": {
-    "generatedAt": "2026-05-18T14:32:01.396Z",
+    "generatedAt": "2026-05-18T14:32:53.791Z",
     "mode": "sync-real",
     "rulesEvaluated": 102,
     "rulesMatched": 81,
     "rulesUnmatched": 21,
     "sourceFiles": {
-      "count": 685,
+      "count": 684,
       "roots": [
         "app/src",
         "app/e2e",
@@ -2191,7 +2191,7 @@
       "fuente": "auto",
       "nota": "Auto ronda 11 L1: gestion modal Ctrl+D con busqueda y cortar/pegar de OPDs.",
       "evidencia": [
-        "app/src/ui/DialogoGestionArbol.tsx",
+        "app/src/ui/GestionArbolOpd.tsx",
         "app/src/ui/ArbolOpd.tsx",
         "app/src/store/uiPanel.ts",
         "app/e2e/_smoke-helpers.ts"
