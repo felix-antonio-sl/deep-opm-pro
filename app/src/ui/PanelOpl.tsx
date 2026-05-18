@@ -13,8 +13,6 @@ import { ToolbarOpl } from "./panelOpl/Toolbar";
 import { scrollBehaviorPreferido } from "./motion";
 import { tokens } from "./tokens";
 
-export { panelOplMinimizadoEfectivo };
-
 /**
  * Barrel publico del panel OPL-ES. IFML: PanelOpl es el detail OPL del
  * multidetail `Canvas -> {Inspector, OPL, ArbolOpd}` (`CN-MMD`), alimentado

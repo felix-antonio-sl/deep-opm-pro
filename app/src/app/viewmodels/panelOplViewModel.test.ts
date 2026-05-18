@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { panelOplMinimizadoEfectivo } from "./PanelOpl";
+import { panelOplMinimizadoEfectivo } from "./panelOplViewModel";
 
 describe("panelOplMinimizadoEfectivo", () => {
   test("colapsa por default cuando no hay seleccion ni preferencia", () => {

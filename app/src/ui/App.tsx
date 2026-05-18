@@ -9,6 +9,7 @@
 import { lazy, Suspense } from "preact/compat";
 import { useEffect, useState } from "preact/hooks";
 import { useAppShellViewModel } from "../app/viewmodels/appShellViewModel";
+import { panelOplMinimizadoEfectivo } from "../app/viewmodels/panelOplViewModel";
 import { obtenerRefinamiento } from "../modelo/refinamientos";
 import type { Id, Modelo } from "../modelo/tipos";
 import { JointCanvas } from "../render/jointjs/JointCanvas";
@@ -34,7 +35,7 @@ import { MenuPrincipal } from "./MenuPrincipal";
 import { MensajeFlashBridge } from "./MensajeFlashBridge";
 import { ModoRevisionMobile, AvisoEditarEnEscritorio } from "./ModoRevisionMobile";
 import { PanelDiagnostico } from "./PanelDiagnostico";
-import { PanelOpl, panelOplMinimizadoEfectivo } from "./PanelOpl";
+import { PanelOpl } from "./PanelOpl";
 import { BarraSimulacion } from "./simulacion/BarraSimulacion";
 import { tokens } from "./tokens";
 import { Toolbar } from "./Toolbar";
