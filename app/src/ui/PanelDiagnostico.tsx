@@ -1,24 +1,13 @@
 import { useEffect, useMemo, useState } from "preact/hooks";
 import { useZustandDiagnosticsPort } from "../app/ports/zustandDiagnosticsPort";
-import type { AvisoDiagnostico } from "../modelo/diagnostico";
-import type { CodigoChecker } from "../modelo/tipos";
-import type { SeveridadAviso } from "../modelo/validaciones";
+import {
+  agruparIssuesDiagnostico,
+  derivarIssuesDiagnostico,
+  type DiagnosticoIssue,
+  type SeveridadDiagnostico,
+} from "../app/viewmodels/panelDiagnosticoViewModel";
 import { EVENTO_ABRIR_AVISO_DIAGNOSTICO } from "../app/ports/feedbackPort";
-import { clasificarSeveridad } from "./panelMetodologiaIssues";
 import { tokens } from "./tokens";
-
-type SeveridadDiagnostico = "bloqueo" | "mejora" | "estilo";
-
-interface DiagnosticoIssue {
-  id: string;
-  testIdCodigo: string;
-  severidad: SeveridadDiagnostico;
-  codigo: string;
-  mensaje: string;
-  destino: string;
-  cita: string;
-  navegar: () => void;
-}
 
 const META: Record<SeveridadDiagnostico, { titulo: string; icono: string; color: string; fondo: string; borde: string }> = {
   bloqueo: {
@@ -52,22 +41,8 @@ export function PanelDiagnostico() {
   const [citaActiva, setCitaActiva] = useState<{ codigo: string; cita: string } | null>(null);
   const [codigoResaltado, setCodigoResaltado] = useState<string | null>(null);
 
-  const issues = useMemo(() => avisos.map((aviso) => ({
-    id: aviso.id,
-    testIdCodigo: aviso.testIdCodigo,
-    severidad: severidadDiagnostico(aviso),
-    codigo: aviso.codigoVisible,
-    mensaje: aviso.mensaje,
-    destino: aviso.destino,
-    cita: aviso.cita,
-    navegar: () => { if (aviso.avisoNavegable) navegarAviso(aviso.avisoNavegable); },
-  })), [avisos, navegarAviso]);
-
-  const grupos = {
-    bloqueo: issues.filter((issue) => issue.severidad === "bloqueo"),
-    mejora: issues.filter((issue) => issue.severidad === "mejora"),
-    estilo: issues.filter((issue) => issue.severidad === "estilo"),
-  };
+  const issues = useMemo(() => derivarIssuesDiagnostico(avisos, navegarAviso), [avisos, navegarAviso]);
+  const grupos = useMemo(() => agruparIssuesDiagnostico(issues), [issues]);
 
   useEffect(() => {
     const abrirAviso = (event: Event) => {
@@ -191,17 +166,6 @@ function Seccion(props: {
       </div>
     </section>
   );
-}
-
-function severidadDiagnostico(aviso: AvisoDiagnostico): SeveridadDiagnostico {
-  if (aviso.origen === "metodologia") return clasificarSeveridad({ codigo: aviso.codigo as CodigoChecker });
-  return severidadDesdeAviso(aviso.severidad);
-}
-
-function severidadDesdeAviso(severidad: SeveridadAviso): SeveridadDiagnostico {
-  if (severidad === "error") return "bloqueo";
-  if (severidad === "advertencia") return "mejora";
-  return "estilo";
 }
 
 function contadorStyle(issues: DiagnosticoIssue[]): preact.JSX.CSSProperties {
