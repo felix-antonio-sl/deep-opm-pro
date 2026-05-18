@@ -1,6 +1,6 @@
-import type { OpmStore } from "../../store";
+export type MobileReviewView = "canvas" | "opds" | "opl" | "issues";
 
 export interface MobileReviewPort {
-  vistaMobileActiva: OpmStore["vistaMobileActiva"];
-  cambiarVistaMobile: OpmStore["cambiarVistaMobile"];
+  vistaMobileActiva: MobileReviewView;
+  cambiarVistaMobile: (vista: MobileReviewView) => void;
 }
