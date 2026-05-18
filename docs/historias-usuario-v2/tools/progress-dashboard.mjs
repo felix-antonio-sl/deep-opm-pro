@@ -639,10 +639,11 @@ function autoAuditRules() {
       ids: ["HU-1C.014", "HU-1C.015", "HU-1C.019"],
       estado: "cubierto",
       confianza: "alta-auto",
-      nota: "Auto: validador emite avisos con severidad/cita y panel visible consume validarModelo.",
+      nota: "Auto Corte 8: validador emite avisos con severidad/cita y PanelDiagnostico consume DiagnosticsPort/viewmodel.",
       requires: [
         { path: "app/src/modelo/validaciones.ts", all: ["export function validarModelo", "reglaId", "severidad", "cita"] },
-        { path: "app/src/ui/PanelAvisos.tsx", all: ["validarModelo", "avisos"] },
+        { path: "app/src/ui/PanelDiagnostico.tsx", all: ["panel-diagnostico", "useZustandDiagnosticsPort", "panel-diagnostico-cita"] },
+        { path: "app/src/app/viewmodels/panelDiagnosticoViewModel.ts", all: ["derivarIssuesDiagnostico", "clasificarSeveridad"] },
         { path: "app/src/modelo/validaciones.test.ts", all: ["validarModelo", "reglaId"] },
       ],
     },
@@ -650,9 +651,10 @@ function autoAuditRules() {
       ids: ["HU-1C.013", "HU-1C.016", "HU-1C.017", "HU-1C.018"],
       estado: "parcial",
       confianza: "media-auto",
-      nota: "Auto: panel de avisos existe y permite seleccionar elementos; faltan todos los patrones de navegacion/correccion asistida.",
+      nota: "Auto Corte 8: PanelDiagnostico navega a avisos y expone revalidacion; faltan patrones completos de correccion asistida.",
       requires: [
-        { path: "app/src/ui/PanelAvisos.tsx", all: ["navegarAviso", "validarModelo"] },
+        { path: "app/src/ui/PanelDiagnostico.tsx", all: ["aviso-navegar", "panel-diagnostico-revalidar", "onClick={issue.navegar}"] },
+        { path: "app/src/app/viewmodels/panelDiagnosticoViewModel.ts", all: ["navegarAviso", "avisoNavegable"] },
         { path: "app/src/store/modelo/acciones-opd.ts", all: ["navegarAviso"] },
         { path: "app/src/store/modelo/acciones-canvas.ts", all: ["seleccionarEntidad", "seleccionarEnlace"] },
       ],
@@ -1033,8 +1035,8 @@ function autoAuditRules() {
         { path: "app/src/render/jointjs/composers/grid.ts", all: ["configurarGridPaper", "drawGrid"] },
         { path: "app/src/modelo/tipos/ui.ts", all: ["gridConfig?:"] },
         { path: "app/src/store/modelo/acciones-canvas.ts", all: ["toggleGrid", "fijarGridConfig", "cuantizarDesdeEstado"] },
-        { path: "app/src/ui/toolbar/ToolbarCreacion.tsx", all: ["toggle-grid", "config-grid"] },
-        { path: "app/src/ui/ModalConfiguracionGrid.tsx", all: ["ModalConfiguracionGrid"] },
+        { path: "app/src/ui/toolbar/ToolbarBase.tsx", all: ["toolbar-mas-toggle-grid", "toolbar-mas-config-grid"] },
+        { path: "app/src/ui/DialogoConfiguracion.tsx", all: ["modal-config-grid", "gridLocal", "snapActivo"] },
       ],
       evidenciaExtra: ["app/src/canvas/grid.test.ts", "app/src/render/jointjs/composers/grid.test.ts", "app/e2e/_smoke-helpers.ts"],
     },
@@ -1456,10 +1458,13 @@ function autoAuditRules() {
       ids: ["HU-10.017", "HU-10.018"],
       estado: "cubierto",
       confianza: "alta-auto",
-      nota: "Auto ronda 11 L4: BibliotecaCosa lateral lista entidades agrupadas y permite drag-drop al canvas + navegacion a OPDs donde aparece.",
+      nota: "Auto Corte 8: BibliotecaDock lista entidades, filtra por OPD activo, permite drag-to-canvas y navega a OPDs donde aparece.",
       requires: [
-        { path: "app/src/ui/BibliotecaCosa.tsx", all: ["BibliotecaCosa", "biblioteca-cosa"] },
+        { path: "app/src/ui/biblioteca/BibliotecaDock.tsx", all: ["BibliotecaDock", "biblioteca-dock"] },
+        { path: "app/src/ui/biblioteca/ListaBibliotecaCosas.tsx", all: ["application/x-opm-entidad-id", "draggable", "onNavegarOpd"] },
+        { path: "app/src/ui/biblioteca/filtrosBiblioteca.ts", all: ["filtrarEntidades", "soloOpdActivo", "apareceEnOpdActivo"] },
       ],
+      evidenciaExtra: ["app/src/ui/biblioteca/filtrosBiblioteca.test.ts", "app/e2e/20-biblioteca-dock.spec.ts"],
     },
     {
       ids: ["HU-11.016", "HU-11.017"],
@@ -1629,8 +1634,7 @@ function autoAuditRules() {
         { path: "app/src/persistencia/plantillas.ts", all: ["opm:plantilla", "opm:plantillas-lista"] },
         { path: "app/src/canvas/operacionesBatch.ts", all: ["insertarPlantillaBatch"] },
         { path: "app/src/store/modelo.ts", any: ["plantillasGuardadas", "idsResaltadosTemporales"] },
-        { path: "app/src/ui/DialogoPlantillas.tsx", any: ["DialogoPlantillas"] },
-        { path: "app/src/ui/DialogoGuardarPlantilla.tsx", any: ["DialogoGuardarPlantilla"] },
+        { path: "app/src/ui/DialogoPlantillas.tsx", all: ["DialogoPlantillas", "dialogo-guardar-plantilla", "dialogo-plantillas", "insertar-plantilla"] },
         { path: "app/src/ui/MenuPrincipal.tsx", any: ["abrirDialogoGuardarPlantilla", "abrirDialogoPlantillas"] },
       ],
       evidenciaExtra: ["app/src/persistencia/plantillas.test.ts", "app/src/canvas/operacionesBatch.test.ts"],
@@ -1838,7 +1842,7 @@ function renderMarkdown(data) {
     .join("\n") || "- Sin pendientes criticos detectados en el filtro actual.";
   const knownGaps = (ledger.knownGaps ?? [])
     .map((gap) => `- ${gap.ids.join(", ")} — ${escapeMdText(gap.nota)}`)
-    .join("\n") || "- Sin brechas registradas.";
+    .join("\n") || "- Sin brechas manuales registradas; revisar reglas automáticas no matcheadas en el dashboard.";
 
   return `# Auditoria de avance HU v2
 

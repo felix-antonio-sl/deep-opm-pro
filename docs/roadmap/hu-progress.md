@@ -1,9 +1,9 @@
 # Auditoria de avance HU v2
 
-**Generado:** 2026-05-18T14:51:00.528Z
+**Generado:** 2026-05-18T14:56:51.891Z
 **Backlog:** `docs/historias-usuario-v2`
 **Ledger de evidencia:** `docs/roadmap/hu-progress-evidence.json`
-**Auditoria automatica:** 84/105 reglas matcheadas sobre 683 archivos fuente.
+**Auditoria automatica:** 89/105 reglas matcheadas sobre 683 archivos fuente.
 
 
 Regenerar desde la raiz del repo:
@@ -20,18 +20,18 @@ node docs/historias-usuario-v2/tools/progress-dashboard.mjs
 
 | Segmento | HU vivas | Cubiertas | Parciales | Pendientes | Diferidas | Avance ponderado |
 |---|---:|---:|---:|---:|---:|---:|
-| Total backlog | 1126 | 251 | 11 | 486 | 378 | 22.5% |
+| Total backlog | 1125 | 274 | 15 | 458 | 378 | 24.8% |
 | M0 | 130 | 89 | 3 | 38 | 0 | 73.9% |
-| MVP-alpha | 121 | 102 | 1 | 18 | 0 | 85.3% |
-| MVP-beta | 193 | 70 | 4 | 119 | 0 | 38.7% |
+| MVP-alpha | 121 | 104 | 1 | 16 | 0 | 86.2% |
+| MVP-beta | 192 | 73 | 8 | 111 | 0 | 42.1% |
 
 ## Por corte
 
 | Corte | HU vivas | Cubiertas | Parciales | Pendientes | Diferidas | Avance ponderado |
 |---|---:|---:|---:|---:|---:|---:|
-| MVP-alpha | 121 | 102 | 1 | 18 | 0 | 85.3% |
-| MVP-beta | 193 | 70 | 4 | 119 | 0 | 38.7% |
-| MVP-gamma | 434 | 79 | 6 | 349 | 0 | 16.7% |
+| MVP-alpha | 121 | 104 | 1 | 16 | 0 | 86.2% |
+| MVP-beta | 192 | 73 | 8 | 111 | 0 | 42.1% |
+| MVP-gamma | 434 | 97 | 6 | 331 | 0 | 20.9% |
 | MVP-delta | 378 | 0 | 0 | 0 | 378 | 0.0% |
 | Sin corte | 0 | 0 | 0 | 0 | 0 | 0.0% |
 
@@ -40,9 +40,9 @@ node docs/historias-usuario-v2/tools/progress-dashboard.mjs
 | Prioridad | HU vivas | Cubiertas | Parciales | Pendientes | Diferidas | Avance ponderado |
 |---|---:|---:|---:|---:|---:|---:|
 | M0 | 130 | 89 | 3 | 38 | 0 | 73.9% |
-| M1 | 161 | 87 | 2 | 66 | 6 | 53.6% |
-| S | 471 | 66 | 2 | 241 | 162 | 15.6% |
-| C | 247 | 9 | 3 | 134 | 101 | 3.9% |
+| M1 | 160 | 94 | 6 | 54 | 6 | 60.9% |
+| S | 471 | 80 | 2 | 227 | 162 | 18.6% |
+| C | 247 | 11 | 3 | 132 | 101 | 4.5% |
 | W | 117 | 0 | 1 | 7 | 109 | 0.5% |
 | sin-prioridad | 0 | 0 | 0 | 0 | 0 | 0.0% |
 
@@ -50,7 +50,7 @@ node docs/historias-usuario-v2/tools/progress-dashboard.mjs
 
 | Epica | Titulo | HU vivas | Cubiertas | Parciales | Pendientes | Diferidas | Avance ponderado |
 |---|---|---:|---:|---:|---:|---:|---:|
-| 10 | Canvas — creación de cosas (proceso, objeto, enlace inicial, afiliación, esencia) | 17 | 14 | 0 | 3 | 0 | 81.6% |
+| 10 | Canvas — creación de cosas (proceso, objeto, enlace inicial, afiliación, esencia) | 17 | 16 | 0 | 1 | 0 | 89.5% |
 | 11 | Canvas — modelado básico (agregación, multi-selección, enlaces procedurales, propiedades, alineación, borrado) | 22 | 16 | 0 | 6 | 0 | 67.9% |
 | 12 | Canvas — descomposición de procesos | 31 | 22 | 1 | 8 | 0 | 75.2% |
 | 13 | Canvas — estados (designaciones, par entrada-salida, supresión, layout interno) | 18 | 9 | 1 | 8 | 0 | 52.1% |
@@ -65,7 +65,7 @@ node docs/historias-usuario-v2/tools/progress-dashboard.mjs
 | 30 | Persistencia — guardar/cargar, diálogos modales, versiones, archivado, búsqueda global, autosalvado | 34 | 26 | 0 | 8 | 0 | 78.7% |
 | 31 | Persistencia — carpetas, jerarquía, permisos y navegación del workspace | 26 | 0 | 0 | 26 | 0 | 0.0% |
 | 32 | Persistencia — sub-modelos (vistas de subsistema, archivos peer, composición cross-modelo) | 31 | 0 | 0 | 31 | 0 | 0.0% |
-| 33 | Persistencia — plantillas (artefactos reutilizables, ámbitos Privado/Organizacional/Global) | 22 | 0 | 0 | 22 | 0 | 0.0% |
+| 33 | Persistencia — plantillas (artefactos reutilizables, ámbitos Privado/Organizacional/Global) | 22 | 13 | 0 | 9 | 0 | 61.4% |
 | 34 | Persistencia — creación de modelo nuevo (ruta simple + asistente de 12 etapas) | 28 | 2 | 0 | 26 | 0 | 5.0% |
 | 35 | Persistencia — mover modelos y buscar cosas (Ctrl+F intra-modelo) | 20 | 0 | 0 | 20 | 0 | 0.0% |
 | 40 | Colaboración — permisos de modelo, token de edición y auto-lectura desde carpeta | 25 | 0 | 0 | 0 | 25 | 0.0% |
@@ -81,9 +81,9 @@ node docs/historias-usuario-v2/tools/progress-dashboard.mjs
 | 82 | Configuración — ontología organizacional (glosario canónico + sugerencia + reforzamiento) | 20 | 0 | 0 | 20 | 0 | 0.0% |
 | 90 | Interacción — atajos de teclado | 21 | 20 | 0 | 1 | 0 | 95.8% |
 | 91 | Interacción — modo tutorial, tooltips guiados y asistencia pedagógica | 16 | 0 | 0 | 16 | 0 | 0.0% |
-| 1A | Canvas — cuadrícula, imán, redimensión y alineación | 18 | 8 | 3 | 7 | 0 | 51.1% |
+| 1A | Canvas — cuadrícula, imán, redimensión y alineación | 18 | 13 | 3 | 2 | 0 | 76.6% |
 | 1B | Canvas — operaciones de traer conectados (hidratar OPD con cosas y enlaces existentes) | 16 | 15 | 0 | 1 | 0 | 97.6% |
-| 1C | Canvas — validaciones (interior/exterior, nombres duplicados, verificación metodológica, alcance de eliminación) | 17 | 0 | 0 | 17 | 0 | 0.0% |
+| 1C | Canvas — validaciones (interior/exterior, nombres duplicados, verificación metodológica, alcance de eliminación) | 17 | 3 | 4 | 10 | 0 | 35.4% |
 | A0 | Extensión — estereotipos OPM (mecanismo genérico de ampliación del lenguaje) | 40 | 0 | 0 | 40 | 0 | 0.0% |
 | A1 | Extensión — modelado de requisitos OPM (trazabilidad, plantilla canónica, vistas proyectadas) | 34 | 0 | 0 | 34 | 0 | 0.0% |
 | A2 | Extensión — IA generativa para requisitos (AI Reqs Generation) | 24 | 0 | 0 | 0 | 24 | 0.0% |
@@ -98,7 +98,7 @@ node docs/historias-usuario-v2/tools/progress-dashboard.mjs
 | C2 | Runtime ROS — integración con Robot Operating System | 28 | 0 | 0 | 0 | 28 | 0.0% |
 | D0 | Análisis — detección de conocimiento faltante (predicción de enlaces sobre el grafo del modelo) | 22 | 0 | 0 | 0 | 22 | 0.0% |
 | D1 | Análisis — calificación de informatividad del modelo (MFSP, INF, WINF, TWINF) | 16 | 0 | 0 | 0 | 16 | 0.0% |
-| SHARED | Patrones transversales | 9 | 6 | 2 | 1 | 0 | 81.3% |
+| SHARED | Patrones transversales | 8 | 6 | 2 | 0 | 0 | 88.6% |
 
 ## Pendientes M0 inmediatos
 
@@ -129,7 +129,7 @@ node docs/historias-usuario-v2/tools/progress-dashboard.mjs
 
 ## Brechas registradas
 
-- Sin brechas registradas.
+- Sin brechas manuales registradas; revisar reglas automáticas no matcheadas en el dashboard.
 
 ## Artefactos
 

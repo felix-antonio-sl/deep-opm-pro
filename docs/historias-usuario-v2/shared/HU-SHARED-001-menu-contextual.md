@@ -88,7 +88,7 @@ acciones-destructivas: [...]
 ## 4. Especialización local (cómo se cita en una HU absorbida)
 
 ```markdown
-### HU-13.005 — Abrir menú contextual sobre estado [absorbida en HU-SHARED-001]
+#### Ejemplo absorbido: HU-13.005 — Abrir menú contextual sobre estado
 
 **Estado:** absorbida-en-shared (2026-05-03).
 **Canónica:** HU-SHARED-001.

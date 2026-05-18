@@ -728,11 +728,11 @@
   ],
   "knownGaps": [],
   "autoAudit": {
-    "generatedAt": "2026-05-18T14:51:00.528Z",
+    "generatedAt": "2026-05-18T14:56:51.891Z",
     "mode": "sync-real",
     "rulesEvaluated": 105,
-    "rulesMatched": 84,
-    "rulesUnmatched": 21,
+    "rulesMatched": 89,
+    "rulesUnmatched": 16,
     "sourceFiles": {
       "count": 683,
       "roots": [
@@ -1143,16 +1143,15 @@
         "HU-1C.015",
         "HU-1C.019"
       ],
-      "estado": "pendiente",
+      "estado": "cubierto",
       "confianza": "alta-auto",
       "fuente": "auto",
-      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
+      "nota": "Auto Corte 8: validador emite avisos con severidad/cita y PanelDiagnostico consume DiagnosticsPort/viewmodel.",
       "evidencia": [
         "app/src/modelo/validaciones.ts",
+        "app/src/ui/PanelDiagnostico.tsx",
+        "app/src/app/viewmodels/panelDiagnosticoViewModel.ts",
         "app/src/modelo/validaciones.test.ts"
-      ],
-      "brechas": [
-        "app/src/ui/PanelAvisos.tsx: archivo no encontrado"
       ]
     },
     {
@@ -1162,16 +1161,15 @@
         "HU-1C.017",
         "HU-1C.018"
       ],
-      "estado": "pendiente",
-      "confianza": "alta-auto",
+      "estado": "parcial",
+      "confianza": "media-auto",
       "fuente": "auto",
-      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
+      "nota": "Auto Corte 8: PanelDiagnostico navega a avisos y expone revalidacion; faltan patrones completos de correccion asistida.",
       "evidencia": [
+        "app/src/ui/PanelDiagnostico.tsx",
+        "app/src/app/viewmodels/panelDiagnosticoViewModel.ts",
         "app/src/store/modelo/acciones-opd.ts",
         "app/src/store/modelo/acciones-canvas.ts"
-      ],
-      "brechas": [
-        "app/src/ui/PanelAvisos.tsx: archivo no encontrado"
       ]
     },
     {
@@ -1772,24 +1770,20 @@
         "HU-1A.012",
         "HU-1A.014"
       ],
-      "estado": "pendiente",
+      "estado": "cubierto",
       "confianza": "alta-auto",
       "fuente": "auto",
-      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
+      "nota": "Auto ronda 10 L1: grid configurable persistido en PreferenciasUiUsuario.gridConfig, drawGrid nativo de JointJS y cuantizacion de movimiento al paso.",
       "evidencia": [
         "app/src/canvas/grid.ts",
         "app/src/render/jointjs/composers/grid.ts",
         "app/src/modelo/tipos/ui.ts",
         "app/src/store/modelo/acciones-canvas.ts",
-        "app/src/ui/toolbar/ToolbarCreacion.tsx",
+        "app/src/ui/toolbar/ToolbarBase.tsx",
+        "app/src/ui/DialogoConfiguracion.tsx",
         "app/src/canvas/grid.test.ts",
         "app/src/render/jointjs/composers/grid.test.ts",
         "app/e2e/_smoke-helpers.ts"
-      ],
-      "brechas": [
-        "app/src/ui/toolbar/ToolbarCreacion.tsx: falta toggle-grid",
-        "app/src/ui/toolbar/ToolbarCreacion.tsx: falta config-grid",
-        "app/src/ui/ModalConfiguracionGrid.tsx: archivo no encontrado"
       ]
     },
     {
@@ -2398,13 +2392,16 @@
         "HU-10.017",
         "HU-10.018"
       ],
-      "estado": "pendiente",
+      "estado": "cubierto",
       "confianza": "alta-auto",
       "fuente": "auto",
-      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
-      "evidencia": [],
-      "brechas": [
-        "app/src/ui/BibliotecaCosa.tsx: archivo no encontrado"
+      "nota": "Auto Corte 8: BibliotecaDock lista entidades, filtra por OPD activo, permite drag-to-canvas y navega a OPDs donde aparece.",
+      "evidencia": [
+        "app/src/ui/biblioteca/BibliotecaDock.tsx",
+        "app/src/ui/biblioteca/ListaBibliotecaCosas.tsx",
+        "app/src/ui/biblioteca/filtrosBiblioteca.ts",
+        "app/src/ui/biblioteca/filtrosBiblioteca.test.ts",
+        "app/e2e/20-biblioteca-dock.spec.ts"
       ]
     },
     {
@@ -2649,10 +2646,10 @@
         "HU-33.018",
         "HU-33.022"
       ],
-      "estado": "pendiente",
+      "estado": "cubierto",
       "confianza": "alta-auto",
       "fuente": "auto",
-      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
+      "nota": "Auto ronda 12 L4: plantillas privadas EPICA-33 con persistencia separada, insercion atomica con IDs nuevos, sub-OPDs, sufijo, foco temporal y catalogo.",
       "evidencia": [
         "app/src/modelo/tipos/plantilla.ts",
         "app/src/persistencia/plantillas.ts",
@@ -2662,9 +2659,6 @@
         "app/src/ui/MenuPrincipal.tsx",
         "app/src/persistencia/plantillas.test.ts",
         "app/src/canvas/operacionesBatch.test.ts"
-      ],
-      "brechas": [
-        "app/src/ui/DialogoGuardarPlantilla.tsx: archivo no encontrado"
       ]
     },
     {
