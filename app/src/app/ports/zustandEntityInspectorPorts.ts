@@ -134,14 +134,14 @@ export function useZustandObjectStatesInspectorPort(entidadId: Id): ObjectStates
     if (nombres.length === 2) {
       agregarEstados();
       const creados = estadosDeEntidad(store.getState().modelo, entidadId).slice(0, 2);
-      renombrarEstadosCreados(creados, nombres);
+      renombrarEstadosCreados(creados, nombres, renombrarEstado);
       return;
     }
     if (nombres.length === 1) {
       const previos = new Set(estadosDeEntidad(store.getState().modelo, entidadId).map((estado) => estado.id));
       agregarEstado();
       const creado = estadosDeEntidad(store.getState().modelo, entidadId).find((estado) => !previos.has(estado.id));
-      if (creado) renombrarEstadosCreados([creado], nombres);
+      if (creado) renombrarEstadosCreados([creado], nombres, renombrarEstado);
     }
   };
 
@@ -159,18 +159,22 @@ export function useZustandObjectStatesInspectorPort(entidadId: Id): ObjectStates
   };
 }
 
-function renombrarEstadosCreados(estados: readonly EstadoRenombrable[], nombres: readonly string[]): void {
+function renombrarEstadosCreados(
+  estados: readonly EstadoRenombrable[],
+  nombres: readonly string[],
+  renombrarEstado: (estadoId: Id, nombre: string) => void,
+): void {
   const deseados = new Map(estados.map((estado, index) => [estado.id, nombres[index] ?? estado.nombre]));
   const nombresDeseados = new Set(Array.from(deseados.values()).map((nombre) => nombre.trim().toLocaleLowerCase("es")));
   estados.forEach((estado, index) => {
     const deseadoPropio = deseados.get(estado.id)?.trim().toLocaleLowerCase("es");
     const nombreActual = estado.nombre.trim().toLocaleLowerCase("es");
     if (deseadoPropio !== nombreActual && nombresDeseados.has(nombreActual)) {
-      store.getState().renombrarEstadoSeleccionado(estado.id, `estado-temporal-${index + 1}`);
+      renombrarEstado(estado.id, `estado-temporal-${index + 1}`);
     }
   });
   estados.forEach((estado, index) => {
     const nombre = nombres[index];
-    if (nombre) store.getState().renombrarEstadoSeleccionado(estado.id, nombre);
+    if (nombre) renombrarEstado(estado.id, nombre);
   });
 }
