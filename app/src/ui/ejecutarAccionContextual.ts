@@ -1,16 +1,18 @@
-import { store } from "../store";
+import type { ContextualActionExecutionPort } from "../app/ports/contextualActionExecutionPort";
+import { crearZustandContextualActionExecutionPort } from "../app/ports/zustandContextualActionExecutionPort";
 import type { AccionContextualId, ActionEvent } from "../store/acciones-contextuales";
 import { primerEnlaceVisualDeEntidad } from "./BarraHerramientasElemento";
 
 interface OpcionesEjecucionAccionContextual {
   onEditarAlias?: () => void;
+  port?: ContextualActionExecutionPort;
 }
 
 export function ejecutarAccionContextualEntidad(
   accionId: AccionContextualId,
   opciones: OpcionesEjecucionAccionContextual = {},
 ): ActionEvent {
-  const state = store.getState();
+  const state = (opciones.port ?? crearZustandContextualActionExecutionPort()).snapshot();
   const entidad = state.seleccionId ? state.modelo.entidades[state.seleccionId] ?? null : null;
   const enlaceEstiloId = entidad ? primerEnlaceVisualDeEntidad(state.modelo, state.opdActivoId, entidad.id) : null;
 
