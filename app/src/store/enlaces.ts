@@ -32,8 +32,6 @@ import {
   crearModelo,
   crearObjeto,
   crearProceso,
-  designarEstadoFinal as designarEstadoFinalOp,
-  designarEstadoInicial as designarEstadoInicialOp,
   descomponerProceso,
   desplegarObjeto,
   eliminarEnlace,

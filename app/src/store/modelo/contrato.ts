@@ -96,8 +96,6 @@ export const MODELO_SLICE_CAPABILITIES = {
     "eliminarEstado",
     "quitarEstadosObjetoSeleccionado",
     "renombrarEstadoSeleccionado",
-    "designarEstadoInicial",
-    "designarEstadoFinal",
     "designarEstadoComo",
     "quitarDesignacionEstado",
     "suprimirEstadoPorId",

@@ -30,8 +30,6 @@ import {
   crearModelo,
   crearObjeto,
   crearProceso,
-  designarEstadoFinal as designarEstadoFinalOp,
-  designarEstadoInicial as designarEstadoInicialOp,
   descomponerProceso,
   desplegarObjeto,
   eliminarEnlace,
@@ -457,10 +455,6 @@ export interface OpmStore {
   eliminarEstado: (estadoId: Id) => void;
   quitarEstadosObjetoSeleccionado: () => void;
   renombrarEstadoSeleccionado: (estadoId: Id, nombre: string) => void;
-  /** @deprecated Usa `designarEstadoComo(estadoId, "inicial")`. */
-  designarEstadoInicial: (estadoId: Id) => void;
-  /** @deprecated Usa `designarEstadoComo(estadoId, "final")`. */
-  designarEstadoFinal: (estadoId: Id) => void;
   editarAliasEntidad: (entidadId: Id, alias: string) => void;
   editarUnidadEntidad: (entidadId: Id, unidad: string) => void;
   editarDescripcionEntidad: (entidadId: Id, descripcion: string) => void;

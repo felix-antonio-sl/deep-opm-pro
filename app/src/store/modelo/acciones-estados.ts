@@ -135,14 +135,6 @@ export function accionesEstados(set: SetStore, get: GetStore): Partial<ModeloSli
       });
     },
 
-    designarEstadoInicial(estadoId) {
-      designarEstadoEnStore(set, get, estadoId, "inicial");
-    },
-
-    designarEstadoFinal(estadoId) {
-      designarEstadoEnStore(set, get, estadoId, "final");
-    },
-
     designarEstadoComo(estadoId, designacion) {
       designarEstadoEnStore(set, get, estadoId, designacion);
     },
