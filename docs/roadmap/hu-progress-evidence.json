@@ -728,7 +728,7 @@
   ],
   "knownGaps": [],
   "autoAudit": {
-    "generatedAt": "2026-05-18T16:12:38.685Z",
+    "generatedAt": "2026-05-18T16:26:28.776Z",
     "mode": "sync-real",
     "rulesEvaluated": 105,
     "rulesMatched": 89,
@@ -741,7 +741,7 @@
         "app/scripts",
         "assets/svg/links"
       ],
-      "signature": "sha256:9fda07efbaa86c6541edd8d364f29293107e1e940530ad4883f0aa6cb385d990"
+      "signature": "sha256:59ddb6f8c528882c5d75fdea7b785a2bfb74068d91cf59ee09ca149b18fb6568"
     },
     "note": "autoEntries se regenera; cada regla escribe cobertura detectada o pendiente. entries manuales queda como respaldo solo para HU sin regla automatica."
   },

@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { readFile } from "node:fs/promises";
 import {
   elementoPorTexto,
   escapeRegExp,
@@ -50,6 +51,37 @@ import {
   type ExportadoModelo,
   type ExtremoExportado,
 } from "./_smoke-helpers";
+
+test("Exportar OPD actual como SVG descarga el paper del canvas sin chrome de aplicacion", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await jsonEditor(page).fill(JSON.stringify(modeloMarkersCanonicos(), null, 2));
+  await page.getByRole("button", { name: "Importar" }).click();
+  await expect(page.locator(".joint-paper svg")).toHaveCount(1);
+  await expect(svgText(page, "Agente")).toBeVisible();
+
+  const downloadPromise = page.waitForEvent("download");
+  await page.getByLabel("Menú principal").click();
+  await page
+    .getByRole("menu", { name: "Menú principal" })
+    .getByRole("menuitem", { name: "Exportar OPD actual como SVG" })
+    .click();
+  const download = await downloadPromise;
+  expect(download.suggestedFilename()).toMatch(/^markers-canonicos-sd-\d{4}-\d{2}-\d{2}\.svg$/);
+  const path = await download.path();
+  if (!path) throw new Error("Playwright no entrego path de descarga SVG");
+  const svg = await readFile(path, "utf8");
+
+  expect(svg).toContain("<svg");
+  expect(svg).toContain("xmlns=\"http://www.w3.org/2000/svg\"");
+  expect(svg).toContain("Agente");
+  expect(svg).toContain("Instrumento");
+  expect(svg).not.toContain("Menú principal");
+  expect(svg).not.toContain("Inspector");
+  expect(pageErrors).toEqual([]);
+});
 
 test("renderiza todos los markers canonicos de enlaces", async ({ page }) => {
   const pageErrors: string[] = [];

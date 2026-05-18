@@ -10,6 +10,11 @@ export interface OpcionesExport {
   fondo?: "blanco" | "transparente";
 }
 
+export interface OpcionesDescargaOpdSvg {
+  nombreArchivo?: string;
+  fondo?: "blanco" | "transparente";
+}
+
 export async function exportarMapa(
   paper: dia.Paper,
   modelo: Modelo,
@@ -45,16 +50,36 @@ export async function descargarMapa(
   }
 }
 
+export async function descargarOpdActualSvg(
+  paper: dia.Paper,
+  modelo: Modelo,
+  opdId: string,
+  opts: OpcionesDescargaOpdSvg = {},
+): Promise<void> {
+  const opdNombre = modelo.opds[opdId]?.nombre ?? "OPD";
+  await descargarMapa(paper, modelo, {
+    formato: "svg",
+    fondo: opts.fondo ?? "blanco",
+    nombreArchivo: opts.nombreArchivo ?? nombreArchivoOpd(modelo, opdNombre),
+  });
+}
+
 export function nombreArchivoMapa(modelo: Modelo, formato: FormatoExport, fecha = new Date()): string {
-  const base = (modelo.nombre || "modelo")
-    .trim()
-    .toLocaleLowerCase("es-CL")
-    .replace(/[^a-z0-9_-]+/gi, "-")
-    .replace(/^-+|-+$/g, "") || "modelo";
+  const base = slugArchivo(modelo.nombre || "modelo");
   return `${base}-mapa-${fecha.toISOString().slice(0, 10)}.${formato}`;
 }
 
+export function nombreArchivoOpd(modelo: Modelo, opdNombre: string, fecha = new Date()): string {
+  const modeloSlug = slugArchivo(modelo.nombre || "modelo");
+  const opdSlug = slugArchivo(opdNombre || "opd");
+  return `${modeloSlug}-${opdSlug}-${fecha.toISOString().slice(0, 10)}.svg`;
+}
+
 function obtenerSvgPaper(paper: dia.Paper, opts: OpcionesExport): string {
+  const paperConEl = paper as unknown as { el?: Element };
+  const svgDom = paperConEl.el?.querySelector?.("svg")?.outerHTML;
+  if (svgDom?.includes("<svg")) return normalizarSvg(svgDom, opts);
+
   const paperConToSvg = paper as unknown as {
     toSVG?: (callback?: (svg: string) => void, options?: Record<string, unknown>) => string | void;
     el?: Element;
@@ -68,8 +93,7 @@ function obtenerSvgPaper(paper: dia.Paper, opts: OpcionesExport): string {
     }, { preserveDimensions: true, convertImagesToDataUris: true });
     if (capturado.includes("<svg")) return normalizarSvg(capturado, opts);
   }
-  const svg = paperConToSvg.el?.querySelector?.("svg")?.outerHTML ?? "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"1\" height=\"1\"></svg>";
-  return normalizarSvg(svg, opts);
+  return normalizarSvg("<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"1\" height=\"1\"></svg>", opts);
 }
 
 function normalizarSvg(svg: string, opts: OpcionesExport): string {
@@ -130,4 +154,14 @@ function canvasToBlob(canvas: HTMLCanvasElement): Promise<Blob> {
       resolve(blob ?? new Blob([], { type: "image/png" }));
     }, "image/png");
   });
+}
+
+function slugArchivo(input: string): string {
+  return input
+    .trim()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLocaleLowerCase("es-CL")
+    .replace(/[^a-z0-9_-]+/gi, "-")
+    .replace(/^-+|-+$/g, "") || "modelo";
 }

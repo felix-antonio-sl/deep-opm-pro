@@ -3,6 +3,8 @@ import modelWizardIcon from "../../../assets/svg/toolbar/modelWizard.svg";
 import templateIcon from "../../../assets/svg/template.svg";
 import { useState } from "preact/hooks";
 import { useMenuPrincipalViewModel } from "../app/viewmodels/menuPrincipalViewModel";
+import { descargarOpdActualSvg } from "../render/jointjs/mapaExport";
+import { useCanvasPaper } from "./CanvasAdapterContext";
 import { useConfirmarSiDirty } from "./ConfirmacionContext";
 import { tokens } from "./tokens";
 
@@ -12,6 +14,7 @@ import { tokens } from "./tokens";
  */
 export function MenuPrincipal() {
   const confirmarSiDirty = useConfirmarSiDirty();
+  const canvasPaper = useCanvasPaper();
   const {
     abierto,
     cerrar,
@@ -30,6 +33,8 @@ export function MenuPrincipal() {
     toggleMostrarArchivados,
     toggleMostrarVersiones,
     cargarFixtureDemo,
+    modelo,
+    opdActivoId,
     vistaMapaActiva,
     toggleVistaMapa,
     toggleMapaPanelEstadisticas,
@@ -53,6 +58,10 @@ export function MenuPrincipal() {
   const ejecutar = (accion: () => void) => {
     cerrar();
     accion();
+  };
+  const exportarOpdActualSvg = () => {
+    if (!canvasPaper) return;
+    void descargarOpdActualSvg(canvasPaper, modelo, opdActivoId);
   };
 
   return (
@@ -86,7 +95,9 @@ export function MenuPrincipal() {
             <MenuItem label="Exportar mapa como SVG" onClick={() => ejecutar(() => solicitarExportMapa("svg"))} />
             <MenuItem label="Estadísticas del modelo" onClick={() => ejecutar(toggleMapaPanelEstadisticas)} />
           </>
-        ) : null}
+        ) : (
+          <MenuItem label="Exportar OPD actual como SVG" disabled={!canvasPaper} onClick={() => ejecutar(exportarOpdActualSvg)} />
+        )}
       </MenuSection>
 
       <MenuSection title="Más">

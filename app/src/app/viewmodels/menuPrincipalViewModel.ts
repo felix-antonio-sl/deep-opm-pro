@@ -52,7 +52,7 @@ export function useMenuPrincipalViewModel() {
     abrirDialogoConfiguracion,
     abrirDialogoPlantillas,
   } = useZustandWorkbenchViewControlsPort();
-  const { modelo } = useZustandOpdNavigationPort();
+  const { modelo, opdActivoId } = useZustandOpdNavigationPort();
   const { seleccionId } = useZustandSelectionPort();
   const { nuevoModelo, iniciarAsistente } = useZustandModelBootstrapPort();
   const { abrirBusquedaCosas, abrirBusquedaGlobal } = useZustandSearchDialogsPort();
@@ -91,6 +91,8 @@ export function useMenuPrincipalViewModel() {
     toggleMostrarArchivados,
     toggleMostrarVersiones,
     cargarFixtureDemo,
+    modelo,
+    opdActivoId,
     vistaMapaActiva,
     toggleVistaMapa,
     toggleMapaPanelEstadisticas,
