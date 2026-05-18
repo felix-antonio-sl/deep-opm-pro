@@ -1,6 +1,6 @@
 // [JOYAS §1-3] Chrome UI consume tokens centralizados; canvas semántico invariante.
 import { dia, shapes } from "jointjs";
-import { useEffect, useRef, useState } from "preact/hooks";
+import { useEffect, useLayoutEffect, useRef, useState } from "preact/hooks";
 import { useMapaSistemaViewModel } from "../app/viewmodels/mapaSistemaViewModel";
 import { descargarMapa, type FormatoExport } from "../render/jointjs/mapaExport";
 import { proyectarMapaSistemaAJointCells, type NodoMapa } from "../render/jointjs/mapaSistema";
@@ -57,7 +57,7 @@ export function MapaSistema() {
     limpiarFiltrosMapa,
   } = useMapaSistemaViewModel();
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!hostRef.current) return;
 
     const graph = new dia.Graph({}, { cellNamespace: shapes });
@@ -117,7 +117,7 @@ export function MapaSistema() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const graph = graphRef.current;
     const paper = paperRef.current;
     if (!graph || !paper || !descriptor) return;
