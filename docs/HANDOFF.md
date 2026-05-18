@@ -3,8 +3,8 @@
 **Fecha**: 2026-05-18
 **Repositorio**: `deep-opm-pro`
 **Rama**: `main`
-**Último corte funcional**: `04a0474 refactor(render): pasa feedback canvas por puerto`
-**Corte**: Render/UI boundary, Corte 1 cerrado: feedback port.
+**Último corte funcional**: `5efff99 feat(export): permite svg del opd activo`
+**Corte**: Produccion single-user SVG, Corte 1 cerrado: export OPD activo.
 
 ## Política De Handoff Único
 
@@ -14,6 +14,7 @@
 
 - Plan normativo refactor total: `docs/roadmap/refactorizacion-total-plan-normativo.md`.
 - Plan activo render/UI: `docs/roadmap/render-ui-boundary-plan.md`.
+- Plan produccion single-user SVG: `docs/roadmap/produccion-usuario-unico-svg-plan.md`.
 - Brief UX/IFML historico: `docs/instrucciones-lineas-dev/ronda22/refactor-ux-ifml.md`.
 - SSOT OPM: `/home/felix/kora/artifacts/knowledge/fxsl/opm/opm-ssot-es/`.
 - Evidencia OPCloud preferente: `opm-extracted/` antes de `decompiled/`.
@@ -21,6 +22,54 @@
 - JointJS OSS: usar documentación oficial viva cuando se toque JointJS.
 
 ## Estado Actual
+
+### Produccion Single-User SVG — Corte 1 Export OPD Activo Cerrado — 2026-05-18
+
+Se abrio un plan nuevo y acotado para primera produccion privada de usuario
+unico, con persistencia local existente y export SVG del OPD activo como salida
+minima. No incluye auth, backend, multiusuario, PDF ni ZIP de todos los OPDs.
+
+Resultado:
+
+- `docs/roadmap/produccion-usuario-unico-svg-plan.md` define cortes 0-5 para
+  habilitar v0 single-user. Corte 0 y Corte 1 quedan cerrados.
+- El menu principal de la vista normal expone `Exportar OPD actual como SVG`;
+  la vista de mapa conserva su export PNG/SVG existente.
+- La accion usa el `dia.Paper` vivo desde `CanvasAdapterContext` y serializa el
+  SVG DOM del paper OSS. No usa `globalThis.__opmJointAdapter` ni JointJS+.
+- `mapaExport` prioriza el camino OSS (`paper.el.querySelector("svg")`) y
+  conserva fallback historico para mapa.
+- `mapaExport.test.ts` cubre serializacion SVG DOM sin `paper.toSVG`.
+- `02-canvas-y-render.spec.ts` descarga el SVG, verifica textos OPM y comprueba
+  que no arrastra chrome de aplicacion.
+
+Commits atomicos:
+
+- `025d245 docs(produccion): define plan single-user svg`
+- `5efff99 feat(export): permite svg del opd activo`
+
+Validacion:
+
+```bash
+cd app && bun test src/render/jointjs/mapaExport.test.ts
+# 6 pass / 0 fail
+
+cd app && bunx playwright test e2e/02-canvas-y-render.spec.ts --grep "Exportar OPD actual como SVG|renderiza todos los markers"
+# 2 passed
+
+cd app && bun run gate:refactor
+# typecheck OK; 1409 pass / 0 fail / 5265 expect; lint src/ OK; build OK; browser:smoke 194 passed
+# Dashboard HU: Total 24.8%; MVP-alpha 86.2%; 89/105 reglas auto; firma de fuentes vigente
+# Quality gate PASS: bundle 465.35 kB / 125.28 kB gzip; leyes 6/6; compat detectors 0
+```
+
+Siguiente corte recomendado:
+
+- Corte 2 del plan: operacion estatica y preview productivo. Verificar flujo
+  contra `app/dist` servido por `vite preview` o servidor estatico y degradar u
+  ocultar captura de bugs cuando no exista middleware local.
+- Corte 3 despues: backup operable con descarga JSON, porque localStorage no es
+  respaldo productivo suficiente aunque sea aceptable como almacenamiento v0.
 
 ### Render/UI Boundary — Corte 1 Feedback Port Cerrado — 2026-05-18
 

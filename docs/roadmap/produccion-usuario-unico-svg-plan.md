@@ -3,7 +3,7 @@
 **Fecha:** 2026-05-18  
 **Repo:** `deep-opm-pro`  
 **Alcance:** habilitar una primera version usable en produccion privada para un unico usuario local, con export SVG del OPD activo.  
-**Estado:** Plan abierto; cortes pendientes.  
+**Estado:** Corte 0 y Corte 1 cerrados; Corte 2 pendiente.  
 **Autoridad superior:** `AGENTS.md`, `docs/HANDOFF.md`, `docs/JOYAS.md`, `opm-extracted/`, SSOT OPM local y HU vivas.
 
 ## 1. Objetivo
@@ -91,7 +91,7 @@ git status --short --branch
 
 Estado:
 
-- Pendiente al abrir el plan.
+- Cerrado el 2026-05-18 en `025d245 docs(produccion): define plan single-user svg`.
 
 ### Corte 1 - Export SVG Del OPD Activo
 
@@ -123,7 +123,33 @@ cd app && bun run gate:refactor
 
 Estado:
 
-- Pendiente al abrir el plan.
+- Cerrado el 2026-05-18 en `5efff99 feat(export): permite svg del opd activo`.
+
+Resultado:
+
+- El menu principal de la vista normal expone `Exportar OPD actual como SVG`.
+- La accion usa el `dia.Paper` vivo desde `CanvasAdapterContext`; no usa globals
+  ni plugin JointJS+.
+- `mapaExport` prioriza la serializacion del SVG DOM del paper OSS y conserva
+  el fallback historico para el mapa del sistema.
+- El nombre de archivo se deriva de modelo + OPD + fecha.
+- El smoke descarga el SVG y verifica contenido OPM basico sin chrome de
+  aplicacion.
+
+Validacion ejecutada:
+
+```bash
+cd app && bun test src/render/jointjs/mapaExport.test.ts
+# 6 pass / 0 fail
+
+cd app && bunx playwright test e2e/02-canvas-y-render.spec.ts --grep "Exportar OPD actual como SVG|renderiza todos los markers"
+# 2 passed
+
+cd app && bun run gate:refactor
+# typecheck OK; 1409 pass / 0 fail / 5265 expect; lint src/ OK; build OK; browser:smoke 194 passed
+# Dashboard HU: Total 24.8%; MVP-alpha 86.2%; 89/105 reglas auto; firma de fuentes vigente
+# Quality gate PASS: bundle 465.35 kB / 125.28 kB gzip; leyes 6/6; compat detectors 0
+```
 
 ### Corte 2 - Operacion Estatica Y Preview Productivo
 
