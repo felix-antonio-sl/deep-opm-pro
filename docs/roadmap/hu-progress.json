@@ -1,24 +1,24 @@
 {
   "schema": "deep-opm-pro.hu-progress-report.v1",
-  "generatedAt": "2026-05-18T16:56:02.878Z",
+  "generatedAt": "2026-05-18T17:11:07.672Z",
   "repoRoot": "/home/felix/projects/deep-opm-pro",
   "backlogRoot": "docs/historias-usuario-v2",
   "evidenceLedger": "docs/roadmap/hu-progress-evidence.json",
   "autoAudit": {
-    "generatedAt": "2026-05-18T16:56:02.878Z",
+    "generatedAt": "2026-05-18T17:11:07.672Z",
     "mode": "sync-real",
     "rulesEvaluated": 105,
     "rulesMatched": 89,
     "rulesUnmatched": 16,
     "sourceFiles": {
-      "count": 691,
+      "count": 692,
       "roots": [
         "app/src",
         "app/e2e",
         "app/scripts",
         "assets/svg/links"
       ],
-      "signature": "sha256:24c1175f9b4e1ab61dbecd1a4879553be3c5c4e2b21f249676f70fa4092d9473"
+      "signature": "sha256:69199effc75a9d87fc380c3a4c8c1ca39503daa7ac161560ce9fc3b97d6c3833"
     },
     "note": "autoEntries se regenera; cada regla escribe cobertura detectada o pendiente. entries manuales queda como respaldo solo para HU sin regla automatica."
   },

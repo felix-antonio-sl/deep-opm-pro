@@ -105,6 +105,19 @@ export function PersistenciaJson({ onImported }: PersistenciaJsonProps) {
           >
             Exportar
           </button>
+          <button
+            type="button"
+            style={style.button}
+            onClick={() => {
+              const json = persistencia.exportarJson();
+              setTexto(json);
+              setArchivoNombre("");
+              setErrorImportacion(null);
+              descargarJsonBackup(json);
+            }}
+          >
+            Descargar JSON
+          </button>
           <button type="button" style={style.button} onClick={manejarImportar}>Importar</button>
         </div>
       </div>
@@ -189,6 +202,46 @@ function describirModelo(modelo: Modelo): string {
 
 function cantidad(valor: number, singular: string, plural: string): string {
   return `${valor} ${valor === 1 ? singular : plural}`;
+}
+
+function descargarJsonBackup(json: string): void {
+  const blob = new Blob([json], { type: "application/json;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const enlace = document.createElement("a");
+  enlace.href = url;
+  enlace.download = nombreArchivoBackupJson(json);
+  document.body.append(enlace);
+  enlace.click();
+  enlace.remove();
+  URL.revokeObjectURL(url);
+}
+
+function nombreArchivoBackupJson(json: string, now = new Date()): string {
+  const nombre = nombreModeloDesdeJson(json) ?? "modelo-opm";
+  return `${slugArchivo(nombre)}-${now.toISOString().slice(0, 10)}.json`;
+}
+
+function nombreModeloDesdeJson(json: string): string | null {
+  try {
+    const parsed = JSON.parse(json) as unknown;
+    if (!parsed || typeof parsed !== "object") return null;
+    const modelo = (parsed as { modelo?: unknown }).modelo;
+    if (!modelo || typeof modelo !== "object") return null;
+    const nombre = (modelo as { nombre?: unknown }).nombre;
+    return typeof nombre === "string" && nombre.trim() ? nombre.trim() : null;
+  } catch {
+    return null;
+  }
+}
+
+function slugArchivo(input: string): string {
+  return input
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    || "modelo-opm";
 }
 
 const style = {
