@@ -7,10 +7,10 @@ import {
   construirDescriptorMapa,
   filtrarPorProfundidad,
   filtrarPorSubarbol,
-  proyectarMapaSistemaAJointCells,
   resaltarPorTipo,
   type DescriptorMapa,
-} from "./mapaSistema";
+} from "../../canvas/mapaSistema";
+import { proyectarMapaSistemaAJointCells } from "./mapaSistema";
 
 function must<T>(r: { ok: true; value: T } | { ok: false; error: string }): T {
   if (!r.ok) throw new Error(r.error);
