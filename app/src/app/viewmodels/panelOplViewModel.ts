@@ -1,15 +1,10 @@
 import { useMemo, useState } from "preact/hooks";
 import { useZustandOplPort } from "../ports/zustandOplPort";
 import type { Id } from "../../modelo/tipos/comunes";
-import { agruparOracionesPorOpd, ordenarOpdsParaOpl, type BloqueOpl } from "../../opl/bloquesJerarquicos";
-import { generarOplInteractivo } from "../../opl/generar";
-import {
-  filtrarLineasPorReferencia,
-  lineaTocaReferencia,
-  type OplLineaInteractiva,
-  type OplReferencia,
-} from "../../opl/interaccion";
-import { planificarEdicionOplLibre, type PrevisualizacionOplReverse } from "../../opl/parser";
+import type { BloqueOpl } from "../../opl/bloquesJerarquicos";
+import type { OplLineaInteractiva, OplReferencia } from "../../opl/interaccion";
+import { derivarPanelOpl } from "../../opl/panel";
+import type { PrevisualizacionOplReverse } from "../../opl/parser";
 
 export interface PanelOplViewModel {
   vistaMapaActiva: boolean;
@@ -89,43 +84,24 @@ export function usePanelOplViewModel(): PanelOplViewModel {
     [preferenciasOpl?.oplBloquesContraidos],
   );
 
-  const seleccionRef = useMemo<OplReferencia | null>(() => {
-    if (enlaceSeleccionId) return { tipo: "enlace", id: enlaceSeleccionId };
-    if (seleccionId) return { tipo: "entidad", id: seleccionId };
-    return null;
-  }, [enlaceSeleccionId, seleccionId]);
-
-  const lineas = useMemo(
-    () => ordenarOpdsParaOpl(modelo).flatMap((id) => generarOplInteractivo(modelo, id)),
-    [modelo],
+  const derivado = useMemo(
+    () => derivarPanelOpl({
+      modelo,
+      opdActivoId,
+      seleccionId,
+      enlaceSeleccionId,
+      filtroActivo,
+      busquedaOpl,
+      editorLibre,
+      textoLibre,
+    }),
+    [modelo, opdActivoId, seleccionId, enlaceSeleccionId, filtroActivo, busquedaOpl, editorLibre, textoLibre],
   );
-  const textoOplActual = useMemo(() => lineas.map((linea) => linea.texto).join("\n"), [lineas]);
-  const previewLibre = useMemo<PrevisualizacionOplReverse | null>(
-    () => editorLibre ? planificarEdicionOplLibre(modelo, textoLibre, { opdActivoId }) : null,
-    [editorLibre, modelo, textoLibre, opdActivoId],
-  );
-  const bloques = useMemo(() => agruparOracionesPorOpd(lineas, modelo), [lineas, modelo]);
-  const filtradasPorSeleccion = useMemo(
-    () => filtroActivo ? filtrarLineasPorReferencia(lineas, seleccionRef) : lineas,
-    [filtroActivo, lineas, seleccionRef],
-  );
-  const query = busquedaOpl.toLowerCase().trim();
-  const visibles = useMemo(
-    () => query
-      ? filtradasPorSeleccion.filter((linea) => linea.texto.toLowerCase().includes(query))
-      : filtradasPorSeleccion,
-    [filtradasPorSeleccion, query],
-  );
-  const visiblesPorId = useMemo(() => new Set(visibles.map((linea) => linea.id)), [visibles]);
-  const primeraVisibleSeleccionada = useMemo(() => {
-    if (!seleccionRef) return null;
-    return visibles.find((linea) => lineaTocaReferencia(linea, seleccionRef)) ?? null;
-  }, [seleccionRef, visibles]);
 
   const alternarEditorLibre = () => {
     const siguiente = !editorLibre;
     setEditorLibre(siguiente);
-    if (siguiente) setTextoLibre(textoOplActual);
+    if (siguiente) setTextoLibre(derivado.textoOplActual);
   };
 
   const cancelarEditorLibre = () => {
@@ -144,20 +120,20 @@ export function usePanelOplViewModel(): PanelOplViewModel {
     filtroActivo,
     hoverOplRef,
     busquedaOpl,
-    query,
-    seleccionRef,
-    lineas,
-    textoOplActual,
-    bloques,
-    visibles,
-    visiblesPorId,
-    primeraVisibleSeleccionada,
+    query: derivado.query,
+    seleccionRef: derivado.seleccionRef,
+    lineas: derivado.lineas,
+    textoOplActual: derivado.textoOplActual,
+    bloques: derivado.bloques,
+    visibles: derivado.visibles,
+    visiblesPorId: derivado.visiblesPorId,
+    primeraVisibleSeleccionada: derivado.primeraVisibleSeleccionada,
     numeracionVisible,
     minimizado,
     bloquesColapsados,
     editorLibre,
     textoLibre,
-    previewLibre,
+    previewLibre: derivado.previewLibre,
     seleccionarDesdeOpl,
     renombrarEntidadDesdeOpl,
     renombrarEstadoDesdeOpl,
