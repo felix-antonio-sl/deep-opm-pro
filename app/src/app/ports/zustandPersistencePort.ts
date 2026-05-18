@@ -9,6 +9,7 @@ export function useZustandPersistencePort(): PersistencePort {
   const dialogoGuardarComoAbierto = useOpmStore((s) => s.dialogoGuardarComoAbierto);
   const dialogoCargarModeloAbierto = useOpmStore((s) => s.dialogoCargarModeloAbierto);
   const ultimoAutosalvado = useOpmStore((s) => s.autosalvado.ultimo);
+  const autosalvadoEnCurso = useOpmStore((s) => s.autosalvado.salvando);
   const pestanasAbiertas = useOpmStore((s) => s.pestanasAbiertas);
   const pestanaActivaId = useOpmStore((s) => s.pestanaActivaId);
   const indice = useOpmStore((s) => s.indice);
@@ -43,6 +44,7 @@ export function useZustandPersistencePort(): PersistencePort {
     esFixture,
     versiones,
     ultimoAutosalvado,
+    autosalvadoEnCurso,
     modeloNombre,
     abrirGuardarComo,
     abrirCargarModelo,

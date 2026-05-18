@@ -20,6 +20,7 @@ export interface PersistencePort {
   esFixture: boolean;
   versiones: number;
   ultimoAutosalvado: number | null;
+  autosalvadoEnCurso: boolean;
   modeloNombre: string;
   abrirGuardarComo: () => void;
   abrirCargarModelo: (opciones?: AbrirCargarModeloOptions) => void;

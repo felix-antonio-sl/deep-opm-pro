@@ -85,32 +85,46 @@ export function formatearTiempoRelativo(ultimoMs: number, ahoraMs: number = Date
   return `hace ${dias} d`;
 }
 
-export function labelChip(variante: VarianteChip): string {
-  switch (variante.tipo) {
-    case "local-clean": {
-      const sufijoVersion = variante.versiones > 0 ? ` · v${variante.versiones}` : "";
-      const sufijoTiempo = variante.tiempoRelativo ? ` · ${variante.tiempoRelativo}` : "";
-      return `Local${sufijoVersion}${sufijoTiempo}`;
-    }
-    case "local-dirty": {
-      const sufijoVersion = variante.versiones > 0 ? ` · v${variante.versiones}` : "";
-      return `Local${sufijoVersion} · sin guardar`;
-    }
-    case "importado":
-      return "Importado · sin guardar";
-    case "fixture":
-      return "Fixture · sin guardar";
-    case "asistente":
-      return "Asistente · sin guardar";
-    case "nuevo":
-      return "Nuevo · sin guardar";
+/**
+ * Corte 3.5 sustracción de chrome: el chip colapsa a 3 estados literales
+ * legibles desde un vistazo:
+ *
+ *   - "Guardado · HH:mm" cuando hay persistencia local sin cambios.
+ *   - "Guardando…" durante un autosalvado en curso.
+ *   - "Sin guardar · Ctrl+S" en cualquier otro caso (dirty, importado,
+ *     asistente, fixture, modelo nuevo).
+ *
+ * La lógica interna de variantes se conserva para colorear estilos y
+ * tooltip, pero el label público ya no expone el origen.
+ */
+export function labelChip(variante: VarianteChip, opts: { salvando?: boolean; horaGuardado?: string | null } = {}): string {
+  if (opts.salvando) return "Guardando…";
+  if (variante.tipo === "local-clean") {
+    return opts.horaGuardado ? `Guardado · ${opts.horaGuardado}` : "Guardado";
   }
+  return "Sin guardar · Ctrl+S";
 }
 
-export function detallarChip(variante: VarianteChip, nombreModelo: string): string {
+/**
+ * Formato HH:mm 24h para el sufijo del label `Guardado · HH:mm`.
+ * Devuelve `null` si el timestamp no es un número finito.
+ */
+export function formatearHoraGuardado(timestamp: number | null | undefined): string | null {
+  if (!timestamp || !Number.isFinite(timestamp)) return null;
+  return new Date(timestamp).toLocaleTimeString("es-CL", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
+}
+
+export function detallarChip(
+  variante: VarianteChip,
+  nombreModelo: string,
+  opts: { salvando?: boolean; horaGuardado?: string | null } = {},
+): string {
   const lineas: string[] = [];
-  const cabecera = labelChip(variante);
-  lineas.push(cabecera);
+  lineas.push(labelChip(variante, opts));
   lineas.push("─");
   lineas.push(`Modelo: ${nombreModelo}`);
   switch (variante.tipo) {
@@ -199,10 +213,12 @@ export function ChipPersistencia(): preact.JSX.Element {
     esFixture,
     versiones,
     ultimoAutosalvado,
+    autosalvadoEnCurso,
     modeloNombre,
     abrirGuardarComo,
   } = useZustandPersistencePort();
   const tiempoRelativo = ultimoAutosalvado ? formatearTiempoRelativo(ultimoAutosalvado) : null;
+  const horaGuardado = formatearHoraGuardado(ultimoAutosalvado);
 
   const variante = clasificarVariante({
     modeloPersistidoId,
@@ -212,21 +228,24 @@ export function ChipPersistencia(): preact.JSX.Element {
     versiones,
     tiempoRelativo,
   });
+  const opcionesLabel = { salvando: autosalvadoEnCurso, horaGuardado };
+  const label = labelChip(variante, opcionesLabel);
 
   return (
     <button
       type="button"
-      style={chipEstilo(variante.tipo)}
-      title={detallarChip(variante, modeloNombre)}
+      style={chipEstilo(variante.tipo, autosalvadoEnCurso)}
+      title={detallarChip(variante, modeloNombre, opcionesLabel)}
       onClick={abrirGuardarComo}
       data-testid="chip-persistencia"
       data-variante={variante.tipo}
-      aria-label={`Estado de almacenamiento: ${labelChip(variante)}`}
+      data-salvando={autosalvadoEnCurso ? "true" : "false"}
+      aria-label={`Estado de almacenamiento: ${label}`}
     >
       <span style={chipIconStyle}>
-        <IconoVariante tipo={variante.tipo} />
+        <IconoVariante tipo={autosalvadoEnCurso ? "local-clean" : variante.tipo} />
       </span>
-      <span style={chipLabelStyle}>{labelChip(variante)}</span>
+      <span style={chipLabelStyle}>{label}</span>
     </button>
   );
 }
@@ -249,51 +268,37 @@ const chipBase: preact.JSX.CSSProperties = {
   fontFamily: tokens.typography.familyChrome,
 };
 
-function chipEstilo(tipo: VarianteChipTipo): preact.JSX.CSSProperties {
-  switch (tipo) {
-    case "local-clean":
-      return {
-        ...chipBase,
-        background: tokens.colors.exitoFondo,
-        borderColor: tokens.colors.exitoBase,
-        color: tokens.colors.exitoTexto,
-      };
-    case "local-dirty":
-      return {
-        ...chipBase,
-        background: tokens.colors.advertenciaFondo,
-        borderColor: tokens.colors.advertenciaBorde,
-        color: tokens.colors.alertaTexto,
-      };
-    case "importado":
-      return {
-        ...chipBase,
-        background: tokens.colors.azulPanelSuave,
-        borderColor: tokens.colors.infoBordeSuave,
-        color: tokens.colors.infoTextoOscuro,
-      };
-    case "fixture":
-      return {
-        ...chipBase,
-        background: tokens.colors.fondoCard,
-        borderColor: tokens.colors.bordeSlate,
-        color: tokens.colors.textoSlate,
-      };
-    case "asistente":
-      return {
-        ...chipBase,
-        background: tokens.colors.infoFondoClaro,
-        borderColor: tokens.colors.infoBordeSuave,
-        color: tokens.colors.azulInfo,
-      };
-    case "nuevo":
-      return {
-        ...chipBase,
-        background: tokens.colors.fondoNeutral,
-        borderColor: tokens.colors.bordeNeutral,
-        color: tokens.colors.textoSecundario,
-      };
+/**
+ * Corte 3.5 sustracción de chrome: el chip colapsa a 3 paletas visuales
+ * alineadas con los 3 estados literales:
+ *  - `local-clean` sin guardado en curso → tokens de éxito (verde suave).
+ *  - guardado en curso → tokens informacionales (azul suave).
+ *  - cualquier otro caso → tokens de advertencia (dot ámbar implicito en
+ *    los colores `advertencia*`).
+ */
+function chipEstilo(tipo: VarianteChipTipo, salvando: boolean): preact.JSX.CSSProperties {
+  if (salvando) {
+    return {
+      ...chipBase,
+      background: tokens.colors.infoFondoClaro,
+      borderColor: tokens.colors.infoBordeSuave,
+      color: tokens.colors.infoTextoOscuro,
+    };
   }
+  if (tipo === "local-clean") {
+    return {
+      ...chipBase,
+      background: tokens.colors.exitoFondo,
+      borderColor: tokens.colors.exitoBase,
+      color: tokens.colors.exitoTexto,
+    };
+  }
+  return {
+    ...chipBase,
+    background: tokens.colors.advertenciaFondo,
+    borderColor: tokens.colors.advertenciaBorde,
+    color: tokens.colors.alertaTexto,
+  };
 }
 
 const chipIconStyle: preact.JSX.CSSProperties = {

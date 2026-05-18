@@ -249,7 +249,10 @@ test("asiste importacion JSON con archivo, preview, confirmacion y error legible
   // vive en la pestaña y el estado de persistencia en ChipPersistencia.
   await expect(page.getByTestId("toolbar-root").getByText("Modelo multi OPD", { exact: true })).toHaveCount(0);
   await expect(page.getByRole("tab", { name: /Modelo multi OPD/ })).toHaveCount(1);
-  await expect(page.getByTestId("chip-persistencia")).toContainText("Importado");
+  // Corte 3.5: el chip muestra "Sin guardar · Ctrl+S" para imports no
+  // persistidos; el origen "importado" sigue expuesto en data-variante.
+  await expect(page.getByTestId("chip-persistencia")).toHaveAttribute("data-variante", "importado");
+  await expect(page.getByTestId("chip-persistencia")).toContainText("Sin guardar");
 
   await jsonEditor(page).fill("{");
   await expect(page.getByRole("alert")).toHaveText("JSON inválido");

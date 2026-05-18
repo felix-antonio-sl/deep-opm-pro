@@ -92,7 +92,7 @@ export function BarraPestanas() {
                 onClick={() => activarConConfirmacion(pestana)}
               >
                 <span style={style.etiqueta} title={pestana.etiqueta}>
-                  {pestana.etiqueta}{pestana.dirty ? " *" : ""}
+                  {pestana.etiqueta}
                 </span>
                 {pestanas.length > 1 ? (
                   <button

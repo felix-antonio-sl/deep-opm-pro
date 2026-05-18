@@ -2,6 +2,7 @@ import { describe, expect, test } from "bun:test";
 import {
   clasificarVariante,
   detallarChip,
+  formatearHoraGuardado,
   formatearTiempoRelativo,
   labelChip,
 } from "./ChipPersistencia";
@@ -128,41 +129,65 @@ describe("ChipPersistencia · formatearTiempoRelativo", () => {
   });
 });
 
-describe("ChipPersistencia · labelChip", () => {
-  test("local-clean con versiones y tiempo", () => {
-    expect(labelChip({ tipo: "local-clean", versiones: 3, tiempoRelativo: "hace 2 min" })).toBe(
-      "Local · v3 · hace 2 min",
-    );
+describe("ChipPersistencia · formatearHoraGuardado", () => {
+  test("timestamp inválido devuelve null", () => {
+    expect(formatearHoraGuardado(null)).toBeNull();
+    expect(formatearHoraGuardado(undefined)).toBeNull();
+    expect(formatearHoraGuardado(Number.NaN)).toBeNull();
   });
 
-  test("local-clean sin versiones omite la pieza vN", () => {
-    expect(labelChip({ tipo: "local-clean", versiones: 0, tiempoRelativo: "recién" })).toBe(
-      "Local · recién",
-    );
+  test("timestamp válido devuelve HH:mm en formato es-CL (24h)", () => {
+    const formato = formatearHoraGuardado(1_700_000_000_000);
+    expect(formato).toMatch(/^\d{2}:\d{2}$/);
+  });
+});
+
+describe("ChipPersistencia · labelChip (Corte 3.5)", () => {
+  // Corte 3.5 sustracción de chrome: el chip colapsa a 3 estados literales,
+  // sin exponer el origen (importado/fixture/asistente/nuevo) en el label.
+  test("local-clean sin hora → Guardado", () => {
+    expect(labelChip(
+      { tipo: "local-clean", versiones: 3, tiempoRelativo: null },
+      { horaGuardado: null },
+    )).toBe("Guardado");
   });
 
-  test("local-clean sin tiempo omite el sufijo de tiempo", () => {
-    expect(labelChip({ tipo: "local-clean", versiones: 3, tiempoRelativo: null })).toBe("Local · v3");
+  test("local-clean con hora → Guardado · HH:mm", () => {
+    expect(labelChip(
+      { tipo: "local-clean", versiones: 3, tiempoRelativo: null },
+      { horaGuardado: "14:32" },
+    )).toBe("Guardado · 14:32");
   });
 
-  test("local-dirty muestra version + 'sin guardar'", () => {
+  test("salvando en curso → Guardando…", () => {
+    expect(labelChip(
+      { tipo: "local-clean", versiones: 0, tiempoRelativo: null },
+      { salvando: true, horaGuardado: "14:32" },
+    )).toBe("Guardando…");
+    expect(labelChip(
+      { tipo: "nuevo", versiones: 0, tiempoRelativo: null },
+      { salvando: true },
+    )).toBe("Guardando…");
+  });
+
+  test("local-dirty → Sin guardar · Ctrl+S", () => {
     expect(labelChip({ tipo: "local-dirty", versiones: 3, tiempoRelativo: null })).toBe(
-      "Local · v3 · sin guardar",
+      "Sin guardar · Ctrl+S",
     );
   });
 
-  test("variantes simples", () => {
+  test("variantes no persistidas colapsan a Sin guardar · Ctrl+S", () => {
     expect(labelChip({ tipo: "importado", versiones: 0, tiempoRelativo: null })).toBe(
-      "Importado · sin guardar",
+      "Sin guardar · Ctrl+S",
     );
     expect(labelChip({ tipo: "fixture", versiones: 0, tiempoRelativo: null })).toBe(
-      "Fixture · sin guardar",
+      "Sin guardar · Ctrl+S",
     );
     expect(labelChip({ tipo: "asistente", versiones: 0, tiempoRelativo: null })).toBe(
-      "Asistente · sin guardar",
+      "Sin guardar · Ctrl+S",
     );
     expect(labelChip({ tipo: "nuevo", versiones: 0, tiempoRelativo: null })).toBe(
-      "Nuevo · sin guardar",
+      "Sin guardar · Ctrl+S",
     );
   });
 });
@@ -172,8 +197,9 @@ describe("ChipPersistencia · detallarChip", () => {
     const tooltip = detallarChip(
       { tipo: "local-clean", versiones: 2, tiempoRelativo: "hace 1 min" },
       "Cafetera Doméstica",
+      { horaGuardado: "14:32" },
     );
-    expect(tooltip).toContain("Local · v2 · hace 1 min");
+    expect(tooltip).toContain("Guardado · 14:32");
     expect(tooltip).toContain("Modelo: Cafetera Doméstica");
     expect(tooltip).toContain("persistido");
     expect(tooltip).toContain("Cambios pendientes: no");
@@ -184,6 +210,7 @@ describe("ChipPersistencia · detallarChip", () => {
       { tipo: "local-dirty", versiones: 1, tiempoRelativo: null },
       "Modelo X",
     );
+    expect(tooltip).toContain("Sin guardar · Ctrl+S");
     expect(tooltip).toContain("Cambios pendientes: sí");
   });
 

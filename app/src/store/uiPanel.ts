@@ -542,7 +542,7 @@ export const createUiPanelSlice: CrearSlice<UiPanelSlice> = (set, get) => ({
     }
     const pestana = crearPestanaDesdeModelo(modelo, {
       modeloId: null,
-      nombre: "Modelo (No guardado)",
+      nombre: "Modelo",
       cargadoDesde: "asistente",
       dirty: true,
     });

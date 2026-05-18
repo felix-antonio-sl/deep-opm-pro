@@ -10,23 +10,17 @@ export interface EstadoPestanas {
 /**
  * Identidad UNIFICADA del modelo en pestaña. Fuente única para etiqueta de
  * pestaña, header y otras superficies que muestren "qué modelo estás
- * editando". Cubre H1/P0-1 del informe UI/UX 2026-05-07: al cargar fixture
- * o importar JSON, la etiqueta se sincroniza con el nombre real, no se
- * queda como "Modelo (No guardado)".
+ * editando".
  *
- * Reglas:
- * - Persistido (modeloId !== null) → `nombre` (sin sufijo).
- * - No persistido con nombre real → `nombre (No guardado)`.
- * - No persistido sin nombre → `Modelo (No guardado)`.
- *
- * Caller decide si añadir marcador de "dirty" (asterisco u otro signo) por
- * encima de esto; aquí no añadimos sufijo dirty para evitar duplicar el
- * "(No guardado)" cuando el modelo persistido tiene cambios.
+ * Corte 3.5 sustracción de chrome: la etiqueta retorna SOLO el nombre real
+ * del modelo (o "Modelo" como placeholder cuando no hay nombre). El estado
+ * de persistencia y dirty vive exclusivamente en `ChipPersistencia`, no se
+ * duplica en el label de la pestaña.
  */
 export function etiquetaPestana(opts: { nombre: string | undefined; modeloId: Id | null }): string {
   const nombre = (opts.nombre ?? "").trim();
   if (opts.modeloId) return nombre || "Modelo";
-  return nombre ? `${nombre} (No guardado)` : "Modelo (No guardado)";
+  return nombre || "Modelo";
 }
 
 export function crearPestanaNueva(opts: { etiqueta?: string; modelo?: Modelo } = {}): Pestana {
@@ -95,7 +89,7 @@ export function reordenarPestanas(estado: EstadoPestanas, idsOrdenados: PestanaI
 }
 
 export function actualizarEtiquetaPestana(estado: EstadoPestanas, id: PestanaId, etiqueta: string): EstadoPestanas {
-  const limpia = etiqueta.trim() || "Modelo (No guardado)";
+  const limpia = etiqueta.trim() || "Modelo";
   return {
     ...estado,
     pestanas: estado.pestanas.map((pestana) => pestana.id === id ? { ...pestana, etiqueta: limpia } : pestana),
@@ -280,7 +274,7 @@ export const createPestanasSlice: CrearSlice<PestanasSlice> = (set, get) => ({
   renombrarPestana(id, etiqueta) {
     set({
       pestanasAbiertas: get().pestanasAbiertas.map((pestana) => (
-        pestana.id === id ? { ...pestana, etiqueta: etiqueta.trim() || "Modelo (No guardado)" } : pestana
+        pestana.id === id ? { ...pestana, etiqueta: etiqueta.trim() || "Modelo" } : pestana
       )),
       mensaje: null,
     });
