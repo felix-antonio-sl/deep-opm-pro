@@ -144,9 +144,8 @@ import {
   pegarModelo,
 } from "../persistencia/movimientoModelos";
 import {
-  crearVersion,
-  eliminarVersion,
-  restaurarVersion,
+  eliminarVersionResultado,
+  restaurarVersionResultado,
 } from "../persistencia/versiones";
 import {
   crearAutosalvado,
@@ -239,52 +238,58 @@ export const createCarpetasSlice: CrearSlice<CarpetasSlice> = (set, get) => ({
       set({ mensaje: "Versión no encontrada" });
       return;
     }
-    try {
-      const restaurado = await restaurarVersion(version.modeloPayloadKey);
-      const fecha = version.creadoEn.slice(0, 10);
-      const nombre = `${restaurado.nombre} (restaurado ${fecha})`;
-      const { archivado: _archivado, archivadoEn: _archivadoEn, versiones: _versiones, ...restauradoActivo } = restaurado;
-      const modeloCopia: Modelo = { ...restauradoActivo, id: crearIdModeloLocal(), nombre };
-      const carpetaId = get().indice.modelos.find((item) => item.id === modeloId)?.carpetaId ?? null;
-      const guardado = guardarModeloLocal({
-        nombre,
-        descripcion: `Restaurado desde ${version.nombre}`,
-        json: exportarModelo(modeloCopia, carpetaId),
-        carpetaId,
-      });
-      if (!guardado.ok) {
-        set({ mensaje: guardado.error });
-        return;
-      }
-      const indice = {
-        ...get().indice,
-        modelos: [...get().indice.modelos, { id: guardado.value.id, carpetaId }],
-        recientes: [guardado.value.id, ...get().indice.recientes.filter((id) => id !== guardado.value.id)].slice(0, 10),
-      };
-      escribirIndiceWorkspace(indice);
-      resetHistorial(modeloCopia);
-      set(estadoModelo(modeloCopia, {
-        opdActivoId: modeloCopia.opdRaizId,
-        seleccionId: null,
-        enlaceSeleccionId: null,
-        modoEnlace: null,
-        modeloPersistidoId: guardado.value.id,
-        descripcionModeloLocal: guardado.value.descripcion,
-        modelosGuardados: listarModelosGuardadosSeguro(),
-        indice,
-        dialogoVersionesAbierto: null,
-        workspaceLocal: workspaceDesdeModelo(modeloCopia, guardado.value.id, guardado.value.descripcion, carpetaId),
-        mensaje: "Versión restaurada como copia",
-      }));
-    } catch (error) {
-      set({ mensaje: error instanceof Error ? error.message : "No se pudo restaurar versión" });
+    const restauradoResultado = await restaurarVersionResultado(version.modeloPayloadKey);
+    if (!restauradoResultado.ok) {
+      set({ mensaje: restauradoResultado.error.mensaje });
+      return;
     }
+    const restaurado = restauradoResultado.value;
+    const fecha = version.creadoEn.slice(0, 10);
+    const nombre = `${restaurado.nombre} (restaurado ${fecha})`;
+    const { archivado: _archivado, archivadoEn: _archivadoEn, versiones: _versiones, ...restauradoActivo } = restaurado;
+    const modeloCopia: Modelo = { ...restauradoActivo, id: crearIdModeloLocal(), nombre };
+    const carpetaId = get().indice.modelos.find((item) => item.id === modeloId)?.carpetaId ?? null;
+    const guardado = guardarModeloLocal({
+      nombre,
+      descripcion: `Restaurado desde ${version.nombre}`,
+      json: exportarModelo(modeloCopia, carpetaId),
+      carpetaId,
+    });
+    if (!guardado.ok) {
+      set({ mensaje: guardado.error });
+      return;
+    }
+    const indice = {
+      ...get().indice,
+      modelos: [...get().indice.modelos, { id: guardado.value.id, carpetaId }],
+      recientes: [guardado.value.id, ...get().indice.recientes.filter((id) => id !== guardado.value.id)].slice(0, 10),
+    };
+    escribirIndiceWorkspace(indice);
+    resetHistorial(modeloCopia);
+    set(estadoModelo(modeloCopia, {
+      opdActivoId: modeloCopia.opdRaizId,
+      seleccionId: null,
+      enlaceSeleccionId: null,
+      modoEnlace: null,
+      modeloPersistidoId: guardado.value.id,
+      descripcionModeloLocal: guardado.value.descripcion,
+      modelosGuardados: listarModelosGuardadosSeguro(),
+      indice,
+      dialogoVersionesAbierto: null,
+      workspaceLocal: workspaceDesdeModelo(modeloCopia, guardado.value.id, guardado.value.descripcion, carpetaId),
+      mensaje: "Versión restaurada como copia",
+    }));
   },
 
   eliminarVersionPorId(modeloId, versionId) {
     const resumen = get().modelosGuardados.find((item) => item.id === modeloId);
     const versiones = (resumen?.versiones ?? []).filter((version) => version.id !== versionId);
-    const indice = eliminarVersion(get().indice, modeloId, versionId);
+    const eliminado = eliminarVersionResultado(get().indice, modeloId, versionId);
+    if (!eliminado.ok) {
+      set({ mensaje: eliminado.error.mensaje });
+      return;
+    }
+    const indice = eliminado.value;
     actualizarMetadataModeloLocal(modeloId, { versiones });
     escribirIndiceWorkspace(indice);
     set({

@@ -1,19 +1,51 @@
-import type { Id, Modelo, VersionResumen } from "../modelo/tipos";
+import type { Id, Modelo, Resultado, VersionResumen } from "../modelo/tipos";
 import { exportarModelo, hidratarModelo } from "../serializacion/json";
 import type { WorkspaceIndice } from "./workspace";
 
 const VERSION_KEY_PREFIX = "deep-opm-pro:version:";
 
+export type CodigoErrorVersion =
+  | "storage_no_disponible"
+  | "storage_escritura_fallida"
+  | "storage_lectura_fallida"
+  | "storage_borrado_fallido"
+  | "version_no_encontrada"
+  | "snapshot_no_encontrado"
+  | "snapshot_corrupto";
+
+export interface ErrorVersion {
+  codigo: CodigoErrorVersion;
+  mensaje: string;
+  detalle?: string;
+}
+
+export type ResultadoVersion<T> = Resultado<T, ErrorVersion>;
+
 export function crearVersion(
   modelo: Modelo,
   opts: { nombre?: string; descripcion?: string; preservar?: boolean; ahora?: string } = {},
 ): VersionResumen {
+  const resultado = crearVersionResultado(modelo, opts);
+  if (!resultado.ok) throw new Error(resultado.error.mensaje);
+  return resultado.value;
+}
+
+export function crearVersionResultado(
+  modelo: Modelo,
+  opts: { nombre?: string; descripcion?: string; preservar?: boolean; ahora?: string } = {},
+): ResultadoVersion<VersionResumen> {
+  const storage = storageLocal();
+  if (!storage.ok) return storage;
   const versionId = generarId();
   const creadoEn = opts.ahora ?? new Date().toISOString();
   const payload = exportarModelo(modelo);
   const modeloPayloadKey = claveVersion(modelo.id, versionId);
-  storageLocal().setItem(modeloPayloadKey, payload);
-  return {
+  try {
+    storage.value.setItem(modeloPayloadKey, payload);
+  } catch {
+    return falloVersion("storage_escritura_fallida", "No se pudo crear versión");
+  }
+  return okVersion({
     id: versionId,
     creadoEn,
     nombre: opts.nombre?.trim() || `Snapshot ${formatearFechaCorta(creadoEn)}`,
@@ -21,7 +53,7 @@ export function crearVersion(
     ...(opts.preservar ? { preservar: true } : {}),
     modeloPayloadKey,
     bytes: payload.length,
-  };
+  });
 }
 
 export function listarVersiones(workspace: WorkspaceIndice, modeloId: Id): VersionResumen[] {
@@ -30,16 +62,33 @@ export function listarVersiones(workspace: WorkspaceIndice, modeloId: Id): Versi
 }
 
 export async function restaurarVersion(versionIdOClave: Id): Promise<Modelo> {
+  const resultado = await restaurarVersionResultado(versionIdOClave);
+  if (!resultado.ok) throw new Error(resultado.error.mensaje);
+  return resultado.value;
+}
+
+export async function restaurarVersionResultado(versionIdOClave: Id): Promise<ResultadoVersion<Modelo>> {
   const storage = storageLocal();
-  const key = versionIdOClave.startsWith(VERSION_KEY_PREFIX)
-    ? versionIdOClave
-    : buscarClaveVersion(storage, versionIdOClave);
-  if (!key) throw new Error("Versión no encontrada");
-  const payload = storage.getItem(key);
-  if (!payload) throw new Error("Snapshot de versión no encontrado");
+  if (!storage.ok) return storage;
+  let key: string | null;
+  try {
+    key = versionIdOClave.startsWith(VERSION_KEY_PREFIX)
+      ? versionIdOClave
+      : buscarClaveVersion(storage.value, versionIdOClave);
+  } catch {
+    return falloVersion("storage_lectura_fallida", "No se pudo leer versión");
+  }
+  if (!key) return falloVersion("version_no_encontrada", "Versión no encontrada");
+  let payload: string | null;
+  try {
+    payload = storage.value.getItem(key);
+  } catch {
+    return falloVersion("storage_lectura_fallida", "No se pudo leer versión");
+  }
+  if (!payload) return falloVersion("snapshot_no_encontrado", "Snapshot de versión no encontrado");
   const hidratado = hidratarModelo(payload);
-  if (!hidratado.ok) throw new Error(hidratado.error);
-  return hidratado.value;
+  if (!hidratado.ok) return falloVersion("snapshot_corrupto", hidratado.error, hidratado.error);
+  return okVersion(hidratado.value);
 }
 
 export function eliminarVersion(
@@ -47,17 +96,35 @@ export function eliminarVersion(
   modeloId: Id,
   versionId: Id,
 ): WorkspaceIndice {
+  const resultado = eliminarVersionResultado(workspace, modeloId, versionId);
+  if (!resultado.ok) throw new Error(resultado.error.mensaje);
+  return resultado.value;
+}
+
+export function eliminarVersionResultado(
+  workspace: WorkspaceIndice,
+  modeloId: Id,
+  versionId: Id,
+): ResultadoVersion<WorkspaceIndice> {
   const modelo = workspace.modelos.find((item) => item.id === modeloId);
   const version = modelo?.versiones?.find((item) => item.id === versionId);
-  if (version) storageLocal().removeItem(version.modeloPayloadKey);
-  return {
+  if (version) {
+    const storage = storageLocal();
+    if (!storage.ok) return storage;
+    try {
+      storage.value.removeItem(version.modeloPayloadKey);
+    } catch {
+      return falloVersion("storage_borrado_fallido", "No se pudo eliminar versión");
+    }
+  }
+  return okVersion({
     ...workspace,
     modelos: workspace.modelos.map((item) =>
       item.id === modeloId
         ? { ...item, versiones: (item.versiones ?? []).filter((v) => v.id !== versionId) }
         : item,
     ),
-  };
+  });
 }
 
 export function aplicarPoliticaLogScaleVersiones(
@@ -107,11 +174,15 @@ export function claveVersion(modeloId: Id, versionId: Id): string {
   return `${VERSION_KEY_PREFIX}${modeloId}:${versionId}`;
 }
 
-function storageLocal(): Storage {
-  if (typeof globalThis.localStorage === "undefined") {
-    throw new Error("Storage local no disponible");
+function storageLocal(): ResultadoVersion<Storage> {
+  try {
+    if (typeof globalThis.localStorage === "undefined") {
+      return falloVersion("storage_no_disponible", "Storage local no disponible");
+    }
+    return okVersion(globalThis.localStorage);
+  } catch {
+    return falloVersion("storage_no_disponible", "Storage local no disponible");
   }
-  return globalThis.localStorage;
 }
 
 function generarId(): Id {
@@ -138,4 +209,12 @@ function formatearFechaCorta(iso: string): string {
     hour: "2-digit",
     minute: "2-digit",
   });
+}
+
+function okVersion<T>(value: T): ResultadoVersion<T> {
+  return { ok: true, value };
+}
+
+function falloVersion<T = never>(codigo: CodigoErrorVersion, mensaje: string, detalle?: string): ResultadoVersion<T> {
+  return { ok: false, error: detalle ? { codigo, mensaje, detalle } : { codigo, mensaje } };
 }

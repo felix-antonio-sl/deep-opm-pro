@@ -143,11 +143,7 @@ import {
   pegarCarpeta,
   pegarModelo,
 } from "../persistencia/movimientoModelos";
-import {
-  crearVersion,
-  eliminarVersion,
-  restaurarVersion,
-} from "../persistencia/versiones";
+import { crearVersionResultado } from "../persistencia/versiones";
 import {
   crearAutosalvado,
   type AutosalvadoEstado,
@@ -444,10 +440,14 @@ export const createWorkspaceModSlice: CrearSlice<WorkspaceModSlice> = (set, get)
       set({ mensaje: "Guarda el modelo antes de versionarlo" });
       return;
     }
+    const version = crearVersionResultado(modelo, opts);
+    if (!version.ok) {
+      set({ mensaje: version.error.mensaje });
+      return;
+    }
     try {
-      const version = crearVersion(modelo, opts);
       const resumen = listarModelosGuardadosSeguro().find((item) => item.id === modeloPersistidoId);
-      const versiones = [version, ...(resumen?.versiones ?? [])];
+      const versiones = [version.value, ...(resumen?.versiones ?? [])];
       const actualizado = actualizarMetadataModeloLocal(modeloPersistidoId, { versiones });
       if (!actualizado.ok) {
         set({ mensaje: actualizado.error });

@@ -11,6 +11,6 @@ export interface Posicion {
   y: number;
 }
 
-export type Resultado<T> =
+export type Resultado<T, E = string> =
   | { ok: true; value: T }
-  | { ok: false; error: string };
+  | { ok: false; error: E };

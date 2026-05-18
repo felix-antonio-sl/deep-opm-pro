@@ -143,11 +143,7 @@ import {
   pegarCarpeta,
   pegarModelo,
 } from "../persistencia/movimientoModelos";
-import {
-  crearVersion,
-  eliminarVersion,
-  restaurarVersion,
-} from "../persistencia/versiones";
+import { crearVersionResultado } from "../persistencia/versiones";
 import {
   crearAutosalvado,
   type AutosalvadoEstado,
@@ -306,9 +302,9 @@ export const createPersistenciaSlice: CrearSlice<PersistenciaSlice> = (set, get)
     }
     let versiones = guardado.value.versiones ?? [];
     if (guardado.value.crearVersionAlGuardar) {
-      try {
-        const version = crearVersion(modelo, { descripcion: "Guardado manual" });
-        versiones = [version, ...versiones];
+      const version = crearVersionResultado(modelo, { descripcion: "Guardado manual" });
+      if (version.ok) {
+        versiones = [version.value, ...versiones];
         actualizarMetadataModeloLocal(guardado.value.id, { versiones });
         const indiceActualizado = {
           ...indice,
@@ -318,7 +314,7 @@ export const createPersistenciaSlice: CrearSlice<PersistenciaSlice> = (set, get)
         };
         escribirIndiceWorkspace(indiceActualizado);
         set({ indice: indiceActualizado });
-      } catch {
+      } else {
         set({ mensaje: "Modelo guardado; no se pudo crear versión" });
       }
     }

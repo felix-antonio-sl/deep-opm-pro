@@ -12,7 +12,7 @@ import {
   workspaceDesdeModelo,
   type WorkspaceIndice,
 } from "../../persistencia/workspace";
-import { crearVersion } from "../../persistencia/versiones";
+import { crearVersionResultado } from "../../persistencia/versiones";
 import { exportarModelo, hidratarModelo } from "../../serializacion/json";
 import {
   activarPestanaNueva,
@@ -133,14 +133,14 @@ export function accionesUI(set: SetStore, get: GetStore): Partial<ModeloSlice> {
       marcarSnapshotModelo(modeloNombrado);
       let versiones: VersionResumen[] = [];
       if (input.crearVersionAlGuardar) {
-        try {
-          const version = crearVersion(modeloNombrado, { descripcion: "Versión inicial" });
-          versiones = [version];
+        const version = crearVersionResultado(modeloNombrado, { descripcion: "Versión inicial" });
+        if (version.ok) {
+          versiones = [version.value];
           actualizarMetadataModeloLocal(guardado.value.id, {
             versiones,
             crearVersionAlGuardar: true,
           });
-        } catch { /* storage lleno/no disponible: se conserva el guardado */ }
+        }
       }
       const nuevoIndice: WorkspaceIndice = {
         ...indice,
@@ -199,14 +199,14 @@ export function accionesUI(set: SetStore, get: GetStore): Partial<ModeloSlice> {
       marcarSnapshotModelo(modeloNombrado);
       let versiones: VersionResumen[] = [];
       if (input.crearVersionAlGuardar) {
-        try {
-          const version = crearVersion(modeloNombrado, { descripcion: "Versión inicial" });
-          versiones = [version];
+        const version = crearVersionResultado(modeloNombrado, { descripcion: "Versión inicial" });
+        if (version.ok) {
+          versiones = [version.value];
           actualizarMetadataModeloLocal(guardado.value.id, {
             versiones,
             crearVersionAlGuardar: true,
           });
-        } catch { /* storage lleno/no disponible: se conserva el guardado */ }
+        }
       }
       const nuevoIndice: WorkspaceIndice = {
         ...indice,
