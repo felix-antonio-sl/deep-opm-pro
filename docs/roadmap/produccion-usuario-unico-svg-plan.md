@@ -242,45 +242,10 @@ Resultado:
 
 #### Procedimiento Minimo De Backup Manual JSON
 
-Alcance: respaldo portable del modelo OPM activo para uso single-user local. No
-sustituye sincronizacion remota, backend, versionado externo ni recuperacion si
-se pierde el archivo descargado.
-
-Cuando respaldar:
-
-- al terminar una sesion de trabajo;
-- antes de cambios estructurales grandes;
-- antes de limpiar datos del navegador, cambiar de navegador, cambiar de
-  origen/puerto o actualizar el build;
-- antes de depender del modelo para trabajo real.
-
-Crear backup:
-
-1. Guardar el modelo localmente con `Ctrl+S` o `Menu principal > Guardar/Guardar como`.
-2. Abrir `Menu principal > Importar/Exportar JSON...`.
-3. Usar `Descargar JSON`.
-4. Guardar el archivo fuera del storage del navegador, con nombre legible y fecha.
-5. Verificar que el archivo pesa mas de 0 bytes y contiene `"formato": "deep-opm-pro.modelo.v0"`.
-
-Restaurar backup:
-
-1. Abrir la app.
-2. Abrir `Menu principal > Importar/Exportar JSON...`.
-3. Elegir o soltar el archivo `.json`.
-4. Confirmar que la vista previa muestra el nombre del modelo y conteos esperados.
-5. Pulsar `Importar`.
-6. Ejecutar inmediatamente `Guardar` o `Guardar como` para volver a persistirlo en el workspace local.
-7. Reabrir desde `Cargar otro...` y verificar que el modelo aparece y carga.
-
-Limitaciones:
-
-- `localStorage` no es respaldo: puede perderse al limpiar datos del navegador,
-  cambiar de perfil/origen, usar otro navegador o por cuotas del navegador.
-- El backup JSON cubre el modelo OPM serializado; no cubre capturas, reportes,
-  `app/dist`, configuracion del navegador ni rollback del build.
-- El autosalvado opera sobre modelos que ya tienen un primer `Guardar como`.
-  Un modelo nuevo o importado sin guardar depende del dirty guard y del backup
-  manual.
+Procedimiento autoritativo: `docs/uso-productivo.md` §Respaldo Manual.
+El detalle paso a paso (cuando, como descargar, como restaurar,
+limitaciones) vive ahi como SSOT del usuario operador. Esta seccion
+queda como puntero para no duplicar.
 
 Validacion ejecutada:
 
@@ -304,13 +269,20 @@ cd app && bun run gate:refactor
 
 Objetivo:
 
-Dejar instrucciones autosuficientes para correr, actualizar, respaldar y recuperar datos.
+Dejar instrucciones autosuficientes para correr, actualizar, respaldar y
+recuperar datos, separando el angulo del usuario operador del modelador del
+angulo del administrador de la instancia.
 
 Alcance:
 
-- Crear/actualizar documento operativo bajo `docs/`.
-- Incluir limites: sin auth, sin sync remoto, sin multiusuario, sin SLA.
-- Incluir pasos de build, preview, backup JSON, export SVG y rollback.
+- Crear/actualizar documento operativo bajo `docs/` desde el angulo del
+  usuario operador del modelador.
+- Incluir limites: sin auth de aplicacion, sin sync remoto, sin
+  multiusuario, sin SLA.
+- Incluir pasos de uso diario, backup JSON, export SVG, recetas por
+  sintoma y atajos.
+- Mantener doc separada del admin (deploy, certificado, rollback de
+  contenedor) sin mezclarla con la del usuario.
 
 Gate:
 
@@ -320,9 +292,13 @@ cd app && bun run build
 
 Estado:
 
-- Cerrado el 2026-05-18 con deploy privado en `https://opforja.sanixai.com`.
+- Lado deploy cerrado el 2026-05-18 en commits del deploy opforja
+  (`781a496`, `5f75b75`, `597859c`).
+- Lado usuario operador cerrado el 2026-05-19 con `docs/uso-productivo.md`
+  y refactor de `docs/deploy/opforja.md` + `README.md` para separar
+  responsabilidades.
 
-Resultado:
+Resultado lado deploy (admin):
 
 - `Dockerfile` compila la app Vite con Bun y sirve `app/dist` con Nginx en
   puerto interno `8080`.
@@ -333,8 +309,25 @@ Resultado:
   porque esta app todavia no tiene auth interna.
 - El usuario operativo Basic Auth es `fsanhuezal`; la contrasena no se versiona
   en claro y solo queda representada como hash APR1 en `docker-compose.yml`.
-- `docs/deploy/opforja.md` deja comandos de deploy, verificacion, backup y
-  rollback.
+- `docs/deploy/opforja.md` deja comandos de deploy, verificacion, rollback y
+  nota explicita de que los datos del usuario viven en su navegador, no en la
+  infraestructura.
+
+Resultado lado usuario (operador del modelador):
+
+- `docs/uso-productivo.md` es el unico doc del usuario operador. Incluye:
+  resumen, entrar, crear primer modelo, tres operaciones diarias
+  (`Ctrl+S` con chip de persistencia como senal, `Ctrl+F`, `Ctrl+K`),
+  respaldo manual como primary (cuando, como descargar, como restaurar),
+  export SVG del OPD activo, recetas por sintoma observable (chip dice
+  `Sin guardar`; cerre sin guardar; navegador borro datos; app no carga),
+  atajos utiles y limites honestos.
+- `README.md` §Producción Privada se reduce a dos punteros: uno al doc del
+  usuario, otro al doc del admin. Elimina la duplicacion previa de cinco
+  bullets.
+- El procedimiento minimo de backup manual JSON deja de duplicarse: el
+  apartado §Corte 3 abajo apunta al §Respaldo Manual de
+  `docs/uso-productivo.md`.
 
 Validacion ejecutada:
 

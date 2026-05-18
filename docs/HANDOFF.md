@@ -1,11 +1,11 @@
 # HANDOFF — Estado operativo del modelador OPM
 
-**Fecha**: 2026-05-18
+**Fecha**: 2026-05-19
 **Repositorio**: `deep-opm-pro`
 **Rama**: `main`
 **Último corte funcional**: `c5b0727 refactor(toolbar): oculta + atributo deshabilitado y rotula buscar`
 **Último corte deploy**: `597859c chore(deploy): configura auth dedicado opforja`
-**Corte**: Corte 3.5 sustracción de chrome cerrado sobre deploy opforja operable.
+**Corte**: Corte 4 documentación de uso productivo cerrado del lado usuario operador, sobre Corte 3.5 sustracción de chrome y deploy opforja operable.
 
 ## Política De Handoff Único
 
@@ -23,6 +23,50 @@
 - JointJS OSS: usar documentación oficial viva cuando se toque JointJS.
 
 ## Estado Actual
+
+### Corte 4 Doc Uso Productivo Cerrado Lado Usuario — 2026-05-19
+
+Se cerró el lado pendiente del Corte 4 del plan single-user SVG. El
+cierre anterior (2026-05-18) cubría solo deploy/admin (`opforja.md`,
+Dockerfile, Traefik); faltaba la doc desde el ángulo del usuario
+operador del modelador, detectada por auditoría `jobs-web-ux` el
+2026-05-19 (anti-patrón Tutorial Mountain + violaciones II/XII/XIII/XV
+en el material existente).
+
+Resultado:
+
+- `docs/uso-productivo.md` es el doc único del usuario operador. Incluye
+  resumen, entrar, crear primer modelo, tres operaciones diarias
+  (`Ctrl+S` con chip de persistencia como señal canónica, `Ctrl+F`,
+  `Ctrl+K`), respaldo manual como primary (cuándo, cómo descargar, cómo
+  restaurar), export SVG del OPD activo, recetas por síntoma observable
+  (chip dice `Sin guardar`; cerré sin guardar; navegador borró datos;
+  app no carga), atajos útiles y límites honestos.
+- `docs/deploy/opforja.md` queda como doc del **administrador** de la
+  instancia; pierde §Datos Locales (movido al doc del usuario) y gana
+  nota explícita de scope (admin, no usuario) y de que los datos del
+  usuario viven en su navegador, no en infraestructura.
+- `README.md` §Producción Privada colapsa de 5 bullets a 2 punteros:
+  uno al doc del usuario, otro al doc del admin. Elimina duplicación
+  previa.
+- `docs/roadmap/produccion-usuario-unico-svg-plan.md` §Corte 4 actualiza
+  resultado para reflejar cierre real (deploy + usuario), y §Corte 3
+  Procedimiento Backup deja de duplicar el procedimiento JSON (apunta a
+  `docs/uso-productivo.md` §Respaldo Manual).
+
+Validación:
+
+```bash
+cd app && bun run typecheck
+# OK — cambio solo en docs, sin impacto runtime
+```
+
+Siguiente corte recomendado:
+
+- Corte 5 del plan single-user SVG: gate final de release local, registro
+  de baseline final y smoke manual autenticado contra el dominio. Con
+  Corte 3.5 y Corte 4 (lado usuario) ya cerrados, el plan queda listo
+  para su cierre formal.
 
 ### Corte 3.5 Sustracción De Chrome Cerrado — 2026-05-18
 

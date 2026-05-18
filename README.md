@@ -68,16 +68,13 @@ nuevas resoluciones. La instalacion reproducible sigue anclada en `app/bun.lock`
 
 ## Produccion Privada
 
-La primera instancia privada vive en `https://opforja.sanixai.com`.
+La primera instancia privada vive en `https://opforja.sanixai.com`,
+acceso con usuario `fsanhuezal` (contrasena fuera del repo).
 
-- Despliegue: `docker compose up -d --build` desde la raiz del repo.
-- Hosting: Nginx estatico en contenedor, publicado por Traefik en la red Docker
-  externa `web`.
-- Acceso: Basic Auth dedicado `opforja-auth@docker`; usuario operativo
-  `fsanhuezal`; la contrasena no se versiona en claro.
-- Datos: los modelos viven en `localStorage` del navegador y deben respaldarse
-  con `Menu principal > Importar/Exportar JSON... > Descargar JSON`.
-- Guia operativa completa: `docs/deploy/opforja.md`.
+- Uso del modelador (entrar, crear, guardar, respaldar, exportar SVG):
+  `docs/uso-productivo.md`.
+- Operacion de la instancia (deploy, actualizacion, rollback, certificado):
+  `docs/deploy/opforja.md`.
 
 ## Regla De Autoridad
 

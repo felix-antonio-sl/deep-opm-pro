@@ -6,6 +6,10 @@ Docker externa `web`.
 **Acceso:** privado por Basic Auth de Traefik (`opforja-auth@docker`). No
 guardar contrasenas en claro en este repo.
 
+> Doc del **administrador** de la instancia. Para uso operativo del
+> modelador (entrar, crear, guardar, respaldar, exportar SVG) ver
+> `docs/uso-productivo.md`.
+
 ## Patrón Operativo
 
 Este deploy replica el patron usado por `hdos-app`: `docker-compose.yml` local,
@@ -73,18 +77,22 @@ Esperado: certificado emitido para `CN = opforja.sanixai.com` por Let's Encrypt.
 4. Abrir la app con credenciales Basic Auth y ejecutar smoke manual minimo:
    crear/cargar modelo, descargar backup JSON y exportar SVG del OPD activo.
 
-## Datos Locales
+## Datos Del Usuario
 
-La persistencia de modelos vive en `localStorage` del navegador y queda ligada
-al origen `https://opforja.sanixai.com`. No migra automaticamente desde
-`localhost`.
+La persistencia de modelos vive en `localStorage` del navegador del
+usuario y queda ligada al origen `https://opforja.sanixai.com`. El admin
+no tiene acceso a esos modelos desde la infraestructura: no hay backend,
+no hay base de datos. El respaldo es responsabilidad del usuario via JSON
+descargado.
 
-Antes de cambiar de origen, navegador o build:
+Procedimiento detallado de respaldo, restore y migración entre orígenes:
+`docs/uso-productivo.md` §Respaldo Manual.
 
-1. Abrir `Menu principal > Importar/Exportar JSON...`.
-2. Usar `Descargar JSON`.
-3. Guardar el archivo fuera del navegador.
-4. Tras importar en `opforja`, ejecutar `Guardar` o `Guardar como`.
+Implicación operativa para el admin: una actualización del contenedor
+no afecta los datos del usuario (viven en el navegador), pero cualquier
+cambio que modifique el origen, el navegador del usuario o el storage
+del navegador sí. Avisar al usuario antes de operaciones que afecten su
+sesión activa.
 
 ## Rollback
 
