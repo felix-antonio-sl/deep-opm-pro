@@ -1,7 +1,7 @@
 # Quality ledger law-first
 
 **Fecha:** 2026-05-18  
-**Corte:** render/UI boundary - Corte 2 chrome UI slots
+**Corte:** produccion single-user - Corte 2 operacion estatica
 **Rol:** contrato operativo de calidad posterior a los cortes 0-7. Complementa
 el dashboard HU; no lo reemplaza y no edita HU canonicas.
 
@@ -24,6 +24,7 @@ sustituyen una ley con nombre estable cuando el borde es critico.
 | Render/UI boundary Corte 1 | Feedback port + test de frontera render sin Zustand | 1407 pass / 0 fail / 5261 expect, 153 archivos | 193 passed | 465.17 kB / 125.23 kB gzip | MVP-alpha 104/121 + 1 parcial (86.2%), 89/105 reglas matched |
 | Produccion single-user Corte 1 | Plan v0 + export SVG OPD activo sin JointJS+ | 1409 pass / 0 fail / 5265 expect, 153 archivos | 194 passed | 465.35 kB / 125.28 kB gzip | MVP-alpha 104/121 + 1 parcial (86.2%), 89/105 reglas matched |
 | Render/UI boundary Corte 2 | Chrome UI slots + frontera render sin UI concreta | 1410 pass / 0 fail / 5266 expect, 153 archivos | 194 passed | 465.66 kB / 125.20 kB gzip | MVP-alpha 104/121 + 1 parcial (86.2%), 89/105 reglas matched |
+| Produccion single-user Corte 2 | Preview productivo + bug capture fuera de build estatico por defecto | 1410 pass / 0 fail / 5266 expect, 153 archivos | 195 passed + preview 1 passed | 457.31 kB / 122.81 kB gzip | MVP-alpha 104/121 + 1 parcial (86.2%), 89/105 reglas matched |
 
 Notas:
 

@@ -3,8 +3,8 @@
 **Fecha**: 2026-05-18
 **Repositorio**: `deep-opm-pro`
 **Rama**: `main`
-**Último corte funcional**: `808559b refactor(render): desacopla chrome ui del canvas`
-**Corte**: Render/UI Boundary, Corte 2 cerrado: chrome UI por slots.
+**Último corte funcional**: `1df6f8a test(produccion): valida preview estatico`
+**Corte**: Produccion single-user SVG, Corte 2 cerrado: operacion estatica y preview productivo.
 
 ## Política De Handoff Único
 
@@ -22,6 +22,54 @@
 - JointJS OSS: usar documentación oficial viva cuando se toque JointJS.
 
 ## Estado Actual
+
+### Produccion Single-User SVG — Corte 2 Operacion Estatica Cerrado — 2026-05-18
+
+Se verifico que la app opera como build estatico servido por `vite preview` y
+que los affordances no-productivos no rompen la experiencia single-user.
+
+Resultado:
+
+- `browser:preview` ejecuta un smoke focal contra `dist` servido por
+  `bun run preview` en `127.0.0.1:4173`.
+- `playwright.preview.config.ts` construye y sirve el build productivo para ese
+  smoke.
+- `playwright.config.ts` excluye `*.preview.spec.ts` del smoke normal; el gate
+  principal no duplica el preview productivo.
+- El smoke productivo carga la SPA, importa un modelo, renderiza el canvas,
+  descarga SVG del OPD activo y verifica que no arrastra chrome.
+- `CapturadorBugs` queda fuera de builds productivos por defecto; solo se
+  habilita con `VITE_ENABLE_BUG_CAPTURE=true`.
+- Si el capturador se habilita contra un hosting sin middleware, degrada con
+  mensaje explicito en vez de romper la app.
+
+Commit atomico:
+
+- `1df6f8a test(produccion): valida preview estatico`
+
+Validacion:
+
+```bash
+cd app && bun run typecheck
+# OK
+
+cd app && bunx playwright test e2e/10-capturador-bugs.spec.ts
+# 4 passed
+
+cd app && bun run browser:preview
+# 1 passed
+
+cd app && bun run gate:refactor
+# typecheck OK; 1410 pass / 0 fail / 5266 expect; lint src/ OK; build OK; browser:smoke 195 passed
+# Dashboard HU: Total 24.8%; MVP-alpha 86.2%; 89/105 reglas auto; firma de fuentes vigente
+# Quality gate PASS: bundle 457.31 kB / 122.81 kB gzip; leyes 6/6; compat detectors 0
+```
+
+Siguiente corte recomendado:
+
+- Corte 3 del plan: persistencia local y backup operable. Verificar
+  guardado/carga local, dirty guard y export/import JSON; documentar backup
+  manual porque localStorage no es respaldo suficiente.
 
 ### Render/UI Boundary — Corte 2 Chrome UI Slots Cerrado — 2026-05-18
 
@@ -74,7 +122,7 @@ minima. No incluye auth, backend, multiusuario, PDF ni ZIP de todos los OPDs.
 Resultado:
 
 - `docs/roadmap/produccion-usuario-unico-svg-plan.md` define cortes 0-5 para
-  habilitar v0 single-user. Corte 0 y Corte 1 quedan cerrados.
+  habilitar v0 single-user. Corte 0, Corte 1 y Corte 2 quedan cerrados.
 - El menu principal de la vista normal expone `Exportar OPD actual como SVG`;
   la vista de mapa conserva su export PNG/SVG existente.
 - La accion usa el `dia.Paper` vivo desde `CanvasAdapterContext` y serializa el
@@ -107,10 +155,7 @@ cd app && bun run gate:refactor
 
 Siguiente corte recomendado:
 
-- Corte 2 del plan: operacion estatica y preview productivo. Verificar flujo
-  contra `app/dist` servido por `vite preview` o servidor estatico y degradar u
-  ocultar captura de bugs cuando no exista middleware local.
-- Corte 3 despues: backup operable con descarga JSON, porque localStorage no es
+- Corte 3 del plan: backup operable con descarga JSON, porque localStorage no es
   respaldo productivo suficiente aunque sea aceptable como almacenamiento v0.
 
 ### Render/UI Boundary — Corte 1 Feedback Port Cerrado — 2026-05-18

@@ -3,7 +3,7 @@
 **Fecha:** 2026-05-18  
 **Repo:** `deep-opm-pro`  
 **Alcance:** habilitar una primera version usable en produccion privada para un unico usuario local, con export SVG del OPD activo.  
-**Estado:** Corte 0 y Corte 1 cerrados; Corte 2 pendiente.  
+**Estado:** Corte 0, Corte 1 y Corte 2 cerrados; Corte 3 pendiente.  
 **Autoridad superior:** `AGENTS.md`, `docs/HANDOFF.md`, `docs/JOYAS.md`, `opm-extracted/`, SSOT OPM local y HU vivas.
 
 ## 1. Objetivo
@@ -173,7 +173,41 @@ cd app && bun run preview
 
 Estado:
 
-- Pendiente.
+- Cerrado el 2026-05-18 en `1df6f8a test(produccion): valida preview estatico`.
+
+Resultado:
+
+- `app/package.json` agrega `browser:preview` para ejecutar un smoke focal
+  contra el build servido por `vite preview`.
+- `app/playwright.preview.config.ts` construye `dist` y sirve la SPA por
+  `127.0.0.1:4173` con `bun run preview`.
+- `playwright.config.ts` excluye `*.preview.spec.ts` del smoke normal para no
+  duplicar el gate completo.
+- `25-produccion-preview.preview.spec.ts` verifica que la SPA productiva carga,
+  importa modelo, renderiza canvas JointJS, exporta SVG sin chrome y no expone
+  el capturador de bugs en produccion sin opt-in.
+- `CapturadorBugs` queda disponible por defecto solo en dev; en build
+  productivo requiere `VITE_ENABLE_BUG_CAPTURE=true`.
+- Si el capturador queda habilitado contra un hosting sin middleware, degrada
+  con mensaje explicito cuando el endpoint responde HTML/404/405/501 sin JSON.
+
+Validacion ejecutada:
+
+```bash
+cd app && bun run typecheck
+# OK
+
+cd app && bunx playwright test e2e/10-capturador-bugs.spec.ts
+# 4 passed
+
+cd app && bun run browser:preview
+# 1 passed
+
+cd app && bun run gate:refactor
+# typecheck OK; 1410 pass / 0 fail / 5266 expect; lint src/ OK; build OK; browser:smoke 195 passed
+# Dashboard HU: Total 24.8%; MVP-alpha 86.2%; 89/105 reglas auto; firma de fuentes vigente
+# Quality gate PASS: bundle 457.31 kB / 122.81 kB gzip; leyes 6/6; compat detectors 0
+```
 
 ### Corte 3 - Persistencia Local Y Backup Operable
 
