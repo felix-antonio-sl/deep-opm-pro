@@ -1,7 +1,7 @@
 # Quality ledger law-first
 
 **Fecha:** 2026-05-18  
-**Corte:** produccion single-user - Corte 3 backup JSON operable
+**Corte:** produccion single-user - Corte 4 deploy privado opforja
 **Rol:** contrato operativo de calidad posterior a los cortes 0-7. Complementa
 el dashboard HU; no lo reemplaza y no edita HU canonicas.
 
@@ -26,6 +26,7 @@ sustituyen una ley con nombre estable cuando el borde es critico.
 | Render/UI boundary Corte 2 | Chrome UI slots + frontera render sin UI concreta | 1410 pass / 0 fail / 5266 expect, 153 archivos | 194 passed | 465.66 kB / 125.20 kB gzip | MVP-alpha 104/121 + 1 parcial (86.2%), 89/105 reglas matched |
 | Produccion single-user Corte 2 | Preview productivo + bug capture fuera de build estatico por defecto | 1410 pass / 0 fail / 5266 expect, 153 archivos | 195 passed + preview 1 passed | 457.31 kB / 122.81 kB gzip | MVP-alpha 104/121 + 1 parcial (86.2%), 89/105 reglas matched |
 | Produccion single-user Corte 3 | Backup JSON descargable + restore smoke | 1410 pass / 0 fail / 5266 expect, 153 archivos | 196 passed + preview 1 passed | 457.31 kB / 122.82 kB gzip | MVP-alpha 104/121 + 1 parcial (86.2%), 89/105 reglas matched |
+| Produccion single-user Corte 4 | Deploy privado opforja con Traefik + Basic Auth | `bun run build` OK; `docker compose config` OK | contenedor healthy; HTTPS 401 esperado; TLS Let's Encrypt | 457.31 kB / 122.81 kB gzip | Sin cambio HU; Corte 5 ejecuta baseline final |
 
 Notas:
 

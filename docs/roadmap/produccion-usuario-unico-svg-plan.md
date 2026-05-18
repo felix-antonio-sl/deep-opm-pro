@@ -3,7 +3,7 @@
 **Fecha:** 2026-05-18  
 **Repo:** `deep-opm-pro`  
 **Alcance:** habilitar una primera version usable en produccion privada para un unico usuario local, con export SVG del OPD activo.  
-**Estado:** Corte 0, Corte 1, Corte 2 y Corte 3 cerrados; Corte 4 pendiente.  
+**Estado:** Corte 0, Corte 1, Corte 2, Corte 3 y Corte 4 cerrados; Corte 5 pendiente.
 **Autoridad superior:** `AGENTS.md`, `docs/HANDOFF.md`, `docs/JOYAS.md`, `opm-extracted/`, SSOT OPM local y HU vivas.
 
 ## 1. Objetivo
@@ -320,7 +320,38 @@ cd app && bun run build
 
 Estado:
 
-- Pendiente.
+- Cerrado el 2026-05-18 con deploy privado en `https://opforja.sanixai.com`.
+
+Resultado:
+
+- `Dockerfile` compila la app Vite con Bun y sirve `app/dist` con Nginx en
+  puerto interno `8080`.
+- `docker-compose.yml` replica el patron `hdos-app`: servicio conectado a red
+  Docker externa `web`, labels Traefik, TLS con `myresolver` y restart policy
+  `unless-stopped`.
+- A diferencia de `hdos-app`, el router `opforja` usa `auth@docker` porque esta
+  app todavia no tiene auth interna.
+- `docs/deploy/opforja.md` deja comandos de deploy, verificacion, backup y
+  rollback.
+
+Validacion ejecutada:
+
+```bash
+cd app && bun run build
+# OK
+
+docker compose config
+# OK
+
+docker compose up -d --build
+# opforja started
+
+docker exec opforja wget -qO- http://127.0.0.1:8080/healthz
+# ok
+
+curl -I https://opforja.sanixai.com
+# HTTP/2 401; WWW-Authenticate: Basic realm="traefik"
+```
 
 ### Corte 5 - Gate Final De Release Local
 
@@ -357,7 +388,9 @@ Estado:
   **Decision:** no es requisito de produccion single-user; si aparece roto en build estatico, se degrada o se oculta.
 
 - **Riesgo:** sin auth no hay proteccion si se publica en internet.  
-  **Decision:** esta version NO DEBE publicarse en internet abierto; si se requiere eso, el siguiente plan debe ser auth/deploy, no este.
+  **Decision:** `opforja.sanixai.com` queda publicado como deploy privado con
+  Basic Auth de Traefik (`auth@docker`). Si se requiere internet abierto, el
+  siguiente plan debe ser auth de aplicacion, no retirar la barrera.
 
 ## 9. Criterio De Cierre
 

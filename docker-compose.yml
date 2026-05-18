@@ -1,0 +1,28 @@
+services:
+  opforja:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: deep-opm-pro-opforja:latest
+    container_name: opforja
+    restart: unless-stopped
+    networks:
+      - web
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=web"
+      - "traefik.http.routers.opforja.rule=Host(`opforja.sanixai.com`)"
+      - "traefik.http.routers.opforja.entrypoints=websecure"
+      - "traefik.http.routers.opforja.tls.certresolver=myresolver"
+      - "traefik.http.routers.opforja.middlewares=auth@docker,opforja-security-headers@docker"
+      - "traefik.http.services.opforja.loadbalancer.server.port=8080"
+      - "traefik.http.middlewares.opforja-security-headers.headers.customResponseHeaders.Strict-Transport-Security=max-age=63072000; includeSubDomains; preload"
+      - "traefik.http.middlewares.opforja-security-headers.headers.customResponseHeaders.X-Frame-Options=DENY"
+      - "traefik.http.middlewares.opforja-security-headers.headers.customResponseHeaders.X-Content-Type-Options=nosniff"
+      - "traefik.http.middlewares.opforja-security-headers.headers.customResponseHeaders.Referrer-Policy=strict-origin-when-cross-origin"
+      - "traefik.http.middlewares.opforja-security-headers.headers.customResponseHeaders.Permissions-Policy=camera=(), microphone=(), geolocation=()"
+      - "traefik.http.middlewares.opforja-security-headers.headers.customResponseHeaders.Content-Security-Policy=default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'"
+
+networks:
+  web:
+    external: true

@@ -4,7 +4,7 @@
 **Repositorio**: `deep-opm-pro`
 **Rama**: `main`
 **Último corte funcional**: `acdeb32 feat(produccion): agrega backup json descargable`
-**Corte**: Produccion single-user SVG, Corte 3 cerrado: persistencia local y backup JSON operable.
+**Corte**: Produccion single-user SVG, Corte 4 cerrado: deploy privado opforja operable.
 
 ## Política De Handoff Único
 
@@ -22,6 +22,51 @@
 - JointJS OSS: usar documentación oficial viva cuando se toque JointJS.
 
 ## Estado Actual
+
+### Deploy Privado Opforja Cerrado — 2026-05-18
+
+Se desplego la app en `https://opforja.sanixai.com` siguiendo el patron local de
+`hdos-app`: Docker Compose, red Docker externa `web`, Traefik con TLS
+`myresolver` y contenedor reiniciable.
+
+Resultado:
+
+- `Dockerfile` compila `app/` con Bun y sirve `app/dist` con Nginx en `8080`.
+- `docker-compose.yml` publica `opforja.sanixai.com` por Traefik.
+- La ruta queda protegida con `auth@docker`, porque esta SPA todavia no tiene
+  auth interna; `hdos-app` si la tiene.
+- `docs/deploy/opforja.md` documenta deploy, verificacion, backup y rollback.
+- Let's Encrypt emitio certificado para `CN = opforja.sanixai.com`.
+
+Validacion:
+
+```bash
+cd app && bun run build
+# OK
+
+docker compose config
+# OK
+
+docker compose up -d --build
+# opforja started
+
+docker compose ps
+# opforja Up, healthy
+
+docker exec opforja wget -qO- http://127.0.0.1:8080/healthz
+# ok
+
+curl -I https://opforja.sanixai.com
+# HTTP/2 401; WWW-Authenticate: Basic realm="traefik"
+
+printf '' | openssl s_client -servername opforja.sanixai.com -connect opforja.sanixai.com:443 2>/dev/null | openssl x509 -noout -subject -issuer -dates
+# subject=CN = opforja.sanixai.com; issuer=Let's Encrypt R13
+```
+
+Siguiente corte recomendado:
+
+- Corte 5 del plan: gate final de release local, registro de baseline final y
+  smoke manual autenticado sobre el dominio.
 
 ### Produccion Single-User SVG — Corte 3 Backup JSON Operable Cerrado — 2026-05-18
 
