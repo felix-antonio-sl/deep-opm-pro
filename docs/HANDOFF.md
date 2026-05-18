@@ -3,8 +3,8 @@
 **Fecha**: 2026-05-18
 **Repositorio**: `deep-opm-pro`
 **Rama**: `main`
-**Último corte funcional**: `eb2ccd3 fix(ui): estabiliza cierre escape de command palette`
-**Corte**: Refactorizacion total, Corte 7 cerrado: wrappers, aliases y compat detectors temporales retirados; auditor HU apunta a evidencias reales y quality ledger queda con 0 detectores de compatibilidad.
+**Último corte funcional**: `ca471db fix(build): elimina chunk circular manual`
+**Corte**: Refactorizacion total, Corte 8 cerrado: consistencia transversal entre plan, HU dashboard, quality ledger, build y handoff.
 
 ## Política De Handoff Único
 
@@ -20,6 +20,52 @@
 - JointJS OSS: usar documentación oficial viva cuando se toque JointJS.
 
 ## Estado Actual
+
+### Refactorizacion Total — Corte 8 Consistencia Transversal Cerrado — 2026-05-18
+
+La rama `main` queda lista para sincronizar con `origin/main` tras el cierre documental de este handoff. El ultimo commit funcional del corte es `ca471db`.
+
+Resultado arquitectonico/proceso:
+
+- El plan normativo agrega explicitamente `Corte 8 - Consistencia Transversal Y Cierre De Drift`, para resolver la contradiccion previa entre "no hay Corte 8" y el trabajo real de auditoria solicitado.
+- `PanelOpl` deja de re-exportar el helper `panelOplMinimizadoEfectivo`; `App` y el test consumen el helper desde `app/viewmodels/panelOplViewModel`.
+- El auditor HU separa reglas OPL que antes estaban acopladas artificialmente: numeracion, minimizado/restauracion, AI Text placeholder y posicion lateral ya no se bloquean entre si.
+- El auditor HU actualiza rutas obsoletas hacia superficies vigentes: `PanelDiagnostico`, `DialogoConfiguracion`, `BibliotecaDock` y `DialogoPlantillas`.
+- El duplicado `HU-13.005` deja de ser inventariable en `HU-SHARED-001`; el dashboard queda sin diagnosticos de duplicate-id.
+- `vite.config.ts` elimina el alias `@app` no usado y consolida chunks manuales para cerrar el warning circular `feature-dialogos-pesados <-> feature-modales`.
+- `quality-ledger.md` queda alineado con el baseline vivo de Corte 8: bundle principal 463.44 kB / 124.62 kB gzip, leyes 6/6, compat detectors 0.
+
+Commits atomicos del corte:
+
+- `7827563 refactor(opl): mueve helper visual al viewmodel`
+- `3b91747 fix(roadmap): separa evidencia hu opl`
+- `ca471db fix(build): elimina chunk circular manual`
+- `c692199 fix(roadmap): actualiza reglas hu vigentes`
+- `docs(refactor): registra cierre corte consistencia` (este handoff)
+
+Validacion de cierre:
+
+```bash
+cd app && bun run check
+# typecheck OK; 1406 pass / 0 fail
+cd app && bun run lint
+# OK
+cd app && bun run build
+# build OK, sin warning de chunk circular
+cd app && bun run browser:smoke
+# 193 passed
+node docs/historias-usuario-v2/tools/progress-dashboard.mjs --sync-real
+# Total 24.8%; MVP-alpha 86.2%; 89/105 reglas auto; 0 diagnosticos
+cd app && bun run scripts/quality-ledger.mjs --markdown
+# Canonical laws 6/6; Compat detectors 0; MVP-alpha 104/121 (86.2%); Auto rules 89/105
+```
+
+Deuda residual medida, fuera de Corte 8:
+
+- `render/jointjs` aun importa piezas UI/feedback concretas en algunas integraciones. Resolverlo requiere corte propio de frontera render/UI, no un cleanup documental.
+- `App.tsx` y `ui/ejecutarAccionContextual.ts` aun usan `store.getState()` para atajos/global commands. Migrar eso a comandos/puertos debe hacerse como corte de aplicacion.
+- Varios puertos bajo `app/src/app/ports/*Port.ts` todavia son contratos tipados desde `OpmStore`; el patron correcto ya existe en `OplPort`, `DiagnosticsPort`, `PersistencePort` y `WorkspacePort`, pero migrar los restantes no debe hacerse masivamente.
+- `HU-50.004` permanece pendiente real: posicion lateral del panel OPL. No se implemento para no mezclar feature con consistencia.
 
 ### Refactorizacion Total — Corte 7 Limpieza De Compatibilidad Temporal Cerrado — 2026-05-18
 
@@ -631,17 +677,16 @@ También pueden existir salidas regenerables ignoradas:
 - `app/test-results/in-vivo/`
 - `app/dist/`
 
-## Pendientes Post-Brief Y Refactorizacion
+## Pendientes Post-Corte 8
 
-El brief UX/IFML queda cerrado para el corte auditado. Los cortes de modelos densos ya mejoraron `TablaEnlaces`, conectaron sus filtros con foco visual en canvas y corrigieron el foco de extremos `estado`.
+El brief UX/IFML y la refactorizacion total 0-8 quedan cerrados para el corte auditado. Los cortes de modelos densos ya mejoraron `TablaEnlaces`, conectaron sus filtros con foco visual en canvas y corrigieron el foco de extremos `estado`.
 
-Pendiente inmediato de refactorizacion:
+Pendiente arquitectonico recomendado:
 
-- Entrar a **Corte 5 - OPL Y Diagnostico Como Capacidades** del plan normativo.
-- Consolidar generacion OPL, filtros, edicion inversa y citas detras de `OplPort` sin cambiar texto OPL observable.
-- Introducir `DiagnosticsPort` solo si permite mover reglas/checkers fuera de UI sin duplicar calculos ni cambiar severidades visibles.
-- Mantener `OpmStore` como fachada compatible mientras los paneles migran a puertos pequenos.
-- Seguir usando smokes focales y `bun run check` como cierre de loop por corte.
+- Abrir un plan normativo nuevo y acotado si se decide atacar deuda residual de frontera render/UI, comandos globales o puertos aun tipados desde `OpmStore`.
+- No llamar a ese trabajo "continuacion automatica" de Corte 8: debe declarar alcance, no objetivos y gates propios.
+- Mantener `OpmStore` como fachada compatible mientras los puertos restantes se vuelven contratos explicitos.
+- Seguir usando `bun run check`, `bun run lint`, `bun run build`, `bun run browser:smoke`, `progress-dashboard --sync-real` y `quality-ledger` como cierre de loop para cortes de refactor.
 
 Pendientes funcionales a retomar despues o como pressure tests:
 
@@ -655,4 +700,4 @@ Pendientes funcionales a retomar despues o como pressure tests:
 
 Retomar desde este `docs/HANDOFF.md` y el plan `docs/roadmap/refactorizacion-total-plan-normativo.md`.
 
-Siguiente bloque recomendado: iniciar **Corte 5 - OPL Y Diagnostico Como Capacidades**. Objetivo pragmatico: hacer que OPL y diagnostico sean servicios claros, no funciones dispersas entre UI/store. Validar con typecheck, unitarios de `src/opl`, `src/serializacion`/diagnostico tocado, build y smoke focal del panel OPL/diagnostico cuando haya superficie visible.
+Siguiente bloque recomendado: decidir si se abre un plan nuevo para deuda residual de frontera, empezando por uno de tres frentes: render/UI, comandos globales fuera de `App`, o puertos restantes que todavia dependen tipadamente de `OpmStore`.

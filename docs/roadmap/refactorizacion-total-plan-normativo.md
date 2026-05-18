@@ -3,7 +3,7 @@
 **Fecha:** 2026-05-17  
 **Repo:** `deep-opm-pro`  
 **Alcance:** `app/`, artefactos de validacion asociados y reportes de roadmap cuando midan avance.  
-**Estado:** propuesta normativa lista para ejecutar por cortes atomicos.  
+**Estado:** cortes 0-7 ejecutados; Corte 8 agregado como auditoria de consistencia transversal y remediacion acotada.  
 **Autoridad superior:** `AGENTS.md`, `docs/HANDOFF.md`, `docs/JOYAS.md`, `opm-extracted/`, SSOT OPM local y HU vivas.
 
 ## 1. Proposito
@@ -591,6 +591,42 @@ cd app && bun run test
 cd app && bun run build
 cd app && bun run browser:smoke
 node docs/historias-usuario-v2/tools/progress-dashboard.mjs --sync-real
+```
+
+### Corte 8 - Consistencia Transversal Y Cierre De Drift
+
+Objetivo:
+
+- Auditar y remediar inconsistencias creadas por la ejecucion acumulada de los
+  cortes 0-7, sin abrir funcionalidad nueva.
+
+Acciones permitidas:
+
+- Corregir reportes, ledgers y handoff cuando contradigan el estado real del
+  repo.
+- Separar reglas HU acopladas artificialmente si subreportan o sobrereportan
+  evidencia.
+- Mover helpers o tests a la frontera arquitectonica ya definida cuando hayan
+  quedado exportados por compatibilidad accidental.
+- Registrar deuda residual medida cuando el fix real requiera un corte propio.
+
+No permitido:
+
+- Implementar HU pendientes para "hacer cuadrar" el dashboard.
+- Cambiar comportamiento visible salvo fixes locales necesarios para estabilizar
+  gates.
+- Reescribir fronteras completas fuera de la inconsistencia observada.
+- Borrar compatibilidad de datos legacy cubierta por serializacion o fixtures.
+
+Gate:
+
+```bash
+cd app && bun run typecheck
+cd app && bun run test
+cd app && bun run build
+cd app && bun run browser:smoke
+node docs/historias-usuario-v2/tools/progress-dashboard.mjs --sync-real
+cd app && bun run scripts/quality-ledger.mjs --markdown
 ```
 
 ## 12. Definicion De Hecho
