@@ -5,11 +5,11 @@ import {
   rutaDeCarpeta,
   validarNombreModeloLocal,
   type CarpetaIndice,
+  type PortapapelesWorkspace,
   type ValidacionNombreModelo,
   type WorkspaceIndice,
   type WorkspaceModeloLocal,
 } from "../../persistencia/workspace";
-import type { OpmStore } from "../../store";
 
 export interface WorkspaceChildren {
   carpetas: CarpetaIndice[];
@@ -23,25 +23,25 @@ export interface WorkspacePort {
   carpetaActualId: Id | null;
   mostrarVersiones: boolean;
   mostrarArchivados: boolean;
-  portapapelesWorkspace: OpmStore["portapapelesWorkspace"];
-  abrirCarpeta: OpmStore["abrirCarpeta"];
-  crearCarpetaEnActual: OpmStore["crearCarpetaEnActual"];
-  renombrarCarpetaEnIndice: OpmStore["renombrarCarpetaEnIndice"];
-  eliminarCarpetaEnIndice: OpmStore["eliminarCarpetaEnIndice"];
-  abrirPestanaConModelo: OpmStore["abrirPestanaConModelo"];
-  cortarModelo: OpmStore["cortarModelo"];
-  cortarCarpeta: OpmStore["cortarCarpeta"];
-  cancelarPortapapelesWorkspace: OpmStore["cancelarPortapapelesWorkspace"];
-  pegarEn: OpmStore["pegarEn"];
-  moverModeloDirecto: OpmStore["moverModeloDirecto"];
-  moverCarpetaDirecto: OpmStore["moverCarpetaDirecto"];
-  archivarModeloPorId: OpmStore["archivarModeloPorId"];
-  restaurarModeloPorId: OpmStore["restaurarModeloPorId"];
-  archivarCarpetaPorId: OpmStore["archivarCarpetaPorId"];
-  restaurarCarpetaPorId: OpmStore["restaurarCarpetaPorId"];
-  abrirDialogoVersiones: OpmStore["abrirDialogoVersiones"];
-  toggleMostrarArchivados: OpmStore["toggleMostrarArchivados"];
-  toggleMostrarVersiones: OpmStore["toggleMostrarVersiones"];
+  portapapelesWorkspace: PortapapelesWorkspace | null;
+  abrirCarpeta: (carpetaId: Id | null) => void;
+  crearCarpetaEnActual: (nombre: string) => void;
+  renombrarCarpetaEnIndice: (carpetaId: Id, nombre: string) => void;
+  eliminarCarpetaEnIndice: (carpetaId: Id, opciones: { cascada: boolean }) => Promise<void>;
+  abrirPestanaConModelo: (modeloId: Id) => void;
+  cortarModelo: (modeloId: Id) => void;
+  cortarCarpeta: (carpetaId: Id) => void;
+  cancelarPortapapelesWorkspace: () => void;
+  pegarEn: (carpetaDestinoId: Id | null) => void;
+  moverModeloDirecto: (modeloId: Id, destino: Id | null) => void;
+  moverCarpetaDirecto: (carpetaId: Id, destino: Id | null) => void;
+  archivarModeloPorId: (modeloId: Id) => void;
+  restaurarModeloPorId: (modeloId: Id) => void;
+  archivarCarpetaPorId: (carpetaId: Id) => void;
+  restaurarCarpetaPorId: (carpetaId: Id) => void;
+  abrirDialogoVersiones: (modeloId: Id) => void;
+  toggleMostrarArchivados: () => void;
+  toggleMostrarVersiones: () => void;
   rutaCarpetaActual: () => CarpetaIndice[];
   listarHijosActuales: (opciones?: { incluirArchivados?: boolean }) => WorkspaceChildren;
   validarNombreModelo: (nombre: string) => ValidacionNombreModelo;
