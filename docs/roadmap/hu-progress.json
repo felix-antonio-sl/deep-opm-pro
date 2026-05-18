@@ -1,11 +1,11 @@
 {
   "schema": "deep-opm-pro.hu-progress-report.v1",
-  "generatedAt": "2026-05-18T14:31:03.858Z",
+  "generatedAt": "2026-05-18T14:32:01.396Z",
   "repoRoot": "/home/felix/projects/deep-opm-pro",
   "backlogRoot": "docs/historias-usuario-v2",
   "evidenceLedger": "docs/roadmap/hu-progress-evidence.json",
   "autoAudit": {
-    "generatedAt": "2026-05-18T14:31:03.858Z",
+    "generatedAt": "2026-05-18T14:32:01.396Z",
     "mode": "sync-real",
     "rulesEvaluated": 102,
     "rulesMatched": 81,

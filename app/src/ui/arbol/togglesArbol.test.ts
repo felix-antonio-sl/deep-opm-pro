@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { crearModelo } from "../../modelo/operaciones";
 import type { Modelo } from "../../modelo/tipos";
-import { colapsarTodos, construirArbol, expandirTodoArbol, expandirTodos, idsColapsables } from "./togglesArbol";
+import { construirArbol, expandirTodoArbol, idsColapsables } from "./togglesArbol";
 
 describe("toggles del arbol OPD", () => {
   test("expandirTodo deja set colapsados vacio", () => {
@@ -13,10 +13,9 @@ describe("toggles del arbol OPD", () => {
     expect(idsColapsables(arbol).has("opd-raiz")).toBe(true);
   });
 
-  test("aliases publicos expandirTodos/colapsarTodos preservan contrato de colapsados", () => {
+  test("idsColapsables preserva contrato de colapso total", () => {
     const arbol = construirArbol(modeloConHijo());
-    expect(expandirTodos().size).toBe(0);
-    expect(colapsarTodos(arbol)).toEqual(idsColapsables(arbol));
+    expect(idsColapsables(arbol)).toEqual(new Set(["opd-raiz"]));
   });
 });
 

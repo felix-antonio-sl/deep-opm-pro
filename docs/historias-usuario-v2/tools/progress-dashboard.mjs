@@ -1278,9 +1278,9 @@ function autoAuditRules() {
       confianza: "alta-auto",
       nota: "Auto ronda 11 L1: arbol OPD con atajos teclado (Ctrl+arrows, F2, Ctrl+E/Shift+E, Ctrl+D), divisor arrastrable persistido, menu contextual extendido con Renombrar/Eliminar/Reordenar/Buscar, expandir/colapsar todo, toggle ocultar/mostrar nombres.",
       requires: [
-        { path: "app/src/ui/ArbolOpd.tsx", any: ["ArbolOpd", "F2", "Ctrl+E", "expandirTodos"] },
+        { path: "app/src/ui/ArbolOpd.tsx", any: ["ArbolOpd", "F2", "Ctrl+E", "expandirTodo"] },
         { path: "app/src/ui/arbol/handlersTeclado.ts", any: ["F2", "Ctrl"] },
-        { path: "app/src/ui/arbol/togglesArbol.ts", all: ["expandirTodos", "colapsarTodos"] },
+        { path: "app/src/ui/arbol/togglesArbol.ts", all: ["expandirTodoArbol", "idsColapsables"] },
         { path: "app/src/ui/MenuContextualArbol.tsx", all: ["menu-contextual-arbol"] },
         { path: "app/src/ui/divisorPanel.tsx", any: ["limitarAnchoPanel", "anchoPanelArbol"] },
       ],
