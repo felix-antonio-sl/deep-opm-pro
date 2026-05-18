@@ -1,30 +1,39 @@
-import type { OrigenPestana } from "../../modelo/tipos";
-import type { OpmStore } from "../../store";
+import type { Id, OrigenPestana } from "../../modelo/tipos";
+
+export interface GuardarComoLocalInput {
+  nombre: string;
+  descripcion?: string;
+  crearVersionAlGuardar?: boolean;
+}
+
+export interface AbrirCargarModeloOptions {
+  mostrarArchivados?: boolean;
+}
 
 export interface PersistencePort {
-  modeloPersistidoId: OpmStore["modeloPersistidoId"];
-  dirty: OpmStore["dirty"];
-  dirtyModelo: OpmStore["dirtyModelo"];
-  dialogoGuardarComoAbierto: OpmStore["dialogoGuardarComoAbierto"];
-  dialogoCargarModeloAbierto: OpmStore["dialogoCargarModeloAbierto"];
+  modeloPersistidoId: Id | null;
+  dirty: boolean;
+  dirtyModelo: boolean;
+  dialogoGuardarComoAbierto: boolean;
+  dialogoCargarModeloAbierto: boolean;
   cargadoDesde: OrigenPestana;
   esFixture: boolean;
   versiones: number;
   ultimoAutosalvado: number | null;
-  modeloNombre: OpmStore["modelo"]["nombre"];
-  abrirGuardarComo: OpmStore["abrirGuardarComo"];
-  abrirCargarModelo: OpmStore["abrirCargarModelo"];
-  abrirDialogoImportarExportarJson: OpmStore["abrirDialogoImportarExportarJson"];
-  cerrarGuardarComo: OpmStore["cerrarGuardarComo"];
-  cerrarCargarModelo: OpmStore["cerrarCargarModelo"];
-  guardarLocal: OpmStore["guardarLocal"];
-  guardarComoLocalConDescripcion: OpmStore["guardarComoLocalConDescripcion"];
-  listarModelosGuardados: OpmStore["listarModelosGuardados"];
-  cargarLocal: OpmStore["cargarLocal"];
-  borrarLocal: OpmStore["borrarLocal"];
-  cargarFixtureDemo: OpmStore["cargarFixtureDemo"];
-  exportarJson: OpmStore["exportarJson"];
-  importarJson: OpmStore["importarJson"];
+  modeloNombre: string;
+  abrirGuardarComo: () => void;
+  abrirCargarModelo: (opciones?: AbrirCargarModeloOptions) => void;
+  abrirDialogoImportarExportarJson: () => void;
+  cerrarGuardarComo: () => void;
+  cerrarCargarModelo: () => void;
+  guardarLocal: () => void;
+  guardarComoLocalConDescripcion: (input: GuardarComoLocalInput) => void;
+  listarModelosGuardados: () => void;
+  cargarLocal: (id?: Id) => void;
+  borrarLocal: (id: Id) => void;
+  cargarFixtureDemo: (nombre: string) => void;
+  exportarJson: () => string;
+  importarJson: (json: string) => void;
   hayDirty: () => boolean;
   hayDirtyModelo: () => boolean;
 }
