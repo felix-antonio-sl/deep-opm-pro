@@ -3,8 +3,8 @@
 **Fecha**: 2026-05-18
 **Repositorio**: `deep-opm-pro`
 **Rama**: `main`
-**Último corte funcional**: `5efff99 feat(export): permite svg del opd activo`
-**Corte**: Produccion single-user SVG, Corte 1 cerrado: export OPD activo.
+**Último corte funcional**: `808559b refactor(render): desacopla chrome ui del canvas`
+**Corte**: Render/UI Boundary, Corte 2 cerrado: chrome UI por slots.
 
 ## Política De Handoff Único
 
@@ -22,6 +22,48 @@
 - JointJS OSS: usar documentación oficial viva cuando se toque JointJS.
 
 ## Estado Actual
+
+### Render/UI Boundary — Corte 2 Chrome UI Slots Cerrado — 2026-05-18
+
+Se cerro el plan acotado de frontera `render/jointjs`/UI. `JointCanvas`
+mantiene estado e interaccion JointJS, pero dejo de poseer componentes chrome
+concretos del canvas.
+
+Resultado:
+
+- `JointCanvas` recibe slots obligatorios `renderMenuTipoEnlace` y
+  `renderRenombradoInline`.
+- `JointCanvas` ya no importa `MenuTipoEnlace`, `RenombradoInline` ni
+  `ui/motion`.
+- `JointCanvasFeedbackBoundary` monta el chrome UI concreto y conserva el
+  adapter Zustand de feedback creado en Corte 1.
+- `renderUiBoundary.test.ts` blinda que `render/jointjs` no vuelva a importar
+  chrome UI concreto ni helpers UI de motion.
+- Los flujos observables de menu de tipo de enlace, renombrado inline,
+  feedback, tabla de enlaces y export SVG quedan preservados.
+
+Commit atomico:
+
+- `808559b refactor(render): desacopla chrome ui del canvas`
+
+Validacion:
+
+```bash
+cd app && bun run gate:refactor
+# typecheck OK; 1410 pass / 0 fail / 5266 expect; lint src/ OK; build OK; browser:smoke 194 passed
+# Dashboard HU: Total 24.8%; MVP-alpha 86.2%; 89/105 reglas auto; firma de fuentes vigente
+# Quality gate PASS: bundle 465.66 kB / 125.20 kB gzip; leyes 6/6; compat detectors 0
+```
+
+Deuda residual medida:
+
+- `JointCanvasFeedbackBoundary` sigue siendo el boundary UI combinado para
+  feedback y chrome slots. Renombrarlo puede hacerse luego si aporta claridad,
+  pero no bloquea la frontera.
+- `render/jointjs/overlayCanvas/*` todavia usa `ui/tokens`; aceptado como
+  presentacion de overlays, no como ownership de componentes chrome.
+- `render/jointjs/handlers/zoom.ts` todavia importa `atajosTeclado`; queda como
+  deuda menor separada de este plan.
 
 ### Produccion Single-User SVG — Corte 1 Export OPD Activo Cerrado — 2026-05-18
 
@@ -79,8 +121,8 @@ convertirlo en Corte 11 automatico de la refactorizacion total.
 Resultado:
 
 - `docs/roadmap/render-ui-boundary-plan.md` define alcance, no objetivos, dos
-  cortes y gates. Corte 1 queda cerrado; Corte 2 (`MenuTipoEnlace` y
-  `RenombradoInline` como slots/chrome UI) queda pendiente.
+  cortes y gates. Corte 1 quedo cerrado; Corte 2 queda cerrado en la seccion
+  superior de este handoff.
 - `render/jointjs` ya no importa `zustandFeedbackPort` ni
   `useZustandFeedbackOverlays`.
 - `JointCanvas` recibe `feedbackPort` y overlays por props; la suscripcion
@@ -107,11 +149,8 @@ cd app && bun run gate:refactor
 
 Deuda residual:
 
-- `JointCanvas` todavia importa y monta chrome UI concreto:
-  `MenuTipoEnlace`, `RenombradoInline` y `scrollBehaviorPreferido`. Eso es Corte
-  2 del plan nuevo.
-- `render/jointjs/overlayCanvas/*` todavia usa `ui/tokens`; aceptado hasta el
-  corte de slots/chrome para no mezclar presentacion visual con feedback port.
+- `render/jointjs/overlayCanvas/*` todavia usa `ui/tokens`; aceptado como
+  presentacion de overlays, no como ownership directo de chrome UI.
 - `render/jointjs/handlers/zoom.ts` todavia importa `atajosTeclado`; queda como
   deuda menor separada de Corte 1.
 

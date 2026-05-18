@@ -3,7 +3,7 @@
 **Fecha:** 2026-05-18  
 **Repo:** `deep-opm-pro`  
 **Alcance:** frontera entre `app/src/render/jointjs/` y UI Preact asociada al canvas.  
-**Estado:** Corte 1 cerrado; Corte 2 pendiente. No es Corte 11 automatico ni extension implicita de la refactorizacion total.  
+**Estado:** Corte 1 y Corte 2 cerrados. Plan completado sin convertirse en Corte 11 automatico ni extension implicita de la refactorizacion total.  
 **Autoridad superior:** `AGENTS.md`, `docs/HANDOFF.md`, `docs/JOYAS.md`, `opm-extracted/`, SSOT OPM local y HU vivas.
 
 ## 1. Objetivo
@@ -54,14 +54,14 @@ Este plan NO DEBE:
 
 ## 5. Estado De Partida
 
-Hechos asumidos desde `docs/HANDOFF.md`:
+Hechos asumidos desde `docs/HANDOFF.md` al abrir el plan:
 
 - La dependencia global de UI sobre `globalThis.__opmJointAdapter` ya quedo cerrada; el global permanece solo como hook de debug/in-vivo.
 - `JointCanvas` expone adapter por `CanvasAdapterContext`.
-- `JointCanvas` todavia renderiza chrome UI concreto.
+- `JointCanvas` todavia renderizaba chrome UI concreto.
 - Corte 1 ya saco el adapter concreto de feedback Zustand fuera de `render/jointjs`.
 - `gate:refactor` ya protege typecheck, tests, lint, build, smoke browser, dashboard HU vigente y quality ledger.
-- La deuda actual es focal: frontera render/UI, no nucleo OPM ni persistencia.
+- La deuda era focal: frontera render/UI, no nucleo OPM ni persistencia.
 
 ## 6. Principios De Corte
 
@@ -170,6 +170,29 @@ Smokes focales:
 - canvas: menu de tipo de enlace aparece en el ancla correcta y permite operacion existente;
 - validacion: enlace invalido sigue rechazado con feedback visible;
 - tabla enlaces: renombrado de etiqueta/enlace se refleja sin snapshot stale.
+
+Estado:
+
+- Cerrado el 2026-05-18.
+- `JointCanvas` ya no importa `MenuTipoEnlace`, `RenombradoInline` ni
+  `ui/motion`; publica contratos nombrados de slot para menu de tipo de enlace
+  y renombrado inline.
+- Los slots son obligatorios en el boundary UI para evitar degradacion
+  silenciosa del canvas si se monta sin chrome.
+- `app/src/ui/JointCanvasFeedbackBoundary.tsx` aloja el adapter Zustand de
+  feedback y monta el chrome concreto mediante `renderMenuTipoEnlace` y
+  `renderRenombradoInline`.
+- `renderUiBoundary.test.ts` blinda que `render/jointjs` no vuelva a importar
+  chrome UI concreto ni `ui/motion`.
+
+Validacion ejecutada:
+
+```bash
+cd app && bun run gate:refactor
+# typecheck OK; 1410 pass / 0 fail / 5266 expect; lint src/ OK; build OK; browser:smoke 194 passed
+# Dashboard HU: Total 24.8%; MVP-alpha 86.2%; 89/105 reglas auto; firma de fuentes vigente
+# Quality gate PASS: bundle 465.66 kB / 125.20 kB gzip; leyes 6/6; compat detectors 0
+```
 
 ## 8. Deudas Diferidas
 
