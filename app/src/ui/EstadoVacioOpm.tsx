@@ -71,46 +71,51 @@ function BloqueInicioVacio({ onCrearProceso, onCrearObjeto, onCrearAgenteInstrum
     >
       <div style={style.titulo}>Iniciar SD</div>
       <div style={style.subtitulo}>Crea la primera cosa para arrancar el modelo.</div>
-      <div style={style.botoneraPrimaria}>
+      {/*
+       * ronda 23 chrome: una acción primaria sólida ("Crear proceso") +
+       * dos acciones secundarias inline pequeñas. "Abrir asistente" como
+       * text-link bajo la acción primaria, no caja. La jerarquía antes
+       * estaba invertida — tres primarias idénticas + un secundario más
+       * grande abajo.
+       */}
+      <button
+        type="button"
+        style={style.botonPrimario}
+        data-testid="estado-vacio-crear-proceso"
+        onClick={onCrearProceso}
+        title="Crear el proceso central del SD (forma elipse, 135x60)"
+      >
+        Crear proceso
+      </button>
+      <div style={style.accionesSecundarias}>
         <button
           type="button"
-          style={style.botonPrimario}
-          data-testid="estado-vacio-crear-proceso"
-          onClick={onCrearProceso}
-          title="Crear el proceso central del SD (forma elipse, 135x60)"
-        >
-          Crear proceso
-        </button>
-        <button
-          type="button"
-          style={style.botonPrimario}
+          style={style.botonSecundarioInline}
           data-testid="estado-vacio-crear-objeto"
           onClick={onCrearObjeto}
           title="Agregar un objeto que el proceso transforma"
         >
-          Agregar objeto
+          + Objeto
         </button>
         <button
           type="button"
-          style={style.botonPrimario}
+          style={style.botonSecundarioInline}
           data-testid="estado-vacio-crear-agente-instrumento"
           onClick={onCrearAgenteInstrumento}
           title="Agregar un objeto que sera agente o instrumento del proceso"
         >
-          Agregar agente/instrumento
+          + Agente / instrumento
         </button>
       </div>
-      <div style={style.botoneraSecundaria}>
-        <button
-          type="button"
-          style={style.botonSecundario}
-          data-testid="estado-vacio-abrir-asistente"
-          onClick={onAbrirAsistente}
-          title="Abrir asistente guiado para sembrar un modelo desde funcion-beneficiario"
-        >
-          Abrir asistente
-        </button>
-      </div>
+      <button
+        type="button"
+        style={style.linkAsistente}
+        data-testid="estado-vacio-abrir-asistente"
+        onClick={onAbrirAsistente}
+        title="Abrir asistente guiado para sembrar un modelo desde funcion-beneficiario"
+      >
+        o usar asistente guiado →
+      </button>
     </div>
   );
 }
@@ -145,71 +150,86 @@ function NudgeConectarResultado({ nombreProceso, nombreObjeto, onConectar }: Nud
   );
 }
 
-/* L1 ronda 21 — empty state OPM, tokens-only chrome */
+/* L1 ronda 21 — empty state OPM, tokens-only chrome
+ * Ronda 23 chrome estética: más aire vertical, una acción primaria sólida,
+ * secundarios inline pequeños, link de asistente sin caja. */
 const style = {
   bloque: {
     position: "absolute",
-    top: spacing.lg,
+    top: spacing.xl,
     left: "50%",
     transform: "translateX(-50%)",
     display: "flex",
     flexDirection: "column",
     alignItems: "stretch",
-    gap: spacing.sm,
-    padding: `${spacing.md}px ${spacing.lg}px`,
+    gap: spacing.md,
+    padding: `${spacing.lg}px ${spacing.xl}px`,
     background: colors.fondoChrome,
-    border: `1px solid ${colors.bordeIntermedio}`,
+    border: `1px solid ${colors.bordeSuave}`,
     borderRadius: radii.lg,
-    boxShadow: shadows.card,
+    boxShadow: shadows.md,
     fontFamily: typography.familyChrome,
     fontSize: typography.sizes.md,
     color: colors.textoPrimario,
     pointerEvents: "auto",
     zIndex: 4,
-    maxWidth: 520,
+    maxWidth: 420,
   },
   titulo: {
-    fontSize: typography.sizes.lg,
+    fontSize: typography.sizes.xl,
     fontWeight: typography.weights.semibold,
     color: colors.textoCasiNegro,
+    lineHeight: 1.2,
   },
   subtitulo: {
     fontSize: typography.sizes.sm,
     color: colors.textoSecundario,
     marginBottom: spacing.xs,
-  },
-  botoneraPrimaria: {
-    display: "flex",
-    flexWrap: "wrap",
-    gap: spacing.xs,
+    lineHeight: 1.45,
   },
   botonPrimario: {
-    flex: "1 1 auto",
-    padding: `${spacing.xs}px ${spacing.md}px`,
+    padding: `${spacing.sm}px ${spacing.lg}px`,
     border: `1px solid ${colors.acentoUi}`,
-    borderRadius: radii.control,
+    borderRadius: radii.md,
     background: colors.acentoUi,
     color: colors.fondoChrome,
     fontFamily: typography.familyChrome,
-    fontSize: typography.sizes.sm,
+    fontSize: typography.sizes.md,
     fontWeight: typography.weights.semibold,
     cursor: "pointer",
     minWidth: 0,
   },
-  botoneraSecundaria: {
+  accionesSecundarias: {
     display: "flex",
-    justifyContent: "flex-end",
+    flexWrap: "wrap",
+    gap: spacing.xs,
   },
-  botonSecundario: {
-    padding: `${spacing.xs}px ${spacing.md}px`,
-    border: `1px solid ${colors.bordeControl}`,
+  botonSecundarioInline: {
+    flex: "1 1 auto",
+    padding: `${spacing.xs}px ${spacing.sm}px`,
+    border: `1px solid ${colors.bordeSuave}`,
     borderRadius: radii.control,
     background: colors.fondoChrome,
     color: colors.textoControl,
     fontFamily: typography.familyChrome,
+    fontSize: typography.sizes.xs,
+    fontWeight: typography.weights.medium,
+    cursor: "pointer",
+    minWidth: 0,
+  },
+  linkAsistente: {
+    alignSelf: "flex-start",
+    marginTop: spacing.xs,
+    padding: 0,
+    border: 0,
+    background: "transparent",
+    color: colors.acentoUi,
+    fontFamily: typography.familyChrome,
     fontSize: typography.sizes.sm,
     fontWeight: typography.weights.medium,
     cursor: "pointer",
+    textDecoration: "underline",
+    textUnderlineOffset: "3px",
   },
   nudge: {
     position: "absolute",

@@ -74,13 +74,24 @@ export function PantallaInicio() {
           />
         </div>
         <div style={style.actions}>
-          <button type="button" style={style.actionCard} onClick={ejecutarNuevo}>
-            <span style={style.actionIcon}>+</span>
-            <strong>Empezar vacío</strong>
+          {/*
+           * ronda 23 chrome: re-jerarquía. "Asistente guiado" como tarjeta
+           * principal — texto descriptivo más rico + borde de acento — para
+           * empujar al usuario al flujo asistido (mejor onboarding OPM).
+           * "Empezar vacío" y "Abrir ejemplo" como tarjetas secundarias.
+           */}
+          <button type="button" style={style.actionCardPrimary} onClick={ejecutarAsistente}>
+            <span style={style.actionIconPrimary}>✦</span>
+            <strong style={style.actionCardTitle}>Asistente guiado</strong>
+            <span style={style.actionCardDesc}>Conversación que siembra un SD desde función y beneficiario.</span>
           </button>
-          <label style={style.actionCardLabel}>
-            <span style={style.actionIcon}>▸</span>
-            <strong>Abrir ejemplo...</strong>
+          <button type="button" style={style.actionCardSecundario} onClick={ejecutarNuevo}>
+            <span style={style.actionIconSecundario}>+</span>
+            <strong style={style.actionCardSecondaryLabel}>Empezar vacío</strong>
+          </button>
+          <label style={style.actionCardSecundarioLabel}>
+            <span style={style.actionIconSecundario}>▸</span>
+            <strong style={style.actionCardSecondaryLabel}>Abrir ejemplo</strong>
             <select
               aria-label="Elegir ejemplo de bienvenida"
               value={demoSeleccionado}
@@ -103,10 +114,6 @@ export function PantallaInicio() {
               ))}
             </select>
           </label>
-          <button type="button" style={style.actionCard} onClick={ejecutarAsistente}>
-            <span style={style.actionIcon}>✦</span>
-            <strong>Asistente guiado</strong>
-          </button>
         </div>
         <h3 style={style.sectionTitle}>Recientes</h3>
         <div style={style.grid}>
@@ -187,10 +194,70 @@ const style = {
   title: { margin: 0, color: tokens.colors.textoPrimario, fontSize: "20px", fontWeight: 800 },
   subtitle: { margin: "4px 0 0", color: tokens.colors.textoSecundario, fontSize: "13px", fontWeight: 700 },
   search: { marginLeft: "auto", width: "min(360px, 45vw)", height: "34px", border: `1px solid ${tokens.colors.bordeInput}`, borderRadius: tokens.radii.sm, padding: "0 10px", fontSize: "13px" },
-  actions: { display: "grid", gridTemplateColumns: `repeat(auto-fit, minmax(${DIMENSION_ACCION_BIENVENIDA_PX}px, 1fr))`, gap: "10px" },
-  actionCard: { minHeight: `${DIMENSION_ACCION_BIENVENIDA_PX}px`, display: "grid", placeItems: "center", gap: "8px", border: `1px solid ${tokens.colors.bordeControl}`, borderRadius: tokens.radii.lg, background: tokens.colors.fondoCard, color: tokens.colors.textoPrimario, cursor: "pointer", fontSize: "14px", fontWeight: 800 },
-  actionCardLabel: { minHeight: `${DIMENSION_ACCION_BIENVENIDA_PX}px`, display: "grid", placeItems: "center", gap: "8px", border: `1px solid ${tokens.colors.bordeControl}`, borderRadius: tokens.radii.lg, background: tokens.colors.fondoCard, color: tokens.colors.textoPrimario, cursor: "pointer", fontSize: "14px", fontWeight: 800, textAlign: "center" },
-  actionIcon: { fontSize: "24px", color: tokens.colors.chromeNeutral, fontWeight: 900 },
+  // ronda 23 chrome: layout 2-col asimétrico. La primaria ocupa col-1 con
+  // doble alto; las dos secundarias se apilan en col-2.
+  actions: {
+    display: "grid",
+    gridTemplateColumns: "minmax(280px, 1.4fr) minmax(220px, 1fr)",
+    gridTemplateRows: "auto auto",
+    gap: "12px",
+  },
+  actionCardPrimary: {
+    gridColumn: "1 / 2",
+    gridRow: "1 / 3",
+    minHeight: `${DIMENSION_ACCION_BIENVENIDA_PX}px`,
+    display: "grid",
+    gridTemplateRows: "auto auto auto",
+    alignContent: "center",
+    justifyItems: "start",
+    rowGap: "10px",
+    padding: "20px",
+    border: `1px solid ${tokens.colors.acentoUi}`,
+    borderRadius: tokens.radii.lg,
+    background: tokens.colors.acentoUiSuave,
+    color: tokens.colors.textoPrimario,
+    cursor: "pointer",
+    fontSize: "14px",
+    fontWeight: tokens.typography.weights.semibold,
+    textAlign: "left",
+  },
+  actionCardTitle: { fontSize: "16px", fontWeight: tokens.typography.weights.bold, color: tokens.colors.textoPrimario },
+  actionCardDesc: { fontSize: "13px", fontWeight: tokens.typography.weights.normal, color: tokens.colors.textoSecundario, lineHeight: 1.45 },
+  actionCardSecundario: {
+    minHeight: "0",
+    display: "grid",
+    gridTemplateColumns: "auto 1fr",
+    alignItems: "center",
+    columnGap: "10px",
+    padding: "14px 16px",
+    border: `1px solid ${tokens.colors.bordeSuave}`,
+    borderRadius: tokens.radii.md,
+    background: tokens.colors.fondoChrome,
+    color: tokens.colors.textoPrimario,
+    cursor: "pointer",
+    fontSize: "13px",
+    fontWeight: tokens.typography.weights.semibold,
+    textAlign: "left",
+  },
+  actionCardSecundarioLabel: {
+    minHeight: "0",
+    display: "grid",
+    gridTemplateColumns: "auto 1fr auto",
+    alignItems: "center",
+    columnGap: "10px",
+    padding: "14px 16px",
+    border: `1px solid ${tokens.colors.bordeSuave}`,
+    borderRadius: tokens.radii.md,
+    background: tokens.colors.fondoChrome,
+    color: tokens.colors.textoPrimario,
+    cursor: "pointer",
+    fontSize: "13px",
+    fontWeight: tokens.typography.weights.semibold,
+  },
+  actionCardSecondaryLabel: { fontSize: "13px", fontWeight: tokens.typography.weights.semibold, color: tokens.colors.textoPrimario },
+  actionIcon: { fontSize: "24px", color: tokens.colors.chromeNeutral, fontWeight: 900, opacity: 0.7 },
+  actionIconPrimary: { fontSize: "28px", color: tokens.colors.acentoUi, opacity: 0.9, lineHeight: 1 },
+  actionIconSecundario: { fontSize: "20px", color: tokens.colors.chromeNeutral, opacity: 0.7, lineHeight: 1 },
   sectionTitle: { margin: "2px 0 0", color: tokens.colors.textoSecundario, fontSize: "12px", fontWeight: 800, textTransform: "uppercase", letterSpacing: 0 },
   primaryButton: { height: "34px", padding: "0 14px", border: `1px solid ${tokens.colors.chromeNeutral}`, borderRadius: tokens.radii.sm, background: tokens.colors.chromeNeutral, color: tokens.colors.fondoChrome, cursor: "pointer", fontSize: "13px", fontWeight: 700 },
   secondaryButton: { height: "34px", padding: "0 14px", border: `1px solid ${tokens.colors.bordeControl}`, borderRadius: tokens.radii.sm, background: tokens.colors.fondoChrome, color: tokens.colors.textoSecundario, cursor: "pointer", fontSize: "13px", fontWeight: 700 },
@@ -205,9 +272,21 @@ const style = {
   glyphIcon: { width: "14px", height: "14px" },
   glyphText: { color: tokens.colors.chromeNeutral, fontSize: "14px", fontWeight: 800, lineHeight: 1 },
   empty: { padding: "18px", border: `1px dashed ${tokens.colors.bordeControl}`, borderRadius: tokens.radii.sm, color: tokens.colors.textoTerciario, fontSize: "13px", fontWeight: 700, textAlign: "center" },
-  glosa: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(210px, 1fr))", gap: "8px 12px", margin: 0, padding: "10px 12px", border: `1px solid ${tokens.colors.infoBordeSuave}`, borderRadius: tokens.radii.md, background: tokens.colors.infoFondoAlterno, color: tokens.colors.textoSecundario, fontSize: "12px", lineHeight: 1.45 },
+  // ronda 23 chrome: mini-glosario sin caja envolvente — solo texto con
+  // tipografía editorial. Pesos bajados a semibold para que no compita con
+  // las acciones primarias.
+  glosa: {
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fit, minmax(210px, 1fr))",
+    gap: "6px 18px",
+    margin: 0,
+    padding: 0,
+    color: tokens.colors.textoSecundario,
+    fontSize: "12px",
+    lineHeight: 1.45,
+  },
   glosaItem: { display: "grid", gridTemplateColumns: "auto minmax(0, 1fr)", alignItems: "start", columnGap: "6px", minWidth: 0 },
-  glosaTermino: { margin: 0, color: tokens.colors.textoPrimario, fontWeight: 800, whiteSpace: "nowrap" },
+  glosaTermino: { margin: 0, color: tokens.colors.textoPrimario, fontWeight: tokens.typography.weights.semibold, whiteSpace: "nowrap" },
   glosaDefinicion: { display: "flex", gap: "6px", minWidth: 0, margin: 0, overflowWrap: "anywhere" },
-  glosaSeparador: { color: tokens.colors.textoTerciario, fontWeight: 800 },
+  glosaSeparador: { color: tokens.colors.textoTerciario, fontWeight: tokens.typography.weights.normal },
 } satisfies Record<string, preact.JSX.CSSProperties>;
