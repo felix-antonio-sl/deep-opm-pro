@@ -1,3 +1,4 @@
+import { entidadVisibleEnOpd } from "./politicaApariciones";
 import type { Enlace, Entidad, Estado, ExtremoEnlace, Id, Modelo, Opd } from "./tipos";
 
 export type ExtremoEntrada = Id | ExtremoEnlace;
@@ -63,7 +64,7 @@ export function extremosDeEnlace(modelo: Modelo, enlace: Enlace): { origen: Enti
 
 export function extremoVisibleEnOpd(modelo: Modelo, opd: Opd, extremo: ExtremoEnlace): boolean {
   const entidadId = entidadIdDeExtremo(modelo, extremo);
-  return !!entidadId && Object.values(opd.apariencias).some((apariencia) => apariencia.entidadId === entidadId);
+  return !!entidadId && entidadVisibleEnOpd(opd, entidadId);
 }
 
 export function nombreExtremo(modelo: Modelo, extremo: ExtremoEnlace): string {

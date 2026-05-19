@@ -1,6 +1,7 @@
 import { CANON } from "../constantes";
 import { entidadDeExtremo, entidadIdDeExtremo, extremoEntidad } from "../extremos";
 import { contenedorRefinamiento, posicionLibre, solapa } from "../layout";
+import { aparienciaDeEntidadEnOpd } from "../politicaApariciones";
 import { refinamientosDe, tieneRefinamiento } from "../refinamientos";
 import type {
   Apariencia,
@@ -294,7 +295,7 @@ function posicionIntermedioSplit(modelo: Modelo, opdId: Id, procesoId: Id): Posi
   const fallback = posicionLibre(modelo, opdId, "objeto");
   const opd = modelo.opds[opdId];
   if (!opd) return fallback;
-  const proceso = Object.values(opd.apariencias).find((apariencia) => apariencia.entidadId === procesoId);
+  const proceso = aparienciaDeEntidadEnOpd(opd, procesoId);
   if (!proceso) return fallback;
 
   const candidata = {

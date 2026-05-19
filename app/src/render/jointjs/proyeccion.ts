@@ -1,6 +1,7 @@
 import { esAutoInvocacion } from "../../modelo/autoinvocacion";
 import { entidadIdDeExtremo } from "../../modelo/extremos";
 import { sincronizarPuertosEnlaces } from "../../modelo/operaciones";
+import { aparicionesVisiblesEnOpd } from "../../modelo/politicaApariciones";
 import type { Apariencia, Enlace, Estado, ExtremoEnlace, Id, Modelo, Posicion, TipoEnlace } from "../../modelo/tipos";
 import type { OplReferencia } from "../../opl/interaccion";
 import { proyectarOverlayAbanicoCanonico } from "./abanicoOverlay";
@@ -59,7 +60,7 @@ export function proyectarModeloAJointCells(
   const entidadesInvolucradasSim = new Set(simulacion?.entidadesInvolucradasIds ?? []);
   const enlacesInvolucradosSim = new Set(simulacion?.enlacesInvolucradosIds ?? []);
 
-  const apariencias = Object.values(opd.apariencias);
+  const apariencias = aparicionesVisiblesEnOpd(opd);
   const estadosSeleccionadosPorEntidad = new Map<Id, Estado[]>();
   for (const estado of Object.values(modeloRender.estados)) {
     if (!seleccionMultiple.has(estado.id)) continue;

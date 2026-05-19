@@ -4,6 +4,7 @@ import type { Aviso } from "../modelo/validaciones";
 import type { Apariencia, Id, Modelo, Opd, Pestana, PestanaId } from "../modelo/tipos";
 import { construirDescriptorMapa, type CriterioResaltado } from "../canvas/mapaSistema";
 import { dentroDeApariencia } from "../modelo/layout";
+import { aparienciaDeEntidadEnOpd, opdIdDeEntidadVisible } from "../modelo/politicaApariciones";
 import { obtenerRefinamiento } from "../modelo/refinamientos";
 import { sincronizarAbanicos } from "../modelo/abanicos";
 import { cambiarAfiliacion, cambiarEsencia, crearEnlace, crearModelo, crearObjeto, crearProceso } from "../modelo/operaciones";
@@ -411,8 +412,8 @@ export function aparienciaSeleccionadaActiva(modelo: Modelo, opdActivoId: Id, se
   if (!seleccionId) return null;
   const entidad = modelo.entidades[seleccionId];
   if (!entidad) return null;
-  return Object.values(modelo.opds[opdActivoId]?.apariencias ?? {})
-    .find((apariencia) => apariencia.entidadId === seleccionId) ?? null;
+  const opd = modelo.opds[opdActivoId];
+  return opd ? aparienciaDeEntidadEnOpd(opd, seleccionId) : null;
 }
 
 export function opdDestinoDeAviso(modelo: Modelo, aviso: Aviso, opdActivoId: Id): Id | null {
@@ -436,14 +437,7 @@ export function opdIdDeEnlace(modelo: Modelo, enlaceId: Id, opdPreferidoId: Id):
 }
 
 export function opdIdDeEntidad(modelo: Modelo, entidadId: Id, opdPreferidoId: Id): Id | null {
-  const preferido = modelo.opds[opdPreferidoId];
-  if (preferido && Object.values(preferido.apariencias).some((apariencia) => apariencia.entidadId === entidadId)) {
-    return opdPreferidoId;
-  }
-  for (const opd of Object.values(modelo.opds)) {
-    if (Object.values(opd.apariencias).some((apariencia) => apariencia.entidadId === entidadId)) return opd.id;
-  }
-  return null;
+  return opdIdDeEntidadVisible(modelo, entidadId, opdPreferidoId);
 }
 
 export function crearDemo(): Modelo {

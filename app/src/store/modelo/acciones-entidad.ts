@@ -25,6 +25,7 @@ import {
   quitarImagen,
   reordenarUrls,
 } from "../../modelo/objetoMetadata";
+import { aparienciaDeEntidadEnOpd } from "../../modelo/politicaApariciones";
 import type { Apariencia, Id, LayoutEstados, Modelo, ModoImagenEntidad, ParametrosSimulacionEntidad, TipoValorSlot } from "../../modelo/tipos";
 import { commitModelo, type GetStore, type SetStore } from "../runtime";
 import { addFlash } from "../feedback";
@@ -115,7 +116,7 @@ export function accionesEntidad(set: SetStore, get: GetStore): Partial<ModeloSli
         set({ mensaje: "La cosa no existe en el modelo activo" });
         return;
       }
-      const existente = Object.values(opd.apariencias).find((apariencia) => apariencia.entidadId === entidadId);
+      const existente = aparienciaDeEntidadEnOpd(opd, entidadId);
       if (existente) {
         set({
           seleccionId: entidadId,

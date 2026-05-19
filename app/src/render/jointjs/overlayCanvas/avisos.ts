@@ -1,4 +1,5 @@
 import { listarAvisosDiagnostico } from "../../../modelo/diagnostico";
+import { aparienciaDeEntidadEnOpd } from "../../../modelo/politicaApariciones";
 import type { Id, Modelo } from "../../../modelo/tipos";
 import type { FeedbackAviso } from "../../../app/ports/feedbackPort";
 
@@ -28,7 +29,7 @@ export function anchorCellIdParaAviso(
   const opd = modelo.opds[opdActivoId];
   if (!opd) return null;
   if (elementoTipo === "entidad") {
-    return Object.values(opd.apariencias).find((apariencia) => apariencia.entidadId === elementoId)?.id ?? null;
+    return aparienciaDeEntidadEnOpd(opd, elementoId)?.id ?? null;
   }
   if (elementoTipo === "enlace") {
     return Object.values(opd.enlaces).find((apariencia) => apariencia.enlaceId === elementoId)?.id ?? null;

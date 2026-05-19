@@ -9,6 +9,7 @@ import {
   refinamientosDe,
   tieneRefinamiento,
 } from "../../refinamientos";
+import { aparienciaDeEntidadEnOpd, aparicionesVisiblesEnOpd } from "../../politicaApariciones";
 import type {
   Apariencia,
   Enlace,
@@ -92,9 +93,9 @@ export function subprocesosOrdenadosDeRefinamiento(modelo: Modelo, opd: Opd, pro
 }
 
 export function entidadesInternasOrdenadasDeRefinamiento(modelo: Modelo, opd: Opd, entidadRefinadaId: Id, tipo?: Entidad["tipo"]): Apariencia[] {
-  const contorno = Object.values(opd.apariencias).find((apariencia) => apariencia.entidadId === entidadRefinadaId);
+  const contorno = aparienciaDeEntidadEnOpd(opd, entidadRefinadaId);
   if (!contorno) return [];
-  return Object.values(opd.apariencias)
+  return aparicionesVisiblesEnOpd(opd)
     .filter((apariencia) => apariencia.entidadId !== entidadRefinadaId)
     .filter((apariencia) => {
       const entidad = modelo.entidades[apariencia.entidadId];

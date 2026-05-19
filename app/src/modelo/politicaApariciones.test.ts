@@ -5,8 +5,11 @@ import { contenedorRefinamiento } from "./layout";
 import {
   aparienciaLimpiableAutomaticamente,
   aparienciaRenderizableEnOpd,
+  aparicionesVisiblesEnOpd,
   clasificarAparicion,
+  entidadesVisiblesEnOpd,
   entidadVisibleEnOpd,
+  opdIdDeEntidadVisible,
 } from "./politicaApariciones";
 import { crearEnlace, crearModelo, crearObjeto, crearProceso, descomponerProceso } from "./operaciones";
 import type { Apariencia, Modelo, Resultado } from "./tipos";
@@ -21,6 +24,12 @@ describe("politica de apariciones por OPD", () => {
     expect(entidadVisibleEnOpd(opdRaiz, base.padreId)).toBe(true);
     expect(entidadVisibleEnOpd(opdHijo, base.padreId)).toBe(true);
     expect(entidadVisibleEnOpd(opdHijo, "entidad-inexistente")).toBe(false);
+    expect(aparicionesVisiblesEnOpd(opdHijo)).toEqual(Object.values(opdHijo.apariencias));
+    expect(entidadesVisiblesEnOpd(opdHijo).has(base.padreId)).toBe(true);
+    expect(entidadesVisiblesEnOpd(opdHijo).has("entidad-inexistente")).toBe(false);
+    expect(opdIdDeEntidadVisible(base.modelo, base.externoId, base.modelo.opdRaizId)).toBe(base.modelo.opdRaizId);
+    expect(opdIdDeEntidadVisible(base.modelo, base.externoId, base.opdHijoId)).toBe(base.opdHijoId);
+    expect(opdIdDeEntidadVisible(base.modelo, "entidad-inexistente", base.opdHijoId)).toBeNull();
 
     const aparienciaRaiz = aparienciaDeEntidad(base.modelo, base.modelo.opdRaizId, base.padreId);
     expect(aparienciaRenderizableEnOpd(opdRaiz, aparienciaRaiz)).toBe(true);

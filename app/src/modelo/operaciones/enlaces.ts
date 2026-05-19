@@ -21,6 +21,7 @@ import type {
   TipoEnlace,
 } from "../tipos";
 import { CANON, naturalezaDeEnlace } from "../constantes";
+import { aparienciaDeEntidadEnOpd, aparicionesVisiblesEnOpd } from "../politicaApariciones";
 import { fallo, ok, siguienteId, validarFirmaEnlace } from "./helpers";
 import {
   procesoDescompuestoEnOpd,
@@ -832,7 +833,7 @@ function entidadRefinadorPorLado(modelo: Modelo, enlace: Enlace, ladoRefinable: 
 }
 
 function aparienciaDeEntidad(opd: Pick<Opd, "apariencias">, entidadId: Id): Apariencia | undefined {
-  return Object.values(opd.apariencias).find((apariencia) => apariencia.entidadId === entidadId);
+  return aparienciaDeEntidadEnOpd(opd, entidadId) ?? undefined;
 }
 
 function aparienciaReferenciaEntidad(modelo: Modelo, entidadId: Id): Apariencia | undefined {
@@ -849,7 +850,7 @@ function refinadoresVisiblesDelGrupo(modelo: Modelo, opd: Opd, contexto: Context
       const refinador = entidadRefinadorDeEnlace(modelo, enlace, contexto);
       return refinador ? [refinador] : [];
     }));
-  return Object.values(opd.apariencias).filter((apariencia) => ids.has(apariencia.entidadId));
+  return aparicionesVisiblesEnOpd(opd).filter((apariencia) => ids.has(apariencia.entidadId));
 }
 
 function refinadoresVisiblesPorTipo(modelo: Modelo, opd: Opd, refinableId: Id, tipo: TipoEnlace): Apariencia[] {
@@ -859,7 +860,7 @@ function refinadoresVisiblesPorTipo(modelo: Modelo, opd: Opd, refinableId: Id, t
       const destinoId = entidadIdDeExtremo(modelo, enlace.destinoId);
       return destinoId ? [destinoId] : [];
     }));
-  return Object.values(opd.apariencias).filter((apariencia) => ids.has(apariencia.entidadId));
+  return aparicionesVisiblesEnOpd(opd).filter((apariencia) => ids.has(apariencia.entidadId));
 }
 
 function ordenarEnlacesPorReferencia(modelo: Modelo, enlaces: Enlace[]): Enlace[] {

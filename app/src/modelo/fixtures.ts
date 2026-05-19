@@ -14,6 +14,7 @@ import {
   renombrarEntidad,
   renombrarEstado,
 } from "./operaciones";
+import { aparienciaDeEntidadEnOpd, entidadVisibleEnOpd } from "./politicaApariciones";
 import { tieneRefinamiento } from "./refinamientos";
 import type { Apariencia, Id, Modelo } from "./tipos";
 
@@ -57,10 +58,10 @@ function subprocesosRefinadoresOrdenados(modelo: Modelo, opdId: Id, contornoId: 
     .filter((entidad) => entidad.tipo === "proceso"
       && entidad.id !== contornoId
       && !tieneRefinamiento(entidad)
-      && Object.values(opd.apariencias).some((apariencia) => apariencia.entidadId === entidad.id))
+      && entidadVisibleEnOpd(opd, entidad.id))
     .sort((a, b) => {
-      const apA = Object.values(opd.apariencias).find((apariencia) => apariencia.entidadId === a.id);
-      const apB = Object.values(opd.apariencias).find((apariencia) => apariencia.entidadId === b.id);
+      const apA = aparienciaDeEntidadEnOpd(opd, a.id);
+      const apB = aparienciaDeEntidadEnOpd(opd, b.id);
       return (apA?.x ?? 0) - (apB?.x ?? 0);
     })
     .map((entidad) => entidad.id);
@@ -69,7 +70,7 @@ function subprocesosRefinadoresOrdenados(modelo: Modelo, opdId: Id, contornoId: 
 function asegurarApariencia(modelo: Modelo, opdId: Id, entidadId: Id, x: number, y: number): Modelo {
   const opd = modelo.opds[opdId];
   if (!opd) throw new Error(`OPD no encontrado: ${opdId}`);
-  if (Object.values(opd.apariencias).some((apariencia) => apariencia.entidadId === entidadId)) return modelo;
+  if (entidadVisibleEnOpd(opd, entidadId)) return modelo;
   const aparienciaId = `a-${modelo.nextSeq}`;
   const apariencia: Apariencia = {
     id: aparienciaId,

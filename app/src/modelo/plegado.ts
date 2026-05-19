@@ -9,6 +9,7 @@ import {
   type ExtremoEntrada,
 } from "./extremos";
 import { validarFirmaEnlace } from "./operaciones";
+import { aparienciaDeEntidadEnOpd, entidadesVisiblesEnOpd } from "./politicaApariciones";
 import { obtenerRefinamiento, refinamientosDe } from "./refinamientos";
 import type {
   Apariencia,
@@ -358,7 +359,7 @@ function subprocesosDeDescomposicion(modelo: Modelo, entidad: Entidad, opd: Opd)
 }
 
 function partesDeDespliegue(modelo: Modelo, entidad: Entidad, opd: Opd): PartePlegada[] {
-  const visibles = new Set(Object.values(opd.apariencias).map((apariencia) => apariencia.entidadId));
+  const visibles = entidadesVisiblesEnOpd(opd);
   return Object.values(opd.enlaces)
     .flatMap((aparienciaEnlace) => {
       const enlace = modelo.enlaces[aparienciaEnlace.enlaceId];
@@ -370,7 +371,7 @@ function partesDeDespliegue(modelo: Modelo, entidad: Entidad, opd: Opd): PartePl
 }
 
 function aparienciaDeEntidad(opd: Opd, entidadId: Id): Apariencia | undefined {
-  return Object.values(opd.apariencias).find((apariencia) => apariencia.entidadId === entidadId);
+  return aparienciaDeEntidadEnOpd(opd, entidadId) ?? undefined;
 }
 
 function aparienciaReferenciaParte(modelo: Modelo, padre: Entidad, parteEntidadId: Id): Apariencia | undefined {

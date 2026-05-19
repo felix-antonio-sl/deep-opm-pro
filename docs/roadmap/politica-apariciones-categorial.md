@@ -53,9 +53,21 @@ el total completo.
 `app/src/modelo/politicaApariciones.ts` materializa la politica:
 
 - `entidadVisibleEnOpd`: pertenencia a la fibra local.
+- `aparicionesVisiblesEnOpd`: enumeracion canonica de la fibra activa.
+- `aparienciaDeEntidadEnOpd`: lookup canonico entidad -> aparicion local.
+- `entidadesVisiblesEnOpd`: conjunto derivado de entidades visibles en un OPD.
+- `opdIdDeEntidadVisible`: resolucion canonica de primer OPD donde una entidad
+  tiene aparicion, con preferencia por el OPD activo.
 - `aparienciaRenderizableEnOpd`: pertenencia por id de apariencia en el OPD.
 - `clasificarAparicion`: origen, rol de refinamiento, confinamiento y limpieza.
 - `aparienciaLimpiableAutomaticamente`: unico gate para limpieza automatica.
+
+Los consumidores de render, OPL, validacion, store, enlaces, plegado,
+fixtures y helpers de refinamiento deben factorizar las consultas
+"entidad visible en OPD" y "aparicion local de entidad" por esta politica.
+Leer `opd.apariencias` directamente sigue permitido cuando el codigo esta
+manipulando la fibra como coleccion local, pero no para redefinir el predicado
+de visibilidad.
 
 Origenes admitidos:
 

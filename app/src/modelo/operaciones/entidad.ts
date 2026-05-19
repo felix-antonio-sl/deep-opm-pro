@@ -18,6 +18,7 @@ import type {
   ValorSlot,
 } from "../tipos";
 import { normalizarParametrosSimulacion } from "../simulacion/parametros";
+import { aparienciaDeEntidadEnOpd } from "../politicaApariciones";
 import { placeholderValorSlot, validarValorSlot } from "../validadores/valorSlot";
 import { fallo, ok, siguienteId } from "./helpers";
 
@@ -106,7 +107,7 @@ export function crearAtributoEnObjeto(
   if (!opd) return fallo(`OPD no existe: ${opdId}`);
   const padre = modelo.entidades[objetoPadreId];
   if (!padre || padre.tipo !== "objeto") return fallo("Crear atributo requiere un objeto padre");
-  const aparienciaPadre = Object.values(opd.apariencias).find((apariencia) => apariencia.entidadId === objetoPadreId);
+  const aparienciaPadre = aparienciaDeEntidadEnOpd(opd, objetoPadreId);
   if (!aparienciaPadre) return fallo("El objeto padre debe tener apariencia en el OPD activo");
 
   const compuesto = parsearNombreUnidadEntidad(nombreAtributo);

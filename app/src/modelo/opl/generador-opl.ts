@@ -1,5 +1,6 @@
 import { naturalezaDeEnlace } from "../constantes";
 import { entidadDeExtremo } from "../extremos";
+import { entidadesVisiblesEnOpd } from "../politicaApariciones";
 import type {
   Enlace,
   Entidad,
@@ -95,11 +96,7 @@ function generarSentenciasOpd(modelo: Modelo, opd: Opd): string[] {
 }
 
 function entidadesDelOpd(modelo: Modelo, opd: Opd): Entidad[] {
-  const ids = new Set<Id>();
-  for (const ap of Object.values(opd.apariencias)) {
-    ids.add(ap.entidadId);
-  }
-  return [...ids]
+  return [...entidadesVisiblesEnOpd(opd)]
     .map((id) => modelo.entidades[id])
     .filter((e): e is Entidad => !!e);
 }

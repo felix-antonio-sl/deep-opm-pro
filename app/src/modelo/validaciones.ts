@@ -19,6 +19,7 @@ import { aparienciaEsExternaDeRefinamiento } from "./contextoRefinamiento";
 import { entidadDeExtremo, entidadIdDeExtremo, extremoApuntaAEntidad, extremoKey, nombreExtremo } from "./extremos";
 import { imagenIncluyeBitmap } from "./imagenObjeto";
 import { estadosDeEntidad } from "./operaciones";
+import { aparienciaDeEntidadEnOpd, opdIdDeEntidadVisible } from "./politicaApariciones";
 import { obtenerRefinamiento } from "./refinamientos";
 import type { Apariencia, Enlace, Entidad, Id, Modelo, Opd, TipoEnlace } from "./tipos";
 
@@ -410,7 +411,7 @@ function contextoDescomposicion(modelo: Modelo, opd: Opd): { padre: Entidad; con
     obtenerRefinamiento(entidad, "descomposicion")?.opdId === opd.id
   ));
   if (!padre) return null;
-  const contorno = Object.values(opd.apariencias).find((apariencia) => apariencia.entidadId === padre.id);
+  const contorno = aparienciaDeEntidadEnOpd(opd, padre.id);
   return contorno ? { padre, contorno } : null;
 }
 
@@ -426,14 +427,7 @@ function opdIdDeEnlace(modelo: Modelo, enlaceId: Id, opdPreferidoId: Id): Id | n
 }
 
 function opdIdDeEntidad(modelo: Modelo, entidadId: Id, opdPreferidoId: Id): Id | null {
-  const opdPreferido = modelo.opds[opdPreferidoId];
-  if (opdPreferido && Object.values(opdPreferido.apariencias).some((apariencia) => apariencia.entidadId === entidadId)) {
-    return opdPreferidoId;
-  }
-  for (const opd of Object.values(modelo.opds)) {
-    if (Object.values(opd.apariencias).some((apariencia) => apariencia.entidadId === entidadId)) return opd.id;
-  }
-  return null;
+  return opdIdDeEntidadVisible(modelo, entidadId, opdPreferidoId);
 }
 
 function priorizarOpdActivo(avisos: Aviso[], opdActivoId: Id): Aviso[] {
