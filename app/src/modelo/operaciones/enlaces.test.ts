@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { extremoEntidad, extremoEstado } from "../extremos";
-import { agregacionesInzoomFaltantes, apuntarExtremoEnlace, cambiarTipoGrupoEstructural, crearEnlace, crearEstadosIniciales, crearModelo, crearObjeto, crearProceso, desplegarObjeto, descomponerProceso, fijarOrdenGrupoEstructural, moverPuertoEnlace, plegarCompletoGrupoEstructural, plegarGrupoEstructural, quitarPlegadoCompletoEstructural, quitarSemiplegadoEstructural, relacionesEstructuralesFaltantes, relacionesPlegadasEstructurales, relacionesSemiplegadasEstructurales, traerAgregacionesInzoomFaltantes, traerRelacionesEstructuralesFaltantes } from "../operaciones";
+import { agregacionesInzoomFaltantes, apuntarExtremoEnlace, cambiarTipoGrupoEstructural, crearEnlace, crearEstadosIniciales, crearModelo, crearObjeto, crearProceso, desplegarObjeto, descomponerProceso, eliminarEnlace, fijarOrdenGrupoEstructural, moverPuertoEnlace, plegarCompletoGrupoEstructural, plegarGrupoEstructural, quitarPlegadoCompletoEstructural, quitarSemiplegadoEstructural, relacionesEstructuralesFaltantes, relacionesPlegadasEstructurales, relacionesSemiplegadasEstructurales, traerAgregacionesInzoomFaltantes, traerRelacionesEstructuralesFaltantes } from "../operaciones";
 import { filasPlegadoParcial } from "../plegado";
 import type { Modelo, Resultado } from "../tipos";
 import { copiarEstiloEnlace, eliminarEnlacesBatch } from "./enlaces";
@@ -92,6 +92,22 @@ describe("operaciones/enlaces", () => {
     expect(modelo.entidades[todoId]?.orderedFundamentalTypes).toEqual(["agregacion"]);
 
     modelo = must(fijarOrdenGrupoEstructural(modelo, ids, false));
+    expect(modelo.entidades[todoId]?.orderedFundamentalTypes).toBeUndefined();
+  });
+
+  test("eliminarEnlace limpia orderedFundamentalTypes cuando desaparece el ultimo enlace estructural del tipo", () => {
+    let modelo = modeloEstructural();
+    const ids = Object.keys(modelo.enlaces);
+    const todoId = entidad(modelo, "Todo");
+    if (ids.length !== 2) throw new Error("La prueba esperaba dos enlaces estructurales");
+    modelo = must(fijarOrdenGrupoEstructural(modelo, ids, true));
+
+    modelo = must(eliminarEnlace(modelo, ids[0]!));
+
+    expect(modelo.entidades[todoId]?.orderedFundamentalTypes).toEqual(["agregacion"]);
+
+    modelo = must(eliminarEnlace(modelo, ids[1]!));
+
     expect(modelo.entidades[todoId]?.orderedFundamentalTypes).toBeUndefined();
   });
 

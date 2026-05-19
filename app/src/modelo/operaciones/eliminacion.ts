@@ -1,4 +1,4 @@
-import { CANON } from "../constantes";
+import { CANON, naturalezaDeEnlace } from "../constantes";
 import { entidadDeExtremo, entidadIdDeExtremo, extremoEntidad } from "../extremos";
 import { contenedorRefinamiento, posicionLibre, solapa } from "../layout";
 import { aparienciaDeEntidadEnOpd } from "../politicaApariciones";
@@ -77,7 +77,7 @@ export function eliminarEntidad(modelo: Modelo, entidadId: Id): Resultado<Modelo
     ]),
   );
 
-  return ok({ ...modelo, entidades, estados, enlaces, opds });
+  return ok(limpiarOrderedFundamentalTypesHuerfanos({ ...modelo, entidades, estados, enlaces, opds }));
 }
 
 export function eliminarEnlace(modelo: Modelo, enlaceId: Id): Resultado<Modelo> {
@@ -117,7 +117,7 @@ export function eliminarEnlace(modelo: Modelo, enlaceId: Id): Resultado<Modelo> 
     actualizado = sincronizado.value;
   }
 
-  return ok(actualizado);
+  return ok(limpiarOrderedFundamentalTypesHuerfanos(actualizado));
 }
 
 /**
@@ -149,7 +149,34 @@ export function eliminarEnlacesPorExtremosEstado(modelo: Modelo, estadoIds: Set<
       },
     ]),
   );
-  return { ...modelo, enlaces, opds };
+  return limpiarOrderedFundamentalTypesHuerfanos({ ...modelo, enlaces, opds });
+}
+
+function limpiarOrderedFundamentalTypesHuerfanos(modelo: Modelo): Modelo {
+  let entidades: Record<Id, Entidad> | undefined;
+  for (const entidad of Object.values(modelo.entidades)) {
+    const actuales = entidad.orderedFundamentalTypes;
+    if (!actuales?.length) continue;
+    const vigentes = actuales.filter((tipo) => existeEnlaceEstructuralDeTipoParaEntidad(modelo, entidad.id, tipo));
+    if (vigentes.length === actuales.length) continue;
+    const actualizada = { ...entidad };
+    if (vigentes.length > 0) actualizada.orderedFundamentalTypes = vigentes;
+    else delete actualizada.orderedFundamentalTypes;
+    entidades = entidades ?? { ...modelo.entidades };
+    entidades[entidad.id] = actualizada;
+  }
+  return entidades ? { ...modelo, entidades } : modelo;
+}
+
+function existeEnlaceEstructuralDeTipoParaEntidad(modelo: Modelo, entidadId: Id, tipo: Enlace["tipo"]): boolean {
+  return Object.values(modelo.enlaces).some((enlace) => (
+    enlace.tipo === tipo &&
+    naturalezaDeEnlace(enlace.tipo) === "estructural" &&
+    (
+      entidadIdDeExtremo(modelo, enlace.origenId) === entidadId ||
+      entidadIdDeExtremo(modelo, enlace.destinoId) === entidadId
+    )
+  ));
 }
 
 // L2 ronda 2: convierte un enlace `efecto` en un par consumo + resultado con
