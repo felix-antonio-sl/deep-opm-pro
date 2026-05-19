@@ -62,6 +62,7 @@ export function validarModelo(modelo: Modelo, opdActivoId: Id): Aviso[] {
     ...reglaExcepcionTemporalProcesoProceso(modelo, opdActivoId),
     ...reglaProceduralNoObjetoObjeto(modelo, opdActivoId),
     ...reglaEstructuralSinDuplicar(modelo, opdActivoId),
+    ...reglaOrdenEstructuralHuerfano(modelo, opdActivoId),
     ...reglaSubprocesoNoConectaAlPadre(modelo),
     ...reglaAgenteRequiereObjetoFisico(modelo, opdActivoId),
     ...reglaProcesoSinEntradaNiSalida(modelo, opdActivoId),
@@ -215,6 +216,40 @@ function reglaEstructuralSinDuplicar(modelo: Modelo, opdActivoId: Id): Aviso[] {
   }
 
   return avisos;
+}
+
+function reglaOrdenEstructuralHuerfano(modelo: Modelo, opdActivoId: Id): Aviso[] {
+  const avisos: Aviso[] = [];
+
+  for (const entidad of Object.values(modelo.entidades)) {
+    const tipos = entidad.orderedFundamentalTypes ?? [];
+    for (const tipo of tipos) {
+      if (existeEnlaceEstructuralDeTipoParaEntidad(modelo, entidad.id, tipo)) continue;
+      const opdId = opdIdDeEntidad(modelo, entidad.id, opdActivoId);
+      avisos.push({
+        reglaId: "orden-estructural-huerfano",
+        severidad: "advertencia",
+        mensaje: `${entidad.nombre} conserva orden estructural ${etiquetaTipo(tipo)} sin enlaces estructurales vigentes de ese tipo.`,
+        citaSSOT: "[V-239] [OPCloud orderedFundamentalTypes]",
+        elementoTipo: "entidad",
+        elementoId: entidad.id,
+        ...(opdId ? { opdId } : {}),
+      });
+    }
+  }
+
+  return avisos;
+}
+
+function existeEnlaceEstructuralDeTipoParaEntidad(modelo: Modelo, entidadId: Id, tipo: TipoEnlace): boolean {
+  return Object.values(modelo.enlaces).some((enlace) => (
+    enlace.tipo === tipo &&
+    naturalezaDeEnlace(enlace.tipo) === "estructural" &&
+    (
+      entidadIdDeExtremo(modelo, enlace.origenId) === entidadId ||
+      entidadIdDeExtremo(modelo, enlace.destinoId) === entidadId
+    )
+  ));
 }
 
 function reglaSubprocesoNoConectaAlPadre(modelo: Modelo): Aviso[] {

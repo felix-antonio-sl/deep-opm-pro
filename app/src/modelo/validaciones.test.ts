@@ -106,6 +106,28 @@ describe("validaciones metodologicas pasivas", () => {
     });
   });
 
+  test("orderedFundamentalTypes sin enlace estructural vigente reporta metadato fantasma", () => {
+    const todo: Entidad = {
+      ...entidad("o-todo", "objeto", "Todo", "informacional"),
+      orderedFundamentalTypes: ["agregacion"],
+    };
+    const modelo = modeloCon({
+      entidades: [
+        todo,
+        entidad("o-parte", "objeto", "Parte", "informacional"),
+      ],
+    });
+
+    const avisos = avisosDeRegla(modelo, "orden-estructural-huerfano");
+
+    expect(avisos).toHaveLength(1);
+    expect(avisos[0]).toMatchObject({
+      severidad: "advertencia",
+      elementoTipo: "entidad",
+      elementoId: todo.id,
+    });
+  });
+
   test("consumo objeto a objeto reporta error procedural", () => {
     const modelo = modeloCon({
       entidades: [
