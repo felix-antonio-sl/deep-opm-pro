@@ -1,9 +1,10 @@
 import { validarFirmaEnlace } from "../modelo/operaciones";
+import { ANCLAS_RELOJ_ENLACE, esAnclaRelojEnlace, type AnclaRelojEnlace } from "../modelo/anclajesEnlace";
 import type { Apariencia, Entidad, Id, Modelo, TipoEnlace } from "../modelo/tipos";
 import { tokens } from "../ui/tokens";
 
-export const ANCHORS_CONEXION = ["N", "E", "S", "O"] as const;
-export type AnchorConexion = (typeof ANCHORS_CONEXION)[number];
+export const ANCHORS_CONEXION = ANCLAS_RELOJ_ENLACE;
+export type AnchorConexion = AnclaRelojEnlace;
 
 export interface ModoEnlace {
   tipo: TipoEnlace;
@@ -96,7 +97,7 @@ export function colorHaloPorTipo(tipo: TipoEnlace): string {
 }
 
 export function esAnchorConexion(valor: string | null | undefined): valor is AnchorConexion {
-  return ANCHORS_CONEXION.includes(valor as AnchorConexion);
+  return esAnclaRelojEnlace(valor);
 }
 
 export function anchorConexionDesdeSelector(selector: string | null): AnchorConexion | null {

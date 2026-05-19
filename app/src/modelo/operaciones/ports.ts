@@ -1,5 +1,6 @@
 import { naturalezaDeEnlace } from "../constantes";
 import { entidadIdDeExtremo } from "../extremos";
+import { puertoRelativoAnclaEnlace, type AnclaRelojEnlace } from "../anclajesEnlace";
 import type { Apariencia, Enlace, Id, Modelo, Posicion, PuertoApariencia, Resultado } from "../tipos";
 import { fallo, ok } from "./helpers";
 
@@ -198,6 +199,49 @@ export function actualizarPuertosEnlacesDesdePuntos(
       [opdId]: {
         ...opd,
         apariencias,
+      },
+    },
+  });
+}
+
+export function fijarAnclaExtremoEnlace(
+  modelo: Modelo,
+  opdId: Id,
+  enlaceId: Id,
+  lado: LadoPuertoEnlace,
+  ancla: AnclaRelojEnlace,
+): Resultado<Modelo> {
+  const opd = modelo.opds[opdId];
+  if (!opd) return fallo(`OPD no existe: ${opdId}`);
+  const enlace = modelo.enlaces[enlaceId];
+  if (!enlace) return fallo(`Enlace no existe: ${enlaceId}`);
+  const campo = lado === "origen" ? "origenId" : "destinoId";
+  const extremo = enlace[campo];
+  if (extremo.kind !== "entidad") return fallo("El anclaje manual requiere un extremo de entidad");
+
+  const apariencia = Object.values(opd.apariencias).find((item) => item.entidadId === extremo.id);
+  if (!apariencia) return fallo("El extremo debe estar visible en el OPD activo");
+
+  const portId = extremo.portId ?? puertoDeterminista(enlace.id, lado);
+  const puerto = puertoRelativoAnclaEnlace(ancla);
+  const ports = apariencia.ports ?? {};
+  const siguienteExtremo = extremo.portId === portId ? extremo : { ...extremo, portId };
+  const siguienteEnlace = siguienteExtremo === extremo ? enlace : { ...enlace, [campo]: siguienteExtremo };
+  const siguienteApariencia = ports[portId] && mismoPuerto(ports[portId], puerto)
+    ? apariencia
+    : { ...apariencia, ports: { ...ports, [portId]: puerto } };
+
+  if (siguienteEnlace === enlace && siguienteApariencia === apariencia) return ok(modelo);
+  return ok({
+    ...modelo,
+    enlaces: siguienteEnlace === enlace ? modelo.enlaces : { ...modelo.enlaces, [enlace.id]: siguienteEnlace },
+    opds: {
+      ...modelo.opds,
+      [opdId]: {
+        ...opd,
+        apariencias: siguienteApariencia === apariencia
+          ? opd.apariencias
+          : { ...opd.apariencias, [apariencia.id]: siguienteApariencia },
       },
     },
   });

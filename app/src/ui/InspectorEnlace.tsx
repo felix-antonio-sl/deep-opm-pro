@@ -355,8 +355,8 @@ export function InspectorEnlace({ enlace }: Props) {
         opdId={opdActivoId}
         enlace={enlace}
         onCancel={() => setDialogoMoverPuertoAbierto(false)}
-        onMover={(lado, extremo) => {
-          moverPuerto(lado, extremo);
+        onMover={(lado, extremo, ancla) => {
+          moverPuerto(lado, extremo, false, ancla);
           setDialogoMoverPuertoAbierto(false);
         }}
         onRemover={() => {

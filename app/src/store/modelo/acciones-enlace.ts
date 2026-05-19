@@ -20,6 +20,7 @@ import {
   ajustarMultiplicidad,
   apuntarExtremoEnlace,
   crearEnlace,
+  fijarAnclaExtremoEnlace,
   definirBackwardTag,
   definirRequisitosEnlace,
   definirTasaEnlace,
@@ -81,7 +82,7 @@ export function accionesEnlace(set: SetStore, get: GetStore): Partial<ModeloSlic
       });
     },
 
-    crearEnlaceEntreEntidades(origenId, destinoId, tipo) {
+    crearEnlaceEntreEntidades(origenId, destinoId, tipo, opciones) {
       const { modelo, opdActivoId } = get();
       const resultado = crearEnlace(modelo, opdActivoId, extremoEntidad(origenId), extremoEntidad(destinoId), tipo);
       if (!resultado.ok) {
@@ -93,6 +94,14 @@ export function accionesEnlace(set: SetStore, get: GetStore): Partial<ModeloSlic
       if (enlaceCreadoId) {
         const auto = formarAbanicoAutomatico(modeloFinal, opdActivoId, enlaceCreadoId);
         if (auto.ok) modeloFinal = auto.value;
+        if (opciones?.anclaOrigen) {
+          const anclado = fijarAnclaExtremoEnlace(modeloFinal, opdActivoId, enlaceCreadoId, "origen", opciones.anclaOrigen);
+          if (anclado.ok) modeloFinal = anclado.value;
+        }
+        if (opciones?.anclaDestino) {
+          const anclado = fijarAnclaExtremoEnlace(modeloFinal, opdActivoId, enlaceCreadoId, "destino", opciones.anclaDestino);
+          if (anclado.ok) modeloFinal = anclado.value;
+        }
       }
       commitModelo(set, modelo, modeloFinal, {
         seleccionId: null,
@@ -426,8 +435,8 @@ export function accionesEnlace(set: SetStore, get: GetStore): Partial<ModeloSlic
       });
     },
 
-    moverPuertoEnlaceSeleccionado(lado, extremo, opcionRemover = false) {
-      const { modelo, enlaceSeleccionId } = get();
+    moverPuertoEnlaceSeleccionado(lado, extremo, opcionRemover = false, ancla) {
+      const { modelo, opdActivoId, enlaceSeleccionId } = get();
       if (!enlaceSeleccionId) {
         set({ mensaje: "Selecciona un enlace para mover puerto" });
         return;
@@ -437,8 +446,17 @@ export function accionesEnlace(set: SetStore, get: GetStore): Partial<ModeloSlic
         set({ mensaje: resultado.error });
         return;
       }
-      const enlaceExiste = !!resultado.value.enlaces[enlaceSeleccionId];
-      commitModelo(set, modelo, resultado.value, {
+      let modeloFinal = resultado.value;
+      const enlaceExiste = !!modeloFinal.enlaces[enlaceSeleccionId];
+      if (enlaceExiste && ancla && !opcionRemover) {
+        const anclado = fijarAnclaExtremoEnlace(modeloFinal, opdActivoId, enlaceSeleccionId, lado, ancla);
+        if (!anclado.ok) {
+          set({ mensaje: anclado.error });
+          return;
+        }
+        modeloFinal = anclado.value;
+      }
+      commitModelo(set, modelo, modeloFinal, {
         seleccionId: null,
         enlaceSeleccionId: enlaceExiste ? enlaceSeleccionId : null,
         modoEnlace: null,

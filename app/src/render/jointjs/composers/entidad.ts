@@ -1,5 +1,6 @@
 import { CANON } from "../../../modelo/constantes";
 import { rolAparienciaEnRefinamiento } from "../../../modelo/contextoRefinamiento";
+import { ANCLAS_RELOJ_ENLACE, puertoRelativoAnclaEnlace, type AnclaRelojEnlace } from "../../../modelo/anclajesEnlace";
 import { designacionesEstado } from "../../../modelo/estadosDesignaciones";
 import { formatearNombreCompuesto } from "../../../modelo/objetoMetadata";
 import { estadosDeEntidad, relacionesEstructuralesOcultas } from "../../../modelo/operaciones";
@@ -120,7 +121,7 @@ export function proyectarEntidad(
   const renderConAnchors = {
     ...renderBase,
     markup: markupConConnectAnchors(renderBase.markup ?? markupBase(bodyTag)),
-    attrs: attrsConConnectAnchors(renderBase.attrs, size, seleccionada),
+    attrs: attrsConConnectAnchors(renderBase.attrs, size, entidad.tipo, seleccionada),
   };
   const render = seleccionada
     ? {
@@ -312,9 +313,9 @@ export function metadatosEntidad(
 function markupConConnectAnchors(markup: Array<Record<string, unknown>>): Array<Record<string, unknown>> {
   return [
     ...markup,
-    ...["n", "e", "s", "o"].map((anchor) => ({
+    ...ANCLAS_RELOJ_ENLACE.map((anchor) => ({
       tagName: "circle",
-      selector: `connect-anchor-${anchor}`,
+      selector: `connect-anchor-${anchor.toLowerCase()}`,
     })),
   ];
 }
@@ -322,14 +323,13 @@ function markupConConnectAnchors(markup: Array<Record<string, unknown>>): Array<
 function attrsConConnectAnchors(
   attrsBase: Record<string, unknown>,
   size: { width: number; height: number },
+  tipo: Entidad["tipo"],
   visible: boolean,
 ): Record<string, unknown> {
-  const points: Record<string, { cx: number; cy: number }> = {
-    "connect-anchor-n": { cx: size.width / 2, cy: 0 },
-    "connect-anchor-e": { cx: size.width, cy: size.height / 2 },
-    "connect-anchor-s": { cx: size.width / 2, cy: size.height },
-    "connect-anchor-o": { cx: 0, cy: size.height / 2 },
-  };
+  const points = Object.fromEntries(ANCLAS_RELOJ_ENLACE.map((anchor) => {
+    const point = puntoAnchorConexion(size, tipo, anchor);
+    return [`connect-anchor-${anchor.toLowerCase()}`, point];
+  }));
   const anchors = Object.fromEntries(Object.entries(points).map(([selector, point]) => [
     selector,
     {
@@ -345,6 +345,19 @@ function attrsConConnectAnchors(
     },
   ]));
   return { ...attrsBase, ...anchors };
+}
+
+function puntoAnchorConexion(
+  size: { width: number; height: number },
+  tipo: Entidad["tipo"],
+  anchor: AnclaRelojEnlace,
+): { cx: number; cy: number } {
+  const rel = puertoRelativoAnclaEnlace(anchor);
+  if (tipo === "proceso") {
+    const point = puntoPuertoElipse(rel.x, rel.y, size);
+    return { cx: point.x, cy: point.y };
+  }
+  return { cx: rel.x * size.width, cy: rel.y * size.height };
 }
 
 export function markupConBadge(bodyTag: "rect" | "ellipse", metadatos: MetadatosEntidadRender): Array<Record<string, unknown>> {

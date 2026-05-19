@@ -182,11 +182,17 @@ test("mover puerto desde dialogo cambia extremo destino del enlace", async ({ pa
   const dialogo = page.getByRole("dialog", { name: "Mover Puerto" });
   await expect(dialogo).toBeVisible();
   await dialogo.getByTestId("mover-puerto-extremo-select").selectOption("entidad:p-validar");
+  await dialogo.getByTestId("mover-puerto-ancla-select").selectOption("SE");
   await page.getByRole("dialog", { name: "Mover Puerto" }).getByRole("button", { name: "Mover", exact: true }).click();
 
   await expect(page.getByText("Puerto movido")).toBeVisible();
   const exportado = JSON.parse(await jsonEditor(page).inputValue()) as ExportadoModelo;
-  expect(Object.values(exportado.modelo.enlaces)[0]?.destinoId).toEqual({ kind: "entidad", id: "p-validar" });
+  const enlace = Object.values(exportado.modelo.enlaces)[0];
+  const portId = enlace?.destinoId.portId;
+  const validar = Object.values(exportado.modelo.opds[exportado.modelo.opdRaizId]?.apariencias ?? {})
+    .find((apariencia) => apariencia.entidadId === "p-validar");
+  expect(enlace?.destinoId).toEqual({ kind: "entidad", id: "p-validar", portId });
+  expect(validar?.ports?.[portId!]).toEqual({ x: 1, y: 1 });
   expect(pageErrors).toEqual([]);
 });
 

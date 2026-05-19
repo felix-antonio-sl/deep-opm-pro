@@ -64,11 +64,15 @@ describe("modo enlace canvas", () => {
     expect(colorHaloPorTipo("excepcionSobretiempo")).toMatch(/^#[0-9a-fA-F]{6}$/);
   });
 
-  test("anchorConexionDesdeSelector normaliza los 4 anchors cardinales", () => {
+  test("anchorConexionDesdeSelector normaliza los 8 anchors de reloj", () => {
     expect(anchorConexionDesdeSelector("connect-anchor-n")).toBe("N");
+    expect(anchorConexionDesdeSelector("connect-anchor-ne")).toBe("NE");
     expect(anchorConexionDesdeSelector("connect-anchor-E")).toBe("E");
+    expect(anchorConexionDesdeSelector("connect-anchor-se")).toBe("SE");
     expect(anchorConexionDesdeSelector("connect-anchor-s")).toBe("S");
+    expect(anchorConexionDesdeSelector("connect-anchor-so")).toBe("SO");
     expect(anchorConexionDesdeSelector("connect-anchor-o")).toBe("O");
+    expect(anchorConexionDesdeSelector("connect-anchor-no")).toBe("NO");
     expect(anchorConexionDesdeSelector("resize-n")).toBeNull();
   });
 

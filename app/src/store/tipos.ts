@@ -154,6 +154,7 @@ import {
 } from "../persistencia/autosalvado";
 import { exportarModelo, hidratarModelo } from "../serializacion/json";
 import type { Aviso } from "../modelo/validaciones";
+import type { AnclaRelojEnlace } from "../modelo/anclajesEnlace";
 import type { Afiliacion, AnclajesSimboloEstructural, Apariencia, DesignacionEstado, DuracionTemporal, EnlaceEstilo, Esencia, EstiloApariencia, ExtremoEnlace, Id, ImagenEntidad, LayoutEstados, Modelo, Modificador, ModoDespliegueObjeto, ModoImagenEntidad, ModoPlegado, Opd, OperadorAbanico, OrdenPartesPlegado, ParametrosSimulacionEntidad, Pestana, PestanaId, PlantillaIndice, Posicion, SubtipoModificador, TipoEnlace, TipoEntidad, TipoValorSlot, UnidadTiempo, UrlObjetoTipada, UiPortapapelesVisual, ValorConcreto, VersionResumen } from "../modelo/tipos";
 import { mismaReferencia, type OplReferencia } from "../opl/interaccion";
 import { datosAsistenteVacio, sembrarModeloDesdeAsistente, validarDatosAsistente, type DatosAsistente, type EtapaAsistente } from "../modelo/creacionWizard";
@@ -420,7 +421,7 @@ export interface OpmStore {
   rehacer: () => void;
   elegirTipoEnlace: (tipo: TipoEnlace, origenId?: Id) => void;
   iniciarConexionDesdeApariencia: (aparienciaId: Id, anchor: AnchorConexion) => void;
-  crearEnlaceEntreEntidades: (origenId: Id, destinoId: Id, tipo: TipoEnlace) => void;
+  crearEnlaceEntreEntidades: (origenId: Id, destinoId: Id, tipo: TipoEnlace, opciones?: { anclaOrigen?: AnchorConexion; anclaDestino?: AnchorConexion }) => void;
   cancelarEnlace: () => void;
 	  renombrarSeleccionada: (nombre: string) => void;
 	  crearAtributoEnObjetoSeleccionado: (input?: { nombre?: string; tipoSlot?: TipoValorSlot; unidad?: string }) => void;
@@ -521,7 +522,7 @@ export interface OpmStore {
     tiempoMaximo?: string | undefined;
     unidadTiempoMaximo?: UnidadTiempo | undefined;
   }) => void;
-  moverPuertoEnlaceSeleccionado: (lado: "origen" | "destino", extremo: ExtremoEnlace, opcionRemover?: boolean) => void;
+  moverPuertoEnlaceSeleccionado: (lado: "origen" | "destino", extremo: ExtremoEnlace, opcionRemover?: boolean, ancla?: AnclaRelojEnlace) => void;
   renombrarEtiquetaEnlaceSeleccionado: (etiqueta: string) => void;
   definirRutaEtiquetaSeleccionada: (etiqueta: string | undefined) => void;
   cambiarTipoGrupoEstructuralSeleccionado: (tipo: TipoEnlace) => void;

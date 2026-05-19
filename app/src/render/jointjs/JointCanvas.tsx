@@ -560,7 +560,7 @@ export function JointCanvas({
               direccion: direccionTipoEnlaceCanvas,
               onDireccion: setDireccionTipoEnlaceCanvas,
               onElegir: (tipo, origenId, destinoId) => {
-                crearEnlaceEntreEntidadesRef.current(origenId, destinoId, tipo);
+                crearEnlaceEntreEntidadesRef.current(origenId, destinoId, tipo, { anclaOrigen: menuTipoEnlaceCanvas.anchor });
                 setMenuTipoEnlaceCanvas(null);
               },
               anchor: { left: menuTipoEnlaceCanvas.left, top: menuTipoEnlaceCanvas.top },

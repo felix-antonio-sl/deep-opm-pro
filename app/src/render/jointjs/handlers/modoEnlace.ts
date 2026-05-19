@@ -18,7 +18,7 @@ interface CablearModoEnlaceArgs {
   modoEnlaceRef: { current: ModoEnlace | null };
   iniciarConexionDesdeAparienciaRef: { current: (aparienciaId: Id, anchor: AnchorConexion) => void };
   elegirTipoEnlaceRef: { current: (tipo: TipoEnlace, origenId?: Id) => void };
-  crearEnlaceEntreEntidadesRef: { current: (origenId: Id, destinoId: Id, tipo: TipoEnlace) => void };
+  crearEnlaceEntreEntidadesRef: { current: (origenId: Id, destinoId: Id, tipo: TipoEnlace, opciones?: { anclaOrigen?: AnchorConexion; anclaDestino?: AnchorConexion }) => void };
   cancelarEnlaceRef: { current: () => void };
   abrirMenuTipoEnlaceCanvasRef: { current: (input: MenuTipoEnlaceCanvasInput) => void };
 }
@@ -255,8 +255,12 @@ export function puntoAnchorDesdeBBox(
   anchor: AnchorConexion,
 ): { x: number; y: number } {
   if (anchor === "N") return { x: bbox.x + bbox.width / 2, y: bbox.y };
+  if (anchor === "NE") return { x: bbox.x + bbox.width, y: bbox.y };
   if (anchor === "E") return { x: bbox.x + bbox.width, y: bbox.y + bbox.height / 2 };
+  if (anchor === "SE") return { x: bbox.x + bbox.width, y: bbox.y + bbox.height };
   if (anchor === "S") return { x: bbox.x + bbox.width / 2, y: bbox.y + bbox.height };
+  if (anchor === "SO") return { x: bbox.x, y: bbox.y + bbox.height };
+  if (anchor === "NO") return { x: bbox.x, y: bbox.y };
   return { x: bbox.x, y: bbox.y + bbox.height / 2 };
 }
 

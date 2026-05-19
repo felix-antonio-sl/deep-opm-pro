@@ -33,7 +33,12 @@ test("drag desde anchor abre MenuTipoEnlace anclado y confirma conexion", async 
 
   await expect(page.locator(".joint-link")).toHaveCount(1);
   const exportado = await exportadoActual(page);
-  expect(Object.values(exportado.modelo.enlaces).some((enlace) => enlace.tipo === "consumo")).toBe(true);
+  const enlaceConsumo = Object.values(exportado.modelo.enlaces).find((enlace) => enlace.tipo === "consumo");
+  const portId = enlaceConsumo?.origenId.portId;
+  const entradaApariencia = Object.values(exportado.modelo.opds[exportado.modelo.opdRaizId]?.apariencias ?? {})
+    .find((apariencia) => apariencia.entidadId === "o-entrada");
+  expect(enlaceConsumo).toBeTruthy();
+  expect(entradaApariencia?.ports?.[portId!]).toEqual({ x: 1, y: 0.5 });
   expect(pageErrors).toEqual([]);
 });
 
