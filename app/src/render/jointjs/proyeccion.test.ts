@@ -658,6 +658,8 @@ describe("proyeccion JointJS", () => {
     expect(links[0]?.target).toEqual(extremoTrianguloEsperado(String(triangulo?.id), "in"));
     expect(links[1]?.source).toEqual(extremoTrianguloEsperado(String(triangulo?.id), "out"));
     expect(itemsPuertosTriangulo(triangulo)).toEqual(["in", "out"]);
+    expect(posicionPuertoTriangulo(triangulo, "in")).toEqual({ x: 9, y: 12 });
+    expect(posicionPuertoTriangulo(triangulo, "out")).toEqual({ x: 25, y: 20 });
     expect(triangulo?.angle).toBe(0);
     expect(((triangulo?.attrs as Attrs | undefined)?.body as Attrs | undefined)?.refPoints).toBe(LINK_ASSETS.structural.agregacion.markerPoints);
     expect(((triangulo?.attrs as Attrs | undefined)?.body as Attrs | undefined)?.fill).toBe("#586D8C");
@@ -704,8 +706,8 @@ describe("proyeccion JointJS", () => {
     const triangulo = proyectarModeloAJointCells(modelo, modelo.opdRaizId, null, null)
       .find((cell) => cell.type === "standard.Polygon");
 
-    expect(posicionPuertoTriangulo(triangulo, "in")).toEqual({ x: 0, y: 15 });
-    expect(posicionPuertoTriangulo(triangulo, "out")).toEqual({ x: 30, y: 15 });
+    expect(posicionPuertoTriangulo(triangulo, "in")).toEqual({ x: 7.5, y: 15 });
+    expect(posicionPuertoTriangulo(triangulo, "out")).toEqual({ x: 22.5, y: 15 });
   });
 
   test("fusiona dos agregaciones del mismo todo en bus con triangulo unico", () => {
@@ -746,8 +748,8 @@ describe("proyeccion JointJS", () => {
     const triangulo = proyectarModeloAJointCells(modelo, modelo.opdRaizId, null, null)
       .find((cell) => cell.type === "standard.Polygon");
 
-    expect(posicionPuertoTriangulo(triangulo, "in")).toEqual({ x: 0, y: 15 });
-    expect(posicionPuertoTriangulo(triangulo, "out")).toEqual({ x: 30, y: 15 });
+    expect(posicionPuertoTriangulo(triangulo, "in")).toEqual({ x: 7.5, y: 15 });
+    expect(posicionPuertoTriangulo(triangulo, "out")).toEqual({ x: 22.5, y: 15 });
   });
 
   test("bus estructural ordenado muestra label ordered en tramo refinable", () => {

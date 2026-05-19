@@ -52,13 +52,8 @@ export function anclajeSimboloHaciaPunto(
   if (!objetivo || !Number.isFinite(objetivo.x) || !Number.isFinite(objetivo.y)) return { ...fallback };
   const dx = objetivo.x - centroSimbolo.x;
   const dy = objetivo.y - centroSimbolo.y;
-  const dominante = Math.max(Math.abs(dx), Math.abs(dy));
-  if (dominante < 0.0001) return { ...fallback };
-  const escala = MITAD_SIMBOLO_ESTRUCTURAL / dominante;
-  return limitarAnclajeSimbolo({
-    dx: dx * escala,
-    dy: dy * escala,
-  });
+  const interseccion = interseccionRayoTrianguloEstructural(dx, dy);
+  return interseccion ?? { ...fallback };
 }
 
 export function normalizarAnclajesSimbolo(
@@ -163,4 +158,58 @@ function mismoAnclaje(
 function limitarOffset(valor: number): number {
   if (!Number.isFinite(valor)) return 0;
   return Math.max(-MITAD_SIMBOLO_ESTRUCTURAL, Math.min(MITAD_SIMBOLO_ESTRUCTURAL, Math.round(valor)));
+}
+
+interface PuntoLocal {
+  x: number;
+  y: number;
+}
+
+const TRIANGULO_ESTRUCTURAL_LOCAL: readonly PuntoLocal[] = [
+  { x: 0, y: -MITAD_SIMBOLO_ESTRUCTURAL },
+  { x: MITAD_SIMBOLO_ESTRUCTURAL, y: MITAD_SIMBOLO_ESTRUCTURAL },
+  { x: -MITAD_SIMBOLO_ESTRUCTURAL, y: MITAD_SIMBOLO_ESTRUCTURAL },
+];
+
+function interseccionRayoTrianguloEstructural(dx: number, dy: number): AnclajeSimboloEstructural | null {
+  if (!Number.isFinite(dx) || !Number.isFinite(dy)) return null;
+  if (Math.hypot(dx, dy) < 0.0001) return null;
+
+  let mejor: { t: number; punto: PuntoLocal } | null = null;
+  for (let index = 0; index < TRIANGULO_ESTRUCTURAL_LOCAL.length; index += 1) {
+    const inicio = TRIANGULO_ESTRUCTURAL_LOCAL[index]!;
+    const fin = TRIANGULO_ESTRUCTURAL_LOCAL[(index + 1) % TRIANGULO_ESTRUCTURAL_LOCAL.length]!;
+    const segmento = { x: fin.x - inicio.x, y: fin.y - inicio.y };
+    const denominador = cross({ x: dx, y: dy }, segmento);
+    if (Math.abs(denominador) < 0.0001) continue;
+
+    const t = cross(inicio, segmento) / denominador;
+    const u = cross(inicio, { x: dx, y: dy }) / denominador;
+    if (t < -0.0001 || u < -0.0001 || u > 1.0001) continue;
+    if (!mejor || t < mejor.t) {
+      mejor = {
+        t,
+        punto: {
+          x: dx * t,
+          y: dy * t,
+        },
+      };
+    }
+  }
+
+  if (!mejor) return null;
+  return {
+    dx: redondearMedioPixel(mejor.punto.x),
+    dy: redondearMedioPixel(mejor.punto.y),
+  };
+}
+
+function cross(a: PuntoLocal, b: PuntoLocal): number {
+  return a.x * b.y - a.y * b.x;
+}
+
+function redondearMedioPixel(valor: number): number {
+  if (!Number.isFinite(valor)) return 0;
+  const redondeado = Math.round(valor * 2) / 2;
+  return Math.max(-MITAD_SIMBOLO_ESTRUCTURAL, Math.min(MITAD_SIMBOLO_ESTRUCTURAL, redondeado));
 }
