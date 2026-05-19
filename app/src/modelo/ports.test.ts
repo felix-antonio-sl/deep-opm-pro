@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+import { formarAbanico } from "./abanicos";
 import { extremoEstado } from "./extremos";
 import {
   actualizarPuertosEnlacesDesdePuntos,
@@ -178,6 +179,23 @@ describe("puertos dinámicos OPCloud-style", () => {
 
     const resincronizado = sincronizarPuertosEnlaces(modelo, modelo.opdRaizId);
     expect(apariencia(resincronizado, "Entrada").ports?.[portId]).toEqual({ x: 1, y: 0.5 });
+  });
+
+  test("los enlaces en abanico comparten un puerto de borde en la entidad común", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 200, y: 20 }, "Entrada A"));
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 300, y: 20 }, "Entrada B"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 250, y: 200 }, "Procesar"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidad(modelo, "Entrada A"), entidad(modelo, "Procesar"), "consumo"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidad(modelo, "Entrada B"), entidad(modelo, "Procesar"), "consumo"));
+    modelo = must(formarAbanico(modelo, modelo.opdRaizId, Object.keys(modelo.enlaces), "O"));
+
+    const sincronizado = sincronizarPuertosEnlaces(modelo, modelo.opdRaizId);
+    const portIds = Object.values(sincronizado.enlaces).map((enlace) => enlace.destinoId.portId);
+    expect(new Set(portIds).size).toBe(1);
+    const portId = portIds[0];
+    expect(portId).toBeDefined();
+    expect(apariencia(sincronizado, "Procesar").ports?.[portId!]).toEqual({ x: 0.5, y: 0 });
   });
 });
 

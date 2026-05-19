@@ -48,10 +48,10 @@ export function sincronizarPuertosEnlaces(modelo: Modelo, opdId: Id): Modelo {
   let apariencias = opd.apariencias;
   const puertosUsadosPorApariencia = new Map<Id, Set<Id>>();
   const ranurasEstructurales = asignarRanurasEstructurales(modelo, opdId, aparienciasPorEntidad, enlacesEnAbanico);
+  const puertosCompartidosAbanico = asignarPuertosCompartidosAbanico(modelo, opdId, aparienciasPorEntidad);
   const puertosCompartidosEstado = asignarPuertosCompartidosEstado(modelo, opdId, aparienciasPorEntidad, enlacesEnAbanico);
 
   for (const aparienciaEnlace of Object.values(opd.enlaces)) {
-    if (enlacesEnAbanico.has(aparienciaEnlace.enlaceId)) continue;
     const enlace = enlaces[aparienciaEnlace.enlaceId];
     if (!enlace) continue;
     const origen = entidadIdDeExtremo(modelo, enlace.origenId);
@@ -68,6 +68,7 @@ export function sincronizarPuertosEnlaces(modelo: Modelo, opdId: Id): Modelo {
       centro(apDestino),
       {
         ...puertosCompartidosEstado.get(keyExtremo(enlace.id, "origen")),
+        ...puertosCompartidosAbanico.get(keyExtremo(enlace.id, "origen")),
         desplazamientoRanura: ranurasEstructurales.get(keyExtremo(enlace.id, "origen")) ?? 0,
       },
     );
@@ -78,6 +79,7 @@ export function sincronizarPuertosEnlaces(modelo: Modelo, opdId: Id): Modelo {
       centro(apOrigen),
       {
         ...puertosCompartidosEstado.get(keyExtremo(enlace.id, "destino")),
+        ...puertosCompartidosAbanico.get(keyExtremo(enlace.id, "destino")),
         desplazamientoRanura: ranurasEstructurales.get(keyExtremo(enlace.id, "destino")) ?? 0,
       },
     );
@@ -363,6 +365,48 @@ function asignarPuertosCompartidosEstado(
   return resultado;
 }
 
+function asignarPuertosCompartidosAbanico(
+  modelo: Modelo,
+  opdId: Id,
+  aparienciasPorEntidad: Map<Id, Apariencia>,
+): Map<string, PuertoCompartidoEstado> {
+  const resultado = new Map<string, PuertoCompartidoEstado>();
+  for (const abanico of Object.values(modelo.abanicos ?? {})) {
+    if (abanico.opdId !== opdId) continue;
+    const aparienciaPuerto = aparienciasPorEntidad.get(abanico.puertoEntidadId);
+    if (!aparienciaPuerto) continue;
+
+    const keys: string[] = [];
+    const otros: Posicion[] = [];
+    for (const enlaceId of abanico.enlaceIds) {
+      const enlace = modelo.enlaces[enlaceId];
+      if (!enlace) continue;
+      const extremos = [
+        ["origen", enlace.origenId],
+        ["destino", enlace.destinoId],
+      ] as const;
+      for (const [lado, extremo] of extremos) {
+        const entidadId = entidadIdDeExtremo(modelo, extremo);
+        if (!entidadId) continue;
+        if (entidadId === abanico.puertoEntidadId && extremo.kind === "entidad") {
+          keys.push(keyExtremo(enlace.id, lado));
+        } else {
+          const apariencia = aparienciasPorEntidad.get(entidadId);
+          if (apariencia) otros.push(centro(apariencia));
+        }
+      }
+    }
+
+    if (keys.length < 2 || otros.length === 0) continue;
+    const portId = `port-abanico-${sanitizarId(abanico.id)}-${sanitizarId(abanico.puertoEntidadId)}`;
+    const puntoOpuesto = centroide(otros);
+    for (const key of keys) {
+      resultado.set(key, { portId, puntoOpuesto });
+    }
+  }
+  return resultado;
+}
+
 function agregarGrupoPuertoCompartido(
   grupos: Map<string, Array<{ key: string; puntoOpuesto: Posicion }>>,
   grupoKey: string,
@@ -427,6 +471,13 @@ function centro(apariencia: Apariencia): Posicion {
   return {
     x: apariencia.x + apariencia.width / 2,
     y: apariencia.y + apariencia.height / 2,
+  };
+}
+
+function centroide(puntos: Posicion[]): Posicion {
+  return {
+    x: puntos.reduce((suma, punto) => suma + punto.x, 0) / puntos.length,
+    y: puntos.reduce((suma, punto) => suma + punto.y, 0) / puntos.length,
   };
 }
 
