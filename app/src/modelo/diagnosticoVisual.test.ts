@@ -9,7 +9,7 @@ import {
   descomponerProceso,
 } from "./operaciones";
 import { listarAvisosVisuales } from "./diagnosticoVisual";
-import type { Apariencia, Modelo, Resultado } from "./tipos";
+import type { Apariencia, AparienciaEnlace, Modelo, Resultado } from "./tipos";
 
 describe("diagnostico visual", () => {
   test("detecta solape entre apariencias visibles que no son contorno", () => {
@@ -183,6 +183,245 @@ describe("diagnostico visual", () => {
 
     expect(avisos).toContainEqual(expect.objectContaining({
       reglaId: "visual-vertices-enlace-invalidos",
+      elementoTipo: "enlace",
+      elementoId: aparienciaEnlace.enlaceId,
+    }));
+  });
+
+  test("detecta apariencias con entidad ausente, OPD inconsistente o geometria invalida", () => {
+    let modelo = crearModelo("Visual");
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 80, y: 80 }, "Entrada"));
+    const apariencia = Object.values(modelo.opds[modelo.opdRaizId]!.apariencias)[0]!;
+    const aparienciaFantasma: Apariencia = {
+      id: "a-fantasma",
+      entidadId: "entidad-fantasma",
+      opdId: modelo.opdRaizId,
+      x: 260,
+      y: 80,
+      width: 135,
+      height: 60,
+    };
+    modelo = {
+      ...modelo,
+      opds: {
+        ...modelo.opds,
+        [modelo.opdRaizId]: {
+          ...modelo.opds[modelo.opdRaizId]!,
+          apariencias: {
+            ...modelo.opds[modelo.opdRaizId]!.apariencias,
+            [apariencia.id]: {
+              ...apariencia,
+              opdId: "opd-ajeno",
+              width: 0,
+            },
+            [aparienciaFantasma.id]: aparienciaFantasma,
+          },
+        },
+      },
+    };
+
+    const avisos = listarAvisosVisuales(modelo, modelo.opdRaizId);
+
+    expect(avisos).toContainEqual(expect.objectContaining({
+      reglaId: "visual-apariencia-opd-inconsistente",
+      elementoTipo: "entidad",
+      elementoId: apariencia.entidadId,
+    }));
+    expect(avisos).toContainEqual(expect.objectContaining({
+      reglaId: "visual-geometria-apariencia-invalida",
+      elementoTipo: "entidad",
+      elementoId: apariencia.entidadId,
+    }));
+    expect(avisos).toContainEqual(expect.objectContaining({
+      reglaId: "visual-apariencia-entidad-inexistente",
+      elementoTipo: "entidad",
+      elementoId: aparienciaFantasma.entidadId,
+    }));
+  });
+
+  test("detecta contexto de refinamiento y parte extraida huerfanos", () => {
+    let modelo = crearModelo("Visual");
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 80, y: 80 }, "Parte visible"));
+    const apariencia = Object.values(modelo.opds[modelo.opdRaizId]!.apariencias)[0]!;
+    modelo = {
+      ...modelo,
+      opds: {
+        ...modelo.opds,
+        [modelo.opdRaizId]: {
+          ...modelo.opds[modelo.opdRaizId]!,
+          apariencias: {
+            ...modelo.opds[modelo.opdRaizId]!.apariencias,
+            [apariencia.id]: {
+              ...apariencia,
+              contextoRefinamiento: {
+                tipo: "descomposicion",
+                refinableEntidadId: "proceso-ausente",
+                rol: "externo",
+                contenedorAparienciaId: "contenedor-ausente",
+              },
+              parteExtraidaDe: {
+                padreAparienciaId: "padre-ausente",
+                parteEntidadId: "parte-ausente",
+              },
+            },
+          },
+        },
+      },
+    };
+
+    const avisos = listarAvisosVisuales(modelo, modelo.opdRaizId);
+
+    expect(avisos).toContainEqual(expect.objectContaining({
+      reglaId: "visual-contexto-refinamiento-huerfano",
+      elementoTipo: "entidad",
+      elementoId: apariencia.entidadId,
+    }));
+    expect(avisos).toContainEqual(expect.objectContaining({
+      reglaId: "visual-parte-extraida-huerfana",
+      elementoTipo: "entidad",
+      elementoId: apariencia.entidadId,
+    }));
+  });
+
+  test("detecta enlaces visibles con OPD inconsistente o extremo logico ausente", () => {
+    let modelo = crearModelo("Visual");
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 80, y: 80 }, "Entrada"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 260, y: 80 }, "Procesar"));
+    const [entradaId, procesarId] = Object.keys(modelo.entidades);
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entradaId!, procesarId!, "consumo"));
+    const enlace = Object.values(modelo.enlaces)[0]!;
+    const aparienciaEnlace = Object.values(modelo.opds[modelo.opdRaizId]!.enlaces)[0]!;
+    modelo = {
+      ...modelo,
+      enlaces: {
+        ...modelo.enlaces,
+        [enlace.id]: {
+          ...enlace,
+          destinoId: extremoEntidad("entidad-ausente"),
+        },
+      },
+      opds: {
+        ...modelo.opds,
+        [modelo.opdRaizId]: {
+          ...modelo.opds[modelo.opdRaizId]!,
+          enlaces: {
+            ...modelo.opds[modelo.opdRaizId]!.enlaces,
+            [aparienciaEnlace.id]: {
+              ...aparienciaEnlace,
+              opdId: "opd-ajeno",
+            },
+          },
+        },
+      },
+    };
+
+    const avisos = listarAvisosVisuales(modelo, modelo.opdRaizId);
+
+    expect(avisos).toContainEqual(expect.objectContaining({
+      reglaId: "visual-enlace-opd-inconsistente",
+      elementoTipo: "enlace",
+      elementoId: enlace.id,
+    }));
+    expect(avisos).toContainEqual(expect.objectContaining({
+      reglaId: "visual-enlace-extremo-logico-inexistente",
+      elementoTipo: "enlace",
+      elementoId: enlace.id,
+    }));
+  });
+
+  test("detecta puerto referenciado por enlace que no existe en la apariencia", () => {
+    let modelo = crearModelo("Visual");
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 80, y: 80 }, "Entrada"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 260, y: 80 }, "Procesar"));
+    const [entradaId, procesarId] = Object.keys(modelo.entidades);
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entradaId!, procesarId!, "consumo"));
+    const enlace = Object.values(modelo.enlaces)[0]!;
+    modelo = {
+      ...modelo,
+      enlaces: {
+        ...modelo.enlaces,
+        [enlace.id]: {
+          ...enlace,
+          origenId: { ...enlace.origenId, portId: "puerto-ausente" },
+        },
+      },
+    };
+
+    const avisos = listarAvisosVisuales(modelo, modelo.opdRaizId);
+
+    expect(avisos).toContainEqual(expect.objectContaining({
+      reglaId: "visual-puerto-enlace-inexistente",
+      elementoTipo: "enlace",
+      elementoId: enlace.id,
+    }));
+  });
+
+  test("detecta puertos declarados con coordenadas fuera del rango relativo", () => {
+    let modelo = crearModelo("Visual");
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 80, y: 80 }, "Entrada"));
+    const apariencia = Object.values(modelo.opds[modelo.opdRaizId]!.apariencias)[0]!;
+    modelo = {
+      ...modelo,
+      opds: {
+        ...modelo.opds,
+        [modelo.opdRaizId]: {
+          ...modelo.opds[modelo.opdRaizId]!,
+          apariencias: {
+            ...modelo.opds[modelo.opdRaizId]!.apariencias,
+            [apariencia.id]: {
+              ...apariencia,
+              ports: { "p-fuera": { x: 1.2, y: 0.5 } },
+            },
+          },
+        },
+      },
+    };
+
+    const avisos = listarAvisosVisuales(modelo, modelo.opdRaizId);
+
+    expect(avisos).toContainEqual(expect.objectContaining({
+      reglaId: "visual-puerto-coordenadas-invalidas",
+      elementoTipo: "entidad",
+      elementoId: apariencia.entidadId,
+    }));
+  });
+
+  test("detecta labels y simbolos estructurales con metadata no finita", () => {
+    let modelo = crearModelo("Visual");
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 80, y: 80 }, "Todo"));
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 260, y: 80 }, "Parte"));
+    const [todoId, parteId] = Object.keys(modelo.entidades);
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, todoId!, parteId!, "agregacion"));
+    const aparienciaEnlace = Object.values(modelo.opds[modelo.opdRaizId]!.enlaces)[0]!;
+    const corrupta: AparienciaEnlace = {
+      ...aparienciaEnlace,
+      symbolPos: { x: Number.NaN, y: 120 },
+      symbolAnchors: { refinable: { dx: Number.POSITIVE_INFINITY, dy: 0 } },
+      labelPositions: { etiqueta: { distance: Number.NaN } },
+    };
+    modelo = {
+      ...modelo,
+      opds: {
+        ...modelo.opds,
+        [modelo.opdRaizId]: {
+          ...modelo.opds[modelo.opdRaizId]!,
+          enlaces: {
+            ...modelo.opds[modelo.opdRaizId]!.enlaces,
+            [aparienciaEnlace.id]: corrupta,
+          },
+        },
+      },
+    };
+
+    const avisos = listarAvisosVisuales(modelo, modelo.opdRaizId);
+
+    expect(avisos).toContainEqual(expect.objectContaining({
+      reglaId: "visual-simbolo-estructural-invalido",
+      elementoTipo: "enlace",
+      elementoId: aparienciaEnlace.enlaceId,
+    }));
+    expect(avisos).toContainEqual(expect.objectContaining({
+      reglaId: "visual-label-enlace-invalida",
       elementoTipo: "enlace",
       elementoId: aparienciaEnlace.enlaceId,
     }));
