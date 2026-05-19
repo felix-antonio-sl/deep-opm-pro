@@ -426,11 +426,130 @@ describe("diagnostico visual", () => {
       elementoId: aparienciaEnlace.enlaceId,
     }));
   });
+
+  test("detecta enlace transformador visible en contorno que no fue distribuido", () => {
+    let modelo = crearModelo("Visual");
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 40, y: 120 }, "Entrada"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 280, y: 120 }, "Procesar"));
+    const entrada = entidadPorNombre(modelo, "Entrada");
+    const procesar = entidadPorNombre(modelo, "Procesar");
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entrada.id, procesar.id, "consumo"));
+    const enlacePadre = Object.values(modelo.enlaces).find((enlace) => enlace.tipo === "consumo" && !enlace.derivado);
+    if (!enlacePadre) throw new Error("La prueba esperaba enlace padre");
+    const descompuesto = descomponerProceso(modelo, modelo.opdRaizId, procesar.id);
+    if (!descompuesto.ok) throw new Error(descompuesto.error);
+    modelo = descompuesto.value.modelo;
+    const opdHijo = modelo.opds[descompuesto.value.opdId]!;
+    const derivadosVisibles = new Set(Object.values(opdHijo.enlaces)
+      .filter((apariencia) => modelo.enlaces[apariencia.enlaceId]?.derivado)
+      .map((apariencia) => apariencia.id));
+    modelo = {
+      ...modelo,
+      opds: {
+        ...modelo.opds,
+        [opdHijo.id]: {
+          ...opdHijo,
+          enlaces: {
+            ...Object.fromEntries(Object.entries(opdHijo.enlaces).filter(([id]) => !derivadosVisibles.has(id))),
+            "ae-contorno": { id: "ae-contorno", enlaceId: enlacePadre.id, opdId: opdHijo.id, vertices: [] },
+          },
+        },
+      },
+    };
+
+    const avisos = listarAvisosVisuales(modelo, opdHijo.id);
+
+    expect(avisos).toContainEqual(expect.objectContaining({
+      reglaId: "visual-transformador-contorno-no-distribuido",
+      elementoTipo: "enlace",
+      elementoId: enlacePadre.id,
+      opdId: opdHijo.id,
+    }));
+  });
+
+  test("no marca contorno si existe una proyección transformadora al subproceso", () => {
+    let modelo = crearModelo("Visual");
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 40, y: 120 }, "Entrada"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 280, y: 120 }, "Procesar"));
+    const entrada = entidadPorNombre(modelo, "Entrada");
+    const procesar = entidadPorNombre(modelo, "Procesar");
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entrada.id, procesar.id, "consumo"));
+    const enlacePadre = Object.values(modelo.enlaces).find((enlace) => enlace.tipo === "consumo" && !enlace.derivado);
+    if (!enlacePadre) throw new Error("La prueba esperaba enlace padre");
+    const descompuesto = descomponerProceso(modelo, modelo.opdRaizId, procesar.id);
+    if (!descompuesto.ok) throw new Error(descompuesto.error);
+    modelo = descompuesto.value.modelo;
+    const opdHijo = modelo.opds[descompuesto.value.opdId]!;
+    modelo = {
+      ...modelo,
+      opds: {
+        ...modelo.opds,
+        [opdHijo.id]: {
+          ...opdHijo,
+          enlaces: {
+            ...opdHijo.enlaces,
+            "ae-contorno": { id: "ae-contorno", enlaceId: enlacePadre.id, opdId: opdHijo.id, vertices: [] },
+          },
+        },
+      },
+    };
+
+    const avisos = listarAvisosVisuales(modelo, opdHijo.id);
+
+    expect(avisos.filter((aviso) =>
+      aviso.reglaId === "visual-transformador-contorno-no-distribuido" &&
+      aviso.elementoId === enlacePadre.id
+    )).toEqual([]);
+  });
+
+  test("detecta subproceso interno sin objeto transformado", () => {
+    let modelo = crearModelo("Visual");
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 280, y: 120 }, "Procesar"));
+    const procesar = entidadPorNombre(modelo, "Procesar");
+    const descompuesto = descomponerProceso(modelo, modelo.opdRaizId, procesar.id);
+    if (!descompuesto.ok) throw new Error(descompuesto.error);
+    modelo = descompuesto.value.modelo;
+    const subproceso = entidadPorNombre(modelo, "Procesar 1");
+
+    const avisos = listarAvisosVisuales(modelo, descompuesto.value.opdId);
+
+    expect(avisos).toContainEqual(expect.objectContaining({
+      reglaId: "visual-subproceso-sin-transformado",
+      elementoTipo: "entidad",
+      elementoId: subproceso.id,
+      opdId: descompuesto.value.opdId,
+    }));
+  });
+
+  test("no marca subprocesos que transforman objetos visibles", () => {
+    let modelo = crearModelo("Visual");
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 280, y: 120 }, "Procesar"));
+    const procesar = entidadPorNombre(modelo, "Procesar");
+    const descompuesto = descomponerProceso(modelo, modelo.opdRaizId, procesar.id);
+    if (!descompuesto.ok) throw new Error(descompuesto.error);
+    modelo = descompuesto.value.modelo;
+    modelo = must(crearObjeto(modelo, descompuesto.value.opdId, { x: 520, y: 180 }, "Insumo"));
+    const insumo = entidadPorNombre(modelo, "Insumo");
+    for (const nombre of ["Procesar 1", "Procesar 2", "Procesar 3"]) {
+      const subproceso = entidadPorNombre(modelo, nombre);
+      modelo = must(crearEnlace(modelo, descompuesto.value.opdId, insumo.id, subproceso.id, "consumo"));
+    }
+
+    const avisos = listarAvisosVisuales(modelo, descompuesto.value.opdId);
+
+    expect(avisos.filter((aviso) => aviso.reglaId === "visual-subproceso-sin-transformado")).toEqual([]);
+  });
 });
 
 function must<T>(resultado: Resultado<T>): T {
   if (!resultado.ok) throw new Error(resultado.error);
   return resultado.value;
+}
+
+function entidadPorNombre(modelo: Modelo, nombre: string): { id: string } {
+  const entidad = Object.values(modelo.entidades).find((item) => item.nombre === nombre);
+  if (!entidad) throw new Error(`Entidad no encontrada: ${nombre}`);
+  return entidad;
 }
 
 function sinClave<T>(record: Record<string, T>, key: string): Record<string, T> {

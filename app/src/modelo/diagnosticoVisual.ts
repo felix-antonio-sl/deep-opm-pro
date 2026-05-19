@@ -1,5 +1,12 @@
-import { aparienciaEsExternaDeRefinamiento } from "./contextoRefinamiento";
-import { entidadIdDeExtremo, nombreExtremo } from "./extremos";
+import {
+  aparienciaEsExternaDeRefinamiento,
+  aparienciaEsInternaDeRefinamiento,
+} from "./contextoRefinamiento";
+import {
+  entidadIdDeExtremo,
+  extremoApuntaAEntidad,
+  nombreExtremo,
+} from "./extremos";
 import { contenedorRefinamiento, dentroDeApariencia } from "./layout";
 import { aparienciaDeEntidadEnOpd } from "./politicaApariciones";
 import type {
@@ -13,12 +20,14 @@ import type {
   Opd,
   PosicionLabelEnlace,
   PuertoApariencia,
+  TipoEnlace,
 } from "./tipos";
 import type { Aviso } from "./validaciones";
 
 const CITA_VISUAL = "opm-visual-es.md §OPD / §Enlaces";
 const CITA_REFINAMIENTO = "metodologia-opm-es.md §7.1 / opm-visual-es.md §in-zoom";
 const EPSILON_PUERTO = 0.001;
+const TIPOS_TRANSFORMADORES = new Set<TipoEnlace>(["consumo", "resultado", "efecto"]);
 
 export function listarAvisosVisuales(modelo: Modelo, opdId: Id): Aviso[] {
   const opd = modelo.opds[opdId];
@@ -29,6 +38,8 @@ export function listarAvisosVisuales(modelo: Modelo, opdId: Id): Aviso[] {
     ...detectarSolapes(modelo, opd),
     ...detectarEnlacesConExtremosNoVisibles(modelo, opd),
     ...detectarExternosDentroContorno(modelo, opd),
+    ...detectarTransformadoresContornoNoDistribuidos(modelo, opd),
+    ...detectarSubprocesosSinTransformado(modelo, opd),
     ...detectarVerticesInvalidos(modelo, opd),
     ...detectarPuertosInteriores(modelo, opd),
   ];
@@ -244,6 +255,125 @@ function detectarExternosDentroContorno(modelo: Modelo, opd: Opd): Aviso[] {
       elementoId: apariencia.entidadId,
       opdId: opd.id,
     } satisfies Aviso];
+  });
+}
+
+function detectarTransformadoresContornoNoDistribuidos(modelo: Modelo, opd: Opd): Aviso[] {
+  const contorno = contenedorRefinamiento(modelo, opd.id);
+  if (!contorno) return [];
+  const contornoApariencia = aparienciaDeEntidadEnOpd(opd, contorno.entidadId);
+  if (!contornoApariencia) return [];
+  const refinable = modelo.entidades[contorno.entidadId];
+  if (refinable?.tipo !== "proceso") return [];
+  const subprocesos = subprocesosInternos(modelo, opd, contornoApariencia);
+  if (subprocesos.size === 0) return [];
+
+  const enlacesVisibles = enlacesVisiblesEnOpd(modelo, opd);
+  return enlacesVisibles.flatMap((enlace) => {
+    if (!TIPOS_TRANSFORMADORES.has(enlace.tipo)) return [];
+    if (!extremoApuntaAEntidad(enlace.origenId, refinable.id) && !extremoApuntaAEntidad(enlace.destinoId, refinable.id)) {
+      return [];
+    }
+    if (transformadorDistribuido(modelo, enlace, enlacesVisibles, refinable.id, subprocesos)) return [];
+    const externoId = extremoApuntaAEntidad(enlace.origenId, refinable.id)
+      ? entidadIdDeExtremo(modelo, enlace.destinoId)
+      : entidadIdDeExtremo(modelo, enlace.origenId);
+    const externo = externoId ? modelo.entidades[externoId] : undefined;
+    return [{
+      reglaId: "visual-transformador-contorno-no-distribuido",
+      severidad: "advertencia",
+      mensaje: `El enlace transformador ${etiquetaEnlace(modelo, enlace)} permanece en el contorno de ${refinable.nombre}; en una descomposición debe proyectarse hacia subprocesos concretos${externo ? ` conectados con ${externo.nombre}` : ""}.`,
+      citaSSOT: CITA_REFINAMIENTO,
+      elementoTipo: "enlace",
+      elementoId: enlace.id,
+      opdId: opd.id,
+    } satisfies Aviso];
+  });
+}
+
+function detectarSubprocesosSinTransformado(modelo: Modelo, opd: Opd): Aviso[] {
+  const contorno = contenedorRefinamiento(modelo, opd.id);
+  if (!contorno) return [];
+  const contornoApariencia = aparienciaDeEntidadEnOpd(opd, contorno.entidadId);
+  if (!contornoApariencia) return [];
+  const refinable = modelo.entidades[contorno.entidadId];
+  if (refinable?.tipo !== "proceso") return [];
+  const subprocesos = subprocesosInternos(modelo, opd, contornoApariencia);
+  if (subprocesos.size === 0) return [];
+  const enlacesVisibles = enlacesVisiblesEnOpd(modelo, opd);
+  return [...subprocesos].flatMap((subprocesoId) => {
+    if (subprocesoTransformaObjeto(modelo, subprocesoId, enlacesVisibles)) return [];
+    const subproceso = modelo.entidades[subprocesoId];
+    return [{
+      reglaId: "visual-subproceso-sin-transformado",
+      severidad: "advertencia",
+      mensaje: `El subproceso interno ${subproceso?.nombre ?? subprocesoId} no transforma ningún objeto visible en ${opd.nombre}.`,
+      citaSSOT: CITA_REFINAMIENTO,
+      elementoTipo: "entidad",
+      elementoId: subprocesoId,
+      opdId: opd.id,
+    } satisfies Aviso];
+  });
+}
+
+function subprocesosInternos(modelo: Modelo, opd: Opd, contorno: Apariencia): Set<Id> {
+  return new Set(Object.values(opd.apariencias)
+    .filter((apariencia) => apariencia.id !== contorno.id)
+    .filter((apariencia) => modelo.entidades[apariencia.entidadId]?.tipo === "proceso")
+    .filter((apariencia) => aparienciaEsInternaDeRefinamiento(modelo, opd.id, apariencia, contorno))
+    .map((apariencia) => apariencia.entidadId));
+}
+
+function enlacesVisiblesEnOpd(modelo: Modelo, opd: Opd): Enlace[] {
+  return Object.values(opd.enlaces)
+    .map((aparienciaEnlace) => modelo.enlaces[aparienciaEnlace.enlaceId])
+    .filter((enlace): enlace is Enlace => enlace !== undefined);
+}
+
+function transformadorDistribuido(
+  modelo: Modelo,
+  enlaceContorno: Enlace,
+  enlaces: readonly Enlace[],
+  refinableId: Id,
+  subprocesos: ReadonlySet<Id>,
+): boolean {
+  const haciaRefinable = extremoApuntaAEntidad(enlaceContorno.destinoId, refinableId);
+  const desdeRefinable = extremoApuntaAEntidad(enlaceContorno.origenId, refinableId);
+  if (!haciaRefinable && !desdeRefinable) return false;
+
+  const externo = haciaRefinable ? enlaceContorno.origenId : enlaceContorno.destinoId;
+  const externoId = entidadIdDeExtremo(modelo, externo);
+  if (!externoId) return false;
+
+  return enlaces.some((candidato) => {
+    if (candidato.id === enlaceContorno.id || !TIPOS_TRANSFORMADORES.has(candidato.tipo)) return false;
+    if (haciaRefinable) {
+      return (
+        extremoApuntaAEntidad(candidato.origenId, externoId) &&
+        entidadIdDeExtremo(modelo, candidato.destinoId) !== null &&
+        subprocesos.has(entidadIdDeExtremo(modelo, candidato.destinoId)!)
+      );
+    }
+    return (
+      entidadIdDeExtremo(modelo, candidato.origenId) !== null &&
+      subprocesos.has(entidadIdDeExtremo(modelo, candidato.origenId)!) &&
+      extremoApuntaAEntidad(candidato.destinoId, externoId)
+    );
+  });
+}
+
+function subprocesoTransformaObjeto(modelo: Modelo, subprocesoId: Id, enlaces: readonly Enlace[]): boolean {
+  return enlaces.some((enlace) => {
+    if (!TIPOS_TRANSFORMADORES.has(enlace.tipo)) return false;
+    const origenId = entidadIdDeExtremo(modelo, enlace.origenId);
+    const destinoId = entidadIdDeExtremo(modelo, enlace.destinoId);
+    if (!origenId || !destinoId) return false;
+    const origen = modelo.entidades[origenId];
+    const destino = modelo.entidades[destinoId];
+    return (
+      (origenId === subprocesoId && destino?.tipo === "objeto") ||
+      (destinoId === subprocesoId && origen?.tipo === "objeto")
+    );
   });
 }
 
