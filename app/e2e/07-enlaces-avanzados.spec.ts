@@ -67,6 +67,14 @@ async function quebrarEnlaceSeleccionado(page: Page, dx = 0, dy = 70, ratio = 0.
   await page.mouse.up();
 }
 
+async function verticesEnlacePorTipo(page: Page, tipo: string): Promise<Array<{ x: number; y: number }>> {
+  const exportado = await exportadoActual(page);
+  const enlace = Object.values(exportado.modelo.enlaces).find((item) => item.tipo === tipo);
+  const apariencia = Object.values(exportado.modelo.opds[exportado.modelo.opdRaizId]?.enlaces ?? {})
+    .find((item) => item.enlaceId === enlace?.id);
+  return apariencia?.vertices ?? [];
+}
+
 test("crea enlace, edita vertices y elimina desde celdas JointJS", async ({ page }) => {
   const pageErrors: string[] = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));
@@ -175,6 +183,72 @@ test("BUG-20260519T074543Z-842217 angular enlace etiquetado OnStar sin crash", a
   const aparienciaEtiquetada = Object.values(exportado.modelo.opds[exportado.modelo.opdRaizId]?.enlaces ?? {})
     .find((apariencia) => apariencia.enlaceId === enlaceEtiquetado?.id);
   expect(aparienciaEtiquetada?.vertices.length ?? 0).toBeGreaterThan(0);
+  expect(pageErrors).toEqual([]);
+});
+
+test("mueve vertices de enlace etiquetado no estructural sin crash", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await cargarModeloEjemplo(page, "OnStar System");
+
+  await page.locator('.joint-element[aria-label^="Objeto OnStar Advisor"]').click();
+  await elegirTipoEnlaceDesdeMenu(page, "etiquetado");
+  await page.locator('.joint-element[aria-label^="Objeto OnStar Console"]').click();
+  await page.keyboard.press("Escape");
+
+  const enlaceEtiquetadoJointId = await page.evaluate(() => {
+    type LinkDebug = { id: string | number; prop(key: string): unknown };
+    const adapter = (window as typeof window & { __opmJointAdapter?: { graph: { getLinks(): LinkDebug[] } } }).__opmJointAdapter;
+    const link = adapter?.graph.getLinks().find((item) => (item.prop("opm") as { tipo?: string } | undefined)?.tipo === "etiquetado");
+    return link ? String(link.id) : "";
+  });
+  expect(enlaceEtiquetadoJointId).not.toBe("");
+  await clickLinkPorTipo(page, "Etiquetado");
+
+  await page.evaluate((jointId) => {
+    type LinkDebug = { id: string | number; insertVertex(index: number, vertex: { x: number; y: number }, opt?: Record<string, unknown>): void };
+    const adapter = (window as typeof window & { __opmJointAdapter?: { graph: { getLinks(): LinkDebug[] } } }).__opmJointAdapter;
+    const link = adapter?.graph.getLinks().find((item) => String(item.id) === jointId);
+    link?.insertVertex(0, { x: 540, y: 380 }, { ui: true });
+  }, enlaceEtiquetadoJointId);
+  await expect(page.locator(".joint-marker-vertex")).toHaveCount(1);
+  const primerVertice = await verticesEnlacePorTipo(page, "etiquetado");
+  expect(primerVertice).toHaveLength(1);
+
+  await page.evaluate(() => {
+    const debugWindow = window as typeof window & {
+      __opmJointAdapter?: { graph: { on(eventName: string, callback: () => void): void } };
+      __opmVertexDragActive?: boolean;
+      __opmGraphResetsDuringVertexDrag?: number;
+    };
+    debugWindow.__opmVertexDragActive = false;
+    debugWindow.__opmGraphResetsDuringVertexDrag = 0;
+    debugWindow.__opmJointAdapter?.graph.on("reset add remove", () => {
+      if (debugWindow.__opmVertexDragActive) {
+        debugWindow.__opmGraphResetsDuringVertexDrag = (debugWindow.__opmGraphResetsDuringVertexDrag ?? 0) + 1;
+      }
+    });
+  });
+
+  const verticeBox = await rectDeLocator(page.locator(".joint-marker-vertex").first());
+  await page.mouse.move(verticeBox.x + verticeBox.width / 2, verticeBox.y + verticeBox.height / 2);
+  await page.mouse.down();
+  await page.evaluate(() => {
+    (window as typeof window & { __opmVertexDragActive?: boolean }).__opmVertexDragActive = true;
+  });
+  await page.mouse.move(verticeBox.x + verticeBox.width / 2 + 40, verticeBox.y + verticeBox.height / 2 + 40, { steps: 8 });
+  const resetsDuranteDrag = await page.evaluate(() => (window as typeof window & { __opmGraphResetsDuringVertexDrag?: number }).__opmGraphResetsDuringVertexDrag ?? 0);
+  expect(resetsDuranteDrag).toBe(0);
+  await page.mouse.up();
+  await page.evaluate(() => {
+    (window as typeof window & { __opmVertexDragActive?: boolean }).__opmVertexDragActive = false;
+  });
+
+  const segundoVertice = await verticesEnlacePorTipo(page, "etiquetado");
+  expect(segundoVertice).toHaveLength(1);
+  expect(segundoVertice[0]?.x).not.toBe(primerVertice[0]?.x);
   expect(pageErrors).toEqual([]);
 });
 

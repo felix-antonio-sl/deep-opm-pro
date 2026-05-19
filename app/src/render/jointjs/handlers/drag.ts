@@ -120,14 +120,40 @@ export function cablearDrag(args: CablearDragArgs): () => void {
   paper.on("element:pointerdblclick", onElementPointerdblclick);
   paper.on("element:pointerclick", onElementPointerclickRenombrado);
 
+  let dragVerticeActivo = false;
+  const verticesPendientes = new Map<string, { x: number; y: number }[]>();
+  const flushVerticesPendientes = () => {
+    if (sincronizandoRef.current || verticesPendientes.size === 0) return;
+    const pendientes = Array.from(verticesPendientes.entries());
+    verticesPendientes.clear();
+    for (const [aparienciaEnlaceId, vertices] of pendientes) {
+      actualizarVerticesEnlaceRef.current(aparienciaEnlaceId, vertices);
+    }
+  };
+  const finalizarDragVertice = () => {
+    if (!dragVerticeActivo) return;
+    dragVerticeActivo = false;
+    flushVerticesPendientes();
+  };
+  const onPaperPointerdown = (event: PointerEvent) => {
+    dragVerticeActivo = targetDentroDeVerticesTool(event.target);
+  };
+  const paperEl = (paper as unknown as { el: HTMLElement }).el;
+  paperEl.addEventListener("pointerdown", onPaperPointerdown, true);
+  window.addEventListener("pointerup", finalizarDragVertice, true);
+  window.addEventListener("pointercancel", finalizarDragVertice, true);
+  window.addEventListener("blur", finalizarDragVertice, true);
+
   graphEvents(graph).on("change:vertices", (cell: dia.Cell) => {
     if (sincronizandoRef.current || !cell.isLink()) return;
     const meta = metadata(cell);
     if (meta?.kind !== "enlace") return;
-    actualizarVerticesEnlaceRef.current(
-      meta.aparienciaEnlaceId,
-      (cell as dia.Link).vertices().map((vertice: { x: number; y: number }) => ({ x: vertice.x, y: vertice.y })),
-    );
+    const vertices = (cell as dia.Link).vertices().map((vertice: { x: number; y: number }) => ({ x: vertice.x, y: vertice.y }));
+    if (dragVerticeActivo) {
+      verticesPendientes.set(meta.aparienciaEnlaceId, vertices);
+      return;
+    }
+    actualizarVerticesEnlaceRef.current(meta.aparienciaEnlaceId, vertices);
   });
 
   graphEvents(graph).on("change:labels", (cell: dia.Cell) => {
@@ -176,10 +202,19 @@ export function cablearDrag(args: CablearDragArgs): () => void {
     paperOff(paper, "element:pointerup", onElementPointerup as (...args: never[]) => void);
     paperOff(paper, "element:pointerdblclick", onElementPointerdblclick as (...args: never[]) => void);
     paperOff(paper, "element:pointerclick", onElementPointerclickRenombrado as (...args: never[]) => void);
+    paperEl.removeEventListener("pointerdown", onPaperPointerdown, true);
+    window.removeEventListener("pointerup", finalizarDragVertice, true);
+    window.removeEventListener("pointercancel", finalizarDragVertice, true);
+    window.removeEventListener("blur", finalizarDragVertice, true);
     // graphEvents listeners no se desinstalan explicitamente porque el graph
     // se destruye junto con el paper en el cleanup del componente; los
     // closures quedan recolectables.
   };
+}
+
+function targetDentroDeVerticesTool(target: EventTarget | null): boolean {
+  if (!(target instanceof Element)) return false;
+  return target.closest('[data-tool-name="vertices"], .joint-marker-vertex') !== null;
 }
 
 function dragAnchorActivo(paper: dia.Paper): boolean {
