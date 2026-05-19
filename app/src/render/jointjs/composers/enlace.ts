@@ -760,7 +760,7 @@ export function verticesInvocacion(origen: Apariencia | EndpointVisual, destino:
   return [
     puntoZigzag(source, dx, dy, px, py, 0.62, 0),
     puntoZigzag(source, dx, dy, px, py, 0.48, offset),
-    puntoZigzag(source, dx, dy, px, py, 0.86, offset),
+    puntoZigzag(source, dx, dy, px, py, 0.86, 0),
   ];
 }
 

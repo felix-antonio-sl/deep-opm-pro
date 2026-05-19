@@ -453,7 +453,7 @@ describe("proyeccion JointJS", () => {
     expect(vertices).toHaveLength(3);
     expect(vertices?.[0]?.y).toBe(160);
     expect(vertices?.[1]?.y).toBeGreaterThan(vertices?.[0]?.y ?? 0);
-    expect(vertices?.[2]?.y).toBe(vertices?.[1]?.y);
+    expect(vertices?.[2]?.y).toBe(vertices?.[0]?.y);
     expect(cellEnlace?.router).toBeUndefined();
     const line = ((cellEnlace?.attrs as Attrs | undefined)?.line as Attrs | undefined);
     expect(line?.sourceMarker).toBeNull();

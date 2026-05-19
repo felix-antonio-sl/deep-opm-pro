@@ -72,6 +72,32 @@ describe("composer enlace", () => {
     expect(vertices[2]?.y).toBeLessThan(280);
   });
 
+  test("invocacion vuelve al eje antes del destino para que la flecha entre limpia", () => {
+    const sourceEndpoint = {
+      apariencia: {
+        ...origen,
+        x: 285,
+        y: 190,
+        ports: { out: { x: 0.5, y: 1 } },
+      },
+      portId: "out",
+    };
+    const targetEndpoint = {
+      apariencia: {
+        ...destino,
+        x: 285,
+        y: 280,
+        ports: { in: { x: 0.5, y: 0 } },
+      },
+      portId: "in",
+    };
+
+    const vertices = verticesInvocacion(sourceEndpoint, targetEndpoint);
+    const ultimo = vertices.at(-1);
+
+    expect(Math.abs((ultimo?.x ?? 0) - (285 + origen.width / 2))).toBeLessThanOrEqual(1);
+  });
+
   test("enlace en abanico mantiene connector straight (dock-point explicito)", () => {
     const cell = proyectarEnlace("opd-1", enlaceBase, "ae-aba", { apariencia: origen }, { apariencia: destino }, [], undefined, false, true);
     expect(cell.router).toBeUndefined();
