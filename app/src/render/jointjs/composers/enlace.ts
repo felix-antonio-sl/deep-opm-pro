@@ -134,7 +134,7 @@ export function proyectarEnlace(
   enAbanico = false,
   opciones: { usarJumpover?: boolean; activaSimulacion?: boolean } = {},
 ): JointCellJson {
-  const verticesRender = verticesEnlace(enlace.tipo, origen.apariencia, destino.apariencia, vertices);
+  const verticesRender = verticesEnlace(enlace.tipo, origen, destino, vertices);
   const wrapWidth = anchoWrapEntreApariencias(etiquetaEnlaceNormalizada(enlace.etiqueta) || enlace.rutaEtiqueta || "", origen.apariencia, destino.apariencia);
   const estiloE = enlace.estilo;
   const colorEnlace = estiloE?.color ?? CANON.colores.enlace;
@@ -740,14 +740,14 @@ export function connectorRecto(): Record<string, unknown> {
   return { name: "straight" };
 }
 
-export function verticesEnlace(tipo: TipoEnlace, origen: Apariencia, destino: Apariencia, vertices: Posicion[]): Posicion[] {
+export function verticesEnlace(tipo: TipoEnlace, origen: EndpointVisual, destino: EndpointVisual, vertices: Posicion[]): Posicion[] {
   if (tipo !== "invocacion" || vertices.length > 0) return vertices;
   return verticesInvocacion(origen, destino);
 }
 
-export function verticesInvocacion(origen: Apariencia, destino: Apariencia): Posicion[] {
-  const source = centro(origen);
-  const target = centro(destino);
+export function verticesInvocacion(origen: Apariencia | EndpointVisual, destino: Apariencia | EndpointVisual): Posicion[] {
+  const source = puntoConexionInvocacion(origen);
+  const target = puntoConexionInvocacion(destino);
   const dx = target.x - source.x;
   const dy = target.y - source.y;
   const length = Math.hypot(dx, dy) || 1;
@@ -769,4 +769,33 @@ export function puntoZigzag(source: Posicion, dx: number, dy: number, px: number
     x: Math.round(source.x + dx * t + px * offset),
     y: Math.round(source.y + dy * t + py * offset),
   };
+}
+
+function puntoConexionInvocacion(endpoint: Apariencia | EndpointVisual): Posicion {
+  const apariencia = esEndpointVisual(endpoint) ? endpoint.apariencia : endpoint;
+  const portId = esEndpointVisual(endpoint) ? endpoint.portId : undefined;
+  const puerto = portId ? apariencia.ports?.[portId] : undefined;
+  if (!puerto) return centro(apariencia);
+  const local = puntoPuertoElipse(puerto.x, puerto.y, apariencia.width, apariencia.height);
+  return {
+    x: apariencia.x + local.x,
+    y: apariencia.y + local.y,
+  };
+}
+
+function esEndpointVisual(endpoint: Apariencia | EndpointVisual): endpoint is EndpointVisual {
+  return "apariencia" in endpoint;
+}
+
+function puntoPuertoElipse(refX: number, refY: number, width: number, height: number): Posicion {
+  const rx = width / 2;
+  const ry = height / 2;
+  const cx = rx;
+  const cy = ry;
+  const dx = refX * width - cx;
+  const dy = refY * height - cy;
+  const denom = Math.sqrt((dx * dx) / (rx * rx || 1) + (dy * dy) / (ry * ry || 1));
+  if (denom === 0) return { x: cx + rx, y: cy };
+  const t = 1 / denom;
+  return { x: cx + dx * t, y: cy + dy * t };
 }

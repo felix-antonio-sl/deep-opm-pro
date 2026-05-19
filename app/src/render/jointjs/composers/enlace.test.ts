@@ -45,6 +45,33 @@ describe("composer enlace", () => {
     expect(cell.connector).toEqual({ name: "jumpover", args: { type: "arc", size: 8 } });
   });
 
+  test("invocacion calcula zigzag desde puertos para no tapar la flecha en procesos apilados", () => {
+    const sourceEndpoint = {
+      apariencia: {
+        ...origen,
+        x: 285,
+        y: 190,
+        ports: { out: { x: 0.5, y: 1 } },
+      },
+      portId: "out",
+    };
+    const targetEndpoint = {
+      apariencia: {
+        ...destino,
+        x: 285,
+        y: 280,
+        ports: { in: { x: 0.5, y: 0 } },
+      },
+      portId: "in",
+    };
+
+    const vertices = verticesInvocacion(sourceEndpoint, targetEndpoint);
+
+    expect(vertices).toHaveLength(3);
+    expect(vertices[0]?.y).toBeGreaterThan(250);
+    expect(vertices[2]?.y).toBeLessThan(280);
+  });
+
   test("enlace en abanico mantiene connector straight (dock-point explicito)", () => {
     const cell = proyectarEnlace("opd-1", enlaceBase, "ae-aba", { apariencia: origen }, { apariencia: destino }, [], undefined, false, true);
     expect(cell.router).toBeUndefined();

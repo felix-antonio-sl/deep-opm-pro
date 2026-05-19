@@ -458,6 +458,7 @@ describe("proyeccion JointJS", () => {
     const line = ((cellEnlace?.attrs as Attrs | undefined)?.line as Attrs | undefined);
     expect(line?.sourceMarker).toBeNull();
     expect((line?.targetMarker as Attrs | undefined)?.points).toBe(LINK_ASSETS.procedural.invocacion.marker.points);
+    expect((line?.targetMarker as Attrs | undefined)?.["stroke-width"]).toBe(2);
   });
 
   test("proyecta auto-invocacion como loop visible con demora", () => {
