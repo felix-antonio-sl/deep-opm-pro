@@ -1,9 +1,9 @@
 # Auditoria de avance HU v2
 
-**Generado:** 2026-05-18T20:43:38.340Z
+**Generado:** 2026-05-19T22:39:41.075Z
 **Backlog:** `docs/historias-usuario-v2`
 **Ledger de evidencia:** `docs/roadmap/hu-progress-evidence.json`
-**Auditoria automatica:** 89/105 reglas matcheadas sobre 694 archivos fuente.
+**Auditoria automatica:** 89/105 reglas matcheadas sobre 707 archivos fuente.
 
 
 Regenerar desde la raiz del repo:
@@ -23,18 +23,18 @@ node docs/historias-usuario-v2/tools/progress-dashboard.mjs --sync-real --dry-ru
 
 | Segmento | HU vivas | Cubiertas | Parciales | Pendientes | Diferidas | Avance ponderado |
 |---|---:|---:|---:|---:|---:|---:|
-| Total backlog | 1125 | 274 | 15 | 458 | 378 | 24.8% |
-| M0 | 130 | 89 | 3 | 38 | 0 | 73.9% |
+| Total backlog | 1125 | 311 | 15 | 421 | 378 | 27.4% |
+| M0 | 130 | 94 | 3 | 33 | 0 | 77.2% |
 | MVP-alpha | 121 | 104 | 1 | 16 | 0 | 86.2% |
-| MVP-beta | 192 | 73 | 8 | 111 | 0 | 42.1% |
+| MVP-beta | 192 | 87 | 8 | 97 | 0 | 48.4% |
 
 ## Por corte
 
 | Corte | HU vivas | Cubiertas | Parciales | Pendientes | Diferidas | Avance ponderado |
 |---|---:|---:|---:|---:|---:|---:|
 | MVP-alpha | 121 | 104 | 1 | 16 | 0 | 86.2% |
-| MVP-beta | 192 | 73 | 8 | 111 | 0 | 42.1% |
-| MVP-gamma | 434 | 97 | 6 | 331 | 0 | 20.9% |
+| MVP-beta | 192 | 87 | 8 | 97 | 0 | 48.4% |
+| MVP-gamma | 434 | 120 | 6 | 308 | 0 | 24.8% |
 | MVP-delta | 378 | 0 | 0 | 0 | 378 | 0.0% |
 | Sin corte | 0 | 0 | 0 | 0 | 0 | 0.0% |
 
@@ -42,10 +42,10 @@ node docs/historias-usuario-v2/tools/progress-dashboard.mjs --sync-real --dry-ru
 
 | Prioridad | HU vivas | Cubiertas | Parciales | Pendientes | Diferidas | Avance ponderado |
 |---|---:|---:|---:|---:|---:|---:|
-| M0 | 130 | 89 | 3 | 38 | 0 | 73.9% |
-| M1 | 160 | 94 | 6 | 54 | 6 | 60.9% |
-| S | 471 | 80 | 2 | 227 | 162 | 18.6% |
-| C | 247 | 11 | 3 | 132 | 101 | 4.5% |
+| M0 | 130 | 94 | 3 | 33 | 0 | 77.2% |
+| M1 | 160 | 108 | 6 | 40 | 6 | 69.0% |
+| S | 471 | 96 | 2 | 211 | 162 | 21.3% |
+| C | 247 | 13 | 3 | 130 | 101 | 4.8% |
 | W | 117 | 0 | 1 | 7 | 109 | 0.5% |
 | sin-prioridad | 0 | 0 | 0 | 0 | 0 | 0.0% |
 
@@ -59,18 +59,18 @@ node docs/historias-usuario-v2/tools/progress-dashboard.mjs --sync-real --dry-ru
 | 13 | Canvas — estados (designaciones, par entrada-salida, supresión, layout interno) | 18 | 9 | 1 | 8 | 0 | 52.1% |
 | 14 | Canvas — estilado visual de cosas, texto y enlaces | 15 | 5 | 0 | 10 | 0 | 40.0% |
 | 15 | Canvas — enlaces avanzados (multiplicidad, rutas, XOR/O, condición/evento/NO, invocación) | 23 | 22 | 0 | 1 | 0 | 96.1% |
-| 16 | Canvas — enlaces: propiedades, Tabla de Enlaces y estilo | 17 | 0 | 0 | 17 | 0 | 0.0% |
+| 16 | Canvas — enlaces: propiedades, Tabla de Enlaces y estilo | 17 | 14 | 0 | 3 | 0 | 82.9% |
 | 17 | Canvas — objetos avanzados (alias, unidad, descripción, URL, plegado parcial, designaciones de estado, duración) | 28 | 23 | 0 | 5 | 0 | 79.6% |
 | 18 | Canvas — plegado parcial (vista compacta de refinadores intra-rectángulo) | 15 | 12 | 3 | 0 | 0 | 90.7% |
 | 19 | Canvas — imágenes incrustadas en cosas (URL, pool, alternar imagen/texto, exportación) | 16 | 11 | 0 | 5 | 0 | 63.2% |
 | 20 | Estructura — árbol OPD (navegación, orden, gestión, vistas derivadas) | 21 | 21 | 0 | 0 | 0 | 100.0% |
-| 21 | Estructura — mapa del sistema (meta-vista gráfica del árbol de OPDs) | 18 | 0 | 0 | 18 | 0 | 0.0% |
+| 21 | Estructura — mapa del sistema (meta-vista gráfica del árbol de OPDs) | 18 | 8 | 0 | 10 | 0 | 34.1% |
 | 30 | Persistencia — guardar/cargar, diálogos modales, versiones, archivado, búsqueda global, autosalvado | 34 | 26 | 0 | 8 | 0 | 78.7% |
 | 31 | Persistencia — carpetas, jerarquía, permisos y navegación del workspace | 26 | 0 | 0 | 26 | 0 | 0.0% |
 | 32 | Persistencia — sub-modelos (vistas de subsistema, archivos peer, composición cross-modelo) | 31 | 0 | 0 | 31 | 0 | 0.0% |
 | 33 | Persistencia — plantillas (artefactos reutilizables, ámbitos Privado/Organizacional/Global) | 22 | 13 | 0 | 9 | 0 | 61.4% |
 | 34 | Persistencia — creación de modelo nuevo (ruta simple + asistente de 12 etapas) | 28 | 2 | 0 | 26 | 0 | 5.0% |
-| 35 | Persistencia — mover modelos y buscar cosas (Ctrl+F intra-modelo) | 20 | 0 | 0 | 20 | 0 | 0.0% |
+| 35 | Persistencia — mover modelos y buscar cosas (Ctrl+F intra-modelo) | 20 | 15 | 0 | 5 | 0 | 68.2% |
 | 40 | Colaboración — permisos de modelo, token de edición y auto-lectura desde carpeta | 25 | 0 | 0 | 0 | 25 | 0.0% |
 | 41 | Colaboración — chat del modelo | 17 | 0 | 0 | 0 | 17 | 0.0% |
 | 42 | Colaboración — notas adhesivas (anclaje, toggle, integración) | 22 | 0 | 0 | 22 | 0 | 0.0% |

@@ -1,5 +1,6 @@
 import { describe, expect, test } from "bun:test";
-import { crearEnlace, crearModelo, crearObjeto, crearProceso } from "../modelo/operaciones";
+import { extremoEntidad, extremoEstado } from "../modelo/extremos";
+import { crearEnlace, crearEstadosIniciales, crearModelo, crearObjeto, crearProceso } from "../modelo/operaciones";
 import { exportarModelo } from "../serializacion/json";
 import { store } from "../store";
 
@@ -91,6 +92,34 @@ describe("slice enlaces", () => {
     expect(store.getState().modelo.enlaces[excepcionId]?.unidadTiempoMinimo).toBe("s");
     expect(store.getState().modelo.enlaces[excepcionId]?.tiempoMaximo).toBe("30");
     expect(store.getState().modelo.enlaces[excepcionId]?.unidadTiempoMaximo).toBe("s");
+  });
+
+  test("acciones store no reanclan excepcion temporal hacia objeto ni estado", () => {
+    let modelo = crearModelo("Store excepcion temporal");
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 80 }, "Pedido"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 260, y: 80 }, "Procesar"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 500, y: 80 }, "Manejar Excepcion"));
+    const pedidoId = Object.values(modelo.entidades).find((entidad) => entidad.nombre === "Pedido")?.id;
+    const procesarId = Object.values(modelo.entidades).find((entidad) => entidad.nombre === "Procesar")?.id;
+    const manejarId = Object.values(modelo.entidades).find((entidad) => entidad.nombre === "Manejar Excepcion")?.id;
+    if (!pedidoId || !procesarId || !manejarId) throw new Error("La prueba esperaba entidades");
+    const estados = must(crearEstadosIniciales(modelo, pedidoId));
+    modelo = estados.modelo;
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, procesarId, manejarId, "excepcionSubtiempo"));
+    const excepcionId = Object.values(modelo.enlaces).find((enlace) => enlace.tipo === "excepcionSubtiempo")?.id;
+    const estadoId = estados.estadoIds[0];
+    if (!excepcionId || !estadoId) throw new Error("La prueba esperaba excepcion temporal y estado");
+    const original = modelo.enlaces[excepcionId]!;
+
+    store.getState().importarJson(exportarModelo(modelo));
+    store.getState().seleccionarEnlace(excepcionId);
+    store.getState().apuntarExtremoEnlaceSeleccionado("destino", extremoEntidad(pedidoId));
+    expect(store.getState().modelo.enlaces[excepcionId]?.destinoId).toEqual(original.destinoId);
+    expect(store.getState().mensaje).toContain("Proceso");
+
+    store.getState().moverPuertoEnlaceSeleccionado("origen", extremoEstado(estadoId));
+    expect(store.getState().modelo.enlaces[excepcionId]?.origenId).toEqual(original.origenId);
+    expect(store.getState().mensaje).toContain("Estado");
   });
 
   test("mover simbolo estructural conserva anclas manuales", () => {

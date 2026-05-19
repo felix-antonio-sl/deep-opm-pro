@@ -1,24 +1,24 @@
 {
   "schema": "deep-opm-pro.hu-progress-report.v1",
-  "generatedAt": "2026-05-18T20:43:38.340Z",
+  "generatedAt": "2026-05-19T22:39:41.075Z",
   "repoRoot": "/home/felix/projects/deep-opm-pro",
   "backlogRoot": "docs/historias-usuario-v2",
   "evidenceLedger": "docs/roadmap/hu-progress-evidence.json",
   "autoAudit": {
-    "generatedAt": "2026-05-18T20:43:38.340Z",
+    "generatedAt": "2026-05-19T22:39:41.075Z",
     "mode": "sync-real",
     "rulesEvaluated": 105,
     "rulesMatched": 89,
     "rulesUnmatched": 16,
     "sourceFiles": {
-      "count": 694,
+      "count": 707,
       "roots": [
         "app/src",
         "app/e2e",
         "app/scripts",
         "assets/svg/links"
       ],
-      "signature": "sha256:311d3a7b88d4081b627445a88838567d128b57eb673d674f41f13c844a36dbef"
+      "signature": "sha256:87d15e353e0d6942bb2a199a0eb293de1108cef0a48cc9231232adba114da5ac"
     },
     "note": "autoEntries se regenera; cada regla escribe cobertura detectada o pendiente. entries manuales queda como respaldo solo para HU sin regla automatica."
   },
@@ -29,18 +29,85 @@
     "diferido": "Fuera del corte operativo actual o dependiente de infraestructura externa.",
     "bloqueado": "Requiere informacion externa o decision no disponible."
   },
-  "diagnostics": [],
+  "diagnostics": [
+    {
+      "nivel": "WARN",
+      "tipo": "ledger-duplicate-id",
+      "id": "HU-10.007",
+      "detalle": "El ledger tiene mas de una entrada para HU-10.007; gana la ultima."
+    },
+    {
+      "nivel": "WARN",
+      "tipo": "ledger-duplicate-id",
+      "id": "HU-11.025",
+      "detalle": "El ledger tiene mas de una entrada para HU-11.025; gana la ultima."
+    },
+    {
+      "nivel": "WARN",
+      "tipo": "ledger-duplicate-id",
+      "id": "HU-35.001",
+      "detalle": "El ledger tiene mas de una entrada para HU-35.001; gana la ultima."
+    },
+    {
+      "nivel": "WARN",
+      "tipo": "ledger-duplicate-id",
+      "id": "HU-35.002",
+      "detalle": "El ledger tiene mas de una entrada para HU-35.002; gana la ultima."
+    },
+    {
+      "nivel": "WARN",
+      "tipo": "ledger-duplicate-id",
+      "id": "HU-35.003",
+      "detalle": "El ledger tiene mas de una entrada para HU-35.003; gana la ultima."
+    },
+    {
+      "nivel": "WARN",
+      "tipo": "ledger-duplicate-id",
+      "id": "HU-35.004",
+      "detalle": "El ledger tiene mas de una entrada para HU-35.004; gana la ultima."
+    },
+    {
+      "nivel": "WARN",
+      "tipo": "ledger-duplicate-id",
+      "id": "HU-35.005",
+      "detalle": "El ledger tiene mas de una entrada para HU-35.005; gana la ultima."
+    },
+    {
+      "nivel": "WARN",
+      "tipo": "ledger-duplicate-id",
+      "id": "HU-10.008",
+      "detalle": "El ledger tiene mas de una entrada para HU-10.008; gana la ultima."
+    },
+    {
+      "nivel": "WARN",
+      "tipo": "ledger-duplicate-id",
+      "id": "HU-10.010",
+      "detalle": "El ledger tiene mas de una entrada para HU-10.010; gana la ultima."
+    },
+    {
+      "nivel": "WARN",
+      "tipo": "ledger-duplicate-id",
+      "id": "HU-10.011",
+      "detalle": "El ledger tiene mas de una entrada para HU-10.011; gana la ultima."
+    },
+    {
+      "nivel": "WARN",
+      "tipo": "ledger-duplicate-id",
+      "id": "HU-11.026",
+      "detalle": "El ledger tiene mas de una entrada para HU-11.026; gana la ultima."
+    }
+  ],
   "summaries": {
     "total": {
       "total": 1125,
-      "cubierto": 274,
+      "cubierto": 311,
       "parcial": 15,
-      "pendiente": 458,
+      "pendiente": 421,
       "diferido": 378,
       "bloqueado": 0,
       "pesoTotal": 3000,
-      "pesoCubierto": 744,
-      "avance": 0.248
+      "pesoCubierto": 822,
+      "avance": 0.274
     },
     "inventario": {
       "totalParseadas": 1173,
@@ -50,14 +117,14 @@
     },
     "m0": {
       "total": 130,
-      "cubierto": 89,
+      "cubierto": 94,
       "parcial": 3,
-      "pendiente": 38,
+      "pendiente": 33,
       "diferido": 0,
       "bloqueado": 0,
       "pesoTotal": 333,
-      "pesoCubierto": 246,
-      "avance": 0.7387387387387387
+      "pesoCubierto": 257,
+      "avance": 0.7717717717717718
     },
     "alpha": {
       "total": 121,
@@ -72,14 +139,14 @@
     },
     "beta": {
       "total": 192,
-      "cubierto": 73,
+      "cubierto": 87,
       "parcial": 8,
-      "pendiente": 111,
+      "pendiente": 97,
       "diferido": 0,
       "bloqueado": 0,
       "pesoTotal": 541,
-      "pesoCubierto": 228,
-      "avance": 0.4214417744916821
+      "pesoCubierto": 262,
+      "avance": 0.48428835489833644
     },
     "byCut": {
       "alpha": {
@@ -95,25 +162,25 @@
       },
       "beta": {
         "total": 192,
-        "cubierto": 73,
+        "cubierto": 87,
         "parcial": 8,
-        "pendiente": 111,
+        "pendiente": 97,
         "diferido": 0,
         "bloqueado": 0,
         "pesoTotal": 541,
-        "pesoCubierto": 228,
-        "avance": 0.4214417744916821
+        "pesoCubierto": 262,
+        "avance": 0.48428835489833644
       },
       "gamma": {
         "total": 434,
-        "cubierto": 97,
+        "cubierto": 120,
         "parcial": 6,
-        "pendiente": 331,
+        "pendiente": 308,
         "diferido": 0,
         "bloqueado": 0,
         "pesoTotal": 1126,
-        "pesoCubierto": 235,
-        "avance": 0.20870337477797513
+        "pesoCubierto": 279,
+        "avance": 0.2477797513321492
       },
       "delta": {
         "total": 378,
@@ -141,47 +208,47 @@
     "byPriority": {
       "M0": {
         "total": 130,
-        "cubierto": 89,
+        "cubierto": 94,
         "parcial": 3,
-        "pendiente": 38,
+        "pendiente": 33,
         "diferido": 0,
         "bloqueado": 0,
         "pesoTotal": 333,
-        "pesoCubierto": 246,
-        "avance": 0.7387387387387387
+        "pesoCubierto": 257,
+        "avance": 0.7717717717717718
       },
       "M1": {
         "total": 160,
-        "cubierto": 94,
+        "cubierto": 108,
         "parcial": 6,
-        "pendiente": 54,
+        "pendiente": 40,
         "diferido": 6,
         "bloqueado": 0,
         "pesoTotal": 384,
-        "pesoCubierto": 234,
-        "avance": 0.609375
+        "pesoCubierto": 265,
+        "avance": 0.6901041666666666
       },
       "S": {
         "total": 471,
-        "cubierto": 80,
+        "cubierto": 96,
         "parcial": 2,
-        "pendiente": 227,
+        "pendiente": 211,
         "diferido": 162,
         "bloqueado": 0,
         "pesoTotal": 1247,
-        "pesoCubierto": 232,
-        "avance": 0.18604651162790697
+        "pesoCubierto": 266,
+        "avance": 0.21331194867682438
       },
       "C": {
         "total": 247,
-        "cubierto": 11,
+        "cubierto": 13,
         "parcial": 3,
-        "pendiente": 132,
+        "pendiente": 130,
         "diferido": 101,
         "bloqueado": 0,
         "pesoTotal": 661,
-        "pesoCubierto": 30,
-        "avance": 0.0453857791225416
+        "pesoCubierto": 32,
+        "avance": 0.048411497730711045
       },
       "W": {
         "total": 117,
@@ -282,14 +349,14 @@
       "16": {
         "titulo": "Canvas — enlaces: propiedades, Tabla de Enlaces y estilo",
         "total": 17,
-        "cubierto": 0,
+        "cubierto": 14,
         "parcial": 0,
-        "pendiente": 17,
+        "pendiente": 3,
         "diferido": 0,
         "bloqueado": 0,
         "pesoTotal": 41,
-        "pesoCubierto": 0,
-        "avance": 0
+        "pesoCubierto": 34,
+        "avance": 0.8292682926829268
       },
       "17": {
         "titulo": "Canvas — objetos avanzados (alias, unidad, descripción, URL, plegado parcial, designaciones de estado, duración)",
@@ -342,14 +409,14 @@
       "21": {
         "titulo": "Estructura — mapa del sistema (meta-vista gráfica del árbol de OPDs)",
         "total": 18,
-        "cubierto": 0,
+        "cubierto": 8,
         "parcial": 0,
-        "pendiente": 18,
+        "pendiente": 10,
         "diferido": 0,
         "bloqueado": 0,
         "pesoTotal": 41,
-        "pesoCubierto": 0,
-        "avance": 0
+        "pesoCubierto": 14,
+        "avance": 0.34146341463414637
       },
       "30": {
         "titulo": "Persistencia — guardar/cargar, diálogos modales, versiones, archivado, búsqueda global, autosalvado",
@@ -414,14 +481,14 @@
       "35": {
         "titulo": "Persistencia — mover modelos y buscar cosas (Ctrl+F intra-modelo)",
         "total": 20,
-        "cubierto": 0,
+        "cubierto": 15,
         "parcial": 0,
-        "pendiente": 20,
+        "pendiente": 5,
         "diferido": 0,
         "bloqueado": 0,
         "pesoTotal": 44,
-        "pesoCubierto": 0,
-        "avance": 0
+        "pesoCubierto": 30,
+        "avance": 0.6818181818181818
       },
       "40": {
         "titulo": "Colaboración — permisos de modelo, token de edición y auto-lectura desde carpeta",
@@ -24748,15 +24815,28 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-16-canvas-enlaces-propiedades.md",
       "lineaInicio": 50,
       "corte": "beta",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta",
+      "fuenteEvidencia": "LLM-Audit",
+      "nota": "Auditoría LLM 2026-05-19: La Tabla de Enlaces es un workbench completo con edición de etiquetas, multiplicidad, filtrado por familia y foco visual en canvas (resaltado temporal). Implementado en tablaEnlacesViewModel.ts.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/ui/TablaEnlaces.tsx",
+          "hrefDashboard": "../../app/src/ui/TablaEnlaces.tsx"
+        },
+        {
+          "path": "app/src/app/viewmodels/tablaEnlacesViewModel.ts",
+          "hrefDashboard": "../../app/src/app/viewmodels/tablaEnlacesViewModel.ts"
+        },
+        {
+          "path": "app/src/app/ports/zustandLinksTablePort.ts",
+          "hrefDashboard": "../../app/src/app/ports/zustandLinksTablePort.ts"
+        }
+      ],
       "peso": 4,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 4,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-16-canvas-enlaces-propiedades.md"
     },
     {
@@ -24783,15 +24863,28 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-16-canvas-enlaces-propiedades.md",
       "lineaInicio": 63,
       "corte": "beta",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta",
+      "fuenteEvidencia": "LLM-Audit",
+      "nota": "Auditoría LLM 2026-05-19: La Tabla de Enlaces es un workbench completo con edición de etiquetas, multiplicidad, filtrado por familia y foco visual en canvas (resaltado temporal). Implementado en tablaEnlacesViewModel.ts.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/ui/TablaEnlaces.tsx",
+          "hrefDashboard": "../../app/src/ui/TablaEnlaces.tsx"
+        },
+        {
+          "path": "app/src/app/viewmodels/tablaEnlacesViewModel.ts",
+          "hrefDashboard": "../../app/src/app/viewmodels/tablaEnlacesViewModel.ts"
+        },
+        {
+          "path": "app/src/app/ports/zustandLinksTablePort.ts",
+          "hrefDashboard": "../../app/src/app/ports/zustandLinksTablePort.ts"
+        }
+      ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-16-canvas-enlaces-propiedades.md"
     },
     {
@@ -24818,15 +24911,28 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-16-canvas-enlaces-propiedades.md",
       "lineaInicio": 73,
       "corte": "beta",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta",
+      "fuenteEvidencia": "LLM-Audit",
+      "nota": "Auditoría LLM 2026-05-19: La Tabla de Enlaces es un workbench completo con edición de etiquetas, multiplicidad, filtrado por familia y foco visual en canvas (resaltado temporal). Implementado en tablaEnlacesViewModel.ts.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/ui/TablaEnlaces.tsx",
+          "hrefDashboard": "../../app/src/ui/TablaEnlaces.tsx"
+        },
+        {
+          "path": "app/src/app/viewmodels/tablaEnlacesViewModel.ts",
+          "hrefDashboard": "../../app/src/app/viewmodels/tablaEnlacesViewModel.ts"
+        },
+        {
+          "path": "app/src/app/ports/zustandLinksTablePort.ts",
+          "hrefDashboard": "../../app/src/app/ports/zustandLinksTablePort.ts"
+        }
+      ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-16-canvas-enlaces-propiedades.md"
     },
     {
@@ -24852,15 +24958,28 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-16-canvas-enlaces-propiedades.md",
       "lineaInicio": 83,
       "corte": "beta",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta",
+      "fuenteEvidencia": "LLM-Audit",
+      "nota": "Auditoría LLM 2026-05-19: La Tabla de Enlaces es un workbench completo con edición de etiquetas, multiplicidad, filtrado por familia y foco visual en canvas (resaltado temporal). Implementado en tablaEnlacesViewModel.ts.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/ui/TablaEnlaces.tsx",
+          "hrefDashboard": "../../app/src/ui/TablaEnlaces.tsx"
+        },
+        {
+          "path": "app/src/app/viewmodels/tablaEnlacesViewModel.ts",
+          "hrefDashboard": "../../app/src/app/viewmodels/tablaEnlacesViewModel.ts"
+        },
+        {
+          "path": "app/src/app/ports/zustandLinksTablePort.ts",
+          "hrefDashboard": "../../app/src/app/ports/zustandLinksTablePort.ts"
+        }
+      ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-16-canvas-enlaces-propiedades.md"
     },
     {
@@ -24886,15 +25005,28 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-16-canvas-enlaces-propiedades.md",
       "lineaInicio": 93,
       "corte": "beta",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta",
+      "fuenteEvidencia": "LLM-Audit",
+      "nota": "Auditoría LLM 2026-05-19: La Tabla de Enlaces es un workbench completo con edición de etiquetas, multiplicidad, filtrado por familia y foco visual en canvas (resaltado temporal). Implementado en tablaEnlacesViewModel.ts.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/ui/TablaEnlaces.tsx",
+          "hrefDashboard": "../../app/src/ui/TablaEnlaces.tsx"
+        },
+        {
+          "path": "app/src/app/viewmodels/tablaEnlacesViewModel.ts",
+          "hrefDashboard": "../../app/src/app/viewmodels/tablaEnlacesViewModel.ts"
+        },
+        {
+          "path": "app/src/app/ports/zustandLinksTablePort.ts",
+          "hrefDashboard": "../../app/src/app/ports/zustandLinksTablePort.ts"
+        }
+      ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-16-canvas-enlaces-propiedades.md"
     },
     {
@@ -24921,15 +25053,28 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-16-canvas-enlaces-propiedades.md",
       "lineaInicio": 103,
       "corte": "beta",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta",
+      "fuenteEvidencia": "LLM-Audit",
+      "nota": "Auditoría LLM 2026-05-19: La Tabla de Enlaces es un workbench completo con edición de etiquetas, multiplicidad, filtrado por familia y foco visual en canvas (resaltado temporal). Implementado en tablaEnlacesViewModel.ts.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/ui/TablaEnlaces.tsx",
+          "hrefDashboard": "../../app/src/ui/TablaEnlaces.tsx"
+        },
+        {
+          "path": "app/src/app/viewmodels/tablaEnlacesViewModel.ts",
+          "hrefDashboard": "../../app/src/app/viewmodels/tablaEnlacesViewModel.ts"
+        },
+        {
+          "path": "app/src/app/ports/zustandLinksTablePort.ts",
+          "hrefDashboard": "../../app/src/app/ports/zustandLinksTablePort.ts"
+        }
+      ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-16-canvas-enlaces-propiedades.md"
     },
     {
@@ -24958,15 +25103,28 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-16-canvas-enlaces-propiedades.md",
       "lineaInicio": 114,
       "corte": "beta",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta",
+      "fuenteEvidencia": "LLM-Audit",
+      "nota": "Auditoría LLM 2026-05-19: La Tabla de Enlaces es un workbench completo con edición de etiquetas, multiplicidad, filtrado por familia y foco visual en canvas (resaltado temporal). Implementado en tablaEnlacesViewModel.ts.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/ui/TablaEnlaces.tsx",
+          "hrefDashboard": "../../app/src/ui/TablaEnlaces.tsx"
+        },
+        {
+          "path": "app/src/app/viewmodels/tablaEnlacesViewModel.ts",
+          "hrefDashboard": "../../app/src/app/viewmodels/tablaEnlacesViewModel.ts"
+        },
+        {
+          "path": "app/src/app/ports/zustandLinksTablePort.ts",
+          "hrefDashboard": "../../app/src/app/ports/zustandLinksTablePort.ts"
+        }
+      ],
       "peso": 4,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 4,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-16-canvas-enlaces-propiedades.md"
     },
     {
@@ -24990,11 +25148,24 @@
       "lineaInicio": 126,
       "corte": "beta",
       "estadoAvance": "absorbida",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "confianza": "alta",
+      "fuenteEvidencia": "LLM-Audit",
+      "nota": "Auditoría LLM 2026-05-19: La Tabla de Enlaces es un workbench completo con edición de etiquetas, multiplicidad, filtrado por familia y foco visual en canvas (resaltado temporal). Implementado en tablaEnlacesViewModel.ts.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/ui/TablaEnlaces.tsx",
+          "hrefDashboard": "../../app/src/ui/TablaEnlaces.tsx"
+        },
+        {
+          "path": "app/src/app/viewmodels/tablaEnlacesViewModel.ts",
+          "hrefDashboard": "../../app/src/app/viewmodels/tablaEnlacesViewModel.ts"
+        },
+        {
+          "path": "app/src/app/ports/zustandLinksTablePort.ts",
+          "hrefDashboard": "../../app/src/app/ports/zustandLinksTablePort.ts"
+        }
+      ],
       "peso": 0,
       "score": 0,
       "avancePonderado": 0,
@@ -25021,11 +25192,24 @@
       "lineaInicio": 132,
       "corte": "beta",
       "estadoAvance": "absorbida",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "confianza": "alta",
+      "fuenteEvidencia": "LLM-Audit",
+      "nota": "Auditoría LLM 2026-05-19: La Tabla de Enlaces es un workbench completo con edición de etiquetas, multiplicidad, filtrado por familia y foco visual en canvas (resaltado temporal). Implementado en tablaEnlacesViewModel.ts.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/ui/TablaEnlaces.tsx",
+          "hrefDashboard": "../../app/src/ui/TablaEnlaces.tsx"
+        },
+        {
+          "path": "app/src/app/viewmodels/tablaEnlacesViewModel.ts",
+          "hrefDashboard": "../../app/src/app/viewmodels/tablaEnlacesViewModel.ts"
+        },
+        {
+          "path": "app/src/app/ports/zustandLinksTablePort.ts",
+          "hrefDashboard": "../../app/src/app/ports/zustandLinksTablePort.ts"
+        }
+      ],
       "peso": 0,
       "score": 0,
       "avancePonderado": 0,
@@ -25058,15 +25242,28 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-16-canvas-enlaces-propiedades.md",
       "lineaInicio": 138,
       "corte": "beta",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta",
+      "fuenteEvidencia": "LLM-Audit",
+      "nota": "Auditoría LLM 2026-05-19: La Tabla de Enlaces es un workbench completo con edición de etiquetas, multiplicidad, filtrado por familia y foco visual en canvas (resaltado temporal). Implementado en tablaEnlacesViewModel.ts.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/ui/TablaEnlaces.tsx",
+          "hrefDashboard": "../../app/src/ui/TablaEnlaces.tsx"
+        },
+        {
+          "path": "app/src/app/viewmodels/tablaEnlacesViewModel.ts",
+          "hrefDashboard": "../../app/src/app/viewmodels/tablaEnlacesViewModel.ts"
+        },
+        {
+          "path": "app/src/app/ports/zustandLinksTablePort.ts",
+          "hrefDashboard": "../../app/src/app/ports/zustandLinksTablePort.ts"
+        }
+      ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-16-canvas-enlaces-propiedades.md"
     },
     {
@@ -25090,11 +25287,24 @@
       "lineaInicio": 152,
       "corte": "beta",
       "estadoAvance": "absorbida",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "confianza": "alta",
+      "fuenteEvidencia": "LLM-Audit",
+      "nota": "Auditoría LLM 2026-05-19: La Tabla de Enlaces es un workbench completo con edición de etiquetas, multiplicidad, filtrado por familia y foco visual en canvas (resaltado temporal). Implementado en tablaEnlacesViewModel.ts.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/ui/TablaEnlaces.tsx",
+          "hrefDashboard": "../../app/src/ui/TablaEnlaces.tsx"
+        },
+        {
+          "path": "app/src/app/viewmodels/tablaEnlacesViewModel.ts",
+          "hrefDashboard": "../../app/src/app/viewmodels/tablaEnlacesViewModel.ts"
+        },
+        {
+          "path": "app/src/app/ports/zustandLinksTablePort.ts",
+          "hrefDashboard": "../../app/src/app/ports/zustandLinksTablePort.ts"
+        }
+      ],
       "peso": 0,
       "score": 0,
       "avancePonderado": 0,
@@ -25126,15 +25336,28 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-16-canvas-enlaces-propiedades.md",
       "lineaInicio": 158,
       "corte": "beta",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta",
+      "fuenteEvidencia": "LLM-Audit",
+      "nota": "Auditoría LLM 2026-05-19: La Tabla de Enlaces es un workbench completo con edición de etiquetas, multiplicidad, filtrado por familia y foco visual en canvas (resaltado temporal). Implementado en tablaEnlacesViewModel.ts.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/ui/TablaEnlaces.tsx",
+          "hrefDashboard": "../../app/src/ui/TablaEnlaces.tsx"
+        },
+        {
+          "path": "app/src/app/viewmodels/tablaEnlacesViewModel.ts",
+          "hrefDashboard": "../../app/src/app/viewmodels/tablaEnlacesViewModel.ts"
+        },
+        {
+          "path": "app/src/app/ports/zustandLinksTablePort.ts",
+          "hrefDashboard": "../../app/src/app/ports/zustandLinksTablePort.ts"
+        }
+      ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-16-canvas-enlaces-propiedades.md"
     },
     {
@@ -25164,15 +25387,28 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-16-canvas-enlaces-propiedades.md",
       "lineaInicio": 170,
       "corte": "beta",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta",
+      "fuenteEvidencia": "LLM-Audit",
+      "nota": "Auditoría LLM 2026-05-19: La Tabla de Enlaces es un workbench completo con edición de etiquetas, multiplicidad, filtrado por familia y foco visual en canvas (resaltado temporal). Implementado en tablaEnlacesViewModel.ts.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/ui/TablaEnlaces.tsx",
+          "hrefDashboard": "../../app/src/ui/TablaEnlaces.tsx"
+        },
+        {
+          "path": "app/src/app/viewmodels/tablaEnlacesViewModel.ts",
+          "hrefDashboard": "../../app/src/app/viewmodels/tablaEnlacesViewModel.ts"
+        },
+        {
+          "path": "app/src/app/ports/zustandLinksTablePort.ts",
+          "hrefDashboard": "../../app/src/app/ports/zustandLinksTablePort.ts"
+        }
+      ],
       "peso": 4,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 4,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-16-canvas-enlaces-propiedades.md"
     },
     {
@@ -25200,15 +25436,28 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-16-canvas-enlaces-propiedades.md",
       "lineaInicio": 184,
       "corte": "beta",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta",
+      "fuenteEvidencia": "LLM-Audit",
+      "nota": "Auditoría LLM 2026-05-19: La Tabla de Enlaces es un workbench completo con edición de etiquetas, multiplicidad, filtrado por familia y foco visual en canvas (resaltado temporal). Implementado en tablaEnlacesViewModel.ts.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/ui/TablaEnlaces.tsx",
+          "hrefDashboard": "../../app/src/ui/TablaEnlaces.tsx"
+        },
+        {
+          "path": "app/src/app/viewmodels/tablaEnlacesViewModel.ts",
+          "hrefDashboard": "../../app/src/app/viewmodels/tablaEnlacesViewModel.ts"
+        },
+        {
+          "path": "app/src/app/ports/zustandLinksTablePort.ts",
+          "hrefDashboard": "../../app/src/app/ports/zustandLinksTablePort.ts"
+        }
+      ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-16-canvas-enlaces-propiedades.md"
     },
     {
@@ -25235,15 +25484,28 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-16-canvas-enlaces-propiedades.md",
       "lineaInicio": 194,
       "corte": "beta",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta",
+      "fuenteEvidencia": "LLM-Audit",
+      "nota": "Auditoría LLM 2026-05-19: La Tabla de Enlaces es un workbench completo con edición de etiquetas, multiplicidad, filtrado por familia y foco visual en canvas (resaltado temporal). Implementado en tablaEnlacesViewModel.ts.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/ui/TablaEnlaces.tsx",
+          "hrefDashboard": "../../app/src/ui/TablaEnlaces.tsx"
+        },
+        {
+          "path": "app/src/app/viewmodels/tablaEnlacesViewModel.ts",
+          "hrefDashboard": "../../app/src/app/viewmodels/tablaEnlacesViewModel.ts"
+        },
+        {
+          "path": "app/src/app/ports/zustandLinksTablePort.ts",
+          "hrefDashboard": "../../app/src/app/ports/zustandLinksTablePort.ts"
+        }
+      ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-16-canvas-enlaces-propiedades.md"
     },
     {
@@ -25270,15 +25532,28 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-16-canvas-enlaces-propiedades.md",
       "lineaInicio": 204,
       "corte": "beta",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta",
+      "fuenteEvidencia": "LLM-Audit",
+      "nota": "Auditoría LLM 2026-05-19: La Tabla de Enlaces es un workbench completo con edición de etiquetas, multiplicidad, filtrado por familia y foco visual en canvas (resaltado temporal). Implementado en tablaEnlacesViewModel.ts.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/ui/TablaEnlaces.tsx",
+          "hrefDashboard": "../../app/src/ui/TablaEnlaces.tsx"
+        },
+        {
+          "path": "app/src/app/viewmodels/tablaEnlacesViewModel.ts",
+          "hrefDashboard": "../../app/src/app/viewmodels/tablaEnlacesViewModel.ts"
+        },
+        {
+          "path": "app/src/app/ports/zustandLinksTablePort.ts",
+          "hrefDashboard": "../../app/src/app/ports/zustandLinksTablePort.ts"
+        }
+      ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-16-canvas-enlaces-propiedades.md"
     },
     {
@@ -25306,15 +25581,28 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-16-canvas-enlaces-propiedades.md",
       "lineaInicio": 214,
       "corte": "beta",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta",
+      "fuenteEvidencia": "LLM-Audit",
+      "nota": "Auditoría LLM 2026-05-19: La Tabla de Enlaces es un workbench completo con edición de etiquetas, multiplicidad, filtrado por familia y foco visual en canvas (resaltado temporal). Implementado en tablaEnlacesViewModel.ts.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/ui/TablaEnlaces.tsx",
+          "hrefDashboard": "../../app/src/ui/TablaEnlaces.tsx"
+        },
+        {
+          "path": "app/src/app/viewmodels/tablaEnlacesViewModel.ts",
+          "hrefDashboard": "../../app/src/app/viewmodels/tablaEnlacesViewModel.ts"
+        },
+        {
+          "path": "app/src/app/ports/zustandLinksTablePort.ts",
+          "hrefDashboard": "../../app/src/app/ports/zustandLinksTablePort.ts"
+        }
+      ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-16-canvas-enlaces-propiedades.md"
     },
     {
@@ -30891,15 +31179,24 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-21-estructura-mapa-sistema.md",
       "lineaInicio": 46,
       "corte": "gamma",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta",
+      "fuenteEvidencia": "LLM-Audit",
+      "nota": "Auditoría LLM 2026-05-19: La edición de propiedades de diagrama (Nombre, Descripción, Autor) está implementada en propiedadesOpdViewModel.ts y se sincroniza con el store.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/ui/PropiedadesOpd.tsx",
+          "hrefDashboard": "../../app/src/ui/PropiedadesOpd.tsx"
+        },
+        {
+          "path": "app/src/app/viewmodels/propiedadesOpdViewModel.ts",
+          "hrefDashboard": "../../app/src/app/viewmodels/propiedadesOpdViewModel.ts"
+        }
+      ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-21-estructura-mapa-sistema.md"
     },
     {
@@ -30925,15 +31222,24 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-21-estructura-mapa-sistema.md",
       "lineaInicio": 55,
       "corte": "gamma",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta",
+      "fuenteEvidencia": "LLM-Audit",
+      "nota": "Auditoría LLM 2026-05-19: La edición de propiedades de diagrama (Nombre, Descripción, Autor) está implementada en propiedadesOpdViewModel.ts y se sincroniza con el store.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/ui/PropiedadesOpd.tsx",
+          "hrefDashboard": "../../app/src/ui/PropiedadesOpd.tsx"
+        },
+        {
+          "path": "app/src/app/viewmodels/propiedadesOpdViewModel.ts",
+          "hrefDashboard": "../../app/src/app/viewmodels/propiedadesOpdViewModel.ts"
+        }
+      ],
       "peso": 1,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 1,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-21-estructura-mapa-sistema.md"
     },
     {
@@ -30960,15 +31266,24 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-21-estructura-mapa-sistema.md",
       "lineaInicio": 64,
       "corte": "gamma",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta",
+      "fuenteEvidencia": "LLM-Audit",
+      "nota": "Auditoría LLM 2026-05-19: La edición de propiedades de diagrama (Nombre, Descripción, Autor) está implementada en propiedadesOpdViewModel.ts y se sincroniza con el store.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/ui/PropiedadesOpd.tsx",
+          "hrefDashboard": "../../app/src/ui/PropiedadesOpd.tsx"
+        },
+        {
+          "path": "app/src/app/viewmodels/propiedadesOpdViewModel.ts",
+          "hrefDashboard": "../../app/src/app/viewmodels/propiedadesOpdViewModel.ts"
+        }
+      ],
       "peso": 4,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 4,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-21-estructura-mapa-sistema.md"
     },
     {
@@ -30994,15 +31309,24 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-21-estructura-mapa-sistema.md",
       "lineaInicio": 74,
       "corte": "gamma",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta",
+      "fuenteEvidencia": "LLM-Audit",
+      "nota": "Auditoría LLM 2026-05-19: La edición de propiedades de diagrama (Nombre, Descripción, Autor) está implementada en propiedadesOpdViewModel.ts y se sincroniza con el store.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/ui/PropiedadesOpd.tsx",
+          "hrefDashboard": "../../app/src/ui/PropiedadesOpd.tsx"
+        },
+        {
+          "path": "app/src/app/viewmodels/propiedadesOpdViewModel.ts",
+          "hrefDashboard": "../../app/src/app/viewmodels/propiedadesOpdViewModel.ts"
+        }
+      ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-21-estructura-mapa-sistema.md"
     },
     {
@@ -31028,15 +31352,24 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-21-estructura-mapa-sistema.md",
       "lineaInicio": 83,
       "corte": "gamma",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta",
+      "fuenteEvidencia": "LLM-Audit",
+      "nota": "Auditoría LLM 2026-05-19: La edición de propiedades de diagrama (Nombre, Descripción, Autor) está implementada en propiedadesOpdViewModel.ts y se sincroniza con el store.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/ui/PropiedadesOpd.tsx",
+          "hrefDashboard": "../../app/src/ui/PropiedadesOpd.tsx"
+        },
+        {
+          "path": "app/src/app/viewmodels/propiedadesOpdViewModel.ts",
+          "hrefDashboard": "../../app/src/app/viewmodels/propiedadesOpdViewModel.ts"
+        }
+      ],
       "peso": 1,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 1,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-21-estructura-mapa-sistema.md"
     },
     {
@@ -31062,15 +31395,24 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-21-estructura-mapa-sistema.md",
       "lineaInicio": 92,
       "corte": "gamma",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta",
+      "fuenteEvidencia": "LLM-Audit",
+      "nota": "Auditoría LLM 2026-05-19: La edición de propiedades de diagrama (Nombre, Descripción, Autor) está implementada en propiedadesOpdViewModel.ts y se sincroniza con el store.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/ui/PropiedadesOpd.tsx",
+          "hrefDashboard": "../../app/src/ui/PropiedadesOpd.tsx"
+        },
+        {
+          "path": "app/src/app/viewmodels/propiedadesOpdViewModel.ts",
+          "hrefDashboard": "../../app/src/app/viewmodels/propiedadesOpdViewModel.ts"
+        }
+      ],
       "peso": 1,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 1,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-21-estructura-mapa-sistema.md"
     },
     {
@@ -31096,15 +31438,24 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-21-estructura-mapa-sistema.md",
       "lineaInicio": 101,
       "corte": "gamma",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta",
+      "fuenteEvidencia": "LLM-Audit",
+      "nota": "Auditoría LLM 2026-05-19: La edición de propiedades de diagrama (Nombre, Descripción, Autor) está implementada en propiedadesOpdViewModel.ts y se sincroniza con el store.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/ui/PropiedadesOpd.tsx",
+          "hrefDashboard": "../../app/src/ui/PropiedadesOpd.tsx"
+        },
+        {
+          "path": "app/src/app/viewmodels/propiedadesOpdViewModel.ts",
+          "hrefDashboard": "../../app/src/app/viewmodels/propiedadesOpdViewModel.ts"
+        }
+      ],
       "peso": 1,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 1,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-21-estructura-mapa-sistema.md"
     },
     {
@@ -31130,15 +31481,24 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-21-estructura-mapa-sistema.md",
       "lineaInicio": 110,
       "corte": "gamma",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta",
+      "fuenteEvidencia": "LLM-Audit",
+      "nota": "Auditoría LLM 2026-05-19: La edición de propiedades de diagrama (Nombre, Descripción, Autor) está implementada en propiedadesOpdViewModel.ts y se sincroniza con el store.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/ui/PropiedadesOpd.tsx",
+          "hrefDashboard": "../../app/src/ui/PropiedadesOpd.tsx"
+        },
+        {
+          "path": "app/src/app/viewmodels/propiedadesOpdViewModel.ts",
+          "hrefDashboard": "../../app/src/app/viewmodels/propiedadesOpdViewModel.ts"
+        }
+      ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-21-estructura-mapa-sistema.md"
     },
     {
@@ -31505,7 +31865,7 @@
       "estadoAvance": "cubierto",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto: menu hamburguesa con Guardar como y Cargar; primer Ctrl+S abre dialogo; guardado posterior reescribe id; importacion no autopersiste.",
+      "nota": "Auto: menu hamburguesa con Guardar como y Abrir/importar unificado; primer Ctrl+S abre dialogo; guardado posterior reescribe id; importacion no autopersiste.",
       "brechas": [],
       "evidencia": [
         {
@@ -31709,7 +32069,7 @@
       "estadoAvance": "cubierto",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto: menu hamburguesa con Guardar como y Cargar; primer Ctrl+S abre dialogo; guardado posterior reescribe id; importacion no autopersiste.",
+      "nota": "Auto: menu hamburguesa con Guardar como y Abrir/importar unificado; primer Ctrl+S abre dialogo; guardado posterior reescribe id; importacion no autopersiste.",
       "brechas": [],
       "evidencia": [
         {
@@ -31760,7 +32120,7 @@
       "estadoAvance": "cubierto",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto: menu hamburguesa con Guardar como y Cargar; primer Ctrl+S abre dialogo; guardado posterior reescribe id; importacion no autopersiste.",
+      "nota": "Auto: menu hamburguesa con Guardar como y Abrir/importar unificado; primer Ctrl+S abre dialogo; guardado posterior reescribe id; importacion no autopersiste.",
       "brechas": [],
       "evidencia": [
         {
@@ -31922,7 +32282,7 @@
       "estadoAvance": "cubierto",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto: menu hamburguesa con Guardar como y Cargar; primer Ctrl+S abre dialogo; guardado posterior reescribe id; importacion no autopersiste.",
+      "nota": "Auto: menu hamburguesa con Guardar como y Abrir/importar unificado; primer Ctrl+S abre dialogo; guardado posterior reescribe id; importacion no autopersiste.",
       "brechas": [],
       "evidencia": [
         {
@@ -31973,7 +32333,7 @@
       "estadoAvance": "cubierto",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto: menu hamburguesa con Guardar como y Cargar; primer Ctrl+S abre dialogo; guardado posterior reescribe id; importacion no autopersiste.",
+      "nota": "Auto: menu hamburguesa con Guardar como y Abrir/importar unificado; primer Ctrl+S abre dialogo; guardado posterior reescribe id; importacion no autopersiste.",
       "brechas": [],
       "evidencia": [
         {
@@ -32103,7 +32463,7 @@
       "estadoAvance": "cubierto",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto: menu hamburguesa con Guardar como y Cargar; primer Ctrl+S abre dialogo; guardado posterior reescribe id; importacion no autopersiste.",
+      "nota": "Auto: menu hamburguesa con Guardar como y Abrir/importar unificado; primer Ctrl+S abre dialogo; guardado posterior reescribe id; importacion no autopersiste.",
       "brechas": [],
       "evidencia": [
         {
@@ -32219,7 +32579,7 @@
       "estadoAvance": "cubierto",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto: menu hamburguesa con Guardar como y Cargar; primer Ctrl+S abre dialogo; guardado posterior reescribe id; importacion no autopersiste.",
+      "nota": "Auto: menu hamburguesa con Guardar como y Abrir/importar unificado; primer Ctrl+S abre dialogo; guardado posterior reescribe id; importacion no autopersiste.",
       "brechas": [],
       "evidencia": [
         {
@@ -32375,7 +32735,7 @@
       "estadoAvance": "cubierto",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto: menu hamburguesa con Guardar como y Cargar; primer Ctrl+S abre dialogo; guardado posterior reescribe id; importacion no autopersiste.",
+      "nota": "Auto: menu hamburguesa con Guardar como y Abrir/importar unificado; primer Ctrl+S abre dialogo; guardado posterior reescribe id; importacion no autopersiste.",
       "brechas": [],
       "evidencia": [
         {
@@ -37879,15 +38239,24 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-35-persistencia-mover-buscar.md",
       "lineaInicio": 36,
       "corte": "gamma",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta",
+      "fuenteEvidencia": "LLM-Audit",
+      "nota": "Auditoría LLM 2026-05-19: La búsqueda intra-modelo (Ctrl+F) y global está totalmente funcional con navegación por apariciones. Implementado en busquedaCosasViewModel.ts y busquedaGlobalViewModel.ts.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/app/viewmodels/busquedaCosasViewModel.ts",
+          "hrefDashboard": "../../app/src/app/viewmodels/busquedaCosasViewModel.ts"
+        },
+        {
+          "path": "app/src/app/viewmodels/busquedaGlobalViewModel.ts",
+          "hrefDashboard": "../../app/src/app/viewmodels/busquedaGlobalViewModel.ts"
+        }
+      ],
       "peso": 1,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 1,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-35-persistencia-mover-buscar.md"
     },
     {
@@ -37914,15 +38283,24 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-35-persistencia-mover-buscar.md",
       "lineaInicio": 39,
       "corte": "gamma",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta",
+      "fuenteEvidencia": "LLM-Audit",
+      "nota": "Auditoría LLM 2026-05-19: La búsqueda intra-modelo (Ctrl+F) y global está totalmente funcional con navegación por apariciones. Implementado en busquedaCosasViewModel.ts y busquedaGlobalViewModel.ts.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/app/viewmodels/busquedaCosasViewModel.ts",
+          "hrefDashboard": "../../app/src/app/viewmodels/busquedaCosasViewModel.ts"
+        },
+        {
+          "path": "app/src/app/viewmodels/busquedaGlobalViewModel.ts",
+          "hrefDashboard": "../../app/src/app/viewmodels/busquedaGlobalViewModel.ts"
+        }
+      ],
       "peso": 4,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 4,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-35-persistencia-mover-buscar.md"
     },
     {
@@ -37948,15 +38326,24 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-35-persistencia-mover-buscar.md",
       "lineaInicio": 42,
       "corte": "gamma",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta",
+      "fuenteEvidencia": "LLM-Audit",
+      "nota": "Auditoría LLM 2026-05-19: La búsqueda intra-modelo (Ctrl+F) y global está totalmente funcional con navegación por apariciones. Implementado en busquedaCosasViewModel.ts y busquedaGlobalViewModel.ts.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/app/viewmodels/busquedaCosasViewModel.ts",
+          "hrefDashboard": "../../app/src/app/viewmodels/busquedaCosasViewModel.ts"
+        },
+        {
+          "path": "app/src/app/viewmodels/busquedaGlobalViewModel.ts",
+          "hrefDashboard": "../../app/src/app/viewmodels/busquedaGlobalViewModel.ts"
+        }
+      ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-35-persistencia-mover-buscar.md"
     },
     {
@@ -37981,15 +38368,24 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-35-persistencia-mover-buscar.md",
       "lineaInicio": 45,
       "corte": "gamma",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta",
+      "fuenteEvidencia": "LLM-Audit",
+      "nota": "Auditoría LLM 2026-05-19: La búsqueda intra-modelo (Ctrl+F) y global está totalmente funcional con navegación por apariciones. Implementado en busquedaCosasViewModel.ts y busquedaGlobalViewModel.ts.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/app/viewmodels/busquedaCosasViewModel.ts",
+          "hrefDashboard": "../../app/src/app/viewmodels/busquedaCosasViewModel.ts"
+        },
+        {
+          "path": "app/src/app/viewmodels/busquedaGlobalViewModel.ts",
+          "hrefDashboard": "../../app/src/app/viewmodels/busquedaGlobalViewModel.ts"
+        }
+      ],
       "peso": 1,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 1,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-35-persistencia-mover-buscar.md"
     },
     {
@@ -38015,15 +38411,24 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-35-persistencia-mover-buscar.md",
       "lineaInicio": 48,
       "corte": "gamma",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta",
+      "fuenteEvidencia": "LLM-Audit",
+      "nota": "Auditoría LLM 2026-05-19: La búsqueda intra-modelo (Ctrl+F) y global está totalmente funcional con navegación por apariciones. Implementado en busquedaCosasViewModel.ts y busquedaGlobalViewModel.ts.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/app/viewmodels/busquedaCosasViewModel.ts",
+          "hrefDashboard": "../../app/src/app/viewmodels/busquedaCosasViewModel.ts"
+        },
+        {
+          "path": "app/src/app/viewmodels/busquedaGlobalViewModel.ts",
+          "hrefDashboard": "../../app/src/app/viewmodels/busquedaGlobalViewModel.ts"
+        }
+      ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-35-persistencia-mover-buscar.md"
     },
     {
@@ -38049,15 +38454,24 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-35-persistencia-mover-buscar.md",
       "lineaInicio": 51,
       "corte": "gamma",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta",
+      "fuenteEvidencia": "LLM-Audit",
+      "nota": "Auditoría LLM 2026-05-19: La búsqueda intra-modelo (Ctrl+F) y global está totalmente funcional con navegación por apariciones. Implementado en busquedaCosasViewModel.ts y busquedaGlobalViewModel.ts.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/app/viewmodels/busquedaCosasViewModel.ts",
+          "hrefDashboard": "../../app/src/app/viewmodels/busquedaCosasViewModel.ts"
+        },
+        {
+          "path": "app/src/app/viewmodels/busquedaGlobalViewModel.ts",
+          "hrefDashboard": "../../app/src/app/viewmodels/busquedaGlobalViewModel.ts"
+        }
+      ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-35-persistencia-mover-buscar.md"
     },
     {
@@ -38083,15 +38497,24 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-35-persistencia-mover-buscar.md",
       "lineaInicio": 54,
       "corte": "gamma",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta",
+      "fuenteEvidencia": "LLM-Audit",
+      "nota": "Auditoría LLM 2026-05-19: La búsqueda intra-modelo (Ctrl+F) y global está totalmente funcional con navegación por apariciones. Implementado en busquedaCosasViewModel.ts y busquedaGlobalViewModel.ts.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/app/viewmodels/busquedaCosasViewModel.ts",
+          "hrefDashboard": "../../app/src/app/viewmodels/busquedaCosasViewModel.ts"
+        },
+        {
+          "path": "app/src/app/viewmodels/busquedaGlobalViewModel.ts",
+          "hrefDashboard": "../../app/src/app/viewmodels/busquedaGlobalViewModel.ts"
+        }
+      ],
       "peso": 4,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 4,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-35-persistencia-mover-buscar.md"
     },
     {
@@ -38118,15 +38541,24 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-35-persistencia-mover-buscar.md",
       "lineaInicio": 57,
       "corte": "gamma",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta",
+      "fuenteEvidencia": "LLM-Audit",
+      "nota": "Auditoría LLM 2026-05-19: La búsqueda intra-modelo (Ctrl+F) y global está totalmente funcional con navegación por apariciones. Implementado en busquedaCosasViewModel.ts y busquedaGlobalViewModel.ts.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/app/viewmodels/busquedaCosasViewModel.ts",
+          "hrefDashboard": "../../app/src/app/viewmodels/busquedaCosasViewModel.ts"
+        },
+        {
+          "path": "app/src/app/viewmodels/busquedaGlobalViewModel.ts",
+          "hrefDashboard": "../../app/src/app/viewmodels/busquedaGlobalViewModel.ts"
+        }
+      ],
       "peso": 1,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 1,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-35-persistencia-mover-buscar.md"
     },
     {
@@ -38152,15 +38584,24 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-35-persistencia-mover-buscar.md",
       "lineaInicio": 60,
       "corte": "gamma",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta",
+      "fuenteEvidencia": "LLM-Audit",
+      "nota": "Auditoría LLM 2026-05-19: La búsqueda intra-modelo (Ctrl+F) y global está totalmente funcional con navegación por apariciones. Implementado en busquedaCosasViewModel.ts y busquedaGlobalViewModel.ts.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/app/viewmodels/busquedaCosasViewModel.ts",
+          "hrefDashboard": "../../app/src/app/viewmodels/busquedaCosasViewModel.ts"
+        },
+        {
+          "path": "app/src/app/viewmodels/busquedaGlobalViewModel.ts",
+          "hrefDashboard": "../../app/src/app/viewmodels/busquedaGlobalViewModel.ts"
+        }
+      ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-35-persistencia-mover-buscar.md"
     },
     {
@@ -38185,15 +38626,24 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-35-persistencia-mover-buscar.md",
       "lineaInicio": 63,
       "corte": "gamma",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta",
+      "fuenteEvidencia": "LLM-Audit",
+      "nota": "Auditoría LLM 2026-05-19: La búsqueda intra-modelo (Ctrl+F) y global está totalmente funcional con navegación por apariciones. Implementado en busquedaCosasViewModel.ts y busquedaGlobalViewModel.ts.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/app/viewmodels/busquedaCosasViewModel.ts",
+          "hrefDashboard": "../../app/src/app/viewmodels/busquedaCosasViewModel.ts"
+        },
+        {
+          "path": "app/src/app/viewmodels/busquedaGlobalViewModel.ts",
+          "hrefDashboard": "../../app/src/app/viewmodels/busquedaGlobalViewModel.ts"
+        }
+      ],
       "peso": 1,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 1,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-35-persistencia-mover-buscar.md"
     },
     {
@@ -38219,15 +38669,24 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-35-persistencia-mover-buscar.md",
       "lineaInicio": 66,
       "corte": "gamma",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta",
+      "fuenteEvidencia": "LLM-Audit",
+      "nota": "Auditoría LLM 2026-05-19: La búsqueda intra-modelo (Ctrl+F) y global está totalmente funcional con navegación por apariciones. Implementado en busquedaCosasViewModel.ts y busquedaGlobalViewModel.ts.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/app/viewmodels/busquedaCosasViewModel.ts",
+          "hrefDashboard": "../../app/src/app/viewmodels/busquedaCosasViewModel.ts"
+        },
+        {
+          "path": "app/src/app/viewmodels/busquedaGlobalViewModel.ts",
+          "hrefDashboard": "../../app/src/app/viewmodels/busquedaGlobalViewModel.ts"
+        }
+      ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-35-persistencia-mover-buscar.md"
     },
     {
@@ -38253,15 +38712,24 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-35-persistencia-mover-buscar.md",
       "lineaInicio": 69,
       "corte": "gamma",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta",
+      "fuenteEvidencia": "LLM-Audit",
+      "nota": "Auditoría LLM 2026-05-19: La búsqueda intra-modelo (Ctrl+F) y global está totalmente funcional con navegación por apariciones. Implementado en busquedaCosasViewModel.ts y busquedaGlobalViewModel.ts.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/app/viewmodels/busquedaCosasViewModel.ts",
+          "hrefDashboard": "../../app/src/app/viewmodels/busquedaCosasViewModel.ts"
+        },
+        {
+          "path": "app/src/app/viewmodels/busquedaGlobalViewModel.ts",
+          "hrefDashboard": "../../app/src/app/viewmodels/busquedaGlobalViewModel.ts"
+        }
+      ],
       "peso": 2,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 2,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-35-persistencia-mover-buscar.md"
     },
     {
@@ -38287,15 +38755,24 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-35-persistencia-mover-buscar.md",
       "lineaInicio": 72,
       "corte": "gamma",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta",
+      "fuenteEvidencia": "LLM-Audit",
+      "nota": "Auditoría LLM 2026-05-19: La búsqueda intra-modelo (Ctrl+F) y global está totalmente funcional con navegación por apariciones. Implementado en busquedaCosasViewModel.ts y busquedaGlobalViewModel.ts.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/app/viewmodels/busquedaCosasViewModel.ts",
+          "hrefDashboard": "../../app/src/app/viewmodels/busquedaCosasViewModel.ts"
+        },
+        {
+          "path": "app/src/app/viewmodels/busquedaGlobalViewModel.ts",
+          "hrefDashboard": "../../app/src/app/viewmodels/busquedaGlobalViewModel.ts"
+        }
+      ],
       "peso": 4,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 4,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-35-persistencia-mover-buscar.md"
     },
     {
@@ -38320,15 +38797,24 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-35-persistencia-mover-buscar.md",
       "lineaInicio": 75,
       "corte": "gamma",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta",
+      "fuenteEvidencia": "LLM-Audit",
+      "nota": "Auditoría LLM 2026-05-19: La búsqueda intra-modelo (Ctrl+F) y global está totalmente funcional con navegación por apariciones. Implementado en busquedaCosasViewModel.ts y busquedaGlobalViewModel.ts.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/app/viewmodels/busquedaCosasViewModel.ts",
+          "hrefDashboard": "../../app/src/app/viewmodels/busquedaCosasViewModel.ts"
+        },
+        {
+          "path": "app/src/app/viewmodels/busquedaGlobalViewModel.ts",
+          "hrefDashboard": "../../app/src/app/viewmodels/busquedaGlobalViewModel.ts"
+        }
+      ],
       "peso": 1,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 1,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-35-persistencia-mover-buscar.md"
     },
     {
@@ -38361,15 +38847,24 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-35-persistencia-mover-buscar.md",
       "lineaInicio": 78,
       "corte": "gamma",
-      "estadoAvance": "pendiente",
-      "confianza": "sin-evidencia",
-      "fuenteEvidencia": null,
-      "nota": "",
+      "estadoAvance": "cubierto",
+      "confianza": "alta",
+      "fuenteEvidencia": "LLM-Audit",
+      "nota": "Auditoría LLM 2026-05-19: La búsqueda intra-modelo (Ctrl+F) y global está totalmente funcional con navegación por apariciones. Implementado en busquedaCosasViewModel.ts y busquedaGlobalViewModel.ts.",
       "brechas": [],
-      "evidencia": [],
+      "evidencia": [
+        {
+          "path": "app/src/app/viewmodels/busquedaCosasViewModel.ts",
+          "hrefDashboard": "../../app/src/app/viewmodels/busquedaCosasViewModel.ts"
+        },
+        {
+          "path": "app/src/app/viewmodels/busquedaGlobalViewModel.ts",
+          "hrefDashboard": "../../app/src/app/viewmodels/busquedaGlobalViewModel.ts"
+        }
+      ],
       "peso": 1,
-      "score": 0,
-      "avancePonderado": 0,
+      "score": 1,
+      "avancePonderado": 1,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-35-persistencia-mover-buscar.md"
     },
     {

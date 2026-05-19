@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
-import { extremoEntidad } from "../extremos";
-import { agregacionesInzoomFaltantes, cambiarTipoGrupoEstructural, crearEnlace, crearModelo, crearObjeto, crearProceso, desplegarObjeto, descomponerProceso, fijarOrdenGrupoEstructural, moverPuertoEnlace, plegarCompletoGrupoEstructural, plegarGrupoEstructural, quitarPlegadoCompletoEstructural, quitarSemiplegadoEstructural, relacionesEstructuralesFaltantes, relacionesPlegadasEstructurales, relacionesSemiplegadasEstructurales, traerAgregacionesInzoomFaltantes, traerRelacionesEstructuralesFaltantes } from "../operaciones";
+import { extremoEntidad, extremoEstado } from "../extremos";
+import { agregacionesInzoomFaltantes, apuntarExtremoEnlace, cambiarTipoGrupoEstructural, crearEnlace, crearEstadosIniciales, crearModelo, crearObjeto, crearProceso, desplegarObjeto, descomponerProceso, fijarOrdenGrupoEstructural, moverPuertoEnlace, plegarCompletoGrupoEstructural, plegarGrupoEstructural, quitarPlegadoCompletoEstructural, quitarSemiplegadoEstructural, relacionesEstructuralesFaltantes, relacionesPlegadasEstructurales, relacionesSemiplegadasEstructurales, traerAgregacionesInzoomFaltantes, traerRelacionesEstructuralesFaltantes } from "../operaciones";
 import { filasPlegadoParcial } from "../plegado";
 import type { Modelo, Resultado } from "../tipos";
 import { copiarEstiloEnlace, eliminarEnlacesBatch } from "./enlaces";
@@ -14,7 +14,7 @@ describe("operaciones/enlaces", () => {
 
     modelo = must(moverPuertoEnlace(modelo, enlaceId, "destino", extremoEntidad(destinoNuevo)));
 
-    expect(modelo.enlaces[enlaceId]?.destinoId).toEqual(extremoEntidad(destinoNuevo));
+    expect(modelo.enlaces[enlaceId]?.destinoId).toEqual(expect.objectContaining(extremoEntidad(destinoNuevo)));
     expect(modelo.enlaces[enlaceId]).toBeDefined();
   });
 
@@ -27,6 +27,25 @@ describe("operaciones/enlaces", () => {
 
     expect(modelo.enlaces[enlaceId]).toBeUndefined();
     expect(Object.values(modelo.opds[modelo.opdRaizId]?.enlaces ?? {}).some((apariencia) => apariencia.enlaceId === enlaceId)).toBe(false);
+  });
+
+  test("excepcion temporal no puede reanclarse hacia objeto ni estado", () => {
+    let modelo = crearModelo("Excepcion temporal");
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 80 }, "Pedido"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 220, y: 80 }, "Procesar"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 420, y: 80 }, "Manejar Excepcion"));
+    const pedidoId = entidad(modelo, "Pedido");
+    const estados = must(crearEstadosIniciales(modelo, pedidoId));
+    modelo = estados.modelo;
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidad(modelo, "Procesar"), entidad(modelo, "Manejar Excepcion"), "excepcionSobretiempo"));
+    const enlaceId = Object.values(modelo.enlaces).find((enlace) => enlace.tipo === "excepcionSobretiempo")?.id;
+    const estadoId = estados.estadoIds[0];
+    if (!enlaceId || !estadoId) throw new Error("La prueba esperaba excepcion temporal y estado");
+    const original = modelo.enlaces[enlaceId];
+
+    expect(apuntarExtremoEnlace(modelo, enlaceId, "destino", extremoEntidad(pedidoId)).ok).toBe(false);
+    expect(moverPuertoEnlace(modelo, enlaceId, "origen", extremoEstado(estadoId)).ok).toBe(false);
+    expect(modelo.enlaces[enlaceId]).toEqual(original);
   });
 
   test("eliminarEnlacesBatch elimina ids existentes e ignora ids ausentes", () => {

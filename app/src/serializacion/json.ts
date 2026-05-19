@@ -1,4 +1,5 @@
 import type { Id, Modelo, Resultado } from "../modelo/tipos";
+import { sincronizarPuertosTodosLosOpd } from "../modelo/operaciones";
 import { validarApariencias, validarAparienciasEnlace } from "./validarApariencias";
 import { validarEnlaces, validarAbanicos } from "./validarEnlaces";
 import { validarEntidades } from "./validarEntidades";
@@ -52,12 +53,13 @@ export interface DocumentoModelo {
 }
 
 export function exportarModelo(modelo: Modelo, carpetaId?: Id | null): string {
-  const normalizado = normalizarModelo(modelo);
+  const modeloConPuertos = sincronizarPuertosTodosLosOpd(modelo);
+  const normalizado = normalizarModelo(modeloConPuertos);
   const documento: DocumentoModelo = {
     formato: FORMATO,
     modelo: {
       ...normalizado,
-      ...(typeof modelo.descripcion === "string" ? { descripcion: modelo.descripcion } : {}),
+      ...(typeof modeloConPuertos.descripcion === "string" ? { descripcion: modeloConPuertos.descripcion } : {}),
     },
     ...(carpetaId !== undefined ? { carpetaId } : {}),
   };
@@ -74,7 +76,7 @@ export function hidratarModelo(json: string): Resultado<Modelo> {
 
   const documento = validarDocumento(parsed);
   if (!documento.ok) return documento;
-  const normalizado = normalizarModelo(documento.value.modelo);
+  const normalizado = sincronizarPuertosTodosLosOpd(normalizarModelo(documento.value.modelo));
   return {
     ok: true,
     value: {

@@ -597,8 +597,16 @@ test("redistribuye consumo al primer subproceso y resultado al ultimo", async ({
   const enlacesHijo = Object.values(exportado.modelo.opds[opdHijoId]?.enlaces ?? {})
     .map((apariencia) => exportado.modelo.enlaces[apariencia.enlaceId]);
   expect(enlacesHijo).toEqual(expect.arrayContaining([
-    expect.objectContaining({ tipo: "consumo", origenId: extremoEntidad(entrada.id), destinoId: extremoEntidad(primero.id) }),
-    expect.objectContaining({ tipo: "resultado", origenId: extremoEntidad(ultimo.id), destinoId: extremoEntidad(salida.id) }),
+    expect.objectContaining({
+      tipo: "consumo",
+      origenId: expect.objectContaining(extremoEntidad(entrada.id)),
+      destinoId: expect.objectContaining(extremoEntidad(primero.id)),
+    }),
+    expect.objectContaining({
+      tipo: "resultado",
+      origenId: expect.objectContaining(extremoEntidad(ultimo.id)),
+      destinoId: expect.objectContaining(extremoEntidad(salida.id)),
+    }),
   ]));
 
   await page.screenshot({ path: "test-results/opm-descomposicion-enlaces-externos.png", fullPage: true });

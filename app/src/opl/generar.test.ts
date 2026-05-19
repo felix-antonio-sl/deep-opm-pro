@@ -8,6 +8,8 @@ import { ajustarMultiplicidad, cambiarEsencia, crearEnlace, crearEstadosIniciale
 import { cambiarModoPlegado } from "../modelo/plegado";
 import { definirRutaEtiqueta } from "../modelo/rutas";
 import type { Apariencia, Modelo, Resultado } from "../modelo/tipos";
+import { generarOplEstructurado, generarOplTexto } from "../modelo/opl/generador-opl";
+import { ordenarOpdsParaOpl } from "./bloquesJerarquicos";
 import { generarOpl, generarOplInteractivo } from "./generar";
 
 describe("OPL-ES — tipos de enlace canonicos", () => {
@@ -508,6 +510,37 @@ describe("OPL-ES interactivo", () => {
     expect(interactivo.map((linea) => linea.texto)).toEqual(texto);
     expect(interactivo.map((linea) => linea.ordinal)).toEqual(texto.map((_, index) => index + 1));
     expect(interactivo.map((linea) => linea.id)).toEqual(["opl-opd-1-1", "opl-opd-1-2", "opl-opd-1-3"]);
+  });
+
+  test("texto plano e interactivo son identicos por OPD", () => {
+    let modelo = crearModelo();
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 200, y: 120 }, "Atender Paciente"));
+    const descompuesto = must(descomponerProceso(modelo, modelo.opdRaizId, entidad(modelo, "Atender Paciente")));
+    modelo = descompuesto.modelo;
+    modelo = must(crearObjeto(modelo, descompuesto.opdId, { x: 210, y: 140 }, "Ficha"));
+    modelo = must(crearEnlace(modelo, descompuesto.opdId, entidad(modelo, "Ficha"), entidad(modelo, "Atender Paciente 1"), "consumo"));
+
+    for (const opdId of ordenarOpdsParaOpl(modelo)) {
+      expect(generarOpl(modelo, opdId)).toEqual(
+        generarOplInteractivo(modelo, opdId).map((linea) => linea.texto),
+      );
+    }
+  });
+
+  test("generador legacy delega al texto canonico por OPD", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 0, y: 0 }, "Entrada"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 200, y: 0 }, "Procesar"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidad(modelo, "Entrada"), entidad(modelo, "Procesar"), "consumo"));
+
+    const bloquesEsperados = ordenarOpdsParaOpl(modelo).map((opdId) => ({
+      opdId,
+      opdNombre: modelo.opds[opdId]!.nombre,
+      sentencias: generarOpl(modelo, opdId),
+    }));
+
+    expect(generarOplEstructurado(modelo)).toEqual(bloquesEsperados);
+    expect(generarOplTexto(modelo)).toBe(`${bloquesEsperados.flatMap((bloque) => bloque.sentencias).join("\n")}\n`);
   });
 
   test("oracion de enlace incluye ref de enlace y tokens de extremos", () => {

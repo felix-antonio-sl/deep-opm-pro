@@ -48,11 +48,18 @@ const PROCEDURALES = new Set<TipoEnlace>([
   "excepcionSubSobretiempo",
 ]);
 
+const EXCEPCIONES_TEMPORALES = new Set<TipoEnlace>([
+  "excepcionSobretiempo",
+  "excepcionSubtiempo",
+  "excepcionSubSobretiempo",
+]);
+
 export function validarModelo(modelo: Modelo, opdActivoId: Id): Aviso[] {
   const avisos = [
     ...reglaAgregacionMismaEsencia(modelo, opdActivoId),
     ...reglaGeneralizacionMismoTipo(modelo, opdActivoId),
     ...reglaEstructuralNoAceptaExtremoEstado(modelo, opdActivoId),
+    ...reglaExcepcionTemporalProcesoProceso(modelo, opdActivoId),
     ...reglaProceduralNoObjetoObjeto(modelo, opdActivoId),
     ...reglaEstructuralSinDuplicar(modelo, opdActivoId),
     ...reglaSubprocesoNoConectaAlPadre(modelo),
@@ -114,6 +121,25 @@ export function validarExclusionImagenEstados(modelo: Modelo, opdActivoId: Id = 
       ...(opdId ? { opdId } : {}),
     } satisfies Aviso];
   });
+}
+
+function reglaExcepcionTemporalProcesoProceso(modelo: Modelo, opdActivoId: Id): Aviso[] {
+  return enlacesConExtremos(modelo)
+    .filter(({ enlace, origen, destino }) => (
+      EXCEPCIONES_TEMPORALES.has(enlace.tipo) &&
+      (
+        enlace.origenId.kind === "estado" ||
+        enlace.destinoId.kind === "estado" ||
+        origen.tipo !== "proceso" ||
+        destino.tipo !== "proceso"
+      )
+    ))
+    .map(({ enlace }) => avisoEnlace(modelo, opdActivoId, enlace, {
+      reglaId: "excepcion-temporal-proceso-proceso",
+      severidad: "error",
+      mensaje: `La excepción temporal ${etiquetaTipo(enlace.tipo)} requiere Proceso -> Proceso, sin extremos Estado: ${nombreExtremo(modelo, enlace.origenId)} -> ${nombreExtremo(modelo, enlace.destinoId)}.`,
+      citaSSOT: "[V-239] [ISO-19450 enlaces de excepción]",
+    }));
 }
 
 function reglaEstructuralNoAceptaExtremoEstado(modelo: Modelo, opdActivoId: Id): Aviso[] {

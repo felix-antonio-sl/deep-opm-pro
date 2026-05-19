@@ -1,6 +1,5 @@
 import { esAutoInvocacion } from "../../modelo/autoinvocacion";
 import { entidadIdDeExtremo } from "../../modelo/extremos";
-import { sincronizarPuertosEnlaces } from "../../modelo/operaciones";
 import { aparicionesVisiblesEnOpd } from "../../modelo/politicaApariciones";
 import type { Apariencia, Enlace, Estado, ExtremoEnlace, Id, Modelo, Posicion, TipoEnlace } from "../../modelo/tipos";
 import type { OplReferencia } from "../../opl/interaccion";
@@ -52,7 +51,7 @@ export function proyectarModeloAJointCells(
   opciones: OpcionesProyeccion = OPCIONES_PROYECCION_DEFAULT,
   simulacion: OpcionesSimulacionRender | null = null,
 ): JointCellJson[] {
-  const modeloRender = sincronizarPuertosEnlaces(modelo, opdId);
+  const modeloRender = modelo;
   const opd = modeloRender.opds[opdId];
   if (!opd) return [];
   const opcionesRender = normalizarOpcionesProyeccion(opciones);

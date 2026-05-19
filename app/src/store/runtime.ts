@@ -7,7 +7,7 @@ import { dentroDeApariencia } from "../modelo/layout";
 import { aparienciaDeEntidadEnOpd, opdIdDeEntidadVisible } from "../modelo/politicaApariciones";
 import { obtenerRefinamiento } from "../modelo/refinamientos";
 import { sincronizarAbanicos } from "../modelo/abanicos";
-import { cambiarAfiliacion, cambiarEsencia, crearEnlace, crearModelo, crearObjeto, crearProceso } from "../modelo/operaciones";
+import { cambiarAfiliacion, cambiarEsencia, crearEnlace, crearModelo, crearObjeto, crearProceso, sincronizarPuertosTodosLosOpd } from "../modelo/operaciones";
 import { fixtureTodos, type FixtureDemo } from "../modelo/fixtures";
 import { listarModelosLocales, type ResumenModeloPersistido } from "../persistencia/local";
 import { indiceVacio, workspaceDesdeModelo, type MapaWorkspace, type WorkspaceIndice } from "../persistencia/workspace";
@@ -76,8 +76,8 @@ export function resetRuntimeEffects(): void { runtimeEffects = RUNTIME_EFFECTS_D
 function estadoActual(): OpmStore | null { return storeApi?.getState() ?? null; }
 export function obtenerEstadoStore(): OpmStore { const estado = estadoActual(); if (!estado) throw new Error("Store OPM no inicializado"); return estado; }
 export function setEstadoStore(partial: Partial<OpmStore>): void { storeApi?.setState(partial); }
-export function inicializarSnapshot(modelo: Modelo): void { snapshotGuardado = exportarModelo(modelo); }
-export function marcarSnapshotModelo(modelo: Modelo): void { snapshotGuardado = exportarModelo(modelo); }
+export function inicializarSnapshot(modelo: Modelo): void { snapshotGuardado = exportarModelo(sincronizarPuertosTodosLosOpd(modelo)); }
+export function marcarSnapshotModelo(modelo: Modelo): void { snapshotGuardado = exportarModelo(sincronizarPuertosTodosLosOpd(modelo)); }
 export function marcarSnapshotJson(snapshotJson: string): void { snapshotGuardado = snapshotJson; }
 export function obtenerAutosalvadoControl(): AutosalvadoControl | null { return autosalvadoControl; }
 export function fijarAutosalvadoControl(control: AutosalvadoControl | null): void { autosalvadoControl = control; }
@@ -297,12 +297,13 @@ export function commitModelo(
     set({ mensaje: "Modelo en solo lectura. Usa Guardar como para crear copia editable." });
     return;
   }
-  const sincronizado = sincronizarAbanicos(siguiente);
-  if (previo === sincronizado || exportarModelo(previo) === exportarModelo(sincronizado)) {
+  const previoSincronizado = sincronizarPuertosTodosLosOpd(previo);
+  const sincronizado = sincronizarPuertosTodosLosOpd(sincronizarAbanicos(siguiente));
+  if (previoSincronizado === sincronizado || exportarModelo(previoSincronizado) === exportarModelo(sincronizado)) {
     set(extra);
     return;
   }
-  undoStack = [...undoStack, previo].slice(-UNDO_LIMIT);
+  undoStack = [...undoStack, previoSincronizado].slice(-UNDO_LIMIT);
   redoStack = [];
   const extraFinal: Partial<OpmStore> = { ...extra };
   // P0 ronda 4: dirtyModelo por defecto true (cambio semantico). Si el
@@ -315,7 +316,7 @@ export function commitModelo(
     estadoActual.vistaMapaActiva &&
     estadoActual.mapaAutoRefresh &&
     !("descriptorMapaCache" in extraFinal) &&
-    cambiaronOpds(previo, sincronizado)
+    cambiaronOpds(previoSincronizado, sincronizado)
   ) {
     extraFinal.descriptorMapaCache = construirDescriptorMapa(sincronizado);
   }
@@ -327,9 +328,10 @@ export function cambiaronOpds(previo: Modelo, siguiente: Modelo): boolean {
 }
 
 export function resetHistorial(modelo: Modelo): void {
+  const sincronizado = sincronizarPuertosTodosLosOpd(modelo);
   undoStack = [];
   redoStack = [];
-  snapshotGuardado = exportarModelo(modelo);
+  snapshotGuardado = exportarModelo(sincronizado);
 }
 
 export function listarModelosGuardadosSeguro(): ResumenModeloPersistido[] {
@@ -338,7 +340,8 @@ export function listarModelosGuardadosSeguro(): ResumenModeloPersistido[] {
 }
 
 export function estadoModelo(modelo: Modelo, extra: Partial<OpmStore> = {}): Partial<OpmStore> {
-  const dirty = extra.dirty ?? (exportarModelo(modelo) !== snapshotGuardado);
+  const modeloSincronizado = sincronizarPuertosTodosLosOpd(modelo);
+  const dirty = extra.dirty ?? (exportarModelo(modeloSincronizado) !== snapshotGuardado);
   // P0 ronda 4: dirtyModelo solo se activa con cambios semanticos.
   // Layout puro (drag, nudge, auto-layout) conserva el valor actual via
   // extra.dirtyModelo explicito. commitModelo setea extra.dirtyModelo=true
@@ -361,23 +364,23 @@ export function estadoModelo(modelo: Modelo, extra: Partial<OpmStore> = {}): Par
           // en CADA actualización del estado del modelo, no solo cuando hay
           // modeloId. Antes, fixtures/imports quedaban con el placeholder
           // "Modelo (No guardado)" hasta el primer guardado.
-          const etiqueta = etiquetaPestana({ nombre: modelo.nombre, modeloId });
+          const etiqueta = etiquetaPestana({ nombre: modeloSincronizado.nombre, modeloId });
           return {
             ...pestana,
-            modelo: clonarModeloRuntime(modelo),
+            modelo: clonarModeloRuntime(modeloSincronizado),
             dirty,
             historialUndo: [...undoStack],
             cursorUndo: undoStack.length,
             modeloId,
             descripcionModeloLocal: descripcion,
             etiqueta,
-            ...(dirty && pestana.snapshotJson === undefined ? {} : { snapshotJson: dirty ? pestana.snapshotJson : exportarModelo(modelo) }),
+            ...(dirty && pestana.snapshotJson === undefined ? {} : { snapshotJson: dirty ? pestana.snapshotJson : exportarModelo(modeloSincronizado) }),
           };
         })
       : undefined
   );
   return {
-    modelo,
+    modelo: modeloSincronizado,
     dirty,
     dirtyModelo,
     puedeDeshacer: undoStack.length > 0,

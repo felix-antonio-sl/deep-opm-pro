@@ -122,6 +122,41 @@ describe("operaciones de modelo", () => {
     expect(self.ok).toBe(false);
   });
 
+  test("excepciones temporales solo admiten Proceso -> Proceso sin extremos Estado", () => {
+    let modelo = modeloConEntidades();
+    const proceso = entidadPorNombre(modelo, "Proceso");
+    const subproceso = entidadPorNombre(modelo, "Subproceso");
+    const part = entidadPorNombre(modelo, "Part");
+    const estados = must(crearEstadosIniciales(modelo, part.id));
+    modelo = estados.modelo;
+    const estadoPart = estados.estadoIds[0];
+    if (!estadoPart) throw new Error("La prueba esperaba estado de Part");
+
+    const tipos: TipoEnlace[] = ["excepcionSobretiempo", "excepcionSubtiempo", "excepcionSubSobretiempo"];
+    for (const tipo of tipos) {
+      expect(validarFirmaEnlace(tipo, proceso, subproceso, {
+        origen: extremoEntidad(proceso.id),
+        destino: extremoEntidad(subproceso.id),
+      }).ok).toBe(true);
+      expect(validarFirmaEnlace(tipo, proceso, part, {
+        origen: extremoEntidad(proceso.id),
+        destino: extremoEntidad(part.id),
+      }).ok).toBe(false);
+      expect(validarFirmaEnlace(tipo, part, proceso, {
+        origen: extremoEntidad(part.id),
+        destino: extremoEntidad(proceso.id),
+      }).ok).toBe(false);
+      expect(validarFirmaEnlace(tipo, part, proceso, {
+        origen: extremoEstado(estadoPart),
+        destino: extremoEntidad(proceso.id),
+      }).ok).toBe(false);
+      expect(validarFirmaEnlace(tipo, proceso, part, {
+        origen: extremoEntidad(proceso.id),
+        destino: extremoEstado(estadoPart),
+      }).ok).toBe(false);
+    }
+  });
+
   test("gestiona metadatos OPCloud de enlaces etiquetados, requisitos y tasa", () => {
     let modelo = crearModelo();
     modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 0, y: 0 }, "Sistema"));
@@ -800,7 +835,7 @@ describe("operaciones de modelo", () => {
     expect(consumo.ok).toBe(true);
     if (!consumo.ok) return;
     const enlace = Object.values(consumo.value.enlaces)[0];
-    expect(enlace?.origenId).toEqual(extremoEstado(pendiente.id));
+    expect(enlace?.origenId).toEqual(expect.objectContaining(extremoEstado(pendiente.id)));
 
     const estructural = crearEnlace(modelo, modelo.opdRaizId, pedido.id, extremoEstado(pendiente.id), "exhibicion");
     expect(estructural.ok).toBe(false);
@@ -922,13 +957,13 @@ describe("operaciones de modelo", () => {
     if (!split.ok) return;
     expect(Object.values(split.value.entidades)).toHaveLength(3);
     expect(Object.values(split.value.enlaces).filter((enlace) => enlace.tipo === "efecto")).toHaveLength(0);
-    expect(Object.values(split.value.enlaces)).toEqual(expect.arrayContaining([
+    expect(Object.values(split.value.enlaces).map(enlaceSinPuertos)).toEqual(expect.arrayContaining([
       expect.objectContaining({ tipo: "consumo", origenId: extremoEntidad(sistema.id), destinoId: extremoEntidad(actualizar.id) }),
       expect.objectContaining({ tipo: "resultado", origenId: extremoEntidad(actualizar.id) }),
     ]));
     const intermedio = entidadPorNombre(split.value, "Sistema modificado");
     const resultado = Object.values(split.value.enlaces).find((enlace) => enlace.tipo === "resultado");
-    expect(resultado?.destinoId).toEqual(extremoEntidad(intermedio.id));
+    expect(resultado?.destinoId).toEqual(expect.objectContaining(extremoEntidad(intermedio.id)));
     expect(Object.values(split.value.opds[split.value.opdRaizId]?.enlaces ?? {})).toHaveLength(2);
   });
 
@@ -948,7 +983,7 @@ describe("operaciones de modelo", () => {
     expect(split.ok).toBe(true);
     if (!split.ok) return;
     const intermedio = entidadPorNombre(split.value, "Sistema modificado");
-    expect(Object.values(split.value.enlaces)).toEqual(expect.arrayContaining([
+    expect(Object.values(split.value.enlaces).map(enlaceSinPuertos)).toEqual(expect.arrayContaining([
       expect.objectContaining({ tipo: "consumo", origenId: extremoEntidad(sistema.id), destinoId: extremoEntidad(actualizar.id) }),
       expect.objectContaining({ tipo: "resultado", origenId: extremoEntidad(actualizar.id), destinoId: extremoEntidad(intermedio.id) }),
     ]));
@@ -1040,7 +1075,8 @@ describe("operaciones de modelo", () => {
     const ultimo = entidadPorNombre(modelo, "Procesar 3");
     const enlacesHijo = Object.values(modelo.opds[descompuesto.opdId]?.enlaces ?? {})
       .map((apariencia) => modelo.enlaces[apariencia.enlaceId])
-      .filter((enlace): enlace is NonNullable<typeof enlace> => enlace !== undefined);
+      .filter((enlace): enlace is NonNullable<typeof enlace> => enlace !== undefined)
+      .map(enlaceSinPuertos);
 
     expect(enlacesHijo).toHaveLength(2);
     expect(enlacesHijo).toEqual(expect.arrayContaining([
@@ -1129,7 +1165,8 @@ describe("operaciones de modelo", () => {
     modelo = must(moverApariencia(modelo, descompuesto.opdId, primeroOriginal.id, { x: 285, y: 420 }));
     const enlacesHijo = Object.values(modelo.opds[descompuesto.opdId]?.enlaces ?? {})
       .map((apariencia) => modelo.enlaces[apariencia.enlaceId])
-      .filter((enlace): enlace is NonNullable<typeof enlace> => enlace !== undefined);
+      .filter((enlace): enlace is NonNullable<typeof enlace> => enlace !== undefined)
+      .map(enlaceSinPuertos);
 
     expect(enlacesHijo).toHaveLength(2);
     expect(enlacesHijo).toEqual(expect.arrayContaining([
@@ -1217,7 +1254,7 @@ describe("operaciones de modelo", () => {
     const { aparienciaId, enlace } = enlaceDerivadoEnOpd(modelo, descompuesto.opdId, "consumo");
     modelo = must(reanclarEnlaceExternoDerivado(modelo, descompuesto.opdId, aparienciaId, segundo.id));
 
-    expect(modelo.enlaces[enlace.id]).toEqual(expect.objectContaining({
+    expect(enlaceSinPuertos(modelo.enlaces[enlace.id]!)).toEqual(expect.objectContaining({
       tipo: "consumo",
       origenId: extremoEntidad(entrada.id),
       destinoId: extremoEntidad(segundo.id),
@@ -1313,7 +1350,8 @@ describe("operaciones de modelo", () => {
     modelo = must(moverApariencia(modelo, descompuesto.opdId, primeroOriginal.id, { x: 285, y: 420 }));
     const enlacesHijo = Object.values(modelo.opds[descompuesto.opdId]?.enlaces ?? {})
       .map((apariencia) => modelo.enlaces[apariencia.enlaceId])
-      .filter((enlace): enlace is NonNullable<typeof enlace> => enlace !== undefined);
+      .filter((enlace): enlace is NonNullable<typeof enlace> => enlace !== undefined)
+      .map(enlaceSinPuertos);
 
     expect(enlacesHijo.some((enlace) => enlace.id === manual?.id && !enlace.derivado)).toBe(true);
     expect(enlacesHijo).toEqual(expect.arrayContaining([
@@ -1427,7 +1465,8 @@ describe("operaciones de modelo", () => {
 
     const enlacesHijo = Object.values(opdHijo.enlaces)
       .map((apariencia) => modelo.enlaces[apariencia.enlaceId])
-      .filter((enlace): enlace is NonNullable<typeof enlace> => enlace !== undefined);
+      .filter((enlace): enlace is NonNullable<typeof enlace> => enlace !== undefined)
+      .map(enlaceSinPuertos);
     expect(enlacesHijo.filter((enlace) => enlace.tipo === "agente")).toHaveLength(3);
     expect(enlacesHijo.filter((enlace) => enlace.tipo === "instrumento")).toHaveLength(3);
     for (const index of [1, 2, 3]) {
@@ -1451,7 +1490,8 @@ describe("operaciones de modelo", () => {
     modelo = descompuesto.modelo;
     const enlacesHijo = Object.values(modelo.opds[descompuesto.opdId]?.enlaces ?? {})
       .map((apariencia) => modelo.enlaces[apariencia.enlaceId])
-      .filter((enlace): enlace is NonNullable<typeof enlace> => enlace !== undefined);
+      .filter((enlace): enlace is NonNullable<typeof enlace> => enlace !== undefined)
+      .map(enlaceSinPuertos);
 
     expect(enlacesHijo.filter((enlace) => enlace.tipo === "efecto")).toHaveLength(3);
     for (const index of [1, 2, 3]) {
@@ -1578,7 +1618,22 @@ function tiposEnlacesOpd(modelo: Modelo, opdId: string): TipoEnlace[] {
 function enlacesDelOpd(modelo: Modelo, opdId: string): Enlace[] {
   return Object.values(modelo.opds[opdId]?.enlaces ?? {})
     .map((apariencia) => modelo.enlaces[apariencia.enlaceId])
-    .filter((enlace): enlace is Enlace => enlace !== undefined);
+    .filter((enlace): enlace is Enlace => enlace !== undefined)
+    .map(enlaceSinPuertos);
+}
+
+function enlaceSinPuertos(enlace: Enlace): Enlace {
+  return {
+    ...enlace,
+    origenId: extremoSinPuerto(enlace.origenId),
+    destinoId: extremoSinPuerto(enlace.destinoId),
+  };
+}
+
+function extremoSinPuerto(extremo: Enlace["origenId"]): Enlace["origenId"] {
+  const limpio = { ...extremo };
+  delete limpio.portId;
+  return limpio;
 }
 
 function derivadosAutomaticosDelOpd(modelo: Modelo, opdId: string): Enlace[] {

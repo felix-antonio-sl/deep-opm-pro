@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 import { extremoApuntaAEntidad, extremoEntidad, extremoEstado } from "../modelo/extremos";
 import { aplicarModificador, definirDemora, definirProbabilidad } from "../modelo/modificadores";
 import { aplicarEstiloApariencia } from "../modelo/estilos";
-import { actualizarPosicionSimboloEstructural, ajustarMultiplicidad, crearEnlace, crearEstadosIniciales, crearModelo, crearObjeto, crearProceso, definirBackwardTag, definirRequisitosEnlace, definirTasaEnlace, definirTiempoExcepcionEnlace, designarEstadoFinal, designarEstadoInicial, descomponerProceso, desplegarObjeto, reanclarEnlaceExternoDerivado, sincronizarPuertosEnlaces } from "../modelo/operaciones";
+import { actualizarPosicionSimboloEstructural, ajustarMultiplicidad, crearEnlace, crearEstadosIniciales, crearModelo, crearObjeto, crearProceso, definirBackwardTag, definirRequisitosEnlace, definirTasaEnlace, definirTiempoExcepcionEnlace, designarEstadoFinal, designarEstadoInicial, descomponerProceso, desplegarObjeto, reanclarEnlaceExternoDerivado } from "../modelo/operaciones";
 import { renombrarEtiquetaEnlace } from "../modelo/etiquetasEnlace";
 import { cambiarModoPlegado, extraerParteDePlegado, partesExtraidasEn } from "../modelo/plegado";
 import { definirRutaEtiqueta } from "../modelo/rutas";
@@ -126,7 +126,7 @@ describe("serializacion JSON", () => {
 
     expect(hidratado.ok).toBe(true);
     if (!hidratado.ok) return;
-    expect(hidratado.value.enlaces[enlaceId]?.origenId).toEqual(extremoEstado(pendiente.id));
+    expect(hidratado.value.enlaces[enlaceId]?.origenId).toEqual(expect.objectContaining(extremoEstado(pendiente.id)));
   });
 
   test("preserva ordenPartes opcional en apariencia y acepta legacy sin campo", () => {
@@ -314,8 +314,8 @@ describe("serializacion JSON", () => {
     expect(hidratado.ok).toBe(true);
     if (!hidratado.ok) return;
     const enlaceHidratado = Object.values(hidratado.value.enlaces)[0];
-    expect(enlaceHidratado?.origenId).toEqual(extremoEntidad(entidadPorNombre(modelo, "Entrada")));
-    expect(enlaceHidratado?.destinoId).toEqual(extremoEntidad(entidadPorNombre(modelo, "Procesar")));
+    expect(enlaceHidratado?.origenId).toEqual(expect.objectContaining(extremoEntidad(entidadPorNombre(modelo, "Entrada"))));
+    expect(enlaceHidratado?.destinoId).toEqual(expect.objectContaining(extremoEntidad(entidadPorNombre(modelo, "Procesar"))));
   });
 
   test("hidratar modelo legacy sin estados asume conjunto vacio", () => {
@@ -694,6 +694,28 @@ describe("serializacion JSON", () => {
     });
   });
 
+  test("rechaza excepciones temporales importadas hacia objeto o estado", () => {
+    let modelo = crearModelo("Excepcion temporal corrupta");
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 10, y: 20 }, "Pedido"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 240, y: 20 }, "Procesar"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 470, y: 20 }, "Manejar Excepcion"));
+    const pedidoId = entidadPorNombre(modelo, "Pedido");
+    const estados = must(crearEstadosIniciales(modelo, pedidoId));
+    modelo = estados.modelo;
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidadPorNombre(modelo, "Procesar"), entidadPorNombre(modelo, "Manejar Excepcion"), "excepcionSobretiempo"));
+    const excepcionId = Object.values(modelo.enlaces).find((enlace) => enlace.tipo === "excepcionSobretiempo")?.id;
+    const estadoId = estados.estadoIds[0];
+    if (!excepcionId || !estadoId) throw new Error("La prueba esperaba excepcion temporal y estado");
+
+    const documentoObjeto = JSON.parse(exportarModelo(modelo));
+    documentoObjeto.modelo.enlaces[excepcionId].destinoId = extremoEntidad(pedidoId);
+    expect(hidratarModelo(JSON.stringify(documentoObjeto)).ok).toBe(false);
+
+    const documentoEstado = JSON.parse(exportarModelo(modelo));
+    documentoEstado.modelo.enlaces[excepcionId].destinoId = extremoEstado(estadoId);
+    expect(hidratarModelo(JSON.stringify(documentoEstado)).ok).toBe(false);
+  });
+
   test("rechaza metadatos OPCloud de enlace fuera de familia", () => {
     let modelo = crearModelo("Metadatos OPCloud invalidos");
     modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 10, y: 20 }, "Sistema"));
@@ -733,7 +755,6 @@ describe("serializacion JSON", () => {
     modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 80 }, "Entrada"));
     modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 260, y: 80 }, "Procesar"));
     modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidadPorNombre(modelo, "Entrada"), entidadPorNombre(modelo, "Procesar"), "consumo"));
-    modelo = sincronizarPuertosEnlaces(modelo, modelo.opdRaizId);
     const enlaceId = Object.keys(modelo.enlaces)[0];
     if (!enlaceId) throw new Error("La prueba esperaba enlace");
 
@@ -747,6 +768,31 @@ describe("serializacion JSON", () => {
     const procesar = aparienciaPorNombre(hidratado.value, "Procesar");
     expect(entrada.ports?.[hidratado.value.enlaces[enlaceId]?.origenId.portId ?? ""]).toEqual({ x: 1, y: 0.5 });
     expect(procesar.ports?.[hidratado.value.enlaces[enlaceId]?.destinoId.portId ?? ""]).toEqual({ x: 0, y: 0.5 });
+  });
+
+  test("hidrata modelos legacy sin portId materializando puertos canonicos", () => {
+    let modelo = crearModelo("Puertos legacy");
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 80 }, "Entrada"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 260, y: 80 }, "Procesar"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidadPorNombre(modelo, "Entrada"), entidadPorNombre(modelo, "Procesar"), "consumo"));
+    const enlaceId = Object.keys(modelo.enlaces)[0];
+    if (!enlaceId) throw new Error("La prueba esperaba enlace");
+    const documento = JSON.parse(exportarModelo(modelo));
+    delete documento.modelo.enlaces[enlaceId].origenId.portId;
+    delete documento.modelo.enlaces[enlaceId].destinoId.portId;
+    for (const apariencia of Object.values(documento.modelo.opds[modelo.opdRaizId].apariencias) as Array<Record<string, unknown>>) {
+      delete apariencia.ports;
+    }
+
+    const hidratado = hidratarModelo(JSON.stringify(documento));
+
+    expect(hidratado.ok).toBe(true);
+    if (!hidratado.ok) return;
+    const enlace = hidratado.value.enlaces[enlaceId];
+    expect(enlace?.origenId.portId).toBe(`port-${enlaceId}-origen`);
+    expect(enlace?.destinoId.portId).toBe(`port-${enlaceId}-destino`);
+    expect(aparienciaPorNombre(hidratado.value, "Entrada").ports?.[enlace?.origenId.portId ?? ""]).toEqual({ x: 1, y: 0.5 });
+    expect(aparienciaPorNombre(hidratado.value, "Procesar").ports?.[enlace?.destinoId.portId ?? ""]).toEqual({ x: 0, y: 0.5 });
   });
 
   test("hidratar rutaEtiqueta vacia la ignora y tipo no string falla", () => {
@@ -917,7 +963,7 @@ describe("serializacion JSON", () => {
     if (!hidratado.ok) return;
     expect(Object.values(hidratado.value.enlaces)).toContainEqual(expect.objectContaining({
       tipo: "consumo",
-      destinoId: extremoEntidad(segundoId),
+      destinoId: expect.objectContaining(extremoEntidad(segundoId)),
       derivado: expect.objectContaining({ origen: "manual" }),
     }));
   });

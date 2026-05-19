@@ -412,7 +412,9 @@ describe("store undo/redo y dirty state", () => {
     store.getState().deshacer();
     const restaurado = store.getState().modelo.opds[store.getState().opdActivoId]!.apariencias[aparienciaEntrada]!;
     expect({ x: restaurado.x, y: restaurado.y }).toEqual({ x: 20, y: 20 });
-    expect(store.getState().modelo.enlaces[enlaceId]?.origenId.portId).toBeUndefined();
+    const portIdRestaurado = store.getState().modelo.enlaces[enlaceId]?.origenId.portId;
+    expect(portIdRestaurado).toBe(`port-${enlaceId}-origen`);
+    expect(restaurado.ports?.[portIdRestaurado ?? ""]).toEqual({ x: 1, y: 0.5 });
   });
 
   test("actualizarPosicionSimboloEstructural persiste bus estructural en un solo undo", () => {
@@ -667,7 +669,7 @@ describe("store undo/redo y dirty state", () => {
     store.getState().reanclarEnlaceExternoDerivado(aparienciaEnlaceId, segundoId);
 
     expect(store.getState().modelo.enlaces[enlaceId]).toEqual(expect.objectContaining({
-      destinoId: extremoEntidad(segundoId),
+      destinoId: expect.objectContaining(extremoEntidad(segundoId)),
       derivado: expect.objectContaining({ origen: "manual" }),
     }));
     expect(store.getState().dirty).toBe(true);
@@ -680,7 +682,7 @@ describe("store undo/redo y dirty state", () => {
 
     store.getState().rehacer();
     expect(store.getState().modelo.enlaces[enlaceId]?.derivado?.origen).toBe("manual");
-    expect(store.getState().modelo.enlaces[enlaceId]?.destinoId).toEqual(extremoEntidad(segundoId));
+    expect(store.getState().modelo.enlaces[enlaceId]?.destinoId).toEqual(expect.objectContaining(extremoEntidad(segundoId)));
   });
 
   test("apuntar extremo Estado de enlace seleccionado entra al historial y conserva undo", () => {
@@ -700,16 +702,16 @@ describe("store undo/redo y dirty state", () => {
 
     store.getState().apuntarExtremoEnlaceSeleccionado("origen", extremoEstado(pendiente.id));
 
-    expect(store.getState().modelo.enlaces[enlaceId]?.origenId).toEqual(extremoEstado(pendiente.id));
+    expect(store.getState().modelo.enlaces[enlaceId]?.origenId).toEqual(expect.objectContaining(extremoEstado(pendiente.id)));
     expect(store.getState().dirty).toBe(true);
     expect(store.getState().puedeDeshacer).toBe(true);
 
     store.getState().deshacer();
-    expect(store.getState().modelo.enlaces[enlaceId]?.origenId).toEqual(extremoEntidad(pedidoId));
+    expect(store.getState().modelo.enlaces[enlaceId]?.origenId).toEqual(expect.objectContaining(extremoEntidad(pedidoId)));
     expect(store.getState().puedeRehacer).toBe(true);
 
     store.getState().rehacer();
-    expect(store.getState().modelo.enlaces[enlaceId]?.origenId).toEqual(extremoEstado(pendiente.id));
+    expect(store.getState().modelo.enlaces[enlaceId]?.origenId).toEqual(expect.objectContaining(extremoEstado(pendiente.id)));
   });
 
   test("seleccionar Estado como extremo crea enlace hacia capsula desde modo enlace", () => {

@@ -1,11 +1,11 @@
 # HANDOFF — Estado operativo del modelador OPM
 
-**Fecha**: 2026-05-19
+**Fecha**: 2026-05-20
 **Repositorio**: `deep-opm-pro`
 **Rama**: `main`
-**Último corte funcional**: `c5b0727 refactor(toolbar): oculta + atributo deshabilitado y rotula buscar`
+**Último corte funcional**: Corte Dov-Dori: SSOT de puertos, ley temporal categorial y OPL unificado
 **Último corte deploy**: `597859c chore(deploy): configura auth dedicado opforja`
-**Corte**: Corte 4 documentación de uso productivo cerrado del lado usuario operador, sobre Corte 3.5 sustracción de chrome y deploy opforja operable.
+**Corte**: Refactor categorial de consistencia modelo-vista-OPL cerrado, sobre producción single-user opforja operable.
 
 ## Política De Handoff Único
 
@@ -23,6 +23,109 @@
 - JointJS OSS: usar documentación oficial viva cuando se toque JointJS.
 
 ## Estado Actual
+
+### Corte Dov-Dori Cerrado — SSOT Puertos, Ley Temporal Y OPL Único — 2026-05-20
+
+Se resolvieron las tres críticas estructurales planteadas contra el
+modelador:
+
+1. **Modelo fantasma / fuga render**. El render JointJS ya no sincroniza
+   puertos en tiempo de render. `proyectarModeloAJointCells` consume el
+   modelo tal como está; la materialización canónica de puertos vive en
+   operaciones, store e import/export.
+2. **Error categorial temporal**. Las excepciones temporales
+   (`excepcionSobretiempo`, `excepcionSubtiempo`,
+   `excepcionSubSobretiempo`) quedan restringidas a `Proceso -> Proceso`,
+   sin extremos `Estado`. La ley se preserva en creación, reanclaje,
+   importación y diagnóstico de modelos ya corruptos.
+3. **Cerebro OPL bifurcado**. La generación OPL plana e interactiva queda
+   unificada sobre la misma representación lógica; el generador legacy en
+   `modelo/opl/generador-opl.ts` pasa a ser wrapper de compatibilidad.
+
+Decisiones:
+
+- Los puertos son semántica serializable del modelo, no estética del
+  render. El render puede proyectar, pero no corregir la verdad del store.
+- La validación de firma sigue siendo el primer muro; la validación
+  metodológica ahora también denuncia corrupción temporal si un modelo
+  inválido entra por una ruta interna o legacy.
+- No se eliminó `app/src/modelo/opl/generador-opl.ts`, porque scripts
+  antiguos lo importan. Se lo redujo a wrapper para evitar doble motor.
+- Se corrigió el auditor HU para aceptar el nombre consolidado real del
+  diálogo `Abrir / importar modelo`, en vez de exigir el literal legacy
+  `Cargar modelo`.
+
+Artefactos principales:
+
+- `app/src/render/jointjs/proyeccion.ts`
+- `app/src/modelo/operaciones/enlaces.ts`
+- `app/src/store/runtime.ts`
+- `app/src/serializacion/json.ts`
+- `app/src/modelo/validaciones.ts`
+- `app/src/opl/generar.ts`
+- `app/src/modelo/opl/generador-opl.ts`
+- `app/src/render/jointjs/renderUiBoundary.test.ts`
+- `app/src/modelo/operaciones.test.ts`
+- `app/src/modelo/operaciones/enlaces.test.ts`
+- `app/src/modelo/validaciones.test.ts`
+- `app/src/serializacion/json.test.ts`
+- `app/src/store/enlaces.test.ts`
+- `app/src/opl/generar.test.ts`
+- `docs/historias-usuario-v2/tools/progress-dashboard.mjs`
+- `docs/roadmap/hu-progress.{md,html,json}` y
+  `docs/roadmap/hu-progress-evidence.json`
+
+Validación exacta:
+
+```bash
+cd app && bun run gate:refactor
+# typecheck OK
+# unit: 1456 pass / 0 fail
+# lint src/ OK
+# build OK
+# browser:smoke: 206 passed
+# Dashboard HU: Total 27.4%; MVP-alpha 86.2% (104/121); 89/105 reglas auto
+# quality:gate PASS; leyes canonicas 6/6; compat detectors 0
+```
+
+Supuestos:
+
+- Este corte no cambia funcionalidad de usuario ni diseño visual; corrige
+  ubicación de invariantes y consistencia formal.
+- Los JSON legacy sin `portId` son aceptados y normalizados al hidratarse.
+- Los cambios de `docs/roadmap/hu-progress*` son regenerados por el gate y
+  pertenecen al corte porque el ledger final depende de esa firma.
+
+Pendientes:
+
+- Mantener fuera de este commit los artefactos no relacionados que ya están
+  sin trackear en `docs/bugs/`, `docs/audits/corte-visual-opcloud-derivado/`
+  y `docs/instrucciones-lineas-dev/ronda22/`.
+- Después del push, si se despliega producción, ejecutar el flujo de deploy
+  opforja documentado y smoke autenticado sobre
+  `https://opforja.sanixai.com/`.
+- Próximo corte técnico razonable: endurecer la frontera de mutación directa
+  del store para que `setState` interno no pueda inyectar modelos sin pasar
+  por normalización/validación, o bien documentar formalmente ese bypass como
+  herramienta solo-dev.
+
+Riesgos:
+
+- El full smoke Playwright había mostrado previamente dos arranques en blanco
+  no deterministas en corridas aisladas; el gate exacto final pasó completo
+  con 206/206. Si reaparece, tratarlo como flake de arranque Vite/Playwright,
+  no como regresión de puertos, salvo evidencia nueva.
+- Cualquier código futuro que construya enlaces manualmente debe pasar por
+  operaciones o validación de importación; no escribir `modelo.enlaces`
+  directo salvo tests de corrupción explícitos.
+
+Prompt breve de continuación:
+
+> Continuar desde `docs/HANDOFF.md`, sección "Corte Dov-Dori Cerrado — SSOT
+> Puertos, Ley Temporal Y OPL Único — 2026-05-20". Verificar que `main`
+> contiene el commit del corte y decidir el siguiente paso entre deploy
+> opforja con smoke autenticado o endurecimiento de mutación directa del
+> store (`setState`/normalización).
 
 ### Corte 4 Doc Uso Productivo Cerrado Lado Usuario — 2026-05-19
 

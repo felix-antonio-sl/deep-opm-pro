@@ -29,6 +29,18 @@ describe("frontera render/UI JointJS", () => {
 
     expect(offenders).toEqual([]);
   });
+
+  test("render/jointjs no sincroniza puertos del modelo en tiempo de render", () => {
+    const offenders = sourceFiles(RENDER_JOINTJS_ROOT)
+      .filter((file) => {
+        const text = readFileSync(file, "utf8");
+        return text.includes("sincronizarPuertosEnlaces")
+          || text.includes("sincronizarPuertosTodosLosOpd");
+      })
+      .map((file) => relative(RENDER_JOINTJS_ROOT, file).replaceAll("\\", "/"));
+
+    expect(offenders).toEqual([]);
+  });
 });
 
 function sourceFiles(dir: string): string[] {

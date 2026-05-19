@@ -278,7 +278,7 @@ describe("completitud / origen de derivacion de enlace", () => {
     expect(hidratado.ok).toBe(true);
     if (!hidratado.ok) return;
     expect(Object.values(hidratado.value.enlaces)).toContainEqual(expect.objectContaining({
-      destinoId: extremoEntidad(segundoId),
+      destinoId: expect.objectContaining(extremoEntidad(segundoId)),
       derivado: expect.objectContaining({ origen: "manual" }),
     }));
   });

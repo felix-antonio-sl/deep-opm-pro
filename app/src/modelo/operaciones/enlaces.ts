@@ -31,6 +31,7 @@ import {
 } from "./refinamiento";
 import { eliminarEnlace } from "./eliminacion";
 import { obtenerRefinamiento } from "../refinamientos";
+import { sincronizarPuertosTodosLosOpd } from "./ports";
 
 /**
  * Operaciones de enlaces: crear con firma validada, apuntar extremo (mover
@@ -75,13 +76,13 @@ export function ajustarMultiplicidad(
     actualizado[campo] = texto;
   }
 
-  return ok({
+  return ok(sincronizarPuertosTodosLosOpd({
     ...modelo,
     enlaces: {
       ...modelo.enlaces,
       [enlaceId]: actualizado,
     },
-  });
+  }));
 }
 
 export function crearEnlace(
@@ -128,11 +129,13 @@ export function crearEnlace(
 
   const origenEntidadId = entidadIdDeExtremo(base, origenExtremo);
   const destinoEntidadId = entidadIdDeExtremo(base, destinoExtremo);
-  return sincronizarRepresentacionesHijasDeOpd(
+  const conRepresentaciones = sincronizarRepresentacionesHijasDeOpd(
     base,
     opdId,
     [origenEntidadId, destinoEntidadId].filter((id): id is Id => !!id),
   );
+  if (!conRepresentaciones.ok) return conRepresentaciones;
+  return ok(sincronizarPuertosTodosLosOpd(conRepresentaciones.value));
 }
 
 export function apuntarExtremoEnlace(
@@ -171,13 +174,13 @@ export function apuntarExtremoEnlace(
     }
   }
 
-  return ok({
+  return ok(sincronizarPuertosTodosLosOpd({
     ...modelo,
     enlaces: {
       ...modelo.enlaces,
       [enlaceId]: actualizado,
     },
-  });
+  }));
 }
 
 export function moverPuertoEnlace(

@@ -20,7 +20,6 @@ describe("puertos dinámicos OPCloud-style", () => {
     modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 220, y: 20 }, "Procesar"));
 
     modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidad(modelo, "Entrada"), entidad(modelo, "Procesar"), "consumo"));
-    modelo = sincronizarPuertosEnlaces(modelo, modelo.opdRaizId);
 
     const enlace = Object.values(modelo.enlaces)[0]!;
     expect(enlace.origenId.portId).toBe("port-e-5-origen");

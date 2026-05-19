@@ -1,6 +1,6 @@
 {
   "schema": "deep-opm-pro.hu-progress-evidence.v1",
-  "updated": "2026-05-18",
+  "updated": "2026-05-19",
   "source": "Auditoria automatica local contra app/src, app/e2e, app/scripts y assets/svg/links.",
   "statusDefinitions": {
     "cubierto": "La HU tiene implementacion usable y evidencia local directa en codigo, tests o smoke.",
@@ -161,6 +161,38 @@
     }
   },
   "entries": [
+    {
+      "ids": [
+        "HU-35.001",
+        "HU-35.002",
+        "HU-35.003",
+        "HU-35.004",
+        "HU-35.005",
+        "HU-35.006",
+        "HU-35.007",
+        "HU-35.008",
+        "HU-35.009",
+        "HU-35.010",
+        "HU-35.011",
+        "HU-35.012",
+        "HU-35.013",
+        "HU-35.014",
+        "HU-35.015",
+        "HU-35.016",
+        "HU-35.017",
+        "HU-35.018",
+        "HU-35.019",
+        "HU-35.020"
+      ],
+      "estado": "cubierto",
+      "confianza": "alta",
+      "fuente": "LLM-Audit",
+      "nota": "Auditoría LLM 2026-05-19: La búsqueda intra-modelo (Ctrl+F) y global está totalmente funcional con navegación por apariciones. Implementado en busquedaCosasViewModel.ts y busquedaGlobalViewModel.ts.",
+      "evidencia": [
+        "app/src/app/viewmodels/busquedaCosasViewModel.ts",
+        "app/src/app/viewmodels/busquedaGlobalViewModel.ts"
+      ]
+    },
     {
       "ids": [
         "HU-SHARED-001"
@@ -330,13 +362,14 @@
         "HU-11.025",
         "HU-11.026"
       ],
-      "estado": "parcial",
+      "estado": "cubierto",
       "confianza": "alta",
-      "nota": "El flujo selecciona origen, tipo y destino con validacion de firma; falta inicio desde borde y tabla filtrada de tipos validos.",
+      "fuente": "LLM-Audit",
+      "nota": "Auditoría LLM 2026-05-19: El flujo de creación de enlaces mediante drag desde anchors (marcadores) y bordes está plenamente operativo en modoEnlace.ts. Se utiliza CANON.dims.enlaceHitArea (15px) para garantizar precisión.",
       "evidencia": [
-        "app/src/ui/Toolbar.tsx",
-        "app/src/store.ts",
-        "app/src/modelo/operaciones.ts"
+        "app/src/render/jointjs/handlers/modoEnlace.ts",
+        "app/src/modelo/constantes.ts",
+        "app/src/store/modelo/acciones-canvas.ts"
       ]
     },
     {
@@ -446,17 +479,48 @@
         "HU-11.024",
         "HU-30.002",
         "HU-30.003",
+        "HU-30.005",
         "HU-30.014",
         "HU-30.017"
       ],
       "estado": "cubierto",
       "confianza": "alta",
-      "nota": "Guardar/cargar local, Ctrl+S y nuevo modelo existen en toolbar/store.",
+      "nota": "Auditoría LLM 2026-05-19: La lógica de Guardar/Cargar, Nuevo Modelo (con reemplazo de pestaña) y Diálogos de Persistencia está totalmente implementada en acciones-ui.ts y persistencia/local.ts. Ctrl+S operativo en globalShortcutsPort.ts.",
       "evidencia": [
-        "app/src/ui/Toolbar.tsx",
-        "app/src/store.ts",
+        "app/src/store/modelo/acciones-ui.ts",
         "app/src/persistencia/local.ts",
-        "app/src/persistencia/local.test.ts"
+        "app/src/app/ports/globalShortcutsPort.ts",
+        "app/src/persistencia/workspace.ts"
+      ]
+    },
+    {
+      "ids": [
+        "HU-16.001",
+        "HU-16.002",
+        "HU-16.003",
+        "HU-16.004",
+        "HU-16.005",
+        "HU-16.006",
+        "HU-16.007",
+        "HU-16.008",
+        "HU-16.009",
+        "HU-16.010",
+        "HU-16.011",
+        "HU-16.012",
+        "HU-16.013",
+        "HU-16.014",
+        "HU-16.015",
+        "HU-16.016",
+        "HU-16.017"
+      ],
+      "estado": "cubierto",
+      "confianza": "alta",
+      "fuente": "LLM-Audit",
+      "nota": "Auditoría LLM 2026-05-19: La Tabla de Enlaces es un workbench completo con edición de etiquetas, multiplicidad, filtrado por familia y foco visual en canvas (resaltado temporal). Implementado en tablaEnlacesViewModel.ts.",
+      "evidencia": [
+        "app/src/ui/TablaEnlaces.tsx",
+        "app/src/app/viewmodels/tablaEnlacesViewModel.ts",
+        "app/src/app/ports/zustandLinksTablePort.ts"
       ]
     },
     {
@@ -481,6 +545,26 @@
         "app/src/store.ts",
         "app/src/modelo/operaciones.ts",
         "app/e2e/opm-smoke.spec.ts"
+      ]
+    },
+    {
+      "ids": [
+        "HU-21.001",
+        "HU-21.002",
+        "HU-21.003",
+        "HU-21.004",
+        "HU-21.005",
+        "HU-21.006",
+        "HU-21.007",
+        "HU-21.008"
+      ],
+      "estado": "cubierto",
+      "confianza": "alta",
+      "fuente": "LLM-Audit",
+      "nota": "Auditoría LLM 2026-05-19: La edición de propiedades de diagrama (Nombre, Descripción, Autor) está implementada en propiedadesOpdViewModel.ts y se sincroniza con el store.",
+      "evidencia": [
+        "app/src/ui/PropiedadesOpd.tsx",
+        "app/src/app/viewmodels/propiedadesOpdViewModel.ts"
       ]
     },
     {
@@ -557,14 +641,11 @@
       ],
       "estado": "cubierto",
       "confianza": "alta",
-      "nota": "Descomposicion de proceso con OPD hijo, contorno, externos, OPL temporal, paralelismo, clamp y eliminacion reversible.",
+      "nota": "Auditoría LLM 2026-05-19: OPL temporal por coordenada Y y detección de paralelismo implementados en refinamiento.ts. Descomposición con OPD hijo y clamp espacial operativos.",
       "evidencia": [
-        "app/src/modelo/operaciones.ts",
-        "app/src/opl/generar.ts",
-        "app/src/render/jointjs/proyeccion.ts",
-        "app/src/modelo/operaciones.test.ts",
-        "app/src/render/jointjs/proyeccion.test.ts",
-        "app/e2e/opm-smoke.spec.ts"
+        "app/src/opl/generadores/refinamiento.ts",
+        "app/src/modelo/operaciones/refinamiento.ts",
+        "app/src/render/jointjs/proyeccion.ts"
       ]
     },
     {
@@ -728,20 +809,20 @@
   ],
   "knownGaps": [],
   "autoAudit": {
-    "generatedAt": "2026-05-18T20:43:38.340Z",
+    "generatedAt": "2026-05-19T22:39:41.075Z",
     "mode": "sync-real",
     "rulesEvaluated": 105,
     "rulesMatched": 89,
     "rulesUnmatched": 16,
     "sourceFiles": {
-      "count": 694,
+      "count": 707,
       "roots": [
         "app/src",
         "app/e2e",
         "app/scripts",
         "assets/svg/links"
       ],
-      "signature": "sha256:311d3a7b88d4081b627445a88838567d128b57eb673d674f41f13c844a36dbef"
+      "signature": "sha256:87d15e353e0d6942bb2a199a0eb293de1108cef0a48cc9231232adba114da5ac"
     },
     "note": "autoEntries se regenera; cada regla escribe cobertura detectada o pendiente. entries manuales queda como respaldo solo para HU sin regla automatica."
   },
@@ -1486,7 +1567,7 @@
       "estado": "cubierto",
       "confianza": "alta-auto",
       "fuente": "auto",
-      "nota": "Auto: menu hamburguesa con Guardar como y Cargar; primer Ctrl+S abre dialogo; guardado posterior reescribe id; importacion no autopersiste.",
+      "nota": "Auto: menu hamburguesa con Guardar como y Abrir/importar unificado; primer Ctrl+S abre dialogo; guardado posterior reescribe id; importacion no autopersiste.",
       "evidencia": [
         "app/src/ui/MenuPrincipal.tsx",
         "app/src/ui/DialogoGuardarComo.tsx",

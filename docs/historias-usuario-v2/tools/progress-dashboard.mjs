@@ -882,11 +882,11 @@ function autoAuditRules() {
       ids: ["HU-30.001", "HU-30.005", "HU-30.006", "HU-30.009", "HU-30.010", "HU-30.013", "HU-30.015", "HU-30.018"],
       estado: "cubierto",
       confianza: "alta-auto",
-      nota: "Auto: menu hamburguesa con Guardar como y Cargar; primer Ctrl+S abre dialogo; guardado posterior reescribe id; importacion no autopersiste.",
+      nota: "Auto: menu hamburguesa con Guardar como y Abrir/importar unificado; primer Ctrl+S abre dialogo; guardado posterior reescribe id; importacion no autopersiste.",
       requires: [
         { path: "app/src/ui/MenuPrincipal.tsx", all: ["Guardar como", "Cargar", "Nuevo"] },
         { path: "app/src/ui/DialogoGuardarComo.tsx", all: ["nombre", "descripcion", "title=\"Guardar como\""] },
-        { path: "app/src/ui/DialogoCargarModelo.tsx", all: ["Cargar", "title=\"Cargar modelo\""] },
+        { path: "app/src/ui/DialogoCargarModelo.tsx", all: ["Cargar"], any: ["title=\"Cargar modelo\"", "title=\"Abrir / importar modelo\""] },
         { path: "app/src/persistencia/workspace.ts", all: ["BREADCRUMB_RAIZ", "validarNombreModeloLocal"] },
       ],
     },

@@ -127,6 +127,58 @@ describe("validaciones metodologicas pasivas", () => {
     });
   });
 
+  test("excepcion temporal hacia objeto o estado reporta error categorial", () => {
+    const modeloObjeto = modeloCon({
+      entidades: [
+        entidad("p-procesar", "proceso", "Procesar", "informacional"),
+        entidad("p-manejar", "proceso", "Manejar Excepcion", "informacional"),
+        entidad("o-pedido", "objeto", "Pedido", "informacional"),
+      ],
+      enlaces: [
+        enlace("e-excepcion-objeto", "excepcionSobretiempo", "p-procesar", "o-pedido"),
+      ],
+    });
+
+    const avisosObjeto = avisosDeRegla(modeloObjeto, "excepcion-temporal-proceso-proceso");
+    expect(avisosObjeto).toHaveLength(1);
+    expect(avisosObjeto[0]).toMatchObject({
+      severidad: "error",
+      citaSSOT: "[V-239] [ISO-19450 enlaces de excepción]",
+      elementoTipo: "enlace",
+      elementoId: "e-excepcion-objeto",
+    });
+
+    const enlaceEstado: Enlace = {
+      id: "e-excepcion-estado",
+      tipo: "excepcionSubtiempo",
+      origenId: extremoEntidad("p-procesar"),
+      destinoId: extremoEstado("s-pendiente"),
+      etiqueta: "",
+    };
+    const modeloEstado: Modelo = {
+      ...modeloObjeto,
+      estados: {
+        "s-pendiente": { id: "s-pendiente", entidadId: "o-pedido", nombre: "pendiente" },
+      },
+      enlaces: { [enlaceEstado.id]: enlaceEstado },
+      opds: {
+        [modeloObjeto.opdRaizId]: {
+          ...modeloObjeto.opds[modeloObjeto.opdRaizId]!,
+          enlaces: {
+            "ae-excepcion-estado": aparienciaEnlace("ae-excepcion-estado", enlaceEstado.id, modeloObjeto.opdRaizId),
+          },
+        },
+      },
+    };
+
+    const avisosEstado = avisosDeRegla(modeloEstado, "excepcion-temporal-proceso-proceso");
+    expect(avisosEstado).toHaveLength(1);
+    expect(avisosEstado[0]).toMatchObject({
+      severidad: "error",
+      elementoId: "e-excepcion-estado",
+    });
+  });
+
   test("dos agregaciones identicas reportan solo la segunda como duplicada", () => {
     const modelo = modeloCon({
       entidades: [

@@ -1,18 +1,9 @@
 import { describe, expect, test } from "bun:test";
-import { crearObjeto } from "../modelo/operaciones";
+import { crearModelo, crearObjeto } from "../modelo/operaciones";
 import { crearPestanaDesdeModelo, crearPestanaNueva, abrirPestana, cambiarActiva, cerrarPestana, etiquetaPestana, reordenarPestanas } from "./pestanas";
 import type { Modelo } from "../modelo/tipos";
 
-const modeloFalso = (nombre: string): Modelo => ({
-  id: `m-${nombre}`,
-  nombre,
-  entidades: {},
-  enlaces: {},
-  estados: {},
-  opds: { "opd-1": { id: "opd-1", nombre: "SD", padreId: null, refinadorId: null, apariencias: {}, aparienciasEnlaces: {} } },
-  opdRaizId: "opd-1",
-  metadatos: {},
-} as unknown as Modelo);
+const modeloFalso = (nombre: string): Modelo => ({ ...crearModelo(nombre), id: `m-${nombre}` });
 
 describe("etiquetaPestana - identidad UNIFICADA P0-1", () => {
   // Corte 3.5 sustracción de chrome: la etiqueta retorna solo el nombre

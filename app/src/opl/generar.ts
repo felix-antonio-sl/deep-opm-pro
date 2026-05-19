@@ -1,16 +1,15 @@
 import { estadosDeEntidad } from "../modelo/operaciones";
-import type { Id, Modelo } from "../modelo/tipos";
+import type { Id, Modelo, Opd } from "../modelo/tipos";
 import { crearLineaOplInteractiva, type OplLineaInteractiva } from "./interaccion";
 import { profundidadOpd } from "./bloquesJerarquicos";
-import { oracionesAbanico, oracionesAbanicoInteractivo } from "./generadores/abanico";
-import { agregarOracionEstadosInteractiva, oracionEstados } from "./generadores/designaciones";
+import { oracionesAbanicoInteractivo } from "./generadores/abanico";
+import { agregarOracionEstadosInteractiva } from "./generadores/designaciones";
 import { oracionesUnidadDescripcionEstados } from "./generadores/duracionMetadata";
 import { oracionEntidad } from "./generadores/estructural";
-import { oracionEnlaceConRuta, transicionesEstado, transicionesEstadoInteractivo } from "./generadores/procedural";
+import { oracionEnlaceConRuta, transicionesEstadoInteractivo } from "./generadores/procedural";
 import {
   hintsRefinamiento,
   oracionRefinamiento,
-  oracionesRefinamiento,
   refsRefinamiento,
   emitirDespliegueOcurren,
   emitirEspecializacion,
@@ -39,46 +38,26 @@ import {
 export function generarOpl(modelo: Modelo, opdId: Id = modelo.opdRaizId): string[] {
   const opd = modelo.opds[opdId];
   if (!opd) return [];
-  const lineas: string[] = [];
-
-  for (const apariencia of Object.values(opd.apariencias)) {
-    const entidad = modelo.entidades[apariencia.entidadId];
-    if (!entidad) continue;
-    lineas.push(oracionEntidad(entidad));
-    const estados = entidad.tipo === "objeto" ? estadosDeEntidad(modelo, entidad.id) : [];
-    if (estados.some((estado) => !estado.suprimido)) lineas.push(oracionEstados(entidad, estados));
-    for (const linea of oracionesUnidadDescripcionEstados(entidad, estados)) lineas.push(linea);
-    for (const oracion of oracionesRefinamiento(modelo, apariencia, entidad)) {
-      lineas.push(oracion);
-    }
-  }
-
-  const transiciones = transicionesEstado(modelo, opd);
-  const enlacesEnAbanico = new Set<Id>();
-  for (const abanico of Object.values(modelo.abanicos ?? {}).filter((item) => item.opdId === opd.id)) {
-    lineas.push(...oracionesAbanico(modelo, abanico));
-    for (const id of abanico.enlaceIds) enlacesEnAbanico.add(id);
-  }
-
-  for (const aparienciaEnlace of Object.values(opd.enlaces)) {
-    const enlace = modelo.enlaces[aparienciaEnlace.enlaceId];
-    if (!enlace || enlacesEnAbanico.has(enlace.id)) continue;
-    const transicion = transiciones.lineaPorEnlaceConsumo.get(enlace.id);
-    if (transicion) {
-      lineas.push(transicion);
-      continue;
-    }
-    if (transiciones.enlacesCubiertos.has(enlace.id)) continue;
-    const linea = oracionEnlaceConRuta(modelo, enlace);
-    if (linea) lineas.push(linea);
-  }
-
-  return lineas;
+  return generarLineasOpl(modelo, opd).map((linea) => linea.texto);
 }
 
 export function generarOplInteractivo(modelo: Modelo, opdId: Id = modelo.opdRaizId): OplLineaInteractiva[] {
   const opd = modelo.opds[opdId];
   if (!opd) return [];
+  const lineas = generarLineasOpl(modelo, opd);
+  const opdNombre = opd.nombre;
+  const opdProfundidad = profundidadOpd(modelo, opdId);
+  return lineas.map((linea, index) => crearLineaOplInteractiva(
+    `opl-${opdId}-${index + 1}`,
+    linea.texto,
+    index + 1,
+    linea.refs,
+    linea.hints,
+    { opdId, opdNombre, opdProfundidad },
+  ));
+}
+
+function generarLineasOpl(modelo: Modelo, opd: Opd): OplLineaPendiente[] {
   const lineas: OplLineaPendiente[] = [];
 
   for (const apariencia of Object.values(opd.apariencias)) {
@@ -125,7 +104,7 @@ export function generarOplInteractivo(modelo: Modelo, opdId: Id = modelo.opdRaiz
     if (!enlace || enlacesEnAbanico.has(enlace.id)) continue;
     const transicion = transiciones.lineaPorEnlaceConsumo.get(enlace.id);
     if (transicion) {
-      lineas.push(transicion);
+      agregarLinea(lineas, transicion.texto, transicion.refs, transicion.hints);
       continue;
     }
     if (transiciones.enlacesCubiertos.has(enlace.id)) continue;
@@ -133,16 +112,7 @@ export function generarOplInteractivo(modelo: Modelo, opdId: Id = modelo.opdRaiz
     if (texto) agregarLinea(lineas, texto, refsEnlace(modelo, enlace), hintsEnlace(modelo, enlace, texto));
   }
 
-  const opdNombre = opd.nombre;
-  const opdProfundidad = profundidadOpd(modelo, opdId);
-  return lineas.map((linea, index) => crearLineaOplInteractiva(
-    `opl-${opdId}-${index + 1}`,
-    linea.texto,
-    index + 1,
-    linea.refs,
-    linea.hints,
-    { opdId, opdNombre, opdProfundidad },
-  ));
+  return lineas;
 }
 
 export { emitirDespliegueOcurren, emitirEspecializacion };
