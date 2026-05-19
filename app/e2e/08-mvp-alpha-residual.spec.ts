@@ -601,7 +601,7 @@ test("L3 UX: toolbar CN-CIM&B conserva tooltips primarios y mueve archivo al men
   await expect(page.getByRole("button", { name: "Cargar", exact: true })).toHaveCount(0);
   const menu = await abrirMenuPrincipal(page);
   await expect(menu.getByRole("menuitem", { name: "Nuevo", exact: true })).toBeVisible();
-  await expect(menu.getByRole("menuitem", { name: "Cargar otro...", exact: true })).toBeVisible();
+  await expect(menu.getByRole("menuitem", { name: "Abrir / importar...", exact: true })).toBeVisible();
 
   expect(pageErrors).toEqual([]);
 });
@@ -713,7 +713,7 @@ test("HU-30.020: clic sobre tile selecciona y botón Cargar del diálogo carga m
   expect(pageErrors).toEqual([]);
 });
 
-test("HU-30.037: Esc cancela Cargar modelo con archivados sin persistir cambios", async ({ page }) => {
+test("HU-30.037: Esc cancela Abrir / importar sin persistir cambios", async ({ page }) => {
   const pageErrors: string[] = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
@@ -725,11 +725,11 @@ test("HU-30.037: Esc cancela Cargar modelo con archivados sin persistir cambios"
 
   await page.getByLabel("Menú principal").click();
   const menu = page.getByRole("menu", { name: "Menú principal" });
-  await menu.getByRole("menuitem", { name: "Cargar archivados..." }).click();
+  await menu.getByRole("menuitem", { name: "Abrir / importar..." }).click();
 
-  const dialogo = page.getByRole("dialog", { name: "Cargar modelo" });
+  const dialogo = page.getByRole("dialog", { name: "Abrir / importar modelo" });
   await expect(dialogo).toBeVisible();
-  await expect(dialogo.getByLabel("Mostrar archivados")).toBeChecked();
+  await expect(dialogo.getByLabel("Mostrar archivados")).toBeVisible();
 
   await page.keyboard.press("Escape");
   await expect(dialogo).toHaveCount(0);

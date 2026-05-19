@@ -1,5 +1,3 @@
-import { useMemo } from "preact/hooks";
-import { listarFixtures } from "../../store/runtime";
 import { useZustandEntityMetadataOpenersPort } from "../ports/zustandEntityMetadataModalPort";
 import { useZustandHelpPort } from "../ports/zustandHelpPort";
 import { useZustandLinksTablePort } from "../ports/zustandLinksTablePort";
@@ -26,9 +24,7 @@ export function useMenuPrincipalViewModel() {
     guardarLocal,
     abrirGuardarComo,
     abrirCargarModelo,
-    abrirDialogoImportarExportarJson,
     modeloPersistidoId,
-    cargarFixtureDemo,
     exportarJson,
   } = useZustandPersistencePort();
   const {
@@ -55,7 +51,6 @@ export function useMenuPrincipalViewModel() {
   const { abrirCheatsheetAtajos } = useZustandHelpPort();
   const objetoSeleccionadoId = seleccionId && modelo.entidades[seleccionId]?.tipo === "objeto" ? seleccionId : null;
   const { abrirModalUrls } = useZustandEntityMetadataOpenersPort();
-  const demos = useMemo(() => listarFixtures(), []);
 
   const copiarJsonAlPortapapeles = () => {
     const json = exportarJson();
@@ -79,7 +74,6 @@ export function useMenuPrincipalViewModel() {
     mostrarVersiones,
     toggleMostrarArchivados,
     toggleMostrarVersiones,
-    cargarFixtureDemo,
     modelo,
     opdActivoId,
     vistaMapaActiva,
@@ -87,12 +81,10 @@ export function useMenuPrincipalViewModel() {
     abrirTablaEnlaces,
     abrirDialogoPlantillas,
     abrirDialogoGuardarPlantilla,
-    abrirDialogoImportarExportarJson,
     abrirCheatsheetAtajos,
     objetoSeleccionadoId,
     abrirModalUrls,
     iniciarAsistente,
-    demos,
     copiarJsonAlPortapapeles,
   };
 }

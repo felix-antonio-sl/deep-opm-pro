@@ -11,9 +11,10 @@ type VistaPreviaImportacion = { ok: true; texto: string } | { ok: false; error: 
 
 interface PersistenciaJsonProps {
   onImported?: () => void;
+  mostrarModelosLocales?: boolean;
 }
 
-export function PersistenciaJson({ onImported }: PersistenciaJsonProps) {
+export function PersistenciaJson({ onImported, mostrarModelosLocales = true }: PersistenciaJsonProps) {
   const persistencia = useZustandPersistencePort();
   const workspace = useZustandWorkspacePort();
   const [texto, setTexto] = useState("");
@@ -65,7 +66,7 @@ export function PersistenciaJson({ onImported }: PersistenciaJsonProps) {
 
   return (
     <div style={style.root}>
-      <div style={style.block}>
+      {mostrarModelosLocales ? <div style={style.block}>
         <div style={style.title}>Modelos locales</div>
         <div style={style.actions}>
           <select
@@ -89,7 +90,7 @@ export function PersistenciaJson({ onImported }: PersistenciaJsonProps) {
           </button>
           <button type="button" style={modeloSeleccionado ? style.button : style.disabledButton} disabled={!modeloSeleccionado} onClick={() => persistencia.borrarLocal(modeloSeleccionado)}>Borrar</button>
         </div>
-      </div>
+      </div> : null}
 
       <div style={style.block}>
         <div style={style.title}>JSON</div>

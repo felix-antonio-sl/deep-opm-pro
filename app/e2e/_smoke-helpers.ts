@@ -256,8 +256,8 @@ export async function cargarModeloEjemplo(page: import("@playwright/test").Page,
 }
 
 export async function abrirDialogoCargarModelo(page: import("@playwright/test").Page): Promise<import("@playwright/test").Locator> {
-  await ejecutarMenuPrincipal(page, "Cargar otro...");
-  const dialogo = page.getByRole("dialog", { name: "Cargar modelo" });
+  await ejecutarMenuPrincipal(page, "Abrir / importar...");
+  const dialogo = page.getByRole("dialog", { name: "Abrir / importar modelo" });
   await expect(dialogo).toBeVisible();
   return dialogo;
 }
@@ -353,7 +353,7 @@ export function jsonEditor(page: Page) {
       const dialogo = await abrirDialogoJson(page);
       await dialogo.getByRole("button", { name: "Exportar", exact: true }).click();
       const value = await textareaJson(page).inputValue();
-      await dialogo.getByRole("button", { name: "Cerrar", exact: true }).click();
+      await page.keyboard.press("Escape");
       await expect(dialogo).toHaveCount(0);
       return value;
     },
@@ -365,16 +365,20 @@ export function jsonEditor(page: Page) {
 }
 
 async function abrirDialogoJson(page: Page) {
-  const dialogo = page.getByTestId("dialogo-importar-exportar-json");
-  if (await dialogo.isVisible().catch(() => false)) return dialogo;
-  await page.getByLabel("Menú principal").click();
-  await page.getByRole("menu", { name: "Menú principal" }).getByRole("menuitem", { name: "Importar/Exportar JSON..." }).click();
+  const dialogo = page.getByTestId("dialogo-abrir-importar");
+  if (!(await dialogo.isVisible().catch(() => false))) {
+    await page.getByLabel("Menú principal").click();
+    await page.getByRole("menu", { name: "Menú principal" }).getByRole("menuitem", { name: "Abrir / importar..." }).click();
+  }
   await expect(dialogo).toBeVisible();
+  const panelJson = dialogo.getByTestId("panel-json-abrir-importar");
+  const abierto = await panelJson.evaluate((element) => (element as HTMLDetailsElement).open);
+  if (!abierto) await panelJson.locator("summary").click();
   return dialogo;
 }
 
 function textareaJson(page: Page) {
-  return page.getByTestId("dialogo-importar-exportar-json").locator('textarea[spellcheck="false"]').first();
+  return page.getByTestId("panel-json-abrir-importar").locator('textarea[spellcheck="false"]').first();
 }
 
 export async function exportadoActual(page: Page): Promise<ExportadoModelo> {

@@ -198,6 +198,9 @@ const style = {
     color: tokens.colors.textoPrimario,
     fontFamily: tokens.typography.familyChrome,
     outline: "none",
+    maxHeight: "calc(100vh - 48px)",
+    display: "flex",
+    flexDirection: "column",
   },
   title: {
     margin: "0 0 10px",
@@ -207,12 +210,15 @@ const style = {
     lineHeight: 1.3,
   },
   body: {
+    minHeight: 0,
+    overflow: "auto",
     color: tokens.colors.textoSecundario,
     fontSize: "14px",
     fontWeight: 600,
     lineHeight: 1.45,
   },
   actions: {
+    flex: "0 0 auto",
     display: "flex",
     justifyContent: "flex-end",
     gap: "8px",

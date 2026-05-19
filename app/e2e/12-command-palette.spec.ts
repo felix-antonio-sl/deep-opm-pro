@@ -50,7 +50,7 @@ test("Escape cierra Command Palette sin ejecutar accion", async ({ page }) => {
   expect(pageErrors).toEqual([]);
 });
 
-test("Command Palette abre Cargar modelo con archivados visibles", async ({ page }) => {
+test("Command Palette abre Abrir / importar unificado", async ({ page }) => {
   const pageErrors: string[] = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
@@ -60,13 +60,14 @@ test("Command Palette abre Cargar modelo con archivados visibles", async ({ page
   await page.keyboard.press("Control+k");
   const palette = page.getByTestId("command-palette");
   await expect(palette).toBeVisible();
-  await palette.getByRole("combobox").fill("cargar archivados");
-  await expect(page.getByTestId("command-palette-item-menu-cargar-archivados")).toBeVisible();
+  await palette.getByRole("combobox").fill("abrir importar");
+  await expect(page.getByTestId("command-palette-item-menu-abrir-importar")).toBeVisible();
 
   await page.keyboard.press("Enter");
-  const dialogo = page.getByRole("dialog", { name: "Cargar modelo" });
+  const dialogo = page.getByRole("dialog", { name: "Abrir / importar modelo" });
   await expect(dialogo).toBeVisible();
-  await expect(dialogo.getByLabel("Mostrar archivados")).toBeChecked();
+  await expect(dialogo.getByLabel("Cargar modelo de ejemplo")).toBeVisible();
+  await expect(dialogo.getByTestId("panel-json-abrir-importar").locator("summary")).toHaveText("JSON");
 
   expect(pageErrors).toEqual([]);
 });

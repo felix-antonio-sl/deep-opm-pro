@@ -17,7 +17,7 @@ test("backup JSON descarga archivo, reimporta y conserva el modelo", async ({ pa
   await jsonEditor(page).fill(JSON.stringify(modeloMarkersCanonicos(), null, 2));
   await expect(page.getByTestId("import-preview")).toBeVisible();
   await page.getByRole("button", { name: "Importar", exact: true }).click();
-  await expect(page.getByTestId("dialogo-importar-exportar-json")).toHaveCount(0);
+  await expect(page.getByTestId("dialogo-abrir-importar")).toHaveCount(0);
   await expect(svgText(page, "Agente")).toBeVisible();
 
   const exportadoOriginal = await exportadoActual(page);
@@ -27,10 +27,14 @@ test("backup JSON descarga archivo, reimporta y conserva el modelo", async ({ pa
   await page.getByLabel("Menú principal").click();
   await page
     .getByRole("menu", { name: "Menú principal" })
-    .getByRole("menuitem", { name: "Importar/Exportar JSON..." })
+    .getByRole("menuitem", { name: "Abrir / importar..." })
     .click();
-  const dialogo = page.getByTestId("dialogo-importar-exportar-json");
+  const dialogo = page.getByTestId("dialogo-abrir-importar");
   await expect(dialogo).toBeVisible();
+  const panelJson = dialogo.getByTestId("panel-json-abrir-importar");
+  if (!(await panelJson.evaluate((element) => (element as HTMLDetailsElement).open))) {
+    await panelJson.locator("summary").click();
+  }
   await dialogo.getByRole("button", { name: "Descargar JSON" }).click();
   const download = await downloadPromise;
   expect(download.suggestedFilename()).toMatch(/^markers-canonicos-\d{4}-\d{2}-\d{2}\.json$/);
@@ -38,7 +42,7 @@ test("backup JSON descarga archivo, reimporta y conserva el modelo", async ({ pa
   if (!path) throw new Error("Playwright no entrego path de descarga JSON");
   const backupJson = await readFile(path, "utf8");
   expect(backupJson).toContain("\"formato\": \"deep-opm-pro.modelo.v0\"");
-  await dialogo.getByRole("button", { name: "Cerrar", exact: true }).click();
+  await dialogo.getByRole("button", { name: "Cancelar", exact: true }).click();
   await expect(dialogo).toHaveCount(0);
 
   await crearModeloNuevoDesdeMenu(page);
@@ -47,7 +51,7 @@ test("backup JSON descarga archivo, reimporta y conserva el modelo", async ({ pa
   await jsonEditor(page).fill(backupJson);
   await expect(page.getByTestId("import-preview")).toContainText("Markers canonicos");
   await page.getByRole("button", { name: "Importar", exact: true }).click();
-  await expect(page.getByTestId("dialogo-importar-exportar-json")).toHaveCount(0);
+  await expect(page.getByTestId("dialogo-abrir-importar")).toHaveCount(0);
   await expect(svgText(page, "Agente")).toBeVisible();
 
   const exportadoRestaurado = await exportadoActual(page);

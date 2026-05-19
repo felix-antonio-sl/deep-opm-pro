@@ -62,7 +62,6 @@ export function CommandPalette({ abierto, onCerrar }: Props) {
     aplicarLayoutSugerido,
     iniciarModoSimulacion,
     abrirTablaEnlaces,
-    abrirDialogoImportarExportarJson,
     abrirCheatsheetAtajos,
     frecuenciaUso,
     registrarUsoCommandPalette,
@@ -84,8 +83,7 @@ export function CommandPalette({ abierto, onCerrar }: Props) {
   ).filter((accion) => accion.enabled);
   const accionesMenu = construirAccionesMenuCommandPalette({
     nuevoModelo: () => confirmarSiDirty(nuevoModelo),
-    abrirCargarModelo: () => confirmarSiDirty(abrirCargarModelo),
-    abrirCargarArchivados: () => confirmarSiDirty(() => abrirCargarModelo({ mostrarArchivados: true })),
+    abrirCargarModelo,
     abrirGuardarComo,
     abrirDialogoConfiguracion,
     abrirDialogoGuardarPlantilla,
@@ -99,7 +97,6 @@ export function CommandPalette({ abierto, onCerrar }: Props) {
     aplicarLayoutSugerido,
     iniciarModoSimulacion,
     abrirTablaEnlaces,
-    abrirDialogoImportarExportarJson,
     abrirCheatsheetAtajos,
     exportarJson: exportarJsonAlPortapapeles,
   });
@@ -302,7 +299,6 @@ export function construirItemsCommandPalette(
 interface AccionesMenuCommandPaletteDeps {
   nuevoModelo: () => void;
   abrirCargarModelo: () => void;
-  abrirCargarArchivados: () => void;
   abrirGuardarComo: () => void;
   abrirDialogoConfiguracion: () => void;
   abrirDialogoGuardarPlantilla: () => void;
@@ -316,7 +312,6 @@ interface AccionesMenuCommandPaletteDeps {
   aplicarLayoutSugerido: () => void;
   iniciarModoSimulacion: () => void;
   abrirTablaEnlaces: () => void;
-  abrirDialogoImportarExportarJson: () => void;
   abrirCheatsheetAtajos: () => void;
   exportarJson: () => void;
 }
@@ -324,14 +319,12 @@ interface AccionesMenuCommandPaletteDeps {
 function construirAccionesMenuCommandPalette(deps: AccionesMenuCommandPaletteDeps): CommandPaletteMenuAction[] {
   return [
     { id: "nuevo-modelo", label: "Nuevo modelo", descripcion: "Crear un modelo vacío", categoria: "archivo", run: deps.nuevoModelo },
-    { id: "cargar-modelo", label: "Cargar modelo", descripcion: "Abrir un modelo guardado del workspace", categoria: "archivo", run: deps.abrirCargarModelo },
+    { id: "abrir-importar", label: "Abrir / importar modelo", descripcion: "Abrir modelos guardados, archivados, ejemplos o JSON", categoria: "archivo", run: deps.abrirCargarModelo },
     { id: "guardar-como", label: "Guardar como", descripcion: "Guardar una copia editable del modelo", categoria: "archivo", run: deps.abrirGuardarComo },
     { id: "configuracion", label: "Configuración", descripcion: "Renombrar modelo y ajustar cuadrícula", categoria: "archivo", run: deps.abrirDialogoConfiguracion },
     { id: "guardar-plantilla", label: "Guardar como plantilla", descripcion: "Crear una plantilla privada desde la selección", categoria: "archivo", run: deps.abrirDialogoGuardarPlantilla },
     { id: "plantillas", label: "Plantillas", descripcion: "Abrir el catálogo de plantillas privadas", categoria: "archivo", run: deps.abrirDialogoPlantillas },
-    { id: "cargar-archivados", label: "Cargar archivados", descripcion: "Abrir Cargar modelo con archivados visibles", categoria: "archivo", run: deps.abrirCargarArchivados },
     { id: "versiones-modelo", label: "Versiones del modelo", descripcion: "Abrir el historial de versiones del modelo", categoria: "archivo", enabled: !!deps.abrirDialogoVersiones, run: deps.abrirDialogoVersiones ?? (() => {}) },
-    { id: "importar-exportar-json", label: "Importar/Exportar JSON", descripcion: "Abrir el modal de persistencia JSON", categoria: "archivo", run: deps.abrirDialogoImportarExportarJson },
     { id: "exportar-json", label: "Exportar JSON al portapapeles", descripcion: "Copiar el JSON OPM actual al portapapeles", categoria: "archivo", run: deps.exportarJson },
     { id: "mapa-sistema", label: deps.vistaMapaActiva ? "Cerrar mapa del sistema" : "Mapa del sistema", descripcion: "Alternar la vista de mapa del sistema", categoria: "vista", run: deps.toggleMapaSistema },
     { id: "simulacion-conceptual", label: "Simulación conceptual", descripcion: "Entrar al modo de simulación del modelo", categoria: "vista", run: deps.iniciarModoSimulacion },

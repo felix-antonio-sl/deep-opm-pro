@@ -151,18 +151,30 @@ test("MenuPrincipal separa archivo, datos y herramientas sin duplicar la vista d
   const menu = page.getByRole("menu", { name: "Menú principal" });
   await expect(menu).toBeVisible();
   await expect(menu.getByRole("menuitem", { name: "Guardar", exact: true })).toBeVisible();
-  await expect(menu.getByRole("menuitem", { name: "Cargar otro...", exact: true })).toBeVisible();
+  await expect(menu.getByRole("menuitem", { name: "Abrir / importar...", exact: true })).toBeVisible();
+  await expect(menu.getByRole("menuitem", { name: "Cargar otro...", exact: true })).toHaveCount(0);
+  await expect(menu.getByRole("menuitem", { name: "Cargar archivados...", exact: true })).toHaveCount(0);
   await expect(menu.getByRole("menuitem", { name: "Nuevo", exact: true })).toBeVisible();
   await expect(menu.getByRole("menuitem", { name: "Abrir como pestaña", exact: true })).toBeVisible();
   await expect(menu.getByRole("menuitem", { name: "Renombrar...", exact: true })).toBeVisible();
   await expect(menu.getByRole("menuitem", { name: "Configuración...", exact: true })).toBeVisible();
   await expect(menu.getByRole("menuitem", { name: "Exportar OPD actual como SVG", exact: true })).toBeVisible();
-  await expect(menu.getByRole("menuitem", { name: "Importar/Exportar JSON...", exact: true })).toBeVisible();
+  await expect(menu.getByRole("menuitem", { name: "Importar/Exportar JSON...", exact: true })).toHaveCount(0);
+  await expect(menu.getByRole("menuitem", { name: "Ejemplos", exact: true })).toHaveCount(0);
   await expect(menu.getByRole("menuitem", { name: "Tabla de enlaces", exact: true })).toBeVisible();
   await expect(menu.getByRole("menuitem", { name: "Mapa del sistema", exact: true })).toHaveCount(0);
   await expect(menu.getByRole("menuitem", { name: "Simulación conceptual", exact: true })).toHaveCount(0);
   await expect(menu.getByRole("menuitem", { name: "Auto-layout", exact: true })).toHaveCount(0);
 
+  await menu.getByRole("menuitem", { name: "Abrir / importar...", exact: true }).click();
+  const dialogoAbrir = page.getByRole("dialog", { name: "Abrir / importar modelo" });
+  await expect(dialogoAbrir).toBeVisible();
+  await expect(dialogoAbrir.getByLabel("Cargar modelo de ejemplo")).toBeVisible();
+  await expect(dialogoAbrir.getByTestId("panel-json-abrir-importar").locator("summary")).toHaveText("JSON");
+  await dialogoAbrir.getByRole("button", { name: "Cancelar" }).click();
+
+  await page.getByLabel("Menú principal").click();
+  await expect(menu).toBeVisible();
   await menu.getByRole("menuitem", { name: "Renombrar...", exact: true }).click();
   const dialogoConfig = page.getByRole("dialog", { name: "Configuración" });
   await expect(dialogoConfig).toBeVisible();

@@ -12,6 +12,7 @@ import { listarFixtures } from "../store/runtime";
 import { Dialogo } from "./Dialogo";
 import { useConfirmarSiDirty } from "./ConfirmacionContext";
 import { PanelCarpetas, type VistaModo } from "./PanelCarpetas";
+import { PersistenciaJson } from "./PersistenciaJson";
 import { tokens } from "./tokens";
 
 /**
@@ -81,17 +82,18 @@ export function DialogoCargarModelo() {
   return (
     <Dialogo
       open={persistencia.dialogoCargarModeloAbierto}
-      title="Cargar modelo"
+      title="Abrir / importar modelo"
       onCancel={persistencia.cerrarCargarModelo}
-      size="lg"
-	      actions={(
-	        <>
-	          <button type="button" style={style.secondaryButton} onClick={persistencia.cerrarCargarModelo}>Cancelar</button>
-	          <button type="button" style={seleccionado ? style.primaryButton : style.disabledButton} disabled={!seleccionado} onClick={() => abrirSeleccionado(seleccionado?.id ?? null)}>Cargar</button>
-	        </>
-	      )}
-	    >
-	      <div style={style.container}>
+      size="xl"
+      testId="dialogo-abrir-importar"
+      actions={(
+        <>
+          <button type="button" style={style.secondaryButton} onClick={persistencia.cerrarCargarModelo}>Cancelar</button>
+          <button type="button" style={seleccionado ? style.primaryButton : style.disabledButton} disabled={!seleccionado} onClick={() => abrirSeleccionado(seleccionado?.id ?? null)}>Cargar</button>
+        </>
+      )}
+    >
+      <div style={style.container}>
         <div style={style.exampleBar}>
           <select
             aria-label="Cargar modelo de ejemplo"
@@ -114,7 +116,7 @@ export function DialogoCargarModelo() {
             ))}
           </select>
         </div>
-	        <div style={style.flagsBar}>
+        <div style={style.flagsBar}>
           <label style={style.flag}>
             <input type="checkbox" checked={workspace.mostrarArchivados} onChange={workspace.toggleMostrarArchivados} />
             Mostrar archivados
@@ -122,86 +124,90 @@ export function DialogoCargarModelo() {
           <label style={style.flag}>
             <input type="checkbox" checked={workspace.mostrarVersiones} onChange={workspace.toggleMostrarVersiones} />
             Mostrar versiones
-	          </label>
-	        </div>
-	        <div style={style.catalogo}>
-	          <div style={style.catalogoToolbar}>
-	            <input
-	              type="search"
-	              aria-label="Buscar modelos por nombre"
-	              placeholder="Buscar por nombre o descripción..."
-	              style={style.searchInput}
-	              value={query}
-	              onInput={(event) => setQuery(event.currentTarget.value)}
-	            />
-	            <button type="button" style={modo === "tiles" ? style.activeToggle : style.toggle} onClick={() => cambiarModo("tiles")} title="Vista de tiles" aria-label="Vista de tiles" aria-pressed={modo === "tiles"}><span aria-hidden="true">▦</span></button>
-	            <button type="button" style={modo === "lista" ? style.activeToggle : style.toggle} onClick={() => cambiarModo("lista")} title="Vista de lista" aria-label="Vista de lista" aria-pressed={modo === "lista"}><span aria-hidden="true">☰</span></button>
-	          </div>
-	          {modo === "lista" ? (
-	            <TablaModelos
-	              modelos={modelosCatalogo}
-	              seleccionadoId={seleccionadoId}
-	              orden={orden}
-	              mostrarVersiones={workspace.mostrarVersiones}
-	              onOrden={alternarOrden}
-	              onSeleccionar={setSeleccionadoId}
-	              onAbrir={abrirSeleccionado}
-	            />
-	          ) : (
-	            <div style={style.gridModelos}>
-	              {modelosCatalogo.map((modelo) => (
-	                <TileModelo
-	                  key={modelo.id}
-	                  modelo={modelo}
-	                  seleccionado={modelo.id === seleccionadoId}
-	                  mostrarVersiones={workspace.mostrarVersiones}
-	                  onSeleccionar={setSeleccionadoId}
-	                  onAbrir={abrirSeleccionado}
-	                />
-	              ))}
-	            </div>
-	          )}
-	          {modelosCatalogo.length === 0 ? <div style={style.empty}>{query ? "Sin resultados para la búsqueda." : "Sin modelos en esta carpeta."}</div> : null}
-	        </div>
-	        <details open style={style.legacyExplorer}>
-	          <summary style={style.folderSummary}>Explorar carpetas</summary>
-	          <PanelCarpetas
-	          hijos={hijos}
-          breadcrumb={breadcrumb}
-          carpetaActualId={workspace.carpetaActualId}
-          vista={modo}
-          query={query}
-          onQueryChange={setQuery}
-          onVistaChange={setModo}
-          onAbrirCarpeta={(cId) => workspace.abrirCarpeta(cId)}
-          onNavegarBreadcrumb={navegarBreadcrumb}
-          onCrearCarpeta={workspace.crearCarpetaEnActual}
-          onRenombrarCarpeta={workspace.renombrarCarpetaEnIndice}
-          onEliminarCarpeta={(cId) => { void workspace.eliminarCarpetaEnIndice(cId, { cascada: false }); }}
-	          onAbrirModelo={(mId) => {
-	            setSeleccionadoId(mId);
-	          }}
-          onAbrirModeloEnPestana={(mId) => workspace.abrirPestanaConModelo(mId)}
-          onCortarModelo={workspace.cortarModelo}
-          onCortarCarpeta={workspace.cortarCarpeta}
-          onPegarEn={workspace.pegarEn}
-          onMoverModelo={workspace.moverModeloDirecto}
-          onMoverCarpeta={workspace.moverCarpetaDirecto}
-          onArchivarModelo={(mId) => { void workspace.archivarModeloPorId(mId); }}
-          onRestaurarModelo={(mId) => { void workspace.restaurarModeloPorId(mId); }}
-          onArchivarCarpeta={workspace.archivarCarpetaPorId}
-          onRestaurarCarpeta={workspace.restaurarCarpetaPorId}
-	          onAbrirVersiones={workspace.abrirDialogoVersiones}
-          portapapeles={workspace.portapapelesWorkspace}
-          onCancelarPortapapeles={workspace.cancelarPortapapelesWorkspace}
-          mostrarVersiones={workspace.mostrarVersiones}
-          recientes={[]}
-          modoOperacion="carga"
-	          />
-	        </details>
-	      </div>
-	    </Dialogo>
-	  );
+          </label>
+        </div>
+        <div style={style.catalogo}>
+          <div style={style.catalogoToolbar}>
+            <input
+              type="search"
+              aria-label="Buscar modelos por nombre"
+              placeholder="Buscar por nombre o descripción..."
+              style={style.searchInput}
+              value={query}
+              onInput={(event) => setQuery(event.currentTarget.value)}
+            />
+            <button type="button" style={modo === "tiles" ? style.activeToggle : style.toggle} onClick={() => cambiarModo("tiles")} title="Vista de tiles" aria-label="Vista de tiles" aria-pressed={modo === "tiles"}><span aria-hidden="true">▦</span></button>
+            <button type="button" style={modo === "lista" ? style.activeToggle : style.toggle} onClick={() => cambiarModo("lista")} title="Vista de lista" aria-label="Vista de lista" aria-pressed={modo === "lista"}><span aria-hidden="true">☰</span></button>
+          </div>
+          {modo === "lista" ? (
+            <TablaModelos
+              modelos={modelosCatalogo}
+              seleccionadoId={seleccionadoId}
+              orden={orden}
+              mostrarVersiones={workspace.mostrarVersiones}
+              onOrden={alternarOrden}
+              onSeleccionar={setSeleccionadoId}
+              onAbrir={abrirSeleccionado}
+            />
+          ) : (
+            <div style={style.gridModelos}>
+              {modelosCatalogo.map((modelo) => (
+                <TileModelo
+                  key={modelo.id}
+                  modelo={modelo}
+                  seleccionado={modelo.id === seleccionadoId}
+                  mostrarVersiones={workspace.mostrarVersiones}
+                  onSeleccionar={setSeleccionadoId}
+                  onAbrir={abrirSeleccionado}
+                />
+              ))}
+            </div>
+          )}
+          {modelosCatalogo.length === 0 ? <div style={style.empty}>{query ? "Sin resultados para la búsqueda." : "Sin modelos en esta carpeta."}</div> : null}
+        </div>
+        <details open style={style.legacyExplorer}>
+          <summary style={style.folderSummary}>Explorar carpetas</summary>
+          <PanelCarpetas
+            hijos={hijos}
+            breadcrumb={breadcrumb}
+            carpetaActualId={workspace.carpetaActualId}
+            vista={modo}
+            query={query}
+            onQueryChange={setQuery}
+            onVistaChange={setModo}
+            onAbrirCarpeta={(cId) => workspace.abrirCarpeta(cId)}
+            onNavegarBreadcrumb={navegarBreadcrumb}
+            onCrearCarpeta={workspace.crearCarpetaEnActual}
+            onRenombrarCarpeta={workspace.renombrarCarpetaEnIndice}
+            onEliminarCarpeta={(cId) => { void workspace.eliminarCarpetaEnIndice(cId, { cascada: false }); }}
+            onAbrirModelo={(mId) => {
+              setSeleccionadoId(mId);
+            }}
+            onAbrirModeloEnPestana={(mId) => workspace.abrirPestanaConModelo(mId)}
+            onCortarModelo={workspace.cortarModelo}
+            onCortarCarpeta={workspace.cortarCarpeta}
+            onPegarEn={workspace.pegarEn}
+            onMoverModelo={workspace.moverModeloDirecto}
+            onMoverCarpeta={workspace.moverCarpetaDirecto}
+            onArchivarModelo={(mId) => { void workspace.archivarModeloPorId(mId); }}
+            onRestaurarModelo={(mId) => { void workspace.restaurarModeloPorId(mId); }}
+            onArchivarCarpeta={workspace.archivarCarpetaPorId}
+            onRestaurarCarpeta={workspace.restaurarCarpetaPorId}
+            onAbrirVersiones={workspace.abrirDialogoVersiones}
+            portapapeles={workspace.portapapelesWorkspace}
+            onCancelarPortapapeles={workspace.cancelarPortapapelesWorkspace}
+            mostrarVersiones={workspace.mostrarVersiones}
+            recientes={[]}
+            modoOperacion="carga"
+          />
+        </details>
+        <details style={style.jsonPanel} data-testid="panel-json-abrir-importar">
+          <summary style={style.folderSummary}>JSON</summary>
+          <PersistenciaJson onImported={persistencia.cerrarCargarModelo} mostrarModelosLocales={false} />
+        </details>
+      </div>
+    </Dialogo>
+  );
 }
 
 type OrdenCargar = { columna: "nombre" | "descripcion" | "actualizadoEn" | "bytes"; direccion: "asc" | "desc" };
@@ -537,6 +543,7 @@ const style = {
   tdStrong: { padding: "8px", color: tokens.colors.textoPrimario, fontWeight: 800, verticalAlign: "top" },
   empty: { padding: "18px", border: `1px dashed ${tokens.colors.bordeControl}`, borderRadius: tokens.radii.sm, color: tokens.colors.textoTerciario, fontSize: "13px", fontWeight: 700, textAlign: "center" },
   legacyExplorer: { border: `1px solid ${tokens.colors.bordeChrome}`, borderRadius: tokens.radii.md, padding: "8px", background: tokens.colors.fondoChrome },
+  jsonPanel: { border: `1px solid ${tokens.colors.bordeChrome}`, borderRadius: tokens.radii.md, padding: "8px", background: tokens.colors.fondoChrome },
   folderSummary: { color: tokens.colors.chromeNeutral, fontSize: "13px", fontWeight: 800, cursor: "pointer" },
 } satisfies Record<string, preact.JSX.CSSProperties>;
 

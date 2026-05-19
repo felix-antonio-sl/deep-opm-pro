@@ -1,7 +1,6 @@
 // [JOYAS §1-3] Chrome UI consume tokens centralizados; canvas semántico invariante.
 import modelWizardIcon from "../../../assets/svg/toolbar/modelWizard.svg";
 import templateIcon from "../../../assets/svg/template.svg";
-import { useState } from "preact/hooks";
 import { useMenuPrincipalViewModel } from "../app/viewmodels/menuPrincipalViewModel";
 import { descargarOpdActualSvg } from "../render/jointjs/mapaExport";
 import { useCanvasPaper } from "./CanvasAdapterContext";
@@ -32,7 +31,6 @@ export function MenuPrincipal() {
     mostrarVersiones,
     toggleMostrarArchivados,
     toggleMostrarVersiones,
-    cargarFixtureDemo,
     modelo,
     opdActivoId,
     vistaMapaActiva,
@@ -40,15 +38,12 @@ export function MenuPrincipal() {
     abrirTablaEnlaces,
     abrirDialogoPlantillas,
     abrirDialogoGuardarPlantilla,
-    abrirDialogoImportarExportarJson,
     abrirCheatsheetAtajos,
     objetoSeleccionadoId,
     abrirModalUrls,
     iniciarAsistente,
-    demos,
     copiarJsonAlPortapapeles,
   } = useMenuPrincipalViewModel();
-  const [mostrarSubmenuDemos, setMostrarSubmenuDemos] = useState(false);
 
   const ejecutar = (accion: () => void) => {
     cerrar();
@@ -67,8 +62,7 @@ export function MenuPrincipal() {
       <MenuSection title="Modelo">
         <MenuItem label="Guardar" shortcut="Ctrl+S" onClick={() => ejecutar(guardarLocal)} />
         <MenuItem label="Guardar como" onClick={() => ejecutar(abrirGuardarComo)} />
-        <MenuItem label="Cargar otro..." shortcut="Ctrl+O" onClick={() => ejecutar(() => confirmarSiDirty(abrirCargarModelo))} />
-        <MenuItem label="Cargar archivados..." onClick={() => ejecutar(() => confirmarSiDirty(() => abrirCargarModelo({ mostrarArchivados: true })))} />
+        <MenuItem label="Abrir / importar..." shortcut="Ctrl+O" onClick={() => ejecutar(abrirCargarModelo)} />
         <MenuItem label="Nuevo" shortcut="Ctrl+N" onClick={() => ejecutar(() => confirmarSiDirty(nuevoModelo))} />
         <MenuItem label="Abrir como pestaña" shortcut="Ctrl+T" onClick={() => ejecutar(abrirPestanaNueva)} />
         <MenuItem label="Renombrar..." onClick={() => ejecutar(abrirDialogoConfiguracion)} />
@@ -92,7 +86,6 @@ export function MenuPrincipal() {
           <MenuItem label="Exportar OPD actual como SVG" disabled={!canvasPaper} onClick={() => ejecutar(exportarOpdActualSvg)} />
         )}
         <MenuItem label="Exportar JSON" onClick={() => ejecutar(copiarJsonAlPortapapeles)} />
-        <MenuItem label="Importar/Exportar JSON..." onClick={() => ejecutar(abrirDialogoImportarExportarJson)} />
       </MenuSection>
 
       <MenuSection title="Plantillas">
@@ -109,30 +102,6 @@ export function MenuPrincipal() {
       </MenuSection>
 
       <MenuSection title="Herramientas">
-        <div
-          role="none"
-          style={style.submenuWrapper}
-          onMouseEnter={() => setMostrarSubmenuDemos(true)}
-          onMouseLeave={() => setMostrarSubmenuDemos(false)}
-        >
-          <MenuItem label="Ejemplos" shortcut="›" expanded={mostrarSubmenuDemos} />
-          {mostrarSubmenuDemos ? (
-            <div role="menu" aria-label="Ejemplos" style={style.submenu}>
-              {demos.map((d) => (
-                <button
-                  key={d.modelo.nombre}
-                  type="button"
-                  role="menuitem"
-                  style={style.submenuItem}
-                  title={d.proposito}
-                  onClick={() => ejecutar(() => confirmarSiDirty(() => cargarFixtureDemo(d.modelo.nombre)))}
-                >
-                  {d.modelo.nombre}
-                </button>
-              ))}
-            </div>
-          ) : null}
-        </div>
         <MenuItem label="Tabla de enlaces" onClick={() => ejecutar(abrirTablaEnlaces)} />
         {objetoSeleccionadoId ? (
           <MenuItem label="URLs del objeto" onClick={() => ejecutar(() => abrirModalUrls(objetoSeleccionadoId))} />
