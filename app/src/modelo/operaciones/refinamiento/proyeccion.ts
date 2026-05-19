@@ -46,6 +46,17 @@ interface OpcionesRepresentacionRefinamiento {
   soloSiHayDerivadosAutomaticosVisibles?: boolean;
 }
 
+interface OpcionesProyeccionEnlacesExternos {
+  sincronizarExternos?: boolean;
+  /**
+   * En refresh incidental (drag/resize) no se deben expandir derivados
+   * automaticos hacia procesos agregados despues de la descomposicion.
+   * Mantiene la cardinalidad visible por enlace padre y deja altas nuevas a
+   * operaciones explicitas de sincronizacion/creacion.
+   */
+  limitarAutomaticosPorPadre?: Map<Id, number>;
+}
+
 interface ExternoPlan {
   externoId: Id;
   entrada: boolean;
@@ -121,9 +132,15 @@ export function sincronizarRepresentacionRefinamiento(
   const subprocesos = opciones.subprocesos ?? subprocesosAutomaticos(modelo, opd, contorno.entidad.id);
   const externos = enlacesExternosDeEntidad(modelo, padre, contorno.entidad.id);
   const planExternos = agruparExternosPorEntidad(modelo, contorno.entidad.id, externos);
+  const limiteAutomaticosPorPadre = opciones.soloSiHayDerivadosAutomaticosVisibles
+    ? conteosDerivadosAutomaticosVisibles(modelo, opdId, contorno.entidad.id)
+    : undefined;
   const conExternos = materializarAparienciasExternas(modelo, opd, contorno.apariencia, planExternos);
   const limpio = limpiarEnlacesDerivadosAutomaticos(conExternos.modelo, opdId, contorno.entidad.id);
-  const proyectado = proyectarEnlacesExternosEnRefinamiento(limpio, opdId, subprocesos, { sincronizarExternos: false });
+  const proyectado = proyectarEnlacesExternosEnRefinamiento(limpio, opdId, subprocesos, {
+    sincronizarExternos: false,
+    ...(limiteAutomaticosPorPadre ? { limitarAutomaticosPorPadre: limiteAutomaticosPorPadre } : {}),
+  });
   if (!proyectado.ok) return proyectado;
 
   return ok(limpiarAparienciasExternasObsoletas(proyectado.value, opdId, contorno.entidad.id, planExternos.keys));
@@ -149,7 +166,7 @@ export function proyectarEnlacesExternosEnRefinamiento(
   modelo: Modelo,
   opdId: Id,
   subprocesos: SubprocesosRefinamiento,
-  opciones: { sincronizarExternos?: boolean } = {},
+  opciones: OpcionesProyeccionEnlacesExternos = {},
 ): Resultado<Modelo> {
   if (opciones.sincronizarExternos ?? true) {
     return sincronizarRepresentacionRefinamiento(modelo, opdId, { subprocesos });
@@ -176,9 +193,14 @@ export function proyectarEnlacesExternosEnRefinamiento(
       continue;
     }
 
-    const proyecciones = contorno.entidad.tipo === "proceso"
+    let proyecciones = contorno.entidad.tipo === "proceso"
       ? proyeccionesEnlaceExterno(enlace, contorno.entidad.id, subprocesos)
       : [];
+    if (opciones.limitarAutomaticosPorPadre && proyecciones.length > 0) {
+      const limite = opciones.limitarAutomaticosPorPadre.get(enlace.id);
+      if (limite === undefined) continue;
+      proyecciones = proyecciones.slice(0, limite);
+    }
     if (proyecciones.length === 0) {
       if (!aparienciaEnlaceExiste(aparienciasEnlace, enlace.id)) {
         const aparienciaId = siguienteId({ ...modelo, nextSeq }, "ae");
@@ -448,6 +470,25 @@ function tieneDerivadosAutomaticosVisibles(modelo: Modelo, opdId: Id, refinamien
       enlace.derivado.refinamientoId === refinamientoId &&
       enlace.derivado.origen !== "manual";
   });
+}
+
+function conteosDerivadosAutomaticosVisibles(modelo: Modelo, opdId: Id, refinamientoId: Id): Map<Id, number> {
+  const opd = modelo.opds[opdId];
+  const conteos = new Map<Id, number>();
+  if (!opd) return conteos;
+  for (const apariencia of Object.values(opd.enlaces)) {
+    const enlace = modelo.enlaces[apariencia.enlaceId];
+    if (
+      enlace?.derivado?.tipo !== "enlace-externo-refinamiento" ||
+      enlace.derivado.refinamientoId !== refinamientoId ||
+      enlace.derivado.origen === "manual"
+    ) {
+      continue;
+    }
+    const padreId = enlace.derivado.enlacePadreId;
+    conteos.set(padreId, (conteos.get(padreId) ?? 0) + 1);
+  }
+  return conteos;
 }
 
 function enlaceDerivadoExiste(

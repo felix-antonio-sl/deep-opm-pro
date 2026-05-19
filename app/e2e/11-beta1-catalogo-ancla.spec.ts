@@ -6,6 +6,7 @@ import {
   crearModeloNuevoDesdeMenu,
   elementoPorTexto,
   exportadoActual,
+  rectDeLocator,
   type ExportadoModelo,
   jsonEditor,
 } from "./_smoke-helpers";
@@ -208,6 +209,33 @@ test.describe("catalogo OPCloud sandbox", () => {
     await expect(elementoPorTexto(page, "Main Output")).toBeVisible();
     await expect(elementoPorTexto(page, "SD1 Main Output")).toHaveCount(0);
 
+    expect(pageErrors).toEqual([]);
+  });
+
+  test("SD Sync no duplica enlaces visibles al mover una cosa en SD1", async ({ page }) => {
+    const pageErrors: string[] = [];
+    page.on("pageerror", (error) => pageErrors.push(error.message));
+
+    await page.goto("/");
+    await cargarModeloEjemplo(page, "SD Sync");
+
+    const exportado = await exportadoActual(page);
+    const sd1 = Object.entries(exportado.modelo.opds).find(([, opd]) => opd.padreId === exportado.modelo.opdRaizId);
+    expect(sd1).toBeDefined();
+    const [sd1Id] = sd1!;
+    await page.locator(`[role="treeitem"][data-opd-id="${sd1Id}"]`).click();
+    await expect(elementoPorTexto(page, "Main I/O Output")).toBeVisible();
+
+    const cantidadLinksAntes = await page.locator(".joint-link").count();
+    const ioOutput = elementoPorTexto(page, "Main I/O Output");
+    const rect = await rectDeLocator(ioOutput);
+    await page.mouse.move(rect.x + rect.width / 2, rect.y + rect.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(rect.x + rect.width / 2 + 80, rect.y + rect.height / 2 - 25, { steps: 8 });
+    await page.mouse.up();
+
+    await expect(ioOutput).toBeVisible();
+    await expect(page.locator(".joint-link")).toHaveCount(cantidadLinksAntes);
     expect(pageErrors).toEqual([]);
   });
 });

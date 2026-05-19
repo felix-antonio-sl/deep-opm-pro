@@ -42,6 +42,7 @@ import {
 import { CANON } from "./constantes";
 import { solapa } from "./layout";
 import { extremoApuntaAEntidad, extremoEntidad, extremoEstado } from "./extremos";
+import { crearSdSyncInzoomed } from "./fixtures";
 import type { Enlace, Modelo, ModoDespliegueObjeto, Resultado, TipoEnlace } from "./tipos";
 
 describe("operaciones de modelo", () => {
@@ -1161,6 +1162,28 @@ describe("operaciones de modelo", () => {
     expect(Object.values(modelo.enlaces).filter((enlace) => !enlace.derivado)).toHaveLength(2);
   });
 
+  test("mover externo en SD Sync no expande derivados automáticos hacia procesos agregados manualmente", () => {
+    let modelo = crearSdSyncInzoomed().modelo;
+    const sd1 = Object.values(modelo.opds).find((opd) => opd.padreId === modelo.opdRaizId);
+    expect(sd1).toBeDefined();
+    if (!sd1) return;
+    const mainIoOutput = entidadPorNombre(modelo, "Main I/O Output");
+    const aparienciaMainIoOutput = Object.values(sd1.apariencias).find((apariencia) => apariencia.entidadId === mainIoOutput.id);
+    expect(aparienciaMainIoOutput).toBeDefined();
+    if (!aparienciaMainIoOutput) return;
+    const automaticosAntes = derivadosAutomaticosDelOpd(modelo, sd1.id);
+
+    modelo = must(moverAparienciaPorId(modelo, sd1.id, aparienciaMainIoOutput.id, {
+      x: aparienciaMainIoOutput.x + 80,
+      y: aparienciaMainIoOutput.y - 25,
+    }));
+
+    expect(derivadosAutomaticosDelOpd(modelo, sd1.id)).toHaveLength(automaticosAntes.length);
+    expect(derivadosAutomaticosDelOpd(modelo, sd1.id).map(firmaDerivadoAutomatico).sort()).toEqual(
+      automaticosAntes.map(firmaDerivadoAutomatico).sort(),
+    );
+  });
+
   test("reancla consumo externo derivado al subproceso elegido y marca origen manual", () => {
     let modelo = crearModelo();
     modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 100 }, "Entrada"));
@@ -1537,6 +1560,23 @@ function enlacesDelOpd(modelo: Modelo, opdId: string): Enlace[] {
   return Object.values(modelo.opds[opdId]?.enlaces ?? {})
     .map((apariencia) => modelo.enlaces[apariencia.enlaceId])
     .filter((enlace): enlace is Enlace => enlace !== undefined);
+}
+
+function derivadosAutomaticosDelOpd(modelo: Modelo, opdId: string): Enlace[] {
+  return enlacesDelOpd(modelo, opdId).filter((enlace) => enlace.derivado?.origen === "automatico");
+}
+
+function firmaDerivadoAutomatico(enlace: Enlace): string {
+  return [
+    enlace.derivado?.enlacePadreId ?? "",
+    enlace.tipo,
+    firmaExtremo(enlace.origenId),
+    firmaExtremo(enlace.destinoId),
+  ].join("|");
+}
+
+function firmaExtremo(extremo: Enlace["origenId"]): string {
+  return extremo.kind === "entidad" ? `entidad:${extremo.id}` : `estado:${extremo.id}`;
 }
 
 function quitarDerivadosAutomaticosDeOpd(modelo: Modelo, opdId: string): Modelo {
