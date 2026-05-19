@@ -75,6 +75,8 @@ acceso con usuario `fsanhuezal` (contrasena fuera del repo).
   `docs/uso-productivo.md`.
 - Operacion de la instancia (deploy, actualizacion, rollback, certificado):
   `docs/deploy/opforja.md`.
+- Contrato funcional de apariciones por OPD:
+  `docs/roadmap/politica-apariciones-categorial.md`.
 
 ## Regla De Autoridad
 

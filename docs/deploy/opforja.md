@@ -27,6 +27,33 @@ y Nginx reenvia `POST /__deep-opm/bug-reports` al sidecar privado
 `bug-capture`. El sidecar escribe reportes en `./docs/bugs` mediante bind mount
 local, con el mismo formato usado por Vite en desarrollo.
 
+## Contrato Funcional De Apariciones
+
+Para verificar o depurar Opforja, usar esta regla como contrato estable:
+
+```text
+Entidad visible en un OPD <=> existe una Apariencia local en opd.apariencias
+```
+
+La existencia global en `modelo.entidades` no obliga al render a mostrar la
+entidad. El render de JointJS debe proyectar la fibra local del OPD activo:
+sus apariciones de entidades y apariciones de enlaces. No debe inferir
+visibilidad desde el conjunto global de entidades.
+
+`contextoRefinamiento` declara rol local de una aparición, no visibilidad:
+
+- `contorno`: aparición local de la cosa refinada como contenedor.
+- `interno`: aparición confinada al contorno del refinamiento.
+- `externo`: aparición externa materializada por la relación con el OPD padre.
+- sin contexto: aparición manual/contextual del OPD activo.
+
+Solo las apariciones externas materializadas automáticamente por refinamiento
+son candidatas a limpieza automática durante resincronización. Las apariciones
+manuales o contextuales creadas por el usuario deben conservarse salvo acción
+explícita del usuario.
+
+Referencia normativa interna: `docs/roadmap/politica-apariciones-categorial.md`.
+
 ## Acceso Operativo
 
 - Usuario Basic Auth: `fsanhuezal`.

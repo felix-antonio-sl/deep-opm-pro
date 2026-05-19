@@ -12,6 +12,35 @@ Una herramienta para dibujar modelos OPM/ISO 19450: objetos, procesos
 y enlaces. Los modelos quedan guardados en el navegador (este navegador,
 esta dirección) y se respaldan exportando JSON.
 
+## Regla De Apariciones En Diagramas
+
+En Opforja, una cosa OPM y su dibujo local no son lo mismo:
+
+- La **entidad** existe una vez en el modelo: objeto, proceso o estado.
+- La **aparición** es la representación visible de esa entidad dentro de
+  un OPD específico.
+
+Regla operativa: **una entidad se muestra en un OPD solo si tiene una
+aparición en ese OPD**. Que la entidad exista en el modelo no implica
+que deba verse en todos los diagramas.
+
+Consecuencias prácticas:
+
+- Una misma entidad puede aparecer en más de un OPD.
+- Ocultar o quitar una aparición local no borra necesariamente la
+  entidad del modelo.
+- En un OPD refinado, el contorno, las cosas internas y los externos
+  contextuales son apariciones locales con roles distintos.
+- Los externos materializados automáticamente por refinamiento pueden
+  actualizarse o limpiarse al resincronizar el refinamiento.
+- Las cosas contextuales creadas manualmente fuera del contorno no se
+  limpian automáticamente: permanecen hasta que el usuario las quite.
+
+Esta regla es deliberada: evita que un refinamiento meta dentro del
+contenedor cosas que pertenecen al contexto del diagrama, y evita que el
+render invente entidades visibles por el solo hecho de existir en el
+modelo.
+
 ## Entrar
 
 1. Abrir `https://opforja.sanixai.com` en un navegador moderno.
