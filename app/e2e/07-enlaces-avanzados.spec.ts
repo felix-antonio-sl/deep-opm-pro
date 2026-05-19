@@ -97,6 +97,35 @@ test("crea enlace, edita vertices y elimina desde celdas JointJS", async ({ page
   expect(pageErrors).toEqual([]);
 });
 
+test("seleccionar enlace estructural ruteado no instala Segments incompatible", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await page.getByRole("button", { name: "Objeto", exact: true }).click();
+  await page.getByRole("button", { name: "Objeto", exact: true }).click();
+
+  await elementoPorTexto(page, "Objeto").click();
+  await elegirTipoEnlaceDesdeMenu(page, "exhibicion");
+  await elementoPorTexto(page, "Objeto_2").click();
+
+  await expect(page.locator(".joint-link")).toHaveCount(2);
+  expect(await page.locator(".joint-element polygon").count()).toBeGreaterThanOrEqual(1);
+
+  await clickLinkPorTipo(page, "Exhibicion");
+
+  const routers = await page.evaluate(() => {
+    const adapter = (window as typeof window & { __opmJointAdapter?: { graph: { getLinks(): Array<{ get(key: string): unknown }> } } }).__opmJointAdapter;
+    return adapter?.graph.getLinks().map((link) => link.get("router")) ?? [];
+  });
+  expect(routers.some((router) => (router as { name?: string } | undefined)?.name === "manhattan")).toBe(true);
+  await expect(page.locator('[data-tool-name="boundary"]')).toHaveCount(1);
+  await expect(page.locator('[data-tool-name="vertices"]')).toHaveCount(1);
+  await expect(page.locator('[data-tool-name="segments"]')).toHaveCount(0);
+
+  expect(pageErrors).toEqual([]);
+});
+
 test("asigna multiplicidad de enlace y sincroniza canvas, OPL y JSON", async ({ page }) => {
   const pageErrors: string[] = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));

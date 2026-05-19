@@ -25,31 +25,54 @@ export function instalarHerramientasEnlaceSeleccionado(adapter: AdapterMin, enla
   if (meta?.kind === "enlace" && meta.tipo === "agregacion") return;
   const linkView = adapter.paper.findViewByModel<dia.LinkView>(link);
   linkView.removeTools();
+  const tools: dia.ToolView[] = [
+    new linkTools.Boundary({
+      padding: 18,
+      useModelGeometry: true,
+    }),
+    new linkTools.SourceArrowhead({
+      scale: 1.05,
+      focusOpacity: 0.85,
+    }),
+    new linkTools.TargetArrowhead({
+      scale: 1.05,
+      focusOpacity: 0.85,
+    }),
+    new linkTools.Vertices({
+      redundancyRemoval: false,
+      snapRadius: 4,
+      vertexAdding: true,
+    }),
+  ];
+
+  if (routerAdmiteSegmentsTool(routerDeLink(link))) {
+    tools.push(
+      new linkTools.Segments({
+        redundancyRemoval: false,
+        snapRadius: 4,
+      }),
+    );
+  }
+
   linkView.addTools(
     new dia.ToolsView({
-      tools: [
-        new linkTools.Boundary({
-          padding: 18,
-          useModelGeometry: true,
-        }),
-        new linkTools.SourceArrowhead({
-          scale: 1.05,
-          focusOpacity: 0.85,
-        }),
-        new linkTools.TargetArrowhead({
-          scale: 1.05,
-          focusOpacity: 0.85,
-        }),
-        new linkTools.Vertices({
-          redundancyRemoval: false,
-          snapRadius: 4,
-          vertexAdding: true,
-        }),
-        new linkTools.Segments({
-          redundancyRemoval: false,
-          snapRadius: 4,
-        }),
-      ],
+      tools,
     }),
   );
+}
+
+export function routerAdmiteSegmentsTool(router: unknown): boolean {
+  if (router == null) return true;
+  if (typeof router === "string") return router === "normal";
+  if (!esRegistro(router)) return false;
+  const name = router.name;
+  return typeof name === "string" && name === "normal";
+}
+
+function routerDeLink(link: dia.Link): unknown {
+  return (link as dia.Link & { get: (key: string) => unknown }).get("router");
+}
+
+function esRegistro(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
 }
