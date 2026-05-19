@@ -17,7 +17,8 @@
     "security:scan": "bun pm scan",
     "visual:audit": "node scripts/in-vivo-test.mjs",
     "visual:deep": "node scripts/in-vivo-deep-checks.mjs",
-    "ux:eval": "bun run scripts/evaluacion-ux-permanente.mjs"
+    "ux:eval": "bun run scripts/evaluacion-ux-permanente.mjs",
+    "bug-capture:api": "bun run scripts/bug-capture-api.ts"
   },
   "dependencies": {
     "jointjs": "^3.7.7",

@@ -3,11 +3,17 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      args:
+        VITE_ENABLE_BUG_CAPTURE: "true"
     image: deep-opm-pro-opforja:latest
     container_name: opforja
     restart: unless-stopped
+    depends_on:
+      bug-capture:
+        condition: service_started
     networks:
       - web
+      - opforja-internal
     labels:
       - "traefik.enable=true"
       - "traefik.docker.network=web"
@@ -24,6 +30,25 @@ services:
       - "traefik.http.middlewares.opforja-security-headers.headers.customResponseHeaders.Permissions-Policy=camera=(), microphone=(), geolocation=()"
       - "traefik.http.middlewares.opforja-security-headers.headers.customResponseHeaders.Content-Security-Policy=default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'"
 
+  bug-capture:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: bug-capture
+    image: deep-opm-pro-bug-capture:latest
+    container_name: opforja-bug-capture
+    restart: unless-stopped
+    environment:
+      BUG_CAPTURE_REPO_ROOT: /workspace
+      BUG_CAPTURE_BUGS_ROOT: /workspace/docs/bugs
+      BUG_CAPTURE_PORT: "3000"
+    volumes:
+      - ./docs/bugs:/workspace/docs/bugs
+    networks:
+      - opforja-internal
+
 networks:
   web:
     external: true
+  opforja-internal:
+    internal: true

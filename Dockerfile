@@ -15,12 +15,28 @@ RUN bun install --frozen-lockfile
 FROM oven/bun:1.3.10-slim AS builder
 WORKDIR /workspace
 
+ARG VITE_ENABLE_BUG_CAPTURE=false
+ENV VITE_ENABLE_BUG_CAPTURE=${VITE_ENABLE_BUG_CAPTURE}
+
 COPY --from=deps /workspace/app/node_modules ./app/node_modules
 COPY app ./app
 COPY assets ./assets
 
 WORKDIR /workspace/app
 RUN bun run build
+
+# -----------------------------------------------------------------------------
+# Stage opcional - bug-capture: API interna para persistir reportes dev/ops.
+# -----------------------------------------------------------------------------
+FROM oven/bun:1.3.10-slim AS bug-capture
+WORKDIR /workspace
+
+COPY app/src/server ./app/src/server
+COPY app/scripts/bug-capture-api.ts ./app/scripts/bug-capture-api.ts
+
+EXPOSE 3000
+
+CMD ["bun", "run", "./app/scripts/bug-capture-api.ts"]
 
 # -----------------------------------------------------------------------------
 # Stage 3 - runner: Nginx sirve la SPA estatica con fallback a index.html.

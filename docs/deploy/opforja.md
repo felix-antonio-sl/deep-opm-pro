@@ -1,7 +1,8 @@
 # Deploy Privado Opforja
 
 **Dominio:** `https://opforja.sanixai.com`
-**Modo:** SPA estatica Vite servida por Nginx, publicada por Traefik en la red
+**Modo:** SPA estatica Vite servida por Nginx, con sidecar interno Bun para
+captura de bugs (`/__deep-opm/bug-reports`), publicada por Traefik en la red
 Docker externa `web`.
 **Acceso:** privado por Basic Auth de Traefik (`opforja-auth@docker`). No
 guardar contrasenas en claro en este repo.
@@ -19,6 +20,12 @@ servicio conectado a red `web`, labels Traefik, TLS con
 Diferencia critica: `hdos-app` tiene auth de aplicacion; `deep-opm-pro` todavia
 no. Por eso `opforja` queda protegido con un middleware Traefik propio,
 `opforja-auth@docker`, aislado del Basic Auth global del dashboard Traefik.
+
+El capturador de bugs no forma parte del modelo OPM ni de la persistencia de
+usuario. En `opforja` se habilita por build arg `VITE_ENABLE_BUG_CAPTURE=true`
+y Nginx reenvia `POST /__deep-opm/bug-reports` al sidecar privado
+`bug-capture`. El sidecar escribe reportes en `./docs/bugs` mediante bind mount
+local, con el mismo formato usado por Vite en desarrollo.
 
 ## Acceso Operativo
 
@@ -41,6 +48,7 @@ Verificar contenedor:
 ```bash
 docker compose ps
 docker exec opforja wget -qO- http://127.0.0.1:8080/healthz
+docker exec opforja wget -qO- http://bug-capture:3000/healthz
 ```
 
 Verificar dominio publico:
@@ -75,7 +83,8 @@ Esperado: certificado emitido para `CN = opforja.sanixai.com` por Let's Encrypt.
 2. Ejecutar `docker compose up -d --build`.
 3. Verificar `docker compose ps`, `healthz` interno y `curl -I` externo.
 4. Abrir la app con credenciales Basic Auth y ejecutar smoke manual minimo:
-   crear/cargar modelo, descargar backup JSON y exportar SVG del OPD activo.
+   crear/cargar modelo, descargar backup JSON, exportar SVG del OPD activo y
+   crear un bug de prueba con texto corto para verificar `docs/bugs/BUG-*`.
 
 ## Datos Del Usuario
 
@@ -114,5 +123,8 @@ docker compose down
 - No hay auth de aplicacion, multiusuario, backend ni sincronizacion remota.
 - El acceso privado depende del middleware Traefik `opforja-auth@docker`.
 - `localStorage` no es backup; el respaldo portable es el JSON descargado.
+- El sidecar de captura de bugs es una herramienta operativa privada: depende
+  del Basic Auth perimetral y escribe en el filesystem local del servidor, no
+  en una base de datos.
 - El endpoint `/healthz` verifica Nginx/contenedor, no integridad funcional de
   modelado.
