@@ -1,6 +1,7 @@
 import { esEnlaceEstructuralFundamental, esEnlaceExcepcionTemporal } from "../constantes";
 import { extremoEntidad } from "../extremos";
-import type { Entidad, ExtremoEnlace, Id, Modelo, Opd, Resultado, TipoEnlace } from "../tipos";
+import { entidadVisibleEnOpd } from "../politicaApariciones";
+import type { Entidad, ExtremoEnlace, Id, Modelo, Resultado, TipoEnlace } from "../tipos";
 
 /**
  * Helpers compartidos entre los sub-archivos de `modelo/operaciones/`.
@@ -23,9 +24,7 @@ export function fallo(error: string): Resultado<never> {
   return { ok: false, error };
 }
 
-export function entidadVisibleEnOpd(opd: Opd, entidadId: Id): boolean {
-  return Object.values(opd.apariencias).some((apariencia) => apariencia.entidadId === entidadId);
-}
+export { entidadVisibleEnOpd };
 
 export function validarFirmaEnlace(
   tipo: TipoEnlace,

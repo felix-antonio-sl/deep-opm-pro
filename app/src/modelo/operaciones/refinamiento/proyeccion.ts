@@ -7,6 +7,7 @@ import {
   extremoEntidad,
   mismoExtremo,
 } from "../../extremos";
+import { aparienciaLimpiableAutomaticamente } from "../../politicaApariciones";
 import { obtenerRefinamiento } from "../../refinamientos";
 import type {
   Apariencia,
@@ -349,8 +350,7 @@ function limpiarAparienciasExternasObsoletas(modelo: Modelo, opdId: Id, refinami
   const conectadas = entidadesConectadasEnOpd(modelo, opd);
   let cambio = false;
   const apariencias = Object.fromEntries(Object.entries(opd.apariencias).filter(([, apariencia]) => {
-    const contexto = apariencia.contextoRefinamiento;
-    if (contexto?.tipo !== "descomposicion" || contexto.rol !== "externo" || contexto.refinableEntidadId !== refinamientoId) return true;
+    if (!aparienciaLimpiableAutomaticamente(modelo, opdId, apariencia, refinamientoId)) return true;
     if (externosActuales.has(apariencia.entidadId)) return true;
     if (conectadas.has(apariencia.entidadId)) return true;
     cambio = true;
