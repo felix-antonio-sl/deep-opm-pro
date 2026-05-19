@@ -79,7 +79,7 @@ export function proyectarEntidad(
     // vez del shorthand CSS `filter: "drop-shadow(...)"`. Esto preserva la
     // sombra como propiedad recuperable del canon-diagrama y evita colision
     // perceptual con filtros CSS UI (ver halo de modo enlace, N11).
-    ...(entidad.esencia === "fisica" ? { filter: { name: "dropShadow", args: { dx: 1, dy: 2, blur: 2, color: "rgba(0,0,0,0.25)" } } } : {}),
+    ...(entidad.esencia === "fisica" ? { filter: { name: "dropShadow", args: { dx: 3, dy: 6, blur: 0, color: "grey" } } } : {}),
     cursor: "pointer",
   };
   const attrsBase = {
