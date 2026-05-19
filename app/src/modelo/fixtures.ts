@@ -10,6 +10,7 @@ import {
   desplegarObjeto,
   designarEstadoFinal,
   designarEstadoInicial,
+  reanclarEnlaceExternoDerivado,
   renombrarEntidad,
   renombrarEstado,
 } from "./operaciones";
@@ -89,6 +90,39 @@ function asegurarApariencia(modelo: Modelo, opdId: Id, entidadId: Id, x: number,
         apariencias: {
           ...opd.apariencias,
           [aparienciaId]: apariencia,
+        },
+      },
+    },
+  };
+}
+
+function posicionarApariencia(
+  modelo: Modelo,
+  opdId: Id,
+  entidadId: Id,
+  x: number,
+  y: number,
+  size?: { width?: number; height?: number },
+): Modelo {
+  const opd = modelo.opds[opdId];
+  if (!opd) throw new Error(`OPD no encontrado: ${opdId}`);
+  const apariencia = Object.values(opd.apariencias).find((item) => item.entidadId === entidadId);
+  if (!apariencia) throw new Error(`Apariencia no encontrada para ${entidadId} en ${opdId}`);
+  return {
+    ...modelo,
+    opds: {
+      ...modelo.opds,
+      [opdId]: {
+        ...opd,
+        apariencias: {
+          ...opd.apariencias,
+          [apariencia.id]: {
+            ...apariencia,
+            x,
+            y,
+            ...(size?.width ? { width: size.width } : {}),
+            ...(size?.height ? { height: size.height } : {}),
+          },
         },
       },
     },
@@ -217,14 +251,14 @@ export function crearSdAsyncInzoomed(): FixtureDemo {
 export function crearSdSyncInzoomed(): FixtureDemo {
   let modelo = crearModelo("SD Sync");
 
-  modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 90, y: 50 }, "System Name"));
+  modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 85, y: 50 }, "System Name"));
   modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 260, y: 50 }, "System Handler"));
-  modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 430, y: 50 }, "System Tool Set"));
-  modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 90, y: 150 }, "Main Input"));
-  modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 660, y: 50 }, "Beneficiary Group"));
-  modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 660, y: 150 }, "Beneficiary Relevant Attribute"));
-  modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 390, y: 230 }, "Main System Doing"));
-  modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 390, y: 370 }, "Main Output"));
+  modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 435, y: 50 }, "System Tool Set"));
+  modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 55, y: 185 }, "Main Input"));
+  modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 90, y: 275 }, "Beneficiary Group"));
+  modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 250, y: 340 }, "Beneficiary Relevant Attribute"));
+  modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 255, y: 165 }, "Main System Doing"));
+  modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 500, y: 185 }, "Main Output"));
 
   const sysName = entidadPorNombre(modelo, "System Name");
   const handler = entidadPorNombre(modelo, "System Handler");
@@ -246,6 +280,8 @@ export function crearSdSyncInzoomed(): FixtureDemo {
   modelo = must(renombrarEstado(modelo, e2Id, "satisfactory"));
   modelo = must(designarEstadoInicial(modelo, e1Id));
   modelo = must(designarEstadoFinal(modelo, e2Id));
+  modelo = posicionarApariencia(modelo, modelo.opdRaizId, attr, 250, 340, { width: 270, height: 90 });
+  modelo = posicionarApariencia(modelo, modelo.opdRaizId, mainDoing, 255, 165, { width: 220, height: 85 });
 
   modelo = must(crearEnlace(modelo, modelo.opdRaizId, sysName, mainDoing, "exhibicion"));
   modelo = must(crearEnlace(modelo, modelo.opdRaizId, beneficiary, attr, "exhibicion"));
@@ -266,26 +302,47 @@ export function crearSdSyncInzoomed(): FixtureDemo {
     if (!subId) continue;
     modelo = must(renombrarEntidad(modelo, subId, nombre));
   }
-  modelo = must(crearProceso(modelo, sd1Id, { x: 720, y: 250 }, "Last Processing"));
-  modelo = must(crearObjeto(modelo, sd1Id, { x: 90, y: 90 }, "SD1 Main Input"));
-  modelo = must(crearObjeto(modelo, sd1Id, { x: 570, y: 90 }, "Main I/O Output"));
-  modelo = must(crearObjeto(modelo, sd1Id, { x: 570, y: 180 }, "I/O Object Relevant Attribute"));
-  modelo = must(crearObjeto(modelo, sd1Id, { x: 430, y: 370 }, "Temp Object"));
-  modelo = must(crearObjeto(modelo, sd1Id, { x: 720, y: 370 }, "SD1 Main Output"));
+  modelo = must(crearProceso(modelo, sd1Id, { x: 315, y: 505 }, "Last Processing"));
+  modelo = must(crearObjeto(modelo, sd1Id, { x: 610, y: 245 }, "Main I/O Output"));
+  modelo = must(crearObjeto(modelo, sd1Id, { x: 610, y: 340 }, "I/O Object Relevant Attribute"));
+  modelo = must(crearObjeto(modelo, sd1Id, { x: 245, y: 330 }, "Temp Object"));
 
   const first = entidadPorNombre(modelo, "First Processing");
   const second = entidadPorNombre(modelo, "Second Processing");
   const third = entidadPorNombre(modelo, "Third Processing");
   const last = entidadPorNombre(modelo, "Last Processing");
-  const sd1Input = entidadPorNombre(modelo, "SD1 Main Input");
   const ioOutput = entidadPorNombre(modelo, "Main I/O Output");
   const ioAttr = entidadPorNombre(modelo, "I/O Object Relevant Attribute");
   const temp = entidadPorNombre(modelo, "Temp Object");
-  const sd1Output = entidadPorNombre(modelo, "SD1 Main Output");
 
   for (const id of [first, second, third, last]) modelo = must(cambiarEsencia(modelo, id, "fisica"));
+  modelo = posicionarApariencia(modelo, sd1Id, mainDoing, 180, 110, { width: 340, height: 455 });
+  modelo = posicionarApariencia(modelo, sd1Id, sysName, 300, 35);
+  modelo = posicionarApariencia(modelo, sd1Id, handler, 80, 125);
+  modelo = posicionarApariencia(modelo, sd1Id, toolSet, 445, 120);
+  modelo = posicionarApariencia(modelo, sd1Id, mainInput, 55, 255);
+  modelo = posicionarApariencia(modelo, sd1Id, first, 285, 210);
+  modelo = posicionarApariencia(modelo, sd1Id, second, 360, 300);
+  modelo = posicionarApariencia(modelo, sd1Id, third, 310, 390);
+  modelo = posicionarApariencia(modelo, sd1Id, last, 315, 505);
+  modelo = posicionarApariencia(modelo, sd1Id, mainOutput, 620, 505);
+  modelo = posicionarApariencia(modelo, sd1Id, attr, 655, 120, { width: 245, height: 90 });
+  modelo = posicionarApariencia(modelo, sd1Id, ioOutput, 610, 245);
+  modelo = posicionarApariencia(modelo, sd1Id, ioAttr, 610, 340, { width: 185, height: 70 });
+  modelo = posicionarApariencia(modelo, sd1Id, temp, 245, 330);
+
+  const resultadoMainOutput = Object.values(modelo.opds[sd1Id]?.enlaces ?? {}).find((aparienciaEnlace) => {
+    const enlace = modelo.enlaces[aparienciaEnlace.enlaceId];
+    return enlace?.tipo === "resultado" &&
+      enlace.derivado &&
+      enlace.destinoId.kind === "entidad" &&
+      enlace.destinoId.id === mainOutput;
+  });
+  if (resultadoMainOutput) {
+    modelo = must(reanclarEnlaceExternoDerivado(modelo, sd1Id, resultadoMainOutput.id, last));
+  }
+
   modelo = must(crearEnlace(modelo, sd1Id, ioOutput, ioAttr, "exhibicion"));
-  modelo = must(crearEnlace(modelo, sd1Id, sd1Input, first, "consumo"));
   modelo = must(crearEnlace(modelo, sd1Id, first, ioAttr, "efecto"));
   modelo = must(crearEnlace(modelo, sd1Id, first, temp, "resultado"));
   modelo = must(crearEnlace(modelo, sd1Id, temp, second, "consumo"));
@@ -293,7 +350,6 @@ export function crearSdSyncInzoomed(): FixtureDemo {
   modelo = must(crearEnlace(modelo, sd1Id, third, ioAttr, "efecto"));
   modelo = must(crearEnlace(modelo, sd1Id, third, temp, "efecto"));
   modelo = must(crearEnlace(modelo, sd1Id, temp, last, "consumo"));
-  modelo = must(crearEnlace(modelo, sd1Id, last, sd1Output, "resultado"));
   modelo = must(crearEnlace(modelo, sd1Id, first, second, "invocacion"));
   modelo = must(crearEnlace(modelo, sd1Id, second, third, "invocacion"));
   modelo = must(crearEnlace(modelo, sd1Id, third, last, "invocacion"));

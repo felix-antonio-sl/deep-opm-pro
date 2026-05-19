@@ -5,8 +5,8 @@
 **Descripción:** SD raiz con atributo beneficiario y SD1 sincronico con First/Second/Third/Last Processing, Temp Object y Main I/O Output.
 
 **OPDs:** SD, SD1
-**Entidades:** 17
-**Enlaces:** 35
+**Entidades:** 15
+**Enlaces:** 33
 **Estados:** 2
 
 ## OPL-ES
@@ -42,14 +42,12 @@ System Name es un objeto informatico.
 System Handler es un objeto fisico.
 System Tool Set es un objeto informatico.
 Main Input es un objeto informatico.
-Beneficiary Relevant Attribute es un objeto informatico.
 Main Output es un objeto informatico.
+Beneficiary Relevant Attribute es un objeto informatico.
 Last Processing es un proceso fisico.
-SD1 Main Input es un objeto informatico.
 Main I/O Output es un objeto informatico.
 I/O Object Relevant Attribute es un objeto informatico.
 Temp Object es un objeto informatico.
-SD1 Main Output es un objeto informatico.
 Beneficiary Relevant Attribute puede estar en problematic o satisfactory.
 Beneficiary Relevant Attribute esta inicialmente en problematic.
 Beneficiary Relevant Attribute esta terminalmente en satisfactory.
@@ -68,8 +66,7 @@ Third Processing usa System Name.
 First Processing usa System Tool Set.
 Second Processing usa System Tool Set.
 Third Processing usa System Tool Set.
-Third Processing produce Main Output.
-First Processing consume SD1 Main Input.
+Last Processing produce Main Output.
 First Processing afecta I/O Object Relevant Attribute.
 First Processing produce Temp Object.
 Second Processing consume Temp Object.
@@ -77,7 +74,6 @@ Second Processing afecta I/O Object Relevant Attribute.
 Third Processing afecta I/O Object Relevant Attribute.
 Third Processing afecta Temp Object.
 Last Processing consume Temp Object.
-Last Processing produce SD1 Main Output.
 First Processing invoca Second Processing.
 Second Processing invoca Third Processing.
 Third Processing invoca Last Processing.

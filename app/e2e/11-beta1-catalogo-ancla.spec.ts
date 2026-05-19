@@ -6,6 +6,7 @@ import {
   crearModeloNuevoDesdeMenu,
   elementoPorTexto,
   exportadoActual,
+  type ExportadoModelo,
   jsonEditor,
 } from "./_smoke-helpers";
 
@@ -17,6 +18,26 @@ const CATALOGO_SANDBOX = [
   "OPM Structure Meta Model",
   "Modelo Vacio",
 ];
+
+type ModeloExportado = ExportadoModelo["modelo"];
+
+function entidadIdPorNombre(modelo: ModeloExportado, nombre: string): string {
+  const entidad = Object.values(modelo.entidades).find((item) => item.nombre === nombre);
+  expect(entidad).toBeDefined();
+  return entidad!.id;
+}
+
+function extremoId(extremo: ModeloExportado["enlaces"][string]["origenId"]): string | null {
+  if (typeof extremo === "string") return extremo;
+  return extremo.kind === "entidad" ? extremo.id : null;
+}
+
+function aparienciaPorNombre(modelo: ModeloExportado, opdId: string, nombre: string) {
+  const entidadId = entidadIdPorNombre(modelo, nombre);
+  const apariencia = Object.values(modelo.opds[opdId]?.apariencias ?? {}).find((item) => item.entidadId === entidadId);
+  expect(apariencia).toBeDefined();
+  return apariencia!;
+}
 
 test.describe("catalogo OPCloud sandbox", () => {
   test("catalogo lista solo ejemplos OPCloud sandbox", async ({ page }) => {
@@ -96,6 +117,50 @@ test.describe("catalogo OPCloud sandbox", () => {
       estados: Object.keys(exportadoTrasRT.modelo.estados ?? {}).length,
     };
     expect(conteosTrasRT).toEqual(conteosOriginales);
+
+    expect(pageErrors).toEqual([]);
+  });
+
+  test("SD Sync carga SD1 sin duplicados y con resultado final OPCloud-like", async ({ page }) => {
+    const pageErrors: string[] = [];
+    page.on("pageerror", (error) => pageErrors.push(error.message));
+
+    await page.goto("/");
+    await cargarModeloEjemplo(page, "SD Sync");
+
+    const exportado = await exportadoActual(page);
+    const modelo = exportado.modelo;
+    const nombres = Object.values(modelo.entidades).map((entidad) => entidad.nombre);
+    expect(nombres).not.toContain("SD1 Main Input");
+    expect(nombres).not.toContain("SD1 Main Output");
+
+    const sd1 = Object.entries(modelo.opds).find(([, opd]) => opd.padreId === modelo.opdRaizId);
+    expect(sd1).toBeDefined();
+    const [sd1Id] = sd1!;
+    expect(aparienciaPorNombre(modelo, sd1Id, "Main System Doing")).toMatchObject({
+      x: 180,
+      y: 110,
+      width: 340,
+      height: 455,
+    });
+    expect(aparienciaPorNombre(modelo, sd1Id, "Main Output")).toMatchObject({ x: 620, y: 505 });
+
+    const last = entidadIdPorNombre(modelo, "Last Processing");
+    const mainOutput = entidadIdPorNombre(modelo, "Main Output");
+    expect(
+      Object.values(modelo.enlaces).some(
+        (enlace) =>
+          enlace.tipo === "resultado" &&
+          enlace.derivado?.origen === "manual" &&
+          extremoId(enlace.origenId) === last &&
+          extremoId(enlace.destinoId) === mainOutput,
+      ),
+    ).toBe(true);
+
+    await page.locator(`[role="treeitem"][data-opd-id="${sd1Id}"]`).click();
+    await expect(elementoPorTexto(page, "Last Processing")).toBeVisible();
+    await expect(elementoPorTexto(page, "Main Output")).toBeVisible();
+    await expect(elementoPorTexto(page, "SD1 Main Output")).toHaveCount(0);
 
     expect(pageErrors).toEqual([]);
   });

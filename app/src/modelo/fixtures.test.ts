@@ -3,11 +3,13 @@ import { exportarModelo, hidratarModelo } from "../serializacion/json";
 import { verificarMetodologia } from "./checkers";
 import {
   crearOnStarSystem,
+  crearSdSyncInzoomed,
   crearSystemDiagramFixture,
   fixtureTodos,
   fixturesPorCategoria,
 } from "./fixtures";
 import { refinamientosDe, tieneRefinamiento } from "./refinamientos";
+import type { Apariencia, Id, Modelo } from "./tipos";
 
 const CATALOGO_SANDBOX = [
   "System Diagram",
@@ -88,6 +90,68 @@ describe("fixture System Diagram", () => {
     expect(Object.keys(modelo.enlaces).length).toBe(8);
     const estados = Object.values(modelo.estados ?? {}).map((estado) => estado.nombre).sort();
     expect(estados).toEqual(["problematic", "satisfactory"]);
+  });
+});
+
+function entidadIdPorNombre(modelo: Modelo, nombre: string): Id {
+  const entidad = Object.values(modelo.entidades).find((item) => item.nombre === nombre);
+  expect(entidad).toBeDefined();
+  return entidad!.id;
+}
+
+function opdIdPorNombre(modelo: Modelo, nombre: string): Id {
+  const opd = Object.values(modelo.opds).find((item) => item.nombre === nombre);
+  expect(opd).toBeDefined();
+  return opd!.id;
+}
+
+function aparienciaPorNombre(modelo: Modelo, opdId: Id, nombre: string): Apariencia {
+  const entidadId = entidadIdPorNombre(modelo, nombre);
+  const apariencia = Object.values(modelo.opds[opdId]?.apariencias ?? {}).find((item) => item.entidadId === entidadId);
+  expect(apariencia).toBeDefined();
+  return apariencia!;
+}
+
+describe("fixture SD Sync", () => {
+  const modelo = crearSdSyncInzoomed().modelo;
+  const sd1Id = opdIdPorNombre(modelo, "SD1");
+
+  test("replica el SD1 del sandbox sin duplicar input/output locales", () => {
+    const nombres = Object.values(modelo.entidades).map((entidad) => entidad.nombre);
+    expect(nombres).not.toContain("SD1 Main Input");
+    expect(nombres).not.toContain("SD1 Main Output");
+    expect(nombres).toContain("Main Input");
+    expect(nombres).toContain("Main Output");
+  });
+
+  test("reancla el resultado externo final desde Last Processing hacia Main Output", () => {
+    const last = entidadIdPorNombre(modelo, "Last Processing");
+    const mainOutput = entidadIdPorNombre(modelo, "Main Output");
+
+    expect(
+      Object.values(modelo.enlaces).some(
+        (enlace) =>
+          enlace.tipo === "resultado" &&
+          enlace.derivado?.origen === "manual" &&
+          enlace.origenId.kind === "entidad" &&
+          enlace.origenId.id === last &&
+          enlace.destinoId.kind === "entidad" &&
+          enlace.destinoId.id === mainOutput,
+      ),
+    ).toBe(true);
+  });
+
+  test("mantiene el in-zoom central y los externos separados como en OPCloud", () => {
+    expect(aparienciaPorNombre(modelo, sd1Id, "Main System Doing")).toMatchObject({
+      x: 180,
+      y: 110,
+      width: 340,
+      height: 455,
+    });
+    expect(aparienciaPorNombre(modelo, sd1Id, "Main Input")).toMatchObject({ x: 55, y: 255 });
+    expect(aparienciaPorNombre(modelo, sd1Id, "Main Output")).toMatchObject({ x: 620, y: 505 });
+    expect(aparienciaPorNombre(modelo, sd1Id, "First Processing")).toMatchObject({ x: 285, y: 210 });
+    expect(aparienciaPorNombre(modelo, sd1Id, "Last Processing")).toMatchObject({ x: 315, y: 505 });
   });
 });
 
