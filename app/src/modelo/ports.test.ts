@@ -2,6 +2,7 @@ import { describe, expect, test } from "bun:test";
 import { extremoEstado } from "./extremos";
 import {
   actualizarPuertosEnlacesDesdePuntos,
+  calcularPuertoRelativo,
   crearEnlace,
   crearEstadosIniciales,
   crearModelo,
@@ -126,6 +127,57 @@ describe("puertos dinámicos OPCloud-style", () => {
 
     const resincronizado = sincronizarPuertosEnlaces(modelo, modelo.opdRaizId);
     expect(apariencia(resincronizado, "Entrada").ports?.[portId]).toEqual({ x: 0.5, y: 0 });
+  });
+
+  test("proyecta puertos calculados al borde aunque el punto opuesto caiga dentro del bbox", () => {
+    const ap = {
+      id: "ap-solapada",
+      entidadId: "objeto",
+      opdId: "opd",
+      x: 100,
+      y: 100,
+      width: 200,
+      height: 100,
+    };
+
+    expect(calcularPuertoRelativo(ap, { x: 200, y: 150 })).toEqual({ x: 1, y: 0.5 });
+    expect(calcularPuertoRelativo(ap, { x: 150, y: 125 })).toEqual({ x: 0, y: 0 });
+  });
+
+  test("resincroniza puertos persistidos que quedaron en el centro de la figura", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 20 }, "Entrada"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 220, y: 20 }, "Procesar"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidad(modelo, "Entrada"), entidad(modelo, "Procesar"), "consumo"));
+    modelo = sincronizarPuertosEnlaces(modelo, modelo.opdRaizId);
+
+    const enlaceId = Object.keys(modelo.enlaces)[0]!;
+    const enlace = modelo.enlaces[enlaceId]!;
+    const portId = enlace.origenId.portId!;
+    const entrada = apariencia(modelo, "Entrada");
+    const opd = modelo.opds[modelo.opdRaizId]!;
+    modelo = {
+      ...modelo,
+      opds: {
+        ...modelo.opds,
+        [modelo.opdRaizId]: {
+          ...opd,
+          apariencias: {
+            ...opd.apariencias,
+            [entrada.id]: {
+              ...entrada,
+              ports: {
+                ...(entrada.ports ?? {}),
+                [portId]: { x: 0.5, y: 0.5 },
+              },
+            },
+          },
+        },
+      },
+    };
+
+    const resincronizado = sincronizarPuertosEnlaces(modelo, modelo.opdRaizId);
+    expect(apariencia(resincronizado, "Entrada").ports?.[portId]).toEqual({ x: 1, y: 0.5 });
   });
 });
 

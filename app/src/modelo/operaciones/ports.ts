@@ -130,7 +130,7 @@ function sincronizarExtremo(
   }
   const portId = opciones.portId ?? extremo.portId ?? puertoDeterminista(enlace.id, lado);
   const actual = apariencia.ports?.[portId];
-  if (extremo.portId === portId && actual) {
+  if (extremo.portId === portId && actual && puertoEstaEnBorde(actual)) {
     return { enlace, apariencia, portId };
   }
   const puerto = calcularPuertoRelativo(
@@ -252,11 +252,16 @@ export function calcularPuertoRelativo(
   puntoOpuesto: Posicion,
   desplazamientoRanura = 0,
 ): PuertoApariencia {
-  const base = {
-    x: clamp01((puntoOpuesto.x - apariencia.x) / apariencia.width),
-    y: clamp01((puntoOpuesto.y - apariencia.y) / apariencia.height),
+  const relativo = {
+    x: (puntoOpuesto.x - apariencia.x) / apariencia.width,
+    y: (puntoOpuesto.y - apariencia.y) / apariencia.height,
   };
-  return aplicarRanuraEstructural(base, desplazamientoRanura);
+  const base = {
+    x: clamp01(relativo.x),
+    y: clamp01(relativo.y),
+  };
+  const puerto = puertoEstaEnBorde(base) ? base : proyectarPuertoInteriorAlBorde(base);
+  return aplicarRanuraEstructural(puerto, desplazamientoRanura);
 }
 
 function asignarRanurasEstructurales(
@@ -447,6 +452,22 @@ function sanitizarId(id: string): Id {
 function clamp01(value: number): number {
   if (!Number.isFinite(value)) return 0.5;
   return Math.min(1, Math.max(0, value));
+}
+
+function puertoEstaEnBorde(puerto: PuertoApariencia): boolean {
+  return puerto.x <= 0.0001 || puerto.x >= 0.9999 || puerto.y <= 0.0001 || puerto.y >= 0.9999;
+}
+
+function proyectarPuertoInteriorAlBorde(puerto: PuertoApariencia): PuertoApariencia {
+  const dx = puerto.x - 0.5;
+  const dy = puerto.y - 0.5;
+  const dominante = Math.max(Math.abs(dx), Math.abs(dy));
+  if (dominante < 0.0001) return { x: 1, y: 0.5 };
+  const escala = 0.5 / dominante;
+  return {
+    x: redondearPuerto(clamp01(0.5 + dx * escala)),
+    y: redondearPuerto(clamp01(0.5 + dy * escala)),
+  };
 }
 
 function redondearPuerto(value: number): number {
