@@ -28,20 +28,27 @@ describe("creacion interna por posicion", () => {
       .some((item) => item.entidadId === resultado.value.entidadId)).toBe(false);
   });
 
-  test("crear en OPD in-zoom fuera del contorno nace encajado como interno", () => {
+  test("crear en OPD in-zoom fuera del contorno nace como cosa contextual libre", () => {
     const base = modeloConDescomposicion();
     const contorno = contenedorRefinamiento(base.modelo, base.opdHijoId);
     if (!contorno) throw new Error("La prueba esperaba contorno de refinamiento");
 
-    const resultado = crearCosaEnPosicion(base.modelo, base.opdHijoId, "objeto", { x: 8, y: 12 });
+    const posicionExterna = {
+      x: contorno.x + contorno.width + 48,
+      y: contorno.y + 96,
+    };
+    const resultado = crearCosaEnPosicion(base.modelo, base.opdHijoId, "objeto", posicionExterna);
 
     expect(resultado.ok).toBe(true);
     if (!resultado.ok) return;
-    expect(resultado.value.interna).toBe(true);
+    expect(resultado.value.interna).toBe(false);
     const apariencia = resultado.value.modelo.opds[base.opdHijoId]?.apariencias[resultado.value.aparienciaId];
     expect(apariencia?.opdId).toBe(base.opdHijoId);
     if (!apariencia) return;
-    expect(dentroDeContorno(apariencia, contorno)).toBe(true);
+    expect(apariencia.x).toBe(posicionExterna.x);
+    expect(apariencia.y).toBe(posicionExterna.y);
+    expect(apariencia.contextoRefinamiento).toBeUndefined();
+    expect(dentroDeContorno(apariencia, contorno)).toBe(false);
   });
 
   test("round-trip preserva OPD y apariencia de cosa interna", () => {

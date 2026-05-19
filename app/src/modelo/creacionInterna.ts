@@ -27,8 +27,8 @@ export function crearCosaEnPosicion(
   if (!entidadId) return fallo("No se pudo identificar la cosa creada");
   const apariencia = aparienciaDeEntidad(resultado.value, opdId, entidadId);
   if (!apariencia) return fallo("No se pudo identificar la apariencia creada");
-  const interna = contorno !== null;
-  const modeloAjustado = contorno
+  const interna = contorno !== null && puntoDentroDeContorno(posicion, contorno);
+  const modeloAjustado = interna
     ? ajustarCreacionInterna(resultado.value, opdId, apariencia, contorno, afiliacionInterna(modelo, contorno, opciones.afiliacion))
     : resultado.value;
 
@@ -89,6 +89,18 @@ function ajustarCreacionInterna(
       },
     },
   };
+}
+
+function puntoDentroDeContorno(
+  posicion: Posicion,
+  contorno: { x: number; y: number; width: number; height: number },
+): boolean {
+  return (
+    posicion.x >= contorno.x &&
+    posicion.y >= contorno.y &&
+    posicion.x <= contorno.x + contorno.width &&
+    posicion.y <= contorno.y + contorno.height
+  );
 }
 
 function afiliacionInterna(modelo: Modelo, contorno: { entidadId: Id }, solicitada: Afiliacion | undefined): Afiliacion | undefined {

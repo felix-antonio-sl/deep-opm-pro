@@ -223,6 +223,35 @@ test("crea objeto interno por click dentro del contenedor refinado", async ({ pa
   expect(pageErrors).toEqual([]);
 });
 
+test("crea objeto contextual fuera del contenedor refinado cuando el click cae fuera", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await page.getByRole("button", { name: "Proceso", exact: true }).click();
+  await irATabRefinamiento(page);
+  await ejecutarAccionCommandPalette(page, "inzoom", "accion-inzoom");
+  await expect(page.locator('[role="treeitem"]').filter({ hasText: "SD1: Proceso descompuesto" })).toHaveAttribute("aria-current", "page");
+
+  await page.getByTestId("toolbar-drag-objeto").click({ modifiers: ["Shift"] });
+  const contorno = await rectDeLocator(elementoPorTexto(page, "Proceso"));
+  await page.mouse.click(contorno.x + contorno.width + 70, contorno.y + 125);
+
+  await expect(elementoPorTexto(page, "Objeto")).toHaveCount(1);
+  const exportado = JSON.parse(await jsonEditor(page).inputValue()) as ExportadoModelo;
+  const proceso = Object.values(exportado.modelo.entidades).find((entidad) => entidad.nombre === "Proceso");
+  const objeto = Object.values(exportado.modelo.entidades).find((entidad) => entidad.nombre === "Objeto");
+  const opdHijoId = proceso?.refinamientos?.descomposicion?.opdId;
+  if (!proceso || !objeto || !opdHijoId) throw new Error("No se exporto la creación contextual esperada");
+  const aparienciasHijo = Object.values(exportado.modelo.opds[opdHijoId]?.apariencias ?? {});
+  const aparienciaContorno = aparienciasHijo.find((apariencia) => apariencia.entidadId === proceso.id);
+  const aparienciaObjeto = aparienciasHijo.find((apariencia) => apariencia.entidadId === objeto.id);
+  if (!aparienciaContorno || !aparienciaObjeto) throw new Error("No se exporto apariencia contextual");
+  expect(aparienciaObjeto.x).toBeGreaterThan(aparienciaContorno.x + aparienciaContorno.width);
+  expect(aparienciaObjeto.contextoRefinamiento).toBeUndefined();
+  expect(pageErrors).toEqual([]);
+});
+
 test("despliega objeto y navega al OPD hijo", async ({ page }) => {
   const pageErrors: string[] = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));
