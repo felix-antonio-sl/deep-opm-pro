@@ -200,50 +200,102 @@ export function crearSystemDiagramFixture(): FixtureDemo {
 export function crearSdAsyncInzoomed(): FixtureDemo {
   let modelo = crearModelo("SD Async");
 
-  modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 90, y: 50 }, "System Name"));
+  modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 85, y: 50 }, "System Name"));
   modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 260, y: 50 }, "System Handler"));
-  modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 430, y: 50 }, "System Tool Set"));
-  modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 600, y: 50 }, "Main Input"));
-  modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 390, y: 230 }, "Main System Doing"));
-  modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 390, y: 370 }, "Main Output"));
+  modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 435, y: 50 }, "System Tool Set"));
+  modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 55, y: 185 }, "Main Input"));
+  modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 90, y: 275 }, "Beneficiary Group"));
+  modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 250, y: 340 }, "Beneficiary Relevant Attribute"));
+  modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 255, y: 165 }, "Main System Doing"));
+  modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 500, y: 185 }, "Main Output"));
 
   const sysName = entidadPorNombre(modelo, "System Name");
   const handler = entidadPorNombre(modelo, "System Handler");
   const toolSet = entidadPorNombre(modelo, "System Tool Set");
   const mainInput = entidadPorNombre(modelo, "Main Input");
+  const beneficiary = entidadPorNombre(modelo, "Beneficiary Group");
+  const attr = entidadPorNombre(modelo, "Beneficiary Relevant Attribute");
   const mainDoing = entidadPorNombre(modelo, "Main System Doing");
   const mainOutput = entidadPorNombre(modelo, "Main Output");
 
   modelo = must(cambiarEsencia(modelo, handler, "fisica"));
-  modelo = must(cambiarEsencia(modelo, mainDoing, "fisica"));
+  modelo = must(cambiarEsencia(modelo, beneficiary, "fisica"));
+
+  const estRes = must(crearEstadosIniciales(modelo, attr));
+  modelo = estRes.modelo;
+  const [e1Id, e2Id] = estRes.estadoIds;
+  modelo = must(renombrarEstado(modelo, e1Id, "problematic"));
+  modelo = must(renombrarEstado(modelo, e2Id, "satisfactory"));
+  modelo = must(designarEstadoInicial(modelo, e1Id));
+  modelo = must(designarEstadoFinal(modelo, e2Id));
+  modelo = posicionarApariencia(modelo, modelo.opdRaizId, attr, 250, 340, { width: 270, height: 90 });
+  modelo = posicionarApariencia(modelo, modelo.opdRaizId, mainDoing, 255, 165, { width: 220, height: 85 });
 
   modelo = must(crearEnlace(modelo, modelo.opdRaizId, sysName, mainDoing, "exhibicion"));
+  modelo = must(crearEnlace(modelo, modelo.opdRaizId, beneficiary, attr, "exhibicion"));
+  modelo = must(crearEnlace(modelo, modelo.opdRaizId, mainDoing, attr, "efecto"));
   modelo = must(crearEnlace(modelo, modelo.opdRaizId, handler, mainDoing, "agente"));
   modelo = must(crearEnlace(modelo, modelo.opdRaizId, mainInput, mainDoing, "consumo"));
   modelo = must(crearEnlace(modelo, modelo.opdRaizId, sysName, mainDoing, "instrumento"));
   modelo = must(crearEnlace(modelo, modelo.opdRaizId, toolSet, mainDoing, "instrumento"));
   modelo = must(crearEnlace(modelo, modelo.opdRaizId, mainDoing, mainOutput, "resultado"));
 
-  const descRes = must(descomponerProceso(modelo, modelo.opdRaizId, mainDoing));
-  modelo = descRes.modelo;
-  const sd1Id = descRes.opdId;
+  const unfoldRes = must(desplegarObjeto(modelo, modelo.opdRaizId, mainDoing, "agregacion"));
+  modelo = unfoldRes.modelo;
+  const sd1Id = unfoldRes.opdId;
   const subIds = subprocesosRefinadoresOrdenados(modelo, sd1Id, mainDoing);
 
   for (const [index, nombre] of ["First Processing", "Second Processing", "Third Processing"].entries()) {
     const subId = subIds[index];
     if (!subId) continue;
     modelo = must(renombrarEntidad(modelo, subId, nombre));
-    modelo = must(cambiarEsencia(modelo, subId, "fisica"));
   }
-  if (subIds.length >= 3) {
-    modelo = must(crearEnlace(modelo, sd1Id, subIds[0]!, subIds[1]!, "invocacion"));
-    modelo = must(crearEnlace(modelo, sd1Id, subIds[1]!, subIds[2]!, "invocacion"));
-  }
+  modelo = must(crearProceso(modelo, sd1Id, { x: 260, y: 545 }, "Forth Processing"));
+  modelo = must(crearObjeto(modelo, sd1Id, { x: 585, y: 245 }, "Main I/O Output"));
+  modelo = must(crearObjeto(modelo, sd1Id, { x: 560, y: 350 }, "I/O Object's Relevant Attribute"));
+
+  const first = entidadPorNombre(modelo, "First Processing");
+  const second = entidadPorNombre(modelo, "Second Processing");
+  const third = entidadPorNombre(modelo, "Third Processing");
+  const forth = entidadPorNombre(modelo, "Forth Processing");
+  const ioOutput = entidadPorNombre(modelo, "Main I/O Output");
+  const ioAttr = entidadPorNombre(modelo, "I/O Object's Relevant Attribute");
+
+  modelo = asegurarApariencia(modelo, sd1Id, sysName, 260, 35);
+  modelo = asegurarApariencia(modelo, sd1Id, handler, 80, 95);
+  modelo = asegurarApariencia(modelo, sd1Id, mainInput, 30, 185);
+  modelo = asegurarApariencia(modelo, sd1Id, toolSet, 445, 120);
+  modelo = asegurarApariencia(modelo, sd1Id, mainOutput, 585, 545);
+  modelo = posicionarApariencia(modelo, sd1Id, mainDoing, 250, 155, { width: 190, height: 75 });
+  modelo = posicionarApariencia(modelo, sd1Id, sysName, 260, 35);
+  modelo = posicionarApariencia(modelo, sd1Id, handler, 80, 95);
+  modelo = posicionarApariencia(modelo, sd1Id, mainInput, 30, 185);
+  modelo = posicionarApariencia(modelo, sd1Id, toolSet, 445, 120);
+  modelo = posicionarApariencia(modelo, sd1Id, first, 260, 275);
+  modelo = posicionarApariencia(modelo, sd1Id, second, 260, 365);
+  modelo = posicionarApariencia(modelo, sd1Id, third, 260, 455);
+  modelo = posicionarApariencia(modelo, sd1Id, forth, 260, 545);
+  modelo = posicionarApariencia(modelo, sd1Id, mainOutput, 585, 545);
+  modelo = posicionarApariencia(modelo, sd1Id, ioOutput, 585, 245);
+  modelo = posicionarApariencia(modelo, sd1Id, ioAttr, 560, 350, { width: 185, height: 70 });
+
+  modelo = must(crearEnlace(modelo, sd1Id, mainDoing, forth, "agregacion"));
+  modelo = must(crearEnlace(modelo, sd1Id, sysName, toolSet, "agregacion"));
+  modelo = must(crearEnlace(modelo, sd1Id, sysName, mainDoing, "exhibicion"));
+  modelo = must(crearEnlace(modelo, sd1Id, handler, mainDoing, "agente"));
+  modelo = must(crearEnlace(modelo, sd1Id, mainInput, mainDoing, "consumo"));
+  modelo = must(crearEnlace(modelo, sd1Id, sysName, mainDoing, "instrumento"));
+  modelo = must(crearEnlace(modelo, sd1Id, toolSet, mainDoing, "instrumento"));
+  modelo = must(crearEnlace(modelo, sd1Id, ioOutput, ioAttr, "exhibicion"));
+  modelo = must(crearEnlace(modelo, sd1Id, first, ioAttr, "efecto"));
+  modelo = must(crearEnlace(modelo, sd1Id, second, ioAttr, "efecto"));
+  modelo = must(crearEnlace(modelo, sd1Id, third, ioAttr, "efecto"));
+  modelo = must(crearEnlace(modelo, sd1Id, forth, mainOutput, "resultado"));
 
   return {
     modelo,
     proposito: "Replicar el sandbox SD and SD1 asynchronous process.",
-    descripcion: "SD raiz con in-zoom de Main System Doing a First/Second/Third Processing, equivalente funcional de fixtures/sd-async.",
+    descripcion: "SD raiz con atributo beneficiario y SD1 asincronico unfolded con First/Second/Third/Forth Processing, Main I/O Output y atributo I/O.",
     categoria: "opcloud-sandbox",
   };
 }

@@ -3,6 +3,7 @@ import { exportarModelo, hidratarModelo } from "../serializacion/json";
 import { verificarMetodologia } from "./checkers";
 import {
   crearOnStarSystem,
+  crearSdAsyncInzoomed,
   crearSdSyncInzoomed,
   crearSystemDiagramFixture,
   fixtureTodos,
@@ -90,6 +91,70 @@ describe("fixture System Diagram", () => {
     expect(Object.keys(modelo.enlaces).length).toBe(8);
     const estados = Object.values(modelo.estados ?? {}).map((estado) => estado.nombre).sort();
     expect(estados).toEqual(["problematic", "satisfactory"]);
+  });
+});
+
+describe("fixture SD Async", () => {
+  const modelo = crearSdAsyncInzoomed().modelo;
+  const sd1Id = opdIdPorNombre(modelo, "SD1");
+
+  test("replica el SD raiz con beneficiario observado en OPCloud", () => {
+    const nombres = Object.values(modelo.entidades).map((entidad) => entidad.nombre);
+    expect(nombres).toContain("Beneficiary Group");
+    expect(nombres).toContain("Beneficiary Relevant Attribute");
+    const estados = Object.values(modelo.estados ?? {}).map((estado) => estado.nombre).sort();
+    expect(estados).toEqual(["problematic", "satisfactory"]);
+  });
+
+  test("usa unfold en SD1 con cuatro procesos asincronicos y objetos I/O", () => {
+    const nombres = Object.values(modelo.entidades).map((entidad) => entidad.nombre);
+    expect(nombres).toContain("Forth Processing");
+    expect(nombres).toContain("Main I/O Output");
+    expect(nombres).toContain("I/O Object's Relevant Attribute");
+    expect(Object.values(modelo.enlaces).some((enlace) => enlace.tipo === "invocacion")).toBe(false);
+    expect(aparienciaPorNombre(modelo, sd1Id, "Main System Doing").contextoRefinamiento).toBeUndefined();
+  });
+
+  test("conecta Forth Processing como resultado final y mantiene efectos asincronicos", () => {
+    const forth = entidadIdPorNombre(modelo, "Forth Processing");
+    const mainOutput = entidadIdPorNombre(modelo, "Main Output");
+    const ioAttr = entidadIdPorNombre(modelo, "I/O Object's Relevant Attribute");
+
+    expect(
+      Object.values(modelo.enlaces).some(
+        (enlace) =>
+          enlace.tipo === "resultado" &&
+          enlace.origenId.kind === "entidad" &&
+          enlace.origenId.id === forth &&
+          enlace.destinoId.kind === "entidad" &&
+          enlace.destinoId.id === mainOutput,
+      ),
+    ).toBe(true);
+    for (const nombre of ["First Processing", "Second Processing", "Third Processing"]) {
+      const proceso = entidadIdPorNombre(modelo, nombre);
+      expect(
+        Object.values(modelo.enlaces).some(
+          (enlace) =>
+            enlace.tipo === "efecto" &&
+            enlace.origenId.kind === "entidad" &&
+            enlace.origenId.id === proceso &&
+            enlace.destinoId.kind === "entidad" &&
+            enlace.destinoId.id === ioAttr,
+        ),
+      ).toBe(true);
+    }
+  });
+
+  test("posiciona SD1 segun el ejemplo unfolded del sandbox", () => {
+    expect(aparienciaPorNombre(modelo, sd1Id, "Main System Doing")).toMatchObject({
+      x: 250,
+      y: 155,
+      width: 190,
+      height: 75,
+    });
+    expect(aparienciaPorNombre(modelo, sd1Id, "Main Input")).toMatchObject({ x: 30, y: 185 });
+    expect(aparienciaPorNombre(modelo, sd1Id, "Forth Processing")).toMatchObject({ x: 260, y: 545 });
+    expect(aparienciaPorNombre(modelo, sd1Id, "Main Output")).toMatchObject({ x: 585, y: 545 });
   });
 });
 

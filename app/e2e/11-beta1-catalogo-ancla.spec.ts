@@ -121,6 +121,52 @@ test.describe("catalogo OPCloud sandbox", () => {
     expect(pageErrors).toEqual([]);
   });
 
+  test("SD Async carga SD1 unfolded con cuarto proceso y objetos I/O", async ({ page }) => {
+    const pageErrors: string[] = [];
+    page.on("pageerror", (error) => pageErrors.push(error.message));
+
+    await page.goto("/");
+    await cargarModeloEjemplo(page, "SD Async");
+
+    const exportado = await exportadoActual(page);
+    const modelo = exportado.modelo;
+    const nombres = Object.values(modelo.entidades).map((entidad) => entidad.nombre);
+    expect(nombres).toContain("Beneficiary Group");
+    expect(nombres).toContain("Forth Processing");
+    expect(nombres).toContain("Main I/O Output");
+    expect(nombres).toContain("I/O Object's Relevant Attribute");
+    expect(Object.values(modelo.enlaces).some((enlace) => enlace.tipo === "invocacion")).toBe(false);
+
+    const sd1 = Object.entries(modelo.opds).find(([, opd]) => opd.padreId === modelo.opdRaizId);
+    expect(sd1).toBeDefined();
+    const [sd1Id] = sd1!;
+    expect(aparienciaPorNombre(modelo, sd1Id, "Main System Doing")).toMatchObject({
+      x: 250,
+      y: 155,
+      width: 190,
+      height: 75,
+    });
+    expect(aparienciaPorNombre(modelo, sd1Id, "Main Output")).toMatchObject({ x: 585, y: 545 });
+
+    const forth = entidadIdPorNombre(modelo, "Forth Processing");
+    const mainOutput = entidadIdPorNombre(modelo, "Main Output");
+    expect(
+      Object.values(modelo.enlaces).some(
+        (enlace) =>
+          enlace.tipo === "resultado" &&
+          extremoId(enlace.origenId) === forth &&
+          extremoId(enlace.destinoId) === mainOutput,
+      ),
+    ).toBe(true);
+
+    await page.locator(`[role="treeitem"][data-opd-id="${sd1Id}"]`).click();
+    await expect(elementoPorTexto(page, "Forth Processing")).toBeVisible();
+    await expect(elementoPorTexto(page, "Main I/O Output")).toBeVisible();
+    await expect(elementoPorTexto(page, "I/O Object's Relevant Attribute")).toBeVisible();
+
+    expect(pageErrors).toEqual([]);
+  });
+
   test("SD Sync carga SD1 sin duplicados y con resultado final OPCloud-like", async ({ page }) => {
     const pageErrors: string[] = [];
     page.on("pageerror", (error) => pageErrors.push(error.message));
