@@ -1,0 +1,201 @@
+import { describe, expect, test } from "bun:test";
+import { contextoExternoDescomposicion } from "./contextoRefinamiento";
+import { extremoEntidad } from "./extremos";
+import {
+  crearEnlace,
+  crearModelo,
+  crearObjeto,
+  crearProceso,
+  descomponerProceso,
+} from "./operaciones";
+import { listarAvisosVisuales } from "./diagnosticoVisual";
+import type { Apariencia, Modelo, Resultado } from "./tipos";
+
+describe("diagnostico visual", () => {
+  test("detecta solape entre apariencias visibles que no son contorno", () => {
+    let modelo = crearModelo("Visual");
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 80, y: 80 }, "Entrada"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 120, y: 96 }, "Procesar"));
+
+    const avisos = listarAvisosVisuales(modelo, modelo.opdRaizId);
+
+    expect(avisos).toContainEqual(expect.objectContaining({
+      reglaId: "visual-solape-apariencias",
+      severidad: "advertencia",
+      elementoTipo: "entidad",
+      opdId: modelo.opdRaizId,
+    }));
+  });
+
+  test("ignora el solape esperado entre contorno refinable y apariencias internas", () => {
+    let modelo = crearModelo("Visual");
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 80, y: 80 }, "Procesar"));
+    const procesoId = Object.values(modelo.entidades)[0]!.id;
+    const descompuesto = descomponerProceso(modelo, modelo.opdRaizId, procesoId);
+    if (!descompuesto.ok) throw new Error(descompuesto.error);
+    modelo = descompuesto.value.modelo;
+
+    const avisos = listarAvisosVisuales(modelo, descompuesto.value.opdId);
+
+    expect(avisos.filter((aviso) => aviso.reglaId === "visual-solape-apariencias")).toEqual([]);
+  });
+
+  test("detecta enlace visible cuyo extremo no tiene apariencia local", () => {
+    let modelo = crearModelo("Visual");
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 80, y: 80 }, "Entrada"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 260, y: 80 }, "Procesar"));
+    const [entradaId, procesarId] = Object.keys(modelo.entidades);
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entradaId!, procesarId!, "consumo"));
+    const procesoAparienciaId = Object.values(modelo.opds[modelo.opdRaizId]!.apariencias)
+      .find((apariencia) => apariencia.entidadId === procesarId)!.id;
+    modelo = {
+      ...modelo,
+      opds: {
+        ...modelo.opds,
+        [modelo.opdRaizId]: {
+          ...modelo.opds[modelo.opdRaizId]!,
+          apariencias: sinClave(modelo.opds[modelo.opdRaizId]!.apariencias, procesoAparienciaId),
+        },
+      },
+    };
+
+    const avisos = listarAvisosVisuales(modelo, modelo.opdRaizId);
+
+    expect(avisos).toContainEqual(expect.objectContaining({
+      reglaId: "visual-enlace-extremo-no-visible",
+      elementoTipo: "enlace",
+      elementoId: Object.keys(modelo.enlaces)[0],
+    }));
+  });
+
+  test("detecta cosa externa materializada dentro del contorno refinado", () => {
+    let modelo = crearModelo("Visual");
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 80, y: 80 }, "Procesar"));
+    const procesoId = Object.values(modelo.entidades)[0]!.id;
+    const descompuesto = descomponerProceso(modelo, modelo.opdRaizId, procesoId);
+    if (!descompuesto.ok) throw new Error(descompuesto.error);
+    modelo = descompuesto.value.modelo;
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 20 }, "Actor externo"));
+
+    const externoId = Object.values(modelo.entidades).find((entidad) => entidad.nombre === "Actor externo")!.id;
+    const contorno = Object.values(modelo.opds[descompuesto.value.opdId]!.apariencias)
+      .find((apariencia) => apariencia.entidadId === procesoId)!;
+    const aparienciaExterna: Apariencia = {
+      id: "a-externo-dentro",
+      entidadId: externoId,
+      opdId: descompuesto.value.opdId,
+      x: contorno.x + 40,
+      y: contorno.y + 60,
+      width: 135,
+      height: 60,
+      contextoRefinamiento: contextoExternoDescomposicion(procesoId, contorno.id),
+    };
+    modelo = {
+      ...modelo,
+      opds: {
+        ...modelo.opds,
+        [descompuesto.value.opdId]: {
+          ...modelo.opds[descompuesto.value.opdId]!,
+          apariencias: {
+            ...modelo.opds[descompuesto.value.opdId]!.apariencias,
+            [aparienciaExterna.id]: aparienciaExterna,
+          },
+        },
+      },
+    };
+
+    const avisos = listarAvisosVisuales(modelo, descompuesto.value.opdId);
+
+    expect(avisos).toContainEqual(expect.objectContaining({
+      reglaId: "visual-externo-dentro-contorno",
+      elementoTipo: "entidad",
+      elementoId: externoId,
+    }));
+  });
+
+  test("detecta puertos de enlace persistidos en el centro de la cosa", () => {
+    let modelo = crearModelo("Visual");
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 80, y: 80 }, "Entrada"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 260, y: 80 }, "Procesar"));
+    const [entradaId, procesarId] = Object.keys(modelo.entidades);
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, extremoEntidad(entradaId!), extremoEntidad(procesarId!), "consumo"));
+    const enlace = Object.values(modelo.enlaces)[0]!;
+    const entradaApariencia = Object.values(modelo.opds[modelo.opdRaizId]!.apariencias)
+      .find((apariencia) => apariencia.entidadId === entradaId)!;
+    modelo = {
+      ...modelo,
+      enlaces: {
+        ...modelo.enlaces,
+        [enlace.id]: {
+          ...enlace,
+          origenId: { ...enlace.origenId, portId: "p-centro" },
+        },
+      },
+      opds: {
+        ...modelo.opds,
+        [modelo.opdRaizId]: {
+          ...modelo.opds[modelo.opdRaizId]!,
+          apariencias: {
+            ...modelo.opds[modelo.opdRaizId]!.apariencias,
+            [entradaApariencia.id]: {
+              ...entradaApariencia,
+              ports: { "p-centro": { x: 0.5, y: 0.5 } },
+            },
+          },
+        },
+      },
+    };
+
+    const avisos = listarAvisosVisuales(modelo, modelo.opdRaizId);
+
+    expect(avisos).toContainEqual(expect.objectContaining({
+      reglaId: "visual-puerto-enlace-interior",
+      elementoTipo: "enlace",
+      elementoId: enlace.id,
+    }));
+  });
+
+  test("detecta vertices no finitos en apariencias de enlace", () => {
+    let modelo = crearModelo("Visual");
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 80, y: 80 }, "Entrada"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 260, y: 80 }, "Procesar"));
+    const [entradaId, procesarId] = Object.keys(modelo.entidades);
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entradaId!, procesarId!, "consumo"));
+    const aparienciaEnlace = Object.values(modelo.opds[modelo.opdRaizId]!.enlaces)[0]!;
+    modelo = {
+      ...modelo,
+      opds: {
+        ...modelo.opds,
+        [modelo.opdRaizId]: {
+          ...modelo.opds[modelo.opdRaizId]!,
+          enlaces: {
+            ...modelo.opds[modelo.opdRaizId]!.enlaces,
+            [aparienciaEnlace.id]: {
+              ...aparienciaEnlace,
+              vertices: [{ x: Number.NaN, y: 120 }],
+            },
+          },
+        },
+      },
+    };
+
+    const avisos = listarAvisosVisuales(modelo, modelo.opdRaizId);
+
+    expect(avisos).toContainEqual(expect.objectContaining({
+      reglaId: "visual-vertices-enlace-invalidos",
+      elementoTipo: "enlace",
+      elementoId: aparienciaEnlace.enlaceId,
+    }));
+  });
+});
+
+function must<T>(resultado: Resultado<T>): T {
+  if (!resultado.ok) throw new Error(resultado.error);
+  return resultado.value;
+}
+
+function sinClave<T>(record: Record<string, T>, key: string): Record<string, T> {
+  const siguiente = { ...record };
+  delete siguiente[key];
+  return siguiente;
+}

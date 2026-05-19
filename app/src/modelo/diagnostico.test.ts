@@ -28,6 +28,19 @@ describe("diagnostico unificado", () => {
 
     expect(new Set(ids).size).toBe(ids.length);
   });
+
+  test("incluye diagnostico visual como origen propio", () => {
+    const modelo = modeloConSolapeVisual();
+
+    const avisos = listarAvisosDiagnostico(modelo, { tipo: "opd", opdId: modelo.opdRaizId });
+
+    expect(avisos).toContainEqual(expect.objectContaining({
+      origen: "visual",
+      reglaId: "visual-solape-apariencias",
+      severidad: "advertencia",
+      elementoTipo: "entidad",
+    }));
+  });
 });
 
 function modeloConProcesoPlaceholder(): Modelo {
@@ -52,6 +65,53 @@ function modeloConProcesoPlaceholder(): Modelo {
             opdId: base.opdRaizId,
             x: 80,
             y: 80,
+            width: 135,
+            height: 60,
+          },
+        },
+      },
+    },
+  };
+}
+
+function modeloConSolapeVisual(): Modelo {
+  const base = crearModelo("Modelo");
+  const entrada: Entidad = {
+    id: "o-entrada",
+    tipo: "objeto",
+    nombre: "Entrada",
+    esencia: "informacional",
+    afiliacion: "sistemica",
+  };
+  const proceso: Entidad = {
+    id: "p-procesar",
+    tipo: "proceso",
+    nombre: "Procesar",
+    esencia: "informacional",
+    afiliacion: "sistemica",
+  };
+  return {
+    ...base,
+    entidades: { [entrada.id]: entrada, [proceso.id]: proceso },
+    opds: {
+      [base.opdRaizId]: {
+        ...base.opds[base.opdRaizId]!,
+        apariencias: {
+          "a-entrada": {
+            id: "a-entrada",
+            entidadId: entrada.id,
+            opdId: base.opdRaizId,
+            x: 80,
+            y: 80,
+            width: 135,
+            height: 60,
+          },
+          "a-procesar": {
+            id: "a-procesar",
+            entidadId: proceso.id,
+            opdId: base.opdRaizId,
+            x: 100,
+            y: 96,
             width: 135,
             height: 60,
           },

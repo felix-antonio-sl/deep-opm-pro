@@ -1,10 +1,11 @@
 import { verificarMetodologia } from "./checkers";
+import { listarAvisosVisuales } from "./diagnosticoVisual";
 import { nombreExtremo } from "./extremos";
 import type { Aviso, ElementoAvisoTipo, SeveridadAviso } from "./validaciones";
 import { validarModelo } from "./validaciones";
 import type { AvisoMetodologico, CodigoChecker, Id, Modelo, NavegacionAviso } from "./tipos";
 
-export type OrigenAvisoDiagnostico = "validacion" | "metodologia";
+export type OrigenAvisoDiagnostico = "validacion" | "metodologia" | "visual";
 
 export interface AvisoDiagnostico {
   id: string;
@@ -33,8 +34,12 @@ export function listarAvisosDiagnostico(modelo: Modelo, alcance: AlcanceAvisosDi
   const avisosValidacion = alcance.tipo === "modelo"
     ? Object.keys(modelo.opds).flatMap((opdId) => validarModelo(modelo, opdId))
     : validarModelo(modelo, alcance.opdId);
+  const avisosVisuales = alcance.tipo === "modelo"
+    ? Object.keys(modelo.opds).flatMap((opdId) => listarAvisosVisuales(modelo, opdId))
+    : listarAvisosVisuales(modelo, alcance.opdId);
   return deduplicarAvisosDiagnostico([
     ...avisosValidacion.map((aviso, index) => diagnosticoDesdeValidacion(modelo, aviso, index)),
+    ...avisosVisuales.map((aviso, index) => diagnosticoDesdeVisual(modelo, aviso, index)),
     ...verificarMetodologia(modelo).map((aviso, index) => diagnosticoDesdeMetodologia(modelo, aviso, index)),
   ]);
 }
@@ -43,6 +48,26 @@ function diagnosticoDesdeValidacion(modelo: Modelo, aviso: Aviso, index: number)
   return {
     id: `val-${aviso.reglaId}-${aviso.elementoId ?? aviso.opdId ?? index}`,
     origen: "validacion",
+    reglaId: aviso.reglaId,
+    codigo: aviso.reglaId,
+    codigoVisible: aviso.reglaId,
+    testIdCodigo: aviso.reglaId,
+    severidad: aviso.severidad,
+    mensaje: aviso.mensaje,
+    destino: etiquetaElemento(modelo, aviso),
+    cita: aviso.citaSSOT,
+    citaSSOT: aviso.citaSSOT,
+    avisoNavegable: aviso,
+    ...(aviso.elementoTipo ? { elementoTipo: aviso.elementoTipo } : {}),
+    ...(aviso.elementoId ? { elementoId: aviso.elementoId } : {}),
+    ...(aviso.opdId ? { opdId: aviso.opdId } : {}),
+  };
+}
+
+function diagnosticoDesdeVisual(modelo: Modelo, aviso: Aviso, index: number): AvisoDiagnostico {
+  return {
+    id: `vis-${aviso.reglaId}-${aviso.elementoId ?? aviso.opdId ?? index}`,
+    origen: "visual",
     reglaId: aviso.reglaId,
     codigo: aviso.reglaId,
     codigoVisible: aviso.reglaId,
