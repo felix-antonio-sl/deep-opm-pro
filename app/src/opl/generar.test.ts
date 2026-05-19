@@ -380,6 +380,50 @@ describe("OPL-ES — tipos de enlace canonicos", () => {
     expect(lineas).not.toContain("*Aprobar* cambia **Pedido** de `pendiente`.");
     expect(lineas).not.toContain("*Aprobar* cambia **Pedido** a `aprobado`.");
   });
+
+  test("abanico de resultados hacia estados conserva cada estado en OPL", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 80, y: 60 }, "Objeto_2"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 260, y: 220 }, "Proceso"));
+    const objetoId = entidad(modelo, "Objeto_2");
+    const procesoId = entidad(modelo, "Proceso");
+
+    const estados = must(crearEstadosIniciales(modelo, objetoId));
+    modelo = estados.modelo;
+    const [e1Id, e2Id] = estados.estadoIds;
+    modelo = must(renombrarEstado(modelo, e1Id, "e1"));
+    modelo = must(renombrarEstado(modelo, e2Id, "e2"));
+    const e3 = must(agregarEstado(modelo, objetoId, "e3"));
+    modelo = e3.modelo;
+
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, extremoEstado(e1Id), procesoId, "consumo"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, procesoId, extremoEstado(e2Id), "resultado"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, procesoId, extremoEstado(e3.estadoId), "resultado"));
+    const resultados = Object.values(modelo.enlaces)
+      .filter((enlace) => enlace.tipo === "resultado")
+      .map((enlace) => enlace.id);
+    modelo = {
+      ...modelo,
+      abanicos: {
+        "ab-resultados-estados": {
+          id: "ab-resultados-estados",
+          opdId: modelo.opdRaizId,
+          puertoEntidadId: procesoId,
+          operador: "O",
+          enlaceIds: resultados,
+        },
+      },
+    };
+
+    const lineas = generarOpl(modelo);
+    expect(lineas).toContain("*Proceso* genera al menos uno de **Objeto_2** en `e2` y **Objeto_2** en `e3`.");
+    expect(lineas).not.toContain("*Proceso* genera al menos uno de **Objeto_2** y **Objeto_2**.");
+
+    const lineaInteractiva = generarOplInteractivo(modelo).find((linea) => linea.texto.includes("genera al menos uno de"));
+    expect(lineaInteractiva).toBeDefined();
+    expect(lineaInteractiva?.tokens.some((token) => token.markdown === "estado" && token.texto === "`e2`")).toBe(true);
+    expect(lineaInteractiva?.tokens.some((token) => token.markdown === "estado" && token.texto === "`e3`")).toBe(true);
+  });
 });
 
 describe("OPL-ES — refinamiento", () => {

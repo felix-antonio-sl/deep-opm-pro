@@ -67,12 +67,30 @@ export function hintsAbanico(modelo: Modelo, abanico: Abanico, texto: string): O
   const verbo = primer ? verboInteractivo(primer, texto) : null;
   if (primer && verbo) hints.push(hintEnlace(primer, verbo));
   for (const enlace of enlaces) {
-    const origenEntId = entidadIdDeExtremo(modelo, enlace.origenId);
-    const otroExtremo = origenEntId === abanico.puertoEntidadId ? enlace.destinoId : enlace.origenId;
+    const otroExtremo = extremoOpuestoAbanico(modelo, abanico, enlace);
+    if (!otroExtremo) continue;
     const entidad = entidadDeExtremo(modelo, otroExtremo);
     if (entidad) hints.push(hintEntidad(entidad));
+    const estado = estadoDeExtremo(modelo, otroExtremo);
+    if (estado) hints.push(hintEstado(estado));
   }
   return hints;
+}
+
+function extremoOpuestoAbanico(
+  modelo: Modelo,
+  abanico: Abanico,
+  enlace: Enlace,
+): Enlace["origenId"] | null {
+  const origenEntId = entidadIdDeExtremo(modelo, enlace.origenId);
+  if (origenEntId === abanico.puertoEntidadId) {
+    return enlace.destinoId;
+  }
+  const destinoEntId = entidadIdDeExtremo(modelo, enlace.destinoId);
+  if (destinoEntId === abanico.puertoEntidadId) {
+    return enlace.origenId;
+  }
+  return null;
 }
 
 export function refsEntidad(id: Id): OplReferencia[] {

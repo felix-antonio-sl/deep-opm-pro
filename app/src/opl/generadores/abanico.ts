@@ -1,7 +1,7 @@
 import { entidadDeExtremo, entidadIdDeExtremo } from "../../modelo/extremos";
 import { rutaEtiquetaNormalizada } from "../../modelo/rutas";
 import type { Abanico, Enlace, Modelo } from "../../modelo/tipos";
-import { hintsAbanico, hintsEnlace, listarOpl, nombreOpl, refsAbanico, refsEnlace, type OplLineaPendiente } from "./refsHints";
+import { hintsAbanico, hintsEnlace, listarOpl, nombreOpl, nombreOplExtremo, refsAbanico, refsEnlace, type OplLineaPendiente } from "./refsHints";
 import { oracionEnlaceConRuta } from "./procedural";
 
 /**
@@ -48,10 +48,10 @@ export function oracionAbanico(modelo: Modelo, abanico: Abanico): string | null 
 
   const otrosNombres: string[] = [];
   for (const enlace of enlaces) {
-    const origenEntId = entidadIdDeExtremo(modelo, enlace.origenId);
-    const otroExtremo = origenEntId === abanico.puertoEntidadId ? enlace.destinoId : enlace.origenId;
-    const otraEnt = entidadDeExtremo(modelo, otroExtremo);
-    if (otraEnt) otrosNombres.push(nombreOpl(otraEnt));
+    const otro = extremoOpuestoAbanico(modelo, abanico, enlace);
+    if (!otro) continue;
+    const otraEnt = entidadDeExtremo(modelo, otro.extremo);
+    if (otraEnt) otrosNombres.push(nombreOplExtremo(modelo, otro.extremo, otro.multiplicidad));
   }
   if (otrosNombres.length < 2) return null;
 
@@ -92,4 +92,26 @@ function enlacesDeAbanico(modelo: Modelo, abanico: Abanico): Enlace[] {
   return abanico.enlaceIds
     .map((id) => modelo.enlaces[id])
     .filter((enlace): enlace is Enlace => enlace !== undefined);
+}
+
+function extremoOpuestoAbanico(
+  modelo: Modelo,
+  abanico: Abanico,
+  enlace: Enlace,
+): { extremo: Enlace["origenId"]; multiplicidad?: string } | null {
+  const origenEntId = entidadIdDeExtremo(modelo, enlace.origenId);
+  if (origenEntId === abanico.puertoEntidadId) {
+    return {
+      extremo: enlace.destinoId,
+      ...(enlace.multiplicidadDestino ? { multiplicidad: enlace.multiplicidadDestino } : {}),
+    };
+  }
+  const destinoEntId = entidadIdDeExtremo(modelo, enlace.destinoId);
+  if (destinoEntId === abanico.puertoEntidadId) {
+    return {
+      extremo: enlace.origenId,
+      ...(enlace.multiplicidadOrigen ? { multiplicidad: enlace.multiplicidadOrigen } : {}),
+    };
+  }
+  return null;
 }
