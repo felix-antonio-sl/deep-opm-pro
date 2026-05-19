@@ -4,6 +4,7 @@ import {
   escapeRegExp,
   modeloTraerConectadosSmoke,
   cerrarPantallaInicioSiVisible,
+  cargarModeloEjemplo,
   crearAtributoNumericoSmoke,
   rectDeLocator,
   clickCabeceraElemento,
@@ -114,6 +115,32 @@ test("arbol OPD atajos panel: F2 renombra y Ctrl+D abre gestion", async ({ page 
   const gestion = page.getByRole("dialog", { name: "Gestión del árbol OPD" });
   await expect(gestion).toBeVisible();
   await expect(gestion).toHaveAttribute("data-ifml-stereotype", "Modal");
+
+  expect(pageErrors).toEqual([]);
+});
+
+test("arbol OPD mantiene filas densas sin toolbar embebida en nodo activo", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await cargarModeloEjemplo(page, "SD Async");
+
+  const nodoSd1 = page.locator('[role="treeitem"]').filter({ hasText: "SD1:" }).first();
+  await expect(nodoSd1).toBeVisible();
+  await nodoSd1.click();
+  await page.getByTestId("canvas-pane").click({ position: { x: 20, y: 20 } });
+  await expect(nodoSd1).toHaveAttribute("aria-current", "page");
+
+  const rect = await rectDeLocator(nodoSd1);
+  expect(rect.height).toBeLessThanOrEqual(42);
+  await expect(nodoSd1.locator('button[aria-label^="Abrir OPD"]')).toBeHidden();
+  await expect(nodoSd1.locator('button[aria-label^="Renombrar OPD"]')).toBeHidden();
+  await expect(nodoSd1.locator('button[aria-label^="Crear refinamiento"]')).toBeHidden();
+
+  await expect(page.locator('button[title^="Orden automático"]')).toHaveText("Auto");
+  await expect(page.locator('button[aria-label="Mostrar códigos"]')).toHaveText("ID");
+  await expect(page.locator('button[aria-label="Más opciones"]')).toHaveText("⋯");
 
   expect(pageErrors).toEqual([]);
 });

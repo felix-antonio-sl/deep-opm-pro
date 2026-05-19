@@ -107,7 +107,7 @@ test.describe("catalogo OPCloud sandbox", () => {
     await jsonEditor(page).fill(jsonOriginal);
     await expect(page.getByTestId("import-preview")).toBeVisible();
     await page.getByRole("button", { name: "Importar", exact: true }).click();
-    await expect(page.getByText("Driver Rescuing").first()).toBeVisible();
+    await expect(elementoPorTexto(page, "Driver Rescuing")).toBeVisible();
 
     const exportadoTrasRT = await exportadoActual(page);
     const conteosTrasRT = {

@@ -167,12 +167,14 @@ test("elimina desde arbol solo OPDs hoja y deshacer restaura", async ({ page }) 
   const nodoHoja = page.locator('[role="treeitem"]').filter({ hasText: "SD1.1: Proceso 1 descompuesto" });
   await expect(nodoHoja).toHaveAttribute("aria-current", "page");
 
+  await nodoPadre.hover();
   await nodoPadre.getByRole("button", { name: /Eliminar OPD/ }).click();
   await expect(page.getByText(/Eliminar descendientes primero/)).toBeVisible();
   await expect(nodoPadre).toHaveCount(1);
   await expect(nodoHoja).toHaveCount(1);
 
   page.once("dialog", (dialog) => dialog.accept());
+  await nodoHoja.hover();
   await nodoHoja.getByRole("button", { name: /Eliminar OPD/ }).click();
   await expect(nodoHoja).toHaveCount(0);
   await expect(nodoPadre).toHaveAttribute("aria-current", "page");

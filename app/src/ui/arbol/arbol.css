@@ -8,19 +8,20 @@
  *   "Mostrar acciones principales por hover/focus o menu contextual;
  *    dejar visibles solo tipo, nombre, conteos e issues."
  *
- * Implementacion: cada NodoOpd lleva la clase `.nodo-opd` y sus zonas de
- * accion (botones contextuales) llevan `.nodo-opd-actions`. Por defecto
- * permanecen ocultos via opacity + pointer-events; aparecen bajo hover,
- * focus-within (navegacion por teclado) o cuando el nodo es el OPD activo
- * (`aria-current="page"`). En touch sin hover, el nodo activo siempre
- * expone sus acciones; tap selecciona y muestra acciones.
+ * Implementacion vigente: el nodo ya no monta toolbar inline. Abrir es click
+ * sobre la fila; renombrar queda en F2/doble click/menu contextual; eliminar
+ * queda como icono contextual `.nodo-opd-actions`, oculto hasta hover o
+ * focus-within. El nodo activo no expone acciones por el solo hecho de estar
+ * activo: el estado seleccionado sigue siendo una fila de lectura.
  *
- * Esto preserva accesibilidad: el contenido sigue en el DOM y disponible
- * para lectores de pantalla; solo varia su prominencia visual.
+ * Esto preserva accesibilidad de navegacion: el menu contextual y atajos
+ * cubren acciones no visibles; el icono contextual no captura clicks hasta
+ * hover/focus.
  */
 
 .nodo-opd .nodo-opd-actions {
   opacity: 0;
+  pointer-events: none;
   transition: opacity 120ms ease-in-out;
 }
 
@@ -31,19 +32,14 @@
 }
 
 .nodo-opd:hover .nodo-opd-actions,
-.nodo-opd:focus-within .nodo-opd-actions,
-.nodo-opd[aria-current="page"] .nodo-opd-actions {
+.nodo-opd:focus-within .nodo-opd-actions {
   opacity: 1;
+  pointer-events: auto;
 }
 
 /* Cuando la entrada inline-rename esta visible, las acciones quedan
  * suprimidas para no competir con el input. */
 .nodo-opd:has([data-modo="inline-rename"]) .nodo-opd-actions {
   opacity: 0;
+  pointer-events: none;
 }
-
-/* No usamos pointer-events: none deliberadamente: dejar los botones
- * clickeables aun cuando son visualmente invisibles preserva la
- * actionability de Playwright (smoke E2E hace click directo sin hover
- * previo). El cursor sobre la zona del nodo dispara :hover, lo que
- * los hace visibles antes del click humano. */

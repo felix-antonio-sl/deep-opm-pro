@@ -154,10 +154,10 @@ export function ArbolOpd() {
         <span>OPDs</span>
         <div style={style.headerActions}>
           <button type="button" style={style.modeBtn} title={modoOrdenArbol === "manual" ? "Orden manual: arrastra OPDs para reordenar" : "Orden automático (según canvas)"} onClick={() => fijarModoOrdenArbol(modoOrdenArbol === "manual" ? "automatico" : "manual")}>
-            {modoOrdenArbol === "manual" ? "Orden manual" : "Orden automático"}
+            {modoOrdenArbol === "manual" ? "Manual" : "Auto"}
           </button>
           <button type="button" style={style.labelActionBtn} title={nombresArbolVisibles ? "Mostrar códigos" : "Mostrar nombres"} aria-label={nombresArbolVisibles ? "Mostrar códigos" : "Mostrar nombres"} aria-pressed={!nombresArbolVisibles} onClick={() => toggleNombresArbolVisibles()}>
-            {nombresArbolVisibles ? "Mostrar códigos" : "Mostrar nombres"}
+            {nombresArbolVisibles ? "ID" : "Aa"}
           </button>
           {totalConHijos > 0 ? (
             <button type="button" style={style.smallActionBtn} title={colapsarTodo ? "Expandir todo" : "Colapsar todo"} onClick={colapsarTodo ? expandirTodo : colapsarTodoAccion}>
@@ -165,7 +165,7 @@ export function ArbolOpd() {
             </button>
           ) : null}
           <button type="button" style={style.moreActionBtn} title="Más opciones" aria-label="Más opciones" onClick={abrirGestionArbol}>
-            Más opciones
+            ⋯
           </button>
         </div>
       </div>
@@ -336,6 +336,7 @@ const style = {
   },
   headerActions: { display: "flex", alignItems: "center", justifyContent: "flex-end", gap: "4px", minWidth: 0, overflowX: "auto" },
   modeBtn: {
+    minWidth: "44px",
     padding: "2px 6px",
     borderRadius: tokens.radii.sm,
     border: `1px solid ${tokens.colors.bordeControl}`,
@@ -348,6 +349,7 @@ const style = {
   },
   labelActionBtn: {
     minHeight: "22px",
+    minWidth: "30px",
     borderRadius: tokens.radii.sm,
     border: `1px solid ${tokens.colors.bordeControl}`,
     background: tokens.colors.fondoChrome,
@@ -363,6 +365,7 @@ const style = {
   },
   moreActionBtn: {
     minHeight: "22px",
+    minWidth: "28px",
     borderRadius: tokens.radii.sm,
     border: `1px solid ${tokens.colors.bordeControl}`,
     background: tokens.colors.fondoChrome,

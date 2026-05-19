@@ -82,6 +82,8 @@ export function NodoOpd(props: NodoOpdProps) {
       : "Eliminar OPD";
   const esRenombrando = props.renombrando?.id === props.nodo.opd.id;
   const iconoLogico = iconoListLogicalOpd(props.modelo, props.nodo.opd.id);
+  const tipoAccionable = Boolean(badges.refinadorId && badges.tipo !== "raiz");
+  const etiquetaTipo = labelTipoBadge(badges.tipo);
 
   return (
     <div
@@ -128,19 +130,30 @@ export function NodoOpd(props: NodoOpdProps) {
         <span style={style.logicalIconSpacer} />
       )}
 
-      <button
-        type="button"
-        style={estiloBadgeTipo(badges.tipo, Boolean(badges.refinadorId && badges.tipo !== "raiz"))}
-        data-tipo={badges.tipo}
-        title={badges.refinadorId && badges.tipo !== "raiz" ? `Ir al refinador de ${nombre}` : "OPD raíz del sistema"}
-        aria-label={badges.refinadorId && badges.tipo !== "raiz" ? `Ir al refinador ${labelTipoBadge(badges.tipo)} de ${nombre}` : `Tipo ${labelTipoBadge(badges.tipo)}`}
-        onClick={(event) => {
-          event.stopPropagation();
-          if (badges.refinadorId && badges.tipo !== "raiz") props.onNavegarRefinador(props.nodo.opd.id, badges.refinadorId);
-        }}
-      >
-        {labelTipoBadge(badges.tipo)}
-      </button>
+      {tipoAccionable ? (
+        <button
+          type="button"
+          style={estiloBadgeTipo(badges.tipo, true)}
+          data-tipo={badges.tipo}
+          title={`Ir al refinador de ${nombre}`}
+          aria-label={`Ir al refinador ${etiquetaTipo} de ${nombre}`}
+          onClick={(event) => {
+            event.stopPropagation();
+            props.onNavegarRefinador(props.nodo.opd.id, badges.refinadorId!);
+          }}
+        >
+          {etiquetaTipo}
+        </button>
+      ) : (
+        <span
+          style={estiloBadgeTipo(badges.tipo, false)}
+          data-tipo={badges.tipo}
+          title={`Tipo ${etiquetaTipo}`}
+          aria-label={`Tipo ${etiquetaTipo}`}
+        >
+          {etiquetaTipo}
+        </span>
+      )}
 
       {esRenombrando ? (
         <input
@@ -205,44 +218,6 @@ export function NodoOpd(props: NodoOpdProps) {
       >
         <img src={deleteIconUrl} alt="" aria-hidden="true" style={style.deleteIcon} />
       </button>
-      <div class="nodo-opd-actions" style={style.inlineActions}>
-        <button
-          type="button"
-          style={style.openButton}
-          title={`Abrir ${nombre}`}
-          aria-label={`Abrir OPD ${nombre}`}
-          onClick={(event) => {
-            event.stopPropagation();
-            props.onCambiarActivo(props.nodo.opd.id);
-          }}
-        >
-          Abrir
-        </button>
-        <button
-          type="button"
-          aria-label={`Renombrar OPD ${nombre}`}
-          title="Renombrar"
-          style={style.inlineActionButton}
-          onClick={(event) => {
-            event.stopPropagation();
-            props.onRenombrandoChange({ id: props.nodo.opd.id, valor: props.nodo.opd.nombre });
-          }}
-        >
-          Renombrar
-        </button>
-        <button
-          type="button"
-          aria-label={`Crear refinamiento desde ${nombre}`}
-          title="Crear refinamiento"
-          style={style.inlineActionButton}
-          onClick={(event) => {
-            event.stopPropagation();
-            props.onCambiarActivo(props.nodo.opd.id);
-          }}
-        >
-          Crear refinamiento
-        </button>
-      </div>
     </div>
   );
 }
@@ -276,9 +251,9 @@ function estiloNodo(nivel: number, activo: boolean): preact.JSX.CSSProperties {
 const style = {
   node: {
     width: "100%",
-    minHeight: "34px",
+    minHeight: "32px",
     display: "grid",
-    gridTemplateColumns: "16px 18px 48px minmax(0, 1fr) 16px 26px",
+    gridTemplateColumns: "16px 18px 48px minmax(0, 1fr) auto 16px 26px",
     alignItems: "center", gap: "4px", paddingTop: "4px", paddingBottom: "4px",
     border: "1px solid transparent", borderRadius: tokens.radii.sm, background: "transparent",
     color: tokens.colors.textoSecundario, cursor: "pointer", fontSize: "13px", fontWeight: 600, textAlign: "left",
@@ -295,38 +270,6 @@ const style = {
   },
   count: contador(tokens.colors.fondoLineaTiempo, tokens.colors.textoTerciario),
   countActive: contador(tokens.colors.arbolSeleccion, tokens.colors.textoPrimario),
-  inlineActions: {
-    gridColumn: "4 / -1",
-    gridRow: 2,
-    display: "flex",
-    alignItems: "center",
-    gap: "4px",
-    minWidth: 0,
-  },
-  openButton: {
-    border: `1px solid ${tokens.colors.bordeControl}`,
-    background: tokens.colors.fondoChrome,
-    borderRadius: tokens.radii.sm,
-    color: tokens.colors.textoSecundario,
-    cursor: "pointer",
-    fontSize: "11px",
-    fontWeight: 700,
-    height: "20px",
-    padding: "0 5px",
-    whiteSpace: "nowrap",
-  },
-  inlineActionButton: {
-    border: `1px solid ${tokens.colors.bordeControl}`,
-    background: "transparent",
-    borderRadius: tokens.radii.sm,
-    color: tokens.colors.textoTerciario,
-    cursor: "pointer",
-    fontSize: "11px",
-    fontWeight: 600,
-    height: "20px",
-    padding: "0 5px",
-    whiteSpace: "nowrap",
-  },
   issueBadgeWarning: {
     width: "16px",
     height: "16px",
@@ -376,7 +319,9 @@ function estiloBadgeTipo(tipo: TipoBadgeOpd, accionable: boolean): preact.JSX.CS
   };
   const meta = colores[tipo];
   return {
-    minWidth: "48px",
+    boxSizing: "border-box",
+    minWidth: "40px",
+    maxWidth: "40px",
     height: "20px",
     borderRadius: tokens.radii.pill,
     border: `1px solid ${meta.border}`,
@@ -388,24 +333,24 @@ function estiloBadgeTipo(tipo: TipoBadgeOpd, accionable: boolean): preact.JSX.CS
     justifyContent: "center",
     fontSize: "10px",
     fontWeight: 800,
-    padding: "0 6px",
+    padding: "0 4px",
     whiteSpace: "nowrap",
   };
 }
 
 function contador(background: string, color: string): preact.JSX.CSSProperties {
   return {
-    gridColumn: 3,
-    gridRow: 2,
-    minWidth: "58px",
-    height: "18px",
+    gridColumn: 5,
+    gridRow: 1,
+    minWidth: "52px",
+    height: "17px",
     borderRadius: "9px",
     background,
     color,
     display: "inline-flex",
     alignItems: "center",
     justifyContent: "center",
-    fontSize: "11px",
+    fontSize: "10px",
     fontWeight: 700,
   };
 }
