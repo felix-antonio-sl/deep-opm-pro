@@ -4,7 +4,7 @@ import { formatearNombreCompuesto } from "../objetoMetadata";
 import { mismosAnclajesSimbolo, normalizarAnclajesSimbolo } from "../simboloEstructural";
 import type { AnclajesSimboloEstructural, Apariencia, Id, Modelo, Posicion, PosicionLabelEnlace, Resultado } from "../tipos";
 import { RESIZE_MIN, clampValor } from "../../canvas/grid";
-import { aparienciaEsExternaDeRefinamiento } from "../contextoRefinamiento";
+import { aparienciaEsInternaDeRefinamiento } from "../contextoRefinamiento";
 import { fallo, ok } from "./helpers";
 import { refrescarEnlacesExternosDerivados } from "./refinamiento";
 
@@ -39,9 +39,8 @@ export function moverAparienciaPorId(modelo: Modelo, opdId: Id, aparienciaId: Id
   if (esContorno) {
     // Mover contorno arrastra a las apariencias internas (creadas dentro de
     // este OPD: subprocesos, partes refinadoras, objetos internos). Las
-    // apariencias proxy de externos son anclas del contexto y deben mantener
-    // su posicion absoluta. La distincion vive en Apariencia.contextoRefinamiento,
-    // con fallback legacy para modelos previos.
+    // apariencias fuera del contorno (externos proxy o contexto visual del
+    // OPD hijo) deben mantener su posicion absoluta.
     const dx = posicion.x - apariencia.x;
     const dy = posicion.y - apariencia.y;
     nuevasApariencias = {};
@@ -50,22 +49,23 @@ export function moverAparienciaPorId(modelo: Modelo, opdId: Id, aparienciaId: Id
         nuevasApariencias[id] = { ...ap, x: posicion.x, y: posicion.y };
         continue;
       }
-      nuevasApariencias[id] = aparienciaEsExternaDeRefinamiento(modelo, opdId, ap)
-        ? ap
-        : { ...ap, x: ap.x + dx, y: ap.y + dy };
+      nuevasApariencias[id] = aparienciaEsInternaDeRefinamiento(modelo, opdId, ap)
+        ? { ...ap, x: ap.x + dx, y: ap.y + dy }
+        : ap;
     }
-  } else if (contorno && !aparienciaEsExternaDeRefinamiento(modelo, opdId, apariencia)) {
+  } else if (contorno && aparienciaEsInternaDeRefinamiento(modelo, opdId, apariencia)) {
     // Apariencia interna: clamp al bbox del contorno (HU-12.020 restriccion
     // interior). Padding coherente con restrictTranslate del paper. Las
-    // apariencias proxy de externos NO se clampean (caen en la rama "else"
-    // de abajo) porque por diseno viven fuera del bbox del contorno.
+    // apariencias fuera del contorno NO se clampean (caen en la rama "else"
+    // de abajo) porque por diseno viven libres alrededor del bbox.
     const encajada = encajarAparienciaEnContorno({ ...apariencia, ...posicion }, contorno);
     nuevasApariencias = {
       ...opd.apariencias,
       [apariencia.id]: { ...apariencia, x: encajada.x, y: encajada.y },
     };
   } else {
-    // OPD raiz o sin refinable: comportamiento sin restriccion.
+    // OPD raiz, sin refinable o cosa contextual fuera del contorno:
+    // comportamiento sin restriccion.
     nuevasApariencias = {
       ...opd.apariencias,
       [apariencia.id]: { ...apariencia, x: posicion.x, y: posicion.y },

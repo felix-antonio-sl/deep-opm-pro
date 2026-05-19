@@ -1,4 +1,5 @@
 import { obtenerRefinamiento } from "./refinamientos";
+import { contenedorRefinamiento, dentroDeApariencia } from "./layout";
 import type {
   Apariencia,
   ContextoRefinamientoApariencia,
@@ -50,9 +51,13 @@ export function rolAparienciaEnRefinamiento(
   apariencia: Apariencia,
   esContornoDerivado = false,
 ): RolContextoRefinamiento {
-  const contexto = contextoRefinamientoValido(modelo, opdId, apariencia);
-  if (contexto) return contexto.rol;
   if (esContornoDerivado) return "contorno";
+  const contexto = contextoRefinamientoValido(modelo, opdId, apariencia);
+  if (contexto) {
+    if (contexto.rol === "interno" && aparienciaFueraDelContorno(modelo, opdId, apariencia)) return "externo";
+    return contexto.rol;
+  }
+  if (aparienciaFueraDelContorno(modelo, opdId, apariencia)) return "externo";
   return entidadApareceEnOtroOpd(modelo, opdId, apariencia.entidadId) ? "externo" : "interno";
 }
 
@@ -69,9 +74,9 @@ export function aparienciaEsInternaDeRefinamiento(
   contorno?: Apariencia,
 ): boolean {
   const contexto = contextoRefinamientoValido(modelo, opdId, apariencia);
-  if (contexto) return contexto.rol === "interno";
+  if (contexto) return contexto.rol === "interno" && aparienciaDentroDelContorno(modelo, opdId, apariencia, contorno);
   if (aparienciaEsExternaDeRefinamiento(modelo, opdId, apariencia)) return false;
-  return contorno ? dentroDe(apariencia, contorno) : true;
+  return aparienciaDentroDelContorno(modelo, opdId, apariencia, contorno);
 }
 
 function entidadApareceEnOtroOpd(modelo: Modelo, opdId: Id, entidadId: Id): boolean {
@@ -84,11 +89,18 @@ function entidadApareceEnOtroOpd(modelo: Modelo, opdId: Id, entidadId: Id): bool
   return false;
 }
 
-function dentroDe(apariencia: Apariencia, contorno: Apariencia): boolean {
-  return (
-    apariencia.x >= contorno.x &&
-    apariencia.y >= contorno.y &&
-    apariencia.x + apariencia.width <= contorno.x + contorno.width &&
-    apariencia.y + apariencia.height <= contorno.y + contorno.height
-  );
+function aparienciaDentroDelContorno(
+  modelo: Modelo,
+  opdId: Id,
+  apariencia: Apariencia,
+  contorno: Apariencia | undefined,
+): boolean {
+  const limite = contorno ?? contenedorRefinamiento(modelo, opdId);
+  return limite ? dentroDeApariencia(apariencia, limite) : true;
+}
+
+function aparienciaFueraDelContorno(modelo: Modelo, opdId: Id, apariencia: Apariencia): boolean {
+  const contorno = contenedorRefinamiento(modelo, opdId);
+  if (!contorno || contorno.id === apariencia.id) return false;
+  return !dentroDeApariencia(apariencia, contorno);
 }

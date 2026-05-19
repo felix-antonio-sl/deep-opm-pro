@@ -1184,6 +1184,25 @@ describe("operaciones de modelo", () => {
     );
   });
 
+  test("mover objeto contextual fuera del contorno no lo mete dentro del proceso", () => {
+    let modelo = crearSdSyncInzoomed().modelo;
+    const sd1 = Object.values(modelo.opds).find((opd) => opd.padreId === modelo.opdRaizId);
+    expect(sd1).toBeDefined();
+    if (!sd1) return;
+    const contorno = aparienciaPorNombre(modelo, sd1.id, "Main System Doing");
+    const mainIoOutput = aparienciaPorNombre(modelo, sd1.id, "Main I/O Output");
+    expect(mainIoOutput.x).toBeGreaterThan(contorno.x + contorno.width);
+
+    const destino = { x: mainIoOutput.x - 20, y: mainIoOutput.y + 15 };
+    expect(destino.x).toBeGreaterThan(contorno.x + contorno.width);
+    modelo = must(moverAparienciaPorId(modelo, sd1.id, mainIoOutput.id, destino));
+    const movida = modelo.opds[sd1.id]?.apariencias[mainIoOutput.id];
+
+    expect(movida?.x).toBe(destino.x);
+    expect(movida?.y).toBe(destino.y);
+    expect(movida?.x ?? 0).toBeGreaterThan(contorno.x + contorno.width);
+  });
+
   test("reancla consumo externo derivado al subproceso elegido y marca origen manual", () => {
     let modelo = crearModelo();
     modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 100 }, "Entrada"));
@@ -1615,6 +1634,14 @@ function tipoEnlaceEsperado(modo: ModoDespliegueObjeto): TipoEnlace {
   if (modo === "exhibicion") return "exhibicion";
   if (modo === "generalizacion") return "generalizacion";
   return "clasificacion";
+}
+
+function aparienciaPorNombre(modelo: Modelo, opdId: string, nombre: string) {
+  const entidad = entidadPorNombre(modelo, nombre);
+  const apariencia = Object.values(modelo.opds[opdId]?.apariencias ?? {}).find((item) => item.entidadId === entidad.id);
+  expect(apariencia).toBeDefined();
+  if (!apariencia) throw new Error(`Apariencia no encontrada: ${nombre}`);
+  return apariencia;
 }
 
 function entidadPorNombre(modelo: Modelo, nombre: string) {

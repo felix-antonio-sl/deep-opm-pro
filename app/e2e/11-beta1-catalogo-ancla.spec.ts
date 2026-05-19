@@ -238,4 +238,44 @@ test.describe("catalogo OPCloud sandbox", () => {
     await expect(page.locator(".joint-link")).toHaveCount(cantidadLinksAntes);
     expect(pageErrors).toEqual([]);
   });
+
+  test("SD Sync mantiene objetos contextuales fuera del contorno durante drag", async ({ page }) => {
+    const pageErrors: string[] = [];
+    page.on("pageerror", (error) => pageErrors.push(error.message));
+
+    await page.goto("/");
+    await cargarModeloEjemplo(page, "SD Sync");
+
+    const exportado = await exportadoActual(page);
+    const sd1 = Object.entries(exportado.modelo.opds).find(([, opd]) => opd.padreId === exportado.modelo.opdRaizId);
+    expect(sd1).toBeDefined();
+    const [sd1Id] = sd1!;
+    await page.locator(`[role="treeitem"][data-opd-id="${sd1Id}"]`).click();
+    await expect(elementoPorTexto(page, "Main I/O Output")).toBeVisible();
+
+    const modeloAntes = (await exportadoActual(page)).modelo;
+    const contornoAntes = aparienciaPorNombre(modeloAntes, sd1Id, "Main System Doing");
+    const ioAntes = aparienciaPorNombre(modeloAntes, sd1Id, "Main I/O Output");
+    expect(ioAntes.x).toBeGreaterThan(contornoAntes.x + contornoAntes.width);
+
+    const ioOutput = elementoPorTexto(page, "Main I/O Output");
+    const rect = await rectDeLocator(ioOutput);
+    await page.mouse.move(rect.x + rect.width / 2, rect.y + rect.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(rect.x + rect.width / 2 - 20, rect.y + rect.height / 2 + 15, { steps: 8 });
+    await page.mouse.up();
+
+    await expect.poll(async () => {
+      const modelo = (await exportadoActual(page)).modelo;
+      return aparienciaPorNombre(modelo, sd1Id, "Main I/O Output");
+    }).toMatchObject({
+      x: ioAntes.x - 20,
+      y: ioAntes.y + 15,
+    });
+    const modeloDespues = (await exportadoActual(page)).modelo;
+    const contornoDespues = aparienciaPorNombre(modeloDespues, sd1Id, "Main System Doing");
+    const ioDespues = aparienciaPorNombre(modeloDespues, sd1Id, "Main I/O Output");
+    expect(ioDespues.x).toBeGreaterThan(contornoDespues.x + contornoDespues.width);
+    expect(pageErrors).toEqual([]);
+  });
 });
