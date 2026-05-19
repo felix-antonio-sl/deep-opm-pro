@@ -1,4 +1,5 @@
 import { CANON, naturalezaDeEnlace } from "../constantes";
+import { sincronizarAbanicos } from "../abanicos";
 import { entidadDeExtremo, entidadIdDeExtremo, extremoEntidad } from "../extremos";
 import { contenedorRefinamiento, posicionLibre, solapa } from "../layout";
 import { aparienciaDeEntidadEnOpd } from "../politicaApariciones";
@@ -77,7 +78,7 @@ export function eliminarEntidad(modelo: Modelo, entidadId: Id): Resultado<Modelo
     ]),
   );
 
-  return ok(limpiarOrderedFundamentalTypesHuerfanos({ ...modelo, entidades, estados, enlaces, opds }));
+  return ok(limpiarMetadatosHuerfanos({ ...modelo, entidades, estados, enlaces, opds }));
 }
 
 export function eliminarEnlace(modelo: Modelo, enlaceId: Id): Resultado<Modelo> {
@@ -117,7 +118,7 @@ export function eliminarEnlace(modelo: Modelo, enlaceId: Id): Resultado<Modelo> 
     actualizado = sincronizado.value;
   }
 
-  return ok(limpiarOrderedFundamentalTypesHuerfanos(actualizado));
+  return ok(limpiarMetadatosHuerfanos(actualizado));
 }
 
 /**
@@ -149,7 +150,11 @@ export function eliminarEnlacesPorExtremosEstado(modelo: Modelo, estadoIds: Set<
       },
     ]),
   );
-  return limpiarOrderedFundamentalTypesHuerfanos({ ...modelo, enlaces, opds });
+  return limpiarMetadatosHuerfanos({ ...modelo, enlaces, opds });
+}
+
+function limpiarMetadatosHuerfanos(modelo: Modelo): Modelo {
+  return limpiarOrderedFundamentalTypesHuerfanos(sincronizarAbanicos(modelo));
 }
 
 function limpiarOrderedFundamentalTypesHuerfanos(modelo: Modelo): Modelo {

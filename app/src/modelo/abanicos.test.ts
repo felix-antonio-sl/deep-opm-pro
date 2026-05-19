@@ -9,7 +9,7 @@ import {
   quitarRamaDeAbanico,
 } from "./abanicos";
 import { extremoEstado } from "./extremos";
-import { crearEnlace, crearEstadosIniciales, crearModelo, crearObjeto, crearProceso, estadosDeEntidad, renombrarEstado } from "./operaciones";
+import { crearEnlace, crearEstadosIniciales, crearModelo, crearObjeto, crearProceso, eliminarEnlace, estadosDeEntidad, renombrarEstado } from "./operaciones";
 import type { Abanico, Id, Modelo, Resultado, TipoEnlace } from "./tipos";
 
 describe("abanicos lógicos O/XOR", () => {
@@ -161,6 +161,19 @@ describe("abanicos lógicos O/XOR", () => {
       operador: "XOR",
       enlaceIds: enlaces,
     });
+  });
+
+  test("eliminarEnlace sincroniza abanicos y disuelve agrupadores con menos de dos ramas", () => {
+    const { modelo: base, enlaces } = modeloConResultados(["A", "B", "C"]);
+    let modelo = must(formarAbanico(base, base.opdRaizId, enlaces, "XOR"));
+
+    modelo = must(eliminarEnlace(modelo, enlaces[0]!));
+
+    expect(unicoAbanico(modelo).enlaceIds).toEqual(enlaces.slice(1));
+
+    modelo = must(eliminarEnlace(modelo, enlaces[1]!));
+
+    expect(modelo.abanicos).toEqual({});
   });
 });
 
