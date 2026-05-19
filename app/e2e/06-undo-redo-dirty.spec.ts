@@ -326,10 +326,10 @@ test("undo edita vertices y restaura ruta previa", async ({ page }) => {
   await clickCabeceraElemento(page, "Proceso");
   await clickCentroLink(page);
 
-  const segmentBox = await rectDeLocator(page.locator(".joint-marker-segment").first());
-  await page.mouse.move(segmentBox.x + segmentBox.width / 2, segmentBox.y + segmentBox.height / 2);
+  const verticesPathBox = await rectDeLocator(page.locator('[data-tool-name="vertices"] [joint-selector="connection"]').first());
+  await page.mouse.move(verticesPathBox.x + verticesPathBox.width / 2, verticesPathBox.y + verticesPathBox.height / 2);
   await page.mouse.down();
-  await page.mouse.move(segmentBox.x + segmentBox.width / 2, segmentBox.y + segmentBox.height / 2 + 70, { steps: 8 });
+  await page.mouse.move(verticesPathBox.x + verticesPathBox.width / 2, verticesPathBox.y + verticesPathBox.height / 2 + 70, { steps: 8 });
   await page.mouse.up();
   expect((await verticesPrimerEnlace(page)).length).toBeGreaterThan(0);
 

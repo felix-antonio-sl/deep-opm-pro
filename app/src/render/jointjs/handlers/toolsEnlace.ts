@@ -45,7 +45,7 @@ export function instalarHerramientasEnlaceSeleccionado(adapter: AdapterMin, enla
     }),
   ];
 
-  if (routerAdmiteSegmentsTool(routerDeLink(link))) {
+  if (admiteSegmentsTool(routerDeLink(link), connectorDeLink(link))) {
     tools.push(
       new linkTools.Segments({
         redundancyRemoval: false,
@@ -69,8 +69,24 @@ export function routerAdmiteSegmentsTool(router: unknown): boolean {
   return typeof name === "string" && name === "normal";
 }
 
+export function connectorAdmiteSegmentsTool(connector: unknown): boolean {
+  if (connector == null) return true;
+  if (typeof connector === "string") return connector === "straight" || connector === "normal";
+  if (!esRegistro(connector)) return false;
+  const name = connector.name;
+  return typeof name === "string" && (name === "straight" || name === "normal");
+}
+
+export function admiteSegmentsTool(router: unknown, connector: unknown): boolean {
+  return routerAdmiteSegmentsTool(router) && connectorAdmiteSegmentsTool(connector);
+}
+
 function routerDeLink(link: dia.Link): unknown {
   return (link as dia.Link & { get: (key: string) => unknown }).get("router");
+}
+
+function connectorDeLink(link: dia.Link): unknown {
+  return (link as dia.Link & { get: (key: string) => unknown }).get("connector");
 }
 
 function esRegistro(value: unknown): value is Record<string, unknown> {

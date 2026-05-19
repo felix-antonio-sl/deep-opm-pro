@@ -51,6 +51,22 @@ import {
   type ExtremoExportado,
 } from "./_smoke-helpers";
 
+async function quebrarEnlaceSeleccionado(page: Page, dx = 0, dy = 70, ratio = 0.5): Promise<void> {
+  const verticesPathBox = await rectDeLocator(page.locator('[data-tool-name="vertices"] [joint-selector="connection"]').first());
+  const verticesAntes = await page.locator(".joint-marker-vertex").count();
+  for (const ratioIntento of [ratio, 0.35, 0.65, 0.2, 0.8]) {
+    await page.mouse.click(verticesPathBox.x + verticesPathBox.width * ratioIntento, verticesPathBox.y + verticesPathBox.height / 2);
+    await page.waitForTimeout(120);
+    if (await page.locator(".joint-marker-vertex").count() > verticesAntes) break;
+  }
+  await expect(page.locator(".joint-marker-vertex")).toHaveCount(verticesAntes + 1, { timeout: 1500 });
+  const verticeBox = await rectDeLocator(page.locator(".joint-marker-vertex").last());
+  await page.mouse.move(verticeBox.x + verticeBox.width / 2, verticeBox.y + verticeBox.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(verticeBox.x + verticeBox.width / 2 + dx, verticeBox.y + verticeBox.height / 2 + dy, { steps: 8 });
+  await page.mouse.up();
+}
+
 test("crea enlace, edita vertices y elimina desde celdas JointJS", async ({ page }) => {
   const pageErrors: string[] = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));
@@ -75,13 +91,9 @@ test("crea enlace, edita vertices y elimina desde celdas JointJS", async ({ page
   await expect(page.getByText("Enlace Instrumento")).toBeVisible();
   await expect(page.locator('[data-tool-name="boundary"]')).toHaveCount(1);
   await expect(page.locator('[data-tool-name="vertices"]')).toHaveCount(1);
-  await expect(page.locator('[data-tool-name="segments"]')).toHaveCount(1);
+  await expect(page.locator('[data-tool-name="segments"]')).toHaveCount(0);
 
-  const segmentBox = await rectDeLocator(page.locator(".joint-marker-segment").first());
-  await page.mouse.move(segmentBox.x + segmentBox.width / 2, segmentBox.y + segmentBox.height / 2);
-  await page.mouse.down();
-  await page.mouse.move(segmentBox.x + segmentBox.width / 2, segmentBox.y + segmentBox.height / 2 + 70, { steps: 8 });
-  await page.mouse.up();
+  await quebrarEnlaceSeleccionado(page);
   const jsonConVertice = await jsonEditor(page).inputValue();
   const exportadoConVertice = JSON.parse(jsonConVertice) as ExportadoModelo;
   const vertices = Object.values(exportadoConVertice.modelo.opds[exportadoConVertice.modelo.opdRaizId]?.enlaces ?? {})[0]?.vertices;
@@ -123,6 +135,46 @@ test("seleccionar enlace estructural ruteado no instala Segments incompatible", 
   await expect(page.locator('[data-tool-name="vertices"]')).toHaveCount(1);
   await expect(page.locator('[data-tool-name="segments"]')).toHaveCount(0);
 
+  expect(pageErrors).toEqual([]);
+});
+
+test("BUG-20260519T074543Z-842217 angular enlace etiquetado OnStar sin crash", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await cargarModeloEjemplo(page, "OnStar System");
+
+  await page.locator('.joint-element[aria-label^="Objeto OnStar Advisor"]').click();
+  await elegirTipoEnlaceDesdeMenu(page, "etiquetado");
+  await page.locator('.joint-element[aria-label^="Objeto OnStar Console"]').click();
+  await page.keyboard.press("Escape");
+
+  const enlaceEtiquetadoJointId = await page.evaluate(() => {
+    type LinkDebug = { id: string | number; prop(key: string): unknown };
+    const adapter = (window as typeof window & { __opmJointAdapter?: { graph: { getLinks(): LinkDebug[] } } }).__opmJointAdapter;
+    const link = adapter?.graph.getLinks().find((item) => (item.prop("opm") as { tipo?: string } | undefined)?.tipo === "etiquetado");
+    return link ? String(link.id) : "";
+  });
+  expect(enlaceEtiquetadoJointId).not.toBe("");
+  const puntoEnlace = await puntoMedioPath(page.locator(`.joint-link[model-id="${enlaceEtiquetadoJointId}"] [joint-selector=wrapper]`).first());
+  await page.mouse.click(puntoEnlace.x, puntoEnlace.y);
+  await expect(page.getByText("Enlace Etiquetado")).toBeVisible();
+  await expect(page.locator('[data-tool-name="vertices"]')).toHaveCount(1);
+  await expect(page.locator('[data-tool-name="segments"]')).toHaveCount(0);
+
+  await page.evaluate((jointId) => {
+    type LinkDebug = { id: string | number; insertVertex(index: number, vertex: { x: number; y: number }, opt?: Record<string, unknown>): void };
+    const adapter = (window as typeof window & { __opmJointAdapter?: { graph: { getLinks(): LinkDebug[] } } }).__opmJointAdapter;
+    const link = adapter?.graph.getLinks().find((item) => String(item.id) === jointId);
+    link?.insertVertex(0, { x: 540, y: 380 }, { ui: true });
+  }, enlaceEtiquetadoJointId);
+
+  const exportado = await exportadoActual(page);
+  const enlaceEtiquetado = Object.values(exportado.modelo.enlaces).find((enlace) => enlace.tipo === "etiquetado");
+  const aparienciaEtiquetada = Object.values(exportado.modelo.opds[exportado.modelo.opdRaizId]?.enlaces ?? {})
+    .find((apariencia) => apariencia.enlaceId === enlaceEtiquetado?.id);
+  expect(aparienciaEtiquetada?.vertices.length ?? 0).toBeGreaterThan(0);
   expect(pageErrors).toEqual([]);
 });
 
