@@ -87,7 +87,7 @@ function transicionesEstadoBase(modelo: Modelo, opd: Opd) {
     const estadoEntrada = estadoDeExtremo(modelo, consumo.origenId);
     const estadoSalida = estadoDeExtremo(modelo, resultado.destinoId);
     if (!proceso || !objeto || !estadoEntrada || !estadoSalida) continue;
-    const texto = `${nombreOpl(proceso)} cambia ${nombreOpl(objeto)} de \`${estadoEntrada.nombre}\` a \`${estadoSalida.nombre}\`.`;
+    const texto = oracionTransicionEstados(proceso, objeto, estadoEntrada, estadoSalida, consumo, resultado);
     lineaPorEnlaceConsumo.set(consumo.id, {
       texto,
       refs: [
@@ -111,6 +111,31 @@ function transicionesEstadoBase(modelo: Modelo, opd: Opd) {
   }
 
   return { lineaPorEnlaceConsumo, enlacesCubiertos };
+}
+
+function oracionTransicionEstados(
+  proceso: Entidad,
+  objeto: Entidad,
+  estadoEntrada: NonNullable<ReturnType<typeof estadoDeExtremo>>,
+  estadoSalida: NonNullable<ReturnType<typeof estadoDeExtremo>>,
+  consumo: Enlace,
+  resultado: Enlace,
+): string {
+  const modificador = consumo.modificador ?? resultado.modificador;
+  const enlaceModificador = consumo.modificador ? consumo : resultado.modificador ? resultado : null;
+  const sufijo = enlaceModificador ? sufijoProbabilidad(enlaceModificador) : "";
+  const procesoOpl = nombreOpl(proceso);
+  const objetoOpl = nombreOpl(objeto);
+  switch (modificador) {
+    case "evento":
+      return `${objetoOpl} en \`${estadoEntrada.nombre}\` inicia ${procesoOpl}, que cambia ${objetoOpl} de \`${estadoEntrada.nombre}\` a \`${estadoSalida.nombre}\`${sufijo}.`;
+    case "condicion":
+      return `${procesoOpl} ocurre si ${objetoOpl} está en \`${estadoEntrada.nombre}\`, en cuyo caso ${procesoOpl} cambia ${objetoOpl} de \`${estadoEntrada.nombre}\` a \`${estadoSalida.nombre}\`, de lo contrario ${procesoOpl} se omite.`;
+    case "no":
+      return `${procesoOpl} no cambia ${objetoOpl} de \`${estadoEntrada.nombre}\` a \`${estadoSalida.nombre}\`.`;
+    default:
+      return `${procesoOpl} cambia ${objetoOpl} de \`${estadoEntrada.nombre}\` a \`${estadoSalida.nombre}\`.`;
+  }
 }
 
 export function oracionEnlace(modelo: Modelo, enlace: Enlace): string | null {
@@ -233,10 +258,16 @@ function oracionEvento(
       return `${origenOpl} inicia y maneja ${destinoOpl}${sufijo}.`;
     case "instrumento":
       return `${origenOpl} inicia ${destinoOpl}, que requiere ${origenOpl}${sufijo}.`;
-    case "consumo":
+    case "consumo": {
+      const estado = estadoDeExtremo(modelo, enlace.origenId);
+      if (estado) return `${origenOpl} inicia ${destinoOpl}, que cambia ${nombreOpl(origen)} de \`${estado.nombre}\`${sufijo}.`;
       return `${origenOpl} inicia ${destinoOpl}, que consume ${origenOpl}${sufijo}.`;
-    case "resultado":
+    }
+    case "resultado": {
+      const estado = estadoDeExtremo(modelo, enlace.destinoId);
+      if (estado) return `${nombreOpl(destino)} en cualquier estado inicia ${origenOpl}, que cambia ${nombreOpl(destino)} a \`${estado.nombre}\`${sufijo}.`;
       return `${destinoOpl} inicia ${origenOpl}, que genera ${destinoOpl}${sufijo}.`;
+    }
     case "efecto": {
       const proceso = origen.tipo === "proceso" ? origenOpl : destino.tipo === "proceso" ? destinoOpl : null;
       const objeto = origen.tipo === "objeto" ? origenOpl : destino.tipo === "objeto" ? destinoOpl : null;
@@ -258,14 +289,26 @@ function oracionCondicion(
   destinoOpl: string,
 ): string | null {
   switch (enlace.tipo) {
-    case "agente":
+    case "agente": {
+      const estado = estadoDeExtremo(modelo, enlace.origenId);
+      if (estado) return `${nombreOpl(origen)} maneja ${destinoOpl} si ${nombreOpl(origen)} está en \`${estado.nombre}\`, de lo contrario ${destinoOpl} se omite.`;
       return `${origenOpl} maneja ${destinoOpl} si ${origenOpl} existe, de lo contrario ${destinoOpl} se omite.`;
-    case "instrumento":
+    }
+    case "instrumento": {
+      const estado = estadoDeExtremo(modelo, enlace.origenId);
+      if (estado) return `${destinoOpl} ocurre si ${nombreOpl(origen)} está en \`${estado.nombre}\`, de lo contrario ${destinoOpl} se omite.`;
       return `${destinoOpl} ocurre si ${origenOpl} existe, de lo contrario ${destinoOpl} se omite.`;
-    case "consumo":
-      return `${destinoOpl} ocurre si ${origenOpl} existe, en cuyo caso ${destinoOpl} consume ${origenOpl}, de lo contrario ${destinoOpl} se omite.`;
-    case "resultado":
+    }
+    case "consumo": {
+      const estado = estadoDeExtremo(modelo, enlace.origenId);
+      if (estado) return `${destinoOpl} ocurre si ${nombreOpl(origen)} está en \`${estado.nombre}\`, en cuyo caso ${destinoOpl} cambia ${nombreOpl(origen)} de \`${estado.nombre}\`, de lo contrario ${destinoOpl} se omite.`;
+      return `${destinoOpl} ocurre si ${origenOpl} existe, en cuyo caso ${origenOpl} se consume, de lo contrario ${destinoOpl} se omite.`;
+    }
+    case "resultado": {
+      const estado = estadoDeExtremo(modelo, enlace.destinoId);
+      if (estado) return `${origenOpl} ocurre si ${nombreOpl(destino)} existe, en cuyo caso ${origenOpl} cambia ${nombreOpl(destino)} a \`${estado.nombre}\`, de lo contrario ${origenOpl} se omite.`;
       return `${origenOpl} ocurre si ${destinoOpl} puede generarse, en cuyo caso ${origenOpl} genera ${destinoOpl}, de lo contrario ${origenOpl} se omite.`;
+    }
     case "efecto": {
       const proceso = origen.tipo === "proceso" ? origenOpl : destino.tipo === "proceso" ? destinoOpl : null;
       const objeto = origen.tipo === "objeto" ? origenOpl : destino.tipo === "objeto" ? destinoOpl : null;
@@ -293,10 +336,16 @@ function oracionNegada(
       return `${origenOpl} no ${verbo("maneja", "manejan", origenPlural)} ${destinoOpl}.`;
     case "instrumento":
       return `${destinoOpl} no ${verbo("requiere", "requieren", destinoPlural)} ${origenOpl}.`;
-    case "consumo":
+    case "consumo": {
+      const estado = estadoDeExtremo(modelo, enlace.origenId);
+      if (estado) return `${destinoOpl} no cambia ${nombreOpl(origen)} de \`${estado.nombre}\`.`;
       return `${destinoOpl} no ${verbo("consume", "consumen", destinoPlural)} ${origenOpl}.`;
-    case "resultado":
+    }
+    case "resultado": {
+      const estado = estadoDeExtremo(modelo, enlace.destinoId);
+      if (estado) return `${origenOpl} no cambia ${nombreOpl(destino)} a \`${estado.nombre}\`.`;
       return `${origenOpl} no ${verbo("genera", "generan", origenPlural)} ${destinoOpl}.`;
+    }
     case "efecto": {
       const proceso = origen.tipo === "proceso" ? origenOpl : destino.tipo === "proceso" ? destinoOpl : null;
       const objeto = origen.tipo === "objeto" ? origenOpl : destino.tipo === "objeto" ? destinoOpl : null;

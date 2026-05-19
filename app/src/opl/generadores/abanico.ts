@@ -1,4 +1,4 @@
-import { entidadDeExtremo, entidadIdDeExtremo } from "../../modelo/extremos";
+import { entidadDeExtremo, entidadIdDeExtremo, estadoDeExtremo } from "../../modelo/extremos";
 import { rutaEtiquetaNormalizada } from "../../modelo/rutas";
 import type { Abanico, Enlace, Modelo } from "../../modelo/tipos";
 import { hintsAbanico, hintsEnlace, listarOpl, nombreOpl, nombreOplExtremo, refsAbanico, refsEnlace, type OplLineaPendiente } from "./refsHints";
@@ -56,8 +56,10 @@ export function oracionAbanico(modelo: Modelo, abanico: Abanico): string | null 
   if (otrosNombres.length < 2) return null;
 
   const cuantificador = abanico.operador === "XOR" ? "exactamente uno de" : "al menos uno de";
-  const lista = listarOpl(otrosNombres);
   const puertoEsOrigen = entidadIdDeExtremo(modelo, primer.origenId) === abanico.puertoEntidadId;
+  const estadosAgrupados = oracionAbanicoEstados(modelo, abanico, enlaces, primer, cuantificador, puertoEsOrigen);
+  if (estadosAgrupados) return estadosAgrupados;
+  const lista = listarOpl(otrosNombres);
   const puertoOpl = nombreOpl(puerto);
 
   switch (primer.tipo) {
@@ -86,6 +88,42 @@ export function oracionAbanico(modelo: Modelo, abanico: Abanico): string | null 
     default:
       return null;
   }
+}
+
+function oracionAbanicoEstados(
+  modelo: Modelo,
+  abanico: Abanico,
+  enlaces: readonly Enlace[],
+  primer: Enlace,
+  cuantificador: string,
+  puertoEsOrigen: boolean,
+): string | null {
+  if (primer.tipo !== "consumo" && primer.tipo !== "resultado") return null;
+  if (primer.tipo === "consumo" && puertoEsOrigen) return null;
+  if (primer.tipo === "resultado" && !puertoEsOrigen) return null;
+
+  let objetoId: string | null = null;
+  const estados: string[] = [];
+  for (const enlace of enlaces) {
+    if (enlace.tipo !== primer.tipo) return null;
+    const otro = extremoOpuestoAbanico(modelo, abanico, enlace);
+    if (!otro) return null;
+    const estado = estadoDeExtremo(modelo, otro.extremo);
+    if (!estado) return null;
+    if (objetoId && estado.entidadId !== objetoId) return null;
+    objetoId = estado.entidadId;
+    estados.push(`\`${estado.nombre}\``);
+  }
+  if (!objetoId || estados.length < 2) return null;
+  const puerto = modelo.entidades[abanico.puertoEntidadId];
+  const objeto = modelo.entidades[objetoId];
+  if (!puerto || !objeto) return null;
+
+  const puertoOpl = nombreOpl(puerto);
+  const objetoOpl = nombreOpl(objeto);
+  const lista = listarOpl(estados);
+  if (primer.tipo === "resultado") return `${puertoOpl} cambia ${objetoOpl} a ${cuantificador} ${lista}.`;
+  return `${puertoOpl} cambia ${objetoOpl} de ${cuantificador} ${lista}.`;
 }
 
 function enlacesDeAbanico(modelo: Modelo, abanico: Abanico): Enlace[] {

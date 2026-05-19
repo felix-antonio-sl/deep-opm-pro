@@ -214,7 +214,7 @@ describe("OPL-ES — tipos de enlace canonicos", () => {
     if (!enlaceId) throw new Error("La prueba esperaba enlace");
     modelo = must(aplicarModificador(modelo, enlaceId, "condicion"));
 
-    expect(generarOpl(modelo)).toContain("*Aprobar* ocurre si **Orden** existe, en cuyo caso *Aprobar* consume **Orden**, de lo contrario *Aprobar* se omite.");
+    expect(generarOpl(modelo)).toContain("*Aprobar* ocurre si **Orden** existe, en cuyo caso **Orden** se consume, de lo contrario *Aprobar* se omite.");
   });
 
   test("invocacion con demora anexa etiqueta temporal", () => {
@@ -381,7 +381,7 @@ describe("OPL-ES — tipos de enlace canonicos", () => {
     expect(lineas).not.toContain("*Aprobar* cambia **Pedido** a `aprobado`.");
   });
 
-  test("abanico de resultados hacia estados conserva cada estado en OPL", () => {
+  test("abanico de resultados hacia estados agrupa estados sin repetir el objeto", () => {
     let modelo = crearModelo();
     modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 80, y: 60 }, "Objeto_2"));
     modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 260, y: 220 }, "Proceso"));
@@ -416,10 +416,10 @@ describe("OPL-ES — tipos de enlace canonicos", () => {
     };
 
     const lineas = generarOpl(modelo);
-    expect(lineas).toContain("*Proceso* genera al menos uno de **Objeto_2** en `e2` y **Objeto_2** en `e3`.");
+    expect(lineas).toContain("*Proceso* cambia **Objeto_2** a al menos uno de `e2` y `e3`.");
     expect(lineas).not.toContain("*Proceso* genera al menos uno de **Objeto_2** y **Objeto_2**.");
 
-    const lineaInteractiva = generarOplInteractivo(modelo).find((linea) => linea.texto.includes("genera al menos uno de"));
+    const lineaInteractiva = generarOplInteractivo(modelo).find((linea) => linea.texto.includes("cambia **Objeto_2** a al menos uno de"));
     expect(lineaInteractiva).toBeDefined();
     expect(lineaInteractiva?.tokens.some((token) => token.markdown === "estado" && token.texto === "`e2`")).toBe(true);
     expect(lineaInteractiva?.tokens.some((token) => token.markdown === "estado" && token.texto === "`e3`")).toBe(true);

@@ -30,11 +30,124 @@ describe("procedural OPL", () => {
     expect(oracionEnlaceConRuta(modelo, enlace)).toBe("**Producto** inicia *Procesar*, que consume **Producto** (probabilidad: 70%).");
   });
 
+  test("evento sobre consumo de estado emite cambio desde el estado", () => {
+    const modelo = modeloConEstados();
+    const enlace = {
+      ...modelo.enlaces.c1!,
+      modificador: "evento",
+      subtipoModificador: "E",
+      probabilidad: 0.7,
+    } satisfies Enlace;
+    expect(oracionEnlaceConRuta(modelo, enlace)).toBe(
+      "**Pedido** en `pendiente` inicia *Procesar*, que cambia **Pedido** de `pendiente` (probabilidad: 70%).",
+    );
+  });
+
+  test("evento sobre resultado a estado emite cambio hacia el estado", () => {
+    const modelo = modeloConEstados();
+    const enlace = {
+      ...modelo.enlaces.r1!,
+      modificador: "evento",
+      subtipoModificador: "E",
+    } satisfies Enlace;
+    expect(oracionEnlaceConRuta(modelo, enlace)).toBe(
+      "**Pedido** en cualquier estado inicia *Procesar*, que cambia **Pedido** a `aprobado`.",
+    );
+  });
+
   test("par consumo resultado sobre estados emite transicion TS3 unica", () => {
     const modelo = modeloConEstados();
     const transiciones = transicionesEstado(modelo, modelo.opds.opd!);
     expect(transiciones.lineaPorEnlaceConsumo.get("c1")).toBe("*Procesar* cambia **Pedido** de `pendiente` a `aprobado`.");
     expect(transiciones.enlacesCubiertos.has("r1")).toBe(true);
+  });
+
+  test("par consumo resultado con evento emite transicion ETS2 unica", () => {
+    const modelo = modeloConEstados();
+    modelo.enlaces.c1 = {
+      ...modelo.enlaces.c1!,
+      modificador: "evento",
+      subtipoModificador: "E",
+      probabilidad: 0.7,
+    };
+    const transiciones = transicionesEstado(modelo, modelo.opds.opd!);
+    expect(transiciones.lineaPorEnlaceConsumo.get("c1")).toBe(
+      "**Pedido** en `pendiente` inicia *Procesar*, que cambia **Pedido** de `pendiente` a `aprobado` (probabilidad: 70%).",
+    );
+    expect(transiciones.enlacesCubiertos.has("r1")).toBe(true);
+  });
+
+  test("par consumo resultado con condicion emite transicion CS2 unica", () => {
+    const modelo = modeloConEstados();
+    modelo.enlaces.c1 = {
+      ...modelo.enlaces.c1!,
+      modificador: "condicion",
+      subtipoModificador: "C",
+    };
+    const transiciones = transicionesEstado(modelo, modelo.opds.opd!);
+    expect(transiciones.lineaPorEnlaceConsumo.get("c1")).toBe(
+      "*Procesar* ocurre si **Pedido** está en `pendiente`, en cuyo caso *Procesar* cambia **Pedido** de `pendiente` a `aprobado`, de lo contrario *Procesar* se omite.",
+    );
+    expect(transiciones.enlacesCubiertos.has("r1")).toBe(true);
+  });
+
+  test("condicion sobre consumo de estado emite cambio desde el estado", () => {
+    const modelo = modeloConEstados();
+    const enlace = {
+      ...modelo.enlaces.c1!,
+      modificador: "condicion",
+      subtipoModificador: "C",
+    } satisfies Enlace;
+    expect(oracionEnlaceConRuta(modelo, enlace)).toBe(
+      "*Procesar* ocurre si **Pedido** está en `pendiente`, en cuyo caso *Procesar* cambia **Pedido** de `pendiente`, de lo contrario *Procesar* se omite.",
+    );
+  });
+
+  test("condicion sobre resultado a estado emite cambio hacia el estado", () => {
+    const modelo = modeloConEstados();
+    const enlace = {
+      ...modelo.enlaces.r1!,
+      modificador: "condicion",
+      subtipoModificador: "C",
+    } satisfies Enlace;
+    expect(oracionEnlaceConRuta(modelo, enlace)).toBe(
+      "*Procesar* ocurre si **Pedido** existe, en cuyo caso *Procesar* cambia **Pedido** a `aprobado`, de lo contrario *Procesar* se omite.",
+    );
+  });
+
+  test("condicion sobre agente en estado no repite el estado como existencia", () => {
+    const modelo = modeloConEstados();
+    modelo.entidades.operador = { id: "operador", tipo: "objeto", nombre: "Operador", esencia: "fisica", afiliacion: "sistemica" };
+    modelo.estados.s3 = { id: "s3", entidadId: "operador", nombre: "disponible" };
+    const enlace: Enlace = {
+      id: "a1",
+      tipo: "agente",
+      origenId: { kind: "estado", id: "s3" },
+      destinoId: { kind: "entidad", id: "proceso" },
+      etiqueta: "",
+      modificador: "condicion",
+      subtipoModificador: "C",
+    };
+    expect(oracionEnlaceConRuta(modelo, enlace)).toBe(
+      "**Operador** maneja *Procesar* si **Operador** está en `disponible`, de lo contrario *Procesar* se omite.",
+    );
+  });
+
+  test("condicion sobre instrumento en estado usa estar", () => {
+    const modelo = modeloConEstados();
+    modelo.estados.s3 = { id: "s3", entidadId: "producto", nombre: "calibrado" };
+    const enlace: Enlace = {
+      id: "i1",
+      tipo: "instrumento",
+      origenId: { kind: "estado", id: "s3" },
+      destinoId: { kind: "entidad", id: "proceso" },
+      etiqueta: "",
+      modificador: "condicion",
+      subtipoModificador: "C",
+    };
+    expect(oracionEnlaceConRuta(modelo, enlace)).toBe(
+      "*Procesar* ocurre si **Producto** está en `calibrado`, de lo contrario *Procesar* se omite.",
+    );
   });
 });
 
