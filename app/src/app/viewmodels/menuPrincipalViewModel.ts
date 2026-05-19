@@ -40,15 +40,9 @@ export function useMenuPrincipalViewModel() {
   } = useZustandWorkspacePort();
   const {
     vistaMapaActiva,
-    abrirVistaMapa,
-    cerrarVistaMapa,
   } = useZustandMapViewPort();
   const { toggleMapaPanelEstadisticas } = useZustandSystemMapControlsPort();
   const {
-    gridConfig,
-    toggleGrid,
-    aplicarLayoutSugerido,
-    iniciarModoSimulacion,
     abrirDialogoConfiguracion,
     abrirDialogoPlantillas,
   } = useZustandWorkbenchViewControlsPort();
@@ -62,11 +56,6 @@ export function useMenuPrincipalViewModel() {
   const objetoSeleccionadoId = seleccionId && modelo.entidades[seleccionId]?.tipo === "objeto" ? seleccionId : null;
   const { abrirModalUrls } = useZustandEntityMetadataOpenersPort();
   const demos = useMemo(() => listarFixtures(), []);
-
-  const toggleVistaMapa = () => {
-    if (vistaMapaActiva) cerrarVistaMapa();
-    else abrirVistaMapa();
-  };
 
   const copiarJsonAlPortapapeles = () => {
     const json = exportarJson();
@@ -94,12 +83,7 @@ export function useMenuPrincipalViewModel() {
     modelo,
     opdActivoId,
     vistaMapaActiva,
-    toggleVistaMapa,
     toggleMapaPanelEstadisticas,
-    gridConfig,
-    toggleGrid,
-    aplicarLayoutSugerido,
-    iniciarModoSimulacion,
     abrirTablaEnlaces,
     abrirDialogoPlantillas,
     abrirDialogoGuardarPlantilla,

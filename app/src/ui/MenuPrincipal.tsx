@@ -36,12 +36,7 @@ export function MenuPrincipal() {
     modelo,
     opdActivoId,
     vistaMapaActiva,
-    toggleVistaMapa,
     toggleMapaPanelEstadisticas,
-    gridConfig,
-    toggleGrid,
-    aplicarLayoutSugerido,
-    iniciarModoSimulacion,
     abrirTablaEnlaces,
     abrirDialogoPlantillas,
     abrirDialogoGuardarPlantilla,
@@ -71,11 +66,13 @@ export function MenuPrincipal() {
 
       <MenuSection title="Modelo">
         <MenuItem label="Guardar" shortcut="Ctrl+S" onClick={() => ejecutar(guardarLocal)} />
+        <MenuItem label="Guardar como" onClick={() => ejecutar(abrirGuardarComo)} />
         <MenuItem label="Cargar otro..." shortcut="Ctrl+O" onClick={() => ejecutar(() => confirmarSiDirty(abrirCargarModelo))} />
+        <MenuItem label="Cargar archivados..." onClick={() => ejecutar(() => confirmarSiDirty(() => abrirCargarModelo({ mostrarArchivados: true })))} />
         <MenuItem label="Nuevo" shortcut="Ctrl+N" onClick={() => ejecutar(() => confirmarSiDirty(nuevoModelo))} />
         <MenuItem label="Abrir como pestaña" shortcut="Ctrl+T" onClick={() => ejecutar(abrirPestanaNueva)} />
         <MenuItem label="Renombrar..." onClick={() => ejecutar(abrirDialogoConfiguracion)} />
-        <MenuItem label="Guardar como" onClick={() => ejecutar(abrirGuardarComo)} />
+        <MenuItem label="Configuración..." onClick={() => ejecutar(abrirDialogoConfiguracion)} />
         <MenuItem label="Asistente guiado" onClick={() => ejecutar(iniciarAsistente)} />
       </MenuSection>
 
@@ -84,11 +81,7 @@ export function MenuPrincipal() {
         <MenuItem label="Buscar en todo el workspace" shortcut="Ctrl+Shift+F" onClick={() => ejecutar(abrirBusquedaGlobal)} />
       </MenuSection>
 
-      <MenuSection title="Vista">
-        <MenuItem label="Mapa del sistema" shortcut={vistaMapaActiva ? "Activo" : undefined} onClick={() => ejecutar(toggleVistaMapa)} />
-        <MenuItem label="Simulación conceptual" onClick={() => ejecutar(iniciarModoSimulacion)} />
-        <MenuItem label={gridConfig.activa ? "Ocultar cuadrícula del canvas" : "Mostrar cuadrícula del canvas"} onClick={() => ejecutar(toggleGrid)} />
-        <MenuItem label="Auto-layout" onClick={() => ejecutar(aplicarLayoutSugerido)} />
+      <MenuSection title="Exportar">
         {vistaMapaActiva ? (
           <>
             <MenuItem label="Exportar mapa como PNG" onClick={() => ejecutar(() => solicitarExportMapa("png"))} />
@@ -98,20 +91,24 @@ export function MenuPrincipal() {
         ) : (
           <MenuItem label="Exportar OPD actual como SVG" disabled={!canvasPaper} onClick={() => ejecutar(exportarOpdActualSvg)} />
         )}
+        <MenuItem label="Exportar JSON" onClick={() => ejecutar(copiarJsonAlPortapapeles)} />
+        <MenuItem label="Importar/Exportar JSON..." onClick={() => ejecutar(abrirDialogoImportarExportarJson)} />
       </MenuSection>
 
-      <MenuSection title="Más">
+      <MenuSection title="Plantillas">
         <MenuItem label="Guardar como plantilla..." icon={templateIcon} onClick={() => ejecutar(abrirDialogoGuardarPlantilla)} />
         <MenuItem label="Plantillas..." icon={templateIcon} onClick={() => ejecutar(abrirDialogoPlantillas)} />
-        <MenuItem label="Configuración..." onClick={() => ejecutar(abrirDialogoConfiguracion)} />
-        <MenuItem label="Cargar archivados..." onClick={() => ejecutar(() => confirmarSiDirty(() => abrirCargarModelo({ mostrarArchivados: true })))} />
+      </MenuSection>
+
+      <MenuSection title="Workspace">
         <MenuItem label={mostrarArchivados ? "Ocultar archivados" : "Mostrar archivados"} onClick={() => ejecutar(toggleMostrarArchivados)} />
         <MenuItem label={mostrarVersiones ? "Ocultar glifos de versiones" : "Mostrar glifos de versiones"} onClick={() => ejecutar(toggleMostrarVersiones)} />
         {modeloPersistidoId ? (
           <MenuItem label="Versiones del modelo" onClick={() => ejecutar(() => abrirVersiones(modeloPersistidoId))} />
         ) : null}
-        <MenuItem label="Exportar JSON" onClick={() => ejecutar(copiarJsonAlPortapapeles)} />
-        <MenuItem label="Importar/Exportar JSON..." onClick={() => ejecutar(abrirDialogoImportarExportarJson)} />
+      </MenuSection>
+
+      <MenuSection title="Herramientas">
         <div
           role="none"
           style={style.submenuWrapper}

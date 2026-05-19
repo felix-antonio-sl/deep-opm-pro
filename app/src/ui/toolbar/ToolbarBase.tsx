@@ -440,7 +440,7 @@ function construirItemsMenuMas(p: ParametrosItemsMas): ToolbarMasItem[] {
   items.push({
     kind: "accion",
     id: "alias-visibles",
-    label: p.uiAliasVisibles ? "Ocultar alias" : "Mostrar alias",
+    label: p.uiAliasVisibles ? "Alias visibles" : "Alias ocultos",
     activo: p.uiAliasVisibles,
     title: p.uiAliasVisibles ? "Ocultar alias bajo el nombre" : "Mostrar alias bajo el nombre",
     onClick: p.onToggleAlias,
@@ -448,7 +448,7 @@ function construirItemsMenuMas(p: ParametrosItemsMas): ToolbarMasItem[] {
   items.push({
     kind: "accion",
     id: "desc-visibles",
-    label: p.uiDescripcionesVisibles ? "Ocultar descripciones" : "Mostrar descripciones",
+    label: p.uiDescripcionesVisibles ? "Descripciones visibles" : "Descripciones ocultas",
     activo: p.uiDescripcionesVisibles,
     title: p.uiDescripcionesVisibles ? "Ocultar descripciones bajo el nombre" : "Mostrar descripciones bajo el nombre",
     onClick: p.onToggleDescripciones,
@@ -473,7 +473,7 @@ function construirItemsMenuMas(p: ParametrosItemsMas): ToolbarMasItem[] {
   });
 
   // Plantillas como acción accesoria (mantener invocable desde el menú).
-  items.push({ kind: "separador", id: "sep-plantillas", label: "Plantillas y vista" });
+  items.push({ kind: "separador", id: "sep-plantillas", label: "Plantillas" });
   items.push({
     kind: "accion",
     id: "abrir-plantillas",
@@ -482,10 +482,11 @@ function construirItemsMenuMas(p: ParametrosItemsMas): ToolbarMasItem[] {
     onClick: p.onAbrirPlantillas,
     testId: "toolbar-mas-plantillas",
   });
+  items.push({ kind: "separador", id: "sep-vista", label: "Vista" });
   items.push({
     kind: "accion",
     id: "toggle-grid",
-    label: p.gridActiva ? "Ocultar cuadrícula" : "Mostrar cuadrícula",
+    label: p.gridActiva ? "Cuadrícula visible" : "Cuadrícula oculta",
     activo: p.gridActiva,
     title: p.gridActiva ? "Cuadrícula activa · clic para ocultar" : "Mostrar cuadrícula del canvas",
     onClick: p.onToggleGrid,
@@ -510,7 +511,7 @@ function construirItemsMenuMas(p: ParametrosItemsMas): ToolbarMasItem[] {
   items.push({
     kind: "accion",
     id: "biblioteca-dock",
-    label: p.bibliotecaDockAbierto ? "Cerrar biblioteca dock" : "Abrir biblioteca dock",
+    label: "Biblioteca dock",
     activo: p.bibliotecaDockAbierto,
     title: p.bibliotecaDockAbierto ? "Cerrar biblioteca dock (Ctrl+B)" : "Abrir biblioteca dock acoplada al árbol (Ctrl+B)",
     onClick: p.onToggleBibliotecaDock,
@@ -519,7 +520,7 @@ function construirItemsMenuMas(p: ParametrosItemsMas): ToolbarMasItem[] {
   items.push({
     kind: "accion",
     id: "mapa-sistema",
-    label: p.vistaMapaActiva ? "Cerrar mapa del sistema" : "Abrir mapa del sistema",
+    label: "Mapa del sistema",
     activo: p.vistaMapaActiva,
     title: p.vistaMapaActiva ? "Volver al canvas de edición" : "Abrir mapa del sistema",
     onClick: p.onToggleMapa,

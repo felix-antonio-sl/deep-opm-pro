@@ -84,6 +84,25 @@ test("⋯ Más abre menu accesible, Escape cierra y se navega por teclado", asyn
   expect(pageErrors).toEqual([]);
 });
 
+test("⋯ Más usa labels de estado estables para apariencia y vista", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await cerrarPantallaInicioSiVisible(page);
+
+  await page.getByTestId("toolbar-mas-trigger").click();
+  const menu = page.getByTestId("toolbar-mas-menu");
+  await expect(menu).toBeVisible();
+
+  await expect(menu.getByRole("menuitem", { name: "Alias visibles", exact: true })).toBeVisible();
+  await expect(menu.getByRole("menuitem", { name: "Descripciones visibles", exact: true })).toBeVisible();
+  await expect(menu.getByRole("menuitem", { name: "Cuadrícula visible", exact: true })).toBeVisible();
+  await expect(menu.getByRole("menuitem", { name: "Mapa del sistema", exact: true })).toBeVisible();
+
+  expect(pageErrors).toEqual([]);
+});
+
 test("acciones movidas al menu Mas siguen invocables (plantillas, configuracion, modo imagen)", async ({ page }) => {
   const pageErrors: string[] = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));
@@ -121,7 +140,7 @@ test("acciones movidas al menu Mas siguen invocables (plantillas, configuracion,
   expect(pageErrors).toEqual([]);
 });
 
-test("MenuPrincipal separa archivo, renombrado y configuracion segun §7.9", async ({ page }) => {
+test("MenuPrincipal separa archivo, datos y herramientas sin duplicar la vista del toolbar", async ({ page }) => {
   const pageErrors: string[] = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
@@ -137,6 +156,12 @@ test("MenuPrincipal separa archivo, renombrado y configuracion segun §7.9", asy
   await expect(menu.getByRole("menuitem", { name: "Abrir como pestaña", exact: true })).toBeVisible();
   await expect(menu.getByRole("menuitem", { name: "Renombrar...", exact: true })).toBeVisible();
   await expect(menu.getByRole("menuitem", { name: "Configuración...", exact: true })).toBeVisible();
+  await expect(menu.getByRole("menuitem", { name: "Exportar OPD actual como SVG", exact: true })).toBeVisible();
+  await expect(menu.getByRole("menuitem", { name: "Importar/Exportar JSON...", exact: true })).toBeVisible();
+  await expect(menu.getByRole("menuitem", { name: "Tabla de enlaces", exact: true })).toBeVisible();
+  await expect(menu.getByRole("menuitem", { name: "Mapa del sistema", exact: true })).toHaveCount(0);
+  await expect(menu.getByRole("menuitem", { name: "Simulación conceptual", exact: true })).toHaveCount(0);
+  await expect(menu.getByRole("menuitem", { name: "Auto-layout", exact: true })).toHaveCount(0);
 
   await menu.getByRole("menuitem", { name: "Renombrar...", exact: true }).click();
   const dialogoConfig = page.getByRole("dialog", { name: "Configuración" });
