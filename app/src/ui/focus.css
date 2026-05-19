@@ -2,7 +2,7 @@
  * Focus visible global. WCAG 2.4.7 (AA) cubierto por defecto del navegador
  * con outline de 1px gris; este archivo eleva visibilidad al mínimo
  * recomendado por WCAG 2.4.13 Focus Appearance: 2px de grosor mínimo y
- * contraste >=3:1 contra el fondo (acento UI #3DA8FF cumple sobre fondos
+ * contraste >=3:1 contra el fondo (acento UI #007DB8 cumple sobre fondos
  * claros y oscuros del chrome).
  *
  * Se usa :focus-visible (no :focus) para no mostrar outline en clic con
@@ -10,7 +10,7 @@
  */
 
 :focus-visible {
-  outline: 2px solid #3DA8FF;
+  outline: 2px solid #007DB8;
   outline-offset: 2px;
   border-radius: 3px;
 }

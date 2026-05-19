@@ -1,5 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import type { Apariencia, Entidad, Modelo } from "../../../modelo/tipos";
+import { jointCanvasPalette } from "../palette";
 import { proyectarHaloSeleccion, refResaltaEntidad, refResaltaEnlace } from "./halos";
 
 describe("composer halos", () => {
@@ -8,7 +9,7 @@ describe("composer halos", () => {
     const body = (cell.attrs as Record<string, unknown>).body as Record<string, unknown>;
 
     expect(cell.id).toBe("seleccion-ap-1");
-    expect(body.stroke).toBe("#3DA8FF");
+    expect(body.stroke).toBe(jointCanvasPalette.seleccion);
     expect(body.strokeWidth).toBe(2);
     expect(cell.opm).toEqual({ kind: "selection-halo", opdId: "opd-1", targetId: "ent-1" });
   });

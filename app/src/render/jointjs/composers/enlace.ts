@@ -5,6 +5,7 @@ import { modoPlegadoApariencia, partesDePlegado } from "../../../modelo/plegado"
 import { anclajeRefinableSimbolo, anclajeRefinadorSimbolo, anclajeSimboloConFallback, anclajeSimboloHaciaPunto } from "../../../modelo/simboloEstructural";
 import type { AnclajesSimboloEstructural, Apariencia, Enlace, ExtremoEnlace, Id, Modelo, Posicion, TipoEnlace } from "../../../modelo/tipos";
 import { etiquetasRuta } from "../rutaLabels";
+import { jointCanvasPalette } from "../palette";
 import {
   aplicarLayoutLabel,
   anchoWrapEntreApariencias,
@@ -190,7 +191,7 @@ export function proyectarEnlace(
     attrs: {
       wrapper: {
         stroke: seleccionada
-          ? "rgba(61, 168, 255, 0.35)"
+          ? jointCanvasPalette.seleccionSuave
           : activoRuntime
             ? "rgba(59, 195, 255, 0.22)"
             : "transparent",
@@ -686,7 +687,7 @@ function elevarMarcadorEstructural(cells: JointCellJson[], triangleId: Id): Join
 export function attrsLinea(seleccionada: boolean): Record<string, unknown> {
   return {
     wrapper: {
-      stroke: seleccionada ? "rgba(61, 168, 255, 0.35)" : "transparent",
+      stroke: seleccionada ? jointCanvasPalette.seleccionSuave : "transparent",
       strokeWidth: CANON.dims.enlaceHitArea,
       cursor: "pointer",
     },

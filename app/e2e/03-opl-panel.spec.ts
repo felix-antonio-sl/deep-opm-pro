@@ -71,7 +71,7 @@ test("sincroniza OPL interactivo con canvas y renombrado inverso", async ({ page
 
   const tokenEntrada = panel.getByText("Entrada").first();
   await tokenEntrada.hover();
-  await expect(tokenEntrada).toHaveCSS("background-color", "rgb(225, 230, 235)");
+  await expect(tokenEntrada).toHaveCSS("background-color", "rgb(217, 231, 239)");
 
   await elementoPorTexto(page, "Procesar").click();
   await panel.getByLabel("Filtrar por selección").check();

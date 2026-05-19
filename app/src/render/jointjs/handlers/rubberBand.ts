@@ -1,6 +1,7 @@
 import type { dia } from "jointjs";
 import { interseccionRectangulo } from "../../../canvas/seleccionMultiple";
 import type { Modelo, TipoEntidad } from "../../../modelo/tipos";
+import { jointCanvasPalette } from "../palette";
 import { ctrlEvento, paperOff, posicionCanvasDesdeEvento, shiftEvento } from "./helpers";
 
 /**
@@ -68,8 +69,8 @@ function iniciarRubberBand(args: {
   overlay.setAttribute("data-testid", "rubber-band-seleccion");
   overlay.style.position = "absolute";
   overlay.style.pointerEvents = "none";
-  overlay.style.border = "1px solid #3DA8FF";
-  overlay.style.background = "rgba(61, 168, 255, 0.2)";
+  overlay.style.border = `1px solid ${jointCanvasPalette.seleccion}`;
+  overlay.style.background = jointCanvasPalette.seleccionSuave;
   overlay.style.left = `${startClient.clientX - bounds.left}px`;
   overlay.style.top = `${startClient.clientY - bounds.top}px`;
   overlay.style.width = "0px";

@@ -5,6 +5,7 @@ import type { TipoEntidad } from "../../modelo/tipos";
 import { configurarGridPaper } from "./composers/grid";
 import { opmShapes } from "./customShapes";
 import { CANVAS_BASE, cellViewModel, dimensionesPaper, metadata, paperView, setPaperDimensions } from "./handlers/helpers";
+import { jointCanvasPalette } from "./palette";
 
 export interface JointCanvasAdapter {
   graph: dia.Graph;
@@ -41,7 +42,7 @@ export function crearJointCanvasAdapter(args: CrearJointCanvasAdapterArgs): Join
     frozen: false,
     gridSize: 10,
     drawGrid: true,
-    background: { color: "#eef3f8" },
+    background: { color: jointCanvasPalette.background },
     snapLabels: true,
     linkPinning: false,
     // Confina children embedded al bbox del padre durante el drag visual

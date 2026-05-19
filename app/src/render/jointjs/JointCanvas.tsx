@@ -26,6 +26,7 @@ import { cablearZoomFit, cablearZoomWheel, fitCanvasAPantalla } from "./handlers
 import { aplicarRuteoOpcloudEnlaces } from "./opcloudRouting";
 import { construirAvisosFeedbackCanvas } from "./overlayCanvas/avisos";
 import { OverlayLayer } from "./overlayCanvas/OverlayLayer";
+import { jointCanvasPalette } from "./palette";
 import { ordenarTodosLosEnlacesEstructurales } from "./sortStructuralLinks";
 import {
   actualizarGridJointCanvasAdapter,
@@ -665,7 +666,7 @@ const style = {
     height: "100%",
     minWidth: 0,
     minHeight: 0,
-    background: "#eef3f8",
+    background: jointCanvasPalette.background,
     overflow: "auto",
     overscrollBehavior: "contain",
   },

@@ -1,4 +1,5 @@
 import type { DescriptorMapa, EstiloResaltadoMapa, JointCellJson } from "../../../canvas/mapa/tipos";
+import { jointCanvasPalette } from "../palette";
 
 /**
  * Proyección JointJS del meta-grafo.
@@ -100,7 +101,7 @@ export function proyectarMapaSistemaAJointCells(
 function colorResaltado(estilo: EstiloResaltadoMapa | undefined): string {
   if (estilo === "cyan") return "#3BC3FF";
   if (estilo === "verde-lima") return "#70E483";
-  if (estilo === "azul") return "#3DA8FF";
+  if (estilo === "azul") return jointCanvasPalette.seleccion;
   if (estilo === "naranja") return "#FF9F43";
   return "#a0b3c8";
 }

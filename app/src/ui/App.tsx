@@ -363,7 +363,7 @@ const layout = {
     gridTemplateRows: "48px 32px minmax(0, 1fr) auto auto",
     width: "100%",
     height: "100%",
-    background: "#f5f7fb",
+    background: tokens.colors.fondoApp,
   },
   workbench: {
     display: "grid",
@@ -376,8 +376,8 @@ const layout = {
     minHeight: 0,
     minWidth: 0,
     overflow: "hidden",
-    borderTop: "1px solid #d9e0ea",
-    borderBottom: "1px solid #d9e0ea",
+    borderTop: `1px solid ${tokens.colors.bordeIntermedio}`,
+    borderBottom: `1px solid ${tokens.colors.bordeIntermedio}`,
   },
   treePane: {
     gridArea: "tree",
@@ -422,11 +422,11 @@ const layout = {
     height: "220px",
     minHeight: "220px",
     overflow: "hidden",
-    borderTop: "1px solid #d9e0ea",
+    borderTop: `1px solid ${tokens.colors.bordeIntermedio}`,
   },
   timelineFallback: {
     height: "220px",
-    borderTop: "1px solid #d9e0ea",
+    borderTop: `1px solid ${tokens.colors.bordeIntermedio}`,
   },
   // L2 ronda 21: en mobile la grilla es Toolbar+BarraPestanas+Section donde la
   // section contiene canvas+overlay+tabs como flex columna. Sin OPL inferior.
@@ -435,7 +435,7 @@ const layout = {
     gridTemplateRows: "48px 32px minmax(0, 1fr)",
     width: "100%",
     height: "100%",
-    background: "#f5f7fb",
+    background: tokens.colors.fondoApp,
     overflowX: "hidden",
   },
   mobileSection: {

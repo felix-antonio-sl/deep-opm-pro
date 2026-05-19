@@ -470,7 +470,7 @@ test("HU-33.010: insertar plantilla enfoca temporalmente los ids nuevos", async 
   await abrirPlantillasDesdeMas(page);
   await page.getByTestId("insertar-plantilla").click();
 
-  await expect(page.locator(".joint-element").filter({ has: page.locator('[stroke="#3DA8FF"]') }).first()).toBeVisible();
+  await expect(page.locator(".joint-element").filter({ has: page.locator('[stroke="#007DB8"]') }).first()).toBeVisible();
   await page.waitForTimeout(3200);
   const exportado = await exportadoActual(page);
   expect(Object.values(exportado.modelo.entidades).some((entidad) => entidad.nombre === "Sensor")).toBe(true);

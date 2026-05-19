@@ -10,8 +10,8 @@ describe("tokens.colors — paleta UI mínima [JOYAS §1]", () => {
     expect(colors.canvas.texto).toBe("#000002");
   });
 
-  test("acento UI no colisiona con color semántico de proceso", () => {
-    expect(colors.acentoUi).toBe("#3DA8FF");
+  test("acento UI deriva del proceso canónico sin colisionar con su stroke", () => {
+    expect(colors.acentoUi).toBe("#007DB8");
     expect(colors.acentoUi).not.toBe(colors.canvas.proceso);
   });
 
@@ -21,12 +21,12 @@ describe("tokens.colors — paleta UI mínima [JOYAS §1]", () => {
   });
 
   test("acentoUiSuave es el fondo claro derivado del acento UI [ronda 13.0 T1.2]", () => {
-    expect(colors.acentoUiSuave).toBe("#eaf8ff");
+    expect(colors.acentoUiSuave).toBe("#E2F7FF");
     expect(colors.acentoUiSuave).not.toBe(colors.acentoUi);
   });
 
   test("chromeNeutralSuave es el fondo claro derivado del chrome neutro [ronda 13.0 T1.2]", () => {
-    expect(colors.chromeNeutralSuave).toBe("#e8eef5");
+    expect(colors.chromeNeutralSuave).toBe("#EEF3FA");
     expect(colors.chromeNeutralSuave).not.toBe(colors.chromeNeutral);
   });
 
@@ -89,6 +89,7 @@ describe("tokens.colors — paleta UI mínima [JOYAS §1]", () => {
       ["info", colors.infoTextoOscuro, colors.infoFondo],
       ["objeto chrome", colors.verdeObjetoOscuro, colors.objetoFondo],
       ["opl", colors.verdeOpl, colors.oplFondo],
+      ["acento primario", colors.fondoChrome, colors.acentoUi],
     ] as const;
 
     for (const [nombre, foreground, background] of pares) {

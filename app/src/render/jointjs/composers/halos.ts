@@ -1,5 +1,6 @@
 import type { Apariencia, Enlace, Entidad, Id, Modelo, Estado } from "../../../modelo/tipos";
 import type { OplReferencia } from "../../../opl/interaccion";
+import { jointCanvasPalette } from "../palette";
 import type { JointCellJson } from "../proyeccionTipos";
 import { puntoCapsulaEstado, rectCapsulaEstado } from "./estados";
 
@@ -21,7 +22,7 @@ export function proyectarHaloSeleccion(opdId: Id, apariencia: Apariencia, entida
       body: entidad.tipo === "objeto"
         ? {
             fill: "transparent",
-            stroke: "#3DA8FF",
+            stroke: jointCanvasPalette.seleccion,
             strokeWidth: 2,
             rx: 6,
             ry: 6,
@@ -29,7 +30,7 @@ export function proyectarHaloSeleccion(opdId: Id, apariencia: Apariencia, entida
           }
         : {
             fill: "transparent",
-            stroke: "#3DA8FF",
+            stroke: jointCanvasPalette.seleccion,
             strokeWidth: 2,
             cx: width / 2,
             cy: height / 2,
@@ -68,7 +69,7 @@ export function proyectarHaloSeleccionEstado(
     attrs: {
       body: {
         fill: "transparent",
-        stroke: "#3DA8FF",
+        stroke: jointCanvasPalette.seleccion,
         strokeWidth: 2,
         rx: 10,
         ry: 10,
