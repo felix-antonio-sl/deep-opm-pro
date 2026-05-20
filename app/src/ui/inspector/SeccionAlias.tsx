@@ -12,11 +12,13 @@ export function SeccionAlias(props: Props) {
     <div style={sectionStyles.grid2} data-testid="inspector-seccion-alias">
       <label style={style.field}>
         <span style={style.label}>Alias</span>
-        <input style={style.input} value={props.alias ?? ""} onInput={(event) => props.onAlias(event.currentTarget.value)} placeholder="{alias}" />
+        {/* Ronda23 L1 #14: placeholders con ejemplo concreto en vez de slugs
+            `{alias}`/`[unidad]` que se leían como variables sin sustituir. */}
+        <input style={style.input} value={props.alias ?? ""} onInput={(event) => props.onAlias(event.currentTarget.value)} placeholder="ej: cliente" />
       </label>
       <label style={style.field}>
         <span style={style.label}>Unidad</span>
-        <input style={style.input} value={props.unidad ?? ""} onInput={(event) => props.onUnidad(event.currentTarget.value)} placeholder="[unidad]" />
+        <input style={style.input} value={props.unidad ?? ""} onInput={(event) => props.onUnidad(event.currentTarget.value)} placeholder="ej: kg" />
       </label>
     </div>
   );

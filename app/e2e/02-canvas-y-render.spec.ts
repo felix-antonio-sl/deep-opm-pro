@@ -572,7 +572,9 @@ test("HU-17.012 renderiza sintaxis compuesta Nombre [Unidad] {alias}", async ({ 
 
   await page.goto("/");
   await crearAtributoNumericoSmoke(page);
-  await page.getByPlaceholder("{alias}").fill("T");
+  // Ronda23 L1 #14: placeholder del input alias cambió de "{alias}" a
+  // "ej: cliente" (sin slugs visibles que parezcan variables sin sustituir).
+  await page.getByPlaceholder("ej: cliente").fill("T");
 
   await expect(elementoPorTexto(page, "Temperatura [°C] {T}")).toHaveCount(1);
   expect(pageErrors).toEqual([]);

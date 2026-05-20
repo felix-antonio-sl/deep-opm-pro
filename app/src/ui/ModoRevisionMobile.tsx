@@ -29,9 +29,13 @@ interface TabSpec {
   testId: string;
 }
 
+// Ronda23 L1 #13: el glifo Command de Mac (⌘) no significa "OPDs". Se cambia
+// por una llave de jerarquía (⎘) que sugiere árbol/multi-OPD. Decisión: usar
+// glifo Unicode (no SVG) por consistencia con el resto del bottom nav, que es
+// puramente tipográfico y se renderiza con la familia chrome.
 const TABS: ReadonlyArray<TabSpec> = [
   { id: "canvas", etiqueta: "Canvas", icono: "▦", testId: "mobile-tab-canvas" },
-  { id: "opds", etiqueta: "OPDs", icono: "⌘", testId: "mobile-tab-opds" },
+  { id: "opds", etiqueta: "OPDs", icono: "⎘", testId: "mobile-tab-opds" },
   { id: "opl", etiqueta: "OPL", icono: "¶", testId: "mobile-tab-opl" },
   { id: "issues", etiqueta: "Issues", icono: "!", testId: "mobile-tab-issues" },
 ];
