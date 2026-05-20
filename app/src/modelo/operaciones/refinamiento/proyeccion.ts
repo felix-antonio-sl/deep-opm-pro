@@ -1,3 +1,4 @@
+import { sincronizarAbanicos } from "../../abanicos";
 import { esEnlaceExcepcionTemporal } from "../../constantes";
 import { contextoExternoDescomposicion } from "../../contextoRefinamiento";
 import {
@@ -12,11 +13,13 @@ import { obtenerRefinamiento } from "../../refinamientos";
 import type {
   Apariencia,
   AparienciaEnlace,
+  Abanico,
   Enlace,
   ExtremoEnlace,
   Id,
   Modelo,
   Opd,
+  PuertoApariencia,
   Resultado,
   TipoEnlace,
 } from "../../tipos";
@@ -185,6 +188,8 @@ export function proyectarEnlacesExternosEnRefinamiento(
 
   let nextSeq = modelo.nextSeq;
   const enlaces = { ...modelo.enlaces };
+  let abanicos = modelo.abanicos;
+  const apariencias = { ...opd.apariencias };
   const aparienciasEnlace: Record<Id, AparienciaEnlace> = { ...opd.enlaces };
   let cambio = false;
 
@@ -252,19 +257,119 @@ export function proyectarEnlacesExternosEnRefinamiento(
     }
   }
 
+  const abanicosProyectados = proyectarAbanicosExternosDerivados({
+    modelo,
+    padre,
+    opdId,
+    refinamientoId: contorno.entidad.id,
+    enlaces,
+    apariencias,
+    aparienciasEnlace,
+    nextSeq,
+  });
+  if (abanicosProyectados.cambio) {
+    cambio = true;
+    nextSeq = abanicosProyectados.nextSeq;
+    abanicos = abanicosProyectados.abanicos;
+  }
+
   if (!cambio) return ok(modelo);
   return ok({
     ...modelo,
     nextSeq,
     enlaces,
+    ...(abanicos ? { abanicos } : {}),
     opds: {
       ...modelo.opds,
       [opdId]: {
         ...opd,
+        apariencias,
         enlaces: aparienciasEnlace,
       },
     },
   });
+}
+
+function proyectarAbanicosExternosDerivados(args: {
+  modelo: Modelo;
+  padre: Opd;
+  opdId: Id;
+  refinamientoId: Id;
+  enlaces: Record<Id, Enlace>;
+  apariencias: Record<Id, Apariencia>;
+  aparienciasEnlace: Record<Id, AparienciaEnlace>;
+  nextSeq: number;
+}): { cambio: boolean; nextSeq: number; abanicos?: Record<Id, Abanico> } {
+  const abanicosPadre = Object.values(args.modelo.abanicos ?? {})
+    .filter((abanico) => abanico.opdId === args.padre.id)
+    .filter((abanico) => abanico.puertoComun.entidadId === args.refinamientoId);
+  if (abanicosPadre.length === 0) {
+    return args.modelo.abanicos
+      ? { cambio: false, nextSeq: args.nextSeq, abanicos: args.modelo.abanicos }
+      : { cambio: false, nextSeq: args.nextSeq };
+  }
+
+  let cambio = false;
+  let nextSeq = args.nextSeq;
+  const abanicos: Record<Id, Abanico> = { ...(args.modelo.abanicos ?? {}) };
+  const visibles = new Set(Object.values(args.aparienciasEnlace).map((apariencia) => apariencia.enlaceId));
+
+  for (const abanicoPadre of abanicosPadre) {
+    const derivados = enlacesDerivadosVisibles(args.enlaces, visibles, abanicoPadre.enlaceIds, args.refinamientoId);
+    if (derivados.length < 2) continue;
+    const puertoComun = puertoComunDerivado(derivados);
+    if (!puertoComun) continue;
+    const aparienciaPuerto = aparienciaDeEntidad(args.apariencias, puertoComun.entidadId);
+    if (!aparienciaPuerto) continue;
+
+    const portId = `port-fan-ref-${abanicoPadre.id}-${args.opdId}-${puertoComun.lado}`;
+    const puertoRelativo = puertoRelativoPadre(args.padre, abanicoPadre)
+      ?? puertoFallback(puertoComun.lado);
+    const puertoActual = aparienciaPuerto.ports?.[portId];
+    if (!puertoActual || !mismoPuertoRelativo(puertoActual, puertoRelativo)) {
+      args.apariencias[aparienciaPuerto.id] = {
+        ...aparienciaPuerto,
+        ports: {
+          ...(aparienciaPuerto.ports ?? {}),
+          [portId]: puertoRelativo,
+        },
+      };
+      cambio = true;
+    }
+
+    for (const enlace of derivados) {
+      const siguiente = enlaceConPuertoComun(enlace, puertoComun.lado, portId);
+      if (siguiente !== enlace) {
+        args.enlaces[enlace.id] = siguiente;
+        cambio = true;
+      }
+    }
+
+    const enlaceIds = derivados.map((enlace) => enlace.id);
+    const existente = Object.values(abanicos).find((abanico) =>
+      abanico.opdId === args.opdId && mismosIds(abanico.enlaceIds, enlaceIds)
+    );
+    const abanicoId = existente?.id ?? siguienteId({ ...args.modelo, nextSeq }, "ab");
+    if (!existente) nextSeq += 1;
+    const siguiente: Abanico = {
+      id: abanicoId,
+      opdId: args.opdId,
+      puertoComun: {
+        entidadId: puertoComun.entidadId,
+        lado: puertoComun.lado,
+        portId,
+      },
+      puertoEntidadId: puertoComun.entidadId,
+      operador: abanicoPadre.operador,
+      enlaceIds,
+    };
+    if (!abanicosIguales(existente, siguiente)) {
+      abanicos[abanicoId] = siguiente;
+      cambio = true;
+    }
+  }
+
+  return { cambio, nextSeq, abanicos };
 }
 
 function subprocesosAutomaticos(modelo: Modelo, opd: Opd, refinamientoId: Id): SubprocesosRefinamiento {
@@ -276,6 +381,75 @@ function subprocesosAutomaticos(modelo: Modelo, opd: Opd, refinamientoId: Id): S
     ultimoId: ultimo?.entidadId ?? "",
     todosIds: subprocesos.map((apariencia) => apariencia.entidadId),
   };
+}
+
+function enlacesDerivadosVisibles(
+  enlaces: Record<Id, Enlace>,
+  visibles: Set<Id>,
+  enlacePadreIds: readonly Id[],
+  refinamientoId: Id,
+): Enlace[] {
+  return enlacePadreIds.flatMap((enlacePadreId) =>
+    Object.values(enlaces)
+      .filter((enlace) => visibles.has(enlace.id))
+      .filter((enlace) =>
+        enlace.derivado?.tipo === "enlace-externo-refinamiento" &&
+        enlace.derivado.refinamientoId === refinamientoId &&
+        enlace.derivado.enlacePadreId === enlacePadreId &&
+        enlace.derivado.origen !== "manual"
+      )
+  );
+}
+
+function puertoComunDerivado(enlaces: readonly Enlace[]): { entidadId: Id; lado: "origen" | "destino" } | null {
+  for (const lado of ["origen", "destino"] as const) {
+    const entidadId = entidadIdDirecto(enlaces[0] ? extremoPorLado(enlaces[0], lado) : undefined);
+    if (!entidadId) continue;
+    if (enlaces.every((enlace) => entidadIdDirecto(extremoPorLado(enlace, lado)) === entidadId)) return { entidadId, lado };
+  }
+  return null;
+}
+
+function extremoPorLado(enlace: Enlace, lado: "origen" | "destino"): ExtremoEnlace {
+  return lado === "origen" ? enlace.origenId : enlace.destinoId;
+}
+
+function entidadIdDirecto(extremo: ExtremoEnlace | undefined): Id | null {
+  return extremo?.kind === "entidad" ? extremo.id : null;
+}
+
+function aparienciaDeEntidad(apariencias: Record<Id, Apariencia>, entidadId: Id): Apariencia | undefined {
+  return Object.values(apariencias).find((apariencia) => apariencia.entidadId === entidadId);
+}
+
+function puertoRelativoPadre(padre: Opd, abanico: Abanico): PuertoApariencia | undefined {
+  const apariencia = aparienciaDeEntidad(padre.apariencias, abanico.puertoComun.entidadId);
+  return apariencia?.ports?.[abanico.puertoComun.portId];
+}
+
+function puertoFallback(lado: "origen" | "destino"): PuertoApariencia {
+  return lado === "origen" ? { x: 1, y: 0.5 } : { x: 0, y: 0.5 };
+}
+
+function enlaceConPuertoComun(enlace: Enlace, lado: "origen" | "destino", portId: Id): Enlace {
+  const campo = lado === "origen" ? "origenId" : "destinoId";
+  const extremo = enlace[campo];
+  if (extremo.kind !== "entidad" || extremo.portId === portId) return enlace;
+  return { ...enlace, [campo]: { ...extremo, portId } };
+}
+
+function mismoPuertoRelativo(a: PuertoApariencia, b: PuertoApariencia): boolean {
+  return a.x === b.x && a.y === b.y;
+}
+
+function abanicosIguales(a: Abanico | undefined, b: Abanico): boolean {
+  return !!a &&
+    a.opdId === b.opdId &&
+    a.operador === b.operador &&
+    a.puertoComun.entidadId === b.puertoComun.entidadId &&
+    a.puertoComun.lado === b.puertoComun.lado &&
+    a.puertoComun.portId === b.puertoComun.portId &&
+    mismosIds(a.enlaceIds, b.enlaceIds);
 }
 
 function materializarAparienciasExternas(
@@ -562,7 +736,7 @@ function limpiarEnlacesDerivadosAutomaticos(modelo: Modelo, opdId: Id, procesoRe
     Object.entries(modelo.enlaces).filter(([enlaceId]) => !candidatos.has(enlaceId) || idsAunVisibles.has(enlaceId)),
   );
 
-  return {
+  return sincronizarAbanicos({
     ...modelo,
     enlaces,
     opds: {
@@ -572,5 +746,5 @@ function limpiarEnlacesDerivadosAutomaticos(modelo: Modelo, opdId: Id, procesoRe
         enlaces: enlacesOpd,
       },
     },
-  };
+  });
 }

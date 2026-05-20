@@ -613,6 +613,40 @@ test("redistribuye consumo al primer subproceso y resultado al ultimo", async ({
   expect(pageErrors).toEqual([]);
 });
 
+test("BUG-20260520T060333Z-bddc4e traslada fan de resultados al diagrama refinado", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await jsonEditor(page).fill(JSON.stringify(modeloFanResultadoRefinable(), null, 2));
+  await page.getByRole("button", { name: "Importar" }).click();
+  await elementoPorTexto(page, "Procesar").click();
+  await irATabRefinamiento(page);
+  await ejecutarAccionCommandPalette(page, "inzoom", "accion-inzoom");
+  await expect(page.locator('[role="treeitem"]').filter({ hasText: "SD1: Procesar descompuesto" })).toHaveAttribute("aria-current", "page");
+
+  const exportado = await exportadoActual(page);
+  const procesar = Object.values(exportado.modelo.entidades).find((entidad) => entidad.nombre === "Procesar");
+  const ultimo = Object.values(exportado.modelo.entidades).find((entidad) => entidad.nombre === "Procesar 3");
+  const opdHijoId = procesar?.refinamientos?.descomposicion?.opdId;
+  if (!opdHijoId || !ultimo) throw new Error("No se exporto la descomposicion esperada");
+  const derivados = Object.values(exportado.modelo.opds[opdHijoId]?.enlaces ?? {})
+    .map((apariencia) => exportado.modelo.enlaces[apariencia.enlaceId])
+    .filter((enlace) => enlace?.tipo === "resultado" && enlace.derivado?.origen === "automatico");
+  const abanicosHijo = Object.values(exportado.modelo.abanicos ?? {}).filter((abanico) => abanico.opdId === opdHijoId);
+
+  expect(derivados).toHaveLength(2);
+  expect(abanicosHijo).toHaveLength(1);
+  expect(abanicosHijo[0]?.operador).toBe("O");
+  expect(abanicosHijo[0]?.enlaceIds).toEqual(derivados.map((enlace) => enlace.id));
+  expect(abanicosHijo[0]?.puertoComun).toEqual({
+    entidadId: ultimo.id,
+    lado: "origen",
+    portId: derivados[0]?.origenId.portId,
+  });
+  expect(pageErrors).toEqual([]);
+});
+
 test("reancla consumo derivado y conserva el ancla manual al reordenar", async ({ page }) => {
   const pageErrors: string[] = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));
@@ -753,6 +787,54 @@ async function abrirRenombradoInline(page: Page, target: Locator): Promise<void>
     if (await input.isVisible().catch(() => false)) return;
   }
   await expect(input).toBeVisible();
+}
+
+function modeloFanResultadoRefinable() {
+  return {
+    formato: "deep-opm-pro.modelo.v0",
+    modelo: {
+      id: "modelo-fan-refinamiento",
+      nombre: "Fan refinamiento",
+      opdRaizId: "opd-1",
+      nextSeq: 20,
+      entidades: {
+        "p-procesar": proceso("p-procesar", "Procesar"),
+        "o-a": objeto("o-a", "Objeto"),
+        "o-b": objeto("o-b", "Objeto_2"),
+      },
+      estados: {},
+      enlaces: {
+        "e-a": { id: "e-a", tipo: "resultado", origenId: { ...extremoEntidad("p-procesar"), portId: "port-fan-padre" }, destinoId: extremoEntidad("o-a"), etiqueta: "" },
+        "e-b": { id: "e-b", tipo: "resultado", origenId: { ...extremoEntidad("p-procesar"), portId: "port-fan-padre" }, destinoId: extremoEntidad("o-b"), etiqueta: "" },
+      },
+      abanicos: {
+        "ab-padre": {
+          id: "ab-padre",
+          opdId: "opd-1",
+          puertoComun: { entidadId: "p-procesar", lado: "origen", portId: "port-fan-padre" },
+          puertoEntidadId: "p-procesar",
+          operador: "O",
+          enlaceIds: ["e-a", "e-b"],
+        },
+      },
+      opds: {
+        "opd-1": {
+          id: "opd-1",
+          nombre: "SD",
+          padreId: null,
+          apariencias: {
+            "a-p": { id: "a-p", entidadId: "p-procesar", opdId: "opd-1", x: 260, y: 260, width: 135, height: 60, ports: { "port-fan-padre": { x: 1, y: 0.5 } } },
+            "a-a": { id: "a-a", entidadId: "o-a", opdId: "opd-1", x: 40, y: 60, width: 135, height: 60 },
+            "a-b": { id: "a-b", entidadId: "o-b", opdId: "opd-1", x: 520, y: 80, width: 135, height: 60 },
+          },
+          enlaces: {
+            "ae-a": { id: "ae-a", enlaceId: "e-a", opdId: "opd-1", vertices: [] },
+            "ae-b": { id: "ae-b", enlaceId: "e-b", opdId: "opd-1", vertices: [] },
+          },
+        },
+      },
+    },
+  };
 }
 
 test("HU-10.021: desplegar objeto crea OPD hijo y entrada en árbol jerárquico", async ({ page }) => {

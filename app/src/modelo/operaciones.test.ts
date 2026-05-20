@@ -6,6 +6,7 @@ import {
   ajustarMultiplicidad,
   cambiarAfiliacion,
   cambiarEsencia,
+  compartirAnclaExtremosEnlaces,
   agregarEstado,
   crearEnlace,
   crearEstadosIniciales,
@@ -39,6 +40,7 @@ import {
   validarFirmaEnlace,
   validarMultiplicidad,
 } from "./operaciones";
+import { formarAbanico } from "./abanicos";
 import { CANON } from "./constantes";
 import { solapa } from "./layout";
 import { extremoApuntaAEntidad, extremoEntidad, extremoEstado } from "./extremos";
@@ -1504,6 +1506,48 @@ describe("operaciones de modelo", () => {
         expect.objectContaining({ tipo: "efecto", origenId: extremoEntidad(sistema.id), destinoId: extremoEntidad(subproceso.id) }),
       ]));
     }
+  });
+
+  test("BUG-20260520T060333Z-bddc4e proyecta abanico de resultados al OPD hijo", () => {
+    let modelo = crearModelo();
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 240, y: 180 }, "Procesar"));
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 40, y: 40 }, "Objeto"));
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 560, y: 80 }, "Objeto_2"));
+    const procesar = entidadPorNombre(modelo, "Procesar");
+    const objeto = entidadPorNombre(modelo, "Objeto");
+    const objeto2 = entidadPorNombre(modelo, "Objeto_2");
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, procesar.id, objeto.id, "resultado"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, procesar.id, objeto2.id, "resultado"));
+    const resultadosPadre = Object.values(modelo.enlaces)
+      .filter((enlace) => enlace.tipo === "resultado")
+      .map((enlace) => enlace.id);
+    modelo = must(compartirAnclaExtremosEnlaces(modelo, modelo.opdRaizId, resultadosPadre, "origen", "E"));
+    modelo = must(formarAbanico(modelo, modelo.opdRaizId, resultadosPadre, "XOR"));
+
+    const descompuesto = must(descomponerProceso(modelo, modelo.opdRaizId, procesar.id));
+    modelo = descompuesto.modelo;
+    const ultimo = entidadPorNombre(modelo, "Procesar 3");
+    const derivadosResultado = Object.values(modelo.opds[descompuesto.opdId]?.enlaces ?? {})
+      .map((apariencia) => modelo.enlaces[apariencia.enlaceId])
+      .filter((enlace): enlace is Enlace => enlace !== undefined)
+      .filter((enlace) => enlace.tipo === "resultado" && enlace.derivado?.origen === "automatico");
+    const abanicosHijo = Object.values(modelo.abanicos ?? {}).filter((abanico) => abanico.opdId === descompuesto.opdId);
+
+    expect(derivadosResultado).toHaveLength(2);
+    expect(abanicosHijo).toHaveLength(1);
+    expect(abanicosHijo[0]).toEqual(expect.objectContaining({
+      operador: "XOR",
+      puertoComun: expect.objectContaining({
+        entidadId: ultimo.id,
+        lado: "origen",
+      }),
+      enlaceIds: derivadosResultado.map((enlace) => enlace.id),
+    }));
+    expect(derivadosResultado.every((enlace) => (
+      enlace.origenId.kind === "entidad" &&
+      enlace.origenId.id === ultimo.id &&
+      enlace.origenId.portId === abanicosHijo[0]?.puertoComun.portId
+    ))).toBe(true);
   });
 
   test("numera recursivamente OPDs hijos de procesos internos", () => {
