@@ -22,32 +22,36 @@
  */
 export const colors = {
   acentoUi: "#007DB8",
-  acentoUiSuave: "#E2F7FF",
-  acentoSecundario: "#14324A",
+  acentoUiSuave: "#DDF7FF",
+  acentoSecundario: "#0E2C3F",
   chromeNeutral: "#586D8C",
-  chromeNeutralSuave: "#EEF3FA",
+  chromeNeutralSuave: "#EDF4FA",
   fondoChrome: "#ffffff",
-  fondoCard: "#F8FCFF",
-  fondoElevado: "#F5FAFD",
-  fondoApp: "#F1F8FB",
-  fondoInput: "#FCFEFF",
-  fondoMuted: "#EAF2F6",
-  fondoNeutral: "#F2F5F8",
-  fondoTabla: "#F7FBFD",
-  fondoDeshabilitado: "#EEF3F7",
-  bordeSuave: "#DDEAF1",
-  bordeChrome: "#D8E6EF",
-  bordeIntermedio: "#CDDBE7",
-  bordeControl: "#B7C7D6",
-  bordeInput: "#9FB5C8",
-  bordeTabla: "#E1EBF2",
-  bordeSlate: "#C5D4E0",
-  bordeNeutral: "#CBD5DF",
-  textoPrimario: "#17212F",
-  textoSecundario: "#3B4A5E",
-  textoTerciario: "#586575",
-  textoControl: "#2E3E50",
-  textoSlate: "#2F4054",
+  fondoCard: "#F7FBFE",
+  fondoElevado: "#FFFFFF",
+  fondoApp: "#EAF1F6",
+  fondoInput: "#FFFFFF",
+  fondoMuted: "#E8F1F7",
+  fondoNeutral: "#F0F5F8",
+  fondoTabla: "#F8FBFD",
+  fondoDeshabilitado: "#EEF4F8",
+  fondoWorkbench: "#EDF4F7",
+  fondoPanel: "#FFFFFF",
+  fondoPanelSuave: "#F6FAFC",
+  bordeSuave: "#D8E5EE",
+  bordeChrome: "#D2E0EA",
+  bordeIntermedio: "#C4D4E1",
+  bordeControl: "#AFC2D3",
+  bordeInput: "#8EA7BA",
+  bordeTabla: "#DDE8F0",
+  bordeSlate: "#B9C9D7",
+  bordeNeutral: "#C7D5E0",
+  bordePanel: "#CADAE6",
+  textoPrimario: "#111B29",
+  textoSecundario: "#324358",
+  textoTerciario: "#647286",
+  textoControl: "#223349",
+  textoSlate: "#2A3A4F",
   textoDeshabilitado: "#98a2b3",
   textoCasiNegro: "#0F1722",
   negro: "#000000",
@@ -95,9 +99,9 @@ export const colors = {
   carpetaFondo: "#F4F8FB",
   azulPanelSuave: "#E6F5FF",
   infoMuySuave: "#E9F9FF",
-  fondoLineaTiempo: "#EAF2F7",
-  fondoIcono: "#EAF4F8",
-  bordeFila: "#EDF3F7",
+  fondoLineaTiempo: "#E9F2F7",
+  fondoIcono: "#E8F3F7",
+  bordeFila: "#EAF1F6",
   bordeGestion: "#E8F0F6",
   neutralBadge: "#EEF4FA",
   oplTokenBorde: "#D9E7EF",
@@ -150,10 +154,10 @@ export const radii = {
  * semánticos (`card`, `popover`, `menu`, `dialogo`, `modal`, etc.) se
  * reasignan a esa escala para no romper consumidores. Antes: 12-28 %.
  */
-const shadowXs = "0 1px 2px rgba(15, 23, 42, 0.04)";
-const shadowSm = "0 2px 6px rgba(15, 23, 42, 0.06)";
-const shadowMd = "0 8px 16px rgba(15, 23, 42, 0.08)";
-const shadowLg = "0 16px 32px rgba(15, 23, 42, 0.10)";
+const shadowXs = "0 1px 2px rgba(15, 23, 42, 0.05)";
+const shadowSm = "0 3px 8px rgba(15, 23, 42, 0.07)";
+const shadowMd = "0 10px 24px rgba(15, 23, 42, 0.10)";
+const shadowLg = "0 20px 44px rgba(15, 23, 42, 0.14)";
 
 export const shadows = {
   xs: shadowXs,
@@ -177,6 +181,8 @@ export const shadows = {
   asistente: shadowLg,
   inicio: shadowLg,
   dropProceso: "0 0 0 2px rgba(59, 195, 255, 0.18)",
+  appChrome: "0 1px 0 rgba(255, 255, 255, 0.85) inset, 0 10px 28px rgba(15, 23, 42, 0.08)",
+  panelInset: "inset 1px 0 0 rgba(255, 255, 255, 0.85)",
   seleccionadoInset: `0 0 0 2px ${colors.infoFondo} inset`,
   swatchActivo: `0 0 0 2px ${colors.fondoChrome}, 0 0 0 4px ${colors.chromeNeutral}`,
   none: "none",

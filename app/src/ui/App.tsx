@@ -364,6 +364,8 @@ const layout = {
     width: "100%",
     height: "100%",
     background: tokens.colors.fondoApp,
+    color: tokens.colors.textoPrimario,
+    fontFamily: tokens.typography.familyChrome,
   },
   workbench: {
     display: "grid",
@@ -376,14 +378,18 @@ const layout = {
     minHeight: 0,
     minWidth: 0,
     overflow: "hidden",
-    borderTop: `1px solid ${tokens.colors.bordeIntermedio}`,
-    borderBottom: `1px solid ${tokens.colors.bordeIntermedio}`,
+    background: tokens.colors.fondoWorkbench,
+    borderTop: `1px solid ${tokens.colors.bordePanel}`,
+    borderBottom: `1px solid ${tokens.colors.bordePanel}`,
   },
   treePane: {
     gridArea: "tree",
     minWidth: 0,
     minHeight: 0,
     overflow: "hidden",
+    background: tokens.colors.fondoPanel,
+    borderRight: `1px solid ${tokens.colors.bordePanel}`,
+    boxShadow: tokens.shadows.panelInset,
   },
   treePaneArbol: {
     minWidth: 0,
@@ -401,6 +407,7 @@ const layout = {
     minHeight: 0,
     overflow: "hidden",
     position: "relative",
+    background: tokens.colors.fondoWorkbench,
   },
   inspectorPane: {
     gridArea: "inspector",
@@ -411,22 +418,27 @@ const layout = {
     zIndex: 1,
     display: "flex",
     flexDirection: "column",
+    background: tokens.colors.fondoPanel,
+    borderLeft: `1px solid ${tokens.colors.bordePanel}`,
+    boxShadow: tokens.shadows.panelInset,
   },
   inspectorContent: {
     minWidth: 0,
     minHeight: 0,
     flex: "1 1 0",
     overflow: "auto",
+    background: tokens.colors.fondoPanel,
   },
   timelineInInspector: {
     height: "220px",
     minHeight: "220px",
     overflow: "hidden",
-    borderTop: `1px solid ${tokens.colors.bordeIntermedio}`,
+    borderTop: `1px solid ${tokens.colors.bordePanel}`,
+    background: tokens.colors.fondoPanelSuave,
   },
   timelineFallback: {
     height: "220px",
-    borderTop: `1px solid ${tokens.colors.bordeIntermedio}`,
+    borderTop: `1px solid ${tokens.colors.bordePanel}`,
   },
   // L2 ronda 21: en mobile la grilla es Toolbar+BarraPestanas+Section donde la
   // section contiene canvas+overlay+tabs como flex columna. Sin OPL inferior.
@@ -437,6 +449,8 @@ const layout = {
     height: "100%",
     background: tokens.colors.fondoApp,
     overflowX: "hidden",
+    color: tokens.colors.textoPrimario,
+    fontFamily: tokens.typography.familyChrome,
   },
   mobileSection: {
     display: "flex",
@@ -558,5 +572,8 @@ function oplInferiorStyle(minimizado: boolean): preact.JSX.CSSProperties {
     minHeight: 0,
     height: minimizado ? "32px" : "180px",
     overflow: "hidden",
+    borderTop: `1px solid ${tokens.colors.bordePanel}`,
+    background: tokens.colors.fondoPanel,
+    boxShadow: "0 -8px 22px rgba(15, 23, 42, 0.05)",
   };
 }

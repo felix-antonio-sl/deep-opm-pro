@@ -254,8 +254,8 @@ const chipBase: preact.JSX.CSSProperties = {
   display: "inline-flex",
   alignItems: "center",
   gap: `${tokens.spacing.xs}px`,
-  height: "22px",
-  padding: `0 ${tokens.spacing.sm}px`,
+  height: "24px",
+  padding: `0 ${tokens.spacing.sm + 2}px`,
   border: `1px solid ${tokens.colors.bordeControl}`,
   borderRadius: tokens.radii.pill,
   background: tokens.colors.fondoCard,
@@ -266,6 +266,7 @@ const chipBase: preact.JSX.CSSProperties = {
   whiteSpace: "nowrap",
   flex: "0 0 auto",
   fontFamily: tokens.typography.familyChrome,
+  boxShadow: tokens.shadows.xs,
 };
 
 /**

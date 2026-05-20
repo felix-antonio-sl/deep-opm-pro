@@ -21,12 +21,12 @@ describe("tokens.colors — paleta UI mínima [JOYAS §1]", () => {
   });
 
   test("acentoUiSuave es el fondo claro derivado del acento UI [ronda 13.0 T1.2]", () => {
-    expect(colors.acentoUiSuave).toBe("#E2F7FF");
+    expect(colors.acentoUiSuave).toBe("#DDF7FF");
     expect(colors.acentoUiSuave).not.toBe(colors.acentoUi);
   });
 
   test("chromeNeutralSuave es el fondo claro derivado del chrome neutro [ronda 13.0 T1.2]", () => {
-    expect(colors.chromeNeutralSuave).toBe("#EEF3FA");
+    expect(colors.chromeNeutralSuave).toBe("#EDF4FA");
     expect(colors.chromeNeutralSuave).not.toBe(colors.chromeNeutral);
   });
 
@@ -57,12 +57,12 @@ describe("tokens.colors — paleta UI mínima [JOYAS §1]", () => {
   });
 
   test("shadows ronda 23 expone escala xs/sm/md/lg y reasigna aliases", () => {
-    // chrome estética: 4-tiers respiratorios (alfa 4-6-8-10 %), aliases
-    // semánticos preservados pero apuntando a la escala nueva.
-    expect(shadows.xs).toBe("0 1px 2px rgba(15, 23, 42, 0.04)");
-    expect(shadows.sm).toBe("0 2px 6px rgba(15, 23, 42, 0.06)");
-    expect(shadows.md).toBe("0 8px 16px rgba(15, 23, 42, 0.08)");
-    expect(shadows.lg).toBe("0 16px 32px rgba(15, 23, 42, 0.10)");
+    // chrome estética: elevación algo más explícita para separar paneles,
+    // menús y modales sin tocar el canvas.
+    expect(shadows.xs).toBe("0 1px 2px rgba(15, 23, 42, 0.05)");
+    expect(shadows.sm).toBe("0 3px 8px rgba(15, 23, 42, 0.07)");
+    expect(shadows.md).toBe("0 10px 24px rgba(15, 23, 42, 0.10)");
+    expect(shadows.lg).toBe("0 20px 44px rgba(15, 23, 42, 0.14)");
     expect(shadows.card).toBe(shadows.xs);
     expect(shadows.popover).toBe(shadows.sm);
     expect(shadows.dialogo).toBe(shadows.md);
