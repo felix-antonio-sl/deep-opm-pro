@@ -1376,7 +1376,10 @@ describe("asistente nuevo modelo", () => {
     store.getState().listarModelosGuardados();
   });
 
-  test("iniciarAsistente setea etapa 0 con datos vacios", () => {
+  // Ronda 23 L3 #6: tras la poda 9→3 etapas, las pruebas usan únicamente los
+  // dos campos canónicos (`funcionPrincipal` y `beneficiario`) y validan que
+  // el wizard inicia en ETAPA_FUNCION (0) y termina en ETAPA_SEMBRAR (2).
+  test("iniciarAsistente setea etapa 0 (función) con datos vacios", () => {
     store.getState().iniciarAsistente();
     const a = store.getState().asistente;
     expect(a).not.toBeNull();
@@ -1386,51 +1389,36 @@ describe("asistente nuevo modelo", () => {
     expect(a!.cancelado).toBe(false);
   });
 
-  test("siguienteEtapa avanza con datos validos", () => {
+  test("siguienteEtapa avanza con datos validos hasta sembrar", () => {
     store.getState().iniciarAsistente();
-    // Etapa 0 -> 1: avanza sin validar (bienvenida)
-    store.getState().siguienteEtapa({});
+    // Etapa 0 (función) -> 1 (beneficiario) con dato válido.
+    store.getState().siguienteEtapa({ funcionPrincipal: "Conducir" });
     expect(store.getState().asistente!.etapaActual).toBe(1);
 
-    // Etapa 1: funcion principal
-    store.getState().siguienteEtapa({ funcionPrincipal: "Conducir" });
+    // Etapa 1 (beneficiario) -> 2 (sembrar) con dato válido.
+    store.getState().siguienteEtapa({ beneficiario: "Conductor" });
     expect(store.getState().asistente!.etapaActual).toBe(2);
 
-    // Etapa 2: beneficiario
-    store.getState().siguienteEtapa({ beneficiario: "Conductor" });
-    expect(store.getState().asistente!.etapaActual).toBe(3);
-
-    // Etapa 5: nombre del sistema
-    // Saltar etapas opcionales (3,4) avanzando directamente
-    const a = store.getState().asistente!;
-    store.setState({
-      asistente: {
-        ...a,
-        etapaActual: 5,
-        datos: { ...a.datos, nombreSistema: "Sistema X" },
-      },
-    });
-    expect(store.getState().asistente!.etapaActual).toBe(5);
+    // Etapa 2 (sembrar) no avanza más: queda como techo.
+    store.getState().siguienteEtapa({});
+    expect(store.getState().asistente!.etapaActual).toBe(2);
   });
 
   test("siguienteEtapa falla con funcion principal vacia", () => {
     store.getState().iniciarAsistente();
-    store.getState().siguienteEtapa({}); // etapa 0 -> 1 (bienvenida)
     store.getState().siguienteEtapa({ funcionPrincipal: "" });
-    // Debe quedarse en etapa 1 porque la validacion fallo
-    expect(store.getState().asistente!.etapaActual).toBe(1);
-    expect(store.getState().mensaje).toContain("funcion principal");
+    expect(store.getState().asistente!.etapaActual).toBe(0);
+    expect(store.getState().mensaje).toContain("función principal");
   });
 
   test("etapaAnterior preserva datos", () => {
     store.getState().iniciarAsistente();
-    store.getState().siguienteEtapa({}); // 0 -> 1
-    store.getState().siguienteEtapa({ funcionPrincipal: "Conducir" }); // 1 -> 2
-    expect(store.getState().asistente!.etapaActual).toBe(2);
+    store.getState().siguienteEtapa({ funcionPrincipal: "Conducir" }); // 0 -> 1
+    expect(store.getState().asistente!.etapaActual).toBe(1);
     expect(store.getState().asistente!.datos.funcionPrincipal).toBe("Conducir");
 
-    store.getState().etapaAnterior(); // 2 -> 1
-    expect(store.getState().asistente!.etapaActual).toBe(1);
+    store.getState().etapaAnterior(); // 1 -> 0
+    expect(store.getState().asistente!.etapaActual).toBe(0);
     expect(store.getState().asistente!.datos.funcionPrincipal).toBe("Conducir");
   });
 
@@ -1442,8 +1430,7 @@ describe("asistente nuevo modelo", () => {
 
   test("cancelarAsistente con datos marca cancelado", () => {
     store.getState().iniciarAsistente();
-    store.getState().siguienteEtapa({}); // 0 -> 1
-    store.getState().siguienteEtapa({ funcionPrincipal: "Conducir" }); // 1 -> 2
+    store.getState().siguienteEtapa({ funcionPrincipal: "Conducir" }); // 0 -> 1
     store.getState().cancelarAsistente();
     expect(store.getState().asistente).not.toBeNull();
     expect(store.getState().asistente!.cancelado).toBe(true);
@@ -1451,29 +1438,20 @@ describe("asistente nuevo modelo", () => {
 
   test("confirmarAsistente con dataset minimo produce modelo nuevo", () => {
     store.getState().iniciarAsistente();
-    // Setear datos minimos via store state
     store.setState((s) => ({
       asistente: s.asistente ? {
         ...s.asistente,
-        etapaActual: 10,
+        etapaActual: 2,
         datos: {
           funcionPrincipal: "Conducir",
           beneficiario: "Conductor",
-          atributo: null,
-          beneficiarioEsHandler: true,
-          agentesAdicionales: [],
-          nombreSistema: "Sistema de Conduccion",
-          herramientas: [],
-          entradas: [],
-          salidas: [],
-          ambientales: [],
         },
       } : null,
     }));
     store.getState().confirmarAsistente();
 
     expect(store.getState().asistente).toBeNull();
-    expect(store.getState().modelo.nombre).toBe("Sistema de Conduccion");
+    expect(store.getState().modelo.nombre).toBe("Mi sistema");
     // Contrato vigente ronda 6: el modelo post-asistente queda dirty hasta guardado manual.
     expect(store.getState().dirty).toBe(true);
     expect(store.getState().modeloPersistidoId).toBeNull();

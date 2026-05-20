@@ -1,41 +1,25 @@
-// Orquestador del wizard AsistenteNuevoModelo (12 etapas, IFML DE-WIZ).
+// Orquestador del wizard AsistenteNuevoModelo (3 etapas, IFML DE-WIZ).
+//
+// Ronda 23 L3 #6: tras la poda 9→3, las únicas etapas son Función,
+// Beneficiario y Sembrar. La pantalla de Bienvenida y las 6 etapas
+// opcionales fueron eliminadas; su funcionalidad vive en el inspector
+// tras crear el modelo. La etapa de confirmación se fusiona en
+// `EtapaSembrar` (preview + sembrar).
 //
 // SSOT: metodologia-opm-es.md §6.
-// Lee el viewmodel del asistente, mapea etapaActual al sub-componente Etapa*
-// y renderiza progress
-// bar + footer con botones.
-//
-// Ronda 9 L3: las 11 funciones Etapa* y la pantalla Bienvenida viven ahora en
-// asistente/{Bienvenida,Etapa*}.tsx; este componente queda como cableado UI.
 import {
   debeMostrarAtrasWizard,
   useAsistenteNuevoModeloViewModel,
 } from "../../app/viewmodels/asistenteNuevoModeloViewModel";
 import {
-  ETAPA_AMBIENTALES,
-  ETAPA_ATRIBUTO,
   ETAPA_BENEFICIARIO,
-  ETAPA_BIENVENIDA,
-  ETAPA_CONFIRMAR,
-  ETAPA_ENTRADAS,
   ETAPA_FUNCION,
-  ETAPA_HANDLER,
-  ETAPA_HERRAMIENTAS,
-  ETAPA_NOMBRE_SISTEMA,
-  ETAPA_SALIDAS,
+  ETAPA_SEMBRAR,
   TOTAL_ETAPAS,
 } from "../../modelo/creacionWizard";
-import { Bienvenida } from "./Bienvenida";
-import { EtapaAmbientales } from "./EtapaAmbientales";
-import { EtapaAtributo } from "./EtapaAtributo";
 import { EtapaBeneficiario } from "./EtapaBeneficiario";
-import { EtapaConfirmar } from "./EtapaConfirmar";
-import { EtapaEntradas } from "./EtapaEntradas";
 import { EtapaFuncionPrincipal } from "./EtapaFuncionPrincipal";
-import { EtapaHandler } from "./EtapaHandler";
-import { EtapaHerramientas } from "./EtapaHerramientas";
-import { EtapaNombreSistema } from "./EtapaNombreSistema";
-import { EtapaSalidas } from "./EtapaSalidas";
+import { EtapaSembrar } from "./EtapaSembrar";
 import { S } from "./estilos";
 
 export { debeMostrarAtrasWizard };
@@ -51,12 +35,9 @@ export function AsistenteNuevoModelo() {
     datos,
     cancelado,
     pct,
-    esOpcional,
     muestraAtras,
-    cosasParaAmbientales,
     setDato,
     handleSiguiente,
-    handleSaltar,
     handleAnterior,
     handleCancelar,
     handleConfirmar,
@@ -100,10 +81,10 @@ export function AsistenteNuevoModelo() {
           {cancelado ? (
             <div>
               <h3 style={S.title}>¿Descartar el asistente?</h3>
-              <p style={S.desc}>Perderas los datos ingresados hasta ahora.</p>
+              <p style={S.desc}>Perderás los datos ingresados hasta ahora.</p>
               <div style={{ display: "flex", gap: "8px", marginTop: "16px" }}>
                 <button type="button" style={S.btn(true)} onClick={handleDescartarConfirmado}>
-                  Si, descartar
+                  Sí, descartar
                 </button>
                 <button type="button" style={S.btn(false)} onClick={handleCancelarConfirmacion}>
                   No, continuar
@@ -112,8 +93,6 @@ export function AsistenteNuevoModelo() {
             </div>
           ) : (
             <>
-              {etapa === ETAPA_BIENVENIDA && <Bienvenida />}
-
               {etapa === ETAPA_FUNCION && (
                 <EtapaFuncionPrincipal
                   valor={datos.funcionPrincipal ?? ""}
@@ -130,62 +109,7 @@ export function AsistenteNuevoModelo() {
                 />
               )}
 
-              {etapa === ETAPA_ATRIBUTO && (
-                <EtapaAtributo
-                  valor={datos.atributo ?? null}
-                  onChange={(v) => setDato("atributo", v)}
-                />
-              )}
-
-              {etapa === ETAPA_HANDLER && (
-                <EtapaHandler
-                  esHandler={datos.beneficiarioEsHandler ?? true}
-                  agentes={datos.agentesAdicionales ?? []}
-                  onEsHandler={(v) => setDato("beneficiarioEsHandler", v)}
-                  onAgentes={(v) => setDato("agentesAdicionales", v)}
-                />
-              )}
-
-              {etapa === ETAPA_NOMBRE_SISTEMA && (
-                <EtapaNombreSistema
-                  valor={datos.nombreSistema ?? ""}
-                  onChange={(v) => setDato("nombreSistema", v)}
-                  onEnter={handleSiguiente}
-                />
-              )}
-
-              {etapa === ETAPA_HERRAMIENTAS && (
-                <EtapaHerramientas
-                  valor={datos.herramientas ?? []}
-                  onChange={(v) => setDato("herramientas", v)}
-                />
-              )}
-
-              {etapa === ETAPA_ENTRADAS && (
-                <EtapaEntradas
-                  valor={datos.entradas ?? []}
-                  onChange={(v) => setDato("entradas", v)}
-                />
-              )}
-
-              {etapa === ETAPA_SALIDAS && (
-                <EtapaSalidas
-                  valor={datos.salidas ?? []}
-                  onChange={(v) => setDato("salidas", v)}
-                />
-              )}
-
-              {etapa === ETAPA_AMBIENTALES && (
-                <EtapaAmbientales
-                  cosas={cosasParaAmbientales}
-                  seleccionados={datos.ambientales ?? []}
-                  onToggle={(v) => setDato("ambientales", v)}
-                />
-              )}
-
-              {etapa === ETAPA_CONFIRMAR && (
-                <EtapaConfirmar datos={datos} />
-              )}
+              {etapa === ETAPA_SEMBRAR && <EtapaSembrar datos={datos} />}
 
               {mensaje && <div style={S.mensaje}>{mensaje}</div>}
             </>
@@ -195,35 +119,30 @@ export function AsistenteNuevoModelo() {
         {!cancelado && (
           <div style={S.footer}>
             <div>
-              {muestraAtras && etapa < ETAPA_CONFIRMAR && (
+              {muestraAtras && etapa < ETAPA_SEMBRAR && (
                 <button type="button" style={S.btn(false)} onClick={handleAnterior}>
                   Atrás
                 </button>
               )}
             </div>
             <div style={S.btnGroup}>
-              {etapa < ETAPA_CONFIRMAR && (
+              {etapa < ETAPA_SEMBRAR && (
                 <button type="button" style={S.btn(false)} onClick={handleCancelar}>
                   Cancelar
                 </button>
               )}
-              {etapa < ETAPA_CONFIRMAR && esOpcional && (
-                <button type="button" style={S.skipBtn} onClick={handleSaltar}>
-                  Saltar
-                </button>
-              )}
-              {etapa < ETAPA_CONFIRMAR && (
+              {etapa < ETAPA_SEMBRAR && (
                 <button type="button" style={S.btn(true)} onClick={handleSiguiente}>
                   Siguiente
                 </button>
               )}
-              {etapa === ETAPA_CONFIRMAR && (
+              {etapa === ETAPA_SEMBRAR && (
                 <>
                   <button type="button" style={S.btn(false)} onClick={handleAnterior}>
                     Atrás
                   </button>
                   <button type="button" style={S.btn(true)} onClick={handleConfirmar}>
-                    Confirmar y crear modelo
+                    Sembrar modelo
                   </button>
                 </>
               )}

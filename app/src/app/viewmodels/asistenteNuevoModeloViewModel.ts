@@ -1,19 +1,22 @@
 import {
-  ETAPA_BIENVENIDA,
+  ETAPA_FUNCION,
   TOTAL_ETAPAS,
-  type DatosAsistente,
   type EtapaAsistente,
 } from "../../modelo/creacionWizard";
-import { ETAPAS_ASISTENTE_OPCIONALES } from "../ports/newModelAssistantPort";
 import { useZustandNewModelAssistantPort } from "../ports/zustandNewModelAssistantPort";
 
+/**
+ * Ronda 23 L3 #6: el wizard quedó en 3 etapas obligatorias (función,
+ * beneficiario, sembrar). Ya no hay etapa de bienvenida ni etapas
+ * opcionales, así que se simplifican los flags derivados (`esOpcional`,
+ * `cosasParaAmbientales`) y la barra de progreso usa el total nuevo.
+ */
 export function useAsistenteNuevoModeloViewModel() {
   const {
     asistente,
     mensaje,
     setDato,
     siguiente,
-    saltar,
     anterior,
     cancelar,
     confirmar,
@@ -27,9 +30,7 @@ export function useAsistenteNuevoModeloViewModel() {
   const datos = asistente.datos;
   const cancelado = asistente.cancelado;
   const pct = ((etapa + 1) / TOTAL_ETAPAS) * 100;
-  const esOpcional = ETAPAS_ASISTENTE_OPCIONALES.includes(etapa);
   const muestraAtras = debeMostrarAtrasWizard(etapa);
-  const cosasParaAmbientales = construirCosasAmbientales(datos);
 
   return {
     asistente,
@@ -38,12 +39,9 @@ export function useAsistenteNuevoModeloViewModel() {
     datos,
     cancelado,
     pct,
-    esOpcional,
     muestraAtras,
-    cosasParaAmbientales,
     setDato,
     handleSiguiente: siguiente,
-    handleSaltar: saltar,
     handleAnterior: anterior,
     handleCancelar: cancelar,
     handleConfirmar: confirmar,
@@ -55,20 +53,5 @@ export function useAsistenteNuevoModeloViewModel() {
 export type AsistenteNuevoModeloViewModel = ReturnType<typeof useAsistenteNuevoModeloViewModel>;
 
 export function debeMostrarAtrasWizard(etapa: EtapaAsistente): boolean {
-  return etapa > ETAPA_BIENVENIDA;
-}
-
-function construirCosasAmbientales(datos: Partial<DatosAsistente>): string[] {
-  const nombres: string[] = [];
-  if (datos.funcionPrincipal?.trim()) nombres.push(datos.funcionPrincipal.trim());
-  if (datos.beneficiario?.trim()) nombres.push(datos.beneficiario.trim());
-  if (datos.atributo?.nombre.trim()) nombres.push(datos.atributo.nombre.trim());
-  if (datos.nombreSistema?.trim()) nombres.push(datos.nombreSistema.trim());
-  for (const a of datos.agentesAdicionales ?? []) { if (a.trim()) nombres.push(a.trim()); }
-  for (const h of datos.herramientas ?? []) { if (h.trim()) nombres.push(h.trim()); }
-  for (const e of datos.entradas ?? []) { if (e.trim()) nombres.push(e.trim()); }
-  for (const s of datos.salidas ?? []) { if (s.nombre.trim()) nombres.push(s.nombre.trim()); }
-  return nombres
-    .filter((n) => n !== datos.funcionPrincipal?.trim())
-    .sort((a, b) => a.localeCompare(b, "es"));
+  return etapa > ETAPA_FUNCION;
 }

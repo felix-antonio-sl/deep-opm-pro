@@ -10,15 +10,15 @@ interface Props {
 export function EtapaFuncionPrincipal({ valor, onChange, onEnter }: Props) {
   return (
     <div>
-      <h3 style={S.title}>Etapa 2 de {TOTAL_ETAPAS} — Función Principal</h3>
+      <h3 style={S.title}>Etapa 1 de {TOTAL_ETAPAS} — Función principal</h3>
       <p style={S.desc}>
         ¿Cuál es la función principal del sistema? Es el proceso central
-        que entrega valor al beneficiario. Debe terminar en "ing" o su
-        equivalente en español (ando/iendo).
+        que entrega valor al beneficiario. Suele ir en gerundio (ando/iendo)
+        para reflejar la acción continua.
       </p>
       <input
         style={S.input}
-        placeholder="Ej: Conducir, Procesar Pedidos"
+        placeholder="Ej: Conducir, Procesar pedidos"
         value={valor}
         onInput={(e) => onChange((e.target as HTMLInputElement).value)}
         onKeyDown={(e) => { if (e.key === "Enter") onEnter?.(); }}

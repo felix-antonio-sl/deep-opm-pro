@@ -155,7 +155,7 @@ import { exportarModelo, hidratarModelo } from "../serializacion/json";
 import type { Aviso } from "../modelo/validaciones";
 import type { Afiliacion, Apariencia, DesignacionEstado, DuracionTemporal, EnlaceEstilo, Esencia, EstiloApariencia, ExtremoEnlace, Id, LayoutEstados, Modelo, Modificador, ModoDespliegueObjeto, ModoPlegado, Opd, OperadorAbanico, OrdenPartesPlegado, Pestana, PestanaId, Posicion, TipoEnlace, TipoEntidad, UrlObjetoTipada, UiPortapapelesVisual, VersionResumen } from "../modelo/tipos";
 import { mismaReferencia, type OplReferencia } from "../opl/interaccion";
-import { datosAsistenteVacio, sembrarModeloDesdeAsistente, validarDatosAsistente, type DatosAsistente, type EtapaAsistente } from "../modelo/creacionWizard";
+import { datosAsistenteVacio, ETAPA_FUNCION, ETAPA_SEMBRAR, sembrarModeloDesdeAsistente, validarDatosAsistente, type DatosAsistente, type EtapaAsistente } from "../modelo/creacionWizard";
 import { generarOpl } from "../opl/generar";
 import {
   aplicarMarcadores,
@@ -449,7 +449,7 @@ export const createUiPanelSlice: CrearSlice<UiPanelSlice> = (set, get) => ({
   iniciarAsistente() {
     set({
       asistente: {
-        etapaActual: 0,
+        etapaActual: ETAPA_FUNCION,
         datos: datosAsistenteVacio(),
         cancelado: false,
       },
@@ -466,7 +466,9 @@ export const createUiPanelSlice: CrearSlice<UiPanelSlice> = (set, get) => ({
       set({ mensaje: validacion.error });
       return;
     }
-    const siguienteEtapa = Math.min(actual.etapaActual + 1, 11) as EtapaAsistente;
+    // Ronda 23 L3 #6: la última etapa es ETAPA_SEMBRAR; no avanzamos más
+    // allá. El sembrado final lo dispara `confirmarAsistente`.
+    const siguienteEtapa = Math.min(actual.etapaActual + 1, ETAPA_SEMBRAR) as EtapaAsistente;
     set({
       asistente: { ...actual, etapaActual: siguienteEtapa, datos },
       mensaje: null,
@@ -475,7 +477,7 @@ export const createUiPanelSlice: CrearSlice<UiPanelSlice> = (set, get) => ({
 
   etapaAnterior() {
     const actual = get().asistente;
-    if (!actual || actual.etapaActual <= 0) return;
+    if (!actual || actual.etapaActual <= ETAPA_FUNCION) return;
     set({
       asistente: { ...actual, etapaActual: (actual.etapaActual - 1) as EtapaAsistente },
       mensaje: null,
@@ -487,14 +489,7 @@ export const createUiPanelSlice: CrearSlice<UiPanelSlice> = (set, get) => ({
     if (!actual) return;
     // Si no hay datos ingresados, cerrar directo.
     const datos = actual.datos;
-    const tieneDatos = datos.funcionPrincipal?.trim()
-      || datos.beneficiario?.trim()
-      || datos.nombreSistema?.trim()
-      || (datos.atributo?.nombre?.trim())
-      || datos.agentesAdicionales?.some((a) => a.trim())
-      || datos.herramientas?.some((h) => h.trim())
-      || datos.entradas?.some((e) => e.trim())
-      || datos.salidas?.some((s) => s.nombre.trim());
+    const tieneDatos = datos.funcionPrincipal?.trim() || datos.beneficiario?.trim();
     if (!tieneDatos) {
       set({ asistente: null, mensaje: null });
       return;
