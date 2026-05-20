@@ -2,6 +2,7 @@ import { describe, expect, test } from "bun:test";
 import {
   agregarRamaAAbanico,
   alternarOperadorAbanico,
+  candidatosAbanicoExacto,
   detectarPuertoCompartido,
   disolverAbanico,
   formarAbanico,
@@ -69,6 +70,19 @@ describe("abanicos lógicos O/XOR", () => {
     expect(resultado.ok).toBe(false);
     if (resultado.ok) return;
     expect(resultado.error).toContain("puerto");
+  });
+
+  test("detecta fan posible por extremo comun aunque las ramas aun no compartan portId", () => {
+    const { modelo, procesoId, enlaces } = modeloConResultados(["A", "B"], { puertoCompartido: false });
+
+    const candidatos = candidatosAbanicoExacto(modelo, modelo.opdRaizId, enlaces[0]!);
+
+    expect(candidatos).toEqual([{
+      lado: "origen",
+      entidadId: procesoId,
+      tipo: "resultado",
+      enlaceIds: enlaces,
+    }]);
   });
 
   test("agregarRamaAAbanico agrega tercera rama preservando orden", () => {

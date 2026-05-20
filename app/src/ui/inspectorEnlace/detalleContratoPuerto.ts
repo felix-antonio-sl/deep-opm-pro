@@ -1,4 +1,4 @@
-import { abanicoDeEnlace, puertoExactoCompartidoDeAbanico } from "../../modelo/abanicos";
+import { abanicoDeEnlace, candidatosAbanicoExacto, puertoExactoCompartidoDeAbanico } from "../../modelo/abanicos";
 import { anclaEnlaceMasCercana, OPCIONES_ANCLA_RELOJ_ENLACE, type AnclaRelojEnlace } from "../../modelo/anclajesEnlace";
 import { entidadDeExtremo, nombreExtremo } from "../../modelo/extremos";
 import type { Enlace, ExtremoEnlace, Id, Modelo, PuertoApariencia } from "../../modelo/tipos";
@@ -32,9 +32,20 @@ export interface DetalleFanPuerto {
   hora?: string;
 }
 
+export interface DetalleFanPosible {
+  lado: LadoEnlace;
+  entidadId: Id;
+  entidadNombre: string;
+  tipo: string;
+  ramas: number;
+  enlaceIds: Id[];
+  hora?: string;
+}
+
 export interface DetalleContratoPuertoEnlace {
   extremos: DetalleExtremoPuerto[];
   fan?: DetalleFanPuerto;
+  fansPosibles: DetalleFanPosible[];
 }
 
 export function detalleContratoPuertoEnlace(modelo: Modelo, opdId: Id, enlace: Enlace): DetalleContratoPuertoEnlace {
@@ -62,7 +73,23 @@ export function detalleContratoPuertoEnlace(modelo: Modelo, opdId: Id, enlace: E
     fan.hora = opcionAncla.hora;
   }
 
-  const detalle: DetalleContratoPuertoEnlace = { extremos };
+  const fansPosibles = candidatosAbanicoExacto(modelo, opdId, enlace.id).flatMap((candidato) => {
+    const entidad = modelo.entidades[candidato.entidadId];
+    const extremo = extremos.find((item) => item.lado === candidato.lado && item.entidadId === candidato.entidadId);
+    if (!entidad) return [];
+    const posible: DetalleFanPosible = {
+      lado: candidato.lado,
+      entidadId: candidato.entidadId,
+      entidadNombre: entidad.nombre,
+      tipo: candidato.tipo,
+      ramas: candidato.enlaceIds.length,
+      enlaceIds: candidato.enlaceIds,
+    };
+    if (extremo?.hora) posible.hora = extremo.hora;
+    return [posible];
+  });
+
+  const detalle: DetalleContratoPuertoEnlace = { extremos, fansPosibles };
   if (fan) detalle.fan = fan;
   return detalle;
 }

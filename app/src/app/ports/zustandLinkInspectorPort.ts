@@ -13,6 +13,7 @@ export function useZustandLinkInspectorPort(): LinkInspectorPort {
   const volverEnlaceExternoDerivadoAAutomatico = useOpmStore((s) => s.volverEnlaceExternoDerivadoAAutomatico);
   const splitEffect = useOpmStore((s) => s.splitEffectSeleccionado);
   const alternarOperadorAbanico = useOpmStore((s) => s.alternarOperadorAbanicoSeleccionado);
+  const crearAbanicoDesdeEnlace = useOpmStore((s) => s.crearAbanicoDesdeEnlaceSeleccionado);
   const quitarRamaDeAbanico = useOpmStore((s) => s.quitarRamaDeAbanicoSeleccionado);
   const disolverAbanico = useOpmStore((s) => s.disolverAbanicoSeleccionado);
   const aplicarModificador = useOpmStore((s) => s.aplicarModificadorEnlaceSeleccionado);
@@ -58,6 +59,7 @@ export function useZustandLinkInspectorPort(): LinkInspectorPort {
     volverEnlaceExternoDerivadoAAutomatico,
     splitEffect,
     alternarOperadorAbanico,
+    crearAbanicoDesdeEnlace,
     quitarRamaDeAbanico,
     disolverAbanico,
     aplicarModificador,

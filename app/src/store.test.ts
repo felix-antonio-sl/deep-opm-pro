@@ -1040,6 +1040,34 @@ describe("store undo/redo y dirty state", () => {
     expect(Object.values(store.getState().modelo.abanicos ?? {})).toHaveLength(0);
   });
 
+  test("crea fan manual desde ramas existentes alineando ancla exacta del extremo comun", () => {
+    let modelo = crearModelo("Store fan manual");
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 200, y: 200 }, "Procesar"));
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 80 }, "Pedido A"));
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 420, y: 80 }, "Pedido B"));
+    const procesoId = entidadPorNombre(modelo, "Procesar");
+    const pedidoAId = entidadPorNombre(modelo, "Pedido A");
+    const pedidoBId = entidadPorNombre(modelo, "Pedido B");
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, procesoId, pedidoAId, "resultado"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, procesoId, pedidoBId, "resultado"));
+    const [primerEnlaceId, segundoEnlaceId] = Object.keys(modelo.enlaces);
+    if (!primerEnlaceId || !segundoEnlaceId) throw new Error("La prueba esperaba dos enlaces");
+    store.getState().importarJson(exportarModelo(modelo));
+
+    store.getState().seleccionarEnlace(primerEnlaceId);
+    store.getState().crearAbanicoDesdeEnlaceSeleccionado("origen");
+
+    const estado = store.getState();
+    const abanicos = Object.values(estado.modelo.abanicos ?? {});
+    expect(abanicos).toHaveLength(1);
+    expect(abanicos[0]?.enlaceIds).toEqual([primerEnlaceId, segundoEnlaceId]);
+    const primerPort = estado.modelo.enlaces[primerEnlaceId]?.origenId.portId;
+    const segundoPort = estado.modelo.enlaces[segundoEnlaceId]?.origenId.portId;
+    expect(primerPort).toBeDefined();
+    expect(primerPort).toBe(segundoPort);
+    expect(estado.mensaje).toContain("Fan O creado");
+  });
+
   test("limita undo a 100 snapshots", () => {
     for (let index = 0; index < 105; index += 1) {
       store.getState().crearObjetoDemo();

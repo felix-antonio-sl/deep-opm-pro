@@ -1,9 +1,12 @@
 import {
   abanicoDeEnlace,
   alternarOperadorAbanico as alternarOperadorAbanicoOp,
+  candidatosAbanicoExacto,
   disolverAbanico as disolverAbanicoOp,
+  formarAbanico,
   quitarRamaDeAbanico as quitarRamaDeAbanicoOp,
 } from "../../modelo/abanicos";
+import { anclaEnlaceMasCercana, type AnclaRelojEnlace } from "../../modelo/anclajesEnlace";
 import { crearAutoInvocacion } from "../../modelo/autoinvocacion";
 import { tipoInicialConexionDesdeEntidad } from "../../canvas/modoEnlace";
 import { renombrarEtiquetaEnlace } from "../../modelo/etiquetasEnlace";
@@ -18,6 +21,7 @@ import {
 import {
   ajustarMultiplicidad,
   apuntarExtremoEnlace,
+  compartirAnclaExtremosEnlaces,
   fijarAnclaExtremoEnlace,
   definirBackwardTag,
   definirRequisitosEnlace,
@@ -31,6 +35,7 @@ import {
 import { definirRutaEtiqueta } from "../../modelo/rutas";
 import { commitModelo, enlaceNuevo, type GetStore, type SetStore } from "../runtime";
 import { addFlash } from "../feedback";
+import type { Id, Modelo } from "../../modelo/tipos";
 import type { ModeloSlice } from "../tipos";
 
 /**
@@ -243,6 +248,37 @@ export function accionesEnlace(set: SetStore, get: GetStore): Partial<ModeloSlic
         return;
       }
       commitModelo(set, modelo, resultado.value, { mensaje: "Abanico disuelto" });
+    },
+
+    crearAbanicoDesdeEnlaceSeleccionado(lado, operador = "O") {
+      const { modelo, opdActivoId, enlaceSeleccionId } = get();
+      if (!enlaceSeleccionId) {
+        set({ mensaje: "Selecciona una rama para crear fan" });
+        return;
+      }
+      const candidato = candidatosAbanicoExacto(modelo, opdActivoId, enlaceSeleccionId)
+        .find((item) => item.lado === lado);
+      if (!candidato) {
+        set({ mensaje: "No hay ramas compatibles para crear fan" });
+        return;
+      }
+      const ancla = anclaActualDelExtremoComun(modelo, opdActivoId, enlaceSeleccionId, lado);
+      const alineado = compartirAnclaExtremosEnlaces(modelo, opdActivoId, candidato.enlaceIds, lado, ancla);
+      if (!alineado.ok) {
+        set({ mensaje: alineado.error });
+        return;
+      }
+      const formado = formarAbanico(alineado.value, opdActivoId, candidato.enlaceIds, operador);
+      if (!formado.ok) {
+        set({ mensaje: formado.error });
+        return;
+      }
+      commitModelo(set, modelo, formado.value, {
+        seleccionId: null,
+        enlaceSeleccionId,
+        modoEnlace: null,
+        mensaje: `Fan ${operador} creado`,
+      });
     },
 
     crearAutoInvocacionSeleccionada() {
@@ -481,4 +517,14 @@ export function accionesEnlace(set: SetStore, get: GetStore): Partial<ModeloSlic
       });
     },
   };
+}
+
+function anclaActualDelExtremoComun(modelo: Modelo, opdId: Id, enlaceId: Id, lado: "origen" | "destino"): AnclaRelojEnlace {
+  const enlace = modelo.enlaces[enlaceId];
+  const extremo = lado === "origen" ? enlace?.origenId : enlace?.destinoId;
+  if (!extremo || extremo.kind !== "entidad" || !extremo.portId) return lado === "origen" ? "E" : "O";
+  const apariencia = Object.values(modelo.opds[opdId]?.apariencias ?? {})
+    .find((item) => item.entidadId === extremo.id);
+  const puerto = apariencia?.ports?.[extremo.portId];
+  return puerto ? anclaEnlaceMasCercana(puerto) : lado === "origen" ? "E" : "O";
 }

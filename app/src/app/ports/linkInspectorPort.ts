@@ -12,6 +12,7 @@ export interface LinkInspectorSessionPort {
 export interface SelectedLinkPropertiesPort {
   ajustarMultiplicidad: OpmStore["ajustarMultiplicidadSeleccionada"];
   alternarOperadorAbanico: OpmStore["alternarOperadorAbanicoSeleccionado"];
+  crearAbanicoDesdeEnlace: OpmStore["crearAbanicoDesdeEnlaceSeleccionado"];
   quitarRamaDeAbanico: OpmStore["quitarRamaDeAbanicoSeleccionado"];
   disolverAbanico: OpmStore["disolverAbanicoSeleccionado"];
   aplicarModificador: OpmStore["aplicarModificadorEnlaceSeleccionado"];

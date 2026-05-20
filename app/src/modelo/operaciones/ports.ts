@@ -249,6 +249,60 @@ export function fijarAnclaExtremoEnlace(
   });
 }
 
+export function compartirAnclaExtremosEnlaces(
+  modelo: Modelo,
+  opdId: Id,
+  enlaceIds: Id[],
+  lado: LadoPuertoEnlace,
+  ancla: AnclaRelojEnlace,
+): Resultado<Modelo> {
+  const opd = modelo.opds[opdId];
+  if (!opd) return fallo(`OPD no existe: ${opdId}`);
+  if (enlaceIds.length < 2) return fallo("Un fan requiere al menos dos ramas");
+  const campo = lado === "origen" ? "origenId" : "destinoId";
+  const enlaces = enlaceIds.map((id) => modelo.enlaces[id]);
+  if (enlaces.some((enlace) => !enlace)) return fallo("Todas las ramas del fan deben existir");
+  const entidadId = entidadIdDeExtremo(modelo, enlaces[0]![campo]);
+  if (!entidadId || enlaces.some((enlace) => enlace?.[campo].kind !== "entidad" || entidadIdDeExtremo(modelo, enlace[campo]) !== entidadId)) {
+    return fallo("Las ramas del fan deben compartir el mismo extremo de entidad");
+  }
+  const apariencia = Object.values(opd.apariencias).find((item) => item.entidadId === entidadId);
+  if (!apariencia) return fallo("El extremo común debe estar visible en el OPD activo");
+
+  const portId = `port-anchor-${entidadId}-${lado}-${ancla.toLowerCase()}`;
+  const puerto = puertoRelativoAnclaEnlace(ancla);
+  const enlacesSiguientes = { ...modelo.enlaces };
+  for (const enlace of enlaces) {
+    if (!enlace) continue;
+    const extremo = enlace[campo];
+    enlacesSiguientes[enlace.id] = extremo.portId === portId
+      ? enlace
+      : { ...enlace, [campo]: { ...extremo, portId } };
+  }
+  const aparienciaSiguiente = {
+    ...apariencia,
+    ports: {
+      ...(apariencia.ports ?? {}),
+      [portId]: puerto,
+    },
+  };
+
+  return ok({
+    ...modelo,
+    enlaces: enlacesSiguientes,
+    opds: {
+      ...modelo.opds,
+      [opdId]: {
+        ...opd,
+        apariencias: {
+          ...opd.apariencias,
+          [apariencia.id]: aparienciaSiguiente,
+        },
+      },
+    },
+  });
+}
+
 export function calcularPuertoRelativo(
   apariencia: Apariencia,
   puntoOpuesto: Posicion,

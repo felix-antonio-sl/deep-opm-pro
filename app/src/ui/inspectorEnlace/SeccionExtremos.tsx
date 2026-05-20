@@ -12,6 +12,7 @@ interface Props {
   opdId: Id;
   enlace: Enlace;
   onApuntarExtremo: (lado: "origen" | "destino", extremo: ExtremoEnlace) => void;
+  onCrearFan: (lado: "origen" | "destino") => void;
   onAbrirMoverPuerto: () => void;
 }
 
@@ -40,6 +41,25 @@ export function SeccionExtremos(props: Props) {
         {contrato.fan ? (
           <div data-testid="contrato-fan-puerto" style={fanDetalleStyle}>
             Puerto común: {contrato.fan.entidadNombre} · {contrato.fan.ladoCompartido} · {contrato.fan.hora ?? "exacto"}
+          </div>
+        ) : contrato.fansPosibles.length > 0 ? (
+          <div data-testid="fan-posible-enlace" style={fanPosibleStyle}>
+            {contrato.fansPosibles.map((fan) => (
+              <div key={`${fan.lado}-${fan.entidadId}`} style={fanPosibleFilaStyle}>
+                <span>
+                  {descripcionFanPosible(fan.lado, fan.ramas, fan.tipo, fan.entidadNombre)}
+                </span>
+                <button
+                  type="button"
+                  data-testid={`crear-fan-${fan.lado}`}
+                  style={fanCrearButtonStyle}
+                  title="Alinea las ramas compatibles en un puerto comun y crea el fan"
+                  onClick={() => props.onCrearFan(fan.lado)}
+                >
+                  Crear fan
+                </button>
+              </div>
+            ))}
           </div>
         ) : (
           <div data-testid="contrato-fan-puerto" style={fanDetalleMutedStyle}>Sin fan exacto</div>
@@ -96,6 +116,11 @@ function descripcionPuerto(detalle: DetalleExtremoPuerto): string {
   return "Extremo inválido";
 }
 
+function descripcionFanPosible(lado: "origen" | "destino", ramas: number, tipo: string, entidadNombre: string): string {
+  const direccion = lado === "origen" ? "desde" : "hacia";
+  return `Fan posible: ${ramas} ramas ${tipo} ${direccion} ${entidadNombre}`;
+}
+
 const sectionStyle = { display: "grid", gap: "8px", marginBottom: "14px" } satisfies preact.JSX.CSSProperties;
 const titleStyle = { margin: "0 0 8px", color: tokens.colors.textoPrimario, fontSize: "13px", fontWeight: 700 } satisfies preact.JSX.CSSProperties;
 const contratoPanelStyle = { display: "grid", gap: "8px", padding: "10px", marginBottom: "10px", border: `1px solid ${tokens.colors.infoBordeSuave}`, borderRadius: tokens.radii.md, background: tokens.colors.azulMuySuave } satisfies preact.JSX.CSSProperties;
@@ -110,3 +135,6 @@ const contratoMetaStyle = { color: tokens.colors.textoSecundario, fontSize: "12p
 const contratoCodeStyle = { color: tokens.colors.textoTerciario, fontSize: "11px", overflowWrap: "anywhere" } satisfies preact.JSX.CSSProperties;
 const fanDetalleStyle = { color: tokens.colors.infoTextoOscuro, fontSize: "12px", fontWeight: 800, overflowWrap: "anywhere" } satisfies preact.JSX.CSSProperties;
 const fanDetalleMutedStyle = { color: tokens.colors.textoTerciario, fontSize: "12px", fontWeight: 700 } satisfies preact.JSX.CSSProperties;
+const fanPosibleStyle = { display: "grid", gap: "8px" } satisfies preact.JSX.CSSProperties;
+const fanPosibleFilaStyle = { display: "grid", gap: "8px", color: tokens.colors.infoTextoOscuro, fontSize: "12px", fontWeight: 800 } satisfies preact.JSX.CSSProperties;
+const fanCrearButtonStyle = { ...style.primaryButton, marginBottom: 0 } satisfies preact.JSX.CSSProperties;

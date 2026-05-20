@@ -201,6 +201,68 @@ test("mover puerto desde dialogo cambia extremo destino del enlace", async ({ pa
   expect(pageErrors).toEqual([]);
 });
 
+test("BUG-20260520T043712Z-72ab52 crea fan desde ramas existentes", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await jsonEditor(page).fill(JSON.stringify(modeloFanManualDesdeRamas(), null, 2));
+  await page.getByRole("button", { name: "Importar" }).click();
+
+  await clickLinkPorIndice(page, 0);
+  await irATabExtremos(page);
+  await expect(page.getByTestId("fan-posible-enlace")).toContainText("2 ramas resultado");
+  await page.getByTestId("crear-fan-origen").click();
+
+  await expect(page.getByText("Fan O creado")).toBeVisible();
+  await expect(page.getByTestId("contrato-fan-exacto")).toContainText("Fan O");
+  const exportado = JSON.parse(await jsonEditor(page).inputValue()) as ExportadoModelo;
+  const abanicos = Object.values(exportado.modelo.abanicos ?? {});
+  expect(abanicos).toHaveLength(1);
+  const enlaces = Object.values(exportado.modelo.enlaces).filter((enlace) => enlace.tipo === "resultado");
+  expect(enlaces.map((enlace) => enlace.origenId.portId)).toEqual([enlaces[0]?.origenId.portId, enlaces[0]?.origenId.portId]);
+  expect(pageErrors).toEqual([]);
+});
+
+function modeloFanManualDesdeRamas() {
+  return {
+    formato: "deep-opm-pro.modelo.v0",
+    modelo: {
+      id: "modelo-fan-manual",
+      nombre: "Fan manual",
+      opdRaizId: "opd-1",
+      nextSeq: 10,
+      entidades: {
+        "p-procesar": proceso("p-procesar", "Procesar"),
+        "o-a": objeto("o-a", "Objeto"),
+        "o-b": objeto("o-b", "Objeto_2"),
+      },
+      estados: {},
+      enlaces: {
+        "e-a": { id: "e-a", tipo: "resultado", origenId: extremoEntidad("p-procesar"), destinoId: extremoEntidad("o-a"), etiqueta: "" },
+        "e-b": { id: "e-b", tipo: "resultado", origenId: extremoEntidad("p-procesar"), destinoId: extremoEntidad("o-b"), etiqueta: "" },
+      },
+      abanicos: {},
+      opds: {
+        "opd-1": {
+          id: "opd-1",
+          nombre: "SD",
+          padreId: null,
+          apariencias: {
+            "a-p": { id: "a-p", entidadId: "p-procesar", opdId: "opd-1", x: 260, y: 260, width: 135, height: 60 },
+            "a-a": { id: "a-a", entidadId: "o-a", opdId: "opd-1", x: 40, y: 60, width: 135, height: 60 },
+            "a-b": { id: "a-b", entidadId: "o-b", opdId: "opd-1", x: 520, y: 80, width: 135, height: 60 },
+          },
+          enlaces: {
+            "ae-a": { id: "ae-a", enlaceId: "e-a", opdId: "opd-1", vertices: [] },
+            "ae-b": { id: "ae-b", enlaceId: "e-b", opdId: "opd-1", vertices: [] },
+          },
+        },
+      },
+    },
+  };
+}
+
 test("dos consumos al mismo objeto emiten advertencia", async ({ page }) => {
   const pageErrors: string[] = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));

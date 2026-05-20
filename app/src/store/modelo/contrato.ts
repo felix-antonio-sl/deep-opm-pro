@@ -181,6 +181,7 @@ export const MODELO_SLICE_CAPABILITIES = {
     "splitEffectSeleccionado",
     "volverEnlaceExternoDerivadoAAutomatico",
     "alternarOperadorAbanicoSeleccionado",
+    "crearAbanicoDesdeEnlaceSeleccionado",
     "quitarRamaDeAbanicoSeleccionado",
     "disolverAbanicoSeleccionado",
     "crearAutoInvocacionSeleccionada",

@@ -505,6 +505,7 @@ export interface OpmStore {
   splitEffectSeleccionado: () => void;
   volverEnlaceExternoDerivadoAAutomatico: (aparienciaEnlaceId: Id) => void;
   alternarOperadorAbanicoSeleccionado: (operador: OperadorAbanico) => void;
+  crearAbanicoDesdeEnlaceSeleccionado: (lado: "origen" | "destino", operador?: OperadorAbanico) => void;
   quitarRamaDeAbanicoSeleccionado: () => void;
   disolverAbanicoSeleccionado: () => void;
   crearAutoInvocacionSeleccionada: () => void;

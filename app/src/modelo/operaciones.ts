@@ -96,6 +96,7 @@ export {
 
 export {
   actualizarPuertosEnlacesDesdePuntos,
+  compartirAnclaExtremosEnlaces,
   fijarAnclaExtremoEnlace,
   sincronizarPuertosEnlaces,
   sincronizarPuertosTodosLosOpd,

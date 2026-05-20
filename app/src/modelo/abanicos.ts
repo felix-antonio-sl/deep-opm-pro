@@ -11,6 +11,13 @@ export interface PuertoComunExacto {
   key: string;
 }
 
+export interface CandidatoAbanicoExacto {
+  lado: LadoEnlace;
+  entidadId: Id;
+  tipo: TipoEnlace;
+  enlaceIds: Id[];
+}
+
 export function formarAbanico(
   modelo: Modelo,
   opdId: Id,
@@ -97,6 +104,25 @@ export function detectarPuertoCompartido(modelo: Modelo, opdId: Id, enlace: Enla
 
 export function abanicoDeEnlace(modelo: Modelo, enlaceId: Id): Abanico | undefined {
   return Object.values(modelo.abanicos ?? {}).find((abanico) => abanico.enlaceIds.includes(enlaceId));
+}
+
+export function candidatosAbanicoExacto(modelo: Modelo, opdId: Id, enlaceId: Id): CandidatoAbanicoExacto[] {
+  const enlace = modelo.enlaces[enlaceId];
+  if (!enlace || naturalezaDeEnlace(enlace.tipo) !== "procedural" || abanicoDeEnlace(modelo, enlaceId)) return [];
+  return (["origen", "destino"] as const).flatMap((lado) => {
+    const extremo = lado === "origen" ? enlace.origenId : enlace.destinoId;
+    const entidadId = entidadIdDeExtremo(modelo, extremo);
+    if (!entidadId || extremo.kind !== "entidad") return [];
+    const enlaceIds = enlacesCompatiblesDelOpd(modelo, opdId, enlace)
+      .filter((candidato) => !abanicoDeEnlace(modelo, candidato.id))
+      .filter((candidato) => {
+        const extremoCandidato = lado === "origen" ? candidato.origenId : candidato.destinoId;
+        return extremoCandidato.kind === "entidad" && entidadIdDeExtremo(modelo, extremoCandidato) === entidadId;
+      })
+      .map((candidato) => candidato.id);
+    if (enlaceIds.length < 2) return [];
+    return [{ lado, entidadId, tipo: enlace.tipo, enlaceIds: ordenarConSeleccionPrimero(enlaceIds, enlaceId) }];
+  });
 }
 
 export function puertoExactoCompartidoDeAbanico(modelo: Modelo, abanico: Abanico): PuertoComunExacto | undefined {
@@ -306,6 +332,13 @@ function esOperadorAbanico(value: unknown): value is OperadorAbanico {
 
 function siguienteId(modelo: Modelo, prefijo: string): Id {
   return `${prefijo}-${modelo.nextSeq}`;
+}
+
+function ordenarConSeleccionPrimero(enlaceIds: Id[], enlaceSeleccionId: Id): Id[] {
+  return [
+    enlaceSeleccionId,
+    ...enlaceIds.filter((id) => id !== enlaceSeleccionId),
+  ];
 }
 
 function ok<T>(value: T): Resultado<T> {

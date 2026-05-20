@@ -3,9 +3,9 @@
 **Fecha**: 2026-05-20
 **Repositorio**: `deep-opm-pro`
 **Rama**: `main`
-**Último corte funcional**: UI del modelador alineada a enlaces exactos: inspector muestra anclas, `portId` y fan por puerto común.
-**Último corte deploy**: corte UI de anclaje exacto desplegado al cierre en `https://opforja.sanixai.com`
-**Corte**: Refactor integral de enlaces cerrado; UI del modelador adaptada al contrato de anclaje exacto.
+**Último corte funcional**: UX/UI de creación de fans: el inspector detecta ramas compatibles, expone `Crear fan` y forma el abanico exacto.
+**Último corte deploy**: corte UX/UI de creación de fans desplegado en `https://opforja.sanixai.com`
+**Corte**: Plan UX/UI del modelador abierto; Corte 1 de fans/anclaje contextual implementado.
 
 ## Política De Handoff Único
 
@@ -23,6 +23,95 @@
 - JointJS OSS: usar documentación oficial viva cuando se toque JointJS.
 
 ## Estado Actual
+
+### Corte UX/UI Fans Y Anclaje Contextual — 2026-05-20
+
+Motivación: tras el refactor de enlaces exactos, la semántica de fans era más
+rigurosa, pero la UI seguía comunicando solo `Sin fan exacto`. Un modelador
+podía crear dos ramas `resultado` compatibles y no veía cómo convertirlas en
+abanico. La falla no era de kernel: era de affordance.
+
+Decisiones:
+
+- Se abrió el plan normativo `docs/roadmap/ux-ui-modelador-plan.md` para
+  gobernar los próximos cortes UX/UI sin mezclar nuevas funcionalidades.
+- La UI debe mostrar acciones de modelado cerca de la decisión: si un enlace
+  seleccionado tiene ramas compatibles, el tab `Extremos` expone `Fan posible`
+  y el botón `Crear fan`.
+- La acción no reimplementa semántica en UI. El inspector consume un selector
+  puro, llama un puerto de aplicación y el store coordina alineación de puerto
+  común + `formarAbanico`.
+- La microcopy distingue fans salientes y entrantes: `desde` para origen,
+  `hacia` para destino.
+
+Cambios:
+
+- `candidatosAbanicoExacto` detecta fans posibles por extremo común aunque las
+  ramas todavía no compartan `portId`.
+- `compartirAnclaExtremosEnlaces` alinea los extremos compatibles a un puerto
+  exacto común serializable.
+- `crearAbanicoDesdeEnlaceSeleccionado` crea el fan manual desde la rama
+  seleccionada y mantiene historial undo/dirty por `commitModelo`.
+- `InspectorEnlace` y `SeccionExtremos` exponen `Fan posible` + `Crear fan`.
+- El puerto `linkInspectorPort` incorpora `crearAbanicoDesdeEnlace`.
+- Se agregó regresión E2E para `BUG-20260520T043712Z-72ab52`.
+
+Artefactos:
+
+- `docs/roadmap/ux-ui-modelador-plan.md`
+- `app/src/modelo/abanicos.ts`
+- `app/src/modelo/operaciones/ports.ts`
+- `app/src/modelo/operaciones.ts`
+- `app/src/store/modelo/acciones-enlace.ts`
+- `app/src/store/modelo/contrato.ts`
+- `app/src/store/tipos.ts`
+- `app/src/app/ports/linkInspectorPort.ts`
+- `app/src/app/ports/zustandLinkInspectorPort.ts`
+- `app/src/ui/InspectorEnlace.tsx`
+- `app/src/ui/inspectorEnlace/SeccionExtremos.tsx`
+- `app/src/ui/inspectorEnlace/detalleContratoPuerto.ts`
+- `app/src/modelo/abanicos.test.ts`
+- `app/src/store.test.ts`
+- `app/e2e/02-canvas-y-render.spec.ts`
+
+Validación ejecutada:
+
+```bash
+cd app && bun run browser:smoke
+# 207 passed / 0 failed
+
+cd app && bun run check
+# 1477 pass / 0 fail
+
+cd app && bun run lint
+# OK
+
+cd app && bun run build
+# OK; asset principal local index-DR6KjsJa.js
+
+cd app && bunx playwright test e2e/02-canvas-y-render.spec.ts --grep "BUG-20260520T043712Z"
+# 1 passed / 0 failed
+```
+
+Uso esperado:
+
+1. Crear o tener dos enlaces procedurales compatibles del mismo tipo con un
+   extremo común, por ejemplo dos `resultado` desde el mismo proceso.
+2. Seleccionar una rama.
+3. Abrir `Extremos` en el Inspector de enlace.
+4. Usar `Crear fan` en el bloque `Fan posible`.
+5. El inspector debe pasar a `Fan O` y mostrar el puerto común exacto.
+
+Cierre operativo:
+
+- Commit atómico preparado: `feat(ui): permite crear fans desde el inspector`.
+- Deploy ejecutado con `docker compose up -d --build`.
+- Contenedores verificados: `opforja` healthy y `opforja-bug-capture` up.
+- Health local: `http://127.0.0.1:8080/healthz` responde `ok`.
+- Health bug-capture: `http://bug-capture:3000/healthz` responde `{"ok":true}`.
+- Verificación externa autenticada: `https://opforja.sanixai.com/` sirve
+  `/assets/index-DSZvXp0c.js` y el bundle contiene `Fan posible`,
+  `Crear fan` y `Anclaje exacto`.
 
 ### Corte UI De Anclaje Exacto — 2026-05-20
 

@@ -65,6 +65,7 @@ export function InspectorEnlace({ enlace }: Props) {
     volverEnlaceExternoDerivadoAAutomatico,
     splitEffect,
     alternarOperadorAbanico,
+    crearAbanicoDesdeEnlace,
     quitarRamaDeAbanico,
     disolverAbanico,
     aplicarModificador,
@@ -304,7 +305,7 @@ export function InspectorEnlace({ enlace }: Props) {
         ) : null}
         {tabActivo === "extremos" ? (
           <>
-            <SeccionExtremos modelo={modelo} opdId={opdActivoId} enlace={enlace} onApuntarExtremo={apuntarExtremo} onAbrirMoverPuerto={() => setDialogoMoverPuertoAbierto(true)} />
+            <SeccionExtremos modelo={modelo} opdId={opdActivoId} enlace={enlace} onApuntarExtremo={apuntarExtremo} onCrearFan={crearAbanicoDesdeEnlace} onAbrirMoverPuerto={() => setDialogoMoverPuertoAbierto(true)} />
             <SeccionRuta modelo={modelo} enlace={enlace} rutaEtiqueta={rutaEtiqueta} onRutaEtiqueta={cambiarRutaEtiqueta} />
             <SeccionReanclaje
               modelo={modelo}
