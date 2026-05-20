@@ -278,7 +278,10 @@ test("dos consumos al mismo objeto emiten advertencia", async ({ page }) => {
 
   const diagnostico = page.getByTestId("panel-diagnostico");
   await page.getByTestId("panel-diagnostico-toggle").click();
-  await expect(diagnostico).toContainText("consumo-doble-mismo-objeto");
+  // ronda23 L2 #2: el panel muestra el título humano de la regla, no el slug.
+  // El testid `aviso-consumo-doble-mismo-objeto` sigue siendo el contrato estable.
+  await expect(diagnostico.getByTestId("aviso-consumo-doble-mismo-objeto")).toBeVisible();
+  await expect(diagnostico).toContainText("El mismo objeto se consume dos veces");
   await expect(diagnostico).toContainText("Procesar consume Entrada más de una vez");
   expect(pageErrors).toEqual([]);
 });

@@ -18,6 +18,7 @@ function avisoDiagnostico(parcial: Partial<AvisoDiagnostico> = {}): AvisoDiagnos
     codigo,
     codigoVisible: parcial.codigoVisible ?? codigo,
     testIdCodigo: parcial.testIdCodigo ?? codigo,
+    titulo: parcial.titulo ?? "Título humano",
     severidad: parcial.severidad ?? "advertencia",
     mensaje: parcial.mensaje ?? "Mensaje",
     destino: parcial.destino ?? "Modelo",
@@ -67,6 +68,7 @@ describe("panelDiagnosticoViewModel · issues", () => {
         codigo: "agregacion-misma-esencia",
         codigoVisible: "agregacion-misma-esencia",
         testIdCodigo: "agregacion-misma-esencia",
+        titulo: "Agregación mezcla esencia",
         severidad: "advertencia",
         mensaje: "Mezcla esencia",
         destino: "Objeto - o1",
@@ -80,6 +82,7 @@ describe("panelDiagnosticoViewModel · issues", () => {
       testIdCodigo: "agregacion-misma-esencia",
       severidad: "mejora",
       codigo: "agregacion-misma-esencia",
+      titulo: "Agregación mezcla esencia",
       mensaje: "Mezcla esencia",
       destino: "Objeto - o1",
       cita: "[V-1]",
@@ -96,9 +99,78 @@ describe("panelDiagnosticoViewModel · issues", () => {
 
     const grupos = agruparIssuesDiagnostico(issues);
 
-    expect(grupos.bloqueo.map((issue) => issue.id)).toEqual(["b1", "b2"]);
-    expect(grupos.mejora.map((issue) => issue.id)).toEqual(["m1"]);
-    expect(grupos.estilo.map((issue) => issue.id)).toEqual(["e1"]);
+    expect(grupos.bloqueo.map((grupo) => grupo.id)).toEqual(["b1", "b2"]);
+    expect(grupos.mejora.map((grupo) => grupo.id)).toEqual(["m1"]);
+    expect(grupos.estilo.map((grupo) => grupo.id)).toEqual(["e1"]);
+    // Cada grupo trae una sola instancia cuando los reglaId son distintos.
+    expect(grupos.bloqueo.every((grupo) => grupo.instancias.length === 1)).toBe(true);
+  });
+
+  test("colapsa issues con el mismo testIdCodigo dentro de una severidad (ronda23 L2 #8)", () => {
+    const issues = derivarIssuesDiagnostico([
+      avisoDiagnostico({
+        id: "p1",
+        codigo: "proceso-sin-entrada-ni-salida",
+        testIdCodigo: "proceso-sin-entrada-ni-salida",
+        severidad: "advertencia",
+        destino: "Procesar A",
+      }),
+      avisoDiagnostico({
+        id: "p2",
+        codigo: "proceso-sin-entrada-ni-salida",
+        testIdCodigo: "proceso-sin-entrada-ni-salida",
+        severidad: "advertencia",
+        destino: "Procesar B",
+      }),
+      avisoDiagnostico({
+        id: "p3",
+        codigo: "proceso-sin-entrada-ni-salida",
+        testIdCodigo: "proceso-sin-entrada-ni-salida",
+        severidad: "advertencia",
+        destino: "Procesar C",
+      }),
+    ], () => undefined);
+
+    const grupos = agruparIssuesDiagnostico(issues);
+
+    expect(grupos.mejora).toHaveLength(1);
+    expect(grupos.mejora[0]?.id).toBe("p1");
+    expect(grupos.mejora[0]?.instancias.map((issue) => issue.id)).toEqual(["p1", "p2", "p3"]);
+    expect(grupos.mejora[0]?.testIdCodigo).toBe("proceso-sin-entrada-ni-salida");
+  });
+
+  test("no colapsa issues con distinto testIdCodigo aunque compartan severidad", () => {
+    const issues = derivarIssuesDiagnostico([
+      avisoDiagnostico({ id: "a", testIdCodigo: "regla-a", severidad: "advertencia" }),
+      avisoDiagnostico({ id: "b", testIdCodigo: "regla-b", severidad: "advertencia" }),
+      avisoDiagnostico({ id: "a2", testIdCodigo: "regla-a", severidad: "advertencia" }),
+    ], () => undefined);
+
+    const grupos = agruparIssuesDiagnostico(issues);
+
+    expect(grupos.mejora.map((grupo) => grupo.testIdCodigo)).toEqual(["regla-a", "regla-b"]);
+    expect(grupos.mejora[0]?.instancias.map((issue) => issue.id)).toEqual(["a", "a2"]);
+    expect(grupos.mejora[1]?.instancias.map((issue) => issue.id)).toEqual(["b"]);
+  });
+
+  test("el grupo navega y cita usando el primer issue (representante)", () => {
+    const navegable: Aviso = {
+      reglaId: "demo",
+      severidad: "advertencia",
+      mensaje: "Demo",
+      citaSSOT: "[V-1]",
+    };
+    const navegarAviso = mock(() => undefined);
+    const issues = derivarIssuesDiagnostico([
+      avisoDiagnostico({ id: "rep", testIdCodigo: "demo", avisoNavegable: navegable }),
+      avisoDiagnostico({ id: "extra", testIdCodigo: "demo", avisoNavegable: null }),
+    ], navegarAviso);
+    const grupos = agruparIssuesDiagnostico(issues);
+
+    expect(grupos.mejora).toHaveLength(1);
+    grupos.mejora[0]?.navegar();
+    expect(navegarAviso).toHaveBeenCalledTimes(1);
+    expect(navegarAviso).toHaveBeenCalledWith(navegable);
   });
 
   test("navega solo cuando el aviso tiene destino navegable", () => {
