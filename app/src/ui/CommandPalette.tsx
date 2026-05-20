@@ -244,11 +244,19 @@ export function construirItemsCommandPalette(
   accionesMenu: readonly CommandPaletteMenuAction[] = [],
   frecuenciaUso: Readonly<Record<string, number>> = {},
 ): CommandPaletteItem[] {
-  const itemsAtajos = registros.map((registro, index) => {
+  // Ronda23 L1 #3: dedup palette por (combo + label). Si un mismo atajo se
+  // registra en varios contextos (p.ej. Ctrl+D en `global` y `panel-arbol`
+  // para abrir gestión del árbol OPD) muestra una sola fila en el buscador.
+  // El handler real sigue arbitrado por `registroAplicable` segun foco.
+  const atajosVistos = new Set<string>();
+  const itemsAtajos = registros.flatMap((registro, index) => {
     const label = registro.etiqueta ?? registro.descripcion;
     const descripcion = registro.descripcionLarga ?? registro.descripcion;
+    const clave = `${registro.combo}|${label}`;
+    if (atajosVistos.has(clave)) return [];
+    atajosVistos.add(clave);
     const id = `atajo-${index}-${normalizarTextoBusqueda(registro.ctx)}-${normalizarTextoBusqueda(registro.combo)}`;
-    return {
+    return [{
       id,
       tipo: "atajo" as const,
       label,
@@ -258,10 +266,14 @@ export function construirItemsCommandPalette(
       registroIndex: index,
       textoBusqueda: textoBusqueda([label, descripcion, registro.categoria, registro.combo, registro.ctx]),
       frecuenciaUso: frecuenciaUso[id] ?? 0,
-    };
+    }];
   });
   const itemsAcciones = acciones.map((accion) => {
     const id = `accion-${accion.id}`;
+    // Ronda23 L1 #10: incluir aliasBusqueda para que la nomenclatura OPM en
+    // inglés ("inzoom"/"unfold") siga matcheando aunque el label visible se
+    // muestre en castellano canónico ("Descomponer"/"Desplegar").
+    const aliasBusqueda = accion.aliasBusqueda ?? [];
     return {
       id,
       tipo: "accion-contextual" as const,
@@ -270,7 +282,7 @@ export function construirItemsCommandPalette(
       categoria: accion.categoria,
       ...(accion.atajo ? { atajo: accion.atajo } : {}),
       accionId: accion.id,
-      textoBusqueda: textoBusqueda([accion.label, accion.categoria, accion.atajo ?? ""]),
+      textoBusqueda: textoBusqueda([accion.label, accion.categoria, accion.atajo ?? "", ...aliasBusqueda]),
       frecuenciaUso: frecuenciaUso[id] ?? 0,
     };
   });

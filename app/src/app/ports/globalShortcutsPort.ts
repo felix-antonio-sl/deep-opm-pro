@@ -127,11 +127,11 @@ export function registrarAtajosAplicacion(port: GlobalShortcutsPort, registrarAt
   };
 
   return [
-    registrarAtajo({ combo: "Ctrl+S", ctx: "global", categoria: "archivo", descripcion: "Guardar modelo", handler: () => s().guardarLocal() }),
-    registrarAtajo({ combo: "Ctrl+K", ctx: "global", categoria: "navegacion", descripcion: "Buscar comandos", handler: () => s().abrirDialogoComandos() }),
-    registrarAtajo({ combo: "Ctrl+F", ctx: "canvas", categoria: "navegacion", descripcion: "Buscar cosas en el modelo", handler: () => s().abrirBusquedaCosas() }),
-    registrarAtajo({ combo: "Ctrl+Shift+F", ctx: "global", categoria: "navegacion", descripcion: "Buscar en el workspace", handler: () => s().abrirDialogoBuscarGlobal() }),
-    registrarAtajo({ combo: "Ctrl+D", ctx: "global", categoria: "navegacion", descripcion: "Abrir gestión del árbol OPD", handler: () => s().abrirGestionArbol() }),
+    registrarAtajo({ combo: "Ctrl+S", ctx: "global", categoria: "archivo", descripcion: "Guardar modelo", descripcionLarga: "Persiste el modelo activo en el workspace local", handler: () => s().guardarLocal() }),
+    registrarAtajo({ combo: "Ctrl+K", ctx: "global", categoria: "navegacion", descripcion: "Buscar comandos", descripcionLarga: "Abre este buscador de comandos y atajos", handler: () => s().abrirDialogoComandos() }),
+    registrarAtajo({ combo: "Ctrl+F", ctx: "canvas", categoria: "navegacion", descripcion: "Buscar cosas en el modelo", descripcionLarga: "Busca objetos y procesos por nombre en el modelo activo", handler: () => s().abrirBusquedaCosas() }),
+    registrarAtajo({ combo: "Ctrl+Shift+F", ctx: "global", categoria: "navegacion", descripcion: "Buscar en el workspace", descripcionLarga: "Busca en todos los modelos guardados del workspace", handler: () => s().abrirDialogoBuscarGlobal() }),
+    registrarAtajo({ combo: "Ctrl+D", ctx: "global", categoria: "navegacion", descripcion: "Abrir gestión del árbol OPD", descripcionLarga: "Gestiona la jerarquía completa de OPDs en panel lateral", handler: () => s().abrirGestionArbol() }),
     registrarAtajo({ combo: "Ctrl+Z", ctx: "global", categoria: "edicion", descripcion: "Deshacer", handler: () => s().deshacer() }),
     registrarAtajo({ combo: "Ctrl+Y", ctx: "global", categoria: "edicion", descripcion: "Rehacer", handler: () => s().rehacer() }),
     registrarAtajo({ combo: "Ctrl+Shift+Z", ctx: "global", categoria: "edicion", descripcion: "Rehacer", handler: () => s().rehacer() }),
@@ -152,7 +152,7 @@ export function registrarAtajosAplicacion(port: GlobalShortcutsPort, registrarAt
       descripcionLarga: "Crea enlaces de agregación desde N-1 cosas hacia la última seleccionada",
       handler: conectarMultiAlTodo,
     }),
-    registrarAtajo({ combo: "Escape", ctx: "global", categoria: "seleccion", descripcion: "Cerrar modal superior o vaciar selección", handler: cerrarModalSuperiorOVaciarSeleccion }),
+    registrarAtajo({ combo: "Escape", ctx: "global", categoria: "seleccion", descripcion: "Cerrar modal superior o vaciar selección", descripcionLarga: "Cierra el diálogo activo o quita la selección actual del canvas", handler: cerrarModalSuperiorOVaciarSeleccion }),
     registrarAtajo({ combo: "ArrowUp", ctx: "canvas", categoria: "edicion", descripcion: "Mover selección 1 px hacia arriba", handler: () => s().nudgeSeleccion(0, -1) }),
     registrarAtajo({ combo: "ArrowDown", ctx: "canvas", categoria: "edicion", descripcion: "Mover selección 1 px hacia abajo", handler: () => s().nudgeSeleccion(0, 1) }),
     registrarAtajo({ combo: "ArrowLeft", ctx: "canvas", categoria: "edicion", descripcion: "Mover selección 1 px a la izquierda", handler: () => s().nudgeSeleccion(-1, 0) }),
@@ -168,14 +168,14 @@ export function registrarAtajosAplicacion(port: GlobalShortcutsPort, registrarAt
     registrarAtajo({ combo: "Shift+I", ctx: "canvas", categoria: "edicion", descripcion: "Crear inzoom de la cosa seleccionada", handler: () => s().descomponerSeleccionada() }),
     registrarAtajo({ combo: "Shift+U", ctx: "canvas", categoria: "edicion", descripcion: "Desplegar selección", handler: () => s().desplegarSeleccionada() }),
     registrarAtajo({ combo: "Ctrl+Shift+C", ctx: "canvas", categoria: "edicion", descripcion: "Copiar formato de enlace seleccionado", handler: copiarEstiloEnlace }),
-    registrarAtajo({ combo: "Ctrl+T", ctx: "global", categoria: "navegacion", descripcion: "Abrir pestaña nueva", handler: () => s().abrirPestanaNueva?.() }),
+    registrarAtajo({ combo: "Ctrl+T", ctx: "global", categoria: "navegacion", descripcion: "Abrir pestaña nueva", descripcionLarga: "Duplica el modelo actual en una pestaña adicional para comparar", handler: () => s().abrirPestanaNueva?.() }),
     registrarAtajo({ combo: "Ctrl+W", ctx: "global", categoria: "navegacion", descripcion: "Cerrar pestaña activa", handler: () => {
       const state = s();
       if (state.pestanaActivaId) state.cerrarPestana?.(state.pestanaActivaId);
     } }),
     registrarAtajo({ combo: "Ctrl+Tab", ctx: "global", categoria: "navegacion", descripcion: "Siguiente pestaña", handler: () => cambiarPestanaRelativa(s, 1) }),
     registrarAtajo({ combo: "Ctrl+Shift+Tab", ctx: "global", categoria: "navegacion", descripcion: "Pestaña anterior", handler: () => cambiarPestanaRelativa(s, -1) }),
-    registrarAtajo({ combo: "Ctrl+B", ctx: "global", categoria: "vista", descripcion: "Abrir/cerrar biblioteca dock", handler: () => s().toggleBibliotecaDock() }),
+    registrarAtajo({ combo: "Ctrl+B", ctx: "global", categoria: "vista", descripcion: "Abrir/cerrar biblioteca dock", descripcionLarga: "Muestra u oculta la biblioteca lateral de plantillas y formas", handler: () => s().toggleBibliotecaDock() }),
   ];
 }
 
