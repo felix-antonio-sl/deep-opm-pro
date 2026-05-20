@@ -25,13 +25,16 @@ export function contenidoHoverTooltip(modelo: Modelo, meta: OpmJointMetadata | n
     const entidad = modelo.entidades[meta.entidadId];
     if (!entidad) return null;
     const tipo = entidad.tipo === "objeto" ? "Objeto OPM" : "Proceso OPM";
-    const ssot = entidad.tipo === "objeto" ? "[Glos 3.55]" : "[Glos 3.69]";
+    // Ronda23 cierre #3: el sufijo "[Glos 3.55]/[Glos 3.69]" se omite del
+    // tooltip flotante. No hay panel de glosa donde resolver el código y la
+    // referencia interna sólo agrega ruido visual para el usuario final.
+    // El anclaje SSOT vive en `checkers.ts` y en los comentarios del módulo,
+    // no en la UI flotante.
     return [
       tipo,
       entidad.nombre,
       entidad.esencia === "fisica" ? "físico" : "informacional",
       entidad.afiliacion === "ambiental" ? "ambiental" : "sistémico",
-      ssot,
     ].join(" · ");
   }
   if (meta.kind === "enlace") {

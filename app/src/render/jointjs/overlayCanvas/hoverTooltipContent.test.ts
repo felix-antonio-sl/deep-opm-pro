@@ -4,7 +4,10 @@ import type { OpmJointMetadata } from "../proyeccion";
 import { contenidoHoverTooltip } from "./hoverTooltipContent";
 
 describe("contenidoHoverTooltip", () => {
-  test("describe entidad OPM con tipo, esencia, afiliacion y SSOT", () => {
+  test("describe entidad OPM con tipo, esencia y afiliacion (sin sufijo SSOT)", () => {
+    // Ronda23 cierre #3: el tooltip flotante ya no incluye la referencia de
+    // glosa interna ("[Glos 3.55]/[Glos 3.69]") porque no hay panel de glosa
+    // accesible desde la UI; quedó como ruido visual sin contraparte navegable.
     const modelo = modeloBase({
       entidades: {
         "o-1": { id: "o-1", tipo: "objeto", nombre: "Cliente", esencia: "fisica", afiliacion: "ambiental" },
@@ -12,7 +15,7 @@ describe("contenidoHoverTooltip", () => {
     });
     const meta: OpmJointMetadata = { kind: "entidad", opdId: "opd-1", entidadId: "o-1", aparienciaId: "a-o-1", rol: "externo" };
 
-    expect(contenidoHoverTooltip(modelo, meta)).toBe("Objeto OPM · Cliente · físico · ambiental · [Glos 3.55]");
+    expect(contenidoHoverTooltip(modelo, meta)).toBe("Objeto OPM · Cliente · físico · ambiental");
   });
 
   test("describe enlace OPM con tipo, multiplicidad y SSOT visual", () => {
