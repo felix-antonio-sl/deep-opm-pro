@@ -110,4 +110,45 @@ describe("reanclarExtremoEnlace", () => {
     expect(res.ok).toBe(false);
     if (!res.ok) expect(res.error).toContain("auto-conexión");
   });
+
+  test("reanclar extremo sincroniza portId y limpia el puerto de la apariencia anterior", () => {
+    let modelo = crearModelo("Reanclaje con puertos");
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 20 }, "Entrada"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 220, y: 20 }, "Procesar"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 420, y: 20 }, "Reprocesar"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidad(modelo, "Entrada"), entidad(modelo, "Procesar"), "consumo"));
+    const enlaceId = Object.keys(modelo.enlaces)[0]!;
+    const portIdPrevio = modelo.enlaces[enlaceId]!.destinoId.portId;
+    expect(portIdPrevio).toBeDefined();
+    expect(apariencia(modelo, "Procesar").ports?.[portIdPrevio!]).toBeDefined();
+
+    const reanclado = reanclarExtremoEnlace(modelo, enlaceId, "destino", extremoEntidad(entidad(modelo, "Reprocesar")));
+
+    expect(reanclado.ok).toBe(true);
+    if (!reanclado.ok) return;
+    const siguiente = reanclado.value.modelo;
+    const enlace = siguiente.enlaces[enlaceId]!;
+    expect(enlace.destinoId.id).toBe(entidad(siguiente, "Reprocesar"));
+    expect(enlace.destinoId.portId).toBe(portIdPrevio);
+    expect(apariencia(siguiente, "Procesar").ports?.[portIdPrevio!]).toBeUndefined();
+    expect(apariencia(siguiente, "Reprocesar").ports?.[portIdPrevio!]).toEqual({ x: 0, y: 0.5 });
+  });
 });
+
+function entidad(modelo: Modelo, nombre: string): string {
+  const encontrada = Object.values(modelo.entidades).find((item) => item.nombre === nombre);
+  if (!encontrada) throw new Error(`Entidad no encontrada: ${nombre}`);
+  return encontrada.id;
+}
+
+function apariencia(modelo: Modelo, nombre: string) {
+  const entidadId = entidad(modelo, nombre);
+  const encontrada = Object.values(modelo.opds[modelo.opdRaizId]!.apariencias).find((item) => item.entidadId === entidadId);
+  if (!encontrada) throw new Error(`Apariencia no encontrada: ${nombre}`);
+  return encontrada;
+}
+
+function must<T>(resultado: { ok: true; value: T } | { ok: false; error: string }): T {
+  if (!resultado.ok) throw new Error(resultado.error);
+  return resultado.value;
+}

@@ -1,6 +1,6 @@
-import { entidadDeExtremo } from "./extremos";
-import { validarFirmaEnlace } from "./operaciones";
-import type { AparienciaEnlace, Enlace, ExtremoEnlace, Id, Modelo, Opd, Posicion, Resultado, TipoEnlace } from "./tipos";
+import { entidadDeExtremo, mismoExtremo } from "./extremos";
+import { apuntarExtremoEnlace } from "./operaciones";
+import type { AparienciaEnlace, ExtremoEnlace, Id, Modelo, Opd, Posicion, Resultado } from "./tipos";
 
 /**
  * Inserta un vértice en una apariencia de enlace en la posición dada.
@@ -60,30 +60,15 @@ export function reanclarExtremoEnlace(
 ): Resultado<ReanclajeResult> {
   const enlace = modelo.enlaces[enlaceId];
   if (!enlace) return fallo(`Enlace no existe: ${enlaceId}`);
-
-  const actualizado: Enlace = {
+  const extremoActual = lado === "origen" ? enlace.origenId : enlace.destinoId;
+  if (mismoExtremo(extremoActual, nuevoExtremo)) return ok({ modelo });
+  const actualizado = {
     ...enlace,
     ...(lado === "origen" ? { origenId: nuevoExtremo } : { destinoId: nuevoExtremo }),
   };
-
-  // Validar firma: obtener entidades origen/destino
-  const origenEntidad = entidadDeExtremo(modelo, actualizado.origenId);
-  const destinoEntidad = entidadDeExtremo(modelo, actualizado.destinoId);
-  if (!origenEntidad || !destinoEntidad) {
+  if (!entidadDeExtremo(modelo, actualizado.origenId) || !entidadDeExtremo(modelo, actualizado.destinoId)) {
     return fallo("Extremo de enlace sin entidad asociada");
   }
-
-  const firmaValida = validarFirmaEnlace(
-    actualizado.tipo as TipoEnlace,
-    origenEntidad,
-    destinoEntidad,
-    { origen: actualizado.origenId, destino: actualizado.destinoId },
-  );
-  if (!firmaValida.ok) {
-    return fallo(firmaValida.error ?? "Conexión inválida: revisa la firma de enlace");
-  }
-
-  // Verificar que no sea una auto-conexión (mismo extremo para tipos no-auto-invocación).
   if (
     actualizado.origenId.kind === actualizado.destinoId.kind &&
     actualizado.origenId.id === actualizado.destinoId.id &&
@@ -95,15 +80,11 @@ export function reanclarExtremoEnlace(
   const advertencia = enlace.derivado?.tipo === "enlace-externo-refinamiento"
     ? "Enlace derivado: el reanclaje manual reemplaza el automático"
     : undefined;
+  const resultado = apuntarExtremoEnlace(modelo, enlaceId, lado, nuevoExtremo);
+  if (!resultado.ok) return resultado;
 
   return ok({
-    modelo: {
-      ...modelo,
-      enlaces: {
-        ...modelo.enlaces,
-        [enlaceId]: actualizado,
-      },
-    },
+    modelo: resultado.value,
     ...(advertencia ? { advertencia } : {}),
   });
 }
