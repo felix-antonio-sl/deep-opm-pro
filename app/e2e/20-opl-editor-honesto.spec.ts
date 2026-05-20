@@ -2,7 +2,11 @@
 // conteo en el botón "Aplicar", el tooltip por razón en líneas no aplicables
 // y la legibilidad del rail minimizado a 1280x720 sin truncar.
 import { expect, test } from "@playwright/test";
-import { cerrarPantallaInicioSiVisible } from "./_smoke-helpers";
+import {
+  cerrarPantallaInicioSiVisible,
+  elementoPorTexto,
+  restaurarPanelOplSiMinimizado,
+} from "./_smoke-helpers";
 
 test("editor OPL honesto muestra 4 grupos con contadores estables", async ({ page }) => {
   const pageErrors: string[] = [];
@@ -46,6 +50,30 @@ test("editor OPL honesto cuenta 1 cambio aplicable y etiqueta el botón", async 
   // valida con `renombrar Entrada -> Cliente`; aquí lo confirmamos en grupo).
   await expect(page.getByTestId("panel-opl-editor-preview")).toContainText("renombrar Entrada -> Cliente");
 
+  expect(pageErrors).toEqual([]);
+});
+
+test("editor OPL honesto proyecta entidades y enlace escritos desde cero al OPD", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await cerrarPantallaInicioSiVisible(page);
+  await restaurarPanelOplSiMinimizado(page);
+  await page.getByTestId("panel-opl-editar-libre").click();
+  await page.getByTestId("panel-opl-editor-textarea").fill([
+    "**Entrada** es un objeto informacional y sistémico.",
+    "*Procesar* es un proceso informacional y sistémico.",
+    "*Procesar* consume **Entrada**.",
+  ].join("\n"));
+
+  await expect(page.getByTestId("panel-opl-editor-aplicar")).toContainText("Aplicar 3 cambios");
+  await page.getByTestId("panel-opl-editor-aplicar").click();
+
+  await expect(elementoPorTexto(page, "Entrada")).toHaveCount(1);
+  await expect(elementoPorTexto(page, "Procesar")).toHaveCount(1);
+  await expect(page.locator(".joint-link [joint-selector=wrapper]")).toHaveCount(1);
+  await expect(page.getByLabel("Panel OPL-ES").getByText(/Procesar\s+consume\s+Entrada\./)).toBeVisible();
   expect(pageErrors).toEqual([]);
 });
 

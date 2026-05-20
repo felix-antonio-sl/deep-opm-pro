@@ -96,6 +96,52 @@ describe("OPL reverse libre — parser SSOT alpha-lock", () => {
     expect(generarOpl(aplicado)).toContain("*Procesar* consume **Entrada**.");
   });
 
+  test("crea entidades y enlaces declarados en el mismo lote OPL", () => {
+    const modelo = crearModelo("reverse");
+    const texto = [
+      "**Entrada** es un objeto informacional y sistémico.",
+      "*Procesar* es un proceso informacional y sistémico.",
+      "*Procesar* consume **Entrada**.",
+    ].join("\n");
+
+    const preview = planificarEdicionOplLibre(modelo, texto, { opdActivoId: modelo.opdRaizId });
+
+    expect(preview.diagnosticos.filter((d) => d.severidad === "error")).toHaveLength(0);
+    expect(preview.patches.map((patch) => patch.tipo)).toEqual([
+      "crear-entidad",
+      "crear-entidad",
+      "crear-enlace",
+    ]);
+
+    const aplicado = must(aplicarPatchesOpl(modelo, preview.patches, modelo.opdRaizId));
+    expect(Object.values(aplicado.entidades).some((entidad) => entidad.nombre === "Entrada")).toBe(true);
+    expect(Object.values(aplicado.entidades).some((entidad) => entidad.nombre === "Procesar")).toBe(true);
+    expect(Object.values(aplicado.enlaces).some((enlace) => enlace.tipo === "consumo")).toBe(true);
+    expect(generarOpl(aplicado)).toContain("*Procesar* consume **Entrada**.");
+  });
+
+  test("resuelve referencias editadas al nuevo nombre dentro del mismo lote OPL", () => {
+    let modelo = crearModelo("reverse");
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 0, y: 0 }, "Entrada"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 180, y: 0 }, "Procesar"));
+    const texto = [
+      "**Cliente** es un objeto informacional y sistémico.",
+      "*Procesar* es un proceso informacional y sistémico.",
+      "*Procesar* consume **Cliente**.",
+    ].join("\n");
+
+    const preview = planificarEdicionOplLibre(modelo, texto, { opdActivoId: modelo.opdRaizId });
+
+    expect(preview.diagnosticos.filter((d) => d.severidad === "error")).toHaveLength(0);
+    expect(preview.patches.map((patch) => patch.tipo)).toEqual([
+      "renombrar-entidad",
+      "crear-enlace",
+    ]);
+
+    const aplicado = must(aplicarPatchesOpl(modelo, preview.patches, modelo.opdRaizId));
+    expect(generarOpl(aplicado)).toContain("*Procesar* consume **Cliente**.");
+  });
+
   test("sincroniza estados por posicion y agrega estados nuevos sin borrar por ausencia", () => {
     let modelo = crearModelo("reverse");
     modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 0, y: 0 }, "Pedido"));

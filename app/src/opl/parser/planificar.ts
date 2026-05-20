@@ -245,6 +245,8 @@ function refEntidadPorNombre(
 ): ReferenciaEntidadPatch | null {
   const entidad = resolverEntidad(modelo, nombre, entidadTipo, linea, registry, { silenciosoSiNoExiste: true });
   if (entidad) return { tipo: "id", id: entidad.id };
+  const pendiente = registry.refEntidadPendiente(modelo, nombre, entidadTipo, linea);
+  if (pendiente) return pendiente;
   registry.diagnostico({
     codigo: "unknown-symbol",
     severidad: "error",
@@ -341,6 +343,43 @@ class PatchRegistry {
 
   diagnostico(diagnostico: DiagnosticoOpl): void {
     this.diagnosticos.push(diagnostico);
+  }
+
+  refEntidadPendiente(
+    modelo: Modelo,
+    nombre: string,
+    entidadTipo: TipoEntidad | undefined,
+    linea: number,
+  ): ReferenciaEntidadPatch | null {
+    const clave = claveNombre(nombre);
+    const candidatos: ReferenciaEntidadPatch[] = [];
+    for (const patch of this.patches) {
+      if (patch.tipo === "crear-entidad") {
+        if (claveNombre(patch.nombre) === clave && (!entidadTipo || patch.entidadTipo === entidadTipo)) {
+          candidatos.push({ tipo: "nombre", nombre: patch.nombre, entidadTipo: patch.entidadTipo });
+        }
+        continue;
+      }
+      if (patch.tipo !== "renombrar-entidad") continue;
+      if (claveNombre(patch.siguiente) !== clave) continue;
+      const entidad = modelo.entidades[patch.entidadId];
+      if (!entidad || (entidadTipo && entidad.tipo !== entidadTipo)) continue;
+      candidatos.push({ tipo: "id", id: patch.entidadId });
+    }
+    const deduplicados = candidatos.filter((candidato, index, todos) => (
+      todos.findIndex((item) => refKey(item) === refKey(candidato)) === index
+    ));
+    if (deduplicados.length === 1) return deduplicados[0]!;
+    if (deduplicados.length > 1) {
+      this.diagnostico({
+        codigo: "ambiguous-symbol",
+        severidad: "error",
+        linea,
+        columna: 1,
+        mensaje: `El nombre '${nombre}' es ambiguo en los cambios OPL pendientes (${deduplicados.length} candidatos).`,
+      });
+    }
+    return null;
   }
 }
 
