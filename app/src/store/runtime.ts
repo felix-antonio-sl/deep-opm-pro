@@ -157,10 +157,16 @@ export function sincronizarPestanaActivaEnLista(state: OpmStore): Pestana[] {
 }
 
 export function pestanaReemplazable(pestana: Pestana): boolean {
+  // Ronda 23 L3 #7: pestañas precargadas con el fixture de bienvenida
+  // (cargadoDesde === "bienvenida") son tan transitorias como una pestaña
+  // "nuevo" recién creada — el operador todavía no editó nada, así que
+  // "Empezar vacío" o el asistente deben reemplazarlas sin abrir tab nueva.
+  const origenReemplazable = pestana.cargadoDesde === "nuevo" || pestana.cargadoDesde === "bienvenida";
+  if (!origenReemplazable) return false;
+  if (pestana.modeloId !== null) return false;
+  if (pestana.dirty) return false;
+  if (pestana.cargadoDesde === "bienvenida") return true;
   return (
-    pestana.cargadoDesde === "nuevo" &&
-    pestana.modeloId === null &&
-    !pestana.dirty &&
     Object.keys(pestana.modelo.entidades).length === 0 &&
     Object.keys(pestana.modelo.enlaces).length === 0 &&
     Object.keys(pestana.modelo.estados).length === 0

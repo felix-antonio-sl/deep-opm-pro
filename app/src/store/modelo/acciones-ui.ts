@@ -441,6 +441,17 @@ export function accionesUI(set: SetStore, get: GetStore): Partial<ModeloSlice> {
           workspaceLocal: workspaceDesdeModelo(modelo, null),
           mensaje: "Nuevo modelo",
         }));
+        // Ronda 23 L3 #7: si reemplazamos una pestaña etiquetada como
+        // "bienvenida" (fixture precargado), hay que reetiquetarla como
+        // "nuevo" para que el banner no reaparezca en el próximo render.
+        if (actual.cargadoDesde === "bienvenida") {
+          const pestanasActualizadas = get().pestanasAbiertas.map((p) => (
+            p.id === actual.id
+              ? { ...p, cargadoDesde: "nuevo" as const, etiqueta: "Modelo", dirty: false }
+              : p
+          ));
+          set({ pestanasAbiertas: pestanasActualizadas });
+        }
         return;
       }
       const pestana = crearPestanaNueva({ modelo });

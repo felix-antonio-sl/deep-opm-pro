@@ -84,12 +84,35 @@ export function modeloTraerConectadosSmoke() {
   };
 }
 
+/**
+ * Ronda 23 L3 #7: el overlay legacy (telón opaco + 3 caminos) fue
+ * reemplazado por la dupla canvas-precargado + banner inline descartable.
+ * Este helper sigue cumpliendo la misma promesa para 26 smokes:
+ *  - dejar la pantalla en un estado predecible (canvas vacío sin banner)
+ *    antes de que el smoke ejecute sus asserts.
+ *
+ * Pasos:
+ *  1. Si el banner inline está visible, hace clic en "Empezar vacío"; el
+ *     callback de UI limpia el modelo y cierra el banner.
+ *  2. Si el banner no aparece pero el canvas heredó la precarga del
+ *     fixture (timing del effect, hydration tardía, etc.), invoca el
+ *     fallback "Nuevo" desde MenuPrincipal para vaciar el canvas.
+ */
 export async function cerrarPantallaInicioSiVisible(page: import("@playwright/test").Page): Promise<void> {
   const pantalla = page.getByTestId("pantalla-inicio");
-  await pantalla.waitFor({ state: "visible", timeout: 750 }).catch(() => undefined);
-  if (await pantalla.count() === 0) return;
-  await pantalla.getByRole("button", { name: /Empezar vacío|Nuevo/ }).click();
-  await expect(pantalla).toHaveCount(0);
+  await pantalla.waitFor({ state: "visible", timeout: 1500 }).catch(() => undefined);
+  if (await pantalla.count() > 0) {
+    await pantalla.getByRole("button", { name: /Empezar vacío|Nuevo/ }).click();
+    await expect(pantalla).toHaveCount(0);
+  }
+  // Fallback defensivo: si el canvas conserva el fixture (precarga llegó
+  // antes del helper pero el banner no se renderizó a tiempo), forzar
+  // "Nuevo" desde el menú principal para vaciar el canvas.
+  const elementosCanvas = await page.locator(".joint-element").count();
+  if (elementosCanvas > 0) {
+    await crearModeloNuevoDesdeMenu(page);
+    await expect(page.locator(".joint-element")).toHaveCount(0);
+  }
 }
 
 export async function restaurarPanelOplSiMinimizado(page: import("@playwright/test").Page): Promise<void> {
