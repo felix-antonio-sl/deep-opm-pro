@@ -34,9 +34,23 @@ export function crearEnlaceTransaccional(
   const enlaceId = enlaceNuevo(modelo, modeloFinal);
   if (!enlaceId) return ok({ modelo: sincronizarPuertosTodosLosOpd(modeloFinal), enlaceId: null });
 
+  const anclado = aplicarAnclas(modeloFinal, opdId, enlaceId, opciones);
+  if (!anclado.ok) return anclado;
+  modeloFinal = sincronizarPuertosTodosLosOpd(anclado.value);
+
   const abanico = formarAbanicoAutomatico(modeloFinal, opdId, enlaceId, opciones.operadorAbanico ?? "O");
   if (abanico.ok) modeloFinal = abanico.value;
 
+  return ok({ modelo: sincronizarPuertosTodosLosOpd(modeloFinal), enlaceId });
+}
+
+function aplicarAnclas(
+  modelo: Modelo,
+  opdId: Id,
+  enlaceId: Id,
+  opciones: CrearEnlaceTransaccionalOpciones,
+): Resultado<Modelo> {
+  let modeloFinal = modelo;
   const anclas: Array<[LadoExtremoEnlace, AnclaRelojEnlace | undefined]> = [
     ["origen", opciones.anclaOrigen],
     ["destino", opciones.anclaDestino],
@@ -47,8 +61,7 @@ export function crearEnlaceTransaccional(
     if (!anclado.ok) return anclado;
     modeloFinal = anclado.value;
   }
-
-  return ok({ modelo: sincronizarPuertosTodosLosOpd(modeloFinal), enlaceId });
+  return ok(modeloFinal);
 }
 
 function crearEnlaceBase(

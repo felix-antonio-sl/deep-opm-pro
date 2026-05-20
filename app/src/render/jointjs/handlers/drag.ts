@@ -1,7 +1,7 @@
 import type { dia } from "jointjs";
 import { extremoEntidad } from "../../../modelo/extremos";
 import { obtenerRefinamiento } from "../../../modelo/refinamientos";
-import type { Modelo } from "../../../modelo/tipos";
+import type { ExtremoEnlace, Modelo } from "../../../modelo/tipos";
 import type { AjustePuertoEnlace } from "../../../modelo/operaciones";
 import {
   abanicosAfectadosPorEntidad,
@@ -37,7 +37,7 @@ export interface CablearDragArgs {
   actualizarPosicionSimboloEstructuralRef: { current: (aparienciaEnlaceIds: string[], posicion: { x: number; y: number }) => void };
   actualizarPosicionLabelEnlaceRef: { current: (aparienciaEnlaceId: string, labelKey: string, posicion: { distance: number; offset?: number | { x: number; y: number }; angle?: number }) => void };
   actualizarVerticesEnlaceRef: { current: (aparienciaEnlaceId: string, vertices: { x: number; y: number }[]) => void };
-  reanclarExtremoAccionRef: { current: (enlaceId: string, lado: "origen" | "destino", nuevoExtremo: ReturnType<typeof extremoEntidad>) => void };
+  reanclarExtremoAccionRef: { current: (enlaceId: string, lado: "origen" | "destino", nuevoExtremo: ExtremoEnlace) => void };
   extraerParteDePlegadoRef: { current: (aparienciaId: string, parteEntidadId: string) => void };
   abrirRenombradoInlineRef: { current: (input: { aparienciaId: string; entidadId: string }) => void };
 }
@@ -225,12 +225,12 @@ function quitarToolsPaper(paper: dia.Paper): void {
   (paper as unknown as { removeTools?: () => void }).removeTools?.();
 }
 
-function persistirReanclajeArrowhead(
+export function persistirReanclajeArrowhead(
   cell: dia.Cell,
   lado: "origen" | "destino",
   modelo: Modelo,
   opdId: string,
-  reanclarExtremoAccion: (enlaceId: string, lado: "origen" | "destino", nuevoExtremo: ReturnType<typeof extremoEntidad>) => void,
+  reanclarExtremoAccion: (enlaceId: string, lado: "origen" | "destino", nuevoExtremo: ExtremoEnlace) => void,
 ): void {
   if (!cell.isLink()) return;
   const meta = metadata(cell);
@@ -243,8 +243,11 @@ function persistirReanclajeArrowhead(
   if (!apariencia) return;
   const enlace = modelo.enlaces[meta.enlaceId];
   const actual = lado === "origen" ? enlace?.origenId : enlace?.destinoId;
-  if (actual?.kind === "entidad" && actual.id === apariencia.entidadId) return;
-  reanclarExtremoAccion(meta.enlaceId, lado, extremoEntidad(apariencia.entidadId));
+  const portId = typeof extremo.port === "string" ? extremo.port : undefined;
+  if (actual?.kind === "entidad" && actual.id === apariencia.entidadId && actual.portId === portId) return;
+  reanclarExtremoAccion(meta.enlaceId, lado, portId
+    ? { ...extremoEntidad(apariencia.entidadId), portId }
+    : extremoEntidad(apariencia.entidadId));
 }
 
 function esSubprocesoInternoTimeline(modelo: Modelo, meta: OpmJointMetadata): meta is Extract<OpmJointMetadata, { kind: "entidad" }> {

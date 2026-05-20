@@ -5,6 +5,7 @@ import {
   extremoEntidad,
   extremoVisibleEnOpd,
   mismoExtremo,
+  mismoExtremoYPuerto,
   normalizarExtremo,
   type ExtremoEntrada,
 } from "../extremos";
@@ -148,7 +149,7 @@ export function apuntarExtremoEnlace(
   if (!enlace) return fallo(`Enlace no existe: ${enlaceId}`);
   const siguienteExtremo = normalizarExtremo(extremo);
   const actual = lado === "origen" ? enlace.origenId : enlace.destinoId;
-  if (mismoExtremo(actual, siguienteExtremo)) return ok(modelo);
+  if (mismoExtremoYPuerto(actual, siguienteExtremo)) return ok(modelo);
 
   const actualizado: Enlace = {
     ...enlace,

@@ -31,6 +31,12 @@ export function mismoExtremo(a: ExtremoEnlace, b: ExtremoEnlace): boolean {
   return a.kind === b.kind && a.id === b.id;
 }
 
+export function mismoExtremoYPuerto(a: ExtremoEnlace, b: ExtremoEnlace): boolean {
+  if (!mismoExtremo(a, b)) return false;
+  if (a.kind !== "entidad" || b.kind !== "entidad") return true;
+  return a.portId === b.portId;
+}
+
 export function extremoApuntaAEntidad(extremo: ExtremoEnlace, entidadId: Id): boolean {
   return extremo.kind === "entidad" && extremo.id === entidadId;
 }

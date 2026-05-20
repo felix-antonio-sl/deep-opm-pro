@@ -1,4 +1,4 @@
-import { entidadDeExtremo, mismoExtremo } from "./extremos";
+import { entidadDeExtremo, mismoExtremoYPuerto } from "./extremos";
 import { apuntarExtremoEnlace } from "./operaciones";
 import type { AparienciaEnlace, ExtremoEnlace, Id, Modelo, Opd, Posicion, Resultado } from "./tipos";
 
@@ -61,7 +61,7 @@ export function reanclarExtremoEnlace(
   const enlace = modelo.enlaces[enlaceId];
   if (!enlace) return fallo(`Enlace no existe: ${enlaceId}`);
   const extremoActual = lado === "origen" ? enlace.origenId : enlace.destinoId;
-  if (mismoExtremo(extremoActual, nuevoExtremo)) return ok({ modelo });
+  if (mismoExtremoYPuerto(extremoActual, nuevoExtremo)) return ok({ modelo });
   const actualizado = {
     ...enlace,
     ...(lado === "origen" ? { origenId: nuevoExtremo } : { destinoId: nuevoExtremo }),

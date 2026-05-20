@@ -20,8 +20,8 @@ describe("puertos de enlace", () => {
     const enlaceActualizado = modelo.enlaces[enlace.id]!;
     const portOrigen = enlaceActualizado.origenId.portId;
     const portDestino = enlaceActualizado.destinoId.portId;
-    expect(portOrigen).toBe(`port-${enlace.id}-origen`);
-    expect(portDestino).toBe(`port-${enlace.id}-destino`);
+    expect(portOrigen).toBe(`port-anchor-${entradaId}-origen-ne`);
+    expect(portDestino).toBe(`port-anchor-${procesarId}-destino-so`);
     expect(aparienciaPorEntidad(modelo, entradaId).ports?.[portOrigen!]).toEqual({ x: 1, y: 0 });
     expect(aparienciaPorEntidad(modelo, procesarId).ports?.[portDestino!]).toEqual({ x: 0, y: 1 });
   });

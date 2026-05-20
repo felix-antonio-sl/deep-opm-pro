@@ -224,7 +224,7 @@ export function fijarAnclaExtremoEnlace(
   const apariencia = Object.values(opd.apariencias).find((item) => item.entidadId === extremo.id);
   if (!apariencia) return fallo("El extremo debe estar visible en el OPD activo");
 
-  const portId = extremo.portId ?? puertoDeterminista(enlace.id, lado);
+  const portId = portIdParaAnclaManual(extremo.id, enlace.id, lado, extremo.portId, ancla);
   const puerto = puertoRelativoAnclaEnlace(ancla);
   const ports = apariencia.ports ?? {};
   const siguienteExtremo = extremo.portId === portId ? extremo : { ...extremo, portId };
@@ -377,6 +377,7 @@ function asignarPuertosCompartidosAbanico(
     if (!aparienciaPuerto) continue;
 
     const keys: string[] = [];
+    const portIds = new Set<Id>();
     const otros: Posicion[] = [];
     for (const enlaceId of abanico.enlaceIds) {
       const enlace = modelo.enlaces[enlaceId];
@@ -390,6 +391,7 @@ function asignarPuertosCompartidosAbanico(
         if (!entidadId) continue;
         if (entidadId === abanico.puertoEntidadId && extremo.kind === "entidad") {
           keys.push(keyExtremo(enlace.id, lado));
+          if (extremo.portId) portIds.add(extremo.portId);
         } else {
           const apariencia = aparienciasPorEntidad.get(entidadId);
           if (apariencia) otros.push(centro(apariencia));
@@ -398,7 +400,9 @@ function asignarPuertosCompartidosAbanico(
     }
 
     if (keys.length < 2 || otros.length === 0) continue;
-    const portId = `port-abanico-${sanitizarId(abanico.id)}-${sanitizarId(abanico.puertoEntidadId)}`;
+    const portId = portIds.size === 1
+      ? [...portIds][0]!
+      : `port-abanico-${sanitizarId(abanico.id)}-${sanitizarId(abanico.puertoEntidadId)}`;
     const puntoOpuesto = centroide(otros);
     for (const key of keys) {
       resultado.set(key, { portId, puntoOpuesto });
@@ -490,6 +494,18 @@ function centroInferior(apariencia: Apariencia): Posicion {
 
 function puertoDeterminista(enlaceId: Id, lado: LadoExtremo): Id {
   return `port-${enlaceId}-${lado}`;
+}
+
+function portIdParaAnclaManual(
+  entidadId: Id,
+  enlaceId: Id,
+  lado: LadoExtremo,
+  portIdActual: Id | undefined,
+  ancla: AnclaRelojEnlace,
+): Id {
+  const determinista = puertoDeterminista(enlaceId, lado);
+  if (portIdActual && portIdActual !== determinista) return portIdActual;
+  return `port-anchor-${sanitizarId(entidadId)}-${lado}-${ancla.toLowerCase()}`;
 }
 
 function keyExtremo(enlaceId: Id, lado: LadoExtremo): string {

@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { extremoEstado } from "./extremos";
 import { crearEstadosIniciales, crearModelo, crearObjeto, crearProceso, estadosDeEntidad, renombrarEstado } from "./operaciones";
+import { puertoRelativoAnclaEnlace } from "./anclajesEnlace";
 import { crearEnlaceTransaccional } from "./transaccionEnlace";
 import type { Id, Modelo, Resultado } from "./tipos";
 
@@ -19,13 +20,13 @@ describe("transaccion de enlace", () => {
 
     const primero = must(crearEnlaceTransaccional(modelo, modelo.opdRaizId, procesoId, extremoEstado(pendiente.id), "resultado"));
     const segundo = must(crearEnlaceTransaccional(primero.modelo, primero.modelo.opdRaizId, procesoId, extremoEstado(aprobado.id), "resultado"));
+    const primeroId = mustId(primero.enlaceId);
+    const segundoId = mustId(segundo.enlaceId);
 
-    expect(primero.enlaceId).toBeDefined();
-    expect(segundo.enlaceId).toBeDefined();
     expect(Object.values(segundo.modelo.abanicos ?? {})).toEqual([
       expect.objectContaining({
         operador: "O",
-        enlaceIds: [primero.enlaceId, segundo.enlaceId],
+        enlaceIds: [primeroId, segundoId],
         puertoEntidadId: procesoId,
       }),
     ]);
@@ -35,6 +36,61 @@ describe("transaccion de enlace", () => {
       .map((enlace) => enlace.origenId.portId);
     expect(new Set(puertos).size).toBe(1);
     expect(proceso.ports?.[puertos[0]!]).toBeDefined();
+  });
+
+  test("conserva ancla manual del puerto compartido tras formar abanico automatico", () => {
+    let modelo = crearModelo("Transaccion ancla fan estados");
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 40, y: 80 }, "Aprobar"));
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 280, y: 80 }, "Pedido"));
+    const procesoId = entidad(modelo, "Aprobar");
+    const pedidoId = entidad(modelo, "Pedido");
+    modelo = must(crearEstadosIniciales(modelo, pedidoId)).modelo;
+    const [pendiente, aprobado] = estadosDeEntidad(modelo, pedidoId);
+    if (!pendiente || !aprobado) throw new Error("La prueba esperaba estados");
+
+    const primero = must(crearEnlaceTransaccional(modelo, modelo.opdRaizId, procesoId, extremoEstado(pendiente.id), "resultado"));
+    const segundo = must(crearEnlaceTransaccional(primero.modelo, primero.modelo.opdRaizId, procesoId, extremoEstado(aprobado.id), "resultado", {
+      anclaOrigen: "N",
+    }));
+    const primeroId = mustId(primero.enlaceId);
+    const segundoId = mustId(segundo.enlaceId);
+
+    const abanico = Object.values(segundo.modelo.abanicos ?? {})[0];
+    expect(abanico?.enlaceIds).toEqual([primeroId, segundoId]);
+    const puertos = Object.values(segundo.modelo.enlaces)
+      .filter((enlace) => enlace.tipo === "resultado")
+      .map((enlace) => enlace.origenId.portId);
+    expect(new Set(puertos).size).toBe(1);
+    expect(apariencia(segundo.modelo, "Aprobar").ports?.[puertos[0]!]).toEqual(puertoRelativoAnclaEnlace("N"));
+  });
+
+  test("usa la misma ancla explicita como puerto comun para crear abanico de resultados", () => {
+    let modelo = crearModelo("Transaccion ancla fan objetos");
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 40, y: 80 }, "Aprobar"));
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 280, y: 40 }, "Pedido aprobado"));
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 280, y: 160 }, "Pedido rechazado"));
+    const procesoId = entidad(modelo, "Aprobar");
+
+    const primero = must(crearEnlaceTransaccional(modelo, modelo.opdRaizId, procesoId, entidad(modelo, "Pedido aprobado"), "resultado", {
+      anclaOrigen: "N",
+    }));
+    const segundo = must(crearEnlaceTransaccional(primero.modelo, primero.modelo.opdRaizId, procesoId, entidad(primero.modelo, "Pedido rechazado"), "resultado", {
+      anclaOrigen: "N",
+    }));
+    const primeroId = mustId(primero.enlaceId);
+    const segundoId = mustId(segundo.enlaceId);
+
+    const abanico = Object.values(segundo.modelo.abanicos ?? {})[0];
+    expect(abanico).toEqual(expect.objectContaining({
+      operador: "O",
+      enlaceIds: [primeroId, segundoId],
+      puertoEntidadId: procesoId,
+    }));
+    const puertos = Object.values(segundo.modelo.enlaces)
+      .filter((enlace) => enlace.tipo === "resultado")
+      .map((enlace) => enlace.origenId.portId);
+    expect(new Set(puertos).size).toBe(1);
+    expect(apariencia(segundo.modelo, "Aprobar").ports?.[puertos[0]!]).toEqual(puertoRelativoAnclaEnlace("N"));
   });
 });
 
@@ -54,4 +110,9 @@ function apariencia(modelo: Modelo, nombre: string) {
 function must<T>(resultado: Resultado<T>): T {
   if (!resultado.ok) throw new Error(resultado.error);
   return resultado.value;
+}
+
+function mustId(id: Id | null): Id {
+  if (!id) throw new Error("La prueba esperaba enlace creado");
+  return id;
 }
