@@ -187,6 +187,7 @@ describe("puertos dinámicos OPCloud-style", () => {
     modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 250, y: 200 }, "Procesar"));
     modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidad(modelo, "Entrada A"), entidad(modelo, "Procesar"), "consumo"));
     modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidad(modelo, "Entrada B"), entidad(modelo, "Procesar"), "consumo"));
+    modelo = fijarPuertoCompartidoDestino(modelo, Object.keys(modelo.enlaces));
     modelo = must(formarAbanico(modelo, modelo.opdRaizId, Object.keys(modelo.enlaces), "O"));
 
     const sincronizado = sincronizarPuertosEnlaces(modelo, modelo.opdRaizId);
@@ -209,6 +210,16 @@ function apariencia(modelo: Modelo, nombre: string) {
   const encontrada = Object.values(modelo.opds[modelo.opdRaizId]!.apariencias).find((item) => item.entidadId === entidadId);
   expect(encontrada).toBeDefined();
   return encontrada!;
+}
+
+function fijarPuertoCompartidoDestino(modelo: Modelo, enlaceIds: string[]): Modelo {
+  const enlaces = { ...modelo.enlaces };
+  for (const enlaceId of enlaceIds) {
+    const enlace = enlaces[enlaceId];
+    if (!enlace || enlace.destinoId.kind !== "entidad") continue;
+    enlaces[enlaceId] = { ...enlace, destinoId: { ...enlace.destinoId, portId: "port-test-destino" } };
+  }
+  return { ...modelo, enlaces };
 }
 
 function must<T>(resultado: Resultado<T>): T {

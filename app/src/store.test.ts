@@ -1010,20 +1010,21 @@ describe("store undo/redo y dirty state", () => {
     expect(store.getState().mensaje).toContain(store.getState().opdActivoId);
   });
 
-  test("forma abanico automatico al conectar segunda rama y alterna operador desde inspector", () => {
+  test("forma abanico automatico al conectar segunda rama por puerto exacto y alterna operador desde inspector", () => {
     let modelo = crearModelo("Store abanicos");
     modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 200, y: 200 }, "Procesar"));
-    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 60 }, "Entrada A"));
-    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 220 }, "Entrada B"));
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 120 }, "Pedido"));
     const procesarId = entidadPorNombre(modelo, "Procesar");
-    const entradaAId = entidadPorNombre(modelo, "Entrada A");
-    const entradaBId = entidadPorNombre(modelo, "Entrada B");
-    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entradaAId, procesarId, "consumo"));
+    const pedidoId = entidadPorNombre(modelo, "Pedido");
+    modelo = must(crearEstadosIniciales(modelo, pedidoId)).modelo;
+    const [pendiente, aprobado] = estadosDeEntidad(modelo, pedidoId);
+    if (!pendiente || !aprobado) throw new Error("La prueba esperaba dos estados");
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, procesarId, extremoEstado(pendiente.id), "resultado"));
     store.getState().importarJson(exportarModelo(modelo));
 
-    store.getState().seleccionarEntidad(entradaBId);
-    store.getState().elegirTipoEnlace("consumo");
     store.getState().seleccionarEntidad(procesarId);
+    store.getState().elegirTipoEnlace("resultado");
+    store.getState().seleccionarEstadoComoExtremo(aprobado.id);
 
     const abanicos = Object.values(store.getState().modelo.abanicos ?? {});
     expect(abanicos).toHaveLength(1);

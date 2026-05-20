@@ -48,8 +48,12 @@ export function oracionProcedimentalParaRuta(modelo: Modelo, enlace: Enlace): st
   return oracionEnlace(modelo, enlace);
 }
 
-export function transicionesEstado(modelo: Modelo, opd: Opd): { lineaPorEnlaceConsumo: Map<Id, string>; enlacesCubiertos: Set<Id> } {
-  const base = transicionesEstadoBase(modelo, opd);
+export function transicionesEstado(
+  modelo: Modelo,
+  opd: Opd,
+  enlacesExcluidos: ReadonlySet<Id> = new Set(),
+): { lineaPorEnlaceConsumo: Map<Id, string>; enlacesCubiertos: Set<Id> } {
+  const base = transicionesEstadoBase(modelo, opd, enlacesExcluidos);
   return {
     lineaPorEnlaceConsumo: new Map([...base.lineaPorEnlaceConsumo].map(([id, linea]) => [id, linea.texto])),
     enlacesCubiertos: base.enlacesCubiertos,
@@ -59,17 +63,18 @@ export function transicionesEstado(modelo: Modelo, opd: Opd): { lineaPorEnlaceCo
 export function transicionesEstadoInteractivo(
   modelo: Modelo,
   opd: Opd,
+  enlacesExcluidos: ReadonlySet<Id> = new Set(),
 ): { lineaPorEnlaceConsumo: Map<Id, { texto: string; refs: ReturnType<typeof refsEnlace>; hints: ReturnType<typeof hintsEnlace> }>; enlacesCubiertos: Set<Id> } {
-  return transicionesEstadoBase(modelo, opd);
+  return transicionesEstadoBase(modelo, opd, enlacesExcluidos);
 }
 
-function transicionesEstadoBase(modelo: Modelo, opd: Opd) {
+function transicionesEstadoBase(modelo: Modelo, opd: Opd, enlacesExcluidos: ReadonlySet<Id>) {
   const consumos = Object.values(opd.enlaces)
     .map((apariencia) => modelo.enlaces[apariencia.enlaceId])
-    .filter((enlace): enlace is Enlace => !!enlace && enlace.tipo === "consumo" && enlace.origenId.kind === "estado");
+    .filter((enlace): enlace is Enlace => !!enlace && !enlacesExcluidos.has(enlace.id) && enlace.tipo === "consumo" && enlace.origenId.kind === "estado");
   const resultados = Object.values(opd.enlaces)
     .map((apariencia) => modelo.enlaces[apariencia.enlaceId])
-    .filter((enlace): enlace is Enlace => !!enlace && enlace.tipo === "resultado" && enlace.destinoId.kind === "estado");
+    .filter((enlace): enlace is Enlace => !!enlace && !enlacesExcluidos.has(enlace.id) && enlace.tipo === "resultado" && enlace.destinoId.kind === "estado");
   const lineaPorEnlaceConsumo = new Map<Id, { texto: string; refs: ReturnType<typeof refsEnlace>; hints: ReturnType<typeof hintsEnlace> }>();
   const enlacesCubiertos = new Set<Id>();
 

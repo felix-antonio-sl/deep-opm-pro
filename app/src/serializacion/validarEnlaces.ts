@@ -1,5 +1,6 @@
 import { enlaceAdmiteTasa, enlaceAdmiteTiempoMaximo, enlaceAdmiteTiempoMinimo, esEnlaceEstructuralFundamental } from "../modelo/constantes";
-import { entidadDeExtremo, entidadIdDeExtremo, extremoEntidad, normalizarExtremo } from "../modelo/extremos";
+import { validarAbanicoCanonico } from "../modelo/abanicos";
+import { entidadDeExtremo, extremoEntidad, normalizarExtremo } from "../modelo/extremos";
 import { esColorEstilo } from "../modelo/estilos";
 import { esModificador, esSubtipoModificador, validarMetadatosEnlace } from "../modelo/modificadores";
 import { validarFirmaEnlace, validarMultiplicidad } from "../modelo/operaciones";
@@ -12,6 +13,7 @@ import type {
   Estado,
   ExtremoEnlace,
   Id,
+  Modelo,
   Opd,
   Resultado,
 } from "../modelo/tipos";
@@ -290,13 +292,14 @@ export function validarAbanicos(
       }
       miembros.push(enlace);
     }
-    const tipo = miembros[0]?.tipo;
-    if (!tipo || miembros.some((enlace) => enlace.tipo !== tipo)) return fallo(`Abanico inválido: ${id}.tipo`);
-    const modeloParcial = modeloParaExtremos(entidades, estados);
-    if (!miembros.every((enlace) => (
-      entidadIdDeExtremo(modeloParcial, enlace.origenId) === raw.puertoEntidadId ||
-      entidadIdDeExtremo(modeloParcial, enlace.destinoId) === raw.puertoEntidadId
-    ))) {
+    const modeloParcial: Modelo = {
+      ...modeloParaExtremos(entidades, estados),
+      opds,
+      enlaces,
+      abanicos,
+    };
+    const canonico = validarAbanicoCanonico(modeloParcial, raw.opdId, enlaceIds, raw.operador, raw.puertoEntidadId, id);
+    if (!canonico.ok) {
       return fallo(`Abanico inválido: ${id}.puertoEntidadId`);
     }
     abanicos[id] = {

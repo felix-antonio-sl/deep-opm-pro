@@ -426,6 +426,35 @@ describe("OPL-ES — tipos de enlace canonicos", () => {
     expect(lineaInteractiva?.tokens.some((token) => token.markdown === "estado" && token.texto === "`e2`")).toBe(true);
     expect(lineaInteractiva?.tokens.some((token) => token.markdown === "estado" && token.texto === "`e3`")).toBe(true);
   });
+
+  test("abanico XOR de resultados a estados no emite transicion determinista paralela", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 80, y: 60 }, "Pedido"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 260, y: 220 }, "Aprobar"));
+    const pedidoId = entidad(modelo, "Pedido");
+    const procesoId = entidad(modelo, "Aprobar");
+    modelo = must(crearEstadosIniciales(modelo, pedidoId)).modelo;
+    const [pendiente, aprobado] = estadosDeEntidad(modelo, pedidoId);
+    if (!pendiente || !aprobado) throw new Error("La prueba esperaba dos estados");
+    modelo = must(renombrarEstado(modelo, pendiente.id, "pendiente"));
+    modelo = must(renombrarEstado(modelo, aprobado.id, "aprobado"));
+    const rechazado = must(agregarEstado(modelo, pedidoId, "rechazado"));
+    modelo = rechazado.modelo;
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, extremoEstado(pendiente.id), procesoId, "consumo"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, procesoId, extremoEstado(aprobado.id), "resultado"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, procesoId, extremoEstado(rechazado.estadoId), "resultado"));
+    const resultados = Object.values(modelo.enlaces)
+      .filter((enlace) => enlace.tipo === "resultado")
+      .map((enlace) => enlace.id);
+    const { formarAbanico } = require("../modelo/abanicos") as typeof import("../modelo/abanicos");
+    modelo = must(formarAbanico(modelo, modelo.opdRaizId, resultados, "XOR"));
+
+    const lineas = generarOpl(modelo);
+
+    expect(lineas).toContain("*Aprobar* cambia **Pedido** a exactamente uno de `aprobado` y `rechazado`.");
+    expect(lineas).not.toContain("*Aprobar* cambia **Pedido** de `pendiente` a `aprobado`.");
+    expect(lineas).not.toContain("*Aprobar* cambia **Pedido** de `pendiente` a `rechazado`.");
+  });
 });
 
 describe("OPL-ES — refinamiento", () => {
@@ -608,6 +637,7 @@ describe("OPL-ES — abanicos logicos", () => {
     modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidad(modelo, "Entrada A"), entidad(modelo, "Procesar"), "consumo"));
     modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidad(modelo, "Entrada B"), entidad(modelo, "Procesar"), "consumo"));
     const enlaceIds = Object.values(modelo.enlaces).map((enlace) => enlace.id);
+    modelo = fijarPuertoCompartidoEnlaces(modelo, enlaceIds, "destino");
     const { formarAbanico } = require("../modelo/abanicos") as typeof import("../modelo/abanicos");
     modelo = must(formarAbanico(modelo, modelo.opdRaizId, enlaceIds, "O"));
 
@@ -622,6 +652,7 @@ describe("OPL-ES — abanicos logicos", () => {
     modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidad(modelo, "Entrada A"), entidad(modelo, "Procesar"), "consumo"));
     modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidad(modelo, "Entrada B"), entidad(modelo, "Procesar"), "consumo"));
     const enlaceIds = Object.values(modelo.enlaces).map((enlace) => enlace.id);
+    modelo = fijarPuertoCompartidoEnlaces(modelo, enlaceIds, "destino");
     const { formarAbanico } = require("../modelo/abanicos") as typeof import("../modelo/abanicos");
     modelo = must(formarAbanico(modelo, modelo.opdRaizId, enlaceIds, "XOR"));
 
@@ -849,6 +880,19 @@ function aparienciaDeEntidad(modelo: Modelo, opdId: string, entidadId: string): 
   expect(apariencia).toBeDefined();
   if (!apariencia) throw new Error(`Apariencia no encontrada: ${entidadId}`);
   return apariencia;
+}
+
+function fijarPuertoCompartidoEnlaces(modelo: Modelo, enlaceIds: string[], lado: "origen" | "destino"): Modelo {
+  const campo = lado === "origen" ? "origenId" : "destinoId";
+  const enlaces = { ...modelo.enlaces };
+  for (const enlaceId of enlaceIds) {
+    const enlace = enlaces[enlaceId];
+    if (!enlace) continue;
+    const extremo = enlace[campo];
+    if (extremo.kind !== "entidad") continue;
+    enlaces[enlaceId] = { ...enlace, [campo]: { ...extremo, portId: `port-test-${lado}` } };
+  }
+  return { ...modelo, enlaces };
 }
 
 function must<T>(resultado: Resultado<T>): T {

@@ -61,6 +61,16 @@ describe("abanicos lógicos O/XOR", () => {
     expect(resultado.error).toContain("homogéneos");
   });
 
+  test("formarAbanico no infiere puerto compartido solo por misma entidad si los portId difieren", () => {
+    const { modelo, enlaces } = modeloConResultados(["A", "B"], { puertoCompartido: false });
+
+    const resultado = formarAbanico(modelo, modelo.opdRaizId, enlaces);
+
+    expect(resultado.ok).toBe(false);
+    if (resultado.ok) return;
+    expect(resultado.error).toContain("puerto");
+  });
+
   test("agregarRamaAAbanico agrega tercera rama preservando orden", () => {
     const { modelo: base, enlaces } = modeloConResultados(["A", "B", "C"]);
     let modelo = must(formarAbanico(base, base.opdRaizId, enlaces.slice(0, 2)));
@@ -177,15 +187,19 @@ describe("abanicos lógicos O/XOR", () => {
   });
 });
 
-function modeloConResultados(nombres: string[]): { modelo: Modelo; procesoId: Id; enlaces: Id[] } {
-  return modeloConRamas("resultado", nombres);
+interface OpcionesRamas {
+  puertoCompartido?: boolean;
 }
 
-function modeloConConsumos(nombres: string[]): { modelo: Modelo; procesoId: Id; enlaces: Id[] } {
-  return modeloConRamas("consumo", nombres);
+function modeloConResultados(nombres: string[], opciones?: OpcionesRamas): { modelo: Modelo; procesoId: Id; enlaces: Id[] } {
+  return modeloConRamas("resultado", nombres, opciones);
 }
 
-function modeloConRamas(tipo: TipoEnlace, nombres: string[]): { modelo: Modelo; procesoId: Id; enlaces: Id[] } {
+function modeloConConsumos(nombres: string[], opciones?: OpcionesRamas): { modelo: Modelo; procesoId: Id; enlaces: Id[] } {
+  return modeloConRamas("consumo", nombres, opciones);
+}
+
+function modeloConRamas(tipo: TipoEnlace, nombres: string[], opciones: OpcionesRamas = {}): { modelo: Modelo; procesoId: Id; enlaces: Id[] } {
   let modelo = crearModelo();
   modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 40, y: 80 }, "P"));
   const procesoId = entidad(modelo, "P");
@@ -196,7 +210,25 @@ function modeloConRamas(tipo: TipoEnlace, nombres: string[]): { modelo: Modelo; 
       ? must(crearEnlace(modelo, modelo.opdRaizId, procesoId, objetoId, tipo))
       : must(crearEnlace(modelo, modelo.opdRaizId, objetoId, procesoId, tipo));
   }
-  return { modelo, procesoId, enlaces: Object.keys(modelo.enlaces) };
+  const enlaces = Object.keys(modelo.enlaces);
+  if (opciones.puertoCompartido !== false) {
+    modelo = fijarPuertoCompartido(modelo, enlaces, tipo === "resultado" ? "origen" : "destino");
+  }
+  return { modelo, procesoId, enlaces };
+}
+
+function fijarPuertoCompartido(modelo: Modelo, enlaceIds: Id[], lado: "origen" | "destino"): Modelo {
+  const campo = lado === "origen" ? "origenId" : "destinoId";
+  const portId = `port-test-${lado}`;
+  const enlaces = { ...modelo.enlaces };
+  for (const enlaceId of enlaceIds) {
+    const enlace = enlaces[enlaceId];
+    if (!enlace) continue;
+    const extremo = enlace[campo];
+    if (extremo.kind !== "entidad") continue;
+    enlaces[enlaceId] = { ...enlace, [campo]: { ...extremo, portId } };
+  }
+  return { ...modelo, enlaces };
 }
 
 function unicoAbanico(modelo: Modelo): Abanico {

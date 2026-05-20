@@ -56,7 +56,36 @@ describe("validarEnlaces", () => {
     expect(resultado.value).toEqual({ color: "#ff0000", strokeWidth: 3, dashArray: "4 4" });
   });
 
-  test("acepta abanico con enlaces del mismo tipo", () => {
+  test("acepta abanico procedural con endpoint y portId compartidos", () => {
+    const entidadesProcedural: Record<string, Entidad> = {
+      ...entidades,
+      "p-1": { id: "p-1", tipo: "proceso", nombre: "Procesar", esencia: "informacional", afiliacion: "sistemica" },
+    };
+    const enlaces: Record<string, Enlace> = {
+      "l-1": { id: "l-1", tipo: "consumo", origenId: extremoEntidad("e-2"), destinoId: { kind: "entidad", id: "p-1", portId: "port-fan" }, etiqueta: "" },
+      "l-2": { id: "l-2", tipo: "consumo", origenId: extremoEntidad("e-3"), destinoId: { kind: "entidad", id: "p-1", portId: "port-fan" }, etiqueta: "" },
+    };
+    const opds: Record<string, Opd> = {
+      "opd-1": {
+        id: "opd-1",
+        nombre: "SD",
+        padreId: null,
+        apariencias: {},
+        enlaces: {
+          "ae-1": { id: "ae-1", enlaceId: "l-1", opdId: "opd-1", vertices: [] },
+          "ae-2": { id: "ae-2", enlaceId: "l-2", opdId: "opd-1", vertices: [] },
+        },
+      },
+    };
+
+    const resultado = validarAbanicos({
+      "ab-1": { id: "ab-1", opdId: "opd-1", puertoEntidadId: "p-1", operador: "O", enlaceIds: ["l-1", "l-2"] },
+    }, opds, enlaces, entidadesProcedural, estados);
+
+    expect(resultado.ok).toBe(true);
+  });
+
+  test("rechaza abanico estructural aunque comparta entidad", () => {
     const enlaces: Record<string, Enlace> = {
       "l-1": { id: "l-1", tipo: "agregacion", origenId: extremoEntidad("e-1"), destinoId: extremoEntidad("e-2"), etiqueta: "" },
       "l-2": { id: "l-2", tipo: "agregacion", origenId: extremoEntidad("e-1"), destinoId: extremoEntidad("e-3"), etiqueta: "" },
@@ -78,7 +107,7 @@ describe("validarEnlaces", () => {
       "ab-1": { id: "ab-1", opdId: "opd-1", puertoEntidadId: "e-1", operador: "O", enlaceIds: ["l-1", "l-2"] },
     }, opds, enlaces, entidades, estados);
 
-    expect(resultado.ok).toBe(true);
+    expect(resultado.ok).toBe(false);
   });
 
   test("rechaza abanico con tipos de enlace distintos", () => {

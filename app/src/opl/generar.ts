@@ -92,12 +92,12 @@ function generarLineasOpl(modelo: Modelo, opd: Opd): OplLineaPendiente[] {
     }
   }
 
-  const transiciones = transicionesEstadoInteractivo(modelo, opd);
   const enlacesEnAbanico = new Set<Id>();
   for (const abanico of Object.values(modelo.abanicos ?? {}).filter((item) => item.opdId === opd.id)) {
     lineas.push(...oracionesAbanicoInteractivo(modelo, abanico));
     for (const id of abanico.enlaceIds) enlacesEnAbanico.add(id);
   }
+  const transiciones = transicionesEstadoInteractivo(modelo, opd, enlacesEnAbanico);
 
   for (const aparienciaEnlace of Object.values(opd.enlaces)) {
     const enlace = modelo.enlaces[aparienciaEnlace.enlaceId];

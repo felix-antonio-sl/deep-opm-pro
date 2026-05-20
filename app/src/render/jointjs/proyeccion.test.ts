@@ -1406,7 +1406,22 @@ function modeloConAbanico(operador: "O" | "XOR"): Modelo {
   const procesar = entidadPorNombre(modelo, "Procesar");
   modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidadPorNombre(modelo, "Entrada A"), procesar, "consumo"));
   modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidadPorNombre(modelo, "Entrada B"), procesar, "consumo"));
+  modelo = fijarPuertoCompartidoEnlaces(modelo, Object.keys(modelo.enlaces), "destino");
   return must(formarAbanico(modelo, modelo.opdRaizId, Object.keys(modelo.enlaces), operador));
+}
+
+function fijarPuertoCompartidoEnlaces(modelo: Modelo, enlaceIds: string[], lado: "origen" | "destino"): Modelo {
+  const campo = lado === "origen" ? "origenId" : "destinoId";
+  const portId = `port-test-${lado}`;
+  const enlaces = { ...modelo.enlaces };
+  for (const enlaceId of enlaceIds) {
+    const enlace = enlaces[enlaceId];
+    if (!enlace) continue;
+    const extremo = enlace[campo];
+    if (extremo.kind !== "entidad") continue;
+    enlaces[enlaceId] = { ...enlace, [campo]: { ...extremo, portId } };
+  }
+  return { ...modelo, enlaces };
 }
 
 function modeloConVehiculoDesplegado(): Modelo {
