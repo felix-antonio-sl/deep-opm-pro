@@ -300,13 +300,14 @@ describe("accionesBarraEnlace", () => {
       "pegar-estilo",
       "mas-opciones",
     ]);
+    expect(accionesBarraEnlace(enlace, true, false).find((accion) => accion.id === "cambiar-tipo-enlace")?.texto).toBe("Propiedades");
+    expect(accionesBarraEnlace(enlace, true, false).find((accion) => accion.id === "mas-opciones")?.texto).toBe("Inspector");
   });
 
-  test("mantiene pegar formato visible pero deshabilitado sin portapapeles", () => {
+  test("omite pegar formato sin portapapeles", () => {
     const enlace = modeloBase().enlaces["enlace-1"] ?? null;
     const pegar = accionesBarraEnlace(enlace, false, false).find((accion) => accion.id === "pegar-estilo");
-    expect(pegar?.visible).toBe(true);
-    expect(pegar?.enabled).toBe(false);
+    expect(pegar).toBeUndefined();
   });
 });
 
@@ -334,11 +335,16 @@ describe("posicionamiento", () => {
 
   test("estima ancho real con botones de texto", () => {
     const enlace = modeloBase().enlaces["enlace-1"] ?? null;
-    expect(anchoEstimadoAccionesBarra(accionesBarraEnlace(enlace, true, false))).toBe(286);
+    expect(anchoEstimadoAccionesBarra(accionesBarraEnlace(enlace, true, false))).toBe(328);
   });
 
   test("estima ancho con resumen de multiseleccion", () => {
-    expect(anchoEstimadoControlesBarra(accionesBarraMulti(3, false), true)).toBe(566);
+    expect(anchoEstimadoControlesBarra(accionesBarraMulti(3, false), true)).toBe(608);
+  });
+
+  test("estima ancho con resumen de enlace", () => {
+    const enlace = modeloBase().enlaces["enlace-1"] ?? null;
+    expect(anchoEstimadoControlesBarra(accionesBarraEnlace(enlace, false, false), false, true)).toBe(368);
   });
 
   test("retorna cero para barra sin botones", () => {

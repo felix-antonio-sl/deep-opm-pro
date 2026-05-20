@@ -558,8 +558,7 @@ export function eliminarEnlacesBatch(modelo: Modelo, enlaceIds: Id[]): Resultado
 export function copiarEstiloEnlace(modelo: Modelo, enlaceId: Id): Resultado<EnlaceEstilo> {
   const enlace = modelo.enlaces[enlaceId];
   if (!enlace) return fallo(`Enlace no existe: ${enlaceId}`);
-  if (!enlace.estilo || Object.keys(enlace.estilo).length === 0) return fallo("El enlace no tiene estilo visual");
-  return ok({ ...enlace.estilo });
+  return ok({ ...(enlace.estilo ?? {}) });
 }
 
 export function reanclarEnlaceExternoDerivado(

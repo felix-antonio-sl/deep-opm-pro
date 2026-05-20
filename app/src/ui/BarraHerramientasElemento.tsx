@@ -146,6 +146,7 @@ const PADDING_BARRA = 6;
 const OFFSET_ANCHOR = 8;
 const PADDING_VIEWPORT = 8;
 const ANCHO_RESUMEN_MULTI = 116;
+const ANCHO_RESUMEN_ENLACE = 116;
 
 export function BarraHerramientasElemento({ inspectorAbierto, onToggleInspector, onAbrirInspector }: Props) {
   const {
@@ -182,7 +183,11 @@ export function BarraHerramientasElemento({ inspectorAbierto, onToggleInspector,
   );
   const accionesVisibles = useMemo(() => acciones.filter((accion) => accion.visible), [acciones]);
   const anchoBarraAcciones = useMemo(
-    () => anchoEstimadoControlesBarra(accionesVisibles, contextoSeleccion?.tipo === "multi"),
+    () => anchoEstimadoControlesBarra(
+      accionesVisibles,
+      contextoSeleccion?.tipo === "multi",
+      contextoSeleccion?.tipo === "enlace",
+    ),
     [accionesVisibles, contextoSeleccion?.tipo],
   );
   const primaryCellId = contextoSeleccion?.anchorCellIds[0] ?? null;
@@ -312,6 +317,11 @@ export function BarraHerramientasElemento({ inspectorAbierto, onToggleInspector,
       {contextoSeleccion.tipo === "multi" ? (
         <span data-testid="barra-resumen-multiseleccion" style={styles.resumenMulti}>
           {contextoSeleccion.cantidad} seleccionadas
+        </span>
+      ) : null}
+      {contextoSeleccion.tipo === "enlace" ? (
+        <span data-testid="barra-resumen-enlace" style={styles.resumenEnlace}>
+          {textoResumenEnlaceBarra(contextoSeleccion.enlace)}
         </span>
       ) : null}
       {accionesVisibles.map((accion) => (
@@ -551,6 +561,7 @@ function decorarAccionBarra(accion: AccionContextual & { id: AccionBarraId }): A
     wide: accion.id === "cambiar-tipo-enlace" ||
       accion.id === "copiar-estilo" ||
       accion.id === "pegar-estilo" ||
+      accion.id === "mas-opciones" ||
       accion.id === "eliminar-seleccion" ||
       accion.id === "agregar-como-partes" ||
       accion.id === "traer-enlaces" ||
@@ -570,6 +581,31 @@ export function textoLiveBarra(contexto: ContextoBarraSeleccion): string {
   if (contexto.tipo === "multi") return `Selección múltiple: ${contexto.cantidad} cosas`;
   if (contexto.tipo === "enlace") return `Enlace seleccionado: ${contexto.enlace.tipo}`;
   return `Cosa seleccionada: ${contexto.nombre}`;
+}
+
+export function textoResumenEnlaceBarra(enlace: Enlace): string {
+  return `Enlace: ${labelTipoEnlaceBarra(enlace.tipo)}`;
+}
+
+function labelTipoEnlaceBarra(tipo: Enlace["tipo"]): string {
+  const labels: Record<Enlace["tipo"], string> = {
+    agregacion: "Agregación",
+    exhibicion: "Exhibición",
+    generalizacion: "Generalización",
+    clasificacion: "Clasificación",
+    etiquetado: "Etiquetado",
+    etiquetadoBidireccional: "Etiquetado",
+    agente: "Agente",
+    instrumento: "Instrumento",
+    consumo: "Consumo",
+    resultado: "Resultado",
+    efecto: "Efecto",
+    invocacion: "Invocación",
+    excepcionSobretiempo: "Excepción sobretiempo",
+    excepcionSubtiempo: "Excepción subtiempo",
+    excepcionSubSobretiempo: "Excepción sub/sobretiempo",
+  };
+  return labels[tipo];
 }
 
 export function atajoAria(atajo: string | undefined): string | undefined {
@@ -597,10 +633,16 @@ export function anchoEstimadoAccionesBarra(acciones: readonly AccionBarra[]): nu
   return PADDING_BARRA * 2 + botones + (acciones.length - 1) * GAP_BOTONES;
 }
 
-export function anchoEstimadoControlesBarra(acciones: readonly AccionBarra[], conResumenMulti: boolean): number {
+export function anchoEstimadoControlesBarra(
+  acciones: readonly AccionBarra[],
+  conResumenMulti: boolean,
+  conResumenEnlace = false,
+): number {
   const anchoAcciones = anchoEstimadoAccionesBarra(acciones);
-  if (!conResumenMulti || acciones.length === 0) return anchoAcciones;
-  return anchoAcciones + ANCHO_RESUMEN_MULTI + GAP_BOTONES;
+  if (acciones.length === 0) return anchoAcciones;
+  if (conResumenMulti) return anchoAcciones + ANCHO_RESUMEN_MULTI + GAP_BOTONES;
+  if (conResumenEnlace) return anchoAcciones + ANCHO_RESUMEN_ENLACE + GAP_BOTONES;
+  return anchoAcciones;
 }
 
 export function posicionarBarraConColisiones(
@@ -744,6 +786,19 @@ const styles = {
   resumenMulti: {
     width: `${ANCHO_RESUMEN_MULTI}px`,
     minWidth: `${ANCHO_RESUMEN_MULTI}px`,
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    color: colors.textoPrimario,
+    fontFamily: "Arial, sans-serif",
+    fontSize: "12px",
+    fontWeight: 700,
+    lineHeight: 1,
+    whiteSpace: "nowrap",
+  },
+  resumenEnlace: {
+    width: `${ANCHO_RESUMEN_ENLACE}px`,
+    minWidth: `${ANCHO_RESUMEN_ENLACE}px`,
     display: "inline-flex",
     alignItems: "center",
     justifyContent: "center",

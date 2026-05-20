@@ -114,8 +114,8 @@ describe("copy paste estilo enlace", () => {
     expect(copiado).toEqual(estilo);
   });
 
-  test("copia devuelve null cuando no hay estilo", () => {
+  test("copia devuelve estilo por defecto vacio cuando no hay estilo", () => {
     const { modelo, enlaceId } = setup();
-    expect(copiarEstiloEnlace(modelo, enlaceId)).toBeNull();
+    expect(copiarEstiloEnlace(modelo, enlaceId)).toEqual({});
   });
 });

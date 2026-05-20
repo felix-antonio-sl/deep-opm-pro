@@ -55,6 +55,24 @@ test("toolbar inicial expone <= 25 controles visibles, sin overflow horizontal",
   expect(pageErrors).toEqual([]);
 });
 
+test("toolbar omite rótulos redundantes de clusters de acción", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await cerrarPantallaInicioSiVisible(page);
+
+  await expect(page.locator('[data-slot="cluster-modelar"] > span')).toHaveCount(0);
+  await expect(page.locator('[data-slot="cluster-conectar"] > span')).toHaveCount(0);
+  await expect(page.locator('[data-slot="cluster-ayuda"] > span')).toHaveCount(0);
+  await expect(page.getByRole("group", { name: "Modelar" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Objeto", exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Proceso", exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Buscar comandos" })).toBeVisible();
+
+  expect(pageErrors).toEqual([]);
+});
+
 test("⋯ Más abre menu accesible, Escape cierra y se navega por teclado", async ({ page }) => {
   const pageErrors: string[] = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));

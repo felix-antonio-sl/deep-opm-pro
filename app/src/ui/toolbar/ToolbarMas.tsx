@@ -195,6 +195,7 @@ export function ToolbarMas({
                 ...masStyle.menu,
                 top: `${anclaje.top}px`,
                 right: `${anclaje.right}px`,
+                maxHeight: `calc(100vh - ${anclaje.top + tokens.spacing.sm}px)`,
               }}
             >
               {items.map((item) => {
@@ -256,6 +257,8 @@ const masStyle = {
     zIndex: 900,
     minWidth: "272px",
     maxWidth: "336px",
+    overflowY: "auto",
+    overscrollBehavior: "contain",
     padding: `${tokens.spacing.sm}px`,
     border: `1px solid ${tokens.colors.bordePanel}`,
     borderRadius: tokens.radii.lg,

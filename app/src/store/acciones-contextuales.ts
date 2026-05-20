@@ -75,8 +75,8 @@ export function accionesContextualesEntidad(ctx: ContextoAccionesEntidad): Accio
     : ["menu-contextual", "command-palette"];
 
   return [
-    accion("cambiar-tipo-enlace", "Cambiar tipo de enlace", "barra-cambiar-tipo-enlace", "enlaces", esEnlace, {
-      texto: "Tipo ▾",
+    accion("cambiar-tipo-enlace", "Editar propiedades del enlace", "barra-cambiar-tipo-enlace", "enlaces", esEnlace, {
+      texto: "Propiedades",
       visible: esEnlace,
       superficies: ["barra-flotante", "command-palette"],
     }),
@@ -88,7 +88,7 @@ export function accionesContextualesEntidad(ctx: ContextoAccionesEntidad): Accio
     }),
     accion("pegar-estilo", "Pegar formato", "barra-pegar-estilo", "apariencia", tieneEnlaceOperable && ctx.hayEstiloEnPortapapeles, {
       texto: "Pegar",
-      visible: tieneEnlaceOperable,
+      visible: tieneEnlaceOperable && ctx.hayEstiloEnPortapapeles,
       superficies: superficiesEstiloEnlace,
       atajo: "Ctrl+Alt+V",
     }),
@@ -149,7 +149,7 @@ export function accionesContextualesEntidad(ctx: ContextoAccionesEntidad): Accio
       superficies: ["barra-flotante", "command-palette"],
     }),
     accion("mas-opciones", ctx.inspectorAbierto ? "Cerrar Inspector lateral" : "Abrir Inspector lateral", "barra-mas-opciones", "navegacion", esCosa || esEnlace || esMulti, {
-      texto: "···",
+      texto: "Inspector",
       superficies: ["barra-flotante"],
     }),
     accion("traer-conectados", "Traer conectados...", "accion-traer-conectados", "enlaces", esCosa, {

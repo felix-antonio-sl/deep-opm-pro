@@ -260,7 +260,6 @@ export function ToolbarBase({ children, modelarSlot, conectarSlot, mapaSlot, sta
       <div style={style.actions} data-testid="toolbar-actions-pesadas">
         <span style={style.divider} />
         <div role="group" aria-label="Modelar" style={style.cluster} data-slot="cluster-modelar" data-cluster="modelar">
-          <span style={style.clusterLabel}>Modelar</span>
           <button style={modoCreacion === "objeto" ? style.objectActiveButton : style.objectButton} type="button" aria-pressed={modoCreacion === "objeto"} className={modoCreacion === "objeto" ? "boton-toolbar-activo" : undefined} onClick={handleCrearObjeto} draggable onDragStart={dragToolbar("objeto")} data-testid="toolbar-drag-objeto" title={modoCreacion === "objeto" ? "Inserción continua de objetos activa · Shift+clic para salir" : "Crear objeto · arrastra al canvas, clic para insertar o Shift+clic para inserción continua"}>Objeto</button>
           <button style={modoCreacion === "proceso" ? style.processActiveButton : style.processButton} type="button" aria-pressed={modoCreacion === "proceso"} className={modoCreacion === "proceso" ? "boton-toolbar-activo" : undefined} onClick={handleCrearProceso} draggable onDragStart={dragToolbar("proceso")} data-testid="toolbar-drag-proceso" title={modoCreacion === "proceso" ? "Inserción continua de procesos activa · Shift+clic para salir" : "Crear proceso · arrastra al canvas, clic para insertar o Shift+clic para inserción continua"}>Proceso</button>
           {/* Corte 3.5 sustracción de chrome: "+ Atributo" aparece solo cuando
@@ -283,21 +282,18 @@ export function ToolbarBase({ children, modelarSlot, conectarSlot, mapaSlot, sta
         </div>
         <span style={style.divider} />
         <div role="group" aria-label="Conectar" style={style.cluster} data-slot="cluster-conectar" data-cluster="conectar">
-          <span style={style.clusterLabel}>Conectar</span>
           {conectarSlot ?? children}
         </div>
         <span style={style.divider} />
         {mapaSlot ? (
           <>
             <div role="group" aria-label="Mapa del sistema" style={style.cluster} data-slot="cluster-mapa-sistema" data-cluster="mapa">
-              <span style={style.clusterLabel}>Mapa</span>
               {mapaSlot}
             </div>
             <span style={style.divider} />
           </>
         ) : null}
         <div role="group" aria-label="Ayuda" style={style.cluster} data-slot="cluster-ayuda" data-cluster="ayuda">
-          <span style={style.clusterLabel}>Ayuda</span>
           {/* Corte 3.5 sustracción de chrome: el botón mostraba solo el
               símbolo `⌕` (lupa). Ahora exhibe label "Buscar" para que su
               propósito sea legible sin tooltip. */}

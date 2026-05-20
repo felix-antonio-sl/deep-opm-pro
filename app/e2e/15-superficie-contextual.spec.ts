@@ -72,10 +72,15 @@ test("seleccionar un enlace conmuta Inspector a modo enlace y resalta su oracion
   const barra = page.getByTestId("barra-herramientas-elemento");
   await expect(barra).toBeVisible();
   await expect(barra).toHaveAttribute("role", "toolbar");
-  await expect(page.getByTestId("barra-cambiar-tipo-enlace")).toBeVisible();
+  await expect(page.getByTestId("barra-resumen-enlace")).toContainText("Enlace: Consumo");
+  await expect(page.getByTestId("barra-cambiar-tipo-enlace")).toHaveText("Propiedades");
   await expect(page.getByTestId("barra-copiar-estilo")).toBeVisible();
   await expect(page.getByTestId("barra-copiar-estilo")).toHaveAttribute("aria-keyshortcuts", "Control+Alt+C");
+  await expect(page.getByTestId("barra-mas-opciones")).toHaveText("Inspector");
+  await expect(page.getByTestId("barra-pegar-estilo")).toHaveCount(0);
+  await page.getByTestId("barra-copiar-estilo").click();
   await expect(page.getByTestId("barra-pegar-estilo")).toBeVisible();
+  await expect(page.getByTestId("barra-pegar-estilo")).toBeEnabled();
 
   expect(pageErrors).toEqual([]);
 });

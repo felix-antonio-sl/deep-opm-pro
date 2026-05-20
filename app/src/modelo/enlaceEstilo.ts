@@ -67,8 +67,8 @@ export function resetEstiloEnlace(modelo: Modelo, enlaceId: Id): Resultado<Model
 
 export function copiarEstiloEnlace(modelo: Modelo, enlaceId: Id): EnlaceEstilo | null {
   const enlace = modelo.enlaces[enlaceId];
-  if (!enlace || !enlace.estilo || Object.keys(enlace.estilo).length === 0) return null;
-  return { ...enlace.estilo };
+  if (!enlace) return null;
+  return { ...(enlace.estilo ?? {}) };
 }
 
 export function pegarEstiloEnlace(

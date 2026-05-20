@@ -60,7 +60,25 @@ describe("accionesContextualesEntidad", () => {
     const palette = ids(accionesParaSuperficie(acciones, "command-palette"));
 
     expect(barra).toEqual(["cambiar-tipo-enlace", "copiar-estilo", "pegar-estilo", "mas-opciones"]);
+    expect(acciones.find((accion) => accion.id === "cambiar-tipo-enlace")?.label).toBe("Editar propiedades del enlace");
+    expect(acciones.find((accion) => accion.id === "cambiar-tipo-enlace")?.texto).toBe("Propiedades");
+    expect(acciones.find((accion) => accion.id === "mas-opciones")?.texto).toBe("Inspector");
     expect(palette).toContain("cambiar-tipo-enlace");
+  });
+
+  test("omite pegar formato de enlace mientras no haya formato copiado", () => {
+    const acciones = accionesContextualesEntidad({
+      entidad: null,
+      enlace,
+      enlaceEstiloId: enlace.id,
+      hayEstiloEnPortapapeles: false,
+      inspectorAbierto: false,
+      multi: false,
+    });
+    const barra = ids(accionesParaSuperficie(acciones, "barra-flotante"));
+
+    expect(barra).toEqual(["cambiar-tipo-enlace", "copiar-estilo", "mas-opciones"]);
+    expect(acciones.find((accion) => accion.id === "pegar-estilo")?.visible).toBe(false);
   });
 
   test("expone menu contextual sin controles propios de barra", () => {
