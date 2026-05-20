@@ -23,8 +23,6 @@ import { dragAtributoNumerico, dragToolbar, etiquetaModoGlobal, siguienteModoGlo
 const DialogoPlantillas = lazy(() => import("../DialogoPlantillas").then((m) => ({ default: m.DialogoPlantillas })));
 const DialogoTraerConectados = lazy(() => import("../DialogoTraerConectados").then((m) => ({ default: m.DialogoTraerConectados })));
 
-type PantallaInicioComponent = () => preact.JSX.Element | null;
-
 /**
  * ViewContainer ToolbarBase: chrome estable. [JOYAS §1-3], [V-0c], IFML H-2/H-5.
  * Referencias semanticas verificadas: opm-extracted layout/header, element-tool-bar, main, opl-container.
@@ -43,7 +41,10 @@ export function ToolbarBase({ children, modelarSlot, conectarSlot, mapaSlot, sta
   // duplicaba en el DOM (`role="menu"` aparecia dos veces, rompiendo
   // accesibilidad y smokes). El boton ☰ aqui solo abre/cierra via store;
   // el render lo hace App.tsx. Bug P0 introducido por hotfix `4f7dc66`.
-  const [PantallaInicioLazy, setPantallaInicioLazy] = useState<PantallaInicioComponent | null>(null);
+  //
+  // Ronda 23 L3 #7: el viejo overlay `PantallaInicio` lazy-loaded desde aquí
+  // fue reemplazado por el banner inline que vive dentro del canvas-pane
+  // y se monta directamente desde App.tsx (ver `usePrecargaBienvenida`).
   const {
     abrirMenuPrincipal,
     cerrarMenuPrincipal,
@@ -108,10 +109,6 @@ export function ToolbarBase({ children, modelarSlot, conectarSlot, mapaSlot, sta
   const esMobile = breakpoint === "mobile";
 
   useEffect(() => iniciarAutosalvado(), [iniciarAutosalvado]);
-  useEffect(() => {
-    if (PantallaInicioLazy) return;
-    void import("../PantallaInicio").then((modulo) => setPantallaInicioLazy(() => modulo.PantallaInicio));
-  }, [PantallaInicioLazy]);
   // IFML H-3 / Ronda 15 L3: el modal "nombre cosa" lee `nuevaCosaPendiente` del
   // store en vez de un SystemEvent global. Cada vez que el flujo
   // `crearEntidadEnCanvas` la activa, sincronizamos el input local con el
@@ -333,7 +330,6 @@ export function ToolbarBase({ children, modelarSlot, conectarSlot, mapaSlot, sta
         {...(todoMultiSeleccion ? { onConectarMultiAlTodo: handleConectarMultiContextual } : {})}
       />
       <Suspense fallback={null}><DialogoTraerConectados /><DialogoPlantillas /></Suspense>
-      {PantallaInicioLazy ? <PantallaInicioLazy /> : null}
     </>
   );
 }

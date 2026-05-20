@@ -32,6 +32,8 @@ import { DivisorPanel } from "./divisorPanel";
 import { EstadoVacioOpm } from "./EstadoVacioOpm";
 import { Inspector } from "./Inspector";
 import { JointCanvasFeedbackBoundary } from "./JointCanvasFeedbackBoundary";
+// Ronda 23 L3 #7: banner inline de bienvenida (canvas precargado).
+import { PantallaInicio } from "./PantallaInicio";
 // L2 ronda 21: viewport-aware layout — el grid desktop coexiste con el modo
 // revisión mobile (tabs inferiores) y tablet (drawers). Ver `layoutResponsive`.
 import { useBreakpoint } from "./layoutResponsive";
@@ -193,6 +195,7 @@ export function App() {
                     onAbrirInspector={() => setInspectorAbierto(true)}
                     onToggleInspector={() => setInspectorAbierto((abierto) => !abierto)}
                   />
+                  <PantallaInicio />
                 </>
               )}
             </div>
@@ -274,6 +277,9 @@ export function App() {
                     componente decide internamente si renderiza algo segun
                     apariencias del OPD activo. */}
                 <EstadoVacioOpm />
+                {/* Ronda 23 L3 #7: banner inline de bienvenida cuando la
+                    pestaña activa fue precargada con el fixture canónico. */}
+                <PantallaInicio />
               </>
             )}
           </div>
