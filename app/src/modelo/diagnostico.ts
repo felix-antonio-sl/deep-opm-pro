@@ -1,12 +1,19 @@
 import { verificarMetodologia } from "./checkers";
 import { listarAvisosVisuales } from "./diagnosticoVisual";
 import { nombreExtremo } from "./extremos";
+import { tituloDeRegla } from "./tituloRegla";
 import type { Aviso, ElementoAvisoTipo, SeveridadAviso } from "./validaciones";
 import { validarModelo } from "./validaciones";
 import type { AvisoMetodologico, CodigoChecker, Id, Modelo, NavegacionAviso } from "./tipos";
 
 export type OrigenAvisoDiagnostico = "validacion" | "metodologia" | "visual";
 
+/**
+ * `titulo`: leyenda humana de la regla, mapeada en
+ * {@link import("./tituloRegla").tituloDeRegla}. Es solo para presentación;
+ * los testids y la serialización siguen usando `testIdCodigo` / `codigo` /
+ * `reglaId` sin cambios (ronda23 L2 #2).
+ */
 export interface AvisoDiagnostico {
   id: string;
   origen: OrigenAvisoDiagnostico;
@@ -14,6 +21,7 @@ export interface AvisoDiagnostico {
   codigo: string;
   codigoVisible: string;
   testIdCodigo: string;
+  titulo: string;
   severidad: SeveridadAviso;
   mensaje: string;
   destino: string;
@@ -52,6 +60,7 @@ function diagnosticoDesdeValidacion(modelo: Modelo, aviso: Aviso, index: number)
     codigo: aviso.reglaId,
     codigoVisible: aviso.reglaId,
     testIdCodigo: aviso.reglaId,
+    titulo: tituloDeRegla(aviso.reglaId),
     severidad: aviso.severidad,
     mensaje: aviso.mensaje,
     destino: etiquetaElemento(modelo, aviso),
@@ -72,6 +81,7 @@ function diagnosticoDesdeVisual(modelo: Modelo, aviso: Aviso, index: number): Av
     codigo: aviso.reglaId,
     codigoVisible: aviso.reglaId,
     testIdCodigo: aviso.reglaId,
+    titulo: tituloDeRegla(aviso.reglaId),
     severidad: aviso.severidad,
     mensaje: aviso.mensaje,
     destino: etiquetaElemento(modelo, aviso),
@@ -94,6 +104,7 @@ function diagnosticoDesdeMetodologia(modelo: Modelo, aviso: AvisoMetodologico, i
     codigo: aviso.codigo,
     codigoVisible: etiquetaCodigo(aviso.codigo),
     testIdCodigo: aviso.codigo,
+    titulo: tituloDeRegla(aviso.codigo),
     severidad: aviso.severidad === "sugerencia" ? "info" : aviso.severidad,
     mensaje: aviso.mensaje,
     destino: etiquetaDestinoMetodologico(modelo, aviso),

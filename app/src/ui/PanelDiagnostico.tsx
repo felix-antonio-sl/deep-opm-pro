@@ -4,6 +4,7 @@ import {
   agruparIssuesDiagnostico,
   derivarIssuesDiagnostico,
   type DiagnosticoIssue,
+  type DiagnosticoIssueAgrupado,
   type SeveridadDiagnostico,
 } from "../app/viewmodels/panelDiagnosticoViewModel";
 import { EVENTO_ABRIR_AVISO_DIAGNOSTICO } from "../app/ports/feedbackPort";
@@ -118,46 +119,55 @@ export function PanelDiagnostico() {
 function Seccion(props: {
   titulo: string;
   meta: DiagnosticoMeta;
-  issues: DiagnosticoIssue[];
+  issues: DiagnosticoIssueAgrupado[];
   codigoResaltado: string | null;
   onCita: (detalle: { codigo: string; cita: string }) => void;
 }) {
+  const total = props.issues.reduce((acc, grupo) => acc + grupo.instancias.length, 0);
   return (
     <section style={style.seccion}>
       <h3 style={{ ...style.seccionTitulo, color: props.meta.color }}>
-        {props.titulo} ({props.issues.length})
+        {props.titulo} ({total})
       </h3>
       {props.issues.length === 0 ? <p style={style.seccionEmpty}>Sin sugerencias en este grupo</p> : null}
       <div role="list" style={style.list}>
-        {props.issues.map((issue) => (
+        {props.issues.map((grupo) => (
           <article
-            key={issue.id}
-            data-testid={`aviso-${issue.testIdCodigo}`}
-            data-aviso-codigo={issue.testIdCodigo}
-            data-resaltado={props.codigoResaltado === issue.testIdCodigo ? "true" : "false"}
+            key={grupo.id}
+            data-testid={`aviso-${grupo.testIdCodigo}`}
+            data-aviso-codigo={grupo.testIdCodigo}
+            data-aviso-instancias={grupo.instancias.length}
+            data-resaltado={props.codigoResaltado === grupo.testIdCodigo ? "true" : "false"}
             role="listitem"
-            style={{ ...filaStyle(props.meta), ...(props.codigoResaltado === issue.testIdCodigo ? style.filaResaltada : {}) }}
+            style={{ ...filaStyle(props.meta), ...(props.codigoResaltado === grupo.testIdCodigo ? style.filaResaltada : {}) }}
           >
             <button
               type="button"
-              data-testid={`aviso-navegar-${issue.testIdCodigo}`}
+              data-testid={`aviso-navegar-${grupo.testIdCodigo}`}
               style={style.rowMain}
-              onClick={issue.navegar}
+              onClick={grupo.navegar}
               title="Ir al elemento"
             >
               <span aria-hidden="true" style={{ ...style.icon, color: props.meta.color }}>{props.meta.icono}</span>
               <span style={style.rowText}>
-                <strong>{issue.codigo}</strong>
-                <span>{issue.mensaje}</span>
-                <small>{issue.destino}</small>
+                <strong>
+                  {grupo.titulo}
+                  {grupo.instancias.length > 1 ? (
+                    <span data-testid={`aviso-contador-${grupo.testIdCodigo}`} style={style.contadorGrupo}>
+                      {grupo.instancias.length}
+                    </span>
+                  ) : null}
+                </strong>
+                <span>{grupo.mensaje}</span>
+                <small>{etiquetaDestinos(grupo)}</small>
               </span>
             </button>
             <button
               type="button"
-              data-testid={`aviso-cita-${issue.testIdCodigo}`}
+              data-testid={`aviso-cita-${grupo.testIdCodigo}`}
               style={style.cita}
-              onClick={() => props.onCita({ codigo: issue.testIdCodigo, cita: issue.cita })}
-              title={`Cita SSOT: ${issue.cita}`}
+              onClick={() => props.onCita({ codigo: grupo.testIdCodigo, cita: grupo.cita })}
+              title={`Cita SSOT: ${grupo.cita}`}
             >
               SSOT
             </button>
@@ -166,6 +176,17 @@ function Seccion(props: {
       </div>
     </section>
   );
+}
+
+function etiquetaDestinos(grupo: DiagnosticoIssueAgrupado): string {
+  if (grupo.instancias.length === 1) return grupo.destino;
+  const destinosUnicos: string[] = [];
+  for (const instancia of grupo.instancias) {
+    if (!destinosUnicos.includes(instancia.destino)) destinosUnicos.push(instancia.destino);
+    if (destinosUnicos.length >= 3) break;
+  }
+  const resto = grupo.instancias.length - destinosUnicos.length;
+  return resto > 0 ? `${destinosUnicos.join(", ")} y ${resto} más` : destinosUnicos.join(", ");
 }
 
 function contadorStyle(issues: DiagnosticoIssue[]): preact.JSX.CSSProperties {
@@ -312,6 +333,16 @@ const style = {
   },
   icon: { flex: "0 0 auto", width: 16, fontWeight: 900, textAlign: "center" },
   rowText: { display: "grid", gap: 2, minWidth: 0, color: tokens.colors.textoPrimario, fontSize: 12 },
+  contadorGrupo: {
+    marginLeft: 6,
+    padding: "0 6px",
+    borderRadius: tokens.radii.sm,
+    background: tokens.colors.fondoElevado,
+    border: `1px solid ${tokens.colors.bordeChrome}`,
+    color: tokens.colors.textoSlate,
+    fontSize: 10,
+    fontWeight: 700,
+  },
   cita: {
     alignSelf: "start",
     border: `1px solid ${tokens.colors.bordeIntermedio}`,
