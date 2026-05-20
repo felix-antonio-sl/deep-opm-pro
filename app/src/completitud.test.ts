@@ -44,6 +44,7 @@ import type {
   TipoEntidad,
 } from "./modelo/tipos";
 import { extremoApuntaAEntidad, extremoEntidad } from "./modelo/extremos";
+import { TIPOS_ENLACE_CANONICOS } from "./modelo/opcionesEnlace";
 import { generarOpl } from "./opl/generar";
 import { LINK_ASSETS } from "./render/jointjs/linkAssets";
 import { proyectarModeloAJointCells } from "./render/jointjs/proyeccion";
@@ -115,6 +116,14 @@ const MODIFICADORES_LISTA = Object.keys(TODOS_LOS_MODIFICADORES) as Modificador[
 const ORDENES_PARTES_LISTA = Object.keys(TODOS_LOS_ORDENES_PARTES) as OrdenPartesPlegado[];
 
 describe("completitud / MenuTipoEnlace", () => {
+  test("TIPOS_ENLACE_CANONICOS expone todos los TipoEnlace", () => {
+    const tiposCanonicos = new Set(TIPOS_ENLACE_CANONICOS);
+    for (const tipo of TIPOS_ENLACE_LISTA) {
+      expect(tiposCanonicos.has(tipo)).toBe(true);
+    }
+    expect(TIPOS_ENLACE_CANONICOS).toHaveLength(TIPOS_ENLACE_LISTA.length);
+  });
+
   test("TIPOS_ENLACE_MENU expone todos los TipoEnlace canonicos", () => {
     const tiposEnMenu = new Set(TIPOS_ENLACE_MENU.map((entry) => entry.tipo));
     for (const tipo of TIPOS_ENLACE_LISTA) {

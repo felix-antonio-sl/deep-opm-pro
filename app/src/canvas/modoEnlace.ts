@@ -1,5 +1,6 @@
 import { validarFirmaEnlace } from "../modelo/operaciones";
 import { ANCLAS_RELOJ_ENLACE, esAnclaRelojEnlace, type AnclaRelojEnlace } from "../modelo/anclajesEnlace";
+import { tiposEnlacePermitidos } from "../modelo/opcionesEnlace";
 import type { Apariencia, Entidad, Id, Modelo, TipoEnlace } from "../modelo/tipos";
 import { tokens } from "../ui/tokens";
 
@@ -114,7 +115,7 @@ export function tipoInicialConexionDesdeEntidad(modelo: Modelo, opdId: Id, orige
     .map((apariencia) => modelo.entidades[apariencia.entidadId])
     .filter((entidad): entidad is Entidad => !!entidad && entidad.id !== origenId);
   for (const tipo of PRIORIDAD_TIPO_INICIAL) {
-    if (destinos.some((destino) => validarFirmaEnlace(tipo, origen, destino).ok)) return tipo;
+    if (destinos.some((destino) => tiposEnlacePermitidos(modelo, origenId, destino.id, "saliente", [tipo]).includes(tipo))) return tipo;
   }
   return "etiquetado";
 }

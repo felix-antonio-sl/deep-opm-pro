@@ -1,28 +1,37 @@
 // [JOYAS §1-3] Chrome UI consume tokens centralizados; canvas semántico invariante.
 import { useEffect, useRef, useState } from "preact/hooks";
-import { validarFirmaEnlace } from "../modelo/operaciones";
 import type { Entidad, Id, Modelo, TipoEnlace } from "../modelo/tipos";
+import {
+  evaluarTiposEnlacePermitidos,
+  resumirMotivosTiposNoPermitidos,
+  TIPOS_ENLACE_CANONICOS,
+  tiposEnlacePermitidos,
+  type EvaluacionTipoEnlace,
+} from "../modelo/opcionesEnlace";
 import { tokens } from "./tokens";
 
 type DireccionFiltro = "saliente" | "entrante";
 
-export const TIPOS_ENLACE_MENU: Array<{ tipo: TipoEnlace; label: string }> = [
-  { tipo: "agregacion", label: "Agregación" },
-  { tipo: "exhibicion", label: "Exhibición" },
-  { tipo: "generalizacion", label: "Generalización" },
-  { tipo: "clasificacion", label: "Clasificación" },
-  { tipo: "etiquetado", label: "Etiquetado" },
-  { tipo: "etiquetadoBidireccional", label: "Etiquetado bidireccional" },
-  { tipo: "agente", label: "Agente" },
-  { tipo: "instrumento", label: "Instrumento" },
-  { tipo: "consumo", label: "Consumo" },
-  { tipo: "resultado", label: "Resultado" },
-  { tipo: "efecto", label: "Efecto" },
-  { tipo: "invocacion", label: "Invocación" },
-  { tipo: "excepcionSobretiempo", label: "Excepción sobretiempo" },
-  { tipo: "excepcionSubtiempo", label: "Excepción subtiempo" },
-  { tipo: "excepcionSubSobretiempo", label: "Excepción sub/sobretiempo" },
-];
+const LABELS_TIPO_ENLACE: Record<TipoEnlace, string> = {
+  agregacion: "Agregación",
+  exhibicion: "Exhibición",
+  generalizacion: "Generalización",
+  clasificacion: "Clasificación",
+  etiquetado: "Etiquetado",
+  etiquetadoBidireccional: "Etiquetado bidireccional",
+  agente: "Agente",
+  instrumento: "Instrumento",
+  consumo: "Consumo",
+  resultado: "Resultado",
+  efecto: "Efecto",
+  invocacion: "Invocación",
+  excepcionSobretiempo: "Excepción sobretiempo",
+  excepcionSubtiempo: "Excepción subtiempo",
+  excepcionSubSobretiempo: "Excepción sub/sobretiempo",
+};
+
+export const TIPOS_ENLACE_MENU: Array<{ tipo: TipoEnlace; label: string }> = TIPOS_ENLACE_CANONICOS
+  .map((tipo) => ({ tipo, label: LABELS_TIPO_ENLACE[tipo] }));
 
 interface Props {
   modelo: Modelo;
@@ -42,10 +51,12 @@ export function MenuTipoEnlace({ modelo, origenId, destinoId, direccion, onDirec
   const panelRef = useRef<HTMLDivElement | null>(null);
   const origen = origenId ? modelo.entidades[origenId] : undefined;
   const destino = destinoId ? modelo.entidades[destinoId] : undefined;
-  const opciones = origen && destino ? tiposValidos(modelo, origen, destino, direccion) : [];
+  const evaluaciones = origen && destino ? evaluarTiposEnlacePermitidos(modelo, origen.id, destino.id, direccion) : [];
+  const opciones = tiposValidos(evaluaciones);
   const opcionesPendientes = origen && !destino ? tiposPendientes(modelo, origen) : [];
   const opcionPreview = opciones.find((opcion) => opcion.tipo === tipoPreview) ?? opciones[0] ?? null;
-  const totalNoAplican = origen && destino ? TIPOS_ENLACE_MENU.length - opciones.length : 0;
+  const totalNoAplican = evaluaciones.filter((evaluacion) => !evaluacion.permitido).length;
+  const motivosNoAplican = resumirMotivosTiposNoPermitidos(evaluaciones);
 
   useEffect(() => {
     const panel = panelRef.current;
@@ -120,11 +131,19 @@ export function MenuTipoEnlace({ modelo, origenId, destinoId, direccion, onDirec
             <strong style={style.estadoNombre}>{destino.nombre}</strong>
           </p>
           <p style={style.estadoHint}>No hay tipos válidos para esta firma. Prueba invertir la dirección o cambiar la selección.</p>
+          {motivosNoAplican ? (
+            <p style={style.estadoMotivo} data-testid="menu-tipo-enlace-motivos">{motivosNoAplican}</p>
+          ) : null}
         </div>
       ) : (
         <div style={style.list}>
           {totalNoAplican > 0 ? (
-            <p style={style.filteredHint} data-testid="menu-tipo-enlace-filtrado">
+            <p
+              style={style.filteredHint}
+              data-testid="menu-tipo-enlace-filtrado"
+              title={motivosNoAplican}
+              aria-label={motivosNoAplican ? `Tipos filtrados: ${motivosNoAplican}` : undefined}
+            >
               {totalNoAplican} {totalNoAplican === 1 ? "tipo no aplica" : "tipos no aplican"} entre {origen.tipo} y {destino.tipo}
             </p>
           ) : null}
@@ -191,21 +210,17 @@ function tituloPorDefecto(origen: Entidad | undefined, destino: Entidad | undefi
   return "Conectar cosas";
 }
 
-function tiposValidos(modelo: Modelo, origen: Entidad, destino: Entidad, direccion: DireccionFiltro) {
-  const par = direccion === "saliente"
-    ? { origen, destino }
-    : { origen: destino, destino: origen };
-  return TIPOS_ENLACE_MENU.flatMap(({ tipo }) => {
-    const firma = validarFirmaEnlace(tipo, par.origen, par.destino);
-    if (!firma.ok) return [];
-    return [{ tipo, origen: par.origen, destino: par.destino }];
+function tiposValidos(evaluaciones: EvaluacionTipoEnlace[]) {
+  return evaluaciones.flatMap((evaluacion) => {
+    if (!evaluacion.permitido || !evaluacion.origen || !evaluacion.destino) return [];
+    return [{ tipo: evaluacion.tipo, origen: evaluacion.origen, destino: evaluacion.destino }];
   });
 }
 
 function tiposPendientes(modelo: Modelo, origen: Entidad) {
   const destinos = Object.values(modelo.entidades).filter((entidad) => entidad.id !== origen.id);
   return TIPOS_ENLACE_MENU.filter(({ tipo }) => (
-    destinos.some((destino) => validarFirmaEnlace(tipo, origen, destino).ok)
+    destinos.some((destino) => tiposEnlacePermitidos(modelo, origen.id, destino.id, "saliente", [tipo]).includes(tipo))
   ));
 }
 
@@ -290,4 +305,5 @@ const style = {
   estadoEtiqueta: { color: tokens.colors.infoTextoOscuro, fontSize: "10px", fontWeight: 800, textTransform: "uppercase", letterSpacing: 0, flex: "0 0 48px" },
   estadoNombre: { color: tokens.colors.textoPrimario, fontSize: "13px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", minWidth: 0 },
   estadoHint: { margin: "4px 0 0", color: tokens.colors.textoTerciario, fontSize: "11px", lineHeight: 1.3 },
+  estadoMotivo: { margin: 0, color: tokens.colors.textoSecundario, fontSize: "11px", lineHeight: 1.3 },
 } satisfies Record<string, preact.JSX.CSSProperties>;
