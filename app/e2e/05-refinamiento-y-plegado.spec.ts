@@ -61,7 +61,13 @@ test("descompone proceso y navega al OPD hijo", async ({ page }) => {
   // Ronda 22: Inzoom vive en el catálogo contextual; Refinamiento muestra estado.
   await irATabRefinamiento(page);
   await expect(page.getByTestId("refinamiento-estado-descomposicion")).toContainText("Inzoom: sin OPD hijo");
-  await expect(page.getByRole("button", { name: "Descomponer" })).toHaveCount(0);
+  // Ronda23 L1 #10: el label de la acción inzoom de la barra flotante pasó a
+  // "Descomponer". Para asegurar que el panel Refinamiento NO renderiza un
+  // botón propio "Descomponer" (la acción vive en el catálogo contextual),
+  // se busca dentro del scope del estado de descomposición.
+  await expect(
+    page.getByTestId("refinamiento-estado-descomposicion").getByRole("button", { name: "Descomponer" }),
+  ).toHaveCount(0);
 
   await ejecutarAccionCommandPalette(page, "inzoom", "accion-inzoom");
 

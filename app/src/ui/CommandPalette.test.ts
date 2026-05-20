@@ -22,8 +22,10 @@ const atajos: RegistroAtajo[] = [
 
 const acciones: AccionContextual[] = [
   {
+    // Ronda23 L1 #10: label en castellano canónico; el id `inzoom`
+    // permanece intacto para no romper handlers ni test-ids.
     id: "inzoom",
-    label: "Inzoom (descomposición)",
+    label: "Descomponer",
     testId: "barra-inzoom",
     categoria: "refinamiento",
     visible: true,
@@ -53,7 +55,19 @@ const accionesMenu: CommandPaletteMenuAction[] = [
 
 describe("CommandPalette", () => {
   test("normaliza tildes y mayusculas para busqueda fuzzy simple", () => {
-    expect(normalizarTextoBusqueda("Inzoom (descomposición)")).toBe("inzoom descomposicion");
+    expect(normalizarTextoBusqueda("Descomponer")).toBe("descomponer");
+  });
+
+  test("ronda23/L1 #3: deduplica atajos con mismo combo y descripcion en contextos distintos", () => {
+    // Ctrl+D se registra dos veces (global + panel-arbol) con la misma
+    // descripcion. El palette debe mostrar un solo item.
+    const atajosDuplicados: RegistroAtajo[] = [
+      { combo: "Ctrl+D", ctx: "global", categoria: "navegacion", descripcion: "Abrir gestión del árbol OPD", handler: () => {} },
+      { combo: "Ctrl+D", ctx: "panel-arbol", categoria: "navegacion", descripcion: "Abrir gestión del árbol OPD", handler: () => {} },
+    ];
+    const items = construirItemsCommandPalette(atajosDuplicados, [], []);
+    const filas = items.filter((item) => item.tipo === "atajo" && item.label === "Abrir gestión del árbol OPD");
+    expect(filas).toHaveLength(1);
   });
 
   test("construye items desde atajos y acciones contextuales", () => {
@@ -68,9 +82,9 @@ describe("CommandPalette", () => {
   test("filtra por terminos de label, categoria o atajo", () => {
     const items = construirItemsCommandPalette(atajos, acciones, accionesMenu);
 
-    expect(filtrarItemsCommandPalette(items, "descomposicion").map((item) => item.label)).toContain("Inzoom (descomposición)");
+    expect(filtrarItemsCommandPalette(items, "descomponer").map((item) => item.label)).toContain("Descomponer");
     expect(filtrarItemsCommandPalette(items, "ctrl s").map((item) => item.label)).toContain("Guardar modelo");
-    expect(filtrarItemsCommandPalette(items, "refinamiento").map((item) => item.label)).toContain("Inzoom (descomposición)");
+    expect(filtrarItemsCommandPalette(items, "refinamiento").map((item) => item.label)).toContain("Descomponer");
     expect(filtrarItemsCommandPalette(items, "tabla enlaces").map((item) => item.label)).toContain("Tabla de enlaces");
   });
 

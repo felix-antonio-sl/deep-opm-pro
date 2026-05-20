@@ -217,7 +217,9 @@ export async function ejecutarAccionCommandPalette(page: import("@playwright/tes
 }
 
 export async function desplegarComoAgregacion(page: import("@playwright/test").Page): Promise<void> {
-  await ejecutarAccionCommandPalette(page, "unfold", "accion-unfold");
+  // Ronda23 L1 #10: label visible cambiado a "Desplegar"; el id de la
+  // acción interna (accion-unfold) permanece intacto.
+  await ejecutarAccionCommandPalette(page, "desplegar", "accion-unfold");
 }
 
 export async function guardarComoActual(page: import("@playwright/test").Page, nombre: string, descripcion = ""): Promise<void> {

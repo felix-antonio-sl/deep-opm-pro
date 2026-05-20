@@ -61,6 +61,14 @@ export function calcularBadges(modelo: Modelo, opdId: Id, avisos: readonly Aviso
   };
 }
 
+// Ronda23 L1 #10: el badge mantiene la nomenclatura técnica OPM
+// ("Inzoom"/"Unfold") porque clasifica el tipo de OPD, no una acción del
+// usuario. Es paralelo al badge "SD" (sustantivo del modelo, no verbo).
+// La acción en castellano ("Descomponer"/"Desplegar") vive en barra
+// contextual, menú y command palette. Esta separación evita ambigüedad
+// y mantiene compactibilidad: cambiar a "Descomp."/"Despl." (8/6 chars)
+// reorganiza la celda lo suficiente como para que Playwright clickee el
+// botón badge en lugar del treeitem padre (smoke 11-beta1-catalogo-ancla).
 export function labelTipoBadge(tipo: TipoBadgeOpd): "SD" | "Inzoom" | "Unfold" {
   if (tipo === "inzoom") return "Inzoom";
   if (tipo === "unfold") return "Unfold";

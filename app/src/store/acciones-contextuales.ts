@@ -34,6 +34,12 @@ export interface AccionContextual {
   texto?: string;
   atajo?: string;
   destructiva?: boolean;
+  /**
+   * Ronda23 L1 #10: términos extra para la búsqueda del command palette.
+   * Permite mantener match por nomenclatura OPM en inglés ("inzoom"/"unfold")
+   * cuando el label visible se traduce a castellano ("Descomponer"/"Desplegar").
+   */
+  aliasBusqueda?: readonly string[];
 }
 
 export type ActionEventKind = "normal" | "exceptional";
@@ -96,15 +102,22 @@ export function accionesContextualesEntidad(ctx: ContextoAccionesEntidad): Accio
       visible: !!esObjeto,
       superficies: ["barra-flotante", "menu-contextual", "command-palette"],
     }),
-    accion("inzoom", "Inzoom (descomposición)", "barra-inzoom", "refinamiento", esCosa, {
+    // Ronda23 L1 #10: castellano canónico ("Descomponer"/"Desplegar"). El
+    // identificador interno y los test-ids siguen siendo `inzoom`/`unfold`
+    // para no romper el contrato con barras, palette y handlers existentes.
+    // Los aliasBusqueda mantienen el match por terminología OPM en inglés
+    // (in-zoom/inzoom/unfold/despliegue) en el command palette.
+    accion("inzoom", "Descomponer", "barra-inzoom", "refinamiento", esCosa, {
       visible: esCosa,
       superficies: ["barra-flotante", "menu-contextual", "command-palette"],
       atajo: "Shift+I",
+      aliasBusqueda: ["inzoom", "in-zoom", "descomposicion"],
     }),
-    accion("unfold", "Unfold (despliegue)", "barra-unfold", "refinamiento", esCosa, {
+    accion("unfold", "Desplegar", "barra-unfold", "refinamiento", esCosa, {
       visible: esCosa,
       superficies: ["barra-flotante", "menu-contextual", "command-palette"],
       atajo: "Shift+U",
+      aliasBusqueda: ["unfold", "despliegue"],
     }),
     accion("quitar-descomposicion", "Quitar inzoom", "accion-quitar-descomposicion", "refinamiento", tieneDescomposicion, {
       visible: tieneDescomposicion,
@@ -148,6 +161,11 @@ export function accionesContextualesEntidad(ctx: ContextoAccionesEntidad): Accio
       visible: esMulti,
       superficies: ["barra-flotante", "command-palette"],
     }),
+    // Ronda23 L1 #12: el audit reportaba el botón cerrado del inspector con
+    // glifo "···" (significa "más opciones", no "cerrar"). El render actual
+    // ya usa el texto descriptivo "Inspector" con `aria-label` específico
+    // ("Cerrar Inspector lateral" / "Abrir Inspector lateral"), así que no
+    // hay glifo ambiguo que reemplazar. Se conserva el texto "Inspector".
     accion("mas-opciones", ctx.inspectorAbierto ? "Cerrar Inspector lateral" : "Abrir Inspector lateral", "barra-mas-opciones", "navegacion", esCosa || esEnlace || esMulti, {
       texto: "Inspector",
       superficies: ["barra-flotante"],
@@ -200,5 +218,6 @@ function accion(
     ...(extra.texto ? { texto: extra.texto } : {}),
     ...(extra.atajo ? { atajo: extra.atajo } : {}),
     ...(extra.destructiva ? { destructiva: true } : {}),
+    ...(extra.aliasBusqueda ? { aliasBusqueda: extra.aliasBusqueda } : {}),
   };
 }

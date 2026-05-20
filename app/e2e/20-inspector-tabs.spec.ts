@@ -72,7 +72,12 @@ test("click en tab Refinamiento muestra estado de in-zoom y oculta los semántic
   // Panel Refinamiento muestra estado informativo; las acciones viven en Ctrl+K/barra/menu.
   await expect(page.getByTestId("inspector-panel-refinamiento")).toBeVisible();
   await expect(page.getByTestId("refinamiento-estado-descomposicion")).toContainText("Inzoom: sin OPD hijo");
-  await expect(page.getByRole("button", { name: "Descomponer" })).toHaveCount(0);
+  // Ronda23 L1 #10: el label de la acción inzoom de la barra flotante pasó a
+  // "Descomponer"; aquí se comprueba que el panel Refinamiento del Inspector
+  // NO expone un botón propio "Descomponer" (la acción vive en Ctrl+K/barra).
+  await expect(
+    page.getByTestId("inspector-panel-refinamiento").getByRole("button", { name: "Descomponer" }),
+  ).toHaveCount(0);
   // Las secciones semánticas (descripción) ya no están montadas en el DOM.
   await expect(page.getByTestId("inspector-seccion-descripcion")).toHaveCount(0);
 
