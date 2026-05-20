@@ -6,6 +6,8 @@ import type { ImagenEntidad, ModoImagenEntidad } from "../modelo/tipos";
 import { Dialogo } from "./Dialogo";
 import { tokens } from "./tokens";
 
+const TIPOS_LOCALES_PERMITIDOS = new Set(["image/png", "image/jpeg", "image/gif", "image/webp"]);
+
 const MODOS: Array<{ value: ModoImagenEntidad; label: string }> = [
   { value: "imagen-texto", label: "Imagen + texto" },
   { value: "imagen", label: "Imagen" },
@@ -20,6 +22,7 @@ export function ModalImagenObjeto() {
   const [error, setError] = useState<string | null>(null);
   const [previewFallida, setPreviewFallida] = useState(false);
   const [guardando, setGuardando] = useState(false);
+  const [archivoLocalNombre, setArchivoLocalNombre] = useState<string | null>(null);
 
   useEffect(() => {
     setUrl(imagenActual?.url ?? "");
@@ -27,6 +30,7 @@ export function ModalImagenObjeto() {
     setError(null);
     setPreviewFallida(false);
     setGuardando(false);
+    setArchivoLocalNombre(null);
   }, [abierto, imagenActual?.modo, imagenActual?.url]);
 
   const validacion = url.trim() ? validarUrlImagen(url) : null;
@@ -51,6 +55,28 @@ export function ModalImagenObjeto() {
     setGuardando(false);
   };
 
+  const cargarArchivoLocal = async (file: File | undefined) => {
+    if (!file) return;
+    if (!TIPOS_LOCALES_PERMITIDOS.has(file.type)) {
+      setError("La imagen local debe ser PNG, JPG, GIF o WebP");
+      return;
+    }
+    try {
+      const dataUrl = await leerArchivoComoDataUrl(file);
+      const validado = validarUrlImagen(dataUrl);
+      if (!validado.ok) {
+        setError(validado.error);
+        return;
+      }
+      setUrl(validado.value);
+      setArchivoLocalNombre(file.name);
+      setError(null);
+      setPreviewFallida(false);
+    } catch {
+      setError("No se pudo leer la imagen local");
+    }
+  };
+
   return (
     <Dialogo
       open={abierto !== null}
@@ -72,7 +98,7 @@ export function ModalImagenObjeto() {
     >
       <div data-testid="modal-imagen-objeto" style={style.body}>
         <label style={style.field}>
-          <span style={style.label}>URL pública</span>
+          <span style={style.label}>URL pública o imagen local</span>
           <input
             aria-label="URL de imagen"
             style={error || errorValidacion ? style.inputError : style.input}
@@ -80,10 +106,22 @@ export function ModalImagenObjeto() {
             placeholder="https://example.com/imagen.png"
             onInput={(event) => {
               setUrl(event.currentTarget.value);
+              setArchivoLocalNombre(null);
               setError(null);
               setPreviewFallida(false);
             }}
           />
+        </label>
+        <label style={style.fileField}>
+          <span style={style.fileButton}>Imagen local</span>
+          <input
+            aria-label="Imagen local"
+            type="file"
+            accept="image/png,image/jpeg,image/gif,image/webp"
+            style={style.fileInput}
+            onChange={(event) => void cargarArchivoLocal(event.currentTarget.files?.[0])}
+          />
+          <span style={style.fileName}>{archivoLocalNombre ?? "Sin archivo"}</span>
         </label>
         <div style={style.modos} role="radiogroup" aria-label="Modo de imagen">
           {MODOS.map((item) => (
@@ -135,7 +173,23 @@ const style = {
   image: { width: "100%", height: "100%", objectFit: "contain" },
   empty: { color: tokens.colors.textoTerciario, fontSize: "13px", fontWeight: 700 },
   error: { color: tokens.colors.errorTexto, fontSize: "12px", fontWeight: 700 },
+  fileField: { display: "grid", gridTemplateColumns: "max-content minmax(0, 1fr)", alignItems: "center", gap: "8px" },
+  fileButton: { display: "inline-flex", alignItems: "center", justifyContent: "center", height: "34px", padding: "0 12px", border: `1px solid ${tokens.colors.bordeControl}`, borderRadius: tokens.radii.sm, background: tokens.colors.fondoChrome, color: tokens.colors.textoSecundario, cursor: "pointer", fontSize: "12px", fontWeight: 800 },
+  fileInput: { position: "absolute", width: "1px", height: "1px", opacity: 0, pointerEvents: "none" },
+  fileName: { minWidth: 0, color: tokens.colors.textoTerciario, fontSize: "12px", fontWeight: 700, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" },
   primaryButton: { height: "34px", padding: "0 12px", border: `1px solid ${tokens.colors.chromeNeutral}`, borderRadius: tokens.radii.sm, background: tokens.colors.chromeNeutral, color: tokens.colors.fondoChrome, cursor: "pointer", fontWeight: 700 },
   secondaryButton: { height: "34px", padding: "0 12px", border: `1px solid ${tokens.colors.bordeControl}`, borderRadius: tokens.radii.sm, background: tokens.colors.fondoChrome, color: tokens.colors.textoSecundario, cursor: "pointer", fontWeight: 700 },
   dangerButton: { height: "34px", padding: "0 12px", border: `1px solid ${tokens.colors.errorBorde}`, borderRadius: tokens.radii.sm, background: tokens.colors.errorFondo, color: tokens.colors.errorTexto, cursor: "pointer", fontWeight: 700 },
 } satisfies Record<string, preact.JSX.CSSProperties>;
+
+function leerArchivoComoDataUrl(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error("No se pudo leer la imagen local"));
+    reader.onload = () => {
+      if (typeof reader.result === "string") resolve(reader.result);
+      else reject(new Error("No se pudo leer la imagen local"));
+    };
+    reader.readAsDataURL(file);
+  });
+}

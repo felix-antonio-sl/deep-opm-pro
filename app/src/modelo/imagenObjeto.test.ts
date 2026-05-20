@@ -21,6 +21,14 @@ describe("imagenObjeto", () => {
     expect(validarUrlImagen("https://example.com/foto.txt").ok).toBe(false);
   });
 
+  test("acepta imagen local embebida como data URL segura", () => {
+    const dataUrl = "data:image/png;base64,iVBORw0KGgo=";
+
+    expect(validarUrlImagen(dataUrl)).toEqual({ ok: true, value: dataUrl });
+    expect(validarUrlImagen("data:text/plain;base64,SG9sYQ==").ok).toBe(false);
+    expect(validarUrlImagen("data:image/svg+xml;base64,PHN2Zy8+").ok).toBe(false);
+  });
+
   test("precarga bitmap usando Image y retorna null al fallar", async () => {
     instalarImageMock("ok");
     await expect(precargarBitmap("https://example.com/a.png", 50)).resolves.toBeTruthy();

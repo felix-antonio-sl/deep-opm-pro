@@ -399,6 +399,33 @@ test("editar imagen desde barra abre ModalImagenObjeto para objeto seleccionado"
   expect(pageErrors).toEqual([]);
 });
 
+test("BUG-20260520T060120Z-d237be sube imagen local y la persiste embebida", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await page.getByRole("button", { name: "Objeto", exact: true }).click();
+  await elementoPorTexto(page, "Objeto").click();
+  await page.getByTestId("barra-editar-imagen").click();
+
+  const dialogo = page.getByRole("dialog", { name: "Imagen de Objeto" });
+  await expect(dialogo).toBeVisible();
+  await dialogo.getByLabel("Imagen local").setInputFiles({
+    name: "pixel.png",
+    mimeType: "image/png",
+    buffer: Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/p9sAAAAASUVORK5CYII=", "base64"),
+  });
+  await expect(dialogo.getByLabel("URL de imagen")).toHaveValue(/^data:image\/png;base64,/);
+  await dialogo.getByRole("button", { name: "Confirmar" }).click();
+  await expect(dialogo).toHaveCount(0);
+
+  const exportado = await exportadoActual(page);
+  const entidad = Object.values(exportado.modelo.entidades).find((item) => item.nombre === "Objeto");
+  expect(entidad?.imagen?.url).toMatch(/^data:image\/png;base64,/);
+  expect(entidad?.imagen?.modo).toBe("imagen-texto");
+  expect(pageErrors).toEqual([]);
+});
+
 test("arrastra subproceso embebido dentro del macroproceso contenedor", async ({ page }) => {
   // Regresion: rect de restrictTranslate restaba cellBBox.width/height adicional al
   // que JointJS ya descuenta internamente (Element.mjs:130-131); el doble descuento

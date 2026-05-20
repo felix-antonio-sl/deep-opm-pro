@@ -1,6 +1,7 @@
 import type { Id, ImagenEntidad, Modelo, ModoImagenEntidad, Resultado } from "./tipos";
 
 const EXTENSIONES_VALIDAS = [".png", ".jpg", ".jpeg", ".gif", ".svg", ".webp"] as const;
+const DATA_IMAGE_PATTERN = /^data:image\/(?:png|jpe?g|gif|webp);base64,[a-z0-9+/]+={0,2}$/i;
 const TIMEOUT_MS = 5_000;
 
 const cacheImagenes = new Map<string, NonNullable<ImagenEntidad["cache"]>>();
@@ -15,6 +16,11 @@ const cacheImagenes = new Map<string, NonNullable<ImagenEntidad["cache"]>>();
 export function validarUrlImagen(url: string): Resultado<string> {
   const limpio = url.trim();
   if (!limpio) return fallo("La URL de imagen no puede estar vacía");
+  if (limpio.startsWith("data:")) {
+    return DATA_IMAGE_PATTERN.test(limpio)
+      ? ok(limpio)
+      : fallo("La imagen local debe ser PNG, JPG, GIF o WebP codificada como data URL");
+  }
   if (!URL.canParse(limpio)) return fallo("La URL de imagen debe ser absoluta");
   const parsed = new URL(limpio);
   if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
