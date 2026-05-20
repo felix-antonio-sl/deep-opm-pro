@@ -3,9 +3,9 @@
 **Fecha**: 2026-05-20
 **Repositorio**: `deep-opm-pro`
 **Rama**: `main`
-**Último corte funcional**: primera produccion single-user + SVG: `gate:refactor` final, preview estatico, dashboard HU sincronizado y quality gate verde.
-**Último corte deploy**: baseline final single-user desplegado en `https://opforja.sanixai.com`.
-**Corte**: Corte 5 del plan produccion single-user SVG.
+**Ultimo corte funcional**: correccion OPL para estados no pareados (`BUG-20260520T190141Z-a054e1`).
+**Ultimo corte deploy**: `1b26f2e fix(opl): corrige estados no pareados` desplegado en `https://opforja.sanixai.com`.
+**Corte**: cierre operativo post-bug, con handoff documental aislado.
 
 ## Política De Handoff Único
 
@@ -23,6 +23,135 @@
 - JointJS OSS: usar documentación oficial viva cuando se toque JointJS.
 
 ## Estado Actual
+
+### Cierre BUG-20260520T190141Z-a054e1 — OPL Estados No Pareados — 2026-05-20
+
+Estado actual:
+
+- Rama `main` esta en `1b26f2e fix(opl): corrige estados no pareados`, tambien
+  en `origin/main`.
+- Produccion `https://opforja.sanixai.com` fue reconstruida y levantada desde
+  `git archive 1b26f2e`, no desde el worktree sucio. Esto evita mezclar cambios
+  concurrentes de UI/asistente presentes localmente.
+- El bug reportado era que el OPL generaba cambios parciales falsos al conectar
+  un proceso con estados de objetos distintos:
+  `Procesar 2 cambia Objeto_4 de estado1` y
+  `Procesar 2 cambia Objeto_8 a e1`.
+- La regla consolidada es:
+  - si consumo + resultado forman una transicion completa sobre estados del
+    mismo objeto, el OPL puede emitir `cambia ... de ... a ...`;
+  - si un extremo de estado esta no pareado, o pertenece a otro objeto, el OPL
+    conserva la semantica del enlace y califica el estado: `consume ... en` o
+    `genera ... en`.
+
+Decisiones consolidadas:
+
+- No convertir endpoints de estado aislados en cambios parciales. Un cambio de
+  estado OPM requiere la pareja semantica consumo/resultado sobre el mismo
+  objeto.
+- La correccion queda en el generador OPL procedimental, no en el render ni en
+  la UI. El canvas ya expresaba los enlaces correctamente; la fuga estaba en
+  la verbalizacion.
+- El deploy debe seguir haciendose desde commit limpio cuando existan cambios
+  concurrentes no propios en el worktree.
+- `docs/HANDOFF.md` sigue siendo la unica memoria versionada de traspaso.
+
+Artefactos relevantes:
+
+- `app/src/opl/generadores/procedural.ts`
+- `app/src/opl/generadores/procedural.test.ts`
+- `app/src/opl/generar.test.ts`
+- `docs/bugs/BUG-20260520T190141Z-a054e1/` como evidencia no versionada del
+  reporte de usuario.
+- Screenshot productivo de validacion:
+  `/tmp/opforja-bug190141-opl-fixed.png`.
+
+Validacion ejecutada:
+
+```bash
+cd app && bun test src/opl/generar.test.ts --test-name-pattern "BUG-20260520T190141Z|consumo desde Estado|resultado hacia Estado|par consumo-resultado"
+# 4 pass / 0 fail
+
+cd app && bun test src/opl/generadores/procedural.test.ts
+# 12 pass / 0 fail
+
+cd app && bun run check
+# typecheck OK
+# unit: 1486 pass / 0 fail / 5552 expect / 165 archivos
+
+cd app && bun run build
+# OK; asset local index-DC5qvVuv.js en build directo previo al deploy
+
+cd app && bun run browser:smoke
+# 211 passed / 0 failed
+
+git archive 1b26f2e | docker build -t deep-opm-pro-opforja:latest --build-arg VITE_ENABLE_BUG_CAPTURE=true -f Dockerfile -
+git archive 1b26f2e | docker build --target bug-capture -t deep-opm-pro-bug-capture:latest -f Dockerfile -
+docker compose up -d --no-build
+docker compose ps
+# opforja healthy; opforja-bug-capture up
+
+docker exec opforja wget -qO- http://127.0.0.1:8080/healthz
+# ok
+
+docker exec opforja-bug-capture bun -e "const r = await fetch('http://127.0.0.1:3000/healthz'); console.log(r.status, await r.text())"
+# 200 {"ok":true}
+
+curl https://opforja.sanixai.com/
+# 401 sin credenciales
+
+curl autenticado https://opforja.sanixai.com/
+# 200; asset principal /assets/index-DeJZDp2-.js
+```
+
+Smoke productivo focal:
+
+- URL: `https://opforja.sanixai.com/`
+- Viewport: `1440x900`
+- Flujo: cargar modelo JSON con `Objeto_4.estado1 -> Procesar 2 ->
+  Objeto_8.e1`, restaurar panel OPL y verificar texto.
+- Resultado observado:
+  - presente: `Procesar 2 consume Objeto_4 en estado1.`
+  - presente: `Procesar 2 genera Objeto_8 en e1.`
+  - ausente: `Procesar 2 cambia Objeto_4 de estado1.`
+  - ausente: `Procesar 2 cambia Objeto_8 a e1.`
+  - sin `pageerror` ni errores/warnings relevantes de consola.
+
+Pendientes:
+
+- Revisar los cambios concurrentes no commiteados del worktree antes de
+  cualquier nuevo commit de UI. Al cierre de este handoff existian cambios
+  locales en `app/e2e/*`, `app/src/app/ports/globalShortcutsPort.ts`,
+  `app/src/store/*`, `app/src/ui/*` y el archivo nuevo
+  `app/e2e/inspector-focus.spec.ts`.
+- Mantener fuera del commit los artefactos no versionados de bugs, auditorias,
+  screenshots y rondas antiguas salvo decision explicita.
+- Si se sigue con enlaces/OPL, el siguiente riesgo tecnico esta en alinear la
+  previsualizacion OPL del menu de tipos con el generador canonico para evitar
+  divergencias futuras.
+
+Supuestos:
+
+- El modo productivo vigente sigue siendo single-user, protegido por Basic Auth
+  perimetral, sin auth interna de aplicacion ni backend persistente.
+- El deploy autorizado sigue siendo `docker compose` local detras de Traefik.
+- Los cambios concurrentes locales pertenecen a otro agente u operador y no
+  deben revertirse automaticamente.
+
+Riesgos:
+
+- El worktree local no esta limpio por trabajo concurrente. Produccion esta
+  controlada por el commit `1b26f2e`, pero el proximo agente debe inspeccionar
+  esos cambios antes de build/deploy desde el directorio de trabajo.
+- La correccion OPL cubre endpoints de estado no pareados y conserva TS3 cuando
+  la pareja consumo/resultado es completa sobre el mismo objeto; nuevos patrones
+  de abanico de estados deben seguir pasando por pruebas focales OPL.
+
+Prompt breve de continuacion:
+
+```text
+Continuar desde docs/HANDOFF.md, seccion "Cierre BUG-20260520T190141Z-a054e1 — OPL Estados No Pareados — 2026-05-20". Estado: main/origin en 1b26f2e, opforja.sanixai.com desplegado desde git archive limpio, BUG OPL de estados no pareados corregido y verificado con bun run check, build, browser:smoke y smoke productivo. Antes de avanzar, inspeccionar cambios concurrentes no commiteados en app/e2e, app/src/store y app/src/ui; no revertirlos sin decision explicita.
+```
 
 ### Corte 5 Primera Produccion Single-User + SVG — 2026-05-20
 
