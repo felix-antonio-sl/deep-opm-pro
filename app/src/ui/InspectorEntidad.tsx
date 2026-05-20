@@ -210,11 +210,6 @@ export function InspectorEntidad({ entidad }: Props) {
             onQuitarSemiplegadoEstructural={quitarSemiplegadoEstructural}
             onQuitarPlegadoCompletoEstructural={quitarPlegadoCompletoEstructural}
             onTraerAgregacionesInzoomFaltantes={traerAgregacionesInzoom}
-            onRedimensionar={redimensionarSeleccionada}
-            onAjustarTexto={ajustarSeleccionadaAlTexto}
-            onVolverAuto={volverSeleccionadaAAuto}
-            onAlternarModo={alternarModoTamanoSeleccionado}
-            apariencia={aparienciaActiva}
           />
         ) : null}
         {tabActivo === "apariciones" ? (
@@ -241,6 +236,10 @@ export function InspectorEntidad({ entidad }: Props) {
             onResetText={() => {
               if (aparienciaActiva) resetearEstiloTexto(aparienciaActiva.id);
             }}
+            onRedimensionar={redimensionarSeleccionada}
+            onAjustarTexto={ajustarSeleccionadaAlTexto}
+            onVolverAuto={volverSeleccionadaAAuto}
+            onAlternarModo={alternarModoTamanoSeleccionado}
           />
         ) : null}
       </div>
@@ -378,7 +377,6 @@ interface PanelRefinamientoProps {
   agregacionesInzoomFaltantes: number;
   padreAparienciaId?: Id | undefined;
   parteExtraidaDe?: { padreAparienciaId: Id; parteEntidadId: Id } | undefined;
-  apariencia: import("../modelo/tipos").Apariencia | undefined;
   onReasignarEnlaceExterno: (opdId: Id, aparienciaEnlaceId: Id, nuevoSubprocesoId: Id) => void;
   onCrearAutoInvocacion: () => void;
   onCambiarModoPlegado: () => void;
@@ -389,54 +387,51 @@ interface PanelRefinamientoProps {
   onQuitarSemiplegadoEstructural: () => void;
   onQuitarPlegadoCompletoEstructural: () => void;
   onTraerAgregacionesInzoomFaltantes: () => void;
-  onRedimensionar: (width: number, height: number) => void;
-  onAjustarTexto: () => void;
-  onVolverAuto: () => void;
-  onAlternarModo: () => void;
 }
 
+/**
+ * L4 ronda 23 (#11): Refinamiento contiene SOLO operaciones semánticas OPM
+ * (inzoom/desplegar/estados/navegación). La sección Tamaño (Ancho/Alto/
+ * Ajustar texto/Volver auto) se trasladó al tab Estilo porque pertenece a
+ * presentación, no a estructura semántica.
+ */
 function PanelRefinamiento(props: PanelRefinamientoProps) {
   return (
-    <>
-      {props.apariencia ? (
-        <SeccionTamano
-          apariencia={props.apariencia}
-          onRedimensionar={props.onRedimensionar}
-          onAjustarTexto={props.onAjustarTexto}
-          onVolverAuto={props.onVolverAuto}
-          onAlternarModo={props.onAlternarModo}
-        />
-      ) : null}
-      <SeccionRefinamiento
-        entidad={props.entidad}
-        modelo={props.modelo}
-        autoInvocacion={props.autoInvocacion}
-        tienePartesPlegables={props.tienePartesPlegables}
-        modoPlegado={props.modoPlegado}
-        ordenPartes={props.ordenPartes}
-        filasParciales={props.filasParciales}
-        semiplegadasEstructurales={props.semiplegadasEstructurales}
-        plegadasEstructurales={props.plegadasEstructurales}
-        agregacionesInzoomFaltantes={props.agregacionesInzoomFaltantes}
-        padreAparienciaId={props.padreAparienciaId}
-        parteExtraidaDe={props.parteExtraidaDe}
-        onReasignarEnlaceExterno={props.onReasignarEnlaceExterno}
-        onCrearAutoInvocacion={props.onCrearAutoInvocacion}
-        onCambiarModoPlegado={props.onCambiarModoPlegado}
-        onCambiarOrdenPartes={props.onCambiarOrdenPartes}
-        onExtraer={props.onExtraer}
-        onExtraerTodas={props.onExtraerTodas}
-        onReinsertarParte={props.onReinsertarParte}
-        onQuitarSemiplegadoEstructural={props.onQuitarSemiplegadoEstructural}
-        onQuitarPlegadoCompletoEstructural={props.onQuitarPlegadoCompletoEstructural}
-        onTraerAgregacionesInzoomFaltantes={props.onTraerAgregacionesInzoomFaltantes}
-      />
-    </>
+    <SeccionRefinamiento
+      entidad={props.entidad}
+      modelo={props.modelo}
+      autoInvocacion={props.autoInvocacion}
+      tienePartesPlegables={props.tienePartesPlegables}
+      modoPlegado={props.modoPlegado}
+      ordenPartes={props.ordenPartes}
+      filasParciales={props.filasParciales}
+      semiplegadasEstructurales={props.semiplegadasEstructurales}
+      plegadasEstructurales={props.plegadasEstructurales}
+      agregacionesInzoomFaltantes={props.agregacionesInzoomFaltantes}
+      padreAparienciaId={props.padreAparienciaId}
+      parteExtraidaDe={props.parteExtraidaDe}
+      onReasignarEnlaceExterno={props.onReasignarEnlaceExterno}
+      onCrearAutoInvocacion={props.onCrearAutoInvocacion}
+      onCambiarModoPlegado={props.onCambiarModoPlegado}
+      onCambiarOrdenPartes={props.onCambiarOrdenPartes}
+      onExtraer={props.onExtraer}
+      onExtraerTodas={props.onExtraerTodas}
+      onReinsertarParte={props.onReinsertarParte}
+      onQuitarSemiplegadoEstructural={props.onQuitarSemiplegadoEstructural}
+      onQuitarPlegadoCompletoEstructural={props.onQuitarPlegadoCompletoEstructural}
+      onTraerAgregacionesInzoomFaltantes={props.onTraerAgregacionesInzoomFaltantes}
+    />
   );
 }
 
 // ── Panel: Estilo ──────────────────────────────────────────────────────────
 
+/**
+ * L4 ronda 23 (#11): además de las propiedades visuales (StyleControls), el
+ * panel Estilo aloja la sección Tamaño (Ancho/Alto/Ajustar texto/Volver
+ * auto), que vivía en Refinamiento. Esto separa semántica OPM (Refinamiento)
+ * de presentación (Estilo).
+ */
 interface PanelEstiloProps {
   apariencia: import("../modelo/tipos").Apariencia | undefined;
   seleccionMultipleCount: number;
@@ -446,6 +441,10 @@ interface PanelEstiloProps {
   onReset: () => void;
   onApplyText: (patch: import("../modelo/tipos").EstiloApariencia) => void;
   onResetText: () => void;
+  onRedimensionar: (width: number, height: number) => void;
+  onAjustarTexto: () => void;
+  onVolverAuto: () => void;
+  onAlternarModo: () => void;
 }
 
 function PanelEstilo(props: PanelEstiloProps) {
@@ -453,17 +452,26 @@ function PanelEstilo(props: PanelEstiloProps) {
     return <p style={style.empty}>El tab Estilo solo aplica cuando la entidad tiene apariencia en el OPD activo.</p>;
   }
   return (
-    <StyleControls
-      estilo={props.apariencia.estilo}
-      onApply={props.onApply}
-      onReset={props.onReset}
-      showText
-      onApplyText={props.onApplyText}
-      onResetText={props.onResetText}
-      seleccionMultipleCount={props.seleccionMultipleCount}
-      aplicarASeleccion={props.aplicarABatch}
-      onCambiarAplicarASeleccion={props.onCambiarAplicarABatch}
-    />
+    <>
+      <SeccionTamano
+        apariencia={props.apariencia}
+        onRedimensionar={props.onRedimensionar}
+        onAjustarTexto={props.onAjustarTexto}
+        onVolverAuto={props.onVolverAuto}
+        onAlternarModo={props.onAlternarModo}
+      />
+      <StyleControls
+        estilo={props.apariencia.estilo}
+        onApply={props.onApply}
+        onReset={props.onReset}
+        showText
+        onApplyText={props.onApplyText}
+        onResetText={props.onResetText}
+        seleccionMultipleCount={props.seleccionMultipleCount}
+        aplicarASeleccion={props.aplicarABatch}
+        onCambiarAplicarASeleccion={props.onCambiarAplicarABatch}
+      />
+    </>
   );
 }
 
