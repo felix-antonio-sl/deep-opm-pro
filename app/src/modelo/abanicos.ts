@@ -4,7 +4,7 @@ import type { Abanico, Enlace, Id, Modelo, OperadorAbanico, Resultado, TipoEnlac
 
 type LadoEnlace = "origen" | "destino";
 
-interface PuertoComunExacto {
+export interface PuertoComunExacto {
   entidadId: Id;
   lado: LadoEnlace;
   portId: Id;
@@ -97,6 +97,14 @@ export function detectarPuertoCompartido(modelo: Modelo, opdId: Id, enlace: Enla
 
 export function abanicoDeEnlace(modelo: Modelo, enlaceId: Id): Abanico | undefined {
   return Object.values(modelo.abanicos ?? {}).find((abanico) => abanico.enlaceIds.includes(enlaceId));
+}
+
+export function puertoExactoCompartidoDeAbanico(modelo: Modelo, abanico: Abanico): PuertoComunExacto | undefined {
+  const enlaces = enlacesDeAbanico(modelo, abanico);
+  if (enlaces.length < 2) return undefined;
+  const comunes = puertosExactosComunes(modelo, enlaces)
+    .filter((puerto) => puerto.entidadId === abanico.puertoEntidadId);
+  return comunes.length === 1 ? comunes[0] : undefined;
 }
 
 export function formarAbanicoAutomatico(

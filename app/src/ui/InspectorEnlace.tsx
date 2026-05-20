@@ -284,7 +284,7 @@ export function InspectorEnlace({ enlace }: Props) {
                 lógica del enlace (igual que multiplicidad/modificador), por lo que
                 vive en Propiedades. Smokes 02-canvas-y-render lo asumen visible al
                 seleccionar el enlace. */}
-            <SeccionAbanico abanico={abanico} onAlternarOperador={alternarOperadorAbanico} onQuitarRama={quitarRamaDeAbanico} onDisolver={disolverAbanico} />
+            <SeccionAbanico modelo={modelo} abanico={abanico} onAlternarOperador={alternarOperadorAbanico} onQuitarRama={quitarRamaDeAbanico} onDisolver={disolverAbanico} />
             <SeccionGrupoEstructural
               modelo={modelo}
               opdId={opdActivoId}
@@ -304,7 +304,7 @@ export function InspectorEnlace({ enlace }: Props) {
         ) : null}
         {tabActivo === "extremos" ? (
           <>
-            <SeccionExtremos modelo={modelo} enlace={enlace} onApuntarExtremo={apuntarExtremo} onAbrirMoverPuerto={() => setDialogoMoverPuertoAbierto(true)} />
+            <SeccionExtremos modelo={modelo} opdId={opdActivoId} enlace={enlace} onApuntarExtremo={apuntarExtremo} onAbrirMoverPuerto={() => setDialogoMoverPuertoAbierto(true)} />
             <SeccionRuta modelo={modelo} enlace={enlace} rutaEtiqueta={rutaEtiqueta} onRutaEtiqueta={cambiarRutaEtiqueta} />
             <SeccionReanclaje
               modelo={modelo}

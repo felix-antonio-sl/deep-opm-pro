@@ -5,6 +5,7 @@ import { estadosDeEntidad } from "../modelo/operaciones";
 import type { Enlace, ExtremoEnlace, Id, Modelo } from "../modelo/tipos";
 import { Dialogo } from "./Dialogo";
 import { inspectorStyles as style } from "./inspectorStyles";
+import { tokens } from "./tokens";
 
 interface Props {
   open: boolean;
@@ -41,13 +42,13 @@ export function DialogoMoverPuerto(props: Props) {
         <>
           <button type="button" style={dangerButtonStyle} onClick={props.onRemover}>Remover relación</button>
           <button type="button" style={style.secondaryButton} onClick={props.onCancel}>Cancelar</button>
-          <button type="button" style={style.primaryButton} onClick={() => props.onMover(lado, extremoSeleccionado, anclaHabilitada ? ancla : undefined)}>Mover</button>
+          <button type="button" style={style.primaryButton} onClick={() => props.onMover(lado, extremoSeleccionado, anclaHabilitada ? ancla : undefined)}>Aplicar ancla</button>
         </>
       )}
     >
       <div data-testid="dialogo-mover-puerto" style={bodyStyle}>
         <label style={style.field}>
-          <span style={style.label}>Puerto</span>
+          <span style={style.label}>Extremo del enlace</span>
           <select
             style={style.input}
             value={lado}
@@ -76,7 +77,7 @@ export function DialogoMoverPuerto(props: Props) {
           </select>
         </label>
         <label style={style.field}>
-          <span style={style.label}>Punto de anclaje</span>
+          <span style={style.label}>Ancla exacta</span>
           <select
             data-testid="mover-puerto-ancla-select"
             style={style.input}
@@ -89,6 +90,9 @@ export function DialogoMoverPuerto(props: Props) {
             ))}
           </select>
         </label>
+        <div data-testid="mover-puerto-contrato" style={contractStyle}>
+          {anclaHabilitada ? `Ancla ${etiquetaAncla(ancla)} · extremo ${lado}` : "Estado como extremo"}
+        </div>
       </div>
     </Dialogo>
   );
@@ -130,5 +134,10 @@ function anclaActual(modelo: Modelo, opdId: Id, enlace: Enlace, lado: "origen" |
   return puerto ? anclaEnlaceMasCercana(puerto) : lado === "origen" ? "E" : "O";
 }
 
+function etiquetaAncla(ancla: AnclaRelojEnlace): string {
+  return OPCIONES_ANCLA_RELOJ_ENLACE.find((opcion) => opcion.id === ancla)?.label ?? ancla;
+}
+
 const bodyStyle = { display: "grid", gap: "10px" } satisfies preact.JSX.CSSProperties;
 const dangerButtonStyle = { ...style.dangerButton, marginRight: "auto" } satisfies preact.JSX.CSSProperties;
+const contractStyle = { marginTop: "-2px", color: tokens.colors.textoTerciario, fontSize: "12px", fontWeight: 700 } satisfies preact.JSX.CSSProperties;

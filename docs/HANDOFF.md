@@ -3,9 +3,9 @@
 **Fecha**: 2026-05-20
 **Repositorio**: `deep-opm-pro`
 **Rama**: `main`
-**Último corte funcional**: Sistema de enlaces exactos: abanicos por puerto, anclas manuales y reanclaje JointJS con `portId`
-**Último corte deploy**: `e336d7c test(e2e): alinea fixtures de abanicos exactos` desplegado en `https://opforja.sanixai.com`
-**Corte**: Refactor integral de enlaces cerrado y desplegado sobre producción single-user opforja operable.
+**Último corte funcional**: UI del modelador alineada a enlaces exactos: inspector muestra anclas, `portId` y fan por puerto común.
+**Último corte deploy**: corte UI de anclaje exacto desplegado al cierre en `https://opforja.sanixai.com`
+**Corte**: Refactor integral de enlaces cerrado; UI del modelador adaptada al contrato de anclaje exacto.
 
 ## Política De Handoff Único
 
@@ -23,6 +23,63 @@
 - JointJS OSS: usar documentación oficial viva cuando se toque JointJS.
 
 ## Estado Actual
+
+### Corte UI De Anclaje Exacto — 2026-05-20
+
+Motivación: producción sí estaba desplegada, pero la UI visible no expresaba
+el nuevo contrato semántico de enlaces exactos. El kernel ya distinguía
+`entidad + lado + portId`; el modelador debía mostrarlo al operador en el
+lugar donde decide y corrige enlaces.
+
+Cambios:
+
+- Se exportó `puertoExactoCompartidoDeAbanico` desde `modelo/abanicos.ts`
+  para leer el puerto común canónico sin duplicar reglas privadas.
+- Se agregó el selector puro `detalleContratoPuertoEnlace` para el inspector:
+  extremos origen/destino, entidad/estado, `portId`, ancla de reloj y fan
+  exacto si existe.
+- El tab `Extremos` del Inspector de enlace ahora muestra un panel
+  `Anclaje exacto` con ambos extremos, estado de puerto y fan exacto.
+- La sección `Abanico` muestra explícitamente el `Puerto común`: entidad,
+  lado, hora de ancla y `portId`.
+- `DialogoMoverPuerto` habla el mismo lenguaje de modelo: extremo del enlace,
+  ancla exacta y acción `Aplicar ancla`.
+
+Artefactos:
+
+- `app/src/modelo/abanicos.ts`
+- `app/src/ui/InspectorEnlace.tsx`
+- `app/src/ui/inspectorEnlace/detalleContratoPuerto.ts`
+- `app/src/ui/inspectorEnlace/SeccionExtremos.tsx`
+- `app/src/ui/inspectorEnlace/SeccionAbanico.tsx`
+- `app/src/ui/DialogoMoverPuerto.tsx`
+- `app/src/ui/inspectorEnlace/detalleContratoPuerto.test.ts`
+- `app/e2e/02-canvas-y-render.spec.ts`
+
+Validación ejecutada:
+
+```bash
+cd app && bun test src/ui/inspectorEnlace/detalleContratoPuerto.test.ts src/modelo/abanicos.test.ts src/modelo/operaciones/ports.test.ts
+# 16 pass / 0 fail
+
+cd app && bun run typecheck
+# OK
+
+cd app && bun run build
+# OK; asset principal local index-B7PJNqeH.js
+
+cd app && bun run lint
+# OK
+
+cd app && bunx playwright test e2e/02-canvas-y-render.spec.ts --grep "abanicos|mover puerto"
+# 2 passed / 0 failed
+
+cd app && bun run check
+# 1475 pass / 0 fail
+
+cd app && bun run browser:smoke
+# 206 passed / 0 failed
+```
 
 ### Corte Sistema De Enlaces Exactos Cerrado Y Desplegado — 2026-05-20
 

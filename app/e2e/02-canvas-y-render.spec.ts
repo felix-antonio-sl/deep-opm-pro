@@ -114,6 +114,8 @@ test("renderiza abanicos O/XOR con conectores canonicos sin texto de marcador", 
 
   await clickLinkPorTipo(page, "Consumo");
   await expect(page.getByText("Abanico O")).toBeVisible();
+  await expect(page.getByTestId("abanico-puerto-exacto")).toContainText("Procesar");
+  await expect(page.getByTestId("abanico-puerto-exacto")).toContainText("21:00");
   await page.getByTestId("abanico-toggle-XOR").click();
   await expect(page.getByText("Operador actualizado a XOR")).toBeVisible();
   // XOR ahora tambien es un arco SVG (un solo trazo, sin segundo concentrico).
@@ -183,9 +185,12 @@ test("mover puerto desde dialogo cambia extremo destino del enlace", async ({ pa
   await expect(dialogo).toBeVisible();
   await dialogo.getByTestId("mover-puerto-extremo-select").selectOption("entidad:p-validar");
   await dialogo.getByTestId("mover-puerto-ancla-select").selectOption("SE");
-  await page.getByRole("dialog", { name: "Mover Puerto" }).getByRole("button", { name: "Mover", exact: true }).click();
+  await expect(dialogo.getByTestId("mover-puerto-contrato")).toContainText("16:30");
+  await page.getByRole("dialog", { name: "Mover Puerto" }).getByRole("button", { name: "Aplicar ancla", exact: true }).click();
 
   await expect(page.getByText("Puerto movido")).toBeVisible();
+  await expect(page.getByTestId("contrato-puerto-destino")).toContainText("Validar");
+  await expect(page.getByTestId("contrato-puerto-destino")).toContainText("16:30");
   const exportado = JSON.parse(await jsonEditor(page).inputValue()) as ExportadoModelo;
   const enlace = Object.values(exportado.modelo.enlaces)[0];
   const portId = enlace?.destinoId.portId;
