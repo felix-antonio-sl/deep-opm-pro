@@ -1,5 +1,17 @@
 // [JOYAS §1-3] Chrome UI consume tokens centralizados; canvas semántico invariante.
 import { tokens } from "../tokens";
+
+/**
+ * Ronda23 L1 #5: el botón "AI Text" del panel OPL está apagado en producción
+ * hasta que la feature exista de verdad. El JSX se conserva tras un guard
+ * para que el día que se implemente baste con bajar `AI_TEXT_HABILITADO` a
+ * `true`. El handler `panel-opl-ai-text` (toast "Próximamente") sigue en el
+ * código pero no se renderiza. NOTA: con el botón oculto, los smokes que
+ * consultaban `panel-opl-ai-text` quedan sin objetivo — actualizarlos al
+ * mismo tiempo que se baje este flag.
+ */
+const AI_TEXT_HABILITADO = false;
+
 interface ToolbarOplProps {
   totalOraciones: number;
   busquedaOpl: string;
@@ -44,24 +56,25 @@ export function ToolbarOpl(props: ToolbarOplProps) {
       >
         123
       </button>
-      {/* P0-3 (informe UI/UX 2026-05-07): "AI Text" no esta disponible — al
-          hacer click muestra un toast "Proximamente". El boton ocupa espacio
-          como si estuviera listo, asi que se marca claramente como beta
-          visualmente. Mantiene el handler para que `panel-opl-ai-text` siga
-          gatillando el toast (smoke 03-opl-panel:297) y aria-label/title
-          aclaran el estado a tecnologias asistivas. NO uso aria-disabled
-          porque queremos que el click siga funcionando (mostrar toast). */}
-      <button
-        type="button"
-        data-testid="panel-opl-ai-text"
-        style={{ ...style.iconButton, ...style.iconButtonBeta }}
-        title="AI Text · proximamente (beta)"
-        aria-label="AI Text"
-        data-beta="true"
-        onClick={props.onPlaceholderAi}
-      >
-        AI<span style={style.betaTag}>beta</span>
-      </button>
+      {/* Ronda23 L1 #5: vaporware AI Text apagado hasta que la feature exista.
+          Antes (informe UI/UX 2026-05-07) el botón quedaba visible marcado como
+          beta y al click disparaba un toast "Próximamente"; el render confundía
+          a los usuarios prometiendo algo no disponible. Cuando se implemente la
+          feature, basta con poner `AI_TEXT_HABILITADO = true` y los smokes
+          (03-opl-panel:297) vuelven a tener objetivo. */}
+      {AI_TEXT_HABILITADO ? (
+        <button
+          type="button"
+          data-testid="panel-opl-ai-text"
+          style={{ ...style.iconButton, ...style.iconButtonBeta }}
+          title="AI Text · próximamente (beta)"
+          aria-label="AI Text"
+          data-beta="true"
+          onClick={props.onPlaceholderAi}
+        >
+          AI<span style={style.betaTag}>beta</span>
+        </button>
+      ) : null}
       <button
         type="button"
         data-testid="panel-opl-editar-libre"

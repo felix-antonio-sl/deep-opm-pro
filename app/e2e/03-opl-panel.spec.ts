@@ -300,7 +300,11 @@ test("panel OPL selecciona enlace especifico en oracion multi-enlace", async ({ 
   expect(pageErrors).toEqual([]);
 });
 
-test("panel OPL muestra placeholder de AI Text sin ejecutar funcionalidad", async ({ page }) => {
+// Ronda23 L1 #5: el botón AI Text está oculto tras `AI_TEXT_HABILITADO=false`
+// en `src/ui/panelOpl/Toolbar.tsx` hasta que la feature exista. Cuando se
+// implemente, bajar el flag y descomentar este smoke (o reescribir contra el
+// flujo real). Se conserva como referencia del contrato esperado.
+test.skip("panel OPL muestra placeholder de AI Text sin ejecutar funcionalidad", async ({ page }) => {
   const pageErrors: string[] = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
