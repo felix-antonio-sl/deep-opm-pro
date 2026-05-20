@@ -1253,13 +1253,17 @@ describe("operaciones de modelo", () => {
     const segundo = entidadPorNombre(modelo, "Procesar 2");
     const { aparienciaId, enlace } = enlaceDerivadoEnOpd(modelo, descompuesto.opdId, "consumo");
     modelo = must(reanclarEnlaceExternoDerivado(modelo, descompuesto.opdId, aparienciaId, segundo.id));
+    const reanclado = modelo.enlaces[enlace.id]!;
+    const portIdDestino = reanclado.destinoId.portId;
 
-    expect(enlaceSinPuertos(modelo.enlaces[enlace.id]!)).toEqual(expect.objectContaining({
+    expect(enlaceSinPuertos(reanclado)).toEqual(expect.objectContaining({
       tipo: "consumo",
       origenId: extremoEntidad(entrada.id),
       destinoId: extremoEntidad(segundo.id),
       derivado: expect.objectContaining({ origen: "manual", refinamientoId: procesar.id }),
     }));
+    expect(portIdDestino).toBeDefined();
+    expect(aparienciaPorNombre(modelo, descompuesto.opdId, "Procesar 2").ports?.[portIdDestino!]).toBeDefined();
   });
 
   test("reanclaje manual resiste reorden por Y y refresca derivados automaticos restantes", () => {

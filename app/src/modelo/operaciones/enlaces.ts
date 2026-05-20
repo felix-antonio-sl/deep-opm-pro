@@ -591,15 +591,26 @@ export function reanclarEnlaceExternoDerivado(
     mismoExtremo(enlace.destinoId, actualizado.destinoId) &&
     enlace.derivado?.origen === "manual"
   ) {
-    return ok(modelo);
+    return ok(sincronizarPuertosTodosLosOpd(modelo));
   }
-  return ok({
-    ...modelo,
+
+  const reanclado = apuntarExtremoEnlace(modelo, enlace.id, lado, extremoEntidad(nuevoEndpointEntidadId));
+  if (!reanclado.ok) return fallo(reanclado.error);
+  const enlaceReanclado = reanclado.value.enlaces[enlace.id];
+  if (!enlaceReanclado?.derivado) return fallo("El enlace no es derivado");
+  return ok(sincronizarPuertosTodosLosOpd({
+    ...reanclado.value,
     enlaces: {
-      ...modelo.enlaces,
-      [enlace.id]: actualizado,
+      ...reanclado.value.enlaces,
+      [enlace.id]: {
+        ...enlaceReanclado,
+        derivado: {
+          ...enlaceReanclado.derivado,
+          origen: "manual",
+        },
+      },
     },
-  });
+  }));
 }
 
 export function volverEnlaceExternoDerivadoAAutomatico(
