@@ -76,7 +76,10 @@ export function PantallaInicio() {
       >
         <div style={style.header}>
           <div>
-            <h2 style={style.title}>deep-opm-pro</h2>
+            <div style={style.titleRow}>
+              <span style={style.brandMark}>OPM</span>
+              <h2 style={style.title}>deep-opm-pro</h2>
+            </div>
             <p style={style.subtitle}>Modelador de sistemas en OPM/ISO 19450</p>
           </div>
           <input
@@ -222,14 +225,29 @@ const style = {
     gridTemplateRows: "auto auto auto minmax(0, 1fr) auto",
     gap: "12px",
     padding: "18px",
-    border: `1px solid ${tokens.colors.bordeControl}`,
+    border: `1px solid ${tokens.colors.acentoUi}`,
     borderRadius: tokens.radii.lg,
     background: tokens.colors.fondoChrome,
-    boxShadow: tokens.shadows.inicio,
+    boxShadow: "0 28px 80px rgba(14, 44, 63, 0.28)",
     overflow: "auto",
     pointerEvents: "auto",
   },
   header: { display: "flex", alignItems: "center", gap: "12px" },
+  titleRow: { display: "flex", alignItems: "center", gap: "10px" },
+  brandMark: {
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    width: "44px",
+    height: "30px",
+    borderRadius: tokens.radii.md,
+    background: tokens.colors.acentoSecundario,
+    color: tokens.colors.fondoChrome,
+    fontSize: "13px",
+    fontWeight: tokens.typography.weights.heavy,
+    letterSpacing: 0,
+    boxShadow: "0 8px 18px rgba(14, 44, 63, 0.24)",
+  },
   title: { margin: 0, color: tokens.colors.textoPrimario, fontSize: "20px", fontWeight: 800 },
   subtitle: { margin: "4px 0 0", color: tokens.colors.textoSecundario, fontSize: "13px", fontWeight: 700 },
   search: { marginLeft: "auto", width: "min(360px, 45vw)", height: "34px", border: `1px solid ${tokens.colors.bordeInput}`, borderRadius: tokens.radii.sm, padding: "0 10px", fontSize: "13px" },
@@ -285,12 +303,13 @@ const style = {
     padding: "20px",
     border: `1px solid ${tokens.colors.acentoUi}`,
     borderRadius: tokens.radii.lg,
-    background: tokens.colors.acentoUiSuave,
+    background: "linear-gradient(135deg, #DDF7FF 0%, #EAFFF0 100%)",
     color: tokens.colors.textoPrimario,
     cursor: "pointer",
     fontSize: "14px",
     fontWeight: tokens.typography.weights.semibold,
     textAlign: "left",
+    boxShadow: "0 14px 34px rgba(0, 125, 184, 0.16)",
   },
   actionCardTitle: { fontSize: "16px", fontWeight: tokens.typography.weights.bold, color: tokens.colors.textoPrimario },
   actionCardDesc: { fontSize: "13px", fontWeight: tokens.typography.weights.normal, color: tokens.colors.textoSecundario, lineHeight: 1.45 },
@@ -303,7 +322,7 @@ const style = {
     padding: "14px 16px",
     border: `1px solid ${tokens.colors.bordeSuave}`,
     borderRadius: tokens.radii.md,
-    background: tokens.colors.fondoChrome,
+    background: tokens.colors.fondoPanelSuave,
     color: tokens.colors.textoPrimario,
     cursor: "pointer",
     fontSize: "13px",
@@ -319,7 +338,7 @@ const style = {
     padding: "14px 16px",
     border: `1px solid ${tokens.colors.bordeSuave}`,
     borderRadius: tokens.radii.md,
-    background: tokens.colors.fondoChrome,
+    background: tokens.colors.fondoPanelSuave,
     color: tokens.colors.textoPrimario,
     cursor: "pointer",
     fontSize: "13px",
