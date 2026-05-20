@@ -1,7 +1,7 @@
 # Quality ledger law-first
 
-**Fecha:** 2026-05-18  
-**Corte:** produccion single-user - Corte 4 deploy privado opforja
+**Fecha:** 2026-05-20
+**Corte:** produccion single-user - Corte 5 baseline final
 **Rol:** contrato operativo de calidad posterior a los cortes 0-7. Complementa
 el dashboard HU; no lo reemplaza y no edita HU canonicas.
 
@@ -27,6 +27,7 @@ sustituyen una ley con nombre estable cuando el borde es critico.
 | Produccion single-user Corte 2 | Preview productivo + bug capture fuera de build estatico por defecto | 1410 pass / 0 fail / 5266 expect, 153 archivos | 195 passed + preview 1 passed | 457.31 kB / 122.81 kB gzip | MVP-alpha 104/121 + 1 parcial (86.2%), 89/105 reglas matched |
 | Produccion single-user Corte 3 | Backup JSON descargable + restore smoke | 1410 pass / 0 fail / 5266 expect, 153 archivos | 196 passed + preview 1 passed | 457.31 kB / 122.82 kB gzip | MVP-alpha 104/121 + 1 parcial (86.2%), 89/105 reglas matched |
 | Produccion single-user Corte 4 | Deploy privado opforja con Traefik + Basic Auth dedicado | `bun run build` OK; `docker compose config` OK | contenedor healthy; HTTPS 401 esperado; auth OK 200 / bad 401; TLS Let's Encrypt | 457.31 kB / 122.81 kB gzip | Sin cambio HU; Corte 5 ejecuta baseline final |
+| Produccion single-user Corte 5 | `gate:refactor` final + preview estatico + deploy opforja verificado | 1481 pass / 0 fail / 5527 expect, 165 archivos | 209 passed + preview 1 passed | 472.01 kB / 127.00 kB gzip | MVP-alpha 104/121 + 1 parcial (86.2%), 89/105 reglas matched; contenedor healthy y auth externo OK |
 
 Notas:
 
@@ -41,6 +42,10 @@ Notas:
   (`app/src`, `app/e2e`, `app/scripts`, `assets/svg/links`) contra la firma
   guardada por `progress-dashboard --sync-real`; si no coincide, el dashboard HU
   se considera stale.
+- En Corte 5 se corrigio el auditor HU para reflejar la refactorizacion de
+  enlaces: abanico automatico vive en `transaccionEnlace` + `acciones-enlace`,
+  enlace desde fila plegada se canaliza por la transaccion de enlace y Mover
+  Puerto se monta desde `InspectorEnlace`.
 
 ## Leyes activas
 

@@ -1,6 +1,6 @@
 {
   "schema": "deep-opm-pro.hu-progress-evidence.v1",
-  "updated": "2026-05-19",
+  "updated": "2026-05-20",
   "source": "Auditoria automatica local contra app/src, app/e2e, app/scripts y assets/svg/links.",
   "statusDefinitions": {
     "cubierto": "La HU tiene implementacion usable y evidencia local directa en codigo, tests o smoke.",
@@ -809,20 +809,20 @@
   ],
   "knownGaps": [],
   "autoAudit": {
-    "generatedAt": "2026-05-19T22:39:41.075Z",
+    "generatedAt": "2026-05-20T07:00:55.419Z",
     "mode": "sync-real",
     "rulesEvaluated": 105,
     "rulesMatched": 89,
     "rulesUnmatched": 16,
     "sourceFiles": {
-      "count": 707,
+      "count": 714,
       "roots": [
         "app/src",
         "app/e2e",
         "app/scripts",
         "assets/svg/links"
       ],
-      "signature": "sha256:87d15e353e0d6942bb2a199a0eb293de1108cef0a48cc9231232adba114da5ac"
+      "signature": "sha256:a861b196f37bb64624ccfcb900cc597afc2a466263aa8c11fda832b896985f03"
     },
     "note": "autoEntries se regenera; cada regla escribe cobertura detectada o pendiente. entries manuales queda como respaldo solo para HU sin regla automatica."
   },
@@ -1344,7 +1344,8 @@
       "nota": "Auto: la segunda rama compatible forma un abanico automaticamente en el store y se cubre con tests de kernel/store.",
       "evidencia": [
         "app/src/modelo/abanicos.ts",
-        "app/src/store/modelo/acciones-canvas.ts",
+        "app/src/modelo/transaccionEnlace.ts",
+        "app/src/store/modelo/acciones-enlace.ts",
         "app/src/modelo/abanicos.test.ts",
         "app/src/store.test.ts"
       ]
@@ -1499,6 +1500,7 @@
       "nota": "Auto: filas plegadas son targets activos para enlaces sin extraccion, preservan orden compacto configurable y exponen nesting.",
       "evidencia": [
         "app/src/modelo/plegado.ts",
+        "app/src/modelo/transaccionEnlace.ts",
         "app/src/render/jointjs/plegadoNesting.ts",
         "app/src/render/jointjs/handlers/seleccion.ts",
         "app/src/render/jointjs/handlers/helpers.ts",
@@ -1915,6 +1917,7 @@
       "evidencia": [
         "app/src/ui/DialogoMoverPuerto.tsx",
         "app/src/ui/inspectorEnlace/SeccionExtremos.tsx",
+        "app/src/ui/InspectorEnlace.tsx",
         "app/src/modelo/operaciones/enlaces.ts",
         "app/src/store/modelo/acciones-enlace.ts",
         "app/src/modelo/operaciones/enlaces.test.ts",

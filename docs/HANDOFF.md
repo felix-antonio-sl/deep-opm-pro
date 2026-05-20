@@ -3,9 +3,9 @@
 **Fecha**: 2026-05-20
 **Repositorio**: `deep-opm-pro`
 **Rama**: `main`
-**Último corte funcional**: saneamiento categorial de abanicos: `Abanico` preserva puerto común exacto `(entidad, lado, portId)` en modelo, serialización, OPL y render.
-**Último corte deploy**: saneamiento categorial de fans exactos desplegado en `https://opforja.sanixai.com`.
-**Corte**: cierre categorial de identidad exacta de fans sobre el plan UX/UI del modelador.
+**Último corte funcional**: primera produccion single-user + SVG: `gate:refactor` final, preview estatico, dashboard HU sincronizado y quality gate verde.
+**Último corte deploy**: baseline final single-user desplegado en `https://opforja.sanixai.com`.
+**Corte**: Corte 5 del plan produccion single-user SVG.
 
 ## Política De Handoff Único
 
@@ -23,6 +23,97 @@
 - JointJS OSS: usar documentación oficial viva cuando se toque JointJS.
 
 ## Estado Actual
+
+### Corte 5 Primera Produccion Single-User + SVG — 2026-05-20
+
+Estado actual:
+
+- El plan `docs/roadmap/produccion-usuario-unico-svg-plan.md` queda cerrado:
+  Cortes 0-5 completos.
+- `main` queda como rama de release operativo para la primera version privada
+  single-user.
+- Produccion `https://opforja.sanixai.com` sirve el baseline final de Corte 5.
+- El modo productivo vigente sigue siendo single-user, privado por Basic Auth
+  perimetral de Traefik, sin auth de aplicacion, sin backend y sin sincronizacion
+  remota.
+- El respaldo portable sigue siendo JSON descargado por el usuario; localStorage
+  no se considera backup.
+
+Decisiones consolidadas:
+
+- La primera produccion no espera OPX, PDF, multiusuario, cloud sync ni cierre
+  total del backlog HU. Es una version privada usable: modelar, persistir local,
+  respaldar JSON y exportar SVG del OPD activo.
+- El gate final no baja umbrales. Durante el cierre, `quality:gate` detecto una
+  caida de 89 a 86 reglas automaticas por detectores HU obsoletos tras la
+  refactorizacion de enlaces. Se corrigio el auditor para seguir la arquitectura
+  vigente (`transaccionEnlace`, `acciones-enlace`, `InspectorEnlace`) y el gate
+  volvio a 89/105.
+- `quality-ledger` registra el baseline final como contrato operativo de calidad.
+
+Artefactos relevantes:
+
+- `docs/roadmap/produccion-usuario-unico-svg-plan.md`
+- `docs/roadmap/quality-ledger.md`
+- `docs/roadmap/hu-progress.{json,md,html}`
+- `docs/roadmap/hu-progress-evidence.json`
+- `docs/historias-usuario-v2/tools/progress-dashboard.mjs`
+
+Validacion ejecutada:
+
+```bash
+cd app && bun run gate:refactor
+# typecheck OK
+# unit: 1481 pass / 0 fail / 5527 expect, 165 archivos
+# lint OK
+# build OK; bundle principal 472.01 kB / 127.00 kB gzip
+# browser:smoke 209 passed
+# Dashboard HU: Total 27.4%; MVP-alpha 104/121 + 1 parcial (86.2%); 89/105 reglas auto
+# quality:gate PASS; leyes canonicas 6/6; compat detectors 0
+
+cd app && bun run browser:preview
+# 1 passed
+
+docker compose up -d --build
+docker compose ps
+# opforja healthy; opforja-bug-capture up
+
+docker exec opforja wget -qO- http://127.0.0.1:8080/healthz
+# ok
+
+docker exec opforja wget -qO- http://bug-capture:3000/healthz
+# {"ok":true}
+
+curl https://opforja.sanixai.com/
+# 401 sin credenciales
+
+curl autenticado https://opforja.sanixai.com/
+# 200 text/html; asset principal externo /assets/index-BM0_R17F.js
+```
+
+Pendientes:
+
+- Sin pendiente bloqueante para primera produccion single-user.
+- Hacer un smoke manual en el navegador real del operador: crear/cargar,
+  editar, guardar, cerrar/abrir, descargar JSON y exportar SVG.
+- Siguiente corte tecnico recomendado si se continua refactorizando: mini-plan
+  `Link Transaction Kernel` para unificar creacion, reanclaje, anclas, puertos,
+  fans y rutas UI.
+- Siguiente corte de producto recomendado si se endurece produccion: auth de
+  aplicacion o estrategia de backup/sync. No mezclarlo con el baseline v0.
+
+Riesgos aceptados:
+
+- localStorage es almacenamiento operativo, no backup.
+- La app no tiene cuentas ni permisos internos; la barrera actual es Traefik.
+- El backlog HU completo sigue abierto; la primera produccion se limita al
+  contrato single-user + SVG.
+
+Prompt breve de continuacion:
+
+```text
+Continuar desde docs/HANDOFF.md, sección "Corte 5 Primera Produccion Single-User + SVG — 2026-05-20". Estado: plan produccion single-user SVG cerrado, gate:refactor verde, browser:preview verde y opforja.sanixai.com desplegado. No reabrir el plan v0 salvo regresion. Siguiente corte recomendado: Link Transaction Kernel o hardening productivo de auth/backup, manteniendo gates bun run gate:refactor y smoke productivo.
+```
 
 ### Handoff Explícito Y Cierre De Subagentes — 2026-05-20
 

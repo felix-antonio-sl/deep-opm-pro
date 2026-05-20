@@ -3,7 +3,7 @@
 **Fecha:** 2026-05-18  
 **Repo:** `deep-opm-pro`  
 **Alcance:** habilitar una primera version usable en produccion privada para un unico usuario local, con export SVG del OPD activo.  
-**Estado:** Corte 0, Corte 1, Corte 2, Corte 3 y Corte 4 cerrados; Corte 5 pendiente.
+**Estado:** Corte 0, Corte 1, Corte 2, Corte 3, Corte 4 y Corte 5 cerrados.
 **Autoridad superior:** `AGENTS.md`, `docs/HANDOFF.md`, `docs/JOYAS.md`, `opm-extracted/`, SSOT OPM local y HU vivas.
 
 ## 1. Objetivo
@@ -375,7 +375,41 @@ cd app && bun run gate:refactor
 
 Estado:
 
-- Pendiente.
+- Cerrado el 2026-05-20 con el baseline final de primera produccion
+  single-user.
+
+Resultado:
+
+- `gate:refactor` pasa completo: typecheck, 1481 unitarios, lint, build,
+  209 smokes browser, dashboard HU sincronizado y `quality:gate` verde.
+- El smoke productivo `browser:preview` pasa sobre `vite preview`: la SPA
+  estatica carga, exporta SVG y mantiene bug capture fuera del build sin
+  opt-in.
+- El auditor HU quedo alineado con la refactorizacion vigente de enlaces:
+  las reglas de abanico automatico, enlace desde fila plegada y Mover Puerto
+  apuntan a `transaccionEnlace`, `acciones-enlace` e `InspectorEnlace`.
+- `quality-ledger` y `HANDOFF` registran el baseline final.
+- `opforja.sanixai.com` queda redeployado con contenedor healthy, Basic Auth
+  externo y health checks internos OK.
+
+Validacion ejecutada:
+
+```bash
+cd app && bun run gate:refactor
+# typecheck OK; 1481 pass / 0 fail / 5527 expect; lint OK; build OK
+# browser:smoke 209 passed
+# Dashboard HU: Total 27.4%; MVP-alpha 104/121 + 1 parcial (86.2%); 89/105 reglas auto
+# quality:gate PASS; leyes canonicas 6/6; compat detectors 0
+
+cd app && bun run browser:preview
+# 1 passed
+
+docker compose up -d --build
+docker compose ps
+docker exec opforja wget -qO- http://127.0.0.1:8080/healthz
+docker exec opforja wget -qO- http://bug-capture:3000/healthz
+# opforja healthy; healthz ok; bug-capture {"ok":true}
+```
 
 ## 8. Riesgos Y Decisiones
 

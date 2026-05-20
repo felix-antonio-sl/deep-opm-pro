@@ -1,24 +1,24 @@
 {
   "schema": "deep-opm-pro.hu-progress-report.v1",
-  "generatedAt": "2026-05-19T22:39:41.075Z",
+  "generatedAt": "2026-05-20T07:00:55.419Z",
   "repoRoot": "/home/felix/projects/deep-opm-pro",
   "backlogRoot": "docs/historias-usuario-v2",
   "evidenceLedger": "docs/roadmap/hu-progress-evidence.json",
   "autoAudit": {
-    "generatedAt": "2026-05-19T22:39:41.075Z",
+    "generatedAt": "2026-05-20T07:00:55.419Z",
     "mode": "sync-real",
     "rulesEvaluated": 105,
     "rulesMatched": 89,
     "rulesUnmatched": 16,
     "sourceFiles": {
-      "count": 707,
+      "count": 714,
       "roots": [
         "app/src",
         "app/e2e",
         "app/scripts",
         "assets/svg/links"
       ],
-      "signature": "sha256:87d15e353e0d6942bb2a199a0eb293de1108cef0a48cc9231232adba114da5ac"
+      "signature": "sha256:a861b196f37bb64624ccfcb900cc597afc2a466263aa8c11fda832b896985f03"
     },
     "note": "autoEntries se regenera; cada regla escribe cobertura detectada o pendiente. entries manuales queda como respaldo solo para HU sin regla automatica."
   },
@@ -23664,8 +23664,12 @@
           "hrefDashboard": "../../app/src/modelo/abanicos.ts"
         },
         {
-          "path": "app/src/store/modelo/acciones-canvas.ts",
-          "hrefDashboard": "../../app/src/store/modelo/acciones-canvas.ts"
+          "path": "app/src/modelo/transaccionEnlace.ts",
+          "hrefDashboard": "../../app/src/modelo/transaccionEnlace.ts"
+        },
+        {
+          "path": "app/src/store/modelo/acciones-enlace.ts",
+          "hrefDashboard": "../../app/src/store/modelo/acciones-enlace.ts"
         },
         {
           "path": "app/src/modelo/abanicos.test.ts",
@@ -24594,6 +24598,10 @@
           "hrefDashboard": "../../app/src/ui/inspectorEnlace/SeccionExtremos.tsx"
         },
         {
+          "path": "app/src/ui/InspectorEnlace.tsx",
+          "hrefDashboard": "../../app/src/ui/InspectorEnlace.tsx"
+        },
+        {
           "path": "app/src/modelo/operaciones/enlaces.ts",
           "hrefDashboard": "../../app/src/modelo/operaciones/enlaces.ts"
         },
@@ -24652,6 +24660,10 @@
         {
           "path": "app/src/ui/inspectorEnlace/SeccionExtremos.tsx",
           "hrefDashboard": "../../app/src/ui/inspectorEnlace/SeccionExtremos.tsx"
+        },
+        {
+          "path": "app/src/ui/InspectorEnlace.tsx",
+          "hrefDashboard": "../../app/src/ui/InspectorEnlace.tsx"
         },
         {
           "path": "app/src/modelo/operaciones/enlaces.ts",
@@ -28522,6 +28534,10 @@
           "hrefDashboard": "../../app/src/modelo/plegado.ts"
         },
         {
+          "path": "app/src/modelo/transaccionEnlace.ts",
+          "hrefDashboard": "../../app/src/modelo/transaccionEnlace.ts"
+        },
+        {
           "path": "app/src/render/jointjs/plegadoNesting.ts",
           "hrefDashboard": "../../app/src/render/jointjs/plegadoNesting.ts"
         },
@@ -28976,6 +28992,10 @@
         {
           "path": "app/src/modelo/plegado.ts",
           "hrefDashboard": "../../app/src/modelo/plegado.ts"
+        },
+        {
+          "path": "app/src/modelo/transaccionEnlace.ts",
+          "hrefDashboard": "../../app/src/modelo/transaccionEnlace.ts"
         },
         {
           "path": "app/src/render/jointjs/plegadoNesting.ts",

@@ -738,7 +738,8 @@ function autoAuditRules() {
       nota: "Auto: la segunda rama compatible forma un abanico automaticamente en el store y se cubre con tests de kernel/store.",
       requires: [
         { path: "app/src/modelo/abanicos.ts", all: ["formarAbanico", "formarAbanicoAutomatico", "detectarPuertoCompartido"] },
-        { path: "app/src/store/modelo/acciones-canvas.ts", all: ["formarAbanicoAutomatico", "enlaceCreadoId"] },
+        { path: "app/src/modelo/transaccionEnlace.ts", all: ["formarAbanicoAutomatico", "enlaceId"] },
+        { path: "app/src/store/modelo/acciones-enlace.ts", all: ["crearEnlaceTransaccional", "enlaceCreadoId"] },
         { path: "app/src/modelo/abanicos.test.ts", all: ["formarAbanicoAutomatico crea abanico al conectar segunda rama compatible"] },
         { path: "app/src/store.test.ts", all: ["forma abanico automatico al conectar segunda rama"] },
       ],
@@ -845,10 +846,11 @@ function autoAuditRules() {
       nota: "Auto: filas plegadas son targets activos para enlaces sin extraccion, preservan orden compacto configurable y exponen nesting.",
       requires: [
         { path: "app/src/modelo/plegado.ts", all: ["crearEnlaceConExtremoPlegado", "partesDePlegadoOrdenadas", "cambiarOrdenPartes", "ordenPartes"] },
+        { path: "app/src/modelo/transaccionEnlace.ts", all: ["crearEnlaceConExtremoPlegado", "permitirExtremoPlegado"] },
         { path: "app/src/render/jointjs/plegadoNesting.ts", all: ["filasPlegadoConNesting", "partePlegadaTienePartes", "indicadorNesting"] },
         { path: "app/src/render/jointjs/handlers/seleccion.ts", all: ["seleccionarPartePlegada"] },
         { path: "app/src/render/jointjs/handlers/helpers.ts", all: ["parteEntidadDesdeSelector"] },
-        { path: "app/src/store/modelo/acciones-canvas.ts", all: ["crearEnlaceConExtremoPlegado", "seleccionarPartePlegada", "cambiarOrdenPartesSeleccionado"] },
+        { path: "app/src/store/modelo/acciones-canvas.ts", all: ["seleccionarPartePlegada", "cambiarOrdenPartesSeleccionado"] },
         { path: "app/src/ui/InspectorEntidad.tsx", any: ["Orden de partes", "cambiarOrdenPartes", "Inspector"] },
         { path: "app/src/serializacion/json.ts", all: ["ordenPartes", "validarOrdenPartes"] },
       ],
@@ -1092,7 +1094,8 @@ function autoAuditRules() {
       nota: "Auto ronda 10 L2: dialogo Mover Puerto cambia extremo o remueve relacion con un solo gesto, con accion en store y operacion kernel.",
       requires: [
         { path: "app/src/ui/DialogoMoverPuerto.tsx", all: ["DialogoMoverPuerto", "Mover Puerto"] },
-        { path: "app/src/ui/inspectorEnlace/SeccionExtremos.tsx", all: ["Mover Puerto"] },
+        { path: "app/src/ui/inspectorEnlace/SeccionExtremos.tsx", all: ["mover-puerto-btn"] },
+        { path: "app/src/ui/InspectorEnlace.tsx", all: ["DialogoMoverPuerto", "setDialogoMoverPuertoAbierto"] },
         { path: "app/src/modelo/operaciones/enlaces.ts", all: ["moverPuertoEnlace", "opcionRemover"] },
         { path: "app/src/store/modelo/acciones-enlace.ts", all: ["moverPuertoEnlaceSeleccionado", "opcionRemover"] },
       ],
