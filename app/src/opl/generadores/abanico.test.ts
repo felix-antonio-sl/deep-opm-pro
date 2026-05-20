@@ -37,10 +37,10 @@ function modeloBase(operador: "O" | "XOR"): Modelo {
     },
     estados: {},
     enlaces: {
-      l1: { id: "l1", tipo: "consumo", origenId: { kind: "entidad", id: "a" }, destinoId: { kind: "entidad", id: "proceso" }, etiqueta: "" },
-      l2: { id: "l2", tipo: "consumo", origenId: { kind: "entidad", id: "b" }, destinoId: { kind: "entidad", id: "proceso" }, etiqueta: "" },
+      l1: { id: "l1", tipo: "consumo", origenId: { kind: "entidad", id: "a" }, destinoId: { kind: "entidad", id: "proceso", portId: "port-fan-proceso-destino" }, etiqueta: "" },
+      l2: { id: "l2", tipo: "consumo", origenId: { kind: "entidad", id: "b" }, destinoId: { kind: "entidad", id: "proceso", portId: "port-fan-proceso-destino" }, etiqueta: "" },
     },
-    abanicos: { ab1: { id: "ab1", opdId: "opd", puertoEntidadId: "proceso", operador, enlaceIds: ["l1", "l2"] } },
+    abanicos: { ab1: { id: "ab1", opdId: "opd", puertoComun: { entidadId: "proceso", lado: "destino", portId: "port-fan-proceso-destino" }, puertoEntidadId: "proceso", operador, enlaceIds: ["l1", "l2"] } },
     nextSeq: 1,
   };
 }
@@ -60,10 +60,10 @@ function modeloResultadosAEstados(operador: "O" | "XOR"): Modelo {
       rechazado: { id: "rechazado", entidadId: "pedido", nombre: "rechazado" },
     },
     enlaces: {
-      l1: { id: "l1", tipo: "resultado", origenId: { kind: "entidad", id: "proceso" }, destinoId: { kind: "estado", id: "aprobado" }, etiqueta: "" },
-      l2: { id: "l2", tipo: "resultado", origenId: { kind: "entidad", id: "proceso" }, destinoId: { kind: "estado", id: "rechazado" }, etiqueta: "" },
+      l1: { id: "l1", tipo: "resultado", origenId: { kind: "entidad", id: "proceso", portId: "port-fan-proceso-origen" }, destinoId: { kind: "estado", id: "aprobado" }, etiqueta: "" },
+      l2: { id: "l2", tipo: "resultado", origenId: { kind: "entidad", id: "proceso", portId: "port-fan-proceso-origen" }, destinoId: { kind: "estado", id: "rechazado" }, etiqueta: "" },
     },
-    abanicos: { ab1: { id: "ab1", opdId: "opd", puertoEntidadId: "proceso", operador, enlaceIds: ["l1", "l2"] } },
+    abanicos: { ab1: { id: "ab1", opdId: "opd", puertoComun: { entidadId: "proceso", lado: "origen", portId: "port-fan-proceso-origen" }, puertoEntidadId: "proceso", operador, enlaceIds: ["l1", "l2"] } },
     nextSeq: 1,
   };
 }
@@ -83,10 +83,10 @@ function modeloConsumosDesdeEstados(operador: "O" | "XOR"): Modelo {
       observado: { id: "observado", entidadId: "pedido", nombre: "observado" },
     },
     enlaces: {
-      l1: { id: "l1", tipo: "consumo", origenId: { kind: "estado", id: "pendiente" }, destinoId: { kind: "entidad", id: "proceso" }, etiqueta: "" },
-      l2: { id: "l2", tipo: "consumo", origenId: { kind: "estado", id: "observado" }, destinoId: { kind: "entidad", id: "proceso" }, etiqueta: "" },
+      l1: { id: "l1", tipo: "consumo", origenId: { kind: "estado", id: "pendiente" }, destinoId: { kind: "entidad", id: "proceso", portId: "port-fan-proceso-destino" }, etiqueta: "" },
+      l2: { id: "l2", tipo: "consumo", origenId: { kind: "estado", id: "observado" }, destinoId: { kind: "entidad", id: "proceso", portId: "port-fan-proceso-destino" }, etiqueta: "" },
     },
-    abanicos: { ab1: { id: "ab1", opdId: "opd", puertoEntidadId: "proceso", operador, enlaceIds: ["l1", "l2"] } },
+    abanicos: { ab1: { id: "ab1", opdId: "opd", puertoComun: { entidadId: "proceso", lado: "destino", portId: "port-fan-proceso-destino" }, puertoEntidadId: "proceso", operador, enlaceIds: ["l1", "l2"] } },
     nextSeq: 1,
   };
 }

@@ -1061,10 +1061,15 @@ describe("store undo/redo y dirty state", () => {
     const abanicos = Object.values(estado.modelo.abanicos ?? {});
     expect(abanicos).toHaveLength(1);
     expect(abanicos[0]?.enlaceIds).toEqual([primerEnlaceId, segundoEnlaceId]);
+    expect(abanicos[0]?.puertoComun).toMatchObject({
+      entidadId: procesoId,
+      lado: "origen",
+    });
     const primerPort = estado.modelo.enlaces[primerEnlaceId]?.origenId.portId;
     const segundoPort = estado.modelo.enlaces[segundoEnlaceId]?.origenId.portId;
     expect(primerPort).toBeDefined();
     expect(primerPort).toBe(segundoPort);
+    expect(abanicos[0]?.puertoComun.portId).toBe(primerPort);
     expect(estado.mensaje).toContain("Fan O creado");
   });
 

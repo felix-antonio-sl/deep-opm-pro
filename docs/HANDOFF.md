@@ -3,9 +3,9 @@
 **Fecha**: 2026-05-20
 **Repositorio**: `deep-opm-pro`
 **Rama**: `main`
-**Último corte funcional**: UX/UI de creación de fans: el inspector detecta ramas compatibles, expone `Crear fan` y forma el abanico exacto.
-**Último corte deploy**: corte UX/UI de creación de fans desplegado en `https://opforja.sanixai.com`
-**Corte**: Plan UX/UI del modelador abierto; Corte 1 de fans/anclaje contextual implementado.
+**Último corte funcional**: saneamiento categorial de abanicos: `Abanico` preserva puerto común exacto `(entidad, lado, portId)` en modelo, serialización, OPL y render.
+**Último corte deploy**: corte UX/UI de creación de fans desplegado en `https://opforja.sanixai.com`; el saneamiento categorial se despliega al cierre de este corte.
+**Corte**: cierre categorial de identidad exacta de fans sobre el plan UX/UI del modelador.
 
 ## Política De Handoff Único
 
@@ -23,6 +23,79 @@
 - JointJS OSS: usar documentación oficial viva cuando se toque JointJS.
 
 ## Estado Actual
+
+### Corte Saneamiento Categorial De Fans Exactos — 2026-05-20
+
+Motivación categorial: el modelo ya exigía puertos exactos para formar un
+abanico, pero la entidad `Abanico` persistía principalmente `puertoEntidadId`.
+Eso era un funtor de olvido no declarado desde el modelo relacional de enlaces
+hacia el estado persistido: dos morfismos distintos `(entidad, lado, portId)`
+podían colapsar en la misma entidad. En términos del corpus ICAS-BoK, la falla
+era de preservación/faithfulness (`urn:fxsl:kb:icas-preservacion`) y de
+identidad por patrón de relaciones (`urn:fxsl:kb:icas-identidad-relacion`).
+
+Decisiones:
+
+- `Abanico` ahora almacena `puertoComun: { entidadId, lado, portId }` como
+  identidad canónica del puerto común.
+- `puertoEntidadId` queda solo como alias legacy derivado de
+  `puertoComun.entidadId`, para compatibilidad con JSON histórico.
+- Dos abanicos del mismo tipo y de la misma entidad pueden coexistir si sus
+  `portId` exactos son distintos.
+- La serialización hidrata JSON legacy cuando puede reconstruir un único puerto
+  exacto desde las ramas; rechaza un `puertoComun` declarado que no coincide.
+- OPL, inspector, sincronización de puertos y overlay JointJS consumen la
+  identidad exacta del fan. El render ya no decide pertenencia por entidad sola.
+- La consulta JointJS OSS se apoyó en la documentación oficial de `LinkView`
+  (`getConnectionLength`, `getPointAtLength`) y `Ports` (`id` + `port` en
+  extremos de enlace). La inferencia local: el overlay debe leer la geometría
+  real del `LinkView`, pero filtrar ramas por el contrato semántico exacto del
+  modelo.
+
+Artefactos:
+
+- `app/src/modelo/tipos/abanico.ts`
+- `app/src/modelo/abanicos.ts`
+- `app/src/modelo/operaciones/ports.ts`
+- `app/src/modelo/transaccionEnlace.test.ts`
+- `app/src/serializacion/validarEnlaces.ts`
+- `app/src/opl/generadores/abanico.ts`
+- `app/src/opl/generadores/refsHints.ts`
+- `app/src/render/jointjs/abanicoDragSync.ts`
+- `app/src/render/jointjs/abanicoOverlay.ts`
+- `app/src/render/jointjs/proyeccion.ts`
+- `app/src/ui/inspectorEnlace/detalleContratoPuerto.test.ts`
+- `app/e2e/_smoke-helpers.ts`
+- `app/e2e/02-canvas-y-render.spec.ts`
+
+Validación ejecutada:
+
+```bash
+cd app && bun test src/modelo/abanicos.test.ts src/serializacion/validarEnlaces.test.ts src/store.test.ts src/modelo/transaccionEnlace.test.ts src/opl/generadores/abanico.test.ts src/opl/generar.test.ts src/ui/inspectorEnlace/detalleContratoPuerto.test.ts src/render/jointjs/abanicoOverlay.test.ts src/render/jointjs/proyeccion.test.ts --test-name-pattern "abanico|fan|puerto comun|puerto común|BUG|OPL-ES|detalleContratoPuerto|transaccion"
+# 82 pass / 0 fail
+
+cd app && bun run check
+# typecheck OK
+# unit: 1479 pass / 0 fail
+
+cd app && bun run lint
+# OK
+
+cd app && bun run build
+# OK; asset principal local index-BulgeSOh.js
+
+cd app && bun run browser:smoke
+# 207 passed / 0 failed
+```
+
+Estado de cierre:
+
+- Pendiente operativo inmediato: commit atómico, push controlado y deploy en
+  `https://opforja.sanixai.com`.
+- Riesgo residual: los candidatos de fan manual siguen pudiendo proponer ramas
+  compatibles por entidad/lado antes de alinear `portId`; eso es intencional
+  en UX, porque la acción `Crear fan` primero alinea ancla común y luego forma
+  el fan exacto.
 
 ### Corte UX/UI Fans Y Anclaje Contextual — 2026-05-20
 

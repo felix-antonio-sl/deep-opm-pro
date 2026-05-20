@@ -25,9 +25,38 @@ describe("abanicos lógicos O/XOR", () => {
     expect(abanico).toMatchObject({
       opdId: modelo.opdRaizId,
       puertoEntidadId: procesoId,
+      puertoComun: {
+        entidadId: procesoId,
+        lado: "origen",
+        portId: "port-test-origen",
+      },
       operador: "O",
       enlaceIds: enlaces,
     });
+  });
+
+  test("permite dos abanicos del mismo tipo y entidad cuando usan puertos exactos distintos", () => {
+    let modelo = crearModelo();
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 40, y: 120 }, "P"));
+    const procesoId = entidad(modelo, "P");
+    for (const [index, nombre] of ["A", "B", "C", "D"].entries()) {
+      modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 280, y: 20 + index * 90 }, nombre));
+      modelo = must(crearEnlace(modelo, modelo.opdRaizId, procesoId, entidad(modelo, nombre), "resultado"));
+    }
+    const [e1, e2, e3, e4] = Object.keys(modelo.enlaces);
+    if (!e1 || !e2 || !e3 || !e4) throw new Error("La prueba esperaba cuatro enlaces");
+    modelo = fijarPuertoCompartido(modelo, [e1, e2], "origen", "port-fan-superior");
+    modelo = fijarPuertoCompartido(modelo, [e3, e4], "origen", "port-fan-inferior");
+
+    modelo = must(formarAbanico(modelo, modelo.opdRaizId, [e1, e2]));
+    modelo = must(formarAbanico(modelo, modelo.opdRaizId, [e3, e4]));
+
+    const abanicos = Object.values(modelo.abanicos ?? {});
+    expect(abanicos).toHaveLength(2);
+    expect(abanicos.map((abanico) => abanico.puertoComun.portId).sort()).toEqual([
+      "port-fan-inferior",
+      "port-fan-superior",
+    ]);
   });
 
   test("formarAbanico rechaza enlaces de puertos distintos", () => {
@@ -136,7 +165,14 @@ describe("abanicos lógicos O/XOR", () => {
 
     expect(resultado.ok).toBe(true);
     if (!resultado.ok) return;
-    expect(unicoAbanico(resultado.value).puertoEntidadId).toBe(procesoId);
+    expect(unicoAbanico(resultado.value)).toMatchObject({
+      puertoEntidadId: procesoId,
+      puertoComun: {
+        entidadId: procesoId,
+        lado: "origen",
+        portId: "port-test-origen",
+      },
+    });
   });
 
   test("detectarPuertoCompartido encuentra abanico existente por enlace compatible", () => {
@@ -231,9 +267,8 @@ function modeloConRamas(tipo: TipoEnlace, nombres: string[], opciones: OpcionesR
   return { modelo, procesoId, enlaces };
 }
 
-function fijarPuertoCompartido(modelo: Modelo, enlaceIds: Id[], lado: "origen" | "destino"): Modelo {
+function fijarPuertoCompartido(modelo: Modelo, enlaceIds: Id[], lado: "origen" | "destino", portId = `port-test-${lado}`): Modelo {
   const campo = lado === "origen" ? "origenId" : "destinoId";
-  const portId = `port-test-${lado}`;
   const enlaces = { ...modelo.enlaces };
   for (const enlaceId of enlaceIds) {
     const enlace = enlaces[enlaceId];

@@ -1,4 +1,5 @@
 import { CANON } from "../../modelo/constantes";
+import { puertoComunDeAbanico } from "../../modelo/abanicos";
 import { entidadIdDeExtremo } from "../../modelo/extremos";
 import type { Abanico, Apariencia, Id, Modelo, Opd, Posicion, TipoEntidad } from "../../modelo/tipos";
 import type { JointCellJson } from "./proyeccion";
@@ -72,7 +73,8 @@ export function proyectarOverlayAbanicoCanonico(args: {
   aparienciaPuerto: Apariencia;
   aparienciaPorEntidad: Map<Id, Apariencia>;
 }): JointCellJson[] {
-  const tipoPuerto = args.modelo.entidades[args.abanico.puertoEntidadId]?.tipo;
+  const puertoComun = puertoComunDeAbanico(args.abanico);
+  const tipoPuerto = args.modelo.entidades[puertoComun.entidadId]?.tipo;
   if (!tipoPuerto) return [];
   const centrosOtros = centrosOtrosExtremos(args);
   const geometria = calcularGeometriaAbanico({
@@ -115,13 +117,19 @@ function centrosOtrosExtremos(args: {
   aparienciaPorEntidad: Map<Id, Apariencia>;
 }): Posicion[] {
   const centros: Posicion[] = [];
+  const puertoComun = puertoComunDeAbanico(args.abanico);
   for (const enlaceId of args.abanico.enlaceIds) {
     const enlace = args.modelo.enlaces[enlaceId];
     if (!enlace) continue;
-    const origenEntId = entidadIdDeExtremo(args.modelo, enlace.origenId);
-    const destinoEntId = entidadIdDeExtremo(args.modelo, enlace.destinoId);
-    if (!origenEntId || !destinoEntId) continue;
-    const otroEntId = origenEntId === args.abanico.puertoEntidadId ? destinoEntId : origenEntId;
+    const extremoComun = puertoComun.lado === "origen" ? enlace.origenId : enlace.destinoId;
+    if (
+      extremoComun.kind !== "entidad" ||
+      extremoComun.id !== puertoComun.entidadId ||
+      extremoComun.portId !== puertoComun.portId
+    ) continue;
+    const otroExtremo = puertoComun.lado === "origen" ? enlace.destinoId : enlace.origenId;
+    const otroEntId = entidadIdDeExtremo(args.modelo, otroExtremo);
+    if (!otroEntId) continue;
     const otroAp = args.aparienciaPorEntidad.get(otroEntId);
     if (!otroAp) continue;
     centros.push({

@@ -1,4 +1,5 @@
-import { entidadDeExtremo, entidadIdDeExtremo, estadoDeExtremo } from "../../modelo/extremos";
+import { puertoExactoCompartidoDeAbanico } from "../../modelo/abanicos";
+import { entidadDeExtremo, estadoDeExtremo } from "../../modelo/extremos";
 import { rutaEtiquetaNormalizada } from "../../modelo/rutas";
 import type { Abanico, Enlace, Modelo } from "../../modelo/tipos";
 import { hintsAbanico, hintsEnlace, listarOpl, nombreOpl, nombreOplExtremo, refsAbanico, refsEnlace, type OplLineaPendiente } from "./refsHints";
@@ -43,8 +44,9 @@ export function oracionAbanico(modelo: Modelo, abanico: Abanico): string | null 
   const enlaces = enlacesDeAbanico(modelo, abanico);
   if (enlaces.length < 2) return null;
   const primer = enlaces[0];
-  const puerto = modelo.entidades[abanico.puertoEntidadId];
-  if (!puerto || !primer) return null;
+  const puertoComun = puertoExactoCompartidoDeAbanico(modelo, abanico);
+  const puerto = puertoComun ? modelo.entidades[puertoComun.entidadId] : undefined;
+  if (!puertoComun || !puerto || !primer) return null;
 
   const otrosNombres: string[] = [];
   for (const enlace of enlaces) {
@@ -56,7 +58,7 @@ export function oracionAbanico(modelo: Modelo, abanico: Abanico): string | null 
   if (otrosNombres.length < 2) return null;
 
   const cuantificador = abanico.operador === "XOR" ? "exactamente uno de" : "al menos uno de";
-  const puertoEsOrigen = entidadIdDeExtremo(modelo, primer.origenId) === abanico.puertoEntidadId;
+  const puertoEsOrigen = puertoComun.lado === "origen";
   const estadosAgrupados = oracionAbanicoEstados(modelo, abanico, enlaces, primer, cuantificador, puertoEsOrigen);
   if (estadosAgrupados) return estadosAgrupados;
   const lista = listarOpl(otrosNombres);
@@ -115,7 +117,8 @@ function oracionAbanicoEstados(
     estados.push(`\`${estado.nombre}\``);
   }
   if (!objetoId || estados.length < 2) return null;
-  const puerto = modelo.entidades[abanico.puertoEntidadId];
+  const puertoComun = puertoExactoCompartidoDeAbanico(modelo, abanico);
+  const puerto = puertoComun ? modelo.entidades[puertoComun.entidadId] : undefined;
   const objeto = modelo.entidades[objetoId];
   if (!puerto || !objeto) return null;
 
@@ -137,15 +140,15 @@ function extremoOpuestoAbanico(
   abanico: Abanico,
   enlace: Enlace,
 ): { extremo: Enlace["origenId"]; multiplicidad?: string } | null {
-  const origenEntId = entidadIdDeExtremo(modelo, enlace.origenId);
-  if (origenEntId === abanico.puertoEntidadId) {
+  const puertoComun = puertoExactoCompartidoDeAbanico(modelo, abanico);
+  if (!puertoComun) return null;
+  if (puertoComun.lado === "origen" && enlace.origenId.kind === "entidad" && enlace.origenId.id === puertoComun.entidadId && enlace.origenId.portId === puertoComun.portId) {
     return {
       extremo: enlace.destinoId,
       ...(enlace.multiplicidadDestino ? { multiplicidad: enlace.multiplicidadDestino } : {}),
     };
   }
-  const destinoEntId = entidadIdDeExtremo(modelo, enlace.destinoId);
-  if (destinoEntId === abanico.puertoEntidadId) {
+  if (puertoComun.lado === "destino" && enlace.destinoId.kind === "entidad" && enlace.destinoId.id === puertoComun.entidadId && enlace.destinoId.portId === puertoComun.portId) {
     return {
       extremo: enlace.origenId,
       ...(enlace.multiplicidadOrigen ? { multiplicidad: enlace.multiplicidadOrigen } : {}),

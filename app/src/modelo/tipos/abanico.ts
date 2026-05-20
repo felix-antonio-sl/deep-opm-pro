@@ -10,9 +10,20 @@ import type { Id } from "./comunes";
 
 export type OperadorAbanico = "O" | "XOR";
 
+export interface PuertoAbanicoExacto {
+  entidadId: Id;
+  lado: "origen" | "destino";
+  portId: Id;
+}
+
 export interface Abanico {
   id: Id;
   opdId: Id;
+  puertoComun: PuertoAbanicoExacto;
+  /**
+   * Alias legacy derivado de puertoComun.entidadId.
+   * Se conserva para compatibilidad de JSON v0 y consumidores historicos.
+   */
   puertoEntidadId: Id;
   operador: OperadorAbanico;
   enlaceIds: Id[];

@@ -1,6 +1,6 @@
 import { naturalezaDeEnlace } from "./constantes";
 import { entidadIdDeExtremo } from "./extremos";
-import type { Abanico, Enlace, Id, Modelo, OperadorAbanico, Resultado, TipoEnlace } from "./tipos";
+import type { Abanico, Enlace, Id, Modelo, OperadorAbanico, PuertoAbanicoExacto, Resultado, TipoEnlace } from "./tipos";
 
 type LadoEnlace = "origen" | "destino";
 
@@ -10,6 +10,8 @@ export interface PuertoComunExacto {
   portId: Id;
   key: string;
 }
+
+type PuertoEsperadoAbanico = Id | PuertoAbanicoExacto;
 
 export interface CandidatoAbanicoExacto {
   lado: LadoEnlace;
@@ -26,7 +28,8 @@ export function formarAbanico(
 ): Resultado<Modelo> {
   const validado = validarCandidatoAbanico(modelo, opdId, enlaceIds, operador);
   if (!validado.ok) return validado;
-  const existente = abanicoExistentePara(modelo, opdId, validado.value.puertoEntidadId, validado.value.tipo);
+  const puertoComun = puertoAbanicoDesdeExacto(validado.value.puertoComun);
+  const existente = abanicoExistentePara(modelo, opdId, puertoComun, validado.value.tipo);
   if (existente) {
     return agregarRamasAAbanico(modelo, existente.id, validado.value.enlaces.map((enlace) => enlace.id), operador);
   }
@@ -35,7 +38,8 @@ export function formarAbanico(
   const abanico: Abanico = {
     id: abanicoId,
     opdId,
-    puertoEntidadId: validado.value.puertoEntidadId,
+    puertoComun,
+    puertoEntidadId: puertoComun.entidadId,
     operador,
     enlaceIds: validado.value.enlaces.map((enlace) => enlace.id),
   };
@@ -93,12 +97,13 @@ export function disolverAbanico(modelo: Modelo, abanicoId: Id): Resultado<Modelo
 export function detectarPuertoCompartido(modelo: Modelo, opdId: Id, enlace: Enlace): Abanico | undefined {
   return Object.values(modelo.abanicos ?? {}).find((abanico) => {
     if (abanico.opdId !== opdId) return false;
+    const puertoEsperado = puertoEsperadoDeAbanico(abanico);
     const miembros = enlacesDeAbanico(modelo, abanico);
     if (miembros.length < 2) return false;
     const tipo = miembros[0]?.tipo;
     if (tipo !== enlace.tipo) return false;
     return puertosExactosComunes(modelo, [...miembros, enlace])
-      .some((puerto) => puerto.entidadId === abanico.puertoEntidadId);
+      .some((puerto) => coincidePuertoEsperado(puerto, puertoEsperado));
   });
 }
 
@@ -128,9 +133,14 @@ export function candidatosAbanicoExacto(modelo: Modelo, opdId: Id, enlaceId: Id)
 export function puertoExactoCompartidoDeAbanico(modelo: Modelo, abanico: Abanico): PuertoComunExacto | undefined {
   const enlaces = enlacesDeAbanico(modelo, abanico);
   if (enlaces.length < 2) return undefined;
+  const puertoEsperado = puertoEsperadoDeAbanico(abanico);
   const comunes = puertosExactosComunes(modelo, enlaces)
-    .filter((puerto) => puerto.entidadId === abanico.puertoEntidadId);
+    .filter((puerto) => coincidePuertoEsperado(puerto, puertoEsperado));
   return comunes.length === 1 ? comunes[0] : undefined;
+}
+
+export function puertoComunDeAbanico(abanico: Abanico): PuertoAbanicoExacto {
+  return abanico.puertoComun;
 }
 
 export function formarAbanicoAutomatico(
@@ -157,9 +167,10 @@ export function sincronizarAbanicos(modelo: Modelo): Modelo {
   for (const abanico of Object.values(modelo.abanicos ?? {})) {
     const enlaceIds = abanico.enlaceIds.filter((enlaceId) => modelo.enlaces[enlaceId]);
     if (enlaceIds.length < 2) continue;
-    const validado = validarCandidatoAbanico(modelo, abanico.opdId, enlaceIds, abanico.operador, abanico.puertoEntidadId, abanico.id);
+    const validado = validarCandidatoAbanico(modelo, abanico.opdId, enlaceIds, abanico.operador, puertoEsperadoDeAbanico(abanico), abanico.id);
     if (!validado.ok) continue;
-    siguientes[abanico.id] = { ...abanico, enlaceIds };
+    const puertoComun = puertoAbanicoDesdeExacto(validado.value.puertoComun);
+    siguientes[abanico.id] = { ...abanico, puertoComun, puertoEntidadId: puertoComun.entidadId, enlaceIds };
   }
   return { ...modelo, abanicos: siguientes };
 }
@@ -169,11 +180,11 @@ export function validarAbanicoCanonico(
   opdId: Id,
   enlaceIds: Id[],
   operador: OperadorAbanico,
-  puertoEsperado: Id,
+  puertoEsperado: PuertoEsperadoAbanico,
   abanicoId?: Id,
-): Resultado<true> {
+): Resultado<PuertoComunExacto> {
   const validado = validarCandidatoAbanico(modelo, opdId, enlaceIds, operador, puertoEsperado, abanicoId);
-  return validado.ok ? ok(true) : validado;
+  return validado.ok ? ok(validado.value.puertoComun) : validado;
 }
 
 function agregarRamasAAbanico(
@@ -193,7 +204,7 @@ function agregarRamasAAbanico(
     abanico.opdId,
     candidatoIds,
     operador ?? abanico.operador,
-    abanico.puertoEntidadId,
+    puertoEsperadoDeAbanico(abanico),
     abanicoId,
   );
   if (!validado.ok) return validado;
@@ -204,6 +215,8 @@ function agregarRamasAAbanico(
       ...(modelo.abanicos ?? {}),
       [abanicoId]: {
         ...abanico,
+        puertoComun: puertoAbanicoDesdeExacto(validado.value.puertoComun),
+        puertoEntidadId: validado.value.puertoComun.entidadId,
         operador: operador ?? abanico.operador,
         enlaceIds: validado.value.enlaces.map((enlace) => enlace.id),
       },
@@ -216,9 +229,9 @@ function validarCandidatoAbanico(
   opdId: Id,
   enlaceIds: Id[],
   operador: OperadorAbanico,
-  puertoEsperado?: Id,
+  puertoEsperado?: PuertoEsperadoAbanico,
   abanicoActualId?: Id,
-): Resultado<{ enlaces: Enlace[]; puertoEntidadId: Id; tipo: TipoEnlace }> {
+): Resultado<{ enlaces: Enlace[]; puertoComun: PuertoComunExacto; tipo: TipoEnlace }> {
   if (!esOperadorAbanico(operador)) return fallo(`Operador de abanico inválido: ${operador}`);
   if (!modelo.opds[opdId]) return fallo(`OPD no existe: ${opdId}`);
   const idsUnicos = Array.from(new Set(enlaceIds));
@@ -242,14 +255,13 @@ function validarCandidatoAbanico(
 
   const comunes = puertosExactosComunes(modelo, enlaces);
   const candidatosEsperados = puertoEsperado
-    ? comunes.filter((puerto) => puerto.entidadId === puertoEsperado)
+    ? comunes.filter((puerto) => coincidePuertoEsperado(puerto, puertoEsperado))
     : comunes;
   const puertoElegido = candidatosEsperados[0];
-  const puertoEntidadId = puertoElegido?.entidadId;
-  if (!puertoEntidadId || candidatosEsperados.length !== 1) {
+  if (!puertoElegido || candidatosEsperados.length !== 1) {
     return fallo("Los enlaces de un abanico deben compartir un puerto");
   }
-  if (!modelo.entidades[puertoEntidadId]) return fallo(`Puerto de abanico no existe: ${puertoEntidadId}`);
+  if (!modelo.entidades[puertoElegido.entidadId]) return fallo(`Puerto de abanico no existe: ${puertoElegido.entidadId}`);
   if (comunes.length > 1 && !puertoEsperado) {
     return fallo("El abanico requiere un único puerto común");
   }
@@ -259,7 +271,7 @@ function validarCandidatoAbanico(
   );
   if (duenios.length > 0) return fallo("Un enlace ya pertenece a otro abanico");
 
-  return ok({ enlaces, puertoEntidadId, tipo });
+  return ok({ enlaces, puertoComun: puertoElegido, tipo });
 }
 
 function enlacesCompatiblesDelOpd(modelo: Modelo, opdId: Id, enlace: Enlace): Enlace[] {
@@ -274,9 +286,9 @@ function enlacesCompatiblesDelOpd(modelo: Modelo, opdId: Id, enlace: Enlace): En
     );
 }
 
-function abanicoExistentePara(modelo: Modelo, opdId: Id, puertoEntidadId: Id, tipo: TipoEnlace): Abanico | undefined {
+function abanicoExistentePara(modelo: Modelo, opdId: Id, puertoComun: PuertoAbanicoExacto, tipo: TipoEnlace): Abanico | undefined {
   return Object.values(modelo.abanicos ?? {}).find((abanico) => {
-    if (abanico.opdId !== opdId || abanico.puertoEntidadId !== puertoEntidadId) return false;
+    if (abanico.opdId !== opdId || !mismoPuertoAbanico(puertoComunDeAbanico(abanico), puertoComun)) return false;
     const enlace = modelo.enlaces[abanico.enlaceIds[0] ?? ""];
     return enlace?.tipo === tipo;
   });
@@ -288,9 +300,9 @@ function enlacesDeAbanico(modelo: Modelo, abanico: Abanico): Enlace[] {
     .filter((enlace): enlace is Enlace => enlace !== undefined);
 }
 
-function puertoCompartido(modelo: Modelo, a: Enlace, b: Enlace): Id | null {
+function puertoCompartido(modelo: Modelo, a: Enlace, b: Enlace): PuertoComunExacto | null {
   const exactos = puertosExactosComunes(modelo, [a, b]);
-  return exactos.length === 1 ? exactos[0]?.entidadId ?? null : null;
+  return exactos.length === 1 ? exactos[0] ?? null : null;
 }
 
 function puertosExactosComunes(modelo: Modelo, enlaces: Enlace[]): PuertoComunExacto[] {
@@ -339,6 +351,28 @@ function ordenarConSeleccionPrimero(enlaceIds: Id[], enlaceSeleccionId: Id): Id[
     enlaceSeleccionId,
     ...enlaceIds.filter((id) => id !== enlaceSeleccionId),
   ];
+}
+
+function puertoAbanicoDesdeExacto(puerto: PuertoComunExacto | PuertoAbanicoExacto): PuertoAbanicoExacto {
+  return {
+    entidadId: puerto.entidadId,
+    lado: puerto.lado,
+    portId: puerto.portId,
+  };
+}
+
+function puertoEsperadoDeAbanico(abanico: Abanico): PuertoEsperadoAbanico {
+  const legacy = abanico as Abanico & { puertoComun?: PuertoAbanicoExacto };
+  return legacy.puertoComun ?? legacy.puertoEntidadId;
+}
+
+function coincidePuertoEsperado(puerto: PuertoComunExacto, esperado: PuertoEsperadoAbanico): boolean {
+  if (typeof esperado === "string") return puerto.entidadId === esperado;
+  return mismoPuertoAbanico(puerto, esperado);
+}
+
+function mismoPuertoAbanico(a: PuertoComunExacto | PuertoAbanicoExacto, b: PuertoComunExacto | PuertoAbanicoExacto): boolean {
+  return a.entidadId === b.entidadId && a.lado === b.lado && a.portId === b.portId;
 }
 
 function ok<T>(value: T): Resultado<T> {

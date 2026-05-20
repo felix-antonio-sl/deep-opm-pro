@@ -1,6 +1,7 @@
 import { esAutoInvocacion } from "../../modelo/autoinvocacion";
 import { entidadIdDeExtremo } from "../../modelo/extremos";
 import { aparicionesVisiblesEnOpd } from "../../modelo/politicaApariciones";
+import { puertoComunDeAbanico } from "../../modelo/abanicos";
 import type { Apariencia, Enlace, Estado, ExtremoEnlace, Id, Modelo, Posicion, TipoEnlace } from "../../modelo/tipos";
 import type { OplReferencia } from "../../opl/interaccion";
 import { proyectarOverlayAbanicoCanonico } from "./abanicoOverlay";
@@ -84,7 +85,7 @@ export function proyectarModeloAJointCells(
   const overlaysAbanico = Object.values(modeloRender.abanicos ?? {})
     .filter((abanico) => abanico.opdId === opdId)
     .flatMap((abanico) => {
-      const aparienciaPuerto = aparienciaPorEntidad.get(abanico.puertoEntidadId);
+      const aparienciaPuerto = aparienciaPorEntidad.get(puertoComunDeAbanico(abanico).entidadId);
       if (!aparienciaPuerto) return [];
       return proyectarOverlayAbanicoCanonico({
         modelo: modeloRender,

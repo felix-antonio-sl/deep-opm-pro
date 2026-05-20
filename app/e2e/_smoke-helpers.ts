@@ -810,6 +810,7 @@ export function modeloAbanicoLogico() {
         "ab-1": {
           id: "ab-1",
           opdId: "opd-1",
+          puertoComun: { entidadId: "p-procesar", lado: "destino", portId: "port-fan-procesar-destino" },
           puertoEntidadId: "p-procesar",
           operador: "O",
           enlaceIds: ["e-consumo-a", "e-consumo-b"],
@@ -940,6 +941,7 @@ export function modeloAbanicoRutasEstados() {
         "ab-rutas": {
           id: "ab-rutas",
           opdId: "opd-1",
+          puertoComun: { entidadId: "p-aprobar", lado: "origen", portId: "port-fan-aprobar-origen" },
           puertoEntidadId: "p-aprobar",
           operador: "XOR",
           enlaceIds: ["e-exitoso", "e-fallido"],
@@ -1026,7 +1028,11 @@ export interface ExportadoModelo {
       rutaEtiqueta?: string;
       derivado?: { tipo: string; refinamientoId: string; enlacePadreId: string; origen?: string };
     }>;
-    abanicos?: Record<string, { enlaceIds: string[] }>;
+    abanicos?: Record<string, {
+      enlaceIds: string[];
+      puertoComun?: { entidadId: string; lado: "origen" | "destino"; portId: string };
+      puertoEntidadId?: string;
+    }>;
     opds: Record<
       string,
       {

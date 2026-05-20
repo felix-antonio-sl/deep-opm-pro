@@ -83,6 +83,51 @@ describe("validarEnlaces", () => {
     }, opds, enlaces, entidadesProcedural, estados);
 
     expect(resultado.ok).toBe(true);
+    if (!resultado.ok) return;
+    expect(resultado.value["ab-1"]).toMatchObject({
+      puertoEntidadId: "p-1",
+      puertoComun: {
+        entidadId: "p-1",
+        lado: "destino",
+        portId: "port-fan",
+      },
+    });
+  });
+
+  test("rechaza abanico cuyo puerto comun declarado no coincide con las ramas", () => {
+    const entidadesProcedural: Record<string, Entidad> = {
+      ...entidades,
+      "p-1": { id: "p-1", tipo: "proceso", nombre: "Procesar", esencia: "informacional", afiliacion: "sistemica" },
+    };
+    const enlaces: Record<string, Enlace> = {
+      "l-1": { id: "l-1", tipo: "consumo", origenId: extremoEntidad("e-2"), destinoId: { kind: "entidad", id: "p-1", portId: "port-fan" }, etiqueta: "" },
+      "l-2": { id: "l-2", tipo: "consumo", origenId: extremoEntidad("e-3"), destinoId: { kind: "entidad", id: "p-1", portId: "port-fan" }, etiqueta: "" },
+    };
+    const opds: Record<string, Opd> = {
+      "opd-1": {
+        id: "opd-1",
+        nombre: "SD",
+        padreId: null,
+        apariencias: {},
+        enlaces: {
+          "ae-1": { id: "ae-1", enlaceId: "l-1", opdId: "opd-1", vertices: [] },
+          "ae-2": { id: "ae-2", enlaceId: "l-2", opdId: "opd-1", vertices: [] },
+        },
+      },
+    };
+
+    const resultado = validarAbanicos({
+      "ab-1": {
+        id: "ab-1",
+        opdId: "opd-1",
+        puertoEntidadId: "p-1",
+        puertoComun: { entidadId: "p-1", lado: "destino", portId: "otro-puerto" },
+        operador: "O",
+        enlaceIds: ["l-1", "l-2"],
+      },
+    }, opds, enlaces, entidadesProcedural, estados);
+
+    expect(resultado.ok).toBe(false);
   });
 
   test("rechaza abanico estructural aunque comparta entidad", () => {

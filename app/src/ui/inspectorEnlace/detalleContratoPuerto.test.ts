@@ -86,6 +86,7 @@ function modeloConFanExacto(): Modelo {
       "ab-1": {
         id: "ab-1",
         opdId: "opd-1",
+        puertoComun: { entidadId: "p-procesar", lado: "destino", portId: "port-fan-procesar-destino" },
         puertoEntidadId: "p-procesar",
         operador: "XOR",
         enlaceIds: ["e-consumo-a", "e-consumo-b"],

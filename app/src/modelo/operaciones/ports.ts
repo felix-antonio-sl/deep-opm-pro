@@ -1,3 +1,4 @@
+import { puertoComunDeAbanico } from "../abanicos";
 import { naturalezaDeEnlace } from "../constantes";
 import { entidadIdDeExtremo } from "../extremos";
 import { puertoRelativoAnclaEnlace, type AnclaRelojEnlace } from "../anclajesEnlace";
@@ -427,39 +428,32 @@ function asignarPuertosCompartidosAbanico(
   const resultado = new Map<string, PuertoCompartidoEstado>();
   for (const abanico of Object.values(modelo.abanicos ?? {})) {
     if (abanico.opdId !== opdId) continue;
-    const aparienciaPuerto = aparienciasPorEntidad.get(abanico.puertoEntidadId);
+    const puertoComun = puertoComunDeAbanico(abanico);
+    const aparienciaPuerto = aparienciasPorEntidad.get(puertoComun.entidadId);
     if (!aparienciaPuerto) continue;
 
     const keys: string[] = [];
-    const portIds = new Set<Id>();
     const otros: Posicion[] = [];
     for (const enlaceId of abanico.enlaceIds) {
       const enlace = modelo.enlaces[enlaceId];
       if (!enlace) continue;
-      const extremos = [
-        ["origen", enlace.origenId],
-        ["destino", enlace.destinoId],
-      ] as const;
-      for (const [lado, extremo] of extremos) {
-        const entidadId = entidadIdDeExtremo(modelo, extremo);
-        if (!entidadId) continue;
-        if (entidadId === abanico.puertoEntidadId && extremo.kind === "entidad") {
-          keys.push(keyExtremo(enlace.id, lado));
-          if (extremo.portId) portIds.add(extremo.portId);
-        } else {
-          const apariencia = aparienciasPorEntidad.get(entidadId);
-          if (apariencia) otros.push(centro(apariencia));
-        }
-      }
+      const extremoComun = puertoComun.lado === "origen" ? enlace.origenId : enlace.destinoId;
+      if (
+        extremoComun.kind !== "entidad" ||
+        extremoComun.id !== puertoComun.entidadId ||
+        extremoComun.portId !== puertoComun.portId
+      ) continue;
+      keys.push(keyExtremo(enlace.id, puertoComun.lado));
+      const otroExtremo = puertoComun.lado === "origen" ? enlace.destinoId : enlace.origenId;
+      const otroEntidadId = entidadIdDeExtremo(modelo, otroExtremo);
+      const apariencia = otroEntidadId ? aparienciasPorEntidad.get(otroEntidadId) : undefined;
+      if (apariencia) otros.push(centro(apariencia));
     }
 
     if (keys.length < 2 || otros.length === 0) continue;
-    const portId = portIds.size === 1
-      ? [...portIds][0]!
-      : `port-abanico-${sanitizarId(abanico.id)}-${sanitizarId(abanico.puertoEntidadId)}`;
     const puntoOpuesto = centroide(otros);
     for (const key of keys) {
-      resultado.set(key, { portId, puntoOpuesto });
+      resultado.set(key, { portId: puertoComun.portId, puntoOpuesto });
     }
   }
   return resultado;

@@ -28,6 +28,10 @@ describe("transaccion de enlace", () => {
         operador: "O",
         enlaceIds: [primeroId, segundoId],
         puertoEntidadId: procesoId,
+        puertoComun: expect.objectContaining({
+          entidadId: procesoId,
+          lado: "origen",
+        }),
       }),
     ]);
     const proceso = apariencia(segundo.modelo, "Aprobar");
@@ -57,6 +61,10 @@ describe("transaccion de enlace", () => {
 
     const abanico = Object.values(segundo.modelo.abanicos ?? {})[0];
     expect(abanico?.enlaceIds).toEqual([primeroId, segundoId]);
+    expect(abanico?.puertoComun).toMatchObject({
+      entidadId: procesoId,
+      lado: "origen",
+    });
     const puertos = Object.values(segundo.modelo.enlaces)
       .filter((enlace) => enlace.tipo === "resultado")
       .map((enlace) => enlace.origenId.portId);
@@ -85,6 +93,10 @@ describe("transaccion de enlace", () => {
       operador: "O",
       enlaceIds: [primeroId, segundoId],
       puertoEntidadId: procesoId,
+      puertoComun: expect.objectContaining({
+        entidadId: procesoId,
+        lado: "origen",
+      }),
     }));
     const puertos = Object.values(segundo.modelo.enlaces)
       .filter((enlace) => enlace.tipo === "resultado")

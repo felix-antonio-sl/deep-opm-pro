@@ -1,4 +1,5 @@
 import { esAutoInvocacion } from "../../modelo/autoinvocacion";
+import { puertoExactoCompartidoDeAbanico } from "../../modelo/abanicos";
 import { entidadDeExtremo, entidadIdDeExtremo, estadoDeExtremo } from "../../modelo/extremos";
 import type { Abanico, Enlace, Entidad, Estado, Id, Modelo, TipoEnlace } from "../../modelo/tipos";
 import type { OplReferencia, OplTokenHint } from "../interaccion";
@@ -49,7 +50,8 @@ export function hintsEnlace(modelo: Modelo, enlace: Enlace, texto: string): OplT
 }
 
 export function refsAbanico(modelo: Modelo, abanico: Abanico): OplReferencia[] {
-  const refs: OplReferencia[] = [refEntidad(abanico.puertoEntidadId)];
+  const puertoComun = puertoExactoCompartidoDeAbanico(modelo, abanico);
+  const refs: OplReferencia[] = puertoComun ? [refEntidad(puertoComun.entidadId)] : [];
   for (const id of abanico.enlaceIds) {
     const enlace = modelo.enlaces[id];
     if (enlace) refs.push(...refsEnlace(modelo, enlace));
@@ -61,7 +63,8 @@ export function hintsAbanico(modelo: Modelo, abanico: Abanico, texto: string): O
   const enlaces = abanico.enlaceIds
     .map((id) => modelo.enlaces[id])
     .filter((enlace): enlace is Enlace => enlace !== undefined);
-  const puerto = modelo.entidades[abanico.puertoEntidadId];
+  const puertoComun = puertoExactoCompartidoDeAbanico(modelo, abanico);
+  const puerto = puertoComun ? modelo.entidades[puertoComun.entidadId] : undefined;
   const hints: OplTokenHint[] = puerto ? [hintEntidad(puerto)] : [];
   const primer = enlaces[0];
   const verbo = primer ? verboInteractivo(primer, texto) : null;
@@ -82,12 +85,12 @@ function extremoOpuestoAbanico(
   abanico: Abanico,
   enlace: Enlace,
 ): Enlace["origenId"] | null {
-  const origenEntId = entidadIdDeExtremo(modelo, enlace.origenId);
-  if (origenEntId === abanico.puertoEntidadId) {
+  const puertoComun = puertoExactoCompartidoDeAbanico(modelo, abanico);
+  if (!puertoComun) return null;
+  if (puertoComun.lado === "origen" && enlace.origenId.kind === "entidad" && enlace.origenId.id === puertoComun.entidadId && enlace.origenId.portId === puertoComun.portId) {
     return enlace.destinoId;
   }
-  const destinoEntId = entidadIdDeExtremo(modelo, enlace.destinoId);
-  if (destinoEntId === abanico.puertoEntidadId) {
+  if (puertoComun.lado === "destino" && enlace.destinoId.kind === "entidad" && enlace.destinoId.id === puertoComun.entidadId && enlace.destinoId.portId === puertoComun.portId) {
     return enlace.origenId;
   }
   return null;

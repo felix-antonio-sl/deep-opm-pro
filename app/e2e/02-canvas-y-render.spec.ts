@@ -221,6 +221,11 @@ test("BUG-20260520T043712Z-72ab52 crea fan desde ramas existentes", async ({ pag
   expect(abanicos).toHaveLength(1);
   const enlaces = Object.values(exportado.modelo.enlaces).filter((enlace) => enlace.tipo === "resultado");
   expect(enlaces.map((enlace) => enlace.origenId.portId)).toEqual([enlaces[0]?.origenId.portId, enlaces[0]?.origenId.portId]);
+  expect(abanicos[0]?.puertoComun).toEqual({
+    entidadId: "p-procesar",
+    lado: "origen",
+    portId: enlaces[0]?.origenId.portId,
+  });
   expect(pageErrors).toEqual([]);
 });
 

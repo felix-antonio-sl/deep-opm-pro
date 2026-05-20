@@ -406,10 +406,20 @@ describe("OPL-ES — tipos de enlace canonicos", () => {
       .map((enlace) => enlace.id);
     modelo = {
       ...modelo,
+      enlaces: Object.fromEntries(Object.entries(modelo.enlaces).map(([id, enlace]) => [
+        id,
+        resultados.includes(id) && enlace.origenId.kind === "entidad"
+          ? { ...enlace, origenId: { ...enlace.origenId, portId: "port-fan-resultados-estados" } }
+          : enlace,
+      ])),
+    };
+    modelo = {
+      ...modelo,
       abanicos: {
         "ab-resultados-estados": {
           id: "ab-resultados-estados",
           opdId: modelo.opdRaizId,
+          puertoComun: { entidadId: procesoId, lado: "origen", portId: "port-fan-resultados-estados" },
           puertoEntidadId: procesoId,
           operador: "O",
           enlaceIds: resultados,

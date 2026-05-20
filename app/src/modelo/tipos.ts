@@ -69,7 +69,7 @@ export type {
   AparienciaEnlace,
 } from "./tipos/enlace";
 
-export type { OperadorAbanico, Abanico } from "./tipos/abanico";
+export type { OperadorAbanico, PuertoAbanicoExacto, Abanico } from "./tipos/abanico";
 
 export type { Opd } from "./tipos/opd";
 

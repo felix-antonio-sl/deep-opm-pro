@@ -15,6 +15,7 @@ import type {
   Id,
   Modelo,
   Opd,
+  PuertoAbanicoExacto,
   Resultado,
 } from "../modelo/tipos";
 import {
@@ -273,9 +274,8 @@ export function validarAbanicos(
     if (!esRecord(raw)) return fallo(`Abanico inválido: ${id}`);
     if (raw.id !== id) return fallo(`Abanico inválido: ${id}.id`);
     if (typeof raw.opdId !== "string" || !opds[raw.opdId]) return fallo(`Abanico inválido: ${id}.opdId`);
-    if (typeof raw.puertoEntidadId !== "string" || !entidades[raw.puertoEntidadId]) {
-      return fallo(`Abanico inválido: ${id}.puertoEntidadId`);
-    }
+    const puertoComunDeclarado = validarPuertoComunAbanico(id, raw.puertoComun, raw.puertoEntidadId, entidades);
+    if (!puertoComunDeclarado.ok) return puertoComunDeclarado;
     if (!esOperadorAbanico(raw.operador)) return fallo(`Abanico inválido: ${id}.operador`);
     if (!Array.isArray(raw.enlaceIds)) return fallo(`Abanico inválido: ${id}.enlaceIds`);
     const enlaceIds = raw.enlaceIds.filter((enlaceId): enlaceId is Id => typeof enlaceId === "string");
@@ -298,18 +298,51 @@ export function validarAbanicos(
       enlaces,
       abanicos,
     };
-    const canonico = validarAbanicoCanonico(modeloParcial, raw.opdId, enlaceIds, raw.operador, raw.puertoEntidadId, id);
+    const canonico = validarAbanicoCanonico(modeloParcial, raw.opdId, enlaceIds, raw.operador, puertoComunDeclarado.value, id);
     if (!canonico.ok) {
       return fallo(`Abanico inválido: ${id}.puertoEntidadId`);
     }
     abanicos[id] = {
       id,
       opdId: raw.opdId,
-      puertoEntidadId: raw.puertoEntidadId,
+      puertoComun: {
+        entidadId: canonico.value.entidadId,
+        lado: canonico.value.lado,
+        portId: canonico.value.portId,
+      },
+      puertoEntidadId: canonico.value.entidadId,
       operador: raw.operador,
       enlaceIds,
     };
   }
 
   return ok(abanicos);
+}
+
+function validarPuertoComunAbanico(
+  abanicoId: Id,
+  value: unknown,
+  puertoEntidadId: unknown,
+  entidades: Record<Id, Entidad>,
+): Resultado<PuertoAbanicoExacto | Id> {
+  if (value === undefined) {
+    if (typeof puertoEntidadId !== "string" || !entidades[puertoEntidadId]) {
+      return fallo(`Abanico inválido: ${abanicoId}.puertoEntidadId`);
+    }
+    return ok(puertoEntidadId);
+  }
+  if (!esRecord(value)) return fallo(`Abanico inválido: ${abanicoId}.puertoComun`);
+  if (typeof value.entidadId !== "string" || !entidades[value.entidadId]) {
+    return fallo(`Abanico inválido: ${abanicoId}.puertoComun.entidadId`);
+  }
+  if (value.lado !== "origen" && value.lado !== "destino") {
+    return fallo(`Abanico inválido: ${abanicoId}.puertoComun.lado`);
+  }
+  if (typeof value.portId !== "string" || value.portId.trim() === "") {
+    return fallo(`Abanico inválido: ${abanicoId}.puertoComun.portId`);
+  }
+  if (puertoEntidadId !== undefined && puertoEntidadId !== value.entidadId) {
+    return fallo(`Abanico inválido: ${abanicoId}.puertoEntidadId`);
+  }
+  return ok({ entidadId: value.entidadId, lado: value.lado, portId: value.portId });
 }

@@ -1,4 +1,5 @@
 import type { dia } from "jointjs";
+import { puertoComunDeAbanico } from "../../modelo/abanicos";
 import { entidadIdDeExtremo } from "../../modelo/extremos";
 import type { Abanico, Id, Modelo, Posicion } from "../../modelo/tipos";
 import { calcularGeometriaAbanicoDesdePuntos } from "./abanicoOverlay";
@@ -15,7 +16,8 @@ export function abanicosAfectadosPorEntidad(modelo: Modelo, opdId: Id, entidadId
   const result: Abanico[] = [];
   for (const abanico of Object.values(modelo.abanicos ?? {})) {
     if (abanico.opdId !== opdId) continue;
-    if (abanico.puertoEntidadId === entidadId) {
+    const puertoComun = puertoComunDeAbanico(abanico);
+    if (puertoComun.entidadId === entidadId) {
       result.push(abanico);
       continue;
     }
@@ -67,23 +69,26 @@ export function recalcularOverlayDesdeLinkView(
   }
 
   const linkViews: dia.LinkView[] = [];
-  let side: "source" | "target" | null = null;
+  const puertoComun = puertoComunDeAbanico(abanico);
+  const side: "source" | "target" = puertoComun.lado === "origen" ? "source" : "target";
   for (const enlaceId of abanico.enlaceIds) {
     const enlace = modelo.enlaces[enlaceId];
     if (!enlace) continue;
+    const extremoComun = puertoComun.lado === "origen" ? enlace.origenId : enlace.destinoId;
+    if (
+      extremoComun.kind !== "entidad" ||
+      extremoComun.id !== puertoComun.entidadId ||
+      extremoComun.portId !== puertoComun.portId
+    ) continue;
     const aeId = apEnlaceById.get(enlaceId);
     if (!aeId) continue;
     const cell = graph.getCell(aeId);
     if (!cell || !cell.isLink()) continue;
     const view = paper.findViewByModel(cell) as dia.LinkView | null;
     if (!view) continue;
-    if (side === null) {
-      const origenEnt = entidadIdDeExtremo(modelo, enlace.origenId);
-      side = origenEnt === abanico.puertoEntidadId ? "source" : "target";
-    }
     linkViews.push(view);
   }
-  if (linkViews.length < 2 || side === null) return;
+  if (linkViews.length < 2) return;
 
   // dock = endpoint REAL que JointJS computo (shared.ts:5023-5031). Para
   // procesos (elipse) JointJS ya intersecta correctamente con el borde
