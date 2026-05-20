@@ -1,6 +1,5 @@
-import { validarFirmaEnlace } from "../modelo/operaciones";
 import { ANCLAS_RELOJ_ENLACE, esAnclaRelojEnlace, type AnclaRelojEnlace } from "../modelo/anclajesEnlace";
-import { tiposEnlacePermitidos } from "../modelo/opcionesEnlace";
+import { evaluarTiposEnlacePermitidos } from "../modelo/opcionesEnlace";
 import type { Apariencia, Entidad, Id, Modelo, TipoEnlace } from "../modelo/tipos";
 import { tokens } from "../ui/tokens";
 
@@ -55,17 +54,14 @@ export function evaluarDestinos(
   for (const apariencia of Object.values(opd.apariencias)) {
     const entidad = modelo.entidades[apariencia.entidadId];
     if (!entidad) continue;
-    if (entidad.id === origenId) {
-      evaluados.push({ apariencia, entidad, esOrigen: true, esValido: false, razonInvalidez: "El enlace requiere dos extremos distintos" });
-      continue;
-    }
-    const firma = validarFirmaEnlace(tipo, origen, entidad);
+    const esOrigen = entidad.id === origenId;
+    const evaluacion = evaluarTiposEnlacePermitidos(modelo, origenId, entidad.id, "saliente", [tipo])[0];
     evaluados.push({
       apariencia,
       entidad,
-      esOrigen: false,
-      esValido: firma.ok,
-      ...(firma.ok ? {} : { razonInvalidez: firma.error }),
+      esOrigen,
+      esValido: !esOrigen && !!evaluacion?.permitido,
+      ...(!evaluacion?.permitido ? { razonInvalidez: evaluacion?.motivo ?? "Conexión inválida" } : {}),
     });
   }
   return evaluados;
@@ -115,7 +111,7 @@ export function tipoInicialConexionDesdeEntidad(modelo: Modelo, opdId: Id, orige
     .map((apariencia) => modelo.entidades[apariencia.entidadId])
     .filter((entidad): entidad is Entidad => !!entidad && entidad.id !== origenId);
   for (const tipo of PRIORIDAD_TIPO_INICIAL) {
-    if (destinos.some((destino) => tiposEnlacePermitidos(modelo, origenId, destino.id, "saliente", [tipo]).includes(tipo))) return tipo;
+    if (destinos.some((destino) => evaluarTiposEnlacePermitidos(modelo, origenId, destino.id, "saliente", [tipo])[0]?.permitido)) return tipo;
   }
   return "etiquetado";
 }

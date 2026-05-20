@@ -1,4 +1,6 @@
 import { describe, expect, test } from "bun:test";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { cambiarEsencia, crearModelo, crearObjeto, crearProceso } from "../modelo/operaciones";
 import type { Id, Modelo, TipoEnlace } from "../modelo/tipos";
 import {
@@ -10,6 +12,13 @@ import {
 } from "./modoEnlace";
 
 describe("modo enlace canvas", () => {
+  test("usa opcionesEnlace como fuente preventiva unica", () => {
+    const source = readFileSync(resolve(import.meta.dir, "modoEnlace.ts"), "utf8");
+
+    expect(source).toContain("evaluarTiposEnlacePermitidos");
+    expect(source).not.toContain("validarFirmaEnlace");
+  });
+
   test("evaluarDestinos marca destino valido e invalido para consumo", () => {
     const { modelo, entrada, procesar, salida } = modeloBase();
     const destinos = evaluarDestinos(modelo, modelo.opdRaizId, entrada, "consumo");
@@ -27,7 +36,7 @@ describe("modo enlace canvas", () => {
     expect(destinos.find((d) => d.entidad.id === entrada)?.esValido).toBe(true);
   });
 
-  test("entidadDestinoValida usa validarFirmaEnlace como contrato", () => {
+  test("entidadDestinoValida usa evaluacion preventiva canonica como contrato", () => {
     const { modelo, entrada, procesar, salida } = modeloBase();
 
     expect(entidadDestinoValida(modelo, modelo.opdRaizId, entrada, procesar, "consumo")).toBe(true);
