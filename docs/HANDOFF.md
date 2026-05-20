@@ -24,6 +24,72 @@
 
 ## Estado Actual
 
+### Handoff Explícito Y Cierre De Subagentes — 2026-05-20
+
+Estado actual:
+
+- Rama `main` está pusheada a `origin/main`.
+- Producción `https://opforja.sanixai.com` sirve el corte de saneamiento
+  categorial de fans exactos.
+- El último corte funcional relevante es `a0fb239 fix(modelo): preserva
+  identidad exacta de fans`; el cierre documental de deploy quedó en
+  `d8e6e91 docs(handoff): registra despliegue de fans exactos`.
+- Los subagentes paralelos que quedaban activos fueron desinvocados:
+  `Mencius`, `Chandrasekhar`, `Volta`, `Harvey` y `Mendel`.
+- El worktree conserva solo artefactos no versionados previos bajo
+  `docs/bugs/`, `docs/audits/corte-visual-opcloud-derivado/` y
+  `docs/instrucciones-lineas-dev/ronda22/`; no forman parte de este cierre.
+
+Decisiones consolidadas:
+
+- El modelo debe preservar la identidad exacta de relaciones visuales cuando
+  esa identidad tiene semántica OPM. En fans, eso significa `(entidad, lado,
+  portId)`, no solo entidad.
+- `puertoEntidadId` se mantiene como compatibilidad legacy, pero no debe
+  volver a ser usado como criterio canónico de pertenencia o render.
+- La memoria de proyecto sigue siendo única: este documento, no handoffs
+  paralelos.
+- La próxima evolución de enlaces debe tratarse como mini-plan propio, no como
+  arreglo incidental: `Link Transaction Kernel` o equivalente que unifique
+  creación, reanclaje, puertos, anclas, fans y rutas UI.
+
+Pendientes:
+
+- Sin pendiente bloqueante para usar producción tras el corte actual.
+- Si se continúa refactorizando enlaces, priorizar una transacción única de
+  creación/reanclaje que devuelva modelo canónico sin depender de la
+  normalización posterior de `commitModelo`.
+- Revisar si la previsualización OPL del menú de tipos puede delegar en el
+  generador/planificador canónico para evitar divergencias futuras.
+- Mantener la deuda de OPX/i18n/simulación semántica fuera de este corte; son
+  líneas de producto separadas, no saneamiento categorial inmediato.
+
+Supuestos:
+
+- La operación single-user sigue siendo el modo productivo actual.
+- El despliegue autorizado es el stack `docker compose` local detrás de
+  `opforja.sanixai.com`.
+- Los artefactos no versionados de bugs/audits son material previo que no debe
+  incorporarse sin una decisión explícita.
+
+Riesgos:
+
+- La UI de creación manual de fans propone candidatos por entidad/lado antes de
+  alinear `portId`; es aceptable porque la acción alinea ancla exacta antes de
+  formar el fan, pero debe seguir testeada.
+- La frontera de enlaces aún distribuye responsabilidades entre kernel,
+  store, render JointJS e inspector. El saneamiento de fans cerró la pérdida
+  de identidad exacta, no una factorización total del sistema de enlaces.
+- Cualquier importador externo que emita `abanicos` sin `puertoComun` depende
+  de la migración legacy; si no hay un único puerto exacto reconstruible, será
+  rechazado.
+
+Prompt breve de continuación:
+
+```text
+Continuar desde docs/HANDOFF.md, sección "Handoff Explícito Y Cierre De Subagentes — 2026-05-20". Estado: main pusheada y opforja.sanixai.com desplegado con saneamiento categorial de fans exactos. No reabrir subagentes anteriores. Siguiente corte recomendado: mini-plan Link Transaction Kernel para unificar creación, reanclaje, anclas, puertos, fans y UI de enlaces, manteniendo gates bun run check, lint, build y browser:smoke.
+```
+
 ### Corte Saneamiento Categorial De Fans Exactos — 2026-05-20
 
 Motivación categorial: el modelo ya exigía puertos exactos para formar un
