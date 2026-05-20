@@ -34,6 +34,7 @@ export function cablearZoomFit(
     ctx: "canvas",
     categoria: "vista",
     descripcion: "Ajustar OPD activo a pantalla",
+    descripcionLarga: "Encuadra el OPD activo al área visible del canvas",
     handler: () => fitCanvasAPantalla(paperRef.current ?? undefined, viewportRef?.current),
   });
 }

@@ -103,8 +103,8 @@ export function ArbolOpd() {
       registrarAtajo({ combo: "Ctrl+ArrowUp", ctx: "panel-arbol", categoria: "navegacion", descripcion: "Mover foco al OPD visible anterior", handler: manejarAtajo }),
       registrarAtajo({ combo: "Ctrl+ArrowDown", ctx: "panel-arbol", categoria: "navegacion", descripcion: "Mover foco al OPD visible siguiente", handler: manejarAtajo }),
       registrarAtajo({ combo: "F2", ctx: "panel-arbol", categoria: "edicion", descripcion: "Renombrar OPD seleccionado", handler: manejarAtajo }),
-      registrarAtajo({ combo: "Ctrl+E", ctx: "panel-arbol", categoria: "vista", descripcion: "Expandir todo el árbol OPD", handler: manejarAtajo }),
-      registrarAtajo({ combo: "Ctrl+Shift+E", ctx: "panel-arbol", categoria: "vista", descripcion: "Colapsar todo el árbol OPD", handler: manejarAtajo }),
+      registrarAtajo({ combo: "Ctrl+E", ctx: "panel-arbol", categoria: "vista", descripcion: "Expandir todo el árbol OPD", descripcionLarga: "Despliega todos los nodos del árbol de OPDs", handler: manejarAtajo }),
+      registrarAtajo({ combo: "Ctrl+Shift+E", ctx: "panel-arbol", categoria: "vista", descripcion: "Colapsar todo el árbol OPD", descripcionLarga: "Pliega todos los nodos del árbol de OPDs a su raíz", handler: manejarAtajo }),
       registrarAtajo({ combo: "Ctrl+D", ctx: "panel-arbol", categoria: "navegacion", descripcion: "Abrir gestión del árbol OPD", handler: manejarAtajo }),
     ];
     return () => {
