@@ -4,7 +4,7 @@
 **Repositorio**: `deep-opm-pro`
 **Rama**: `main`
 **Último corte funcional**: saneamiento categorial de abanicos: `Abanico` preserva puerto común exacto `(entidad, lado, portId)` en modelo, serialización, OPL y render.
-**Último corte deploy**: corte UX/UI de creación de fans desplegado en `https://opforja.sanixai.com`; el saneamiento categorial se despliega al cierre de este corte.
+**Último corte deploy**: saneamiento categorial de fans exactos desplegado en `https://opforja.sanixai.com`.
 **Corte**: cierre categorial de identidad exacta de fans sobre el plan UX/UI del modelador.
 
 ## Política De Handoff Único
@@ -90,8 +90,15 @@ cd app && bun run browser:smoke
 
 Estado de cierre:
 
-- Pendiente operativo inmediato: commit atómico, push controlado y deploy en
-  `https://opforja.sanixai.com`.
+- Commit funcional: `a0fb239 fix(modelo): preserva identidad exacta de fans`.
+- Push controlado a `origin/main` completado.
+- Deploy ejecutado con `docker compose up -d --build`.
+- Contenedores verificados: `opforja` healthy y `opforja-bug-capture` up.
+- Health local: `http://127.0.0.1:8080/healthz` responde `ok`.
+- Health bug-capture: `http://bug-capture:3000/healthz` responde `{"ok":true}`.
+- Verificación externa autenticada: `https://opforja.sanixai.com/` sirve
+  `/assets/index-CpfubC0L.js`; el bundle contiene `Fan posible`,
+  `Crear fan` y `Anclaje exacto`.
 - Riesgo residual: los candidatos de fan manual siguen pudiendo proponer ramas
   compatibles por entidad/lado antes de alinear `portId`; eso es intencional
   en UX, porque la acción `Crear fan` primero alinea ancla común y luego forma
