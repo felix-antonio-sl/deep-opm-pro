@@ -795,14 +795,14 @@ export function modeloAbanicoLogico() {
           id: "e-consumo-a",
           tipo: "consumo",
           origenId: extremoEntidad("o-entrada-a"),
-          destinoId: extremoEntidad("p-procesar"),
+          destinoId: { ...extremoEntidad("p-procesar"), portId: "port-fan-procesar-destino" },
           etiqueta: "",
         },
         "e-consumo-b": {
           id: "e-consumo-b",
           tipo: "consumo",
           origenId: extremoEntidad("o-entrada-b"),
-          destinoId: extremoEntidad("p-procesar"),
+          destinoId: { ...extremoEntidad("p-procesar"), portId: "port-fan-procesar-destino" },
           etiqueta: "",
         },
       },
@@ -823,7 +823,16 @@ export function modeloAbanicoLogico() {
           apariencias: {
             "ap-entrada-a": { id: "ap-entrada-a", entidadId: "o-entrada-a", opdId: "opd-1", x: 40, y: 60, width: 135, height: 60 },
             "ap-entrada-b": { id: "ap-entrada-b", entidadId: "o-entrada-b", opdId: "opd-1", x: 40, y: 230, width: 135, height: 60 },
-            "ap-procesar": { id: "ap-procesar", entidadId: "p-procesar", opdId: "opd-1", x: 310, y: 145, width: 135, height: 60 },
+            "ap-procesar": {
+              id: "ap-procesar",
+              entidadId: "p-procesar",
+              opdId: "opd-1",
+              x: 310,
+              y: 145,
+              width: 135,
+              height: 60,
+              ports: { "port-fan-procesar-destino": { x: 0, y: 0.5 } },
+            },
           },
           enlaces: {
             "ae-consumo-a": { id: "ae-consumo-a", enlaceId: "e-consumo-a", opdId: "opd-1", vertices: [] },
@@ -914,7 +923,7 @@ export function modeloAbanicoRutasEstados() {
         "e-exitoso": {
           id: "e-exitoso",
           tipo: "resultado",
-          origenId: extremoEntidad("p-aprobar"),
+          origenId: { ...extremoEntidad("p-aprobar"), portId: "port-fan-aprobar-origen" },
           destinoId: extremoEstado("s-aprobado"),
           etiqueta: "",
           rutaEtiqueta: "exitoso",
@@ -922,7 +931,7 @@ export function modeloAbanicoRutasEstados() {
         "e-fallido": {
           id: "e-fallido",
           tipo: "resultado",
-          origenId: extremoEntidad("p-aprobar"),
+          origenId: { ...extremoEntidad("p-aprobar"), portId: "port-fan-aprobar-origen" },
           destinoId: extremoEstado("s-rechazado"),
           etiqueta: "",
         },
@@ -943,7 +952,16 @@ export function modeloAbanicoRutasEstados() {
           padreId: null,
           apariencias: {
             "a-pedido": { id: "a-pedido", entidadId: "o-pedido", opdId: "opd-1", x: 320, y: 90, width: 170, height: 94 },
-            "a-aprobar": { id: "a-aprobar", entidadId: "p-aprobar", opdId: "opd-1", x: 80, y: 110, width: 135, height: 60 },
+            "a-aprobar": {
+              id: "a-aprobar",
+              entidadId: "p-aprobar",
+              opdId: "opd-1",
+              x: 80,
+              y: 110,
+              width: 135,
+              height: 60,
+              ports: { "port-fan-aprobar-origen": { x: 1, y: 0.5 } },
+            },
           },
           enlaces: {
             "ae-exitoso": { id: "ae-exitoso", enlaceId: "e-exitoso", opdId: "opd-1", vertices: [] },
