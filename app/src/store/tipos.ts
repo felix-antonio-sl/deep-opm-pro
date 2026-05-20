@@ -728,6 +728,14 @@ export interface OpmStore {
   etapaAnterior: () => void;
   cancelarAsistente: () => void;
   confirmarAsistente: () => void;
+  /**
+   * Ronda 23 L3 #7: reemplazo del modal de bienvenida. Reemplaza el modelo
+   * de la pestaña activa (si es reemplazable) por el fixture indicado y
+   * marca la pestaña con `cargadoDesde: "bienvenida"` para que la UI
+   * muestre el banner descartable arriba del canvas. Usuario nuevo entra
+   * directo al canvas con ejemplo en vez del overlay con 3 caminos.
+   */
+  precargarBienvenida: (nombreFixture: string) => void;
   // ── Beta2 / Ronda 17 L2: modo simulación conceptual ──────────────
   /** Contexto activo de simulación; `null` cuando no estamos en modo. */
   contextoSimulacion: import("../modelo/simulacion/tipos").ContextoSimulacion | null;

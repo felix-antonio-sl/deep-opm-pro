@@ -203,7 +203,7 @@ import {
 } from "../canvas/operacionesBatch";
 import type { CrearSlice, UiPanelSlice } from "./tipos";
 import {
-  ANCHO_PANEL_ARBOL_DEFAULT, ANCHO_PANEL_ARBOL_MAX, ANCHO_PANEL_ARBOL_MIN, PORTAPAPELES_WORKSPACE_TTL_MS, PREF_MOSTRAR_ARCHIVADOS_KEY, PREF_MOSTRAR_VERSIONES_KEY, activarEstadoPestanas, activarPestanaNueva, aparienciaSeleccionadaActiva, commitModelo, confirmarEliminacionOpd, crearDemo, crearIdModeloLocal, entidadNueva, enlaceNuevo, escribirIndiceWorkspace, escribirPreferenciaBooleana, estadoModelo, estadoSeleccionDesdeIds, generarHtmlOpl, hermanosOrdenados, leerIndiceWorkspace, leerPreferenciaBooleana, leerPreferenciasMapa, limitar, limitarAnchoPanelArbol, limitarAnchoPanelInspector, listarModelosGuardadosSeguro, mapaWorkspaceDesdeEstado, marcarSnapshotJson, marcarSnapshotModelo, modelosRecientesDeIndice, obtenerAutosalvadoControl, obtenerEstadoStore, opdActivoSeguro, opdDestinoDeAviso, persistirPreferenciasMapa, fijarAutosalvadoControl, resetHistorial, setEstadoStore, sincronizarIndiceConModelosGuardados, actualizarPreferenciasUi, validarSubprocesoTimeline,
+  ANCHO_PANEL_ARBOL_DEFAULT, ANCHO_PANEL_ARBOL_MAX, ANCHO_PANEL_ARBOL_MIN, PORTAPAPELES_WORKSPACE_TTL_MS, PREF_MOSTRAR_ARCHIVADOS_KEY, PREF_MOSTRAR_VERSIONES_KEY, activarEstadoPestanas, activarPestanaNueva, aparienciaSeleccionadaActiva, commitModelo, confirmarEliminacionOpd, crearDemo, crearFixturePorNombre, crearIdModeloLocal, entidadNueva, enlaceNuevo, escribirIndiceWorkspace, escribirPreferenciaBooleana, estadoModelo, estadoSeleccionDesdeIds, generarHtmlOpl, hermanosOrdenados, leerIndiceWorkspace, leerPreferenciaBooleana, leerPreferenciasMapa, limitar, limitarAnchoPanelArbol, limitarAnchoPanelInspector, listarModelosGuardadosSeguro, mapaWorkspaceDesdeEstado, marcarSnapshotJson, marcarSnapshotModelo, modelosRecientesDeIndice, obtenerAutosalvadoControl, obtenerEstadoStore, opdActivoSeguro, opdDestinoDeAviso, persistirPreferenciasMapa, fijarAutosalvadoControl, resetHistorial, setEstadoStore, sincronizarIndiceConModelosGuardados, actualizarPreferenciasUi, validarSubprocesoTimeline,
   pestanaReemplazable,
   deshacerRuntime,
   rehacerRuntime,
@@ -547,6 +547,53 @@ export const createUiPanelSlice: CrearSlice<UiPanelSlice> = (set, get) => ({
     });
     activarPestanaNueva(set, get, pestana, "Modelo creado desde asistente");
     set({ asistente: null, menuPrincipalAbierto: false });
+  },
+
+  /**
+   * Ronda 23 L3 #7: precarga el fixture canónico de bienvenida cuando el
+   * primer paint detecta usuario nuevo (sin recientes, sin contenido). La
+   * pestaña activa reemplazable se sustituye por el fixture y se etiqueta
+   * con `cargadoDesde: "bienvenida"` — flag derivado que el banner consume
+   * para distinguirse del estado "modelo recién guardado".
+   *
+   * Si no hay fixture con ese nombre o la pestaña no es reemplazable, el
+   * caller mantiene su estado original (no-op silencioso).
+   */
+  precargarBienvenida(nombreFixture) {
+    const modelo = crearFixturePorNombre(nombreFixture);
+    if (!modelo) {
+      set({ mensaje: `Fixture no encontrado: ${nombreFixture}` });
+      return;
+    }
+    const actualPestana = get().pestanasAbiertas.find((pestana) => pestana.id === get().pestanaActivaId);
+    if (!actualPestana || !pestanaReemplazable(actualPestana)) return;
+
+    resetHistorial(modelo);
+    set(estadoModelo(modelo, {
+      opdActivoId: modelo.opdRaizId,
+      seleccionId: null,
+      seleccionados: [],
+      modoSeleccion: "simple",
+      enlaceSeleccionId: null,
+      modoEnlace: null,
+      modoCreacion: null,
+      hoverOplRef: null,
+      modeloPersistidoId: null,
+      descripcionModeloLocal: "",
+      pantallaInicioCerrada: false,
+      dirty: false,
+      mensaje: null,
+    }));
+    // Re-etiqueta la pestaña activa con `cargadoDesde: "bienvenida"`; la
+    // pestaña hereda el modelo recién aplicado a través del slice de
+    // pestañas y la marca de origen.
+    set((s) => ({
+      pestanasAbiertas: s.pestanasAbiertas.map((p) => (
+        p.id === s.pestanaActivaId
+          ? { ...p, modelo, cargadoDesde: "bienvenida" as const, etiqueta: modelo.nombre, dirty: false }
+          : p
+      )),
+    }));
   },
 
   // ── L1 ronda 20: tabs por intención del Inspector ────────────────

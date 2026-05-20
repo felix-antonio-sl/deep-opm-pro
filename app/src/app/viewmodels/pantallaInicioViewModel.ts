@@ -7,6 +7,14 @@ import { useZustandPersistencePort } from "../ports/zustandPersistencePort";
 import { useZustandWelcomeScreenPort } from "../ports/zustandWelcomeScreenPort";
 import { useZustandWorkspacePort } from "../ports/zustandWorkspacePort";
 
+/**
+ * Ronda 23 L3 #7: el viewmodel sirve a dos lectores:
+ *  - `PantallaInicio` (banner inline) consume `pestanaActivaEsBienvenida` +
+ *    `pantallaInicioCerrada` + acciones `nuevoModelo` / `iniciarAsistente` /
+ *    `cerrarPantallaInicio`.
+ *  - `App.tsx` consume la lista de `recientes` y `precargarBienvenida` para
+ *    decidir si activa la precarga del fixture en el primer paint.
+ */
 export function usePantallaInicioViewModel(query: string) {
   const { modelo } = useZustandOpdNavigationPort();
   const {
@@ -17,7 +25,12 @@ export function usePantallaInicioViewModel(query: string) {
   } = useZustandPersistencePort();
   const { modelosGuardados: modelos } = useZustandWorkspacePort();
   const { nuevoModelo, iniciarAsistente } = useZustandModelBootstrapPort();
-  const { pantallaInicioCerrada, cerrarPantallaInicio } = useZustandWelcomeScreenPort();
+  const {
+    pantallaInicioCerrada,
+    cerrarPantallaInicio,
+    pestanaActivaEsBienvenida,
+    precargarBienvenida,
+  } = useZustandWelcomeScreenPort();
 
   const demos = useMemo(() => listarFixtures(), []);
   const recientes = useMemo(() => filtrarRecientesPantallaInicio(modelos, query), [modelos, query]);
@@ -37,6 +50,8 @@ export function usePantallaInicioViewModel(query: string) {
     cargarFixtureDemo,
     cerrarPantallaInicio,
     iniciarAsistente,
+    pestanaActivaEsBienvenida,
+    precargarBienvenida,
   };
 }
 

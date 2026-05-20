@@ -12,6 +12,7 @@ import { registrarAtajosAplicacion } from "../app/ports/globalShortcutsPort";
 import { crearZustandGlobalShortcutsPort } from "../app/ports/zustandGlobalShortcutsPort";
 import { useAppShellViewModel } from "../app/viewmodels/appShellViewModel";
 import { panelOplMinimizadoEfectivo } from "../app/viewmodels/panelOplViewModel";
+import { usePrecargaBienvenida } from "../app/viewmodels/precargaBienvenidaViewModel";
 import { obtenerRefinamiento } from "../modelo/refinamientos";
 import type { Id, Modelo } from "../modelo/tipos";
 import type { JointCanvasAdapter } from "../render/jointjs/jointCanvasAdapter";
@@ -104,6 +105,10 @@ export function App() {
   } = useAppShellViewModel();
   const [inspectorAbierto, setInspectorAbierto] = useState(true);
   const [canvasAdapter, setCanvasAdapter] = useState<JointCanvasAdapter | null>(null);
+  // Ronda 23 L3 #7: el primer paint sin modelos persistidos ni recientes
+  // precarga el fixture "System Diagram" para que el operador entre directo
+  // al canvas con un ejemplo en lugar del overlay con 3 caminos.
+  usePrecargaBienvenida("System Diagram");
   const oplMinimizado = panelOplMinimizadoEfectivo(preferenciasOpl?.oplMinimizado, seleccionIdOpl, enlaceSeleccionIdOpl);
   const timelineDisponible = tieneTimelineDisponible(modelo, opdActivoId);
   const [esDesktopBiblio, setEsDesktopBiblio] = useState(typeof window === "undefined" ? true : window.innerWidth >= tokens.bibliotecaDock.desktopMinPx);

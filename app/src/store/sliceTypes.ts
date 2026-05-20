@@ -172,6 +172,7 @@ export type UiPanelSlice = Slice<
   | "etapaAnterior"
   | "cancelarAsistente"
   | "confirmarAsistente"
+  | "precargarBienvenida"
   // L3 ronda 20 / ronda 22 S.2: biblioteca dock acoplable
   | "bibliotecaDockAbierto"
   | "toggleBibliotecaDock"
