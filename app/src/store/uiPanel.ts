@@ -248,6 +248,10 @@ export const createUiPanelSlice: CrearSlice<UiPanelSlice> = (set, get) => ({
   // L1 ronda 20: tabs Inspector. Defaults `semantica` y `propiedades`.
   tabInspectorEntidadActivo: "semantica",
   tabInspectorEnlaceActivo: "propiedades",
+  // L4 ronda 23 (#15): bus de señal focus Nombre. Default `null`: no hay
+  // creación pendiente. Lo escribe `crearObjetoDemo`/`crearProcesoDemo`/
+  // `crearEntidadEnCanvas`; lo consume `InspectorEntidad` via `useEffect`.
+  solicitarFocusNombre: null,
 
   fijarModoOrdenArbol(modo) {
     const { modelo } = get();
@@ -558,5 +562,12 @@ export const createUiPanelSlice: CrearSlice<UiPanelSlice> = (set, get) => ({
 
   cambiarTabInspectorEnlace(tab) {
     set({ tabInspectorEnlaceActivo: tab });
+  },
+
+  // ── L4 ronda 23 (#15): bus focus Nombre ──────────────────────────
+
+  consumirFocusNombre() {
+    if (get().solicitarFocusNombre === null) return;
+    set({ solicitarFocusNombre: null });
   },
 });

@@ -44,7 +44,11 @@ export function accionesEntidad(set: SetStore, get: GetStore): Partial<ModeloSli
       const resultado = crearCosaEnPosicion(modelo, opdActivoId, "objeto", posicionLibre(modelo, opdActivoId, "objeto"));
       if (resultado.ok) {
         const nueva = resultado.value.entidadId;
-        commitModelo(set, modelo, resultado.value.modelo, { seleccionId: nueva, seleccionados: [nueva], modoSeleccion: "simple", enlaceSeleccionId: null, mensaje: null });
+        // L4 ronda 23 (#15): default brutal — pedir focus al input Nombre del
+        // Inspector. Lo consume `InspectorEntidad` via efecto al confirmar la
+        // selección. La señal lleva la `Id` para que el efecto matchee y no
+        // dispare con seleccciones anteriores residuales.
+        commitModelo(set, modelo, resultado.value.modelo, { seleccionId: nueva, seleccionados: [nueva], modoSeleccion: "simple", enlaceSeleccionId: null, mensaje: null, solicitarFocusNombre: nueva });
         addFlash("✓ Objeto creado");
       }
     },
@@ -54,7 +58,9 @@ export function accionesEntidad(set: SetStore, get: GetStore): Partial<ModeloSli
       const resultado = crearCosaEnPosicion(modelo, opdActivoId, "proceso", posicionLibre(modelo, opdActivoId, "proceso"));
       if (resultado.ok) {
         const nueva = resultado.value.entidadId;
-        commitModelo(set, modelo, resultado.value.modelo, { seleccionId: nueva, seleccionados: [nueva], modoSeleccion: "simple", enlaceSeleccionId: null, mensaje: null });
+        // L4 ronda 23 (#15): default brutal — pedir focus al input Nombre. Ver
+        // comentario en `crearObjetoDemo`.
+        commitModelo(set, modelo, resultado.value.modelo, { seleccionId: nueva, seleccionados: [nueva], modoSeleccion: "simple", enlaceSeleccionId: null, mensaje: null, solicitarFocusNombre: nueva });
         addFlash("✓ Proceso creado");
       }
     },
@@ -68,6 +74,10 @@ export function accionesEntidad(set: SetStore, get: GetStore): Partial<ModeloSli
       }
       const entidadCreada = resultado.value.modelo.entidades[resultado.value.entidadId];
       const nombre = entidadCreada?.nombre ?? "Cosa";
+      // L4 ronda 23 (#15): este flujo abre un modal inline (`nuevaCosaPendiente`)
+      // en ToolbarBase y NO el inspector con input Nombre; por eso aquí no se
+      // emite la señal de focus del Inspector. El modal ya enfoca su propio
+      // input al montar (responsabilidad de `ToolbarBase`).
       commitModelo(set, modelo, resultado.value.modelo, {
         seleccionId: resultado.value.entidadId,
         seleccionados: [resultado.value.entidadId],

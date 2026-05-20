@@ -182,6 +182,12 @@ export type UiPanelSlice = Slice<
   | "tabInspectorEnlaceActivo"
   | "cambiarTabInspectorEntidad"
   | "cambiarTabInspectorEnlace"
+  // L4 ronda 23: default brutal — focus auto en input Nombre del Inspector
+  // al crear objeto/proceso. El campo y el consumidor viven en el slice UI
+  // porque el productor (acciones-entidad) es semánticamente del modelo pero
+  // la señal es estrictamente UI (no se serializa).
+  | "solicitarFocusNombre"
+  | "consumirFocusNombre"
 >;
 
 export type MapaSlice = Slice<

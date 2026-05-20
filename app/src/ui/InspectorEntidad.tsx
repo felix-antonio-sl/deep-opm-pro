@@ -1,10 +1,11 @@
-import { useEffect, useState } from "preact/hooks";
+import { useEffect, useRef, useState } from "preact/hooks";
 import { autoInvocacionDeProceso } from "../modelo/autoinvocacion";
 import { agregacionesInzoomFaltantes, esAtributoDerivado, estadosDeEntidad, relacionesPlegadasEstructurales, relacionesSemiplegadasEstructurales } from "../modelo/operaciones";
 import { filasPlegadoParcial, modoPlegadoApariencia, partesDePlegado } from "../modelo/plegado";
 import type { Entidad, Id, OrdenPartesPlegado } from "../modelo/tipos";
 import type { TabInspectorEntidad } from "../store/tipos";
 import { useInspectorEntidadViewModel } from "../app/viewmodels/inspectorEntidadViewModel";
+import { useOpmStore } from "../store";
 import { inspectorStyles as style } from "./inspectorStyles";
 import { coberturaApariencias } from "./inspector/aparicionesUtils";
 import { InspectorTabs, type InspectorTabDef } from "./inspector/InspectorTabs";
@@ -101,6 +102,13 @@ export function InspectorEntidad({ entidad }: Props) {
     crearEstadosConNombres,
   } = useInspectorEntidadViewModel(entidad.id);
   const [aplicarABatch, setAplicarABatch] = useState(false);
+  // L4 ronda 23 (#15): focus auto default brutal al crear objeto/proceso.
+  // Lectura directa al store (no se infla `EntityInspectorShellPort` porque
+  // la señal es estrictamente UI y de corta vida; pasaría como ruido en el
+  // resto del viewmodel).
+  const solicitarFocusNombre = useOpmStore((s) => s.solicitarFocusNombre);
+  const consumirFocusNombre = useOpmStore((s) => s.consumirFocusNombre);
+  const inputNombreRef = useRef<HTMLInputElement | null>(null);
   const aparienciaActiva = Object.values(modelo.opds[opdActivoId]?.apariencias ?? {}).find((apariencia) => apariencia.entidadId === entidad.id);
   const partesPlegables = partesDePlegado(modelo, entidad.id);
   const modoPlegado = aparienciaActiva ? modoPlegadoApariencia(aparienciaActiva) : "completo";
@@ -128,6 +136,30 @@ export function InspectorEntidad({ entidad }: Props) {
     if (!TABS_ENTIDAD.some((t) => t.id === tabActivo)) cambiarTab("semantica");
   }, [tabActivo, cambiarTab]);
 
+  // L4 ronda 23 (#15): consume la señal `solicitarFocusNombre` cuando la
+  // entidad montada coincide. Default brutal: enfoca y selecciona el texto
+  // ("Objeto" → renombrar a "Cliente" con un solo tipeo). Doble guarda:
+  // `requestAnimationFrame` para sobrevivir el primer paint y `select()` para
+  // seleccionar el texto. Tras consumir, limpia el flag para que no vuelva a
+  // dispararse en re-renders posteriores.
+  useEffect(() => {
+    if (solicitarFocusNombre !== entidad.id) return;
+    const input = inputNombreRef.current;
+    if (!input) return;
+    const raf = typeof requestAnimationFrame === "function"
+      ? requestAnimationFrame
+      : (cb: FrameRequestCallback) => setTimeout(() => cb(0), 0);
+    const cancel = typeof cancelAnimationFrame === "function"
+      ? cancelAnimationFrame
+      : clearTimeout;
+    const token = raf(() => {
+      input.focus();
+      try { input.select(); } catch { /* algunos inputs no soportan select, ignorar */ }
+      consumirFocusNombre();
+    });
+    return () => cancel(token as number);
+  }, [solicitarFocusNombre, entidad.id, consumirFocusNombre]);
+
   return (
     <>
       <div style={style.header}>
@@ -136,7 +168,14 @@ export function InspectorEntidad({ entidad }: Props) {
       </div>
       <label style={style.field}>
         <span style={style.label}>Nombre</span>
-        <input style={style.input} value={entidad.nombre} onInput={(event) => renombrar(event.currentTarget.value)} />
+        <input
+          ref={inputNombreRef}
+          data-testid="inspector-entidad-nombre"
+          style={style.input}
+          value={entidad.nombre}
+          onInput={(event) => renombrar(event.currentTarget.value)}
+          onKeyDown={reenviarComboGlobalDesdeInput}
+        />
       </label>
       <InspectorTabs
         tabs={TABS_ENTIDAD}
@@ -478,3 +517,54 @@ function PanelEstilo(props: PanelEstiloProps) {
 const advancedStyles = {
   section: { display: "grid", gap: "8px", marginBottom: "14px" },
 } satisfies Record<string, preact.JSX.CSSProperties>;
+
+/**
+ * L4 ronda 23 (#15): el input Nombre del Inspector queda focuseado tras
+ * crear objeto/proceso (default brutal). Como es un `HTMLInputElement`, el
+ * sistema global de atajos (`atajosTeclado.ts#esEditable`) lo trata como
+ * `modal-input` y descarta todos los atajos salvo Escape/Enter — eso rompe
+ * Ctrl+Z/Ctrl+S/Delete etc. mientras el operador aún no empezó a tipear.
+ *
+ * Estrategia: cualquier keydown con modificador Ctrl/Meta (típicamente
+ * atajos no-tipeo) y la tecla `Delete` se re-dispatchan al document via
+ * `dispatchEvent` con `composed:true`, dejando que el sistema global lo
+ * resuelva como si el target fuera el body. Las teclas alfanuméricas y de
+ * edición de texto puro siguen llegando al input intactas. El undo nativo
+ * del browser sobre el input se pierde, pero como `onInput` ya hace
+ * `renombrarSeleccionada` (commit al modelo) en cada tecla, deshacer el
+ * modelo equivale a deshacer la edición del input. Compatible con tests
+ * que asumen "Ctrl+Z tras crear deshace el modelo".
+ */
+function reenviarComboGlobalDesdeInput(
+  event: preact.JSX.TargetedKeyboardEvent<HTMLInputElement>,
+): void {
+  const ctrl = event.ctrlKey || event.metaKey;
+  // Sólo redirige combos Ctrl/Meta (atajos) y Delete (acción global). Las
+  // teclas de tipeo, navegación del cursor, Backspace y selección quedan
+  // intactas para el input. Tab también queda intacto (focus management).
+  const esDelete = !ctrl && !event.altKey && !event.shiftKey && event.key === "Delete";
+  if (!ctrl && !esDelete) return;
+  // Sin tecla útil (sólo modificador) → no redirigir.
+  if (event.key === "Control" || event.key === "Meta" || event.key === "Shift" || event.key === "Alt") return;
+  // Construye un KeyboardEvent equivalente y lo dispara en el window. El
+  // sistema global de atajos escucha en `window` (capture), así que esto
+  // alcanza al registry tal como si el body fuera el target. `composed:true`
+  // permite cruzar shadow boots si existieran.
+  const clon = new KeyboardEvent("keydown", {
+    key: event.key,
+    code: event.code,
+    ctrlKey: event.ctrlKey,
+    metaKey: event.metaKey,
+    shiftKey: event.shiftKey,
+    altKey: event.altKey,
+    bubbles: true,
+    cancelable: true,
+    composed: true,
+  });
+  event.preventDefault();
+  event.stopPropagation();
+  // Despachar al window así el target del clon es el body (no el input).
+  // El sistema global filtra por target, así que despachar desde el window
+  // hace que `e.target` sea el window (no editable) → atajo se evalúa.
+  window.dispatchEvent(clon);
+}

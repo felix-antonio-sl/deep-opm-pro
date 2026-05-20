@@ -262,6 +262,15 @@ export interface OpmStore {
    * Default `propiedades`.
    */
   tabInspectorEnlaceActivo: TabInspectorEnlace;
+  /**
+   * L4 ronda 23 (#15): bus de señal "default brutal" para enfocar el input
+   * Nombre del Inspector cuando se crea un objeto o proceso desde la
+   * toolbar/canvas. Contiene la `Id` de la entidad recién creada; el efecto
+   * de `InspectorEntidad` la consume cuando coincide con la selección actual
+   * y luego invoca `consumirFocusNombre` para limpiarlo. `null` cuando no
+   * hay focus pendiente. No se serializa al modelo.
+   */
+  solicitarFocusNombre: Id | null;
   mensaje: string | null;
   dirty: boolean;
   /**
@@ -404,6 +413,11 @@ export interface OpmStore {
   cambiarTabInspectorEntidad: (tab: TabInspectorEntidad) => void;
   /** L1 ronda 20: cambia el tab activo del Inspector de enlace. */
   cambiarTabInspectorEnlace: (tab: TabInspectorEnlace) => void;
+  /**
+   * L4 ronda 23 (#15): limpia `solicitarFocusNombre` tras consumirlo desde el
+   * Inspector. Idempotente: no-op si ya es `null`.
+   */
+  consumirFocusNombre: () => void;
   buscarEnPanelOpl: (texto: string) => void;
   alternarNumeracionOpl: () => void;
   minimizarOpl: () => void;
