@@ -187,16 +187,8 @@ export function oracionEnlaceSinEtiqueta(modelo: Modelo, enlace: Enlace): string
     case "instrumento":
       return `${destinoOpl} ${verbo("requiere", "requieren", destinoPlural)} ${origenOpl}.`;
     case "consumo":
-      if (enlace.origenId.kind === "estado" && destino.tipo === "proceso") {
-        const estado = estadoDeExtremo(modelo, enlace.origenId);
-        return estado ? `${destinoOpl} cambia ${nombreOpl(origen)} de \`${estado.nombre}\`.` : null;
-      }
       return `${destinoOpl} ${verbo("consume", "consumen", destinoPlural)} ${origenOpl}.`;
     case "resultado":
-      if (enlace.destinoId.kind === "estado" && origen.tipo === "proceso") {
-        const estado = estadoDeExtremo(modelo, enlace.destinoId);
-        return estado ? `${origenOpl} cambia ${nombreOpl(destino)} a \`${estado.nombre}\`.` : null;
-      }
       return `${origenOpl} ${verbo("genera", "generan", origenPlural)} ${destinoOpl}.`;
     case "efecto":
       return oracionEfecto(modelo, enlace, origen, destino);
@@ -265,12 +257,12 @@ function oracionEvento(
       return `${origenOpl} inicia ${destinoOpl}, que requiere ${origenOpl}${sufijo}.`;
     case "consumo": {
       const estado = estadoDeExtremo(modelo, enlace.origenId);
-      if (estado) return `${origenOpl} inicia ${destinoOpl}, que cambia ${nombreOpl(origen)} de \`${estado.nombre}\`${sufijo}.`;
+      if (estado) return `${origenOpl} inicia ${destinoOpl}, que consume ${origenOpl}${sufijo}.`;
       return `${origenOpl} inicia ${destinoOpl}, que consume ${origenOpl}${sufijo}.`;
     }
     case "resultado": {
       const estado = estadoDeExtremo(modelo, enlace.destinoId);
-      if (estado) return `${nombreOpl(destino)} en cualquier estado inicia ${origenOpl}, que cambia ${nombreOpl(destino)} a \`${estado.nombre}\`${sufijo}.`;
+      if (estado) return `${destinoOpl} inicia ${origenOpl}, que genera ${destinoOpl}${sufijo}.`;
       return `${destinoOpl} inicia ${origenOpl}, que genera ${destinoOpl}${sufijo}.`;
     }
     case "efecto": {
@@ -306,12 +298,12 @@ function oracionCondicion(
     }
     case "consumo": {
       const estado = estadoDeExtremo(modelo, enlace.origenId);
-      if (estado) return `${destinoOpl} ocurre si ${nombreOpl(origen)} está en \`${estado.nombre}\`, en cuyo caso ${destinoOpl} cambia ${nombreOpl(origen)} de \`${estado.nombre}\`, de lo contrario ${destinoOpl} se omite.`;
+      if (estado) return `${destinoOpl} ocurre si ${nombreOpl(origen)} está en \`${estado.nombre}\`, en cuyo caso ${destinoOpl} consume ${origenOpl}, de lo contrario ${destinoOpl} se omite.`;
       return `${destinoOpl} ocurre si ${origenOpl} existe, en cuyo caso ${origenOpl} se consume, de lo contrario ${destinoOpl} se omite.`;
     }
     case "resultado": {
       const estado = estadoDeExtremo(modelo, enlace.destinoId);
-      if (estado) return `${origenOpl} ocurre si ${nombreOpl(destino)} existe, en cuyo caso ${origenOpl} cambia ${nombreOpl(destino)} a \`${estado.nombre}\`, de lo contrario ${origenOpl} se omite.`;
+      if (estado) return `${origenOpl} ocurre si ${destinoOpl} puede generarse, en cuyo caso ${origenOpl} genera ${destinoOpl}, de lo contrario ${origenOpl} se omite.`;
       return `${origenOpl} ocurre si ${destinoOpl} puede generarse, en cuyo caso ${origenOpl} genera ${destinoOpl}, de lo contrario ${origenOpl} se omite.`;
     }
     case "efecto": {
@@ -343,12 +335,12 @@ function oracionNegada(
       return `${destinoOpl} no ${verbo("requiere", "requieren", destinoPlural)} ${origenOpl}.`;
     case "consumo": {
       const estado = estadoDeExtremo(modelo, enlace.origenId);
-      if (estado) return `${destinoOpl} no cambia ${nombreOpl(origen)} de \`${estado.nombre}\`.`;
+      if (estado) return `${destinoOpl} no consume ${origenOpl}.`;
       return `${destinoOpl} no ${verbo("consume", "consumen", destinoPlural)} ${origenOpl}.`;
     }
     case "resultado": {
       const estado = estadoDeExtremo(modelo, enlace.destinoId);
-      if (estado) return `${origenOpl} no cambia ${nombreOpl(destino)} a \`${estado.nombre}\`.`;
+      if (estado) return `${origenOpl} no genera ${destinoOpl}.`;
       return `${origenOpl} no ${verbo("genera", "generan", origenPlural)} ${destinoOpl}.`;
     }
     case "efecto": {

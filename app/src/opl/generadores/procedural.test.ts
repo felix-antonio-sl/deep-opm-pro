@@ -30,7 +30,7 @@ describe("procedural OPL", () => {
     expect(oracionEnlaceConRuta(modelo, enlace)).toBe("**Producto** inicia *Procesar*, que consume **Producto** (probabilidad: 70%).");
   });
 
-  test("evento sobre consumo de estado emite cambio desde el estado", () => {
+  test("evento sobre consumo de estado conserva verbo consumo y califica estado", () => {
     const modelo = modeloConEstados();
     const enlace = {
       ...modelo.enlaces.c1!,
@@ -39,11 +39,11 @@ describe("procedural OPL", () => {
       probabilidad: 0.7,
     } satisfies Enlace;
     expect(oracionEnlaceConRuta(modelo, enlace)).toBe(
-      "**Pedido** en `pendiente` inicia *Procesar*, que cambia **Pedido** de `pendiente` (probabilidad: 70%).",
+      "**Pedido** en `pendiente` inicia *Procesar*, que consume **Pedido** en `pendiente` (probabilidad: 70%).",
     );
   });
 
-  test("evento sobre resultado a estado emite cambio hacia el estado", () => {
+  test("evento sobre resultado a estado conserva verbo resultado y califica estado", () => {
     const modelo = modeloConEstados();
     const enlace = {
       ...modelo.enlaces.r1!,
@@ -51,7 +51,7 @@ describe("procedural OPL", () => {
       subtipoModificador: "E",
     } satisfies Enlace;
     expect(oracionEnlaceConRuta(modelo, enlace)).toBe(
-      "**Pedido** en cualquier estado inicia *Procesar*, que cambia **Pedido** a `aprobado`.",
+      "**Pedido** en `aprobado` inicia *Procesar*, que genera **Pedido** en `aprobado`.",
     );
   });
 
@@ -91,7 +91,7 @@ describe("procedural OPL", () => {
     expect(transiciones.enlacesCubiertos.has("r1")).toBe(true);
   });
 
-  test("condicion sobre consumo de estado emite cambio desde el estado", () => {
+  test("condicion sobre consumo de estado conserva verbo consumo y califica estado", () => {
     const modelo = modeloConEstados();
     const enlace = {
       ...modelo.enlaces.c1!,
@@ -99,11 +99,11 @@ describe("procedural OPL", () => {
       subtipoModificador: "C",
     } satisfies Enlace;
     expect(oracionEnlaceConRuta(modelo, enlace)).toBe(
-      "*Procesar* ocurre si **Pedido** está en `pendiente`, en cuyo caso *Procesar* cambia **Pedido** de `pendiente`, de lo contrario *Procesar* se omite.",
+      "*Procesar* ocurre si **Pedido** está en `pendiente`, en cuyo caso *Procesar* consume **Pedido** en `pendiente`, de lo contrario *Procesar* se omite.",
     );
   });
 
-  test("condicion sobre resultado a estado emite cambio hacia el estado", () => {
+  test("condicion sobre resultado a estado conserva verbo resultado y califica estado", () => {
     const modelo = modeloConEstados();
     const enlace = {
       ...modelo.enlaces.r1!,
@@ -111,7 +111,7 @@ describe("procedural OPL", () => {
       subtipoModificador: "C",
     } satisfies Enlace;
     expect(oracionEnlaceConRuta(modelo, enlace)).toBe(
-      "*Procesar* ocurre si **Pedido** existe, en cuyo caso *Procesar* cambia **Pedido** a `aprobado`, de lo contrario *Procesar* se omite.",
+      "*Procesar* ocurre si **Pedido** en `aprobado` puede generarse, en cuyo caso *Procesar* genera **Pedido** en `aprobado`, de lo contrario *Procesar* se omite.",
     );
   });
 
