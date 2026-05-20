@@ -31,7 +31,7 @@ export function EtapaHandler({ esHandler, agentes, onEsHandler, onAgentes }: Pro
           checked={esHandler}
           onChange={(e) => onEsHandler((e.target as HTMLInputElement).checked)}
         />
-        <span style={S.checkboxLabel}>El beneficiario es tambien el handler del sistema</span>
+        <span style={S.checkboxLabel}>El beneficiario es también el handler del sistema</span>
       </label>
       {!esHandler && (
         <div style={{ marginTop: "10px" }}>

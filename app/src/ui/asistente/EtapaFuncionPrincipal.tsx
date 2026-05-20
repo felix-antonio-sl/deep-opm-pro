@@ -10,11 +10,11 @@ interface Props {
 export function EtapaFuncionPrincipal({ valor, onChange, onEnter }: Props) {
   return (
     <div>
-      <h3 style={S.title}>Etapa 2 de {TOTAL_ETAPAS} — Funcion Principal</h3>
+      <h3 style={S.title}>Etapa 2 de {TOTAL_ETAPAS} — Función Principal</h3>
       <p style={S.desc}>
-        ¿Cual es la funcion principal del sistema? Es el proceso central
+        ¿Cuál es la función principal del sistema? Es el proceso central
         que entrega valor al beneficiario. Debe terminar en "ing" o su
-        equivalente en espanol (ando/iendo).
+        equivalente en español (ando/iendo).
       </p>
       <input
         style={S.input}

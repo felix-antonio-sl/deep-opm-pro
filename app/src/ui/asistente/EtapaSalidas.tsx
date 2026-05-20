@@ -29,7 +29,7 @@ export function EtapaSalidas({ valor, onChange }: Props) {
     <div>
       <h3 style={S.title}>Etapa 9 de {TOTAL_ETAPAS} — Salidas <span style={{ fontWeight: 400, color: tokens.colors.textoTerciario }}>(opcional)</span></h3>
       <p style={S.desc}>
-        ¿Que objetos produce el proceso? Pueden ser creados, afectados o
+        ¿Qué objetos produce el proceso? Pueden ser creados, afectados o
         cambiados por el proceso.
       </p>
       <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", marginBottom: "8px" }}>

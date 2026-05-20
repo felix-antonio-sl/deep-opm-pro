@@ -12,12 +12,12 @@ export function EtapaNombreSistema({ valor, onChange, onEnter }: Props) {
     <div>
       <h3 style={S.title}>Etapa 6 de {TOTAL_ETAPAS} — Nombre del Sistema</h3>
       <p style={S.desc}>
-        ¿Como se llama el sistema? Por defecto se usa el nombre del proceso
+        ¿Cómo se llama el sistema? Por defecto se usa el nombre del proceso
         principal seguido de "System", pero puedes personalizarlo.
       </p>
       <input
         style={S.input}
-        placeholder="Ej: Sistema de Conduccion"
+        placeholder="Ej: Sistema de Conducción"
         value={valor}
         onInput={(e) => onChange((e.target as HTMLInputElement).value)}
         onKeyDown={(e) => { if (e.key === "Enter") onEnter?.(); }}

@@ -7,18 +7,18 @@ export function Bienvenida() {
     <div>
       <h3 style={S.title}>Bienvenida</h3>
       <p style={S.desc}>
-        Este asistente te guiara paso a paso para crear un nuevo modelo OPM.
+        Este asistente te guiará paso a paso para crear un nuevo modelo OPM.
         Comenzaremos identificando el proceso principal del sistema y
-        continuaremos con el beneficiario, atributos, agentes y mas.
+        continuaremos con el beneficiario, atributos, agentes y más.
       </p>
       <p style={S.desc}>
-        Al finalizar, tu modelo quedara sembrado en el lienzo con un layout
-        radial automatico y el panel OPL pre-poblado. Podras continuar
+        Al finalizar, tu modelo quedará sembrado en el lienzo con un layout
+        radial automático y el panel OPL pre-poblado. Podrás continuar
         modelando de inmediato.
       </p>
       <p style={{ ...S.desc, color: tokens.colors.textoTerciario, fontSize: "13px" }}>
         Las etapas marcadas como opcionales se pueden saltar. Al confirmar
-        podras revisar todo antes de crear el modelo.
+        podrás revisar todo antes de crear el modelo.
       </p>
     </div>
   );

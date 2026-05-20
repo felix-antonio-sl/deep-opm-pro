@@ -22,7 +22,7 @@ export function EtapaEntradas({ valor, onChange }: Props) {
     <div>
       <h3 style={S.title}>Etapa 8 de {TOTAL_ETAPAS} — Entradas <span style={{ fontWeight: 400, color: tokens.colors.textoTerciario }}>(opcional)</span></h3>
       <p style={S.desc}>
-        ¿Que objetos consume o transforma el proceso? Son las entradas
+        ¿Qué objetos consume o transforma el proceso? Son las entradas
         del sistema.
       </p>
       <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", marginBottom: "8px" }}>

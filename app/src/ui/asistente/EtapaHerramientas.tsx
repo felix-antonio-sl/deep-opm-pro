@@ -22,7 +22,7 @@ export function EtapaHerramientas({ valor, onChange }: Props) {
     <div>
       <h3 style={S.title}>Etapa 7 de {TOTAL_ETAPAS} — Herramientas <span style={{ fontWeight: 400, color: tokens.colors.textoTerciario }}>(opcional)</span></h3>
       <p style={S.desc}>
-        ¿Que instrumentos o herramientas usa el sistema? Son objetos que el
+        ¿Qué instrumentos o herramientas usa el sistema? Son objetos que el
         proceso necesita para operar, pero no consume.
       </p>
       <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", marginBottom: "8px" }}>

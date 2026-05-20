@@ -15,8 +15,8 @@ export function EtapaAmbientales({ cosas, seleccionados, onToggle }: Props) {
       <div>
         <h3 style={S.title}>Etapa 10 de {TOTAL_ETAPAS} — Objetos Ambientales <span style={{ fontWeight: 400, color: tokens.colors.textoTerciario }}>(opcional)</span></h3>
         <p style={S.desc}>
-          No hay objetos creados todavia. Puedes marcar objetos como
-          ambientales mas tarde desde el inspector.
+          No hay objetos creados todavía. Puedes marcar objetos como
+          ambientales más tarde desde el inspector.
         </p>
       </div>
     );

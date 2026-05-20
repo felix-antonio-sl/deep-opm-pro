@@ -13,11 +13,11 @@ export function EtapaConfirmar({ datos }: Props) {
       <h3 style={S.title}>Etapa 11 de {TOTAL_ETAPAS} — Confirmar y Crear Modelo</h3>
       <p style={S.desc}>
         Revisa los datos ingresados antes de sembrar el modelo. Al confirmar
-        se creara el SD con layout radial y podras continuar modelando.
+        se creará el SD con layout radial y podrás continuar modelando.
       </p>
       <div style={{ background: tokens.colors.fondoCard, borderRadius: tokens.radii.md, padding: "12px 16px", marginBottom: "12px" }}>
         <div style={S.resumenLinea}>
-          <span style={S.resumenLabel}>Funcion principal:</span>
+          <span style={S.resumenLabel}>Función principal:</span>
           <span style={S.resumenValor}>{datos.funcionPrincipal || <em style={{ color: tokens.colors.errorOscuro }}>(pendiente)</em>}</span>
         </div>
         <div style={S.resumenLinea}>
