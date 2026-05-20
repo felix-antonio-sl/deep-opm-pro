@@ -193,7 +193,7 @@ function detectarSolapes(modelo: Modelo, opd: Opd): Aviso[] {
       avisos.push({
         reglaId: "visual-solape-apariencias",
         severidad: "advertencia",
-        mensaje: `Las apariencias ${entidadA?.nombre ?? a.entidadId} y ${entidadB?.nombre ?? b.entidadId} se solapan visualmente en ${opd.nombre}.`,
+        mensaje: `${entidadA?.nombre ?? a.entidadId} y ${entidadB?.nombre ?? b.entidadId} ocupan el mismo lugar en ${opd.nombre}. Las cosas solapadas son difíciles de leer y pueden tapar enlaces: sepáralas o deja una dentro de la otra solo si describes contención.`,
         citaSSOT: CITA_VISUAL,
         elementoTipo: "entidad",
         elementoId: a.entidadId,

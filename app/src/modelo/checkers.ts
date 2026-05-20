@@ -69,7 +69,7 @@ export function checkProcesoNombreFormaVerbal(modelo: Modelo): AvisoMetodologico
     .filter((proceso) => !esFormaVerbalValida(proceso.nombre))
     .map((proceso) => aviso("PROCESO_NOMBRE_FORMA_VERBAL", proceso, {
       severidad: "sugerencia",
-      mensaje: `El proceso "${proceso.nombre}" no parece nombrado como accion.`,
+      mensaje: `El proceso "${proceso.nombre}" no parece nombrado como una acción; un proceso describe qué se hace, así que conviene usar un verbo o un sustantivo deverbal.`,
       rationale: "El nombre del proceso debe expresar accion o transformacion identificable.",
       ssotRef: "metodologia-opm-es.md §6.1 / [Glos 3.69 Process]",
       accionesSugeridas: [
@@ -84,7 +84,7 @@ export function checkObjetoNombreSingular(modelo: Modelo): AvisoMetodologico[] {
     .filter((objeto) => !esNombreObjetoSingular(objeto.nombre))
     .map((objeto) => aviso("OBJETO_NOMBRE_SINGULAR", objeto, {
       severidad: "sugerencia",
-      mensaje: `El objeto "${objeto.nombre}" parece estar en plural; usa singular, conjunto o grupo si corresponde.`,
+      mensaje: `El objeto "${objeto.nombre}" parece estar en plural. Un objeto representa una cosa: nómbralo en singular, o usa "Conjunto", "Grupo" o la multiplicidad del enlace si necesitas hablar de varios.`,
       rationale: "Un objeto representa una cosa persistente; el nombre canonico se mantiene singular.",
       ssotRef: "metodologia-opm-es.md §6.2 / [Glos 3.55 Object]",
       accionesSugeridas: [
@@ -115,7 +115,7 @@ export function checkObjetoAmbientalSinContornoDiscontinuo(modelo: Modelo): Avis
     .filter((objeto) => objetoAmbientalEsTransformadoPorSistemico(modelo, objeto))
     .map((objeto) => aviso("OBJETO_AMBIENTAL_SIN_CONTORNO_DISCONTINUO", objeto, {
       severidad: "advertencia",
-      mensaje: `El objeto ambiental "${objeto.nombre}" es transformado por procesos sistemicos: revisa si en realidad pertenece al sistema.`,
+      mensaje: `Marcaste "${objeto.nombre}" como ambiental, pero un proceso del sistema lo está consumiendo o produciendo. Si participa de la función del sistema, pásalo a sistémico; si pertenece al entorno, reemplaza el enlace por exhibición, efecto o agente según corresponda.`,
       rationale: "Un objeto ambiental no deberia ser consumido, producido ni afectado por la funcion del sistema; revisa la afiliacion o reclasificalo como sistemico.",
       ssotRef: "metodologia-opm-es.md §6.9 / opm-visual-es §contorno discontinuo",
       accionesSugeridas: [
@@ -131,7 +131,7 @@ export function checkInzoomContenido(modelo: Modelo): AvisoMetodologico[] {
     .filter((entidad) => cantidadCosasEnOpdHijo(modelo, entidad, "descomposicion") < 2)
     .map((entidad) => avisoConOpdRefinamiento(modelo, "INZOOM_CONTENIDO_INSUFICIENTE", entidad, "descomposicion", {
       severidad: "advertencia",
-      mensaje: `La descomposicion de "${entidad.nombre}" contiene menos de dos cosas.`,
+      mensaje: `La descomposición de "${entidad.nombre}" tiene menos de dos cosas internas. Un refinamiento con una sola cosa no aporta información nueva: agrega otro subproceso o parte, o pospón la descomposición.`,
       rationale: "Una cosa descompuesta debe agregar al menos dos refinadores internos para que el inzoom aporte informacion.",
       ssotRef: "metodologia-opm-es.md §7.1 (Refinamiento no trivial)",
       accionesSugeridas: [
@@ -160,7 +160,7 @@ export function checkInzoomNombresPlaceholderHijos(modelo: Modelo): AvisoMetodol
         if (!hijo) return null;
         return aviso("INZOOM_NOMBRES_PLACEHOLDER_HIJOS", hijo, {
           severidad: "sugerencia",
-          mensaje: `El refinador "${hijo.nombre}" del OPD "${opd?.nombre ?? opdId}" mantiene un nombre placeholder; renombralo con vocabulario de dominio.`,
+          mensaje: `El refinador "${hijo.nombre}" del OPD "${opd?.nombre ?? opdId}" todavía tiene el nombre por defecto que se sembró al descomponer. Renómbralo con vocabulario del dominio antes de seguir profundizando.`,
           rationale: "La elaboracion progresiva de SD1 indica renombrar los subprocesos/partes con nombres significativos antes de avanzar.",
           ssotRef: "metodologia-opm-es.md §7.1 (Elaboracion progresiva)",
           opdId: opd?.id,
@@ -185,7 +185,7 @@ export function checkUnfoldContenido(modelo: Modelo): AvisoMetodologico[] {
     .filter((entidad) => cantidadRefinadoresEstructurales(modelo, entidad) < 2)
     .map((entidad) => avisoConOpdRefinamiento(modelo, "UNFOLD_CONTENIDO_INSUFICIENTE", entidad, "despliegue", {
       severidad: "advertencia",
-      mensaje: `El despliegue de "${entidad.nombre}" contiene menos de dos refinadores estructurales.`,
+      mensaje: `El despliegue de "${entidad.nombre}" tiene menos de dos refinadores estructurales. Un unfold con uno solo no agrega información: agrega otra parte, exhibición, especialización o instancia, o pliega el despliegue.`,
       rationale: "Un despliegue debe revelar al menos dos refinadores para agregar informacion al modelo.",
       ssotRef: "metodologia-opm-es.md §7.2 (Refinamiento no trivial)",
       accionesSugeridas: [
@@ -200,7 +200,7 @@ export function checkProcesoTransforma(modelo: Modelo): AvisoMetodologico[] {
     .filter((proceso) => !procesoTransforma(modelo, proceso) && !tieneHijoTransformador(modelo, proceso))
     .map((proceso) => aviso("PROCESO_NO_TRANSFORMA", proceso, {
       severidad: "advertencia",
-      mensaje: `El proceso "${proceso.nombre}" no consume, produce ni afecta ningun objeto.`,
+      mensaje: `El proceso "${proceso.nombre}" no consume, produce ni afecta ningún objeto. Todo proceso debe transformar algo: conéctalo con un objeto por consumo, resultado o efecto, o descompónlo dejando el rol transformador en un subproceso.`,
       rationale: "Un proceso debe transformar al menos un objeto mediante consumo, resultado o efecto, directamente o via un subproceso.",
       ssotRef: "metodologia-opm-es.md §7.6 / opm-iso-19450 V-115",
       accionesSugeridas: [
@@ -218,7 +218,7 @@ export function checkProcesoSistemicoConectado(modelo: Modelo): AvisoMetodologic
     .filter((proceso) => proceso.afiliacion === "sistemica" && !conectados.has(proceso.id))
     .map((proceso) => aviso("PROCESO_SISTEMICO_DESCONECTADO", proceso, {
       severidad: "advertencia",
-      mensaje: `El proceso sistemico "${proceso.nombre}" no esta conectado a la funcion principal del SD.`,
+      mensaje: `El proceso sistémico "${proceso.nombre}" no llega a la función principal del SD por enlaces ni por refinamiento. Conéctalo a la cadena del proceso principal, o reclasifícalo como ambiental si no aporta a la función del sistema.`,
       rationale: "Todo proceso sistemico debe integrarse a la funcion principal por refinamiento o enlaces estructurales.",
       ssotRef: "metodologia-opm-es.md §6.4 (Funcion Principal)",
       accionesSugeridas: [
@@ -248,7 +248,7 @@ export function checkSdSinProcesoPrincipal(modelo: Modelo): AvisoMetodologico[] 
     codigo: "SD_SIN_PROCESO_PRINCIPAL",
     severidad: "advertencia",
     opdId: sd.id,
-    mensaje: `El SD "${sd.nombre}" no tiene proceso sistemico; sin proceso principal el modelo no expresa la funcion del sistema.`,
+    mensaje: `El SD "${sd.nombre}" todavía no tiene un proceso sistémico. Sin proceso principal el modelo no expresa la función del sistema: agrega el proceso que da el propósito y conéctalo al beneficiario por efecto o consumo/resultado.`,
     rationale: "El SD debe contener el proceso principal del sistema (sistemico, transformador), que define su proposito.",
     ssotRef: "metodologia-opm-es.md §6.1 / §6.11",
     navegarA: { tipo: "opd", id: sd.id },

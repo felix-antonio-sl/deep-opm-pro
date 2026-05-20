@@ -94,7 +94,7 @@ export function validarAmbientalDentroContorno(modelo: Modelo, opdActivoId: Id =
       avisos.push({
         reglaId: "ambiental-dentro-contorno",
         severidad: "advertencia",
-        mensaje: `La cosa ambiental ${entidad.nombre} queda fuera del contorno ${opd.nombre}; ajustala dentro del proceso descompuesto.`,
+        mensaje: `La cosa ambiental ${entidad.nombre} aparece fuera del contorno del proceso descompuesto en ${opd.nombre}. Si pertenece al ambiente del refinamiento, muévela dentro del contorno; si no, decide si corresponde reclasificarla como sistémica.`,
         citaSSOT: "[ISO-19450 in-zooming] opm-iso-19450-es.md:708",
         elementoTipo: "entidad",
         elementoId: entidad.id,
@@ -115,7 +115,7 @@ export function validarExclusionImagenEstados(modelo: Modelo, opdActivoId: Id = 
     return [{
       reglaId: "imagen-estados-excluyentes",
       severidad: "advertencia",
-      mensaje: `El objeto ${entidad.nombre} tiene imagen interior y estados visibles; usa modo Solo texto o suprime estados.`,
+      mensaje: `El objeto ${entidad.nombre} muestra imagen interior y estados al mismo tiempo. La imagen tapa los estados y dificulta la lectura: pasa el modo a Solo texto o suprime los estados visibles.`,
       citaSSOT: "[Glos 3.39] [Glos 3.68]",
       elementoTipo: "entidad",
       elementoId: entidad.id,
@@ -138,7 +138,7 @@ function reglaExcepcionTemporalProcesoProceso(modelo: Modelo, opdActivoId: Id): 
     .map(({ enlace }) => avisoEnlace(modelo, opdActivoId, enlace, {
       reglaId: "excepcion-temporal-proceso-proceso",
       severidad: "error",
-      mensaje: `La excepción temporal ${etiquetaTipo(enlace.tipo)} requiere Proceso -> Proceso, sin extremos Estado: ${nombreExtremo(modelo, enlace.origenId)} -> ${nombreExtremo(modelo, enlace.destinoId)}.`,
+      mensaje: `La excepción temporal ${etiquetaTipo(enlace.tipo)} debe conectar dos procesos directamente, sin estados intermedios. Hoy va de ${nombreExtremo(modelo, enlace.origenId)} a ${nombreExtremo(modelo, enlace.destinoId)}; ajusta los extremos a procesos.`,
       citaSSOT: "[V-239] [ISO-19450 enlaces de excepción]",
     }));
 }
@@ -152,7 +152,7 @@ function reglaEstructuralNoAceptaExtremoEstado(modelo: Modelo, opdActivoId: Id):
     .map((enlace) => avisoEnlace(modelo, opdActivoId, enlace, {
       reglaId: "estructural-no-acepta-extremo-estado",
       severidad: "error",
-      mensaje: `El enlace estructural ${etiquetaTipo(enlace.tipo)} no puede apuntar a un estado específico: ${nombreExtremo(modelo, enlace.origenId)} -> ${nombreExtremo(modelo, enlace.destinoId)}.`,
+      mensaje: `El enlace estructural ${etiquetaTipo(enlace.tipo)} debe unir objetos o procesos completos, no estados específicos. Hoy va de ${nombreExtremo(modelo, enlace.origenId)} a ${nombreExtremo(modelo, enlace.destinoId)}: conecta a la cosa contenedora del estado.`,
       citaSSOT: "[V-237] [V-239]",
     }));
 }
@@ -165,7 +165,7 @@ function reglaAgregacionMismaEsencia(modelo: Modelo, opdActivoId: Id): Aviso[] {
     .map(({ enlace, origen, destino }) => avisoEnlace(modelo, opdActivoId, enlace, {
       reglaId: "agregacion-misma-esencia",
       severidad: "advertencia",
-      mensaje: `Agregación entre ${origen.nombre} y ${destino.nombre} mezcla esencia ${origen.esencia}/${destino.esencia}; revisa si corresponde otra relación estructural.`,
+      mensaje: `La agregación entre ${origen.nombre} (${origen.esencia}) y ${destino.nombre} (${destino.esencia}) cruza esencias distintas. Una parte debe compartir la naturaleza del todo: revisa si alguna esencia está mal puesta o si el enlace correcto es exhibición.`,
       citaSSOT: "[V-1]",
     }));
 }
@@ -178,7 +178,7 @@ function reglaGeneralizacionMismoTipo(modelo: Modelo, opdActivoId: Id): Aviso[] 
     .map(({ enlace, origen, destino }) => avisoEnlace(modelo, opdActivoId, enlace, {
       reglaId: "generalizacion-mismo-tipo",
       severidad: "error",
-      mensaje: `Generalización requiere entidades del mismo tipo OPM; ${origen.nombre} es ${origen.tipo} y ${destino.nombre} es ${destino.tipo}.`,
+      mensaje: `La generalización exige especialista y general del mismo tipo OPM, pero ${origen.nombre} es ${origen.tipo} y ${destino.nombre} es ${destino.tipo}. Cambia el tipo de uno de los extremos o usa otro enlace estructural.`,
       citaSSOT: "[V-239]",
     }));
 }
@@ -191,7 +191,7 @@ function reglaProceduralNoObjetoObjeto(modelo: Modelo, opdActivoId: Id): Aviso[]
     .map(({ enlace, origen, destino }) => avisoEnlace(modelo, opdActivoId, enlace, {
       reglaId: "procedural-no-objeto-objeto",
       severidad: "error",
-      mensaje: `El enlace procedural ${etiquetaTipo(enlace.tipo)} no puede conectar objeto con objeto: ${origen.nombre} -> ${destino.nombre}.`,
+      mensaje: `El enlace procedural ${etiquetaTipo(enlace.tipo)} representa una transformación, así que uno de los extremos debe ser un proceso. Hoy va de ${origen.nombre} (objeto) a ${destino.nombre} (objeto): inserta el proceso que media o cambia el tipo de enlace.`,
       citaSSOT: "[V-239]",
     }));
 }
@@ -210,7 +210,7 @@ function reglaEstructuralSinDuplicar(modelo: Modelo, opdActivoId: Id): Aviso[] {
     avisos.push(avisoEnlace(modelo, opdActivoId, enlace, {
       reglaId: "estructural-sin-duplicar",
       severidad: "advertencia",
-      mensaje: `El par ${origen.nombre} -> ${destino.nombre} ya tiene un enlace estructural ${etiquetaTipo(enlace.tipo)}.`,
+      mensaje: `${origen.nombre} y ${destino.nombre} ya están unidos por otro enlace estructural ${etiquetaTipo(enlace.tipo)}. Una sola declaración basta: elimina el duplicado o usa otro tipo de relación si querías describir algo distinto.`,
       citaSSOT: "[V-239]",
     }));
   }
@@ -229,7 +229,7 @@ function reglaOrdenEstructuralHuerfano(modelo: Modelo, opdActivoId: Id): Aviso[]
       avisos.push({
         reglaId: "orden-estructural-huerfano",
         severidad: "advertencia",
-        mensaje: `${entidad.nombre} conserva orden estructural ${etiquetaTipo(tipo)} sin enlaces estructurales vigentes de ese tipo.`,
+        mensaje: `${entidad.nombre} guarda un orden estructural ${etiquetaTipo(tipo)} de cuando tenía ese enlace, pero ya no existe ningún ${etiquetaTipo(tipo)} vigente. Recrea el enlace o pídele al modelo que limpie el metadato.`,
         citaSSOT: "[V-239] [OPCloud orderedFundamentalTypes]",
         elementoTipo: "entidad",
         elementoId: entidad.id,
@@ -289,7 +289,7 @@ function reglaSubprocesoNoConectaAlPadre(modelo: Modelo): Aviso[] {
       avisos.push({
         reglaId: "subproceso-no-conecta-al-padre",
         severidad: "error",
-        mensaje: `El subproceso interno ${subproceso?.nombre ?? otroId} no debe enlazarse explícitamente con su proceso refinable ${contexto.padre.nombre}.`,
+        mensaje: `${subproceso?.nombre ?? otroId} es un subproceso interno de ${contexto.padre.nombre}, así que la relación padre-hijo ya está implícita en el in-zoom. No agregues un enlace explícito hacia el padre: bórralo o conecta el subproceso con un objeto del refinamiento.`,
         citaSSOT: "[Glos 3.33]",
         elementoTipo: "enlace",
         elementoId: enlace.id,
@@ -313,7 +313,7 @@ function reglaAgenteRequiereObjetoFisico(modelo: Modelo, opdActivoId: Id): Aviso
     .map(({ enlace, origen, destino }) => avisoEnlace(modelo, opdActivoId, enlace, {
       reglaId: "agente-requiere-objeto-fisico",
       severidad: "error",
-      mensaje: `El agente ${origen.nombre} que habilita ${destino.nombre} debe ser un objeto físico/humano; si es sistema o software usa instrumento.`,
+      mensaje: `Un agente representa una persona u objeto físico que habilita el proceso, pero ${origen.nombre} es informacional. Si es software, sistema o dato, usa instrumento en vez de agente; si es realmente humano, cambia su esencia a física.`,
       citaSSOT: "[Glos 3.3] [Glos 3.39]",
     }));
 }
@@ -346,7 +346,7 @@ function reglaProcesoSinEntradaNiSalida(modelo: Modelo, opdActivoId: Id): Aviso[
     avisos.push({
       reglaId: "proceso-sin-entrada-ni-salida",
       severidad: "advertencia",
-      mensaje: `El proceso ${proceso.nombre} no participa en enlaces de transformación, habilitación o invocación; revisa si falta entrada/salida o si debe abstraerse.`,
+      mensaje: `${proceso.nombre} no participa en ningún enlace de transformación, habilitación o invocación. Sin entradas ni salidas no expresa qué hace en el sistema: conéctalo con un objeto como entrada o salida, o decide si conviene abstraerlo.`,
       citaSSOT: "[Glos 3.58] [V-115] [V-239]",
       elementoTipo: "entidad",
       elementoId: proceso.id,
@@ -377,7 +377,7 @@ function reglaInstrumentoYAgenteSimultaneos(modelo: Modelo, opdActivoId: Id): Av
     avisos.push(avisoEnlace(modelo, opdActivoId, enlaceInstrumento, {
       reglaId: "instrumento-y-agente-simultaneos",
       severidad: "advertencia",
-      mensaje: `${origen?.nombre ?? enlaceInstrumento.origenId} aparece como agente e instrumento del mismo proceso ${destino?.nombre ?? enlaceInstrumento.destinoId}; elige un rol procedimental único.`,
+      mensaje: `${origen?.nombre ?? enlaceInstrumento.origenId} habilita a ${destino?.nombre ?? enlaceInstrumento.destinoId} como agente y como instrumento a la vez. Solo uno de los dos roles aplica al mismo tiempo: elige cuál corresponde y elimina el otro enlace.`,
       citaSSOT: "[Glos 3.3] [Glos 3.30] [V-239]",
     }));
   }
@@ -410,7 +410,7 @@ function reglaSoloUnNivelDeInstanciacion(modelo: Modelo, opdActivoId: Id): Aviso
       avisos.push(avisoEnlace(modelo, opdActivoId, enlaceSiguiente, {
         reglaId: "solo-un-nivel-de-instanciacion",
         severidad: "advertencia",
-        mensaje: `${instanciaIntermedia?.nombre ?? enlace.destinoId} ya es instancia y además clasifica a ${instanciaFinal?.nombre ?? enlaceSiguiente.destinoId}; revisa si corresponde generalización o una sola clasificación directa.`,
+        mensaje: `${instanciaIntermedia?.nombre ?? enlace.destinoId} ya es instancia de otra cosa y a la vez clasifica a ${instanciaFinal?.nombre ?? enlaceSiguiente.destinoId}. La clasificación se modela en un solo nivel: si querías encadenarlas, usa generalización para uno de los tramos.`,
         citaSSOT: "[Glos 3.28] [V-239]",
       }));
     }
@@ -434,7 +434,7 @@ function reglaConsumoDobleMismoObjeto(modelo: Modelo, opdActivoId: Id): Aviso[] 
     avisos.push(avisoEnlace(modelo, opdActivoId, enlace, {
       reglaId: "consumo-doble-mismo-objeto",
       severidad: "advertencia",
-      mensaje: `${destino.nombre} consume ${origen.nombre} más de una vez; considera un único consumo o un abanico XOR/OR cuando sea alternativo.`,
+      mensaje: `${destino.nombre} consume ${origen.nombre} más de una vez. Un consumo describe una sola transformación; si son alternativos, agrúpalos con un abanico XOR/OR; si son cantidades, anota la multiplicidad en un único consumo.`,
       citaSSOT: "[V-43] [V-239]",
     }));
   }
