@@ -3,9 +3,9 @@
 **Fecha**: 2026-05-20
 **Repositorio**: `deep-opm-pro`
 **Rama**: `main`
-**Último corte funcional**: Corte Dov-Dori: SSOT de puertos, ley temporal categorial y OPL unificado
-**Último corte deploy**: `597859c chore(deploy): configura auth dedicado opforja`
-**Corte**: Refactor categorial de consistencia modelo-vista-OPL cerrado, sobre producción single-user opforja operable.
+**Último corte funcional**: Sistema de enlaces exactos: abanicos por puerto, anclas manuales y reanclaje JointJS con `portId`
+**Último corte deploy**: `e336d7c test(e2e): alinea fixtures de abanicos exactos` desplegado en `https://opforja.sanixai.com`
+**Corte**: Refactor integral de enlaces cerrado y desplegado sobre producción single-user opforja operable.
 
 ## Política De Handoff Único
 
@@ -23,6 +23,114 @@
 - JointJS OSS: usar documentación oficial viva cuando se toque JointJS.
 
 ## Estado Actual
+
+### Corte Sistema De Enlaces Exactos Cerrado Y Desplegado — 2026-05-20
+
+Se cerró el corte autónomo de enlaces pedido después de repensar origen,
+destino, reanclaje, creación de abanicos y cascadas derivadas. El foco fue
+quitar ambigüedad visual: un abanico ya no se infiere por "misma entidad",
+sino por un puerto exacto compartido (`entidad + lado + portId`).
+
+Commits cerrados sobre `main`:
+
+- `abe4646 fix(modelo): exige puertos exactos en abanicos`
+- `ae90341 fix(modelo): preserva anclas exactas de enlaces`
+- `e336d7c test(e2e): alinea fixtures de abanicos exactos`
+
+Decisiones:
+
+- Los abanicos O/XOR son semántica de puerto compartido real. Si dos enlaces
+  apuntan a la misma entidad pero llegan por puertos distintos, no forman fan.
+- La serialización rechaza abanicos estructurales y abanicos sin endpoint
+  exacto común; los fixtures y smokes importados también deben traer `portId`
+  compartido.
+- La transacción de enlace aplica anclas explícitas antes de formar abanico,
+  sincroniza puertos y solo después infiere el fan automático.
+- Las anclas manuales usan `port-anchor-<entidad>-<lado>-<ancla>` cuando el
+  extremo no trae un puerto compartido previo. Si ya trae un `portId` común
+  válido, se conserva para no romper el fan.
+- El render/handler JointJS preserva `source().port` / `target().port` al
+  persistir reanclaje de arrowhead. Esto sigue el contrato JointJS OSS
+  documentado para links con `id` + `port`.
+- La comparación de extremos en operaciones de reanclaje ahora distingue
+  `portId` para no descartar cambios dentro de la misma entidad.
+
+Artefactos principales:
+
+- `app/src/modelo/abanicos.ts`
+- `app/src/modelo/transaccionEnlace.ts`
+- `app/src/modelo/operaciones/ports.ts`
+- `app/src/modelo/operaciones/enlaces.ts`
+- `app/src/modelo/enlaceVertices.ts`
+- `app/src/modelo/extremos.ts`
+- `app/src/render/jointjs/handlers/drag.ts`
+- `app/e2e/_smoke-helpers.ts`
+
+Cobertura agregada o actualizada:
+
+- `app/src/modelo/abanicos.test.ts`
+- `app/src/modelo/transaccionEnlace.test.ts`
+- `app/src/modelo/ports.test.ts`
+- `app/src/modelo/operaciones/ports.test.ts`
+- `app/src/serializacion/validarEnlaces.test.ts`
+- `app/src/opl/generar.test.ts`
+- `app/src/render/jointjs/proyeccion.test.ts`
+- `app/src/render/jointjs/handlers/drag.test.ts`
+- `app/src/store.test.ts`
+- smokes E2E de abanicos, OPL multi-enlace y rutas hacia estados.
+
+Validación exacta:
+
+```bash
+cd app && bun run check
+# typecheck OK
+# unit: 1473 pass / 0 fail
+
+cd app && bun run build
+# OK; asset principal index-DLQ8Lo_V.js
+
+cd app && bun run browser:smoke
+# 206 passed / 0 failed
+```
+
+Deploy opforja:
+
+```bash
+docker compose up -d --build
+docker compose ps
+# opforja healthy; opforja-bug-capture up
+
+docker exec opforja wget -qO- http://127.0.0.1:8080/healthz
+# ok
+
+docker exec opforja wget -qO- http://bug-capture:3000/healthz
+# {"ok":true}
+
+curl https://opforja.sanixai.com/
+# 401 sin credenciales
+
+curl -u fsanhuezal:<secreto-local> https://opforja.sanixai.com/
+# 200 text/html; asset /assets/index-DLQ8Lo_V.js responde 200
+```
+
+Pendientes:
+
+- No hay bloqueo conocido de este corte para uso productivo single-user.
+- Mantener sin versionar los artefactos no relacionados ya presentes en
+  `docs/bugs/`, `docs/audits/corte-visual-opcloud-derivado/` y
+  `docs/instrucciones-lineas-dev/ronda22/`.
+- Siguiente trabajo razonable: probar manualmente en producción un escenario
+  de usuario con dos ramas desde la misma ancla, alternar O/XOR, exportar SVG
+  y reimportar JSON. Si aparece fricción, tratarla como UX de manipulación de
+  puertos, no como deuda de semántica base.
+
+Prompt breve de continuación:
+
+> Continuar desde `docs/HANDOFF.md`, sección "Corte Sistema De Enlaces
+> Exactos Cerrado Y Desplegado — 2026-05-20". `main` está en `e336d7c`,
+> deploy activo en opforja y los gates `check`, `build`, `browser:smoke`
+> están verdes. Próximo paso sugerido: smoke manual productivo de enlaces
+> exactos/anclas/fans y export SVG, o pasar a la siguiente deuda priorizada.
 
 ### Corte Dov-Dori Cerrado — SSOT Puertos, Ley Temporal Y OPL Único — 2026-05-20
 
