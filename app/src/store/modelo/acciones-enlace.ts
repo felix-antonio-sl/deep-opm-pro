@@ -2,13 +2,12 @@ import {
   abanicoDeEnlace,
   alternarOperadorAbanico as alternarOperadorAbanicoOp,
   disolverAbanico as disolverAbanicoOp,
-  formarAbanicoAutomatico,
   quitarRamaDeAbanico as quitarRamaDeAbanicoOp,
 } from "../../modelo/abanicos";
 import { crearAutoInvocacion } from "../../modelo/autoinvocacion";
 import { tipoInicialConexionDesdeEntidad } from "../../canvas/modoEnlace";
 import { renombrarEtiquetaEnlace } from "../../modelo/etiquetasEnlace";
-import { extremoEntidad } from "../../modelo/extremos";
+import { crearEnlaceTransaccional } from "../../modelo/transaccionEnlace";
 import {
   aplicarModificador,
   aplicarSubtipoModificador,
@@ -19,7 +18,6 @@ import {
 import {
   ajustarMultiplicidad,
   apuntarExtremoEnlace,
-  crearEnlace,
   fijarAnclaExtremoEnlace,
   definirBackwardTag,
   definirRequisitosEnlace,
@@ -84,25 +82,12 @@ export function accionesEnlace(set: SetStore, get: GetStore): Partial<ModeloSlic
 
     crearEnlaceEntreEntidades(origenId, destinoId, tipo, opciones) {
       const { modelo, opdActivoId } = get();
-      const resultado = crearEnlace(modelo, opdActivoId, extremoEntidad(origenId), extremoEntidad(destinoId), tipo);
+      const resultado = crearEnlaceTransaccional(modelo, opdActivoId, origenId, destinoId, tipo, opciones);
       if (!resultado.ok) {
         set({ mensaje: resultado.error });
         return;
       }
-      let modeloFinal = resultado.value;
-      const enlaceCreadoId = enlaceNuevo(modelo, modeloFinal);
-      if (enlaceCreadoId) {
-        const auto = formarAbanicoAutomatico(modeloFinal, opdActivoId, enlaceCreadoId);
-        if (auto.ok) modeloFinal = auto.value;
-        if (opciones?.anclaOrigen) {
-          const anclado = fijarAnclaExtremoEnlace(modeloFinal, opdActivoId, enlaceCreadoId, "origen", opciones.anclaOrigen);
-          if (anclado.ok) modeloFinal = anclado.value;
-        }
-        if (opciones?.anclaDestino) {
-          const anclado = fijarAnclaExtremoEnlace(modeloFinal, opdActivoId, enlaceCreadoId, "destino", opciones.anclaDestino);
-          if (anclado.ok) modeloFinal = anclado.value;
-        }
-      }
+      const { modelo: modeloFinal, enlaceId: enlaceCreadoId } = resultado.value;
       commitModelo(set, modelo, modeloFinal, {
         seleccionId: null,
         seleccionados: enlaceCreadoId ? [enlaceCreadoId] : [],

@@ -3,11 +3,9 @@ import {
   aplicarEstiloApariencia,
   resetearEstiloApariencia,
 } from "../../modelo/estilos";
-import { formarAbanicoAutomatico } from "../../modelo/abanicos";
 import {
   cambiarOrdenPartes as cambiarOrdenPartesOp,
   cambiarModoPlegado as cambiarModoPlegadoOp,
-  crearEnlaceConExtremoPlegado,
   extraerParteDePlegado as extraerParteDePlegadoOp,
   extraerTodasLasPartesDePlegado as extraerTodasLasPartesDePlegadoOp,
   reinsertarParteEnPlegado as reinsertarParteEnPlegadoOp,
@@ -28,6 +26,7 @@ import {
   traerAgregacionesInzoomFaltantes,
 } from "../../modelo/operaciones";
 import { renombrarEtiquetaEnlace } from "../../modelo/etiquetasEnlace";
+import { crearEnlaceTransaccional } from "../../modelo/transaccionEnlace";
 import { mismaReferencia } from "../../opl/interaccion";
 import { generarOpl } from "../../opl/generar";
 import { aplicarPatchesOpl, planificarEdicionOplLibre } from "../../opl/parser";
@@ -38,7 +37,6 @@ import {
   commitModelo,
   deshacerRuntime,
   escribirIndiceWorkspace,
-  enlaceNuevo,
   generarHtmlOpl,
   actualizarPreferenciasUi,
   limitar,
@@ -85,17 +83,14 @@ export function accionesCanvas(set: SetStore, get: GetStore): Partial<ModeloSlic
         return;
       }
 
-      const resultado = crearEnlaceConExtremoPlegado(modelo, opdActivoId, modoEnlace.origenId, id, modoEnlace.tipo);
+      const resultado = crearEnlaceTransaccional(modelo, opdActivoId, modoEnlace.origenId, id, modoEnlace.tipo, {
+        permitirExtremoPlegado: true,
+      });
       if (!resultado.ok) {
         set({ seleccionId: id, seleccionados: [id], modoSeleccion: "simple", enlaceSeleccionId: null, mensaje: resultado.error, ...limpiezaPendiente });
         return;
       }
-      let modeloFinal = resultado.value;
-      const enlaceCreadoId = enlaceNuevo(modelo, modeloFinal);
-      if (enlaceCreadoId) {
-        const auto = formarAbanicoAutomatico(modeloFinal, opdActivoId, enlaceCreadoId);
-        if (auto.ok) modeloFinal = auto.value;
-      }
+      const { modelo: modeloFinal } = resultado.value;
       commitModelo(set, modelo, modeloFinal, {
         seleccionId: id,
         seleccionados: [id],
@@ -124,17 +119,14 @@ export function accionesCanvas(set: SetStore, get: GetStore): Partial<ModeloSlic
         return;
       }
 
-      const resultado = crearEnlaceConExtremoPlegado(modelo, opdActivoId, modoEnlace.origenId, extremoEstado(estadoId), modoEnlace.tipo);
+      const resultado = crearEnlaceTransaccional(modelo, opdActivoId, modoEnlace.origenId, extremoEstado(estadoId), modoEnlace.tipo, {
+        permitirExtremoPlegado: true,
+      });
       if (!resultado.ok) {
         set({ seleccionId: estado.entidadId, seleccionados: [estado.entidadId], modoSeleccion: "simple", enlaceSeleccionId: null, mensaje: resultado.error, ...limpiezaPendiente });
         return;
       }
-      let modeloFinal = resultado.value;
-      const enlaceCreadoId = enlaceNuevo(modelo, modeloFinal);
-      if (enlaceCreadoId) {
-        const auto = formarAbanicoAutomatico(modeloFinal, opdActivoId, enlaceCreadoId);
-        if (auto.ok) modeloFinal = auto.value;
-      }
+      const { modelo: modeloFinal } = resultado.value;
       commitModelo(set, modelo, modeloFinal, {
         seleccionId: estado.entidadId,
         seleccionados: [estado.entidadId],
@@ -505,17 +497,14 @@ export function accionesCanvas(set: SetStore, get: GetStore): Partial<ModeloSlic
         return;
       }
 
-      const resultado = crearEnlaceConExtremoPlegado(modelo, opdActivoId, modoEnlace.origenId, parteEntidadId, modoEnlace.tipo);
+      const resultado = crearEnlaceTransaccional(modelo, opdActivoId, modoEnlace.origenId, parteEntidadId, modoEnlace.tipo, {
+        permitirExtremoPlegado: true,
+      });
       if (!resultado.ok) {
         set({ seleccionId: parteEntidadId, enlaceSeleccionId: null, mensaje: resultado.error });
         return;
       }
-      let modeloFinal = resultado.value;
-      const enlaceCreadoId = enlaceNuevo(modelo, modeloFinal);
-      if (enlaceCreadoId) {
-        const auto = formarAbanicoAutomatico(modeloFinal, opdActivoId, enlaceCreadoId);
-        if (auto.ok) modeloFinal = auto.value;
-      }
+      const { modelo: modeloFinal } = resultado.value;
       commitModelo(set, modelo, modeloFinal, {
         seleccionId: parteEntidadId,
         enlaceSeleccionId: null,
