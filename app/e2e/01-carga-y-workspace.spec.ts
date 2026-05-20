@@ -79,9 +79,10 @@ test("L3 panel diagnostico evalua System Diagram sandbox", async ({ page }) => {
 
   const panel = page.getByTestId("panel-diagnostico");
   await expect(panel).toBeVisible();
-  await expect(panel).toContainText("0 issues");
+  // Ronda23 L1 #9: contador "N sugerencias" con concordancia plural.
+  await expect(panel).toContainText("0 sugerencias");
   await page.getByTestId("panel-diagnostico-toggle").click();
-  await expect(panel).toContainText("Modelo sin issues metodológicos");
+  await expect(panel).toContainText("Modelo sin sugerencias metodológicas");
   expect(pageErrors).toEqual([]);
 });
 

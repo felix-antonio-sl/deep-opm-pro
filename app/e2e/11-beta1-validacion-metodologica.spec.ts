@@ -34,7 +34,8 @@ test("L3 panel metodologia muestra aviso, cita SSOT y permite revalidar", async 
   await page.getByTestId("panel-diagnostico-toggle").click();
 
   // Hay al menos un aviso — el contador NO debe ser cero.
-  await expect(panel.locator("header").getByText(/^[1-9]\d* issues$/)).toBeVisible();
+  // Ronda23 L1 #9: contador "N sugerencia/s" con concordancia plural.
+  await expect(panel.locator("header").getByText(/^(1 sugerencia|[2-9]\d* sugerencias|[1-9]\d{2,} sugerencias)$/)).toBeVisible();
 
   // El aviso de PROCESO_NOMBRE_FORMA_VERBAL aparece y trae cita SSOT
   // visible en el boton de cita.

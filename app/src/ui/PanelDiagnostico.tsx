@@ -85,7 +85,7 @@ export function PanelDiagnostico() {
               Revalidar
             </button>
           ) : null}
-          <span style={contadorStyle(issues)}>{issues.length} issues</span>
+          <span style={contadorStyle(issues)}>{issues.length === 1 ? "1 sugerencia" : `${issues.length} sugerencias`}</span>
         </span>
       </header>
       {expandido ? (
@@ -101,7 +101,7 @@ export function PanelDiagnostico() {
             </div>
           ) : null}
           {issues.length === 0 ? (
-            <div style={style.empty}>Modelo sin issues metodológicos</div>
+            <div style={style.empty}>Modelo sin sugerencias metodológicas</div>
           ) : (
             <div style={style.secciones}>
               <Seccion titulo={META.bloqueo.titulo} meta={META.bloqueo} issues={grupos.bloqueo} codigoResaltado={codigoResaltado} onCita={setCitaActiva} />
@@ -127,7 +127,7 @@ function Seccion(props: {
       <h3 style={{ ...style.seccionTitulo, color: props.meta.color }}>
         {props.titulo} ({props.issues.length})
       </h3>
-      {props.issues.length === 0 ? <p style={style.seccionEmpty}>Sin issues en este grupo</p> : null}
+      {props.issues.length === 0 ? <p style={style.seccionEmpty}>Sin sugerencias en este grupo</p> : null}
       <div role="list" style={style.list}>
         {props.issues.map((issue) => (
           <article
