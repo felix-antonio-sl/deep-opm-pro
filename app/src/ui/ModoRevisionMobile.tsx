@@ -2,7 +2,7 @@
  * ModoRevisionMobile — barra inferior de tabs para el modo revisión a < 640px.
  *
  * Ronda 21 L2: la app a < 640px no es desktop comprimido. Se priorizan 4
- * vistas de revisión: Canvas, OPDs, OPL, Issues. La toolbar primaria de
+ * vistas de revisión: Canvas, OPDs, OPL, Sugerencias. La toolbar primaria de
  * modelado pesado se oculta (ToolbarBase decide visibilidad por viewport),
  * y aquí se expone una barra inferior compacta para navegar entre las vistas.
  *
@@ -10,8 +10,14 @@
  * - Tabs inferiores (patrón nativo mobile-first; pulgar accede sin estirar).
  * - Texto al intentar acción de modelado pesado: "Editar en escritorio o
  *   tablet" (no se renderiza aquí; lo consume la toolbar al ocultarse).
- * - Etiquetas cortas (Canvas/OPDs/OPL/Issues) caben holgadas a 390px en 4
+ * - Etiquetas cortas (Canvas/OPDs/OPL/Sugerencias) caben holgadas a 390px en 4
  *   tabs de ~92px cada una con icono pequeño encima.
+ *
+ * Ronda23 cierre: la etiqueta "Issues" se castellaniza a "Sugerencias" para
+ * unificar nomenclatura con el panel diagnóstico desktop (que reporta
+ * "1 sugerencia / N sugerencias" y "Modelo sin sugerencias metodológicas"
+ * en `PanelDiagnostico`). El testId mobile-tab-issues se conserva por
+ * estabilidad del contrato E2E (smoke `22-responsive-review.spec.ts`).
  *
  * No bloquea selección, navegación, zoom/fit ni lectura; solo rebalancea qué
  * se ve en cada momento.
@@ -37,7 +43,7 @@ const TABS: ReadonlyArray<TabSpec> = [
   { id: "canvas", etiqueta: "Canvas", icono: "▦", testId: "mobile-tab-canvas" },
   { id: "opds", etiqueta: "OPDs", icono: "⎘", testId: "mobile-tab-opds" },
   { id: "opl", etiqueta: "OPL", icono: "¶", testId: "mobile-tab-opl" },
-  { id: "issues", etiqueta: "Issues", icono: "!", testId: "mobile-tab-issues" },
+  { id: "issues", etiqueta: "Sugerencias", icono: "!", testId: "mobile-tab-issues" },
 ];
 
 export function ModoRevisionMobile() {
