@@ -1,11 +1,12 @@
 # HANDOFF — Estado operativo del modelador OPM
 
-**Fecha**: 2026-05-20
+**Fecha**: 2026-05-21
 **Repositorio**: `deep-opm-pro`
 **Rama**: `main`
-**Ultimo corte funcional**: correccion OPL para estados no pareados (`BUG-20260520T190141Z-a054e1`).
-**Ultimo corte deploy**: `1b26f2e fix(opl): corrige estados no pareados` desplegado en `https://opforja.sanixai.com`.
-**Corte**: cierre operativo post-bug, con handoff documental aislado.
+**Ultimo corte funcional**: cierre Ronda 23 — remediacion UI/UX derivada del audit jobs-web-ux contra produccion.
+**Ultimo commit en main**: `a631742 e2e: spec onboarding canvas precargado (ronda23/L3)`.
+**Ultimo corte deploy**: pendiente push + deploy desde `a631742` (los 18 commits de ronda23 viven solo en main local hasta autorizacion explicita del operador).
+**Corte**: ciclo completo de remediacion UI/UX ejecutado de forma autonoma vía 4 agentes steipete en 3 olas.
 
 ## Política De Handoff Único
 
@@ -23,6 +24,98 @@
 - JointJS OSS: usar documentación oficial viva cuando se toque JointJS.
 
 ## Estado Actual
+
+### Cierre Ronda 23 — Remediacion UI/UX Audit jobs-web-ux — 2026-05-21
+
+Estado actual:
+
+- Rama `main` local en `a631742 e2e: spec onboarding canvas precargado (ronda23/L3)`.
+  `origin/main` aun en `1b26f2e`. **18 commits sin pushear** correspondientes a la ronda.
+- Produccion `https://opforja.sanixai.com` sigue sirviendo el baseline anterior (Corte BUG OPL).
+  Pendiente: push a remoto + deploy.
+- Loop verde local: `bun run check` da `1481 unit pass / 0 fail`, `bun run browser:smoke`
+  da `218 passed / 1 skip intencional / 0 failed` desde el cierre L3.
+- Audit completo y artefactos preservados en `docs/audits/ronda23-2026-05/`:
+  README, 28 capturas pre-cambios (`audit-inicial/`), 5 capturas post-cambios
+  (`validacion-postcambios/`), briefs por linea (`briefs-ronda23/`).
+
+Decisiones consolidadas:
+
+- El audit identifico 15 hallazgos UI/UX agrupados por el agente `steipete` en
+  4 conos disjuntos. Las 4 lineas paralelas se ejecutaron en 3 olas: L1+L4
+  concurrentes, luego L2, luego L3.
+- 14 hallazgos cerrados ✅ + 1 ⚠ justificado (#12 icono cierre inspector;
+  el render ya no usaba "···", el cambio a "✕" rompia un smoke).
+- Asistente reducido de 9 etapas a 3 (Funcion → Beneficiario → Sembrar).
+  9 archivos `Etapa*.tsx` eliminados + 1 nuevo `EtapaSembrar.tsx`.
+- Modal de bienvenida con 3 caminos eliminado; canvas precarga ejemplo
+  System Diagram + banner inline descartar.
+- 43 reglas de diagnostico renombradas con titulo humano y mensaje didactico;
+  IDs/codigos intactos por contrato de tests/serializacion.
+- AI Text del panel OPL oculto tras feature flag `AI_TEXT_HABILITADO = false`
+  hasta que la feature exista de verdad (vaporware UI removido).
+- Mini-toolbar contextual: "Inzoom (descomposicion)" → "Descomponer",
+  "Unfold (despliegue)" → "Desplegar" en acciones; nomenclatura tecnica
+  preservada en badges del arbol (decision documentada por L1).
+- Inspector: seccion Tamaño/Ancho/Alto movida del tab Refinamiento al tab Estilo;
+  focus automatico + select-all en input Nombre tras crear objeto/proceso desde
+  toolbar (default brutal extendido).
+- Senal de focus implementada via bus en store (`solicitarFocusNombre: Id | null`)
+  con helper `reenviarComboGlobalDesdeInput` para no romper atajos globales
+  cuando hay input focuseado.
+
+Hallazgos residuales documentados (no bloqueantes para deploy):
+
+- 3 comandos del command palette todavia con `description == title`
+  ("Ajustar OPD activo a pantalla", "Cerrar pestaña activa", "Colapsar todo el arbol OPD").
+- Tab mobile "Issues" sigue en ingles mientras desktop dice "sugerencias".
+- Tooltip `[Glos 3.69]` sobre proceso seleccionado sigue exponiendo referencia
+  a seccion de glosa (hallazgo menor del audit, no estaba en la punch-list inicial).
+
+Artefactos relevantes:
+
+- `docs/audits/ronda23-2026-05/` paquete completo del ciclo.
+- 18 commits en `main` local:
+  ```
+  a631742 e2e: spec onboarding canvas precargado (ronda23/L3)
+  6eca4d5 fix(bienvenida): deshabilita precarga bajo Playwright y normaliza viewpoint (ronda23/L3 #7)
+  ac6e797 fix(bienvenida): pestana bienvenida es reemplazable y se rebautiza al vaciar (ronda23/L3 #7)
+  23e4b37 refactor(bienvenida): suprime modal por default y agrega banner descartar (ronda23/L3 #7)
+  b69a893 feat(onboarding): precarga ejemplo system-diagram cuando workspace vacio (ronda23/L3 #7)
+  1bc0316 refactor(asistente): poda wizard de 9 a 3 etapas (funcion, beneficiario, sembrar) (ronda23/L3 #6)
+  1259160 test(diagnostico): cobertura para titulos humanos y agrupacion por regla (ronda23/L2 #2 #8)
+  d1f5cc6 style(validaciones): reescribe mensajes de reglas con tono didactico (ronda23/L2 #2)
+  4c8bd2b refactor(diagnostico): introduce titulos humanos y agrupacion por regla en panel (ronda23/L2 #2 #8)
+  b96d5ce fix(inspector): placeholders ejemplificados e icono mobile OPDs (ronda23/L1 #13 #14)
+  18dc021 style(toolbar): renombra Inzoom/Unfold a Descomponer/Desplegar (ronda23/L1 #10 #12)
+  edd62ca fix(diagnostico): concordancia plural N sugerencias en panel (ronda23/L1 #9)
+  9b0668b chore(opl): oculta boton AI Text hasta que la feature funcione (ronda23/L1 #5)
+  3151a0e fix(palette): elimina duplicado abrir-arbol-opd y reescribe descripciones (ronda23/L1 #3 #4)
+  8c13b6c fix(copy): tildes castellano en strings de UI (ronda23/L1 #1)
+  fef743b test(inspector): cubre focus default y nueva ubicacion de Tamano (ronda23/L4)
+  5e6d09b feat(inspector): focus automatico en input Nombre al crear elemento (ronda23/L4 #15)
+  b02a5f3 refactor(inspector): mueve seccion Tamano de Refinamiento a Estilo (ronda23/L4 #11)
+  ```
+
+Validacion ejecutada:
+
+```bash
+cd app && bun run check
+# 1481 unit pass / 0 fail
+
+cd app && bun run browser:smoke
+# 218 passed / 1 skipped (AI Text gateado) / 0 failed
+
+# Playwright in-vivo contra dev local (post-merge de las 3 olas):
+# 14/15 hallazgos verificados visualmente ✅, 1 justificado ⚠ (#12)
+```
+
+Proximo paso operativo:
+
+1. `git push origin main` para subir los 18 commits.
+2. Verificar deploy a `https://opforja.sanixai.com` (proceso del operador).
+3. Re-audit con Playwright contra produccion una vez deployado para confirmar
+   visibilidad de cambios.
 
 ### Cierre BUG-20260520T190141Z-a054e1 — OPL Estados No Pareados — 2026-05-20
 
