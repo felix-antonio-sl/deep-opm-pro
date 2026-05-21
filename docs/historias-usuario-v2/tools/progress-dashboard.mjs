@@ -1060,7 +1060,10 @@ function autoAuditRules() {
         { path: "app/src/render/jointjs/composers/grid.ts", all: ["configurarGridPaper", "drawGrid"] },
         { path: "app/src/modelo/tipos/ui.ts", all: ["gridConfig?:"] },
         { path: "app/src/store/modelo/acciones-canvas.ts", all: ["toggleGrid", "fijarGridConfig", "cuantizarDesdeEstado"] },
-        { path: "app/src/ui/toolbar/ToolbarBase.tsx", all: ["toolbar-mas-toggle-grid", "toolbar-mas-config-grid"] },
+        { path: "app/src/ui/toolbar/ToolbarBase.tsx", all: ["toolbar-mas-toggle-grid"] },
+        // Ronda 25 L2 III.A: "Configuración…" se eliminó del ⋯ Más por
+        // duplicación y vive solamente en el ☰ Menú principal (sección Modelo).
+        { path: "app/src/ui/MenuPrincipal.tsx", all: ["Configuración...", "abrirDialogoConfiguracion"] },
         { path: "app/src/ui/DialogoConfiguracion.tsx", all: ["modal-config-grid", "gridLocal", "snapActivo"] },
       ],
       evidenciaExtra: ["app/src/canvas/grid.test.ts", "app/src/render/jointjs/composers/grid.test.ts", "app/e2e/_smoke-helpers.ts"],

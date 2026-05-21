@@ -73,7 +73,6 @@ export function ToolbarBase({ children, modelarSlot, conectarSlot, mapaSlot, sta
     traerEnlacesEntreSeleccionadas,
     iniciarAutosalvado,
     modoCreacion,
-    abrirDialogoPlantillas,
     uiAliasVisibles,
     uiDescripcionesVisibles,
     toggleAliasVisibles,
@@ -83,7 +82,6 @@ export function ToolbarBase({ children, modelarSlot, conectarSlot, mapaSlot, sta
     abrirModalImagen,
     gridConfig,
     toggleGrid,
-    abrirDialogoConfiguracion,
     aplicarLayoutSugerido,
     bibliotecaDockAbierto,
     toggleBibliotecaDock,
@@ -170,7 +168,6 @@ export function ToolbarBase({ children, modelarSlot, conectarSlot, mapaSlot, sta
     uiAliasVisibles,
     uiDescripcionesVisibles,
     uiModoImagenGlobal,
-    onAbrirPlantillas: abrirDialogoPlantillas,
     onToggleAlias: toggleAliasVisibles,
     onToggleDescripciones: toggleDescripcionesVisibles,
     onSiguienteModoImagen: () => fijarModoImagenGlobal(siguienteModoGlobal(uiModoImagenGlobal)),
@@ -178,7 +175,6 @@ export function ToolbarBase({ children, modelarSlot, conectarSlot, mapaSlot, sta
     gridActiva: gridConfig.activa,
     bibliotecaDockAbierto,
     onToggleGrid: toggleGrid,
-    onConfigGrid: abrirDialogoConfiguracion,
     onAplicarLayout: aplicarLayoutSugerido,
     onToggleBibliotecaDock: toggleBibliotecaDock,
     vistaMapaActiva,
@@ -420,13 +416,11 @@ type ParametrosItemsMas = {
   gridActiva: boolean;
   bibliotecaDockAbierto: boolean;
   vistaMapaActiva: boolean;
-  onAbrirPlantillas: () => void;
   onToggleAlias: () => void;
   onToggleDescripciones: () => void;
   onSiguienteModoImagen: () => void;
   onEditarImagen: () => void;
   onToggleGrid: () => void;
-  onConfigGrid: () => void;
   onAplicarLayout: () => void;
   onToggleBibliotecaDock: () => void;
   onToggleMapa: () => void;
@@ -479,16 +473,14 @@ function construirItemsMenuMas(p: ParametrosItemsMas): ToolbarMasItem[] {
     testId: "toolbar-mas-editar-imagen",
   });
 
-  // Plantillas como acción accesoria (mantener invocable desde el menú).
-  items.push({ kind: "separador", id: "sep-plantillas", label: "Plantillas" });
-  items.push({
-    kind: "accion",
-    id: "abrir-plantillas",
-    label: "Plantillas…",
-    title: "Abrir biblioteca de plantillas",
-    onClick: p.onAbrirPlantillas,
-    testId: "toolbar-mas-plantillas",
-  });
+  // Ronda 25 L2 III.A: sustracción residual del chrome. "Plantillas…" y
+  // "Configuración…" se eliminan del menú ⋯ Más porque duplican entradas
+  // canónicas del ☰ Menú principal (sección Plantillas y sección Modelo
+  // respectivamente). El menú principal es el contenedor canónico de
+  // operaciones del modelo; ⋯ Más queda reservado a apariencia/vista y
+  // acciones multi-selección. La sección "Plantillas" del menú Más se
+  // elimina por completo (queda sin ítems propios); la sección "Vista"
+  // conserva el resto.
   items.push({ kind: "separador", id: "sep-vista", label: "Vista" });
   items.push({
     kind: "accion",
@@ -498,14 +490,6 @@ function construirItemsMenuMas(p: ParametrosItemsMas): ToolbarMasItem[] {
     title: p.gridActiva ? "Cuadrícula activa · clic para ocultar" : "Mostrar cuadrícula del canvas",
     onClick: p.onToggleGrid,
     testId: "toolbar-mas-toggle-grid",
-  });
-  items.push({
-    kind: "accion",
-    id: "config-grid",
-    label: "Configuración…",
-    title: "Renombrar modelo y ajustar cuadrícula",
-    onClick: p.onConfigGrid,
-    testId: "toolbar-mas-config-grid",
   });
   items.push({
     kind: "accion",
