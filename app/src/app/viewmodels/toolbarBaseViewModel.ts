@@ -1,5 +1,6 @@
 import { useZustandAutosavePort } from "../ports/zustandAutosavePort";
 import { useZustandHistoryPort } from "../ports/zustandHistoryPort";
+import { useZustandInteractionModePort } from "../ports/zustandInteractionModePort";
 import { useZustandLinkContextActionsPort } from "../ports/zustandLinkContextActionsPort";
 import { useZustandMapViewPort } from "../ports/zustandMapViewPort";
 import { useZustandModelCreationPort } from "../ports/zustandModelCreationPort";
@@ -62,6 +63,7 @@ export function useToolbarBaseViewModel() {
   } = useZustandLinkContextActionsPort();
   const { iniciarAutosalvado } = useZustandAutosavePort();
   const { modelo, opdActivoId } = useZustandOpdNavigationPort();
+  const { modoEnlace } = useZustandInteractionModePort();
 
   const toggleVistaMapa = () => {
     if (vistaMapaActiva) cerrarVistaMapa();
@@ -99,6 +101,7 @@ export function useToolbarBaseViewModel() {
     traerEnlacesEntreSeleccionadas,
     iniciarAutosalvado,
     modoCreacion,
+    modoEnlace,
     abrirDialogoPlantillas,
     uiAliasVisibles,
     uiDescripcionesVisibles,

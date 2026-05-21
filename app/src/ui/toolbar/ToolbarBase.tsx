@@ -62,6 +62,7 @@ export function ToolbarBase({ children, modelarSlot, conectarSlot, mapaSlot, sta
     opdActivoId,
     seleccionId,
     seleccionados,
+    modoEnlace,
     nuevaCosaPendiente,
     confirmarNombreNuevaCosa,
     descartarNuevaCosaPendiente,
@@ -153,6 +154,16 @@ export function ToolbarBase({ children, modelarSlot, conectarSlot, mapaSlot, sta
   const todoMultiSeleccion = seleccionados.length >= 2 ? seleccionados[seleccionados.length - 1] : null;
   const puedeEditarImagen = entidadSeleccionada?.tipo === "objeto";
   const hayMultiSeleccion = seleccionados.length >= 2;
+  // Ronda 24 L4 #6 sustracción de chrome: el cluster Conectar antes ocupaba
+  // espacio permanente con su botón disabled cuando no había nada que
+  // conectar. Ahora aparece solo cuando hay al menos una entidad
+  // seleccionada (origen disponible para conectar) o cuando hay un modo
+  // activo (`modoEnlace` para completar destino, `modoCreacion` sticky para
+  // mostrar el badge "Insertando…"). Si se ocultara solo por modoEnlace
+  // residual sin selección, el usuario quedaría sin botón Cancelar visible
+  // al deseleccionar durante el flujo conectar.
+  const hayEntidadSeleccionada = seleccionados.some((id) => !!modelo.entidades[id]);
+  const mostrarClusterConectar = hayEntidadSeleccionada || modoEnlace !== null || modoCreacion !== null;
   const entidadMenuContextual = menuEntidad ? modelo.entidades[menuEntidad.entidadId] ?? null : null;
   const enlaceEstiloMenuContextualId = entidadMenuContextual
     ? primerEnlaceVisualDeEntidad(modelo, opdActivoId, entidadMenuContextual.id)
@@ -277,10 +288,14 @@ export function ToolbarBase({ children, modelarSlot, conectarSlot, mapaSlot, sta
           ) : null}
           {modelarSlot ?? null}
         </div>
-        <span style={style.divider} />
-        <div role="group" aria-label="Conectar" style={style.cluster} data-slot="cluster-conectar" data-cluster="conectar">
-          {conectarSlot ?? children}
-        </div>
+        {mostrarClusterConectar ? (
+          <>
+            <span style={style.divider} />
+            <div role="group" aria-label="Conectar" style={style.cluster} data-slot="cluster-conectar" data-cluster="conectar">
+              {conectarSlot ?? children}
+            </div>
+          </>
+        ) : null}
         <span style={style.divider} />
         {mapaSlot ? (
           <>

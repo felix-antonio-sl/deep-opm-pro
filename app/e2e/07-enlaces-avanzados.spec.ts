@@ -81,7 +81,9 @@ test("crea enlace, edita vertices y elimina desde celdas JointJS", async ({ page
 
   await page.goto("/");
   const abrirMenuTipo = page.getByTestId("abrir-menu-tipo-enlace");
-  await expect(abrirMenuTipo).toBeDisabled();
+  // Ronda 24 L4 #6: sin entidades ni selección el cluster Conectar está
+  // ausente del DOM (antes era un cluster permanente con botón disabled).
+  await expect(abrirMenuTipo).toHaveCount(0);
   await page.getByRole("button", { name: "Objeto", exact: true }).click();
   await page.getByRole("button", { name: "Proceso", exact: true }).click();
 

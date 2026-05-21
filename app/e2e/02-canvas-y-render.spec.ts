@@ -608,17 +608,21 @@ test("L1 toolbar split conserva root y controles por modo", async ({ page }) => 
   await expect(page.locator("main")).toHaveAttribute("data-context-submodo", "ninguno");
   await expect(page.getByTestId("viewpoint-heading")).toHaveText("Workbench OPM - edición");
   await expect(page.getByTestId("toolbar-root")).toBeVisible();
-  for (const cluster of ["Modelo", "Modelar", "Conectar", "Ayuda"]) {
+  // Ronda 24 L4 #6: el cluster Conectar es contextual — se monta cuando hay
+  // entidad seleccionada o un modo activo. Al cargar (modelo vacío, sin
+  // selección, sin modo) está ausente del DOM, no solo deshabilitado.
+  for (const cluster of ["Modelo", "Modelar", "Ayuda"]) {
     await expect(page.getByRole("group", { name: cluster })).toBeVisible();
   }
+  await expect(page.getByRole("group", { name: "Conectar" })).toHaveCount(0);
   await expect(page.locator('[data-slot="cluster-modelo"]')).toBeVisible();
   await expect(page.locator('[data-slot="cluster-modelar"]')).toBeVisible();
-  await expect(page.locator('[data-slot="cluster-conectar"]')).toBeVisible();
+  await expect(page.locator('[data-slot="cluster-conectar"]')).toHaveCount(0);
   await expect(page.locator('[data-slot="cluster-vista"]')).toHaveCount(0);
   await expect(page.locator('[data-slot="cluster-validar"]')).toHaveCount(0);
   await expect(page.locator('[data-slot="cluster-ayuda"]')).toBeVisible();
   await expect(page.getByRole("group", { name: "Modelar" }).getByRole("button", { name: "Objeto", exact: true })).toBeVisible();
-  await expect(page.getByRole("group", { name: "Conectar" }).getByTestId("abrir-menu-tipo-enlace")).toBeDisabled();
+  await expect(page.getByTestId("abrir-menu-tipo-enlace")).toHaveCount(0);
   await expect(page.getByRole("group", { name: "Ayuda" }).getByTestId("toolbar-mas-trigger")).toBeVisible();
   await page.getByTestId("toolbar-mas-trigger").click();
   await expect(page.getByTestId("toolbar-mas-toggle-grid")).toBeVisible();
@@ -628,7 +632,7 @@ test("L1 toolbar split conserva root y controles por modo", async ({ page }) => 
   await expect(page.getByTestId("toolbar-mas-mapa")).toBeVisible();
   await expect(page.getByTestId("toolbar-mas-simulacion")).toBeVisible();
   await page.keyboard.press("Escape");
-  await expect(page.getByTestId("abrir-menu-tipo-enlace")).toBeDisabled();
+  await expect(page.getByTestId("abrir-menu-tipo-enlace")).toHaveCount(0);
 
   await page.getByRole("button", { name: "Objeto", exact: true }).click();
   const modal = page.getByTestId("modal-nombre-cosa");
@@ -639,6 +643,9 @@ test("L1 toolbar split conserva root y controles por modo", async ({ page }) => 
   }
 
   await expect(page.getByTestId("barra-herramientas-elemento")).toBeVisible();
+  // Ronda 24 L4 #6: tras crear y seleccionar el objeto, el cluster Conectar
+  // se monta porque hay origen disponible.
+  await expect(page.locator('[data-slot="cluster-conectar"]')).toBeVisible();
   await page.getByTestId("toolbar-mas-trigger").click();
   await expect(page.getByTestId("toolbar-mas-plantillas")).toBeVisible();
   await page.keyboard.press("Escape");
