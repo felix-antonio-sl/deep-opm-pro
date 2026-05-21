@@ -50,74 +50,75 @@ import {
   type ExtremoExportado,
 } from "./_smoke-helpers";
 
-test("marca dirty state y navega cambios con deshacer y rehacer", async ({ page }) => {
+// Ronda 25 L1 III.A: el chrome global ya no expone botones ↶/↷. Undo/redo se
+// invocan exclusivamente por atajo (Ctrl+Z / Ctrl+Shift+Z). Este test
+// preserva la cobertura semántica (dirty state, atomicidad, reset al cargar
+// modelo) usando los atajos en vez de clic sobre botones inexistentes. Las
+// antiguas aserciones `toBeDisabled` / `toBeEnabled` sobre el botón se
+// traducen a aserciones de efecto del atajo: en historial vacío el Ctrl+Z
+// no debe alterar el modelo.
+test("marca dirty state y navega cambios con deshacer y rehacer (via atajos)", async ({ page }) => {
   const pageErrors: string[] = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
 
-  const deshacer = page.getByRole("button", { name: "Deshacer" });
-  const rehacer = page.getByRole("button", { name: "Rehacer" });
   await expect(page.getByTestId("chip-persistencia")).toHaveAttribute("data-variante", "nuevo");
-  await expect(deshacer).toBeDisabled();
-  await expect(rehacer).toBeDisabled();
+  // Historial vacío: Ctrl+Z no introduce ningún elemento ni rompe el modelo.
+  await page.keyboard.press("Control+Z");
+  await expect(page.locator(".joint-element")).toHaveCount(0);
+  await page.keyboard.press("Control+Shift+Z");
+  await expect(page.locator(".joint-element")).toHaveCount(0);
 
   await page.getByRole("button", { name: "Objeto", exact: true }).click();
   await expect(page.getByTestId("chip-persistencia")).toHaveAttribute("data-variante", "nuevo");
   await expect(page.locator(".joint-element")).toHaveCount(1);
-  await expect(deshacer).toBeEnabled();
-  await expect(rehacer).toBeDisabled();
 
   await page.keyboard.press("Control+Z");
   await expect(page.getByTestId("chip-persistencia")).toHaveAttribute("data-variante", "nuevo");
   await expect(page.locator(".joint-element")).toHaveCount(0);
-  await expect(deshacer).toBeDisabled();
-  await expect(rehacer).toBeEnabled();
 
   await page.keyboard.press("Control+Shift+Z");
   await expect(page.getByTestId("chip-persistencia")).toHaveAttribute("data-variante", "nuevo");
   await expect(page.locator(".joint-element")).toHaveCount(1);
-  await expect(deshacer).toBeEnabled();
-  await expect(rehacer).toBeDisabled();
 
-  await deshacer.click();
+  await page.keyboard.press("Control+Z");
   await expect(page.getByTestId("chip-persistencia")).toHaveAttribute("data-variante", "nuevo");
   await expect(page.locator(".joint-element")).toHaveCount(0);
-  await expect(deshacer).toBeDisabled();
-  await expect(rehacer).toBeEnabled();
 
-  await rehacer.click();
+  await page.keyboard.press("Control+Shift+Z");
   await expect(page.getByTestId("chip-persistencia")).toHaveAttribute("data-variante", "nuevo");
   await expect(page.locator(".joint-element")).toHaveCount(1);
-  await expect(deshacer).toBeEnabled();
-  await expect(rehacer).toBeDisabled();
 
   await elementoPorTexto(page, "Objeto").click();
   await page.getByLabel("Nombre").fill("Renombrado");
   await expect(elementoPorTexto(page, "Renombrado")).toHaveCount(1);
-  await deshacer.click();
+  await page.keyboard.press("Control+Z");
   await expect(elementoPorTexto(page, "Objeto")).toHaveCount(1);
-  await rehacer.click();
+  await page.keyboard.press("Control+Shift+Z");
   await expect(elementoPorTexto(page, "Renombrado")).toHaveCount(1);
 
   await elementoPorTexto(page, "Renombrado").click();
   await page.keyboard.press("Delete");
   await expect(page.locator(".joint-element")).toHaveCount(0);
-  await deshacer.click();
+  await page.keyboard.press("Control+Z");
   await expect(elementoPorTexto(page, "Renombrado")).toHaveCount(1);
 
   await page.screenshot({ path: "test-results/opm-dirty-undo-redo.png", fullPage: true });
   await guardarComoActual(page, "Renombrado local");
   await expect(page.getByTestId("chip-persistencia")).toHaveAttribute("data-variante", "local-clean");
-  await expect(deshacer).toBeEnabled();
 
   await crearModeloNuevoDesdeMenu(page);
   await expect(page.locator(".joint-element")).toHaveCount(0);
-  await expect(deshacer).toBeDisabled();
+  // Historial reseteado tras "Nuevo": Ctrl+Z no debe restaurar elementos.
+  await page.keyboard.press("Control+Z");
+  await expect(page.locator(".joint-element")).toHaveCount(0);
   await cargarPrimerModelo(page);
   await expect(elementoPorTexto(page, "Renombrado")).toHaveCount(1);
   await expect(page.getByTestId("chip-persistencia")).toHaveAttribute("data-variante", "local-clean");
-  await expect(deshacer).toBeDisabled();
+  // Historial reseteado tras cargar modelo: Ctrl+Z no debe eliminar la cosa.
+  await page.keyboard.press("Control+Z");
+  await expect(elementoPorTexto(page, "Renombrado")).toHaveCount(1);
 
   expect(pageErrors).toEqual([]);
 });
@@ -408,24 +409,32 @@ test("HU-SHARED-002: deshacer revierte creación de cosa con un solo Ctrl+Z (ato
   expect(pageErrors).toEqual([]);
 });
 
-test("L1 botones Deshacer Rehacer siguen operando desde ToolbarBase", async ({ page }) => {
+// Ronda 25 L1 III.A: los botones ↶/↷ se eliminaron del cluster Modelo del
+// chrome global. Este test sustituye la verificación visual del botón por
+// la verificación funcional del atajo global (Ctrl+Z / Ctrl+Shift+Z) y
+// confirma que el chip Persistencia menciona la reversibilidad en su
+// tooltip para mantener la affordance descubrible.
+test("L1 atajos Ctrl+Z y Ctrl+Shift+Z reemplazan los botones eliminados del chrome", async ({ page }) => {
   const pageErrors: string[] = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
   await cerrarPantallaInicioSiVisible(page);
 
-  const deshacer = page.getByRole("button", { name: "Deshacer" });
-  const rehacer = page.getByRole("button", { name: "Rehacer" });
   await expect(page.getByTestId("toolbar-root")).toBeVisible();
-  await expect(deshacer).toBeDisabled();
-  await expect(rehacer).toBeDisabled();
+  // Confirmamos que el chrome ya no expone botones visibles de Deshacer/Rehacer.
+  await expect(page.getByRole("button", { name: "Deshacer", exact: true })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Rehacer", exact: true })).toHaveCount(0);
+
+  // El tooltip del chip persistencia (única affordance visible para undo)
+  // debe mencionar la reversibilidad con Ctrl+Z.
+  await expect(page.getByTestId("chip-persistencia")).toHaveAttribute("title", /Ctrl\+Z/);
 
   await page.getByRole("button", { name: "Proceso", exact: true }).click();
   await expect(page.locator(".joint-element")).toHaveCount(1);
-  await deshacer.click();
+  await page.keyboard.press("Control+Z");
   await expect(page.locator(".joint-element")).toHaveCount(0);
-  await rehacer.click();
+  await page.keyboard.press("Control+Shift+Z");
   await expect(page.locator(".joint-element")).toHaveCount(1);
 
   expect(pageErrors).toEqual([]);

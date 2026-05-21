@@ -591,8 +591,11 @@ test("L3 UX: toolbar CN-CIM&B conserva tooltips primarios y mueve archivo al men
   await page.goto("/");
   await cerrarPantallaInicioSiVisible(page);
 
-  const botonDeshacer = page.getByRole("button", { name: "Deshacer", exact: true });
-  await expect(botonDeshacer).toHaveAttribute("title", /Deshacer.*Ctrl\+Z/);
+  // Ronda 25 L1 III.A: el botón ↶ del chrome global se eliminó. La affordance
+  // de reversibilidad se traslada al tooltip del chip persistencia (el cual
+  // siempre menciona Ctrl+Z); el atajo global sigue operando.
+  await expect(page.getByRole("button", { name: "Deshacer", exact: true })).toHaveCount(0);
+  await expect(page.getByTestId("chip-persistencia")).toHaveAttribute("title", /Ctrl\+Z/);
 
   const botonObjeto = page.getByRole("button", { name: "Objeto", exact: true });
   await expect(botonObjeto).toHaveAttribute("title", /Crear objeto.*Shift\+clic/);

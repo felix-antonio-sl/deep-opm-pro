@@ -342,9 +342,16 @@ try {
   await page.reload({ waitUntil: "networkidle" });
   await page.getByRole("button", { name: "Objeto" }).click();
   await page.waitForTimeout(120);
-  // Tras crear, deshacer está habilitado
-  const undoTrasCrear = await page.getByRole("button", { name: "Deshacer" }).isDisabled();
-  record("I. Historial limpio", `Undo habilitado tras crear entidad`, !undoTrasCrear ? "OK" : "FAIL");
+  // Ronda 25 L1 III.A: el chrome ya no expone botón ↶. Verificamos en cambio
+  // que el atajo Ctrl+Z efectivamente revierte la creación (proxy funcional
+  // del estado "undo habilitado tras crear entidad").
+  const cosasAntesUndo = await page.locator(".joint-element").count();
+  await page.keyboard.press("Control+z");
+  await page.waitForTimeout(120);
+  const cosasTrasUndo = await page.locator(".joint-element").count();
+  await page.keyboard.press("Control+Shift+z");
+  await page.waitForTimeout(120);
+  record("I. Historial limpio", `Undo habilitado tras crear entidad`, cosasAntesUndo === 1 && cosasTrasUndo === 0 ? "OK" : "FAIL");
   // Hacer click en la entidad (selección) y verificar que undo no se acumula
   const cosaI = page.locator(".joint-element").first();
   await cosaI.click();

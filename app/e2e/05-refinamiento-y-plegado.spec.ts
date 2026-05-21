@@ -185,7 +185,8 @@ test("elimina desde arbol solo OPDs hoja y deshacer restaura", async ({ page }) 
   await expect(nodoHoja).toHaveCount(0);
   await expect(nodoPadre).toHaveAttribute("aria-current", "page");
 
-  await page.getByRole("button", { name: "Deshacer" }).click();
+  // Ronda 25 L1 III.A: chrome ya no expone botón ↶; undo se invoca por atajo.
+  await page.keyboard.press("Control+Z");
   await expect(page.locator('[role="treeitem"]').filter({ hasText: "SD1.1: Proceso 1 descompuesto" })).toHaveCount(1);
 
   await page.screenshot({ path: "test-results/opm-eliminar-opd-hoja.png", fullPage: true });
