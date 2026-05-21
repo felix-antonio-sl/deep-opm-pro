@@ -289,6 +289,40 @@ describe("accionesPilotoBarra", () => {
     expect(accionesPilotoBarra(objeto, null, false, true).find((accion) => accion.id === "mas-opciones")?.label).toBe("Cerrar Inspector lateral");
     expect(accionesPilotoBarra(objeto, null, false, false).find((accion) => accion.id === "mas-opciones")?.label).toBe("Abrir Inspector lateral");
   });
+
+  // Ronda24 L5 #9: la mini-toolbar contextual ahora muestra texto visible
+  // corto junto al ícono para las 3 acciones primarias (Descomponer,
+  // Desplegar, Editar alias). Las demás acciones contextuales mantienen su
+  // render previo (sólo ícono o sólo texto del catálogo).
+  test("decora inzoom, unfold y editar-alias con texto visible y bandera compactaIconoTexto", () => {
+    const acciones = accionesPilotoBarra(objeto, null, false, false);
+    const inzoom = acciones.find((accion) => accion.id === "inzoom");
+    const unfold = acciones.find((accion) => accion.id === "unfold");
+    const editarAlias = acciones.find((accion) => accion.id === "editar-alias");
+    expect(inzoom?.texto).toBe("Descomp.");
+    expect(inzoom?.compactaIconoTexto).toBe(true);
+    expect(unfold?.texto).toBe("Desplegar");
+    expect(unfold?.compactaIconoTexto).toBe(true);
+    expect(editarAlias?.texto).toBe("Alias");
+    expect(editarAlias?.compactaIconoTexto).toBe(true);
+  });
+
+  test("no fuerza texto visible en agregar-estado (mantiene icono sin label para no saturar la barra)", () => {
+    const acciones = accionesPilotoBarra(objeto, null, false, false);
+    const agregarEstado = acciones.find((accion) => accion.id === "agregar-estado");
+    expect(agregarEstado?.texto).toBeUndefined();
+    expect(agregarEstado?.compactaIconoTexto).toBeUndefined();
+  });
+
+  test("no aplica compactaIconoTexto a editar-imagen ni mas-opciones (ya tienen texto en catalogo)", () => {
+    const acciones = accionesPilotoBarra(objeto, null, false, false);
+    const editarImagen = acciones.find((accion) => accion.id === "editar-imagen");
+    const masOpciones = acciones.find((accion) => accion.id === "mas-opciones");
+    expect(editarImagen?.compactaIconoTexto).toBeUndefined();
+    expect(editarImagen?.texto).toBe("Img");
+    expect(masOpciones?.compactaIconoTexto).toBeUndefined();
+    expect(masOpciones?.texto).toBe("Inspector");
+  });
 });
 
 describe("accionesBarraEnlace", () => {
@@ -336,6 +370,23 @@ describe("posicionamiento", () => {
   test("estima ancho real con botones de texto", () => {
     const enlace = modeloBase().enlaces["enlace-1"] ?? null;
     expect(anchoEstimadoAccionesBarra(accionesBarraEnlace(enlace, true, false))).toBe(328);
+  });
+
+  // Ronda24 L5 #9: la barra contextual de objeto suma 3 botones
+  // icono+texto compactos (Descomp./Desplegar/Alias = 92px c/u) + 2 botones
+  // sin texto visible reservado (agregar-estado y editar-imagen quedan en
+  // ancho icono = 34px porque su texto opcional cabe centrado) + 1 botón
+  // ancho clásico (Inspector = 76px). Ancho = 12 (padding) + 3*92 + 2*34 +
+  // 76 + 5*4 (gaps) = 452.
+  test("estima ancho real de acciones contextuales para objeto con icono+texto", () => {
+    expect(anchoEstimadoAccionesBarra(accionesPilotoBarra(objeto, null, false, false))).toBe(452);
+  });
+
+  // Proceso no expone agregar-estado ni editar-imagen: 3 botones icono+texto
+  // (Descomp./Desplegar/Alias = 92px c/u) + 1 texto (Inspector = 76px).
+  // Ancho = 12 (padding) + 3*92 + 76 + 3*4 (gaps) = 376.
+  test("estima ancho real de acciones contextuales para proceso", () => {
+    expect(anchoEstimadoAccionesBarra(accionesPilotoBarra(proceso, null, false, false))).toBe(376);
   });
 
   test("estima ancho con resumen de multiseleccion", () => {

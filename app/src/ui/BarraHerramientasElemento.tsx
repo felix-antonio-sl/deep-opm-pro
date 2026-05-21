@@ -81,6 +81,13 @@ interface AccionBarra {
   visible: boolean;
   enabled: boolean;
   wide?: boolean;
+  /**
+   * Ronda24 L5 #9: cuando true, el botón muestra ícono + texto corto visible
+   * lado a lado (no sólo tooltip). Requiere ancho extra; se asigna a las
+   * acciones contextuales primarias de entidad para mejorar legibilidad sin
+   * esperar hover.
+   */
+  compactaIconoTexto?: boolean;
   icon?: preact.JSX.Element;
   texto?: string;
   atajo?: string;
@@ -141,12 +148,27 @@ const ICONOS_ACCION_BARRA: Partial<Record<AccionBarraId, preact.JSX.Element>> = 
 const ALTO_BARRA = 44;
 const ANCHO_BOTON = 34;
 const ANCHO_BOTON_TEXTO = 76;
+// Ronda24 L5 #9: botón icono+texto-corto visible (Descomp., Desplegar, Alias).
+// Calibrado para que el texto más largo ("Desplegar") + ícono + gap caiba sin
+// ellipsis a 11px Arial bold.
+const ANCHO_BOTON_ICONO_TEXTO = 92;
 const GAP_BOTONES = 4;
+const GAP_ICONO_TEXTO = 4;
 const PADDING_BARRA = 6;
 const OFFSET_ANCHOR = 8;
 const PADDING_VIEWPORT = 8;
 const ANCHO_RESUMEN_MULTI = 116;
 const ANCHO_RESUMEN_ENLACE = 116;
+
+// Ronda24 L5 #9: textos visibles cortos para las acciones contextuales
+// primarias de entidad. El catálogo central conserva `label` largo (usado en
+// aria-label y title) y la mini-toolbar agrega aquí el texto compacto que
+// renderiza junto al ícono. No afecta menu contextual ni command palette.
+const TEXTOS_VISIBLES_CONTEXTUALES: Partial<Record<AccionBarraId, string>> = {
+  inzoom: "Descomp.",
+  unfold: "Desplegar",
+  "editar-alias": "Alias",
+};
 
 export function BarraHerramientasElemento({ inspectorAbierto, onToggleInspector, onAbrirInspector }: Props) {
   const {
@@ -337,7 +359,13 @@ export function BarraHerramientasElemento({ inspectorAbierto, onToggleInspector,
           style={estiloBotonAccion(accion)}
           title={tituloAccionBarra(accion)}
         >
-          {accion.icon ? accion.icon : <span aria-hidden="true">{accion.texto}</span>}
+          {accion.icon ? accion.icon : null}
+          {accion.icon && accion.texto ? (
+            <span aria-hidden="true" style={styles.botonTexto}>{accion.texto}</span>
+          ) : null}
+          {!accion.icon && accion.texto ? (
+            <span aria-hidden="true">{accion.texto}</span>
+          ) : null}
         </button>
       ))}
     </div>
@@ -551,6 +579,12 @@ function esAccionBarra(accion: AccionContextual): accion is AccionContextual & {
 
 function decorarAccionBarra(accion: AccionContextual & { id: AccionBarraId }): AccionBarra {
   const icon = ICONOS_ACCION_BARRA[accion.id];
+  // Ronda24 L5 #9: texto compacto visible para acciones contextuales con ícono.
+  // El override solo aplica si el catálogo no trajo un `texto` propio y la
+  // acción está en `TEXTOS_VISIBLES_CONTEXTUALES`.
+  const textoOverride = !accion.texto ? TEXTOS_VISIBLES_CONTEXTUALES[accion.id] : undefined;
+  const textoFinal = accion.texto ?? textoOverride;
+  const compactaIconoTexto = !!icon && !!textoOverride;
   return {
     id: accion.id,
     label: accion.label,
@@ -567,8 +601,9 @@ function decorarAccionBarra(accion: AccionContextual & { id: AccionBarraId }): A
       accion.id === "traer-enlaces" ||
       accion.id === "alinear-seleccion" ||
       accion.id === "distribuir-seleccion",
+    ...(compactaIconoTexto ? { compactaIconoTexto: true } : {}),
     ...(icon ? { icon } : {}),
-    ...(accion.texto ? { texto: accion.texto } : {}),
+    ...(textoFinal ? { texto: textoFinal } : {}),
   };
 }
 
@@ -629,8 +664,14 @@ export function anchoEstimadoBarra(cantidadBotones: number): number {
 
 export function anchoEstimadoAccionesBarra(acciones: readonly AccionBarra[]): number {
   if (acciones.length <= 0) return 0;
-  const botones = acciones.reduce((total, accion) => total + (accion.wide ? ANCHO_BOTON_TEXTO : ANCHO_BOTON), 0);
+  const botones = acciones.reduce((total, accion) => total + anchoBotonAccion(accion), 0);
   return PADDING_BARRA * 2 + botones + (acciones.length - 1) * GAP_BOTONES;
+}
+
+function anchoBotonAccion(accion: AccionBarra): number {
+  if (accion.compactaIconoTexto) return ANCHO_BOTON_ICONO_TEXTO;
+  if (accion.wide) return ANCHO_BOTON_TEXTO;
+  return ANCHO_BOTON;
 }
 
 export function anchoEstimadoControlesBarra(
@@ -820,9 +861,28 @@ const styles = {
     whiteSpace: "nowrap",
     border: 0,
   },
+  // Ronda24 L5 #9: texto visible junto al ícono en acciones compactas. Sin
+  // ellipsis: el ancho está pre-calculado para que el label más largo
+  // ("Desplegar") quepa completo.
+  botonTexto: {
+    fontFamily: "Arial, sans-serif",
+    fontSize: "11px",
+    fontWeight: 600,
+    lineHeight: 1,
+    whiteSpace: "nowrap",
+  },
 } satisfies Record<string, preact.JSX.CSSProperties>;
 
 function estiloBotonAccion(accion: AccionBarra): preact.JSX.CSSProperties {
   const base = accion.enabled ? styles.boton : styles.botonDeshabilitado;
-  return accion.wide ? { ...base, width: `${ANCHO_BOTON_TEXTO}px`, minWidth: `${ANCHO_BOTON_TEXTO}px` } : base;
+  if (accion.compactaIconoTexto) {
+    return {
+      ...base,
+      width: `${ANCHO_BOTON_ICONO_TEXTO}px`,
+      minWidth: `${ANCHO_BOTON_ICONO_TEXTO}px`,
+      gap: `${GAP_ICONO_TEXTO}px`,
+    };
+  }
+  if (accion.wide) return { ...base, width: `${ANCHO_BOTON_TEXTO}px`, minWidth: `${ANCHO_BOTON_TEXTO}px` };
+  return base;
 }
