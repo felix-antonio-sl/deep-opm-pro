@@ -86,21 +86,31 @@ export function formatearTiempoRelativo(ultimoMs: number, ahoraMs: number = Date
 }
 
 /**
- * Corte 3.5 sustracción de chrome: el chip colapsa a 3 estados literales
- * legibles desde un vistazo:
+ * Ronda 24 L2 #5: el copy del chip se descompone en 4 estados coherentes
+ * con el chip `● Auto` del toolbar. El criterio es si el modelo tiene
+ * identidad persistida (= el autosalvado periodico ya lo respalda) o no
+ * (= Ctrl+S es la accion necesaria para abrir Guardar como):
  *
- *   - "Guardado · HH:mm" cuando hay persistencia local sin cambios.
- *   - "Guardando…" durante un autosalvado en curso.
- *   - "Sin guardar · Ctrl+S" en cualquier otro caso (dirty, importado,
- *     asistente, fixture, modelo nuevo).
+ *   - "Guardado · HH:mm"     · local-clean sin guardado en curso.
+ *   - "Guardando…"           · cualquier variante con autosalvado en curso.
+ *   - "Cambios sin guardar"  · local-dirty (persistido + cambios en cola;
+ *                              el autosalvado periodico los recogera).
+ *   - "Sin guardar · Ctrl+S" · variantes no persistidas (importado,
+ *                              fixture, asistente, nuevo); el autosalvado
+ *                              no opera sobre ellas, hay que invocar
+ *                              Guardar como manualmente.
  *
- * La lógica interna de variantes se conserva para colorear estilos y
- * tooltip, pero el label público ya no expone el origen.
+ * Asi, "Sin guardar · Ctrl+S" deja de aparecer cuando el autosalvado activo
+ * respalda el modelo, eliminando el mensaje contradictorio "● Auto" + "Sin
+ * guardar".
  */
 export function labelChip(variante: VarianteChip, opts: { salvando?: boolean; horaGuardado?: string | null } = {}): string {
   if (opts.salvando) return "Guardando…";
   if (variante.tipo === "local-clean") {
     return opts.horaGuardado ? `Guardado · ${opts.horaGuardado}` : "Guardado";
+  }
+  if (variante.tipo === "local-dirty") {
+    return "Cambios sin guardar";
   }
   return "Sin guardar · Ctrl+S";
 }
@@ -270,8 +280,11 @@ const chipBase: preact.JSX.CSSProperties = {
 };
 
 /**
- * Corte 3.5 sustracción de chrome: el chip colapsa a 3 paletas visuales
- * alineadas con los 3 estados literales:
+ * Ronda 24 L2 #5: el chip conserva 3 paletas visuales (éxito / info /
+ * advertencia) sobre las 4 variantes de copy. El amarillo ámbar cubre
+ * tanto `local-dirty` ("Cambios sin guardar") como las no persistidas
+ * ("Sin guardar · Ctrl+S"); la paleta no distingue entre ambos porque
+ * ambos son "estados con acción pendiente":
  *  - `local-clean` sin guardado en curso → tokens de éxito (verde suave).
  *  - guardado en curso → tokens informacionales (azul suave).
  *  - cualquier otro caso → tokens de advertencia (dot ámbar implicito en

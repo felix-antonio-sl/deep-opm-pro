@@ -142,9 +142,12 @@ describe("ChipPersistencia · formatearHoraGuardado", () => {
   });
 });
 
-describe("ChipPersistencia · labelChip (Corte 3.5)", () => {
-  // Corte 3.5 sustracción de chrome: el chip colapsa a 3 estados literales,
-  // sin exponer el origen (importado/fixture/asistente/nuevo) en el label.
+describe("ChipPersistencia · labelChip (Ronda 24 L2 #5)", () => {
+  // Ronda 24 L2 #5: el copy se descompone en 4 estados coherentes con el chip
+  // `● Auto` del toolbar. `local-dirty` (persistido + cambios en cola) ya no
+  // dice "Sin guardar · Ctrl+S" porque el autosalvado periodico los recogera;
+  // dice "Cambios sin guardar". Las variantes no persistidas siguen diciendo
+  // "Sin guardar · Ctrl+S" porque el autosalvado no opera sobre ellas.
   test("local-clean sin hora → Guardado", () => {
     expect(labelChip(
       { tipo: "local-clean", versiones: 3, tiempoRelativo: null },
@@ -170,9 +173,9 @@ describe("ChipPersistencia · labelChip (Corte 3.5)", () => {
     )).toBe("Guardando…");
   });
 
-  test("local-dirty → Sin guardar · Ctrl+S", () => {
+  test("local-dirty (persistido + cambios) → Cambios sin guardar", () => {
     expect(labelChip({ tipo: "local-dirty", versiones: 3, tiempoRelativo: null })).toBe(
-      "Sin guardar · Ctrl+S",
+      "Cambios sin guardar",
     );
   });
 
@@ -210,7 +213,7 @@ describe("ChipPersistencia · detallarChip", () => {
       { tipo: "local-dirty", versiones: 1, tiempoRelativo: null },
       "Modelo X",
     );
-    expect(tooltip).toContain("Sin guardar · Ctrl+S");
+    expect(tooltip).toContain("Cambios sin guardar");
     expect(tooltip).toContain("Cambios pendientes: sí");
   });
 
