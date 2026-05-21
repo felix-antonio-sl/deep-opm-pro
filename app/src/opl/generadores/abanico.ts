@@ -64,6 +64,19 @@ export function oracionAbanico(modelo: Modelo, abanico: Abanico): string | null 
   const lista = listarOpl(otrosNombres);
   const puertoOpl = nombreOpl(puerto);
 
+  // SSOT OPL-ES §11.4 "Condición + XOR/OR": cuando todos los enlaces del abanico
+  // llevan modificador `condicion`, la oración canónica usa el patrón
+  // "ocurre si … existe, de lo contrario … se omite" en lugar del verbo directo.
+  // Solo se aplica si TODOS los enlaces son condicionales y comparten tipo;
+  // un abanico mixto (algunos con `condicion`, otros sin) recae en el comportamiento
+  // por defecto, porque la semántica condicional debe valer para todas las ramas.
+  const todosCondicionales = enlaces.every((enlace) => enlace.modificador === "condicion");
+  const mismoTipo = enlaces.every((enlace) => enlace.tipo === primer.tipo);
+  if (todosCondicionales && mismoTipo) {
+    const condicional = oracionAbanicoCondicional(primer.tipo, puertoOpl, cuantificador, lista, puertoEsOrigen);
+    if (condicional) return condicional;
+  }
+
   switch (primer.tipo) {
     case "agente":
       return puertoEsOrigen
@@ -87,6 +100,62 @@ export function oracionAbanico(modelo: Modelo, abanico: Abanico): string | null 
       return puertoEsOrigen
         ? `${puertoOpl} invoca ${cuantificador} ${lista}.`
         : `${puertoOpl} es invocado por ${cuantificador} ${lista}.`;
+    default:
+      return null;
+  }
+}
+
+/**
+ * Forma canónica de abanico XOR/OR combinado con modificador `condicion`.
+ * Derivada de SSOT opm-opl-es §11.4 y del patrón individual de `procedural.ts`
+ * (rama `case "condicion"` por tipo de enlace).
+ *
+ * Tabla por tipo × puertoEsOrigen:
+ * - instrumento + destino convergente (caso del bug): proceso ocurre si {cuant} {objetos} existe, ...
+ * - instrumento + origen divergente: {cuant} {procesos} ocurre si objeto existe, ...
+ * - consumo + destino convergente: proceso ocurre si {cuant} {objetos} existe, en cuyo caso lo consume, ...
+ * - consumo + origen divergente: poco común (objeto consumido por múltiples procesos como condición); espejo.
+ * - agente + destino convergente: proceso es manejado por {cuant} {agentes}, condicionalmente.
+ * - efecto: idéntico patrón al consumo, con "afecta" en vez de "consume".
+ *
+ * Casos sin canon explícito (resultado, invocacion + condicion + abanico) devuelven null
+ * y caen al comportamiento sin modificador. Marcados con TODO para revisión SSOT.
+ */
+function oracionAbanicoCondicional(
+  tipo: Enlace["tipo"],
+  puertoOpl: string,
+  cuantificador: string,
+  lista: string,
+  puertoEsOrigen: boolean,
+): string | null {
+  switch (tipo) {
+    case "instrumento":
+      return puertoEsOrigen
+        ? `${cuantificador} ${lista} ocurre si ${puertoOpl} existe, de lo contrario se omite.`
+        : `${puertoOpl} ocurre si ${cuantificador} ${lista} existe, de lo contrario ${puertoOpl} se omite.`;
+    case "consumo":
+      return puertoEsOrigen
+        ? `${cuantificador} ${lista} ocurre si ${puertoOpl} existe, en cuyo caso consume ${puertoOpl}, de lo contrario se omite.`
+        : `${puertoOpl} ocurre si ${cuantificador} ${lista} existe, en cuyo caso ${puertoOpl} consume ${lista}, de lo contrario ${puertoOpl} se omite.`;
+    case "agente":
+      return puertoEsOrigen
+        ? `${puertoOpl} maneja ${cuantificador} ${lista} si ${puertoOpl} existe, de lo contrario se omite.`
+        : `${puertoOpl} ocurre si ${cuantificador} ${lista} existe, en cuyo caso ${cuantificador} ${lista} maneja ${puertoOpl}, de lo contrario ${puertoOpl} se omite.`;
+    case "efecto":
+      return puertoEsOrigen
+        ? `${puertoOpl} ocurre si ${cuantificador} ${lista} existe, en cuyo caso ${puertoOpl} afecta ${lista}, de lo contrario ${puertoOpl} se omite.`
+        : `${cuantificador} ${lista} ocurre si ${puertoOpl} existe, en cuyo caso afecta ${puertoOpl}, de lo contrario se omite.`;
+    case "resultado":
+      // TODO: SSOT canónico pendiente para "resultado + condicion + abanico".
+      // En procedural.ts:304-307 la oración individual es semánticamente débil
+      // ("ocurre si X puede generarse"); replicarla a abanico sin canon explícito
+      // arriesga generar texto incorrecto. Mantengo comportamiento por defecto.
+      return null;
+    case "invocacion":
+      // TODO: SSOT canónico pendiente para "invocacion + condicion + abanico".
+      // procedural.ts:314-315 da forma individual ("X invoca Y si X ocurre") sin
+      // semántica "ocurre si ... de lo contrario ... se omite". Mantengo por defecto.
+      return null;
     default:
       return null;
   }
