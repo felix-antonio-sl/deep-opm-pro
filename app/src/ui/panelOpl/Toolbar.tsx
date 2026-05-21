@@ -50,11 +50,20 @@ export function ToolbarOpl(props: ToolbarOplProps) {
         type="button"
         data-testid="panel-opl-toggle-numeracion"
         style={botonActivo(props.numeracionVisible)}
-        title={props.numeracionVisible ? "Ocultar numeración" : "Mostrar numeración"}
+        title={
+          props.numeracionVisible
+            ? "Ocultar numeración de oraciones OPL"
+            : "Mostrar numeración de oraciones OPL"
+        }
+        aria-label={
+          props.numeracionVisible
+            ? "Ocultar numeración de oraciones OPL"
+            : "Mostrar numeración de oraciones OPL"
+        }
         aria-pressed={props.numeracionVisible}
         onClick={props.onToggleNumeracion}
       >
-        123
+        Nº
       </button>
       {/* Ronda23 L1 #5: vaporware AI Text apagado hasta que la feature exista.
           Antes (informe UI/UX 2026-05-07) el botón quedaba visible marcado como
