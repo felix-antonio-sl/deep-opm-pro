@@ -3,10 +3,10 @@
 **Fecha**: 2026-05-21
 **Repositorio**: `deep-opm-pro`
 **Rama**: `main`
-**Ultimo corte funcional**: cierre Ronda 23 — remediacion UI/UX derivada del audit jobs-web-ux contra produccion.
-**Ultimo commit en main**: `a631742 e2e: spec onboarding canvas precargado (ronda23/L3)`.
-**Ultimo corte deploy**: pendiente push + deploy desde `a631742` (los 18 commits de ronda23 viven solo en main local hasta autorizacion explicita del operador).
-**Corte**: ciclo completo de remediacion UI/UX ejecutado de forma autonoma vía 4 agentes steipete en 3 olas.
+**Ultimo corte funcional**: cierre Micro-Ronda 24 — detalles cosmeticos del audit jobs-web-ux original que quedaron fuera de la punch-list de ronda23.
+**Ultimo commit en main**: `7d0bea9 feat(mini-toolbar): labels visibles junto a iconos contextuales (ronda24/L5 #9)`.
+**Ultimo corte deploy**: pendiente push + deploy desde `7d0bea9` (9 commits de ronda24 viven solo en main local hasta autorizacion explicita del operador).
+**Corte**: cierre 100% del veredicto del audit jobs-web-ux excepto rediseno arquitectonico (chrome al 70% + copilot contextual generalizado) que requiere decision de producto separada.
 
 ## Política De Handoff Único
 
@@ -24,6 +24,76 @@
 - JointJS OSS: usar documentación oficial viva cuando se toque JointJS.
 
 ## Estado Actual
+
+### Cierre Micro-Ronda 24 — Detalles cosmeticos del audit jobs-web-ux — 2026-05-21
+
+Estado actual:
+
+- Rama `main` local en `7d0bea9`. `origin/main` aun en `e495513`. **9 commits sin pushear**.
+- Loop verde local: `bun run check` da `1486 unit pass / 0 fail`, `bun run browser:smoke`
+  da `218 passed / 1 skip intencional / 0 failed`.
+- Ola 1 (L1+L3+L4 paralelas): 5 commits — IDs internos ocultos como `title`, badge SSOT
+  decorativo eliminado y renombrado a "Cita", boton "123" → "Nº" con tooltip claro,
+  help inline en modo edicion libre del OPL, cluster Conectar contextual.
+- Ola 2 (L2+L5 paralelas): 4 commits — glifo Auto coherente, copy chip persistencia
+  desambiguado, hints inline en Esencia/Afiliacion del Inspector, labels visibles
+  en mini-toolbar contextual.
+
+Decisiones consolidadas:
+
+- Audit jobs-web-ux original tenia 15 items en punch-list (cerrados en ronda23) +
+  detalles menores no listados (cerrados en esta micro-ronda) + rediseno arquitectonico
+  (Opcion 3 del veredicto: chrome al 70% + copilot contextual generalizado).
+  El rediseno arquitectonico queda **archivado pendiente de decision de producto**
+  porque toca semantica de la app, no cosmetica.
+- Item #7 del veredicto (mover "+ Atributo" a contextual) ya estaba implementado
+  desde Corte 3.5; no requirio trabajo.
+- Item #11 (colapso menu 9→3) archivado: steipete lo identifico como decision de
+  producto (mata el comando "Buscar" global si se hace mal). Pendiente brief separado.
+- IDs internos del Inspector (`o-1`, `p-3`, `e-5`) se preservan como `title` HTML +
+  `data-*` para deeplinking y futuros copy-to-clipboard; no se renderizan como texto.
+- Badge SSOT renombrado a "Cita" (mas humano); `title="Cita SSOT: ..."` preservado
+  para contratos de tests Playwright.
+- Cluster "Conectar" del chrome: visible solo cuando hay 1+ entidad seleccionada o
+  modo enlace/creacion activo. Brief decia "2+" pero el agente detecto que el flujo
+  canonico es 1 origen + 1 destino via clic en canvas; priorizo intent sobre letra.
+- Mini-toolbar contextual: 3 acciones con label visible (Descomp./Desplegar/Alias),
+  +Estado queda solo-icono para no saturar el ancho.
+- Copy del chip de persistencia: `Guardado` / `Guardando…` / `Cambios sin guardar`
+  para variantes persistidas; `Sin guardar · Ctrl+S` solo para no persistidas
+  (importado, asistente, fixture, nuevo) donde Ctrl+S abre "Guardar como".
+
+Artefactos relevantes:
+
+- `docs/audits/ronda23-2026-05/` sigue siendo el paquete autoritativo del ciclo
+  (audit completo + briefs + screenshots pre/post). Esta micro-ronda no genera
+  paquete propio; la evidencia visual se preserva en commits + tests.
+- 9 commits en `main` local:
+  ```
+  7d0bea9 feat(mini-toolbar): labels visibles junto a iconos contextuales (ronda24/L5 #9)
+  c96e958 feat(inspector): hint inline en Esencia y Afiliacion (ronda24/L5 #8)
+  24ba60c fix(chip): copy persistencia coherente con autosalvado (ronda24/L2 #5)
+  3b846da style(toolbar): glifo Auto coherente con estado de autosalvado (ronda24/L2 #3)
+  e3b3fca feat(opl): help inline en modo edicion libre (ronda24/L3 #10)
+  28379d5 refactor(toolbar): cluster Conectar aparece solo con 2+ seleccionados (ronda24/L4 #6)
+  91116e8 refactor(diagnostico): elimina badge SSOT decorativo (ronda24/L1 #2)
+  d1b2428 refactor(inspector): oculta IDs internos del header (ronda24/L1 #1)
+  c85935f fix(opl): renombra boton 123 a Nº con tooltip claro (ronda24/L3 #4)
+  ```
+
+Validacion ejecutada por cada linea localmente. Pendiente:
+
+1. `git push origin main` para subir los 9 commits.
+2. Build y deploy de la imagen Docker desde `7d0bea9`.
+3. Re-audit Playwright contra produccion para confirmar visibilidad de cambios.
+
+Pendientes documentados (no en alcance de esta micro-ronda):
+
+- **Rediseno arquitectonico (Opcion 3 del veredicto jobs-web-ux)**:
+  - III.A: sustraccion del chrome al 70% (toolbar de 5 elementos planos).
+  - III.B: copilot contextual generalizado (sugerencias inline por elemento,
+    no panel separado).
+  Cualquiera de los dos requiere audit de impacto previo + decision de producto.
 
 ### Cierre Ronda 23 — Remediacion UI/UX Audit jobs-web-ux — 2026-05-21
 
