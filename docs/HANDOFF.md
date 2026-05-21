@@ -1,12 +1,12 @@
 # HANDOFF — Estado operativo del modelador OPM
 
-**Fecha**: 2026-05-21
+**Fecha**: 2026-05-22
 **Repositorio**: `deep-opm-pro`
 **Rama**: `main`
-**Ultimo corte funcional**: cierre Micro-Ronda 24 — detalles cosmeticos del audit jobs-web-ux original que quedaron fuera de la punch-list de ronda23.
-**Ultimo commit en main**: `7d0bea9 feat(mini-toolbar): labels visibles junto a iconos contextuales (ronda24/L5 #9)`.
-**Ultimo corte deploy**: pendiente push + deploy desde `7d0bea9` (9 commits de ronda24 viven solo en main local hasta autorizacion explicita del operador).
-**Corte**: cierre 100% del veredicto del audit jobs-web-ux excepto rediseno arquitectonico (chrome al 70% + copilot contextual generalizado) que requiere decision de producto separada.
+**Ultimo corte funcional**: cierre Ronda 25 — sustraccion arquitectonica del chrome (seccion III.A del veredicto jobs-web-ux original).
+**Ultimo commit en main**: `8ce4608 test(e2e): redirige asserts de plantillas y configuracion al menu principal (ronda25/L2 III.A)`.
+**Ultimo corte deploy**: pendiente push + deploy desde `8ce4608` (5 commits de ronda25 viven solo en main local hasta autorizacion explicita del operador).
+**Corte**: cierre de la sub-accion III.A del veredicto jobs-web-ux. III.B (copilot contextual generalizado) queda como unica sub-accion pendiente del veredicto original.
 
 ## Política De Handoff Único
 
@@ -24,6 +24,65 @@
 - JointJS OSS: usar documentación oficial viva cuando se toque JointJS.
 
 ## Estado Actual
+
+### Cierre Ronda 25 — III.A Sustraccion arquitectonica del chrome — 2026-05-22
+
+Estado actual:
+
+- Rama `main` local en `8ce4608`. `origin/main` aun en `af7fd7c`. **5 commits sin pushear**.
+- Loop verde local: `bun run check` da `1486 unit pass / 0 fail`, `bun run browser:smoke`
+  da `218 passed / 1 skip intencional / 0 failed`.
+- L1 (3 commits): eliminacion de Undo/Redo del chrome global + supresion de etiqueta
+  visible "Modelo" + tooltip de reversibilidad en ChipPersistencia. Atajos
+  `Ctrl+Z` / `Ctrl+Shift+Z` siguen funcionando. Cobertura semantica preservada
+  mediante reescritura de 06-undo-redo-dirty.spec.ts a atajos de teclado.
+- L2 (2 commits): eliminacion de 2 duplicaciones netas (Plantillas y
+  Configuracion residian en `☰` Modelo y en `⋯ Más`). Conservadas solo en
+  el menu principal. Seccion "Plantillas" del menu Mas eliminada por quedar
+  vacia. 12+ asserts en 4 specs reasignados.
+
+Decisiones consolidadas:
+
+- El veredicto jobs-web-ux original proponia "chrome al 70%" como rediseno
+  arquitectonico (seccion III.A). Steipete-orquestador auditando el chrome
+  post-ronda23+24 determino que ya estaba mas cerca de "5 elementos planos"
+  de lo que el veredicto suponia: solo "Modelo" tenia etiqueta visible,
+  los demas grupos solo tenian `aria-label`. La sub-accion real era mas
+  pequeña que lo descrito en el veredicto.
+- **NO fusionar `⋯ Más` en `☰ Modelo`**. `⋯ Más` contiene items criticos
+  sin destino alternativo (auto-layout, biblioteca-dock, toggle-grid,
+  modo-imagen-global, multi-seleccion). El palette Cmd-K es buscador, no
+  contenedor canonico de UI.
+- Undo/Redo sale del chrome visible. El power-user accede via Ctrl+Z;
+  el principiante descubre la reversibilidad mediante el tooltip enriquecido
+  del chip de persistencia ("Reversible con Ctrl+Z · rehacer con Ctrl+Shift+Z").
+- La duplicacion Plantillas/Configuracion entre `☰` y `⋯` era cosmetica
+  (mismo handler en ambos lugares). Resuelta dejando ambos items solo en
+  `☰` Modelo (contenedor canonico de operaciones de modelo).
+
+Artefactos relevantes:
+
+- 5 commits en `main` local:
+  ```
+  8ce4608 test(e2e): redirige asserts de plantillas y configuracion al menu principal (ronda25/L2 III.A)
+  9563f0a refactor(toolbar): elimina items duplicados Plantillas/Configuracion del menu Mas (ronda25/L2 III.A)
+  10ff13e test(e2e): migra asserts undo/redo a atajos teclado (ronda25/L1 III.A)
+  bd2d352 fix(chip): tooltip menciona reversibilidad con Ctrl+Z (ronda25/L1 III.A)
+  aa0f707 refactor(toolbar): elimina Undo/Redo y etiqueta Modelo del chrome (ronda25/L1 III.A)
+  ```
+
+Pendiente:
+
+1. `git push origin main` para subir los 5 commits.
+2. Build + deploy de la imagen Docker desde `8ce4608`.
+3. Re-audit Playwright contra produccion.
+
+Pendientes documentados (no en alcance):
+
+- **III.B del veredicto: copilot contextual generalizado**. Requiere decision
+  de producto separada porque cambia la metafora del producto (sugerencias
+  inline por elemento en vez de panel de Diagnostico). Es la unica sub-accion
+  del veredicto jobs-web-ux original que queda fuera de scope ejecutado.
 
 ### Cierre Micro-Ronda 24 — Detalles cosmeticos del audit jobs-web-ux — 2026-05-21
 
