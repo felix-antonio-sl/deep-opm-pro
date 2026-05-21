@@ -30,7 +30,7 @@ export function Toolbar() {
                     ? `Autosalvado activo · Último: ${new Date(autosalvado.ultimo).toLocaleTimeString("es-CL", { hour: "2-digit", minute: "2-digit" })}`
                     : "Autosalvado activo"}
                 >
-                  {autosalvado.salvando ? "●" : "○"} Auto
+                  ● Auto
                 </span>
               ) : null}
             </>
