@@ -52,12 +52,8 @@ export function ToolbarBase({ children, modelarSlot, conectarSlot, mapaSlot, sta
     crearProceso,
     crearAtributoNumerico,
     fijarModoCreacion,
-    deshacer,
-    rehacer,
     menuPrincipalAbierto,
     abrirDialogoComandos,
-    puedeDeshacer,
-    puedeRehacer,
     modelo,
     opdActivoId,
     seleccionId,
@@ -251,8 +247,14 @@ export function ToolbarBase({ children, modelarSlot, conectarSlot, mapaSlot, sta
 
   return (
     <>
+      {/* Ronda 25 L1 III.A: sustracción geométrica del chrome global. Se
+          elimina la etiqueta visible "Modelo" (sigue como aria-label para
+          accesibilidad) y los botones Undo/Redo del cluster: la
+          reversibilidad queda comunicada por el tooltip del ChipPersistencia
+          y los atajos Ctrl+Z / Ctrl+Shift+Z siguen activos via
+          `globalShortcutsPort`. Esto reduce densidad visual sin perder
+          funcionalidad ni esteerabilidad. */}
       <div role="group" aria-label="Modelo" style={style.cluster} data-slot="cluster-modelo" data-cluster="modelo">
-        <span style={style.clusterLabel}>Modelo</span>
         <div style={style.menuWrapper}>
           <button type="button" aria-haspopup="menu" aria-expanded={menuPrincipalAbierto} aria-label="Menú principal" title="Menú principal" style={style.iconButton} onClick={handleToggleMenuPrincipal}>☰</button>
           {/* P0-2: MenuPrincipal vive ahora en App.tsx para evitar
@@ -261,8 +263,6 @@ export function ToolbarBase({ children, modelarSlot, conectarSlot, mapaSlot, sta
         {/* Ronda 19 L5: slot estable para chip de persistencia en cluster Modelo. */}
         <ChipPersistencia />
         {statusSlot ?? null}
-        <button style={puedeDeshacer ? style.button : style.disabledButton} type="button" onClick={deshacer} disabled={!puedeDeshacer} aria-label="Deshacer" title="Deshacer · Ctrl+Z">↶</button>
-        <button style={puedeRehacer ? style.button : style.disabledButton} type="button" onClick={rehacer} disabled={!puedeRehacer} aria-label="Rehacer" title="Rehacer · Ctrl+Shift+Z">↷</button>
       </div>
       {esMobile ? null : (
       <div style={style.actions} data-testid="toolbar-actions-pesadas">
