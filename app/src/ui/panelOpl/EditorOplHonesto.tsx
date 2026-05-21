@@ -49,6 +49,23 @@ export function EditorOplHonesto(props: EditorOplHonestoProps) {
     >
       <div style={style.grupo} data-grupo="texto">
         <h4 style={style.titulo}>Texto editado</h4>
+        <aside
+          data-testid="panel-opl-editor-ayuda"
+          style={style.ayuda}
+          aria-label="Ayuda de sintaxis del editor OPL"
+        >
+          <div style={style.ayudaTitulo}>Sintaxis OPL en markdown</div>
+          <p style={style.ayudaTexto}>
+            Edita una oración por línea. Usá <strong>**negritas**</strong> para
+            cosas (objetos, procesos) y <em>*itálicas*</em> para estados. Cada
+            cambio reconocido se muestra en <strong>Cambios aplicables</strong>;
+            al pulsar <strong>Aplicar</strong> se sincronizan con el modelo.
+          </p>
+          <pre style={style.ayudaEjemplo} aria-label="Ejemplo de sintaxis OPL">
+            **Bomba** es un objeto físico y sistémico.{"\n"}
+            **Bomba** puede ser *encendida* o *apagada*.
+          </pre>
+        </aside>
         <textarea
           data-testid="panel-opl-editor-textarea"
           aria-label="Editor OPL libre"

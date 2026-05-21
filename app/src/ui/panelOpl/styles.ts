@@ -42,6 +42,41 @@ export const editorOplStyles = {
     background: tokens.colors.fondoChrome,
     tabSize: 2,
   },
+  // Ronda24 L3 #10: ayuda inline arriba del textarea. Aclara que se edita
+  // markdown OPL, qué marca cada delimitador y que aplicar sincroniza con
+  // el modelo. Tokens-only, sin hex literales nuevos.
+  ayuda: {
+    display: "grid",
+    gap: tokens.spacing.xs,
+    padding: tokens.spacing.sm,
+    border: `1px solid ${tokens.colors.bordeSuave}`,
+    borderRadius: tokens.radii.sm,
+    background: tokens.colors.fondoNeutral,
+    fontSize: tokens.typography.sizes.sm,
+    color: tokens.colors.textoSecundario,
+  },
+  ayudaTitulo: {
+    fontWeight: tokens.typography.weights.bold,
+    color: tokens.colors.textoPrimario,
+    fontSize: tokens.typography.sizes.sm,
+  },
+  ayudaTexto: {
+    margin: 0,
+    lineHeight: 1.45,
+    color: tokens.colors.textoSecundario,
+  },
+  ayudaEjemplo: {
+    margin: 0,
+    padding: tokens.spacing.xs,
+    border: `1px solid ${tokens.colors.bordeNeutral}`,
+    borderRadius: tokens.radii.xs,
+    background: tokens.colors.fondoChrome,
+    fontFamily: mono.fontFamily,
+    fontSize: tokens.typography.sizes.xs,
+    color: tokens.colors.textoPrimario,
+    whiteSpace: "pre-wrap" as const,
+    overflowX: "auto" as const,
+  },
   lista: {
     margin: 0,
     padding: 0,
