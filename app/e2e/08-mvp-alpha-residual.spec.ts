@@ -62,7 +62,9 @@ test("grid: toggle, configuración y snap al mover cosa", async ({ page }) => {
   await expect(page.getByTestId("toolbar-mas-toggle-grid")).toHaveAttribute("aria-pressed", "false");
   await page.keyboard.press("Escape");
   await clickToolbarMasItem(page, "toolbar-mas-toggle-grid");
-  await clickToolbarMasItem(page, "toolbar-mas-config-grid");
+  // Ronda 25 L2 III.A: Configuración… ya no se duplica en ⋯ Más; vive
+  // solamente en ☰ Menú principal (sección Modelo).
+  await abrirConfiguracionDesdeMenuPrincipal(page);
   const dialog = page.getByTestId("modal-config-grid");
   await expect(dialog).toBeVisible();
   await dialog.getByLabel("Paso").fill("20");
@@ -283,8 +285,24 @@ async function clickModoImagenGlobalDesdeMas(page: Page): Promise<void> {
   await expect(page.getByTestId("toolbar-mas-menu")).toHaveCount(0);
 }
 
-async function abrirPlantillasDesdeMas(page: Page): Promise<void> {
-  await clickToolbarMasItem(page, "toolbar-mas-plantillas");
+// Ronda 25 L2 III.A: "Plantillas…" y "Configuración…" se eliminan del
+// menú ⋯ Más por duplicación con el ☰ Menú principal. Los helpers ahora
+// invocan el menú principal, que es contenedor canónico de operaciones
+// de modelo (incluidas plantillas y configuración general).
+async function abrirPlantillasDesdeMenuPrincipal(page: Page): Promise<void> {
+  await page.getByLabel("Menú principal").click();
+  await page
+    .getByRole("menu", { name: "Menú principal" })
+    .getByRole("menuitem", { name: "Plantillas...", exact: true })
+    .click();
+}
+
+async function abrirConfiguracionDesdeMenuPrincipal(page: Page): Promise<void> {
+  await page.getByLabel("Menú principal").click();
+  await page
+    .getByRole("menu", { name: "Menú principal" })
+    .getByRole("menuitem", { name: "Configuración...", exact: true })
+    .click();
 }
 
 async function clickToolbarMasItem(page: Page, testId: string): Promise<void> {
@@ -416,7 +434,7 @@ test("HU-33.001/.002/.003: guarda plantilla privada y aparece en catálogo", asy
   await page.getByTestId("guardar-plantilla-confirmar").click();
   await expect(guardar).toHaveCount(0);
 
-  await abrirPlantillasDesdeMas(page);
+  await abrirPlantillasDesdeMenuPrincipal(page);
   const dialogo = page.getByTestId("dialogo-plantillas");
   await expect(dialogo).toBeVisible();
   await expect(dialogo.getByText("Mis plantillas")).toBeVisible();
@@ -442,7 +460,7 @@ test("HU-33.006/.007/.008/.009/.018: inserta plantilla con sufijo, sub-OPD y eti
     await page.getByLabel("Nombre").fill("Sensor");
   }
 
-  await abrirPlantillasDesdeMas(page);
+  await abrirPlantillasDesdeMenuPrincipal(page);
   const dialogo = page.getByTestId("dialogo-plantillas");
   await expect(dialogo.getByText("Plantilla inserción")).toBeVisible();
   await dialogo.getByTestId("insertar-plantilla").click();
@@ -467,7 +485,7 @@ test("HU-33.010: insertar plantilla enfoca temporalmente los ids nuevos", async 
   await page.goto("/");
   await cerrarPantallaInicioSiVisible(page);
   await instalarPlantillaSmoke(page, "plantilla-halo", modeloPlantillaSmoke());
-  await abrirPlantillasDesdeMas(page);
+  await abrirPlantillasDesdeMenuPrincipal(page);
   await page.getByTestId("insertar-plantilla").click();
 
   await expect(page.locator(".joint-element").filter({ has: page.locator('[stroke="#007DB8"]') }).first()).toBeVisible();
@@ -489,7 +507,7 @@ test("HU-33.022/.015: cancelar guardado no persiste y catálogo vacío muestra m
   await page.keyboard.press("Escape");
   await expect(page.getByTestId("dialogo-guardar-plantilla")).toHaveCount(0);
 
-  await abrirPlantillasDesdeMas(page);
+  await abrirPlantillasDesdeMenuPrincipal(page);
   const catalogo = page.getByTestId("dialogo-plantillas");
   await expect(catalogo.getByTestId("plantillas-vacio")).toContainText("Sin plantillas");
   await catalogo.getByTestId("plantillas-vacio-cta").click();

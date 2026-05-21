@@ -45,9 +45,16 @@ async function elementoEnPunto(page: Page, x: number, y: number): Promise<{ insi
   }, { x, y });
 }
 
-async function abrirConfigGridDesdeMas(page: Page): Promise<void> {
-  await page.getByTestId("toolbar-mas-trigger").click();
-  await page.getByTestId("toolbar-mas-config-grid").click();
+// Ronda 25 L2 III.A: "Configuración…" se eliminó del menú ⋯ Más por
+// duplicación con la entrada canónica en ☰ Menú principal (sección
+// Modelo). El sustrato modal verificado por esta spec es el mismo;
+// solamente cambia la ruta de invocación.
+async function abrirConfigGridDesdeMenuPrincipal(page: Page): Promise<void> {
+  await page.getByLabel("Menú principal").click();
+  await page
+    .getByRole("menu", { name: "Menú principal" })
+    .getByRole("menuitem", { name: "Configuración...", exact: true })
+    .click();
 }
 
 test("[L1] DialogoCargarModelo pinta sobre canvas+grid e interactua", async ({ page }) => {
@@ -87,7 +94,7 @@ test("[L1] DialogoConfiguracion pinta sobre canvas SVG y acepta edicion sin clic
   await cargarModeloEjemplo(page, "System Diagram");
   await expect(page.locator(".joint-paper svg")).toHaveCount(1);
 
-  await abrirConfigGridDesdeMas(page);
+  await abrirConfigGridDesdeMenuPrincipal(page);
   const modal = page.getByRole("dialog", { name: "Configuración" }).or(page.getByTestId("modal-config-grid"));
   await expect(modal.first()).toBeVisible();
   const bbox = await rectOf(modal.first());
@@ -129,7 +136,7 @@ test("[L1] DialogoConfiguracion expone aria-labelledby y Esc captura", async ({ 
   await cargarModeloEjemplo(page, "System Diagram");
   await expect(page.locator(".joint-paper svg")).toHaveCount(1);
 
-  await abrirConfigGridDesdeMas(page);
+  await abrirConfigGridDesdeMenuPrincipal(page);
 
   const modal = page.getByRole("dialog", { name: "Configuración" });
   await expect(modal).toBeVisible();

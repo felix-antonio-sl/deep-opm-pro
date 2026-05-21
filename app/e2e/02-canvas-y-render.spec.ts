@@ -626,7 +626,9 @@ test("L1 toolbar split conserva root y controles por modo", async ({ page }) => 
   await expect(page.getByRole("group", { name: "Ayuda" }).getByTestId("toolbar-mas-trigger")).toBeVisible();
   await page.getByTestId("toolbar-mas-trigger").click();
   await expect(page.getByTestId("toolbar-mas-toggle-grid")).toBeVisible();
-  await expect(page.getByTestId("toolbar-mas-config-grid")).toBeVisible();
+  // Ronda 25 L2 III.A: "Configuración…" migró al ☰ Menú principal
+  // (sección Modelo); ya no se duplica en ⋯ Más.
+  await expect(page.getByTestId("toolbar-mas-config-grid")).toHaveCount(0);
   await expect(page.getByTestId("toolbar-mas-auto-layout")).toBeVisible();
   await expect(page.getByTestId("toolbar-mas-biblioteca-dock")).toBeVisible();
   await expect(page.getByTestId("toolbar-mas-mapa")).toBeVisible();
@@ -646,8 +648,10 @@ test("L1 toolbar split conserva root y controles por modo", async ({ page }) => 
   // Ronda 24 L4 #6: tras crear y seleccionar el objeto, el cluster Conectar
   // se monta porque hay origen disponible.
   await expect(page.locator('[data-slot="cluster-conectar"]')).toBeVisible();
+  // Ronda 25 L2 III.A: "Plantillas…" migró al ☰ Menú principal (sección
+  // Plantillas); ya no se duplica en ⋯ Más.
   await page.getByTestId("toolbar-mas-trigger").click();
-  await expect(page.getByTestId("toolbar-mas-plantillas")).toBeVisible();
+  await expect(page.getByTestId("toolbar-mas-plantillas")).toHaveCount(0);
   await page.keyboard.press("Escape");
   await expect(page.getByTestId("abrir-menu-tipo-enlace")).toBeEnabled();
 

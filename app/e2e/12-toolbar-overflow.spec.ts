@@ -121,30 +121,50 @@ test("⋯ Más usa labels de estado estables para apariencia y vista", async ({ 
   expect(pageErrors).toEqual([]);
 });
 
-test("acciones movidas al menu Mas siguen invocables (plantillas, configuracion, modo imagen)", async ({ page }) => {
+test("plantillas y configuracion residen en el menu principal; modo imagen sigue en Mas", async ({ page }) => {
+  // Ronda 25 L2 III.A: "Plantillas…" y "Configuración…" se eliminaron del
+  // menú ⋯ Más por duplicación con sus entradas canónicas en el ☰ Menú
+  // principal (sección Plantillas y sección Modelo). El menú principal
+  // queda como contenedor canónico de operaciones del modelo; ⋯ Más
+  // queda reservado a apariencia/vista y acciones multi-selección. Modo
+  // imagen global pertenece a apariencia y se conserva en ⋯ Más.
   const pageErrors: string[] = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
   await cerrarPantallaInicioSiVisible(page);
 
-  // 1) Abrir Plantillas desde el menu Más.
+  // 1) Plantillas vive en ☰ Menú principal (sección Plantillas) y abre
+  //    el catálogo `Plantillas privadas`. Ya no aparece en ⋯ Más.
   await page.getByTestId("toolbar-mas-trigger").click();
-  await page.getByTestId("toolbar-mas-plantillas").click();
-  // El dialogo de plantillas se monta como "Plantillas privadas".
+  await expect(page.getByTestId("toolbar-mas-menu")).toBeVisible();
+  await expect(page.getByTestId("toolbar-mas-plantillas")).toHaveCount(0);
+  await page.keyboard.press("Escape");
+  await page.getByLabel("Menú principal").click();
+  await page
+    .getByRole("menu", { name: "Menú principal" })
+    .getByRole("menuitem", { name: "Plantillas...", exact: true })
+    .click();
   await expect(page.getByRole("dialog", { name: /[Pp]lantillas/ })).toBeVisible();
   await page.keyboard.press("Escape");
 
-  // 2) Abrir Configuración desde el menu Más.
+  // 2) Configuración vive en ☰ Menú principal (sección Modelo) y abre
+  //    `DialogoConfiguracion`. Ya no aparece en ⋯ Más.
   await page.getByTestId("toolbar-mas-trigger").click();
-  await page.getByTestId("toolbar-mas-config-grid").click();
+  await expect(page.getByTestId("toolbar-mas-config-grid")).toHaveCount(0);
+  await page.keyboard.press("Escape");
+  await page.getByLabel("Menú principal").click();
+  await page
+    .getByRole("menu", { name: "Menú principal" })
+    .getByRole("menuitem", { name: "Configuración...", exact: true })
+    .click();
   const dialogoConfig = page.getByTestId("modal-config-grid");
   await expect(dialogoConfig).toBeVisible();
   await dialogoConfig.getByRole("button", { name: "Cancelar" }).click();
   await expect(dialogoConfig).toHaveCount(0);
 
-  // 3) Cambiar modo imagen global desde el menu Más.
-  // Estado inicial: "por cosa" (uiModoImagenGlobal === null).
+  // 3) Cambiar modo imagen global desde el menu Más (sigue ahí como
+  //    acción de apariencia). Estado inicial: "por cosa" (uiModoImagenGlobal === null).
   await page.getByTestId("toolbar-mas-trigger").click();
   const itemModoImagen = page.getByTestId("toolbar-mas-modo-imagen-global");
   await expect(itemModoImagen).toBeVisible();
