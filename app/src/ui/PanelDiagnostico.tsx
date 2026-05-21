@@ -97,7 +97,9 @@ export function PanelDiagnostico() {
               data-aviso-codigo={citaActiva.codigo}
               style={style.citaDetalle}
             >
-              <strong>SSOT</strong>
+              {/* Ronda24/L1 #2: badge SSOT decorativo eliminado del header
+                  del detalle. El contenedor sigue identificado por su
+                  data-testid; la cita en sí es autodescriptiva. */}
               <span data-testid={`aviso-detalle-${citaActiva.codigo}`}>{citaActiva.cita}</span>
             </div>
           ) : null}
@@ -168,8 +170,12 @@ function Seccion(props: {
               style={style.cita}
               onClick={() => props.onCita({ codigo: grupo.testIdCodigo, cita: grupo.cita })}
               title={`Cita SSOT: ${grupo.cita}`}
+              aria-label={`Cita SSOT: ${grupo.cita}`}
             >
-              SSOT
+              {/* Ronda24/L1 #2: el label visible pasa de "SSOT" (jerga
+                  interna) a "Cita" — humano. El title y aria-label
+                  preservan la referencia SSOT como contrato técnico. */}
+              Cita
             </button>
           </article>
         ))}
