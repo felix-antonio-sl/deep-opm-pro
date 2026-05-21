@@ -17,6 +17,9 @@ export function SeccionEsenciaAfiliacion(props: Props) {
           <Segment label="Informacional" active={props.esencia === "informacional"} onClick={() => props.onEsencia("informacional")} />
           <Segment label="Física" active={props.esencia === "fisica"} onClick={() => props.onEsencia("fisica")} />
         </div>
+        <p data-testid="hint-esencia" style={style.hint}>
+          Informacional: datos, conceptos, ideas. Física: objetos tangibles.
+        </p>
       </div>
       <div style={style.field}>
         <span style={style.label}>Afiliación</span>
@@ -24,6 +27,9 @@ export function SeccionEsenciaAfiliacion(props: Props) {
           <Segment label="Sistémica" active={props.afiliacion === "sistemica"} onClick={() => props.onAfiliacion("sistemica")} />
           <Segment label="Ambiental" active={props.afiliacion === "ambiental"} onClick={() => props.onAfiliacion("ambiental")} />
         </div>
+        <p data-testid="hint-afiliacion" style={style.hint}>
+          Sistémica: parte del sistema. Ambiental: contexto externo.
+        </p>
       </div>
     </>
   );

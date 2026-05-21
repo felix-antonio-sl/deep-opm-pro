@@ -125,6 +125,15 @@ export const inspectorStyles = {
     fontSize: "12px",
     fontWeight: tokens.typography.weights.semibold,
   },
+  // ronda24 L5 #8 — hint inline pedagógico bajo segmentados binarios
+  // (Esencia, Afiliación). Texto sutil, sin recuadro, ≤80 chars.
+  hint: {
+    margin: 0,
+    color: tokens.colors.textoTerciario,
+    fontSize: `${tokens.typography.sizes.xs}px`,
+    fontWeight: tokens.typography.weights.medium,
+    lineHeight: 1.4,
+  },
   menu: {
     marginBottom: "10px",
   },
