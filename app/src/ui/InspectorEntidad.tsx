@@ -162,9 +162,15 @@ export function InspectorEntidad({ entidad }: Props) {
 
   return (
     <>
-      <div style={style.header}>
-        <span style={style.kind}>{entidad.tipo === "objeto" ? "Objeto" : "Proceso"}</span>
-        <code style={style.id}>{entidad.id}</code>
+      {/*
+        Ronda24/L1 #1: el ID interno (`o-1`, `p-3`, ...) se oculta de la UI
+        cotidiana porque ensucia el header con jerga del modelo. Sigue
+        accesible para deeplinking/debug como `title` del rótulo y como
+        atributo `data-entidad-id` en el header (consumible vía DOM o
+        herramientas de desarrollo).
+      */}
+      <div style={style.header} data-entidad-id={entidad.id}>
+        <span style={style.kind} title={entidad.id}>{entidad.tipo === "objeto" ? "Objeto" : "Proceso"}</span>
       </div>
       <label style={style.field}>
         <span style={style.label}>Nombre</span>

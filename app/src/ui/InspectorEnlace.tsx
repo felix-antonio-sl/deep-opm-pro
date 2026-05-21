@@ -217,9 +217,14 @@ export function InspectorEnlace({ enlace }: Props) {
 
   return (
     <>
-      <div style={style.header}>
-        <span style={style.kind}>Enlace {capitalizar(enlace.tipo)}</span>
-        <code style={style.id}>{enlace.id}</code>
+      {/*
+        Ronda24/L1 #1: el ID interno (`e-5`, ...) se oculta de la UI
+        cotidiana porque ensucia el header con jerga del modelo. Sigue
+        accesible como `title` del rótulo y como `data-enlace-id` en el
+        header para deeplinking/debug.
+      */}
+      <div style={style.header} data-enlace-id={enlace.id}>
+        <span style={style.kind} title={enlace.id}>Enlace {capitalizar(enlace.tipo)}</span>
       </div>
       <div style={style.summary}>
         <span>{origen ? nombreExtremo(modelo, enlace.origenId) : enlace.origenId.id}</span>
