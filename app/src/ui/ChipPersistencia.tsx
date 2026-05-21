@@ -163,6 +163,10 @@ export function detallarChip(
       lineas.push("Cambios pendientes: sí (aún no persistido)");
       break;
   }
+  // Ronda 25 L1 III.A: el chrome ya no muestra botones ↶/↷. La
+  // reversibilidad se comunica desde el tooltip del chip junto a los
+  // atajos Ctrl+Z / Ctrl+Shift+Z (siguen activos via globalShortcutsPort).
+  lineas.push("Reversible con Ctrl+Z · rehacer con Ctrl+Shift+Z");
   lineas.push("Click para Guardar como o nueva versión");
   return lineas.join("\n");
 }
