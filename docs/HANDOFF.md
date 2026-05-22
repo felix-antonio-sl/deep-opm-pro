@@ -3,10 +3,10 @@
 **Fecha**: 2026-05-22
 **Repositorio**: `deep-opm-pro`
 **Rama**: `main`
-**Ultimo corte funcional**: cierre Ronda 26 — bisimetria OPL completa (Tier 1+2). Parser ahora entiende eventos, condiciones, excepciones, abanicos XOR/OR, multiplicidad, rutas etiquetadas, designaciones de estado y plegado parcial.
-**Ultimo commit en main**: `64d11ce feat(opl-parser): cierra bisimetria de abanicos, multiplicidad y rutas (ronda26/L3+L4)`.
-**Ultimo corte deploy**: pendiente push + deploy de los 8 commits ronda26 (Ola 1: L1+L2+L5+L6; Ola 2: L3+L4) y el commit de archivo de bugs.
-**Corte**: cierre del veredicto jobs-web-ux original al 100% — el OPL pasa de unidireccional con islas a bisimetrico cubriendo §3 hasta §13 SSOT. Solo III.B (copilot contextual generalizado) queda como decision de producto separada.
+**Ultimo corte funcional**: cierre Ronda 27 III.A — chrome plano de 5 elementos. El boton `⋯ Más` desaparece; sus items canónicos se absorben como secciones Vista y Herramientas del menú principal `☰`. Acciones multi-selección viven en BarraHerramientasElemento contextual.
+**Ultimo commit en main**: `ded0df9 test(e2e): redirige specs Mas hacia menu principal (ronda27 III.A.C)`.
+**Ultimo corte deploy**: pendiente push + deploy de los 3 commits ronda27 (Sub-A: extiende MenuPrincipal; Sub-B: retira boton Mas del chrome; Sub-C: redirige specs e2e) sobre los 8 commits ronda26 ya pusheados.
+**Corte**: cierre del veredicto jobs-web-ux original §III.A al 100% — chrome final exhibe 5 controles planos exactos (☰ · ChipPersistencia · Objeto · Proceso · ⌕ Buscar). Solo III.B (copilot contextual generalizado) queda como decision de producto separada.
 
 ## Política De Handoff Único
 
@@ -24,6 +24,135 @@
 - JointJS OSS: usar documentación oficial viva cuando se toque JointJS.
 
 ## Estado Actual
+
+### Cierre Ronda 27 III.A — Chrome plano de 5 elementos — 2026-05-22
+
+Estado actual:
+
+- Rama `main` local en `ded0df9`. **3 commits sin push** sobre los 8 commits ronda26 ya pusheados (la auditoría inicial detectó `fd9e65a` como tip remoto; pendiente verificar al hacer push).
+- Loop unit verde: `bun run check` da `1555 unit pass / 0 fail / 5566 expects`.
+- Loop smoke verde: `bun run browser:smoke` da `219 pass / 1 skip`.
+- Bundle producción al inicio: `index-DplME2ZR.js`. Pendiente build + deploy de bundle nuevo.
+
+Contexto:
+
+El veredicto jobs-web-ux original §III.A pedía reducir el chrome al 70%:
+"Toolbar nueva, 5 elementos visibles: [☰ Modelo] [○ Objeto] [● Proceso]
+[⌘ Buscar] [● Autosalvado]". Antes de esta ronda el chrome tenía 6
+controles visibles (el sexto era `⋯ Más`) y el veredicto pedía
+explícitamente "Más colapsa con Modelo (un solo menú)".
+
+La auditoría in-vivo contra producción (`opforja.sanixai.com`) confirmó:
+
+- Chrome anterior: 6 botones — `☰`, `Sin guardar · Ctrl+S`, `Objeto`,
+  `Proceso`, `⌕ Buscar`, `⋯ Más`.
+- Menú `⋯ Más` contenía 9 items en estado base (Alias, Descripciones,
+  Imagen, Editar imagen, Cuadrícula, Auto-layout, Biblioteca dock,
+  Mapa del sistema, Simulación) + bloque condicional multi-selección
+  (Eliminar, Agregar como partes, Traer enlaces, 6 alinear, 2
+  distribuir, 4 alinear enlaces).
+
+La Ronda 27 III.A cerro en 3 sub-acciones secuenciales sobre `main`:
+
+**Sub-A** (`ca9d093`) — `feat(chrome): absorbe acciones de Mas en MenuPrincipal`:
+
+- `menuPrincipalViewModel` gana los selectores `toggleAliasVisibles`,
+  `toggleDescripcionesVisibles`, ciclo modo imagen global,
+  `toggleGrid`, `aplicarLayoutSugerido`, `toggleBibliotecaDock`,
+  `toggleVistaMapa`, `iniciarModoSimulacion` y `editarImagenObjetoSeleccionado`
+  desde `useZustandWorkbenchViewControlsPort` + `useZustandMapViewPort`.
+- `MenuPrincipal` agrega sección **Vista** (Alias, Descripciones,
+  Imagen, Editar imagen contextual, Cuadrícula, Biblioteca dock) y
+  amplía sección **Herramientas** con Auto-layout, Mapa del sistema y
+  Simulación conceptual.
+- `MenuItem` acepta `aria-pressed` via prop `activo` y `testId`
+  opcional. `itemActivo` agrega estilo toggle activo.
+- Decisión de diseño: preservar `data-testid="toolbar-mas-*"` heredados
+  en cada item migrado para que las 7 smokes históricas sigan
+  funcionando sin churn de testIds.
+
+**Sub-B** (`94fa2e9`) — `feat(chrome): retira boton Mas del cluster Ayuda`:
+
+- `ToolbarBase` deja de instanciar `ToolbarMas`. Eliminado:
+  `construirItemsMenuMas`, `purgarSeparadoresVacios`, tipo
+  `ParametrosItemsMas`, import de `ToolbarMas`, todos los selectores
+  ya desabsorbidos por MenuPrincipal.
+- Comentario inline explícito: chrome final = `[☰] [ChipPersistencia]
+  [Objeto] [Proceso] [⌕ Buscar]`. 5 elementos planos exactos.
+- `ToolbarMas.tsx` y su viewmodel/store permanecen como módulos vivos
+  sin montaje en chrome (reusables a futuro si se quiere otra dropdown
+  contextual). `toolbarMasAbierto` queda en false default; el test de
+  exclusividad mutua sigue verde porque la lógica del store no se
+  toca.
+
+**Sub-C** (`ded0df9`) — `test(e2e): redirige specs Mas hacia menu principal`:
+
+- `_smoke-helpers.ts` exporta `clickToolbarMasItem` canónico unificado:
+  abre menú principal `☰`, clickea el item por testId, verifica cierre
+  del menú.
+- 7 specs e2e actualizados:
+  - `02-canvas-y-render`: el cluster Ayuda audita `toolbar-mas-trigger.toHaveCount(0)`
+    y `toolbar-command-palette.toBeVisible()`.
+  - `04-arbol-y-pestanas`, `12-beta2-modo-simulacion`,
+    `14-canvas-fidelity`, `20-biblioteca-dock`: usan el helper canónico
+    y eliminan copias locales del helper.
+  - `08-mvp-alpha-residual`: el test "alinear selección" pasa de
+    `toolbar-mas-alinear-izq` (extinto) a `barra-alinear-seleccion`
+    (BarraHerramientasElemento contextual) — equivalencia funcional
+    porque `handleAlinearSeleccion = () => alinearSeleccion("izq")`.
+  - `12-toolbar-overflow`: reescrito completo. Tests nuevos:
+    - "toolbar plano III.A: exactamente 5 controles visibles" — ahora
+      verifica `total === 5` (no `<= 25`).
+    - "III.A cierre: el botón ⋯ Más desaparece del chrome" —
+      `toolbar-mas-trigger.toHaveCount(0)` + cluster Ayuda con un
+      solo botón.
+    - "menú principal absorbe los items del ⋯ Más" — verifica que los
+      6 testId heredados (`toolbar-mas-toggle-grid`, etc.) viven en
+      `☰`.
+    - "modo imagen global cicla desde ☰ → Vista" — verifica ciclo de
+      label `por cosa → imagen + nombre`.
+    - "plantillas y configuración en su sección canónica" — verifica
+      `☰ → Plantillas/Modelo`.
+    - "MenuPrincipal separa archivo, datos y herramientas" —
+      verifica visibilidad de Mapa, Simulación y Auto-layout como
+      menuitems del `☰`.
+
+Decisiones consolidadas:
+
+- **Conservar testid heredados** (`toolbar-mas-*`) en vez de renombrar:
+  evita churn cruzado en 7 specs, mantiene compatibilidad cognitiva
+  con quien lea el repo, y refleja honestamente la procedencia.
+  Trade-off: el prefijo `toolbar-mas-*` es semánticamente impreciso
+  (vive en `☰`, no en `⋯ Más` que ya no existe). Aceptable.
+- **Las multi-selección NO migran al `☰`**: ya están en
+  `BarraHerramientasElemento` contextual flotante sobre la selección
+  (Eliminar, Agregar como partes, Traer enlaces, Alinear, Distribuir).
+  Duplicarlas en el menú principal sería redundante.
+- **`Editar imagen del objeto…` solo visible si hay objeto**:
+  condicional en `MenuPrincipal` para no exhibir item disabled como
+  hacía el `⋯ Más`.
+- **`ToolbarMas.tsx` y su slice store no se eliminan**: ship beats
+  perfect. El componente está bien aislado, su lógica de portal +
+  posición es correcta, y eliminarlo agrega riesgo sin valor neto.
+  Queda como reserva.
+
+Artefactos relevantes:
+
+- 3 commits en `main` local sobre el tip ronda26:
+  ```
+  ded0df9 test(e2e): redirige specs Mas hacia menu principal (ronda27 III.A.C)
+  94fa2e9 feat(chrome): retira boton "Mas" del cluster Ayuda (ronda27 III.A.B)
+  ca9d093 feat(chrome): absorbe acciones de Mas en MenuPrincipal (ronda27 III.A.A)
+  ```
+
+Pendiente:
+
+1. `git push origin main` para subir los 3 commits ronda27 + verificar
+   estado del remoto respecto a ronda26.
+2. Build + deploy de la imagen Docker desde `ded0df9`.
+3. Validación visual con curl/Playwright sobre producción: confirmar
+   chrome de 5 elementos, ausencia del botón `⋯ Más`, presencia de
+   items Vista/Herramientas en el menú `☰`.
 
 ### Cierre Ronda 26 — Bisimetria OPL completa (Tier 1+2) — 2026-05-22
 
