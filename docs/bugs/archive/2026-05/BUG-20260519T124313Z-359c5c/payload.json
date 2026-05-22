@@ -1,0 +1,27 @@
+{
+  "id": "BUG-20260519T124313Z-359c5c",
+  "createdAt": "2026-05-19T12:43:13.957Z",
+  "text": "al mover una cosa aparecen un monton de enlaces que no estaban",
+  "context": {
+    "modeloId": "modelo-1",
+    "modeloNombre": "SD Sync",
+    "opdActivoId": "opd-35",
+    "opdActivoNombre": "SD1",
+    "seleccionEntidadId": null,
+    "seleccionEnlaceId": null,
+    "pestanaActivaId": "pestana-8840f5c4-240a-4d4e-9737-03091a11604c",
+    "vistaMapaActiva": false,
+    "url": "https://opforja.sanixai.com/",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+    "viewport": {
+      "width": 1920,
+      "height": 963,
+      "devicePixelRatio": 1
+    },
+    "capturedAt": "2026-05-19T12:43:08.306Z"
+  },
+  "screenshots": [
+    "screenshots/01-google-chrome-2026-05-19-08.42.08.png",
+    "screenshots/02-google-chrome-2026-05-19-08.42.14.png"
+  ]
+}
