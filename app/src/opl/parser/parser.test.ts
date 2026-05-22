@@ -165,6 +165,82 @@ describe("OPL reverse libre — parser SSOT alpha-lock", () => {
     expect(result.ast[0]).toMatchObject({ kind: "contexto", familia: "descomposicion" });
     expect(result.diagnosticos[0]).toMatchObject({ codigo: "unsupported-kernel", severidad: "warning" });
   });
+
+  test("evento ET-consumo aplica modificador 'evento' al enlace creado", () => {
+    const modelo = crearModelo("reverse");
+    const texto = [
+      "**Producto** es un objeto informacional y sistémico.",
+      "*Procesar* es un proceso informacional y sistémico.",
+      "**Producto** inicia *Procesar*, que consume **Producto**.",
+    ].join("\n");
+
+    const preview = planificarEdicionOplLibre(modelo, texto, { opdActivoId: modelo.opdRaizId });
+
+    expect(preview.diagnosticos.filter((d) => d.severidad === "error")).toHaveLength(0);
+    const patchEnlace = preview.patches.find((patch) => patch.tipo === "crear-enlace");
+    if (!patchEnlace || patchEnlace.tipo !== "crear-enlace") throw new Error("esperaba patch crear-enlace");
+    expect(patchEnlace.tipoEnlace).toBe("consumo");
+    expect(patchEnlace.modificador).toBe("evento");
+
+    const aplicado = must(aplicarPatchesOpl(modelo, preview.patches, modelo.opdRaizId));
+    const enlaceEvento = Object.values(aplicado.enlaces).find((enlace) => enlace.tipo === "consumo");
+    expect(enlaceEvento?.modificador).toBe("evento");
+    expect(enlaceEvento?.subtipoModificador).toBe("E");
+  });
+
+  test("evento sin sub-clausula ('X inicia Y') aplica modificador evento sobre invocacion", () => {
+    const modelo = crearModelo("reverse");
+    const texto = [
+      "*Disparador* es un proceso informacional y sistémico.",
+      "*Tarea* es un proceso informacional y sistémico.",
+      "*Disparador* inicia *Tarea*.",
+    ].join("\n");
+
+    const preview = planificarEdicionOplLibre(modelo, texto, { opdActivoId: modelo.opdRaizId });
+
+    expect(preview.diagnosticos.filter((d) => d.severidad === "error")).toHaveLength(0);
+    const patchEnlace = preview.patches.find((patch) => patch.tipo === "crear-enlace");
+    if (!patchEnlace || patchEnlace.tipo !== "crear-enlace") throw new Error("esperaba patch crear-enlace");
+    expect(patchEnlace.tipoEnlace).toBe("invocacion");
+    expect(patchEnlace.modificador).toBe("evento");
+
+    const aplicado = must(aplicarPatchesOpl(modelo, preview.patches, modelo.opdRaizId));
+    const enlaceInvocacion = Object.values(aplicado.enlaces).find((enlace) => enlace.tipo === "invocacion");
+    expect(enlaceInvocacion?.modificador).toBe("evento");
+  });
+
+  test("evento ETS2 con transicion aplica modificador efecto (estado en endpoint via D1)", () => {
+    // El objeto Pedido y sus estados se pre-crean: la oracion ETS2 solo agrega
+    // el enlace `efecto` con modificador "evento". El estado del iniciador se
+    // pasa como parte del extremo del enlace (D1), no como patch separado.
+    let modelo = crearModelo("reverse");
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 0, y: 0 }, "Pedido"));
+    const pedido = entidad(modelo, "Pedido");
+    modelo = must(crearEstadosIniciales(modelo, pedido)).modelo;
+    const [primero, segundo] = estadosDeEntidad(modelo, pedido);
+    if (!primero || !segundo) throw new Error("setup sin estados");
+    modelo = must(renombrarEstado(modelo, primero.id, "pendiente"));
+    modelo = must(renombrarEstado(modelo, segundo.id, "aprobado"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 200, y: 0 }, "Procesar"));
+
+    const texto = [
+      ...generarOpl(modelo),
+      "**Pedido** en `pendiente` inicia *Procesar*, que cambia **Pedido** de `pendiente` a `aprobado`.",
+    ].join("\n");
+
+    const preview = planificarEdicionOplLibre(modelo, texto, { opdActivoId: modelo.opdRaizId });
+
+    expect(preview.diagnosticos.filter((d) => d.severidad === "error")).toHaveLength(0);
+    const patchEvento = preview.patches.find(
+      (patch) => patch.tipo === "crear-enlace" && patch.tipoEnlace === "efecto"
+    );
+    if (!patchEvento || patchEvento.tipo !== "crear-enlace") throw new Error("esperaba patch crear-enlace efecto");
+    expect(patchEvento.modificador).toBe("evento");
+
+    const aplicado = must(aplicarPatchesOpl(modelo, preview.patches, modelo.opdRaizId));
+    const enlaceEvento = Object.values(aplicado.enlaces).find((enlace) => enlace.tipo === "efecto");
+    expect(enlaceEvento?.modificador).toBe("evento");
+  });
 });
 
 function entidad(modelo: Modelo, nombre: string): string {

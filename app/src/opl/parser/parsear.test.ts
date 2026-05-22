@@ -56,3 +56,126 @@ describe("parser OPL reverse base", () => {
     expect(noSoportada.diagnosticos[0]?.codigo).toBe("syntax-error");
   });
 });
+
+describe("parser OPL — eventos (SSOT §6: ET/EH/ETS/EHS)", () => {
+  test("ET-agente: 'X inicia y maneja Y' (subclausula implicita agente)", () => {
+    const result = parsearParrafoOpl("**Operador** inicia y maneja *Procesar*.");
+    expect(result.diagnosticos).toEqual([]);
+    expect(result.ast[0]).toMatchObject({
+      kind: "evento",
+      iniciador: "Operador",
+      proceso: "Procesar",
+      base: { tipoEnlace: "agente", objeto: "Operador", proceso: "Procesar" },
+    });
+  });
+
+  test("ET-invocacion: 'X inicia e invoca Y'", () => {
+    const result = parsearParrafoOpl("*Revisar* inicia e invoca *Aprobar*.");
+    expect(result.diagnosticos).toEqual([]);
+    expect(result.ast[0]).toMatchObject({
+      kind: "evento",
+      iniciador: "Revisar",
+      proceso: "Aprobar",
+      base: { tipoEnlace: "invocacion", origen: "Revisar", destino: "Aprobar" },
+    });
+  });
+
+  test("ET-instrumento (EH1): 'X inicia Y, que requiere X'", () => {
+    const result = parsearParrafoOpl("**Llave** inicia *Abrir*, que requiere **Llave**.");
+    expect(result.diagnosticos).toEqual([]);
+    expect(result.ast[0]).toMatchObject({
+      kind: "evento",
+      iniciador: "Llave",
+      proceso: "Abrir",
+      base: { tipoEnlace: "instrumento", proceso: "Abrir", objeto: "Llave" },
+    });
+  });
+
+  test("ET-consumo (ET1): 'X inicia Y, que consume X' con probabilidad descartable", () => {
+    const result = parsearParrafoOpl("**Producto** inicia *Procesar*, que consume **Producto** (probabilidad: 70%).");
+    expect(result.diagnosticos).toEqual([]);
+    expect(result.ast[0]).toMatchObject({
+      kind: "evento",
+      iniciador: "Producto",
+      proceso: "Procesar",
+      base: { tipoEnlace: "consumo", proceso: "Procesar", objeto: "Producto" },
+    });
+  });
+
+  test("ETS-consumo (ETS1): 'X en `s` inicia Y, que consume X en `s`'", () => {
+    const result = parsearParrafoOpl("**Pedido** en `pendiente` inicia *Procesar*, que consume **Pedido** en `pendiente`.");
+    expect(result.diagnosticos).toEqual([]);
+    expect(result.ast[0]).toMatchObject({
+      kind: "evento",
+      iniciador: "Pedido",
+      iniciadorEstado: "pendiente",
+      proceso: "Procesar",
+      base: { tipoEnlace: "consumo", proceso: "Procesar", objeto: "Pedido", estadoEntrada: "pendiente" },
+    });
+  });
+
+  test("ETS2 (transicion): 'X en `s1` inicia Y, que cambia X de `s1` a `s2`'", () => {
+    const result = parsearParrafoOpl("**Pedido** en `pendiente` inicia *Procesar*, que cambia **Pedido** de `pendiente` a `aprobado` (probabilidad: 70%).");
+    expect(result.diagnosticos).toEqual([]);
+    expect(result.ast[0]).toMatchObject({
+      kind: "evento",
+      iniciador: "Pedido",
+      iniciadorEstado: "pendiente",
+      proceso: "Procesar",
+      base: {
+        tipoEnlace: "efecto",
+        proceso: "Procesar",
+        objeto: "Pedido",
+        estadoEntrada: "pendiente",
+        estadoSalida: "aprobado",
+      },
+    });
+  });
+
+  test("EHS1: 'X en `s` inicia Y, que requiere X'", () => {
+    const result = parsearParrafoOpl("**Operador** en `disponible` inicia *Atender*, que requiere **Operador**.");
+    expect(result.diagnosticos).toEqual([]);
+    expect(result.ast[0]).toMatchObject({
+      kind: "evento",
+      iniciador: "Operador",
+      iniciadorEstado: "disponible",
+      proceso: "Atender",
+      base: { tipoEnlace: "instrumento", proceso: "Atender", objeto: "Operador" },
+    });
+  });
+
+  test("ET-resultado: 'Y inicia X, que genera Y'", () => {
+    const result = parsearParrafoOpl("**Producto** inicia *Fabricar*, que genera **Producto**.");
+    expect(result.diagnosticos).toEqual([]);
+    expect(result.ast[0]).toMatchObject({
+      kind: "evento",
+      iniciador: "Producto",
+      proceso: "Fabricar",
+      base: { tipoEnlace: "resultado", proceso: "Fabricar", objeto: "Producto" },
+    });
+  });
+
+  test("ET-efecto: 'X inicia Y, que afecta X'", () => {
+    const result = parsearParrafoOpl("**Pedido** inicia *Revisar*, que afecta **Pedido**.");
+    expect(result.diagnosticos).toEqual([]);
+    expect(result.ast[0]).toMatchObject({
+      kind: "evento",
+      iniciador: "Pedido",
+      proceso: "Revisar",
+      base: { tipoEnlace: "efecto", proceso: "Revisar", objeto: "Pedido" },
+    });
+  });
+
+  test("'X inicia Y' sin sub-clausula → evento + invocacion implicita (no base)", () => {
+    const result = parsearParrafoOpl("*Disparador* inicia *Procesar*.");
+    expect(result.diagnosticos).toEqual([]);
+    expect(result.ast[0]).toMatchObject({
+      kind: "evento",
+      iniciador: "Disparador",
+      proceso: "Procesar",
+    });
+    const evento = result.ast[0]!;
+    if (evento.kind !== "evento") throw new Error("esperaba evento");
+    expect(evento.base).toBeUndefined();
+  });
+});
