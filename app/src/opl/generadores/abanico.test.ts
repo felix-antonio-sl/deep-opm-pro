@@ -62,6 +62,21 @@ describe("abanico OPL", () => {
       "*Procesar* genera al menos uno de **Salida A** y **Salida B**.",
     );
   });
+
+  // BUG-20260519T200211Z-62ee85: en el modelo del bug, dos resultados del mismo
+  // proceso apuntan a la misma entidad (no a estados separados) y forman abanico.
+  // El comportamiento previo emitia "al menos uno de Objeto_2 y Objeto_2", duplicando
+  // el nombre y perdiendo cualquier estado individual. Tras el fix los nombres se
+  // deduplican y la oracion no repite el mismo extremo absurdamente.
+  test("OR de resultados al mismo objeto sin estados emite oracion deduplicada", () => {
+    const modelo = modeloResultadosMismaEntidad("O");
+    expect(oracionAbanico(modelo, modelo.abanicos!.ab1!)).toBe("*Procesar* genera **Objeto_2**.");
+  });
+
+  test("XOR de resultados al mismo objeto sin estados emite oracion deduplicada", () => {
+    const modelo = modeloResultadosMismaEntidad("XOR");
+    expect(oracionAbanico(modelo, modelo.abanicos!.ab1!)).toBe("*Procesar* genera **Objeto_2**.");
+  });
 });
 
 function modeloBase(operador: "O" | "XOR", modificador?: "condicion"): Modelo {
@@ -173,6 +188,29 @@ function modeloConsumosDesdeEstados(operador: "O" | "XOR"): Modelo {
       l2: { id: "l2", tipo: "consumo", origenId: { kind: "estado", id: "observado" }, destinoId: { kind: "entidad", id: "proceso", portId: "port-fan-proceso-destino" }, etiqueta: "" },
     },
     abanicos: { ab1: { id: "ab1", opdId: "opd", puertoComun: { entidadId: "proceso", lado: "destino", portId: "port-fan-proceso-destino" }, puertoEntidadId: "proceso", operador, enlaceIds: ["l1", "l2"] } },
+    nextSeq: 1,
+  };
+}
+
+// BUG-20260519T200211Z-62ee85: modelo del bug — dos resultados del mismo proceso
+// apuntan a la misma entidad (Objeto_2) sin estados; antes del fix producian
+// "Proceso genera al menos uno de Objeto_2 y Objeto_2".
+function modeloResultadosMismaEntidad(operador: "O" | "XOR"): Modelo {
+  return {
+    id: "m1",
+    nombre: "M",
+    opdRaizId: "opd",
+    opds: { opd: { id: "opd", nombre: "SD", padreId: null, apariencias: {}, enlaces: {} } },
+    entidades: {
+      proceso: { id: "proceso", tipo: "proceso", nombre: "Procesar", esencia: "informacional", afiliacion: "sistemica" },
+      objeto2: { id: "objeto2", tipo: "objeto", nombre: "Objeto_2", esencia: "informacional", afiliacion: "sistemica" },
+    },
+    estados: {},
+    enlaces: {
+      l1: { id: "l1", tipo: "resultado", origenId: { kind: "entidad", id: "proceso", portId: "port-fan-proceso-origen" }, destinoId: { kind: "entidad", id: "objeto2" }, etiqueta: "" },
+      l2: { id: "l2", tipo: "resultado", origenId: { kind: "entidad", id: "proceso", portId: "port-fan-proceso-origen" }, destinoId: { kind: "entidad", id: "objeto2" }, etiqueta: "" },
+    },
+    abanicos: { ab1: { id: "ab1", opdId: "opd", puertoComun: { entidadId: "proceso", lado: "origen", portId: "port-fan-proceso-origen" }, puertoEntidadId: "proceso", operador, enlaceIds: ["l1", "l2"] } },
     nextSeq: 1,
   };
 }

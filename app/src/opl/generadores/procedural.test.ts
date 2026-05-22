@@ -149,6 +149,30 @@ describe("procedural OPL", () => {
       "*Procesar* ocurre si **Producto** está en `calibrado`, de lo contrario *Procesar* se omite.",
     );
   });
+
+  // BUG-20260519T200211Z-62ee85: emision inconsistente del estado en enlaces.
+  // Sin ruta, sin modificador y sin pareja consumo/resultado para transicion,
+  // los enlaces consumo y resultado anclados a un estado deben preservar el
+  // estado en la oracion OPL (paridad con `oracionProcedimentalParaRuta`).
+  test("consumo solitario desde estado emite 'en `estado`' sin ruta", () => {
+    const modelo = modeloConEstados();
+    // borra el resultado para que el consumo quede solitario (no forma transicion).
+    delete (modelo.enlaces as Record<string, Enlace>).r1;
+    delete (modelo.opds.opd!.enlaces as Record<string, { id: string; enlaceId: string; opdId: string; vertices: never[] }>).ar1;
+    expect(oracionEnlaceConRuta(modelo, modelo.enlaces.c1!)).toBe(
+      "*Procesar* consume **Pedido** en `pendiente`.",
+    );
+  });
+
+  test("resultado solitario a estado emite 'en `estado`' sin ruta", () => {
+    const modelo = modeloConEstados();
+    // borra el consumo para que el resultado quede solitario (no forma transicion).
+    delete (modelo.enlaces as Record<string, Enlace>).c1;
+    delete (modelo.opds.opd!.enlaces as Record<string, { id: string; enlaceId: string; opdId: string; vertices: never[] }>).ac1;
+    expect(oracionEnlaceConRuta(modelo, modelo.enlaces.r1!)).toBe(
+      "*Procesar* genera **Pedido** en `aprobado`.",
+    );
+  });
 });
 
 function modeloBase(): Modelo {

@@ -48,12 +48,26 @@ export function oracionAbanico(modelo: Modelo, abanico: Abanico): string | null 
   const puerto = puertoComun ? modelo.entidades[puertoComun.entidadId] : undefined;
   if (!puertoComun || !puerto || !primer) return null;
 
+  // BUG-20260519T200211Z-62ee85: los nombres del abanico deben deduplicarse,
+  // porque dos enlaces que apuntan al mismo extremo (misma entidad sin estado
+  // diferenciado, o el mismo estado dos veces) generaban "al menos uno de X y X",
+  // texto que no representa el modelo. La oracion canonica de abanico requiere
+  // al menos dos extremos distintos; si la deduplicacion los reduce a uno solo,
+  // se devuelve la oracion individual del primer enlace en lugar del abanico.
   const otrosNombres: string[] = [];
+  const otrosKeys = new Set<string>();
   for (const enlace of enlaces) {
     const otro = extremoOpuestoAbanico(modelo, abanico, enlace);
     if (!otro) continue;
     const otraEnt = entidadDeExtremo(modelo, otro.extremo);
-    if (otraEnt) otrosNombres.push(nombreOplExtremo(modelo, otro.extremo, otro.multiplicidad));
+    if (!otraEnt) continue;
+    const clave = `${otro.extremo.kind}:${otro.extremo.id}`;
+    if (otrosKeys.has(clave)) continue;
+    otrosKeys.add(clave);
+    otrosNombres.push(nombreOplExtremo(modelo, otro.extremo, otro.multiplicidad));
+  }
+  if (otrosNombres.length === 1) {
+    return oracionEnlaceConRuta(modelo, primer);
   }
   if (otrosNombres.length < 2) return null;
 
