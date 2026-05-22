@@ -77,6 +77,22 @@ export const editorOplStyles = {
     whiteSpace: "pre-wrap" as const,
     overflowX: "auto" as const,
   },
+  // Ronda 26 / L6 B4: aviso contextual sobre familias OPL no editables desde
+  // el editor libre (abanicos, eventos, condiciones, excepciones se generan
+  // desde el canvas). Tokens-only, reusa la paleta de "no-aplicable" para que
+  // visualmente quede claro que es informacion sobre limites del editor,
+  // sin pasar a parecer un error de usuario.
+  avisoNoEditables: {
+    margin: 0,
+    padding: tokens.spacing.sm,
+    border: `1px solid ${sev.noAplicable.bordeIzq}`,
+    borderLeft: `3px solid ${sev.noAplicable.bordeIzq}`,
+    borderRadius: tokens.radii.sm,
+    background: sev.noAplicable.fondo,
+    color: sev.noAplicable.texto,
+    fontSize: tokens.typography.sizes.sm,
+    lineHeight: 1.45,
+  },
   lista: {
     margin: 0,
     padding: 0,

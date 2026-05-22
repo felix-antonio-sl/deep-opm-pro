@@ -4,11 +4,13 @@
 // Cierre del informe UI/UX 2026-05-07 línea 147: antes de aplicar debe quedar
 // claro qué cambios modificarán el modelo y cuáles son sólo texto.
 //
-// Tokens-only, sin hex literales nuevos. Preserva todos los testIds previos
-// (`panel-opl-editor-libre`, `panel-opl-editor-textarea`,
-// `panel-opl-editor-aplicar`, `panel-opl-editor-preview`,
-// `panel-opl-editor-diagnosticos`) para que los smokes existentes sigan
-// resolviendo, y agrega testIds nuevos por grupo y por línea clasificada.
+// Ronda 26 / L6 B4: además de los 4 grupos, cuando hay ≥1 línea no aplicable
+// por `forma-no-reconocida` o `inversa-no-soportada` (familias generadas
+// automáticamente desde el canvas — abanicos, eventos, condiciones,
+// excepciones), se muestra un aviso contextual sobre el editor. El mensaje
+// NO lista las familias soportadas (esa lista crece a medida que L1/L2/L5
+// merguen sus parsers); lista las NO soportadas, que es la frontera honesta
+// hoy. Los tooltips por línea complementan con la razón concreta.
 import { useMemo } from "preact/hooks";
 import {
   clasificarEdicionOpl,
@@ -17,6 +19,30 @@ import {
 } from "../../opl/clasificadorEdicion";
 import type { PrevisualizacionOplReverse } from "../../opl/parser";
 import { editorOplStyles as style } from "./styles";
+
+/**
+ * Mensaje canonico para el aviso contextual sobre familias no editables.
+ * Estable: si cambia, los smokes que lo asserten también deben actualizarse.
+ * El texto NO menciona las familias soportadas (descripcion, estados,
+ * enlaces procedurales, enlaces estructurales) — solo las NO soportadas hoy.
+ */
+export const AVISO_FAMILIAS_NO_EDITABLES_TEXTO =
+  "Algunas oraciones son generadas automáticamente desde el canvas y no pueden editarse desde aquí (abanicos, eventos, condiciones, excepciones).";
+
+/**
+ * Devuelve `true` si entre las líneas clasificadas hay ≥1 marcada como
+ * `no-aplicable` por una razón estructural (familia OPL no soportada por el
+ * parser/aplicador reverse), no por error de usuario (sintaxis, ambigüedad).
+ * Exportado para tests; el componente lo usa internamente.
+ */
+export function hayLineasGeneradasDelCanvas(lineas: LineaClasificada[]): boolean {
+  return lineas.some(
+    (linea) =>
+      linea.estado === "no-aplicable" &&
+      (linea.razon?.codigo === "forma-no-reconocida" ||
+        linea.razon?.codigo === "inversa-no-soportada"),
+  );
+}
 
 interface EditorOplHonestoProps {
   texto: string;
@@ -37,6 +63,10 @@ export function EditorOplHonesto(props: EditorOplHonestoProps) {
   const reconocidas = clasificacion.lineas.filter(
     (l) => l.estado === "aplicable" || l.estado === "no-aplicable" || l.estado === "sin-cambio",
   );
+
+  // Ronda 26 / L6 B4: cuando hay líneas no aplicables por familias generadas
+  // desde el canvas, mostrar el aviso contextual sobre el textarea.
+  const mostrarAvisoNoEditables = hayLineasGeneradasDelCanvas(clasificacion.lineas);
 
   const labelAplicar = etiquetaBotonAplicar(clasificacion.resumen.aplicables);
   const puedeAplicar = clasificacion.resumen.aplicables > 0;
@@ -66,6 +96,16 @@ export function EditorOplHonesto(props: EditorOplHonestoProps) {
             **Bomba** puede ser *encendida* o *apagada*.
           </pre>
         </aside>
+        {mostrarAvisoNoEditables ? (
+          <aside
+            data-testid="panel-opl-editor-aviso-no-editables"
+            style={style.avisoNoEditables}
+            role="note"
+            aria-label="Aviso sobre oraciones generadas desde el canvas"
+          >
+            {AVISO_FAMILIAS_NO_EDITABLES_TEXTO}
+          </aside>
+        ) : null}
         <textarea
           data-testid="panel-opl-editor-textarea"
           aria-label="Editor OPL libre"
@@ -187,8 +227,17 @@ function LineaItem(props: {
         : style.itemSinCambio),
   };
   // Tooltip: para no aplicables el title incluye razón canónica + cita SSOT.
+  // Para razones estructurales (familias generadas desde el canvas) extiende
+  // el tooltip con una nota explícita sobre el origen, ayudando al usuario a
+  // entender por qué la oración no es editable desde texto libre.
+  const esFamiliaCanvas =
+    linea.estado === "no-aplicable" &&
+    (linea.razon?.codigo === "forma-no-reconocida" ||
+      linea.razon?.codigo === "inversa-no-soportada");
   const tooltip = linea.estado === "no-aplicable" && linea.razon
-    ? `${linea.razon.texto} (${linea.razon.citaSsot})`
+    ? esFamiliaCanvas
+      ? `${linea.razon.texto} — esta oración se genera automáticamente desde el canvas; editala allí. (${linea.razon.citaSsot})`
+      : `${linea.razon.texto} (${linea.razon.citaSsot})`
     : undefined;
 
   return (
