@@ -1,0 +1,291 @@
+// [Ronda 26 / L6 B1] Catalogo extensible de fixtures para el framework de
+// roundtrip bisimetrico OPL. Cada fixture declara como construir un modelo
+// (programaticamente, usando operaciones canonicas) y la OPL canonica que
+// debe emitir `generarOpl` sobre ese modelo.
+//
+// Bisimetria que valida el framework (cf. `roundtrip.test.ts`):
+//   modeloInicial ─ generarOpl ─▶ opl1
+//   opl1 ─ planificarEdicionOplLibre(modeloVacio) ─▶ patches
+//   modeloVacio + patches ─ aplicarPatchesOpl ─▶ modeloRecuperado
+//   modeloRecuperado ─ generarOpl ─▶ opl2
+//   opl1 === opl2  (igualdad linea-por-linea, no solo set-equality)
+//
+// Hoy se cubren las familias bisimetricamente cerradas por el aplicador
+// (`aplicar.ts`): descripcion-cosa, estados (sincronizar-estados),
+// procedimentales sin estado, estructurales binarias. Las familias que el
+// parser entiende pero el aplicador NO inversa todavia (modificadores,
+// rutas, multiplicidades, refinamientos, abanicos) NO entran como fixtures
+// bisimetricos — caerian en `opl1 !== opl2` por diseno.
+//
+// Las lineas paralelas en curso (L1 eventos, L2 condicion+excepcion,
+// L5 designaciones+plegado) deben agregar sus propios fixtures con
+// `fixturesRoundtripExtra.push(...)` cuando merguen: la lista es mutable.
+
+import {
+  cambiarAfiliacion,
+  cambiarEsencia,
+  crearEnlace,
+  crearEstadosIniciales,
+  crearModelo,
+  crearObjeto,
+  crearProceso,
+  renombrarEstado,
+} from "../modelo/operaciones";
+import { estadosDeEntidad } from "../modelo/operaciones";
+import type { Id, Modelo, Resultado } from "../modelo/tipos";
+
+export interface FixtureRoundtrip {
+  /** Nombre estable para identificar la fixture en reportes de fallo. */
+  nombre: string;
+  /** Constructor puro: devuelve un modelo nuevo (sin compartir estado). */
+  construir: () => Modelo;
+  /** OPL canonica esperada como array de lineas (igual que `generarOpl`). */
+  oracionesEsperadas: string[];
+  /**
+   * Bisimetria estricta: si `true`, `generarOpl(modeloRecuperado)` debe
+   * coincidir linea por linea con la OPL inicial. Si `false`, la fixture
+   * se queda en la fase "modelo → OPL" sin exigir reverse aplicado
+   * (util para regresiones de bugs OPL que aun no tienen kernel reverse).
+   */
+  bisimetricaEstricta?: boolean;
+}
+
+/**
+ * Helper sin azucar: extrae el resultado o lanza para que las fixtures se
+ * construyan de forma lineal y los errores no se silencien.
+ */
+function must<T>(resultado: Resultado<T>): T {
+  if (!resultado.ok) throw new Error(resultado.error);
+  return resultado.value;
+}
+
+function entidadId(modelo: Modelo, nombre: string): Id {
+  const ent = Object.values(modelo.entidades).find((item) => item.nombre === nombre);
+  if (!ent) throw new Error(`fixture invalida: no existe entidad '${nombre}'`);
+  return ent.id;
+}
+
+// ── Fixtures bisimetricas iniciales (corte 08638a8) ──────────────────────
+//
+// Cubren las 8 familias declaradas en la mision L6 B1 que el aplicador
+// `aplicar.ts` puede recrear desde texto libre hoy. Cada bloque deja un
+// comentario corto explicando que pieza del aplicador valida.
+
+/** Fixture 1: descripcion de objeto solitario (default fisico+sistemico). */
+const fixtureObjetoSolo: FixtureRoundtrip = {
+  nombre: "entidad-objeto-sola",
+  construir: () => {
+    let m = crearModelo("M");
+    m = must(crearObjeto(m, m.opdRaizId, { x: 0, y: 0 }, "Carro"));
+    return m;
+  },
+  oracionesEsperadas: ["**Carro** es un objeto informacional y sistémico."],
+  bisimetricaEstricta: true,
+};
+
+/** Fixture 2: descripcion de proceso solitario. */
+const fixtureProcesoSolo: FixtureRoundtrip = {
+  nombre: "entidad-proceso-sola",
+  construir: () => {
+    let m = crearModelo("M");
+    m = must(crearProceso(m, m.opdRaizId, { x: 0, y: 0 }, "Procesar"));
+    return m;
+  },
+  oracionesEsperadas: ["*Procesar* es un proceso informacional y sistémico."],
+  bisimetricaEstricta: true,
+};
+
+/** Fixture 3: objeto con esencia fisica y afiliacion ambiental. */
+const fixtureObjetoEsenciaAfiliacion: FixtureRoundtrip = {
+  nombre: "entidad-objeto-fisica-ambiental",
+  construir: () => {
+    let m = crearModelo("M");
+    m = must(crearObjeto(m, m.opdRaizId, { x: 0, y: 0 }, "Bomba"));
+    const id = entidadId(m, "Bomba");
+    m = must(cambiarEsencia(m, id, "fisica"));
+    m = must(cambiarAfiliacion(m, id, "ambiental"));
+    return m;
+  },
+  oracionesEsperadas: ["**Bomba** es un objeto físico y ambiental."],
+  bisimetricaEstricta: true,
+};
+
+/**
+ * Fixture 4: objeto con dos estados (sincronizar-estados + designaciones default).
+ *
+ * NO es bisimetricamente estricta hoy: el aplicador `aplicar.ts` requiere que la
+ * entidad exista en el modelo de entrada para sincronizar sus estados. Cuando
+ * todo se construye desde texto libre sobre un modelo vacio, el patch
+ * `crear-entidad` (linea 1) se aplica antes que `sincronizar-estados` (linea 2),
+ * pero el PLANIFICADOR procesa AST linea a linea contra el modelo ANTERIOR a los
+ * patches, por lo que en linea 2 el objeto aun no existe y se emite diagnostico
+ * `unknown-symbol` en vez del patch. Documentado como limitacion real del
+ * reverse-aplicador; cuando L5 (designaciones + plegado) cierre el ciclo
+ * estado-objeto, esta fixture deberia subir a estricta.
+ */
+const fixtureObjetoConEstados: FixtureRoundtrip = {
+  nombre: "objeto-con-estados",
+  construir: () => {
+    let m = crearModelo("M");
+    m = must(crearObjeto(m, m.opdRaizId, { x: 0, y: 0 }, "Pedido"));
+    const id = entidadId(m, "Pedido");
+    m = must(crearEstadosIniciales(m, id)).modelo;
+    const [s1, s2] = estadosDeEntidad(m, id);
+    if (!s1 || !s2) throw new Error("fixture invalida: estados iniciales");
+    m = must(renombrarEstado(m, s1.id, "pendiente"));
+    m = must(renombrarEstado(m, s2.id, "aprobado"));
+    return m;
+  },
+  oracionesEsperadas: [
+    "**Pedido** es un objeto informacional y sistémico.",
+    "**Pedido** puede ser `pendiente` o `aprobado`.",
+  ],
+  bisimetricaEstricta: false,
+};
+
+/** Fixture 5: enlace consumo simple (sin estado, sin modificador). */
+const fixtureConsumoSimple: FixtureRoundtrip = {
+  nombre: "enlace-consumo-simple",
+  construir: () => {
+    let m = crearModelo("M");
+    m = must(crearObjeto(m, m.opdRaizId, { x: 0, y: 0 }, "Entrada"));
+    m = must(crearProceso(m, m.opdRaizId, { x: 200, y: 0 }, "Procesar"));
+    m = must(crearEnlace(m, m.opdRaizId, entidadId(m, "Entrada"), entidadId(m, "Procesar"), "consumo"));
+    return m;
+  },
+  oracionesEsperadas: [
+    "**Entrada** es un objeto informacional y sistémico.",
+    "*Procesar* es un proceso informacional y sistémico.",
+    "*Procesar* consume **Entrada**.",
+  ],
+  bisimetricaEstricta: true,
+};
+
+/** Fixture 6: enlace resultado simple. */
+const fixtureResultadoSimple: FixtureRoundtrip = {
+  nombre: "enlace-resultado-simple",
+  construir: () => {
+    let m = crearModelo("M");
+    m = must(crearProceso(m, m.opdRaizId, { x: 0, y: 0 }, "Procesar"));
+    m = must(crearObjeto(m, m.opdRaizId, { x: 200, y: 0 }, "Salida"));
+    m = must(crearEnlace(m, m.opdRaizId, entidadId(m, "Procesar"), entidadId(m, "Salida"), "resultado"));
+    return m;
+  },
+  oracionesEsperadas: [
+    "*Procesar* es un proceso informacional y sistémico.",
+    "**Salida** es un objeto informacional y sistémico.",
+    "*Procesar* genera **Salida**.",
+  ],
+  bisimetricaEstricta: true,
+};
+
+/** Fixture 7: enlace instrumento ("requiere"). */
+const fixtureInstrumentoSimple: FixtureRoundtrip = {
+  nombre: "enlace-instrumento-simple",
+  construir: () => {
+    let m = crearModelo("M");
+    m = must(crearObjeto(m, m.opdRaizId, { x: 0, y: 0 }, "Herramienta"));
+    m = must(crearProceso(m, m.opdRaizId, { x: 200, y: 0 }, "Procesar"));
+    m = must(crearEnlace(m, m.opdRaizId, entidadId(m, "Herramienta"), entidadId(m, "Procesar"), "instrumento"));
+    return m;
+  },
+  oracionesEsperadas: [
+    "**Herramienta** es un objeto informacional y sistémico.",
+    "*Procesar* es un proceso informacional y sistémico.",
+    "*Procesar* requiere **Herramienta**.",
+  ],
+  bisimetricaEstricta: true,
+};
+
+/** Fixture 8: enlace agente ("maneja"). */
+const fixtureAgenteSimple: FixtureRoundtrip = {
+  nombre: "enlace-agente-simple",
+  construir: () => {
+    let m = crearModelo("M");
+    m = must(crearObjeto(m, m.opdRaizId, { x: 0, y: 0 }, "Operador"));
+    m = must(crearProceso(m, m.opdRaizId, { x: 200, y: 0 }, "Procesar"));
+    m = must(cambiarEsencia(m, entidadId(m, "Operador"), "fisica"));
+    m = must(crearEnlace(m, m.opdRaizId, entidadId(m, "Operador"), entidadId(m, "Procesar"), "agente"));
+    return m;
+  },
+  oracionesEsperadas: [
+    "**Operador** es un objeto físico y sistémico.",
+    "*Procesar* es un proceso informacional y sistémico.",
+    "**Operador** maneja *Procesar*.",
+  ],
+  bisimetricaEstricta: true,
+};
+
+/** Fixture 9: enlace estructural agregacion. */
+const fixtureAgregacion: FixtureRoundtrip = {
+  nombre: "enlace-estructural-agregacion",
+  construir: () => {
+    let m = crearModelo("M");
+    m = must(crearObjeto(m, m.opdRaizId, { x: 0, y: 0 }, "Vehiculo"));
+    m = must(crearObjeto(m, m.opdRaizId, { x: 200, y: 0 }, "Motor"));
+    m = must(crearEnlace(m, m.opdRaizId, entidadId(m, "Vehiculo"), entidadId(m, "Motor"), "agregacion"));
+    return m;
+  },
+  oracionesEsperadas: [
+    "**Vehiculo** es un objeto informacional y sistémico.",
+    "**Motor** es un objeto informacional y sistémico.",
+    "**Vehiculo** consta de **Motor**.",
+  ],
+  bisimetricaEstricta: true,
+};
+
+/** Fixture 10: enlace estructural generalizacion. */
+const fixtureGeneralizacion: FixtureRoundtrip = {
+  nombre: "enlace-estructural-generalizacion",
+  construir: () => {
+    let m = crearModelo("M");
+    m = must(crearObjeto(m, m.opdRaizId, { x: 0, y: 0 }, "Vehiculo"));
+    m = must(crearObjeto(m, m.opdRaizId, { x: 200, y: 0 }, "Camion"));
+    m = must(crearEnlace(m, m.opdRaizId, entidadId(m, "Vehiculo"), entidadId(m, "Camion"), "generalizacion"));
+    return m;
+  },
+  oracionesEsperadas: [
+    "**Vehiculo** es un objeto informacional y sistémico.",
+    "**Camion** es un objeto informacional y sistémico.",
+    "**Camion** es un **Vehiculo**.",
+  ],
+  bisimetricaEstricta: true,
+};
+
+/**
+ * Catalogo nucleo bisimetrico, congelado al cierre del L6 (ronda 26).
+ * No mutes esta lista en el mismo archivo: agrega tus fixtures nuevas
+ * (eventos, condicion+excepcion, designaciones+plegado, etc.) al array
+ * `fixturesRoundtripExtra` desde la linea paralela correspondiente cuando
+ * merguen, asi se mantiene la separacion entre nucleo y extension.
+ */
+export const fixturesRoundtripNucleo: readonly FixtureRoundtrip[] = [
+  fixtureObjetoSolo,
+  fixtureProcesoSolo,
+  fixtureObjetoEsenciaAfiliacion,
+  fixtureObjetoConEstados,
+  fixtureConsumoSimple,
+  fixtureResultadoSimple,
+  fixtureInstrumentoSimple,
+  fixtureAgenteSimple,
+  fixtureAgregacion,
+  fixtureGeneralizacion,
+] as const;
+
+/**
+ * Array MUTABLE de extension. Las lineas L1/L2/L5 (y futuras) pueden hacer
+ * `import { fixturesRoundtripExtra } from "./fixtures-roundtrip";` y
+ * pushear sus fixtures aqui — o, mejor, abrir un archivo nuevo
+ * (`fixtures-roundtrip-eventos.ts`) que `export const ... = [...]` y
+ * desde un init re-exportarlas. Lo que NO se debe hacer es mutar el nucleo.
+ */
+export const fixturesRoundtripExtra: FixtureRoundtrip[] = [];
+
+/**
+ * Vista combinada nucleo + extension para que los tests no tengan que
+ * importar dos arrays. Se evalua en cada llamada — las extensiones
+ * agregadas en otros archivos del repo aparecen automaticamente.
+ */
+export function fixturesRoundtrip(): readonly FixtureRoundtrip[] {
+  return [...fixturesRoundtripNucleo, ...fixturesRoundtripExtra];
+}
