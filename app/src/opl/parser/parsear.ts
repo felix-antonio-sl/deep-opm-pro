@@ -1,5 +1,5 @@
 import type { Afiliacion, DesignacionEstado, Esencia, TipoEntidad } from "../../modelo/tipos";
-import type { DiagnosticoOpl, LineaOplNormalizada, OracionOplAst, ParseResultOpl } from "./tipos";
+import type { AstProcedimentalBase, DiagnosticoOpl, LineaOplNormalizada, OracionOplAst, ParseResultOpl } from "./tipos";
 
 const PUNTO_FINAL = /\.\s*$/;
 const ETIQUETA_SUFIX = /\s*\[etiqueta:\s*([^\]]+)\]\s*$/i;
@@ -70,6 +70,9 @@ function limpiarMarkdown(texto: string): string {
 function parsearOracion(texto: string, linea: LineaOplNormalizada): { ast: OracionOplAst; diagnosticos: DiagnosticoOpl[] } {
   return parsearDescripcion(texto, linea)
     ?? parsearEstados(texto, linea)
+    ?? parsearEvento(texto, linea)
+    ?? parsearExcepcion(texto, linea)
+    ?? parsearCondicion(texto, linea)
     ?? parsearProcedimental(texto, linea)
     ?? parsearEstructural(texto, linea)
     ?? parsearDesignacionEstado(texto, linea)
@@ -115,6 +118,352 @@ function parsearEstados(texto: string, linea: LineaOplNormalizada) {
       linea: linea.linea,
       objeto: normalizarNombreOpl(match[1] ?? ""),
       estados: dividirLista(match[2] ?? "", "o").map(limpiarEstado).filter(Boolean),
+      ...(linea.etiqueta ? { etiqueta: linea.etiqueta } : {}),
+    },
+    diagnosticos: [],
+  };
+}
+
+// SSOT §8.1 EX1/EX2: "X ocurre si duracion de Y excede N unidad" o
+// "X ocurre si duracion de Y es menor que N unidad". Captura valor numerico
+// crudo y unidad textual; el aplicador persiste tal cual en `tiempoMaximo` /
+// `unidadTiempoMaximo` (resp. minimo) sobre el enlace.
+const EXCEPCION_SOBRETIEMPO_RE =
+  /^(.+?)\s+ocurre\s+si\s+duraci[oó]n\s+de\s+(.+?)\s+excede\s+(\d+(?:[.,]\d+)?)\s+(.+?)$/iu;
+const EXCEPCION_SUBTIEMPO_RE =
+  /^(.+?)\s+ocurre\s+si\s+duraci[oó]n\s+de\s+(.+?)\s+es\s+menor\s+que\s+(\d+(?:[.,]\d+)?)\s+(.+?)$/iu;
+
+function parsearExcepcion(texto: string, linea: LineaOplNormalizada) {
+  const sobretiempo = EXCEPCION_SOBRETIEMPO_RE.exec(texto);
+  if (sobretiempo) {
+    return astExcepcion(linea, {
+      proceso: normalizarNombreOpl(sobretiempo[1] ?? ""),
+      fuente: normalizarNombreOpl(sobretiempo[2] ?? ""),
+      limite: { tipo: "max", valor: (sobretiempo[3] ?? "").trim(), unidad: (sobretiempo[4] ?? "").trim() },
+    });
+  }
+  const subtiempo = EXCEPCION_SUBTIEMPO_RE.exec(texto);
+  if (subtiempo) {
+    return astExcepcion(linea, {
+      proceso: normalizarNombreOpl(subtiempo[1] ?? ""),
+      fuente: normalizarNombreOpl(subtiempo[2] ?? ""),
+      limite: { tipo: "min", valor: (subtiempo[3] ?? "").trim(), unidad: (subtiempo[4] ?? "").trim() },
+    });
+  }
+  return null;
+}
+
+function astExcepcion(
+  linea: LineaOplNormalizada,
+  payload: { proceso: string; fuente: string; limite: { tipo: "max" | "min"; valor: string; unidad: string } },
+) {
+  return {
+    ast: {
+      kind: "excepcion" as const,
+      linea: linea.linea,
+      proceso: payload.proceso,
+      fuente: payload.fuente,
+      limite: payload.limite,
+      ...(linea.etiqueta ? { etiqueta: linea.etiqueta } : {}),
+    },
+    diagnosticos: [],
+  };
+}
+
+// SSOT §7: condiciones transformadoras (CT1/CT2/CS2..CS4), habilitadoras
+// (CH1/CH2/CS5/CS6) y con estado especificado (CS1/CS6). El estado puede
+// venir con backticks crudos o sin ellos (limpiarMarkdown los elimina del
+// texto antes de llegar aqui), por eso `\\`?` es opcional.
+const CONDICION_OCURRE_RE =
+  /^(.+?)\s+ocurre\s+si\s+(.+?)\s+(?:(existe)|est[aá]\s+en\s+`?([^`,]+?)`?)(?:,\s*en\s+cuyo\s+caso\s+(.+?))?,\s*de\s+lo\s+contrario\s+(.+?)\s+se\s+omite$/iu;
+const CONDICION_AGENTE_RE =
+  /^(.+?)\s+maneja\s+(.+?)\s+si\s+(.+?)\s+(?:(existe)|est[aá]\s+en\s+`?([^`,]+?)`?),\s*de\s+lo\s+contrario\s+(.+?)\s+se\s+omite$/iu;
+
+function parsearCondicion(texto: string, linea: LineaOplNormalizada) {
+  const agente = CONDICION_AGENTE_RE.exec(texto);
+  if (agente) {
+    const proceso = normalizarNombreOpl(agente[2] ?? "");
+    const condicionante = normalizarNombreOpl(agente[1] ?? "");
+    const procesoOmitido = normalizarNombreOpl(agente[6] ?? "");
+    if (claveNombre(procesoOmitido) !== claveNombre(proceso)) return null;
+    const estado = agente[5] ? limpiarEstado(agente[5]) : undefined;
+    return astCondicion(linea, {
+      proceso,
+      condicionante,
+      ...(estado ? { condicionanteEstado: estado } : {}),
+      base: "agente",
+      sinConsecuencia: true,
+    });
+  }
+
+  const ocurre = CONDICION_OCURRE_RE.exec(texto);
+  if (!ocurre) return null;
+
+  const proceso = normalizarNombreOpl(ocurre[1] ?? "");
+  const condicionante = normalizarNombreOpl(ocurre[2] ?? "");
+  const estado = ocurre[4] ? limpiarEstado(ocurre[4]) : undefined;
+  const subClausula = (ocurre[5] ?? "").trim();
+  const procesoOmitido = normalizarNombreOpl(ocurre[6] ?? "");
+  if (claveNombre(procesoOmitido) !== claveNombre(proceso)) return null;
+
+  if (!subClausula) {
+    return astCondicion(linea, {
+      proceso,
+      condicionante,
+      ...(estado ? { condicionanteEstado: estado } : {}),
+      base: "instrumento",
+      sinConsecuencia: true,
+    });
+  }
+
+  const base = clasificarSubClausulaCondicion(subClausula, proceso, condicionante);
+  if (!base) return null;
+  return astCondicion(linea, {
+    proceso,
+    condicionante,
+    ...(estado ? { condicionanteEstado: estado } : {}),
+    base: base.base,
+    ...(base.estadoSalida ? { estadoSalida: base.estadoSalida } : {}),
+    sinConsecuencia: false,
+  });
+}
+
+function clasificarSubClausulaCondicion(
+  sub: string,
+  proceso: string,
+  condicionante: string,
+): { base: "consumo" | "efecto"; estadoSalida?: string } | null {
+  const procesoClave = claveNombre(proceso);
+  const condicionanteClave = claveNombre(condicionante);
+
+  let match = /^(.+?)\s+se\s+consume$/iu.exec(sub);
+  if (match) {
+    if (claveNombre(normalizarNombreOpl(match[1] ?? "")) !== condicionanteClave) return null;
+    return { base: "consumo" };
+  }
+  match = /^(.+?)\s+consume\s+(.+)$/iu.exec(sub);
+  if (match) {
+    if (claveNombre(normalizarNombreOpl(match[1] ?? "")) !== procesoClave) return null;
+    if (claveNombre(normalizarNombreOpl(match[2] ?? "")) !== condicionanteClave) return null;
+    return { base: "consumo" };
+  }
+  match = /^(.+?)\s+afecta\s+(.+)$/iu.exec(sub);
+  if (match) {
+    if (claveNombre(normalizarNombreOpl(match[1] ?? "")) !== procesoClave) return null;
+    if (claveNombre(normalizarNombreOpl(match[2] ?? "")) !== condicionanteClave) return null;
+    return { base: "efecto" };
+  }
+  // CS2: "Proceso cambia Objeto de `s1` a `s2`" (backticks opcionales: limpiarMarkdown los puede haber quitado).
+  match = /^(.+?)\s+cambia\s+(.+?)\s+de\s+`?([^`]+?)`?\s+a\s+`?([^`]+?)`?$/iu.exec(sub);
+  if (match) {
+    if (claveNombre(normalizarNombreOpl(match[1] ?? "")) !== procesoClave) return null;
+    if (claveNombre(normalizarNombreOpl(match[2] ?? "")) !== condicionanteClave) return null;
+    return { base: "efecto", estadoSalida: limpiarEstado(match[4] ?? "") };
+  }
+  // CS3: "Proceso cambia Objeto de `s`".
+  match = /^(.+?)\s+cambia\s+(.+?)\s+de\s+`?([^`]+?)`?$/iu.exec(sub);
+  if (match) {
+    if (claveNombre(normalizarNombreOpl(match[1] ?? "")) !== procesoClave) return null;
+    if (claveNombre(normalizarNombreOpl(match[2] ?? "")) !== condicionanteClave) return null;
+    return { base: "consumo" };
+  }
+  // CS4: "Proceso cambia Objeto a `s`".
+  match = /^(.+?)\s+cambia\s+(.+?)\s+a\s+`?([^`]+?)`?$/iu.exec(sub);
+  if (match) {
+    if (claveNombre(normalizarNombreOpl(match[1] ?? "")) !== procesoClave) return null;
+    if (claveNombre(normalizarNombreOpl(match[2] ?? "")) !== condicionanteClave) return null;
+    return { base: "efecto", estadoSalida: limpiarEstado(match[3] ?? "") };
+  }
+  return null;
+}
+
+function astCondicion(
+  linea: LineaOplNormalizada,
+  payload: {
+    proceso: string;
+    condicionante: string;
+    condicionanteEstado?: string;
+    base: "agente" | "instrumento" | "consumo" | "efecto";
+    estadoSalida?: string;
+    sinConsecuencia: boolean;
+  },
+) {
+  return {
+    ast: {
+      kind: "condicion" as const,
+      linea: linea.linea,
+      proceso: payload.proceso,
+      condicionante: payload.condicionante,
+      ...(payload.condicionanteEstado ? { condicionanteEstado: payload.condicionanteEstado } : {}),
+      base: payload.base,
+      ...(payload.estadoSalida ? { estadoSalida: payload.estadoSalida } : {}),
+      sinConsecuencia: payload.sinConsecuencia,
+      ...(linea.etiqueta ? { etiqueta: linea.etiqueta } : {}),
+    },
+    diagnosticos: [],
+  };
+}
+
+// SSOT §6: eventos. "X [en `s`] inicia Y[, que <verbo> Z]" emitido por el
+// generador cuando enlace tiene `modificador === "evento"`. Sufijo opcional
+// "(probabilidad: NN%)" se descarta para el match; la planificacion lo ignora.
+const PROBABILIDAD_SUFIX_RE = /\s*\(probabilidad:\s*[^)]+\)\s*$/iu;
+
+function parsearEvento(texto: string, linea: LineaOplNormalizada) {
+  const textoSinProb = texto.replace(PROBABILIDAD_SUFIX_RE, "").trim();
+
+  // Forma ET-agente: "X inicia y maneja Y" (sin coma + que).
+  let match = /^(.+?)\s+inicia\s+y\s+maneja\s+(.+)$/iu.exec(textoSinProb);
+  if (match) {
+    const iniciador = normalizarNombreOpl(match[1] ?? "");
+    const proceso = normalizarNombreOpl(match[2] ?? "");
+    if (!iniciador || !proceso) return null;
+    const base: AstProcedimentalBase = { tipoEnlace: "agente", objeto: iniciador, proceso };
+    return astEvento(linea, { iniciador, proceso, base });
+  }
+
+  // Forma ET-invocacion: "X inicia e invoca Y".
+  match = /^(.+?)\s+inicia\s+e\s+invoca\s+(.+)$/iu.exec(textoSinProb);
+  if (match) {
+    const iniciador = normalizarNombreOpl(match[1] ?? "");
+    const destino = normalizarNombreOpl(match[2] ?? "");
+    if (!iniciador || !destino) return null;
+    const base: AstProcedimentalBase = { tipoEnlace: "invocacion", origen: iniciador, destino };
+    return astEvento(linea, { iniciador, proceso: destino, base });
+  }
+
+  // Forma ET/ETS/EH/EHS general: "X [en `s`] inicia Y[, que <sub-clausula>]".
+  // El estado puede llegar con o sin backticks (`limpiarMarkdown` ya los puede
+  // haber eliminado antes); regex tolerante a ambos.
+  match = /^(.+?)(?:\s+en\s+`?([^`]+?)`?)?\s+inicia\s+(.+?)(?:,\s*que\s+(.+))?$/iu.exec(textoSinProb);
+  if (!match) return null;
+
+  const iniciador = normalizarNombreOpl(match[1] ?? "");
+  const iniciadorEstado = match[2] ? limpiarEstado(match[2]) : undefined;
+  const proceso = normalizarNombreOpl(match[3] ?? "");
+  const subClausula = (match[4] ?? "").trim();
+
+  if (!iniciador || !proceso) return null;
+
+  if (!subClausula) {
+    // "X inicia Y" sin sub-clausula → solo evento + invocacion implicita.
+    return astEvento(linea, { iniciador, proceso, ...(iniciadorEstado ? { iniciadorEstado } : {}) });
+  }
+
+  const base = parsearSubClausulaEvento(subClausula, proceso, iniciadorEstado);
+  if (!base) return null;
+
+  return astEvento(linea, {
+    iniciador,
+    proceso,
+    base,
+    ...(iniciadorEstado ? { iniciadorEstado } : {}),
+  });
+}
+
+function parsearSubClausulaEvento(
+  sub: string,
+  proceso: string,
+  iniciadorEstado: string | undefined,
+): AstProcedimentalBase | null {
+  // "consume X [en `s`]" → consumo (origen objeto=X, destino proceso).
+  let match = /^consume\s+(.+)$/iu.exec(sub);
+  if (match) {
+    const objeto = limpiarObjetoConEstado(match[1] ?? "");
+    return {
+      tipoEnlace: "consumo",
+      proceso,
+      objeto: objeto.nombre,
+      ...(objeto.estado ? { estadoEntrada: objeto.estado } : iniciadorEstado ? { estadoEntrada: iniciadorEstado } : {}),
+    };
+  }
+
+  // "genera Y [en `s`]" → resultado (origen proceso, destino objeto=Y).
+  match = /^genera\s+(.+)$/iu.exec(sub);
+  if (match) {
+    const objeto = limpiarObjetoConEstado(match[1] ?? "");
+    return {
+      tipoEnlace: "resultado",
+      proceso,
+      objeto: objeto.nombre,
+      ...(objeto.estado ? { estadoSalida: objeto.estado } : iniciadorEstado ? { estadoSalida: iniciadorEstado } : {}),
+    };
+  }
+
+  // "requiere X" → instrumento (objeto requerido, destino proceso).
+  match = /^requiere\s+(.+)$/iu.exec(sub);
+  if (match) {
+    return { tipoEnlace: "instrumento", proceso, objeto: normalizarNombreOpl(match[1] ?? "") };
+  }
+
+  // "afecta X" → efecto.
+  match = /^afecta\s+(.+)$/iu.exec(sub);
+  if (match) {
+    return { tipoEnlace: "efecto", proceso, objeto: normalizarNombreOpl(match[1] ?? "") };
+  }
+
+  // "cambia X de `s1` a `s2`" → efecto con transicion (ETS2). Backticks
+  // opcionales por `limpiarMarkdown`.
+  match = /^cambia\s+(.+?)\s+de\s+`?([^`]+?)`?\s+a\s+`?([^`]+?)`?$/iu.exec(sub);
+  if (match) {
+    return {
+      tipoEnlace: "efecto",
+      proceso,
+      objeto: normalizarNombreOpl(match[1] ?? ""),
+      estadoEntrada: limpiarEstado(match[2] ?? ""),
+      estadoSalida: limpiarEstado(match[3] ?? ""),
+    };
+  }
+
+  // "cambia X de `s`" → consumo de estado.
+  match = /^cambia\s+(.+?)\s+de\s+`?([^`]+?)`?$/iu.exec(sub);
+  if (match) {
+    return {
+      tipoEnlace: "consumo",
+      proceso,
+      objeto: normalizarNombreOpl(match[1] ?? ""),
+      estadoEntrada: limpiarEstado(match[2] ?? ""),
+    };
+  }
+
+  // "cambia X a `s`" → resultado a estado.
+  match = /^cambia\s+(.+?)\s+a\s+`?([^`]+?)`?$/iu.exec(sub);
+  if (match) {
+    return {
+      tipoEnlace: "resultado",
+      proceso,
+      objeto: normalizarNombreOpl(match[1] ?? ""),
+      estadoSalida: limpiarEstado(match[2] ?? ""),
+    };
+  }
+
+  // "maneja X" → agente (objeto=X, proceso).
+  match = /^maneja\s+(.+)$/iu.exec(sub);
+  if (match) {
+    return { tipoEnlace: "agente", objeto: normalizarNombreOpl(match[1] ?? ""), proceso };
+  }
+
+  // "invoca X" → invocacion (origen proceso, destino X).
+  match = /^invoca\s+(.+?)(?:\s+despues\s+de\s+.+)?$/iu.exec(sub);
+  if (match) {
+    return { tipoEnlace: "invocacion", origen: proceso, destino: normalizarNombreOpl(match[1] ?? "") };
+  }
+
+  return null;
+}
+
+function astEvento(
+  linea: LineaOplNormalizada,
+  payload: { iniciador: string; iniciadorEstado?: string; proceso: string; base?: AstProcedimentalBase },
+) {
+  return {
+    ast: {
+      kind: "evento" as const,
+      linea: linea.linea,
+      iniciador: payload.iniciador,
+      ...(payload.iniciadorEstado ? { iniciadorEstado: payload.iniciadorEstado } : {}),
+      proceso: payload.proceso,
+      ...(payload.base ? { base: payload.base } : {}),
       ...(linea.etiqueta ? { etiqueta: linea.etiqueta } : {}),
     },
     diagnosticos: [],

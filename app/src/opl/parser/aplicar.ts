@@ -5,7 +5,7 @@ import {
   designarInicial,
 } from "../../modelo/estadosDesignaciones";
 import { renombrarEtiquetaEnlace } from "../../modelo/etiquetasEnlace";
-import { estadosDeEntidad } from "../../modelo/operaciones";
+import { definirTiempoExcepcionEnlace, estadosDeEntidad } from "../../modelo/operaciones";
 import {
   agregarEstado,
   cambiarAfiliacion,
@@ -17,8 +17,10 @@ import {
   renombrarEntidad,
   renombrarEstado,
 } from "../../modelo/operaciones";
+import { aplicarModificador } from "../../modelo/modificadores";
 import { posicionLibre } from "../../modelo/layout";
-import type { DesignacionEstado, Id, Modelo, Resultado } from "../../modelo/tipos";
+import { entidadIdDeExtremo } from "../../modelo/extremos";
+import type { DesignacionEstado, Enlace, Id, Modelo, Resultado, TipoEnlace } from "../../modelo/tipos";
 import { claveNombre } from "./parsear";
 import type { PatchOplPropuesto, ReferenciaEntidadPatch } from "./tipos";
 
@@ -116,7 +118,73 @@ function aplicarPatchEnlace(
   const destinoId = resolverRef(modelo, patch.destino, creadas);
   if (!origenId) return fallo(`No se pudo resolver origen para enlace ${patch.tipoEnlace}`);
   if (!destinoId) return fallo(`No se pudo resolver destino para enlace ${patch.tipoEnlace}`);
-  return crearEnlace(modelo, opdId, origenId, destinoId, patch.tipoEnlace, patch.etiqueta ?? "");
+
+  // Idempotencia (D3): si ya existe un enlace con misma tripla, reusamos para
+  // aplicar modificador/tiempos en lugar de duplicar.
+  const existente = buscarEnlaceCon(modelo, patch.tipoEnlace, origenId, destinoId);
+  if (existente) {
+    return aplicarMetadatosCondicionExcepcion(modelo, existente, patch);
+  }
+
+  const creado = crearEnlace(modelo, opdId, origenId, destinoId, patch.tipoEnlace, patch.etiqueta ?? "");
+  if (!creado.ok) return creado;
+  if (patch.modificador === undefined && patch.tiempoMaximo === undefined && patch.tiempoMinimo === undefined) {
+    return creado;
+  }
+  const enlaceNuevo = enlaceMasReciente(modelo, creado.value, patch.tipoEnlace, origenId, destinoId);
+  if (!enlaceNuevo) return creado;
+  return aplicarMetadatosCondicionExcepcion(creado.value, enlaceNuevo, patch);
+}
+
+/**
+ * Aplica modificador y/o tiempos de excepcion a un enlace recien creado o
+ * existente. `aplicarModificador` valida la regla de compatibilidad (enlace
+ * procedural); `definirTiempoExcepcionEnlace` valida que el enlace sea de
+ * excepcion temporal. SSOT §6-§7 condicion, §8.1 excepcion.
+ */
+function aplicarMetadatosCondicionExcepcion(
+  modelo: Modelo,
+  enlace: Enlace,
+  patch: Extract<PatchOplPropuesto, { tipo: "crear-enlace" }>,
+): Resultado<Modelo> {
+  let siguiente = modelo;
+  if (patch.modificador && enlace.modificador !== patch.modificador) {
+    const aplicado = aplicarModificador(siguiente, enlace.id, patch.modificador);
+    if (!aplicado.ok) return aplicado;
+    siguiente = aplicado.value;
+  }
+  const tieneTiempos = patch.tiempoMaximo !== undefined || patch.tiempoMinimo !== undefined;
+  if (tieneTiempos) {
+    const valores: Parameters<typeof definirTiempoExcepcionEnlace>[2] = {};
+    if (patch.tiempoMaximo !== undefined) valores.tiempoMaximo = patch.tiempoMaximo;
+    if (patch.unidadTiempoMaximo !== undefined) valores.unidadTiempoMaximo = patch.unidadTiempoMaximo;
+    if (patch.tiempoMinimo !== undefined) valores.tiempoMinimo = patch.tiempoMinimo;
+    if (patch.unidadTiempoMinimo !== undefined) valores.unidadTiempoMinimo = patch.unidadTiempoMinimo;
+    const aplicado = definirTiempoExcepcionEnlace(siguiente, enlace.id, valores);
+    if (!aplicado.ok) return aplicado;
+    siguiente = aplicado.value;
+  }
+  return ok(siguiente);
+}
+
+function buscarEnlaceCon(modelo: Modelo, tipo: TipoEnlace, origenId: Id, destinoId: Id): Enlace | null {
+  return Object.values(modelo.enlaces).find((enlace) => {
+    if (enlace.tipo !== tipo) return false;
+    return entidadIdDeExtremo(modelo, enlace.origenId) === origenId
+      && entidadIdDeExtremo(modelo, enlace.destinoId) === destinoId;
+  }) ?? null;
+}
+
+function enlaceMasReciente(previo: Modelo, siguiente: Modelo, tipo: TipoEnlace, origenId: Id, destinoId: Id): Enlace | null {
+  const previos = new Set(Object.keys(previo.enlaces));
+  for (const [id, enlace] of Object.entries(siguiente.enlaces)) {
+    if (previos.has(id)) continue;
+    if (enlace.tipo !== tipo) continue;
+    if (entidadIdDeExtremo(siguiente, enlace.origenId) !== origenId) continue;
+    if (entidadIdDeExtremo(siguiente, enlace.destinoId) !== destinoId) continue;
+    return enlace;
+  }
+  return null;
 }
 
 function sincronizarEstados(modelo: Modelo, objetoId: Id, nombres: string[]): Resultado<Modelo> {

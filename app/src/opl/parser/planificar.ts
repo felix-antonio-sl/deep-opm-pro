@@ -1,12 +1,13 @@
 import { tieneDesignacion } from "../../modelo/estadosDesignaciones";
 import { entidadIdDeExtremo, extremoEntidad } from "../../modelo/extremos";
 import { estadosDeEntidad } from "../../modelo/operaciones";
-import type { Enlace, Entidad, Id, Modelo, TipoEnlace, TipoEntidad } from "../../modelo/tipos";
+import type { Enlace, Entidad, Id, Modelo, Modificador, TipoEnlace, TipoEntidad } from "../../modelo/tipos";
 import { ordenarOpdsParaOpl } from "../bloquesJerarquicos";
 import { generarOplInteractivo } from "../generar";
 import type { OplLineaInteractiva, OplReferencia } from "../interaccion";
 import { claveNombre, parsearParrafoOpl } from "./parsear";
 import type {
+  AstProcedimentalBase,
   DiagnosticoOpl,
   OracionOplAst,
   PatchOplPropuesto,
@@ -58,6 +59,12 @@ function planificarAst(
       return planificarEstados(modelo, ast, anterior, registry);
     case "procedimental":
       return planificarProcedimental(modelo, ast, registry, opdActivoId);
+    case "evento":
+      return planificarEvento(modelo, ast, registry, opdActivoId);
+    case "condicion":
+      return planificarCondicion(modelo, ast, registry);
+    case "excepcion":
+      return planificarExcepcion(modelo, ast, registry);
     case "estructural":
       return planificarEstructural(modelo, ast, registry, opdActivoId);
     case "designacion-estado":
@@ -211,6 +218,27 @@ function planificarProcedimental(
   planificarEnlace(modelo, ast.linea, ast.tipoEnlace, endpoints.origen, endpoints.destino, ast.etiqueta, registry);
 }
 
+function planificarEvento(
+  modelo: Modelo,
+  ast: Extract<OracionOplAst, { kind: "evento" }>,
+  registry: PatchRegistry,
+  _opdActivoId: Id,
+): void {
+  // D1: el estado del iniciador (ETS/EHS) se pasa como parte del extremo del enlace
+  // via `endpointsBase`, no como patch separado de estado.
+  // Caso "X inicia Y" sin sub-clausula → invocacion proceso→proceso con modificador evento.
+  if (!ast.base) {
+    const origen = refEntidadPorNombre(modelo, ast.iniciador, "proceso", ast.linea, registry);
+    const destino = refEntidadPorNombre(modelo, ast.proceso, "proceso", ast.linea, registry);
+    if (!origen || !destino) return;
+    planificarEnlace(modelo, ast.linea, "invocacion", origen, destino, ast.etiqueta, registry, { modificador: "evento" });
+    return;
+  }
+  const endpoints = endpointsBase(modelo, ast.base, ast.linea, registry);
+  if (!endpoints) return;
+  planificarEnlace(modelo, ast.linea, ast.base.tipoEnlace, endpoints.origen, endpoints.destino, ast.etiqueta, registry, { modificador: "evento" });
+}
+
 function planificarEstructural(
   modelo: Modelo,
   ast: Extract<OracionOplAst, { kind: "estructural" }>,
@@ -230,31 +258,40 @@ function endpointsProcedimentales(
   ast: Extract<OracionOplAst, { kind: "procedimental" }>,
   registry: PatchRegistry,
 ): { origen: ReferenciaEntidadPatch; destino: ReferenciaEntidadPatch } | null {
-  switch (ast.tipoEnlace) {
+  return endpointsBase(modelo, ast, ast.linea, registry);
+}
+
+function endpointsBase(
+  modelo: Modelo,
+  base: AstProcedimentalBase,
+  linea: number,
+  registry: PatchRegistry,
+): { origen: ReferenciaEntidadPatch; destino: ReferenciaEntidadPatch } | null {
+  switch (base.tipoEnlace) {
     case "agente": {
-      const objeto = refEntidadPorNombre(modelo, ast.objeto ?? "", "objeto", ast.linea, registry);
-      const proceso = refEntidadPorNombre(modelo, ast.proceso ?? "", "proceso", ast.linea, registry);
+      const objeto = refEntidadPorNombre(modelo, base.objeto ?? "", "objeto", linea, registry);
+      const proceso = refEntidadPorNombre(modelo, base.proceso ?? "", "proceso", linea, registry);
       return objeto && proceso ? { origen: objeto, destino: proceso } : null;
     }
     case "instrumento": {
-      const objeto = refEntidadPorNombre(modelo, ast.objeto ?? "", "objeto", ast.linea, registry);
-      const proceso = refEntidadPorNombre(modelo, ast.proceso ?? "", "proceso", ast.linea, registry);
+      const objeto = refEntidadPorNombre(modelo, base.objeto ?? "", "objeto", linea, registry);
+      const proceso = refEntidadPorNombre(modelo, base.proceso ?? "", "proceso", linea, registry);
       return objeto && proceso ? { origen: objeto, destino: proceso } : null;
     }
     case "consumo": {
-      const objeto = refEntidadPorNombre(modelo, ast.objeto ?? "", "objeto", ast.linea, registry);
-      const proceso = refEntidadPorNombre(modelo, ast.proceso ?? "", "proceso", ast.linea, registry);
+      const objeto = refEntidadPorNombre(modelo, base.objeto ?? "", "objeto", linea, registry);
+      const proceso = refEntidadPorNombre(modelo, base.proceso ?? "", "proceso", linea, registry);
       return objeto && proceso ? { origen: objeto, destino: proceso } : null;
     }
     case "resultado":
     case "efecto": {
-      const proceso = refEntidadPorNombre(modelo, ast.proceso ?? "", "proceso", ast.linea, registry);
-      const objeto = refEntidadPorNombre(modelo, ast.objeto ?? "", "objeto", ast.linea, registry);
+      const proceso = refEntidadPorNombre(modelo, base.proceso ?? "", "proceso", linea, registry);
+      const objeto = refEntidadPorNombre(modelo, base.objeto ?? "", "objeto", linea, registry);
       return proceso && objeto ? { origen: proceso, destino: objeto } : null;
     }
     case "invocacion": {
-      const origen = refEntidadPorNombre(modelo, ast.origen ?? ast.proceso ?? "", "proceso", ast.linea, registry);
-      const destino = refEntidadPorNombre(modelo, ast.destino ?? ast.proceso ?? "", "proceso", ast.linea, registry);
+      const origen = refEntidadPorNombre(modelo, base.origen ?? base.proceso ?? "", "proceso", linea, registry);
+      const destino = refEntidadPorNombre(modelo, base.destino ?? base.proceso ?? "", "proceso", linea, registry);
       return origen && destino ? { origen, destino } : null;
     }
   }
@@ -268,18 +305,165 @@ function planificarEnlace(
   destino: ReferenciaEntidadPatch,
   etiqueta: string | undefined,
   registry: PatchRegistry,
+  opciones: { modificador?: Modificador } = {},
 ): void {
   const origenId = resolverRefId(modelo, origen);
   const destinoId = resolverRefId(modelo, destino);
   const existente = origenId && destinoId ? buscarEnlace(modelo, tipoEnlace, origenId, destinoId) : null;
   if (!existente) {
-    registry.add({ tipo: "crear-enlace", linea, tipoEnlace, origen, destino, ...(etiqueta ? { etiqueta } : {}) });
+    registry.add({
+      tipo: "crear-enlace",
+      linea,
+      tipoEnlace,
+      origen,
+      destino,
+      ...(etiqueta ? { etiqueta } : {}),
+      ...(opciones.modificador ? { modificador: opciones.modificador } : {}),
+    });
     return;
+  }
+  // D3: enlace ya existe — si se propuso modificador, aplicarlo solo si no hay otro.
+  if (opciones.modificador) {
+    if (existente.modificador === undefined) {
+      registry.add({
+        tipo: "crear-enlace",
+        linea,
+        tipoEnlace,
+        origen,
+        destino,
+        ...(etiqueta ? { etiqueta } : {}),
+        modificador: opciones.modificador,
+      });
+    } else if (existente.modificador !== opciones.modificador) {
+      registry.diagnostico({
+        codigo: "patch-conflict",
+        severidad: "warning",
+        linea,
+        columna: 1,
+        mensaje: `El enlace ${tipoEnlace} ya tiene modificador '${existente.modificador}' y la oracion propone '${opciones.modificador}'.`,
+        sugerencia: "Quita el modificador anterior desde el canvas antes de cambiarlo desde OPL.",
+      });
+    }
   }
   const etiquetaActual = existente.etiqueta.trim();
   const etiquetaNueva = etiqueta?.trim() ?? "";
   if (etiquetaActual !== etiquetaNueva) {
     registry.add({ tipo: "fijar-etiqueta-enlace", linea, enlaceId: existente.id, anterior: etiquetaActual, siguiente: etiquetaNueva });
+  }
+}
+
+/**
+ * Planifica una oracion de condicion (SSOT §7).
+ *
+ * - CT (consumo/efecto) y CS (con estado): crea/actualiza enlace consumo o
+ *   efecto con modificador `condicion`.
+ * - CH (habilitador): crea/actualiza enlace instrumento o agente con modificador
+ *   `condicion`.
+ *
+ * El estado del condicionante (`condicionanteEstado`) se preserva en el AST
+ * para una iteracion futura del aplicador que soporte extremos de estado en
+ * `crear-enlace`.
+ */
+function planificarCondicion(
+  modelo: Modelo,
+  ast: Extract<OracionOplAst, { kind: "condicion" }>,
+  registry: PatchRegistry,
+): void {
+  const endpoints = endpointsCondicion(modelo, ast, registry);
+  if (!endpoints) return;
+  planificarEnlace(
+    modelo,
+    ast.linea,
+    endpoints.tipoEnlace,
+    endpoints.origen,
+    endpoints.destino,
+    ast.etiqueta,
+    registry,
+    { modificador: "condicion" },
+  );
+}
+
+function endpointsCondicion(
+  modelo: Modelo,
+  ast: Extract<OracionOplAst, { kind: "condicion" }>,
+  registry: PatchRegistry,
+): {
+  tipoEnlace: Extract<TipoEnlace, "agente" | "instrumento" | "consumo" | "efecto">;
+  origen: ReferenciaEntidadPatch;
+  destino: ReferenciaEntidadPatch;
+} | null {
+  const proceso = refEntidadPorNombre(modelo, ast.proceso, "proceso", ast.linea, registry);
+  if (!proceso) return null;
+  const objeto = refEntidadPorNombre(modelo, ast.condicionante, "objeto", ast.linea, registry);
+  if (!objeto) return null;
+
+  switch (ast.base) {
+    case "agente":
+      return { tipoEnlace: "agente", origen: objeto, destino: proceso };
+    case "instrumento":
+      return { tipoEnlace: "instrumento", origen: objeto, destino: proceso };
+    case "consumo":
+      return { tipoEnlace: "consumo", origen: objeto, destino: proceso };
+    case "efecto":
+      return { tipoEnlace: "efecto", origen: proceso, destino: objeto };
+  }
+}
+
+/**
+ * Planifica una oracion de excepcion temporal (SSOT §8.1 EX1/EX2).
+ *
+ * Crea un enlace `excepcionSobretiempo` o `excepcionSubtiempo` entre el proceso
+ * fuente y el proceso de manejo, persistiendo los valores de duracion/unidad
+ * tal cual aparecen en la oracion.
+ */
+function planificarExcepcion(
+  modelo: Modelo,
+  ast: Extract<OracionOplAst, { kind: "excepcion" }>,
+  registry: PatchRegistry,
+): void {
+  const fuente = refEntidadPorNombre(modelo, ast.fuente, "proceso", ast.linea, registry);
+  const proceso = refEntidadPorNombre(modelo, ast.proceso, "proceso", ast.linea, registry);
+  if (!fuente || !proceso) return;
+
+  const tipoEnlace: TipoEnlace = ast.limite.tipo === "max" ? "excepcionSobretiempo" : "excepcionSubtiempo";
+  const camposTiempo = ast.limite.tipo === "max"
+    ? { tiempoMaximo: ast.limite.valor, unidadTiempoMaximo: ast.limite.unidad }
+    : { tiempoMinimo: ast.limite.valor, unidadTiempoMinimo: ast.limite.unidad };
+
+  const origenId = resolverRefId(modelo, fuente);
+  const destinoId = resolverRefId(modelo, proceso);
+  const existente = origenId && destinoId ? buscarEnlace(modelo, tipoEnlace, origenId, destinoId) : null;
+
+  if (!existente) {
+    registry.add({
+      tipo: "crear-enlace",
+      linea: ast.linea,
+      tipoEnlace,
+      origen: fuente,
+      destino: proceso,
+      ...(ast.etiqueta ? { etiqueta: ast.etiqueta } : {}),
+      ...camposTiempo,
+    });
+    return;
+  }
+
+  const valorActual = ast.limite.tipo === "max" ? existente.tiempoMaximo : existente.tiempoMinimo;
+  const unidadActual = ast.limite.tipo === "max" ? existente.unidadTiempoMaximo : existente.unidadTiempoMinimo;
+  if (valorActual !== ast.limite.valor || unidadActual !== ast.limite.unidad) {
+    registry.add({
+      tipo: "crear-enlace",
+      linea: ast.linea,
+      tipoEnlace,
+      origen: fuente,
+      destino: proceso,
+      ...(ast.etiqueta ? { etiqueta: ast.etiqueta } : {}),
+      ...camposTiempo,
+    });
+  }
+  const etiquetaActual = existente.etiqueta.trim();
+  const etiquetaNueva = ast.etiqueta?.trim() ?? "";
+  if (etiquetaActual !== etiquetaNueva) {
+    registry.add({ tipo: "fijar-etiqueta-enlace", linea: ast.linea, enlaceId: existente.id, anterior: etiquetaActual, siguiente: etiquetaNueva });
   }
 }
 
@@ -443,7 +627,7 @@ function patchKey(patch: PatchOplPropuesto): string {
     case "renombrar-estado":
       return `${patch.tipo}:${patch.estadoId}`;
     case "crear-enlace":
-      return `${patch.tipo}:${patch.tipoEnlace}:${refKey(patch.origen)}:${refKey(patch.destino)}`;
+      return `${patch.tipo}:${patch.tipoEnlace}:${refKey(patch.origen)}:${refKey(patch.destino)}:${patch.modificador ?? ""}`;
     case "fijar-etiqueta-enlace":
       return `${patch.tipo}:${patch.enlaceId}`;
     case "aplicar-designacion-estado":
