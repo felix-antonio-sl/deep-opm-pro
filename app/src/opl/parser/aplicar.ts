@@ -1,3 +1,9 @@
+import {
+  designarCurrent,
+  designarDefault,
+  designarFinal,
+  designarInicial,
+} from "../../modelo/estadosDesignaciones";
 import { renombrarEtiquetaEnlace } from "../../modelo/etiquetasEnlace";
 import { estadosDeEntidad } from "../../modelo/operaciones";
 import {
@@ -12,7 +18,7 @@ import {
   renombrarEstado,
 } from "../../modelo/operaciones";
 import { posicionLibre } from "../../modelo/layout";
-import type { Id, Modelo, Resultado } from "../../modelo/tipos";
+import type { DesignacionEstado, Id, Modelo, Resultado } from "../../modelo/tipos";
 import { claveNombre } from "./parsear";
 import type { PatchOplPropuesto, ReferenciaEntidadPatch } from "./tipos";
 
@@ -71,6 +77,29 @@ function aplicarPatchNoEnlace(
       return sincronizarEstados(modelo, patch.objetoId, patch.nombres);
     case "renombrar-estado":
       return renombrarEstado(modelo, patch.estadoId, patch.siguiente);
+    case "aplicar-designacion-estado":
+      return aplicarDesignacionEstado(modelo, patch.entidadId, patch.estadoNombre, patch.designacion);
+  }
+}
+
+function aplicarDesignacionEstado(
+  modelo: Modelo,
+  entidadId: Id,
+  estadoNombre: string,
+  designacion: DesignacionEstado,
+): Resultado<Modelo> {
+  const clave = claveNombre(estadoNombre);
+  const estado = estadosDeEntidad(modelo, entidadId).find((item) => claveNombre(item.nombre) === clave);
+  if (!estado) return fallo(`Estado '${estadoNombre}' no existe para entidad ${entidadId}`);
+  switch (designacion) {
+    case "inicial":
+      return designarInicial(modelo, estado.id);
+    case "final":
+      return designarFinal(modelo, estado.id);
+    case "default":
+      return designarDefault(modelo, estado.id);
+    case "current":
+      return designarCurrent(modelo, estado.id);
   }
 }
 

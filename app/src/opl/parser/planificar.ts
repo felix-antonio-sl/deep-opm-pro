@@ -1,3 +1,4 @@
+import { tieneDesignacion } from "../../modelo/estadosDesignaciones";
 import { entidadIdDeExtremo, extremoEntidad } from "../../modelo/extremos";
 import { estadosDeEntidad } from "../../modelo/operaciones";
 import type { Enlace, Entidad, Id, Modelo, TipoEnlace, TipoEntidad } from "../../modelo/tipos";
@@ -59,6 +60,12 @@ function planificarAst(
       return planificarProcedimental(modelo, ast, registry, opdActivoId);
     case "estructural":
       return planificarEstructural(modelo, ast, registry, opdActivoId);
+    case "designacion-estado":
+      return planificarDesignacionEstado(modelo, ast, registry);
+    case "plegado-parcial":
+      // Informacional: refleja vista, no muta hechos del modelo.
+      // El parser ya emite el diagnostico `info`; aqui no hay patch que generar.
+      return;
     case "metadata":
       registry.diagnostico({
         codigo: "unsupported-kernel",
@@ -72,6 +79,46 @@ function planificarAst(
     case "unsupported":
       return;
   }
+}
+
+function planificarDesignacionEstado(
+  modelo: Modelo,
+  ast: Extract<OracionOplAst, { kind: "designacion-estado" }>,
+  registry: PatchRegistry,
+): void {
+  const entidad = resolverEntidad(modelo, ast.entidad, "objeto", ast.linea, registry, { silenciosoSiNoExiste: true });
+  if (!entidad) {
+    registry.diagnostico({
+      codigo: "unknown-symbol",
+      severidad: "error",
+      linea: ast.linea,
+      columna: 1,
+      mensaje: `No existe el objeto '${ast.entidad}' para designar su estado.`,
+    });
+    return;
+  }
+  const estados = estadosDeEntidad(modelo, entidad.id);
+  const claveEstado = claveNombre(ast.estado);
+  const estado = estados.find((item) => claveNombre(item.nombre) === claveEstado);
+  if (!estado) {
+    registry.diagnostico({
+      codigo: "unknown-symbol",
+      severidad: "error",
+      linea: ast.linea,
+      columna: 1,
+      mensaje: `El objeto '${entidad.nombre}' no tiene un estado llamado '${ast.estado}'.`,
+      sugerencia: "Declara primero los estados con 'X puede ser ...'.",
+    });
+    return;
+  }
+  if (tieneDesignacion(estado, ast.designacion)) return;
+  registry.add({
+    tipo: "aplicar-designacion-estado",
+    linea: ast.linea,
+    entidadId: entidad.id,
+    estadoNombre: estado.nombre,
+    designacion: ast.designacion,
+  });
 }
 
 function planificarDescripcion(
@@ -399,6 +446,8 @@ function patchKey(patch: PatchOplPropuesto): string {
       return `${patch.tipo}:${patch.tipoEnlace}:${refKey(patch.origen)}:${refKey(patch.destino)}`;
     case "fijar-etiqueta-enlace":
       return `${patch.tipo}:${patch.enlaceId}`;
+    case "aplicar-designacion-estado":
+      return `${patch.tipo}:${patch.entidadId}:${claveNombre(patch.estadoNombre)}:${patch.designacion}`;
   }
 }
 

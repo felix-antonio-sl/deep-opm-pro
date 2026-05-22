@@ -242,5 +242,7 @@ function describirPatch(patch: PatchOplPropuesto): string {
       return `crear enlace ${patch.tipoEnlace}`;
     case "fijar-etiqueta-enlace":
       return `etiqueta enlace -> ${patch.siguiente || "(vacía)"}`;
+    case "aplicar-designacion-estado":
+      return `designar estado ${patch.estadoNombre} como ${patch.designacion}`;
   }
 }

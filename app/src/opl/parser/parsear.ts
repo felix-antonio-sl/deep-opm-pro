@@ -1,4 +1,4 @@
-import type { Afiliacion, Esencia, TipoEntidad } from "../../modelo/tipos";
+import type { Afiliacion, DesignacionEstado, Esencia, TipoEntidad } from "../../modelo/tipos";
 import type { DiagnosticoOpl, LineaOplNormalizada, OracionOplAst, ParseResultOpl } from "./tipos";
 
 const PUNTO_FINAL = /\.\s*$/;
@@ -72,6 +72,8 @@ function parsearOracion(texto: string, linea: LineaOplNormalizada): { ast: Oraci
     ?? parsearEstados(texto, linea)
     ?? parsearProcedimental(texto, linea)
     ?? parsearEstructural(texto, linea)
+    ?? parsearDesignacionEstado(texto, linea)
+    ?? parsearPlegadoParcial(texto, linea)
     ?? parsearMetadata(texto, linea)
     ?? parsearContexto(texto, linea)
     ?? {
@@ -176,6 +178,76 @@ function parsearEstructural(texto: string, linea: LineaOplNormalizada) {
   match = /^(.+?) son instancias de (.+)$/iu.exec(texto);
   if (match) return astEstructural(linea, "clasificacion", match[2] ?? "", match[1] ?? "");
   return null;
+}
+
+// Tras `limpiarMarkdown` los backticks ya no aparecen en el texto normalizado,
+// pero el parser tambien se invoca con strings crudos en tests; tolerar ambos.
+// El generador emite `Default`/`Current` capitalizados (SSOT OPL-ES D9-D10);
+// aceptamos tambien las formas espanolas `por defecto`/`actual` por amistad
+// con dictado humano.
+const DESIGNACION_ESTADO_RE = /^(.+?)\s+en\s+`?([^`]+?)`?\s+es\s+(inicial|final|default|current|por defecto|actual)\.?\s*$/iu;
+
+function parsearDesignacionEstado(texto: string, linea: LineaOplNormalizada) {
+  const match = DESIGNACION_ESTADO_RE.exec(texto);
+  if (!match) return null;
+  const designacion = normalizarDesignacion(match[3] ?? "");
+  if (!designacion) return null;
+  return {
+    ast: {
+      kind: "designacion-estado" as const,
+      linea: linea.linea,
+      entidad: normalizarNombreOpl(match[1] ?? ""),
+      estado: limpiarEstado(match[2] ?? ""),
+      designacion,
+      ...(linea.etiqueta ? { etiqueta: linea.etiqueta } : {}),
+    },
+    diagnosticos: [],
+  };
+}
+
+function normalizarDesignacion(raw: string): DesignacionEstado | null {
+  const lower = raw.trim().toLocaleLowerCase("es");
+  if (lower === "inicial") return "inicial";
+  if (lower === "final") return "final";
+  if (lower === "default" || lower === "por defecto") return "default";
+  if (lower === "current" || lower === "actual") return "current";
+  return null;
+}
+
+// Plegado parcial §10.5: refleja vista, no muta hechos del modelo.
+// Formato canonico del generador `oracionPlegadoParcial`:
+// `X se lista con A, B y C y N (partes|rasgos) más como rasgos.`
+const PLEGADO_PARCIAL_RE = /^(.+?)\s+se\s+lista\s+con\s+(.+?)\s+y\s+(\d+)\s+(?:partes|rasgos)\s+(?:más|mas)\s+como\s+(partes|rasgos)\.?\s*$/iu;
+
+function parsearPlegadoParcial(texto: string, linea: LineaOplNormalizada) {
+  const match = PLEGADO_PARCIAL_RE.exec(texto);
+  if (!match) return null;
+  const rol = ((match[4] ?? "").toLocaleLowerCase("es") === "partes" ? "partes" : "rasgos") as
+    | "partes"
+    | "rasgos";
+  const partesElididas = Number.parseInt(match[3] ?? "0", 10);
+  const partesExplicitas = dividirLista(match[2] ?? "", "y")
+    .map(normalizarNombreOpl)
+    .filter(Boolean);
+  return {
+    ast: {
+      kind: "plegado-parcial" as const,
+      linea: linea.linea,
+      entidad: normalizarNombreOpl(match[1] ?? ""),
+      partesExplicitas,
+      partesElididas,
+      rol,
+      ...(linea.etiqueta ? { etiqueta: linea.etiqueta } : {}),
+    },
+    diagnosticos: [{
+      codigo: "unsupported-kernel" as const,
+      severidad: "info" as const,
+      linea: linea.linea,
+      columna: 1,
+      mensaje: "El plegado parcial se reconoce como informacional: refleja vista, no muta hechos del modelo.",
+      sugerencia: "Cambia el modo de plegado desde el canvas para alterar la vista.",
+    }],
+  };
 }
 
 function parsearMetadata(texto: string, linea: LineaOplNormalizada) {

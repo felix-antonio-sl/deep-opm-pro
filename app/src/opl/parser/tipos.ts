@@ -1,4 +1,4 @@
-import type { Afiliacion, Esencia, Id, TipoEnlace, TipoEntidad } from "../../modelo/tipos";
+import type { Afiliacion, DesignacionEstado, Esencia, Id, TipoEnlace, TipoEntidad } from "../../modelo/tipos";
 
 export type SeveridadDiagnosticoOpl = "info" | "warning" | "error";
 
@@ -78,6 +78,23 @@ export type OracionOplAst =
       etiqueta?: string;
     }
   | {
+      kind: "designacion-estado";
+      linea: number;
+      entidad: string;
+      estado: string;
+      designacion: DesignacionEstado;
+      etiqueta?: string;
+    }
+  | {
+      kind: "plegado-parcial";
+      linea: number;
+      entidad: string;
+      partesExplicitas: string[];
+      partesElididas: number;
+      rol: "partes" | "rasgos";
+      etiqueta?: string;
+    }
+  | {
       kind: "unsupported";
       linea: number;
       texto: string;
@@ -102,7 +119,8 @@ export type PatchOplPropuesto =
   | { tipo: "sincronizar-estados"; linea: number; objetoId: Id; nombres: string[] }
   | { tipo: "renombrar-estado"; linea: number; estadoId: Id; anterior: string; siguiente: string }
   | { tipo: "crear-enlace"; linea: number; tipoEnlace: TipoEnlace; origen: ReferenciaEntidadPatch; destino: ReferenciaEntidadPatch; etiqueta?: string }
-  | { tipo: "fijar-etiqueta-enlace"; linea: number; enlaceId: Id; anterior: string; siguiente: string };
+  | { tipo: "fijar-etiqueta-enlace"; linea: number; enlaceId: Id; anterior: string; siguiente: string }
+  | { tipo: "aplicar-designacion-estado"; linea: number; entidadId: Id; estadoNombre: string; designacion: DesignacionEstado };
 
 export interface PrevisualizacionOplReverse {
   ast: OracionOplAst[];
