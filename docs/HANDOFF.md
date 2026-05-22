@@ -3,10 +3,10 @@
 **Fecha**: 2026-05-22
 **Repositorio**: `deep-opm-pro`
 **Rama**: `main`
-**Ultimo corte funcional**: cierre Ronda 25 — sustraccion arquitectonica del chrome (seccion III.A del veredicto jobs-web-ux original).
-**Ultimo commit en main**: `8ce4608 test(e2e): redirige asserts de plantillas y configuracion al menu principal (ronda25/L2 III.A)`.
-**Ultimo corte deploy**: pendiente push + deploy desde `8ce4608` (5 commits de ronda25 viven solo en main local hasta autorizacion explicita del operador).
-**Corte**: cierre de la sub-accion III.A del veredicto jobs-web-ux. III.B (copilot contextual generalizado) queda como unica sub-accion pendiente del veredicto original.
+**Ultimo corte funcional**: cierre Ronda 26 — bisimetria OPL completa (Tier 1+2). Parser ahora entiende eventos, condiciones, excepciones, abanicos XOR/OR, multiplicidad, rutas etiquetadas, designaciones de estado y plegado parcial.
+**Ultimo commit en main**: `64d11ce feat(opl-parser): cierra bisimetria de abanicos, multiplicidad y rutas (ronda26/L3+L4)`.
+**Ultimo corte deploy**: pendiente push + deploy de los 8 commits ronda26 (Ola 1: L1+L2+L5+L6; Ola 2: L3+L4) y el commit de archivo de bugs.
+**Corte**: cierre del veredicto jobs-web-ux original al 100% — el OPL pasa de unidireccional con islas a bisimetrico cubriendo §3 hasta §13 SSOT. Solo III.B (copilot contextual generalizado) queda como decision de producto separada.
 
 ## Política De Handoff Único
 
@@ -24,6 +24,105 @@
 - JointJS OSS: usar documentación oficial viva cuando se toque JointJS.
 
 ## Estado Actual
+
+### Cierre Ronda 26 — Bisimetria OPL completa (Tier 1+2) — 2026-05-22
+
+Estado actual:
+
+- Rama `main` local en `64d11ce`. **8 commits sin push** (Ola 1: 7 commits + Ola 2: 1 commit consolidado).
+- Loop verde local: `bun run check` da `1555 unit pass / 0 fail / 5566 expects`.
+- `bun run browser:smoke` pendiente revalidacion tras integracion final.
+
+Contexto:
+
+Un audit profundo del OPL bidireccional revelo que el producto era unidireccional
+con islas de bisimetria: el generador cubria ~100% de SSOT (§3 hasta §13), pero
+el parser solo entendia ~30%. 70% de las oraciones eran write-only — el usuario
+las veia, podia editarlas en el modo Editar del panel, pero los cambios no se
+aplicaban al canvas.
+
+La Ronda 26 cerro Tier 1 + Tier 2 del audit con 6 lineas paralelas en 2 olas:
+
+**Ola 1** (L1+L2+L5+L6 paralelas):
+
+- **L1 — Eventos (§6)**: parser reconoce ET/EH/ETS/EHS ("X inicia Y, que ...").
+- **L2 — Condiciones + Excepciones (§7, §8)**: parser reconoce CT/CH/CS
+  ("ocurre si X existe, de lo contrario se omite") y EX1/EX2 ("ocurre si
+  duracion de Y excede 5 minutos").
+- **L5 — Designaciones + Plegado (§3.3, §10.5)**: parser aplica D7-D10 al
+  modelo (antes parseaba pero emitia unsupported-kernel). Plegado parcial
+  reconocido como informacional.
+- **L6 — Roundtrip + Bug 62ee85 + UX honesta**: framework de tests de
+  roundtrip (modelar→generar→parsear→aplicar→regenerar→comparar). Bug
+  62ee85 fijado: estado en enlace ahora se emite consistentemente desde
+  canvas. Mensaje contextual en el modo Editar avisa al usuario que ciertas
+  familias se generan desde canvas.
+
+**Ola 2** (L3+L4 secuenciadas tras Ola 1):
+
+- **L3 — Abanicos (§11.2-§11.4) + cierre TODOs `abanico.ts`**: parser
+  reconoce abanicos OR/XOR ("exactamente uno de X y Y" / "al menos uno de
+  X y Y") y forma condicional §11.4. Cierra los 2 TODOs SSOT para
+  resultado+condicion+abanico e invocacion+condicion+abanico.
+- **L4 — Multiplicidad + Rutas (§12, §13)**: parser reconoce cardinalidad
+  ("{1..N}", "*") en extremos de enlace y rutas etiquetadas
+  ("Por ruta <etiqueta>, ...").
+
+Decisiones consolidadas:
+
+- **A5 (negacion "no") archivada por baja cobertura**: solo 2 ocurrencias
+  generadas en todo el codigo. ROI inaceptable. No incluida en la ronda.
+- Contrato `PatchOplPropuesto` ampliado aditivamente con `modificador`,
+  `tiempoMaximo/Minimo`, `unidadTiempo*`, `multiplicidadOrigen/Destino`,
+  `rutaEtiqueta`. Patch nuevo `crear-abanico` y `aplicar-designacion-estado`.
+- `AstProcedimentalBase` reutilizado entre `kind: "procedimental"` y
+  sub-clausulas de `kind: "evento"`. Extendido con campos opcionales de
+  multiplicidad y ruta.
+- Idempotencia: si el usuario edita un enlace existente sin modificador y
+  agrega "ocurre si ... se omite", el modificador `condicion` se aplica;
+  si ya tiene otro modificador, se emite warning `patch-conflict`.
+- XOR si "exactamente uno de"; OR si "al menos uno de". Sin override desde
+  texto — para cambiar operador, usar canvas.
+
+Concurrencia (lesson learned):
+
+- Los 4 agentes paralelos de Ola 1 trabajando en los mismos archivos centrales
+  del parser (`parsear.ts`, `planificar.ts`, `aplicar.ts`, `tipos.ts`)
+  generaron stashes cruzados y carreras de escritura. Tres stashes
+  `ronda26-L6-...WIP` quedan en `git stash list` pero su contenido ya esta
+  integrado en commits mergeados. El operador puede `git stash drop` con
+  seguridad si quiere limpiar.
+- Para Ola 2 se endurecieron las reglas: prohibido crear branches, prohibido
+  `git stash` masivo, `git add` solo con nombres especificos. Funciono mejor.
+
+Artefactos relevantes:
+
+- 8 commits en `main` local:
+  ```
+  64d11ce feat(opl-parser): cierra bisimetria de abanicos, multiplicidad y rutas (ronda26/L3+L4)
+  c999b4b test(opl-parser): cubre ciclo de eventos hasta modelo (ronda26/L1)
+  cb6577c feat(opl-parser): reconoce condiciones (CT/CH/CS) y excepciones (EX1/EX2) (ronda26/L2)
+  cb20949 test(opl): cubre bisimetria del bug 62ee85
+  78aa9fe feat(opl): reconoce designaciones de estado D7-D10 y plegado parcial (ronda26/L5)
+  87d7e3a feat(panel-opl): mensaje contextual sobre familias no editables (ronda26/L6 B4)
+  2f55235 fix(opl-generador): estado en enlace emitido consistentemente (ronda26/L6 B3, BUG-20260519T200211Z-62ee85)
+  b49acac test(opl): framework de roundtrip bisimetrico con fixtures iniciales (ronda26/L6 B1)
+  ```
+
+Pendiente:
+
+1. `git push origin main` para subir los 8 commits.
+2. Build + deploy de la imagen Docker desde `64d11ce`.
+3. Re-audit Playwright contra produccion para confirmar visibilidad de
+   cambios (especialmente el mensaje contextual de B4 en panel OPL y el
+   fix del bug 62ee85 en canvas).
+
+Pendientes documentados (fuera de alcance):
+
+- **III.B del veredicto jobs-web-ux**: copilot contextual generalizado.
+  Decision de producto: cambia la metafora del producto, no es solo
+  rediseno cosmetico. Requiere su propio audit de impacto.
+- **A5 (negacion "no")**: diferida por baja cobertura. Documentada arriba.
 
 ### Cierre Ronda 25 — III.A Sustraccion arquitectonica del chrome — 2026-05-22
 
