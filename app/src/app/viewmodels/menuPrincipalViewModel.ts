@@ -36,11 +36,26 @@ export function useMenuPrincipalViewModel() {
   } = useZustandWorkspacePort();
   const {
     vistaMapaActiva,
+    abrirVistaMapa,
+    cerrarVistaMapa,
   } = useZustandMapViewPort();
   const { toggleMapaPanelEstadisticas } = useZustandSystemMapControlsPort();
   const {
     abrirDialogoConfiguracion,
     abrirDialogoPlantillas,
+    uiAliasVisibles,
+    uiDescripcionesVisibles,
+    toggleAliasVisibles,
+    toggleDescripcionesVisibles,
+    uiModoImagenGlobal,
+    fijarModoImagenGlobal,
+    abrirModalImagen,
+    gridConfig,
+    toggleGrid,
+    aplicarLayoutSugerido,
+    bibliotecaDockAbierto,
+    toggleBibliotecaDock,
+    iniciarModoSimulacion,
   } = useZustandWorkbenchViewControlsPort();
   const { modelo, opdActivoId } = useZustandOpdNavigationPort();
   const { seleccionId } = useZustandSelectionPort();
@@ -55,6 +70,18 @@ export function useMenuPrincipalViewModel() {
   const copiarJsonAlPortapapeles = () => {
     const json = exportarJson();
     void globalThis.navigator?.clipboard?.writeText(json);
+  };
+
+  // Ronda 27 III.A cierre: el botón `⋯ Más` desaparece del chrome. Sus
+  // acciones globales (vista, layout, dock, mapa, simulación) se absorben
+  // como secciones del menú principal `☰`. Las acciones multi-selección no
+  // se migran: ya están en la barra contextual flotante sobre la selección.
+  const toggleVistaMapa = () => {
+    if (vistaMapaActiva) cerrarVistaMapa();
+    else abrirVistaMapa();
+  };
+  const editarImagenObjetoSeleccionado = () => {
+    if (objetoSeleccionadoId) abrirModalImagen(objetoSeleccionadoId);
   };
 
   return {
@@ -86,6 +113,21 @@ export function useMenuPrincipalViewModel() {
     abrirModalUrls,
     iniciarAsistente,
     copiarJsonAlPortapapeles,
+    // Ronda 27 III.A: items absorbidos desde ⋯ Más.
+    uiAliasVisibles,
+    uiDescripcionesVisibles,
+    toggleAliasVisibles,
+    toggleDescripcionesVisibles,
+    uiModoImagenGlobal,
+    fijarModoImagenGlobal,
+    editarImagenObjetoSeleccionado,
+    gridActiva: gridConfig.activa,
+    toggleGrid,
+    aplicarLayoutSugerido,
+    bibliotecaDockAbierto,
+    toggleBibliotecaDock,
+    toggleVistaMapa,
+    iniciarModoSimulacion,
   };
 }
 
