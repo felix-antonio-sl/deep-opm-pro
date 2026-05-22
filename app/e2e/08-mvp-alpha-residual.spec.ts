@@ -1,5 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 import {
+  clickToolbarMasItem,
   elementoPorTexto,
   escapeRegExp,
   modeloTraerConectadosSmoke,
@@ -57,8 +58,12 @@ test("grid: toggle, configuración y snap al mover cosa", async ({ page }) => {
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
+  // Ronda 27 III.A cierre: los toggles del antiguo `⋯ Más` viven ahora en
+  // el menú principal `☰` (sección Vista). El helper unificado abre el
+  // menú principal y clickea el item; `aria-pressed` se inspecciona
+  // reabriendo el menú porque el clic lo cierra.
   await clickToolbarMasItem(page, "toolbar-mas-toggle-grid");
-  await page.getByTestId("toolbar-mas-trigger").click();
+  await page.getByLabel("Menú principal").click();
   await expect(page.getByTestId("toolbar-mas-toggle-grid")).toHaveAttribute("aria-pressed", "false");
   await page.keyboard.press("Escape");
   await clickToolbarMasItem(page, "toolbar-mas-toggle-grid");
@@ -93,8 +98,12 @@ test("alinear selección: tres cosas quedan alineadas a la izquierda", async ({ 
   await page.getByRole("button", { name: "Objeto", exact: true }).click();
   await page.getByRole("button", { name: "Objeto", exact: true }).click();
   await page.keyboard.press("Control+a");
-  await page.getByTestId("toolbar-mas-trigger").click();
-  await page.getByTestId("toolbar-mas-alinear-izq").click();
+  // Ronda 27 III.A cierre: el `⋯ Más` desaparece del chrome; las acciones
+  // multi-selección (alinear, distribuir, eliminar, partes, traer enlaces)
+  // viven en la barra contextual flotante `BarraHerramientasElemento`.
+  // `barra-alinear-seleccion` alinea a la izquierda (eje "izq") por
+  // default — equivalencia funcional con el viejo `toolbar-mas-alinear-izq`.
+  await page.getByTestId("barra-alinear-seleccion").click();
 
   const exportado = await exportadoActual(page);
   const xs = Object.values(exportado.modelo.opds[exportado.modelo.opdRaizId]?.apariencias ?? {}).map((ap) => ap.x);
@@ -263,7 +272,8 @@ test("imagenes: toggle global modo texto oculta bitmaps del OPD activo", async (
   await clickModoImagenGlobalDesdeMas(page);
   await clickModoImagenGlobalDesdeMas(page);
 
-  await page.getByTestId("toolbar-mas-trigger").click();
+  // Ronda 27 III.A cierre: el item Modo imagen vive ahora en `☰ → Vista`.
+  await page.getByLabel("Menú principal").click();
   await expect(page.getByTestId("toolbar-mas-modo-imagen-global")).toContainText("solo nombre");
   await page.keyboard.press("Escape");
   await expect(page.locator('.joint-element image[joint-selector="imagen"]')).toHaveCount(0);
@@ -280,9 +290,11 @@ async function routeImagenSmoke(page: Page): Promise<void> {
   });
 }
 
+// Ronda 27 III.A cierre: el helper `clickToolbarMasItem` se importa
+// canónicamente desde `_smoke-helpers` y resuelve via menú principal
+// (`☰`) porque el botón `⋯ Más` desapareció del chrome.
 async function clickModoImagenGlobalDesdeMas(page: Page): Promise<void> {
   await clickToolbarMasItem(page, "toolbar-mas-modo-imagen-global");
-  await expect(page.getByTestId("toolbar-mas-menu")).toHaveCount(0);
 }
 
 // Ronda 25 L2 III.A: "Plantillas…" y "Configuración…" se eliminan del
@@ -303,11 +315,6 @@ async function abrirConfiguracionDesdeMenuPrincipal(page: Page): Promise<void> {
     .getByRole("menu", { name: "Menú principal" })
     .getByRole("menuitem", { name: "Configuración...", exact: true })
     .click();
-}
-
-async function clickToolbarMasItem(page: Page, testId: string): Promise<void> {
-  await page.getByTestId("toolbar-mas-trigger").click();
-  await page.getByTestId(testId).click();
 }
 
 function modeloConImagenes() {

@@ -248,6 +248,22 @@ export async function abrirMenuPrincipal(page: import("@playwright/test").Page):
   return menu;
 }
 
+/**
+ * Ronda 27 III.A cierre: el botón `⋯ Más` desaparece del chrome. Sus items
+ * canónicos (alias/desc/modo imagen/grid/dock/auto-layout/mapa/simulación)
+ * viven ahora como secciones Vista y Herramientas del menú principal `☰`.
+ * Preservamos los `data-testid="toolbar-mas-*"` heredados; este helper abre
+ * el menú principal y clickea el item por testId. Cubre los 7 specs e2e
+ * que antes navegaban `toolbar-mas-trigger` → `toolbar-mas-*`.
+ */
+export async function clickToolbarMasItem(page: import("@playwright/test").Page, testId: string): Promise<void> {
+  await page.getByLabel("Menú principal").click();
+  const menu = page.getByRole("menu", { name: "Menú principal" });
+  await expect(menu).toBeVisible();
+  await menu.getByTestId(testId).click();
+  await expect(menu).toHaveCount(0);
+}
+
 export async function ejecutarMenuPrincipal(page: import("@playwright/test").Page, label: string): Promise<void> {
   const menu = await abrirMenuPrincipal(page);
   await menu.getByRole("menuitem", { name: label, exact: true }).click();

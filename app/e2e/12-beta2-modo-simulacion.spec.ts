@@ -11,7 +11,7 @@
  *   - Salir vuelve a la Toolbar de edición.
  */
 import { expect, test, type Page } from "@playwright/test";
-import { cerrarPantallaInicioSiVisible } from "./_smoke-helpers";
+import { cerrarPantallaInicioSiVisible, clickToolbarMasItem } from "./_smoke-helpers";
 
 test("modo simulación: entrar, paso, correr, reiniciar, salir", async ({ page }) => {
   const pageErrors: string[] = [];
@@ -131,7 +131,9 @@ test("modo simulación: play avanza automaticamente hasta completar", async ({ p
   expect(pageErrors).toEqual([]);
 });
 
+// Ronda 27 III.A cierre: la acción "Simulación conceptual" vive ahora en
+// `☰ → Herramientas`. El helper unificado abre el menú principal y
+// clickea el item por testId preservado.
 async function entrarSimulacionDesdeMas(page: Page): Promise<void> {
-  await page.getByTestId("toolbar-mas-trigger").click();
-  await page.getByTestId("toolbar-mas-simulacion").click();
+  await clickToolbarMasItem(page, "toolbar-mas-simulacion");
 }

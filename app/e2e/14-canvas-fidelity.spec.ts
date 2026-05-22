@@ -7,9 +7,10 @@
  * 3. Connector jumpover activo en enlaces procedurales con routerManhattan.
  * 4. Sugerir layout es undoable y no rompe seleccion ni undo stack.
  */
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 import {
   cerrarPantallaInicioSiVisible,
+  clickToolbarMasItem,
   exportadoActual,
   jsonEditor,
   modeloSmokeTablaEnlaces,
@@ -120,7 +121,5 @@ test("aplicar layout en OPD vacio no rompe ni cambia el ledger", async ({ page }
   expect(pageErrors).toEqual([]);
 });
 
-async function clickToolbarMasItem(page: Page, testId: string): Promise<void> {
-  await page.getByTestId("toolbar-mas-trigger").click();
-  await page.getByTestId(testId).click();
-}
+// Ronda 27 III.A cierre: `clickToolbarMasItem` se importa canonicamente
+// desde `_smoke-helpers` y resuelve via menú principal `☰`.

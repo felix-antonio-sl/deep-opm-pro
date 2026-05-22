@@ -623,8 +623,12 @@ test("L1 toolbar split conserva root y controles por modo", async ({ page }) => 
   await expect(page.locator('[data-slot="cluster-ayuda"]')).toBeVisible();
   await expect(page.getByRole("group", { name: "Modelar" }).getByRole("button", { name: "Objeto", exact: true })).toBeVisible();
   await expect(page.getByTestId("abrir-menu-tipo-enlace")).toHaveCount(0);
-  await expect(page.getByRole("group", { name: "Ayuda" }).getByTestId("toolbar-mas-trigger")).toBeVisible();
-  await page.getByTestId("toolbar-mas-trigger").click();
+  // Ronda 27 III.A cierre: el cluster Ayuda solo contiene `⌕ Buscar`. El
+  // botón `⋯ Más` desapareció del chrome; sus items canónicos viven en
+  // el menú principal `☰` (secciones Vista y Herramientas).
+  await expect(page.getByRole("group", { name: "Ayuda" }).getByTestId("toolbar-mas-trigger")).toHaveCount(0);
+  await expect(page.getByRole("group", { name: "Ayuda" }).getByTestId("toolbar-command-palette")).toBeVisible();
+  await page.getByLabel("Menú principal").click();
   await expect(page.getByTestId("toolbar-mas-toggle-grid")).toBeVisible();
   // Ronda 25 L2 III.A: "Configuración…" migró al ☰ Menú principal
   // (sección Modelo); ya no se duplica en ⋯ Más.
@@ -650,7 +654,7 @@ test("L1 toolbar split conserva root y controles por modo", async ({ page }) => 
   await expect(page.locator('[data-slot="cluster-conectar"]')).toBeVisible();
   // Ronda 25 L2 III.A: "Plantillas…" migró al ☰ Menú principal (sección
   // Plantillas); ya no se duplica en ⋯ Más.
-  await page.getByTestId("toolbar-mas-trigger").click();
+  await page.getByLabel("Menú principal").click();
   await expect(page.getByTestId("toolbar-mas-plantillas")).toHaveCount(0);
   await page.keyboard.press("Escape");
   await expect(page.getByTestId("abrir-menu-tipo-enlace")).toBeEnabled();

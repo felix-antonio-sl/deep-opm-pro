@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
 import {
+  clickToolbarMasItem,
   elementoPorTexto,
   escapeRegExp,
   modeloTraerConectadosSmoke,
@@ -199,9 +200,8 @@ test("mapa del sistema: abre, muestra thumbnails, doble clic navega", async ({ p
   const count = await treeItems.count();
   expect(count).toBeGreaterThanOrEqual(3);
 
-  // Abrir Mapa del sistema desde el menú secundario de la toolbar.
-  await page.getByTestId("toolbar-mas-trigger").click();
-  await page.getByTestId("toolbar-mas-mapa").click();
+  // Ronda 27 III.A cierre: Mapa del sistema vive ahora en `☰ → Herramientas`.
+  await clickToolbarMasItem(page, "toolbar-mas-mapa");
 
   // Verificar que el mapa se muestra
   const mapa = page.getByTestId("mapa-sistema");

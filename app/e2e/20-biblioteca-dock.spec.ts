@@ -9,7 +9,7 @@
  * el canvas".
  */
 import { expect, test, type Page } from "@playwright/test";
-import { jsonEditor } from "./_smoke-helpers";
+import { clickToolbarMasItem, jsonEditor } from "./_smoke-helpers";
 
 function modeloBibliotecaSmoke() {
   return {
@@ -187,13 +187,10 @@ test.describe("biblioteca dock", () => {
   });
 });
 
-async function clickToolbarMasItem(page: Page, testId: string): Promise<void> {
-  await page.getByTestId("toolbar-mas-trigger").click();
-  await page.getByTestId(testId).click();
-}
-
+// Ronda 27 III.A cierre: `clickToolbarMasItem` se importa canonicamente
+// desde `_smoke-helpers` y resuelve via menú principal `☰`.
 async function esperarEstadoBibliotecaDockEnMas(page: Page, estado: "true" | "false"): Promise<void> {
-  await page.getByTestId("toolbar-mas-trigger").click();
+  await page.getByLabel("Menú principal").click();
   await expect(page.getByTestId("toolbar-mas-biblioteca-dock")).toHaveAttribute("aria-pressed", estado);
   await page.keyboard.press("Escape");
 }

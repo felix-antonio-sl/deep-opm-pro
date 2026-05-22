@@ -2,21 +2,28 @@ import { expect, test } from "@playwright/test";
 import { cerrarPantallaInicioSiVisible } from "./_smoke-helpers";
 
 /**
- * Smoke ronda 15 L2 — Toolbar overflow manual `⋯ Más`.
+ * Smoke ronda 27 III.A cierre — Chrome plano de 5 elementos.
  *
- * Cubre los criterios del §7 del brief:
- * - Toolbar inicial tiene un maximo razonable de controles visibles (objetivo
- *   <= 25; tolerancia documentada para selects que cuentan como 1 control).
- * - El boton ⋯ Más abre un menu accesible (role="menu", items
- *   role="menuitem"), Escape cierra y devuelve foco al trigger.
- * - Al menos 3 acciones movidas al menu siguen invocables.
- * - No hay overflow horizontal del toolbar en viewport desktop estandar
- *   (1280x800).
+ * El veredicto jobs-web-ux original §III.A pide reducir el chrome al 70%:
+ * eliminar 4 de los 9 grupos de menú existentes y aterrizar en 5 botones
+ * planos:
+ *   [☰ Modelo] [● Persistencia] [○ Objeto] [● Proceso] [⌕ Buscar (Ctrl+K)]
+ *
+ * Este spec verifica:
+ * - El toolbar primario tiene exactamente 5 controles visibles sin
+ *   selección (objetivo III.A original).
+ * - El botón `⋯ Más` ya no existe — sus items canónicos migraron al
+ *   menú principal `☰` (secciones Vista y Herramientas) y las acciones
+ *   multi-selección viven en BarraHerramientasElemento.
+ * - Los `data-testid` heredados (`toolbar-mas-*`) se preservan dentro del
+ *   menú principal para que las 7 smokes históricas sigan funcionando
+ *   apuntando al testId.
+ * - No hay overflow horizontal del toolbar (1280x800 desktop estandar).
  */
 
 test.use({ viewport: { width: 1280, height: 800 } });
 
-test("toolbar inicial expone <= 25 controles visibles, sin overflow horizontal", async ({ page }) => {
+test("toolbar plano III.A: exactamente 5 controles visibles sin selección, sin overflow", async ({ page }) => {
   const pageErrors: string[] = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
@@ -26,23 +33,23 @@ test("toolbar inicial expone <= 25 controles visibles, sin overflow horizontal",
   const toolbarRoot = page.getByTestId("toolbar-root");
   await expect(toolbarRoot).toBeVisible();
 
-  // Contamos botones y selects visibles dentro del toolbar-root como proxy de
-  // controles del chrome principal. Cada select cuenta como 1 (tolerancia
-  // documentada por el brief).
-  const totales = await toolbarRoot.evaluate((root) => {
+  // Contamos botones visibles dentro del toolbar-root. Sin selección el
+  // chrome cierra III.A: ☰ · ChipPersistencia · Objeto · Proceso · Buscar.
+  // (ChipPersistencia es un <button> con estado del autosalvado.)
+  const conteo = await toolbarRoot.evaluate((root) => {
     const visibles = (el: Element) => {
       const rect = (el as HTMLElement).getBoundingClientRect();
       const cs = getComputedStyle(el as HTMLElement);
       return rect.width > 0 && rect.height > 0 && cs.visibility !== "hidden" && cs.display !== "none";
     };
     const buttons = Array.from(root.querySelectorAll("button")).filter(visibles);
-    const selects = Array.from(root.querySelectorAll("select")).filter(visibles);
-    return { buttons: buttons.length, selects: selects.length, total: buttons.length + selects.length };
+    const labels = buttons.map((b) => (b.textContent || "").trim().replace(/\s+/g, " "));
+    return { total: buttons.length, labels };
   });
 
-  // Ronda 22: Vista y Validar salen de la banda principal y pasan a ⋯ Más.
-  // La cota vuelve al objetivo original del brief.
-  expect(totales.total).toBeLessThanOrEqual(25);
+  // III.A original pide 5 elementos visibles planos. Sin selección activa,
+  // el chrome cumple geometría exacta.
+  expect(conteo.total).toBe(5);
 
   // No hay overflow horizontal: scrollWidth no debe exceder al clientWidth con
   // tolerancia minima (rounding subpixel) en viewport desktop estandar.
@@ -55,7 +62,7 @@ test("toolbar inicial expone <= 25 controles visibles, sin overflow horizontal",
   expect(pageErrors).toEqual([]);
 });
 
-test("toolbar omite rótulos redundantes de clusters de acción", async ({ page }) => {
+test("toolbar omite rótulos redundantes de clusters de acción y conserva ⌕ Buscar", async ({ page }) => {
   const pageErrors: string[] = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
@@ -73,73 +80,92 @@ test("toolbar omite rótulos redundantes de clusters de acción", async ({ page 
   expect(pageErrors).toEqual([]);
 });
 
-test("⋯ Más abre menu accesible, Escape cierra y se navega por teclado", async ({ page }) => {
+test("III.A cierre: el botón ⋯ Más desaparece del chrome", async ({ page }) => {
   const pageErrors: string[] = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
   await cerrarPantallaInicioSiVisible(page);
 
-  const trigger = page.getByTestId("toolbar-mas-trigger");
-  await expect(trigger).toBeVisible();
-  await expect(trigger).toHaveAttribute("aria-haspopup", "menu");
-  await expect(trigger).toHaveAttribute("aria-expanded", "false");
-
-  await trigger.click();
-  await expect(trigger).toHaveAttribute("aria-expanded", "true");
-
-  const menu = page.getByTestId("toolbar-mas-menu");
-  await expect(menu).toBeVisible();
-  await expect(menu).toHaveAttribute("role", "menu");
-  expect(await menu.locator('button[role="menuitem"]').count()).toBeGreaterThanOrEqual(3);
-
-  // Escape cierra y devuelve foco al trigger.
-  await page.keyboard.press("Escape");
-  await expect(menu).toHaveCount(0);
-  await expect(trigger).toBeFocused();
-  await expect(trigger).toHaveAttribute("aria-expanded", "false");
+  // Ronda 27 III.A cierre: el botón `⋯ Más` ya no existe en el chrome.
+  await expect(page.getByTestId("toolbar-mas-trigger")).toHaveCount(0);
+  await expect(page.getByTestId("toolbar-mas-menu")).toHaveCount(0);
+  // El cluster Ayuda solo contiene `⌕ Buscar`.
+  const ayuda = page.getByRole("group", { name: "Ayuda" });
+  await expect(ayuda).toBeVisible();
+  await expect(ayuda.getByRole("button")).toHaveCount(1);
+  await expect(ayuda.getByTestId("toolbar-command-palette")).toBeVisible();
 
   expect(pageErrors).toEqual([]);
 });
 
-test("⋯ Más usa labels de estado estables para apariencia y vista", async ({ page }) => {
+test("menú principal absorbe los items del ⋯ Más en secciones Vista y Herramientas", async ({ page }) => {
   const pageErrors: string[] = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
   await cerrarPantallaInicioSiVisible(page);
 
-  await page.getByTestId("toolbar-mas-trigger").click();
-  const menu = page.getByTestId("toolbar-mas-menu");
+  await page.getByLabel("Menú principal").click();
+  const menu = page.getByRole("menu", { name: "Menú principal" });
   await expect(menu).toBeVisible();
 
+  // Items canónicos heredados del ⋯ Más, ahora en `☰`. Preservan testId.
+  await expect(menu.getByTestId("toolbar-mas-toggle-grid")).toBeVisible();
+  await expect(menu.getByTestId("toolbar-mas-auto-layout")).toBeVisible();
+  await expect(menu.getByTestId("toolbar-mas-biblioteca-dock")).toBeVisible();
+  await expect(menu.getByTestId("toolbar-mas-mapa")).toBeVisible();
+  await expect(menu.getByTestId("toolbar-mas-simulacion")).toBeVisible();
+  await expect(menu.getByTestId("toolbar-mas-modo-imagen-global")).toBeVisible();
+
+  // Labels de estado estables (alias visibles, descripciones visibles, etc.).
   await expect(menu.getByRole("menuitem", { name: "Alias visibles", exact: true })).toBeVisible();
   await expect(menu.getByRole("menuitem", { name: "Descripciones visibles", exact: true })).toBeVisible();
   await expect(menu.getByRole("menuitem", { name: "Cuadrícula visible", exact: true })).toBeVisible();
   await expect(menu.getByRole("menuitem", { name: "Mapa del sistema", exact: true })).toBeVisible();
+  await expect(menu.getByRole("menuitem", { name: "Auto-layout", exact: true })).toBeVisible();
+  await expect(menu.getByRole("menuitem", { name: "Simulación conceptual", exact: true })).toBeVisible();
+
+  // Escape cierra y devuelve el control al botón ☰.
+  await page.keyboard.press("Escape");
+  await expect(menu).toHaveCount(0);
 
   expect(pageErrors).toEqual([]);
 });
 
-test("plantillas y configuracion residen en el menu principal; modo imagen sigue en Mas", async ({ page }) => {
-  // Ronda 25 L2 III.A: "Plantillas…" y "Configuración…" se eliminaron del
-  // menú ⋯ Más por duplicación con sus entradas canónicas en el ☰ Menú
-  // principal (sección Plantillas y sección Modelo). El menú principal
-  // queda como contenedor canónico de operaciones del modelo; ⋯ Más
-  // queda reservado a apariencia/vista y acciones multi-selección. Modo
-  // imagen global pertenece a apariencia y se conserva en ⋯ Más.
+test("modo imagen global cicla desde `☰ → Vista` (preserva testId del legacy ⋯ Más)", async ({ page }) => {
+  // Ronda 27 III.A cierre: el item Modo imagen global vive en `☰ →
+  // Vista`. El click cierra el menú; al reabrir, el label refleja el
+  // estado.
   const pageErrors: string[] = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
   await cerrarPantallaInicioSiVisible(page);
 
-  // 1) Plantillas vive en ☰ Menú principal (sección Plantillas) y abre
-  //    el catálogo `Plantillas privadas`. Ya no aparece en ⋯ Más.
-  await page.getByTestId("toolbar-mas-trigger").click();
-  await expect(page.getByTestId("toolbar-mas-menu")).toBeVisible();
-  await expect(page.getByTestId("toolbar-mas-plantillas")).toHaveCount(0);
+  await page.getByLabel("Menú principal").click();
+  const itemModoImagen = page.getByTestId("toolbar-mas-modo-imagen-global");
+  await expect(itemModoImagen).toBeVisible();
+  await itemModoImagen.click();
+  await expect(page.getByRole("menu", { name: "Menú principal" })).toHaveCount(0);
+  await page.getByLabel("Menú principal").click();
+  await expect(page.getByTestId("toolbar-mas-modo-imagen-global")).toContainText("imagen + nombre");
   await page.keyboard.press("Escape");
+
+  expect(pageErrors).toEqual([]);
+});
+
+test("plantillas y configuración siguen viviendo en su sección canónica del menú principal", async ({ page }) => {
+  // Ronda 25 L2 III.A: "Plantillas…" y "Configuración…" se eliminaron
+  // del menú ⋯ Más por duplicación. Tras ronda 27 III.A cierre el botón
+  // `⋯ Más` desapareció del chrome; verificamos que el menú principal
+  // sigue siendo el contenedor canónico de ambos.
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await cerrarPantallaInicioSiVisible(page);
+
   await page.getByLabel("Menú principal").click();
   await page
     .getByRole("menu", { name: "Menú principal" })
@@ -148,11 +174,6 @@ test("plantillas y configuracion residen en el menu principal; modo imagen sigue
   await expect(page.getByRole("dialog", { name: /[Pp]lantillas/ })).toBeVisible();
   await page.keyboard.press("Escape");
 
-  // 2) Configuración vive en ☰ Menú principal (sección Modelo) y abre
-  //    `DialogoConfiguracion`. Ya no aparece en ⋯ Más.
-  await page.getByTestId("toolbar-mas-trigger").click();
-  await expect(page.getByTestId("toolbar-mas-config-grid")).toHaveCount(0);
-  await page.keyboard.press("Escape");
   await page.getByLabel("Menú principal").click();
   await page
     .getByRole("menu", { name: "Menú principal" })
@@ -163,22 +184,10 @@ test("plantillas y configuracion residen en el menu principal; modo imagen sigue
   await dialogoConfig.getByRole("button", { name: "Cancelar" }).click();
   await expect(dialogoConfig).toHaveCount(0);
 
-  // 3) Cambiar modo imagen global desde el menu Más (sigue ahí como
-  //    acción de apariencia). Estado inicial: "por cosa" (uiModoImagenGlobal === null).
-  await page.getByTestId("toolbar-mas-trigger").click();
-  const itemModoImagen = page.getByTestId("toolbar-mas-modo-imagen-global");
-  await expect(itemModoImagen).toBeVisible();
-  await itemModoImagen.click();
-  // Tras el click el menu se cierra; al reabrir, el item refleja el cambio.
-  await expect(page.getByTestId("toolbar-mas-menu")).toHaveCount(0);
-  await page.getByTestId("toolbar-mas-trigger").click();
-  await expect(page.getByTestId("toolbar-mas-modo-imagen-global")).toContainText("imagen + nombre");
-  await page.keyboard.press("Escape");
-
   expect(pageErrors).toEqual([]);
 });
 
-test("MenuPrincipal separa archivo, datos y herramientas sin duplicar la vista del toolbar", async ({ page }) => {
+test("MenuPrincipal separa archivo, datos y herramientas sin duplicar el chrome", async ({ page }) => {
   const pageErrors: string[] = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
@@ -200,9 +209,12 @@ test("MenuPrincipal separa archivo, datos y herramientas sin duplicar la vista d
   await expect(menu.getByRole("menuitem", { name: "Importar/Exportar JSON...", exact: true })).toHaveCount(0);
   await expect(menu.getByRole("menuitem", { name: "Ejemplos", exact: true })).toHaveCount(0);
   await expect(menu.getByRole("menuitem", { name: "Tabla de enlaces", exact: true })).toBeVisible();
-  await expect(menu.getByRole("menuitem", { name: "Mapa del sistema", exact: true })).toHaveCount(0);
-  await expect(menu.getByRole("menuitem", { name: "Simulación conceptual", exact: true })).toHaveCount(0);
-  await expect(menu.getByRole("menuitem", { name: "Auto-layout", exact: true })).toHaveCount(0);
+  // Ronda 27 III.A cierre: Mapa, Simulación y Auto-layout sí viven ahora
+  // como items del menú principal `☰` (sección Herramientas), absorbidos
+  // desde el desaparecido `⋯ Más`.
+  await expect(menu.getByRole("menuitem", { name: "Mapa del sistema", exact: true })).toBeVisible();
+  await expect(menu.getByRole("menuitem", { name: "Simulación conceptual", exact: true })).toBeVisible();
+  await expect(menu.getByRole("menuitem", { name: "Auto-layout", exact: true })).toBeVisible();
 
   await menu.getByRole("menuitem", { name: "Abrir / importar...", exact: true }).click();
   const dialogoAbrir = page.getByRole("dialog", { name: "Abrir / importar modelo" });
