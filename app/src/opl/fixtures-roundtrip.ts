@@ -32,7 +32,7 @@ import {
   renombrarEstado,
 } from "../modelo/operaciones";
 import { estadosDeEntidad } from "../modelo/operaciones";
-import type { Id, Modelo, Resultado } from "../modelo/tipos";
+import type { Abanico, Id, Modelo, Resultado } from "../modelo/tipos";
 
 export interface FixtureRoundtrip {
   /** Nombre estable para identificar la fixture en reportes de fallo. */
@@ -253,6 +253,66 @@ const fixtureGeneralizacion: FixtureRoundtrip = {
 };
 
 /**
+ * Fixture 11 (bug 62ee85): abanico de dos resultados al mismo objeto sin
+ * estados diferenciados. Antes del fix de ronda 26/L6 B3 la OPL emitia
+ * `*Procesar* genera al menos uno de **Objeto_2** y **Objeto_2**.`
+ * (nombre duplicado), texto semanticamente vacio. Post-fix, la oracion del
+ * abanico se deduplica y, al quedar un solo extremo distinto, cae a la
+ * oracion individual: `*Procesar* genera **Objeto_2**.`
+ *
+ * NO bisimetrica estricta: el aplicador no inversa abanicos desde texto
+ * libre, asi que el modelo recuperado no recreara el abanico (solo los
+ * enlaces individuales). Verificamos la oracion canonica del generador,
+ * que es lo que el bug afectaba.
+ */
+const fixtureBug62ee85AbanicoDeduplicado: FixtureRoundtrip = {
+  nombre: "bug-62ee85-abanico-resultados-mismo-objeto",
+  construir: () => {
+    let m = crearModelo("M");
+    m = must(crearProceso(m, m.opdRaizId, { x: 0, y: 0 }, "Procesar"));
+    m = must(crearObjeto(m, m.opdRaizId, { x: 200, y: 0 }, "Objeto_2"));
+    const procesoId = entidadId(m, "Procesar");
+    const objetoId = entidadId(m, "Objeto_2");
+    // Dos resultados Procesar→Objeto_2 (modelo del bug: el canvas creo dos
+    // enlaces visualmente diferentes pero ambos terminan en la misma entidad).
+    m = must(crearEnlace(m, m.opdRaizId, procesoId, objetoId, "resultado"));
+    m = must(crearEnlace(m, m.opdRaizId, procesoId, objetoId, "resultado"));
+    const enlaceIds = Object.keys(m.enlaces);
+    if (enlaceIds.length !== 2) throw new Error("fixture invalida: enlaces");
+    // Forzamos el abanico compartiendo port en el origen.
+    const portId = "port-fan-bug-62ee85";
+    const enlacesActualizados = { ...m.enlaces };
+    for (const id of enlaceIds) {
+      const e = enlacesActualizados[id]!;
+      enlacesActualizados[id] = {
+        ...e,
+        origenId: { ...e.origenId, portId },
+      };
+    }
+    const abanico: Abanico = {
+      id: "ab-bug-62ee85",
+      opdId: m.opdRaizId,
+      puertoComun: { entidadId: procesoId, lado: "origen", portId },
+      puertoEntidadId: procesoId,
+      operador: "O",
+      enlaceIds,
+    };
+    m = {
+      ...m,
+      enlaces: enlacesActualizados,
+      abanicos: { ...(m.abanicos ?? {}), [abanico.id]: abanico },
+    };
+    return m;
+  },
+  oracionesEsperadas: [
+    "*Procesar* es un proceso informacional y sistémico.",
+    "**Objeto_2** es un objeto informacional y sistémico.",
+    "*Procesar* genera **Objeto_2**.",
+  ],
+  bisimetricaEstricta: false,
+};
+
+/**
  * Catalogo nucleo bisimetrico, congelado al cierre del L6 (ronda 26).
  * No mutes esta lista en el mismo archivo: agrega tus fixtures nuevas
  * (eventos, condicion+excepcion, designaciones+plegado, etc.) al array
@@ -270,6 +330,7 @@ export const fixturesRoundtripNucleo: readonly FixtureRoundtrip[] = [
   fixtureAgenteSimple,
   fixtureAgregacion,
   fixtureGeneralizacion,
+  fixtureBug62ee85AbanicoDeduplicado,
 ] as const;
 
 /**
