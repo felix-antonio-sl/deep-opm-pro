@@ -20,7 +20,8 @@ import {
 import { aplicarModificador } from "../../modelo/modificadores";
 import { posicionLibre } from "../../modelo/layout";
 import { entidadIdDeExtremo } from "../../modelo/extremos";
-import type { DesignacionEstado, Enlace, Id, Modelo, Resultado, TipoEnlace } from "../../modelo/tipos";
+import { formarAbanico } from "../../modelo/abanicos";
+import type { DesignacionEstado, Enlace, Id, Modelo, Modificador, Resultado, TipoEnlace } from "../../modelo/tipos";
 import { claveNombre } from "./parsear";
 import type { PatchOplPropuesto, ReferenciaEntidadPatch } from "./tipos";
 
@@ -28,7 +29,9 @@ export function aplicarPatchesOpl(modelo: Modelo, patches: PatchOplPropuesto[], 
   let siguiente = modelo;
   const creadas = new Map<string, Id>();
 
-  for (const patch of patches.filter((p) => p.tipo !== "crear-enlace" && p.tipo !== "fijar-etiqueta-enlace")) {
+  for (const patch of patches.filter((p): p is Exclude<PatchOplPropuesto, { tipo: "crear-enlace" | "fijar-etiqueta-enlace" | "crear-abanico" }> =>
+    p.tipo !== "crear-enlace" && p.tipo !== "fijar-etiqueta-enlace" && p.tipo !== "crear-abanico"
+  )) {
     const resultado = aplicarPatchNoEnlace(siguiente, patch, opdId, creadas);
     if (!resultado.ok) return resultado;
     siguiente = resultado.value;
@@ -40,12 +43,20 @@ export function aplicarPatchesOpl(modelo: Modelo, patches: PatchOplPropuesto[], 
     siguiente = resultado.value;
   }
 
+  // Tercera fase: abanicos. Necesitan que todos los enlaces de sus ramas
+  // existan ya en el modelo, por eso van despues de la fase de enlaces.
+  for (const patch of patches.filter((p): p is Extract<PatchOplPropuesto, { tipo: "crear-abanico" }> => p.tipo === "crear-abanico")) {
+    const resultado = aplicarPatchAbanico(siguiente, patch, opdId);
+    if (!resultado.ok) return resultado;
+    siguiente = resultado.value;
+  }
+
   return ok(siguiente);
 }
 
 function aplicarPatchNoEnlace(
   modelo: Modelo,
-  patch: Exclude<PatchOplPropuesto, { tipo: "crear-enlace" | "fijar-etiqueta-enlace" }>,
+  patch: Exclude<PatchOplPropuesto, { tipo: "crear-enlace" | "fijar-etiqueta-enlace" | "crear-abanico" }>,
   opdId: Id,
   creadas: Map<string, Id>,
 ): Resultado<Modelo> {
@@ -227,6 +238,83 @@ function resolverRef(modelo: Modelo, ref: ReferenciaEntidadPatch, creadas: Map<s
 function idEntidadNueva(previo: Modelo, siguiente: Modelo): Id | null {
   const previos = new Set(Object.keys(previo.entidades));
   return Object.keys(siguiente.entidades).find((id) => !previos.has(id)) ?? null;
+}
+
+/**
+ * Aplica un patch `crear-abanico` (ronda 26/L3): busca los N enlaces que
+ * matchean las ramas y los agrupa con `formarAbanico` del modelo.
+ *
+ * Pre-requisitos: los enlaces ya existen en el modelo (los crearon los
+ * patches de la fase 2). Si alguna rama no se encuentra, devuelve
+ * ok(modelo) silenciosamente (patch idempotente no-op).
+ *
+ * NOTA sobre puertos: `formarAbanico` requiere que los enlaces compartan
+ * un puerto exacto (entidadId + lado + portId). Como `crearEnlace` no
+ * asigna `portId` explicito, asignamos un portId compartido de fan-out al
+ * lado del proceso pivote en todos los enlaces de las ramas antes de
+ * invocar `formarAbanico`.
+ */
+function aplicarPatchAbanico(
+  modelo: Modelo,
+  patch: Extract<PatchOplPropuesto, { tipo: "crear-abanico" }>,
+  opdId: Id,
+): Resultado<Modelo> {
+  const procesoId = resolverRefSinCreadas(modelo, patch.procesoRef);
+  if (!procesoId) return ok(modelo);
+
+  const enlacesRama: Enlace[] = [];
+  for (const rama of patch.ramas) {
+    const origenId = resolverRefSinCreadas(modelo, rama.origen);
+    const destinoId = resolverRefSinCreadas(modelo, rama.destino);
+    if (!origenId || !destinoId) continue;
+    const enlace = buscarEnlaceParaAbanico(modelo, patch.tipoEnlace, origenId, destinoId, patch.modificador);
+    if (enlace) enlacesRama.push(enlace);
+  }
+
+  if (enlacesRama.length < 2) {
+    return ok(modelo);
+  }
+
+  const portId: Id = `port-fan-opl-${patch.linea}-${procesoId}`;
+  const lado: "origen" | "destino" = patch.procesoEsOrigen ? "origen" : "destino";
+  const enlacesConPuerto = { ...modelo.enlaces };
+  for (const enlace of enlacesRama) {
+    const extremoActual = lado === "origen" ? enlace.origenId : enlace.destinoId;
+    if (extremoActual.kind !== "entidad" || extremoActual.id !== procesoId) {
+      return ok(modelo);
+    }
+    const extremoConPuerto = { ...extremoActual, portId };
+    enlacesConPuerto[enlace.id] = lado === "origen"
+      ? { ...enlace, origenId: extremoConPuerto }
+      : { ...enlace, destinoId: extremoConPuerto };
+  }
+  const modeloConPuertos: Modelo = { ...modelo, enlaces: enlacesConPuerto };
+
+  return formarAbanico(modeloConPuertos, opdId, enlacesRama.map((e) => e.id), patch.operador);
+}
+
+function resolverRefSinCreadas(modelo: Modelo, ref: ReferenciaEntidadPatch): Id | null {
+  if (ref.tipo === "id") return ref.id;
+  const clave = claveNombre(ref.nombre);
+  return Object.values(modelo.entidades).find((entidad) =>
+    claveNombre(entidad.nombre) === clave && (ref.entidadTipo === undefined || entidad.tipo === ref.entidadTipo)
+  )?.id ?? null;
+}
+
+function buscarEnlaceParaAbanico(
+  modelo: Modelo,
+  tipo: TipoEnlace,
+  origenId: Id,
+  destinoId: Id,
+  modificador: Modificador | undefined,
+): Enlace | null {
+  return Object.values(modelo.enlaces).find((enlace) => {
+    if (enlace.tipo !== tipo) return false;
+    if (entidadIdDeExtremo(modelo, enlace.origenId) !== origenId) return false;
+    if (entidadIdDeExtremo(modelo, enlace.destinoId) !== destinoId) return false;
+    if (modificador !== undefined && enlace.modificador !== modificador) return false;
+    return true;
+  }) ?? null;
 }
 
 function ok<T>(value: T): Resultado<T> {

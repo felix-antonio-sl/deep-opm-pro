@@ -244,5 +244,7 @@ function describirPatch(patch: PatchOplPropuesto): string {
       return `etiqueta enlace -> ${patch.siguiente || "(vacía)"}`;
     case "aplicar-designacion-estado":
       return `designar estado ${patch.estadoNombre} como ${patch.designacion}`;
+    case "crear-abanico":
+      return `crear abanico ${patch.operador} (${patch.ramas.length} ramas)`;
   }
 }

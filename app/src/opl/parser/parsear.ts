@@ -1,8 +1,68 @@
-import type { Afiliacion, DesignacionEstado, Esencia, TipoEntidad } from "../../modelo/tipos";
+import type { Afiliacion, DesignacionEstado, Esencia, OperadorAbanico, TipoEntidad, TipoEnlace } from "../../modelo/tipos";
 import type { AstProcedimentalBase, DiagnosticoOpl, LineaOplNormalizada, OracionOplAst, ParseResultOpl } from "./tipos";
 
 const PUNTO_FINAL = /\.\s*$/;
 const ETIQUETA_SUFIX = /\s*\[etiqueta:\s*([^\]]+)\]\s*$/i;
+
+/**
+ * SSOT §12. Multiplicidad canonica como PREFIJO de nombre. El generador emite
+ * la cardinalidad delante del token de entidad: `2 **Pedidos**`, `1..N **Recursos**`,
+ * `* **Veces**`. Esta regex extrae la cardinalidad y deja el resto del texto.
+ *
+ * Lenguaje aceptado (espejo de `MULTIPLICIDAD_CANONICA_RE` del modelo): `1`,
+ * `2..N`, `0..3`, `*`. Cualquier otro prefijo no matchea y queda como nombre.
+ */
+const MULTIPLICIDAD_PREFIJO_RE = /^\s*(\d+(?:\.\.(?:\d+|N))?|\*)\s+(.+)$/iu;
+
+/**
+ * SSOT §13. Prefijo de ruta etiquetada. El generador emite
+ * `Por ruta <etiqueta>, <oracion base>` cuando el enlace tiene `rutaEtiqueta`.
+ * La etiqueta llega ya sin backticks/markdown (limpiarMarkdown corre antes).
+ * Case-insensitive por afinidad al dictado humano (D6).
+ */
+const RUTA_PREFIJO_RE = /^Por\s+ruta\s+(.+?),\s*(.+)$/iu;
+
+/**
+ * Extrae prefijo de multiplicidad (SSOT §12) de un texto. Devuelve la
+ * multiplicidad como string literal y el nombre limpio. Si no hay prefijo
+ * canonico, `multiplicidad` es undefined y `nombre` es el texto sin tocar.
+ *
+ * D5: prefijos no canonicos (e.g. `{abc}`) se ignoran silenciosamente —
+ * `normalizarNombreOpl` ya descarta `{...}` segun la regla previa y el resto
+ * del enlace se aplica.
+ *
+ * NOTA: este helper opera sobre texto sin pasar por `normalizarNombreOpl`,
+ * que descarta el prefijo numerico/estrella. Usar `extraerMultiplicidadDeNombre`
+ * para casos donde el texto crudo ya viene con markdown limpiado pero sin
+ * normalizar.
+ */
+export function extraerMultiplicidad(texto: string): { multiplicidad?: string; nombre: string } {
+  const match = MULTIPLICIDAD_PREFIJO_RE.exec(texto.trim());
+  if (!match) return { nombre: texto.trim() };
+  const multiplicidad = (match[1] ?? "").trim();
+  const nombre = (match[2] ?? "").trim();
+  if (!multiplicidad || !nombre) return { nombre: texto.trim() };
+  return { multiplicidad, nombre };
+}
+
+/**
+ * Pipeline canonico para extremos con multiplicidad prefija (SSOT §12).
+ * Toma texto crudo (post-`limpiarMarkdown` que ya corrio en `normalizarLinea`),
+ * extrae multiplicidad del prefijo y normaliza el nombre restante con
+ * `normalizarNombreOpl`.
+ *
+ * Esta es la API correcta para el parser: si pasamos texto crudo a
+ * `normalizarNombreOpl` directamente, el prefijo `2 ` o `*` se descarta
+ * silenciosamente (regla previa de `normalizarNombreOpl`) y perdemos la
+ * multiplicidad.
+ */
+function extraerMultiplicidadDeNombre(crudo: string): { multiplicidad?: string; nombre: string } {
+  const extraida = extraerMultiplicidad(crudo);
+  return {
+    nombre: normalizarNombreOpl(extraida.nombre),
+    ...(extraida.multiplicidad ? { multiplicidad: extraida.multiplicidad } : {}),
+  };
+}
 
 export function parsearParrafoOpl(texto: string): ParseResultOpl {
   const lineas = normalizarLineas(texto);
@@ -68,10 +128,31 @@ function limpiarMarkdown(texto: string): string {
 }
 
 function parsearOracion(texto: string, linea: LineaOplNormalizada): { ast: OracionOplAst; diagnosticos: DiagnosticoOpl[] } {
+  // SSOT §13: ruta etiquetada. Si la oracion empieza por `Por ruta <etiqueta>, ...`
+  // delegamos el parseo del sub-texto y enriquecemos el AST resultante con
+  // `rutaEtiqueta`. Solo aplica en familias procedimental / evento / condicion
+  // (las unicas que el modelo soporta para rutas; `enlaceAdmiteRuta`).
+  const rutaMatch = RUTA_PREFIJO_RE.exec(texto);
+  if (rutaMatch) {
+    const etiqueta = (rutaMatch[1] ?? "").trim();
+    const subTexto = (rutaMatch[2] ?? "").trim();
+    if (etiqueta && subTexto) {
+      const hijo = parsearOracion(subTexto, linea);
+      const astConRuta = aplicarRutaAlAst(hijo.ast, etiqueta);
+      return { ast: astConRuta, diagnosticos: hijo.diagnosticos };
+    }
+  }
+
   return parsearDescripcion(texto, linea)
     ?? parsearEstados(texto, linea)
     ?? parsearEvento(texto, linea)
     ?? parsearExcepcion(texto, linea)
+    // `parsearAbanico` (ronda 26/L3) DEBE correr antes de `parsearCondicion` y
+    // `parsearProcedimental`. Las oraciones de abanico se mimetizan con las
+    // individuales cuando se ignora el cuantificador ("exactamente uno de" /
+    // "al menos uno de"). Si NO esta el cuantificador, parsearAbanico devuelve
+    // null y la cadena continua → aditividad estricta.
+    ?? parsearAbanico(texto, linea)
     ?? parsearCondicion(texto, linea)
     ?? parsearProcedimental(texto, linea)
     ?? parsearEstructural(texto, linea)
@@ -90,6 +171,253 @@ function parsearOracion(texto: string, linea: LineaOplNormalizada): { ast: Oraci
         sugerencia: "Usa una plantilla SSOT: descripcion, estados, enlace procedural, enlace estructural o contexto.",
       }],
     };
+}
+
+/**
+ * Aplica `rutaEtiqueta` al AST hijo si el kind admite ruta. Familias soportadas:
+ * - `procedimental`: rutaEtiqueta directo (esta en AstProcedimentalBase).
+ * - `evento`: rutaEtiqueta replicada al base si existe (es donde vive el enlace).
+ * - `condicion`: el AST canonico no expone rutaEtiqueta como propio — el modelo
+ *   actual solo persiste ruta en enlaces base, no en wrappers condicion. Se
+ *   deja el AST tal cual; el wrapper la pierde silenciosamente.
+ * - `abanico`: idem, el wrapper L3 no soporta ruta en este corte.
+ *
+ * Para AST de otras familias (descripcion-cosa, estados, ...) el prefijo
+ * `Por ruta` no tiene sentido: devolvemos el AST sin enriquecer.
+ */
+function aplicarRutaAlAst(ast: OracionOplAst, rutaEtiqueta: string): OracionOplAst {
+  if (ast.kind === "procedimental") return { ...ast, rutaEtiqueta };
+  if (ast.kind === "evento") {
+    if (ast.base) return { ...ast, base: { ...ast.base, rutaEtiqueta } };
+    return ast;
+  }
+  return ast;
+}
+
+// SSOT §11.2-§11.4: abanicos XOR/OR (ronda 26/L3). Reconoce las formas
+// emitidas por `generadores/abanico.ts:oracionAbanico` y por
+// `oracionAbanicoCondicional`.
+//
+// Decision D1: cuantificador → operador
+//   - "exactamente uno de" → "XOR"
+//   - "al menos uno de"   → "O"
+// Sin override desde texto: si la palabra no aparece, no hay abanico.
+//
+// Cubre tres familias:
+//
+// A) §11.2-§11.3 forma directa
+//    `<Proceso> <verbo> [<Obj> (a|de) ]<cuant> <lista>.`
+//
+// B) §11.4 forma condicional generica
+//    `<Proceso> ocurre si <cuant> <lista> existe[, en cuyo caso <sub>],
+//     de lo contrario <Proceso> se omite.`
+//
+// C) Variantes condicionales especificas (cierre TODOs L3):
+//    - resultado: `<P> ocurre si <cuant> <lista> puede generarse, en cuyo
+//      caso <P> genera <cuant> <lista>, de lo contrario <P> se omite.`
+//    - invocacion: `<P> invoca <cuant> <lista> si <P> ocurre.`
+
+const ABANICO_CUANT_RE = /^(exactamente uno de|al menos uno de)\s+(.+)$/iu;
+
+function operadorDeCuantificador(cuant: string): OperadorAbanico {
+  return /exactamente/i.test(cuant) ? "XOR" : "O";
+}
+
+function tokenizarListaAbanico(texto: string): string[] {
+  return texto
+    .split(/\s*,\s*/u)
+    .flatMap((parte) => parte.split(/\s+y\s+/iu))
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
+function parsearAbanico(texto: string, linea: LineaOplNormalizada) {
+  return parsearAbanicoResultadoCondicional(texto, linea)
+    ?? parsearAbanicoInvocacionCondicional(texto, linea)
+    ?? parsearAbanicoCondicional(texto, linea)
+    ?? parsearAbanicoDirecto(texto, linea);
+}
+
+// Variante (C) resultado + condicion + abanico (TODO cerrado en L3).
+const ABANICO_RESULTADO_COND_RE =
+  /^(.+?)\s+ocurre\s+si\s+(exactamente uno de|al menos uno de)\s+(.+?)\s+puede\s+generarse,\s*en\s+cuyo\s+caso\s+(.+?)\s+genera\s+(?:exactamente uno de|al menos uno de)\s+.+?,\s*de\s+lo\s+contrario\s+(.+?)\s+se\s+omite$/iu;
+
+function parsearAbanicoResultadoCondicional(texto: string, linea: LineaOplNormalizada) {
+  const match = ABANICO_RESULTADO_COND_RE.exec(texto);
+  if (!match) return null;
+  const proceso = normalizarNombreOpl(match[1] ?? "");
+  const operador = operadorDeCuantificador(match[2] ?? "");
+  const otros = tokenizarListaAbanico(match[3] ?? "").map(normalizarNombreOpl).filter(Boolean);
+  const procesoSub = normalizarNombreOpl(match[4] ?? "");
+  const procesoOmitido = normalizarNombreOpl(match[5] ?? "");
+  if (!proceso || otros.length < 2) return null;
+  if (claveNombre(procesoSub) !== claveNombre(proceso)) return null;
+  if (claveNombre(procesoOmitido) !== claveNombre(proceso)) return null;
+  return astAbanico(linea, {
+    proceso, operador, tipoEnlace: "resultado", otros, puertoEsOrigen: true, modificador: "condicion",
+  });
+}
+
+// Variante (C) invocacion + condicion + abanico (TODO cerrado en L3).
+const ABANICO_INVOCACION_COND_RE =
+  /^(.+?)\s+invoca\s+(exactamente uno de|al menos uno de)\s+(.+?)\s+si\s+(.+?)\s+ocurre$/iu;
+
+function parsearAbanicoInvocacionCondicional(texto: string, linea: LineaOplNormalizada) {
+  const match = ABANICO_INVOCACION_COND_RE.exec(texto);
+  if (!match) return null;
+  const proceso = normalizarNombreOpl(match[1] ?? "");
+  const operador = operadorDeCuantificador(match[2] ?? "");
+  const otros = tokenizarListaAbanico(match[3] ?? "").map(normalizarNombreOpl).filter(Boolean);
+  const procesoCondicion = normalizarNombreOpl(match[4] ?? "");
+  if (!proceso || otros.length < 2) return null;
+  if (claveNombre(procesoCondicion) !== claveNombre(proceso)) return null;
+  return astAbanico(linea, {
+    proceso, operador, tipoEnlace: "invocacion", otros, puertoEsOrigen: true, modificador: "condicion",
+  });
+}
+
+// Variante (A) §11.2-§11.3 directa. Tabla derivada del generador (cf. abanico.ts:94-119).
+const ABANICO_VERBO_RE_LIST = [
+  { re: /^(.+?)\s+consume\s+(.+)$/iu, tipo: "consumo" as const, puertoEsOrigen: false },
+  { re: /^(.+?)\s+genera\s+(.+)$/iu, tipo: "resultado" as const, puertoEsOrigen: true },
+  { re: /^(.+?)\s+requiere\s+(.+)$/iu, tipo: "instrumento" as const, puertoEsOrigen: false },
+  { re: /^(.+?)\s+afecta\s+(.+)$/iu, tipo: "efecto" as const, puertoEsOrigen: true },
+  { re: /^(.+?)\s+invoca\s+(.+)$/iu, tipo: "invocacion" as const, puertoEsOrigen: true },
+  { re: /^(.+?)\s+maneja\s+(.+)$/iu, tipo: "agente" as const, puertoEsOrigen: true },
+  { re: /^(.+?)\s+es\s+consumido\s+por\s+(.+)$/iu, tipo: "consumo" as const, puertoEsOrigen: true },
+  { re: /^(.+?)\s+es\s+generado\s+por\s+(.+)$/iu, tipo: "resultado" as const, puertoEsOrigen: false },
+  { re: /^(.+?)\s+es\s+requerido\s+por\s+(.+)$/iu, tipo: "instrumento" as const, puertoEsOrigen: true },
+  { re: /^(.+?)\s+es\s+invocado\s+por\s+(.+)$/iu, tipo: "invocacion" as const, puertoEsOrigen: false },
+  { re: /^(.+?)\s+es\s+manejado\s+por\s+(.+)$/iu, tipo: "agente" as const, puertoEsOrigen: false },
+] as const;
+
+const ABANICO_CAMBIA_RE =
+  /^(.+?)\s+cambia\s+(.+?)\s+(a|de)\s+(exactamente uno de|al menos uno de)\s+(.+)$/iu;
+
+function parsearAbanicoDirecto(texto: string, linea: LineaOplNormalizada) {
+  const cambia = ABANICO_CAMBIA_RE.exec(texto);
+  if (cambia) {
+    const proceso = normalizarNombreOpl(cambia[1] ?? "");
+    const objeto = normalizarNombreOpl(cambia[2] ?? "");
+    const direccion = (cambia[3] ?? "").toLocaleLowerCase("es");
+    const operador = operadorDeCuantificador(cambia[4] ?? "");
+    const estados = tokenizarListaAbanico(cambia[5] ?? "").map(limpiarEstado).filter(Boolean);
+    if (!proceso || !objeto || estados.length < 2) return null;
+    const tipo: Extract<TipoEnlace, "consumo" | "resultado"> = direccion === "a" ? "resultado" : "consumo";
+    return astAbanico(linea, {
+      proceso, operador, tipoEnlace: tipo,
+      otros: estados.map(() => objeto),
+      otrosEstados: estados,
+      puertoEsOrigen: direccion === "a",
+    });
+  }
+
+  for (const entry of ABANICO_VERBO_RE_LIST) {
+    const match = entry.re.exec(texto);
+    if (!match) continue;
+    const proceso = normalizarNombreOpl(match[1] ?? "");
+    const restoMatch = ABANICO_CUANT_RE.exec((match[2] ?? "").trim());
+    if (!restoMatch) continue;
+    const operador = operadorDeCuantificador(restoMatch[1] ?? "");
+    const otros = tokenizarListaAbanico(restoMatch[2] ?? "").map(normalizarNombreOpl).filter(Boolean);
+    if (!proceso || otros.length < 2) continue;
+    return astAbanico(linea, {
+      proceso, operador, tipoEnlace: entry.tipo, otros, puertoEsOrigen: entry.puertoEsOrigen,
+    });
+  }
+  return null;
+}
+
+const ABANICO_CONDICION_RE =
+  /^(.+?)\s+ocurre\s+si\s+(exactamente uno de|al menos uno de)\s+(.+?)\s+existe(?:,\s*en\s+cuyo\s+caso\s+(.+?))?,\s*de\s+lo\s+contrario\s+(.+?)\s+se\s+omite$/iu;
+
+function parsearAbanicoCondicional(texto: string, linea: LineaOplNormalizada) {
+  const match = ABANICO_CONDICION_RE.exec(texto);
+  if (!match) return null;
+  const proceso = normalizarNombreOpl(match[1] ?? "");
+  const operador = operadorDeCuantificador(match[2] ?? "");
+  const otros = tokenizarListaAbanico(match[3] ?? "").map(normalizarNombreOpl).filter(Boolean);
+  const subClausula = (match[4] ?? "").trim();
+  const procesoOmitido = normalizarNombreOpl(match[5] ?? "");
+  if (!proceso || otros.length < 2) return null;
+  if (claveNombre(procesoOmitido) !== claveNombre(proceso)) return null;
+
+  if (!subClausula) {
+    return astAbanico(linea, {
+      proceso, operador, tipoEnlace: "instrumento", otros, puertoEsOrigen: false, modificador: "condicion",
+    });
+  }
+
+  const clasificacion = clasificarSubClausulaAbanico(subClausula, proceso, otros);
+  if (!clasificacion) return null;
+  return astAbanico(linea, {
+    proceso, operador, tipoEnlace: clasificacion.tipo, otros,
+    puertoEsOrigen: clasificacion.puertoEsOrigen, modificador: "condicion",
+  });
+}
+
+function clasificarSubClausulaAbanico(
+  sub: string,
+  proceso: string,
+  otros: string[],
+): { tipo: Extract<TipoEnlace, "agente" | "instrumento" | "consumo" | "resultado" | "efecto" | "invocacion">; puertoEsOrigen: boolean } | null {
+  const procesoClave = claveNombre(proceso);
+  const otrosClaves = new Set(otros.map((nombre) => claveNombre(nombre)));
+
+  let match = /^(.+?)\s+consume\s+(.+)$/iu.exec(sub);
+  if (match && claveNombre(normalizarNombreOpl(match[1] ?? "")) === procesoClave) {
+    if (listaSeCorrespondeConOtros(match[2] ?? "", otrosClaves)) {
+      return { tipo: "consumo", puertoEsOrigen: false };
+    }
+  }
+  match = /^(.+?)\s+afecta\s+(.+)$/iu.exec(sub);
+  if (match && claveNombre(normalizarNombreOpl(match[1] ?? "")) === procesoClave) {
+    if (listaSeCorrespondeConOtros(match[2] ?? "", otrosClaves)) {
+      return { tipo: "efecto", puertoEsOrigen: true };
+    }
+  }
+  match = /^(exactamente uno de|al menos uno de)\s+(.+?)\s+maneja\s+(.+)$/iu.exec(sub);
+  if (match && claveNombre(normalizarNombreOpl(match[3] ?? "")) === procesoClave) {
+    if (listaSeCorrespondeConOtros(match[2] ?? "", otrosClaves)) {
+      return { tipo: "agente", puertoEsOrigen: false };
+    }
+  }
+  return null;
+}
+
+function listaSeCorrespondeConOtros(textoLista: string, otrosClaves: Set<string>): boolean {
+  const items = tokenizarListaAbanico(textoLista).map(normalizarNombreOpl).map(claveNombre);
+  if (items.length === 0) return false;
+  return items.every((clave) => otrosClaves.has(clave));
+}
+
+function astAbanico(
+  linea: LineaOplNormalizada,
+  payload: {
+    proceso: string;
+    operador: OperadorAbanico;
+    tipoEnlace: Extract<TipoEnlace, "agente" | "instrumento" | "consumo" | "resultado" | "efecto" | "invocacion">;
+    otros: string[];
+    otrosEstados?: string[];
+    puertoEsOrigen: boolean;
+    modificador?: "condicion";
+  },
+) {
+  return {
+    ast: {
+      kind: "abanico" as const,
+      linea: linea.linea,
+      proceso: payload.proceso,
+      operador: payload.operador,
+      tipoEnlace: payload.tipoEnlace,
+      otros: payload.otros,
+      ...(payload.otrosEstados ? { otrosEstados: payload.otrosEstados } : {}),
+      puertoEsOrigen: payload.puertoEsOrigen,
+      ...(payload.modificador ? { modificador: payload.modificador } : {}),
+      ...(linea.etiqueta ? { etiqueta: linea.etiqueta } : {}),
+    },
+    diagnosticos: [],
+  };
 }
 
 function parsearDescripcion(texto: string, linea: LineaOplNormalizada) {
@@ -476,41 +804,119 @@ function parsearProcedimental(texto: string, linea: LineaOplNormalizada) {
     const proceso = normalizarNombreOpl(match[1] ?? "");
     return astProcedimental(linea, { tipoEnlace: "invocacion", proceso, origen: proceso, destino: proceso });
   }
-  match = /^(.+?) consume (.+)$/iu.exec(texto);
+  // SSOT §12: verbos aceptan variante plural (`consume[n]?`, `genera[n]?`,
+  // `maneja[n]?`, `requiere[n]?`, `invoca[n]?`, `afecta[n]?`). El generador
+  // pluraliza cuando la multiplicidad del sujeto es pluralizadora (`*`, `>=2`,
+  // `*..N`). Mantenemos compat con singular. La cardinalidad PREFIJA de cada
+  // extremo se captura via `extraerMultiplicidad`.
+  match = /^(.+?) consumen? (.+)$/iu.exec(texto);
   if (match) {
-    const objeto = limpiarObjetoConEstado(match[2] ?? "");
+    // En consumo el proceso es destino (sujeto del verbo), el objeto es origen.
+    const proceso = extraerMultiplicidadDeNombre(match[1] ?? "");
+    const objeto = limpiarObjetoConEstadoConMultiplicidad(match[2] ?? "");
     return astProcedimental(linea, {
       tipoEnlace: "consumo",
-      proceso: normalizarNombreOpl(match[1] ?? ""),
+      proceso: proceso.nombre,
       objeto: objeto.nombre,
       ...(objeto.estado ? { estadoEntrada: objeto.estado } : {}),
+      ...(objeto.multiplicidad ? { multiplicidadOrigen: objeto.multiplicidad } : {}),
+      ...(proceso.multiplicidad ? { multiplicidadDestino: proceso.multiplicidad } : {}),
     });
   }
-  match = /^(.+?) genera (.+)$/iu.exec(texto);
+  match = /^(.+?) generan? (.+)$/iu.exec(texto);
   if (match) {
-    const objeto = limpiarObjetoConEstado(match[2] ?? "");
+    // En resultado el proceso es origen (sujeto), el objeto es destino.
+    const proceso = extraerMultiplicidadDeNombre(match[1] ?? "");
+    const objeto = limpiarObjetoConEstadoConMultiplicidad(match[2] ?? "");
     return astProcedimental(linea, {
       tipoEnlace: "resultado",
-      proceso: normalizarNombreOpl(match[1] ?? ""),
+      proceso: proceso.nombre,
       objeto: objeto.nombre,
       ...(objeto.estado ? { estadoSalida: objeto.estado } : {}),
+      ...(proceso.multiplicidad ? { multiplicidadOrigen: proceso.multiplicidad } : {}),
+      ...(objeto.multiplicidad ? { multiplicidadDestino: objeto.multiplicidad } : {}),
     });
   }
-  match = /^(.+?) afecta (.+)$/iu.exec(texto);
-  if (match) return astProcedimental(linea, { tipoEnlace: "efecto", proceso: normalizarNombreOpl(match[1] ?? ""), objeto: normalizarNombreOpl(match[2] ?? "") });
+  match = /^(.+?) afectan? (.+)$/iu.exec(texto);
+  if (match) {
+    // En efecto el proceso es origen (sujeto), el objeto es destino.
+    const proceso = extraerMultiplicidadDeNombre(match[1] ?? "");
+    const objeto = extraerMultiplicidadDeNombre(match[2] ?? "");
+    return astProcedimental(linea, {
+      tipoEnlace: "efecto",
+      proceso: proceso.nombre,
+      objeto: objeto.nombre,
+      ...(proceso.multiplicidad ? { multiplicidadOrigen: proceso.multiplicidad } : {}),
+      ...(objeto.multiplicidad ? { multiplicidadDestino: objeto.multiplicidad } : {}),
+    });
+  }
   match = /^(.+?) cambia (.+?) de (.+?) a (.+)$/iu.exec(texto);
   if (match) return astProcedimental(linea, { tipoEnlace: "efecto", proceso: normalizarNombreOpl(match[1] ?? ""), objeto: normalizarNombreOpl(match[2] ?? ""), estadoEntrada: limpiarEstado(match[3] ?? ""), estadoSalida: limpiarEstado(match[4] ?? "") });
   match = /^(.+?) cambia (.+?) de (.+)$/iu.exec(texto);
   if (match) return astProcedimental(linea, { tipoEnlace: "consumo", proceso: normalizarNombreOpl(match[1] ?? ""), objeto: normalizarNombreOpl(match[2] ?? ""), estadoEntrada: limpiarEstado(match[3] ?? "") });
   match = /^(.+?) cambia (.+?) a (.+)$/iu.exec(texto);
   if (match) return astProcedimental(linea, { tipoEnlace: "resultado", proceso: normalizarNombreOpl(match[1] ?? ""), objeto: normalizarNombreOpl(match[2] ?? ""), estadoSalida: limpiarEstado(match[3] ?? "") });
-  match = /^(.+?) maneja (.+)$/iu.exec(texto);
-  if (match) return astProcedimental(linea, { tipoEnlace: "agente", objeto: normalizarNombreOpl(match[1] ?? ""), proceso: normalizarNombreOpl(match[2] ?? "") });
-  match = /^(.+?) requiere (.+)$/iu.exec(texto);
-  if (match) return astProcedimental(linea, { tipoEnlace: "instrumento", proceso: normalizarNombreOpl(match[1] ?? ""), objeto: normalizarNombreOpl(match[2] ?? "") });
-  match = /^(.+?) invoca (.+?)(?: despues de .+)?$/iu.exec(texto);
-  if (match) return astProcedimental(linea, { tipoEnlace: "invocacion", origen: normalizarNombreOpl(match[1] ?? ""), destino: normalizarNombreOpl(match[2] ?? "") });
+  match = /^(.+?) manejan? (.+)$/iu.exec(texto);
+  if (match) {
+    // En agente el objeto es origen (sujeto, ej. "Operador"), proceso es destino.
+    const objeto = extraerMultiplicidadDeNombre(match[1] ?? "");
+    const proceso = extraerMultiplicidadDeNombre(match[2] ?? "");
+    return astProcedimental(linea, {
+      tipoEnlace: "agente",
+      objeto: objeto.nombre,
+      proceso: proceso.nombre,
+      ...(objeto.multiplicidad ? { multiplicidadOrigen: objeto.multiplicidad } : {}),
+      ...(proceso.multiplicidad ? { multiplicidadDestino: proceso.multiplicidad } : {}),
+    });
+  }
+  match = /^(.+?) requieren? (.+)$/iu.exec(texto);
+  if (match) {
+    // En instrumento el proceso es destino (sujeto), el objeto es origen
+    // (complemento, ej. "Procesar requiere Equipo" → Equipo→Procesar).
+    const proceso = extraerMultiplicidadDeNombre(match[1] ?? "");
+    const objeto = extraerMultiplicidadDeNombre(match[2] ?? "");
+    return astProcedimental(linea, {
+      tipoEnlace: "instrumento",
+      proceso: proceso.nombre,
+      objeto: objeto.nombre,
+      ...(objeto.multiplicidad ? { multiplicidadOrigen: objeto.multiplicidad } : {}),
+      ...(proceso.multiplicidad ? { multiplicidadDestino: proceso.multiplicidad } : {}),
+    });
+  }
+  match = /^(.+?) invocan? (.+?)(?: despues de .+)?$/iu.exec(texto);
+  if (match) {
+    const origen = extraerMultiplicidadDeNombre(match[1] ?? "");
+    const destino = extraerMultiplicidadDeNombre(match[2] ?? "");
+    return astProcedimental(linea, {
+      tipoEnlace: "invocacion",
+      origen: origen.nombre,
+      destino: destino.nombre,
+      ...(origen.multiplicidad ? { multiplicidadOrigen: origen.multiplicidad } : {}),
+      ...(destino.multiplicidad ? { multiplicidadDestino: destino.multiplicidad } : {}),
+    });
+  }
   return null;
+}
+
+/**
+ * Variante de `limpiarObjetoConEstado` que tambien extrae multiplicidad
+ * prefija del nombre antes de normalizarlo. Util para `consume`/`genera`
+ * donde el objeto puede venir como `1..N Recursos` o `* Veces en \`s\``.
+ *
+ * Estrategia: separar primero por " en <estado>" (post-markdown), luego
+ * aplicar `extraerMultiplicidadDeNombre` al lado izquierdo. El estado va
+ * por `limpiarEstado` que ya descarta parentesis.
+ */
+function limpiarObjetoConEstadoConMultiplicidad(texto: string): { nombre: string; estado?: string; multiplicidad?: string } {
+  const conEstado = /^(.+?)\s+en\s+(.+)$/iu.exec(texto.trim());
+  const crudoNombre = (conEstado?.[1] ?? texto).trim();
+  const estado = conEstado?.[2] ? limpiarEstado(conEstado[2]) : undefined;
+  const extraida = extraerMultiplicidadDeNombre(crudoNombre);
+  return {
+    nombre: extraida.nombre,
+    ...(estado ? { estado } : {}),
+    ...(extraida.multiplicidad ? { multiplicidad: extraida.multiplicidad } : {}),
+  };
 }
 
 function parsearEstructural(texto: string, linea: LineaOplNormalizada) {

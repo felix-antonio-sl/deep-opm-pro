@@ -54,12 +54,12 @@ describe("abanico OPL", () => {
     );
   });
 
-  test("OR de resultados condicionales mantiene forma por defecto (TODO SSOT)", () => {
-    // resultado + condicion + abanico no tiene canon SSOT explícito;
-    // se conserva la forma directa hasta que la SSOT lo defina.
+  test("OR de resultados condicionales emite forma 'ocurre si ... puede generarse'", () => {
+    // resultado + condicion + abanico: forma canónica resuelta en ronda26/L3 (B2).
+    // Patrón paralelo a la cláusula condicional de consumo, adaptado a la semántica de generación.
     const modelo = modeloResultados("O", "condicion");
     expect(oracionAbanico(modelo, modelo.abanicos!.ab1!)).toBe(
-      "*Procesar* genera al menos uno de **Salida A** y **Salida B**.",
+      "*Procesar* ocurre si al menos uno de **Salida A** y **Salida B** puede generarse, en cuyo caso *Procesar* genera al menos uno de **Salida A** y **Salida B**, de lo contrario *Procesar* se omite.",
     );
   });
 

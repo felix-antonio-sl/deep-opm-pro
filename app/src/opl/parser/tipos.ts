@@ -1,4 +1,4 @@
-import type { Afiliacion, DesignacionEstado, Esencia, Id, Modificador, TipoEnlace, TipoEntidad } from "../../modelo/tipos";
+import type { Afiliacion, DesignacionEstado, Esencia, Id, Modificador, OperadorAbanico, TipoEnlace, TipoEntidad } from "../../modelo/tipos";
 
 export type SeveridadDiagnosticoOpl = "info" | "warning" | "error";
 
@@ -29,6 +29,15 @@ export interface LineaOplNormalizada {
  * Shape interno compartido entre la oracion `procedimental` y la sub-clausula de la
  * oracion `evento`. Reusable: una sub-clausula "que <verbo> ..." en una oracion
  * ET/EH/ETS/EHS expresa el mismo enlace procedural que el equivalente sin modificador.
+ *
+ * `multiplicidadOrigen` / `multiplicidadDestino`: cardinalidad de extremo capturada
+ * como string literal (SSOT §12). El generador la emite como PREFIJO del nombre
+ * (`2 **Pedidos**`, `1..N **Recursos**`, `* **Veces**`). El planificador la traduce
+ * a `ajustarMultiplicidad` post-creacion del enlace.
+ *
+ * `rutaEtiqueta`: etiqueta de ruta del enlace (SSOT §13). El generador la emite como
+ * prefijo de oracion `Por ruta <etiqueta>, ...`. El planificador la traduce a
+ * `definirRutaEtiqueta` post-creacion del enlace.
  */
 export interface AstProcedimentalBase {
   tipoEnlace: Extract<TipoEnlace, "agente" | "instrumento" | "consumo" | "resultado" | "efecto" | "invocacion">;
@@ -38,6 +47,9 @@ export interface AstProcedimentalBase {
   destino?: string;
   estadoEntrada?: string;
   estadoSalida?: string;
+  multiplicidadOrigen?: string;
+  multiplicidadDestino?: string;
+  rutaEtiqueta?: string;
 }
 
 export type OracionOplAst =
@@ -156,6 +168,57 @@ export type OracionOplAst =
     }
   | {
       /**
+       * Oracion de abanico XOR/OR (SSOT §11.2-§11.4).
+       *
+       * Reconoce las dos familias canonicas emitidas por
+       * `generadores/abanico.ts:oracionAbanico`:
+       *
+       * - Forma directa §11.2-§11.3: "Proceso (consume|genera|requiere|...)
+       *   (exactamente uno de|al menos uno de) A y B." con variantes
+       *   pasivas ("es manejado por", "es consumido por", ...) y forma con
+       *   estado §11.3 ("Proceso cambia Objeto a/de (cuant) `s1` y `s2`.").
+       *
+       * - Forma con modificador `condicion` §11.4: "Proceso ocurre si
+       *   (cuant) A y B existe[, en cuyo caso ...], de lo contrario Proceso
+       *   se omite." (espejo de las oraciones individuales CT/CH/CS, pero
+       *   tomando una *lista* de extremos en lugar de uno solo).
+       *
+       * El planificador traduce este AST a:
+       * - N patches `crear-enlace` con el `tipoEnlace` resuelto y, si aplica,
+       *   `modificador: "condicion"` en cada uno.
+       * - Un patch `crear-abanico` que los agrupa (operador OR=`O` o XOR).
+       *
+       * Notas:
+       * - `puertoEsOrigen=true` significa que el proceso es el extremo origen
+       *   del enlace (caso resultado/invocacion + divergencia). Cuando es
+       *   false, el proceso esta en el lado destino (consumo/agente/etc.
+       *   convergente). El planificador usa esto para fijar origen/destino
+       *   de cada enlace creado por el abanico.
+       * - `otros` lista los nombres normalizados de los otros extremos.
+       * - `otrosEstados` se llena solo en la forma §11.3 "cambia X a/de
+       *   cuant `s1` y `s2`": cada entrada es el estado y `otros[i]` es la
+       *   entidad portadora (siempre la misma para todas las ramas).
+       */
+      kind: "abanico";
+      linea: number;
+      proceso: string;
+      operador: OperadorAbanico;
+      tipoEnlace: Extract<TipoEnlace, "agente" | "instrumento" | "consumo" | "resultado" | "efecto" | "invocacion">;
+      otros: string[];
+      /**
+       * Estados por rama (forma §11.3). Cuando esta presente, `otros`
+       * contiene un unico nombre de entidad (repetido logicamente; el
+       * planificador resuelve un solo objeto cuyos estados son
+       * `otrosEstados`). Largo de `otrosEstados` >= 2.
+       */
+      otrosEstados?: string[];
+      puertoEsOrigen: boolean;
+      /** Modificador comun a todas las ramas (hoy solo "condicion" §11.4). */
+      modificador?: Modificador;
+      etiqueta?: string;
+    }
+  | {
+      /**
        * Oracion de excepcion temporal (SSOT §8.1: EX1 sobretiempo, EX2 subtiempo).
        * Reconoce "X ocurre si duracion de Y (excede|es menor que) N unidad".
        */
@@ -215,7 +278,38 @@ export type PatchOplPropuesto =
       unidadTiempoMinimo?: string;
     }
   | { tipo: "fijar-etiqueta-enlace"; linea: number; enlaceId: Id; anterior: string; siguiente: string }
-  | { tipo: "aplicar-designacion-estado"; linea: number; entidadId: Id; estadoNombre: string; designacion: DesignacionEstado };
+  | { tipo: "aplicar-designacion-estado"; linea: number; entidadId: Id; estadoNombre: string; designacion: DesignacionEstado }
+  | {
+      /**
+       * Patch que agrupa N enlaces ya planificados (mismo origen/destino logico,
+       * mismo tipo, mismo modificador) en un abanico XOR/OR. SSOT §11.2-§11.4.
+       *
+       * Estrategia del aplicador (`aplicar.ts`):
+       *   1. Tras crear los enlaces "ordinarios" (fase enlace-procedimental) y
+       *      ya tener todos los `Enlace` con `portId` de fan-out asignado,
+       *      busca los enlaces creados por las claves
+       *      (`tipoEnlace`, origenRef, destinoRef, modificador) listadas en
+       *      `ramas`.
+       *   2. Llama a `formarAbanico` (modelo/abanicos.ts) con el operador.
+       *
+       * Si alguna rama no se encuentra (ej. el AST listo dos extremos pero el
+       * enlace no fue creado por colision previa), el patch es no-op para esa
+       * rama y emite diagnostico via `patch-conflict`.
+       */
+      tipo: "crear-abanico";
+      linea: number;
+      operador: OperadorAbanico;
+      tipoEnlace: Extract<TipoEnlace, "agente" | "instrumento" | "consumo" | "resultado" | "efecto" | "invocacion">;
+      /**
+       * Referencia al proceso pivote (puerto comun del abanico) y al lado
+       * en que esta el proceso dentro de cada enlace de rama. El aplicador
+       * usa esto para localizar el `portId` compartido tras crear enlaces.
+       */
+      procesoRef: ReferenciaEntidadPatch;
+      procesoEsOrigen: boolean;
+      ramas: Array<{ origen: ReferenciaEntidadPatch; destino: ReferenciaEntidadPatch; estado?: string }>;
+      modificador?: Modificador;
+    };
 
 export interface PrevisualizacionOplReverse {
   ast: OracionOplAst[];

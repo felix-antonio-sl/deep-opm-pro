@@ -63,6 +63,8 @@ function planificarAst(
       return planificarEvento(modelo, ast, registry, opdActivoId);
     case "condicion":
       return planificarCondicion(modelo, ast, registry);
+    case "abanico":
+      return planificarAbanico(modelo, ast, registry);
     case "excepcion":
       return planificarExcepcion(modelo, ast, registry);
     case "estructural":
@@ -215,7 +217,11 @@ function planificarProcedimental(
 ): void {
   const endpoints = endpointsProcedimentales(modelo, ast, registry);
   if (!endpoints) return;
-  planificarEnlace(modelo, ast.linea, ast.tipoEnlace, endpoints.origen, endpoints.destino, ast.etiqueta, registry);
+  planificarEnlace(modelo, ast.linea, ast.tipoEnlace, endpoints.origen, endpoints.destino, ast.etiqueta, registry, {
+    ...(ast.multiplicidadOrigen ? { multiplicidadOrigen: ast.multiplicidadOrigen } : {}),
+    ...(ast.multiplicidadDestino ? { multiplicidadDestino: ast.multiplicidadDestino } : {}),
+    ...(ast.rutaEtiqueta ? { rutaEtiqueta: ast.rutaEtiqueta } : {}),
+  });
 }
 
 function planificarEvento(
@@ -236,7 +242,12 @@ function planificarEvento(
   }
   const endpoints = endpointsBase(modelo, ast.base, ast.linea, registry);
   if (!endpoints) return;
-  planificarEnlace(modelo, ast.linea, ast.base.tipoEnlace, endpoints.origen, endpoints.destino, ast.etiqueta, registry, { modificador: "evento" });
+  planificarEnlace(modelo, ast.linea, ast.base.tipoEnlace, endpoints.origen, endpoints.destino, ast.etiqueta, registry, {
+    modificador: "evento",
+    ...(ast.base.multiplicidadOrigen ? { multiplicidadOrigen: ast.base.multiplicidadOrigen } : {}),
+    ...(ast.base.multiplicidadDestino ? { multiplicidadDestino: ast.base.multiplicidadDestino } : {}),
+    ...(ast.base.rutaEtiqueta ? { rutaEtiqueta: ast.base.rutaEtiqueta } : {}),
+  });
 }
 
 function planificarEstructural(
@@ -305,11 +316,25 @@ function planificarEnlace(
   destino: ReferenciaEntidadPatch,
   etiqueta: string | undefined,
   registry: PatchRegistry,
-  opciones: { modificador?: Modificador } = {},
+  opciones: {
+    modificador?: Modificador;
+    /** Multiplicidad de origen capturada en parser (SSOT §12). */
+    multiplicidadOrigen?: string;
+    /** Multiplicidad de destino capturada en parser (SSOT §12). */
+    multiplicidadDestino?: string;
+    /** Etiqueta de ruta capturada en parser (SSOT §13). */
+    rutaEtiqueta?: string;
+  } = {},
 ): void {
   const origenId = resolverRefId(modelo, origen);
   const destinoId = resolverRefId(modelo, destino);
   const existente = origenId && destinoId ? buscarEnlace(modelo, tipoEnlace, origenId, destinoId) : null;
+  // Campos opcionales L4 (multiplicidad y ruta) que se propagan a `crear-enlace`.
+  const camposL4 = {
+    ...(opciones.multiplicidadOrigen ? { multiplicidadOrigen: opciones.multiplicidadOrigen } : {}),
+    ...(opciones.multiplicidadDestino ? { multiplicidadDestino: opciones.multiplicidadDestino } : {}),
+    ...(opciones.rutaEtiqueta ? { rutaEtiqueta: opciones.rutaEtiqueta } : {}),
+  };
   if (!existente) {
     registry.add({
       tipo: "crear-enlace",
@@ -319,6 +344,7 @@ function planificarEnlace(
       destino,
       ...(etiqueta ? { etiqueta } : {}),
       ...(opciones.modificador ? { modificador: opciones.modificador } : {}),
+      ...camposL4,
     });
     return;
   }
@@ -333,6 +359,7 @@ function planificarEnlace(
         destino,
         ...(etiqueta ? { etiqueta } : {}),
         modificador: opciones.modificador,
+        ...camposL4,
       });
     } else if (existente.modificador !== opciones.modificador) {
       registry.diagnostico({
@@ -344,6 +371,19 @@ function planificarEnlace(
         sugerencia: "Quita el modificador anterior desde el canvas antes de cambiarlo desde OPL.",
       });
     }
+  } else if (opciones.multiplicidadOrigen || opciones.multiplicidadDestino || opciones.rutaEtiqueta) {
+    // Enlace ya existe sin modificador, pero la oracion trae datos L4 (multiplicidad
+    // o ruta) — emitimos un patch idempotente para actualizarlos. El aplicador
+    // detecta que el enlace ya existe y solo aplica los campos L4.
+    registry.add({
+      tipo: "crear-enlace",
+      linea,
+      tipoEnlace,
+      origen,
+      destino,
+      ...(etiqueta ? { etiqueta } : {}),
+      ...camposL4,
+    });
   }
   const etiquetaActual = existente.etiqueta.trim();
   const etiquetaNueva = etiqueta?.trim() ?? "";
@@ -406,6 +446,131 @@ function endpointsCondicion(
       return { tipoEnlace: "consumo", origen: objeto, destino: proceso };
     case "efecto":
       return { tipoEnlace: "efecto", origen: proceso, destino: objeto };
+  }
+}
+
+/**
+ * Planifica una oracion de abanico XOR/OR (SSOT §11.2-§11.4) — ronda 26/L3.
+ *
+ * Emite:
+ *   1. N patches `crear-enlace` (uno por rama), aplicando el modificador
+ *      `condicion` cuando el AST lo trae.
+ *   2. Un patch `crear-abanico` que los agrupa con el operador (`O` / `XOR`).
+ *
+ * Limitacion: la forma §11.3 con estados ("cambia X a/de cuant `s1` y `s2`")
+ * se planifica como un solo enlace a la entidad portadora, porque el
+ * aplicador no inversa extremos de estado desde OPL libre (analogo a
+ * `planificarCondicion` con `condicionanteEstado`).
+ */
+function planificarAbanico(
+  modelo: Modelo,
+  ast: Extract<OracionOplAst, { kind: "abanico" }>,
+  registry: PatchRegistry,
+): void {
+  const procesoRef = refEntidadPorNombre(modelo, ast.proceso, "proceso", ast.linea, registry);
+  if (!procesoRef) return;
+
+  const otrosTipo: TipoEntidad = ast.tipoEnlace === "invocacion" ? "proceso" : "objeto";
+
+  if (ast.otrosEstados && ast.otrosEstados.length >= 2) {
+    const objetoNombre = ast.otros[0] ?? "";
+    const objetoRef = refEntidadPorNombre(modelo, objetoNombre, otrosTipo, ast.linea, registry);
+    if (!objetoRef) return;
+    registry.diagnostico({
+      codigo: "unsupported-kernel",
+      severidad: "info",
+      linea: ast.linea,
+      columna: 1,
+      mensaje: "El abanico con estados se aplica al objeto portador; los extremos por estado no se inversean desde OPL libre en este corte.",
+      sugerencia: "Define los estados desde canvas y vuelve a generar el OPL.",
+    });
+    planificarRamaAbanico(modelo, ast, procesoRef, objetoRef, ast.linea, registry);
+    return;
+  }
+
+  const ramasRefs: Array<{ origen: ReferenciaEntidadPatch; destino: ReferenciaEntidadPatch }> = [];
+  for (const otroNombre of ast.otros) {
+    const otroRef = refEntidadPorNombre(modelo, otroNombre, otrosTipo, ast.linea, registry);
+    if (!otroRef) continue;
+    const ramaRefs = ramaEnlaceAbanico(ast, procesoRef, otroRef);
+    if (!ramaRefs) continue;
+    planificarEnlace(
+      modelo,
+      ast.linea,
+      ast.tipoEnlace,
+      ramaRefs.origen,
+      ramaRefs.destino,
+      ast.etiqueta,
+      registry,
+      ast.modificador ? { modificador: ast.modificador } : {},
+    );
+    ramasRefs.push(ramaRefs);
+  }
+
+  if (ramasRefs.length < 2) return;
+
+  registry.add({
+    tipo: "crear-abanico",
+    linea: ast.linea,
+    operador: ast.operador,
+    tipoEnlace: ast.tipoEnlace,
+    procesoRef,
+    procesoEsOrigen: ast.puertoEsOrigen,
+    ramas: ramasRefs.map((rama) => ({ origen: rama.origen, destino: rama.destino })),
+    ...(ast.modificador ? { modificador: ast.modificador } : {}),
+  });
+}
+
+function planificarRamaAbanico(
+  modelo: Modelo,
+  ast: Extract<OracionOplAst, { kind: "abanico" }>,
+  procesoRef: ReferenciaEntidadPatch,
+  otroRef: ReferenciaEntidadPatch,
+  linea: number,
+  registry: PatchRegistry,
+): void {
+  const ramaRefs = ramaEnlaceAbanico(ast, procesoRef, otroRef);
+  if (!ramaRefs) return;
+  planificarEnlace(
+    modelo,
+    linea,
+    ast.tipoEnlace,
+    ramaRefs.origen,
+    ramaRefs.destino,
+    ast.etiqueta,
+    registry,
+    ast.modificador ? { modificador: ast.modificador } : {},
+  );
+}
+
+/**
+ * Calcula (origen, destino) de una rama del abanico segun tipoEnlace y
+ * puertoEsOrigen. La logica espeja `endpointsBase` para enlaces simples,
+ * pero opera sobre el par (proceso, otro) ya resuelto. Cf. la tabla del
+ * generador en `abanico.ts:94-119`.
+ */
+function ramaEnlaceAbanico(
+  ast: Extract<OracionOplAst, { kind: "abanico" }>,
+  procesoRef: ReferenciaEntidadPatch,
+  otroRef: ReferenciaEntidadPatch,
+): { origen: ReferenciaEntidadPatch; destino: ReferenciaEntidadPatch } | null {
+  switch (ast.tipoEnlace) {
+    case "agente":
+    case "instrumento":
+    case "consumo":
+      return ast.puertoEsOrigen
+        ? { origen: procesoRef, destino: otroRef }
+        : { origen: otroRef, destino: procesoRef };
+    case "resultado":
+      return ast.puertoEsOrigen
+        ? { origen: procesoRef, destino: otroRef }
+        : { origen: otroRef, destino: procesoRef };
+    case "efecto":
+      return { origen: procesoRef, destino: otroRef };
+    case "invocacion":
+      return ast.puertoEsOrigen
+        ? { origen: procesoRef, destino: otroRef }
+        : { origen: otroRef, destino: procesoRef };
   }
 }
 
@@ -632,6 +797,13 @@ function patchKey(patch: PatchOplPropuesto): string {
       return `${patch.tipo}:${patch.enlaceId}`;
     case "aplicar-designacion-estado":
       return `${patch.tipo}:${patch.entidadId}:${claveNombre(patch.estadoNombre)}:${patch.designacion}`;
+    case "crear-abanico": {
+      // El abanico se identifica por (linea, tipo, proceso, lado). No usamos
+      // las ramas en la clave porque la idempotencia debe permitir reordenar
+      // sin generar conflicto.
+      const procesoKey = refKey(patch.procesoRef);
+      return `${patch.tipo}:${patch.linea}:${patch.tipoEnlace}:${procesoKey}:${patch.procesoEsOrigen ? "o" : "d"}:${patch.modificador ?? ""}`;
+    }
   }
 }
 
