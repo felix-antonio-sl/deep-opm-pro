@@ -4,7 +4,7 @@
 **Repositorio**: `deep-opm-pro`
 **Rama**: `main`
 **Ultimo corte funcional**: ledger visible de bugs/features — captura, listado activo, histórico y estado/resolución accesibles desde la app.
-**Ultimo commit en main**: `90f01ca feat(ui): enriquece paleta Bauhaus con triada disciplinada + elegancia tonal` antes del cierre UI del ledger.
+**Ultimo commit en main**: `ee90ee5 feat(bugs): surface bug ledger in app`.
 **Ultimo corte deploy**: Docker Compose reconstruido con ledger visible; `opforja` healthy, `opforja-bug-capture` up, sidecar `GET /__deep-opm/bug-reports` responde `active: 5`, `history: 53`. URL pública protegida por Basic Auth (`401` sin credenciales).
 **Corte**: el sistema de captura mantiene ledgers Markdown/JSON y la app expone un diálogo "Bugs y features" con pestañas `Activos` e `Histórico`, alimentado por `GET /__deep-opm/bug-reports`.
 
