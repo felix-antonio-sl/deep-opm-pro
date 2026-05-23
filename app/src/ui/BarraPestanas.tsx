@@ -126,6 +126,16 @@ export function BarraPestanas() {
   );
 }
 
+/**
+ * Estilos de BarraPestanas — Ronda 28 L2 (Bauhaus monocromática).
+ *
+ *   - Fondo paper, border-bottom 1px ink-15.
+ *   - Pestana inactiva: paper + ink70 weight 400.
+ *   - Pestana activa: ink04 + ink weight 500 + underline 2px accent
+ *     cinabrio (antes: tinte azul corporativo). El cinabrio es el unico
+ *     acento autorizado para marcar selección persistente en el chrome.
+ *   - Dirty: italic (preserva la convención existente).
+ */
 const style = {
   barra: {
     display: "grid",
@@ -133,8 +143,9 @@ const style = {
     alignItems: "stretch",
     minWidth: 0,
     height: 32,
-    borderBottom: `1px solid ${tokens.colors.bordePanel}`,
-    background: tokens.colors.fondoPanelSuave,
+    borderBottom: `1px solid ${tokens.colors.ink15}`,
+    background: tokens.colors.paper,
+    fontFamily: tokens.typography.fontFamily,
   },
   breadcrumbSlot: {
     minWidth: 0,
@@ -160,23 +171,27 @@ const style = {
     height: 32,
     display: "flex",
     alignItems: "center",
-    gap: 6,
-    padding: "0 8px 0 10px",
-    borderRight: `1px solid ${tokens.colors.bordePanel}`,
-    borderTop: "2px solid transparent",
-    background: tokens.colors.fondoPanelSuave,
-    color: tokens.colors.textoSecundario,
+    gap: 8,
+    padding: "0 10px 0 12px",
+    borderRight: `1px solid ${tokens.colors.ink15}`,
+    borderBottom: "2px solid transparent",
+    background: tokens.colors.paper,
+    color: tokens.colors.ink70,
     cursor: "pointer",
     userSelect: "none",
-    fontSize: "12px",
-    fontWeight: 700,
+    fontFamily: tokens.typography.fontFamily,
+    fontSize: `${tokens.typography.sizes.sm}px`,
+    fontWeight: tokens.typography.weights.normal,
+    transition: "background 150ms ease-out",
   },
   pestanaActiva: {
-    background: tokens.colors.fondoPanel,
-    color: tokens.colors.textoPrimario,
-    // ronda 23 chrome: acento UI en lugar de chrome neutro — la pestaña
-    // activa gana presencia sin sumar peso visual al resto de la barra.
-    borderTop: `2px solid ${tokens.colors.acentoUi}`,
+    background: tokens.colors.ink04,
+    color: tokens.colors.ink,
+    fontWeight: tokens.typography.weights.medium,
+    // Ronda 28 L2 Bauhaus: underline 2px cinabrio en pestana activa.
+    // Es el unico lugar donde el accent cromatico aparece en la barra
+    // de pestanas (resto monocromatico ink/paper).
+    borderBottom: `2px solid ${tokens.colors.accent}`,
   },
   pestanaDirty: {
     fontStyle: "italic",
@@ -192,25 +207,26 @@ const style = {
     width: 20,
     height: 20,
     border: "1px solid transparent",
-    borderRadius: tokens.radii.sm,
     background: "transparent",
-    color: tokens.colors.textoTerciario,
+    color: tokens.colors.ink50,
     cursor: "pointer",
     lineHeight: 1,
-    fontSize: "13px",
-    fontWeight: 700,
+    fontFamily: tokens.typography.fontFamily,
+    fontSize: `${tokens.typography.sizes.base}px`,
+    fontWeight: tokens.typography.weights.medium,
     padding: 0,
   },
   nueva: {
     width: 36,
     height: 32,
     border: 0,
-    borderLeft: `1px solid ${tokens.colors.bordePanel}`,
-    background: tokens.colors.fondoPanel,
-    color: tokens.colors.textoPrimario,
+    borderLeft: `1px solid ${tokens.colors.ink15}`,
+    background: tokens.colors.paper,
+    color: tokens.colors.ink,
     cursor: "pointer",
-    fontSize: "18px",
-    fontWeight: 700,
+    fontFamily: tokens.typography.fontFamily,
+    fontSize: `${tokens.typography.sizes.xl}px`,
+    fontWeight: tokens.typography.weights.normal,
     lineHeight: 1,
   },
 } satisfies Record<string, preact.JSX.CSSProperties>;

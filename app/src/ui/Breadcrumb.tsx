@@ -58,6 +58,14 @@ export function rutaBreadcrumbOpd(modelo: Modelo, opdActivoId: Id): SegmentoBrea
   return ruta.reverse().map((opd) => ({ id: opd.id, nombre: opd.nombre }));
 }
 
+/**
+ * Estilos del Breadcrumb — Ronda 28 L2 (Bauhaus monocromática).
+ *
+ *   - Fondo paper, sin bordes redondos.
+ *   - Separadores `/` en ink-30 (visualmente discretos, monoespaciados).
+ *   - Crumb inactivo: ink-70 weight 400. Crumb activo: ink weight 500.
+ *     Sin fondo gris translucido — el peso tipografico marca el activo.
+ */
 const style = {
   nav: {
     minWidth: 0,
@@ -65,16 +73,19 @@ const style = {
     alignItems: "center",
     gap: 0,
     height: "32px",
-    padding: "0 10px",
+    padding: "0 12px",
     overflow: "hidden",
-    color: tokens.colors.textoSecundario,
-    borderRight: `1px solid ${tokens.colors.bordeIntermedio}`,
-    background: tokens.colors.fondoChrome,
+    color: tokens.colors.ink70,
+    borderRight: `1px solid ${tokens.colors.ink15}`,
+    background: tokens.colors.paper,
+    fontFamily: tokens.typography.fontFamily,
   },
   empty: {
-    fontSize: "12px",
-    fontWeight: 700,
-    color: tokens.colors.textoTerciario,
+    fontSize: `${tokens.typography.sizes.sm}px`,
+    fontWeight: tokens.typography.weights.medium,
+    color: tokens.colors.ink50,
+    textTransform: "uppercase",
+    letterSpacing: "0.06em",
   },
   segmentoWrap: {
     minWidth: 0,
@@ -83,29 +94,31 @@ const style = {
   },
   separador: {
     flex: "0 0 auto",
-    margin: "0 4px",
-    color: tokens.colors.textoTerciario,
-    fontSize: "12px",
+    margin: "0 6px",
+    color: tokens.colors.ink30,
+    fontFamily: tokens.typography.fontFamilyMono,
+    fontSize: `${tokens.typography.sizes.sm}px`,
+    lineHeight: 1,
   },
   segmento: {
     minWidth: 0,
     maxWidth: "180px",
     height: "24px",
     border: "1px solid transparent",
-    borderRadius: tokens.radii.sm,
     background: "transparent",
-    color: tokens.colors.textoSecundario,
+    color: tokens.colors.ink70,
     cursor: "pointer",
-    padding: "0 6px",
+    padding: "0 4px",
     overflow: "hidden",
     textOverflow: "ellipsis",
     whiteSpace: "nowrap",
-    fontSize: "12px",
-    fontWeight: 700,
+    fontFamily: tokens.typography.fontFamily,
+    fontSize: `${tokens.typography.sizes.sm}px`,
+    fontWeight: tokens.typography.weights.normal,
   },
   segmentoActivo: {
-    color: tokens.colors.textoPrimario,
-    background: tokens.colors.chromeNeutralSuave,
+    color: tokens.colors.ink,
+    fontWeight: tokens.typography.weights.medium,
     cursor: "default",
   },
 } satisfies Record<string, preact.JSX.CSSProperties>;
