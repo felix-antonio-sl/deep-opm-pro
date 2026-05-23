@@ -205,26 +205,27 @@ function fechaCorta(value: string): string {
   return fecha.toLocaleDateString("es-CL", { day: "2-digit", month: "2-digit", year: "numeric" });
 }
 
+// Ronda 28 L5: Bauhaus monocromático.
 const style = {
   // Ancho gobernado por `<Dialogo size="lg">` (ronda 12.1, [JOYAS §2]).
-  body: { display: "grid", gap: "14px" },
-  formBody: { display: "grid", gap: "12px", minWidth: "min(420px, calc(100vw - 80px))" },
+  body: { display: "grid", gap: "16px" },
+  formBody: { display: "grid", gap: "14px", minWidth: "min(420px, calc(100vw - 80px))" },
   header: { display: "grid", gridTemplateColumns: "1fr 220px", gap: "12px", alignItems: "center" },
-  label: { display: "grid", gap: "6px", color: tokens.colors.textoSecundario, fontSize: "13px", fontWeight: 700 },
-  search: { height: "34px", border: `1px solid ${tokens.colors.bordeInput}`, borderRadius: tokens.radii.sm, padding: "0 10px", fontSize: "13px", fontWeight: 600 },
-  input: { height: "34px", border: `1px solid ${tokens.colors.bordeInput}`, borderRadius: tokens.radii.sm, padding: "0 10px", fontSize: "13px", fontWeight: 600 },
-  textarea: { minHeight: "76px", border: `1px solid ${tokens.colors.bordeInput}`, borderRadius: tokens.radii.sm, padding: "8px 10px", fontSize: "13px", fontWeight: 600, resize: "vertical" },
+  label: { display: "grid", gap: "6px", color: tokens.colors.ink70, fontFamily: tokens.typography.familyChrome, fontSize: "13px", fontWeight: 400 },
+  search: { height: "34px", border: `1px solid ${tokens.colors.ink15}`, borderRadius: 0, padding: "0 10px", background: tokens.colors.paper, color: tokens.colors.ink, fontFamily: tokens.typography.familyChrome, fontSize: "13px", caretColor: tokens.colors.accent },
+  input: { height: "34px", border: `1px solid ${tokens.colors.ink15}`, borderRadius: 0, padding: "0 10px", background: tokens.colors.paper, color: tokens.colors.ink, fontFamily: tokens.typography.familyChrome, fontSize: "13px", caretColor: tokens.colors.accent },
+  textarea: { minHeight: "76px", border: `1px solid ${tokens.colors.ink15}`, borderRadius: 0, padding: "10px", background: tokens.colors.paper, color: tokens.colors.ink, fontFamily: tokens.typography.familyChrome, fontSize: "13px", resize: "vertical", caretColor: tokens.colors.accent },
   grid: { display: "grid", gap: "8px", maxHeight: "420px", overflow: "auto" },
-  tile: { display: "grid", gridTemplateColumns: "38px minmax(0, 1fr) auto", gap: "10px", alignItems: "center", minHeight: "68px", padding: "10px", border: `1px solid ${tokens.colors.bordeIntermedio}`, borderRadius: tokens.radii.md, background: tokens.colors.fondoChrome },
+  tile: { display: "grid", gridTemplateColumns: "38px minmax(0, 1fr) auto", gap: "12px", alignItems: "center", minHeight: "68px", padding: "12px", border: `1px solid ${tokens.colors.ink15}`, borderRadius: 0, background: tokens.colors.paper, transition: tokens.transitions.fast },
   icon: { width: "30px", height: "34px" },
   tileBody: { display: "grid", minWidth: 0, gap: "3px" },
-  name: { color: tokens.colors.textoPrimario, fontSize: "13px", fontWeight: 700, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" },
-  description: { color: tokens.colors.textoSecundario, fontSize: "12px", fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" },
-  meta: { color: tokens.colors.textoTerciario, fontSize: "11px", fontWeight: 700 },
-  error: { margin: 0, color: tokens.colors.rojoOpcloud, fontSize: "12px", fontWeight: 700 },
-  empty: { margin: 0, padding: "20px 8px", color: tokens.colors.textoTerciario, fontSize: "13px", fontWeight: 700, textAlign: "center" },
-  insertButton: { height: "32px", padding: "0 12px", border: `1px solid ${tokens.colors.chromeNeutral}`, borderRadius: tokens.radii.sm, background: tokens.colors.chromeNeutral, color: tokens.colors.fondoChrome, cursor: "pointer", fontSize: "12px", fontWeight: 700 },
-  primaryButton: { height: "34px", padding: "0 14px", border: `1px solid ${tokens.colors.chromeNeutral}`, borderRadius: tokens.radii.sm, background: tokens.colors.chromeNeutral, color: tokens.colors.fondoChrome, cursor: "pointer", fontSize: "13px", fontWeight: 700 },
-  secondaryButton: { height: "34px", padding: "0 14px", border: `1px solid ${tokens.colors.bordeControl}`, borderRadius: tokens.radii.sm, background: tokens.colors.fondoChrome, color: tokens.colors.textoSecundario, cursor: "pointer", fontSize: "13px", fontWeight: 700 },
-  disabledButton: { height: "34px", padding: "0 14px", border: `1px solid ${tokens.colors.bordeIntermedio}`, borderRadius: tokens.radii.sm, background: tokens.colors.fondoDeshabilitado, color: tokens.colors.textoDeshabilitado, fontSize: "13px", fontWeight: 700 },
+  name: { color: tokens.colors.ink, fontFamily: tokens.typography.familyChrome, fontSize: "13px", fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" },
+  description: { color: tokens.colors.ink70, fontFamily: tokens.typography.familyChrome, fontSize: "12px", fontWeight: 400, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" },
+  meta: { color: tokens.colors.ink50, fontFamily: tokens.typography.familyChrome, fontSize: "11px", fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.06em" },
+  error: { margin: 0, color: tokens.colors.accent, fontFamily: tokens.typography.familyChrome, fontSize: "12px", fontWeight: 500 },
+  empty: { margin: 0, padding: "24px 8px", color: tokens.colors.ink50, fontFamily: tokens.typography.familyChrome, fontSize: "13px", fontWeight: 400, textAlign: "center" },
+  insertButton: { minHeight: "30px", padding: "6px 14px", border: `1px solid ${tokens.colors.ink}`, borderRadius: 0, background: tokens.colors.paper, color: tokens.colors.ink, cursor: "pointer", fontFamily: tokens.typography.familyChrome, fontSize: "12px", fontWeight: 500 },
+  primaryButton: { minHeight: "32px", padding: "8px 18px", border: `${tokens.stroke.base}px solid ${tokens.colors.ink}`, borderRadius: 0, background: tokens.colors.ink, color: tokens.colors.paper, cursor: "pointer", fontFamily: tokens.typography.familyChrome, fontSize: "13px", fontWeight: 500 },
+  secondaryButton: { minHeight: "32px", padding: "8px 18px", border: `${tokens.stroke.base}px solid ${tokens.colors.ink}`, borderRadius: 0, background: tokens.colors.paper, color: tokens.colors.ink, cursor: "pointer", fontFamily: tokens.typography.familyChrome, fontSize: "13px", fontWeight: 500 },
+  disabledButton: { minHeight: "32px", padding: "8px 18px", border: `${tokens.stroke.base}px solid ${tokens.colors.ink15}`, borderRadius: 0, background: tokens.colors.ink04, color: tokens.colors.ink50, cursor: "not-allowed", fontFamily: tokens.typography.familyChrome, fontSize: "13px", fontWeight: 500 },
 } satisfies Record<string, preact.JSX.CSSProperties>;

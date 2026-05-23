@@ -82,12 +82,14 @@ export function DialogoTraerConectados() {
   );
 }
 
+// Ronda 28 L5: Bauhaus monocromático.
 const buttonBase = {
-  height: "32px",
-  borderRadius: tokens.radii.sm,
-  padding: "0 14px",
+  minHeight: "32px",
+  borderRadius: 0,
+  padding: "8px 18px",
+  fontFamily: tokens.typography.familyChrome,
   fontSize: "13px",
-  fontWeight: 700,
+  fontWeight: 500,
 } satisfies preact.JSX.CSSProperties;
 
 const style = {
@@ -97,42 +99,44 @@ const style = {
   },
   lista: {
     display: "grid",
-    gap: "10px",
+    gap: "12px",
   },
   check: {
     display: "flex",
     alignItems: "center",
     gap: "10px",
+    fontFamily: tokens.typography.familyChrome,
     fontSize: "14px",
-    color: tokens.colors.textoPrimario,
+    color: tokens.colors.ink,
   },
   checkDisabled: {
     display: "flex",
     alignItems: "center",
     gap: "10px",
+    fontFamily: tokens.typography.familyChrome,
     fontSize: "14px",
-    color: tokens.colors.textoDeshabilitado,
+    color: tokens.colors.ink50,
     cursor: "not-allowed",
   },
   primary: {
     ...buttonBase,
-    border: `1px solid ${tokens.colors.acentoSecundario}`,
-    background: tokens.colors.acentoSecundario,
-    color: tokens.colors.fondoChrome,
+    border: `${tokens.stroke.base}px solid ${tokens.colors.ink}`,
+    background: tokens.colors.ink,
+    color: tokens.colors.paper,
     cursor: "pointer",
   },
   secondary: {
     ...buttonBase,
-    border: `1px solid ${tokens.colors.bordeInput}`,
-    background: tokens.colors.fondoChrome,
-    color: tokens.colors.textoPrimario,
+    border: `${tokens.stroke.base}px solid ${tokens.colors.ink}`,
+    background: tokens.colors.paper,
+    color: tokens.colors.ink,
     cursor: "pointer",
   },
   disabled: {
     ...buttonBase,
-    border: `1px solid ${tokens.colors.bordeIntermedio}`,
-    background: tokens.colors.fondoDeshabilitado,
-    color: tokens.colors.textoDeshabilitado,
-    cursor: "default",
+    border: `${tokens.stroke.base}px solid ${tokens.colors.ink15}`,
+    background: tokens.colors.ink04,
+    color: tokens.colors.ink50,
+    cursor: "not-allowed",
   },
 } satisfies Record<string, preact.JSX.CSSProperties>;

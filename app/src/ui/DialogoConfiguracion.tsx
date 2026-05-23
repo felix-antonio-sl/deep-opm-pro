@@ -97,17 +97,18 @@ export function DialogoConfiguracion() {
   );
 }
 
+// Ronda 28 L5: Bauhaus monocromático.
 const style = {
-  body: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(260px, 100%), 1fr))", gap: "16px", width: "100%" },
+  body: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(260px, 100%), 1fr))", gap: "20px", width: "100%" },
   section: { display: "grid", alignContent: "start", gap: "10px", padding: "2px" },
-  sectionTitle: { margin: 0, color: tokens.colors.textoPrimario, fontSize: "14px", fontWeight: 800 },
+  sectionTitle: { margin: 0, color: tokens.colors.ink, fontFamily: tokens.typography.familyChrome, fontSize: "11px", fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.08em" },
   field: { display: "grid", gridTemplateColumns: "84px minmax(0, 1fr)", alignItems: "center", gap: "8px" },
-  label: { fontSize: "13px", color: tokens.colors.textoSecundario, fontWeight: 700 },
-  input: { height: "32px", minWidth: 0, border: `1px solid ${tokens.colors.bordeControl}`, borderRadius: tokens.radii.sm, padding: "0 8px", fontSize: "13px" },
-  colorInput: { width: "54px", height: "32px", border: `1px solid ${tokens.colors.bordeControl}`, borderRadius: tokens.radii.sm, background: tokens.colors.fondoChrome },
-  checkbox: { display: "inline-flex", alignItems: "center", gap: "8px", color: tokens.colors.textoControl, fontSize: "13px", fontWeight: 700 },
-  hint: { margin: 0, color: tokens.colors.textoTerciario, fontSize: "12px", fontWeight: 700 },
-  primaryButton: { height: "34px", padding: "0 12px", border: `1px solid ${tokens.colors.chromeNeutral}`, borderRadius: tokens.radii.sm, background: tokens.colors.chromeNeutral, color: tokens.colors.fondoChrome, cursor: "pointer", fontWeight: 700 },
-  secondaryButton: { height: "34px", padding: "0 12px", border: `1px solid ${tokens.colors.bordeControl}`, borderRadius: tokens.radii.sm, background: tokens.colors.fondoChrome, color: tokens.colors.textoSecundario, cursor: "pointer", fontWeight: 700 },
-  disabledButton: { height: "34px", padding: "0 12px", border: `1px solid ${tokens.colors.bordeIntermedio}`, borderRadius: tokens.radii.sm, background: tokens.colors.fondoDeshabilitado, color: tokens.colors.textoDeshabilitado, fontWeight: 700 },
+  label: { fontFamily: tokens.typography.familyChrome, fontSize: "13px", color: tokens.colors.ink70, fontWeight: 400 },
+  input: { height: "32px", minWidth: 0, border: `1px solid ${tokens.colors.ink15}`, borderRadius: 0, padding: "0 10px", background: tokens.colors.paper, color: tokens.colors.ink, fontFamily: tokens.typography.familyChrome, fontSize: "13px", caretColor: tokens.colors.accent },
+  colorInput: { width: "54px", height: "32px", border: `1px solid ${tokens.colors.ink15}`, borderRadius: 0, background: tokens.colors.paper, padding: 0, cursor: "pointer" },
+  checkbox: { display: "inline-flex", alignItems: "center", gap: "8px", color: tokens.colors.ink, fontFamily: tokens.typography.familyChrome, fontSize: "13px", fontWeight: 400 },
+  hint: { margin: 0, color: tokens.colors.ink50, fontFamily: tokens.typography.familyChrome, fontSize: "12px", fontWeight: 400 },
+  primaryButton: { minHeight: "32px", padding: "8px 18px", border: `${tokens.stroke.base}px solid ${tokens.colors.ink}`, borderRadius: 0, background: tokens.colors.ink, color: tokens.colors.paper, cursor: "pointer", fontFamily: tokens.typography.familyChrome, fontSize: "13px", fontWeight: 500 },
+  secondaryButton: { minHeight: "32px", padding: "8px 18px", border: `${tokens.stroke.base}px solid ${tokens.colors.ink}`, borderRadius: 0, background: tokens.colors.paper, color: tokens.colors.ink, cursor: "pointer", fontFamily: tokens.typography.familyChrome, fontSize: "13px", fontWeight: 500 },
+  disabledButton: { minHeight: "32px", padding: "8px 18px", border: `${tokens.stroke.base}px solid ${tokens.colors.ink15}`, borderRadius: 0, background: tokens.colors.ink04, color: tokens.colors.ink50, fontFamily: tokens.typography.familyChrome, fontSize: "13px", fontWeight: 500, cursor: "not-allowed" },
 } satisfies Record<string, preact.JSX.CSSProperties>;

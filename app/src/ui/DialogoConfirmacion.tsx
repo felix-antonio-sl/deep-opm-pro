@@ -34,29 +34,31 @@ export function DialogoConfirmacion(props: DialogoConfirmacionProps) {
   );
 }
 
+// Ronda 28 L5: botones Bauhaus (ink/paper, sin radius, sombra plana, Inter Tight).
 const baseButton = {
-  height: "34px",
+  minHeight: "32px",
   minWidth: "92px",
-  padding: "0 14px",
-  borderRadius: tokens.radii.sm,
+  padding: "8px 18px",
+  borderRadius: 0,
   cursor: "pointer",
   fontFamily: tokens.typography.familyChrome,
-  fontSize: "14px",
-  fontWeight: 700,
+  fontSize: "13px",
+  fontWeight: 500,
   whiteSpace: "nowrap",
+  transition: tokens.transitions.fast,
 } satisfies preact.JSX.CSSProperties;
 
 const style = {
   primaryButton: {
     ...baseButton,
-    border: `1px solid ${tokens.colors.infoBorde}`,
-    background: tokens.colors.canvas.proceso,
-    color: tokens.colors.azulProfundo,
+    border: `${tokens.stroke.base}px solid ${tokens.colors.ink}`,
+    background: tokens.colors.ink,
+    color: tokens.colors.paper,
   },
   secondaryButton: {
     ...baseButton,
-    border: `1px solid ${tokens.colors.bordeControl}`,
-    background: tokens.colors.fondoCard,
-    color: tokens.colors.textoPrimario,
+    border: `${tokens.stroke.base}px solid ${tokens.colors.ink}`,
+    background: tokens.colors.paper,
+    color: tokens.colors.ink,
   },
 } satisfies Record<string, preact.JSX.CSSProperties>;

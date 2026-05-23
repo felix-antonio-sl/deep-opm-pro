@@ -138,6 +138,8 @@ function etiquetaAncla(ancla: AnclaRelojEnlace): string {
   return OPCIONES_ANCLA_RELOJ_ENLACE.find((opcion) => opcion.id === ancla)?.label ?? ancla;
 }
 
-const bodyStyle = { display: "grid", gap: "10px" } satisfies preact.JSX.CSSProperties;
+// Ronda 28 L5: Bauhaus monocromático. inspectorStyles aporta `field/label/input/
+// primaryButton/secondaryButton/dangerButton` ya migrados a Bauhaus (L3).
+const bodyStyle = { display: "grid", gap: "12px" } satisfies preact.JSX.CSSProperties;
 const dangerButtonStyle = { ...style.dangerButton, marginRight: "auto" } satisfies preact.JSX.CSSProperties;
-const contractStyle = { marginTop: "-2px", color: tokens.colors.textoTerciario, fontSize: "12px", fontWeight: 700 } satisfies preact.JSX.CSSProperties;
+const contractStyle = { marginTop: "-2px", color: tokens.colors.ink50, fontFamily: tokens.typography.familyChrome, fontSize: "12px", fontWeight: 400 } satisfies preact.JSX.CSSProperties;

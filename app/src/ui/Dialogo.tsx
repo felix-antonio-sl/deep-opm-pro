@@ -125,7 +125,9 @@ export function Dialogo(props: DialogoProps) {
         data-ifml-stereotype={stereotype}
         data-ifml-modal={modal ? "true" : "false"}
       >
-        <h2 id={titleId.current} style={style.title}>{props.title}</h2>
+        <div style={style.header}>
+          <h2 id={titleId.current} style={style.title}>{props.title}</h2>
+        </div>
         <div style={style.body}>{props.children}</div>
         <div style={style.actions}>{props.actions}</div>
       </section>
@@ -177,6 +179,13 @@ function elementosConFoco(dialog: HTMLElement | null): HTMLElement[] {
     .filter((element) => element.offsetParent !== null || element === document.activeElement);
 }
 
+// Ronda 28 L5: dialogo base Bauhaus.
+// - Backdrop ink 30% (no negro puro), sin blur.
+// - Container 1.5px ink border, paper bg, sombra plana flatXl, sin radius.
+// - Header padding 24 + border-bottom 1.5px ink; titulo Inter Tight 700/20.
+// - Body padding 24/28.
+// - Footer padding 16/24 + border-top 1.5px ink-15 (provisto por cada diálogo
+//   en su slot de `actions`).
 const style = {
   backdrop: {
     position: "fixed",
@@ -185,43 +194,51 @@ const style = {
     display: "grid",
     placeItems: "center",
     padding: "24px",
-    background: "rgba(0, 0, 0, 0.5)",
+    background: "rgba(10, 10, 10, 0.30)",
   },
   dialog: {
-    // El ancho concreto lo fija `ANCHO_POR_TAMANO[size]`; default "md" preserva
-    // el comportamiento histórico (`min(460px, calc(100vw - 32px))`).
-    padding: "18px",
-    border: `1px solid ${tokens.colors.bordeControl}`,
-    borderRadius: tokens.radii.md,
-    background: tokens.colors.fondoChrome,
-    boxShadow: tokens.shadows.flotante,
-    color: tokens.colors.textoPrimario,
+    padding: 0,
+    border: `${tokens.stroke.base}px solid ${tokens.colors.ink}`,
+    borderRadius: 0,
+    background: tokens.colors.paper,
+    boxShadow: tokens.shadows.flatXl,
+    color: tokens.colors.ink,
     fontFamily: tokens.typography.familyChrome,
     outline: "none",
     maxHeight: "calc(100vh - 48px)",
     display: "flex",
     flexDirection: "column",
   },
+  header: {
+    flex: "0 0 auto",
+    padding: "24px 24px 20px",
+    borderBottom: `${tokens.stroke.base}px solid ${tokens.colors.ink}`,
+  },
   title: {
-    margin: "0 0 10px",
-    color: tokens.colors.textoPrimario,
-    fontSize: "16px",
+    margin: 0,
+    color: tokens.colors.ink,
+    fontFamily: tokens.typography.familyChrome,
+    fontSize: "20px",
     fontWeight: 700,
-    lineHeight: 1.3,
+    lineHeight: 1.2,
+    letterSpacing: "-0.01em",
   },
   body: {
     minHeight: 0,
     overflow: "auto",
-    color: tokens.colors.textoSecundario,
+    padding: "24px 28px",
+    color: tokens.colors.ink90,
+    fontFamily: tokens.typography.familyChrome,
     fontSize: "14px",
-    fontWeight: 600,
-    lineHeight: 1.45,
+    fontWeight: 400,
+    lineHeight: 1.55,
   },
   actions: {
     flex: "0 0 auto",
     display: "flex",
     justifyContent: "flex-end",
     gap: "8px",
-    marginTop: "18px",
+    padding: "16px 24px",
+    borderTop: `${tokens.stroke.base}px solid ${tokens.colors.ink15}`,
   },
 } satisfies Record<string, preact.JSX.CSSProperties>;
