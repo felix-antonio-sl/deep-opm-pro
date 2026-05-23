@@ -86,7 +86,12 @@ export function Timeline() {
                   setDraggedId(null);
                 }}
               >
-                <span aria-hidden="true" style={style.handle}>::</span>
+                {/* Ronda 28 L6 (Bauhaus): handle `::` → punto Bauhaus.
+                    ● ink en eventos no paralelos (canon brief: timeline punto).
+                    ○ ink-30 en filas paralelas (pendiente colapsado). */}
+                <span aria-hidden="true" style={parallel ? style.handlePending : style.handle}>
+                  {parallel ? "○" : "●"}
+                </span>
                 <span style={style.main}>
                   <span style={style.name}>{row.entidad.nombre}</span>
                   <span style={style.meta}>Y {row.apariencia.y}</span>
@@ -227,10 +232,18 @@ const style = {
   },
   list: {
     overflow: "auto",
+    // Ronda 28 L6 (Bauhaus): línea vertical 1px ink-15 corriendo por la
+    // columna del handle (puntos timeline). 8px padding-left = 4 (handle
+    // width/2) + offset; la línea se dibuja vía linear-gradient para no
+    // requerir pseudo-elementos en estilos inline.
     padding: "8px",
     display: "grid",
     alignContent: "start",
     gap: "6px",
+    backgroundImage: `linear-gradient(${tokens.colors.ink15}, ${tokens.colors.ink15})`,
+    backgroundRepeat: "no-repeat",
+    backgroundPosition: "16px 8px",
+    backgroundSize: "1px calc(100% - 16px)",
   },
   empty: {
     padding: "8px 4px",
@@ -279,11 +292,26 @@ const style = {
     borderBottomColor: tokens.colors.canvas.proceso,
     borderBottomWidth: "3px",
   },
+  // Ronda 28 L6 (Bauhaus): handle como punto Unicode geométrico ink (lleno)
+  // o ink-30 (vacío) según parallel. JetBrains Mono fontFamily para anclaje
+  // monolítico — los puntos timeline son glifos icónicos del brief L6.
   handle: {
-    color: tokens.colors.chromeNeutral,
-    fontWeight: 700,
-    letterSpacing: 0,
+    color: tokens.colors.ink,
+    fontFamily: tokens.typography.fontFamilyMono,
+    fontSize: "12px",
+    fontWeight: 500,
+    lineHeight: 1,
     textAlign: "center",
+    background: tokens.colors.paper,
+  },
+  handlePending: {
+    color: tokens.colors.ink30,
+    fontFamily: tokens.typography.fontFamilyMono,
+    fontSize: "12px",
+    fontWeight: 500,
+    lineHeight: 1,
+    textAlign: "center",
+    background: tokens.colors.paper,
   },
   main: {
     minWidth: 0,
@@ -292,14 +320,19 @@ const style = {
   },
   name: {
     minWidth: 0,
-    color: tokens.colors.textoPrimario,
+    // Brief L6: Inter Tight 12 ink.
+    color: tokens.colors.ink,
+    fontFamily: tokens.typography.fontFamily,
+    fontSize: "12px",
     overflowWrap: "anywhere",
     lineHeight: 1.2,
   },
   meta: {
-    color: tokens.colors.textoTerciario,
+    // Brief L6: JetBrains Mono 11 ink-70 para timestamps/coordenadas.
+    color: tokens.colors.ink70,
+    fontFamily: tokens.typography.fontFamilyMono,
     fontSize: "11px",
-    fontWeight: 600,
+    fontWeight: 500,
   },
   parallel: {
     minWidth: "56px",
