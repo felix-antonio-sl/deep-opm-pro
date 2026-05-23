@@ -25,7 +25,6 @@ export function ArbolOpd() {
   const {
     modelo,
     opdActivoId,
-    vistaMapaActiva,
     modoOrdenArbol,
     fijarModoOrdenArbol,
     cambiarOpdActivo,
@@ -40,7 +39,6 @@ export function ArbolOpd() {
     navegarOpdAbajo,
     navegarOpdIzquierda,
     navegarOpdDerecha,
-    abrirVistaMapa,
     abrirGestionArbol,
     avisosArbol,
   } = useArbolOpdViewModel();
@@ -170,7 +168,6 @@ export function ArbolOpd() {
         </div>
       </div>
       <div role="tree" aria-label="Árbol OPD" style={style.tree} data-atajos-contexto="panel-arbol">
-        <MapaSistemaItem activo={vistaMapaActiva} onAbrir={abrirVistaMapa} />
         {nodosVisibles.length === 0 ? (
           <div style={style.empty}>Sin OPD</div>
         ) : (
@@ -284,23 +281,6 @@ function enfocarNodoArbol(opdId: Id): void {
     nodo?.focus({ preventScroll: true });
     nodo?.scrollIntoView({ block: "nearest" });
   });
-}
-
-function MapaSistemaItem(props: { activo: boolean; onAbrir: () => void }) {
-  return (
-    <div role="treeitem" tabIndex={0} aria-level={1} data-opd-id="__mapa__" aria-label="Mapa del sistema" title="Mapa del sistema" style={{ ...style.nodeMapa, ...(props.activo ? style.nodeActive : {}) }} onClick={props.onAbrir} onKeyDown={(event) => {
-      if (event.key === "Enter" || event.key === " ") {
-        event.preventDefault();
-        props.onAbrir();
-      }
-    }}>
-      <svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" focusable="false" style={{ flex: "0 0 auto" }}>
-        <path d="M5 2 L1 4 L1 14 L5 12 L11 14 L15 12 L15 2 L11 4 Z" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round"/>
-        <path d="M5 2 L5 12 M11 4 L11 14" stroke="currentColor" strokeWidth="1.2" fill="none"/>
-      </svg>
-      <span style={style.nodeName}>Mapa del sistema</span>
-    </div>
-  );
 }
 
 function toggleId(prev: Set<Id>, id: Id): Set<Id> {

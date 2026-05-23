@@ -1,6 +1,5 @@
 import { expect, test } from "@playwright/test";
 import {
-  clickToolbarMasItem,
   elementoPorTexto,
   escapeRegExp,
   modeloTraerConectadosSmoke,
@@ -196,7 +195,7 @@ test("BUG-20260523T174837 barra de pestanas no muestra scrollbar horizontal", as
 });
 
 
-test("mapa del sistema: abre, muestra thumbnails, doble clic navega", async ({ page }) => {
+test("mapa del sistema retirado: no aparece en arbol ni menu principal", async ({ page }) => {
   const pageErrors: string[] = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
@@ -216,38 +215,13 @@ test("mapa del sistema: abre, muestra thumbnails, doble clic navega", async ({ p
   await irATabRefinamiento(page);
   await ejecutarAccionCommandPalette(page, "inzoom", "accion-inzoom");
   await expect(page.locator('[role="treeitem"]').filter({ hasText: "SD1.1:" })).toHaveCount(1);
-  // Verificar al menos 3 treeitems (Mapa + SD raiz + SD1)
-  const treeItems = page.getByRole("treeitem");
-  const count = await treeItems.count();
-  expect(count).toBeGreaterThanOrEqual(3);
 
-  // Ronda 27 III.A cierre: Mapa del sistema vive ahora en `☰ → Herramientas`.
-  await clickToolbarMasItem(page, "toolbar-mas-mapa");
-
-  // Verificar que el mapa se muestra
-  const mapa = page.getByTestId("mapa-sistema");
-  await expect(mapa).toBeVisible({ timeout: 5000 });
-
-  // Verificar que la cobertura visual vuelve a igualar el descriptor multinivel.
-  const jointElems = page.locator(".joint-element");
-  const elemCount = await jointElems.count();
-  expect(elemCount).toBeGreaterThanOrEqual(3);
-  await expect(page.getByText(/\d+ OPDs · \d+ relaciones/)).toBeVisible();
-
-  await page.getByRole("button", { name: "Filtros" }).click();
-  await expect(page.getByTestId("mapa-filtros")).toBeVisible();
-  await page.getByLabel("Filtros del mapa").getByRole("combobox").nth(1).selectOption("predominanciaProceso");
-  await mapa.getByRole("button", { name: "Estadísticas" }).click();
-  await expect(page.getByTestId("mapa-estadisticas")).toBeVisible();
-
-  const downloadPromise = page.waitForEvent("download");
-  await page.getByRole("button", { name: "SVG" }).click();
-  const download = await downloadPromise;
-  expect(download.suggestedFilename()).toMatch(/mapa-\d{4}-\d{2}-\d{2}\.svg$/);
-
-  // Cerrar mapa
-  await page.getByRole("button", { name: "Cerrar mapa" }).click();
-  await expect(mapa).toHaveCount(0);
+  await expect(page.getByRole("treeitem", { name: "Mapa del sistema", exact: true })).toHaveCount(0);
+  await page.getByLabel("Menú principal").click();
+  const menu = page.getByRole("menu", { name: "Menú principal" });
+  await expect(menu.getByTestId("toolbar-mas-mapa")).toHaveCount(0);
+  await expect(menu.getByRole("menuitem", { name: "Mapa del sistema", exact: true })).toHaveCount(0);
+  await expect(page.getByTestId("mapa-sistema")).toHaveCount(0);
 
   expect(pageErrors).toEqual([]);
 });

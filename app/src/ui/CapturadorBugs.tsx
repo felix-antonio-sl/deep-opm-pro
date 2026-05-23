@@ -1,4 +1,4 @@
-import { useRef, useState } from "preact/hooks";
+import { useEffect, useRef, useState } from "preact/hooks";
 import { useBugCaptureContext } from "../app/viewmodels/capturadorBugsViewModel";
 import { Dialogo } from "./Dialogo";
 import { useBreakpoint } from "./layoutResponsive";
@@ -76,6 +76,18 @@ function CapturadorBugsInteractivo() {
     setResultado(null);
   };
 
+  useEffect(() => {
+    const abrirConAtajo = (event: KeyboardEvent) => {
+      if (event.key.toLowerCase() !== "b") return;
+      if (!event.altKey || (!event.ctrlKey && !event.metaKey)) return;
+      event.preventDefault();
+      event.stopPropagation();
+      abrir();
+    };
+    window.addEventListener("keydown", abrirConAtajo, { capture: true });
+    return () => window.removeEventListener("keydown", abrirConAtajo, { capture: true });
+  }, []);
+
   const abrirLista = () => {
     setListaAbierta(true);
     setLedgerTab("activos");
@@ -133,6 +145,7 @@ function CapturadorBugsInteractivo() {
       if (!response.ok || !body?.id || !body.path || !body.directory) {
         throw new Error(body?.error ?? "No se pudo guardar el reporte en el servidor local.");
       }
+      await copiarTextoPortapapeles(body.id);
       setResultado({
         id: body.id,
         path: body.path,
@@ -141,6 +154,7 @@ function CapturadorBugsInteractivo() {
       });
       setTexto("");
       setScreenshots([]);
+      setAbierto(false);
     } catch (err) {
       setError(err instanceof Error ? err.message : "No se pudo guardar el reporte.");
     } finally {
@@ -153,7 +167,7 @@ function CapturadorBugsInteractivo() {
       <button
         type="button"
         aria-label="Capturar bug"
-        title="Capturar bug · feedback al equipo"
+        title="Capturar bug · Ctrl+Alt+B"
         data-testid="bug-capture-open"
         style={fabStyle(breakpoint === "mobile")}
         onClick={abrir}
@@ -367,6 +381,15 @@ function imagenesDesdeClipboard(event: ClipboardEvent): File[] {
     .filter((item) => item.kind === "file" && item.type.startsWith("image/"))
     .map((item) => item.getAsFile())
     .filter((file): file is File => file !== null);
+}
+
+async function copiarTextoPortapapeles(texto: string): Promise<void> {
+  try {
+    await globalThis.navigator?.clipboard?.writeText(texto);
+  } catch {
+    // El reporte ya fue persistido; si el portapapeles no está disponible no
+    // debe bloquear el cierre del flujo.
+  }
 }
 
 function crearIdLocal(): string {

@@ -17,9 +17,6 @@ export function useCommandPaletteViewModel() {
     abrirDialogoPlantillas,
     abrirDialogoVersiones,
     modeloPersistidoId,
-    abrirVistaMapa,
-    cerrarVistaMapa,
-    vistaMapaActiva,
     gridConfigBase,
     toggleGrid,
     aplicarLayoutSugerido,
@@ -31,11 +28,6 @@ export function useCommandPaletteViewModel() {
     registrarUsoCommandPalette,
   } = useZustandCommandPalettePort();
   const gridConfig = useMemo(() => normalizarGridConfig(gridConfigBase), [gridConfigBase]);
-
-  const toggleMapaSistema = () => {
-    if (vistaMapaActiva) cerrarVistaMapa();
-    else abrirVistaMapa();
-  };
 
   const exportarJsonAlPortapapeles = () => {
     const json = exportarJson();
@@ -56,7 +48,6 @@ export function useCommandPaletteViewModel() {
     abrirDialogoPlantillas,
     abrirDialogoVersiones,
     modeloPersistidoId,
-    vistaMapaActiva,
     gridConfig,
     toggleGrid,
     aplicarLayoutSugerido,
@@ -65,7 +56,6 @@ export function useCommandPaletteViewModel() {
     abrirCheatsheetAtajos,
     frecuenciaUso,
     registrarUsoCommandPalette,
-    toggleMapaSistema,
     exportarJsonAlPortapapeles,
   };
 }

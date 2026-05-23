@@ -7,6 +7,7 @@ const PNG_1X1 = Buffer.from(
 
 test("capturador de bugs guarda texto sin screenshots y muestra id referenciable", async ({ page }) => {
   let payload: Record<string, unknown> | null = null;
+  await instalarClipboardMock(page);
   await page.route("**/__deep-opm/bug-reports", async (route) => {
     payload = route.request().postDataJSON() as Record<string, unknown>;
     await route.fulfill({
@@ -28,10 +29,18 @@ test("capturador de bugs guarda texto sin screenshots y muestra id referenciable
   await dialog.getByLabel("Descripción del bug").fill("El enlace se pierde al reordenar el OPD.");
   await dialog.getByRole("button", { name: "Guardar reporte" }).click();
 
-  await expect(dialog.getByTestId("bug-capture-result")).toContainText("BUG-TEST-SIN-SCREENSHOT");
+  await expect(dialog).toHaveCount(0);
+  await expect(page.getByRole("dialog", { name: "Capturar bug" })).toHaveCount(0);
+  await expectClipboard(page, "BUG-TEST-SIN-SCREENSHOT");
   expect(payload?.text).toBe("El enlace se pierde al reordenar el OPD.");
   expect(payload?.screenshots).toEqual([]);
   expect((payload?.context as Record<string, unknown>).modeloNombre).toBeTruthy();
+});
+
+test("capturador de bugs abre con Ctrl+Alt+B", async ({ page }) => {
+  await page.goto("/");
+  await page.keyboard.press("Control+Alt+B");
+  await expect(page.getByRole("dialog", { name: "Capturar bug" })).toBeVisible();
 });
 
 test("capturador de bugs muestra lista activa e historica desde el sidecar", async ({ page }) => {
@@ -88,6 +97,7 @@ test("capturador de bugs muestra lista activa e historica desde el sidecar", asy
 
 test("capturador de bugs adjunta uno o mas screenshots al payload", async ({ page }) => {
   let payload: Record<string, unknown> | null = null;
+  await instalarClipboardMock(page);
   await page.route("**/__deep-opm/bug-reports", async (route) => {
     payload = route.request().postDataJSON() as Record<string, unknown>;
     await route.fulfill({
@@ -114,7 +124,8 @@ test("capturador de bugs adjunta uno o mas screenshots al payload", async ({ pag
   await expect(dialog.getByText("captura-canvas.png")).toBeVisible();
   await dialog.getByRole("button", { name: "Guardar reporte" }).click();
 
-  await expect(dialog.getByTestId("bug-capture-result")).toContainText("BUG-TEST-CON-SCREENSHOT");
+  await expect(dialog).toHaveCount(0);
+  await expectClipboard(page, "BUG-TEST-CON-SCREENSHOT");
   const screenshots = payload?.screenshots as Array<Record<string, string>>;
   expect(screenshots).toHaveLength(1);
   expect(screenshots[0]?.name).toBe("captura-canvas.png");
@@ -123,6 +134,7 @@ test("capturador de bugs adjunta uno o mas screenshots al payload", async ({ pag
 
 test("capturador de bugs acepta screenshot pegado directamente", async ({ page }) => {
   let payload: Record<string, unknown> | null = null;
+  await instalarClipboardMock(page);
   await page.route("**/__deep-opm/bug-reports", async (route) => {
     payload = route.request().postDataJSON() as Record<string, unknown>;
     await route.fulfill({
@@ -154,7 +166,8 @@ test("capturador de bugs acepta screenshot pegado directamente", async ({ page }
   await expect(dialog.getByText("pegado-desde-clipboard.png")).toBeVisible();
   await dialog.getByRole("button", { name: "Guardar reporte" }).click();
 
-  await expect(dialog.getByTestId("bug-capture-result")).toContainText("BUG-TEST-PEGADO");
+  await expect(dialog).toHaveCount(0);
+  await expectClipboard(page, "BUG-TEST-PEGADO");
   const screenshots = payload?.screenshots as Array<Record<string, string>>;
   expect(screenshots).toHaveLength(1);
   expect(screenshots[0]?.name).toBe("pegado-desde-clipboard.png");
@@ -177,3 +190,20 @@ test("capturador de bugs degrada cuando el endpoint no existe", async ({ page })
 
   await expect(dialog.getByRole("alert")).toContainText("no disponible en despliegue estatico");
 });
+
+async function instalarClipboardMock(page: import("@playwright/test").Page): Promise<void> {
+  await page.addInitScript(() => {
+    Object.defineProperty(navigator, "clipboard", {
+      configurable: true,
+      value: {
+        writeText: async (text: string) => {
+          (window as unknown as { __deepOpmClipboard?: string }).__deepOpmClipboard = text;
+        },
+      },
+    });
+  });
+}
+
+async function expectClipboard(page: import("@playwright/test").Page, expected: string): Promise<void> {
+  await expect.poll(() => page.evaluate(() => (window as unknown as { __deepOpmClipboard?: string }).__deepOpmClipboard)).toBe(expected);
+}

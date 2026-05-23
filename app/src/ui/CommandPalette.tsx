@@ -56,7 +56,6 @@ export function CommandPalette({ abierto, onCerrar }: Props) {
     abrirDialogoPlantillas,
     abrirDialogoVersiones,
     modeloPersistidoId,
-    vistaMapaActiva,
     gridConfig,
     toggleGrid,
     aplicarLayoutSugerido,
@@ -65,7 +64,6 @@ export function CommandPalette({ abierto, onCerrar }: Props) {
     abrirCheatsheetAtajos,
     frecuenciaUso,
     registrarUsoCommandPalette,
-    toggleMapaSistema,
     exportarJsonAlPortapapeles,
   } = useCommandPaletteViewModel();
 
@@ -90,8 +88,6 @@ export function CommandPalette({ abierto, onCerrar }: Props) {
     abrirDialogoPlantillas,
     abrirDialogoVersiones: modeloPersistidoId ? () => abrirDialogoVersiones(modeloPersistidoId) : null,
     modeloPersistidoId,
-    toggleMapaSistema,
-    vistaMapaActiva,
     toggleGrid,
     gridActiva: gridConfig.activa,
     aplicarLayoutSugerido,
@@ -317,8 +313,6 @@ interface AccionesMenuCommandPaletteDeps {
   abrirDialogoPlantillas: () => void;
   abrirDialogoVersiones: (() => void) | null;
   modeloPersistidoId: string | null;
-  toggleMapaSistema: () => void;
-  vistaMapaActiva: boolean;
   toggleGrid: () => void;
   gridActiva: boolean;
   aplicarLayoutSugerido: () => void;
@@ -338,7 +332,6 @@ function construirAccionesMenuCommandPalette(deps: AccionesMenuCommandPaletteDep
     { id: "plantillas", label: "Plantillas", descripcion: "Abrir el catálogo de plantillas privadas", categoria: "archivo", run: deps.abrirDialogoPlantillas },
     { id: "versiones-modelo", label: "Versiones del modelo", descripcion: "Abrir el historial de versiones del modelo", categoria: "archivo", enabled: !!deps.abrirDialogoVersiones, run: deps.abrirDialogoVersiones ?? (() => {}) },
     { id: "exportar-json", label: "Exportar JSON al portapapeles", descripcion: "Copiar el JSON OPM actual al portapapeles", categoria: "archivo", run: deps.exportarJson },
-    { id: "mapa-sistema", label: deps.vistaMapaActiva ? "Cerrar mapa del sistema" : "Mapa del sistema", descripcion: "Alternar la vista de mapa del sistema", categoria: "vista", run: deps.toggleMapaSistema },
     { id: "simulacion-conceptual", label: "Simulación conceptual", descripcion: "Entrar al modo de simulación del modelo", categoria: "vista", run: deps.iniciarModoSimulacion },
     { id: "grid-canvas", label: deps.gridActiva ? "Ocultar cuadrícula del canvas" : "Mostrar cuadrícula del canvas", descripcion: "Alternar la cuadrícula visual del canvas", categoria: "vista", run: deps.toggleGrid },
     { id: "auto-layout", label: "Auto-layout", descripcion: "Aplicar layout sugerido al OPD activo", categoria: "vista", run: deps.aplicarLayoutSugerido },

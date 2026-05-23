@@ -3,10 +3,10 @@
 **Fecha**: 2026-05-23
 **Repositorio**: `deep-opm-pro`
 **Rama**: `main`
-**Ultimo corte funcional**: canon OPM estricto convertido a canon prescriptivo, con cobertura explícita de la capa semántica `opm-iso-19450-es.md`.
-**Ultimo commit en main**: `docs(opm): prescribe iso coverage in strict canon`.
-**Ultimo corte deploy**: sin deploy; cambio documental normativo, no ejecutable.
-**Corte**: `docs/canon-opm/reglas-opm-estrictas.md` queda como documento de reglas, no como explicación: cada entrada debe ser obligación, prohibición, condición, default, severidad o política ejecutable.
+**Ultimo corte funcional**: cierre del lote `BUG-20260523T1955*` en UI: primera cosa centrada, atajo/cierre/copia del capturador, OPL redimensionable y retiro del mapa del sistema del chrome.
+**Ultimo commit en main**: `fix(ui): resolve latest bug capture backlog` (commit de este cierre).
+**Ultimo corte deploy**: `docker compose up -d --build` ejecutado; `opforja` queda healthy y el sidecar reporta 10 activos/58 históricos, todos los activos `Resuelto`. URL pública `https://opforja.sanixai.com/` responde `401` por Basic Auth de Traefik.
+**Corte**: los 10 bugs/features activos del ledger quedan en estado `Resuelto`; las carpetas `BUG-*` capturadas siguen como artefactos locales no versionados salvo decisión explícita.
 
 ## Política De Handoff Único
 
@@ -24,6 +24,44 @@
 - JointJS OSS: usar documentación oficial viva cuando se toque JointJS.
 
 ## Estado Actual
+
+### Cierre Bugs/Features Activos 19:55Z — 2026-05-23
+
+Estado actual:
+
+- `BUG-20260523T195539Z-276694`: el canvas ejecuta fit automático cuando un OPD vacío recibe su primera apariencia; la primera cosa creada desde toolbar queda centrada visualmente en el viewport.
+- `BUG-20260523T195613Z-932476`: el capturador de bugs abre con `Ctrl+Alt+B` y `Cmd+Alt+B`.
+- `BUG-20260523T195651Z-7ff54e`: al guardar un reporte se copia el ID al portapapeles y se cierra el modal; si el portapapeles falla, el reporte ya persistido no se pierde.
+- `BUG-20260523T195725Z-1372c7`: el panel OPL inferior incorpora divisor horizontal, drag vertical y doble clic de reset a 180 px.
+- `BUG-20260523T195754Z-dd0c18`: `Mapa del sistema` se retira de árbol OPD, menú principal y Command Palette. El código interno queda sin exposición para evitar un refactor destructivo amplio.
+- `docs/bugs/INDEX.md`, `HISTORY.md` y `statuses.json` consolidan 10 activos, todos `Resuelto`.
+
+Decisiones consolidadas:
+
+- Para centrar la primera cosa no se cambian coordenadas de modelo ni fixtures; la responsabilidad es de viewport/render (`JointCanvas`) al detectar transición OPD vacío -> primer contenido.
+- El mapa del sistema se considera función sin valor actual y se elimina de superficies de usuario; no se borra el módulo ni tests unitarios derivados para mantener bajo el blast radius.
+- El OPL se redimensiona localmente en estado de `App`; no se persiste aún como preferencia de workspace porque el reporte pidió capacidad inmediata, no preferencia permanente.
+- El capturador prioriza cierre rápido: guardar, copiar ID, cerrar. El ledger visible sigue disponible desde el FAB `Ver bugs y features`.
+
+Artefactos relevantes:
+
+- [app/src/render/jointjs/JointCanvas.tsx](/home/felix/projects/deep-opm-pro/app/src/render/jointjs/JointCanvas.tsx)
+- [app/src/ui/CapturadorBugs.tsx](/home/felix/projects/deep-opm-pro/app/src/ui/CapturadorBugs.tsx)
+- [app/src/ui/App.tsx](/home/felix/projects/deep-opm-pro/app/src/ui/App.tsx)
+- [app/src/ui/ArbolOpd.tsx](/home/felix/projects/deep-opm-pro/app/src/ui/ArbolOpd.tsx)
+- [app/src/ui/MenuPrincipal.tsx](/home/felix/projects/deep-opm-pro/app/src/ui/MenuPrincipal.tsx)
+- [app/src/ui/CommandPalette.tsx](/home/felix/projects/deep-opm-pro/app/src/ui/CommandPalette.tsx)
+- [docs/bugs/statuses.json](/home/felix/projects/deep-opm-pro/docs/bugs/statuses.json)
+- [docs/bugs/INDEX.md](/home/felix/projects/deep-opm-pro/docs/bugs/INDEX.md)
+- [docs/bugs/HISTORY.md](/home/felix/projects/deep-opm-pro/docs/bugs/HISTORY.md)
+
+Verificación:
+
+- `bun run typecheck`
+- `bun run lint`
+- `bun run test` (`1567 pass`, `0 fail`)
+- `bun run build`
+- `bunx playwright test e2e/10-capturador-bugs.spec.ts e2e/21-estado-vacio-opm.spec.ts e2e/03-opl-panel.spec.ts e2e/04-arbol-y-pestanas.spec.ts e2e/12-toolbar-overflow.spec.ts --grep "capturador de bugs|primera cosa|panel OPL inferior se redimensiona|mapa del sistema retirado|menú principal absorbe|MenuPrincipal separa"` (`11 passed`)
 
 ### Cierre Canon Prescriptivo ISO OPM — 2026-05-23
 

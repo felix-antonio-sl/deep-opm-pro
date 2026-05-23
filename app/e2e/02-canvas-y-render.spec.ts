@@ -635,7 +635,7 @@ test("L1 toolbar split conserva root y controles por modo", async ({ page }) => 
   await expect(page.getByTestId("toolbar-mas-config-grid")).toHaveCount(0);
   await expect(page.getByTestId("toolbar-mas-auto-layout")).toBeVisible();
   await expect(page.getByTestId("toolbar-mas-biblioteca-dock")).toBeVisible();
-  await expect(page.getByTestId("toolbar-mas-mapa")).toBeVisible();
+  await expect(page.getByTestId("toolbar-mas-mapa")).toHaveCount(0);
   await expect(page.getByTestId("toolbar-mas-simulacion")).toBeVisible();
   await page.keyboard.press("Escape");
   await expect(page.getByTestId("abrir-menu-tipo-enlace")).toHaveCount(0);

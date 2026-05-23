@@ -64,6 +64,9 @@ const GestionArbolOpd = lazy(() => import("./GestionArbolOpd").then((m) => ({ de
 const ModalDuracionEstado = lazy(() => import("./ModalDuracionEstado").then((m) => ({ default: m.ModalDuracionEstado })));
 const ModalImagenObjeto = lazy(() => import("./ModalImagenObjeto").then((m) => ({ default: m.ModalImagenObjeto })));
 const ModalUrlsObjeto = lazy(() => import("./ModalUrlsObjeto").then((m) => ({ default: m.ModalUrlsObjeto })));
+const ALTO_PANEL_OPL_DEFAULT = 180;
+const ALTO_PANEL_OPL_MIN = 104;
+const ALTO_PANEL_OPL_MAX = 420;
 
 export function App() {
   const {
@@ -106,6 +109,7 @@ export function App() {
     modoCreacionActivo,
   } = useAppShellViewModel();
   const [inspectorAbierto, setInspectorAbierto] = useState(true);
+  const [altoPanelOpl, setAltoPanelOpl] = useState(ALTO_PANEL_OPL_DEFAULT);
   const [canvasAdapter, setCanvasAdapter] = useState<JointCanvasAdapter | null>(null);
   // Ronda 23 L3 #7: el primer paint sin modelos persistidos ni recientes
   // precarga el fixture "System Diagram" para que el operador entre directo
@@ -162,7 +166,7 @@ export function App() {
     <CanvasAdapterContext.Provider value={canvasAdapter}>
     <ConfirmacionProvider>
       <main
-        style={pageStyle(esMobile)}
+        style={pageStyle(esMobile, oplMinimizado, altoPanelOpl)}
         data-breakpoint={breakpoint}
         data-context-device={contextoWorkbench.device}
         data-context-modo={contextoWorkbench.modo}
@@ -316,7 +320,20 @@ export function App() {
             </div>
           </div>
         </section>
-        <div data-testid="opl-pane" style={oplInferiorStyle(oplMinimizado)}>
+        {!oplMinimizado ? (
+          <DivisorPanel
+            orientacion="horizontal"
+            anchoInicial={altoPanelOpl}
+            anchoMin={ALTO_PANEL_OPL_MIN}
+            anchoMax={ALTO_PANEL_OPL_MAX}
+            invertirDelta
+            resetValue={ALTO_PANEL_OPL_DEFAULT}
+            testId="divisor-panel-opl"
+            title="Ajustar alto del panel OPL"
+            onAnchoChange={setAltoPanelOpl}
+          />
+        ) : null}
+        <div data-testid="opl-pane" style={oplInferiorStyle(oplMinimizado, altoPanelOpl)}>
           <PanelOpl />
         </div>
         <PanelDiagnostico />
@@ -518,8 +535,12 @@ const layout = {
   },
 } satisfies Record<string, preact.JSX.CSSProperties>;
 
-function pageStyle(esMobile: boolean): preact.JSX.CSSProperties {
-  return esMobile ? layout.pageMobile : layout.page;
+function pageStyle(esMobile: boolean, oplMinimizado: boolean, altoPanelOpl: number): preact.JSX.CSSProperties {
+  if (esMobile) return layout.pageMobile;
+  return {
+    ...layout.page,
+    gridTemplateRows: `48px 32px minmax(0, 1fr) ${oplMinimizado ? "0px" : "6px"} ${oplMinimizado ? "32px" : `${altoPanelOpl}px`} auto`,
+  };
 }
 
 function workbenchStyle(
@@ -577,11 +598,11 @@ function inspectorPaneStyle(abierto: boolean): preact.JSX.CSSProperties {
       };
 }
 
-function oplInferiorStyle(minimizado: boolean): preact.JSX.CSSProperties {
+function oplInferiorStyle(minimizado: boolean, alto: number): preact.JSX.CSSProperties {
   return {
     minWidth: 0,
     minHeight: 0,
-    height: minimizado ? "32px" : "180px",
+    height: minimizado ? "32px" : `${alto}px`,
     overflow: "hidden",
     borderTop: `1px solid ${tokens.colors.bordePanel}`,
     background: tokens.colors.fondoPanel,

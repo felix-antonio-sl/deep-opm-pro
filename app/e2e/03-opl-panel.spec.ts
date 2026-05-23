@@ -259,6 +259,39 @@ test("panel OPL queda fijado abajo y persiste al recargar", async ({ page }) => 
   expect(pageErrors).toEqual([]);
 });
 
+test("panel OPL inferior se redimensiona verticalmente desde su divisor", async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 720 });
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await cerrarPantallaInicioSiVisible(page);
+  await page.getByRole("button", { name: "Objeto", exact: true }).click();
+
+  const panel = page.getByTestId("opl-pane");
+  const divisor = page.getByTestId("divisor-panel-opl");
+  await expect(panel).toBeVisible();
+  await expect(divisor).toBeVisible();
+
+  const altoInicial = (await rectDeLocator(panel)).height;
+  const divisorBox = await divisor.boundingBox();
+  if (!divisorBox) throw new Error("No se pudo ubicar el divisor OPL");
+
+  await page.mouse.move(divisorBox.x + divisorBox.width / 2, divisorBox.y + divisorBox.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(divisorBox.x + divisorBox.width / 2, divisorBox.y + divisorBox.height / 2 - 90, { steps: 8 });
+  await page.mouse.up();
+
+  await expect
+    .poll(async () => (await rectDeLocator(panel)).height)
+    .toBeGreaterThan(altoInicial + 70);
+
+  await divisor.dblclick();
+  await expect.poll(async () => Math.round((await rectDeLocator(panel)).height)).toBe(180);
+
+  expect(pageErrors).toEqual([]);
+});
+
 test("panel OPL indenta y contrae bloques jerarquicos desde preferencias", async ({ page }) => {
   const pageErrors: string[] = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));

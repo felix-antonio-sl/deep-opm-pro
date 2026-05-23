@@ -114,7 +114,7 @@ test("menú principal absorbe los items del ⋯ Más en secciones Vista y Herram
   await expect(menu.getByTestId("toolbar-mas-toggle-grid")).toBeVisible();
   await expect(menu.getByTestId("toolbar-mas-auto-layout")).toBeVisible();
   await expect(menu.getByTestId("toolbar-mas-biblioteca-dock")).toBeVisible();
-  await expect(menu.getByTestId("toolbar-mas-mapa")).toBeVisible();
+  await expect(menu.getByTestId("toolbar-mas-mapa")).toHaveCount(0);
   await expect(menu.getByTestId("toolbar-mas-simulacion")).toBeVisible();
   await expect(menu.getByTestId("toolbar-mas-modo-imagen-global")).toBeVisible();
 
@@ -122,7 +122,7 @@ test("menú principal absorbe los items del ⋯ Más en secciones Vista y Herram
   await expect(menu.getByRole("menuitem", { name: "Alias visibles", exact: true })).toBeVisible();
   await expect(menu.getByRole("menuitem", { name: "Descripciones visibles", exact: true })).toBeVisible();
   await expect(menu.getByRole("menuitem", { name: "Cuadrícula visible", exact: true })).toBeVisible();
-  await expect(menu.getByRole("menuitem", { name: "Mapa del sistema", exact: true })).toBeVisible();
+  await expect(menu.getByRole("menuitem", { name: "Mapa del sistema", exact: true })).toHaveCount(0);
   await expect(menu.getByRole("menuitem", { name: "Auto-layout", exact: true })).toBeVisible();
   await expect(menu.getByRole("menuitem", { name: "Simulación conceptual", exact: true })).toBeVisible();
 
@@ -209,10 +209,9 @@ test("MenuPrincipal separa archivo, datos y herramientas sin duplicar el chrome"
   await expect(menu.getByRole("menuitem", { name: "Importar/Exportar JSON...", exact: true })).toHaveCount(0);
   await expect(menu.getByRole("menuitem", { name: "Ejemplos", exact: true })).toHaveCount(0);
   await expect(menu.getByRole("menuitem", { name: "Tabla de enlaces", exact: true })).toBeVisible();
-  // Ronda 27 III.A cierre: Mapa, Simulación y Auto-layout sí viven ahora
-  // como items del menú principal `☰` (sección Herramientas), absorbidos
-  // desde el desaparecido `⋯ Más`.
-  await expect(menu.getByRole("menuitem", { name: "Mapa del sistema", exact: true })).toBeVisible();
+  // La función de mapa del sistema fue retirada del chrome; Simulación y
+  // Auto-layout siguen como herramientas del menú principal.
+  await expect(menu.getByRole("menuitem", { name: "Mapa del sistema", exact: true })).toHaveCount(0);
   await expect(menu.getByRole("menuitem", { name: "Simulación conceptual", exact: true })).toBeVisible();
   await expect(menu.getByRole("menuitem", { name: "Auto-layout", exact: true })).toBeVisible();
 

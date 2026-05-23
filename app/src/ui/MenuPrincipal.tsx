@@ -36,8 +36,6 @@ export function MenuPrincipal() {
     toggleMostrarVersiones,
     modelo,
     opdActivoId,
-    vistaMapaActiva,
-    toggleMapaPanelEstadisticas,
     abrirTablaEnlaces,
     abrirDialogoPlantillas,
     abrirDialogoGuardarPlantilla,
@@ -59,7 +57,6 @@ export function MenuPrincipal() {
     aplicarLayoutSugerido,
     bibliotecaDockAbierto,
     toggleBibliotecaDock,
-    toggleVistaMapa,
     iniciarModoSimulacion,
   } = useMenuPrincipalViewModel();
 
@@ -106,15 +103,7 @@ export function MenuPrincipal() {
       </MenuSection>
 
       <MenuSection title="Exportar">
-        {vistaMapaActiva ? (
-          <>
-            <MenuItem label="Exportar mapa como PNG" onClick={() => ejecutar(() => solicitarExportMapa("png"))} />
-            <MenuItem label="Exportar mapa como SVG" onClick={() => ejecutar(() => solicitarExportMapa("svg"))} />
-            <MenuItem label="Estadísticas del modelo" onClick={() => ejecutar(toggleMapaPanelEstadisticas)} />
-          </>
-        ) : (
-          <MenuItem label="Exportar OPD actual como SVG" disabled={!canvasPaper} onClick={() => ejecutar(exportarOpdActualSvg)} />
-        )}
+        <MenuItem label="Exportar OPD actual como SVG" disabled={!canvasPaper} onClick={() => ejecutar(exportarOpdActualSvg)} />
         <MenuItem label="Exportar JSON" onClick={() => ejecutar(copiarJsonAlPortapapeles)} />
       </MenuSection>
 
@@ -175,18 +164,12 @@ export function MenuPrincipal() {
 
       <MenuSection title="Herramientas">
         <MenuItem label="Tabla de enlaces" onClick={() => ejecutar(abrirTablaEnlaces)} />
-        {/* Ronda 27 III.A cierre: Auto-layout, Mapa del sistema y Simulación
-            conceptual se absorben aquí desde el `⋯ Más` retirado. */}
+        {/* Ronda 27 III.A cierre: Auto-layout y Simulación conceptual se
+            absorben aquí desde el `⋯ Más` retirado. */}
         <MenuItem
           label="Auto-layout"
           testId="toolbar-mas-auto-layout"
           onClick={() => ejecutar(aplicarLayoutSugerido)}
-        />
-        <MenuItem
-          label="Mapa del sistema"
-          activo={vistaMapaActiva}
-          testId="toolbar-mas-mapa"
-          onClick={() => ejecutar(toggleVistaMapa)}
         />
         <MenuItem
           label="Simulación conceptual"
@@ -255,10 +238,6 @@ function MenuItem({ label, shortcut, icon, disabled = false, expanded, activo, t
       {shortcut ? <span aria-hidden="true" style={style.shortcut}>{shortcut}</span> : null}
     </button>
   );
-}
-
-function solicitarExportMapa(formato: "png" | "svg"): void {
-  window.dispatchEvent(new CustomEvent("deep-opm-pro:exportar-mapa", { detail: { formato } }));
 }
 
 /**

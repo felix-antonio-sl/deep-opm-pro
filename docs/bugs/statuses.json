@@ -28,5 +28,35 @@
     "status": "Resuelto",
     "resolution": "Se agrega indice vivo e historico y dialogo visible en UI para bugs/features con estado y resolucion.",
     "note": "El sidecar regenera INDEX.md/HISTORY.md y la app los consulta via GET /__deep-opm/bug-reports."
+  },
+  "BUG-20260523T195539Z-276694": {
+    "type": "Bug",
+    "status": "Resuelto",
+    "resolution": "El canvas hace fit automatico cuando un OPD vacio recibe su primera apariencia, dejando la primera cosa centrada visualmente.",
+    "note": "Cubierto por e2e/21-estado-vacio-opm.spec.ts."
+  },
+  "BUG-20260523T195613Z-932476": {
+    "type": "Feat",
+    "status": "Resuelto",
+    "resolution": "El capturador de bugs se abre con Ctrl+Alt+B o Cmd+Alt+B.",
+    "note": "Cubierto por e2e/10-capturador-bugs.spec.ts."
+  },
+  "BUG-20260523T195651Z-7ff54e": {
+    "type": "Feat",
+    "status": "Resuelto",
+    "resolution": "Al guardar un reporte, la app copia el ID del bug al portapapeles y cierra el modal.",
+    "note": "El guardado no falla si el portapapeles no esta disponible."
+  },
+  "BUG-20260523T195725Z-1372c7": {
+    "type": "Feat",
+    "status": "Resuelto",
+    "resolution": "El panel OPL inferior tiene divisor horizontal para redimensionar verticalmente y doble clic para resetear a 180 px.",
+    "note": "Cubierto por e2e/03-opl-panel.spec.ts."
+  },
+  "BUG-20260523T195754Z-dd0c18": {
+    "type": "Bug",
+    "status": "Resuelto",
+    "resolution": "La funcion Mapa del sistema se retira de arbol OPD, menu principal y Command Palette.",
+    "note": "Se conserva codigo interno no expuesto para evitar refactor destructivo amplio."
   }
 }

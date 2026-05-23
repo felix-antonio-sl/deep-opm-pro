@@ -67,6 +67,30 @@ test("hint desaparece tras crear primera apariencia via toolbar", async ({ page 
   expect(pageErrors).toEqual([]);
 });
 
+test("primera cosa creada desde toolbar queda centrada en el canvas visible", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.setViewportSize({ width: 1280, height: 720 });
+  await page.goto("/");
+  await cerrarPantallaInicioSiVisible(page);
+
+  await page.getByRole("button", { name: "Objeto", exact: true }).click();
+  const elemento = page.locator(".joint-element").first();
+  await expect(elemento).toBeVisible();
+
+  await expect.poll(async () => {
+    const canvasBox = await page.getByTestId("canvas-pane").boundingBox();
+    const elementBox = await elemento.boundingBox();
+    if (!canvasBox || !elementBox) return Number.POSITIVE_INFINITY;
+    const centroCanvas = canvasBox.x + canvasBox.width / 2;
+    const centroElemento = elementBox.x + elementBox.width / 2;
+    return Math.abs(centroElemento - centroCanvas);
+  }).toBeLessThan(90);
+
+  expect(pageErrors).toEqual([]);
+});
+
 test("tras 2 entidades con firma legal aparece nudge 'Conectar como resultado'", async ({ page }) => {
   const pageErrors: string[] = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));

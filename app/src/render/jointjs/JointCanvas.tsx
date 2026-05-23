@@ -87,6 +87,7 @@ export function JointCanvas({
   const adapterRef = useRef<JointCanvasAdapter | null>(null);
   const onAdapterChangeRef = useRef(onAdapterChange);
   const feedbackPortRef = useRef(feedbackPort);
+  const ultimoConteoAparienciasRef = useRef<{ opdId: Id; count: number } | null>(null);
   const [adapterState, setAdapterState] = useState<JointCanvasAdapter | null>(null);
   const sincronizandoRef = useRef(false);
   const rubberBandRef = useRef(false);
@@ -454,7 +455,11 @@ export function JointCanvas({
     );
     aplicarHoverOpl(adapter.graph, modelo, hoverOplRef, enlaceSeleccionId);
     aplicarFeedbackModoEnlace(adapter.paper, modelo, opdActivoId, modoEnlace);
-    if (ultimoOpdCentradoRef.current !== opdActivoId) {
+    const aparienciaCount = Object.keys(modelo.opds[opdActivoId]?.apariencias ?? {}).length;
+    const ultimoConteo = ultimoConteoAparienciasRef.current;
+    const primeraAparienciaEnOpdVacio = ultimoConteo?.opdId === opdActivoId && ultimoConteo.count === 0 && aparienciaCount > 0;
+    ultimoConteoAparienciasRef.current = { opdId: opdActivoId, count: aparienciaCount };
+    if (ultimoOpdCentradoRef.current !== opdActivoId || primeraAparienciaEnOpdVacio) {
       ultimoOpdCentradoRef.current = opdActivoId;
       requestAnimationFrame(() => fitCanvasAPantalla(adapter.paper, viewportRef.current));
     }
