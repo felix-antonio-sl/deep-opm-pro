@@ -2,16 +2,16 @@ import type { Id, Modelo, Resultado } from "./tipos";
 
 /**
  * Multiplicidades canónicas OPM según ISO 19450 §3.60 y OPCloud sandbox.
- * "Custom" permite formato numérico restringido: N, *, d, d..d, d..N.
+ * "Custom" permite formato numérico restringido: N, +, *, d, d..d, d..N, d..*.
  */
-export const MULTIPLICIDADES_CANONICAS = ["1", "0..1", "N", "0..N", "*"] as const;
+export const MULTIPLICIDADES_CANONICAS = ["1", "0..1", "N", "0..N", "+", "*", "1..*", "2..*"] as const;
 export type MultiplicidadCanonica = (typeof MULTIPLICIDADES_CANONICAS)[number];
 
 /**
  * Regex para validar valores de multiplicidad.
- * Acepta: "N", "*", "d", "d..d", "d..N" (d = uno o más dígitos).
+ * Acepta: "N", "+", "*", "d", "d..d", "d..N", "d..*" (d = uno o más dígitos).
  */
-const MULTIPLICIDAD_RE = /^\d+$|^\*$|^\d+\.\.\d+$|^\d+\.\.N$|^N$/;
+const MULTIPLICIDAD_RE = /^\d+$|^N$|^\+$|^\*$|^\d+\.\.\d+$|^\d+\.\.N$|^\d+\.\.\*$/;
 
 /**
  * Valida si un texto es una multiplicidad válida.
@@ -66,7 +66,7 @@ function fijarMultiplicidad(
   if (!enlace) return fallo(`Enlace no existe: ${enlaceId}`);
 
   if (valor !== "" && !validarMultiplicidad(valor)) {
-    return fallo("Multiplicidad inválida: usa 1, *, 2..N, 0..N o 1..5");
+    return fallo("Multiplicidad inválida: usa 1, +, *, 2..*, 2..N, 0..N o 1..5");
   }
 
   const actual = enlace[campo];

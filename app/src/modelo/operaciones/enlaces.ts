@@ -49,7 +49,7 @@ export type LadoExtremoEnlace = "origen" | "destino";
 
 const TIPOS_ESTRUCTURALES = ["agregacion", "exhibicion", "generalizacion", "clasificacion"] as const satisfies readonly TipoEnlace[];
 
-const MULTIPLICIDAD_CANONICA_RE = /^\d+$|^\*$|^\d+\.\.\d+$|^\d+\.\.N$/;
+const MULTIPLICIDAD_CANONICA_RE = /^\d+$|^N$|^\+$|^\*$|^\d+\.\.\d+$|^\d+\.\.N$|^\d+\.\.\*$/;
 
 export function validarMultiplicidad(texto: string): boolean {
   return MULTIPLICIDAD_CANONICA_RE.test(texto);
@@ -64,7 +64,7 @@ export function ajustarMultiplicidad(
   const enlace = modelo.enlaces[enlaceId];
   if (!enlace) return fallo(`Enlace no existe: ${enlaceId}`);
   if (texto !== "" && !validarMultiplicidad(texto)) {
-    return fallo("Multiplicidad inválida: usa 1, *, 2..N o 1..5");
+    return fallo("Multiplicidad inválida: usa 1, +, *, 2..*, 2..N o 1..5");
   }
 
   const campo = lado === "origen" ? "multiplicidadOrigen" : "multiplicidadDestino";

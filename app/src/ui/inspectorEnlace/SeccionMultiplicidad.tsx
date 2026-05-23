@@ -106,8 +106,8 @@ function InputMult(props: { label: string; value: string; error: boolean; onInpu
   return (
     <label style={style.field}>
       <span class="opm-label-uppercase" style={style.label}>{props.label}</span>
-      <input aria-invalid={props.error} placeholder="1, 2..N, *" style={props.error ? inputErrorStyle : style.input} value={props.value} onInput={(event) => props.onInput(event.currentTarget.value)} />
-      {props.error ? <span role="alert" style={errorStyle}>Sintaxis inválida: 1, *, 2..N o 1..5</span> : null}
+      <input aria-invalid={props.error} placeholder="1, +, *, 2..*" style={props.error ? inputErrorStyle : style.input} value={props.value} onInput={(event) => props.onInput(event.currentTarget.value)} />
+      {props.error ? <span role="alert" style={errorStyle}>Sintaxis inválida: 1, +, *, 2..*, 2..N o 1..5</span> : null}
     </label>
   );
 }

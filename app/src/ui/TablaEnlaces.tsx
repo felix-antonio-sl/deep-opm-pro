@@ -511,7 +511,7 @@ function CeldaMultiplicidad({ enlaceId, valorActual, lado }: CeldaMultiplicidadP
   const commit = (): boolean => {
     const trimmed = valorRef.current.trim();
     if (trimmed !== "" && !validarMultiplicidad(trimmed)) {
-      setError("Usa 1, *, 2..N, 0..N o 1..5");
+      setError("Usa 1, +, *, 2..*, 2..N, 0..N o 1..5");
       return false;
     }
     setError(null);
@@ -542,7 +542,7 @@ function CeldaMultiplicidad({ enlaceId, valorActual, lado }: CeldaMultiplicidadP
         border: `1px solid ${error ? tokens.colors.errorBorde : "transparent"}`,
       }}
       value={valor}
-      placeholder="1, *, N"
+      placeholder="1, +, *"
       data-editando-mult="true"
       onClick={(e) => e.stopPropagation()}
       onInput={(e) => setValor(e.currentTarget.value)}

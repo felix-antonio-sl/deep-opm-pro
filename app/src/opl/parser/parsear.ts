@@ -7,12 +7,14 @@ const ETIQUETA_SUFIX = /\s*\[etiqueta:\s*([^\]]+)\]\s*$/i;
 /**
  * SSOT §12. Multiplicidad canonica como PREFIJO de nombre. El generador emite
  * la cardinalidad delante del token de entidad: `2 **Pedidos**`, `1..N **Recursos**`,
- * `* **Veces**`. Esta regex extrae la cardinalidad y deja el resto del texto.
+ * `+ **Componentes**`, `2..* **Cosas**`, `* **Veces**`. Esta regex extrae la
+ * cardinalidad y deja el resto del texto.
  *
  * Lenguaje aceptado (espejo de `MULTIPLICIDAD_CANONICA_RE` del modelo): `1`,
- * `2..N`, `0..3`, `*`. Cualquier otro prefijo no matchea y queda como nombre.
+ * `2..N`, `2..*`, `0..3`, `+`, `*`. Cualquier otro prefijo no matchea y queda
+ * como nombre.
  */
-const MULTIPLICIDAD_PREFIJO_RE = /^\s*(\d+(?:\.\.(?:\d+|N))?|\*)\s+(.+)$/iu;
+const MULTIPLICIDAD_PREFIJO_RE = /^\s*(\d+(?:\.\.(?:\d+|N|\*))?|N|\+|\*)\s+(.+)$/iu;
 
 /**
  * SSOT §13. Prefijo de ruta etiquetada. El generador emite

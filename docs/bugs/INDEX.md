@@ -16,19 +16,21 @@ cd app && bun run bug:index
 
 | Estado | Cantidad |
 |---|---:|
-| Resuelto | 11 |
+| Resuelto | 13 |
 
 ## Resumen Por Tipo
 
 | Tipo | Cantidad |
 |---|---:|
-| Bug | 6 |
+| Bug | 8 |
 | Feat | 5 |
 
 ## Activos
 
 | Tipo | Estado | Bug/Feat | Creado | Contexto | Resumen | Resolución | Capturas | Nota |
 |---|---|---|---|---|---|---|---:|---|
+| Bug | Resuelto | [BUG-20260523T210455Z-eec502](BUG-20260523T210455Z-eec502/report.md) | 2026-05-23 21:04Z | Modelo / SD | multiplicidad tiene que ser igual que opcloud en cuanto a +, *, etc | La multiplicidad acepta notacion OPCloud con +, *, N, rangos n..* y rangos n..N en inspector, tabla, parser OPL y generador. | 1 | Basado en fixtures OPCloud del meta-modelo; cubierto por operaciones, enlaceMultiplicidad, parser OPL y generacion OPL. |
+| Bug | Resuelto | [BUG-20260523T210035Z-7264f4](BUG-20260523T210035Z-7264f4/report.md) | 2026-05-23 21:00Z | Modelo / SD | anclaje de enlaces debe estar centrado | Los enlaces estructurales anclan por defecto en el centro superior/inferior del triangulo, alineados con el ruteo top/bottom. | 1 | Se conservan anclajes manuales persistidos; cubierto por proyeccion.test y opcloudRouting.test. |
 | Bug | Resuelto | [BUG-20260523T201251Z-afcfbe](BUG-20260523T201251Z-afcfbe/report.md) | 2026-05-23 20:12Z | Modelo / SD | despues de la corrección ahora las cosas se crean en otro punto del canvas que no es la esquina superior izquierda, sin embargo la vista no se centra… | La posicion libre inicial nace en el centro geometrico del canvas 7200x5200 y el viewport se enfoca explicitamente ahi para OPDs … | 0 | Cubierto por layout.test y e2e/21-estado-vacio-opm.spec.ts con verificacion de scroll real al centro. |
 | Bug | Resuelto | [BUG-20260523T195754Z-dd0c18](BUG-20260523T195754Z-dd0c18/report.md) | 2026-05-23 19:57Z | Modelo / SD | sacar la función del mapa del sistema. no tiene valor actual | La funcion Mapa del sistema se retira de arbol OPD, menu principal y Command Palette. | 1 | Se conserva codigo interno no expuesto para evitar refactor destructivo amplio. |
 | Feat | Resuelto | [BUG-20260523T195725Z-1372c7](BUG-20260523T195725Z-1372c7/report.md) | 2026-05-23 19:57Z | Modelo / SD | que el panel opl se mueda redimensionar verticalmente | El panel OPL inferior tiene divisor horizontal para redimensionar verticalmente y doble clic para resetear a 180 px. | 0 | Cubierto por e2e/03-opl-panel.spec.ts. |

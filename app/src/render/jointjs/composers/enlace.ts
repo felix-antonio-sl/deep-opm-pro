@@ -2,7 +2,7 @@ import { CANON, CANON_V2, enlaceAdmiteTasa, enlaceAdmiteTiempoMaximo, enlaceAdmi
 import { etiquetaEnlaceNormalizada } from "../../../modelo/etiquetasEnlace";
 import { entidadIdDeExtremo } from "../../../modelo/extremos";
 import { modoPlegadoApariencia, partesDePlegado } from "../../../modelo/plegado";
-import { anclajeRefinableSimbolo, anclajeRefinadorSimbolo, anclajeSimboloConFallback, anclajeSimboloHaciaPunto } from "../../../modelo/simboloEstructural";
+import { anclajeRefinableSimbolo, anclajeRefinadorSimbolo, anclajeSimboloConFallback } from "../../../modelo/simboloEstructural";
 import type { AnclajesSimboloEstructural, Apariencia, Enlace, ExtremoEnlace, Id, Modelo, Posicion, TipoEnlace } from "../../../modelo/tipos";
 import { etiquetasRuta } from "../rutaLabels";
 import { jointCanvasPalette } from "../palette";
@@ -646,11 +646,11 @@ export function proyectarRefinamientoEstructural(
   const lineAttrs = attrsLinea(seleccionada);
   const puertoRefinable = anclajeSimboloConFallback(
     symbolAnchors?.refinable,
-    anclajeSimboloHaciaPunto(center, source, anclajeRefinableSimbolo()),
+    anclajeRefinableSimbolo(),
   );
   const puertoRefinador = anclajeSimboloConFallback(
     symbolAnchors?.refinador,
-    anclajeSimboloHaciaPunto(center, target, anclajeRefinadorSimbolo(0, 1)),
+    anclajeRefinadorSimbolo(0, 1),
   );
   const wrapWidth = anchoWrapEntreApariencias(etiquetaEnlaceNormalizada(enlace.etiqueta), origen.apariencia, destino.apariencia);
   return [

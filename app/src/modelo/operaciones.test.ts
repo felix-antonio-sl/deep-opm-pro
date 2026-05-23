@@ -541,10 +541,10 @@ describe("operaciones de modelo", () => {
   });
 
   test("valida sintaxis canonica de multiplicidad", () => {
-    for (const texto of ["1", "2", "*", "1..N", "2..N", "1..5"]) {
+    for (const texto of ["1", "2", "N", "+", "*", "1..N", "2..N", "1..*", "2..*", "1..5"]) {
       expect(validarMultiplicidad(texto)).toBe(true);
     }
-    for (const texto of ["", " ", "1.2", "a..b", "1-N", "1..n", " 2", "2 "]) {
+    for (const texto of ["", " ", "1.2", "a..b", "1-N", "1..n", "1..+", " 2", "2 "]) {
       expect(validarMultiplicidad(texto)).toBe(false);
     }
   });
@@ -558,10 +558,10 @@ describe("operaciones de modelo", () => {
     expect(enlaceId).toBeDefined();
     if (!enlaceId) return;
 
-    const origen = ajustarMultiplicidad(modelo, enlaceId, "origen", "2..N");
+    const origen = ajustarMultiplicidad(modelo, enlaceId, "origen", "2..*");
     expect(origen.ok).toBe(true);
     if (!origen.ok) return;
-    expect(origen.value.enlaces[enlaceId]?.multiplicidadOrigen).toBe("2..N");
+    expect(origen.value.enlaces[enlaceId]?.multiplicidadOrigen).toBe("2..*");
 
     const destino = ajustarMultiplicidad(origen.value, enlaceId, "destino", "*");
     expect(destino.ok).toBe(true);

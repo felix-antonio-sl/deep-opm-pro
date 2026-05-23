@@ -3,10 +3,10 @@
 **Fecha**: 2026-05-23
 **Repositorio**: `deep-opm-pro`
 **Rama**: `main`
-**Ultimo corte funcional**: `BUG-20260523T201251Z-afcfbe` corrige de raíz la creación inicial: las cosas nacen alrededor del centro geométrico del canvas y el viewport se enfoca en ese centro.
-**Ultimo commit en main**: `docs(opm): tighten strict canon coherence` (commit de este cierre).
-**Ultimo corte deploy**: `docker compose up -d --build` ejecutado; `opforja` queda healthy y el sidecar reporta 11 activos/59 históricos, todos los activos `Resuelto`. URL pública `https://opforja.sanixai.com/` responde `401` por Basic Auth de Traefik.
-**Corte**: los 11 bugs/features activos del ledger quedan en estado `Resuelto`; las carpetas `BUG-*` capturadas siguen como artefactos locales no versionados salvo decisión explícita.
+**Ultimo corte funcional**: `BUG-20260523T210035Z-7264f4` y `BUG-20260523T210455Z-eec502` corrigen anclajes centrados de símbolos estructurales y multiplicidad OPCloud (`+`, `*`, `n..*`, `n..N`).
+**Ultimo commit en main**: pendiente de commit/push de este cierre.
+**Ultimo corte deploy**: pendiente de redeploy controlado tras commit; el corte previo dejó `opforja` healthy y URL pública `https://opforja.sanixai.com/` protegida por Basic Auth de Traefik.
+**Corte**: los 13 bugs/features activos del ledger quedan en estado `Resuelto`; las carpetas `BUG-*` capturadas siguen como artefactos locales no versionados salvo decisión explícita.
 
 ## Política De Handoff Único
 
@@ -24,6 +24,41 @@
 - JointJS OSS: usar documentación oficial viva cuando se toque JointJS.
 
 ## Estado Actual
+
+### Cierre BUG-20260523T210035Z-7264f4 / BUG-20260523T210455Z-eec502 — 2026-05-23
+
+Estado actual:
+
+- Los símbolos estructurales simples y buses estructurales usan por defecto puertos centrados arriba/abajo (`in` en `15,0`, `out` en `15,30`), alineados con el router OPCloud top/bottom.
+- Los anclajes manuales persistidos de símbolo estructural se conservan: el cambio solo afecta el fallback automático.
+- La multiplicidad acepta notación OPCloud observada en fixtures del meta-modelo: `+`, `*`, `N`, `n..*`, `n..N` y rangos numéricos.
+- Inspector de enlace, tabla de enlaces, parser OPL y generador OPL quedan alineados con esa gramática.
+- `docs/bugs/INDEX.md`, `HISTORY.md` y `statuses.json` registran ambos bugs como `Resuelto`.
+
+Decisiones consolidadas:
+
+- **Anclaje centrado por defecto**: el router estructural ya obliga entradas/salidas top/bottom; los puertos automáticos deben coincidir con ese contrato visual.
+- **Anclaje manual intacto**: si el usuario mueve el handle del símbolo, `symbolAnchors` sigue mandando sobre el default.
+- **OPCloud primero para multiplicidad**: `+`, `2..*` y `3..*` existen en fixtures OPCloud y son sintaxis válida local.
+- **Commit con blast radius controlado**: quedan fuera cambios concurrentes no relacionados en selección/orden de estados y carpetas `docs/bugs/BUG-*` no versionadas.
+
+Artefactos relevantes:
+
+- [app/src/render/jointjs/composers/enlace.ts](/home/felix/projects/deep-opm-pro/app/src/render/jointjs/composers/enlace.ts)
+- [app/src/render/jointjs/agregacionBus.ts](/home/felix/projects/deep-opm-pro/app/src/render/jointjs/agregacionBus.ts)
+- [app/src/modelo/operaciones/enlaces.ts](/home/felix/projects/deep-opm-pro/app/src/modelo/operaciones/enlaces.ts)
+- [app/src/modelo/enlaceMultiplicidad.ts](/home/felix/projects/deep-opm-pro/app/src/modelo/enlaceMultiplicidad.ts)
+- [app/src/opl/parser/parsear.ts](/home/felix/projects/deep-opm-pro/app/src/opl/parser/parsear.ts)
+- [app/src/opl/generadores/refsHints.ts](/home/felix/projects/deep-opm-pro/app/src/opl/generadores/refsHints.ts)
+- [docs/bugs/statuses.json](/home/felix/projects/deep-opm-pro/docs/bugs/statuses.json)
+
+Verificación:
+
+- `bun test src/modelo/enlaceMultiplicidad.test.ts src/modelo/operaciones.test.ts src/opl/parser/parsear.test.ts src/opl/generar.test.ts src/render/jointjs/proyeccion.test.ts` (`214 pass`)
+- `bun run typecheck`
+- `bun run lint`
+- `bun run test` (`1586 pass`, `0 fail`)
+- `bun run build`
 
 ### Cierre Coherencia Canon Estricto OPM — 2026-05-23
 

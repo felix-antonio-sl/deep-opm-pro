@@ -64,5 +64,17 @@
     "status": "Resuelto",
     "resolution": "La posicion libre inicial nace en el centro geometrico del canvas 7200x5200 y el viewport se enfoca explicitamente ahi para OPDs vacios y primera creacion.",
     "note": "Cubierto por layout.test y e2e/21-estado-vacio-opm.spec.ts con verificacion de scroll real al centro."
+  },
+  "BUG-20260523T210035Z-7264f4": {
+    "type": "Bug",
+    "status": "Resuelto",
+    "resolution": "Los enlaces estructurales anclan por defecto en el centro superior/inferior del triangulo, alineados con el ruteo top/bottom.",
+    "note": "Se conservan anclajes manuales persistidos; cubierto por proyeccion.test y opcloudRouting.test."
+  },
+  "BUG-20260523T210455Z-eec502": {
+    "type": "Bug",
+    "status": "Resuelto",
+    "resolution": "La multiplicidad acepta notacion OPCloud con +, *, N, rangos n..* y rangos n..N en inspector, tabla, parser OPL y generador.",
+    "note": "Basado en fixtures OPCloud del meta-modelo; cubierto por operaciones, enlaceMultiplicidad, parser OPL y generacion OPL."
   }
 }

@@ -204,9 +204,9 @@ export function pluralizarCanonico(texto: string): string {
 
 export function multiplicidadPlural(multiplicidad: string | undefined): boolean {
   if (!multiplicidad) return false;
-  if (multiplicidad === "*") return true;
+  if (multiplicidad === "*" || multiplicidad === "+" || multiplicidad === "N") return true;
   if (/^\d+$/.test(multiplicidad)) return Number(multiplicidad) !== 1;
-  if (multiplicidad.endsWith("..N")) return true;
+  if (multiplicidad.endsWith("..N") || multiplicidad.endsWith("..*")) return true;
   const [, max] = multiplicidad.split("..");
   return Number(max) !== 1;
 }

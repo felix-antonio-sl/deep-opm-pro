@@ -22,6 +22,7 @@ describe("validarMultiplicidad", () => {
     expect(validarMultiplicidad("2")).toBe(true);
     expect(validarMultiplicidad("2..5")).toBe(true);
     expect(validarMultiplicidad("2..N")).toBe(true);
+    expect(validarMultiplicidad("2..*")).toBe(true);
     expect(validarMultiplicidad("100")).toBe(true);
   });
 
@@ -31,6 +32,7 @@ describe("validarMultiplicidad", () => {
     expect(validarMultiplicidad("..2")).toBe(false);
     expect(validarMultiplicidad("abc")).toBe(false);
     expect(validarMultiplicidad("1.2")).toBe(false);
+    expect(validarMultiplicidad("1..+")).toBe(false);
     expect(validarMultiplicidad("m..n")).toBe(false);
   });
 });

@@ -1,10 +1,16 @@
 import { describe, expect, test } from "bun:test";
-import { parsearParrafoOpl, normalizarNombreOpl, claveNombre } from "./parsear";
+import { parsearParrafoOpl, normalizarNombreOpl, claveNombre, extraerMultiplicidad } from "./parsear";
 
 describe("parser OPL reverse base", () => {
   test("normaliza markdown, numeracion, alias y unidades para resolver nombres", () => {
     expect(normalizarNombreOpl("1 **Sensor** [V] {alias}")).toBe("Sensor");
     expect(claveNombre("Medición Clínica")).toBe("medicion clinica");
+  });
+
+  test("extrae multiplicidad OPCloud con +, * y rangos estrella", () => {
+    expect(extraerMultiplicidad("+ **Componentes**")).toEqual({ multiplicidad: "+", nombre: "**Componentes**" });
+    expect(extraerMultiplicidad("2..* **Partes**")).toEqual({ multiplicidad: "2..*", nombre: "**Partes**" });
+    expect(extraerMultiplicidad("* **Veces**")).toEqual({ multiplicidad: "*", nombre: "**Veces**" });
   });
 
   test("parsea descripcion canonica de cosa", () => {
