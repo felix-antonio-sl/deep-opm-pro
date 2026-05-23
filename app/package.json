@@ -21,6 +21,8 @@
     "bug-capture:api": "bun run scripts/bug-capture-api.ts"
   },
   "dependencies": {
+    "@fontsource-variable/inter-tight": "^5.2.7",
+    "@fontsource-variable/jetbrains-mono": "^5.2.8",
     "jointjs": "^3.7.7",
     "preact": "^10.25.0",
     "zustand": "^5.0.0"

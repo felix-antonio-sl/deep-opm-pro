@@ -1,4 +1,9 @@
 import { render } from "preact";
+// Ronda 28 L1: fuentes self-hosted Bauhaus (Inter Tight variable + JetBrains
+// Mono variable). Reemplazan el "Inter" system-ui del corporate UI por la
+// nueva tipografia chrome fundacional. Bundle: ~792 KB combinado.
+import "@fontsource-variable/inter-tight";
+import "@fontsource-variable/jetbrains-mono";
 import "jointjs/dist/joint.css";
 import "./render/jointjs/jointjs.css";
 import "./ui/focus.css";
