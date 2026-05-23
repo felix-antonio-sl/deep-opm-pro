@@ -287,6 +287,9 @@ function enfocarNodoArbol(opdId: Id): void {
 }
 
 function MapaSistemaItem(props: { activo: boolean; onAbrir: () => void }) {
+  // Ronda 28 L6: SVG inline (papel doblado) → glifo Unicode ◆ (rombo Bauhaus).
+  // Tabla canon L6: Mapa OPDs → ◆ lleno. Tipografía JetBrains Mono para
+  // mantener anclaje monolítico de los glifos icónicos en chrome.
   return (
     <div role="treeitem" tabIndex={0} aria-level={1} data-opd-id="__mapa__" aria-label="Mapa del sistema" title="Mapa del sistema" style={{ ...style.nodeMapa, ...(props.activo ? style.nodeActive : {}) }} onClick={props.onAbrir} onKeyDown={(event) => {
       if (event.key === "Enter" || event.key === " ") {
@@ -294,10 +297,7 @@ function MapaSistemaItem(props: { activo: boolean; onAbrir: () => void }) {
         props.onAbrir();
       }
     }}>
-      <svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" focusable="false" style={{ flex: "0 0 auto" }}>
-        <path d="M5 2 L1 4 L1 14 L5 12 L11 14 L15 12 L15 2 L11 4 Z" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round"/>
-        <path d="M5 2 L5 12 M11 4 L11 14" stroke="currentColor" strokeWidth="1.2" fill="none"/>
-      </svg>
+      <span aria-hidden="true" style={style.nodeMapaGlyph}>◆</span>
       <span style={style.nodeName}>Mapa del sistema</span>
     </div>
   );
@@ -314,12 +314,19 @@ function tieneAparienciaEntidad(modelo: { opds: Record<Id, { apariencias: Record
   return Object.values(modelo.opds[opdId]?.apariencias ?? {}).some((apariencia) => apariencia.entidadId === entidadId);
 }
 
+// Ronda 28 L3: paleta Bauhaus aplicada al árbol OPD.
+//   - panel: borde derecho 1px ink-15, fondo paper.
+//   - header: borde inferior 1px ink-15, label uppercase tracking +0.08em.
+//   - botones: outline 1px ink-15 paper, tracking uppercase mono cuando es
+//     mode (Manual/Auto/ID/Aa) y glifo cuando es chevron/⋯.
+//   - tree: padding 10 8, fondo paper.
+//   - Items: ver `nodeMapa` aquí + `node`/`nodeActive` en arbol/NodoOpd.tsx.
 const style = {
   panel: {
     minWidth: 0,
     overflow: "hidden",
-    background: tokens.colors.fondoPanel,
-    borderRight: `1px solid ${tokens.colors.bordePanel}`,
+    background: tokens.colors.paper,
+    borderRight: `${tokens.stroke.hairline}px solid ${tokens.colors.ink15}`,
     display: "grid",
     gridTemplateRows: "46px minmax(0, 1fr)",
   },
@@ -327,95 +334,132 @@ const style = {
     display: "grid",
     gridTemplateColumns: "auto minmax(0, 1fr)",
     alignItems: "center",
-    gap: "8px",
-    padding: "0 12px",
-    borderBottom: `1px solid ${tokens.colors.bordePanel}`,
-    background: tokens.colors.fondoPanelSuave,
-    color: tokens.colors.textoPrimario,
-    fontSize: "13px",
-    fontWeight: 700,
+    gap: tokens.spacing.sm,
+    padding: `0 ${tokens.spacing.md}px`,
+    borderBottom: `${tokens.stroke.hairline}px solid ${tokens.colors.ink15}`,
+    background: tokens.colors.paper,
+    color: tokens.colors.ink70,
+    fontFamily: tokens.typography.familyChrome,
+    fontSize: tokens.typography.sizes.xs,
+    fontWeight: tokens.typography.weights.medium,
+    textTransform: "uppercase" as const,
+    letterSpacing: "0.08em",
   },
-  headerActions: { display: "flex", alignItems: "center", justifyContent: "flex-end", gap: "6px", minWidth: 0, overflowX: "auto" },
+  headerActions: { display: "flex" as const, alignItems: "center", justifyContent: "flex-end" as const, gap: 6, minWidth: 0, overflowX: "auto" as const },
   modeBtn: {
     minHeight: "24px",
     minWidth: "48px",
-    padding: "2px 8px",
-    borderRadius: tokens.radii.md,
-    border: `1px solid ${tokens.colors.bordeControl}`,
-    background: tokens.colors.fondoElevado,
+    padding: "2px 10px",
+    borderRadius: tokens.radii.xs,
+    border: `${tokens.stroke.hairline}px solid ${tokens.colors.ink15}`,
+    background: tokens.colors.paper,
     cursor: "pointer",
-    fontSize: "10px",
-    fontWeight: 600,
-    color: tokens.colors.textoSecundario,
-    whiteSpace: "nowrap",
+    fontFamily: tokens.typography.familyChrome,
+    fontSize: tokens.typography.sizes.xxs,
+    fontWeight: tokens.typography.weights.medium,
+    color: tokens.colors.ink70,
+    textTransform: "uppercase" as const,
+    letterSpacing: "0.08em",
+    whiteSpace: "nowrap" as const,
+    transition: tokens.transitions.fast,
   },
   labelActionBtn: {
     minHeight: "24px",
     minWidth: "32px",
-    borderRadius: tokens.radii.md,
-    border: `1px solid ${tokens.colors.bordeControl}`,
-    background: tokens.colors.fondoElevado,
+    borderRadius: tokens.radii.xs,
+    border: `${tokens.stroke.hairline}px solid ${tokens.colors.ink15}`,
+    background: tokens.colors.paper,
     cursor: "pointer",
-    fontSize: "10px",
-    fontWeight: 600,
-    color: tokens.colors.textoSecundario,
-    display: "inline-flex",
+    fontFamily: tokens.typography.familyChrome,
+    fontSize: tokens.typography.sizes.xxs,
+    fontWeight: tokens.typography.weights.medium,
+    color: tokens.colors.ink70,
+    textTransform: "uppercase" as const,
+    letterSpacing: "0.08em",
+    display: "inline-flex" as const,
     alignItems: "center",
     justifyContent: "center",
-    padding: "2px 6px",
-    whiteSpace: "nowrap",
+    padding: "2px 8px",
+    whiteSpace: "nowrap" as const,
+    transition: tokens.transitions.fast,
   },
   moreActionBtn: {
     minHeight: "24px",
     minWidth: "30px",
-    borderRadius: tokens.radii.md,
-    border: `1px solid ${tokens.colors.bordeControl}`,
-    background: tokens.colors.fondoElevado,
+    borderRadius: tokens.radii.xs,
+    border: `${tokens.stroke.hairline}px solid ${tokens.colors.ink15}`,
+    background: tokens.colors.paper,
     cursor: "pointer",
-    fontSize: "10px",
-    fontWeight: 600,
-    color: tokens.colors.textoSecundario,
-    display: "inline-flex",
+    fontFamily: tokens.typography.fontFamilyMono,
+    fontSize: tokens.typography.sizes.xs,
+    fontWeight: tokens.typography.weights.medium,
+    color: tokens.colors.ink70,
+    display: "inline-flex" as const,
     alignItems: "center",
     justifyContent: "center",
-    padding: "2px 6px",
-    whiteSpace: "nowrap",
+    padding: "2px 8px",
+    whiteSpace: "nowrap" as const,
+    transition: tokens.transitions.fast,
   },
   smallActionBtn: {
     width: "24px",
     height: "24px",
-    borderRadius: tokens.radii.md,
-    border: `1px solid ${tokens.colors.bordeControl}`,
-    background: tokens.colors.fondoElevado,
+    borderRadius: tokens.radii.xs,
+    border: `${tokens.stroke.hairline}px solid ${tokens.colors.ink15}`,
+    background: tokens.colors.paper,
     cursor: "pointer",
-    fontSize: "10px",
-    color: tokens.colors.textoSecundario,
-    display: "inline-flex",
+    fontFamily: tokens.typography.fontFamilyMono,
+    fontSize: tokens.typography.sizes.xs,
+    color: tokens.colors.ink70,
+    display: "inline-flex" as const,
     alignItems: "center",
     justifyContent: "center",
     padding: 0,
+    transition: tokens.transitions.fast,
   },
-  tree: { overflow: "auto", padding: "10px 8px", background: tokens.colors.fondoPanel },
-  empty: { padding: "8px 4px", color: tokens.colors.textoTerciario, fontSize: "12px" },
+  tree: { overflow: "auto" as const, padding: "10px 8px", background: tokens.colors.paper },
+  empty: { padding: "8px 4px", color: tokens.colors.ink50, fontSize: tokens.typography.sizes.sm, fontStyle: "italic" as const },
+  // Item "Mapa del sistema" — patrón consistente con árbol OPD: padding 6 16,
+  // font 12, hover ink-04, activo barra lateral 2px cinabrio + ink-04.
   nodeMapa: {
     width: "100%",
-    minHeight: "34px",
-    display: "flex",
+    minHeight: "30px",
+    display: "flex" as const,
     alignItems: "center",
-    gap: "6px",
-    paddingTop: "4px",
-    paddingBottom: "4px",
-    paddingLeft: "12px",
-    paddingRight: "8px",
-    border: "1px solid transparent",
-    borderRadius: tokens.radii.md,
+    gap: tokens.spacing.sm,
+    padding: `6px ${tokens.spacing.md}px`,
+    border: 0,
+    borderLeft: `${tokens.stroke.bold}px solid transparent`,
+    borderRadius: 0,
     background: "transparent",
-    color: tokens.colors.textoSecundario,
+    color: tokens.colors.ink70,
     cursor: "pointer",
-    fontSize: "13px",
-    fontWeight: 600,
-    textAlign: "left",
+    fontFamily: tokens.typography.familyChrome,
+    fontSize: tokens.typography.sizes.sm,
+    fontWeight: tokens.typography.weights.medium,
+    textAlign: "left" as const,
+    transition: tokens.transitions.fast,
   },
-  nodeActive: { border: `1px solid ${tokens.colors.arbolSeleccionBorde}`, background: tokens.colors.acentoUiSuave, color: tokens.colors.textoPrimario, fontWeight: 700, boxShadow: tokens.shadows.xs },
-  nodeName: { overflow: "visible", lineHeight: 1.2, overflowWrap: "anywhere", whiteSpace: "normal", fontSize: "13px" },
+  // Activo: borde izquierdo 2px cinabrio + fondo ink-04. Sin shadow.
+  nodeActive: {
+    borderLeft: `${tokens.stroke.bold}px solid ${tokens.colors.accent}`,
+    background: tokens.colors.ink04,
+    color: tokens.colors.ink,
+    fontWeight: tokens.typography.weights.semibold,
+    boxShadow: "none",
+  },
+  nodeName: { overflow: "visible" as const, lineHeight: 1.2, overflowWrap: "anywhere" as const, whiteSpace: "normal" as const, fontSize: tokens.typography.sizes.sm },
+  // Ronda 28 L6: glifo Bauhaus en JetBrains Mono para anclaje icónico
+  // monolítico; tamaño 14px alineado al fontSize del label de nodo.
+  nodeMapaGlyph: {
+    flex: "0 0 auto",
+    width: "14px",
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    fontFamily: tokens.typography.fontFamilyMono,
+    fontSize: "14px",
+    lineHeight: 1,
+    color: "currentColor",
+  },
 } satisfies Record<string, preact.JSX.CSSProperties>;
