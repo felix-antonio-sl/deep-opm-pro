@@ -25,6 +25,7 @@ import { ejecutarAccionContextualEntidad } from "../ejecutarAccionContextual";
 // y se compacta en tablet. Decisión por viewport delegada a `layoutResponsive`.
 import { useBreakpoint } from "../layoutResponsive";
 import { MenuContextualEnlace } from "../MenuContextualEnlace";
+import { MenuContextualEstado } from "../MenuContextualEstado";
 import { MenuContextualEntidad } from "../MenuContextualEntidad";
 import { colors, stroke } from "../tokens";
 import "./toolbar.css";
@@ -138,6 +139,11 @@ export function ToolbarBase({ children, modelarSlot, conectarSlot, mapaSlot, sta
   const [nombreNuevaCosa, setNombreNuevaCosa] = useState("");
   const [menuContextual, setMenuContextual] = useState<null | { enlaceId: Id; x: number; y: number }>(null);
   const [menuEntidad, setMenuEntidad] = useState<null | { aparienciaId: Id; entidadId: Id; x: number; y: number }>(null);
+  // Paquete "Estados ciudadanos de primera clase" (2026-05-23): right-click
+  // sobre cápsula dispara `opm:menu-contextual-estado`; el handler
+  // `seleccion.ts` ya seleccionó el estado. Cerramos los otros menús para
+  // mantener la exclusividad UX.
+  const [menuEstado, setMenuEstado] = useState<null | { estadoId: Id; entidadId: Id; x: number; y: number }>(null);
   const canvasAdapter = useCanvasAdapter();
   // L2 ronda 21: viewport-aware toolbar. Mobile oculta clusters de modelado
   // pesado (Modelar/Conectar/Validar) y conserva sólo Modelo + Ayuda.
@@ -157,13 +163,35 @@ export function ToolbarBase({ children, modelarSlot, conectarSlot, mapaSlot, sta
   useEffect(() => {
     const onMenu = (event: Event) => {
       const detail = (event as CustomEvent<{ enlaceId: Id; x: number; y: number }>).detail;
-      if (detail?.enlaceId) setMenuContextual({ enlaceId: detail.enlaceId, x: detail.x, y: detail.y });
+      if (detail?.enlaceId) {
+        setMenuContextual({ enlaceId: detail.enlaceId, x: detail.x, y: detail.y });
+        setMenuEstado(null);
+        setMenuEntidad(null);
+      }
     };
     const cerrar = () => setMenuContextual(null);
     window.addEventListener("opm:menu-contextual-enlace", onMenu);
     window.addEventListener("click", cerrar);
     return () => {
       window.removeEventListener("opm:menu-contextual-enlace", onMenu);
+      window.removeEventListener("click", cerrar);
+    };
+  }, []);
+  // Paquete "Estados ciudadanos de primera clase" (2026-05-23).
+  useEffect(() => {
+    const onMenu = (event: Event) => {
+      const detail = (event as CustomEvent<{ estadoId: Id; entidadId: Id; x: number; y: number }>).detail;
+      if (detail?.estadoId) {
+        setMenuEstado({ estadoId: detail.estadoId, entidadId: detail.entidadId, x: detail.x, y: detail.y });
+        setMenuContextual(null);
+        setMenuEntidad(null);
+      }
+    };
+    const cerrar = () => setMenuEstado(null);
+    window.addEventListener("opm:menu-contextual-estado", onMenu);
+    window.addEventListener("click", cerrar);
+    return () => {
+      window.removeEventListener("opm:menu-contextual-estado", onMenu);
       window.removeEventListener("click", cerrar);
     };
   }, []);
@@ -389,6 +417,8 @@ export function ToolbarBase({ children, modelarSlot, conectarSlot, mapaSlot, sta
         enlaceEstiloMenuContextualId={enlaceEstiloMenuContextualId}
         hayEstiloEnPortapapeles={!!enlaceEstiloPortapapeles}
         setMenuEntidad={setMenuEntidad}
+        menuEstado={menuEstado}
+        setMenuEstado={setMenuEstado}
         onEstiloEnlace={handleEstiloEnlace}
         onCopiarEstilo={handleCopiarEstiloEnlace}
         onPegarEstilo={handlePegarEstiloEnlace}
@@ -415,6 +445,8 @@ function ModelessToolbarLayer(props: {
   enlaceEstiloMenuContextualId: Id | null;
   hayEstiloEnPortapapeles: boolean;
   setMenuEntidad: (value: null | { aparienciaId: Id; entidadId: Id; x: number; y: number }) => void;
+  menuEstado: { estadoId: Id; entidadId: Id; x: number; y: number } | null;
+  setMenuEstado: (value: null | { estadoId: Id; entidadId: Id; x: number; y: number }) => void;
   onEstiloEnlace: (id: Id) => void;
   onCopiarEstilo: (id: Id) => void;
   onPegarEstilo: (id: Id) => void;
@@ -449,6 +481,15 @@ function ModelessToolbarLayer(props: {
           multi={props.multi}
           onCerrar={() => props.setMenuEntidad(null)}
           onAccion={props.onAccionMenuEntidad}
+        />
+      ) : null}
+      {props.menuEstado ? (
+        <MenuContextualEstado
+          estadoId={props.menuEstado.estadoId}
+          entidadId={props.menuEstado.entidadId}
+          x={props.menuEstado.x}
+          y={props.menuEstado.y}
+          onCerrar={() => props.setMenuEstado(null)}
         />
       ) : null}
     </>

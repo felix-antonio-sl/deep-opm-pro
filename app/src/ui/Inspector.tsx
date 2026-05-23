@@ -3,17 +3,26 @@ import type { ConteosModeloInspector } from "../app/viewmodels/inspectorViewMode
 import { inspectorStyles as style } from "./inspectorStyles";
 import { InspectorEnlace } from "./InspectorEnlace";
 import { InspectorEntidad } from "./InspectorEntidad";
+import { InspectorEstado } from "./inspector/InspectorEstado";
 
 /**
- * Inspector raiz: ViewContainer XOR (entidad | enlace | vacio).
+ * Inspector raiz: ViewContainer XOR (estado | entidad | enlace | vacio).
  * Patron CN-DEF (auditoria IFML §6 H-6/O-7): el branch vacio muestra
  * identidad del modelo (titulo + conteos + acción primaria de
  * renombrado). aria-live="polite" anuncia transiciones de seleccion como
  * master-detail. Selecciones cruzadas con Panel OPL pasan por
  * seleccionarDesdeOpl/abrirInspectorEnlaceDesdeOpl.
+ *
+ * Pattern-match natural sobre los tres campos exclusivos del coproducto
+ * (paquete "Estados ciudadanos de primera clase", 2026-05-23). El sello
+ * del invariante garantiza que al menos dos de `{seleccionId, enlaceSeleccionId,
+ * estadoSeleccionId}` son null simultáneamente; el orden estado→entidad→enlace
+ * es seguro porque sólo uno puede ser no-null.
+ *
+ * Spec: docs/superpowers/specs/2026-05-23-estados-ciudadania-primera-clase-design.md §4.4.
  */
 export function Inspector() {
-  const { modo, entidad, enlace, modeloNombre, conteos, horaEditado, abrirDialogoConfiguracion } =
+  const { modo, entidad, enlace, estado, modeloNombre, conteos, horaEditado, abrirDialogoConfiguracion } =
     useInspectorViewModel();
 
   return (
@@ -24,18 +33,20 @@ export function Inspector() {
       data-modo-inspector={modo}
       aria-live="polite"
     >
-      {entidad
-        ? <InspectorEntidad entidad={entidad} />
-        : enlace
-          ? <InspectorEnlace enlace={enlace} />
-          : (
-            <InspectorVacio
-              modeloNombre={modeloNombre}
-              conteos={conteos}
-              horaEditado={horaEditado}
-              onRenombrar={abrirDialogoConfiguracion}
-            />
-          )}
+      {estado
+        ? <InspectorEstado estado={estado} />
+        : entidad
+          ? <InspectorEntidad entidad={entidad} />
+          : enlace
+            ? <InspectorEnlace enlace={enlace} />
+            : (
+              <InspectorVacio
+                modeloNombre={modeloNombre}
+                conteos={conteos}
+                horaEditado={horaEditado}
+                onRenombrar={abrirDialogoConfiguracion}
+              />
+            )}
     </aside>
   );
 }

@@ -4,7 +4,16 @@ import { useZustandPersistencePort } from "../ports/zustandPersistencePort";
 import { useZustandSelectionPort } from "../ports/zustandSelectionPort";
 import { useZustandWorkbenchViewControlsPort } from "../ports/zustandWorkbenchViewControlsPort";
 
-export type InspectorModo = "entidad" | "enlace" | "vacio";
+/**
+ * Paquete "Estados ciudadanos de primera clase" (2026-05-23):
+ * `modo` discrimina los tres ciudadanos del coproducto de selección
+ * (entidad/enlace/estado) además de `vacio`. Cada caso renderiza un
+ * inspector dedicado; ningún componente asume "estoy dentro de una
+ * entidad seleccionada" — pattern-match natural sobre los tres campos.
+ *
+ * Spec: docs/superpowers/specs/2026-05-23-estados-ciudadania-primera-clase-design.md §4.4, §5.2.
+ */
+export type InspectorModo = "entidad" | "enlace" | "estado" | "vacio";
 
 export interface ConteosModeloInspector {
   objetos: number;
@@ -29,12 +38,15 @@ export function calcularConteosModelo(
 
 export function useInspectorViewModel() {
   const { modelo } = useZustandOpdNavigationPort();
-  const { seleccionId, enlaceSeleccionId } = useZustandSelectionPort();
+  const { seleccionId, enlaceSeleccionId, estadoSeleccionId } = useZustandSelectionPort();
   const { modeloNombre, ultimoAutosalvado } = useZustandPersistencePort();
   const { abrirDialogoConfiguracion } = useZustandWorkbenchViewControlsPort();
   const entidad = seleccionId ? modelo.entidades[seleccionId] : undefined;
   const enlace = enlaceSeleccionId ? modelo.enlaces[enlaceSeleccionId] : undefined;
-  const modo: InspectorModo = entidad ? "entidad" : enlace ? "enlace" : "vacio";
+  const estado = estadoSeleccionId ? modelo.estados?.[estadoSeleccionId] : undefined;
+  // Discriminador natural sobre el invariante sellado: máximo uno de los tres
+  // campos exclusivos es no-null al mismo tiempo (sello §4.2 del spec).
+  const modo: InspectorModo = estado ? "estado" : entidad ? "entidad" : enlace ? "enlace" : "vacio";
 
   const conteos = calcularConteosModelo(modelo.entidades, modelo.opds);
   const horaEditado = formatearHoraGuardado(ultimoAutosalvado);
@@ -43,6 +55,7 @@ export function useInspectorViewModel() {
     modo,
     entidad,
     enlace,
+    estado,
     modeloNombre,
     conteos,
     horaEditado,

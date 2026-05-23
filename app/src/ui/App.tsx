@@ -22,6 +22,7 @@ import { BarraHerramientasElemento } from "./BarraHerramientasElemento";
 import { BarraPestanas } from "./BarraPestanas";
 import { BibliotecaDock } from "./biblioteca/BibliotecaDock";
 import { CapturadorBugs } from "./CapturadorBugs";
+import { HaloEstado } from "./HaloEstado";
 import { configurarContextoAtajos, escucharGlobal, registrarAtajo } from "./atajosTeclado";
 import { modeloTieneContenidoVisible } from "./bienvenida";
 import { CanvasAdapterContext } from "./CanvasAdapterContext";
@@ -175,6 +176,12 @@ export function App() {
         data-viewpoint-default={contextoWorkbench.viewPointDefault ? "true" : "false"}
       >
         <MensajeFlashBridge />
+        {/*
+          Paquete "Estados ciudadanos de primera clase" (2026-05-23):
+          halo flotante mínimo. Se autorrenderiza si `estadoSeleccionId !== null`.
+          Spec: docs/superpowers/specs/2026-05-23-estados-ciudadania-primera-clase-design.md §5.1.
+        */}
+        <HaloEstado />
         <h1 data-testid="viewpoint-heading" style={layout.srOnly}>
           {tituloViewPointWorkbench(contextoWorkbench)}
         </h1>

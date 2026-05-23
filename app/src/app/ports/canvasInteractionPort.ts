@@ -23,6 +23,7 @@ export type CanvasInteractionPort =
     | "seleccionId"
     | "seleccionados"
     | "enlaceSeleccionId"
+    | "estadoSeleccionId"
     | "idsResaltadosTemporales"
     | "seleccionarEntidad"
     | "seleccionarPartePlegada"
@@ -33,6 +34,9 @@ export type CanvasInteractionPort =
     | "agregarASeleccion"
     | "toggleSeleccion"
     | "vaciarSeleccion"
+    | "seleccionarEstado"
+    | "agregarEstadoASeleccion"
+    | "toggleSeleccionEstado"
   >
   & Pick<ModelCommandPort,
     | "cambiarOpdActivo"
@@ -77,6 +81,7 @@ export function componerCanvasInteractionPort(
     seleccionId: selection.seleccionId,
     seleccionados: selection.seleccionados,
     enlaceSeleccionId: selection.enlaceSeleccionId,
+    estadoSeleccionId: selection.estadoSeleccionId,
     idsResaltadosTemporales: selection.idsResaltadosTemporales,
     seleccionarEntidad: selection.seleccionarEntidad,
     seleccionarPartePlegada: selection.seleccionarPartePlegada,
@@ -87,6 +92,9 @@ export function componerCanvasInteractionPort(
     agregarASeleccion: selection.agregarASeleccion,
     toggleSeleccion: selection.toggleSeleccion,
     vaciarSeleccion: selection.vaciarSeleccion,
+    seleccionarEstado: selection.seleccionarEstado,
+    agregarEstadoASeleccion: selection.agregarEstadoASeleccion,
+    toggleSeleccionEstado: selection.toggleSeleccionEstado,
     cambiarOpdActivo: commands.cambiarOpdActivo,
     moverAparienciaConPuertos: commands.moverAparienciaConPuertos,
     actualizarPosicionSimboloEstructural: commands.actualizarPosicionSimboloEstructural,

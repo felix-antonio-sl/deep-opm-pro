@@ -15,6 +15,12 @@ export type ShortcutRegistrar = (registro: ShortcutRegistration) => () => void;
 
 export interface GlobalShortcutsSnapshot {
   enlaceSeleccionId: Id | null;
+  /**
+   * Paquete "Estados ciudadanos de primera clase" (2026-05-23): tercer
+   * ciudadano del coproducto. Guard para atajos F2/D/T del estado.
+   */
+  estadoSeleccionId: Id | null;
+  abrirModalDuracionEstadoSeleccionado: () => void;
   seleccionados: Id[];
   nuevaCosaPendiente: unknown | null;
   dialogoComandosAbierto: boolean;
@@ -139,6 +145,43 @@ export function registrarAtajosAplicacion(port: GlobalShortcutsPort, registrarAt
     registrarAtajo({ combo: "Ctrl+C", ctx: "canvas", categoria: "seleccion", descripcion: "Copiar selección visual", handler: () => s().copiarSeleccionAlBuffer() }),
     registrarAtajo({ combo: "Ctrl+V", ctx: "canvas", categoria: "seleccion", descripcion: "Pegar selección visual", handler: () => s().pegarBufferEnOpdActivo() }),
     registrarAtajo({ combo: "Delete", ctx: "canvas", categoria: "seleccion", descripcion: "Eliminar selección", handler: () => s().eliminarSeleccion() }),
+    // Paquete "Estados ciudadanos de primera clase" (2026-05-23).
+    // El guard `estadoSeleccionId !== null` viene del invariante sellado:
+    // cuando hay estado seleccionado no hay entidad ni enlace seleccionado,
+    // así que F2/D/T no colisionan con sus equivalentes de entidad/enlace.
+    // F2 sobre canvas dispara el rename inline vía evento custom que escucha
+    // `HaloEstado`. D abre popover de designación del halo. T abre modal
+    // duración. Esc cae al handler existente (cerrarModalSuperiorOVaciarSeleccion).
+    registrarAtajo({
+      combo: "F2",
+      ctx: "canvas",
+      categoria: "edicion",
+      descripcion: "Renombrar estado seleccionado",
+      handler: () => {
+        if (!s().estadoSeleccionId) return;
+        window.dispatchEvent(new CustomEvent("opm:halo-estado-rename"));
+      },
+    }),
+    registrarAtajo({
+      combo: "D",
+      ctx: "canvas",
+      categoria: "edicion",
+      descripcion: "Abrir popover de designación del estado seleccionado",
+      handler: () => {
+        if (!s().estadoSeleccionId) return;
+        window.dispatchEvent(new CustomEvent("opm:halo-estado-popover-designar"));
+      },
+    }),
+    registrarAtajo({
+      combo: "T",
+      ctx: "canvas",
+      categoria: "edicion",
+      descripcion: "Editar duración del estado seleccionado",
+      handler: () => {
+        const state = s();
+        if (state.estadoSeleccionId) state.abrirModalDuracionEstadoSeleccionado();
+      },
+    }),
     registrarAtajo({ combo: "Ctrl+Shift+T", ctx: "canvas", categoria: "edicion", descripcion: "Traer conectados de la cosa seleccionada", handler: abrirTraerConectados }),
     registrarAtajo({ combo: "Ctrl+H", ctx: "canvas", categoria: "vista", descripcion: "Ocultar apariencia seleccionada", handler: ocultarApariencia }),
     registrarAtajo({ combo: "Ctrl+Alt+C", ctx: "canvas", categoria: "edicion", descripcion: "Copiar estilo del enlace seleccionado", handler: copiarEstiloEnlace }),

@@ -113,6 +113,9 @@ export function JointCanvas({
     seleccionarEstadoComoExtremo,
     seleccionarEnlace,
     seleccionarGrupoEstructural,
+    seleccionarEstado,
+    agregarEstadoASeleccion,
+    toggleSeleccionEstado,
     cambiarOpdActivo,
     moverAparienciaConPuertos,
     actualizarPosicionSimboloEstructural,
@@ -160,6 +163,10 @@ export function JointCanvas({
   const seleccionarEstadoComoExtremoRef = useRef(seleccionarEstadoComoExtremo);
   const seleccionarEnlaceRef = useRef(seleccionarEnlace);
   const seleccionarGrupoEstructuralRef = useRef(seleccionarGrupoEstructural);
+  // Paquete "Estados ciudadanos de primera clase" (2026-05-23).
+  const seleccionarEstadoRef = useRef(seleccionarEstado);
+  const agregarEstadoASeleccionRef = useRef(agregarEstadoASeleccion);
+  const toggleSeleccionEstadoRef = useRef(toggleSeleccionEstado);
   const cambiarOpdActivoRef = useRef(cambiarOpdActivo);
   const moverAparienciaConPuertosRef = useRef(moverAparienciaConPuertos);
   const actualizarPosicionSimboloEstructuralRef = useRef(actualizarPosicionSimboloEstructural);
@@ -224,6 +231,9 @@ export function JointCanvas({
     seleccionarEstadoComoExtremoRef.current = seleccionarEstadoComoExtremo;
     seleccionarEnlaceRef.current = seleccionarEnlace;
     seleccionarGrupoEstructuralRef.current = seleccionarGrupoEstructural;
+    seleccionarEstadoRef.current = seleccionarEstado;
+    agregarEstadoASeleccionRef.current = agregarEstadoASeleccion;
+    toggleSeleccionEstadoRef.current = toggleSeleccionEstado;
     cambiarOpdActivoRef.current = cambiarOpdActivo;
     moverAparienciaConPuertosRef.current = moverAparienciaConPuertos;
     actualizarPosicionSimboloEstructuralRef.current = actualizarPosicionSimboloEstructural;
@@ -248,7 +258,7 @@ export function JointCanvas({
     redimensionarAparienciaEnCanvasRef.current = redimensionarAparienciaEnCanvas;
     reanclarExtremoAccionRef.current = reanclarExtremoAccion;
     renombrarEntidadDesdeOplRef.current = renombrarEntidadDesdeOpl;
-  }, [actualizarAnclajesSimboloEstructural, actualizarPosicionLabelEnlace, actualizarPosicionSimboloEstructural, actualizarVerticesEnlace, agregarASeleccion, alternarModoImagenEntidad, abrirModalImagen, cancelarEnlace, cambiarModoPlegadoApariencia, cambiarOpdActivo, crearAparienciaEntidadEnCanvas, crearEnlaceEntreEntidades, crearEntidadEnCanvas, elegirTipoEnlace, extraerParteDePlegado, fijarHoverOpl, iniciarConexionDesdeApariencia, moverAparienciaConPuertos, reanclarExtremoAccion, redimensionarAparienciaEnCanvas, renombrarEntidadDesdeOpl, seleccionarEnlace, seleccionarEntidad, seleccionarEstadoComoExtremo, seleccionarGrupoEstructural, seleccionarPartePlegada, setSeleccion, toggleSeleccion, vaciarSeleccion]);
+  }, [actualizarAnclajesSimboloEstructural, actualizarPosicionLabelEnlace, actualizarPosicionSimboloEstructural, actualizarVerticesEnlace, agregarASeleccion, agregarEstadoASeleccion, alternarModoImagenEntidad, abrirModalImagen, cancelarEnlace, cambiarModoPlegadoApariencia, cambiarOpdActivo, crearAparienciaEntidadEnCanvas, crearEnlaceEntreEntidades, crearEntidadEnCanvas, elegirTipoEnlace, extraerParteDePlegado, fijarHoverOpl, iniciarConexionDesdeApariencia, moverAparienciaConPuertos, reanclarExtremoAccion, redimensionarAparienciaEnCanvas, renombrarEntidadDesdeOpl, seleccionarEnlace, seleccionarEntidad, seleccionarEstado, seleccionarEstadoComoExtremo, seleccionarGrupoEstructural, seleccionarPartePlegada, setSeleccion, toggleSeleccion, toggleSeleccionEstado, vaciarSeleccion]);
 
   useEffect(() => {
     abrirMenuTipoEnlaceCanvasRef.current = (input: MenuTipoEnlaceCanvasInput) => {
@@ -316,6 +326,9 @@ export function JointCanvas({
       crearEntidadEnCanvasRef,
       crearAparienciaEntidadEnCanvasRef,
       abrirRenombradoInlineRef,
+      seleccionarEstadoRef,
+      agregarEstadoASeleccionRef,
+      toggleSeleccionEstadoRef,
     }));
 
     cleanups.push(cablearRubberBand({

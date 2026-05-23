@@ -48,6 +48,20 @@ export interface CablearSeleccionArgs {
   crearEntidadEnCanvasRef: { current: (tipo: TipoEntidad, posicion: { x: number; y: number }) => void };
   crearAparienciaEntidadEnCanvasRef: { current: (entidadId: string, posicion: { x: number; y: number }) => void };
   abrirRenombradoInlineRef: { current: (input: { aparienciaId: string; entidadId: string }) => void };
+  /**
+   * Paquete "Estados ciudadanos de primera clase" (2026-05-23).
+   * Click sobre cápsula en modo normal: selecciona el estado en vez de
+   * redirigir al objeto. Multi-select Shift/Ctrl invoca
+   * `agregarEstadoASeleccionRef` / `toggleSeleccionEstadoRef` (validan
+   * mismo objeto propietario). Modo enlace preservado: el handler
+   * existente (`seleccionarEstadoComoExtremoRef`) sigue siendo el camino
+   * cuando `modoEnlaceRef.current` es no-null.
+   *
+   * Spec: docs/superpowers/specs/2026-05-23-estados-ciudadania-primera-clase-design.md §5, §7.
+   */
+  seleccionarEstadoRef: { current: (estadoId: string) => void };
+  agregarEstadoASeleccionRef: { current: (estadoId: string) => void };
+  toggleSeleccionEstadoRef: { current: (estadoId: string) => void };
 }
 
 export function cablearSeleccion(args: CablearSeleccionArgs): () => void {
@@ -73,6 +87,9 @@ export function cablearSeleccion(args: CablearSeleccionArgs): () => void {
     crearEntidadEnCanvasRef,
     crearAparienciaEntidadEnCanvasRef,
     abrirRenombradoInlineRef,
+    seleccionarEstadoRef,
+    agregarEstadoASeleccionRef,
+    toggleSeleccionEstadoRef,
   } = args;
 
   const onElementPointerclick = (elementView: dia.ElementView, evt: dia.Event) => {
@@ -109,11 +126,23 @@ export function cablearSeleccion(args: CablearSeleccionArgs): () => void {
       }
       const estadoId = estadoDesdeSelector(meta, selector);
       if (estadoId) {
+        // Modo enlace preservado (escenario 9 del smoke): el estado actúa como
+        // extremo del enlace en construcción. Igual comportamiento que pre-2026-05-23.
         if (modoEnlaceRef.current) {
           seleccionarEstadoComoExtremoRef.current(estadoId);
           return;
         }
-        seleccionarEntidadRef.current(meta.entidadId);
+        // Paquete "Estados ciudadanos de primera clase" (2026-05-23):
+        // click sobre cápsula en modo normal selecciona el estado, no el
+        // objeto. Shift/Ctrl multi-select va al estado (constraint:
+        // mismo objeto propietario, validado en el slice).
+        // Spec: docs/superpowers/specs/2026-05-23-estados-ciudadania-primera-clase-design.md §5, §7.
+        if (multiEvento(evt)) {
+          if (ctrlEvento(evt)) toggleSeleccionEstadoRef.current(estadoId);
+          else agregarEstadoASeleccionRef.current(estadoId);
+          return;
+        }
+        seleccionarEstadoRef.current(estadoId);
         return;
       }
       seleccionarEntidadRef.current(meta.entidadId);
@@ -134,10 +163,27 @@ export function cablearSeleccion(args: CablearSeleccionArgs): () => void {
 
   const onElementContextmenu = (elementView: dia.ElementView, evt: dia.Event) => {
     evt.stopPropagation();
-    (evt as unknown as MouseEvent).preventDefault();
+    const event = evt as unknown as MouseEvent;
+    event.preventDefault();
     const meta = metadata(cellViewModel(elementView));
     if (meta?.kind === "imagen-insignia") {
       abrirModalImagenRef.current(meta.entidadId);
+      return;
+    }
+    if (meta?.kind === "entidad") {
+      // Paquete "Estados ciudadanos de primera clase" (2026-05-23):
+      // right-click sobre cápsula → MenuContextualEstado. Selecciona el
+      // estado primero para sellar el invariante del coproducto y luego
+      // dispara el evento custom que `MenuContextualEstado` escucha.
+      // V-202: el menú contextual es affordance UI, no gramática.
+      const selector = jointSelector(evt.target);
+      const estadoId = estadoDesdeSelector(meta, selector);
+      if (estadoId && !modoEnlaceRef.current) {
+        seleccionarEstadoRef.current(estadoId);
+        window.dispatchEvent(new CustomEvent("opm:menu-contextual-estado", {
+          detail: { estadoId, entidadId: meta.entidadId, aparienciaId: meta.aparienciaId, x: event.clientX, y: event.clientY },
+        }));
+      }
     }
   };
 
