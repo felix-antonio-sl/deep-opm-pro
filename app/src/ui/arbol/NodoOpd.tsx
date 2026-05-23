@@ -253,8 +253,13 @@ export function codigoOpd(nombre: string): string {
 //   - badges tipo: pill ink-04 con texto ink-70 (raiz), ink (inzoom),
 //     ink70 (unfold) — diferenciación por peso, no por color.
 //   - issueBadge: pill ink + paper (error) o accentSoft + accentDark (warn).
+// Ronda 28 L3 hotfix: paddingLeft=12+nivel*16 (era 16+nivel*16 tras subir
+// spacing.md de 12→16) para devolver 4px al ancho util de la fila. El fix
+// nuclear vive en `style.node.gridTemplateColumns` (reorden de cols) — este
+// padding es secundario y solo recupera espacio sin alterar el chrome
+// Bauhaus heredado.
 function estiloNodo(nivel: number, activo: boolean): preact.JSX.CSSProperties {
-  return { ...style.node, ...(activo ? style.nodeActive : {}), paddingLeft: `${tokens.spacing.md + nivel * 16}px` };
+  return { ...style.node, ...(activo ? style.nodeActive : {}), paddingLeft: `${12 + nivel * 16}px` };
 }
 
 const style = {
@@ -262,12 +267,19 @@ const style = {
     width: "100%",
     minHeight: "30px",
     display: "grid",
-    gridTemplateColumns: "16px 18px 48px minmax(0, 1fr) auto 16px 26px",
+    // Ronda 28 L3 hotfix: el orden de cols se reacomoda para que el badge
+    // tipo (col 5, 40px) viva DESPUES del nombre+conteos en vez de antes
+    // (era col 3, 48px). Razon: en panelArbol=240 el `minmax(0, 1fr)` del
+    // nombre se aplastaba a 0 y el centro horizontal del treeitem caia
+    // sobre el badge UNFOLD/INZOOM, interceptando `treeitem.click()` de
+    // Playwright y rompiendo la activacion del OPD destino. Con el badge
+    // al final el centro cae sobre nombre/count (sin handler) y el click
+    // se propaga al div treeitem.
+    gridTemplateColumns: "16px 18px minmax(0, 1fr) auto 40px 16px 26px",
     alignItems: "center",
     gap: "4px",
     paddingTop: "6px",
     paddingBottom: "6px",
-    paddingRight: tokens.spacing.md,
     border: 0,
     borderLeft: `${tokens.stroke.bold}px solid transparent`,
     borderRadius: 0,
@@ -386,6 +398,11 @@ function estiloBadgeTipo(tipo: TipoBadgeOpd, accionable: boolean): preact.JSX.CS
   };
   const meta = colores[tipo];
   return {
+    // Ronda 28 L3 hotfix: badge tipo vive en la col 5 (despues del count)
+    // para no interceptar el click central del treeitem. Ver comentario
+    // en `style.node.gridTemplateColumns`.
+    gridColumn: 5,
+    gridRow: 1,
     boxSizing: "border-box" as const,
     minWidth: "40px",
     maxWidth: "40px",
@@ -413,7 +430,9 @@ function estiloBadgeTipo(tipo: TipoBadgeOpd, accionable: boolean): preact.JSX.CS
 // jerarquía visual se logra con tipografía y separador `·`.
 function contador(color: string): preact.JSX.CSSProperties {
   return {
-    gridColumn: 5,
+    // Ronda 28 L3 hotfix: count vive en col 4 (era col 5) tras reordenar las
+    // cols del nodo para mover el badge tipo al final.
+    gridColumn: 4,
     gridRow: 1,
     minWidth: "52px",
     height: "17px",
