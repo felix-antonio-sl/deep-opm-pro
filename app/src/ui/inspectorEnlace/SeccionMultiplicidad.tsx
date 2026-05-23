@@ -1,7 +1,7 @@
 // [JOYAS §1-3] Chrome UI consume tokens centralizados; canvas semántico invariante.
 import { etiquetaEnlaceNormalizada, validarEtiquetaEnlace } from "../../modelo/etiquetasEnlace";
 import { validarMultiplicidad } from "../../modelo/operaciones";
-import type { Enlace, Modificador, SubtipoModificador } from "../../modelo/tipos";
+import type { Enlace, Modificador, SubtipoModificador, TipoEnlace } from "../../modelo/tipos";
 import { inspectorStyles as style } from "../inspectorStyles";
 import { tokens } from "../tokens";
 
@@ -45,8 +45,8 @@ export function SeccionMultiplicidad(props: Props) {
             <span class="opm-label-uppercase" style={style.label}>Tipo</span>
             <select data-testid="modificador-enlace-select" style={style.input} value={props.enlace.modificador ?? ""} onChange={(event) => props.onModificador(event.currentTarget.value as Modificador | "")}>
               <option value="">Ninguno</option>
-              <option value="condicion">Condición</option>
-              <option value="evento">Evento</option>
+              {modificadorOfrecido(props.enlace.tipo, props.enlace.modificador, "condicion") ? <option value="condicion">Condición</option> : null}
+              {modificadorOfrecido(props.enlace.tipo, props.enlace.modificador, "evento") ? <option value="evento">Evento</option> : null}
               {props.enlace.tipo !== "invocacion" ? <option value="no">NO</option> : null}
             </select>
           </label>
@@ -134,6 +134,22 @@ function subtiposPermitidos(modificador: Modificador): SubtipoModificador[] {
   if (modificador === "condicion") return ["C"];
   if (modificador === "evento") return ["E"];
   return ["no"];
+}
+
+// SSOT-OPL §7 (CT1, CT2, CH1, CH2, CS1-CS6) canoniza los modificadores
+// "condicion" y "evento" sobre enlaces input-side (consumo, instrumento,
+// agente, efecto). NO hay plantilla CT/CS canonica para resultado, asi que
+// el UI no los ofrece para `tipo === "resultado"`. Excepcion de backward-
+// compat: si un modelo legacy ya tiene el modificador asignado al resultado,
+// la opcion se sigue mostrando para permitir su edicion o eliminacion (no
+// dejamos al operador con un estado del modelo invisible en el inspector).
+export function modificadorOfrecido(
+  tipo: TipoEnlace,
+  modificadorActual: Modificador | undefined,
+  candidato: "condicion" | "evento",
+): boolean {
+  if (tipo === "resultado" && modificadorActual !== candidato) return false;
+  return true;
 }
 
 function subtipoDefault(modificador: Modificador): SubtipoModificador {

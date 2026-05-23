@@ -1,0 +1,27 @@
+{
+  "id": "BUG-20260523T180247Z-e3f245",
+  "createdAt": "2026-05-23T18:02:47.238Z",
+  "text": "es posible eso sintacticamente en términos opm?",
+  "context": {
+    "modeloId": "modelo-1",
+    "modeloNombre": "Modelo",
+    "opdActivoId": "opd-1",
+    "opdActivoNombre": "SD",
+    "seleccionEntidadId": null,
+    "seleccionEnlaceId": null,
+    "pestanaActivaId": "pestana-415b5add-20eb-44a3-939f-63ebdc1cfd41",
+    "vistaMapaActiva": false,
+    "url": "https://opforja.sanixai.com/",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+    "viewport": {
+      "width": 2400,
+      "height": 1161,
+      "devicePixelRatio": 0.800000011920929
+    },
+    "capturedAt": "2026-05-23T18:02:44.035Z"
+  },
+  "screenshots": [
+    "screenshots/01-google-chrome-2026-05-23-14.02.09.png",
+    "screenshots/02-google-chrome-2026-05-23-14.02.15.png"
+  ]
+}

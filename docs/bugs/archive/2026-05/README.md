@@ -84,6 +84,7 @@ siguen vigentes en `docs/bugs/`.
 | c3b971 | `269a70c` markers diferenciados + handles Bauhaus (R28/L4) | in-vivo: extremos anclan al contorno de la elipse, sin hueco |
 | 702609 | `269a70c` (R28/L4) + `8826ba` previo (alinea anclas triángulos) | in-vivo: triángulos de agregación alineados sobre sus enlaces |
 | 05c5f7 | no-defecto | era una pregunta ("¿eso está bien?"); el abanico separado es comportamiento OPM canónico correcto |
+| e3f245 | restricción UI: `c`/`e` no se ofrecen en enlaces de resultado | pregunta OPM (resultado+c+OR a estados); SSOT §7 no canoniza CT/CS para resultado, así que el UI ya no ofrece esos modificadores en resultado (con preservación de modelos legacy editables) |
 
 Verificación visual in-vivo realizada contra `https://opforja.sanixai.com`
 (bundle Ronda 28) el 2026-05-23 sobre el modelo de ejemplo *System Diagram*.
