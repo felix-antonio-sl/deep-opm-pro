@@ -66,6 +66,10 @@ Otros subsistemas:
 4. **Repo liviano**: `decompiled/`, `_local/`, `app/dist/`, `app/test-results/`, `.claude/` son gitignored y regenerables (`bash setup.sh`). No los versiones. `opm-extracted/` **sí** se versiona (derivado curado).
 5. **Backlog vs corte activo**: `docs/historias-usuario-v2/` es el backlog completo (no lo arrastres entero); `docs/roadmap/` define el corte operativo. Auditoría de avance: `node docs/historias-usuario-v2/tools/progress-dashboard.mjs --sync-real`.
 
+## Deuda categorial activa
+
+- **Trigger hacia el coproducto tagged de selección (refactor A → B)**: el paquete "Estados ciudadanos de primera clase" (2026-05-23, spec `docs/superpowers/specs/2026-05-23-estados-ciudadania-primera-clase-design.md`) usa tres campos paralelos `seleccionId / enlaceSeleccionId / estadoSeleccionId` en `OpmStore`, sellados por el invariante de exclusividad mutua que vive en `setSeleccionPorTipo` (punto único). Cuando entre el siguiente paquete consumidor de selección (OPL-jump global, Cmd+K command palette con búsqueda de estados, árbol OPD con estado como nodo hijo del objeto, o cualquier cuarto tipo seleccionable), **migrar A → B antes** de construir ese funtor: reemplazar los tres campos por `seleccion: { tipo: KindSeleccion; id: Id } | null` discriminado con adaptadores backwards-compat durante la transición. Fundamento: bajo `urn:fxsl:kb:icas-universales`, el coproducto tagged es la estructura universal; añadir un cuarto campo paralelo escalaría el costo del invariante sellado a O(N²) en checks; el discriminado lo deja en O(1).
+
 ## Deploy
 
 Instancia privada en `https://opforja.sanixai.com` (auth básica). Procedimiento en `docs/deploy/opforja.md`. Patrón: `git archive HEAD | docker build` (build-arg `VITE_ENABLE_BUG_CAPTURE=true`) + `docker compose up -d --no-build`. Convención de idioma: español (es-CL) para docs/comunicación, inglés para identificadores de código.

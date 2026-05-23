@@ -3,10 +3,10 @@
 **Fecha**: 2026-05-23
 **Repositorio**: `deep-opm-pro`
 **Rama**: `main`
-**Ultimo corte funcional**: `BUG-20260523T210035Z-7264f4` y `BUG-20260523T210455Z-eec502` corrigen anclajes centrados de símbolos estructurales y multiplicidad OPCloud (`+`, `*`, `n..*`, `n..N`).
-**Ultimo commit base antes de este cierre**: `docs(handoff): record opcloud fixes deployment` (`004e651`).
-**Ultimo corte deploy**: `docker compose up -d --build` ejecutado; `opforja` queda healthy, el sidecar reporta 13 activos/61 históricos y el primer activo `BUG-20260523T210455Z-eec502` figura `Resuelto`. URL pública `https://opforja.sanixai.com/` responde `401` por Basic Auth de Traefik.
-**Corte**: los 13 bugs/features activos del ledger quedan en estado `Resuelto`; las carpetas `BUG-*` capturadas siguen como artefactos locales no versionados salvo decisión explícita.
+**Ultimo corte funcional**: paquete "Estados como ciudadanos de primera clase" — click sobre cápsula selecciona el estado (no el objeto), Halo flotante mínimo + Inspector dedicado + Menú contextual + atajos F2/D/T, multi-select dentro del mismo objeto propietario, modo enlace preservado.
+**Ultimo commit en main**: `fix(estado-ciudadano): cierra los 10 escenarios del smoke 15` (`0578eda`).
+**Ultimo corte deploy**: pendiente. El bundle en `opforja.sanixai.com` no incluye el paquete; redeploy requiere `git archive HEAD | docker build` + `docker compose up -d --no-build` con `VITE_ENABLE_BUG_CAPTURE=true` (procedimiento en `docs/deploy/opforja.md`).
+**Corte**: 1596 unit tests + 5715 expectaciones verdes (incremento neto +36 vs baseline pre-paquete: 10 `reordenarEstado` + 8 invariante categorial coproducto + 10 from-selection + 8 acciones-estados). Smoke `15-estado-ciudadano` verde 10/10 en 29.8s. Cero regresiones nuevas: tests fallando en `03-opl-panel` y `05-refinamiento-y-plegado` reproducen también sin estos cambios (flakeo pre-existente).
 
 ## Política De Handoff Único
 
@@ -24,6 +24,48 @@
 - JointJS OSS: usar documentación oficial viva cuando se toque JointJS.
 
 ## Estado Actual
+
+### Cierre Estados Ciudadanos De Primera Clase — 2026-05-23
+
+Estado actual:
+
+- El estado de objeto OPM (`Estado` del modelo, §3.71 SSOT ISO 19450) es ahora ciudadano de primera clase de la selección del modelador, paralelo a entidad y enlace.
+- Click sobre cápsula en modo normal selecciona el estado (antes redirigía al objeto propietario). Modo enlace conserva el comportamiento previo: el estado actúa como extremo del enlace en construcción.
+- Componentes nuevos: `HaloEstado` (overlay Bauhaus mínimo con rename inline, popover de designación y eliminar), `InspectorEstado` (nombre, designaciones reutilizando `SeccionDesignaciones`, duración, supresión, flechas ↑↓ de posición, eliminar), `MenuContextualEstado` (right-click sobre cápsula, 6 acciones incluida designación con exclusiones SSOT D5–D8).
+- Atajos canvas activos cuando `estadoSeleccionId !== null`: F2 rename, Del eliminar (vía `eliminarSeleccion` que ahora delega a `eliminarEstado` cuando todos los ids son estados), D popover designación, T modal duración, Esc deselecciona.
+- Multi-select de estados via Shift/Ctrl restringido al mismo objeto propietario; cross-objeto se rechaza con mensaje.
+- Operación de dominio `reordenarEstado(modelo, estadoId, indiceDestino)` con bounds + idempotencia + normalización de `Estado.orden?: number` al primer reorden.
+- Acciones from-selection en el slice modelo: `eliminarEstadoSeleccionado`, `renombrarEstadoSeleccionadoSmart`, `designarEstadoSeleccionado`, `quitarDesignacionEstadoSeleccionado`, `suprimirEstadoSeleccionado`, `abrirModalDuracionEstadoSeleccionado`, `agregarEstadoHermanoDeSeleccionado`, `reordenarEstadoSeleccionado`, `designarBatch`.
+
+Decisiones consolidadas:
+
+- **Enfoque A con dos sellos categoriales (no B ahora)**: el spec aprobado tras brainstorming dialéctico + arbitraje polymath bajo `urn:fxsl:kb:icas-universales`, `urn:fxsl:kb:icas-preservacion` y `urn:fxsl:kb:icas-comparacion` elige extender los tres campos paralelos `seleccionId / enlaceSeleccionId / estadoSeleccionId` sellados por un punto único `setSeleccionPorTipo(kind, id|null)`, en vez de refactorizar al coproducto tagged `seleccion: { tipo, id } | null` discriminado (enfoque B). Razón: A preserva el shape del store, los componentes/handlers/atajos existentes son extensiones naturales; el costo del refactor B sin un nuevo funtor consumidor sería trabajo sin descubrimiento. La equivalencia con el coproducto se gana por el invariante de exclusividad mutua, no por la forma del tipo.
+- **Invariante sellado**: toda mutación de selección pasa por `setSeleccionPorTipo` (punto único) o por las acciones específicas que lo delegan; cualquier setter directo agrega `estadoSeleccionId: null` para preservar el sello. El test categorial `seleccion.test.ts > invariante: cardinalidad <=1` itera los 4 valores de `KindSeleccion` y verifica que como máximo un campo del trío sea no-null tras cada mutación.
+- **Tipado natural de componentes**: `HaloEstado`, `InspectorEstado`, `MenuContextualEstado` y el viewmodel del Inspector declaran sobre los tres campos explícitamente. Ningún componente nuevo asume "estoy dentro de una entidad seleccionada"; el discriminador es siempre cuál de los tres campos es no-null.
+- **V-202 respetada**: halo, inspector y menú contextual son affordance UI, no gramática OPM. No se exportan al canon y no aparecen en la SSOT visual.
+
+Deuda categorial activa (trigger explícito hacia B):
+
+- Cuando entre el siguiente paquete (descubribilidad: OPL-jump global, Cmd+K command palette con búsqueda de estados, árbol OPD con estado como nodo hijo del objeto, o cualquier cuarto tipo seleccionable), **migrar A → B antes** de construir el nuevo funtor consumidor. La migración reemplaza los tres campos por `seleccion: { tipo: KindSeleccion; id: Id } | null` discriminado con adaptadores backwards-compat durante la transición. Esta deuda se anota también en `CLAUDE.md` proyecto.
+
+Artefactos relevantes:
+
+- [docs/superpowers/specs/2026-05-23-estados-ciudadania-primera-clase-design.md](/home/felix/projects/deep-opm-pro/docs/superpowers/specs/2026-05-23-estados-ciudadania-primera-clase-design.md) — spec aprobado con los dos sellos.
+- [app/src/store/seleccion.ts](/home/felix/projects/deep-opm-pro/app/src/store/seleccion.ts) — `setSeleccionPorTipo`, `seleccionarEstado`, `agregarEstadoASeleccion`, `toggleSeleccionEstado` + validación mismo objeto.
+- [app/src/store/runtime.ts](/home/felix/projects/deep-opm-pro/app/src/store/runtime.ts) — `tipoDeCosa(modelo, id)` + `estadoSeleccionDesdeIds` reescrita para discriminar tres tipos.
+- [app/src/store/modelo/acciones-estados.ts](/home/felix/projects/deep-opm-pro/app/src/store/modelo/acciones-estados.ts) — 9 acciones from-selection + `designarBatch`.
+- [app/src/modelo/operaciones/estados.ts](/home/felix/projects/deep-opm-pro/app/src/modelo/operaciones/estados.ts) — `reordenarEstado` + `Estado.orden?: number`.
+- [app/src/render/jointjs/handlers/seleccion.ts](/home/felix/projects/deep-opm-pro/app/src/render/jointjs/handlers/seleccion.ts) — click cápsula precede a multi-evento entidad; right-click dispara `opm:menu-contextual-estado`.
+- [app/src/render/jointjs/composers/entidad.ts](/home/felix/projects/deep-opm-pro/app/src/render/jointjs/composers/entidad.ts) — `data-estado-id` / `data-cap-rol` en `stateCapsule${index}`.
+- [app/src/render/jointjs/jointjs.css](/home/felix/projects/deep-opm-pro/app/src/render/jointjs/jointjs.css) — reglas Bauhaus para `[data-selected]`, `[data-focus]`, `[data-dragging]`.
+- [app/src/ui/HaloEstado.tsx](/home/felix/projects/deep-opm-pro/app/src/ui/HaloEstado.tsx), [app/src/ui/inspector/InspectorEstado.tsx](/home/felix/projects/deep-opm-pro/app/src/ui/inspector/InspectorEstado.tsx), [app/src/ui/MenuContextualEstado.tsx](/home/felix/projects/deep-opm-pro/app/src/ui/MenuContextualEstado.tsx).
+- [app/e2e/15-estado-ciudadano.spec.ts](/home/felix/projects/deep-opm-pro/app/e2e/15-estado-ciudadano.spec.ts) — 10 escenarios verdes.
+
+Verificación:
+
+- `bun run check` (`1596 pass`, `0 fail`, `5715 expect`).
+- `bunx playwright test e2e/15-estado-ciudadano.spec.ts` (`10 passed (29.8s)`).
+- Regresiones reproducen sin el paquete: tests fallando en `03-opl-panel.spec.ts:98` y `05-refinamiento-y-plegado.spec.ts:196` también fallan en `HEAD~3` (flakeo pre-existente, no causado por el paquete).
 
 ### Cierre Poda Editorial Canon Estricto OPM — 2026-05-23
 
