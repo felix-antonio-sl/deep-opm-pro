@@ -144,11 +144,13 @@ function styleTokenMarkdown(token: OplToken): preact.JSX.CSSProperties {
   return {};
 }
 
-// Ronda 28 L3: Bauhaus OPL — la jerarquía visual no es color sino tipografía.
-//   - Objetos:  weight 600 + underline 1px solid ink (offset 3px).
-//   - Procesos: weight 600 + underline 1px dashed ink (offset 3px).
-//   - Estados:  fondo ink-04, padding 0 4, mono.
-//   - Verbos:   peso 500 ink-70.
+// Refinamiento 2026-05-23: OPL Bauhaus enriquecido con paleta disciplinada.
+//   - Objetos:  bold 700 ink (tipografía como diferenciador primario).
+//   - Procesos: italic 700 ink + underline punteada (forma diferenciadora).
+//   - Estados:  fondo ocreSoft + texto ocreDark + mono. Cromaticidad ocre =
+//               "atención / contexto" — el estado define el contexto del objeto.
+//   - Verbos:   ultramar (focus) medium — el verbo es el info-pointer
+//               canónico de la oración OPL.
 // El `tokenMultiEnlace` (token nombre de enlace con varias instancias) mantiene
 // su semántica como underline punteada accent (cinabrio) para distinguir.
 const style = {
@@ -158,29 +160,29 @@ const style = {
   tokenMultiEnlace: { borderBottom: `1px dotted ${tokens.colors.accent}` },
   objeto: {
     color: tokens.colors.ink,
-    fontWeight: tokens.typography.weights.semibold,
+    fontWeight: tokens.typography.weights.bold,
     borderBottom: `1px solid ${tokens.colors.ink}`,
     textUnderlineOffset: "3px",
     paddingBottom: "1px",
   },
   proceso: {
     color: tokens.colors.ink,
-    fontWeight: tokens.typography.weights.semibold,
+    fontWeight: tokens.typography.weights.bold,
     fontStyle: "italic" as const,
     borderBottom: `1px dashed ${tokens.colors.ink}`,
     textUnderlineOffset: "3px",
     paddingBottom: "1px",
   },
   estado: {
-    color: tokens.colors.ink,
-    background: tokens.colors.ink04,
+    color: tokens.colors.ocreDark,
+    background: tokens.colors.ocreSoft,
     fontFamily: tokens.typography.fontFamilyMono,
     fontSize: `${tokens.typography.sizes.sm}px`,
     padding: "0 4px",
     borderRadius: tokens.radii.xs,
   },
   verbo: {
-    color: tokens.colors.ink70,
+    color: tokens.colors.focus,
     fontWeight: tokens.typography.weights.medium,
   },
   inputInline: {

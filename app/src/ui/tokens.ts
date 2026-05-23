@@ -34,6 +34,11 @@
 
 const ink = "#0A0A0A";
 const paper = "#FAFAFA";
+// Refinamiento 2026-05-23: tonos micro-superficie para jerarquía sin sombras.
+// paper / paper02 / paper04 = escala de elevación tonal Bauhaus (no usa blur).
+const paper02 = "#F5F5F5";
+const paper04 = "#F0F0F0";
+const ink02 = "#050505"; // ink intensificado para énfasis tipográfico raro
 const ink90 = "#1A1A1A";
 const ink70 = "#404040";
 const ink50 = "#6E6E6E";
@@ -41,25 +46,56 @@ const ink30 = "#A8A8A8";
 const ink15 = "#D2D2D2";
 const ink08 = "#E8E8E8";
 const ink04 = "#F2F2F2";
-const accent = "#C8392F";
+
+// ─── Tríada Bauhaus primaria (Itten/Klee/Kandinsky) ───
+// Rojo (cinabrio), Azul (ultramar), Amarillo (ocre saffron). Cada color
+// carga UN significado semántico; no se reutilizan ni decoran.
+const accent = "#C8392F"; // cinabrio — selección, acción primaria, danger
 const accentSoft = "#F5DDDB";
-// Versión oscura del acento cinabrio para texto sobre accentSoft (WCAG AA).
-// El acento puro #C8392F sólo da ~4:1 sobre el tinte; #9F2519 da 5.9:1.
-const accentDark = "#9F2519";
-const focus = "#1F3FA6";
-// Warning ronda 28: terracota apagada más oscura que el brief original
-// (#B4513C → #8A3D2D) para cumplir WCAG AA 4.5:1 sobre accentSoft. Sigue
-// siendo terracota / no naranja brillante — sólo se profundiza.
-const warning = "#8A3D2D";
+const accentDark = "#9F2519"; // WCAG AA 5.9:1 sobre accentSoft
+
+const focus = "#1F3FA6"; // ultramar — focus-visible, info, enlaces
+const focusSoft = "#E3E7F4";
+const focusDark = "#152A75"; // para texto sobre focusSoft (WCAG AA 6.8:1)
+
+// Refinamiento 2026-05-23: ocre Bauhaus (Klee saffron). Reemplaza el lugar
+// de "warning" que antes apuntaba a terracota apagada (que ahora queda como
+// destructive distinto de cinabrio). Ocre = atención / en curso / warning.
+const ocre = "#C89033"; // saffron Klee, mustard cálido
+const ocreSoft = "#F4E9C8";
+const ocreDark = "#5E4310"; // WCAG AA ~7:1 sobre ocreSoft
+
+// ─── Secundarios disciplinados ───
+// Verde bosque (válido / completado), distinto del verde lavado del canvas.
+const bosque = "#2D6B47";
+const bosqueSoft = "#D6E5DC";
+const bosqueDark = "#1F4A30"; // WCAG AA ~7.6:1 sobre bosqueSoft; paper sobre bosque ~5.7:1
+
+// Terracota — destructive secundario, distinto de cinabrio (que es
+// selección/acción primaria). Mismo hex que el viejo "warning" pero
+// resignificado: ya no es warning, es destructive.
+const terracota = "#8A3D2D";
+const terracotaSoft = "#E8DBD3";
+const terracotaDark = "#6B2C20"; // WCAG AA sobre terracotaSoft
+
+// ─── Compat: warning histórico ───
+// El símbolo `warning` se mantiene apuntando al ocre nuevo (ya no a
+// terracota apagada). Los consumidores semánticos siguen funcionando con
+// mejor contraste y color disciplinado.
+const warning = ocre;
+const warningSoft = ocreSoft;
+const warningDark = ocreDark;
+
 // Subtono cálido cercano a paper, útil para fondos elevados sin saltar a blanco puro.
 const paperWarm = "#FCFCFC";
-// Tinte focus ultraligero para selección/hover de elementos azules.
-const focusSoft = "#E3E7F4";
 
 export const colors = {
   // ─── Base Bauhaus (canónicos públicos) ───
   ink,
+  ink02,
   paper,
+  paper02,
+  paper04,
   ink90,
   ink70,
   ink50,
@@ -67,12 +103,30 @@ export const colors = {
   ink15,
   ink08,
   ink04,
+
+  // ─── Tríada primaria Bauhaus (refinamiento 2026-05-23) ───
   accent,
   accentSoft,
   accentDark,
   focus,
   focusSoft,
+  focusDark,
+  ocre,
+  ocreSoft,
+  ocreDark,
+
+  // ─── Secundarios disciplinados ───
+  bosque,
+  bosqueSoft,
+  bosqueDark,
+  terracota,
+  terracotaSoft,
+  terracotaDark,
+
+  // Aliases semánticos canónicos
   warning,
+  warningSoft,
+  warningDark,
 
   // ─── Compat-shim: acentos UI ───
   // Acento primario UI: era azul corporativo #007DB8 → ahora ultramar focus.
@@ -87,9 +141,14 @@ export const colors = {
   chromeNeutralSuave: ink04,
 
   // ─── Compat-shim: fondos ───
+  // Refinamiento 2026-05-23: elevación tonal Bauhaus (sin sombras).
+  // paper (#FAFAFA) = background / toolbar / panel raíz.
+  // paper02 (#F5F5F5) = cards y superficies elevadas (subtle lift).
+  // ink04 (#F2F2F2) = muted/disabled (no elevación, gris neutro).
+  // paper04 (#F0F0F0) = nested cards (próxima ronda si se requiere doble jerarquía).
   fondoChrome: paper,
-  fondoCard: paper,
-  fondoElevado: paperWarm,
+  fondoCard: paper02,
+  fondoElevado: paper02,
   fondoApp: paper,
   fondoInput: paper,
   fondoMuted: ink04,
@@ -98,7 +157,7 @@ export const colors = {
   fondoDeshabilitado: ink04,
   fondoWorkbench: ink04,
   fondoPanel: paper,
-  fondoPanelSuave: ink04,
+  fondoPanelSuave: paper02,
 
   // ─── Compat-shim: bordes (escala gris) ───
   bordeSuave: ink08,
@@ -121,18 +180,30 @@ export const colors = {
   textoCasiNegro: ink,
   negro: ink,
 
-  // ─── Compat-shim: éxito (colapsa a focus/ink en monocromo) ───
-  // En Bauhaus monocromático el "éxito" no es verde — usa contraste tipográfico.
-  // exitoTexto debe quedar legible sobre exitoFondo (test WCAG existente).
-  exitoBase: ink,
-  exitoTexto: ink,
-  exitoFondo: ink04,
+  // ─── Compat-shim: éxito (refinamiento 2026-05-23: bosque saturado) ───
+  // Antes (R28): colapsaba a ink/ink04 monocromo. Ahora usa bosque/bosqueDark/
+  // bosqueSoft — verde Bauhaus disciplinado que carga semántica "completado /
+  // válido" sin invadir el verde lavado del canvas (#EFF7EB).
+  exitoBase: bosque,
+  exitoTexto: bosqueDark,
+  exitoFondo: bosqueSoft,
 
-  // ─── Compat-shim: alertas/warning ───
-  alertaAmbar: warning,
-  alertaTexto: warning,
-  advertenciaFondo: accentSoft,
-  advertenciaBorde: warning,
+  // ─── Compat-shim: alertas/warning (refinamiento 2026-05-23: ocre Klee) ───
+  // Antes (R28): terracota apagada para warning. Ahora ocre saffron, que
+  // libera terracota como destructive secundario distinto de cinabrio.
+  alertaAmbar: ocre,
+  alertaTexto: ocreDark,
+  advertenciaFondo: ocreSoft,
+  advertenciaBorde: ocre,
+
+  // ─── Destructive (refinamiento 2026-05-23: terracota distinta de selección) ───
+  // El semántico "destructive" antes colapsaba a accent/cinabrio (mismo que
+  // selección). Ahora separa: cinabrio = selección/acción primaria,
+  // terracota = destructive secundario.
+  destructivoBase: terracota,
+  destructivoTexto: terracotaDark,
+  destructivoFondo: terracotaSoft,
+  destructivoBorde: terracota,
 
   // ─── Compat-shim: errores (cinabrio) ───
   // Texto error usa accentDark (#9F2519) para cumplir WCAG AA sobre accentSoft.
@@ -167,10 +238,12 @@ export const colors = {
   // ─── Compat-shim: enlaces texto ───
   enlaceTexto: focus,
 
-  // ─── Compat-shim: verdes (colapsan a ink — el verde se reserva para canvas) ───
-  verdeObjetoOscuro: ink,
-  verdeOpl: ink,
-  objetoFondo: ink04,
+  // ─── Compat-shim: verdes (refinamiento 2026-05-23: bosque, distinto de canvas) ───
+  // Antes (R28): colapsaba a ink puro. Ahora bosque/bosqueSoft — diferenciado
+  // del verde lavado del canvas (#EFF7EB) para no confundir chrome con cosa OPM.
+  verdeObjetoOscuro: bosqueDark,
+  verdeOpl: bosqueDark,
+  objetoFondo: bosqueSoft,
 
   // ─── Compat-shim: violetas (Bauhaus monocromo: colapsan a ink90/ink70) ───
   // En la paleta Bauhaus el violeta corporativo no tiene equivalente cromatico.
@@ -179,9 +252,11 @@ export const colors = {
   violeta: ink70,
   violetaFuerte: ink90,
 
-  // ─── Compat-shim: naranjas (warning terracota) ───
-  naranja: warning,
-  ambarOscuro: warning,
+  // ─── Compat-shim: naranjas (refinamiento 2026-05-23: ocre Klee) ───
+  // Antes (R28): apuntaba a terracota apagada. Ahora ocre saffron — color
+  // de atención canónico Bauhaus.
+  naranja: ocre,
+  ambarOscuro: ocreDark,
 
   // ─── Compat-shim: rojo OPCloud (cinabrio) ───
   rojoOpcloud: accentDark,
@@ -365,12 +440,22 @@ export const typography = {
   familyChrome: '"Inter Tight", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
   familyCanvas: "Arial",
   weights: {
+    // Refinamiento 2026-05-23: axis Inter Tight explícito por rol.
+    //   light(300): body suave, descripciones, tooltips.
+    //   normal(400): body default canvas.
+    //   medium(500): UI labels, inputs.
+    //   semibold(600): énfasis sutil en chrome.
+    //   bold(700): títulos, badges, OPL bold.
+    //   heavy(800): legado, evitar en código nuevo.
+    //   display(900): marca OPFORJA, hero counts.
+    light: 300,
     normal: 400,
     regular: 400,
     medium: 500,
     semibold: 600,
     bold: 700,
     heavy: 800,
+    display: 900,
   },
   sizes: {
     xxs: 10,
@@ -390,11 +475,13 @@ export const typography = {
   sizeLg: 16,
   sizeXl: 20,
   sizeXxl: 28,
+  weightLight: 300,
   weightNormal: 400,
   weightMedium: 500,
   weightSemibold: 600,
   weightBold: 700,
   weightHeavy: 800,
+  weightDisplay: 900,
 } as const;
 
 // ───────────────────────────────────────────────────────────────────────────

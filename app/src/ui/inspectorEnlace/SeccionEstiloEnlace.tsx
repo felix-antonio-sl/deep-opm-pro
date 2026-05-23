@@ -83,7 +83,7 @@ function SelectorPatron(props: { label: string; value: string; onChange: (v: str
 }
 
 const titleStyle = { margin: "0 0 8px", color: tokens.colors.textoPrimario, fontSize: "13px", fontWeight: 700 } satisfies preact.JSX.CSSProperties;
-const seccionEstiloStyle = { display: "grid", gap: "8px", marginBottom: "14px", padding: "8px", background: tokens.colors.fondoChrome, border: `1px solid ${tokens.colors.bordeTabla}`, borderRadius: tokens.radii.md } satisfies preact.JSX.CSSProperties;
+const seccionEstiloStyle = { display: "grid", gap: "8px", marginBottom: "14px", padding: "8px", background: tokens.colors.fondoCard, border: `1px solid ${tokens.colors.bordeTabla}`, borderRadius: tokens.radii.md } satisfies preact.JSX.CSSProperties;
 const seccionEstiloHeaderStyle = { display: "flex", alignItems: "center", justifyContent: "space-between", gap: "8px" } satisfies preact.JSX.CSSProperties;
 const styleRowButtonsStyle = { display: "flex", gap: "4px" } satisfies preact.JSX.CSSProperties;
 const colorPickerRowStyle = { display: "grid", gap: "4px" } satisfies preact.JSX.CSSProperties;

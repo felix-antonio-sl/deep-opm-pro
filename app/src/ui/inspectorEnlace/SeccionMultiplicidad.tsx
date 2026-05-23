@@ -159,7 +159,7 @@ function subtipoDefault(modificador: Modificador): SubtipoModificador {
 }
 
 const sectionStyle = { display: "grid", gap: "2px", marginBottom: "14px" } satisfies preact.JSX.CSSProperties;
-const cardStyle = { display: "grid", gap: "8px", marginBottom: "14px", padding: "8px", background: tokens.colors.fondoChrome, border: `1px solid ${tokens.colors.bordeTabla}`, borderRadius: tokens.radii.md } satisfies preact.JSX.CSSProperties;
+const cardStyle = { display: "grid", gap: "8px", marginBottom: "14px", padding: "8px", background: tokens.colors.fondoCard, border: `1px solid ${tokens.colors.bordeTabla}`, borderRadius: tokens.radii.md } satisfies preact.JSX.CSSProperties;
 const titleStyle = { margin: "0 0 8px", color: tokens.colors.textoPrimario, fontSize: "13px", fontWeight: 700 } satisfies preact.JSX.CSSProperties;
 const hintStyle = { color: tokens.colors.textoTerciario, fontSize: "11px", fontWeight: 600 } satisfies preact.JSX.CSSProperties;
 const subtipoGroupStyle = { display: "flex", gap: "6px" } satisfies preact.JSX.CSSProperties;

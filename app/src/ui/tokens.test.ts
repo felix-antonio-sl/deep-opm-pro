@@ -37,8 +37,13 @@ describe("tokens.colors — paleta Bauhaus monocromática [JOYAS §1, ronda 28 L
     expect(colors.accentSoft).toBe("#F5DDDB");
     expect(colors.accentDark).toBe("#9F2519");
     expect(colors.focus).toBe("#1F3FA6");
-    // warning ronda 28: terracota apagada profundizada para AA sobre accentSoft.
-    expect(colors.warning).toBe("#8A3D2D");
+    // Refinamiento 2026-05-23: warning ya no es terracota apagada — se eleva
+    // a ocre saffron Klee (#C89033). El símbolo "terracota" se reasigna a
+    // destructive secundario distinto de cinabrio.
+    expect(colors.warning).toBe("#C89033");
+    expect(colors.ocre).toBe("#C89033");
+    expect(colors.bosque).toBe("#2D6B47");
+    expect(colors.terracota).toBe("#8A3D2D"); // el hex viejo de warning, ahora destructive
   });
 
   test("acento UI (focus ultramar) no colisiona con stroke del proceso canónico", () => {
@@ -142,12 +147,14 @@ describe("tokens.colors — paleta Bauhaus monocromática [JOYAS §1, ronda 28 L
       ["texto primario", colors.textoPrimario, colors.fondoChrome],
       ["texto secundario", colors.textoSecundario, colors.fondoCard],
       ["texto slate", colors.textoSlate, colors.fondoElevado],
-      ["success (mono)", colors.exitoTexto, colors.exitoFondo],
-      ["warning (terracota)", colors.alertaTexto, colors.advertenciaFondo],
+      // Refinamiento 2026-05-23: éxito, warning y destructive ya no son mono.
+      ["success (bosque)", colors.exitoTexto, colors.exitoFondo],
+      ["warning (ocre)", colors.alertaTexto, colors.advertenciaFondo],
+      ["destructive (terracota)", colors.destructivoTexto, colors.destructivoFondo],
       ["error (cinabrio)", colors.errorTexto, colors.errorFondoIntenso],
       ["info (ultramar)", colors.infoTextoOscuro, colors.infoFondo],
-      ["objeto chrome (mono)", colors.verdeObjetoOscuro, colors.objetoFondo],
-      ["opl (mono)", colors.verdeOpl, colors.oplFondo],
+      ["objeto chrome (bosque)", colors.verdeObjetoOscuro, colors.objetoFondo],
+      ["opl (bosque)", colors.verdeOpl, colors.oplFondo],
       ["acento primario sobre paper", colors.fondoChrome, colors.acentoUi],
     ] as const;
 
