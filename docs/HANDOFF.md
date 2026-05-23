@@ -180,6 +180,44 @@ Cierre de envío:
 2. Push controlado a `origin/main`.
 3. Sin build, test de app ni deploy: no hay cambio ejecutable.
 
+### Cierre Refinamiento Paleta Bauhaus Enriquecida — 2026-05-23
+
+Estado al cierre del refinamiento:
+
+- `main` local en `90f01ca feat(ui): enriquece paleta Bauhaus con triada disciplinada + elegancia tonal` (luego absorbido en `27228fb` por la línea paralela del operador).
+- Loop verde: `1567 unit / 0 fail` (+1 nuevo, `WCAG AA` con 4 pares cromáticos nuevos), `219 smoke / 1 skip / 0 fail`.
+- Desplegado en `https://opforja.sanixai.com/` (bundle `index-CZh7jKuu.js`); verificación in-vivo confirmó la paleta vía `getComputedStyle` directo sobre tokens OPL.
+
+Decisiones consolidadas (vía `AskUserQuestion` con previews):
+
+- **Paleta**: Disciplinada — 5 cromáticos, tríada Bauhaus completa más secundarios.
+- **Elegancia**: Completo — surface tones + axis tipográfico + OPL syntax highlight + focus ring refinado.
+- Rechazadas: Mínima (4 cromáticos, perdía la tríada), Expansiva (6 cromáticos con violeta — riesgo corporate).
+
+Artefactos:
+
+- `app/src/ui/tokens.ts` — paleta extendida + 7 tokens cromáticos nuevos + 3 surfaces + axis weights light(300)/display(900).
+- `app/index.html` — espejo CSS vars `:root` + utility classes `.opm-weight-*` y `.opm-hairline` + `:focus-visible` global refinado (2px ultramar + 1px offset).
+- `app/src/ui/panelOpl/RenderToken.tsx` — syntax highlight semántico: estado en ocre, verbo en ultramar, objeto/proceso preservan tipografía como diferenciador.
+- `app/src/ui/tokens.test.ts` — test WCAG actualizado con 4 nuevos pares (success/bosque, warning/ocre, destructive/terracota, objeto-chrome/bosque).
+- `app/src/ui/inspectorEnlace/{SeccionEstilo,SeccionEstiloEnlace,SeccionMetadatosOpcloud,SeccionMultiplicidad}.tsx` — cards a `fondoCard` (paper02) para elevación tonal visible.
+
+Paleta semántica fija (referencia operativa):
+
+| Símbolo | Hex | Rol |
+|---|---|---|
+| cinabrio | `#C8392F` | selección, acción primaria, danger |
+| ultramar | `#1F3FA6` | focus-visible, info, verbos OPL, enlaces |
+| ocre | `#C89033` | warning, atención, estados OPL |
+| bosque | `#2D6B47` | success, válido, completado |
+| terracota | `#8A3D2D` | destructive (distinto de cinabrio) |
+| paper / paper02 / paper04 | `#FAFAFA` / `#F5F5F5` / `#F0F0F0` | background / cards / nested |
+| ink02 | `#050505` | énfasis tipográfico raro |
+
+Esencia Bauhaus preservada: cero gradientes, cero blur, cero glassmorphism. Cinco cromáticos disciplinados, cada uno carga un significado. Tipografía y geometría siguen siendo el diferenciador primario; el color refuerza.
+
+Memoria persistida: `~/.claude/projects/-home-felix-projects-deep-opm-pro/memory/project_refinamiento_paleta_bauhaus.md`.
+
 ### Cierre Ronda 28 — Vuelta 360° estética Bauhaus computacional — 2026-05-23
 
 Estado actual:
