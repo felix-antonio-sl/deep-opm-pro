@@ -29,6 +29,7 @@ docs/REPORTE-EJECUTIVO.md
 .codex/
 .opencode/
 .config/
+.playwright-mcp/
 *.tar.gz
 .DS_Store
 tmp/
