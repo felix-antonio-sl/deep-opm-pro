@@ -218,13 +218,13 @@ export function InspectorEnlace({ enlace }: Props) {
   return (
     <>
       {/*
-        Ronda24/L1 #1: el ID interno (`e-5`, ...) se oculta de la UI
-        cotidiana porque ensucia el header con jerga del modelo. Sigue
-        accesible como `title` del rótulo y como `data-enlace-id` en el
-        header para deeplinking/debug.
+        Ronda28/L3: header Bauhaus — kind ("Enlace Consumo") como heading
+        editorial Inter Tight 700/15 no-uppercase. ID interno (e-5) en
+        mono 10 ink-30 a la derecha como anclaje técnico discreto.
       */}
       <div style={style.header} data-enlace-id={enlace.id}>
-        <span style={style.kind} title={enlace.id}>Enlace {capitalizar(enlace.tipo)}</span>
+        <span style={style.kind}>Enlace {capitalizar(enlace.tipo)}</span>
+        <span style={style.id} title={enlace.id}>{enlace.id}</span>
       </div>
       <div style={style.summary}>
         <span>{origen ? nombreExtremo(modelo, enlace.origenId) : enlace.origenId.id}</span>
@@ -443,9 +443,9 @@ function SeccionGrupoEstructural(props: {
   };
   return (
     <div style={style.field}>
-      <span style={style.label}>Grupo estructural</span>
-      <label style={style.label}>
-        Tipo
+      <span class="opm-label-uppercase" style={style.label}>Grupo estructural</span>
+      <label style={enlaceStyles.fieldLabel}>
+        <span class="opm-label-uppercase" style={style.label}>Tipo</span>
         <select
           aria-label="Tipo estructural"
           data-testid="tipo-grupo-estructural"
@@ -473,7 +473,7 @@ function SeccionGrupoEstructural(props: {
         {faltantes > 0 ? ` ${faltantes} relación(es) plegada(s) disponibles.` : ""}
       </span>
       <div style={enlaceStyles.anclasPanel}>
-        <span style={style.label}>Anclas del símbolo</span>
+        <span class="opm-label-uppercase" style={style.label}>Anclas del símbolo</span>
         <FilaAnclaje
           label="Entrada"
           anclaje={anclajes.refinable}
@@ -660,83 +660,99 @@ function anclajeDefault(rol: keyof AnclajesSimboloEstructural): AnclajeSimboloEs
   return rol === "refinable" ? anclajeRefinableSimbolo() : anclajeRefinadorSimbolo(0, 1);
 }
 
+// Ronda 28 L3: estilos auxiliares Bauhaus. Reemplaza hex literales corporativos
+// por tokens; trazos 1px ink-15, radii 2px, mono para inputs numéricos pequeños.
 const enlaceStyles = {
   irOpd: {
     width: "100%",
     minHeight: "30px",
-    marginBottom: "12px",
+    marginBottom: `${tokens.spacing.sm}px`,
     padding: "5px 10px",
-    border: "1px solid rgb(191, 219, 254)",
-    borderRadius: "6px",
-    background: "rgb(239, 246, 255)",
-    color: "rgb(30, 64, 175)",
+    border: `${tokens.stroke.hairline}px solid ${tokens.colors.focus}`,
+    borderRadius: tokens.radii.xs,
+    background: tokens.colors.focusSoft,
+    color: tokens.colors.focus,
     cursor: "pointer",
-    fontSize: "11px",
-    fontWeight: 700,
-    textAlign: "left",
+    fontSize: `${tokens.typography.sizes.xs}px`,
+    fontWeight: tokens.typography.weights.semibold,
+    textAlign: "left" as const,
+  },
+  // Wrapper de label+input vertical. Hereda el patrón `style.field` pero como
+  // <label> envoltorio (no <div>) para que el click en el span asocie foco.
+  fieldLabel: {
+    display: "grid",
+    gap: `${tokens.spacing.xs}px`,
+    marginBottom: `${tokens.spacing.sm}px`,
   },
   checkRow: {
     display: "flex",
     alignItems: "center",
-    gap: "8px",
-    fontSize: "12px",
-    fontWeight: 700,
-    color: tokens.colors.textoPrimario,
+    gap: `${tokens.spacing.sm}px`,
+    fontSize: `${tokens.typography.sizes.sm}px`,
+    fontWeight: tokens.typography.weights.semibold,
+    color: tokens.colors.ink,
   },
   help: {
-    color: tokens.colors.textoSecundario,
-    fontSize: "11px",
-    lineHeight: 1.35,
+    color: tokens.colors.ink70,
+    fontSize: `${tokens.typography.sizes.xs}px`,
+    lineHeight: 1.5,
   },
   anclasPanel: {
     display: "grid",
-    gap: "8px",
-    padding: "8px",
-    border: `1px solid ${tokens.colors.bordeSuave}`,
-    borderRadius: "6px",
-    background: tokens.colors.fondoElevado,
+    gap: `${tokens.spacing.sm}px`,
+    padding: `${tokens.spacing.sm}px`,
+    border: `${tokens.stroke.hairline}px solid ${tokens.colors.ink15}`,
+    borderRadius: tokens.radii.xs,
+    background: tokens.colors.paper,
   },
   anclaFila: {
     display: "grid",
     gridTemplateColumns: "52px minmax(54px, 1fr) minmax(54px, 1fr)",
-    gap: "6px",
+    gap: `${tokens.spacing.xs}px`,
     alignItems: "center",
   },
   anclaLabel: {
-    fontSize: "11px",
-    fontWeight: 700,
-    color: tokens.colors.textoPrimario,
+    fontSize: `${tokens.typography.sizes.xs}px`,
+    fontWeight: tokens.typography.weights.semibold,
+    color: tokens.colors.ink,
   },
   anclaInputLabel: {
     display: "grid",
     gap: "2px",
-    fontSize: "10px",
-    fontWeight: 700,
-    color: tokens.colors.textoSecundario,
+    fontSize: `${tokens.typography.sizes.xxs}px`,
+    fontWeight: tokens.typography.weights.medium,
+    color: tokens.colors.ink70,
+    textTransform: "uppercase" as const,
+    letterSpacing: "0.08em",
   },
   anclaInput: {
     minWidth: 0,
     height: "26px",
     padding: "3px 5px",
-    border: `1px solid ${tokens.colors.bordeControl}`,
-    borderRadius: "4px",
-    fontSize: "11px",
+    border: `${tokens.stroke.hairline}px solid ${tokens.colors.ink15}`,
+    borderRadius: tokens.radii.xs,
+    fontFamily: tokens.typography.fontFamilyMono,
+    fontSize: `${tokens.typography.sizes.xs}px`,
+    color: tokens.colors.ink,
+    background: tokens.colors.paper,
+    caretColor: tokens.colors.accent,
   },
   anclaSlots: {
     gridColumn: "2 / 4",
     display: "grid",
     gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
-    gap: "4px",
+    gap: `${tokens.spacing.xs}px`,
   },
   slotButton: {
     minHeight: "24px",
     padding: "2px 4px",
-    border: `1px solid ${tokens.colors.bordeControl}`,
-    borderRadius: "4px",
-    background: tokens.colors.fondoChrome,
-    color: tokens.colors.textoPrimario,
+    border: `${tokens.stroke.hairline}px solid ${tokens.colors.ink15}`,
+    borderRadius: tokens.radii.xs,
+    background: tokens.colors.paper,
+    color: tokens.colors.ink,
     cursor: "pointer",
-    fontSize: "11px",
-    fontWeight: 700,
+    fontFamily: tokens.typography.fontFamilyMono,
+    fontSize: `${tokens.typography.sizes.xs}px`,
+    fontWeight: tokens.typography.weights.semibold,
   },
 } satisfies Record<string, preact.JSX.CSSProperties>;

@@ -163,17 +163,18 @@ export function InspectorEntidad({ entidad }: Props) {
   return (
     <>
       {/*
-        Ronda24/L1 #1: el ID interno (`o-1`, `p-3`, ...) se oculta de la UI
-        cotidiana porque ensucia el header con jerga del modelo. Sigue
-        accesible para deeplinking/debug como `title` del rótulo y como
-        atributo `data-entidad-id` en el header (consumible vía DOM o
-        herramientas de desarrollo).
+        Ronda28/L3: header Bauhaus — kind como heading editorial (Inter Tight
+        700/15, NO uppercase). ID interno en mono 10 ink-30 a la derecha.
+        Borde inferior 1.5px ink. El `data-entidad-id` se preserva para
+        deeplink/debug; el ID antes vivía sólo en `title`, ahora se muestra
+        explícito como anclaje técnico discreto (brief ronda 28 L3).
       */}
       <div style={style.header} data-entidad-id={entidad.id}>
-        <span style={style.kind} title={entidad.id}>{entidad.tipo === "objeto" ? "Objeto" : "Proceso"}</span>
+        <span style={style.kind}>{entidad.tipo === "objeto" ? "Objeto" : "Proceso"}</span>
+        <span style={style.id} title={entidad.id}>{entidad.id}</span>
       </div>
       <label style={style.field}>
-        <span style={style.label}>Nombre</span>
+        <span class="opm-label-uppercase" style={style.label}>Nombre</span>
         <input
           ref={inputNombreRef}
           data-testid="inspector-entidad-nombre"

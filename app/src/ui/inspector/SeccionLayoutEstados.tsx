@@ -45,7 +45,7 @@ export function SeccionLayoutEstados(props: Props) {
   return (
     <section style={stateStyles.section} aria-label="Estados" data-testid="inspector-seccion-estados">
       <div style={stateStyles.header}>
-        <span style={style.label}>Estados</span>
+        <span class="opm-label-uppercase" style={style.label}>Estados</span>
         {props.estados.length > 0 ? (
           <button
             type="button"
@@ -61,7 +61,7 @@ export function SeccionLayoutEstados(props: Props) {
       </div>
       {props.estados.length > 1 ? (
         <label style={style.field}>
-          <span style={style.label}>Layout</span>
+          <span class="opm-label-uppercase" style={style.label}>Layout</span>
           <select style={style.input} value={props.layout} onChange={(event) => props.onLayout(event.currentTarget.value as LayoutEstados)}>
             <option value="horizontal">Horizontal</option>
             <option value="vertical">Vertical</option>

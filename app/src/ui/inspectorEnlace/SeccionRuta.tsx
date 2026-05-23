@@ -17,7 +17,7 @@ export function SeccionRuta(props: Props) {
     <section style={sectionStyle}>
       <h3 style={titleStyle}>Ruta</h3>
       <label style={style.field}>
-        <span style={style.label}>Etiqueta</span>
+        <span class="opm-label-uppercase" style={style.label}>Etiqueta</span>
         <input data-testid="ruta-etiqueta-input" placeholder="exitoso" style={style.input} value={props.rutaEtiqueta} onInput={(event) => props.onRutaEtiqueta(event.currentTarget.value)} />
       </label>
     </section>

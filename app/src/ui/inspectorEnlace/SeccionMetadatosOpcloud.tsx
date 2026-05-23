@@ -32,7 +32,7 @@ export function SeccionMetadatosOpcloud(props: Props) {
       <h3 style={titleStyle}>OPCloud</h3>
       {props.enlace.tipo === "etiquetadoBidireccional" ? (
         <label style={style.field}>
-          <span style={style.label}>Etiqueta inversa</span>
+          <span class="opm-label-uppercase" style={style.label}>Etiqueta inversa</span>
           <input
             data-testid="backward-tag-input"
             placeholder="pertenece a"
@@ -45,7 +45,7 @@ export function SeccionMetadatosOpcloud(props: Props) {
       {enlaceAdmiteTasa(props.enlace.tipo) ? (
         <div style={grid2Style}>
           <label style={style.field}>
-            <span style={style.label}>Tasa</span>
+            <span class="opm-label-uppercase" style={style.label}>Tasa</span>
             <input
               data-testid="tasa-enlace-input"
               placeholder="10"
@@ -55,7 +55,7 @@ export function SeccionMetadatosOpcloud(props: Props) {
             />
           </label>
           <label style={style.field}>
-            <span style={style.label}>Unidades</span>
+            <span class="opm-label-uppercase" style={style.label}>Unidades</span>
             <input
               data-testid="unidades-tasa-enlace-input"
               placeholder="kg/min"
@@ -91,7 +91,7 @@ export function SeccionMetadatosOpcloud(props: Props) {
         </div>
       ) : null}
       <label style={style.field}>
-        <span style={style.label}>Requisitos satisfechos</span>
+        <span class="opm-label-uppercase" style={style.label}>Requisitos satisfechos</span>
         <input
           data-testid="requisitos-enlace-input"
           placeholder="REQ-1, REQ-2"
@@ -125,7 +125,7 @@ function CampoTiempo(props: {
   return (
     <div style={timeFieldStyle}>
       <label style={style.field}>
-        <span style={style.label}>{props.label}</span>
+        <span class="opm-label-uppercase" style={style.label}>{props.label}</span>
         <input
           data-testid={props.testid}
           placeholder="10"

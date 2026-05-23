@@ -42,7 +42,7 @@ export function SeccionMultiplicidad(props: Props) {
         <section style={cardStyle}>
           <h3 style={titleStyle}>Modificador</h3>
           <label style={style.field}>
-            <span style={style.label}>Tipo</span>
+            <span class="opm-label-uppercase" style={style.label}>Tipo</span>
             <select data-testid="modificador-enlace-select" style={style.input} value={props.enlace.modificador ?? ""} onChange={(event) => props.onModificador(event.currentTarget.value as Modificador | "")}>
               <option value="">Ninguno</option>
               <option value="condicion">Condición</option>
@@ -52,7 +52,7 @@ export function SeccionMultiplicidad(props: Props) {
           </label>
           {modificadorActual ? (
             <div style={style.field}>
-              <span style={style.label}>Subtipo</span>
+              <span class="opm-label-uppercase" style={style.label}>Subtipo</span>
               <div role="group" aria-label="Subtipo modificador" style={subtipoGroupStyle}>
                 {subtiposPermitidos(modificadorActual).map((subtipo) => (
                   <button
@@ -71,14 +71,14 @@ export function SeccionMultiplicidad(props: Props) {
           ) : null}
           {props.enlace.modificador === "evento" ? (
             <label style={style.field}>
-              <span style={style.label}>Probabilidad</span>
+              <span class="opm-label-uppercase" style={style.label}>Probabilidad</span>
               <input data-testid="probabilidad-evento-input" aria-invalid={errorProbabilidad} placeholder="0.7" style={errorProbabilidad ? inputErrorStyle : style.input} value={props.probabilidad} onInput={(event) => props.onProbabilidad(event.currentTarget.value)} />
               {errorProbabilidad ? <span role="alert" style={errorStyle}>Usa un número entre 0 y 1</span> : null}
             </label>
           ) : null}
           {props.enlace.tipo === "invocacion" ? (
             <label style={style.field}>
-              <span style={style.label}>Demora</span>
+              <span class="opm-label-uppercase" style={style.label}>Demora</span>
               <input data-testid="demora-invocacion-input" placeholder="1s, 5 min" style={style.input} value={props.demora} onInput={(event) => props.onDemora(event.currentTarget.value)} />
             </label>
           ) : null}
@@ -94,7 +94,7 @@ export function SeccionEtiquetaEnlace(props: EtiquetaProps) {
     <section style={cardStyle}>
       <h3 style={titleStyle}>Etiqueta</h3>
       <label style={style.field}>
-        <span style={style.label}>Etiqueta</span>
+        <span class="opm-label-uppercase" style={style.label}>Etiqueta</span>
         <input data-testid="enlace-etiqueta-input" aria-invalid={!errorEtiqueta.ok} placeholder="componente crítico" style={!errorEtiqueta.ok ? inputErrorStyle : style.input} value={props.etiqueta} onInput={(event) => props.onEtiqueta(event.currentTarget.value)} />
         {!errorEtiqueta.ok ? <span role="alert" style={errorStyle}>{errorEtiqueta.error}</span> : null}
       </label>
@@ -105,7 +105,7 @@ export function SeccionEtiquetaEnlace(props: EtiquetaProps) {
 function InputMult(props: { label: string; value: string; error: boolean; onInput: (value: string) => void }) {
   return (
     <label style={style.field}>
-      <span style={style.label}>{props.label}</span>
+      <span class="opm-label-uppercase" style={style.label}>{props.label}</span>
       <input aria-invalid={props.error} placeholder="1, 2..N, *" style={props.error ? inputErrorStyle : style.input} value={props.value} onInput={(event) => props.onInput(event.currentTarget.value)} />
       {props.error ? <span role="alert" style={errorStyle}>Sintaxis inválida: 1, *, 2..N o 1..5</span> : null}
     </label>

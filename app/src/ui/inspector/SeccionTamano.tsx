@@ -16,14 +16,14 @@ export function SeccionTamano({ apariencia, onRedimensionar, onAjustarTexto, onV
   return (
     <section style={local.section} aria-label="Tamaño">
       <div style={local.header}>
-        <span style={style.label}>Tamaño</span>
+        <span class="opm-label-uppercase" style={style.label}>Tamaño</span>
         <button type="button" style={modo === "manual" ? local.activeMiniButton : local.miniButton} onClick={onAlternarModo}>
           {modo === "manual" ? "Manual" : "Auto"}
         </button>
       </div>
       <div style={local.grid}>
         <label style={style.field}>
-          <span style={style.label}>Ancho</span>
+          <span class="opm-label-uppercase" style={style.label}>Ancho</span>
           <input
             style={style.input}
             type="number"
@@ -33,7 +33,7 @@ export function SeccionTamano({ apariencia, onRedimensionar, onAjustarTexto, onV
           />
         </label>
         <label style={style.field}>
-          <span style={style.label}>Alto</span>
+          <span class="opm-label-uppercase" style={style.label}>Alto</span>
           <input
             style={style.input}
             type="number"

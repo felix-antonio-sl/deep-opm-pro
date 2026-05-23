@@ -67,7 +67,7 @@ export function SeccionExtremos(props: Props) {
       </div>
       {selectores.map(({ lado, entidad, estados, actual }) => (
         <label key={lado} style={style.field}>
-          <span style={style.label}>{lado === "origen" ? "Origen" : "Destino"}</span>
+          <span class="opm-label-uppercase" style={style.label}>{lado === "origen" ? "Origen" : "Destino"}</span>
           <select
             data-testid={`extremo-${lado}-estado-select`}
             style={style.input}

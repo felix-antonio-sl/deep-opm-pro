@@ -28,7 +28,7 @@ export function SeccionReanclaje(props: Props) {
       <h3 style={titleStyle}>Reanclar a subproceso</h3>
       <div style={derivedBadgeStyle}>Derivado ({(props.enlace.derivado?.origen ?? "automatico") === "manual" ? "manual" : "automático"})</div>
       <label style={style.field}>
-        <span style={style.label}>Subproceso</span>
+        <span class="opm-label-uppercase" style={style.label}>Subproceso</span>
         <select data-testid="reanclar-subproceso-select" style={style.input} value={props.endpointSeleccionado} onChange={(event) => props.onEndpointSeleccionado(event.currentTarget.value)} disabled={reanclaje.subprocesos.length <= 1}>
           {reanclaje.subprocesos.map((subproceso, index) => <option key={subproceso.id} value={subproceso.id}>{subproceso.nombre} ({index + 1})</option>)}
         </select>

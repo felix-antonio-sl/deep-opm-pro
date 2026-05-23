@@ -55,7 +55,7 @@ export function SeccionRefinamiento(props: Props) {
             {props.modoPlegado === "parcial" ? "Plegado completo" : "Plegado parcial"}
           </button>
           <label style={style.field}>
-            <span style={style.label}>Orden de partes</span>
+            <span class="opm-label-uppercase" style={style.label}>Orden de partes</span>
             <select aria-label="Orden de partes" style={style.input} value={props.ordenPartes ?? "alfabetico"} onChange={(event) => props.onCambiarOrdenPartes(event.currentTarget.value as OrdenPartesPlegado)}>
               <option value="alfabetico">Alfabético</option>
               <option value="creacion">Creación</option>
@@ -157,7 +157,7 @@ function ReasignacionExternos(props: { modelo: Modelo; entidad: Entidad; onReasi
 
   return (
     <section style={reassignStyles.section} aria-label="Enlaces externos derivados">
-      <span style={style.label}>Enlaces externos derivados</span>
+      <span class="opm-label-uppercase" style={style.label}>Enlaces externos derivados</span>
       {rows.map((row) => (
         <ReasignacionExternoRow
           key={row.reanclaje.aparienciaEnlaceId}
@@ -182,7 +182,7 @@ function ReasignacionExternoRow(props: { opdId: Id; enlace: Enlace; reanclaje: C
         <span style={reassignStyles.badge}>{props.enlace.derivado?.origen === "manual" ? "manual" : "automático"}</span>
       </div>
       <label style={style.field}>
-        <span style={style.label}>Reasignar a subproceso</span>
+        <span class="opm-label-uppercase" style={style.label}>Reasignar a subproceso</span>
         <select data-testid={`refinamiento-reasignar-${props.reanclaje.aparienciaEnlaceId}`} style={style.input} value={seleccionado} onChange={(event) => setSeleccionado(event.currentTarget.value)}>
           {props.reanclaje.subprocesos.map((subproceso, index) => <option key={subproceso.id} value={subproceso.id}>{subproceso.nombre} ({index + 1})</option>)}
         </select>
@@ -211,7 +211,7 @@ function PartesCompactas(props: { filas: FilaPlegadoParcial[]; padreAparienciaId
   return (
     <section style={partialStyles.section} aria-label="Partes plegadas">
       <div style={partialStyles.header}>
-        <span style={style.label}>Partes</span>
+        <span class="opm-label-uppercase" style={style.label}>Partes</span>
         <button
           type="button"
           data-testid="extraer-todas-partes-btn"

@@ -70,7 +70,7 @@ export function SeccionAtributo({ entidad, derivado, onUnidad, onTipo, onValor, 
   return (
     <section style={styles.section} data-testid="inspector-seccion-atributo">
       <div style={styles.header}>
-        <span style={style.label}>Atributo</span>
+        <span class="opm-label-uppercase" style={style.label}>Atributo</span>
         <span style={styles.badge}>{slot ? "numérico" : derivado ? "objeto" : "texto"}</span>
       </div>
       <label style={style.field}>
@@ -101,7 +101,7 @@ export function SeccionAtributo({ entidad, derivado, onUnidad, onTipo, onValor, 
         </select>
       </label>
       <label style={style.field}>
-        <span style={style.label}>Valor</span>
+        <span class="opm-label-uppercase" style={style.label}>Valor</span>
         <input
           style={style.input}
           value={slot?.valor ?? ""}
@@ -146,7 +146,7 @@ export function SeccionAtributo({ entidad, derivado, onUnidad, onTipo, onValor, 
             {modo === "numerica" && puedeNumerica ? (
               <div style={styles.paramGrid}>
                 <label style={styles.compactField}>
-                  <span style={style.label}>Distribución</span>
+                  <span class="opm-label-uppercase" style={style.label}>Distribución</span>
                   <select
                     style={styles.select}
                     value={numericConfig.distribucion}
@@ -195,7 +195,7 @@ export function SeccionAtributo({ entidad, derivado, onUnidad, onTipo, onValor, 
             ) : null}
             {modo === "textual" ? (
               <label style={style.field}>
-                <span style={style.label}>Valores ponderados</span>
+                <span class="opm-label-uppercase" style={style.label}>Valores ponderados</span>
                 <textarea
                   style={styles.textarea}
                   value={textoTextual(textualConfig.valores)}
@@ -214,7 +214,7 @@ export function SeccionAtributo({ entidad, derivado, onUnidad, onTipo, onValor, 
 function NumeroInput({ label, value, onInput, testid }: { label: string; value: number | undefined; onInput: (value: string) => void; testid: string }) {
   return (
     <label style={styles.compactField}>
-      <span style={style.label}>{label}</span>
+      <span class="opm-label-uppercase" style={style.label}>{label}</span>
       <input
         type="number"
         style={style.input}

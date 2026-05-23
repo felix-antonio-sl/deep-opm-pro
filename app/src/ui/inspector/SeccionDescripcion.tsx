@@ -14,7 +14,7 @@ interface Props {
 export function SeccionDescripcion(props: Props) {
   return (
     <label style={style.field} data-testid="inspector-seccion-descripcion">
-      <span style={style.label}>Descripción</span>
+      <span class="opm-label-uppercase" style={style.label}>Descripción</span>
       <textarea
         data-testid="seccion-descripcion-cosa"
         style={advancedStyles.textarea}
@@ -25,16 +25,22 @@ export function SeccionDescripcion(props: Props) {
   );
 }
 
+// Ronda 28 L3: textarea Bauhaus — border 1px ink-15, padding 7 10, caret cinabrio.
 const advancedStyles = {
   textarea: {
     width: "100%",
     minHeight: "72px",
-    padding: "8px",
-    border: `1px solid ${tokens.colors.bordeControl}`,
-    borderRadius: tokens.radii.sm,
-    outlineColor: tokens.colors.chromeNeutral,
-    resize: "vertical",
+    padding: "7px 10px",
+    border: `${tokens.stroke.hairline}px solid ${tokens.colors.ink15}`,
+    borderRadius: tokens.radii.xs,
+    outlineColor: tokens.colors.focus,
+    caretColor: tokens.colors.accent,
+    background: tokens.colors.paper,
+    color: tokens.colors.ink,
+    resize: "vertical" as const,
     fontFamily: tokens.typography.familyChrome,
-    fontSize: "12px",
+    fontSize: `${tokens.typography.sizes.base}px`,
+    lineHeight: 1.5,
+    boxSizing: "border-box" as const,
   },
 } satisfies Record<string, preact.JSX.CSSProperties>;

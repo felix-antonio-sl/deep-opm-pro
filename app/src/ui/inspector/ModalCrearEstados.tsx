@@ -81,7 +81,7 @@ export function ModalCrearEstados(props: Props) {
             : `Agregar un estado visible a ${props.entidad.nombre}.`}
         </p>
         <label style={style.field}>
-          <span style={style.label}>{props.modo === "iniciales" ? "Nombre estado 1" : "Nombre del estado"}</span>
+          <span class="opm-label-uppercase" style={style.label}>{props.modo === "iniciales" ? "Nombre estado 1" : "Nombre del estado"}</span>
           <input
             ref={inputRef}
             type="text"
@@ -97,7 +97,7 @@ export function ModalCrearEstados(props: Props) {
         </label>
         {props.modo === "iniciales" ? (
           <label style={style.field}>
-            <span style={style.label}>Nombre estado 2</span>
+            <span class="opm-label-uppercase" style={style.label}>Nombre estado 2</span>
             <input
               type="text"
               value={nombre2}
