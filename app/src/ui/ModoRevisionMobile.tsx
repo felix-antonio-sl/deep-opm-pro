@@ -91,6 +91,11 @@ export function AvisoEditarEnEscritorio() {
   );
 }
 
+// Ronda 28 L6 (Bauhaus): tab base monocroma + subrayado 1.5px ink top
+// en activa. Sin fondo cromático. Glifo en JetBrains Mono 18px ink;
+// etiqueta Inter Tight 11px ink-70. La barra es paper con border-top
+// 1.5px ink. La tab activa eleva al ink el color del glifo+etiqueta y
+// dibuja el subrayado top (no usa fondo).
 const baseTab: preact.JSX.CSSProperties = {
   flex: "1 1 0",
   minWidth: 0,
@@ -99,17 +104,21 @@ const baseTab: preact.JSX.CSSProperties = {
   flexDirection: "column",
   alignItems: "center",
   justifyContent: "center",
-  gap: `${tokens.spacing.xs}px`,
+  gap: "4px",
   padding: `0 ${tokens.spacing.xs}px`,
-  border: 0,
+  borderTop: `${tokens.stroke.base}px solid transparent`,
+  borderLeft: 0,
+  borderRight: 0,
+  borderBottom: 0,
   borderRadius: 0,
-  background: tokens.mobileNav.fondoTabInactivo,
-  color: tokens.mobileNav.textoTabInactivo,
+  background: tokens.colors.paper,
+  color: tokens.colors.ink70,
   cursor: "pointer",
-  fontFamily: tokens.typography.familyChrome,
-  fontSize: `${tokens.mobileNav.etiquetaSize}px`,
-  fontWeight: tokens.mobileNav.etiquetaPesoInactivo,
+  fontFamily: tokens.typography.fontFamily,
+  fontSize: `${tokens.typography.sizes.xs}px`,
+  fontWeight: tokens.typography.weights.medium,
   lineHeight: 1,
+  transition: `color ${tokens.transitions.fast}, border-color ${tokens.transitions.fast}`,
 };
 
 const style = {
@@ -119,37 +128,40 @@ const style = {
     width: "100%",
     height: `${tokens.mobileNav.altoBarra}px`,
     minHeight: `${tokens.mobileNav.altoBarra}px`,
-    background: tokens.mobileNav.fondoBarra,
-    borderTop: `1px solid ${tokens.mobileNav.bordeBarra}`,
+    background: tokens.colors.paper,
+    borderTop: `${tokens.stroke.base}px solid ${tokens.colors.ink}`,
   } as preact.JSX.CSSProperties,
   tabInactiva: baseTab,
   tabActiva: {
     ...baseTab,
-    background: tokens.mobileNav.fondoTabActivo,
-    color: tokens.mobileNav.textoTabActivo,
-    fontWeight: tokens.mobileNav.etiquetaPesoActivo,
+    borderTopColor: tokens.colors.ink,
+    color: tokens.colors.ink,
+    fontWeight: tokens.typography.weights.semibold,
   } as preact.JSX.CSSProperties,
   icono: {
-    fontSize: `${tokens.mobileNav.iconoTamano}px`,
+    fontFamily: tokens.typography.fontFamilyMono,
+    fontSize: 18,
     lineHeight: 1,
-    fontWeight: tokens.typography.weights.bold,
+    fontWeight: 500,
+    color: "inherit",
   } as preact.JSX.CSSProperties,
   etiqueta: {
     whiteSpace: "nowrap",
     overflow: "hidden",
     textOverflow: "ellipsis",
     maxWidth: "100%",
+    color: "inherit",
   } as preact.JSX.CSSProperties,
   avisoEdicion: {
     margin: 0,
     padding: `${tokens.spacing.sm}px ${tokens.spacing.md}px`,
-    background: tokens.mobileNav.fondoAvisoEdicion,
-    color: tokens.mobileNav.textoAvisoEdicion,
-    fontFamily: tokens.typography.familyChrome,
+    background: tokens.colors.paper,
+    color: tokens.colors.ink70,
+    fontFamily: tokens.typography.fontFamily,
     fontSize: `${tokens.typography.sizes.sm}px`,
     fontWeight: tokens.typography.weights.medium,
     textAlign: "center",
-    borderTop: `1px solid ${tokens.colors.bordeIntermedio}`,
+    borderTop: `1px solid ${tokens.colors.ink15}`,
   } as preact.JSX.CSSProperties,
 } satisfies Record<string, preact.JSX.CSSProperties>;
 
