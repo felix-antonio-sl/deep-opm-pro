@@ -384,6 +384,13 @@ Toda cosa OPM se renderiza como una de exactamente **8** combinaciones:
 
 ## 4. Reglas gramaticales OPL-ES
 
+### 4.0 Contrato textual OPL-ES (`SSOT-opl §0`)
+
+- **R-OPL-TEXT-1**: OPL-ES es la capa textual canónica del corpus OPM-ES; toda superficie textual generada o aceptada como canónica DEBE obedecer `SSOT-opl`.
+- **R-OPL-TEXT-2**: OPL-ES DEBE fijar solo superficie léxica, sintáctica y plantillas textuales; NO DEBE redefinir semántica OPM ni gramática visual OPD.
+- **R-OPL-TEXT-3**: toda mención textual de enlaces, refinamientos, cardinalidades u operadores DEBE heredar semántica de `opm-iso-19450-es.md` y geometría de `opm-visual-es.md`.
+- **R-OPL-TEXT-4**: OPL-ES DEBE preservar equivalencia semántica bidireccional entre OPL-EN y OPL-ES.
+
 ### 4.1 Convenciones tipográficas Markdown (`SSOT-opl §1.7`)
 
 | Entidad | Convención | Patrón permitido |
@@ -392,7 +399,8 @@ Toda cosa OPM se renderiza como una de exactamente **8** combinaciones:
 | Proceso | *cursiva* | *Cocinar* |
 | Estado | `monoespaciado` | `crudo` |
 
-Obligatorio en todo OPL emitido por el modelador.
+- **R-OPL-TYPO-1**: todo OPL Markdown emitido por el modelador DEBE representar objetos en negrita, procesos en cursiva y estados en monoespaciado.
+- **R-OPL-TYPO-2**: colores, contornos, sombreados y atributos visuales NO forman parte del contrato OPL-ES.
 
 ### 4.2 Decisiones de diseño OPL-ES (`§1`)
 
@@ -404,6 +412,11 @@ Obligatorio en todo OPL emitido por el modelador.
   - "al menos" en operadores lógicos.
 - **R-OPL-4**: posición del estado: en OPL-ES el estado **sigue** al objeto con preposición "en": `**Usuario** en `activo` maneja *Procesar*` (`§1.9`).
 - **R-OPL-5**: voz pasiva refleja: `se consume`, `se omite` (no `es consumido`, `es omitido`) (`§1.10`).
+- **R-OPL-6** (`§1.8`): OPL-ES DEBE preservar el orden sujeto-verbo-complemento de cada plantilla OPL-EN.
+- **R-OPL-7**: OPL-ES NO DEBE reordenar la oración si ello rompe correspondencia estructural con OPL-EN o análisis bidireccional.
+- **R-OPL-8** (`§1.6`): la preposición personal `a` DEBE omitirse para objetos directos OPM.
+- **R-OPL-9** (`A.3`): un identificador de proceso PUEDE aparecer como `nombre_singular_de_proceso` o `nombre_singular_de_proceso proceso`.
+- **R-OPL-10** (`A.3`): un identificador de objeto PUEDE incluir unidad de medida y cláusula de rango; si se emiten, DEBEN parsearse como parte del identificador textual del objeto.
 
 ### 4.3 Vocabulario fijo de verbos (`§2`)
 
@@ -427,11 +440,43 @@ Obligatorio en todo OPL emitido por el modelador.
 | Especialización singular | es un / es una |
 | Instanciación | es una instancia de |
 | Relación sin etiqueta | se relaciona con |
+| Variación de rango | varía de … a |
 | Tipo | es de tipo |
 | Enumeración de estados | puede estar |
 | Descomposición | se descompone en … en esa secuencia |
 | Despliegue | se despliega en |
 | Refinamiento entre OPDs | se refina por descomposición de … en |
+| Plegado | se pliega en |
+| Recomposición | se recompone desde |
+
+- **R-OPL-VERB-1**: los verbos fijos DEBEN emitirse en tercera persona singular del presente indicativo cuando la plantilla no indique otra forma.
+- **R-OPL-VERB-2**: el parser DEBE tratar el primer verbo conjugado fijo como ancla léxica primaria para detectar idioma EN/ES.
+
+**Palabras clave fijas (`SSOT-opl §2`):**
+
+| Función | OPL-ES |
+|---|---|
+| Condicional | si |
+| Consecuencia | en cuyo caso |
+| Alternativa | de lo contrario |
+| Origen | de |
+| Destino | a |
+| Conjunción copulativa | y / e ante `i-` o `hi-` |
+| Conjunción disyuntiva | o / u ante `o-` o `ho-` |
+| Adición heterogénea | así como |
+| XOR | exactamente uno de |
+| OR | al menos uno de |
+| Colección incompleta | al menos otro/a |
+| Opcionalidad | un/una opcional |
+| Cardinalidad inferior | al menos un/una |
+| Ruta | por ruta |
+| Duración | duración de |
+| Sobretiempo | excede |
+| Subtiempo | es menor que |
+| Secuencia | en esa secuencia |
+
+- **R-OPL-KW-1**: las palabras clave fijas DEBEN emitirse exactamente como tokens OPL-ES, salvo alternancia morfofonológica `y/e` y `o/u`.
+- **R-OPL-KW-2**: la alternancia `y/e` y `o/u` DEBE aplicarse solo por condición fonética del siguiente término.
 
 ### 4.4 Plantillas — cosas (`§3`)
 
@@ -450,6 +495,10 @@ Obligatorio en todo OPL emitido por el modelador.
 | D11 | **Cosa** es persistente. |
 | D12 | **Cosa** es transitoria. |
 | D13 | Estado `s` de **Objeto** es declarado `Current`. |
+
+- **R-OPL-PERSIST-1** (`SSOT-opl §3.4`): OPL-ES NO define familia verbal adicional para procesos persistentes.
+- **R-OPL-PERSIST-2**: si un proceso persistente permanece explícito, su realización textual canónica DEBE usar TS3 con estado de entrada igual a estado de salida.
+- **R-OPL-PERSIST-3**: si la temporalidad sostenida no es semánticamente central, la superficie textual PUEDE simplificarse mediante enlace estructural etiquetado según la política metodológica.
 
 ### 4.5 Plantillas — enlaces transformadores (`§4`)
 
@@ -509,6 +558,9 @@ Obligatorio en todo OPL emitido por el modelador.
 
 **Crítico**: NO existen `CT3` (condición de resultado simple) ni `CS-resultado` (condición de resultado con estado). La SSOT-OPL §7 NO contiene plantilla CT/CS para resultado (esta es la regla que motivó este documento).
 
+- **R-OPL-COND-ALT-1** (`A.6`): el parser OPL-ES DEBE aceptar la variante de consumo condicional `Si **Objeto** existe entonces *Proceso* ocurre y consume **Objeto**, de lo contrario se omite *Proceso*.`.
+- **R-OPL-COND-ALT-2**: el generador canónico DEBE preferir CT1 sobre la variante alternativa de R-OPL-COND-ALT-1, salvo modo de preservación de superficie.
+
 ### 4.9 Plantillas — excepción e invocación (`§8`)
 
 | ID | OPL-ES |
@@ -533,8 +585,24 @@ Obligatorio en todo OPL emitido por el modelador.
 | RF3 | **Especialización1** y **Especialización2** son **General**. |
 | RF3b | **Especialización** es un **General**. |
 | RF4 | **Instancia** es una instancia de **Clase**. |
+| RF4b | **Instancia1** y **Instancia2** son instancias de **Clase**. |
+| RX1 | **Especial** puede ser **General1** o **General2**. |
+| RX2 | **Especial** puede ser uno de **General1**, **General2** o **General3**. |
+| RH1 | **Especial** es un **General1** y un **General2**. |
 
 **Colecciones incompletas** (`§9.3`): `… y al menos otra parte / otro rasgo / otra especialización.`
+
+- **R-OPL-SE-1** (`SSOT-opl §9.1`, `A.8`): una etiqueta estructural definida por el modelador DEBE ser frase breve en minúscula y funcionar como verbo o predicado nominal de la oración.
+- **R-OPL-SE-2** (`A.8`): los enlaces estructurales etiquetados OPL-ES DEBEN emitirse como objeto↔objeto o proceso↔proceso; mezclas objeto↔proceso pertenecen a exhibición-caracterización cuando son canónicas.
+- **R-OPL-SE-3**: los estructurales etiquetados PUEDEN incluir restricciones de participación en origen y destino.
+- **R-OPL-SE-4**: una oración estructural etiquetada PUEDE ser bifurcada hacia listas de objetos o procesos, con `ordenados por` o `en esa secuencia` cuando el orden sea parte de la superficie.
+- **R-OPL-SE-5** (`A.8`): `se relaciona con` y `se relacionan` son etiquetas nulas canónicas; una etiqueta nula definida por usuario solo es válida si conserva trazabilidad como etiqueta de usuario.
+- **R-OPL-RF-1** (`A.9`): agregación, caracterización, especialización e instanciación DEBEN soportar variantes de objeto y de proceso cuando la semántica OPM lo permita.
+- **R-OPL-RF-2**: la caracterización DEBE usar `exhibe`; el alias `exhibición` NO DEBE introducir una producción adicional que genere ambigüedad.
+- **R-OPL-RF-3**: especialización de estado DEBE expresarse como lista de objetos con estado que son un objeto con estado general.
+- **R-OPL-RF-4**: instanciación plural DEBE emitirse como `son instancias de`.
+- **R-OPL-RF-5**: especialización XOR DEBE emitirse con `puede ser` o `puede ser uno de`.
+- **R-OPL-RF-6**: herencia múltiple textual DEBE emitirse con una lista de generales unidos por artículos `un/una`.
 
 **Estructurales con estado especificado** (`§9.4`, `SSE1`–`SSE7`):
 
@@ -566,10 +634,24 @@ Obligatorio en todo OPL emitido por el modelador.
 | CM2 | SD1.1 referencia el sub-modelo Modelo Subsistema desde SD1. |
 | CM3 | **Cosa** en SD1.1 es referencia externa a **Cosa** del modelo propietario Modelo Principal. |
 
+- **R-OPL-CX-ID-1** (`SSOT-opl §10.3`): toda oración de refinamiento entre OPDs que use etiqueta visible `SDx.y` DEBE mapearse a identificador persistente recuperable en serialización.
+- **R-OPL-CM-1** (`SSOT-opl §10.4`): las oraciones CM1–CM3 NO reemplazan la gramática interna de cada modelo; solo describen composición entre modelos y referencias externas.
+- **R-OPL-CX-1** (`A.10`): OPL-ES DEBE soportar despliegue de objeto y de proceso por partes, especialización, instanciación o rasgos.
+- **R-OPL-CX-2**: un despliegue en nuevo OPD DEBE declarar OPD padre, OPD hijo y lista de refinadores.
+- **R-OPL-CX-3**: una descomposición PUEDE ocurrir en el mismo diagrama o en nuevo diagrama; si ocurre en nuevo diagrama, DEBE declarar OPD padre y OPD hijo.
+- **R-OPL-CX-4**: OPL-ES DEBE soportar descomposición de procesos y objetos.
+- **R-OPL-CX-5**: una descomposición PUEDE ser secuencial, paralela o mixta; la forma mixta DEBE preservar qué subprocesos están en paralelo dentro de la secuencia.
+- **R-OPL-CX-6**: una descomposición PUEDE incluir objetos o procesos internos de zoom mediante `así como`.
+- **R-OPL-CX-7**: plegado DEBE referir al OPD padre; recomposición DEBE referir al OPD hijo origen.
+
 ### 4.12 Etiquetas de ruta (`§13`)
 
 `Por ruta etiqueta, *Proceso* consume **Objeto**.`
 `Por ruta etiqueta, *Proceso* genera **Objeto**.`
+
+- **R-OPL-RUTA-1** (`SSOT-opl §13`): `Por ruta` es expresión fija.
+- **R-OPL-RUTA-2**: la etiqueta de ruta DEBE ser nombre definido por el modelador.
+- **R-OPL-RUTA-3** (`A.5`): una oración de ruta PUEDE prefijar una oración procedimental; el canon local solo emite consumo/resultado salvo extensión documentada.
 
 ### 4.13 Atributos y valores (`§14`)
 
@@ -588,13 +670,56 @@ Obligatorio en todo OPL emitido por el modelador.
 
 ### 4.14 EBNF normativa
 
-La EBNF formal completa vive en `SSOT-opl Apéndice A` (A.0–A.10). Cualquier divergencia entre §17 (explicativo) y Apéndice A se resuelve a favor del Apéndice (`SSOT-opl §17`).
+- **R-OPL-EBNF-1** (`SSOT-opl Apéndice A`): la EBNF formal completa de OPL-ES es normativa para parseo y generación.
+- **R-OPL-EBNF-2**: cualquier divergencia entre `SSOT-opl §17` y Apéndice A DEBE resolverse a favor del Apéndice A.
+- **R-OPL-EBNF-3**: los no terminales normativos del Apéndice A DEBEN escribirse en `snake_case`; nombres con espacios de §17 son explicativos.
+- **R-OPL-EBNF-4** (`A.1`): un párrafo OPL-ES DEBE ser una secuencia de oraciones OPL-ES separadas por saltos de línea.
+- **R-OPL-EBNF-5**: toda oración OPL-ES formal DEBE terminar con punto.
+- **R-OPL-EBNF-6**: una oración formal OPL-ES DEBE pertenecer a descripción de cosa, procedimental, estructural o gestión de contexto.
+- **R-OPL-LEX-1** (`A.2`): el alfabeto léxico OPL-ES DEBE admitir letras ASCII, vocales acentuadas, `ñ` y `ü` en mayúscula/minúscula.
+- **R-OPL-LEX-2**: `caracter_de_cadena` DEBE limitarse a letra, dígito decimal, guion y guion bajo.
+- **R-OPL-LEX-3**: `nombre_simple` DEBE comenzar con letra.
+- **R-OPL-TIPO-1** (`A.2`, `A.4`): `tipo-id` DEBE ser `boolean`, `string`, tipo numérico o `enumerated`.
+- **R-OPL-TIPO-2**: un tipo numérico PUEDE usar prefijo `unsigned` o `signed`.
+- **R-OPL-PART-1** (`A.2`): restricciones de participación textuales DEBEN usar `un/una`, `un/una opcional`, `al menos un/una`, `exactamente un/una`, `al menos dos`, `dos o más`, o límites numéricos/paramétricos.
+- **R-OPL-RANGO-1** (`A.2`): un rango textual DEBE usar `valor`, `varía de X a Y`, o intervalos `[..]`/`(..)` con extremo abierto `*` cuando aplique.
+- **R-OPL-RANGO-2** (`A.7`): una restricción de expresión DEBE iniciar con `donde`.
+- **R-OPL-RANGO-3**: operaciones lógicas ASCII `=`, `<`, `>`, `<=`, `>=` son la superficie EBNF normativa; símbolos Unicode equivalentes DEBEN normalizarse o declararse como extensión de visualización.
+- **R-OPL-CONJ-1** (`A.7`): restricciones de pertenencia a conjunto DEBEN emitirse con `en { ... }`.
+- **R-OPL-LISTA-1** (`A.3`, `A.7`): listas OPL-ES DEBEN separar elementos intermedios con coma y el último con `y` u `o` según la producción.
+- **R-OPL-LISTA-2**: listas bifurcadas PUEDEN terminar en `más`, `ordenados por criterio` o `en esa secuencia` solo cuando la producción lo permita.
 
 ### 4.15 Equivalencia EN↔ES de ida y vuelta (`§18.4`)
 
 - **R-OPL-EQ-1**: una sentencia OPL-ES PUEDE usar infinitivo o nominalización `-ción`.
 - **R-OPL-EQ-2**: superficies equivalentes DEBEN mapear al mismo nombre canónico interno por cosa cuando así lo declare el modelo.
 - **R-OPL-EQ-3**: la traducción EN→ES→EN DEBE preservar el hecho del modelo, no la superficie literal.
+- **R-OPL-EQ-4**: una herramienta NO DEBE forzar exclusivamente infinitivo; la normalización de superficie DEBE ser política editorial configurable del modelo.
+- **R-OPL-EQ-5**: un modelo interno OPD DEBE permanecer invariante ante cambio de idioma OPL.
+
+### 4.16 Transformación sistemática EN→ES (`SSOT-opl §15`)
+
+- **R-OPL-TRANS-1**: la transformación EN→ES DEBE aplicar mapeo de verbo principal antes de los demás reemplazos.
+- **R-OPL-TRANS-2**: un modificador de estado que precede al objeto en EN DEBE moverse después del objeto con `en` en ES.
+- **R-OPL-TRANS-3**: `Object is state` DEBE transformarse en `**Objeto** está en `estado``.
+- **R-OPL-TRANS-4**: `can be` DEBE transformarse en `puede estar`.
+- **R-OPL-TRANS-5**: `from`, `to` y `of` DEBEN transformarse en `de`, `a` y `de`, respectivamente.
+- **R-OPL-TRANS-6**: `exactly one of` y `at least one of` DEBEN transformarse en `exactamente uno de` y `al menos uno de`.
+- **R-OPL-TRANS-7**: `if`, `in which case` y `otherwise/else` DEBEN transformarse en `si`, `en cuyo caso` y `de lo contrario`.
+- **R-OPL-TRANS-8**: pasivas `is consumed` e `is skipped` DEBEN transformarse en `se consume` y `se omite`.
+- **R-OPL-TRANS-9**: `Following path` DEBE transformarse en `Por ruta`.
+- **R-OPL-TRANS-10**: las designaciones `initial`, `final`, `default` y `declared current` DEBEN transformarse en `inicial`, `final`, `por defecto` y `declarado `Current``.
+- **R-OPL-TRANS-11**: nombres de entidades NO DEBEN traducirse por regla automática salvo política explícita del modelo.
+
+### 4.17 Política de idioma y modelos mixtos (`SSOT-opl §18`)
+
+- **R-OPL-LANG-1**: una herramienta bilingüe DEBE detectar idioma de una sentencia por verbo principal fijo cuando sea posible.
+- **R-OPL-LANG-2**: el idioma OPL canónico DEBE elegirse a nivel de usuario o modelo sin alterar el OPD subyacente.
+- **R-OPL-LANG-3**: cambiar idioma OPL DEBE regenerar el párrafo OPL completo, no editar parcialmente una superficie mixta.
+- **R-OPL-LANG-4**: una herramienta NO DEBE mezclar OPL-EN y OPL-ES dentro del mismo párrafo generado salvo habilitación explícita del usuario.
+- **R-OPL-LANG-5**: modelos mixtos EN/ES solo PUEDEN existir como revisión o migración; NO DEBEN ser estado estable por defecto.
+- **R-OPL-LANG-6**: una herramienta multilingüe DEBE mantener OPL local autocontenido por modelo individual cuando existan sub-modelos.
+- **R-OPL-LANG-7**: una especificación textual global de modelo compuesto NO DEBE inferirse únicamente desde navegación visible del árbol OPD; DEBE conservar frontera entre modelos e identificador persistente de cada OPD.
 
 ---
 
@@ -610,7 +735,7 @@ Toda relación expresable por enlace en un OPD conforme pertenece a **exactament
 | 2 | Habilitadora procedimental | Objeto → Proceso | H1, H2, HS1, HS2 |
 | 3 | Invocación procedimental | Proceso → Proceso | IV1, IV2 |
 | 4 | Estructural fundamental | Cosa ↔ Cosa (con restricciones) | RF1–RF4 |
-| 5 | Estructural etiquetada | Cosa ↔ Cosa | SE1–SE5, SSE1–SSE7 |
+| 5 | Estructural etiquetada | Objeto ↔ Objeto o Proceso ↔ Proceso | SE1–SE5, SSE1–SSE7 |
 
 ### 5.2 Enlaces transformadores (`SSOT-iso §Enlaces transformadores`)
 
@@ -1792,6 +1917,53 @@ Al editar OPD:
 | UI | Handles, overlays, grid, tutorial, validacion y runtime se separan del canon? | un canal UI reutiliza contorno, sombra, piruleta, triangulo o halo semantico |
 | Export | El perfil declara canon-diagrama/canon-documento y recursos? | captura raster o screenshot se toma como prueba de canonicidad |
 | Deuda | Toda zona no canonizada queda registrada como extension o bloqueo? | se acepta silenciosamente una construccion sin soporte SSOT |
+
+### Anexo F — Índice exhaustivo de cobertura `SSOT-opl`
+
+- **R-ANEXO-OPL-1**: este índice DEBE cubrir todas las secciones prescriptivas de `opm-opl-es.md` v3.0.0.
+- **R-ANEXO-OPL-2**: si una sección OPL aparece aquí, su regla local DEBE aplicarse aunque no haya una tabla desarrollada en el cuerpo.
+- **R-ANEXO-OPL-3**: el Apéndice A de `SSOT-opl` DEBE tratarse como fuente normativa de parseo/generación; el cuerpo explicativo de `SSOT-opl §17` solo orienta adaptación EN→ES.
+
+| Fuente OPL | Cobertura local prescriptiva |
+|---|---|
+| §0 Alcance y contrato editorial | R-OPL-TEXT-1..4 |
+| §1.1 Denominación de procesos | §2.4, R-OPL-9, R-OPL-EQ-1..4 |
+| §1.2 Denominación de objetos | §2.4, R-OPL-10 |
+| §1.3 Denominación de estados | §2.4, R-OPL-LEX-1..3 |
+| §1.4 Género gramatical | R-OPL-1 |
+| §1.5 Ser vs estar | R-OPL-2 |
+| §1.6 Artículos y preposiciones | R-OPL-3, R-OPL-8 |
+| §1.7 Tipografía Markdown | R-OPL-TYPO-1..2 |
+| §1.8 Orden canónico | R-OPL-6..7 |
+| §1.9 Estado especificado | R-OPL-4, R-OPL-TRANS-2 |
+| §1.10 Voz pasiva | R-OPL-5, R-OPL-TRANS-8 |
+| §2 Verbos y palabras clave | §4.3, R-OPL-VERB-1..2, R-OPL-KW-1..2 |
+| §3 Descripción de entidades | §4.4, R-OPL-PERSIST-1..3 |
+| §4 Transformadores | §4.5, R-ESCIND-1..3 |
+| §5 Habilitadores | §4.6 |
+| §6 Eventos | §4.7, §6.1..6.4 |
+| §7 Condiciones | §4.8, R-OPL-COND-ALT-1..2 |
+| §8 Excepción e invocación | §4.9, §5.4, §5.7 |
+| §9 Estructurales | §4.10, R-OPL-SE-1..5, R-OPL-RF-1..6 |
+| §10 Gestión de contexto | §4.11, R-OPL-CX-ID-1, R-OPL-CM-1, R-OPL-CX-1..7 |
+| §11 Operadores lógicos | §7.3..7.5, R-FAN-EST-1, R-FAN-PROB-1 |
+| §12 Cardinalidad y tipo | §6.7, R-OPL-TIPO-1..2, R-OPL-PART-1, R-OPL-RANGO-1..3 |
+| §13 Etiquetas de ruta | §4.12, R-OPL-RUTA-1..3 |
+| §14 Atributos y valores | §4.13, R-ATR-1..6 |
+| §15 Transformación EN→ES | R-OPL-TRANS-1..11 |
+| §16 Ejemplo completo | Cubierto solo como patrón de aplicación; no se incorpora como regla independiente. |
+| §17 Adaptaciones EBNF | R-OPL-EBNF-1..3, R-OPL-TRANS-1..11 |
+| A.1 Estructura del documento | R-OPL-EBNF-4..6 |
+| A.2 Declaraciones base | R-OPL-LEX-1..3, R-OPL-TIPO-1..2, R-OPL-PART-1, R-OPL-RANGO-1..3 |
+| A.3 Identificadores | §2.4, R-OPL-9..10, R-OPL-LISTA-1 |
+| A.4 Descripción de cosas | §4.4 |
+| A.5 Procedimentales | §4.5..4.9, §4.12 |
+| A.6 Condición | §4.8, R-OPL-COND-ALT-1..2 |
+| A.7 Producciones adicionales | R-OPL-RANGO-2..3, R-OPL-CONJ-1, R-OPL-LISTA-1..2, R-OPL-RF-5..6 |
+| A.8 Estructurales etiquetados | R-OPL-SE-1..5 |
+| A.9 Estructuras fundamentales | R-OPL-RF-1..6 |
+| A.10 Gestión de contexto | R-OPL-CX-1..7 |
+| §18 Implementación | R-OPL-LANG-1..7, R-OPL-EQ-4..5 |
 
 ---
 

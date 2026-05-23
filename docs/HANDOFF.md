@@ -4,7 +4,7 @@
 **Repositorio**: `deep-opm-pro`
 **Rama**: `main`
 **Ultimo corte funcional**: `BUG-20260523T201251Z-afcfbe` corrige de raíz la creación inicial: las cosas nacen alrededor del centro geométrico del canvas y el viewport se enfoca en ese centro.
-**Ultimo commit en main**: `fix(canvas): seed new diagrams at canvas center` (commit de este cierre).
+**Ultimo commit en main**: `docs(opm): prescribe opl ssot in strict canon` (commit de este cierre).
 **Ultimo corte deploy**: `docker compose up -d --build` ejecutado; `opforja` queda healthy y el sidecar reporta 11 activos/59 históricos, todos los activos `Resuelto`. URL pública `https://opforja.sanixai.com/` responde `401` por Basic Auth de Traefik.
 **Corte**: los 11 bugs/features activos del ledger quedan en estado `Resuelto`; las carpetas `BUG-*` capturadas siguen como artefactos locales no versionados salvo decisión explícita.
 
@@ -24,6 +24,37 @@
 - JointJS OSS: usar documentación oficial viva cuando se toque JointJS.
 
 ## Estado Actual
+
+### Cierre Canon Prescriptivo OPL SSOT — 2026-05-23
+
+Estado actual:
+
+- `docs/canon-opm/reglas-opm-estrictas.md` incorpora la cobertura prescriptiva integral de `/home/felix/kora/artifacts/knowledge/fxsl/opm/opm-ssot-es/opm-opl-es.md`.
+- El canon local cubre contrato textual OPL-ES, tipografía Markdown, orden oracional, verbos y palabras clave fijas, procesos persistentes, plantillas procedurales, enlaces estructurales, contexto, rutas, atributos, EBNF, transformación EN->ES y política de idioma/modelos mixtos.
+- Se agrega el `Anexo F — Índice exhaustivo de cobertura SSOT-opl`, que mapea cada sección normativa y cada bloque del Apéndice A contra reglas locales.
+- El cierre es documental: no modifica parser, render, validadores ni comportamiento de `app/`.
+
+Decisiones consolidadas:
+
+- **Solo reglas**: el documento local debe permanecer totalmente prescriptivo; no se añaden tutoriales, ejemplos narrativos ni justificaciones sin efecto normativo.
+- **Apéndice A manda la gramática formal**: la sección 17 de la SSOT OPL queda tratada como adaptación explicativa; el Apéndice A queda como forma normativa que debe poder implementarse.
+- **Idioma OPL explícito**: el idioma canónico se fija por usuario/modelo; cambiar idioma regenera el párrafo completo y no debe mezclar EN/ES salvo habilitación explícita de migración.
+- **Estructural etiquetada corregida**: la firma local pasa de `Cosa <-> Cosa` a `Objeto <-> Objeto` o `Proceso <-> Proceso`; la caracterización objeto-proceso queda en exhibición.
+- **Operadores de rango normalizados**: ASCII es la forma parseable normativa; operadores Unicode se aceptan solo como normalización o extensión de visualización.
+- **Commit aislado**: los artefactos `docs/bugs/BUG-*` sin seguimiento quedan fuera del cierre normativo.
+
+Artefactos relevantes:
+
+- [docs/canon-opm/reglas-opm-estrictas.md](/home/felix/projects/deep-opm-pro/docs/canon-opm/reglas-opm-estrictas.md)
+- [docs/HANDOFF.md](/home/felix/projects/deep-opm-pro/docs/HANDOFF.md)
+- `/home/felix/kora/artifacts/knowledge/fxsl/opm/opm-ssot-es/opm-opl-es.md`
+
+Verificación:
+
+- `git diff --check -- docs/canon-opm/reglas-opm-estrictas.md`
+- IDs `R-*` duplicados: sin duplicados.
+- Patrones narrativos prohibidos en canon: sin coincidencias para `Esta sección`, `Cita normativa`, `Descripción ASCII`, `Ejemplos aplicados`, `Por qué no canon`.
+- `git diff --stat -- docs/canon-opm/reglas-opm-estrictas.md`: `175 insertions(+), 3 deletions(-)`.
 
 ### Cierre BUG-20260523T201251Z-afcfbe — 2026-05-23
 
