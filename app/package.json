@@ -18,6 +18,7 @@
     "visual:audit": "node scripts/in-vivo-test.mjs",
     "visual:deep": "node scripts/in-vivo-deep-checks.mjs",
     "ux:eval": "bun run scripts/evaluacion-ux-permanente.mjs",
+    "bug:index": "bun run scripts/bug-index.ts",
     "bug-capture:api": "bun run scripts/bug-capture-api.ts"
   },
   "dependencies": {

@@ -25,6 +25,37 @@
 
 ## Estado Actual
 
+### Cierre Ledger Bugs/Features — 2026-05-23
+
+Estado actual:
+
+- El sistema de captura ahora mantiene `docs/bugs/INDEX.md` para activos y `docs/bugs/HISTORY.md` para el ledger completo.
+- `docs/bugs/statuses.json` es la fuente editable para `type`, `status`, `resolution` y `note` por ID.
+- El sidecar `bug-capture` regenera ambos ledgers al guardar un reporte nuevo; `cd app && bun run bug:index` los regenera manualmente.
+
+Decisiones consolidadas:
+
+- **Activo vs histórico separados**: `INDEX.md` responde a la operación diaria; `HISTORY.md` cubre la memoria completa con archivados.
+- **Bugs y features comparten ledger**: la captura no se limita a defectos; también registra feats y los resuelve con el mismo contrato.
+- **Resolución explícita**: cada ítem debe tener estado y resolución legibles, aunque sea `Pendiente.` en activos o `Archivado sin resolución detallada.` cuando el archivo no aporte más.
+- **Archivo mensual como evidencia**: los `README.md` de `docs/bugs/archive/YYYY-MM/` se usan para recuperar cierres históricos cuando existan.
+
+Artefactos relevantes:
+
+- [docs/bugs/INDEX.md](/home/felix/projects/deep-opm-pro/docs/bugs/INDEX.md)
+- [docs/bugs/HISTORY.md](/home/felix/projects/deep-opm-pro/docs/bugs/HISTORY.md)
+- [docs/bugs/statuses.json](/home/felix/projects/deep-opm-pro/docs/bugs/statuses.json)
+- [app/src/server/bugIndex.ts](/home/felix/projects/deep-opm-pro/app/src/server/bugIndex.ts)
+- [app/scripts/bug-index.ts](/home/felix/projects/deep-opm-pro/app/scripts/bug-index.ts)
+
+Verificación:
+
+- `bun test src/server/bugCapture.test.ts`
+- `bun run typecheck`
+- `bun run test`
+- `bun run lint`
+- `git diff --check`
+
 ### Cierre Canon OPD/OPL Estricto — 2026-05-23
 
 Estado actual:

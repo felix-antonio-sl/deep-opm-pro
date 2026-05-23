@@ -3,6 +3,7 @@ import { randomBytes } from "node:crypto";
 import { mkdir, writeFile } from "node:fs/promises";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import path from "node:path";
+import { actualizarIndiceBugs } from "./bugIndex";
 
 export interface BugCaptureHandlerOptions {
   repoRoot: string;
@@ -64,12 +65,19 @@ async function manejarBugReport(
     const context = payload.context && typeof payload.context === "object" ? payload.context : {};
     await writeFile(path.join(dir, "payload.json"), JSON.stringify({
       id,
+      type: "Bug",
+      status: "Nuevo",
+      resolution: "Pendiente.",
       createdAt: now.toISOString(),
       text: payload.text,
       context,
       screenshots: archivosScreenshots,
     }, null, 2));
     await writeFile(path.join(dir, "report.md"), renderBugMarkdown(id, now, payload.text, context, archivosScreenshots));
+    await actualizarIndiceBugs({
+      repoRoot: options.repoRoot,
+      bugsRoot: options.bugsRoot,
+    });
 
     const relativeDir = normalizarPath(path.relative(options.repoRoot, dir));
     responderJson(res, 201, {
@@ -147,9 +155,12 @@ function renderBugMarkdown(id: string, now: Date, text: string, context: unknown
   const screenshotSection = screenshots.length
     ? screenshots.map((item) => `- [${item}](${item})`).join("\n")
     : "Sin screenshots adjuntos.";
-  return `# ${id}
+return `# ${id}
 
 **Creado**: ${now.toISOString()}
+**Tipo**: Bug
+**Estado**: Nuevo
+**Resolución**: Pendiente.
 
 ## Texto
 

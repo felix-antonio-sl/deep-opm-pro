@@ -1,0 +1,32 @@
+{
+  "BUG-20260513T050858Z-ad9486": {
+    "type": "Feat",
+    "status": "Backlog",
+    "resolution": "Pendiente.",
+    "note": "Feature: canvas infinito/zoom menos sensible y centrado inicial pendiente."
+  },
+  "BUG-20260520T180859Z-77e6cf": {
+    "type": "Bug",
+    "status": "Backlog",
+    "resolution": "Pendiente de diseño UX.",
+    "note": "Discoverability de barra contextual; sin cierre dedicado."
+  },
+  "BUG-20260523T174837Z-509ecc": {
+    "type": "Bug",
+    "status": "Nuevo",
+    "resolution": "Pendiente.",
+    "note": "Pendiente de triage."
+  },
+  "BUG-20260523T174915Z-6ea103": {
+    "type": "Bug",
+    "status": "Nuevo",
+    "resolution": "Pendiente.",
+    "note": "Pendiente de triage."
+  },
+  "BUG-20260523T185803Z-a0d7bc": {
+    "type": "Feat",
+    "status": "Resuelto",
+    "resolution": "Se agrega indice vivo e historico de bugs/features con estado y resolucion.",
+    "note": "El sidecar regenera INDEX.md y HISTORY.md automaticamente."
+  }
+}
