@@ -1,4 +1,10 @@
 // [JOYAS §1-3] Chrome UI consume tokens centralizados; canvas semántico invariante.
+//
+// Ronda 28 L5: paleta semántica Bauhaus para el estilo de enlace. 6 swatches
+// canónicos (ink, ink-50, ink-30, accent cinabrio, focus ultramar, warning
+// terracota) en lugar de la antigua paleta colorida (rojo/verde/azul/ámbar/
+// violeta). El swatch seleccionado se marca con borde 2px cinabrio + halo
+// `swatchActivo` (ink50 a 4px), preservando la afordancia visual histórica.
 import type { Enlace, EnlaceEstilo, Id } from "../modelo/tipos";
 import { tokens } from "./tokens";
 
@@ -9,7 +15,25 @@ interface Props {
   onAplicar: (enlaceId: Id, estilo: Partial<EnlaceEstilo>) => void;
 }
 
-const COLORES = [tokens.colors.textoSecundario, tokens.colors.errorBase, tokens.colors.verdeObjetoOscuro, tokens.colors.azulAccion, tokens.colors.ambarOscuro, tokens.colors.violetaFuerte] as const;
+// Paleta semántica L5: 6 swatches Bauhaus.
+//   ink     — trazo principal (default histórico).
+//   ink-50  — trazo secundario gris medio.
+//   ink-30  — trazo tenue / referencia.
+//   accent  — cinabrio (#C8392F) — alerta / error / atención.
+//   focus   — ultramar (#1F3FA6) — selección / enlace activo / azul único.
+//   warning — terracota apagada — advertencia / pendiente.
+//
+// Compat: `accent` coincide con el valor histórico de `errorBase` (#C8392F),
+// preservando el contrato del smoke `07-enlaces-avanzados.spec.ts:537` que
+// busca `getByRole("button", { name: "Color #C8392F" })`.
+const COLORES = [
+  tokens.colors.ink,
+  tokens.colors.ink50,
+  tokens.colors.ink30,
+  tokens.colors.accent,
+  tokens.colors.focus,
+  tokens.colors.warning,
+] as const;
 const GROSORES = [1, 1.5, 2, 3] as const;
 const TRAZOS: Array<{ label: string; value: string }> = [
   { label: "Continua", value: "" },
@@ -33,26 +57,29 @@ export function DialogoEstiloEnlace({ abierto, enlace, onCerrar, onAplicar }: Pr
       <div style={style.modal}>
         <div style={style.header}>
           <h2 style={style.title}>Estilo de enlace</h2>
-          <button type="button" style={style.iconButton} onClick={onCerrar} aria-label="Cerrar">x</button>
+          <button type="button" style={style.iconButton} onClick={onCerrar} aria-label="Cerrar">×</button>
         </div>
         <section style={style.section}>
           <span style={style.label}>Color</span>
           <div style={style.swatches}>
-            {COLORES.map((color) => (
-              <button
-                key={color}
-                type="button"
-                aria-label={`Color ${color}`}
-                data-testid={`estilo-enlace-color-${color}`}
-                style={{
-                  ...style.swatch,
-                  background: color,
-                  borderColor: estilo.color?.toLowerCase() === color ? tokens.colors.textoCasiNegro : tokens.colors.bordeControl,
-                  boxShadow: estilo.color?.toLowerCase() === color ? `0 0 0 2px ${tokens.colors.fondoChrome}, 0 0 0 4px ${tokens.colors.chromeNeutral}` : "none",
-                }}
-                onClick={() => onAplicar(enlace.id, { color })}
-              />
-            ))}
+            {COLORES.map((color) => {
+              const seleccionado = estilo.color?.toLowerCase() === color.toLowerCase();
+              return (
+                <button
+                  key={color}
+                  type="button"
+                  aria-label={`Color ${color}`}
+                  data-testid={`estilo-enlace-color-${color}`}
+                  style={{
+                    ...style.swatch,
+                    background: color,
+                    borderWidth: seleccionado ? `${tokens.stroke.bold}px` : "1.5px",
+                    borderColor: seleccionado ? tokens.colors.accent : tokens.colors.ink15,
+                  }}
+                  onClick={() => onAplicar(enlace.id, { color })}
+                />
+              );
+            })}
           </div>
         </section>
         <section style={style.section}>
@@ -94,18 +121,114 @@ export function DialogoEstiloEnlace({ abierto, enlace, onCerrar, onAplicar }: Pr
 }
 
 const style = {
-  backdrop: { position: "fixed", inset: 0, zIndex: 40, display: "grid", placeItems: "center", background: "rgba(15, 23, 42, 0.28)" },
-  modal: { width: "360px", display: "grid", gap: "14px", padding: "16px", background: tokens.colors.fondoChrome, border: `1px solid ${tokens.colors.bordeControl}`, borderRadius: tokens.radii.md, boxShadow: tokens.shadows.modal },
-  header: { display: "flex", justifyContent: "space-between", alignItems: "center" },
-  title: { margin: 0, color: tokens.colors.textoPrimario, fontSize: "16px", fontWeight: 800 },
-  iconButton: { width: "28px", height: "28px", border: `1px solid ${tokens.colors.bordeControl}`, borderRadius: tokens.radii.sm, background: tokens.colors.fondoCard, cursor: "pointer" },
-  section: { display: "grid", gap: "8px" },
-  label: { color: tokens.colors.textoSecundario, fontSize: "12px", fontWeight: 800 },
-  swatches: { display: "flex", gap: "8px", flexWrap: "wrap" },
-  swatch: { width: "30px", height: "30px", border: `1px solid ${tokens.colors.bordeControl}`, borderRadius: tokens.radii.sm, cursor: "pointer" },
+  backdrop: {
+    position: "fixed",
+    inset: 0,
+    zIndex: 40,
+    display: "grid",
+    placeItems: "center",
+    padding: "24px",
+    background: "rgba(10, 10, 10, 0.30)",
+  },
+  modal: {
+    width: "360px",
+    display: "grid",
+    gap: "16px",
+    padding: "20px 24px",
+    background: tokens.colors.paper,
+    border: `${tokens.stroke.base}px solid ${tokens.colors.ink}`,
+    borderRadius: 0,
+    boxShadow: tokens.shadows.flatXl,
+    fontFamily: tokens.typography.familyChrome,
+  },
+  header: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingBottom: "12px",
+    borderBottom: `${tokens.stroke.base}px solid ${tokens.colors.ink}`,
+  },
+  title: {
+    margin: 0,
+    color: tokens.colors.ink,
+    fontFamily: tokens.typography.familyChrome,
+    fontSize: "18px",
+    fontWeight: 700,
+    letterSpacing: "-0.01em",
+  },
+  iconButton: {
+    width: "28px",
+    height: "28px",
+    border: `1px solid ${tokens.colors.ink15}`,
+    borderRadius: 0,
+    background: tokens.colors.paper,
+    color: tokens.colors.ink,
+    cursor: "pointer",
+    fontSize: "16px",
+    lineHeight: 1,
+  },
+  section: { display: "grid", gap: "10px" },
+  label: {
+    color: tokens.colors.ink50,
+    fontFamily: tokens.typography.familyChrome,
+    fontSize: "11px",
+    fontWeight: 500,
+    textTransform: "uppercase",
+    letterSpacing: "0.08em",
+  },
+  swatches: { display: "flex", gap: "10px", flexWrap: "wrap" },
+  swatch: {
+    width: "24px",
+    height: "24px",
+    borderStyle: "solid",
+    borderWidth: "1.5px",
+    borderColor: tokens.colors.ink15,
+    borderRadius: 0,
+    cursor: "pointer",
+    padding: 0,
+    transition: tokens.transitions.fast,
+  },
   row: { display: "flex", gap: "8px", flexWrap: "wrap" },
-  choice: { height: "30px", border: `1px solid ${tokens.colors.bordeControl}`, borderRadius: tokens.radii.sm, background: tokens.colors.fondoChrome, color: tokens.colors.textoControl, cursor: "pointer", fontSize: "12px", fontWeight: 700 },
-  choiceActive: { height: "30px", border: `1px solid ${tokens.colors.azulAccion}`, borderRadius: tokens.radii.sm, background: tokens.colors.acentoUiSuave, color: tokens.colors.azulAccion, cursor: "pointer", fontSize: "12px", fontWeight: 800 },
-  footer: { display: "flex", justifyContent: "flex-end" },
-  primary: { height: "34px", border: `1px solid ${tokens.colors.chromeNeutral}`, borderRadius: tokens.radii.sm, background: tokens.colors.chromeNeutral, color: tokens.colors.fondoChrome, cursor: "pointer", fontSize: "13px", fontWeight: 800 },
+  choice: {
+    minHeight: "30px",
+    padding: "6px 12px",
+    border: `1px solid ${tokens.colors.ink15}`,
+    borderRadius: 0,
+    background: tokens.colors.paper,
+    color: tokens.colors.ink70,
+    cursor: "pointer",
+    fontFamily: tokens.typography.familyChrome,
+    fontSize: "12px",
+    fontWeight: 400,
+  },
+  choiceActive: {
+    minHeight: "30px",
+    padding: "6px 12px",
+    border: `${tokens.stroke.base}px solid ${tokens.colors.ink}`,
+    borderRadius: 0,
+    background: tokens.colors.paper,
+    color: tokens.colors.ink,
+    cursor: "pointer",
+    fontFamily: tokens.typography.familyChrome,
+    fontSize: "12px",
+    fontWeight: 500,
+  },
+  footer: {
+    display: "flex",
+    justifyContent: "flex-end",
+    paddingTop: "12px",
+    borderTop: `${tokens.stroke.base}px solid ${tokens.colors.ink15}`,
+  },
+  primary: {
+    minHeight: "32px",
+    padding: "8px 18px",
+    border: `${tokens.stroke.base}px solid ${tokens.colors.ink}`,
+    borderRadius: 0,
+    background: tokens.colors.ink,
+    color: tokens.colors.paper,
+    cursor: "pointer",
+    fontFamily: tokens.typography.familyChrome,
+    fontSize: "13px",
+    fontWeight: 500,
+  },
 } satisfies Record<string, preact.JSX.CSSProperties>;
