@@ -147,11 +147,14 @@ export function proyectarHaloSimulacionEntidadInvolucrada(opdId: Id, apariencia:
     type,
     position: { x: apariencia.x - pad, y: apariencia.y - pad },
     size: { width, height },
+    // CANON-V2 (ronda 28 L4): halo entidad-involucrada en simulacion =
+    // cinabrio dashed (antes #3BC3FF azul proceso V1, colision con fill
+    // proceso lavado). Cinabrio es el unico canal de "estado activo" en V2.
     attrs: {
       body: entidad.tipo === "objeto"
         ? {
-            fill: "rgba(59, 195, 255, 0.08)",
-            stroke: "#3BC3FF",
+            fill: "rgba(200, 57, 47, 0.08)",
+            stroke: "#C8392F",
             strokeWidth: 2,
             strokeDasharray: "3 3",
             rx: 7,
@@ -159,8 +162,8 @@ export function proyectarHaloSimulacionEntidadInvolucrada(opdId: Id, apariencia:
             pointerEvents: "none",
           }
         : {
-            fill: "rgba(59, 195, 255, 0.08)",
-            stroke: "#3BC3FF",
+            fill: "rgba(200, 57, 47, 0.08)",
+            stroke: "#C8392F",
             strokeWidth: 2,
             strokeDasharray: "3 3",
             cx: width / 2,

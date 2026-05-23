@@ -270,16 +270,19 @@ function crearGhostEnlace(
   target: { x: number; y: number },
 ): dia.Link {
   const graph = (paper as unknown as { model: dia.Graph }).model;
+  // CANON-V2 (ronda 28 L4): ghost de creacion de enlace en ink puro
+  // (antes #586D8C slate). El dashed `6 4` preserva la semantica
+  // "preview / no commiteado".
   const ghost = new shapes.standard.Link({
     source,
     target,
     attrs: {
       line: {
-        stroke: "#586D8C",
+        stroke: "#0A0A0A",
         strokeDasharray: "6 4",
         strokeWidth: 2,
         pointerEvents: "none",
-        targetMarker: { type: "path", d: "M 8 -4 0 0 8 4 z", fill: "#586D8C", stroke: "none" },
+        targetMarker: { type: "path", d: "M 8 -4 0 0 8 4 z", fill: "#0A0A0A", stroke: "none" },
       },
       wrapper: { stroke: "transparent", strokeWidth: 14, pointerEvents: "none" },
     },

@@ -42,14 +42,18 @@ export function instalarHerramientasSimboloEstructuralSeleccionado(
             portId: "in",
             rol: "refinable",
             onCommit,
-            handleAttributes: attrsHandle("#3BC3FF"),
+            // CANON-V2 (ronda 28 L4): handles del simbolo estructural ambos
+            // en cinabrio. Antes: in=#3BC3FF azul / out=#70E483 verde V1 —
+            // ambos colisionaban con la paleta lavada. Cinabrio unifica
+            // bajo familia de seleccion / accion del canvas.
+            handleAttributes: attrsHandle("#C8392F"),
             selector: null,
           }),
           new SymbolAnchorControl({
             portId: "out",
             rol: "refinador",
             onCommit,
-            handleAttributes: attrsHandle("#70E483"),
+            handleAttributes: attrsHandle("#C8392F"),
             selector: null,
           }),
         ],

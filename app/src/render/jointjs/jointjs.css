@@ -1,12 +1,19 @@
+/*
+ * CANON-V2 Bauhaus (ronda 28 L4):
+ *   Marcadores de vertice/segmento JointJS migran a cinabrio (antes
+ *   #ff8a00 amber-orange). El stroke paper canonico (antes #ffffff puro)
+ *   los separa del fondo paper del canvas Bauhaus.
+ *   Color de tool-options pasa a ink puro (antes #1f2937 slate).
+ */
 .joint-paper .joint-marker-vertex,
 .joint-paper .joint-marker-segment {
-  fill: #ff8a00;
-  stroke: #ffffff;
+  fill: #c8392f;
+  stroke: #fafafa;
   stroke-width: 2px;
 }
 
 .joint-paper .joint-tools .tool-options {
-  color: #1f2937;
+  color: #0a0a0a;
 }
 
 .joint-paper .joint-element [joint-selector^="connect-anchor-"] {
