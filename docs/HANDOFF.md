@@ -4,7 +4,7 @@
 **Repositorio**: `deep-opm-pro`
 **Rama**: `main`
 **Ultimo corte funcional**: `BUG-20260523T201251Z-afcfbe` corrige de raíz la creación inicial: las cosas nacen alrededor del centro geométrico del canvas y el viewport se enfoca en ese centro.
-**Ultimo commit en main**: `docs(opm): remove habilitator origin decoration` (commit de este cierre).
+**Ultimo commit en main**: `docs(opm): tighten strict canon coherence` (commit de este cierre).
 **Ultimo corte deploy**: `docker compose up -d --build` ejecutado; `opforja` queda healthy y el sidecar reporta 11 activos/59 históricos, todos los activos `Resuelto`. URL pública `https://opforja.sanixai.com/` responde `401` por Basic Auth de Traefik.
 **Corte**: los 11 bugs/features activos del ledger quedan en estado `Resuelto`; las carpetas `BUG-*` capturadas siguen como artefactos locales no versionados salvo decisión explícita.
 
@@ -24,6 +24,38 @@
 - JointJS OSS: usar documentación oficial viva cuando se toque JointJS.
 
 ## Estado Actual
+
+### Cierre Coherencia Canon Estricto OPM — 2026-05-23
+
+Estado actual:
+
+- `docs/canon-opm/reglas-opm-estrictas.md` corrige los 12 hallazgos de auditoría normativa profunda sobre consistencia lógica, carácter prescriptivo, ambigüedad e imprecisión editorial.
+- El contrato de exhaustividad ahora cubre explícitamente las cuatro capas SSOT (`opm-iso-19450-es.md`, `opm-opl-es.md`, `opm-visual-es.md`, `metodologia-opm-es.md`) y prohíbe que un índice o remisión sustituya la regla local aplicable.
+- El conflicto entre procesos transformadores y procesos persistentes queda resuelto: procesos no persistentes requieren transformación; procesos persistentes requieren cierre explícito por invariancia, atributo o condición mantenida.
+- La sección 12 deja de contener inventario fechado de implementación y queda como política estable de conformidad de `deep-opm-pro`.
+- Anexo E pasa de checklist interrogativo a gates prescriptivos con severidad; Anexo F queda alineado con la política de cobertura desarrollada; Anexo G atomiza reglas visuales densas de runtime/export/Bring.
+- El cierre es documental/normativo: no modifica `app/`, render, parser, validadores ni assets.
+
+Decisiones consolidadas:
+
+- **Canon estricto solo reglas**: estado vivo, tickets futuros y tablas fechadas pertenecen a `docs/HANDOFF.md`, `docs/roadmap/` o ledger de bugs, no al canon.
+- **Cobertura local obligatoria**: la SSOT conserva autoridad literal, pero cada obligación aplicable debe tener regla local trazable.
+- **Severidad cerrada**: refinamiento trivial bloquea cierre/export canónico; AP-27 distingue bloqueo vs advertencia por efectos previos obligatorios.
+- **Ambigüedad operable**: expresiones como `cuando aplique`, “según severidad” o modos no definidos fueron reemplazadas por condiciones explícitas.
+- **Alcance atómico**: los `docs/bugs/BUG-*` sin seguimiento quedan fuera del commit.
+
+Artefactos relevantes:
+
+- [docs/canon-opm/reglas-opm-estrictas.md](/home/felix/projects/deep-opm-pro/docs/canon-opm/reglas-opm-estrictas.md)
+- [docs/HANDOFF.md](/home/felix/projects/deep-opm-pro/docs/HANDOFF.md)
+- `/home/felix/kora/artifacts/knowledge/fxsl/opm/opm-ssot-es/`
+
+Verificación:
+
+- `git diff --check -- docs/canon-opm/reglas-opm-estrictas.md`
+- IDs `R-*` duplicados: sin duplicados.
+- Referencias internas `R-*` huérfanas: sin huérfanas.
+- Búsqueda de lenguaje laxo objetivo: sin restos relevantes salvo construcción prohibida explícita `"entidad" genérica sin tipo`.
 
 ### Cierre Retiro Decoración Habilitadora Visual OPM — 2026-05-23
 
