@@ -19,7 +19,12 @@ export interface BugIndexResult {
   historyMarkdown: string;
 }
 
-interface BugIndexEntry {
+export interface BugLedger {
+  active: BugIndexEntry[];
+  history: BugIndexEntry[];
+}
+
+export interface BugIndexEntry {
   id: string;
   scope: BugScope;
   type: string;
@@ -46,7 +51,7 @@ interface ArchiveResolution {
   resolution: string;
 }
 
-type BugScope = "Activo" | "Histórico";
+export type BugScope = "Activo" | "Histórico";
 
 const DEFAULT_INDEX_FILE_NAME = "INDEX.md";
 const DEFAULT_HISTORY_FILE_NAME = "HISTORY.md";
@@ -58,13 +63,9 @@ export async function actualizarIndiceBugs(options: BugIndexOptions): Promise<Bu
   const indexFileName = options.indexFileName ?? DEFAULT_INDEX_FILE_NAME;
   const historyFileName = options.historyFileName ?? DEFAULT_HISTORY_FILE_NAME;
   const statusFileName = options.statusFileName ?? DEFAULT_STATUS_FILE_NAME;
-  const statusMap = await leerStatusMap(path.join(options.bugsRoot, statusFileName));
-  const archiveResolutionMap = await leerArchiveResolutionMap(path.join(options.bugsRoot, "archive"));
-  const activeEntries = await leerBugEntries(options.bugsRoot, options.repoRoot, statusMap, archiveResolutionMap, "Activo");
-  const archivedEntries = await leerArchivedEntries(options.bugsRoot, options.repoRoot, statusMap, archiveResolutionMap);
-  const historyEntries = ordenarEntries([...activeEntries, ...archivedEntries]);
-  const markdown = renderBugIndex(activeEntries, statusFileName, historyFileName);
-  const historyMarkdown = renderBugHistory(historyEntries, statusFileName);
+  const ledger = await leerLedgerBugs({ ...options, statusFileName });
+  const markdown = renderBugIndex(ledger.active, statusFileName, historyFileName);
+  const historyMarkdown = renderBugHistory(ledger.history, statusFileName);
   const indexPath = path.join(options.bugsRoot, indexFileName);
   const historyPath = path.join(options.bugsRoot, historyFileName);
   await mkdir(options.bugsRoot, { recursive: true });
@@ -73,11 +74,23 @@ export async function actualizarIndiceBugs(options: BugIndexOptions): Promise<Bu
   return {
     path: indexPath,
     historyPath,
-    entries: activeEntries.length,
-    activeEntries: activeEntries.length,
-    historyEntries: historyEntries.length,
+    entries: ledger.active.length,
+    activeEntries: ledger.active.length,
+    historyEntries: ledger.history.length,
     markdown,
     historyMarkdown,
+  };
+}
+
+export async function leerLedgerBugs(options: BugIndexOptions): Promise<BugLedger> {
+  const statusFileName = options.statusFileName ?? DEFAULT_STATUS_FILE_NAME;
+  const statusMap = await leerStatusMap(path.join(options.bugsRoot, statusFileName));
+  const archiveResolutionMap = await leerArchiveResolutionMap(path.join(options.bugsRoot, "archive"));
+  const active = await leerBugEntries(options.bugsRoot, options.repoRoot, statusMap, archiveResolutionMap, "Activo");
+  const archivedEntries = await leerArchivedEntries(options.bugsRoot, options.repoRoot, statusMap, archiveResolutionMap);
+  return {
+    active,
+    history: ordenarEntries([...active, ...archivedEntries]),
   };
 }
 

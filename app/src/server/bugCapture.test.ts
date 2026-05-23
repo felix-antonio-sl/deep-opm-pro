@@ -74,14 +74,37 @@ describe("bugCapture server handler", () => {
     }
   });
 
-  test("rechaza metodos no POST y payloads sin texto", async () => {
+  test("expone ledger por GET y rechaza payloads sin texto", async () => {
     const repoRoot = await mkdtemp(path.join(tmpdir(), "deep-opm-bug-capture-"));
     cleanup = () => rm(repoRoot, { recursive: true, force: true });
+    const bugDir = path.join(repoRoot, "docs", "bugs", "BUG-20260523T185803Z-a0d7bc");
+    await mkdir(bugDir, { recursive: true });
+    await writeFile(path.join(bugDir, "payload.json"), JSON.stringify({
+      id: "BUG-20260523T185803Z-a0d7bc",
+      type: "Feat",
+      status: "Resuelto",
+      resolution: "Visible en UI.",
+      createdAt: "2026-05-23T18:58:03.717Z",
+      text: "que exista una lista de los bugs y su estado para no repetirnos",
+      screenshots: [],
+    }, null, 2));
+    await writeFile(path.join(bugDir, "report.md"), "# BUG-20260523T185803Z-a0d7bc\n");
     const server = await levantarServidor(repoRoot);
 
     try {
       const getResponse = await fetch(`${server.url}/__deep-opm/bug-reports`);
-      expect(getResponse.status).toBe(405);
+      expect(getResponse.status).toBe(200);
+      const ledger = await getResponse.json() as {
+        active: Array<{ id: string; status: string; resolution: string }>;
+        history: Array<{ id: string }>;
+        counts: { active: number; history: number };
+      };
+      expect(ledger.active[0]).toMatchObject({
+        id: "BUG-20260523T185803Z-a0d7bc",
+        status: "Resuelto",
+        resolution: "Visible en UI.",
+      });
+      expect(ledger.counts).toEqual({ active: 1, history: 1 });
 
       const postResponse = await fetch(`${server.url}/__deep-opm/bug-reports`, {
         method: "POST",

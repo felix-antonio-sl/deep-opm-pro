@@ -3,7 +3,7 @@ import { randomBytes } from "node:crypto";
 import { mkdir, writeFile } from "node:fs/promises";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import path from "node:path";
-import { actualizarIndiceBugs } from "./bugIndex";
+import { actualizarIndiceBugs, leerLedgerBugs } from "./bugIndex";
 
 export interface BugCaptureHandlerOptions {
   repoRoot: string;
@@ -41,6 +41,11 @@ async function manejarBugReport(
   res: ServerResponse,
   options: Required<BugCaptureHandlerOptions>,
 ): Promise<void> {
+  if (req.method === "GET") {
+    await responderLedger(res, options);
+    return;
+  }
+
   if (req.method !== "POST") {
     responderJson(res, 405, { error: "Metodo no permitido" });
     return;
@@ -90,6 +95,21 @@ async function manejarBugReport(
     const message = error instanceof Error ? error.message : "No se pudo guardar el reporte";
     responderJson(res, esErrorPayload(message) ? 400 : 500, { error: message });
   }
+}
+
+async function responderLedger(res: ServerResponse, options: Required<BugCaptureHandlerOptions>): Promise<void> {
+  const ledger = await leerLedgerBugs({
+    repoRoot: options.repoRoot,
+    bugsRoot: options.bugsRoot,
+  });
+  responderJson(res, 200, {
+    active: ledger.active,
+    history: ledger.history,
+    counts: {
+      active: ledger.active.length,
+      history: ledger.history.length,
+    },
+  });
 }
 
 async function leerBody(req: IncomingMessage, maxBodyBytes: number): Promise<string> {

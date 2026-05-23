@@ -34,6 +34,58 @@ test("capturador de bugs guarda texto sin screenshots y muestra id referenciable
   expect((payload?.context as Record<string, unknown>).modeloNombre).toBeTruthy();
 });
 
+test("capturador de bugs muestra lista activa e historica desde el sidecar", async ({ page }) => {
+  await page.route("**/__deep-opm/bug-reports", async (route) => {
+    if (route.request().method() !== "GET") return route.fallback();
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        active: [{
+          id: "BUG-20260523T185803Z-a0d7bc",
+          scope: "Activo",
+          type: "Feat",
+          status: "Resuelto",
+          resolution: "Visible en UI.",
+          createdAt: "2026-05-23T18:58:03.717Z",
+          reportPath: "docs/bugs/BUG-20260523T185803Z-a0d7bc/report.md",
+          text: "que exista una lista de los bugs y su estado para no repetirnos",
+          modelName: "HODOM",
+          opdName: "SD1",
+          screenshots: 0,
+          note: "",
+        }],
+        history: [{
+          id: "BUG-20260507T165507Z-19b234",
+          scope: "Histórico",
+          type: "Bug",
+          status: "Resuelto",
+          resolution: "fix(ui): aclara creacion continua",
+          createdAt: "2026-05-07T16:55:07.000Z",
+          reportPath: "docs/bugs/archive/2026-05/BUG-20260507T165507Z-19b234/report.md",
+          text: "para que son las funciones dentro del círculo rojo?",
+          modelName: "Diagnostico Clinico",
+          opdName: "SD",
+          screenshots: 1,
+          note: "",
+        }],
+        counts: { active: 1, history: 1 },
+      }),
+    });
+  });
+
+  await page.goto("/");
+  await page.getByLabel("Ver bugs y features").click();
+  const dialog = page.getByRole("dialog", { name: "Bugs y features" });
+  await expect(dialog).toBeVisible();
+  await expect(dialog).toContainText("BUG-20260523T185803Z-a0d7bc");
+  await expect(dialog).toContainText("Visible en UI.");
+
+  await dialog.getByRole("button", { name: /Histórico/ }).click();
+  await expect(dialog).toContainText("BUG-20260507T165507Z-19b234");
+  await expect(dialog).toContainText("fix(ui): aclara creacion continua");
+});
+
 test("capturador de bugs adjunta uno o mas screenshots al payload", async ({ page }) => {
   let payload: Record<string, unknown> | null = null;
   await page.route("**/__deep-opm/bug-reports", async (route) => {

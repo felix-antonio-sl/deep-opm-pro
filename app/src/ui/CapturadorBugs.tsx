@@ -19,6 +19,30 @@ type BugCaptureResponse = {
   screenshots: number;
 };
 
+type BugLedgerEntry = {
+  id: string;
+  scope: "Activo" | "Histórico";
+  type: string;
+  status: string;
+  resolution: string;
+  createdAt: string;
+  reportPath: string;
+  text: string;
+  modelName: string;
+  opdName: string;
+  screenshots: number;
+  note: string;
+};
+
+type BugLedgerResponse = {
+  active: BugLedgerEntry[];
+  history: BugLedgerEntry[];
+  counts?: {
+    active?: number;
+    history?: number;
+  };
+};
+
 export function CapturadorBugs() {
   if (!bugCaptureHabilitado()) return null;
   return <CapturadorBugsInteractivo />;
@@ -33,6 +57,11 @@ function CapturadorBugsInteractivo() {
   const [enviando, setEnviando] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [resultado, setResultado] = useState<BugCaptureResponse | null>(null);
+  const [listaAbierta, setListaAbierta] = useState(false);
+  const [ledger, setLedger] = useState<BugLedgerResponse | null>(null);
+  const [ledgerTab, setLedgerTab] = useState<"activos" | "historico">("activos");
+  const [cargandoLedger, setCargandoLedger] = useState(false);
+  const [errorLedger, setErrorLedger] = useState<string | null>(null);
   const contexto = useBugCaptureContext();
 
   const cerrar = () => {
@@ -45,6 +74,30 @@ function CapturadorBugsInteractivo() {
     setAbierto(true);
     setError(null);
     setResultado(null);
+  };
+
+  const abrirLista = () => {
+    setListaAbierta(true);
+    setLedgerTab("activos");
+    void cargarLedger();
+  };
+
+  const cargarLedger = async () => {
+    setCargandoLedger(true);
+    setErrorLedger(null);
+    try {
+      const response = await fetch("/__deep-opm/bug-reports", { method: "GET" });
+      const body = await response.json().catch(() => null) as BugLedgerResponse | { error?: string } | null;
+      if (!response.ok || !body || !("active" in body) || !("history" in body)) {
+        const message = body && "error" in body ? body.error : null;
+        throw new Error(message ?? "No se pudo cargar la lista de bugs.");
+      }
+      setLedger(body);
+    } catch (err) {
+      setErrorLedger(err instanceof Error ? err.message : "No se pudo cargar la lista de bugs.");
+    } finally {
+      setCargandoLedger(false);
+    }
   };
 
   const agregarArchivos = async (files: FileList | File[]) => {
@@ -111,6 +164,16 @@ function CapturadorBugsInteractivo() {
             intacto para smokes (10-capturador-bugs.spec.ts, 22-responsive).
             Sin cromaticidad — el feedback es chrome neutro Bauhaus. */}
         <span aria-hidden="true" style={style.fabGlyph}>◉</span>
+      </button>
+      <button
+        type="button"
+        aria-label="Ver bugs y features"
+        title="Ver bugs y features"
+        data-testid="bug-ledger-open"
+        style={ledgerFabStyle(breakpoint === "mobile")}
+        onClick={abrirLista}
+      >
+        <span aria-hidden="true" style={style.fabGlyph}>☷</span>
       </button>
 
       <Dialogo
@@ -200,7 +263,79 @@ function CapturadorBugsInteractivo() {
           {error ? <div role="alert" style={style.error}>{error}</div> : null}
         </div>
       </Dialogo>
+      <Dialogo
+        open={listaAbierta}
+        title="Bugs y features"
+        size="xl"
+        onCancel={() => setListaAbierta(false)}
+        testId="bug-ledger-dialog"
+        actions={(
+          <>
+            <button type="button" style={style.secondaryButton} onClick={() => void cargarLedger()} disabled={cargandoLedger}>Actualizar</button>
+            <button type="button" style={style.primaryButton} onClick={() => setListaAbierta(false)}>Cerrar</button>
+          </>
+        )}
+      >
+        <div style={style.ledgerBody}>
+          <div style={style.ledgerSummary}>
+            <button
+              type="button"
+              aria-pressed={ledgerTab === "activos"}
+              style={ledgerTab === "activos" ? style.tabActivo : style.tab}
+              onClick={() => setLedgerTab("activos")}
+            >
+              Activos {ledger ? `(${ledger.active.length})` : ""}
+            </button>
+            <button
+              type="button"
+              aria-pressed={ledgerTab === "historico"}
+              style={ledgerTab === "historico" ? style.tabActivo : style.tab}
+              onClick={() => setLedgerTab("historico")}
+            >
+              Histórico {ledger ? `(${ledger.history.length})` : ""}
+            </button>
+          </div>
+
+          {cargandoLedger && !ledger ? <div style={style.empty}>Cargando lista...</div> : null}
+          {errorLedger ? <div role="alert" style={style.error}>{errorLedger}</div> : null}
+          {ledger ? (
+            <BugLedgerTable entries={ledgerTab === "activos" ? ledger.active : ledger.history} includeScope={ledgerTab === "historico"} />
+          ) : null}
+        </div>
+      </Dialogo>
     </>
+  );
+}
+
+function BugLedgerTable({ entries, includeScope }: { entries: BugLedgerEntry[]; includeScope: boolean }) {
+  if (entries.length === 0) return <div style={style.empty}>No hay registros.</div>;
+  return (
+    <div style={style.tableWrap}>
+      <table style={style.table}>
+        <thead>
+          <tr>
+            {includeScope ? <th style={style.th}>Alcance</th> : null}
+            <th style={style.th}>Tipo</th>
+            <th style={style.th}>Estado</th>
+            <th style={style.th}>ID</th>
+            <th style={style.th}>Resumen</th>
+            <th style={style.th}>Resolución</th>
+          </tr>
+        </thead>
+        <tbody>
+          {entries.map((entry) => (
+            <tr key={`${entry.scope}-${entry.id}`}>
+              {includeScope ? <td style={style.tdMuted}>{entry.scope}</td> : null}
+              <td style={style.tdMuted}>{entry.type}</td>
+              <td style={style.td}>{entry.status}</td>
+              <td style={style.tdMono}>{entry.id}</td>
+              <td style={style.td}>{entry.text}</td>
+              <td style={style.td}>{entry.resolution || entry.note || "-"}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   );
 }
 
@@ -248,6 +383,13 @@ function formatearBytes(bytes: number): string {
   return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
 }
 
+function ledgerFabStyle(mobile: boolean): preact.JSX.CSSProperties {
+  return {
+    ...fabStyle(mobile),
+    bottom: mobile ? 88 : `calc(${tokens.spacing.lg}px + 56px)`,
+  };
+}
+
 const style = {
   fab: {
     // Ronda 28 L6 (Bauhaus): círculo 48×48, borde 1.5px ink, fondo paper,
@@ -276,6 +418,93 @@ const style = {
     fontSize: 22,
     lineHeight: 1,
     color: tokens.colors.ink,
+  },
+  ledgerBody: {
+    display: "grid",
+    gap: tokens.spacing.md,
+    minHeight: 280,
+  },
+  ledgerSummary: {
+    display: "flex",
+    gap: tokens.spacing.xs,
+    alignItems: "center",
+    borderBottom: `${tokens.stroke.base}px solid ${tokens.colors.ink15}`,
+    paddingBottom: tokens.spacing.sm,
+  },
+  tab: {
+    border: `${tokens.stroke.hairline}px solid ${tokens.colors.ink30}`,
+    borderRadius: 0,
+    background: tokens.colors.paper,
+    color: tokens.colors.ink,
+    padding: "8px 12px",
+    fontFamily: tokens.typography.familyChrome,
+    fontSize: tokens.typography.sizeSm,
+    fontWeight: tokens.typography.weightSemibold,
+    cursor: "pointer",
+  },
+  tabActivo: {
+    border: `${tokens.stroke.base}px solid ${tokens.colors.ink}`,
+    borderRadius: 0,
+    background: tokens.colors.ink,
+    color: tokens.colors.paper,
+    padding: "8px 12px",
+    fontFamily: tokens.typography.familyChrome,
+    fontSize: tokens.typography.sizeSm,
+    fontWeight: tokens.typography.weightSemibold,
+    cursor: "pointer",
+  },
+  tableWrap: {
+    maxHeight: "min(58vh, 560px)",
+    overflow: "auto",
+    border: `${tokens.stroke.base}px solid ${tokens.colors.ink}`,
+    background: tokens.colors.paper,
+  },
+  table: {
+    width: "100%",
+    borderCollapse: "collapse",
+    tableLayout: "fixed",
+    fontFamily: tokens.typography.familyChrome,
+    fontSize: tokens.typography.sizeXs,
+  },
+  th: {
+    position: "sticky",
+    top: 0,
+    zIndex: 1,
+    padding: "8px 10px",
+    borderBottom: `${tokens.stroke.base}px solid ${tokens.colors.ink}`,
+    background: tokens.colors.paper02,
+    color: tokens.colors.ink70,
+    textAlign: "left",
+    textTransform: "uppercase",
+    letterSpacing: "0.08em",
+    fontSize: tokens.typography.sizeXxs,
+    fontWeight: tokens.typography.weightBold,
+  },
+  td: {
+    verticalAlign: "top",
+    padding: "9px 10px",
+    borderBottom: `${tokens.stroke.hairline}px solid ${tokens.colors.ink15}`,
+    color: tokens.colors.ink,
+    lineHeight: 1.35,
+    wordBreak: "break-word",
+  },
+  tdMuted: {
+    verticalAlign: "top",
+    padding: "9px 10px",
+    borderBottom: `${tokens.stroke.hairline}px solid ${tokens.colors.ink15}`,
+    color: tokens.colors.ink70,
+    lineHeight: 1.35,
+    wordBreak: "break-word",
+  },
+  tdMono: {
+    verticalAlign: "top",
+    padding: "9px 10px",
+    borderBottom: `${tokens.stroke.hairline}px solid ${tokens.colors.ink15}`,
+    color: tokens.colors.ink,
+    fontFamily: tokens.typography.fontFamilyMono,
+    fontSize: tokens.typography.sizeXxs,
+    lineHeight: 1.35,
+    wordBreak: "break-all",
   },
   fabIcon: {
     width: 20,

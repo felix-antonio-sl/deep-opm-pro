@@ -3,10 +3,10 @@
 **Fecha**: 2026-05-23
 **Repositorio**: `deep-opm-pro`
 **Rama**: `main`
-**Ultimo corte funcional**: cierre canon OPD/OPL estricto — reglas exhaustivas de bidireccionalidad, cobertura visual `V-*` completa y checklist de roundtrip OPD<->OPL.
-**Ultimo commit en main**: cierre documental `docs(canon-opm): completa cobertura OPD OPL bidireccional` sobre `848186e`.
-**Ultimo corte deploy**: no aplica; cambio documental canónico sin artefacto de app ni despliegue requerido.
-**Corte**: `docs/canon-opm/reglas-opm-estrictas.md` queda como canon operativo exhaustivo para lo permitido/prohibido en OPD, OPL y sus transformaciones bidireccionales. Verificación documental: IDs `V-*` y plantillas OPL de SSOT cubiertos sin faltantes; `git diff --check` limpio.
+**Ultimo corte funcional**: ledger visible de bugs/features — captura, listado activo, histórico y estado/resolución accesibles desde la app.
+**Ultimo commit en main**: `90f01ca feat(ui): enriquece paleta Bauhaus con triada disciplinada + elegancia tonal` antes del cierre UI del ledger.
+**Ultimo corte deploy**: Docker Compose reconstruido con ledger visible; `opforja` healthy, `opforja-bug-capture` up, sidecar `GET /__deep-opm/bug-reports` responde `active: 5`, `history: 53`. URL pública protegida por Basic Auth (`401` sin credenciales).
+**Corte**: el sistema de captura mantiene ledgers Markdown/JSON y la app expone un diálogo "Bugs y features" con pestañas `Activos` e `Histórico`, alimentado por `GET /__deep-opm/bug-reports`.
 
 ## Política De Handoff Único
 
@@ -32,6 +32,8 @@ Estado actual:
 - El sistema de captura ahora mantiene `docs/bugs/INDEX.md` para activos y `docs/bugs/HISTORY.md` para el ledger completo.
 - `docs/bugs/statuses.json` es la fuente editable para `type`, `status`, `resolution` y `note` por ID.
 - El sidecar `bug-capture` regenera ambos ledgers al guardar un reporte nuevo; `cd app && bun run bug:index` los regenera manualmente.
+- El mismo endpoint `/__deep-opm/bug-reports` ahora responde `GET` con `{ active, history, counts }`, para consumo directo de la UI.
+- La app muestra un segundo FAB fijo `☷` con `aria-label="Ver bugs y features"`; abre un diálogo con pestañas `Activos` e `Histórico`, tabla de ID, tipo, estado, resumen y resolución.
 
 Decisiones consolidadas:
 
@@ -39,6 +41,7 @@ Decisiones consolidadas:
 - **Bugs y features comparten ledger**: la captura no se limita a defectos; también registra feats y los resuelve con el mismo contrato.
 - **Resolución explícita**: cada ítem debe tener estado y resolución legibles, aunque sea `Pendiente.` en activos o `Archivado sin resolución detallada.` cuando el archivo no aporte más.
 - **Archivo mensual como evidencia**: los `README.md` de `docs/bugs/archive/YYYY-MM/` se usan para recuperar cierres históricos cuando existan.
+- **Visibilidad dentro de la app**: el ledger deja de ser solo artefacto documental; debe poder consultarse desde el modelador desplegado para evitar duplicar reportes.
 
 Artefactos relevantes:
 
@@ -46,15 +49,22 @@ Artefactos relevantes:
 - [docs/bugs/HISTORY.md](/home/felix/projects/deep-opm-pro/docs/bugs/HISTORY.md)
 - [docs/bugs/statuses.json](/home/felix/projects/deep-opm-pro/docs/bugs/statuses.json)
 - [app/src/server/bugIndex.ts](/home/felix/projects/deep-opm-pro/app/src/server/bugIndex.ts)
+- [app/src/server/bugCapture.ts](/home/felix/projects/deep-opm-pro/app/src/server/bugCapture.ts)
+- [app/src/ui/CapturadorBugs.tsx](/home/felix/projects/deep-opm-pro/app/src/ui/CapturadorBugs.tsx)
 - [app/scripts/bug-index.ts](/home/felix/projects/deep-opm-pro/app/scripts/bug-index.ts)
 
 Verificación:
 
 - `bun test src/server/bugCapture.test.ts`
+- `bunx playwright test e2e/10-capturador-bugs.spec.ts`
 - `bun run typecheck`
 - `bun run test`
 - `bun run lint`
+- `bun run build`
 - `git diff --check`
+- `docker compose up -d --build`
+- `docker exec opforja wget -qO- http://127.0.0.1:8080/healthz`
+- `docker exec opforja-bug-capture bun -e "...fetch('/__deep-opm/bug-reports')..."`
 
 ### Cierre Canon OPD/OPL Estricto — 2026-05-23
 
