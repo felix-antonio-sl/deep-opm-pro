@@ -1,10 +1,15 @@
 // [JOYAS §1-3] Chrome UI consume tokens centralizados; canvas semántico invariante.
 //
-// Ronda 28 L5: paleta semántica Bauhaus para el estilo de enlace. 6 swatches
-// canónicos (ink, ink-50, ink-30, accent cinabrio, focus ultramar, warning
-// terracota) en lugar de la antigua paleta colorida (rojo/verde/azul/ámbar/
-// violeta). El swatch seleccionado se marca con borde 2px cinabrio + halo
-// `swatchActivo` (ink50 a 4px), preservando la afordancia visual histórica.
+// Ronda 28 L5 (autoría steipete, swatches semánticos): paleta semántica
+// Bauhaus para el estilo de enlace. 6 swatches canónicos (ink, ink-50,
+// ink-30, accent cinabrio, focus ultramar, warning terracota) en lugar de
+// la antigua paleta colorida (rojo/verde/azul/ámbar/violeta). El swatch
+// seleccionado se marca con borde 2px cinabrio, preservando la afordancia
+// visual histórica.
+//
+// Contrato preservado: el smoke `07-enlaces-avanzados.spec.ts:537` busca
+// `getByRole("button", { name: "Color #C8392F" })`. `accent` coincide con
+// el valor histórico de `errorBase` (#C8392F = cinabrio Bauhaus).
 import type { Enlace, EnlaceEstilo, Id } from "../modelo/tipos";
 import { tokens } from "./tokens";
 
