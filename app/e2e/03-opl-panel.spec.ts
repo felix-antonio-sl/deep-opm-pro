@@ -71,10 +71,11 @@ test("sincroniza OPL interactivo con canvas y renombrado inverso", async ({ page
 
   const tokenEntrada = panel.getByText("Entrada").first();
   await tokenEntrada.hover();
-  // Ronda 28 L1: el hover sutil del token OPL ahora usa ink15 (#D2D2D2)
-  // en lugar del cyan suave del corporate UI (#D9E7EF). La intencion del
-  // test (hover muestra contraste tenue contra paper) se preserva.
-  await expect(tokenEntrada).toHaveCSS("background-color", "rgb(210, 210, 210)");
+  // Ronda 28 L1+L3: el hover sutil del token OPL usa ink04 (#F2F2F2 = rgb(242,242,242))
+  // -- L3 prefirió ink04 sobre ink15 que L1 propuso, para coherencia con la
+  // tonalidad Bauhaus del Editor OPL. La intencion del test (hover muestra
+  // contraste tenue contra paper) se preserva.
+  await expect(tokenEntrada).toHaveCSS("background-color", "rgb(242, 242, 242)");
 
   await elementoPorTexto(page, "Procesar").click();
   await panel.getByLabel("Filtrar por selección").check();
