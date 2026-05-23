@@ -230,6 +230,26 @@ export const createSeleccionSlice: CrearSlice<SeleccionSlice> = (set, get) => ({
       set({ mensaje: "Selecciona una entidad, enlace o estado para eliminar" });
       return;
     }
+    // Paquete "Estados ciudadanos de primera clase" (2026-05-23):
+    // eliminarBatch no entiende ids de estado. Si los ids son TODOS estados,
+    // los procesamos uno por uno con eliminarEstado (que respeta el invariante
+    // "objeto con estados debe conservar al menos 2"). Cualquier mezcla cae
+    // al batch original (se ignoran los ids de estado en el batch).
+    const todosEstados = ids.every((id) => modelo.estados?.[id]);
+    if (todosEstados) {
+      let siguiente = modelo;
+      for (const id of ids) {
+        const resultado = eliminarEstadoOp(siguiente, id);
+        if (!resultado.ok) {
+          set({ mensaje: resultado.error });
+          return;
+        }
+        siguiente = resultado.value;
+      }
+      commitModelo(set, modelo, siguiente, { seleccionId: null, seleccionados: [], modoSeleccion: "simple", enlaceSeleccionId: null, estadoSeleccionId: null, modoEnlace: null, mensaje: null });
+      addFlash("✓ Estado eliminado");
+      return;
+    }
     const resultado = eliminarBatch(modelo, ids, opdActivoId);
     if (resultado.ok) {
       commitModelo(set, modelo, resultado.value, { seleccionId: null, seleccionados: [], modoSeleccion: "simple", enlaceSeleccionId: null, estadoSeleccionId: null, modoEnlace: null, mensaje: null });

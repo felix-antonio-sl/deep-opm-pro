@@ -109,12 +109,33 @@ export function cablearSeleccion(args: CablearSeleccionArgs): () => void {
       return;
     }
     if (meta?.kind === "entidad") {
+      const selector = jointSelector(evt.target);
+      // Paquete "Estados ciudadanos de primera clase" (2026-05-23):
+      // el check de cápsula precede al check de multi-evento sobre entidad.
+      // Si el click impacta en una cápsula de estado, el flujo es del
+      // estado (selección simple, multi-select cross-objeto rechazado,
+      // o extremo de enlace si modo enlace).
+      const estadoId = estadoDesdeSelector(meta, selector);
+      if (estadoId) {
+        if (modoEnlaceRef.current) {
+          seleccionarEstadoComoExtremoRef.current(estadoId);
+          return;
+        }
+        if (multiEvento(evt)) {
+          if (ctrlEvento(evt)) toggleSeleccionEstadoRef.current(estadoId);
+          else agregarEstadoASeleccionRef.current(estadoId);
+          return;
+        }
+        seleccionarEstadoRef.current(estadoId);
+        return;
+      }
+      // Multi-evento sobre cuerpo de entidad (no cápsula): agrega/toggle del
+      // objeto propietario, como antes del paquete.
       if (multiEvento(evt)) {
         if (ctrlEvento(evt)) toggleSeleccionRef.current(meta.entidadId);
         else agregarASeleccionRef.current(meta.entidadId);
         return;
       }
-      const selector = jointSelector(evt.target);
       if (selector === "foldBadge") {
         cambiarModoPlegadoAparienciaRef.current(meta.aparienciaId, "parcial");
         return;
@@ -122,27 +143,6 @@ export function cablearSeleccion(args: CablearSeleccionArgs): () => void {
       const parteEntidadId = parteEntidadDesdeSelector(meta, selector);
       if (parteEntidadId) {
         seleccionarPartePlegadaRef.current(meta.aparienciaId, parteEntidadId);
-        return;
-      }
-      const estadoId = estadoDesdeSelector(meta, selector);
-      if (estadoId) {
-        // Modo enlace preservado (escenario 9 del smoke): el estado actúa como
-        // extremo del enlace en construcción. Igual comportamiento que pre-2026-05-23.
-        if (modoEnlaceRef.current) {
-          seleccionarEstadoComoExtremoRef.current(estadoId);
-          return;
-        }
-        // Paquete "Estados ciudadanos de primera clase" (2026-05-23):
-        // click sobre cápsula en modo normal selecciona el estado, no el
-        // objeto. Shift/Ctrl multi-select va al estado (constraint:
-        // mismo objeto propietario, validado en el slice).
-        // Spec: docs/superpowers/specs/2026-05-23-estados-ciudadania-primera-clase-design.md §5, §7.
-        if (multiEvento(evt)) {
-          if (ctrlEvento(evt)) toggleSeleccionEstadoRef.current(estadoId);
-          else agregarEstadoASeleccionRef.current(estadoId);
-          return;
-        }
-        seleccionarEstadoRef.current(estadoId);
         return;
       }
       seleccionarEntidadRef.current(meta.entidadId);

@@ -79,7 +79,7 @@ export function accionesCanvas(set: SetStore, get: GetStore): Partial<ModeloSlic
         ? { nuevaCosaPendiente: null }
         : {};
       if (!modoEnlace) {
-        set({ seleccionId: id, seleccionados: [id], modoSeleccion: "simple", enlaceSeleccionId: null, mensaje: null, ...limpiezaPendiente });
+        set({ seleccionId: id, seleccionados: [id], modoSeleccion: "simple", enlaceSeleccionId: null, estadoSeleccionId: null, mensaje: null, ...limpiezaPendiente });
         return;
       }
 
@@ -87,7 +87,7 @@ export function accionesCanvas(set: SetStore, get: GetStore): Partial<ModeloSlic
         permitirExtremoPlegado: true,
       });
       if (!resultado.ok) {
-        set({ seleccionId: id, seleccionados: [id], modoSeleccion: "simple", enlaceSeleccionId: null, mensaje: resultado.error, ...limpiezaPendiente });
+        set({ seleccionId: id, seleccionados: [id], modoSeleccion: "simple", enlaceSeleccionId: null, estadoSeleccionId: null, mensaje: resultado.error, ...limpiezaPendiente });
         return;
       }
       const { modelo: modeloFinal } = resultado.value;
@@ -96,6 +96,7 @@ export function accionesCanvas(set: SetStore, get: GetStore): Partial<ModeloSlic
         seleccionados: [id],
         modoSeleccion: "simple",
         enlaceSeleccionId: null,
+        estadoSeleccionId: null,
         modoEnlace: null,
         mensaje: null,
         // P1-5: al crearse el enlace, salimos del editor inline.
@@ -115,7 +116,13 @@ export function accionesCanvas(set: SetStore, get: GetStore): Partial<ModeloSlic
         ? { nuevaCosaPendiente: null }
         : {};
       if (!modoEnlace) {
-        set({ seleccionId: estado.entidadId, seleccionados: [estado.entidadId], modoSeleccion: "simple", enlaceSeleccionId: null, mensaje: null, ...limpiezaPendiente });
+        // Paquete "Estados ciudadanos de primera clase" (2026-05-23): este
+        // path histórico redirigía al objeto propietario cuando NO había
+        // modo enlace. Lo mantenemos por compat (existían callers fuera del
+        // handler de seleccion), pero el handler real ya seleccionó el
+        // estado vía `seleccionarEstadoRef`. Aquí dejamos seleccionado el
+        // objeto como antes para no romper callers OPL/programáticos.
+        set({ seleccionId: estado.entidadId, seleccionados: [estado.entidadId], modoSeleccion: "simple", enlaceSeleccionId: null, estadoSeleccionId: null, mensaje: null, ...limpiezaPendiente });
         return;
       }
 
@@ -123,7 +130,7 @@ export function accionesCanvas(set: SetStore, get: GetStore): Partial<ModeloSlic
         permitirExtremoPlegado: true,
       });
       if (!resultado.ok) {
-        set({ seleccionId: estado.entidadId, seleccionados: [estado.entidadId], modoSeleccion: "simple", enlaceSeleccionId: null, mensaje: resultado.error, ...limpiezaPendiente });
+        set({ seleccionId: estado.entidadId, seleccionados: [estado.entidadId], modoSeleccion: "simple", enlaceSeleccionId: null, estadoSeleccionId: null, mensaje: resultado.error, ...limpiezaPendiente });
         return;
       }
       const { modelo: modeloFinal } = resultado.value;
@@ -132,6 +139,7 @@ export function accionesCanvas(set: SetStore, get: GetStore): Partial<ModeloSlic
         seleccionados: [estado.entidadId],
         modoSeleccion: "simple",
         enlaceSeleccionId: null,
+        estadoSeleccionId: null,
         modoEnlace: null,
         mensaje: null,
         nuevaCosaPendiente: null,
@@ -148,7 +156,7 @@ export function accionesCanvas(set: SetStore, get: GetStore): Partial<ModeloSlic
       }
       // P1-5 ronda 4: al pasar a contexto enlace, el editor inline de
       // cualquier entidad se descarta (contextos disjuntos).
-      set({ seleccionId: null, seleccionados: [id], modoSeleccion: "simple", enlaceSeleccionId: id, modoEnlace: null, mensaje: null, nuevaCosaPendiente: null });
+      set({ seleccionId: null, seleccionados: [id], modoSeleccion: "simple", enlaceSeleccionId: id, estadoSeleccionId: null, modoEnlace: null, mensaje: null, nuevaCosaPendiente: null });
     },
 
     seleccionarGrupoEstructural(id, enlaceIds) {
@@ -166,6 +174,7 @@ export function accionesCanvas(set: SetStore, get: GetStore): Partial<ModeloSlic
         seleccionados: ids.length > 0 ? ids : [id],
         modoSeleccion: ids.length > 1 ? "multi" : "simple",
         enlaceSeleccionId: id,
+        estadoSeleccionId: null,
         modoEnlace: null,
         mensaje: null,
         nuevaCosaPendiente: null,
@@ -185,7 +194,7 @@ export function accionesCanvas(set: SetStore, get: GetStore): Partial<ModeloSlic
           set({ mensaje: `Enlace no existe: ${ref.id}` });
           return;
         }
-        set({ seleccionId: null, seleccionados: [ref.id], modoSeleccion: "simple", enlaceSeleccionId: ref.id, modoEnlace: null, mensaje: null, nuevaCosaPendiente: null });
+        set({ seleccionId: null, seleccionados: [ref.id], modoSeleccion: "simple", enlaceSeleccionId: ref.id, estadoSeleccionId: null, modoEnlace: null, mensaje: null, nuevaCosaPendiente: null });
         return;
       }
       if (ref.tipo === "estado") {
@@ -194,14 +203,14 @@ export function accionesCanvas(set: SetStore, get: GetStore): Partial<ModeloSlic
           set({ mensaje: `Estado no existe: ${ref.id}` });
           return;
         }
-        set({ seleccionId: estado.entidadId, seleccionados: [estado.entidadId], modoSeleccion: "simple", enlaceSeleccionId: null, modoEnlace: null, mensaje: null, ...limpiezaPendiente });
+        set({ seleccionId: estado.entidadId, seleccionados: [estado.entidadId], modoSeleccion: "simple", enlaceSeleccionId: null, estadoSeleccionId: null, modoEnlace: null, mensaje: null, ...limpiezaPendiente });
         return;
       }
       if (!modelo.entidades[ref.id]) {
         set({ mensaje: `Entidad no existe: ${ref.id}` });
         return;
       }
-      set({ seleccionId: ref.id, seleccionados: [ref.id], modoSeleccion: "simple", enlaceSeleccionId: null, modoEnlace: null, mensaje: null, ...limpiezaPendiente });
+      set({ seleccionId: ref.id, seleccionados: [ref.id], modoSeleccion: "simple", enlaceSeleccionId: null, estadoSeleccionId: null, modoEnlace: null, mensaje: null, ...limpiezaPendiente });
     },
 
     renombrarEntidadDesdeOpl(entidadId, nombre) {
@@ -214,6 +223,7 @@ export function accionesCanvas(set: SetStore, get: GetStore): Partial<ModeloSlic
       commitModelo(set, modelo, resultado.value, {
         seleccionId: entidadId,
         enlaceSeleccionId: null,
+        estadoSeleccionId: null,
         modoEnlace: null,
         mensaje: null,
       });
@@ -283,6 +293,7 @@ export function accionesCanvas(set: SetStore, get: GetStore): Partial<ModeloSlic
       commitModelo(set, modelo, resultado.value, {
         seleccionId: null,
         enlaceSeleccionId: enlaceId,
+        estadoSeleccionId: null,
         modoEnlace: null,
         mensaje: null,
       });
@@ -299,6 +310,7 @@ export function accionesCanvas(set: SetStore, get: GetStore): Partial<ModeloSlic
       commitModelo(set, modelo, resultado.value, {
         seleccionId: estadoResultado?.entidadId ?? null,
         enlaceSeleccionId: null,
+        estadoSeleccionId: null,
         modoEnlace: null,
         mensaje: null,
       });
@@ -310,7 +322,7 @@ export function accionesCanvas(set: SetStore, get: GetStore): Partial<ModeloSlic
         set({ mensaje: `Enlace no existe: ${enlaceId}` });
         return;
       }
-      set({ seleccionId: null, enlaceSeleccionId: enlaceId, modoEnlace: null, mensaje: null });
+      set({ seleccionId: null, enlaceSeleccionId: enlaceId, estadoSeleccionId: null, modoEnlace: null, mensaje: null });
     },
 
     aplicarEdicionOplLibre(texto) {
@@ -333,6 +345,7 @@ export function accionesCanvas(set: SetStore, get: GetStore): Partial<ModeloSlic
       commitModelo(set, modelo, resultado.value, {
         seleccionId: null,
         enlaceSeleccionId: null,
+        estadoSeleccionId: null,
         modoEnlace: null,
         mensaje: `OPL aplicado: ${preview.patches.length} cambio${preview.patches.length === 1 ? "" : "s"}`,
       });
@@ -393,7 +406,7 @@ export function accionesCanvas(set: SetStore, get: GetStore): Partial<ModeloSlic
         set({ mensaje: resultado.error });
         return;
       }
-      commitModelo(set, modelo, resultado.value, { seleccionId, enlaceSeleccionId: null, modoEnlace: null, mensaje: null });
+      commitModelo(set, modelo, resultado.value, { seleccionId, enlaceSeleccionId: null, estadoSeleccionId: null, modoEnlace: null, mensaje: null });
     },
 
     cambiarModoPlegadoApariencia(aparienciaId, modo) {
@@ -407,6 +420,7 @@ export function accionesCanvas(set: SetStore, get: GetStore): Partial<ModeloSlic
       commitModelo(set, modelo, resultado.value, {
         seleccionId: apariencia?.entidadId ?? null,
         enlaceSeleccionId: null,
+        estadoSeleccionId: null,
         modoEnlace: null,
         mensaje: null,
       });

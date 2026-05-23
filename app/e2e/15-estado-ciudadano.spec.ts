@@ -169,15 +169,11 @@ test.describe("15 — Estado como ciudadano de primera clase", () => {
 
   test("7. Reordenar estado (flecha ↓ del Inspector) persiste el nuevo orden", async ({ page }) => {
     await importarJson(page, modeloConTresEstados());
-    await capsula(page, "s-pendiente").click();
-    // Posición actual: 1/3. Bajar a 2/3.
+    // El orden alfabético inicial es: s-aprobado (0), s-cerrado (1), s-pendiente (2).
+    // Tomamos s-aprobado (posición 1/3) y lo bajamos a 2/3.
+    await capsula(page, "s-aprobado").click();
+    await expect(page.getByText(/Posición \(1\/3\)/)).toBeVisible();
     await page.getByTestId("inspector-estado-bajar").click();
-    // Verificamos posición exporada al JSON.
-    const exportadoBoton = page.getByRole("button", { name: "Exportar" });
-    if (await exportadoBoton.count() > 0) {
-      // Si hay UI export expuesta, la usamos. Si no, basta con que el inspector
-      // ahora muestre Posición (2/3).
-    }
     await expect(page.getByText(/Posición \(2\/3\)/)).toBeVisible();
   });
 

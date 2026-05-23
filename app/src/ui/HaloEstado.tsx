@@ -22,7 +22,10 @@ import { tokens } from "./tokens";
  */
 export function HaloEstado() {
   const estadoSeleccionId = useOpmStore((s) => s.estadoSeleccionId);
-  const estado = useOpmStore((s) => (estadoSeleccionId ? s.modelo.estados?.[estadoSeleccionId] : undefined));
+  // Selector resolved siempre desde el id actual del store (no cerramos
+  // sobre `estadoSeleccionId` de la clausura externa porque el hook
+  // `useOpmStore` no lo re-evalúa cuando cambia la dependencia externa).
+  const estado = useOpmStore((s) => (s.estadoSeleccionId ? s.modelo.estados?.[s.estadoSeleccionId] : undefined));
   const designaciones = estado?.designaciones ?? [];
   const renombrar = useOpmStore((s) => s.renombrarEstadoSeleccionadoSmart);
   const designar = useOpmStore((s) => s.designarEstadoSeleccionado);
