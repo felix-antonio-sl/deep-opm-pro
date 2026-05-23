@@ -4,7 +4,7 @@
 **Repositorio**: `deep-opm-pro`
 **Rama**: `main`
 **Ultimo corte funcional**: `BUG-20260523T201251Z-afcfbe` corrige de raíz la creación inicial: las cosas nacen alrededor del centro geométrico del canvas y el viewport se enfoca en ese centro.
-**Ultimo commit en main**: `docs(opm): prescribe opl ssot in strict canon` (commit de este cierre).
+**Ultimo commit en main**: `docs(opm): remove habilitator origin decoration` (commit de este cierre).
 **Ultimo corte deploy**: `docker compose up -d --build` ejecutado; `opforja` queda healthy y el sidecar reporta 11 activos/59 históricos, todos los activos `Resuelto`. URL pública `https://opforja.sanixai.com/` responde `401` por Basic Auth de Traefik.
 **Corte**: los 11 bugs/features activos del ledger quedan en estado `Resuelto`; las carpetas `BUG-*` capturadas siguen como artefactos locales no versionados salvo decisión explícita.
 
@@ -24,6 +24,37 @@
 - JointJS OSS: usar documentación oficial viva cuando se toque JointJS.
 
 ## Estado Actual
+
+### Cierre Retiro Decoración Habilitadora Visual OPM — 2026-05-23
+
+Estado actual:
+
+- La decoración adicional de origen para enlaces habilitadores fue eliminada de la SSOT visual KORA y del canon estricto derivado.
+- `docs/canon-opm/reglas-opm-estrictas.md` conserva el Anexo G de cobertura visual prescriptiva, pero sin regla local que reintroduzca esa decoración.
+- `/home/felix/kora/artifacts/knowledge/fxsl/opm/opm-ssot-es/opm-visual-es.md` elimina la fila de decoraciones de extremo de enlace que definía esa marca como origen de habilitadores.
+- El cierre es documental/normativo: no modifica `app/`, render, parser, validadores ni assets SVG.
+
+Decisiones consolidadas:
+
+- **Sin decoración adicional de origen**: la gramática visual OPM vigente NO debe usar ni exigir esa marca como decoración de origen de enlaces habilitadores.
+- **SSOT y canon local alineados**: la eliminación vive en la fuente KORA y en el canon derivado de `deep-opm-pro`; no se mantiene divergencia documental.
+- **Alcance de commit aislado**: en `kora` queda fuera `artifacts/skills/dev/hermes-agent-specialist/`; en `deep-opm-pro` quedan fuera los `docs/bugs/BUG-*` sin seguimiento.
+
+Artefactos relevantes:
+
+- [docs/canon-opm/reglas-opm-estrictas.md](/home/felix/projects/deep-opm-pro/docs/canon-opm/reglas-opm-estrictas.md)
+- [docs/HANDOFF.md](/home/felix/projects/deep-opm-pro/docs/HANDOFF.md)
+- `/home/felix/kora/artifacts/knowledge/fxsl/opm/opm-ssot-es/opm-visual-es.md`
+- KORA local commit: `df7a9ee docs(opm): remove habilitator origin decoration from visual ssot`.
+
+Verificación:
+
+- Búsqueda literal de las tres variantes retiradas en `deep-opm-pro` y `opm-ssot-es`: sin coincidencias exactas.
+- `git diff --check -- docs/canon-opm/reglas-opm-estrictas.md`: limpio.
+- IDs `R-*` duplicados en canon: sin duplicados.
+- `git -C /home/felix/kora diff --check -- artifacts/knowledge/fxsl/opm/opm-ssot-es/opm-visual-es.md`: limpio.
+- `python3 toolchain/kora lint-md artifacts/knowledge/fxsl/opm/opm-ssot-es/opm-visual-es.md`: `Issues: 0`.
+- `python3 toolchain/kora check --strict --path artifacts/knowledge/fxsl/opm/opm-ssot-es/opm-visual-es.md`: falla por relaciones rotas preexistentes en memorias/handoffs KORA no relacionadas; el archivo OPM visual no aparece en los diagnósticos.
 
 ### Cierre Canon Prescriptivo OPL SSOT — 2026-05-23
 

@@ -1624,8 +1624,8 @@ Al editar OPD:
 
 - **R-ANEXO-D-1**: este índice DEBE cubrir todas las reglas visuales declaradas por `opm-visual-es.md` v3.0.0.
 - **R-ANEXO-D-2**: la columna "Resumen" DEBE tratarse como entrada operativa corta; la redacción completa vive en la SSOT visual.
-- **R-ANEXO-D-3**: si una regla aparece aquí pero no tiene sección desarrollada en el cuerpo, DEBE aplicarse por referencia directa a la SSOT.
-- **R-ANEXO-D-4**: toda regla visual aplicada por referencia DEBE incorporarse al cuerpo cuando se implemente o se audite en `deep-opm-pro`.
+- **R-ANEXO-D-3**: toda regla listada aquí DEBE tener cobertura prescriptiva desarrollada en el cuerpo, matrices o Anexo G; el índice NO DEBE usarse como única cobertura normativa.
+- **R-ANEXO-D-4**: toda regla visual implementada o auditada en `deep-opm-pro` DEBE citar la sección local desarrollada, no solo la fila de índice.
 
 | Regla | Resumen |
 |---|---|
@@ -1964,6 +1964,76 @@ Al editar OPD:
 | A.9 Estructuras fundamentales | R-OPL-RF-1..6 |
 | A.10 Gestión de contexto | R-OPL-CX-1..7 |
 | §18 Implementación | R-OPL-LANG-1..7, R-OPL-EQ-4..5 |
+
+### Anexo G — Desarrollo prescriptivo de cobertura `SSOT-visual`
+
+- **R-ANEXO-VIS-1**: las filas de este anexo SON reglas locales aplicables; NO son notas informativas.
+- **R-ANEXO-VIS-2**: toda fila que cite una regla `V-*` DEBE conservar la misma fuerza normativa que `opm-visual-es.md`.
+- **R-ANEXO-VIS-3**: cuando una regla `V-*` también aparezca en el cuerpo, este anexo DEBE leerse como precisión de cobertura y no como reemplazo.
+
+| Fuente visual | Regla local prescriptiva |
+|---|---|
+| §0, `V-0` | **R-VIS-EXP-1**: la gramática visual conforme DEBE definirse por lo que persiste en un export canónico declarado; lo visible solo en canvas editable DEBE clasificarse como UI o vista. |
+| `V-0a` | **R-VIS-EXP-2**: toda herramienta conforme DEBE declarar al menos los perfiles `canon-diagrama` y `canon-documento`. |
+| `V-0b` | **R-VIS-EXP-3**: todo elemento persistente en `canon-diagrama` DEBE estar cubierto por regla visual `V-*` o capítulo visual explícito. |
+| `V-0c` | **R-VIS-EXP-4**: todo elemento que desaparece de `canon-diagrama` y `canon-documento` DEBE tratarse como UI transitoria y NO DEBE reutilizar canales semánticos sin distinción. |
+| `V-0d` | **R-VIS-EXP-5**: todo elemento persistente solo en un perfil canónico DEBE declararse como atributo de perfil. |
+| `V-0e` | **R-VIS-EXP-6**: una captura de pantalla de edición, navegación, modal o simulación pausada NO DEBE aceptarse como evidencia suficiente de canonicidad. |
+| §0 | **R-VIS-CAPA-1**: la capa visual DEBE fijar símbolos, contornos, decoraciones, marcas gráficas, composición visual de enlaces/operadores/estados/refinamientos, precedencia, distribución, comportamiento entre OPDs, export, extensiones tipadas y composición inter-modelo. |
+| §0 | **R-VIS-CAPA-2**: la capa visual NO DEBE redefinir semántica base, gramática OPL ni procedimiento metodológico; toda mención visual de esos planos DEBE remitir a la capa propietaria. |
+| §0 | **R-VIS-CAPA-3**: la numeración `V-*` DEBE tratarse como estable por familia conceptual e historia editorial, no como orden lineal. |
+| §0 | **R-VIS-CAPA-4**: `contorno`, `borde` y `línea` DEBEN interpretarse como traza perimetral o visible; solo variantes explícitas como discontinuo, doble, grueso o zigzag agregan semántica. |
+| §1 | **R-VIS-PRIM-1**: el vocabulario visual nuclear DEBE limitarse a formas cerradas, contornos, sombreados, decoraciones de extremo y marcas textuales definidos por la SSOT visual. |
+| `V-129` | **R-VIS-TRI-1**: todo triángulo estructural canónico DEBE conectar por línea visible al menos con el refinable por el vértice y con un refinador por la base. |
+| `V-130` | **R-VIS-TRI-2**: todo triángulo auxiliar de edición que no persista en export DEBE distinguirse por tamaño, color UI reservado o ubicación fuera de la geometría semántica. |
+| `V-192` | **R-VIS-AUX-1**: el supresor `...` de enlaces no materializados solo pertenece a la gramática auxiliar si persiste en `canon-diagrama`. |
+| `V-193` | **R-VIS-AUX-2**: todo triángulo o indicador compactado de relación hacia cosa ausente DEBE quedar anclado geométricamente a la cosa visible correspondiente. |
+| `V-60`, `V-61`, `V-66` | **R-VIS-CONSTRUCT-1**: un OPD DEBE componerse de constructos; un constructo básico DEBE tener dos cosas y un enlace; el enlace DEBE tener origen, destino y conector con línea, símbolo, etiqueta opcional y ruta opcional. |
+| §2.1 | **R-VIS-EST-1**: los estados DEBEN renderizarse como rountangles contenidos en la zona interna del objeto propietario; una apariencia flotante DEBE bloquearse como estado inválido. |
+| §2.3 | **R-VIS-EST-2**: los valores de atributo DEBEN renderizarse como estados del objeto-atributo cuando se visualicen como valores discretos, rangos o valores concretos de instancia. |
+| `V-14` | **R-VIS-FAN-1**: múltiples enlaces del mismo tipo sin arco conector DEBEN interpretarse como AND. |
+| `V-20` | **R-VIS-RUTA-1**: un proceso con etiquetas de ruta DEBE emparejar consumo/resultado por coincidencia exacta de etiqueta para formar trayectoria de ejecución. |
+| `V-22` | **R-VIS-MULT-1**: toda multiplicidad DEBE colocarse junto al extremo del enlace o cerca del refinador estructural correspondiente. |
+| `V-28`, `V-29`, `V-72` | **R-VIS-HER-1**: la herencia múltiple, el atributo discriminante y la herencia por despliegue DEBEN aplicarse aunque los enlaces heredados no se dibujen localmente. |
+| `V-74`, `V-75`, `V-76` | **R-VIS-HER-2**: la afiliación DEBE heredarse por cadena estructural; una especialización PUEDE sobrescribir participante heredado con especialización válida; los enlaces comunes DEBEN migrar al general cuando se crea un general desde especializaciones. |
+| `V-34`, `V-77`, `V-78` | **R-VIS-REF-1**: una descomposición de proceso DEBE inflar la elipse; la invocación implícita por posición vertical aplica solo a esa descomposición; una descomposición de objeto codifica disposición, no tiempo. |
+| `V-39` | **R-VIS-CTRL-1**: cuando una condición omite un subproceso, el control DEBE pasar al siguiente subproceso secuencial aplicable. |
+| `V-45` | **R-VIS-DUR-1**: los valores de duración de proceso DEBEN mostrarse dentro de la elipse bajo el nombre y la unidad temporal con formato `{min, esperada, max}` y distribución cuando aplique. |
+| `V-46` | **R-VIS-SD-1**: el SD DEBE contener exactamente un proceso sistémico; procesos ambientales adicionales PUEDEN aparecer si permanecen ambientales. |
+| `V-47` | **R-VIS-NOM-1**: toda apariencia visual DEBE renderizarse sin ambigüedad respecto de la cosa a la que refiere; la unicidad nominal se evalúa a nivel de modelo. |
+| `V-48` | **R-VIS-REDIR-1**: toda cita legacy a `V-48` DEBE redirigirse a `V-4`; no existe regla visual independiente para estados fuera de objeto. |
+| `V-49` | **R-VIS-CONS-1**: durante ejecución o animación, un objeto consumido DEBE desaparecer al inicio del proceso, no al final. |
+| `V-52` | **R-VIS-APP-1**: cualquier elemento del modelo PUEDE aparecer en cualquier número de OPDs; eliminar una apariencia NO DEBE eliminar la existencia de la cosa. |
+| `V-59` | **R-VIS-ASYNC-1**: subprocesos activados individualmente por eventos desde estados distintos DEBEN ejecutarse de forma asincrónica e independiente. |
+| `V-62` | **R-VIS-INZOOM-1**: la descomposición en nuevo diagrama DEBE ejecutarse como `Mostrar Contenido` y luego `Refinar Enlaces`; la recomposición DEBE ejecutar las fases inversas. |
+| `V-64`, `V-251` | **R-VIS-MODELO-1**: un modelo OPM DEBE contener `1..*` OPDs, `1..*` párrafos OPL y `0..*` referencias a sub-modelos; la clausura OPD<->OPL DEBE ser local a cada modelo individual. |
+| `V-87`, `V-88`, `V-89` | **R-VIS-SUPR-1**: la supresión de estados aplica solo a descomposición; estados no referenciados NO se suprimen; múltiples OPDs hijo combinan supresiones por unión. |
+| `V-91`, `V-92`, `V-93`, `V-94` | **R-VIS-HIJO-1**: en un OPD hijo, enlaces estructurales al contenedor DEBEN verse, enlaces procedimentales al contenedor NO DEBEN verse directamente, enlaces entre internos DEBEN verse, y enlaces que no tocan contenedor ni internos DEBEN ocultarse. |
+| `V-106`, `V-107`, `V-109` | **R-VIS-DIST-1**: sin subprocesos, un enlace puede mostrarse al contenedor solo como respaldo temporal; la distribución y restricciones de frontera aplican solo a descomposición, no a despliegue. |
+| `V-117`, `V-118`, `V-119` | **R-VIS-SEMI-1**: el semi-plegado DEBE ser por refinador, su indicador numérico DEBE contar refinadores ocultos, y su estado DEBE ser local por apariencia/OPD. |
+| `V-125`, `V-127` | **R-VIS-SOMB-1**: un contenedor refinado de cosa física DEBE preservar fisicidad; reforzadores de canvas para fisicidad NO DEBEN persistir en `canon-diagrama`. |
+| `V-121` | **R-VIS-LEX-1**: el nombre de proceso DEBE heredar su política léxica desde la capa textual activa; la capa visual NO DEBE introducir política paralela. |
+| `V-53`, `V-132` | **R-VIS-RUN-1**: el proceso activo DEBE usar una marca reservada distinta del contorno grueso de refinamiento; si ambos usan refuerzo de contorno, DEBEN diferenciar color, halo o distintivo auxiliar. |
+| `V-133` | **R-VIS-RUN-2**: el glifo recomendado para estado actual runtime es pin/gota externa anclada al borde; un glifo alternativo DEBE preservar separación visual respecto de inicial/final/default/`Current`. |
+| `V-136`, `V-137`, `V-138`, `V-139`, `V-140` | **R-VIS-RUN-3**: tokens runtime se omiten del `canon-diagrama` salvo snapshot; estados operacionales no activos DEBEN usar marcas reservadas; suspendido no puede parecer inactivo en snapshot; modo síncrono limita activos por hilo y modo headless NO altera gramática estática. |
+| `V-143`, `V-144`, `V-145`, `V-146` | **R-VIS-STEREO-1**: todo estereotipo DEBE declarar aplicabilidad; en canvas DEBE verse como `<<Nombre>>` o distintivo equivalente; en OPL PUEDE usar `«Nombre»`; su condición NO DEBE ocultarse en artefacto canónico. |
+| `V-147`, `V-148`, `V-149`, `V-150`, `V-151` | **R-VIS-STEREO-2**: toda propiedad forzada por estereotipo DEBE ser recuperable; remover estereotipo NO DEBE dejar residuos ambiguos; estructura derivada DEBE ser trazable; el OPD exportado DEBE identificar visualmente la cosa estereotipada; sombra forzada por estereotipo DEBE interpretarse como fisicidad efectiva. |
+| `V-152`, `V-153`, `V-154`, `V-155`, `V-156`, `V-157` | **R-VIS-REQ-1**: entidades derivadas por estereotipo DEBEN usar patrón reservado `<Rol> of <HostThing>` y ciclo de vida dependiente del host; `<<Requirement>>` DEBE ser objeto OPM estereotipado con atributos mínimos `Name`, `ID`, `Requirement Essence`, `Satisfaction` y `Description`; `Requirement Essence` NO DEBE confundirse con esencia física/informacional. |
+| `V-159`, `V-160`, `V-161`, `V-162` | **R-VIS-COMP-1**: alias `{alias}` DEBEN ser únicos en alcance operativo declarado y distintos de alias decorativos; unidad `[u]` DEBE aparecer después del nombre; `[]` vacío solo PUEDE persistir si fue confirmado explícitamente. |
+| `V-164`, `V-165` | **R-VIS-COMP-2**: un slot de valor PUEDE contener placeholder, escalar, cadena, disyunción, intervalo o multilínea; por defecto NO DEBE haber más de un slot primario por objeto. |
+| `V-168`, `V-169`, `V-171`, `V-174` | **R-VIS-COMP-3**: ausencia de `()` NO impide simulación conceptual; código ejecutable DEBE referenciar solo aliases, slots, entradas tipadas o nombres reservados; el cuerpo de código NO pertenece al canvas nuclear; integraciones externas DEBEN expresarse por estereotipo, distintivo o metadato, no por clase gráfica nueva. |
+| `V-176`, `V-177`, `V-178`, `V-179` | **R-VIS-SUB-1**: un modelo compuesto DEBE ser DAG de modelos individuales; cada sub-modelo conserva OPL autocontenida; padre e hijo DEBEN declarar simétricamente la referencia. |
+| `V-180`, `V-181`, `V-182` | **R-VIS-SUB-2**: una vista de sub-modelo DEBE clasificarse como vista anclada, diferenciarse de OPD jerárquico/ad hoc en metadato, y PUEDE presentarse como solo lectura. |
+| `V-185`, `V-186`, `V-187`, `V-188`, `V-189` | **R-VIS-SUB-3**: atenuación o distintivos cross-model DEBEN ser gramática de vista; una vista de sub-modelo PUEDE violar el proceso sistémico único solo si declara criterio de vista; export compuesto DEBE declarar sub-modelos no cargados, esquema de resolución y estado explícito de desconexión. |
+| `V-197`, `V-199` | **R-VIS-LAYOUT-1**: el snap a grid DEBE ser transparente al modelo; el export DEBE autoajustar viewport para evitar símbolos huérfanos o recortados. |
+| `V-200`, `V-201`, `V-205`, `V-206` | **R-VIS-MODO-1**: canvas DEBE distinguir modos estático-exportable, edición, navegación y gestión-modal; solo estático-exportable fundamenta conformidad; búsqueda/navegación y tutorial DEBEN usar canal reservado y desactivarse para canon. |
+| `V-207`, `V-208`, `V-209`, `V-210`, `V-211` | **R-VIS-AUTOR-1**: estilado autoral PUEDE existir solo si no colisiona con gramática, simulación, validación ni UI; defaults DEBEN converger al esquema canónico; cosas de igual clase comparten base visual; rótulo DEBE mantener legibilidad y contraste. |
+| `V-215`, `V-216`, `V-217` | **R-VIS-AUTOR-2**: tamaño y proporción DEBEN preservar legibilidad, contención y decoraciones; normalización léxica NO DEBE ser silenciosa; export canónico DEBE normalizar estilado autoral salvo perfil contrario declarado. |
+| `V-219`, `V-221`, `V-222`, `V-223` | **R-VIS-VAL-1**: por defecto el OPD estático DEBE quedar limpio de validación persistente; marcadores de edición inválida NO pertenecen al canon; unicidad nominal DEBE resolverse explícitamente; metodología y sugerencias son vistas derivadas. |
+| `V-226`, `V-227`, `V-230`, `V-231`, `V-232`, `V-233`, `V-234`, `V-235` | **R-VIS-EXPORT-1**: todo perfil de export DEBE declarar default; `canon-diagrama` DEBE preservar gramática visible sin chrome; listados textuales cromáticos, export parcial, anexos, rasterización, viewport y overlays DEBEN declararse sin recortar ni ocluir semántica OPM. |
+| `V-241`, `V-242`, `V-243` | **R-VIS-FAM-1**: toda categoría adicional de enlace DEBE declararse como extensión; `sub-model` DEBE tratarse como cuarto par canónico de refinamiento/abstracción; Bring y equivalentes DEBEN tratarse como operadores derivados, no refinamiento ontológico. |
+| `V-252`, `V-253`, `V-256` | **R-VIS-XMODEL-1**: toda cosa referenciable cross-model DEBE exponer URI/handle persistente; marcas cross-model DEBEN ser vista, no gramática nuclear; ciclo de carga DEBE ser propiedad de la referencia. |
+| `V-257`, `V-258`, `V-259`, `V-260`, `V-261`, `V-262`, `V-263` | **R-VIS-BRING-1**: una operación auxiliar inter-OPD DEBE materializar apariencias o enlaces existentes sin crear semántica; `Bring connected things` DEBE filtrar por familia/conectividad; el resultado canónico DEBE ser indistinguible de OPD manual; supresores `...` PUEDEN quedar; OPDs derivados DEBEN clasificarse como vista anclada/ad hoc; toda operación DEBE ser reversible o acotada. |
 
 ---
 
