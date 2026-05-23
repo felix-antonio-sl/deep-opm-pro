@@ -1,0 +1,665 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1440">
+<title>Modelador OPM · Ronda 28 · Bauhaus computacional</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink: #0A0A0A;
+  --paper: #FAFAFA;
+  --ink-90: #1A1A1A;
+  --ink-70: #404040;
+  --ink-50: #6E6E6E;
+  --ink-30: #A8A8A8;
+  --ink-15: #D2D2D2;
+  --ink-08: #E8E8E8;
+  --ink-04: #F2F2F2;
+  --accent: #C8392F;
+  --accent-soft: #F5DDDB;
+  --focus: #1F3FA6;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  background: var(--ink-04);
+  font-family: "Inter Tight", -apple-system, BlinkMacSystemFont, sans-serif;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.mono { font-family: "JetBrains Mono", monospace; }
+
+.uppercase {
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 500;
+}
+
+.app {
+  width: 1440px;
+  margin: 24px auto;
+  background: var(--paper);
+  border: 1.5px solid var(--ink);
+  box-shadow: 12px 12px 0 0 var(--ink-15);
+}
+
+/* ============ CHROME ============ */
+.chrome {
+  display: flex;
+  align-items: center;
+  height: 56px;
+  border-bottom: 1.5px solid var(--ink);
+  background: var(--paper);
+  padding: 0 24px;
+  gap: 24px;
+}
+.chrome-menu {
+  width: 28px; height: 28px;
+  display: flex; align-items: center; justify-content: center;
+  border: 1.5px solid var(--ink);
+  background: var(--paper);
+  cursor: pointer;
+  font-size: 14px;
+  flex: 0 0 auto;
+}
+.chrome-chip {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 6px 10px;
+  border: 1px solid var(--ink-15);
+  background: var(--paper);
+  font-size: 12px;
+  color: var(--ink-70);
+}
+.chrome-chip .dot {
+  width: 6px; height: 6px;
+  background: var(--ink);
+  border-radius: 999px;
+  display: inline-block;
+}
+.chrome-divider {
+  width: 1.5px; height: 24px; background: var(--ink-15);
+}
+.chrome-tool {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 6px 14px;
+  border: 1.5px solid var(--ink);
+  background: var(--paper);
+  font-weight: 500;
+  cursor: pointer;
+  font-size: 13px;
+}
+.chrome-tool .glyph {
+  width: 12px; height: 12px;
+  display: inline-flex;
+}
+.chrome-tool .glyph.rect { background: var(--paper); border: 1.5px solid var(--ink); }
+.chrome-tool .glyph.ellipse { background: var(--paper); border: 1.5px solid var(--ink); border-radius: 999px; }
+.chrome-search {
+  margin-left: auto;
+  display: inline-flex; align-items: center; gap: 10px;
+  padding: 6px 14px;
+  border: 1.5px solid var(--ink);
+  background: var(--paper);
+  font-size: 13px;
+  cursor: pointer;
+  font-family: "JetBrains Mono", monospace;
+}
+.chrome-search .kbd {
+  border: 1px solid var(--ink-30); padding: 1px 5px; font-size: 10px; color: var(--ink-70);
+}
+
+/* ============ BREADCRUMB ============ */
+.breadcrumb {
+  display: flex; align-items: center; gap: 16px;
+  height: 40px; padding: 0 24px;
+  border-bottom: 1px solid var(--ink-15);
+  font-size: 12px;
+  color: var(--ink-70);
+}
+.breadcrumb .crumb { color: var(--ink-70); }
+.breadcrumb .crumb.active { color: var(--ink); font-weight: 500; }
+.breadcrumb .sep { color: var(--ink-30); }
+
+/* ============ MAIN LAYOUT ============ */
+.workspace {
+  display: grid;
+  grid-template-columns: 280px 1fr 320px;
+  height: 720px;
+  border-bottom: 1.5px solid var(--ink);
+}
+
+/* ============ SIDEBAR ============ */
+.sidebar {
+  background: var(--paper);
+  border-right: 1px solid var(--ink-15);
+  padding: 16px 0;
+}
+.sidebar-header {
+  padding: 0 16px 12px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.sidebar-header .title {
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 500;
+  color: var(--ink-70);
+}
+.sidebar-header .controls {
+  display: flex; gap: 4px;
+}
+.sidebar-header .ctrl {
+  border: 1px solid var(--ink-15);
+  padding: 2px 6px;
+  font-size: 10px;
+  font-family: "JetBrains Mono", monospace;
+  color: var(--ink-70);
+}
+.sidebar-item {
+  display: flex; align-items: center;
+  padding: 6px 16px;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 12px;
+}
+.sidebar-item.active {
+  background: var(--ink-04);
+  border-left: 2px solid var(--accent);
+  padding-left: 14px;
+  font-weight: 500;
+}
+.sidebar-item .icon {
+  width: 12px;
+  font-family: "JetBrains Mono", monospace;
+  color: var(--ink-50);
+}
+.sidebar-item .tag {
+  display: inline-block;
+  border: 1px solid var(--ink-15);
+  padding: 0 4px;
+  font-size: 9px;
+  font-family: "JetBrains Mono", monospace;
+  color: var(--ink-70);
+  letter-spacing: 0;
+  margin-left: auto;
+}
+.sidebar-item .count {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 10px;
+  color: var(--ink-50);
+  margin-left: 8px;
+}
+.sidebar-section {
+  margin-top: 16px;
+}
+
+/* ============ CANVAS ============ */
+.canvas {
+  background: var(--paper);
+  position: relative;
+  background-image: radial-gradient(circle, var(--ink-15) 0.6px, transparent 0.6px);
+  background-size: 8px 8px;
+  background-position: 0 0;
+  overflow: hidden;
+}
+.canvas svg { width: 100%; height: 100%; display: block; }
+
+/* mini toolbar contextual */
+.mini-toolbar {
+  position: absolute;
+  top: 230px; left: 540px;
+  display: flex;
+  background: var(--paper);
+  border: 1.5px solid var(--ink);
+  box-shadow: 4px 4px 0 0 var(--ink-15);
+  font-size: 12px;
+  font-weight: 500;
+}
+.mini-toolbar button {
+  border: none;
+  border-right: 1px solid var(--ink-15);
+  background: var(--paper);
+  padding: 8px 12px;
+  cursor: pointer;
+  font-family: inherit;
+  display: inline-flex; align-items: center; gap: 6px;
+  color: var(--ink);
+  font-size: 12px;
+}
+.mini-toolbar button:last-child { border-right: none; }
+.mini-toolbar .gl { font-family: "JetBrains Mono", monospace; color: var(--ink-70); }
+
+/* ============ INSPECTOR ============ */
+.inspector {
+  border-left: 1.5px solid var(--ink);
+  padding: 20px 20px 24px;
+  background: var(--paper);
+  overflow-y: auto;
+}
+.insp-header {
+  display: flex; justify-content: space-between; align-items: baseline;
+  border-bottom: 1.5px solid var(--ink);
+  padding-bottom: 12px;
+}
+.insp-header h2 {
+  font-weight: 700; font-size: 15px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.insp-id {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 10px;
+  color: var(--ink-30);
+}
+.insp-section { margin-top: 18px; }
+.insp-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 500;
+  color: var(--ink-70);
+  margin-bottom: 6px;
+}
+.insp-input {
+  width: 100%;
+  border: 1px solid var(--ink-15);
+  padding: 7px 10px;
+  font-family: inherit;
+  font-size: 13px;
+  background: var(--paper);
+  color: var(--ink);
+  outline: none;
+}
+.insp-input:focus { border-color: var(--focus); }
+.insp-tabs {
+  display: flex; gap: 0;
+  border-bottom: 1.5px solid var(--ink);
+  margin: 14px 0 14px;
+  flex-wrap: wrap;
+}
+.insp-tab {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 500;
+  padding: 8px 10px 8px 0;
+  margin-right: 16px;
+  color: var(--ink-50);
+  cursor: pointer;
+  border-bottom: 1.5px solid transparent;
+  margin-bottom: -1.5px;
+}
+.insp-tab.active { color: var(--ink); border-bottom-color: var(--ink); }
+.insp-textarea {
+  width: 100%;
+  height: 70px;
+  border: 1px solid var(--ink-15);
+  padding: 8px 10px;
+  font-family: inherit;
+  font-size: 13px;
+  background: var(--paper);
+  resize: vertical;
+  color: var(--ink);
+}
+.insp-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.insp-btn {
+  width: 100%;
+  border: 1px solid var(--ink-15);
+  background: var(--paper);
+  padding: 8px;
+  font-family: inherit;
+  font-size: 12px;
+  text-align: left;
+  cursor: pointer;
+  color: var(--ink);
+}
+.toggle-pair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  border: 1.5px solid var(--ink);
+  margin-bottom: 6px;
+}
+.toggle {
+  padding: 7px 10px;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  background: var(--paper);
+  border-right: 1.5px solid var(--ink);
+  color: var(--ink-70);
+}
+.toggle:last-child { border-right: none; }
+.toggle.active { background: var(--ink); color: var(--paper); }
+.hint {
+  font-size: 11px;
+  color: var(--ink-70);
+  line-height: 1.5;
+  margin-top: 4px;
+}
+
+/* ============ PANEL OPL ============ */
+.opl {
+  border-top: 1.5px solid var(--ink);
+  background: var(--paper);
+}
+.opl-toolbar {
+  display: flex; align-items: center;
+  padding: 10px 24px;
+  border-bottom: 1px solid var(--ink-15);
+  gap: 8px;
+}
+.opl-toolbar .title {
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-right: 14px;
+}
+.opl-toolbar .btn {
+  border: 1px solid var(--ink-15);
+  padding: 4px 10px;
+  background: var(--paper);
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  color: var(--ink);
+  letter-spacing: 0;
+}
+.opl-toolbar .btn.active { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+.opl-toolbar .btn.disabled { color: var(--ink-30); border-color: var(--ink-08); cursor: not-allowed; }
+.opl-body {
+  padding: 14px 24px 18px;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 12px;
+  color: var(--ink);
+}
+.opl-section-title {
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink-70);
+  font-family: "Inter Tight", sans-serif;
+  margin-bottom: 8px;
+}
+.opl-line {
+  display: grid;
+  grid-template-columns: 30px 1fr;
+  gap: 12px;
+  padding: 2px 0;
+  align-items: baseline;
+}
+.opl-line .num { color: var(--ink-30); }
+.opl-line b { font-weight: 600; }
+.opl-line .obj { border-bottom: 1px solid var(--ink); }
+.opl-line .proc { border-bottom: 1px dashed var(--ink); }
+.opl-line code {
+  background: var(--ink-04);
+  padding: 0 4px;
+}
+
+/* ============ DIAGNOSTICO ============ */
+.diag {
+  border-top: 1px solid var(--ink-15);
+  padding: 14px 24px;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.diag .title { font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.08em; }
+.diag .count { font-size: 12px; color: var(--ink-70); font-family: "JetBrains Mono", monospace; }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- CHROME -->
+  <div class="chrome">
+    <div class="chrome-menu">☰</div>
+    <div class="chrome-chip"><span class="dot"></span> Guardado · 14:32</div>
+    <div class="chrome-divider"></div>
+    <button class="chrome-tool"><span class="glyph rect"></span>Objeto</button>
+    <button class="chrome-tool"><span class="glyph ellipse"></span>Proceso</button>
+    <div class="chrome-divider"></div>
+    <button class="chrome-search">⌖ Buscar <span class="kbd">⌘ K</span></button>
+  </div>
+
+  <!-- BREADCRUMB -->
+  <div class="breadcrumb">
+    <span class="crumb active">SD</span>
+    <span class="sep">/</span>
+    <span class="crumb">System Diagram</span>
+    <span style="margin-left:auto; font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--ink-50);">7o · 1p · 8e</span>
+  </div>
+
+  <!-- WORKSPACE -->
+  <div class="workspace">
+
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+      <div class="sidebar-header">
+        <div class="title">OPDs</div>
+        <div class="controls">
+          <span class="ctrl">Auto</span>
+          <span class="ctrl">ID</span>
+          <span class="ctrl">⋯</span>
+        </div>
+      </div>
+      <div class="sidebar-item">
+        <span class="icon">◆</span> Mapa del sistema
+      </div>
+      <div class="sidebar-item active">
+        <span class="icon">▾</span> SD
+        <span class="count">7o · 1p · 8e</span>
+      </div>
+      <div style="padding-left: 32px;">
+        <div class="sidebar-item">
+          <span class="icon">▸</span> Inzoom
+          <span class="count">0o · 4p · 0e</span>
+        </div>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-header">
+          <div class="title">Pestañas</div>
+        </div>
+        <div class="sidebar-item active">
+          <span class="icon">▦</span> Modelo
+        </div>
+      </div>
+    </div>
+
+    <!-- CANVAS -->
+    <div class="canvas">
+      <svg viewBox="0 0 760 720" xmlns="http://www.w3.org/2000/svg">
+        <!-- arrowhead marker -->
+        <defs>
+          <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="#0A0A0A"/>
+          </marker>
+          <marker id="arrow-accent" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="#C8392F"/>
+          </marker>
+          <marker id="bullet" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="4" markerHeight="4">
+            <circle cx="5" cy="5" r="4" fill="#0A0A0A"/>
+          </marker>
+        </defs>
+
+        <!-- objetos superiores -->
+        <g>
+          <rect x="80" y="80" width="135" height="60" fill="#FAFAFA" stroke="#0A0A0A" stroke-width="1.5"/>
+          <text x="147.5" y="115" text-anchor="middle" font-family="Inter Tight" font-size="13" font-weight="500" fill="#0A0A0A">System Name</text>
+        </g>
+        <g>
+          <rect x="240" y="80" width="135" height="60" fill="#FAFAFA" stroke="#0A0A0A" stroke-width="1.5"/>
+          <text x="307.5" y="115" text-anchor="middle" font-family="Inter Tight" font-size="13" font-weight="500" fill="#0A0A0A">System Handler</text>
+        </g>
+        <g>
+          <rect x="400" y="80" width="135" height="60" fill="#FAFAFA" stroke="#0A0A0A" stroke-width="1.5"/>
+          <text x="467.5" y="115" text-anchor="middle" font-family="Inter Tight" font-size="13" font-weight="500" fill="#0A0A0A">System Tool Set</text>
+        </g>
+        <g>
+          <rect x="600" y="80" width="135" height="60" fill="#FAFAFA" stroke="#0A0A0A" stroke-width="1.5"/>
+          <text x="667.5" y="115" text-anchor="middle" font-family="Inter Tight" font-size="13" font-weight="500" fill="#0A0A0A">Beneficiary Group</text>
+        </g>
+
+        <!-- proceso principal SELECCIONADO (cinabrio) -->
+        <g>
+          <ellipse cx="385" cy="320" rx="115" ry="48" fill="#FAFAFA" stroke="#C8392F" stroke-width="2"/>
+          <text x="385" y="316" text-anchor="middle" font-family="Inter Tight" font-size="14" font-weight="500" fill="#0A0A0A">Main System</text>
+          <text x="385" y="333" text-anchor="middle" font-family="Inter Tight" font-size="14" font-weight="500" fill="#0A0A0A">Doing</text>
+          <!-- selection handles -->
+          <rect x="266" y="268" width="6" height="6" fill="#C8392F"/>
+          <rect x="382" y="268" width="6" height="6" fill="#C8392F"/>
+          <rect x="498" y="268" width="6" height="6" fill="#C8392F"/>
+          <rect x="266" y="368" width="6" height="6" fill="#C8392F"/>
+          <rect x="382" y="368" width="6" height="6" fill="#C8392F"/>
+          <rect x="498" y="368" width="6" height="6" fill="#C8392F"/>
+          <rect x="266" y="318" width="6" height="6" fill="#C8392F"/>
+          <rect x="498" y="318" width="6" height="6" fill="#C8392F"/>
+        </g>
+
+        <!-- enlaces de consumo (System Name -> Main System Doing) -->
+        <line x1="147.5" y1="140" x2="305" y2="288" stroke="#0A0A0A" stroke-width="1.5" marker-end="url(#arrow)"/>
+        <line x1="307.5" y1="140" x2="345" y2="278" stroke="#0A0A0A" stroke-width="1.5" marker-end="url(#arrow)"/>
+        <line x1="467.5" y1="140" x2="430" y2="278" stroke="#0A0A0A" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+        <!-- agregación a Beneficiary Group -->
+        <line x1="667.5" y1="140" x2="667.5" y2="200" stroke="#0A0A0A" stroke-width="1.5"/>
+        <polygon points="667.5,200 657,220 678,220" fill="#FAFAFA" stroke="#0A0A0A" stroke-width="1.5"/>
+
+        <g>
+          <rect x="580" y="240" width="180" height="100" fill="#FAFAFA" stroke="#0A0A0A" stroke-width="1.5"/>
+          <text x="670" y="266" text-anchor="middle" font-family="Inter Tight" font-size="12" font-weight="600" fill="#0A0A0A">Beneficiary Relevant</text>
+          <text x="670" y="282" text-anchor="middle" font-family="Inter Tight" font-size="12" font-weight="600" fill="#0A0A0A">Attribute</text>
+          <!-- estados -->
+          <rect x="595" y="298" width="68" height="26" fill="#FAFAFA" stroke="#0A0A0A" stroke-width="1"/>
+          <text x="629" y="316" text-anchor="middle" font-family="JetBrains Mono" font-size="10" fill="#0A0A0A">problematic</text>
+          <rect x="678" y="298" width="68" height="26" fill="#FAFAFA" stroke="#0A0A0A" stroke-width="1"/>
+          <text x="712" y="316" text-anchor="middle" font-family="JetBrains Mono" font-size="10" fill="#0A0A0A">satisfactory</text>
+        </g>
+
+        <!-- enlace efecto Main System Doing -> Beneficiary -->
+        <line x1="500" y1="320" x2="580" y2="290" stroke="#0A0A0A" stroke-width="1.5" marker-end="url(#arrow)" marker-start="url(#arrow)"/>
+
+        <!-- Main Output -->
+        <line x1="385" y1="368" x2="385" y2="480" stroke="#0A0A0A" stroke-width="1.5" marker-end="url(#arrow)"/>
+        <g>
+          <rect x="317.5" y="480" width="135" height="60" fill="#FAFAFA" stroke="#0A0A0A" stroke-width="1.5"/>
+          <text x="385" y="515" text-anchor="middle" font-family="Inter Tight" font-size="13" font-weight="500" fill="#0A0A0A">Main Output</text>
+        </g>
+      </svg>
+
+      <!-- mini-toolbar contextual sobre proceso seleccionado -->
+      <div class="mini-toolbar">
+        <button><span class="gl">⊞</span> Descomp.</button>
+        <button><span class="gl">⊟</span> Desplegar</button>
+        <button><span class="gl">✎</span> Alias</button>
+        <button><span class="gl">⟩</span> Inspector</button>
+      </div>
+    </div>
+
+    <!-- INSPECTOR -->
+    <div class="inspector">
+      <div class="insp-header">
+        <h2>Main System Doing</h2>
+        <span class="insp-id">p-13</span>
+      </div>
+
+      <div class="insp-section">
+        <div class="insp-label">Nombre</div>
+        <input class="insp-input" value="Main System Doing">
+      </div>
+
+      <div class="insp-tabs">
+        <span class="insp-tab active">Semántica</span>
+        <span class="insp-tab">Enlaces</span>
+        <span class="insp-tab">Refinamiento</span>
+        <span class="insp-tab">Apariciones</span>
+        <span class="insp-tab">Estilo</span>
+      </div>
+
+      <div class="insp-section">
+        <div class="insp-label">Descripción</div>
+        <textarea class="insp-textarea" placeholder="ej: transforma materia prima en producto"></textarea>
+      </div>
+
+      <div class="insp-section insp-row">
+        <div>
+          <div class="insp-label">Alias</div>
+          <input class="insp-input" placeholder="ej: cliente">
+        </div>
+        <div>
+          <div class="insp-label">Unidad</div>
+          <input class="insp-input" placeholder="ej: kg">
+        </div>
+      </div>
+
+      <div class="insp-section">
+        <button class="insp-btn">+ Vincular URL</button>
+      </div>
+
+      <div class="insp-section">
+        <div class="insp-label">Esencia</div>
+        <div class="toggle-pair">
+          <div class="toggle active">Informacional</div>
+          <div class="toggle">Física</div>
+        </div>
+        <div class="hint">Informacional: datos, conceptos, ideas. Física: objetos tangibles.</div>
+      </div>
+
+      <div class="insp-section">
+        <div class="insp-label">Afiliación</div>
+        <div class="toggle-pair">
+          <div class="toggle active">Sistémica</div>
+          <div class="toggle">Ambiental</div>
+        </div>
+        <div class="hint">Sistémica: parte del sistema. Ambiental: contexto externo.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PANEL OPL -->
+  <div class="opl">
+    <div class="opl-toolbar">
+      <span class="title">OPL</span>
+      <button class="btn active">N°</button>
+      <button class="btn disabled">AI BETA</button>
+      <button class="btn">Editar</button>
+      <button class="btn">Copiar</button>
+      <button class="btn">HTML</button>
+      <span style="margin-left:auto; font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--ink-50);">19 oraciones</span>
+    </div>
+    <div class="opl-body">
+      <div class="opl-section-title">SD · System Diagram</div>
+      <div class="opl-line"><span class="num">01</span><span><b class="obj">System Name</b> es un objeto informacional y sistémico.</span></div>
+      <div class="opl-line"><span class="num">02</span><span><b class="obj">System Handler</b> es un objeto físico y sistémico.</span></div>
+      <div class="opl-line"><span class="num">03</span><span><b class="proc">Main System Doing</b> es un proceso físico y sistémico.</span></div>
+      <div class="opl-line"><span class="num">04</span><span><b class="proc">Main System Doing</b> consume <b class="obj">System Name</b> y requiere <b class="obj">System Handler</b>.</span></div>
+      <div class="opl-line"><span class="num">05</span><span><b class="proc">Main System Doing</b> genera <b class="obj">Main Output</b>.</span></div>
+      <div class="opl-line"><span class="num">06</span><span><b class="obj">Beneficiary Relevant Attribute</b> puede ser <code>problematic</code> o <code>satisfactory</code>.</span></div>
+      <div class="opl-line"><span class="num">07</span><span><b class="proc">Main System Doing</b> afecta <b class="obj">Beneficiary Relevant Attribute</b>.</span></div>
+    </div>
+  </div>
+
+  <!-- DIAGNOSTICO -->
+  <div class="diag">
+    <span class="title">▸ Diagnóstico del modelo</span>
+    <span class="count">0 sugerencias</span>
+  </div>
+</div>
+
+</body>
+</html>
