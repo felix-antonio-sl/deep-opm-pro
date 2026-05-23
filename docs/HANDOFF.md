@@ -3,10 +3,10 @@
 **Fecha**: 2026-05-23
 **Repositorio**: `deep-opm-pro`
 **Rama**: `main`
-**Ultimo corte funcional**: cierre del ciclo completo de remediación del veredicto jobs-web-ux original. Audit → rondas 23, 24, 25, 26, 27 ejecutadas y desplegadas. Solo §III.B (copilot contextual generalizado) queda fuera por decisión de producto separada.
-**Ultimo commit en main**: `675d30d docs(handoff): cierre Ronda 27 III.A chrome plano de 5 elementos`.
-**Ultimo corte deploy**: **desplegado en `https://opforja.sanixai.com`** sirviendo bundle `index-j7w6gpht.js` desde 2026-05-22 06:20 GMT. `main` local == `origin/main`. Containers `opforja` y `opforja-bug-capture` con uptime >24h, healthy.
-**Corte**: ciclo de remediación jobs-web-ux al 100% (excepto III.B). Cobertura ejecutada: 15 ítems punch-list ronda23 + 9 detalles cosméticos ronda24 + 3 residuos cierre + §III.A chrome al 70% (rondas 25 + 27) + Ronda 26 bisimetría OPL Tier 1+2 + bug `7d8b75`. Solo §III.B (copilot contextual generalizado) queda como decisión de producto separada.
+**Ultimo corte funcional**: cierre Ronda 28 — vuelta 360° estética Bauhaus computacional (Dieter Rams + Otl Aicher + Karl Gerstner). Paleta ink/paper/cinabrio, Inter Tight + JetBrains Mono self-hosted, retícula 8px, stroke 1.5-2px, sombras planas. Canvas OPM con verde/azul lavados al 12% saturación + markers diferenciados por tipo de enlace. Marca "OPFORJA" en chrome.
+**Ultimo commit en main**: `8166fa3 fix(arbol): restaura activacion de OPD por click en treeitem (ronda28/L3 hotfix)`.
+**Ultimo corte deploy**: pendiente push + deploy de los 29 commits ronda28 sobre `675d30d` (ronda27 III.A).
+**Corte**: rediseño visual integral entregado en 6 líneas paralelas. Chrome/inspector/OPL/diálogos en Bauhaus puro monocromo + canvas con OPM cromático lavado (preserva heurística del modelador). Loop verde: 1560 unit / 219 smoke / 1 skip.
 
 ## Política De Handoff Único
 
@@ -24,6 +24,51 @@
 - JointJS OSS: usar documentación oficial viva cuando se toque JointJS.
 
 ## Estado Actual
+
+### Cierre Ronda 28 — Vuelta 360° estética Bauhaus computacional — 2026-05-23
+
+Estado actual:
+
+- `main` local en `8166fa3`. **29 commits sin push**.
+- Loop verde: `1560 unit / 0 fail` + `219 smoke / 0 fail / 1 skip`.
+
+Norte estético elegido entre 4 opciones presentadas con previews: **Bauhaus
+computacional** (Dieter Rams + Otl Aicher + Karl Gerstner). Precisión nórdica,
+retícula visible, geometría matemática, cero decoración.
+
+Ejecutado en 6 líneas paralelas + 1 hotfix:
+
+- **L1 — Tokens Bauhaus + fuentes** (4 commits): paleta `colors.{ink #0A0A0A, paper #FAFAFA, accent: #C8392F cinabrio, focus: #1F3FA6 ultramar, warning, ink90..ink04}`. Fuentes Inter Tight + JetBrains Mono self-hosted via `@fontsource-variable` (~172 KB woff2). CSS vars en `:root`. 89 alias legacy mapeados con compat-shim. Tabular nums activadas.
+
+- **L2 — Chrome superior** (4 commits): toolbar, MenuPrincipal, ChipPersistencia, Breadcrumb, BarraPestanas, CommandPalette, MenuContextual* en Bauhaus puro monocromo. Marca "OPFORJA" en chrome (Inter Tight 700/13 uppercase tracking +0.12em). CommandPalette con barra cinabrio 2px en item activo.
+
+- **L3 — Inspector + paneles** (4 commits + hotfix): InspectorEntidad/Enlace + 12 secciones, PanelDiagnostico, panelOpl, ArbolOpd, PanelCarpetas. Labels uppercase tracking +0.08em. Inputs con caret cinabrio + focus ring ultramar. Diagnóstico con banda lateral cromática 3px (cinabrio/ink-50/ink-30 por severidad). Underline tipográfico en nombres OPL (solid objetos, dashed procesos).
+
+- **L4 — Canvas CANON-V2** (4 commits): objetos rect con fill `#EFF7EB` (verde papel 12% sat) + stroke ink 2px. Procesos ellipse con fill `#E8F0F8` (azul papel 10% sat). Selección stroke 2.5px cinabrio + 8 handles cuadrados. Markers diferenciados por tipo de enlace (lollipop vacío instrumento / lleno agente, rombo invocación, triángulo lleno consumo/resultado, doble flecha efecto). Triángulos canónicos OPM: agregación lleno, generalización vacío, exhibición doble. Halos SIM preservan semáforo verde/cinabrio/ámbar.
+
+- **L5 — Diálogos + asistente + bienvenida** (5 commits): 18 archivos. Backdrop ink @30%, container borde 1.5px ink + sombra plana 12 12 0 ink-15, sin border-radius. Botones primarios ink/paper, secundarios paper/ink. DialogoEstiloEnlace con 6 swatches semánticos.
+
+- **L6 — Iconografía + mobile + estados** (5 commits): SVG inline reemplazados por glifos Unicode geométricos (◆ mapa, ⊞ descomp., ⊟ desplegar, ✎ alias, ◉ bug, ▾/▸). Bottom nav mobile con subrayado 1.5px ink en activo. Timeline con línea ink-15. FlashToast con banda lateral cromática. CapturadorBugs FAB circular.
+
+- **Hotfix L3** (1 commit `8166fa3`): tras integración, 5 smoke fails compartían causa raíz geométrica: el badge UNFOLD/INZOOM del treeitem caía exactamente en el centro debido al reorden de cols + spacing.md elevado de L1; `treeitem.click()` de Playwright clickeaba el badge (con stopPropagation), no el treeitem. Fix: reorden `gridTemplateColumns` para que el centro caiga sobre el count (span sin handler). 5 fails → 0.
+
+Decisiones consolidadas:
+
+- **Canvas mantiene afordancia cromática OPM** lavada (no monocromo puro). Análisis crítico del mockup previo al despacho determinó que monocromo puro borraba la heurística del modelador habituado. Compromiso: chrome/inspector/OPL/diálogos/iconos en Bauhaus puro monocromo, canvas con OPM cromático lavado.
+- **Markers de enlace diferenciados por tipo** (lollipop, rombo, triángulo). Recupera afordancia semántica que el monocromo puro habría perdido.
+- **Stroke 2px en canvas, 1.5px en chrome**. Densidad de modelos OPM requiere presencia visual mayor.
+- **Marca OPFORJA discreta** en chrome como detalle obsesivo identitario.
+
+Artefactos previos al despacho:
+
+- Mockup HTML standalone en `/tmp/ronda28-mockup/mockup.html` con design system completo aplicado.
+- Captura del mockup en `/tmp/ronda28-mockup-bauhaus.png`.
+
+Pendiente:
+
+1. `git push origin main` (29 commits).
+2. Build Docker + `docker compose up -d`.
+3. Verificación visual in-vivo con Playwright contra producción.
 
 ### Cierre Ronda 27 III.A — Chrome plano de 5 elementos — 2026-05-22
 
