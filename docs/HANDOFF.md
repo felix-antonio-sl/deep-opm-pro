@@ -3,10 +3,10 @@
 **Fecha**: 2026-05-23
 **Repositorio**: `deep-opm-pro`
 **Rama**: `main`
-**Ultimo corte funcional**: pendientes activos de bugs/features resueltos — menú, pestañas, barra contextual, canvas/zoom y ledger en estado `Resuelto`.
-**Ultimo commit en main**: `fix(ui): resolve active bug backlog`.
-**Ultimo corte deploy**: Docker Compose reconstruido con cierre de pendientes activos; `opforja` healthy, `opforja-bug-capture` up, sidecar `GET /__deep-opm/bug-reports` responde `active: 5`, `history: 53`, estados activos `["Resuelto"]`. URL pública protegida por Basic Auth (`401` sin credenciales).
-**Corte**: `docs/bugs/INDEX.md` ya no tiene estados `Nuevo` ni `Backlog`; los 5 activos quedan `Resuelto` con resolución explícita.
+**Ultimo corte funcional**: canon OPM estricto convertido a canon prescriptivo, con cobertura explícita de la capa semántica `opm-iso-19450-es.md`.
+**Ultimo commit en main**: `docs(opm): prescribe iso coverage in strict canon`.
+**Ultimo corte deploy**: sin deploy; cambio documental normativo, no ejecutable.
+**Corte**: `docs/canon-opm/reglas-opm-estrictas.md` queda como documento de reglas, no como explicación: cada entrada debe ser obligación, prohibición, condición, default, severidad o política ejecutable.
 
 ## Política De Handoff Único
 
@@ -24,6 +24,41 @@
 - JointJS OSS: usar documentación oficial viva cuando se toque JointJS.
 
 ## Estado Actual
+
+### Cierre Canon Prescriptivo ISO OPM — 2026-05-23
+
+Estado actual:
+
+- `docs/canon-opm/reglas-opm-estrictas.md` cambió de "canon operativo exhaustivo" a **canon prescriptivo OPD/OPL**.
+- El documento ahora declara su propio contrato: no tutorial, no explicación histórica y no ejemplos sin efecto normativo.
+- Se cubrieron explícitamente elementos normativos de `opm-iso-19450-es.md` que estaban ausentes o solo implícitos: conformidad, principios de modelado, modelo conceptual vs ejecución, realización, metamodelo, objetos específicos de estado, atributos/propiedades, consumo temporal, herencia, SD, árboles OPD, vistas, OPL total, operaciones de descomposición/recomposición, simulación, MBSE/PDR e integración virtual.
+- La tabla de anti-patrones fue reformulada como matriz de rechazo y acción canónica, no como justificación narrativa.
+- El cierre se mantiene documental: no toca `app/`, no cambia validadores, parser, render ni tests.
+
+Decisiones consolidadas:
+
+- **Solo reglas**: toda prosa retenida debe formular obligación, prohibición, condición, default, severidad, política de herramienta, matriz normativa o trazabilidad.
+- **Cobertura ISO por prescripción**: la capa semántica no se copia como explicación; se traduce a reglas `R-*` aplicables.
+- **SSOT con precedencia**: si el canon local diverge de `/home/felix/kora/artifacts/knowledge/fxsl/opm/opm-ssot-es/opm-iso-19450-es.md`, la regla local queda inválida y debe abrirse corrección documental.
+- **Arbitraje explícito de conflicto `V-43`**: resultado+consumo al recomponer se colapsa a efecto solo con continuidad de identidad y estados trazables; sin esa continuidad se reporta conflicto.
+- **Proceso persistente restringido**: ya no opera como escape para procesos sin transformee; exige temporalidad, esfuerzo sostenido o condición mantenida relevante.
+- **Commit aislado**: cambios concurrentes en `app/` y `docs/bugs/` quedan fuera del cierre normativo.
+
+Artefactos relevantes:
+
+- [docs/canon-opm/reglas-opm-estrictas.md](/home/felix/projects/deep-opm-pro/docs/canon-opm/reglas-opm-estrictas.md)
+- [docs/HANDOFF.md](/home/felix/projects/deep-opm-pro/docs/HANDOFF.md)
+- `/home/felix/kora/artifacts/knowledge/fxsl/opm/opm-ssot-es/opm-iso-19450-es.md`
+
+Verificación:
+
+- `git diff --check -- docs/canon-opm/reglas-opm-estrictas.md`
+- búsqueda de bloques narrativos obvios: sin `Esta sección`, `Cita normativa`, `Descripción ASCII`, `Ejemplos aplicados`, `Por qué no canon`.
+- búsqueda de IDs `R-*` duplicados: sin duplicados.
+
+Pendiente:
+
+- Implementar validadores/parser/UI para las reglas nuevas cuando entren en alcance de producto. Este cierre solo fija norma documental.
 
 ### Cierre Pendientes Activos Bugs/Features — 2026-05-23
 
