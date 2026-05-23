@@ -483,7 +483,10 @@ test("edita estilo visual de cosa, persiste local y resetea defaults", async ({ 
   // Tras L6 ronda6 hay dos botones "Reset": uno para Style (apariencia) y otro
   // para texto del rotulo. El test apunta al de apariencia (Reset Style).
   await page.getByTitle("Reset Style").click();
-  await expect(page.locator('.joint-element rect[joint-selector="body"]')).toHaveAttribute("fill", "#fdffff");
+  // CANON-V2 (ronda 28 L4): fill default objeto pasa a verde papel
+  // lavado (`#EFF7EB`, antes #fdffff cuasi-blanco V1). El stroke default
+  // ahora viene del ink puro (no del verde V1).
+  await expect(page.locator('.joint-element rect[joint-selector="body"]')).toHaveAttribute("fill", "#EFF7EB");
   json = await jsonEditor(page).inputValue();
   exportado = JSON.parse(json) as ExportadoModelo;
   objeto = Object.values(exportado.modelo.entidades).find((entidad) => entidad.nombre === "Objeto");

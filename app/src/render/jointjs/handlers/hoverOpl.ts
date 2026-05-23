@@ -53,7 +53,11 @@ export function aplicarHoverOpl(graph: dia.Graph, modelo: Modelo, ref: OplRefere
       if (!entidad || !apariencia) continue;
       const resaltada = ref?.tipo === "entidad" && ref.id === entidad.id
         || ref?.tipo === "estado" && modelo.estados[ref.id]?.entidadId === entidad.id;
-      cell.attr("body/fill", resaltada ? "#E1E6EB" : apariencia.estilo?.fill ?? CANON.colores.relleno);
+      // CANON-V2 (ronda 28 L4): fill default por tipo de entidad (verde/azul
+      // papel lavado), no paper generico. Si el usuario fijo `apariencia.
+      // estilo.fill`, domina; hover OPL respeta el override.
+      const fillDefault = entidad.tipo === "objeto" ? CANON.colores.objeto : CANON.colores.proceso;
+      cell.attr("body/fill", resaltada ? "#E1E6EB" : apariencia.estilo?.fill ?? fillDefault);
       continue;
     }
     if (meta?.kind === "enlace") {

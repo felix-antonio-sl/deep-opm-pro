@@ -72,10 +72,16 @@ export function proyectarEntidad(
   const strokeBase = refinada ? 4 : CANON.dims.enlaceVisible;
   // CANON-V2: seleccion suma 0.5px (2 → 2.5). Antes sumaba 2 (2 → 4) lo cual
   // emparejaba la seleccion con el contorno de refinamiento. La distincion
-  // visual se logra con el color cinabrio (no con el grosor).
+  // visual se logra con el color cinabrio + handles cuadrados.
   const strokeWidth = seleccionada ? strokeBase + 0.5 : strokeBase;
-  // CANON-V2: stroke seleccion = cinabrio (V2 §1).
-  const strokeColor = seleccionada ? CANON_V2.seleccion.color : stroke;
+  // CANON-V2: stroke seleccion = cinabrio (V2 §1) SOLO cuando el usuario no
+  // fijo un borderColor explicito. Si hay override (`apariencia.estilo.
+  // borderColor`), el contrato es respetar la decision del modelador incluso
+  // bajo seleccion; la prominencia de seleccion la entrega entonces el halo
+  // (composers/halos.ts: proyectarHaloSeleccion) + los handles cuadrados
+  // cinabrio + el incremento de grosor.
+  const tieneBorderOverride = !!apariencia.estilo?.borderColor;
+  const strokeColor = seleccionada && !tieneBorderOverride ? CANON_V2.seleccion.color : stroke;
   // CANON-V2: refinamiento in-zoom (descomposicion) dibuja DASHED `8 4` sobre
   // paper semi-transparente al 96%. Convive con el dashed ambiental (mismo
   // pattern; el refinamiento prevalece sin perder el dash exterior).
