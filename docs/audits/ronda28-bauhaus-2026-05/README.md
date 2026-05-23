@@ -62,8 +62,8 @@ Tras análisis crítico del mockup, se decidió **NO eliminar la heurística cro
 | Selección | — | cinabrio 2.5px + handles cuadrados cinabrio |
 
 **Markers diferenciados por tipo de enlace** (canónicos OPM):
-- Consumo/Resultado: triángulo lleno ink
-- Efecto: doble flecha
+- Consumo/Resultado: **swallowtail ink** (cola de golondrina canónica OPM/Dori §3.1). Corrección 2026-05-23 sobre el L4 original que había probado triángulo lleno simple — la silueta swallowtail es la diferenciación canónica frente al lollipop y al rombo, no el llenado del triángulo.
+- Efecto: swallowtail bidireccional ink (mismo marker en source y target)
 - Instrumento: lollipop vacío (círculo paper + stroke ink)
 - Agente: lollipop lleno (círculo ink)
 - Invocación: rombo vacío
