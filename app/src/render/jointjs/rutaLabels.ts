@@ -13,7 +13,8 @@ export function etiquetasRuta(enlace: Enlace, labelPositions?: LayoutLabelsEnlac
       label: {
         text,
         ...labelTextWrap(text, wrapWidth),
-        fill: "#475467",
+        // CANON-V2 (ronda 28 L4): ink70 (antes #475467 slate).
+        fill: "#404040",
         fontFamily: CANON.dims.fontFamily,
         fontSize: 12,
         fontWeight: 700,

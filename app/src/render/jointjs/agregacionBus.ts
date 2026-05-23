@@ -276,7 +276,7 @@ function etiquetaRama(text: string, wrapWidth?: number): Record<string, unknown>
       label: {
         text,
         ...labelTextWrap(text, wrapWidth),
-        fill: "#475467",
+        fill: "#404040", // CANON-V2 ink70
         fontFamily: CANON.dims.fontFamily,
         fontSize: 12,
         fontStyle: "italic",

@@ -1,4 +1,4 @@
-import { CANON } from "../../../modelo/constantes";
+import { CANON, CANON_V2 } from "../../../modelo/constantes";
 import { rolAparienciaEnRefinamiento } from "../../../modelo/contextoRefinamiento";
 import { ANCLAS_RELOJ_ENLACE, puertoRelativoAnclaEnlace, type AnclaRelojEnlace } from "../../../modelo/anclajesEnlace";
 import { designacionesEstado } from "../../../modelo/estadosDesignaciones";
@@ -28,8 +28,14 @@ export function proyectarEntidad(
   resaltada: boolean,
   opciones: OpcionesProyeccion,
 ): JointCellJson {
-  const stroke = apariencia.estilo?.borderColor ?? (entidad.tipo === "objeto" ? CANON.colores.objeto : CANON.colores.proceso);
-  const fillBase = apariencia.estilo?.fill ?? CANON.colores.relleno;
+  // CANON-V2 Bauhaus (ronda 28 L4): el stroke default de objetos/procesos
+  // es ink puro (`CANON.colores.enlace`), no el verde/azul saturado V1. El
+  // canal cromatico OPM se conserva en el FILL lavado (`CANON.colores.objeto`
+  // verde papel / `CANON.colores.proceso` azul papel). Override de usuario
+  // (`apariencia.estilo`) sigue dominando: si un modelador fija borderColor
+  // o fill personalizado, se respeta para el cell.
+  const stroke = apariencia.estilo?.borderColor ?? CANON.colores.enlace;
+  const fillBase = apariencia.estilo?.fill ?? (entidad.tipo === "objeto" ? CANON.colores.objeto : CANON.colores.proceso);
   const fill = resaltada ? "#E1E6EB" : fillBase;
   const partes = partesDePlegado(modelo, entidad.id);
   const tienePartes = partes.length > 0;
@@ -64,15 +70,26 @@ export function proyectarEntidad(
       ? dimensionesConEstados(apariencia, nombreRender, estadosVisibles, entidad.layoutEstados)
       : { width: apariencia.width, height: apariencia.height };
   const strokeBase = refinada ? 4 : CANON.dims.enlaceVisible;
-  const strokeWidth = seleccionada ? strokeBase + 2 : strokeBase;
+  // CANON-V2: seleccion suma 0.5px (2 → 2.5). Antes sumaba 2 (2 → 4) lo cual
+  // emparejaba la seleccion con el contorno de refinamiento. La distincion
+  // visual se logra con el color cinabrio (no con el grosor).
+  const strokeWidth = seleccionada ? strokeBase + 0.5 : strokeBase;
+  // CANON-V2: stroke seleccion = cinabrio (V2 §1).
+  const strokeColor = seleccionada ? CANON_V2.seleccion.color : stroke;
+  // CANON-V2: refinamiento in-zoom (descomposicion) dibuja DASHED `8 4` sobre
+  // paper semi-transparente al 96%. Convive con el dashed ambiental (mismo
+  // pattern; el refinamiento prevalece sin perder el dash exterior).
+  const dasharrayBase = entidad.afiliacion === "ambiental" ? "8 4" : undefined;
+  const dasharray = contornoRefinamiento ? CANON_V2.refinamiento.strokeDasharray : dasharrayBase;
+  const fillRender = contornoRefinamiento ? CANON_V2.refinamiento.fill : fill;
   const bodyTag = entidad.tipo === "objeto" ? "rect" : "ellipse";
   const body = {
-    fill,
-    stroke,
+    fill: fillRender,
+    stroke: strokeColor,
     strokeWidth,
     // Atributos opcionales: solo presentes cuando aplican; pasar undefined a JointJS
     // serializa el string literal "undefined" en el SVG.
-    ...(entidad.afiliacion === "ambiental" ? { strokeDasharray: "8 4" } : {}),
+    ...(dasharray ? { strokeDasharray: dasharray } : {}),
     // SSOT V-124/V-127, JOYAS §8: la sombra de esencia "fisica" es un canal
     // semantico OPM (no decoracion UI). Usamos el filtro `dropShadow` de
     // JointJS que se serializa a `<feDropShadow>` SVG nativo en `<defs>`, en
@@ -249,17 +266,21 @@ function attrsConResizeHandles(
     "resize-sw": { x: 0, y: size.height, cursor: "nesw-resize" },
     "resize-w": { x: 0, y: size.height / 2, cursor: "ew-resize" },
   };
+  // CANON-V2 (ronda 28 L4): handles de seleccion = cuadrados 6x6 cinabrio
+  // (rx/ry=0, sin redondeo) con fill paper. Antes: cuadrados 8x8 redondeados
+  // (rx=1) con stroke #586D8C slate. La nueva geometria es angular y
+  // consistente con el chrome Bauhaus.
   const attrs: Record<string, unknown> = { ...attrsBase };
   for (const [selector, point] of Object.entries(points)) {
     attrs[selector] = {
-      x: point.x - 4,
-      y: point.y - 4,
-      width: 8,
-      height: 8,
-      rx: 1,
-      ry: 1,
-      fill: "#ffffff",
-      stroke: CANON.colores.enlace,
+      x: point.x - 3,
+      y: point.y - 3,
+      width: 6,
+      height: 6,
+      rx: 0,
+      ry: 0,
+      fill: CANON_V2.estado.fill,
+      stroke: CANON_V2.seleccion.color,
       strokeWidth: 1.5,
       cursor: point.cursor,
       pointerEvents: "auto",
@@ -335,7 +356,10 @@ function attrsConConnectAnchors(
     {
       ...point,
       r: 5,
-      fill: "#ffffff",
+      // CANON-V2: connect-anchors (puntos para arrastrar enlace) en fill paper
+      // + stroke ink. Diferenciados de los resize-handles cinabrio: ink =
+      // "conectar enlace", cinabrio = "transformar entidad".
+      fill: CANON_V2.estado.fill,
       stroke: CANON.colores.enlace,
       strokeWidth: 2,
       cursor: "crosshair",
@@ -460,6 +484,9 @@ export function attrsConEstados(
     const width = anchos[index] ?? ESTADOS.minWidth;
     if (vertical) x = (size.width - width) / 2;
     const designaciones = designacionesEstado(estado);
+    // CANON-V2: capsula de estado en paper canonico + stroke ink. Final
+    // recibe un tinte ink-08 sutil (antes "#eef8ff" azul corporate). Stroke
+    // inicial 3px conserva el peso semantico para el modelador.
     attrs[`stateCapsule${index}`] = {
       x,
       y,
@@ -467,7 +494,7 @@ export function attrsConEstados(
       height: ESTADOS.capsuleHeight,
       rx: ESTADOS.radius,
       ry: ESTADOS.radius,
-      fill: designaciones.includes("final") ? "#eef8ff" : CANON.colores.relleno,
+      fill: designaciones.includes("final") ? "#E8E8E8" : CANON.colores.relleno,
       stroke: CANON.colores.enlace,
       strokeWidth: designaciones.includes("inicial") ? 3 : 1,
       pointerEvents: "auto",
@@ -513,11 +540,13 @@ export function attrsConEstados(
       pointerEvents: "none",
       display: designaciones.includes("default") ? undefined : "none",
     };
+    // CANON-V2: marker "current" en simulacion = cinabrio (canal de atencion
+    // Bauhaus). Antes #70E483 verde V1 — colision con el fill objeto lavado.
     attrs[`stateCurrentMarker${index}`] = {
       text: "●",
       x: x + 10,
       y: y + 7,
-      fill: "#70E483",
+      fill: CANON_V2.seleccion.color,
       fontFamily: CANON.dims.fontFamily,
       fontSize: 10,
       fontWeight: 700,
@@ -539,11 +568,12 @@ export function aplicarMetadatosAttrs(
 ): void {
   let x = 14;
   if (metadatos.descripcion) {
+    // CANON-V2: badge "i" descripcion en ink puro (antes #586D8C slate).
     attrs.descBadge = {
       text: "i",
       x,
       y: 17,
-      fill: "#586D8C",
+      fill: CANON.colores.enlace,
       fontFamily: CANON.dims.fontFamily,
       fontSize: 12,
       fontWeight: 700,
@@ -562,11 +592,12 @@ export function aplicarMetadatosAttrs(
       rel: "noopener noreferrer",
       cursor: "pointer",
     };
+    // CANON-V2: badge URL en ink puro (antes #3BC3FF azul proceso V1).
     attrs.urlBadge = {
       text: "↗",
       x,
       y: 17,
-      fill: "#3BC3FF",
+      fill: CANON.colores.enlace,
       fontFamily: CANON.dims.fontFamily,
       fontSize: 13,
       fontWeight: 700,

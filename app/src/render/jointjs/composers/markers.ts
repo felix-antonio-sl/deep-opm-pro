@@ -1,4 +1,4 @@
-import { CANON } from "../../../modelo/constantes";
+import { CANON, CANON_V2 } from "../../../modelo/constantes";
 import type { Enlace, Id, Posicion, SubtipoModificador, TipoEnlace } from "../../../modelo/tipos";
 import { LINK_ASSETS } from "../linkAssets";
 import type { JointCellJson, OpmJointMetadata } from "../proyeccionTipos";
@@ -31,12 +31,14 @@ export function marcadoresEstructurales(
 
   if (tipo === "exhibicion") {
     // Canon OpCloud (shared.ts ExhibitionLink.getTriangleSVG): outer triangulo
-    // SOLO contorno (fill blanco + stroke color) + inner pequeno relleno con color.
+    // SOLO contorno (fill paper + stroke ink) + inner pequeno relleno con
+    // stroke ink. Ronda 28 L4: "white" → paper Bauhaus (`#FAFAFA`) para
+    // alinear con el resto del canvas.
     const innerStrokeWidth = Math.max(1, strokeWidth - 1);
     return [
       polyShapeCell(triangleId, "standard.Polygon", position, size, angle, {
         refPoints: LINK_ASSETS.structural.agregacion.markerPoints,
-        fill: "white",
+        fill: CANON_V2.estado.fill,
         stroke,
         strokeWidth,
         cursor,
@@ -147,12 +149,16 @@ function puertosTrianguloDefault(): PuertoSimboloEstructural[] {
 }
 
 function puertosTrianguloEstructural(puertos: PuertoSimboloEstructural[], mostrarPuertos: boolean): Record<string, unknown> {
+  // CANON-V2 (ronda 28 L4): puertos del simbolo estructural en paper +
+  // stroke cinabrio (antes paper + stroke #3BC3FF azul proceso). El cinabrio
+  // marca el "handle de anclaje arrastrable" consistente con el resto de
+  // handles de seleccion del canvas.
   const attrs = {
     portBody: {
       r: mostrarPuertos ? 4 : 0,
-      fill: mostrarPuertos ? "#ffffff" : "transparent",
-      stroke: mostrarPuertos ? "#3BC3FF" : "transparent",
-      strokeWidth: mostrarPuertos ? 1.5 : 0,
+      fill: mostrarPuertos ? CANON_V2.estado.fill : "transparent",
+      stroke: mostrarPuertos ? CANON_V2.seleccion.color : "transparent",
+      strokeWidth: mostrarPuertos ? 2 : 0,
       magnet: true,
       cursor: mostrarPuertos ? "grab" : "pointer",
     },

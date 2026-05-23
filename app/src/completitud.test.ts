@@ -258,7 +258,9 @@ describe("completitud / estados de objeto", () => {
       .find((item) => item.opm.kind === "entidad" && item.opm.entidadId === objetoId);
     const attrs = cell?.attrs as Record<string, Record<string, unknown>> | undefined;
     expect(attrs?.stateCapsule0?.strokeWidth).toBe(3);
-    expect(attrs?.stateCapsule0?.fill).toBe("#eef8ff");
+    // CANON-V2 (ronda 28 L4): estado final fill en ink-08 Bauhaus
+    // (antes #eef8ff azul corporate).
+    expect(attrs?.stateCapsule0?.fill).toBe("#E8E8E8");
   });
 });
 

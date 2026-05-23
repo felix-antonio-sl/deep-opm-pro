@@ -1,4 +1,4 @@
-import { CANON, enlaceAdmiteTasa, enlaceAdmiteTiempoMaximo, enlaceAdmiteTiempoMinimo, esEnlaceEstructuralEtiquetado, esEnlaceEstructuralFundamental, naturalezaDeEnlace } from "../../../modelo/constantes";
+import { CANON, CANON_V2, enlaceAdmiteTasa, enlaceAdmiteTiempoMaximo, enlaceAdmiteTiempoMinimo, esEnlaceEstructuralEtiquetado, esEnlaceEstructuralFundamental, naturalezaDeEnlace } from "../../../modelo/constantes";
 import { etiquetaEnlaceNormalizada } from "../../../modelo/etiquetasEnlace";
 import { entidadIdDeExtremo } from "../../../modelo/extremos";
 import { modoPlegadoApariencia, partesDePlegado } from "../../../modelo/plegado";
@@ -193,13 +193,15 @@ export function proyectarEnlace(
         stroke: seleccionada
           ? jointCanvasPalette.seleccionSuave
           : activoRuntime
-            ? "rgba(59, 195, 255, 0.22)"
+            // CANON-V2: wrapper de simulacion en cinabrio suave (antes cian).
+            ? "rgba(200, 57, 47, 0.18)"
             : "transparent",
         strokeWidth: CANON.dims.enlaceHitArea,
         cursor: "pointer",
       },
       line: {
-        stroke: activoRuntime ? "#0f766e" : colorEnlace,
+        // CANON-V2: linea activa en simulacion = cinabrio (antes #0f766e teal).
+        stroke: activoRuntime ? CANON_V2.seleccion.color : colorEnlace,
         strokeWidth: seleccionada ? grosorEnlace + 2 : activoRuntime ? grosorEnlace + 1.5 : grosorEnlace,
         ...(dashOverride !== undefined ? { strokeDasharray: dashOverride } : {}),
         sourceMarker: marcadorBidireccional ?? marcadorFuente(enlace.tipo),
@@ -222,13 +224,17 @@ function deltaXEntreApariencias(origen: Apariencia, destino: Apariencia): number
 }
 
 export function etiquetaTokenSimulacion(): Record<string, unknown> {
+  // CANON-V2: token de simulacion en cinabrio (focus de atencion). Antes era
+  // `#3BC3FF` (azul proceso) + `#0f766e` (verde teal); ambos colisionaban
+  // con la nueva paleta lavada. Cinabrio es el unico canal cromatico
+  // permitido para "estado activo / requiere atencion" en V2.
   return {
     markup: [{ tagName: "circle", selector: "token" }],
     attrs: {
       token: {
         r: 5,
-        fill: "#3BC3FF",
-        stroke: "#0f766e",
+        fill: CANON_V2.seleccion.color,
+        stroke: CANON.colores.enlace,
         strokeWidth: 1.5,
         pointerEvents: "none",
       },
@@ -264,7 +270,7 @@ export function etiquetaProxyParte(text: string, distance: number, wrapWidth?: n
       label: {
         text,
         ...labelTextWrap(text, wrapWidth),
-        fill: "#475467",
+        fill: "#404040", // CANON-V2 ink70
         fontFamily: CANON.dims.fontFamily,
         fontSize: 12,
         fontWeight: 700,
@@ -377,7 +383,7 @@ export function etiquetaBadgeModificador(text: string, distance: number): Record
       },
       label: {
         text,
-        fill: "#1f2937",
+        fill: CANON.colores.texto, // CANON-V2 ink
         fontFamily: CANON.dims.fontFamily,
         fontSize: 12,
         fontWeight: 700,
@@ -405,7 +411,7 @@ export function etiquetaTextoModificador(text: string, distance: number, offset:
       label: {
         text,
         ...labelTextWrap(text, wrapWidth),
-        fill: "#475467",
+        fill: "#404040", // CANON-V2 ink70
         fontFamily: CANON.dims.fontFamily,
         fontSize: 11,
         fontWeight: 700,
@@ -481,7 +487,7 @@ export function etiquetaTextoTagged(text: string, distance: number, offset: numb
       label: {
         text,
         ...labelTextWrap(text, wrapWidth),
-        fill: "#111827",
+        fill: CANON.colores.texto, // CANON-V2 ink
         fontFamily: CANON.dims.fontFamily,
         fontSize: 12,
         fontWeight: 700,
@@ -514,7 +520,7 @@ export function etiquetaTextoEnlace(text: string, wrapWidth?: number): Record<st
       label: {
         text,
         ...labelTextWrap(text, wrapWidth),
-        fill: "#475467",
+        fill: "#404040", // CANON-V2 ink70
         fontFamily: CANON.dims.fontFamily,
         fontSize: 12,
         fontStyle: "italic",
@@ -542,7 +548,7 @@ export function etiquetaOrdenEstructural(): Record<string, unknown> {
     attrs: {
       label: {
         text: "ordered",
-        fill: "#1f2937",
+        fill: CANON.colores.texto, // CANON-V2 ink
         fontFamily: CANON.dims.fontFamily,
         fontSize: 11,
         fontWeight: 700,
@@ -569,7 +575,7 @@ export function etiquetaMultiplicidad(text: string, distance: number): Record<st
     attrs: {
       label: {
         text,
-        fill: "#1f2937",
+        fill: CANON.colores.texto, // CANON-V2 ink
         fontFamily: "Arial",
         fontSize: 12,
         fontWeight: 600,

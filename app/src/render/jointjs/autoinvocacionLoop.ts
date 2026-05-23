@@ -100,7 +100,7 @@ function etiquetaDemora(text: string): Record<string, unknown> {
     attrs: {
       label: {
         text,
-        fill: "#475467",
+        fill: "#404040", // CANON-V2 ink70
         fontFamily: CANON.dims.fontFamily,
         fontSize: 11,
         fontWeight: 700,

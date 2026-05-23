@@ -154,7 +154,8 @@ describe("proyeccion JointJS", () => {
     expect(procesoHalo).toBeDefined();
     expect(objetoHalo).toBeDefined();
     expect(currentPin?.type).toBe("standard.Path");
-    expect(line?.stroke).toBe("#0f766e");
+    // CANON-V2: linea activa en simulacion = cinabrio (antes #0f766e teal).
+    expect(line?.stroke).toBe("#C8392F");
     expect(labels?.some((label) => label.markup?.some((node) => node.selector === "token"))).toBe(true);
   });
 
@@ -218,7 +219,8 @@ describe("proyeccion JointJS", () => {
     // circle simple. Mantiene fill color enlace (semantica agente=lleno).
     expect((line?.targetMarker as Attrs | undefined)?.type).toBe("path");
     expect((line?.targetMarker as Attrs | undefined)?.d).toBe(LINK_ASSETS.procedural.agente.marker.d);
-    expect((line?.targetMarker as Attrs | undefined)?.fill).toBe("#586D8C");
+    // CANON-V2 (ronda 28 L4): markers en ink puro (antes #586D8C slate).
+    expect((line?.targetMarker as Attrs | undefined)?.fill).toBe("#0A0A0A");
     expect(cellEnlace?.opm).toMatchObject({
       kind: "enlace",
       enlaceId: enlace.id,
@@ -383,12 +385,14 @@ describe("proyeccion JointJS", () => {
     const labels = cellEnlace?.labels as Array<{ attrs?: Attrs; position?: { distance?: number; offset?: number; args?: { keepGradient?: boolean } } }> | undefined;
 
     expect(labels).toHaveLength(2);
-    expect(labels?.[0]?.attrs?.label).toMatchObject({ text: "2", fontFamily: "Arial", fontSize: 12, fill: "#1f2937" });
+    // CANON-V2 (ronda 28 L4): multiplicidades mantienen Arial (contrato V-OPL
+    // historico) pero fill migra a ink puro `#0A0A0A` (antes #1f2937 slate).
+    expect(labels?.[0]?.attrs?.label).toMatchObject({ text: "2", fontFamily: "Arial", fontSize: 12, fill: "#0A0A0A" });
     // OPCloud canon: distancia es FRACCION del path (0..1), no pixeles.
     // Procedural origen 0.1, destino 0.9.
     expect(labels?.[0]?.position).toMatchObject({ distance: 0.1, offset: -12 });
     expect(labels?.[0]?.position?.args?.keepGradient).toBe(false);
-    expect(labels?.[1]?.attrs?.label).toMatchObject({ text: "1..N", fontFamily: "Arial", fontSize: 12, fill: "#1f2937" });
+    expect(labels?.[1]?.attrs?.label).toMatchObject({ text: "1..N", fontFamily: "Arial", fontSize: 12, fill: "#0A0A0A" });
     expect(labels?.[1]?.position).toMatchObject({ distance: 0.9, offset: -12 });
     expect(labels?.[1]?.position?.args?.keepGradient).toBe(false);
   });
@@ -441,7 +445,10 @@ describe("proyeccion JointJS", () => {
     expect(labels?.some((label) => label.attrs?.label?.text === "1")).toBe(true);
     expect(labels?.some((label) => label.attrs?.label?.text === "c")).toBe(true);
     const ruta = labels?.find((label) => label.attrs?.label?.text === "exitoso");
-    expect(ruta?.attrs?.label).toMatchObject({ fontFamily: "Arial", fontSize: 12, fill: "#475467" });
+    // CANON-V2 (ronda 28 L4): fontFamily migra a Inter Tight (antes Arial);
+    // fill auxiliar pasa de #475467 slate a #404040 ink70 Bauhaus.
+    expect(ruta?.attrs?.label).toMatchObject({ fontSize: 12, fill: "#404040" });
+    expect((ruta?.attrs?.label as Record<string, unknown>)?.fontFamily).toContain("Inter Tight");
     expect(ruta?.position).toMatchObject({ distance: 0.33, offset: -24 });
   });
 
@@ -457,8 +464,12 @@ describe("proyeccion JointJS", () => {
     expect(cellEnlace?.router).toBeUndefined();
     const line = ((cellEnlace?.attrs as Attrs | undefined)?.line as Attrs | undefined);
     expect(line?.sourceMarker).toBeNull();
-    expect((line?.targetMarker as Attrs | undefined)?.points).toBe(LINK_ASSETS.procedural.invocacion.marker.points);
-    expect((line?.targetMarker as Attrs | undefined)?.["stroke-width"]).toBe(2);
+    // CANON-V2 (ronda 28 L4): invocacion = ROMBO vacio path (antes polygon
+    // swallowtail blanco con `points`). El marker expone `d` en vez de
+    // `points`. Stroke-width validado via `strokeWidth` (camelCase) ya que
+    // `stroke-width` kebab era especifico al swallowtail polygon viejo.
+    expect((line?.targetMarker as Attrs | undefined)?.d).toBe(LINK_ASSETS.procedural.invocacion.marker.d);
+    expect((line?.targetMarker as Attrs | undefined)?.strokeWidth).toBe(2);
   });
 
   test("proyecta auto-invocacion como loop visible con demora", () => {
@@ -481,7 +492,9 @@ describe("proyeccion JointJS", () => {
     const labels = retorno?.labels as Array<{ attrs?: { label?: { text?: unknown } } }> | undefined;
     expect(labels?.some((label) => label.attrs?.label?.text === "1s")).toBe(true);
     const line = ((retorno?.attrs as Attrs | undefined)?.line as Attrs | undefined);
-    expect((line?.targetMarker as Attrs | undefined)?.points).toBe(LINK_ASSETS.procedural.invocacion.marker.points);
+    // CANON-V2 (ronda 28 L4): invocacion = path rombo (.d), no polygon
+    // (.points). Ver linkAssets.ts.
+    expect((line?.targetMarker as Attrs | undefined)?.d).toBe(LINK_ASSETS.procedural.invocacion.marker.d);
   });
 
   test("proyecta O como doble arco concentrico sin overlay textual", () => {
@@ -504,7 +517,8 @@ describe("proyeccion JointJS", () => {
     expect((d as string).match(/A 30 30/g)?.length).toBe(1);
     expect((d as string).match(/A 35 35/g)?.length).toBe(1);
     expect(body?.fill).toBe("none");
-    expect(body?.stroke).toBe("#586D8C");
+    // CANON-V2 (ronda 28 L4): arcos abanico en ink puro (antes #586D8C slate).
+    expect(body?.stroke).toBe("#0A0A0A");
     expect(body?.strokeWidth).toBe(1.5);
     expect(body?.strokeDasharray).toBe("4 1");
     expect(overlay?.opm).toEqual({
@@ -534,7 +548,8 @@ describe("proyeccion JointJS", () => {
     expect((d as string).match(/A 30 30/g)?.length).toBe(1);
     expect((d as string).includes("A 35 35")).toBe(false);
     expect(body?.fill).toBe("none");
-    expect(body?.stroke).toBe("#586D8C");
+    // CANON-V2: arcos abanico en ink puro.
+    expect(body?.stroke).toBe("#0A0A0A");
     expect(body?.strokeWidth).toBe(1.5);
     expect(body?.strokeDasharray).toBe("4 1");
     expect(overlay?.opm).toEqual({
@@ -592,12 +607,14 @@ describe("proyeccion JointJS", () => {
     expect(grande?.angle).toBe(0);
     expect(bodyGrande?.refPoints).toBe(LINK_ASSETS.structural.agregacion.markerPoints);
     // Outer = solo contorno (fill blanco para que se vea el stroke).
-    expect(bodyGrande?.fill).toBe("white");
-    expect(bodyGrande?.stroke).toBe("#586D8C");
+    // CANON-V2 (ronda 28 L4): outer triangulo exhibicion = fill paper +
+    // stroke ink (antes "white" + "#586D8C"). Inner pequeno relleno ink.
+    expect(bodyGrande?.fill).toBe("#FAFAFA");
+    expect(bodyGrande?.stroke).toBe("#0A0A0A");
     expect(pequeno?.position).toEqual({ x: (markerPosition?.x ?? 0) + 9, y: (markerPosition?.y ?? 0) + 12 });
     expect(pequeno?.size).toEqual({ width: 12, height: 12 });
     expect(bodyPequeno?.refPoints).toBe(LINK_ASSETS.structural.agregacion.markerPoints);
-    expect(bodyPequeno?.fill).toBe("#586D8C");
+    expect(bodyPequeno?.fill).toBe("#0A0A0A");
     expect(grande?.z).toBeLessThan(pequeno?.z ?? 0);
   });
 
@@ -616,7 +633,8 @@ describe("proyeccion JointJS", () => {
     expect(marker?.angle).toBe(0);
     expect(body?.refPoints).toBe(LINK_ASSETS.structural.generalizacion.markerPoints);
     expect(body?.fill).toBe(LINK_ASSETS.structural.generalizacion.markerFill);
-    expect(body?.stroke).toBe("#586D8C");
+    // CANON-V2: markerFill ahora es paper Bauhaus; stroke ink.
+    expect(body?.stroke).toBe("#0A0A0A");
   });
 
   test("proyecta clasificacion como triangulo vacio mas dot interno", () => {
@@ -663,7 +681,8 @@ describe("proyeccion JointJS", () => {
     expect(posicionPuertoTriangulo(triangulo, "out")).toEqual({ x: 25, y: 20 });
     expect(triangulo?.angle).toBe(0);
     expect(((triangulo?.attrs as Attrs | undefined)?.body as Attrs | undefined)?.refPoints).toBe(LINK_ASSETS.structural.agregacion.markerPoints);
-    expect(((triangulo?.attrs as Attrs | undefined)?.body as Attrs | undefined)?.fill).toBe("#586D8C");
+    // CANON-V2: agregacion = triangulo relleno ink puro.
+    expect(((triangulo?.attrs as Attrs | undefined)?.body as Attrs | undefined)?.fill).toBe("#0A0A0A");
     expect(((triangulo?.attrs as Attrs | undefined)?.body as Attrs | undefined)?.strokeWidth).toBe(4);
   });
 
@@ -838,7 +857,8 @@ describe("proyeccion JointJS", () => {
     const portBody = attrsPuertoTriangulo(triangulo);
 
     expect(portBody?.r).toBe(4);
-    expect(portBody?.stroke).toBe("#3BC3FF");
+    // CANON-V2 (ronda 28 L4): handles del simbolo estructural en cinabrio.
+    expect(portBody?.stroke).toBe("#C8392F");
     expect(portBody?.cursor).toBe("grab");
   });
 
@@ -1118,8 +1138,12 @@ describe("proyeccion JointJS", () => {
 
     expect((cell?.size as { height?: number } | undefined)?.height).toBe(100);
     expect((cell?.markup as Array<Attrs> | undefined)?.filter((item) => String(item.selector).startsWith("stateCapsule"))).toHaveLength(2);
-    expect(attrs?.stateCapsule0).toMatchObject({ height: 24, rx: 8, fill: "#fdffff", stroke: "#586D8C", strokeWidth: 3 });
-    expect(attrs?.stateCapsule1).toMatchObject({ height: 24, rx: 8, fill: "#eef8ff", stroke: "#586D8C", strokeWidth: 1 });
+    // CANON-V2 (ronda 28 L4): capsulas de estado en paper Bauhaus + stroke
+    // ink. Final con tinte ink-08 (antes #eef8ff azul corporate); regular
+    // con paper (`#FAFAFA`, antes #fdffff cuasi-blanco). Stroke unificado
+    // a ink puro `#0A0A0A` (antes #586D8C slate).
+    expect(attrs?.stateCapsule0).toMatchObject({ height: 24, rx: 8, fill: "#FAFAFA", stroke: "#0A0A0A", strokeWidth: 3 });
+    expect(attrs?.stateCapsule1).toMatchObject({ height: 24, rx: 8, fill: "#E8E8E8", stroke: "#0A0A0A", strokeWidth: 1 });
     expect((attrs?.stateCapsule0 as Attrs | undefined)?.y).toBe(70);
     expect((attrs?.stateLabel0 as Attrs | undefined)?.text).toBe("pendiente");
     expect((attrs?.stateLabel1 as Attrs | undefined)?.text).toBe("cerrado");
