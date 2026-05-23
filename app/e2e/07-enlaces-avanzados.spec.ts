@@ -531,7 +531,10 @@ test("L4 dialogo de estilo de enlace persiste color grosor y copia estilo", asyn
   const dialogo = page.getByTestId("dialogo-estilo-enlace");
   await expect(dialogo).toBeVisible();
   await expect(dialogo).toHaveAttribute("data-ifml-stereotype", "Modal");
-  await dialogo.getByRole("button", { name: "Color #d92d20" }).click();
+  // Ronda 28 L1: el swatch "rojo" del dialogo deriva de tokens.colors.errorBase
+  // que ahora vale #C8392F (cinabrio Bauhaus) en lugar del #d92d20 corporativo.
+  // El aria-label se construye con el hex actual; el estilo persistido tambien.
+  await dialogo.getByRole("button", { name: "Color #C8392F" }).click();
   await dialogo.getByRole("button", { name: "3px" }).click();
   await dialogo.getByRole("button", { name: "Discontinua" }).click();
   await dialogo.getByRole("button", { name: "Listo" }).click();
@@ -540,7 +543,7 @@ test("L4 dialogo de estilo de enlace persiste color grosor y copia estilo", asyn
   await expect(page.getByText("Estilo copiado")).toBeVisible();
   const exportado = await exportadoActual(page);
   const enlace = Object.values(exportado.modelo.enlaces)[0];
-  expect(enlace?.estilo).toEqual({ color: "#d92d20", strokeWidth: 3, dashArray: "4 4" });
+  expect(enlace?.estilo).toEqual({ color: "#c8392f", strokeWidth: 3, dashArray: "4 4" });
   expect(pageErrors).toEqual([]);
 });
 

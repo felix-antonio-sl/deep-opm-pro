@@ -172,9 +172,12 @@ export const colors = {
   verdeOpl: ink,
   objetoFondo: ink04,
 
-  // ─── Compat-shim: violetas (colapsan a accent en Bauhaus) ───
-  violeta: accent,
-  violetaFuerte: accent,
+  // ─── Compat-shim: violetas (Bauhaus monocromo: colapsan a ink90/ink70) ───
+  // En la paleta Bauhaus el violeta corporativo no tiene equivalente cromatico.
+  // Se proyecta como gris muy oscuro para conservar contraste sin introducir
+  // un acento nuevo, manteniendo la unicidad de los swatches del DialogoEstilo.
+  violeta: ink70,
+  violetaFuerte: ink90,
 
   // ─── Compat-shim: naranjas (warning terracota) ───
   naranja: warning,
