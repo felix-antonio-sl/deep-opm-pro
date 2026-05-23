@@ -4,7 +4,7 @@
 **Repositorio**: `deep-opm-pro`
 **Rama**: `main`
 **Ultimo corte funcional**: `BUG-20260523T210035Z-7264f4` y `BUG-20260523T210455Z-eec502` corrigen anclajes centrados de símbolos estructurales y multiplicidad OPCloud (`+`, `*`, `n..*`, `n..N`).
-**Ultimo commit en main**: `fix(canvas): align opcloud anchors and multiplicity` (`004c489`).
+**Ultimo commit base antes de este cierre**: `docs(handoff): record opcloud fixes deployment` (`004e651`).
 **Ultimo corte deploy**: `docker compose up -d --build` ejecutado; `opforja` queda healthy, el sidecar reporta 13 activos/61 históricos y el primer activo `BUG-20260523T210455Z-eec502` figura `Resuelto`. URL pública `https://opforja.sanixai.com/` responde `401` por Basic Auth de Traefik.
 **Corte**: los 13 bugs/features activos del ledger quedan en estado `Resuelto`; las carpetas `BUG-*` capturadas siguen como artefactos locales no versionados salvo decisión explícita.
 
@@ -24,6 +24,37 @@
 - JointJS OSS: usar documentación oficial viva cuando se toque JointJS.
 
 ## Estado Actual
+
+### Cierre Poda Editorial Canon Estricto OPM — 2026-05-23
+
+Estado actual:
+
+- `docs/canon-opm/reglas-opm-estrictas.md` fue podado para eliminar solapes, redundancias, glosarios parciales, índices exhaustivos duplicativos, matrices recapitulativas y contenido metodológico periférico sin valor suficiente para el canon estricto.
+- El contrato prescriptivo ahora exige que todo contenido conservado sea obligación, prohibición, condición, default, severidad, política de herramienta, matriz normativa o gate ejecutable.
+- La sección 10 queda reducida a reglas operativas de importación OPL y edición OPD; las matrices de roundtrip que repetían reglas de entidades, enlaces, modificadores, refinamiento y visualidad fueron retiradas.
+- Los anexos conservados son solo dos: checklist de cierre OPD<->OPL y desarrollo prescriptivo de cobertura visual. Los anexos de mapeo rápido, glosario, citación rápida e índices exhaustivos OPL/V-* fueron retirados.
+- El cierre es documental/normativo: no modifica `app/`, render, parser, validadores ni assets.
+
+Decisiones consolidadas:
+
+- **Canon estricto no es enciclopedia**: la cobertura normativa debe vivir como regla aplicable, no como inventario paralelo.
+- **Sin duplicación de reglas**: una tabla o anexo solo permanece si decide comportamiento distinto o actúa como gate verificable.
+- **Metodología avanzada fuera del núcleo**: simulación, MBSE/PDR e integración virtual no deben inflar este canon salvo cuando cambien canonicidad OPD/OPL.
+- **Trazabilidad sin ruido**: se conserva cita fuente por regla; se eliminan índices exhaustivos que repetían la misma trazabilidad sin agregar decisión.
+- **Alcance aislado**: quedaron fuera los cambios concurrentes no relacionados en `app/src/app/ports/` y carpetas `docs/bugs/BUG-*` no versionadas.
+
+Artefactos relevantes:
+
+- [docs/canon-opm/reglas-opm-estrictas.md](/home/felix/projects/deep-opm-pro/docs/canon-opm/reglas-opm-estrictas.md)
+- [docs/HANDOFF.md](/home/felix/projects/deep-opm-pro/docs/HANDOFF.md)
+- `/home/felix/kora/artifacts/knowledge/fxsl/opm/opm-ssot-es/`
+
+Verificación:
+
+- `git diff --check -- docs/canon-opm/reglas-opm-estrictas.md docs/HANDOFF.md`: limpio.
+- IDs `R-*` duplicados: sin duplicados.
+- Referencias internas `R-*` huérfanas: sin huérfanas.
+- Restos de anexos/índices retirados (`R-READ`, `R-MBSE`, `R-VIRT`, `R-SIM-*`, `R-ANEXO-D`, `R-ANEXO-OPL`, glosario, citación rápida, índice exhaustivo): sin coincidencias.
 
 ### Cierre BUG-20260523T210035Z-7264f4 / BUG-20260523T210455Z-eec502 — 2026-05-23
 
