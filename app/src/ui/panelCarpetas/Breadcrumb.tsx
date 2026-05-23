@@ -58,40 +58,33 @@ export function Breadcrumb(props: BreadcrumbProps) {
   );
 }
 
-// Ronda 28 L3: Breadcrumb Bauhaus — backButton mono ink-30, ruta tipográfica.
 const style = {
-  breadcrumbBar: { display: "flex" as const, alignItems: "center", gap: tokens.spacing.sm },
+  breadcrumbBar: { display: "flex", alignItems: "center", gap: "8px" },
   backButton: {
     width: "30px",
     height: "30px",
-    border: `${tokens.stroke.hairline}px solid ${tokens.colors.ink15}`,
-    borderRadius: tokens.radii.xs,
-    background: tokens.colors.paper,
-    color: tokens.colors.ink50,
-    fontFamily: tokens.typography.fontFamilyMono,
-    fontWeight: tokens.typography.weights.medium,
+    border: `1px solid ${tokens.colors.bordeIntermedio}`,
+    borderRadius: tokens.radii.sm,
+    background: tokens.colors.fondoDeshabilitado,
+    color: tokens.colors.textoDeshabilitado,
+    fontWeight: 700,
     flexShrink: 0,
-    cursor: "pointer",
-    transition: tokens.transitions.fast,
   },
   breadcrumb: {
-    display: "flex" as const,
+    display: "flex",
     alignItems: "center",
     minWidth: 0,
-    flexWrap: "wrap" as const,
-    gap: tokens.spacing.xs,
+    flexWrap: "wrap",
+    gap: "4px",
   },
-  breadcrumbPart: { display: "inline-flex" as const, alignItems: "center", gap: tokens.spacing.xs },
-  separator: {
-    color: tokens.colors.ink30,
-    fontFamily: tokens.typography.fontFamilyMono,
-  },
+  breadcrumbPart: { display: "inline-flex", alignItems: "center", gap: "4px" },
+  separator: { color: tokens.colors.textoDeshabilitado },
   breadcrumbButton: {
     border: 0,
     padding: 0,
     background: "transparent",
-    color: tokens.colors.ink70,
-    fontSize: tokens.typography.sizes.sm,
+    color: tokens.colors.textoSecundario,
+    fontSize: "13px",
     cursor: "pointer",
   },
 } satisfies Record<string, preact.JSX.CSSProperties>;

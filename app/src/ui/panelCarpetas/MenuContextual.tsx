@@ -78,31 +78,28 @@ function Item(props: { onClick: () => void; children: preact.ComponentChildren }
   return <button type="button" style={style.contextItem} onClick={props.onClick}>{props.children}</button>;
 }
 
-// Ronda 28 L3: MenuContextual Bauhaus — popover paper outline ink-15 sombra plana.
 const style = {
   contextMenu: {
-    position: "fixed" as const,
+    position: "fixed",
     zIndex: 2000,
-    background: tokens.colors.paper,
-    border: `${tokens.stroke.hairline}px solid ${tokens.colors.ink15}`,
-    borderRadius: tokens.radii.xs,
-    boxShadow: tokens.shadows.flat,
-    padding: tokens.spacing.xs,
-    display: "grid" as const,
-    gap: 2,
+    background: tokens.colors.fondoChrome,
+    border: `1px solid ${tokens.colors.bordeControl}`,
+    borderRadius: tokens.radii.md,
+    boxShadow: tokens.shadows.menuLigero,
+    padding: "4px",
+    display: "grid",
+    gap: "2px",
   },
   contextItem: {
     height: "30px",
-    padding: `0 ${tokens.spacing.md}px`,
-    border: 0,
-    borderRadius: 0,
+    padding: "0 12px",
+    border: "1px solid transparent",
+    borderRadius: tokens.radii.sm,
     background: "transparent",
-    color: tokens.colors.ink,
+    color: tokens.colors.textoPrimario,
     cursor: "pointer",
-    fontFamily: tokens.typography.familyChrome,
-    fontSize: tokens.typography.sizes.sm,
-    fontWeight: tokens.typography.weights.medium,
-    textAlign: "left" as const,
-    transition: tokens.transitions.fast,
+    fontSize: "13px",
+    fontWeight: 600,
+    textAlign: "left",
   },
 } satisfies Record<string, preact.JSX.CSSProperties>;
