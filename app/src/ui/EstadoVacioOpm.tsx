@@ -36,6 +36,11 @@ export function EstadoVacioOpm() {
 }
 
 function HintInicioVacio() {
+  // Ronda 28 L5: copy histórico preservado — el smoke
+  // `21-estado-vacio-opm.spec.ts:36` afirma el texto literal incluyendo
+  // "arriba" y "Pulsa" sin tilde. El brief L5 sugería "Pulsá Objeto o
+  // Proceso para empezar" pero respetamos el contrato de tests (scope: solo
+  // estilos, no copy). El cambio visual es el chrome del hint.
   return (
     <div
       data-testid="estado-vacio-hint"
@@ -78,24 +83,28 @@ function NudgeConectarResultado({ nombreProceso, nombreObjeto, onConectar }: Nud
   );
 }
 
-/* Corte 3.5 sustracción de chrome — solo hint inferior + nudge, tokens-only. */
+/* Ronda 28 L5: Bauhaus monocromático. Hint sin chrome decorativo — sólo
+ * tipografía ink-50 centrada al pie del canvas. Nudge con borde 1.5px ink,
+ * paper bg y sombra plana flatLarge. Sin radius pill, sin íconos. */
 const style = {
   hint: {
     position: "absolute",
     bottom: spacing.lg,
     left: "50%",
     transform: "translateX(-50%)",
-    padding: `${spacing.xs}px ${spacing.md}px`,
-    background: colors.fondoChrome,
-    border: `1px solid ${colors.bordeSuave}`,
-    borderRadius: radii.pill,
-    boxShadow: shadows.sm,
+    padding: `${spacing.xs}px ${spacing.sm}px`,
+    background: "transparent",
+    border: "none",
+    borderRadius: 0,
+    boxShadow: "none",
     fontFamily: typography.familyChrome,
-    fontSize: typography.sizes.sm,
-    color: colors.textoSecundario,
+    fontSize: typography.sizes.base,
+    fontWeight: typography.weights.medium,
+    color: colors.ink50,
     pointerEvents: "none",
     zIndex: 4,
     maxWidth: 420,
+    textAlign: "center",
   },
   nudge: {
     position: "absolute",
@@ -104,31 +113,32 @@ const style = {
     transform: "translateX(-50%)",
     display: "flex",
     alignItems: "center",
-    gap: spacing.sm,
-    padding: `${spacing.xs}px ${spacing.md}px`,
-    background: colors.acentoUiSuave,
-    border: `1px solid ${colors.infoBordeSuave}`,
-    borderRadius: radii.pill,
-    boxShadow: shadows.popover,
+    gap: spacing.md,
+    padding: `${spacing.sm}px ${spacing.md}px`,
+    background: colors.paper,
+    border: `${1.5}px solid ${colors.ink}`,
+    borderRadius: 0,
+    boxShadow: shadows.flatLarge,
     fontFamily: typography.familyChrome,
-    fontSize: typography.sizes.sm,
-    color: colors.textoPrimario,
+    fontSize: typography.sizes.base,
+    color: colors.ink,
     pointerEvents: "auto",
     zIndex: 4,
     maxWidth: 560,
   },
   nudgeTexto: {
-    color: colors.textoSecundario,
+    color: colors.ink70,
   },
   botonNudge: {
     padding: `${spacing.xs}px ${spacing.md}px`,
-    border: `1px solid ${colors.acentoUi}`,
-    borderRadius: radii.pill,
-    background: colors.acentoUi,
-    color: colors.fondoChrome,
+    border: `1.5px solid ${colors.ink}`,
+    borderRadius: 0,
+    background: colors.ink,
+    color: colors.paper,
     fontFamily: typography.familyChrome,
     fontSize: typography.sizes.sm,
-    fontWeight: typography.weights.semibold,
+    fontWeight: typography.weights.medium,
     cursor: "pointer",
+    transition: "150ms ease-out",
   },
 } satisfies Record<string, preact.JSX.CSSProperties>;

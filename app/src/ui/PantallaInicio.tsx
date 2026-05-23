@@ -58,7 +58,7 @@ export function PantallaInicio() {
       style={style.banner}
     >
       <div style={style.copy}>
-        <strong style={style.titulo}>Estás viendo un ejemplo: System Diagram</strong>
+        <strong style={style.titulo}>Estás viendo un ejemplo: System Diagram.</strong>
         <span style={style.subtitulo}>
           Empieza vacío o sembrá un modelo con el asistente cuando lo necesites.
         </span>
@@ -84,38 +84,47 @@ export function PantallaInicio() {
   );
 }
 
+// Ronda 28 L5: bienvenida Bauhaus — banner inline full-width arriba del
+// canvas, paper bg + border-bottom 1.5px ink, padding 16/24. Botones
+// alineados a la derecha [Asistente guiado] primario, [Empezar vacío]
+// secundario, [×] cerrar.
 const style = {
   banner: {
     position: "absolute",
-    top: 12,
-    left: 12,
-    right: 12,
+    top: 0,
+    left: 0,
+    right: 0,
     zIndex: 5,
     display: "flex",
     alignItems: "center",
-    gap: 12,
-    padding: "10px 14px",
-    border: `1px solid ${tokens.colors.acentoUi}`,
-    borderRadius: tokens.radii.lg,
-    background: tokens.colors.acentoUiSuave,
-    boxShadow: tokens.shadows.popover,
+    gap: 16,
+    padding: "16px 24px",
+    border: "none",
+    borderBottom: `${tokens.stroke.base}px solid ${tokens.colors.ink}`,
+    borderRadius: 0,
+    background: tokens.colors.paper,
+    boxShadow: "none",
     pointerEvents: "auto",
+    fontFamily: tokens.typography.familyChrome,
   },
   copy: {
     display: "flex",
     flexDirection: "column",
+    gap: 2,
     flex: 1,
     minWidth: 0,
   },
   titulo: {
-    color: tokens.colors.textoPrimario,
-    fontSize: 13,
-    fontWeight: 800,
+    color: tokens.colors.ink,
+    fontFamily: tokens.typography.familyChrome,
+    fontSize: 14,
+    fontWeight: 500,
   },
   subtitulo: {
-    color: tokens.colors.textoSecundario,
-    fontSize: 12,
-    fontWeight: 600,
+    color: tokens.colors.ink70,
+    fontFamily: tokens.typography.familyChrome,
+    fontSize: 13,
+    fontWeight: 400,
   },
   acciones: {
     display: "flex",
@@ -124,40 +133,45 @@ const style = {
     flexShrink: 0,
   },
   botonPrimario: {
-    height: 30,
-    padding: "0 14px",
-    border: `1px solid ${tokens.colors.acentoUi}`,
-    borderRadius: tokens.radii.sm,
-    background: tokens.colors.acentoUi,
-    color: tokens.colors.fondoChrome,
+    minHeight: 32,
+    padding: "8px 18px",
+    border: `${tokens.stroke.base}px solid ${tokens.colors.ink}`,
+    borderRadius: 0,
+    background: tokens.colors.ink,
+    color: tokens.colors.paper,
     cursor: "pointer",
-    fontSize: 12,
-    fontWeight: 700,
+    fontFamily: tokens.typography.familyChrome,
+    fontSize: 13,
+    fontWeight: 500,
+    transition: tokens.transitions.fast,
   },
   botonSecundario: {
-    height: 30,
-    padding: "0 14px",
-    border: `1px solid ${tokens.colors.bordeControl}`,
-    borderRadius: tokens.radii.sm,
-    background: tokens.colors.fondoChrome,
-    color: tokens.colors.textoPrimario,
+    minHeight: 32,
+    padding: "8px 18px",
+    border: `${tokens.stroke.base}px solid ${tokens.colors.ink}`,
+    borderRadius: 0,
+    background: tokens.colors.paper,
+    color: tokens.colors.ink,
     cursor: "pointer",
-    fontSize: 12,
-    fontWeight: 700,
+    fontFamily: tokens.typography.familyChrome,
+    fontSize: 13,
+    fontWeight: 500,
+    transition: tokens.transitions.fast,
   },
   botonCerrar: {
-    width: 28,
-    height: 28,
+    width: 32,
+    height: 32,
     display: "inline-flex",
     alignItems: "center",
     justifyContent: "center",
-    border: `1px solid ${tokens.colors.bordeControl}`,
-    borderRadius: tokens.radii.sm,
-    background: tokens.colors.fondoChrome,
-    color: tokens.colors.textoSecundario,
+    border: `1px solid ${tokens.colors.ink15}`,
+    borderRadius: 0,
+    background: tokens.colors.paper,
+    color: tokens.colors.ink,
     cursor: "pointer",
-    fontSize: 16,
-    fontWeight: 700,
+    fontSize: 18,
+    fontWeight: 400,
     lineHeight: 1,
+    transition: tokens.transitions.fast,
   },
 } satisfies Record<string, preact.JSX.CSSProperties>;
