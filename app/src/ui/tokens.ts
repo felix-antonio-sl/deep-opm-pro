@@ -1,115 +1,224 @@
 /**
- * Tokens UI centrales — separados de la paleta semántica del canvas.
+ * Tokens UI centrales — Ronda 28 L1: Paleta Bauhaus monocromática.
  *
- * Citas SSOT:
- * - [JOYAS §1] paleta canónica canvas (invariante): #70E483 Object stroke,
- *   #3BC3FF Process stroke, #586D8C link stroke, #fdffff fill, #000002 text.
- * - [JOYAS §2] dimensiones canónicas y patrón wrapper+line se preservan en
- *   render/canvas; estos tokens gobiernan solo chrome UI.
- * - [JOYAS §3] tipografía canónica Arial 14px/600 como base observable.
+ * Esta es la línea fundacional: L2-L6 consumen estos tokens.
  *
- * Rationale (corte paleta, 2026-05-19):
- *   El acento UI deriva del proceso canónico `#3BC3FF`, pero baja a
- *   `#007DB8` para soportar texto blanco WCAG AA y no confundirse con el
- *   stroke semántico del proceso en el canvas. El verde objeto y el neutro
- *   enlace se proyectan como success/contexto y chrome estructural.
+ * Paleta nueva (no negociable, brief Ronda 28):
+ *   - ink (#0A0A0A) + paper (#FAFAFA) + escala ink90..ink04 monocromática.
+ *   - accent #C8392F cinabrio; accentSoft #F5DDDB tinte.
+ *   - focus #1F3FA6 ultramar — sólo focus/selection/links activos.
+ *   - warning #B4513C terracota apagada.
  *
- * Alcance ronda 13 L2 (steipete §T2.2 + §T2.4):
- *   centralizar colors/spacing/radii/shadows/typography para chrome UI puro.
- *   La sección `colors.canvas` se expone únicamente como referencia documental:
- *   la paleta semántica del canvas sigue siendo contrato JOYAS invariante en
- *   su capa de render.
+ * Compat-shim (aditividad):
+ *   Los ~95 alias semánticos heredados (acentoUi, chromeNeutral,
+ *   verdeObjetoOscuro, fondoCard, errorTexto, etc.) se conservan en
+ *   `colors.*` para que el código existente compile sin tocarse. Cada
+ *   alias está mapeado a su equivalente Bauhaus semántico:
+ *     - acentos cromáticos → `focus` (ultramar) o `accent` (cinabrio).
+ *     - neutros / chromes / fondos / bordes → escala `ink04..ink90`.
+ *     - éxito/info chrome → colapsa a ink/focus (mono-cromaticidad).
+ *     - error/alerta → `accent` (cinabrio) o `warning`.
+ *
+ * Canvas (JOYAS §1):
+ *   `colors.canvas.*` mantiene la paleta semántica canónica del modelo
+ *   OPM (objeto verde / proceso azul / enlace gris). L4 migra el canvas
+ *   a CANON-V2 detrás de un flag — esta capa no toca constantes.ts.
+ *
+ * Reescritura: Bauhaus replaces aqua/cyan corporate. Cero hex bonus, todo
+ * el chrome UI vive en monocromo + un único acento cinabrio + focus azul.
  */
+
+// ───────────────────────────────────────────────────────────────────────────
+// Paleta Bauhaus base
+// ───────────────────────────────────────────────────────────────────────────
+
+const ink = "#0A0A0A";
+const paper = "#FAFAFA";
+const ink90 = "#1A1A1A";
+const ink70 = "#404040";
+const ink50 = "#6E6E6E";
+const ink30 = "#A8A8A8";
+const ink15 = "#D2D2D2";
+const ink08 = "#E8E8E8";
+const ink04 = "#F2F2F2";
+const accent = "#C8392F";
+const accentSoft = "#F5DDDB";
+// Versión oscura del acento cinabrio para texto sobre accentSoft (WCAG AA).
+// El acento puro #C8392F sólo da ~4:1 sobre el tinte; #9F2519 da 5.9:1.
+const accentDark = "#9F2519";
+const focus = "#1F3FA6";
+// Warning ronda 28: terracota apagada más oscura que el brief original
+// (#B4513C → #8A3D2D) para cumplir WCAG AA 4.5:1 sobre accentSoft. Sigue
+// siendo terracota / no naranja brillante — sólo se profundiza.
+const warning = "#8A3D2D";
+// Subtono cálido cercano a paper, útil para fondos elevados sin saltar a blanco puro.
+const paperWarm = "#FCFCFC";
+// Tinte focus ultraligero para selección/hover de elementos azules.
+const focusSoft = "#E3E7F4";
+
 export const colors = {
-  acentoUi: "#007DB8",
-  acentoUiSuave: "#DDF7FF",
-  acentoSecundario: "#0E2C3F",
-  chromeNeutral: "#586D8C",
-  chromeNeutralSuave: "#EDF4FA",
-  fondoChrome: "#ffffff",
-  fondoCard: "#F7FBFE",
-  fondoElevado: "#FFFFFF",
-  fondoApp: "#EAF1F6",
-  fondoInput: "#FFFFFF",
-  fondoMuted: "#E8F1F7",
-  fondoNeutral: "#F0F5F8",
-  fondoTabla: "#F8FBFD",
-  fondoDeshabilitado: "#EEF4F8",
-  fondoWorkbench: "#EDF4F7",
-  fondoPanel: "#FFFFFF",
-  fondoPanelSuave: "#F6FAFC",
-  bordeSuave: "#D8E5EE",
-  bordeChrome: "#D2E0EA",
-  bordeIntermedio: "#C4D4E1",
-  bordeControl: "#AFC2D3",
-  bordeInput: "#8EA7BA",
-  bordeTabla: "#DDE8F0",
-  bordeSlate: "#B9C9D7",
-  bordeNeutral: "#C7D5E0",
-  bordePanel: "#CADAE6",
-  textoPrimario: "#111B29",
-  textoSecundario: "#324358",
-  textoTerciario: "#647286",
-  textoControl: "#223349",
-  textoSlate: "#2A3A4F",
-  textoDeshabilitado: "#98a2b3",
-  textoCasiNegro: "#0F1722",
-  negro: "#000000",
-  exitoBase: "#0E7C66",
-  exitoTexto: "#0B6F3A",
-  exitoFondo: "#EAFFF0",
-  alertaAmbar: "#FE854F",
-  alertaTexto: "#9A3412",
-  advertenciaFondo: "#FFF4EA",
-  advertenciaBorde: "#FFC99F",
-  errorRojo: "#dc2626",
-  errorBase: "#d92d20",
-  errorTexto: "#b42318",
-  errorOscuro: "#b91c1c",
-  errorFondo: "#fff5f5",
-  errorFondoIntenso: "#fff3f1",
-  errorBorde: "#f2b8b5",
-  errorBordeSuave: "#fecdca",
-  errorBordeFuerte: "#f1b8b8",
-  infoBorde: "#007DB8",
-  infoTextoOscuro: "#075B82",
-  infoFondo: "#E2F7FF",
-  infoFondoClaro: "#EDF9FF",
-  infoFondoAlterno: "#F2FBFF",
-  infoBordeSuave: "#A8E4FF",
-  azulInfo: "#006CBB",
-  azulAccion: "#0072CE",
-  azulProfundo: "#073247",
-  enlaceTexto: "#075B82",
-  verdeObjetoOscuro: "#0E7C66",
-  verdeOpl: "#146C39",
-  objetoFondo: "#EAFFF0",
-  violeta: "#7C68FC",
-  violetaFuerte: "#6D46E8",
-  naranja: "#D96A22",
-  ambarOscuro: "#ca8a04",
-  rojoOpcloud: "#CC0A0E",
-  resaltadoTemporal: "#FFFC7F",
-  timelineActivo: "#8FC7DA",
-  timelineBorde: "#C7D8E4",
-  timelineFondo: "#F2FBFF",
-  timelineFondoSuave: "#EAF2F7",
-  arbolSeleccion: "#D6F2FE",
-  arbolSeleccionBorde: "#A8D7EA",
-  carpetaFondo: "#F4F8FB",
-  azulPanelSuave: "#E6F5FF",
-  infoMuySuave: "#E9F9FF",
-  fondoLineaTiempo: "#E9F2F7",
-  fondoIcono: "#E8F3F7",
-  bordeFila: "#EAF1F6",
-  bordeGestion: "#E8F0F6",
-  neutralBadge: "#EEF4FA",
-  oplTokenBorde: "#D9E7EF",
-  oplTokenTexto: "#7E90A4",
-  oplFondo: "#FCFEFF",
-  oplBorde: "#D5E5EF",
-  mapaBorde: "#D5E5EF",
-  azulMuySuave: "#F0FAFF",
+  // ─── Base Bauhaus (canónicos públicos) ───
+  ink,
+  paper,
+  ink90,
+  ink70,
+  ink50,
+  ink30,
+  ink15,
+  ink08,
+  ink04,
+  accent,
+  accentSoft,
+  accentDark,
+  focus,
+  focusSoft,
+  warning,
+
+  // ─── Compat-shim: acentos UI ───
+  // Acento primario UI: era azul corporativo #007DB8 → ahora ultramar focus.
+  acentoUi: focus,
+  acentoUiSuave: focusSoft,
+  // Acento secundario: era azul muy oscuro #0E2C3F → ahora ink (negro Bauhaus).
+  acentoSecundario: ink,
+
+  // ─── Compat-shim: chrome neutros ───
+  // chromeNeutral era #586D8C (gris azulado). Colapsa al gris medio ink50.
+  chromeNeutral: ink50,
+  chromeNeutralSuave: ink04,
+
+  // ─── Compat-shim: fondos ───
+  fondoChrome: paper,
+  fondoCard: paper,
+  fondoElevado: paperWarm,
+  fondoApp: paper,
+  fondoInput: paper,
+  fondoMuted: ink04,
+  fondoNeutral: ink04,
+  fondoTabla: paper,
+  fondoDeshabilitado: ink04,
+  fondoWorkbench: ink04,
+  fondoPanel: paper,
+  fondoPanelSuave: ink04,
+
+  // ─── Compat-shim: bordes (escala gris) ───
+  bordeSuave: ink08,
+  bordeChrome: ink15,
+  bordeIntermedio: ink15,
+  bordeControl: ink30,
+  bordeInput: ink30,
+  bordeTabla: ink08,
+  bordeSlate: ink30,
+  bordeNeutral: ink15,
+  bordePanel: ink15,
+
+  // ─── Compat-shim: textos ───
+  textoPrimario: ink,
+  textoSecundario: ink70,
+  textoTerciario: ink50,
+  textoControl: ink90,
+  textoSlate: ink70,
+  textoDeshabilitado: ink30,
+  textoCasiNegro: ink,
+  negro: ink,
+
+  // ─── Compat-shim: éxito (colapsa a focus/ink en monocromo) ───
+  // En Bauhaus monocromático el "éxito" no es verde — usa contraste tipográfico.
+  // exitoTexto debe quedar legible sobre exitoFondo (test WCAG existente).
+  exitoBase: ink,
+  exitoTexto: ink,
+  exitoFondo: ink04,
+
+  // ─── Compat-shim: alertas/warning ───
+  alertaAmbar: warning,
+  alertaTexto: warning,
+  advertenciaFondo: accentSoft,
+  advertenciaBorde: warning,
+
+  // ─── Compat-shim: errores (cinabrio) ───
+  // Texto error usa accentDark (#9F2519) para cumplir WCAG AA sobre accentSoft.
+  // Bordes/iconos pueden usar accent puro (no requieren contraste de texto).
+  errorRojo: accent,
+  errorBase: accent,
+  errorTexto: accentDark,
+  errorOscuro: accentDark,
+  errorFondo: accentSoft,
+  errorFondoIntenso: accentSoft,
+  errorBorde: accent,
+  errorBordeSuave: accentSoft,
+  errorBordeFuerte: accentDark,
+
+  // ─── Compat-shim: info (focus ultramar) ───
+  infoBorde: focus,
+  infoTextoOscuro: focus,
+  infoFondo: focusSoft,
+  infoFondoClaro: focusSoft,
+  infoFondoAlterno: paper,
+  infoBordeSuave: ink15,
+  infoMuySuave: focusSoft,
+
+  // ─── Compat-shim: azules de la paleta vieja ───
+  // Todos colapsan a focus (acción) o ink (texto).
+  azulInfo: focus,
+  azulAccion: focus,
+  azulProfundo: ink,
+  azulMuySuave: focusSoft,
+  azulPanelSuave: ink04,
+
+  // ─── Compat-shim: enlaces texto ───
+  enlaceTexto: focus,
+
+  // ─── Compat-shim: verdes (colapsan a ink — el verde se reserva para canvas) ───
+  verdeObjetoOscuro: ink,
+  verdeOpl: ink,
+  objetoFondo: ink04,
+
+  // ─── Compat-shim: violetas (colapsan a accent en Bauhaus) ───
+  violeta: accent,
+  violetaFuerte: accent,
+
+  // ─── Compat-shim: naranjas (warning terracota) ───
+  naranja: warning,
+  ambarOscuro: warning,
+
+  // ─── Compat-shim: rojo OPCloud (cinabrio) ───
+  rojoOpcloud: accentDark,
+
+  // ─── Compat-shim: resaltado temporal ───
+  resaltadoTemporal: accentSoft,
+
+  // ─── Compat-shim: timeline ───
+  timelineActivo: ink50,
+  timelineBorde: ink15,
+  timelineFondo: paper,
+  timelineFondoSuave: ink04,
+
+  // ─── Compat-shim: árbol OPD ───
+  arbolSeleccion: focusSoft,
+  arbolSeleccionBorde: focus,
+  carpetaFondo: ink04,
+
+  // ─── Compat-shim: fondos icónicos/línea de tiempo ───
+  fondoLineaTiempo: ink04,
+  fondoIcono: ink04,
+
+  // ─── Compat-shim: bordes de filas/gestión ───
+  bordeFila: ink08,
+  bordeGestion: ink08,
+
+  // ─── Compat-shim: badge neutro ───
+  neutralBadge: ink04,
+
+  // ─── Compat-shim: OPL tokens ───
+  oplTokenBorde: ink15,
+  oplTokenTexto: ink50,
+  oplFondo: paper,
+  oplBorde: ink15,
+
+  // ─── Compat-shim: mapa ───
+  mapaBorde: ink15,
+
+  // ─── Canvas: paleta semántica OPM canónica [JOYAS §1] ───
+  // L4 migrará a CANON-V2 detrás de flag; L1 no toca constantes.ts.
   canvas: {
     objeto: "#70E483",
     objetoSuave: "#70e483",
@@ -122,104 +231,162 @@ export const colors = {
   },
 } as const;
 
+// ───────────────────────────────────────────────────────────────────────────
+// Spacing (preservado del shim — la escala 4/8/16/24/32 sigue siendo canónica)
+// ───────────────────────────────────────────────────────────────────────────
+
 export const spacing = {
   xs: 4,
   sm: 8,
-  md: 12,
-  lg: 16,
-  xl: 24,
-  xxl: 32,
+  md: 16, // Ronda 28 L1: subido 12→16 para alinear con escala brief.
+  lg: 24,
+  xl: 32,
+  xxl: 48, // Ronda 28 L1: agregado nivel xxl Bauhaus.
 } as const;
 
-/*
- * Radii — ronda 23 chrome estética:
- *   sm 4→6 / md 6→8 / lg 8→12 / xl 10→16. xs/control/pill/full preservados.
- *   El canvas (JOYAS §2) no consume radii de tokens, así que solo afecta
- *   chrome (cards, modales, inputs).
+// ───────────────────────────────────────────────────────────────────────────
+// Radii — Ronda 28 L1: downgrade a 2px máximo (Bauhaus = formas rotundas).
+// ───────────────────────────────────────────────────────────────────────────
+
+/**
+ * Ronda 28 L1: el chrome Bauhaus colapsa todos los radii cromáticos a 2px
+ * (excepto `pill`/`full` para badges circulares). Antes: sm=6 md=8 lg=12
+ * xl=16. Ahora: todo 2px — la jerarquía visual se logra con tipografía y
+ * espaciado, no con bordes redondeados.
+ *
+ * Compat-shim: xs/sm/control/md/lg/xl conservan sus keys. Pill y full se
+ * mantienen para componentes que necesitan forma circular real.
  */
 export const radii = {
-  xs: 3,
-  sm: 6,
-  control: 5,
-  md: 8,
-  lg: 12,
-  xl: 16,
+  none: 0,
+  xs: 2,
+  sm: 2, // antes 6
+  control: 2, // antes 5
+  md: 2, // antes 8
+  lg: 2, // antes 12
+  xl: 2, // antes 16
   pill: 999,
   full: 9999,
 } as const;
 
-/*
- * Shadows — ronda 23 chrome estética: escala respiratoria 4-niveles
- * (xs/sm/md/lg) basada en alfa 4-6-8-10 % sobre slate-900. Los aliases
- * semánticos (`card`, `popover`, `menu`, `dialogo`, `modal`, etc.) se
- * reasignan a esa escala para no romper consumidores. Antes: 12-28 %.
- */
-const shadowXs = "0 1px 2px rgba(15, 23, 42, 0.05)";
-const shadowSm = "0 3px 8px rgba(15, 23, 42, 0.07)";
-const shadowMd = "0 10px 24px rgba(15, 23, 42, 0.10)";
-const shadowLg = "0 20px 44px rgba(15, 23, 42, 0.14)";
+// ───────────────────────────────────────────────────────────────────────────
+// Stroke — Ronda 28 L1: jerarquía de trazos Bauhaus (hairline/base/bold).
+// ───────────────────────────────────────────────────────────────────────────
 
-export const shadows = {
-  xs: shadowXs,
-  sm: shadowSm,
-  md: shadowMd,
-  lg: shadowLg,
-  card: shadowXs,
-  popover: shadowSm,
-  menu: shadowMd,
-  menuContextual: shadowMd,
-  menuPrincipal: shadowMd,
-  menuLigero: shadowSm,
-  menuArbol: shadowMd,
-  mapaPopup: shadowSm,
-  dialogo: shadowMd,
-  modal: shadowLg,
-  modalAmplio: shadowLg,
-  modalGrid: shadowLg,
-  flotante: shadowMd,
-  tabla: shadowLg,
-  asistente: shadowLg,
-  inicio: shadowLg,
-  dropProceso: "0 0 0 2px rgba(59, 195, 255, 0.18)",
-  appChrome: "0 1px 0 rgba(255, 255, 255, 0.85) inset, 0 10px 28px rgba(15, 23, 42, 0.08)",
-  panelInset: "inset 1px 0 0 rgba(255, 255, 255, 0.85)",
-  seleccionadoInset: `0 0 0 2px ${colors.infoFondo} inset`,
-  swatchActivo: `0 0 0 2px ${colors.fondoChrome}, 0 0 0 4px ${colors.chromeNeutral}`,
-  none: "none",
+export const stroke = {
+  hairline: 1,
+  base: 1.5,
+  bold: 2,
 } as const;
 
+// ───────────────────────────────────────────────────────────────────────────
+// Shadows — Ronda 28 L1: sombras planas sin blur (offset duro, ink15).
+// ───────────────────────────────────────────────────────────────────────────
+
+/**
+ * Ronda 28 L1: el Bauhaus rechaza el blur gaussiano del corporate UI. Toda
+ * la elevación se expresa con `offset duro + ink15`. Aliases semánticos
+ * (card/popover/menu/modal/etc.) se mapean a `flat` o `flatLarge`.
+ *
+ * Antes: rgba slate con blur 8-44px. Ahora: offsets discretos 4/8/12 px.
+ */
+const flat = "4px 4px 0 0 #D2D2D2";
+const flatLarge = "8px 8px 0 0 #D2D2D2";
+const flatXl = "12px 12px 0 0 #D2D2D2";
+
+export const shadows = {
+  none: "none",
+  flat,
+  flatLarge,
+  flatXl,
+  // Niveles Bauhaus
+  respiratorio: flat,
+  float: flatLarge,
+  // Escala xs/sm/md/lg shim (antes blur)
+  xs: flat,
+  sm: flat,
+  md: flatLarge,
+  lg: flatLarge,
+  // Aliases semánticos (compat-shim del shim antiguo)
+  card: flat,
+  popover: flat,
+  menu: flatLarge,
+  menuContextual: flatLarge,
+  menuPrincipal: flatLarge,
+  menuLigero: flat,
+  menuArbol: flatLarge,
+  mapaPopup: flat,
+  dialogo: flatLarge,
+  modal: flatXl,
+  modalAmplio: flatXl,
+  modalGrid: flatXl,
+  flotante: flatLarge,
+  tabla: flatLarge,
+  asistente: flatLarge,
+  inicio: flatLarge,
+  // Estados especiales
+  dropProceso: `0 0 0 2px ${focus}`,
+  appChrome: flat,
+  panelInset: `inset 1px 0 0 ${ink15}`,
+  seleccionadoInset: `0 0 0 2px ${focus} inset`,
+  swatchActivo: `0 0 0 2px ${paper}, 0 0 0 4px ${ink50}`,
+} as const;
+
+// ───────────────────────────────────────────────────────────────────────────
+// Transitions — Ronda 28 L1: timing único 150ms ease-out (Bauhaus, sin curvas exóticas).
+// ───────────────────────────────────────────────────────────────────────────
+
+export const transitions = {
+  fast: "150ms ease-out",
+  base: "150ms ease-out",
+  slow: "250ms ease-out",
+} as const;
+
+// ───────────────────────────────────────────────────────────────────────────
+// Typography — Ronda 28 L1: Inter Tight + JetBrains Mono self-hosted.
+// ───────────────────────────────────────────────────────────────────────────
+
+/**
+ * Ronda 28 L1: tipografía Bauhaus.
+ *   - Chrome: Inter Tight (variable) self-hosted vía @fontsource-variable.
+ *   - Mono: JetBrains Mono (variable) para code/kbd/.mono.
+ *   - Canvas: Arial se mantiene [JOYAS §3] — contrato invariante del SVG.
+ *
+ * Compat-shim: familyChrome/familyCanvas/sizes/weights preservados.
+ * Sizes ronda 28: xs=11 sm=12 base=13 md=14 lg=16 xl=20 xxl=28 (brief).
+ */
 export const typography = {
-  /*
-   * Fontstack chrome — ronda 23 chrome estética: system-ui stack moderno
-   * para superficie chrome (toolbars, modales, inspector). `familyCanvas`
-   * permanece en Arial: el canvas SVG es contrato JOYAS §3 invariante y no
-   * debe cambiar tipografía. Sin fuente externa: zero bundle delta.
-   */
-  familyChrome: '"Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif',
+  fontFamily: '"Inter Tight", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+  fontFamilyMono: '"JetBrains Mono", "Fira Code", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace',
+  // Compat-shim: familyChrome/familyCanvas son los nombres legacy.
+  familyChrome: '"Inter Tight", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
   familyCanvas: "Arial",
-  sizes: {
-    xxs: 10,
-    xs: 11,
-    sm: 12,
-    md: 13,
-    lg: 14,
-    xl: 16,
-    xxl: 18,
-  },
   weights: {
     normal: 400,
+    regular: 400,
     medium: 500,
     semibold: 600,
     bold: 700,
     heavy: 800,
   },
+  sizes: {
+    xxs: 10,
+    xs: 11,
+    sm: 12,
+    base: 13,
+    md: 13, // compat-shim: antes 13.
+    lg: 16, // antes 14 — brief ronda 28.
+    xl: 20, // antes 16.
+    xxl: 28, // antes 18.
+  },
+  // Flat-shim (algunos consumidores leen tokens.typography.sizeMd, etc.)
   sizeXxs: 10,
   sizeXs: 11,
   sizeSm: 12,
   sizeMd: 13,
-  sizeLg: 14,
-  sizeXl: 16,
-  sizeXxl: 18,
+  sizeLg: 16,
+  sizeXl: 20,
+  sizeXxl: 28,
   weightNormal: 400,
   weightMedium: 500,
   weightSemibold: 600,
@@ -227,12 +394,10 @@ export const typography = {
   weightHeavy: 800,
 } as const;
 
-/* L3 ronda 20 — Biblioteca dock acoplable junto al árbol OPD.
- * Geometria del dock: alto inicial dentro del tree-pane (px) y limites
- * para el redimensionamiento via DivisorPanel horizontal. Citas brief
- * §6 (panel persistente) y SSOT informe UI/UX 2026-05-07 línea 159
- * ("biblioteca no debe tapar el area central del modelo salvo en mobile").
- */
+// ───────────────────────────────────────────────────────────────────────────
+// Biblioteca dock — preservado (geometría, no paleta)
+// ───────────────────────────────────────────────────────────────────────────
+
 export const bibliotecaDock = {
   altoInicial: 280,
   altoMin: 160,
@@ -241,9 +406,10 @@ export const bibliotecaDock = {
   desktopMinPx: 900,
 } as const;
 
-/* L1 ronda 20 — Tabs del Inspector: alias semánticos sobre tokens existentes
- * para que la chrome del tab sea legible sin inventar paleta nueva. Solo
- * referencian colores/espaciados/radios ya canónicos; cero hex literal. */
+// ───────────────────────────────────────────────────────────────────────────
+// Inspector tabs — preservado (los colores ya pasan vía colors.* shim)
+// ───────────────────────────────────────────────────────────────────────────
+
 export const inspectorTabs = {
   gap: spacing.xs,
   paddingY: spacing.xs,
@@ -263,13 +429,10 @@ export const inspectorTabs = {
   panelGap: spacing.sm,
 } as const;
 
-/* L2 ronda 20 — severidades para editor OPL honesto (clasificador de edición). */
-/**
- * Mapas semánticos consumidos por `EditorOplHonesto.tsx` para cada uno de los
- * 4 grupos visuales (texto, reconocidas, aplicables, no-aplicables) y por la
- * tipografía monoespaciada del textarea OPL libre. Reusan tokens existentes
- * para no inventar paleta. Tokens-only, sin hex literales nuevos.
- */
+// ───────────────────────────────────────────────────────────────────────────
+// Editor OPL honesto — severidades (preservado, consume shim)
+// ───────────────────────────────────────────────────────────────────────────
+
 export const editorOplHonesto = {
   severidades: {
     aplicable: {
@@ -294,7 +457,7 @@ export const editorOplHonesto = {
     },
   },
   textareaMono: {
-    fontFamily: "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace",
+    fontFamily: typography.fontFamilyMono,
   },
   contadorPill: {
     fondoNeutro: colors.neutralBadge,
@@ -306,20 +469,10 @@ export const editorOplHonesto = {
   },
 } as const;
 
-/* L1 ronda 21 — empty state OPM
- * `EstadoVacioOpm` reusa tokens existentes para evitar fragmentacion del
- * sistema de chrome y respetar JOYAS §1 (cero hex literales nuevos). El
- * bloque inicio compacto se ancla en:
- *   colors.fondoChrome / colors.bordeIntermedio / shadows.card  → tarjeta base
- *   colors.acentoUi / colors.acentoUiSuave                       → boton primario y nudge
- *   colors.bordeControl / colors.textoControl                    → boton secundario asistente
- *   colors.infoBordeSuave / shadows.popover / radii.pill         → nudge "conectar como resultado"
- *   typography.sizes.lg/md/sm + weights.semibold/medium          → titulo, subtitulo, botones
- *   spacing.xs/sm/md/lg + radii.control/lg/pill                  → ritmo y radios canonicos
- * No se introducen colores nuevos: si en el futuro se necesita una variante
- * propia, agregarla aqui (no inline) y dejar comentada la cita SSOT. */
+// ───────────────────────────────────────────────────────────────────────────
+// Mobile nav — preservado (consume shim)
+// ───────────────────────────────────────────────────────────────────────────
 
-/* L2 ronda 21: tokens del modo revisión mobile (tabs inferiores). */
 export const mobileNav = {
   altoBarra: 56,
   altoTab: 56,
@@ -337,4 +490,20 @@ export const mobileNav = {
   textoAvisoEdicion: colors.textoSecundario,
 } as const;
 
-export const tokens = { colors, spacing, radii, shadows, typography, bibliotecaDock, inspectorTabs, editorOplHonesto, mobileNav } as const;
+// ───────────────────────────────────────────────────────────────────────────
+// Agregado tokens
+// ───────────────────────────────────────────────────────────────────────────
+
+export const tokens = {
+  colors,
+  spacing,
+  radii,
+  stroke,
+  shadows,
+  transitions,
+  typography,
+  bibliotecaDock,
+  inspectorTabs,
+  editorOplHonesto,
+  mobileNav,
+} as const;
