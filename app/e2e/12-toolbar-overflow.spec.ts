@@ -232,3 +232,20 @@ test("MenuPrincipal separa archivo, datos y herramientas sin duplicar el chrome"
 
   expect(pageErrors).toEqual([]);
 });
+
+test("BUG-20260523T174915Z menu principal se cierra al hacer click fuera", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await cerrarPantallaInicioSiVisible(page);
+
+  await page.getByLabel("Menú principal").click();
+  const menu = page.getByRole("menu", { name: "Menú principal" });
+  await expect(menu).toBeVisible();
+
+  await page.mouse.click(720, 220);
+  await expect(menu).toHaveCount(0);
+
+  expect(pageErrors).toEqual([]);
+});

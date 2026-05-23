@@ -3,10 +3,10 @@
 **Fecha**: 2026-05-23
 **Repositorio**: `deep-opm-pro`
 **Rama**: `main`
-**Ultimo corte funcional**: ledger visible de bugs/features — captura, listado activo, histórico y estado/resolución accesibles desde la app.
-**Ultimo commit en main**: `ee90ee5 feat(bugs): surface bug ledger in app`.
-**Ultimo corte deploy**: Docker Compose reconstruido con ledger visible; `opforja` healthy, `opforja-bug-capture` up, sidecar `GET /__deep-opm/bug-reports` responde `active: 5`, `history: 53`. URL pública protegida por Basic Auth (`401` sin credenciales).
-**Corte**: el sistema de captura mantiene ledgers Markdown/JSON y la app expone un diálogo "Bugs y features" con pestañas `Activos` e `Histórico`, alimentado por `GET /__deep-opm/bug-reports`.
+**Ultimo corte funcional**: pendientes activos de bugs/features resueltos — menú, pestañas, barra contextual, canvas/zoom y ledger en estado `Resuelto`.
+**Ultimo commit en main**: `fix(ui): resolve active bug backlog`.
+**Ultimo corte deploy**: Docker Compose reconstruido con cierre de pendientes activos; `opforja` healthy, `opforja-bug-capture` up, sidecar `GET /__deep-opm/bug-reports` responde `active: 5`, `history: 53`, estados activos `["Resuelto"]`. URL pública protegida por Basic Auth (`401` sin credenciales).
+**Corte**: `docs/bugs/INDEX.md` ya no tiene estados `Nuevo` ni `Backlog`; los 5 activos quedan `Resuelto` con resolución explícita.
 
 ## Política De Handoff Único
 
@@ -24,6 +24,47 @@
 - JointJS OSS: usar documentación oficial viva cuando se toque JointJS.
 
 ## Estado Actual
+
+### Cierre Pendientes Activos Bugs/Features — 2026-05-23
+
+Estado actual:
+
+- `docs/bugs/statuses.json`, `INDEX.md` y `HISTORY.md` consolidan 5 activos en estado `Resuelto`.
+- `BUG-20260523T174915Z-6ea103`: `MenuPrincipal` ahora cierra con `pointerdown` fuera del panel.
+- `BUG-20260523T174837Z-509ecc`: `BarraPestanas` conserva overflow horizontal, pero oculta el scrollbar visual de la pestaña.
+- `BUG-20260520T180859Z-77e6cf`: la barra contextual de enlace queda cubierta por la superficie actual (`Propiedades`, `Copiar`, `Pegar` solo cuando aplica, `Inspector`) y pruebas E2E.
+- `BUG-20260513T050858Z-ad9486`: canvas grande/dinámico existente queda complementado con fit inicial/cambio de OPD y zoom wheel más suave.
+- `BUG-20260523T185803Z-a0d7bc`: ledger visible en UI permanece como cierre de la lista histórica/activa.
+
+Decisiones consolidadas:
+
+- No se archivaron carpetas `BUG-*`: la política de archivo sigue siendo cierre mensual/semestral o rotación por volumen; por ahora el ledger activo muestra todos como resueltos.
+- Los reportes/capturas generados en `docs/bugs/BUG-*` siguen fuera del commit salvo decisión explícita; el cierre versionado vive en `statuses.json`, `INDEX.md` y `HISTORY.md`.
+- Se mantiene el patrón de UI liviana: ocultar scrollbar visual sin eliminar overflow, y cerrar menús modeless por interacción exterior.
+
+Artefactos relevantes:
+
+- [app/src/ui/MenuPrincipal.tsx](/home/felix/projects/deep-opm-pro/app/src/ui/MenuPrincipal.tsx)
+- [app/src/ui/BarraPestanas.tsx](/home/felix/projects/deep-opm-pro/app/src/ui/BarraPestanas.tsx)
+- [app/src/ui/BarraPestanas.css](/home/felix/projects/deep-opm-pro/app/src/ui/BarraPestanas.css)
+- [app/src/render/jointjs/JointCanvas.tsx](/home/felix/projects/deep-opm-pro/app/src/render/jointjs/JointCanvas.tsx)
+- [app/src/render/jointjs/handlers/zoom.ts](/home/felix/projects/deep-opm-pro/app/src/render/jointjs/handlers/zoom.ts)
+- [docs/bugs/statuses.json](/home/felix/projects/deep-opm-pro/docs/bugs/statuses.json)
+
+Verificación focalizada:
+
+- `bun test src/render/jointjs/handlers/zoom.test.ts src/render/jointjs/handlers/helpers.test.ts`
+- `bun run typecheck`
+- `bun run lint`
+- `bun run test`
+- `bun run build`
+- `bunx playwright test e2e/12-toolbar-overflow.spec.ts --grep "BUG-20260523T174915"`
+- `bunx playwright test e2e/04-arbol-y-pestanas.spec.ts --grep "BUG-20260523T174837"`
+- `bunx playwright test e2e/15-superficie-contextual.spec.ts --grep "barra contextual|seleccionar una cosa|Enlace"`
+- `bunx playwright test e2e/04-arbol-y-pestanas.spec.ts e2e/12-toolbar-overflow.spec.ts e2e/15-superficie-contextual.spec.ts --grep "BUG-20260523T174837|BUG-20260523T174915|barra contextual|seleccionar una cosa|Enlace"`
+- `docker compose up -d --build`
+- `docker exec opforja wget -qO- http://127.0.0.1:8080/healthz`
+- `docker exec opforja-bug-capture bun -e "...fetch('/__deep-opm/bug-reports')..."`
 
 ### Cierre Ledger Bugs/Features — 2026-05-23
 

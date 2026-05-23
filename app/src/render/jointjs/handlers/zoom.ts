@@ -159,7 +159,7 @@ function puntoAnclaZoom(
 
 export function calcularSiguienteZoom(escalaActual: number, event: Pick<WheelEvent, "deltaY" | "deltaMode">): number {
   const deltaPixeles = normalizarWheelDelta(event);
-  const factor = limitarFactorZoom(Math.exp(-deltaPixeles * 0.00008));
+  const factor = limitarFactorZoom(Math.exp(-deltaPixeles * 0.00004));
   return limitarZoom(escalaActual * factor);
 }
 
@@ -170,7 +170,7 @@ function normalizarWheelDelta(event: Pick<WheelEvent, "deltaY" | "deltaMode">): 
 }
 
 function limitarFactorZoom(factor: number): number {
-  return Math.max(0.995, Math.min(1.005, factor));
+  return Math.max(0.9975, Math.min(1.0025, factor));
 }
 
 function limitarZoom(valor: number): number {

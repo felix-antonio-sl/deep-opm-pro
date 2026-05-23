@@ -1,32 +1,32 @@
 {
   "BUG-20260513T050858Z-ad9486": {
     "type": "Feat",
-    "status": "Backlog",
-    "resolution": "Pendiente.",
-    "note": "Feature: canvas infinito/zoom menos sensible y centrado inicial pendiente."
+    "status": "Resuelto",
+    "resolution": "Canvas grande con crecimiento por padding, fit inicial/cambio de OPD centrado y zoom wheel suavizado a 0.25% max por paso.",
+    "note": "Verificado con tests de helpers/zoom; JointCanvas ejecuta fit al primer render de cada OPD."
   },
   "BUG-20260520T180859Z-77e6cf": {
     "type": "Bug",
-    "status": "Backlog",
-    "resolution": "Pendiente de diseño UX.",
-    "note": "Discoverability de barra contextual; sin cierre dedicado."
+    "status": "Resuelto",
+    "resolution": "La barra contextual de enlace ya expone acciones legibles: Propiedades, Copiar formato, Pegar formato solo cuando aplica e Inspector.",
+    "note": "Cubierto por e2e/15-superficie-contextual.spec.ts; no queda boton Pegar deshabilitado permanente."
   },
   "BUG-20260523T174837Z-509ecc": {
     "type": "Bug",
-    "status": "Nuevo",
-    "resolution": "Pendiente.",
-    "note": "Pendiente de triage."
+    "status": "Resuelto",
+    "resolution": "La barra de pestañas conserva overflow horizontal funcional pero oculta el scrollbar visual.",
+    "note": "Regresion E2E BUG-20260523T174837."
   },
   "BUG-20260523T174915Z-6ea103": {
     "type": "Bug",
-    "status": "Nuevo",
-    "resolution": "Pendiente.",
-    "note": "Pendiente de triage."
+    "status": "Resuelto",
+    "resolution": "Menu principal cierra al hacer pointerdown fuera del panel.",
+    "note": "Regresion E2E BUG-20260523T174915."
   },
   "BUG-20260523T185803Z-a0d7bc": {
     "type": "Feat",
     "status": "Resuelto",
-    "resolution": "Se agrega indice vivo e historico de bugs/features con estado y resolucion.",
-    "note": "El sidecar regenera INDEX.md y HISTORY.md automaticamente."
+    "resolution": "Se agrega indice vivo e historico y dialogo visible en UI para bugs/features con estado y resolucion.",
+    "note": "El sidecar regenera INDEX.md/HISTORY.md y la app los consulta via GET /__deep-opm/bug-reports."
   }
 }

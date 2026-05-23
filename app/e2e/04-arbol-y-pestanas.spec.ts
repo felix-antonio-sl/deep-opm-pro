@@ -175,6 +175,27 @@ test("pestanas de sesion mantienen modelos independientes", async ({ page }) => 
   expect(pageErrors).toEqual([]);
 });
 
+test("BUG-20260523T174837 barra de pestanas no muestra scrollbar horizontal", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await cerrarPantallaInicioSiVisible(page);
+
+  const tablist = page.getByRole("tablist", { name: "Modelos abiertos" });
+  await expect(tablist).toBeVisible();
+  const metricas = await tablist.evaluate((el) => ({
+    offsetHeight: (el as HTMLElement).offsetHeight,
+    clientHeight: (el as HTMLElement).clientHeight,
+    scrollbarWidth: getComputedStyle(el).scrollbarWidth,
+  }));
+  expect(metricas.offsetHeight - metricas.clientHeight).toBeLessThanOrEqual(1);
+  expect(metricas.scrollbarWidth).toBe("none");
+
+  expect(pageErrors).toEqual([]);
+});
+
+
 test("mapa del sistema: abre, muestra thumbnails, doble clic navega", async ({ page }) => {
   const pageErrors: string[] = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));

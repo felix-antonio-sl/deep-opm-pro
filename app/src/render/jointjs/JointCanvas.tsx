@@ -187,6 +187,7 @@ export function JointCanvas({
   const [menuTipoEnlaceCanvas, setMenuTipoEnlaceCanvas] = useState<null | (MenuTipoEnlaceCanvasInput & { left: number; top: number })>(null);
   const [direccionTipoEnlaceCanvas, setDireccionTipoEnlaceCanvas] = useState<DireccionTipoEnlaceCanvas>("saliente");
   const menuTipoEnlaceCanvasRef = useRef<HTMLDivElement | null>(null);
+  const ultimoOpdCentradoRef = useRef<string | null>(null);
   const abrirMenuTipoEnlaceCanvasRef = useRef((input: MenuTipoEnlaceCanvasInput) => {
     setDireccionTipoEnlaceCanvas("saliente");
     setMenuTipoEnlaceCanvas({ ...input, ...posicionMenuTipoEnlace(input.clientX, input.clientY) });
@@ -453,6 +454,10 @@ export function JointCanvas({
     );
     aplicarHoverOpl(adapter.graph, modelo, hoverOplRef, enlaceSeleccionId);
     aplicarFeedbackModoEnlace(adapter.paper, modelo, opdActivoId, modoEnlace);
+    if (ultimoOpdCentradoRef.current !== opdActivoId) {
+      ultimoOpdCentradoRef.current = opdActivoId;
+      requestAnimationFrame(() => fitCanvasAPantalla(adapter.paper, viewportRef.current));
+    }
   }, [enlaceSeleccionId, idsResaltadosTemporales, modelo, opdActivoId, seleccionId, seleccionados, uiAliasVisibles, uiDescripcionesVisibles, uiModoImagenGlobal, contextoSimulacion]);
 
   useEffect(() => {

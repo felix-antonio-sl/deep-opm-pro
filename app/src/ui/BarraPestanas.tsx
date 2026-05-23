@@ -5,6 +5,7 @@ import type { Pestana } from "../modelo/tipos";
 import { Breadcrumb } from "./Breadcrumb";
 import { useConfirmarCierreDirty } from "./ConfirmacionContext";
 import { tokens } from "./tokens";
+import "./BarraPestanas.css";
 
 const MIME_PESTANA = "text/pestana-id";
 
@@ -67,7 +68,7 @@ export function BarraPestanas() {
         <Breadcrumb />
       </div>
       <div style={style.tabsSlot}>
-        <div role="tablist" aria-label="Modelos abiertos" style={style.lista}>
+        <div role="tablist" aria-label="Modelos abiertos" className="barra-pestanas__lista" style={style.lista}>
           {pestanas.map((pestana) => {
             const activaActual = pestana.id === activa;
             return (
@@ -164,6 +165,8 @@ const style = {
     minWidth: 0,
     overflowX: "auto",
     flex: "1 1 auto",
+    scrollbarWidth: "none",
+    msOverflowStyle: "none",
   },
   pestana: {
     minWidth: 120,

@@ -1,5 +1,6 @@
 // [JOYAS §1-3] Chrome UI consume tokens centralizados; canvas semántico invariante.
 import modelWizardIcon from "../../../assets/svg/toolbar/modelWizard.svg";
+import { useEffect, useRef } from "preact/hooks";
 import templateIcon from "../../../assets/svg/template.svg";
 import { useMenuPrincipalViewModel } from "../app/viewmodels/menuPrincipalViewModel";
 import { descargarOpdActualSvg } from "../render/jointjs/mapaExport";
@@ -15,6 +16,7 @@ import { etiquetaModoGlobal, siguienteModoGlobal } from "./toolbar/toolbarStyles
 export function MenuPrincipal() {
   const confirmarSiDirty = useConfirmarSiDirty();
   const canvasPaper = useCanvasPaper();
+  const menuRef = useRef<HTMLDivElement | null>(null);
   const {
     abierto,
     cerrar,
@@ -70,9 +72,21 @@ export function MenuPrincipal() {
     void descargarOpdActualSvg(canvasPaper, modelo, opdActivoId);
   };
 
+  useEffect(() => {
+    if (!abierto) return;
+    const cerrarDesdeExterior = (event: PointerEvent) => {
+      const target = event.target;
+      if (!(target instanceof Node)) return;
+      if (menuRef.current?.contains(target)) return;
+      cerrar();
+    };
+    window.addEventListener("pointerdown", cerrarDesdeExterior, { capture: true });
+    return () => window.removeEventListener("pointerdown", cerrarDesdeExterior, { capture: true });
+  }, [abierto, cerrar]);
+
   return (
     <>
-    {abierto ? <div role="menu" aria-label="Menú principal" style={style.menu}>
+    {abierto ? <div ref={menuRef} role="menu" aria-label="Menú principal" style={style.menu}>
       <div aria-hidden="true" style={style.menuTitle}>Mi modelo</div>
 
       <MenuSection title="Modelo">
