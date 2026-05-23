@@ -2,24 +2,25 @@
 // Runtime markers are normalized from those preview SVGs for JointJS marker
 // coordinates.
 //
-// CANON-V2 Bauhaus (ronda 28 L4):
+// CANON-V2 Bauhaus (ronda 28 L4) + restauracion swallowtail (2026-05-23):
 //   Todos los markers migran a ink puro `#0A0A0A` (antes `#586D8C` gris-azul).
-//   El stroke pasa a 2px (antes 2 con varios paths a 1.5). Diferenciacion por
-//   tipo, explicita en el brief:
-//     - consumo/resultado: TRIANGULO LLENO ink (cambio canon).
-//       Antes (BUG-4c1753): swallowtail blanco unificado al estilo OPCloud
-//       sandbox. La unificacion fue util cuando el canal cromatico (azul-gris
-//       saturado) diferenciaba enlaces de cuerpos; bajo V2 Bauhaus el stroke
-//       es identico al cuerpo (ink), por lo que el marker tiene que cargar
-//       toda la diferenciacion. Triangulo lleno = "tail/in" semantico OPM
-//       canonico (Dori §3.1).
-//     - efecto: triangulo lleno ink BIDIRECCIONAL (source+target marker).
+//   Stroke 2px. Diferenciacion por tipo:
+//     - consumo/resultado: SWALLOWTAIL ink (canonico OPM/Dori §3.1 + OPCloud
+//       sandbox). Ronda 28 L4 habia probado triangulo lleno pensando que con
+//       paleta ink-stroke identica al cuerpo el marker tendria que cargar la
+//       diferenciacion entera, pero la silueta swallowtail es ESA
+//       diferenciacion: identifica de inmediato la pareja procedural canonica
+//       frente al lollipop (agente/instrumento) y al rombo (invocacion). La
+//       direccion del enlace (source vs target) separa consumo de resultado.
+//     - efecto: swallowtail BIDIRECCIONAL ink (source+target marker), silueta
+//       OPCloud effect.svg.
 //     - instrumento: lollipop circulo vacio ink fill paper (○).
 //     - agente: lollipop circulo lleno ink (●).
-//     - invocacion: rombo vacio ink (◇), no flecha; cambio canon.
-//       Antes: swallowtail blanco identico a procedurales. El rombo separa
-//       semanticamente la invocacion (causalidad asincrona) del consumo/
-//       resultado.
+//     - invocacion: rombo vacio ink (◇), no flecha; cambio canon L4 sostenido.
+//       Antes (BUG-4c1753): swallowtail blanco identico a procedurales. El
+//       rombo separa semanticamente la invocacion (causalidad asincrona)
+//       del consumo/resultado (causalidad sobre objetos). Esta sustitucion
+//       agrega semantica, no la pierde, asi que se mantiene.
 //     - excepciones temporales: polylines ink (zigzag tachadura).
 //     - etiquetado / etiquetado bidireccional: polyline ink abierta.
 //
@@ -49,30 +50,34 @@ export const LINK_ASSETS = {
     consumo: {
       source: "assets/svg/links/procedural/consumption.svg",
       path: "M46.725 29L42.5404 32.9055L39.2249 36L43.5653 34.6848L63.8267 28.5449L67.2749 27.5L63.8267 26.4551L43.5653 20.3152L39.2249 19L42.5404 22.0945L46.725 26H15V29H46.725ZM49.6967 26.0378L46.8809 23.4099L60.3784 27.5L46.8809 31.5901L49.6967 28.9622L51.2632 27.5L49.6967 26.0378Z",
-      // CANON-V2: triangulo LLENO ink (8x10 area), reemplaza swallowtail blanco
-      // de BUG-4c1753. La unificacion previa (consumo=resultado=efecto al
-      // estilo OPCloud sandbox) funcionaba bajo paleta saturada azul-gris donde
-      // el marker era el unico canal diferenciador respecto del cuerpo. Bajo
-      // V2 (stroke ink identico al cuerpo) el marker tiene que cargar la
-      // diferenciacion entera, asi que respetamos el triangulo lleno canonico
-      // Dori (§3.1) para consumo/resultado.
-      marker: { type: "path", d: "M0,0 L10,5 L10,-5 z", fill: INK, stroke: INK, strokeWidth: MARKER_STROKE_WIDTH },
+      // CANON-V2 + restauracion 2026-05-23: SWALLOWTAIL ink (flecha con cola
+      // hendida en V), silueta canonica OPM/Dori §3.1 y OPCloud sandbox para
+      // consumo/resultado. Ronda 28 L4 habia migrado a triangulo lleno para
+      // resolver "consumo=resultado=efecto al mismo aspecto" bajo paleta
+      // saturada, pero bajo paleta Bauhaus la silueta swallowtail es la que
+      // carga el canal semantico canonico. La direccion del enlace
+      // (source vs target) sigue separando consumo de resultado.
+      marker: { type: "path", d: "M0,0 L10,-5 L6,0 L10,5 z", fill: INK, stroke: INK, strokeWidth: MARKER_STROKE_WIDTH },
     },
     resultado: {
       source: "assets/svg/links/procedural/result.svg",
       path: "M35.132 24L39.428 20.0881L42.8196 17L38.4208 18.3005L17.5956 24.4573L14.0684 25.5L17.5956 26.5427L38.4208 32.6995L42.8196 34L39.428 30.9116L35.132 27L67.65 27V24L35.132 24ZM32.1382 26.9788L35.0293 29.6113L21.1228 25.5L35.0293 21.3887L32.1382 24.0212L30.5142 25.5L32.1382 26.9788Z",
-      // CANON-V2: triangulo LLENO ink simetrico al de consumo. La direccion
-      // del enlace (origen / destino) ya esta en la topologia source/target
-      // del path; el marker no necesita cargar la asimetria geometrica.
-      marker: { type: "path", d: "M0,0 L10,5 L10,-5 z", fill: INK, stroke: INK, strokeWidth: MARKER_STROKE_WIDTH },
+      // CANON-V2 + restauracion 2026-05-23: swallowtail ink simetrico al de
+      // consumo. La direccion del enlace (origen / destino) en la topologia
+      // source/target distingue consumo de resultado; la silueta swallowtail
+      // los identifica como pareja procedural canonica frente al lollipop
+      // (agente/instrumento) y al rombo (invocacion).
+      marker: { type: "path", d: "M0,0 L10,-5 L6,0 L10,5 z", fill: INK, stroke: INK, strokeWidth: MARKER_STROKE_WIDTH },
     },
     efecto: {
       source: "assets/svg/links/procedural/effect.svg",
       path: "M32.7345 31.9055L28.5499 28H53.7502L49.5657 31.9055L46.2501 35L50.5906 33.6848L70.8519 27.5449L74.3002 26.5L70.8519 25.4551L50.5906 19.3152L46.2501 18L49.5657 21.0945L53.7502 25H28.5499L32.7345 21.0945L36.05 18L31.7096 19.3152L11.4482 25.4551L8 26.5L11.4482 27.5449L31.7096 33.6848L36.05 35L32.7345 31.9055ZM28.394 22.4099L25.5782 25.0378L24.0117 26.5L25.5782 27.9622L28.394 30.5901L14.8965 26.5L28.394 22.4099ZM56.7219 25.0378L53.9061 22.4099L67.4037 26.5L53.9061 30.5901L56.7219 27.9622L58.2885 26.5L56.7219 25.0378Z",
-      // CANON-V2: efecto = triangulo lleno BIDIRECCIONAL (composers/enlace.ts
-      // monta el mismo marker en source+target). Semantica OPM: el proceso
-      // consume Y produce el objeto en una misma transicion atomica.
-      marker: { type: "path", d: "M0,0 L10,5 L10,-5 z", fill: INK, stroke: INK, strokeWidth: MARKER_STROKE_WIDTH },
+      // CANON-V2 + restauracion 2026-05-23: swallowtail BIDIRECCIONAL ink
+      // (composers/enlace.ts monta el mismo marker en source+target).
+      // Semantica OPM: el proceso consume Y produce el objeto en una misma
+      // transicion atomica. La doble swallowtail es la silueta OPCloud
+      // canonica (effect.svg).
+      marker: { type: "path", d: "M0,0 L10,-5 L6,0 L10,5 z", fill: INK, stroke: INK, strokeWidth: MARKER_STROKE_WIDTH },
     },
     invocacion: {
       source: "assets/svg/links/procedural/invocation.svg",
