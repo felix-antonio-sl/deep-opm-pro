@@ -1,0 +1,42 @@
+/*
+ * Menus & dropdowns — Ronda 28 L2 (Bauhaus monocromática).
+ *
+ * Reglas de hover sobre items de MenuPrincipal, MenuContextualEntidad,
+ * MenuContextualArbol, MenuContextualEnlace y MenuTipoEnlace. Los styles
+ * inline no soportan `:hover` ni `:focus-visible`; las clases CSS
+ * centralizadas garantizan la estética Bauhaus consistente.
+ *
+ * - Hover/focus de items: fondo ink-04, color ink (peso semibold cuando
+ *   queremos enfatizar el item bajo cursor sin saltar a otra paleta).
+ * - Items activos (aria-pressed=true): barra lateral 2px accent cinabrio.
+ * - Items destructivos: texto cinabrio (var(--accent-dark) ya cumple
+ *   WCAG AA sobre paper).
+ */
+
+[role="menu"] [role="menuitem"]:hover:not(:disabled),
+[role="menu"] [role="menuitem"]:focus-visible:not(:disabled) {
+  background: var(--ink-04);
+}
+
+[role="menu"] [role="menuitem"][aria-pressed="true"] {
+  box-shadow: inset 2px 0 0 0 var(--accent);
+}
+
+/* MenuContextualEntidad/MenuContextualEnlace destructivos (CSS no aplica
+ * directo: ya usan estilo inline). Aquí cubrimos clases con data-attr. */
+[data-testid="menu-contextual-entidad"] button[disabled],
+[data-testid="menu-contextual-enlace"] button[disabled],
+[data-testid="menu-contextual-arbol"] button[disabled] {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+/* MenuTipoEnlace: hover de opciones y segmented director-de-direccion. */
+[data-testid="menu-tipo-enlace"] button:hover:not(:disabled) {
+  background: var(--ink-04);
+}
+
+/* Command palette: hover lista items. */
+[data-testid="command-palette"] [role="option"]:hover {
+  background: var(--ink-04);
+}

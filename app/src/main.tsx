@@ -9,6 +9,7 @@ import "./render/jointjs/jointjs.css";
 import "./ui/focus.css";
 import "./ui/arbol/arbol.css";
 import "./ui/toolbar/toolbar.css";
+import "./ui/menus.css";
 import { store } from "./store";
 import { App } from "./ui/App";
 

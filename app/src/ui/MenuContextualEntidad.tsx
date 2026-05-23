@@ -122,40 +122,51 @@ function estiloItem(accion: AccionContextual): preact.JSX.CSSProperties {
   return accion.enabled ? style.item : style.itemDisabled;
 }
 
+/**
+ * Estilos del MenuContextualEntidad — Ronda 28 L2 (Bauhaus monocromática).
+ *
+ * Misma estética que MenuPrincipal:
+ *   - Borde 1.5px ink + sombra plana 8 8 0 ink-15.
+ *   - Items padding 8 16, hover ink-04 (vía menus.css).
+ *   - Shortcut en mono JetBrains ink-50.
+ *   - Destructivo: texto cinabrio (accentDark cumple WCAG AA sobre paper).
+ *   - Separator: 1px ink-15.
+ */
 const baseItem = {
   width: "100%",
-  height: "30px",
+  minHeight: "32px",
   border: 0,
   background: "transparent",
-  color: tokens.colors.textoPrimario,
+  color: tokens.colors.ink,
   textAlign: "left",
-  padding: "0 10px",
+  padding: "8px 16px",
   cursor: "pointer",
-  fontSize: "13px",
-  fontWeight: 600,
+  fontFamily: tokens.typography.fontFamily,
+  fontSize: `${tokens.typography.sizes.base}px`,
+  fontWeight: tokens.typography.weights.medium,
   display: "grid",
   gridTemplateColumns: "minmax(0, 1fr) auto",
   alignItems: "center",
   gap: "12px",
+  transition: "background 150ms ease-out",
 } satisfies preact.JSX.CSSProperties;
 
 const style = {
   menu: {
     position: "fixed",
     zIndex: 45,
-    width: "236px",
+    width: "240px",
     padding: "6px",
-    border: `1px solid ${tokens.colors.bordeControl}`,
-    borderRadius: tokens.radii.md,
-    background: tokens.colors.fondoChrome,
-    boxShadow: tokens.shadows.menuContextual,
+    border: `1.5px solid ${tokens.colors.ink}`,
+    background: tokens.colors.paper,
+    boxShadow: `8px 8px 0 0 ${tokens.colors.ink15}`,
   },
   item: baseItem,
-  itemDisabled: { ...baseItem, color: tokens.colors.textoTerciario, cursor: "not-allowed", opacity: 0.58 },
-  danger: { ...baseItem, color: tokens.colors.errorTexto, gridTemplateColumns: "14px minmax(0, 1fr) auto", gap: "8px" },
-  dangerDisabled: { ...baseItem, color: tokens.colors.textoTerciario, cursor: "not-allowed", opacity: 0.58, gridTemplateColumns: "14px minmax(0, 1fr) auto", gap: "8px" },
+  itemDisabled: { ...baseItem, color: tokens.colors.ink30, cursor: "not-allowed", opacity: 0.6 },
+  danger: { ...baseItem, color: tokens.colors.accentDark, gridTemplateColumns: "14px minmax(0, 1fr) auto", gap: "8px" },
+  dangerDisabled: { ...baseItem, color: tokens.colors.ink30, cursor: "not-allowed", opacity: 0.6, gridTemplateColumns: "14px minmax(0, 1fr) auto", gap: "8px" },
   itemLabel: { overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" },
-  shortcut: { color: tokens.colors.textoTerciario, fontSize: "11px", fontWeight: 600, justifySelf: "end" },
-  separator: { height: "1px", margin: "5px 4px", background: tokens.colors.bordeSuave },
+  shortcut: { color: tokens.colors.ink50, fontFamily: tokens.typography.fontFamilyMono, fontSize: `${tokens.typography.sizes.xs}px`, fontWeight: tokens.typography.weights.medium, justifySelf: "end", letterSpacing: 0 },
+  separator: { height: "1px", margin: "6px 0", background: tokens.colors.ink15 },
   dangerIcon: { width: "14px", height: "14px", display: "block", flex: "0 0 auto" },
 } satisfies Record<string, preact.JSX.CSSProperties>;

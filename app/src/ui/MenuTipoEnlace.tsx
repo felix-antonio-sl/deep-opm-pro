@@ -270,6 +270,16 @@ function nombreOpl(entidad: Entidad): string {
   return entidad.tipo === "proceso" ? `*${entidad.nombre}*` : `**${entidad.nombre}**`;
 }
 
+/**
+ * Estilos del MenuTipoEnlace — Ronda 28 L2 (Bauhaus monocromática).
+ *
+ *   - Panel: borde 1.5px ink, sombra plana 4 4 0 ink-15, padding 12px.
+ *   - Segmented Salida/Entrada: borde 1px ink, activo = ink04 + inset
+ *     accent cinabrio (no azul).
+ *   - Items: borde 1px ink-15, hover ink-04 (vía menus.css). Sin radius.
+ *   - PreviewBox: borde 1.5px ink, fondo ink-04 — el highlight informativo
+ *     se logra con peso tipográfico, no con tinte azul.
+ */
 const style = {
   panel: {
     position: "fixed",
@@ -278,32 +288,30 @@ const style = {
     width: "320px",
     zIndex: 25,
     display: "grid",
-    gap: "8px",
-    padding: "10px",
-    border: `1px solid ${tokens.colors.bordeControl}`,
-    borderRadius: tokens.radii.md,
-    background: tokens.colors.fondoChrome,
-    boxShadow: tokens.shadows.menu,
+    gap: "10px",
+    padding: "12px",
+    border: `1.5px solid ${tokens.colors.ink}`,
+    background: tokens.colors.paper,
+    boxShadow: `4px 4px 0 0 ${tokens.colors.ink15}`,
   },
-  header: { display: "flex", justifyContent: "space-between", alignItems: "center", gap: "10px", fontSize: "13px", color: tokens.colors.textoPrimario },
-  segmented: { display: "flex", border: `1px solid ${tokens.colors.bordeControl}`, borderRadius: tokens.radii.control, overflow: "hidden" },
-  segment: { border: 0, background: tokens.colors.fondoChrome, color: tokens.colors.textoSecundario, height: "26px", padding: "0 8px", cursor: "pointer", fontSize: "12px" },
-  segmentActive: { border: 0, background: tokens.colors.acentoUiSuave, color: tokens.colors.azulAccion, height: "26px", padding: "0 8px", cursor: "pointer", fontSize: "12px", fontWeight: 700 },
-  list: { display: "grid", gap: "6px" },
-  item: { display: "flex", alignItems: "center", gap: "8px", width: "100%", border: `1px solid ${tokens.colors.bordeTabla}`, borderRadius: tokens.radii.md, background: tokens.colors.fondoCard, padding: "8px", textAlign: "left", cursor: "pointer" },
-  itemActive: { display: "flex", alignItems: "center", gap: "8px", width: "100%", border: `1px solid ${tokens.colors.infoBordeSuave}`, borderRadius: tokens.radii.md, background: tokens.colors.infoFondoClaro, padding: "8px", textAlign: "left", cursor: "pointer" },
-  icon: { display: "grid", placeItems: "center", flex: "0 0 28px", width: "28px", height: "28px", borderRadius: tokens.radii.sm, background: tokens.colors.fondoIcono, color: tokens.colors.textoControl, fontSize: "11px", fontWeight: 800 },
-  itemText: { display: "grid", gap: "2px", minWidth: 0, color: tokens.colors.textoPrimario, fontSize: "13px" },
-  preview: { color: tokens.colors.textoTerciario, fontSize: "11px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" },
-  filteredHint: { margin: "0 0 2px", color: tokens.colors.textoTerciario, fontSize: "12px", fontWeight: 700 },
-  previewBox: { display: "grid", gap: "3px", padding: "8px", border: `1px solid ${tokens.colors.infoBordeSuave}`, borderRadius: tokens.radii.md, background: tokens.colors.azulMuySuave, color: tokens.colors.textoPrimario, fontSize: "12px" },
-  previewLabel: { color: tokens.colors.infoTextoOscuro, fontSize: "10px", fontWeight: 800, textTransform: "uppercase", letterSpacing: 0 },
-  empty: { margin: 0, color: tokens.colors.textoTerciario, fontSize: "12px" },
-  // P1-4 ronda 4: estado vivo del popover cuando hay seleccion parcial.
-  estado: { display: "grid", gap: "6px", padding: "8px", border: `1px solid ${tokens.colors.infoBordeSuave}`, borderRadius: tokens.radii.md, background: tokens.colors.azulMuySuave, color: tokens.colors.textoPrimario, fontSize: "12px" },
+  header: { display: "flex", justifyContent: "space-between", alignItems: "center", gap: "10px", fontSize: `${tokens.typography.sizes.base}px`, color: tokens.colors.ink, fontWeight: tokens.typography.weights.semibold },
+  segmented: { display: "flex", border: `1px solid ${tokens.colors.ink}`, overflow: "hidden" },
+  segment: { border: 0, background: tokens.colors.paper, color: tokens.colors.ink70, height: "26px", padding: "0 10px", cursor: "pointer", fontFamily: tokens.typography.fontFamily, fontSize: `${tokens.typography.sizes.sm}px`, fontWeight: tokens.typography.weights.medium, textTransform: "uppercase", letterSpacing: "0.04em" },
+  segmentActive: { border: 0, background: tokens.colors.ink04, color: tokens.colors.ink, height: "26px", padding: "0 10px", cursor: "pointer", fontFamily: tokens.typography.fontFamily, fontSize: `${tokens.typography.sizes.sm}px`, fontWeight: tokens.typography.weights.semibold, textTransform: "uppercase", letterSpacing: "0.04em", boxShadow: `inset 0 -2px 0 0 ${tokens.colors.accent}` },
+  list: { display: "grid", gap: "4px" },
+  item: { display: "flex", alignItems: "center", gap: "10px", width: "100%", border: `1px solid ${tokens.colors.ink15}`, background: tokens.colors.paper, padding: "8px 10px", textAlign: "left", cursor: "pointer", fontFamily: tokens.typography.fontFamily, transition: "background 150ms ease-out" },
+  itemActive: { display: "flex", alignItems: "center", gap: "10px", width: "100%", border: `1px solid ${tokens.colors.ink}`, background: tokens.colors.ink04, padding: "8px 10px", textAlign: "left", cursor: "pointer", fontFamily: tokens.typography.fontFamily },
+  icon: { display: "grid", placeItems: "center", flex: "0 0 26px", width: "26px", height: "26px", border: `1px solid ${tokens.colors.ink15}`, background: tokens.colors.paper, color: tokens.colors.ink, fontFamily: tokens.typography.fontFamilyMono, fontSize: `${tokens.typography.sizes.xs}px`, fontWeight: tokens.typography.weights.medium },
+  itemText: { display: "grid", gap: "2px", minWidth: 0, color: tokens.colors.ink, fontFamily: tokens.typography.fontFamily, fontSize: `${tokens.typography.sizes.base}px` },
+  preview: { color: tokens.colors.ink50, fontSize: `${tokens.typography.sizes.xs}px`, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" },
+  filteredHint: { margin: "0 0 2px", color: tokens.colors.ink50, fontSize: `${tokens.typography.sizes.sm}px`, fontWeight: tokens.typography.weights.medium, textTransform: "uppercase", letterSpacing: "0.06em" },
+  previewBox: { display: "grid", gap: "4px", padding: "8px 10px", border: `1.5px solid ${tokens.colors.ink}`, background: tokens.colors.ink04, color: tokens.colors.ink, fontFamily: tokens.typography.fontFamily, fontSize: `${tokens.typography.sizes.sm}px` },
+  previewLabel: { color: tokens.colors.ink50, fontSize: `${tokens.typography.sizes.xxs}px`, fontWeight: tokens.typography.weights.medium, textTransform: "uppercase", letterSpacing: "0.08em" },
+  empty: { margin: 0, color: tokens.colors.ink50, fontSize: `${tokens.typography.sizes.sm}px` },
+  estado: { display: "grid", gap: "6px", padding: "10px", border: `1.5px solid ${tokens.colors.ink}`, background: tokens.colors.ink04, color: tokens.colors.ink, fontFamily: tokens.typography.fontFamily, fontSize: `${tokens.typography.sizes.sm}px` },
   estadoLinea: { display: "flex", gap: "8px", alignItems: "baseline", margin: 0 },
-  estadoEtiqueta: { color: tokens.colors.infoTextoOscuro, fontSize: "10px", fontWeight: 800, textTransform: "uppercase", letterSpacing: 0, flex: "0 0 48px" },
-  estadoNombre: { color: tokens.colors.textoPrimario, fontSize: "13px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", minWidth: 0 },
-  estadoHint: { margin: "4px 0 0", color: tokens.colors.textoTerciario, fontSize: "11px", lineHeight: 1.3 },
-  estadoMotivo: { margin: 0, color: tokens.colors.textoSecundario, fontSize: "11px", lineHeight: 1.3 },
+  estadoEtiqueta: { color: tokens.colors.ink50, fontSize: `${tokens.typography.sizes.xxs}px`, fontWeight: tokens.typography.weights.medium, textTransform: "uppercase", letterSpacing: "0.08em", flex: "0 0 56px" },
+  estadoNombre: { color: tokens.colors.ink, fontSize: `${tokens.typography.sizes.base}px`, fontWeight: tokens.typography.weights.semibold, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", minWidth: 0 },
+  estadoHint: { margin: "4px 0 0", color: tokens.colors.ink50, fontSize: `${tokens.typography.sizes.xs}px`, lineHeight: 1.4 },
+  estadoMotivo: { margin: 0, color: tokens.colors.ink70, fontSize: `${tokens.typography.sizes.xs}px`, lineHeight: 1.4 },
 } satisfies Record<string, preact.JSX.CSSProperties>;

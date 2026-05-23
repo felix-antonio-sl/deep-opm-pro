@@ -41,31 +41,36 @@ export function MenuContextualEnlace(props: Props) {
   );
 }
 
+/**
+ * Estilos del MenuContextualEnlace — Ronda 28 L2 (Bauhaus monocromática).
+ * Misma silueta plana que el resto de los menús contextuales.
+ */
 const baseItem = {
   width: "100%",
-  height: "30px",
+  minHeight: "32px",
   border: 0,
   background: "transparent",
-  color: tokens.colors.textoPrimario,
+  color: tokens.colors.ink,
   textAlign: "left",
-  padding: "0 10px",
+  padding: "8px 16px",
   cursor: "pointer",
-  fontSize: "13px",
-  fontWeight: 600,
+  fontFamily: tokens.typography.fontFamily,
+  fontSize: `${tokens.typography.sizes.base}px`,
+  fontWeight: tokens.typography.weights.medium,
+  transition: "background 150ms ease-out",
 } satisfies preact.JSX.CSSProperties;
 
 const style = {
   menu: {
     position: "fixed",
     zIndex: 45,
-    width: "170px",
+    width: "180px",
     padding: "6px",
-    border: `1px solid ${tokens.colors.bordeControl}`,
-    borderRadius: tokens.radii.md,
-    background: tokens.colors.fondoChrome,
-    boxShadow: tokens.shadows.menuContextual,
+    border: `1.5px solid ${tokens.colors.ink}`,
+    background: tokens.colors.paper,
+    boxShadow: `8px 8px 0 0 ${tokens.colors.ink15}`,
   },
   item: baseItem,
-  disabled: { ...baseItem, color: tokens.colors.textoDeshabilitado, cursor: "default" },
-  danger: { ...baseItem, color: tokens.colors.errorTexto },
+  disabled: { ...baseItem, color: tokens.colors.ink30, cursor: "default", opacity: 0.6 },
+  danger: { ...baseItem, color: tokens.colors.accentDark },
 } satisfies Record<string, preact.JSX.CSSProperties>;
