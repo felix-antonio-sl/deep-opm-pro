@@ -144,26 +144,55 @@ function styleTokenMarkdown(token: OplToken): preact.JSX.CSSProperties {
   return {};
 }
 
+// Ronda 28 L3: Bauhaus OPL — la jerarquía visual no es color sino tipografía.
+//   - Objetos:  weight 600 + underline 1px solid ink (offset 3px).
+//   - Procesos: weight 600 + underline 1px dashed ink (offset 3px).
+//   - Estados:  fondo ink-04, padding 0 4, mono.
+//   - Verbos:   peso 500 ink-70.
+// El `tokenMultiEnlace` (token nombre de enlace con varias instancias) mantiene
+// su semántica como underline punteada accent (cinabrio) para distinguir.
 const style = {
-  token: { borderRadius: 3 },
+  token: { borderRadius: tokens.radii.xs },
   tokenInteractivo: { cursor: "pointer" },
-  tokenHover: { background: tokens.colors.oplTokenBorde },
-  tokenMultiEnlace: { borderBottom: `1px dotted ${tokens.colors.oplTokenTexto}` },
-  objeto: { color: tokens.colors.verdeOpl, fontWeight: 700 },
-  proceso: { color: tokens.colors.infoBorde, fontStyle: "italic", fontWeight: 700 },
-  estado: {
-    color: tokens.colors.textoSecundario,
-    fontFamily: "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace",
-    fontSize: "12px",
+  tokenHover: { background: tokens.colors.ink04 },
+  tokenMultiEnlace: { borderBottom: `1px dotted ${tokens.colors.accent}` },
+  objeto: {
+    color: tokens.colors.ink,
+    fontWeight: tokens.typography.weights.semibold,
+    borderBottom: `1px solid ${tokens.colors.ink}`,
+    textUnderlineOffset: "3px",
+    paddingBottom: "1px",
   },
-  verbo: { color: tokens.colors.textoSlate, fontWeight: 700 },
+  proceso: {
+    color: tokens.colors.ink,
+    fontWeight: tokens.typography.weights.semibold,
+    fontStyle: "italic" as const,
+    borderBottom: `1px dashed ${tokens.colors.ink}`,
+    textUnderlineOffset: "3px",
+    paddingBottom: "1px",
+  },
+  estado: {
+    color: tokens.colors.ink,
+    background: tokens.colors.ink04,
+    fontFamily: tokens.typography.fontFamilyMono,
+    fontSize: `${tokens.typography.sizes.sm}px`,
+    padding: "0 4px",
+    borderRadius: tokens.radii.xs,
+  },
+  verbo: {
+    color: tokens.colors.ink70,
+    fontWeight: tokens.typography.weights.medium,
+  },
   inputInline: {
     width: "14ch",
     minWidth: 80,
     maxWidth: 220,
-    border: `1px solid ${tokens.colors.chromeNeutral}`,
-    borderRadius: 4,
+    border: `${tokens.stroke.hairline}px solid ${tokens.colors.ink}`,
+    borderRadius: tokens.radii.xs,
     padding: "1px 4px",
     font: "inherit",
+    background: tokens.colors.paper,
+    color: tokens.colors.ink,
+    caretColor: tokens.colors.accent,
   },
 } satisfies Record<string, preact.JSX.CSSProperties>;

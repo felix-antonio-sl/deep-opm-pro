@@ -1,4 +1,6 @@
 // [JOYAS §1-3] Chrome UI consume tokens centralizados; canvas semántico invariante.
+// Ronda 28 L3: paleta Bauhaus aplicada — toolbar borde inferior 1px ink-15,
+// botones outline ink-15, activo fondo ink + paper, sin glow.
 import { tokens } from "../tokens";
 
 /**
@@ -66,11 +68,9 @@ export function ToolbarOpl(props: ToolbarOplProps) {
         Nº
       </button>
       {/* Ronda23 L1 #5: vaporware AI Text apagado hasta que la feature exista.
-          Antes (informe UI/UX 2026-05-07) el botón quedaba visible marcado como
-          beta y al click disparaba un toast "Próximamente"; el render confundía
-          a los usuarios prometiendo algo no disponible. Cuando se implemente la
-          feature, basta con poner `AI_TEXT_HABILITADO = true` y los smokes
-          (03-opl-panel:297) vuelven a tener objetivo. */}
+          Cuando se implemente la feature, basta con poner
+          `AI_TEXT_HABILITADO = true` y los smokes (03-opl-panel:297) vuelven
+          a tener objetivo. */}
       {AI_TEXT_HABILITADO ? (
         <button
           type="button"
@@ -149,44 +149,51 @@ function botonActivo(activo: boolean): preact.JSX.CSSProperties {
   return { ...style.iconButton, ...(activo ? style.iconButtonActivo : {}) };
 }
 
+// Ronda 28 L3: toolbar OPL Bauhaus.
+//   - toolbar: borde inferior 1px ink-15.
+//   - iconButton: border 1px ink-15, padding 4 10, font 11/500 ink.
+//   - activo: fondo ink + paper, sin glow.
+//   - search input: outline focus, caret accent.
 const style = {
   toolbar: {
     display: "flex",
     flexWrap: "wrap",
     alignItems: "center",
     gap: tokens.spacing.sm,
-    marginBottom: 10,
+    marginBottom: tokens.spacing.sm,
+    paddingBottom: tokens.spacing.sm,
+    borderBottom: `${tokens.stroke.hairline}px solid ${tokens.colors.ink15}`,
   },
   divider: {
     width: 1,
     height: 18,
     flex: "0 0 auto",
     margin: `0 ${tokens.spacing.xs}px`,
-    background: tokens.colors.bordeChrome,
+    background: tokens.colors.ink15,
   },
   iconButton: {
     minWidth: 30,
     height: 28,
-    border: `1px solid ${tokens.colors.bordeSlate}`,
-    borderRadius: 4,
-    background: tokens.colors.fondoElevado,
-    color: tokens.colors.textoSlate,
-    fontSize: tokens.typography.sizes.sm,
-    fontWeight: 700,
-    padding: "2px 6px",
+    border: `${tokens.stroke.hairline}px solid ${tokens.colors.ink15}`,
+    borderRadius: tokens.radii.xs,
+    background: tokens.colors.paper,
+    color: tokens.colors.ink,
+    fontSize: tokens.typography.sizes.xs,
+    fontWeight: tokens.typography.weights.medium,
+    padding: "4px 10px",
     cursor: "pointer",
+    letterSpacing: 0,
+    transition: tokens.transitions.fast,
   },
   iconButtonActivo: {
-    borderColor: tokens.colors.chromeNeutral,
-    background: tokens.colors.fondoLineaTiempo,
-    color: tokens.colors.textoPrimario,
+    borderColor: tokens.colors.ink,
+    background: tokens.colors.ink,
+    color: tokens.colors.paper,
   },
   iconButtonBeta: {
-    // P0-3: marca visual de "no disponible aun". El handler sigue activo
-    // (muestra toast "Proximamente"), pero el chrome aclara el estado.
     opacity: 0.55,
-    background: tokens.colors.fondoNeutral,
-    color: tokens.colors.textoTerciario,
+    background: tokens.colors.ink04,
+    color: tokens.colors.ink50,
     cursor: "help",
     minWidth: 56,
     display: "inline-flex",
@@ -194,14 +201,14 @@ const style = {
     gap: 4,
   },
   betaTag: {
-    fontSize: tokens.typography.sizes.xs,
+    fontSize: tokens.typography.sizes.xxs,
     fontWeight: tokens.typography.weights.semibold,
     padding: "0 4px",
-    borderRadius: 999,
-    background: tokens.colors.chromeNeutralSuave,
-    color: tokens.colors.chromeNeutral,
-    textTransform: "uppercase",
-    letterSpacing: "0.04em",
+    borderRadius: tokens.radii.pill,
+    background: tokens.colors.ink04,
+    color: tokens.colors.ink50,
+    textTransform: "uppercase" as const,
+    letterSpacing: "0.08em",
     lineHeight: 1.5,
   },
   searchInput: {
@@ -209,31 +216,37 @@ const style = {
     minWidth: 180,
     maxWidth: 280,
     height: 28,
-    padding: "2px 6px",
-    border: `1px solid ${tokens.colors.bordeNeutral}`,
-    borderRadius: 4,
+    padding: "4px 10px",
+    border: `${tokens.stroke.hairline}px solid ${tokens.colors.ink15}`,
+    borderRadius: tokens.radii.xs,
+    background: tokens.colors.paper,
+    color: tokens.colors.ink,
+    outlineColor: tokens.colors.focus,
+    caretColor: tokens.colors.accent,
     fontSize: tokens.typography.sizes.sm,
     fontFamily: "inherit",
   },
   toolbarBtn: {
     height: 28,
-    border: `1px solid ${tokens.colors.bordeNeutral}`,
-    borderRadius: 4,
-    background: tokens.colors.fondoTabla,
-    color: tokens.colors.textoSlate,
-    fontSize: tokens.typography.sizes.sm,
-    padding: "2px 8px",
+    border: `${tokens.stroke.hairline}px solid ${tokens.colors.ink15}`,
+    borderRadius: tokens.radii.xs,
+    background: tokens.colors.paper,
+    color: tokens.colors.ink,
+    fontSize: tokens.typography.sizes.xs,
+    fontWeight: tokens.typography.weights.medium,
+    padding: "4px 10px",
     cursor: "pointer",
-    whiteSpace: "nowrap",
+    whiteSpace: "nowrap" as const,
+    transition: tokens.transitions.fast,
   },
-  btnDisabled: { opacity: 0.4, cursor: "not-allowed" },
+  btnDisabled: { opacity: 0.4, cursor: "not-allowed" as const },
   toggle: {
     display: "inline-flex",
     alignItems: "center",
     gap: 4,
-    color: tokens.colors.textoSecundario,
+    color: tokens.colors.ink70,
     fontSize: tokens.typography.sizes.sm,
-    userSelect: "none",
-    whiteSpace: "nowrap",
+    userSelect: "none" as const,
+    whiteSpace: "nowrap" as const,
   },
 } satisfies Record<string, preact.JSX.CSSProperties>;

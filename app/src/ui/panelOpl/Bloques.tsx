@@ -97,55 +97,97 @@ function LineaOpl(props: BloquesProps & { linea: OplLineaInteractiva; bloqueOpdI
   );
 }
 
+// Ronda 28 L3: Bloques Bauhaus.
+//   - section title (cabecera bloque): Inter Tight 11/500 uppercase tracking
+//     +0.08em ink-70, sin background ni borde (chrome editorial).
+//   - lines: grid 30px 1fr, mono 12px, numeración ink-30 tabular.
+//   - hover: ink-04 plano. activo: barra lateral 2px cinabrio izquierda.
 const style = {
   linea: {
     display: "grid",
-    gridTemplateColumns: "32px minmax(0, 1fr)",
-    columnGap: 6,
-    borderRadius: 4,
+    gridTemplateColumns: "30px minmax(0, 1fr)",
+    columnGap: tokens.spacing.sm,
+    borderRadius: tokens.radii.xs,
     padding: "2px 4px",
+    fontFamily: tokens.typography.fontFamilyMono,
+    fontSize: `${tokens.typography.sizes.sm}px`,
+    lineHeight: 1.65,
+    transition: tokens.transitions.fast,
   },
   bloque: {
-    marginBottom: 8,
+    marginBottom: tokens.spacing.sm,
     paddingLeft: 0,
     borderLeft: "0 solid transparent",
   },
+  // Section header del bloque OPD: tipográfico — sin caja, sólo label
+  // uppercase y conteo en mono. Mantiene un click target amplio (32px alto)
+  // mediante padding vertical pero el contorno desaparece.
   bloqueHeader: {
     width: "100%",
     minHeight: 28,
     display: "inline-flex",
     alignItems: "center",
-    gap: 6,
-    border: `1px solid ${tokens.colors.bordeChrome}`,
-    borderRadius: 4,
-    background: tokens.colors.fondoElevado,
-    color: tokens.colors.textoSlate,
-    fontSize: "12px",
-    fontWeight: 700,
+    gap: tokens.spacing.sm,
+    border: 0,
+    borderRadius: 0,
+    background: "transparent",
+    color: tokens.colors.ink70,
+    fontFamily: tokens.typography.familyChrome,
+    fontSize: `${tokens.typography.sizes.xs}px`,
+    fontWeight: tokens.typography.weights.medium,
+    textTransform: "uppercase" as const,
+    letterSpacing: "0.08em",
     cursor: "pointer",
-    textAlign: "left",
-    padding: "3px 8px",
+    textAlign: "left" as const,
+    padding: `${tokens.spacing.xs}px 0`,
   },
-  chevron: { width: 14, color: tokens.colors.chromeNeutral, fontWeight: 700 },
-  bloqueConteo: { color: tokens.colors.textoTerciario, fontSize: "11px", fontWeight: 600 },
-  lineaOpdActiva: { background: tokens.colors.oplFondo },
-  lineaHover: { background: tokens.colors.fondoLineaTiempo },
-  lineaSeleccionada: { boxShadow: `inset 3px 0 0 ${tokens.colors.chromeNeutral}` },
+  chevron: {
+    width: 14,
+    color: tokens.colors.ink50,
+    fontWeight: tokens.typography.weights.medium,
+    fontFamily: tokens.typography.fontFamilyMono,
+    fontSize: `${tokens.typography.sizes.xs}px`,
+    textTransform: "none" as const,
+    letterSpacing: 0,
+  },
+  bloqueConteo: {
+    color: tokens.colors.ink50,
+    fontFamily: tokens.typography.fontFamilyMono,
+    fontSize: `${tokens.typography.sizes.sm}px`,
+    fontWeight: tokens.typography.weights.normal,
+    textTransform: "none" as const,
+    letterSpacing: 0,
+  },
+  lineaOpdActiva: { background: "transparent" },
+  lineaHover: { background: tokens.colors.ink04 },
+  // Línea seleccionada: barra lateral 2px cinabrio (consistente con árbol y
+  // apariencia activa del inspector).
+  lineaSeleccionada: {
+    boxShadow: `inset 2px 0 0 ${tokens.colors.accent}`,
+    background: tokens.colors.ink04,
+  },
   ordinal: {
-    color: tokens.colors.textoTerciario,
-    fontVariantNumeric: "tabular-nums",
-    textAlign: "right",
+    color: tokens.colors.ink30,
+    fontFamily: tokens.typography.fontFamilyMono,
+    fontVariantNumeric: "tabular-nums" as const,
+    fontSize: `${tokens.typography.sizes.sm}px`,
+    textAlign: "right" as const,
   },
   ordinalOculto: { opacity: 0 },
   texto: { minWidth: 0 },
 } satisfies Record<string, preact.JSX.CSSProperties>;
 
+// Bloque anidado: usa border-left hairline ink-15 (sutil) en vez de la barra
+// 2px corporativa anterior. La jerarquía profundidad → indentación 16px se
+// preserva.
 function estiloBloque(profundidad: number): preact.JSX.CSSProperties {
   const nivelVisual = Math.min(Math.max(profundidad, 0), 4);
   return {
     ...style.bloque,
     paddingLeft: nivelVisual * 16,
-    borderLeft: profundidad > 0 ? `2px solid ${tokens.colors.oplBorde}` : "0 solid transparent",
+    borderLeft: profundidad > 0
+      ? `${tokens.stroke.hairline}px solid ${tokens.colors.ink15}`
+      : "0 solid transparent",
   };
 }
 
