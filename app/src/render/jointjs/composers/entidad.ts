@@ -505,6 +505,16 @@ export function attrsConEstados(
       strokeWidth: designaciones.includes("inicial") ? 3 : 1,
       pointerEvents: "auto",
       cursor: "crosshair",
+      // Paquete "Estados ciudadanos de primera clase" (2026-05-23): los
+      // estados son ciudadanos visualmente identificables en la cápsula.
+      // El CSS (jointjs.css) reacciona a estos atributos para hover/focus/
+      // selected/dragging usando tokens Bauhaus (`--bauhaus-cinabrio`,
+      // `--bauhaus-paper-02`, `--bauhaus-focus-ring`, `--bauhaus-axis-soft`).
+      // V-202: estos atributos son affordance UI, no gramática OPM; no se
+      // exportan al canon. data-estado-id alimenta el handler de click.
+      "data-estado-id": estado.id,
+      "data-estado-index": String(index),
+      "data-cap-rol": "estado",
     };
     attrs[`stateFinalInner${index}`] = {
       x: x + 3,

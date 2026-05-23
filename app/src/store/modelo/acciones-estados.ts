@@ -14,6 +14,7 @@ import {
   eliminarEstado as eliminarEstadoOp,
   quitarEstadosObjeto,
   renombrarEstado,
+  reordenarEstado,
 } from "../../modelo/operaciones";
 import { estadosDeEntidad } from "../../modelo/operaciones/estados";
 import type { DesignacionEstado, Id, Modelo } from "../../modelo/tipos";
@@ -197,7 +198,206 @@ export function accionesEstados(set: SetStore, get: GetStore): Partial<ModeloSli
       }
       commitModelo(set, modelo, resultado.value, { seleccionId, enlaceSeleccionId: null, modoEnlace: null, modalDuracionAbierto: null, mensaje: null });
     },
+
+    // ───── Paquete "Estados ciudadanos de primera clase" (2026-05-23) ─────
+    // Acciones from-selection: leen `estadoSeleccionId` para que atajos y
+    // menús contextuales no tengan que pasar el id explícitamente. Si
+    // `estadoSeleccionId` es null, setean `mensaje` y no mutan.
+    // Spec: docs/superpowers/specs/2026-05-23-estados-ciudadania-primera-clase-design.md §3.
+
+    eliminarEstadoSeleccionado() {
+      const { modelo, estadoSeleccionId } = get();
+      if (!estadoSeleccionId) {
+        set({ mensaje: "Selecciona un estado para eliminar" });
+        return;
+      }
+      const resultado = eliminarEstadoOp(modelo, estadoSeleccionId);
+      if (!resultado.ok) {
+        set({ mensaje: resultado.error });
+        return;
+      }
+      commitModelo(set, modelo, resultado.value, {
+        seleccionId: null,
+        enlaceSeleccionId: null,
+        estadoSeleccionId: null,
+        modoEnlace: null,
+        mensaje: "Estado eliminado",
+      });
+    },
+
+    renombrarEstadoSeleccionadoSmart(nombre) {
+      const { modelo, estadoSeleccionId } = get();
+      if (!estadoSeleccionId) {
+        set({ mensaje: "Selecciona un estado para renombrar" });
+        return;
+      }
+      const resultado = renombrarEstado(modelo, estadoSeleccionId, nombre);
+      if (!resultado.ok) {
+        set({ mensaje: resultado.error });
+        return;
+      }
+      commitModelo(set, modelo, resultado.value, {
+        estadoSeleccionId,
+        seleccionId: null,
+        enlaceSeleccionId: null,
+        modoEnlace: null,
+        mensaje: null,
+      });
+    },
+
+    designarEstadoSeleccionado(designacion) {
+      const { estadoSeleccionId } = get();
+      if (!estadoSeleccionId) {
+        set({ mensaje: "Selecciona un estado para designar" });
+        return;
+      }
+      designarEstadoEnStore(set, get, estadoSeleccionId, designacion);
+    },
+
+    quitarDesignacionEstadoSeleccionado(designacion) {
+      const { modelo, estadoSeleccionId } = get();
+      if (!estadoSeleccionId) {
+        set({ mensaje: "Selecciona un estado para quitar designación" });
+        return;
+      }
+      const resultado = quitarDesignacion(modelo, estadoSeleccionId, designacion);
+      if (!resultado.ok) {
+        set({ mensaje: resultado.error });
+        return;
+      }
+      commitModelo(set, modelo, resultado.value, {
+        estadoSeleccionId,
+        seleccionId: null,
+        enlaceSeleccionId: null,
+        modoEnlace: null,
+        mensaje: null,
+      });
+    },
+
+    suprimirEstadoSeleccionado() {
+      const { modelo, estadoSeleccionId } = get();
+      if (!estadoSeleccionId) {
+        set({ mensaje: "Selecciona un estado para suprimir" });
+        return;
+      }
+      const resultado = suprimirEstado(modelo, estadoSeleccionId);
+      if (!resultado.ok) {
+        set({ mensaje: resultado.error });
+        return;
+      }
+      commitModelo(set, modelo, resultado.value, {
+        estadoSeleccionId,
+        seleccionId: null,
+        enlaceSeleccionId: null,
+        modoEnlace: null,
+        mensaje: "Estado suprimido",
+      });
+    },
+
+    abrirModalDuracionEstadoSeleccionado() {
+      const { estadoSeleccionId } = get();
+      if (!estadoSeleccionId) {
+        set({ mensaje: "Selecciona un estado para editar su duración" });
+        return;
+      }
+      set({ modalDuracionAbierto: estadoSeleccionId, mensaje: null });
+    },
+
+    agregarEstadoHermanoDeSeleccionado() {
+      const { modelo, estadoSeleccionId } = get();
+      if (!estadoSeleccionId) {
+        set({ mensaje: "Selecciona un estado para agregar un hermano" });
+        return;
+      }
+      const estado = modelo.estados?.[estadoSeleccionId];
+      if (!estado) {
+        set({ mensaje: `Estado no existe: ${estadoSeleccionId}` });
+        return;
+      }
+      const resultado = agregarEstado(modelo, estado.entidadId);
+      if (!resultado.ok) {
+        set({ mensaje: resultado.error });
+        return;
+      }
+      commitModelo(set, modelo, resultado.value.modelo, {
+        estadoSeleccionId,
+        seleccionId: null,
+        enlaceSeleccionId: null,
+        modoEnlace: null,
+        mensaje: null,
+      });
+    },
+
+    reordenarEstadoSeleccionado(indiceDestino) {
+      const { modelo, estadoSeleccionId } = get();
+      if (!estadoSeleccionId) {
+        set({ mensaje: "Selecciona un estado para reordenar" });
+        return;
+      }
+      const resultado = reordenarEstado(modelo, estadoSeleccionId, indiceDestino);
+      if (!resultado.ok) {
+        set({ mensaje: resultado.error });
+        return;
+      }
+      commitModelo(set, modelo, resultado.value, {
+        estadoSeleccionId,
+        seleccionId: null,
+        enlaceSeleccionId: null,
+        modoEnlace: null,
+        mensaje: null,
+      });
+    },
+
+    designarBatch(estadoIds, designacion) {
+      const { modelo, estadoSeleccionId } = get();
+      if (estadoIds.length === 0) {
+        set({ mensaje: "Selecciona al menos un estado para designar" });
+        return;
+      }
+      // Constraint: todos del mismo objeto propietario.
+      const objetoPropietario = modelo.estados?.[estadoIds[0]!]?.entidadId;
+      if (!objetoPropietario) {
+        set({ mensaje: `Estado no existe: ${estadoIds[0]}` });
+        return;
+      }
+      for (const id of estadoIds) {
+        if (modelo.estados?.[id]?.entidadId !== objetoPropietario) {
+          set({ mensaje: "designarBatch sólo opera dentro del mismo objeto propietario" });
+          return;
+        }
+      }
+      let siguiente = modelo;
+      for (const id of estadoIds) {
+        const resultado = aplicarDesignacionSimple(siguiente, id, designacion);
+        if (!resultado.ok) {
+          set({ mensaje: resultado.error });
+          return;
+        }
+        siguiente = resultado.value;
+      }
+      commitModelo(set, modelo, siguiente, {
+        estadoSeleccionId,
+        seleccionId: null,
+        enlaceSeleccionId: null,
+        modoEnlace: null,
+        mensaje: null,
+      });
+    },
   };
+}
+
+function aplicarDesignacionSimple(
+  modelo: Modelo,
+  estadoId: Id,
+  designacion: DesignacionEstado,
+): ReturnType<typeof designarInicial> {
+  const acciones: Record<DesignacionEstado, (m: Modelo, id: Id) => ReturnType<typeof designarInicial>> = {
+    inicial: designarInicial,
+    final: designarFinal,
+    default: designarDefault,
+    current: designarCurrent,
+  };
+  return acciones[designacion](modelo, estadoId);
 }
 
 function designarEstadoEnStore(

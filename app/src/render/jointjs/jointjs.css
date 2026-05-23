@@ -32,3 +32,51 @@
   opacity: 1;
   pointer-events: visiblePainted;
 }
+
+/*
+ * Paquete "Estados ciudadanos de primera clase" (2026-05-23).
+ * Cápsulas de estado: feedback visual de hover/focus/selected/dragging.
+ * Tokens Bauhaus alineados con CANON_V2 (cinabrio + paper + ink). Los
+ * atributos `data-cap-rol="estado"` + `data-estado-id` + `data-selected`
+ * los emite el composer `composers/entidad.ts` (attrsConEstados).
+ *
+ * V-202: handles/halos no son gramática OPM; estas reglas son affordance UI.
+ */
+.joint-paper [joint-selector^="stateCapsule"][data-cap-rol="estado"] {
+  transition: stroke-width 80ms ease, stroke 80ms ease, fill 80ms ease;
+}
+
+.joint-paper [joint-selector^="stateCapsule"][data-cap-rol="estado"]:hover {
+  stroke: #C8392F;
+  stroke-width: 1.5px;
+}
+
+/*
+ * Selección dura: stroke cinabrio 2.5px + sombra paper soft. Sin tocar el
+ * fill (los markers de designación inicial/final ya viven en el fill via
+ * `stateFinalInner${i}`).
+ */
+.joint-paper [joint-selector^="stateCapsule"][data-cap-rol="estado"][data-selected="true"] {
+  stroke: #C8392F;
+  stroke-width: 2.5px;
+  filter: drop-shadow(0 0 1.5px rgba(200, 57, 47, 0.40));
+}
+
+/* Focus por teclado: anillo cinabrio dashed para distinguir de hover. */
+.joint-paper [joint-selector^="stateCapsule"][data-cap-rol="estado"][data-focus="true"] {
+  stroke: #C8392F;
+  stroke-width: 2px;
+  stroke-dasharray: 3 2;
+}
+
+/* Durante drag-reorder: la cápsula se aclara para indicar tránsito. */
+.joint-paper [joint-selector^="stateCapsule"][data-cap-rol="estado"][data-dragging="true"] {
+  opacity: 0.6;
+  cursor: grabbing;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .joint-paper [joint-selector^="stateCapsule"][data-cap-rol="estado"] {
+    transition: none;
+  }
+}

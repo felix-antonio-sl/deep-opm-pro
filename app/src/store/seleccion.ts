@@ -208,6 +208,7 @@ import {
   pestanaReemplazable,
   deshacerRuntime,
   rehacerRuntime,
+  tipoDeCosa,
 } from "./runtime";
 
 export type { SeleccionSlice } from "./tipos";
@@ -218,17 +219,20 @@ export const createSeleccionSlice: CrearSlice<SeleccionSlice> = (set, get) => ({
   modoSeleccion: "simple",
   portapapelesVisual: null,
   enlaceSeleccionId: null,
+  estadoSeleccionId: null,
 
   eliminarSeleccion() {
-    const { modelo, opdActivoId, seleccionados, seleccionId, enlaceSeleccionId } = get();
-    const ids = seleccionados.length > 0 ? seleccionados : [seleccionId, enlaceSeleccionId].filter((id): id is Id => !!id);
+    const { modelo, opdActivoId, seleccionados, seleccionId, enlaceSeleccionId, estadoSeleccionId } = get();
+    const ids = seleccionados.length > 0
+      ? seleccionados
+      : [seleccionId, enlaceSeleccionId, estadoSeleccionId].filter((id): id is Id => !!id);
     if (ids.length === 0) {
-      set({ mensaje: "Selecciona una entidad o enlace para eliminar" });
+      set({ mensaje: "Selecciona una entidad, enlace o estado para eliminar" });
       return;
     }
     const resultado = eliminarBatch(modelo, ids, opdActivoId);
     if (resultado.ok) {
-      commitModelo(set, modelo, resultado.value, { seleccionId: null, seleccionados: [], modoSeleccion: "simple", enlaceSeleccionId: null, modoEnlace: null, mensaje: null });
+      commitModelo(set, modelo, resultado.value, { seleccionId: null, seleccionados: [], modoSeleccion: "simple", enlaceSeleccionId: null, estadoSeleccionId: null, modoEnlace: null, mensaje: null });
       addFlash("✓ Selección eliminada");
     } else {
       set({ mensaje: resultado.error });
@@ -238,6 +242,37 @@ export const createSeleccionSlice: CrearSlice<SeleccionSlice> = (set, get) => ({
   setSeleccion(ids) {
     const estado = seleccionSet({ seleccionados: get().seleccionados, modo: get().modoSeleccion }, ids);
     set(estadoSeleccionDesdeIds(get().modelo, estado.seleccionados, estado.modo));
+  },
+
+  /**
+   * Punto único de mutación de selección tipada. Sella el invariante de
+   * exclusividad mutua entre `seleccionId`, `enlaceSeleccionId` y
+   * `estadoSeleccionId`. Cualquier handler/atajo/menú que cambie selección
+   * DEBE pasar por aquí (o por las acciones específicas que delegan a este).
+   *
+   * Spec: docs/superpowers/specs/2026-05-23-estados-ciudadania-primera-clase-design.md §4.2.
+   */
+  setSeleccionPorTipo(kind, id) {
+    if (kind === "vacia" || !id) {
+      const estado = seleccionVacia();
+      set({
+        seleccionados: estado.seleccionados,
+        modoSeleccion: estado.modo,
+        seleccionId: null,
+        enlaceSeleccionId: null,
+        estadoSeleccionId: null,
+        modoEnlace: null,
+        mensaje: null,
+      });
+      return;
+    }
+    const modelo = get().modelo;
+    const tipo = tipoDeCosa(modelo, id);
+    if (tipo !== kind) {
+      set({ mensaje: `Id ${id} no corresponde al tipo ${kind} (tipo real: ${tipo ?? "desconocido"})` });
+      return;
+    }
+    set(estadoSeleccionDesdeIds(modelo, [id], "simple"));
   },
 
   agregarASeleccion(id) {
@@ -257,7 +292,41 @@ export const createSeleccionSlice: CrearSlice<SeleccionSlice> = (set, get) => ({
 
   vaciarSeleccion() {
     const estado = seleccionVacia();
-    set({ seleccionados: estado.seleccionados, modoSeleccion: estado.modo, seleccionId: null, enlaceSeleccionId: null, modoEnlace: null, mensaje: null });
+    set({ seleccionados: estado.seleccionados, modoSeleccion: estado.modo, seleccionId: null, enlaceSeleccionId: null, estadoSeleccionId: null, modoEnlace: null, mensaje: null });
+  },
+
+  seleccionarEstado(estadoId) {
+    const modelo = get().modelo;
+    const estado = modelo.estados?.[estadoId];
+    if (!estado) {
+      set({ mensaje: `Estado no existe: ${estadoId}` });
+      return;
+    }
+    set(estadoSeleccionDesdeIds(modelo, [estadoId], "simple"));
+  },
+
+  agregarEstadoASeleccion(estadoId) {
+    const { modelo, seleccionados } = get();
+    const validacion = validarMismoObjetoPropietario(modelo, seleccionados, estadoId);
+    if (!validacion.ok) {
+      set({ mensaje: validacion.error });
+      return;
+    }
+    const proximo = seleccionAgregar({ seleccionados, modo: get().modoSeleccion }, estadoId);
+    set(estadoSeleccionDesdeIds(modelo, proximo.seleccionados, proximo.modo));
+  },
+
+  toggleSeleccionEstado(estadoId) {
+    const { modelo, seleccionados } = get();
+    if (!seleccionados.includes(estadoId)) {
+      const validacion = validarMismoObjetoPropietario(modelo, seleccionados, estadoId);
+      if (!validacion.ok) {
+        set({ mensaje: validacion.error });
+        return;
+      }
+    }
+    const proximo = seleccionToggle({ seleccionados, modo: get().modoSeleccion }, estadoId);
+    set(estadoSeleccionDesdeIds(modelo, proximo.seleccionados, proximo.modo));
   },
 
   seleccionarTodoEnOpd() {
@@ -363,3 +432,38 @@ export const createSeleccionSlice: CrearSlice<SeleccionSlice> = (set, get) => ({
     });
   }
 });
+
+/**
+ * Constraint del multi-select de estados: todos deben pertenecer al mismo
+ * objeto propietario (paquete "Estados ciudadanos de primera clase").
+ * Devuelve `{ ok: true }` si el id puede agregarse al batch actual,
+ * `{ ok: false, error }` en caso contrario.
+ *
+ * Reglas:
+ * 1. El nuevo id debe ser un estado.
+ * 2. Si el batch contiene estados, todos deben pertenecer al mismo objeto
+ *    que el nuevo.
+ * 3. Si el batch contiene no-estados, se rechaza (no se mezclan).
+ *
+ * Spec: docs/superpowers/specs/2026-05-23-estados-ciudadania-primera-clase-design.md §3.
+ */
+function validarMismoObjetoPropietario(
+  modelo: Modelo,
+  seleccionados: Id[],
+  estadoId: Id,
+): { ok: true } | { ok: false; error: string } {
+  const estado = modelo.estados?.[estadoId];
+  if (!estado) return { ok: false, error: `Estado no existe: ${estadoId}` };
+  const objetoNuevo = estado.entidadId;
+  for (const idActual of seleccionados) {
+    if (idActual === estadoId) continue;
+    const estadoActual = modelo.estados?.[idActual];
+    if (!estadoActual) {
+      return { ok: false, error: "No se puede mezclar estados con entidades/enlaces en el mismo batch" };
+    }
+    if (estadoActual.entidadId !== objetoNuevo) {
+      return { ok: false, error: "Multi-select de estados sólo dentro del mismo objeto propietario" };
+    }
+  }
+  return { ok: true };
+}

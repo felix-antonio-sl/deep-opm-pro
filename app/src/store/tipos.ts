@@ -205,6 +205,15 @@ import {
 export type BusquedaCosasFiltro = "todos" | "objetos" | "procesos" | "estados" | "enlaces";
 
 /**
+ * Discriminador del coproducto de selección (paquete "Estados ciudadanos de
+ * primera clase", 2026-05-23). Lo consume el punto único `setSeleccionPorTipo`
+ * que sella el invariante de exclusividad mutua entre `seleccionId`,
+ * `enlaceSeleccionId` y `estadoSeleccionId`. `"vacia"` ignora el `id`.
+ * Spec: docs/superpowers/specs/2026-05-23-estados-ciudadania-primera-clase-design.md §4.2.
+ */
+export type KindSeleccion = "entidad" | "enlace" | "estado" | "vacia";
+
+/**
  * [Ronda 16 L2] Resultado de un click en `DialogoBuscarCosas`. Discriminado
  * por tipo para que `saltarAResultadoBusqueda` pueda seleccionar entidad,
  * estado (como apariencia de su entidad padre) o enlace en el OPD destino.
@@ -238,6 +247,16 @@ export interface OpmStore {
   modoSeleccion: ModoSeleccion;
   portapapelesVisual: UiPortapapelesVisual | null;
   enlaceSeleccionId: Id | null;
+  /**
+   * Estado de objeto seleccionado como ciudadano de primera clase.
+   * Invariante sellado (cardinalidad ≤1 en `{seleccionId, enlaceSeleccionId,
+   * estadoSeleccionId}`): al menos dos de los tres son `null` simultáneamente.
+   * Toda mutación pasa por `setSeleccion(kind, id|null)` (punto único).
+   * Trigger hacia B (refactor a `seleccion: {tipo, id} | null` discriminado):
+   * documentado en docs/superpowers/specs/2026-05-23-estados-ciudadania-primera-clase-design.md §10.
+   * Ver también CLAUDE.md proyecto / sección "Deuda categorial activa".
+   */
+  estadoSeleccionId: Id | null;
   modoEnlace: ModoEnlace | null;
   modoCreacion: TipoEntidad | null;
   /**
@@ -493,6 +512,27 @@ export interface OpmStore {
   cerrarModalDuracion: () => void;
   fijarDuracionEstado: (estadoId: Id, duracion: DuracionTemporal) => void;
   quitarDuracionEstado: (estadoId: Id) => void;
+  /**
+   * Acciones from-selection (paquete "Estados ciudadanos de primera clase",
+   * 2026-05-23): leen `estadoSeleccionId` para que atajos y menús contextuales
+   * no tengan que pasar el id explícitamente. Si `estadoSeleccionId` es null,
+   * setean `mensaje` y no mutan.
+   * Spec: docs/superpowers/specs/2026-05-23-estados-ciudadania-primera-clase-design.md §3.
+   */
+  eliminarEstadoSeleccionado: () => void;
+  renombrarEstadoSeleccionadoSmart: (nombre: string) => void;
+  designarEstadoSeleccionado: (designacion: DesignacionEstado) => void;
+  quitarDesignacionEstadoSeleccionado: (designacion: DesignacionEstado) => void;
+  suprimirEstadoSeleccionado: () => void;
+  abrirModalDuracionEstadoSeleccionado: () => void;
+  agregarEstadoHermanoDeSeleccionado: () => void;
+  /** Mueve el estado seleccionado al `indiceDestino` dentro de su objeto propietario. */
+  reordenarEstadoSeleccionado: (indiceDestino: number) => void;
+  /**
+   * Aplica `designacion` a varios estados a la vez. Constraint: deben pertenecer
+   * al mismo objeto propietario (consecuencia del invariante del slice).
+   */
+  designarBatch: (estadoIds: Id[], designacion: DesignacionEstado) => void;
   fijarLayoutEstadosEntidad: (entidadId: Id, layout: LayoutEstados) => void;
   toggleAliasVisibles: () => void;
   toggleDescripcionesVisibles: () => void;
@@ -553,6 +593,19 @@ export interface OpmStore {
   quitarDeSeleccion: (id: Id) => void;
   toggleSeleccion: (id: Id) => void;
   vaciarSeleccion: () => void;
+  /**
+   * Punto único de mutación de selección. Sella el invariante de
+   * exclusividad mutua entre `seleccionId`, `enlaceSeleccionId` y
+   * `estadoSeleccionId`. `kind === "vacia"` ignora `id`.
+   * Spec: docs/superpowers/specs/2026-05-23-estados-ciudadania-primera-clase-design.md §4.2.
+   */
+  setSeleccionPorTipo: (kind: KindSeleccion, id: Id | null) => void;
+  /** Selecciona un estado de objeto (modo normal). */
+  seleccionarEstado: (estadoId: Id) => void;
+  /** Multi-select: agrega un estado al batch (constraint: mismo objeto propietario). */
+  agregarEstadoASeleccion: (estadoId: Id) => void;
+  /** Multi-select: toggle de un estado (constraint: mismo objeto propietario). */
+  toggleSeleccionEstado: (estadoId: Id) => void;
   seleccionarTodoEnOpd: () => void;
   nudgeSeleccion: (dx: number, dy: number) => void;
   alinearSeleccionEnlaces: (direccion: "izquierda" | "derecha" | "arriba" | "abajo") => void;

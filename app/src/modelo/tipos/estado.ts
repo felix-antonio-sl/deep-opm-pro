@@ -28,4 +28,12 @@ export interface Estado {
   designaciones?: DesignacionEstado[];
   duracion?: DuracionTemporal;
   suprimido?: boolean;
+  /**
+   * Orden explícito dentro del objeto propietario. Cuando está presente, manda
+   * sobre el orden por secuencia de id (fallback histórico). Introducido en
+   * 2026-05-23 para soportar `reordenarEstado` (ver `operaciones/estados.ts`).
+   * Los estados que no lo tengan se ordenan después por secuencia de id;
+   * `reordenarEstado` normaliza al conjunto completo al primer reorder.
+   */
+  orden?: number;
 }

@@ -116,6 +116,7 @@ export function activarEstadoPestanas(set: SetStore, estado: { pestanas: Pestana
     seleccionados: pestana.seleccionadosPestana ?? [],
     modoSeleccion: (pestana.seleccionadosPestana?.length ?? 0) > 1 ? "multi" : "simple",
     enlaceSeleccionId: null,
+    estadoSeleccionId: null,
     modoEnlace: null,
     modoCreacion: null,
     nuevaCosaPendiente: null,
@@ -396,14 +397,39 @@ export function estadoModelo(modelo: Modelo, extra: Partial<OpmStore> = {}): Par
   };
 }
 
+/**
+ * Discriminador "tipo de cosa" del modelo. Sustenta el coproducto de selección
+ * (paquete "Estados ciudadanos de primera clase", 2026-05-23). Devuelve
+ * `null` si el id no resuelve a ninguno de los tres ciudadanos.
+ * Spec: docs/superpowers/specs/2026-05-23-estados-ciudadania-primera-clase-design.md §4.3.
+ */
+export function tipoDeCosa(modelo: Modelo, id: Id): "entidad" | "enlace" | "estado" | null {
+  if (modelo.entidades[id]) return "entidad";
+  if (modelo.enlaces[id]) return "enlace";
+  if (modelo.estados?.[id]) return "estado";
+  return null;
+}
+
 export function estadoSeleccionDesdeIds(modelo: Modelo, ids: Id[], modo: ModoSeleccion): Partial<OpmStore> {
-  const seleccionados = [...new Set(ids.filter((id) => modelo.entidades[id] || modelo.enlaces[id]))];
+  const tipados = ids
+    .map((id) => ({ id, tipo: tipoDeCosa(modelo, id) }))
+    .filter((item): item is { id: Id; tipo: "entidad" | "enlace" | "estado" } => item.tipo !== null);
+  const seleccionados = [...new Set(tipados.map((item) => item.id))];
+
+  // Mezcla heterogénea (tipos distintos en multi-select) colapsa los tres
+  // campos exclusivos a null: el batch queda en `seleccionados` pero no
+  // hay "único seleccionado" que iluminar en Inspector/Halo.
+  const tiposPresentes = new Set(tipados.map((item) => item.tipo));
   const unico = seleccionados.length === 1 ? seleccionados[0] : null;
+  const tipoUnico = unico ? tipoDeCosa(modelo, unico) : null;
+  const colapsadoPorHeterogeneidad = tiposPresentes.size > 1;
+
   return {
     seleccionados,
     modoSeleccion: seleccionados.length > 1 ? "multi" : modo,
-    seleccionId: unico && modelo.entidades[unico] ? unico : null,
-    enlaceSeleccionId: unico && modelo.enlaces[unico] ? unico : null,
+    seleccionId: !colapsadoPorHeterogeneidad && tipoUnico === "entidad" && unico ? unico : null,
+    enlaceSeleccionId: !colapsadoPorHeterogeneidad && tipoUnico === "enlace" && unico ? unico : null,
+    estadoSeleccionId: !colapsadoPorHeterogeneidad && tipoUnico === "estado" && unico ? unico : null,
     modoEnlace: null,
     mensaje: null,
   };
@@ -606,6 +632,7 @@ export function deshacerRuntime(set: SetStore, get: GetStore): void {
     opdActivoId: opdActivoSeguro(previo, opdActivoId),
     seleccionId: null,
     enlaceSeleccionId: null,
+    estadoSeleccionId: null,
     modoEnlace: null,
     modoCreacion: null,
     mensaje: "Cambio deshecho",
@@ -624,6 +651,7 @@ export function rehacerRuntime(set: SetStore, get: GetStore): void {
     opdActivoId: opdActivoSeguro(siguiente, opdActivoId),
     seleccionId: null,
     enlaceSeleccionId: null,
+    estadoSeleccionId: null,
     modoEnlace: null,
     modoCreacion: null,
     mensaje: "Cambio rehecho",

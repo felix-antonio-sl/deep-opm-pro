@@ -44,6 +44,7 @@ export {
   quitarEstadosObjeto,
   designarEstadoInicial,
   designarEstadoFinal,
+  reordenarEstado,
 } from "./operaciones/estados";
 export type { EstadosInicialesObjeto, EstadoCreado } from "./operaciones/estados";
 

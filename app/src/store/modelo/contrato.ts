@@ -103,6 +103,21 @@ export const MODELO_SLICE_CAPABILITIES = {
     "cerrarModalDuracion",
     "fijarDuracionEstado",
     "quitarDuracionEstado",
+    // Paquete "Estados ciudadanos de primera clase" (2026-05-23).
+    // Acciones from-selection: leen `estadoSeleccionId` para que atajos y menús
+    // contextuales no tengan que pasar el id explícitamente. Multi-batch
+    // `designarBatch` aplica designación a varios estados a la vez (todos
+    // del mismo objeto propietario por el constraint del slice).
+    // Spec: docs/superpowers/specs/2026-05-23-estados-ciudadania-primera-clase-design.md §3.
+    "eliminarEstadoSeleccionado",
+    "renombrarEstadoSeleccionadoSmart",
+    "designarEstadoSeleccionado",
+    "quitarDesignacionEstadoSeleccionado",
+    "suprimirEstadoSeleccionado",
+    "abrirModalDuracionEstadoSeleccionado",
+    "agregarEstadoHermanoDeSeleccionado",
+    "reordenarEstadoSeleccionado",
+    "designarBatch",
   ],
   opdCommands: [
     "descomponerSeleccionada",

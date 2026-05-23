@@ -30,6 +30,51 @@ export function estadosDeEntidad(modelo: Modelo, entidadId: Id): Estado[] {
     .sort((a, b) => ordenEstado(a) - ordenEstado(b) || a.id.localeCompare(b.id));
 }
 
+/**
+ * Reordena `estadoId` al `indiceDestino` (0-based) dentro de su objeto
+ * propietario. Bounds: `indiceDestino ∈ [0, hermanos.length)`. Idempotente: si
+ * el estado ya está en `indiceDestino`, retorna el modelo sin cambios.
+ *
+ * Implementación: extrae el estado, lo inserta en `indiceDestino`, y
+ * normaliza `orden` al conjunto completo (0..N-1) para que el orden sea
+ * estable y explícito desde el primer reorder.
+ *
+ * Refs: spec docs/superpowers/specs/2026-05-23-estados-ciudadania-primera-clase-design.md §6.
+ */
+export function reordenarEstado(
+  modelo: Modelo,
+  estadoId: Id,
+  indiceDestino: number,
+): Resultado<Modelo> {
+  const estado = modelo.estados?.[estadoId];
+  if (!estado) return fallo(`Estado no existe: ${estadoId}`);
+  const hermanos = estadosDeEntidad(modelo, estado.entidadId);
+  if (hermanos.length === 0) return fallo(`Estado huérfano: ${estadoId}`);
+  if (!Number.isInteger(indiceDestino)) {
+    return fallo(`Índice de reorden inválido: ${indiceDestino}`);
+  }
+  if (indiceDestino < 0 || indiceDestino >= hermanos.length) {
+    return fallo(`Índice de reorden fuera de rango: ${indiceDestino} (0..${hermanos.length - 1})`);
+  }
+  const indiceOrigen = hermanos.findIndex((item) => item.id === estadoId);
+  if (indiceOrigen < 0) return fallo(`Estado huérfano: ${estadoId}`);
+  if (indiceOrigen === indiceDestino) return ok(modelo);
+
+  const reordenados = [...hermanos];
+  const [movido] = reordenados.splice(indiceOrigen, 1);
+  if (!movido) return fallo(`Estado huérfano: ${estadoId}`);
+  reordenados.splice(indiceDestino, 0, movido);
+
+  const estados = { ...(modelo.estados ?? {}) };
+  for (let i = 0; i < reordenados.length; i += 1) {
+    const item = reordenados[i];
+    if (!item) continue;
+    estados[item.id] = { ...item, orden: i };
+  }
+
+  return ok({ ...modelo, estados });
+}
+
 export function crearEstadosIniciales(modelo: Modelo, entidadId: Id): Resultado<EstadosInicialesObjeto> {
   const entidad = modelo.entidades[entidadId];
   if (!entidad) return fallo(`Entidad no existe: ${entidadId}`);
@@ -186,6 +231,10 @@ function normalizarNombreEstado(nombre: string): string {
 }
 
 function ordenEstado(estado: Estado): number {
+  if (typeof estado.orden === "number" && Number.isFinite(estado.orden)) return estado.orden;
   const secuencia = /-(\d+)$/.exec(estado.id)?.[1];
-  return secuencia ? Number.parseInt(secuencia, 10) : Number.MAX_SAFE_INTEGER;
+  // Offset por MAX_SAFE_INTEGER / 2 para que los estados sin `orden` queden
+  // siempre después de los explícitamente ordenados (que normalizan a 0..N-1).
+  const fallback = secuencia ? Number.parseInt(secuencia, 10) : Number.MAX_SAFE_INTEGER;
+  return Number.MAX_SAFE_INTEGER / 2 + fallback;
 }
