@@ -1,6 +1,8 @@
-# Archivo de bugs resueltos — rondas 18-25 (mayo 2026)
+# Archivo de bugs resueltos — rondas 18-28 (mayo 2026)
 
-**Fecha de cierre administrativo**: 2026-05-22.
+**Fecha de cierre administrativo**: 2026-05-22 (42 bugs, rondas 18-25);
+ampliado el 2026-05-23 con 5 cierres complementarios (rondas 26-28),
+total 47. Ver sección "Cierre complementario — 2026-05-23" al final.
 
 ## Operación
 
@@ -67,26 +69,32 @@ toca exactamente la superficie reportada en el screenshot. "refactor
 general" marca bugs absorbidos por una transformación más amplia
 (autolayout OPCloud-like, chrome editorial ronda23, fase0-ux ronda19).
 
+## Cierre complementario — 2026-05-23 (rondas 26-28)
+
+Los 8 reportes que el archivo del 2026-05-22 dejó como backlog vivo se
+re-evaluaron tras las rondas 26 (bisimetría OPL), 27 (chrome §III.A 100%)
+y 28 (reconstrucción visual Bauhaus + canvas CANON-V2). 5 quedaron
+resueltos por trabajo posterior al archivo original y se mueven aquí; 3
+siguen vigentes en `docs/bugs/`.
+
+| Bug ID corto | Cierre | Evidencia |
+|---|---|---|
+| 62ee85 | `2f55235` fix(opl-generador): estado en enlace emitido consistentemente | commit cita el bug ID + test `cb20949` de bisimetría |
+| 63276a | §III.A R27 (chrome 5 botones planos) | grep limpio de `MODELAR/CONECTAR/AYUDA` en `app/src/ui/` |
+| c3b971 | `269a70c` markers diferenciados + handles Bauhaus (R28/L4) | in-vivo: extremos anclan al contorno de la elipse, sin hueco |
+| 702609 | `269a70c` (R28/L4) + `8826ba` previo (alinea anclas triángulos) | in-vivo: triángulos de agregación alineados sobre sus enlaces |
+| 05c5f7 | no-defecto | era una pregunta ("¿eso está bien?"); el abanico separado es comportamiento OPM canónico correcto |
+
+Verificación visual in-vivo realizada contra `https://opforja.sanixai.com`
+(bundle Ronda 28) el 2026-05-23 sobre el modelo de ejemplo *System Diagram*.
+
 ## Backlog activo en `docs/bugs/`
 
-Quedan 8 carpetas BUG-* fuera del archivo, sin defecto funcional
-pendiente:
+Quedan 3 carpetas BUG-* fuera del archivo, sin defecto funcional cerrado:
 
-**4 reproducibles UX** — mejoras de microcopy/discoverability detectadas
-durante rondas 24-25 pero que el equipo decidió no tratar como bugs:
-
-- `BUG-20260513T050858Z-ad9486` — canvas infinito + zoom menos sensible.
-- `BUG-20260519T175216Z-94a7c9` — simplificar/normalizar funciones desde UX.
-- `BUG-20260520T180813Z-63276a` — quitar texto MODELAR/CONECTAR/AYUDA (parcialmente cubierto por ronda25/L1 III.A; queda residual).
-- `BUG-20260520T180859Z-77e6cf` — barra contextual sin propósito visible para el operador.
-
-**4 incertidumbres cosméticas** — defectos visuales menores pendientes
-de verificación contra sandbox OPCloud, no funcionales:
-
-- `BUG-20260513T050729Z-c3b971` — extremos de enlace dejan distancia al contorno.
-- `BUG-20260513T185113Z-702609` — triángulos estructurales no perfectamente alineados.
-- `BUG-20260513T190626Z-05c5f7` — enlaces múltiples no se sobreponen, se separan.
-- `BUG-20260519T200211Z-62ee85` — OPL no representa especificación de estados de enlaces.
+- `BUG-20260513T050858Z-ad9486` — canvas infinito + zoom menos sensible. **Feature no implementada** (canvas infinito sin commit; zoom sólo suavizado parcialmente).
+- `BUG-20260519T175216Z-94a7c9` — simplificar/normalizar funciones desde UX. Petición **vaga**; el ciclo jobs-web-ux (R23-28) la atendió de forma difusa, sin cierre discreto verificable.
+- `BUG-20260520T180859Z-77e6cf` — barra contextual sin propósito visible. **Discoverability subjetiva**; la barra de herramientas de elemento sigue presente, sin fix dedicado.
 
 ## Política de archivo
 
