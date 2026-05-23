@@ -3,10 +3,10 @@
 **Fecha**: 2026-05-23
 **Repositorio**: `deep-opm-pro`
 **Rama**: `main`
-**Ultimo corte funcional**: cierre del lote `BUG-20260523T1955*` en UI: primera cosa centrada, atajo/cierre/copia del capturador, OPL redimensionable y retiro del mapa del sistema del chrome.
-**Ultimo commit en main**: `fix(ui): resolve latest bug capture backlog` (commit de este cierre).
-**Ultimo corte deploy**: `docker compose up -d --build` ejecutado; `opforja` queda healthy y el sidecar reporta 10 activos/58 históricos, todos los activos `Resuelto`. URL pública `https://opforja.sanixai.com/` responde `401` por Basic Auth de Traefik.
-**Corte**: los 10 bugs/features activos del ledger quedan en estado `Resuelto`; las carpetas `BUG-*` capturadas siguen como artefactos locales no versionados salvo decisión explícita.
+**Ultimo corte funcional**: `BUG-20260523T201251Z-afcfbe` corrige de raíz la creación inicial: las cosas nacen alrededor del centro geométrico del canvas y el viewport se enfoca en ese centro.
+**Ultimo commit en main**: `fix(canvas): seed new diagrams at canvas center` (commit de este cierre).
+**Ultimo corte deploy**: `docker compose up -d --build` ejecutado; `opforja` queda healthy y el sidecar reporta 11 activos/59 históricos, todos los activos `Resuelto`. URL pública `https://opforja.sanixai.com/` responde `401` por Basic Auth de Traefik.
+**Corte**: los 11 bugs/features activos del ledger quedan en estado `Resuelto`; las carpetas `BUG-*` capturadas siguen como artefactos locales no versionados salvo decisión explícita.
 
 ## Política De Handoff Único
 
@@ -24,6 +24,39 @@
 - JointJS OSS: usar documentación oficial viva cuando se toque JointJS.
 
 ## Estado Actual
+
+### Cierre BUG-20260523T201251Z-afcfbe — 2026-05-23
+
+Estado actual:
+
+- La raíz era `posicionLibre()` en `app/src/modelo/layout.ts`: para OPDs raíz sin contorno seguía usando columnas absolutas cerca del origen (`80/300/520/740`) y `y=90`.
+- Se definió una única geometría base de canvas `7200x5200` en la capa de modelo y se derivó `POSICION_INICIAL_CANVAS` desde su centro geométrico.
+- `posicionLibre()` ahora siembra la primera cosa en torno al centro geométrico y busca posiciones libres en columnas simétricas alrededor de ese centro.
+- `JointCanvas` enfoca explícitamente el viewport en `CENTRO_CANVAS_GEOMETRICO` cuando un OPD vacío se muestra o cuando pasa de 0 a 1 apariencias.
+- `CANVAS_BASE` del render consume la geometría exportada por modelo para evitar divergencia entre semilla lógica y tamaño del paper.
+- `docs/bugs/INDEX.md`, `HISTORY.md` y `statuses.json` registran `BUG-20260523T201251Z-afcfbe` como `Resuelto`.
+
+Decisiones consolidadas:
+
+- El fix anterior era insuficiente porque intentaba resolver con encuadre de render una coordenada de creación todavía anclada al origen.
+- La posición inicial pertenece a la capa de modelo/layout; el render sólo se encarga de enfocar ese punto.
+- No se modifica la política de posicionamiento dentro de contornos de refinamiento: allí sigue mandando `columnasDentroDe()`.
+
+Artefactos relevantes:
+
+- [app/src/modelo/layout.ts](/home/felix/projects/deep-opm-pro/app/src/modelo/layout.ts)
+- [app/src/modelo/layout.test.ts](/home/felix/projects/deep-opm-pro/app/src/modelo/layout.test.ts)
+- [app/src/render/jointjs/JointCanvas.tsx](/home/felix/projects/deep-opm-pro/app/src/render/jointjs/JointCanvas.tsx)
+- [app/src/render/jointjs/handlers/helpers.ts](/home/felix/projects/deep-opm-pro/app/src/render/jointjs/handlers/helpers.ts)
+- [app/e2e/21-estado-vacio-opm.spec.ts](/home/felix/projects/deep-opm-pro/app/e2e/21-estado-vacio-opm.spec.ts)
+- [docs/bugs/statuses.json](/home/felix/projects/deep-opm-pro/docs/bugs/statuses.json)
+
+Verificación focalizada:
+
+- `bun test src/modelo/layout.test.ts src/render/jointjs/handlers/helpers.test.ts` (`8 pass`)
+- `bunx playwright test e2e/21-estado-vacio-opm.spec.ts --grep "primera cosa"` (`1 passed`)
+- `bun run typecheck`
+- `bun run lint`
 
 ### Cierre Bugs/Features Activos 19:55Z — 2026-05-23
 

@@ -3,6 +3,7 @@ import type { ComponentChildren } from "preact";
 import { useEffect, useRef, useState } from "preact/hooks";
 import type { FeedbackOverlay, FeedbackPort } from "../../app/ports/feedbackPort";
 import { useJointCanvasViewModel } from "../../app/viewmodels/jointCanvasViewModel";
+import { CENTRO_CANVAS_GEOMETRICO } from "../../modelo/layout";
 import { focoPasoActualSimulacion } from "../../modelo/simulacion/foco";
 import type { Apariencia, Enlace, ExtremoEnlace, Id, Modelo, Opd, TipoEnlace } from "../../modelo/tipos";
 import { recalcularOverlaysAbanicoDesdeLinkViews } from "./abanicoDragSync";
@@ -459,9 +460,15 @@ export function JointCanvas({
     const ultimoConteo = ultimoConteoAparienciasRef.current;
     const primeraAparienciaEnOpdVacio = ultimoConteo?.opdId === opdActivoId && ultimoConteo.count === 0 && aparienciaCount > 0;
     ultimoConteoAparienciasRef.current = { opdId: opdActivoId, count: aparienciaCount };
-    if (ultimoOpdCentradoRef.current !== opdActivoId || primeraAparienciaEnOpdVacio) {
+    if (primeraAparienciaEnOpdVacio) {
+      centrarViewportEnPuntoCanvas(viewportRef.current, CENTRO_CANVAS_GEOMETRICO, "auto");
+    } else if (ultimoOpdCentradoRef.current !== opdActivoId) {
       ultimoOpdCentradoRef.current = opdActivoId;
-      requestAnimationFrame(() => fitCanvasAPantalla(adapter.paper, viewportRef.current));
+      if (aparienciaCount === 0) {
+        requestAnimationFrame(() => centrarViewportEnPuntoCanvas(viewportRef.current, CENTRO_CANVAS_GEOMETRICO, "auto"));
+      } else {
+        requestAnimationFrame(() => fitCanvasAPantalla(adapter.paper, viewportRef.current));
+      }
     }
   }, [enlaceSeleccionId, idsResaltadosTemporales, modelo, opdActivoId, seleccionId, seleccionados, uiAliasVisibles, uiDescripcionesVisibles, uiModoImagenGlobal, contextoSimulacion]);
 
@@ -658,6 +665,19 @@ function centrarSiFueraDeViewport(
     left: Math.max(0, centroX - viewport.clientWidth / 2),
     top: Math.max(0, centroY - viewport.clientHeight / 2),
     behavior: scrollBehaviorPreferidoCanvas(),
+  });
+}
+
+function centrarViewportEnPuntoCanvas(
+  viewport: HTMLDivElement | null,
+  punto: { x: number; y: number },
+  behavior: ScrollBehavior = scrollBehaviorPreferidoCanvas(),
+): void {
+  if (!viewport || viewport.clientWidth <= 0 || viewport.clientHeight <= 0) return;
+  viewport.scrollTo({
+    left: Math.max(0, punto.x - viewport.clientWidth / 2),
+    top: Math.max(0, punto.y - viewport.clientHeight / 2),
+    behavior,
   });
 }
 

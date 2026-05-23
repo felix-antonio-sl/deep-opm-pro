@@ -16,19 +16,20 @@ cd app && bun run bug:index
 
 | Estado | Cantidad |
 |---|---:|
-| Resuelto | 10 |
+| Resuelto | 11 |
 
 ## Resumen Por Tipo
 
 | Tipo | Cantidad |
 |---|---:|
-| Bug | 5 |
+| Bug | 6 |
 | Feat | 5 |
 
 ## Activos
 
 | Tipo | Estado | Bug/Feat | Creado | Contexto | Resumen | Resolución | Capturas | Nota |
 |---|---|---|---|---|---|---|---:|---|
+| Bug | Resuelto | [BUG-20260523T201251Z-afcfbe](BUG-20260523T201251Z-afcfbe/report.md) | 2026-05-23 20:12Z | Modelo / SD | despues de la corrección ahora las cosas se crean en otro punto del canvas que no es la esquina superior izquierda, sin embargo la vista no se centra… | La posicion libre inicial nace en el centro geometrico del canvas 7200x5200 y el viewport se enfoca explicitamente ahi para OPDs … | 0 | Cubierto por layout.test y e2e/21-estado-vacio-opm.spec.ts con verificacion de scroll real al centro. |
 | Bug | Resuelto | [BUG-20260523T195754Z-dd0c18](BUG-20260523T195754Z-dd0c18/report.md) | 2026-05-23 19:57Z | Modelo / SD | sacar la función del mapa del sistema. no tiene valor actual | La funcion Mapa del sistema se retira de arbol OPD, menu principal y Command Palette. | 1 | Se conserva codigo interno no expuesto para evitar refactor destructivo amplio. |
 | Feat | Resuelto | [BUG-20260523T195725Z-1372c7](BUG-20260523T195725Z-1372c7/report.md) | 2026-05-23 19:57Z | Modelo / SD | que el panel opl se mueda redimensionar verticalmente | El panel OPL inferior tiene divisor horizontal para redimensionar verticalmente y doble clic para resetear a 180 px. | 0 | Cubierto por e2e/03-opl-panel.spec.ts. |
 | Feat | Resuelto | [BUG-20260523T195651Z-7ff54e](BUG-20260523T195651Z-7ff54e/report.md) | 2026-05-23 19:56Z | Modelo / SD | que al guardar un reporte de bug se copie inmediatamente el codigo id del bug al porta papeles y se cierre el modal | Al guardar un reporte, la app copia el ID del bug al portapapeles y cierra el modal. | 0 | El guardado no falla si el portapapeles no esta disponible. |

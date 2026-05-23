@@ -5,6 +5,7 @@ import {
   contenedorRefinamiento,
   dentroDeApariencia,
   esContornoRefinamiento,
+  POSICION_INICIAL_CANVAS,
   posicionLibre,
   solapa,
 } from "./layout";
@@ -28,6 +29,13 @@ describe("modelo/layout", () => {
     const segunda = posicionLibre(modelo, modelo.opdRaizId, "objeto");
     const apariencias = Object.values(modelo.opds[modelo.opdRaizId]?.apariencias ?? {});
     expect(apariencias.every((apariencia) => !solapa(segunda, apariencia))).toBe(true);
+  });
+
+  test("posicionLibre en OPD raiz vacio nace en el centro geometrico del canvas", () => {
+    const modelo = crearModelo();
+
+    expect(posicionLibre(modelo, modelo.opdRaizId, "objeto")).toEqual(POSICION_INICIAL_CANVAS);
+    expect(posicionLibre(modelo, modelo.opdRaizId, "proceso")).toEqual(POSICION_INICIAL_CANVAS);
   });
 
   test("contenedorRefinamiento retorna null en OPD raiz y la apariencia padre en OPD hijo", () => {

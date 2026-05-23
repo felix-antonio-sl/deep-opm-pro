@@ -1,4 +1,5 @@
 import type { dia } from "jointjs";
+import { CANVAS_GEOMETRICO_BASE } from "../../../modelo/layout";
 import type { OpmJointMetadata } from "../proyeccion";
 
 /**
@@ -9,7 +10,7 @@ import type { OpmJointMetadata } from "../proyeccion";
  *       selectionConfiguration.ts:5-65 (patrón disjunto por evento).
  */
 
-export const CANVAS_BASE = { width: 7200, height: 5200 } as const;
+export const CANVAS_BASE = CANVAS_GEOMETRICO_BASE;
 export const CANVAS_PADDING = 1800;
 export const ZOOM_MIN = 0.5;
 export const ZOOM_MAX = 1.6;

@@ -87,6 +87,20 @@ test("primera cosa creada desde toolbar queda centrada en el canvas visible", as
     const centroElemento = elementBox.x + elementBox.width / 2;
     return Math.abs(centroElemento - centroCanvas);
   }).toBeLessThan(90);
+  await expect.poll(async () => {
+    const canvasBox = await page.getByTestId("canvas-pane").boundingBox();
+    const elementBox = await elemento.boundingBox();
+    if (!canvasBox || !elementBox) return Number.POSITIVE_INFINITY;
+    const centroCanvas = canvasBox.y + canvasBox.height / 2;
+    const centroElemento = elementBox.y + elementBox.height / 2;
+    return Math.abs(centroElemento - centroCanvas);
+  }).toBeLessThan(90);
+  const scroll = await page.getByRole("img", { name: "OPD activo" }).evaluate((el) => ({
+    left: el.scrollLeft,
+    top: el.scrollTop,
+  }));
+  expect(scroll.left).toBeGreaterThan(2500);
+  expect(scroll.top).toBeGreaterThan(1800);
 
   expect(pageErrors).toEqual([]);
 });

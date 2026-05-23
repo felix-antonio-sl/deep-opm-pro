@@ -58,5 +58,11 @@
     "status": "Resuelto",
     "resolution": "La funcion Mapa del sistema se retira de arbol OPD, menu principal y Command Palette.",
     "note": "Se conserva codigo interno no expuesto para evitar refactor destructivo amplio."
+  },
+  "BUG-20260523T201251Z-afcfbe": {
+    "type": "Bug",
+    "status": "Resuelto",
+    "resolution": "La posicion libre inicial nace en el centro geometrico del canvas 7200x5200 y el viewport se enfoca explicitamente ahi para OPDs vacios y primera creacion.",
+    "note": "Cubierto por layout.test y e2e/21-estado-vacio-opm.spec.ts con verificacion de scroll real al centro."
   }
 }

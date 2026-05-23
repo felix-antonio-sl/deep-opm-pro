@@ -24,16 +24,31 @@ const MARGEN_SOLAPE = 18;
 const CONTORNO_PAD_X = 4;
 const CONTORNO_PAD_TOP = 28;
 const CONTORNO_PAD_BOTTOM = 8;
+export const CANVAS_GEOMETRICO_BASE = { width: 7200, height: 5200 } as const;
+export const CENTRO_CANVAS_GEOMETRICO = {
+  x: Math.round(CANVAS_GEOMETRICO_BASE.width / 2),
+  y: Math.round(CANVAS_GEOMETRICO_BASE.height / 2),
+} as const;
+export const POSICION_INICIAL_CANVAS: Posicion = {
+  x: Math.round(CENTRO_CANVAS_GEOMETRICO.x - CANON.dims.cosaWidth / 2),
+  y: Math.round(CENTRO_CANVAS_GEOMETRICO.y - CANON.dims.cosaHeight / 2),
+};
 
-const COLUMNAS_LIBRES_PROCESO = [300, 80, 520, 740];
-const COLUMNAS_LIBRES_OBJETO = [80, 300, 520, 740];
+const OFFSET_COLUMNAS_CENTRO = 220;
+const COLUMNAS_LIBRES_CANVAS = [
+  POSICION_INICIAL_CANVAS.x,
+  POSICION_INICIAL_CANVAS.x - OFFSET_COLUMNAS_CENTRO,
+  POSICION_INICIAL_CANVAS.x + OFFSET_COLUMNAS_CENTRO,
+  POSICION_INICIAL_CANVAS.x - OFFSET_COLUMNAS_CENTRO * 2,
+  POSICION_INICIAL_CANVAS.x + OFFSET_COLUMNAS_CENTRO * 2,
+];
 
 export function posicionLibre(modelo: Modelo, opdId: Id, tipo: TipoEntidad): Posicion {
   const contenedor = contenedorRefinamiento(modelo, opdId);
   const columnas = contenedor
     ? columnasDentroDe(contenedor, tipo)
-    : tipo === "proceso" ? COLUMNAS_LIBRES_PROCESO : COLUMNAS_LIBRES_OBJETO;
-  const yInicial = contenedor ? contenedor.y + PADDING_OFFSET : 90;
+    : COLUMNAS_LIBRES_CANVAS;
+  const yInicial = contenedor ? contenedor.y + PADDING_OFFSET : POSICION_INICIAL_CANVAS.y;
   const yMax = contenedor
     ? contenedor.y + contenedor.height - CANON.dims.cosaHeight - PADDING_INFERIOR
     : Number.POSITIVE_INFINITY;
