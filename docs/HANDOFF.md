@@ -1,12 +1,12 @@
 # HANDOFF — Estado operativo del modelador OPM
 
-**Fecha**: 2026-05-22
+**Fecha**: 2026-05-23
 **Repositorio**: `deep-opm-pro`
 **Rama**: `main`
-**Ultimo corte funcional**: cierre Ronda 27 III.A — chrome plano de 5 elementos. El boton `⋯ Más` desaparece; sus items canónicos se absorben como secciones Vista y Herramientas del menú principal `☰`. Acciones multi-selección viven en BarraHerramientasElemento contextual.
-**Ultimo commit en main**: `ded0df9 test(e2e): redirige specs Mas hacia menu principal (ronda27 III.A.C)`.
-**Ultimo corte deploy**: pendiente push + deploy de los 3 commits ronda27 (Sub-A: extiende MenuPrincipal; Sub-B: retira boton Mas del chrome; Sub-C: redirige specs e2e) sobre los 8 commits ronda26 ya pusheados.
-**Corte**: cierre del veredicto jobs-web-ux original §III.A al 100% — chrome final exhibe 5 controles planos exactos (☰ · ChipPersistencia · Objeto · Proceso · ⌕ Buscar). Solo III.B (copilot contextual generalizado) queda como decision de producto separada.
+**Ultimo corte funcional**: cierre del ciclo completo de remediación del veredicto jobs-web-ux original. Audit → rondas 23, 24, 25, 26, 27 ejecutadas y desplegadas. Solo §III.B (copilot contextual generalizado) queda fuera por decisión de producto separada.
+**Ultimo commit en main**: `675d30d docs(handoff): cierre Ronda 27 III.A chrome plano de 5 elementos`.
+**Ultimo corte deploy**: **desplegado en `https://opforja.sanixai.com`** sirviendo bundle `index-j7w6gpht.js` desde 2026-05-22 06:20 GMT. `main` local == `origin/main`. Containers `opforja` y `opforja-bug-capture` con uptime >24h, healthy.
+**Corte**: ciclo de remediación jobs-web-ux al 100% (excepto III.B). Cobertura ejecutada: 15 ítems punch-list ronda23 + 9 detalles cosméticos ronda24 + 3 residuos cierre + §III.A chrome al 70% (rondas 25 + 27) + Ronda 26 bisimetría OPL Tier 1+2 + bug `7d8b75`. Solo §III.B (copilot contextual generalizado) queda como decisión de producto separada.
 
 ## Política De Handoff Único
 
