@@ -3,10 +3,10 @@
 **Fecha**: 2026-05-23
 **Repositorio**: `deep-opm-pro`
 **Rama**: `main`
-**Ultimo corte funcional**: cierre Ronda 28 — vuelta 360° estética Bauhaus computacional (Dieter Rams + Otl Aicher + Karl Gerstner). Paleta ink/paper/cinabrio, Inter Tight + JetBrains Mono self-hosted, retícula 8px, stroke 1.5-2px, sombras planas. Canvas OPM con verde/azul lavados al 12% saturación + markers diferenciados por tipo de enlace. Marca "OPFORJA" en chrome.
-**Ultimo commit en main**: `8166fa3 fix(arbol): restaura activacion de OPD por click en treeitem (ronda28/L3 hotfix)`.
-**Ultimo corte deploy**: pendiente push + deploy de los 29 commits ronda28 sobre `675d30d` (ronda27 III.A).
-**Corte**: rediseño visual integral entregado en 6 líneas paralelas. Chrome/inspector/OPL/diálogos en Bauhaus puro monocromo + canvas con OPM cromático lavado (preserva heurística del modelador). Loop verde: 1560 unit / 219 smoke / 1 skip.
+**Ultimo corte funcional**: cierre canon OPD/OPL estricto — reglas exhaustivas de bidireccionalidad, cobertura visual `V-*` completa y checklist de roundtrip OPD<->OPL.
+**Ultimo commit en main**: cierre documental `docs(canon-opm): completa cobertura OPD OPL bidireccional` sobre `848186e`.
+**Ultimo corte deploy**: no aplica; cambio documental canónico sin artefacto de app ni despliegue requerido.
+**Corte**: `docs/canon-opm/reglas-opm-estrictas.md` queda como canon operativo exhaustivo para lo permitido/prohibido en OPD, OPL y sus transformaciones bidireccionales. Verificación documental: IDs `V-*` y plantillas OPL de SSOT cubiertos sin faltantes; `git diff --check` limpio.
 
 ## Política De Handoff Único
 
@@ -24,6 +24,44 @@
 - JointJS OSS: usar documentación oficial viva cuando se toque JointJS.
 
 ## Estado Actual
+
+### Cierre Canon OPD/OPL Estricto — 2026-05-23
+
+Estado actual:
+
+- `main` local estaba en `848186e` al iniciar el cierre documental.
+- Cambio documental limitado a `docs/canon-opm/reglas-opm-estrictas.md` y esta memoria única.
+- Artefactos `docs/bugs/BUG-*` sin seguimiento quedan fuera del commit por no pertenecer al cierre canónico.
+
+Contexto:
+
+El documento `docs/canon-opm/reglas-opm-estrictas.md` fue evolucionado desde un canon estricto parcial hacia un canon operativo exhaustivo orientado a decisiones de producto, validación y parser/generador. El foco ya no es solo listar reglas: debe decir qué se puede hacer, qué no se puede hacer, qué se puede representar solo como vista/UI, qué exige bloqueo, qué exige warning y cómo cerrar el roundtrip OPD<->OPL.
+
+Decisiones consolidadas:
+
+- **SSOT manda sobre OPCloud**: OPCloud sigue siendo evidencia operacional, pero cualquier divergencia semántica se resuelve contra `/home/felix/kora/artifacts/knowledge/fxsl/opm/opm-ssot-es/`.
+- **Bidireccionalidad como contrato**: ningún hecho persistente de OPD debe quedar sin oración OPL canónica o metadato tipificado, y ninguna oración OPL aceptada debe reconstruir entidades plausibles ante ambigüedad.
+- **Restricción por defecto en zonas no canonizadas**: si la SSOT calla, la UI cierra por seguridad y documenta la restricción como extensión/decisión de implementación, no como prohibición ontológica.
+- **Cobertura por trazabilidad explícita**: las reglas visuales `V-*` y plantillas OPL se citan por ID para que futuros commits puedan cerrar validadores sin reinterpretar el canon completo.
+
+Artefactos relevantes:
+
+- `docs/canon-opm/reglas-opm-estrictas.md`: canon operativo OPD/OPL, escenarios, anti-patrones, matriz de soporte y anexos.
+- Anexo D del canon: índice exhaustivo de cobertura `V-*` contra `opm-visual-es.md` v3.0.0.
+- Anexo E del canon: checklist de cierre OPD<->OPL para identidad, firma, estados, OPL, parsing, modificadores, refinamiento, distribución, vistas, UI, export y deuda.
+- SSOT OPM: `opm-iso-19450-es.md`, `opm-visual-es.md`, `opm-opl-es.md`, `metodologia-opm-es.md`.
+
+Verificación:
+
+- Comparación `V-*` SSOT visual vs canon local: sin faltantes.
+- Comparación IDs de plantillas OPL SSOT vs canon local: sin faltantes.
+- `git diff --check -- docs/canon-opm/reglas-opm-estrictas.md docs/HANDOFF.md`: limpio.
+
+Cierre de envío:
+
+1. Commit atómico del cierre documental en `main`.
+2. Push controlado a `origin/main`.
+3. Sin build, test de app ni deploy: no hay cambio ejecutable.
 
 ### Cierre Ronda 28 — Vuelta 360° estética Bauhaus computacional — 2026-05-23
 

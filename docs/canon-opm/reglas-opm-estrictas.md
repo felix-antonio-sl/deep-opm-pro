@@ -362,14 +362,18 @@ Obligatorio en todo OPL emitido por el modelador.
 
 | ID | Plantilla OPL-ES |
 |---|---|
-| D1–D4 | **Cosa** es física / informacional / ambiental / sistémica. |
+| D1 | **Cosa** es física. |
+| D2 | **Cosa** es informacional. |
+| D3 | **Cosa** es ambiental. |
+| D4 | **Cosa** es sistémica. |
 | D5 | **Objeto** puede estar `estado1`, `estado2` o `estado3`. |
 | D6 | **Objeto** puede estar `estado1`, …, y otros estados. |
 | D7 | Estado `s` de **Objeto** es inicial. |
 | D8 | Estado `s` de **Objeto** es final. |
 | D9 | Estado `s` de **Objeto** es por defecto. |
 | D10 | Estado `s` de **Objeto** es inicial y final. |
-| D11 / D12 | **Cosa** es persistente / transitoria. |
+| D11 | **Cosa** es persistente. |
+| D12 | **Cosa** es transitoria. |
 | D13 | Estado `s` de **Objeto** es declarado `Current`. |
 
 ### 4.5 Plantillas — enlaces transformadores (`§4`)
@@ -1228,8 +1232,8 @@ Esta sección enumera, de forma compacta, qué reglas ya enforza el modelador, c
 | AP-21: evento sistémico cruzando frontera de descomposición | UI permite enlaces de evento cruzando | MEDIA |
 | AP-27: evento a subproceso no-primero | UI permite; no hay advertencia | MEDIA |
 | AP-28: `c` + `e` simultáneo | UI permite ambos modificadores en el mismo enlace | BAJA (no canonizada en SSOT) |
-| AP-01/AP-02 cierre kernel | `aplicarModificador` todavia valida por naturaleza procedural, no por input-side/result-side | ALTA |
-| OPL legacy de resultado condicional | Parser/generador conserva forma de resultado + condicion + abanico de rondas previas | ALTA |
+| AP-01/AP-02 cierre kernel | `aplicarModificador` todavía valida por naturaleza procedural, no por input-side/result-side | ALTA |
+| OPL legacy de resultado condicional | Parser/generador conserva forma de resultado + condición + abanico de rondas previas | ALTA |
 | Familias tagged/bidirectional avanzadas (SSE3–SSE7) | Soporte parcial — pendientes en doc `docs/audits/opcloud-enlaces-pendientes/` | ALTA (mencionado en memoria del proyecto) |
 | Semi-plegado (`V-116`–`V-120`) | No implementado | BAJA — funcionalidad de simplificación visual |
 | Identificador persistente vs `SDx.y` en exports | Identificador interno existe; exports aún usan `SDx.y` como referencia visible | MEDIA |
@@ -1243,7 +1247,7 @@ Esta sección enumera, de forma compacta, qué reglas ya enforza el modelador, c
 
 1. Cada vez que se descubra un anti-patrón nuevo permitido por la UI, se cita en este documento (sección 11.1) **antes** de cerrar el ticket que lo arregla.
 2. Las reglas `V-*` deben citarse en commits que modifican validación de canonicidad (formato sugerido: `fix(opl): cierra AP-02 — bloquea resultado+e en panel (V-43, SSOT-iso §Enlaces transformadores)`).
-3. Cuando la SSOT calle (zona no canonizada), la UI **restringe por defecto** (cierra por seguridad) y el restriction se documenta como NO-canonizado, no como prohibición ontológica.
+3. Cuando la SSOT calle (zona no canonizada), la UI **restringe por defecto** (cierra por seguridad) y la restricción se documenta como NO-canonizada, no como prohibición ontológica.
 4. Las divergencias OPCloud → SSOT se resuelven a favor de SSOT salvo justificación explícita registrada en `docs/audits/`.
 
 ---
@@ -1317,6 +1321,301 @@ Esta sección enumera, de forma compacta, qué reglas ya enforza el modelador, c
 | AP-28 | silencio SSOT (zona no canonizada) |
 | AP-29 | V-73 |
 | AP-30 | V-43 matriz |
+
+### Anexo D — Índice exhaustivo de cobertura `V-*`
+
+Este índice cubre todas las reglas visuales declaradas por `opm-visual-es.md` v3.0.0. La columna "Resumen" es la entrada operativa corta; la redacción larga vive en la SSOT visual. Si una regla aparece aquí pero no tiene sección desarrollada en el cuerpo, se aplica por referencia directa a la SSOT y debe incorporarse al cuerpo cuando se implemente o se audite en `deep-opm-pro`.
+
+| Regla | Resumen |
+|---|---|
+| V-0 | Canonicidad por exportación: gramática conforme es la que persiste en export canónico |
+| V-0a | Dos perfiles obligatorios: canon-diagrama y canon-documento |
+| V-0b | Elemento persistente en canon-diagrama debe tener regla `V-*` o capítulo explícito |
+| V-0c | Elemento no canónico es UI transitoria y no reutiliza canales semánticos |
+| V-0d | Elemento específico de perfil se declara como atributo de perfil |
+| V-0e | Captura de pantalla no es evidencia suficiente de canonicidad |
+| V-1 | Valores por defecto: informacional y sistémico; presets no alteran semántica sin serialización |
+| V-2 | Perseverancia no es visual, se infiere del tipo |
+| V-3 | Vértice del triángulo apunta al refinable |
+| V-4 | Los estados no existen fuera de su objeto |
+| V-5 | Objeto sin estados: solo creado o destruido |
+| V-6 | Máximo un defecto y un `Current`; múltiples iniciales/finales permitidos |
+| V-7 | Efecto requiere objeto con al menos un estado |
+| V-8 | Resultado no conecta directamente al estado inicial |
+| V-9 | Efecto solo-entrada sin salida: destino es estado por defecto |
+| V-10 | Habilitador desaparece: proceso se detiene |
+| V-11 | Unicidad de rol: transformado XOR habilitador |
+| V-12 | Evento es solo el segmento objeto->proceso |
+| V-13 | Evento se pierde tras evaluación |
+| V-14 | AND es el operador por defecto (sin arco) |
+| V-15 | XOR/OR aplican a todas las familias procedimentales |
+| V-16 | Arco en extremo convergente del abanico |
+| V-17 | Abanicos: convergente o divergente |
+| V-18 | Probabilístico es siempre XOR |
+| V-19 | Resultado simple equivale a XOR de resultados con estado |
+| V-20 | Coincidencia de etiquetas de ruta fija trayectoria |
+| V-21 | Parámetros de multiplicidad: nombres únicos |
+| V-22 | Multiplicidad: anotación junto al extremo del enlace |
+| V-23 | Multiplicidad no aplica a procesos directamente |
+| V-24 | Misma perseverancia en refinable y refinadores (excepto exhibición) |
+| V-25 | Exhibición puede conectar objetos con procesos |
+| V-26 | Cuatro combinaciones exhibidor-rasgo válidas |
+| V-27 | Clasificación no distingue colección completa/incompleta |
+| V-28 | Herencia múltiple permitida |
+| V-29 | Atributo discriminante: un valor por especialización |
+| V-30 | Bidireccional/recíproco no existen con estado solo en destino |
+| V-31 | Invocación implícita: posición vertical determina secuencia |
+| V-32 | Misma altura = ejecución paralela |
+| V-33 | In-zooming: contorno grueso en padre e hijo |
+| V-34 | Descomposición: elipse agrandada contiene subprocesos |
+| V-35 | Línea temporal: arriba -> abajo |
+| V-36 | Agente/instrumento en contorno exterior se distribuyen |
+| V-37 | Consumo/resultado NO en contorno exterior de descomposición |
+| V-38 | Eventos sistémicos no cruzan límite de descomposición |
+| V-39 | Condición omite subproceso: control pasa al siguiente |
+| V-40 | Enlace escindido: temprano saca de s1, tardío pone en s2 |
+| V-41 | No hay enlaces escindidos con modificador de control |
+| V-42 | Cambio de rol instrumento->afectado válido si estados coinciden |
+| V-43 | Resultado + consumo sobre mismo objeto requiere arbitraje por matriz/prosa; ver §6.6 |
+| V-44 | Transformador prevalece sobre habilitador |
+| V-45 | Duración dentro de la elipse: {min, esp, max} |
+| V-46 | SD contiene exactamente un proceso sistémico |
+| V-47 | Unicidad nominal evaluada a nivel de modelo para cualquier cosa (objeto, proceso, estado) |
+| V-48 | Eliminada; ver V-4 |
+| V-49 | Consumido desaparece al inicio del proceso |
+| V-50 | Máximo 20-25 cosas por OPD |
+| V-51 | Sin oclusión, minimizar cruces |
+| V-52 | Un elemento puede aparecer en cualquier número de OPDs |
+| V-53 | Proceso activo: marca reservada, no elipse rellena estricta |
+| V-54 | Estado actual: glifo externo reservado al borde del estado |
+| V-55 | Tiempo fluye arriba -> abajo, en edición y simulación |
+| V-56 | Bidireccional con etiquetas iguales equivale a recíproco |
+| V-57 | Partes de agregación pueden transformarse independientemente del todo |
+| V-58 | Instancias muestran valores concretos; clases muestran rangos |
+| V-59 | Activación asincrónica por eventos: subprocesos independientes |
+| V-60 | Átomo del OPD: Constructo Básico = 1 enlace + 2 cosas |
+| V-61 | Anatomía de enlace: Origen + Destino + Conector + Símbolo + Etiqueta? + Ruta? |
+| V-62 | In-zooming en dos fases: Mostrar Contenido + Refinar Enlaces |
+| V-63 | Colores informativos; topología interna es canal normativo |
+| V-64 | OPM Model = OPD Set + OPL Spec + Sub-models? |
+| V-65 | Dualidad OPD <-> OPL: toda afirmación gráfica es reproducible como texto y viceversa |
+| V-66 | *Conectar*: conjunto de cosas con conjunto de enlaces como instrumento |
+| V-67 | Sin estados vs con estados; con estados deriva objetos específicos de estado |
+| V-68 | Objeto Específico de Estado: nombre = estado + nombre del objeto original |
+| V-69 | Contorno grueso aplica a descomposición y despliegue en nuevo diagrama |
+| V-70 | El despliegue intradiagrama NO produce contorno grueso |
+| V-71 | Tipo de contorno persiste en todos los niveles de refinamiento |
+| V-72 | Herencia aplica a través de niveles de refinamiento por despliegue |
+| V-73 | Enlaces heredados no visibles pero semánticamente activos |
+| V-74 | Herencia de afiliación: atributos de objetos ambientales son ambientales |
+| V-75 | Sobreescritura: especialización puede reemplazar participante heredado |
+| V-76 | Migración de enlaces comunes al crear un general desde especializaciones |
+| V-77 | Invocación implícita solo aplica a descomposición de proceso |
+| V-78 | Descomposición de objeto: posición codifica disposición, no tiempo |
+| V-79 | Refinable aparece como contenedor en OPD hijo |
+| V-80 | Cosas conectadas al refinado se copian como elementos externos |
+| V-81 | En descomposición se copian todas las cosas conectadas por cualquier enlace |
+| V-82 | En despliegue se copian solo hijos estructurales |
+| V-83 | No se puede refinar un elemento externo |
+| V-84 | Objetos internos se eliminan al eliminar el proceso padre |
+| V-85 | Objetos externos existen independientemente del refinamiento |
+| V-86 | Estado se suprime cuando un OPD hijo de descomposición lo referencia vía enlace |
+| V-87 | Supresión de estados solo aplica a descomposición |
+| V-88 | Estados no referenciados en enlaces al refinado no se suprimen |
+| V-89 | Supresión desde múltiples OPDs hijo = unión |
+| V-90 | Expresión de estados: suprimidos en padre se revelan en hijo |
+| V-91 | Enlaces estructurales al contenedor son visibles en OPD hijo |
+| V-92 | Enlaces procedimentales al contenedor no son visibles directamente |
+| V-93 | Enlaces entre elementos internos del OPD hijo son visibles normalmente |
+| V-94 | Enlaces que no tocan contenedor ni internos son invisibles en ese OPD |
+| V-95 | Esencia no cambia a través del refinamiento |
+| V-96 | Perseverancia no cambia a través del refinamiento |
+| V-97 | Nombres no cambian a través del refinamiento |
+| V-98 | Consistencia de hechos: un OPD no puede contradecir a otro |
+| V-99 | Importancia proporcional al OPD más alto donde aparece la cosa |
+| V-100 | Prohibición de refinamiento cíclico transitiva |
+| V-101 | Instancia visual no es instancia lógica |
+| V-102 | No se puede crear instancia visual entre tipos diferentes |
+| V-103 | Consumo/input al primer subproceso; resultado/output al último |
+| V-104 | Efecto, agente e instrumento se distribuyen a todos los subprocesos |
+| V-105 | Enlaces estructurales no se distribuyen |
+| V-106 | Sin subprocesos, enlace al contenedor como respaldo temporal |
+| V-107 | Distribución de enlaces solo aplica a descomposición |
+| V-108 | Eventos de objetos ambientales pueden cruzar límite con contingencia explícita |
+| V-109 | Restricciones de frontera solo aplican a descomposición |
+| V-110 | Escisión es el único mecanismo para subespecificación de efecto |
+| V-111 | Cambio de rol: objeto muestra estados intermedios en OPD hijo |
+| V-112 | Cambio de rol solo aplica a descomposición |
+| V-113 | Solo OPDs jerárquicos hoja son eliminables directamente |
+| V-114 | Tres categorías de OPD: jerárquico, vista anclada, vista ad hoc |
+| V-115 | Todo proceso explícito transforma al menos un objeto; excepción procesos persistentes |
+| V-116 | Semi-plegado: partes como iconos de triángulo dentro del todo |
+| V-117 | Semi-plegado parcial por refinador |
+| V-118 | Indicador numérico de semi-plegado = refinadores ocultos |
+| V-119 | Semi-plegado por OPD/apariencia |
+| V-120 | Enlaces procedimentales pueden apuntar a refinadores semi-plegados |
+| V-121 | El nombre de proceso hereda política léxica de la capa textual activa |
+| V-122 | Alias de cosa: paréntesis decorativo o llaves para binding computacional |
+| V-123 | Existencia única, apariencias locales múltiples, referencias externas cross-model |
+| V-124 | Sombra en canon-diagrama corresponde exclusivamente a esencia física |
+| V-125 | La esencia física se preserva en el contenedor refinado |
+| V-126 | Fuentes de sombra colapsan a un mismo resultado semántico en canon |
+| V-127 | Reforzadores de canvas no persisten en canon-diagrama |
+| V-128 | Topología interna del triángulo es canal normativo |
+| V-129 | Triángulo estructural requiere líneas visibles al refinable y refinador |
+| V-130 | Triángulos auxiliares UI se distinguen de semánticos |
+| V-131 | Import preserva topología interna; color puede retipificarse |
+| V-132 | Proceso activo vs refinable: canales visuales distintos |
+| V-133 | Glifo de estado actual externo anclado al borde |
+| V-134 | `Current` declarado vs runtime: serialización los distingue |
+| V-135 | Token transitorio en enlace activo, distinto de piruletas |
+| V-136 | Tokens runtime no en canon-diagrama salvo snapshot declarado |
+| V-137 | Estados operacionales distintos de activo usan marcas reservadas |
+| V-138 | Proceso suspendido distinto de inactivo en snapshot |
+| V-139 | Síncrono: máximo un activo por hilo; asíncrono: múltiples |
+| V-140 | Modo headless: ausencia de runtime no altera gramática estática |
+| V-141 | Snapshot de runtime declarado explícitamente en export |
+| V-142 | Estereotipo: prefijo textual, propiedades forzadas, estructura derivada |
+| V-143 | Estereotipos declaran aplicabilidad |
+| V-144 | Sintaxis canvas: `<<Nombre>>` en rótulo o distintivo equivalente |
+| V-145 | Sintaxis OPL: `«Nombre»`; `<< >>` y `« »` equivalentes |
+| V-146 | Estereotipo no puede ocultarse sin distintivo/metadato |
+| V-147 | Propiedades forzadas recuperables en OPL o metadato canónico |
+| V-148 | Remoción de estereotipo sin residuos ambiguos |
+| V-149 | Descomposición canónica trazable como estructura derivada |
+| V-150 | OPD exportado permite identificar visualmente cosa estereotipada |
+| V-151 | Estereotipo que fuerza esencia física: sombra es fisicidad efectiva |
+| V-152 | Entidades derivadas con patrón reservado `<Rol> of <Host>` |
+| V-153 | Ciclo de vida de entidades derivadas depende del host |
+| V-154 | `<<Requirement>>`: estereotipo canónico de requisito |
+| V-155 | Atributos mínimos: Name, ID, Requirement Essence, Satisfaction, Description |
+| V-156 | `Requirement Essence` distinta de esencia física/informacional |
+| V-157 | `Satisfied Requirement Set` admitida; orden serializado si aplica |
+| V-158 | `{alias}` como identificador de binding computacional |
+| V-159 | Alias de binding únicos en alcance operativo declarado |
+| V-160 | `{alias}` no equivale a alias decorativo entre paréntesis |
+| V-161 | Unidad dimensional `[u]` entre corchetes, después del nombre |
+| V-162 | `[]` vacío es placeholder; se suprime salvo confirmación |
+| V-163 | Slot de valor: primitiva visible distinta del estado |
+| V-164 | Slot de valor: placeholder, escalar, cadena, disyunción, multilínea |
+| V-165 | Un slot primario por objeto por defecto |
+| V-166 | Slot vs estado cualitativo distinguible por posición/rotulado/estilo |
+| V-167 | Proceso con cuerpo ejecutable exhibe `()` |
+| V-168 | Ausencia de `()` no impide simulación conceptual |
+| V-169 | Código ejecutable referencia solo aliases/slots/entradas tipadas/nombres reservados |
+| V-170 | Relación enlace OPM <-> parámetro función trazable |
+| V-171 | Cuerpo de código no en canvas, pero reflejado por `()` y metadato |
+| V-172 | Si canon-documento omite código, debe haber referencia recuperable |
+| V-173 | Proceso que obtiene input externo sigue siendo proceso OPM |
+| V-174 | Integraciones externas: estereotipo/distintivo/metadato, no clase grafica distinta |
+| V-175 | Gemelo digital recuperable por estereotipo/alias/distintivo/metadato |
+| V-176 | Modelo OPM puede referenciar otros como sub-modelos (DAG) |
+| V-177 | Cada sub-modelo conserva OPL autocontenida |
+| V-178 | Modelo padre declara explícitamente cada sub-modelo |
+| V-179 | Sub-modelo declara su origen simétricamente |
+| V-180 | `SDx.y: <Nombre> Vista de Sub-modelo`; vista anclada |
+| V-181 | Jerárquico/vista anclada/vista ad hoc diferenciadas en metadato |
+| V-182 | Sub-modelo desde padre puede presentarse en solo lectura |
+| V-183 | Nodo del árbol del padre con distintivo de vínculo externo |
+| V-184 | Cross-model = referencia externa a existencia compartida |
+| V-185 | Atenuación/alias/distintivos de procedencia: gramática de vista |
+| V-186 | Vista de sub-modelo puede no tener proceso sistémico único |
+| V-187 | Export declara inclusión de sub-modelos no cargados |
+| V-188 | Portabilidad requiere esquema de resolución explícito |
+| V-189 | Desconexión de sub-modelo cambia explícitamente estado del vínculo |
+| V-190 | Piruleta semántica siempre cuelga de línea visible |
+| V-191 | Handles UI distinguibles de piruletas en canon |
+| V-192 | Supresor `...` de enlaces no materializados pertenece a gramática si persiste |
+| V-193 | Triángulos compactados deben anclar geométricamente a cosa visible |
+| V-194 | Rótulo íntegro en canon-diagrama; sin elipsis ni corte silencioso |
+| V-195 | Rótulo dentro del bounding box salvo variante tipificada |
+| V-196 | Grid del canvas: decoración opcional, suprimida en canon |
+| V-197 | Snap transparente al modelo; OPDs con misma topología son equivalentes |
+| V-198 | Smart-guides en canal UI reservado |
+| V-199 | Auto-ajuste de viewport en export evita recortes huérfanos |
+| V-200 | Cuatro modos de canvas: estático, edición, navegación, modal; runtime adicional |
+| V-201 | Solo estático-exportable es base de conformidad |
+| V-202 | Handles y chrome UI omitidos en canon |
+| V-203 | UI en canal reservado, no ambiguo respecto de la gramática OPM |
+| V-204 | Notas/sticky notes son meta del autor, no hecho del modelo |
+| V-205 | Resaltado de búsqueda en canal reservado distinto de simulación/refinamiento |
+| V-206 | Canon evaluado con tutorial/overlays desactivados |
+| V-207 | Estilado autoral admisible si no colisiona con canales reservados |
+| V-208 | Defaults convergentes al esquema canónico |
+| V-209 | Cosas de igual clase comparten base cromática/tipográfica en OPD |
+| V-210 | Estilado no reutiliza canales de alerta, discontinuidad o simulación |
+| V-211 | Tipografía/color del rótulo pertenecen a autoral; legibilidad obligatoria |
+| V-212 | Canon no admite truncamiento silencioso del rótulo |
+| V-213 | Bitmap decorativo admisible si no ocluye semántica |
+| V-214 | Conflicto refinamiento vs bitmap: prioridad a geometría OPM |
+| V-215 | Tamaño de cosa con política de aspect ratio declarada |
+| V-216 | Normalización léxica trazable, no silenciosa |
+| V-217 | Canon normaliza estilado autoral; capa editable persiste en canvas |
+| V-218 | Familias de validación: invalidez, advertencia, unicidad, contención, sugerencia |
+| V-219 | Política canvas limpio: sin marcas persistentes de validación en OPD |
+| V-220 | Distintivos persistentes opcionales como gramática de vista separada |
+| V-221 | Marcador de rechazo durante edición inválida, no en canon |
+| V-222 | Conflicto de unicidad nominal resuelto explícitamente |
+| V-223 | Metodología y sugerencias son vistas derivadas, no OPD canónico |
+| V-224 | Validación no reutiliza canales semánticos |
+| V-225 | Tres familias de salida: canon-documento, canon-diagrama, raster |
+| V-226 | Perfil por defecto declarado obligatoriamente |
+| V-227 | Canon-diagrama preserva gramática visible y omite chrome |
+| V-228 | Rótulos en negro por defecto en canon-diagrama |
+| V-229 | Canon-documento: portada, índice, árbol, diagramas, OPL, diccionarios, vistas |
+| V-230 | Listados textuales admiten cromatismo si el perfil lo declara |
+| V-231 | Export parcial declarado e identificado |
+| V-232 | Descripciones/tooltips/anexos con referencia recuperable si se omiten |
+| V-233 | Canon-diagrama no depende de rasterización para distinciones esenciales |
+| V-234 | Ningún export recorta símbolos sin anclaje topológico |
+| V-235 | Watermarks/overlays editoriales como capa documental no oclusiva |
+| V-236 | Portabilidad: recursos embutidos, referenciados o declarados ausentes |
+| V-237 | `Current` como designación persistente declarable y serializada |
+| V-238 | `Current` declarada distinta de marca runtime de V-54 |
+| V-239 | Cinco familias canónicas de enlace |
+| V-240 | Invocación con firma `Proceso->Proceso` como familia autónoma |
+| V-241 | Categorías adicionales son extensiones de implementación, no canónicas |
+| V-242 | Sub-model como cuarto par canónico de refinamiento-abstracción |
+| V-243 | Bring y operaciones auxiliares como operadores derivados |
+| V-244 | Tres categorías de OPD con reglas distintas |
+| V-245 | Eliminabilidad diferenciada por categoría de OPD |
+| V-246 | Tres canales independientes del OPD: temporal, navegación, identidad |
+| V-247 | `SDx.y` es proyección humana, no identidad |
+| V-248 | Identificador persistente del OPD obligatorio |
+| V-249 | Referencias externas citan identificador persistente |
+| V-250 | Acoplamiento canvas/OPL/árbol es de proyección, no de identidad |
+| V-251 | Clausura OPD<->OPL local; compuesto como DAG autocontenido |
+| V-252 | URI/handle persistente obligatorio para cosa referenciable cross-model |
+| V-253 | Marcas cross-model son gramática de vista, no nuclear |
+| V-254 | Vistas de Requisitos son OPDs de vista anclada |
+| V-255 | Vistas de Requisitos son de solo lectura sobre OPDs fuente |
+| V-256 | Ciclo de carga cross-model es propiedad de la referencia |
+| V-257 | Operación auxiliar inter-OPD materializa apariencias existentes |
+| V-258 | Bring connected things filtrada por familia y conectividad directa |
+| V-259 | Canon-diagrama indistinguible: Bring vs OPD manual |
+| V-260 | Bring links between selected entities materializa enlaces existentes |
+| V-261 | Operaciones auxiliares pueden dejar supresores `...` |
+| V-262 | OPDs derivados por Bring se clasifican como vista anclada o ad hoc |
+| V-263 | Operaciones auxiliares reversibles; no modifican modelo subyacente |
+
+### Anexo E — Checklist de cierre OPD<->OPL
+
+Usar esta lista para revisar un cambio de modelado, parser, generador OPL, import/export o render canonico.
+
+| Gate | Pregunta | Falla si |
+|---|---|---|
+| Identidad | Cada cosa, estado, enlace y OPD tiene identidad persistente separada de su etiqueta visible? | se usa `SDx.y` o nombre visible como unico identificador externo |
+| Firma | Cada enlace respeta familia, direccion y tipos de extremos? | un procedural conecta objeto-objeto, un structural conecta estado, o una invocacion toca objeto |
+| Estado | Todo estado tiene objeto propietario y designaciones validas? | hay estado flotante, doble default o `Current` runtime serializado como designacion |
+| OPL | Todo hecho nuclear visible emite plantilla OPL-ES canonica? | hay forma visual persistente sin plantilla ni metadato de vista |
+| Parseo | Toda oracion OPL aceptada reconstruye el mismo hecho? | el parser crea entidades plausibles ante ambiguedad |
+| Modificadores | `c/e` solo aparecen en input-side canonico? | resultado, estructural, invocacion o TS4/TS5 reciben `c/e` |
+| Refinamiento | OPD hijo agrega detalle motivado y no contradice al padre? | replica layout, crea ciclo o cambia nombre/esencia/perseverancia |
+| Distribucion | Al descomponer, enlaces del padre migran segun V-103/V-104/V-105? | consumo/resultado quedan en contorno exterior o TS3 queda sin escindir |
+| Vistas | Vistas, Bring, sub-modelos y requirement views estan tipificados? | una vista se confunde con OPD jerarquico ordinario |
+| UI | Handles, overlays, grid, tutorial, validacion y runtime se separan del canon? | un canal UI reutiliza contorno, sombra, piruleta, triangulo o halo semantico |
+| Export | El perfil declara canon-diagrama/canon-documento y recursos? | captura raster o screenshot se toma como prueba de canonicidad |
+| Deuda | Toda zona no canonizada queda registrada como extension o bloqueo? | se acepta silenciosamente una construccion sin soporte SSOT |
 
 ---
 
