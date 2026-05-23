@@ -1,4 +1,5 @@
-import { TOTAL_ETAPAS } from "../../modelo/creacionWizard";
+// Ronda 28 L5: etapa 1 Bauhaus — título grande, descripción ink-70, hint
+// debajo del input.
 import { S } from "./estilos";
 
 interface Props {
@@ -10,7 +11,7 @@ interface Props {
 export function EtapaFuncionPrincipal({ valor, onChange, onEnter }: Props) {
   return (
     <div>
-      <h3 style={S.title}>Etapa 1 de {TOTAL_ETAPAS} — Función principal</h3>
+      <h3 style={S.title}>Función principal</h3>
       <p style={S.desc}>
         ¿Cuál es la función principal del sistema? Es el proceso central
         que entrega valor al beneficiario. Suele ir en gerundio (ando/iendo)
@@ -18,12 +19,12 @@ export function EtapaFuncionPrincipal({ valor, onChange, onEnter }: Props) {
       </p>
       <input
         style={S.input}
-        placeholder="Ej: Conducir, Procesar pedidos"
         value={valor}
         onInput={(e) => onChange((e.target as HTMLInputElement).value)}
         onKeyDown={(e) => { if (e.key === "Enter") onEnter?.(); }}
         autoFocus
       />
+      <p style={S.inputHint}>Ej: Conducir, Procesar pedidos</p>
     </div>
   );
 }
