@@ -4,8 +4,8 @@
 **Repositorio**: `deep-opm-pro`
 **Rama**: `main`
 **Ultimo corte funcional**: `BUG-20260523T210035Z-7264f4` y `BUG-20260523T210455Z-eec502` corrigen anclajes centrados de símbolos estructurales y multiplicidad OPCloud (`+`, `*`, `n..*`, `n..N`).
-**Ultimo commit en main**: pendiente de commit/push de este cierre.
-**Ultimo corte deploy**: pendiente de redeploy controlado tras commit; el corte previo dejó `opforja` healthy y URL pública `https://opforja.sanixai.com/` protegida por Basic Auth de Traefik.
+**Ultimo commit en main**: `fix(canvas): align opcloud anchors and multiplicity` (`004c489`).
+**Ultimo corte deploy**: `docker compose up -d --build` ejecutado; `opforja` queda healthy, el sidecar reporta 13 activos/61 históricos y el primer activo `BUG-20260523T210455Z-eec502` figura `Resuelto`. URL pública `https://opforja.sanixai.com/` responde `401` por Basic Auth de Traefik.
 **Corte**: los 13 bugs/features activos del ledger quedan en estado `Resuelto`; las carpetas `BUG-*` capturadas siguen como artefactos locales no versionados salvo decisión explícita.
 
 ## Política De Handoff Único
