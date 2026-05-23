@@ -175,48 +175,39 @@ interface IconoProps {
   tipo: VarianteChipTipo;
 }
 
+/**
+ * Ronda 28 L2 (Bauhaus): el chip muestra un dot 6×6 cuadrado en ink.
+ * Las variantes con acción pendiente (dirty / importado / asistente /
+ * nuevo / fixture) usan el mismo dot — la diferencia comunicativa la
+ * lleva el copy del label, no el icono. local-clean usa un dot vacío
+ * (outline) para subrayar visualmente "estado en reposo".
+ */
 function IconoVariante({ tipo }: IconoProps): preact.JSX.Element {
-  const stroke = "currentColor";
-  switch (tipo) {
-    case "local-clean":
-      return (
-        <svg width="11" height="11" viewBox="0 0 16 16" aria-hidden="true" focusable="false">
-          <path d="M3 8 L7 12 L13 4" stroke={stroke} strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
-        </svg>
-      );
-    case "local-dirty":
-      return (
-        <svg width="11" height="11" viewBox="0 0 16 16" aria-hidden="true" focusable="false">
-          <circle cx="8" cy="8" r="4" fill={stroke}/>
-        </svg>
-      );
-    case "importado":
-      return (
-        <svg width="11" height="11" viewBox="0 0 16 16" aria-hidden="true" focusable="false">
-          <path d="M8 2 L8 11 M5 8 L8 11 L11 8" stroke={stroke} strokeWidth="1.6" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
-          <path d="M3 13 L13 13" stroke={stroke} strokeWidth="1.6" fill="none" strokeLinecap="round"/>
-        </svg>
-      );
-    case "fixture":
-      return (
-        <svg width="11" height="11" viewBox="0 0 16 16" aria-hidden="true" focusable="false">
-          <path d="M3 4 H13 V12 H3 Z" stroke={stroke} strokeWidth="1.5" fill="none" strokeLinejoin="round"/>
-          <path d="M5 6 H11 M5 8 H9 M5 10 H10" stroke={stroke} strokeWidth="1.3" fill="none" strokeLinecap="round"/>
-        </svg>
-      );
-    case "asistente":
-      return (
-        <svg width="11" height="11" viewBox="0 0 16 16" aria-hidden="true" focusable="false">
-          <path d="M8 2 L9.6 6.4 L14 8 L9.6 9.6 L8 14 L6.4 9.6 L2 8 L6.4 6.4 Z" fill={stroke}/>
-        </svg>
-      );
-    case "nuevo":
-      return (
-        <svg width="11" height="11" viewBox="0 0 16 16" aria-hidden="true" focusable="false">
-          <path d="M8 3 L8 13 M3 8 L13 8" stroke={stroke} strokeWidth="1.8" fill="none" strokeLinecap="round"/>
-        </svg>
-      );
+  if (tipo === "local-clean") {
+    return (
+      <span
+        aria-hidden="true"
+        style={{
+          display: "inline-block",
+          width: "6px",
+          height: "6px",
+          border: `1px solid currentColor`,
+          background: "transparent",
+        }}
+      />
+    );
   }
+  return (
+    <span
+      aria-hidden="true"
+      style={{
+        display: "inline-block",
+        width: "6px",
+        height: "6px",
+        background: "currentColor",
+      }}
+    />
+  );
 }
 
 export function ChipPersistencia(): preact.JSX.Element {
@@ -264,58 +255,53 @@ export function ChipPersistencia(): preact.JSX.Element {
   );
 }
 
+/**
+ * Ronda 28 L2 (Bauhaus): el chip se replantea como tarjeta plana mono.
+ *   - fondo paper, borde 1px ink-15, sin border-radius (rectangulo plano).
+ *   - tipografía Inter Tight 12/400, color ink.
+ *   - dot 6×6: ink (estado normal), accent (cinabrio, sólo en advertencia).
+ *   - sin sombra ni elevación: el chip es chrome bar, no flotante.
+ */
 const chipBase: preact.JSX.CSSProperties = {
   display: "inline-flex",
   alignItems: "center",
-  gap: `${tokens.spacing.xs}px`,
+  gap: "6px",
   height: "24px",
-  padding: `0 ${tokens.spacing.sm + 2}px`,
-  border: `1px solid ${tokens.colors.bordeControl}`,
-  borderRadius: tokens.radii.pill,
-  background: tokens.colors.fondoCard,
-  color: tokens.colors.textoSecundario,
+  padding: "0 10px",
+  border: `1px solid ${tokens.colors.ink15}`,
+  background: tokens.colors.paper,
+  color: tokens.colors.ink,
   cursor: "pointer",
-  fontSize: `${tokens.typography.sizes.xs}px`,
-  fontWeight: tokens.typography.weights.semibold,
+  fontSize: `${tokens.typography.sizes.sm}px`,
+  fontWeight: tokens.typography.weights.normal,
   whiteSpace: "nowrap",
   flex: "0 0 auto",
-  fontFamily: tokens.typography.familyChrome,
-  boxShadow: tokens.shadows.xs,
+  fontFamily: tokens.typography.fontFamily,
+  boxShadow: "none",
 };
 
 /**
- * Ronda 24 L2 #5: el chip conserva 3 paletas visuales (éxito / info /
- * advertencia) sobre las 4 variantes de copy. El amarillo ámbar cubre
- * tanto `local-dirty` ("Cambios sin guardar") como las no persistidas
- * ("Sin guardar · Ctrl+S"); la paleta no distingue entre ambos porque
- * ambos son "estados con acción pendiente":
- *  - `local-clean` sin guardado en curso → tokens de éxito (verde suave).
- *  - guardado en curso → tokens informacionales (azul suave).
- *  - cualquier otro caso → tokens de advertencia (dot ámbar implicito en
- *    los colores `advertencia*`).
+ * Ronda 28 L2 Bauhaus: el chip colapsa a 3 estilos monocromáticos.
+ *   - guardando en curso → fondo ink-04, texto ink70 (estado "en transito").
+ *   - local-clean → paper + ink (estado base).
+ *   - dirty / no persistido → paper + ink, dot pasa a accent (cinabrio)
+ *     que marca "acción pendiente" sin recurrir al ámbar viejo.
  */
 function chipEstilo(tipo: VarianteChipTipo, salvando: boolean): preact.JSX.CSSProperties {
   if (salvando) {
     return {
       ...chipBase,
-      background: tokens.colors.infoFondoClaro,
-      borderColor: tokens.colors.infoBordeSuave,
-      color: tokens.colors.infoTextoOscuro,
+      background: tokens.colors.ink04,
+      borderColor: tokens.colors.ink15,
+      color: tokens.colors.ink70,
     };
   }
   if (tipo === "local-clean") {
-    return {
-      ...chipBase,
-      background: tokens.colors.exitoFondo,
-      borderColor: tokens.colors.exitoBase,
-      color: tokens.colors.exitoTexto,
-    };
+    return chipBase;
   }
   return {
     ...chipBase,
-    background: tokens.colors.advertenciaFondo,
-    borderColor: tokens.colors.advertenciaBorde,
-    color: tokens.colors.alertaTexto,
+    color: tokens.colors.ink,
   };
 }
 

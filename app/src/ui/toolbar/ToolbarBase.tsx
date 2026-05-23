@@ -26,7 +26,61 @@ import { ejecutarAccionContextualEntidad } from "../ejecutarAccionContextual";
 import { useBreakpoint } from "../layoutResponsive";
 import { MenuContextualEnlace } from "../MenuContextualEnlace";
 import { MenuContextualEntidad } from "../MenuContextualEntidad";
+import { colors, stroke } from "../tokens";
+import "./toolbar.css";
 import { dragAtributoNumerico, dragToolbar, toolbarStyle as style } from "./toolbarStyles";
+
+/**
+ * Glyph mini ronda 28 L2: cuadrado (Objeto) / elipse (Proceso) 12×12
+ * en stroke ink. NO usa fill verde/azul: la paleta semántica del canvas
+ * [JOYAS §1] vive sólo en L4. Aquí el botón comunica la geometría OPM
+ * (rectángulo vs elipse) sin acoplar al canvas cromático.
+ */
+function GlyphObjeto(): preact.JSX.Element {
+  return (
+    <svg
+      width="12"
+      height="12"
+      viewBox="0 0 12 12"
+      aria-hidden="true"
+      focusable="false"
+      style={style.glyph}
+    >
+      <rect
+        x={stroke.base / 2}
+        y={stroke.base / 2}
+        width={12 - stroke.base}
+        height={12 - stroke.base}
+        fill="none"
+        stroke={colors.ink}
+        strokeWidth={stroke.base}
+      />
+    </svg>
+  );
+}
+
+function GlyphProceso(): preact.JSX.Element {
+  return (
+    <svg
+      width="12"
+      height="12"
+      viewBox="0 0 12 12"
+      aria-hidden="true"
+      focusable="false"
+      style={style.glyph}
+    >
+      <ellipse
+        cx={6}
+        cy={6}
+        rx={6 - stroke.base / 2}
+        ry={4 - stroke.base / 2}
+        fill="none"
+        stroke={colors.ink}
+        strokeWidth={stroke.base}
+      />
+    </svg>
+  );
+}
 
 const DialogoPlantillas = lazy(() => import("../DialogoPlantillas").then((m) => ({ default: m.DialogoPlantillas })));
 const DialogoTraerConectados = lazy(() => import("../DialogoTraerConectados").then((m) => ({ default: m.DialogoTraerConectados })));
@@ -212,6 +266,16 @@ export function ToolbarBase({ children, modelarSlot, conectarSlot, mapaSlot, sta
           `globalShortcutsPort`. Esto reduce densidad visual sin perder
           funcionalidad ni esteerabilidad. */}
       <div role="group" aria-label="Modelo" style={style.cluster} data-slot="cluster-modelo" data-cluster="modelo">
+        {/* Ronda 28 L2: marca OPFORJA en esquina superior izquierda como
+            kbd uppercase con tracking 0.12em. En mobile colapsa a glyph
+            "O" para no comprimir el button-strip principal. */}
+        <span
+          aria-label="OPFORJA"
+          data-testid="toolbar-marca"
+          style={esMobile ? style.marcaCompacta : style.marca}
+        >
+          {esMobile ? "O" : "OPFORJA"}
+        </span>
         <div style={style.menuWrapper}>
           <button type="button" aria-haspopup="menu" aria-expanded={menuPrincipalAbierto} aria-label="Menú principal" title="Menú principal" style={style.iconButton} onClick={handleToggleMenuPrincipal}>☰</button>
           {/* P0-2: MenuPrincipal vive ahora en App.tsx para evitar
@@ -225,8 +289,34 @@ export function ToolbarBase({ children, modelarSlot, conectarSlot, mapaSlot, sta
       <div style={style.actions} data-testid="toolbar-actions-pesadas">
         <span style={style.divider} />
         <div role="group" aria-label="Modelar" style={style.cluster} data-slot="cluster-modelar" data-cluster="modelar">
-          <button style={modoCreacion === "objeto" ? style.objectActiveButton : style.objectButton} type="button" aria-pressed={modoCreacion === "objeto"} className={modoCreacion === "objeto" ? "boton-toolbar-activo" : undefined} onClick={handleCrearObjeto} draggable onDragStart={dragToolbar("objeto")} data-testid="toolbar-drag-objeto" title={modoCreacion === "objeto" ? "Inserción continua de objetos activa · Shift+clic para salir" : "Crear objeto · arrastra al canvas, clic para insertar o Shift+clic para inserción continua"}>Objeto</button>
-          <button style={modoCreacion === "proceso" ? style.processActiveButton : style.processButton} type="button" aria-pressed={modoCreacion === "proceso"} className={modoCreacion === "proceso" ? "boton-toolbar-activo" : undefined} onClick={handleCrearProceso} draggable onDragStart={dragToolbar("proceso")} data-testid="toolbar-drag-proceso" title={modoCreacion === "proceso" ? "Inserción continua de procesos activa · Shift+clic para salir" : "Crear proceso · arrastra al canvas, clic para insertar o Shift+clic para inserción continua"}>Proceso</button>
+          <button
+            style={{ ...(modoCreacion === "objeto" ? style.objectActiveButton : style.objectButton), display: "inline-flex", alignItems: "center", gap: "8px" }}
+            type="button"
+            aria-pressed={modoCreacion === "objeto"}
+            className={modoCreacion === "objeto" ? "boton-toolbar-activo" : undefined}
+            onClick={handleCrearObjeto}
+            draggable
+            onDragStart={dragToolbar("objeto")}
+            data-testid="toolbar-drag-objeto"
+            title={modoCreacion === "objeto" ? "Inserción continua de objetos activa · Shift+clic para salir" : "Crear objeto · arrastra al canvas, clic para insertar o Shift+clic para inserción continua"}
+          >
+            <GlyphObjeto />
+            <span>Objeto</span>
+          </button>
+          <button
+            style={{ ...(modoCreacion === "proceso" ? style.processActiveButton : style.processButton), display: "inline-flex", alignItems: "center", gap: "8px" }}
+            type="button"
+            aria-pressed={modoCreacion === "proceso"}
+            className={modoCreacion === "proceso" ? "boton-toolbar-activo" : undefined}
+            onClick={handleCrearProceso}
+            draggable
+            onDragStart={dragToolbar("proceso")}
+            data-testid="toolbar-drag-proceso"
+            title={modoCreacion === "proceso" ? "Inserción continua de procesos activa · Shift+clic para salir" : "Crear proceso · arrastra al canvas, clic para insertar o Shift+clic para inserción continua"}
+          >
+            <GlyphProceso />
+            <span>Proceso</span>
+          </button>
           {/* Corte 3.5 sustracción de chrome: "+ Atributo" aparece solo cuando
               la selección es un objeto que admite atributo. Antes ocupaba
               espacio permanente en estado deshabilitado. */}
@@ -280,7 +370,8 @@ export function ToolbarBase({ children, modelarSlot, conectarSlot, mapaSlot, sta
             data-testid="toolbar-command-palette"
             aria-label="Buscar comandos"
           >
-            ⌕ Buscar
+            <span aria-hidden="true">Buscar</span>
+            <kbd style={style.kbd} aria-hidden="true">⌘ K</kbd>
           </button>
         </div>
       </div>

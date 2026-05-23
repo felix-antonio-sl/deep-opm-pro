@@ -1,23 +1,84 @@
 /**
- * Estilos compartidos del Toolbar L1. [JOYAS §1-3], [V-0c], [V-63].
+ * Estilos del chrome superior — Ronda 28 L2 (Bauhaus monocromática).
+ *
+ * Paleta:
+ *   - Fondo: paper (#FAFAFA). Cero gradientes, cero color corporativo.
+ *   - Bordes: 1.5px ink (chrome bottom), 1.5px ink (botones), 1px ink-15 (chips).
+ *   - Hover: ink-04 como wash neutro.
+ *   - Glifos Objeto/Proceso: cuadrado/elipse 12×12 en ink. No usar fills
+ *     verde/azul (eso es canvas semántico [JOYAS §1], lo gobierna L4).
+ *   - Focus visible (focus-visible) y selección con cinabrio van por
+ *     `toolbar.css` y `focus.css` (cascada).
+ *   - Cero border-radius (radii.* ya colapsa a 2px desde L1).
+ *
+ * Compat-shim: las keys legacy (button/iconButton/activeButton/etc.) se
+ * conservan para los consumidores (ToolbarCreacion/ToolbarMapaSistema/
+ * ToolbarMas/etc.) que importan de aquí.
+ *
+ * Identidad: la marca "OPFORJA" se imprime como kbd uppercase en el cluster
+ * Modelo (esquina superior izquierda). Si la altura del button-strip ahoga
+ * la marca en mobile, ToolbarBase la ahoga vía breakpoint (mostramos sólo
+ * la "O" inicial) — la decisión vive en el componente, no en el style.
  */
 import type { ModoImagenEntidad, TipoEntidad } from "../../modelo/tipos";
-import { colors, radii, shadows, spacing, typography } from "../tokens";
+import { colors, radii, spacing, stroke, typography } from "../tokens";
 
-/**
- * Toolbar ronda 13 L1: chrome UI basado en [JOYAS §1-3] y SSOT visual [V-0c]/[V-63].
- * Contrato tecnico: T2.1 opcion B + T2.6, con acciones IFML H-2/H-5/H-10/H-12 nombradas.
- */
 export const toolbarStyle = {
+  /**
+   * Chrome bar — ronda 28 L2:
+   *   - fondo paper plano (cero gradiente, cero azul corporativo).
+   *   - border-bottom 1.5px ink (línea pura Bauhaus).
+   *   - sin box-shadow: la elevación se logra en menus/popovers, no en la
+   *     barra principal (la barra es estrato base, no flotante).
+   */
   bar: {
     display: "flex",
     alignItems: "center",
     gap: `${spacing.sm}px`,
-    padding: "7px 12px",
-    background: colors.acentoSecundario,
-    borderBottom: `2px solid ${colors.acentoUi}`,
-    boxShadow: "0 12px 30px rgba(14, 44, 63, 0.22)",
+    padding: "8px 14px",
+    background: colors.paper,
+    borderBottom: `${stroke.base}px solid ${colors.ink}`,
+    boxShadow: "none",
     overflow: "hidden",
+    color: colors.ink,
+  },
+  /** Marca OPFORJA: kbd uppercase con tracking 0.12em, fuente Inter Tight 700/13. */
+  marca: {
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    height: "30px",
+    padding: "0 10px",
+    marginRight: `${spacing.xs}px`,
+    border: `${stroke.hairline}px solid ${colors.ink}`,
+    color: colors.ink,
+    background: colors.paper,
+    fontFamily: typography.fontFamily,
+    fontSize: `${typography.sizes.base}px`,
+    fontWeight: typography.weights.bold,
+    letterSpacing: "0.12em",
+    textTransform: "uppercase",
+    userSelect: "none",
+    flex: "0 0 auto",
+  },
+  /** Compacto para mobile/tablet: sólo glyph "O". */
+  marcaCompacta: {
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    width: "30px",
+    height: "30px",
+    marginRight: `${spacing.xs}px`,
+    border: `${stroke.hairline}px solid ${colors.ink}`,
+    color: colors.ink,
+    background: colors.paper,
+    fontFamily: typography.fontFamily,
+    fontSize: `${typography.sizes.base}px`,
+    fontWeight: typography.weights.bold,
+    letterSpacing: 0,
+    textTransform: "uppercase",
+    userSelect: "none",
+    flex: "0 0 auto",
   },
   actions: {
     display: "flex",
@@ -44,59 +105,65 @@ export const toolbarStyle = {
     overflow: "visible",
     clip: "auto",
     whiteSpace: "nowrap",
-    border: 0,
-    color: colors.acentoUiSuave,
-    fontSize: `${typography.sizes.xxs}px`,
-    fontWeight: typography.weights.heavy,
+    color: colors.ink50,
+    fontSize: `${typography.sizes.xs}px`,
+    fontWeight: typography.weights.medium,
     textTransform: "uppercase",
+    letterSpacing: "0.08em",
     lineHeight: 1,
   },
   menuWrapper: {
     position: "relative",
     flex: "0 0 auto",
   },
+  /** Botón icono (☰): glifo grande en ink, borde 1.5px, fondo paper. */
   iconButton: {
     width: "30px",
     height: "30px",
-    border: `1px solid rgba(221, 247, 255, 0.42)`,
-    borderRadius: `${radii.md}px`,
-    background: "rgba(255, 255, 255, 0.12)",
-    color: colors.fondoChrome,
+    border: `${stroke.base}px solid ${colors.ink}`,
+    background: colors.paper,
+    color: colors.ink,
     cursor: "pointer",
     fontSize: `${typography.sizes.lg}px`,
     fontWeight: typography.weights.bold,
     lineHeight: 1,
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 0,
   },
   button: botonBase(),
+  /**
+   * Botón Objeto — Bauhaus: borde ink, fondo paper, glifo cuadrado
+   * 12×12 en stroke ink (sin fill verde) + label "Objeto" en
+   * Inter Tight 500/13.
+   */
   objectButton: {
     ...botonBase(),
-    border: `1px solid ${colors.canvas.objeto}`,
-    background: colors.canvas.objeto,
-    color: colors.acentoSecundario,
-    fontWeight: typography.weights.bold,
+    fontWeight: typography.weights.medium,
   },
   objectActiveButton: {
     ...botonBase(),
-    border: `1px solid ${colors.fondoChrome}`,
-    background: colors.canvas.objeto,
-    color: colors.acentoSecundario,
-    fontWeight: typography.weights.bold,
-    boxShadow: `0 0 0 2px ${colors.verdeObjetoOscuro} inset`,
+    fontWeight: typography.weights.medium,
+    background: colors.ink04,
+    boxShadow: `inset 0 -2px 0 0 ${colors.accent}`,
   },
   processButton: {
     ...botonBase(),
-    border: `1px solid ${colors.canvas.proceso}`,
-    background: colors.canvas.proceso,
-    color: colors.acentoSecundario,
-    fontWeight: typography.weights.bold,
+    fontWeight: typography.weights.medium,
   },
   processActiveButton: {
     ...botonBase(),
-    border: `1px solid ${colors.fondoChrome}`,
-    background: colors.canvas.proceso,
-    color: colors.acentoSecundario,
-    fontWeight: typography.weights.bold,
-    boxShadow: `0 0 0 2px ${colors.acentoUi} inset`,
+    fontWeight: typography.weights.medium,
+    background: colors.ink04,
+    boxShadow: `inset 0 -2px 0 0 ${colors.accent}`,
+  },
+  /** Glyph mini para Objeto (cuadrado) / Proceso (elipse) 12×12 ink. */
+  glyph: {
+    width: "12px",
+    height: "12px",
+    display: "inline-block",
+    flex: "0 0 auto",
   },
   demoSelect: {
     ...botonBase(),
@@ -104,47 +171,58 @@ export const toolbarStyle = {
   },
   activeButton: {
     ...botonBase(),
-    border: `1px solid ${colors.acentoUi}`,
-    background: colors.acentoUiSuave,
-    fontWeight: 700,
+    background: colors.ink04,
+    fontWeight: typography.weights.semibold,
   },
   iconTextButton: {
     ...botonBase(),
-    padding: `0 ${spacing.md}px`,
+    padding: `0 ${spacing.sm + spacing.xs + 2}px`,
     display: "inline-flex",
     alignItems: "center",
     justifyContent: "center",
-    gap: `${spacing.xs}px`,
+    gap: `${spacing.xs + 2}px`,
+  },
+  /** Kbd "⌘ K" — borde ink-30, mono JetBrains. */
+  kbd: {
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    height: "20px",
+    minWidth: "30px",
+    padding: "0 5px",
+    border: `${stroke.hairline}px solid ${colors.ink30}`,
+    background: colors.paper,
+    color: colors.ink70,
+    fontFamily: typography.fontFamilyMono,
+    fontSize: `${typography.sizes.xs}px`,
+    fontWeight: typography.weights.medium,
+    letterSpacing: 0,
+    lineHeight: 1,
   },
   smallIcon: {
-    width: "18px",
-    height: "18px",
+    width: "16px",
+    height: "16px",
     display: "block",
   },
   disabledButton: {
     ...botonBase(),
-    // ronda 23 chrome: la ausencia comunica mejor que la presencia apagada.
-    // Antes: borde + fondo + color desaturado (chrome "muerto"). Ahora:
-    // transparente con opacity 0.6 — el botón pertenece a la fila pero
-    // no compite por la atención visual.
     border: "1px solid transparent",
     background: "transparent",
-    color: "rgba(221, 247, 255, 0.48)",
+    color: colors.ink30,
     opacity: 0.6,
     cursor: "default",
   },
+  /** Glifo Auto: ● (activo) / ○ (pausado). NO verde. */
   stickyBadge: {
     height: "26px",
     display: "inline-flex",
     alignItems: "center",
     padding: "0 8px",
-    border: `1px solid ${colors.acentoUi}`,
-    borderRadius: `${radii.pill}px`,
-    background: colors.acentoUiSuave,
-    color: colors.acentoSecundario,
-    fontSize: "12px",
-    // ronda 23 chrome: 800→700, era demasiado denso para un status badge.
-    fontWeight: 700,
+    border: `${stroke.hairline}px solid ${colors.ink30}`,
+    background: colors.paper,
+    color: colors.ink,
+    fontSize: `${typography.sizes.sm}px`,
+    fontWeight: typography.weights.medium,
     whiteSpace: "nowrap",
   },
   anchorNudge: {
@@ -152,12 +230,11 @@ export const toolbarStyle = {
     display: "inline-flex",
     alignItems: "center",
     padding: "0 8px",
-    border: `1px solid ${colors.infoBordeSuave}`,
-    borderRadius: `${radii.pill}px`,
-    background: colors.infoFondoClaro,
-    color: colors.textoPrimario,
-    fontSize: "12px",
-    fontWeight: 700,
+    border: `${stroke.hairline}px solid ${colors.ink30}`,
+    background: colors.paper,
+    color: colors.ink,
+    fontSize: `${typography.sizes.sm}px`,
+    fontWeight: typography.weights.medium,
     whiteSpace: "nowrap",
   },
   readOnlyBadge: {
@@ -165,13 +242,11 @@ export const toolbarStyle = {
     display: "inline-flex",
     alignItems: "center",
     padding: "0 8px",
-    border: `1px solid ${colors.chromeNeutral}`,
-    borderRadius: `${radii.pill}px`,
-    background: colors.fondoMuted,
-    color: colors.textoControl,
-    fontSize: "12px",
-    // ronda 23 chrome: 800→700, era demasiado denso para un status badge.
-    fontWeight: 700,
+    border: `${stroke.hairline}px solid ${colors.ink15}`,
+    background: colors.ink04,
+    color: colors.ink70,
+    fontSize: `${typography.sizes.sm}px`,
+    fontWeight: typography.weights.medium,
     whiteSpace: "nowrap",
   },
   lockIcon: {
@@ -185,9 +260,9 @@ export const toolbarStyle = {
     maxWidth: "210px",
     overflow: "hidden",
     textOverflow: "ellipsis",
-    color: colors.textoPrimario,
-    fontSize: "13px",
-    fontWeight: 700,
+    color: colors.ink,
+    fontSize: `${typography.sizes.base}px`,
+    fontWeight: typography.weights.semibold,
     whiteSpace: "nowrap",
   },
   archiveBadge: {
@@ -195,12 +270,13 @@ export const toolbarStyle = {
     alignItems: "center",
     height: "20px",
     padding: "0 6px",
-    border: `1px solid ${colors.bordeControl}`,
-    borderRadius: `${radii.pill}px`,
-    color: colors.acentoUiSuave,
-    background: "rgba(255, 255, 255, 0.08)",
-    fontSize: "10px",
-    fontWeight: 800,
+    border: `${stroke.hairline}px solid ${colors.ink15}`,
+    color: colors.ink70,
+    background: colors.paper,
+    fontSize: `${typography.sizes.xxs}px`,
+    fontWeight: typography.weights.medium,
+    letterSpacing: "0.08em",
+    textTransform: "uppercase",
     lineHeight: 1,
     flex: "0 0 auto",
   },
@@ -210,13 +286,12 @@ export const toolbarStyle = {
     gap: "4px",
     height: "24px",
     padding: "0 7px",
-    border: `1px solid ${colors.bordeControl}`,
-    borderRadius: `${radii.sm}px`,
-    background: colors.fondoElevado,
-    color: colors.textoPrimario,
+    border: `${stroke.hairline}px solid ${colors.ink30}`,
+    background: colors.paper,
+    color: colors.ink,
     cursor: "pointer",
-    fontSize: "12px",
-    fontWeight: 700,
+    fontSize: `${typography.sizes.sm}px`,
+    fontWeight: typography.weights.medium,
     flex: "0 0 auto",
   },
   versionIcon: {
@@ -226,12 +301,11 @@ export const toolbarStyle = {
   secondaryButton: {
     height: "34px",
     padding: "0 12px",
-    border: `1px solid ${colors.bordeNeutral}`,
-    borderRadius: `${radii.md}px`,
-    background: colors.fondoChrome,
-    color: colors.textoSecundario,
+    border: `${stroke.hairline}px solid ${colors.ink30}`,
+    background: colors.paper,
+    color: colors.ink70,
     cursor: "pointer",
-    fontSize: "13px",
+    fontSize: `${typography.sizes.base}px`,
     whiteSpace: "nowrap",
   },
   divider: {
@@ -239,37 +313,43 @@ export const toolbarStyle = {
     height: "22px",
     flex: "0 0 auto",
     margin: `0 ${spacing.xs}px`,
-    background: "rgba(221, 247, 255, 0.22)",
+    background: colors.ink15,
   },
   autosaveIdle: {
-    color: colors.acentoUiSuave,
-    fontSize: "12px",
-    fontWeight: 600,
+    color: colors.ink50,
+    fontSize: `${typography.sizes.sm}px`,
+    fontWeight: typography.weights.medium,
     whiteSpace: "nowrap",
     cursor: "default",
+    display: "inline-flex",
+    alignItems: "center",
+    gap: "4px",
   },
   autosaveSaving: {
-    color: colors.fondoChrome,
-    fontSize: "12px",
-    fontWeight: 700,
+    color: colors.ink,
+    fontSize: `${typography.sizes.sm}px`,
+    fontWeight: typography.weights.semibold,
     whiteSpace: "nowrap",
     cursor: "default",
+    display: "inline-flex",
+    alignItems: "center",
+    gap: "4px",
   },
   selectionCount: {
-    color: colors.acentoUiSuave,
-    fontSize: "12px",
-    fontWeight: 700,
+    color: colors.ink70,
+    fontSize: `${typography.sizes.sm}px`,
+    fontWeight: typography.weights.semibold,
     whiteSpace: "nowrap",
   },
   compactSelect: {
     height: "34px",
     width: "136px",
-    border: `1px solid ${colors.bordeInput}`,
-    borderRadius: `${radii.md}px`,
-    background: colors.fondoElevado,
-    color: colors.textoPrimario,
-    fontSize: "13px",
-    fontWeight: 600,
+    border: `${stroke.hairline}px solid ${colors.ink30}`,
+    borderRadius: `${radii.xs}px`,
+    background: colors.paper,
+    color: colors.ink,
+    fontSize: `${typography.sizes.base}px`,
+    fontWeight: typography.weights.medium,
   },
   nombreModal: {
     position: "fixed",
@@ -280,39 +360,43 @@ export const toolbarStyle = {
     display: "flex",
     alignItems: "end",
     gap: "8px",
-    padding: "10px",
-    border: `1px solid ${colors.bordeControl}`,
-    borderRadius: `${radii.lg}px`,
-    background: colors.fondoChrome,
-    boxShadow: shadows.modal,
+    padding: "12px",
+    border: `${stroke.base}px solid ${colors.ink}`,
+    background: colors.paper,
+    boxShadow: `8px 8px 0 0 ${colors.ink15}`,
   },
   nombreField: {
     display: "grid",
     gap: "4px",
   },
   nombreLabel: {
-    color: colors.textoSecundario,
-    fontSize: "12px",
-    fontWeight: 700,
+    color: colors.ink70,
+    fontSize: `${typography.sizes.sm}px`,
+    fontWeight: typography.weights.medium,
+    textTransform: "uppercase",
+    letterSpacing: "0.08em",
   },
   nombreInput: {
     width: "220px",
     height: "32px",
-    border: `1px solid ${colors.bordeInput}`,
-    borderRadius: `${radii.md}px`,
+    border: `${stroke.hairline}px solid ${colors.ink30}`,
+    background: colors.paper,
+    color: colors.ink,
     padding: "0 8px",
-    outlineColor: colors.chromeNeutral,
-    fontSize: "13px",
+    fontFamily: typography.fontFamily,
+    fontSize: `${typography.sizes.base}px`,
   },
   primarySmall: {
     height: "32px",
-    border: `1px solid ${colors.chromeNeutral}`,
-    borderRadius: `${radii.md}px`,
-    background: colors.chromeNeutral,
-    color: colors.fondoChrome,
+    border: `${stroke.hairline}px solid ${colors.ink}`,
+    background: colors.ink,
+    color: colors.paper,
     cursor: "pointer",
-    fontSize: "13px",
-    fontWeight: 800,
+    fontSize: `${typography.sizes.base}px`,
+    fontWeight: typography.weights.semibold,
+    padding: "0 14px",
+    textTransform: "uppercase",
+    letterSpacing: "0.04em",
   },
 } satisfies Record<string, preact.JSX.CSSProperties>;
 
@@ -344,18 +428,24 @@ export function etiquetaModoGlobal(modo: ModoImagenEntidad | null): string {
   return "por cosa";
 }
 
+/**
+ * Botón base ronda 28 L2: stroke 1.5px ink, fondo paper, padding 8px 14px,
+ * radius 0. La paleta es ink/paper estrictamente — el color sólo aparece en
+ * focus-visible (ultramar, via focus.css) o accent-soft (cinabrio, en
+ * selección de input activo).
+ */
 function botonBase(): preact.JSX.CSSProperties {
   return {
-    // ronda 23 chrome: 30→32px y padding lateral 14px para respiración.
     height: "32px",
-    padding: "0 12px",
-    border: `1px solid rgba(221, 247, 255, 0.38)`,
-    borderRadius: `${radii.md}px`,
-    background: colors.fondoElevado,
-    color: colors.textoPrimario,
+    padding: "0 14px",
+    border: `${stroke.base}px solid ${colors.ink}`,
+    background: colors.paper,
+    color: colors.ink,
     cursor: "pointer",
-    fontSize: `${typography.sizes.md}px`,
-    fontWeight: typography.weights.semibold,
+    fontFamily: typography.fontFamily,
+    fontSize: `${typography.sizes.base}px`,
+    fontWeight: typography.weights.medium,
     whiteSpace: "nowrap",
+    transition: "background 150ms ease-out",
   };
 }

@@ -1,18 +1,26 @@
 /*
- * Focus visible global. WCAG 2.4.7 (AA) cubierto por defecto del navegador
- * con outline de 1px gris; este archivo eleva visibilidad al mínimo
- * recomendado por WCAG 2.4.13 Focus Appearance: 2px de grosor mínimo y
- * contraste >=3:1 contra el fondo (acento UI #007DB8 cumple sobre fondos
- * claros y oscuros del chrome).
+ * Focus visible global — Ronda 28 L2 (Bauhaus accessibility).
+ *
+ * WCAG 2.4.13 Focus Appearance: 2px de grosor, offset 2px, contraste >=3:1.
+ * Color: var(--focus) = #1F3FA6 ultramar (paleta Bauhaus L1) — el único
+ * acento azul autorizado en el chrome, exclusivo para focus por teclado.
  *
  * Se usa :focus-visible (no :focus) para no mostrar outline en clic con
  * mouse — solo en navegación por teclado.
+ *
+ * Selección en inputs: background var(--accent-soft) (tinte cinabrio
+ * #F5DDDB) — pulso Bauhaus discreto en input activo, sin azul.
  */
 
 :focus-visible {
-  outline: 2px solid #007DB8;
+  outline: 2px solid var(--focus);
   outline-offset: 2px;
-  border-radius: 3px;
+  border-radius: 0;
+}
+
+::selection {
+  background: var(--accent-soft);
+  color: var(--ink);
 }
 
 /* Nodos del canvas JointJS y sus tools no participan del foco DOM

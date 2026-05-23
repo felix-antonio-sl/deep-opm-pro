@@ -25,12 +25,16 @@ export function Toolbar() {
             <>
               {autosalvado.activo ? (
                 <span
+                  data-testid="toolbar-autosave-status"
                   style={autosalvado.salvando ? style.autosaveSaving : style.autosaveIdle}
                   title={autosalvado.ultimo
                     ? `Autosalvado activo · Último: ${new Date(autosalvado.ultimo).toLocaleTimeString("es-CL", { hour: "2-digit", minute: "2-digit" })}`
                     : "Autosalvado activo"}
                 >
-                  ● Auto
+                  {/* Ronda 28 L2 Bauhaus: glyph ● activo (autosalvado en curso)
+                      o ○ pausado, ink en ambos casos. NO usar verde. */}
+                  <span aria-hidden="true">{autosalvado.salvando ? "●" : "○"}</span>
+                  <span>Auto</span>
                 </span>
               ) : null}
             </>

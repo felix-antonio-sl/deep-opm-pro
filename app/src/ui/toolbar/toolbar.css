@@ -1,42 +1,36 @@
 /*
- * Toolbar — acentos ontológicos en hover/active.
+ * Toolbar — Ronda 28 L2 (Bauhaus monocromática).
  *
- * Ronda 23 chrome estética: los botones de creación Objeto/Proceso ganan un
- * underline 2px del color semántico del canvas (#70E483 / #3BC3FF) solo en
- * hover/active/focus. En reposo permanecen neutros para no competir con la
- * jerarquía del chrome. Refuerza pedagógicamente la ontología OPM sin tocar
- * la paleta semántica del canvas (JOYAS §1 invariante).
+ * Hover/active del chrome se resuelven con wash ink-04 (gris muy claro).
+ * Cero acentos cromáticos: el reposo y el hover viven en la paleta neutra.
+ * El acento cinabrio aparece sólo en focus-visible (focus.css global) y
+ * en `aria-pressed=true` como underline 2px ink interno — un pulso plano
+ * sin glow, sin sombra, sin color corporativo.
  *
  * Convención: data-testid es el anchor estable que ya expone ToolbarBase.
  */
 
+/* Hover/focus genérico del cluster Modelo (☰, OPFORJA, ChipPersistencia) */
+[data-testid="toolbar-root"] button:hover {
+  background: var(--ink-04);
+}
+
+[data-testid="toolbar-root"] button:active {
+  background: var(--ink-08);
+}
+
+/* Botones Objeto / Proceso: relación de glyph + label en hover */
 [data-testid="toolbar-drag-objeto"],
 [data-testid="toolbar-drag-proceso"] {
   position: relative;
 }
 
-[data-testid="toolbar-drag-objeto"]::after,
-[data-testid="toolbar-drag-proceso"]::after {
-  content: "";
-  position: absolute;
-  left: 8px;
-  right: 8px;
-  bottom: 4px;
-  height: 2px;
-  border-radius: 2px;
-  background: transparent;
-  pointer-events: none;
-  transition: background 120ms ease-out;
+[data-testid="toolbar-drag-objeto"]:hover,
+[data-testid="toolbar-drag-proceso"]:hover {
+  background: var(--ink-04);
 }
 
-[data-testid="toolbar-drag-objeto"]:hover::after,
-[data-testid="toolbar-drag-objeto"]:focus-visible::after,
-[data-testid="toolbar-drag-objeto"][aria-pressed="true"]::after {
-  background: #70E483;
-}
-
-[data-testid="toolbar-drag-proceso"]:hover::after,
-[data-testid="toolbar-drag-proceso"]:focus-visible::after,
-[data-testid="toolbar-drag-proceso"][aria-pressed="true"]::after {
-  background: #3BC3FF;
+/* Buscar: hover ink-04, mantiene el kbd visible */
+[data-testid="toolbar-command-palette"]:hover {
+  background: var(--ink-04);
 }
