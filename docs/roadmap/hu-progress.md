@@ -1,9 +1,9 @@
 # Auditoria de avance HU v2
 
-**Generado:** 2026-05-20T07:00:55.419Z
+**Generado:** 2026-05-23T21:25:22.216Z
 **Backlog:** `docs/historias-usuario-v2`
 **Ledger de evidencia:** `docs/roadmap/hu-progress-evidence.json`
-**Auditoria automatica:** 89/105 reglas matcheadas sobre 714 archivos fuente.
+**Auditoria automatica:** 85/105 reglas matcheadas sobre 726 archivos fuente.
 
 
 Regenerar desde la raiz del repo:
@@ -23,18 +23,18 @@ node docs/historias-usuario-v2/tools/progress-dashboard.mjs --sync-real --dry-ru
 
 | Segmento | HU vivas | Cubiertas | Parciales | Pendientes | Diferidas | Avance ponderado |
 |---|---:|---:|---:|---:|---:|---:|
-| Total backlog | 1125 | 311 | 15 | 421 | 378 | 27.4% |
-| M0 | 130 | 94 | 3 | 33 | 0 | 77.2% |
-| MVP-alpha | 121 | 104 | 1 | 16 | 0 | 86.2% |
-| MVP-beta | 192 | 87 | 8 | 97 | 0 | 48.4% |
+| Total backlog | 1125 | 305 | 10 | 432 | 378 | 26.5% |
+| M0 | 130 | 93 | 3 | 34 | 0 | 74.8% |
+| MVP-alpha | 121 | 103 | 0 | 18 | 0 | 83.1% |
+| MVP-beta | 192 | 87 | 4 | 101 | 0 | 47.5% |
 
 ## Por corte
 
 | Corte | HU vivas | Cubiertas | Parciales | Pendientes | Diferidas | Avance ponderado |
 |---|---:|---:|---:|---:|---:|---:|
-| MVP-alpha | 121 | 104 | 1 | 16 | 0 | 86.2% |
-| MVP-beta | 192 | 87 | 8 | 97 | 0 | 48.4% |
-| MVP-gamma | 434 | 120 | 6 | 308 | 0 | 24.8% |
+| MVP-alpha | 121 | 103 | 0 | 18 | 0 | 83.1% |
+| MVP-beta | 192 | 87 | 4 | 101 | 0 | 47.5% |
+| MVP-gamma | 434 | 115 | 6 | 313 | 0 | 23.7% |
 | MVP-delta | 378 | 0 | 0 | 0 | 378 | 0.0% |
 | Sin corte | 0 | 0 | 0 | 0 | 0 | 0.0% |
 
@@ -42,11 +42,11 @@ node docs/historias-usuario-v2/tools/progress-dashboard.mjs --sync-real --dry-ru
 
 | Prioridad | HU vivas | Cubiertas | Parciales | Pendientes | Diferidas | Avance ponderado |
 |---|---:|---:|---:|---:|---:|---:|
-| M0 | 130 | 94 | 3 | 33 | 0 | 77.2% |
-| M1 | 160 | 108 | 6 | 40 | 6 | 69.0% |
-| S | 471 | 96 | 2 | 211 | 162 | 21.3% |
-| C | 247 | 13 | 3 | 130 | 101 | 4.8% |
-| W | 117 | 0 | 1 | 7 | 109 | 0.5% |
+| M0 | 130 | 93 | 3 | 34 | 0 | 74.8% |
+| M1 | 160 | 106 | 2 | 46 | 6 | 66.1% |
+| S | 471 | 94 | 2 | 213 | 162 | 21.0% |
+| C | 247 | 12 | 3 | 131 | 101 | 4.5% |
+| W | 117 | 0 | 0 | 8 | 109 | 0.0% |
 | sin-prioridad | 0 | 0 | 0 | 0 | 0 | 0.0% |
 
 ## Por epica
@@ -74,7 +74,7 @@ node docs/historias-usuario-v2/tools/progress-dashboard.mjs --sync-real --dry-ru
 | 40 | Colaboración — permisos de modelo, token de edición y auto-lectura desde carpeta | 25 | 0 | 0 | 0 | 25 | 0.0% |
 | 41 | Colaboración — chat del modelo | 17 | 0 | 0 | 0 | 17 | 0.0% |
 | 42 | Colaboración — notas adhesivas (anclaje, toggle, integración) | 22 | 0 | 0 | 22 | 0 | 0.0% |
-| 50 | Panel OPL-ES — lente bimodal, edición inversa y sincronización con el canvas | 21 | 19 | 1 | 1 | 0 | 92.7% |
+| 50 | Panel OPL-ES — lente bimodal, edición inversa y sincronización con el canvas | 21 | 19 | 0 | 2 | 0 | 89.1% |
 | 60 | Exportar a PDF — pipeline papel, opciones, selección de OPDs, integración Compartir | 35 | 0 | 0 | 35 | 0 | 0.0% |
 | 61 | Exportar SVG — exportar diagramas OPD como imágenes vectoriales | 26 | 0 | 0 | 26 | 0 | 0.0% |
 | 70 | Interoperabilidad — importación de modelos OPCAT 4.2 (.opx) | 25 | 0 | 0 | 25 | 0 | 0.0% |
@@ -84,9 +84,9 @@ node docs/historias-usuario-v2/tools/progress-dashboard.mjs --sync-real --dry-ru
 | 82 | Configuración — ontología organizacional (glosario canónico + sugerencia + reforzamiento) | 20 | 0 | 0 | 20 | 0 | 0.0% |
 | 90 | Interacción — atajos de teclado | 21 | 20 | 0 | 1 | 0 | 95.8% |
 | 91 | Interacción — modo tutorial, tooltips guiados y asistencia pedagógica | 16 | 0 | 0 | 16 | 0 | 0.0% |
-| 1A | Canvas — cuadrícula, imán, redimensión y alineación | 18 | 13 | 3 | 2 | 0 | 76.6% |
+| 1A | Canvas — cuadrícula, imán, redimensión y alineación | 18 | 8 | 3 | 7 | 0 | 51.1% |
 | 1B | Canvas — operaciones de traer conectados (hidratar OPD con cosas y enlaces existentes) | 16 | 15 | 0 | 1 | 0 | 97.6% |
-| 1C | Canvas — validaciones (interior/exterior, nombres duplicados, verificación metodológica, alcance de eliminación) | 17 | 3 | 4 | 10 | 0 | 35.4% |
+| 1C | Canvas — validaciones (interior/exterior, nombres duplicados, verificación metodológica, alcance de eliminación) | 17 | 3 | 0 | 14 | 0 | 25.0% |
 | A0 | Extensión — estereotipos OPM (mecanismo genérico de ampliación del lenguaje) | 40 | 0 | 0 | 40 | 0 | 0.0% |
 | A1 | Extensión — modelado de requisitos OPM (trazabilidad, plantilla canónica, vistas proyectadas) | 34 | 0 | 0 | 34 | 0 | 0.0% |
 | A2 | Extensión — IA generativa para requisitos (AI Reqs Generation) | 24 | 0 | 0 | 0 | 24 | 0.0% |
@@ -101,10 +101,11 @@ node docs/historias-usuario-v2/tools/progress-dashboard.mjs --sync-real --dry-ru
 | C2 | Runtime ROS — integración con Robot Operating System | 28 | 0 | 0 | 0 | 28 | 0.0% |
 | D0 | Análisis — detección de conocimiento faltante (predicción de enlaces sobre el grafo del modelo) | 22 | 0 | 0 | 0 | 22 | 0.0% |
 | D1 | Análisis — calificación de informatividad del modelo (MFSP, INF, WINF, TWINF) | 16 | 0 | 0 | 0 | 16 | 0.0% |
-| SHARED | Patrones transversales | 8 | 6 | 2 | 0 | 0 | 88.6% |
+| SHARED | Patrones transversales | 8 | 5 | 2 | 1 | 0 | 70.5% |
 
 ## Pendientes M0 inmediatos
 
+- [HU-SHARED-002](../historias-usuario-v2/shared/HU-SHARED-002-undo-redo.md) — Pila de deshacer / rehacer (M0, pendiente)
 - [HU-1C.004](../historias-usuario-v2/epicas/epica-1c-canvas-validaciones.md) — Crear cosa interna correcta directamente dentro del contenedor (M0, pendiente)
 - [HU-10.007](../historias-usuario-v2/epicas/epica-10-canvas-creacion-cosas.md) — Iniciar enlace desde borde de cosa (M0, pendiente)
 - [HU-11.004](../historias-usuario-v2/epicas/epica-11-canvas-modelado-basico.md) — Fusionar múltiples enlaces de agregación en bus vertical único (M0, pendiente)

@@ -1,6 +1,6 @@
 {
   "schema": "deep-opm-pro.hu-progress-evidence.v1",
-  "updated": "2026-05-20",
+  "updated": "2026-05-23",
   "source": "Auditoria automatica local contra app/src, app/e2e, app/scripts y assets/svg/links.",
   "statusDefinitions": {
     "cubierto": "La HU tiene implementacion usable y evidencia local directa en codigo, tests o smoke.",
@@ -809,20 +809,20 @@
   ],
   "knownGaps": [],
   "autoAudit": {
-    "generatedAt": "2026-05-20T07:00:55.419Z",
+    "generatedAt": "2026-05-23T21:25:22.216Z",
     "mode": "sync-real",
     "rulesEvaluated": 105,
-    "rulesMatched": 89,
-    "rulesUnmatched": 16,
+    "rulesMatched": 85,
+    "rulesUnmatched": 20,
     "sourceFiles": {
-      "count": 714,
+      "count": 726,
       "roots": [
         "app/src",
         "app/e2e",
         "app/scripts",
         "assets/svg/links"
       ],
-      "signature": "sha256:a861b196f37bb64624ccfcb900cc597afc2a466263aa8c11fda832b896985f03"
+      "signature": "sha256:f82417178969f788f43fcea15f55cfd5b13b194972c57f44813599a2bb0d6c11"
     },
     "note": "autoEntries se regenera; cada regla escribe cobertura detectada o pendiente. entries manuales queda como respaldo solo para HU sin regla automatica."
   },
@@ -831,10 +831,10 @@
       "ids": [
         "HU-SHARED-002"
       ],
-      "estado": "cubierto",
+      "estado": "pendiente",
       "confianza": "alta-auto",
       "fuente": "auto",
-      "nota": "Auto ronda 12.1 L1: undo granular verificado en tests aditivos para 6 comandos ronda 11 (borrar/aplicarEstilo/pegarEstilo/copiarEstilo/reanclarExtremo/dropBiblioteca + conectarMultiAlTodo); cada operacion emite exactamente un push undoStack (verificable con length antes/despues).",
+      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
       "evidencia": [
         "app/src/store/runtime.ts",
         "app/src/store/modelo/acciones-canvas.ts",
@@ -842,6 +842,10 @@
         "app/src/store.test.ts",
         "app/e2e/_smoke-helpers.ts",
         "app/src/store.ts"
+      ],
+      "brechas": [
+        "app/src/ui/toolbar/ToolbarBase.tsx: falta deshacer",
+        "app/src/ui/toolbar/ToolbarBase.tsx: falta rehacer"
       ]
     },
     {
@@ -1243,15 +1247,18 @@
         "HU-1C.017",
         "HU-1C.018"
       ],
-      "estado": "parcial",
-      "confianza": "media-auto",
+      "estado": "pendiente",
+      "confianza": "alta-auto",
       "fuente": "auto",
-      "nota": "Auto Corte 8: PanelDiagnostico navega a avisos y expone revalidacion; faltan patrones completos de correccion asistida.",
+      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
       "evidencia": [
         "app/src/ui/PanelDiagnostico.tsx",
         "app/src/app/viewmodels/panelDiagnosticoViewModel.ts",
         "app/src/store/modelo/acciones-opd.ts",
         "app/src/store/modelo/acciones-canvas.ts"
+      ],
+      "brechas": [
+        "app/src/ui/PanelDiagnostico.tsx: falta onClick={issue.navegar}"
       ]
     },
     {
@@ -1854,20 +1861,24 @@
         "HU-1A.012",
         "HU-1A.014"
       ],
-      "estado": "cubierto",
+      "estado": "pendiente",
       "confianza": "alta-auto",
       "fuente": "auto",
-      "nota": "Auto ronda 10 L1: grid configurable persistido en PreferenciasUiUsuario.gridConfig, drawGrid nativo de JointJS y cuantizacion de movimiento al paso.",
+      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
       "evidencia": [
         "app/src/canvas/grid.ts",
         "app/src/render/jointjs/composers/grid.ts",
         "app/src/modelo/tipos/ui.ts",
         "app/src/store/modelo/acciones-canvas.ts",
         "app/src/ui/toolbar/ToolbarBase.tsx",
+        "app/src/ui/MenuPrincipal.tsx",
         "app/src/ui/DialogoConfiguracion.tsx",
         "app/src/canvas/grid.test.ts",
         "app/src/render/jointjs/composers/grid.test.ts",
         "app/e2e/_smoke-helpers.ts"
+      ],
+      "brechas": [
+        "app/src/ui/toolbar/ToolbarBase.tsx: falta toolbar-mas-toggle-grid"
       ]
     },
     {
@@ -2416,13 +2427,16 @@
       "ids": [
         "HU-50.028"
       ],
-      "estado": "parcial",
-      "confianza": "media-auto",
+      "estado": "pendiente",
+      "confianza": "alta-auto",
       "fuente": "auto",
-      "nota": "Auto Corte 8: existe boton AI Text placeholder con feedback, pero no productiza generacion AI de oraciones compuestas.",
+      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
       "evidencia": [
         "app/src/ui/panelOpl/Toolbar.tsx",
         "app/e2e/03-opl-panel.spec.ts"
+      ],
+      "brechas": [
+        "app/src/ui/panelOpl/Toolbar.tsx: falta Proximamente"
       ]
     },
     {

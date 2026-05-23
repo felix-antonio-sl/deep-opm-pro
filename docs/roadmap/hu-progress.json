@@ -1,24 +1,24 @@
 {
   "schema": "deep-opm-pro.hu-progress-report.v1",
-  "generatedAt": "2026-05-20T07:00:55.419Z",
+  "generatedAt": "2026-05-23T21:25:22.216Z",
   "repoRoot": "/home/felix/projects/deep-opm-pro",
   "backlogRoot": "docs/historias-usuario-v2",
   "evidenceLedger": "docs/roadmap/hu-progress-evidence.json",
   "autoAudit": {
-    "generatedAt": "2026-05-20T07:00:55.419Z",
+    "generatedAt": "2026-05-23T21:25:22.216Z",
     "mode": "sync-real",
     "rulesEvaluated": 105,
-    "rulesMatched": 89,
-    "rulesUnmatched": 16,
+    "rulesMatched": 85,
+    "rulesUnmatched": 20,
     "sourceFiles": {
-      "count": 714,
+      "count": 726,
       "roots": [
         "app/src",
         "app/e2e",
         "app/scripts",
         "assets/svg/links"
       ],
-      "signature": "sha256:a861b196f37bb64624ccfcb900cc597afc2a466263aa8c11fda832b896985f03"
+      "signature": "sha256:f82417178969f788f43fcea15f55cfd5b13b194972c57f44813599a2bb0d6c11"
     },
     "note": "autoEntries se regenera; cada regla escribe cobertura detectada o pendiente. entries manuales queda como respaldo solo para HU sin regla automatica."
   },
@@ -100,14 +100,14 @@
   "summaries": {
     "total": {
       "total": 1125,
-      "cubierto": 311,
-      "parcial": 15,
-      "pendiente": 421,
+      "cubierto": 305,
+      "parcial": 10,
+      "pendiente": 432,
       "diferido": 378,
       "bloqueado": 0,
       "pesoTotal": 3000,
-      "pesoCubierto": 822,
-      "avance": 0.274
+      "pesoCubierto": 795,
+      "avance": 0.265
     },
     "inventario": {
       "totalParseadas": 1173,
@@ -117,70 +117,70 @@
     },
     "m0": {
       "total": 130,
-      "cubierto": 94,
+      "cubierto": 93,
       "parcial": 3,
-      "pendiente": 33,
+      "pendiente": 34,
       "diferido": 0,
       "bloqueado": 0,
       "pesoTotal": 333,
-      "pesoCubierto": 257,
-      "avance": 0.7717717717717718
+      "pesoCubierto": 249,
+      "avance": 0.7477477477477478
     },
     "alpha": {
       "total": 121,
-      "cubierto": 104,
-      "parcial": 1,
-      "pendiente": 16,
+      "cubierto": 103,
+      "parcial": 0,
+      "pendiente": 18,
       "diferido": 0,
       "bloqueado": 0,
       "pesoTotal": 326,
-      "pesoCubierto": 281,
-      "avance": 0.8619631901840491
+      "pesoCubierto": 271,
+      "avance": 0.8312883435582822
     },
     "beta": {
       "total": 192,
       "cubierto": 87,
-      "parcial": 8,
-      "pendiente": 97,
+      "parcial": 4,
+      "pendiente": 101,
       "diferido": 0,
       "bloqueado": 0,
       "pesoTotal": 541,
-      "pesoCubierto": 262,
-      "avance": 0.48428835489833644
+      "pesoCubierto": 257,
+      "avance": 0.47504621072088726
     },
     "byCut": {
       "alpha": {
         "total": 121,
-        "cubierto": 104,
-        "parcial": 1,
-        "pendiente": 16,
+        "cubierto": 103,
+        "parcial": 0,
+        "pendiente": 18,
         "diferido": 0,
         "bloqueado": 0,
         "pesoTotal": 326,
-        "pesoCubierto": 281,
-        "avance": 0.8619631901840491
+        "pesoCubierto": 271,
+        "avance": 0.8312883435582822
       },
       "beta": {
         "total": 192,
         "cubierto": 87,
-        "parcial": 8,
-        "pendiente": 97,
+        "parcial": 4,
+        "pendiente": 101,
         "diferido": 0,
         "bloqueado": 0,
         "pesoTotal": 541,
-        "pesoCubierto": 262,
-        "avance": 0.48428835489833644
+        "pesoCubierto": 257,
+        "avance": 0.47504621072088726
       },
       "gamma": {
         "total": 434,
-        "cubierto": 120,
+        "cubierto": 115,
         "parcial": 6,
-        "pendiente": 308,
+        "pendiente": 313,
         "diferido": 0,
         "bloqueado": 0,
         "pesoTotal": 1126,
-        "pesoCubierto": 279,
-        "avance": 0.2477797513321492
+        "pesoCubierto": 267,
+        "avance": 0.23712255772646537
       },
       "delta": {
         "total": 378,
@@ -208,58 +208,58 @@
     "byPriority": {
       "M0": {
         "total": 130,
-        "cubierto": 94,
+        "cubierto": 93,
         "parcial": 3,
-        "pendiente": 33,
+        "pendiente": 34,
         "diferido": 0,
         "bloqueado": 0,
         "pesoTotal": 333,
-        "pesoCubierto": 257,
-        "avance": 0.7717717717717718
+        "pesoCubierto": 249,
+        "avance": 0.7477477477477478
       },
       "M1": {
         "total": 160,
-        "cubierto": 108,
-        "parcial": 6,
-        "pendiente": 40,
+        "cubierto": 106,
+        "parcial": 2,
+        "pendiente": 46,
         "diferido": 6,
         "bloqueado": 0,
         "pesoTotal": 384,
-        "pesoCubierto": 265,
-        "avance": 0.6901041666666666
+        "pesoCubierto": 254,
+        "avance": 0.6614583333333334
       },
       "S": {
         "total": 471,
-        "cubierto": 96,
+        "cubierto": 94,
         "parcial": 2,
-        "pendiente": 211,
+        "pendiente": 213,
         "diferido": 162,
         "bloqueado": 0,
         "pesoTotal": 1247,
-        "pesoCubierto": 266,
-        "avance": 0.21331194867682438
+        "pesoCubierto": 262,
+        "avance": 0.21010425020048115
       },
       "C": {
         "total": 247,
-        "cubierto": 13,
+        "cubierto": 12,
         "parcial": 3,
-        "pendiente": 130,
+        "pendiente": 131,
         "diferido": 101,
         "bloqueado": 0,
         "pesoTotal": 661,
-        "pesoCubierto": 32,
-        "avance": 0.048411497730711045
+        "pesoCubierto": 30,
+        "avance": 0.0453857791225416
       },
       "W": {
         "total": 117,
         "cubierto": 0,
-        "parcial": 1,
-        "pendiente": 7,
+        "parcial": 0,
+        "pendiente": 8,
         "diferido": 109,
         "bloqueado": 0,
         "pesoTotal": 375,
-        "pesoCubierto": 2,
-        "avance": 0.005333333333333333
+        "pesoCubierto": 0,
+        "avance": 0
       },
       "sin-prioridad": {
         "total": 0,
@@ -530,13 +530,13 @@
         "titulo": "Panel OPL-ES — lente bimodal, edición inversa y sincronización con el canvas",
         "total": 21,
         "cubierto": 19,
-        "parcial": 1,
-        "pendiente": 1,
+        "parcial": 0,
+        "pendiente": 2,
         "diferido": 0,
         "bloqueado": 0,
         "pesoTotal": 55,
-        "pesoCubierto": 51,
-        "avance": 0.9272727272727272
+        "pesoCubierto": 49,
+        "avance": 0.8909090909090909
       },
       "60": {
         "titulo": "Exportar a PDF — pipeline papel, opciones, selección de OPDs, integración Compartir",
@@ -649,14 +649,14 @@
       "1A": {
         "titulo": "Canvas — cuadrícula, imán, redimensión y alineación",
         "total": 18,
-        "cubierto": 13,
+        "cubierto": 8,
         "parcial": 3,
-        "pendiente": 2,
+        "pendiente": 7,
         "diferido": 0,
         "bloqueado": 0,
         "pesoTotal": 47,
-        "pesoCubierto": 36,
-        "avance": 0.7659574468085106
+        "pesoCubierto": 24,
+        "avance": 0.5106382978723404
       },
       "1B": {
         "titulo": "Canvas — operaciones de traer conectados (hidratar OPD con cosas y enlaces existentes)",
@@ -674,13 +674,13 @@
         "titulo": "Canvas — validaciones (interior/exterior, nombres duplicados, verificación metodológica, alcance de eliminación)",
         "total": 17,
         "cubierto": 3,
-        "parcial": 4,
-        "pendiente": 10,
+        "parcial": 0,
+        "pendiente": 14,
         "diferido": 0,
         "bloqueado": 0,
         "pesoTotal": 48,
-        "pesoCubierto": 17,
-        "avance": 0.3541666666666667
+        "pesoCubierto": 12,
+        "avance": 0.25
       },
       "A0": {
         "titulo": "Extensión — estereotipos OPM (mecanismo genérico de ampliación del lenguaje)",
@@ -853,14 +853,14 @@
       "SHARED": {
         "titulo": "Patrones transversales",
         "total": 8,
-        "cubierto": 6,
+        "cubierto": 5,
         "parcial": 2,
-        "pendiente": 0,
+        "pendiente": 1,
         "diferido": 0,
         "bloqueado": 0,
         "pesoTotal": 44,
-        "pesoCubierto": 39,
-        "avance": 0.8863636363636364
+        "pesoCubierto": 31,
+        "avance": 0.7045454545454546
       }
     }
   },
@@ -960,11 +960,14 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/shared/HU-SHARED-002-undo-redo.md",
       "lineaInicio": 24,
       "corte": "alpha",
-      "estadoAvance": "cubierto",
+      "estadoAvance": "pendiente",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto ronda 12.1 L1: undo granular verificado en tests aditivos para 6 comandos ronda 11 (borrar/aplicarEstilo/pegarEstilo/copiarEstilo/reanclarExtremo/dropBiblioteca + conectarMultiAlTodo); cada operacion emite exactamente un push undoStack (verificable con length antes/despues).",
-      "brechas": [],
+      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
+      "brechas": [
+        "app/src/ui/toolbar/ToolbarBase.tsx: falta deshacer",
+        "app/src/ui/toolbar/ToolbarBase.tsx: falta rehacer"
+      ],
       "evidencia": [
         {
           "path": "app/src/store/runtime.ts",
@@ -992,8 +995,8 @@
         }
       ],
       "peso": 8,
-      "score": 1,
-      "avancePonderado": 8,
+      "score": 0,
+      "avancePonderado": 0,
       "enlaceFuente": "../historias-usuario-v2/shared/HU-SHARED-002-undo-redo.md"
     },
     {
@@ -14153,11 +14156,13 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-1a-canvas-grid-resize.md",
       "lineaInicio": 122,
       "corte": "gamma",
-      "estadoAvance": "cubierto",
+      "estadoAvance": "pendiente",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto ronda 10 L1: grid configurable persistido en PreferenciasUiUsuario.gridConfig, drawGrid nativo de JointJS y cuantizacion de movimiento al paso.",
-      "brechas": [],
+      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
+      "brechas": [
+        "app/src/ui/toolbar/ToolbarBase.tsx: falta toolbar-mas-toggle-grid"
+      ],
       "evidencia": [
         {
           "path": "app/src/canvas/grid.ts",
@@ -14180,6 +14185,10 @@
           "hrefDashboard": "../../app/src/ui/toolbar/ToolbarBase.tsx"
         },
         {
+          "path": "app/src/ui/MenuPrincipal.tsx",
+          "hrefDashboard": "../../app/src/ui/MenuPrincipal.tsx"
+        },
+        {
           "path": "app/src/ui/DialogoConfiguracion.tsx",
           "hrefDashboard": "../../app/src/ui/DialogoConfiguracion.tsx"
         },
@@ -14197,8 +14206,8 @@
         }
       ],
       "peso": 2,
-      "score": 1,
-      "avancePonderado": 2,
+      "score": 0,
+      "avancePonderado": 0,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-1a-canvas-grid-resize.md"
     },
     {
@@ -14226,11 +14235,13 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-1a-canvas-grid-resize.md",
       "lineaInicio": 131,
       "corte": "gamma",
-      "estadoAvance": "cubierto",
+      "estadoAvance": "pendiente",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto ronda 10 L1: grid configurable persistido en PreferenciasUiUsuario.gridConfig, drawGrid nativo de JointJS y cuantizacion de movimiento al paso.",
-      "brechas": [],
+      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
+      "brechas": [
+        "app/src/ui/toolbar/ToolbarBase.tsx: falta toolbar-mas-toggle-grid"
+      ],
       "evidencia": [
         {
           "path": "app/src/canvas/grid.ts",
@@ -14253,6 +14264,10 @@
           "hrefDashboard": "../../app/src/ui/toolbar/ToolbarBase.tsx"
         },
         {
+          "path": "app/src/ui/MenuPrincipal.tsx",
+          "hrefDashboard": "../../app/src/ui/MenuPrincipal.tsx"
+        },
+        {
           "path": "app/src/ui/DialogoConfiguracion.tsx",
           "hrefDashboard": "../../app/src/ui/DialogoConfiguracion.tsx"
         },
@@ -14270,8 +14285,8 @@
         }
       ],
       "peso": 4,
-      "score": 1,
-      "avancePonderado": 4,
+      "score": 0,
+      "avancePonderado": 0,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-1a-canvas-grid-resize.md"
     },
     {
@@ -14297,11 +14312,13 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-1a-canvas-grid-resize.md",
       "lineaInicio": 141,
       "corte": "gamma",
-      "estadoAvance": "cubierto",
+      "estadoAvance": "pendiente",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto ronda 10 L1: grid configurable persistido en PreferenciasUiUsuario.gridConfig, drawGrid nativo de JointJS y cuantizacion de movimiento al paso.",
-      "brechas": [],
+      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
+      "brechas": [
+        "app/src/ui/toolbar/ToolbarBase.tsx: falta toolbar-mas-toggle-grid"
+      ],
       "evidencia": [
         {
           "path": "app/src/canvas/grid.ts",
@@ -14324,6 +14341,10 @@
           "hrefDashboard": "../../app/src/ui/toolbar/ToolbarBase.tsx"
         },
         {
+          "path": "app/src/ui/MenuPrincipal.tsx",
+          "hrefDashboard": "../../app/src/ui/MenuPrincipal.tsx"
+        },
+        {
           "path": "app/src/ui/DialogoConfiguracion.tsx",
           "hrefDashboard": "../../app/src/ui/DialogoConfiguracion.tsx"
         },
@@ -14341,8 +14362,8 @@
         }
       ],
       "peso": 2,
-      "score": 1,
-      "avancePonderado": 2,
+      "score": 0,
+      "avancePonderado": 0,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-1a-canvas-grid-resize.md"
     },
     {
@@ -14369,11 +14390,13 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-1a-canvas-grid-resize.md",
       "lineaInicio": 150,
       "corte": "gamma",
-      "estadoAvance": "cubierto",
+      "estadoAvance": "pendiente",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto ronda 10 L1: grid configurable persistido en PreferenciasUiUsuario.gridConfig, drawGrid nativo de JointJS y cuantizacion de movimiento al paso.",
-      "brechas": [],
+      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
+      "brechas": [
+        "app/src/ui/toolbar/ToolbarBase.tsx: falta toolbar-mas-toggle-grid"
+      ],
       "evidencia": [
         {
           "path": "app/src/canvas/grid.ts",
@@ -14396,6 +14419,10 @@
           "hrefDashboard": "../../app/src/ui/toolbar/ToolbarBase.tsx"
         },
         {
+          "path": "app/src/ui/MenuPrincipal.tsx",
+          "hrefDashboard": "../../app/src/ui/MenuPrincipal.tsx"
+        },
+        {
           "path": "app/src/ui/DialogoConfiguracion.tsx",
           "hrefDashboard": "../../app/src/ui/DialogoConfiguracion.tsx"
         },
@@ -14413,8 +14440,8 @@
         }
       ],
       "peso": 2,
-      "score": 1,
-      "avancePonderado": 2,
+      "score": 0,
+      "avancePonderado": 0,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-1a-canvas-grid-resize.md"
     },
     {
@@ -14483,11 +14510,13 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-1a-canvas-grid-resize.md",
       "lineaInicio": 168,
       "corte": "gamma",
-      "estadoAvance": "cubierto",
+      "estadoAvance": "pendiente",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto ronda 10 L1: grid configurable persistido en PreferenciasUiUsuario.gridConfig, drawGrid nativo de JointJS y cuantizacion de movimiento al paso.",
-      "brechas": [],
+      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
+      "brechas": [
+        "app/src/ui/toolbar/ToolbarBase.tsx: falta toolbar-mas-toggle-grid"
+      ],
       "evidencia": [
         {
           "path": "app/src/canvas/grid.ts",
@@ -14510,6 +14539,10 @@
           "hrefDashboard": "../../app/src/ui/toolbar/ToolbarBase.tsx"
         },
         {
+          "path": "app/src/ui/MenuPrincipal.tsx",
+          "hrefDashboard": "../../app/src/ui/MenuPrincipal.tsx"
+        },
+        {
           "path": "app/src/ui/DialogoConfiguracion.tsx",
           "hrefDashboard": "../../app/src/ui/DialogoConfiguracion.tsx"
         },
@@ -14527,8 +14560,8 @@
         }
       ],
       "peso": 2,
-      "score": 1,
-      "avancePonderado": 2,
+      "score": 0,
+      "avancePonderado": 0,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-1a-canvas-grid-resize.md"
     },
     {
@@ -16273,11 +16306,13 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-1c-canvas-validaciones.md",
       "lineaInicio": 161,
       "corte": "beta",
-      "estadoAvance": "parcial",
-      "confianza": "media-auto",
+      "estadoAvance": "pendiente",
+      "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto Corte 8: PanelDiagnostico navega a avisos y expone revalidacion; faltan patrones completos de correccion asistida.",
-      "brechas": [],
+      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
+      "brechas": [
+        "app/src/ui/PanelDiagnostico.tsx: falta onClick={issue.navegar}"
+      ],
       "evidencia": [
         {
           "path": "app/src/ui/PanelDiagnostico.tsx",
@@ -16297,8 +16332,8 @@
         }
       ],
       "peso": 2,
-      "score": 0.5,
-      "avancePonderado": 1,
+      "score": 0,
+      "avancePonderado": 0,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-1c-canvas-validaciones.md"
     },
     {
@@ -16441,11 +16476,13 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-1c-canvas-validaciones.md",
       "lineaInicio": 198,
       "corte": "beta",
-      "estadoAvance": "parcial",
-      "confianza": "media-auto",
+      "estadoAvance": "pendiente",
+      "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto Corte 8: PanelDiagnostico navega a avisos y expone revalidacion; faltan patrones completos de correccion asistida.",
-      "brechas": [],
+      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
+      "brechas": [
+        "app/src/ui/PanelDiagnostico.tsx: falta onClick={issue.navegar}"
+      ],
       "evidencia": [
         {
           "path": "app/src/ui/PanelDiagnostico.tsx",
@@ -16465,8 +16502,8 @@
         }
       ],
       "peso": 4,
-      "score": 0.5,
-      "avancePonderado": 2,
+      "score": 0,
+      "avancePonderado": 0,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-1c-canvas-validaciones.md"
     },
     {
@@ -16493,11 +16530,13 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-1c-canvas-validaciones.md",
       "lineaInicio": 207,
       "corte": "beta",
-      "estadoAvance": "parcial",
-      "confianza": "media-auto",
+      "estadoAvance": "pendiente",
+      "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto Corte 8: PanelDiagnostico navega a avisos y expone revalidacion; faltan patrones completos de correccion asistida.",
-      "brechas": [],
+      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
+      "brechas": [
+        "app/src/ui/PanelDiagnostico.tsx: falta onClick={issue.navegar}"
+      ],
       "evidencia": [
         {
           "path": "app/src/ui/PanelDiagnostico.tsx",
@@ -16517,8 +16556,8 @@
         }
       ],
       "peso": 2,
-      "score": 0.5,
-      "avancePonderado": 1,
+      "score": 0,
+      "avancePonderado": 0,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-1c-canvas-validaciones.md"
     },
     {
@@ -16544,11 +16583,13 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-1c-canvas-validaciones.md",
       "lineaInicio": 217,
       "corte": "beta",
-      "estadoAvance": "parcial",
-      "confianza": "media-auto",
+      "estadoAvance": "pendiente",
+      "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto Corte 8: PanelDiagnostico navega a avisos y expone revalidacion; faltan patrones completos de correccion asistida.",
-      "brechas": [],
+      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
+      "brechas": [
+        "app/src/ui/PanelDiagnostico.tsx: falta onClick={issue.navegar}"
+      ],
       "evidencia": [
         {
           "path": "app/src/ui/PanelDiagnostico.tsx",
@@ -16568,8 +16609,8 @@
         }
       ],
       "peso": 2,
-      "score": 0.5,
-      "avancePonderado": 1,
+      "score": 0,
+      "avancePonderado": 0,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-1c-canvas-validaciones.md"
     },
     {
@@ -42334,11 +42375,13 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-50-opl-pane.md",
       "lineaInicio": 126,
       "corte": "alpha",
-      "estadoAvance": "parcial",
-      "confianza": "media-auto",
+      "estadoAvance": "pendiente",
+      "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto Corte 8: existe boton AI Text placeholder con feedback, pero no productiza generacion AI de oraciones compuestas.",
-      "brechas": [],
+      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
+      "brechas": [
+        "app/src/ui/panelOpl/Toolbar.tsx: falta Proximamente"
+      ],
       "evidencia": [
         {
           "path": "app/src/ui/panelOpl/Toolbar.tsx",
@@ -42350,8 +42393,8 @@
         }
       ],
       "peso": 4,
-      "score": 0.5,
-      "avancePonderado": 2,
+      "score": 0,
+      "avancePonderado": 0,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-50-opl-pane.md"
     },
     {
