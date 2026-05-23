@@ -160,26 +160,29 @@ export function ModalImagenObjeto() {
   );
 }
 
+// Ronda 28 L5: Bauhaus monocromático. Danger = cinabrio (accent + accentDark
+// para texto WCAG-AA sobre paper). Modos activo/inactivo con borde 1.5px ink
+// vs 1px ink-15.
 const style = {
-  body: { display: "grid", gap: "10px", minWidth: "min(560px, calc(100vw - 80px))" },
+  body: { display: "grid", gap: "14px", minWidth: "min(560px, calc(100vw - 80px))" },
   field: { display: "grid", gap: "6px" },
-  label: { color: tokens.colors.textoSecundario, fontSize: "12px", fontWeight: 800 },
-  input: { height: "34px", padding: "0 10px", border: `1px solid ${tokens.colors.bordeControl}`, borderRadius: tokens.radii.sm, fontSize: "13px" },
-  inputError: { height: "34px", padding: "0 10px", border: `1px solid ${tokens.colors.errorBase}`, borderRadius: tokens.radii.sm, fontSize: "13px" },
+  label: { color: tokens.colors.ink50, fontFamily: tokens.typography.familyChrome, fontSize: "11px", fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.08em" },
+  input: { height: "34px", padding: "0 10px", border: `1px solid ${tokens.colors.ink15}`, borderRadius: 0, background: tokens.colors.paper, color: tokens.colors.ink, fontFamily: tokens.typography.familyChrome, fontSize: "13px", caretColor: tokens.colors.accent },
+  inputError: { height: "34px", padding: "0 10px", border: `${tokens.stroke.base}px solid ${tokens.colors.accent}`, borderRadius: 0, background: tokens.colors.paper, color: tokens.colors.ink, fontFamily: tokens.typography.familyChrome, fontSize: "13px", caretColor: tokens.colors.accent },
   modos: { display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "8px" },
-  modo: { display: "flex", alignItems: "center", justifyContent: "center", gap: "6px", height: "34px", border: `1px solid ${tokens.colors.bordeControl}`, borderRadius: tokens.radii.sm, background: tokens.colors.fondoCard, color: tokens.colors.textoSecundario, fontSize: "12px", fontWeight: 700 },
-  modoActivo: { display: "flex", alignItems: "center", justifyContent: "center", gap: "6px", height: "34px", border: `1px solid ${tokens.colors.chromeNeutral}`, borderRadius: tokens.radii.sm, background: tokens.colors.chromeNeutralSuave, color: tokens.colors.textoPrimario, fontSize: "12px", fontWeight: 800 },
-  preview: { display: "grid", placeItems: "center", height: "190px", border: `1px solid ${tokens.colors.bordeIntermedio}`, borderRadius: tokens.radii.sm, background: tokens.colors.fondoElevado, overflow: "hidden" },
+  modo: { display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", height: "34px", border: `1px solid ${tokens.colors.ink15}`, borderRadius: 0, background: tokens.colors.paper, color: tokens.colors.ink70, fontFamily: tokens.typography.familyChrome, fontSize: "12px", fontWeight: 400, cursor: "pointer" },
+  modoActivo: { display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", height: "34px", border: `${tokens.stroke.base}px solid ${tokens.colors.ink}`, borderRadius: 0, background: tokens.colors.paper, color: tokens.colors.ink, fontFamily: tokens.typography.familyChrome, fontSize: "12px", fontWeight: 500, cursor: "pointer" },
+  preview: { display: "grid", placeItems: "center", height: "190px", border: `1px solid ${tokens.colors.ink15}`, borderRadius: 0, background: tokens.colors.ink04, overflow: "hidden" },
   image: { width: "100%", height: "100%", objectFit: "contain" },
-  empty: { color: tokens.colors.textoTerciario, fontSize: "13px", fontWeight: 700 },
-  error: { color: tokens.colors.errorTexto, fontSize: "12px", fontWeight: 700 },
-  fileField: { display: "grid", gridTemplateColumns: "max-content minmax(0, 1fr)", alignItems: "center", gap: "8px" },
-  fileButton: { display: "inline-flex", alignItems: "center", justifyContent: "center", height: "34px", padding: "0 12px", border: `1px solid ${tokens.colors.bordeControl}`, borderRadius: tokens.radii.sm, background: tokens.colors.fondoChrome, color: tokens.colors.textoSecundario, cursor: "pointer", fontSize: "12px", fontWeight: 800 },
+  empty: { color: tokens.colors.ink50, fontFamily: tokens.typography.familyChrome, fontSize: "13px", fontWeight: 400 },
+  error: { color: tokens.colors.accent, fontFamily: tokens.typography.familyChrome, fontSize: "12px", fontWeight: 500 },
+  fileField: { display: "grid", gridTemplateColumns: "max-content minmax(0, 1fr)", alignItems: "center", gap: "10px" },
+  fileButton: { display: "inline-flex", alignItems: "center", justifyContent: "center", height: "34px", padding: "0 14px", border: `1px solid ${tokens.colors.ink}`, borderRadius: 0, background: tokens.colors.paper, color: tokens.colors.ink, cursor: "pointer", fontFamily: tokens.typography.familyChrome, fontSize: "12px", fontWeight: 500 },
   fileInput: { position: "absolute", width: "1px", height: "1px", opacity: 0, pointerEvents: "none" },
-  fileName: { minWidth: 0, color: tokens.colors.textoTerciario, fontSize: "12px", fontWeight: 700, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" },
-  primaryButton: { height: "34px", padding: "0 12px", border: `1px solid ${tokens.colors.chromeNeutral}`, borderRadius: tokens.radii.sm, background: tokens.colors.chromeNeutral, color: tokens.colors.fondoChrome, cursor: "pointer", fontWeight: 700 },
-  secondaryButton: { height: "34px", padding: "0 12px", border: `1px solid ${tokens.colors.bordeControl}`, borderRadius: tokens.radii.sm, background: tokens.colors.fondoChrome, color: tokens.colors.textoSecundario, cursor: "pointer", fontWeight: 700 },
-  dangerButton: { height: "34px", padding: "0 12px", border: `1px solid ${tokens.colors.errorBorde}`, borderRadius: tokens.radii.sm, background: tokens.colors.errorFondo, color: tokens.colors.errorTexto, cursor: "pointer", fontWeight: 700 },
+  fileName: { minWidth: 0, color: tokens.colors.ink50, fontFamily: tokens.typography.familyChrome, fontSize: "12px", fontWeight: 400, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" },
+  primaryButton: { minHeight: "32px", padding: "8px 18px", border: `${tokens.stroke.base}px solid ${tokens.colors.ink}`, borderRadius: 0, background: tokens.colors.ink, color: tokens.colors.paper, cursor: "pointer", fontFamily: tokens.typography.familyChrome, fontSize: "13px", fontWeight: 500 },
+  secondaryButton: { minHeight: "32px", padding: "8px 18px", border: `${tokens.stroke.base}px solid ${tokens.colors.ink}`, borderRadius: 0, background: tokens.colors.paper, color: tokens.colors.ink, cursor: "pointer", fontFamily: tokens.typography.familyChrome, fontSize: "13px", fontWeight: 500 },
+  dangerButton: { minHeight: "32px", padding: "8px 18px", border: `${tokens.stroke.base}px solid ${tokens.colors.accent}`, borderRadius: 0, background: tokens.colors.paper, color: tokens.colors.accentDark, cursor: "pointer", fontFamily: tokens.typography.familyChrome, fontSize: "13px", fontWeight: 500 },
 } satisfies Record<string, preact.JSX.CSSProperties>;
 
 function leerArchivoComoDataUrl(file: File): Promise<string> {

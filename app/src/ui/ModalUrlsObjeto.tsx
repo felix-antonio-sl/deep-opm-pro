@@ -61,16 +61,18 @@ export function ModalUrlsObjeto() {
   );
 }
 
+// Ronda 28 L5: Bauhaus monocromático. URLs en focus (ultramar) — único uso
+// canónico de azul fuera del focus visible (semántica: enlace activo).
 const style = {
-  body: { display: "grid", gap: "10px", minWidth: "min(640px, calc(100vw - 80px))" },
+  body: { display: "grid", gap: "14px", minWidth: "min(640px, calc(100vw - 80px))" },
   form: { display: "grid", gridTemplateColumns: "130px minmax(0, 1fr) auto", gap: "8px" },
-  input: { height: "34px", padding: "0 8px", border: `1px solid ${tokens.colors.bordeControl}`, borderRadius: tokens.radii.sm, fontSize: "13px" },
+  input: { height: "34px", padding: "0 10px", border: `1px solid ${tokens.colors.ink15}`, borderRadius: 0, background: tokens.colors.paper, color: tokens.colors.ink, fontFamily: tokens.typography.familyChrome, fontSize: "13px", caretColor: tokens.colors.accent },
   list: { display: "grid", gap: "6px" },
-  row: { display: "grid", gridTemplateColumns: "84px minmax(0, 1fr) auto", alignItems: "center", gap: "8px", padding: "8px", border: `1px solid ${tokens.colors.bordeIntermedio}`, borderRadius: tokens.radii.sm },
-  kind: { color: tokens.colors.chromeNeutral, fontWeight: 700, fontSize: "12px" },
-  url: { minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: tokens.colors.enlaceTexto, fontWeight: 700 },
-  empty: { padding: "12px", border: `1px dashed ${tokens.colors.bordeControl}`, borderRadius: tokens.radii.sm, color: tokens.colors.textoTerciario, fontWeight: 700 },
-  primaryButton: { height: "34px", padding: "0 12px", border: `1px solid ${tokens.colors.chromeNeutral}`, borderRadius: tokens.radii.sm, background: tokens.colors.chromeNeutral, color: tokens.colors.fondoChrome, cursor: "pointer", fontWeight: 700 },
-  secondaryButton: { height: "34px", padding: "0 14px", border: `1px solid ${tokens.colors.bordeControl}`, borderRadius: tokens.radii.sm, background: tokens.colors.fondoChrome, color: tokens.colors.textoSecundario, cursor: "pointer", fontSize: "13px", fontWeight: 700 },
-  dangerButton: { height: "30px", padding: "0 10px", border: `1px solid ${tokens.colors.errorBorde}`, borderRadius: tokens.radii.sm, background: tokens.colors.errorFondo, color: tokens.colors.errorTexto, cursor: "pointer", fontWeight: 700 },
+  row: { display: "grid", gridTemplateColumns: "84px minmax(0, 1fr) auto", alignItems: "center", gap: "8px", padding: "10px", border: `1px solid ${tokens.colors.ink15}`, borderRadius: 0, background: tokens.colors.paper },
+  kind: { color: tokens.colors.ink50, fontFamily: tokens.typography.familyChrome, fontWeight: 500, fontSize: "11px", textTransform: "uppercase", letterSpacing: "0.08em" },
+  url: { minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: tokens.colors.focus, fontFamily: tokens.typography.familyChrome, fontWeight: 500, fontSize: "13px" },
+  empty: { padding: "16px", border: `1px dashed ${tokens.colors.ink15}`, borderRadius: 0, color: tokens.colors.ink50, fontFamily: tokens.typography.familyChrome, fontSize: "13px", fontWeight: 400 },
+  primaryButton: { minHeight: "32px", padding: "8px 18px", border: `${tokens.stroke.base}px solid ${tokens.colors.ink}`, borderRadius: 0, background: tokens.colors.ink, color: tokens.colors.paper, cursor: "pointer", fontFamily: tokens.typography.familyChrome, fontSize: "13px", fontWeight: 500 },
+  secondaryButton: { minHeight: "32px", padding: "8px 18px", border: `${tokens.stroke.base}px solid ${tokens.colors.ink}`, borderRadius: 0, background: tokens.colors.paper, color: tokens.colors.ink, cursor: "pointer", fontFamily: tokens.typography.familyChrome, fontSize: "13px", fontWeight: 500 },
+  dangerButton: { minHeight: "28px", padding: "4px 12px", border: `1px solid ${tokens.colors.accent}`, borderRadius: 0, background: tokens.colors.paper, color: tokens.colors.accentDark, cursor: "pointer", fontFamily: tokens.typography.familyChrome, fontSize: "12px", fontWeight: 500 },
 } satisfies Record<string, preact.JSX.CSSProperties>;
