@@ -244,114 +244,190 @@ export function codigoOpd(nombre: string): string {
   return /^SD(?:\d+(?:\.\d+)*)?/.exec(nombre.trim())?.[0] ?? nombre;
 }
 
+// Ronda 28 L3: paleta Bauhaus aplicada al nodo OPD.
+//   - node: padding 6 16, fontSize 12, ink70. Sin borde (la jerarquía es
+//     padding + barra lateral cuando activo).
+//   - nodeActive: barra lateral 2px cinabrio izq + fondo ink-04 + ink puro.
+//   - tags `7o · 1p · 8e`: JetBrains Mono 10 ink-50, sin background.
+//   - chevrons (▾/▸): mono 10 ink-30.
+//   - badges tipo: pill ink-04 con texto ink-70 (raiz), ink (inzoom),
+//     ink70 (unfold) — diferenciación por peso, no por color.
+//   - issueBadge: pill ink + paper (error) o accentSoft + accentDark (warn).
 function estiloNodo(nivel: number, activo: boolean): preact.JSX.CSSProperties {
-  return { ...style.node, ...(activo ? style.nodeActive : {}), paddingLeft: `${12 + nivel * 16}px` };
+  return { ...style.node, ...(activo ? style.nodeActive : {}), paddingLeft: `${tokens.spacing.md + nivel * 16}px` };
 }
 
 const style = {
   node: {
     width: "100%",
-    minHeight: "32px",
+    minHeight: "30px",
     display: "grid",
     gridTemplateColumns: "16px 18px 48px minmax(0, 1fr) auto 16px 26px",
-    alignItems: "center", gap: "4px", paddingTop: "4px", paddingBottom: "4px",
-    border: "1px solid transparent", borderRadius: tokens.radii.sm, background: "transparent",
-    color: tokens.colors.textoSecundario, cursor: "pointer", fontSize: "13px", fontWeight: 600, textAlign: "left",
+    alignItems: "center",
+    gap: "4px",
+    paddingTop: "6px",
+    paddingBottom: "6px",
+    paddingRight: tokens.spacing.md,
+    border: 0,
+    borderLeft: `${tokens.stroke.bold}px solid transparent`,
+    borderRadius: 0,
+    background: "transparent",
+    color: tokens.colors.ink70,
+    cursor: "pointer",
+    fontFamily: tokens.typography.familyChrome,
+    fontSize: tokens.typography.sizes.sm,
+    fontWeight: tokens.typography.weights.medium,
+    textAlign: "left" as const,
+    transition: tokens.transitions.fast,
   },
-  nodeActive: { border: `1px solid ${tokens.colors.arbolSeleccionBorde}`, background: tokens.colors.infoFondo, color: tokens.colors.textoPrimario, fontWeight: 700 },
-  nodeDragOver: { borderTop: `2px solid ${tokens.colors.chromeNeutral}` },
+  // Item activo: barra lateral 2px cinabrio izquierda + fondo ink-04.
+  nodeActive: {
+    borderLeft: `${tokens.stroke.bold}px solid ${tokens.colors.accent}`,
+    background: tokens.colors.ink04,
+    color: tokens.colors.ink,
+    fontWeight: tokens.typography.weights.semibold,
+  },
+  nodeDragOver: { borderTop: `${tokens.stroke.bold}px solid ${tokens.colors.accent}` },
   nodeName: {
     minWidth: 0,
     overflow: "hidden",
-    lineHeight: 1.2,
-    textOverflow: "ellipsis",
-    whiteSpace: "nowrap",
-    fontSize: "13px",
+    lineHeight: 1.3,
+    textOverflow: "ellipsis" as const,
+    whiteSpace: "nowrap" as const,
+    fontSize: tokens.typography.sizes.sm,
   },
-  count: contador(tokens.colors.fondoLineaTiempo, tokens.colors.textoTerciario),
-  countActive: contador(tokens.colors.arbolSeleccion, tokens.colors.textoPrimario),
+  count: contador(tokens.colors.ink50),
+  countActive: contador(tokens.colors.ink),
+  // Issue badges: paleta Bauhaus — warning terracota suave (accentSoft),
+  // error cinabrio dark.
   issueBadgeWarning: {
     width: "16px",
     height: "16px",
     borderRadius: tokens.radii.full,
-    background: tokens.colors.advertenciaFondo,
-    border: `1px solid ${tokens.colors.advertenciaBorde}`,
-    color: tokens.colors.alertaTexto,
-    display: "inline-flex",
+    background: tokens.colors.accentSoft,
+    border: `${tokens.stroke.hairline}px solid ${tokens.colors.warning}`,
+    color: tokens.colors.warning,
+    display: "inline-flex" as const,
     alignItems: "center",
     justifyContent: "center",
     padding: 0,
     cursor: "pointer",
-    fontSize: "10px",
-    fontWeight: 900,
+    fontSize: tokens.typography.sizes.xxs,
+    fontWeight: tokens.typography.weights.heavy,
   },
   issueBadgeError: {
     width: "16px",
     height: "16px",
     borderRadius: tokens.radii.full,
-    background: tokens.colors.errorFondoIntenso,
-    border: `1px solid ${tokens.colors.errorBordeSuave}`,
-    color: tokens.colors.errorTexto,
-    display: "inline-flex",
+    background: tokens.colors.accentSoft,
+    border: `${tokens.stroke.hairline}px solid ${tokens.colors.accent}`,
+    color: tokens.colors.accentDark,
+    display: "inline-flex" as const,
     alignItems: "center",
     justifyContent: "center",
     padding: 0,
     cursor: "pointer",
-    fontSize: "10px",
-    fontWeight: 900,
+    fontSize: tokens.typography.sizes.xxs,
+    fontWeight: tokens.typography.weights.heavy,
   },
   issueSpacer: { width: "16px", height: "16px" },
-  expandBtn: compactoBoton("16px", "16px", "pointer", 1, { fontSize: "9px", color: tokens.colors.textoTerciario, marginRight: "0" }),
+  // Chevron expand/collapse: mono ink-30, glifo Bauhaus ▾/▸.
+  expandBtn: compactoBoton("16px", "16px", "pointer", 1, {
+    fontFamily: tokens.typography.fontFamilyMono,
+    fontSize: tokens.typography.sizes.xs,
+    color: tokens.colors.ink30,
+    marginRight: 0,
+  }),
   expandSpacer: { width: "16px", height: "16px" },
-  logicalIcon: { width: "16px", height: "12px", display: "block" },
+  logicalIcon: { width: "16px", height: "12px", display: "block" as const },
   logicalIconSpacer: { width: "16px", height: "12px" },
   deleteButton: botonEliminar("pointer", 1),
   deleteButtonDisabled: botonEliminar("not-allowed", 0.35),
-  deleteIcon: { width: "18px", height: "18px", display: "block" },
-  inlineInput: { width: "100%", minWidth: 0, padding: "1px 4px", border: `1px solid ${tokens.colors.chromeNeutral}`, borderRadius: tokens.radii.xs, fontSize: "13px", color: tokens.colors.textoPrimario, font: "inherit" },
+  deleteIcon: { width: "18px", height: "18px", display: "block" as const },
+  inlineInput: {
+    width: "100%",
+    minWidth: 0,
+    padding: "1px 6px",
+    border: `${tokens.stroke.hairline}px solid ${tokens.colors.ink}`,
+    borderRadius: tokens.radii.xs,
+    fontSize: tokens.typography.sizes.sm,
+    color: tokens.colors.ink,
+    background: tokens.colors.paper,
+    caretColor: tokens.colors.accent,
+    font: "inherit",
+  },
 } satisfies Record<string, preact.JSX.CSSProperties>;
 
+// Badges de tipo (Raíz/SD, Inzoom, Unfold) en Bauhaus monocromático:
+//   - raiz:   ink-04 / ink-70.
+//   - inzoom: paper / ink + outline ink (subrayado fuerte).
+//   - unfold: paper / ink70 + outline ink-15 (subrayado suave).
+// La diferenciación se logra con peso y contorno, no con color cromático.
 function estiloBadgeTipo(tipo: TipoBadgeOpd, accionable: boolean): preact.JSX.CSSProperties {
-  const colores: Record<TipoBadgeOpd, { bg: string; color: string; border: string }> = {
-    raiz: { bg: tokens.colors.neutralBadge, color: tokens.colors.textoSlate, border: tokens.colors.bordeSlate },
-    inzoom: { bg: tokens.colors.infoFondo, color: tokens.colors.infoTextoOscuro, border: tokens.colors.infoBordeSuave },
-    unfold: { bg: tokens.colors.exitoFondo, color: tokens.colors.exitoTexto, border: tokens.colors.bordeSuave },
+  const colores: Record<TipoBadgeOpd, { bg: string; color: string; border: string; weight: number }> = {
+    raiz: {
+      bg: tokens.colors.ink04,
+      color: tokens.colors.ink70,
+      border: tokens.colors.ink15,
+      weight: tokens.typography.weights.semibold,
+    },
+    inzoom: {
+      bg: tokens.colors.paper,
+      color: tokens.colors.ink,
+      border: tokens.colors.ink,
+      weight: tokens.typography.weights.bold,
+    },
+    unfold: {
+      bg: tokens.colors.paper,
+      color: tokens.colors.ink70,
+      border: tokens.colors.ink15,
+      weight: tokens.typography.weights.semibold,
+    },
   };
   const meta = colores[tipo];
   return {
-    boxSizing: "border-box",
+    boxSizing: "border-box" as const,
     minWidth: "40px",
     maxWidth: "40px",
-    height: "20px",
-    borderRadius: tokens.radii.pill,
-    border: `1px solid ${meta.border}`,
+    height: "18px",
+    borderRadius: tokens.radii.xs,
+    border: `${tokens.stroke.hairline}px solid ${meta.border}`,
     background: meta.bg,
     color: meta.color,
     cursor: accionable ? "pointer" : "default",
-    display: "inline-flex",
+    display: "inline-flex" as const,
     alignItems: "center",
     justifyContent: "center",
-    fontSize: "10px",
-    fontWeight: 800,
+    fontFamily: tokens.typography.familyChrome,
+    fontSize: tokens.typography.sizes.xxs,
+    fontWeight: meta.weight,
+    textTransform: "uppercase" as const,
+    letterSpacing: "0.04em",
     padding: "0 4px",
-    whiteSpace: "nowrap",
+    whiteSpace: "nowrap" as const,
+    transition: tokens.transitions.fast,
   };
 }
 
-function contador(background: string, color: string): preact.JSX.CSSProperties {
+// Tags `7o · 1p · 8e`: JetBrains Mono 10px ink-50, sin background. La
+// jerarquía visual se logra con tipografía y separador `·`.
+function contador(color: string): preact.JSX.CSSProperties {
   return {
     gridColumn: 5,
     gridRow: 1,
     minWidth: "52px",
     height: "17px",
-    borderRadius: "9px",
-    background,
+    background: "transparent",
     color,
-    display: "inline-flex",
+    display: "inline-flex" as const,
     alignItems: "center",
-    justifyContent: "center",
-    fontSize: "10px",
-    fontWeight: 700,
+    justifyContent: "flex-end" as const,
+    paddingRight: tokens.spacing.xs,
+    fontFamily: tokens.typography.fontFamilyMono,
+    fontSize: tokens.typography.sizes.xxs,
+    fontWeight: tokens.typography.weights.medium,
+    fontVariantNumeric: "tabular-nums" as const,
+    letterSpacing: 0,
   };
 }
 
