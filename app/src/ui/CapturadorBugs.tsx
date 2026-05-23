@@ -105,16 +105,12 @@ function CapturadorBugsInteractivo() {
         style={fabStyle(breakpoint === "mobile")}
         onClick={abrir}
       >
-        {/* P0-4 (informe UI/UX 2026-05-07): FAB en color chrome neutral
-            (azul accent), no rojo de error metodologico. El rojo queda
-            reservado a severidad de issues OPM. Cambia tambien el simbolo
-            de "!" (alerta) a un icono de bocadillo de feedback inline SVG,
-            congruente con la semantica "este es un canal de feedback".
-            aria-label se mantiene "Capturar bug" para preservar smokes
-            (regla 5.5 ronda 18: smokes intactos > reorganizacion). */}
-        <svg aria-hidden="true" focusable="false" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={style.fabIcon}>
-          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-        </svg>
+        {/* Ronda 28 L6 (Bauhaus): FAB circular 48×48, borde 1.5px ink,
+            fondo paper, glifo ◉ ink. El glifo "bug capturado" canonico
+            del brief reemplaza el SVG bocadillo del P0-4. aria-label
+            intacto para smokes (10-capturador-bugs.spec.ts, 22-responsive).
+            Sin cromaticidad — el feedback es chrome neutro Bauhaus. */}
+        <span aria-hidden="true" style={style.fabGlyph}>◉</span>
       </button>
 
       <Dialogo
@@ -254,24 +250,32 @@ function formatearBytes(bytes: number): string {
 
 const style = {
   fab: {
-    // P0-4: chrome neutral en vez de rojo error. El rojo queda reservado a
-    // severidad de issues metodologicos en validacion OPM. Acentos UI
-    // (azul `acentoUi`) para distinguir feedback como herramienta auxiliar.
+    // Ronda 28 L6 (Bauhaus): círculo 48×48, borde 1.5px ink, fondo paper,
+    // glifo ◉ ink. Mantiene posición fixed bottom-right del P0-4 pero
+    // descarta el azul accent y la sombra elevada — el chrome Bauhaus
+    // utiliza trazo grueso + paper plano, sin elevación cromática.
     position: "fixed",
     right: tokens.spacing.lg,
     bottom: tokens.spacing.lg,
     zIndex: 920,
-    width: 42,
-    height: 42,
+    width: 48,
+    height: 48,
     display: "grid",
     placeItems: "center",
-    border: `1px solid ${tokens.colors.bordeControl}`,
+    border: `${tokens.stroke.base}px solid ${tokens.colors.ink}`,
     borderRadius: tokens.radii.full,
-    background: tokens.colors.fondoChrome,
-    color: tokens.colors.acentoUi,
-    boxShadow: tokens.shadows.flotante,
-    fontFamily: tokens.typography.familyChrome,
+    background: tokens.colors.paper,
+    color: tokens.colors.ink,
+    boxShadow: "none",
+    fontFamily: tokens.typography.fontFamily,
     cursor: "pointer",
+    transition: `background ${tokens.transitions.fast}`,
+  },
+  fabGlyph: {
+    fontFamily: tokens.typography.fontFamilyMono,
+    fontSize: 22,
+    lineHeight: 1,
+    color: tokens.colors.ink,
   },
   fabIcon: {
     width: 20,
