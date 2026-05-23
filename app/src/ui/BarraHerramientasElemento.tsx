@@ -10,7 +10,7 @@ import {
   type AccionContextualId,
 } from "../store/acciones-contextuales";
 import { useCanvasPaper } from "./CanvasAdapterContext";
-import { colors } from "./tokens";
+import { colors, tokens } from "./tokens";
 
 /**
  * [V-1] [JOYAS §2] Barra flotante CN-SOT/CN-MOT para una cosa seleccionada.
@@ -19,32 +19,34 @@ import { colors } from "./tokens";
  * IFML: ViewComponent BarraHerramientasElemento; Event -> Action nombrada -> resultado.
  */
 
+// Ronda 28 L6: glifos Unicode geometricos en JetBrains Mono.
+// Anclaje canonico (brief L6):
+//   - Estado nuevo:  ◇ (rombo vacío) — semántica de "agregar estado"
+//   - Descomponer:   ⊞ (cuadrado con cruz)
+//   - Desplegar:     ⊟ (cuadrado con guion)
+//   - Editar alias:  ✎
+// Render como <span> mono-typed para preservar trazo 1.5px equivalente.
+const estiloGlyphIcono: preact.JSX.CSSProperties = {
+  fontFamily: tokens.typography.fontFamilyMono,
+  fontSize: "16px",
+  lineHeight: 1,
+  display: "inline-flex",
+  alignItems: "center",
+  justifyContent: "center",
+  fontWeight: 500,
+  color: "currentColor",
+};
 const ICONO_AGREGAR_ESTADO = (
-  <svg width="16" height="16" viewBox="0 0 20 20" aria-hidden="true" focusable="false">
-    <rect x="8" y="6" width="9" height="8" rx="2" fill="none" stroke="currentColor" strokeWidth="1.4" />
-    <path d="M3 10 L7 10 M5 8 L5 12" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
-  </svg>
+  <span aria-hidden="true" style={estiloGlyphIcono}>◇</span>
 );
 const ICONO_INZOOM = (
-  <svg width="16" height="16" viewBox="0 0 20 20" aria-hidden="true" focusable="false">
-    <rect x="3" y="3" width="14" height="14" rx="2" fill="none" stroke="currentColor" strokeWidth="1.4" />
-    <rect x="7" y="7" width="6" height="6" rx="1" fill="none" stroke="currentColor" strokeWidth="1.4" />
-  </svg>
+  <span aria-hidden="true" style={estiloGlyphIcono}>⊞</span>
 );
-// Unfold canonico: caja padre arriba con triangulo de despliegue (agregacion)
-// emanando hacia abajo, indicando refinadores fuera del contorno.
 const ICONO_UNFOLD = (
-  <svg width="16" height="16" viewBox="0 0 20 20" aria-hidden="true" focusable="false">
-    <rect x="6" y="2" width="8" height="6" rx="1" fill="none" stroke="currentColor" strokeWidth="1.4" />
-    <path d="M10 9 L10 12" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
-    <path d="M7 17 L13 17 L10 12 Z" fill="currentColor" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round" />
-  </svg>
+  <span aria-hidden="true" style={estiloGlyphIcono}>⊟</span>
 );
 const ICONO_EDITAR_ALIAS = (
-  <svg width="16" height="16" viewBox="0 0 20 20" aria-hidden="true" focusable="false">
-    <path d="M3 16 L4 13 L13 4 L16 7 L7 16 Z" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" />
-    <path d="M11 6 L14 9" stroke="currentColor" strokeWidth="1.4" />
-  </svg>
+  <span aria-hidden="true" style={estiloGlyphIcono}>✎</span>
 );
 
 interface Props {

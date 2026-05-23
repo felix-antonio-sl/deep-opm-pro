@@ -321,13 +321,16 @@ const style = {
     fontWeight: 600,
     whiteSpace: "nowrap",
   },
+  // Ronda 28 L6 (Bauhaus): boton activo monocromo — fondo ink, texto paper.
+  // El verde canvas/objeto se reserva al canvas semantico OPM; el chrome
+  // Bauhaus usa contraste tipografico, no cromaticidad por estado.
   activeBtn: {
     height: "28px",
     padding: "0 10px",
     borderRadius: tokens.radii.sm,
-    border: `1px solid ${tokens.colors.canvas.objeto}`,
-    background: tokens.colors.objetoFondo,
-    color: tokens.colors.textoPrimario,
+    border: `1px solid ${tokens.colors.ink}`,
+    background: tokens.colors.ink,
+    color: tokens.colors.paper,
     cursor: "pointer",
     fontSize: "12px",
     fontWeight: 700,
