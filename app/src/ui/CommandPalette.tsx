@@ -375,6 +375,17 @@ function enfocarSeccionInspector(testId: string): void {
   }, 0);
 }
 
+/**
+ * Estilos del CommandPalette — Ronda 28 L2 (Bauhaus monocromática).
+ *
+ *   - Dialogo modal: borde 1.5px ink, sombra plana 12 12 0 ink-15.
+ *   - Sin border-radius (Bauhaus rechaza esquinas redondas en chrome).
+ *   - Input: borderless con borderBottom 1.5px ink, mono = Inter Tight.
+ *   - Item activo: barra lateral 2px cinabrio + fondo ink-04. La barra
+ *     comunica el cursor sin tinte azul, en línea con el brief L2.
+ *   - Atajo: kbd con borde ink-30, mono JetBrains.
+ *   - Categoria: utility class `.opm-label-uppercase` (uppercase tracking).
+ */
 const style = {
   backdrop: {
     position: "fixed",
@@ -383,69 +394,71 @@ const style = {
     display: "grid",
     placeItems: "start center",
     paddingTop: "88px",
-    background: "rgb(15 23 42 / 0.18)",
+    // Backdrop ink semitransparente (no slate azul). Cumple el contraste
+    // sin teñir el fondo del dialogo.
+    background: "rgb(10 10 10 / 0.32)",
   },
   dialogo: {
     width: "min(720px, calc(100vw - 32px))",
     maxHeight: "min(680px, calc(100vh - 120px))",
     display: "grid",
     gridTemplateRows: "auto minmax(0, 1fr)",
-    border: `1px solid ${tokens.colors.bordeControl}`,
-    borderRadius: tokens.radii.lg,
-    background: tokens.colors.fondoChrome,
-    boxShadow: tokens.shadows.modal,
+    border: `1.5px solid ${tokens.colors.ink}`,
+    background: tokens.colors.paper,
+    boxShadow: `12px 12px 0 0 ${tokens.colors.ink15}`,
     overflow: "hidden",
   },
   input: {
     width: "100%",
-    height: "46px",
+    height: "52px",
     border: 0,
-    borderBottom: `1px solid ${tokens.colors.bordeChrome}`,
-    padding: "0 16px",
-    fontFamily: tokens.typography.familyChrome,
-    fontSize: "15px",
-    fontWeight: 600,
+    borderBottom: `1.5px solid ${tokens.colors.ink}`,
+    padding: "0 18px",
+    fontFamily: tokens.typography.fontFamily,
+    fontSize: `${tokens.typography.sizes.lg}px`,
+    fontWeight: tokens.typography.weights.medium,
     outline: "none",
-    color: tokens.colors.textoPrimario,
+    color: tokens.colors.ink,
+    background: tokens.colors.paper,
   },
   lista: {
     display: "grid",
-    gap: "2px",
+    gap: "0",
     padding: "8px",
     overflowY: "auto",
   },
   item: {
     width: "100%",
-    minHeight: "48px",
+    minHeight: "52px",
     border: 0,
-    borderRadius: tokens.radii.sm,
     background: "transparent",
     display: "grid",
     gridTemplateColumns: "minmax(0, 1fr) auto",
     gap: "12px",
     alignItems: "center",
-    padding: "7px 10px",
+    padding: "8px 12px",
     textAlign: "left",
     cursor: "pointer",
+    transition: "background 150ms ease-out",
   },
   itemActivo: {
     width: "100%",
-    minHeight: "48px",
+    minHeight: "52px",
     border: 0,
-    borderRadius: tokens.radii.sm,
-    background: tokens.colors.acentoUiSuave,
+    background: tokens.colors.ink04,
     display: "grid",
     gridTemplateColumns: "minmax(0, 1fr) auto",
     gap: "12px",
     alignItems: "center",
-    padding: "7px 10px",
+    padding: "8px 12px",
     textAlign: "left",
     cursor: "pointer",
+    boxShadow: `inset 2px 0 0 0 ${tokens.colors.accent}`,
   },
   itemTextos: { display: "grid", minWidth: 0, gap: "2px" },
-  itemLabel: { color: tokens.colors.textoPrimario, fontSize: "13px", fontWeight: 700, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" },
-  itemDescripcion: { color: tokens.colors.textoSecundario, fontSize: "12px", fontWeight: 500, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" },
-  itemMeta: { display: "inline-flex", alignItems: "center", gap: "8px", justifySelf: "end" },
+  itemLabel: { color: tokens.colors.ink, fontFamily: tokens.typography.fontFamily, fontSize: `${tokens.typography.sizes.base}px`, fontWeight: tokens.typography.weights.semibold, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" },
+  itemDescripcion: { color: tokens.colors.ink70, fontFamily: tokens.typography.fontFamily, fontSize: `${tokens.typography.sizes.sm}px`, fontWeight: tokens.typography.weights.normal, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" },
+  itemMeta: { display: "inline-flex", alignItems: "center", gap: "10px", justifySelf: "end" },
   atajo: {
     minWidth: "42px",
     height: "22px",
@@ -453,13 +466,14 @@ const style = {
     alignItems: "center",
     justifyContent: "center",
     padding: "0 6px",
-    border: `1px solid ${tokens.colors.bordeControl}`,
-    borderRadius: tokens.radii.sm,
-    color: tokens.colors.textoSecundario,
-    background: tokens.colors.fondoNeutral,
-    fontSize: "11px",
-    fontWeight: 700,
+    border: `1px solid ${tokens.colors.ink30}`,
+    background: tokens.colors.paper,
+    color: tokens.colors.ink70,
+    fontFamily: tokens.typography.fontFamilyMono,
+    fontSize: `${tokens.typography.sizes.xs}px`,
+    fontWeight: tokens.typography.weights.medium,
+    letterSpacing: 0,
   },
-  categoria: { color: tokens.colors.textoTerciario, fontSize: "11px", fontWeight: 700, textTransform: "uppercase" },
-  empty: { padding: "18px 12px", color: tokens.colors.textoSecundario, fontSize: "13px", fontWeight: 600 },
+  categoria: { color: tokens.colors.ink50, fontFamily: tokens.typography.fontFamily, fontSize: `${tokens.typography.sizes.xxs}px`, fontWeight: tokens.typography.weights.medium, textTransform: "uppercase", letterSpacing: "0.08em" },
+  empty: { padding: "20px 14px", color: tokens.colors.ink50, fontFamily: tokens.typography.fontFamily, fontSize: `${tokens.typography.sizes.base}px`, fontWeight: tokens.typography.weights.medium },
 } satisfies Record<string, preact.JSX.CSSProperties>;
