@@ -74,6 +74,7 @@ export function BarraSimulacion(): JSX.Element | null {
           disabled={totalPasos === 0 || completado}
           data-testid="barra-simulacion-auto"
           aria-pressed={autoAvance}
+          title={autoAvance ? "Pausar (Espacio)" : "Reproducir (Espacio)"}
         >
           {autoAvance ? "Pausa" : "Play"}
         </button>
@@ -94,33 +95,40 @@ export function BarraSimulacion(): JSX.Element | null {
             data-testid="barra-simulacion-velocidad"
           />
         </label>
-        <button
-          type="button"
-          style={style.boton}
-          onClick={ejecutarPaso}
-          disabled={totalPasos === 0 || completado || autoAvance}
-          data-testid="barra-simulacion-paso"
-        >
-          Paso
-        </button>
-        <button
-          type="button"
-          style={style.boton}
-          onClick={ejecutarCorrida}
-          disabled={totalPasos === 0 || completado || autoAvance}
-          data-testid="barra-simulacion-correr"
-        >
-          Correr
-        </button>
-        <button
-          type="button"
-          style={style.boton}
-          onClick={reiniciar}
-          disabled={totalPasos === 0 || autoAvance}
-          data-testid="barra-simulacion-reiniciar"
-        >
-          Reiniciar
-        </button>
+        {!autoAvance ? (
+          <>
+            <button
+              type="button"
+              style={style.boton}
+              onClick={ejecutarPaso}
+              disabled={totalPasos === 0 || completado}
+              data-testid="barra-simulacion-paso"
+              title="Ejecutar un paso"
+            >
+              Paso
+            </button>
+            <button
+              type="button"
+              style={style.boton}
+              onClick={ejecutarCorrida}
+              disabled={totalPasos === 0 || completado}
+              data-testid="barra-simulacion-correr"
+              title="Ejecutar toda la corrida"
+            >
+              Correr
+            </button>
+            <button
+              type="button"
+              style={style.boton}
+              onClick={reiniciar}
+              disabled={totalPasos === 0}
+              data-testid="barra-simulacion-reiniciar"
+              title="Volver al estado inicial"
+            >
+              Reiniciar
+            </button>
+          </>
+        ) : null}
         <button
           type="button"
           style={style.boton}
@@ -137,6 +145,7 @@ export function BarraSimulacion(): JSX.Element | null {
           style={style.botonSalir}
           onClick={salir}
           data-testid="barra-simulacion-salir"
+          title="Salir del modo simulación"
         >
           Salir
         </button>
