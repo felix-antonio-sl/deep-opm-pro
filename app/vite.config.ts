@@ -32,9 +32,10 @@ export default defineConfig({
           if (
             modulo.includes("/src/ui/MapaSistema") ||
             modulo.includes("/src/ui/MapaFiltros") ||
-            modulo.includes("/src/ui/MapaPanelEstadisticas") ||
-            modulo.includes("/src/render/jointjs/mapaExport")
+            modulo.includes("/src/ui/MapaPanelEstadisticas")
           ) return "feature-mapa";
+
+          if (modulo.includes("/src/render/jointjs/mapaExport")) return "feature-export";
 
           if (modulo.includes("/src/ui/asistente/")) return "feature-asistente";
 
