@@ -104,6 +104,7 @@ export function proyectarEntidad(
       textAnchor: "middle",
       pointerEvents: "none",
     },
+    index: attrsIndiceEntidad(entidad),
   };
   const metadatos = metadatosEntidad(
     entidad,
@@ -228,7 +229,48 @@ function markupBase(bodyTag: "rect" | "ellipse"): Array<Record<string, unknown>>
   return [
     { tagName: bodyTag, selector: "body" },
     { tagName: "text", selector: "label" },
+    { tagName: "text", selector: "index" },
   ];
+}
+
+/**
+ * Identificador canonico `o.NN`/`p.NN`/`s.NN` (ui-forja/08 §1.3, SSOT
+ * opm-visual-es §identificadores). Lectura pura del `id` interno de la entidad
+ * (`o-N`/`p-N`), no muta modelo ni proyeccion semantica (frontera dura L5).
+ *
+ * Limitacion documentada (commit/decision §10): el modelo asigna `id` como
+ * secuencia global monotona (`siguienteId` + prefijo `o`/`p`), no como ordinal
+ * por tipo. El identificador visible refleja esa secuencia (`o.03`, no un
+ * conteo `o.01` per-tipo): el read-side no expone un ordinal por tipo sin
+ * cruzar a proyeccion/modelo. El prefijo (`o`/`p`) y el formato `.NN`
+ * (zero-pad a 2) son la pieza canonica V-202 que SI vive en presentacion.
+ */
+export function identificadorCanonicoEntidad(entidad: Entidad): string {
+  const prefijo = entidad.tipo === "proceso" ? "p" : "o";
+  const seq = secuenciaDesdeId(entidad.id);
+  return `${prefijo}.${seq}`;
+}
+
+function secuenciaDesdeId(id: Id): string {
+  const sufijo = id.includes("-") ? id.slice(id.lastIndexOf("-") + 1) : id.replace(/^[a-zA-Z]+/, "");
+  const n = Number.parseInt(sufijo, 10);
+  if (!Number.isFinite(n)) return sufijo || "01";
+  return String(n).padStart(2, "0");
+}
+
+function attrsIndiceEntidad(entidad: Entidad): Record<string, unknown> {
+  return {
+    text: identificadorCanonicoEntidad(entidad),
+    fontFamily: CODEX.fuentes.mono,
+    fontSize: CODEX.index.fontSize,
+    fontWeight: CODEX.index.fontWeight,
+    fill: CODEX.colores.inkSoft,
+    letterSpacing: CODEX.index.letterSpacing,
+    textAnchor: "start",
+    refX: 0,
+    refY: `calc(h + ${CODEX.index.offsetY})`,
+    pointerEvents: "none",
+  };
 }
 
 function markupConResizeHandles(markup: Array<Record<string, unknown>>): Array<Record<string, unknown>> {
@@ -370,6 +412,7 @@ export function markupConBadge(bodyTag: "rect" | "ellipse", metadatos: Metadatos
   return [
     { tagName: bodyTag, selector: "body" },
     { tagName: "text", selector: "label" },
+    { tagName: "text", selector: "index" },
     ...(metadatos.foldBadge ? [{ tagName: "text", selector: "foldBadge" }] : []),
     ...(metadatos.descripcion ? [{ tagName: "text", selector: "descBadge" }] : []),
     ...(metadatos.url ? [{
@@ -396,6 +439,7 @@ export function markupConEstados(
   return [
     { tagName: bodyTag, selector: "body" },
     { tagName: "text", selector: "label" },
+    { tagName: "text", selector: "index" },
     ...capsulas,
     ...(metadatos.foldBadge ? [{ tagName: "text", selector: "foldBadge" }] : []),
     ...(metadatos.descripcion ? [{ tagName: "text", selector: "descBadge" }] : []),

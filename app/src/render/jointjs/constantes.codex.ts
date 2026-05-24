@@ -27,6 +27,16 @@ export const CODEX = {
   textWrap: {
     entidad: { width: -16, height: -16, ellipsis: false },
   },
+  // ui-forja/08-jointjs-styling.md §1.3: identificador canonico `o.NN/p.NN/s.NN`
+  // como sub-label mono bajo la etiqueta. V-202 (visualizacion): es affordance
+  // de lectura, no gramatica OPM; no se exporta al canon. Offset 4px bajo el
+  // bbox del shape.
+  index: {
+    fontSize: 9.5,
+    fontWeight: 500,
+    letterSpacing: "0.08em",
+    offsetY: 4,
+  },
   refinamiento: {
     fill: "rgba(250, 250, 248, 0.96)",
     strokeDasharray: "8 4",

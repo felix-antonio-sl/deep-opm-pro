@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { crearEstadosIniciales, crearModelo, crearObjeto, crearProceso, estadosDeEntidad, renombrarEstado } from "../../../modelo/operaciones";
-import type { Resultado } from "../../../modelo/tipos";
-import { proyectarEntidad } from "./entidad";
+import type { Entidad, Resultado } from "../../../modelo/tipos";
+import { identificadorCanonicoEntidad, proyectarEntidad } from "./entidad";
 
 describe("composer entidad", () => {
   test("proyecta objeto simple con metadata OPM estable", () => {
@@ -128,6 +128,53 @@ describe("composer entidad", () => {
       fontStyle: "italic",
       textWrap: { height: 20, ellipsis: false },
     });
+  });
+
+  test("ui-forja/08 §1.3: index label `o.NN` mono inkSoft bajo el shape (objeto)", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 30 }, "Orden"));
+    const entidad = Object.values(modelo.entidades)[0]!;
+    const apariencia = Object.values(modelo.opds[modelo.opdRaizId]?.apariencias ?? {})[0]!;
+
+    const cell = proyectarEntidad(modelo, modelo.opdRaizId, apariencia, entidad, false, false, {});
+    const markup = cell.markup as Array<Record<string, unknown>>;
+    const attrs = cell.attrs as Record<string, Record<string, unknown>>;
+
+    expect(markup.some((m) => m.tagName === "text" && m.selector === "index")).toBe(true);
+    const indexAttr = attrs.index;
+    if (!indexAttr) throw new Error("Falta attrs.index");
+    expect(indexAttr).toMatchObject({
+      text: identificadorCanonicoEntidad(entidad),
+      fontFamily: "JetBrains Mono Variable, JetBrains Mono, ui-monospace, monospace",
+      fontSize: 9.5,
+      fontWeight: 500,
+      fill: "#a39e92",
+      letterSpacing: "0.08em",
+      textAnchor: "start",
+      refX: 0,
+      refY: "calc(h + 4)",
+    });
+    expect((indexAttr.text as string).startsWith("o.")).toBe(true);
+  });
+
+  test("ui-forja/08 §2: index label `p.NN` en proceso", () => {
+    let modelo = crearModelo();
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 20, y: 30 }, "Aprobar"));
+    const entidad = Object.values(modelo.entidades)[0]!;
+    const apariencia = Object.values(modelo.opds[modelo.opdRaizId]?.apariencias ?? {})[0]!;
+
+    const cell = proyectarEntidad(modelo, modelo.opdRaizId, apariencia, entidad, false, false, {});
+    const attrs = cell.attrs as Record<string, Record<string, unknown>>;
+    const indexAttr = attrs.index;
+    if (!indexAttr) throw new Error("Falta attrs.index");
+    expect((indexAttr.text as string).startsWith("p.")).toBe(true);
+  });
+
+  test("identificadorCanonicoEntidad: prefijo por tipo + secuencia zero-pad", () => {
+    const objeto: Entidad = { id: "o-3", tipo: "objeto", nombre: "X", esencia: "informacional", afiliacion: "sistemica" };
+    const proceso: Entidad = { id: "p-12", tipo: "proceso", nombre: "Y", esencia: "informacional", afiliacion: "sistemica" };
+    expect(identificadorCanonicoEntidad(objeto)).toBe("o.03");
+    expect(identificadorCanonicoEntidad(proceso)).toBe("p.12");
   });
 
   test("HU-17.012 renderiza Nombre [Unidad] {alias}", () => {

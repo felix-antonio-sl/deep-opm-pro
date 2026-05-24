@@ -24,10 +24,40 @@ export const SIM_OLIVA = "#6B7B2A";
 export const SIM_OLIVA_OSCURO = "#3F4A16";
 
 /**
+ * Variantes del underline crimson canonico (ui-forja/08 §5). `seleccion`:
+ * persistente, 1.2px, opacity 1 (§5.1). `hover`: sutil, 1px, opacity 0.5
+ * (§5.2). El composer emite la celda; quien decide cuando aplicar cada
+ * variante es proyeccion.ts (dispatch fuera de la frontera L5).
+ */
+export type VarianteHalo = "seleccion" | "hover";
+
+function attrsUnderlineCrimson(d: string, variante: VarianteHalo): Record<string, unknown> {
+  const hover = variante === "hover";
+  return {
+    d,
+    fill: "none",
+    stroke: jointCanvasPalette.seleccion,
+    // §5.1 seleccion: 1.2px / §5.2 hover: 1px. Hairline crimson, sin fill.
+    strokeWidth: hover ? CODEX.strokes.enlace : CODEX.strokes.seleccion,
+    // §5.2: hover al 50% de opacidad; seleccion persistente opaca.
+    ...(hover ? { opacity: 0.5 } : {}),
+    pointerEvents: "none",
+  };
+}
+
+/**
  * Composer de halos transitorios de seleccion y hover OPL. No serializa
  * estado; emite solo celdas JointJS derivadas. Consumidor: proyeccion.ts.
+ *
+ * El highlighter Codex (ui-forja/08 §5) es un underline crimson hairline bajo
+ * la etiqueta — NO redibuja el borde del shape (mantiene el canon V-63 visible).
  */
-export function proyectarHaloSeleccion(opdId: Id, apariencia: Apariencia, entidad: Entidad): JointCellJson {
+export function proyectarHaloSeleccion(
+  opdId: Id,
+  apariencia: Apariencia,
+  entidad: Entidad,
+  variante: VarianteHalo = "seleccion",
+): JointCellJson {
   const width = Math.max(24, apariencia.width - 16);
   return {
     id: `seleccion-${apariencia.id}`,
@@ -35,13 +65,7 @@ export function proyectarHaloSeleccion(opdId: Id, apariencia: Apariencia, entida
     position: { x: apariencia.x + 8, y: apariencia.y + apariencia.height / 2 + 5 },
     size: { width, height: 2 },
     attrs: {
-      body: {
-        d: `M 0 1 L ${width} 1`,
-        fill: "none",
-        stroke: jointCanvasPalette.seleccion,
-        strokeWidth: CODEX.strokes.seleccion,
-        pointerEvents: "none",
-      },
+      body: attrsUnderlineCrimson(`M 0 1 L ${width} 1`, variante),
       label: { text: "", display: "none" },
     },
     opm: {
@@ -58,6 +82,7 @@ export function proyectarHaloSeleccionEstado(
   opdId: Id,
   apariencia: Apariencia,
   estado: Estado,
+  variante: VarianteHalo = "seleccion",
 ): JointCellJson | null {
   const rect = rectCapsulaEstado(modelo, apariencia, estado.id);
   if (!rect) return null;
@@ -69,13 +94,7 @@ export function proyectarHaloSeleccionEstado(
     position: { x: rect.x + 6, y: rect.y + rect.height / 2 + 5 },
     size: { width, height: 2 },
     attrs: {
-      body: {
-        d: `M 0 1 L ${width} 1`,
-        fill: "none",
-        stroke: jointCanvasPalette.seleccion,
-        strokeWidth: CODEX.strokes.seleccion,
-        pointerEvents: "none",
-      },
+      body: attrsUnderlineCrimson(`M 0 1 L ${width} 1`, variante),
       label: { text: "", display: "none" },
     },
     opm: {

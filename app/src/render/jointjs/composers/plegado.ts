@@ -24,6 +24,7 @@ export function markupPlegadoParcial(bodyTag: "rect" | "ellipse", filas: FilaPle
   return [
     { tagName: bodyTag, selector: "body" },
     { tagName: "text", selector: "label" },
+    { tagName: "text", selector: "index" },
     ...rows,
   ];
 }

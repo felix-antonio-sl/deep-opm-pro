@@ -48,6 +48,27 @@ describe("composer halos", () => {
     expect(cell.opm).toEqual({ kind: "selection-halo", opdId: "opd-1", targetId: "est-1", targetKind: "estado" });
   });
 
+  test("ui-forja/08 §5.2: variante hover es underline 1px crimson opacity 0.5", () => {
+    const cell = proyectarHaloSeleccion("opd-1", apariencia, entidad, "hover");
+    const body = (cell.attrs as Record<string, unknown>).body as Record<string, unknown>;
+
+    expect(body).toMatchObject({
+      fill: "none",
+      stroke: jointCanvasPalette.seleccion,
+      strokeWidth: 1,
+      opacity: 0.5,
+      pointerEvents: "none",
+    });
+    expect(body).not.toHaveProperty("rx");
+  });
+
+  test("ui-forja/08 §5.1: variante seleccion (default) es 1.2px opaca sin opacity", () => {
+    const cell = proyectarHaloSeleccion("opd-1", apariencia, entidad);
+    const body = (cell.attrs as Record<string, unknown>).body as Record<string, unknown>;
+    expect(body.strokeWidth).toBe(1.2);
+    expect(body).not.toHaveProperty("opacity");
+  });
+
   test("resuelve hover OPL para entidad, estado y enlace", () => {
     const modelo: Modelo = {
       id: "m",
