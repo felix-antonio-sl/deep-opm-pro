@@ -119,7 +119,7 @@ test("modo simulación: play avanza automaticamente hasta completar", async ({ p
   await page.keyboard.press("Enter");
 
   await entrarSimulacionDesdeMas(page);
-  await page.getByTestId("barra-simulacion-velocidad").selectOption("2");
+  await page.getByTestId("barra-simulacion-velocidad").fill("2");
   await page.getByTestId("barra-simulacion-auto").click();
 
   await expect(page.getByTestId("barra-simulacion-auto")).toContainText("Pausa");

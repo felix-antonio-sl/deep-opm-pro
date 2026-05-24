@@ -88,9 +88,8 @@ export function BarraSimulacion(): JSX.Element | null {
               fijarVelocidad(Number(target.value));
             }}
             disabled={totalPasos === 0}
-            style={style.velocidadSelect}
+            style={style.velocidadSlider}
             data-testid="barra-simulacion-velocidad"
-            aria-label="Velocidad de simulación"
           />
         </label>
         <button
@@ -257,13 +256,10 @@ const style: Record<string, JSX.CSSProperties> = {
   velocidadTexto: {
     lineHeight: "26px",
   },
-  velocidadSelect: {
-    height: 24,
-    border: "none",
-    background: "transparent",
-    color: tokens.colors.textoPrimario,
-    fontSize: tokens.typography.sizes.sm,
+  velocidadSlider: {
+    width: 96,
     cursor: "pointer",
+    accentColor: tokens.colors.acentoUi,
   },
   botonSalir: {
     height: 28,

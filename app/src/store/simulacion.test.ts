@@ -11,8 +11,9 @@ describe("normalizarVelocidadSimulacion", () => {
     expect(normalizarVelocidadSimulacion(0.1)).toBe(0.25);
     expect(normalizarVelocidadSimulacion(10)).toBe(4);
   });
-  test("valor no finito cae a 1", () => {
+  test("NaN cae a 1; ±Infinity al extremo correspondiente", () => {
     expect(normalizarVelocidadSimulacion(Number.NaN)).toBe(1);
     expect(normalizarVelocidadSimulacion(Number.POSITIVE_INFINITY)).toBe(4);
+    expect(normalizarVelocidadSimulacion(Number.NEGATIVE_INFINITY)).toBe(1);
   });
 });
