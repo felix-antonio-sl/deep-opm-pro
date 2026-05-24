@@ -14,8 +14,6 @@ export interface AppShellWorkbenchPort {
   seleccionIdOpl: OpmStore["seleccionId"];
   enlaceSeleccionIdOpl: OpmStore["enlaceSeleccionId"];
   vistaMobileActiva: OpmStore["vistaMobileActiva"];
-  bibliotecaDockAbierto: OpmStore["bibliotecaDockAbierto"];
-  cerrarBibliotecaDock: OpmStore["cerrarBibliotecaDock"];
   cambiarOpdActivo: OpmStore["cambiarOpdActivo"];
   modoSimulacionActivo: boolean;
   modoEnlaceActivo: boolean;

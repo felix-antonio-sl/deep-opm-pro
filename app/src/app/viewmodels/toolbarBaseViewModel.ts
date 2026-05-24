@@ -2,13 +2,11 @@ import { useZustandAutosavePort } from "../ports/zustandAutosavePort";
 import { useZustandHistoryPort } from "../ports/zustandHistoryPort";
 import { useZustandInteractionModePort } from "../ports/zustandInteractionModePort";
 import { useZustandLinkContextActionsPort } from "../ports/zustandLinkContextActionsPort";
-import { useZustandMapViewPort } from "../ports/zustandMapViewPort";
 import { useZustandModelCreationPort } from "../ports/zustandModelCreationPort";
 import { useZustandOpdNavigationPort } from "../ports/zustandOpdNavigationPort";
 import { useZustandSelectionBatchActionsPort } from "../ports/zustandSelectionBatchActionsPort";
 import { useZustandSelectionPort } from "../ports/zustandSelectionPort";
 import { useZustandToolbarChromePort } from "../ports/zustandToolbarChromePort";
-import { useZustandWorkbenchViewControlsPort } from "../ports/zustandWorkbenchViewControlsPort";
 
 export function useToolbarBaseViewModel() {
   const {
@@ -30,24 +28,6 @@ export function useToolbarBaseViewModel() {
   } = useZustandModelCreationPort();
   const { seleccionId, seleccionados, seleccionarEntidad, seleccionarEnlace } = useZustandSelectionPort();
   const {
-    abrirDialogoPlantillas,
-    uiAliasVisibles,
-    uiDescripcionesVisibles,
-    toggleAliasVisibles,
-    toggleDescripcionesVisibles,
-    uiModoImagenGlobal,
-    fijarModoImagenGlobal,
-    abrirModalImagen,
-    gridConfig,
-    toggleGrid,
-    abrirDialogoConfiguracion,
-    aplicarLayoutSugerido,
-    bibliotecaDockAbierto,
-    toggleBibliotecaDock,
-    iniciarModoSimulacion,
-  } = useZustandWorkbenchViewControlsPort();
-  const { vistaMapaActiva, abrirVistaMapa, cerrarVistaMapa } = useZustandMapViewPort();
-  const {
     eliminarSeleccion,
     conectarSeleccionAlTodo,
     traerEnlacesEntreSeleccionadas,
@@ -64,11 +44,6 @@ export function useToolbarBaseViewModel() {
   const { iniciarAutosalvado } = useZustandAutosavePort();
   const { modelo, opdActivoId } = useZustandOpdNavigationPort();
   const { modoEnlace } = useZustandInteractionModePort();
-
-  const toggleVistaMapa = () => {
-    if (vistaMapaActiva) cerrarVistaMapa();
-    else abrirVistaMapa();
-  };
 
   return {
     abrirMenuPrincipal,
@@ -102,23 +77,6 @@ export function useToolbarBaseViewModel() {
     iniciarAutosalvado,
     modoCreacion,
     modoEnlace,
-    abrirDialogoPlantillas,
-    uiAliasVisibles,
-    uiDescripcionesVisibles,
-    toggleAliasVisibles,
-    toggleDescripcionesVisibles,
-    uiModoImagenGlobal,
-    fijarModoImagenGlobal,
-    abrirModalImagen,
-    gridConfig,
-    toggleGrid,
-    abrirDialogoConfiguracion,
-    aplicarLayoutSugerido,
-    bibliotecaDockAbierto,
-    toggleBibliotecaDock,
-    vistaMapaActiva,
-    toggleVistaMapa,
-    iniciarModoSimulacion,
     alinearSeleccion,
     distribuirSeleccion,
     alinearSeleccionEnlaces,

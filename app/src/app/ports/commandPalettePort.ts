@@ -23,9 +23,6 @@ export interface CommandPaletteWorkspacePort {
 }
 
 export interface CommandPaletteViewPort {
-  abrirVistaMapa: () => void;
-  cerrarVistaMapa: () => void;
-  vistaMapaActiva: boolean;
   gridConfigBase: Partial<GridConfig> | undefined;
   toggleGrid: () => void;
   aplicarLayoutSugerido: () => void;

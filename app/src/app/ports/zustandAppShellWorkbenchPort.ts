@@ -1,4 +1,5 @@
 import { useOpmStore } from "../../store";
+import { APP_FEATURES } from "../features";
 import type { AppShellWorkbenchPort } from "./appShellWorkbenchPort";
 
 export function useZustandAppShellWorkbenchPort(): AppShellWorkbenchPort {
@@ -15,15 +16,13 @@ export function useZustandAppShellWorkbenchPort(): AppShellWorkbenchPort {
   const seleccionIdOpl = useOpmStore((s) => s.seleccionId);
   const enlaceSeleccionIdOpl = useOpmStore((s) => s.enlaceSeleccionId);
   const vistaMobileActiva = useOpmStore((s) => s.vistaMobileActiva);
-  const bibliotecaDockAbierto = useOpmStore((s) => s.bibliotecaDockAbierto);
-  const cerrarBibliotecaDock = useOpmStore((s) => s.cerrarBibliotecaDock);
   const cambiarOpdActivo = useOpmStore((s) => s.cambiarOpdActivo);
   const modoSimulacionActivo = useOpmStore((s) => s.contextoSimulacion !== null);
   const modoEnlaceActivo = useOpmStore((s) => s.modoEnlace !== null);
   const modoCreacionActivo = useOpmStore((s) => s.modoCreacion !== null);
 
   return {
-    vistaMapaActiva,
+    vistaMapaActiva: APP_FEATURES.mapaSistema ? vistaMapaActiva : false,
     anchoPanelArbol,
     anchoPanelInspector,
     preferenciasOpl,
@@ -36,8 +35,6 @@ export function useZustandAppShellWorkbenchPort(): AppShellWorkbenchPort {
     seleccionIdOpl,
     enlaceSeleccionIdOpl,
     vistaMobileActiva,
-    bibliotecaDockAbierto,
-    cerrarBibliotecaDock,
     cambiarOpdActivo,
     modoSimulacionActivo,
     modoEnlaceActivo,

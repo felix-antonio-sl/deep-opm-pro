@@ -45,8 +45,6 @@ export function useMenuPrincipalViewModel() {
     gridConfig,
     toggleGrid,
     aplicarLayoutSugerido,
-    bibliotecaDockAbierto,
-    toggleBibliotecaDock,
     iniciarModoSimulacion,
   } = useZustandWorkbenchViewControlsPort();
   const { modelo, opdActivoId } = useZustandOpdNavigationPort();
@@ -110,8 +108,6 @@ export function useMenuPrincipalViewModel() {
     gridActiva: gridConfig.activa,
     toggleGrid,
     aplicarLayoutSugerido,
-    bibliotecaDockAbierto,
-    toggleBibliotecaDock,
     iniciarModoSimulacion,
   };
 }

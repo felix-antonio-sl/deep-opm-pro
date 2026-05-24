@@ -15,9 +15,6 @@ export function useZustandCommandPalettePort(): CommandPalettePort {
   const abrirDialogoPlantillas = useOpmStore((s) => s.abrirDialogoPlantillas);
   const abrirDialogoVersiones = useOpmStore((s) => s.abrirDialogoVersiones);
   const modeloPersistidoId = useOpmStore((s) => s.modeloPersistidoId);
-  const abrirVistaMapa = useOpmStore((s) => s.abrirVistaMapa);
-  const cerrarVistaMapa = useOpmStore((s) => s.cerrarVistaMapa);
-  const vistaMapaActiva = useOpmStore((s) => s.vistaMapaActiva);
   const gridConfigBase = useOpmStore((s) => s.gridConfig ?? s.indice.preferenciasUi?.gridConfig);
   const toggleGrid = useOpmStore((s) => s.toggleGrid);
   const aplicarLayoutSugerido = useOpmStore((s) => s.aplicarLayoutSugerido);
@@ -43,9 +40,6 @@ export function useZustandCommandPalettePort(): CommandPalettePort {
     abrirDialogoPlantillas,
     abrirDialogoVersiones,
     modeloPersistidoId,
-    abrirVistaMapa,
-    cerrarVistaMapa,
-    vistaMapaActiva,
     gridConfigBase,
     toggleGrid,
     aplicarLayoutSugerido,

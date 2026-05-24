@@ -1,4 +1,5 @@
 import { useOpmStore } from "../../store";
+import { APP_FEATURES } from "../features";
 import type { OpdTreePort } from "./opdTreePort";
 
 export function useZustandOpdTreePort(): OpdTreePort {
@@ -20,7 +21,7 @@ export function useZustandOpdTreePort(): OpdTreePort {
   const abrirGestionArbol = useOpmStore((s) => s.abrirGestionArbol);
 
   return {
-    vistaMapaActiva,
+    vistaMapaActiva: APP_FEATURES.mapaSistema ? vistaMapaActiva : false,
     modoOrdenArbol,
     fijarModoOrdenArbol,
     seleccionarEntidad,
@@ -34,7 +35,7 @@ export function useZustandOpdTreePort(): OpdTreePort {
     navegarOpdAbajo,
     navegarOpdIzquierda,
     navegarOpdDerecha,
-    abrirVistaMapa,
+    abrirVistaMapa: APP_FEATURES.mapaSistema ? abrirVistaMapa : () => {},
     abrirGestionArbol,
   };
 }

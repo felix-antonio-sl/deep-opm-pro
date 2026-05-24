@@ -20,7 +20,6 @@ import { ANCHO_PANEL_INSPECTOR_DEFAULT, ANCHO_PANEL_INSPECTOR_MAX, ANCHO_PANEL_I
 import { ArbolOpd } from "./ArbolOpd";
 import { BarraHerramientasElemento } from "./BarraHerramientasElemento";
 import { BarraPestanas } from "./BarraPestanas";
-import { BibliotecaDock } from "./biblioteca/BibliotecaDock";
 import { CapturadorBugs } from "./CapturadorBugs";
 import { HaloEstado } from "./HaloEstado";
 import { configurarContextoAtajos, escucharGlobal, registrarAtajo } from "./atajosTeclado";
@@ -61,8 +60,6 @@ const DialogoConfiguracion = lazy(() => import("./DialogoConfiguracion").then((m
 const DialogoGuardarComo = lazy(() => import("./DialogoGuardarComo").then((m) => ({ default: m.DialogoGuardarComo })));
 const DialogoImportarExportarJson = lazy(() => import("./DialogoImportarExportarJson").then((m) => ({ default: m.DialogoImportarExportarJson })));
 const DialogoVersiones = lazy(() => import("./DialogoVersiones").then((m) => ({ default: m.DialogoVersiones })));
-// Ronda 13 L1 T2.6: lazy splits para recuperar objetivo historico de chunk principal <=195 kB.
-const MapaSistema = lazy(() => import("./MapaSistema").then((m) => ({ default: m.MapaSistema })));
 const Timeline = lazy(() => import("./Timeline").then((m) => ({ default: m.Timeline })));
 const TablaEnlaces = lazy(() => import("./TablaEnlaces").then((m) => ({ default: m.TablaEnlaces })));
 const GestionArbolOpd = lazy(() => import("./GestionArbolOpd").then((m) => ({ default: m.GestionArbolOpd })));
@@ -103,9 +100,6 @@ export function App() {
     seleccionIdOpl,
     enlaceSeleccionIdOpl,
     vistaMobileActiva,
-    bibliotecaDockAbierto,
-    cerrarBibliotecaDock,
-    cambiarOpdActivo,
     modoSimulacionActivo,
     modoEnlaceActivo,
     modoCreacionActivo,
@@ -118,14 +112,6 @@ export function App() {
   usePrecargaBienvenida("System Diagram");
   const oplMinimizado = panelOplMinimizadoEfectivo(preferenciasOpl?.oplMinimizado, seleccionIdOpl, enlaceSeleccionIdOpl);
   const timelineDisponible = tieneTimelineDisponible(modelo, opdActivoId);
-  const [esDesktopBiblio, setEsDesktopBiblio] = useState(typeof window === "undefined" ? true : window.innerWidth >= tokens.bibliotecaDock.desktopMinPx);
-  const [altoDock, setAltoDock] = useState<number>(tokens.bibliotecaDock.altoInicial);
-  useEffect(() => {
-    if (typeof window === "undefined") return undefined;
-    const onResize = () => setEsDesktopBiblio(window.innerWidth >= tokens.bibliotecaDock.desktopMinPx);
-    window.addEventListener("resize", onResize);
-    return () => window.removeEventListener("resize", onResize);
-  }, []);
   // L2 ronda 21: branch por viewport. Desktop preserva el grid canónico de 4
   // columnas; tablet conserva grid pero más estrecho; mobile delega a tabs.
   const breakpoint = useBreakpoint();
@@ -134,9 +120,6 @@ export function App() {
   // BUG-20260511T225343Z-696858: en tablet acotamos al default para que el
   // canvas conserve espacio útil. Desktop respeta el valor del store.
   const anchoInspectorLayout = anchoPanelInspectorLayout(anchoPanelInspector, esTablet);
-  // El dock convive con el árbol OPD solo cuando hay espacio horizontal real
-  // y no estamos en mobile/tablet (mobile mantiene overlay legacy si se abre).
-  const dockVisible = bibliotecaDockAbierto && esDesktopBiblio && !esMobile && !esTablet;
 
   useEffect(() => {
     const shortcutPort = crearZustandGlobalShortcutsPort();
@@ -161,7 +144,6 @@ export function App() {
     modoCreacionActivo,
     bienvenidaActiva,
   });
-  const esViewPointMapa = contextoWorkbench.modo === "mapa";
   const modoMarginalia = modoMarginaliaCodex(inspectorAbierto);
 
   return (
@@ -196,21 +178,13 @@ export function App() {
               style={layout.mobileSection}
             >
               <div data-testid="canvas-pane" style={layout.canvasPaneMobile}>
-                {esViewPointMapa ? (
-                  <Suspense fallback={null}>
-                    <MapaSistema />
-                  </Suspense>
-                ) : (
-                  <>
-                    <JointCanvasFeedbackBoundary onAdapterChange={setCanvasAdapter} />
-                    <BarraHerramientasElemento
-                      inspectorAbierto={false}
-                      onAbrirInspector={() => setInspectorAbierto(true)}
-                      onToggleInspector={() => setInspectorAbierto((abierto) => !abierto)}
-                    />
-                    <PantallaInicio />
-                  </>
-                )}
+                <JointCanvasFeedbackBoundary onAdapterChange={setCanvasAdapter} />
+                <BarraHerramientasElemento
+                  inspectorAbierto={false}
+                  onAbrirInspector={() => setInspectorAbierto(true)}
+                  onToggleInspector={() => setInspectorAbierto((abierto) => !abierto)}
+                />
+                <PantallaInicio />
               </div>
               {vistaMobileActiva !== "canvas" ? (
                 <div
@@ -252,30 +226,11 @@ export function App() {
             footerLeft={<CodexFooterKey label="View" value={contextoWorkbench.viewPoint} />}
             footerRight={<CodexFooterKey label="Margen" value={modoMarginalia === "split" ? "OPL + Inspector" : "OPL"} />}
             leftPanel={(
-              <div data-testid="tree-pane" style={treePaneStyle(dockVisible, altoDock)}>
+              <div data-testid="tree-pane" style={layout.treePane}>
                 <CodexColHeader kicker="TOC" title="OPD tree" meta={Object.keys(modelo.opds).length} />
                 <div style={layout.treePaneArbol}>
                   <ArbolOpd />
                 </div>
-                {dockVisible ? (
-                  <>
-                    <DivisorPanel
-                      orientacion="horizontal"
-                      anchoInicial={altoDock}
-                      anchoMin={tokens.bibliotecaDock.altoMin}
-                      anchoMax={tokens.bibliotecaDock.altoMax}
-                      onAnchoChange={setAltoDock}
-                    />
-                    <div data-testid="biblioteca-dock-pane" style={layout.bibliotecaDockPane}>
-                      <BibliotecaDock
-                        modelo={modelo}
-                        opdActivoId={opdActivoId}
-                        onCerrar={cerrarBibliotecaDock}
-                        onNavegarOpd={cambiarOpdActivo}
-                      />
-                    </div>
-                  </>
-                ) : null}
               </div>
             )}
             leftDivider={(
@@ -287,22 +242,14 @@ export function App() {
             )}
             canvas={(
               <CodexCanvasMount>
-                {esViewPointMapa ? (
-                  <Suspense fallback={null}>
-                    <MapaSistema />
-                  </Suspense>
-                ) : (
-                  <>
-                    <JointCanvasFeedbackBoundary onAdapterChange={setCanvasAdapter} />
-                    <BarraHerramientasElemento
-                      inspectorAbierto={inspectorAbierto}
-                      onAbrirInspector={() => setInspectorAbierto(true)}
-                      onToggleInspector={() => setInspectorAbierto((abierto) => !abierto)}
-                    />
-                    <EstadoVacioOpm />
-                    <PantallaInicio />
-                  </>
-                )}
+                <JointCanvasFeedbackBoundary onAdapterChange={setCanvasAdapter} />
+                <BarraHerramientasElemento
+                  inspectorAbierto={inspectorAbierto}
+                  onAbrirInspector={() => setInspectorAbierto(true)}
+                  onToggleInspector={() => setInspectorAbierto((abierto) => !abierto)}
+                />
+                <EstadoVacioOpm />
+                <PantallaInicio />
               </CodexCanvasMount>
             )}
             rightDivider={(
@@ -443,11 +390,6 @@ const layout = {
     boxShadow: tokens.shadows.panelInset,
   },
   treePaneArbol: {
-    minWidth: 0,
-    minHeight: 0,
-    overflow: "hidden",
-  },
-  bibliotecaDockPane: {
     minWidth: 0,
     minHeight: 0,
     overflow: "hidden",
@@ -597,20 +539,6 @@ function pageStyle(esMobile: boolean): preact.JSX.CSSProperties {
  */
 function anchoPanelInspectorLayout(anchoPanelInspector: number, esTablet: boolean): number {
   return esTablet ? Math.min(anchoPanelInspector, ANCHO_PANEL_INSPECTOR_DEFAULT) : anchoPanelInspector;
-}
-
-/**
- * L3 ronda 20: cuando el dock está visible, el tree-pane se vuelve un grid
- * vertical `arbol | divisor 6px | dock` con la biblioteca dock acoplada
- * al borde inferior. Cuando está cerrado o el viewport es mobile, el
- * tree-pane mantiene la altura completa del workbench.
- */
-function treePaneStyle(dockVisible: boolean, altoDock: number): preact.JSX.CSSProperties {
-  if (!dockVisible) return layout.treePane;
-  return {
-    ...layout.treePane,
-    gridTemplateRows: `42px minmax(0, 1fr) 6px ${altoDock}px`,
-  };
 }
 
 function marginaliaPaneStyle(modo: "split" | "opl"): preact.JSX.CSSProperties {

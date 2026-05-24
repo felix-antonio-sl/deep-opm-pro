@@ -105,6 +105,11 @@ function setup(sim: { activa: boolean; auto: boolean }) {
 }
 
 describe("atajo Espacio en simulación", () => {
+  test("no registra Ctrl+B cuando biblioteca dock está pausada como superficie de producto", () => {
+    const { registros } = setup({ activa: false, auto: false });
+    expect(registros.some((r) => r.combo === "Ctrl+B")).toBe(false);
+  });
+
   test("no actúa fuera de simulación", () => {
     const { registros, calls } = setup({ activa: false, auto: false });
     const espacio = registros.find((r) => r.combo === "Space");

@@ -94,11 +94,10 @@ interface ToolbarBaseProps {
   children?: preact.ComponentChildren;
   modelarSlot?: preact.ComponentChildren;
   conectarSlot?: preact.ComponentChildren;
-  mapaSlot?: preact.ComponentChildren;
   statusSlot?: preact.ComponentChildren;
 }
 
-export function ToolbarBase({ children, modelarSlot, conectarSlot, mapaSlot, statusSlot }: ToolbarBaseProps) {
+export function ToolbarBase({ children, modelarSlot, conectarSlot, statusSlot }: ToolbarBaseProps) {
   // P0-2 (informe UI/UX 2026-05-07): MenuPrincipal se monta UNA sola vez en
   // App.tsx. Antes ToolbarBase tambien tenia su propia instancia lazy y se
   // duplicaba en el DOM (`role="menu"` aparecia dos veces, rompiendo
@@ -372,14 +371,6 @@ export function ToolbarBase({ children, modelarSlot, conectarSlot, mapaSlot, sta
           </>
         ) : null}
         <span style={style.divider} />
-        {mapaSlot ? (
-          <>
-            <div role="group" aria-label="Mapa del sistema" style={style.cluster} data-slot="cluster-mapa-sistema" data-cluster="mapa">
-              {mapaSlot}
-            </div>
-            <span style={style.divider} />
-          </>
-        ) : null}
         <div role="group" aria-label="Ayuda" style={style.cluster} data-slot="cluster-ayuda" data-cluster="ayuda">
           {/* Corte 3.5 sustracción de chrome: el botón mostraba solo el
               símbolo `⌕` (lupa). Ahora exhibe label "Buscar" para que su

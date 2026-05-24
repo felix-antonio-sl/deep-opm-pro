@@ -1,4 +1,5 @@
 import type { Id } from "../../modelo/tipos";
+import { APP_FEATURES } from "../features";
 
 export interface ShortcutRegistration {
   combo: string;
@@ -147,7 +148,7 @@ export function registrarAtajosAplicacion(port: GlobalShortcutsPort, registrarAt
     return state.vaciarSeleccion();
   };
 
-  return [
+  const registrosBase = [
     registrarAtajo({ combo: "Ctrl+S", ctx: "global", categoria: "archivo", descripcion: "Guardar modelo", descripcionLarga: "Persiste el modelo activo en el workspace local", handler: () => s().guardarLocal() }),
     registrarAtajo({ combo: "Ctrl+K", ctx: "global", categoria: "navegacion", descripcion: "Buscar comandos", descripcionLarga: "Abre este buscador de comandos y atajos", handler: () => s().abrirDialogoComandos() }),
     registrarAtajo({ combo: "Ctrl+F", ctx: "canvas", categoria: "navegacion", descripcion: "Buscar cosas en el modelo", descripcionLarga: "Busca objetos y procesos por nombre en el modelo activo", handler: () => s().abrirBusquedaCosas() }),
@@ -233,9 +234,14 @@ export function registrarAtajosAplicacion(port: GlobalShortcutsPort, registrarAt
     } }),
     registrarAtajo({ combo: "Ctrl+Tab", ctx: "global", categoria: "navegacion", descripcion: "Siguiente pestaña", descripcionLarga: "Cambia el foco a la pestaña siguiente del workspace", handler: () => cambiarPestanaRelativa(s, 1) }),
     registrarAtajo({ combo: "Ctrl+Shift+Tab", ctx: "global", categoria: "navegacion", descripcion: "Pestaña anterior", descripcionLarga: "Cambia el foco a la pestaña previa del workspace", handler: () => cambiarPestanaRelativa(s, -1) }),
-    registrarAtajo({ combo: "Ctrl+B", ctx: "global", categoria: "vista", descripcion: "Abrir/cerrar biblioteca dock", descripcionLarga: "Muestra u oculta la biblioteca lateral de plantillas y formas", handler: () => s().toggleBibliotecaDock() }),
     registrarAtajo({ combo: "Space", ctx: "global", categoria: "edicion", descripcion: "Reproducir/Pausar simulación", descripcionLarga: "En modo simulación, alterna entre reproducir y pausar", preventDefault: false, handler: togglePlaySimulacion }),
   ];
+
+  if (APP_FEATURES.bibliotecaDock) {
+    registrosBase.push(registrarAtajo({ combo: "Ctrl+B", ctx: "global", categoria: "vista", descripcion: "Abrir/cerrar biblioteca dock", descripcionLarga: "Muestra u oculta la biblioteca lateral de plantillas y formas", handler: () => s().toggleBibliotecaDock() }));
+  }
+
+  return registrosBase;
 }
 
 function cambiarPestanaRelativa(snapshot: () => GlobalShortcutsSnapshot, delta: 1 | -1): void {

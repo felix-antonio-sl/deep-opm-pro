@@ -55,8 +55,6 @@ export function MenuPrincipal() {
     gridActiva,
     toggleGrid,
     aplicarLayoutSugerido,
-    bibliotecaDockAbierto,
-    toggleBibliotecaDock,
     iniciarModoSimulacion,
   } = useMenuPrincipalViewModel();
 
@@ -145,12 +143,6 @@ export function MenuPrincipal() {
           activo={gridActiva}
           testId="toolbar-mas-toggle-grid"
           onClick={() => ejecutar(toggleGrid)}
-        />
-        <MenuItem
-          label="Biblioteca dock"
-          activo={bibliotecaDockAbierto}
-          testId="toolbar-mas-biblioteca-dock"
-          onClick={() => ejecutar(toggleBibliotecaDock)}
         />
       </MenuSection>
 

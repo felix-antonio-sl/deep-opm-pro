@@ -113,7 +113,7 @@ test("menú principal absorbe los items del ⋯ Más en secciones Vista y Herram
   // Items canónicos heredados del ⋯ Más, ahora en `☰`. Preservan testId.
   await expect(menu.getByTestId("toolbar-mas-toggle-grid")).toBeVisible();
   await expect(menu.getByTestId("toolbar-mas-auto-layout")).toBeVisible();
-  await expect(menu.getByTestId("toolbar-mas-biblioteca-dock")).toBeVisible();
+  await expect(menu.getByTestId("toolbar-mas-biblioteca-dock")).toHaveCount(0);
   await expect(menu.getByTestId("toolbar-mas-mapa")).toHaveCount(0);
   await expect(menu.getByTestId("toolbar-mas-simulacion")).toBeVisible();
   await expect(menu.getByTestId("toolbar-mas-modo-imagen-global")).toBeVisible();

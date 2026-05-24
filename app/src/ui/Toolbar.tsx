@@ -5,7 +5,6 @@ import { Suspense } from "preact/compat";
 import { useToolbarViewModel } from "../app/viewmodels/toolbarViewModel";
 import { ToolbarBase } from "./toolbar/ToolbarBase";
 import { ToolbarCreacion } from "./toolbar/ToolbarCreacion";
-import { ToolbarMapaSistema } from "./toolbar/ToolbarMapaSistema";
 import { toolbarStyle as style } from "./toolbar/toolbarStyles";
 
 /**
@@ -13,14 +12,13 @@ import { toolbarStyle as style } from "./toolbar/toolbarStyles";
  * SSOT: [JOYAS §1-3], [V-0c]/[V-63]; contrato T2.1 opcion B + IFML H-2/H-5/H-10/H-12.
  */
 export function Toolbar() {
-  const { vistaMapaActiva, autosalvado } = useToolbarViewModel();
+  const { autosalvado } = useToolbarViewModel();
 
   return (
     <div data-testid="toolbar-root" style={style.bar}>
       <Suspense fallback={null}>
         <ToolbarBase
           conectarSlot={<ToolbarCreacion />}
-          mapaSlot={vistaMapaActiva ? <ToolbarMapaSistema /> : null}
           statusSlot={(
             <>
               {autosalvado.activo ? (

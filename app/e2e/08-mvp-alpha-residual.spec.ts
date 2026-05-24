@@ -184,7 +184,7 @@ test("L4 menu de tipos validos muestra previsualización OPL y filtra por direcc
   expect(pageErrors).toEqual([]);
 });
 
-test("L4 biblioteca lista cosas y menu contextual borra enlace", async ({ page }) => {
+test("L4 biblioteca dock pausada y menu contextual borra enlace", async ({ page }) => {
   const pageErrors: string[] = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
@@ -194,11 +194,9 @@ test("L4 biblioteca lista cosas y menu contextual borra enlace", async ({ page }
   await page.getByLabel("Nombre").fill("Entrada");
   await page.getByRole("button", { name: "Proceso", exact: true }).click();
   await page.getByLabel("Nombre").fill("Procesar");
-  await clickToolbarMasItem(page, "toolbar-mas-biblioteca-dock");
-  await expect(page.getByTestId("biblioteca-dock")).toBeVisible();
-  await expect(page.getByTestId("biblioteca-dock").getByText("Entrada")).toBeVisible();
-  await expect(page.getByTestId("biblioteca-dock").getByText("Procesar")).toBeVisible();
-  await page.getByLabel("Cerrar biblioteca dock").click();
+  await page.getByLabel("Menú principal").click();
+  await expect(page.getByTestId("toolbar-mas-biblioteca-dock")).toHaveCount(0);
+  await page.keyboard.press("Escape");
   await expect(page.getByTestId("biblioteca-dock")).toHaveCount(0);
 
   await elementoPorTexto(page, "Entrada").click();

@@ -17,8 +17,6 @@ export function useZustandWorkbenchViewControlsPort(): WorkbenchViewControlsPort
   const toggleGrid = useOpmStore((s) => s.toggleGrid);
   const abrirDialogoConfiguracion = useOpmStore((s) => s.abrirDialogoConfiguracion);
   const aplicarLayoutSugerido = useOpmStore((s) => s.aplicarLayoutSugerido);
-  const bibliotecaDockAbierto = useOpmStore((s) => s.bibliotecaDockAbierto);
-  const toggleBibliotecaDock = useOpmStore((s) => s.toggleBibliotecaDock);
   const iniciarModoSimulacion = useOpmStore((s) => s.iniciarModoSimulacion);
 
   return {
@@ -34,8 +32,6 @@ export function useZustandWorkbenchViewControlsPort(): WorkbenchViewControlsPort
     toggleGrid,
     abrirDialogoConfiguracion,
     aplicarLayoutSugerido,
-    bibliotecaDockAbierto,
-    toggleBibliotecaDock,
     iniciarModoSimulacion,
   };
 }

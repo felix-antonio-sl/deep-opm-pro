@@ -14,7 +14,5 @@ export interface WorkbenchViewControlsPort {
   toggleGrid: OpmStore["toggleGrid"];
   abrirDialogoConfiguracion: OpmStore["abrirDialogoConfiguracion"];
   aplicarLayoutSugerido: OpmStore["aplicarLayoutSugerido"];
-  bibliotecaDockAbierto: OpmStore["bibliotecaDockAbierto"];
-  toggleBibliotecaDock: OpmStore["toggleBibliotecaDock"];
   iniciarModoSimulacion: OpmStore["iniciarModoSimulacion"];
 }
