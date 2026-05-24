@@ -25,6 +25,34 @@
 
 ## Estado Actual
 
+### Cierre Auditoría Profunda Canon Estricto + 2 Contradicciones De Diseño — 2026-05-24
+
+Estado actual:
+
+- Auditoría exhaustiva línea por línea de `docs/canon-opm/reglas-opm-estrictas.md` sobre 5 dimensiones (coherencia lógica, relevancia semántica, cumplimiento prescriptivo, unicidad/no-duplicación, precisión/no-ambigüedad), contrastada contra la SSOT `opm-ssot-es/`.
+- Correcciones mecánicas aplicadas: P1 (eliminado metacomentario histórico que violaba R-DOC-1), P2 (`asi`→`así`, R-DOC-8), Pr1 (operadores normalizados a superficie EBNF ASCII `=`,`<`,`>`,`<=`,`>=` y `en {conjunto}` por A.7; Unicode marcado como visualización), U1 (duplicado R-INS-6≡R-HER-6 colapsado: R-INS-6 remite a R-HER-6).
+- Resueltas 2 contradicciones de diseño:
+  - **C1 (TS4/TS5)**: la Nota crítica §4.5 afirmaba que TS4/TS5 *son* siempre el enlace escindido, lo que contradecía ETS3/ETS4, R-EFE-3 y §6.3. Nueva regla **R-ESCIND-0** distingue dos regímenes por procedencia: (a) fragmento escindido (par acoplado de un TS3 descompuesto, sin modificadores, V-41) y (b) efecto parcial standalone (efecto completo, salida por defecto V-9, admite e/c vía ETS3/ETS4). Resuelve de paso la ambigüedad de bisimetría (Pr2): al parsear OPL aislado, TS4/TS5 es siempre standalone; el escindido solo nace de la descomposición y persiste con metadato de procedencia.
+  - **C2 (modificador sobre invocación)**: AP-10 y §6.4 reclasificados de "no canonizado" a **Prohibido (error de categoría)**, fundado en `SSOT-iso §Control como modificador` (los modificadores anotan EXCLUSIVAMENTE enlaces transformador/habilitador; la invocación es familia autónoma). Sustituto canónico: nodo de decisión booleano (`SSOT-iso §Invocación cíclica con omisión condicional`). AP-28 (`c`+`e` juntos) se mantiene **No canonizado** (silencio SSOT verificado, no contradicción) y se reescribió para no usar verbo de prohibición. Nueva regla transversal **R-AP-0C** sella la distinción: silencio SSOT → régimen no-canonizado; contradicción explícita o error de categoría → bloqueo.
+- El cierre es documental/normativo: no modifica `app/`, render, parser, validadores ni assets.
+
+Decisiones consolidadas:
+
+- **C1 — deep-opm-pro NO implementa el efecto parcial standalone (TS4/TS5 régimen b)** → clasificación **R-APP-2: no implementado**. El canon documenta ambos regímenes por fidelidad SSOT (R-APP-0), pero la app trata en la práctica todo TS4/TS5 como fragmento escindido. Si en el futuro se soporta el standalone (efecto solo-entrada con salida por defecto V-9), reabrir ETS3/ETS4 standalone como soportados.
+- **C2 — modificador sobre invocación es prohibido por alcance definicional**, simétrico a AP-09 (modificador sobre estructural): ambos son errores de categoría contra la definición SSOT del modificador, no silencios.
+- **Frontera silencio vs contradicción** (R-AP-0C): un anti-patrón solo ordena bloqueo si cita contradicción SSOT explícita o error de categoría; el silencio SSOT se clasifica como no-canonizado/extensión declarada y nunca se presenta como prohibición ontológica (R-APP-5).
+
+Artefactos relevantes:
+
+- [docs/canon-opm/reglas-opm-estrictas.md](/home/felix/projects/deep-opm-pro/docs/canon-opm/reglas-opm-estrictas.md) — R-ESCIND-0, R-AP-0C nuevas; AP-08/AP-10/AP-28, §6.4, §4.5 Nota crítica, R-EFE-3 reformulados; P1/P2/Pr1/U1.
+- `/home/felix/kora/artifacts/knowledge/fxsl/opm/opm-ssot-es/` — fuentes verificadas: iso §Control como modificador (L379), iso L420 (resultado absoluto), opl A.7 (L1069-1070 EBNF operadores), visual §4.4/V-9/V-40/V-41/V-110, opl L297/L341-342 (ETS3/ETS4).
+
+Verificación:
+
+- `git diff --check -- docs/canon-opm/reglas-opm-estrictas.md`: limpio.
+- IDs `R-*` duplicados: sin duplicados. Referencias nuevas (R-ESC-1, R-EFE-3, R-APP-5, R-ECA-4, R-INV-1A) resuelven a definición existente.
+- Sin verbo de prohibición sobre silencio SSOT restante (`rechazarse como no canonizado`: 0 coincidencias).
+
 ### Cierre Estados Ciudadanos De Primera Clase — 2026-05-23
 
 Estado actual:

@@ -185,7 +185,7 @@ Una **cosa** es una de exactamente dos clases (`SSOT-iso §Cosas`):
 - **R-INS-3**: nombre de instancia lógica: `NombreInstancia : NombreClase` (`V-58`).
 - **R-INS-4** (`SSOT-iso §Modelos conceptuales vs modelos de ejecución`): un enlace entre cosas NO implica comportamiento ejecutado hasta que existan instancias operacionales.
 - **R-INS-5**: una simulación DEBE rastrear número e identidad de instancias operacionales de objetos y procesos.
-- **R-INS-6**: una instancia especializada NO DEBE existir en ejecución sin la instancia general de la que hereda.
+- **R-INS-6**: una instancia especializada en ejecución exige su instancia general; la regla normativa es R-HER-6 (§5.5).
 
 ### 2.8 Modelo conceptual, ejecución y realización
 
@@ -481,7 +481,9 @@ Toda cosa OPM se renderiza como una de exactamente **8** combinaciones:
 | TS4 | Efecto solo entrada (enlace de entrada) | *Proceso* cambia **Objeto** de `estado-entrada`. |
 | TS5 | Efecto solo salida (enlace de salida) | *Proceso* cambia **Objeto** a `estado-salida`. |
 
-**Nota crítica**: TS4/TS5 son la realización textual del **enlace escindido** producido al descomponer un efecto entrada-salida (TS3) en múltiples subprocesos (`V-40`, `V-110`).
+**Nota crítica**: TS4/TS5 tienen dos realizaciones distinguibles que comparten superficie textual; el régimen se determina por procedencia (ver R-ESCIND-0):
+- **(a) enlace escindido** — par acoplado producido al descomponer un efecto entrada-salida (TS3) en subprocesos: TS4 temprano saca del estado de entrada, TS5 tardío pone en el de salida (`V-40`, `V-110`). Las dos mitades solo tienen sentido juntas y NO admiten modificadores de control.
+- **(b) efecto parcial standalone** — enlace de efecto completo en sí mismo: TS4 solo-entrada cuya salida, si no se especifica, se resuelve al estado por defecto o a la distribución de probabilidad de estados (`V-9`); TS5 solo-salida. Admite evento/condición (ETS3, ETS4).
 
 ### 4.6 Plantillas — enlaces habilitadores (`§5`)
 
@@ -524,7 +526,7 @@ Toda cosa OPM se renderiza como una de exactamente **8** combinaciones:
 | CS5 | **Agente** maneja *Proceso* si **Agente** está en `estado`, de lo contrario *Proceso* se omite. |
 | CS6 | *Proceso* ocurre si **Instrumento** está en `estado`, de lo contrario *Proceso* se omite. |
 
-**Crítico**: NO existen `CT3` (condición de resultado simple) ni `CS-resultado` (condición de resultado con estado). La SSOT-OPL §7 NO contiene plantilla CT/CS para resultado (esta es la regla que motivó este documento).
+**Crítico**: NO existen `CT3` (condición de resultado simple) ni `CS-resultado` (condición de resultado con estado). La SSOT-OPL §7 NO contiene plantilla CT/CS para resultado.
 
 - **R-OPL-COND-ALT-1** (`A.6`): el parser OPL-ES DEBE aceptar la variante de consumo condicional `Si **Objeto** existe entonces *Proceso* ocurre y consume **Objeto**, de lo contrario se omite *Proceso*.`.
 - **R-OPL-COND-ALT-2**: el generador canónico DEBE preferir CT1 sobre la variante alternativa de R-OPL-COND-ALT-1.
@@ -724,7 +726,7 @@ Toda relación expresable por enlace en un OPD conforme pertenece a **exactament
 - **R-EFE-2** (`SSOT-iso §Enlaces transformadores`): una vez iniciado el proceso afector, el afectado DEBE salir del estado de entrada.
 - **R-EFE-2A**: el afectado solo DEBE alcanzar el estado de salida al completarse el proceso.
 - **R-EFE-2B**: si el proceso se aborta antes de completarse, el estado del afectado queda indeterminado salvo manejo de excepción.
-- **R-EFE-3**: efecto con solo estado de entrada (TS4) sin estado de salida especificado → destino = estado por defecto, o distribución de probabilidad de estados si no hay defecto (`V-9`).
+- **R-EFE-3**: efecto con solo estado de entrada (TS4) sin estado de salida especificado → destino = estado por defecto, o distribución de probabilidad de estados si no hay defecto (`V-9`); es el régimen *efecto parcial standalone* de R-ESCIND-0, distinto del fragmento escindido.
 
 ### 5.3 Enlaces habilitadores (`SSOT-iso §Enlaces habilitadores`)
 
@@ -857,7 +859,7 @@ Esta restricción es **absoluta** (`SSOT-iso §Enlaces transformadores`, nota no
 | `e` + estado especificado | Canónico (ETS1–ETS4, EHS1–EHS2) | El estado específico del objeto dispara |
 | `c` + `e` sobre el mismo enlace | NO definido en SSOT | No aparece en gramática OPL ni en geometría visual. Tratar como no canonizado |
 | Modificador sobre enlace estructural | NO existe | `c` y `e` son modificadores procedimentales exclusivamente |
-| Modificador sobre invocación | NO existe en SSOT | La invocación es proceso→proceso; no admite `c` ni `e` en `SSOT-opl §8.2` |
+| Modificador sobre invocación | Prohibido (error de categoría) | Los modificadores anotan solo enlaces transformador/habilitador (`SSOT-iso §Control como modificador`); la invocación es familia autónoma (proceso→proceso) y queda fuera de ese alcance. Alternativa canónica: nodo de decisión booleano (AP-10) |
 | Modificador sobre enlace escindido (TS4/TS5) | **PROHIBIDO** (`V-41`, `V-110`) | "Saltar un subproceso de una escisión distorsionaría la semántica del efecto" (`SSOT-metod §7.4`) |
 
 ### 6.5 Resolución de colisión de rol — fuerza semántica
@@ -928,7 +930,7 @@ Orden completo de **12 niveles** (`SSOT-visual §13.5`):
 
 Rangos canónicos: `qmín..qmáx`. Intervalos con inclusión/exclusión: `[a..b]`, `(a..b]`, `[a..b)`, `(a..b)`. Listas de intervalos: `[1..10], [20..30]`. Asterisco `*` como extremo abierto.
 
-Restricciones: `=`, `≠`, `<`, `≤`, `≥`, `∈ {conjunto}`.
+Restricciones: superficie EBNF normativa `=`, `<`, `>`, `<=`, `>=` y `en {conjunto}` (`SSOT-opl A.7`; R-OPL-RANGO-3, R-OPL-CONJ-1). Los glifos Unicode `≠`, `≤`, `≥`, `∈` son superficie de visualización y DEBEN normalizarse a la forma ASCII o declararse como extensión.
 
 - **R-MULT-2** (`V-21`): los nombres de parámetros de multiplicidad DEBEN ser únicos en todo el modelo.
 
@@ -1040,6 +1042,7 @@ Dentro de un proceso descompuesto (in-zoomed), **el tiempo fluye de arriba hacia
 
 ### 8.5 Enlaces escindidos (`V-40`, `V-110`, `SSOT-iso §Enlaces transformadores escindidos`, `SSOT-opl §4.2 nota TS4/TS5`)
 
+- **R-ESCIND-0**: la superficie TS4/TS5 designa dos hechos distinguibles por procedencia: **(a) fragmento escindido** (mitad de un par acoplado derivado de un TS3 al descomponer) y **(b) efecto parcial standalone** (enlace de efecto completo; TS4 con salida por defecto vía `V-9`). La prohibición de modificadores de control (R-ESC-1, `V-41`) aplica EXCLUSIVAMENTE al fragmento escindido (a); el efecto parcial standalone (b) admite evento o condición según R-EFE-3, ETS3 y ETS4. Un fragmento escindido NUNCA se origina por parseo de OPL aislado: solo se produce por la operación de descomposición y persiste con metadato de procedencia.
 - **R-ESCIND-1**: cuando un efecto entrada-salida (TS3) se descompone en subprocesos, el modelo queda subespecificado hasta escindir el enlace.
 - **R-ESCIND-2**: el subproceso temprano DEBE recibir el enlace de entrada (TS4) y sacar al objeto del estado de entrada.
 - **R-ESCIND-3**: el subproceso tardío DEBE recibir el enlace de salida (TS5) y colocar al objeto en el estado de salida.
@@ -1221,7 +1224,7 @@ Cada OPD tiene su contraparte en un párrafo OPL. La dualidad es **bidireccional
 
 - **R-BI-3**: si una forma OPD visible no emite OPL nuclear, DEBE estar clasificada como UI/vista/meta/estilo/export y NO como hecho OPM.
 
-- **R-BI-4**: todo roundtrip DEBE preservar el hecho, no necesariamente la superficie literal. Variantes de superficie PUEDEN mapear al mismo proceso solo si el nombre canónico interno asi lo declara.
+- **R-BI-4**: todo roundtrip DEBE preservar el hecho, no necesariamente la superficie literal. Variantes de superficie PUEDEN mapear al mismo proceso solo si el nombre canónico interno así lo declara.
 
 ### 10.2 Política de importación OPL
 
@@ -1254,6 +1257,7 @@ Al editar OPD:
 - **R-AP-0**: una UI puede exponer construcciones laxas solo como estado de edición; NO DEBE persistirlas como canónicas.
 - **R-AP-0A**: todo anti-patrón DEBE citar regla SSOT primaria o silencio SSOT que justifica bloqueo/no canonicidad.
 - **R-AP-0B**: todo anti-patrón DEBE declarar sustituto canónico o política de rechazo.
+- **R-AP-0C**: un anti-patrón que cite silencio SSOT (zona no canonizada) NO DEBE redactarse con verbo de prohibición ontológica; DEBE aplicar el régimen no-canonizado de R-APP-5 (clasificar, no emitir como nuclear, permitir como extensión declarada). Solo los anti-patrones que citen contradicción SSOT explícita o error de categoría DEBEN ordenar bloqueo.
 
 ### 11.1 Tabla maestra de anti-patrones
 
@@ -1266,9 +1270,9 @@ Al editar OPD:
 | AP-05 | **Agente conectado a robot, software, IA o máquina** | DEBE bloquearse por `glosario 3.3` y `SSOT-metod §6.5`. | Usar enlace de instrumento. |
 | AP-06 | **Consumo o resultado en contorno exterior de proceso descompuesto** | DEBE bloquearse por `V-37` y `V-103`. | Reasignar consumo al primer subproceso y resultado al último subproceso. |
 | AP-07 | **Efecto entrada-salida sin escisión al descomponer** | DEBE bloquearse por `V-40` y `V-110`. | Reemplazar por TS4 en subproceso temprano y TS5 en subproceso tardío. |
-| AP-08 | **Enlace escindido TS4/TS5 + `c` o `e`** | DEBE bloquearse por `V-41`, `V-110` y `SSOT-metod §7.4`. | Modelar opcionalidad sobre el efecto entrada-salida completo o con control externo. |
+| AP-08 | **Enlace escindido TS4/TS5 (par acoplado) + `c` o `e`** | DEBE bloquearse por `V-41`, `V-110` y `SSOT-metod §7.4`; no aplica a ETS3/ETS4 standalone (ver R-ESCIND-0). | Modelar opcionalidad sobre el efecto entrada-salida completo o con control externo. |
 | AP-09 | **`c` o `e` sobre enlace estructural** | DEBE bloquearse: los modificadores son procedimentales y estructural es invariante temporal. | Usar enlace estructural con estado especificado solo cuando la variante estructural con estado esté definida. |
-| AP-10 | **`c` o `e` sobre invocación** | DEBE rechazarse como no canonizado en OPL-ES nuclear. | Usar fan de invocación, objeto booleano o condición sobre proceso previo. |
+| AP-10 | **`c` o `e` sobre invocación** | DEBE bloquearse: los modificadores de control anotan EXCLUSIVAMENTE enlaces transformador/habilitador (`SSOT-iso §Control como modificador`; canon §6.1, R-ECA-4); la invocación es familia autónoma (R-INV-1A), por lo que el modificador queda fuera de su alcance definicional (error de categoría). | Usar nodo de decisión booleano, fan de invocación, u objeto booleano / condición sobre proceso previo (`SSOT-iso §Invocación cíclica con omisión condicional`). |
 | AP-11 | **Bidireccional o recíproco con estado solo en destino** | DEBE bloquearse por `V-30`. | Usar unidireccional con estado en destino o agregar estado en origen. |
 | AP-12 | **Estados de proceso** | DEBE bloquearse: OPM reserva estados para objetos. | Descomponer en subprocesos o usar atributo exhibido `Estado del Proceso`. |
 | AP-13 | **Refinamiento con un solo subproceso o refinador** | DEBE bloquearse en cierre/export canónico; PUEDE persistir solo como placeholder de edición tipificado. | Eliminar, postergar o ampliar a ≥ 2 hijos. |
@@ -1286,7 +1290,7 @@ Al editar OPD:
 | AP-25 | **Proceso explícito para soporte/mantenimiento sin esfuerzo sostenido relevante** | DEBE reportarse como mala clasificación metodológica. | Usar enlace estructural etiquetado. |
 | AP-26 | **Objeto transiente creado y consumido sin observación intermedia** | DEBE reportarse como objeto artificial. | Usar enlace de invocación. |
 | AP-27 | **Evento a subproceso intermedio sin justificar omisión previa** | DEBE bloquearse si subprocesos previos tienen efectos obligatorios no omitibles; DEBE advertirse si los previos son opcionales y la omisión está declarada. | Conectar al primer subproceso o declarar omisión válida de previos. |
-| AP-28 | **`c` y `e` simultáneamente sobre el mismo enlace** | DEBE rechazarse como no canonizado. | Modelar control externo explícito. |
+| AP-28 | **`c` y `e` simultáneamente sobre el mismo enlace** | DEBE clasificarse como No canonizado (silencio SSOT, no contradicción): NO DEBE emitirse como OPL-ES nuclear; PUEDE persistir solo como extensión declarada o estado de edición (`R-AP-0`, `R-APP-5`). | Modelar control externo explícito. |
 | AP-29 | **Enlaces heredados dibujados como explícitos** | DEBE bloquearse salvo vista derivada no nuclear. | Inferirlos por herencia desde generalización-especialización. |
 | AP-30 | **Resultado+resultado o consumo+consumo sobre el mismo objeto al recomponer** | DEBE bloquearse por `V-43`. | Corregir el nivel hijo antes de recomponer. |
 
