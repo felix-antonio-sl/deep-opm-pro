@@ -12,6 +12,17 @@ import { puntoCapsulaEstado, rectCapsulaEstado } from "./estados";
 export const SIM_VERDE = "#16a34a";
 
 /**
+ * Oliva de simulacion (B0.019). Borde distintivo del estado INICIAL designado
+ * de un objeto durante la simulacion, espejo del disco dorado del estado
+ * current pero en oliva (verde-amarillento apagado) para diferenciarse del
+ * dorado (#f59e0b) sin colisionar con el verde-sim (#16a34a) ni el cinabrio
+ * de entidad involucrada. Vive aqui como unica fuente del oliva-sim en la capa
+ * render, siguiendo la convencion de `SIM_VERDE`.
+ */
+export const SIM_OLIVA = "#6B7B2A";
+export const SIM_OLIVA_OSCURO = "#3F4A16";
+
+/**
  * Composer de halos transitorios de seleccion y hover OPL. No serializa
  * estado; emite solo celdas JointJS derivadas. Consumidor: proyeccion.ts.
  */
@@ -257,6 +268,79 @@ export function proyectarHaloSimulacionEstadoCurrent(
       opdId,
       targetId: entidad.id,
       tipo: "estado-current",
+    },
+    z: 34,
+  };
+}
+
+/**
+ * Halo del estado INICIAL designado de un objeto en modo simulación (B0.019).
+ * Espejo de `proyectarHaloSimulacionEstadoCurrent`: misma geometria de pin
+ * externo anclado al borde del estado (SSOT V-54/V-133) con degradacion segura
+ * al halo de objeto completo. Color oliva (SIM_OLIVA) en vez del dorado del
+ * estado current, para mantener el estado inicial visible y distinguible
+ * durante toda la corrida.
+ */
+export function proyectarHaloSimulacionEstadoInicial(
+  modelo: Modelo,
+  opdId: Id,
+  apariencia: Apariencia,
+  entidad: Entidad,
+  estado: Estado,
+): JointCellJson {
+  const punto = puntoCapsulaEstado(modelo, apariencia, estado.id);
+  if (punto) {
+    const width = 14;
+    const height = 18;
+    return {
+      id: `sim-inicial-${apariencia.id}-${estado.id}`,
+      type: "standard.Path",
+      position: { x: punto.x - width / 2, y: punto.y - height - 12 },
+      size: { width, height },
+      attrs: {
+        body: {
+          d: "M7 0 C3 0 0 3 0 7 c0 5 7 11 7 11 s7-6 7-11 C14 3 11 0 7 0 Z",
+          fill: SIM_OLIVA,
+          stroke: SIM_OLIVA_OSCURO,
+          strokeWidth: 1.5,
+          pointerEvents: "none",
+        },
+        label: { text: "", display: "none" },
+      },
+      opm: {
+        kind: "simulacion-halo",
+        opdId,
+        targetId: entidad.id,
+        tipo: "estado-inicial",
+      },
+      z: 36,
+    };
+  }
+
+  const pad = 3;
+  const width = apariencia.width + pad * 2;
+  const height = apariencia.height + pad * 2;
+  return {
+    id: `sim-inicial-${apariencia.id}-${estado.id}`,
+    type: "standard.Rectangle",
+    position: { x: apariencia.x - pad, y: apariencia.y - pad },
+    size: { width, height },
+    attrs: {
+      body: {
+        fill: "transparent",
+        stroke: SIM_OLIVA,
+        strokeWidth: 2,
+        rx: 8,
+        ry: 8,
+        pointerEvents: "none",
+      },
+      label: { text: "", display: "none" },
+    },
+    opm: {
+      kind: "simulacion-halo",
+      opdId,
+      targetId: entidad.id,
+      tipo: "estado-inicial",
     },
     z: 34,
   };

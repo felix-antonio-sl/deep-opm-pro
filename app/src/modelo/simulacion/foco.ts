@@ -1,3 +1,4 @@
+import { tieneDesignacion } from "../estadosDesignaciones";
 import { entidadIdDeExtremo } from "../extremos";
 import type { Id, Modelo } from "../tipos";
 import type { ContextoSimulacion, PasoSimulacion } from "./tipos";
@@ -28,6 +29,18 @@ export function focoPasoActualSimulacion(modelo: Modelo, contexto: ContextoSimul
     entidadesInvolucradasIds: entidadesInvolucradasEnPaso(modelo, paso),
     enlacesInvolucradosIds: enlacesInvolucradosEnPaso(paso),
   };
+}
+
+/**
+ * Ids de estados designados como INICIAL en todo el modelo (B0.019). Puro:
+ * deriva los ids cuyo estado tiene la designacion "inicial" (incluye el legado
+ * `esInicial` via `tieneDesignacion`). El render lo usa para mantener un borde
+ * oliva distintivo en el estado inicial durante toda la simulacion.
+ */
+export function estadosInicialesDelModelo(modelo: Modelo): Id[] {
+  return Object.values(modelo.estados)
+    .filter((estado) => tieneDesignacion(estado, "inicial"))
+    .map((estado) => estado.id);
 }
 
 export function enlacesInvolucradosEnPaso(paso: PasoSimulacion): Id[] {

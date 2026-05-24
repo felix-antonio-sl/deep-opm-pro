@@ -5,7 +5,7 @@ import type { FeedbackOverlay, FeedbackPort } from "../../app/ports/feedbackPort
 import { useJointCanvasViewModel } from "../../app/viewmodels/jointCanvasViewModel";
 import { useZustandSimulationPort } from "../../app/ports/zustandSimulationPort";
 import { CENTRO_CANVAS_GEOMETRICO } from "../../modelo/layout";
-import { focoPasoActualSimulacion } from "../../modelo/simulacion/foco";
+import { estadosInicialesDelModelo, focoPasoActualSimulacion } from "../../modelo/simulacion/foco";
 import { debeAnimarTokensSim, tokensViajeDelPaso } from "../../modelo/simulacion/animacionTokens";
 import { SIM_VERDE } from "./composers/halos";
 import type { Apariencia, Enlace, ExtremoEnlace, Id, Modelo, Opd, TipoEnlace } from "../../modelo/tipos";
@@ -440,6 +440,7 @@ export function JointCanvas({
             estadosCurrent: contextoSimulacion.estadosCurrent,
             entidadesInvolucradasIds: focoSimulacion.paso?.opdId === opdActivoId ? focoSimulacion.entidadesInvolucradasIds : [],
             enlacesInvolucradosIds: focoSimulacion.paso?.opdId === opdActivoId ? focoSimulacion.enlacesInvolucradosIds : [],
+            estadosInicialesIds: estadosInicialesDelModelo(modelo),
           }
         : null,
     );

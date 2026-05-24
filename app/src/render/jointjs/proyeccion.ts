@@ -14,6 +14,7 @@ import {
   proyectarHaloSeleccionEstado,
   proyectarHaloSimulacionEntidadInvolucrada,
   proyectarHaloSimulacionEstadoCurrent,
+  proyectarHaloSimulacionEstadoInicial,
   proyectarHaloSimulacionProceso,
   refResaltaEnlace,
   refResaltaEntidad,
@@ -40,6 +41,7 @@ export interface OpcionesSimulacionRender {
   estadosCurrent: Record<Id, Id>;
   entidadesInvolucradasIds?: readonly Id[];
   enlacesInvolucradosIds?: readonly Id[];
+  estadosInicialesIds?: readonly Id[];
 }
 
 export function proyectarModeloAJointCells(
@@ -59,6 +61,7 @@ export function proyectarModeloAJointCells(
   const seleccionMultiple = new Set(seleccionados);
   const entidadesInvolucradasSim = new Set(simulacion?.entidadesInvolucradasIds ?? []);
   const enlacesInvolucradosSim = new Set(simulacion?.enlacesInvolucradosIds ?? []);
+  const estadosInicialesSim = new Set(simulacion?.estadosInicialesIds ?? []);
 
   const apariencias = aparicionesVisiblesEnOpd(opd);
   const estadosSeleccionadosPorEntidad = new Map<Id, Estado[]>();
@@ -202,6 +205,13 @@ export function proyectarModeloAJointCells(
         if (currentId && entidad.tipo === "objeto") {
           const estado = modeloRender.estados[currentId];
           if (estado) cells.push(proyectarHaloSimulacionEstadoCurrent(modeloRender, opdId, apariencia, entidad, estado));
+        }
+        if (entidad.tipo === "objeto") {
+          for (const estado of Object.values(modeloRender.estados)) {
+            if (estado.entidadId !== entidad.id) continue;
+            if (!estadosInicialesSim.has(estado.id)) continue;
+            cells.push(proyectarHaloSimulacionEstadoInicial(modeloRender, opdId, apariencia, entidad, estado));
+          }
         }
         return cells;
       })
