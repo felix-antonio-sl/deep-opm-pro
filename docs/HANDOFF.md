@@ -1,12 +1,12 @@
 # HANDOFF — Estado operativo del modelador OPM
 
-**Fecha**: 2026-05-24
+**Fecha**: 2026-05-25
 **Repositorio**: `deep-opm-pro`
 **Rama**: `main`
-**Ultimo corte funcional**: Ronda Codex Ola 1.1 — pausa de producto para **Mapa del sistema** y **Biblioteca dock**: no se montan en el shell, no aparecen en menú/toolbar/paleta/atajos y el build público no publica chunk `feature-mapa`; la lógica interna queda dormida para futura reactivación.
-**Ultimo commit funcional en main**: `feat(app): pause map and dock surfaces` (`2cbed09`) + ajuste de empaquetado `chore(app): rename map export chunk` (`89bc657`).
-**Ultimo corte deploy**: los bits de app en `main@1714185` fueron redeployados en `https://opforja.sanixai.com/` el 2026-05-24T17:20Z con `docker compose up -d --build`, `VITE_ENABLE_BUG_CAPTURE=true`, `opforja` healthy, `opforja-bug-capture` arriba y Basic Auth Traefik activo (respuesta pública HTTP 401 esperada). El ultimo commit funcional de app dentro de ese deploy es `89bc657`; commits posteriores de handoff/documentacion no cambian la imagen servida.
-**Corte**: `bun run check` verde con 1629 unit tests + 5898 expectaciones y typecheck limpio. `bun run lint` y `bun run build` verdes. Smoke focalizado `02/04/08/12-toolbar/20-biblioteca-dock` verde 59/59.
+**Ultimo corte funcional**: Ronda Codex v1 — Slice 1 (CodexTreeRow): árbol OPD migrado a fila tipográfica pura. Y se estructuró `docs/instrucciones-lineas-dev/ronda-codex-v1/` con la partición de lo que falta para cumplir `ui-forja/` v1.0 (5 líneas paralelas + micro-fidelidad).
+**Ultimo commit funcional en main**: `style(ui): CodexTreeRow — fila tipográfica pura del árbol OPD` (`22b30bf`).
+**Ultimo corte deploy**: los bits de app en `main@22b30bf` fueron redeployados en `https://opforja.sanixai.com/` el 2026-05-25 con `docker compose up -d --build` (build desde working tree, `COPY app ./app`), `VITE_ENABLE_BUG_CAPTURE=true`, `opforja` healthy, `opforja-bug-capture` arriba y Basic Auth Traefik activo (respuesta pública HTTP 401 esperada). El bundle servido es `index-B4Y-tNZn.js`; sin chunk `feature-mapa`. Commits posteriores de handoff/documentacion no cambian la imagen servida.
+**Corte**: `bun run check` verde con 1629 unit tests + 5898 expectaciones y typecheck limpio. `bun run lint` verde. E2E `04/05/11/22` verdes tras CodexTreeRow.
 
 ## Política De Handoff Único
 
@@ -24,6 +24,41 @@
 - JointJS OSS: usar documentación oficial viva cuando se toque JointJS.
 
 ## Estado Actual
+
+### Handoff Explícito — Slice 1 CodexTreeRow desplegado + Ronda Codex v1 — 2026-05-25
+
+Estado actual:
+
+- **Slice 1 (CodexTreeRow) cerrado y desplegado.** El árbol OPD es ahora fila tipográfica pura (`ui-forja/02-components §3`): sin SVGs `list-logical/*`/`delete.svg`, sin chevron decorativo, sin contadores `7o·1p·8e` ni badge pill de tipo. Marker `▸`/`▾` **unificado** (disclosure + current), `code` mono 10 + `label` serif 14, indent `level×18`, hairline-dotted. Refiner→`※` crimson hover, issue→`△` crimson (testid `tree-issue-badge` intacto), borrar→`⌫` hover (aria `Eliminar OPD`). Header del árbol sin título duplicado (lo provee `CodexColHeader` de L2), botones a palabras kicker + glifos. Solo chrome; `store/modelo/proyección/routing` intactos. Commit `22b30bf`; verificado `check` 1629 unit + `lint` + e2e `04/05/11/22`. Desplegado y verificado en `https://opforja.sanixai.com/` (bundle `index-B4Y-tNZn.js`, healthy, 401 público).
+- **Ronda Codex v1 estructurada** en `docs/instrucciones-lineas-dev/ronda-codex-v1/`: README maestro + 5 briefs + `prompt-asignacion.md`. Particiona lo que falta para cumplir `ui-forja/` **v1.0** en 5 líneas con colisión cero a nivel de archivo:
+  - **L1** OPL canónico (helpers `OplObj/OplProc/OplState` + `CodexOPLNote` + marginalia de validación) — contrato, mergea primero.
+  - **L2** Inspector canónico (`CodexInspectSection/Field/Inline` + `CodexStateRow`).
+  - **L3** Diálogos Codex (`Dialogo.tsx` base + 15 modales).
+  - **L4** Selección emergente (`CodexSelectionAnnotation`) + header de `CodexCanvasMount` + re-piel mobile.
+  - **L5** Fidelidad JointJS (index labels `o.NN/p.NN/s.NN`, highlighter underline, markers) — solo attrs.
+  - **micro-fidelidad** (commit único): tokens letter-spacing `tight/body`, atajo `⌘.`, backdrop del CommandPalette, props de `CodexFooterKey`.
+  - Orden de merge: `L1 → {L2 ∥ L3 ∥ L4 ∥ L5} → micro-fidelidad`.
+
+Pendientes inmediatos:
+
+- Ejecutar la Ronda Codex v1: arrancar **L1** (contrato OPL) y luego despachar L2/L3/L4/L5 en paralelo (worktrees) vía `prompt-asignacion.md`.
+- Cerrar la micro-fidelidad de fundaciones tras la Ola B.
+
+Supuestos vigentes:
+
+- Scope de la ronda = `ui-forja/` **v1.0**. La **deuda v1.1** (proceso activo in-flight V-132, pin de estado current, asistente SD wizard, sub-modelos §10, switcher de lengua OPL, dark mode) queda explícitamente **fuera** por `ui-forja/README §7`.
+- Mapa del sistema y Biblioteca dock siguen pausados por producto; no reincorporar.
+- `docs/HANDOFF.md` sigue siendo la única memoria de traspaso versionada.
+
+Riesgos:
+
+- La micro-fidelidad toca archivos-contrato (`tokens.ts`, `CommandPalette.tsx`, `CodexFooterKey.tsx`, `atajosTeclado.ts`); debe ir como commit único de un solo dueño, no repartida entre líneas.
+- L4 no debe editar `App.tsx`/`CodexFrame.tsx` (monta vía portal sobre `canvas-pane`); L5 no debe cruzar a `proyeccion.ts`/`opcloudRouting.ts`/anchors (solo attrs).
+- Los `docs/bugs/*` siguen sucios/untracked en el worktree; mantenerlos fuera de commits salvo triage explícito.
+
+Prompt de continuación breve:
+
+> Continúa desde `docs/HANDOFF.md`, sección "Handoff Explícito — Slice 1 CodexTreeRow desplegado + Ronda Codex v1 — 2026-05-25". Estamos en `main`; el deploy de app corresponde a `main@22b30bf` (bundle `index-B4Y-tNZn.js`, opforja healthy). Siguiente objetivo: ejecutar la Ronda Codex v1 (`docs/instrucciones-lineas-dev/ronda-codex-v1/`), arrancando L1 (helpers OPL, contrato) antes de paralelizar L2/L3/L4/L5. Solo chrome/tokens/attrs; no tocar store/modelo/proyección/routing.
 
 ### Handoff Explicito — Corte Operativo Post-Deploy — 2026-05-24T17:22Z
 
