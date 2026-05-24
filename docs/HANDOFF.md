@@ -3,10 +3,10 @@
 **Fecha**: 2026-05-24
 **Repositorio**: `deep-opm-pro`
 **Rama**: `main`
-**Ultimo corte funcional**: Ronda Codex Ola 0 — pivot visual fundacional de Opforja a identidad Codex: tokens/fuentes chrome, CANON-V3 canvas, briefs de líneas paralelas y handoff `ui-forja`, sin tocar routing OPCloud ni lógica de dominio. El cierre B0 de simulación queda consolidado debajo.
-**Ultimo commit funcional en main**: `pivot visual codex ola 0` (`ef876f2`).
-**Ultimo corte deploy**: `ef876f2` desplegado en `https://opforja.sanixai.com/` el 2026-05-24T04:22Z con `docker compose up -d --build`, `VITE_ENABLE_BUG_CAPTURE=true`, Basic Auth Traefik activo y healthchecks internos verdes.
-**Corte**: `bun run check` verde con 1619 unit tests + 5856 expectaciones y typecheck limpio. `bun run lint` y `bun run build` verdes. Smoke focalizado `e2e/09-tokens-visual.spec.ts e2e/14-canvas-fidelity.spec.ts e2e/22-responsive-review.spec.ts --workers=1` verde 11/11. La suite completa `browser:smoke` mantiene fallos canvas-sensibles pre-existentes bajo paralelismo; no bloquean el corte Codex Ola 0.
+**Ultimo corte funcional**: Ronda Codex Ola 1 — shell responsive `CodexFrame`, margen derecho unificado OPL/Inspector, command palette editorial de seis secciones y corrección de auto-encuadre del canvas sin tocar modelo, store, proyección ni routing OPCloud.
+**Ultimo commit funcional en main**: `feat(app): pivot shell to Codex marginalia` (`4f88da0`).
+**Ultimo corte deploy**: `4f88da0` desplegado en `https://opforja.sanixai.com/` el 2026-05-24T05:40Z con `docker compose up -d --build`, `VITE_ENABLE_BUG_CAPTURE=true`, `opforja` healthy, `opforja-bug-capture` arriba y Basic Auth Traefik activo (respuesta pública HTTP 401 esperada).
+**Corte**: `bun run check` verde con 1628 unit tests + 5897 expectaciones y typecheck limpio. `bun run lint` y `bun run build` verdes. La suite E2E quedó cubierta por chunks/focos verdes; `browser:smoke` monolítico fue interrumpido por SIGTERM externo tras 74 tests sin fallos observados, por lo que no se declara como pass.
 
 ## Política De Handoff Único
 
@@ -24,6 +24,46 @@
 - JointJS OSS: usar documentación oficial viva cuando se toque JointJS.
 
 ## Estado Actual
+
+### Cierre Ronda Codex Ola 1 — Frame Responsive, Marginalia Y Command Palette — 2026-05-24
+
+Estado actual:
+
+- Implementado `CodexFrame` desktop como shell principal de Opforja: cabecera editorial, grilla de tres columnas, columna izquierda tipo TOC, canvas central y margen derecho unificado. El modo mobile existente se preserva.
+- El margen derecho reemplaza el panel OPL inferior: `PanelOpl`, `PanelDiagnostico`, `Inspector` y `Timeline` conviven como marginalia Codex. `data-testid="inspector-pane"` y `data-testid="opl-pane"` se preservan para compatibilidad de pruebas; el modo se expone como `data-marginalia-mode="split|opl"`.
+- `CommandPalette` adopta la propuesta Codex L6: seis secciones visibles (`MODELO`, `CREAR`, `NAVEGAR`, `EXPORTAR`, `VISTA`, `ASISTENTE`), glifos tipográficos, z-index por encima de capturador de bugs y helpers testeados para agrupación/búsqueda.
+- El FAB de `CapturadorBugs` en desktop se movió al borde del canvas para no tapar marginalia.
+- Corregido un bug real de visibilidad tras importar/cargar modelos: el auto-encuadre ahora centra el viewport sobre el bbox del OPD activo sin aplicar transformaciones JointJS automáticas que alteraban drag/drop y selección. `fitCanvasAPantalla` queda reservado para fit explícito.
+- Se actualizaron los E2E afectados por la nueva arquitectura visual: inspector/OPL en marginalia, tabs de modelos vs tabs de inspector, swatches Codex crimson y labels SVG con ajuste de texto.
+
+Decisiones consolidadas:
+
+- **Codex es identidad única**: no se implementa theme switch Bauhaus/Codex en esta ola.
+- **Responsive se conserva**: desktop adopta frame Codex; mobile mantiene `ModoRevisionMobile` con piel/token Codex vigente.
+- **Canvas sin cambio de routing**: se toca encuadre/visibilidad de viewport, no `proyeccion.ts`, `opcloudRouting.ts`, anchors, multiplicidad ni reglas OPCloud.
+- **Marginalia como default**: al colapsar inspector el margen derecho no desaparece; queda como OPL marginalia.
+- **Repo liviano**: `app/dist` y `app/test-results` se eliminan tras verificación; los cambios no relacionados en `docs/bugs/*` permanecen fuera del stage.
+
+Artefactos relevantes:
+
+- [app/src/ui/App.tsx](/home/felix/projects/deep-opm-pro/app/src/ui/App.tsx) — montaje desktop `CodexFrame` y marginalia unificada.
+- [app/src/ui/codex/CodexFrame.tsx](/home/felix/projects/deep-opm-pro/app/src/ui/codex/CodexFrame.tsx) — frame responsive desktop.
+- [app/src/ui/codex/glifos.ts](/home/felix/projects/deep-opm-pro/app/src/ui/codex/glifos.ts) — glifos/atajos Codex.
+- [app/src/ui/CommandPalette.tsx](/home/felix/projects/deep-opm-pro/app/src/ui/CommandPalette.tsx) — command palette editorial.
+- [app/src/render/jointjs/JointCanvas.tsx](/home/felix/projects/deep-opm-pro/app/src/render/jointjs/JointCanvas.tsx) — auto-encuadre por bbox de OPD y guard de selección visible.
+- [app/src/ui/CapturadorBugs.tsx](/home/felix/projects/deep-opm-pro/app/src/ui/CapturadorBugs.tsx) — posición desktop compatible con marginalia.
+
+Verificación:
+
+- `bun run check`: typecheck limpio; 1628 unit tests verdes, 5897 expectaciones.
+- `bun run lint`: limpio.
+- `bun run build`: build Vite verde.
+- E2E por chunks/focos, todos verdes: `02/03/05/06/12/22` (73 passed, 1 skipped), `07/08/09` (40 passed), `10/11*` (35 passed), `12-beta2/13/14/15/16` (37 passed), `20/21/22/23/24/25/26/inspector-focus` (37 passed), `01/04/12-command/12-toolbar` (28 passed).
+- `browser:smoke` completo monolítico: SIGTERM externo tras 74 tests, 0 fallos observados hasta ese punto; no se contabiliza como pass.
+- `docker compose up -d --build`: `opforja` y `opforja-bug-capture` recreados y arriba.
+- `docker ps --filter name=opforja`: `opforja` healthy, `opforja-bug-capture` up.
+- `docker exec opforja wget -qO- http://127.0.0.1:8080/`: sirve `index.html` con variables Codex y bundle `index-BhF5QdOA.js`.
+- `curl -k -sS -o /tmp/opforja-prod.html -D - https://opforja.sanixai.com/`: HTTP 401 con `www-authenticate: Basic realm="traefik"` esperado.
 
 ### Inicio Ronda Codex — Pivot Visual Opforja (Ola 0) — 2026-05-24
 
