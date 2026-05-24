@@ -86,6 +86,14 @@ export interface GlobalShortcutsSnapshot {
   cerrarPestana?: (id: string) => void;
   cambiarPestanaActiva?: (id: string) => void;
   toggleBibliotecaDock: () => void;
+  /**
+   * Paquete simulación B0.028: guard para atajo Espacio play/pausa.
+   * `simulacionActiva` es true cuando `contextoSimulacion !== null`.
+   */
+  simulacionActiva: boolean;
+  autoAvanceSimulacionActivo: boolean;
+  iniciarAutoAvanceSimulacion: () => void;
+  pausarAutoAvanceSimulacion: () => void;
 }
 
 export interface GlobalShortcutsPort {
@@ -109,6 +117,13 @@ export function registrarAtajosAplicacion(port: GlobalShortcutsPort, registrarAt
     const state = s();
     const todo = state.seleccionados.length >= 2 ? state.seleccionados[state.seleccionados.length - 1] : null;
     if (todo) state.conectarSeleccionAlTodo(todo, "agregacion");
+  };
+  const togglePlaySimulacion = (e: KeyboardEvent) => {
+    const state = s();
+    if (!state.simulacionActiva) return;
+    e.preventDefault();
+    if (state.autoAvanceSimulacionActivo) state.pausarAutoAvanceSimulacion();
+    else state.iniciarAutoAvanceSimulacion();
   };
   const cerrarModalSuperiorOVaciarSeleccion = () => {
     const state = s();
@@ -219,6 +234,7 @@ export function registrarAtajosAplicacion(port: GlobalShortcutsPort, registrarAt
     registrarAtajo({ combo: "Ctrl+Tab", ctx: "global", categoria: "navegacion", descripcion: "Siguiente pestaña", descripcionLarga: "Cambia el foco a la pestaña siguiente del workspace", handler: () => cambiarPestanaRelativa(s, 1) }),
     registrarAtajo({ combo: "Ctrl+Shift+Tab", ctx: "global", categoria: "navegacion", descripcion: "Pestaña anterior", descripcionLarga: "Cambia el foco a la pestaña previa del workspace", handler: () => cambiarPestanaRelativa(s, -1) }),
     registrarAtajo({ combo: "Ctrl+B", ctx: "global", categoria: "vista", descripcion: "Abrir/cerrar biblioteca dock", descripcionLarga: "Muestra u oculta la biblioteca lateral de plantillas y formas", handler: () => s().toggleBibliotecaDock() }),
+    registrarAtajo({ combo: "Space", ctx: "global", categoria: "edicion", descripcion: "Reproducir/Pausar simulación", descripcionLarga: "En modo simulación, alterna entre reproducir y pausar", preventDefault: false, handler: togglePlaySimulacion }),
   ];
 }
 

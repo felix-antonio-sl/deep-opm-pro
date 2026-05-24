@@ -22,6 +22,7 @@ export const createSimulacionSlice: CrearSlice<SimulacionSlice> = (set, get) => 
   readOnlyPrevSimulacion: null,
   autoAvanceSimulacionActivo: false,
   velocidadSimulacion: 1,
+  headlessSimulacion: false,
 
   iniciarModoSimulacion() {
     const { modelo, opdActivoId, contextoSimulacion, readOnly } = get();
@@ -129,6 +130,10 @@ export const createSimulacionSlice: CrearSlice<SimulacionSlice> = (set, get) => 
     set({ velocidadSimulacion: normalizarVelocidadSimulacion(velocidad) });
   },
 
+  alternarHeadlessSimulacion() {
+    set({ headlessSimulacion: !get().headlessSimulacion });
+  },
+
   asignarValorRuntimeSimulacion(entidadId, valor) {
     const { contextoSimulacion } = get();
     if (!contextoSimulacion) return;
@@ -141,11 +146,9 @@ export const createSimulacionSlice: CrearSlice<SimulacionSlice> = (set, get) => 
   },
 });
 
-function normalizarVelocidadSimulacion(velocidad: number): number {
-  if (!Number.isFinite(velocidad)) return 1;
-  if (velocidad <= 0.75) return 0.5;
-  if (velocidad < 1.5) return 1;
-  return 2;
+export function normalizarVelocidadSimulacion(velocidad: number): number {
+  if (!Number.isFinite(velocidad)) return velocidad === Number.POSITIVE_INFINITY ? 4 : 1;
+  return Math.min(4, Math.max(0.25, velocidad));
 }
 
 function opdParaMostrar(contexto: ContextoSimulacion, fallback: Id): Id {

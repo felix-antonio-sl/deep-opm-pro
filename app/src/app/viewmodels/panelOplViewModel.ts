@@ -3,6 +3,7 @@ import { useZustandOplPort } from "../ports/zustandOplPort";
 import type { Id } from "../../modelo/tipos/comunes";
 import type { BloqueOpl } from "../../opl/bloquesJerarquicos";
 import type { OplLineaInteractiva, OplReferencia } from "../../opl/interaccion";
+import { focoPasoActualSimulacion } from "../../modelo/simulacion/foco";
 import { derivarPanelOpl } from "../../opl/panel";
 import type { PrevisualizacionOplReverse } from "../../opl/parser";
 
@@ -14,6 +15,7 @@ export interface PanelOplViewModel {
   busquedaOpl: string;
   query: string;
   seleccionRef: OplReferencia | null;
+  procesoActivoSimId: string | null;
   lineas: OplLineaInteractiva[];
   textoOplActual: string;
   bloques: BloqueOpl[];
@@ -51,6 +53,7 @@ export function usePanelOplViewModel(): PanelOplViewModel {
     modelo,
     opdActivoId,
     vistaMapaActiva,
+    contextoSimulacion,
     seleccionId,
     enlaceSeleccionId,
     filtroActivo,
@@ -98,6 +101,13 @@ export function usePanelOplViewModel(): PanelOplViewModel {
     [modelo, opdActivoId, seleccionId, enlaceSeleccionId, filtroActivo, busquedaOpl, editorLibre, textoLibre],
   );
 
+  // B0.025: id del proceso activo durante la simulacion, para que el panel OPL
+  // resalte su frase sin regenerar texto. `null` cuando no se simula.
+  const procesoActivoSimId = useMemo(
+    () => (contextoSimulacion ? focoPasoActualSimulacion(modelo, contextoSimulacion).procesoActivoId : null),
+    [modelo, contextoSimulacion],
+  );
+
   const alternarEditorLibre = () => {
     const siguiente = !editorLibre;
     setEditorLibre(siguiente);
@@ -122,6 +132,7 @@ export function usePanelOplViewModel(): PanelOplViewModel {
     busquedaOpl,
     query: derivado.query,
     seleccionRef: derivado.seleccionRef,
+    procesoActivoSimId,
     lineas: derivado.lineas,
     textoOplActual: derivado.textoOplActual,
     bloques: derivado.bloques,

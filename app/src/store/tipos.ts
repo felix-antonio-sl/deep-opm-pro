@@ -808,6 +808,9 @@ export interface OpmStore {
   pausarAutoAvanceSimulacion: () => void;
   fijarVelocidadSimulacion: (velocidad: number) => void;
   asignarValorRuntimeSimulacion: (entidadId: Id, valor: import("../modelo/tipos").ValorConcreto) => void;
+  /** HU B0.015: preferencia de modo headless — salta animación de tokens. */
+  headlessSimulacion: boolean;
+  alternarHeadlessSimulacion: () => void;
 }
 
 

@@ -159,6 +159,48 @@ describe("proyeccion JointJS", () => {
     expect(labels?.some((label) => label.markup?.some((node) => node.selector === "token"))).toBe(true);
   });
 
+  test("proyecta halo del estado inicial designado durante simulacion (B0.019)", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 40 }, "Pedido"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 240, y: 130 }, "Aprobar"));
+    const pedidoId = entidadPorNombre(modelo, "Pedido");
+    const aprobarId = entidadPorNombre(modelo, "Aprobar");
+    const estados = must(crearEstadosIniciales(modelo, pedidoId));
+    modelo = estados.modelo;
+    const [pendienteId, aprobadoId] = estados.estadoIds;
+    modelo = must(designarEstadoInicial(modelo, pendienteId));
+    const aparienciaObjeto = Object.values(modelo.opds[modelo.opdRaizId]?.apariencias ?? {}).find(
+      (ap) => ap.entidadId === pedidoId,
+    );
+    if (!aparienciaObjeto) throw new Error("La prueba esperaba apariencia de objeto");
+
+    const cells = proyectarModeloAJointCells(
+      modelo,
+      modelo.opdRaizId,
+      null,
+      null,
+      null,
+      [],
+      {},
+      {
+        procesoActivoId: aprobarId,
+        estadosCurrent: { [pedidoId]: aprobadoId },
+        entidadesInvolucradasIds: [pedidoId, aprobarId],
+        enlacesInvolucradosIds: [],
+        estadosInicialesIds: [pendienteId],
+      },
+    );
+
+    const inicialHalo = cells.find(
+      (item) => item.opm.kind === "simulacion-halo" && item.opm.tipo === "estado-inicial",
+    );
+    expect(inicialHalo).toBeDefined();
+    expect(inicialHalo?.id).toBe(`sim-inicial-${aparienciaObjeto.id}-${pendienteId}`);
+    if (inicialHalo?.opm.kind === "simulacion-halo") {
+      expect(inicialHalo.opm.targetId).toBe(pedidoId);
+    }
+  });
+
   test("aplica overrides de fill y borde en attrs JointJS de la cosa", () => {
     let modelo = crearModelo();
     modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 20, y: 30 }, "Validar"));

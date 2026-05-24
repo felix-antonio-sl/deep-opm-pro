@@ -10,6 +10,7 @@ interface BloquesProps {
   opdActivoId: string;
   hoverOplRef: OplReferencia | null;
   seleccionRef: OplReferencia | null;
+  procesoActivoSimId: string | null;
   numeracionVisible: boolean;
   bloquesColapsados: Set<string>;
   alternarBloqueContraido: (opdId: string) => void;
@@ -62,16 +63,38 @@ export function Bloques(props: BloquesProps) {
 }
 
 function LineaOpl(props: BloquesProps & { linea: OplLineaInteractiva; bloqueOpdId: string }) {
+  // B0.025: durante la simulacion, resaltar la(s) frase(s) del proceso activo.
+  // Es puramente presentacional: no regenera OPL ni muta el modelo, sólo reusa
+  // `lineaTocaReferencia` contra la referencia de entidad del proceso activo.
+  const esProcesoActivoSim =
+    props.procesoActivoSimId != null &&
+    lineaTocaReferencia(props.linea, { tipo: "entidad", id: props.procesoActivoSimId });
+  const esSeleccionada = lineaTocaReferencia(props.linea, props.seleccionRef);
+  // Composición sim-activa + selección: cuando ambas coinciden, la barra sim
+  // (bosque, 4px exterior) envuelve a la barra de selección (cinabrio, 2px
+  // interior) y conserva el tinte bosque. No clobbering de una sobre otra.
+  const estiloSimActiva = esProcesoActivoSim
+    ? {
+        ...style.lineaSimActiva,
+        ...(esSeleccionada
+          ? {
+              boxShadow: `inset 4px 0 0 ${tokens.colors.bosque}, inset 2px 0 0 ${tokens.colors.accent}`,
+            }
+          : {}),
+      }
+    : {};
   return (
     <div
       data-testid="opl-line"
+      data-sim-activa={esProcesoActivoSim ? "true" : undefined}
       data-opl-ordinal={props.linea.ordinal}
       data-opd-id={props.bloqueOpdId}
       style={{
         ...style.linea,
         ...(props.linea.opdId === props.opdActivoId ? style.lineaOpdActiva : {}),
         ...(lineaTocaReferencia(props.linea, props.hoverOplRef) ? style.lineaHover : {}),
-        ...(lineaTocaReferencia(props.linea, props.seleccionRef) ? style.lineaSeleccionada : {}),
+        ...(esSeleccionada ? style.lineaSeleccionada : {}),
+        ...estiloSimActiva,
       }}
     >
       <span style={ordinalStyle(props.numeracionVisible)} aria-hidden={!props.numeracionVisible}>
@@ -165,6 +188,14 @@ const style = {
   lineaSeleccionada: {
     boxShadow: `inset 2px 0 0 ${tokens.colors.accent}`,
     background: tokens.colors.ink04,
+  },
+  // B0.025: frase del proceso activo durante la simulacion. Reusa el mismo
+  // mecanismo de barra lateral + tinte que la seleccion, pero en la familia
+  // bosque (verde) para alinear con el halo SIM_VERDE del proceso activo en
+  // el canvas. Sólo se aplica mientras `procesoActivoSimId != null` (simulando).
+  lineaSimActiva: {
+    boxShadow: `inset 2px 0 0 ${tokens.colors.bosque}`,
+    background: tokens.colors.bosqueSoft,
   },
   ordinal: {
     color: tokens.colors.ink30,

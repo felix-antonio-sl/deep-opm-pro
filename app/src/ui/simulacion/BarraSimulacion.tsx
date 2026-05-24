@@ -19,12 +19,14 @@ export function BarraSimulacion(): JSX.Element | null {
     contexto,
     autoAvance,
     velocidad: velocidadSimulacion,
+    headless,
     ejecutarPaso,
     ejecutarCorrida,
     reiniciar,
     iniciarAutoAvance,
     pausarAutoAvance,
     fijarVelocidad,
+    alternarHeadless,
     salir,
   } = useZustandSimulationPort();
 
@@ -72,58 +74,78 @@ export function BarraSimulacion(): JSX.Element | null {
           disabled={totalPasos === 0 || completado}
           data-testid="barra-simulacion-auto"
           aria-pressed={autoAvance}
+          title={autoAvance ? "Pausar (Espacio)" : "Reproducir (Espacio)"}
         >
           {autoAvance ? "Pausa" : "Play"}
         </button>
-        <label style={style.velocidadControl}>
-          <span style={style.velocidadTexto}>Velocidad</span>
-          <select
+        <label style={style.velocidadControl} title="Velocidad de reproducción (0.25× a 4×)">
+          <span style={style.velocidadTexto}>Velocidad {velocidadSimulacion}×</span>
+          <input
+            type="range"
+            min="0.25"
+            max="4"
+            step="0.25"
             value={String(velocidadSimulacion)}
-            onChange={(event) => {
-              const target = event.currentTarget as HTMLSelectElement;
+            onInput={(event) => {
+              const target = event.currentTarget as HTMLInputElement;
               fijarVelocidad(Number(target.value));
             }}
             disabled={totalPasos === 0}
-            style={style.velocidadSelect}
+            style={style.velocidadSlider}
             data-testid="barra-simulacion-velocidad"
-          >
-            <option value="0.5">0.5x</option>
-            <option value="1">1x</option>
-            <option value="2">2x</option>
-          </select>
+          />
         </label>
+        {!autoAvance ? (
+          <>
+            <button
+              type="button"
+              style={style.boton}
+              onClick={ejecutarPaso}
+              disabled={totalPasos === 0 || completado}
+              data-testid="barra-simulacion-paso"
+              title="Ejecutar un paso"
+            >
+              Paso
+            </button>
+            <button
+              type="button"
+              style={style.boton}
+              onClick={ejecutarCorrida}
+              disabled={totalPasos === 0 || completado}
+              data-testid="barra-simulacion-correr"
+              title="Ejecutar toda la corrida"
+            >
+              Correr
+            </button>
+            <button
+              type="button"
+              style={style.boton}
+              onClick={reiniciar}
+              disabled={totalPasos === 0}
+              data-testid="barra-simulacion-reiniciar"
+              title="Volver al estado inicial"
+            >
+              Reiniciar
+            </button>
+          </>
+        ) : null}
         <button
           type="button"
           style={style.boton}
-          onClick={ejecutarPaso}
-          disabled={totalPasos === 0 || completado || autoAvance}
-          data-testid="barra-simulacion-paso"
+          onClick={alternarHeadless}
+          aria-pressed={headless}
+          aria-label={headless ? "Headless activado: sin animación de tokens" : "Headless desactivado: con animación de tokens"}
+          title="Headless: corre sin animación, salto directo al final"
+          data-testid="barra-simulacion-headless"
         >
-          Paso
-        </button>
-        <button
-          type="button"
-          style={style.boton}
-          onClick={ejecutarCorrida}
-          disabled={totalPasos === 0 || completado || autoAvance}
-          data-testid="barra-simulacion-correr"
-        >
-          Correr
-        </button>
-        <button
-          type="button"
-          style={style.boton}
-          onClick={reiniciar}
-          disabled={totalPasos === 0 || autoAvance}
-          data-testid="barra-simulacion-reiniciar"
-        >
-          Reiniciar
+          {headless ? "Headless ✓" : "Headless"}
         </button>
         <button
           type="button"
           style={style.botonSalir}
           onClick={salir}
           data-testid="barra-simulacion-salir"
+          title="Salir del modo simulación"
         >
           Salir
         </button>
@@ -256,13 +278,10 @@ const style: Record<string, JSX.CSSProperties> = {
   velocidadTexto: {
     lineHeight: "26px",
   },
-  velocidadSelect: {
-    height: 24,
-    border: "none",
-    background: "transparent",
-    color: tokens.colors.textoPrimario,
-    fontSize: tokens.typography.sizes.sm,
+  velocidadSlider: {
+    width: 96,
     cursor: "pointer",
+    accentColor: tokens.colors.acentoUi,
   },
   botonSalir: {
     height: 28,

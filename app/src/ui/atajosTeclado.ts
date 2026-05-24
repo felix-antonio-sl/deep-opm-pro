@@ -185,8 +185,11 @@ function normalizarCombo(combo: Combo): Combo {
 }
 
 function teclaNormalizada(key: string): string {
-  if (key.length === 1) return key.toUpperCase();
+  // El espacio (`e.key === " "`) tiene length 1: hay que mapearlo a "Space"
+  // ANTES del atajo length===1, o quedaría como " " y nunca casaría con el
+  // combo registrado "Space" (atajo Espacio play/pausa simulación, B0.015).
   if (key === " ") return "Space";
+  if (key.length === 1) return key.toUpperCase();
   if (key === "Esc") return "Escape";
   return key;
 }

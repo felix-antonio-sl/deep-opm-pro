@@ -263,6 +263,7 @@ export type SimulacionSlice = Slice<
   | "readOnlyPrevSimulacion"
   | "autoAvanceSimulacionActivo"
   | "velocidadSimulacion"
+  | "headlessSimulacion"
   | "iniciarModoSimulacion"
   | "salirModoSimulacion"
   | "ejecutarPasoSimulacion"
@@ -272,6 +273,7 @@ export type SimulacionSlice = Slice<
   | "pausarAutoAvanceSimulacion"
   | "fijarVelocidadSimulacion"
   | "asignarValorRuntimeSimulacion"
+  | "alternarHeadlessSimulacion"
 >;
 
 export type OpmStoreSlices =

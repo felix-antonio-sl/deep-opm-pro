@@ -62,6 +62,26 @@ describe("registry central de atajos", () => {
     expect(listarAtajos().map((item) => item.combo)).toEqual(["Ctrl+S", "Ctrl+S"]);
   });
 
+  test("Espacio (key=' ') casa con el combo registrado 'Space' (regresión B0.015)", () => {
+    // Regresión: `teclaNormalizada` resolvía `" "` por la rama length===1 y
+    // devolvía un espacio literal, que jamás casaba con el combo "Space" del
+    // atajo Espacio play/pausa. El evento de teclado real llega con key=" ".
+    const llamados: string[] = [];
+    registrarAtajo({
+      combo: "Space",
+      ctx: "global",
+      categoria: "edicion",
+      descripcion: "Reproducir/Pausar simulación",
+      preventDefault: false,
+      handler: () => llamados.push("space"),
+    });
+    escucharGlobal();
+
+    despachar(eventoTecla(" "));
+
+    expect(llamados).toEqual(["space"]);
+  });
+
   test("bloquea atajos de canvas en entrada editable pero permite Escape global", () => {
     const llamados: string[] = [];
     registrarAtajo({
