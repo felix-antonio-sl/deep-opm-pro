@@ -69,17 +69,32 @@ function LineaOpl(props: BloquesProps & { linea: OplLineaInteractiva; bloqueOpdI
   const esProcesoActivoSim =
     props.procesoActivoSimId != null &&
     lineaTocaReferencia(props.linea, { tipo: "entidad", id: props.procesoActivoSimId });
+  const esSeleccionada = lineaTocaReferencia(props.linea, props.seleccionRef);
+  // Composición sim-activa + selección: cuando ambas coinciden, la barra sim
+  // (bosque, 4px exterior) envuelve a la barra de selección (cinabrio, 2px
+  // interior) y conserva el tinte bosque. No clobbering de una sobre otra.
+  const estiloSimActiva = esProcesoActivoSim
+    ? {
+        ...style.lineaSimActiva,
+        ...(esSeleccionada
+          ? {
+              boxShadow: `inset 4px 0 0 ${tokens.colors.bosque}, inset 2px 0 0 ${tokens.colors.accent}`,
+            }
+          : {}),
+      }
+    : {};
   return (
     <div
-      data-testid={esProcesoActivoSim ? "opl-linea-sim-activa" : "opl-line"}
+      data-testid="opl-line"
+      data-sim-activa={esProcesoActivoSim ? "true" : undefined}
       data-opl-ordinal={props.linea.ordinal}
       data-opd-id={props.bloqueOpdId}
       style={{
         ...style.linea,
         ...(props.linea.opdId === props.opdActivoId ? style.lineaOpdActiva : {}),
         ...(lineaTocaReferencia(props.linea, props.hoverOplRef) ? style.lineaHover : {}),
-        ...(lineaTocaReferencia(props.linea, props.seleccionRef) ? style.lineaSeleccionada : {}),
-        ...(esProcesoActivoSim ? style.lineaSimActiva : {}),
+        ...(esSeleccionada ? style.lineaSeleccionada : {}),
+        ...estiloSimActiva,
       }}
     >
       <span style={ordinalStyle(props.numeracionVisible)} aria-hidden={!props.numeracionVisible}>
