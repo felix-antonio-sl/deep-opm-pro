@@ -13,7 +13,7 @@ type Vnode = { type: string; props: { style: preact.JSX.CSSProperties; "data-opl
 describe("oplTipografia · contrato L1", () => {
   test("OplObj: serif bold subrayado solido en tinta (objeto)", () => {
     const v = OplObj({ children: "System Name" }) as unknown as Vnode;
-    expect(v.type).toBe("b");
+    expect(v.type).toBe("strong");
     expect(v.props["data-opl-tipo"]).toBe("objeto");
     expect(v.props.children).toBe("System Name");
     expect(v.props.style.fontWeight).toBe(tokens.typography.weights.bold);
@@ -24,7 +24,7 @@ describe("oplTipografia · contrato L1", () => {
 
   test("OplProc: serif bold italic subrayado punteado (proceso)", () => {
     const v = OplProc({ children: "Main System Doing" }) as unknown as Vnode;
-    expect(v.type).toBe("span");
+    expect(v.type).toBe("em");
     expect(v.props["data-opl-tipo"]).toBe("proceso");
     expect(v.props.style.fontWeight).toBe(tokens.typography.weights.bold);
     expect(v.props.style.fontStyle).toBe("italic");

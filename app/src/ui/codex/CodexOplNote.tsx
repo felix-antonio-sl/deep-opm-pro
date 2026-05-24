@@ -52,6 +52,7 @@ export interface CodexOplNoteProps {
  */
 export function CodexOplNote(props: CodexOplNoteProps) {
   const numeracionVisible = props.numeracionVisible ?? true;
+  const estiloSev = estiloMarginalia(props.severidad);
   return (
     <div
       {...props.contenedorProps}
@@ -78,8 +79,8 @@ export function CodexOplNote(props: CodexOplNoteProps) {
         </span>
       </div>
       {props.marginalia != null ? (
-        <p style={{ ...estilos.marginalia, ...estiloMarginalia(props.severidad) }} role="note">
-          <span style={{ ...estilos.kicker, ...estiloMarginalia(props.severidad) }}>
+        <p style={{ ...estilos.marginalia, ...estiloSev }} role="note">
+          <span style={{ ...estilos.kicker, ...estiloSev }}>
             {GLIFO_WARN} {props.etiquetaSeveridad ?? etiquetaPorSeveridad(props.severidad)}
           </span>
           <span style={estilos.marginaliaTexto}>{props.marginalia}</span>

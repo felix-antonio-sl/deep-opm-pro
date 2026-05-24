@@ -24,18 +24,18 @@ interface OplTipografiaProps {
 /** Nombre de objeto OPM en cuerpo OPL: serif bold + subrayado solido, tinta. */
 export function OplObj({ children }: OplTipografiaProps) {
   return (
-    <b data-opl-tipo="objeto" style={estilos.objeto}>
+    <strong data-opl-tipo="objeto" style={estilos.objeto}>
       {children}
-    </b>
+    </strong>
   );
 }
 
 /** Nombre de proceso OPM en cuerpo OPL: serif bold italic + subrayado punteado. */
 export function OplProc({ children }: OplTipografiaProps) {
   return (
-    <span data-opl-tipo="proceso" style={estilos.proceso}>
+    <em data-opl-tipo="proceso" style={estilos.proceso}>
       {children}
-    </span>
+    </em>
   );
 }
 
