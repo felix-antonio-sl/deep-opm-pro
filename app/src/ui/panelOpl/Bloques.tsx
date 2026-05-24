@@ -1,6 +1,7 @@
 // [JOYAS §1-3] Chrome UI consume tokens centralizados; canvas semántico invariante.
 import type { BloqueOpl } from "../../opl/bloquesJerarquicos";
 import { lineaTocaReferencia, referenciaEnlaceEspecifico, type OplLineaInteractiva, type OplReferencia } from "../../opl/interaccion";
+import { CodexOplNote } from "../codex/CodexOplNote";
 import { RenderToken, type EdicionOpl } from "./RenderToken";
 import { tokens } from "../tokens";
 
@@ -83,58 +84,58 @@ function LineaOpl(props: BloquesProps & { linea: OplLineaInteractiva; bloqueOpdI
           : {}),
       }
     : {};
+  // Ronda Codex v1 · L1: la oracion OPL pasa por `CodexOplNote` (estructura
+  // numero + cuerpo + slot de marginalia). Se preservan testIds, data-* y el
+  // estilo de seleccion/hover/sim que el panel ya aplicaba; CodexOplNote solo
+  // reorganiza la piel. La numeracion sigue mostrando el ordinal con punto.
   return (
-    <div
-      data-testid="opl-line"
-      data-sim-activa={esProcesoActivoSim ? "true" : undefined}
-      data-opl-ordinal={props.linea.ordinal}
-      data-opd-id={props.bloqueOpdId}
-      style={{
+    <CodexOplNote
+      numero={`${props.linea.ordinal}.`}
+      numeracionVisible={props.numeracionVisible}
+      seleccionada={esSeleccionada}
+      contenedorProps={{
+        "data-testid": "opl-line",
+        "data-sim-activa": esProcesoActivoSim ? "true" : undefined,
+        "data-opl-ordinal": props.linea.ordinal,
+        "data-opd-id": props.bloqueOpdId,
+      }}
+      estiloContenedor={{
         ...style.linea,
         ...(props.linea.opdId === props.opdActivoId ? style.lineaOpdActiva : {}),
         ...(lineaTocaReferencia(props.linea, props.hoverOplRef) ? style.lineaHover : {}),
         ...(esSeleccionada ? style.lineaSeleccionada : {}),
         ...estiloSimActiva,
       }}
-    >
-      <span style={ordinalStyle(props.numeracionVisible)} aria-hidden={!props.numeracionVisible}>
-        {props.linea.ordinal}.
-      </span>
-      <span style={style.texto}>
-        {props.linea.tokens.map((token, tokenIndex) => (
-          <RenderToken
-            key={token.id}
-            token={token}
-            hoverOplRef={props.hoverOplRef}
-            edicion={props.edicion}
-            setEdicion={props.setEdicion}
-            seleccionarDesdeOpl={(ref) => props.seleccionarDesdeOpl(referenciaEnlaceEspecifico(props.linea, tokenIndex) ?? ref)}
-            renombrarEntidadDesdeOpl={props.renombrarEntidadDesdeOpl}
-            renombrarEstadoDesdeOpl={props.renombrarEstadoDesdeOpl}
-            abrirInspectorEnlaceDesdeOpl={props.abrirInspectorEnlaceDesdeOpl}
-            fijarHoverOpl={props.fijarHoverOpl}
-          />
-        ))}
-      </span>
-    </div>
+      cuerpo={props.linea.tokens.map((token, tokenIndex) => (
+        <RenderToken
+          key={token.id}
+          token={token}
+          hoverOplRef={props.hoverOplRef}
+          edicion={props.edicion}
+          setEdicion={props.setEdicion}
+          seleccionarDesdeOpl={(ref) => props.seleccionarDesdeOpl(referenciaEnlaceEspecifico(props.linea, tokenIndex) ?? ref)}
+          renombrarEntidadDesdeOpl={props.renombrarEntidadDesdeOpl}
+          renombrarEstadoDesdeOpl={props.renombrarEstadoDesdeOpl}
+          abrirInspectorEnlaceDesdeOpl={props.abrirInspectorEnlaceDesdeOpl}
+          fijarHoverOpl={props.fijarHoverOpl}
+        />
+      ))}
+    />
   );
 }
 
 // Ronda 28 L3: Bloques Bauhaus.
 //   - section title (cabecera bloque): Inter Tight 11/500 uppercase tracking
 //     +0.08em ink-70, sin background ni borde (chrome editorial).
-//   - lines: grid 30px 1fr, mono 12px, numeración ink-30 tabular.
+//   - lines: la grilla numero/cuerpo y la tipografia serif viven ahora en
+//     CodexOplNote (L1). Aqui solo queda el chrome de linea: padding, hover,
+//     seleccion y la transicion.
 //   - hover: ink-04 plano. activo: barra lateral 2px cinabrio izquierda.
 const style = {
   linea: {
-    display: "grid",
-    gridTemplateColumns: "30px minmax(0, 1fr)",
-    columnGap: tokens.spacing.sm,
     borderRadius: tokens.radii.xs,
     padding: "2px 4px",
-    fontFamily: tokens.typography.fontFamilyMono,
     fontSize: `${tokens.typography.sizes.sm}px`,
-    lineHeight: 1.65,
     transition: tokens.transitions.fast,
   },
   bloque: {
@@ -197,15 +198,6 @@ const style = {
     boxShadow: `inset 2px 0 0 ${tokens.colors.bosque}`,
     background: tokens.colors.bosqueSoft,
   },
-  ordinal: {
-    color: tokens.colors.ink30,
-    fontFamily: tokens.typography.fontFamilyMono,
-    fontVariantNumeric: "tabular-nums" as const,
-    fontSize: `${tokens.typography.sizes.sm}px`,
-    textAlign: "right" as const,
-  },
-  ordinalOculto: { opacity: 0 },
-  texto: { minWidth: 0 },
 } satisfies Record<string, preact.JSX.CSSProperties>;
 
 // Bloque anidado: usa border-left hairline ink-15 (sutil) en vez de la barra
@@ -220,8 +212,4 @@ function estiloBloque(profundidad: number): preact.JSX.CSSProperties {
       ? `${tokens.stroke.hairline}px solid ${tokens.colors.ink15}`
       : "0 solid transparent",
   };
-}
-
-function ordinalStyle(visible: boolean): preact.JSX.CSSProperties {
-  return visible ? style.ordinal : { ...style.ordinal, ...style.ordinalOculto };
 }

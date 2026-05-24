@@ -4,6 +4,7 @@ import {
   type OplReferencia,
   type OplToken,
 } from "../../opl/interaccion";
+import { estilos as oplTipografia } from "../codex/oplTipografia";
 import { tokens } from "../tokens";
 
 export interface EdicionOpl {
@@ -136,51 +137,27 @@ export function textoVisibleToken(token: OplToken): string {
   return token.texto.replace(/`/g, "");
 }
 
+// Ronda Codex v1 · L1: la tipografia OPL de objeto/proceso/estado se centraliza
+// en `codex/oplTipografia` (contrato que L2/L3 tambien consumen). RenderToken la
+// reusa para no duplicar estilos inline; conserva la interaccion (hover, click,
+// edicion inline) y el estilo de verbo/multi-enlace propios del token.
 function styleTokenMarkdown(token: OplToken): preact.JSX.CSSProperties {
-  if (token.markdown === "objeto") return style.objeto;
-  if (token.markdown === "proceso") return style.proceso;
-  if (token.markdown === "estado") return style.estado;
+  if (token.markdown === "objeto") return oplTipografia.objeto;
+  if (token.markdown === "proceso") return oplTipografia.proceso;
+  if (token.markdown === "estado") return oplTipografia.estado;
   if (token.rol === "verbo") return style.verbo;
   return {};
 }
 
-// Refinamiento 2026-05-23: OPL Bauhaus enriquecido con paleta disciplinada.
-//   - Objetos:  bold 700 ink (tipografía como diferenciador primario).
-//   - Procesos: italic 700 ink + underline punteada (forma diferenciadora).
-//   - Estados:  fondo ocreSoft + texto ocreDark + mono. Cromaticidad ocre =
-//               "atención / contexto" — el estado define el contexto del objeto.
-//   - Verbos:   ultramar (focus) medium — el verbo es el info-pointer
-//               canónico de la oración OPL.
-// El `tokenMultiEnlace` (token nombre de enlace con varias instancias) mantiene
-// su semántica como underline punteada accent (cinabrio) para distinguir.
+// Estilos propios del token interactivo (no de la tipografia canonica):
+//   - Verbo: el verbo OPL en tinta media — info-pointer canonico de la oracion.
+//   - tokenMultiEnlace: nombre de enlace con varias instancias, subrayado
+//     punteado crimson para distinguir el destino seleccionable.
 const style = {
   token: { borderRadius: tokens.radii.xs },
   tokenInteractivo: { cursor: "pointer" },
   tokenHover: { background: tokens.colors.ink04 },
   tokenMultiEnlace: { borderBottom: `1px dotted ${tokens.colors.accent}` },
-  objeto: {
-    color: tokens.colors.ink,
-    fontWeight: tokens.typography.weights.bold,
-    borderBottom: `1px solid ${tokens.colors.ink}`,
-    textUnderlineOffset: "3px",
-    paddingBottom: "1px",
-  },
-  proceso: {
-    color: tokens.colors.ink,
-    fontWeight: tokens.typography.weights.bold,
-    fontStyle: "italic" as const,
-    borderBottom: `1px dashed ${tokens.colors.ink}`,
-    textUnderlineOffset: "3px",
-    paddingBottom: "1px",
-  },
-  estado: {
-    color: tokens.colors.ocreDark,
-    background: tokens.colors.ocreSoft,
-    fontFamily: tokens.typography.fontFamilyMono,
-    fontSize: `${tokens.typography.sizes.sm}px`,
-    padding: "0 4px",
-    borderRadius: tokens.radii.xs,
-  },
   verbo: {
     color: tokens.colors.focus,
     fontWeight: tokens.typography.weights.medium,
