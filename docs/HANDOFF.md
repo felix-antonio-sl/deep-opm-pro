@@ -3,10 +3,10 @@
 **Fecha**: 2026-05-24
 **Repositorio**: `deep-opm-pro`
 **Rama**: `main`
-**Ultimo corte funcional**: Ronda Codex Ola 1 — shell responsive `CodexFrame`, margen derecho unificado OPL/Inspector, command palette editorial de seis secciones y corrección de auto-encuadre del canvas sin tocar modelo, store, proyección ni routing OPCloud.
-**Ultimo commit funcional en main**: `feat(app): pivot shell to Codex marginalia` (`4f88da0`).
-**Ultimo corte deploy**: `4f88da0` desplegado en `https://opforja.sanixai.com/` el 2026-05-24T05:40Z con `docker compose up -d --build`, `VITE_ENABLE_BUG_CAPTURE=true`, `opforja` healthy, `opforja-bug-capture` arriba y Basic Auth Traefik activo (respuesta pública HTTP 401 esperada).
-**Corte**: `bun run check` verde con 1628 unit tests + 5897 expectaciones y typecheck limpio. `bun run lint` y `bun run build` verdes. La suite E2E quedó cubierta por chunks/focos verdes; `browser:smoke` monolítico fue interrumpido por SIGTERM externo tras 74 tests sin fallos observados, por lo que no se declara como pass.
+**Ultimo corte funcional**: Ronda Codex Ola 1.1 — pausa de producto para **Mapa del sistema** y **Biblioteca dock**: no se montan en el shell, no aparecen en menú/toolbar/paleta/atajos y el build público no publica chunk `feature-mapa`; la lógica interna queda dormida para futura reactivación.
+**Ultimo commit funcional en main**: `feat(app): pause map and dock surfaces` (`2cbed09`) + ajuste de empaquetado `chore(app): rename map export chunk` (`89bc657`).
+**Ultimo corte deploy**: `89bc657` desplegado en `https://opforja.sanixai.com/` el 2026-05-24T17:12Z con `docker compose up -d --build`, `VITE_ENABLE_BUG_CAPTURE=true`, `opforja` healthy, `opforja-bug-capture` arriba y Basic Auth Traefik activo (respuesta pública HTTP 401 esperada).
+**Corte**: `bun run check` verde con 1629 unit tests + 5898 expectaciones y typecheck limpio. `bun run lint` y `bun run build` verdes. Smoke focalizado `02/04/08/12-toolbar/20-biblioteca-dock` verde 59/59.
 
 ## Política De Handoff Único
 
@@ -24,6 +24,30 @@
 - JointJS OSS: usar documentación oficial viva cuando se toque JointJS.
 
 ## Estado Actual
+
+### Cierre Ronda Codex Ola 1.1 — Mapa Y Biblioteca Dock Pausados — 2026-05-24
+
+Estado actual:
+
+- Por decisión de producto, **Mapa del sistema** y **Biblioteca dock** no forman parte de la app por ahora.
+- Se agregó [app/src/app/features.ts](/home/felix/projects/deep-opm-pro/app/src/app/features.ts) como switch explícito de superficies: `mapaSistema: false`, `bibliotecaDock: false`.
+- `App.tsx` ya no importa ni monta `MapaSistema` ni `BibliotecaDock`; el canvas OPM queda como superficie central única tanto en desktop como mobile.
+- `Toolbar.tsx`/`ToolbarBase.tsx` ya no exponen slot ni cluster de mapa.
+- `MenuPrincipal` ya no muestra `Biblioteca dock`; `globalShortcutsPort` ya no registra `Ctrl+B` mientras la superficie esté pausada, por lo que tampoco aparece como atajo en Command Palette.
+- Los puertos/viewmodels del chrome se limpiaron para no arrastrar `abrirVistaMapa`, `vistaMapaActiva`, `bibliotecaDockAbierto` ni `toggleBibliotecaDock` donde ya no son contrato de producto.
+- `vite.config.ts` separa `mapaExport` como `feature-export`; el build público ya no publica/preload `feature-mapa` cuando la vista de mapa está pausada.
+- La lógica interna de mapa/dock permanece en `store`, `canvas`, componentes y tests unitarios para reactivación futura; esto es una pausa de superficie, no borrado de dominio.
+
+Verificación:
+
+- `bun run check`: typecheck limpio; 1629 unit tests verdes, 5898 expectaciones.
+- `bun run lint`: limpio.
+- `bun run build`: build Vite verde; chunk visible `feature-export-*`, sin `feature-mapa-*`.
+- `bunx playwright test e2e/02-canvas-y-render.spec.ts e2e/04-arbol-y-pestanas.spec.ts e2e/08-mvp-alpha-residual.spec.ts e2e/12-toolbar-overflow.spec.ts e2e/20-biblioteca-dock.spec.ts`: 59/59 verdes.
+- `docker compose up -d --build`: `opforja` y `opforja-bug-capture` recreados y arriba.
+- `docker ps --filter name=opforja`: `opforja` healthy, `opforja-bug-capture` up.
+- `docker exec opforja wget -qO- http://127.0.0.1:8080/`: sirve bundle `index-kCfAx3ZV.js` y preload `feature-export-B8y2YYLA.js`.
+- `curl -k -sS -o /tmp/opforja-prod.html -D - https://opforja.sanixai.com/`: HTTP 401 con `www-authenticate: Basic realm="traefik"` esperado.
 
 ### Cierre Ronda Codex Ola 1 — Frame Responsive, Marginalia Y Command Palette — 2026-05-24
 
