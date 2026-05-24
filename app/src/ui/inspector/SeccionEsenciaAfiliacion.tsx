@@ -1,4 +1,13 @@
+// Ronda Codex v1 · L2 — re-piel a primitivas Codex (cero logica nueva).
+//
+// Esencia/Afiliacion pasan de toggles segmentados con background a
+// `CodexInspectInline` (segmented tipografico: palabras separadas por `·`,
+// activa subrayada). Las opciones siguen siendo `<button>` con el mismo nombre
+// accesible ("Informacional"/"Física"/"Sistémica"/"Ambiental") para preservar
+// los e2e que las localizan por rol+nombre. testIds de hints inmutables.
 import type { Afiliacion, Esencia } from "../../modelo/tipos";
+import { CodexInspectSection } from "../codex/CodexInspectSection";
+import { CodexInspectInline } from "../codex/CodexInspectInline";
 import { inspectorStyles as style } from "../inspectorStyles";
 
 interface Props {
@@ -8,33 +17,32 @@ interface Props {
   onAfiliacion: (value: Afiliacion) => void;
 }
 
+const ESENCIAS: ReadonlyArray<Esencia> = ["informacional", "fisica"];
+const AFILIACIONES: ReadonlyArray<Afiliacion> = ["sistemica", "ambiental"];
+
 export function SeccionEsenciaAfiliacion(props: Props) {
   return (
     <>
-      <div style={style.field}>
-        <span class="opm-label-uppercase" style={style.label}>Esencia</span>
-        <div style={style.segmented}>
-          <Segment label="Informacional" active={props.esencia === "informacional"} onClick={() => props.onEsencia("informacional")} />
-          <Segment label="Física" active={props.esencia === "fisica"} onClick={() => props.onEsencia("fisica")} />
-        </div>
+      <CodexInspectSection label="Esencia">
+        <CodexInspectInline
+          options={["Informacional", "Física"]}
+          active={ESENCIAS.indexOf(props.esencia)}
+          onSelect={(i) => props.onEsencia(ESENCIAS[i]!)}
+        />
         <p data-testid="hint-esencia" style={style.hint}>
           Informacional: datos, conceptos, ideas. Física: objetos tangibles.
         </p>
-      </div>
-      <div style={style.field}>
-        <span class="opm-label-uppercase" style={style.label}>Afiliación</span>
-        <div style={style.segmented}>
-          <Segment label="Sistémica" active={props.afiliacion === "sistemica"} onClick={() => props.onAfiliacion("sistemica")} />
-          <Segment label="Ambiental" active={props.afiliacion === "ambiental"} onClick={() => props.onAfiliacion("ambiental")} />
-        </div>
+      </CodexInspectSection>
+      <CodexInspectSection label="Afiliación">
+        <CodexInspectInline
+          options={["Sistémica", "Ambiental"]}
+          active={AFILIACIONES.indexOf(props.afiliacion)}
+          onSelect={(i) => props.onAfiliacion(AFILIACIONES[i]!)}
+        />
         <p data-testid="hint-afiliacion" style={style.hint}>
           Sistémica: parte del sistema. Ambiental: contexto externo.
         </p>
-      </div>
+      </CodexInspectSection>
     </>
   );
-}
-
-function Segment(props: { label: string; active: boolean; onClick: () => void }) {
-  return <button type="button" style={props.active ? style.segmentActive : style.segment} onClick={props.onClick}>{props.label}</button>;
 }

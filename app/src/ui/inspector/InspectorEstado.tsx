@@ -2,6 +2,9 @@ import { useEffect, useRef, useState } from "preact/hooks";
 import type { Estado } from "../../modelo/tipos";
 import { useOpmStore } from "../../store";
 import { inspectorStyles as style } from "../inspectorStyles";
+import { CodexInspectSection } from "../codex/CodexInspectSection";
+import { CodexStateRow, type CodexStateFlag } from "../codex/CodexStateRow";
+import { OplObj, OplState } from "../codex/oplTipografia";
 import { SeccionDesignaciones } from "./SeccionDesignaciones";
 import { SeccionDuracion } from "./SeccionDuracion";
 import { tokens } from "../tokens";
@@ -19,6 +22,12 @@ interface Props {
  * `useInspectorViewModel.modo`). Reutiliza `SeccionDesignaciones` y
  * `SeccionDuracion` para no duplicar UI. Reordena con flechas ↑↓ usando
  * la operación `reordenarEstadoSeleccionado` del slice.
+ *
+ * Ronda Codex v1 · L2: re-piel a primitivas Codex (CodexInspectSection +
+ * CodexStateRow). El badge de estado va en oliva canon, las designaciones y
+ * la supresión como flags tipográficos. Cero lógica nueva: cada handler es el
+ * mismo del slice; testIds inmutables (inspector-estado, -nombre, -subir,
+ * -bajar, -suprimir, -restaurar, -eliminar).
  *
  * V-202: este inspector es affordance UI; no es gramática OPM. Las
  * mutaciones que dispara sí (rename, designación, supresión, duración,
@@ -55,6 +64,49 @@ export function InspectorEstado({ estado }: Props) {
     else if (!limpio) setNombreInput(estado.nombre);
   };
 
+  // Flag de supresión: SIEMPRE crimson (canal UI, V-203). El handler alterna
+  // suprimir/restaurar reutilizando los handlers del slice; testIds inmutables.
+  const flagSupresion: CodexStateFlag = estado.suprimido
+    ? {
+        label: "restaurar",
+        active: true,
+        danger: true,
+        title: "Restaurar estado suprimido",
+        onToggle: () => restaurarEstado(estado.id),
+        testId: "inspector-estado-restaurar",
+      }
+    : {
+        label: "suprimir",
+        active: false,
+        danger: true,
+        title: "Marcar como suprimido (no se renderiza)",
+        onToggle: suprimirEstado,
+        testId: "inspector-estado-suprimir",
+      };
+
+  const inputNombre = (
+    <input
+      ref={inputRef}
+      data-testid="inspector-estado-nombre"
+      type="text"
+      value={nombreInput}
+      onInput={(e) => setNombreInput((e.target as HTMLInputElement).value)}
+      onBlur={confirmar}
+      onKeyDown={(e) => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          confirmar();
+          (e.target as HTMLInputElement).blur();
+        } else if (e.key === "Escape") {
+          e.preventDefault();
+          setNombreInput(estado.nombre);
+          (e.target as HTMLInputElement).blur();
+        }
+      }}
+      style={estadoStyles.input}
+    />
+  );
+
   return (
     <div data-testid="inspector-estado" data-estado-id={estado.id}>
       <header style={style.header}>
@@ -62,158 +114,112 @@ export function InspectorEstado({ estado }: Props) {
         <span style={style.id} title={`id ${estado.id}`}>{estado.id}</span>
       </header>
 
-      <div style={style.field}>
-        <span style={style.label}>Nombre</span>
-        <input
-          ref={inputRef}
-          data-testid="inspector-estado-nombre"
-          type="text"
-          value={nombreInput}
-          onInput={(e) => setNombreInput((e.target as HTMLInputElement).value)}
-          onBlur={confirmar}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") {
-              e.preventDefault();
-              confirmar();
-              (e.target as HTMLInputElement).blur();
-            } else if (e.key === "Escape") {
-              e.preventDefault();
-              setNombreInput(estado.nombre);
-              (e.target as HTMLInputElement).blur();
-            }
-          }}
-          style={estadoStyles.input}
+      <CodexInspectSection label="Identidad" testId="inspector-estado-identidad">
+        <CodexStateRow
+          nameSlot={inputNombre}
+          estadoId={estado.id}
+          onSubir={() => reordenarEstado(indice - 1)}
+          onBajar={() => reordenarEstado(indice + 1)}
+          puedeSubir={puedeSubir}
+          puedeBajar={puedeBajar}
+          flags={[]}
         />
-        <span style={estadoStyles.contexto}>Pertenece a {objeto?.nombre ?? "objeto desconocido"}</span>
-      </div>
+        <span style={estadoStyles.contexto}>
+          <OplState>{estado.nombre}</OplState> pertenece a {objeto ? <OplObj>{objeto.nombre}</OplObj> : "objeto desconocido"} · Posición ({indice + 1}/{hermanos.length})
+        </span>
+      </CodexInspectSection>
 
-      <div style={style.field}>
-        <span style={style.label}>Designaciones</span>
-        <div style={estadoStyles.row}>
-          {/*
-            SeccionDesignaciones invoca (estadoId, designacion); las acciones
-            from-selection sólo necesitan (designacion). Envolvemos para
-            adaptar firmas. El sello del invariante garantiza que el id
-            coincide con `estado.id` (estamos rendereados por el discriminador
-            del Inspector).
-          */}
-          <SeccionDesignaciones
-            estado={estado}
-            onDesignar={(_estadoId, designacion) => designarEstado(designacion)}
-            onQuitarDesignacion={(_estadoId, designacion) => quitarDesignacion(designacion)}
-          />
-        </div>
-      </div>
+      <CodexInspectSection label="Designaciones" testId="inspector-estado-designaciones">
+        {/*
+          SeccionDesignaciones invoca (estadoId, designacion); las acciones
+          from-selection sólo necesitan (designacion). Envolvemos para adaptar
+          firmas. El sello del invariante garantiza que el id coincide con
+          `estado.id` (estamos rendereados por el discriminador del Inspector).
+        */}
+        <SeccionDesignaciones
+          estado={estado}
+          onDesignar={(_estadoId, designacion) => designarEstado(designacion)}
+          onQuitarDesignacion={(_estadoId, designacion) => quitarDesignacion(designacion)}
+        />
+      </CodexInspectSection>
 
-      <div style={style.field}>
-        <span style={style.label}>Tiempo</span>
-        <div style={estadoStyles.row}>
+      <CodexInspectSection label="Tiempo · visibilidad" testId="inspector-estado-tiempo">
+        <span style={estadoStyles.row}>
           <SeccionDuracion estado={estado} onAbrirDuracion={abrirModalDuracion} />
-        </div>
-      </div>
-
-      <div style={style.field}>
-        <span style={style.label}>Visibilidad</span>
-        <div style={estadoStyles.row}>
-          {estado.suprimido ? (
-            <button
-              type="button"
-              data-testid="inspector-estado-restaurar"
-              style={estadoStyles.botonSecundario}
-              onClick={() => restaurarEstado(estado.id)}
-              title="Restaurar estado suprimido"
-            >
-              Restaurar
-            </button>
-          ) : (
-            <button
-              type="button"
-              data-testid="inspector-estado-suprimir"
-              style={estadoStyles.botonSecundario}
-              onClick={suprimirEstado}
-              title="Marcar como suprimido (no se renderiza)"
-            >
-              Suprimir
-            </button>
-          )}
-        </div>
-      </div>
-
-      <div style={style.field}>
-        <span style={style.label}>Posición ({indice + 1}/{hermanos.length})</span>
-        <div style={estadoStyles.row}>
           <button
             type="button"
-            data-testid="inspector-estado-subir"
-            style={estadoStyles.botonSecundario}
-            disabled={!puedeSubir}
-            onClick={() => reordenarEstado(indice - 1)}
-            title="Mover hacia atrás (↑ en horizontal / arriba en vertical)"
+            aria-pressed={flagSupresion.active}
+            data-testid={flagSupresion.testId}
+            style={flagSupresion.active ? estadoStyles.flagDangerActive : estadoStyles.flagDanger}
+            onClick={flagSupresion.onToggle}
+            title={flagSupresion.title}
           >
-            ↑
+            {flagSupresion.label}
           </button>
-          <button
-            type="button"
-            data-testid="inspector-estado-bajar"
-            style={estadoStyles.botonSecundario}
-            disabled={!puedeBajar}
-            onClick={() => reordenarEstado(indice + 1)}
-            title="Mover hacia adelante"
-          >
-            ↓
-          </button>
-        </div>
-      </div>
+        </span>
+      </CodexInspectSection>
 
-      <div style={style.field}>
-        <span style={style.label}>Acciones</span>
-        <div style={estadoStyles.row}>
-          <button
-            type="button"
-            data-testid="inspector-estado-eliminar"
-            style={{ ...estadoStyles.botonSecundario, color: tokens.colors.accent, borderColor: tokens.colors.accent }}
-            disabled={!puedeEliminar}
-            onClick={eliminarEstado}
-            title={puedeEliminar ? "Eliminar este estado" : "Necesitas al menos 2 estados para eliminar uno"}
-          >
-            Eliminar estado
-          </button>
-        </div>
-      </div>
+      <CodexInspectSection label="Acciones" testId="inspector-estado-acciones">
+        <button
+          type="button"
+          data-testid="inspector-estado-eliminar"
+          style={estadoStyles.eliminar}
+          disabled={!puedeEliminar}
+          onClick={eliminarEstado}
+          title={puedeEliminar ? "Eliminar este estado" : "Necesitas al menos 2 estados para eliminar uno"}
+        >
+          eliminar estado
+        </button>
+      </CodexInspectSection>
     </div>
   );
 }
+
+const flagBase: preact.JSX.CSSProperties = {
+  border: 0,
+  padding: 0,
+  background: "transparent",
+  fontFamily: tokens.typography.sans,
+  fontSize: `${tokens.typography.fs.fs11}px`,
+  fontWeight: tokens.typography.weights.regular,
+  cursor: "pointer",
+};
 
 const estadoStyles = {
   input: {
     width: "100%",
     height: "30px",
     padding: "4px 8px",
-    border: `1px solid ${tokens.colors.bordeControl}`,
-    borderRadius: tokens.radii.sm,
+    border: `${tokens.stroke.hairline}px solid ${tokens.colors.rule}`,
+    borderRadius: tokens.radii.xs,
     background: tokens.colors.paper,
     color: tokens.colors.ink,
     fontSize: "13px",
-    fontFamily: tokens.typography.familyChrome,
+    fontFamily: tokens.typography.serif,
   },
   contexto: {
-    color: tokens.colors.ink50,
-    fontSize: "11px",
+    color: tokens.colors.inkSoft,
+    fontFamily: tokens.typography.serif,
+    fontStyle: "italic" as const,
+    fontSize: `${tokens.typography.fs.fs11}px`,
   },
   row: {
-    display: "flex",
+    display: "inline-flex",
     flexWrap: "wrap" as const,
-    gap: "6px",
+    gap: `${tokens.spacing.md}px`,
   },
-  botonSecundario: {
-    height: "28px",
-    padding: "0 10px",
-    border: `1px solid ${tokens.colors.bordeControl}`,
-    borderRadius: tokens.radii.sm,
-    background: tokens.colors.fondoCard,
-    color: tokens.colors.textoSecundario,
-    cursor: "pointer",
-    fontSize: "11px",
-    fontWeight: 700,
+  flagDanger: {
+    ...flagBase,
+    color: tokens.colors.crimson,
+  },
+  flagDangerActive: {
+    ...flagBase,
+    color: tokens.colors.crimson,
+    fontWeight: tokens.typography.weights.semibold,
+    borderBottom: `${tokens.stroke.hairline}px solid ${tokens.colors.crimson}`,
+  },
+  eliminar: {
+    ...flagBase,
+    color: tokens.colors.crimson,
   },
 } satisfies Record<string, preact.JSX.CSSProperties>;

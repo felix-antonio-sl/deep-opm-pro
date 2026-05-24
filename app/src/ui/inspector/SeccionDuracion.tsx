@@ -1,40 +1,52 @@
-// [JOYAS §1-3] Chrome UI consume tokens centralizados; canvas semántico invariante.
-import timeDurationIcon from "../../../../assets/svg/timeDuration.svg";
+// Ronda Codex v1 · L2 — re-piel a flag tipografico (cero logica nueva).
+//
+// Duracion temporal del estado pasa de pill con icono SVG a PALABRA tipografica
+// (Codex usa glifos/palabras, no iconos vectoriales; Apendice "Patrones
+// prohibidos"). Activa (duracion definida) => bold + underline ink; inactiva =>
+// inkSoft. Sigue siendo `<button>` accesible.
+// SSOT: [Glos 3.43] duracion asociada a estado.
 import type { Estado } from "../../modelo/tipos";
 import { tokens } from "../tokens";
 
-/**
- * Tag de duración temporal del estado.
- * SSOT: [Glos 3.43] duración asociada a estado; asset assets/svg/timeDuration.svg [JOYAS §2].
- */
 interface Props {
   estado: Estado;
   onAbrirDuracion: (estadoId: string) => void;
 }
 
 export function SeccionDuracion(props: Props) {
+  const activa = !!props.estado.duracion;
   return (
-    <button type="button" style={stateStyles.tag} onClick={() => props.onAbrirDuracion(props.estado.id)} title="Duración temporal">
-      <img src={timeDurationIcon} alt="" aria-hidden="true" style={stateStyles.icon} />
-      {props.estado.duracion ? "Duración*" : "Duración"}
+    <button
+      type="button"
+      aria-pressed={activa}
+      style={activa ? stateStyles.flagActive : stateStyles.flag}
+      onClick={() => props.onAbrirDuracion(props.estado.id)}
+      title="Duración temporal"
+    >
+      duración
     </button>
   );
 }
 
+const flagBase: preact.JSX.CSSProperties = {
+  border: 0,
+  padding: 0,
+  background: "transparent",
+  fontFamily: tokens.typography.sans,
+  fontSize: `${tokens.typography.fs.fs11}px`,
+  fontWeight: tokens.typography.weights.regular,
+  cursor: "pointer",
+};
+
 const stateStyles = {
-  tag: {
-    height: "28px",
-    padding: "0 8px",
-    border: `1px solid ${tokens.colors.bordeControl}`,
-    borderRadius: tokens.radii.sm,
-    background: tokens.colors.fondoCard,
-    color: tokens.colors.textoSecundario,
-    cursor: "pointer",
-    fontSize: "11px",
-    fontWeight: 700,
-    display: "inline-flex",
-    alignItems: "center",
-    gap: "4px",
+  flag: {
+    ...flagBase,
+    color: tokens.colors.inkSoft,
   },
-  icon: { width: "12px", height: "12px", display: "block" },
+  flagActive: {
+    ...flagBase,
+    color: tokens.colors.ink,
+    fontWeight: tokens.typography.weights.semibold,
+    borderBottom: `${tokens.stroke.hairline}px solid ${tokens.colors.ink}`,
+  },
 } satisfies Record<string, preact.JSX.CSSProperties>;
