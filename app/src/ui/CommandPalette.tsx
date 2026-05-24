@@ -2,9 +2,18 @@ import { useEffect, useRef, useState } from "preact/hooks";
 import { useCommandPaletteViewModel } from "../app/viewmodels/commandPaletteViewModel";
 import type { AccionContextual, AccionContextualId } from "../store/acciones-contextuales";
 import { accionesContextualesEntidad, accionesParaSuperficie } from "../store/acciones-contextuales";
-import { formatearCombo, listarAtajos, type RegistroAtajo } from "./atajosTeclado";
+import { listarAtajos, type RegistroAtajo } from "./atajosTeclado";
 import { primerEnlaceVisualDeEntidad } from "./BarraHerramientasElemento";
 import { useConfirmarSiDirty } from "./ConfirmacionContext";
+import {
+  GLIFO_CMD,
+  GLIFO_ENTER,
+  GLIFO_NAV_DOWN,
+  GLIFO_NAV_UP,
+  GLIFO_SEP,
+  GLIFO_VACIO,
+  formatearComboCodex,
+} from "./codex/glifos";
 import { ejecutarAccionContextualEntidad } from "./ejecutarAccionContextual";
 import { tokens } from "./tokens";
 
@@ -36,6 +45,31 @@ export interface CommandPaletteMenuAction {
   enabled?: boolean;
   run: () => void;
 }
+
+export const SECCIONES_COMMAND_PALETTE = ["MODELO", "CREAR", "NAVEGAR", "EXPORTAR", "VISTA", "ASISTENTE"] as const;
+
+export type CommandPaletteSeccion = (typeof SECCIONES_COMMAND_PALETTE)[number];
+
+export interface CommandPaletteGrupo {
+  seccion: CommandPaletteSeccion;
+  items: CommandPaletteItem[];
+}
+
+const seccionesPorAccionMenu: Readonly<Record<string, CommandPaletteSeccion>> = {
+  "nuevo-modelo": "MODELO",
+  "abrir-importar": "MODELO",
+  "guardar-como": "MODELO",
+  configuracion: "MODELO",
+  "guardar-plantilla": "MODELO",
+  plantillas: "MODELO",
+  "versiones-modelo": "MODELO",
+  "exportar-json": "EXPORTAR",
+  "simulacion-conceptual": "VISTA",
+  "grid-canvas": "VISTA",
+  "auto-layout": "VISTA",
+  "tabla-enlaces": "VISTA",
+  "atajos-teclado": "VISTA",
+};
 
 export function CommandPalette({ abierto, onCerrar }: Props) {
   const [query, setQuery] = useState("");
@@ -101,6 +135,8 @@ export function CommandPalette({ abierto, onCerrar }: Props) {
     construirItemsCommandPalette(registros, accionesContextuales, accionesMenu, frecuenciaUso),
     query,
   ).slice(0, 60);
+  const grupos = agruparItemsCommandPalette(items);
+  const indicePorItemId = new Map(items.map((item, index) => [item.id, index]));
   const itemActivo = items[activo] ?? items[0] ?? null;
 
   useEffect(() => {
@@ -185,50 +221,76 @@ export function CommandPalette({ abierto, onCerrar }: Props) {
       }}
     >
       <div style={style.dialogo} onMouseDown={(event) => event.stopPropagation()}>
-        <input
-          ref={inputRef}
-          role="combobox"
-          aria-controls="command-palette-list"
-          aria-expanded="true"
-          aria-activedescendant={itemActivo ? `command-palette-option-${itemActivo.id}` : undefined}
-          value={query}
-          onInput={(event) => {
-            setQuery(event.currentTarget.value);
-            setActivo(0);
-          }}
-          onKeyDown={onKeyDown}
-          placeholder="Buscar acciones..."
-          style={style.input}
-        />
+        <div style={style.cabecera}>
+          <span style={style.headerKbd}>{GLIFO_CMD}K</span>
+          <input
+            ref={inputRef}
+            role="combobox"
+            aria-controls="command-palette-list"
+            aria-expanded="true"
+            aria-activedescendant={itemActivo ? `command-palette-option-${itemActivo.id}` : undefined}
+            value={query}
+            onInput={(event) => {
+              setQuery(event.currentTarget.value);
+              setActivo(0);
+            }}
+            onKeyDown={onKeyDown}
+            placeholder="buscar comando..."
+            style={style.input}
+          />
+          <span style={style.escape}>esc</span>
+        </div>
         <div id="command-palette-list" role="listbox" style={style.lista}>
           {items.length === 0 ? (
-            <div style={style.empty}>Sin resultados</div>
-          ) : items.map((item, index) => {
-            const seleccionado = index === activo;
-            return (
-              <button
-                key={item.id}
-                id={`command-palette-option-${item.id}`}
-                type="button"
-                role="option"
-                aria-selected={seleccionado}
-                data-testid={`command-palette-item-${item.id}`}
-                style={seleccionado ? style.itemActivo : style.item}
-                onMouseEnter={() => setActivo(index)}
-                onClick={() => ejecutar(item)}
-              >
-                <span style={style.itemTextos}>
-                  <span style={style.itemLabel}>{item.label}</span>
-                  <span style={style.itemDescripcion}>{item.descripcion}</span>
-                </span>
-                <span style={style.itemMeta}>
-                  {item.atajo ? <span style={style.atajo}>{formatearCombo(item.atajo)}</span> : null}
-                  <span style={style.categoria}>{item.categoria}</span>
-                </span>
-              </button>
-            );
-          })}
+            <div style={style.empty}>sin resultados {GLIFO_VACIO} {GLIFO_CMD}. para registrar acción</div>
+          ) : grupos.map((grupo) => (
+            <section
+              key={grupo.seccion}
+              aria-label={grupo.seccion}
+              data-testid={`command-palette-section-${grupo.seccion.toLowerCase()}`}
+              style={style.seccion}
+            >
+              <div style={style.seccionTitulo}>{grupo.seccion}</div>
+              <div style={style.seccionItems}>
+                {grupo.items.length === 0 ? (
+                  <div style={style.seccionVacia}>{GLIFO_VACIO}</div>
+                ) : grupo.items.map((item) => {
+                  const index = indicePorItemId.get(item.id) ?? 0;
+                  const seleccionado = index === activo;
+                  return (
+                    <button
+                      key={item.id}
+                      id={`command-palette-option-${item.id}`}
+                      type="button"
+                      role="option"
+                      aria-selected={seleccionado}
+                      data-testid={`command-palette-item-${item.id}`}
+                      style={seleccionado ? style.itemActivo : style.item}
+                      onMouseEnter={() => setActivo(index)}
+                      onClick={() => ejecutar(item)}
+                    >
+                      <span style={style.itemTextos}>
+                        <span style={style.itemLabel}>{item.label}</span>
+                        <span style={style.itemDescripcion}>{item.descripcion}</span>
+                      </span>
+                      <span style={style.itemMeta}>
+                        {item.atajo ? <span style={style.atajo}>{formatearComboCodex(item.atajo)}</span> : null}
+                        <span style={style.categoria}>{item.categoria}</span>
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </section>
+          ))}
         </div>
+        <footer style={style.footer}>
+          <span>{GLIFO_NAV_UP}{GLIFO_NAV_DOWN} navegar</span>
+          <span style={style.footerSep}>{GLIFO_SEP}</span>
+          <span>{GLIFO_ENTER} ejecutar</span>
+          <span style={style.footerSep}>{GLIFO_SEP}</span>
+          <span>{GLIFO_CMD}. ayuda</span>
+        </footer>
       </div>
     </div>
   );
@@ -343,7 +405,48 @@ function construirAccionesMenuCommandPalette(deps: AccionesMenuCommandPaletteDep
 export function filtrarItemsCommandPalette(items: readonly CommandPaletteItem[], query: string): CommandPaletteItem[] {
   const terminos = normalizarTextoBusqueda(query).split(" ").filter(Boolean);
   if (terminos.length === 0) return [...items];
-  return items.filter((item) => terminos.every((termino) => item.textoBusqueda.includes(termino)));
+  return items.filter((item) => {
+    const texto = `${item.textoBusqueda} ${normalizarTextoBusqueda(seccionVisualCommandPalette(item))}`;
+    return terminos.every((termino) => texto.includes(termino));
+  });
+}
+
+export function agruparItemsCommandPalette(items: readonly CommandPaletteItem[]): CommandPaletteGrupo[] {
+  const grupos = new Map<CommandPaletteSeccion, CommandPaletteItem[]>(
+    SECCIONES_COMMAND_PALETTE.map((seccion) => [seccion, []]),
+  );
+  for (const item of items) {
+    grupos.get(seccionVisualCommandPalette(item))?.push(item);
+  }
+  return SECCIONES_COMMAND_PALETTE.map((seccion) => ({
+    seccion,
+    items: grupos.get(seccion) ?? [],
+  }));
+}
+
+export function seccionVisualCommandPalette(item: CommandPaletteItem): CommandPaletteSeccion {
+  const seccionMenu = item.menuActionId ? seccionesPorAccionMenu[item.menuActionId] : undefined;
+  if (seccionMenu) return seccionMenu;
+  const texto = normalizarTextoBusqueda([item.label, item.descripcion, item.categoria, item.menuActionId ?? ""].join(" "));
+  if (texto.includes("asistente")) return "ASISTENTE";
+  if (texto.includes("export") || texto.includes("json") || texto.includes("svg") || texto.includes("html")) return "EXPORTAR";
+  if (item.categoria === "archivo") return "MODELO";
+  if (item.categoria === "navegacion") return "NAVEGAR";
+  if (item.categoria === "vista") return "VISTA";
+  if (
+    texto.includes("crear")
+    || texto.includes("nuevo objeto")
+    || texto.includes("nuevo proceso")
+    || texto.includes("nuevo estado")
+    || texto.includes("nueva relacion")
+    || texto.includes("nuevo opd")
+    || texto.includes("descomponer")
+    || texto.includes("desplegar")
+    || texto.includes("refinamiento")
+    || item.categoria === "edicion"
+    || item.categoria === "seleccion"
+  ) return "CREAR";
+  return "VISTA";
 }
 
 export function normalizarTextoBusqueda(texto: string): string {
@@ -369,104 +472,174 @@ function enfocarSeccionInspector(testId: string): void {
 }
 
 /**
- * Estilos del CommandPalette — Ronda 28 L2 (Bauhaus monocromática).
+ * Estilos del CommandPalette — Codex L6.
  *
- *   - Dialogo modal: borde 1.5px ink, sombra plana 12 12 0 ink-15.
- *   - Sin border-radius (Bauhaus rechaza esquinas redondas en chrome).
- *   - Input: borderless con borderBottom 1.5px ink, mono = Inter Tight.
- *   - Item activo: barra lateral 2px cinabrio + fondo ink-04. La barra
- *     comunica el cursor sin tinte azul, en línea con el brief L2.
- *   - Atajo: kbd con borde ink-30, mono JetBrains.
- *   - Categoria: utility class `.opm-label-uppercase` (uppercase tracking).
+ * Backdrop paper+blur, grilla editorial de seis secciones y cursor con rail
+ * crimson. Mantiene roles/testids existentes; solo cambia presentacion.
  */
 const style = {
   backdrop: {
     position: "fixed",
     inset: 0,
-    zIndex: 90,
+    zIndex: 1000,
     display: "grid",
     placeItems: "start center",
     paddingTop: "88px",
-    // Backdrop ink semitransparente (no slate azul). Cumple el contraste
-    // sin teñir el fondo del dialogo.
-    background: "rgb(10 10 10 / 0.32)",
+    background: "rgb(250 250 248 / 0.8)",
+    backdropFilter: "blur(2px)",
   },
   dialogo: {
-    width: "min(720px, calc(100vw - 32px))",
-    maxHeight: "min(680px, calc(100vh - 120px))",
+    width: "min(760px, calc(100vw - 32px))",
+    maxHeight: "min(620px, calc(100vh - 120px))",
     display: "grid",
-    gridTemplateRows: "auto minmax(0, 1fr)",
-    border: `1.5px solid ${tokens.colors.ink}`,
+    gridTemplateRows: "auto minmax(0, 1fr) auto",
+    border: `1px solid ${tokens.colors.ruleStrong}`,
     background: tokens.colors.paper,
-    boxShadow: `12px 12px 0 0 ${tokens.colors.ink15}`,
+    color: tokens.colors.ink,
+    boxShadow: tokens.shadows.none,
     overflow: "hidden",
+  },
+  cabecera: {
+    minHeight: "52px",
+    display: "grid",
+    gridTemplateColumns: "auto minmax(0, 1fr) auto",
+    alignItems: "center",
+    gap: "12px",
+    padding: "0 22px",
+    borderBottom: `1px solid ${tokens.colors.rule}`,
+  },
+  headerKbd: {
+    color: tokens.colors.crimson,
+    fontFamily: tokens.typography.mono,
+    fontSize: `${tokens.typography.fs.fs10}px`,
+    letterSpacing: tokens.typography.ls.kbd,
+    border: `1px solid ${tokens.colors.rule}`,
+    padding: "2px 5px",
   },
   input: {
     width: "100%",
-    height: "52px",
+    height: "50px",
     border: 0,
-    borderBottom: `1.5px solid ${tokens.colors.ink}`,
-    padding: "0 18px",
-    fontFamily: tokens.typography.fontFamily,
-    fontSize: `${tokens.typography.sizes.lg}px`,
-    fontWeight: tokens.typography.weights.medium,
+    padding: 0,
+    fontFamily: tokens.typography.serif,
+    fontSize: `${tokens.typography.fs.fs22}px`,
+    fontWeight: tokens.typography.weights.regular,
     outline: "none",
     color: tokens.colors.ink,
     background: tokens.colors.paper,
   },
+  escape: {
+    color: tokens.colors.inkSoft,
+    fontFamily: tokens.typography.mono,
+    fontSize: `${tokens.typography.fs.fs10}px`,
+    letterSpacing: tokens.typography.ls.kbd,
+    textTransform: "uppercase",
+  },
   lista: {
     display: "grid",
-    gap: "0",
-    padding: "8px",
+    gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+    gridAutoRows: "minmax(0, 1fr)",
+    alignContent: "stretch",
+    gap: 0,
+    padding: 0,
+    overflow: "hidden",
+  },
+  seccion: {
+    minHeight: 0,
+    display: "grid",
+    gridTemplateRows: "auto minmax(0, 1fr)",
+    alignContent: "start",
+    borderRight: `1px dotted ${tokens.colors.rule}`,
+    borderBottom: `1px dotted ${tokens.colors.rule}`,
+    padding: "12px 12px 10px",
+  },
+  seccionTitulo: {
+    color: tokens.colors.inkMid,
+    fontFamily: tokens.typography.sans,
+    fontSize: `${tokens.typography.fs.fs10}px`,
+    fontWeight: tokens.typography.weights.semibold,
+    letterSpacing: tokens.typography.ls.section,
+    marginBottom: "8px",
+  },
+  seccionItems: {
+    display: "grid",
+    alignContent: "start",
+    gap: "2px",
+    minWidth: 0,
+    minHeight: 0,
     overflowY: "auto",
+  },
+  seccionVacia: {
+    padding: "7px 10px",
+    color: tokens.colors.inkSoft,
+    fontFamily: tokens.typography.serif,
+    fontSize: `${tokens.typography.fs.fs12}px`,
   },
   item: {
     width: "100%",
-    minHeight: "52px",
+    minHeight: "42px",
     border: 0,
+    borderLeft: "2px solid transparent",
     background: "transparent",
     display: "grid",
     gridTemplateColumns: "minmax(0, 1fr) auto",
-    gap: "12px",
+    gap: "8px",
     alignItems: "center",
-    padding: "8px 12px",
+    padding: "7px 8px",
     textAlign: "left",
     cursor: "pointer",
-    transition: "background 150ms ease-out",
+    transition: `background ${tokens.transitions.slow}, border-color ${tokens.transitions.slow}`,
   },
   itemActivo: {
     width: "100%",
-    minHeight: "52px",
+    minHeight: "42px",
     border: 0,
-    background: tokens.colors.ink04,
+    borderLeft: `2px solid ${tokens.colors.crimson}`,
+    background: tokens.colors.paperWarm,
     display: "grid",
     gridTemplateColumns: "minmax(0, 1fr) auto",
-    gap: "12px",
+    gap: "8px",
     alignItems: "center",
-    padding: "8px 12px",
+    padding: "7px 8px 7px 14px",
     textAlign: "left",
     cursor: "pointer",
-    boxShadow: `inset 2px 0 0 0 ${tokens.colors.accent}`,
+    transition: `background ${tokens.transitions.slow}, border-color ${tokens.transitions.slow}`,
   },
   itemTextos: { display: "grid", minWidth: 0, gap: "2px" },
-  itemLabel: { color: tokens.colors.ink, fontFamily: tokens.typography.fontFamily, fontSize: `${tokens.typography.sizes.base}px`, fontWeight: tokens.typography.weights.semibold, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" },
-  itemDescripcion: { color: tokens.colors.ink70, fontFamily: tokens.typography.fontFamily, fontSize: `${tokens.typography.sizes.sm}px`, fontWeight: tokens.typography.weights.normal, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" },
-  itemMeta: { display: "inline-flex", alignItems: "center", gap: "10px", justifySelf: "end" },
+  itemLabel: { color: tokens.colors.ink, fontFamily: tokens.typography.serif, fontSize: `${tokens.typography.fs.fs13}px`, fontWeight: tokens.typography.weights.regular, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" },
+  itemDescripcion: { color: tokens.colors.inkMid, fontFamily: tokens.typography.sans, fontSize: `${tokens.typography.fs.fs11}px`, fontWeight: tokens.typography.weights.regular, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" },
+  itemMeta: { display: "inline-flex", alignItems: "center", gap: "8px", justifySelf: "end" },
   atajo: {
-    minWidth: "42px",
-    height: "22px",
     display: "inline-flex",
     alignItems: "center",
     justifyContent: "center",
-    padding: "0 6px",
-    border: `1px solid ${tokens.colors.ink30}`,
+    minWidth: "28px",
+    padding: "2px 5px",
+    border: `1px solid ${tokens.colors.rule}`,
     background: tokens.colors.paper,
-    color: tokens.colors.ink70,
-    fontFamily: tokens.typography.fontFamilyMono,
-    fontSize: `${tokens.typography.sizes.xs}px`,
-    fontWeight: tokens.typography.weights.medium,
+    color: tokens.colors.inkMid,
+    fontFamily: tokens.typography.mono,
+    fontSize: `${tokens.typography.fs.fs10}px`,
+    fontWeight: tokens.typography.weights.regular,
+    letterSpacing: tokens.typography.ls.kbd,
+  },
+  categoria: { color: tokens.colors.inkSoft, fontFamily: tokens.typography.sans, fontSize: `${tokens.typography.fs.fs9}px`, fontWeight: tokens.typography.weights.regular, textTransform: "uppercase", letterSpacing: tokens.typography.ls.mark },
+  footer: {
+    minHeight: "38px",
+    display: "inline-flex",
+    alignItems: "center",
+    gap: "8px",
+    padding: "0 22px",
+    borderTop: `1px solid ${tokens.colors.rule}`,
+    color: tokens.colors.inkMid,
+    fontFamily: tokens.typography.mono,
+    fontSize: `${tokens.typography.fs.fs10}px`,
+    letterSpacing: tokens.typography.ls.kbd,
+  },
+  footerSep: {
+    color: tokens.colors.inkFaint,
+    fontFamily: tokens.typography.serif,
     letterSpacing: 0,
   },
-  categoria: { color: tokens.colors.ink50, fontFamily: tokens.typography.fontFamily, fontSize: `${tokens.typography.sizes.xxs}px`, fontWeight: tokens.typography.weights.medium, textTransform: "uppercase", letterSpacing: "0.08em" },
-  empty: { padding: "20px 14px", color: tokens.colors.ink50, fontFamily: tokens.typography.fontFamily, fontSize: `${tokens.typography.sizes.base}px`, fontWeight: tokens.typography.weights.medium },
+  empty: { padding: "20px 22px", color: tokens.colors.inkSoft, fontFamily: tokens.typography.serif, fontSize: `${tokens.typography.fs.fs13}px`, fontStyle: "italic", gridColumn: "1 / -1" },
 } satisfies Record<string, preact.JSX.CSSProperties>;

@@ -382,10 +382,14 @@ test("boton mas opciones colapsa y reabre el Inspector lateral", async ({ page }
   await elementoPorTexto(page, "Objeto").click();
 
   await expect(page.getByTestId("inspector-pane")).toBeVisible();
-  await page.getByTestId("barra-mas-opciones").click();
-  await expect(page.getByTestId("inspector-pane")).toBeHidden();
+  await expect(page.getByTestId("inspector-pane")).toHaveAttribute("data-marginalia-mode", "split");
   await page.getByTestId("barra-mas-opciones").click();
   await expect(page.getByTestId("inspector-pane")).toBeVisible();
+  await expect(page.getByTestId("inspector-pane")).toHaveAttribute("data-marginalia-mode", "opl");
+  await expect(page.getByLabel("Inspector", { exact: true })).toHaveCount(0);
+  await page.getByTestId("barra-mas-opciones").click();
+  await expect(page.getByTestId("inspector-pane")).toBeVisible();
+  await expect(page.getByTestId("inspector-pane")).toHaveAttribute("data-marginalia-mode", "split");
   expect(pageErrors).toEqual([]);
 });
 
@@ -557,7 +561,7 @@ test("HU-17.013/.015/.016 crea atributo numérico desde Toolbar y emite OPL can�
   await crearAtributoNumericoSmoke(page);
 
   await expect(page.getByText("Temperatura es valor [°C].")).toBeVisible();
-  await expect(svgText(page, "Temperatura [°C]")).toBeVisible();
+  await expect(page.locator(".joint-paper svg text").filter({ hasText: /^\s*Temperatura\s*\[°C\]\s*$/ }).first()).toBeVisible();
   const exportado = await exportadoActual(page);
   const atributo = Object.values(exportado.modelo.entidades).find((item) => item.nombre === "Temperatura");
   expect(atributo).toMatchObject({

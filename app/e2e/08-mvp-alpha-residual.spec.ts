@@ -141,15 +141,19 @@ test("L4 arrastra cosa desde Toolbar al canvas y respeta posicion de drop", asyn
   await page.goto("/");
   await cerrarPantallaInicioSiVisible(page);
   const canvas = page.getByRole("img", { name: "OPD activo" });
+  const scrollInicial = await canvas.evaluate((element) => ({
+    left: (element as HTMLElement).scrollLeft,
+    top: (element as HTMLElement).scrollTop,
+  }));
   await page.getByTestId("toolbar-drag-objeto").dragTo(canvas, { targetPosition: { x: 320, y: 190 } });
 
   await expect(elementoPorTexto(page, "Objeto")).toHaveCount(1);
   await expect(page.getByTestId("modal-nombre-cosa")).toBeVisible();
   const apariencia = await aparienciaRaizPorNombre(page, "Objeto");
-  expect(apariencia.x).toBeGreaterThanOrEqual(280);
-  expect(apariencia.x).toBeLessThanOrEqual(360);
-  expect(apariencia.y).toBeGreaterThanOrEqual(150);
-  expect(apariencia.y).toBeLessThanOrEqual(230);
+  expect(apariencia.x).toBeGreaterThanOrEqual(scrollInicial.left + 280);
+  expect(apariencia.x).toBeLessThanOrEqual(scrollInicial.left + 360);
+  expect(apariencia.y).toBeGreaterThanOrEqual(scrollInicial.top + 150);
+  expect(apariencia.y).toBeLessThanOrEqual(scrollInicial.top + 230);
   expect(pageErrors).toEqual([]);
 });
 
@@ -495,8 +499,8 @@ test("HU-33.010: insertar plantilla enfoca temporalmente los ids nuevos", async 
   await abrirPlantillasDesdeMenuPrincipal(page);
   await page.getByTestId("insertar-plantilla").click();
 
-  // CANON-V2 (ronda 28 L4): halo seleccion en cinabrio (antes #007DB8 cian).
-  await expect(page.locator(".joint-element").filter({ has: page.locator('[stroke="#C8392F"]') }).first()).toBeVisible();
+  // CANON-V3 Codex: halo seleccion en crimson UI-only.
+  await expect(page.locator(".joint-element").filter({ has: page.locator('[stroke="#8e2a2e"]') }).first()).toBeVisible();
   await page.waitForTimeout(3200);
   const exportado = await exportadoActual(page);
   expect(Object.values(exportado.modelo.entidades).some((entidad) => entidad.nombre === "Sensor")).toBe(true);

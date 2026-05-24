@@ -201,7 +201,8 @@ test("dialogo cerrar con cambios dirty ofrece Guardar Descartar Cancelar en pest
   await page.getByRole("button", { name: "Objeto", exact: true }).click();
   await expect(elementoPorTexto(page, "Objeto")).toHaveCount(1);
 
-  await page.getByRole("tab").first().click();
+  const tabsModelo = page.getByRole("tablist", { name: "Modelos abiertos" }).getByRole("tab");
+  await tabsModelo.first().click();
   const dialogo = page.getByRole("dialog", { name: "Hay cambios sin guardar" });
   await expect(dialogo).toBeVisible();
   await expect(page.getByTestId("dialogo-confirmacion-cerrar-dirty")).toBeVisible();

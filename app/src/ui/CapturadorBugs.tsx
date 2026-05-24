@@ -416,11 +416,10 @@ function ledgerFabStyle(mobile: boolean): preact.JSX.CSSProperties {
 const style = {
   fab: {
     // Ronda 28 L6 (Bauhaus): círculo 48×48, borde 1.5px ink, fondo paper,
-    // glifo ◉ ink. Mantiene posición fixed bottom-right del P0-4 pero
-    // descarta el azul accent y la sombra elevada — el chrome Bauhaus
-    // utiliza trazo grueso + paper plano, sin elevación cromática.
+    // glifo ◉ ink. En desktop flota sobre el canvas para no tapar la
+    // marginalia Codex; en mobile conserva posicion inferior sobre tabs.
     position: "fixed",
-    right: tokens.spacing.lg,
+    right: `calc(300px + ${tokens.spacing.lg}px)`,
     bottom: tokens.spacing.lg,
     zIndex: 920,
     width: 48,
@@ -678,6 +677,7 @@ function fabStyle(esMobile: boolean): preact.JSX.CSSProperties {
   if (!esMobile) return style.fab;
   return {
     ...style.fab,
+    right: tokens.spacing.lg,
     bottom: tokens.mobileNav.altoBarra + tokens.spacing.lg,
   };
 }

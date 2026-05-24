@@ -483,10 +483,9 @@ test("edita estilo visual de cosa, persiste local y resetea defaults", async ({ 
   // Tras L6 ronda6 hay dos botones "Reset": uno para Style (apariencia) y otro
   // para texto del rotulo. El test apunta al de apariencia (Reset Style).
   await page.getByTitle("Reset Style").click();
-  // CANON-V2 (ronda 28 L4): fill default objeto pasa a verde papel
-  // lavado (`#EFF7EB`, antes #fdffff cuasi-blanco V1). El stroke default
-  // ahora viene del ink puro (no del verde V1).
-  await expect(page.locator('.joint-element rect[joint-selector="body"]')).toHaveAttribute("fill", "#EFF7EB");
+  // CANON-V3 Codex: el fill default vuelve a outline-only; los overrides de
+  // usuario siguen persistiendo hasta Reset Style.
+  await expect(page.locator('.joint-element rect[joint-selector="body"]')).toHaveAttribute("fill", "transparent");
   json = await jsonEditor(page).inputValue();
   exportado = JSON.parse(json) as ExportadoModelo;
   objeto = Object.values(exportado.modelo.entidades).find((entidad) => entidad.nombre === "Objeto");
@@ -755,6 +754,7 @@ test("L3 descomposicion avanzada: inspector reasigna, inline renombra, paralelo 
   const contorno = await elementoPorTexto(page, "Procesar").boundingBox();
   if (!contorno) throw new Error("No se pudo ubicar contorno para creacion ambiental");
   await page.mouse.click(contorno.x + contorno.width - 10, contorno.y + contorno.height - 10);
+  await elementoPorTexto(page, "Objeto").click();
   // Ronda 20 L1: el toggle Ambiental/Sistémica vive en SeccionEsenciaAfiliacion,
   // dentro del tab `Semántica` (default). El tab persiste por sesión, así que
   // volvemos explícitamente para seleccionar el botón "Ambiental".

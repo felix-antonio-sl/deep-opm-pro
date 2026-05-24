@@ -12,7 +12,7 @@ import type { Apariencia, Enlace, ExtremoEnlace, Id, Modelo, Opd, TipoEnlace } f
 import { recalcularOverlaysAbanicoDesdeLinkViews } from "./abanicoDragSync";
 import { proyectarModeloAJointCells } from "./proyeccion";
 import { cablearDrag, embedirContorno } from "./handlers/drag";
-import { CANVAS_BASE } from "./handlers/helpers";
+import { CANVAS_BASE, metadata } from "./handlers/helpers";
 import { aplicarHoverOpl, cablearHoverOpl } from "./handlers/hoverOpl";
 import { cablearHoverTooltipCanvas } from "./handlers/hoverTooltip";
 import {
@@ -475,18 +475,24 @@ export function JointCanvas({
     );
     aplicarHoverOpl(adapter.graph, modelo, hoverOplRef, enlaceSeleccionId);
     aplicarFeedbackModoEnlace(adapter.paper, modelo, opdActivoId, modoEnlace);
-    const aparienciaCount = Object.keys(modelo.opds[opdActivoId]?.apariencias ?? {}).length;
+    const opdActual = modelo.opds[opdActivoId];
+    const aparienciaCount = Object.keys(opdActual?.apariencias ?? {}).length;
+    const enlacesCount = Object.keys(opdActual?.enlaces ?? {}).length;
     const ultimoConteo = ultimoConteoAparienciasRef.current;
     const primeraAparienciaEnOpdVacio = ultimoConteo?.opdId === opdActivoId && ultimoConteo.count === 0 && aparienciaCount > 0;
     ultimoConteoAparienciasRef.current = { opdId: opdActivoId, count: aparienciaCount };
     if (primeraAparienciaEnOpdVacio) {
-      centrarViewportEnPuntoCanvas(viewportRef.current, CENTRO_CANVAS_GEOMETRICO, "auto");
+      if (aparienciaCount === 1 && enlacesCount === 0) {
+        centrarViewportEnPuntoCanvas(viewportRef.current, CENTRO_CANVAS_GEOMETRICO, "auto");
+      } else {
+        requestAnimationFrame(() => encuadrarViewportEnOpd(viewportRef.current, opdActual));
+      }
     } else if (ultimoOpdCentradoRef.current !== opdActivoId) {
       ultimoOpdCentradoRef.current = opdActivoId;
       if (aparienciaCount === 0) {
         requestAnimationFrame(() => centrarViewportEnPuntoCanvas(viewportRef.current, CENTRO_CANVAS_GEOMETRICO, "auto"));
       } else {
-        requestAnimationFrame(() => fitCanvasAPantalla(adapter.paper, viewportRef.current));
+        requestAnimationFrame(() => encuadrarViewportEnOpd(viewportRef.current, opdActual));
       }
     }
   }, [enlaceSeleccionId, idsResaltadosTemporales, modelo, opdActivoId, seleccionId, seleccionados, uiAliasVisibles, uiDescripcionesVisibles, uiModoImagenGlobal, contextoSimulacion]);
@@ -592,6 +598,7 @@ export function JointCanvas({
       if (apariencia) target = apariencia;
     }
     if (!target) return;
+    if (seleccionActualVisibleEnViewport(adapter, viewport, { seleccionId, enlaceSeleccionId })) return;
     centrarSiFueraDeViewport(viewport, target);
   }, [seleccionId, enlaceSeleccionId, opdActivoId, modelo]);
 
@@ -689,6 +696,36 @@ function bboxAproximadoEnlace(
   return { x: minX, y: minY, width: maxX - minX, height: maxY - minY };
 }
 
+function seleccionActualVisibleEnViewport(
+  adapter: JointCanvasAdapter,
+  viewport: HTMLElement,
+  seleccion: { seleccionId: Id | null; enlaceSeleccionId: Id | null },
+): boolean {
+  const cell = adapter.graph.getCells().find((item) => {
+    const meta = metadata(item);
+    if (!meta) return false;
+    if (seleccion.seleccionId && meta.kind === "entidad") return meta.entidadId === seleccion.seleccionId;
+    if (seleccion.enlaceSeleccionId && meta.kind === "enlace") {
+      return meta.enlaceId === seleccion.enlaceSeleccionId || meta.enlaceIds?.includes(seleccion.enlaceSeleccionId) === true;
+    }
+    return false;
+  });
+  if (!cell) return false;
+  const view = adapter.paper.findViewByModel(cell) as (dia.CellView & { el?: Element }) | undefined;
+  if (!view?.el) return false;
+  return rectDomVisibleEnViewport(view.el.getBoundingClientRect(), viewport.getBoundingClientRect());
+}
+
+function rectDomVisibleEnViewport(rect: DOMRect, viewportRect: DOMRect): boolean {
+  const margin = 8;
+  return (
+    rect.right > viewportRect.left + margin &&
+    rect.left < viewportRect.right - margin &&
+    rect.bottom > viewportRect.top + margin &&
+    rect.top < viewportRect.bottom - margin
+  );
+}
+
 /**
  * [Ronda 16 L2] Centra el viewport sobre `target` si y solo si el target no
  * está completamente visible. Coordenadas de `target` están en el espacio del
@@ -728,6 +765,29 @@ function centrarViewportEnPuntoCanvas(
   viewport.scrollTo({
     left: Math.max(0, punto.x - viewport.clientWidth / 2),
     top: Math.max(0, punto.y - viewport.clientHeight / 2),
+    behavior,
+  });
+}
+
+function encuadrarViewportEnOpd(viewport: HTMLDivElement | null, opd: Opd | undefined): void {
+  if (!viewport || !opd || viewport.clientWidth <= 0 || viewport.clientHeight <= 0) return;
+  const apariencias = Object.values(opd.apariencias);
+  if (apariencias.length === 0) return;
+  const left = Math.min(...apariencias.map((apariencia) => apariencia.x));
+  const top = Math.min(...apariencias.map((apariencia) => apariencia.y));
+  const right = Math.max(...apariencias.map((apariencia) => apariencia.x + apariencia.width));
+  const bottom = Math.max(...apariencias.map((apariencia) => apariencia.y + apariencia.height));
+  centrarViewportEnRectCanvas(viewport, { x: left, y: top, width: right - left, height: bottom - top }, "auto");
+}
+
+function centrarViewportEnRectCanvas(
+  viewport: HTMLDivElement,
+  rect: { x: number; y: number; width: number; height: number },
+  behavior: ScrollBehavior = scrollBehaviorPreferidoCanvas(),
+): void {
+  viewport.scrollTo({
+    left: Math.max(0, rect.x + rect.width / 2 - viewport.clientWidth / 2),
+    top: Math.max(0, rect.y + rect.height / 2 - viewport.clientHeight / 2),
     behavior,
   });
 }

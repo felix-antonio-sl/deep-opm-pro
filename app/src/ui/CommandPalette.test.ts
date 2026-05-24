@@ -1,7 +1,15 @@
 import { describe, expect, test } from "bun:test";
 import type { AccionContextual } from "../store/acciones-contextuales";
 import type { RegistroAtajo } from "./atajosTeclado";
-import { construirItemsCommandPalette, filtrarItemsCommandPalette, normalizarTextoBusqueda, type CommandPaletteMenuAction } from "./CommandPalette";
+import {
+  SECCIONES_COMMAND_PALETTE,
+  agruparItemsCommandPalette,
+  construirItemsCommandPalette,
+  filtrarItemsCommandPalette,
+  normalizarTextoBusqueda,
+  seccionVisualCommandPalette,
+  type CommandPaletteMenuAction,
+} from "./CommandPalette";
 
 const atajos: RegistroAtajo[] = [
   {
@@ -99,5 +107,24 @@ describe("CommandPalette", () => {
       "Guardar modelo",
       "Traer conectados de la cosa seleccionada",
     ]);
+  });
+
+  test("agrupa visualmente en las seis secciones Codex sin alterar categorias internas", () => {
+    const items = construirItemsCommandPalette(atajos, acciones, accionesMenu);
+    const grupos = agruparItemsCommandPalette(items);
+
+    expect(grupos.map((grupo) => grupo.seccion)).toEqual([...SECCIONES_COMMAND_PALETTE]);
+    expect(seccionVisualCommandPalette(items.find((item) => item.label === "Guardar modelo")!)).toBe("MODELO");
+    expect(seccionVisualCommandPalette(items.find((item) => item.label === "Descomponer")!)).toBe("CREAR");
+    expect(seccionVisualCommandPalette(items.find((item) => item.label === "Tabla de enlaces")!)).toBe("VISTA");
+    expect(items.find((item) => item.label === "Descomponer")?.categoria).toBe("refinamiento");
+  });
+
+  test("filtra tambien por la seccion visual Codex", () => {
+    const items = construirItemsCommandPalette(atajos, acciones, accionesMenu);
+
+    expect(filtrarItemsCommandPalette(items, "modelo").map((item) => item.label)).toContain("Guardar modelo");
+    expect(filtrarItemsCommandPalette(items, "crear").map((item) => item.label)).toContain("Descomponer");
+    expect(filtrarItemsCommandPalette(items, "vista").map((item) => item.label)).toContain("Tabla de enlaces");
   });
 });

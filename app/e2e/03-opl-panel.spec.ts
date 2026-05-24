@@ -71,11 +71,10 @@ test("sincroniza OPL interactivo con canvas y renombrado inverso", async ({ page
 
   const tokenEntrada = panel.getByText("Entrada").first();
   await tokenEntrada.hover();
-  // Ronda 28 L1+L3: el hover sutil del token OPL usa ink04 (#F2F2F2 = rgb(242,242,242))
-  // -- L3 prefirió ink04 sobre ink15 que L1 propuso, para coherencia con la
-  // tonalidad Bauhaus del Editor OPL. La intencion del test (hover muestra
-  // contraste tenue contra paper) se preserva.
-  await expect(tokenEntrada).toHaveCSS("background-color", "rgb(242, 242, 242)");
+  // Codex: el hover sutil del token OPL usa ink04/paperWarm
+  // (#f4f3ec = rgb(244,243,236)); la intención sigue siendo contraste tenue
+  // contra paper, ahora en la rampa editorial.
+  await expect(tokenEntrada).toHaveCSS("background-color", "rgb(244, 243, 236)");
 
   await elementoPorTexto(page, "Procesar").click();
   await panel.getByLabel("Filtrar por selección").check();
@@ -233,7 +232,7 @@ test("panel OPL minimiza y restaura desde barra colapsada", async ({ page }) => 
   expect(pageErrors).toEqual([]);
 });
 
-test("panel OPL queda fijado abajo y persiste al recargar", async ({ page }) => {
+test("panel OPL queda fijado en marginalia derecha y persiste al recargar", async ({ page }) => {
   const pageErrors: string[] = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
@@ -246,20 +245,20 @@ test("panel OPL queda fijado abajo y persiste al recargar", async ({ page }) => 
   await expect(oplInferior).toBeVisible();
   let oplBox = await oplInferior.boundingBox();
   let canvasBox = await canvas.boundingBox();
-  if (!oplBox || !canvasBox) throw new Error("No se pudo medir layout inferior OPL");
-  expect(oplBox.y).toBeGreaterThan(canvasBox.y);
-  expect(oplBox.width).toBeGreaterThan(canvasBox.width);
+  if (!oplBox || !canvasBox) throw new Error("No se pudo medir layout marginalia OPL");
+  expect(oplBox.x).toBeGreaterThan(canvasBox.x);
+  expect(oplBox.width).toBeLessThan(canvasBox.width);
 
   await page.reload();
   oplBox = await page.getByTestId("opl-pane").boundingBox();
   canvasBox = await page.getByTestId("canvas-pane").boundingBox();
-  if (!oplBox || !canvasBox) throw new Error("No se pudo medir layout inferior OPL tras recarga");
-  expect(oplBox.y).toBeGreaterThan(canvasBox.y);
+  if (!oplBox || !canvasBox) throw new Error("No se pudo medir layout marginalia OPL tras recarga");
+  expect(oplBox.x).toBeGreaterThan(canvasBox.x);
 
   expect(pageErrors).toEqual([]);
 });
 
-test("panel OPL inferior se redimensiona verticalmente desde su divisor", async ({ page }) => {
+test("margen Codex se redimensiona horizontalmente desde su divisor", async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 720 });
   const pageErrors: string[] = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));
@@ -268,26 +267,27 @@ test("panel OPL inferior se redimensiona verticalmente desde su divisor", async 
   await cerrarPantallaInicioSiVisible(page);
   await page.getByRole("button", { name: "Objeto", exact: true }).click();
 
-  const panel = page.getByTestId("opl-pane");
-  const divisor = page.getByTestId("divisor-panel-opl");
+  const panel = page.getByTestId("inspector-pane");
+  const divisor = page.getByTestId("divisor-panel-inspector");
   await expect(panel).toBeVisible();
   await expect(divisor).toBeVisible();
+  await expect(page.getByTestId("divisor-panel-opl")).toBeVisible();
 
-  const altoInicial = (await rectDeLocator(panel)).height;
+  const anchoInicial = (await rectDeLocator(panel)).width;
   const divisorBox = await divisor.boundingBox();
-  if (!divisorBox) throw new Error("No se pudo ubicar el divisor OPL");
+  if (!divisorBox) throw new Error("No se pudo ubicar el divisor del margen Codex");
 
   await page.mouse.move(divisorBox.x + divisorBox.width / 2, divisorBox.y + divisorBox.height / 2);
   await page.mouse.down();
-  await page.mouse.move(divisorBox.x + divisorBox.width / 2, divisorBox.y + divisorBox.height / 2 - 90, { steps: 8 });
+  await page.mouse.move(divisorBox.x + divisorBox.width / 2 - 90, divisorBox.y + divisorBox.height / 2, { steps: 8 });
   await page.mouse.up();
 
   await expect
-    .poll(async () => (await rectDeLocator(panel)).height)
-    .toBeGreaterThan(altoInicial + 70);
+    .poll(async () => (await rectDeLocator(panel)).width)
+    .toBeGreaterThan(anchoInicial + 70);
 
   await divisor.dblclick();
-  await expect.poll(async () => Math.round((await rectDeLocator(panel)).height)).toBe(180);
+  await expect.poll(async () => Math.round((await rectDeLocator(panel)).width)).toBe(300);
 
   expect(pageErrors).toEqual([]);
 });
