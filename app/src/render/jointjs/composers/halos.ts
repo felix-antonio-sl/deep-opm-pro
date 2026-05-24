@@ -5,6 +5,13 @@ import type { JointCellJson } from "../proyeccionTipos";
 import { puntoCapsulaEstado, rectCapsulaEstado } from "./estados";
 
 /**
+ * Verde de simulacion (Ronda 17 L2). Color canonico del foco activo en modo
+ * simulacion: halo del proceso activo y token viajero (B0.017). Vive aqui
+ * como unica fuente del verde-sim en la capa render para no duplicar el hex.
+ */
+export const SIM_VERDE = "#16a34a";
+
+/**
  * Composer de halos transitorios de seleccion y hover OPL. No serializa
  * estado; emite solo celdas JointJS derivadas. Consumidor: proyeccion.ts.
  */
@@ -116,7 +123,7 @@ export function proyectarHaloSimulacionProceso(opdId: Id, apariencia: Apariencia
     attrs: {
       body: {
         fill: "transparent",
-        stroke: "#16a34a",
+        stroke: SIM_VERDE,
         strokeWidth: 3,
         strokeDasharray: "6 3",
         cx: width / 2,

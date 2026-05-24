@@ -1,10 +1,13 @@
-import type { dia } from "jointjs";
+import { V, type dia } from "jointjs";
 import type { ComponentChildren } from "preact";
 import { useEffect, useRef, useState } from "preact/hooks";
 import type { FeedbackOverlay, FeedbackPort } from "../../app/ports/feedbackPort";
 import { useJointCanvasViewModel } from "../../app/viewmodels/jointCanvasViewModel";
+import { useZustandSimulationPort } from "../../app/ports/zustandSimulationPort";
 import { CENTRO_CANVAS_GEOMETRICO } from "../../modelo/layout";
 import { focoPasoActualSimulacion } from "../../modelo/simulacion/foco";
+import { debeAnimarTokensSim, tokensViajeDelPaso } from "../../modelo/simulacion/animacionTokens";
+import { SIM_VERDE } from "./composers/halos";
 import type { Apariencia, Enlace, ExtremoEnlace, Id, Modelo, Opd, TipoEnlace } from "../../modelo/tipos";
 import { recalcularOverlaysAbanicoDesdeLinkViews } from "./abanicoDragSync";
 import { proyectarModeloAJointCells } from "./proyeccion";
@@ -143,6 +146,8 @@ export function JointCanvas({
     gridConfig,
     solicitudFitToken,
   } = useJointCanvasViewModel();
+
+  const { headless: simHeadless, velocidad: simVelocidad } = useZustandSimulationPort();
 
   useEffect(() => {
     onAdapterChangeRef.current = onAdapterChange;
@@ -484,6 +489,31 @@ export function JointCanvas({
       }
     }
   }, [enlaceSeleccionId, idsResaltadosTemporales, modelo, opdActivoId, seleccionId, seleccionados, uiAliasVisibles, uiDescripcionesVisibles, uiModoImagenGlobal, contextoSimulacion]);
+
+  // B0.017 — token verde viajero sobre cada enlace en uso del paso activo.
+  // Animacion solo-render (no es verdad del modelo). Se dispara en cada
+  // transicion de paso; en headless o cuando el paso no vive en el OPD
+  // visible, no anima (gate puro `debeAnimarTokensSim`).
+  useEffect(() => {
+    const adapter = adapterRef.current;
+    if (!adapter) return;
+    const foco = focoPasoActualSimulacion(modelo, contextoSimulacion);
+    if (!debeAnimarTokensSim(foco, opdActivoId, simHeadless)) return;
+    const duracion = Math.round(900 / simVelocidad);
+    for (const enlaceId of tokensViajeDelPaso(foco)) {
+      const cell = adapter.graph.getCell(enlaceId);
+      if (!cell) continue;
+      const linkView = adapter.paper.findViewByModel(cell);
+      if (!linkView || typeof (linkView as { sendToken?: unknown }).sendToken !== "function") continue;
+      const token = V("circle", {
+        r: 6,
+        fill: SIM_VERDE,
+        stroke: jointCanvasPalette.background,
+        "stroke-width": 1,
+      });
+      (linkView as unknown as { sendToken: (t: SVGElement, d: number) => void }).sendToken(token.node, duracion);
+    }
+  }, [adapterState, modelo, contextoSimulacion, opdActivoId, simHeadless, simVelocidad]);
 
   useEffect(() => {
     const adapter = adapterRef.current;
