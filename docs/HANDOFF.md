@@ -5,7 +5,7 @@
 **Rama**: `main`
 **Ultimo corte funcional**: Ronda Codex Ola 1.1 — pausa de producto para **Mapa del sistema** y **Biblioteca dock**: no se montan en el shell, no aparecen en menú/toolbar/paleta/atajos y el build público no publica chunk `feature-mapa`; la lógica interna queda dormida para futura reactivación.
 **Ultimo commit funcional en main**: `feat(app): pause map and dock surfaces` (`2cbed09`) + ajuste de empaquetado `chore(app): rename map export chunk` (`89bc657`).
-**Ultimo corte deploy**: `89bc657` desplegado en `https://opforja.sanixai.com/` el 2026-05-24T17:12Z con `docker compose up -d --build`, `VITE_ENABLE_BUG_CAPTURE=true`, `opforja` healthy, `opforja-bug-capture` arriba y Basic Auth Traefik activo (respuesta pública HTTP 401 esperada).
+**Ultimo corte deploy**: `main@1714185` redeployado en `https://opforja.sanixai.com/` el 2026-05-24T17:20Z con `docker compose up -d --build`, `VITE_ENABLE_BUG_CAPTURE=true`, `opforja` healthy, `opforja-bug-capture` arriba y Basic Auth Traefik activo (respuesta pública HTTP 401 esperada). El ultimo commit funcional de app dentro de ese deploy es `89bc657`.
 **Corte**: `bun run check` verde con 1629 unit tests + 5898 expectaciones y typecheck limpio. `bun run lint` y `bun run build` verdes. Smoke focalizado `02/04/08/12-toolbar/20-biblioteca-dock` verde 59/59.
 
 ## Política De Handoff Único
@@ -24,6 +24,38 @@
 - JointJS OSS: usar documentación oficial viva cuando se toque JointJS.
 
 ## Estado Actual
+
+### Handoff Explicito — Corte Operativo Post-Deploy — 2026-05-24T17:22Z
+
+Estado actual:
+
+- `main` y `origin/main` apuntan a `1714185`.
+- Produccion fue redeployada manualmente despues del push con `docker compose up -d --build`; el contenedor `opforja` fue recreado y quedo `healthy`.
+- El HTML servido desde dentro del contenedor en `http://127.0.0.1:8080/` carga `index-kCfAx3ZV.js` y `feature-export-B8y2YYLA.js`; no publica/preload `feature-mapa`.
+- La URL publica `https://opforja.sanixai.com/` responde HTTP 401 con `www-authenticate: Basic realm="traefik"`, esperado por autenticacion frontal.
+- Mapa del sistema y Biblioteca dock quedan pausados por decision de producto: fuera de shell, menu, toolbar, command palette y atajos; su logica interna permanece dormida para reactivacion futura.
+
+Pendientes inmediatos:
+
+- Continuar el pivot Codex desde `ui-forja/` sin reincorporar por ahora Mapa del sistema ni Biblioteca dock.
+- Revisar el bug report nuevo `docs/bugs/BUG-20260524T171628Z-a8c184/`: procesos descompuestos refinados quedan con contorno discontinuo aunque sean sistemicos; podria tocar semantica visual de refinamiento/canvas.
+- Mantener fuera de commits de producto los cambios/untracked existentes en `docs/bugs/*` salvo que se abra una tarea explicita de triage/captura.
+
+Supuestos vigentes:
+
+- `docs/HANDOFF.md` sigue siendo la unica memoria versionada de traspaso.
+- `ui-forja/` es handoff de diseno Codex; no debe desplazar la SSOT OPM ni tocar routing OPCloud.
+- El deploy publico se valida por Traefik + contenido interno del contenedor, porque la URL externa exige Basic Auth.
+
+Riesgos:
+
+- Mapa/dock siguen existiendo como logica interna y tests unitarios; si alguien importa sus componentes desde el chrome sin pasar por `APP_FEATURES`, la superficie podria reaparecer accidentalmente.
+- Los bugs capturados en `docs/bugs/*` estan sucios en el worktree y pueden contaminar commits si se usa `git add .`.
+- El siguiente bloque Codex puede mezclar decisiones de identidad visual con comportamiento OPM; preservar la frontera tokens/chrome/canvas attrs vs modelo/store/proyeccion/routing.
+
+Prompt de continuacion breve:
+
+> Continua desde `docs/HANDOFF.md`, seccion "Handoff Explicito — Corte Operativo Post-Deploy — 2026-05-24T17:22Z". Estamos en `main@1714185`, deploy verificado en `https://opforja.sanixai.com/` con `opforja` healthy. Mapa del sistema y Biblioteca dock estan pausados por decision de producto; no reincorporarlos. Siguiente objetivo: avanzar el pivot Codex desde `ui-forja/` respetando SSOT OPM, sin tocar store/modelo/proyeccion/routing salvo necesidad explicita.
 
 ### Cierre Ronda Codex Ola 1.1 — Mapa Y Biblioteca Dock Pausados — 2026-05-24
 
