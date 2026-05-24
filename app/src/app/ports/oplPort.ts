@@ -1,3 +1,4 @@
+import type { ContextoSimulacion } from "../../modelo/simulacion/tipos";
 import type { Id, Modelo, PreferenciasUiUsuario } from "../../modelo/tipos";
 import type { OplReferencia } from "../../opl/interaccion";
 
@@ -5,6 +6,7 @@ export interface OplPort {
   modelo: Modelo;
   opdActivoId: Id;
   vistaMapaActiva: boolean;
+  contextoSimulacion: ContextoSimulacion | null;
   seleccionId: Id | null;
   enlaceSeleccionId: Id | null;
   filtroActivo: boolean;

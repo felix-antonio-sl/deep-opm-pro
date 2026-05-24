@@ -10,6 +10,7 @@ interface BloquesProps {
   opdActivoId: string;
   hoverOplRef: OplReferencia | null;
   seleccionRef: OplReferencia | null;
+  procesoActivoSimId: string | null;
   numeracionVisible: boolean;
   bloquesColapsados: Set<string>;
   alternarBloqueContraido: (opdId: string) => void;
@@ -62,9 +63,15 @@ export function Bloques(props: BloquesProps) {
 }
 
 function LineaOpl(props: BloquesProps & { linea: OplLineaInteractiva; bloqueOpdId: string }) {
+  // B0.025: durante la simulacion, resaltar la(s) frase(s) del proceso activo.
+  // Es puramente presentacional: no regenera OPL ni muta el modelo, sólo reusa
+  // `lineaTocaReferencia` contra la referencia de entidad del proceso activo.
+  const esProcesoActivoSim =
+    props.procesoActivoSimId != null &&
+    lineaTocaReferencia(props.linea, { tipo: "entidad", id: props.procesoActivoSimId });
   return (
     <div
-      data-testid="opl-line"
+      data-testid={esProcesoActivoSim ? "opl-linea-sim-activa" : "opl-line"}
       data-opl-ordinal={props.linea.ordinal}
       data-opd-id={props.bloqueOpdId}
       style={{
@@ -72,6 +79,7 @@ function LineaOpl(props: BloquesProps & { linea: OplLineaInteractiva; bloqueOpdI
         ...(props.linea.opdId === props.opdActivoId ? style.lineaOpdActiva : {}),
         ...(lineaTocaReferencia(props.linea, props.hoverOplRef) ? style.lineaHover : {}),
         ...(lineaTocaReferencia(props.linea, props.seleccionRef) ? style.lineaSeleccionada : {}),
+        ...(esProcesoActivoSim ? style.lineaSimActiva : {}),
       }}
     >
       <span style={ordinalStyle(props.numeracionVisible)} aria-hidden={!props.numeracionVisible}>
@@ -165,6 +173,14 @@ const style = {
   lineaSeleccionada: {
     boxShadow: `inset 2px 0 0 ${tokens.colors.accent}`,
     background: tokens.colors.ink04,
+  },
+  // B0.025: frase del proceso activo durante la simulacion. Reusa el mismo
+  // mecanismo de barra lateral + tinte que la seleccion, pero en la familia
+  // bosque (verde) para alinear con el halo SIM_VERDE del proceso activo en
+  // el canvas. Sólo se aplica mientras `procesoActivoSimId != null` (simulando).
+  lineaSimActiva: {
+    boxShadow: `inset 2px 0 0 ${tokens.colors.bosque}`,
+    background: tokens.colors.bosqueSoft,
   },
   ordinal: {
     color: tokens.colors.ink30,

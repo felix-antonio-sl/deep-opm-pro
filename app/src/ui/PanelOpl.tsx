@@ -131,6 +131,7 @@ export function PanelOpl() {
           opdActivoId={vm.opdActivoId}
           hoverOplRef={vm.hoverOplRef}
           seleccionRef={vm.seleccionRef}
+          procesoActivoSimId={vm.procesoActivoSimId}
           numeracionVisible={vm.numeracionVisible}
           bloquesColapsados={vm.bloquesColapsados}
           alternarBloqueContraido={vm.alternarBloqueOplContraido}
