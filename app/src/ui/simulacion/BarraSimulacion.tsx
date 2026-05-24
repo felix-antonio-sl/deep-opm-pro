@@ -75,22 +75,23 @@ export function BarraSimulacion(): JSX.Element | null {
         >
           {autoAvance ? "Pausa" : "Play"}
         </button>
-        <label style={style.velocidadControl}>
-          <span style={style.velocidadTexto}>Velocidad</span>
-          <select
+        <label style={style.velocidadControl} title="Velocidad de reproducción (0.25× a 4×)">
+          <span style={style.velocidadTexto}>Velocidad {velocidadSimulacion}×</span>
+          <input
+            type="range"
+            min="0.25"
+            max="4"
+            step="0.25"
             value={String(velocidadSimulacion)}
-            onChange={(event) => {
-              const target = event.currentTarget as HTMLSelectElement;
+            onInput={(event) => {
+              const target = event.currentTarget as HTMLInputElement;
               fijarVelocidad(Number(target.value));
             }}
             disabled={totalPasos === 0}
             style={style.velocidadSelect}
             data-testid="barra-simulacion-velocidad"
-          >
-            <option value="0.5">0.5x</option>
-            <option value="1">1x</option>
-            <option value="2">2x</option>
-          </select>
+            aria-label="Velocidad de simulación"
+          />
         </label>
         <button
           type="button"
