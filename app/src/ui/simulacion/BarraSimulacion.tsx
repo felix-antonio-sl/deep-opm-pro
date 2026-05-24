@@ -126,6 +126,7 @@ export function BarraSimulacion(): JSX.Element | null {
           style={style.boton}
           onClick={alternarHeadless}
           aria-pressed={headless}
+          aria-label={headless ? "Headless activado: sin animación de tokens" : "Headless desactivado: con animación de tokens"}
           title="Headless: corre sin animación, salto directo al final"
           data-testid="barra-simulacion-headless"
         >
