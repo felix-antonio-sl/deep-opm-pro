@@ -1,4 +1,4 @@
-import { CANON, CANON_V2, enlaceAdmiteTasa, enlaceAdmiteTiempoMaximo, enlaceAdmiteTiempoMinimo, esEnlaceEstructuralEtiquetado, esEnlaceEstructuralFundamental, naturalezaDeEnlace } from "../../../modelo/constantes";
+import { CANON, enlaceAdmiteTasa, enlaceAdmiteTiempoMaximo, enlaceAdmiteTiempoMinimo, esEnlaceEstructuralEtiquetado, esEnlaceEstructuralFundamental, naturalezaDeEnlace } from "../../../modelo/constantes";
 import { etiquetaEnlaceNormalizada } from "../../../modelo/etiquetasEnlace";
 import { entidadIdDeExtremo } from "../../../modelo/extremos";
 import { modoPlegadoApariencia, partesDePlegado } from "../../../modelo/plegado";
@@ -6,6 +6,7 @@ import { anclajeRefinableSimbolo, anclajeRefinadorSimbolo, anclajeSimboloConFall
 import type { AnclajesSimboloEstructural, Apariencia, Enlace, ExtremoEnlace, Id, Modelo, Posicion, TipoEnlace } from "../../../modelo/tipos";
 import { etiquetasRuta } from "../rutaLabels";
 import { jointCanvasPalette } from "../palette";
+import { CODEX } from "../constantes.codex";
 import {
   aplicarLayoutLabel,
   anchoWrapEntreApariencias,
@@ -137,8 +138,8 @@ export function proyectarEnlace(
   const verticesRender = verticesEnlace(enlace.tipo, origen, destino, vertices);
   const wrapWidth = anchoWrapEntreApariencias(etiquetaEnlaceNormalizada(enlace.etiqueta) || enlace.rutaEtiqueta || "", origen.apariencia, destino.apariencia);
   const estiloE = enlace.estilo;
-  const colorEnlace = estiloE?.color ?? CANON.colores.enlace;
-  const grosorEnlace = estiloE?.strokeWidth ?? CANON.dims.enlaceVisible;
+  const colorEnlace = estiloE?.color ?? CODEX.colores.ink;
+  const grosorEnlace = estiloE?.strokeWidth ?? CODEX.strokes.enlace;
   const dashOverride = estiloE?.dashArray !== undefined ? estiloE.dashArray || undefined : undefined;
   // OPCloud (reverse-engineering opm-extracted): router selectivo.
   // - Procedurales (consumo, resultado, efecto, agente, instrumento, invocacion)
@@ -193,15 +194,13 @@ export function proyectarEnlace(
         stroke: seleccionada
           ? jointCanvasPalette.seleccionSuave
           : activoRuntime
-            // CANON-V2: wrapper de simulacion en cinabrio suave (antes cian).
-            ? "rgba(200, 57, 47, 0.18)"
+            ? jointCanvasPalette.seleccionSuave
             : "transparent",
         strokeWidth: CANON.dims.enlaceHitArea,
         cursor: "pointer",
       },
       line: {
-        // CANON-V2: linea activa en simulacion = cinabrio (antes #0f766e teal).
-        stroke: activoRuntime ? CANON_V2.seleccion.color : colorEnlace,
+        stroke: activoRuntime ? CODEX.colores.crimson : colorEnlace,
         strokeWidth: seleccionada ? grosorEnlace + 2 : activoRuntime ? grosorEnlace + 1.5 : grosorEnlace,
         ...(dashOverride !== undefined ? { strokeDasharray: dashOverride } : {}),
         sourceMarker: marcadorBidireccional ?? marcadorFuente(enlace.tipo),
@@ -224,17 +223,13 @@ function deltaXEntreApariencias(origen: Apariencia, destino: Apariencia): number
 }
 
 export function etiquetaTokenSimulacion(): Record<string, unknown> {
-  // CANON-V2: token de simulacion en cinabrio (focus de atencion). Antes era
-  // `#3BC3FF` (azul proceso) + `#0f766e` (verde teal); ambos colisionaban
-  // con la nueva paleta lavada. Cinabrio es el unico canal cromatico
-  // permitido para "estado activo / requiere atencion" en V2.
   return {
     markup: [{ tagName: "circle", selector: "token" }],
     attrs: {
       token: {
         r: 5,
-        fill: CANON_V2.seleccion.color,
-        stroke: CANON.colores.enlace,
+        fill: CODEX.colores.crimson,
+        stroke: CODEX.colores.ink,
         strokeWidth: 1.5,
         pointerEvents: "none",
       },
@@ -270,10 +265,10 @@ export function etiquetaProxyParte(text: string, distance: number, wrapWidth?: n
       label: {
         text,
         ...labelTextWrap(text, wrapWidth),
-        fill: "#404040", // CANON-V2 ink70
-        fontFamily: CANON.dims.fontFamily,
+        fill: CODEX.colores.inkMid,
+        fontFamily: CODEX.fuentes.serif,
         fontSize: 12,
-        fontWeight: 700,
+        fontWeight: 400,
         textAnchor: "middle",
         textVerticalAnchor: "middle",
         pointerEvents: "none",
@@ -376,17 +371,17 @@ export function etiquetaBadgeModificador(text: string, distance: number): Record
         y: -9,
         rx: 9,
         ry: 9,
-        fill: "#ffffff",
-        stroke: CANON.colores.enlace,
-        strokeWidth: 1.5,
+        fill: CODEX.colores.paper,
+        stroke: CODEX.colores.ink,
+        strokeWidth: CODEX.strokes.enlace,
         pointerEvents: "none",
       },
       label: {
         text,
-        fill: CANON.colores.texto, // CANON-V2 ink
-        fontFamily: CANON.dims.fontFamily,
+        fill: CODEX.colores.ink,
+        fontFamily: CODEX.fuentes.serif,
         fontSize: 12,
-        fontWeight: 700,
+        fontWeight: 400,
         textAnchor: "middle",
         textVerticalAnchor: "middle",
         pointerEvents: "none",
@@ -411,10 +406,10 @@ export function etiquetaTextoModificador(text: string, distance: number, offset:
       label: {
         text,
         ...labelTextWrap(text, wrapWidth),
-        fill: "#404040", // CANON-V2 ink70
-        fontFamily: CANON.dims.fontFamily,
+        fill: CODEX.colores.inkMid,
+        fontFamily: CODEX.fuentes.serif,
         fontSize: 11,
-        fontWeight: 700,
+        fontWeight: 400,
         textAnchor: "middle",
         textVerticalAnchor: "middle",
         pointerEvents: "none",
@@ -487,10 +482,10 @@ export function etiquetaTextoTagged(text: string, distance: number, offset: numb
       label: {
         text,
         ...labelTextWrap(text, wrapWidth),
-        fill: CANON.colores.texto, // CANON-V2 ink
-        fontFamily: CANON.dims.fontFamily,
+        fill: CODEX.colores.ink,
+        fontFamily: CODEX.fuentes.serif,
         fontSize: 12,
-        fontWeight: 700,
+        fontWeight: 400,
         textAnchor: "middle",
         textVerticalAnchor: "middle",
         pointerEvents: "none",
@@ -520,11 +515,11 @@ export function etiquetaTextoEnlace(text: string, wrapWidth?: number): Record<st
       label: {
         text,
         ...labelTextWrap(text, wrapWidth),
-        fill: "#404040", // CANON-V2 ink70
-        fontFamily: CANON.dims.fontFamily,
+        fill: CODEX.colores.inkMid,
+        fontFamily: CODEX.fuentes.serif,
         fontSize: 12,
         fontStyle: "italic",
-        fontWeight: CANON.dims.fontWeight,
+        fontWeight: 400,
         textAnchor: "middle",
         textVerticalAnchor: "middle",
         pointerEvents: "none",
@@ -548,10 +543,10 @@ export function etiquetaOrdenEstructural(): Record<string, unknown> {
     attrs: {
       label: {
         text: "ordered",
-        fill: CANON.colores.texto, // CANON-V2 ink
-        fontFamily: CANON.dims.fontFamily,
+        fill: CODEX.colores.ink,
+        fontFamily: CODEX.fuentes.serif,
         fontSize: 11,
-        fontWeight: 700,
+        fontWeight: 400,
         textAnchor: "middle",
         textVerticalAnchor: "middle",
         pointerEvents: "none",
@@ -575,10 +570,10 @@ export function etiquetaMultiplicidad(text: string, distance: number): Record<st
     attrs: {
       label: {
         text,
-        fill: CANON.colores.texto, // CANON-V2 ink
-        fontFamily: "Arial",
+        fill: CODEX.colores.ink,
+        fontFamily: CODEX.fuentes.serif,
         fontSize: 12,
-        fontWeight: 600,
+        fontWeight: 400,
         textAnchor: "middle",
         textVerticalAnchor: "middle",
         pointerEvents: "none",
@@ -698,8 +693,8 @@ export function attrsLinea(seleccionada: boolean): Record<string, unknown> {
       cursor: "pointer",
     },
     line: {
-      stroke: CANON.colores.enlace,
-      strokeWidth: seleccionada ? CANON.dims.enlaceVisible + 2 : CANON.dims.enlaceVisible,
+      stroke: CODEX.colores.ink,
+      strokeWidth: seleccionada ? CODEX.strokes.enlace + 0.2 : CODEX.strokes.enlace,
       targetMarker: null,
     },
   };

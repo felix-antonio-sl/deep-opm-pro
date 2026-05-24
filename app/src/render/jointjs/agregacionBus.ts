@@ -6,6 +6,7 @@ import { etiquetaEnlaceNormalizada } from "../../modelo/etiquetasEnlace";
 import type { JointCellJson, OpmJointMetadata } from "./proyeccion";
 import { marcadoresEstructurales, type PuertoSimboloEstructural } from "./composers/markers";
 import { etiquetaOrdenEstructural, extremoTriangulo } from "./composers/enlace";
+import { CODEX } from "./constantes.codex";
 import { aplicarLayoutLabel, anchoWrapEntreApariencias, LABEL_KEY_ETIQUETA, LABEL_KEY_ORDEN, type LayoutLabelsEnlace } from "./labelLayout";
 import { labelTextWrap } from "./labelText";
 
@@ -267,11 +268,11 @@ function etiquetaRama(text: string, wrapWidth?: number): Record<string, unknown>
       label: {
         text,
         ...labelTextWrap(text, wrapWidth),
-        fill: "#404040", // CANON-V2 ink70
-        fontFamily: CANON.dims.fontFamily,
+        fill: CODEX.colores.inkMid,
+        fontFamily: CODEX.fuentes.serif,
         fontSize: 12,
         fontStyle: "italic",
-        fontWeight: CANON.dims.fontWeight,
+        fontWeight: 400,
         textAnchor: "middle",
         textVerticalAnchor: "middle",
         pointerEvents: "none",
@@ -297,8 +298,8 @@ function attrsLinea(seleccionada: boolean): Record<string, unknown> {
       cursor: "pointer",
     },
     line: {
-      stroke: CANON.colores.enlace,
-      strokeWidth: seleccionada ? CANON.dims.enlaceVisible + 2 : CANON.dims.enlaceVisible,
+      stroke: CODEX.colores.ink,
+      strokeWidth: seleccionada ? CODEX.strokes.enlace + 0.2 : CODEX.strokes.enlace,
       targetMarker: null,
     },
   };

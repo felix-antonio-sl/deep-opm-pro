@@ -6,56 +6,45 @@
     <title>Modelador OPM</title>
     <style>
       /*
-       * Ronda 28 L1 — Paleta Bauhaus monocromatica (CSS variables fundacionales).
+       * Ronda Codex L1 — variables fundacionales del chrome editorial.
        *
-       * Estas variables :root son el SSOT cromatico del chrome UI a partir
-       * de ronda 28. Los componentes pueden leerlas con var(--ink),
-       * var(--paper), etc. o seguir consumiendo tokens.colors.* (que apunta
-       * al mismo conjunto via compat-shim).
-       *
-       * Paleta:
-       *   ink/paper + escala monocromatica ink-90..ink-04 +
-       *   accent cinabrio + accentDark + focus ultramar + warning terracota.
-       *
-       * Tipografia chrome: Inter Tight variable self-hosted (importada via
-       * @fontsource-variable en src/main.tsx). tabular-nums para evitar
-       * desalineos en grids de numeros. letter-spacing -0.01em para densidad
-       * Bauhaus. JetBrains Mono variable como fallback de code/kbd/.mono.
+       * tokens.ts es el contrato principal. Este bloque existe para CSS
+       * historico que aun lee var(--ink), var(--paper), etc.; los aliases
+       * quedan reexpresados como papel/tinta/crimson Codex.
        */
       :root {
-        /* Achromatic base */
-        --ink: #0A0A0A;
-        --ink-02: #050505;
-        --paper: #FAFAFA;
-        --paper-02: #F5F5F5;
-        --paper-04: #F0F0F0;
-        --ink-90: #1A1A1A;
-        --ink-70: #404040;
-        --ink-50: #6E6E6E;
-        --ink-30: #A8A8A8;
-        --ink-15: #D2D2D2;
-        --ink-08: #E8E8E8;
-        --ink-04: #F2F2F2;
+        /* Codex base */
+        --ink: #171511;
+        --ink-02: #171511;
+        --paper: #fafaf8;
+        --paper-02: #f4f3ec;
+        --paper-04: #f4f3ec;
+        --ink-90: #171511;
+        --ink-70: #5a564c;
+        --ink-50: #a39e92;
+        --ink-30: #cfcbc1;
+        --ink-15: #e4e0d6;
+        --ink-08: #e4e0d6;
+        --ink-04: #f4f3ec;
 
-        /* Triada primaria Bauhaus (Itten/Klee/Kandinsky)
-           Refinamiento 2026-05-23: rojo + azul + amarillo completos. */
-        --accent: #C8392F;       /* cinabrio — seleccion, accion primaria, danger */
-        --accent-soft: #F5DDDB;
-        --accent-dark: #9F2519;
-        --focus: #1F3FA6;        /* ultramar — focus-visible, info, enlaces */
-        --focus-soft: #E3E7F4;
-        --focus-dark: #152A75;
-        --ocre: #C89033;         /* saffron Klee — warning, atencion, en curso */
-        --ocre-soft: #F4E9C8;
-        --ocre-dark: #5E4310;
+        /* Crimson editorial UI-only (seleccion, foco, alertas). */
+        --accent: #8e2a2e;
+        --accent-soft: #f4f3ec;
+        --accent-dark: #8e2a2e;
+        --focus: #8e2a2e;
+        --focus-soft: #f4f3ec;
+        --focus-dark: #8e2a2e;
+        --ocre: #8e2a2e;
+        --ocre-soft: #f4f3ec;
+        --ocre-dark: #8e2a2e;
 
-        /* Secundarios disciplinados */
-        --bosque: #2D6B47;       /* verde Bauhaus — success, valido, completado */
-        --bosque-soft: #D6E5DC;
-        --bosque-dark: #1F4A30;
-        --terracota: #8A3D2D;    /* destructive secundario distinto de cinabrio */
-        --terracota-soft: #E8DBD3;
-        --terracota-dark: #6B2C20;
+        /* Canon OPM disponible para UI secundaria, no para semantica chrome. */
+        --bosque: #3a6b4d;
+        --bosque-soft: #f4f3ec;
+        --bosque-dark: #3a6b4d;
+        --terracota: #8e2a2e;
+        --terracota-soft: #f4f3ec;
+        --terracota-dark: #8e2a2e;
 
         /* Aliases semánticos */
         --warning: var(--ocre);
@@ -71,9 +60,9 @@
       html, body, #app { width: 100%; height: 100%; margin: 0; }
 
       html {
-        font-family: "Inter Tight", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        font-family: "Inria Serif", Georgia, serif;
         font-variant-numeric: tabular-nums;
-        letter-spacing: -0.01em;
+        letter-spacing: 0;
         background: var(--paper);
         color: var(--ink);
       }
@@ -92,30 +81,22 @@
       }
 
       code, kbd, samp, .mono, [class*="mono"] {
-        font-family: "JetBrains Mono", "Fira Code", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        font-family: "JetBrains Mono Variable", "JetBrains Mono", "Fira Code", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
         font-variant-numeric: normal;
         letter-spacing: 0;
       }
 
       /*
-       * Utility class Bauhaus: labels en mayuscula con tracking abierto y
-       * peso medium. Usable por L2/L3/L5/L6 en headings de secciones,
-       * categorias OPL, etiquetas de toolbar, etc.
+       * Utility class Codex: labels en mayuscula con tracking abierto.
        */
       .opm-label-uppercase {
         text-transform: uppercase;
         letter-spacing: 0.08em;
-        font-weight: 500;
+        font-weight: 700;
       }
 
       /*
-       * Refinamiento 2026-05-23 — focus ring Bauhaus refinado.
-       *
-       * 2px ultramar + 1px paper offset (sin glow, sin transition cromatica).
-       * Reemplaza el outline default del browser por el ring canonico que
-       * preserva contraste sobre cualquier superficie (paper/paper-02/paper-04/
-       * ink-04). Los componentes que necesiten focus distinto pueden
-       * sobreescribir con :focus-visible specific.
+       * Focus ring Codex: crimson editorial, sin glow.
        */
       :focus-visible {
         outline: 2px solid var(--focus);
@@ -126,17 +107,15 @@
       }
 
       /*
-       * Refinamiento 2026-05-23 — utility classes para axis tipografico explicito.
-       * Usables por componentes que quieran declarar peso explicito sin pasar
-       * por tokens.weights.* (util para syntax highlight de OPL).
+       * Utility classes para pesos disponibles en Inria self-hosted.
        */
       .opm-weight-light { font-weight: 300; }
       .opm-weight-normal { font-weight: 400; }
-      .opm-weight-medium { font-weight: 500; }
+      .opm-weight-medium { font-weight: 400; }
       .opm-weight-bold { font-weight: 700; }
-      .opm-weight-display { font-weight: 900; }
+      .opm-weight-display { font-weight: 700; }
 
-      /* Hairlines disciplinados Bauhaus */
+      /* Hairlines disciplinados Codex */
       .opm-hairline { border-color: var(--ink-08); border-style: solid; border-width: 1px; }
       .opm-chrome-line { border-color: var(--ink-15); border-style: solid; border-width: 1px; }
     </style>

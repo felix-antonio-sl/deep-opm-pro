@@ -113,6 +113,6 @@ export const ESTADOS = {
   paddingBottom: 6,
   gap: 4,
   radius: 8,
-  fontSize: 12,
+  fontSize: 13,
   regionHeight: 34,
 } as const;

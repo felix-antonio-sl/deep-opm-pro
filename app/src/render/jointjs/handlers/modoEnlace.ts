@@ -9,6 +9,8 @@ import {
   type ModoEnlace,
 } from "../../../canvas/modoEnlace";
 import type { Id, Modelo, TipoEnlace } from "../../../modelo/tipos";
+import { CODEX } from "../constantes.codex";
+import { LINK_ASSETS } from "../linkAssets";
 import { cellViewModel, jointSelector, metadata, paperOff, posicionCanvasDesdeEvento } from "./helpers";
 
 interface CablearModoEnlaceArgs {
@@ -270,19 +272,16 @@ function crearGhostEnlace(
   target: { x: number; y: number },
 ): dia.Link {
   const graph = (paper as unknown as { model: dia.Graph }).model;
-  // CANON-V2 (ronda 28 L4): ghost de creacion de enlace en ink puro
-  // (antes #586D8C slate). El dashed `6 4` preserva la semantica
-  // "preview / no commiteado".
   const ghost = new shapes.standard.Link({
     source,
     target,
     attrs: {
       line: {
-        stroke: "#0A0A0A",
+        stroke: CODEX.colores.ink,
         strokeDasharray: "6 4",
-        strokeWidth: 2,
+        strokeWidth: CODEX.strokes.enlace,
         pointerEvents: "none",
-        targetMarker: { type: "path", d: "M 8 -4 0 0 8 4 z", fill: "#0A0A0A", stroke: "none" },
+        targetMarker: { ...LINK_ASSETS.procedural.resultado.marker },
       },
       wrapper: { stroke: "transparent", strokeWidth: 14, pointerEvents: "none" },
     },
@@ -428,14 +427,14 @@ function limpiarFeedbackModoEnlace(paper: dia.Paper): void {
 
 function aplicarEstilo(el: HTMLElement | SVGElement, esOrigen: boolean, esValido: boolean, color: string): void {
   if (esOrigen) {
-    el.style.filter = `drop-shadow(0 0 0 ${color}) drop-shadow(0 0 8px ${color})`;
     el.style.outline = `2px solid ${color}`;
     el.style.outlineOffset = "4px";
     el.style.opacity = "1";
     return;
   }
   if (esValido) {
-    el.style.filter = `drop-shadow(0 0 6px ${color})`;
+    el.style.outline = `1px solid ${color}`;
+    el.style.outlineOffset = "3px";
     el.style.opacity = "1";
     return;
   }

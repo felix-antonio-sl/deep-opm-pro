@@ -1,6 +1,6 @@
-import { CANON } from "../../modelo/constantes";
 import { rutaEtiquetaNormalizada } from "../../modelo/rutas";
 import type { Enlace } from "../../modelo/tipos";
+import { CODEX } from "./constantes.codex";
 import { aplicarLayoutLabel, LABEL_KEY_RUTA, type LayoutLabelsEnlace } from "./labelLayout";
 import { labelTextWrap } from "./labelText";
 
@@ -13,11 +13,10 @@ export function etiquetasRuta(enlace: Enlace, labelPositions?: LayoutLabelsEnlac
       label: {
         text,
         ...labelTextWrap(text, wrapWidth),
-        // CANON-V2 (ronda 28 L4): ink70 (antes #475467 slate).
-        fill: "#404040",
-        fontFamily: CANON.dims.fontFamily,
+        fill: CODEX.colores.inkMid,
+        fontFamily: CODEX.fuentes.serif,
         fontSize: 12,
-        fontWeight: 700,
+        fontWeight: 400,
         textAnchor: "middle",
         textVerticalAnchor: "middle",
         pointerEvents: "none",

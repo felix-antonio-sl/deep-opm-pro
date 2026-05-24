@@ -2,6 +2,7 @@ import { CANON } from "../../modelo/constantes";
 import { puertoComunDeAbanico } from "../../modelo/abanicos";
 import { entidadIdDeExtremo } from "../../modelo/extremos";
 import type { Abanico, Apariencia, Id, Modelo, Opd, Posicion, TipoEntidad } from "../../modelo/tipos";
+import { CODEX } from "./constantes.codex";
 import type { JointCellJson } from "./proyeccion";
 
 // Radios canonicos del arco logico (ver opm-extracted shared.ts:5908-5912):
@@ -94,7 +95,7 @@ export function proyectarOverlayAbanicoCanonico(args: {
       body: {
         d: geometria.d,
         fill: "none",
-        stroke: CANON.colores.enlace,
+        stroke: CODEX.colores.ink,
         strokeWidth: 1.5,
         strokeDasharray: STROKE_DASHARRAY,
         strokeLinecap: "round",

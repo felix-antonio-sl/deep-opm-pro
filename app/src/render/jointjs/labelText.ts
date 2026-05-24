@@ -6,6 +6,7 @@ export function labelTextWrap(text: string, width = 132): Record<string, unknown
     textWrap: {
       width,
       height: null,
+      ellipsis: false,
     },
   };
 }

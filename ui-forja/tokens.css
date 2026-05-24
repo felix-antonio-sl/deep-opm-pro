@@ -1,0 +1,170 @@
+/* ──────────────────────────────────────────────────────────────────────────
+   OpForja · Codex — Design Tokens
+   Versión 1.0 — handoff a desarrollo
+   Estos tokens definen TODO el lenguaje visual de la propuesta Codex.
+
+   IMPORTANTE: El canvas del OPD lo renderiza JointJS. Las CSS custom
+   properties marcadas como --cx-opm-* + --cx-state-fill + --cx-ink* +
+   --cx-crimson + --cx-paper deben leerse desde JS al definir los shapes
+   de JointJS (ver 08-jointjs-styling.md §12).
+
+   No introducir colores/valores fuera de este archivo sin abrir issue.
+   ────────────────────────────────────────────────────────────────────── */
+
+:root {
+  /* ───── PAPEL Y TINTA ─────────────────────────────────────────────────── */
+  --cx-paper:        #fafaf8;  /* fondo principal — gallery off-white frío */
+  --cx-paper-warm:   #f4f3ec;  /* fondo de zonas secundarias (marginalia, dividers) */
+  --cx-ink:          #171511;  /* tinta principal — paper-black ligeramente cálido */
+  --cx-ink-mid:      #5a564c;  /* cuerpo de texto secundario, etiquetas en cursiva */
+  --cx-ink-soft:     #a39e92;  /* metadatos, kickers, números mono */
+  --cx-ink-faint:    #cfcbc1;  /* separadores tipográficos (·), elementos "off" */
+  --cx-rule:         #e4e0d6;  /* hairlines normales (1px) */
+  --cx-rule-strong:  #c7c2b6;  /* hairlines de divisor estructural (split inspector/OPL) */
+
+  /* ───── CANON OPM (V-63) ──────────────────────────────────────────────────
+     Estos tres colores son SEMÁNTICOS — codifican la clase del símbolo.
+     No usar en chrome. Solo en el OPD y en pills/contadores que refuercen
+     la asociación a esa clase.
+     ─────────────────────────────────────────────────────────────────────── */
+  --cx-opm-green:    #3a6b4d;  /* OBJETO — borde + insignia */
+  --cx-opm-blue:     #26467a;  /* PROCESO — borde + insignia */
+  --cx-opm-olive:    #7e8338;  /* ESTADO — borde + insignia */
+  --cx-state-fill:   #ece9e1;  /* ESTADO — relleno gris-paper para stadiums */
+
+  /* ───── ACENTO EDITORIAL (UI) ─────────────────────────────────────────────
+     Crimson manuscrito. Canal RESERVADO a UI (V-203):
+     selección, alertas, marcas tipográficas editoriales.
+     Nunca como semántica OPM.
+     ─────────────────────────────────────────────────────────────────────── */
+  --cx-crimson:      #8e2a2e;
+
+  /* ───── TIPOGRAFÍA ────────────────────────────────────────────────────────
+     Tres familias. Inria como casa (Mozilla). JetBrains Mono para códigos.
+     Cargar de Google Fonts:
+       Inria Serif (300, 400, 700 + italic) — cuerpo, OPL, títulos
+       Inria Sans  (400, 600 + italic)       — kickers, footer keys, micro-controles
+       JetBrains Mono (400, 500)             — identificadores, shortcuts, metadatos
+     ─────────────────────────────────────────────────────────────────────── */
+  --cx-font-serif:   "Inria Serif", Georgia, serif;
+  --cx-font-sans:    "Inria Sans", system-ui, -apple-system, sans-serif;
+  --cx-font-mono:    "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+
+  /* Tamaños canónicos (rem-equivalent en px para fidelidad)
+     Cualquier texto fuera de esta escala debe justificarse en PR */
+  --cx-fs-9:    9px;    /* kickers tipo metadato extremo (REV, footer mono) */
+  --cx-fs-10:   10px;   /* JetBrains Mono shortcuts, "kicker" uppercase tracking */
+  --cx-fs-11:   11px;   /* metadatos en sans, footer keys label */
+  --cx-fs-12:   12px;   /* cuerpo secundario, fields, footnote-style */
+  --cx-fs-13:   13.5px; /* CUERPO PRINCIPAL OPL — Inria Serif 13.5/1.55 */
+  --cx-fs-14:   14px;   /* labels destacados (tree-row label) */
+  --cx-fs-17:   17px;   /* etiquetas dentro de objetos OPM */
+  --cx-fs-20:   20px;   /* etiquetas dentro de procesos / compounds */
+  --cx-fs-22:   22px;   /* wordmark Opforja, títulos de columna (OPDs, System Diagram) */
+  --cx-fs-input: 22px;  /* input del command palette */
+
+  /* Pesos */
+  --cx-fw-300:  300;    /* nunca usado en Codex — disponible para light italic */
+  --cx-fw-400:  400;    /* default body */
+  --cx-fw-500:  500;    /* tree-row current numbers, mono semibold */
+  --cx-fw-600:  600;    /* segmented active option */
+  --cx-fw-700:  700;    /* títulos serif, objetos OPL */
+
+  /* Tracking (letter-spacing) — clave para tipografía editorial */
+  --cx-ls-tight:   -0.01em;  /* títulos serif grandes */
+  --cx-ls-body:    -0.005em; /* cuerpo serif (textWrap: pretty) */
+  --cx-ls-mono:    0.04em;   /* mono inline pequeño */
+  --cx-ls-kbd:     0.06em;   /* shortcuts mono */
+  --cx-ls-meta:    0.08em;   /* identificadores mono junto a texto serif */
+  --cx-ls-mark:    0.12em;   /* marcas tipo "△ CRÍTICA" */
+  --cx-ls-kicker:  0.18em;   /* kickers cortos sans (OBJETO ·) */
+  --cx-ls-section: 0.22em;   /* kickers de sección uppercase (ÍNDICE, ESTADOS) */
+
+  /* Line-heights */
+  --cx-lh-tight:   1.1;
+  --cx-lh-body:    1.45;
+  --cx-lh-opl:     1.55;
+  --cx-lh-quote:   1.5;
+
+  /* ───── LAYOUT ────────────────────────────────────────────────────────── */
+  --cx-frame-w:    1700px;
+  --cx-frame-h:    950px;
+  --cx-col-left:   210px;
+  --cx-col-right:  360px;
+  --cx-header-h:   60px;
+  --cx-footer-h:   44px;
+
+  /* Paddings principales */
+  --cx-pad-col-l:  22px 22px 18px;   /* columna izquierda (índice) */
+  --cx-pad-col-r:  22px 24px 18px;   /* columna derecha (OPL) */
+  --cx-pad-head-x: 22px;
+  --cx-pad-foot-x: 22px;
+  --cx-pad-canvas: 24px 32px 12px;
+
+  /* Splits y gaps */
+  --cx-gap-col-section:  18px;  /* entre el header de columna y su contenido */
+  --cx-gap-tree-row:     4px;   /* dentro del tree */
+  --cx-gap-inspect-row:  4px;
+  --cx-gap-opl-note:     12px;
+
+  /* ───── HAIRLINES ────────────────────────────────────────────────────────
+     Solo dos pesos. NUNCA usar shadows ni elevación.
+     ─────────────────────────────────────────────────────────────────────── */
+  --cx-hairline:        1px solid var(--cx-rule);
+  --cx-hairline-strong: 1px solid var(--cx-rule-strong);
+  --cx-hairline-dotted: 1px dotted var(--cx-rule);
+
+  /* ───── OPM SYMBOL STROKES (aplicados por JointJS) ───────────────────────
+     Estos valores se reflejan como `strokeWidth` en los attrs de los shapes
+     JointJS definidos en 08-jointjs-styling.md. NO usar para SVG inline en
+     el chrome — el chrome no dibuja símbolos OPM.
+     ─────────────────────────────────────────────────────────────────────── */
+  --cx-opm-stroke-object:  1.5px;
+  --cx-opm-stroke-process: 1.5px;
+  --cx-opm-stroke-state:   1.2px;
+  --cx-opm-stroke-link:    1px;
+  --cx-opm-stroke-triangle: 1.2px;
+
+  /* ───── ESCALAS DE ICONOGRAFÍA TIPOGRÁFICA ───────────────────────────────
+     Codex NO usa iconos vectoriales. Glifos Unicode + caracteres editoriales:
+       ※  reference mark — selección única (anotación al margen)
+       △  warning triangle — severidad de validación (alta/crítica)
+       ▸  pointer arrow — current item en tree
+       ·  middle dot — separador inline
+       +  plus — acciones de creación
+       ⌫  backspace key — eliminar
+       ↵  return — confirmar
+       ⌘  command — modificador macOS
+       ⌃  control — modificador
+       ⇧  shift — modificador
+     ─────────────────────────────────────────────────────────────────────── */
+}
+
+/* ────────────────────────────────────────────────────────────────────────
+   Clases utilitarias mínimas (opcionales — los componentes React aplican
+   estilos inline)
+   ──────────────────────────────────────────────────────────────────────── */
+
+.cx-kicker {
+  font-family: var(--cx-font-sans);
+  font-size: var(--cx-fs-10);
+  letter-spacing: var(--cx-ls-section);
+  text-transform: uppercase;
+  color: var(--cx-ink-soft);
+}
+
+.cx-mono-tag {
+  font-family: var(--cx-font-mono);
+  font-size: var(--cx-fs-10);
+  letter-spacing: var(--cx-ls-meta);
+  color: var(--cx-ink-soft);
+}
+
+.cx-quote {
+  font-family: var(--cx-font-serif);
+  font-style: italic;
+  font-size: var(--cx-fs-12);
+  line-height: var(--cx-lh-quote);
+  color: var(--cx-ink-mid);
+  text-wrap: pretty;
+}

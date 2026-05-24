@@ -1,5 +1,6 @@
 import { CANON } from "../../../modelo/constantes";
 import type { Apariencia, Id } from "../../../modelo/tipos";
+import { CODEX } from "../constantes.codex";
 import type { FilaPlegadoParcialExtendida } from "../plegadoNesting";
 
 /**
@@ -36,7 +37,7 @@ export function attrsPlegadoParcial(
     ...attrsBase,
     label: {
       ...(attrsBase.label as Record<string, unknown>),
-      textWrap: { width: size.width - 24 },
+      textWrap: { width: size.width - 24, ellipsis: false },
     },
   };
   for (const [index, fila] of filas.entries()) {
@@ -46,7 +47,7 @@ export function attrsPlegadoParcial(
       x2: size.width - 12,
       y1: y,
       y2: y,
-      stroke: "#d9e0ea",
+      stroke: CODEX.colores.inkSoft,
       strokeWidth: 1,
       pointerEvents: "none",
     };
@@ -66,16 +67,16 @@ export function attrsPlegadoParcial(
       text: textoFilaPlegado(fila),
       x: size.width / 2,
       y: y + PLEGADO.rowHeight / 2,
-      fill: fila.tipo === "parte" && !fila.extraida ? CANON.colores.texto : "#667085",
-      fontFamily: CANON.dims.fontFamily,
+      fill: fila.tipo === "parte" && !fila.extraida ? CODEX.colores.ink : CODEX.colores.inkMid,
+      fontFamily: CODEX.fuentes.serif,
       fontSize: 12,
-      fontWeight: CANON.dims.fontWeight,
+      fontWeight: 400,
       fontStyle: fila.tipo === "contador" || fila.extraida ? "italic" : undefined,
       textDecoration: fila.tipo === "parte" && fila.extraida ? "line-through" : undefined,
       opacity: fila.tipo === "parte" && fila.extraida ? 0.64 : 1,
       textAnchor: "middle",
       textVerticalAnchor: "middle",
-      textWrap: { width: size.width - 24, height: PLEGADO.rowHeight - 4 },
+      textWrap: { width: size.width - 24, height: PLEGADO.rowHeight - 4, ellipsis: false },
       pointerEvents: fila.tipo === "parte" ? "auto" : "none",
       cursor: fila.tipo === "parte" ? "pointer" : undefined,
     };
@@ -102,4 +103,3 @@ export const PLEGADO = {
   rowHeight: 25,
   paddingBottom: 10,
 } as const;
-

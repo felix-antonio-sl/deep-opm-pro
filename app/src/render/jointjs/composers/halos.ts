@@ -1,5 +1,6 @@
 import type { Apariencia, Enlace, Entidad, Id, Modelo, Estado } from "../../../modelo/tipos";
 import type { OplReferencia } from "../../../opl/interaccion";
+import { CODEX } from "../constantes.codex";
 import { jointCanvasPalette } from "../palette";
 import type { JointCellJson } from "../proyeccionTipos";
 import { puntoCapsulaEstado, rectCapsulaEstado } from "./estados";
@@ -27,35 +28,20 @@ export const SIM_OLIVA_OSCURO = "#3F4A16";
  * estado; emite solo celdas JointJS derivadas. Consumidor: proyeccion.ts.
  */
 export function proyectarHaloSeleccion(opdId: Id, apariencia: Apariencia, entidad: Entidad): JointCellJson {
-  const pad = 4;
-  const type = entidad.tipo === "objeto" ? "standard.Rectangle" : "standard.Ellipse";
-  const width = apariencia.width + pad * 2;
-  const height = apariencia.height + pad * 2;
+  const width = Math.max(24, apariencia.width - 16);
   return {
     id: `seleccion-${apariencia.id}`,
-    type,
-    position: { x: apariencia.x - pad, y: apariencia.y - pad },
-    size: { width, height },
+    type: "standard.Path",
+    position: { x: apariencia.x + 8, y: apariencia.y + apariencia.height / 2 + 5 },
+    size: { width, height: 2 },
     attrs: {
-      body: entidad.tipo === "objeto"
-        ? {
-            fill: "transparent",
-            stroke: jointCanvasPalette.seleccion,
-            strokeWidth: 2,
-            rx: 6,
-            ry: 6,
-            pointerEvents: "none",
-          }
-        : {
-            fill: "transparent",
-            stroke: jointCanvasPalette.seleccion,
-            strokeWidth: 2,
-            cx: width / 2,
-            cy: height / 2,
-            rx: width / 2,
-            ry: height / 2,
-            pointerEvents: "none",
-          },
+      body: {
+        d: `M 0 1 L ${width} 1`,
+        fill: "none",
+        stroke: jointCanvasPalette.seleccion,
+        strokeWidth: CODEX.strokes.seleccion,
+        pointerEvents: "none",
+      },
       label: { text: "", display: "none" },
     },
     opm: {
@@ -76,21 +62,18 @@ export function proyectarHaloSeleccionEstado(
   const rect = rectCapsulaEstado(modelo, apariencia, estado.id);
   if (!rect) return null;
 
-  const pad = 3;
-  const width = rect.width + pad * 2;
-  const height = rect.height + pad * 2;
+  const width = Math.max(18, rect.width - 12);
   return {
     id: `seleccion-estado-${apariencia.id}-${estado.id}`,
-    type: "standard.Rectangle",
-    position: { x: rect.x - pad, y: rect.y - pad },
-    size: { width, height },
+    type: "standard.Path",
+    position: { x: rect.x + 6, y: rect.y + rect.height / 2 + 5 },
+    size: { width, height: 2 },
     attrs: {
       body: {
-        fill: "transparent",
+        d: `M 0 1 L ${width} 1`,
+        fill: "none",
         stroke: jointCanvasPalette.seleccion,
-        strokeWidth: 2,
-        rx: 10,
-        ry: 10,
+        strokeWidth: CODEX.strokes.seleccion,
         pointerEvents: "none",
       },
       label: { text: "", display: "none" },
@@ -165,14 +148,11 @@ export function proyectarHaloSimulacionEntidadInvolucrada(opdId: Id, apariencia:
     type,
     position: { x: apariencia.x - pad, y: apariencia.y - pad },
     size: { width, height },
-    // CANON-V2 (ronda 28 L4): halo entidad-involucrada en simulacion =
-    // cinabrio dashed (antes #3BC3FF azul proceso V1, colision con fill
-    // proceso lavado). Cinabrio es el unico canal de "estado activo" en V2.
     attrs: {
       body: entidad.tipo === "objeto"
         ? {
-            fill: "rgba(200, 57, 47, 0.08)",
-            stroke: "#C8392F",
+            fill: CODEX.colores.crimsonSuave,
+            stroke: CODEX.colores.crimson,
             strokeWidth: 2,
             strokeDasharray: "3 3",
             rx: 7,
@@ -180,8 +160,8 @@ export function proyectarHaloSimulacionEntidadInvolucrada(opdId: Id, apariencia:
             pointerEvents: "none",
           }
         : {
-            fill: "rgba(200, 57, 47, 0.08)",
-            stroke: "#C8392F",
+            fill: CODEX.colores.crimsonSuave,
+            stroke: CODEX.colores.crimson,
             strokeWidth: 2,
             strokeDasharray: "3 3",
             cx: width / 2,

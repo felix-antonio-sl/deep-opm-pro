@@ -1,7 +1,7 @@
-import { CANON } from "../../../modelo/constantes";
 import { estadosDeEntidad } from "../../../modelo/operaciones";
 import { tieneRefinamiento } from "../../../modelo/refinamientos";
 import type { Apariencia, Entidad, Id, Modelo, ModoImagenEntidad } from "../../../modelo/tipos";
+import { CODEX } from "../constantes.codex";
 import type { JointCellJson } from "../proyeccionTipos";
 
 const BADGE_SIZE = 22;
@@ -95,16 +95,16 @@ export function componerInsigniaCamara(opdId: Id, apariencia: Apariencia, entida
         height: BADGE_SIZE,
         rx: 4,
         ry: 4,
-        fill: "#ffffff",
-        stroke: "#586D8C",
+        fill: CODEX.colores.paper,
+        stroke: CODEX.colores.ink,
         strokeWidth: 1,
         cursor: "pointer",
         "data-testid": "entidad-insignia-imagen",
       },
       label: {
         text: "📷",
-        fill: CANON.colores.texto,
-        fontFamily: CANON.dims.fontFamily,
+        fill: CODEX.colores.ink,
+        fontFamily: CODEX.fuentes.serif,
         fontSize: 13,
         fontWeight: 700,
         textAnchor: "middle",

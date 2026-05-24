@@ -1,4 +1,4 @@
-import { CANON, CANON_V2 } from "../../../modelo/constantes";
+import { CANON } from "../../../modelo/constantes";
 import { rolAparienciaEnRefinamiento } from "../../../modelo/contextoRefinamiento";
 import { ANCLAS_RELOJ_ENLACE, puertoRelativoAnclaEnlace, type AnclaRelojEnlace } from "../../../modelo/anclajesEnlace";
 import { designacionesEstado } from "../../../modelo/estadosDesignaciones";
@@ -11,6 +11,7 @@ import { targetsEstado } from "../estadoTargets";
 import { filasPlegadoConNesting } from "../plegadoNesting";
 import type { FilaPlegadoParcialExtendida } from "../plegadoNesting";
 import type { JointCellJson, OpcionesProyeccion, RolApariencia } from "../proyeccionTipos";
+import { CODEX, colorEntidadCodex } from "../constantes.codex";
 import { colorTextoParaFill } from "./colores";
 import { anchoCapsulaEstado, dimensionesConEstados, ESTADOS } from "./estados";
 import { attrsPlegadoParcial, dimensionesPlegadoParcial, markupPlegadoParcial, selectoresPartesPlegadas, textoFilaPlegado, PLEGADO } from "./plegado";
@@ -28,15 +29,9 @@ export function proyectarEntidad(
   resaltada: boolean,
   opciones: OpcionesProyeccion,
 ): JointCellJson {
-  // CANON-V2 Bauhaus (ronda 28 L4): el stroke default de objetos/procesos
-  // es ink puro (`CANON.colores.enlace`), no el verde/azul saturado V1. El
-  // canal cromatico OPM se conserva en el FILL lavado (`CANON.colores.objeto`
-  // verde papel / `CANON.colores.proceso` azul papel). Override de usuario
-  // (`apariencia.estilo`) sigue dominando: si un modelador fija borderColor
-  // o fill personalizado, se respeta para el cell.
-  const stroke = apariencia.estilo?.borderColor ?? CANON.colores.enlace;
-  const fillBase = apariencia.estilo?.fill ?? (entidad.tipo === "objeto" ? CANON.colores.objeto : CANON.colores.proceso);
-  const fill = resaltada ? "#E1E6EB" : fillBase;
+  const stroke = apariencia.estilo?.borderColor ?? colorEntidadCodex(entidad.tipo);
+  const fillBase = apariencia.estilo?.fill ?? "transparent";
+  const fill = resaltada ? CODEX.colores.paperWarm : fillBase;
   const partes = partesDePlegado(modelo, entidad.id);
   const tienePartes = partes.length > 0;
   const modoPlegado = modoPlegadoApariencia(apariencia);
@@ -69,25 +64,12 @@ export function proyectarEntidad(
     : estadosVisibles.length > 0
       ? dimensionesConEstados(apariencia, nombreRender, estadosVisibles, entidad.layoutEstados)
       : { width: apariencia.width, height: apariencia.height };
-  const strokeBase = refinada ? 4 : CANON.dims.enlaceVisible;
-  // CANON-V2: seleccion suma 0.5px (2 → 2.5). Antes sumaba 2 (2 → 4) lo cual
-  // emparejaba la seleccion con el contorno de refinamiento. La distincion
-  // visual se logra con el color cinabrio + handles cuadrados.
-  const strokeWidth = seleccionada ? strokeBase + 0.5 : strokeBase;
-  // CANON-V2: stroke seleccion = cinabrio (V2 §1) SOLO cuando el usuario no
-  // fijo un borderColor explicito. Si hay override (`apariencia.estilo.
-  // borderColor`), el contrato es respetar la decision del modelador incluso
-  // bajo seleccion; la prominencia de seleccion la entrega entonces el halo
-  // (composers/halos.ts: proyectarHaloSeleccion) + los handles cuadrados
-  // cinabrio + el incremento de grosor.
-  const tieneBorderOverride = !!apariencia.estilo?.borderColor;
-  const strokeColor = seleccionada && !tieneBorderOverride ? CANON_V2.seleccion.color : stroke;
-  // CANON-V2: refinamiento in-zoom (descomposicion) dibuja DASHED `8 4` sobre
-  // paper semi-transparente al 96%. Convive con el dashed ambiental (mismo
-  // pattern; el refinamiento prevalece sin perder el dash exterior).
+  const strokeBase = refinada ? 4 : CODEX.strokes.entidad;
+  const strokeWidth = strokeBase;
+  const strokeColor = stroke;
   const dasharrayBase = entidad.afiliacion === "ambiental" ? "8 4" : undefined;
-  const dasharray = contornoRefinamiento ? CANON_V2.refinamiento.strokeDasharray : dasharrayBase;
-  const fillRender = contornoRefinamiento ? CANON_V2.refinamiento.fill : fill;
+  const dasharray = contornoRefinamiento ? CODEX.refinamiento.strokeDasharray : dasharrayBase;
+  const fillRender = contornoRefinamiento ? CODEX.refinamiento.fill : fill;
   const bodyTag = entidad.tipo === "objeto" ? "rect" : "ellipse";
   const body = {
     fill: fillRender,
@@ -107,15 +89,16 @@ export function proyectarEntidad(
   };
   const attrsBase = {
     body: entidad.tipo === "objeto"
-      ? { ...body, width: size.width, height: size.height, rx: 4, ry: 4 }
+      ? { ...body, width: size.width, height: size.height, rx: 0, ry: 0 }
       : { ...body, cx: size.width / 2, cy: size.height / 2, rx: size.width / 2, ry: size.height / 2 },
     label: {
       text: nombreRender,
       fill: colorTextoParaFill(fill),
-      fontFamily: CANON.dims.fontFamily,
-      fontSize: CANON.dims.fontSize,
-      fontWeight: CANON.dims.fontWeight,
-      textWrap: { width: -12 },
+      fontFamily: CODEX.fuentes.serif,
+      fontSize: 17,
+      fontWeight: 400,
+      fontStyle: entidad.tipo === "proceso" ? "italic" : "normal",
+      textWrap: CODEX.textWrap.entidad,
       refY: refYEtiquetaEntidad(contornoRefinamiento, modoParcial, estadosVisibles.length > 0),
       textVerticalAnchor: contornoRefinamiento || modoParcial ? "top" : "middle",
       textAnchor: "middle",
@@ -272,10 +255,6 @@ function attrsConResizeHandles(
     "resize-sw": { x: 0, y: size.height, cursor: "nesw-resize" },
     "resize-w": { x: 0, y: size.height / 2, cursor: "ew-resize" },
   };
-  // CANON-V2 (ronda 28 L4): handles de seleccion = cuadrados 6x6 cinabrio
-  // (rx/ry=0, sin redondeo) con fill paper. Antes: cuadrados 8x8 redondeados
-  // (rx=1) con stroke #586D8C slate. La nueva geometria es angular y
-  // consistente con el chrome Bauhaus.
   const attrs: Record<string, unknown> = { ...attrsBase };
   for (const [selector, point] of Object.entries(points)) {
     attrs[selector] = {
@@ -285,8 +264,8 @@ function attrsConResizeHandles(
       height: 6,
       rx: 0,
       ry: 0,
-      fill: CANON_V2.estado.fill,
-      stroke: CANON_V2.seleccion.color,
+      fill: CODEX.colores.paper,
+      stroke: CODEX.colores.crimson,
       strokeWidth: 1.5,
       cursor: point.cursor,
       pointerEvents: "auto",
@@ -362,12 +341,9 @@ function attrsConConnectAnchors(
     {
       ...point,
       r: 5,
-      // CANON-V2: connect-anchors (puntos para arrastrar enlace) en fill paper
-      // + stroke ink. Diferenciados de los resize-handles cinabrio: ink =
-      // "conectar enlace", cinabrio = "transformar entidad".
-      fill: CANON_V2.estado.fill,
-      stroke: CANON.colores.enlace,
-      strokeWidth: 2,
+      fill: CODEX.colores.paper,
+      stroke: CODEX.colores.ink,
+      strokeWidth: 1,
       cursor: "crosshair",
       opacity: visible ? 1 : 0,
       pointerEvents: visible ? "visiblePainted" : "none",
@@ -445,8 +421,8 @@ export function attrsConBadge(
       text: metadatos.foldBadgeText,
       x: size.width - 14,
       y: 17,
-      fill: CANON.colores.enlace,
-      fontFamily: CANON.dims.fontFamily,
+      fill: CODEX.colores.ink,
+      fontFamily: CODEX.fuentes.serif,
       fontSize: 16,
       fontWeight: 700,
       textAnchor: "middle",
@@ -470,7 +446,7 @@ export function attrsConEstados(
     ...attrsBase,
     label: {
       ...(attrsBase.label as Record<string, unknown>),
-      textWrap: { width: size.width - 24, height: size.height - ESTADOS.regionHeight - 8 },
+      textWrap: { width: size.width - 24, height: size.height - ESTADOS.regionHeight - 8, ellipsis: false },
     },
   };
   if (metadatos.foldBadge) attrs.foldBadge = attrsConBadge(attrsBase, size, metadatos).foldBadge;
@@ -490,26 +466,22 @@ export function attrsConEstados(
     const width = anchos[index] ?? ESTADOS.minWidth;
     if (vertical) x = (size.width - width) / 2;
     const designaciones = designacionesEstado(estado);
-    // CANON-V2: capsula de estado en paper canonico + stroke ink. Final
-    // recibe un tinte ink-08 sutil (antes "#eef8ff" azul corporate). Stroke
-    // inicial 3px conserva el peso semantico para el modelador.
     attrs[`stateCapsule${index}`] = {
       x,
       y,
       width,
       height: ESTADOS.capsuleHeight,
-      rx: ESTADOS.radius,
-      ry: ESTADOS.radius,
-      fill: designaciones.includes("final") ? "#E8E8E8" : CANON.colores.relleno,
-      stroke: CANON.colores.enlace,
-      strokeWidth: designaciones.includes("inicial") ? 3 : 1,
+      rx: "calc(h/2)",
+      ry: "calc(h/2)",
+      fill: designaciones.includes("final") ? CODEX.colores.estadoFinalFill : CODEX.colores.estadoFill,
+      stroke: CODEX.colores.opmEstado,
+      strokeWidth: designaciones.includes("inicial") ? 3 : CODEX.strokes.estado,
       pointerEvents: "auto",
       cursor: "crosshair",
       // Paquete "Estados ciudadanos de primera clase" (2026-05-23): los
       // estados son ciudadanos visualmente identificables en la cápsula.
       // El CSS (jointjs.css) reacciona a estos atributos para hover/focus/
-      // selected/dragging usando tokens Bauhaus (`--bauhaus-cinabrio`,
-      // `--bauhaus-paper-02`, `--bauhaus-focus-ring`, `--bauhaus-axis-soft`).
+      // selected/dragging usando tokens Codex.
       // V-202: estos atributos son affordance UI, no gramática OPM; no se
       // exportan al canon. data-estado-id alimenta el handler de click.
       "data-estado-id": estado.id,
@@ -524,7 +496,7 @@ export function attrsConEstados(
       rx: Math.max(0, ESTADOS.radius - 2),
       ry: Math.max(0, ESTADOS.radius - 2),
       fill: "transparent",
-      stroke: CANON.colores.enlace,
+      stroke: CODEX.colores.opmEstado,
       strokeWidth: designaciones.includes("final") ? 1 : 0,
       pointerEvents: "none",
       display: designaciones.includes("final") ? undefined : "none",
@@ -533,13 +505,14 @@ export function attrsConEstados(
       text: estado.nombre,
       x: x + width / 2,
       y: y + ESTADOS.capsuleHeight / 2,
-      fill: CANON.colores.texto,
-      fontFamily: CANON.dims.fontFamily,
+      fill: CODEX.colores.ink,
+      fontFamily: CODEX.fuentes.serif,
       fontSize: ESTADOS.fontSize,
-      fontWeight: CANON.dims.fontWeight,
+      fontWeight: 400,
+      fontStyle: "italic",
       textAnchor: "middle",
       textVerticalAnchor: "middle",
-      textWrap: { width: width - ESTADOS.paddingHorizontal * 2, height: ESTADOS.capsuleHeight - 4 },
+      textWrap: { width: width - ESTADOS.paddingHorizontal * 2, height: ESTADOS.capsuleHeight - 4, ellipsis: false },
       pointerEvents: "auto",
       cursor: "crosshair",
     };
@@ -547,8 +520,8 @@ export function attrsConEstados(
       text: "↗",
       x: x + width - 10,
       y: y + 7,
-      fill: CANON.colores.enlace,
-      fontFamily: CANON.dims.fontFamily,
+      fill: CODEX.colores.ink,
+      fontFamily: CODEX.fuentes.serif,
       fontSize: 12,
       fontWeight: 700,
       textAnchor: "middle",
@@ -556,14 +529,12 @@ export function attrsConEstados(
       pointerEvents: "none",
       display: designaciones.includes("default") ? undefined : "none",
     };
-    // CANON-V2: marker "current" en simulacion = cinabrio (canal de atencion
-    // Bauhaus). Antes #70E483 verde V1 — colision con el fill objeto lavado.
     attrs[`stateCurrentMarker${index}`] = {
       text: "●",
       x: x + 10,
       y: y + 7,
-      fill: CANON_V2.seleccion.color,
-      fontFamily: CANON.dims.fontFamily,
+      fill: CODEX.colores.ink,
+      fontFamily: CODEX.fuentes.serif,
       fontSize: 10,
       fontWeight: 700,
       textAnchor: "middle",
@@ -589,8 +560,8 @@ export function aplicarMetadatosAttrs(
       text: "i",
       x,
       y: 17,
-      fill: CANON.colores.enlace,
-      fontFamily: CANON.dims.fontFamily,
+      fill: CODEX.colores.ink,
+      fontFamily: CODEX.fuentes.serif,
       fontSize: 12,
       fontWeight: 700,
       textAnchor: "middle",
@@ -613,8 +584,8 @@ export function aplicarMetadatosAttrs(
       text: "↗",
       x,
       y: 17,
-      fill: CANON.colores.enlace,
-      fontFamily: CANON.dims.fontFamily,
+      fill: CODEX.colores.ink,
+      fontFamily: CODEX.fuentes.serif,
       fontSize: 13,
       fontWeight: 700,
       textAnchor: "middle",
@@ -628,8 +599,8 @@ export function aplicarMetadatosAttrs(
       text: metadatos.foldBadgeText,
       x: size.width - 14,
       y: 17,
-      fill: CANON.colores.enlace,
-      fontFamily: CANON.dims.fontFamily,
+      fill: CODEX.colores.ink,
+      fontFamily: CODEX.fuentes.serif,
       fontSize: 16,
       fontWeight: 700,
       textAnchor: "middle",
@@ -645,8 +616,8 @@ export function aplicarMetadatosAttrs(
       text: "…",
       x: size.width - 14,
       y: size.height - 8,
-      fill: CANON.colores.enlace,
-      fontFamily: CANON.dims.fontFamily,
+      fill: CODEX.colores.ink,
+      fontFamily: CODEX.fuentes.serif,
       fontSize: 14,
       fontWeight: 700,
       textAnchor: "middle",

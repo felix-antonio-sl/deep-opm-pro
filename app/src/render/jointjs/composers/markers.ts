@@ -1,5 +1,5 @@
-import { CANON, CANON_V2 } from "../../../modelo/constantes";
 import type { Enlace, Id, Posicion, SubtipoModificador, TipoEnlace } from "../../../modelo/tipos";
+import { CODEX } from "../constantes.codex";
 import { LINK_ASSETS } from "../linkAssets";
 import type { JointCellJson, OpmJointMetadata } from "../proyeccionTipos";
 
@@ -25,8 +25,8 @@ export function marcadoresEstructurales(
 ): JointCellJson[] {
   const angle = 0;
   const position = { x: center.x - size / 2, y: center.y - size / 2 };
-  const strokeWidth = seleccionada ? CANON.dims.enlaceVisible + 2 : CANON.dims.enlaceVisible;
-  const stroke = CANON.colores.enlace;
+  const strokeWidth = CODEX.strokes.estructural;
+  const stroke = CODEX.colores.ink;
   const cursor = meta.kind === "enlace" && meta.rolEstructural === "simbolo" ? "move" : "pointer";
 
   if (tipo === "exhibicion") {
@@ -38,7 +38,7 @@ export function marcadoresEstructurales(
     return [
       polyShapeCell(triangleId, "standard.Polygon", position, size, angle, {
         refPoints: LINK_ASSETS.structural.agregacion.markerPoints,
-        fill: CANON_V2.estado.fill,
+        fill: CODEX.colores.paper,
         stroke,
         strokeWidth,
         cursor,
@@ -156,8 +156,8 @@ function puertosTrianguloEstructural(puertos: PuertoSimboloEstructural[], mostra
   const attrs = {
     portBody: {
       r: mostrarPuertos ? 4 : 0,
-      fill: mostrarPuertos ? CANON_V2.estado.fill : "transparent",
-      stroke: mostrarPuertos ? CANON_V2.seleccion.color : "transparent",
+      fill: mostrarPuertos ? CODEX.colores.paper : "transparent",
+      stroke: mostrarPuertos ? CODEX.colores.crimson : "transparent",
       strokeWidth: mostrarPuertos ? 2 : 0,
       magnet: true,
       cursor: mostrarPuertos ? "grab" : "pointer",
@@ -264,8 +264,8 @@ export function etiquetaBadgeModificadorCanonico(text: string, distance: number)
   // cromatico). Antes el badge usaba amarillo/cyan/rosa + stroke rojo
   // para `¬` (BUG-81916b: el primer fix usaba `CANON.colores.relleno`
   // = #fdffff y se confundia con el canvas).
-  const color = CANON.colores.enlace;
-  const fill = "#ffffff";
+  const color = CODEX.colores.ink;
+  const fill = CODEX.colores.paper;
   return {
     markup: [
       { tagName: "rect", selector: "badge" },
@@ -281,15 +281,15 @@ export function etiquetaBadgeModificadorCanonico(text: string, distance: number)
         ry: 9,
         fill,
         stroke: color,
-        strokeWidth: 1.5,
+        strokeWidth: CODEX.strokes.enlace,
         pointerEvents: "none",
       },
       label: {
         text,
         fill: color,
-        fontFamily: CANON.dims.fontFamily,
+        fontFamily: CODEX.fuentes.serif,
         fontSize: 12,
-        fontWeight: 700,
+        fontWeight: 400,
         textAnchor: "middle",
         textVerticalAnchor: "middle",
         pointerEvents: "none",

@@ -1,19 +1,15 @@
 /*
- * CANON-V2 Bauhaus (ronda 28 L4):
- *   Marcadores de vertice/segmento JointJS migran a cinabrio (antes
- *   #ff8a00 amber-orange). El stroke paper canonico (antes #ffffff puro)
- *   los separa del fondo paper del canvas Bauhaus.
- *   Color de tool-options pasa a ink puro (antes #1f2937 slate).
+ * CANON-V3 Codex: vertices y estados usan crimson solo como affordance UI.
  */
 .joint-paper .joint-marker-vertex,
 .joint-paper .joint-marker-segment {
-  fill: #c8392f;
-  stroke: #fafafa;
+  fill: #8e2a2e;
+  stroke: #fafaf8;
   stroke-width: 2px;
 }
 
 .joint-paper .joint-tools .tool-options {
-  color: #0a0a0a;
+  color: #171511;
 }
 
 .joint-paper .joint-element [joint-selector^="connect-anchor-"] {
@@ -36,7 +32,7 @@
 /*
  * Paquete "Estados ciudadanos de primera clase" (2026-05-23).
  * Cápsulas de estado: feedback visual de hover/focus/selected/dragging.
- * Tokens Bauhaus alineados con CANON_V2 (cinabrio + paper + ink). Los
+ * Tokens Codex alineados con CANON-V3 (crimson + paper + ink). Los
  * atributos `data-cap-rol="estado"` + `data-estado-id` + `data-selected`
  * los emite el composer `composers/entidad.ts` (attrsConEstados).
  *
@@ -47,24 +43,23 @@
 }
 
 .joint-paper [joint-selector^="stateCapsule"][data-cap-rol="estado"]:hover {
-  stroke: #C8392F;
+  stroke: #8e2a2e;
   stroke-width: 1.5px;
 }
 
 /*
- * Selección dura: stroke cinabrio 2.5px + sombra paper soft. Sin tocar el
+ * Selección dura: stroke crimson 2px, sin sombras. Sin tocar el
  * fill (los markers de designación inicial/final ya viven en el fill via
  * `stateFinalInner${i}`).
  */
 .joint-paper [joint-selector^="stateCapsule"][data-cap-rol="estado"][data-selected="true"] {
-  stroke: #C8392F;
-  stroke-width: 2.5px;
-  filter: drop-shadow(0 0 1.5px rgba(200, 57, 47, 0.40));
+  stroke: #8e2a2e;
+  stroke-width: 2px;
 }
 
 /* Focus por teclado: anillo cinabrio dashed para distinguir de hover. */
 .joint-paper [joint-selector^="stateCapsule"][data-cap-rol="estado"][data-focus="true"] {
-  stroke: #C8392F;
+  stroke: #8e2a2e;
   stroke-width: 2px;
   stroke-dasharray: 3 2;
 }

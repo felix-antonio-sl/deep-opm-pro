@@ -28,6 +28,14 @@ export function crearJointCellNamespace(): Record<string, unknown> {
   return { ...shapes, opm: opmShapes };
 }
 
+export function opcionesPaperCodex(): { gridSize: number; drawGrid: boolean; background: { color: string } } {
+  return {
+    gridSize: 10,
+    drawGrid: false,
+    background: { color: jointCanvasPalette.background },
+  };
+}
+
 export function crearJointCanvasAdapter(args: CrearJointCanvasAdapterArgs): JointCanvasAdapter {
   const { host, gridConfig, enlaceSeleccionIdRef, modoEnlaceRef, modoCreacionRef } = args;
   const cellNamespace = crearJointCellNamespace();
@@ -40,9 +48,7 @@ export function crearJointCanvasAdapter(args: CrearJointCanvasAdapterArgs): Join
     cellViewNamespace: cellNamespace,
     async: false,
     frozen: false,
-    gridSize: 10,
-    drawGrid: true,
-    background: { color: jointCanvasPalette.background },
+    ...opcionesPaperCodex(),
     snapLabels: true,
     linkPinning: false,
     // Confina children embedded al bbox del padre durante el drag visual

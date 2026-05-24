@@ -1,0 +1,38 @@
+export const CODEX = {
+  colores: {
+    paper: "#fafaf8", // espejo de ui-forja/tokens.css --cx-paper
+    paperWarm: "#f4f3ec", // espejo de ui-forja/tokens.css --cx-paper-warm
+    ink: "#171511", // espejo de ui-forja/tokens.css --cx-ink
+    inkMid: "#5a564c", // espejo de ui-forja/tokens.css --cx-ink-mid
+    inkSoft: "#a39e92", // espejo de ui-forja/tokens.css --cx-ink-soft
+    opmObjeto: "#3a6b4d", // espejo de ui-forja/tokens.css --cx-opm-green
+    opmProceso: "#26467a", // espejo de ui-forja/tokens.css --cx-opm-blue
+    opmEstado: "#7e8338", // espejo de ui-forja/tokens.css --cx-opm-olive
+    estadoFill: "#ece9e1", // espejo de ui-forja/tokens.css --cx-state-fill
+    estadoFinalFill: "#E8E8E8", // marcador visual heredado para designacion final
+    crimson: "#8e2a2e", // espejo de ui-forja/tokens.css --cx-crimson
+    crimsonSuave: "rgba(142, 42, 46, 0.06)", // espejo de ui-forja/tokens.css --cx-crimson al 6%
+  },
+  strokes: {
+    entidad: 1.5,
+    estado: 1.2,
+    enlace: 1,
+    estructural: 1.2,
+    seleccion: 1.2,
+  },
+  fuentes: {
+    serif: "Inria Serif, Georgia, serif",
+    mono: "JetBrains Mono Variable, JetBrains Mono, ui-monospace, monospace",
+  },
+  textWrap: {
+    entidad: { width: -16, height: -16, ellipsis: false },
+  },
+  refinamiento: {
+    fill: "rgba(250, 250, 248, 0.96)",
+    strokeDasharray: "8 4",
+  },
+} as const;
+
+export function colorEntidadCodex(tipo: "objeto" | "proceso"): string {
+  return tipo === "objeto" ? CODEX.colores.opmObjeto : CODEX.colores.opmProceso;
+}

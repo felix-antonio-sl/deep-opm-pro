@@ -1,5 +1,6 @@
 import { CANON } from "../../modelo/constantes";
 import type { Apariencia, Enlace, Id, Posicion } from "../../modelo/tipos";
+import { CODEX } from "./constantes.codex";
 import { LINK_ASSETS } from "./linkAssets";
 import type { JointCellJson, OpmJointMetadata } from "./proyeccion";
 
@@ -85,8 +86,8 @@ function attrsLinea(seleccionada: boolean): Record<string, unknown> {
       cursor: "pointer",
     },
     line: {
-      stroke: CANON.colores.enlace,
-      strokeWidth: seleccionada ? CANON.dims.enlaceVisible + 2 : CANON.dims.enlaceVisible,
+      stroke: CODEX.colores.ink,
+      strokeWidth: seleccionada ? CODEX.strokes.enlace + 0.2 : CODEX.strokes.enlace,
       strokeLinejoin: "round",
       sourceMarker: null,
       targetMarker: null,
@@ -100,10 +101,10 @@ function etiquetaDemora(text: string): Record<string, unknown> {
     attrs: {
       label: {
         text,
-        fill: "#404040", // CANON-V2 ink70
-        fontFamily: CANON.dims.fontFamily,
+        fill: CODEX.colores.inkMid,
+        fontFamily: CODEX.fuentes.serif,
         fontSize: 11,
-        fontWeight: 700,
+        fontWeight: 400,
         textAnchor: "middle",
         textVerticalAnchor: "middle",
         pointerEvents: "none",

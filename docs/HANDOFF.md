@@ -25,6 +25,37 @@
 
 ## Estado Actual
 
+### Inicio Ronda Codex — Pivot Visual Opforja (Ola 0) — 2026-05-24
+
+Estado actual:
+
+- Quedó formalizada `docs/instrucciones-lineas-dev/ronda-codex/` como ronda de trabajo del pivot visual total a **Codex**: README maestro, 6 briefs de línea y prompt genérico de asignación.
+- Decisiones rectoras consolidadas: Codex reemplaza la identidad Bauhaus, se preserva toda la funcionalidad actual, el layout debe seguir siendo responsive, el canvas se re-piela sin tocar routing OPCloud, y el margen derecho futuro absorbe OPL marginalia + inspector.
+- **Ola 0 implementada**:
+  - L1 tokens/fuentes: `app/src/ui/tokens.ts`, `tokens.test.ts`, `app/index.html`, `app/src/main.tsx`, `package.json`, `bun.lock`. Chrome pivota a papel/tinta/crimson/Inria; se preservan aliases legacy; `colors.canvas.*` sigue invariante JOYAS; JetBrains Mono usa la familia real `JetBrains Mono Variable`.
+  - L4 CANON-V3 canvas: nuevo `app/src/render/jointjs/constantes.codex.ts` + repaint de attrs JointJS a paper/ink/crimson/Inria/canon OPM. No se cambió `proyeccion.ts`, `opcloudRouting.ts` ni `mapa/proyeccion.ts`; routing, anchors y multiplicidad quedan intactos.
+- Correcciones de revisión integradas: se restauró `strokeWidth: 3` para estado inicial, el ghost de modo enlace reutiliza marker canónico desde `LINK_ASSETS`, `index.html` dejó de exponer Inter/Bauhaus como first paint, y los pesos Inria publicados se restringen a pesos self-hosted reales.
+- Alcance no completado: L2 frame responsive, L3 margen unificado, L5 reconciliación de mapa/diálogos/dock/mobile/asistente y L6 command palette/glifos/asistente siguen pendientes. La UI visible todavía no debe evaluarse como implementación completa de Codex; Ola 0 es fundación de tokens + canvas.
+
+Artefactos relevantes:
+
+- [docs/instrucciones-lineas-dev/ronda-codex/README.md](/home/felix/projects/deep-opm-pro/docs/instrucciones-lineas-dev/ronda-codex/README.md)
+- [docs/instrucciones-lineas-dev/ronda-codex/prompt-asignacion.md](/home/felix/projects/deep-opm-pro/docs/instrucciones-lineas-dev/ronda-codex/prompt-asignacion.md)
+- [ui-forja/01-design-spec.md](/home/felix/projects/deep-opm-pro/ui-forja/01-design-spec.md)
+- [ui-forja/08-jointjs-styling.md](/home/felix/projects/deep-opm-pro/ui-forja/08-jointjs-styling.md)
+- [app/src/ui/tokens.ts](/home/felix/projects/deep-opm-pro/app/src/ui/tokens.ts)
+- [app/src/render/jointjs/constantes.codex.ts](/home/felix/projects/deep-opm-pro/app/src/render/jointjs/constantes.codex.ts)
+
+Verificación:
+
+- `bun test src/ui/tokens.test.ts`: 13 tests verdes, 165 expectaciones.
+- `bun run check`: typecheck limpio; 1619 unit tests verdes, 5856 expectaciones.
+- `bun run lint`: limpio.
+- `bun run build`: build Vite verde.
+- `bunx playwright test e2e/09-tokens-visual.spec.ts e2e/14-canvas-fidelity.spec.ts e2e/22-responsive-review.spec.ts --workers=1`: 11/11 verdes.
+- `git diff --check -- app docs/instrucciones-lineas-dev/ronda-codex`: limpio.
+- `app/dist` y `app/test-results` fueron eliminados tras verificar por política de repo liviano.
+
 ### Cierre Auditoría De Pertinencia Canon Estricto — 2026-05-24
 
 Estado actual:

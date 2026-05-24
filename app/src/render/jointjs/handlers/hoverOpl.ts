@@ -1,7 +1,7 @@
 import type { dia } from "jointjs";
-import { CANON } from "../../../modelo/constantes";
 import type { Modelo } from "../../../modelo/tipos";
 import type { OplReferencia } from "../../../opl/interaccion";
+import { CODEX } from "../constantes.codex";
 import { cellViewModel, estadoDesdeSelector, jointSelector, metadata, paperOff } from "./helpers";
 
 /**
@@ -53,17 +53,14 @@ export function aplicarHoverOpl(graph: dia.Graph, modelo: Modelo, ref: OplRefere
       if (!entidad || !apariencia) continue;
       const resaltada = ref?.tipo === "entidad" && ref.id === entidad.id
         || ref?.tipo === "estado" && modelo.estados[ref.id]?.entidadId === entidad.id;
-      // CANON-V2 (ronda 28 L4): fill default por tipo de entidad (verde/azul
-      // papel lavado), no paper generico. Si el usuario fijo `apariencia.
-      // estilo.fill`, domina; hover OPL respeta el override.
-      const fillDefault = entidad.tipo === "objeto" ? CANON.colores.objeto : CANON.colores.proceso;
-      cell.attr("body/fill", resaltada ? "#E1E6EB" : apariencia.estilo?.fill ?? fillDefault);
+      const fillDefault = "transparent";
+      cell.attr("body/fill", resaltada ? CODEX.colores.paperWarm : apariencia.estilo?.fill ?? fillDefault);
       continue;
     }
     if (meta?.kind === "enlace") {
       const resaltado = ref?.tipo === "enlace" && ref.id === meta.enlaceId;
       const seleccionado = enlaceSeleccionId === meta.enlaceId;
-      const strokeWidth = resaltado || seleccionado ? CANON.dims.enlaceVisible + 2 : CANON.dims.enlaceVisible;
+      const strokeWidth = resaltado || seleccionado ? CODEX.strokes.enlace + 0.2 : CODEX.strokes.enlace;
       cell.attr("line/strokeWidth", strokeWidth);
       cell.attr("body/strokeWidth", strokeWidth);
     }

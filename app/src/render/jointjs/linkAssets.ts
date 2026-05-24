@@ -2,9 +2,9 @@
 // Runtime markers are normalized from those preview SVGs for JointJS marker
 // coordinates.
 //
-// CANON-V2 Bauhaus (ronda 28 L4) + restauracion swallowtail (2026-05-23):
-//   Todos los markers migran a ink puro `#0A0A0A` (antes `#586D8C` gris-azul).
-//   Stroke 2px. Diferenciacion por tipo:
+// CANON-V3 Codex + restauracion swallowtail (2026-05-23):
+//   Todos los markers reciclan los paths canonicos OPCloud y migran a ink
+//   editorial `#171511` con hairline 1px. Diferenciacion por tipo:
 //     - consumo/resultado: SWALLOWTAIL ink (canonico OPM/Dori §3.1 + OPCloud
 //       sandbox). Ronda 28 L4 habia probado triangulo lleno pensando que con
 //       paleta ink-stroke identica al cuerpo el marker tendria que cargar la
@@ -26,9 +26,11 @@
 //
 // Tests asociados: proyeccion.test.ts (assertions sobre markers literales),
 // composers/markers.test.ts.
-const INK = "#0A0A0A";
-const PAPER = "#FAFAFA";
-const MARKER_STROKE_WIDTH = 2;
+import { CODEX } from "./constantes.codex";
+
+const INK = CODEX.colores.ink;
+const PAPER = CODEX.colores.paper;
+const MARKER_STROKE_WIDTH = CODEX.strokes.enlace;
 
 export const LINK_ASSETS = {
   procedural: {

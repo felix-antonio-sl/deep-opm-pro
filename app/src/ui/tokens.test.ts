@@ -2,165 +2,193 @@ import { describe, expect, test } from "bun:test";
 import { colors, radii, shadows, spacing, stroke, tokens, transitions, typography } from "./tokens";
 
 /**
- * Ronda 28 L1 — Paleta Bauhaus monocromática.
+ * Ronda Codex L1 - tokens editoriales.
  *
- * Estos tests preservan la INTENCIÓN de los originales:
- *   1. Paleta canvas semántica permanece invariante [JOYAS §1].
- *   2. Acento UI no colisiona con stroke del canvas.
- *   3. La paleta es internamente coherente (acento ≠ acento suave, etc.).
- *   4. WCAG AA en pares de texto activo.
- *   5. Aliases legacy se preservan vía compat-shim.
- * Los valores literales cambian (Bauhaus monocromo + cinabrio + ultramar).
+ * Intencion preservada respecto de la bateria anterior:
+ *   1. El canvas semantico OPCloud/JOYAS permanece invariante y lo migra L4.
+ *   2. La paleta chrome pivota a Codex: papel, tinta, crimson UI-only y canon OPM.
+ *   3. Los aliases legacy siguen disponibles via compat-shim.
+ *   4. Los pares activos mantienen contraste WCAG.
  */
 
-describe("tokens.colors — paleta Bauhaus monocromática [JOYAS §1, ronda 28 L1]", () => {
-  test("paleta canvas semántica permanece invariante [JOYAS §1]", () => {
-    // L1 no toca el canvas (eso es L4). El contrato OPM clásico se mantiene.
+describe("tokens.colors - contrato Codex [ronda-codex L1]", () => {
+  test("paleta canvas semantica permanece invariante [JOYAS §1]", () => {
     expect(colors.canvas.objeto).toBe("#70E483");
+    expect(colors.canvas.objetoSuave).toBe("#70e483");
     expect(colors.canvas.proceso).toBe("#3BC3FF");
+    expect(colors.canvas.procesoSuave).toBe("#3bc3ff");
     expect(colors.canvas.enlace).toBe("#586D8C");
+    expect(colors.canvas.enlaceSuave).toBe("#586d8c");
     expect(colors.canvas.fill).toBe("#fdffff");
     expect(colors.canvas.texto).toBe("#000002");
   });
 
-  test("paleta Bauhaus base expone ink/paper/escala/accent/focus/warning", () => {
-    expect(colors.ink).toBe("#0A0A0A");
-    expect(colors.paper).toBe("#FAFAFA");
-    expect(colors.ink90).toBe("#1A1A1A");
-    expect(colors.ink70).toBe("#404040");
-    expect(colors.ink50).toBe("#6E6E6E");
-    expect(colors.ink30).toBe("#A8A8A8");
-    expect(colors.ink15).toBe("#D2D2D2");
-    expect(colors.ink08).toBe("#E8E8E8");
-    expect(colors.ink04).toBe("#F2F2F2");
-    expect(colors.accent).toBe("#C8392F");
-    expect(colors.accentSoft).toBe("#F5DDDB");
-    expect(colors.accentDark).toBe("#9F2519");
-    expect(colors.focus).toBe("#1F3FA6");
-    // Refinamiento 2026-05-23: warning ya no es terracota apagada — se eleva
-    // a ocre saffron Klee (#C89033). El símbolo "terracota" se reasigna a
-    // destructive secundario distinto de cinabrio.
-    expect(colors.warning).toBe("#C89033");
-    expect(colors.ocre).toBe("#C89033");
-    expect(colors.bosque).toBe("#2D6B47");
-    expect(colors.terracota).toBe("#8A3D2D"); // el hex viejo de warning, ahora destructive
+  test("paleta Codex base expone papel, tinta, crimson y canon OPM", () => {
+    expect(colors.paper).toBe("#fafaf8");
+    expect(colors.paperWarm).toBe("#f4f3ec");
+    expect(colors.ink).toBe("#171511");
+    expect(colors.inkMid).toBe("#5a564c");
+    expect(colors.inkSoft).toBe("#a39e92");
+    expect(colors.inkFaint).toBe("#cfcbc1");
+    expect(colors.rule).toBe("#e4e0d6");
+    expect(colors.ruleStrong).toBe("#c7c2b6");
+    expect(colors.crimson).toBe("#8e2a2e");
+    expect(colors.opm.object).toBe("#3a6b4d");
+    expect(colors.opm.process).toBe("#26467a");
+    expect(colors.opm.state).toBe("#7e8338");
+    expect(colors.opm.stateFill).toBe("#ece9e1");
   });
 
-  test("acento UI (focus ultramar) no colisiona con stroke del proceso canónico", () => {
-    expect(colors.acentoUi).toBe(colors.focus);
-    expect(colors.acentoUi).not.toBe(colors.canvas.proceso);
+  test("crimson es UI-only y no colisiona con el canon OPM/canvas", () => {
+    expect(colors.accent).toBe(colors.crimson);
+    expect(colors.focus).toBe(colors.crimson);
+    expect(colors.crimson).not.toBe(colors.canvas.proceso);
+    expect(colors.crimson).not.toBe(colors.opm.process);
   });
 
-  test("chromeNeutral colapsa al gris medio Bauhaus (ink50)", () => {
-    // Compat-shim: el chromeNeutral viejo (#586D8C, gris azulado) ahora
-    // colapsa al gris monocromático ink50. Ya no comparte color con el
-    // stroke canvas — la monocromaticidad es la nueva convención.
-    expect(colors.chromeNeutral).toBe(colors.ink50);
+  test("compat-shim conserva claves vivas de alta frecuencia", () => {
+    expect(colors.ink15).toBe(colors.rule);
+    expect(colors.fondoChrome).toBe(colors.paper);
+    expect(colors.fondoCard).toBe(colors.paperWarm);
+    expect(colors.bordeControl).toBe(colors.ruleStrong);
+    expect(colors.textoPrimario).toBe(colors.ink);
+    expect(colors.textoSecundario).toBe(colors.inkMid);
+    expect(colors.exitoBase).toBe(colors.opm.object);
+    expect(colors.azulAccion).toBe(colors.crimson);
+    expect(colors.verdeOpl).toBe(colors.opm.object);
+    expect(colors.oplTokenTexto).toBe(colors.inkSoft);
   });
 
-  test("acentoUiSuave es el tinte ultramar derivado del acento [shim ronda 28]", () => {
-    expect(colors.acentoUiSuave).toBe(colors.focusSoft);
-    expect(colors.acentoUiSuave).not.toBe(colors.acentoUi);
-  });
-
-  test("chromeNeutralSuave es el fondo claro derivado del chrome neutro [shim ronda 28]", () => {
-    expect(colors.chromeNeutralSuave).toBe(colors.ink04);
-    expect(colors.chromeNeutralSuave).not.toBe(colors.chromeNeutral);
-  });
-
-  test("tokens agregados exponen el módulo central completo", () => {
+  test("tokens agregados exponen el modulo central completo", () => {
     expect(tokens.colors).toBe(colors);
     expect(tokens.spacing).toBe(spacing);
     expect(tokens.radii).toBe(radii);
-    expect(tokens.shadows).toBe(shadows);
-    expect(tokens.typography).toBe(typography);
     expect(tokens.stroke).toBe(stroke);
+    expect(tokens.shadows).toBe(shadows);
     expect(tokens.transitions).toBe(transitions);
+    expect(tokens.typography).toBe(typography);
+    expect(tokens.bibliotecaDock).toBeDefined();
+    expect(tokens.inspectorTabs).toBeDefined();
+    expect(tokens.editorOplHonesto).toBeDefined();
+    expect(tokens.mobileNav).toBeDefined();
   });
 
-  test("spacing ronda 28 usa la escala Bauhaus 4/8/16/24/32/48", () => {
+  test("spacing preserva la escala 4/8/16/24/32/48 para compatibilidad", () => {
     expect(spacing).toEqual({ xs: 4, sm: 8, md: 16, lg: 24, xl: 32, xxl: 48 });
   });
 
-  test("radii ronda 28 colapsa a 2px máximo (Bauhaus = formas rotundas)", () => {
-    // Ronda 28 L1: el chrome Bauhaus rechaza los bordes redondeados
-    // suaves del corporate UI. Todo cromático colapsa a 2px — la
-    // jerarquía se logra con tipografía y espaciado.
+  test("radii Codex colapsa el chrome a cero y conserva capsulas", () => {
     expect(radii.none).toBe(0);
-    expect(radii.xs).toBe(2);
-    expect(radii.sm).toBe(2);
-    expect(radii.control).toBe(2);
-    expect(radii.md).toBe(2);
-    expect(radii.lg).toBe(2);
-    expect(radii.xl).toBe(2);
-    expect(radii.pill).toBe(999); // preservado para badges circulares.
-    expect(radii.full).toBe(9999); // preservado.
+    expect(radii.xs).toBe(0);
+    expect(radii.sm).toBe(0);
+    expect(radii.control).toBe(0);
+    expect(radii.md).toBe(0);
+    expect(radii.lg).toBe(0);
+    expect(radii.xl).toBe(0);
+    expect(radii.pill).toBe(999);
+    expect(radii.full).toBe(9999);
   });
 
-  test("stroke ronda 28 expone jerarquía hairline/base/bold", () => {
+  test("stroke expone hairline/base/bold y canon OPM aditivo", () => {
     expect(stroke.hairline).toBe(1);
     expect(stroke.base).toBe(1.5);
     expect(stroke.bold).toBe(2);
+    expect(stroke.opm.object).toBe(1.5);
+    expect(stroke.opm.process).toBe(1.5);
+    expect(stroke.opm.state).toBe(1.2);
+    expect(stroke.opm.link).toBe(1);
+    expect(stroke.opm.triangle).toBe(1.2);
   });
 
-  test("shadows ronda 28 expone offsets planos sin blur (Bauhaus)", () => {
-    // Sin blur gaussiano corporativo. Solo offsets duros sobre ink15.
+  test("shadows Codex elimina blur/elevacion y conserva rings especiales", () => {
     expect(shadows.none).toBe("none");
-    expect(shadows.flat).toContain("4px 4px 0 0");
-    expect(shadows.flatLarge).toContain("8px 8px 0 0");
-    expect(shadows.flatXl).toContain("12px 12px 0 0");
-    // Compat-shim: aliases semánticos siguen disponibles.
-    expect(shadows.card).toBe(shadows.flat);
-    expect(shadows.popover).toBe(shadows.flat);
-    expect(shadows.modal).toBe(shadows.flatXl);
-    expect(shadows.dialogo).toBe(shadows.flatLarge);
+    expect(shadows.flat).toBe("none");
+    expect(shadows.flatLarge).toBe("none");
+    expect(shadows.flatXl).toBe("none");
+    expect(shadows.card).toBe("none");
+    expect(shadows.popover).toBe("none");
+    expect(shadows.modal).toBe("none");
+    expect(shadows.dialogo).toBe("none");
+    expect(shadows.dropProceso).toContain(colors.crimson);
+    expect(shadows.panelInset).toContain(colors.rule);
+    expect(shadows.seleccionadoInset).toContain(colors.crimson);
+    expect(shadows.swatchActivo).toContain(colors.crimson);
   });
 
-  test("transitions ronda 28 colapsa a 150ms ease-out base", () => {
-    expect(transitions.fast).toBe("150ms ease-out");
-    expect(transitions.base).toBe("150ms ease-out");
-    expect(transitions.slow).toBe("250ms ease-out");
+  test("transitions Codex usa timings breves para cambios de color", () => {
+    expect(transitions.fast).toBe("120ms ease");
+    expect(transitions.base).toBe("120ms ease");
+    expect(transitions.slow).toBe("150ms ease");
   });
 
-  test("typography ronda 28 usa Inter Tight chrome y conserva Arial canvas [JOYAS §3]", () => {
-    expect(typography.familyChrome.startsWith('"Inter Tight"')).toBe(true);
-    expect(typography.fontFamily.startsWith('"Inter Tight"')).toBe(true);
-    expect(typography.fontFamilyMono.startsWith('"JetBrains Mono"')).toBe(true);
-    // [JOYAS §3] el canvas SVG sigue siendo Arial — contrato invariante.
+  test("typography Codex usa Inria y conserva Arial canvas [JOYAS §3]", () => {
+    expect(typography.serif.startsWith('"Inria Serif"')).toBe(true);
+    expect(typography.sans.startsWith('"Inria Sans"')).toBe(true);
+    expect(typography.mono.startsWith('"JetBrains Mono Variable"')).toBe(true);
+    expect(typography.familyChrome.startsWith('"Inria Serif"')).toBe(true);
+    expect(typography.fontFamily.startsWith('"Inria Serif"')).toBe(true);
+    expect(typography.fontFamilyMono.startsWith('"JetBrains Mono Variable"')).toBe(true);
     expect(typography.familyCanvas).toBe("Arial");
-    // Ronda 28: sizes.lg ahora 16 (antes 14, brief Bauhaus).
-    expect(typography.sizes.lg).toBe(16);
-    expect(typography.sizes.xl).toBe(20);
-    expect(typography.sizes.xxl).toBe(28);
-    expect(typography.weights.semibold).toBe(600);
+    expect(typography.ls.tight).toBe("0");
+    expect(typography.ls.body).toBe("0");
+    expect(typography.fs.fs13).toBe(13.5);
+    expect(typography.sizes.base).toBe(13.5);
+    expect(typography.sizes.md).toBe(13.5);
+    expect(typography.sizes.lg).toBe(14);
+    expect(typography.sizes.xxl).toBe(22);
+    expect(typography.weights.medium).toBe(400);
+    expect(typography.weights.semibold).toBe(700);
+    expect(typography.weightMedium).toBe(400);
+    expect(typography.weightSemibold).toBe(700);
+    expect(typography.weightHeavy).toBe(700);
   });
 
-  test("contraste paper/ink supera AAA (>= 7:1, en realidad ~20:1)", () => {
-    const ratio = contraste(colors.ink, colors.paper);
-    expect(ratio).toBeGreaterThanOrEqual(7);
-  });
-
-  test("pares de texto activo cumplen WCAG AA 4.5:1 con paleta Bauhaus", () => {
-    // En monocromo Bauhaus la mayoría de los pares colapsan a ink/paper o
-    // accent/accentSoft. Lo que importa: el ratio sigue siendo legible.
-    const pares = [
-      ["texto primario", colors.textoPrimario, colors.fondoChrome],
-      ["texto secundario", colors.textoSecundario, colors.fondoCard],
-      ["texto slate", colors.textoSlate, colors.fondoElevado],
-      // Refinamiento 2026-05-23: éxito, warning y destructive ya no son mono.
-      ["success (bosque)", colors.exitoTexto, colors.exitoFondo],
-      ["warning (ocre)", colors.alertaTexto, colors.advertenciaFondo],
-      ["destructive (terracota)", colors.destructivoTexto, colors.destructivoFondo],
-      ["error (cinabrio)", colors.errorTexto, colors.errorFondoIntenso],
-      ["info (ultramar)", colors.infoTextoOscuro, colors.infoFondo],
-      ["objeto chrome (bosque)", colors.verdeObjetoOscuro, colors.objetoFondo],
-      ["opl (bosque)", colors.verdeOpl, colors.oplFondo],
-      ["acento primario sobre paper", colors.fondoChrome, colors.acentoUi],
+  test("compat-shim publico conserva aliases cromaticos usados por CSS/componentes vivos", () => {
+    const claves = [
+      "ink02",
+      "ink90",
+      "ink70",
+      "ink50",
+      "ink30",
+      "ink15",
+      "ink08",
+      "ink04",
+      "paper02",
+      "paper04",
+      "accent",
+      "accentSoft",
+      "accentDark",
+      "focus",
+      "focusSoft",
+      "focusDark",
+      "ocre",
+      "ocreSoft",
+      "ocreDark",
+      "bosque",
+      "bosqueSoft",
+      "bosqueDark",
+      "terracota",
+      "terracotaSoft",
+      "terracotaDark",
+      "warning",
+      "warningSoft",
+      "warningDark",
+      "success",
+      "successSoft",
+      "successDark",
+      "destructive",
     ] as const;
 
-    for (const [nombre, foreground, background] of pares) {
-      expect(contraste(foreground, background), nombre).toBeGreaterThanOrEqual(4.5);
+    for (const clave of claves) {
+      expect(clave in colors, clave).toBe(true);
+      expect(typeof colors[clave]).toBe("string");
     }
+  });
+
+  test("contraste Codex supera umbrales WCAG requeridos", () => {
+    expect(contraste(colors.ink, colors.paper), "ink/paper AAA").toBeGreaterThanOrEqual(7);
+    expect(contraste(colors.inkMid, colors.paper), "inkMid/paper AA").toBeGreaterThanOrEqual(4.5);
+    expect(contraste(colors.crimson, colors.paper), "crimson/paper AA").toBeGreaterThanOrEqual(4.5);
   });
 });
 
@@ -183,6 +211,6 @@ function luminancia(hex: string): number {
 
 function rgb(hex: string): [number, number, number] {
   const value = hex.replace("#", "");
-  if (!/^[0-9a-f]{6}$/i.test(value)) throw new Error(`Color hex inválido: ${hex}`);
+  if (!/^[0-9a-f]{6}$/i.test(value)) throw new Error(`Color hex invalido: ${hex}`);
   return [0, 2, 4].map((index) => Number.parseInt(value.slice(index, index + 2), 16)) as [number, number, number];
 }

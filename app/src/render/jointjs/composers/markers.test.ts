@@ -17,6 +17,25 @@ describe("composer markers", () => {
     expect(marker).not.toBe(LINK_ASSETS.procedural.consumo.marker);
   });
 
+  test("pinta markers canonicos con ink/paper Codex y hairline", () => {
+    expect(LINK_ASSETS.procedural.consumo.marker).toMatchObject({
+      fill: "#171511",
+      stroke: "#171511",
+      strokeWidth: 1,
+    });
+    expect(LINK_ASSETS.procedural.instrumento.marker).toMatchObject({
+      fill: "#fafaf8",
+      stroke: "#171511",
+      strokeWidth: 1,
+    });
+    expect(LINK_ASSETS.procedural.invocacion.marker).toMatchObject({
+      fill: "#fafaf8",
+      stroke: "#171511",
+      strokeWidth: 1,
+    });
+    expect(LINK_ASSETS.structural.generalizacion.markerFill).toBe("#fafaf8");
+  });
+
   test("consumo/resultado/efecto comparten silueta swallowtail canonica OPM (no triangulo simple)", () => {
     // Restauracion 2026-05-23: silueta swallowtail = arrowhead con V-notch
     // interno hacia atras (cola hendida tipo cola-de-golondrina). El "L6,0"
@@ -40,5 +59,11 @@ describe("composer markers", () => {
     expect(textoSubtipoModificador({ id: "e3", tipo: "consumo", origenId: { kind: "entidad", id: "o1" }, destinoId: { kind: "entidad", id: "p1" }, etiqueta: "", modificador: "no" })).toBe("¬");
     const badge = etiquetaBadgeModificadorCanonico("c", 0);
     expect(badge).toMatchObject({ attrs: { label: { text: "c" } }, position: { distance: 0, offset: -20 } });
+    expect(badge).toMatchObject({
+      attrs: {
+        badge: { fill: "#fafaf8", stroke: "#171511", strokeWidth: 1 },
+        label: { fill: "#171511", fontFamily: "Inria Serif, Georgia, serif", fontWeight: 400 },
+      },
+    });
   });
 });

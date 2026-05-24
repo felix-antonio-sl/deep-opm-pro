@@ -1,6 +1,7 @@
 import { dia, elementTools } from "jointjs";
 import { anclajeRefinableSimbolo, anclajeRefinadorSimbolo, limitarAnclajeSimbolo, MITAD_SIMBOLO_ESTRUCTURAL } from "../../../modelo/simboloEstructural";
 import type { AnclajesSimboloEstructural, Id, Posicion } from "../../../modelo/tipos";
+import { CODEX } from "../constantes.codex";
 import { cellViewModel, metadata } from "./helpers";
 
 interface AdapterMin {
@@ -42,18 +43,14 @@ export function instalarHerramientasSimboloEstructuralSeleccionado(
             portId: "in",
             rol: "refinable",
             onCommit,
-            // CANON-V2 (ronda 28 L4): handles del simbolo estructural ambos
-            // en cinabrio. Antes: in=#3BC3FF azul / out=#70E483 verde V1 —
-            // ambos colisionaban con la paleta lavada. Cinabrio unifica
-            // bajo familia de seleccion / accion del canvas.
-            handleAttributes: attrsHandle("#C8392F"),
+            handleAttributes: attrsHandle(CODEX.colores.crimson),
             selector: null,
           }),
           new SymbolAnchorControl({
             portId: "out",
             rol: "refinador",
             onCommit,
-            handleAttributes: attrsHandle("#C8392F"),
+            handleAttributes: attrsHandle(CODEX.colores.crimson),
             selector: null,
           }),
         ],
@@ -110,7 +107,7 @@ class SymbolAnchorControl extends elementTools.Control<SymbolAnchorControlOption
 function attrsHandle(stroke: string): Partial<Record<string, unknown>> {
   return {
     r: 5,
-    fill: "#ffffff",
+    fill: CODEX.colores.paper,
     stroke,
     "stroke-width": 2,
     cursor: "grab",

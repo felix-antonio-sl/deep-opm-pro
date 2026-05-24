@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import type { dia } from "jointjs";
-import { crearJointCellNamespace, sincronizarCellsJointCanvasAdapter } from "./jointCanvasAdapter";
+import { opcionesPaperCodex, crearJointCellNamespace, sincronizarCellsJointCanvasAdapter } from "./jointCanvasAdapter";
 
 describe("jointCanvasAdapter", () => {
   test("registra shapes JointJS OSS y shapes OPM custom en el mismo namespace", () => {
@@ -8,6 +8,14 @@ describe("jointCanvasAdapter", () => {
 
     expect(namespace.standard).toBeTruthy();
     expect(namespace.opm?.AbanicoArc).toBeTruthy();
+  });
+
+  test("mantiene el paper liso Codex sin grid visible", () => {
+    expect(opcionesPaperCodex()).toEqual({
+      gridSize: 10,
+      drawGrid: false,
+      background: { color: "#fafaf8" },
+    });
   });
 
   test("sincroniza cells proyectadas y ajusta dimensiones del paper", () => {

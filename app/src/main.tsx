@@ -1,8 +1,18 @@
 import { render } from "preact";
-// Ronda 28 L1: fuentes self-hosted Bauhaus (Inter Tight variable + JetBrains
-// Mono variable). Reemplazan el "Inter" system-ui del corporate UI por la
-// nueva tipografia chrome fundacional. Bundle: ~792 KB combinado.
-import "@fontsource-variable/inter-tight";
+// Codex: Inria Serif (cuerpo/titulos/OPL/labels OPM) + Inria Sans
+// (kickers). Inria no tiene variable font: se cargan pesos estaticos.
+import "@fontsource/inria-serif/300.css";
+import "@fontsource/inria-serif/300-italic.css";
+import "@fontsource/inria-serif/400.css";
+import "@fontsource/inria-serif/700.css";
+import "@fontsource/inria-serif/400-italic.css";
+import "@fontsource/inria-serif/700-italic.css";
+import "@fontsource/inria-sans/300.css";
+import "@fontsource/inria-sans/300-italic.css";
+import "@fontsource/inria-sans/400.css";
+import "@fontsource/inria-sans/700.css";
+import "@fontsource/inria-sans/400-italic.css";
+import "@fontsource/inria-sans/700-italic.css";
 import "@fontsource-variable/jetbrains-mono";
 import "jointjs/dist/joint.css";
 import "./render/jointjs/jointjs.css";
