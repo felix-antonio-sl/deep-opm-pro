@@ -1,12 +1,12 @@
 # HANDOFF — Estado operativo del modelador OPM
 
-**Fecha**: 2026-05-23
+**Fecha**: 2026-05-24
 **Repositorio**: `deep-opm-pro`
 **Rama**: `main`
-**Ultimo corte funcional**: paquete "Estados como ciudadanos de primera clase" — click sobre cápsula selecciona el estado (no el objeto), Halo flotante mínimo + Inspector dedicado + Menú contextual + atajos F2/D/T, multi-select dentro del mismo objeto propietario, modo enlace preservado.
-**Ultimo commit en main**: `fix(estado-ciudadano): cierra los 10 escenarios del smoke 15` (`0578eda`).
-**Ultimo corte deploy**: pendiente. El bundle en `opforja.sanixai.com` no incluye el paquete; redeploy requiere `git archive HEAD | docker build` + `docker compose up -d --no-build` con `VITE_ENABLE_BUG_CAPTURE=true` (procedimiento en `docs/deploy/opforja.md`).
-**Corte**: 1596 unit tests + 5715 expectaciones verdes (incremento neto +36 vs baseline pre-paquete: 10 `reordenarEstado` + 8 invariante categorial coproducto + 10 from-selection + 8 acciones-estados). Smoke `15-estado-ciudadano` verde 10/10 en 29.8s. Cero regresiones nuevas: tests fallando en `03-opl-panel` y `05-refinamiento-y-plegado` reproducen también sin estos cambios (flakeo pre-existente).
+**Ultimo corte funcional**: simulación B0 conceptual al 100% en su slice autocontenido — slider continuo 0.25×–4×, headless, token verde viajero, borde oliva de estado inicial, resaltado OPL del proceso activo, atajo Espacio y navegación OPD sin abortar corrida. El paquete previo "Estados como ciudadanos de primera clase" queda consolidado debajo.
+**Ultimo commit funcional en main**: `merge: simulación B0 conceptual al 100% (autocontenido)` (`b1f475d`). Este handoff registra además la auditoría de pertinencia del canon estricto en la sección actual.
+**Ultimo corte deploy**: pendiente. El bundle en `opforja.sanixai.com` no incluye aún el cierre B0 ni los cambios normativos recientes; redeploy requiere `git archive HEAD | docker build` + `docker compose up -d --no-build` con `VITE_ENABLE_BUG_CAPTURE=true` (procedimiento en `docs/deploy/opforja.md`).
+**Corte**: `bun run check` verde con 1615 unit tests + 5746 expectaciones y typecheck limpio. Smoke `12-beta2-modo-simulacion` verde 8/8 en ~29s. La suite completa `browser:smoke` mantiene fallos canvas-sensibles pre-existentes bajo paralelismo; no bloquean el cierre B0 ni la auditoría documental.
 
 ## Política De Handoff Único
 
