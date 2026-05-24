@@ -494,12 +494,15 @@ export function JointCanvas({
   // Animacion solo-render (no es verdad del modelo). Se dispara en cada
   // transicion de paso; en headless o cuando el paso no vive en el OPD
   // visible, no anima (gate puro `debeAnimarTokensSim`).
+  // Los tokens se autolimpian al completar la animacion; el cleanup desmonta
+  // los tokens en vuelo al cambiar de OPD / salir de simulacion.
   useEffect(() => {
     const adapter = adapterRef.current;
     if (!adapter) return;
     const foco = focoPasoActualSimulacion(modelo, contextoSimulacion);
     if (!debeAnimarTokensSim(foco, opdActivoId, simHeadless)) return;
     const duracion = Math.round(900 / simVelocidad);
+    const tokensVivos: ReturnType<typeof V>[] = [];
     for (const enlaceId of tokensViajeDelPaso(foco)) {
       const cell = adapter.graph.getCell(enlaceId);
       if (!cell) continue;
@@ -511,8 +514,12 @@ export function JointCanvas({
         stroke: jointCanvasPalette.background,
         "stroke-width": 1,
       });
+      tokensVivos.push(token);
       (linkView as unknown as { sendToken: (t: SVGElement, d: number) => void }).sendToken(token.node, duracion);
     }
+    return () => {
+      for (const token of tokensVivos) token.remove();
+    };
   }, [adapterState, modelo, contextoSimulacion, opdActivoId, simHeadless, simVelocidad]);
 
   useEffect(() => {
