@@ -138,15 +138,18 @@ describe("slice simulacion (P0-2 exclusion mutua)", () => {
     expect(store.getState().autoAvanceSimulacionActivo).toBe(false);
   });
 
-  test("velocidad de simulacion se normaliza como razon discreta", () => {
+  test("velocidad de simulacion se normaliza como rango continuo 0.25-4x (B0.011/012)", () => {
+    // B0.011/012 (commit 2ddc792): el control pasó de razón discreta a slider
+    // continuo 0.25×–4× (step 0.25). `normalizarVelocidadSimulacion` ya no
+    // engancha a una escalera; solo aclampa al rango y trata NaN/∞.
     store.getState().fijarVelocidadSimulacion(Number.NaN);
     expect(store.getState().velocidadSimulacion).toBe(1);
-    store.getState().fijarVelocidadSimulacion(0.4);
-    expect(store.getState().velocidadSimulacion).toBe(0.5);
-    store.getState().fijarVelocidadSimulacion(1.2);
-    expect(store.getState().velocidadSimulacion).toBe(1);
-    store.getState().fijarVelocidadSimulacion(3);
-    expect(store.getState().velocidadSimulacion).toBe(2);
+    store.getState().fijarVelocidadSimulacion(0.1);
+    expect(store.getState().velocidadSimulacion).toBe(0.25); // clamp inferior
+    store.getState().fijarVelocidadSimulacion(1.25);
+    expect(store.getState().velocidadSimulacion).toBe(1.25); // valor intermedio conservado
+    store.getState().fijarVelocidadSimulacion(10);
+    expect(store.getState().velocidadSimulacion).toBe(4); // clamp superior
   });
 });
 

@@ -25,6 +25,33 @@
 
 ## Estado Actual
 
+### Cierre Simulación B0 Conceptual Al 100% (autocontenido) — 2026-05-24
+
+Estado actual:
+
+- El modo simulación conceptual (Beta2, kernel `modelo/simulacion/*`) queda cerrado al 100% en su slice autocontenido. Las HU que dependían solo del kernel B0 + chrome están cerradas: **B0.010** (ocultar controles manuales durante auto-avance), **B0.011/B0.012** (velocidad continua 0.25×–4× con slider `<input type="range">`), **B0.015** (atajo Espacio play/pausa solo en modo simulación), **B0.017/B0.019** (corrida headless sin animación), **B0.025** (resaltado OPL del proceso activo vía `data-sim-activa`), **B0.026** (navegar entre OPDs no aborta la corrida), **B0.028/B0.030** (guard de contexto + barra de simulación como chrome). **B0.024** (lectura read-only) ya estaba cubierta.
+- Smoke `e2e/12-beta2-modo-simulacion.spec.ts`: 8/8 verde (3 históricos + 5 nuevos) en ~28s con `--workers=1`. Cobertura nueva: slider+Espacio, headless hasta completar, resaltado OPL, ocultamiento de Paso/Correr/Reiniciar durante auto-avance, y persistencia del contexto al navegar OPDs.
+
+Decisiones consolidadas:
+
+- **Bug real encontrado y corregido (B0.015)**: `teclaNormalizada` en `src/ui/atajosTeclado.ts` resolvía `e.key === " "` por la rama `length === 1` y devolvía un espacio literal, que nunca casaba con el combo registrado `"Space"`. El atajo Espacio play/pausa estaba muerto en el navegador (el unit test no lo detectaba porque invoca el handler directamente). Fix: mapear `" " → "Space"` ANTES del atajo `length === 1`. Regresión sellada con unit test en `atajosTeclado.test.ts` (dispatch real de `key=" "`).
+- **Test de velocidad realineado**: `mapa.test.ts > "velocidad de simulacion se normaliza..."` esperaba una escalera discreta `[0.5,1,2,4]` obsoleta. El commit `2ddc792` (B0.011/012) cambió `normalizarVelocidadSimulacion` a clamp continuo `[0.25,4]` sin actualizar el test. Se realineó el test al comportamiento continuo vigente (clamp + NaN→1, sin enganche a escalera).
+- **Diferidos explícitos**: **B0.014** (Async paralelo) y **B0.020–B0.022** (ciclo simular→OPL→reordenar-Y) quedan FUERA de este cierre por dependencia dura de **EPICA-12** — concretamente **HU-12.016** (orden temporal por coordenada Y) y **HU-12.017** (procesos concurrentes en misma Y), ambas pendientes. No reabrir B0.014/B0.020–B0.022 hasta que E12 aterrice el orden-por-Y.
+
+Artefactos relevantes:
+
+- `docs/superpowers/specs/2026-05-24-simulacion-b0-conceptual-100-design.md` — spec del cierre (ruta canónica del ciclo; ejecutado vía subagent-driven development en el worktree `worktree-sim-b0-conceptual`).
+- `docs/superpowers/plans/2026-05-24-simulacion-b0-conceptual-100.md` — plan del cierre (ruta canónica del ciclo).
+- [app/e2e/12-beta2-modo-simulacion.spec.ts](/home/felix/projects/deep-opm-pro/app/e2e/12-beta2-modo-simulacion.spec.ts) — smoke con los 5 tests nuevos.
+- [app/src/ui/atajosTeclado.ts](/home/felix/projects/deep-opm-pro/app/src/ui/atajosTeclado.ts) — fix `teclaNormalizada` espacio→"Space".
+- [app/src/ui/simulacion/BarraSimulacion.tsx](/home/felix/projects/deep-opm-pro/app/src/ui/simulacion/BarraSimulacion.tsx) — chrome de simulación (slider range, headless toggle, ocultar manuales en auto-avance).
+
+Verificación:
+
+- `bun run check`: 1615 unit tests verdes, 5746 expectaciones, typecheck `tsc --noEmit` limpio.
+- `bunx playwright test e2e/12-beta2-modo-simulacion.spec.ts --workers=1`: 8/8 verde (~28s).
+- `bun run browser:smoke` (suite completa): ~211 passed / ~29 failed / 1 skipped. Los fallos son flakeo pre-existente de specs canvas-sensibles (`02`, `03`, `05`, `07`, `24`) bajo paralelismo sin retries; reproducen idénticos en HEAD limpio sin estos cambios (verificado stash-out: `24-conexion-anchor` 1 fail, `03-opl-panel` 5 fail con o sin el cambio). Ninguno toca simulación ni teclado.
+
 ### Cierre Estados Ciudadanos De Primera Clase — 2026-05-23
 
 Estado actual:
