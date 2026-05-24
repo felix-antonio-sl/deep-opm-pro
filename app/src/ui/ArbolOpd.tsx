@@ -16,6 +16,7 @@ import {
 } from "./arbol/togglesArbol";
 import type { Id } from "../modelo/tipos";
 import { tokens } from "./tokens";
+import { GLIFO_CARET, GLIFO_MARKER } from "./codex/glifos";
 
 /**
  * Barrel publico del arbol OPD. Lee el store y compone NodoOpd con handlers
@@ -149,23 +150,20 @@ export function ArbolOpd() {
   return (
     <aside style={style.panel} aria-label="Árbol OPD" data-atajos-contexto="panel-arbol" tabIndex={-1}>
       <div style={style.header}>
-        <span>OPDs</span>
-        <div style={style.headerActions}>
-          <button type="button" style={style.modeBtn} title={modoOrdenArbol === "manual" ? "Orden manual: arrastra OPDs para reordenar" : "Orden automático (según canvas)"} onClick={() => fijarModoOrdenArbol(modoOrdenArbol === "manual" ? "automatico" : "manual")}>
-            {modoOrdenArbol === "manual" ? "Manual" : "Auto"}
+        <button type="button" style={modoOrdenArbol === "manual" ? style.wordBtnActive : style.wordBtn} aria-pressed={modoOrdenArbol === "manual"} title={modoOrdenArbol === "manual" ? "Orden manual: arrastra OPDs para reordenar" : "Orden automático (según canvas)"} onClick={() => fijarModoOrdenArbol(modoOrdenArbol === "manual" ? "automatico" : "manual")}>
+          {modoOrdenArbol === "manual" ? "Manual" : "Auto"}
+        </button>
+        <button type="button" style={!nombresArbolVisibles ? style.wordBtnActive : style.wordBtn} title={nombresArbolVisibles ? "Mostrar códigos" : "Mostrar nombres"} aria-label={nombresArbolVisibles ? "Mostrar códigos" : "Mostrar nombres"} aria-pressed={!nombresArbolVisibles} onClick={() => toggleNombresArbolVisibles()}>
+          {nombresArbolVisibles ? "ID" : "Aa"}
+        </button>
+        {totalConHijos > 0 ? (
+          <button type="button" style={style.glyphBtn} title={colapsarTodo ? "Expandir todo" : "Colapsar todo"} aria-label={colapsarTodo ? "Expandir todo" : "Colapsar todo"} onClick={colapsarTodo ? expandirTodo : colapsarTodoAccion}>
+            {colapsarTodo ? GLIFO_MARKER : GLIFO_CARET}
           </button>
-          <button type="button" style={style.labelActionBtn} title={nombresArbolVisibles ? "Mostrar códigos" : "Mostrar nombres"} aria-label={nombresArbolVisibles ? "Mostrar códigos" : "Mostrar nombres"} aria-pressed={!nombresArbolVisibles} onClick={() => toggleNombresArbolVisibles()}>
-            {nombresArbolVisibles ? "ID" : "Aa"}
-          </button>
-          {totalConHijos > 0 ? (
-            <button type="button" style={style.smallActionBtn} title={colapsarTodo ? "Expandir todo" : "Colapsar todo"} onClick={colapsarTodo ? expandirTodo : colapsarTodoAccion}>
-              {colapsarTodo ? "▸" : "▾"}
-            </button>
-          ) : null}
-          <button type="button" style={style.moreActionBtn} title="Más opciones" aria-label="Más opciones" onClick={abrirGestionArbol}>
-            ⋯
-          </button>
-        </div>
+        ) : null}
+        <button type="button" style={style.glyphBtn} title="Más opciones" aria-label="Más opciones" onClick={abrirGestionArbol}>
+          ⋯
+        </button>
       </div>
       <div role="tree" aria-label="Árbol OPD" style={style.tree} data-atajos-contexto="panel-arbol">
         {nodosVisibles.length === 0 ? (
@@ -311,87 +309,58 @@ const style = {
     display: "grid",
     gridTemplateRows: "46px minmax(0, 1fr)",
   },
+  // Barra de acciones del árbol (sin título: lo provee CodexColHeader de L2).
+  // Palabras kicker uppercase tracked + glifos; sin pills ni outlines.
   header: {
-    display: "grid",
-    gridTemplateColumns: "auto minmax(0, 1fr)",
+    display: "flex" as const,
     alignItems: "center",
+    justifyContent: "flex-end" as const,
     gap: tokens.spacing.sm,
-    padding: `0 ${tokens.spacing.md}px`,
-    borderBottom: `${tokens.stroke.hairline}px solid ${tokens.colors.ink15}`,
+    padding: `0 ${tokens.spacing.sm}px`,
+    borderBottom: `${tokens.stroke.hairline}px solid ${tokens.colors.rule}`,
     background: tokens.colors.paper,
-    color: tokens.colors.ink70,
-    fontFamily: tokens.typography.familyChrome,
-    fontSize: tokens.typography.sizes.xs,
-    fontWeight: tokens.typography.weights.medium,
-    textTransform: "uppercase" as const,
-    letterSpacing: "0.08em",
+    minWidth: 0,
+    overflowX: "auto" as const,
   },
-  headerActions: { display: "flex" as const, alignItems: "center", justifyContent: "flex-end" as const, gap: 6, minWidth: 0, overflowX: "auto" as const },
-  modeBtn: {
-    minHeight: "24px",
-    minWidth: "48px",
-    padding: "2px 10px",
-    borderRadius: tokens.radii.xs,
-    border: `${tokens.stroke.hairline}px solid ${tokens.colors.ink15}`,
-    background: tokens.colors.paper,
+  wordBtn: {
+    minHeight: "22px",
+    border: 0,
+    background: "transparent",
     cursor: "pointer",
-    fontFamily: tokens.typography.familyChrome,
-    fontSize: tokens.typography.sizes.xxs,
-    fontWeight: tokens.typography.weights.medium,
-    color: tokens.colors.ink70,
+    fontFamily: tokens.typography.sans,
+    fontSize: tokens.typography.fs.fs10,
+    fontWeight: tokens.typography.weights.regular,
+    color: tokens.colors.inkMid,
     textTransform: "uppercase" as const,
-    letterSpacing: "0.08em",
+    letterSpacing: tokens.typography.ls.kicker,
     whiteSpace: "nowrap" as const,
+    padding: "2px 2px",
     transition: tokens.transitions.fast,
   },
-  labelActionBtn: {
-    minHeight: "24px",
-    minWidth: "32px",
-    borderRadius: tokens.radii.xs,
-    border: `${tokens.stroke.hairline}px solid ${tokens.colors.ink15}`,
-    background: tokens.colors.paper,
+  wordBtnActive: {
+    minHeight: "22px",
+    border: 0,
+    background: "transparent",
     cursor: "pointer",
-    fontFamily: tokens.typography.familyChrome,
-    fontSize: tokens.typography.sizes.xxs,
-    fontWeight: tokens.typography.weights.medium,
-    color: tokens.colors.ink70,
+    fontFamily: tokens.typography.sans,
+    fontSize: tokens.typography.fs.fs10,
+    fontWeight: tokens.typography.weights.semibold,
+    color: tokens.colors.crimson,
     textTransform: "uppercase" as const,
-    letterSpacing: "0.08em",
-    display: "inline-flex" as const,
-    alignItems: "center",
-    justifyContent: "center",
-    padding: "2px 8px",
+    letterSpacing: tokens.typography.ls.kicker,
     whiteSpace: "nowrap" as const,
+    padding: "2px 2px",
     transition: tokens.transitions.fast,
   },
-  moreActionBtn: {
-    minHeight: "24px",
-    minWidth: "30px",
-    borderRadius: tokens.radii.xs,
-    border: `${tokens.stroke.hairline}px solid ${tokens.colors.ink15}`,
-    background: tokens.colors.paper,
+  glyphBtn: {
+    minWidth: "20px",
+    minHeight: "22px",
+    border: 0,
+    background: "transparent",
     cursor: "pointer",
-    fontFamily: tokens.typography.fontFamilyMono,
-    fontSize: tokens.typography.sizes.xs,
-    fontWeight: tokens.typography.weights.medium,
-    color: tokens.colors.ink70,
-    display: "inline-flex" as const,
-    alignItems: "center",
-    justifyContent: "center",
-    padding: "2px 8px",
-    whiteSpace: "nowrap" as const,
-    transition: tokens.transitions.fast,
-  },
-  smallActionBtn: {
-    width: "24px",
-    height: "24px",
-    borderRadius: tokens.radii.xs,
-    border: `${tokens.stroke.hairline}px solid ${tokens.colors.ink15}`,
-    background: tokens.colors.paper,
-    cursor: "pointer",
-    fontFamily: tokens.typography.fontFamilyMono,
-    fontSize: tokens.typography.sizes.xs,
-    color: tokens.colors.ink70,
+    fontFamily: tokens.typography.mono,
+    fontSize: tokens.typography.fs.fs11,
+    color: tokens.colors.inkMid,
     display: "inline-flex" as const,
     alignItems: "center",
     justifyContent: "center",
@@ -399,34 +368,5 @@ const style = {
     transition: tokens.transitions.fast,
   },
   tree: { overflow: "auto" as const, padding: "10px 8px", background: tokens.colors.paper },
-  empty: { padding: "8px 4px", color: tokens.colors.ink50, fontSize: tokens.typography.sizes.sm, fontStyle: "italic" as const },
-  // Item "Mapa del sistema": patrón consistente con árbol OPD: padding 6 16,
-  // font 12, hover ink-04, activo barra lateral 2px cinabrio + ink-04.
-  nodeMapa: {
-    width: "100%",
-    minHeight: "30px",
-    display: "flex" as const,
-    alignItems: "center",
-    gap: tokens.spacing.sm,
-    padding: `6px ${tokens.spacing.md}px`,
-    border: 0,
-    borderLeft: `${tokens.stroke.bold}px solid transparent`,
-    borderRadius: 0,
-    background: "transparent",
-    color: tokens.colors.ink70,
-    cursor: "pointer",
-    fontFamily: tokens.typography.familyChrome,
-    fontSize: tokens.typography.sizes.sm,
-    fontWeight: tokens.typography.weights.medium,
-    textAlign: "left" as const,
-    transition: tokens.transitions.fast,
-  },
-  nodeActive: {
-    borderLeft: `${tokens.stroke.bold}px solid ${tokens.colors.accent}`,
-    background: tokens.colors.ink04,
-    color: tokens.colors.ink,
-    fontWeight: tokens.typography.weights.semibold,
-    boxShadow: "none",
-  },
-  nodeName: { overflow: "visible" as const, lineHeight: 1.2, overflowWrap: "anywhere" as const, whiteSpace: "normal" as const, fontSize: tokens.typography.sizes.sm },
+  empty: { padding: "8px 4px", color: tokens.colors.inkSoft, fontSize: tokens.typography.sizes.sm, fontStyle: "italic" as const },
 } satisfies Record<string, preact.JSX.CSSProperties>;
