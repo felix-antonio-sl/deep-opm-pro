@@ -7,9 +7,9 @@ import {
 } from "./globalShortcutsPort";
 
 // KeyboardEvent is a browser API not available in Bun's Node-like test runtime.
-// Our handlers ignore the event object entirely (they only read from snapshot),
-// so passing a minimal stub is safe and correct for unit-level testing.
-const fakeKeyEvent = {} as KeyboardEvent;
+// The Space handler calls e.preventDefault() when acting, so the stub must
+// expose that method. For the no-op case it is never called.
+const makeFakeEvent = () => ({ preventDefault: () => {} } as unknown as KeyboardEvent);
 
 function setup(sim: { activa: boolean; auto: boolean }) {
   const calls = { play: 0, pausa: 0 };
@@ -109,20 +109,20 @@ describe("atajo Espacio en simulación", () => {
     const { registros, calls } = setup({ activa: false, auto: false });
     const espacio = registros.find((r) => r.combo === "Space");
     expect(espacio).toBeDefined();
-    espacio!.handler(fakeKeyEvent);
+    espacio!.handler(makeFakeEvent());
     expect(calls.play + calls.pausa).toBe(0);
   });
 
   test("play cuando sim activa y no auto-avanzando", () => {
     const { registros, calls } = setup({ activa: true, auto: false });
-    registros.find((r) => r.combo === "Space")!.handler(fakeKeyEvent);
+    registros.find((r) => r.combo === "Space")!.handler(makeFakeEvent());
     expect(calls.play).toBe(1);
     expect(calls.pausa).toBe(0);
   });
 
   test("pausa cuando sim activa y auto-avanzando", () => {
     const { registros, calls } = setup({ activa: true, auto: true });
-    registros.find((r) => r.combo === "Space")!.handler(fakeKeyEvent);
+    registros.find((r) => r.combo === "Space")!.handler(makeFakeEvent());
     expect(calls.pausa).toBe(1);
     expect(calls.play).toBe(0);
   });
