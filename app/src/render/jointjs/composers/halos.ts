@@ -288,6 +288,9 @@ export function proyectarHaloSimulacionEstadoInicial(
   entidad: Entidad,
   estado: Estado,
 ): JointCellJson {
+  // Desplazamiento horizontal del pin inicial para no solaparse con el pin
+  // del estado current (dorado): en el paso 0 ambos coinciden y z-fightean.
+  const OFFSET_X_INICIAL = 18;
   const punto = puntoCapsulaEstado(modelo, apariencia, estado.id);
   if (punto) {
     const width = 14;
@@ -295,7 +298,7 @@ export function proyectarHaloSimulacionEstadoInicial(
     return {
       id: `sim-inicial-${apariencia.id}-${estado.id}`,
       type: "standard.Path",
-      position: { x: punto.x - width / 2, y: punto.y - height - 12 },
+      position: { x: punto.x - width / 2 - OFFSET_X_INICIAL, y: punto.y - height - 12 },
       size: { width, height },
       attrs: {
         body: {
@@ -323,7 +326,7 @@ export function proyectarHaloSimulacionEstadoInicial(
   return {
     id: `sim-inicial-${apariencia.id}-${estado.id}`,
     type: "standard.Rectangle",
-    position: { x: apariencia.x - pad, y: apariencia.y - pad },
+    position: { x: apariencia.x - pad - OFFSET_X_INICIAL, y: apariencia.y - pad },
     size: { width, height },
     attrs: {
       body: {
