@@ -3,10 +3,10 @@
 **Fecha**: 2026-05-24
 **Repositorio**: `deep-opm-pro`
 **Rama**: `main`
-**Ultimo corte funcional**: simulación B0 conceptual al 100% en su slice autocontenido — slider continuo 0.25×–4×, headless, token verde viajero, borde oliva de estado inicial, resaltado OPL del proceso activo, atajo Espacio y navegación OPD sin abortar corrida. El paquete previo "Estados como ciudadanos de primera clase" queda consolidado debajo.
-**Ultimo commit funcional en main**: `merge: simulación B0 conceptual al 100% (autocontenido)` (`b1f475d`). Este handoff registra además la auditoría de pertinencia del canon estricto en la sección actual.
-**Ultimo corte deploy**: pendiente. El bundle en `opforja.sanixai.com` no incluye aún el cierre B0 ni los cambios normativos recientes; redeploy requiere `git archive HEAD | docker build` + `docker compose up -d --no-build` con `VITE_ENABLE_BUG_CAPTURE=true` (procedimiento en `docs/deploy/opforja.md`).
-**Corte**: `bun run check` verde con 1615 unit tests + 5746 expectaciones y typecheck limpio. Smoke `12-beta2-modo-simulacion` verde 8/8 en ~29s. La suite completa `browser:smoke` mantiene fallos canvas-sensibles pre-existentes bajo paralelismo; no bloquean el cierre B0 ni la auditoría documental.
+**Ultimo corte funcional**: Ronda Codex Ola 0 — pivot visual fundacional de Opforja a identidad Codex: tokens/fuentes chrome, CANON-V3 canvas, briefs de líneas paralelas y handoff `ui-forja`, sin tocar routing OPCloud ni lógica de dominio. El cierre B0 de simulación queda consolidado debajo.
+**Ultimo commit funcional en main**: `pivot visual codex ola 0` (`ef876f2`).
+**Ultimo corte deploy**: `ef876f2` desplegado en `https://opforja.sanixai.com/` el 2026-05-24T04:22Z con `docker compose up -d --build`, `VITE_ENABLE_BUG_CAPTURE=true`, Basic Auth Traefik activo y healthchecks internos verdes.
+**Corte**: `bun run check` verde con 1619 unit tests + 5856 expectaciones y typecheck limpio. `bun run lint` y `bun run build` verdes. Smoke focalizado `e2e/09-tokens-visual.spec.ts e2e/14-canvas-fidelity.spec.ts e2e/22-responsive-review.spec.ts --workers=1` verde 11/11. La suite completa `browser:smoke` mantiene fallos canvas-sensibles pre-existentes bajo paralelismo; no bloquean el corte Codex Ola 0.
 
 ## Política De Handoff Único
 
