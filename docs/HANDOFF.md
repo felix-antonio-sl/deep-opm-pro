@@ -5,7 +5,7 @@
 **Rama**: `main`
 **Ultimo corte funcional**: Ronda Codex Ola 1.1 — pausa de producto para **Mapa del sistema** y **Biblioteca dock**: no se montan en el shell, no aparecen en menú/toolbar/paleta/atajos y el build público no publica chunk `feature-mapa`; la lógica interna queda dormida para futura reactivación.
 **Ultimo commit funcional en main**: `feat(app): pause map and dock surfaces` (`2cbed09`) + ajuste de empaquetado `chore(app): rename map export chunk` (`89bc657`).
-**Ultimo corte deploy**: `main@1714185` redeployado en `https://opforja.sanixai.com/` el 2026-05-24T17:20Z con `docker compose up -d --build`, `VITE_ENABLE_BUG_CAPTURE=true`, `opforja` healthy, `opforja-bug-capture` arriba y Basic Auth Traefik activo (respuesta pública HTTP 401 esperada). El ultimo commit funcional de app dentro de ese deploy es `89bc657`.
+**Ultimo corte deploy**: los bits de app en `main@1714185` fueron redeployados en `https://opforja.sanixai.com/` el 2026-05-24T17:20Z con `docker compose up -d --build`, `VITE_ENABLE_BUG_CAPTURE=true`, `opforja` healthy, `opforja-bug-capture` arriba y Basic Auth Traefik activo (respuesta pública HTTP 401 esperada). El ultimo commit funcional de app dentro de ese deploy es `89bc657`; commits posteriores de handoff/documentacion no cambian la imagen servida.
 **Corte**: `bun run check` verde con 1629 unit tests + 5898 expectaciones y typecheck limpio. `bun run lint` y `bun run build` verdes. Smoke focalizado `02/04/08/12-toolbar/20-biblioteca-dock` verde 59/59.
 
 ## Política De Handoff Único
@@ -29,7 +29,7 @@
 
 Estado actual:
 
-- `main` y `origin/main` apuntan a `1714185`.
+- El corte de app desplegado corresponde a los bits de `main@1714185`; los commits posteriores de handoff/documentacion son solo memoria versionada y no cambian la imagen servida.
 - Produccion fue redeployada manualmente despues del push con `docker compose up -d --build`; el contenedor `opforja` fue recreado y quedo `healthy`.
 - El HTML servido desde dentro del contenedor en `http://127.0.0.1:8080/` carga `index-kCfAx3ZV.js` y `feature-export-B8y2YYLA.js`; no publica/preload `feature-mapa`.
 - La URL publica `https://opforja.sanixai.com/` responde HTTP 401 con `www-authenticate: Basic realm="traefik"`, esperado por autenticacion frontal.
@@ -55,7 +55,7 @@ Riesgos:
 
 Prompt de continuacion breve:
 
-> Continua desde `docs/HANDOFF.md`, seccion "Handoff Explicito — Corte Operativo Post-Deploy — 2026-05-24T17:22Z". Estamos en `main@1714185`, deploy verificado en `https://opforja.sanixai.com/` con `opforja` healthy. Mapa del sistema y Biblioteca dock estan pausados por decision de producto; no reincorporarlos. Siguiente objetivo: avanzar el pivot Codex desde `ui-forja/` respetando SSOT OPM, sin tocar store/modelo/proyeccion/routing salvo necesidad explicita.
+> Continua desde `docs/HANDOFF.md`, seccion "Handoff Explicito — Corte Operativo Post-Deploy — 2026-05-24T17:22Z". Estamos en `main`; el ultimo deploy de app corresponde a los bits de `main@1714185` y fue verificado en `https://opforja.sanixai.com/` con `opforja` healthy. Mapa del sistema y Biblioteca dock estan pausados por decision de producto; no reincorporarlos. Siguiente objetivo: avanzar el pivot Codex desde `ui-forja/` respetando SSOT OPM, sin tocar store/modelo/proyeccion/routing salvo necesidad explicita.
 
 ### Cierre Ronda Codex Ola 1.1 — Mapa Y Biblioteca Dock Pausados — 2026-05-24
 
