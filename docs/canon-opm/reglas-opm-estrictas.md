@@ -116,7 +116,7 @@ Una **cosa** es una de exactamente dos clases (`SSOT-iso §Cosas`):
 
 - **R-COSA-1**: solo objetos y procesos son cosas. No existen "entidades", "nodos genéricos", "actores" ni "componentes" como clases ontológicas independientes (`SSOT-iso §Elementos de modelado`).
 - **R-COSA-2**: la perseverancia se infiere del tipo y NO es atributo visual (`V-2`). Objetos = persistentes; procesos = transitorios. No hay otras opciones.
-- **R-COSA-3**: el estado NO es una cosa. Es una situación de un objeto (`glosario 3.68`). Se renderiza como rectángulo redondeado **contenido** dentro de un objeto (`V-4`).
+- **R-COSA-3**: el estado NO es una cosa. Es una situación de un objeto (`glosario 3.68`); su contención obligatoria vive en R-EST-1.
 
 ### 2.2 Objetos (3.39)
 
@@ -150,7 +150,7 @@ Una **cosa** es una de exactamente dos clases (`SSOT-iso §Cosas`):
 - **R-NOM-PROC-2**: un nombre de proceso canónico DEBE tener 2 a 4 palabras, salvo término de dominio registrado; si queda fuera de ese rango, la herramienta DEBE emitir advertencia metodológica.
 - **R-NOM-PROC-3**: las palabras léxicas de nombres de cosa DEBEN capitalizarse; artículos y preposiciones breves PUEDEN quedar en minúscula.
 - **R-NOM-EST-1** (`SSOT-opl §1.3`): un nombre de estado DEBE escribirse en minúsculas y usar forma pasiva o descriptiva.
-- **R-NOM-ETIQ-1** (`SSOT-opl §A.3`): una etiqueta estructural DEBE ser frase breve en minúscula.
+- **R-NOM-ETIQ-1** (`SSOT-opl §A.3`): la regla operativa de etiqueta estructural es R-OPL-SE-1; esta sección solo conserva la restricción nominal mínima.
 
 ### 2.5 Qué NO puede ser una cosa
 
@@ -184,16 +184,12 @@ Una **cosa** es una de exactamente dos clases (`SSOT-iso §Cosas`):
 - **R-INS-2**: distinguir **instancia visual** (misma cosa, otra apariencia local en otro OPD — `V-101`, `V-123`) de **instancia lógica** (relación clasificación-instanciación entre cosas distintas, `RF4`).
 - **R-INS-3**: nombre de instancia lógica: `NombreInstancia : NombreClase` (`V-58`).
 - **R-INS-4** (`SSOT-iso §Modelos conceptuales vs modelos de ejecución`): un enlace entre cosas NO implica comportamiento ejecutado hasta que existan instancias operacionales.
-- **R-INS-5**: una simulación DEBE rastrear número e identidad de instancias operacionales de objetos y procesos.
 - **R-INS-6**: una instancia especializada en ejecución exige su instancia general; la regla normativa es R-HER-6 (§5.5).
 
 ### 2.8 Modelo conceptual, ejecución y realización
 
 - **R-EJEC-1** (`SSOT-iso §Modelos conceptuales y de ejecución`): el modelo conceptual DEBE describir patrones de estructura y comportamiento; NO DEBE confundirse con una ocurrencia operacional.
-- **R-EJEC-2**: el modelo de ejecución DEBE representar instancias operacionales durante simulación.
 - **R-EJEC-3**: el estado de runtime NO DEBE persistirse como canon conceptual salvo snapshot declarado.
-- **R-EJEC-4**: un modelo solo es realizable como simulación si expresa detalle consistente suficiente para activar recursos, ejecutar procesos, transformar objetos y producir valor funcional.
-- **R-EJEC-5**: la completitud formal de un modelo ejecutable DEBE evaluarse por capacidad de realización, no por cantidad de diagramas.
 - **R-EJEC-6**: todo runtime DEBE seguir los enlaces, condiciones, eventos, duración y reglas de transformación declaradas por el modelo conceptual; NO DEBE introducir semántica externa silenciosa.
 
 ### 2.9 Metamodelo OPM
@@ -320,6 +316,8 @@ Toda cosa OPM se renderiza como una de exactamente **8** combinaciones:
 | Texto itálico sobre el eje | Etiqueta de enlace estructural |
 | Texto sobre enlace procedimental | Etiqueta de ruta (path label) |
 
+- **R-MARCA-1** (`SSOT-visual §1.6`): las marcas textuales sobre enlaces canónicos DEBEN limitarse a las filas de esta tabla o a extensiones declaradas por perfil.
+
 ### 3.10 Indicadores auxiliares (`§1.8`)
 
 | Indicador | Representación |
@@ -346,7 +344,7 @@ Toda cosa OPM se renderiza como una de exactamente **8** combinaciones:
 - **R-LAY-1** (`V-50`): un OPD con hasta 20 cosas se considera legible; entre 21 y 25 cosas la herramienta DEBE emitir advertencia de legibilidad; con más de 25 cosas el export canónico DEBE bloquearse salvo vista tipificada o refinamiento declarado.
 - **R-LAY-2** (`V-51`): no DEBE haber oclusión entre cosas ni enlaces que atraviesen áreas ocupadas; si un re-ruteo automático sin cambio semántico elimina cruces, el export canónico DEBE aplicar el re-ruteo o reportar advertencia de layout.
 - **R-LAY-3** (`V-196`): la grid es decoración opcional de edición; se suprime en exportaciones canónicas.
-- **R-LAY-4** (`V-35`, `V-55`): dentro de una descomposición de proceso, **la línea de tiempo fluye de arriba hacia abajo**. La posición vertical determina secuencia.
+- **R-LAY-4** (`V-35`, `V-55`): toda herramienta de layout DEBE preservar la semántica temporal vertical definida por R-INV-2/R-INV-2A.
 
 ---
 
@@ -418,7 +416,7 @@ Toda cosa OPM se renderiza como una de exactamente **8** combinaciones:
 | Recomposición | se recompone desde |
 
 - **R-OPL-VERB-1**: los verbos fijos DEBEN emitirse en tercera persona singular del presente indicativo cuando la plantilla no indique otra forma.
-- **R-OPL-VERB-2**: el parser DEBE tratar el primer verbo conjugado fijo como ancla léxica primaria para detectar idioma EN/ES.
+- **R-OPL-VERB-2**: para detección EN/ES por verbo fijo, aplica R-OPL-LANG-1; esta sección solo define el vocabulario candidato.
 
 **Palabras clave fijas (`SSOT-opl §2`):**
 
@@ -509,8 +507,6 @@ Toda cosa OPM se renderiza como una de exactamente **8** combinaciones:
 | EHS1 | **Agente** en `estado` inicia y maneja *Proceso*. |
 | EHS2 | **Instrumento** en `estado` inicia *Proceso*, que requiere **Instrumento** en `estado`. |
 
-**Crítico**: NO existen `ET3` (evento de resultado) ni `ETS5/6` (evento de resultado con estado). El resultado NO existe antes del proceso (ver §6.3).
-
 ### 4.8 Plantillas — enlaces de condición (`§7`)
 
 | ID | OPL-ES |
@@ -525,8 +521,6 @@ Toda cosa OPM se renderiza como una de exactamente **8** combinaciones:
 | CS4 | *Proceso* ocurre si **Objeto** existe, en cuyo caso *Proceso* cambia **Objeto** a `estado-salida`, de lo contrario *Proceso* se omite. |
 | CS5 | **Agente** maneja *Proceso* si **Agente** está en `estado`, de lo contrario *Proceso* se omite. |
 | CS6 | *Proceso* ocurre si **Instrumento** está en `estado`, de lo contrario *Proceso* se omite. |
-
-**Crítico**: NO existen `CT3` (condición de resultado simple) ni `CS-resultado` (condición de resultado con estado). La SSOT-OPL §7 NO contiene plantilla CT/CS para resultado.
 
 - **R-OPL-COND-ALT-1** (`A.6`): el parser OPL-ES DEBE aceptar la variante de consumo condicional `Si **Objeto** existe entonces *Proceso* ocurre y consume **Objeto**, de lo contrario se omite *Proceso*.`.
 - **R-OPL-COND-ALT-2**: el generador canónico DEBE preferir CT1 sobre la variante alternativa de R-OPL-COND-ALT-1.
@@ -605,7 +599,7 @@ Toda cosa OPM se renderiza como una de exactamente **8** combinaciones:
 | CM2 | SD1.1 referencia el sub-modelo Modelo Subsistema desde SD1. |
 | CM3 | **Cosa** en SD1.1 es referencia externa a **Cosa** del modelo propietario Modelo Principal. |
 
-- **R-OPL-CX-ID-1** (`SSOT-opl §10.3`): toda oración de refinamiento entre OPDs que use etiqueta visible `SDx.y` DEBE mapearse a identificador persistente recuperable en serialización.
+- **R-OPL-CX-ID-1** (`SSOT-opl §10.3`): toda oración de refinamiento entre OPDs que use etiqueta visible `SDx.y` DEBE mapearse al identificador persistente exigido por R-IDP-2.
 - **R-OPL-CM-1** (`SSOT-opl §10.4`): las oraciones CM1–CM3 NO reemplazan la gramática interna de cada modelo; solo describen composición entre modelos y referencias externas.
 - **R-OPL-CX-1** (`A.10`): OPL-ES DEBE soportar despliegue de objeto y de proceso por partes, especialización, instanciación o rasgos.
 - **R-OPL-CX-2**: un despliegue en nuevo OPD DEBE declarar OPD padre, OPD hijo y lista de refinadores.
@@ -808,7 +802,7 @@ Toda relación expresable por enlace en un OPD conforme pertenece a **exactament
 
 ### 5.8 Principio de unicidad del enlace procedimental (`V-11`, `SSOT-iso §Panorama de enlaces`)
 
-Un objeto/estado tiene **exactamente un rol** respecto de un proceso enlazado: transformado O habilitador, NUNCA ambos simultáneamente para el mismo enlace. Resolución de colisión por **fuerza semántica** (§6.5).
+- **R-ROL-UNIC-1** (`V-11`): un objeto/estado tiene exactamente un rol respecto de un proceso enlazado: transformado O habilitador, NUNCA ambos simultáneamente para el mismo enlace. Toda colisión DEBE resolverse por fuerza semántica (§6.5).
 
 ---
 
@@ -831,9 +825,8 @@ Los modificadores **`e`** (evento) y **`c`** (condición) son **anotaciones sobr
 
 ### 6.2 Lado de aplicación: INPUT-only
 
-**Crítico**: `e` y `c` son **modificadores del lado de entrada** (`input-side`). Aplican al **conjunto previo al proceso** (Pre(P) — consumidos, afectados pre-transición, habilitadores requeridos). El conjunto posterior (Post(P) — resultantes, afectados post-transición) NO admite ni evento ni condición.
-
-Esta restricción es **absoluta** (`SSOT-iso §Enlaces transformadores`, nota normativa explícita).
+- **R-MOD-0A**: Pre(P) agrupa consumidos, afectados pre-transición y habilitadores requeridos antes de iniciar el proceso.
+- **R-MOD-0B**: Post(P) agrupa resultantes y afectados post-transición después de completarlo.
 
 ### 6.3 Asimetría consumo / resultado bajo `e` y `c`
 
@@ -848,7 +841,7 @@ Esta restricción es **absoluta** (`SSOT-iso §Enlaces transformadores`, nota no
 - **R-MOD-1** (`SSOT-iso §Enlaces transformadores`): no existen variantes de evento de resultado ni condición de resultado.
 - **R-MOD-2**: el consumo admite `e` y `c` porque el consumido pertenece a Pre(P).
 - **R-MOD-3**: el resultado no admite `e` ni `c` porque el resultante pertenece a Post(P).
-- **R-MOD-4**: el conjunto posterior al proceso NO admite precondiciones.
+- **R-MOD-4** (`SSOT-iso §Enlaces transformadores`): el conjunto posterior al proceso (Post(P)) NO admite evento ni condición; los modificadores `e`/`c` aplican exclusivamente al lado de entrada (Pre(P)).
 - **R-MOD-5** (`V-43`): la matriz de fuerza semántica NO DEBE contener niveles de evento de resultado ni condición de resultado.
 
 ### 6.4 Otras combinaciones de modificadores
@@ -858,13 +851,13 @@ Esta restricción es **absoluta** (`SSOT-iso §Enlaces transformadores`, nota no
 | `c` + estado especificado | Canónico (CS1–CS6) | Restringe la condición a un estado concreto del objeto/agente/instrumento |
 | `e` + estado especificado | Canónico (ETS1–ETS4, EHS1–EHS2) | El estado específico del objeto dispara |
 | `c` + `e` sobre el mismo enlace | NO definido en SSOT | No aparece en gramática OPL ni en geometría visual. Tratar como no canonizado |
-| Modificador sobre enlace estructural | NO existe | `c` y `e` son modificadores procedimentales exclusivamente |
+| Modificador sobre enlace estructural | Prohibido (error de categoría) | `c` y `e` anotan solo enlaces transformador/habilitador; un enlace estructural queda fuera de ese alcance (AP-09) |
 | Modificador sobre invocación | Prohibido (error de categoría) | Los modificadores anotan solo enlaces transformador/habilitador (`SSOT-iso §Control como modificador`); la invocación es familia autónoma (proceso→proceso) y queda fuera de ese alcance. Alternativa canónica: nodo de decisión booleano (AP-10) |
 | Modificador sobre enlace escindido (TS4/TS5) | **PROHIBIDO** (`V-41`, `V-110`) | "Saltar un subproceso de una escisión distorsionaría la semántica del efecto" (`SSOT-metod §7.4`) |
 
 ### 6.5 Resolución de colisión de rol — fuerza semántica
 
-Cuando un objeto tendría dos enlaces procedimentales hacia el mismo proceso (violando `V-11`), prevalece el de mayor fuerza. Orden principal (`SSOT-visual §13.3`):
+Cuando un objeto tendría dos enlaces procedimentales hacia el mismo proceso (violando R-ROL-UNIC-1), prevalece el de mayor fuerza. Orden principal (`SSOT-visual §13.3`):
 
 ```
 consumo = resultado > efecto > agente > instrumento
@@ -1023,12 +1016,12 @@ Es decir: `*P* genera **Obj**` (con n estados) ≡ `*P* genera exactamente uno d
 | Comportamiento | Descomposición (`in-zooming`) | Recomposición (`out-zooming`) | comportamiento dinámico |
 | Composición inter-modelo | Referencia a sub-modelo | Desconexión | cross-model |
 
-Cuatro pares de despliegue-plegado, uno por relación fundamental: agregación, exhibición, generalización, clasificación (`SSOT-iso §Mecanismos`).
+- **R-REF-MEC-1** (`SSOT-iso §Mecanismos`): los mecanismos de despliegue/plegado estructural DEBEN aplicarse por relación fundamental: agregación, exhibición, generalización o clasificación.
 
 ### 8.2 Descomposición síncrona vs despliegue asíncrono
 
-- **Descomposición** (`in-zooming`): síncrona. El proceso padre espera a que todos los subprocesos completen antes de devolver control (`SSOT-iso §Mecanismos`). Aplica cuando los subprocesos tienen orden fijo (`SSOT-metod §7.1`).
-- **Despliegue** (`unfolding`): asíncrono respecto del flujo de control del proceso. Revela estructura estática sin implicar secuenciación temporal. Aplica cuando los subprocesos son independientes y pueden ocurrir en cualquier orden (`SSOT-metod §7.2`).
+- **R-REF-SYNC-1** (`SSOT-iso §Mecanismos`, `SSOT-metod §7.1`): una descomposición (`in-zooming`) de proceso es síncrona; el proceso padre espera a que todos los subprocesos completen antes de devolver control.
+- **R-REF-SYNC-2** (`SSOT-metod §7.2`): un despliegue (`unfolding`) es asíncrono respecto del flujo de control del proceso; revela estructura estática y NO implica secuenciación temporal.
 
 ### 8.3 Refinamiento no trivial (`SSOT-metod §7.1`)
 
@@ -1036,11 +1029,7 @@ Cuatro pares de despliegue-plegado, uno por relación fundamental: agregación, 
 - **R-REF-NTRIV-2**: un despliegue DEBE revelar al menos **2 refinadores** para cerrar como refinamiento canónico.
 - **R-REF-NTRIV-3**: un refinamiento con un solo elemento hijo NO DEBE cerrarse ni exportarse como refinamiento canónico; solo PUEDE persistir como placeholder de edición tipificado y DEBE eliminarse, postergarse o ampliarse antes del cierre.
 
-### 8.4 Línea de tiempo (`V-35`, `V-55`)
-
-Dentro de un proceso descompuesto (in-zoomed), **el tiempo fluye de arriba hacia abajo**. La posición vertical de un subproceso determina su secuencia. Subprocesos cuyo borde superior está a la misma altura **se ejecutan en paralelo**; el último en terminar inicia al siguiente nivel.
-
-### 8.5 Enlaces escindidos (`V-40`, `V-110`, `SSOT-iso §Enlaces transformadores escindidos`, `SSOT-opl §4.2 nota TS4/TS5`)
+### 8.4 Enlaces escindidos (`V-40`, `V-110`, `SSOT-iso §Enlaces transformadores escindidos`, `SSOT-opl §4.2 nota TS4/TS5`)
 
 - **R-ESCIND-0**: la superficie TS4/TS5 designa dos hechos distinguibles por procedencia: **(a) fragmento escindido** (mitad de un par acoplado derivado de un TS3 al descomponer) y **(b) efecto parcial standalone** (enlace de efecto completo; TS4 con salida por defecto vía `V-9`). La prohibición de modificadores de control (R-ESC-1, `V-41`) aplica EXCLUSIVAMENTE al fragmento escindido (a); el efecto parcial standalone (b) admite evento o condición según R-EFE-3, ETS3 y ETS4. Un fragmento escindido NUNCA se origina por parseo de OPL aislado: solo se produce por la operación de descomposición y persiste con metadato de procedencia.
 - **R-ESCIND-1**: cuando un efecto entrada-salida (TS3) se descompone en subprocesos, el modelo queda subespecificado hasta escindir el enlace.
@@ -1050,7 +1039,7 @@ Dentro de un proceso descompuesto (in-zoomed), **el tiempo fluye de arriba hacia
 - **R-ESC-1** (`V-41`, `V-110`, `SSOT-metod §7.4`): NO existen versiones con modificador de control de los enlaces escindidos.
 - **R-ESC-1A**: la escisión DEBE ser el único mecanismo canónico para resolver subespecificación de efecto al descomponer.
 
-### 8.6 Distribución de enlaces al descomponer (`SSOT-visual §11`, `SSOT-metod §7.4`)
+### 8.5 Distribución de enlaces al descomponer (`SSOT-visual §11`, `SSOT-metod §7.4`)
 
 | Tipo de enlace | Contorno exterior del proceso padre | Distribución |
 |---|---|---|
@@ -1067,23 +1056,21 @@ Dentro de un proceso descompuesto (in-zoomed), **el tiempo fluye de arriba hacia
 - **R-DIST-1** (`V-37`): consumo y resultado NO DEBEN conectarse al contorno exterior de un proceso descompuesto.
 - **R-DIST-1A**: consumo y resultado DEBEN conectarse directamente al subproceso específico.
 
-### 8.7 Contenedor y elementos externos (`V-79`–`V-85`)
+### 8.6 Contenedor y elementos externos (`V-79`–`V-85`)
 
-Al crear OPD hijo:
-- la cosa refinada aparece como **contenedor** (interno);
-- las cosas conectadas vía enlaces en el padre se copian como **elementos externos** (`V-80`);
-- en **descomposición** se copian TODAS las cosas conectadas vía cualquier enlace (`V-81`);
-- en **despliegue** se copian SOLO los hijos estructurales directos (`V-82`);
-- los elementos externos NO son refinables en su propio OPD hijo (`V-83`);
-- objetos internos (creados dentro de la descomposición, sin apariencia en padre) son eliminados en cascada cuando se elimina el proceso padre (`V-84`).
+- **R-HIJO-1** (`V-79`): al crear un OPD hijo, la cosa refinada DEBE aparecer como contenedor interno.
+- **R-HIJO-2** (`V-80`): las cosas conectadas en el OPD padre DEBEN aparecer en el OPD hijo como elementos externos cuando la regla de copia correspondiente lo exija.
+- **R-HIJO-3** (`V-81`): en descomposición de proceso, el OPD hijo DEBE copiar como externos todas las cosas conectadas al padre por cualquier enlace.
+- **R-HIJO-4** (`V-82`): en despliegue de objeto o proceso, el OPD hijo DEBE copiar solo los hijos estructurales directos.
+- **R-HIJO-5** (`V-83`): un elemento externo NO DEBE refinarse desde el OPD hijo donde aparece como externo.
+- **R-HIJO-6** (`V-84`): los objetos internos creados dentro de una descomposición y sin apariencia en el padre DEBEN eliminarse en cascada cuando se elimina el proceso padre.
 
-### 8.8 Identidad persistente vs etiqueta visible (`V-246`–`V-250`)
+### 8.7 Identidad persistente vs etiqueta visible (`V-246`–`V-250`)
 
-Tres canales distinguibles:
-
-1. **Orden temporal** — coordenada vertical de subprocesos dentro de descomposición.
-2. **Orden de navegación** — posición en el árbol de OPDs.
-3. **Identidad persistente** — identificador estable (UUID, URI, slug) usado como ancla de referencia cruzada externa.
+- **R-IDP-0** (`V-246`–`V-250`): orden temporal, orden de navegación e identidad persistente DEBEN mantenerse como canales separados.
+- **R-IDP-0A**: el orden temporal se deriva de la coordenada vertical de subprocesos dentro de una descomposición y se rige por R-INV-2/R-INV-2A.
+- **R-IDP-0B**: el orden de navegación se deriva de la posición en el árbol de OPDs y NO DEBE usarse como identidad persistente.
+- **R-IDP-0C**: la identidad persistente DEBE ser un identificador estable recuperable en serialización y usado como ancla de referencia cruzada externa.
 
 - **R-IDP-1** (`V-247`): la etiqueta `SDx.y` DEBE tratarse como proyección humana del orden de navegación, NO como identidad persistente.
 - **R-IDP-1A**: la etiqueta `SDx.y` PUEDE mutar bajo reordenamiento o inserción de nodos.
@@ -1092,20 +1079,20 @@ Tres canales distinguibles:
 
 - **R-IDP-3** (`V-249`): toda referencia externa al modelo que cite un OPD concreto (documentos, trazabilidad, tests) DEBE usar el identificador persistente, NO `SDx.y`.
 
-### 8.9 Restricciones de refinamiento
+### 8.8 Restricciones de refinamiento
 
 - **R-REF-1** (`V-100`): NO se puede refinar una cosa desde dentro de su propio árbol de refinamiento (chequeo transitivo). Previene loops.
 - **R-REF-2** (`V-101`, `V-102`): NO se puede crear instancia visual entre tipos diferentes (objeto no es instancia visual de proceso).
 - **R-REF-3** (`V-113`): solo OPDs jerárquicos **hoja** son eliminables directamente del árbol jerárquico.
 - **R-REF-4** (`V-95`, `V-96`, `V-97`): esencia, perseverancia y nombre NO cambian a través de refinamiento. Son invariantes.
 
-### 8.10 Cambio de rol entre niveles (`V-42`, `V-111`, `V-112`, `SSOT-metod §9.4`)
+### 8.9 Cambio de rol entre niveles (`V-42`, `V-111`, `V-112`, `SSOT-metod §9.4`)
 
 - **R-ROL-1** (`SSOT-iso §Enlaces transformadores escindidos`, `V-42`, `V-111`, `V-112`): un objeto PUEDE ser instrumento en nivel abstracto y afectado en nivel detallado solo si el cambio neto entre entrada y salida del proceso abstracto es cero.
 - **R-ROL-2** (`V-112`): el cambio de rol aplica solo a descomposición, no a despliegue.
 - **R-ROL-3**: si el cambio neto no es cero, el objeto DEBE modelarse como afectado también en el nivel abstracto.
 
-### 8.11 SD, árboles, vistas y OPL completo
+### 8.10 SD, árboles, vistas y OPL completo
 
 - **R-SD-1** (`SSOT-iso §Completar el SD`): el SD DEBE modelar interesados, beneficiarios, proceso que entrega valor y cosas ambientales/sistémicas indispensables.
 - **R-SD-2**: el SD DEBE contener solo cosas centrales e indispensables para un OPL breve y claro.
@@ -1113,7 +1100,7 @@ Tres canales distinguibles:
 - **R-SD-4** (`SSOT-iso §Etiquetas OPD y navegación`): el SD contiene exactamente un proceso sistémico que expresa la función del sistema; puede contener procesos ambientales.
 - **R-ARB-1** (`SSOT-iso §Árboles OPD`): el árbol de procesos OPD DEBE tener raíz `SD` y nodos correspondientes a OPDs creados por descomposición de procesos.
 - **R-ARB-2**: el árbol de objetos OPD DEBE tener raíz en un objeto y mostrar su elaboración por refinamiento.
-- **R-ARB-3**: las etiquetas `SD`, `SD1`, `SD1.1` y análogas son navegación visible; NO son identidad persistente.
+- **R-ARB-3**: las etiquetas `SD`, `SD1`, `SD1.1` y análogas son navegación visible; la política de identidad persistente es R-IDP-2.
 - **R-ARB-4**: cada arista del árbol OPD DEBE tener semántica de refinamiento equivalente a `se refina por descomposición de NombreProceso en` o `se refina por despliegue de NombreCosa en`.
 - **R-OPL-TOTAL-1** (`SSOT-iso §OPL del sistema completo`): el OPL completo del sistema DEBE obtenerse concatenando los párrafos OPL locales en orden de navegación del árbol OPD.
 - **R-OPL-TOTAL-2**: el OPL completo NO DEBE describir solo el contexto actual; DEBE cubrir la totalidad del sistema individual cargado.
@@ -1128,7 +1115,7 @@ Tres canales distinguibles:
 - **R-SIMP-1** (`SSOT-iso §Simplificación de un OPD`): un OPD sobrecargado PUEDE simplificarse abstrayendo procesos y objetos hacia un constructo superior.
 - **R-SIMP-2**: la simplificación de un OPD ESTÁ PROHIBIDA si crea enlaces procedimentales directos entre procesos pares sin semántica OPM.
 
-### 8.12 Descomposición y recomposición como operaciones de herramienta
+### 8.11 Descomposición y recomposición como operaciones de herramienta
 
 - **R-OPD-OP-1** (`SSOT-iso §Modelos de descomposición y recomposición en nuevo diagrama`): la descomposición en nuevo diagrama DEBE tratarse como operación OPM de herramienta que requiere `SDn`, realiza mostrar contenido, refina enlaces y genera `SDn+1`.
 - **R-OPD-OP-2**: la recomposición en nuevo diagrama DEBE tratarse como operación inversa que requiere `SDn+1`, abstrae enlaces, oculta contenido y genera `SDn`.
@@ -1144,9 +1131,11 @@ Tres canales distinguibles:
 
 ### 9.1 Principio (`V-65`, `SSOT-iso §Representación bimodal`)
 
-Cada OPD tiene su contraparte en un párrafo OPL. La dualidad es **bidireccional**: toda afirmación gráfica DEBE ser reproducible como OPL, y toda oración OPL DEBE ser representable como constructo OPD.
+- **R-BI-DUAL-1** (`V-65`, `SSOT-iso §Representación bimodal`): cada OPD tiene su contraparte en un párrafo OPL. La dualidad es bidireccional: toda afirmación gráfica DEBE ser reproducible como OPL, y toda oración OPL DEBE ser representable como constructo OPD.
 
 ### 9.2 Tabla de bisimetría (canónica)
+
+- **R-BI-TAB-1**: esta tabla opera como gate mínimo de roundtrip OPD<->OPL; toda construcción visual listada DEBE emitirse con la plantilla indicada y toda plantilla indicada DEBE reconstruir el mismo hecho nuclear.
 
 | Construcción visual | Plantilla OPL canónica |
 |---|---|
@@ -1177,15 +1166,7 @@ Cada OPD tiene su contraparte en un párrafo OPL. La dualidad es **bidireccional
 | Arco doble sobre fan | al menos uno de … (OR) |
 | Marca `/` sobre enlace de excepción | *Manejo* ocurre si duración de *Fuente* excede máx-duración. (EX1) |
 
-### 9.3 Casos donde la bisimetría es perfecta
-
-- T1–T3 (transformadores básicos);
-- H1–H2 (habilitadores básicos);
-- RF1–RF4 (estructurales fundamentales);
-- CX1–CX8 (gestión de contexto);
-- IV1–IV2 (invocación).
-
-### 9.4 Casos donde la bisimetría se rompe / requiere convención
+### 9.3 Casos donde la bisimetría se rompe / requiere convención
 
 - **R-BR-1** (`V-116`–`V-120`): el semi-plegado NO DEBE emitir OPL nuclear; para emitir OPL canónico DEBE desplegarse previamente o declararse como vista visual.
 - **R-BR-2** (`SSOT-metod §10.3`): eventos OR y condiciones AND sobre el mismo proceso DEBEN conservarse como enlaces separados; si la combinación no queda expresada literalmente en OPL, DEBE persistirse como semántica de control tipificada.
@@ -1193,12 +1174,12 @@ Cada OPD tiene su contraparte en un párrafo OPL. La dualidad es **bidireccional
 - **R-BR-4** (`V-204`): notas y sticky notes son contenido meta del autor; NO emiten OPL nuclear.
 - **R-BR-5**: aliases `{alias}` y unidades `[u]` en rótulos pertenecen a capa computacional; NO DEBEN confundirse con OPL nuclear.
 
-### 9.5 Principio de consistencia de hechos (`V-98`, `SSOT-iso §Principio de consistencia`)
+### 9.4 Principio de consistencia de hechos (`V-98`, `SSOT-iso §Principio de consistencia`)
 
 - **R-CONSIST-1** (`V-98`, `SSOT-iso §Principio de consistencia`): un hecho afirmado en un OPD NO DEBE contradecir un hecho afirmado en otro OPD del mismo modelo.
 - **R-CONSIST-2**: refinamiento o abstracción NO constituye contradicción.
 
-### 9.6 Importancia proporcional (`V-99`)
+### 9.5 Importancia proporcional (`V-99`)
 
 - **R-IMP-1** (`V-99`): la importancia relativa de una cosa DEBE considerarse proporcional al OPD más alto del árbol donde aparece.
 - **R-IMP-2**: una cosa que aparece en SD DEBE tratarse como más importante que una cosa que aparece solo en OPDs descendientes.
@@ -1302,10 +1283,7 @@ Al editar OPD:
 | Zona | Estado |
 |---|---|
 | Combinación `c + e` sobre el mismo enlace | No definida. Tratar como NO canonizada (AP-28). |
-| `Pr=p` sobre fan no-XOR (ej. fan OR con probabilidades) | `V-18` declara fan probabilístico ≡ XOR; la combinación con OR no se canoniza. |
-| Modificadores sobre enlace estructural etiquetado | No definidos en SSOT-OPL §9; tratar como no canónicos (AP-09). |
 | Enlace probabilístico sin fan | `Pr=p` se define solo dentro de abanicos (`V-18`); fuera no tiene canonicidad. |
-| Multiplicidad sobre procesos directamente | `V-23`: NO aplica a procesos. Usar contador de iteración. |
 | Etiquetas de ruta sobre enlaces habilitadores | SSOT-opl §13 solo canoniza consumo/resultado. No canonizadas sobre agente/instrumento. |
 
 ---
@@ -1369,14 +1347,14 @@ Al editar OPD:
 | `V-192` | **R-VIS-AUX-1**: el supresor `...` de enlaces no materializados solo pertenece a la gramática auxiliar si persiste en `canon-diagrama`. |
 | `V-193` | **R-VIS-AUX-2**: todo triángulo o indicador compactado de relación hacia cosa ausente DEBE quedar anclado geométricamente a la cosa visible correspondiente. |
 | `V-60`, `V-61`, `V-66` | **R-VIS-CONSTRUCT-1**: un OPD DEBE componerse de constructos; un constructo básico DEBE tener dos cosas y un enlace; el enlace DEBE tener origen, destino y conector con línea, símbolo, etiqueta opcional y ruta opcional. |
-| §2.1 | **R-VIS-EST-1**: los estados DEBEN renderizarse como rountangles contenidos en la zona interna del objeto propietario; una apariencia flotante DEBE bloquearse como estado inválido. |
+| §2.1 | **R-VIS-EST-1**: la renderización de estados DEBE cumplir R-EST-1; toda apariencia flotante DEBE bloquearse como estado inválido. |
 | §2.3 | **R-VIS-EST-2**: los valores de atributo DEBEN renderizarse como estados del objeto-atributo cuando se visualicen como valores discretos, rangos o valores concretos de instancia. |
 | `V-14` | **R-VIS-FAN-1**: múltiples enlaces del mismo tipo sin arco conector DEBEN interpretarse como AND. |
 | `V-20` | **R-VIS-RUTA-1**: un proceso con etiquetas de ruta DEBE emparejar consumo/resultado por coincidencia exacta de etiqueta para formar trayectoria de ejecución. |
 | `V-22` | **R-VIS-MULT-1**: toda multiplicidad DEBE colocarse junto al extremo del enlace o cerca del refinador estructural correspondiente. |
 | `V-28`, `V-29`, `V-72` | **R-VIS-HER-1**: la herencia múltiple, el atributo discriminante y la herencia por despliegue DEBEN aplicarse aunque los enlaces heredados no se dibujen localmente. |
 | `V-74`, `V-75`, `V-76` | **R-VIS-HER-2**: la afiliación DEBE heredarse por cadena estructural; una especialización PUEDE sobrescribir participante heredado con especialización válida; los enlaces comunes DEBEN migrar al general cuando se crea un general desde especializaciones. |
-| `V-34`, `V-77`, `V-78` | **R-VIS-REF-1**: una descomposición de proceso DEBE inflar la elipse; la invocación implícita por posición vertical aplica solo a esa descomposición; una descomposición de objeto codifica disposición, no tiempo. |
+| `V-34`, `V-77`, `V-78` | **R-VIS-REF-1**: una descomposición de proceso DEBE inflar la elipse; la invocación implícita por posición vertical se rige por R-INV-2/R-INV-2A y aplica solo a esa descomposición; una descomposición de objeto codifica disposición, no tiempo. |
 | `V-39` | **R-VIS-CTRL-1**: cuando una condición omite un subproceso, el control DEBE pasar al siguiente subproceso secuencial aplicable. |
 | `V-45` | **R-VIS-DUR-1**: los valores de duración de proceso DEBEN mostrarse dentro de la elipse bajo el nombre y la unidad temporal con formato `{min, esperada, max}`. |
 | `V-45` | **R-VIS-DUR-2**: la distribución de duración DEBE emitirse solo cuando el modelo la declara; si no existe distribución declarada, el export NO DEBE generar placeholder. |
@@ -1399,14 +1377,13 @@ Al editar OPD:
 | `V-136` | **R-VIS-RUN-3A**: tokens runtime DEBEN omitirse del `canon-diagrama` salvo snapshot declarado. |
 | `V-137` | **R-VIS-RUN-3B**: estados operacionales no activos DEBEN usar marcas reservadas distintas de inicial/final/default/`Current`. |
 | `V-138` | **R-VIS-RUN-3C**: un estado suspendido NO DEBE parecer inactivo en snapshot. |
-| `V-139` | **R-VIS-RUN-3D**: el modo síncrono DEBE limitar activos por hilo según la política runtime declarada. |
 | `V-140` | **R-VIS-RUN-3E**: el modo headless NO DEBE alterar la gramática visual estática. |
 | `V-143`, `V-144`, `V-145`, `V-146` | **R-VIS-STEREO-1**: todo estereotipo DEBE declarar aplicabilidad; en canvas DEBE verse como `<<Nombre>>` o distintivo equivalente; en OPL PUEDE usar `«Nombre»`; su condición NO DEBE ocultarse en artefacto canónico. |
 | `V-147`, `V-148`, `V-149`, `V-150`, `V-151` | **R-VIS-STEREO-2**: toda propiedad forzada por estereotipo DEBE ser recuperable; remover estereotipo NO DEBE dejar residuos ambiguos; estructura derivada DEBE ser trazable; el OPD exportado DEBE identificar visualmente la cosa estereotipada; sombra forzada por estereotipo DEBE interpretarse como fisicidad efectiva. |
 | `V-152`, `V-153`, `V-154`, `V-155`, `V-156`, `V-157` | **R-VIS-REQ-1**: entidades derivadas por estereotipo DEBEN usar patrón reservado `<Rol> of <HostThing>` y ciclo de vida dependiente del host; `<<Requirement>>` DEBE ser objeto OPM estereotipado con atributos mínimos `Name`, `ID`, `Requirement Essence`, `Satisfaction` y `Description`; `Requirement Essence` NO DEBE confundirse con esencia física/informacional. |
 | `V-159`, `V-160`, `V-161`, `V-162` | **R-VIS-COMP-1**: alias `{alias}` DEBEN ser únicos en alcance operativo declarado y distintos de alias decorativos; unidad `[u]` DEBE aparecer después del nombre; `[]` vacío solo PUEDE persistir si fue confirmado explícitamente. |
 | `V-164`, `V-165` | **R-VIS-COMP-2**: un slot de valor PUEDE contener placeholder, escalar, cadena, disyunción, intervalo o multilínea; por defecto NO DEBE haber más de un slot primario por objeto. |
-| `V-168`, `V-169`, `V-171`, `V-174` | **R-VIS-COMP-3**: ausencia de `()` NO impide simulación conceptual; código ejecutable DEBE referenciar solo aliases, slots, entradas tipadas o nombres reservados; el cuerpo de código NO pertenece al canvas nuclear; integraciones externas DEBEN expresarse por estereotipo, distintivo o metadato, no por clase gráfica nueva. |
+| `V-168`, `V-169`, `V-171`, `V-174` | **R-VIS-COMP-3**: aliases, slots, entradas tipadas y nombres reservados PUEDEN persistir como metadato computacional tipificado; el cuerpo de código NO pertenece al canvas nuclear; integraciones externas DEBEN expresarse por estereotipo, distintivo o metadato, no por clase gráfica nueva. |
 | `V-176`, `V-177`, `V-178`, `V-179` | **R-VIS-SUB-1**: un modelo compuesto DEBE ser DAG de modelos individuales; cada sub-modelo conserva OPL autocontenida; padre e hijo DEBEN declarar simétricamente la referencia. |
 | `V-180`, `V-181`, `V-182` | **R-VIS-SUB-2**: una vista de sub-modelo DEBE clasificarse como vista anclada, diferenciarse de OPD jerárquico/ad hoc en metadato, y PUEDE presentarse como solo lectura. |
 | `V-185`, `V-186`, `V-187`, `V-188`, `V-189` | **R-VIS-SUB-3**: atenuación o distintivos cross-model DEBEN ser gramática de vista; una vista de sub-modelo PUEDE violar el proceso sistémico único solo si declara criterio de vista; export compuesto DEBE declarar sub-modelos no cargados, esquema de resolución y estado explícito de desconexión. |

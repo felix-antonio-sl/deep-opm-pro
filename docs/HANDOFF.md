@@ -25,6 +25,29 @@
 
 ## Estado Actual
 
+### Cierre Auditoría De Pertinencia Canon Estricto — 2026-05-24
+
+Estado actual:
+
+- Aplicada la auditoría profunda de pertinencia/valor de cada elemento de `docs/canon-opm/reglas-opm-estrictas.md`: el canon estricto queda más alineado con R-DOC-1..8, con menos prosa explicativa, menos duplicación y reglas citables donde antes había bullets o párrafos normativos sin ID.
+- **Tier 1 (cortar/reubicar)**: se retiraron del canon estricto reglas de simulación pura (`R-INS-5`, `R-EJEC-2`, `R-EJEC-4`, `R-EJEC-5`, `R-VIS-RUN-3D`) y se reubicaron en `docs/canon-opm/simulacion-ejecucion.md`; se eliminaron las notas "Crítico" de plantillas `ET/CT` que duplicaban R-MOD-1/R-MOD-4; se eliminó la enumeración no-gate de "bisimetría perfecta".
+- **Tier 2 (deduplicación)**: se consolidaron remisiones a anclas normativas: línea temporal vertical → R-INV-2/R-INV-2A; detección de idioma por verbo → R-OPL-LANG-1; Post(P) input-only → R-MOD-4; identidad `SDx.y` → R-IDP-2; estado contenido/no flotante → R-EST-1.
+- **Tier 3 (formalización)**: pasaron a reglas citables `R-ROL-UNIC-1`, `R-REF-SYNC-1/2`, `R-HIJO-1..6`, `R-IDP-0..0C`, `R-BI-DUAL-1`, `R-BI-TAB-1`, `R-MARCA-1`, `R-REF-MEC-1`, `R-MOD-0A/B`.
+- **Tier 4 (alcance)**: se conservan estereotipos y `<<Requirement>>` por cobertura SSOT visual (R-DOC-4), se recortó `R-VIS-COMP-3` a frontera canónica de metadato/canvas (sin política de código ejecutable), y la tabla §9.2 queda explicitada como gate mínimo de roundtrip OPD<->OPL.
+- No se tocó `app/`, parser, render, validadores ni assets.
+
+Artefactos relevantes:
+
+- [docs/canon-opm/reglas-opm-estrictas.md](/home/felix/projects/deep-opm-pro/docs/canon-opm/reglas-opm-estrictas.md)
+- [docs/canon-opm/simulacion-ejecucion.md](/home/felix/projects/deep-opm-pro/docs/canon-opm/simulacion-ejecucion.md)
+
+Verificación:
+
+- `git diff --check -- docs/canon-opm/reglas-opm-estrictas.md docs/canon-opm/simulacion-ejecucion.md docs/HANDOFF.md`: limpio.
+- IDs `R-*` duplicados en `docs/canon-opm/reglas-opm-estrictas.md` + `docs/canon-opm/simulacion-ejecucion.md`: sin duplicados.
+- Referencias internas `R-*` huérfanas en `reglas-opm-estrictas.md`: sin huérfanas.
+- Restos de Tier 1 en canon estricto (`R-INS-5`, `R-EJEC-2`, `R-EJEC-4`, `R-EJEC-5`, `R-VIS-RUN-3D`, notas "Crítico", §9.3 de bisimetría perfecta): sin coincidencias.
+
 ### Cierre Auditoría Profunda Canon Estricto + 2 Contradicciones De Diseño — 2026-05-24
 
 Estado actual:
