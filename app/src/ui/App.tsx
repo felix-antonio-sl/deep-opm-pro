@@ -546,7 +546,9 @@ function pageStyle(esMobile: boolean, oplMinimizado: boolean, altoPanelOpl: numb
   if (esMobile) return layout.pageMobile;
   return {
     ...layout.page,
-    gridTemplateRows: `48px 32px minmax(0, 1fr) ${oplMinimizado ? "0px" : "6px"} ${oplMinimizado ? "32px" : `${altoPanelOpl}px`} auto`,
+    gridTemplateRows: oplMinimizado
+      ? "48px 32px minmax(0, 1fr) 32px auto"
+      : `48px 32px minmax(0, 1fr) 6px ${altoPanelOpl}px auto`,
   };
 }
 

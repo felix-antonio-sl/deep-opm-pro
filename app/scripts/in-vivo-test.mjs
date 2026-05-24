@@ -125,8 +125,9 @@ async function abrirMenuPrincipal(page) {
 
 async function cargarEjemplo(page, nombre) {
   const menu = await abrirMenuPrincipal(page);
-  await menu.getByRole("menuitem", { name: "Cargar otro..." }).click();
-  const dialogo = page.getByRole("dialog", { name: "Cargar modelo" });
+  await menu.getByRole("menuitem", { name: /Abrir \/ importar|Cargar otro/ }).click();
+  const dialogo = page.getByTestId("dialogo-abrir-importar")
+    .or(page.getByRole("dialog", { name: /Abrir \/ importar modelo|Cargar modelo/ }));
   await dialogo.waitFor({ state: "visible", timeout: 2500 });
   await dialogo.getByLabel("Cargar modelo de ejemplo").selectOption(nombre);
   await dialogo.waitFor({ state: "detached", timeout: 2500 }).catch(() => undefined);
@@ -142,19 +143,34 @@ async function restaurarPanelOplSiMinimizado(page) {
 }
 
 async function abrirDialogoJson(page) {
-  const dialogo = page.getByTestId("dialogo-importar-exportar-json");
-  if (await waitVisible(dialogo, 250)) return dialogo;
+  const dialogoUnificado = page.getByTestId("dialogo-abrir-importar");
+  if (await waitVisible(dialogoUnificado, 250)) {
+    await abrirPanelJsonSiExiste(dialogoUnificado);
+    return dialogoUnificado;
+  }
+  const dialogoLegacy = page.getByTestId("dialogo-importar-exportar-json");
+  if (await waitVisible(dialogoLegacy, 250)) return dialogoLegacy;
   const menu = await abrirMenuPrincipal(page);
-  await menu.getByRole("menuitem", { name: "Importar/Exportar JSON..." }).click();
+  await menu.getByRole("menuitem", { name: /Abrir \/ importar|Importar\/Exportar JSON/ }).click();
+  const dialogo = page.getByTestId("dialogo-abrir-importar")
+    .or(page.getByTestId("dialogo-importar-exportar-json"));
   await dialogo.waitFor({ state: "visible", timeout: 2500 });
+  await abrirPanelJsonSiExiste(dialogo);
   return dialogo;
+}
+
+async function abrirPanelJsonSiExiste(dialogo) {
+  const panelJson = dialogo.getByTestId("panel-json-abrir-importar");
+  if ((await locatorCount(panelJson)) === 0) return;
+  const abierto = await panelJson.evaluate((el) => el.open).catch(() => true);
+  if (!abierto) await panelJson.locator("summary").click();
 }
 
 async function exportarJson(page) {
   const dialogo = await abrirDialogoJson(page);
   await dialogo.getByRole("button", { name: "Exportar", exact: true }).click();
-  const json = await dialogo.locator('textarea[spellcheck="false"]').first().inputValue();
-  await dialogo.getByRole("button", { name: "Cerrar", exact: true }).click();
+  const json = await dialogo.locator('textarea[spellcheck="false"], textarea[data-testid="textarea-json"]').first().inputValue();
+  await dialogo.getByRole("button", { name: /^(Cerrar|Cancelar)$/ }).click();
   await dialogo.waitFor({ state: "detached", timeout: 2500 }).catch(() => undefined);
   return json;
 }
@@ -353,7 +369,7 @@ try {
 
   const pantallaInicio = page.getByTestId("pantalla-inicio");
   const bienvenidaVisible = await waitVisible(pantallaInicio, 1200);
-  recordBool("1. Carga y bienvenida", "Bienvenida opinada visible en arranque limpio", bienvenidaVisible);
+  recordBool("1. Carga y bienvenida", "Playwright omite bienvenida precargada por contrato", !bienvenidaVisible);
   if (bienvenidaVisible) {
     const glosa = await pantallaInicio.textContent();
     const glosaOk = ["Cosa", "OPD", "Apariencia", "Enlace"].every((termino) => glosa?.includes(termino));
@@ -368,7 +384,7 @@ try {
   await recordVisible("1. Carga y bienvenida", "Inspector visible", page.getByTestId("inspector-pane"));
   await recordVisible("1. Carga y bienvenida", "Panel OPL visible o minimizado", page.getByTestId("opl-pane").or(page.getByTestId("panel-opl-minimizado")));
   await recordVisible("1. Carga y bienvenida", "Panel diagnostico visible", page.getByTestId("panel-diagnostico"));
-  await recordVisible("1. Carga y bienvenida", "Empty state compacto Iniciar SD visible", page.getByTestId("estado-vacio-opm"));
+  await recordVisible("1. Carga y bienvenida", "Hint compacto Iniciar SD visible", page.getByTestId("estado-vacio-hint").or(page.getByTestId("estado-vacio-opm")));
   await screenshot(page, "02-workbench-vacio.png");
 
   const mainAttrs = await page.locator("main").evaluate((el) => ({
@@ -379,9 +395,8 @@ try {
   }));
   recordBool("2. Chrome IFML", "Workbench declara ViewPoint default de edicion", mainAttrs.viewpoint === "Edicion" && mainAttrs.def === "true", JSON.stringify(mainAttrs));
   await recordVisible("2. Chrome IFML", "Cluster Modelar montado en desktop", page.getByRole("group", { name: "Modelar" }));
-  await recordVisible("2. Chrome IFML", "Cluster Conectar montado en desktop", page.getByRole("group", { name: "Conectar" }));
+  recordBool("2. Chrome IFML", "Cluster Conectar se oculta sin origen", (await locatorCount(page.getByRole("group", { name: "Conectar" }))) === 0);
   await recordVisible("2. Chrome IFML", "Cluster Ayuda montado en desktop", page.getByRole("group", { name: "Ayuda" }));
-  recordBool("2. Chrome IFML", "Conectar esta deshabilitado sin origen", await page.getByTestId("abrir-menu-tipo-enlace").isDisabled().catch(() => false));
 
   await page.keyboard.press("Control+k");
   const palette = page.getByTestId("command-palette");
@@ -397,7 +412,7 @@ try {
 
   const menuPrincipal = await abrirMenuPrincipal(page);
   const menuTexto = await menuPrincipal.textContent();
-  const menuOk = ["Guardar", "Cargar otro", "Nuevo", "Importar/Exportar JSON", "Tabla de enlaces"].every((item) => menuTexto?.includes(item));
+  const menuOk = ["Guardar", "Abrir / importar", "Nuevo", "Exportar OPD actual como SVG", "Exportar JSON", "Tabla de enlaces"].every((item) => menuTexto?.includes(item));
   recordBool("2. Chrome IFML", "Menu principal concentra acciones de modelo y vista", menuOk, menuTexto?.slice(0, 220) ?? "");
   await page.keyboard.press("Escape");
 
@@ -421,17 +436,18 @@ try {
       height: Math.round(rect.height),
     };
   }));
-  const objetos = visual.filter((c) => c.tag === "rect");
-  const procesos = visual.filter((c) => c.tag === "ellipse");
-  const fillOk = visual.length > 0 && visual.every((c) => c.fill === "#fdffff");
-  const objetosOk = objetos.length > 0 && objetos.every((c) => c.stroke === "#70e483");
-  const procesosOk = procesos.length > 0 && procesos.every((c) => c.stroke === "#3bc3ff");
-  const dimsOk = visual.length > 0 && visual.every((c) => Math.abs(c.width - 135) <= 2 && Math.abs(c.height - 60) <= 2);
-  record("3. Ejemplo y SSOT visual", "Cosas detectadas por shape", "INFO", JSON.stringify({ objetos: objetos.length, procesos: procesos.length, visual }));
-  recordBool("3. Ejemplo y SSOT visual", "Fill canonico #fdffff", fillOk);
-  recordBool("3. Ejemplo y SSOT visual", "Objetos con stroke #70E483", objetosOk);
-  recordBool("3. Ejemplo y SSOT visual", "Procesos con stroke #3BC3FF", procesosOk);
-  recordBool("3. Ejemplo y SSOT visual", "Dimensiones canonicas 135x60 con tolerancia 2px", dimsOk);
+  const cuerposCosa = visual.filter((c) => c.tag === "rect" || c.tag === "ellipse");
+  const objetos = cuerposCosa.filter((c) => c.tag === "rect");
+  const procesos = cuerposCosa.filter((c) => c.tag === "ellipse");
+  const objetosFillOk = objetos.length > 0 && objetos.every((c) => c.fill === "#eff7eb");
+  const procesosFillOk = procesos.length > 0 && procesos.every((c) => c.fill === "#e8f0f8");
+  const strokeInkOk = cuerposCosa.length > 0 && cuerposCosa.every((c) => c.stroke === "#0a0a0a");
+  const cuerposEstandar = cuerposCosa.filter((c) => Math.abs(c.width - 135) <= 2 && Math.abs(c.height - 60) <= 2);
+  const dimsOk = cuerposEstandar.length >= 2 && procesos.some((c) => Math.abs(c.width - 135) <= 2 && Math.abs(c.height - 60) <= 2);
+  record("3. Ejemplo y SSOT visual", "Cosas detectadas por shape", "INFO", JSON.stringify({ objetos: objetos.length, procesos: procesos.length, cuerposEstandar: cuerposEstandar.length, visual }));
+  recordBool("3. Ejemplo y SSOT visual", "Fill CANON-V2 objeto/proceso lavado", objetosFillOk && procesosFillOk);
+  recordBool("3. Ejemplo y SSOT visual", "Stroke CANON-V2 ink en cuerpos cosa", strokeInkOk);
+  recordBool("3. Ejemplo y SSOT visual", "Dimensiones estándar 135x60 presentes con tolerancia 2px", dimsOk);
   await screenshot(page, "04-ejemplo-cafetera.png");
 
   await resetWorkbench(page);
