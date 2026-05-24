@@ -22,6 +22,7 @@ export const createSimulacionSlice: CrearSlice<SimulacionSlice> = (set, get) => 
   readOnlyPrevSimulacion: null,
   autoAvanceSimulacionActivo: false,
   velocidadSimulacion: 1,
+  headlessSimulacion: false,
 
   iniciarModoSimulacion() {
     const { modelo, opdActivoId, contextoSimulacion, readOnly } = get();
@@ -127,6 +128,10 @@ export const createSimulacionSlice: CrearSlice<SimulacionSlice> = (set, get) => 
 
   fijarVelocidadSimulacion(velocidad) {
     set({ velocidadSimulacion: normalizarVelocidadSimulacion(velocidad) });
+  },
+
+  alternarHeadlessSimulacion() {
+    set({ headlessSimulacion: !get().headlessSimulacion });
   },
 
   asignarValorRuntimeSimulacion(entidadId, valor) {

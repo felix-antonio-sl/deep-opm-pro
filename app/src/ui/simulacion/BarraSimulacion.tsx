@@ -19,12 +19,14 @@ export function BarraSimulacion(): JSX.Element | null {
     contexto,
     autoAvance,
     velocidad: velocidadSimulacion,
+    headless,
     ejecutarPaso,
     ejecutarCorrida,
     reiniciar,
     iniciarAutoAvance,
     pausarAutoAvance,
     fijarVelocidad,
+    alternarHeadless,
     salir,
   } = useZustandSimulationPort();
 
@@ -118,6 +120,16 @@ export function BarraSimulacion(): JSX.Element | null {
           data-testid="barra-simulacion-reiniciar"
         >
           Reiniciar
+        </button>
+        <button
+          type="button"
+          style={style.boton}
+          onClick={alternarHeadless}
+          aria-pressed={headless}
+          title="Headless: corre sin animación, salto directo al final"
+          data-testid="barra-simulacion-headless"
+        >
+          {headless ? "Headless ✓" : "Headless"}
         </button>
         <button
           type="button"
