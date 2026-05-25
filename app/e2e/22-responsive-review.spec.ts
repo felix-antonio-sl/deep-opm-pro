@@ -65,11 +65,8 @@ test.describe("mobile 390x844 — modo revisión sin toolbar saturada", () => {
     await expect(page.getByTestId("canvas-pane")).toBeVisible();
     await expect(page.getByTestId("mobile-pane-opds")).toHaveCount(0);
 
-    const navBox = await nav.boundingBox();
-    const fabBox = await page.getByTestId("bug-capture-open").boundingBox();
-    expect(navBox).not.toBeNull();
-    expect(fabBox).not.toBeNull();
-    expect(fabBox!.y + fabBox!.height).toBeLessThanOrEqual(navBox!.y);
+    await expect(page.getByTestId("bug-capture-open")).toHaveCount(0);
+    await expect(page.getByTestId("bug-ledger-open")).toHaveCount(0);
 
     // Cambiar a OPDs: aparece el árbol como overlay.
     await page.getByTestId("mobile-tab-opds").click();

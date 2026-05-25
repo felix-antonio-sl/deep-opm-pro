@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { estadoDiagnosticoFooter } from "./CodexFooterKey";
+import { CodexFooterKey, estadoDiagnosticoFooter } from "./CodexFooterKey";
 
 describe("estadoDiagnosticoFooter", () => {
   test("0 avisos ⇒ limpio (✓ ningún diagnóstico)", () => {
@@ -13,5 +13,14 @@ describe("estadoDiagnosticoFooter", () => {
 
   test("conteos negativos defensivos caen a limpio", () => {
     expect(estadoDiagnosticoFooter(-3)).toEqual({ tipo: "limpio" });
+  });
+});
+
+describe("CodexFooterKey", () => {
+  test("muestra ViewPoint en castellano con acentos sin mutar el enum interno", () => {
+    const v = CodexFooterKey({ label: "View", value: "Edicion" }) as unknown as { props: Record<string, any> };
+    const [, value] = v.props.children as Array<{ props: Record<string, any> }>;
+
+    expect(value!.props.children).toBe("Edición");
   });
 });

@@ -30,6 +30,15 @@ test("primer paint precarga System Diagram y muestra banner inline", async ({ pa
   const banner = page.getByTestId("pantalla-inicio");
   await expect(banner).toBeVisible();
   await expect(banner).toContainText("Estás viendo un ejemplo: System Diagram");
+  await expect(banner).toHaveCSS("font-style", "italic");
+
+  const canvasBox = await page.getByTestId("canvas-pane").boundingBox();
+  const bannerBox = await banner.boundingBox();
+  expect(canvasBox).not.toBeNull();
+  expect(bannerBox).not.toBeNull();
+  expect(bannerBox!.width).toBeLessThanOrEqual(420);
+  expect(bannerBox!.x).toBeGreaterThanOrEqual(canvasBox!.x + canvasBox!.width - 460);
+  expect(bannerBox!.y).toBeLessThanOrEqual(canvasBox!.y + 80);
 
   // El canvas precargado tiene las cosas del fixture System Diagram
   // (8 entidades + estados anidados del atributo beneficiario).
@@ -37,9 +46,16 @@ test("primer paint precarga System Diagram y muestra banner inline", async ({ pa
   expect(conteoCanvas).toBeGreaterThanOrEqual(8);
 
   // Los tres botones expuestos son: Asistente guiado, Empezar vacío y ✕.
-  await expect(banner.getByRole("button", { name: "Asistente guiado" })).toBeVisible();
-  await expect(banner.getByRole("button", { name: "Empezar vacío" })).toBeVisible();
+  const asistente = banner.getByRole("button", { name: "Asistente guiado" });
+  const empezarVacio = banner.getByRole("button", { name: "Empezar vacío" });
+  await expect(asistente).toBeVisible();
+  await expect(empezarVacio).toBeVisible();
   await expect(banner.getByRole("button", { name: "Descartar banner de bienvenida" })).toBeVisible();
+  await expect(asistente).toHaveCSS("border-top-style", "none");
+  await expect(asistente).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
+  await expect(asistente).toHaveCSS("font-style", "italic");
+  await expect(empezarVacio).toHaveCSS("border-top-style", "none");
+  await expect(empezarVacio).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
 
   expect(pageErrors).toEqual([]);
 });
@@ -58,10 +74,15 @@ test("clic en × descarta banner pero conserva el ejemplo cargado", async ({ pag
 
   await banner.getByRole("button", { name: "Descartar banner de bienvenida" }).click();
   await expect(banner).toHaveCount(0);
+  await expect
+    .poll(() => page.evaluate(() => localStorage.getItem("opforja:welcome-banner-dismissed:v1")))
+    .toBe("1");
 
   // El canvas conserva el ejemplo: el operador acepta el fixture como punto
   // de partida y sigue editándolo sin la distracción del banner.
   await expect(page.locator(".joint-element")).toHaveCount(conteoInicial);
+  await page.reload();
+  await expect(page.getByTestId("pantalla-inicio")).toHaveCount(0);
 
   expect(pageErrors).toEqual([]);
 });

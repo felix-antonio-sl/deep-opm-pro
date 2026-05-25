@@ -193,7 +193,10 @@ test("inspector vacío no muestra contadores N objetos · N procesos · N OPDs",
   // Los contadores fueron retirados (Codex v2 / L3).
   await expect(page.getByTestId("inspector-vacio-conteos")).toHaveCount(0);
   // Placeholder editorial en su lugar.
-  await expect(page.getByTestId("inspector-vacio-placeholder")).toBeVisible();
+  await expect(page.getByTestId("inspector-vacio-placeholder")).toHaveText(
+    "Selecciona un objeto, proceso o enlace para ver sus propiedades aquí.",
+  );
+  await expect(page.getByTestId("inspector-vacio-renombrar")).toHaveCount(0);
 
   expect(pageErrors).toEqual([]);
 });

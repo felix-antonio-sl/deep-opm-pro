@@ -57,7 +57,7 @@ function GlyphObjeto(): preact.JSX.Element {
         height={12 - stroke.base}
         fill="none"
         stroke={colors.opm.object}
-        strokeWidth={stroke.base}
+        strokeWidth={stroke.opm.object}
       />
     </svg>
   );
@@ -80,7 +80,7 @@ function GlyphProceso(): preact.JSX.Element {
         ry={4 - stroke.base / 2}
         fill="none"
         stroke={colors.opm.process}
-        strokeWidth={stroke.base}
+        strokeWidth={stroke.opm.process}
       />
     </svg>
   );
@@ -100,7 +100,7 @@ function GlyphEstado(): preact.JSX.Element {
         d="M6 1.5 10.5 6 6 10.5 1.5 6Z"
         fill="none"
         stroke={colors.opm.state}
-        strokeWidth={stroke.base}
+        strokeWidth={stroke.opm.state}
         strokeLinejoin="miter"
       />
     </svg>
@@ -340,6 +340,7 @@ export function ToolbarBase({ children, modelarSlot, conectarSlot, statusSlot }:
             glyph={<GlyphObjeto />}
             label="Objeto"
             shortcut="O"
+            semanticColor={colors.opm.object}
             active={modoCreacion === "objeto"}
             ariaPressed={modoCreacion === "objeto"}
             className={modoCreacion === "objeto" ? "boton-toolbar-activo" : undefined}
@@ -353,6 +354,7 @@ export function ToolbarBase({ children, modelarSlot, conectarSlot, statusSlot }:
             glyph={<GlyphProceso />}
             label="Proceso"
             shortcut="P"
+            semanticColor={colors.opm.process}
             active={modoCreacion === "proceso"}
             ariaPressed={modoCreacion === "proceso"}
             className={modoCreacion === "proceso" ? "boton-toolbar-activo" : undefined}
@@ -366,6 +368,7 @@ export function ToolbarBase({ children, modelarSlot, conectarSlot, statusSlot }:
             glyph={<GlyphEstado />}
             label="Estado"
             shortcut="S"
+            semanticColor={colors.opm.state}
             disabled={!puedeCrearAtributo}
             onClick={handleAgregarEstado}
             testId="toolbar-crear-estado"

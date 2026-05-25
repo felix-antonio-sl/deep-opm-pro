@@ -71,19 +71,15 @@ test("carga demo OPM en canvas JointJS y mantiene OPL visible", async ({ page })
   expect(pageErrors).toEqual([]);
 });
 
-test("L3 panel diagnostico evalua System Diagram sandbox", async ({ page }) => {
+test("footer diagnostico evalua System Diagram sandbox sin panel redundante", async ({ page }) => {
   const pageErrors: string[] = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
   await cargarModeloEjemplo(page, "System Diagram");
 
-  const panel = page.getByTestId("panel-diagnostico");
-  await expect(panel).toBeVisible();
-  // Ronda23 L1 #9: contador "N sugerencias" con concordancia plural.
-  await expect(panel).toContainText("0 sugerencias");
-  await page.getByTestId("panel-diagnostico-toggle").click();
-  await expect(panel).toContainText("Modelo sin sugerencias metodológicas");
+  await expect(page.getByTestId("panel-diagnostico")).toHaveCount(0);
+  await expect(page.getByTestId("codex-footer-diagnostico")).toContainText("ningún diagnóstico");
   expect(pageErrors).toEqual([]);
 });
 

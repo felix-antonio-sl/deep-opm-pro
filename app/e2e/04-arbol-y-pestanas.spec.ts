@@ -67,7 +67,7 @@ test("navega OPDs desde el arbol lateral", async ({ page }) => {
   await expect(elementoPorTexto(page, "Objeto Raiz")).toHaveCount(1);
   await expect(elementoPorTexto(page, "Proceso Hijo")).toHaveCount(0);
   await expect(page.getByText("Objeto Raiz").first()).toBeVisible();
-  await expect(page.getByTestId("breadcrumb-opd")).toContainText("SD");
+  await expect(page.getByTestId("breadcrumb-opd")).toHaveText(/sistema\s*·\s*system diagram/i);
 
   await nodoHijo.click();
 
@@ -75,8 +75,8 @@ test("navega OPDs desde el arbol lateral", async ({ page }) => {
   await expect(elementoPorTexto(page, "Objeto Raiz")).toHaveCount(0);
   await expect(elementoPorTexto(page, "Proceso Hijo")).toHaveCount(1);
   await expect(page.getByText("Proceso Hijo").first()).toBeVisible();
-  await expect(page.getByTestId("breadcrumb-opd")).toContainText("SD1");
-  await page.getByTestId("breadcrumb-opd-opd-1").click();
+  await expect(page.getByTestId("breadcrumb-opd")).toHaveText(/sistema\s*·\s*system diagram\s*·\s*sd1/i);
+  await page.getByTestId("breadcrumb-opd-system-diagram").click();
   await expect(nodoRaiz).toHaveAttribute("aria-current", "page");
   await nodoHijo.click();
 

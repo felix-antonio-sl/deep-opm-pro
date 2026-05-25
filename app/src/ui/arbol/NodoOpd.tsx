@@ -104,9 +104,7 @@ export function NodoOpd(props: NodoOpdProps) {
           {props.estaExpandido ? GLIFO_CARET : GLIFO_MARKER}
         </button>
       ) : (
-        <span aria-hidden="true" style={props.activo ? style.markerCurrent : style.markerSpacer}>
-          {props.activo ? GLIFO_MARKER : ""}
-        </span>
+        <span aria-hidden="true" style={style.markerSpacer} />
       )}
 
       {esRenombrando ? (

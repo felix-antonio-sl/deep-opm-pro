@@ -23,7 +23,7 @@ test("capturador de bugs guarda texto sin screenshots y muestra id referenciable
   });
 
   await page.goto("/");
-  await page.getByLabel("Capturar bug").click();
+  await abrirCapturadorDesdePalette(page);
   const dialog = page.getByRole("dialog", { name: "Capturar bug" });
   await expect(dialog).toBeVisible();
   await dialog.getByLabel("Descripción del bug").fill("El enlace se pierde al reordenar el OPD.");
@@ -84,7 +84,7 @@ test("capturador de bugs muestra lista activa e historica desde el sidecar", asy
   });
 
   await page.goto("/");
-  await page.getByLabel("Ver bugs y features").click();
+  await abrirLedgerDesdePalette(page);
   const dialog = page.getByRole("dialog", { name: "Bugs y features" });
   await expect(dialog).toBeVisible();
   await expect(dialog).toContainText("BUG-20260523T185803Z-a0d7bc");
@@ -113,7 +113,7 @@ test("capturador de bugs adjunta uno o mas screenshots al payload", async ({ pag
   });
 
   await page.goto("/");
-  await page.getByLabel("Capturar bug").click();
+  await abrirCapturadorDesdePalette(page);
   const dialog = page.getByRole("dialog", { name: "Capturar bug" });
   await dialog.getByLabel("Descripción del bug").fill("El canvas queda cortado en el borde derecho.");
   await dialog.locator('input[type="file"]').setInputFiles({
@@ -150,7 +150,7 @@ test("capturador de bugs acepta screenshot pegado directamente", async ({ page }
   });
 
   await page.goto("/");
-  await page.getByLabel("Capturar bug").click();
+  await abrirCapturadorDesdePalette(page);
   const dialog = page.getByRole("dialog", { name: "Capturar bug" });
   await dialog.getByLabel("Descripción del bug").fill("Screenshot pegado desde clipboard.");
   await dialog.getByTestId("bug-capture-dialog").evaluate((target, base64) => {
@@ -183,7 +183,7 @@ test("capturador de bugs degrada cuando el endpoint no existe", async ({ page })
   });
 
   await page.goto("/");
-  await page.getByLabel("Capturar bug").click();
+  await abrirCapturadorDesdePalette(page);
   const dialog = page.getByRole("dialog", { name: "Capturar bug" });
   await dialog.getByLabel("Descripción del bug").fill("Smoke de hosting estatico sin middleware local.");
   await dialog.getByRole("button", { name: "Guardar reporte" }).click();
@@ -206,4 +206,20 @@ async function instalarClipboardMock(page: import("@playwright/test").Page): Pro
 
 async function expectClipboard(page: import("@playwright/test").Page, expected: string): Promise<void> {
   await expect.poll(() => page.evaluate(() => (window as unknown as { __deepOpmClipboard?: string }).__deepOpmClipboard)).toBe(expected);
+}
+
+async function abrirCapturadorDesdePalette(page: import("@playwright/test").Page): Promise<void> {
+  await page.getByTestId("toolbar-menu").click();
+  const palette = page.getByTestId("command-palette");
+  await expect(palette).toBeVisible();
+  await palette.getByRole("combobox").fill("capturar bug");
+  await palette.getByTestId("command-palette-item-menu-capturar-bug").click();
+}
+
+async function abrirLedgerDesdePalette(page: import("@playwright/test").Page): Promise<void> {
+  await page.getByTestId("toolbar-menu").click();
+  const palette = page.getByTestId("command-palette");
+  await expect(palette).toBeVisible();
+  await palette.getByRole("combobox").fill("bugs y features");
+  await palette.getByTestId("command-palette-item-menu-bug-ledger").click();
 }

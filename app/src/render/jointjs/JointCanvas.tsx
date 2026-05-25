@@ -776,7 +776,7 @@ const style = {
     minWidth: 0,
     minHeight: 0,
     background: jointCanvasPalette.background,
-    overflow: "auto",
+    overflow: "hidden",
     overscrollBehavior: "contain",
   },
   paperHost: {

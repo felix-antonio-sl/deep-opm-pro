@@ -365,7 +365,7 @@ test.describe("Contrato TablaEnlaces Beta1", () => {
   });
 });
 
-test("Inspector vacio expone CTA y aria-live consistente al limpiar seleccion", async ({ page }) => {
+test("Inspector vacio queda editorial y sin CTA redundante al limpiar seleccion", async ({ page }) => {
   const pageErrors: string[] = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
@@ -379,11 +379,11 @@ test("Inspector vacio expone CTA y aria-live consistente al limpiar seleccion", 
   const inspector = page.getByTestId("inspector");
   await expect(inspector).toHaveAttribute("data-modo-inspector", "vacio");
   await expect(page.getByTestId("inspector-vacio")).toBeVisible();
-  // Corte 3.5: el branch vacio muestra identidad del modelo (titulo + conteos
-  // + accion Renombrar). El cliche "Selecciona una cosa o un enlace" fue
-  // eliminado como tutorial encubierto.
-  await expect(page.getByTestId("inspector-vacio-titulo")).toBeVisible();
-  await expect(page.getByTestId("inspector-vacio-renombrar")).toBeVisible();
+  await expect(page.getByTestId("inspector-vacio-placeholder")).toHaveText(
+    "Selecciona un objeto, proceso o enlace para ver sus propiedades aquí.",
+  );
+  await expect(page.getByTestId("inspector-vacio-titulo")).toHaveCount(0);
+  await expect(page.getByTestId("inspector-vacio-renombrar")).toHaveCount(0);
 
   expect(pageErrors).toEqual([]);
 });

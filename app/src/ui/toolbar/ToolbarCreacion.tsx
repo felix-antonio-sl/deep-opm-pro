@@ -34,14 +34,14 @@ function GlyphRelacion(): preact.JSX.Element {
         d="M1 6h10"
         fill="none"
         stroke={colors.ink}
-        strokeWidth={stroke.base}
+        strokeWidth={stroke.opm.link}
         strokeLinecap="square"
       />
       <path
         d="M8.5 2.5 12 6 8.5 9.5"
         fill="none"
         stroke={colors.ink}
-        strokeWidth={stroke.base}
+        strokeWidth={stroke.opm.link}
         strokeLinecap="square"
         strokeLinejoin="miter"
       />
@@ -166,6 +166,7 @@ export function ToolbarCreacion() {
         glyph={<GlyphRelacion />}
         label="Relación"
         shortcut="R"
+        semanticColor={colors.ink}
         active={menuTiposAbierto}
         onClick={handleToggleTiposValidos}
         disabled={selectorEnlaceDeshabilitado}

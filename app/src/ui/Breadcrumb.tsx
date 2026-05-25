@@ -9,9 +9,13 @@ export interface SegmentoBreadcrumbOpd {
 
 export function Breadcrumb() {
   const { modelo, opdActivoId, cambiarOpdActivo } = useBreadcrumbViewModel();
-  const segmentos = rutaBreadcrumbOpd(modelo, opdActivoId);
+  const segmentos = rutaBreadcrumbCodex(modelo, opdActivoId);
+  const navegar = (id: Id) => {
+    if (id === "sistema") return;
+    cambiarOpdActivo(id === "system-diagram" ? modelo.opdRaizId : id);
+  };
 
-  return <BreadcrumbView segmentos={segmentos} opdActivoId={opdActivoId} cambiarOpdActivo={cambiarOpdActivo} />;
+  return <BreadcrumbView segmentos={segmentos} opdActivoId={segmentos[segmentos.length - 1]?.id ?? opdActivoId} cambiarOpdActivo={navegar} />;
 }
 
 interface BreadcrumbViewProps {
@@ -67,6 +71,24 @@ export function rutaBreadcrumbOpd(modelo: Modelo, opdActivoId: Id): SegmentoBrea
   }
 
   return ruta.reverse().map((opd) => ({ id: opd.id, nombre: opd.nombre }));
+}
+
+export function rutaBreadcrumbCodex(modelo: Modelo, opdActivoId: Id): SegmentoBreadcrumbOpd[] {
+  const ruta = rutaBreadcrumbOpd(modelo, opdActivoId);
+  const hijos = ruta.slice(1).map((segmento) => ({
+    id: segmento.id,
+    nombre: nombreBreadcrumbCodex(segmento.nombre),
+  }));
+
+  return [
+    { id: "sistema", nombre: "sistema" },
+    { id: "system-diagram", nombre: "system diagram" },
+    ...hijos,
+  ];
+}
+
+function nombreBreadcrumbCodex(nombre: string): string {
+  return nombre.trim().toLocaleLowerCase("es-CL");
 }
 
 /**

@@ -4,6 +4,7 @@ import type { RegistroAtajo } from "./atajosTeclado";
 import {
   SECCIONES_COMMAND_PALETTE,
   agruparItemsCommandPalette,
+  construirAccionesMenuCommandPalette,
   construirItemsCommandPalette,
   filtrarItemsCommandPalette,
   normalizarTextoBusqueda,
@@ -127,4 +128,54 @@ describe("CommandPalette", () => {
     expect(filtrarItemsCommandPalette(items, "crear").map((item) => item.label)).toContain("Descomponer");
     expect(filtrarItemsCommandPalette(items, "vista").map((item) => item.label)).toContain("Tabla de enlaces");
   });
+
+  test("MODELO incluye renombrar modelo como comando explícito", () => {
+    const deps = depsAccionesMenu();
+    const acciones = construirAccionesMenuCommandPalette(deps);
+    const items = construirItemsCommandPalette([], [], acciones);
+    const renombrar = items.find((item) => item.menuActionId === "renombrar-modelo");
+
+    expect(renombrar?.label).toBe("Renombrar modelo");
+    expect(renombrar ? seccionVisualCommandPalette(renombrar) : null).toBe("MODELO");
+  });
 });
+
+function depsAccionesMenu(): Parameters<typeof construirAccionesMenuCommandPalette>[0] {
+  return {
+    nuevoModelo: () => {},
+    abrirCargarModelo: () => {},
+    abrirGuardarComo: () => {},
+    abrirDialogoConfiguracion: () => {},
+    abrirDialogoGuardarPlantilla: () => {},
+    abrirDialogoPlantillas: () => {},
+    abrirDialogoVersiones: null,
+    modeloPersistidoId: null,
+    gridActiva: false,
+    toggleGrid: () => {},
+    aplicarLayoutSugerido: () => {},
+    iniciarModoSimulacion: () => {},
+    abrirTablaEnlaces: () => {},
+    abrirCheatsheetAtajos: () => {},
+    exportarJson: () => {},
+    exportarOpdSvg: null,
+    iniciarAsistente: () => {},
+    abrirPestanaNueva: () => {},
+    abrirBusquedaCosas: () => {},
+    abrirBusquedaGlobal: () => {},
+    abrirUrlsObjeto: null,
+    editarImagenObjeto: null,
+    toggleAliasVisibles: () => {},
+    aliasVisibles: false,
+    toggleDescripcionesVisibles: () => {},
+    descripcionesVisibles: false,
+    ciclarModoImagenGlobal: () => {},
+    etiquetaModoImagenGlobal: "por cosa",
+    modoImagenGlobalActivo: false,
+    toggleMostrarArchivados: () => {},
+    mostrarArchivados: false,
+    toggleMostrarVersiones: () => {},
+    mostrarVersiones: false,
+    abrirCapturadorBug: () => {},
+    abrirBugLedger: () => {},
+  };
+}

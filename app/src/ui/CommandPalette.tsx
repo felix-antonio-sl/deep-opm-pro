@@ -64,6 +64,7 @@ const seccionesPorAccionMenu: Readonly<Record<string, CommandPaletteSeccion>> = 
   "guardar-como": "MODELO",
   "abrir-pestana": "MODELO",
   configuracion: "MODELO",
+  "renombrar-modelo": "MODELO",
   "guardar-plantilla": "MODELO",
   plantillas: "MODELO",
   "versiones-modelo": "MODELO",
@@ -83,6 +84,8 @@ const seccionesPorAccionMenu: Readonly<Record<string, CommandPaletteSeccion>> = 
   "urls-objeto": "VISTA",
   "mostrar-archivados": "VISTA",
   "mostrar-versiones": "VISTA",
+  "capturar-bug": "VISTA",
+  "bug-ledger": "VISTA",
   "atajos-teclado": "VISTA",
 };
 
@@ -180,6 +183,8 @@ export function CommandPalette({ abierto, onCerrar }: Props) {
     mostrarArchivados,
     toggleMostrarVersiones,
     mostrarVersiones,
+    abrirCapturadorBug: () => emitirEventoBugCapture("opforja:bug-capture:open"),
+    abrirBugLedger: () => emitirEventoBugCapture("opforja:bug-ledger:open"),
   });
   const registros = listarAtajos();
   const items = filtrarItemsCommandPalette(
@@ -452,15 +457,18 @@ interface AccionesMenuCommandPaletteDeps {
   mostrarArchivados: boolean;
   toggleMostrarVersiones: () => void;
   mostrarVersiones: boolean;
+  abrirCapturadorBug: () => void;
+  abrirBugLedger: () => void;
 }
 
-function construirAccionesMenuCommandPalette(deps: AccionesMenuCommandPaletteDeps): CommandPaletteMenuAction[] {
+export function construirAccionesMenuCommandPalette(deps: AccionesMenuCommandPaletteDeps): CommandPaletteMenuAction[] {
   return [
     { id: "nuevo-modelo", label: "Nuevo modelo", descripcion: "Crear un modelo vacío", categoria: "archivo", run: deps.nuevoModelo },
     { id: "abrir-importar", label: "Abrir / importar modelo", descripcion: "Abrir modelos guardados, archivados, ejemplos o JSON", categoria: "archivo", run: deps.abrirCargarModelo },
     { id: "guardar-como", label: "Guardar como", descripcion: "Guardar una copia editable del modelo", categoria: "archivo", run: deps.abrirGuardarComo },
     { id: "abrir-pestana", label: "Abrir como pestaña", descripcion: "Duplicar el modelo actual en una pestaña adicional", categoria: "archivo", atajo: "Ctrl+T", run: deps.abrirPestanaNueva },
-    { id: "configuracion", label: "Configuración", descripcion: "Renombrar modelo y ajustar cuadrícula", categoria: "archivo", run: deps.abrirDialogoConfiguracion },
+    { id: "configuracion", label: "Configuración", descripcion: "Ajustar preferencias del modelo y cuadrícula", categoria: "archivo", run: deps.abrirDialogoConfiguracion },
+    { id: "renombrar-modelo", label: "Renombrar modelo", descripcion: "Cambiar el nombre del modelo activo", categoria: "archivo", run: deps.abrirDialogoConfiguracion },
     { id: "asistente-guiado", label: "Asistente guiado", descripcion: "Crear un modelo paso a paso con el asistente", categoria: "archivo", run: deps.iniciarAsistente },
     { id: "guardar-plantilla", label: "Guardar como plantilla", descripcion: "Crear una plantilla privada desde la selección", categoria: "archivo", run: deps.abrirDialogoGuardarPlantilla },
     { id: "plantillas", label: "Plantillas", descripcion: "Abrir el catálogo de plantillas privadas", categoria: "archivo", run: deps.abrirDialogoPlantillas },
@@ -480,8 +488,14 @@ function construirAccionesMenuCommandPalette(deps: AccionesMenuCommandPaletteDep
     ...(deps.abrirUrlsObjeto ? [{ id: "urls-objeto", label: "URLs del objeto", descripcion: "Editar las URLs del objeto seleccionado", categoria: "vista", run: deps.abrirUrlsObjeto }] : []),
     { id: "mostrar-archivados", label: deps.mostrarArchivados ? "Ocultar archivados" : "Mostrar archivados", descripcion: "Alternar la visibilidad de los modelos archivados", categoria: "vista", run: deps.toggleMostrarArchivados },
     { id: "mostrar-versiones", label: deps.mostrarVersiones ? "Ocultar glifos de versiones" : "Mostrar glifos de versiones", descripcion: "Alternar los glifos de versiones en el workspace", categoria: "vista", run: deps.toggleMostrarVersiones },
+    { id: "capturar-bug", label: "Capturar bug", descripcion: "Abrir el capturador de bugs del workspace", categoria: "vista", atajo: "Ctrl+Alt+B", run: deps.abrirCapturadorBug },
+    { id: "bug-ledger", label: "Bugs y features", descripcion: "Abrir el ledger local de bugs y features", categoria: "vista", run: deps.abrirBugLedger },
     { id: "atajos-teclado", label: "Atajos de teclado", descripcion: "Mostrar la referencia de atajos registrados", categoria: "navegacion", run: deps.abrirCheatsheetAtajos },
   ];
+}
+
+function emitirEventoBugCapture(nombre: "opforja:bug-capture:open" | "opforja:bug-ledger:open"): void {
+  globalThis.dispatchEvent?.(new CustomEvent(nombre));
 }
 
 export function filtrarItemsCommandPalette(items: readonly CommandPaletteItem[], query: string): CommandPaletteItem[] {

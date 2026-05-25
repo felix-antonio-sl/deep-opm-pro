@@ -31,6 +31,25 @@ describe("ToolbarActionButton", () => {
     expect(divider!.props.style).toBe(toolbarStyle.creatorShortcutDivider);
     expect(kbd!.props.children).toBe("O");
   });
+
+  test("propaga color semantico de clase al kbd sin convertir la accion en caja", () => {
+    const glyph = <span>□</span>;
+    const v = ToolbarActionButton({
+      glyph,
+      label: "Objeto",
+      shortcut: "O",
+      semanticColor: colors.opm.object,
+      testId: "toolbar-drag-objeto",
+      title: "Crear objeto",
+      onClick: () => undefined,
+    }) as unknown as Vnode;
+    const [, , , kbd] = hijos(v);
+
+    expect(v.props.style.background).toBe("transparent");
+    expect(v.props.style.border).toBe("1px solid transparent");
+    expect(kbd!.props.style.border).toBe(`1px solid ${colors.opm.object}`);
+    expect(kbd!.props.style.color).toBe(colors.opm.object);
+  });
 });
 
 describe("labelPersistenciaToolbar", () => {

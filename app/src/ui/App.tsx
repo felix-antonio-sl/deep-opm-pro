@@ -305,7 +305,7 @@ export function App() {
                   style={layout.marginaliaRule}
                 />
                 <section style={layout.rightInspectorPane}>
-                  <CodexColHeader kicker="INSPECTOR" title="Selection" meta="LIVE" />
+                  <CodexColHeader kicker="INSPECTOR" title="Selection" />
                   <div style={layout.inspectorContent}>
                     <Inspector />
                     {timelineDisponible ? (
@@ -315,9 +315,11 @@ export function App() {
                         </Suspense>
                       </div>
                     ) : null}
-                    <div style={layout.diagnosticoMarginalia}>
-                      <PanelDiagnostico />
-                    </div>
+                    {avisosDiagnostico.length > 0 ? (
+                      <div style={layout.diagnosticoMarginalia}>
+                        <PanelDiagnostico />
+                      </div>
+                    ) : null}
                   </div>
                 </section>
               </div>
@@ -364,7 +366,7 @@ export function App() {
  * recuerda el atajo del command palette (que L5 cablea al ☰).
  */
 function OplHeaderMeta({ vm }: { vm: PanelOplViewModel }) {
-  if (!vm.filtroActivo) return <span>LIVE</span>;
+  if (!vm.filtroActivo) return null;
   return (
     <span data-testid="opl-header-filtro" style={metaCodex.oplFilter}>
       <span>filtrado</span>

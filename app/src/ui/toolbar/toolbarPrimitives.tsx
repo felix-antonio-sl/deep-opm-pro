@@ -16,6 +16,7 @@ interface ToolbarActionButtonProps {
   ariaExpanded?: boolean;
   buttonRef?: preact.Ref<HTMLButtonElement> | undefined;
   draggable?: boolean;
+  semanticColor?: string;
   onClick: (event: MouseEvent) => void;
   onDragStart?: (event: DragEvent) => void;
 }
@@ -49,9 +50,18 @@ export function ToolbarActionButton(props: ToolbarActionButtonProps): preact.JSX
       <span aria-hidden="true" style={style.creatorGlyphSlot}>{props.glyph}</span>
       <span aria-hidden="true" style={style.creatorLabel}>{props.label}</span>
       <span aria-hidden="true" style={style.creatorShortcutDivider} />
-      <kbd aria-hidden="true" style={style.creatorKbd}>{props.shortcut}</kbd>
+      <kbd aria-hidden="true" style={kbdStyle(props.semanticColor)}>{props.shortcut}</kbd>
     </button>
   );
+}
+
+function kbdStyle(semanticColor: string | undefined): preact.JSX.CSSProperties {
+  if (!semanticColor) return style.creatorKbd;
+  return {
+    ...style.creatorKbd,
+    border: `1px solid ${semanticColor}`,
+    color: semanticColor,
+  };
 }
 
 export function labelPersistenciaToolbar(tipo: VarianteChipTipo, label: string, salvando: boolean): string {

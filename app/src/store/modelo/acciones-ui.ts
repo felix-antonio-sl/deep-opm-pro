@@ -37,6 +37,7 @@ import { crearPestanaNueva } from "../pestanas";
 import type { ModeloSlice } from "../tipos";
 
 let limpiarResaltadoPlantillaTimer: number | null = null;
+const WELCOME_BANNER_DISMISSED_KEY = "opforja:welcome-banner-dismissed:v1";
 
 /**
  * Acciones de UI: limpiar mensaje, abrir/cerrar menú principal y diálogos
@@ -49,7 +50,7 @@ let limpiarResaltadoPlantillaTimer: number | null = null;
  */
 export function accionesUI(set: SetStore, get: GetStore): Partial<ModeloSlice> {
   return {
-    pantallaInicioCerrada: false,
+    pantallaInicioCerrada: leerWelcomeBannerDescartado(),
     dialogoConfiguracionAbierto: false,
     dialogoTraerConectadosAbierto: false,
     dialogoPlantillasAbierto: false,
@@ -284,6 +285,7 @@ export function accionesUI(set: SetStore, get: GetStore): Partial<ModeloSlice> {
     },
 
     cerrarPantallaInicio() {
+      escribirWelcomeBannerDescartado();
       set({ pantallaInicioCerrada: true });
     },
 
@@ -487,4 +489,20 @@ export function accionesUI(set: SetStore, get: GetStore): Partial<ModeloSlice> {
       set({ readOnly: activo, mensaje: activo ? "Modelo en solo lectura" : null });
     },
   };
+}
+
+function leerWelcomeBannerDescartado(): boolean {
+  try {
+    return globalThis.localStorage?.getItem(WELCOME_BANNER_DISMISSED_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+function escribirWelcomeBannerDescartado(): void {
+  try {
+    globalThis.localStorage?.setItem(WELCOME_BANNER_DISMISSED_KEY, "1");
+  } catch {
+    // localStorage puede no existir en tests unitarios o entornos embebidos.
+  }
 }

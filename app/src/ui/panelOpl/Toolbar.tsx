@@ -46,7 +46,7 @@ export function ToolbarOpl(props: ToolbarOplProps) {
       <button
         type="button"
         data-testid="panel-opl-minimizar"
-        style={style.iconButton}
+        style={style.iconWord}
         title="Minimizar panel OPL"
         aria-label="Minimizar panel OPL"
         onClick={props.onMinimizar}
@@ -73,7 +73,7 @@ export function ToolbarOpl(props: ToolbarOplProps) {
         aria-pressed={props.numeracionVisible}
         onClick={props.onToggleNumeracion}
       >
-        Nº
+        nº
       </button>
       {/* Ronda23 L1 #5: vaporware AI Text apagado hasta que la feature exista.
           Cuando se implemente la feature, basta con poner
@@ -83,7 +83,7 @@ export function ToolbarOpl(props: ToolbarOplProps) {
         <button
           type="button"
           data-testid="panel-opl-ai-text"
-          style={{ ...style.iconButton, ...style.iconButtonBeta }}
+          style={{ ...style.iconWord, ...style.iconButtonBeta }}
           title="AI Text · próximamente (beta)"
           aria-label="AI Text"
           data-beta="true"
@@ -100,7 +100,7 @@ export function ToolbarOpl(props: ToolbarOplProps) {
         aria-pressed={props.editorActivo}
         onClick={props.onEditarLibre}
       >
-        Editar
+        editar
       </button>
       <span style={style.divider} aria-hidden="true" />
 
@@ -122,7 +122,7 @@ export function ToolbarOpl(props: ToolbarOplProps) {
         title="Copiar todo el OPL al portapapeles"
         onClick={props.onCopiar}
       >
-        Copiar
+        copiar
       </button>
       <button
         type="button"
@@ -132,7 +132,17 @@ export function ToolbarOpl(props: ToolbarOplProps) {
         title="Exportar OPL como archivo HTML"
         onClick={props.onExportarHtml}
       >
-        HTML
+        html
+      </button>
+      <button
+        type="button"
+        data-testid="panel-opl-exportar"
+        style={botonToolbar(sinOraciones)}
+        disabled={sinOraciones}
+        title="Exportar OPL como archivo HTML"
+        onClick={props.onExportarHtml}
+      >
+        exportar
       </button>
       <span style={style.divider} aria-hidden="true" />
 
@@ -165,15 +175,17 @@ export function ToolbarOpl(props: ToolbarOplProps) {
           </button>
         </span>
       ) : (
-        <label style={style.toggle}>
-          <input
-            type="checkbox"
-            checked={props.filtroActivo}
-            data-testid="panel-opl-filtro-toggle"
-            onInput={(event) => props.onFiltroSeleccion((event.currentTarget as HTMLInputElement).checked)}
-          />
-          Filtrar por selección
-        </label>
+        <button
+          type="button"
+          role="button"
+          aria-label="Filtrar por selección"
+          aria-pressed={props.filtroActivo}
+          data-testid="panel-opl-filtro-toggle"
+          style={style.filterWord}
+          onClick={() => props.onFiltroSeleccion(true)}
+        >
+          filtrar por selección
+        </button>
       )}
     </div>
   );
@@ -184,7 +196,7 @@ function botonToolbar(disabled: boolean): preact.JSX.CSSProperties {
 }
 
 function botonActivo(activo: boolean): preact.JSX.CSSProperties {
-  return { ...style.iconButton, ...(activo ? style.iconButtonActivo : {}) };
+  return { ...style.wordButton, ...(activo ? style.wordButtonActivo : {}) };
 }
 
 // Ronda 28 L3: toolbar OPL Bauhaus.
@@ -209,24 +221,41 @@ const style = {
     margin: `0 ${tokens.spacing.xs}px`,
     background: tokens.colors.ink15,
   },
-  iconButton: {
-    minWidth: 30,
-    height: 28,
-    border: `${tokens.stroke.hairline}px solid ${tokens.colors.ink15}`,
-    borderRadius: tokens.radii.xs,
-    background: tokens.colors.paper,
+  iconWord: {
+    minWidth: 24,
+    height: 24,
+    border: "none",
+    borderRadius: 0,
+    background: "transparent",
     color: tokens.colors.ink,
     fontSize: tokens.typography.sizes.xs,
     fontWeight: tokens.typography.weights.medium,
-    padding: "4px 10px",
+    padding: "0 2px",
     cursor: "pointer",
     letterSpacing: 0,
     transition: tokens.transitions.fast,
   },
-  iconButtonActivo: {
-    borderColor: tokens.colors.ink,
-    background: tokens.colors.ink,
-    color: tokens.colors.paper,
+  wordButton: {
+    minWidth: 24,
+    height: 24,
+    border: "none",
+    borderRadius: 0,
+    background: "transparent",
+    color: tokens.colors.inkSoft,
+    fontFamily: tokens.typography.serif,
+    fontSize: tokens.typography.sizes.sm,
+    fontStyle: "italic",
+    fontWeight: tokens.typography.weights.regular,
+    padding: "0 2px",
+    cursor: "pointer",
+    letterSpacing: 0,
+    textDecoration: "none",
+    textUnderlineOffset: "3px",
+    transition: tokens.transitions.fast,
+  },
+  wordButtonActivo: {
+    color: tokens.colors.ink,
+    textDecoration: "underline",
   },
   iconButtonBeta: {
     opacity: 0.55,
@@ -265,16 +294,20 @@ const style = {
     fontFamily: "inherit",
   },
   toolbarBtn: {
-    height: 28,
-    border: `${tokens.stroke.hairline}px solid ${tokens.colors.ink15}`,
-    borderRadius: tokens.radii.xs,
-    background: tokens.colors.paper,
-    color: tokens.colors.ink,
-    fontSize: tokens.typography.sizes.xs,
-    fontWeight: tokens.typography.weights.medium,
-    padding: "4px 10px",
+    height: 24,
+    border: "none",
+    borderRadius: 0,
+    background: "transparent",
+    color: tokens.colors.inkMid,
+    fontFamily: tokens.typography.serif,
+    fontSize: tokens.typography.sizes.sm,
+    fontStyle: "italic",
+    fontWeight: tokens.typography.weights.regular,
+    padding: "0 2px",
     cursor: "pointer",
     whiteSpace: "nowrap" as const,
+    textDecoration: "underline",
+    textUnderlineOffset: "3px",
     transition: tokens.transitions.fast,
   },
   btnDisabled: { opacity: 0.4, cursor: "not-allowed" as const },
@@ -321,12 +354,20 @@ const style = {
     fontSize: tokens.typography.sizes.sm,
     lineHeight: 1,
   },
-  toggle: {
+  filterWord: {
+    height: 24,
+    border: "none",
+    background: "transparent",
+    padding: "0 2px",
     display: "inline-flex",
     alignItems: "center",
-    gap: 4,
-    color: tokens.colors.ink70,
+    color: tokens.colors.inkSoft,
+    cursor: "pointer",
+    fontFamily: tokens.typography.serif,
     fontSize: tokens.typography.sizes.sm,
+    fontStyle: "italic",
+    textDecoration: "none",
+    textUnderlineOffset: "3px",
     userSelect: "none" as const,
     whiteSpace: "nowrap" as const,
   },

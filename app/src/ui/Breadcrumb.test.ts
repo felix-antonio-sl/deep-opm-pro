@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { crearModelo } from "../modelo/operaciones";
 import type { Modelo } from "../modelo/tipos";
-import { BreadcrumbView, rutaBreadcrumbOpd } from "./Breadcrumb";
+import { BreadcrumbView, rutaBreadcrumbCodex, rutaBreadcrumbOpd } from "./Breadcrumb";
 import { tokens } from "./tokens";
 
 type Vnode = { type: unknown; props: Record<string, any> };
@@ -31,6 +31,26 @@ describe("Breadcrumb OPD", () => {
 
     expect(rutaBreadcrumbOpd(modelo, "missing")).toEqual([
       { id: "opd-1", nombre: "SD" },
+    ]);
+  });
+
+  test("expone la jerarquia Codex completa para la raiz", () => {
+    const modelo = modeloConRuta();
+
+    expect(rutaBreadcrumbCodex(modelo, "opd-1")).toEqual([
+      { id: "sistema", nombre: "sistema" },
+      { id: "system-diagram", nombre: "system diagram" },
+    ]);
+  });
+
+  test("agrega el OPD hijo despues de sistema y system diagram", () => {
+    const modelo = modeloConRuta();
+
+    expect(rutaBreadcrumbCodex(modelo, "opd-3")).toEqual([
+      { id: "sistema", nombre: "sistema" },
+      { id: "system-diagram", nombre: "system diagram" },
+      { id: "opd-2", nombre: "atencion hodom" },
+      { id: "opd-3", nombre: "visita" },
     ]);
   });
 

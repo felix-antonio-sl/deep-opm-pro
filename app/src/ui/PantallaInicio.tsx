@@ -57,16 +57,14 @@ export function PantallaInicio() {
       aria-label="Bienvenida deep-opm-pro"
       style={style.banner}
     >
-      <div style={style.copy}>
+      <p style={style.copy}>
         <strong style={style.titulo}>Estás viendo un ejemplo: System Diagram.</strong>
-        <span style={style.subtitulo}>
-          Empieza vacío o sembrá un modelo con el asistente cuando lo necesites.
-        </span>
-      </div>
+      </p>
       <div style={style.acciones}>
         <button type="button" style={style.botonPrimario} onClick={ejecutarAsistente}>
           Asistente guiado
         </button>
+        <span aria-hidden="true" style={style.separador}>·</span>
         <button type="button" style={style.botonSecundario} onClick={ejecutarNuevo}>
           Empezar vacío
         </button>
@@ -84,92 +82,100 @@ export function PantallaInicio() {
   );
 }
 
-// Ronda 28 L5: bienvenida Bauhaus — banner inline full-width arriba del
-// canvas, paper bg + border-bottom 1.5px ink, padding 16/24. Botones
-// alineados a la derecha [Asistente guiado] primario, [Empezar vacío]
-// secundario, [×] cerrar.
+// Codex v1.1: onboarding como nota editorial top-right del canvas, no como
+// banda full-width ni modal. Acciones = links tipográficos inline.
 const style = {
   banner: {
     position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
+    top: 14,
+    right: 16,
     zIndex: 5,
     display: "flex",
-    alignItems: "center",
-    gap: 16,
-    padding: "16px 24px",
+    alignItems: "baseline",
+    justifyContent: "flex-end",
+    gap: 10,
+    maxWidth: 390,
+    padding: 0,
     border: "none",
-    borderBottom: `${tokens.stroke.base}px solid ${tokens.colors.ink}`,
     borderRadius: 0,
-    background: tokens.colors.paper,
+    background: "transparent",
     boxShadow: "none",
     pointerEvents: "auto",
-    fontFamily: tokens.typography.familyChrome,
+    fontFamily: tokens.typography.serif,
+    fontSize: 12,
+    fontStyle: "italic",
+    color: tokens.colors.inkSoft,
   },
   copy: {
-    display: "flex",
-    flexDirection: "column",
-    gap: 2,
-    flex: 1,
+    margin: 0,
     minWidth: 0,
+    color: tokens.colors.inkSoft,
+    lineHeight: 1.35,
+    textAlign: "right",
   },
   titulo: {
-    color: tokens.colors.ink,
-    fontFamily: tokens.typography.familyChrome,
-    fontSize: 14,
-    fontWeight: 500,
-  },
-  subtitulo: {
-    color: tokens.colors.ink70,
-    fontFamily: tokens.typography.familyChrome,
-    fontSize: 13,
-    fontWeight: 400,
+    color: tokens.colors.inkSoft,
+    fontFamily: tokens.typography.serif,
+    fontSize: 12,
+    fontStyle: "italic",
+    fontWeight: tokens.typography.weights.regular,
   },
   acciones: {
     display: "flex",
     alignItems: "center",
-    gap: 8,
+    gap: 6,
     flexShrink: 0,
   },
+  separador: {
+    color: tokens.colors.inkFaint,
+    fontFamily: tokens.typography.serif,
+    fontSize: 12,
+    fontStyle: "normal",
+  },
   botonPrimario: {
-    minHeight: 32,
-    padding: "8px 18px",
-    border: `${tokens.stroke.base}px solid ${tokens.colors.ink}`,
+    minHeight: 24,
+    padding: 0,
+    border: "none",
     borderRadius: 0,
-    background: tokens.colors.ink,
-    color: tokens.colors.paper,
+    background: "transparent",
+    color: tokens.colors.crimson,
     cursor: "pointer",
-    fontFamily: tokens.typography.familyChrome,
-    fontSize: 13,
-    fontWeight: 500,
+    fontFamily: tokens.typography.serif,
+    fontSize: 12,
+    fontStyle: "italic",
+    fontWeight: tokens.typography.weights.regular,
+    textDecoration: "underline",
+    textUnderlineOffset: "3px",
     transition: tokens.transitions.fast,
   },
   botonSecundario: {
-    minHeight: 32,
-    padding: "8px 18px",
-    border: `${tokens.stroke.base}px solid ${tokens.colors.ink}`,
+    minHeight: 24,
+    padding: 0,
+    border: "none",
     borderRadius: 0,
-    background: tokens.colors.paper,
-    color: tokens.colors.ink,
+    background: "transparent",
+    color: tokens.colors.inkMid,
     cursor: "pointer",
-    fontFamily: tokens.typography.familyChrome,
-    fontSize: 13,
-    fontWeight: 500,
+    fontFamily: tokens.typography.serif,
+    fontSize: 12,
+    fontStyle: "italic",
+    fontWeight: tokens.typography.weights.regular,
+    textDecoration: "underline",
+    textUnderlineOffset: "3px",
     transition: tokens.transitions.fast,
   },
   botonCerrar: {
-    width: 32,
-    height: 32,
+    width: 24,
+    height: 24,
     display: "inline-flex",
     alignItems: "center",
     justifyContent: "center",
-    border: `1px solid ${tokens.colors.ink15}`,
+    border: "none",
     borderRadius: 0,
-    background: tokens.colors.paper,
-    color: tokens.colors.ink,
+    background: "transparent",
+    color: tokens.colors.inkSoft,
     cursor: "pointer",
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: 400,
     lineHeight: 1,
     transition: tokens.transitions.fast,

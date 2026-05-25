@@ -13,9 +13,15 @@ export function CodexFooterKey({ label, value }: CodexFooterKeyProps) {
   return (
     <span style={style.key}>
       <span style={style.label}>{label}</span>
-      <span style={style.value}>{value}</span>
+      <span style={style.value}>{valorFooterCodex(value)}</span>
     </span>
   );
+}
+
+export function valorFooterCodex(value: string): string {
+  if (value === "Edicion") return "Edición";
+  if (value === "Simulacion") return "Simulación";
+  return value;
 }
 
 /**
