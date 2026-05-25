@@ -16,6 +16,7 @@ export const MODELO_SLICE_CAPABILITIES = {
     "dialogoTraerConectadosAbierto",
     "gridConfig",
     "nuevaCosaPendiente",
+    "colisionPendiente",
   ],
   appFlow: [
     "limpiarMensaje",
@@ -54,6 +55,10 @@ export const MODELO_SLICE_CAPABILITIES = {
     "confirmarNombreNuevaCosa",
     "descartarNuevaCosaPendiente",
     "crearAparienciaEntidadEnCanvas",
+    "resolverColisionReutilizar",
+    "resolverColisionRenombrar",
+    "resolverColisionCancelar",
+    "irAUbicacionColision",
     "fijarModoCreacion",
     "renombrarSeleccionada",
     "crearAtributoEnObjetoSeleccionado",

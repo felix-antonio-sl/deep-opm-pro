@@ -10,6 +10,8 @@ import {
   cambiarTipoValorAtributo,
   configurarSimulacionAtributo,
   crearAtributoEnObjeto,
+  detectarColisionNombre,
+  eliminarEntidad,
   redimensionarApariencia,
   renombrarEntidad,
   volverAAutoTamano,
@@ -96,7 +98,32 @@ export function accionesEntidad(set: SetStore, get: GetStore): Partial<ModeloSli
     confirmarNombreNuevaCosa(nombre) {
       const pendiente = get().nuevaCosaPendiente;
       if (!pendiente) return;
-      const { modelo } = get();
+      const { modelo, opdActivoId } = get();
+
+      // B3: Detectar colisión antes de aplicar el nombre al objeto provisional.
+      const entidadProv = modelo.entidades[pendiente.entidadId];
+      const tipoProv = entidadProv?.tipo ?? "objeto";
+      const colision = detectarColisionNombre(modelo, nombre, tipoProv, pendiente.entidadId);
+      if (colision) {
+        // Hallar la posición de la apariencia provisional para reusar en resolución.
+        const aparienciasProv = Object.values(modelo.opds[opdActivoId]?.apariencias ?? {});
+        const apProv = aparienciasProv.find((a) => a.entidadId === pendiente.entidadId);
+        const posicion = apProv ? { x: apProv.x, y: apProv.y } : { x: 100, y: 100 };
+        // Suspender: no renombrar aún; abrir el diálogo de colisión.
+        set({
+          nuevaCosaPendiente: null,
+          colisionPendiente: {
+            contexto: "creacion",
+            tipo: tipoProv,
+            opdId: opdActivoId,
+            posicion,
+            colision,
+            entidadProvId: pendiente.entidadId,
+          },
+        });
+        return;
+      }
+
       const resultado = renombrarEntidad(modelo, pendiente.entidadId, nombre);
       if (!resultado.ok) {
         set({ mensaje: resultado.error });
@@ -187,6 +214,24 @@ export function accionesEntidad(set: SetStore, get: GetStore): Partial<ModeloSli
     renombrarSeleccionada(nombre) {
       const { modelo, seleccionId } = get();
       if (!seleccionId) return;
+
+      // B4: Detectar colisión antes de aplicar el rename.
+      const entidad = modelo.entidades[seleccionId];
+      if (entidad) {
+        const colision = detectarColisionNombre(modelo, nombre, entidad.tipo, seleccionId);
+        if (colision) {
+          // Suspender rename: abrir el diálogo de colisión.
+          set({
+            colisionPendiente: {
+              contexto: "rename",
+              entidadId: seleccionId,
+              colision,
+            },
+          });
+          return;
+        }
+      }
+
       const resultado = renombrarEntidad(modelo, seleccionId, nombre);
       if (resultado.ok) commitModelo(set, modelo, resultado.value, { mensaje: null });
       else set({ mensaje: resultado.error });
@@ -483,6 +528,134 @@ export function accionesEntidad(set: SetStore, get: GetStore): Partial<ModeloSli
       const { uiDescripcionesVisibles, modelo } = get();
       const descripcionesVisibles = !uiDescripcionesVisibles;
       set({ uiDescripcionesVisibles: descripcionesVisibles, modelo: { ...modelo } });
+    },
+
+    // ── Brecha B3/B4: resolución de colisión de nombre ───────────────────────
+
+    resolverColisionReutilizar() {
+      const { colisionPendiente, modelo } = get();
+      if (!colisionPendiente || colisionPendiente.contexto !== "creacion") {
+        set({ colisionPendiente: null });
+        return;
+      }
+      if (!colisionPendiente.colision.mismoTipo) {
+        set({ colisionPendiente: null, mensaje: "No se puede reutilizar una entidad de tipo diferente" });
+        return;
+      }
+      const { entidadProvId, colision, posicion } = colisionPendiente;
+      const eliminado = eliminarEntidad(modelo, entidadProvId);
+      if (!eliminado.ok) {
+        set({ colisionPendiente: null, mensaje: eliminado.error });
+        return;
+      }
+      const modeloBase = eliminado.value;
+      const opd = modeloBase.opds[colisionPendiente.opdId];
+      if (!opd) {
+        set({ colisionPendiente: null, mensaje: "El OPD de origen ya no existe" });
+        return;
+      }
+      const existenteEnOpd = aparienciaDeEntidadEnOpd(opd, colision.entidadExistenteId);
+      const siguiente: Modelo = existenteEnOpd
+        ? modeloBase
+        : {
+            ...modeloBase,
+            nextSeq: modeloBase.nextSeq + 1,
+            opds: {
+              ...modeloBase.opds,
+              [opd.id]: {
+                ...opd,
+                apariencias: {
+                  ...opd.apariencias,
+                  [`a-${modeloBase.nextSeq}`]: {
+                    id: `a-${modeloBase.nextSeq}`,
+                    entidadId: colision.entidadExistenteId,
+                    opdId: opd.id,
+                    x: Math.round(posicion.x),
+                    y: Math.round(posicion.y),
+                    width: CANON.dims.cosaWidth,
+                    height: CANON.dims.cosaHeight,
+                  },
+                },
+              },
+            },
+          };
+      commitModelo(set, modelo, siguiente, {
+        opdActivoId: opd.id,
+        seleccionId: colision.entidadExistenteId,
+        seleccionados: [colision.entidadExistenteId],
+        modoSeleccion: "simple",
+        enlaceSeleccionId: null,
+        modoEnlace: null,
+        nuevaCosaPendiente: null,
+        colisionPendiente: null,
+        mensaje: existenteEnOpd ? "La cosa existente ya aparece en este OPD" : null,
+      });
+      if (!existenteEnOpd) addFlash("✓ Apariencia creada");
+    },
+
+    resolverColisionRenombrar(nuevoNombre) {
+      const { colisionPendiente, modelo } = get();
+      if (!colisionPendiente) return;
+
+      if (colisionPendiente.contexto === "creacion") {
+        const { entidadProvId } = colisionPendiente;
+        set({ colisionPendiente: null });
+        // Aplicar el nuevo nombre a la entidad provisional ya existente.
+        const resultado = renombrarEntidad(modelo, entidadProvId, nuevoNombre);
+        if (!resultado.ok) {
+          set({ mensaje: resultado.error });
+          return;
+        }
+        commitModelo(set, modelo, resultado.value, {
+          seleccionId: entidadProvId,
+          seleccionados: [entidadProvId],
+          modoSeleccion: "simple",
+          enlaceSeleccionId: null,
+          modoEnlace: null,
+          mensaje: null,
+          nuevaCosaPendiente: null,
+          colisionPendiente: null,
+        });
+        addFlash(`✓ ${colisionPendiente.tipo === "objeto" ? "Objeto" : "Proceso"} creado`);
+        return;
+      }
+
+      if (colisionPendiente.contexto === "rename") {
+        const { entidadId } = colisionPendiente;
+        set({ colisionPendiente: null });
+        const resultado = renombrarEntidad(modelo, entidadId, nuevoNombre);
+        if (!resultado.ok) {
+          set({ mensaje: resultado.error });
+          return;
+        }
+        commitModelo(set, modelo, resultado.value, { mensaje: null });
+      }
+    },
+
+    resolverColisionCancelar() {
+      const { colisionPendiente, modelo } = get();
+      if (!colisionPendiente) return;
+      if (colisionPendiente.contexto === "creacion") {
+        // Eliminar la entidad provisional (fue creada pero el operador cancela).
+        const eliminado = eliminarEntidad(modelo, colisionPendiente.entidadProvId);
+        if (eliminado.ok) {
+          commitModelo(set, modelo, eliminado.value, {
+            seleccionId: null,
+            seleccionados: [],
+            modoSeleccion: "simple",
+            enlaceSeleccionId: null,
+            colisionPendiente: null,
+            mensaje: null,
+          });
+          return;
+        }
+      }
+      set({ colisionPendiente: null });
+    },
+
+    irAUbicacionColision(opdId) {
+      set({ colisionPendiente: null });
+      get().cambiarOpdActivo(opdId);
     },
   };
 }

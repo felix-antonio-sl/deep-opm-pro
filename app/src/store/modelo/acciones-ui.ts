@@ -55,6 +55,8 @@ export function accionesUI(set: SetStore, get: GetStore): Partial<ModeloSlice> {
     dialogoTraerConectadosAbierto: false,
     dialogoPlantillasAbierto: false,
     dialogoGuardarPlantillaAbierto: false,
+    // Brecha B3/B4: estado del diálogo de colisión de nombre. null = cerrado.
+    colisionPendiente: null,
 
     limpiarMensaje() {
       set({ mensaje: null });

@@ -155,6 +155,7 @@ import {
 import { exportarModelo, hidratarModelo } from "../serializacion/json";
 import type { Aviso } from "../modelo/validaciones";
 import type { AnclaRelojEnlace } from "../modelo/anclajesEnlace";
+import type { ColisionNombre } from "../modelo/operaciones";
 import type { Afiliacion, AnclajesSimboloEstructural, Apariencia, DesignacionEstado, DuracionTemporal, EnlaceEstilo, Esencia, EstiloApariencia, ExtremoEnlace, Id, ImagenEntidad, LayoutEstados, Modelo, Modificador, ModoDespliegueObjeto, ModoImagenEntidad, ModoPlegado, Opd, OperadorAbanico, OrdenPartesPlegado, ParametrosSimulacionEntidad, Pestana, PestanaId, PlantillaIndice, Posicion, SubtipoModificador, TipoEnlace, TipoEntidad, TipoValorSlot, UnidadTiempo, UrlObjetoTipada, UiPortapapelesVisual, ValorConcreto, VersionResumen } from "../modelo/tipos";
 import { mismaReferencia, type OplReferencia } from "../opl/interaccion";
 import type { EsenciaVisibilidad } from "../opl/opciones";
@@ -204,6 +205,26 @@ import {
 
 /** [Ronda 16 L2] Filtros disponibles en `DialogoBuscarCosas`. */
 export type BusquedaCosasFiltro = "todos" | "objetos" | "procesos" | "estados" | "enlaces";
+
+/**
+ * Brecha B3/B4: Intención suspendida ante colisión de nombre.
+ * Discriminado por `contexto`: "creacion" o "rename".
+ */
+export type ColisionPendiente =
+  | {
+      contexto: "creacion";
+      tipo: TipoEntidad;
+      opdId: Id;
+      posicion: Posicion;
+      colision: ColisionNombre;
+      /** Id de la entidad provisional ya creada (nombre default). El resolver la elimina o renombra. */
+      entidadProvId: Id;
+    }
+  | {
+      contexto: "rename";
+      entidadId: Id;
+      colision: ColisionNombre;
+    };
 
 /**
  * Discriminador del coproducto de selección (paquete "Estados ciudadanos de
@@ -268,6 +289,8 @@ export interface OpmStore {
    * al confirmar (renombrar) o descartar.
    */
   nuevaCosaPendiente: { entidadId: Id; aparienciaId: Id; nombre: string } | null;
+  /** Brecha B3/B4: diálogo de colisión de nombre abierto. `null` = cerrado. */
+  colisionPendiente: ColisionPendiente | null;
   filtroOplPorSeleccion: boolean;
   hoverOplRef: OplReferencia | null;
   busquedaOpl: string;
@@ -412,6 +435,14 @@ export interface OpmStore {
   /** Descarta `nuevaCosaPendiente` sin renombrar (Escape o cancel). */
   descartarNuevaCosaPendiente: () => void;
   crearAparienciaEntidadEnCanvas: (entidadId: Id, posicion: Posicion) => void;
+  /** Brecha B3/B4: Reutiliza la entidad existente creando una nueva aparición. Solo si contexto="creacion"+mismoTipo. */
+  resolverColisionReutilizar: () => void;
+  /** Brecha B3/B4: Renombra la provisional o la entidad seleccionada con el nuevo nombre. */
+  resolverColisionRenombrar: (nuevoNombre: string) => void;
+  /** Brecha B3/B4: Descarta la colisión sin crear ni renombrar. Limpia la provisional si es creación. */
+  resolverColisionCancelar: () => void;
+  /** Brecha B4: Navega al OPD indicado desde el diálogo de colisión. */
+  irAUbicacionColision: (opdId: Id) => void;
   fijarModoCreacion: (tipo: TipoEntidad | null) => void;
   descomponerSeleccionada: () => void;
   desplegarSeleccionada: (modo?: ModoDespliegueObjeto) => void;

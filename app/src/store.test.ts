@@ -1706,6 +1706,59 @@ describe("store HU-SHARED-002 undo granular comandos ronda 11", () => {
     expect(undoStackLength()).toBe(antes);
   });
 
+  test("confirmarNombreNuevaCosa suspende colisión y reutilizar selecciona la existente si ya aparece en el OPD", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 60, y: 60 }, "Sensor"));
+    store.getState().importarJson(exportarModelo(modelo));
+    const sensorId = entidadPorNombre(store.getState().modelo, "Sensor");
+
+    store.getState().crearEntidadEnCanvas("objeto", { x: 240, y: 120 });
+    const provisionalId = store.getState().nuevaCosaPendiente?.entidadId;
+    expect(provisionalId).toBeTruthy();
+
+    store.getState().confirmarNombreNuevaCosa("Sensor");
+    expect(store.getState().colisionPendiente?.contexto).toBe("creacion");
+    expect(store.getState().nuevaCosaPendiente).toBeNull();
+    expect(store.getState().modelo.entidades[provisionalId!]).toBeDefined();
+
+    store.getState().resolverColisionReutilizar();
+    expect(store.getState().colisionPendiente).toBeNull();
+    expect(store.getState().modelo.entidades[provisionalId!]).toBeUndefined();
+    expect(Object.values(store.getState().modelo.opds[modelo.opdRaizId]?.apariencias ?? {}).filter((ap) => ap.entidadId === sensorId)).toHaveLength(1);
+    expect(store.getState().seleccionId).toBe(sensorId);
+  });
+
+  test("confirmarNombreNuevaCosa permite resolver colisión con nombre alternativo", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 60, y: 60 }, "Sensor"));
+    store.getState().importarJson(exportarModelo(modelo));
+
+    store.getState().crearEntidadEnCanvas("objeto", { x: 240, y: 120 });
+    const provisionalId = store.getState().nuevaCosaPendiente?.entidadId;
+    if (!provisionalId) throw new Error("La prueba esperaba entidad provisional");
+
+    store.getState().confirmarNombreNuevaCosa("Sensor");
+    store.getState().resolverColisionRenombrar("Sensor auxiliar");
+
+    expect(store.getState().colisionPendiente).toBeNull();
+    expect(store.getState().nuevaCosaPendiente).toBeNull();
+    expect(store.getState().modelo.entidades[provisionalId]?.nombre).toBe("Sensor auxiliar");
+  });
+
+  test("renombrarSeleccionada suspende colisión sin cambiar el nombre existente", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 60, y: 60 }, "Sensor"));
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 220, y: 60 }, "Bomba"));
+    store.getState().importarJson(exportarModelo(modelo));
+    const bombaId = entidadPorNombre(store.getState().modelo, "Bomba");
+
+    store.getState().seleccionarEntidad(bombaId);
+    store.getState().renombrarSeleccionada("Sensor");
+
+    expect(store.getState().colisionPendiente?.contexto).toBe("rename");
+    expect(store.getState().modelo.entidades[bombaId]?.nombre).toBe("Bomba");
+  });
+
   test("conectarSeleccionAlTodo emite un solo push en undoStack.length (verificación cruzada)", () => {
     const { aId, bId, cId } = montarTresObjetosConDosEnlaces(false);
     if (!aId || !bId || !cId) throw new Error("La prueba esperaba tres entidades");

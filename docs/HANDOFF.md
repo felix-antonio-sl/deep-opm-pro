@@ -1,18 +1,39 @@
 # HANDOFF — Estado operativo del modelador OPM
 
 **Fecha**: 2026-05-26 · **Repositorio**: `deep-opm-pro` · **Rama**: `main`
-**Commit de producto desplegado**: cierre actual `fix(ui): repone capturador y scroll canvas`; consultar `git log -1 --oneline` para el hash final tras push.
+**Commit de producto desplegado**: cierre actual `feat(store): integra resolucion de colisiones de nombre`; consultar `git log -1 --oneline` para el hash final tras push.
 **Commit documental de handoff**: este documento forma parte del mismo commit atomico de cierre.
 **Instancia**: `https://opforja.sanixai.com` — bundle **Tier 1 + capturador/scroll canvas** desplegado con `docker compose up -d --build`; contenedores `opforja` (healthy) + `opforja-bug-capture`, **HTTP 200 publico** (sin auth, ver Riesgos).
 
-## Corte actual — Tier 1 + recuperacion operativa capturador/scroll
+## Corte actual — resolucion base de colisiones de nombre + captura viva
+
+Se consolida el siguiente incremento sobre `main`: el capturador sigue escribiendo artefactos versionables en `docs/bugs/` y el flujo de nombres duplicados deja de caer en error seco. La deteccion pura ya integrada se conecta ahora con estado suspendido, resolutores y un dialogo Codex minimo.
+
+**Decisiones aplicadas:**
+- Si una creacion inline intenta usar un nombre canonico existente, la operacion queda suspendida en `colisionPendiente` y se abre `DialogoColisionNombre`.
+- En creacion con mismo tipo, `Reutilizar` elimina la entidad provisional y crea una nueva aparicion de la entidad existente en la posicion original, en un commit undo atomico.
+- En creacion o rename, `Usar otro nombre` aplica `renombrarEntidad`; si el nuevo nombre sigue siendo invalido, se preserva el mensaje de dominio.
+- En cancelacion de creacion suspendida, la entidad provisional se elimina para no dejar basura semantica.
+- El bug vivo `BUG-20260525T233828Z-895504` queda registrado como pendiente de auditoria de barra superior.
+
+**Artefactos relevantes:**
+- `app/src/store/modelo/acciones-entidad.ts`, `acciones-ui.ts`, `contrato.ts`, `store/tipos.ts` — estado y resolutores de colision.
+- `app/src/ui/DialogoColisionNombre.tsx`, `App.tsx` — UI modal tipografica sin chrome pesado.
+- `app/src/store.test.ts` — regresiones de suspension, reuso, renombrado alternativo y rename sin mutacion prematura.
+- `docs/bugs/BUG-20260525T233828Z-895504/`, `docs/bugs/INDEX.md`, `docs/bugs/HISTORY.md` — artefacto capturado por operador.
+
+**Pendientes derivados:**
+- Reauditar visualmente la barra superior con el bug nuevo y decidir si se resuelve con ajuste de diseño o se marca no-defecto contra `ui-forja`.
+- Si el dialogo de colision crece, extraer un puerto/viewmodel dedicado; por ahora el acoplamiento directo a store mantiene el corte pequeno.
+
+## Corte anterior — Tier 1 + recuperacion operativa capturador/scroll
 
 Se llevo la rama `feat/cierre-brechas-tier1` a `main` con dos bloques cerrados: preferencias de visibilidad de esencia en OPL y recuperacion operativa del capturador de bugs/desplazamiento nativo del canvas.
 
 **Decisiones aplicadas:**
 - La OPL mantiene una forma canonica interna/roundtrip completa, pero el panel puede ocultar oraciones de esencia desde Configuracion (`oplEsenciaVisibilidad`) para lectura editorial.
 - La preferencia de visibilidad de esencia se aplica al Guardar en Configuracion, siguiendo el contrato ya usado por grilla/modos visuales.
-- `detectarColisionNombre` queda como helper puro del modelo para identificar colisiones por nombre, tipo y ubicaciones. La UI completa de resolucion de colisiones queda fuera de este corte hasta integracion deliberada.
+- `detectarColisionNombre` queda como helper puro del modelo para identificar colisiones por nombre, tipo y ubicaciones. La UI completa de resolucion de colisiones se integro en el corte siguiente.
 - Se repusieron accesos visibles del capturador de bugs (`bug-capture-open`, `bug-ledger-open`) ademas de `Ctrl+Alt+B` y command palette.
 - El viewport real de JointJS vuelve a `overflow: auto`, recuperando desplazamiento nativo por canvas; el pan/zoom y centrado programatico siguen funcionando sobre el mismo viewport.
 - Se actualizo la auditoria visual e2e para reflejar que capturador visible y scroll nativo son comportamiento esperado, no regresion visual.
@@ -33,7 +54,7 @@ Se llevo la rama `feat/cierre-brechas-tier1` a `main` con dos bloques cerrados: 
 - `git diff --check` -> OK.
 - `cd app && bunx playwright test e2e/10-capturador-bugs.spec.ts e2e/27-visual-compliance-25-05.spec.ts e2e/21-estado-vacio-opm.spec.ts` -> verde.
 
-**Estado local al cierre:** no stagear automaticamente `docs/auditorias/inclumplimiento-visual-25-05-2026.md`, `docs/manual-simulado-opcloud-capacidades.md`, ni los borradores de UI de colision de nombre si reaparecen sin integracion (`DialogoColisionNombre`, `colisionPendiente`, acciones resolver colision). Son trabajo aparte.
+**Estado local al cierre:** no stagear automaticamente `docs/auditorias/inclumplimiento-visual-25-05-2026.md` ni `docs/manual-simulado-opcloud-capacidades.md`; contienen cambios previos/no relacionados con este commit de producto.
 
 **Pendientes derivados:**
 - Integrar de punta a punta el flujo de colision de nombre: store actions, modal, reuso por aparicion, rename sin fusion y navegacion a ubicaciones.

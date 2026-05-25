@@ -393,6 +393,10 @@ export function estadoModelo(modelo: Modelo, extra: Partial<OpmStore> = {}): Par
     puedeDeshacer: undoStack.length > 0,
     puedeRehacer: redoStack.length > 0,
     ...(pestanasAbiertas ? { pestanasAbiertas } : {}),
+    // Brechas B3/B4: al cargar/reemplazar modelo, limpiar cualquier diálogo de colisión
+    // o creación pendiente que pudiera haber quedado abierto.
+    colisionPendiente: null,
+    nuevaCosaPendiente: null,
     ...extra,
   };
 }
