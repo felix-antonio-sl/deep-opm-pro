@@ -1,4 +1,5 @@
-import type { Id } from "../../modelo/tipos";
+import type { Id, Modelo } from "../../modelo/tipos";
+import { construirArbol } from "../../ui/arbol/togglesArbol";
 import { APP_FEATURES } from "../features";
 
 export interface ShortcutRegistration {
@@ -15,6 +16,14 @@ export interface ShortcutRegistration {
 export type ShortcutRegistrar = (registro: ShortcutRegistration) => () => void;
 
 export interface GlobalShortcutsSnapshot {
+  /**
+   * Ronda Codex v2 L5: navegación directa por número (⌘/Ctrl+1..9). El
+   * snapshot ya expone el store completo; tipamos `modelo`, `opdActivoId` y
+   * `cambiarOpdActivo` para resolver el OPD destino por índice del árbol.
+   */
+  modelo: Modelo;
+  opdActivoId: Id;
+  cambiarOpdActivo: (id: Id) => void;
   enlaceSeleccionId: Id | null;
   /**
    * Paquete "Estados ciudadanos de primera clase" (2026-05-23): tercer
@@ -138,6 +147,14 @@ export function registrarAtajosAplicacion(port: GlobalShortcutsPort, registrarAt
     if (state.autoAvanceSimulacionActivo) state.pausarAutoAvanceSimulacion();
     else state.iniciarAutoAvanceSimulacion();
   };
+  // Ronda Codex v2 L5: ⌘/Ctrl+1 → SD raíz; ⌘/Ctrl+2..9 → SDN siguientes en el
+  // orden de despliegue del árbol OPD (mismo orden que muestra `ArbolOpd`).
+  const navegarAOpdPorIndice = (indice: number) => () => {
+    const state = s();
+    const ordenados = opdsEnOrdenDeArbol(state.modelo);
+    const destino = ordenados[indice];
+    if (destino && destino !== state.opdActivoId) state.cambiarOpdActivo(destino);
+  };
   const cerrarModalSuperiorOVaciarSeleccion = () => {
     const state = s();
     if (state.nuevaCosaPendiente) return state.descartarNuevaCosaPendiente();
@@ -237,6 +254,17 @@ export function registrarAtajosAplicacion(port: GlobalShortcutsPort, registrarAt
     registrarAtajo({ combo: "Ctrl+ArrowDown", ctx: "global", categoria: "navegacion", descripcion: "Ir al OPD hermano siguiente", handler: () => s().navegarOpdAbajo() }),
     registrarAtajo({ combo: "Ctrl+ArrowLeft", ctx: "global", categoria: "navegacion", descripcion: "Ir al OPD padre", handler: () => s().navegarOpdIzquierda() }),
     registrarAtajo({ combo: "Ctrl+ArrowRight", ctx: "global", categoria: "navegacion", descripcion: "Ir al primer OPD hijo", handler: () => s().navegarOpdDerecha() }),
+    // Ronda Codex v2 L5 (05-interactions §1 navegación, §9 NAVEGAR): salto
+    // directo por número. ⌘1 = SD raíz; ⌘2..9 = SDN en orden del árbol.
+    registrarAtajo({ combo: "Ctrl+1", ctx: "global", categoria: "navegacion", descripcion: "Ir al SD raíz", descripcionLarga: "Activa el diagrama raíz (SD) del modelo", handler: navegarAOpdPorIndice(0) }),
+    registrarAtajo({ combo: "Ctrl+2", ctx: "global", categoria: "navegacion", descripcion: "Ir al 2.º OPD del árbol", descripcionLarga: "Activa el segundo OPD en orden del árbol", handler: navegarAOpdPorIndice(1) }),
+    registrarAtajo({ combo: "Ctrl+3", ctx: "global", categoria: "navegacion", descripcion: "Ir al 3.º OPD del árbol", descripcionLarga: "Activa el tercer OPD en orden del árbol", handler: navegarAOpdPorIndice(2) }),
+    registrarAtajo({ combo: "Ctrl+4", ctx: "global", categoria: "navegacion", descripcion: "Ir al 4.º OPD del árbol", descripcionLarga: "Activa el cuarto OPD en orden del árbol", handler: navegarAOpdPorIndice(3) }),
+    registrarAtajo({ combo: "Ctrl+5", ctx: "global", categoria: "navegacion", descripcion: "Ir al 5.º OPD del árbol", descripcionLarga: "Activa el quinto OPD en orden del árbol", handler: navegarAOpdPorIndice(4) }),
+    registrarAtajo({ combo: "Ctrl+6", ctx: "global", categoria: "navegacion", descripcion: "Ir al 6.º OPD del árbol", descripcionLarga: "Activa el sexto OPD en orden del árbol", handler: navegarAOpdPorIndice(5) }),
+    registrarAtajo({ combo: "Ctrl+7", ctx: "global", categoria: "navegacion", descripcion: "Ir al 7.º OPD del árbol", descripcionLarga: "Activa el séptimo OPD en orden del árbol", handler: navegarAOpdPorIndice(6) }),
+    registrarAtajo({ combo: "Ctrl+8", ctx: "global", categoria: "navegacion", descripcion: "Ir al 8.º OPD del árbol", descripcionLarga: "Activa el octavo OPD en orden del árbol", handler: navegarAOpdPorIndice(7) }),
+    registrarAtajo({ combo: "Ctrl+9", ctx: "global", categoria: "navegacion", descripcion: "Ir al 9.º OPD del árbol", descripcionLarga: "Activa el noveno OPD en orden del árbol", handler: navegarAOpdPorIndice(8) }),
     registrarAtajo({ combo: "Shift+I", ctx: "canvas", categoria: "edicion", descripcion: "Crear inzoom de la cosa seleccionada", handler: () => s().descomponerSeleccionada() }),
     registrarAtajo({ combo: "Shift+U", ctx: "canvas", categoria: "edicion", descripcion: "Desplegar selección", descripcionLarga: "Crea un OPD desplegado a partir de la cosa seleccionada", handler: () => s().desplegarSeleccionada() }),
     registrarAtajo({ combo: "Ctrl+Shift+C", ctx: "canvas", categoria: "edicion", descripcion: "Copiar formato de enlace seleccionado", handler: copiarEstiloEnlace }),
@@ -255,6 +283,23 @@ export function registrarAtajosAplicacion(port: GlobalShortcutsPort, registrarAt
   }
 
   return registrosBase;
+}
+
+/**
+ * Ronda Codex v2 L5: aplana el árbol OPD a la lista de IDs en orden de
+ * despliegue (DFS pre-orden), idéntico al recorrido visual de `ArbolOpd`.
+ * El índice 0 es siempre el SD raíz. Exportada para test.
+ */
+export function opdsEnOrdenDeArbol(modelo: Modelo): Id[] {
+  const ids: Id[] = [];
+  const visitar = (nodos: ReturnType<typeof construirArbol>): void => {
+    for (const nodo of nodos) {
+      ids.push(nodo.opd.id);
+      visitar(nodo.hijos);
+    }
+  };
+  visitar(construirArbol(modelo));
+  return ids;
 }
 
 function cambiarPestanaRelativa(snapshot: () => GlobalShortcutsSnapshot, delta: 1 | -1): void {

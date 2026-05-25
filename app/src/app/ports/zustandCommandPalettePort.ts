@@ -25,6 +25,24 @@ export function useZustandCommandPalettePort(): CommandPalettePort {
   const exportarJson = useOpmStore((s) => s.exportarJson);
   const frecuenciaUso = useOpmStore((s) => s.frecuenciaUsoCommandPalette);
   const registrarUsoCommandPalette = useOpmStore((s) => s.registrarUsoCommandPalette);
+  // Ronda Codex v2 L5: acciones absorbidas desde el `MenuPrincipal` lateral
+  // (retirado). El palette pasa a ser superset de aquel menú.
+  const iniciarAsistente = useOpmStore((s) => s.iniciarAsistente);
+  const abrirPestanaNueva = useOpmStore((s) => s.abrirPestanaNueva);
+  const abrirBusquedaCosas = useOpmStore((s) => s.abrirBusquedaCosas);
+  const abrirBusquedaGlobal = useOpmStore((s) => s.abrirDialogoBuscarGlobal);
+  const abrirModalUrls = useOpmStore((s) => s.abrirModalUrls);
+  const uiAliasVisibles = useOpmStore((s) => s.uiAliasVisibles);
+  const toggleAliasVisibles = useOpmStore((s) => s.toggleAliasVisibles);
+  const uiDescripcionesVisibles = useOpmStore((s) => s.uiDescripcionesVisibles);
+  const toggleDescripcionesVisibles = useOpmStore((s) => s.toggleDescripcionesVisibles);
+  const uiModoImagenGlobal = useOpmStore((s) => s.uiModoImagenGlobal);
+  const fijarModoImagenGlobal = useOpmStore((s) => s.fijarModoImagenGlobal);
+  const abrirModalImagen = useOpmStore((s) => s.abrirModalImagen);
+  const mostrarArchivados = useOpmStore((s) => s.mostrarArchivados);
+  const toggleMostrarArchivados = useOpmStore((s) => s.toggleMostrarArchivados);
+  const mostrarVersiones = useOpmStore((s) => s.mostrarVersiones);
+  const toggleMostrarVersiones = useOpmStore((s) => s.toggleMostrarVersiones);
 
   return {
     modelo,
@@ -50,5 +68,21 @@ export function useZustandCommandPalettePort(): CommandPalettePort {
     exportarJson,
     frecuenciaUso,
     registrarUsoCommandPalette,
+    iniciarAsistente,
+    abrirPestanaNueva,
+    abrirBusquedaCosas,
+    abrirBusquedaGlobal,
+    abrirModalUrls,
+    uiAliasVisibles,
+    toggleAliasVisibles,
+    uiDescripcionesVisibles,
+    toggleDescripcionesVisibles,
+    uiModoImagenGlobal,
+    fijarModoImagenGlobal,
+    abrirModalImagen,
+    mostrarArchivados,
+    toggleMostrarArchivados,
+    mostrarVersiones,
+    toggleMostrarVersiones,
   };
 }

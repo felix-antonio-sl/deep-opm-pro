@@ -45,7 +45,6 @@ import { PantallaInicio } from "./PantallaInicio";
 // L2 ronda 21: viewport-aware layout — el grid desktop coexiste con el modo
 // revisión mobile (tabs inferiores) y tablet (drawers). Ver `layoutResponsive`.
 import { useBreakpoint } from "./layoutResponsive";
-import { MenuPrincipal } from "./MenuPrincipal";
 import { MensajeFlashBridge } from "./MensajeFlashBridge";
 import { ModoRevisionMobile, AvisoEditarEnEscritorio } from "./ModoRevisionMobile";
 import { PanelDiagnostico } from "./PanelDiagnostico";
@@ -182,7 +181,6 @@ export function App() {
         {esMobile ? (
           <>
             {contextoWorkbench.modo === "simulacion" ? <BarraSimulacion /> : <Toolbar />}
-            <MenuPrincipal />
             <BarraPestanas />
             <section
               data-testid="mobile-revision-section"
@@ -228,21 +226,19 @@ export function App() {
           </>
         ) : (
           /*
-            Ronda Codex v2 L2 — HANDOFF L5 (prep, NO ejecutado aquí): el
-            `MenuPrincipal` sigue montado porque hoy es la única superficie que
-            expone Guardar/Nuevo/Cargar (spec 01 depende de él). L5 debe, en un
-            solo paso: (a) cablear el botón ☰ al command palette, (b) reemplazar
-            `menu={<MenuPrincipal/>}` por `menu={null}` o por el trigger del
-            palette, y (c) migrar los specs que abren el menú (`01` save/load,
-            `04` "mapa retirado") al palette. Quitarlo antes de (a) dejaría las
-            acciones de workspace sin ruta — por eso L2 NO lo desmonta.
+            Ronda Codex v2 L5 (CRÍT-Comandos, ejecutado): el `MenuPrincipal`
+            lateral se retiró. El command palette `⌘K` es la vía ÚNICA de
+            comandos; el botón ☰ lo invoca (ver `ToolbarBase`), y el palette es
+            ahora superset de las acciones que antes vivían en el menú lateral
+            (Guardar/Nuevo/Cargar/Plantillas/Exportar/Vista/Workspace). El prop
+            `menu` de `CodexFrame` ya no recibe superficie paralela.
           */
           <CodexFrame
             leftWidth={anchoPanelArbol}
             rightWidth={anchoInspectorLayout}
             isTablet={esTablet}
             toolbar={contextoWorkbench.modo === "simulacion" ? <BarraSimulacion /> : <Toolbar />}
-            menu={<MenuPrincipal />}
+            menu={null}
             tabs={<BarraPestanas />}
             breadcrumb={<Breadcrumb />}
             meta={<ChromeMetaCodex oraciones={oracionesOpl} dirty={dirtyModelo} />}

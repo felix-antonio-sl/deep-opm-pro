@@ -3,7 +3,9 @@ import { useCommandPaletteViewModel } from "../app/viewmodels/commandPaletteView
 import type { AccionContextual, AccionContextualId } from "../store/acciones-contextuales";
 import { accionesContextualesEntidad, accionesParaSuperficie } from "../store/acciones-contextuales";
 import { listarAtajos, type RegistroAtajo } from "./atajosTeclado";
+import { descargarOpdActualSvg } from "../render/jointjs/mapaExport";
 import { primerEnlaceVisualDeEntidad } from "./BarraHerramientasElemento";
+import { useCanvasPaper } from "./CanvasAdapterContext";
 import { useConfirmarSiDirty } from "./ConfirmacionContext";
 import {
   GLIFO_CMD,
@@ -16,6 +18,7 @@ import {
 } from "./codex/glifos";
 import { ejecutarAccionContextualEntidad } from "./ejecutarAccionContextual";
 import { tokens } from "./tokens";
+import { etiquetaModoGlobal, siguienteModoGlobal } from "./toolbar/toolbarStyles";
 
 interface Props {
   abierto: boolean;
@@ -59,15 +62,27 @@ const seccionesPorAccionMenu: Readonly<Record<string, CommandPaletteSeccion>> = 
   "nuevo-modelo": "MODELO",
   "abrir-importar": "MODELO",
   "guardar-como": "MODELO",
+  "abrir-pestana": "MODELO",
   configuracion: "MODELO",
   "guardar-plantilla": "MODELO",
   plantillas: "MODELO",
   "versiones-modelo": "MODELO",
+  "asistente-guiado": "ASISTENTE",
+  "buscar-modelo": "NAVEGAR",
+  "buscar-workspace": "NAVEGAR",
   "exportar-json": "EXPORTAR",
+  "exportar-svg": "EXPORTAR",
   "simulacion-conceptual": "VISTA",
   "grid-canvas": "VISTA",
+  "alias-visibles": "VISTA",
+  "descripciones-visibles": "VISTA",
+  "modo-imagen-global": "VISTA",
+  "editar-imagen-objeto": "VISTA",
   "auto-layout": "VISTA",
   "tabla-enlaces": "VISTA",
+  "urls-objeto": "VISTA",
+  "mostrar-archivados": "VISTA",
+  "mostrar-versiones": "VISTA",
   "atajos-teclado": "VISTA",
 };
 
@@ -76,6 +91,7 @@ export function CommandPalette({ abierto, onCerrar }: Props) {
   const [activo, setActivo] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
   const confirmarSiDirty = useConfirmarSiDirty();
+  const canvasPaper = useCanvasPaper();
   const {
     modelo,
     opdActivoId,
@@ -99,8 +115,25 @@ export function CommandPalette({ abierto, onCerrar }: Props) {
     frecuenciaUso,
     registrarUsoCommandPalette,
     exportarJsonAlPortapapeles,
+    iniciarAsistente,
+    abrirPestanaNueva,
+    abrirBusquedaCosas,
+    abrirBusquedaGlobal,
+    abrirModalUrls,
+    uiAliasVisibles,
+    toggleAliasVisibles,
+    uiDescripcionesVisibles,
+    toggleDescripcionesVisibles,
+    uiModoImagenGlobal,
+    fijarModoImagenGlobal,
+    abrirModalImagen,
+    mostrarArchivados,
+    toggleMostrarArchivados,
+    mostrarVersiones,
+    toggleMostrarVersiones,
   } = useCommandPaletteViewModel();
 
+  const objetoSeleccionadoId = seleccionId && modelo.entidades[seleccionId]?.tipo === "objeto" ? seleccionId : null;
   const entidad = seleccionId ? modelo.entidades[seleccionId] ?? null : null;
   const enlaceEstiloId = entidad ? primerEnlaceVisualDeEntidad(modelo, opdActivoId, entidad.id) : null;
   const accionesContextuales = accionesParaSuperficie(
@@ -129,6 +162,24 @@ export function CommandPalette({ abierto, onCerrar }: Props) {
     abrirTablaEnlaces,
     abrirCheatsheetAtajos,
     exportarJson: exportarJsonAlPortapapeles,
+    exportarOpdSvg: canvasPaper ? () => { void descargarOpdActualSvg(canvasPaper, modelo, opdActivoId); } : null,
+    iniciarAsistente,
+    abrirPestanaNueva,
+    abrirBusquedaCosas,
+    abrirBusquedaGlobal,
+    abrirUrlsObjeto: objetoSeleccionadoId ? () => abrirModalUrls(objetoSeleccionadoId) : null,
+    editarImagenObjeto: objetoSeleccionadoId ? () => abrirModalImagen(objetoSeleccionadoId) : null,
+    toggleAliasVisibles,
+    aliasVisibles: uiAliasVisibles,
+    toggleDescripcionesVisibles,
+    descripcionesVisibles: uiDescripcionesVisibles,
+    ciclarModoImagenGlobal: () => fijarModoImagenGlobal(siguienteModoGlobal(uiModoImagenGlobal)),
+    etiquetaModoImagenGlobal: etiquetaModoGlobal(uiModoImagenGlobal),
+    modoImagenGlobalActivo: uiModoImagenGlobal !== null,
+    toggleMostrarArchivados,
+    mostrarArchivados,
+    toggleMostrarVersiones,
+    mostrarVersiones,
   });
   const registros = listarAtajos();
   const items = filtrarItemsCommandPalette(
@@ -382,6 +433,25 @@ interface AccionesMenuCommandPaletteDeps {
   abrirTablaEnlaces: () => void;
   abrirCheatsheetAtajos: () => void;
   exportarJson: () => void;
+  exportarOpdSvg: (() => void) | null;
+  // Ronda Codex v2 L5: acciones absorbidas del `MenuPrincipal` lateral retirado.
+  iniciarAsistente: () => void;
+  abrirPestanaNueva: () => void;
+  abrirBusquedaCosas: () => void;
+  abrirBusquedaGlobal: () => void;
+  abrirUrlsObjeto: (() => void) | null;
+  editarImagenObjeto: (() => void) | null;
+  toggleAliasVisibles: () => void;
+  aliasVisibles: boolean;
+  toggleDescripcionesVisibles: () => void;
+  descripcionesVisibles: boolean;
+  ciclarModoImagenGlobal: () => void;
+  etiquetaModoImagenGlobal: string;
+  modoImagenGlobalActivo: boolean;
+  toggleMostrarArchivados: () => void;
+  mostrarArchivados: boolean;
+  toggleMostrarVersiones: () => void;
+  mostrarVersiones: boolean;
 }
 
 function construirAccionesMenuCommandPalette(deps: AccionesMenuCommandPaletteDeps): CommandPaletteMenuAction[] {
@@ -389,15 +459,27 @@ function construirAccionesMenuCommandPalette(deps: AccionesMenuCommandPaletteDep
     { id: "nuevo-modelo", label: "Nuevo modelo", descripcion: "Crear un modelo vacío", categoria: "archivo", run: deps.nuevoModelo },
     { id: "abrir-importar", label: "Abrir / importar modelo", descripcion: "Abrir modelos guardados, archivados, ejemplos o JSON", categoria: "archivo", run: deps.abrirCargarModelo },
     { id: "guardar-como", label: "Guardar como", descripcion: "Guardar una copia editable del modelo", categoria: "archivo", run: deps.abrirGuardarComo },
+    { id: "abrir-pestana", label: "Abrir como pestaña", descripcion: "Duplicar el modelo actual en una pestaña adicional", categoria: "archivo", atajo: "Ctrl+T", run: deps.abrirPestanaNueva },
     { id: "configuracion", label: "Configuración", descripcion: "Renombrar modelo y ajustar cuadrícula", categoria: "archivo", run: deps.abrirDialogoConfiguracion },
+    { id: "asistente-guiado", label: "Asistente guiado", descripcion: "Crear un modelo paso a paso con el asistente", categoria: "archivo", run: deps.iniciarAsistente },
     { id: "guardar-plantilla", label: "Guardar como plantilla", descripcion: "Crear una plantilla privada desde la selección", categoria: "archivo", run: deps.abrirDialogoGuardarPlantilla },
     { id: "plantillas", label: "Plantillas", descripcion: "Abrir el catálogo de plantillas privadas", categoria: "archivo", run: deps.abrirDialogoPlantillas },
     { id: "versiones-modelo", label: "Versiones del modelo", descripcion: "Abrir el historial de versiones del modelo", categoria: "archivo", enabled: !!deps.abrirDialogoVersiones, run: deps.abrirDialogoVersiones ?? (() => {}) },
+    { id: "buscar-modelo", label: "Buscar en el modelo", descripcion: "Buscar objetos y procesos por nombre en el modelo activo", categoria: "navegacion", atajo: "Ctrl+F", run: deps.abrirBusquedaCosas },
+    { id: "buscar-workspace", label: "Buscar en el workspace", descripcion: "Buscar en todos los modelos guardados del workspace", categoria: "navegacion", atajo: "Ctrl+Shift+F", run: deps.abrirBusquedaGlobal },
     { id: "exportar-json", label: "Exportar JSON al portapapeles", descripcion: "Copiar el JSON OPM actual al portapapeles", categoria: "archivo", run: deps.exportarJson },
+    ...(deps.exportarOpdSvg ? [{ id: "exportar-svg", label: "Exportar OPD actual como SVG", descripcion: "Descargar el OPD activo como imagen SVG", categoria: "archivo", run: deps.exportarOpdSvg }] : []),
     { id: "simulacion-conceptual", label: "Simulación conceptual", descripcion: "Entrar al modo de simulación del modelo", categoria: "vista", run: deps.iniciarModoSimulacion },
     { id: "grid-canvas", label: deps.gridActiva ? "Ocultar cuadrícula del canvas" : "Mostrar cuadrícula del canvas", descripcion: "Alternar la cuadrícula visual del canvas", categoria: "vista", run: deps.toggleGrid },
+    { id: "alias-visibles", label: deps.aliasVisibles ? "Ocultar alias" : "Mostrar alias", descripcion: "Alternar la visibilidad de los alias de las cosas", categoria: "vista", run: deps.toggleAliasVisibles },
+    { id: "descripciones-visibles", label: deps.descripcionesVisibles ? "Ocultar descripciones" : "Mostrar descripciones", descripcion: "Alternar la visibilidad de las descripciones de las cosas", categoria: "vista", run: deps.toggleDescripcionesVisibles },
+    { id: "modo-imagen-global", label: `Imagen: ${deps.etiquetaModoImagenGlobal}`, descripcion: "Ciclar el modo de imagen global de los objetos", categoria: "vista", run: deps.ciclarModoImagenGlobal },
+    ...(deps.editarImagenObjeto ? [{ id: "editar-imagen-objeto", label: "Editar imagen del objeto", descripcion: "Editar la imagen del objeto seleccionado", categoria: "vista", run: deps.editarImagenObjeto }] : []),
     { id: "auto-layout", label: "Auto-layout", descripcion: "Aplicar layout sugerido al OPD activo", categoria: "vista", run: deps.aplicarLayoutSugerido },
     { id: "tabla-enlaces", label: "Tabla de enlaces", descripcion: "Abrir la tabla de enlaces del modelo", categoria: "vista", run: deps.abrirTablaEnlaces },
+    ...(deps.abrirUrlsObjeto ? [{ id: "urls-objeto", label: "URLs del objeto", descripcion: "Editar las URLs del objeto seleccionado", categoria: "vista", run: deps.abrirUrlsObjeto }] : []),
+    { id: "mostrar-archivados", label: deps.mostrarArchivados ? "Ocultar archivados" : "Mostrar archivados", descripcion: "Alternar la visibilidad de los modelos archivados", categoria: "vista", run: deps.toggleMostrarArchivados },
+    { id: "mostrar-versiones", label: deps.mostrarVersiones ? "Ocultar glifos de versiones" : "Mostrar glifos de versiones", descripcion: "Alternar los glifos de versiones en el workspace", categoria: "vista", run: deps.toggleMostrarVersiones },
     { id: "atajos-teclado", label: "Atajos de teclado", descripcion: "Mostrar la referencia de atajos registrados", categoria: "navegacion", run: deps.abrirCheatsheetAtajos },
   ];
 }
