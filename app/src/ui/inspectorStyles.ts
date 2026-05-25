@@ -45,10 +45,23 @@ export const inspectorStyles = {
     width: "100%",
     letterSpacing: 0,
   },
-  vacioConteos: {
+  // Placeholder editorial de la rama vacía (Codex v2 / L3, reemplaza los
+  // contadores N objetos · N procesos · N OPDs). Italic serif calmado.
+  vacioPlaceholder: {
     margin: 0,
-    color: tokens.colors.ink70,
-    fontSize: `${tokens.typography.sizes.sm}px`,
+    color: tokens.colors.ink50,
+    fontFamily: tokens.typography.familyChrome,
+    fontSize: `${tokens.typography.sizes.base}px`,
+    fontStyle: "italic",
+    lineHeight: 1.5,
+  },
+  // Sello de última edición bajo el placeholder. Mono discreto.
+  vacioMeta: {
+    margin: 0,
+    color: tokens.colors.ink30,
+    fontFamily: tokens.typography.fontFamilyMono,
+    fontSize: `${tokens.typography.sizes.xxs}px`,
+    letterSpacing: tokens.typography.ls.mono,
     lineHeight: 1.5,
   },
   // Header del Inspector: nombre del kind ("Objeto"/"Proceso"/"Enlace …")
@@ -270,54 +283,54 @@ export const inspectorStyles = {
     letterSpacing: 0,
     transition: tokens.transitions.fast,
   },
-  // Tabs del Inspector (5 entidad / 3 enlace): subrayado 1.5px ink en activo
-  // ink-50 inactivo. Sin background. Tracking +0.08em uppercase 10px.
-  tabsRow: {
-    display: "flex",
-    flexWrap: "wrap",
-    gap: `${tokens.spacing.md}px`,
-    marginBottom: `${tokens.spacing.md}px`,
-    borderBottom: `${tokens.stroke.hairline}px solid ${tokens.colors.ink15}`,
+  // ── Ficha continua (Codex C9: sin tabs) ─────────────────────────────────
+  // Ronda Codex v2 / L3: el Inspector dejó de ser un sistema de tabs y pasó
+  // a una ficha tipográfica continua. Las secciones existentes (Seccion*.tsx)
+  // se apilan verticalmente, cada una bajo un kicker mono uppercase y
+  // separada de la anterior por una hairline superior (ui-forja §9
+  // CodexInspectSection: kicker uppercase tracked + border-top hairline).
+  // Anti-patrón explícito ui-forja §02:483 — "Tabs con underline-active
+  // gruesa" está prohibido.
+  ficha: {
+    display: "grid",
+    gap: `${tokens.spacing.lg}px`,
   },
-  tab: {
-    flex: "0 0 auto",
-    padding: `${tokens.spacing.sm}px 0`,
-    border: 0,
-    borderBottom: `${tokens.stroke.base}px solid transparent`,
-    background: "transparent",
+  // Bloque de sección: kicker + contenido. Border-top hairline salvo el
+  // primero (lo neutraliza el consumidor con `fichaSeccionPrimera`).
+  fichaSeccion: {
+    display: "grid",
+    gap: `${tokens.spacing.md}px`,
+    paddingTop: `${tokens.spacing.lg}px`,
+    borderTop: `${tokens.stroke.hairline}px solid ${tokens.colors.ink15}`,
+  },
+  // Primera sección de la ficha: sin border-top (ya hay separación con el
+  // input Nombre / summary).
+  fichaSeccionPrimera: {
+    display: "grid",
+    gap: `${tokens.spacing.md}px`,
+    paddingTop: 0,
+    borderTop: 0,
+  },
+  // Kicker mono uppercase tracked (JetBrains Mono 10px, tracking +0.18em,
+  // ink-50). Marca cada bloque semántico de la ficha.
+  fichaKicker: {
+    margin: 0,
     color: tokens.colors.ink50,
-    cursor: "pointer",
-    fontFamily: tokens.typography.familyChrome,
+    fontFamily: tokens.typography.fontFamilyMono,
     fontSize: `${tokens.typography.sizes.xxs}px`,
     fontWeight: tokens.typography.weights.medium,
     textTransform: "uppercase" as const,
-    letterSpacing: "0.08em",
+    letterSpacing: tokens.typography.ls.kicker,
     lineHeight: 1.2,
-    marginBottom: "-1px",
-    transition: tokens.transitions.fast,
   },
-  tabActive: {
-    flex: "0 0 auto",
-    padding: `${tokens.spacing.sm}px 0`,
-    border: 0,
-    borderBottom: `${tokens.stroke.base}px solid ${tokens.colors.ink}`,
-    background: "transparent",
-    color: tokens.colors.ink,
-    cursor: "pointer",
-    fontFamily: tokens.typography.familyChrome,
-    fontSize: `${tokens.typography.sizes.xxs}px`,
-    fontWeight: tokens.typography.weights.semibold,
-    textTransform: "uppercase" as const,
-    letterSpacing: "0.08em",
-    lineHeight: 1.2,
-    marginBottom: "-1px",
-    transition: tokens.transitions.fast,
-  },
-  tabPanel: {
+  // Contenido apilado de una sección (las Seccion*.tsx ya traen su markup).
+  fichaContenido: {
     display: "grid",
     gap: `${tokens.spacing.md}px`,
   },
-  // Hint compacto de cobertura → tab Apariciones. Botón inline calmado.
+  // Callout de cobertura ("Aparece en N OPDs"). Codex v2 / L3: ya no es un
+  // botón que salta a un tab — la sección Apariciones vive en la misma ficha
+  // más abajo. Nota informativa calmada.
   coberturaHint: {
     margin: `0 0 ${tokens.spacing.sm}px`,
     padding: `${tokens.spacing.xs}px ${tokens.spacing.sm}px`,
@@ -325,12 +338,9 @@ export const inspectorStyles = {
     borderRadius: tokens.radii.xs,
     background: tokens.colors.paper,
     color: tokens.colors.ink70,
-    cursor: "pointer",
-    font: "inherit",
     fontSize: `${tokens.typography.sizes.xs}px`,
     fontWeight: tokens.typography.weights.medium,
     textAlign: "left",
-    width: "100%",
     lineHeight: 1.4,
   },
   // Tab Apariciones: lista plana de OPDs.

@@ -1,5 +1,4 @@
 import { useInspectorViewModel } from "../app/viewmodels/inspectorViewModel";
-import type { ConteosModeloInspector } from "../app/viewmodels/inspectorViewModel";
 import { inspectorStyles as style } from "./inspectorStyles";
 import { InspectorEnlace } from "./InspectorEnlace";
 import { InspectorEntidad } from "./InspectorEntidad";
@@ -22,7 +21,7 @@ import { InspectorEstado } from "./inspector/InspectorEstado";
  * Spec: docs/superpowers/specs/2026-05-23-estados-ciudadania-primera-clase-design.md §4.4.
  */
 export function Inspector() {
-  const { modo, entidad, enlace, estado, modeloNombre, conteos, horaEditado, abrirDialogoConfiguracion } =
+  const { modo, entidad, enlace, estado, modeloNombre, horaEditado, abrirDialogoConfiguracion } =
     useInspectorViewModel();
 
   return (
@@ -42,7 +41,6 @@ export function Inspector() {
             : (
               <InspectorVacio
                 modeloNombre={modeloNombre}
-                conteos={conteos}
                 horaEditado={horaEditado}
                 onRenombrar={abrirDialogoConfiguracion}
               />
@@ -53,14 +51,19 @@ export function Inspector() {
 
 interface InspectorVacioProps {
   modeloNombre: string;
-  conteos: ConteosModeloInspector;
   horaEditado: string | null;
   onRenombrar: () => void;
 }
 
-function InspectorVacio({ modeloNombre, conteos, horaEditado, onRenombrar }: InspectorVacioProps) {
-  const sufijoHora = horaEditado ? ` · editado ${horaEditado}` : "";
-  const lineaConteos = `${conteos.objetos} ${conteos.objetos === 1 ? "objeto" : "objetos"} · ${conteos.procesos} ${conteos.procesos === 1 ? "proceso" : "procesos"} · ${conteos.opds} ${conteos.opds === 1 ? "OPD" : "OPDs"}${sufijoHora}`;
+/**
+ * Rama vacía del Inspector. Codex v2 / L3: se retiraron los contadores
+ * «N objetos · N procesos · N OPDs» — el inventario del modelo pertenece al
+ * footer de diagnóstico, no al Inspector, que es un panel de detalle de la
+ * selección. En su lugar, un placeholder editorial italic invita a
+ * seleccionar un elemento. Se conserva el título del modelo (renombrable) y
+ * el sello de última edición como anclaje de identidad.
+ */
+function InspectorVacio({ modeloNombre, horaEditado, onRenombrar }: InspectorVacioProps) {
   return (
     <div style={style.vacioContainer} data-testid="inspector-vacio">
       <button
@@ -72,9 +75,14 @@ function InspectorVacio({ modeloNombre, conteos, horaEditado, onRenombrar }: Ins
       >
         {modeloNombre || "Modelo"}
       </button>
-      <p style={style.vacioConteos} data-testid="inspector-vacio-conteos">
-        {lineaConteos}
+      <p style={style.vacioPlaceholder} data-testid="inspector-vacio-placeholder">
+        Selecciona un objeto, proceso o enlace para ver y editar sus propiedades aquí.
       </p>
+      {horaEditado ? (
+        <p style={style.vacioMeta} data-testid="inspector-vacio-meta">
+          {`Editado ${horaEditado}`}
+        </p>
+      ) : null}
       <button
         type="button"
         data-testid="inspector-vacio-renombrar"

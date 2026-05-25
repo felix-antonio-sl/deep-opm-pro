@@ -3,12 +3,12 @@ import { autoInvocacionDeProceso } from "../modelo/autoinvocacion";
 import { agregacionesInzoomFaltantes, esAtributoDerivado, estadosDeEntidad, relacionesPlegadasEstructurales, relacionesSemiplegadasEstructurales } from "../modelo/operaciones";
 import { filasPlegadoParcial, modoPlegadoApariencia, partesDePlegado } from "../modelo/plegado";
 import type { Entidad, Id, OrdenPartesPlegado } from "../modelo/tipos";
-import type { TabInspectorEntidad } from "../store/tipos";
 import { useInspectorEntidadViewModel } from "../app/viewmodels/inspectorEntidadViewModel";
 import { useOpmStore } from "../store";
+import { identificadorInspector } from "./inspector/identificador";
+import { FichaSeccion } from "./inspector/FichaSeccion";
 import { inspectorStyles as style } from "./inspectorStyles";
 import { coberturaApariencias } from "./inspector/aparicionesUtils";
-import { InspectorTabs, type InspectorTabDef } from "./inspector/InspectorTabs";
 import { SeccionAlias } from "./inspector/SeccionAlias";
 import { SeccionApariciones } from "./inspector/SeccionApariciones";
 import { SeccionAtributo } from "./inspector/SeccionAtributo";
@@ -29,33 +29,23 @@ interface Props {
 }
 
 /**
- * L1 ronda 20: tabs por intención del Inspector de entidad. Orden estricto.
- * Cada tab encapsula un cluster semántico del informe UI/UX 2026-05-07.
- */
-const TABS_ENTIDAD: ReadonlyArray<InspectorTabDef<TabInspectorEntidad>> = [
-  { id: "semantica", label: "Semántica", testid: "inspector-tab-semantica" },
-  { id: "enlaces", label: "Enlaces", testid: "inspector-tab-enlaces" },
-  { id: "refinamiento", label: "Refinamiento", testid: "inspector-tab-refinamiento" },
-  { id: "apariciones", label: "Apariciones", testid: "inspector-tab-apariciones" },
-  { id: "estilo", label: "Estilo", testid: "inspector-tab-estilo" },
-];
-
-/**
  * Barrel publico del inspector de entidad. Conserva lecturas amplias del store
  * y delega secciones OPM atomicas respaldadas por SSOT 3.7, 3.68, 3.71a y V-1.
  *
- * L1 ronda 20: el contenido se particiona en 5 tabs (Semántica / Enlaces /
- * Refinamiento / Apariciones / Estilo). El tab activo persiste en
- * `store.uiPanel.tabInspectorEntidadActivo`. Cada `Panel*` es un wrapper
- * local que monta las `Seccion*` existentes en su tab — cero cambios al
- * contenido de las secciones. El tab Apariciones es nuevo (cross-OPD nav).
+ * Ronda Codex v2 / L3 (C9): el contenido dejó de particionarse en tabs y pasó
+ * a una **ficha tipográfica continua** — las cinco secciones (Semántica →
+ * Enlaces → Refinamiento → Apariciones → Estilo) se apilan verticalmente,
+ * cada una bajo un kicker mono uppercase y separada por hairline (ui-forja §9;
+ * el apéndice §02:483 prohíbe los tabs con underline-active). Cada `Panel*` es
+ * un wrapper local que monta las `Seccion*` existentes — cero cambios al
+ * contenido de las secciones. Los campos `tabInspectorEntidadActivo` /
+ * `cambiarTabInspectorEntidad` del store se conservan (los consumen ports y
+ * persistencia fuera de scope) pero el Inspector ya no los usa.
  */
 export function InspectorEntidad({ entidad }: Props) {
   const {
     modelo,
     opdActivoId,
-    tabActivo,
-    cambiarTab,
     cambiarOpdActivo,
     navegarAEnlace,
     renombrar,
@@ -126,15 +116,6 @@ export function InspectorEntidad({ entidad }: Props) {
   const atributoDerivado = entidad.tipo === "objeto" && esAtributoDerivado(modelo, entidad.id);
   const autoInvocacion = entidad.tipo === "proceso" ? autoInvocacionDeProceso(modelo, opdActivoId, entidad.id) : undefined;
   const cobertura = coberturaApariencias(modelo, entidad.id);
-  // L1 ronda 20: si la entidad cambia y el tab actual no aplica, caer a
-  // default. En este slice los 5 tabs aplican a objeto y proceso por igual,
-  // pero los tabs `apariciones` y `enlaces` pueden no tener contenido
-  // accionable; aun así son tabs válidos y siguen activos.
-  useEffect(() => {
-    // Aterrizaje seguro: cualquier valor heredado fuera de TABS_ENTIDAD
-    // (por ejemplo tras una migración futura) se normaliza a `semantica`.
-    if (!TABS_ENTIDAD.some((t) => t.id === tabActivo)) cambiarTab("semantica");
-  }, [tabActivo, cambiarTab]);
 
   // L4 ronda 23 (#15): consume la señal `solicitarFocusNombre` cuando la
   // entidad montada coincide. Default brutal: enfoca y selecciona el texto
@@ -163,15 +144,15 @@ export function InspectorEntidad({ entidad }: Props) {
   return (
     <>
       {/*
-        Ronda28/L3: header Bauhaus — kind como heading editorial (Inter Tight
-        700/15, NO uppercase). ID interno en mono 10 ink-30 a la derecha.
-        Borde inferior 1.5px ink. El `data-entidad-id` se preserva para
-        deeplink/debug; el ID antes vivía sólo en `title`, ahora se muestra
-        explícito como anclaje técnico discreto (brief ronda 28 L3).
+        Header editorial — kind como heading (Inria Serif 700/15, NO uppercase).
+        Identificador canónico de punto (`o.11`, `p.03`) en mono 10 ink-30 a la
+        derecha, alineado con el rótulo del canvas (Codex v2 / L3: antes mostraba
+        el `id` interno con guion `o-11`). El `data-entidad-id` preserva el id
+        interno crudo para deeplink/debug; el title también.
       */}
       <div style={style.header} data-entidad-id={entidad.id}>
         <span style={style.kind}>{entidad.tipo === "objeto" ? "Objeto" : "Proceso"}</span>
-        <span style={style.id} title={entidad.id}>{entidad.id}</span>
+        <span style={style.id} title={entidad.id}>{identificadorInspector(entidad.id)}</span>
       </div>
       <label style={style.field}>
         <span class="opm-label-uppercase" style={style.label}>Nombre</span>
@@ -184,24 +165,17 @@ export function InspectorEntidad({ entidad }: Props) {
           onKeyDown={reenviarComboGlobalDesdeInput}
         />
       </label>
-      <InspectorTabs
-        tabs={TABS_ENTIDAD}
-        activo={tabActivo}
-        onCambiar={cambiarTab}
-        ariaLabel="Inspector entidad"
-        panelIdPrefix="inspector-panel-entidad"
-      />
-      <div
-        role="tabpanel"
-        id={`inspector-panel-entidad-${tabActivo}`}
-        data-testid={`inspector-panel-${tabActivo}`}
-        style={style.tabPanel}
-      >
-        {tabActivo === "semantica" ? (
+      {/*
+        Ficha continua (Codex C9): las cinco secciones se apilan en orden
+        estricto Semántica → Enlaces → Refinamiento → Apariciones → Estilo.
+        Cada bloque conserva su testid `inspector-panel-{id}` para que el
+        smoke ubique su contenido sin tabs; ya no hay `role="tabpanel"`.
+      */}
+      <div data-testid="inspector-ficha" style={style.ficha}>
+        <FichaSeccion kicker="Semántica" testid="inspector-panel-semantica" primera>
           <PanelSemantica
             entidad={entidad}
             cobertura={cobertura}
-            onClickCobertura={() => cambiarTab("apariciones")}
             atributoDerivado={atributoDerivado || null}
             estados={estados}
             modelo={modelo}
@@ -228,11 +202,15 @@ export function InspectorEntidad({ entidad }: Props) {
             onAbrirModalDuracion={abrirModalDuracion}
             onLayoutEstados={(value) => fijarLayoutEstadosEntidad(entidad.id, value)}
           />
-        ) : null}
-        {tabActivo === "enlaces" ? (
+          {/* Preserva testid `inspector-entidad-acciones` para procesos. En
+              objeto lo emite SeccionUrls; en proceso este placeholder lo
+              sostiene dentro de la sección Semántica. */}
+          {entidad.tipo !== "objeto" ? <div data-testid="inspector-entidad-acciones" /> : null}
+        </FichaSeccion>
+        <FichaSeccion kicker="Enlaces" testid="inspector-panel-enlaces">
           <SeccionEnlaces modelo={modelo} entidad={entidad} onNavegarEnlace={navegarAEnlace} />
-        ) : null}
-        {tabActivo === "refinamiento" ? (
+        </FichaSeccion>
+        <FichaSeccion kicker="Refinamiento" testid="inspector-panel-refinamiento">
           <PanelRefinamiento
             entidad={entidad}
             modelo={modelo}
@@ -257,16 +235,16 @@ export function InspectorEntidad({ entidad }: Props) {
             onQuitarPlegadoCompletoEstructural={quitarPlegadoCompletoEstructural}
             onTraerAgregacionesInzoomFaltantes={traerAgregacionesInzoom}
           />
-        ) : null}
-        {tabActivo === "apariciones" ? (
+        </FichaSeccion>
+        <FichaSeccion kicker="Apariciones" testid="inspector-panel-apariciones">
           <SeccionApariciones
             modelo={modelo}
             entidad={entidad}
             opdActivoId={opdActivoId}
             onNavegar={cambiarOpdActivo}
           />
-        ) : null}
-        {tabActivo === "estilo" ? (
+        </FichaSeccion>
+        <FichaSeccion kicker="Estilo" testid="inspector-panel-estilo">
           <PanelEstilo
             apariencia={aparienciaActiva}
             seleccionMultipleCount={seleccionados.length}
@@ -287,18 +265,8 @@ export function InspectorEntidad({ entidad }: Props) {
             onVolverAuto={volverSeleccionadaAAuto}
             onAlternarModo={alternarModoTamanoSeleccionado}
           />
-        ) : null}
+        </FichaSeccion>
       </div>
-      {/*
-        Preserva testid `inspector-entidad-acciones` para procesos. En objeto
-        este testid lo emite SeccionUrls dentro del tab Semántica (no se
-        toca su contenido). El placeholder en proceso solo está vivo cuando
-        el tab Semántica está activo, igual que pre-ronda 20 que solo lo
-        rendía en flujo entidad. Los smokes que hoy no lo consultan no se
-        afectan; si en el futuro un smoke lo necesita, este placeholder
-        sigue presente en tab Semántica.
-      */}
-      {entidad.tipo !== "objeto" && tabActivo === "semantica" ? <div data-testid="inspector-entidad-acciones" /> : null}
     </>
   );
 }
@@ -308,7 +276,6 @@ export function InspectorEntidad({ entidad }: Props) {
 interface PanelSemanticaProps {
   entidad: Entidad;
   cobertura: { totalApariencias: number; opdsConEntidad: number };
-  onClickCobertura: () => void;
   atributoDerivado: ReturnType<typeof esAtributoDerivado> | null;
   estados: import("../modelo/tipos").Estado[];
   modelo: import("../modelo/tipos").Modelo;
@@ -341,15 +308,13 @@ function PanelSemantica(props: PanelSemanticaProps) {
   return (
     <>
       {cobertura.opdsConEntidad >= 2 ? (
-        <button
-          type="button"
+        <p
           data-testid="inspector-cobertura-apariencias"
           style={style.coberturaHint}
-          title="Aparece en varios OPDs. Click para ver el tab Apariciones."
-          onClick={props.onClickCobertura}
+          title="Aparece en varios OPDs. La sección Apariciones (más abajo) lista cada OPD."
         >
           {`Aparece en ${cobertura.opdsConEntidad} OPDs (${cobertura.totalApariencias} ${cobertura.totalApariencias === 1 ? "vez" : "veces"}). Los cambios afectan a todas.`}
-        </button>
+        </p>
       ) : null}
       <SeccionDescripcion descripcion={entidad.descripcion} onDescripcion={props.onDescripcion} />
       {entidad.tipo === "objeto" ? (
