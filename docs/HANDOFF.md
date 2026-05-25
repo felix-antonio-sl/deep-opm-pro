@@ -1,7 +1,7 @@
 # HANDOFF — Estado operativo del modelador OPM
 
 **Fecha**: 2026-05-25 · **Repositorio**: `deep-opm-pro` · **Rama**: `main`
-**Commit vigente**: corte de runtime sociotecnico/agentico de simulacion sobre `main` (consultar `git log -1 --oneline` para hash final tras push).
+**Commit vigente**: corte documental de baseline funcional OPCloud/OPCAT para auditoria de cumplimiento de Opforja sobre `main` (consultar `git log -1 --oneline` para hash final tras push).
 **Instancia**: `https://opforja.sanixai.com` — ultimo bundle desplegado conocido **`index-BzUJLpkb.js`** (= Ronda Codex v2 + Ronda bugs-canvas), contenedores `opforja` (healthy) + `opforja-bug-capture`, **HTTP 200 publico** (sin auth, ver Riesgos). Este corte **no despliega** ni cambia infraestructura.
 
 ## Ronda bugs-canvas (en main, pusheada y desplegada)
@@ -16,7 +16,32 @@ Verde: **1696 unit + 237 e2e / 0 fail**. Lección operativa: los subagentes en w
 
 > Este es el **único** handoff vigente del proyecto. No crear handoffs paralelos ni fechados: reescribir y consolidar aquí.
 
-## Corte actual — Runtime sociotecnico/agentico de simulacion
+## Corte actual — Baseline funcional OPCloud/OPCAT para auditoria de cumplimiento
+
+Se consolido un manual funcional simulado de capacidades OPCloud/OPCAT como artefacto de referencia para chequear avance, granularidad y cumplimiento del desarrollo de Opforja. El documento suma capacidades sin distinguir entre OPCAT y OPCloud y describe **que hace** el software, no como lo implementa.
+
+**Artefacto nuevo:**
+- `docs/manual-simulado-opcloud-capacidades.md` — inventario enriquecido de capacidades funcionales agrupado por modelado OPM nuclear, refinamiento, OPD/OPL, canvas, conectividad contextual, gestion de modelos, reutilizacion/gobierno semantico, requisitos, analisis, import/export, simulacion/ejecucion y entrada de usuario.
+
+**Fuentes consolidadas:**
+- `/home/felix/kora/artifacts/knowledge/_SCRIPTORIUM/INBOX/fxsl/opm-methodology/opm-curso-applied-modeling.md`
+- `/home/felix/kora/artifacts/knowledge/_SCRIPTORIUM/INBOX/fxsl/opm-methodology/opm-curso-sd-wizard.md`
+- `/home/felix/kora/artifacts/knowledge/_SCRIPTORIUM/INBOX/fxsl/opm-methodology/opm-iso.md`
+- `/home/felix/kora/artifacts/knowledge/_SCRIPTORIUM/INBOX/fxsl/opm-methodology/OPM version felix.md`
+- `/home/felix/kora/artifacts/knowledge/_SCRIPTORIUM/INBOX/opm-libro-curado/`
+- `/home/felix/kora/artifacts/knowledge/_SCRIPTORIUM/INBOX/opm/transcripciones-videos-opcloud.txt`
+
+**Decision de uso:**
+- Este manual queda como baseline externo funcional para auditorias de brecha Opforja vs. capacidades OPCloud/OPCAT, complementario al backlog HU (`docs/historias-usuario-v2/`) y al dashboard `docs/roadmap/hu-progress.*`.
+- No reemplaza la SSOT OPM ni `docs/canon-opm/reglas-opm-estrictas.md`; cuando una capacidad OPCloud/OPCAT diverge del canon, manda la SSOT.
+- Para medir avance, convertir cada capacidad del manual en criterio verificable contra codigo, tests, e2e, UI viva o artefacto documental antes de marcarla cubierta.
+
+**Verificacion documental del corte:**
+- `wc -l docs/manual-simulado-opcloud-capacidades.md` -> 909 lineas.
+- `rg -n '^## ' docs/manual-simulado-opcloud-capacidades.md` -> secciones 1,2,3,4,5,6,7,9,10,11,12,13,14 y Fuentes usadas; se conserva el salto 7→9 del indice base entregado.
+- `git diff --check -- docs/manual-simulado-opcloud-capacidades.md docs/HANDOFF.md` -> sin whitespace errors.
+
+## Corte funcional previo — Runtime sociotecnico/agentico de simulacion
 
 Se implemento el primer corte vertical del sistema de simulacion y computo de Opforja orientado a sistemas sociotecnicos complejos y sistemas computacionales agenticos. El corte es deliberadamente pequeno, puro y verificable: no conecta todavia con UI, runner conceptual existente, persistencia ni herramientas externas reales.
 
@@ -60,6 +85,7 @@ Cierre completo de la **Auditoría Codex v1.0 ↔ Implementación rev2** (`/home
 - SSOT OPM externa: `/home/felix/kora/artifacts/knowledge/fxsl/opm/opm-ssot-es/`.
 - Spec de diseño Codex (propuesto): `ui-forja/` (`01-design-spec.md` … `08-jointjs-styling.md`, `tokens.css`).
 - Evidencia OPCloud preferente: `opm-extracted/` (antes que `decompiled/`).
+- Baseline funcional OPCloud/OPCAT para auditoria de cumplimiento: `docs/manual-simulado-opcloud-capacidades.md`.
 - Canon visual local: `docs/JOYAS.md` y `assets/svg/`.
 - Arquitectura interna, comandos y reglas de oro: `CLAUDE.md` (raíz del repo) — documento único de orientación.
 
@@ -79,6 +105,7 @@ Cierre completo de la **Auditoría Codex v1.0 ↔ Implementación rev2** (`/home
 - **Deuda v1.1 Codex** (fuera del cierre): proceso activo in-flight, asistente SD wizard, sub-modelos, switcher de lengua OPL, dark mode, frame letterbox 1700×950.
 - **Inria Sans 600** no existe como master en `@fontsource` — los pesos 500/600 quedan sintetizados por el navegador (documentado en `main.tsx`).
 - Opcional: regenerar la auditoría como **rev3** para confirmar cobertura ≈95%.
+- Convertir `docs/manual-simulado-opcloud-capacidades.md` en matriz trazable de cumplimiento Opforja: capacidad → HU/epica → evidencia en codigo/tests/e2e/UI → estado.
 
 ## Supuestos
 
