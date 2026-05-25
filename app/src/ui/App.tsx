@@ -10,16 +10,20 @@ import { lazy, Suspense } from "preact/compat";
 import { useEffect, useState } from "preact/hooks";
 import { registrarAtajosAplicacion } from "../app/ports/globalShortcutsPort";
 import { crearZustandGlobalShortcutsPort } from "../app/ports/zustandGlobalShortcutsPort";
+import { useZustandPersistencePort } from "../app/ports/zustandPersistencePort";
 import { useAppShellViewModel } from "../app/viewmodels/appShellViewModel";
 import { panelOplMinimizadoEfectivo } from "../app/viewmodels/panelOplViewModel";
 import { usePrecargaBienvenida } from "../app/viewmodels/precargaBienvenidaViewModel";
+import { listarAvisosDiagnostico } from "../modelo/diagnostico";
 import { obtenerRefinamiento } from "../modelo/refinamientos";
+import { generarOplInteractivo } from "../opl/generar";
 import type { Id, Modelo } from "../modelo/tipos";
 import type { JointCanvasAdapter } from "../render/jointjs/jointCanvasAdapter";
 import { ANCHO_PANEL_INSPECTOR_DEFAULT, ANCHO_PANEL_INSPECTOR_MAX, ANCHO_PANEL_INSPECTOR_MIN } from "../store/runtime";
 import { ArbolOpd } from "./ArbolOpd";
 import { BarraHerramientasElemento } from "./BarraHerramientasElemento";
 import { BarraPestanas } from "./BarraPestanas";
+import { Breadcrumb } from "./Breadcrumb";
 import { CapturadorBugs } from "./CapturadorBugs";
 import { HaloEstado } from "./HaloEstado";
 import { configurarContextoAtajos, escucharGlobal, registrarAtajo } from "./atajosTeclado";
@@ -30,7 +34,7 @@ import { resolverContextoWorkbench } from "./contexto";
 import { tituloViewPointWorkbench } from "./contextoWorkbench";
 import { CodexCanvasMount } from "./codex/CodexCanvasMount";
 import { CodexColHeader } from "./codex/CodexColHeader";
-import { CodexFooterKey } from "./codex/CodexFooterKey";
+import { CodexFooterDiagnostico, CodexFooterKey, CodexFooterKeys, estadoDiagnosticoFooter } from "./codex/CodexFooterKey";
 import { CodexFrame, modoMarginaliaCodex } from "./codex/CodexFrame";
 import { DivisorPanel } from "./divisorPanel";
 import { EstadoVacioOpm } from "./EstadoVacioOpm";
@@ -145,6 +149,13 @@ export function App() {
     bienvenidaActiva,
   });
   const modoMarginalia = modoMarginaliaCodex(inspectorAbierto);
+  // Ronda Codex v2 L2: meta editorial del header (N oraciones · ● sin guardar)
+  // y estado de diagnóstico del footer-right. Derivados puros del modelo +
+  // store, leídos por puertos read-only (no mutan estado).
+  const { dirtyModelo } = useZustandPersistencePort();
+  const oracionesOpl = contarOracionesOpl(modelo, opdActivoId);
+  const avisosDiagnostico = listarAvisosDiagnostico(modelo, { tipo: "opd", opdId: opdActivoId });
+  const estadoDiagnostico = estadoDiagnosticoFooter(avisosDiagnostico.length);
 
   return (
     <CanvasAdapterContext.Provider value={canvasAdapter}>
@@ -216,6 +227,16 @@ export function App() {
             </section>
           </>
         ) : (
+          /*
+            Ronda Codex v2 L2 — HANDOFF L5 (prep, NO ejecutado aquí): el
+            `MenuPrincipal` sigue montado porque hoy es la única superficie que
+            expone Guardar/Nuevo/Cargar (spec 01 depende de él). L5 debe, en un
+            solo paso: (a) cablear el botón ☰ al command palette, (b) reemplazar
+            `menu={<MenuPrincipal/>}` por `menu={null}` o por el trigger del
+            palette, y (c) migrar los specs que abren el menú (`01` save/load,
+            `04` "mapa retirado") al palette. Quitarlo antes de (a) dejaría las
+            acciones de workspace sin ruta — por eso L2 NO lo desmonta.
+          */
           <CodexFrame
             leftWidth={anchoPanelArbol}
             rightWidth={anchoInspectorLayout}
@@ -223,11 +244,18 @@ export function App() {
             toolbar={contextoWorkbench.modo === "simulacion" ? <BarraSimulacion /> : <Toolbar />}
             menu={<MenuPrincipal />}
             tabs={<BarraPestanas />}
-            footerLeft={<CodexFooterKey label="View" value={contextoWorkbench.viewPoint} />}
-            footerRight={<CodexFooterKey label="Margen" value={modoMarginalia === "split" ? "OPL + Inspector" : "OPL"} />}
+            breadcrumb={<Breadcrumb />}
+            meta={<ChromeMetaCodex oraciones={oracionesOpl} dirty={dirtyModelo} />}
+            footerLeft={(
+              <div style={layout.footerLeftCluster}>
+                <CodexFooterKey label="View" value={contextoWorkbench.viewPoint} />
+                <CodexFooterKeys />
+              </div>
+            )}
+            footerRight={<CodexFooterDiagnostico estado={estadoDiagnostico} />}
             leftPanel={(
               <div data-testid="tree-pane" style={layout.treePane}>
-                <CodexColHeader kicker="TOC" title="OPD tree" meta={Object.keys(modelo.opds).length} />
+                <CodexColHeader kicker="ÍNDICE" title="OPDs" meta={Object.keys(modelo.opds).length} />
                 <div style={layout.treePaneArbol}>
                   <ArbolOpd />
                 </div>
@@ -243,11 +271,15 @@ export function App() {
             canvas={(
               <CodexCanvasMount>
                 <JointCanvasFeedbackBoundary onAdapterChange={setCanvasAdapter} />
-                <BarraHerramientasElemento
-                  inspectorAbierto={inspectorAbierto}
-                  onAbrirInspector={() => setInspectorAbierto(true)}
-                  onToggleInspector={() => setInspectorAbierto((abierto) => !abierto)}
-                />
+                {/*
+                  Ronda Codex v2 L2 (prep L4, auditoría rev2 §05 SEL-1/SEL-2): se
+                  retira el montaje de `BarraHerramientasElemento` (caja de chips
+                  de selección) del overlay del canvas. La única voz de selección
+                  pasa a ser `CodexSelectionAnnotation`, que `CodexCanvasMount`
+                  ya monta dentro del paper-host (hoy decorativa). L4 la hace
+                  funcional, le traslada las acciones del bar preservando testids
+                  y retira/repurposa `BarraHerramientasElemento`.
+                */}
                 <EstadoVacioOpm />
                 <PantallaInicio />
               </CodexCanvasMount>
@@ -337,6 +369,66 @@ export function App() {
   );
 }
 
+/**
+ * Ronda Codex v2 L2: cuenta las oraciones OPL del OPD activo para la meta del
+ * header. Reusa el generador interactivo (misma fuente que el panel OPL), sin
+ * tokenizar de más: cada `OplLineaInteractiva` es una oración.
+ */
+function contarOracionesOpl(modelo: Modelo, opdActivoId: Id): number {
+  return generarOplInteractivo(modelo, opdActivoId).length;
+}
+
+/**
+ * Meta editorial del header Codex: `N oraciones · ● sin guardar · ⌘K`.
+ * El indicador "sin guardar" sólo aparece si el modelo está sucio; el `⌘K`
+ * recuerda el atajo del command palette (que L5 cablea al ☰).
+ */
+function ChromeMetaCodex({ oraciones, dirty }: { oraciones: number; dirty: boolean }) {
+  return (
+    <span data-testid="codex-header-meta" style={metaCodex.wrap}>
+      <span data-testid="codex-meta-oraciones">{oraciones === 1 ? "1 oración" : `${oraciones} oraciones`}</span>
+      {dirty ? (
+        <>
+          <span aria-hidden="true" style={metaCodex.sep}>·</span>
+          <span data-testid="codex-meta-dirty" style={metaCodex.dirty}>● sin guardar</span>
+        </>
+      ) : null}
+      <span aria-hidden="true" style={metaCodex.sep}>·</span>
+      <kbd style={metaCodex.kbd}>⌘K</kbd>
+    </span>
+  );
+}
+
+const metaCodex = {
+  wrap: {
+    display: "inline-flex",
+    alignItems: "center",
+    gap: "6px",
+    whiteSpace: "nowrap",
+  },
+  sep: {
+    color: tokens.colors.inkSoft,
+  },
+  dirty: {
+    color: tokens.colors.accent,
+    fontStyle: "normal",
+  },
+  kbd: {
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    minWidth: "20px",
+    height: "16px",
+    padding: "0 4px",
+    border: `1px solid ${tokens.colors.rule}`,
+    color: tokens.colors.ink,
+    fontFamily: tokens.typography.mono,
+    fontStyle: "normal",
+    fontSize: `${tokens.typography.fs.fs10}px`,
+    lineHeight: 1,
+  },
+} satisfies Record<string, preact.JSX.CSSProperties>;
+
 function tieneTimelineDisponible(modelo: Modelo, opdId: Id): boolean {
   const opd = modelo.opds[opdId];
   if (!opd?.padreId) return false;
@@ -376,6 +468,14 @@ const layout = {
     background: tokens.colors.fondoWorkbench,
     borderTop: `1px solid ${tokens.colors.bordePanel}`,
     borderBottom: `1px solid ${tokens.colors.bordePanel}`,
+  },
+  // Ronda Codex v2 L2: footer-left agrupa contexto (View) + leyenda de teclas.
+  footerLeftCluster: {
+    minWidth: 0,
+    display: "flex",
+    alignItems: "center",
+    gap: "16px",
+    overflow: "hidden",
   },
   treePane: {
     gridArea: "tree",
