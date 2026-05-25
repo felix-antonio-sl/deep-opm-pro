@@ -1,0 +1,37 @@
+# BUG-20260524T171736Z-7fcdba
+
+**Creado**: 2026-05-24T17:17:36.472Z
+**Tipo**: Bug
+**Estado**: Nuevo
+**Resolución**: Pendiente.
+
+## Texto
+
+la ancla de consumo , resultado y efecto no es el canónico
+
+## Screenshots
+
+- [screenshots/01-cleanshot-2026-05-24-at-13.16.53.jpg](screenshots/01-cleanshot-2026-05-24-at-13.16.53.jpg)
+
+## Contexto
+
+```json
+{
+  "modeloId": "modelo-1",
+  "modeloNombre": "Modelo",
+  "opdActivoId": "opd-1",
+  "opdActivoNombre": "SD",
+  "seleccionEntidadId": null,
+  "seleccionEnlaceId": null,
+  "pestanaActivaId": "pestana-77290379-a609-45a4-8871-b49c8a09862f",
+  "vistaMapaActiva": false,
+  "url": "https://opforja.sanixai.com/",
+  "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+  "viewport": {
+    "width": 2133,
+    "height": 1070,
+    "devicePixelRatio": 0.8999999761581421
+  },
+  "capturedAt": "2026-05-24T17:17:34.261Z"
+}
+```

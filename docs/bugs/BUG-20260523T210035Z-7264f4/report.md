@@ -1,0 +1,37 @@
+# BUG-20260523T210035Z-7264f4
+
+**Creado**: 2026-05-23T21:00:35.208Z
+**Tipo**: Bug
+**Estado**: Nuevo
+**Resolución**: Pendiente.
+
+## Texto
+
+anclaje de enlaces debe estar centrado
+
+## Screenshots
+
+- [screenshots/01-cleanshot-2026-05-23-at-17.00.13.jpg](screenshots/01-cleanshot-2026-05-23-at-17.00.13.jpg)
+
+## Contexto
+
+```json
+{
+  "modeloId": "modelo-1",
+  "modeloNombre": "Modelo",
+  "opdActivoId": "opd-1",
+  "opdActivoNombre": "SD",
+  "seleccionEntidadId": null,
+  "seleccionEnlaceId": null,
+  "pestanaActivaId": "pestana-d629d338-bd21-435c-a0a6-7323731fd544",
+  "vistaMapaActiva": false,
+  "url": "https://opforja.sanixai.com/",
+  "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+  "viewport": {
+    "width": 1200,
+    "height": 1203,
+    "devicePixelRatio": 0.800000011920929
+  },
+  "capturedAt": "2026-05-23T21:00:32.520Z"
+}
+```

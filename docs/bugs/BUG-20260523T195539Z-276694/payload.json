@@ -1,0 +1,29 @@
+{
+  "id": "BUG-20260523T195539Z-276694",
+  "type": "Bug",
+  "status": "Nuevo",
+  "resolution": "Pendiente.",
+  "createdAt": "2026-05-23T19:55:39.975Z",
+  "text": "cuando se crea la primera cosa de un diagrama que sea en el centro del canvas , no en la esquina superior izquierda. y que desde ese punto se vayan agregando las otras y se fije la vista en ese punto central inicial.",
+  "context": {
+    "modeloId": "modelo-1",
+    "modeloNombre": "Modelo",
+    "opdActivoId": "opd-1",
+    "opdActivoNombre": "SD",
+    "seleccionEntidadId": null,
+    "seleccionEnlaceId": null,
+    "pestanaActivaId": "pestana-eaa37e4a-3383-4010-a54a-a63fbdffa3e9",
+    "vistaMapaActiva": false,
+    "url": "https://opforja.sanixai.com/",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+    "viewport": {
+      "width": 2400,
+      "height": 1203,
+      "devicePixelRatio": 0.800000011920929
+    },
+    "capturedAt": "2026-05-23T19:55:37.138Z"
+  },
+  "screenshots": [
+    "screenshots/01-cleanshot-2026-05-23-at-15.54.39.jpg"
+  ]
+}

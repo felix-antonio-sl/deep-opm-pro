@@ -1,0 +1,29 @@
+{
+  "id": "BUG-20260524T171809Z-06f1ed",
+  "type": "Bug",
+  "status": "Nuevo",
+  "resolution": "Pendiente.",
+  "createdAt": "2026-05-24T17:18:09.655Z",
+  "text": "la marca del autoinvocación no es canónico y tiene un quibre a distal anómalo",
+  "context": {
+    "modeloId": "modelo-1",
+    "modeloNombre": "Modelo",
+    "opdActivoId": "opd-1",
+    "opdActivoNombre": "SD",
+    "seleccionEntidadId": null,
+    "seleccionEnlaceId": null,
+    "pestanaActivaId": "pestana-77290379-a609-45a4-8871-b49c8a09862f",
+    "vistaMapaActiva": false,
+    "url": "https://opforja.sanixai.com/",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+    "viewport": {
+      "width": 2133,
+      "height": 1070,
+      "devicePixelRatio": 0.8999999761581421
+    },
+    "capturedAt": "2026-05-24T17:18:05.680Z"
+  },
+  "screenshots": [
+    "screenshots/01-google-chrome-2026-05-24-13.16.38.png"
+  ]
+}

@@ -16,19 +16,27 @@ cd app && bun run bug:index
 
 | Estado | Cantidad |
 |---|---:|
+| Nuevo | 7 |
 | Resuelto | 13 |
 
 ## Resumen Por Tipo
 
 | Tipo | Cantidad |
 |---|---:|
-| Bug | 8 |
+| Bug | 15 |
 | Feat | 5 |
 
 ## Activos
 
 | Tipo | Estado | Bug/Feat | Creado | Contexto | Resumen | Resolución | Capturas | Nota |
 |---|---|---|---|---|---|---|---:|---|
+| Bug | Nuevo | [BUG-20260525T052239Z-445a97](BUG-20260525T052239Z-445a97/report.md) | 2026-05-25 05:22Z | System Diagram / SD | cuando esté modelando con el canvas activo asegúrate que lo de la imagen adjunta se cumpla, es decir, al apretar O se cree un objeto. al apretar S (c… | Pendiente. | 1 |  |
+| Bug | Nuevo | [BUG-20260525T021047Z-6ae261](BUG-20260525T021047Z-6ae261/report.md) | 2026-05-25 02:10Z | System Diagram 1 / SD1 | las sombras no logran efecto grafico correcto | Pendiente. | 2 |  |
+| Bug | Nuevo | [BUG-20260525T020822Z-9e3b9b](BUG-20260525T020822Z-9e3b9b/report.md) | 2026-05-25 02:08Z | System Diagram 1 / SD1 | los estados no tienen la forma canónica | Pendiente. | 1 |  |
+| Bug | Nuevo | [BUG-20260524T171809Z-06f1ed](BUG-20260524T171809Z-06f1ed/report.md) | 2026-05-24 17:18Z | Modelo / SD | la marca del autoinvocación no es canónico y tiene un quibre a distal anómalo | Pendiente. | 1 |  |
+| Bug | Nuevo | [BUG-20260524T171736Z-7fcdba](BUG-20260524T171736Z-7fcdba/report.md) | 2026-05-24 17:17Z | Modelo / SD | la ancla de consumo , resultado y efecto no es el canónico | Pendiente. | 1 |  |
+| Bug | Nuevo | [BUG-20260524T171628Z-a8c184](BUG-20260524T171628Z-a8c184/report.md) | 2026-05-24 17:16Z | Modelo / SD1.1.1.1 | los proceso descompuestos al ser refinados , aunque sean sistémicos quedan con contorno discontinuo, cuando debería ser continuo | Pendiente. | 1 |  |
+| Bug | Nuevo | [BUG-20260524T034932Z-b6be2b](BUG-20260524T034932Z-b6be2b/report.md) | 2026-05-24 03:49Z | Modelo / SD1 | cuando refino en un diagrama el foco de la vista vuelve a la esquina superior izquierda, cuando deberia enfocarse nuevamente en el centro geométrico … | Pendiente. | 0 |  |
 | Bug | Resuelto | [BUG-20260523T210455Z-eec502](BUG-20260523T210455Z-eec502/report.md) | 2026-05-23 21:04Z | Modelo / SD | multiplicidad tiene que ser igual que opcloud en cuanto a +, *, etc | La multiplicidad acepta notacion OPCloud con +, *, N, rangos n..* y rangos n..N en inspector, tabla, parser OPL y generador. | 1 | Basado en fixtures OPCloud del meta-modelo; cubierto por operaciones, enlaceMultiplicidad, parser OPL y generacion OPL. |
 | Bug | Resuelto | [BUG-20260523T210035Z-7264f4](BUG-20260523T210035Z-7264f4/report.md) | 2026-05-23 21:00Z | Modelo / SD | anclaje de enlaces debe estar centrado | Los enlaces estructurales anclan por defecto en el centro superior/inferior del triangulo, alineados con el ruteo top/bottom. | 1 | Se conservan anclajes manuales persistidos; cubierto por proyeccion.test y opcloudRouting.test. |
 | Bug | Resuelto | [BUG-20260523T201251Z-afcfbe](BUG-20260523T201251Z-afcfbe/report.md) | 2026-05-23 20:12Z | Modelo / SD | despues de la corrección ahora las cosas se crean en otro punto del canvas que no es la esquina superior izquierda, sin embargo la vista no se centra… | La posicion libre inicial nace en el centro geometrico del canvas 7200x5200 y el viewport se enfoca explicitamente ahi para OPDs … | 0 | Cubierto por layout.test y e2e/21-estado-vacio-opm.spec.ts con verificacion de scroll real al centro. |
