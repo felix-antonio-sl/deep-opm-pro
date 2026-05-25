@@ -173,13 +173,12 @@ export async function elegirTipoEnlaceDesdeMenu(page: import("@playwright/test")
 }
 
 /**
- * L1 ronda 20: el Inspector se reorganiza en tabs por intención. Las acciones
- * de refinamiento operativo (Plegado parcial, Auto-invocación, Reasignar
- * enlaces externos, Extraer todas las partes, etc.) viven ahora en el tab
- * `Refinamiento`, que NO es default. Inzoom/Unfold/Quitar viven en el
- * catalogo contextual. Estos helpers garantizan que el tab esté activo antes
- * de buscar el control esperado. El tab activo persiste por sesión vía store,
- * así que llamar al helper varias veces es idempotente.
+ * Codex v2 / L3 (C9): el Inspector pasó de tabs a una ficha continua — todas
+ * las secciones (Refinamiento, Apariciones, Estilo, Extremos, …) están siempre
+ * montadas y visibles, no hay tab que activar. Estos helpers se conservan para
+ * no tocar todos los specs consumidores: como el testid del tab ya no existe,
+ * la guarda `count === 0` los convierte en no-ops idempotentes; el control
+ * buscado por el spec ya está en el DOM dentro de su sección.
  */
 export async function irATabRefinamiento(page: import("@playwright/test").Page): Promise<void> {
   const tab = page.getByTestId("inspector-tab-refinamiento");

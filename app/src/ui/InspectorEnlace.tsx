@@ -7,9 +7,9 @@ import { relacionesEstructuralesFaltantes, validarMultiplicidad } from "../model
 import { anclajeRefinableSimbolo, anclajeRefinadorSimbolo, limitarAnclajeSimbolo, normalizarAnclajeSimbolo } from "../modelo/simboloEstructural";
 import { useInspectorEnlaceViewModel } from "../app/viewmodels/inspectorEnlaceViewModel";
 import type { AnclajeSimboloEstructural, AnclajesSimboloEstructural, AparienciaEnlace, Enlace, Entidad, Id, Modelo, Modificador, TipoEnlace, UnidadTiempo } from "../modelo/tipos";
-import type { TabInspectorEnlace } from "../store/tipos";
+import { identificadorEnlaceInspector } from "./inspector/identificador";
 import { inspectorStyles as style } from "./inspectorStyles";
-import { InspectorTabs, type InspectorTabDef } from "./inspector/InspectorTabs";
+import { FichaSeccionEnlace } from "./inspector/FichaSeccion";
 import { SeccionAbanico } from "./inspectorEnlace/SeccionAbanico";
 import { SeccionEstilo } from "./inspectorEnlace/SeccionEstilo";
 import { SeccionEstiloEnlace } from "./inspectorEnlace/SeccionEstiloEnlace";
@@ -27,17 +27,6 @@ interface Props {
 }
 
 /**
- * L1 ronda 20: tabs por intención del Inspector de enlace. 3 tabs simétricos
- * a la partición de entidad: Propiedades / Extremos / Estilo. Default
- * `propiedades`.
- */
-const TABS_ENLACE: ReadonlyArray<InspectorTabDef<TabInspectorEnlace>> = [
-  { id: "propiedades", label: "Propiedades", testid: "inspector-enlace-tab-propiedades" },
-  { id: "extremos", label: "Extremos", testid: "inspector-enlace-tab-extremos" },
-  { id: "estilo", label: "Estilo", testid: "inspector-enlace-tab-estilo" },
-];
-
-/**
  * Barrel publico del inspector de enlace. Mantiene acciones Zustand exactas y
  * delega secciones alineadas con SSOT: multiplicidad, rutas y abanicos.
  *
@@ -47,17 +36,18 @@ const TABS_ENLACE: ReadonlyArray<InspectorTabDef<TabInspectorEnlace>> = [
  * formal se documenta en `app/e2e/15-superficie-contextual.spec.ts`
  * bajo el describe.skip "Contrato TablaEnlaces Beta1".
  *
- * L1 ronda 20: el contenido se particiona en 3 tabs por intención
- * (Propiedades / Extremos / Estilo). El tab activo persiste en
- * `store.uiPanel.tabInspectorEnlaceActivo`. Cero cambios en la lógica de
- * cada `Seccion*`; solo se reorganizan en su tab.
+ * Ronda Codex v2 / L3 (C9): el contenido dejó de particionarse en tabs y pasó
+ * a una **ficha continua** — tres secciones (Propiedades → Extremos → Estilo)
+ * apiladas bajo un kicker mono cada una, separadas por hairline. Cero cambios
+ * en la lógica de cada `Seccion*`; solo se reorganizan en la ficha. Los campos
+ * `tabInspectorEnlaceActivo` / `cambiarTabInspectorEnlace` del store se
+ * conservan (los consumen ports/persistencia fuera de scope) pero el Inspector
+ * ya no los usa.
  */
 export function InspectorEnlace({ enlace }: Props) {
   const {
     modelo,
     opdActivoId,
-    tabActivo,
-    cambiarTab,
     cambiarOpdActivo,
     ajustarMultiplicidad,
     apuntarExtremo,
@@ -142,9 +132,6 @@ export function InspectorEnlace({ enlace }: Props) {
     setUnidadTiempoMaximo((enlace.unidadTiempoMaximo as UnidadTiempo | undefined) ?? "");
   }, [enlace.id, enlace.probabilidad, enlace.demora, enlace.etiqueta, enlace.rutaEtiqueta, enlace.backwardTag, enlace.requisitos, enlace.mostrarRequisitos, enlace.tasa, enlace.unidadesTasa, enlace.tiempoMinimo, enlace.unidadTiempoMinimo, enlace.tiempoMaximo, enlace.unidadTiempoMaximo]);
   useEffect(() => setEndpointSeleccionado(endpointActual), [enlace.id, endpointActual]);
-  useEffect(() => {
-    if (!TABS_ENLACE.some((t) => t.id === tabActivo)) cambiarTab("propiedades");
-  }, [tabActivo, cambiarTab]);
 
   const cambiarMultiplicidad = (lado: "origen" | "destino", valor: string) => {
     if (lado === "origen") setMultiplicidadOrigen(valor);
@@ -218,13 +205,15 @@ export function InspectorEnlace({ enlace }: Props) {
   return (
     <>
       {/*
-        Ronda28/L3: header Bauhaus — kind ("Enlace Consumo") como heading
-        editorial Inter Tight 700/15 no-uppercase. ID interno (e-5) en
-        mono 10 ink-30 a la derecha como anclaje técnico discreto.
+        Header editorial — kind ("Enlace Consumo") como heading Inria Serif
+        700/15 no-uppercase. Identificador canónico de punto (`e.05`) en mono
+        10 ink-30 a la derecha, una sola voz con el canvas (Codex v2 / L3:
+        antes mostraba el id interno con guion `e-5`). El `data-enlace-id` y el
+        title preservan el id interno crudo para deeplink/debug.
       */}
       <div style={style.header} data-enlace-id={enlace.id}>
         <span style={style.kind}>Enlace {capitalizar(enlace.tipo)}</span>
-        <span style={style.id} title={enlace.id}>{enlace.id}</span>
+        <span style={style.id} title={enlace.id}>{identificadorEnlaceInspector(enlace.id)}</span>
       </div>
       <div style={style.summary}>
         <span>{origen ? nombreExtremo(modelo, enlace.origenId) : enlace.origenId.id}</span>
@@ -242,20 +231,13 @@ export function InspectorEnlace({ enlace }: Props) {
           Ir al OPD donde aparece este enlace ({modelo.opds[opdDestinoNavegacion]?.nombre ?? opdDestinoNavegacion})
         </button>
       ) : null}
-      <InspectorTabs
-        tabs={TABS_ENLACE}
-        activo={tabActivo}
-        onCambiar={cambiarTab}
-        ariaLabel="Inspector enlace"
-        panelIdPrefix="inspector-panel-enlace"
-      />
-      <div
-        role="tabpanel"
-        id={`inspector-panel-enlace-${tabActivo}`}
-        data-testid={`inspector-panel-enlace-${tabActivo}`}
-        style={style.tabPanel}
-      >
-        {tabActivo === "propiedades" ? (
+      {/*
+        Ficha continua (Codex C9): Propiedades → Extremos → Estilo apiladas.
+        Cada bloque conserva su testid `inspector-panel-enlace-{id}`; ya no hay
+        `role="tabpanel"`.
+      */}
+      <div data-testid="inspector-ficha-enlace" style={style.ficha}>
+        <FichaSeccionEnlace kicker="Propiedades" testid="inspector-panel-enlace-propiedades" primera>
           <>
             <SeccionEtiquetaEnlace enlace={enlace} etiqueta={etiqueta} onEtiqueta={cambiarEtiqueta} />
             <SeccionMultiplicidad
@@ -307,8 +289,8 @@ export function InspectorEnlace({ enlace }: Props) {
               onPlegarCompleto={plegarCompletoGrupoEstructural}
             />
           </>
-        ) : null}
-        {tabActivo === "extremos" ? (
+        </FichaSeccionEnlace>
+        <FichaSeccionEnlace kicker="Extremos" testid="inspector-panel-enlace-extremos">
           <>
             <SeccionExtremos modelo={modelo} opdId={opdActivoId} enlace={enlace} onApuntarExtremo={apuntarExtremo} onCrearFan={crearAbanicoDesdeEnlace} onAbrirMoverPuerto={() => setDialogoMoverPuertoAbierto(true)} />
             <SeccionRuta modelo={modelo} enlace={enlace} rutaEtiqueta={rutaEtiqueta} onRutaEtiqueta={cambiarRutaEtiqueta} />
@@ -323,8 +305,8 @@ export function InspectorEnlace({ enlace }: Props) {
             />
             {enlace.tipo === "efecto" ? <button type="button" style={style.secondaryButton} onClick={splitEffect} title="Convierte el efecto en consumo + objeto intermedio + resultado">Split en par</button> : null}
           </>
-        ) : null}
-        {tabActivo === "estilo" ? (
+        </FichaSeccionEnlace>
+        <FichaSeccionEnlace kicker="Estilo" testid="inspector-panel-enlace-estilo">
           <>
             <SeccionEstilo
               enlace={enlace}
@@ -347,7 +329,7 @@ export function InspectorEnlace({ enlace }: Props) {
               onAplicarSeleccion={aplicarEstiloASeleccion}
             />
           </>
-        ) : null}
+        </FichaSeccionEnlace>
       </div>
       <DialogoEstiloEnlace
         abierto={dialogoEstiloAbierto}

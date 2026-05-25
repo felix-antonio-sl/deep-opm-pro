@@ -99,17 +99,16 @@ test("sección Tamaño vive en el tab Estilo (movida desde Refinamiento en ronda
   await cerrarPantallaInicioSiVisible(page);
   await page.getByRole("button", { name: "Objeto", exact: true }).click();
 
-  // Tab Refinamiento NO contiene Tamaño.
-  await page.getByTestId("inspector-tab-refinamiento").click();
+  // Codex v2 / L3 (C9): ficha continua — secciones siempre montadas. La
+  // sección Refinamiento NO contiene Tamaño.
   await expect(page.getByTestId("inspector-panel-refinamiento")).toBeVisible();
   // `aria-label="Tamaño"` es la marca canónica de la sección.
   await expect(
     page.getByTestId("inspector-panel-refinamiento").locator('section[aria-label="Tamaño"]'),
   ).toHaveCount(0);
 
-  // Tab Estilo SÍ contiene Tamaño con sus controles (Ancho/Alto/Ajustar
+  // La sección Estilo SÍ contiene Tamaño con sus controles (Ancho/Alto/Ajustar
   // texto/Volver auto).
-  await page.getByTestId("inspector-tab-estilo").click();
   await expect(page.getByTestId("inspector-panel-estilo")).toBeVisible();
   const seccionTamano = page
     .getByTestId("inspector-panel-estilo")

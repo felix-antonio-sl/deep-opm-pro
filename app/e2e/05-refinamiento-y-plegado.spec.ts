@@ -755,10 +755,9 @@ test("L3 descomposicion avanzada: inspector reasigna, inline renombra, paralelo 
   if (!contorno) throw new Error("No se pudo ubicar contorno para creacion ambiental");
   await page.mouse.click(contorno.x + contorno.width - 10, contorno.y + contorno.height - 10);
   await elementoPorTexto(page, "Objeto").click();
-  // Ronda 20 L1: el toggle Ambiental/Sistémica vive en SeccionEsenciaAfiliacion,
-  // dentro del tab `Semántica` (default). El tab persiste por sesión, así que
-  // volvemos explícitamente para seleccionar el botón "Ambiental".
-  await page.getByTestId("inspector-tab-semantica").click();
+  // Codex v2 / L3 (C9): el toggle Ambiental/Sistémica vive en
+  // SeccionEsenciaAfiliacion, sección Semántica de la ficha continua —
+  // siempre montada, sin tab que activar.
   await page.getByRole("button", { name: "Ambiental" }).click();
   const exportado = JSON.parse(await jsonEditor(page).inputValue()) as ExportadoModelo;
   const procesar = Object.values(exportado.modelo.entidades).find((entidad) => entidad.nombre === "Procesar");
