@@ -102,7 +102,9 @@ const style = {
     padding: "6px",
     border: `1.5px solid ${tokens.colors.ink}`,
     background: tokens.colors.paper,
-    boxShadow: `8px 8px 0 0 ${tokens.colors.ink15}`,
+    // Codex L6 (S-01): cero sombras en chrome; el menú se delimita solo por
+    // su hairline ink. La elevación la da el borde, no el offset shadow.
+    boxShadow: tokens.shadows.none,
     display: "grid",
     gap: "0",
   },

@@ -1,4 +1,5 @@
 import type { DescriptorMapa, EstiloResaltadoMapa, JointCellJson } from "../../../canvas/mapa/tipos";
+import { CODEX } from "../constantes.codex";
 import { jointCanvasPalette } from "../palette";
 
 /**
@@ -44,7 +45,9 @@ export function proyectarMapaSistemaAJointCells(
           cx: 16,
           cy: 16,
           r: 6,
-          fill: "#70E483",
+          // Codex L6 (C-04): marcador OPD activo = crimson editorial (señal de
+          // current/selección UI), no lime legacy.
+          fill: jointCanvasPalette.seleccion,
           stroke: "#ffffff",
           strokeWidth: 2,
           opacity: nodo.marcadorActivo ? 1 : 0,
@@ -99,9 +102,12 @@ export function proyectarMapaSistemaAJointCells(
 }
 
 function colorResaltado(estilo: EstiloResaltadoMapa | undefined): string {
-  if (estilo === "cyan") return "#3BC3FF";
-  if (estilo === "verde-lima") return "#70E483";
+  // Codex L6 (C-04): los resaltados del mini-mapa de OPDs ecoan la clase OPM
+  // del foco; se mapean al set canónico (constantes.codex / ui-forja tokens),
+  // erradicando lime/cyan legacy. `azul`→crimson (selección UI).
+  if (estilo === "cyan") return CODEX.colores.opmProceso;
+  if (estilo === "verde-lima") return CODEX.colores.opmObjeto;
   if (estilo === "azul") return jointCanvasPalette.seleccion;
-  if (estilo === "naranja") return "#FF9F43";
-  return "#a0b3c8";
+  if (estilo === "naranja") return CODEX.colores.opmEstado;
+  return CODEX.colores.inkSoft;
 }

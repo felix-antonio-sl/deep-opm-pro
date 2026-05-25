@@ -2,7 +2,7 @@
 import { useRef } from "preact/hooks";
 import { tokens } from "./tokens";
 
-export const ANCHO_PANEL_ARBOL_DEFAULT = 240;
+export const ANCHO_PANEL_ARBOL_DEFAULT = 210;
 export const ANCHO_PANEL_ARBOL_RESET = 280;
 export const ANCHO_PANEL_ARBOL_MIN = 160;
 export const ANCHO_PANEL_ARBOL_MAX = 600;

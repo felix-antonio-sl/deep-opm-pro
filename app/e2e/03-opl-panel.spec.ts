@@ -81,7 +81,11 @@ test("sincroniza OPL interactivo con canvas y renombrado inverso", async ({ page
   await expect(panel.getByText("Entrada es un objeto")).toHaveCount(0);
   await expect(panel.getByText(/Procesar\s+consume\s+Entrada\./)).toBeVisible();
 
-  await panel.getByLabel("Filtrar por selección").uncheck();
+  // Codex L6 (G7): con el filtro activo, el checkbox se reemplaza por el chip
+  // `filtrado · <código> · N/M ✕`; la ✕ desactiva el filtro.
+  await expect(panel.getByTestId("panel-opl-filtro-chip")).toBeVisible();
+  await panel.getByTestId("panel-opl-filtro-chip-quitar").click();
+  await expect(panel.getByLabel("Filtrar por selección")).toBeVisible();
   await tokenEntrada.dblclick();
   await page.getByLabel("Renombrar desde OPL").fill("Cliente");
   await page.keyboard.press("Enter");

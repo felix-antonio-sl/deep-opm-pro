@@ -270,7 +270,8 @@ const style = {
   count: {
     minWidth: 62,
     height: 20,
-    borderRadius: 10,
+    // Codex L6 (S-02): chrome a radius cero; el contador no es píldora.
+    borderRadius: tokens.radii.none,
     display: "inline-flex",
     alignItems: "center",
     justifyContent: "center",
@@ -322,9 +323,9 @@ const style = {
     minWidth: 0,
   },
   filaResaltada: {
+    // Codex L6 (S-01): el foco se marca solo con outline crimson, sin sombra.
     outline: `2px solid ${tokens.colors.acentoUi}`,
     outlineOffset: "1px",
-    boxShadow: tokens.shadows.popover,
   },
   rowMain: {
     display: "flex",

@@ -9,7 +9,8 @@ describe("divisor arrastrable del panel de árbol", () => {
   });
 
   test("recupera el ancho por defecto cuando el valor no es numerico", () => {
-    expect(limitarAnchoPanel(Number.NaN)).toBe(240);
-    expect(limitarAnchoPanel(Number.POSITIVE_INFINITY)).toBe(240);
+    // Codex L6: ancho canónico de columna izquierda = 210 (tokens.css --cx-col-left).
+    expect(limitarAnchoPanel(Number.NaN)).toBe(210);
+    expect(limitarAnchoPanel(Number.POSITIVE_INFINITY)).toBe(210);
   });
 });

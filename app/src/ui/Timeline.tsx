@@ -221,7 +221,8 @@ const style = {
   count: {
     minWidth: "22px",
     height: "18px",
-    borderRadius: "9px",
+    // Codex L6 (S-02): chrome a radius cero; el contador deja de ser píldora.
+    borderRadius: tokens.radii.none,
     background: tokens.colors.infoFondo,
     color: tokens.colors.infoBorde,
     display: "inline-flex",
@@ -258,8 +259,9 @@ const style = {
     minHeight: "44px",
     padding: "6px 8px",
     border: `1px solid ${tokens.colors.mapaBorde}`,
-    borderLeft: `3px solid ${tokens.colors.canvas.proceso}`,
-    borderRadius: tokens.radii.sm,
+    // Codex L6 (C-04): acento editorial del row = crimson UI, no cyan canvas.
+    borderLeft: `3px solid ${tokens.colors.crimson}`,
+    borderRadius: tokens.radii.none,
     background: tokens.colors.canvas.fill,
     color: tokens.colors.textoPrimario,
     cursor: "grab",
@@ -269,8 +271,11 @@ const style = {
     outline: "none",
   },
   rowActive: {
-    borderColor: tokens.colors.timelineActivo,
-    boxShadow: `0 0 0 2px ${tokens.colors.infoFondo} inset`,
+    // Codex L6 (S-01): cero sombras en chrome; el row activo se marca con
+    // borde crimson grueso a la izquierda, no con ring inset.
+    borderColor: tokens.colors.crimson,
+    borderLeftColor: tokens.colors.crimson,
+    borderLeftWidth: "3px",
   },
   rowParallel: {
     borderLeftColor: tokens.colors.chromeNeutral,
@@ -280,16 +285,17 @@ const style = {
     opacity: 0.55,
     cursor: "grabbing",
   },
+  // Codex L6 (C-04): pistas de drop = crimson editorial UI, no cyan canvas.
   hintBefore: {
-    borderTopColor: tokens.colors.canvas.proceso,
+    borderTopColor: tokens.colors.crimson,
     borderTopWidth: "3px",
   },
   hintParallel: {
     background: tokens.colors.infoFondo,
-    borderColor: tokens.colors.canvas.proceso,
+    borderColor: tokens.colors.crimson,
   },
   hintAfter: {
-    borderBottomColor: tokens.colors.canvas.proceso,
+    borderBottomColor: tokens.colors.crimson,
     borderBottomWidth: "3px",
   },
   // Ronda 28 L6 (Bauhaus): handle como punto Unicode geométrico ink (lleno)
