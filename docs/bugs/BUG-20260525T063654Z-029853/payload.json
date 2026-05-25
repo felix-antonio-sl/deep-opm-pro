@@ -1,0 +1,29 @@
+{
+  "id": "BUG-20260525T063654Z-029853",
+  "type": "Bug",
+  "status": "Nuevo",
+  "resolution": "Pendiente.",
+  "createdAt": "2026-05-25T06:36:54.600Z",
+  "text": "al descomponer los objetos relacionados se presentan en el borde izquierdo del canvas, inclumpliendo la regla de que todo se tiene que armar y ordenar a partir del centro geométrico del canvas",
+  "context": {
+    "modeloId": "modelo-1",
+    "modeloNombre": "Modelo",
+    "opdActivoId": "opd-23",
+    "opdActivoNombre": "SD1.1",
+    "seleccionEntidadId": null,
+    "seleccionEnlaceId": null,
+    "pestanaActivaId": "pestana-93a1b453-2dda-4a4d-bb7f-931e84e7b4b9",
+    "vistaMapaActiva": false,
+    "url": "https://opforja.sanixai.com/",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+    "viewport": {
+      "width": 2133,
+      "height": 1102,
+      "devicePixelRatio": 0.8999999761581421
+    },
+    "capturedAt": "2026-05-25T06:36:51.003Z"
+  },
+  "screenshots": [
+    "screenshots/01-cleanshot-2026-05-25-at-02.35.53.jpg"
+  ]
+}

@@ -566,11 +566,10 @@ describe("proyeccion JointJS", () => {
     expect(cellEnlace?.router).toBeUndefined();
     const line = ((cellEnlace?.attrs as Attrs | undefined)?.line as Attrs | undefined);
     expect(line?.sourceMarker).toBeNull();
-    // CANON-V2 (ronda 28 L4): invocacion = ROMBO vacio path (antes polygon
-    // swallowtail blanco con `points`). El marker expone `d` en vez de
-    // `points`. Stroke-width validado via `strokeWidth` (camelCase) ya que
-    // `stroke-width` kebab era especifico al swallowtail polygon viejo.
+    // BUG-20260525T063444Z-ad14a6: invocacion = rayo en el tramo + punta
+    // cerrada en destino, no rombo ni swallowtail.
     expect((line?.targetMarker as Attrs | undefined)?.d).toBe(LINK_ASSETS.procedural.invocacion.marker.d);
+    expect((line?.targetMarker as Attrs | undefined)?.d).toBe("M0,0 L10,-5 L10,5 z");
     expect((line?.targetMarker as Attrs | undefined)?.strokeWidth).toBe(1);
   });
 
@@ -594,9 +593,8 @@ describe("proyeccion JointJS", () => {
     const labels = retorno?.labels as Array<{ attrs?: { label?: { text?: unknown } } }> | undefined;
     expect(labels?.some((label) => label.attrs?.label?.text === "1s")).toBe(true);
     const line = ((retorno?.attrs as Attrs | undefined)?.line as Attrs | undefined);
-    // CANON-V2 (ronda 28 L4): invocacion = path rombo (.d), no polygon
-    // (.points). Ver linkAssets.ts.
     expect((line?.targetMarker as Attrs | undefined)?.d).toBe(LINK_ASSETS.procedural.invocacion.marker.d);
+    expect((line?.targetMarker as Attrs | undefined)?.d).toBe("M0,0 L10,-5 L10,5 z");
   });
 
   test("BUG-06f1ed: auto-invocacion usa vertices OpCloud de cuatro puntos en cada tramo", () => {

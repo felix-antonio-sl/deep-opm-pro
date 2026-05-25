@@ -2,25 +2,15 @@
 // Runtime markers are normalized from those preview SVGs for JointJS marker
 // coordinates.
 //
-// CANON-V3 Codex + restauracion swallowtail (2026-05-23):
+// CANON-V3 Codex + punta cerrada SSOT (2026-05-25):
 //   Todos los markers reciclan los paths canonicos OPCloud y migran a ink
 //   editorial `#171511` con hairline 1px. Diferenciacion por tipo:
-//     - consumo/resultado: SWALLOWTAIL ink (canonico OPM/Dori §3.1 + OPCloud
-//       sandbox). Ronda 28 L4 habia probado triangulo lleno pensando que con
-//       paleta ink-stroke identica al cuerpo el marker tendria que cargar la
-//       diferenciacion entera, pero la silueta swallowtail es ESA
-//       diferenciacion: identifica de inmediato la pareja procedural canonica
-//       frente al lollipop (agente/instrumento) y al rombo (invocacion). La
-//       direccion del enlace (source vs target) separa consumo de resultado.
-//     - efecto: swallowtail BIDIRECCIONAL ink (source+target marker), silueta
-//       OPCloud effect.svg.
+//     - consumo/resultado: punta cerrada ink. La direccion del enlace
+//       (source vs target) separa consumo de resultado.
+//     - efecto: punta cerrada BIDIRECCIONAL ink (source+target marker).
 //     - instrumento: lollipop circulo vacio ink fill paper (○).
 //     - agente: lollipop circulo lleno ink (●).
-//     - invocacion: rombo vacio ink (◇), no flecha; cambio canon L4 sostenido.
-//       Antes (BUG-4c1753): swallowtail blanco identico a procedurales. El
-//       rombo separa semanticamente la invocacion (causalidad asincrona)
-//       del consumo/resultado (causalidad sobre objetos). Esta sustitucion
-//       agrega semantica, no la pierde, asi que se mantiene.
+//     - invocacion: rayo en el tramo + punta cerrada en destino.
 //     - excepciones temporales: polylines ink (zigzag tachadura).
 //     - etiquetado / etiquetado bidireccional: polyline ink abierta.
 //
@@ -52,44 +42,29 @@ export const LINK_ASSETS = {
     consumo: {
       source: "assets/svg/links/procedural/consumption.svg",
       path: "M46.725 29L42.5404 32.9055L39.2249 36L43.5653 34.6848L63.8267 28.5449L67.2749 27.5L63.8267 26.4551L43.5653 20.3152L39.2249 19L42.5404 22.0945L46.725 26H15V29H46.725ZM49.6967 26.0378L46.8809 23.4099L60.3784 27.5L46.8809 31.5901L49.6967 28.9622L51.2632 27.5L49.6967 26.0378Z",
-      // CANON-V2 + restauracion 2026-05-23: SWALLOWTAIL ink (flecha con cola
-      // hendida en V), silueta canonica OPM/Dori §3.1 y OPCloud sandbox para
-      // consumo/resultado. Ronda 28 L4 habia migrado a triangulo lleno para
-      // resolver "consumo=resultado=efecto al mismo aspecto" bajo paleta
-      // saturada, pero bajo paleta Bauhaus la silueta swallowtail es la que
-      // carga el canal semantico canonico. La direccion del enlace
-      // (source vs target) sigue separando consumo de resultado.
-      marker: { type: "path", d: "M0,0 L10,-5 L6,0 L10,5 z", fill: INK, stroke: INK, strokeWidth: MARKER_STROKE_WIDTH },
+      // BUG-20260525T063444Z-ad14a6: SSOT visual §2.5/§5.1 exige punta
+      // cerrada para enlaces transformadores; no swallowtail.
+      marker: { type: "path", d: "M0,0 L10,-5 L10,5 z", fill: INK, stroke: INK, strokeWidth: MARKER_STROKE_WIDTH },
     },
     resultado: {
       source: "assets/svg/links/procedural/result.svg",
       path: "M35.132 24L39.428 20.0881L42.8196 17L38.4208 18.3005L17.5956 24.4573L14.0684 25.5L17.5956 26.5427L38.4208 32.6995L42.8196 34L39.428 30.9116L35.132 27L67.65 27V24L35.132 24ZM32.1382 26.9788L35.0293 29.6113L21.1228 25.5L35.0293 21.3887L32.1382 24.0212L30.5142 25.5L32.1382 26.9788Z",
-      // CANON-V2 + restauracion 2026-05-23: swallowtail ink simetrico al de
-      // consumo. La direccion del enlace (origen / destino) en la topologia
-      // source/target distingue consumo de resultado; la silueta swallowtail
-      // los identifica como pareja procedural canonica frente al lollipop
-      // (agente/instrumento) y al rombo (invocacion).
-      marker: { type: "path", d: "M0,0 L10,-5 L6,0 L10,5 z", fill: INK, stroke: INK, strokeWidth: MARKER_STROKE_WIDTH },
+      // BUG-20260525T063444Z-ad14a6: resultado tambien usa punta cerrada; la
+      // direccion source/target ya distingue resultado de consumo.
+      marker: { type: "path", d: "M0,0 L10,-5 L10,5 z", fill: INK, stroke: INK, strokeWidth: MARKER_STROKE_WIDTH },
     },
     efecto: {
       source: "assets/svg/links/procedural/effect.svg",
       path: "M32.7345 31.9055L28.5499 28H53.7502L49.5657 31.9055L46.2501 35L50.5906 33.6848L70.8519 27.5449L74.3002 26.5L70.8519 25.4551L50.5906 19.3152L46.2501 18L49.5657 21.0945L53.7502 25H28.5499L32.7345 21.0945L36.05 18L31.7096 19.3152L11.4482 25.4551L8 26.5L11.4482 27.5449L31.7096 33.6848L36.05 35L32.7345 31.9055ZM28.394 22.4099L25.5782 25.0378L24.0117 26.5L25.5782 27.9622L28.394 30.5901L14.8965 26.5L28.394 22.4099ZM56.7219 25.0378L53.9061 22.4099L67.4037 26.5L53.9061 30.5901L56.7219 27.9622L58.2885 26.5L56.7219 25.0378Z",
-      // CANON-V2 + restauracion 2026-05-23: swallowtail BIDIRECCIONAL ink
-      // (composers/enlace.ts monta el mismo marker en source+target).
-      // Semantica OPM: el proceso consume Y produce el objeto en una misma
-      // transicion atomica. La doble swallowtail es la silueta OPCloud
-      // canonica (effect.svg).
-      marker: { type: "path", d: "M0,0 L10,-5 L6,0 L10,5 z", fill: INK, stroke: INK, strokeWidth: MARKER_STROKE_WIDTH },
+      // Efecto monta la misma punta cerrada en source+target.
+      marker: { type: "path", d: "M0,0 L10,-5 L10,5 z", fill: INK, stroke: INK, strokeWidth: MARKER_STROKE_WIDTH },
     },
     invocacion: {
       source: "assets/svg/links/procedural/invocation.svg",
       path: "M64.9736 24H59.5H26V27H54.0264L45.2353 32.2096L40.5264 35H46H73V32H51.4736L60.2647 26.7904L64.9736 24Z",
       arrowPath: "M25.6034 24.7689L33.172 17.7049L7.44819 25.5L33.172 33.2951L25.6034 26.2311L24.8201 25.5L25.6034 24.7689Z",
-      // CANON-V2: invocacion = ROMBO vacio (◇). Cambio canon respecto del
-      // swallowtail blanco viejo: el rombo separa la invocacion (causalidad
-      // discreta entre procesos, posiblemente asincrona, posiblemente con
-      // demora) del consumo/resultado (causalidad sobre objetos).
-      marker: { type: "path", d: "M0,0 L5,5 L10,0 L5,-5 z", fill: PAPER, stroke: INK, strokeWidth: MARKER_STROKE_WIDTH },
+      // SSOT visual: rayo proceso→proceso con punta cerrada en destino.
+      marker: { type: "path", d: "M0,0 L10,-5 L10,5 z", fill: INK, stroke: INK, strokeWidth: MARKER_STROKE_WIDTH },
     },
     excepcionSobretiempo: {
       source: "assets/svg/links/procedural/overtimeexception.svg",

@@ -94,5 +94,17 @@
     "status": "Resuelto",
     "resolution": "La autoinvocacion usa el zigzag OpCloud de cuatro vertices por tramo y mantiene el marcador canonico de invocacion.",
     "note": "Reabierto por feedback; el intento previo seguia emitiendo un unico quiebre por tramo. Cubierto por proyeccion.test BUG-06f1ed."
+  },
+  "BUG-20260525T063444Z-ad14a6": {
+    "type": "Bug",
+    "status": "Resuelto",
+    "resolution": "Los enlaces transformadores e invocacion usan punta cerrada simple segun SSOT visual; se retiran swallowtail en transformadores y rombo en invocacion.",
+    "note": "Cubierto por composers/markers.test, proyeccion.test de invocacion/auto-invocacion y composers/enlace.test."
+  },
+  "BUG-20260525T063654Z-029853": {
+    "type": "Bug",
+    "status": "Resuelto",
+    "resolution": "Los proxies externos creados al descomponer una cosa se ubican relativos al contorno refinado centrado, no en x absoluto 24.",
+    "note": "Cubierto por operaciones.test BUG-20260525T063654Z-029853 y bloque de pruebas de refinamiento/layout."
   }
 }

@@ -15,15 +15,15 @@ const TODOS_LOS_TIPOS: TipoEnlace[] = [
 
 describe("composer markers", () => {
   test("ui-forja/08 §4.2: las 8 familias canonicas de marker estan resueltas desde assets", () => {
-    // 1. Procedimental (arrow swallowtail): consumo/resultado/efecto.
-    expect(marcadorDestino("consumo")?.d).toBe("M0,0 L10,-5 L6,0 L10,5 z");
-    expect(marcadorDestino("resultado")?.d).toBe("M0,0 L10,-5 L6,0 L10,5 z");
+    // 1. Procedimental transformador: punta cerrada simple.
+    expect(marcadorDestino("consumo")?.d).toBe("M0,0 L10,-5 L10,5 z");
+    expect(marcadorDestino("resultado")?.d).toBe("M0,0 L10,-5 L10,5 z");
     // 2. Agente (lollipop lleno) — circulo ink fill.
     expect(marcadorDestino("agente")?.fill).toBe("#171511");
     // 3. Instrumento (lollipop hueco) — circulo outline fill paper.
     expect(marcadorDestino("instrumento")?.fill).toBe("#fafaf8");
-    // 4. Invocacion (rombo) — distinta del swallowtail.
-    expect(marcadorDestino("invocacion")?.d).toBe("M0,0 L5,5 L10,0 L5,-5 z");
+    // 4. Invocacion: rayo en el tramo + punta cerrada en destino.
+    expect(marcadorDestino("invocacion")?.d).toBe("M0,0 L10,-5 L10,5 z");
     // 5. Agregacion (triangulo fill ink).
     // 6. Generalizacion (triangulo outline).
     // 7. Clasificacion/instanciacion (triangulo + dot).
@@ -76,27 +76,21 @@ describe("composer markers", () => {
       strokeWidth: 1,
     });
     expect(LINK_ASSETS.procedural.invocacion.marker).toMatchObject({
-      fill: "#fafaf8",
+      fill: "#171511",
       stroke: "#171511",
       strokeWidth: 1,
     });
     expect(LINK_ASSETS.structural.generalizacion.markerFill).toBe("#fafaf8");
   });
 
-  test("consumo/resultado/efecto comparten silueta swallowtail canonica OPM (no triangulo simple)", () => {
-    // Restauracion 2026-05-23: silueta swallowtail = arrowhead con V-notch
-    // interno hacia atras (cola hendida tipo cola-de-golondrina). El "L6,0"
-    // entre las dos alas (L10,-5 y L10,5) introduce la hendidura. Un
-    // triangulo simple llenaria directo L10,5 -> L10,-5 sin pasar por L6,0.
-    const swallowtail = "M0,0 L10,-5 L6,0 L10,5 z";
-    expect(LINK_ASSETS.procedural.consumo.marker.d).toBe(swallowtail);
-    expect(LINK_ASSETS.procedural.resultado.marker.d).toBe(swallowtail);
-    expect(LINK_ASSETS.procedural.efecto.marker.d).toBe(swallowtail);
-    // El swallowtail debe distinguirse claramente de las otras siluetas
-    // canonicas: lollipop (agente/instrumento), rombo (invocacion).
-    expect(LINK_ASSETS.procedural.agente.marker.d).not.toBe(swallowtail);
-    expect(LINK_ASSETS.procedural.instrumento.marker.d).not.toBe(swallowtail);
-    expect(LINK_ASSETS.procedural.invocacion.marker.d).not.toBe(swallowtail);
+  test("BUG-20260525T063444Z-ad14a6 transformadores e invocacion usan punta cerrada canonica", () => {
+    const puntaCerrada = "M0,0 L10,-5 L10,5 z";
+    expect(LINK_ASSETS.procedural.consumo.marker.d).toBe(puntaCerrada);
+    expect(LINK_ASSETS.procedural.resultado.marker.d).toBe(puntaCerrada);
+    expect(LINK_ASSETS.procedural.efecto.marker.d).toBe(puntaCerrada);
+    expect(LINK_ASSETS.procedural.invocacion.marker.d).toBe(puntaCerrada);
+    expect(LINK_ASSETS.procedural.agente.marker.d).not.toBe(puntaCerrada);
+    expect(LINK_ASSETS.procedural.instrumento.marker.d).not.toBe(puntaCerrada);
   });
 
   test("resuelve badges canonicos c/e/no desde subtipo o modificador base", () => {

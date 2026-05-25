@@ -17,19 +17,21 @@ cd app && bun run bug:index
 | Estado | Cantidad |
 |---|---:|
 | Nuevo | 5 |
-| Resuelto | 16 |
+| Resuelto | 18 |
 
 ## Resumen Por Tipo
 
 | Tipo | Cantidad |
 |---|---:|
-| Bug | 16 |
+| Bug | 18 |
 | Feat | 5 |
 
 ## Activos
 
 | Tipo | Estado | Bug/Feat | Creado | Contexto | Resumen | Resolución | Capturas | Nota |
 |---|---|---|---|---|---|---|---:|---|
+| Bug | Resuelto | [BUG-20260525T063654Z-029853](BUG-20260525T063654Z-029853/report.md) | 2026-05-25 06:36Z | Modelo / SD1.1 | al descomponer los objetos relacionados se presentan en el borde izquierdo del canvas, inclumpliendo la regla de que todo se tiene que armar y ordena… | Los proxies externos creados al descomponer una cosa se ubican relativos al contorno refinado centrado, no en x absoluto 24. | 1 | Cubierto por operaciones.test BUG-20260525T063654Z-029853 y bloque de pruebas de refinamiento/layout. |
+| Bug | Resuelto | [BUG-20260525T063444Z-ad14a6](BUG-20260525T063444Z-ad14a6/report.md) | 2026-05-25 06:34Z | Modelo / SD | las flechas de los enlaces de transformación e invocación siguen siendo anómalos | Los enlaces transformadores e invocacion usan punta cerrada simple segun SSOT visual; se retiran swallowtail en transformadores y… | 1 | Cubierto por composers/markers.test, proyeccion.test de invocacion/auto-invocacion y composers/enlace.test. |
 | Bug | Resuelto | [BUG-20260525T060646Z-4e8a3e](BUG-20260525T060646Z-4e8a3e/report.md) | 2026-05-25 06:06Z | Modelo / SD | la sombra de las cosas fisicas está muy tenue, apenas se distingue la diferencia con las cosas informacionales | La sombra fisica usa dropShadow mas visible (dx 4, dy 4, blur 2, rgba 0.55) sin aplicar sombra a cosas informacionales. | 1 | Regresion en leyes/proyecciones.test.ts para preservar una sombra semantica legible. |
 | Bug | Nuevo | [BUG-20260525T052239Z-445a97](BUG-20260525T052239Z-445a97/report.md) | 2026-05-25 05:22Z | System Diagram / SD | cuando esté modelando con el canvas activo asegúrate que lo de la imagen adjunta se cumpla, es decir, al apretar O se cree un objeto. al apretar S (c… | Pendiente. | 1 |  |
 | Bug | Nuevo | [BUG-20260525T021047Z-6ae261](BUG-20260525T021047Z-6ae261/report.md) | 2026-05-25 02:10Z | System Diagram 1 / SD1 | las sombras no logran efecto grafico correcto | Pendiente. | 2 |  |

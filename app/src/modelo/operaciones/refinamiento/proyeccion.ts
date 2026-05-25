@@ -492,7 +492,7 @@ function materializarAparienciasExternas(
       ...item.aparienciaPadre,
       id,
       opdId: opd.id,
-      x: item.entrada ? 24 : Math.max(610, contorno.x + contorno.width + 40),
+      x: item.entrada ? contorno.x - item.aparienciaPadre.width - 40 : contorno.x + contorno.width + 40,
       y: contorno.y + 22 + fila * 92,
       contextoRefinamiento: contextoExternoDescomposicion(contorno.entidadId, contorno.id, item.enlaceIds),
     };

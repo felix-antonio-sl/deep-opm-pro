@@ -746,7 +746,7 @@ export function routerManhattan(): Record<string, unknown> {
 // pequeño arco sobre el otro. Mejora legibilidad real en modelos medianos sin
 // migrar de JointJS ni cambiar router. Tipos: 'arc' (arco) | 'gap' (corte) |
 // 'cubic'. Tamano por defecto JointJS es 10px; bajamos a 8 para no comerse
-// markers swallowtail (23x17) cuando estan cerca de un cruce.
+// markers de punta cerrada cuando estan cerca de un cruce.
 export function connectorJumpover(): Record<string, unknown> {
   return { name: "jumpover", args: { type: "arc", size: 8 } };
 }

@@ -1098,6 +1098,29 @@ describe("operaciones de modelo", () => {
     expect(Object.values(modelo.opds[modelo.opdRaizId]?.enlaces ?? {})).toHaveLength(2);
   });
 
+  test("BUG-20260525T063654Z-029853 centra proxies externos de entrada respecto del contorno refinado", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 100 }, "Entrada"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 260, y: 120 }, "Procesar"));
+    const entrada = entidadPorNombre(modelo, "Entrada");
+    const procesar = entidadPorNombre(modelo, "Procesar");
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entrada.id, procesar.id, "consumo"));
+
+    const descompuesto = must(descomponerProceso(modelo, modelo.opdRaizId, procesar.id));
+    const opdHijo = descompuesto.modelo.opds[descompuesto.opdId];
+    expect(opdHijo).toBeDefined();
+    if (!opdHijo) return;
+    const contorno = Object.values(opdHijo.apariencias).find((apariencia) => apariencia.entidadId === procesar.id);
+    const proxyEntrada = Object.values(opdHijo.apariencias).find((apariencia) => apariencia.entidadId === entrada.id);
+    expect(contorno).toBeDefined();
+    expect(proxyEntrada).toBeDefined();
+    if (!contorno || !proxyEntrada) return;
+
+    expect(proxyEntrada.x).toBe(contorno.x - proxyEntrada.width - 40);
+    expect(proxyEntrada.x).toBeGreaterThan(1000);
+    expect(proxyEntrada.y).toBe(contorno.y + 22);
+  });
+
   test("sincroniza representacion del hijo al crear enlace externo despues de descomponer", () => {
     let modelo = crearModelo();
     modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 260, y: 120 }, "Procesar"));
