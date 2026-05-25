@@ -21,6 +21,7 @@ import {
   crearObjeto,
   crearProceso,
 } from "./operaciones";
+import { POSICION_INICIAL_CANVAS } from "./layout";
 import type { Id, Modelo, Posicion, Resultado } from "./tipos";
 
 // ─── Tipos ───────────────────────────────────────────────────────────
@@ -43,7 +44,7 @@ export interface ParametrosLayoutRadial {
 }
 
 export const LAYOUT_DEFAULT: ParametrosLayoutRadial = {
-  centro: { x: 600, y: 400 },
+  centro: POSICION_INICIAL_CANVAS,
   radioInterior: 260,
   radioExterior: 400,
   espaciadoMinimo: 25,

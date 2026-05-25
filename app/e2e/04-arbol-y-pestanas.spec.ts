@@ -92,6 +92,39 @@ test("navega OPDs desde el arbol lateral", async ({ page }) => {
   expect(pageErrors).toEqual([]);
 });
 
+test("BUG-20260523T201251Z-afcfbe abrir SD hijo desde indice mantiene foco en centro geometrico", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.setViewportSize({ width: 1280, height: 720 });
+  await page.goto("/");
+  await jsonEditor(page).fill(JSON.stringify(modeloDosOpds(), null, 2));
+  await page.getByRole("button", { name: "Importar" }).click();
+  await expect(page.locator(".joint-element")).toHaveCount(1);
+
+  const nodoHijo = page.locator('[role="treeitem"][data-opd-id="opd-2"]');
+  await nodoHijo.click();
+  await expect(nodoHijo).toHaveAttribute("aria-current", "page");
+  await expect(elementoPorTexto(page, "Proceso Hijo")).toHaveCount(1);
+
+  await expect.poll(async () => {
+    const scroll = await page.getByRole("img", { name: "OPD activo" }).evaluate((el) => ({
+      left: el.scrollLeft,
+      top: el.scrollTop,
+    }));
+    return scroll.left;
+  }).toBeGreaterThan(2500);
+  await expect.poll(async () => {
+    const scroll = await page.getByRole("img", { name: "OPD activo" }).evaluate((el) => ({
+      left: el.scrollLeft,
+      top: el.scrollTop,
+    }));
+    return scroll.top;
+  }).toBeGreaterThan(1800);
+
+  expect(pageErrors).toEqual([]);
+});
+
 test("arbol OPD atajos panel: F2 renombra y Ctrl+D abre gestion", async ({ page }) => {
   const pageErrors: string[] = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));

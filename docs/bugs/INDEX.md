@@ -16,30 +16,31 @@ cd app && bun run bug:index
 
 | Estado | Cantidad |
 |---|---:|
-| Nuevo | 7 |
-| Resuelto | 13 |
+| Nuevo | 5 |
+| Resuelto | 16 |
 
 ## Resumen Por Tipo
 
 | Tipo | Cantidad |
 |---|---:|
-| Bug | 15 |
+| Bug | 16 |
 | Feat | 5 |
 
 ## Activos
 
 | Tipo | Estado | Bug/Feat | Creado | Contexto | Resumen | Resolución | Capturas | Nota |
 |---|---|---|---|---|---|---|---:|---|
+| Bug | Resuelto | [BUG-20260525T060646Z-4e8a3e](BUG-20260525T060646Z-4e8a3e/report.md) | 2026-05-25 06:06Z | Modelo / SD | la sombra de las cosas fisicas está muy tenue, apenas se distingue la diferencia con las cosas informacionales | La sombra fisica usa dropShadow mas visible (dx 4, dy 4, blur 2, rgba 0.55) sin aplicar sombra a cosas informacionales. | 1 | Regresion en leyes/proyecciones.test.ts para preservar una sombra semantica legible. |
 | Bug | Nuevo | [BUG-20260525T052239Z-445a97](BUG-20260525T052239Z-445a97/report.md) | 2026-05-25 05:22Z | System Diagram / SD | cuando esté modelando con el canvas activo asegúrate que lo de la imagen adjunta se cumpla, es decir, al apretar O se cree un objeto. al apretar S (c… | Pendiente. | 1 |  |
 | Bug | Nuevo | [BUG-20260525T021047Z-6ae261](BUG-20260525T021047Z-6ae261/report.md) | 2026-05-25 02:10Z | System Diagram 1 / SD1 | las sombras no logran efecto grafico correcto | Pendiente. | 2 |  |
 | Bug | Nuevo | [BUG-20260525T020822Z-9e3b9b](BUG-20260525T020822Z-9e3b9b/report.md) | 2026-05-25 02:08Z | System Diagram 1 / SD1 | los estados no tienen la forma canónica | Pendiente. | 1 |  |
-| Bug | Nuevo | [BUG-20260524T171809Z-06f1ed](BUG-20260524T171809Z-06f1ed/report.md) | 2026-05-24 17:18Z | Modelo / SD | la marca del autoinvocación no es canónico y tiene un quibre a distal anómalo | Pendiente. | 1 |  |
-| Bug | Nuevo | [BUG-20260524T171736Z-7fcdba](BUG-20260524T171736Z-7fcdba/report.md) | 2026-05-24 17:17Z | Modelo / SD | la ancla de consumo , resultado y efecto no es el canónico | Pendiente. | 1 |  |
+| Bug | Resuelto | [BUG-20260524T171809Z-06f1ed](BUG-20260524T171809Z-06f1ed/report.md) | 2026-05-24 17:18Z | Modelo / SD | la marca del autoinvocación no es canónico y tiene un quibre a distal anómalo | La autoinvocacion usa el zigzag OpCloud de cuatro vertices por tramo y mantiene el marcador canonico de invocacion. | 1 | Reabierto por feedback; el intento previo seguia emitiendo un unico quiebre por tramo. Cubierto por proyeccion.test BUG-06f1ed. |
+| Bug | Resuelto | [BUG-20260524T171736Z-7fcdba](BUG-20260524T171736Z-7fcdba/report.md) | 2026-05-24 17:17Z | Modelo / SD | la ancla de consumo , resultado y efecto no es el canónico | El render normal de consumo, resultado y efecto ignora ports persistidos y usa anchor center + connectionPoint boundary en ambos … | 1 | Reabierto por feedback; el intento previo solo cubria endpoints sin portId. Cubierto por proyeccion.test BUG-7fcdba. |
 | Bug | Nuevo | [BUG-20260524T171628Z-a8c184](BUG-20260524T171628Z-a8c184/report.md) | 2026-05-24 17:16Z | Modelo / SD1.1.1.1 | los proceso descompuestos al ser refinados , aunque sean sistémicos quedan con contorno discontinuo, cuando debería ser continuo | Pendiente. | 1 |  |
 | Bug | Nuevo | [BUG-20260524T034932Z-b6be2b](BUG-20260524T034932Z-b6be2b/report.md) | 2026-05-24 03:49Z | Modelo / SD1 | cuando refino en un diagrama el foco de la vista vuelve a la esquina superior izquierda, cuando deberia enfocarse nuevamente en el centro geométrico … | Pendiente. | 0 |  |
 | Bug | Resuelto | [BUG-20260523T210455Z-eec502](BUG-20260523T210455Z-eec502/report.md) | 2026-05-23 21:04Z | Modelo / SD | multiplicidad tiene que ser igual que opcloud en cuanto a +, *, etc | La multiplicidad acepta notacion OPCloud con +, *, N, rangos n..* y rangos n..N en inspector, tabla, parser OPL y generador. | 1 | Basado en fixtures OPCloud del meta-modelo; cubierto por operaciones, enlaceMultiplicidad, parser OPL y generacion OPL. |
 | Bug | Resuelto | [BUG-20260523T210035Z-7264f4](BUG-20260523T210035Z-7264f4/report.md) | 2026-05-23 21:00Z | Modelo / SD | anclaje de enlaces debe estar centrado | Los enlaces estructurales anclan por defecto en el centro superior/inferior del triangulo, alineados con el ruteo top/bottom. | 1 | Se conservan anclajes manuales persistidos; cubierto por proyeccion.test y opcloudRouting.test. |
-| Bug | Resuelto | [BUG-20260523T201251Z-afcfbe](BUG-20260523T201251Z-afcfbe/report.md) | 2026-05-23 20:12Z | Modelo / SD | despues de la corrección ahora las cosas se crean en otro punto del canvas que no es la esquina superior izquierda, sin embargo la vista no se centra… | La posicion libre inicial nace en el centro geometrico del canvas 7200x5200 y el viewport se enfoca explicitamente ahi para OPDs … | 0 | Cubierto por layout.test y e2e/21-estado-vacio-opm.spec.ts con verificacion de scroll real al centro. |
+| Bug | Resuelto | [BUG-20260523T201251Z-afcfbe](BUG-20260523T201251Z-afcfbe/report.md) | 2026-05-23 20:12Z | Modelo / SD | despues de la corrección ahora las cosas se crean en otro punto del canvas que no es la esquina superior izquierda, sin embargo la vista no se centra… | El viewport se centra en el centro geometrico del canvas al activar cualquier OPD/SD y al poblar por primera vez un OPD vacio; el… | 0 | Reabierto por feedback 2026-05-25; cubierto por creacionWizard/layout y e2e/04-arbol-y-pestanas BUG-afcfbe para SD hijo desde indice. |
 | Bug | Resuelto | [BUG-20260523T195754Z-dd0c18](BUG-20260523T195754Z-dd0c18/report.md) | 2026-05-23 19:57Z | Modelo / SD | sacar la función del mapa del sistema. no tiene valor actual | La funcion Mapa del sistema se retira de arbol OPD, menu principal y Command Palette. | 1 | Se conserva codigo interno no expuesto para evitar refactor destructivo amplio. |
 | Feat | Resuelto | [BUG-20260523T195725Z-1372c7](BUG-20260523T195725Z-1372c7/report.md) | 2026-05-23 19:57Z | Modelo / SD | que el panel opl se mueda redimensionar verticalmente | El panel OPL inferior tiene divisor horizontal para redimensionar verticalmente y doble clic para resetear a 180 px. | 0 | Cubierto por e2e/03-opl-panel.spec.ts. |
 | Feat | Resuelto | [BUG-20260523T195651Z-7ff54e](BUG-20260523T195651Z-7ff54e/report.md) | 2026-05-23 19:56Z | Modelo / SD | que al guardar un reporte de bug se copie inmediatamente el codigo id del bug al porta papeles y se cierre el modal | Al guardar un reporte, la app copia el ID del bug al portapapeles y cierra el modal. | 0 | El guardado no falla si el portapapeles no esta disponible. |

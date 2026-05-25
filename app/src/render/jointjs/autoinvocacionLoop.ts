@@ -27,7 +27,7 @@ export function proyectarAutoInvocacion(args: {
       type: "standard.Link",
       source: geometria.salida,
       target: geometria.pico,
-      vertices: [geometria.quiebreSalida],
+      vertices: verticesInvocacionOpcloud(geometria.salida, geometria.pico),
       connector: { name: "straight" },
       labels: [],
       attrs: attrsBase,
@@ -39,7 +39,7 @@ export function proyectarAutoInvocacion(args: {
       type: "standard.Link",
       source: geometria.pico,
       target: geometria.retorno,
-      vertices: [geometria.quiebreRetorno],
+      vertices: verticesInvocacionOpcloud(geometria.pico, geometria.retorno),
       connector: { name: "straight" },
       labels: args.enlace.demora ? [etiquetaDemora(args.enlace.demora)] : [],
       attrs: {
@@ -72,8 +72,6 @@ function loopAutoInvocacion(proceso: Apariencia): {
   salida: Posicion;
   pico: Posicion;
   retorno: Posicion;
-  quiebreSalida: Posicion;
-  quiebreRetorno: Posicion;
 } {
   const rx = proceso.width / 2;
   const ry = proceso.height / 2;
@@ -89,8 +87,6 @@ function loopAutoInvocacion(proceso: Apariencia): {
     salida,
     pico,
     retorno,
-    quiebreSalida: quiebreCanonico(salida, pico),
-    quiebreRetorno: quiebreCanonico(pico, retorno),
   };
 }
 
@@ -105,20 +101,68 @@ function interseccionElipse(cx: number, cy: number, rx: number, ry: number, angu
   };
 }
 
-// Punto de quiebre del rayo de invocacion (makeInvocationLinkVertices): un
-// unico vertice intermedio desplazado perpendicularmente hacia el centro del
-// lazo, escalado con la longitud del tramo. Genera el zigzag canonico sin
-// flare hacia distal.
-function quiebreCanonico(desde: Posicion, hacia: Posicion): Posicion {
-  const dx = hacia.x - desde.x;
-  const dy = hacia.y - desde.y;
-  const len = Math.hypot(dx, dy) || 1;
-  const desplazamiento = Math.max(6, Math.min(len * 0.12, 12));
-  const px = -dy / len;
-  const py = dx / len;
+// OPCloud `makeInvocationLinkVertices`: cuatro vertices por tramo para formar
+// el rayo de invocacion sin un unico quiebre distal.
+function verticesInvocacionOpcloud(src: Posicion, dst: Posicion): Posicion[] {
+  const delta = {
+    dx: dst.x - src.x,
+    dy: dst.y - src.y,
+  };
+  const linkLength = Math.hypot(delta.dx, delta.dy) || 1;
+  const displacement = Math.max(5, Math.min((linkLength * 15) / 500, 10));
+  const extension = Math.max(1, Math.min((linkLength * 8) / 500, 5));
+  const zapRatio = 0.5;
+  const partSrc = {
+    x: delta.dx * zapRatio + (extension * delta.dx) / linkLength,
+    y: delta.dy * zapRatio + (extension * delta.dy) / linkLength,
+  };
+  const partDst = {
+    x: delta.dx * (1 - zapRatio) + (extension * delta.dx) / linkLength,
+    y: delta.dy * (1 - zapRatio) + (extension * delta.dy) / linkLength,
+  };
+  const slope = -displacement / linkLength;
+  const arc = Math.atan(slope);
+  const sin = Math.sin(arc);
+  const cos = Math.cos(arc);
+  const srcRotado = rotarComoOpcloud(partSrc, sin, cos);
+  const dstRotado = rotarComoOpcloud(partDst, sin, cos);
+  const partSrcLen = Math.hypot(srcRotado.x, srcRotado.y) || 1;
+  const partDstLen = Math.hypot(dstRotado.x, dstRotado.y) || 1;
+  const breakLen = Math.max(Math.min(partSrcLen, partDstLen) * 0.1, 20);
+  const partSrcRatio = 1 - breakLen / partSrcLen;
+  const partDstRatio = 1 - breakLen / partDstLen;
+  return [
+    redondearPunto({
+      x: srcRotado.x * partSrcRatio + src.x,
+      y: srcRotado.y * partSrcRatio + src.y,
+    }),
+    redondearPunto({
+      x: srcRotado.x + src.x,
+      y: srcRotado.y + src.y,
+    }),
+    redondearPunto({
+      x: dst.x - dstRotado.x,
+      y: dst.y - dstRotado.y,
+    }),
+    redondearPunto({
+      x: dst.x - dstRotado.x * partDstRatio,
+      y: dst.y - dstRotado.y * partDstRatio,
+    }),
+  ];
+}
+
+function rotarComoOpcloud(vector: Posicion, sin: number, cos: number): Posicion {
+  const x = cos * vector.x - sin * vector.y;
   return {
-    x: Math.round((desde.x + hacia.x) / 2 + px * desplazamiento),
-    y: Math.round((desde.y + hacia.y) / 2 + py * desplazamiento),
+    x,
+    y: sin * x + cos * vector.y,
+  };
+}
+
+function redondearPunto(punto: Posicion): Posicion {
+  return {
+    x: Math.round(punto.x),
+    y: Math.round(punto.y),
   };
 }
 

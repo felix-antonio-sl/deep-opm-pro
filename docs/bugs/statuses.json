@@ -62,8 +62,8 @@
   "BUG-20260523T201251Z-afcfbe": {
     "type": "Bug",
     "status": "Resuelto",
-    "resolution": "La posicion libre inicial nace en el centro geometrico del canvas 7200x5200 y el viewport se enfoca explicitamente ahi para OPDs vacios y primera creacion.",
-    "note": "Cubierto por layout.test y e2e/21-estado-vacio-opm.spec.ts con verificacion de scroll real al centro."
+    "resolution": "El viewport se centra en el centro geometrico del canvas al activar cualquier OPD/SD y al poblar por primera vez un OPD vacio; el wizard tambien siembra alrededor de la posicion inicial centrada, no cerca de x/y 0/0.",
+    "note": "Reabierto por feedback 2026-05-25; cubierto por creacionWizard/layout y e2e/04-arbol-y-pestanas BUG-afcfbe para SD hijo desde indice."
   },
   "BUG-20260523T210035Z-7264f4": {
     "type": "Bug",
@@ -76,5 +76,23 @@
     "status": "Resuelto",
     "resolution": "La multiplicidad acepta notacion OPCloud con +, *, N, rangos n..* y rangos n..N en inspector, tabla, parser OPL y generador.",
     "note": "Basado en fixtures OPCloud del meta-modelo; cubierto por operaciones, enlaceMultiplicidad, parser OPL y generacion OPL."
+  },
+  "BUG-20260525T060646Z-4e8a3e": {
+    "type": "Bug",
+    "status": "Resuelto",
+    "resolution": "La sombra fisica usa dropShadow mas visible (dx 4, dy 4, blur 2, rgba 0.55) sin aplicar sombra a cosas informacionales.",
+    "note": "Regresion en leyes/proyecciones.test.ts para preservar una sombra semantica legible."
+  },
+  "BUG-20260524T171736Z-7fcdba": {
+    "type": "Bug",
+    "status": "Resuelto",
+    "resolution": "El render normal de consumo, resultado y efecto ignora ports persistidos y usa anchor center + connectionPoint boundary en ambos extremos.",
+    "note": "Reabierto por feedback; el intento previo solo cubria endpoints sin portId. Cubierto por proyeccion.test BUG-7fcdba."
+  },
+  "BUG-20260524T171809Z-06f1ed": {
+    "type": "Bug",
+    "status": "Resuelto",
+    "resolution": "La autoinvocacion usa el zigzag OpCloud de cuatro vertices por tramo y mantiene el marcador canonico de invocacion.",
+    "note": "Reabierto por feedback; el intento previo seguia emitiendo un unico quiebre por tramo. Cubierto por proyeccion.test BUG-06f1ed."
   }
 }

@@ -174,8 +174,8 @@ export function proyectarEnlace(
   return {
     id: aparienciaEnlaceId,
     type: "standard.Link",
-    source: endpointJoint(origen),
-    target: endpointJoint(destino),
+    source: endpointJoint(origen, preservarPuertoRender(enlace.tipo, enAbanico)),
+    target: endpointJoint(destino, preservarPuertoRender(enlace.tipo, enAbanico)),
     vertices: verticesRender,
     router,
     connector,
@@ -286,10 +286,16 @@ export function etiquetaProxyParte(text: string, distance: number, wrapWidth?: n
   };
 }
 
-export function endpointJoint(endpoint: EndpointVisual): Record<string, unknown> {
+export function endpointJoint(endpoint: EndpointVisual, preservarPuerto = true): Record<string, unknown> {
   if (endpoint.selectorEstado) return extremoEstado(endpoint.apariencia.id, endpoint.selectorEstado);
   if (endpoint.punto) return { x: endpoint.punto.x, y: endpoint.punto.y };
+  if (!preservarPuerto) return extremo(endpoint.apariencia.id);
   return extremo(endpoint.apariencia.id, endpoint.portId);
+}
+
+function preservarPuertoRender(tipo: TipoEnlace, enAbanico: boolean): boolean {
+  if (enAbanico) return true;
+  return tipo !== "consumo" && tipo !== "resultado" && tipo !== "efecto";
 }
 
 /**

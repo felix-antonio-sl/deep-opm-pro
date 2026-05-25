@@ -17,6 +17,8 @@ import {
   validarDatosAsistente,
   type DatosAsistente,
 } from "./creacionWizard";
+import { CANON } from "./constantes";
+import { CENTRO_CANVAS_GEOMETRICO } from "./layout";
 import type { Id, Modelo } from "./tipos";
 
 // ─── Helpers ─────────────────────────────────────────────────────────
@@ -122,6 +124,20 @@ describe("calcularPosicionesRadiales", () => {
 // ─── Siembra ─────────────────────────────────────────────────────────
 
 describe("sembrarModeloDesdeAsistente", () => {
+  test("BUG-20260523T201251Z-afcfbe siembra el proceso principal centrado en el canvas geometrico", () => {
+    const resultado = sembrarModeloDesdeAsistente(datasetValido());
+    expect(resultado.ok).toBe(true);
+    if (!resultado.ok) return;
+    const modelo = resultado.value;
+    const procesoId = entidadPorNombre(modelo, "Conducir");
+    const aparienciaProceso = Object.values(modelo.opds[modelo.opdRaizId]!.apariencias)
+      .find((apariencia) => apariencia.entidadId === procesoId);
+
+    expect(aparienciaProceso).toBeDefined();
+    expect(Math.abs(aparienciaProceso!.x + CANON.dims.cosaWidth / 2 - CENTRO_CANVAS_GEOMETRICO.x)).toBeLessThanOrEqual(0.5);
+    expect(Math.abs(aparienciaProceso!.y + CANON.dims.cosaHeight / 2 - CENTRO_CANVAS_GEOMETRICO.y)).toBeLessThanOrEqual(0.5);
+  });
+
   test("dataset mínimo crea modelo con proceso, beneficiario y sistema", () => {
     const datos = datasetValido();
     const resultado = sembrarModeloDesdeAsistente(datos);

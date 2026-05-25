@@ -326,6 +326,29 @@ describe("proyeccion JointJS", () => {
     expect((line?.targetMarker as Attrs | undefined)?.d).toBe(LINK_ASSETS.procedural.efecto.marker.d);
   });
 
+  test("BUG-7fcdba: consumo, resultado y efecto usan ancla canonica center+boundary aunque el modelo persista ports", () => {
+    for (const tipo of ["consumo", "resultado", "efecto"] as const) {
+      const modelo = modeloConEnlace(tipo);
+      const enlace = Object.values(modelo.enlaces)[0];
+      expect(enlace?.origenId.kind === "entidad" ? enlace.origenId.portId : undefined).toBeDefined();
+      expect(enlace?.destinoId.kind === "entidad" ? enlace.destinoId.portId : undefined).toBeDefined();
+
+      const cellEnlace = proyectarModeloAJointCells(modelo, modelo.opdRaizId, null, null)
+        .find((cell) => cell.type === "standard.Link");
+
+      expect(cellEnlace?.source).toEqual({
+        id: expect.any(String),
+        anchor: { name: "center" },
+        connectionPoint: { name: "boundary", args: { offset: 0, sticky: true } },
+      });
+      expect(cellEnlace?.target).toEqual({
+        id: expect.any(String),
+        anchor: { name: "center" },
+        connectionPoint: { name: "boundary", args: { offset: 0, sticky: true } },
+      });
+    }
+  });
+
   test("proyecta markers procedimentales restantes desde assets SVG canonicos", () => {
     const casos: Array<{ tipo: TipoEnlace; marker: Attrs }> = [
       { tipo: "instrumento", marker: LINK_ASSETS.procedural.instrumento.marker },
@@ -574,6 +597,23 @@ describe("proyeccion JointJS", () => {
     // CANON-V2 (ronda 28 L4): invocacion = path rombo (.d), no polygon
     // (.points). Ver linkAssets.ts.
     expect((line?.targetMarker as Attrs | undefined)?.d).toBe(LINK_ASSETS.procedural.invocacion.marker.d);
+  });
+
+  test("BUG-06f1ed: auto-invocacion usa vertices OpCloud de cuatro puntos en cada tramo", () => {
+    let modelo = crearModelo();
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 120, y: 80 }, "Reintentar"));
+    modelo = must(crearAutoInvocacion(modelo, modelo.opdRaizId, entidadPorNombre(modelo, "Reintentar")));
+    const aparienciaEnlace = Object.values(modelo.opds[modelo.opdRaizId]?.enlaces ?? {})[0];
+    expect(aparienciaEnlace).toBeDefined();
+    if (!aparienciaEnlace) return;
+
+    const tramos = proyectarModeloAJointCells(modelo, modelo.opdRaizId, null, null)
+      .filter((cell) => String(cell.id).startsWith(aparienciaEnlace.id));
+    const salida = tramos.find((cell) => String(cell.id).endsWith("-auto-salida"));
+    const retorno = tramos.find((cell) => String(cell.id).endsWith("-auto-retorno"));
+
+    expect(salida?.vertices).toHaveLength(4);
+    expect(retorno?.vertices).toHaveLength(4);
   });
 
   test("proyecta O como doble arco concentrico sin overlay textual", () => {

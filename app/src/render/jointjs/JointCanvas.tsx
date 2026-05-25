@@ -477,23 +477,14 @@ export function JointCanvas({
     aplicarFeedbackModoEnlace(adapter.paper, modelo, opdActivoId, modoEnlace);
     const opdActual = modelo.opds[opdActivoId];
     const aparienciaCount = Object.keys(opdActual?.apariencias ?? {}).length;
-    const enlacesCount = Object.keys(opdActual?.enlaces ?? {}).length;
     const ultimoConteo = ultimoConteoAparienciasRef.current;
     const primeraAparienciaEnOpdVacio = ultimoConteo?.opdId === opdActivoId && ultimoConteo.count === 0 && aparienciaCount > 0;
     ultimoConteoAparienciasRef.current = { opdId: opdActivoId, count: aparienciaCount };
     if (primeraAparienciaEnOpdVacio) {
-      if (aparienciaCount === 1 && enlacesCount === 0) {
-        centrarViewportEnPuntoCanvas(viewportRef.current, CENTRO_CANVAS_GEOMETRICO, "auto");
-      } else {
-        requestAnimationFrame(() => encuadrarViewportEnOpd(viewportRef.current, opdActual));
-      }
+      centrarViewportEnPuntoCanvas(viewportRef.current, CENTRO_CANVAS_GEOMETRICO, "auto");
     } else if (ultimoOpdCentradoRef.current !== opdActivoId) {
       ultimoOpdCentradoRef.current = opdActivoId;
-      if (aparienciaCount === 0) {
-        requestAnimationFrame(() => centrarViewportEnPuntoCanvas(viewportRef.current, CENTRO_CANVAS_GEOMETRICO, "auto"));
-      } else {
-        requestAnimationFrame(() => encuadrarViewportEnOpd(viewportRef.current, opdActual));
-      }
+      requestAnimationFrame(() => centrarViewportEnPuntoCanvas(viewportRef.current, CENTRO_CANVAS_GEOMETRICO, "auto"));
     }
   }, [enlaceSeleccionId, idsResaltadosTemporales, modelo, opdActivoId, seleccionId, seleccionados, uiAliasVisibles, uiDescripcionesVisibles, uiModoImagenGlobal, contextoSimulacion]);
 
@@ -765,29 +756,6 @@ function centrarViewportEnPuntoCanvas(
   viewport.scrollTo({
     left: Math.max(0, punto.x - viewport.clientWidth / 2),
     top: Math.max(0, punto.y - viewport.clientHeight / 2),
-    behavior,
-  });
-}
-
-function encuadrarViewportEnOpd(viewport: HTMLDivElement | null, opd: Opd | undefined): void {
-  if (!viewport || !opd || viewport.clientWidth <= 0 || viewport.clientHeight <= 0) return;
-  const apariencias = Object.values(opd.apariencias);
-  if (apariencias.length === 0) return;
-  const left = Math.min(...apariencias.map((apariencia) => apariencia.x));
-  const top = Math.min(...apariencias.map((apariencia) => apariencia.y));
-  const right = Math.max(...apariencias.map((apariencia) => apariencia.x + apariencia.width));
-  const bottom = Math.max(...apariencias.map((apariencia) => apariencia.y + apariencia.height));
-  centrarViewportEnRectCanvas(viewport, { x: left, y: top, width: right - left, height: bottom - top }, "auto");
-}
-
-function centrarViewportEnRectCanvas(
-  viewport: HTMLDivElement,
-  rect: { x: number; y: number; width: number; height: number },
-  behavior: ScrollBehavior = scrollBehaviorPreferidoCanvas(),
-): void {
-  viewport.scrollTo({
-    left: Math.max(0, rect.x + rect.width / 2 - viewport.clientWidth / 2),
-    top: Math.max(0, rect.y + rect.height / 2 - viewport.clientHeight / 2),
     behavior,
   });
 }
