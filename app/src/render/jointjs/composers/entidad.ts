@@ -514,8 +514,14 @@ export function attrsConEstados(
       y,
       width,
       height: ESTADOS.capsuleHeight,
-      rx: "calc(h/2)",
-      ry: "calc(h/2)",
+      // BUG-9e3b9b / canon §3.2 (línea 224): el estado OPM es un ROUNTANGLE
+      // (rectángulo redondeado), NO un stadium/pill. La evidencia OPCloud
+      // (export-legend-dialog `rx="5"` sobre h≈24-30; OpmObject.innerOuter rx:5)
+      // confirma esquinas de radio fijo moderado. `calc(h/2)` producía píldoras
+      // completas (semicírculos en los extremos) — forma no canónica. Usamos el
+      // radio fijo `ESTADOS.radius` para el rountangle correcto.
+      rx: ESTADOS.radius,
+      ry: ESTADOS.radius,
       fill: designaciones.includes("final") ? CODEX.colores.estadoFinalFill : CODEX.colores.estadoFill,
       stroke: CODEX.colores.opmEstado,
       strokeWidth: designaciones.includes("inicial") ? 3 : CODEX.strokes.estado,

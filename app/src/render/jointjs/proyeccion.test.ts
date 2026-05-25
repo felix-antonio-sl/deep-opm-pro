@@ -1214,8 +1214,8 @@ describe("proyeccion JointJS", () => {
     expect((cell?.markup as Array<Attrs> | undefined)?.filter((item) => String(item.selector).startsWith("stateCapsule"))).toHaveLength(2);
     // CANON-V2 (ronda 28 L4): capsulas de estado en paper Bauhaus + stroke
     // ink. Final con tinte ink-08 (antes #eef8ff azul corporate); regular
-    expect(attrs?.stateCapsule0).toMatchObject({ height: 24, rx: "calc(h/2)", fill: "#ece9e1", stroke: "#7e8338", strokeWidth: 3 });
-    expect(attrs?.stateCapsule1).toMatchObject({ height: 24, rx: "calc(h/2)", fill: "#E8E8E8", stroke: "#7e8338", strokeWidth: 1.2 });
+    expect(attrs?.stateCapsule0).toMatchObject({ height: 24, rx: 8, fill: "#ece9e1", stroke: "#7e8338", strokeWidth: 3 }); // BUG-9e3b9b: rountangle rx=ESTADOS.radius
+    expect(attrs?.stateCapsule1).toMatchObject({ height: 24, rx: 8, fill: "#E8E8E8", stroke: "#7e8338", strokeWidth: 1.2 }); // BUG-9e3b9b: rountangle rx=ESTADOS.radius
     expect((attrs?.stateCapsule0 as Attrs | undefined)?.y).toBe(70);
     expect((attrs?.stateLabel0 as Attrs | undefined)?.text).toBe("pendiente");
     expect((attrs?.stateLabel1 as Attrs | undefined)?.text).toBe("cerrado");

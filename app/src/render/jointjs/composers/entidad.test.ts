@@ -117,8 +117,9 @@ describe("composer entidad", () => {
       fill: "#ece9e1",
       stroke: "#7e8338",
       strokeWidth: 1.2,
-      rx: "calc(h/2)",
-      ry: "calc(h/2)",
+      // BUG-9e3b9b: rountangle (rectangulo redondeado), no stadium/pill.
+      rx: ESTADOS.radius,
+      ry: ESTADOS.radius,
     });
     expect(attrs.stateLabel0).toMatchObject({
       fill: "#171511",
