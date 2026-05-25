@@ -30,15 +30,15 @@ test("chrome Codex elimina cajas residuales en estado vacio", async ({ page }) =
   await expect(filtro).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
   await expect(filtro).toHaveCSS("border-top-style", "none");
 
-  await expect(page.getByTestId("bug-capture-open")).toHaveCount(0);
-  await expect(page.getByTestId("bug-ledger-open")).toHaveCount(0);
+  await expect(page.getByTestId("bug-capture-open")).toBeVisible();
+  await expect(page.getByTestId("bug-ledger-open")).toBeVisible();
 
   const canvasViewport = page.getByRole("img", { name: "OPD activo" });
-  await expect(canvasViewport).toHaveCSS("overflow-x", "hidden");
-  await expect(canvasViewport).toHaveCSS("overflow-y", "hidden");
+  await expect(canvasViewport).toHaveCSS("overflow-x", "auto");
+  await expect(canvasViewport).toHaveCSS("overflow-y", "auto");
 });
 
-test("command palette contiene comandos de modelo, vista y soporte sin FABs", async ({ page }) => {
+test("command palette contiene comandos de modelo, vista y soporte", async ({ page }) => {
   await page.goto("/");
   await cerrarPantallaInicioSiVisible(page);
 

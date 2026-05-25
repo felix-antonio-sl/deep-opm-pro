@@ -1,11 +1,45 @@
 # HANDOFF — Estado operativo del modelador OPM
 
-**Fecha**: 2026-05-25 · **Repositorio**: `deep-opm-pro` · **Rama**: `main`
-**Commit de producto desplegado**: cierre actual `fix(opl-ui): corrige ronda 2 codex`; consultar `git log -1 --oneline` para el hash final tras push.
+**Fecha**: 2026-05-26 · **Repositorio**: `deep-opm-pro` · **Rama**: `main`
+**Commit de producto desplegado**: cierre actual `fix(ui): repone capturador y scroll canvas`; consultar `git log -1 --oneline` para el hash final tras push.
 **Commit documental de handoff**: este documento forma parte del mismo commit atomico de cierre.
-**Instancia**: `https://opforja.sanixai.com` — bundle **Codex v1.1 + auditoria Ronda 2** desplegado con `docker compose up -d --build`; contenedores `opforja` (healthy) + `opforja-bug-capture`, **HTTP 200 publico** (sin auth, ver Riesgos).
+**Instancia**: `https://opforja.sanixai.com` — bundle **Tier 1 + capturador/scroll canvas** desplegado con `docker compose up -d --build`; contenedores `opforja` (healthy) + `opforja-bug-capture`, **HTTP 200 publico** (sin auth, ver Riesgos).
 
-## Corte actual — Ronda 2 Codex v1.1: OPL canonica, canvas y diagnostico
+## Corte actual — Tier 1 + recuperacion operativa capturador/scroll
+
+Se llevo la rama `feat/cierre-brechas-tier1` a `main` con dos bloques cerrados: preferencias de visibilidad de esencia en OPL y recuperacion operativa del capturador de bugs/desplazamiento nativo del canvas.
+
+**Decisiones aplicadas:**
+- La OPL mantiene una forma canonica interna/roundtrip completa, pero el panel puede ocultar oraciones de esencia desde Configuracion (`oplEsenciaVisibilidad`) para lectura editorial.
+- La preferencia de visibilidad de esencia se aplica al Guardar en Configuracion, siguiendo el contrato ya usado por grilla/modos visuales.
+- `detectarColisionNombre` queda como helper puro del modelo para identificar colisiones por nombre, tipo y ubicaciones. La UI completa de resolucion de colisiones queda fuera de este corte hasta integracion deliberada.
+- Se repusieron accesos visibles del capturador de bugs (`bug-capture-open`, `bug-ledger-open`) ademas de `Ctrl+Alt+B` y command palette.
+- El viewport real de JointJS vuelve a `overflow: auto`, recuperando desplazamiento nativo por canvas; el pan/zoom y centrado programatico siguen funcionando sobre el mismo viewport.
+- Se actualizo la auditoria visual e2e para reflejar que capturador visible y scroll nativo son comportamiento esperado, no regresion visual.
+
+**Artefactos relevantes:**
+- `app/src/opl/opciones.ts`, `generar.ts`, `panel.ts`, `generadores/estructural.ts` — visibilidad display vs canonica de esencia.
+- `app/src/ui/DialogoConfiguracion.tsx` + puertos/viewmodel de configuracion — selector de visibilidad de esencia.
+- `app/src/modelo/operaciones/colisionNombre.ts` — helper puro de colision por nombre.
+- `app/src/ui/CapturadorBugs.tsx` — accesos visibles restaurados.
+- `app/src/render/jointjs/JointCanvas.tsx` — viewport scrolleable restaurado.
+- Tests focales: `e2e/28-opl-visibilidad-esencia.spec.ts`, `e2e/10-capturador-bugs.spec.ts`, `e2e/27-visual-compliance-25-05.spec.ts`, `e2e/21-estado-vacio-opm.spec.ts`, unit tests de OPL y colision de nombre.
+
+**Verificacion del corte:**
+- `cd app && bun run check` -> verde.
+- `cd app && bun run lint` -> OK.
+- `cd app && bun run build` -> OK.
+- `cd app && bun run design:governance` -> OK.
+- `git diff --check` -> OK.
+- `cd app && bunx playwright test e2e/10-capturador-bugs.spec.ts e2e/27-visual-compliance-25-05.spec.ts e2e/21-estado-vacio-opm.spec.ts` -> verde.
+
+**Estado local al cierre:** no stagear automaticamente `docs/auditorias/inclumplimiento-visual-25-05-2026.md`, `docs/manual-simulado-opcloud-capacidades.md`, ni los borradores de UI de colision de nombre si reaparecen sin integracion (`DialogoColisionNombre`, `colisionPendiente`, acciones resolver colision). Son trabajo aparte.
+
+**Pendientes derivados:**
+- Integrar de punta a punta el flujo de colision de nombre: store actions, modal, reuso por aparicion, rename sin fusion y navegacion a ubicaciones.
+- Reauditar visualmente el posicionamiento de los dos accesos del capturador en desktop y mobile para asegurar que no tapan controles criticos.
+
+## Corte previo — Ronda 2 Codex v1.1: OPL canonica, canvas y diagnostico
 
 Se resolvio la auditoria "Incumplimientos Codex — Ronda 2" del 25 mayo 2026, visible con modelo cargado, diagnostico expandido y refinamientos SD1/SD1.1. El foco fue preservar funcionalidad y elevar el cumplimiento contra la SSOT suprema `docs/canon-opm/reglas-opm-estrictas.md` y la autoridad visual `ui-forja/GOVERNANCE.md`.
 

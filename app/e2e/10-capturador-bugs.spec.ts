@@ -43,6 +43,15 @@ test("capturador de bugs abre con Ctrl+Alt+B", async ({ page }) => {
   await expect(page.getByRole("dialog", { name: "Capturar bug" })).toBeVisible();
 });
 
+test("capturador de bugs expone accesos directos visibles", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.getByTestId("bug-capture-open")).toBeVisible();
+  await expect(page.getByTestId("bug-ledger-open")).toBeVisible();
+
+  await page.getByTestId("bug-capture-open").click();
+  await expect(page.getByRole("dialog", { name: "Capturar bug" })).toBeVisible();
+});
+
 test("capturador de bugs muestra lista activa e historica desde el sidecar", async ({ page }) => {
   await page.route("**/__deep-opm/bug-reports", async (route) => {
     if (route.request().method() !== "GET") return route.fallback();
