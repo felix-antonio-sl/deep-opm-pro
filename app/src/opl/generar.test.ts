@@ -924,6 +924,16 @@ describe("generarOpl", () => {
     expect(generarOpl(modelo, desplegado.opdId)).toContain("**Vehiculo** se despliega en **Vehiculo parte 1**, **Vehiculo parte 2** y **Vehiculo parte 3**.");
     expect(generarOpl(modelo, desplegado.opdId)).toContain("**Vehiculo** consta de **Vehiculo parte 1**.");
   });
+
+  test("VisibilidadOpl oculta suprime oraciones de esencia/afiliación del barrel", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 0, y: 0 }, "Sensor"));
+
+    const lineas = generarOpl(modelo, modelo.opdRaizId, { esencia: "oculta" });
+
+    expect(lineas.join("\n")).not.toContain("es informacional");
+    expect(lineas.join("\n")).not.toContain("es sistémico");
+  });
 });
 
 function entidad(modelo: Modelo, nombre: string): string {

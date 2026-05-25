@@ -1,5 +1,6 @@
 import { estadosDeEntidad } from "../modelo/operaciones";
 import type { Id, Modelo, Opd } from "../modelo/tipos";
+import type { VisibilidadOpl } from "./opciones";
 import { crearLineaOplInteractiva, type OplLineaInteractiva } from "./interaccion";
 import { profundidadOpd } from "./bloquesJerarquicos";
 import { oracionesAbanicoInteractivo } from "./generadores/abanico";
@@ -37,16 +38,16 @@ import {
  * `/home/felix/projects/deep-opm-pro/opm-extracted/src/app/models/LogicalPart/LogicalTextModule.ts:36-47`.
  */
 
-export function generarOpl(modelo: Modelo, opdId: Id = modelo.opdRaizId): string[] {
+export function generarOpl(modelo: Modelo, opdId: Id = modelo.opdRaizId, opciones?: VisibilidadOpl): string[] {
   const opd = modelo.opds[opdId];
   if (!opd) return [];
-  return generarLineasOpl(modelo, opd).map((linea) => linea.texto);
+  return generarLineasOpl(modelo, opd, opciones).map((linea) => linea.texto);
 }
 
-export function generarOplInteractivo(modelo: Modelo, opdId: Id = modelo.opdRaizId): OplLineaInteractiva[] {
+export function generarOplInteractivo(modelo: Modelo, opdId: Id = modelo.opdRaizId, opciones?: VisibilidadOpl): OplLineaInteractiva[] {
   const opd = modelo.opds[opdId];
   if (!opd) return [];
-  const lineas = generarLineasOpl(modelo, opd);
+  const lineas = generarLineasOpl(modelo, opd, opciones);
   const opdNombre = opd.nombre;
   const opdProfundidad = profundidadOpd(modelo, opdId);
   return lineas.map((linea, index) => crearLineaOplInteractiva(
@@ -59,14 +60,14 @@ export function generarOplInteractivo(modelo: Modelo, opdId: Id = modelo.opdRaiz
   ));
 }
 
-function generarLineasOpl(modelo: Modelo, opd: Opd): OplLineaPendiente[] {
+function generarLineasOpl(modelo: Modelo, opd: Opd, opciones?: VisibilidadOpl): OplLineaPendiente[] {
   const lineas: OplLineaPendiente[] = [];
 
   for (const apariencia of Object.values(opd.apariencias)) {
     const entidad = modelo.entidades[apariencia.entidadId];
     if (!entidad) continue;
     if (entidadOplEsEmitible(entidad)) {
-      for (const oracion of oracionEntidad(entidad)) {
+      for (const oracion of oracionEntidad(entidad, opciones)) {
         agregarLinea(lineas, oracion, [refEntidad(entidad.id)], [hintEntidad(entidad)]);
       }
     }
