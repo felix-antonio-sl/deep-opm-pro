@@ -28,6 +28,10 @@ export function proyectarEntidad(
   seleccionada: boolean,
   resaltada: boolean,
   opciones: OpcionesProyeccion,
+  // SEL-1 (Codex rev2 §5.1): underline crimson embebido en la celda de la
+  // entidad cuando es la selección única. Embebido (no celda-halo aparte) para
+  // no inflar el conteo de `.joint-element`.
+  seleccionUnica = false,
 ): JointCellJson {
   const stroke = apariencia.estilo?.borderColor ?? colorEntidadCodex(entidad.tipo);
   const fillBase = apariencia.estilo?.fill ?? "transparent";
@@ -125,16 +129,21 @@ export function proyectarEntidad(
         : metadatos.tieneMetadatos
           ? { markup: markupConBadge(bodyTag, metadatos), attrs: attrsConBadge(attrsBase, size, metadatos) }
           : { attrs: attrsBase };
+  // SEL-2 (Codex rev2 §6.2): la selección NO emite resize-handles flotantes.
+  // La affordance Codex es solo el underline crimson hairline + la anotación
+  // tipográfica HTML (CodexSelectionAnnotation). Los connect-anchors siguen
+  // apareciendo en selección porque pertenecen al modo enlace, no al resize.
   const renderConAnchors = {
     ...renderBase,
     markup: markupConConnectAnchors(renderBase.markup ?? markupBase(bodyTag)),
     attrs: attrsConConnectAnchors(renderBase.attrs, size, entidad.tipo, seleccionada),
   };
-  const render = seleccionada
+  // SEL-1: underline crimson embebido bajo la etiqueta en selección única.
+  const render = seleccionUnica
     ? {
         ...renderConAnchors,
-        markup: markupConResizeHandles(renderConAnchors.markup),
-        attrs: attrsConResizeHandles(renderConAnchors.attrs, size),
+        markup: markupConSelectionUnderline(renderConAnchors.markup),
+        attrs: attrsConSelectionUnderline(renderConAnchors.attrs, size),
       }
     : renderConAnchors;
   const ports = portsEntidad(apariencia, entidad.tipo);
@@ -273,48 +282,31 @@ function attrsIndiceEntidad(entidad: Entidad): Record<string, unknown> {
   };
 }
 
-function markupConResizeHandles(markup: Array<Record<string, unknown>>): Array<Record<string, unknown>> {
-  return [
-    ...markup,
-    ...["nw", "n", "ne", "e", "se", "s", "sw", "w"].map((handle) => ({
-      tagName: "rect",
-      selector: `resize-${handle}`,
-    })),
-  ];
+// SEL-1: underline crimson hairline embebido (selección única). Espejo de
+// composers/halos.ts → proyectarHaloSeleccion (mismo trazo 1.2 crimson, misma
+// geometría: ancho = max(24, w-16), centrado horizontal, justo bajo el centro
+// vertical), pero como sub-elemento de la celda en vez de celda aparte.
+function markupConSelectionUnderline(markup: Array<Record<string, unknown>>): Array<Record<string, unknown>> {
+  return [...markup, { tagName: "path", selector: "selectionUnderline" }];
 }
 
-function attrsConResizeHandles(
+function attrsConSelectionUnderline(
   attrsBase: Record<string, unknown>,
   size: { width: number; height: number },
 ): Record<string, unknown> {
-  const points: Record<string, { x: number; y: number; cursor: string }> = {
-    "resize-nw": { x: 0, y: 0, cursor: "nwse-resize" },
-    "resize-n": { x: size.width / 2, y: 0, cursor: "ns-resize" },
-    "resize-ne": { x: size.width, y: 0, cursor: "nesw-resize" },
-    "resize-e": { x: size.width, y: size.height / 2, cursor: "ew-resize" },
-    "resize-se": { x: size.width, y: size.height, cursor: "nwse-resize" },
-    "resize-s": { x: size.width / 2, y: size.height, cursor: "ns-resize" },
-    "resize-sw": { x: 0, y: size.height, cursor: "nesw-resize" },
-    "resize-w": { x: 0, y: size.height / 2, cursor: "ew-resize" },
-  };
-  const attrs: Record<string, unknown> = { ...attrsBase };
-  for (const [selector, point] of Object.entries(points)) {
-    attrs[selector] = {
-      x: point.x - 3,
-      y: point.y - 3,
-      width: 6,
-      height: 6,
-      rx: 0,
-      ry: 0,
-      fill: CODEX.colores.paper,
+  const ancho = Math.max(24, size.width - 16);
+  const x = (size.width - ancho) / 2;
+  const y = size.height / 2 + 6;
+  return {
+    ...attrsBase,
+    selectionUnderline: {
+      d: `M ${x} ${y} L ${x + ancho} ${y}`,
+      fill: "none",
       stroke: CODEX.colores.crimson,
-      strokeWidth: 1.5,
-      cursor: point.cursor,
-      pointerEvents: "auto",
-      title: "Redimensionar",
-    };
-  }
-  return attrs;
+      strokeWidth: CODEX.strokes.seleccion,
+      pointerEvents: "none",
+    },
+  };
 }
 
 export function rolApariencia(modelo: Modelo, opdId: Id, apariencia: Apariencia, esContorno: boolean): RolApariencia {
