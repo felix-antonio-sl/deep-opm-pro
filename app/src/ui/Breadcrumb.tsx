@@ -59,12 +59,14 @@ export function rutaBreadcrumbOpd(modelo: Modelo, opdActivoId: Id): SegmentoBrea
 }
 
 /**
- * Estilos del Breadcrumb — Ronda 28 L2 (Bauhaus monocromática).
+ * Estilos del Breadcrumb — Ronda Codex v2 L2 (header editorial).
  *
- *   - Fondo paper, sin bordes redondos.
- *   - Separadores `/` en ink-30 (visualmente discretos, monoespaciados).
- *   - Crumb inactivo: ink-70 weight 400. Crumb activo: ink weight 500.
- *     Sin fondo gris translucido — el peso tipografico marca el activo.
+ *   - Vive en la columna central del header (`wordmark │ breadcrumb │ meta`),
+ *     reemplazando el literal "Codex". Hereda el borde izquierdo del slot del
+ *     header, así que el `nav` ya no pinta borde ni fondo propio.
+ *   - Separadores `/` en ink-30 (discretos, monoespaciados).
+ *   - Crumb inactivo: ink-70 weight 400. Crumb activo: ink weight 500. El peso
+ *     tipográfico (Inria Serif) marca el activo, sin fondo.
  */
 const style = {
   nav: {
@@ -72,12 +74,11 @@ const style = {
     display: "flex",
     alignItems: "center",
     gap: 0,
-    height: "32px",
-    padding: "0 12px",
+    height: "100%",
+    padding: "0 16px",
     overflow: "hidden",
     color: tokens.colors.ink70,
-    borderRight: `1px solid ${tokens.colors.ink15}`,
-    background: tokens.colors.paper,
+    background: "transparent",
     fontFamily: tokens.typography.fontFamily,
   },
   empty: {
