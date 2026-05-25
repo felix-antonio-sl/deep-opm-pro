@@ -292,7 +292,7 @@ function parsearNombreUnidadEntidad(nombre: string, unidadActual?: string): { no
   return { nombre: base, unidad: unidadActual && unidadActual === unidad ? unidadActual : unidad };
 }
 
-function entidadPorNombreCanonico(modelo: Modelo, nombre: string, excluirEntidadId?: Id): Entidad | null {
+export function entidadPorNombreCanonico(modelo: Modelo, nombre: string, excluirEntidadId?: Id): Entidad | null {
   const clave = claveNombreCanonico(nombre);
   return Object.values(modelo.entidades).find((entidad) =>
     entidad.id !== excluirEntidadId && claveNombreCanonico(entidad.nombre) === clave

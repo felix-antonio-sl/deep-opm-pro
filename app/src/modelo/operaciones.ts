@@ -32,6 +32,7 @@ export {
   cambiarTipoValorAtributo,
   configurarSimulacionAtributo,
   esAtributoDerivado,
+  entidadPorNombreCanonico,
 } from "./operaciones/entidad";
 export type { CrearAtributoOpciones, AtributoCreado } from "./operaciones/entidad";
 
