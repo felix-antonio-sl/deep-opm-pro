@@ -96,6 +96,8 @@ export function PanelOpl() {
         totalOraciones={vm.lineas.length}
         busquedaOpl={vm.busquedaOpl}
         filtroActivo={vm.filtroActivo}
+        filtroCodigo={vm.filtroCodigo}
+        filtroVisibles={vm.visibles.length}
         numeracionVisible={vm.numeracionVisible}
         onMinimizar={vm.minimizarOpl}
         onToggleNumeracion={vm.alternarNumeracionOpl}

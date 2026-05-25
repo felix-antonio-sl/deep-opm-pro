@@ -18,6 +18,14 @@ interface ToolbarOplProps {
   totalOraciones: number;
   busquedaOpl: string;
   filtroActivo: boolean;
+  /**
+   * Codex L6 (G7): cuando el filtro por selección está activo, el chip muestra
+   * `filtrado · <código> · N/M ✕`. `filtroCodigo` es el identificador canónico
+   * del elemento seleccionado (`o.06`, `p.02`…) o `null` si no aplica (enlace).
+   * `filtroVisibles` = oraciones que pasan el filtro (N); `totalOraciones` = M.
+   */
+  filtroCodigo: string | null;
+  filtroVisibles: number;
   numeracionVisible: boolean;
   onMinimizar: () => void;
   onToggleNumeracion: () => void;
@@ -129,14 +137,44 @@ export function ToolbarOpl(props: ToolbarOplProps) {
       <span style={style.divider} aria-hidden="true" />
 
       {/* Toggle independiente al extremo derecho */}
-      <label style={style.toggle}>
-        <input
-          type="checkbox"
-          checked={props.filtroActivo}
-          onInput={(event) => props.onFiltroSeleccion((event.currentTarget as HTMLInputElement).checked)}
-        />
-        Filtrar por selección
-      </label>
+      {props.filtroActivo ? (
+        // Codex L6 (G7): chip de filtro activo — crimson italic. Reemplaza al
+        // checkbox mientras hay filtro; la ✕ lo desactiva. Forma editorial:
+        // `filtrado · o.06 · 4/24 ✕`.
+        <span style={style.chipFiltro} data-testid="panel-opl-filtro-chip">
+          <span style={style.chipKicker}>filtrado</span>
+          {props.filtroCodigo ? (
+            <>
+              <span style={style.chipSep} aria-hidden="true">·</span>
+              <span style={style.chipCodigo}>{props.filtroCodigo}</span>
+            </>
+          ) : null}
+          <span style={style.chipSep} aria-hidden="true">·</span>
+          <span style={style.chipConteo}>
+            {props.filtroVisibles}/{props.totalOraciones}
+          </span>
+          <button
+            type="button"
+            data-testid="panel-opl-filtro-chip-quitar"
+            style={style.chipCerrar}
+            title="Quitar filtro por selección"
+            aria-label="Quitar filtro por selección"
+            onClick={() => props.onFiltroSeleccion(false)}
+          >
+            ✕
+          </button>
+        </span>
+      ) : (
+        <label style={style.toggle}>
+          <input
+            type="checkbox"
+            checked={props.filtroActivo}
+            data-testid="panel-opl-filtro-toggle"
+            onInput={(event) => props.onFiltroSeleccion((event.currentTarget as HTMLInputElement).checked)}
+          />
+          Filtrar por selección
+        </label>
+      )}
     </div>
   );
 }
@@ -240,6 +278,49 @@ const style = {
     transition: tokens.transitions.fast,
   },
   btnDisabled: { opacity: 0.4, cursor: "not-allowed" as const },
+  // Codex L6 (G7): chip de filtro activo — crimson italic, sin caja ni sombra.
+  chipFiltro: {
+    display: "inline-flex",
+    alignItems: "baseline",
+    gap: 4,
+    color: tokens.colors.crimson,
+    fontStyle: "italic" as const,
+    fontSize: tokens.typography.sizes.sm,
+    whiteSpace: "nowrap" as const,
+    userSelect: "none" as const,
+  },
+  chipKicker: {
+    fontFamily: tokens.typography.serif,
+    fontStyle: "italic" as const,
+  },
+  chipSep: {
+    color: tokens.colors.crimson,
+    fontStyle: "normal" as const,
+    opacity: 0.6,
+  },
+  chipCodigo: {
+    fontFamily: tokens.typography.fontFamilyMono,
+    fontStyle: "normal" as const,
+    fontSize: tokens.typography.sizes.xs,
+    letterSpacing: tokens.typography.ls.meta,
+  },
+  chipConteo: {
+    fontFamily: tokens.typography.fontFamilyMono,
+    fontStyle: "normal" as const,
+    fontSize: tokens.typography.sizes.xs,
+    fontVariantNumeric: "tabular-nums" as const,
+  },
+  chipCerrar: {
+    border: "none",
+    background: "transparent",
+    color: tokens.colors.crimson,
+    cursor: "pointer",
+    padding: "0 2px",
+    marginLeft: 2,
+    fontStyle: "normal" as const,
+    fontSize: tokens.typography.sizes.sm,
+    lineHeight: 1,
+  },
   toggle: {
     display: "inline-flex",
     alignItems: "center",
