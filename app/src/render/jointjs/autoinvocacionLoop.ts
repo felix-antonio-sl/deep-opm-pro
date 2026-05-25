@@ -55,6 +55,19 @@ export function proyectarAutoInvocacion(args: {
   ];
 }
 
+// Geometria canonica OpCloud (SelfInvocationLink.calc, OpmProcess.ts:580
+// getSelfInvocationMainVertices). El "pico" (connection point) cuelga del
+// borde inferior del proceso a una distancia `dist`. Desde el centro de la
+// elipse se traza la linea al pico y se rota +/-`ANGULO_RAMA` grados; las dos
+// ramas (salida/retorno) anclan en la INTERSECCION de esas lineas con la
+// elipse del proceso, no en puntos horizontales arbitrarios. Esto elimina el
+// "quiebre a distal anomalo" (BUG-06f1ed): antes salida/retorno se colocaban
+// en y ~= bottom con offset horizontal +/-amplitud*0.45 mientras los quiebres
+// se abrian a +/-amplitud (mas anchos que los anclajes), produciendo un lazo
+// que se ensanchaba hacia distal en vez de converger limpio al pico.
+const ANGULO_RAMA = 35;
+const DIST_PICO_MIN = 56;
+
 function loopAutoInvocacion(proceso: Apariencia): {
   salida: Posicion;
   pico: Posicion;
@@ -62,19 +75,50 @@ function loopAutoInvocacion(proceso: Apariencia): {
   quiebreSalida: Posicion;
   quiebreRetorno: Posicion;
 } {
-  const bottom = proceso.y + proceso.height;
-  const centroX = proceso.x + proceso.width / 2;
-  const amplitud = Math.max(42, proceso.width * 0.32);
-  const altoLoop = Math.max(62, proceso.height * 1.15);
-  const salida = { x: Math.round(centroX - amplitud * 0.45), y: Math.round(bottom - proceso.height * 0.12) };
-  const retorno = { x: Math.round(centroX + amplitud * 0.45), y: Math.round(bottom - proceso.height * 0.12) };
-  const pico = { x: Math.round(centroX), y: Math.round(bottom + altoLoop) };
+  const rx = proceso.width / 2;
+  const ry = proceso.height / 2;
+  const cx = proceso.x + rx;
+  const cy = proceso.y + ry;
+  const dist = Math.max(DIST_PICO_MIN, proceso.height * 0.55);
+  // Pico colgando recto bajo el centro, sobre la elipse agrandada.
+  const pico = { x: Math.round(cx), y: Math.round(cy + ry + dist) };
+  // Direccion centro -> pico (puramente hacia abajo) rotada +/-ANGULO_RAMA.
+  const salida = interseccionElipse(cx, cy, rx, ry, 90 - ANGULO_RAMA);
+  const retorno = interseccionElipse(cx, cy, rx, ry, 90 + ANGULO_RAMA);
   return {
     salida,
     pico,
     retorno,
-    quiebreSalida: { x: Math.round(centroX - amplitud), y: Math.round(bottom + altoLoop * 0.48) },
-    quiebreRetorno: { x: Math.round(centroX + amplitud), y: Math.round(bottom + altoLoop * 0.48) },
+    quiebreSalida: quiebreCanonico(salida, pico),
+    quiebreRetorno: quiebreCanonico(pico, retorno),
+  };
+}
+
+// Punto sobre la elipse del proceso en el angulo dado (grados, sentido del
+// reloj desde el eje +x del SVG; 90 = abajo). Coincide con la interseccion
+// que OpCloud calcula via Ellipse.intersectionWithLine desde el centro.
+function interseccionElipse(cx: number, cy: number, rx: number, ry: number, anguloGrados: number): Posicion {
+  const rad = (anguloGrados * Math.PI) / 180;
+  return {
+    x: Math.round(cx + rx * Math.cos(rad)),
+    y: Math.round(cy + ry * Math.sin(rad)),
+  };
+}
+
+// Punto de quiebre del rayo de invocacion (makeInvocationLinkVertices): un
+// unico vertice intermedio desplazado perpendicularmente hacia el centro del
+// lazo, escalado con la longitud del tramo. Genera el zigzag canonico sin
+// flare hacia distal.
+function quiebreCanonico(desde: Posicion, hacia: Posicion): Posicion {
+  const dx = hacia.x - desde.x;
+  const dy = hacia.y - desde.y;
+  const len = Math.hypot(dx, dy) || 1;
+  const desplazamiento = Math.max(6, Math.min(len * 0.12, 12));
+  const px = -dy / len;
+  const py = dx / len;
+  return {
+    x: Math.round((desde.x + hacia.x) / 2 + px * desplazamiento),
+    y: Math.round((desde.y + hacia.y) / 2 + py * desplazamiento),
   };
 }
 
