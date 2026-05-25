@@ -10,7 +10,7 @@ cualquier ID, activo o archivado.
 
 | Alcance / Estado | Cantidad |
 |---|---:|
-| Activo / Nuevo | 5 |
+| Activo / Nuevo | 6 |
 | Activo / Resuelto | 18 |
 | Histórico / Absorbido | 4 |
 | Histórico / No defecto | 1 |
@@ -20,7 +20,7 @@ cualquier ID, activo o archivado.
 
 | Alcance / Tipo | Cantidad |
 |---|---:|
-| Activo / Bug | 18 |
+| Activo / Bug | 19 |
 | Activo / Feat | 5 |
 | Histórico / Bug | 48 |
 
@@ -28,6 +28,7 @@ cualquier ID, activo o archivado.
 
 | Alcance | Tipo | Estado | Bug/Feat | Creado | Contexto | Resumen | Resolución | Capturas | Nota |
 |---|---|---|---|---|---|---|---|---:|---|
+| Activo | Bug | Nuevo | [BUG-20260525T233828Z-895504](BUG-20260525T233828Z-895504/report.md) | 2026-05-25 23:38Z | System Diagram / SD | la barra superior está canónica en cuanto al diseño? | Pendiente. | 1 |  |
 | Activo | Bug | Resuelto | [BUG-20260525T063654Z-029853](BUG-20260525T063654Z-029853/report.md) | 2026-05-25 06:36Z | Modelo / SD1.1 | al descomponer los objetos relacionados se presentan en el borde izquierdo del canvas, inclumpliendo la regla de que todo se tiene que armar y ordena… | Los proxies externos creados al descomponer una cosa se ubican relativos al contorno refinado centrado, no en x absoluto 24. | 1 | Cubierto por operaciones.test BUG-20260525T063654Z-029853 y bloque de pruebas de refinamiento/layout. |
 | Activo | Bug | Resuelto | [BUG-20260525T063444Z-ad14a6](BUG-20260525T063444Z-ad14a6/report.md) | 2026-05-25 06:34Z | Modelo / SD | las flechas de los enlaces de transformación e invocación siguen siendo anómalos | Los enlaces transformadores e invocacion usan punta cerrada simple segun SSOT visual; se retiran swallowtail en transformadores y… | 1 | Cubierto por composers/markers.test, proyeccion.test de invocacion/auto-invocacion y composers/enlace.test. |
 | Activo | Bug | Resuelto | [BUG-20260525T060646Z-4e8a3e](BUG-20260525T060646Z-4e8a3e/report.md) | 2026-05-25 06:06Z | Modelo / SD | la sombra de las cosas fisicas está muy tenue, apenas se distingue la diferencia con las cosas informacionales | La sombra fisica usa dropShadow mas visible (dx 4, dy 4, blur 2, rgba 0.55) sin aplicar sombra a cosas informacionales. | 1 | Regresion en leyes/proyecciones.test.ts para preservar una sombra semantica legible. |

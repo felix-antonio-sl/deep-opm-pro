@@ -16,20 +16,21 @@ cd app && bun run bug:index
 
 | Estado | Cantidad |
 |---|---:|
-| Nuevo | 5 |
+| Nuevo | 6 |
 | Resuelto | 18 |
 
 ## Resumen Por Tipo
 
 | Tipo | Cantidad |
 |---|---:|
-| Bug | 18 |
+| Bug | 19 |
 | Feat | 5 |
 
 ## Activos
 
 | Tipo | Estado | Bug/Feat | Creado | Contexto | Resumen | Resolución | Capturas | Nota |
 |---|---|---|---|---|---|---|---:|---|
+| Bug | Nuevo | [BUG-20260525T233828Z-895504](BUG-20260525T233828Z-895504/report.md) | 2026-05-25 23:38Z | System Diagram / SD | la barra superior está canónica en cuanto al diseño? | Pendiente. | 1 |  |
 | Bug | Resuelto | [BUG-20260525T063654Z-029853](BUG-20260525T063654Z-029853/report.md) | 2026-05-25 06:36Z | Modelo / SD1.1 | al descomponer los objetos relacionados se presentan en el borde izquierdo del canvas, inclumpliendo la regla de que todo se tiene que armar y ordena… | Los proxies externos creados al descomponer una cosa se ubican relativos al contorno refinado centrado, no en x absoluto 24. | 1 | Cubierto por operaciones.test BUG-20260525T063654Z-029853 y bloque de pruebas de refinamiento/layout. |
 | Bug | Resuelto | [BUG-20260525T063444Z-ad14a6](BUG-20260525T063444Z-ad14a6/report.md) | 2026-05-25 06:34Z | Modelo / SD | las flechas de los enlaces de transformación e invocación siguen siendo anómalos | Los enlaces transformadores e invocacion usan punta cerrada simple segun SSOT visual; se retiran swallowtail en transformadores y… | 1 | Cubierto por composers/markers.test, proyeccion.test de invocacion/auto-invocacion y composers/enlace.test. |
 | Bug | Resuelto | [BUG-20260525T060646Z-4e8a3e](BUG-20260525T060646Z-4e8a3e/report.md) | 2026-05-25 06:06Z | Modelo / SD | la sombra de las cosas fisicas está muy tenue, apenas se distingue la diferencia con las cosas informacionales | La sombra fisica usa dropShadow mas visible (dx 4, dy 4, blur 2, rgba 0.55) sin aplicar sombra a cosas informacionales. | 1 | Regresion en leyes/proyecciones.test.ts para preservar una sombra semantica legible. |

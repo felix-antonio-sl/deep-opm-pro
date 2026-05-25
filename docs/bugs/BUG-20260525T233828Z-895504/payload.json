@@ -1,0 +1,29 @@
+{
+  "id": "BUG-20260525T233828Z-895504",
+  "type": "Bug",
+  "status": "Nuevo",
+  "resolution": "Pendiente.",
+  "createdAt": "2026-05-25T23:38:28.801Z",
+  "text": "la barra superior está canónica en cuanto al diseño?",
+  "context": {
+    "modeloId": "modelo-1",
+    "modeloNombre": "System Diagram",
+    "opdActivoId": "opd-1",
+    "opdActivoNombre": "SD",
+    "seleccionEntidadId": null,
+    "seleccionEnlaceId": null,
+    "pestanaActivaId": "pestana-e79c9beb-479e-45d3-ad67-f3b116176391",
+    "vistaMapaActiva": false,
+    "url": "https://opforja.sanixai.com/",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+    "viewport": {
+      "width": 2133,
+      "height": 1102,
+      "devicePixelRatio": 0.8999999761581421
+    },
+    "capturedAt": "2026-05-25T23:38:26.014Z"
+  },
+  "screenshots": [
+    "screenshots/01-cleanshot-2026-05-25-at-19.38.09.jpg"
+  ]
+}
