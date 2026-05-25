@@ -94,6 +94,12 @@ export function usePanelOplViewModel(): PanelOplViewModel {
     [preferenciasOpl?.oplBloquesContraidos],
   );
 
+  // Preferencia de visibilidad para el display del panel.
+  // NOTA: `textoOplActual` (canónico) se genera siempre con VISIBILIDAD_OPL_DEFAULT
+  // dentro de `derivarPanelOpl`, por lo que el editor libre y el parser quedan
+  // protegidos del roundtrip independientemente de esta pref.
+  const visibilidad = { esencia: preferenciasOpl?.oplEsenciaVisibilidad ?? "siempre" } as const;
+
   const derivado = useMemo(
     () => derivarPanelOpl({
       modelo,
@@ -104,8 +110,10 @@ export function usePanelOplViewModel(): PanelOplViewModel {
       busquedaOpl,
       editorLibre,
       textoLibre,
+      visibilidad,
     }),
-    [modelo, opdActivoId, seleccionId, enlaceSeleccionId, filtroActivo, busquedaOpl, editorLibre, textoLibre],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [modelo, opdActivoId, seleccionId, enlaceSeleccionId, filtroActivo, busquedaOpl, editorLibre, textoLibre, visibilidad.esencia],
   );
 
   // B0.025: id del proceso activo durante la simulacion, para que el panel OPL
