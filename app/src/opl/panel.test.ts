@@ -79,6 +79,29 @@ describe("panel OPL como capacidad", () => {
   test("prioriza referencia de enlace sobre entidad seleccionada", () => {
     expect(referenciaSeleccionada("entidad-1", "enlace-1")).toEqual({ tipo: "enlace", id: "enlace-1" });
   });
+
+  test("doble pase: textoOplActual es canónico aunque visibilidad oculte esencia en display", () => {
+    // Modelo mínimo con un objeto Sensor (esencia=informacional por defecto)
+    let modelo = crearModelo("sensor-test");
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 0, y: 0 }, "Sensor"));
+
+    const out = derivarPanelOpl({
+      modelo,
+      opdActivoId: modelo.opdRaizId,
+      seleccionId: null,
+      enlaceSeleccionId: null,
+      filtroActivo: false,
+      busquedaOpl: "",
+      editorLibre: false,
+      textoLibre: "",
+      visibilidad: { esencia: "oculta" },
+    });
+
+    // Las líneas de display NO deben contener la oración de esencia
+    expect(out.visibles.some((l) => l.texto.includes("es informacional"))).toBe(false);
+    // El texto canónico SÍ debe contener la oración de esencia (roundtrip protegido)
+    expect(out.textoOplActual.includes("es informacional")).toBe(true);
+  });
 });
 
 function modeloBasico(): { modelo: Modelo; procesarId: Id } {

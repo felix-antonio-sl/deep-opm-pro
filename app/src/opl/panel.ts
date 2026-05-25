@@ -7,6 +7,7 @@ import {
   type OplLineaInteractiva,
   type OplReferencia,
 } from "./interaccion";
+import { VISIBILIDAD_OPL_DEFAULT, type VisibilidadOpl } from "./opciones";
 import { planificarEdicionOplLibre, type PrevisualizacionOplReverse } from "./parser";
 
 export interface DerivarPanelOplInput {
@@ -18,6 +19,12 @@ export interface DerivarPanelOplInput {
   busquedaOpl: string;
   editorLibre: boolean;
   textoLibre: string;
+  /**
+   * Preferencia de visibilidad para las líneas de display (read-only).
+   * NUNCA afecta `textoOplActual` — ese se genera siempre con `VISIBILIDAD_OPL_DEFAULT`
+   * para proteger el roundtrip (editor libre + parser).
+   */
+  visibilidad?: VisibilidadOpl;
 }
 
 export interface PanelOplDerivado {
@@ -34,8 +41,19 @@ export interface PanelOplDerivado {
 
 export function derivarPanelOpl(input: DerivarPanelOplInput): PanelOplDerivado {
   const seleccionRef = referenciaSeleccionada(input.seleccionId, input.enlaceSeleccionId);
-  const lineas = ordenarOpdsParaOpl(input.modelo).flatMap((id) => generarOplInteractivo(input.modelo, id));
-  const textoOplActual = lineas.map((linea) => linea.texto).join("\n");
+  const opds = ordenarOpdsParaOpl(input.modelo);
+
+  // Pase canónico: siempre con visibilidad default → protege textoOplActual y el roundtrip.
+  const lineasCanonicas = opds.flatMap((id) => generarOplInteractivo(input.modelo, id));
+  const textoOplActual = lineasCanonicas.map((linea) => linea.texto).join("\n");
+
+  // Pase display: aplica la preferencia de visibilidad solo a las líneas renderizadas.
+  const visibilidad = input.visibilidad ?? VISIBILIDAD_OPL_DEFAULT;
+  const lineas =
+    visibilidad.esencia === VISIBILIDAD_OPL_DEFAULT.esencia
+      ? lineasCanonicas // mismo resultado que el canónico → reusar sin segundo pase
+      : opds.flatMap((id) => generarOplInteractivo(input.modelo, id, visibilidad));
+
   const previewLibre = input.editorLibre
     ? planificarEdicionOplLibre(input.modelo, input.textoLibre, { opdActivoId: input.opdActivoId })
     : null;
