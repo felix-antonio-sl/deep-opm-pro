@@ -1,6 +1,7 @@
 import type { EstiloApariencia } from "./apariencia";
 import type { Id } from "./comunes";
 import type { GridConfig } from "../../canvas/grid";
+import type { EsenciaVisibilidad } from "../../opl/opciones";
 
 /**
  * Tipos UI del workspace que NO pertenecen al JSON OPM canónico.
@@ -41,7 +42,7 @@ export interface PreferenciasUiUsuario {
   gridConfig?: GridConfig;
   oplNumeracionVisible?: boolean;
   /** Presentación: visibilidad de las oraciones de esencia/afiliación en el panel OPL. */
-  oplEsenciaVisibilidad?: "siempre" | "solo-difiere" | "oculta";
+  oplEsenciaVisibilidad?: EsenciaVisibilidad;
   oplMinimizado?: boolean;
   oplBloquesContraidos?: Record<Id, true>;
   /** [Met §8.8] Preferencia UI aditiva para ordenar plantillas privadas. */

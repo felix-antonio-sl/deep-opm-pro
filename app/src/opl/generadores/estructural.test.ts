@@ -64,6 +64,11 @@ describe("oracionEntidad — visibilidad de esencia (VisibilidadOpl)", () => {
     const mixto: Entidad = { ...base, afiliacion: "ambiental" };
     expect(oracionEntidad(mixto, { esencia: "solo-difiere" })).toEqual(["**Sensor** es ambiental."]);
   });
+
+  test("proceso físico: solo-difiere emite la esencia que difiere del default", () => {
+    const proceso: Entidad = { id: "p1", tipo: "proceso", nombre: "Combustión", esencia: "fisica", afiliacion: "sistemica" };
+    expect(oracionEntidad(proceso, { esencia: "solo-difiere" })).toEqual(["*Combustión* es físico."]);
+  });
 });
 
 function modeloBase(): Modelo {
