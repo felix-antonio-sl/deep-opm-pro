@@ -11,7 +11,7 @@ import { tokens } from "./tokens";
  * renombrado de modelo + cuadrícula del canvas. No toca `app/src/modelo/`.
  */
 export function DialogoConfiguracion() {
-  const { abierto, cerrar, modeloNombre, modeloPersistidoId, renombrarModeloActual, gridConfig, fijarGridConfig } = useDialogoConfiguracionViewModel();
+  const { abierto, cerrar, modeloNombre, modeloPersistidoId, renombrarModeloActual, gridConfig, fijarGridConfig, oplEsenciaVisibilidad, fijarOplEsenciaVisibilidad } = useDialogoConfiguracionViewModel();
   const [nombre, setNombre] = useState(modeloNombre);
   const [gridLocal, setGridLocal] = useState<GridConfig>(() => normalizarGridConfig(gridConfig));
 
@@ -90,6 +90,22 @@ export function DialogoConfiguracion() {
           <label style={style.checkbox}>
             <input type="checkbox" checked={gridLocal.snapActivo} onChange={(event) => actualizarGrid({ snapActivo: event.currentTarget.checked })} />
             <span>Snap</span>
+          </label>
+        </section>
+        <section style={style.section} aria-labelledby="config-opl-title">
+          <h3 id="config-opl-title" style={style.sectionTitle}>OPL</h3>
+          <label style={style.field}>
+            <span style={style.label}>Esencia</span>
+            <select
+              aria-label="Visibilidad de esencia en OPL"
+              style={style.input}
+              value={oplEsenciaVisibilidad}
+              onChange={(e) => fijarOplEsenciaVisibilidad(e.currentTarget.value as "siempre" | "solo-difiere" | "oculta")}
+            >
+              <option value="siempre">Siempre</option>
+              <option value="solo-difiere">Solo si difiere del default</option>
+              <option value="oculta">Oculta</option>
+            </select>
           </label>
         </section>
       </div>

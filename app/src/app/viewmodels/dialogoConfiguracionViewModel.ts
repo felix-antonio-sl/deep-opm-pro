@@ -9,6 +9,8 @@ export function useDialogoConfiguracionViewModel() {
     gridConfig,
     fijarGridConfig,
     renombrarModeloActual,
+    oplEsenciaVisibilidad,
+    fijarOplEsenciaVisibilidad,
   } = useZustandConfigurationDialogPort();
 
   return {
@@ -19,6 +21,8 @@ export function useDialogoConfiguracionViewModel() {
     gridConfig,
     fijarGridConfig,
     renombrarModeloActual,
+    oplEsenciaVisibilidad,
+    fijarOplEsenciaVisibilidad,
   };
 }
 

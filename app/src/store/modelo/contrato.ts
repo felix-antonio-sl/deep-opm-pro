@@ -163,6 +163,7 @@ export const MODELO_SLICE_CAPABILITIES = {
     "resetearAnclajesSimboloEstructural",
     "toggleGrid",
     "fijarGridConfig",
+    "fijarOplEsenciaVisibilidad",
     "alinearSeleccion",
     "distribuirSeleccion",
     "aplicarLayoutSugerido",

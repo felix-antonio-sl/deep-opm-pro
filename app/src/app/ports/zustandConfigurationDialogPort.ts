@@ -12,6 +12,8 @@ export function useZustandConfigurationDialogPort(): ConfigurationDialogPort {
   const gridConfigBase = useOpmStore((s) => s.gridConfig ?? s.indice.preferenciasUi?.gridConfig);
   const gridConfig = useMemo(() => normalizarGridConfig(gridConfigBase), [gridConfigBase]);
   const fijarGridConfig = useOpmStore((s) => s.fijarGridConfig);
+  const oplEsenciaVisibilidad = useOpmStore((s) => s.indice.preferenciasUi?.oplEsenciaVisibilidad ?? "siempre");
+  const fijarOplEsenciaVisibilidad = useOpmStore((s) => s.fijarOplEsenciaVisibilidad);
 
   return {
     abierto,
@@ -21,5 +23,7 @@ export function useZustandConfigurationDialogPort(): ConfigurationDialogPort {
     renombrarModeloActual,
     gridConfig,
     fijarGridConfig,
+    oplEsenciaVisibilidad,
+    fijarOplEsenciaVisibilidad,
   };
 }

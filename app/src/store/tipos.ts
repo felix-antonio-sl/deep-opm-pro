@@ -157,6 +157,7 @@ import type { Aviso } from "../modelo/validaciones";
 import type { AnclaRelojEnlace } from "../modelo/anclajesEnlace";
 import type { Afiliacion, AnclajesSimboloEstructural, Apariencia, DesignacionEstado, DuracionTemporal, EnlaceEstilo, Esencia, EstiloApariencia, ExtremoEnlace, Id, ImagenEntidad, LayoutEstados, Modelo, Modificador, ModoDespliegueObjeto, ModoImagenEntidad, ModoPlegado, Opd, OperadorAbanico, OrdenPartesPlegado, ParametrosSimulacionEntidad, Pestana, PestanaId, PlantillaIndice, Posicion, SubtipoModificador, TipoEnlace, TipoEntidad, TipoValorSlot, UnidadTiempo, UrlObjetoTipada, UiPortapapelesVisual, ValorConcreto, VersionResumen } from "../modelo/tipos";
 import { mismaReferencia, type OplReferencia } from "../opl/interaccion";
+import type { EsenciaVisibilidad } from "../opl/opciones";
 import { datosAsistenteVacio, sembrarModeloDesdeAsistente, validarDatosAsistente, type DatosAsistente, type EtapaAsistente } from "../modelo/creacionWizard";
 import { generarOpl } from "../opl/generar";
 import {
@@ -544,6 +545,7 @@ export interface OpmStore {
   resetearAnclajesSimboloEstructural: (aparienciaEnlaceIds: Id[]) => void;
   toggleGrid: () => void;
   fijarGridConfig: (patch: Partial<GridConfig>) => void;
+  fijarOplEsenciaVisibilidad: (valor: EsenciaVisibilidad) => void;
   alinearSeleccion: (eje: EjeAlineacion) => void;
   distribuirSeleccion: (orientacion: OrientacionDistribucion) => void;
   aplicarLayoutSugerido: () => void;

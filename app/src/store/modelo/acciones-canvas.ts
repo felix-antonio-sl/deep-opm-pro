@@ -28,6 +28,7 @@ import {
 import { renombrarEtiquetaEnlace } from "../../modelo/etiquetasEnlace";
 import { crearEnlaceTransaccional } from "../../modelo/transaccionEnlace";
 import { mismaReferencia } from "../../opl/interaccion";
+import type { EsenciaVisibilidad } from "../../opl/opciones";
 import { generarOpl } from "../../opl/generar";
 import { aplicarPatchesOpl, planificarEdicionOplLibre } from "../../opl/parser";
 import { cargarPlantilla } from "../../persistencia/plantillas";
@@ -251,6 +252,13 @@ export function accionesCanvas(set: SetStore, get: GetStore): Partial<ModeloSlic
       const estado = get();
       const oplNumeracionVisible = !(estado.indice.preferenciasUi?.oplNumeracionVisible ?? true);
       const indice = actualizarPreferenciasUi(estado.indice, { oplNumeracionVisible });
+      escribirIndiceWorkspace(indice);
+      set({ indice });
+    },
+
+    fijarOplEsenciaVisibilidad(valor: EsenciaVisibilidad) {
+      const estado = get();
+      const indice = actualizarPreferenciasUi(estado.indice, { oplEsenciaVisibilidad: valor });
       escribirIndiceWorkspace(indice);
       set({ indice });
     },
