@@ -1,4 +1,5 @@
-import type { Id, Modelo } from "../../modelo/tipos";
+import { tipoInicialConexionDesdeEntidad } from "../../canvas/modoEnlace";
+import type { Id, Modelo, TipoEnlace } from "../../modelo/tipos";
 import { construirArbol } from "../../ui/arbol/togglesArbol";
 import { APP_FEATURES } from "../features";
 
@@ -25,6 +26,17 @@ export interface GlobalShortcutsSnapshot {
   opdActivoId: Id;
   cambiarOpdActivo: (id: Id) => void;
   enlaceSeleccionId: Id | null;
+  /**
+   * Línea D (BUG-20260525T052239Z-445a97): atajos de creación con canvas
+   * activo. `seleccionId` es la entidad seleccionada (guard de S y origen de
+   * R). Las cuatro acciones reutilizan las mismas operaciones que la toolbar
+   * ("Objeto"/"Proceso"), el Inspector ("Agregar estado") y el modo enlace.
+   */
+  seleccionId: Id | null;
+  crearObjetoDemo: () => void;
+  crearProcesoDemo: () => void;
+  agregarEstadoSmart: () => void;
+  elegirTipoEnlace: (tipo: TipoEnlace, origenId?: Id) => void;
   /**
    * Paquete "Estados ciudadanos de primera clase" (2026-05-23): tercer
    * ciudadano del coproducto. Guard para atajos F2/D/T del estado.
@@ -135,6 +147,25 @@ export function registrarAtajosAplicacion(port: GlobalShortcutsPort, registrarAt
     const todo = state.seleccionados.length >= 2 ? state.seleccionados[state.seleccionados.length - 1] : null;
     if (todo) state.conectarSeleccionAlTodo(todo, "agregacion");
   };
+  // Línea D (BUG-20260525T052239Z-445a97): atajos de creación con canvas
+  // activo, cableados a las mismas operaciones que toolbar/Inspector/enlace.
+  // O → objeto; P → proceso; S → estado en el objeto seleccionado (guard);
+  // R → modo relación desde el origen seleccionado (tipo inicial sugerido).
+  const crearObjetoAtajo = () => s().crearObjetoDemo();
+  const crearProcesoAtajo = () => s().crearProcesoDemo();
+  const agregarEstadoAtajo = () => {
+    const state = s();
+    if (!state.seleccionId) return;
+    if (!state.modelo.entidades[state.seleccionId]) return;
+    state.agregarEstadoSmart();
+  };
+  const iniciarRelacionAtajo = () => {
+    const state = s();
+    const origenId = state.seleccionId;
+    if (!origenId || !state.modelo.entidades[origenId]) return;
+    const tipo = tipoInicialConexionDesdeEntidad(state.modelo, state.opdActivoId, origenId);
+    state.elegirTipoEnlace(tipo, origenId);
+  };
   const toggleMarginaliaOpl = () => {
     const state = s();
     if (state.oplMarginaliaMinimizada) state.restaurarOpl();
@@ -187,6 +218,14 @@ export function registrarAtajosAplicacion(port: GlobalShortcutsPort, registrarAt
     registrarAtajo({ combo: "Ctrl+Z", ctx: "global", categoria: "edicion", descripcion: "Deshacer", descripcionLarga: "Revierte el último cambio en el modelo activo", handler: () => s().deshacer() }),
     registrarAtajo({ combo: "Ctrl+Y", ctx: "global", categoria: "edicion", descripcion: "Rehacer", descripcionLarga: "Reaplica el último cambio deshecho", handler: () => s().rehacer() }),
     registrarAtajo({ combo: "Ctrl+Shift+Z", ctx: "global", categoria: "edicion", descripcion: "Rehacer", descripcionLarga: "Reaplica el último cambio deshecho", handler: () => s().rehacer() }),
+    // Línea D (BUG-20260525T052239Z-445a97): leyenda del footer-key
+    // "O objeto · P proceso · S estado · R relación · ⌘K comandos". Cuatro
+    // teclas simples en contexto canvas. El registry ya excluye inputs/textarea/
+    // contenteditable (`esEditable`) y diálogos modales (`hayDialogoModalAbierto`).
+    registrarAtajo({ combo: "O", ctx: "canvas", categoria: "edicion", descripcion: "Crear objeto", descripcionLarga: "Inserta un objeto nuevo en el OPD activo (misma acción que el botón Objeto)", handler: crearObjetoAtajo }),
+    registrarAtajo({ combo: "P", ctx: "canvas", categoria: "edicion", descripcion: "Crear proceso", descripcionLarga: "Inserta un proceso nuevo en el OPD activo (misma acción que el botón Proceso)", handler: crearProcesoAtajo }),
+    registrarAtajo({ combo: "S", ctx: "canvas", categoria: "edicion", descripcion: "Agregar estado al objeto seleccionado", descripcionLarga: "Agrega un estado al objeto seleccionado (no actúa sin objeto en selección)", handler: agregarEstadoAtajo }),
+    registrarAtajo({ combo: "R", ctx: "canvas", categoria: "edicion", descripcion: "Iniciar relación desde lo seleccionado", descripcionLarga: "Activa el modo enlace con el tipo sugerido desde la cosa seleccionada como origen", handler: iniciarRelacionAtajo }),
     registrarAtajo({ combo: "Ctrl+A", ctx: "canvas", categoria: "seleccion", descripcion: "Seleccionar todo en el OPD activo", handler: () => s().seleccionarTodoEnOpd() }),
     registrarAtajo({ combo: "Ctrl+C", ctx: "canvas", categoria: "seleccion", descripcion: "Copiar selección visual", handler: () => s().copiarSeleccionAlBuffer() }),
     registrarAtajo({ combo: "Ctrl+V", ctx: "canvas", categoria: "seleccion", descripcion: "Pegar selección visual", handler: () => s().pegarBufferEnOpdActivo() }),

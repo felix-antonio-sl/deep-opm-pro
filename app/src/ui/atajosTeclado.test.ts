@@ -106,6 +106,42 @@ describe("registry central de atajos", () => {
     expect(llamados).toEqual(["escape"]);
   });
 
+  test("tecla simple de creación canvas (O) dispara fuera de inputs (BUG-445a97)", () => {
+    const llamados: string[] = [];
+    registrarAtajo({
+      combo: "O",
+      ctx: "canvas",
+      categoria: "edicion",
+      descripcion: "Crear objeto",
+      handler: () => llamados.push("objeto"),
+    });
+    escucharGlobal();
+
+    const evento = eventoTecla("o");
+    despachar(evento);
+
+    expect(llamados).toEqual(["objeto"]);
+    expect(evento.defaultPrevented).toBe(true);
+  });
+
+  test("tecla simple de creación canvas (O) NO dispara dentro de un input (BUG-445a97)", () => {
+    const llamados: string[] = [];
+    registrarAtajo({
+      combo: "O",
+      ctx: "canvas",
+      categoria: "edicion",
+      descripcion: "Crear objeto",
+      handler: () => llamados.push("objeto"),
+    });
+    escucharGlobal();
+
+    const evento = eventoTecla("o", { target: new HTMLInputElement() });
+    despachar(evento);
+
+    expect(llamados).toEqual([]);
+    expect(evento.defaultPrevented).toBe(false);
+  });
+
   test("prioriza vista mapa sobre canvas cuando el store declara mapa activo", () => {
     const llamados: string[] = [];
     configurarContextoAtajos({ vistaMapaActiva: () => true });
