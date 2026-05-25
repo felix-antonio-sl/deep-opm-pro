@@ -11,6 +11,10 @@ interface CodexFrameProps extends CodexFrameColumnsParams {
   toolbar: ComponentChildren;
   menu: ComponentChildren;
   tabs: ComponentChildren;
+  /** Ruta OPD del manuscrito (Breadcrumb), centrada en el header. Sustituye al literal "Codex". */
+  breadcrumb?: ComponentChildren;
+  /** Meta editorial del header: `N oraciones · ● sin guardar · ⌘K`. */
+  meta?: ComponentChildren;
   leftPanel: ComponentChildren;
   leftDivider: ComponentChildren;
   canvas: ComponentChildren;
@@ -38,6 +42,8 @@ export function CodexFrame({
   toolbar,
   menu,
   tabs,
+  breadcrumb,
+  meta,
   leftPanel,
   leftDivider,
   canvas,
@@ -51,10 +57,19 @@ export function CodexFrame({
 }: CodexFrameProps) {
   return (
     <div data-testid="codex-frame" style={style.frame}>
+      {/*
+        Ronda Codex v2 L2 (auditoría rev2 §05): el header pasa del literal
+        "Codex" al esquema editorial canónico `wordmark · acciones │ breadcrumb │ meta`.
+        El wordmark es un único "Opforja" en Inria Serif italic ~22px (sin el
+        chip duplicado que vivía en ToolbarBase). La columna central cablea el
+        breadcrumb del manuscrito; la derecha imprime la meta (`N oraciones ·
+        ● sin guardar · ⌘K`).
+      */}
       <header style={style.header}>
-        <div aria-hidden="true" style={style.wordmark}>OPFORJA</div>
+        <div data-testid="codex-wordmark" style={style.wordmark}>Opforja</div>
         <div style={style.toolbarSlot}>{toolbar}</div>
-        <div aria-hidden="true" style={style.headerMeta}>Codex</div>
+        <div style={style.breadcrumbSlot}>{breadcrumb}</div>
+        <div style={style.headerMeta}>{meta}</div>
         {menu}
       </header>
       <section style={{ ...style.body, gridTemplateColumns: codexFrameColumns({ leftWidth, rightWidth, isTablet }) }}>
@@ -90,41 +105,53 @@ const style = {
     minWidth: 0,
     minHeight: 0,
     display: "grid",
-    gridTemplateColumns: "148px minmax(0, 1fr) 92px",
+    // Ronda Codex v2 L2: wordmark · acciones │ breadcrumb (flex) │ meta.
+    gridTemplateColumns: "auto auto minmax(0, 1fr) auto",
     alignItems: "stretch",
     borderBottom: `1px solid ${tokens.colors.ruleStrong}`,
     background: tokens.colors.paper,
     position: "relative",
     zIndex: 20,
   },
+  // Wordmark único "Opforja" en Inria Serif italic ~22px, sin chip.
   wordmark: {
     display: "flex",
     alignItems: "center",
     padding: "0 18px",
     borderRight: `1px solid ${tokens.colors.rule}`,
-    fontFamily: tokens.typography.sans,
-    fontSize: `${tokens.typography.fs.fs11}px`,
-    fontWeight: tokens.typography.weights.bold,
-    letterSpacing: tokens.typography.ls.section,
-    textTransform: "uppercase",
+    fontFamily: tokens.typography.serif,
+    fontStyle: "italic",
+    fontSize: `${tokens.typography.fs.fs22}px`,
+    fontWeight: tokens.typography.weights.regular,
+    letterSpacing: tokens.typography.ls.tight,
     color: tokens.colors.ink,
+    whiteSpace: "nowrap",
   },
   toolbarSlot: {
     minWidth: 0,
     minHeight: 0,
     overflow: "hidden",
   },
+  breadcrumbSlot: {
+    minWidth: 0,
+    minHeight: 0,
+    display: "flex",
+    alignItems: "center",
+    overflow: "hidden",
+    borderLeft: `1px solid ${tokens.colors.rule}`,
+  },
   headerMeta: {
     display: "flex",
     alignItems: "center",
     justifyContent: "flex-end",
+    gap: "8px",
     padding: "0 16px",
     borderLeft: `1px solid ${tokens.colors.rule}`,
     color: tokens.colors.inkSoft,
-    fontFamily: tokens.typography.mono,
-    fontSize: `${tokens.typography.fs.fs10}px`,
-    letterSpacing: tokens.typography.ls.meta,
-    textTransform: "uppercase",
+    fontFamily: tokens.typography.sans,
+    fontSize: `${tokens.typography.fs.fs11}px`,
+    fontStyle: "italic",
+    whiteSpace: "nowrap",
   },
   body: {
     minWidth: 0,
@@ -151,7 +178,10 @@ const style = {
     minWidth: 0,
     minHeight: 0,
     display: "grid",
-    gridTemplateColumns: "minmax(148px, 20%) minmax(0, 1fr) minmax(180px, 20%)",
+    // Ronda Codex v2 L2: left (contexto + leyenda de teclas) y right
+    // (diagnóstico) se dimensionan a su contenido; las pestañas flexan al
+    // centro. Antes el left era un 20% que ahogaba la leyenda `O P S R ⌘K`.
+    gridTemplateColumns: "auto minmax(0, 1fr) auto",
     alignItems: "stretch",
     borderTop: `1px solid ${tokens.colors.ruleStrong}`,
     background: tokens.colors.paper,

@@ -293,16 +293,10 @@ export function ToolbarBase({ children, modelarSlot, conectarSlot, statusSlot }:
           `globalShortcutsPort`. Esto reduce densidad visual sin perder
           funcionalidad ni esteerabilidad. */}
       <div role="group" aria-label="Modelo" style={style.cluster} data-slot="cluster-modelo" data-cluster="modelo">
-        {/* Ronda 28 L2: marca OPFORJA en esquina superior izquierda como
-            kbd uppercase con tracking 0.12em. En mobile colapsa a glyph
-            "O" para no comprimir el button-strip principal. */}
-        <span
-          aria-label="OPFORJA"
-          data-testid="toolbar-marca"
-          style={esMobile ? style.marcaCompacta : style.marca}
-        >
-          {esMobile ? "O" : "OPFORJA"}
-        </span>
+        {/* Ronda Codex v2 L2 (wordmark dup, auditoría rev2 §05): el chip
+            "OPFORJA" duplicado se elimina de la toolbar. El único wordmark del
+            chrome es ahora "Opforja" (Inria Serif italic) en el header de
+            CodexFrame; aquí ya no se repite. */}
         <div style={style.menuWrapper}>
           <button type="button" aria-haspopup="menu" aria-expanded={menuPrincipalAbierto} aria-label="Menú principal" title="Menú principal" style={style.iconButton} onClick={handleToggleMenuPrincipal}>☰</button>
           {/* P0-2: MenuPrincipal vive ahora en App.tsx para evitar
