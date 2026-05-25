@@ -10,7 +10,7 @@ describe("designaciones OPL", () => {
       { id: "s1", entidadId: "e1", nombre: "pendiente", designaciones: ["inicial"] },
       { id: "s2", entidadId: "e1", nombre: "cerrado", designaciones: ["final"] },
     ];
-    expect(oracionEstados(entidad, estados)).toBe("**Pedido** puede ser `pendiente` (inicial) o `cerrado` (final).");
+    expect(oracionEstados(entidad, estados)).toBe("**Pedido** puede estar `pendiente` (inicial) o `cerrado` (final).");
   });
 
   test("textoDesignacionEstado conserva default y current en ingles operativo", () => {

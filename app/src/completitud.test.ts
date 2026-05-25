@@ -253,7 +253,7 @@ describe("completitud / estados de objeto", () => {
         : designarEstadoFinal(modelo, estado.id));
     }
 
-    expect(generarOpl(modelo)).toContain("**Orden** puede ser `estado1` (inicial y final) o `estado2`.");
+    expect(generarOpl(modelo)).toContain("**Orden** puede estar `estado1` (inicial y final) o `estado2`.");
     const cell = proyectarModeloAJointCells(modelo, modelo.opdRaizId, null, null)
       .find((item) => item.opm.kind === "entidad" && item.opm.entidadId === objetoId);
     const attrs = cell?.attrs as Record<string, Record<string, unknown>> | undefined;
