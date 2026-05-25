@@ -115,7 +115,12 @@ test("alinear selección: tres cosas quedan alineadas a la izquierda", async ({ 
   expect(pageErrors).toEqual([]);
 });
 
-test("resize handle: esquina persiste tamaño manual", async ({ page }) => {
+// SEL-2 (Codex rev2 §6.2 — decisión bloqueada): la selección ya no emite los 8
+// resize-handles flotantes. La affordance Codex es solo el underline crimson +
+// la anotación tipográfica. El redimensionado manual por arrastre de handle se
+// retira; el tamaño manual sigue disponible vía Inspector. Test conservado como
+// skip para documentar la retirada (no se elimina la huella histórica).
+test.skip("resize handle: esquina persiste tamaño manual", async ({ page }) => {
   const pageErrors: string[] = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));
 

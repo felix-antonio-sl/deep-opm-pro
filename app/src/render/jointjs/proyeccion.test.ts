@@ -10,6 +10,7 @@ import { editarAlias, editarDescripcion } from "../../modelo/objetoMetadata";
 import { cambiarModoPlegado, crearEnlaceConExtremoPlegado, extraerParteDePlegado, reinsertarParteEnPlegado } from "../../modelo/plegado";
 import { definirRutaEtiqueta } from "../../modelo/rutas";
 import type { Apariencia, Modelo, Resultado, TipoEnlace } from "../../modelo/tipos";
+import { CODEX } from "./constantes.codex";
 import { LINK_ASSETS } from "./linkAssets";
 import { proyectarModeloAJointCells } from "./proyeccion";
 
@@ -75,6 +76,9 @@ describe("proyeccion JointJS", () => {
     if (!apariencia) return;
 
     const cells = proyectarModeloAJointCells(modelo, modelo.opdRaizId, entidad.id, null);
+    // SEL-1 (Codex rev2 §5.1): el underline de selección única va EMBEBIDO en la
+    // celda de la entidad (no como celda-halo aparte), así que sigue habiendo 1
+    // sola celda y el conteo de `.joint-element` no cambia.
     expect(cells).toHaveLength(1);
     expect(cells[0]?.id).toBe(apariencia.id);
     expect(cells[0]?.type).toBe("standard.Rectangle");
@@ -86,6 +90,46 @@ describe("proyeccion JointJS", () => {
       rol: "interno",
     });
     expect(((cells[0]?.attrs as Attrs | undefined)?.label as Attrs | undefined)?.textWrap).toEqual({ width: -16, height: -16, ellipsis: false });
+  });
+
+  test("SEL-2: la entidad seleccionada no emite resize-handles flotantes", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 30 }, "Driver"));
+    const entidad = Object.values(modelo.entidades)[0];
+    expect(entidad).toBeDefined();
+    if (!entidad) return;
+
+    const cells = proyectarModeloAJointCells(modelo, modelo.opdRaizId, entidad.id, null);
+    const celdaEntidad = cells.find((cell) => cell.opm.kind === "entidad");
+    const markup = (celdaEntidad?.markup as Array<Attrs> | undefined) ?? [];
+    const tieneResize = markup.some((item) => typeof item.selector === "string" && (item.selector as string).startsWith("resize-"));
+    expect(tieneResize).toBe(false);
+    // Los connect-anchors del modo enlace SÍ siguen presentes en selección.
+    const tieneAnchors = markup.some((item) => typeof item.selector === "string" && (item.selector as string).startsWith("connect-anchor-"));
+    expect(tieneAnchors).toBe(true);
+  });
+
+  test("SEL-1: selección única emite el underline crimson embebido en la celda", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 30 }, "Driver"));
+    const entidad = Object.values(modelo.entidades)[0];
+    expect(entidad).toBeDefined();
+    if (!entidad) return;
+
+    const sinSeleccion = proyectarModeloAJointCells(modelo, modelo.opdRaizId, null, null);
+    const celdaSin = sinSeleccion.find((cell) => cell.opm.kind === "entidad");
+    const tieneUnderlineSin = ((celdaSin?.markup as Array<Attrs> | undefined) ?? []).some((item) => item.selector === "selectionUnderline");
+    expect(tieneUnderlineSin).toBe(false);
+
+    const conSeleccion = proyectarModeloAJointCells(modelo, modelo.opdRaizId, entidad.id, null);
+    // El underline va embebido: no hay celda-halo aparte en selección única.
+    expect(conSeleccion.some((cell) => cell.opm.kind === "selection-halo")).toBe(false);
+    const celdaCon = conSeleccion.find((cell) => cell.opm.kind === "entidad");
+    const markup = (celdaCon?.markup as Array<Attrs> | undefined) ?? [];
+    expect(markup.some((item) => item.selector === "selectionUnderline")).toBe(true);
+    const underline = (celdaCon?.attrs as Attrs | undefined)?.selectionUnderline as Attrs | undefined;
+    expect(underline?.stroke).toBe(CODEX.colores.crimson);
+    expect(typeof underline?.d).toBe("string");
   });
 
   test("resalta entidad desde hover OPL sin persistir estilo", () => {
