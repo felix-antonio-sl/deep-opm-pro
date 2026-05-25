@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
-import { crearEstadosIniciales, crearModelo, crearObjeto, crearProceso, estadosDeEntidad, renombrarEstado } from "../../../modelo/operaciones";
+import { crearEstadosIniciales, crearModelo, crearObjeto, crearProceso, descomponerProceso, estadosDeEntidad, renombrarEstado } from "../../../modelo/operaciones";
 import type { Entidad, Resultado } from "../../../modelo/tipos";
-import { identificadorCanonicoEntidad, proyectarEntidad } from "./entidad";
+import { ESTADOS, identificadorCanonicoEntidad, proyectarEntidad } from "./entidad";
 
 describe("composer entidad", () => {
   test("proyecta objeto simple con metadata OPM estable", () => {
@@ -128,6 +128,47 @@ describe("composer entidad", () => {
       fontStyle: "italic",
       textWrap: { height: 20, ellipsis: false },
     });
+  });
+
+  test("BUG-a8c184: proceso sistemico descompuesto conserva contorno SOLIDO (no discontinuo)", () => {
+    let modelo = crearModelo();
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 40, y: 40 }, "Operar"));
+    const proceso = Object.values(modelo.entidades)[0];
+    if (!proceso) throw new Error("Proceso no encontrado");
+    const descomp = descomponerProceso(modelo, modelo.opdRaizId, proceso.id);
+    if (!descomp.ok) throw new Error(descomp.error);
+    modelo = descomp.value.modelo;
+    const opdHijoId = descomp.value.opdId;
+    const aparienciaHijo = Object.values(modelo.opds[opdHijoId]?.apariencias ?? {})
+      .find((a) => modelo.entidades[a.entidadId]?.id === proceso.id);
+    if (!aparienciaHijo) throw new Error("Apariencia contorno no encontrada");
+
+    const cell = proyectarEntidad(modelo, opdHijoId, aparienciaHijo, modelo.entidades[proceso.id]!, false, false, {});
+    const body = (cell.attrs as Record<string, Record<string, unknown>>).body;
+    if (!body) throw new Error("body ausente");
+    expect(body.strokeWidth).toBe(4);
+    expect(body.strokeDasharray).toBeUndefined();
+  });
+
+  test("BUG-a8c184: proceso AMBIENTAL descompuesto conserva contorno discontinuo", () => {
+    let modelo = crearModelo();
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 40, y: 40 }, "Externo"));
+    const proceso = Object.values(modelo.entidades)[0];
+    if (!proceso) throw new Error("Proceso no encontrado");
+    modelo = { ...modelo, entidades: { ...modelo.entidades, [proceso.id]: { ...proceso, afiliacion: "ambiental" } } };
+    const descomp = descomponerProceso(modelo, modelo.opdRaizId, proceso.id);
+    if (!descomp.ok) throw new Error(descomp.error);
+    modelo = descomp.value.modelo;
+    const opdHijoId = descomp.value.opdId;
+    const aparienciaHijo = Object.values(modelo.opds[opdHijoId]?.apariencias ?? {})
+      .find((a) => modelo.entidades[a.entidadId]?.id === proceso.id);
+    if (!aparienciaHijo) throw new Error("Apariencia contorno no encontrada");
+
+    const cell = proyectarEntidad(modelo, opdHijoId, aparienciaHijo, modelo.entidades[proceso.id]!, false, false, {});
+    const body = (cell.attrs as Record<string, Record<string, unknown>>).body;
+    if (!body) throw new Error("body ausente");
+    expect(body.strokeDasharray).toBe("8 4");
+    expect(body.strokeWidth).toBe(4);
   });
 
   test("ui-forja/08 §1.3: index label `o.NN` mono inkSoft bajo el shape (objeto)", () => {

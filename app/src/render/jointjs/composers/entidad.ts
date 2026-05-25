@@ -72,7 +72,14 @@ export function proyectarEntidad(
   const strokeWidth = strokeBase;
   const strokeColor = stroke;
   const dasharrayBase = entidad.afiliacion === "ambiental" ? "8 4" : undefined;
-  const dasharray = contornoRefinamiento ? CODEX.refinamiento.strokeDasharray : dasharrayBase;
+  // BUG-a8c184 / R-CTRN-1 (V-71): el tipo de contorno (sólido vs discontinuo)
+  // codifica EXCLUSIVAMENTE la afiliación (sistémica=sólido, ambiental=discontinuo)
+  // y DEBE persistir a través de niveles. El refinamiento se marca con stroke
+  // GRUESO (strokeBase=4), no con discontinuidad. Antes el contorno de
+  // descomposición forzaba `strokeDasharray` a todo proceso refinado, volviendo
+  // discontinuo un proceso sistémico — violación de R-CTRN-1. La discontinuidad
+  // del contorno de refinamiento solo aplica si la cosa es ambiental.
+  const dasharray = dasharrayBase;
   const fillRender = contornoRefinamiento ? CODEX.refinamiento.fill : fill;
   const bodyTag = entidad.tipo === "objeto" ? "rect" : "ellipse";
   const body = {
