@@ -259,7 +259,7 @@ function intercalarSeparadores(actions: ComponentChildren): ComponentChildren {
 //   tight (`§4.3`, `§5`).
 // - Body: serif 13.5/1.55, tracking body (`§4.2`).
 // - Footer: hairline `rule` superior; acciones-palabra alineadas a la derecha.
-const PAPER_BACKDROP = "rgba(250, 250, 248, 0.78)"; // tokens.colors.paper @ 78%
+export const PAPER_BACKDROP = "rgba(250, 250, 248, 0.78)"; // tokens.colors.paper @ 78%
 
 const style = {
   backdrop: {

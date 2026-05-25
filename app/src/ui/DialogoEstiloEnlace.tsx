@@ -11,7 +11,7 @@
 // `getByRole("button", { name: "Color #C8392F" })`. `accent` coincide con
 // el valor histórico de `errorBase` (#C8392F = cinabrio Bauhaus).
 import type { Enlace, EnlaceEstilo, Id } from "../modelo/tipos";
-import { DialogoAccion } from "./Dialogo";
+import { DialogoAccion, PAPER_BACKDROP } from "./Dialogo";
 import { GLIFO_CERRAR } from "./codex/glifos";
 import { tokens } from "./tokens";
 
@@ -139,7 +139,7 @@ const style = {
     display: "grid",
     placeItems: "center",
     padding: "24px",
-    background: "rgba(250, 250, 248, 0.78)",
+    background: PAPER_BACKDROP,
     backdropFilter: "blur(2px)",
   },
   modal: {
