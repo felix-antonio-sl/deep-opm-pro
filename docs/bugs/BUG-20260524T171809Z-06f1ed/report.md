@@ -2,8 +2,8 @@
 
 **Creado**: 2026-05-24T17:18:09.655Z
 **Tipo**: Bug
-**Estado**: Nuevo
-**Resolución**: Pendiente.
+**Estado**: Resuelto
+**Resolución**: Reescrita la geometría del self-loop en `app/src/render/jointjs/autoinvocacionLoop.ts` siguiendo el canon OpCloud (`SelfInvocationLink.calc` + `OpmProcess.getSelfInvocationMainVertices`): las dos ramas (salida/retorno) anclan en la INTERSECCIÓN de la elipse del proceso a ±35° de la dirección centro→pico, con el pico colgando recto bajo el centro a `dist ≈ height*0.55`. Esto elimina el "quiebre a distal anómalo": antes salida/retorno se colocaban a `±amplitud*0.45` horizontal mientras los quiebres se abrían a `±amplitud` (más anchos que los anclajes), produciendo un lazo que se ensanchaba hacia distal en vez de converger limpio al pico. El marcador conserva el rombo canónico de invocación (`LINK_ASSETS.procedural.invocacion.marker`, canon CANON-V2/L4) en el extremo de retorno. 1685 unit verdes; e2e 02/07 verdes.
 
 ## Texto
 

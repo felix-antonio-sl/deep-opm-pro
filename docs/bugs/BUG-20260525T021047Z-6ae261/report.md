@@ -2,8 +2,8 @@
 
 **Creado**: 2026-05-25T02:10:47.240Z
 **Tipo**: Bug
-**Estado**: Nuevo
-**Resolución**: Pendiente.
+**Estado**: Resuelto
+**Resolución**: La sombra de esencia física usaba `dropShadow` con `blur:0` + `color:grey` opaco, rindiendo como duplicado duro del contorno (efecto "doble línea"), no como sombra. Corregida a sombra suave (`dx:2, dy:3, blur:2, color:rgba(23,21,17,0.35)`) — desplazada abajo-derecha (canon §3.4) con desenfoque y tinte ink semi-transparente. `composers/entidad.ts`.
 
 ## Texto
 

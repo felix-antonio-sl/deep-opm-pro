@@ -2,8 +2,8 @@
 
 **Creado**: 2026-05-25T05:22:39.761Z
 **Tipo**: Bug
-**Estado**: Nuevo
-**Resolución**: Pendiente.
+**Estado**: Resuelto
+**Resolución**: Atajos O/P/S/R de creacion con canvas activo cableados en globalShortcutsPort.ts (ctx canvas) a crearObjetoDemo/crearProcesoDemo/agregarEstadoSmart/elegirTipoEnlace, con guards de seleccion para S y R y guard de foco via atajosTeclado.ts (no dispara en inputs/dialogos). Tests anadidos.
 
 ## Texto
 

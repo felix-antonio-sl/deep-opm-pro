@@ -2,8 +2,8 @@
 
 **Creado**: 2026-05-25T02:08:22.637Z
 **Tipo**: Bug
-**Estado**: Nuevo
-**Resolución**: Pendiente.
+**Estado**: Resuelto
+**Resolución**: La cápsula de estado usaba `rx/ry: calc(h/2)` (stadium/píldora completa). El canon (reglas-opm-estrictas §3.2 línea 224) define el estado como ROUNTANGLE = rectángulo redondeado; la evidencia OPCloud (export-legend `rx="5"`, OpmObject.innerOuter `rx:5`) confirma radio fijo moderado. Corregido a `rx/ry: ESTADOS.radius`. `composers/entidad.ts`.
 
 ## Texto
 

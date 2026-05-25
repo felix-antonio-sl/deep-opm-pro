@@ -2,8 +2,8 @@
 
 **Creado**: 2026-05-24T03:49:32.407Z
 **Tipo**: Bug
-**Estado**: Nuevo
-**Resolución**: Pendiente.
+**Estado**: Resuelto
+**Resolución**: El OPD hijo creado por refinamiento se ancla al centro geometrico del canvas en descomposicion.ts/despliegue.ts; el encuadre existente (encuadrarViewportEnOpd) ya centra el viewport. Cubierto por e2e/05 con asercion de scroll/centrado.
 
 ## Texto
 

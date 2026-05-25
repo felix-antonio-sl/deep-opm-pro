@@ -2,8 +2,8 @@
 
 **Creado**: 2026-05-24T17:16:28.763Z
 **Tipo**: Bug
-**Estado**: Nuevo
-**Resolución**: Pendiente.
+**Estado**: Resuelto
+**Resolución**: El contorno de descomposición forzaba `strokeDasharray` (discontinuo) a TODO proceso refinado, violando R-CTRN-1 (V-71): el contorno codifica EXCLUSIVAMENTE la afiliación (sistémica=sólido, ambiental=discontinuo) y persiste entre niveles. El refinamiento se marca con stroke GRUESO (4px), no con discontinuidad. Ahora un proceso sistémico refinado conserva contorno sólido; solo el ambiental sigue discontinuo. `composers/entidad.ts`.
 
 ## Texto
 

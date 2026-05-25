@@ -2,8 +2,8 @@
 
 **Creado**: 2026-05-24T17:17:36.472Z
 **Tipo**: Bug
-**Estado**: Nuevo
-**Resolución**: Pendiente.
+**Estado**: Resuelto
+**Resolución**: Cambiada el ancla por defecto de los enlaces procedurales en `extremo()` (`app/src/render/jointjs/composers/enlace.ts`) de `midSide` (engancha al punto medio de uno de los cuatro lados del bbox) a la canónica OpCloud `anchor: { name: "center" }` + `connectionPoint: { name: "boundary" }` (`init-rappid.service.ts:287-295`, `defaultAnchor`/`defaultConnectionPoint` del paper). Con ello consumo/resultado/efecto dirigen la línea al centro geométrico de la entidad y la recortan en el perímetro real (elipse para procesos, rectángulo para objetos), entrando/saliendo exactamente en la intersección del eje centro-a-centro con la forma. Se preserva sin cambio el ancla de los extremos a estado (`extremoEstado`, `midSide` sobre la cápsula, BUG-1fc4d2) y los puertos. 1685 unit verdes; e2e 02/07 verdes.
 
 ## Texto
 
