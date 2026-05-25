@@ -273,7 +273,7 @@ function nombreOpl(entidad: Entidad): string {
 /**
  * Estilos del MenuTipoEnlace — Ronda 28 L2 (Bauhaus monocromática).
  *
- *   - Panel: borde 1.5px ink, sombra plana 4 4 0 ink-15, padding 12px.
+ *   - Panel: borde 1.5px ink, sin sombra offset, padding 12px.
  *   - Segmented Salida/Entrada: borde 1px ink, activo = ink04 + inset
  *     accent cinabrio (no azul).
  *   - Items: borde 1px ink-15, hover ink-04 (vía menus.css). Sin radius.
@@ -292,7 +292,7 @@ const style = {
     padding: "12px",
     border: `1.5px solid ${tokens.colors.ink}`,
     background: tokens.colors.paper,
-    boxShadow: `4px 4px 0 0 ${tokens.colors.ink15}`,
+    boxShadow: "none",
   },
   header: { display: "flex", justifyContent: "space-between", alignItems: "center", gap: "10px", fontSize: `${tokens.typography.sizes.base}px`, color: tokens.colors.ink, fontWeight: tokens.typography.weights.semibold },
   segmented: { display: "flex", border: `1px solid ${tokens.colors.ink}`, overflow: "hidden" },

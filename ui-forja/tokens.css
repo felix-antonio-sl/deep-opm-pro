@@ -1,6 +1,6 @@
 /* ──────────────────────────────────────────────────────────────────────────
    OpForja · Codex — Design Tokens
-   Versión 1.0 — handoff a desarrollo
+   Versión 1.1 — autoridad normativa vigente
    Estos tokens definen TODO el lenguaje visual de la propuesta Codex.
 
    IMPORTANTE: El canvas del OPD lo renderiza JointJS. Las CSS custom
@@ -89,7 +89,7 @@
   /* ───── LAYOUT ────────────────────────────────────────────────────────── */
   --cx-frame-w:    1700px;
   --cx-frame-h:    950px;
-  --cx-col-left:   210px;
+  --cx-col-left:   360px;
   --cx-col-right:  360px;
   --cx-header-h:   60px;
   --cx-footer-h:   44px;

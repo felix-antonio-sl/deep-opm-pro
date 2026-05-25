@@ -1,7 +1,7 @@
 # Codex — Inventario de Componentes (Chrome)
 
 **Producto:** OpForja (editor OPM)
-**Propuesta:** Codex · v1.0
+**Propuesta:** Codex · v1.1
 
 > **Scope crítico:** este documento describe **solo el chrome de la app** — todo lo que NO está dentro del `<div>` donde JointJS renderiza el `paper`. Los símbolos OPM (objetos, procesos, estados, enlaces, triángulos), el marquee de selección, el pan/zoom y los highlighters viven en JointJS y se especifican en [`08-jointjs-styling.md`](08-jointjs-styling.md).
 
@@ -31,17 +31,17 @@ La implementación de referencia vive en `handoff/src/variant-codex.jsx`. Manté
 
 ## 1. CodexFrame
 
-Shell de toda pantalla. Tres columnas (210 / 1fr / 360), header 60px, footer 44px. Todas las hairlines internas son normales (`1px solid var(--cx-rule)`).
+Shell de toda pantalla. Tres columnas (360 / 1fr / 360), header 60px, footer 44px. Todas las hairlines internas son normales (`1px solid var(--cx-rule)`).
 
 ### Anatomía
 
 ```
 ┌─────────────── HEAD (60px) ──────────────────┐
-│ wordmark │ breadcrumb │ meta · ⌘K            │
+│ wordmark │ tabs de modelos │ breadcrumb │ acciones │ meta · ⌘K │
 ├──────────┼────────────┼──────────────────────┤
 │ LEFT     │ CANVAS     │ RIGHT                │
-│ 210px    │ 1130px     │ 360px                │
-│ (índice) │ (JointJS)  │ (OPL / Inspector)    │
+│ 360px    │ ~980px     │ 360px                │
+│ (OPL)    │ (JointJS)  │ (Índice / Inspector) │
 ├──────────┴────────────┴──────────────────────┤
 │ fecha · v · iniciales │ keys │ status        │  FOOT (44px)
 └──────────────────────────────────────────────┘
@@ -53,9 +53,10 @@ Shell de toda pantalla. Tres columnas (210 / 1fr / 360), header 60px, footer 44p
 interface CodexFrameProps {
   breadcrumb?: string[];
   meta?: string;
-  leftTree: ReactNode;
+  tabs?: ReactNode;
+  leftPanel: ReactNode;     // OPL marginalia
   canvasMount: ReactNode;   // contenedor del paper de JointJS
-  rightPanel: ReactNode;
+  rightPanel: ReactNode;    // Índice + Inspector
   floating?: ReactNode;     // overlays HTML absolutos sobre el canvas
   footerCenter?: ReactNode;
   footerRight?: string;
@@ -69,12 +70,13 @@ interface CodexFrameProps {
 | `--cx-frame-w` / `--cx-frame-h` | 1700 × 950 px |
 | `--cx-header-h` | 60 px |
 | `--cx-footer-h` | 44 px |
-| `--cx-col-left` | 210 px |
+| `--cx-col-left` | 360 px |
 | `--cx-col-right` | 360 px |
 
 ### Detalle del header
 
 - **Wordmark "Opforja"**: Inria Serif italic 22px, peso 400, tracking `-0.005em`, color ink.
+- **Tabs de modelos**: texto serif sin chip; activo con peso 600 y underline crimson.
 - **Breadcrumb**: JetBrains Mono 11px en inkSoft, separadores `·` en inkFaint, último item bold + color ink.
 - **Meta**: italic Inria Sans 12px en inkMid, seguido del kbd `⌘K` en mono 10px con `1px solid rule`.
 
@@ -88,7 +90,7 @@ interface CodexFrameProps {
 
 ### Comportamiento
 
-Fijo a 1700×950. En viewports menores aplica letterbox (transform scale uniforme). Nunca reflowar contenido.
+Desktop usa columnas laterales de 360 px y canvas flexible. En tablet/mobile, el shell puede colapsar a navegación por vistas; la jerarquía OPL/canvas/edición se preserva aunque cambie la presentación.
 
 ---
 

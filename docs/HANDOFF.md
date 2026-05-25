@@ -2,7 +2,34 @@
 
 **Fecha**: 2026-05-25 · **Repositorio**: `deep-opm-pro` · **Rama**: `main`
 **Commit vigente**: corte documental de baseline funcional OPCloud/OPCAT para auditoria de cumplimiento de Opforja sobre `main` (consultar `git log -1 --oneline` para hash final tras push).
-**Instancia**: `https://opforja.sanixai.com` — ultimo bundle desplegado conocido **`index-BzUJLpkb.js`** (= Ronda Codex v2 + Ronda bugs-canvas), contenedores `opforja` (healthy) + `opforja-bug-capture`, **HTTP 200 publico** (sin auth, ver Riesgos). Este corte **no despliega** ni cambia infraestructura.
+**Instancia**: `https://opforja.sanixai.com` — ultimo bundle desplegado conocido **Codex v1.1 + ui-forja-governance** (consultar `git log -1 --oneline` para hash final), contenedores `opforja` (healthy) + `opforja-bug-capture`, **HTTP 200 publico** (sin auth, ver Riesgos).
+
+## Corte actual — ui-forja-governance como autoridad normativa de diseño
+
+`ui-forja/` deja de ser una propuesta y queda consolidado como **ui-forja-governance**, autoridad normativa de diseño para Opforja.
+
+**Precedencia vigente:**
+1. `docs/canon-opm/reglas-opm-estrictas.md` manda para canonicidad OPM/OPD/OPL.
+2. `ui-forja/GOVERNANCE.md` manda para frame, chrome, tokens, tipografía, composición, componentes, interacción visual y apariencia JointJS.
+3. `ui-forja/01-design-spec.md` ... `08-jointjs-styling.md` detallan la norma por capa.
+4. `app/src/ui/tokens.ts`, `app/src/ui/` y `app/src/render/jointjs/` implementan la norma.
+
+**Artefactos nuevos / actualizados:**
+- `ui-forja/GOVERNANCE.md` — jerarquía, invariantes, excepciones, política de cambio y definición de listo.
+- `ui-forja/README.md`, `01-design-spec.md`, `02-components.md`, `03-scenes.md`, `05-interactions.md`, `tokens.css`, `tokens.json` — actualizados a Codex v1.1 (`OPL ← canvas → Índice + Inspector`, tabs workspace en header, columnas 360/360).
+- `app/scripts/design-governance-audit.mjs` + `bun run design:governance` — gate ejecutable para tokens, layout documental y sombras offset prohibidas.
+
+**Auditoría aplicada en implementación:**
+- Sombras offset eliminadas de overlays/menús secundarios detectados (`BarraHerramientasElemento`, `MenuTipoEnlace`, `HaloEstado`, modal de nombre en toolbar). Se preservan rings `0 0 0`, inset hairlines y aliases `tokens.shadows.*` permitidos.
+- `gate:refactor` ahora incluye `bun run design:governance`.
+
+**Gate local de este corte:**
+- `cd app && bun run design:governance` -> OK.
+- `cd app && bun test src/ui/tokens.test.ts src/ui/toolbar/toolbarStyles.test.ts src/ui/BarraHerramientasElemento.test.ts` -> 75 pass / 0 fail.
+- `cd app && bun run check` -> 1713 pass / 0 fail.
+- `cd app && bun run lint` -> OK.
+- `cd app && bun run build` -> OK.
+- `cd app && bunx playwright test e2e/02-canvas-y-render.spec.ts e2e/03-opl-panel.spec.ts e2e/04-arbol-y-pestanas.spec.ts e2e/12-toolbar-overflow.spec.ts e2e/22-responsive-review.spec.ts e2e/23-inspector-resize.spec.ts` -> 55 passed / 1 skipped.
 
 ## Ronda bugs-canvas (en main, pusheada y desplegada)
 
@@ -16,7 +43,7 @@ Verde: **1696 unit + 237 e2e / 0 fail**. Lección operativa: los subagentes en w
 
 > Este es el **único** handoff vigente del proyecto. No crear handoffs paralelos ni fechados: reescribir y consolidar aquí.
 
-## Corte actual — Baseline funcional OPCloud/OPCAT para auditoria de cumplimiento
+## Corte documental previo — Baseline funcional OPCloud/OPCAT para auditoria de cumplimiento
 
 Se consolido un manual funcional simulado de capacidades OPCloud/OPCAT como artefacto de referencia para chequear avance, granularidad y cumplimiento del desarrollo de Opforja. El documento suma capacidades sin distinguir entre OPCAT y OPCloud y describe **que hace** el software, no como lo implementa.
 
@@ -83,7 +110,7 @@ Cierre completo de la **Auditoría Codex v1.0 ↔ Implementación rev2** (`/home
 
 - **SSOT suprema de canon OPM (repo)**: `docs/canon-opm/reglas-opm-estrictas.md` — autoritativa para verbos/plantillas OPL (estados=`puede estar`, especialización=`puede ser`).
 - SSOT OPM externa: `/home/felix/kora/artifacts/knowledge/fxsl/opm/opm-ssot-es/`.
-- Spec de diseño Codex (propuesto): `ui-forja/` (`01-design-spec.md` … `08-jointjs-styling.md`, `tokens.css`).
+- Autoridad normativa de diseño: `ui-forja/GOVERNANCE.md` + `ui-forja/` (`01-design-spec.md` … `08-jointjs-styling.md`, `tokens.css`, `tokens.json`).
 - Evidencia OPCloud preferente: `opm-extracted/` (antes que `decompiled/`).
 - Baseline funcional OPCloud/OPCAT para auditoria de cumplimiento: `docs/manual-simulado-opcloud-capacidades.md`.
 - Canon visual local: `docs/JOYAS.md` y `assets/svg/`.
@@ -110,7 +137,7 @@ Cierre completo de la **Auditoría Codex v1.0 ↔ Implementación rev2** (`/home
 ## Supuestos
 
 - `app/node_modules` se mantiene localmente (gitignored); los worktrees lo symlinkean.
-- El gate mínimo antes de cualquier commit de producto es `cd app && bun run check`.
+- El gate mínimo antes de cualquier commit de producto es `cd app && bun run check`; si toca UI/canvas, agregar `bun run design:governance` y el subset Playwright afectado.
 - El canvas no es fuente de verdad: el renderer JointJS proyecta el modelo; no se versiona estado de render.
 
 ## Riesgos
@@ -123,4 +150,4 @@ Cierre completo de la **Auditoría Codex v1.0 ↔ Implementación rev2** (`/home
 
 ## Prompt de continuación
 
-> Continúa desde `docs/HANDOFF.md`, sección "Corte actual — Runtime sociotecnico/agentico de simulacion". Ya existe un primer kernel puro en `app/src/modelo/simulacion/sociotecnico.ts` con tests en `sociotecnico.test.ts`; esta verificado con `bun test src/modelo/simulacion/sociotecnico.test.ts`, `bun run typecheck` y `bun run test` (1700 pass). Siguiente paso recomendado: integrar `DecisionSim`/`EfectoSim` con procesos OPM reales y disenar puertos auditables para aprobacion humana y herramientas externas. No stagear cambios no relacionados del worktree en render/tests/docs de bugs.
+> Continúa desde `docs/HANDOFF.md`, sección "Corte actual — ui-forja-governance como autoridad normativa de diseño". Antes de tocar UI/canvas, leer `docs/canon-opm/reglas-opm-estrictas.md` y `ui-forja/GOVERNANCE.md`. Gate mínimo para UI: `cd app && bun run check && bun run lint && bun run build && bun run design:governance`, más Playwright del layout/canvas afectado. No stagear cambios no relacionados del worktree.

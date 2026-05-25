@@ -1,7 +1,7 @@
 # Codex — Interacciones del Chrome
 
 **Producto:** OpForja (editor OPM)
-**Propuesta:** Codex · v1.0
+**Propuesta:** Codex · v1.1
 
 > **Scope:** este documento cubre solo las interacciones del **chrome** (command palette, panel toggles, hover/focus states en HTML). Las interacciones del **canvas** (selección, marquee, drag, pan, zoom, edición inline de etiquetas, refinamiento) las maneja JointJS y se especifican en [`08-jointjs-styling.md` §6](08-jointjs-styling.md#6-element-tools-y-link-tools).
 
@@ -16,10 +16,13 @@ Estos atajos los maneja el handler global de teclado de la app, NO JointJS:
 | `⌘K` / `Ctrl+K` | Abre el command palette |
 | `Esc` (con palette abierto) | Cierra el palette |
 | `Esc` (con palette cerrado y sin foco en input) | Pasa a JointJS — deselecciona |
-| `⌘.` | Toggle del panel de marginalia OPL (oculta/muestra columna derecha) |
+| `⌘.` | Toggle del panel de marginalia OPL (oculta/muestra columna izquierda) |
 | `⌘S` / `⌘⇧S` | Guardar / guardar como (ejecuta acción del modelo, no de JointJS) |
 | `⌘Z` / `⌘⇧Z` | Undo / Redo (sobre el `graph` de JointJS) |
-| `⌘1`, `⌘2`, … | Navegar a SD raíz, SD1, … (carga otro OPD en el graph) |
+| `⌘T` / `⌘W` | Nuevo tab de modelo / cerrar tab activo |
+| `⌘1`, `⌘2`, … `⌘9` | Saltar al tab de modelo N |
+| `⌘⇧[` / `⌘⇧]` | Tab de modelo anterior / siguiente |
+| `⌘↓` / `⌘↑` | Navegar OPDs dentro del modelo activo |
 
 Los atajos de creación (`O`, `P`, `S`, `R`) y manipulación (`⌘D`, `⌘L`, `⌘G`, `⌫`, `Enter`) los maneja JointJS — ver `08-jointjs-styling.md` §6.
 
@@ -109,12 +112,13 @@ Codex se basa en la **bidireccionalidad** OPD↔OPL. La app debe implementarla:
 
 JointJS emite `selection:change` (o `element:pointerclick` + custom selection store):
 
-1. La columna derecha se transforma según count:
+1. La columna izquierda OPL se transforma según count:
    - 0 seleccionados → mostrar OPL completa del OPD activo
-   - 1 → mostrar **inspector + OPL filtrada** ([scene 04](03-scenes.md#04--inspector-de-objeto))
+   - 1 → mostrar filtro `filtrado · id · visibles/total ✕`
    - ≥2 → mostrar OPL filtrada a las oraciones relacionadas ([scene 03](03-scenes.md#03--selección-múltiple-en-sd1-in-zoom))
-2. La **barra emergente HTML** se reposiciona usando `paper.localToPaperRect(bbox)` y aparece.
-3. El footer central puede mostrar info contextual.
+2. La columna derecha mantiene Índice arriba e Inspector abajo; con selección, el Inspector se puebla.
+3. La **barra emergente HTML** se reposiciona usando `paper.localToPaperRect(bbox)` y aparece.
+4. El footer central puede mostrar info contextual.
 
 ### 5.2 Click en oración OPL → canvas reacciona
 
@@ -127,7 +131,7 @@ JointJS emite `selection:change` (o `element:pointerclick` + custom selection st
 Cuando JointJS dispara `change:attrs` o un evento custom de renombrado:
 
 1. La app regenera las oraciones OPL que mencionan ese símbolo.
-2. La columna derecha re-renderiza la lista.
+2. La columna izquierda re-renderiza la lista.
 
 Este paso NO lo hace JointJS — es lógica de la app sobre el modelo.
 
@@ -151,7 +155,7 @@ El footer-right refleja el diagnóstico:
 | Solo sugerencias | `△ N sugerencias` (italic olive) |
 | Con CRÍTICAs | `△ N críticas` (italic crimson) |
 
-Click en el footer-right → expande la columna derecha en modo Diagnóstico (lista de validaciones por severidad — v1.1).
+Click en el footer-right → expande el Inspector derecho en modo Diagnóstico (lista de validaciones por severidad — v1.1).
 
 ---
 
@@ -172,7 +176,7 @@ Click en el footer-right → expande la columna derecha en modo Diagnóstico (li
 | `⌘←` | Volver |
 | `⌘.` | Mostrar regla SSOT de la etapa actual |
 
-El asistente NO modaliza el editor — vive en la columna derecha (reemplazando OPL temporalmente). El canvas sigue interactivo.
+El asistente NO modaliza el editor — vive en la columna derecha (reemplazando temporalmente el Inspector). El canvas sigue interactivo.
 
 ---
 
@@ -184,7 +188,9 @@ CHROME (manejados por la app, fuera de JointJS)
   ⌘S / ⌘⇧S    guardar / guardar como
   ⌘N          nuevo modelo
   ⌘O          abrir / importar
-  ⌘1 … ⌘9     ir a SDN
+  ⌘1 … ⌘9     saltar al tab de modelo N
+  ⌘⇧[ / ⌘⇧]   tab anterior / siguiente
+  ⌘↓ / ⌘↑     navegar OPDs del modelo activo
   ⌘.          toggle marginalia OPL
   ⌘⇧A         iniciar asistente
   Esc         (con palette) cerrar palette

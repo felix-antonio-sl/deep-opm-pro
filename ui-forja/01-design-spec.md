@@ -2,8 +2,8 @@
 
 **Producto:** OpForja (editor OPM)
 **Propuesta:** Codex
-**Versión:** 1.0 — handoff a desarrollo
-**Fecha:** 23 mayo 2026
+**Versión:** 1.1 — autoridad normativa vigente
+**Fecha:** 25 mayo 2026
 
 ---
 
@@ -25,6 +25,7 @@ Este es el documento maestro del lenguaje visual de Codex. Aquí viven:
 
 Los detalles por capa:
 
+- Autoridad normativa y precedencia → [`GOVERNANCE.md`](GOVERNANCE.md)
 - Tokens visuales globales → [`tokens.css`](tokens.css) / [`tokens.json`](tokens.json)
 - Componentes del chrome → [`02-components.md`](02-components.md)
 - Estilo de JointJS (shapes, links, highlighters) → [`08-jointjs-styling.md`](08-jointjs-styling.md)
@@ -40,7 +41,7 @@ Los detalles por capa:
 
 > **La página *es* la interfaz.**
 
-Codex trata al editor OPM como un manuscrito anotado: el OPD vive en el centro como figura, la OPL en el margen derecho como notas, el árbol de OPDs en el margen izquierdo como tabla de contenidos. No hay barras laterales pesadas, no hay tabs gruesos, no hay botones cromados. Toda acción visible es texto. Las acciones invisibles viven detrás de `⌘K`.
+Codex trata al editor OPM como un manuscrito anotado: el OPD vive en el centro como figura, la OPL en el margen izquierdo como lectura canónica del modelo, y el árbol de OPDs junto al Inspector en el margen derecho como herramientas de edición. No hay barras laterales pesadas, no hay tabs gruesos, no hay botones cromados. Toda acción visible es texto. Las acciones invisibles viven detrás de `⌘K`.
 
 Cuatro principios:
 
@@ -57,20 +58,20 @@ Todas las pantallas usan el mismo *frame* — tres columnas tipográficas, heade
 
 ```
 ┌───────────────────────────────────────────────────────────────────────────┐
-│  Opforja     |     sistema · system diagram     |  meta · sin guardar ⌘K  │  60 px
+│  Opforja | System Diagram × Modelo × + | sistema · system diagram | meta ⌘K │  60 px
 ├──────────────┬──────────────────────────────────────────┬─────────────────┤
-│  ÍNDICE      │                                          │  MARGINALIA·OPL │
-│  OPDs        │                                          │  System Diagram │
+│  MARGINALIA  │                                          │  ÍNDICE         │
+│  OPL         │                                          │  OPDs           │
 │              │       [ JointJS Paper mount ]            │                 │
-│  ▸ SD        │       (Codex solo estiliza shapes        │  01 oración…    │
-│    SD1       │        y links — ver 08-jointjs-         │  02 oración…    │
-│  + nuevo     │        styling.md)                       │  …              │
+│  01 oración… │       (Codex solo estiliza shapes        │  ▸ SD           │
+│  02 oración… │        y links — ver 08-jointjs-         │    SD1          │
+│  …           │        styling.md)                       │  + nuevo        │
 │              │                                          │                 │
-│  «cita SSOT» │                                          │  ver N más      │
+│ copiar · html│                                          │ INSPECTOR       │
 ├──────────────┴──────────────────────────────────────────┴─────────────────┤
 │  23 may · v0.4 · f.s.    O P S R ⌘K       ✓ ningún diagnóstico            │  44 px
 └───────────────────────────────────────────────────────────────────────────┘
-         210 px                  1130 px                       360 px
+         360 px                  ~980 px                       360 px
 ```
 
 **Dimensiones canónicas:**
@@ -80,13 +81,13 @@ Todas las pantallas usan el mismo *frame* — tres columnas tipográficas, heade
 | Frame total | 1700 × 950 px | `--cx-frame-w` / `--cx-frame-h` |
 | Header | 60 px | `--cx-header-h` |
 | Footer | 44 px | `--cx-footer-h` |
-| Columna izquierda | 210 px | `--cx-col-left` |
+| Columna izquierda | 360 px | `--cx-col-left` |
 | Columna derecha | 360 px | `--cx-col-right` |
-| Columna central (donde monta JointJS) | 1130 px | calculado |
+| Columna central (donde monta JointJS) | ~980 px | calculado |
 
 Hairlines entre regiones: siempre `1px solid var(--cx-rule)`.
 
-El frame **escala como letterbox** en viewports más chicos — nunca reflowa. Editor pensado para desktop en oficina (single-user, foco profundo).
+El frame desktop mantiene columnas laterales de 360 px y deja que el canvas central absorba el ancho disponible. En tablet/mobile se activa el modo responsive de la app; no se fuerza letterbox si compromete lectura o targets táctiles.
 
 ---
 

@@ -2,8 +2,8 @@
 
 **Producto:** OpForja (editor OPM, render del canvas con JointJS)
 **Propuesta:** Codex — editorial · marginalia · type-led
-**Versión:** 1.0
-**Fecha:** 23 mayo 2026
+**Versión:** 1.1
+**Fecha:** 25 mayo 2026
 **Audiencia:** equipo de desarrollo encargado de implementar el rediseño
 
 ---
@@ -25,6 +25,7 @@ División de responsabilidades:
 
 Si tienes 5 minutos, lee:
 
+0. [`GOVERNANCE.md`](GOVERNANCE.md) — **autoridad normativa y precedencia**
 1. [`01-design-spec.md`](01-design-spec.md) §1 — **Filosofía**
 2. [`03-scenes.md`](03-scenes.md) — **mira las 4 capturas y léelas en orden**
 3. [`tokens.css`](tokens.css) — ábrelo y déjalo cerca
@@ -44,7 +45,7 @@ Filosofía en una frase:
 
 > **La página *es* la interfaz.**
 
-OpForja se trata como un manuscrito anotado: el OPD vive como figura central, la OPL como marginalia tipográfica al margen derecho, el árbol de OPDs como tabla de contenidos al margen izquierdo. Sin barras laterales pesadas, sin tabs gruesos, sin botones cromados. Los comandos viven detrás de `⌘K`.
+OpForja se trata como un manuscrito anotado: el OPD vive como figura central, la OPL como marginalia tipográfica al margen izquierdo, y el árbol de OPDs junto al Inspector viven en el margen derecho como herramientas de edición. Sin barras laterales pesadas, sin tabs gruesos, sin botones cromados. Los comandos viven detrás de `⌘K`.
 
 **Tres familias tipográficas, tres colores OPM canónicos, un acento crimson editorial.** Cero iconos vectoriales, cero shadows, dos pesos de hairline.
 
@@ -54,6 +55,7 @@ OpForja se trata como un manuscrito anotado: el OPD vive como figura central, la
 
 ```
 handoff/
+├── GOVERNANCE.md                ← autoridad normativa de diseño
 ├── README.md                    ← este archivo
 ├── 01-design-spec.md            ← lenguaje visual: tokens, type, layout, hairlines
 ├── 02-components.md             ← inventario de componentes HTML/CSS del chrome
@@ -180,7 +182,7 @@ Documentado por capa en [`06-ssot-compliance.md`](06-ssot-compliance.md) §5. Re
 
 ## 8. Versionado
 
-Codex v1.0. Cualquier cambio de:
+Codex v1.1. Cualquier cambio de:
 
 - **token** → minor bump (v1.1)
 - **frame layout** → major bump (v2.0)

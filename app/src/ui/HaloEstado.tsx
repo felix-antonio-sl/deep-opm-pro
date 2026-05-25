@@ -205,7 +205,7 @@ const style = {
     padding: "2px",
     border: `1.5px solid ${tokens.colors.ink}`,
     background: tokens.colors.paper,
-    boxShadow: `4px 4px 0 0 ${tokens.colors.ink15}`,
+    boxShadow: "none",
     pointerEvents: "auto" as const,
   },
   boton: {
@@ -261,7 +261,7 @@ const style = {
     padding: "4px",
     border: `1.5px solid ${tokens.colors.ink}`,
     background: tokens.colors.paper,
-    boxShadow: `4px 4px 0 0 ${tokens.colors.ink15}`,
+    boxShadow: "none",
     minWidth: "120px",
   },
   popoverItem: {

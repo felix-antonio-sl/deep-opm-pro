@@ -16,6 +16,7 @@ bun run typecheck        # tsc --noEmit estricto
 bun run test             # unit tests (Bun test runner sobre src/)
 bun run lint             # eslint src/
 bun run build            # build producción a app/dist/
+bun run design:governance # gate ui-forja-governance (tokens/docs/sombras offset)
 bun run browser:smoke    # smoke Playwright/Chromium (e2e/)
 bun run security:scan    # bun pm scan (Socket scanner sobre bun.lock)
 bun run visual:audit     # auditoría visual in-vivo → app/test-results/
@@ -67,7 +68,7 @@ deep-opm-pro/
 ├── NOTICE.md                 # límites de uso, autoría, material derivado
 ├── setup.sh                  # regeneración del material OPCloud grande
 ├── app/                      # modelador OPM nuevo (src/, e2e/)
-├── ui-forja/                 # spec de diseño Codex (propuesto)
+├── ui-forja/                 # ui-forja-governance: autoridad normativa de diseño Codex
 ├── docs/
 │   ├── HANDOFF.md            # estado vigente, decisiones, pendientes, riesgos
 │   ├── canon-opm/            # reglas-opm-estrictas.md (SSOT suprema de canon)
@@ -84,12 +85,13 @@ deep-opm-pro/
 
 ## Reglas de oro del proyecto
 
-1. **Autoridad semántica = SSOT OPM**, no OPCloud. Para **canon OPL/visual** la SSOT suprema del repo es `docs/canon-opm/reglas-opm-estrictas.md` (p.ej. estados=`puede estar`, especialización=`puede ser`). La SSOT externa es `/home/felix/kora/artifacts/knowledge/fxsl/opm/opm-ssot-es/` (`opm-iso-19450-es.md`, `opm-visual-es.md`, `opm-opl-es.md`, `metodologia-opm-es.md`). OPCloud operacionaliza OPM pero no lo redefine; ante conflicto, manda la SSOT.
-2. **Antes de crear algo de novo** (marcador, shape, color, regla OPL), verifica que no exista en los insumos, en este orden: `assets/svg/` (+ `opm-extracted/assets/svg/`, markers en `links/procedural|structural/`) → `assets/png/` → `docs/JOYAS.md` → `opm-extracted/INDEX.md`+`MODULES.md`+`assets/INDEX.md` → `decompiled/` (solo si lo anterior no alcanza; regenerar con `bash setup.sh`) → `fixtures/` → `catalog/` → `config/`. **No copies bloques 1:1 de `opm-extracted/`/`decompiled/` a `app/`**: el stack diverge (Preact≠Angular, Zustand≠Firebase, JointJS core≠Rappid); úsalos para entender semántica, no para clonar.
-3. **Handoff único**: `docs/HANDOFF.md` es la única memoria de traspaso versionada. Reescríbela y consolídala — nunca crees handoffs paralelos/fechados.
-4. **Repo liviano**: no versiones artefactos regenerables/efímeros (ver Estructura). `opm-extracted/` **sí** se versiona (derivado curado; regenerable con `node opm-extracted/tools/{extract,refactor,build-index}.mjs`).
-5. **Backlog vs corte activo**: `docs/historias-usuario-v2/` es el backlog completo (no lo arrastres entero); `docs/roadmap/` define el corte operativo. Auditoría de avance: `node docs/historias-usuario-v2/tools/progress-dashboard.mjs --sync-real` (escanea `app/src`, `app/e2e`, `app/scripts`, `assets/svg/links`; regenera `docs/roadmap/hu-progress.{html,md,json}`).
-6. **Trabajo paralelo en rondas**: para particionar pendientes en líneas concurrentes usar la skill `lineas-paralelas` (genera README + briefs en `docs/instrucciones-lineas-dev/<ronda>/`). Patrón validado: worktrees aislados, olas con orden de merge, y un paso final de **reconciliación e2e** sobre el `main` integrado (cada línea solo mantiene su gate contra su base).
+1. **Autoridad semántica = SSOT OPM**, no OPCloud. Para **canon OPM/OPD/OPL** la SSOT suprema del repo es `docs/canon-opm/reglas-opm-estrictas.md` (p.ej. estados=`puede estar`, especialización=`puede ser`). La SSOT externa es `/home/felix/kora/artifacts/knowledge/fxsl/opm/opm-ssot-es/` (`opm-iso-19450-es.md`, `opm-visual-es.md`, `opm-opl-es.md`, `metodologia-opm-es.md`). OPCloud operacionaliza OPM pero no lo redefine; ante conflicto, manda la SSOT.
+2. **Autoridad de diseño = `ui-forja/GOVERNANCE.md`**. `ui-forja-governance` gobierna frame, chrome, tokens, tipografía, composición, componentes, interacción visual y apariencia JointJS. Su precedencia está por debajo de `reglas-opm-estrictas.md` y por encima de la implementación. Todo cambio visual debe respetar `ui-forja/01-design-spec.md` ... `08-jointjs-styling.md`, `tokens.json`/`tokens.css` y el gate `cd app && bun run design:governance`.
+3. **Antes de crear algo de novo** (marcador, shape, color, regla OPL), verifica que no exista en los insumos, en este orden: `assets/svg/` (+ `opm-extracted/assets/svg/`, markers en `links/procedural|structural/`) → `assets/png/` → `docs/JOYAS.md` → `opm-extracted/INDEX.md`+`MODULES.md`+`assets/INDEX.md` → `decompiled/` (solo si lo anterior no alcanza; regenerar con `bash setup.sh`) → `fixtures/` → `catalog/` → `config/`. **No copies bloques 1:1 de `opm-extracted/`/`decompiled/` a `app/`**: el stack diverge (Preact≠Angular, Zustand≠Firebase, JointJS core≠Rappid); úsalos para entender semántica, no para clonar.
+4. **Handoff único**: `docs/HANDOFF.md` es la única memoria de traspaso versionada. Reescríbela y consolídala — nunca crees handoffs paralelos/fechados.
+5. **Repo liviano**: no versiones artefactos regenerables/efímeros (ver Estructura). `opm-extracted/` **sí** se versiona (derivado curado; regenerable con `node opm-extracted/tools/{extract,refactor,build-index}.mjs`).
+6. **Backlog vs corte activo**: `docs/historias-usuario-v2/` es el backlog completo (no lo arrastres entero); `docs/roadmap/` define el corte operativo. Auditoría de avance: `node docs/historias-usuario-v2/tools/progress-dashboard.mjs --sync-real` (escanea `app/src`, `app/e2e`, `app/scripts`, `assets/svg/links`; regenera `docs/roadmap/hu-progress.{html,md,json}`).
+7. **Trabajo paralelo en rondas**: para particionar pendientes en líneas concurrentes usar la skill `lineas-paralelas` (genera README + briefs en `docs/instrucciones-lineas-dev/<ronda>/`). Patrón validado: worktrees aislados, olas con orden de merge, y un paso final de **reconciliación e2e** sobre el `main` integrado (cada línea solo mantiene su gate contra su base).
 
 ## Deuda categorial activa
 

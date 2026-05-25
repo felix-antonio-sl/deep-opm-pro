@@ -1,12 +1,12 @@
 # Codex — Especificación de Pantallas
 
 **Producto:** OpForja (editor OPM)
-**Propuesta:** Codex · v1.0
+**Propuesta:** Codex · v1.1
 
-Cuatro pantallas canónicas. Cada una usa el mismo [`CodexFrame`](02-components.md#1-codexframe) y solo varía qué llena las tres regiones (índice, canvas-mount, panel derecho) y qué *floating* aparece sobre el canvas.
+Cuatro pantallas canónicas. Cada una usa el mismo [`CodexFrame`](02-components.md#1-codexframe) y solo varía qué llena las tres regiones (OPL izquierda, canvas-mount, índice/inspector derecho) y qué *floating* aparece sobre el canvas.
 
 > **División de responsabilidades:**
-> - **Chrome** (índice, panel derecho, header, footer, barra emergente, command palette) → HTML/CSS — responsabilidad del equipo de UI.
+> - **Chrome** (OPL, índice, inspector, header, footer, barra emergente, command palette) → HTML/CSS — responsabilidad del equipo de UI.
 > - **Canvas** (símbolos OPM, enlaces, marquee de selección, pan/zoom, drag) → **JointJS**. Codex solo especifica los **atributos visuales** vía [`08-jointjs-styling.md`](08-jointjs-styling.md).
 
 Las capturas en `handoff/screenshots/` muestran ambas capas integradas; el HTML standalone en `handoff/scenes/` muestra la composición a alta fidelidad pero **sin JointJS conectado** — el canvas se ve vacío en el standalone porque solo el dev tiene los shapes de JointJS.
@@ -30,24 +30,22 @@ Vista por defecto al abrir el editor. SD raíz cargado. Nada seleccionado.
 #### Header
 
 - Wordmark: `Opforja`
+- Tabs workspace: `System Diagram ×    Modelo ×    +`
 - Breadcrumb: `sistema · system diagram` (último en bold)
 - Meta: `24 oraciones · sin guardar`
 - Shortcut visible: `⌘K`
 
-#### Columna izquierda — Índice
+#### Columna izquierda — Marginalia OPL
 
 ```
-ÍNDICE
-OPDs
+MARGINALIA
+OPL
 
-▸ SD    sistema (raíz)
-   SD1  in-zoom de o.06
-+  nuevo OPD hijo
+01 oración…
+02 oración…
+…
 
-«El SD precede a cualquier refinamiento;
-debe ser simple y claro, con mínimos
-detalles técnicos.»
-                          metodología §6
+copiar · html · exportar
 ```
 
 #### Centro — CodexCanvasMount + JointJS
@@ -56,13 +54,12 @@ detalles técnicos.»
 - JointJS Paper monta dentro y dibuja: 7 objetos + 1 proceso + 1 atributo compuesto con 2 estados + agregación + exhibición + 3 enlaces procedimentales.
 - Floating hint HTML (top-right, sobre el paper container): `ejemplo precargado · asistente guiado · empezar vacío ✕` — overlay HTML, no `paper.options.background`.
 
-#### Columna derecha — Marginalia OPL
+#### Columna derecha — Índice + Inspector
 
-- Kicker: `MARGINALIA · OPL` · side `24`
-- Title: `System Diagram`
-- 10 oraciones visibles (de 24 totales).
-- La oración 05 (`Beneficiary Group es ambiental.`) lleva marginalia de severidad `△ ALTA`.
-- Footer: `ver 14 más` + `copiar · html · exportar`.
+- Top (~30%): `ÍNDICE` / `OPDs` + árbol real de OPDs.
+- Hairline-strong + meta line `INSPECTOR · Selection · LIVE`.
+- Bottom (~70%): inspector completo si hay selección, o empty state si no la hay.
+- La cita SSOT del árbol aparece al pie del bloque de índice cuando hay espacio.
 
 #### Footer
 
@@ -73,8 +70,8 @@ detalles técnicos.»
 ### Lo que tu equipo implementa
 
 - ✅ CodexFrame con las 3 regiones
-- ✅ Tree de OPDs leyendo del modelo
-- ✅ OPL renderizada en marginalia (lista de oraciones del modelo OPD activo)
+- ✅ OPL renderizada en marginalia izquierda (lista de oraciones del modelo OPD activo)
+- ✅ Tree de OPDs leyendo del modelo en la columna derecha
 - ✅ JointJS Paper montado en el centro con los shapes definidos en `08-jointjs-styling.md`
 - ✅ Floating hint dismissable (localStorage)
 
@@ -135,7 +132,7 @@ Usuario navegó a SD1. Hay 3 sub-atributos de un compound seleccionados via marq
 
 #### Columna izquierda
 
-Árbol con SD1 marcado como current. Callout de severidad `△ ALTA · PROFUNDIDAD` al pie (cita SSOT sobre profundidad justificada).
+OPL filtrada a SD1 (10 oraciones). Oraciones 05–08 marcadas como `selected` (border-bottom crimson). Marginalia ALTA en la 05.
 
 #### Centro
 
@@ -146,7 +143,7 @@ Usuario navegó a SD1. Hay 3 sub-atributos de un compound seleccionados via marq
 
 #### Columna derecha
 
-OPL filtrada a SD1 (10 oraciones). Oraciones 05–08 marcadas como `selected` (border-bottom crimson). Marginalia ALTA en la 05.
+Top: árbol con SD1 marcado como current. Bottom: inspector/empty state según selección.
 
 ### División canvas / chrome
 
@@ -155,7 +152,7 @@ OPL filtrada a SD1 (10 oraciones). Oraciones 05–08 marcadas como `selected` (b
 | Marquee de selección (rectángulo punteado durante el drag) | JointJS (Paper option `interactive.boxSelection` o lógica del equipo) |
 | Highlight de elementos seleccionados (subrayado crimson bajo etiqueta) | JointJS highlighter — colors definidos en tokens |
 | Barra emergente con las acciones | HTML overlay — `<CodexSelectionAnnotation>` |
-| OPL filtrada en columna derecha | HTML — filtra el modelo OPL por los IDs seleccionados que JointJS reporta |
+| OPL filtrada en columna izquierda | HTML — filtra el modelo OPL por los IDs seleccionados que JointJS reporta |
 
 ---
 
@@ -168,7 +165,7 @@ OPL filtrada a SD1 (10 oraciones). Oraciones 05–08 marcadas como `selected` (b
 
 ### Estado modelado
 
-Un objeto seleccionado (`o.06`). La columna derecha se parte: Inspector arriba, OPL filtrada abajo.
+Un objeto seleccionado (`o.06`). La OPL izquierda muestra el filtro `filtrado · o.06 · 4/24 ✕`; la columna derecha mantiene índice arriba e Inspector abajo.
 
 ### Regiones
 
@@ -180,7 +177,14 @@ Un objeto seleccionado (`o.06`). La columna derecha se parte: Inspector arriba, 
 
 #### Columna derecha — split
 
-**Top (~58%): Inspector** — secciones formales:
+**Top (~30%): Índice** — árbol de OPDs, con `SD` current o el OPD activo correspondiente.
+
+**Divider hairline-strong:**
+```
+INSPECTOR                  Selection · LIVE
+```
+
+**Bottom (~70%): Inspector** — secciones formales:
 
 - Header: badge `o.06 · seleccionado`, título `Beneficiary Relevant Attribute`, sub-line `objeto · informacional · sistémico`
 - `esencia` (informacional · física) y `afiliación` (sistémica · ambiental) inline
@@ -188,12 +192,13 @@ Un objeto seleccionado (`o.06`). La columna derecha se parte: Inspector arriba, 
 - **ESTADOS** — problematic y satisfactory con flags
 - **OTROS** — dirección de layout, imagen
 
-**Divider hairline-strong:**
+#### Columna izquierda — OPL filtrada
+
 ```
 MARGINALIA · OPL              filtrado · o.06 · 4/24 ✕
 ```
 
-**Bottom (~42%): OPL filtrada** — 4 oraciones que mencionan `o.06` + footer `limpiar filtro · copiar · html`.
+4 oraciones que mencionan `o.06` + footer `limpiar filtro · copiar · html`.
 
 ### División canvas / chrome
 
@@ -201,7 +206,8 @@ MARGINALIA · OPL              filtrado · o.06 · 4/24 ✕
 |---|---|
 | Highlighter del objeto seleccionado | JointJS |
 | Barra emergente | HTML overlay |
-| Inspector + OPL split | HTML — leyendo el ID seleccionado del JointJS Graph |
+| Índice + Inspector split | HTML — leyendo el ID seleccionado del JointJS Graph |
+| OPL filtrada izquierda | HTML — leyendo el ID seleccionado del JointJS Graph |
 
 ---
 

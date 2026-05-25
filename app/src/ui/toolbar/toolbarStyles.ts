@@ -491,7 +491,7 @@ export const toolbarStyle = {
     padding: "12px",
     border: `${stroke.base}px solid ${colors.ink}`,
     background: colors.paper,
-    boxShadow: `8px 8px 0 0 ${colors.ink15}`,
+    boxShadow: "none",
   },
   nombreField: {
     display: "grid",
