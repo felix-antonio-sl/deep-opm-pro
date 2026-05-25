@@ -1,6 +1,12 @@
 import { render } from "preact";
 // Codex: Inria Serif (cuerpo/titulos/OPL/labels OPM) + Inria Sans
 // (kickers). Inria no tiene variable font: se cargan pesos estaticos.
+//
+// L6 — pesos descolapsados: el design system expresa 500 (medium) y 600
+// (semibold). Inria (serif y sans) SOLO tiene masters 300/400/700; los pesos
+// 500/600 quedan sintetizados por el navegador en chrome. Los contextos que
+// necesitan 500/600 nativos usan JetBrains Mono Variable (cubre 100–800),
+// cargado mas abajo. No existe @fontsource/inria-sans/600.css que importar.
 import "@fontsource/inria-serif/300.css";
 import "@fontsource/inria-serif/300-italic.css";
 import "@fontsource/inria-serif/400.css";

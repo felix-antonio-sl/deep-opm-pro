@@ -339,12 +339,15 @@ export const typography = {
     quote: 1.5,
   },
   weights: {
-    light: 300,
-    regular: 400,
-    normal: 400,
-    medium: 400,
-    semibold: 700,
-    bold: 700,
+    // Codex L6: escala descolapsada (tokens.css §pesos). Inria no tiene
+    // masters 500/600 (solo 300/400/700) → en serif/sans el navegador los
+    // sintetiza; JetBrains Mono variable sí los cubre nativos.
+    light: 300, //   light italic disponible
+    regular: 400, // default body
+    normal: 400, //  alias body
+    medium: 500, //  tree-row current numbers, mono semibold
+    semibold: 600, // segmented active option
+    bold: 700, //    títulos serif, objetos OPL
     heavy: 700,
     display: 700,
   },
@@ -373,8 +376,8 @@ export const typography = {
   sizeXxl: 22,
   weightLight: 300,
   weightNormal: 400,
-  weightMedium: 400,
-  weightSemibold: 700,
+  weightMedium: 500,
+  weightSemibold: 600,
   weightBold: 700,
   weightHeavy: 700,
   weightDisplay: 700,

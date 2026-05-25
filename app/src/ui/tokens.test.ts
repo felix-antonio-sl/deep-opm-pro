@@ -136,10 +136,14 @@ describe("tokens.colors - contrato Codex [ronda-codex L1]", () => {
     expect(typography.sizes.md).toBe(13.5);
     expect(typography.sizes.lg).toBe(14);
     expect(typography.sizes.xxl).toBe(22);
-    expect(typography.weights.medium).toBe(400);
-    expect(typography.weights.semibold).toBe(700);
-    expect(typography.weightMedium).toBe(400);
-    expect(typography.weightSemibold).toBe(700);
+    // Codex L6: pesos descolapsados — medium=500, semibold=600 (tokens.css §pesos).
+    expect(typography.weights.light).toBe(300);
+    expect(typography.weights.regular).toBe(400);
+    expect(typography.weights.medium).toBe(500);
+    expect(typography.weights.semibold).toBe(600);
+    expect(typography.weights.bold).toBe(700);
+    expect(typography.weightMedium).toBe(500);
+    expect(typography.weightSemibold).toBe(600);
     expect(typography.weightHeavy).toBe(700);
   });
 
