@@ -1,8 +1,18 @@
 # HANDOFF — Estado operativo del modelador OPM
 
 **Fecha**: 2026-05-25 · **Repositorio**: `deep-opm-pro` · **Rama**: `main`
-**Commit vigente**: `245b031` (+ commits de cierre documental encima) · **origin/main**: sincronizado
-**Instancia**: `https://opforja.sanixai.com` — bundle desplegado **`index-BWWB3JRK.js`**, contenedores `opforja` (healthy) + `opforja-bug-capture`, **HTTP 200 público** (sin auth, ver Riesgos).
+**Commit vigente**: `011ae4f` (Ronda bugs-canvas encima de la Ronda Codex v2) · **origin/main**: **adelantado, pendiente de push**
+**Instancia**: `https://opforja.sanixai.com` — bundle desplegado **`index-BWWB3JRK.js`** (= Ronda Codex v2; **la Ronda bugs-canvas aún NO está desplegada**), contenedores `opforja` (healthy) + `opforja-bug-capture`, **HTTP 200 público** (sin auth, ver Riesgos).
+
+## Ronda bugs-canvas (cerrada en main, pendiente push+deploy)
+
+7 bugs de canvas/atajos resueltos en 4 líneas paralelas (worktrees, dominios disjuntos) — `docs/bugs/` todos en Resuelto:
+- **Símbolos** (L-A): sombra física suave (`6ae261`), estado como rountangle de radio fijo (`9e3b9b`), proceso sistémico refinado conserva contorno sólido (`a8c184`).
+- **Enlaces** (L-B): ancla canónica center+boundary para consumo/resultado/efecto (`7fcdba`), self-loop de autoinvocación con geometría/marca canónicas (`06f1ed`).
+- **Viewport** (L-C): OPD hijo refinado se ancla al centro geométrico → el encuadre lo centra (`b6be2b`).
+- **Atajos** (L-D): teclas O/P/S/R crean objeto/proceso/estado/enlace con canvas activo, con guard de foco (`445a97`).
+
+Verde: **1696 unit + 237 e2e / 0 fail**. Lección operativa: los subagentes en worktree a veces resuelven rutas absolutas al checkout principal (contaminan `main`); el orquestador resetea el working tree y mergea solo las ramas committeadas. Ver [[feedback-ronda-paralela-reconciliacion-e2e]].
 
 > Este es el **único** handoff vigente del proyecto. No crear handoffs paralelos ni fechados: reescribir y consolidar aquí.
 
