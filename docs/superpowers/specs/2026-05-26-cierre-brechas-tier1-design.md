@@ -11,7 +11,11 @@
 Cerrar tres brechas funcionales acotadas, de bajo riesgo y alto valor, detectadas
 en la auditoría de cobertura Opforja vs. manual simulado OPCloud:
 
-- **A — Visibilidad configurable del OPL**: toggles de esencia / unidades / alias.
+- **A — Visibilidad configurable del OPL**: toggle de esencia (siempre / solo-difiere
+  / oculta). **Unidades/alias diferidos** (ver §4.1): están tejidos en la capa de
+  nombres (`refsHints.ts` `nombreOpl`/`nombreOplBase`) usada por todos los generadores
+  y por los hints de hover/parser; ocultarlos con consistencia no es bajo riesgo y
+  merece su propio corte.
 - **B — Diálogo colisión de nombre**: reutilizar-vs-renombrar en creación y rename.
 - **F — Simulación numérica conectada**: cablear `generarDatosSimulados` a UI + export CSV.
 
@@ -64,41 +68,41 @@ ejecutables, y el cableado del runtime sociotécnico.
 
 ## 4. Diseño por brecha
 
-### 4.1 A — Visibilidad configurable del OPL
+### 4.1 A — Visibilidad configurable del OPL (solo esencia en este corte)
 
 **Modelo de preferencias** (`tipos/ui.ts`, aditivo, fuera del JSON OPM):
 ```ts
-oplVisibilidad?: {
-  esencia: "siempre" | "solo-difiere" | "oculta";
-  unidades: boolean;
-  alias: boolean;
-};
+oplEsenciaVisibilidad?: "siempre" | "solo-difiere" | "oculta";
 ```
-Default (ausente o explícito) = `{ esencia: "siempre", unidades: true, alias: true }`
-→ comportamiento actual byte-a-byte.
+Default (ausente o `"siempre"`) = comportamiento actual byte-a-byte.
 
 **Generación con opciones** (`VisibilidadOpl`):
-- `generarOplInteractivo(modelo, opdId, opciones?)` y los generadores
-  (`estructural.ts`, `duracionMetadata.ts`) reciben `VisibilidadOpl` (default = todo
-  visible).
-- Esencia: `oracionEntidad` omite la línea de esencia cuando
-  `opciones.esencia==="oculta"`, o cuando `==="solo-difiere"` y el valor coincide
-  con el default canónico (`informacional`/`sistemica`). `"siempre"` = como hoy.
-- Unidades: `oracionValorAtributo` (token inline `[unidad]`) y `duracionMetadata`
-  omiten el token cuando `!opciones.unidades`.
-- Alias: el alias se emite inline como `{alias}` en `refsHints.ts:174`
-  (`nombreOplAtributoValor`, usado por `oracionValorAtributo`) y en
-  `duracionMetadata.ts:48`; ambos puntos lo omiten cuando `!opciones.alias`.
+- `generarOplInteractivo(modelo, opdId, opciones?)` → `generarLineasOpl(modelo, opd,
+  opciones?)` → `oracionEntidad(entidad, opciones?)` reciben `VisibilidadOpl`
+  (default = todo visible). Parámetro opcional retrocompatible.
+- `oracionEntidad`: las dos oraciones de esencia/afiliación (`X es informacional.` /
+  `X es sistémico.`) se omiten cuando `opciones.esencia==="oculta"`; cuando
+  `==="solo-difiere"`, se omite la de esencia si `esencia==="informacional"` y la de
+  afiliación si `afiliacion==="sistemica"` (defaults canónicos de `creacion.ts:72`);
+  `"siempre"` = como hoy. El caso atributo-con-valor (`oracionValorAtributo`) no se
+  toca.
+
+**Diferido (NO entra)**: visibilidad de unidades/alias. Viven en `nombreOpl`/
+`nombreOplBase` (`refsHints.ts:172-200`), usados por todos los generadores y por los
+hints que alinean tokens de hover OPL↔canvas y la delimitación del parser. Ocultarlos
+con consistencia exige enhebrar la opción por toda la capa de nombres + regresión de
+hover/parser/roundtrip → corte propio.
 
 **Panel** (`derivarPanelOpl`):
-- Genera **canónico** (opciones default) → `textoOplActual`, editor, parser, bloques
-  para el editor. Invariante #1.
-- Genera **display** (con `oplVisibilidad`) → líneas read-only renderizadas.
-- **Optimización**: si `oplVisibilidad` es default, un solo pase (display === canónico).
+- Genera **canónico** (opciones default) → `textoOplActual`, editor, parser, bloques.
+  Invariante #1.
+- Genera **display** (con `oplEsenciaVisibilidad`) → líneas read-only renderizadas.
+- **Optimización**: si la pref es `"siempre"` (default), un solo pase (display ===
+  canónico).
 
-**UI**: sección compacta "OPL" en `DialogoConfiguracion`: select de esencia
-(siempre / solo si difiere / oculta) + dos toggles (unidades, alias). Persistencia
-vía la misma vía que `gridConfig`/`oplNumeracionVisible`.
+**UI**: sección compacta "OPL" en `DialogoConfiguracion`: un select de esencia
+(siempre / solo si difiere / oculta). Persistencia por la misma vía que
+`oplNumeracionVisible`.
 
 ### 4.2 B — Diálogo colisión de nombre (creación + rename)
 
@@ -154,10 +158,10 @@ numérica"):
 
 ## 5. Testing (TDD)
 
-- **A**: unit en `opl/` — cada combinación de `VisibilidadOpl` produce las líneas
-  esperadas; **roundtrip intacto** (parser sigue recibiendo texto canónico);
-  `solo-difiere` omite solo cuando coincide con el default. e2e: cambiar toggles en
-  `DialogoConfiguracion` y verificar el panel OPL.
+- **A**: unit en `opl/` — `oracionEntidad` con cada valor de esencia-visibilidad
+  produce las líneas esperadas; `solo-difiere` omite solo cuando coincide con el
+  default; **roundtrip intacto** (parser sigue recibiendo texto canónico). e2e:
+  cambiar el select en `DialogoConfiguracion` y verificar el panel OPL.
 - **B**: unit — `crearEntidad`/`renombrarEntidad` retornan `ColisionNombre` con
   `mismoTipo`/ubicaciones correctos; reuso crea aparición de la entidad existente
   (no nueva entidad); tipo distinto no permite reuso. e2e: crear cosa con nombre
@@ -172,8 +176,7 @@ creación/inspector, command palette/simulación).
 ## 6. Archivos previstos (orientativo, el plan lo detalla)
 
 - A: `tipos/ui.ts`, `opl/generar.ts`, `opl/generadores/estructural.ts`,
-  `opl/generadores/duracionMetadata.ts`, `opl/generadores/refsHints.ts`,
-  `opl/panel.ts`, `ui/DialogoConfiguracion.tsx` (+ tests).
+  `opl/panel.ts`, `ui/DialogoConfiguracion.tsx` + setter de prefs (+ tests).
 - B: `operaciones/creacion.ts`, `operaciones/entidad.ts`, capa de acciones del store,
   nuevo `ui/DialogoColisionNombre.tsx` (+ tests).
 - F: nuevo `modelo/simulacion/csv.ts`, `ui/CommandPalette.tsx`, nuevo
