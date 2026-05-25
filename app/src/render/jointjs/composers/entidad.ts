@@ -72,7 +72,14 @@ export function proyectarEntidad(
   const strokeWidth = strokeBase;
   const strokeColor = stroke;
   const dasharrayBase = entidad.afiliacion === "ambiental" ? "8 4" : undefined;
-  const dasharray = contornoRefinamiento ? CODEX.refinamiento.strokeDasharray : dasharrayBase;
+  // BUG-a8c184 / R-CTRN-1 (V-71): el tipo de contorno (sólido vs discontinuo)
+  // codifica EXCLUSIVAMENTE la afiliación (sistémica=sólido, ambiental=discontinuo)
+  // y DEBE persistir a través de niveles. El refinamiento se marca con stroke
+  // GRUESO (strokeBase=4), no con discontinuidad. Antes el contorno de
+  // descomposición forzaba `strokeDasharray` a todo proceso refinado, volviendo
+  // discontinuo un proceso sistémico — violación de R-CTRN-1. La discontinuidad
+  // del contorno de refinamiento solo aplica si la cosa es ambiental.
+  const dasharray = dasharrayBase;
   const fillRender = contornoRefinamiento ? CODEX.refinamiento.fill : fill;
   const bodyTag = entidad.tipo === "objeto" ? "rect" : "ellipse";
   const body = {
@@ -88,7 +95,12 @@ export function proyectarEntidad(
     // vez del shorthand CSS `filter: "drop-shadow(...)"`. Esto preserva la
     // sombra como propiedad recuperable del canon-diagrama y evita colision
     // perceptual con filtros CSS UI (ver halo de modo enlace, N11).
-    ...(entidad.esencia === "fisica" ? { filter: { name: "dropShadow", args: { dx: 3, dy: 6, blur: 0, color: "grey" } } } : {}),
+    // BUG-6ae261: `blur:0` + `color:grey` opaco producía un duplicado duro del
+    // contorno (efecto "doble línea"), no una sombra. El canon (§3.4) pide una
+    // sombra desplazada abajo-derecha; una sombra real necesita desenfoque y un
+    // tinte semi-transparente. Offset moderado (dx 2 / dy 3), blur 2, tinta ink
+    // al ~35% para una sombra suave que lee como profundidad física.
+    ...(entidad.esencia === "fisica" ? { filter: { name: "dropShadow", args: { dx: 2, dy: 3, blur: 2, color: "rgba(23, 21, 17, 0.35)" } } } : {}),
     cursor: "pointer",
   };
   const attrsBase = {
@@ -507,8 +519,14 @@ export function attrsConEstados(
       y,
       width,
       height: ESTADOS.capsuleHeight,
-      rx: "calc(h/2)",
-      ry: "calc(h/2)",
+      // BUG-9e3b9b / canon §3.2 (línea 224): el estado OPM es un ROUNTANGLE
+      // (rectángulo redondeado), NO un stadium/pill. La evidencia OPCloud
+      // (export-legend-dialog `rx="5"` sobre h≈24-30; OpmObject.innerOuter rx:5)
+      // confirma esquinas de radio fijo moderado. `calc(h/2)` producía píldoras
+      // completas (semicírculos en los extremos) — forma no canónica. Usamos el
+      // radio fijo `ESTADOS.radius` para el rountangle correcto.
+      rx: ESTADOS.radius,
+      ry: ESTADOS.radius,
       fill: designaciones.includes("final") ? CODEX.colores.estadoFinalFill : CODEX.colores.estadoFill,
       stroke: CODEX.colores.opmEstado,
       strokeWidth: designaciones.includes("inicial") ? 3 : CODEX.strokes.estado,
