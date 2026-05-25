@@ -95,7 +95,12 @@ export function proyectarEntidad(
     // vez del shorthand CSS `filter: "drop-shadow(...)"`. Esto preserva la
     // sombra como propiedad recuperable del canon-diagrama y evita colision
     // perceptual con filtros CSS UI (ver halo de modo enlace, N11).
-    ...(entidad.esencia === "fisica" ? { filter: { name: "dropShadow", args: { dx: 3, dy: 6, blur: 0, color: "grey" } } } : {}),
+    // BUG-6ae261: `blur:0` + `color:grey` opaco producía un duplicado duro del
+    // contorno (efecto "doble línea"), no una sombra. El canon (§3.4) pide una
+    // sombra desplazada abajo-derecha; una sombra real necesita desenfoque y un
+    // tinte semi-transparente. Offset moderado (dx 2 / dy 3), blur 2, tinta ink
+    // al ~35% para una sombra suave que lee como profundidad física.
+    ...(entidad.esencia === "fisica" ? { filter: { name: "dropShadow", args: { dx: 2, dy: 3, blur: 2, color: "rgba(23, 21, 17, 0.35)" } } } : {}),
     cursor: "pointer",
   };
   const attrsBase = {
