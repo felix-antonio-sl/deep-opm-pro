@@ -2,6 +2,7 @@
 import { useEffect, useState } from "preact/hooks";
 import { useDialogoConfiguracionViewModel } from "../app/viewmodels/dialogoConfiguracionViewModel";
 import { normalizarGridConfig, type GridConfig } from "../canvas/grid";
+import type { EsenciaVisibilidad } from "../opl/opciones";
 import { Dialogo, DialogoAccion } from "./Dialogo";
 import { tokens } from "./tokens";
 
@@ -100,7 +101,7 @@ export function DialogoConfiguracion() {
               aria-label="Visibilidad de esencia en OPL"
               style={style.input}
               value={oplEsenciaVisibilidad}
-              onChange={(e) => fijarOplEsenciaVisibilidad(e.currentTarget.value as "siempre" | "solo-difiere" | "oculta")}
+              onChange={(e) => fijarOplEsenciaVisibilidad(e.currentTarget.value as EsenciaVisibilidad)}
             >
               <option value="siempre">Siempre</option>
               <option value="solo-difiere">Solo si difiere del default</option>
