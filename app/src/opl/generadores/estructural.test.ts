@@ -40,6 +40,32 @@ describe("estructural OPL", () => {
   });
 });
 
+describe("oracionEntidad — visibilidad de esencia (VisibilidadOpl)", () => {
+  const base: Entidad = { id: "o1", tipo: "objeto", nombre: "Sensor", esencia: "informacional", afiliacion: "sistemica" };
+
+  test("siempre (default): emite esencia y afiliación", () => {
+    expect(oracionEntidad(base)).toEqual(["**Sensor** es informacional.", "**Sensor** es sistémico."]);
+  });
+
+  test("oculta: no emite ni esencia ni afiliación", () => {
+    expect(oracionEntidad(base, { esencia: "oculta" })).toEqual([]);
+  });
+
+  test("solo-difiere: omite las que coinciden con el default canónico", () => {
+    expect(oracionEntidad(base, { esencia: "solo-difiere" })).toEqual([]);
+  });
+
+  test("solo-difiere: emite solo las que difieren del default", () => {
+    const fisicoAmbiental: Entidad = { ...base, esencia: "fisica", afiliacion: "ambiental" };
+    expect(oracionEntidad(fisicoAmbiental, { esencia: "solo-difiere" })).toEqual(["**Sensor** es físico.", "**Sensor** es ambiental."]);
+  });
+
+  test("solo-difiere: caso mixto (esencia default, afiliación difiere)", () => {
+    const mixto: Entidad = { ...base, afiliacion: "ambiental" };
+    expect(oracionEntidad(mixto, { esencia: "solo-difiere" })).toEqual(["**Sensor** es ambiental."]);
+  });
+});
+
 function modeloBase(): Modelo {
   return {
     id: "m1",

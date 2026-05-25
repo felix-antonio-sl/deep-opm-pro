@@ -1,4 +1,5 @@
 import type { Enlace, Entidad, Modelo } from "../../modelo/tipos";
+import type { VisibilidadOpl } from "../opciones";
 import type { OplLineaPendiente } from "./refsHints";
 import {
   agregarLinea,
@@ -27,14 +28,18 @@ import {
  * «X es un objeto informacional y sistémico» — no es canónico OPL-ES.
  * El caso atributo-con-valor es una sola oración (no es clasificación).
  */
-export function oracionEntidad(entidad: Entidad): string[] {
+export function oracionEntidad(entidad: Entidad, opciones?: VisibilidadOpl): string[] {
   const atributoValor = oracionValorAtributo(entidad);
   if (atributoValor) return [atributoValor];
   const nombre = nombreOpl(entidad);
-  return [
-    `${nombre} es ${textoEsencia(entidad)}.`,
-    `${nombre} es ${textoAfiliacion(entidad)}.`,
-  ];
+  const visibilidad = opciones?.esencia ?? "siempre";
+  if (visibilidad === "oculta") return [];
+  const lineas: string[] = [];
+  const esenciaDifiere = entidad.esencia !== "informacional";
+  const afiliacionDifiere = entidad.afiliacion !== "sistemica";
+  if (visibilidad === "siempre" || esenciaDifiere) lineas.push(`${nombre} es ${textoEsencia(entidad)}.`);
+  if (visibilidad === "siempre" || afiliacionDifiere) lineas.push(`${nombre} es ${textoAfiliacion(entidad)}.`);
+  return lineas;
 }
 
 export function oracionValorAtributo(entidad: Entidad): string | null {
