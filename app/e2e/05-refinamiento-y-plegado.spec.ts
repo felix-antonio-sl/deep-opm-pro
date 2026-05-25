@@ -75,6 +75,24 @@ test("descompone proceso y navega al OPD hijo", async ({ page }) => {
   await expect(nodoHijo).toHaveAttribute("aria-current", "page");
   await expect(page.locator(".joint-element")).toHaveCount(4);
   await expect(page.getByTestId("bloque-opl-opd-1").getByText("Proceso se descompone en Proceso 1, Proceso 2 y Proceso 3 en esa secuencia.")).toBeVisible();
+
+  // BUG-20260524T034932Z-b6be2b: al navegar al OPD hijo refinado, el viewport
+  // debe enfocar el centro geométrico del canvas (donde nace el diagrama
+  // refinado), no quedar en la esquina superior izquierda (scroll 0,0).
+  await expect.poll(async () => {
+    const contorno = await elementoPorTexto(page, "Proceso").boundingBox();
+    const canvasBox = await page.getByTestId("canvas-pane").boundingBox();
+    if (!contorno || !canvasBox) return Number.POSITIVE_INFINITY;
+    const centroContornoX = contorno.x + contorno.width / 2;
+    const centroCanvasX = canvasBox.x + canvasBox.width / 2;
+    return Math.abs(centroContornoX - centroCanvasX);
+  }).toBeLessThan(260);
+  const scrollRefinado = await page.getByRole("img", { name: "OPD activo" }).evaluate((el) => ({
+    left: el.scrollLeft,
+    top: el.scrollTop,
+  }));
+  expect(scrollRefinado.left).toBeGreaterThan(2500);
+  expect(scrollRefinado.top).toBeGreaterThan(1800);
   const json = await jsonEditor(page).inputValue();
   const exportado = JSON.parse(json) as ExportadoModelo;
   const proceso = Object.values(exportado.modelo.entidades).find((entidad) => entidad.nombre === "Proceso");

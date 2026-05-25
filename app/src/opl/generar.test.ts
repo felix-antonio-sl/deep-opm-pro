@@ -808,7 +808,8 @@ describe("generarOpl", () => {
     expect(generarOpl(modelo, modelo.opdRaizId)).toContain("*Atender Paciente* se descompone en *Atender Paciente 1*, *Atender Paciente 2* y *Atender Paciente 3* en esa secuencia.");
     expect(generarOpl(modelo, descompuesto.opdId)).toContain("*Atender Paciente* se descompone en *Atender Paciente 1*, *Atender Paciente 2* y *Atender Paciente 3* en esa secuencia.");
 
-    modelo = must(crearProceso(modelo, descompuesto.opdId, { x: 200, y: 180 }, "Examinar"));
+    const contorno = aparienciaDeEntidad(modelo, descompuesto.opdId, procesoId);
+    modelo = must(crearProceso(modelo, descompuesto.opdId, { x: contorno.x + 50, y: contorno.y + 90 }, "Examinar"));
     expect(generarOpl(modelo, modelo.opdRaizId)).toContain("*Atender Paciente* se descompone en *Examinar*, *Atender Paciente 1*, *Atender Paciente 2* y *Atender Paciente 3* en esa secuencia.");
   });
 
@@ -825,9 +826,11 @@ describe("generarOpl", () => {
   test("descomposicion de objeto en OPL interactivo separa refs y hints de operaciones internas", () => {
     let modelo = crearModelo();
     modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 200, y: 120 }, "Vehiculo"));
-    const descompuesto = must(descomponerProceso(modelo, modelo.opdRaizId, entidad(modelo, "Vehiculo")));
+    const vehiculoId = entidad(modelo, "Vehiculo");
+    const descompuesto = must(descomponerProceso(modelo, modelo.opdRaizId, vehiculoId));
     modelo = descompuesto.modelo;
-    modelo = must(crearProceso(modelo, descompuesto.opdId, { x: 305, y: 350 }, "Inspeccionar"));
+    const contornoVehiculo = aparienciaDeEntidad(modelo, descompuesto.opdId, vehiculoId);
+    modelo = must(crearProceso(modelo, descompuesto.opdId, { x: contornoVehiculo.x + 155, y: contornoVehiculo.y + 260 }, "Inspeccionar"));
 
     const interactivo = generarOplInteractivo(modelo, descompuesto.opdId);
     const linea = interactivo.find((item) => item.texto.includes("Vehiculo") && item.texto.includes("se descompone en"));
@@ -849,11 +852,12 @@ describe("generarOpl", () => {
     const procesoId = entidad(modelo, "Atender Paciente");
     const descompuesto = must(descomponerProceso(modelo, modelo.opdRaizId, procesoId));
     modelo = descompuesto.modelo;
-    modelo = must(moverApariencia(modelo, descompuesto.opdId, entidad(modelo, "Atender Paciente 3"), { x: 420, y: 280 }));
+    const contorno = aparienciaDeEntidad(modelo, descompuesto.opdId, procesoId);
+    modelo = must(moverApariencia(modelo, descompuesto.opdId, entidad(modelo, "Atender Paciente 3"), { x: contorno.x + 270, y: contorno.y + 190 }));
 
     expect(generarOpl(modelo, modelo.opdRaizId)).toContain("*Atender Paciente* se descompone en *Atender Paciente 1*, paralelo *Atender Paciente 2* y *Atender Paciente 3*, en esa secuencia.");
 
-    modelo = must(moverApariencia(modelo, descompuesto.opdId, entidad(modelo, "Atender Paciente 1"), { x: 285, y: 420 }));
+    modelo = must(moverApariencia(modelo, descompuesto.opdId, entidad(modelo, "Atender Paciente 1"), { x: contorno.x + 135, y: contorno.y + 330 }));
     expect(generarOpl(modelo, modelo.opdRaizId)).toContain("*Atender Paciente* se descompone en paralelo *Atender Paciente 2* y *Atender Paciente 3*, *Atender Paciente 1*, en esa secuencia.");
   });
 
@@ -863,7 +867,8 @@ describe("generarOpl", () => {
     const procesoId = entidad(modelo, "Atender Paciente");
     const descompuesto = must(descomponerProceso(modelo, modelo.opdRaizId, procesoId));
     modelo = descompuesto.modelo;
-    modelo = must(moverApariencia(modelo, descompuesto.opdId, entidad(modelo, "Atender Paciente 3"), { x: 285, y: 285 }));
+    const contorno = aparienciaDeEntidad(modelo, descompuesto.opdId, procesoId);
+    modelo = must(moverApariencia(modelo, descompuesto.opdId, entidad(modelo, "Atender Paciente 3"), { x: contorno.x + 135, y: contorno.y + 195 }));
 
     expect(generarOpl(modelo, modelo.opdRaizId)).toContain("*Atender Paciente* se descompone en *Atender Paciente 1*, *Atender Paciente 2* y *Atender Paciente 3* en esa secuencia.");
   });
@@ -1065,11 +1070,13 @@ describe("HU-50.021 tokens multi-destino", () => {
   test("enlace en oracion multi-destino lleva ref en el token nombre del destino", () => {
     let modelo = crearModelo();
     modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 200, y: 120 }, "Todo"));
-    const descompuesto = must(descomponerProceso(modelo, modelo.opdRaizId, entidad(modelo, "Todo")));
+    const todoId = entidad(modelo, "Todo");
+    const descompuesto = must(descomponerProceso(modelo, modelo.opdRaizId, todoId));
     modelo = descompuesto.modelo;
 
-    modelo = must(crearProceso(modelo, descompuesto.opdId, { x: 220, y: 140 }, "Parte X"));
-    modelo = must(crearProceso(modelo, descompuesto.opdId, { x: 290, y: 140 }, "Parte Y"));
+    const contornoTodo = aparienciaDeEntidad(modelo, descompuesto.opdId, todoId);
+    modelo = must(crearProceso(modelo, descompuesto.opdId, { x: contornoTodo.x + 70, y: contornoTodo.y + 50 }, "Parte X"));
+    modelo = must(crearProceso(modelo, descompuesto.opdId, { x: contornoTodo.x + 140, y: contornoTodo.y + 50 }, "Parte Y"));
     modelo = must(crearEnlace(modelo, descompuesto.opdId, entidad(modelo, "Todo"), entidad(modelo, "Parte X"), "invocacion"));
     modelo = must(crearEnlace(modelo, descompuesto.opdId, entidad(modelo, "Todo"), entidad(modelo, "Parte Y"), "invocacion"));
 

@@ -68,8 +68,10 @@ describe("leyes de cascadas de refinamiento", () => {
     modelo = descompuesto.modelo;
     const primeroOriginal = entidadPorNombre(modelo, "Procesar 1");
     const nuevoPrimero = entidadPorNombre(modelo, "Procesar 2");
+    const contorno = aparienciaDeEntidad(modelo, descompuesto.opdId, procesar);
+    if (!contorno) throw new Error("No se encontró el contorno descompuesto");
 
-    modelo = must(moverApariencia(modelo, descompuesto.opdId, primeroOriginal, { x: 285, y: 430 }));
+    modelo = must(moverApariencia(modelo, descompuesto.opdId, primeroOriginal, { x: contorno.x + 135, y: contorno.y + 340 }));
 
     expect(avisosRegla(modelo, descompuesto.opdId, REGLA_CONTORNO_NO_DISTRIBUIDO)).toEqual([]);
     expect(enlacesDelOpd(modelo, descompuesto.opdId)).toContainEqual(expect.objectContaining({
