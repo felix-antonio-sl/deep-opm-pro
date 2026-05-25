@@ -12,7 +12,7 @@
  */
 
 import { expect, test } from "@playwright/test";
-import { cerrarPantallaInicioSiVisible, clickLinkPorTipo, elegirTipoEnlaceDesdeMenu, elementoPorTexto, exportadoActual } from "./_smoke-helpers";
+import { cerrarPantallaInicioSiVisible, clickLinkPorTipo, ejecutarComandoPalette, elegirTipoEnlaceDesdeMenu, elementoPorTexto, exportadoActual } from "./_smoke-helpers";
 
 test("seleccionar una cosa enciende barra contextual e Inspector con la misma referencia", async ({ page }) => {
   const pageErrors: string[] = [];
@@ -195,10 +195,8 @@ test.describe("Contrato TablaEnlaces Beta1", () => {
     await page.goto("/");
     await cerrarPantallaInicioSiVisible(page);
 
-    await page.getByLabel("Menú principal").click();
-    await page.getByRole("menu", { name: "Menú principal" })
-      .getByRole("menuitem", { name: "Tabla de enlaces" })
-      .click();
+    // Ronda Codex v2 L5: la Tabla de enlaces se abre desde el command palette.
+    await ejecutarComandoPalette(page, "tabla de enlaces", "menu-tabla-enlaces");
 
     const tabla = page.getByTestId("tabla-enlaces");
     await expect(tabla).toBeVisible();
@@ -225,10 +223,8 @@ test.describe("Contrato TablaEnlaces Beta1", () => {
     await elegirTipoEnlaceDesdeMenu(page, "consumo");
     await elementoPorTexto(page, "Procesar").click();
 
-    await page.getByLabel("Menú principal").click();
-    await page.getByRole("menu", { name: "Menú principal" })
-      .getByRole("menuitem", { name: "Tabla de enlaces" })
-      .click();
+    // Ronda Codex v2 L5: la Tabla de enlaces se abre desde el command palette.
+    await ejecutarComandoPalette(page, "tabla de enlaces", "menu-tabla-enlaces");
     const fila = page.getByTestId("tabla-enlaces-fila").first();
     await expect(fila).toBeVisible();
     await expect(fila.getByTestId("tabla-enlaces-celda-tipo")).toHaveText("Consumo");
@@ -261,10 +257,8 @@ test.describe("Contrato TablaEnlaces Beta1", () => {
 
     // Selecciono el enlace en canvas y luego abro la tabla.
     await clickLinkPorTipo(page, "Consumo");
-    await page.getByLabel("Menú principal").click();
-    await page.getByRole("menu", { name: "Menú principal" })
-      .getByRole("menuitem", { name: "Tabla de enlaces" })
-      .click();
+    // Ronda Codex v2 L5: la Tabla de enlaces se abre desde el command palette.
+    await ejecutarComandoPalette(page, "tabla de enlaces", "menu-tabla-enlaces");
 
     const fila = page.getByTestId("tabla-enlaces-fila").first();
     await expect(fila).toHaveAttribute("aria-selected", "true");
@@ -286,10 +280,8 @@ test.describe("Contrato TablaEnlaces Beta1", () => {
     await elegirTipoEnlaceDesdeMenu(page, "agregacion");
     await elementoPorTexto(page, "Pedido").click();
 
-    await page.getByLabel("Menú principal").click();
-    await page.getByRole("menu", { name: "Menú principal" })
-      .getByRole("menuitem", { name: "Tabla de enlaces" })
-      .click();
+    // Ronda Codex v2 L5: la Tabla de enlaces se abre desde el command palette.
+    await ejecutarComandoPalette(page, "tabla de enlaces", "menu-tabla-enlaces");
 
     const fila = page.getByTestId("tabla-enlaces-fila").first();
     // Edicion etiqueta — Enter confirma.
@@ -343,10 +335,8 @@ test.describe("Contrato TablaEnlaces Beta1", () => {
     await elegirTipoEnlaceDesdeMenu(page, "consumo");
     await elementoPorTexto(page, "Procesar").click();
 
-    await page.getByLabel("Menú principal").click();
-    await page.getByRole("menu", { name: "Menú principal" })
-      .getByRole("menuitem", { name: "Tabla de enlaces" })
-      .click();
+    // Ronda Codex v2 L5: la Tabla de enlaces se abre desde el command palette.
+    await ejecutarComandoPalette(page, "tabla de enlaces", "menu-tabla-enlaces");
     const fila = page.getByTestId("tabla-enlaces-fila").first();
 
     // Ir a origen → tabla cierra, Inspector entra en modo entidad con la cosa portadora del origen.
@@ -362,10 +352,8 @@ test.describe("Contrato TablaEnlaces Beta1", () => {
       .toHaveAttribute("aria-label", /Acciones sobre Entrada/);
 
     // Reabrir tabla y ahora ir al destino.
-    await page.getByLabel("Menú principal").click();
-    await page.getByRole("menu", { name: "Menú principal" })
-      .getByRole("menuitem", { name: "Tabla de enlaces" })
-      .click();
+    // Ronda Codex v2 L5: la Tabla de enlaces se abre desde el command palette.
+    await ejecutarComandoPalette(page, "tabla de enlaces", "menu-tabla-enlaces");
     await page.getByTestId("tabla-enlaces-fila").first()
       .getByTestId("tabla-enlaces-ir-destino").click();
     const inspectorDestino = page.getByTestId("inspector");

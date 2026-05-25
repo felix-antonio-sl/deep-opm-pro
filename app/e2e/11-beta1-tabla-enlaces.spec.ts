@@ -13,13 +13,12 @@
  */
 
 import { expect, test, type Page } from "@playwright/test";
-import { cerrarPantallaInicioSiVisible, jsonEditor, modeloSmokeTablaEnlaces, modeloMarkersCanonicos, modeloTransicionEstados } from "./_smoke-helpers";
+import { cerrarPantallaInicioSiVisible, ejecutarComandoPalette, jsonEditor, modeloSmokeTablaEnlaces, modeloMarkersCanonicos, modeloTransicionEstados } from "./_smoke-helpers";
 
 async function abrirTablaPorMenu(page: Page): Promise<void> {
-  await page.getByLabel("Menú principal").click();
-  await page.getByRole("menu", { name: "Menú principal" })
-    .getByRole("menuitem", { name: "Tabla de enlaces" })
-    .click();
+  // Ronda Codex v2 L5: el menú lateral se retiró; la Tabla de enlaces se abre
+  // desde el command palette (vía única de comandos).
+  await ejecutarComandoPalette(page, "tabla de enlaces", "menu-tabla-enlaces");
   await expect(page.getByTestId("tabla-enlaces")).toBeVisible();
 }
 

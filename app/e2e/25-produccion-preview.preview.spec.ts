@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { readFile } from "node:fs/promises";
-import { jsonEditor, modeloMarkersCanonicos, svgText } from "./_smoke-helpers";
+import { ejecutarComandoPalette, jsonEditor, modeloMarkersCanonicos, svgText } from "./_smoke-helpers";
 
 test("preview productivo carga SPA, exporta SVG y no expone bug capture sin opt-in", async ({ page }) => {
   const pageErrors: string[] = [];
@@ -13,11 +13,8 @@ test("preview productivo carga SPA, exporta SVG y no expone bug capture sin opt-
   await expect(svgText(page, "Agente")).toBeVisible();
 
   const downloadPromise = page.waitForEvent("download");
-  await page.getByLabel("Menú principal").click();
-  await page
-    .getByRole("menu", { name: "Menú principal" })
-    .getByRole("menuitem", { name: "Exportar OPD actual como SVG" })
-    .click();
+  // Ronda Codex v2 L5: la exportación SVG se invoca desde el command palette.
+  await ejecutarComandoPalette(page, "exportar opd svg", "menu-exportar-svg");
   const download = await downloadPromise;
   expect(download.suggestedFilename()).toMatch(/^markers-canonicos-sd-\d{4}-\d{2}-\d{2}\.svg$/);
   const path = await download.path();
