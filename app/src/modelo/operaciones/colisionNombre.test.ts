@@ -14,9 +14,11 @@ test("sin colisión → null", () => {
 });
 
 test("colisión mismo tipo → mismoTipo true + ubicaciones de la existente", () => {
-  const col = detectarColisionNombre(modeloConSensor(), "Sensor", "objeto");
+  const m = modeloConSensor();
+  const col = detectarColisionNombre(m, "Sensor", "objeto");
   expect(col?.mismoTipo).toBe(true);
   expect(col?.ubicaciones.length).toBeGreaterThan(0);
+  expect(col?.ubicaciones[0]?.opdId).toBe(m.opdRaizId);
 });
 
 test("colisión tipo distinto → mismoTipo false", () => {
