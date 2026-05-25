@@ -346,7 +346,8 @@ export async function assertWorkbenchLayout(page: import("@playwright/test").Pag
   expect(canvas.x + canvas.width).toBeLessThanOrEqual(inspector.x + 1);
   expect(canvas.width).toBeGreaterThan(400);
   expect(inspector.width).toBeGreaterThan(250);
-  expect(inspector.width).toBeLessThan(340);
+  // L6: ANCHO_PANEL_INSPECTOR_DEFAULT pasó de 300 a 360; cota superior holgada.
+  expect(inspector.width).toBeLessThan(380);
 }
 
 export async function assertCanvasScrollable(page: import("@playwright/test").Page): Promise<void> {

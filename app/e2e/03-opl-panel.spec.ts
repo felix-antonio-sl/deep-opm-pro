@@ -64,7 +64,9 @@ test("sincroniza OPL interactivo con canvas y renombrado inverso", async ({ page
   await clickCabeceraElemento(page, "Procesar");
 
   const panel = page.getByLabel("Panel OPL-ES");
-  await expect(panel.locator('[data-testid="opl-line"]')).toHaveCount(3);
+  // Canon L1: la clasificación de cada entidad se escinde en dos oraciones
+  // (esencia + afiliación). Entrada (2) + Procesar (2) + consumo (1) = 5.
+  await expect(panel.locator('[data-testid="opl-line"]')).toHaveCount(5);
   await expect(panel.locator('[data-opl-ordinal="1"]')).toBeVisible();
   await expect(panel.locator('[data-opl-ordinal="2"]')).toBeVisible();
   await expect(panel.locator('[data-opl-ordinal="3"]')).toBeVisible();
@@ -77,7 +79,10 @@ test("sincroniza OPL interactivo con canvas y renombrado inverso", async ({ page
   await expect(tokenEntrada).toHaveCSS("background-color", "rgb(244, 243, 236)");
 
   await elementoPorTexto(page, "Procesar").click();
-  await panel.getByLabel("Filtrar por selección").check();
+  // Codex L6 (G7): al activar el filtro el checkbox se desmonta y lo reemplaza
+  // el chip; `.check()` colgaría esperando el `checked` del input ausente, así
+  // que se dispara con click directo.
+  await panel.getByLabel("Filtrar por selección").click();
   await expect(panel.getByText("Entrada es un objeto")).toHaveCount(0);
   await expect(panel.getByText(/Procesar\s+consume\s+Entrada\./)).toBeVisible();
 
@@ -91,7 +96,8 @@ test("sincroniza OPL interactivo con canvas y renombrado inverso", async ({ page
   await page.keyboard.press("Enter");
 
   await expect(elementoPorTexto(page, "Cliente")).toHaveCount(1);
-  await expect(panel.getByText("Cliente")).toHaveCount(2);
+  // Canon L1: "Cliente" aparece en 3 oraciones — esencia, afiliación y consumo.
+  await expect(panel.getByText("Cliente")).toHaveCount(3);
   await expect(panel.getByText(/Procesar\s+consume\s+Cliente\./)).toBeVisible();
 
   await page.screenshot({ path: "test-results/opm-opl-interactivo-inverso.png", fullPage: true });
@@ -116,7 +122,9 @@ test("panel OPL aplica edicion libre con preview y propaga al canvas", async ({ 
 
   await expect(elementoPorTexto(page, "Cliente")).toHaveCount(1);
   await restaurarPanelOplSiMinimizado(page);
-  await expect(page.getByLabel("Panel OPL-ES").getByText("Cliente es un objeto físico y ambiental.")).toBeVisible();
+  // Canon L1: la clasificación se rinde como dos oraciones escindidas.
+  await expect(page.getByLabel("Panel OPL-ES").getByText("Cliente es físico.")).toBeVisible();
+  await expect(page.getByLabel("Panel OPL-ES").getByText("Cliente es ambiental.")).toBeVisible();
   await expect(page.getByText("OPL aplicado: 3 cambios")).toBeVisible();
   expect(pageErrors).toEqual([]);
 });
@@ -134,13 +142,15 @@ test("OPL agrupa oraciones por OPD y permite colapsar bloques", async ({ page })
   const bloqueHijo = page.getByTestId("bloque-opl-opd-2");
   await expect(bloqueRaiz).toBeVisible();
   await expect(bloqueHijo).toBeVisible();
-  await expect(bloqueRaiz.getByText("Objeto Raiz")).toBeVisible();
-  await expect(bloqueHijo.getByText("Proceso Hijo")).toBeVisible();
+  // Canon L1: la clasificación de cada entidad ocupa dos oraciones; el nombre
+  // aparece en ambas, por lo que se afirma sobre la primera.
+  await expect(bloqueRaiz.getByText("Objeto Raiz").first()).toBeVisible();
+  await expect(bloqueHijo.getByText("Proceso Hijo").first()).toBeVisible();
 
   await page.getByTestId("cabecera-bloque-opl-opd-2").click();
   await expect(bloqueHijo.getByText("Proceso Hijo")).toHaveCount(0);
   await page.getByTestId("cabecera-bloque-opl-opd-2").click();
-  await expect(bloqueHijo.getByText("Proceso Hijo")).toBeVisible();
+  await expect(bloqueHijo.getByText("Proceso Hijo").first()).toBeVisible();
 
   expect(pageErrors).toEqual([]);
 });
@@ -159,7 +169,8 @@ test("panel OPL busca texto y filtra lineas", async ({ page }) => {
   await elementoPorTexto(page, "Procesar").click();
 
   const panel = page.getByLabel("Panel OPL-ES");
-  await expect(panel.locator('[data-testid="opl-line"]')).toHaveCount(3);
+  // Canon L1: Entrada (2) + Procesar (2) + consumo (1) = 5 oraciones.
+  await expect(panel.locator('[data-testid="opl-line"]')).toHaveCount(5);
   await page.getByTestId("panel-opl-buscar").fill("consume");
   await expect(panel.locator('[data-testid="opl-line"]')).toHaveCount(1);
   await expect(panel.getByText(/Procesar\s+consume\s+Entrada\./)).toBeVisible();
@@ -187,7 +198,9 @@ test("panel OPL copia y exporta HTML desde botones", async ({ page }) => {
 
   await page.getByTestId("panel-opl-copiar").click();
   const copiado = await page.evaluate(() => (window as Window & { __copiedOpl?: string }).__copiedOpl ?? "");
-  expect(copiado).toContain("**Objeto** es un objeto informacional y sistémico.");
+  // Canon L1: clasificación escindida en dos oraciones (esencia + afiliación).
+  expect(copiado).toContain("**Objeto** es informacional.");
+  expect(copiado).toContain("**Objeto** es sistémico.");
   await expect(page.getByText("OPL copiado al portapapeles")).toBeVisible();
 
   const downloadPromise = page.waitForEvent("download");
@@ -211,7 +224,8 @@ test("panel OPL alterna numeracion 123 sin perder seleccion", async ({ page }) =
 
   await page.getByTestId("panel-opl-toggle-numeracion").click();
   await expect(panel.locator('[data-opl-ordinal="1"] span').first()).toHaveCSS("opacity", "0");
-  await panel.getByText("Entrada").click();
+  // Canon L1: el nombre aparece en dos oraciones de clasificación; clic en la primera.
+  await panel.getByText("Entrada").first().click();
   await expect(page.getByLabel("Nombre")).toHaveValue("Entrada");
 
   expect(pageErrors).toEqual([]);
@@ -227,11 +241,12 @@ test("panel OPL minimiza y restaura desde barra colapsada", async ({ page }) => 
   await page.getByTestId("panel-opl-minimizar").click();
 
   await expect(page.getByTestId("panel-opl-minimizado")).toBeVisible();
-  await expect(page.getByTestId("panel-opl-restaurar")).toContainText("OPL · 1 oraciones · Restaurar");
+  // Canon L1: un objeto rinde dos oraciones (esencia + afiliación).
+  await expect(page.getByTestId("panel-opl-restaurar")).toContainText("OPL · 2 oraciones · Restaurar");
   await expect(page.locator('[data-testid="opl-line"]')).toHaveCount(0);
 
   await page.getByTestId("panel-opl-restaurar").click();
-  await expect(page.locator('[data-testid="opl-line"]')).toHaveCount(1);
+  await expect(page.locator('[data-testid="opl-line"]')).toHaveCount(2);
 
   expect(pageErrors).toEqual([]);
 });
@@ -291,7 +306,7 @@ test("margen Codex se redimensiona horizontalmente desde su divisor", async ({ p
     .toBeGreaterThan(anchoInicial + 70);
 
   await divisor.dblclick();
-  await expect.poll(async () => Math.round((await rectDeLocator(panel)).width)).toBe(300);
+  await expect.poll(async () => Math.round((await rectDeLocator(panel)).width)).toBe(360);
 
   expect(pageErrors).toEqual([]);
 });

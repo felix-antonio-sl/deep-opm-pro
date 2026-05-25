@@ -197,8 +197,9 @@ test("simulación: OPL resalta la frase del proceso activo", async ({ page }) =>
   await page.goto("/");
   await cerrarPantallaInicioSiVisible(page);
 
-  // Un único proceso ⇒ el plan tiene 1 paso y arranca activo. La OPL del SD
-  // raíz tiene exactamente una frase que toca a ese proceso ("... es un proceso").
+  // Un único proceso ⇒ el plan tiene 1 paso y arranca activo. Canon L1 escinde
+  // la clasificación del proceso en dos oraciones ("Recibir es informacional."
+  // + "...es sistémico."), ambas tocan al proceso activo.
   await page.getByRole("button", { name: "Proceso", exact: true }).click();
   await page.getByLabel("Nombre").fill("Recibir");
   await page.keyboard.press("Enter");
@@ -206,8 +207,8 @@ test("simulación: OPL resalta la frase del proceso activo", async ({ page }) =>
   await entrarSimulacionDesdeMas(page);
   await expect(page.getByTestId("barra-simulacion-proceso-activo")).toContainText("Recibir");
 
-  // La línea OPL del proceso activo gana data-sim-activa="true".
-  await expect(page.locator('[data-testid="opl-line"][data-sim-activa="true"]')).toHaveCount(1);
+  // Las líneas OPL del proceso activo ganan data-sim-activa="true".
+  await expect(page.locator('[data-testid="opl-line"][data-sim-activa="true"]')).toHaveCount(2);
 
   expect(pageErrors).toEqual([]);
 });

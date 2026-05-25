@@ -309,7 +309,8 @@ test("gestiona estados M0 de objeto con capsulas internas y OPL", async ({ page 
   await expect(page.locator('[joint-selector^="stateCapsule"]')).toHaveCount(2);
   await expect(elementoPorTexto(page, "pendiente")).toHaveCount(1);
   await expect(elementoPorTexto(page, "cerrado")).toHaveCount(1);
-  await expect(page.getByText(/Pedido puede ser .*pendiente.*cerrado/)).toBeVisible();
+  // Canon L1: la enumeración de estados usa «puede estar» (ser/estar §1.5).
+  await expect(page.getByText(/Pedido puede estar .*pendiente.*cerrado/)).toBeVisible();
   const json = await jsonEditor(page).inputValue();
   const exportado = JSON.parse(json) as ExportadoModelo;
   const pedido = Object.values(exportado.modelo.entidades).find((entidad) => entidad.nombre === "Pedido");

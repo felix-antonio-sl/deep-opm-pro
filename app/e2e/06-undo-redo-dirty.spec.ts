@@ -307,11 +307,14 @@ test("undo cambia esencia y restaura valor previo", async ({ page }) => {
   await page.getByRole("button", { name: "Objeto", exact: true }).click();
   await page.getByRole("button", { name: "Física" }).click();
   await restaurarPanelOplSiMinimizado(page);
-  await expect(page.getByText("Objeto es un objeto físico y sistémico.")).toBeVisible();
+  // Canon L1: clasificación escindida en dos oraciones (esencia + afiliación).
+  await expect(page.getByText("Objeto es físico.")).toBeVisible();
+  await expect(page.getByText("Objeto es sistémico.")).toBeVisible();
 
   await page.keyboard.press("Control+Z");
   await restaurarPanelOplSiMinimizado(page);
-  await expect(page.getByText("Objeto es un objeto informacional y sistémico.")).toBeVisible();
+  await expect(page.getByText("Objeto es informacional.")).toBeVisible();
+  await expect(page.getByText("Objeto es sistémico.")).toBeVisible();
 
   expect(pageErrors).toEqual([]);
 });
