@@ -45,10 +45,23 @@ export const inspectorStyles = {
     width: "100%",
     letterSpacing: 0,
   },
-  vacioConteos: {
+  // Placeholder editorial de la rama vacía (Codex v2 / L3, reemplaza los
+  // contadores N objetos · N procesos · N OPDs). Italic serif calmado.
+  vacioPlaceholder: {
     margin: 0,
-    color: tokens.colors.ink70,
-    fontSize: `${tokens.typography.sizes.sm}px`,
+    color: tokens.colors.ink50,
+    fontFamily: tokens.typography.familyChrome,
+    fontSize: `${tokens.typography.sizes.base}px`,
+    fontStyle: "italic",
+    lineHeight: 1.5,
+  },
+  // Sello de última edición bajo el placeholder. Mono discreto.
+  vacioMeta: {
+    margin: 0,
+    color: tokens.colors.ink30,
+    fontFamily: tokens.typography.fontFamilyMono,
+    fontSize: `${tokens.typography.sizes.xxs}px`,
+    letterSpacing: tokens.typography.ls.mono,
     lineHeight: 1.5,
   },
   // Header del Inspector: nombre del kind ("Objeto"/"Proceso"/"Enlace …")
