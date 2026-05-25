@@ -1,5 +1,5 @@
 import type { GridConfig } from "../../canvas/grid";
-import type { EnlaceEstilo, Id, Modelo } from "../../modelo/tipos";
+import type { EnlaceEstilo, Id, Modelo, ModoImagenEntidad } from "../../modelo/tipos";
 
 export interface CommandPaletteContextPort {
   modelo: Modelo;
@@ -7,6 +7,31 @@ export interface CommandPaletteContextPort {
   seleccionId: Id | null;
   enlaceEstiloPortapapeles: EnlaceEstilo | null;
   seleccionados: Id[];
+}
+
+/**
+ * Ronda Codex v2 L5: el command palette absorbe TODAS las acciones que antes
+ * vivían en el menú lateral `MenuPrincipal` (retirado). Estas acciones
+ * extra no son atajos ni acciones contextuales: son comandos globales de
+ * workspace, vista y navegación que ahora se invocan sólo desde el palette.
+ */
+export interface CommandPaletteMenuExtrasPort {
+  iniciarAsistente: () => void;
+  abrirPestanaNueva: () => void;
+  abrirBusquedaCosas: () => void;
+  abrirBusquedaGlobal: () => void;
+  abrirModalUrls: (objetoId: Id) => void;
+  toggleAliasVisibles: () => void;
+  uiAliasVisibles: boolean;
+  toggleDescripcionesVisibles: () => void;
+  uiDescripcionesVisibles: boolean;
+  uiModoImagenGlobal: ModoImagenEntidad | null;
+  fijarModoImagenGlobal: (modo: ModoImagenEntidad | null) => void;
+  abrirModalImagen: (objetoId: Id) => void;
+  mostrarArchivados: boolean;
+  toggleMostrarArchivados: () => void;
+  mostrarVersiones: boolean;
+  toggleMostrarVersiones: () => void;
 }
 
 export interface CommandPaletteWorkspacePort {
@@ -40,4 +65,5 @@ export interface CommandPalettePort extends
   CommandPaletteContextPort,
   CommandPaletteWorkspacePort,
   CommandPaletteViewPort,
+  CommandPaletteMenuExtrasPort,
   CommandPaletteUsagePort {}

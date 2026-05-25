@@ -5,6 +5,7 @@ import {
   modeloTraerConectadosSmoke,
   cerrarPantallaInicioSiVisible,
   cargarModeloEjemplo,
+  abrirMenuPrincipal,
   crearAtributoNumericoSmoke,
   rectDeLocator,
   clickCabeceraElemento,
@@ -217,10 +218,12 @@ test("mapa del sistema retirado: no aparece en arbol ni menu principal", async (
   await expect(page.locator('[role="treeitem"]').filter({ hasText: "SD1.1:" })).toHaveCount(1);
 
   await expect(page.getByRole("treeitem", { name: "Mapa del sistema", exact: true })).toHaveCount(0);
-  await page.getByLabel("Menú principal").click();
-  const menu = page.getByRole("menu", { name: "Menú principal" });
-  await expect(menu.getByTestId("toolbar-mas-mapa")).toHaveCount(0);
-  await expect(menu.getByRole("menuitem", { name: "Mapa del sistema", exact: true })).toHaveCount(0);
+  // Ronda Codex v2 L5: el menú lateral se retiró; el botón ☰ abre el command
+  // palette. El "Mapa del sistema" sigue sin estar disponible como comando.
+  const palette = await abrirMenuPrincipal(page);
+  await expect(palette.getByText("Mapa del sistema", { exact: true })).toHaveCount(0);
+  await page.keyboard.press("Escape");
+  await expect(page.getByTestId("command-palette")).toHaveCount(0);
   await expect(page.getByTestId("mapa-sistema")).toHaveCount(0);
 
   expect(pageErrors).toEqual([]);

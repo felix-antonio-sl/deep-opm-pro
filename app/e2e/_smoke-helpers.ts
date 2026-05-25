@@ -240,32 +240,72 @@ export async function guardarComoActual(page: import("@playwright/test").Page, n
   await expect(page.getByTestId("chip-persistencia")).toHaveAttribute("data-variante", "local-clean");
 }
 
+/**
+ * Ronda Codex v2 L5 (CRÍT-Comandos): el menú lateral `MenuPrincipal` se
+ * retiró. El command palette `⌘K` (el botón ☰ lo invoca) es la vía ÚNICA de
+ * comandos y superset de las acciones que el menú exponía. Este helper abre
+ * el palette y devuelve su locator para los specs que aún quieran inspeccionar
+ * comandos disponibles.
+ */
 export async function abrirMenuPrincipal(page: import("@playwright/test").Page): Promise<import("@playwright/test").Locator> {
-  await page.getByLabel("Menú principal").click();
-  const menu = page.getByRole("menu", { name: "Menú principal" });
-  await expect(menu).toBeVisible();
-  return menu;
+  await page.evaluate(() => {
+    if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
+  });
+  await page.getByTestId("toolbar-menu").click();
+  const palette = page.getByTestId("command-palette");
+  await expect(palette).toBeVisible();
+  return palette;
 }
 
 /**
- * Ronda 27 III.A cierre: el botón `⋯ Más` desaparece del chrome. Sus items
- * canónicos (alias/desc/modo imagen/grid/dock/auto-layout/mapa/simulación)
- * viven ahora como secciones Vista y Herramientas del menú principal `☰`.
- * Preservamos los `data-testid="toolbar-mas-*"` heredados; este helper abre
- * el menú principal y clickea el item por testId. Cubre los 7 specs e2e
- * que antes navegaban `toolbar-mas-trigger` → `toolbar-mas-*`.
+ * Mapeo de los antiguos `data-testid="toolbar-mas-*"` del menú lateral a los
+ * IDs de comando del palette. Preserva la firma `clickToolbarMasItem` para no
+ * tocar los specs que la consumen (auto-layout, grid, modo imagen, simulación).
  */
+const TOOLBAR_MAS_A_COMANDO: Readonly<Record<string, { itemId: string; query: string }>> = {
+  "toolbar-mas-auto-layout": { itemId: "menu-auto-layout", query: "auto layout" },
+  "toolbar-mas-toggle-grid": { itemId: "menu-grid-canvas", query: "cuadricula" },
+  "toolbar-mas-modo-imagen-global": { itemId: "menu-modo-imagen-global", query: "imagen" },
+  "toolbar-mas-simulacion": { itemId: "menu-simulacion-conceptual", query: "simulacion" },
+};
+
 export async function clickToolbarMasItem(page: import("@playwright/test").Page, testId: string): Promise<void> {
-  await page.getByLabel("Menú principal").click();
-  const menu = page.getByRole("menu", { name: "Menú principal" });
-  await expect(menu).toBeVisible();
-  await menu.getByTestId(testId).click();
-  await expect(menu).toHaveCount(0);
+  const comando = TOOLBAR_MAS_A_COMANDO[testId];
+  if (!comando) throw new Error(`clickToolbarMasItem: testId sin mapeo a comando del palette: ${testId}`);
+  await ejecutarComandoPalette(page, comando.query, comando.itemId);
 }
 
+/**
+ * Ejecuta un comando del palette por su `itemId`, escribiendo `query` para
+ * filtrarlo. Espejo de `ejecutarAccionCommandPalette` para items de menú.
+ */
+export async function ejecutarComandoPalette(page: import("@playwright/test").Page, query: string, itemId: string): Promise<void> {
+  await page.evaluate(() => {
+    if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
+  });
+  await page.getByTestId("toolbar-menu").click();
+  const palette = page.getByTestId("command-palette");
+  await expect(palette).toBeVisible();
+  await palette.getByRole("combobox").fill(query);
+  const item = page.getByTestId(`command-palette-item-${itemId}`);
+  await expect(item).toBeVisible();
+  await item.click();
+  await expect(page.getByTestId("command-palette")).toHaveCount(0);
+}
+
+/**
+ * Compatibilidad: los specs invocaban acciones del menú por su label visible.
+ * Ahora se resuelven a comandos del palette por label conocido.
+ */
+const LABEL_MENU_A_COMANDO: Readonly<Record<string, { itemId: string; query: string }>> = {
+  "Nuevo": { itemId: "menu-nuevo-modelo", query: "nuevo modelo" },
+  "Abrir / importar...": { itemId: "menu-abrir-importar", query: "abrir importar" },
+};
+
 export async function ejecutarMenuPrincipal(page: import("@playwright/test").Page, label: string): Promise<void> {
-  const menu = await abrirMenuPrincipal(page);
-  await menu.getByRole("menuitem", { name: label, exact: true }).click();
+  const comando = LABEL_MENU_A_COMANDO[label];
+  if (!comando) throw new Error(`ejecutarMenuPrincipal: label sin mapeo a comando del palette: ${label}`);
+  await ejecutarComandoPalette(page, comando.query, comando.itemId);
 }
 
 export async function crearModeloNuevoDesdeMenu(page: import("@playwright/test").Page): Promise<void> {
@@ -392,8 +432,8 @@ export function jsonEditor(page: Page) {
 async function abrirDialogoJson(page: Page) {
   const dialogo = page.getByTestId("dialogo-abrir-importar");
   if (!(await dialogo.isVisible().catch(() => false))) {
-    await page.getByLabel("Menú principal").click();
-    await page.getByRole("menu", { name: "Menú principal" }).getByRole("menuitem", { name: "Abrir / importar..." }).click();
+    // Ronda Codex v2 L5: el menú lateral se retiró; abrimos vía palette.
+    await ejecutarComandoPalette(page, "abrir importar", "menu-abrir-importar");
   }
   await expect(dialogo).toBeVisible();
   const panelJson = dialogo.getByTestId("panel-json-abrir-importar");

@@ -1,6 +1,7 @@
 import { expect, test, type Page } from "@playwright/test";
 import {
   clickToolbarMasItem,
+  ejecutarComandoPalette,
   elementoPorTexto,
   escapeRegExp,
   modeloTraerConectadosSmoke,
@@ -63,9 +64,12 @@ test("grid: toggle, configuración y snap al mover cosa", async ({ page }) => {
   // menú principal y clickea el item; `aria-pressed` se inspecciona
   // reabriendo el menú porque el clic lo cierra.
   await clickToolbarMasItem(page, "toolbar-mas-toggle-grid");
-  await page.getByLabel("Menú principal").click();
-  await expect(page.getByTestId("toolbar-mas-toggle-grid")).toHaveAttribute("aria-pressed", "false");
+  // Ronda Codex v2 L5: tras alternar la cuadrícula, el comando del palette
+  // refleja el nuevo estado en su label ("Mostrar"/"Ocultar cuadrícula").
+  await page.getByTestId("toolbar-menu").click();
+  await expect(page.getByTestId("command-palette-item-menu-grid-canvas")).toContainText("Mostrar cuadrícula del canvas");
   await page.keyboard.press("Escape");
+  await expect(page.getByTestId("command-palette")).toHaveCount(0);
   await clickToolbarMasItem(page, "toolbar-mas-toggle-grid");
   // Ronda 25 L2 III.A: Configuración… ya no se duplica en ⋯ Más; vive
   // solamente en ☰ Menú principal (sección Modelo).
@@ -194,9 +198,13 @@ test("L4 biblioteca dock pausada y menu contextual borra enlace", async ({ page 
   await page.getByLabel("Nombre").fill("Entrada");
   await page.getByRole("button", { name: "Proceso", exact: true }).click();
   await page.getByLabel("Nombre").fill("Procesar");
-  await page.getByLabel("Menú principal").click();
-  await expect(page.getByTestId("toolbar-mas-biblioteca-dock")).toHaveCount(0);
+  // Ronda Codex v2 L5: el menú lateral se retiró; el ☰ abre el palette. El
+  // dock sigue sin estar expuesto como comando.
+  await page.getByTestId("toolbar-menu").click();
+  await expect(page.getByTestId("command-palette")).toBeVisible();
+  await expect(page.getByTestId("command-palette").getByText("Biblioteca dock", { exact: true })).toHaveCount(0);
   await page.keyboard.press("Escape");
+  await expect(page.getByTestId("command-palette")).toHaveCount(0);
   await expect(page.getByTestId("biblioteca-dock")).toHaveCount(0);
 
   await elementoPorTexto(page, "Entrada").click();
@@ -274,10 +282,12 @@ test("imagenes: toggle global modo texto oculta bitmaps del OPD activo", async (
   await clickModoImagenGlobalDesdeMas(page);
   await clickModoImagenGlobalDesdeMas(page);
 
-  // Ronda 27 III.A cierre: el item Modo imagen vive ahora en `☰ → Vista`.
-  await page.getByLabel("Menú principal").click();
-  await expect(page.getByTestId("toolbar-mas-modo-imagen-global")).toContainText("solo nombre");
+  // Ronda Codex v2 L5: el comando "Imagen: …" del palette refleja el modo
+  // global tras ciclar (null → imagen+nombre → solo imagen → solo nombre).
+  await page.getByTestId("toolbar-menu").click();
+  await expect(page.getByTestId("command-palette-item-menu-modo-imagen-global")).toContainText("solo nombre");
   await page.keyboard.press("Escape");
+  await expect(page.getByTestId("command-palette")).toHaveCount(0);
   await expect(page.locator('.joint-element image[joint-selector="imagen"]')).toHaveCount(0);
   expect(pageErrors).toEqual([]);
 });
@@ -303,20 +313,14 @@ async function clickModoImagenGlobalDesdeMas(page: Page): Promise<void> {
 // menú ⋯ Más por duplicación con el ☰ Menú principal. Los helpers ahora
 // invocan el menú principal, que es contenedor canónico de operaciones
 // de modelo (incluidas plantillas y configuración general).
+// Ronda Codex v2 L5: Plantillas y Configuración se invocan desde el command
+// palette (vía única de comandos; el menú lateral se retiró).
 async function abrirPlantillasDesdeMenuPrincipal(page: Page): Promise<void> {
-  await page.getByLabel("Menú principal").click();
-  await page
-    .getByRole("menu", { name: "Menú principal" })
-    .getByRole("menuitem", { name: "Plantillas...", exact: true })
-    .click();
+  await ejecutarComandoPalette(page, "plantillas", "menu-plantillas");
 }
 
 async function abrirConfiguracionDesdeMenuPrincipal(page: Page): Promise<void> {
-  await page.getByLabel("Menú principal").click();
-  await page
-    .getByRole("menu", { name: "Menú principal" })
-    .getByRole("menuitem", { name: "Configuración...", exact: true })
-    .click();
+  await ejecutarComandoPalette(page, "configuracion", "menu-configuracion");
 }
 
 function modeloConImagenes() {
@@ -433,8 +437,8 @@ test("HU-33.001/.002/.003: guarda plantilla privada y aparece en catálogo", asy
     await page.getByLabel("Nombre").fill("Bloque reusable");
   }
 
-  await page.getByLabel("Menú principal").click();
-  await page.getByRole("menuitem", { name: "Guardar como plantilla..." }).click();
+  // Ronda Codex v2 L5: "Guardar como plantilla" se invoca desde el palette.
+  await ejecutarComandoPalette(page, "guardar plantilla", "menu-guardar-plantilla");
   const guardar = page.getByTestId("dialogo-guardar-plantilla");
   await expect(guardar).toBeVisible();
   await expect(guardar.getByLabel("Ámbito de plantilla")).toHaveValue("privado");
@@ -511,8 +515,8 @@ test("HU-33.022/.015: cancelar guardado no persiste y catálogo vacío muestra m
 
   await page.goto("/");
   await cerrarPantallaInicioSiVisible(page);
-  await page.getByLabel("Menú principal").click();
-  await page.getByRole("menuitem", { name: "Guardar como plantilla..." }).click();
+  // Ronda Codex v2 L5: "Guardar como plantilla" se invoca desde el palette.
+  await ejecutarComandoPalette(page, "guardar plantilla", "menu-guardar-plantilla");
   await expect(page.getByTestId("dialogo-guardar-plantilla")).toBeVisible();
   await page.keyboard.press("Escape");
   await expect(page.getByTestId("dialogo-guardar-plantilla")).toHaveCount(0);
@@ -630,9 +634,15 @@ test("L3 UX: toolbar CN-CIM&B conserva tooltips primarios y mueve archivo al men
 
   await expect(page.getByRole("button", { name: "Nuevo", exact: true })).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Cargar", exact: true })).toHaveCount(0);
-  const menu = await abrirMenuPrincipal(page);
-  await expect(menu.getByRole("menuitem", { name: "Nuevo", exact: true })).toBeVisible();
-  await expect(menu.getByRole("menuitem", { name: "Abrir / importar...", exact: true })).toBeVisible();
+  // Ronda Codex v2 L5: el menú lateral se retiró; el botón ☰ abre el command
+  // palette. Sus comandos "Nuevo modelo" y "Abrir / importar modelo" siguen
+  // disponibles (el palette es superset del antiguo menú).
+  const palette = await abrirMenuPrincipal(page);
+  await palette.getByRole("combobox").fill("nuevo modelo");
+  await expect(palette.getByTestId("command-palette-item-menu-nuevo-modelo")).toBeVisible();
+  await palette.getByRole("combobox").fill("abrir importar");
+  await expect(palette.getByTestId("command-palette-item-menu-abrir-importar")).toBeVisible();
+  await page.keyboard.press("Escape");
 
   expect(pageErrors).toEqual([]);
 });
@@ -754,9 +764,8 @@ test("HU-30.037: Esc cancela Abrir / importar sin persistir cambios", async ({ p
 
   const exportadoAntes = await exportadoActual(page);
 
-  await page.getByLabel("Menú principal").click();
-  const menu = page.getByRole("menu", { name: "Menú principal" });
-  await menu.getByRole("menuitem", { name: "Abrir / importar..." }).click();
+  // Ronda Codex v2 L5: "Abrir / importar" se invoca desde el palette.
+  await ejecutarComandoPalette(page, "abrir importar", "menu-abrir-importar");
 
   const dialogo = page.getByRole("dialog", { name: "Abrir / importar modelo" });
   await expect(dialogo).toBeVisible();
@@ -781,9 +790,8 @@ test("HU-30.037: Esc cancela Configuración sin persistir cambios al modelo", as
 
   const exportadoAntes = await exportadoActual(page);
 
-  await page.getByLabel("Menú principal").click();
-  const menu = page.getByRole("menu", { name: "Menú principal" });
-  await menu.getByRole("menuitem", { name: "Configuración..." }).click();
+  // Ronda Codex v2 L5: "Configuración" se invoca desde el palette.
+  await ejecutarComandoPalette(page, "configuracion", "menu-configuracion");
 
   const dialogo = page.getByRole("dialog", { name: "Configuración" });
   await expect(dialogo).toBeVisible();
@@ -832,9 +840,9 @@ test("HU-30.037: Esc cancela DialogoVersiones sin persistir cambios al modelo", 
   await cargarModeloEjemplo(page, "System Diagram");
 
   // Persistir el modelo: el diálogo de versiones requiere `modeloPersistidoId`.
-  await page.getByLabel("Menú principal").click();
-  await page.getByRole("menu", { name: "Menú principal" })
-    .getByRole("menuitem", { name: "Guardar", exact: true }).click();
+  // Ronda Codex v2 L5: Guardar (Ctrl+S) sobre un modelo no persistido abre
+  // "Guardar como"; el menú lateral se retiró.
+  await page.keyboard.press("Control+s");
   const dialogoGuardar = page.getByRole("dialog", { name: "Guardar como" });
   await expect(dialogoGuardar).toBeVisible();
   await dialogoGuardar.getByLabel("Nombre del modelo").fill("HU 30037 versiones");
@@ -843,9 +851,8 @@ test("HU-30.037: Esc cancela DialogoVersiones sin persistir cambios al modelo", 
 
   const exportadoAntes = await exportadoActual(page);
 
-  await page.getByLabel("Menú principal").click();
-  await page.getByRole("menu", { name: "Menú principal" })
-    .getByRole("menuitem", { name: "Versiones del modelo", exact: true }).click();
+  // Ronda Codex v2 L5: "Versiones del modelo" se invoca desde el palette.
+  await ejecutarComandoPalette(page, "versiones del modelo", "menu-versiones-modelo");
 
   const dialogo = page.getByRole("dialog", { name: /Versiones de "/ });
   await expect(dialogo).toBeVisible();

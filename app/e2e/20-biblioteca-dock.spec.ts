@@ -16,11 +16,14 @@ test.describe("biblioteca dock pausada", () => {
     await page.goto("/");
     await cerrarPantallaInicioSiVisible(page);
 
-    await page.getByLabel("Menú principal").click();
-    const menu = page.getByRole("menu", { name: "Menú principal" });
-    await expect(menu.getByTestId("toolbar-mas-biblioteca-dock")).toHaveCount(0);
-    await expect(menu.getByRole("menuitem", { name: "Biblioteca dock", exact: true })).toHaveCount(0);
+    // Ronda Codex v2 L5: el menú lateral se retiró; el botón ☰ abre el command
+    // palette. El dock sigue sin estar expuesto como comando.
+    await page.getByTestId("toolbar-menu").click();
+    const palette = page.getByTestId("command-palette");
+    await expect(palette).toBeVisible();
+    await expect(palette.getByText("Biblioteca dock", { exact: true })).toHaveCount(0);
     await page.keyboard.press("Escape");
+    await expect(page.getByTestId("command-palette")).toHaveCount(0);
 
     await page.keyboard.press("Control+b");
     await expect(page.getByTestId("biblioteca-dock")).toHaveCount(0);

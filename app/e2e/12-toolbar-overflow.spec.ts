@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { cerrarPantallaInicioSiVisible } from "./_smoke-helpers";
+import { cerrarPantallaInicioSiVisible, ejecutarComandoPalette } from "./_smoke-helpers";
 
 /**
  * Smoke ronda 27 III.A cierre — Chrome plano de 5 elementos.
@@ -99,86 +99,77 @@ test("III.A cierre: el botón ⋯ Más desaparece del chrome", async ({ page }) 
   expect(pageErrors).toEqual([]);
 });
 
-test("menú principal absorbe los items del ⋯ Más en secciones Vista y Herramientas", async ({ page }) => {
+test("el command palette absorbe los comandos de vista (grid, auto-layout, simulación, modo imagen)", async ({ page }) => {
+  // Ronda Codex v2 L5 (CRÍT-Comandos): el menú lateral se retiró. El botón ☰
+  // abre el command palette `⌘K` (vía única de comandos). Verificamos que los
+  // comandos de la antigua sección Vista están disponibles; biblioteca-dock y
+  // mapa siguen ausentes.
   const pageErrors: string[] = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
   await cerrarPantallaInicioSiVisible(page);
 
-  await page.getByLabel("Menú principal").click();
-  const menu = page.getByRole("menu", { name: "Menú principal" });
-  await expect(menu).toBeVisible();
+  await page.getByTestId("toolbar-menu").click();
+  const palette = page.getByTestId("command-palette");
+  await expect(palette).toBeVisible();
+  const combobox = palette.getByRole("combobox");
 
-  // Items canónicos heredados del ⋯ Más, ahora en `☰`. Preservan testId.
-  await expect(menu.getByTestId("toolbar-mas-toggle-grid")).toBeVisible();
-  await expect(menu.getByTestId("toolbar-mas-auto-layout")).toBeVisible();
-  await expect(menu.getByTestId("toolbar-mas-biblioteca-dock")).toHaveCount(0);
-  await expect(menu.getByTestId("toolbar-mas-mapa")).toHaveCount(0);
-  await expect(menu.getByTestId("toolbar-mas-simulacion")).toBeVisible();
-  await expect(menu.getByTestId("toolbar-mas-modo-imagen-global")).toBeVisible();
-
-  // Labels de estado estables (alias visibles, descripciones visibles, etc.).
-  await expect(menu.getByRole("menuitem", { name: "Alias visibles", exact: true })).toBeVisible();
-  await expect(menu.getByRole("menuitem", { name: "Descripciones visibles", exact: true })).toBeVisible();
-  await expect(menu.getByRole("menuitem", { name: "Cuadrícula visible", exact: true })).toBeVisible();
-  await expect(menu.getByRole("menuitem", { name: "Mapa del sistema", exact: true })).toHaveCount(0);
-  await expect(menu.getByRole("menuitem", { name: "Auto-layout", exact: true })).toBeVisible();
-  await expect(menu.getByRole("menuitem", { name: "Simulación conceptual", exact: true })).toBeVisible();
+  // El palette acota a 60 items sin filtro; tipamos una query por comando para
+  // confirmar que cada uno está disponible (así lo encuentra el usuario real).
+  const visiblePorQuery = async (query: string, itemId: string) => {
+    await combobox.fill(query);
+    await expect(palette.getByTestId(`command-palette-item-${itemId}`)).toBeVisible();
+  };
+  await visiblePorQuery("cuadricula", "menu-grid-canvas");
+  await visiblePorQuery("auto layout", "menu-auto-layout");
+  await visiblePorQuery("simulacion", "menu-simulacion-conceptual");
+  await visiblePorQuery("imagen", "menu-modo-imagen-global");
+  await visiblePorQuery("alias", "menu-alias-visibles");
+  await visiblePorQuery("descripciones", "menu-descripciones-visibles");
+  await combobox.fill("biblioteca dock");
+  await expect(palette.getByText("Biblioteca dock", { exact: true })).toHaveCount(0);
+  await combobox.fill("mapa del sistema");
+  await expect(palette.getByText("Mapa del sistema", { exact: true })).toHaveCount(0);
 
   // Escape cierra y devuelve el control al botón ☰.
   await page.keyboard.press("Escape");
-  await expect(menu).toHaveCount(0);
+  await expect(palette).toHaveCount(0);
 
   expect(pageErrors).toEqual([]);
 });
 
-test("modo imagen global cicla desde `☰ → Vista` (preserva testId del legacy ⋯ Más)", async ({ page }) => {
-  // Ronda 27 III.A cierre: el item Modo imagen global vive en `☰ →
-  // Vista`. El click cierra el menú; al reabrir, el label refleja el
-  // estado.
+test("modo imagen global cicla desde el command palette y refleja el estado en el label", async ({ page }) => {
   const pageErrors: string[] = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
   await cerrarPantallaInicioSiVisible(page);
 
-  await page.getByLabel("Menú principal").click();
-  const itemModoImagen = page.getByTestId("toolbar-mas-modo-imagen-global");
-  await expect(itemModoImagen).toBeVisible();
-  await itemModoImagen.click();
-  await expect(page.getByRole("menu", { name: "Menú principal" })).toHaveCount(0);
-  await page.getByLabel("Menú principal").click();
-  await expect(page.getByTestId("toolbar-mas-modo-imagen-global")).toContainText("imagen + nombre");
+  // Ronda Codex v2 L5: el comando "Imagen: …" cicla el modo global. Tras un
+  // ciclo (null → imagen+nombre), el label refleja el nuevo estado.
+  await ejecutarComandoPalette(page, "imagen", "menu-modo-imagen-global");
+  await page.getByTestId("toolbar-menu").click();
+  await expect(page.getByTestId("command-palette-item-menu-modo-imagen-global")).toContainText("imagen + nombre");
   await page.keyboard.press("Escape");
+  await expect(page.getByTestId("command-palette")).toHaveCount(0);
 
   expect(pageErrors).toEqual([]);
 });
 
-test("plantillas y configuración siguen viviendo en su sección canónica del menú principal", async ({ page }) => {
-  // Ronda 25 L2 III.A: "Plantillas…" y "Configuración…" se eliminaron
-  // del menú ⋯ Más por duplicación. Tras ronda 27 III.A cierre el botón
-  // `⋯ Más` desapareció del chrome; verificamos que el menú principal
-  // sigue siendo el contenedor canónico de ambos.
+test("plantillas y configuración se invocan desde el command palette", async ({ page }) => {
+  // Ronda Codex v2 L5: ambos comandos viven en la sección MODELO del palette.
   const pageErrors: string[] = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
   await cerrarPantallaInicioSiVisible(page);
 
-  await page.getByLabel("Menú principal").click();
-  await page
-    .getByRole("menu", { name: "Menú principal" })
-    .getByRole("menuitem", { name: "Plantillas...", exact: true })
-    .click();
+  await ejecutarComandoPalette(page, "plantillas", "menu-plantillas");
   await expect(page.getByRole("dialog", { name: /[Pp]lantillas/ })).toBeVisible();
   await page.keyboard.press("Escape");
 
-  await page.getByLabel("Menú principal").click();
-  await page
-    .getByRole("menu", { name: "Menú principal" })
-    .getByRole("menuitem", { name: "Configuración...", exact: true })
-    .click();
+  await ejecutarComandoPalette(page, "configuracion", "menu-configuracion");
   const dialogoConfig = page.getByTestId("modal-config-grid");
   await expect(dialogoConfig).toBeVisible();
   await dialogoConfig.getByRole("button", { name: "Cancelar" }).click();
@@ -187,64 +178,60 @@ test("plantillas y configuración siguen viviendo en su sección canónica del m
   expect(pageErrors).toEqual([]);
 });
 
-test("MenuPrincipal separa archivo, datos y herramientas sin duplicar el chrome", async ({ page }) => {
+test("el command palette es superset del antiguo menú: archivo, datos y herramientas", async ({ page }) => {
   const pageErrors: string[] = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
   await cerrarPantallaInicioSiVisible(page);
 
-  await page.getByLabel("Menú principal").click();
-  const menu = page.getByRole("menu", { name: "Menú principal" });
-  await expect(menu).toBeVisible();
-  await expect(menu.getByRole("menuitem", { name: "Guardar", exact: true })).toBeVisible();
-  await expect(menu.getByRole("menuitem", { name: "Abrir / importar...", exact: true })).toBeVisible();
-  await expect(menu.getByRole("menuitem", { name: "Cargar otro...", exact: true })).toHaveCount(0);
-  await expect(menu.getByRole("menuitem", { name: "Cargar archivados...", exact: true })).toHaveCount(0);
-  await expect(menu.getByRole("menuitem", { name: "Nuevo", exact: true })).toBeVisible();
-  await expect(menu.getByRole("menuitem", { name: "Abrir como pestaña", exact: true })).toBeVisible();
-  await expect(menu.getByRole("menuitem", { name: "Renombrar...", exact: true })).toBeVisible();
-  await expect(menu.getByRole("menuitem", { name: "Configuración...", exact: true })).toBeVisible();
-  await expect(menu.getByRole("menuitem", { name: "Exportar OPD actual como SVG", exact: true })).toBeVisible();
-  await expect(menu.getByRole("menuitem", { name: "Importar/Exportar JSON...", exact: true })).toHaveCount(0);
-  await expect(menu.getByRole("menuitem", { name: "Ejemplos", exact: true })).toHaveCount(0);
-  await expect(menu.getByRole("menuitem", { name: "Tabla de enlaces", exact: true })).toBeVisible();
-  // La función de mapa del sistema fue retirada del chrome; Simulación y
-  // Auto-layout siguen como herramientas del menú principal.
-  await expect(menu.getByRole("menuitem", { name: "Mapa del sistema", exact: true })).toHaveCount(0);
-  await expect(menu.getByRole("menuitem", { name: "Simulación conceptual", exact: true })).toBeVisible();
-  await expect(menu.getByRole("menuitem", { name: "Auto-layout", exact: true })).toBeVisible();
+  // Ronda Codex v2 L5: el botón ☰ abre el palette; sus comandos cubren las
+  // acciones que el menú lateral exponía.
+  await page.getByTestId("toolbar-menu").click();
+  const palette = page.getByTestId("command-palette");
+  await expect(palette).toBeVisible();
+  const combobox = palette.getByRole("combobox");
+  const visiblePorQuery = async (query: string, itemId: string) => {
+    await combobox.fill(query);
+    await expect(palette.getByTestId(`command-palette-item-${itemId}`)).toBeVisible();
+  };
+  await visiblePorQuery("nuevo modelo", "menu-nuevo-modelo");
+  await visiblePorQuery("abrir importar", "menu-abrir-importar");
+  await visiblePorQuery("abrir pestana", "menu-abrir-pestana");
+  await visiblePorQuery("configuracion", "menu-configuracion");
+  await visiblePorQuery("exportar svg", "menu-exportar-svg");
+  await visiblePorQuery("tabla de enlaces", "menu-tabla-enlaces");
+  await visiblePorQuery("simulacion", "menu-simulacion-conceptual");
+  await visiblePorQuery("auto layout", "menu-auto-layout");
+  await combobox.fill("mapa del sistema");
+  await expect(palette.getByText("Mapa del sistema", { exact: true })).toHaveCount(0);
+  await page.keyboard.press("Escape");
 
-  await menu.getByRole("menuitem", { name: "Abrir / importar...", exact: true }).click();
+  // "Abrir / importar" desde el palette abre el diálogo unificado.
+  await ejecutarComandoPalette(page, "abrir importar", "menu-abrir-importar");
   const dialogoAbrir = page.getByRole("dialog", { name: "Abrir / importar modelo" });
   await expect(dialogoAbrir).toBeVisible();
   await expect(dialogoAbrir.getByLabel("Cargar modelo de ejemplo")).toBeVisible();
   await expect(dialogoAbrir.getByTestId("panel-json-abrir-importar").locator("summary")).toHaveText("JSON");
   await dialogoAbrir.getByRole("button", { name: "Cancelar" }).click();
 
-  await page.getByLabel("Menú principal").click();
-  await expect(menu).toBeVisible();
-  await menu.getByRole("menuitem", { name: "Renombrar...", exact: true }).click();
-  const dialogoConfig = page.getByRole("dialog", { name: "Configuración" });
-  await expect(dialogoConfig).toBeVisible();
-  await expect(dialogoConfig.getByLabel("Nombre del modelo")).toBeVisible();
-
   expect(pageErrors).toEqual([]);
 });
 
-test("BUG-20260523T174915Z menu principal se cierra al hacer click fuera", async ({ page }) => {
+test("BUG-20260523T174915Z el command palette se cierra al hacer click fuera", async ({ page }) => {
   const pageErrors: string[] = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
   await cerrarPantallaInicioSiVisible(page);
 
-  await page.getByLabel("Menú principal").click();
-  const menu = page.getByRole("menu", { name: "Menú principal" });
-  await expect(menu).toBeVisible();
+  // Ronda Codex v2 L5: el ☰ abre el palette; un click en el backdrop lo cierra.
+  await page.getByTestId("toolbar-menu").click();
+  const palette = page.getByTestId("command-palette");
+  await expect(palette).toBeVisible();
 
-  await page.mouse.click(720, 220);
-  await expect(menu).toHaveCount(0);
+  await page.mouse.click(20, 20);
+  await expect(palette).toHaveCount(0);
 
   expect(pageErrors).toEqual([]);
 });

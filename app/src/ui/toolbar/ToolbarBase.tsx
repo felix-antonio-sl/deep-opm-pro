@@ -108,13 +108,10 @@ export function ToolbarBase({ children, modelarSlot, conectarSlot, statusSlot }:
   // fue reemplazado por el banner inline que vive dentro del canvas-pane
   // y se monta directamente desde App.tsx (ver `usePrecargaBienvenida`).
   const {
-    abrirMenuPrincipal,
-    cerrarMenuPrincipal,
     crearObjeto,
     crearProceso,
     crearAtributoNumerico,
     fijarModoCreacion,
-    menuPrincipalAbierto,
     abrirDialogoComandos,
     modelo,
     opdActivoId,
@@ -230,9 +227,12 @@ export function ToolbarBase({ children, modelarSlot, conectarSlot, statusSlot }:
     ? primerEnlaceVisualDeEntidad(modelo, opdActivoId, entidadMenuContextual.id)
     : null;
 
-  function handleToggleMenuPrincipal() {
-    if (menuPrincipalAbierto) cerrarMenuPrincipal();
-    else abrirMenuPrincipal();
+  // Ronda Codex v2 L5 (CRÍT-Comandos): el botón ☰ deja de abrir el menú
+  // lateral (retirado) y pasa a invocar el command palette `⌘K`, vía única
+  // de comandos. El botón "Buscar" abre el mismo palette: ☰ es su gemelo
+  // top-left, conservando la affordance de "abrir comandos" familiar.
+  function handleAbrirComandos() {
+    abrirDialogoComandos();
   }
   function handleCrearObjeto(event: MouseEvent) {
     if (event.shiftKey) {
@@ -298,9 +298,9 @@ export function ToolbarBase({ children, modelarSlot, conectarSlot, statusSlot }:
             chrome es ahora "Opforja" (Inria Serif italic) en el header de
             CodexFrame; aquí ya no se repite. */}
         <div style={style.menuWrapper}>
-          <button type="button" aria-haspopup="menu" aria-expanded={menuPrincipalAbierto} aria-label="Menú principal" title="Menú principal" style={style.iconButton} onClick={handleToggleMenuPrincipal}>☰</button>
-          {/* P0-2: MenuPrincipal vive ahora en App.tsx para evitar
-              duplicacion en el DOM. El boton aqui solo gatilla el store. */}
+          {/* Ronda Codex v2 L5: ☰ abre el command palette `⌘K` (vía única de
+              comandos). Ya no hay menú lateral paralelo. */}
+          <button type="button" aria-haspopup="dialog" aria-label="Comandos" title="Comandos · Ctrl+K" data-testid="toolbar-menu" style={style.iconButton} onClick={handleAbrirComandos}>☰</button>
         </div>
         {/* Ronda 19 L5: slot estable para chip de persistencia en cluster Modelo. */}
         <ChipPersistencia />

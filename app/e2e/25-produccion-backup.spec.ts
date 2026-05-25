@@ -2,6 +2,7 @@ import { expect, test } from "@playwright/test";
 import { readFile } from "node:fs/promises";
 import {
   crearModeloNuevoDesdeMenu,
+  ejecutarComandoPalette,
   exportadoActual,
   jsonEditor,
   modeloMarkersCanonicos,
@@ -24,11 +25,8 @@ test("backup JSON descarga archivo, reimporta y conserva el modelo", async ({ pa
   const conteosOriginales = conteos(exportadoOriginal);
 
   const downloadPromise = page.waitForEvent("download");
-  await page.getByLabel("Menú principal").click();
-  await page
-    .getByRole("menu", { name: "Menú principal" })
-    .getByRole("menuitem", { name: "Abrir / importar..." })
-    .click();
+  // Ronda Codex v2 L5: "Abrir / importar" se invoca desde el command palette.
+  await ejecutarComandoPalette(page, "abrir importar", "menu-abrir-importar");
   const dialogo = page.getByTestId("dialogo-abrir-importar");
   await expect(dialogo).toBeVisible();
   const panelJson = dialogo.getByTestId("panel-json-abrir-importar");

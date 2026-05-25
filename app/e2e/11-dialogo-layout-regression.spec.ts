@@ -21,7 +21,7 @@
  */
 
 import { expect, test, type Page, type Locator } from "@playwright/test";
-import { abrirDialogoCargarModelo, cargarModeloEjemplo, cerrarPantallaInicioSiVisible } from "./_smoke-helpers";
+import { abrirDialogoCargarModelo, cargarModeloEjemplo, cerrarPantallaInicioSiVisible, ejecutarComandoPalette } from "./_smoke-helpers";
 
 interface Rect { x: number; y: number; width: number; height: number }
 
@@ -50,11 +50,9 @@ async function elementoEnPunto(page: Page, x: number, y: number): Promise<{ insi
 // Modelo). El sustrato modal verificado por esta spec es el mismo;
 // solamente cambia la ruta de invocación.
 async function abrirConfigGridDesdeMenuPrincipal(page: Page): Promise<void> {
-  await page.getByLabel("Menú principal").click();
-  await page
-    .getByRole("menu", { name: "Menú principal" })
-    .getByRole("menuitem", { name: "Configuración...", exact: true })
-    .click();
+  // Ronda Codex v2 L5: "Configuración" se invoca desde el command palette
+  // (vía única de comandos; el menú lateral se retiró).
+  await ejecutarComandoPalette(page, "configuracion", "menu-configuracion");
 }
 
 test("[L1] DialogoCargarModelo pinta sobre canvas+grid e interactua", async ({ page }) => {

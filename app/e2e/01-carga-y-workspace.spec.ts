@@ -17,6 +17,7 @@ import {
   cargarModeloEjemplo,
   cargarPrimerModelo,
   crearModeloNuevoDesdeMenu,
+  abrirMenuPrincipal,
   assertWorkbenchLayout,
   assertCanvasScrollable,
   estadoBeforeUnload,
@@ -97,11 +98,16 @@ test("workspace local abre menu, guarda como, guarda incremental y carga desde d
   await expect(page.getByTestId("panel-opl-minimizado")).toBeVisible();
   await expect(page.getByTestId("panel-opl-restaurar")).toContainText("OPL · 0 oraciones · Restaurar");
 
-  await page.getByLabel("Menú principal").click();
-  const menu = page.getByRole("menu", { name: "Menú principal" });
-  await expect(menu).toBeVisible();
-  await expect(menu.getByRole("menuitem", { name: "Nuevo", exact: true })).toBeVisible();
-  await menu.getByRole("menuitem", { name: "Guardar", exact: true }).click();
+  // Ronda Codex v2 L5: el menú lateral se retiró. El botón ☰ abre el command
+  // palette `⌘K` (vía única de comandos), superset del menú: comprobamos que
+  // el comando "Nuevo modelo" está disponible y cerramos el palette.
+  const palette = await abrirMenuPrincipal(page);
+  await palette.getByRole("combobox").fill("nuevo modelo");
+  await expect(palette.getByTestId("command-palette-item-menu-nuevo-modelo")).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(page.getByTestId("command-palette")).toHaveCount(0);
+  // Guardar (Ctrl+S) sobre un modelo nuevo abre "Guardar como".
+  await page.keyboard.press("Control+s");
 
   let dialogoGuardar = page.getByRole("dialog", { name: "Guardar como" });
   await expect(dialogoGuardar).toBeVisible();

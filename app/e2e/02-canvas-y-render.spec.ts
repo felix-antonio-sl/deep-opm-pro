@@ -14,6 +14,7 @@ import {
   clickLinkPorTipo,
   desplegarComoAgregacion,
   ejecutarAccionCommandPalette,
+  ejecutarComandoPalette,
   irATabExtremos,
   irATabRefinamiento,
   guardarComoActual,
@@ -63,11 +64,8 @@ test("Exportar OPD actual como SVG descarga el paper del canvas sin chrome de ap
   await expect(svgText(page, "Agente")).toBeVisible();
 
   const downloadPromise = page.waitForEvent("download");
-  await page.getByLabel("Menú principal").click();
-  await page
-    .getByRole("menu", { name: "Menú principal" })
-    .getByRole("menuitem", { name: "Exportar OPD actual como SVG" })
-    .click();
+  // Ronda Codex v2 L5: la exportación SVG se invoca desde el command palette.
+  await ejecutarComandoPalette(page, "exportar opd svg", "menu-exportar-svg");
   const download = await downloadPromise;
   expect(download.suggestedFilename()).toMatch(/^markers-canonicos-sd-\d{4}-\d{2}-\d{2}\.svg$/);
   const path = await download.path();
@@ -632,16 +630,25 @@ test("L1 toolbar split conserva root y controles por modo", async ({ page }) => 
   // el menú principal `☰` (secciones Vista y Herramientas).
   await expect(page.getByRole("group", { name: "Ayuda" }).getByTestId("toolbar-mas-trigger")).toHaveCount(0);
   await expect(page.getByRole("group", { name: "Ayuda" }).getByTestId("toolbar-command-palette")).toBeVisible();
-  await page.getByLabel("Menú principal").click();
-  await expect(page.getByTestId("toolbar-mas-toggle-grid")).toBeVisible();
-  // Ronda 25 L2 III.A: "Configuración…" migró al ☰ Menú principal
-  // (sección Modelo); ya no se duplica en ⋯ Más.
-  await expect(page.getByTestId("toolbar-mas-config-grid")).toHaveCount(0);
-  await expect(page.getByTestId("toolbar-mas-auto-layout")).toBeVisible();
-  await expect(page.getByTestId("toolbar-mas-biblioteca-dock")).toHaveCount(0);
-  await expect(page.getByTestId("toolbar-mas-mapa")).toHaveCount(0);
-  await expect(page.getByTestId("toolbar-mas-simulacion")).toBeVisible();
+  // Ronda Codex v2 L5: el menú lateral se retiró; el botón ☰ abre el command
+  // palette (vía única de comandos). Sus comandos canónicos están disponibles;
+  // biblioteca-dock y mapa siguen ausentes.
+  await page.getByTestId("toolbar-menu").click();
+  const paletteChrome = page.getByTestId("command-palette");
+  await expect(paletteChrome).toBeVisible();
+  const comboChrome = paletteChrome.getByRole("combobox");
+  await comboChrome.fill("cuadricula");
+  await expect(paletteChrome.getByTestId("command-palette-item-menu-grid-canvas")).toBeVisible();
+  await comboChrome.fill("auto layout");
+  await expect(paletteChrome.getByTestId("command-palette-item-menu-auto-layout")).toBeVisible();
+  await comboChrome.fill("simulacion");
+  await expect(paletteChrome.getByTestId("command-palette-item-menu-simulacion-conceptual")).toBeVisible();
+  await comboChrome.fill("biblioteca dock");
+  await expect(paletteChrome.getByText("Biblioteca dock", { exact: true })).toHaveCount(0);
+  await comboChrome.fill("mapa del sistema");
+  await expect(paletteChrome.getByText("Mapa del sistema", { exact: true })).toHaveCount(0);
   await page.keyboard.press("Escape");
+  await expect(page.getByTestId("command-palette")).toHaveCount(0);
   await expect(page.getByTestId("abrir-menu-tipo-enlace")).toHaveCount(0);
 
   await page.getByRole("button", { name: "Objeto", exact: true }).click();
@@ -656,11 +663,14 @@ test("L1 toolbar split conserva root y controles por modo", async ({ page }) => 
   // Ronda 24 L4 #6: tras crear y seleccionar el objeto, el cluster Conectar
   // se monta porque hay origen disponible.
   await expect(page.locator('[data-slot="cluster-conectar"]')).toBeVisible();
-  // Ronda 25 L2 III.A: "Plantillas…" migró al ☰ Menú principal (sección
-  // Plantillas); ya no se duplica en ⋯ Más.
-  await page.getByLabel("Menú principal").click();
-  await expect(page.getByTestId("toolbar-mas-plantillas")).toHaveCount(0);
+  // Ronda Codex v2 L5: "Plantillas" es ahora un comando del palette (sección
+  // MODELO), invocable desde ☰. Verificamos que el palette lo expone.
+  await page.getByTestId("toolbar-menu").click();
+  await expect(page.getByTestId("command-palette")).toBeVisible();
+  await page.getByTestId("command-palette").getByRole("combobox").fill("plantillas");
+  await expect(page.getByTestId("command-palette-item-menu-plantillas")).toBeVisible();
   await page.keyboard.press("Escape");
+  await expect(page.getByTestId("command-palette")).toHaveCount(0);
   await expect(page.getByTestId("abrir-menu-tipo-enlace")).toBeEnabled();
 
   await page.getByTestId("toolbar-drag-objeto").click({ modifiers: ["Shift"] });
