@@ -23,8 +23,8 @@ export function ErrorBadge({ overlay, paper }: Props) {
       title={`${overlay.reglaId}: ${overlay.mensaje}`}
       style={{
         ...style.badge,
-        left: `${bbox.x + bbox.width - 8}px`,
-        top: `${bbox.y - 8}px`,
+        left: `${bbox.x + bbox.width - 4}px`,
+        top: `${bbox.y - 10}px`,
         ...(overlay.severidad === "error" ? style.error : style.warning),
       }}
       onClick={() => abrirAvisoDiagnostico(overlay)}
@@ -35,7 +35,7 @@ export function ErrorBadge({ overlay, paper }: Props) {
         }
       }}
     >
-      !
+      △
     </span>
   );
 }
@@ -56,30 +56,25 @@ function etiquetaSeveridad(severidad: Extract<FeedbackOverlay, { tipo: "inline-e
 const style = {
   badge: {
     position: "absolute",
-    width: "16px",
-    height: "16px",
-    borderRadius: tokens.radii.full,
     display: "inline-flex",
     alignItems: "center",
     justifyContent: "center",
-    fontFamily: tokens.typography.familyChrome,
-    fontSize: "11px",
-    fontWeight: 900,
+    fontFamily: tokens.typography.fontFamilyMono,
+    fontSize: "12px",
+    fontWeight: 600,
     lineHeight: 1,
-    boxShadow: tokens.shadows.popover,
+    background: "transparent",
+    border: "none",
+    boxShadow: "none",
     pointerEvents: "auto",
     cursor: "pointer",
     zIndex: 2,
     userSelect: "none",
   },
   error: {
-    color: tokens.colors.errorTexto,
-    background: tokens.colors.errorFondoIntenso,
-    border: `1px solid ${tokens.colors.errorBordeSuave}`,
+    color: tokens.colors.crimson,
   },
   warning: {
-    color: tokens.colors.alertaTexto,
-    background: tokens.colors.advertenciaFondo,
-    border: `1px solid ${tokens.colors.advertenciaBorde}`,
+    color: tokens.colors.inkSoft,
   },
 } satisfies Record<string, preact.JSX.CSSProperties>;

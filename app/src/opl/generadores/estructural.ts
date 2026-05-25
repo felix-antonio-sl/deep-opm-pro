@@ -2,6 +2,7 @@ import type { Enlace, Entidad, Modelo } from "../../modelo/tipos";
 import type { OplLineaPendiente } from "./refsHints";
 import {
   agregarLinea,
+  enlaceOplEsEmitible,
 	  hintsEnlace,
 	  nombreOplAtributoValor,
 	  nombreOpl,
@@ -45,6 +46,7 @@ export function oracionValorAtributo(entidad: Entidad): string | null {
 
 export function oracionEnlaceEstructural(modelo: Modelo, enlace: Enlace): string | null {
   if (!["agregacion", "exhibicion", "generalizacion", "clasificacion"].includes(enlace.tipo)) return null;
+  if (!enlaceOplEsEmitible(modelo, enlace)) return null;
   const origen = nombreOplExtremo(modelo, enlace.origenId, enlace.multiplicidadOrigen);
   const destino = nombreOplExtremo(modelo, enlace.destinoId, enlace.multiplicidadDestino);
   const origenPlural = multiplicidadPlural(enlace.multiplicidadOrigen);

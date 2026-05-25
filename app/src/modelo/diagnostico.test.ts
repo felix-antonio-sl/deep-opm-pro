@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { crearModelo } from "./operaciones";
+import { crearEstadosIniciales, crearModelo } from "./operaciones";
 import type { Entidad, Modelo } from "./tipos";
 import { listarAvisosDiagnostico } from "./diagnostico";
 
@@ -39,6 +39,20 @@ describe("diagnostico unificado", () => {
       reglaId: "visual-solape-apariencias",
       severidad: "advertencia",
       elementoTipo: "entidad",
+    }));
+  });
+
+  test("reporta estados placeholder como diagnostico y no como OPL valida", () => {
+    const modelo = modeloConEstadosPlaceholder();
+
+    const avisos = listarAvisosDiagnostico(modelo, { tipo: "opd", opdId: modelo.opdRaizId });
+
+    expect(avisos).toContainEqual(expect.objectContaining({
+      origen: "metodologia",
+      reglaId: "ESTADO_NOMBRE_CANONICO",
+      severidad: "advertencia",
+      destino: "Pedido",
+      citaSSOT: "reglas-opm-estrictas.md R-NOM-EST-1",
     }));
   });
 });
@@ -119,4 +133,38 @@ function modeloConSolapeVisual(): Modelo {
       },
     },
   };
+}
+
+function modeloConEstadosPlaceholder(): Modelo {
+  let base = crearModelo("Modelo");
+  const pedido: Entidad = {
+    id: "o-pedido",
+    tipo: "objeto",
+    nombre: "Pedido",
+    esencia: "informacional",
+    afiliacion: "sistemica",
+  };
+  base = {
+    ...base,
+    entidades: { [pedido.id]: pedido },
+    opds: {
+      [base.opdRaizId]: {
+        ...base.opds[base.opdRaizId]!,
+        apariencias: {
+          "a-pedido": {
+            id: "a-pedido",
+            entidadId: pedido.id,
+            opdId: base.opdRaizId,
+            x: 80,
+            y: 80,
+            width: 135,
+            height: 60,
+          },
+        },
+      },
+    },
+  };
+  const estados = crearEstadosIniciales(base, pedido.id);
+  if (!estados.ok) throw new Error(estados.error);
+  return estados.value.modelo;
 }

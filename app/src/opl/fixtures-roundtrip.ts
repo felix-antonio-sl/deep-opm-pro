@@ -268,10 +268,10 @@ const fixtureGeneralizacion: FixtureRoundtrip = {
 /**
  * Fixture 11 (bug 62ee85): abanico de dos resultados al mismo objeto sin
  * estados diferenciados. Antes del fix de ronda 26/L6 B3 la OPL emitia
- * `*Procesar* genera al menos uno de **Objeto_2** y **Objeto_2**.`
+ * `*Procesar* genera al menos uno de **Objeto 2** y **Objeto 2**.`
  * (nombre duplicado), texto semanticamente vacio. Post-fix, la oracion del
  * abanico se deduplica y, al quedar un solo extremo distinto, cae a la
- * oracion individual: `*Procesar* genera **Objeto_2**.`
+ * oracion individual: `*Procesar* genera **Objeto 2**.`
  *
  * NO bisimetrica estricta: el aplicador no inversa abanicos desde texto
  * libre, asi que el modelo recuperado no recreara el abanico (solo los
@@ -320,9 +320,9 @@ const fixtureBug62ee85AbanicoDeduplicado: FixtureRoundtrip = {
   oracionesEsperadas: [
     "*Procesar* es informacional.",
     "*Procesar* es sistémico.",
-    "**Objeto_2** es informacional.",
-    "**Objeto_2** es sistémico.",
-    "*Procesar* genera **Objeto_2**.",
+    "**Objeto 2** es informacional.",
+    "**Objeto 2** es sistémico.",
+    "*Procesar* genera **Objeto 2**.",
   ],
   bisimetricaEstricta: false,
 };

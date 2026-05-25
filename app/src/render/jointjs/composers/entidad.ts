@@ -2,6 +2,7 @@ import { CANON } from "../../../modelo/constantes";
 import { rolAparienciaEnRefinamiento } from "../../../modelo/contextoRefinamiento";
 import { ANCLAS_RELOJ_ENLACE, puertoRelativoAnclaEnlace, type AnclaRelojEnlace } from "../../../modelo/anclajesEnlace";
 import { designacionesEstado } from "../../../modelo/estadosDesignaciones";
+import { nombreCanonicoEntidad, nombreCanonicoEstado } from "../../../modelo/nombresCanonicos";
 import { formatearNombreCompuesto } from "../../../modelo/objetoMetadata";
 import { estadosDeEntidad, relacionesEstructuralesOcultas } from "../../../modelo/operaciones";
 import { modoPlegadoApariencia, partesDePlegado } from "../../../modelo/plegado";
@@ -52,7 +53,14 @@ export function proyectarEntidad(
   // de "hay mas, no se muestra todo". Implementado abajo via
   // metadatos.suppressedBadge para reusar la infraestructura de badges.
   const tieneEstadosSuprimidos = estadosTotales.length > estadosVisibles.length;
-  const nombreRender = formatearNombreCompuesto(entidad, { aliasVisible: opciones.aliasVisibles !== false });
+  const nombreRender = formatearNombreCompuesto(
+    {
+      nombre: nombreCanonicoEntidad(entidad),
+      ...(entidad.unidad ? { unidad: entidad.unidad } : {}),
+      ...(entidad.alias ? { alias: entidad.alias } : {}),
+    },
+    { aliasVisible: opciones.aliasVisibles !== false },
+  );
   const refinada = tieneRefinamiento(entidad);
   // BUG-372334: distinguir descomposicion (inzoom: partes EMBEBIDAS dentro del
   // contorno) vs despliegue (unfold: partes FUERA, conectadas via enlaces
@@ -63,11 +71,14 @@ export function proyectarEntidad(
   // Ronda 15.2: la entidad puede tener ambos refinamientos. El contorno
   // aplica solo cuando el OPD activo es el de descomposicion del slot.
   const contornoRefinamiento = obtenerRefinamiento(entidad, "descomposicion")?.opdId === opdId;
-  const size = modoParcial
+  const sizeBase = modoParcial
     ? dimensionesPlegadoParcial(apariencia, nombreRender, filasParciales)
     : estadosVisibles.length > 0
       ? dimensionesConEstados(apariencia, nombreRender, estadosVisibles, entidad.layoutEstados)
-      : { width: apariencia.width, height: apariencia.height };
+      : dimensionesEntidadSinEstados(apariencia, nombreRender);
+  const size = contornoRefinamiento
+    ? dimensionesContornoConPadding(modelo, opdId, apariencia, sizeBase)
+    : sizeBase;
   const strokeBase = refinada ? 4 : CODEX.strokes.entidad;
   const strokeWidth = strokeBase;
   const strokeColor = stroke;
@@ -119,7 +130,7 @@ export function proyectarEntidad(
       textAnchor: "middle",
       pointerEvents: "none",
     },
-    index: attrsIndiceEntidad(entidad),
+    index: attrsIndiceEntidad(modelo, opdId, apariencia, entidad),
   };
   const metadatos = metadatosEntidad(
     entidad,
@@ -271,6 +282,29 @@ export function identificadorCanonicoEntidad(entidad: Entidad): string {
   return `${prefijo}.${seq}`;
 }
 
+export function identificadorCanonicoApariencia(
+  modelo: Modelo,
+  opdId: Id,
+  apariencia: Apariencia,
+  entidad: Entidad,
+): string {
+  const contexto = apariencia.contextoRefinamiento;
+  if (contexto?.tipo !== "descomposicion" || contexto.rol !== "interno") {
+    return identificadorCanonicoEntidad(entidad);
+  }
+  const padre = modelo.entidades[contexto.refinableEntidadId];
+  const opd = modelo.opds[opdId];
+  if (!padre || !opd) return identificadorCanonicoEntidad(entidad);
+  const hermanos = Object.values(opd.apariencias)
+    .filter((item) => item.contextoRefinamiento?.tipo === "descomposicion")
+    .filter((item) => item.contextoRefinamiento?.rol === "interno")
+    .filter((item) => item.contextoRefinamiento?.refinableEntidadId === contexto.refinableEntidadId)
+    .filter((item) => modelo.entidades[item.entidadId]?.tipo === entidad.tipo)
+    .sort((a, b) => a.y - b.y || a.x - b.x || a.id.localeCompare(b.id));
+  const ordinal = Math.max(0, hermanos.findIndex((item) => item.id === apariencia.id)) + 1;
+  return `${identificadorCanonicoEntidad(padre)}.${ordinal}`;
+}
+
 function secuenciaDesdeId(id: Id): string {
   const sufijo = id.includes("-") ? id.slice(id.lastIndexOf("-") + 1) : id.replace(/^[a-zA-Z]+/, "");
   const n = Number.parseInt(sufijo, 10);
@@ -278,9 +312,42 @@ function secuenciaDesdeId(id: Id): string {
   return String(n).padStart(2, "0");
 }
 
-function attrsIndiceEntidad(entidad: Entidad): Record<string, unknown> {
+function dimensionesEntidadSinEstados(apariencia: Apariencia, nombreRender: string): { width: number; height: number } {
+  const anchoTexto = Array.from(nombreRender).length * 8 + 28;
+  const palabraMasLarga = Math.max(...nombreRender.split(/\s+/).map((palabra) => Array.from(palabra).length), 0) * 10 + 28;
   return {
-    text: identificadorCanonicoEntidad(entidad),
+    width: Math.max(apariencia.width, CANON.dims.cosaWidth, anchoTexto, palabraMasLarga),
+    height: Math.max(apariencia.height, CANON.dims.cosaHeight),
+  };
+}
+
+function dimensionesContornoConPadding(
+  modelo: Modelo,
+  opdId: Id,
+  apariencia: Apariencia,
+  sizeBase: { width: number; height: number },
+): { width: number; height: number } {
+  const opd = modelo.opds[opdId];
+  if (!opd) return sizeBase;
+  const padding = 16;
+  const internas = Object.values(opd.apariencias).filter((item) => (
+    item.id !== apariencia.id &&
+    item.contextoRefinamiento?.tipo === "descomposicion" &&
+    item.contextoRefinamiento.rol === "interno" &&
+    item.contextoRefinamiento.refinableEntidadId === apariencia.entidadId
+  ));
+  if (internas.length === 0) return sizeBase;
+  const right = Math.max(...internas.map((item) => item.x + item.width - apariencia.x + padding));
+  const bottom = Math.max(...internas.map((item) => item.y + item.height - apariencia.y + padding));
+  return {
+    width: Math.max(sizeBase.width, right),
+    height: Math.max(sizeBase.height, bottom),
+  };
+}
+
+function attrsIndiceEntidad(modelo: Modelo, opdId: Id, apariencia: Apariencia, entidad: Entidad): Record<string, unknown> {
+  return {
+    text: identificadorCanonicoApariencia(modelo, opdId, apariencia, entidad),
     fontFamily: CODEX.fuentes.mono,
     fontSize: CODEX.index.fontSize,
     fontWeight: CODEX.index.fontWeight,
@@ -499,7 +566,7 @@ export function attrsConEstados(
   if (metadatos.foldBadge) attrs.foldBadge = attrsConBadge(attrsBase, size, metadatos).foldBadge;
   aplicarMetadatosAttrs(attrs, size, metadatos);
   const vertical = layout === "vertical";
-  const anchos = estados.map((estado) => anchoCapsulaEstado(estado.nombre));
+  const anchos = estados.map((estado) => anchoCapsulaEstado(nombreCanonicoEstado(estado)));
   const anchoTotal = vertical
     ? Math.max(...anchos, ESTADOS.minWidth)
     : anchos.reduce((total, ancho) => total + ancho, 0) + Math.max(0, anchos.length - 1) * ESTADOS.gap;
@@ -555,7 +622,7 @@ export function attrsConEstados(
       display: designaciones.includes("final") ? undefined : "none",
     };
     attrs[`stateLabel${index}`] = {
-      text: estado.nombre,
+      text: nombreCanonicoEstado(estado),
       x: x + width / 2,
       y: y + ESTADOS.capsuleHeight / 2,
       fill: CODEX.colores.ink,

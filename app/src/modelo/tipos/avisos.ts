@@ -32,6 +32,7 @@ export type SeveridadAviso = "info" | "advertencia" | "sugerencia";
 
 export type CodigoChecker =
   | "PROCESO_NOMBRE_FORMA_VERBAL"
+  | "ESTADO_NOMBRE_CANONICO"
   | "OBJETO_NOMBRE_SINGULAR"
   | "INZOOM_CONTENIDO_INSUFICIENTE"
   | "UNFOLD_CONTENIDO_INSUFICIENTE"

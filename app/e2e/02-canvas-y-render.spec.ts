@@ -290,6 +290,9 @@ test("crea auto-invocacion desde Inspector con demora default", async ({ page })
 
   await page.goto("/");
   await page.getByRole("button", { name: "Proceso", exact: true }).click();
+  const nombre = page.getByTestId("inspector").getByLabel("Nombre");
+  await nombre.fill("Procesar");
+  await nombre.press("Enter");
   // Ronda 20 L1: Auto-invocación vive en el tab `Refinamiento` del Inspector.
   await irATabRefinamiento(page);
   await expect(page.getByRole("button", { name: "Auto-invocación" })).toBeVisible();
@@ -298,10 +301,10 @@ test("crea auto-invocacion desde Inspector con demora default", async ({ page })
 
   await expect(page.locator(".joint-link")).toHaveCount(2);
   await expect(svgText(page, "1s")).toBeVisible();
-  await expect(page.getByText("Proceso se invoca a sí mismo despues de 1s.")).toBeVisible();
+  await expect(page.getByText("Procesar se invoca a sí mismo despues de 1s.")).toBeVisible();
   const json = await jsonEditor(page).inputValue();
   const exportado = JSON.parse(json) as ExportadoModelo;
-  const proceso = Object.values(exportado.modelo.entidades).find((entidad) => entidad.nombre === "Proceso");
+  const proceso = Object.values(exportado.modelo.entidades).find((entidad) => entidad.nombre === "Procesar");
   const enlace = Object.values(exportado.modelo.enlaces)[0];
   if (!proceso || !enlace) throw new Error("La auto-invocacion no se exporto");
   expect(enlace.tipo).toBe("invocacion");
@@ -518,14 +521,15 @@ test("renderiza agregacion como triangulo estructural", async ({ page }) => {
   await page.getByRole("button", { name: "Objeto", exact: true }).click();
   await page.getByRole("button", { name: "Objeto", exact: true }).click();
 
-  // Regla de unicidad global (e5a0613): el segundo objeto auto-suffix a Objeto_2.
-  const objetos = page.locator(".joint-element").filter({
-    has: page.locator("text").filter({ hasText: /^\s*Objeto(_\d+)?\s*$/ }),
-  });
-  await expect(objetos).toHaveCount(2);
-  await objetos.nth(0).click();
+  // Regla de unicidad global (e5a0613): el dato interno auto-suffix a Objeto_2,
+  // aunque la etiqueta renderizada canonica lo muestra como "Objeto 2".
+  const objetoBase = page.locator('.joint-element[aria-label^="Objeto Objeto."]');
+  const objetoDuplicado = page.locator('.joint-element[aria-label^="Objeto Objeto_2."]');
+  await expect(objetoBase).toHaveCount(1);
+  await expect(objetoDuplicado).toHaveCount(1);
+  await objetoBase.click();
   await elegirTipoEnlaceDesdeMenu(page, "agregacion");
-  await objetos.nth(1).click();
+  await objetoDuplicado.click();
 
   await expect(page.locator(".joint-link")).toHaveCount(2);
   await expect(page.locator(".joint-element polygon")).toHaveCount(1);

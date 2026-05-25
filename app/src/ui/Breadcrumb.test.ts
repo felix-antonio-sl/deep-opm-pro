@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { crearModelo } from "../modelo/operaciones";
 import type { Modelo } from "../modelo/tipos";
-import { BreadcrumbView, rutaBreadcrumbCodex, rutaBreadcrumbOpd } from "./Breadcrumb";
+import { BreadcrumbView, colapsarSegmentosBreadcrumb, rutaBreadcrumbCodex, rutaBreadcrumbOpd } from "./Breadcrumb";
 import { tokens } from "./tokens";
 
 type Vnode = { type: unknown; props: Record<string, any> };
@@ -113,6 +113,39 @@ describe("Breadcrumb OPD", () => {
     botones[2]!.props.onClick();
 
     expect(visitados).toEqual(["sistema"]);
+  });
+
+  test("colapsa breadcrumb largo con marca explicita y sin ellipsis CSS silencioso", () => {
+    const segmentos = colapsarSegmentosBreadcrumb([
+      { id: "sistema", nombre: "sistema" },
+      { id: "system-diagram", nombre: "system diagram" },
+      { id: "sd1", nombre: "sd1" },
+      { id: "sd1-1", nombre: "sd1.1" },
+      { id: "sd1-1-1", nombre: "sd1.1.1" },
+    ]);
+
+    expect(segmentos.map((segmento) => segmento.nombre)).toEqual([
+      "sistema",
+      "system diagram",
+      "…",
+      "sd1.1",
+      "sd1.1.1",
+    ]);
+
+    const v = BreadcrumbView({
+      segmentos,
+      opdActivoId: "sd1-1-1",
+      cambiarOpdActivo: () => undefined,
+    }) as unknown as Vnode;
+    const botones = botonesDe(v).filter(Boolean);
+
+    expect(botones.map((boton) => boton.props.children)).toEqual([
+      "sistema",
+      "system diagram",
+      "sd1.1",
+      "sd1.1.1",
+    ]);
+    expect(botones[0]!.props.style.textOverflow).toBeUndefined();
   });
 });
 

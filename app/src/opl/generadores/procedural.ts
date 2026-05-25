@@ -2,12 +2,14 @@ import { esAutoInvocacion } from "../../modelo/autoinvocacion";
 import { enlaceAdmiteTiempoMaximo, enlaceAdmiteTiempoMinimo } from "../../modelo/constantes";
 import { etiquetaEnlaceNormalizada } from "../../modelo/etiquetasEnlace";
 import { entidadDeExtremo, entidadIdDeExtremo, estadoDeExtremo } from "../../modelo/extremos";
+import { nombreCanonicoEstado } from "../../modelo/nombresCanonicos";
 import { rutaEtiquetaNormalizada } from "../../modelo/rutas";
 import type { Enlace, Entidad, Id, Modelo, Opd } from "../../modelo/tipos";
 import {
   hintEnlace,
   hintEntidad,
   hintEstado,
+  enlaceOplEsEmitible,
   nombreOpl,
   nombreOplConMultiplicidad,
   nombreOplExtremo,
@@ -34,16 +36,17 @@ export function oracionEnlaceConRuta(modelo: Modelo, enlace: Enlace): string | n
 }
 
 export function oracionProcedimentalParaRuta(modelo: Modelo, enlace: Enlace): string | null {
+  if (!enlaceOplEsEmitible(modelo, enlace)) return null;
   const origen = entidadDeExtremo(modelo, enlace.origenId);
   const destino = entidadDeExtremo(modelo, enlace.destinoId);
   if (!origen || !destino) return null;
   if (enlace.tipo === "resultado" && enlace.destinoId.kind === "estado" && origen.tipo === "proceso") {
     const estado = estadoDeExtremo(modelo, enlace.destinoId);
-    return estado ? `${nombreOpl(origen)} genera ${nombreOpl(destino)} en \`${estado.nombre}\`.` : null;
+    return estado ? `${nombreOpl(origen)} genera ${nombreOpl(destino)} en \`${nombreCanonicoEstado(estado)}\`.` : null;
   }
   if (enlace.tipo === "consumo" && enlace.origenId.kind === "estado" && destino.tipo === "proceso") {
     const estado = estadoDeExtremo(modelo, enlace.origenId);
-    return estado ? `${nombreOpl(destino)} consume ${nombreOpl(origen)} en \`${estado.nombre}\`.` : null;
+    return estado ? `${nombreOpl(destino)} consume ${nombreOpl(origen)} en \`${nombreCanonicoEstado(estado)}\`.` : null;
   }
   return oracionEnlace(modelo, enlace);
 }
@@ -71,10 +74,10 @@ export function transicionesEstadoInteractivo(
 function transicionesEstadoBase(modelo: Modelo, opd: Opd, enlacesExcluidos: ReadonlySet<Id>) {
   const consumos = Object.values(opd.enlaces)
     .map((apariencia) => modelo.enlaces[apariencia.enlaceId])
-    .filter((enlace): enlace is Enlace => !!enlace && !enlacesExcluidos.has(enlace.id) && enlace.tipo === "consumo" && enlace.origenId.kind === "estado");
+    .filter((enlace): enlace is Enlace => !!enlace && !enlacesExcluidos.has(enlace.id) && enlace.tipo === "consumo" && enlace.origenId.kind === "estado" && enlaceOplEsEmitible(modelo, enlace));
   const resultados = Object.values(opd.enlaces)
     .map((apariencia) => modelo.enlaces[apariencia.enlaceId])
-    .filter((enlace): enlace is Enlace => !!enlace && !enlacesExcluidos.has(enlace.id) && enlace.tipo === "resultado" && enlace.destinoId.kind === "estado");
+    .filter((enlace): enlace is Enlace => !!enlace && !enlacesExcluidos.has(enlace.id) && enlace.tipo === "resultado" && enlace.destinoId.kind === "estado" && enlaceOplEsEmitible(modelo, enlace));
   const lineaPorEnlaceConsumo = new Map<Id, { texto: string; refs: ReturnType<typeof refsEnlace>; hints: ReturnType<typeof hintsEnlace> }>();
   const enlacesCubiertos = new Set<Id>();
 
@@ -131,15 +134,17 @@ function oracionTransicionEstados(
   const sufijo = enlaceModificador ? sufijoProbabilidad(enlaceModificador) : "";
   const procesoOpl = nombreOpl(proceso);
   const objetoOpl = nombreOpl(objeto);
+  const entrada = nombreCanonicoEstado(estadoEntrada);
+  const salida = nombreCanonicoEstado(estadoSalida);
   switch (modificador) {
     case "evento":
-      return `${objetoOpl} en \`${estadoEntrada.nombre}\` inicia ${procesoOpl}, que cambia ${objetoOpl} de \`${estadoEntrada.nombre}\` a \`${estadoSalida.nombre}\`${sufijo}.`;
+      return `${objetoOpl} en \`${entrada}\` inicia ${procesoOpl}, que cambia ${objetoOpl} de \`${entrada}\` a \`${salida}\`${sufijo}.`;
     case "condicion":
-      return `${procesoOpl} ocurre si ${objetoOpl} está en \`${estadoEntrada.nombre}\`, en cuyo caso ${procesoOpl} cambia ${objetoOpl} de \`${estadoEntrada.nombre}\` a \`${estadoSalida.nombre}\`, de lo contrario ${procesoOpl} se omite.`;
+      return `${procesoOpl} ocurre si ${objetoOpl} está en \`${entrada}\`, en cuyo caso ${procesoOpl} cambia ${objetoOpl} de \`${entrada}\` a \`${salida}\`, de lo contrario ${procesoOpl} se omite.`;
     case "no":
-      return `${procesoOpl} no cambia ${objetoOpl} de \`${estadoEntrada.nombre}\` a \`${estadoSalida.nombre}\`.`;
+      return `${procesoOpl} no cambia ${objetoOpl} de \`${entrada}\` a \`${salida}\`.`;
     default:
-      return `${procesoOpl} cambia ${objetoOpl} de \`${estadoEntrada.nombre}\` a \`${estadoSalida.nombre}\`.`;
+      return `${procesoOpl} cambia ${objetoOpl} de \`${entrada}\` a \`${salida}\`.`;
   }
 }
 
@@ -151,6 +156,7 @@ export function oracionEnlace(modelo: Modelo, enlace: Enlace): string | null {
 }
 
 export function oracionEnlaceSinEtiqueta(modelo: Modelo, enlace: Enlace): string | null {
+  if (!enlaceOplEsEmitible(modelo, enlace)) return null;
   const origen = entidadDeExtremo(modelo, enlace.origenId);
   const destino = entidadDeExtremo(modelo, enlace.destinoId);
   if (!origen || !destino) return null;
@@ -288,17 +294,17 @@ function oracionCondicion(
   switch (enlace.tipo) {
     case "agente": {
       const estado = estadoDeExtremo(modelo, enlace.origenId);
-      if (estado) return `${nombreOpl(origen)} maneja ${destinoOpl} si ${nombreOpl(origen)} está en \`${estado.nombre}\`, de lo contrario ${destinoOpl} se omite.`;
+      if (estado) return `${nombreOpl(origen)} maneja ${destinoOpl} si ${nombreOpl(origen)} está en \`${nombreCanonicoEstado(estado)}\`, de lo contrario ${destinoOpl} se omite.`;
       return `${origenOpl} maneja ${destinoOpl} si ${origenOpl} existe, de lo contrario ${destinoOpl} se omite.`;
     }
     case "instrumento": {
       const estado = estadoDeExtremo(modelo, enlace.origenId);
-      if (estado) return `${destinoOpl} ocurre si ${nombreOpl(origen)} está en \`${estado.nombre}\`, de lo contrario ${destinoOpl} se omite.`;
+      if (estado) return `${destinoOpl} ocurre si ${nombreOpl(origen)} está en \`${nombreCanonicoEstado(estado)}\`, de lo contrario ${destinoOpl} se omite.`;
       return `${destinoOpl} ocurre si ${origenOpl} existe, de lo contrario ${destinoOpl} se omite.`;
     }
     case "consumo": {
       const estado = estadoDeExtremo(modelo, enlace.origenId);
-      if (estado) return `${destinoOpl} ocurre si ${nombreOpl(origen)} está en \`${estado.nombre}\`, en cuyo caso ${destinoOpl} consume ${origenOpl}, de lo contrario ${destinoOpl} se omite.`;
+      if (estado) return `${destinoOpl} ocurre si ${nombreOpl(origen)} está en \`${nombreCanonicoEstado(estado)}\`, en cuyo caso ${destinoOpl} consume ${origenOpl}, de lo contrario ${destinoOpl} se omite.`;
       return `${destinoOpl} ocurre si ${origenOpl} existe, en cuyo caso ${origenOpl} se consume, de lo contrario ${destinoOpl} se omite.`;
     }
     case "resultado": {

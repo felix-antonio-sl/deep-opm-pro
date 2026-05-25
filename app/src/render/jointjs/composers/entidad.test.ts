@@ -66,6 +66,21 @@ describe("composer entidad", () => {
     expect(overrideBody.fill).toBe("#abcdef");
   });
 
+  test("V-212 renderiza nombre canonico sin underscores y expande ancho para evitar cortes de palabra", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 30 }, "Hospitalización_domiciliaria"));
+    const entidad = Object.values(modelo.entidades)[0];
+    const apariencia = Object.values(modelo.opds[modelo.opdRaizId]?.apariencias ?? {})[0];
+    if (!entidad || !apariencia) throw new Error("Fixture invalido");
+
+    const cell = proyectarEntidad(modelo, modelo.opdRaizId, apariencia, entidad, false, false, {});
+    const attrs = cell.attrs as Record<string, Record<string, unknown>>;
+
+    expect(attrs.label?.text).toBe("Hospitalización Domiciliaria");
+    expect(String(attrs.label?.text)).not.toContain("_");
+    expect((cell.size as { width: number }).width).toBeGreaterThan(apariencia.width);
+  });
+
   test("aplica CANON-V3 Codex a proceso con label italic", () => {
     let modelo = crearModelo();
     modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 20, y: 30 }, "Aprobar"));
@@ -217,6 +232,29 @@ describe("composer entidad", () => {
     const proceso: Entidad = { id: "p-12", tipo: "proceso", nombre: "Y", esencia: "informacional", afiliacion: "sistemica" };
     expect(identificadorCanonicoEntidad(objeto)).toBe("o.03");
     expect(identificadorCanonicoEntidad(proceso)).toBe("p.12");
+  });
+
+  test("IDs de subprocesos internos usan ordinal jerarquico del refinable", () => {
+    let modelo = crearModelo();
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 40, y: 40 }, "Procesar Pedido"));
+    const proceso = Object.values(modelo.entidades)[0];
+    if (!proceso) throw new Error("Proceso no encontrado");
+    const descomp = descomponerProceso(modelo, modelo.opdRaizId, proceso.id);
+    if (!descomp.ok) throw new Error(descomp.error);
+    modelo = descomp.value.modelo;
+    const opdHijoId = descomp.value.opdId;
+    const internas = Object.values(modelo.opds[opdHijoId]?.apariencias ?? {})
+      .filter((apariencia) => apariencia.contextoRefinamiento?.rol === "interno")
+      .sort((a, b) => a.y - b.y);
+
+    const indices = internas.map((apariencia) => {
+      const entidad = modelo.entidades[apariencia.entidadId];
+      if (!entidad) throw new Error("Entidad interna no encontrada");
+      const cell = proyectarEntidad(modelo, opdHijoId, apariencia, entidad, false, false, {});
+      return ((cell.attrs as Record<string, Record<string, unknown>>).index?.text);
+    });
+
+    expect(indices).toEqual(["p.01.1", "p.01.2", "p.01.3"]);
   });
 
   test("HU-17.012 renderiza Nombre [Unidad] {alias}", () => {

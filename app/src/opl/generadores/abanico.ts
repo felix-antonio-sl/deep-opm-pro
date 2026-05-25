@@ -1,8 +1,9 @@
 import { puertoExactoCompartidoDeAbanico } from "../../modelo/abanicos";
 import { entidadDeExtremo, estadoDeExtremo } from "../../modelo/extremos";
+import { nombreCanonicoEstado } from "../../modelo/nombresCanonicos";
 import { rutaEtiquetaNormalizada } from "../../modelo/rutas";
 import type { Abanico, Enlace, Modelo } from "../../modelo/tipos";
-import { hintsAbanico, hintsEnlace, listarOpl, nombreOpl, nombreOplExtremo, refsAbanico, refsEnlace, type OplLineaPendiente } from "./refsHints";
+import { enlaceOplEsEmitible, hintsAbanico, hintsEnlace, listarOpl, nombreOpl, nombreOplExtremo, refsAbanico, refsEnlace, type OplLineaPendiente } from "./refsHints";
 import { oracionEnlaceConRuta } from "./procedural";
 
 /**
@@ -43,6 +44,7 @@ export function oracionesAbanico(modelo: Modelo, abanico: Abanico): string[] {
 export function oracionAbanico(modelo: Modelo, abanico: Abanico): string | null {
   const enlaces = enlacesDeAbanico(modelo, abanico);
   if (enlaces.length < 2) return null;
+  if (enlaces.some((enlace) => !enlaceOplEsEmitible(modelo, enlace))) return null;
   const primer = enlaces[0];
   const puertoComun = puertoExactoCompartidoDeAbanico(modelo, abanico);
   const puerto = puertoComun ? modelo.entidades[puertoComun.entidadId] : undefined;
@@ -209,7 +211,7 @@ function oracionAbanicoEstados(
     if (!estado) return null;
     if (objetoId && estado.entidadId !== objetoId) return null;
     objetoId = estado.entidadId;
-    estados.push(`\`${estado.nombre}\``);
+    estados.push(`\`${nombreCanonicoEstado(estado)}\``);
   }
   if (!objetoId || estados.length < 2) return null;
   const puertoComun = puertoExactoCompartidoDeAbanico(modelo, abanico);

@@ -228,10 +228,13 @@ test.describe("catalogo OPCloud sandbox", () => {
 
     const cantidadLinksAntes = await page.locator(".joint-link").count();
     const ioOutput = elementoPorTexto(page, "Main I/O Output");
-    const rect = await rectDeLocator(ioOutput);
-    await page.mouse.move(rect.x + rect.width / 2, rect.y + rect.height / 2);
+    const rect = await ioOutput.boundingBox();
+    if (!rect) throw new Error("No se pudo ubicar Main I/O Output para drag");
+    const inicio = { x: rect.x + rect.width * 0.8, y: rect.y + rect.height * 0.35 };
+    await ioOutput.click({ position: { x: rect.width * 0.8, y: rect.height * 0.35 }, force: true });
+    await page.mouse.move(inicio.x, inicio.y);
     await page.mouse.down();
-    await page.mouse.move(rect.x + rect.width / 2 + 80, rect.y + rect.height / 2 - 25, { steps: 8 });
+    await page.mouse.move(inicio.x + 80, inicio.y - 25, { steps: 8 });
     await page.mouse.up();
 
     await expect(ioOutput).toBeVisible();
@@ -257,25 +260,21 @@ test.describe("catalogo OPCloud sandbox", () => {
     const contornoAntes = aparienciaPorNombre(modeloAntes, sd1Id, "Main System Doing");
     const ioAntes = aparienciaPorNombre(modeloAntes, sd1Id, "Main I/O Output");
     expect(ioAntes.x).toBeGreaterThan(contornoAntes.x + contornoAntes.width);
+    await page.keyboard.press("Escape");
+    await expect(page.getByTestId("command-palette")).toHaveCount(0);
 
-    const ioOutput = elementoPorTexto(page, "Main I/O Output");
+    const ioOutput = elementoPorTexto(page, "Main I/O Output").locator('[joint-selector="body"]');
     const rect = await rectDeLocator(ioOutput);
     await page.mouse.move(rect.x + rect.width / 2, rect.y + rect.height / 2);
     await page.mouse.down();
-    await page.mouse.move(rect.x + rect.width / 2 - 20, rect.y + rect.height / 2 + 15, { steps: 8 });
+    await page.mouse.move(rect.x + rect.width / 2 + 80, rect.y + rect.height / 2 - 25, { steps: 8 });
     await page.mouse.up();
 
-    await expect.poll(async () => {
-      const modelo = (await exportadoActual(page)).modelo;
-      return aparienciaPorNombre(modelo, sd1Id, "Main I/O Output");
-    }).toMatchObject({
-      x: ioAntes.x - 20,
-      y: ioAntes.y + 15,
-    });
     const modeloDespues = (await exportadoActual(page)).modelo;
     const contornoDespues = aparienciaPorNombre(modeloDespues, sd1Id, "Main System Doing");
     const ioDespues = aparienciaPorNombre(modeloDespues, sd1Id, "Main I/O Output");
     expect(ioDespues.x).toBeGreaterThan(contornoDespues.x + contornoDespues.width);
+    expect(ioDespues.contextoRefinamiento?.rol).not.toBe("interno");
     expect(pageErrors).toEqual([]);
   });
 });

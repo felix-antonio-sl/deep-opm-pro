@@ -51,7 +51,7 @@ export function ToolbarOpl(props: ToolbarOplProps) {
         aria-label="Minimizar panel OPL"
         onClick={props.onMinimizar}
       >
-        ▾
+        plegar ▾
       </button>
       <span style={style.divider} aria-hidden="true" />
 

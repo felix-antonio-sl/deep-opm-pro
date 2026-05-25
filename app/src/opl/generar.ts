@@ -19,10 +19,12 @@ import { modoPlegadoApariencia } from "../modelo/plegado";
 import type { TipoRefinamiento } from "../modelo/tipos";
 import {
   agregarLinea,
+  entidadOplEsEmitible,
   hintEntidad,
   hintEstado,
   refEntidad,
   refEstado,
+  estadoOplEsEmitible,
   refsEnlace,
   hintsEnlace,
   type OplLineaPendiente,
@@ -63,32 +65,40 @@ function generarLineasOpl(modelo: Modelo, opd: Opd): OplLineaPendiente[] {
   for (const apariencia of Object.values(opd.apariencias)) {
     const entidad = modelo.entidades[apariencia.entidadId];
     if (!entidad) continue;
-    for (const oracion of oracionEntidad(entidad)) {
-      agregarLinea(lineas, oracion, [refEntidad(entidad.id)], [hintEntidad(entidad)]);
+    if (entidadOplEsEmitible(entidad)) {
+      for (const oracion of oracionEntidad(entidad)) {
+        agregarLinea(lineas, oracion, [refEntidad(entidad.id)], [hintEntidad(entidad)]);
+      }
     }
     const estados = entidad.tipo === "objeto" ? estadosDeEntidad(modelo, entidad.id) : [];
-    if (estados.some((estado) => !estado.suprimido)) agregarOracionEstadosInteractiva(lineas, entidad, estados);
-    for (const linea of oracionesUnidadDescripcionEstados(entidad, estados)) {
-      agregarLinea(lineas, linea, [refEntidad(entidad.id), ...estados.map((estado) => refEstado(estado.id))], [hintEntidad(entidad), ...estados.map(hintEstado)]);
+    const estadosVisibles = estados.filter((estado) => !estado.suprimido);
+    const estadosCanonicos = estadosVisibles.filter(estadoOplEsEmitible);
+    if (entidadOplEsEmitible(entidad) && estadosVisibles.length > 0 && estadosCanonicos.length === estadosVisibles.length) {
+      agregarOracionEstadosInteractiva(lineas, entidad, estadosCanonicos);
     }
-    // Si la apariencia está plegada parcialmente, una sola oración cubre la
-    // semántica de plegado; en caso contrario se emite una oración por slot
-    // de refinamiento presente.
-    if (modoPlegadoApariencia(apariencia) === "parcial") {
-      const refinamiento = oracionRefinamiento(modelo, apariencia, entidad);
-      if (refinamiento) agregarLinea(lineas, refinamiento, refsRefinamiento(modelo, apariencia, entidad), hintsRefinamiento(modelo, apariencia, entidad));
-    } else {
-      for (const slot of refinamientosDe(entidad)) {
-        const tipoSlot: TipoRefinamiento = slot.tipo;
-        if (!obtenerRefinamiento(entidad, tipoSlot)) continue;
-        const refinamiento = oracionRefinamiento(modelo, apariencia, entidad, tipoSlot);
-        if (refinamiento) {
-          agregarLinea(
-            lineas,
-            refinamiento,
-            refsRefinamiento(modelo, apariencia, entidad, tipoSlot),
-            hintsRefinamiento(modelo, apariencia, entidad, tipoSlot),
-          );
+    for (const linea of entidadOplEsEmitible(entidad) ? oracionesUnidadDescripcionEstados(entidad, estadosCanonicos) : []) {
+      agregarLinea(lineas, linea, [refEntidad(entidad.id), ...estadosCanonicos.map((estado) => refEstado(estado.id))], [hintEntidad(entidad), ...estadosCanonicos.map(hintEstado)]);
+    }
+    if (entidadOplEsEmitible(entidad)) {
+      // Si la apariencia está plegada parcialmente, una sola oración cubre la
+      // semántica de plegado; en caso contrario se emite una oración por slot
+      // de refinamiento presente.
+      if (modoPlegadoApariencia(apariencia) === "parcial") {
+        const refinamiento = oracionRefinamiento(modelo, apariencia, entidad);
+        if (refinamiento) agregarLinea(lineas, refinamiento, refsRefinamiento(modelo, apariencia, entidad), hintsRefinamiento(modelo, apariencia, entidad));
+      } else {
+        for (const slot of refinamientosDe(entidad)) {
+          const tipoSlot: TipoRefinamiento = slot.tipo;
+          if (!obtenerRefinamiento(entidad, tipoSlot)) continue;
+          const refinamiento = oracionRefinamiento(modelo, apariencia, entidad, tipoSlot);
+          if (refinamiento) {
+            agregarLinea(
+              lineas,
+              refinamiento,
+              refsRefinamiento(modelo, apariencia, entidad, tipoSlot),
+              hintsRefinamiento(modelo, apariencia, entidad, tipoSlot),
+            );
+          }
         }
       }
     }

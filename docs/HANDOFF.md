@@ -1,11 +1,56 @@
 # HANDOFF — Estado operativo del modelador OPM
 
 **Fecha**: 2026-05-25 · **Repositorio**: `deep-opm-pro` · **Rama**: `main`
-**Commit de producto desplegado**: `e5ca0ed fix(ui): corrige incumplimientos visuales codex`.
-**Commit documental de handoff**: este documento se consolida en el commit `docs(handoff): consolida cierre visual y deploy opforja`; consultar `git log -1 --oneline` para el hash final tras push.
-**Instancia**: `https://opforja.sanixai.com` — bundle **Codex v1.1 + auditoría visual 25-05** desplegado con `docker compose up -d --build`; contenedores `opforja` (healthy) + `opforja-bug-capture`, **HTTP 200 publico** (sin auth, ver Riesgos).
+**Commit de producto desplegado**: cierre actual `fix(opl-ui): corrige ronda 2 codex`; consultar `git log -1 --oneline` para el hash final tras push.
+**Commit documental de handoff**: este documento forma parte del mismo commit atomico de cierre.
+**Instancia**: `https://opforja.sanixai.com` — bundle **Codex v1.1 + auditoria Ronda 2** desplegado con `docker compose up -d --build`; contenedores `opforja` (healthy) + `opforja-bug-capture`, **HTTP 200 publico** (sin auth, ver Riesgos).
 
-## Corte actual — Auditoría visual Codex v1.1 cerrada y desplegada
+## Corte actual — Ronda 2 Codex v1.1: OPL canonica, canvas y diagnostico
+
+Se resolvio la auditoria "Incumplimientos Codex — Ronda 2" del 25 mayo 2026, visible con modelo cargado, diagnostico expandido y refinamientos SD1/SD1.1. El foco fue preservar funcionalidad y elevar el cumplimiento contra la SSOT suprema `docs/canon-opm/reglas-opm-estrictas.md` y la autoridad visual `ui-forja/GOVERNANCE.md`.
+
+**Decisiones aplicadas:**
+- La OPL forward emite nombres canonicos legibles, no slugs: `Hospitalización_domiciliaria` se proyecta como `Hospitalización Domiciliaria` en OPL, canvas e hints.
+- Los procesos placeholder (`Proceso`, `Proceso parte 1`, etc.) no producen OPL canonica; quedan como diagnostico metodologico hasta recibir un nombre verbal/deverbal valido.
+- Los estados placeholder (`estado1`, `estado2`) no producen la oracion `puede estar`; se reportan con `ESTADO_NOMBRE_CANONICO` para obligar nombre descriptivo en minusculas.
+- Las etiquetas de canvas preservan palabras y autoexpanden el ancho cuando el nombre canonico lo requiere; los contornos de descomposicion crecen para respetar padding interno minimo de 16 px.
+- Los identificadores visuales de apariencias internas de descomposicion se renderizan jerarquicos (`p.01.1`, `p.01.2`, `o.01.1`) en vez de saltos top-level (`p.21`, `o.11`).
+- El diagnostico deja de ser panel encajonado: vive como marginalia editorial dentro del inspector, con `revalidar` inline italic, conteos `△ N sugerencias`, categorias de una columna, filas sin chip y citas con border-left hairline.
+- Al expandir diagnostico, reemplaza visualmente el inspector vacio; al navegar a un aviso, colapsa para mostrar el inspector poblado.
+- El indicador flotante de sugerencias en canvas pasa de chip negro `!` a marca tipografica `△` sin fondo.
+- El breadcrumb largo colapsa con marca explicita `…`, sin `text-overflow: ellipsis` silencioso.
+- El caret huerfano del panel OPL queda etiquetado como `plegar ▾`.
+
+**Decision normativa explicitada:**
+- No se cambio el marker de `exhibicion` a cuadrado. La auditoria lo pidio, pero entra en conflicto con el canon vigente y los tests actuales: `ui-forja/08-jointjs-styling.md`, `app/src/render/jointjs/linkAssets.ts` y `proyeccion.test.ts` mantienen exhibicion como triangulo de contorno con triangulo interno. Ante conflicto, manda `docs/canon-opm/reglas-opm-estrictas.md` + autoridad visual versionada, no la captura.
+
+**Artefactos relevantes:**
+- `app/src/modelo/nombresCanonicos.ts` — normalizacion de nombres canonicos de entidades/estados y deteccion de placeholders.
+- `app/src/opl/generar.ts` + `app/src/opl/generadores/*` — supresion OPL de placeholders y emision canonica.
+- `app/src/modelo/checkers.ts` — diagnostico `ESTADO_NOMBRE_CANONICO`.
+- `app/src/render/jointjs/composers/entidad.ts` — labels canonicos, auto-size, padding de compounds e IDs jerarquicos.
+- `app/src/ui/PanelDiagnostico.tsx`, `App.tsx`, `Breadcrumb.tsx`, `panelOpl/Toolbar.tsx` — diagnostico editorial, reemplazo de inspector, breadcrumb colapsado y toolbar OPL etiquetada.
+- Tests focales: `generar.test.ts`, `diagnostico.test.ts`, `entidad.test.ts`, `Breadcrumb.test.ts` y specs Playwright ajustadas a los contratos canonicos.
+
+**Verificacion del corte:**
+- `cd app && bun run check` -> verde (typecheck + unit).
+- `cd app && bun run lint` -> OK.
+- `cd app && bun run build` -> OK.
+- `cd app && bun run design:governance` -> OK.
+- `git diff --check` -> OK.
+- `bun run visual:gate` no existe en `app/package.json`; se uso Playwright como gate visual disponible:
+  - `cd app && bunx playwright test --shard=1/3` -> verde.
+  - `cd app && bunx playwright test --shard=2/3` -> verde.
+  - `cd app && bunx playwright test --shard=3/3` -> verde.
+
+**Estado local al cierre:** no stagear automaticamente `docs/auditorias/inclumplimiento-visual-25-05-2026.md` ni `docs/manual-simulado-opcloud-capacidades.md`; contienen cambios previos/no relacionados con este commit de producto.
+
+**Pendientes derivados:**
+- Convertir esta ronda en DDR si se quiere formalizar el patron de diagnostico editorial como norma estable.
+- Agregar gate dedicado si el equipo decide llamar `visual:gate` a la combinacion Playwright/visual audit.
+- Reauditar con captura nueva de SD, SD1 y SD1.1 tras deploy para confirmar cobertura visual cercana a 97%.
+
+## Corte visual previo — Auditoría visual Codex v1.1 cerrada y desplegada
 
 Se resolvió `docs/auditorias/inclumplimiento-visual-25-05-2026.md` contra la captura del 25 mayo 2026. El corte es de ajuste visual/estructural, sin cambiar la semántica OPM ni la SSOT `docs/canon-opm/reglas-opm-estrictas.md`.
 
@@ -161,7 +206,7 @@ Cierre completo de la **Auditoría Codex v1.0 ↔ Implementación rev2** (`/home
 
 ## Pendientes
 
-- **Auditoría con modelo cargado**: verificar de nuevo los puntos no visibles en captura vacía (`docs/auditorias/inclumplimiento-visual-25-05-2026.md` §7): OPL canónica, identificadores `o.01/p.01/o.06.1`, selección por underline sin handles ni doble borde.
+- **Auditoria post-deploy con modelo cargado**: tomar nueva captura de SD, SD1 y SD1.1 con diagnostico expandido y una seleccion activa para confirmar la resolucion visual completa de Ronda 2.
 - **Deuda Codex v1.1 fuera de este corte**: proceso activo in-flight, asistente SD wizard, sub-modelos, switcher de lengua OPL, dark mode, frame letterbox 1700×950.
 - **Integrar runtime sociotecnico con OPM**: mapear procesos computacionales/agenticos a `DecisionSim`, enlaces procedurales a pre/postcondiciones, y objetos/estados a contexto operativo.
 - **Agregar puertos de efectos**: definir puertos para aprobacion humana, tool-call, HTTP, Python, MQTT, SQL, ROS y GenAI sin ejecutar efectos desde el kernel puro.
@@ -188,4 +233,4 @@ Cierre completo de la **Auditoría Codex v1.0 ↔ Implementación rev2** (`/home
 
 ## Prompt de continuación
 
-> Continúa desde `docs/HANDOFF.md`, sección "Corte actual — Auditoría visual Codex v1.1 cerrada y desplegada". Antes de tocar UI/canvas, leer `docs/canon-opm/reglas-opm-estrictas.md` y `ui-forja/GOVERNANCE.md`. Verifica primero los pendientes §7 de `docs/auditorias/inclumplimiento-visual-25-05-2026.md` con un modelo precargado y una selección activa. Gate mínimo para UI: `cd app && bun run check && bun run lint && bun run build && bun run design:governance`, más Playwright del layout/canvas afectado. No stagear `docs/manual-simulado-opcloud-capacidades.md` salvo instrucción explícita.
+> Continúa desde `docs/HANDOFF.md`, sección "Corte actual — Ronda 2 Codex v1.1: OPL canonica, canvas y diagnostico". Antes de tocar UI/canvas, leer `docs/canon-opm/reglas-opm-estrictas.md` y `ui-forja/GOVERNANCE.md`. Reaudita en vivo SD, SD1 y SD1.1 con modelo precargado, diagnostico expandido y una seleccion activa. Gate minimo para UI: `cd app && bun run check && bun run lint && bun run build && bun run design:governance`, mas Playwright del layout/canvas afectado. No stagear `docs/auditorias/inclumplimiento-visual-25-05-2026.md` ni `docs/manual-simulado-opcloud-capacidades.md` salvo instruccion explicita.

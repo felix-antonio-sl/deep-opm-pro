@@ -21,7 +21,6 @@ import {
   assertWorkbenchLayout,
   assertCanvasScrollable,
   estadoBeforeUnload,
-  puntoMedioPath,
   todasSeparadas,
   svgText,
   jsonEditor,
@@ -81,21 +80,24 @@ test("crea enlace, edita vertices y elimina desde celdas JointJS", async ({ page
 
   await page.goto("/");
   const abrirMenuTipo = page.getByTestId("abrir-menu-tipo-enlace");
-  // Ronda 24 L4 #6: sin entidades ni selección el cluster Conectar está
-  // ausente del DOM (antes era un cluster permanente con botón disabled).
-  await expect(abrirMenuTipo).toHaveCount(0);
+  // Codex v1.1 mantiene Relación como comando inline visible, deshabilitado
+  // hasta que exista una selección válida.
+  await expect(abrirMenuTipo).toBeDisabled();
   await page.getByRole("button", { name: "Objeto", exact: true }).click();
   await page.getByRole("button", { name: "Proceso", exact: true }).click();
+  const nombreProceso = page.getByTestId("inspector").getByLabel("Nombre");
+  await nombreProceso.fill("Procesar");
+  await nombreProceso.press("Enter");
 
   await expect(page.locator(".joint-element")).toHaveCount(2);
 
   await elementoPorTexto(page, "Objeto").click();
   await expect(abrirMenuTipo).toBeEnabled();
   await elegirTipoEnlaceDesdeMenu(page, "instrumento");
-  await elementoPorTexto(page, "Proceso").click();
+  await elementoPorTexto(page, "Procesar").click();
 
   await expect(page.locator(".joint-link")).toHaveCount(1);
-  await expect(page.getByText("Proceso requiere Objeto.")).toBeVisible();
+  await expect(page.getByText("Procesar requiere Objeto.")).toBeVisible();
 
   await clickCentroLink(page);
   await expect(page.getByText("Enlace Instrumento")).toBeVisible();
@@ -114,7 +116,7 @@ test("crea enlace, edita vertices y elimina desde celdas JointJS", async ({ page
   await page.screenshot({ path: "test-results/opm-link-tools-jointjs.png", fullPage: true });
   await page.getByRole("button", { name: "Eliminar enlace" }).click();
   await expect(page.locator(".joint-link")).toHaveCount(0);
-  await expect(page.getByText("Proceso requiere Objeto.")).toHaveCount(0);
+  await expect(page.getByText("Procesar requiere Objeto.")).toHaveCount(0);
 
   expect(pageErrors).toEqual([]);
 });
@@ -129,7 +131,7 @@ test("seleccionar enlace estructural ruteado no instala Segments incompatible", 
 
   await elementoPorTexto(page, "Objeto").click();
   await elegirTipoEnlaceDesdeMenu(page, "exhibicion");
-  await elementoPorTexto(page, "Objeto_2").click();
+  await elementoPorTexto(page, "Objeto 2").click();
 
   await expect(page.locator(".joint-link")).toHaveCount(2);
   expect(await page.locator(".joint-element polygon").count()).toBeGreaterThanOrEqual(1);
@@ -167,8 +169,7 @@ test("BUG-20260519T074543Z-842217 angular enlace etiquetado OnStar sin crash", a
     return link ? String(link.id) : "";
   });
   expect(enlaceEtiquetadoJointId).not.toBe("");
-  const puntoEnlace = await puntoMedioPath(page.locator(`.joint-link[model-id="${enlaceEtiquetadoJointId}"] [joint-selector=wrapper]`).first());
-  await page.mouse.click(puntoEnlace.x, puntoEnlace.y);
+  await clickLinkPorTipo(page, "Etiquetado");
   await expect(page.getByText("Enlace Etiquetado")).toBeVisible();
   await expect(page.locator('[data-tool-name="vertices"]')).toHaveCount(1);
   await expect(page.locator('[data-tool-name="segments"]')).toHaveCount(0);

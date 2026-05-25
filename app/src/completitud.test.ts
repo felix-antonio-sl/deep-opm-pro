@@ -25,6 +25,7 @@ import {
   descomponerProceso,
   estadosDeEntidad,
   reanclarEnlaceExternoDerivado,
+  renombrarEstado,
   validarFirmaEnlace,
 } from "./modelo/operaciones";
 import type {
@@ -244,8 +245,10 @@ describe("completitud / estados de objeto", () => {
     modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 80, y: 90 }, "Orden"));
     const objetoId = entidadConNombre(modelo, "Orden");
     modelo = must(crearEstadosIniciales(modelo, objetoId)).modelo;
-    const [estado] = estadosDeEntidad(modelo, objetoId);
-    if (!estado) throw new Error("La prueba esperaba un estado");
+    const [estado, segundo] = estadosDeEntidad(modelo, objetoId);
+    if (!estado || !segundo) throw new Error("La prueba esperaba estados");
+    modelo = must(renombrarEstado(modelo, estado.id, "abierta"));
+    modelo = must(renombrarEstado(modelo, segundo.id, "cerrada"));
 
     for (const designacion of DESIGNACIONES_ESTADO_LISTA) {
       modelo = must(designacion === "inicial"
@@ -253,7 +256,7 @@ describe("completitud / estados de objeto", () => {
         : designarEstadoFinal(modelo, estado.id));
     }
 
-    expect(generarOpl(modelo)).toContain("**Orden** puede estar `estado1` (inicial y final) o `estado2`.");
+    expect(generarOpl(modelo)).toContain("**Orden** puede estar `abierta` (inicial y final) o `cerrada`.");
     const cell = proyectarModeloAJointCells(modelo, modelo.opdRaizId, null, null)
       .find((item) => item.opm.kind === "entidad" && item.opm.entidadId === objetoId);
     const attrs = cell?.attrs as Record<string, Record<string, unknown>> | undefined;

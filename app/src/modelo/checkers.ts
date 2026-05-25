@@ -31,6 +31,7 @@
 
 import { naturalezaDeEnlace } from "./constantes";
 import { entidadDeExtremo, entidadIdDeExtremo, extremoApuntaAEntidad } from "./extremos";
+import { estadoTieneNombreCanonico } from "./nombresCanonicos";
 import { obtenerRefinamiento, refinamientosDe, tieneRefinamiento } from "./refinamientos";
 import type { AvisoMetodologico, CodigoChecker, Entidad, Id, Modelo, TipoEnlace, TipoRefinamiento } from "./tipos";
 
@@ -54,6 +55,7 @@ export function verificarMetodologia(modelo: Modelo): AvisoMetodologico[] {
   return [
     ...checkSdSinProcesoPrincipal(modelo),
     ...checkProcesoNombreFormaVerbal(modelo),
+    ...checkEstadoNombreCanonico(modelo),
     ...checkObjetoNombreSingular(modelo),
     ...checkObjetoAmbientalSinContornoDiscontinuo(modelo),
     ...checkInzoomContenido(modelo),
@@ -62,6 +64,25 @@ export function verificarMetodologia(modelo: Modelo): AvisoMetodologico[] {
     ...checkProcesoTransforma(modelo),
     ...checkProcesoSistemicoConectado(modelo),
   ];
+}
+
+export function checkEstadoNombreCanonico(modelo: Modelo): AvisoMetodologico[] {
+  const entidadIds = new Set<Id>();
+  for (const estado of Object.values(modelo.estados ?? {})) {
+    if (!estadoTieneNombreCanonico(estado)) entidadIds.add(estado.entidadId);
+  }
+  return [...entidadIds]
+    .map((entidadId) => modelo.entidades[entidadId])
+    .filter((entidad): entidad is Entidad => entidad?.tipo === "objeto")
+    .map((entidad) => aviso("ESTADO_NOMBRE_CANONICO", entidad, {
+      severidad: "advertencia",
+      mensaje: `El objeto "${entidad.nombre}" tiene estados con nombre por defecto. Nombra cada estado en minúsculas descriptivas antes de emitir OPL canónica.`,
+      rationale: "Los estados placeholder como estado1/estado2 son ruido de edición y no nombres OPL-ES válidos.",
+      ssotRef: "reglas-opm-estrictas.md R-NOM-EST-1",
+      accionesSugeridas: [
+        "Renombra los estados con formas descriptivas en minúscula, por ejemplo 'pendiente', 'aprobado' o 'cerrado'.",
+      ],
+    }));
 }
 
 export function checkProcesoNombreFormaVerbal(modelo: Modelo): AvisoMetodologico[] {

@@ -25,36 +25,53 @@ interface BreadcrumbViewProps {
 }
 
 export function BreadcrumbView({ segmentos, opdActivoId, cambiarOpdActivo }: BreadcrumbViewProps) {
-  const activo = segmentos[segmentos.length - 1]?.id ?? opdActivoId;
+  const visibles = colapsarSegmentosBreadcrumb(segmentos);
+  const activo = visibles[visibles.length - 1]?.id ?? opdActivoId;
 
   return (
     <nav aria-label="Ruta OPD" data-testid="breadcrumb-opd" style={style.nav}>
-      {segmentos.length === 0 ? (
+      {visibles.length === 0 ? (
         <span style={style.empty}>Sin OPD</span>
       ) : (
-        segmentos.map((segmento, index) => {
+        visibles.map((segmento, index) => {
+          const esOverflow = segmento.id === "breadcrumb-overflow";
           const esActivo = segmento.id === activo;
           return (
             <span key={segmento.id} style={style.segmentoWrap}>
               {index > 0 ? <span aria-hidden="true" style={style.separador}>·</span> : null}
-              <button
-                type="button"
-                aria-current={esActivo ? "page" : undefined}
-                data-testid={`breadcrumb-opd-${segmento.id}`}
-                title={segmento.nombre}
-                style={esActivo ? { ...style.segmento, ...style.segmentoActivo } : style.segmento}
-                onClick={() => {
-                  if (!esActivo) cambiarOpdActivo(segmento.id);
-                }}
-              >
-                {segmento.nombre}
-              </button>
+              {esOverflow ? (
+                <span data-testid="breadcrumb-opd-overflow" title="OPDs intermedios" style={style.overflowSegmento}>
+                  {segmento.nombre}
+                </span>
+              ) : (
+                <button
+                  type="button"
+                  aria-current={esActivo ? "page" : undefined}
+                  data-testid={`breadcrumb-opd-${segmento.id}`}
+                  title={segmento.nombre}
+                  style={esActivo ? { ...style.segmento, ...style.segmentoActivo } : style.segmento}
+                  onClick={() => {
+                    if (!esActivo) cambiarOpdActivo(segmento.id);
+                  }}
+                >
+                  {segmento.nombre}
+                </button>
+              )}
             </span>
           );
         })
       )}
     </nav>
   );
+}
+
+export function colapsarSegmentosBreadcrumb(segmentos: SegmentoBreadcrumbOpd[]): SegmentoBreadcrumbOpd[] {
+  if (segmentos.length <= 4) return segmentos;
+  return [
+    ...segmentos.slice(0, 2),
+    { id: "breadcrumb-overflow", nombre: "…" },
+    ...segmentos.slice(-2),
+  ];
 }
 
 export function rutaBreadcrumbOpd(modelo: Modelo, opdActivoId: Id): SegmentoBreadcrumbOpd[] {
@@ -136,15 +153,12 @@ const style = {
   },
   segmento: {
     minWidth: 0,
-    maxWidth: "180px",
     height: "24px",
     border: "1px solid transparent",
     background: "transparent",
     color: tokens.colors.inkMid,
     cursor: "pointer",
     padding: "0 4px",
-    overflow: "hidden",
-    textOverflow: "ellipsis",
     whiteSpace: "nowrap",
     fontFamily: tokens.typography.fontFamily,
     fontSize: `${tokens.typography.sizes.sm}px`,
@@ -154,5 +168,16 @@ const style = {
     color: tokens.colors.ink,
     fontWeight: tokens.typography.weights.bold,
     cursor: "default",
+  },
+  overflowSegmento: {
+    height: "24px",
+    display: "inline-flex",
+    alignItems: "center",
+    padding: "0 4px",
+    color: tokens.colors.inkFaint,
+    fontFamily: tokens.typography.fontFamily,
+    fontSize: `${tokens.typography.sizes.sm}px`,
+    fontWeight: tokens.typography.weights.normal,
+    whiteSpace: "nowrap",
   },
 } satisfies Record<string, preact.JSX.CSSProperties>;

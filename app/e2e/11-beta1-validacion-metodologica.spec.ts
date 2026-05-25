@@ -34,8 +34,7 @@ test("L3 panel metodologia muestra aviso, cita SSOT y permite revalidar", async 
   await page.getByTestId("panel-diagnostico-toggle").click();
 
   // Hay al menos un aviso — el contador NO debe ser cero.
-  // Ronda23 L1 #9: contador "N sugerencia/s" con concordancia plural.
-  await expect(panel.locator("header").getByText(/^(1 sugerencia|[2-9]\d* sugerencias|[1-9]\d{2,} sugerencias)$/)).toBeVisible();
+  await expect(panel.locator("header").getByText(/^△\s+(1 sugerencia|[2-9]\d* sugerencias|[1-9]\d{2,} sugerencias)$/)).toBeVisible();
 
   // El aviso de PROCESO_NOMBRE_FORMA_VERBAL aparece y trae cita SSOT
   // visible en el boton de cita.
@@ -223,6 +222,7 @@ test("L3 aviso se resuelve tras corregir el nombre del proceso", async ({ page }
   await page.getByRole("button", { name: "Proceso", exact: true }).click();
   await page.getByTestId("panel-diagnostico-toggle").click();
   await expect(page.getByTestId("aviso-PROCESO_NOMBRE_FORMA_VERBAL")).toBeVisible();
+  await page.getByTestId("panel-diagnostico-toggle").click();
 
   // El proceso recien creado queda seleccionado; el inspector ofrece edicion
   // in-place del nombre.

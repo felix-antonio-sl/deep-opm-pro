@@ -17,6 +17,7 @@ export interface GruposSeveridad {
 const SEVERIDAD_POR_CODIGO: Record<CodigoChecker, SeveridadIssue> = {
   SD_SIN_PROCESO_PRINCIPAL: "mejora",
   PROCESO_NOMBRE_FORMA_VERBAL: "mejora",
+  ESTADO_NOMBRE_CANONICO: "mejora",
   OBJETO_NOMBRE_SINGULAR: "mejora",
   OBJETO_AMBIENTAL_SIN_CONTORNO_DISCONTINUO: "mejora",
   INZOOM_CONTENIDO_INSUFICIENTE: "mejora",

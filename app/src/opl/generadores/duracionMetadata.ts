@@ -1,4 +1,5 @@
 import { designacionesEstado } from "../../modelo/estadosDesignaciones";
+import { nombreCanonicoEstado } from "../../modelo/nombresCanonicos";
 import type { Entidad, Estado } from "../../modelo/tipos";
 import {
   listarDesignaciones,
@@ -25,7 +26,7 @@ export function oracionesUnidadDescripcionEstados(entidad: Entidad, estados: Est
   }
   for (const estado of estados.filter((item) => !item.suprimido)) {
     for (const designacion of designacionesEstado(estado)) {
-      lineas.push(`${nombreOpl(entidad)} en \`${estado.nombre}\` es ${textoDesignacionEstado(designacion)}.`);
+      lineas.push(`${nombreOpl(entidad)} en \`${nombreCanonicoEstado(estado)}\` es ${textoDesignacionEstado(designacion)}.`);
     }
     const duracion = formatearDuracion(estado);
     if (duracion) lineas.push(duracion);
@@ -35,12 +36,12 @@ export function oracionesUnidadDescripcionEstados(entidad: Entidad, estados: Est
 
 export function nombreEstadoOpl(estado: Estado): string {
   const designaciones = designacionesEstado(estado);
-  return `\`${estado.nombre}\`${designaciones.length > 0 ? ` (${listarDesignaciones(designaciones)})` : ""}`;
+  return `\`${nombreCanonicoEstado(estado)}\`${designaciones.length > 0 ? ` (${listarDesignaciones(designaciones)})` : ""}`;
 }
 
 export function formatearDuracion(estado: Estado): string | null {
   if (!estado.duracion) return null;
-  return `${estado.duracion.min}, ${estado.duracion.nominal}, y ${estado.duracion.max} ${estado.duracion.unidad} Duracion Minima, Esperada y Maxima de \`${estado.nombre}\`, respectivamente.`;
+  return `${estado.duracion.min}, ${estado.duracion.nominal}, y ${estado.duracion.max} ${estado.duracion.unidad} Duracion Minima, Esperada y Maxima de \`${nombreCanonicoEstado(estado)}\`, respectivamente.`;
 }
 
 export function formatearAliasInline(entidad: Entidad): string {

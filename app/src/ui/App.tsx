@@ -149,6 +149,11 @@ export function App() {
   const oracionesOpl = panelOplVm.lineas.length;
   const avisosDiagnostico = listarAvisosDiagnostico(modelo, { tipo: "opd", opdId: opdActivoId });
   const estadoDiagnostico = estadoDiagnosticoFooter(avisosDiagnostico.length);
+  const [diagnosticoExpandido, setDiagnosticoExpandido] = useState(false);
+
+  useEffect(() => {
+    if (avisosDiagnostico.length === 0) setDiagnosticoExpandido(false);
+  }, [avisosDiagnostico.length, opdActivoId]);
 
   return (
     <CanvasAdapterContext.Provider value={canvasAdapter}>
@@ -305,21 +310,29 @@ export function App() {
                   style={layout.marginaliaRule}
                 />
                 <section style={layout.rightInspectorPane}>
-                  <CodexColHeader kicker="INSPECTOR" title="Selection" />
+                  {!diagnosticoExpandido ? <CodexColHeader kicker="INSPECTOR" title="Selection" /> : null}
                   <div style={layout.inspectorContent}>
-                    <Inspector />
-                    {timelineDisponible ? (
-                      <div style={layout.timelineInInspector}>
-                        <Suspense fallback={<div style={layout.timelineFallback} />}>
-                          <Timeline />
-                        </Suspense>
+                    {diagnosticoExpandido && avisosDiagnostico.length > 0 ? (
+                      <div style={{ ...layout.diagnosticoMarginalia, height: "100%", borderTop: 0 }}>
+                        <PanelDiagnostico expandido={diagnosticoExpandido} onExpandidoChange={setDiagnosticoExpandido} />
                       </div>
-                    ) : null}
-                    {avisosDiagnostico.length > 0 ? (
-                      <div style={layout.diagnosticoMarginalia}>
-                        <PanelDiagnostico />
-                      </div>
-                    ) : null}
+                    ) : (
+                      <>
+                        <Inspector />
+                        {timelineDisponible ? (
+                          <div style={layout.timelineInInspector}>
+                            <Suspense fallback={<div style={layout.timelineFallback} />}>
+                              <Timeline />
+                            </Suspense>
+                          </div>
+                        ) : null}
+                        {avisosDiagnostico.length > 0 ? (
+                          <div style={layout.diagnosticoMarginalia}>
+                            <PanelDiagnostico expandido={diagnosticoExpandido} onExpandidoChange={setDiagnosticoExpandido} />
+                          </div>
+                        ) : null}
+                      </>
+                    )}
                   </div>
                 </section>
               </div>

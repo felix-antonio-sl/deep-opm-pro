@@ -10,37 +10,44 @@ import {
 import { EVENTO_ABRIR_AVISO_DIAGNOSTICO } from "../app/ports/feedbackPort";
 import { tokens } from "./tokens";
 
-const META: Record<SeveridadDiagnostico, { titulo: string; icono: string; color: string; fondo: string; borde: string }> = {
+const META: Record<SeveridadDiagnostico, { titulo: string; icono: string; color: string }> = {
   bloqueo: {
     titulo: "Bloqueos",
     icono: "!",
     color: tokens.colors.errorTexto,
-    fondo: tokens.colors.errorFondoIntenso,
-    borde: tokens.colors.errorBordeSuave,
   },
   mejora: {
     titulo: "Mejoras",
-    icono: "!",
+    icono: "△",
     color: tokens.colors.alertaTexto,
-    fondo: tokens.colors.advertenciaFondo,
-    borde: tokens.colors.advertenciaBorde,
   },
   estilo: {
     titulo: "Estilo",
-    icono: "i",
+    icono: "·",
     color: tokens.colors.textoSlate,
-    fondo: tokens.colors.fondoElevado,
-    borde: tokens.colors.bordeSlate,
   },
 };
 type DiagnosticoMeta = (typeof META)[SeveridadDiagnostico];
 
-export function PanelDiagnostico() {
-  const [expandido, setExpandido] = useState(false);
+interface PanelDiagnosticoProps {
+  expandido?: boolean;
+  onExpandidoChange?: (expandido: boolean) => void;
+}
+
+let codigoResaltadoGlobal: string | null = null;
+
+export function PanelDiagnostico(props: PanelDiagnosticoProps = {}) {
+  const [expandidoInterno, setExpandidoInterno] = useState(false);
+  const expandido = props.expandido ?? expandidoInterno;
+  const setExpandido = (actualizar: boolean | ((actual: boolean) => boolean)) => {
+    const siguiente = typeof actualizar === "function" ? actualizar(expandido) : actualizar;
+    if (props.expandido === undefined) setExpandidoInterno(siguiente);
+    props.onExpandidoChange?.(siguiente);
+  };
   const [revision, setRevision] = useState(0);
   const { avisos, navegarAviso } = useZustandDiagnosticsPort(revision);
   const [citaActiva, setCitaActiva] = useState<{ codigo: string; cita: string } | null>(null);
-  const [codigoResaltado, setCodigoResaltado] = useState<string | null>(null);
+  const [codigoResaltado, setCodigoResaltado] = useState<string | null>(codigoResaltadoGlobal);
 
   const issues = useMemo(() => derivarIssuesDiagnostico(avisos, navegarAviso), [avisos, navegarAviso]);
   const grupos = useMemo(() => agruparIssuesDiagnostico(issues), [issues]);
@@ -49,12 +56,12 @@ export function PanelDiagnostico() {
     const abrirAviso = (event: Event) => {
       const detail = (event as CustomEvent<{ reglaId?: string }>).detail;
       if (!detail?.reglaId) return;
+      codigoResaltadoGlobal = detail.reglaId;
       setExpandido(true);
       setCodigoResaltado(detail.reglaId);
       requestAnimationFrame(() => {
         document.querySelector<HTMLElement>(`[data-aviso-codigo="${detail.reglaId}"]`)?.scrollIntoView({ block: "nearest" });
       });
-      window.setTimeout(() => setCodigoResaltado((actual) => (actual === detail.reglaId ? null : actual)), 2_400);
     };
     window.addEventListener(EVENTO_ABRIR_AVISO_DIAGNOSTICO, abrirAviso);
     return () => window.removeEventListener(EVENTO_ABRIR_AVISO_DIAGNOSTICO, abrirAviso);
@@ -83,10 +90,10 @@ export function PanelDiagnostico() {
         <span style={style.headerActions}>
           {expandido ? (
             <button type="button" data-testid="panel-diagnostico-revalidar" style={style.revalidar} onClick={() => setRevision((valor) => valor + 1)}>
-              Revalidar
+              revalidar
             </button>
           ) : null}
-          <span style={contadorStyle(issues)}>{issues.length === 1 ? "1 sugerencia" : `${issues.length} sugerencias`}</span>
+          <span style={contadorStyle(issues)}>{issues.length === 0 ? "sin sugerencias" : `△ ${issues.length} ${issues.length === 1 ? "sugerencia" : "sugerencias"}`}</span>
         </span>
       </header>
       {expandido ? (
@@ -107,9 +114,30 @@ export function PanelDiagnostico() {
             <div style={style.empty}>Modelo sin sugerencias metodológicas</div>
           ) : (
             <div style={style.secciones}>
-              <Seccion titulo={META.bloqueo.titulo} meta={META.bloqueo} issues={grupos.bloqueo} codigoResaltado={codigoResaltado} onCita={setCitaActiva} />
-              <Seccion titulo={META.mejora.titulo} meta={META.mejora} issues={grupos.mejora} codigoResaltado={codigoResaltado} onCita={setCitaActiva} />
-              <Seccion titulo={META.estilo.titulo} meta={META.estilo} issues={grupos.estilo} codigoResaltado={codigoResaltado} onCita={setCitaActiva} />
+              <Seccion
+                titulo={META.bloqueo.titulo}
+                meta={META.bloqueo}
+                issues={grupos.bloqueo}
+                codigoResaltado={codigoResaltado}
+                onCita={setCitaActiva}
+                onNavegar={() => setExpandido(false)}
+              />
+              <Seccion
+                titulo={META.mejora.titulo}
+                meta={META.mejora}
+                issues={grupos.mejora}
+                codigoResaltado={codigoResaltado}
+                onCita={setCitaActiva}
+                onNavegar={() => setExpandido(false)}
+              />
+              <Seccion
+                titulo={META.estilo.titulo}
+                meta={META.estilo}
+                issues={grupos.estilo}
+                codigoResaltado={codigoResaltado}
+                onCita={setCitaActiva}
+                onNavegar={() => setExpandido(false)}
+              />
             </div>
           )}
         </div>
@@ -124,14 +152,15 @@ function Seccion(props: {
   issues: DiagnosticoIssueAgrupado[];
   codigoResaltado: string | null;
   onCita: (detalle: { codigo: string; cita: string }) => void;
+  onNavegar: () => void;
 }) {
   const total = props.issues.reduce((acc, grupo) => acc + grupo.instancias.length, 0);
   return (
     <section style={style.seccion}>
-      <h3 style={{ ...style.seccionTitulo, color: props.meta.color }}>
-        {props.titulo} ({total})
+      <h3 style={style.seccionTitulo}>
+        <span>{props.titulo}</span>
+        <span style={style.seccionConteo}>· {total === 0 ? "ninguno" : total}</span>
       </h3>
-      {props.issues.length === 0 ? <p style={style.seccionEmpty}>Sin sugerencias en este grupo</p> : null}
       <div role="list" style={style.list}>
         {props.issues.map((grupo) => (
           <article
@@ -141,13 +170,16 @@ function Seccion(props: {
             data-aviso-instancias={grupo.instancias.length}
             data-resaltado={props.codigoResaltado === grupo.testIdCodigo ? "true" : "false"}
             role="listitem"
-            style={{ ...filaStyle(props.meta), ...(props.codigoResaltado === grupo.testIdCodigo ? style.filaResaltada : {}) }}
+            style={{ ...style.row, ...(props.codigoResaltado === grupo.testIdCodigo ? style.filaResaltada : {}) }}
           >
             <button
               type="button"
               data-testid={`aviso-navegar-${grupo.testIdCodigo}`}
               style={style.rowMain}
-              onClick={grupo.navegar}
+              onClick={() => {
+                grupo.navegar();
+                props.onNavegar();
+              }}
               title="Ir al elemento"
             >
               <span aria-hidden="true" style={{ ...style.icon, color: props.meta.color }}>{props.meta.icono}</span>
@@ -156,7 +188,7 @@ function Seccion(props: {
                   {grupo.titulo}
                   {grupo.instancias.length > 1 ? (
                     <span data-testid={`aviso-contador-${grupo.testIdCodigo}`} style={style.contadorGrupo}>
-                      {grupo.instancias.length}
+                      · {grupo.instancias.length}
                     </span>
                   ) : null}
                 </strong>
@@ -175,7 +207,7 @@ function Seccion(props: {
               {/* Ronda24/L1 #2: el label visible pasa de "SSOT" (jerga
                   interna) a "Cita" — humano. El title y aria-label
                   preservan la referencia SSOT como contrato técnico. */}
-              Cita
+              [cita]
             </button>
           </article>
         ))}
@@ -201,16 +233,6 @@ function contadorStyle(issues: DiagnosticoIssue[]): preact.JSX.CSSProperties {
   return {
     ...style.count,
     color: issues.length === 0 ? tokens.colors.exitoTexto : hayBloqueo ? tokens.colors.errorTexto : hayMejora ? tokens.colors.alertaTexto : tokens.colors.textoSlate,
-    background: issues.length === 0 ? tokens.colors.exitoFondo : hayBloqueo ? tokens.colors.errorFondoIntenso : hayMejora ? tokens.colors.advertenciaFondo : tokens.colors.fondoElevado,
-  };
-}
-
-function filaStyle(meta: DiagnosticoMeta): preact.JSX.CSSProperties {
-  return {
-    ...style.row,
-    borderColor: meta.borde,
-    borderLeftColor: meta.color,
-    background: meta.fondo,
   };
 }
 
@@ -219,15 +241,16 @@ const style = {
     minHeight: 32,
     maxHeight: 32,
     overflow: "hidden",
-    borderTop: `1px solid ${tokens.colors.bordePanel}`,
-    background: tokens.colors.fondoPanel,
+    borderTop: 0,
+    background: "transparent",
     fontFamily: tokens.typography.familyChrome,
   },
   panelExpandido: {
-    height: 200,
+    height: "100%",
+    minHeight: 200,
     overflow: "hidden",
-    borderTop: `1px solid ${tokens.colors.bordePanel}`,
-    background: tokens.colors.fondoPanel,
+    borderTop: 0,
+    background: "transparent",
     fontFamily: tokens.typography.familyChrome,
   },
   header: {
@@ -238,7 +261,7 @@ const style = {
     gap: 8,
     padding: "0 12px",
     borderBottom: `1px solid ${tokens.colors.bordePanel}`,
-    background: tokens.colors.fondoPanelSuave,
+    background: "transparent",
     color: tokens.colors.textoPrimario,
     fontSize: 13,
     fontWeight: 700,
@@ -258,44 +281,43 @@ const style = {
   chevron: { width: 12, color: tokens.colors.textoTerciario },
   headerActions: { display: "inline-flex", alignItems: "center", gap: 8 },
   revalidar: {
-    border: `1px solid ${tokens.colors.bordeControl}`,
-    borderRadius: tokens.radii.sm,
-    background: tokens.colors.fondoElevado,
+    border: 0,
+    borderRadius: 0,
+    background: "transparent",
     color: tokens.colors.textoSlate,
     cursor: "pointer",
-    fontSize: 11,
-    fontWeight: 700,
-    padding: "3px 7px",
+    fontFamily: tokens.typography.serif,
+    fontSize: 12,
+    fontStyle: "italic",
+    fontWeight: 400,
+    padding: 0,
   },
   count: {
-    minWidth: 62,
-    height: 20,
-    // Codex L6 (S-02): chrome a radius cero; el contador no es píldora.
-    borderRadius: tokens.radii.none,
     display: "inline-flex",
     alignItems: "center",
     justifyContent: "center",
-    padding: "0 8px",
-    border: `1px solid ${tokens.colors.bordePanel}`,
+    padding: 0,
+    border: 0,
+    background: "transparent",
     fontSize: 11,
-    fontWeight: 700,
+    fontWeight: 500,
   },
   cuerpo: {
-    height: 168,
+    height: "calc(100% - 32px)",
     minHeight: 0,
     overflow: "auto",
-    padding: 8,
+    padding: "8px 12px",
   },
   citaDetalle: {
-    display: "flex",
-    gap: 8,
-    padding: "6px 8px",
+    display: "block",
+    padding: "4px 0 4px 10px",
     marginBottom: 8,
-    border: `1px solid ${tokens.colors.infoBordeSuave}`,
-    borderRadius: tokens.radii.md,
-    background: tokens.colors.infoFondoAlterno,
+    borderLeft: `1px solid ${tokens.colors.bordePanel}`,
+    background: "transparent",
     color: tokens.colors.textoSlate,
-    fontSize: 11,
+    fontFamily: tokens.typography.serif,
+    fontSize: 12,
+    fontStyle: "italic",
   },
   empty: {
     padding: 12,
@@ -305,21 +327,31 @@ const style = {
   },
   secciones: {
     display: "grid",
-    gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
-    gap: 8,
+    gridTemplateColumns: "1fr",
+    gap: 10,
   },
   seccion: { minWidth: 0, display: "grid", alignContent: "start", gap: 6 },
-  seccionTitulo: { margin: 0, fontSize: 12, fontWeight: 800 },
-  seccionEmpty: { margin: 0, color: tokens.colors.textoTerciario, fontSize: 12 },
-  list: { display: "grid", gap: 6 },
+  seccionTitulo: {
+    margin: 0,
+    color: tokens.colors.textoPrimario,
+    fontFamily: tokens.typography.serif,
+    fontSize: 12,
+    fontWeight: 600,
+  },
+  seccionConteo: {
+    marginLeft: 4,
+    color: tokens.colors.textoTerciario,
+    fontWeight: 400,
+  },
+  list: { display: "grid", gap: 4 },
   row: {
     display: "grid",
     gridTemplateColumns: "minmax(0, 1fr) auto",
     gap: 6,
-    border: `1px solid ${tokens.colors.bordeChrome}`,
-    borderLeftWidth: 3,
-    borderRadius: tokens.radii.md,
-    padding: 6,
+    border: 0,
+    borderRadius: 0,
+    background: "transparent",
+    padding: "2px 0 2px 14px",
     minWidth: 0,
   },
   filaResaltada: {
@@ -338,26 +370,26 @@ const style = {
     textAlign: "left",
     cursor: "pointer",
   },
-  icon: { flex: "0 0 auto", width: 16, fontWeight: 900, textAlign: "center" },
+  icon: { flex: "0 0 auto", width: 12, fontWeight: 600, textAlign: "center" },
   rowText: { display: "grid", gap: 2, minWidth: 0, color: tokens.colors.textoPrimario, fontSize: 12 },
   contadorGrupo: {
-    marginLeft: 6,
-    padding: "0 6px",
-    borderRadius: tokens.radii.sm,
-    background: tokens.colors.fondoElevado,
-    border: `1px solid ${tokens.colors.bordeChrome}`,
+    marginLeft: 4,
+    padding: 0,
     color: tokens.colors.textoSlate,
-    fontSize: 10,
-    fontWeight: 700,
+    fontSize: 11,
+    fontWeight: 400,
   },
   cita: {
     alignSelf: "start",
-    border: `1px solid ${tokens.colors.bordeIntermedio}`,
-    borderRadius: tokens.radii.sm,
-    background: tokens.colors.fondoElevado,
+    border: 0,
+    borderRadius: 0,
+    background: "transparent",
     color: tokens.colors.textoSlate,
     cursor: "pointer",
-    fontSize: 10,
-    fontWeight: 800,
+    fontFamily: tokens.typography.serif,
+    fontSize: 11,
+    fontStyle: "italic",
+    fontWeight: 400,
+    padding: 0,
   },
 } satisfies Record<string, preact.JSX.CSSProperties>;

@@ -24,6 +24,43 @@ describe("OPL-ES — tipos de enlace canonicos", () => {
     expect(linea?.opdProfundidad).toBe(0);
   });
 
+  test("R-NOM-OBJ-1 normaliza underscores internos a nombre canonico legible", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 0, y: 0 }, "Hospitalización_domiciliaria"));
+
+    const texto = generarOpl(modelo).join("\n");
+
+    expect(texto).toContain("**Hospitalización Domiciliaria** es informacional.");
+    expect(texto).toContain("**Hospitalización Domiciliaria** es sistémico.");
+    expect(texto).not.toContain("Hospitalización_domiciliaria");
+  });
+
+  test("R-NOM-PROC-1 no emite OPL para procesos placeholder", () => {
+    let modelo = crearModelo();
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 0, y: 0 }, "Proceso"));
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 220, y: 0 }, "Resultado_clínico"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidad(modelo, "Proceso"), entidad(modelo, "Resultado_clínico"), "resultado"));
+
+    const texto = generarOpl(modelo).join("\n");
+
+    expect(texto).not.toContain("*Proceso*");
+    expect(texto).not.toContain("genera");
+    expect(texto).toContain("**Resultado Clínico** es informacional.");
+  });
+
+  test("R-NOM-EST-1 suprime estados placeholder de la OPL canonica", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 0, y: 0 }, "Pedido"));
+    const objetoId = entidad(modelo, "Pedido");
+    modelo = must(crearEstadosIniciales(modelo, objetoId)).modelo;
+
+    const texto = generarOpl(modelo).join("\n");
+
+    expect(texto).not.toContain("puede estar");
+    expect(texto).not.toContain("estado1");
+    expect(texto).not.toContain("estado2");
+  });
+
   test("agregacion emite consta de", () => {
     let modelo = crearModelo();
     modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 0, y: 0 }, "Todo"));
@@ -318,7 +355,10 @@ describe("OPL-ES — tipos de enlace canonicos", () => {
     modelo = must(designarEstadoInicial(modelo, primero.id));
     modelo = must(designarEstadoFinal(modelo, primero.id));
 
-    expect(generarOpl(modelo)).toContain("**Orden** puede estar `abierta` (inicial y final) o `estado2`.");
+    const lineas = generarOpl(modelo);
+    expect(lineas).not.toContain("**Orden** puede estar `abierta` (inicial y final) o `estado2`.");
+    expect(lineas).toContain("**Orden** en `abierta` es inicial.");
+    expect(lineas).toContain("**Orden** en `abierta` es final.");
   });
 
   test("tres estados usan coma y o final", () => {
@@ -381,10 +421,10 @@ describe("OPL-ES — tipos de enlace canonicos", () => {
 
     const lineas = generarOpl(modelo);
 
-    expect(lineas).toContain("*Procesar 2* consume **Objeto_4** en `estado1`.");
-    expect(lineas).toContain("*Procesar 2* genera **Objeto_8** en `e1`.");
-    expect(lineas).not.toContain("*Procesar 2* cambia **Objeto_4** de `estado1`.");
-    expect(lineas).not.toContain("*Procesar 2* cambia **Objeto_8** a `e1`.");
+    expect(lineas).not.toContain("*Procesar 2* consume **Objeto 4** en `estado1`.");
+    expect(lineas).toContain("*Procesar 2* genera **Objeto 8** en `e1`.");
+    expect(lineas).not.toContain("*Procesar 2* cambia **Objeto 4** de `estado1`.");
+    expect(lineas).not.toContain("*Procesar 2* cambia **Objeto 8** a `e1`.");
   });
 
   test("par consumo-resultado sobre estados emite transicion TS3 unica", () => {
@@ -410,9 +450,9 @@ describe("OPL-ES — tipos de enlace canonicos", () => {
   test("abanico de resultados hacia estados agrupa estados sin repetir el objeto", () => {
     let modelo = crearModelo();
     modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 80, y: 60 }, "Objeto_2"));
-    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 260, y: 220 }, "Proceso"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 260, y: 220 }, "Procesar"));
     const objetoId = entidad(modelo, "Objeto_2");
-    const procesoId = entidad(modelo, "Proceso");
+    const procesoId = entidad(modelo, "Procesar");
 
     const estados = must(crearEstadosIniciales(modelo, objetoId));
     modelo = estados.modelo;
@@ -452,10 +492,10 @@ describe("OPL-ES — tipos de enlace canonicos", () => {
     };
 
     const lineas = generarOpl(modelo);
-    expect(lineas).toContain("*Proceso* cambia **Objeto_2** a al menos uno de `e2` y `e3`.");
-    expect(lineas).not.toContain("*Proceso* genera al menos uno de **Objeto_2** y **Objeto_2**.");
+    expect(lineas).toContain("*Procesar* cambia **Objeto 2** a al menos uno de `e2` y `e3`.");
+    expect(lineas).not.toContain("*Proceso* genera al menos uno de **Objeto 2** y **Objeto 2**.");
 
-    const lineaInteractiva = generarOplInteractivo(modelo).find((linea) => linea.texto.includes("cambia **Objeto_2** a al menos uno de"));
+    const lineaInteractiva = generarOplInteractivo(modelo).find((linea) => linea.texto.includes("cambia **Objeto 2** a al menos uno de"));
     expect(lineaInteractiva).toBeDefined();
     expect(lineaInteractiva?.tokens.some((token) => token.markdown === "estado" && token.texto === "`e2`")).toBe(true);
     expect(lineaInteractiva?.tokens.some((token) => token.markdown === "estado" && token.texto === "`e3`")).toBe(true);
@@ -755,21 +795,21 @@ describe("generarOpl", () => {
     modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 0, y: 0 }, "Whole"));
     modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 180, y: 0 }, "Part"));
     modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 0, y: 120 }, "Instrumento"));
-    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 240, y: 120 }, "Proceso"));
-    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 420, y: 120 }, "Subproceso"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 240, y: 120 }, "Procesar"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 420, y: 120 }, "Subprocesar"));
 
     modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidad(modelo, "Whole"), entidad(modelo, "Part"), "agregacion"));
-    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidad(modelo, "Instrumento"), entidad(modelo, "Proceso"), "instrumento"));
-    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidad(modelo, "Part"), entidad(modelo, "Proceso"), "consumo"));
-    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidad(modelo, "Part"), entidad(modelo, "Proceso"), "efecto"));
-    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidad(modelo, "Proceso"), entidad(modelo, "Subproceso"), "invocacion"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidad(modelo, "Instrumento"), entidad(modelo, "Procesar"), "instrumento"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidad(modelo, "Part"), entidad(modelo, "Procesar"), "consumo"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidad(modelo, "Part"), entidad(modelo, "Procesar"), "efecto"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidad(modelo, "Procesar"), entidad(modelo, "Subprocesar"), "invocacion"));
 
     const lineas = generarOpl(modelo);
     expect(lineas).toContain("**Whole** consta de **Part**.");
-    expect(lineas).toContain("*Proceso* requiere **Instrumento**.");
-    expect(lineas).toContain("*Proceso* consume **Part**.");
-    expect(lineas).toContain("*Proceso* afecta **Part**.");
-    expect(lineas).toContain("*Proceso* invoca *Subproceso*.");
+    expect(lineas).toContain("*Procesar* requiere **Instrumento**.");
+    expect(lineas).toContain("*Procesar* consume **Part**.");
+    expect(lineas).toContain("*Procesar* afecta **Part**.");
+    expect(lineas).toContain("*Procesar* invoca *Subprocesar*.");
   });
 
   test("limita OPL al OPD solicitado", () => {
@@ -1122,6 +1162,10 @@ describe("HU-50.016 coloreado de tokens", () => {
     const objId = entidad(modelo, "Ticket");
     const resultado = crearEstadosIniciales(modelo, objId);
     modelo = must(resultado).modelo;
+    const [primero, segundo] = estadosDeEntidad(modelo, objId);
+    if (!primero || !segundo) throw new Error("La prueba esperaba estados");
+    modelo = must(renombrarEstado(modelo, primero.id, "nuevo"));
+    modelo = must(renombrarEstado(modelo, segundo.id, "cerrado"));
 
     const interactivo = generarOplInteractivo(modelo, modelo.opdRaizId);
     const tokenEstado = interactivo

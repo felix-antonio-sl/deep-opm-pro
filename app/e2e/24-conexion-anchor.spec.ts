@@ -11,6 +11,7 @@ test("drag desde anchor abre MenuTipoEnlace anclado y confirma conexion", async 
   await page.getByRole("button", { name: "Importar", exact: true }).click();
   await expect(elementoPorTexto(page, "Entrada")).toBeVisible();
   await expect(elementoPorTexto(page, "Procesar")).toBeVisible();
+  await elementoPorTexto(page, "Entrada").click();
 
   const entradaBody = elementoPorTexto(page, "Entrada").locator('[joint-selector="body"]');
   const procesarBody = elementoPorTexto(page, "Procesar").locator('[joint-selector="body"]');

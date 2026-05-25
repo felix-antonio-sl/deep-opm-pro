@@ -29,14 +29,14 @@ describe("abanico OPL", () => {
   test("OR de instrumentos con modificador condicion emite forma 'ocurre si … se omite'", () => {
     const modelo = modeloInstrumentos("O", "condicion");
     expect(oracionAbanico(modelo, modelo.abanicos!.ab1!)).toBe(
-      "*Procesar* ocurre si al menos uno de **Objeto_4** y **Objeto_5** existe, de lo contrario *Procesar* se omite.",
+      "*Procesar* ocurre si al menos uno de **Objeto 4** y **Objeto 5** existe, de lo contrario *Procesar* se omite.",
     );
   });
 
   test("XOR de instrumentos con modificador condicion emite 'ocurre si exactamente uno … se omite'", () => {
     const modelo = modeloInstrumentos("XOR", "condicion");
     expect(oracionAbanico(modelo, modelo.abanicos!.ab1!)).toBe(
-      "*Procesar* ocurre si exactamente uno de **Objeto_4** y **Objeto_5** existe, de lo contrario *Procesar* se omite.",
+      "*Procesar* ocurre si exactamente uno de **Objeto 4** y **Objeto 5** existe, de lo contrario *Procesar* se omite.",
     );
   });
 
@@ -50,7 +50,7 @@ describe("abanico OPL", () => {
   test("abanico mixto (1 condicional + 1 no condicional) mantiene comportamiento por defecto", () => {
     const modelo = modeloInstrumentos("O", "mixto");
     expect(oracionAbanico(modelo, modelo.abanicos!.ab1!)).toBe(
-      "*Procesar* requiere al menos uno de **Objeto_4** y **Objeto_5**.",
+      "*Procesar* requiere al menos uno de **Objeto 4** y **Objeto 5**.",
     );
   });
 
@@ -70,12 +70,12 @@ describe("abanico OPL", () => {
   // deduplican y la oracion no repite el mismo extremo absurdamente.
   test("OR de resultados al mismo objeto sin estados emite oracion deduplicada", () => {
     const modelo = modeloResultadosMismaEntidad("O");
-    expect(oracionAbanico(modelo, modelo.abanicos!.ab1!)).toBe("*Procesar* genera **Objeto_2**.");
+    expect(oracionAbanico(modelo, modelo.abanicos!.ab1!)).toBe("*Procesar* genera **Objeto 2**.");
   });
 
   test("XOR de resultados al mismo objeto sin estados emite oracion deduplicada", () => {
     const modelo = modeloResultadosMismaEntidad("XOR");
-    expect(oracionAbanico(modelo, modelo.abanicos!.ab1!)).toBe("*Procesar* genera **Objeto_2**.");
+    expect(oracionAbanico(modelo, modelo.abanicos!.ab1!)).toBe("*Procesar* genera **Objeto 2**.");
   });
 });
 

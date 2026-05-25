@@ -267,7 +267,7 @@ test("simulación: navegar a otro OPD no aborta la corrida (B0.026)", async ({ p
   // Modelo con dos OPDs: el raíz tiene un proceso (plan no vacío) y un OPD hijo.
   await jsonEditor(page).fill(JSON.stringify(modeloSimulacionDosOpds(), null, 2));
   await page.getByRole("button", { name: "Importar" }).click();
-  await expect(page.getByTestId("breadcrumb-opd")).toContainText("SD");
+  await expect(page.getByTestId("breadcrumb-opd")).toContainText("system diagram");
 
   await entrarSimulacionDesdeMas(page);
   await expect(page.getByTestId("barra-simulacion")).toBeVisible();
@@ -275,7 +275,7 @@ test("simulación: navegar a otro OPD no aborta la corrida (B0.026)", async ({ p
 
   // Navegar al OPD hijo vía el árbol lateral (patrón spec 04) NO debe abortar.
   await page.locator('[role="treeitem"][data-opd-id="opd-2"]').click();
-  await expect(page.getByTestId("breadcrumb-opd")).toContainText("SD1");
+  await expect(page.getByTestId("breadcrumb-opd")).toContainText("sd1");
   await expect(page.getByTestId("barra-simulacion")).toBeVisible();
 
   // Volver al raíz: la corrida sigue viva en su paso original.

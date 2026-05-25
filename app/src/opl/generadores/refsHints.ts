@@ -1,6 +1,7 @@
 import { esAutoInvocacion } from "../../modelo/autoinvocacion";
 import { puertoExactoCompartidoDeAbanico } from "../../modelo/abanicos";
 import { entidadDeExtremo, entidadIdDeExtremo, estadoDeExtremo } from "../../modelo/extremos";
+import { esNombreProcesoPlaceholder, estadoTieneNombreCanonico, nombreCanonicoEntidad, nombreCanonicoEstado } from "../../modelo/nombresCanonicos";
 import type { Abanico, Enlace, Entidad, Estado, Id, Modelo, TipoEnlace } from "../../modelo/tipos";
 import type { OplReferencia, OplTokenHint } from "../interaccion";
 
@@ -124,7 +125,7 @@ export function hintEntidad(entidad: Entidad, texto = nombreOpl(entidad)): OplTo
 
 export function hintEstado(estado: Estado): OplTokenHint {
   return {
-    texto: `\`${estado.nombre}\``,
+    texto: `\`${nombreCanonicoEstado(estado)}\``,
     ref: refEstado(estado.id),
     rol: "estado",
     markdown: "estado",
@@ -174,7 +175,8 @@ export function nombreOpl(entidad: Entidad): string {
 }
 
 export function nombreOplAtributoValor(entidad: Entidad): string {
-  return entidad.tipo === "objeto" ? `**${entidad.nombre}**` : `*${entidad.nombre}*`;
+  const nombre = nombreCanonicoEntidad(entidad);
+  return entidad.tipo === "objeto" ? `**${nombre}**` : `*${nombre}*`;
 }
 
 export function nombreOplExtremo(modelo: Modelo, extremo: Enlace["origenId"], multiplicidad: string | undefined): string {
@@ -182,18 +184,38 @@ export function nombreOplExtremo(modelo: Modelo, extremo: Enlace["origenId"], mu
   if (!entidad) return extremo.id;
   const base = nombreOplConMultiplicidad(entidad, multiplicidad);
   const estado = estadoDeExtremo(modelo, extremo);
-  return estado ? `${base} en \`${estado.nombre}\`` : base;
+  return estado ? `${base} en \`${nombreCanonicoEstado(estado)}\`` : base;
 }
 
 export function nombreOplConMultiplicidad(entidad: Entidad, multiplicidad: string | undefined): string {
-  const nombre = multiplicidadPlural(multiplicidad) ? pluralizarCanonico(entidad.nombre) : entidad.nombre;
+  const nombre = multiplicidadPlural(multiplicidad) ? pluralizarCanonico(nombreCanonicoEntidad(entidad)) : nombreCanonicoEntidad(entidad);
   const token = nombreOplBase(entidad, nombre);
   return multiplicidad ? `${multiplicidad} ${token}` : token;
 }
 
 export function nombreOplBase(entidad: Entidad, nombre: string): string {
-  const conUnidad = entidad.tipo === "objeto" && entidad.unidad ? `${nombre} [${entidad.unidad}]` : nombre;
+  const canonico = nombreCanonicoEntidad(entidad, nombre);
+  const conUnidad = entidad.tipo === "objeto" && entidad.unidad ? `${canonico} [${entidad.unidad}]` : canonico;
   return entidad.tipo === "objeto" ? `**${conUnidad}**` : `*${conUnidad}*`;
+}
+
+export function entidadOplEsEmitible(entidad: Entidad): boolean {
+  return entidad.tipo !== "proceso" || !esNombreProcesoPlaceholder(entidad.nombre);
+}
+
+export function estadoOplEsEmitible(estado: Estado | undefined): estado is Estado {
+  return !!estado && estadoTieneNombreCanonico(estado);
+}
+
+export function extremoOplEsEmitible(modelo: Modelo, extremo: Enlace["origenId"]): boolean {
+  const entidad = entidadDeExtremo(modelo, extremo);
+  if (!entidad || !entidadOplEsEmitible(entidad)) return false;
+  const estado = estadoDeExtremo(modelo, extremo);
+  return estado ? estadoOplEsEmitible(estado) : true;
+}
+
+export function enlaceOplEsEmitible(modelo: Modelo, enlace: Enlace): boolean {
+  return extremoOplEsEmitible(modelo, enlace.origenId) && extremoOplEsEmitible(modelo, enlace.destinoId);
 }
 
 export function pluralizarCanonico(texto: string): string {
