@@ -20,12 +20,20 @@ import {
  * consumidores: `opl/generar.ts`.
  */
 
-export function oracionEntidad(entidad: Entidad): string {
+/**
+ * Clasificación de una cosa (G2 · canon-opm D1–D4, ui-forja/04-opl-rendering §3.1):
+ * cada hecho de clasificación va en oración separada. NO colapsar como
+ * «X es un objeto informacional y sistémico» — no es canónico OPL-ES.
+ * El caso atributo-con-valor es una sola oración (no es clasificación).
+ */
+export function oracionEntidad(entidad: Entidad): string[] {
   const atributoValor = oracionValorAtributo(entidad);
-  if (atributoValor) return atributoValor;
+  if (atributoValor) return [atributoValor];
   const nombre = nombreOpl(entidad);
-  const tipo = entidad.tipo === "objeto" ? "objeto" : "proceso";
-  return `${nombre} es un ${tipo} ${textoEsencia(entidad)} y ${textoAfiliacion(entidad)}.`;
+  return [
+    `${nombre} es ${textoEsencia(entidad)}.`,
+    `${nombre} es ${textoAfiliacion(entidad)}.`,
+  ];
 }
 
 export function oracionValorAtributo(entidad: Entidad): string | null {
@@ -57,7 +65,9 @@ export function oracionEnlaceEstructural(modelo: Modelo, enlace: Enlace): string
 }
 
 export function agregarEntidadInteractiva(lineas: OplLineaPendiente[], entidad: Entidad): void {
-  agregarLinea(lineas, oracionEntidad(entidad), refsEntidad(entidad.id), []);
+  for (const oracion of oracionEntidad(entidad)) {
+    agregarLinea(lineas, oracion, refsEntidad(entidad.id), []);
+  }
 }
 
 export function oracionEnlaceEstructuralInteractivo(modelo: Modelo, enlace: Enlace): OplLineaPendiente | null {

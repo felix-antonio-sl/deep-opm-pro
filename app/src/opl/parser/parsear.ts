@@ -146,6 +146,7 @@ function parsearOracion(texto: string, linea: LineaOplNormalizada): { ast: Oraci
   }
 
   return parsearDescripcion(texto, linea)
+    ?? parsearClasificacionRasgo(texto, linea)
     ?? parsearEstados(texto, linea)
     ?? parsearEvento(texto, linea)
     ?? parsearExcepcion(texto, linea)
@@ -433,6 +434,39 @@ function parsearDescripcion(texto: string, linea: LineaOplNormalizada) {
       tipoEntidad: (match[2] === "objeto" ? "objeto" : "proceso") as TipoEntidad,
       esencia: parsearEsencia(match[3] ?? ""),
       afiliacion: parsearAfiliacion(match[4] ?? ""),
+      ...(linea.etiqueta ? { etiqueta: linea.etiqueta } : {}),
+    },
+    diagnosticos: [],
+  };
+}
+
+// G2 (canon-opm D1–D4, ui-forja/04 §3.1): clasificación escindida en oraciones
+// simples. `X es física.` / `X es informacional.` (esencia) y `X es ambiental.`
+// / `X es sistémica.` (afiliación), una dimensión por oración. El tipo (objeto
+// vs proceso) no aparece en el texto canónico: se infiere de la decoración
+// markdown del nombre (**objeto** vs *proceso*) en `linea.original`. Reverso del
+// generador `oracionEntidad`; mantiene `parsearDescripcion` (forma colapsada)
+// como entrada legacy/dictado válida — aditividad, nunca rechazo de OPL válida.
+const CLASIFICACION_RASGO_RE = /^(.+?) es (f[ií]sic[oa]|informacional|sist[eé]mic[oa]|ambiental)$/iu;
+
+function tipoEntidadDesdeMarkdown(original: string): TipoEntidad {
+  return /\*\*[^*]/.test(original.trim()) ? "objeto" : original.trim().startsWith("*") ? "proceso" : "objeto";
+}
+
+function parsearClasificacionRasgo(texto: string, linea: LineaOplNormalizada) {
+  const match = CLASIFICACION_RASGO_RE.exec(texto);
+  if (!match) return null;
+  const rasgo = (match[2] ?? "").normalize("NFD").replace(/\p{Diacritic}/gu, "").toLocaleLowerCase("es");
+  // Esencia: `físico/física` o `informacional`. Afiliación: `sistémico/sistémica`
+  // o `ambiental`. La dimensión la decide la familia léxica, no el género.
+  const esEsencia = rasgo.startsWith("fisic") || rasgo === "informacional";
+  return {
+    ast: {
+      kind: "descripcion-cosa" as const,
+      linea: linea.linea,
+      nombre: normalizarNombreOpl(match[1] ?? ""),
+      tipoEntidad: tipoEntidadDesdeMarkdown(linea.original),
+      ...(esEsencia ? { esencia: parsearEsencia(match[2] ?? "") } : { afiliacion: parsearAfiliacion(match[2] ?? "") }),
       ...(linea.etiqueta ? { etiqueta: linea.etiqueta } : {}),
     },
     diagnosticos: [],

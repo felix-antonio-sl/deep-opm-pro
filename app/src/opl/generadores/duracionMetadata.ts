@@ -62,5 +62,8 @@ export function textoDesignacionEstado(designacion: string): string {
 }
 
 export function oracionEstados(entidad: Entidad, estados: Estado[]): string {
-  return `${nombreOpl(entidad)} puede ser ${listarEstadosOpl(estados.filter((estado) => !estado.suprimido).map(nombreEstadoOpl))}.`;
+  // SSOT canon-opm L411 (tabla de verbos) y D5/D6 (§3): la enumeración de
+  // estados de un objeto usa `puede estar` (ser/estar §1.5). NO confundir con
+  // la especialización XOR (RX1/RX2), que conserva `puede ser`.
+  return `${nombreOpl(entidad)} puede estar ${listarEstadosOpl(estados.filter((estado) => !estado.suprimido).map(nombreEstadoOpl))}.`;
 }

@@ -292,7 +292,7 @@ describe("OPL-ES — tipos de enlace canonicos", () => {
     expect(generarOpl(modelo)).toContain("*Procesar* consume 1 **Recurso**.");
   });
 
-  test("estado de objeto emite puede ser con disyuncion y designaciones", () => {
+  test("estado de objeto emite puede estar con disyuncion y designaciones", () => {
     let modelo = crearModelo();
     modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 0, y: 0 }, "Pedido"));
     const objetoId = entidad(modelo, "Pedido");
@@ -304,7 +304,7 @@ describe("OPL-ES — tipos de enlace canonicos", () => {
     modelo = must(designarEstadoInicial(modelo, primero.id));
     modelo = must(designarEstadoFinal(modelo, segundo.id));
 
-    expect(generarOpl(modelo)).toContain("**Pedido** puede ser `pendiente` (inicial) o `cerrado` (final).");
+    expect(generarOpl(modelo)).toContain("**Pedido** puede estar `pendiente` (inicial) o `cerrado` (final).");
   });
 
   test("estado inicial y final en la misma capsula verbaliza ambas designaciones", () => {
@@ -318,7 +318,7 @@ describe("OPL-ES — tipos de enlace canonicos", () => {
     modelo = must(designarEstadoInicial(modelo, primero.id));
     modelo = must(designarEstadoFinal(modelo, primero.id));
 
-    expect(generarOpl(modelo)).toContain("**Orden** puede ser `abierta` (inicial y final) o `estado2`.");
+    expect(generarOpl(modelo)).toContain("**Orden** puede estar `abierta` (inicial y final) o `estado2`.");
   });
 
   test("tres estados usan coma y o final", () => {
@@ -332,7 +332,7 @@ describe("OPL-ES — tipos de enlace canonicos", () => {
     modelo = must(renombrarEstado(modelo, primero.id, "nuevo"));
     modelo = must(renombrarEstado(modelo, segundo.id, "en curso"));
 
-    expect(generarOpl(modelo)).toContain("**Ticket** puede ser `nuevo`, `en curso` o `resuelto`.");
+    expect(generarOpl(modelo)).toContain("**Ticket** puede estar `nuevo`, `en curso` o `resuelto`.");
   });
 
   test("consumo desde Estado conserva consumo y califica estado", () => {
@@ -572,7 +572,7 @@ describe("OPL-ES interactivo", () => {
 
     expect(interactivo.map((linea) => linea.texto)).toEqual(texto);
     expect(interactivo.map((linea) => linea.ordinal)).toEqual(texto.map((_, index) => index + 1));
-    expect(interactivo.map((linea) => linea.id)).toEqual(["opl-opd-1-1", "opl-opd-1-2", "opl-opd-1-3"]);
+    expect(interactivo.map((linea) => linea.id)).toEqual(["opl-opd-1-1", "opl-opd-1-2", "opl-opd-1-3", "opl-opd-1-4", "opl-opd-1-5"]);
   });
 
   test("texto plano e interactivo son identicos por OPD", () => {
@@ -651,14 +651,14 @@ describe("OPL-ES — bordes", () => {
     modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 0, y: 0 }, "Raiz"));
     modelo = must(crearProceso(modelo, "opd-2", { x: 0, y: 0 }, "Hijo"));
 
-    expect(generarOpl(modelo, "opd-2")).toEqual(["*Hijo* es un proceso informacional y sistémico."]);
+    expect(generarOpl(modelo, "opd-2")).toEqual(["*Hijo* es informacional.", "*Hijo* es sistémico."]);
   });
 
   test("entidad sin enlaces conserva su declaracion", () => {
     let modelo = crearModelo();
     modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 0, y: 0 }, "Nodo"));
 
-    expect(generarOpl(modelo)).toEqual(["**Nodo** es un objeto informacional y sistémico."]);
+    expect(generarOpl(modelo)).toEqual(["**Nodo** es informacional.", "**Nodo** es sistémico."]);
   });
 });
 
@@ -790,9 +790,11 @@ describe("generarOpl", () => {
     modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 0, y: 0 }, "Raiz"));
     modelo = must(crearProceso(modelo, "opd-2", { x: 0, y: 0 }, "Hijo"));
 
-    expect(generarOpl(modelo, modelo.opdRaizId)).toContain("**Raiz** es un objeto informacional y sistémico.");
+    expect(generarOpl(modelo, modelo.opdRaizId)).toContain("**Raiz** es informacional.");
+    expect(generarOpl(modelo, modelo.opdRaizId)).toContain("**Raiz** es sistémico.");
     expect(generarOpl(modelo, modelo.opdRaizId).join("\n")).not.toContain("Hijo");
-    expect(generarOpl(modelo, "opd-2")).toContain("*Hijo* es un proceso informacional y sistémico.");
+    expect(generarOpl(modelo, "opd-2")).toContain("*Hijo* es informacional.");
+    expect(generarOpl(modelo, "opd-2")).toContain("*Hijo* es sistémico.");
     expect(generarOpl(modelo, "opd-2").join("\n")).not.toContain("Raiz");
   });
 

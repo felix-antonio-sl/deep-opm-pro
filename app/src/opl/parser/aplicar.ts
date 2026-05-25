@@ -77,12 +77,19 @@ function aplicarPatchNoEnlace(
       let conProps = creado.value;
       if (entidadId) {
         creadas.set(claveNombre(patch.nombre), entidadId);
-        const esencia = cambiarEsencia(conProps, entidadId, patch.esencia);
-        if (!esencia.ok) return esencia;
-        conProps = esencia.value;
-        const afiliacion = cambiarAfiliacion(conProps, entidadId, patch.afiliacion);
-        if (!afiliacion.ok) return afiliacion;
-        conProps = afiliacion.value;
+        // esencia/afiliacion ausentes (clasificación escindida que solo declaró
+        // una dimensión): se conserva el default del modelo para la dimensión
+        // no nombrada (crearObjeto/crearProceso ya la fijaron).
+        if (patch.esencia !== undefined) {
+          const esencia = cambiarEsencia(conProps, entidadId, patch.esencia);
+          if (!esencia.ok) return esencia;
+          conProps = esencia.value;
+        }
+        if (patch.afiliacion !== undefined) {
+          const afiliacion = cambiarAfiliacion(conProps, entidadId, patch.afiliacion);
+          if (!afiliacion.ok) return afiliacion;
+          conProps = afiliacion.value;
+        }
       }
       return ok(conProps);
     }

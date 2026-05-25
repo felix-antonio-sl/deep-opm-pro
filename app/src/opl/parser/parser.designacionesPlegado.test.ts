@@ -65,7 +65,7 @@ describe("OPL reverse — designaciones D7-D10 (ronda26/L5)", () => {
     expect(preview.patches).toEqual([
       {
         tipo: "aplicar-designacion-estado",
-        linea: 3,
+        linea: 4,
         entidadId: pedidoId,
         estadoNombre: "abierto",
         designacion: "inicial",

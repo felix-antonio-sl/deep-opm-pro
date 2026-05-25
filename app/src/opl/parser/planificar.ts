@@ -141,7 +141,14 @@ function planificarDescripcion(
   const entidad = actual ?? (refAnterior && entidadCompatible(modelo.entidades[refAnterior.id], ast.tipoEntidad) ? modelo.entidades[refAnterior.id] : null);
 
   if (!entidad) {
-    registry.add({ tipo: "crear-entidad", linea: ast.linea, nombre: ast.nombre, entidadTipo: ast.tipoEntidad, esencia: ast.esencia, afiliacion: ast.afiliacion });
+    registry.add({
+      tipo: "crear-entidad",
+      linea: ast.linea,
+      nombre: ast.nombre,
+      entidadTipo: ast.tipoEntidad,
+      ...(ast.esencia !== undefined ? { esencia: ast.esencia } : {}),
+      ...(ast.afiliacion !== undefined ? { afiliacion: ast.afiliacion } : {}),
+    });
     return;
   }
 
@@ -160,8 +167,8 @@ function planificarDescripcion(
     }
   }
 
-  if (entidad.esencia !== ast.esencia) registry.add({ tipo: "cambiar-esencia", linea: ast.linea, entidadId: entidad.id, anterior: entidad.esencia, siguiente: ast.esencia });
-  if (entidad.afiliacion !== ast.afiliacion) registry.add({ tipo: "cambiar-afiliacion", linea: ast.linea, entidadId: entidad.id, anterior: entidad.afiliacion, siguiente: ast.afiliacion });
+  if (ast.esencia !== undefined && entidad.esencia !== ast.esencia) registry.add({ tipo: "cambiar-esencia", linea: ast.linea, entidadId: entidad.id, anterior: entidad.esencia, siguiente: ast.esencia });
+  if (ast.afiliacion !== undefined && entidad.afiliacion !== ast.afiliacion) registry.add({ tipo: "cambiar-afiliacion", linea: ast.linea, entidadId: entidad.id, anterior: entidad.afiliacion, siguiente: ast.afiliacion });
 }
 
 function planificarEstados(
@@ -722,7 +729,20 @@ class PatchRegistry {
     const key = patchKey(patch);
     const previo = this.keys.get(key);
     if (previo) {
-      if (JSON.stringify(previo) !== JSON.stringify(patch)) {
+      // G2: la clasificación escindida emite dos `crear-entidad` para la misma
+      // cosa (una por dimensión). Se fusionan en el patch pendiente: cada
+      // oración aporta su dimensión sin dispararse como conflicto.
+      if (previo.tipo === "crear-entidad" && patch.tipo === "crear-entidad" && previo.entidadTipo === patch.entidadTipo) {
+        if (previo.esencia === undefined && patch.esencia !== undefined) previo.esencia = patch.esencia;
+        if (previo.afiliacion === undefined && patch.afiliacion !== undefined) previo.afiliacion = patch.afiliacion;
+        return;
+      }
+      // El `patchKey` ya define la identidad del hecho con independencia del
+      // número de línea. Dos oraciones distintas pueden emitir el mismo patch
+      // (p. ej. G2: las dos oraciones de clasificación escindida resuelven al
+      // mismo renombrado vía `anterior`): si solo difieren en `linea`, es
+      // idempotente, no conflicto.
+      if (!equivalenteSalvoLinea(previo, patch)) {
         this.diagnostico({
           codigo: "patch-conflict",
           severidad: "error",
@@ -777,6 +797,12 @@ class PatchRegistry {
     }
     return null;
   }
+}
+
+function equivalenteSalvoLinea(a: PatchOplPropuesto, b: PatchOplPropuesto): boolean {
+  const { linea: _la, ...restoA } = a;
+  const { linea: _lb, ...restoB } = b;
+  return JSON.stringify(restoA) === JSON.stringify(restoB);
 }
 
 function patchKey(patch: PatchOplPropuesto): string {
