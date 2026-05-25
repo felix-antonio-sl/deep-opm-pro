@@ -702,9 +702,17 @@ export function attrsLinea(seleccionada: boolean): Record<string, unknown> {
 
 export function extremo(id: Id, portId?: Id): Record<string, unknown> {
   if (portId) return { id, port: portId, connectionPoint: { name: "anchor" } };
+  // Ancla canonica OpCloud (init-rappid.service.ts:293 `defaultAnchor.name =
+  // "center"` + `defaultConnectionPoint.name = "boundary"`). El ancla `center`
+  // dirige la linea al centro geometrico de la entidad y `boundary` la recorta
+  // en el perimetro real (elipse para procesos, rectangulo para objetos), de
+  // modo que consumo/resultado/efecto entran/salen exactamente en la
+  // interseccion del eje centro-a-centro con la forma. La version previa usaba
+  // `midSide` (BUG-7fcdba), que engancha al punto medio de uno de los cuatro
+  // lados del bbox y produce un anclaje no canonico que no apunta al centro.
   return {
     id,
-    anchor: { name: "midSide", args: { rotate: true } },
+    anchor: { name: "center" },
     connectionPoint: boundarySinSeparacion(),
   };
 }
