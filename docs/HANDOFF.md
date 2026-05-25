@@ -1,10 +1,47 @@
 # HANDOFF — Estado operativo del modelador OPM
 
 **Fecha**: 2026-05-25 · **Repositorio**: `deep-opm-pro` · **Rama**: `main`
-**Commit vigente**: corte documental de baseline funcional OPCloud/OPCAT para auditoria de cumplimiento de Opforja sobre `main` (consultar `git log -1 --oneline` para hash final tras push).
-**Instancia**: `https://opforja.sanixai.com` — ultimo bundle desplegado conocido **Codex v1.1 + ui-forja-governance** (consultar `git log -1 --oneline` para hash final), contenedores `opforja` (healthy) + `opforja-bug-capture`, **HTTP 200 publico** (sin auth, ver Riesgos).
+**Commit de producto desplegado**: `e5ca0ed fix(ui): corrige incumplimientos visuales codex`.
+**Commit documental de handoff**: este documento se consolida en el commit `docs(handoff): consolida cierre visual y deploy opforja`; consultar `git log -1 --oneline` para el hash final tras push.
+**Instancia**: `https://opforja.sanixai.com` — bundle **Codex v1.1 + auditoría visual 25-05** desplegado con `docker compose up -d --build`; contenedores `opforja` (healthy) + `opforja-bug-capture`, **HTTP 200 publico** (sin auth, ver Riesgos).
 
-## Corte actual — ui-forja-governance como autoridad normativa de diseño
+## Corte actual — Auditoría visual Codex v1.1 cerrada y desplegada
+
+Se resolvió `docs/auditorias/inclumplimiento-visual-25-05-2026.md` contra la captura del 25 mayo 2026. El corte es de ajuste visual/estructural, sin cambiar la semántica OPM ni la SSOT `docs/canon-opm/reglas-opm-estrictas.md`.
+
+**Decisiones aplicadas:**
+- El capturador de bugs deja de exponer floating action buttons. Sigue montado como servicio operativo y se abre por `Ctrl+Alt+B` o command palette (`Capturar bug`, `Bugs y features`). Decisión formal: `docs/decisiones/DDR-0007-botones-flotantes-capturador.md`.
+- El inspector vacío queda reducido a una sola frase italic; renombrar modelo vive en command palette → `MODELO`.
+- El breadcrumb del workspace muestra la jerarquía editorial `sistema · system diagram` y agrega OPDs hijos en minúsculas.
+- La toolbar OPL usa palabras inline, sin checkbox para filtro por selección y sin cajas para acciones de pie.
+- Se elimina `LIVE` redundante de OPL/Inspector y el árbol sólo muestra disclosure cuando hay hijos.
+- El viewport JointJS queda sin scrollbar nativa (`overflow: hidden`); el pan/zoom sigue siendo responsabilidad del canvas.
+- Los glifos y kbd de creación respetan color canónico por clase OPM.
+
+**Artefactos relevantes:**
+- `docs/auditorias/inclumplimiento-visual-25-05-2026.md` — crítica original y resolución aplicada.
+- `docs/decisiones/DDR-0007-botones-flotantes-capturador.md` — decisión de retirar FABs.
+- `app/e2e/27-visual-compliance-25-05.spec.ts` — cobertura Playwright focal de la auditoría.
+- Componentes tocados: `Breadcrumb`, `CommandPalette`, `Inspector`, `PantallaInicio`, `CapturadorBugs`, `panelOpl/Toolbar`, `toolbarPrimitives`, `ToolbarCreacion`, `NodoOpd`, `CodexFooterKey`, `JointCanvas`.
+
+**Verificación del corte:**
+- `cd app && bun run check` -> **1718 pass / 0 fail**.
+- `cd app && bun run lint` -> OK.
+- `cd app && bun run build` -> OK.
+- `cd app && bun run design:governance` -> OK.
+- `git diff --check` -> OK.
+- Playwright focal ejecutado: auditoría visual 25-05, onboarding precargado, capturador de bugs, OPL panel, carga/workspace, responsive review, superficie contextual, inspector tabs, árbol/pestañas, toolbar overflow, canvas/render e inspector resize.
+
+**Deploy verificado:**
+- `docker compose ps` -> `opforja` healthy y `opforja-bug-capture` up.
+- `docker exec opforja wget -qO- http://127.0.0.1:8080/healthz` -> `ok`.
+- `docker exec opforja wget -qO- http://bug-capture:3000/healthz` -> `{"ok":true}`.
+- `curl -I https://opforja.sanixai.com/` -> `HTTP/2 200`, `content-type: text/html`.
+- Certificado TLS Let's Encrypt para `CN = opforja.sanixai.com`, vigente hasta 2026-08-16.
+
+**Estado local al cierre:** quedan cambios no stageados/no incluidos en `docs/auditorias/inclumplimiento-visual-25-05-2026.md` y `docs/manual-simulado-opcloud-capacidades.md`; no pertenecen al commit documental de handoff y no deben stagearse automáticamente.
+
+## Corte normativo base — ui-forja-governance como autoridad normativa de diseño
 
 `ui-forja/` deja de ser una propuesta y queda consolidado como **ui-forja-governance**, autoridad normativa de diseño para Opforja.
 
@@ -124,12 +161,13 @@ Cierre completo de la **Auditoría Codex v1.0 ↔ Implementación rev2** (`/home
 
 ## Pendientes
 
+- **Auditoría con modelo cargado**: verificar de nuevo los puntos no visibles en captura vacía (`docs/auditorias/inclumplimiento-visual-25-05-2026.md` §7): OPL canónica, identificadores `o.01/p.01/o.06.1`, selección por underline sin handles ni doble borde.
+- **Deuda Codex v1.1 fuera de este corte**: proceso activo in-flight, asistente SD wizard, sub-modelos, switcher de lengua OPL, dark mode, frame letterbox 1700×950.
 - **Integrar runtime sociotecnico con OPM**: mapear procesos computacionales/agenticos a `DecisionSim`, enlaces procedurales a pre/postcondiciones, y objetos/estados a contexto operativo.
 - **Agregar puertos de efectos**: definir puertos para aprobacion humana, tool-call, HTTP, Python, MQTT, SQL, ROS y GenAI sin ejecutar efectos desde el kernel puro.
 - **Disenar UI de laboratorio de simulacion**: inspeccion de agentes, politicas, decisiones suspendidas, trace sociotecnico y cola de efectos pendientes.
 - **Escenarios y corridas**: conectar el runtime sociotecnico con parametros/distribuciones existentes para exploracion Monte Carlo y analisis de resiliencia.
 - **Limpieza menor post-ronda**: campos `tab*Activo`/`cambiarTab*` del store y puertos quedaron huérfanos tras L3 (Inspector sin tabs) — candidatos a poda por el dueño de `store/`/`ports/`.
-- **Deuda v1.1 Codex** (fuera del cierre): proceso activo in-flight, asistente SD wizard, sub-modelos, switcher de lengua OPL, dark mode, frame letterbox 1700×950.
 - **Inria Sans 600** no existe como master en `@fontsource` — los pesos 500/600 quedan sintetizados por el navegador (documentado en `main.tsx`).
 - Opcional: regenerar la auditoría como **rev3** para confirmar cobertura ≈95%.
 - Convertir `docs/manual-simulado-opcloud-capacidades.md` en matriz trazable de cumplimiento Opforja: capacidad → HU/epica → evidencia en codigo/tests/e2e/UI → estado.
@@ -150,4 +188,4 @@ Cierre completo de la **Auditoría Codex v1.0 ↔ Implementación rev2** (`/home
 
 ## Prompt de continuación
 
-> Continúa desde `docs/HANDOFF.md`, sección "Corte actual — ui-forja-governance como autoridad normativa de diseño". Antes de tocar UI/canvas, leer `docs/canon-opm/reglas-opm-estrictas.md` y `ui-forja/GOVERNANCE.md`. Gate mínimo para UI: `cd app && bun run check && bun run lint && bun run build && bun run design:governance`, más Playwright del layout/canvas afectado. No stagear cambios no relacionados del worktree.
+> Continúa desde `docs/HANDOFF.md`, sección "Corte actual — Auditoría visual Codex v1.1 cerrada y desplegada". Antes de tocar UI/canvas, leer `docs/canon-opm/reglas-opm-estrictas.md` y `ui-forja/GOVERNANCE.md`. Verifica primero los pendientes §7 de `docs/auditorias/inclumplimiento-visual-25-05-2026.md` con un modelo precargado y una selección activa. Gate mínimo para UI: `cd app && bun run check && bun run lint && bun run build && bun run design:governance`, más Playwright del layout/canvas afectado. No stagear `docs/manual-simulado-opcloud-capacidades.md` salvo instrucción explícita.

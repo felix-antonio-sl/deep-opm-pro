@@ -1,11 +1,11 @@
-# Deploy Privado Opforja
+# Deploy Opforja
 
 **Dominio:** `https://opforja.sanixai.com`
 **Modo:** SPA estatica Vite servida por Nginx, con sidecar interno Bun para
 captura de bugs (`/__deep-opm/bug-reports`), publicada por Traefik en la red
 Docker externa `web`.
-**Acceso:** privado por Basic Auth de Traefik (`opforja-auth@docker`). No
-guardar contrasenas en claro en este repo.
+**Acceso actual:** publico (`HTTP 200`). El Basic Auth de Traefik fue retirado
+por decisión del operador. No guardar contrasenas en claro en este repo.
 
 > Doc del **administrador** de la instancia. Para uso operativo del
 > modelador (entrar, crear, guardar, respaldar, exportar SVG) ver
@@ -18,8 +18,10 @@ servicio conectado a red `web`, labels Traefik, TLS con
 `certresolver=myresolver` y contenedor reiniciable.
 
 Diferencia critica: `hdos-app` tiene auth de aplicacion; `deep-opm-pro` todavia
-no. Por eso `opforja` queda protegido con un middleware Traefik propio,
-`opforja-auth@docker`, aislado del Basic Auth global del dashboard Traefik.
+no. En el estado vigente, `opforja` esta publicado sin Basic Auth perimetral.
+Para volver a modo privado, re-agregar `opforja-auth@docker` al router de
+Traefik y aplicar `docker compose up -d --build`; ver `docs/HANDOFF.md`
+§ Riesgos para el hash APR1 vigente.
 
 El capturador de bugs no forma parte del modelo OPM ni de la persistencia de
 usuario. En `opforja` se habilita por build arg `VITE_ENABLE_BUG_CAPTURE=true`
@@ -56,11 +58,12 @@ Referencia normativa interna: `docs/roadmap/politica-apariciones-categorial.md`.
 
 ## Acceso Operativo
 
-- Usuario Basic Auth: `fsanhuezal`.
-- Contrasena: entregada fuera del repositorio; `docker-compose.yml` conserva
-  solo el hash APR1 usado por Traefik.
-- Alcance: barrera perimetral de despliegue privado, no auth de aplicacion ni
-  identidad multiusuario.
+- Estado vigente: acceso publico, sin usuario Basic Auth requerido.
+- Estado privado reversible: usuario Basic Auth `fsanhuezal`; contrasena
+  entregada fuera del repositorio; usar hash APR1 en labels Traefik, nunca la
+  contrasena en claro.
+- Alcance del Basic Auth, cuando se reactive: barrera perimetral de despliegue
+  privado, no auth de aplicacion ni identidad multiusuario.
 
 ## Comandos
 
@@ -82,16 +85,17 @@ Verificar dominio publico:
 
 ```bash
 curl -I https://opforja.sanixai.com
-# Esperado: HTTP/2 401 con WWW-Authenticate: Basic realm="traefik"
+# Esperado vigente: HTTP/2 200 con content-type: text/html
 ```
 
-Verificar acceso autenticado sin escribir la contrasena en el repo:
+Si se reactiva Basic Auth, verificar acceso autenticado sin escribir la
+contrasena en el repo:
 
 ```bash
 OPFORJA_USER=fsanhuezal OPFORJA_PASS='<secreto-local>' \
   curl -sS -o /tmp/opforja.html -w '%{http_code} %{content_type} %{size_download}\n' \
   -u "$OPFORJA_USER:$OPFORJA_PASS" https://opforja.sanixai.com/
-# Esperado: 200 text/html ...
+# Esperado en modo privado: 200 text/html ...
 ```
 
 Verificar certificado:
@@ -109,7 +113,7 @@ Esperado: certificado emitido para `CN = opforja.sanixai.com` por Let's Encrypt.
    comportamiento.
 2. Ejecutar `docker compose up -d --build`.
 3. Verificar `docker compose ps`, `healthz` interno y `curl -I` externo.
-4. Abrir la app con credenciales Basic Auth y ejecutar smoke manual minimo:
+4. Abrir la app y ejecutar smoke manual minimo:
    crear/cargar modelo, descargar backup JSON, exportar SVG del OPD activo y
    crear un bug de prueba con texto corto para verificar `docs/bugs/BUG-*`.
 
@@ -148,10 +152,10 @@ docker compose down
 ## Limites
 
 - No hay auth de aplicacion, multiusuario, backend ni sincronizacion remota.
-- El acceso privado depende del middleware Traefik `opforja-auth@docker`.
+- La instancia esta publica mientras `opforja-auth@docker` no este aplicado.
 - `localStorage` no es backup; el respaldo portable es el JSON descargado.
-- El sidecar de captura de bugs es una herramienta operativa privada: depende
-  del Basic Auth perimetral y escribe en el filesystem local del servidor, no
-  en una base de datos.
+- El sidecar de captura de bugs escribe en el filesystem local del servidor,
+  no en una base de datos. Mientras la instancia sea publica, el endpoint
+  `POST /__deep-opm/bug-reports` queda expuesto a internet.
 - El endpoint `/healthz` verifica Nginx/contenedor, no integridad funcional de
   modelado.
