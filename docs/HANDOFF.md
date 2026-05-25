@@ -3,10 +3,10 @@
 **Fecha**: 2026-05-25
 **Repositorio**: `deep-opm-pro`
 **Rama**: `main`
-**Ultimo corte funcional**: Ronda Codex v1 — Slice 1 (CodexTreeRow): árbol OPD migrado a fila tipográfica pura. Y se estructuró `docs/instrucciones-lineas-dev/ronda-codex-v1/` con la partición de lo que falta para cumplir `ui-forja/` v1.0 (5 líneas paralelas + micro-fidelidad).
-**Ultimo commit funcional en main**: `style(ui): CodexTreeRow — fila tipográfica pura del árbol OPD` (`22b30bf`).
-**Ultimo corte deploy**: los bits de app en `main@22b30bf` fueron redeployados en `https://opforja.sanixai.com/` el 2026-05-25 con `docker compose up -d --build` (build desde working tree, `COPY app ./app`), `VITE_ENABLE_BUG_CAPTURE=true`, `opforja` healthy, `opforja-bug-capture` arriba y Basic Auth Traefik activo (respuesta pública HTTP 401 esperada). El bundle servido es `index-B4Y-tNZn.js`; sin chunk `feature-mapa`. Commits posteriores de handoff/documentacion no cambian la imagen servida.
-**Corte**: `bun run check` verde con 1629 unit tests + 5898 expectaciones y typecheck limpio. `bun run lint` verde. E2E `04/05/11/22` verdes tras CodexTreeRow.
+**Ultimo corte funcional**: **Ronda Codex v1 COMPLETA** — cumplimiento de `ui-forja/` v1.0. Slice 1 (CodexTreeRow) + las 5 líneas (L1 OPL canónico, L2 Inspector, L3 Diálogos, L4 Selección+canvas+mobile, L5 Fidelidad JointJS) + micro-fidelidad, integradas en `main` y desplegadas. Ejecutadas con orquestación subagente: L1 contrato primero, L2-L5 en paralelo (worktrees), cherry-pick a main con gate verde, revisión spec+calidad por línea.
+**Ultimo commit funcional en main**: `style(ui): dedup PAPER_BACKDROP` (`4857b5a`).
+**Ultimo corte deploy**: los bits de app en `main@4857b5a` fueron desplegados en `https://opforja.sanixai.com/` el 2026-05-25 con `docker compose up -d --build` (build desde working tree, `COPY app ./app`), `VITE_ENABLE_BUG_CAPTURE=true`, `opforja` healthy, `opforja-bug-capture` arriba y Basic Auth Traefik activo (respuesta pública HTTP 401 esperada). El bundle servido es `index-c56JsPBL.js` (+ `feature-dialogos-pesados-CMex-S1P.js`); sin chunk `feature-mapa`.
+**Corte**: `bun run check` verde con 1673 unit tests + 6022 expectaciones y typecheck limpio. `bun run lint` y `bun run build` verdes.
 
 ## Política De Handoff Único
 
@@ -24,6 +24,29 @@
 - JointJS OSS: usar documentación oficial viva cuando se toque JointJS.
 
 ## Estado Actual
+
+### Handoff Explícito — Ronda Codex v1 completa + desplegada — 2026-05-25
+
+Estado actual:
+
+- **Cumplimiento de `ui-forja/` v1.0 cerrado y desplegado.** Todas las líneas de `docs/instrucciones-lineas-dev/ronda-codex-v1/` están integradas en `main` y en producción (`main@4857b5a`, bundle `index-c56JsPBL.js`, `opforja` healthy, 401 público). Commits: L1 `32e6eb0`+`1899d0f` (helpers `OplObj/OplProc/OplState` + `CodexOplNote` + marginalia), L2 `9347968` (`CodexInspectSection/Field/Inline` + `CodexStateRow`), L3 `a3a2607` (`Dialogo.tsx` base + 15 modales re-pielados), L4 `e10cb9b` (`CodexSelectionAnnotation` + header de `CodexCanvasMount` + mobile), L5 `f341656` (index labels `o.NN/p.NN/s.NN` + highlighter underline hover + auditoría markers), micro-fidelidad `5644534` (tokens letter-spacing + atajo `Ctrl+.` toggle marginalia OPL), fix `4857b5a` (dedup `PAPER_BACKDROP`).
+- **Verde**: `bun run check` 1673 pass / 0 fail, `lint` y `build` limpios. Cada línea pasó revisión de spec; revisión de calidad final del conjunto: aprobada, sin Critical.
+
+Deuda anotada (no bloqueante; fuera del núcleo v1.0 cerrado):
+
+- **CodexFooterKey** (micro-fidelidad P4) diferido: la firma de la spec (`k/label/color`, leyenda de tecla) no calza con el uso actual (footer de estado `label/value`); cambiarla es decisión de producto, no polish.
+- **Marginalia de validación OPL**: `CodexOplNote` tiene el slot `△ SEVERIDAD` listo y testeado, pero el read-side del panel (`panelOplViewModel`/`OplLineaInteractiva`) no transporta avisos por oración; cablearlo exige permiso sobre la capa de datos (fuera del scope chrome). Pendiente para una línea con acceso a datos.
+- **Preexistente** (no de esta ronda): hex del pin de simulación de estado current en `render/jointjs/composers/halos.ts` sin constante nombrada. Minor: 3 botones in-body cromados (no footer) en `DialogoVersiones`/`ModalUrlsObjeto`/`DialogoPlantillas` — candidatos a una pasada §6.3 posterior.
+- **Deuda v1.1** (proceso activo in-flight, asistente SD wizard, sub-modelos, switcher lengua OPL, dark mode) sigue fuera por `ui-forja/README §7`. Mapa/dock pausados.
+
+Pendientes inmediatos:
+
+- Si se quiere "pureza total" de diálogos, cerrar los 3 botones in-body (§6.3) y reconciliar `CodexFooterKey` con producto.
+- Cablear la marginalia de validación OPL cuando se abra una línea con permiso de capa de datos.
+
+Prompt de continuación breve:
+
+> Continúa desde `docs/HANDOFF.md`, sección "Handoff Explícito — Ronda Codex v1 completa + desplegada — 2026-05-25". `ui-forja/` v1.0 está cumplido y desplegado (`main@4857b5a`). Pendientes son deuda menor anotada (diálogos in-body §6.3, CodexFooterKey, marginalia de validación) y la deuda v1.1 declarada. Solo chrome/tokens/attrs; no tocar store/modelo/proyección/routing.
 
 ### Handoff Explícito — Slice 1 CodexTreeRow desplegado + Ronda Codex v1 — 2026-05-25
 
