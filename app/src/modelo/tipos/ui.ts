@@ -40,6 +40,8 @@ export interface PreferenciasUiUsuario {
   cheatsheetVisible?: boolean;
   gridConfig?: GridConfig;
   oplNumeracionVisible?: boolean;
+  /** Presentación: visibilidad de las oraciones de esencia/afiliación en el panel OPL. */
+  oplEsenciaVisibilidad?: "siempre" | "solo-difiere" | "oculta";
   oplMinimizado?: boolean;
   oplBloquesContraidos?: Record<Id, true>;
   /** [Met §8.8] Preferencia UI aditiva para ordenar plantillas privadas. */
