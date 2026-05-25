@@ -1,4 +1,5 @@
 import { CANON } from "../../constantes";
+import { CENTRO_CANVAS_GEOMETRICO } from "../../layout";
 import {
   contextoContornoDescomposicion,
   contextoInternoDescomposicion,
@@ -43,6 +44,16 @@ const INZOOM = {
   contornoHeight: (CANON.dims.cosaHeight + 30) * 3 + 100 + 65,
 } as const;
 
+// BUG-20260524T034932Z-b6be2b: el OPD hijo recién creado por descomposición
+// debe nacer anclado al centro geométrico del canvas, igual que la primera
+// cosa de un OPD vacío. Así el centrado por scroll del viewport (que clampa a 0
+// y no puede centrar contenido pegado al origen del paper) enfoca el diagrama
+// refinado en el centro, en vez de dejarlo en la esquina superior izquierda.
+const ORIGEN_CONTORNO_DESCOMPOSICION = {
+  x: Math.round(CENTRO_CANVAS_GEOMETRICO.x - INZOOM.contornoWidth / 2),
+  y: Math.round(CENTRO_CANVAS_GEOMETRICO.y - INZOOM.contornoHeight / 2),
+} as const;
+
 export function descomponerProceso(modelo: Modelo, opdPadreId: Id, procesoId: Id): Resultado<DescomposicionProceso> {
   const opdPadre = modelo.opds[opdPadreId];
   if (!opdPadre) return fallo(`OPD no existe: ${opdPadreId}`);
@@ -70,8 +81,8 @@ export function descomponerProceso(modelo: Modelo, opdPadreId: Id, procesoId: Id
     id: aparienciaHijoId,
     entidadId: procesoId,
     opdId: opdHijoId,
-    x: 150,
-    y: 90,
+    x: ORIGEN_CONTORNO_DESCOMPOSICION.x,
+    y: ORIGEN_CONTORNO_DESCOMPOSICION.y,
     width: INZOOM.contornoWidth,
     height: INZOOM.contornoHeight,
     contextoRefinamiento: contextoContornoDescomposicion(procesoId),

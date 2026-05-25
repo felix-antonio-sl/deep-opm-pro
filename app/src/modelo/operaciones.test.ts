@@ -1164,7 +1164,8 @@ describe("operaciones de modelo", () => {
 
     const primeroOriginal = entidadPorNombre(modelo, "Procesar 1");
     const nuevoPrimero = entidadPorNombre(modelo, "Procesar 2");
-    modelo = must(moverApariencia(modelo, descompuesto.opdId, primeroOriginal.id, { x: 285, y: 420 }));
+    const contorno = contornoDescompuesto(modelo, descompuesto.opdId, procesar.id);
+    modelo = must(moverApariencia(modelo, descompuesto.opdId, primeroOriginal.id, { x: contorno.x + 135, y: contorno.y + 330 }));
     const enlacesHijo = Object.values(modelo.opds[descompuesto.opdId]?.enlaces ?? {})
       .map((apariencia) => modelo.enlaces[apariencia.enlaceId])
       .filter((enlace): enlace is NonNullable<typeof enlace> => enlace !== undefined)
@@ -1284,7 +1285,8 @@ describe("operaciones de modelo", () => {
     const segundo = entidadPorNombre(modelo, "Procesar 2");
     const { aparienciaId } = enlaceDerivadoEnOpd(modelo, descompuesto.opdId, "consumo");
     modelo = must(reanclarEnlaceExternoDerivado(modelo, descompuesto.opdId, aparienciaId, segundo.id));
-    modelo = must(moverApariencia(modelo, descompuesto.opdId, segundo.id, { x: 285, y: 430 }));
+    const contornoReanclaje = contornoDescompuesto(modelo, descompuesto.opdId, procesar.id);
+    modelo = must(moverApariencia(modelo, descompuesto.opdId, segundo.id, { x: contornoReanclaje.x + 135, y: contornoReanclaje.y + 340 }));
 
     const enlacesHijo = enlacesDelOpd(modelo, descompuesto.opdId);
     const consumos = enlacesHijo.filter((enlace) => enlace.tipo === "consumo" && enlace.derivado?.enlacePadreId);
@@ -1353,7 +1355,8 @@ describe("operaciones de modelo", () => {
     ));
     expect(manual).toBeDefined();
 
-    modelo = must(moverApariencia(modelo, descompuesto.opdId, primeroOriginal.id, { x: 285, y: 420 }));
+    const contornoManual = contornoDescompuesto(modelo, descompuesto.opdId, procesar.id);
+    modelo = must(moverApariencia(modelo, descompuesto.opdId, primeroOriginal.id, { x: contornoManual.x + 135, y: contornoManual.y + 330 }));
     const enlacesHijo = Object.values(modelo.opds[descompuesto.opdId]?.enlaces ?? {})
       .map((apariencia) => modelo.enlaces[apariencia.enlaceId])
       .filter((enlace): enlace is NonNullable<typeof enlace> => enlace !== undefined)
@@ -1752,6 +1755,17 @@ function entidadPorNombre(modelo: Modelo, nombre: string) {
   expect(entidad).toBeDefined();
   if (!entidad) throw new Error(`Entidad no encontrada: ${nombre}`);
   return entidad;
+}
+
+// BUG-20260524T034932Z-b6be2b: los OPD hijos refinados nacen anclados al centro
+// geométrico del canvas, no en (150,90). Las posiciones de reorden de subprocesos
+// se expresan relativas al contorno para no acoplarse al origen absoluto.
+function contornoDescompuesto(modelo: Modelo, opdId: string, entidadId: string): { x: number; y: number } {
+  const apariencia = Object.values(modelo.opds[opdId]?.apariencias ?? {})
+    .find((item) => item.entidadId === entidadId);
+  expect(apariencia).toBeDefined();
+  if (!apariencia) throw new Error(`Contorno no encontrado: ${entidadId}`);
+  return { x: apariencia.x, y: apariencia.y };
 }
 
 function must<T>(resultado: Resultado<T>): T {
