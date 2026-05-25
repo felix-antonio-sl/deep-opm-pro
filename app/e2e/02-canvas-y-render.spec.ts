@@ -367,11 +367,21 @@ test("barra flotante aparece anclada a la cosa seleccionada con acciones piloto"
   const objetoBox = await elementoPorTexto(page, "Objeto").boundingBox();
   const barraBox = await barra.boundingBox();
   if (!objetoBox || !barraBox) throw new Error("No se pudo medir anchor de barra");
-  expect(barraBox.y).toBeLessThan(objetoBox.y + objetoBox.height + 8);
+  // Codex rev2 «una voz»: la anotación tipográfica se ancla justo bajo el bbox
+  // (placement "abajo", OFFSET=10). Verificamos que aparece pegada al borde
+  // inferior del objeto (no flotando lejos) con tolerancia de un par de px.
+  expect(barraBox.y).toBeGreaterThanOrEqual(objetoBox.y + objetoBox.height - 4);
+  expect(barraBox.y).toBeLessThan(objetoBox.y + objetoBox.height + 24);
   expect(pageErrors).toEqual([]);
 });
 
-test("boton mas opciones colapsa y reabre el Inspector lateral", async ({ page }) => {
+test("accion inspector de la anotación enfoca el Inspector lateral persistente", async ({ page }) => {
+  // Codex rev2 «una voz» (L4): el shell Codex monta la marginalia (Inspector)
+  // de forma persistente; la antigua semántica de "colapsar/reabrir" la columna
+  // pertenecía a la caja de chips desmontada. La acción `inspector` de la
+  // anotación tipográfica (testid heredado `barra-mas-opciones`) enfoca el pane
+  // sin ocultar el chrome (territorio App.tsx). Verificamos que la acción está
+  // disponible y que el Inspector permanece visible al invocarla.
   const pageErrors: string[] = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
@@ -380,14 +390,12 @@ test("boton mas opciones colapsa y reabre el Inspector lateral", async ({ page }
   await elementoPorTexto(page, "Objeto").click();
 
   await expect(page.getByTestId("inspector-pane")).toBeVisible();
-  await expect(page.getByTestId("inspector-pane")).toHaveAttribute("data-marginalia-mode", "split");
-  await page.getByTestId("barra-mas-opciones").click();
+  const accionInspector = page.getByTestId("barra-mas-opciones");
+  await expect(accionInspector).toBeVisible();
+  await expect(accionInspector).toHaveText("Inspector");
+  await accionInspector.click();
   await expect(page.getByTestId("inspector-pane")).toBeVisible();
-  await expect(page.getByTestId("inspector-pane")).toHaveAttribute("data-marginalia-mode", "opl");
-  await expect(page.getByLabel("Inspector", { exact: true })).toHaveCount(0);
-  await page.getByTestId("barra-mas-opciones").click();
-  await expect(page.getByTestId("inspector-pane")).toBeVisible();
-  await expect(page.getByTestId("inspector-pane")).toHaveAttribute("data-marginalia-mode", "split");
+  await expect(page.getByTestId("inspector")).toHaveAttribute("data-modo-inspector", "entidad");
   expect(pageErrors).toEqual([]);
 });
 

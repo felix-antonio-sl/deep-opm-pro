@@ -76,7 +76,7 @@ interface ViewportBarra {
   padding?: number;
 }
 
-interface AccionBarra {
+export interface AccionBarra {
   id: AccionBarraId;
   label: string;
   testId: string;
@@ -93,9 +93,11 @@ interface AccionBarra {
   icon?: preact.JSX.Element;
   texto?: string;
   atajo?: string;
+  /** L4 Codex v2: la anotación tipográfica colorea las acciones destructivas. */
+  destructiva?: boolean;
 }
 
-type AccionBarraId =
+export type AccionBarraId =
   | "cambiar-tipo-enlace"
   | "copiar-estilo"
   | "pegar-estilo"
@@ -278,7 +280,11 @@ export function BarraHerramientasElemento({ inspectorAbierto, onToggleInspector,
   const handleCambiarTipoEnlace = () => {
     if (!enlace) return;
     onAbrirInspector();
-    enfocarSeccionInspector("inspector-enlace-tab-propiedades");
+    // Handoff L3 Ronda Codex v2: el Inspector pasó a ficha continua (sin tabs).
+    // El antiguo testid `inspector-enlace-tab-propiedades` ya no existe; el
+    // foco/scroll de "editar propiedades del enlace" apunta ahora a la sección
+    // continua `inspector-panel-enlace-propiedades`.
+    enfocarSeccionInspector("inspector-panel-enlace-propiedades");
   };
   const handleCopiarEstilo = () => {
     if (!enlace) return;
@@ -535,7 +541,7 @@ export function accionesBarraEnlace(
   return accionesBarraOrdenadas(acciones, ORDEN_ACCIONES_BARRA_ENLACE);
 }
 
-function accionesParaContextoBarra(
+export function accionesParaContextoBarra(
   contexto: ContextoBarraSeleccion | null,
   hayEstiloEnPortapapeles: boolean,
   inspectorAbierto: boolean,
@@ -606,6 +612,7 @@ function decorarAccionBarra(accion: AccionContextual & { id: AccionBarraId }): A
     ...(compactaIconoTexto ? { compactaIconoTexto: true } : {}),
     ...(icon ? { icon } : {}),
     ...(textoFinal ? { texto: textoFinal } : {}),
+    ...(accion.destructiva ? { destructiva: true } : {}),
   };
 }
 
