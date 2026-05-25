@@ -78,7 +78,26 @@ export function proyectarModeloAJointCells(
   const aparienciaPorEntidad = new Map(apariencias.map((apariencia) => [apariencia.entidadId, apariencia]));
   const elementos = apariencias.flatMap((apariencia) => {
     const entidad = modeloRender.entidades[apariencia.entidadId];
-    return entidad ? [proyectarEntidad(modeloRender, opdId, apariencia, entidad, entidad.id === seleccionEntidadId || seleccionMultiple.has(entidad.id), refResaltaEntidad(modeloRender, entidad, hoverOplRef), opcionesRender)] : [];
+    if (!entidad) return [];
+    // SEL-1: «única» = hay exactamente una cosa seleccionada (lote size<=1), no
+    // un multi-select. La selección simple popula `seleccionados` con 1 id
+    // además de `seleccionEntidadId`, así que el discriminante es el tamaño del
+    // lote, no la mera pertenencia al set.
+    const esMulti = seleccionMultiple.size > 1;
+    const seleccionUnica = !esMulti && (entidad.id === seleccionEntidadId || seleccionMultiple.has(entidad.id));
+    const enMulti = esMulti && seleccionMultiple.has(entidad.id);
+    return [proyectarEntidad(
+      modeloRender,
+      opdId,
+      apariencia,
+      entidad,
+      seleccionUnica || enMulti,
+      refResaltaEntidad(modeloRender, entidad, hoverOplRef),
+      opcionesRender,
+      // SEL-1: el underline embebido se emite solo en selección única; en multi
+      // lo aporta la celda-halo de `proyectarHaloSeleccion`.
+      seleccionUnica,
+    )];
   });
   const imagenes = apariencias.flatMap((apariencia) => {
     const entidad = modeloRender.entidades[apariencia.entidadId];
@@ -167,7 +186,18 @@ export function proyectarModeloAJointCells(
     return [proyectarEnlace(opdId, enlace, aparienciaEnlace.id, origen, destino, aparienciaEnlace.vertices, aparienciaEnlace.labelPositions, enlaceResaltado, enlacesEnAbanico.has(enlace.id), { usarJumpover, activaSimulacion: enlaceActivoRuntime })];
   });
 
-  const halos = seleccionMultiple.size > 1
+  // SEL-1 (Codex rev2 §5.1): el underline crimson persistente bajo la etiqueta.
+  //
+  // En selección ÚNICA el underline se renderiza EMBEBIDO en la propia celda de
+  // la entidad (composers/entidad.ts → markupConSelectionUnderline), no como
+  // celda-halo aparte: así la affordance no incrementa el conteo de
+  // `.joint-element` (que multitud de smokes usa para contar entidades) y el
+  // canon V-63 del borde se conserva intacto.
+  //
+  // En multi-selección se conserva la celda-halo aparte (`proyectarHaloSeleccion`)
+  // porque ahí el bbox unido y los halos de estado requieren celdas propias.
+  const hayHalosMulti = seleccionMultiple.size > 1;
+  const halos = hayHalosMulti
     ? apariencias.flatMap((apariencia) => {
         const entidad = modeloRender.entidades[apariencia.entidadId];
         if (!entidad) return [];
