@@ -95,6 +95,13 @@ export interface GlobalShortcutsSnapshot {
   autoAvanceSimulacionActivo: boolean;
   iniciarAutoAvanceSimulacion: () => void;
   pausarAutoAvanceSimulacion: () => void;
+  /**
+   * Preferencia de usuario `indice.preferenciasUi.oplMinimizado` (no el efectivo
+   * por selección). Lee el estado plegado para el toggle `Ctrl+.` (05-interactions §1).
+   */
+  oplMarginaliaMinimizada: boolean;
+  minimizarOpl: () => void;
+  restaurarOpl: () => void;
 }
 
 export interface GlobalShortcutsPort {
@@ -118,6 +125,11 @@ export function registrarAtajosAplicacion(port: GlobalShortcutsPort, registrarAt
     const state = s();
     const todo = state.seleccionados.length >= 2 ? state.seleccionados[state.seleccionados.length - 1] : null;
     if (todo) state.conectarSeleccionAlTodo(todo, "agregacion");
+  };
+  const toggleMarginaliaOpl = () => {
+    const state = s();
+    if (state.oplMarginaliaMinimizada) state.restaurarOpl();
+    else state.minimizarOpl();
   };
   const togglePlaySimulacion = (e: KeyboardEvent) => {
     const state = s();
@@ -151,6 +163,7 @@ export function registrarAtajosAplicacion(port: GlobalShortcutsPort, registrarAt
   const registrosBase = [
     registrarAtajo({ combo: "Ctrl+S", ctx: "global", categoria: "archivo", descripcion: "Guardar modelo", descripcionLarga: "Persiste el modelo activo en el workspace local", handler: () => s().guardarLocal() }),
     registrarAtajo({ combo: "Ctrl+K", ctx: "global", categoria: "navegacion", descripcion: "Buscar comandos", descripcionLarga: "Abre este buscador de comandos y atajos", handler: () => s().abrirDialogoComandos() }),
+    registrarAtajo({ combo: "Ctrl+.", ctx: "global", categoria: "vista", descripcion: "Mostrar/ocultar marginalia OPL", descripcionLarga: "Pliega o despliega la columna derecha de marginalia OPL", handler: toggleMarginaliaOpl }),
     registrarAtajo({ combo: "Ctrl+F", ctx: "canvas", categoria: "navegacion", descripcion: "Buscar cosas en el modelo", descripcionLarga: "Busca objetos y procesos por nombre en el modelo activo", handler: () => s().abrirBusquedaCosas() }),
     registrarAtajo({ combo: "Ctrl+Shift+F", ctx: "global", categoria: "navegacion", descripcion: "Buscar en el workspace", descripcionLarga: "Busca en todos los modelos guardados del workspace", handler: () => s().abrirDialogoBuscarGlobal() }),
     registrarAtajo({ combo: "Ctrl+D", ctx: "global", categoria: "navegacion", descripcion: "Abrir gestión del árbol OPD", descripcionLarga: "Gestiona la jerarquía completa de OPDs en panel lateral", handler: () => s().abrirGestionArbol() }),

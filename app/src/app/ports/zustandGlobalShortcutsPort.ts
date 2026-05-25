@@ -9,6 +9,7 @@ export function crearZustandGlobalShortcutsPort(): GlobalShortcutsPort {
       return {
         ...s,
         simulacionActiva: s.contextoSimulacion !== null,
+        oplMarginaliaMinimizada: s.indice.preferenciasUi?.oplMinimizado ?? false,
       };
     },
   };

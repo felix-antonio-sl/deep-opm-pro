@@ -11,8 +11,8 @@ import {
 // expose that method. For the no-op case it is never called.
 const makeFakeEvent = () => ({ preventDefault: () => {} } as unknown as KeyboardEvent);
 
-function setup(sim: { activa: boolean; auto: boolean }) {
-  const calls = { play: 0, pausa: 0 };
+function setup(sim: { activa: boolean; auto: boolean }, opl: { minimizada: boolean } = { minimizada: false }) {
+  const calls = { play: 0, pausa: 0, oplMinimizar: 0, oplRestaurar: 0 };
 
   const baseSnapshot = (): GlobalShortcutsSnapshot => ({
     enlaceSeleccionId: null,
@@ -88,6 +88,9 @@ function setup(sim: { activa: boolean; auto: boolean }) {
     autoAvanceSimulacionActivo: sim.auto,
     iniciarAutoAvanceSimulacion: () => { calls.play++; },
     pausarAutoAvanceSimulacion: () => { calls.pausa++; },
+    oplMarginaliaMinimizada: opl.minimizada,
+    minimizarOpl: () => { calls.oplMinimizar++; },
+    restaurarOpl: () => { calls.oplRestaurar++; },
   });
 
   const port: GlobalShortcutsPort = {
@@ -130,5 +133,28 @@ describe("atajo Espacio en simulación", () => {
     registros.find((r) => r.combo === "Space")!.handler(makeFakeEvent());
     expect(calls.pausa).toBe(1);
     expect(calls.play).toBe(0);
+  });
+});
+
+describe("atajo Ctrl+. toggle de marginalia OPL (05-interactions §1)", () => {
+  test("registra el combo Ctrl+. en contexto global", () => {
+    const { registros } = setup({ activa: false, auto: false });
+    const atajo = registros.find((r) => r.combo === "Ctrl+.");
+    expect(atajo).toBeDefined();
+    expect(atajo!.ctx).toBe("global");
+  });
+
+  test("minimiza cuando la marginalia está visible", () => {
+    const { registros, calls } = setup({ activa: false, auto: false }, { minimizada: false });
+    registros.find((r) => r.combo === "Ctrl+.")!.handler(makeFakeEvent());
+    expect(calls.oplMinimizar).toBe(1);
+    expect(calls.oplRestaurar).toBe(0);
+  });
+
+  test("restaura cuando la marginalia está minimizada", () => {
+    const { registros, calls } = setup({ activa: false, auto: false }, { minimizada: true });
+    registros.find((r) => r.combo === "Ctrl+.")!.handler(makeFakeEvent());
+    expect(calls.oplRestaurar).toBe(1);
+    expect(calls.oplMinimizar).toBe(0);
   });
 });

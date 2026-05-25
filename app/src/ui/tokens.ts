@@ -323,8 +323,8 @@ export const typography = {
     fs22: 22,
   },
   ls: {
-    tight: "0",
-    body: "0",
+    tight: "-0.01em",
+    body: "-0.005em",
     mono: "0.04em",
     kbd: "0.06em",
     meta: "0.08em",

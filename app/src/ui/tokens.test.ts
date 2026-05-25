@@ -129,8 +129,8 @@ describe("tokens.colors - contrato Codex [ronda-codex L1]", () => {
     expect(typography.fontFamily.startsWith('"Inria Serif"')).toBe(true);
     expect(typography.fontFamilyMono.startsWith('"JetBrains Mono Variable"')).toBe(true);
     expect(typography.familyCanvas).toBe("Arial");
-    expect(typography.ls.tight).toBe("0");
-    expect(typography.ls.body).toBe("0");
+    expect(typography.ls.tight).toBe("-0.01em");
+    expect(typography.ls.body).toBe("-0.005em");
     expect(typography.fs.fs13).toBe(13.5);
     expect(typography.sizes.base).toBe(13.5);
     expect(typography.sizes.md).toBe(13.5);
