@@ -48,8 +48,10 @@ export function RenombradoInline(props: Props) {
         width: `${Math.max(80, props.rect.width - 16)}px`,
         height: "30px",
         zIndex: 5,
-        border: `2px solid ${tokens.colors.canvas.proceso}`,
-        borderRadius: tokens.radii.sm,
+        // Codex L6 (C-04): borde de edición inline = crimson editorial (foco UI),
+        // no el cyan semántico del canvas.
+        border: `1px solid ${tokens.colors.crimson}`,
+        borderRadius: tokens.radii.none,
         background: tokens.colors.fondoChrome,
         color: tokens.colors.textoPrimario,
         fontFamily: tokens.typography.familyChrome,

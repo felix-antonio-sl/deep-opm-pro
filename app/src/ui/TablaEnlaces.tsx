@@ -557,9 +557,12 @@ function CeldaMultiplicidad({ enlaceId, valorActual, lado }: CeldaMultiplicidadP
 }
 
 function tipoColor(tipo: TipoEnlace): string {
+  // Codex L6 (C-04): la naturaleza del enlace ecoa la clase OPM asociada
+  // (estructural↔objeto verde, procedural↔proceso azul). Set canónico
+  // (tokens.colors.opm), no lime/cyan legacy del canvas.
   return naturalezaDeEnlace(tipo) === "estructural"
-    ? tokens.colors.canvas.objeto
-    : tokens.colors.canvas.proceso;
+    ? tokens.colors.opm.object
+    : tokens.colors.opm.process;
 }
 
 // ── Estilos ────────────────────────────────────────────────────────────────
