@@ -3,7 +3,7 @@ import { useEffect, useState } from "preact/hooks";
 import { useModalDuracionEstadoViewModel } from "../app/viewmodels/modalDuracionEstadoViewModel";
 import { UNIDADES_TIEMPO } from "../modelo/objetoDuracion";
 import type { UnidadTiempo } from "../modelo/tipos";
-import { Dialogo } from "./Dialogo";
+import { Dialogo, DialogoAccion } from "./Dialogo";
 import { tokens } from "./tokens";
 
 export function ModalDuracionEstado() {
@@ -28,11 +28,10 @@ export function ModalDuracionEstado() {
       onCancel={cerrar}
       actions={(
         <>
-          {estado?.duracion ? <button type="button" style={style.secondaryButton} onClick={() => estado && quitar(estado.id)}>Quitar</button> : null}
-          <button type="button" style={style.secondaryButton} onClick={cerrar}>Cerrar</button>
-          <button
-            type="button"
-            style={style.primaryButton}
+          {estado?.duracion ? <DialogoAccion tono="destructiva" onClick={() => estado && quitar(estado.id)}>Quitar</DialogoAccion> : null}
+          <DialogoAccion onClick={cerrar}>Cerrar</DialogoAccion>
+          <DialogoAccion
+            tono="primaria"
             onClick={() => {
               if (!estado) return;
               fijar(estado.id, {
@@ -44,7 +43,7 @@ export function ModalDuracionEstado() {
             }}
           >
             Aplicar
-          </button>
+          </DialogoAccion>
         </>
       )}
     >
@@ -86,7 +85,5 @@ const style = {
   grid3: { display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: "12px" },
   field: { display: "grid", gap: "6px" },
   label: { color: tokens.colors.ink50, fontFamily: tokens.typography.familyChrome, fontSize: "11px", fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.08em" },
-  input: { height: "34px", padding: "0 10px", border: `1px solid ${tokens.colors.ink15}`, borderRadius: 0, background: tokens.colors.paper, color: tokens.colors.ink, fontFamily: tokens.typography.familyChrome, fontSize: "13px", caretColor: tokens.colors.accent },
-  primaryButton: { minHeight: "32px", padding: "8px 18px", border: `${tokens.stroke.base}px solid ${tokens.colors.ink}`, borderRadius: 0, background: tokens.colors.ink, color: tokens.colors.paper, cursor: "pointer", fontFamily: tokens.typography.familyChrome, fontSize: "13px", fontWeight: 500 },
-  secondaryButton: { minHeight: "32px", padding: "8px 18px", border: `${tokens.stroke.base}px solid ${tokens.colors.ink}`, borderRadius: 0, background: tokens.colors.paper, color: tokens.colors.ink, cursor: "pointer", fontFamily: tokens.typography.familyChrome, fontSize: "13px", fontWeight: 500 },
+  input: { height: "34px", padding: "0 10px", border: `${tokens.stroke.hairline}px solid ${tokens.colors.ruleStrong}`, borderRadius: 0, background: tokens.colors.paper, color: tokens.colors.ink, fontFamily: tokens.typography.familyChrome, fontSize: "13px", caretColor: tokens.colors.crimson },
 } satisfies Record<string, preact.JSX.CSSProperties>;

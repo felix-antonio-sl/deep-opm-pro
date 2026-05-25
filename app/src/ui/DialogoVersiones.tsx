@@ -1,6 +1,6 @@
 // [JOYAS §1-3] Chrome UI consume tokens centralizados; canvas semántico invariante.
 import { useDialogoVersionesViewModel } from "../app/viewmodels/dialogoVersionesViewModel";
-import { Dialogo } from "./Dialogo";
+import { Dialogo, DialogoAccion } from "./Dialogo";
 import { tokens } from "./tokens";
 
 export function DialogoVersiones() {
@@ -22,7 +22,7 @@ export function DialogoVersiones() {
       open={abierto !== null}
       title={`Versiones de "${modelo?.nombre ?? "modelo"}"`}
       onCancel={cerrar}
-      actions={<button type="button" style={style.secondaryButton} onClick={cerrar}>Cerrar</button>}
+      actions={<DialogoAccion onClick={cerrar}>Cerrar</DialogoAccion>}
     >
       <div style={style.body}>
         <button
@@ -90,6 +90,5 @@ const style = {
   primaryButton: { minHeight: "32px", justifySelf: "start", padding: "8px 18px", border: `${tokens.stroke.base}px solid ${tokens.colors.ink}`, borderRadius: 0, background: tokens.colors.ink, color: tokens.colors.paper, cursor: "pointer", fontFamily: tokens.typography.familyChrome, fontSize: "13px", fontWeight: 500 },
   disabledButton: { minHeight: "32px", justifySelf: "start", padding: "8px 18px", border: `${tokens.stroke.base}px solid ${tokens.colors.ink15}`, borderRadius: 0, background: tokens.colors.ink04, color: tokens.colors.ink50, cursor: "not-allowed", fontFamily: tokens.typography.familyChrome, fontSize: "13px", fontWeight: 500 },
   smallButton: { minHeight: "28px", padding: "4px 12px", border: `1px solid ${tokens.colors.ink}`, borderRadius: 0, background: tokens.colors.paper, color: tokens.colors.ink, cursor: "pointer", fontFamily: tokens.typography.familyChrome, fontSize: "12px", fontWeight: 500 },
-  smallDanger: { minHeight: "28px", padding: "4px 12px", border: `1px solid ${tokens.colors.accent}`, borderRadius: 0, background: tokens.colors.paper, color: tokens.colors.accentDark, cursor: "pointer", fontFamily: tokens.typography.familyChrome, fontSize: "12px", fontWeight: 500 },
-  secondaryButton: { minHeight: "32px", padding: "8px 18px", border: `${tokens.stroke.base}px solid ${tokens.colors.ink}`, borderRadius: 0, background: tokens.colors.paper, color: tokens.colors.ink, cursor: "pointer", fontFamily: tokens.typography.familyChrome, fontSize: "13px", fontWeight: 500 },
+  smallDanger: { minHeight: "28px", padding: "4px 12px", border: `1px solid ${tokens.colors.crimson}`, borderRadius: 0, background: tokens.colors.paper, color: tokens.colors.crimson, cursor: "pointer", fontFamily: tokens.typography.familyChrome, fontSize: "12px", fontWeight: 500 },
 } satisfies Record<string, preact.JSX.CSSProperties>;

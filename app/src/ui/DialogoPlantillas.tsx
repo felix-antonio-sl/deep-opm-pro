@@ -2,7 +2,7 @@
 import { useCallback, useEffect, useRef, useState } from "preact/hooks";
 import templateIcon from "../../../assets/svg/template.svg";
 import { useDialogoPlantillasViewModel } from "../app/viewmodels/dialogoPlantillasViewModel";
-import { Dialogo } from "./Dialogo";
+import { Dialogo, DialogoAccion } from "./Dialogo";
 import { Breadcrumb } from "./panelCarpetas/Breadcrumb";
 import { tokens } from "./tokens";
 
@@ -70,21 +70,20 @@ export function DialogoPlantillas() {
       size="lg"
       actions={guardarAbierto ? (
         <>
-          <button type="button" style={style.secondaryButton} onClick={cerrarGuardar}>Cancelar</button>
-          <button
-            type="button"
-            style={nombre.trim() ? style.primaryButton : style.disabledButton}
+          <DialogoAccion onClick={cerrarGuardar}>Cancelar</DialogoAccion>
+          <DialogoAccion
+            tono="primaria"
             disabled={!nombre.trim()}
             onClick={confirmarGuardar}
-            data-testid="guardar-plantilla-confirmar"
+            testId="guardar-plantilla-confirmar"
           >
             Guardar plantilla
-          </button>
+          </DialogoAccion>
         </>
       ) : (
         <>
-          <button type="button" style={style.secondaryButton} onClick={cerrar}>Cancelar</button>
-          <button type="button" style={style.primaryButton} onClick={abrirGuardar}>Guardar nueva</button>
+          <DialogoAccion onClick={cerrar}>Cancelar</DialogoAccion>
+          <DialogoAccion tono="primaria" onClick={abrirGuardar}>Guardar nueva</DialogoAccion>
         </>
       )}
     >
@@ -225,7 +224,4 @@ const style = {
   error: { margin: 0, color: tokens.colors.accent, fontFamily: tokens.typography.familyChrome, fontSize: "12px", fontWeight: 500 },
   empty: { margin: 0, padding: "24px 8px", color: tokens.colors.ink50, fontFamily: tokens.typography.familyChrome, fontSize: "13px", fontWeight: 400, textAlign: "center" },
   insertButton: { minHeight: "30px", padding: "6px 14px", border: `1px solid ${tokens.colors.ink}`, borderRadius: 0, background: tokens.colors.paper, color: tokens.colors.ink, cursor: "pointer", fontFamily: tokens.typography.familyChrome, fontSize: "12px", fontWeight: 500 },
-  primaryButton: { minHeight: "32px", padding: "8px 18px", border: `${tokens.stroke.base}px solid ${tokens.colors.ink}`, borderRadius: 0, background: tokens.colors.ink, color: tokens.colors.paper, cursor: "pointer", fontFamily: tokens.typography.familyChrome, fontSize: "13px", fontWeight: 500 },
-  secondaryButton: { minHeight: "32px", padding: "8px 18px", border: `${tokens.stroke.base}px solid ${tokens.colors.ink}`, borderRadius: 0, background: tokens.colors.paper, color: tokens.colors.ink, cursor: "pointer", fontFamily: tokens.typography.familyChrome, fontSize: "13px", fontWeight: 500 },
-  disabledButton: { minHeight: "32px", padding: "8px 18px", border: `${tokens.stroke.base}px solid ${tokens.colors.ink15}`, borderRadius: 0, background: tokens.colors.ink04, color: tokens.colors.ink50, cursor: "not-allowed", fontFamily: tokens.typography.familyChrome, fontSize: "13px", fontWeight: 500 },
 } satisfies Record<string, preact.JSX.CSSProperties>;

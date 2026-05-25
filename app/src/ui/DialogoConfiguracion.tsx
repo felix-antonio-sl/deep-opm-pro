@@ -2,7 +2,7 @@
 import { useEffect, useState } from "preact/hooks";
 import { useDialogoConfiguracionViewModel } from "../app/viewmodels/dialogoConfiguracionViewModel";
 import { normalizarGridConfig, type GridConfig } from "../canvas/grid";
-import { Dialogo } from "./Dialogo";
+import { Dialogo, DialogoAccion } from "./Dialogo";
 import { tokens } from "./tokens";
 
 /**
@@ -43,8 +43,8 @@ export function DialogoConfiguracion() {
       testId="modal-config-grid"
       actions={(
         <>
-          <button type="button" style={style.secondaryButton} onClick={cerrar}>Cancelar</button>
-          <button type="button" style={nombre.trim() ? style.primaryButton : style.disabledButton} disabled={!nombre.trim()} onClick={guardar}>Guardar</button>
+          <DialogoAccion onClick={cerrar}>Cancelar</DialogoAccion>
+          <DialogoAccion tono="primaria" disabled={!nombre.trim()} onClick={guardar}>Guardar</DialogoAccion>
         </>
       )}
     >
@@ -104,11 +104,8 @@ const style = {
   sectionTitle: { margin: 0, color: tokens.colors.ink, fontFamily: tokens.typography.familyChrome, fontSize: "11px", fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.08em" },
   field: { display: "grid", gridTemplateColumns: "84px minmax(0, 1fr)", alignItems: "center", gap: "8px" },
   label: { fontFamily: tokens.typography.familyChrome, fontSize: "13px", color: tokens.colors.ink70, fontWeight: 400 },
-  input: { height: "32px", minWidth: 0, border: `1px solid ${tokens.colors.ink15}`, borderRadius: 0, padding: "0 10px", background: tokens.colors.paper, color: tokens.colors.ink, fontFamily: tokens.typography.familyChrome, fontSize: "13px", caretColor: tokens.colors.accent },
-  colorInput: { width: "54px", height: "32px", border: `1px solid ${tokens.colors.ink15}`, borderRadius: 0, background: tokens.colors.paper, padding: 0, cursor: "pointer" },
+  input: { height: "32px", minWidth: 0, border: `${tokens.stroke.hairline}px solid ${tokens.colors.ruleStrong}`, borderRadius: 0, padding: "0 10px", background: tokens.colors.paper, color: tokens.colors.ink, fontFamily: tokens.typography.familyChrome, fontSize: "13px", caretColor: tokens.colors.crimson },
+  colorInput: { width: "54px", height: "32px", border: `${tokens.stroke.hairline}px solid ${tokens.colors.ruleStrong}`, borderRadius: 0, background: tokens.colors.paper, padding: 0, cursor: "pointer" },
   checkbox: { display: "inline-flex", alignItems: "center", gap: "8px", color: tokens.colors.ink, fontFamily: tokens.typography.familyChrome, fontSize: "13px", fontWeight: 400 },
   hint: { margin: 0, color: tokens.colors.ink50, fontFamily: tokens.typography.familyChrome, fontSize: "12px", fontWeight: 400 },
-  primaryButton: { minHeight: "32px", padding: "8px 18px", border: `${tokens.stroke.base}px solid ${tokens.colors.ink}`, borderRadius: 0, background: tokens.colors.ink, color: tokens.colors.paper, cursor: "pointer", fontFamily: tokens.typography.familyChrome, fontSize: "13px", fontWeight: 500 },
-  secondaryButton: { minHeight: "32px", padding: "8px 18px", border: `${tokens.stroke.base}px solid ${tokens.colors.ink}`, borderRadius: 0, background: tokens.colors.paper, color: tokens.colors.ink, cursor: "pointer", fontFamily: tokens.typography.familyChrome, fontSize: "13px", fontWeight: 500 },
-  disabledButton: { minHeight: "32px", padding: "8px 18px", border: `${tokens.stroke.base}px solid ${tokens.colors.ink15}`, borderRadius: 0, background: tokens.colors.ink04, color: tokens.colors.ink50, fontFamily: tokens.typography.familyChrome, fontSize: "13px", fontWeight: 500, cursor: "not-allowed" },
 } satisfies Record<string, preact.JSX.CSSProperties>;

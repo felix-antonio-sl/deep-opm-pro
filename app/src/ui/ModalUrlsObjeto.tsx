@@ -3,7 +3,7 @@ import { useState } from "preact/hooks";
 import { useModalUrlsObjetoViewModel } from "../app/viewmodels/modalUrlsObjetoViewModel";
 import { TIPOS_URL_OBJETO } from "../modelo/objetoMetadata";
 import type { TipoUrlObjeto } from "../modelo/tipos";
-import { Dialogo } from "./Dialogo";
+import { Dialogo, DialogoAccion } from "./Dialogo";
 import { tokens } from "./tokens";
 
 export function ModalUrlsObjeto() {
@@ -16,7 +16,7 @@ export function ModalUrlsObjeto() {
       open={abierto !== null}
       title={`URLs de ${entidad?.nombre ?? "objeto"}`}
       onCancel={cerrar}
-      actions={<button type="button" style={style.secondaryButton} onClick={cerrar}>Cerrar</button>}
+      actions={<DialogoAccion onClick={cerrar}>Cerrar</DialogoAccion>}
     >
       <div style={style.body}>
         <div style={style.form}>
@@ -66,13 +66,12 @@ export function ModalUrlsObjeto() {
 const style = {
   body: { display: "grid", gap: "14px", minWidth: "min(640px, calc(100vw - 80px))" },
   form: { display: "grid", gridTemplateColumns: "130px minmax(0, 1fr) auto", gap: "8px" },
-  input: { height: "34px", padding: "0 10px", border: `1px solid ${tokens.colors.ink15}`, borderRadius: 0, background: tokens.colors.paper, color: tokens.colors.ink, fontFamily: tokens.typography.familyChrome, fontSize: "13px", caretColor: tokens.colors.accent },
+  input: { height: "34px", padding: "0 10px", border: `${tokens.stroke.hairline}px solid ${tokens.colors.ruleStrong}`, borderRadius: 0, background: tokens.colors.paper, color: tokens.colors.ink, fontFamily: tokens.typography.familyChrome, fontSize: "13px", caretColor: tokens.colors.crimson },
   list: { display: "grid", gap: "6px" },
   row: { display: "grid", gridTemplateColumns: "84px minmax(0, 1fr) auto", alignItems: "center", gap: "8px", padding: "10px", border: `1px solid ${tokens.colors.ink15}`, borderRadius: 0, background: tokens.colors.paper },
   kind: { color: tokens.colors.ink50, fontFamily: tokens.typography.familyChrome, fontWeight: 500, fontSize: "11px", textTransform: "uppercase", letterSpacing: "0.08em" },
   url: { minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: tokens.colors.focus, fontFamily: tokens.typography.familyChrome, fontWeight: 500, fontSize: "13px" },
   empty: { padding: "16px", border: `1px dashed ${tokens.colors.ink15}`, borderRadius: 0, color: tokens.colors.ink50, fontFamily: tokens.typography.familyChrome, fontSize: "13px", fontWeight: 400 },
   primaryButton: { minHeight: "32px", padding: "8px 18px", border: `${tokens.stroke.base}px solid ${tokens.colors.ink}`, borderRadius: 0, background: tokens.colors.ink, color: tokens.colors.paper, cursor: "pointer", fontFamily: tokens.typography.familyChrome, fontSize: "13px", fontWeight: 500 },
-  secondaryButton: { minHeight: "32px", padding: "8px 18px", border: `${tokens.stroke.base}px solid ${tokens.colors.ink}`, borderRadius: 0, background: tokens.colors.paper, color: tokens.colors.ink, cursor: "pointer", fontFamily: tokens.typography.familyChrome, fontSize: "13px", fontWeight: 500 },
-  dangerButton: { minHeight: "28px", padding: "4px 12px", border: `1px solid ${tokens.colors.accent}`, borderRadius: 0, background: tokens.colors.paper, color: tokens.colors.accentDark, cursor: "pointer", fontFamily: tokens.typography.familyChrome, fontSize: "12px", fontWeight: 500 },
+  dangerButton: { minHeight: "28px", padding: "4px 12px", border: `1px solid ${tokens.colors.crimson}`, borderRadius: 0, background: tokens.colors.paper, color: tokens.colors.crimson, cursor: "pointer", fontFamily: tokens.typography.familyChrome, fontSize: "12px", fontWeight: 500 },
 } satisfies Record<string, preact.JSX.CSSProperties>;

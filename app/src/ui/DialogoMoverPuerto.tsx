@@ -3,7 +3,7 @@ import { anclaEnlaceMasCercana, OPCIONES_ANCLA_RELOJ_ENLACE, type AnclaRelojEnla
 import { extremoEntidad, extremoEstado, nombreExtremo } from "../modelo/extremos";
 import { estadosDeEntidad } from "../modelo/operaciones";
 import type { Enlace, ExtremoEnlace, Id, Modelo } from "../modelo/tipos";
-import { Dialogo } from "./Dialogo";
+import { Dialogo, DialogoAccion } from "./Dialogo";
 import { inspectorStyles as style } from "./inspectorStyles";
 import { tokens } from "./tokens";
 
@@ -40,9 +40,9 @@ export function DialogoMoverPuerto(props: Props) {
       onCancel={props.onCancel}
       actions={(
         <>
-          <button type="button" style={dangerButtonStyle} onClick={props.onRemover}>Remover relación</button>
-          <button type="button" style={style.secondaryButton} onClick={props.onCancel}>Cancelar</button>
-          <button type="button" style={style.primaryButton} onClick={() => props.onMover(lado, extremoSeleccionado, anclaHabilitada ? ancla : undefined)}>Aplicar ancla</button>
+          <DialogoAccion tono="destructiva" onClick={props.onRemover}>Remover relación</DialogoAccion>
+          <DialogoAccion onClick={props.onCancel}>Cancelar</DialogoAccion>
+          <DialogoAccion tono="primaria" onClick={() => props.onMover(lado, extremoSeleccionado, anclaHabilitada ? ancla : undefined)}>Aplicar ancla</DialogoAccion>
         </>
       )}
     >
@@ -138,8 +138,7 @@ function etiquetaAncla(ancla: AnclaRelojEnlace): string {
   return OPCIONES_ANCLA_RELOJ_ENLACE.find((opcion) => opcion.id === ancla)?.label ?? ancla;
 }
 
-// Ronda 28 L5: Bauhaus monocromático. inspectorStyles aporta `field/label/input/
-// primaryButton/secondaryButton/dangerButton` ya migrados a Bauhaus (L3).
+// Ronda Codex v1 · L3: acciones del footer como palabras (`·`) vía DialogoAccion.
+// inspectorStyles (L2) aporta `field/label/input` para el cuerpo (solo lectura).
 const bodyStyle = { display: "grid", gap: "12px" } satisfies preact.JSX.CSSProperties;
-const dangerButtonStyle = { ...style.dangerButton, marginRight: "auto" } satisfies preact.JSX.CSSProperties;
 const contractStyle = { marginTop: "-2px", color: tokens.colors.ink50, fontFamily: tokens.typography.familyChrome, fontSize: "12px", fontWeight: 400 } satisfies preact.JSX.CSSProperties;

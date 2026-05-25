@@ -2,7 +2,7 @@
 import { useEffect, useMemo, useState } from "preact/hooks";
 import { useDialogoTraerConectadosViewModel } from "../app/viewmodels/dialogoTraerConectadosViewModel";
 import { FAMILIAS_TRAER, type FamiliaTraerConectados } from "../canvas/reglasTraer";
-import { Dialogo } from "./Dialogo";
+import { Dialogo, DialogoAccion } from "./Dialogo";
 import { tokens } from "./tokens";
 
 /**
@@ -41,8 +41,8 @@ export function DialogoTraerConectados() {
       onCancel={cerrar}
       actions={(
         <>
-          <button type="button" style={style.secondary} onClick={cerrar}>Cancelar</button>
-          <button type="submit" form="form-traer-conectados" style={activas.length > 0 ? style.primary : style.disabled} disabled={activas.length === 0}>Traer</button>
+          <DialogoAccion onClick={cerrar}>Cancelar</DialogoAccion>
+          <DialogoAccion type="submit" form="form-traer-conectados" tono="primaria" disabled={activas.length === 0}>Traer</DialogoAccion>
         </>
       )}
     >
@@ -82,16 +82,7 @@ export function DialogoTraerConectados() {
   );
 }
 
-// Ronda 28 L5: Bauhaus monocromático.
-const buttonBase = {
-  minHeight: "32px",
-  borderRadius: 0,
-  padding: "8px 18px",
-  fontFamily: tokens.typography.familyChrome,
-  fontSize: "13px",
-  fontWeight: 500,
-} satisfies preact.JSX.CSSProperties;
-
+// Ronda Codex v1 · L3: acciones del footer como palabras (`·`) vía DialogoAccion.
 const style = {
   form: {
     display: "grid",
@@ -115,27 +106,6 @@ const style = {
     gap: "10px",
     fontFamily: tokens.typography.familyChrome,
     fontSize: "14px",
-    color: tokens.colors.ink50,
-    cursor: "not-allowed",
-  },
-  primary: {
-    ...buttonBase,
-    border: `${tokens.stroke.base}px solid ${tokens.colors.ink}`,
-    background: tokens.colors.ink,
-    color: tokens.colors.paper,
-    cursor: "pointer",
-  },
-  secondary: {
-    ...buttonBase,
-    border: `${tokens.stroke.base}px solid ${tokens.colors.ink}`,
-    background: tokens.colors.paper,
-    color: tokens.colors.ink,
-    cursor: "pointer",
-  },
-  disabled: {
-    ...buttonBase,
-    border: `${tokens.stroke.base}px solid ${tokens.colors.ink15}`,
-    background: tokens.colors.ink04,
     color: tokens.colors.ink50,
     cursor: "not-allowed",
   },

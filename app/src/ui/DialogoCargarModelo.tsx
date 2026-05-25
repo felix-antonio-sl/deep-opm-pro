@@ -9,7 +9,7 @@ import type { ResumenModeloPersistido } from "../persistencia/local";
 import { useZustandPersistencePort } from "../app/ports/zustandPersistencePort";
 import { useZustandWorkspacePort } from "../app/ports/zustandWorkspacePort";
 import { listarFixtures } from "../store/runtime";
-import { Dialogo } from "./Dialogo";
+import { Dialogo, DialogoAccion } from "./Dialogo";
 import { useConfirmarSiDirty } from "./ConfirmacionContext";
 import { PanelCarpetas, type VistaModo } from "./PanelCarpetas";
 import { PersistenciaJson } from "./PersistenciaJson";
@@ -88,8 +88,8 @@ export function DialogoCargarModelo() {
       testId="dialogo-abrir-importar"
       actions={(
         <>
-          <button type="button" style={style.secondaryButton} onClick={persistencia.cerrarCargarModelo}>Cancelar</button>
-          <button type="button" style={seleccionado ? style.primaryButton : style.disabledButton} disabled={!seleccionado} onClick={() => abrirSeleccionado(seleccionado?.id ?? null)}>Cargar</button>
+          <DialogoAccion onClick={persistencia.cerrarCargarModelo}>Cancelar</DialogoAccion>
+          <DialogoAccion tono="primaria" disabled={!seleccionado} onClick={() => abrirSeleccionado(seleccionado?.id ?? null)}>Cargar</DialogoAccion>
         </>
       )}
     >
@@ -406,45 +406,6 @@ const style = {
     fontWeight: 500,
     maxWidth: "220px",
   },
-  primaryButton: {
-    minHeight: "32px",
-    padding: "8px 18px",
-    border: `${tokens.stroke.base}px solid ${tokens.colors.ink}`,
-    borderRadius: 0,
-    background: tokens.colors.ink,
-    color: tokens.colors.paper,
-    cursor: "pointer",
-    fontFamily: tokens.typography.familyChrome,
-    fontSize: "13px",
-    fontWeight: 500,
-  },
-  secondaryButton: {
-    minHeight: "32px",
-    padding: "8px 18px",
-    border: `${tokens.stroke.base}px solid ${tokens.colors.ink}`,
-    borderRadius: 0,
-    background: tokens.colors.paper,
-    color: tokens.colors.ink,
-    cursor: "pointer",
-    fontFamily: tokens.typography.familyChrome,
-    fontSize: "13px",
-    fontWeight: 500,
-    display: "inline-flex",
-    alignItems: "center",
-    gap: "6px",
-  },
-  disabledButton: {
-    minHeight: "32px",
-    padding: "8px 18px",
-    border: `${tokens.stroke.base}px solid ${tokens.colors.ink15}`,
-    borderRadius: 0,
-    background: tokens.colors.ink04,
-    color: tokens.colors.ink50,
-    fontFamily: tokens.typography.familyChrome,
-    fontSize: "13px",
-    fontWeight: 500,
-    cursor: "not-allowed",
-  },
   flagsBar: {
     display: "flex",
     flexWrap: "wrap",
@@ -485,7 +446,7 @@ const style = {
     color: tokens.colors.ink,
     fontFamily: tokens.typography.familyChrome,
     fontSize: "13px",
-    caretColor: tokens.colors.accent,
+    caretColor: tokens.colors.crimson,
   },
   toggle: botonToggle(tokens.colors.ink15, tokens.colors.paper, tokens.colors.ink70, 400),
   activeToggle: botonToggle(tokens.colors.ink, tokens.colors.ink, tokens.colors.paper, 500),

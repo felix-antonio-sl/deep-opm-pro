@@ -1,7 +1,7 @@
 // [JOYAS §1-3] Chrome UI consume tokens centralizados; canvas semántico invariante.
 import { useEffect, useRef } from "preact/hooks";
 import { useDialogoBuscarCosasViewModel, type BusquedaCosasFiltro, type ResultadoTipo } from "../app/viewmodels/busquedaCosasViewModel";
-import { Dialogo } from "./Dialogo";
+import { Dialogo, DialogoAccion } from "./Dialogo";
 import { tokens } from "./tokens";
 
 /**
@@ -50,11 +50,7 @@ export function DialogoBuscarCosas() {
       initialFocusRef={inputRef}
       size="lg"
       testId="dialogo-buscar-cosas"
-      actions={(
-        <button type="button" style={style.primaryButton} onClick={cerrar}>
-          Cerrar
-        </button>
-      )}
+      actions={<DialogoAccion onClick={cerrar}>Cerrar</DialogoAccion>}
     >
       <div style={style.body}>
         <div style={style.filtros}>
@@ -258,17 +254,5 @@ const style = {
     color: tokens.colors.ink70,
     fontSize: "11px",
     fontWeight: 400,
-  },
-  primaryButton: {
-    minHeight: "32px",
-    padding: "8px 18px",
-    border: `${tokens.stroke.base}px solid ${tokens.colors.ink}`,
-    borderRadius: 0,
-    background: tokens.colors.ink,
-    color: tokens.colors.paper,
-    cursor: "pointer",
-    fontFamily: tokens.typography.familyChrome,
-    fontSize: "13px",
-    fontWeight: 500,
   },
 } satisfies Record<string, preact.JSX.CSSProperties>;

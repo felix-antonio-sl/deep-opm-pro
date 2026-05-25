@@ -11,6 +11,8 @@
 // `getByRole("button", { name: "Color #C8392F" })`. `accent` coincide con
 // el valor histórico de `errorBase` (#C8392F = cinabrio Bauhaus).
 import type { Enlace, EnlaceEstilo, Id } from "../modelo/tipos";
+import { DialogoAccion } from "./Dialogo";
+import { GLIFO_CERRAR } from "./codex/glifos";
 import { tokens } from "./tokens";
 
 interface Props {
@@ -62,7 +64,7 @@ export function DialogoEstiloEnlace({ abierto, enlace, onCerrar, onAplicar }: Pr
       <div style={style.modal}>
         <div style={style.header}>
           <h2 style={style.title}>Estilo de enlace</h2>
-          <button type="button" style={style.iconButton} onClick={onCerrar} aria-label="Cerrar">×</button>
+          <button type="button" style={style.iconButton} onClick={onCerrar} aria-label="Cerrar">{GLIFO_CERRAR}</button>
         </div>
         <section style={style.section}>
           <span style={style.label}>Color</span>
@@ -118,7 +120,7 @@ export function DialogoEstiloEnlace({ abierto, enlace, onCerrar, onAplicar }: Pr
           </div>
         </section>
         <div style={style.footer}>
-          <button type="button" style={style.primary} onClick={onCerrar}>Listo</button>
+          <DialogoAccion tono="primaria" onClick={onCerrar}>Listo</DialogoAccion>
         </div>
       </div>
     </div>
@@ -126,6 +128,10 @@ export function DialogoEstiloEnlace({ abierto, enlace, onCerrar, onAplicar }: Pr
 }
 
 const style = {
+  // Ronda Codex v1 · L3: este diálogo no usa el componente Dialogo base
+  // (overlay propio sin portal), por lo que re-pielamos su chrome a mano al
+  // mismo lenguaje: backdrop papel translúcido + blur, hairline ruleStrong,
+  // sin sombra, título Inria Serif, cierre como glifo `✕`, "Listo" como palabra.
   backdrop: {
     position: "fixed",
     inset: 0,
@@ -133,7 +139,8 @@ const style = {
     display: "grid",
     placeItems: "center",
     padding: "24px",
-    background: "rgba(10, 10, 10, 0.30)",
+    background: "rgba(250, 250, 248, 0.78)",
+    backdropFilter: "blur(2px)",
   },
   modal: {
     width: "360px",
@@ -141,36 +148,37 @@ const style = {
     gap: "16px",
     padding: "20px 24px",
     background: tokens.colors.paper,
-    border: `${tokens.stroke.base}px solid ${tokens.colors.ink}`,
+    border: `${tokens.stroke.hairline}px solid ${tokens.colors.ruleStrong}`,
     borderRadius: 0,
-    boxShadow: tokens.shadows.flatXl,
-    fontFamily: tokens.typography.familyChrome,
+    boxShadow: tokens.shadows.none,
+    fontFamily: tokens.typography.serif,
   },
   header: {
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
     paddingBottom: "12px",
-    borderBottom: `${tokens.stroke.base}px solid ${tokens.colors.ink}`,
+    borderBottom: `${tokens.stroke.hairline}px solid ${tokens.colors.ruleStrong}`,
   },
   title: {
     margin: 0,
     color: tokens.colors.ink,
-    fontFamily: tokens.typography.familyChrome,
-    fontSize: "18px",
-    fontWeight: 700,
-    letterSpacing: "-0.01em",
+    fontFamily: tokens.typography.serif,
+    fontSize: `${tokens.typography.fs.fs20}px`,
+    fontWeight: tokens.typography.weights.bold,
+    letterSpacing: tokens.typography.ls.tight,
   },
   iconButton: {
-    width: "28px",
-    height: "28px",
-    border: `1px solid ${tokens.colors.ink15}`,
+    width: "24px",
+    height: "24px",
+    border: "none",
     borderRadius: 0,
-    background: tokens.colors.paper,
-    color: tokens.colors.ink,
+    background: "transparent",
+    color: tokens.colors.inkMid,
     cursor: "pointer",
-    fontSize: "16px",
+    fontSize: `${tokens.typography.fs.fs14}px`,
     lineHeight: 1,
+    padding: 0,
   },
   section: { display: "grid", gap: "10px" },
   label: {
@@ -222,18 +230,6 @@ const style = {
     display: "flex",
     justifyContent: "flex-end",
     paddingTop: "12px",
-    borderTop: `${tokens.stroke.base}px solid ${tokens.colors.ink15}`,
-  },
-  primary: {
-    minHeight: "32px",
-    padding: "8px 18px",
-    border: `${tokens.stroke.base}px solid ${tokens.colors.ink}`,
-    borderRadius: 0,
-    background: tokens.colors.ink,
-    color: tokens.colors.paper,
-    cursor: "pointer",
-    fontFamily: tokens.typography.familyChrome,
-    fontSize: "13px",
-    fontWeight: 500,
+    borderTop: `${tokens.stroke.hairline}px solid ${tokens.colors.rule}`,
   },
 } satisfies Record<string, preact.JSX.CSSProperties>;

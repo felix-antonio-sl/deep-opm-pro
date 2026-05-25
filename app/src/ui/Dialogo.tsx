@@ -1,7 +1,8 @@
 // [JOYAS §1-3] Chrome UI consume tokens centralizados; canvas semántico invariante.
-import type { ComponentChildren, RefObject } from "preact";
-import { createPortal } from "preact/compat";
+import type { ComponentChildren, JSX, RefObject } from "preact";
+import { Children, createPortal } from "preact/compat";
 import { useLayoutEffect, useMemo, useRef } from "preact/hooks";
+import { GLIFO_SEP } from "./codex/glifos";
 import { tokens } from "./tokens";
 
 /**
@@ -129,7 +130,7 @@ export function Dialogo(props: DialogoProps) {
           <h2 id={titleId.current} style={style.title}>{props.title}</h2>
         </div>
         <div style={style.body}>{props.children}</div>
-        <div style={style.actions}>{props.actions}</div>
+        <div style={style.actions}>{intercalarSeparadores(props.actions)}</div>
       </section>
     </div>
   );
@@ -179,13 +180,87 @@ function elementosConFoco(dialog: HTMLElement | null): HTMLElement[] {
     .filter((element) => element.offsetParent !== null || element === document.activeElement);
 }
 
-// Ronda 28 L5: dialogo base Bauhaus.
-// - Backdrop ink 30% (no negro puro), sin blur.
-// - Container 1.5px ink border, paper bg, sombra plana flatXl, sin radius.
-// - Header padding 24 + border-bottom 1.5px ink; titulo Inter Tight 700/20.
-// - Body padding 24/28.
-// - Footer padding 16/24 + border-top 1.5px ink-15 (provisto por cada diálogo
-//   en su slot de `actions`).
+// Ronda Codex v1 · L3 — Acción de diálogo como PALABRA tipográfica.
+//
+// Patrón prohibido (`ui-forja/02-components §Apéndice`): "Button con background
+// + radius + shadow". Las acciones del diálogo son palabras separadas por `·`
+// (`ui-forja/02-components §8`, `01-design-spec §8`). `DialogoAccion` mantiene
+// el `<button>` real (rol/nombre accesible = texto visible, testIds intactos)
+// pero lo pinta como palabra: sin fondo, sin borde, sin radius, sin sombra.
+//   - default   → tinta media (inkMid), serif.
+//   - primaria  → tinta plena (ink), peso bold + subrayado hairline ink.
+//   - destructiva → crimson (canal UI V-203, `01-design-spec §3.3`).
+//   - disabled  → inkSoft, sin cursor (HU-SHARED-003: no oculta acciones
+//                 no permitidas; las muestra atenuadas).
+export type DialogoAccionTono = "default" | "primaria" | "destructiva";
+
+interface DialogoAccionProps {
+  children: ComponentChildren;
+  onClick?: JSX.MouseEventHandler<HTMLButtonElement>;
+  tono?: DialogoAccionTono;
+  disabled?: boolean;
+  type?: "button" | "submit";
+  /** `form` id para acciones `type="submit"` fuera del `<form>` (submit remoto). */
+  form?: string;
+  title?: string;
+  "aria-label"?: string;
+  testId?: string;
+  innerRef?: RefObject<HTMLButtonElement>;
+}
+
+export function DialogoAccion(props: DialogoAccionProps) {
+  const tono: DialogoAccionTono = props.tono ?? "default";
+  const estilo = props.disabled
+    ? accionStyle.disabled
+    : tono === "primaria"
+      ? accionStyle.primaria
+      : tono === "destructiva"
+        ? accionStyle.destructiva
+        : accionStyle.default;
+  const extra: Record<string, unknown> = {};
+  if (props.innerRef) extra.ref = props.innerRef;
+  if (props.onClick) extra.onClick = props.onClick;
+  if (props.disabled) extra.disabled = true;
+  if (props.form) extra.form = props.form;
+  if (props.title) extra.title = props.title;
+  if (props["aria-label"]) extra["aria-label"] = props["aria-label"];
+  if (props.testId) extra["data-testid"] = props.testId;
+  return (
+    <button type={props.type ?? "button"} style={estilo} {...extra}>
+      {props.children}
+    </button>
+  );
+}
+
+// Intercala el separador `·` (inkFaint, `01-design-spec §3.1`) entre cada
+// acción del footer. El separador es decorativo (`aria-hidden`) y vive FUERA de
+// los `<button>`, así el nombre accesible de cada acción permanece exacto.
+function intercalarSeparadores(actions: ComponentChildren): ComponentChildren {
+  const items = Children.toArray(actions).filter((child) => child != null);
+  if (items.length <= 1) return actions;
+  return items.flatMap((item, index) =>
+    index === 0
+      ? [item]
+      : [
+          <span key={`sep-${index}`} aria-hidden="true" style={accionStyle.separador}>
+            {GLIFO_SEP}
+          </span>,
+          item,
+        ],
+  );
+}
+
+// Ronda Codex v1 · L3 — diálogo base re-pielado a lenguaje Codex.
+// - Backdrop: papel translúcido (no negro puro), blur 2px — sin overlay oscuro
+//   (`02-components §Apéndice`, §8). Derivado de tokens.colors.paper.
+// - Container: hairline `ruleStrong` (`01-design-spec §6`), paper bg, sin radius,
+//   sin sombra (`§6`: "No usar shadows. No usar elevación.").
+// - Header: hairline `ruleStrong` inferior; título Inria Serif 700/20, tracking
+//   tight (`§4.3`, `§5`).
+// - Body: serif 13.5/1.55, tracking body (`§4.2`).
+// - Footer: hairline `rule` superior; acciones-palabra alineadas a la derecha.
+const PAPER_BACKDROP = "rgba(250, 250, 248, 0.78)"; // tokens.colors.paper @ 78%
+
 const style = {
   backdrop: {
     position: "fixed",
@@ -194,16 +269,17 @@ const style = {
     display: "grid",
     placeItems: "center",
     padding: "24px",
-    background: "rgba(10, 10, 10, 0.30)",
+    background: PAPER_BACKDROP,
+    backdropFilter: "blur(2px)",
   },
   dialog: {
     padding: 0,
-    border: `${tokens.stroke.base}px solid ${tokens.colors.ink}`,
+    border: `${tokens.stroke.hairline}px solid ${tokens.colors.ruleStrong}`,
     borderRadius: 0,
     background: tokens.colors.paper,
-    boxShadow: tokens.shadows.flatXl,
+    boxShadow: tokens.shadows.none,
     color: tokens.colors.ink,
-    fontFamily: tokens.typography.familyChrome,
+    fontFamily: tokens.typography.serif,
     outline: "none",
     maxHeight: "calc(100vh - 48px)",
     display: "flex",
@@ -212,33 +288,85 @@ const style = {
   header: {
     flex: "0 0 auto",
     padding: "24px 24px 20px",
-    borderBottom: `${tokens.stroke.base}px solid ${tokens.colors.ink}`,
+    borderBottom: `${tokens.stroke.hairline}px solid ${tokens.colors.ruleStrong}`,
   },
   title: {
     margin: 0,
     color: tokens.colors.ink,
-    fontFamily: tokens.typography.familyChrome,
-    fontSize: "20px",
-    fontWeight: 700,
-    lineHeight: 1.2,
-    letterSpacing: "-0.01em",
+    fontFamily: tokens.typography.serif,
+    fontSize: `${tokens.typography.fs.fs20}px`,
+    fontWeight: tokens.typography.weights.bold,
+    lineHeight: tokens.typography.lh.tight,
+    letterSpacing: tokens.typography.ls.tight,
   },
   body: {
     minHeight: 0,
     overflow: "auto",
     padding: "24px 28px",
-    color: tokens.colors.ink90,
-    fontFamily: tokens.typography.familyChrome,
-    fontSize: "14px",
-    fontWeight: 400,
-    lineHeight: 1.55,
+    color: tokens.colors.inkMid,
+    fontFamily: tokens.typography.serif,
+    fontSize: `${tokens.typography.fs.fs13}px`,
+    fontWeight: tokens.typography.weights.regular,
+    lineHeight: tokens.typography.lh.opl,
+    letterSpacing: tokens.typography.ls.body,
   },
   actions: {
     flex: "0 0 auto",
     display: "flex",
+    flexWrap: "wrap",
+    alignItems: "baseline",
     justifyContent: "flex-end",
-    gap: "8px",
+    gap: "0",
     padding: "16px 24px",
-    borderTop: `${tokens.stroke.base}px solid ${tokens.colors.ink15}`,
+    borderTop: `${tokens.stroke.hairline}px solid ${tokens.colors.rule}`,
+  },
+} satisfies Record<string, preact.JSX.CSSProperties>;
+
+const accionBase = {
+  appearance: "none",
+  border: "none",
+  borderRadius: 0,
+  background: "transparent",
+  boxShadow: "none",
+  padding: "2px 2px",
+  margin: 0,
+  fontFamily: tokens.typography.serif,
+  fontSize: `${tokens.typography.fs.fs14}px`,
+  lineHeight: tokens.typography.lh.tight,
+  letterSpacing: tokens.typography.ls.body,
+  cursor: "pointer",
+  whiteSpace: "nowrap",
+  transition: tokens.transitions.fast,
+} satisfies preact.JSX.CSSProperties;
+
+const accionStyle = {
+  default: {
+    ...accionBase,
+    color: tokens.colors.inkMid,
+    fontWeight: tokens.typography.weights.regular,
+  },
+  primaria: {
+    ...accionBase,
+    color: tokens.colors.ink,
+    fontWeight: tokens.typography.weights.bold,
+    borderBottom: `${tokens.stroke.hairline}px solid ${tokens.colors.ink}`,
+  },
+  destructiva: {
+    ...accionBase,
+    color: tokens.colors.crimson,
+    fontWeight: tokens.typography.weights.regular,
+  },
+  disabled: {
+    ...accionBase,
+    color: tokens.colors.inkSoft,
+    fontWeight: tokens.typography.weights.regular,
+    cursor: "not-allowed",
+  },
+  separador: {
+    color: tokens.colors.inkFaint,
+    fontFamily: tokens.typography.serif,
+    fontSize: `${tokens.typography.fs.fs14}px`,
+    padding: "0 10px",
+    userSelect: "none",
   },
 } satisfies Record<string, preact.JSX.CSSProperties>;

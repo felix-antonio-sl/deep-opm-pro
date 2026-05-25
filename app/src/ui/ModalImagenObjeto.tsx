@@ -3,7 +3,7 @@ import { useEffect, useState } from "preact/hooks";
 import { useModalImagenObjetoViewModel } from "../app/viewmodels/modalImagenObjetoViewModel";
 import { precargarBitmap, registrarCacheImagen, validarUrlImagen } from "../modelo/imagenObjeto";
 import type { ImagenEntidad, ModoImagenEntidad } from "../modelo/tipos";
-import { Dialogo } from "./Dialogo";
+import { Dialogo, DialogoAccion } from "./Dialogo";
 import { tokens } from "./tokens";
 
 const TIPOS_LOCALES_PERMITIDOS = new Set(["image/png", "image/jpeg", "image/gif", "image/webp"]);
@@ -85,14 +85,14 @@ export function ModalImagenObjeto() {
       actions={(
         <>
           {imagenActual ? (
-            <button type="button" style={style.dangerButton} onClick={() => entidad && quitar(entidad.id)}>
+            <DialogoAccion tono="destructiva" onClick={() => entidad && quitar(entidad.id)}>
               Quitar
-            </button>
+            </DialogoAccion>
           ) : null}
-          <button type="button" style={style.secondaryButton} onClick={cerrar}>Cancelar</button>
-          <button type="button" style={style.primaryButton} onClick={confirmar} disabled={guardando}>
+          <DialogoAccion onClick={cerrar}>Cancelar</DialogoAccion>
+          <DialogoAccion tono="primaria" onClick={confirmar} disabled={guardando}>
             {guardando ? "Verificando..." : "Confirmar"}
-          </button>
+          </DialogoAccion>
         </>
       )}
     >
@@ -180,9 +180,6 @@ const style = {
   fileButton: { display: "inline-flex", alignItems: "center", justifyContent: "center", height: "34px", padding: "0 14px", border: `1px solid ${tokens.colors.ink}`, borderRadius: 0, background: tokens.colors.paper, color: tokens.colors.ink, cursor: "pointer", fontFamily: tokens.typography.familyChrome, fontSize: "12px", fontWeight: 500 },
   fileInput: { position: "absolute", width: "1px", height: "1px", opacity: 0, pointerEvents: "none" },
   fileName: { minWidth: 0, color: tokens.colors.ink50, fontFamily: tokens.typography.familyChrome, fontSize: "12px", fontWeight: 400, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" },
-  primaryButton: { minHeight: "32px", padding: "8px 18px", border: `${tokens.stroke.base}px solid ${tokens.colors.ink}`, borderRadius: 0, background: tokens.colors.ink, color: tokens.colors.paper, cursor: "pointer", fontFamily: tokens.typography.familyChrome, fontSize: "13px", fontWeight: 500 },
-  secondaryButton: { minHeight: "32px", padding: "8px 18px", border: `${tokens.stroke.base}px solid ${tokens.colors.ink}`, borderRadius: 0, background: tokens.colors.paper, color: tokens.colors.ink, cursor: "pointer", fontFamily: tokens.typography.familyChrome, fontSize: "13px", fontWeight: 500 },
-  dangerButton: { minHeight: "32px", padding: "8px 18px", border: `${tokens.stroke.base}px solid ${tokens.colors.accent}`, borderRadius: 0, background: tokens.colors.paper, color: tokens.colors.accentDark, cursor: "pointer", fontFamily: tokens.typography.familyChrome, fontSize: "13px", fontWeight: 500 },
 } satisfies Record<string, preact.JSX.CSSProperties>;
 
 function leerArchivoComoDataUrl(file: File): Promise<string> {

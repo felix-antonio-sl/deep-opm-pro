@@ -1,7 +1,7 @@
 // [JOYAS §1-3] Chrome UI consume tokens centralizados; canvas semántico invariante.
 import { useEffect, useRef } from "preact/hooks";
 import { useBusquedaGlobalViewModel } from "../app/viewmodels/busquedaGlobalViewModel";
-import { Dialogo } from "./Dialogo";
+import { Dialogo, DialogoAccion } from "./Dialogo";
 import { useConfirmarSiDirty } from "./ConfirmacionContext";
 import { tokens } from "./tokens";
 
@@ -24,7 +24,7 @@ export function DialogoBuscarGlobal() {
       title="Buscar global"
       onCancel={cerrar}
       initialFocusRef={inputRef}
-      actions={<button type="button" style={style.secondaryButton} onClick={cerrar}>Cerrar</button>}
+      actions={<DialogoAccion onClick={cerrar}>Cerrar</DialogoAccion>}
     >
       <div data-testid="dialogo-buscar-global" style={style.body}>
         <input
@@ -84,7 +84,7 @@ const style = {
     color: tokens.colors.ink,
     fontFamily: tokens.typography.familyChrome,
     fontSize: "14px",
-    caretColor: tokens.colors.accent,
+    caretColor: tokens.colors.crimson,
   },
   empty: { padding: "16px", border: `1px dashed ${tokens.colors.ink15}`, borderRadius: 0, color: tokens.colors.ink50, fontFamily: tokens.typography.familyChrome, fontSize: "13px", fontWeight: 400 },
   table: { width: "100%", borderCollapse: "collapse", fontFamily: tokens.typography.familyChrome, fontSize: "13px" },
@@ -92,16 +92,4 @@ const style = {
   row: { cursor: "pointer", borderBottom: `1px solid ${tokens.colors.ink08}` },
   td: { padding: "10px", color: tokens.colors.ink, fontWeight: 500 },
   tdMuted: { padding: "10px", color: tokens.colors.ink70, fontWeight: 400 },
-  secondaryButton: {
-    minHeight: "32px",
-    padding: "8px 18px",
-    border: `${tokens.stroke.base}px solid ${tokens.colors.ink}`,
-    borderRadius: 0,
-    background: tokens.colors.paper,
-    color: tokens.colors.ink,
-    cursor: "pointer",
-    fontFamily: tokens.typography.familyChrome,
-    fontSize: "13px",
-    fontWeight: 500,
-  },
 } satisfies Record<string, preact.JSX.CSSProperties>;

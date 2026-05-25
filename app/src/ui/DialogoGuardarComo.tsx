@@ -4,7 +4,7 @@ import folderIcon from "../../../assets/svg/folder.svg";
 import type { Id } from "../modelo/tipos";
 import { useZustandPersistencePort } from "../app/ports/zustandPersistencePort";
 import { useZustandWorkspacePort } from "../app/ports/zustandWorkspacePort";
-import { Dialogo } from "./Dialogo";
+import { Dialogo, DialogoAccion } from "./Dialogo";
 import { PanelCarpetas, type VistaModo } from "./PanelCarpetas";
 import { tokens } from "./tokens";
 
@@ -56,15 +56,14 @@ export function DialogoGuardarComo() {
       initialFocusRef={inputRef}
       actions={(
         <>
-          <button type="button" style={style.secondaryButton} onClick={persistencia.cerrarGuardarComo}>Cancelar</button>
-          <button
-            type="button"
-            style={validacion.ok ? style.primaryButton : style.disabledButton}
+          <DialogoAccion onClick={persistencia.cerrarGuardarComo}>Cancelar</DialogoAccion>
+          <DialogoAccion
+            tono="primaria"
             disabled={!validacion.ok}
             onClick={() => persistencia.guardarComoLocalConDescripcion({ nombre, descripcion, crearVersionAlGuardar })}
           >
             Guardar
-          </button>
+          </DialogoAccion>
         </>
       )}
     >
@@ -159,7 +158,7 @@ const style = {
     height: "22px",
   },
   folderSelector: {
-    border: `1px solid ${tokens.colors.ink15}`,
+    border: `${tokens.stroke.hairline}px solid ${tokens.colors.rule}`,
     borderRadius: 0,
     padding: "8px 12px",
     background: tokens.colors.paper,
@@ -186,29 +185,29 @@ const style = {
   },
   input: {
     height: "34px",
-    border: `1px solid ${tokens.colors.ink15}`,
+    border: `${tokens.stroke.hairline}px solid ${tokens.colors.ruleStrong}`,
     borderRadius: 0,
     padding: "0 10px",
     background: tokens.colors.paper,
     color: tokens.colors.ink,
     fontFamily: tokens.typography.familyChrome,
     fontSize: "13px",
-    caretColor: tokens.colors.accent,
+    caretColor: tokens.colors.crimson,
   },
   textarea: {
     minHeight: "72px",
     resize: "vertical",
-    border: `1px solid ${tokens.colors.ink15}`,
+    border: `${tokens.stroke.hairline}px solid ${tokens.colors.ruleStrong}`,
     borderRadius: 0,
     padding: "8px 10px",
     background: tokens.colors.paper,
     color: tokens.colors.ink,
     fontFamily: tokens.typography.familyChrome,
     fontSize: "13px",
-    caretColor: tokens.colors.accent,
+    caretColor: tokens.colors.crimson,
   },
   error: {
-    color: tokens.colors.accent,
+    color: tokens.colors.crimson,
     fontFamily: tokens.typography.familyChrome,
     fontSize: "12px",
     fontWeight: 500,
@@ -221,41 +220,5 @@ const style = {
     fontFamily: tokens.typography.familyChrome,
     fontSize: "13px",
     fontWeight: 400,
-  },
-  primaryButton: {
-    minHeight: "32px",
-    padding: "8px 18px",
-    border: `${tokens.stroke.base}px solid ${tokens.colors.ink}`,
-    borderRadius: 0,
-    background: tokens.colors.ink,
-    color: tokens.colors.paper,
-    cursor: "pointer",
-    fontFamily: tokens.typography.familyChrome,
-    fontSize: "13px",
-    fontWeight: 500,
-  },
-  secondaryButton: {
-    minHeight: "32px",
-    padding: "8px 18px",
-    border: `${tokens.stroke.base}px solid ${tokens.colors.ink}`,
-    borderRadius: 0,
-    background: tokens.colors.paper,
-    color: tokens.colors.ink,
-    cursor: "pointer",
-    fontFamily: tokens.typography.familyChrome,
-    fontSize: "13px",
-    fontWeight: 500,
-  },
-  disabledButton: {
-    minHeight: "32px",
-    padding: "8px 18px",
-    border: `${tokens.stroke.base}px solid ${tokens.colors.ink15}`,
-    borderRadius: 0,
-    background: tokens.colors.ink04,
-    color: tokens.colors.ink50,
-    cursor: "not-allowed",
-    fontFamily: tokens.typography.familyChrome,
-    fontSize: "13px",
-    fontWeight: 500,
   },
 } satisfies Record<string, preact.JSX.CSSProperties>;
