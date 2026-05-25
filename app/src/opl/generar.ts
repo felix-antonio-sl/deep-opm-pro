@@ -63,7 +63,9 @@ function generarLineasOpl(modelo: Modelo, opd: Opd): OplLineaPendiente[] {
   for (const apariencia of Object.values(opd.apariencias)) {
     const entidad = modelo.entidades[apariencia.entidadId];
     if (!entidad) continue;
-    agregarLinea(lineas, oracionEntidad(entidad), [refEntidad(entidad.id)], [hintEntidad(entidad)]);
+    for (const oracion of oracionEntidad(entidad)) {
+      agregarLinea(lineas, oracion, [refEntidad(entidad.id)], [hintEntidad(entidad)]);
+    }
     const estados = entidad.tipo === "objeto" ? estadosDeEntidad(modelo, entidad.id) : [];
     if (estados.some((estado) => !estado.suprimido)) agregarOracionEstadosInteractiva(lineas, entidad, estados);
     for (const linea of oracionesUnidadDescripcionEstados(entidad, estados)) {

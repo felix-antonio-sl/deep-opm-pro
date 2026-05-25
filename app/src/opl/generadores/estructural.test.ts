@@ -3,9 +3,9 @@ import type { Enlace, Entidad, Modelo } from "../../modelo/tipos";
 import { oracionEnlaceEstructural, oracionEntidad, oracionValorAtributo } from "./estructural";
 
 describe("estructural OPL", () => {
-  test("oracionEntidad conserva esencia y afiliacion", () => {
+  test("oracionEntidad escinde esencia y afiliacion en dos oraciones (G2, D1-D4)", () => {
     const entidad: Entidad = { id: "e1", tipo: "objeto", nombre: "Nodo", esencia: "informacional", afiliacion: "sistemica" };
-    expect(oracionEntidad(entidad)).toBe("**Nodo** es un objeto informacional y sistémico.");
+    expect(oracionEntidad(entidad)).toEqual(["**Nodo** es informacional.", "**Nodo** es sistémico."]);
   });
 
   test("agregacion emite consta de", () => {
@@ -33,10 +33,10 @@ describe("estructural OPL", () => {
     };
 
     expect(oracionValorAtributo(atributo)).toBe("**Temperatura** es valor [°C].");
-    expect(oracionEntidad(atributo)).toBe("**Temperatura** es valor [°C].");
-    expect(oracionEntidad({ ...atributo, valorSlot: { ...atributo.valorSlot!, valor: 25.5 } })).toBe("**Temperatura** es 25.5 [°C].");
+    expect(oracionEntidad(atributo)).toEqual(["**Temperatura** es valor [°C]."]);
+    expect(oracionEntidad({ ...atributo, valorSlot: { ...atributo.valorSlot!, valor: 25.5 } })).toEqual(["**Temperatura** es 25.5 [°C]."]);
     const { unidad: _unidad, ...sinUnidad } = atributo;
-    expect(oracionEntidad({ ...sinUnidad, valorSlot: { ...atributo.valorSlot!, valor: 25 } })).toBe("**Temperatura** es 25.");
+    expect(oracionEntidad({ ...sinUnidad, valorSlot: { ...atributo.valorSlot!, valor: 25 } })).toEqual(["**Temperatura** es 25."]);
   });
 });
 

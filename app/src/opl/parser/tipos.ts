@@ -58,8 +58,11 @@ export type OracionOplAst =
       linea: number;
       nombre: string;
       tipoEntidad: TipoEntidad;
-      esencia: Esencia;
-      afiliacion: Afiliacion;
+      // Forma colapsada (`X es un objeto F y A`) trae ambas dimensiones.
+      // Forma escindida canónica G2 (`X es F.` / `X es A.`) trae solo una;
+      // la otra queda `undefined` y el planificador no la fuerza.
+      esencia?: Esencia;
+      afiliacion?: Afiliacion;
       etiqueta?: string;
     }
   | {
@@ -258,7 +261,11 @@ export type PatchOplPropuesto =
   | { tipo: "renombrar-entidad"; linea: number; entidadId: Id; anterior: string; siguiente: string }
   | { tipo: "cambiar-esencia"; linea: number; entidadId: Id; anterior: Esencia; siguiente: Esencia }
   | { tipo: "cambiar-afiliacion"; linea: number; entidadId: Id; anterior: Afiliacion; siguiente: Afiliacion }
-  | { tipo: "crear-entidad"; linea: number; nombre: string; entidadTipo: TipoEntidad; esencia: Esencia; afiliacion: Afiliacion }
+  // esencia/afiliacion opcionales: la clasificación escindida (G2) declara una
+  // dimensión por oración; el aplicador usa el default del modelo para la
+  // ausente. Dos oraciones consecutivas (esencia + afiliación) se fusionan en
+  // un único `crear-entidad` (ver `PatchRegistry.add`).
+  | { tipo: "crear-entidad"; linea: number; nombre: string; entidadTipo: TipoEntidad; esencia?: Esencia; afiliacion?: Afiliacion }
   | { tipo: "sincronizar-estados"; linea: number; objetoId: Id; nombres: string[] }
   | { tipo: "renombrar-estado"; linea: number; estadoId: Id; anterior: string; siguiente: string }
   | {
