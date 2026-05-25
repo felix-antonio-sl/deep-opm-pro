@@ -91,11 +91,11 @@ export function AvisoEditarEnEscritorio() {
   );
 }
 
-// Ronda 28 L6 (Bauhaus): tab base monocroma + subrayado 1.5px ink top
-// en activa. Sin fondo cromático. Glifo en JetBrains Mono 18px ink;
-// etiqueta Inter Tight 11px ink-70. La barra es paper con border-top
-// 1.5px ink. La tab activa eleva al ink el color del glifo+etiqueta y
-// dibuja el subrayado top (no usa fondo).
+// Ronda Codex v1 L4: re-piel ligera. La barra es paper con hairline superior
+// (tokens.stroke.hairline). El glifo va en JetBrains Mono; la etiqueta en Inria
+// Serif. La tab activa usa el único canal de acento UI de Codex (crimson V-203)
+// como subrayado superior hairline + tinta ink full, sin fondo cromático
+// (ui-forja prohíbe underline-active gruesa: aquí es hairline editorial).
 const baseTab: preact.JSX.CSSProperties = {
   flex: "1 1 0",
   minWidth: 0,
@@ -106,18 +106,18 @@ const baseTab: preact.JSX.CSSProperties = {
   justifyContent: "center",
   gap: "4px",
   padding: `0 ${tokens.spacing.xs}px`,
-  borderTop: `${tokens.stroke.base}px solid transparent`,
+  borderTop: `${tokens.stroke.hairline}px solid transparent`,
   borderLeft: 0,
   borderRight: 0,
   borderBottom: 0,
   borderRadius: 0,
   background: tokens.colors.paper,
-  color: tokens.colors.ink70,
+  color: tokens.colors.inkSoft,
   cursor: "pointer",
-  fontFamily: tokens.typography.fontFamily,
-  fontSize: `${tokens.typography.sizes.xs}px`,
-  fontWeight: tokens.typography.weights.medium,
-  lineHeight: 1,
+  fontFamily: tokens.typography.serif,
+  fontSize: `${tokens.typography.fs.fs11}px`,
+  fontWeight: tokens.typography.weights.regular,
+  lineHeight: tokens.typography.lh.tight,
   transition: `color ${tokens.transitions.fast}, border-color ${tokens.transitions.fast}`,
 };
 
@@ -129,20 +129,20 @@ const style = {
     height: `${tokens.mobileNav.altoBarra}px`,
     minHeight: `${tokens.mobileNav.altoBarra}px`,
     background: tokens.colors.paper,
-    borderTop: `${tokens.stroke.base}px solid ${tokens.colors.ink}`,
+    borderTop: `${tokens.stroke.hairline}px solid ${tokens.colors.ruleStrong}`,
   } as preact.JSX.CSSProperties,
   tabInactiva: baseTab,
   tabActiva: {
     ...baseTab,
-    borderTopColor: tokens.colors.ink,
+    borderTopColor: tokens.colors.crimson,
     color: tokens.colors.ink,
-    fontWeight: tokens.typography.weights.semibold,
+    fontWeight: tokens.typography.weights.bold,
   } as preact.JSX.CSSProperties,
   icono: {
-    fontFamily: tokens.typography.fontFamilyMono,
+    fontFamily: tokens.typography.mono,
     fontSize: 18,
     lineHeight: 1,
-    fontWeight: 500,
+    fontWeight: tokens.typography.weights.regular,
     color: "inherit",
   } as preact.JSX.CSSProperties,
   etiqueta: {
@@ -156,12 +156,13 @@ const style = {
     margin: 0,
     padding: `${tokens.spacing.sm}px ${tokens.spacing.md}px`,
     background: tokens.colors.paper,
-    color: tokens.colors.ink70,
-    fontFamily: tokens.typography.fontFamily,
-    fontSize: `${tokens.typography.sizes.sm}px`,
-    fontWeight: tokens.typography.weights.medium,
+    color: tokens.colors.inkSoft,
+    fontFamily: tokens.typography.serif,
+    fontSize: `${tokens.typography.fs.fs12}px`,
+    fontStyle: "italic",
+    fontWeight: tokens.typography.weights.regular,
     textAlign: "center",
-    borderTop: `1px solid ${tokens.colors.ink15}`,
+    borderTop: `${tokens.stroke.hairline}px solid ${tokens.colors.rule}`,
   } as preact.JSX.CSSProperties,
 } satisfies Record<string, preact.JSX.CSSProperties>;
 
