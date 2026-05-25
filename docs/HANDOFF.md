@@ -1,10 +1,10 @@
 # HANDOFF — Estado operativo del modelador OPM
 
 **Fecha**: 2026-05-25 · **Repositorio**: `deep-opm-pro` · **Rama**: `main`
-**Commit vigente**: `011ae4f` (Ronda bugs-canvas encima de la Ronda Codex v2) · **origin/main**: **adelantado, pendiente de push**
+**Commit vigente**: `53fb213` (Ronda bugs-canvas encima de la Ronda Codex v2) · **origin/main**: sincronizado tras push
 **Instancia**: `https://opforja.sanixai.com` — bundle desplegado **`index-BWWB3JRK.js`** (= Ronda Codex v2; **la Ronda bugs-canvas aún NO está desplegada**), contenedores `opforja` (healthy) + `opforja-bug-capture`, **HTTP 200 público** (sin auth, ver Riesgos).
 
-## Ronda bugs-canvas (cerrada en main, pendiente push+deploy)
+## Ronda bugs-canvas (en main y pusheada; pendiente deploy)
 
 7 bugs de canvas/atajos resueltos en 4 líneas paralelas (worktrees, dominios disjuntos) — `docs/bugs/` todos en Resuelto:
 - **Símbolos** (L-A): sombra física suave (`6ae261`), estado como rountangle de radio fijo (`9e3b9b`), proceso sistémico refinado conserva contorno sólido (`a8c184`).
