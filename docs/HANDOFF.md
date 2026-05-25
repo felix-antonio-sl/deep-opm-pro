@@ -1,8 +1,8 @@
 # HANDOFF — Estado operativo del modelador OPM
 
 **Fecha**: 2026-05-25 · **Repositorio**: `deep-opm-pro` · **Rama**: `main`
-**Commit vigente**: `53fb213` (Ronda bugs-canvas encima de la Ronda Codex v2) · **origin/main**: sincronizado tras push
-**Instancia**: `https://opforja.sanixai.com` — bundle desplegado **`index-BzUJLpkb.js`** (= Ronda Codex v2 + Ronda bugs-canvas), contenedores `opforja` (healthy) + `opforja-bug-capture`, **HTTP 200 público** (sin auth, ver Riesgos).
+**Commit vigente**: corte de runtime sociotecnico/agentico de simulacion sobre `main` (consultar `git log -1 --oneline` para hash final tras push).
+**Instancia**: `https://opforja.sanixai.com` — ultimo bundle desplegado conocido **`index-BzUJLpkb.js`** (= Ronda Codex v2 + Ronda bugs-canvas), contenedores `opforja` (healthy) + `opforja-bug-capture`, **HTTP 200 publico** (sin auth, ver Riesgos). Este corte **no despliega** ni cambia infraestructura.
 
 ## Ronda bugs-canvas (en main, pusheada y desplegada)
 
@@ -15,6 +15,30 @@
 Verde: **1696 unit + 237 e2e / 0 fail**. Lección operativa: los subagentes en worktree a veces resuelven rutas absolutas al checkout principal (contaminan `main`); el orquestador resetea el working tree y mergea solo las ramas committeadas. Ver [[feedback-ronda-paralela-reconciliacion-e2e]].
 
 > Este es el **único** handoff vigente del proyecto. No crear handoffs paralelos ni fechados: reescribir y consolidar aquí.
+
+## Corte actual — Runtime sociotecnico/agentico de simulacion
+
+Se implemento el primer corte vertical del sistema de simulacion y computo de Opforja orientado a sistemas sociotecnicos complejos y sistemas computacionales agenticos. El corte es deliberadamente pequeno, puro y verificable: no conecta todavia con UI, runner conceptual existente, persistencia ni herramientas externas reales.
+
+**Artefactos nuevos:**
+- `app/src/modelo/simulacion/sociotecnico.ts` — modulo puro tipado para actores, agentes, politicas de autonomia, decisiones, efectos pendientes y trace sociotecnico.
+- `app/src/modelo/simulacion/sociotecnico.test.ts` — tests TDD del comportamiento base.
+
+**Decisiones de diseno vigentes:**
+- El runtime sociotecnico queda separado del simulador conceptual actual (`runner.ts`/`plan.ts`) para evitar acoplar prematuramente UI, animacion de tokens y ejecucion agentica.
+- Las decisiones agenticas se evaluan como datos puros: `permitida`, `suspendida` o `bloqueada`.
+- Los efectos externos (`ask-human`, `tool-call`, `http`, `python`, `mqtt`, `sql`, `ros`, `genai`) no se ejecutan; quedan como `efectosPendientes` para que futuros puertos los resuelvan.
+- La politica de autonomia resuelve con precedencia: politica por herramienta > politica por accion > politica por defecto.
+- Una decision que requiere supervision genera un efecto `ask-human`; una herramienta bloqueada por politica no genera efecto pendiente.
+- El trace sociotecnico es inmutable y numerado; `aplicarDecisionSociotecnica` no muta el runtime de entrada.
+
+**Verificacion del corte:**
+- TDD rojo inicial confirmado: el test fallaba por modulo inexistente.
+- `cd app && bun test src/modelo/simulacion/sociotecnico.test.ts` -> **4 pass / 0 fail**.
+- `cd app && bun run typecheck` -> **0 errores**.
+- `cd app && bun run test` -> **1700 pass / 0 fail**.
+
+**Estado de worktree al cierre del corte:** existen cambios previos/no relacionados fuera de este commit en render/tests/docs de bugs (`app/src/leyes/proyecciones.test.ts`, `app/src/render/jointjs/*`, `docs/bugs/*`). No forman parte del corte sociotecnico y no deben stagearse automaticamente.
 
 ## Último corte funcional — Ronda Codex v2 (cerrada y desplegada)
 
@@ -47,6 +71,10 @@ Cierre completo de la **Auditoría Codex v1.0 ↔ Implementación rev2** (`/home
 
 ## Pendientes
 
+- **Integrar runtime sociotecnico con OPM**: mapear procesos computacionales/agenticos a `DecisionSim`, enlaces procedurales a pre/postcondiciones, y objetos/estados a contexto operativo.
+- **Agregar puertos de efectos**: definir puertos para aprobacion humana, tool-call, HTTP, Python, MQTT, SQL, ROS y GenAI sin ejecutar efectos desde el kernel puro.
+- **Disenar UI de laboratorio de simulacion**: inspeccion de agentes, politicas, decisiones suspendidas, trace sociotecnico y cola de efectos pendientes.
+- **Escenarios y corridas**: conectar el runtime sociotecnico con parametros/distribuciones existentes para exploracion Monte Carlo y analisis de resiliencia.
 - **Limpieza menor post-ronda**: campos `tab*Activo`/`cambiarTab*` del store y puertos quedaron huérfanos tras L3 (Inspector sin tabs) — candidatos a poda por el dueño de `store/`/`ports/`.
 - **Deuda v1.1 Codex** (fuera del cierre): proceso activo in-flight, asistente SD wizard, sub-modelos, switcher de lengua OPL, dark mode, frame letterbox 1700×950.
 - **Inria Sans 600** no existe como master en `@fontsource` — los pesos 500/600 quedan sintetizados por el navegador (documentado en `main.tsx`).
@@ -60,9 +88,12 @@ Cierre completo de la **Auditoría Codex v1.0 ↔ Implementación rev2** (`/home
 
 ## Riesgos
 
+- **Semantica sociotecnica inicial**: el tratamiento de `ocupado` vs `no-disponible`, aprobaciones humanas, prioridad entre politicas y reintentos de efectos aun es base; debe validarse con modelos reales antes de exponerlo como comportamiento final.
+- **Kernel sin persistencia ni UI**: el nuevo runtime existe en `src/modelo/simulacion`, pero todavia no se serializa dentro de `Modelo`, no aparece en inspector/canvas y no se ejecuta desde la barra de simulacion.
+- **Ejecucion externa deliberadamente deshabilitada**: los efectos `python/http/mqtt/sql/ros/genai` son descriptores pendientes, no side effects reales. Cualquier conexion futura debe pasar por puertos auditables y permisos explicitos.
 - **Instancia pública sin auth**: por decisión del operador se retiró el Basic Auth de Traefik. El endpoint `POST /__deep-opm/bug-reports` (sidecar `bug-capture`, `VITE_ENABLE_BUG_CAPTURE=true`) queda **público y escribe a disco** → riesgo de abuso/llenado. Revertir: re-agregar `opforja-auth@docker` al router + `basicauth.users` en `docker-compose.yml` (hash APR1 para `fsanhuezal`: `$$apr1$$opforja$$08lJpTQlgp0W79vrFxMnR/`) y `docker compose up -d`.
 - Worktrees de la ronda quedaron bloqueados por el runtime de agentes (`.claude/worktrees/`); se autolimpian, no forzar.
 
 ## Prompt de continuación
 
-> Continúa desde `docs/HANDOFF.md`, sección "Ronda Codex v2 (cerrada y desplegada)". El cierre de la auditoría Codex rev2 está mergeado (`main@245b031`+), desplegado (`index-BWWB3JRK.js`, opforja público) y verde (1685 unit + 237 e2e). Lee `CLAUDE.md` para arquitectura/comandos y la SSOT `docs/canon-opm/reglas-opm-estrictas.md` para canon OPL. Pendientes: poda de `tab*` huérfanos en store/ports, deuda v1.1 Codex, y opcional rev3 de auditoría. No reabrir decisiones cerradas (tabs, menú lateral, resize-handles, `puede ser` para estados).
+> Continúa desde `docs/HANDOFF.md`, sección "Corte actual — Runtime sociotecnico/agentico de simulacion". Ya existe un primer kernel puro en `app/src/modelo/simulacion/sociotecnico.ts` con tests en `sociotecnico.test.ts`; esta verificado con `bun test src/modelo/simulacion/sociotecnico.test.ts`, `bun run typecheck` y `bun run test` (1700 pass). Siguiente paso recomendado: integrar `DecisionSim`/`EfectoSim` con procesos OPM reales y disenar puertos auditables para aprobacion humana y herramientas externas. No stagear cambios no relacionados del worktree en render/tests/docs de bugs.
