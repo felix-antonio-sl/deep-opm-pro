@@ -116,12 +116,15 @@ export const toolbarStyle = {
     position: "relative",
     flex: "0 0 auto",
   },
-  /** Botón icono (☰): glifo grande en ink, borde 1.5px, fondo paper. */
+  /**
+   * Botón icono (☰): Ronda Codex v2 L2 — glifo en ink, sin caja con borde.
+   * El trigger del menú/palette es una palabra-glifo, no una caja cromada.
+   */
   iconButton: {
     width: "30px",
     height: "30px",
-    border: `${stroke.base}px solid ${colors.ink}`,
-    background: colors.paper,
+    border: "1px solid transparent",
+    background: "transparent",
     color: colors.ink,
     cursor: "pointer",
     fontSize: `${typography.sizes.lg}px`,
@@ -134,28 +137,24 @@ export const toolbarStyle = {
   },
   button: botonBase(),
   /**
-   * Botón Objeto — Bauhaus: borde ink, fondo paper, glifo cuadrado
-   * 12×12 en stroke ink (sin fill verde) + label "Objeto" en
-   * Inter Tight 500/13.
+   * Botón Objeto — Ronda Codex v2 L2 (botones-caja, auditoría rev2 §05):
+   * el top-bar deja de ser cajas con borde 1.5px. Ahora cada acción es una
+   * palabra con su glifo de clase (cuadrado/elipse en stroke ink), sin borde
+   * ni fondo. El estado activo se marca con un subrayado accent (cinabrio),
+   * no con una caja. Ver `palabraTopBar()`.
    */
   objectButton: {
-    ...botonBase(),
-    fontWeight: typography.weights.medium,
+    ...palabraTopBar(),
   },
   objectActiveButton: {
-    ...botonBase(),
-    fontWeight: typography.weights.medium,
-    background: colors.ink04,
+    ...palabraTopBar(),
     boxShadow: `inset 0 -2px 0 0 ${colors.accent}`,
   },
   processButton: {
-    ...botonBase(),
-    fontWeight: typography.weights.medium,
+    ...palabraTopBar(),
   },
   processActiveButton: {
-    ...botonBase(),
-    fontWeight: typography.weights.medium,
-    background: colors.ink04,
+    ...palabraTopBar(),
     boxShadow: `inset 0 -2px 0 0 ${colors.accent}`,
   },
   /** Glyph mini para Objeto (cuadrado) / Proceso (elipse) 12×12 ink. */
@@ -175,7 +174,7 @@ export const toolbarStyle = {
     fontWeight: typography.weights.semibold,
   },
   iconTextButton: {
-    ...botonBase(),
+    ...palabraTopBar(),
     padding: `0 ${spacing.sm + spacing.xs + 2}px`,
     display: "inline-flex",
     alignItems: "center",
@@ -440,6 +439,28 @@ function botonBase(): preact.JSX.CSSProperties {
     padding: "0 14px",
     border: `${stroke.base}px solid ${colors.ink}`,
     background: colors.paper,
+    color: colors.ink,
+    cursor: "pointer",
+    fontFamily: typography.fontFamily,
+    fontSize: `${typography.sizes.base}px`,
+    fontWeight: typography.weights.medium,
+    whiteSpace: "nowrap",
+    transition: "background 150ms ease-out",
+  };
+}
+
+/**
+ * Palabra del top-bar Codex (Ronda v2 L2): acción como texto + glifo, sin
+ * caja con borde ni fondo. Hereda la tipografía del chrome; el hover/active se
+ * resuelve por `toolbar.css` (wash ink-04) y el subrayado accent en activo. La
+ * altura de 32px se mantiene para no descuadrar el button-strip de 60px.
+ */
+function palabraTopBar(): preact.JSX.CSSProperties {
+  return {
+    height: "32px",
+    padding: "0 10px",
+    border: "1px solid transparent",
+    background: "transparent",
     color: colors.ink,
     cursor: "pointer",
     fontFamily: typography.fontFamily,

@@ -2,7 +2,6 @@
 import { useState } from "preact/hooks";
 import { useBarraPestanasViewModel } from "../app/viewmodels/barraPestanasViewModel";
 import type { Pestana } from "../modelo/tipos";
-import { Breadcrumb } from "./Breadcrumb";
 import { useConfirmarCierreDirty } from "./ConfirmacionContext";
 import { tokens } from "./tokens";
 import "./BarraPestanas.css";
@@ -64,9 +63,12 @@ export function BarraPestanas() {
 
   return (
     <div data-testid="barra-pestanas" style={style.barra}>
-      <div style={style.breadcrumbSlot}>
-        <Breadcrumb />
-      </div>
+      {/*
+        Ronda Codex v2 L2 (auditoría rev2 §05): el Breadcrumb se trasladó al
+        header de CodexFrame (columna central, reemplazando el literal "Codex").
+        Aquí se retira para no duplicar el testid `breadcrumb-opd`. La barra de
+        pestañas queda enfocada solo en las pestañas.
+      */}
       <div style={style.tabsSlot}>
         <div role="tablist" aria-label="Modelos abiertos" className="barra-pestanas__lista" style={style.lista}>
           {pestanas.map((pestana) => {
@@ -140,18 +142,15 @@ export function BarraPestanas() {
 const style = {
   barra: {
     display: "grid",
-    gridTemplateColumns: "minmax(180px, 42%) minmax(0, 1fr)",
+    // Ronda Codex v2 L2: el breadcrumb migró al header; las pestañas ocupan
+    // todo el ancho de la barra.
+    gridTemplateColumns: "minmax(0, 1fr)",
     alignItems: "stretch",
     minWidth: 0,
     height: 32,
     borderBottom: `1px solid ${tokens.colors.ink15}`,
     background: tokens.colors.paper,
     fontFamily: tokens.typography.fontFamily,
-  },
-  breadcrumbSlot: {
-    minWidth: 0,
-    minHeight: 0,
-    overflow: "hidden",
   },
   tabsSlot: {
     minWidth: 0,
