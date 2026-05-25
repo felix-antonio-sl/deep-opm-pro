@@ -15,18 +15,21 @@ export function DialogoConfiguracion() {
   const { abierto, cerrar, modeloNombre, modeloPersistidoId, renombrarModeloActual, gridConfig, fijarGridConfig, oplEsenciaVisibilidad, fijarOplEsenciaVisibilidad } = useDialogoConfiguracionViewModel();
   const [nombre, setNombre] = useState(modeloNombre);
   const [gridLocal, setGridLocal] = useState<GridConfig>(() => normalizarGridConfig(gridConfig));
+  const [oplEsenciaLocal, setOplEsenciaLocal] = useState<EsenciaVisibilidad>(oplEsenciaVisibilidad);
 
   useEffect(() => {
     if (!abierto) return;
     setNombre(modeloNombre);
     setGridLocal(normalizarGridConfig(gridConfig));
-  }, [abierto, gridConfig, modeloNombre]);
+    setOplEsenciaLocal(oplEsenciaVisibilidad);
+  }, [abierto, gridConfig, modeloNombre, oplEsenciaVisibilidad]);
 
   const actualizarGrid = (patch: Partial<GridConfig>) => {
     setGridLocal((actual) => normalizarGridConfig({ ...actual, ...patch }));
   };
   const guardar = () => {
     fijarGridConfig(gridLocal);
+    fijarOplEsenciaVisibilidad(oplEsenciaLocal);
     const nombreLimpio = nombre.trim();
     if (nombreLimpio && nombreLimpio !== modeloNombre) {
       renombrarModeloActual(nombreLimpio);
@@ -100,8 +103,8 @@ export function DialogoConfiguracion() {
             <select
               aria-label="Visibilidad de esencia en OPL"
               style={style.input}
-              value={oplEsenciaVisibilidad}
-              onChange={(e) => fijarOplEsenciaVisibilidad(e.currentTarget.value as EsenciaVisibilidad)}
+              value={oplEsenciaLocal}
+              onChange={(e) => setOplEsenciaLocal(e.currentTarget.value as EsenciaVisibilidad)}
             >
               <option value="siempre">Siempre</option>
               <option value="solo-difiere">Solo si difiere del default</option>
